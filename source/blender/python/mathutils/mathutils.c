@@ -35,7 +35,10 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_dynstr.h"
+
+#ifndef MATH_STANDALONE
+#  include "BLI_dynstr.h"
+#endif
 
 PyDoc_STRVAR(M_Mathutils_doc,
 "This module provides access to matrices, eulers, quaternions and vectors."
@@ -302,7 +305,7 @@ int EXPP_FloatsAreEqual(float af, float bf, int maxDiff)
 
 /*---------------------- EXPP_VectorsAreEqual -------------------------
  * Builds on EXPP_FloatsAreEqual to test vectors */
-int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps)
+int EXPP_VectorsAreEqual(const float *vecA, const float *vecB, int size, int floatSteps)
 {
 	int x;
 	for (x = 0; x < size; x++) {
@@ -312,6 +315,7 @@ int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps)
 	return 1;
 }
 
+#ifndef MATH_STANDALONE
 /* dynstr as python string utility funcions, frees 'ds'! */
 PyObject *mathutils_dynstr_to_py(struct DynStr *ds)
 {
@@ -324,6 +328,7 @@ PyObject *mathutils_dynstr_to_py(struct DynStr *ds)
 	PyMem_Free(ds_buf);
 	return ret;
 }
+#endif
 
 /* silly function, we dont use arg. just check its compatible with __deepcopy__ */
 int mathutils_deepcopy_args_check(PyObject *args)

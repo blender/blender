@@ -444,7 +444,7 @@ static int console_indent_exec(bContext *C, wmOperator *UNUSED(op))
 
 	console_line_verify_length(ci, ci->len + len);
 
-	memmove(ci->line + len, ci->line, ci->len);
+	memmove(ci->line + len, ci->line, ci->len + 1);
 	memset(ci->line, ' ', len);
 	ci->len += len;
 	BLI_assert(ci->len >= 0);

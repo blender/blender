@@ -232,7 +232,7 @@ static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh 
 	BLI_srand(0);
 	
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		ScanFillVert *sf_vert, *sf_vert_last, *sf_vert_first;
+		ScanFillVert *sf_vert = NULL, *sf_vert_last, *sf_vert_first;
 		ScanFillFace *sf_tri;
 		ParamKey key, vkeys[4];
 		ParamBool pin[4], select[4];

@@ -70,37 +70,6 @@ protected:
 	bool joined;
 };
 
-/* Thread Local Storage
- *
- * Boost implementation is a bit slow, and Mac OS X __thread is not supported
- * but the pthreads implementation is optimized, so we use these macros. */
-
-#if defined(__APPLE__) || defined(_WIN32)
-
-#define tls_ptr(type, name) \
-	pthread_key_t name
-#define tls_set(name, value) \
-	pthread_setspecific(name, value)
-#define tls_get(type, name) \
-	((type*)pthread_getspecific(name))
-#define tls_create(type, name) \
-	pthread_key_create(&name, NULL)
-#define tls_delete(type, name) \
-	pthread_key_delete(name);
-
-#else
-
-#define tls_ptr(type, name) \
-	__thread type *name
-#define tls_set(name, value) \
-	name = value
-#define tls_get(type, name) \
-	name
-#define tls_create(type, name)
-#define tls_delete(type, name)
-
-#endif
-
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_THREAD_H__ */

@@ -1098,6 +1098,9 @@ void MappingNode::compile(OSLCompiler& compiler)
 {
 	Transform tfm = transform_transpose(tex_mapping.compute_transform());
 	compiler.parameter("Matrix", tfm);
+	compiler.parameter_point("mapping_min", tex_mapping.min);
+	compiler.parameter_point("mapping_max", tex_mapping.max);
+	compiler.parameter("use_minmax", tex_mapping.use_minmax);
 
 	compiler.add(this, "node_mapping");
 }

@@ -726,7 +726,9 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 
 static void node_composit_init_blur(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
-	node->storage = MEM_callocN(sizeof(NodeBlurData), "node blur data");
+	NodeBlurData *data = MEM_callocN(sizeof(NodeBlurData), "node blur data");
+	data->filtertype = R_FILTER_GAUSS;
+	node->storage = data;
 }
 
 void register_node_type_cmp_blur(bNodeTreeType *ttype)

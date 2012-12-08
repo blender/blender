@@ -127,7 +127,7 @@ option(WITH_PYTHON_MODULE "Enable building as a python module which runs without
 option(WITH_BUILDINFO     "Include extra build details (only disable for development & faster builds)" ON)
 option(WITH_IK_ITASC      "Enable ITASC IK solver (only disable for development & for incompatible C++ compilers)" ON)
 option(WITH_IK_SOLVER     "Enable Legacy IK solver (only disable for development)" ON)
-option(WITH_FFTW3         "Enable FFTW3 support (Used for smoke and audio effects)" OFF)
+option(WITH_FFTW3         "Enable FFTW3 support (Used for smoke and audio effects)" ON)
 option(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 option(WITH_GAMEENGINE    "Enable Game Engine" ON)
 option(WITH_PLAYER        "Build Player" OFF)
@@ -386,10 +386,6 @@ if(WITH_PYTHON_MODULE AND WITH_PYTHON_INSTALL)
 	message(FATAL_ERROR "WITH_PYTHON_MODULE requires WITH_PYTHON_INSTALL to be OFF")
 endif()
 
-
-if(NOT WITH_FFTW3 AND WITH_MOD_OCEANSIM)
-	message(FATAL_ERROR "WITH_MOD_OCEANSIM requires WITH_FFTW3 to be ON")
-endif()
 
 # may as well build python module without a UI
 if(WITH_PYTHON_MODULE)
@@ -1670,6 +1666,10 @@ if(APPLE OR WIN32)
 	endif()
 endif()
 
+if(NOT WITH_FFTW3 AND WITH_MOD_OCEANSIM)
+	message(FATAL_ERROR "WITH_MOD_OCEANSIM requires WITH_FFTW3 to be ON")
+endif()
+
 if(WITH_CYCLES)
 	if(NOT WITH_OPENIMAGEIO)
 		message(FATAL_ERROR "Cycles reqires WITH_OPENIMAGEIO, the library may not have been found. Configure OIIO or disable WITH_CYCLES")
@@ -1932,12 +1932,13 @@ if(WITH_PYTHON)
 
 	if(WITH_PYTHON_INSTALL AND WITH_PYTHON_INSTALL_NUMPY)
 		# set but invalid
+        # -- disabled until we make numpy bundled with blender - campbell
 		if(NOT ${PYTHON_NUMPY_PATH} STREQUAL "")
-			if(NOT EXISTS "${PYTHON_NUMPY_PATH}/numpy")
-				message(WARNING "PYTHON_NUMPY_PATH is invalid, numpy not found in '${PYTHON_NUMPY_PATH}' "
-				                "WITH_PYTHON_INSTALL_NUMPY option will be ignored when installing python")
-				set(WITH_PYTHON_INSTALL_NUMPY OFF)
-			endif()
+#			if(NOT EXISTS "${PYTHON_NUMPY_PATH}/numpy")
+#				message(WARNING "PYTHON_NUMPY_PATH is invalid, numpy not found in '${PYTHON_NUMPY_PATH}' "
+#				                "WITH_PYTHON_INSTALL_NUMPY option will be ignored when installing python")
+#				set(WITH_PYTHON_INSTALL_NUMPY OFF)
+#			endif()
 		# not set, so initialize
 		else()
 			string(REPLACE "." ";" _PY_VER_SPLIT "${PYTHON_VERSION}")

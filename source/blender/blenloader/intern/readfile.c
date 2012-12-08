@@ -2410,6 +2410,8 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 	ntree->adt = newdataadr(fd, ntree->adt);
 	direct_link_animdata(fd, ntree->adt);
 	
+	ntree->id.flag &= ~(LIB_ID_RECALC|LIB_ID_RECALC_DATA);
+
 	link_list(fd, &ntree->nodes);
 	for (node = ntree->nodes.first; node; node = node->next) {
 		node->typeinfo = NULL;
@@ -8533,7 +8535,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			for (clip = main->movieclip.first; clip; clip = clip->id.next) {
 				if (clip->tracking.settings.reconstruction_success_threshold == 0.0f) {
-					clip->tracking.settings.reconstruction_success_threshold = 1e-3;
+					clip->tracking.settings.reconstruction_success_threshold = 1e-3f;
 				}
 			}
 		}

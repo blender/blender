@@ -95,6 +95,8 @@ bmesh.ops.rotate(
 # Finish up, write the bmesh into a new mesh
 me = bpy.data.meshes.new("Mesh")
 bm.to_mesh(me)
+bm.free()
+
 
 # Add the mesh to the scene
 scene = bpy.context.scene

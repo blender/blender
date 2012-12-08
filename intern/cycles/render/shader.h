@@ -107,8 +107,10 @@ class ShaderManager {
 public:
 	bool need_update;
 
-	static ShaderManager *create(Scene *scene);
+	static ShaderManager *create(Scene *scene, int shadingsystem);
 	virtual ~ShaderManager();
+
+	virtual bool use_osl() { return false; }
 
 	/* device update */
 	virtual void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress) = 0;

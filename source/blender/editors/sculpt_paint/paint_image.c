@@ -3937,7 +3937,7 @@ BLI_INLINE void rgba_float_to_uchar__mul_v3(unsigned char rgba_ub[4], const floa
 {
 	rgba_ub[0] = f_to_char(rgba[0] * rgb[0]);
 	rgba_ub[1] = f_to_char(rgba[1] * rgb[1]);
-	rgba_ub[2] = f_to_char(rgba[2] * rgb[3]);
+	rgba_ub[2] = f_to_char(rgba[2] * rgb[2]);
 	rgba_ub[3] = f_to_char(rgba[3]);
 }
 

@@ -643,8 +643,8 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 
 			/* apply transformation of previous parenting */
 			if (keep_transform) {
-				 /* was removed because of bug [#23577],
-				  * but this can be handy in some cases too [#32616], so make optional */
+				/* was removed because of bug [#23577],
+				 * but this can be handy in some cases too [#32616], so make optional */
 				BKE_object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
 			}
 

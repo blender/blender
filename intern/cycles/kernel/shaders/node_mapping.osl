@@ -20,9 +20,17 @@
 
 shader node_mapping(
 	matrix Matrix = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+	point mapping_min = point(0.0, 0.0, 0.0),
+	point mapping_max = point(0.0, 0.0, 0.0),
+	int use_minmax = 0,
 	point VectorIn = point(0.0, 0.0, 0.0),
 	output point VectorOut = point(0.0, 0.0, 0.0))
 {
-	VectorOut = transform(Matrix, VectorIn);
+	point p = transform(Matrix, VectorIn);
+
+	if(use_minmax)
+		p = min(max(mapping_min, p), mapping_max);
+	
+	VectorOut = p;
 }
 

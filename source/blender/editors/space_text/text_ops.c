@@ -615,6 +615,8 @@ static int text_run_script(bContext *C, ReportList *reports)
 		}
 
 		BKE_report(reports, RPT_ERROR, "Python script fail, look in the console for now...");
+
+		return OPERATOR_FINISHED;
 	}
 #else
 	(void)C;

@@ -2024,10 +2024,16 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 	}
 
 	if (cmp) {
+		const float range_clamp[2]   = {0.0f, 1.0f};
+		const float range_unclamp[2] = {-1000.0f, 1000.0f};  /* arbitrary limits here */
+		const float *range = (cumap->flag & CUMA_DO_CLIP) ? range_clamp : range_unclamp;
+
 		uiLayoutRow(layout, TRUE);
 		uiBlockSetNFunc(block, curvemap_buttons_update, MEM_dupallocN(cb), cumap);
-		bt = uiDefButF(block, NUM, 0, "X", 0, 2 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y, &cmp->x, 0.0f, 1.0f, 1, 5, "");
-		bt = uiDefButF(block, NUM, 0, "Y", 0, 1 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y, &cmp->y, 0.0f, 1.0f, 1, 5, "");
+		bt = uiDefButF(block, NUM, 0, "X", 0, 2 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y,
+		               &cmp->x, range[0], range[1], 1, 5, "");
+		bt = uiDefButF(block, NUM, 0, "Y", 0, 1 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y,
+		               &cmp->y, range[0], range[1], 1, 5, "");
 	}
 
 	/* black/white levels */
@@ -2087,19 +2093,19 @@ void uiTemplateColorPicker(uiLayout *layout, PointerRNA *ptr, const char *propna
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 	uiBlock *block = uiLayoutGetBlock(layout);
 	uiLayout *col, *row;
-	uiBut *but;
+	uiBut *but = NULL;
 	float softmin, softmax, step, precision;
-	
+
 	if (!prop) {
 		RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
 	RNA_property_float_ui_range(ptr, prop, &softmin, &softmax, &step, &precision);
-	
+
 	col = uiLayoutColumn(layout, TRUE);
 	row = uiLayoutRow(col, TRUE);
-	
+
 	switch (U.color_picker_type) {
 		case USER_CP_CIRCLE:
 			but = uiDefButR_prop(block, HSVCIRCLE, 0, "", 0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, prop,
@@ -2118,7 +2124,6 @@ void uiTemplateColorPicker(uiLayout *layout, PointerRNA *ptr, const char *propna
 			                     -1, 0.0, 0.0, UI_GRAD_HV, 0, "");
 			break;
 	}
-	
 
 	if (lock) {
 		but->flag |= UI_BUT_COLOR_LOCK;
@@ -2136,7 +2141,6 @@ void uiTemplateColorPicker(uiLayout *layout, PointerRNA *ptr, const char *propna
 
 	
 	if (value_slider) {
-		
 		switch (U.color_picker_type) {
 			case USER_CP_CIRCLE:
 				uiItemS(row);
@@ -2159,7 +2163,6 @@ void uiTemplateColorPicker(uiLayout *layout, PointerRNA *ptr, const char *propna
 				               -1, softmin, softmax, UI_GRAD_HV + 3, 0, "");
 				break;
 		}
-		
 	}
 }
 
@@ -2785,6 +2788,9 @@ static void operator_search_cb(const bContext *C, void *UNUSED(arg), const char 
 	for (; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
 		wmOperatorType *ot = BLI_ghashIterator_getValue(iter);
 
+		if ((ot->flag & OPTYPE_INTERNAL) && (G.debug & G_DEBUG_WM) == 0)
+			continue;
+
 		if (BLI_strcasestr(ot->name, str)) {
 			if (WM_operator_poll((bContext *)C, ot)) {
 				char name[256];
@@ -2810,6 +2816,11 @@ static void operator_search_cb(const bContext *C, void *UNUSED(arg), const char 
 	BLI_ghashIterator_free(iter);
 }
 
+void uiOperatorSearch_But(uiBut *but)
+{
+	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb, NULL);
+}
+
 void uiTemplateOperatorSearch(uiLayout *layout)
 {
 	uiBlock *block;
@@ -2820,7 +2831,7 @@ void uiTemplateOperatorSearch(uiLayout *layout)
 	uiBlockSetCurLayout(block, layout);
 
 	but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 0, 0, UI_UNIT_X * 6, UI_UNIT_Y, 0, 0, "");
-	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb, NULL);
+	uiOperatorSearch_But(but);
 }
 
 /************************* Running Jobs Template **************************/

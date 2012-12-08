@@ -750,6 +750,10 @@ static DerivedMesh *applyModifier(
 		CDDM_calc_normals(result);
 	}
 
+	if (numFaces == 0 && numEdges != 0) {
+		modifier_setError(md, "Faces needed for useful output");
+	}
+
 	return result;
 }
 

@@ -823,11 +823,11 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		ButsContextTexture *ct = sbuts->texuser;
 		PointerRNA *ptr;
 
-		if (ct)
-			return 0;  /* new shading system */
-
 		if ((ptr = get_pointer_type(path, &RNA_Material))) {
 			Material *ma = ptr->data;
+
+			if (ct)
+				return 0;  /* new shading system */
 
 			/* if we have a node material, get slot from material in material node */
 			if (ma && ma->use_nodes && ma->nodetree) {
@@ -849,11 +849,17 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		else if ((ptr = get_pointer_type(path, &RNA_Lamp))) {
 			Lamp *la = ptr->data;
 
+			if (ct)
+				return 0;  /* new shading system */
+
 			if (la)
 				CTX_data_pointer_set(result, &la->id, &RNA_LampTextureSlot, la->mtex[(int)la->texact]);
 		}
 		else if ((ptr = get_pointer_type(path, &RNA_World))) {
 			World *wo = ptr->data;
+
+			if (ct)
+				return 0;  /* new shading system */
 
 			if (wo)
 				CTX_data_pointer_set(result, &wo->id, &RNA_WorldTextureSlot, wo->mtex[(int)wo->texact]);

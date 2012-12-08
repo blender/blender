@@ -912,6 +912,8 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
 	AVPacket next_packet;
 	uint64_t stream_size;
 
+	memset(&next_packet, 0, sizeof(AVPacket));
+
 	in_frame = avcodec_alloc_frame();
 
 	stream_size = avio_size(context->iFormatCtx->pb);
@@ -959,11 +961,12 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
 	 * according to ffmpeg docs using 0-size packets.
 	 *
 	 * At least, if we haven't already stopped... */
+
+	/* this creates the 0-size packet and prevents a memory leak. */
+	av_free_packet(&next_packet);
+
 	if (!*stop) {
 		int frame_finished;
-
-		next_packet.size = 0;
-		next_packet.data = 0;
 
 		do {
 			frame_finished = 0;

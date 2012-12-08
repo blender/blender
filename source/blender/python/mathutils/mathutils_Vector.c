@@ -35,7 +35,10 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_dynstr.h"
+
+#ifndef MATH_STANDALONE
+#  include "BLI_dynstr.h"
+#endif
 
 #define MAX_DIMENSIONS 4
 
@@ -1231,6 +1234,7 @@ static PyObject *Vector_repr(VectorObject *self)
 	return ret;
 }
 
+#ifndef MATH_STANDALONE
 static PyObject *Vector_str(VectorObject *self)
 {
 	int i;
@@ -1252,7 +1256,7 @@ static PyObject *Vector_str(VectorObject *self)
 
 	return mathutils_dynstr_to_py(ds); /* frees ds */
 }
-
+#endif
 
 /* Sequence Protocol */
 /* sequence length len(vector) */
@@ -2816,7 +2820,11 @@ PyTypeObject vector_Type = {
 
 	NULL,                       /* hashfunc tp_hash; */
 	NULL,                       /* ternaryfunc tp_call; */
+#ifndef MATH_STANDALONE
 	(reprfunc)Vector_str,       /* reprfunc tp_str; */
+#else
+	NULL,                       /* reprfunc tp_str; */
+#endif
 	NULL,                       /* getattrofunc tp_getattro; */
 	NULL,                       /* setattrofunc tp_setattro; */
 

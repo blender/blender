@@ -74,7 +74,7 @@ class BPyOpsSubMod(object):
 
     eg. bpy.ops.object
     """
-    __keys__ = ("module",)
+    __slots__ = ("module",)
 
     def __init__(self, module):
         self.module = module
@@ -111,7 +111,7 @@ class BPyOpsSubModOp(object):
     eg. bpy.ops.object.somefunc
     """
 
-    __keys__ = ("module", "func")
+    __slots__ = ("module", "func")
 
     def _get_doc(self):
         return op_as_string(self.idname())

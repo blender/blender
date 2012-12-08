@@ -960,7 +960,6 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 		const char *root = U.i18ndir;
 		const char *uilng = BLF_lang_get();
 
-		const int bufs_nbr = 10;
 		uiStringInfo but_label = {BUT_GET_LABEL, NULL};
 		uiStringInfo rna_label = {BUT_GET_RNA_LABEL, NULL};
 		uiStringInfo enum_label = {BUT_GET_RNAENUM_LABEL, NULL};
@@ -990,8 +989,8 @@ static int edittranslation_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		}
 
-		uiButGetStrInfo(C, but, bufs_nbr, &but_label, &rna_label, &enum_label, &but_tip, &rna_tip, &enum_tip,
-		                &rna_struct, &rna_prop, &rna_enum, &rna_ctxt);
+		uiButGetStrInfo(C, but, &but_label, &rna_label, &enum_label, &but_tip, &rna_tip, &enum_tip,
+		                &rna_struct, &rna_prop, &rna_enum, &rna_ctxt, NULL);
 
 		WM_operator_properties_create(&ptr, EDTSRC_I18N_OP_NAME);
 		RNA_string_set(&ptr, "lang", uilng);

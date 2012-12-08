@@ -392,7 +392,7 @@ void DM_ensure_tessface(DerivedMesh *dm)
 	}
 
 	else if (dm->dirty & DM_DIRTY_TESS_CDLAYERS) {
-		BLI_assert(CustomData_has_layer(&dm->faceData, CD_ORIGINDEX));
+		BLI_assert(CustomData_has_layer(&dm->faceData, CD_ORIGINDEX) || numTessFaces == 0);
 		DM_update_tessface_data(dm);
 	}
 
@@ -1159,119 +1159,64 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 	ColorBand *coba = stored_cb; /* warning, not a local var */
 
 	unsigned char *wtcol_v;
-#if 0 /* See coment below. */
-	unsigned char *wtcol_f = dm->getTessFaceDataArray(dm, CD_PREVIEW_MCOL);
-#endif
 	unsigned char(*wtcol_l)[4] = CustomData_get_layer(dm->getLoopDataLayout(dm), CD_PREVIEW_MLOOPCOL);
-#if 0 /* See coment below. */
-	MFace *mf = dm->getTessFaceArray(dm);
-#endif
 	MLoop *mloop = dm->getLoopArray(dm), *ml;
 	MPoly *mp = dm->getPolyArray(dm);
-#if 0
-	int numFaces = dm->getNumTessFaces(dm);
-#endif
 	int numVerts = dm->getNumVerts(dm);
 	int totloop;
 	int i, j;
 
-#if 0 /* See comment below */
-	  /* If no CD_PREVIEW_MCOL existed yet, add a new one! */
-	if (!wtcol_f)
-		wtcol_f = CustomData_add_layer(&dm->faceData, CD_PREVIEW_MCOL, CD_CALLOC, NULL, numFaces);
-
-	if (wtcol_f) {
-		unsigned char *wtcol_f_step = wtcol_f;
-# else
-#if 0
-	/* XXX We have to create a CD_PREVIEW_MCOL, else it might sigsev (after a SubSurf mod, eg)... */
-	if (!dm->getTessFaceDataArray(dm, CD_PREVIEW_MCOL))
-		CustomData_add_layer(&dm->faceData, CD_PREVIEW_MCOL, CD_CALLOC, NULL, numFaces);
-#endif
-
-	{
-#endif
-
-		/* Weights are given by caller. */
-		if (weights) {
-			float *w = weights;
-			/* If indices is not NULL, it means we do not have weights for all vertices,
-			 * so we must create them (and set them to zero)... */
-			if (indices) {
-				w = MEM_callocN(sizeof(float) * numVerts, "Temp weight array DM_update_weight_mcol");
-				i = num;
-				while (i--)
-					w[indices[i]] = weights[i];
-			}
-
-			/* Convert float weights to colors. */
-			wtcol_v = calc_colors_from_weights_array(numVerts, w);
-
-			if (indices)
-				MEM_freeN(w);
+	/* Weights are given by caller. */
+	if (weights) {
+		float *w = weights;
+		/* If indices is not NULL, it means we do not have weights for all vertices,
+		 * so we must create them (and set them to zero)... */
+		if (indices) {
+			w = MEM_callocN(sizeof(float) * numVerts, "Temp weight array DM_update_weight_mcol");
+			i = num;
+			while (i--)
+				w[indices[i]] = weights[i];
 		}
 
-		/* No weights given, take them from active vgroup(s). */
-		else
-			wtcol_v = calc_weightpaint_vert_array(ob, dm, draw_flag, coba);
+		/* Convert float weights to colors. */
+		wtcol_v = calc_colors_from_weights_array(numVerts, w);
 
-		/* Now copy colors in all face verts. */
-		/* first add colors to the tessellation faces */
-		/* XXX Why update that layer? We have to update WEIGHT_MLOOPCOL anyway, 
-		 *     and tessellation recreates mface layers from mloop/mpoly ones, so no
-		 *     need to fill WEIGHT_MCOL here. */
-#if 0
-		for (i = 0; i < numFaces; i++, mf++, wtcol_f_step += (4 * 4)) {
-			/*origindex being NULL means we're operating on original mesh data*/
-#if 0
-			unsigned int fidx = mf->v4 ? 3 : 2;
-
-#else   /* better zero out triangles 4th component. else valgrind complains when the buffer's copied */
-			unsigned int fidx;
-			if (mf->v4) {
-				fidx = 3;
-			}
-			else {
-				fidx = 2;
-				*(int *)(&wtcol_f_step[3 * 4]) = 0;
-			}
-#endif
-
-			do {
-				copy_v4_v4_char((char *)&wtcol_f_step[fidx * 4],
-				                (char *)&wtcol_v[4 * (*(&mf->v1 + fidx))]);
-			} while (fidx--);
-		}
-#endif
-		/*now add to loops, so the data can be passed through the modifier stack*/
-		/* If no CD_PREVIEW_MLOOPCOL existed yet, we have to add a new one! */
-		if (!wtcol_l) {
-			BLI_array_declare(wtcol_l);
-			totloop = 0;
-			for (i = 0; i < dm->numPolyData; i++, mp++) {
-				ml = mloop + mp->loopstart;
-
-				BLI_array_grow_items(wtcol_l, mp->totloop);
-				for (j = 0; j < mp->totloop; j++, ml++, totloop++) {
-					copy_v4_v4_char((char *)&wtcol_l[totloop],
-					                (char *)&wtcol_v[4 * ml->v]);
-				}
-			}
-			CustomData_add_layer(&dm->loopData, CD_PREVIEW_MLOOPCOL, CD_ASSIGN, wtcol_l, totloop);
-		}
-		else {
-			totloop = 0;
-			for (i = 0; i < dm->numPolyData; i++, mp++) {
-				ml = mloop + mp->loopstart;
-
-				for (j = 0; j < mp->totloop; j++, ml++, totloop++) {
-					copy_v4_v4_char((char *)&wtcol_l[totloop],
-					                (char *)&wtcol_v[4 * ml->v]);
-				}
-			}
-		}
-		MEM_freeN(wtcol_v);
+		if (indices)
+			MEM_freeN(w);
 	}
+
+	/* No weights given, take them from active vgroup(s). */
+	else
+		wtcol_v = calc_weightpaint_vert_array(ob, dm, draw_flag, coba);
+
+	/* now add to loops, so the data can be passed through the modifier stack */
+	/* If no CD_PREVIEW_MLOOPCOL existed yet, we have to add a new one! */
+	if (!wtcol_l) {
+		BLI_array_declare(wtcol_l);
+		totloop = 0;
+		for (i = 0; i < dm->numPolyData; i++, mp++) {
+			ml = mloop + mp->loopstart;
+
+			BLI_array_grow_items(wtcol_l, mp->totloop);
+			for (j = 0; j < mp->totloop; j++, ml++, totloop++) {
+				copy_v4_v4_char((char *)&wtcol_l[totloop],
+				                (char *)&wtcol_v[4 * ml->v]);
+			}
+		}
+		CustomData_add_layer(&dm->loopData, CD_PREVIEW_MLOOPCOL, CD_ASSIGN, wtcol_l, totloop);
+	}
+	else {
+		totloop = 0;
+		for (i = 0; i < dm->numPolyData; i++, mp++) {
+			ml = mloop + mp->loopstart;
+
+			for (j = 0; j < mp->totloop; j++, ml++, totloop++) {
+				copy_v4_v4_char((char *)&wtcol_l[totloop],
+				                (char *)&wtcol_v[4 * ml->v]);
+			}
+		}
+	}
+	MEM_freeN(wtcol_v);
 
 	dm->dirty |= DM_DIRTY_TESS_CDLAYERS;
 }

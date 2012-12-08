@@ -19,3 +19,4 @@ for v in bm.verts:
 
 # Finish up, write the bmesh back to the mesh
 bm.to_mesh(me)
+bm.free()  # free and prevent further access

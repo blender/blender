@@ -367,11 +367,21 @@ struct ObjectKey {
 
 	bool operator<(const ObjectKey& k) const
 	{
-		return (parent < k.parent) ||
-		       (parent == k.parent && (memcmp(id, k.id, sizeof(id)) < 0)) ||
-		       (memcmp(id, k.id, sizeof(id)) == 0 && ob < k.ob);
+		if(ob < k.ob) {
+			return true;
+		}
+		else if(ob == k.ob) {
+			if(parent < k.parent)
+				return true;
+			else if(parent == k.parent)
+				return memcmp(id, k.id, sizeof(id)) < 0;
+		}
+
+		return false;
 	}
 };
+
+/* Particle System Key */
 
 struct ParticleSystemKey {
 	void *ob;
@@ -389,8 +399,12 @@ struct ParticleSystemKey {
 	bool operator<(const ParticleSystemKey& k) const
 	{
 		/* first id is particle index, we don't compare that */
-		return (ob < k.ob) ||
-		       (ob == k.ob && (memcmp(id+1, k.id+1, sizeof(int)*(OBJECT_PERSISTENT_ID_SIZE-1)) < 0));
+		if(ob < k.ob)
+			return true;
+		else if(ob == k.ob)
+			return memcmp(id+1, k.id+1, sizeof(int)*(OBJECT_PERSISTENT_ID_SIZE-1)) < 0;
+
+		return false;
 	}
 };
 

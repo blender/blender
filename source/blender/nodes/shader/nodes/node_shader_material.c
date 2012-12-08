@@ -85,7 +85,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		float col[4];
 		bNodeSocket *sock;
 		char hasinput[NUM_MAT_IN] = {'\0'};
-		int i;
+		int i, mode;
 		
 		/* note: cannot use the in[]->hasinput flags directly, as these are not necessarily
 		 * the constant input stack values (e.g. in case material node is inside a group).
@@ -142,10 +142,18 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 				nodestack_get_vec(&shi->translucency, SOCK_FLOAT, in[MAT_IN_TRANSLUCENCY]);
 		}
 		
+		/* make alpha output give results even if transparency is only enabled on
+		 * the material linked in this not and not on the parent material */
+		mode = shi->mode;
+		if(shi->mat->mode & MA_TRANSP)
+			shi->mode |= MA_TRANSP;
+
 		shi->nodes= 1; /* temp hack to prevent trashadow recursion */
 		node_shader_lamp_loop(shi, &shrnode);	/* clears shrnode */
 		shi->nodes= 0;
 		
+		shi->mode = mode;
+
 		/* write to outputs */
 		if (node->custom1 & SH_NODE_MAT_DIFF) {
 			copy_v3_v3(col, shrnode.combined);

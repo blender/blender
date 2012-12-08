@@ -392,7 +392,7 @@ int WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi)
 		}
 		BLI_freelinkN(&keymap->items, kmi);
 
-		WM_keyconfig_update_tag(keymap, kmi);
+		WM_keyconfig_update_tag(keymap, NULL);
 		return TRUE;
 	}
 	else {

@@ -153,8 +153,9 @@ static void register_closure(OSL::ShadingSystem *ss, const char *name, int id, O
 	ss->register_closure(name, id, params, prepare, generic_closure_setup, generic_closure_compare);
 }
 
-void OSLShader::register_closures(OSL::ShadingSystem *ss)
+void OSLShader::register_closures(OSLShadingSystem *ss_)
 {
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)ss_;
 	int id = 0;
 
 	register_closure(ss, "diffuse", id++,

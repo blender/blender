@@ -29,7 +29,10 @@ shader node_rgb_ramp(
 {
 	float f = clamp(Fac, 0.0, 1.0) * (RAMP_TABLE_SIZE - 1);
 
+	/* clamp int as well in case of NaN */
 	int i = (int)f;
+	if (i < 0) i = 0;
+	if (i >= RAMP_TABLE_SIZE) i = RAMP_TABLE_SIZE - 1;
 	float t = f - (float)i;
 
 	Color = ramp_color[i];

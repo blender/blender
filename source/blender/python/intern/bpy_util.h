@@ -27,16 +27,8 @@
 #ifndef __BPY_UTIL_H__
 #define __BPY_UTIL_H__
 
-#if PY_VERSION_HEX <  0x03020000
-#  error "Python 3.2 or greater is required, you'll need to update your python."
-#endif
-
 #if PY_VERSION_HEX <  0x03030000
-#  ifdef _MSC_VER
-#    pragma message("Python 3.2 will be deprecated soon, upgrade to Python 3.3.")
-#  else
-#    warning "Python 3.2 will be deprecated soon, upgrade to Python 3.3."
-#  endif
+#  error "Python 3.3 or greater is required, you'll need to update your python."
 #endif
 
 struct EnumPropertyItem;

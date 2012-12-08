@@ -35,7 +35,10 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_dynstr.h"
+
+#ifndef MATH_STANDALONE
+#  include "BLI_dynstr.h"
+#endif
 
 #define EULER_SIZE 3
 
@@ -323,6 +326,7 @@ static PyObject *Euler_repr(EulerObject *self)
 	return ret;
 }
 
+#ifndef MATH_STANDALONE
 static PyObject *Euler_str(EulerObject *self)
 {
 	DynStr *ds;
@@ -337,6 +341,7 @@ static PyObject *Euler_str(EulerObject *self)
 
 	return mathutils_dynstr_to_py(ds); /* frees ds */
 }
+#endif
 
 static PyObject *Euler_richcmpr(PyObject *a, PyObject *b, int op)
 {
@@ -663,7 +668,11 @@ PyTypeObject euler_Type = {
 	&Euler_AsMapping,               /* tp_as_mapping */
 	NULL,                           /* tp_hash */
 	NULL,                           /* tp_call */
+#ifndef MATH_STANDALONE
 	(reprfunc) Euler_str,           /* tp_str */
+#else
+	NULL,                           /* tp_str */
+#endif
 	NULL,                           /* tp_getattro */
 	NULL,                           /* tp_setattro */
 	NULL,                           /* tp_as_buffer */

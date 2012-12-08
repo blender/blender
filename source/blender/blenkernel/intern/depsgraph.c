@@ -1940,13 +1940,13 @@ void DAG_scene_sort(Main *bmain, Scene *sce)
 static void lib_id_recalc_tag(Main *bmain, ID *id)
 {
 	id->flag |= LIB_ID_RECALC;
-	bmain->id_tag_update[id->name[0]] = 1;
+	DAG_id_type_tag(bmain, GS(id->name));
 }
 
 static void lib_id_recalc_data_tag(Main *bmain, ID *id)
 {
 	id->flag |= LIB_ID_RECALC_DATA;
-	bmain->id_tag_update[id->name[0]] = 1;
+	DAG_id_type_tag(bmain, GS(id->name));
 }
 
 /* node was checked to have lasttime != curtime and is if type ID_OB */
@@ -2818,6 +2818,7 @@ void DAG_ids_check_recalc(Main *bmain, Scene *scene, int time)
 void DAG_ids_clear_recalc(Main *bmain)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
+	bNodeTree *ntree;
 	int a;
 
 	/* loop over all ID types */
@@ -2830,9 +2831,15 @@ void DAG_ids_clear_recalc(Main *bmain)
 		/* we tag based on first ID type character to avoid 
 		 * looping over all ID's in case there are no tags */
 		if (id && bmain->id_tag_update[id->name[0]]) {
-			for (; id; id = id->next)
+			for (; id; id = id->next) {
 				if (id->flag & (LIB_ID_RECALC | LIB_ID_RECALC_DATA))
 					id->flag &= ~(LIB_ID_RECALC | LIB_ID_RECALC_DATA);
+
+				/* some ID's contain semi-datablock nodetree */
+				ntree = ntreeFromID(id);
+				if (ntree && (ntree->id.flag & (LIB_ID_RECALC | LIB_ID_RECALC_DATA)))
+					ntree->id.flag &= ~(LIB_ID_RECALC | LIB_ID_RECALC_DATA);
+			}
 		}
 	}
 
@@ -2899,8 +2906,18 @@ void DAG_id_tag_update(ID *id, short flag)
 	}
 }
 
-void DAG_id_type_tag(struct Main *bmain, short idtype)
+void DAG_id_type_tag(Main *bmain, short idtype)
 {
+	if (idtype == ID_NT) {
+		/* stupid workaround so parent datablocks of nested nodetree get looped
+		 * over when we loop over tagged datablock types */
+		DAG_id_type_tag(bmain, ID_MA);
+		DAG_id_type_tag(bmain, ID_TE);
+		DAG_id_type_tag(bmain, ID_LA);
+		DAG_id_type_tag(bmain, ID_WO);
+		DAG_id_type_tag(bmain, ID_SCE);
+	}
+
 	bmain->id_tag_update[((char *)&idtype)[0]] = 1;
 }
 

@@ -3797,16 +3797,16 @@ void uiButSetFocusOnEnter(wmWindow *win, uiBut *but)
 	wm_event_add(win, &event);
 }
 
-void uiButGetStrInfo(bContext *C, uiBut *but, int nbr, ...)
+void uiButGetStrInfo(bContext *C, uiBut *but, ...)
 {
 	va_list args;
+	uiStringInfo *si;
 
 	EnumPropertyItem *items = NULL, *item = NULL;
 	int totitems, free_items = FALSE;
 
-	va_start(args, nbr);
-	while (nbr--) {
-		uiStringInfo *si = (uiStringInfo *) va_arg(args, void *);
+	va_start(args, but);
+	while ((si = (uiStringInfo *) va_arg(args, void *))) {
 		int type = si->type;
 		char *tmp = NULL;
 

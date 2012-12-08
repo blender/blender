@@ -229,7 +229,10 @@ static int check_alpha_pass(Base *base)
 
 	if (G.f & G_PICKSEL)
 		return 0;
-	
+
+	if (base->object->mode & OB_MODE_ALL_PAINT)
+		return 0;
+
 	return (base->object->dtx & OB_DRAWTRANSP);
 }
 
@@ -2595,7 +2598,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 	BMIter iter;
 	int i;
 
-	/* make the precision of the pronted value proportionate to the gridsize */
+	/* make the precision of the display value proportionate to the gridsize */
 
 	if (grid < 0.01f) conv_float = "%.6g";
 	else if (grid < 0.1f) conv_float = "%.5g";

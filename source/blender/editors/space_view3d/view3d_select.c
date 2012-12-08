@@ -221,7 +221,7 @@ static void edbm_backbuf_check_and_select_faces(BMEditMesh *em, int select)
 }
 
 
-/* object mode, EM_ prefix is confusing here, rename? */
+/* object mode, edbm_ prefix is confusing here, rename? */
 static void edbm_backbuf_check_and_select_verts_obmode(Mesh *me, int select)
 {
 	MVert *mv = me->mvert;
@@ -237,8 +237,8 @@ static void edbm_backbuf_check_and_select_verts_obmode(Mesh *me, int select)
 		}
 	}
 }
-/* object mode, EM_ prefix is confusing here, rename? */
 
+/* object mode, edbm_ prefix is confusing here, rename? */
 static void edbm_backbuf_check_and_select_tfaces(Mesh *me, int select)
 {
 	MPoly *mpoly = me->mpoly;

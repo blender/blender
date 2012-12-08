@@ -256,7 +256,7 @@ BMOpSlot *BMO_slot_get(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *identif
 	if (UNLIKELY(slot_code < 0)) {
 		//return &BMOpEmptySlot;
 		BLI_assert(0);
-		NULL;  /* better crash */
+		return NULL;  /* better crash */
 	}
 
 	return &slot_args[slot_code];

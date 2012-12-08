@@ -35,7 +35,10 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_dynstr.h"
+
+#ifndef MATH_STANDALONE
+#  include "BLI_dynstr.h"
+#endif
 
 #define QUAT_SIZE 4
 
@@ -496,6 +499,7 @@ static PyObject *Quaternion_repr(QuaternionObject *self)
 	return ret;
 }
 
+#ifndef MATH_STANDALONE
 static PyObject *Quaternion_str(QuaternionObject *self)
 {
 	DynStr *ds;
@@ -510,6 +514,7 @@ static PyObject *Quaternion_str(QuaternionObject *self)
 
 	return mathutils_dynstr_to_py(ds); /* frees ds */
 }
+#endif
 
 static PyObject *Quaternion_richcmpr(PyObject *a, PyObject *b, int op)
 {
@@ -1202,7 +1207,11 @@ PyTypeObject quaternion_Type = {
 	&Quaternion_AsMapping,              /* tp_as_mapping */
 	NULL,                               /* tp_hash */
 	NULL,                               /* tp_call */
+#ifndef MATH_STANDALONE
 	(reprfunc) Quaternion_str,          /* tp_str */
+#else
+	NULL,                               /* tp_str */
+#endif
 	NULL,                               /* tp_getattro */
 	NULL,                               /* tp_setattro */
 	NULL,                               /* tp_as_buffer */

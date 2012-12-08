@@ -382,18 +382,19 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 
 				/* compute summed length between vertices in forward direction */
 				len = 0.0f;
-				for (j = 0; j < lenv2; j++) {
+				for (j = 0; (j < lenv2) && (len < min); j++) {
 					len += len_v3v3(vv1[clamp_index(i + j, lenv1)]->co, vv2[j]->co);
 				}
 
 				if (len < min) {
 					min = len;
 					starti = i;
+					dir1 = 1;
 				}
 
 				/* compute summed length between vertices in backward direction */
 				len = 0.0f;
-				for (j = 0; j < lenv2; j++) {
+				for (j = 0; (j < lenv2) && (len < min); j++) {
 					len += len_v3v3(vv1[clamp_index(i - j, lenv1)]->co, vv2[j]->co);
 				}
 

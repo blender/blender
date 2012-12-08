@@ -41,7 +41,9 @@
 #define __align(...) __declspec(align(__VA_ARGS__))
 #else
 #define __device_inline static inline __attribute__((always_inline))
+#ifndef FREE_WINDOWS64
 #define __forceinline inline __attribute__((always_inline))
+#endif
 #define __align(...) __attribute__((aligned(__VA_ARGS__)))
 #endif
 

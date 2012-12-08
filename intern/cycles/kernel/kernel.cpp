@@ -29,38 +29,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Globals */
-
-KernelGlobals *kernel_globals_create()
-{
-	KernelGlobals *kg = new KernelGlobals();
-#ifdef WITH_OSL
-	kg->osl.use = false;
-#endif
-	return kg;
-}
-
-void kernel_globals_free(KernelGlobals *kg)
-{
-	delete kg;
-}
-
-/* OSL */
-
-#ifdef WITH_OSL
-
-void *kernel_osl_memory(KernelGlobals *kg)
-{
-	return (void*)&kg->osl;
-}
-
-bool kernel_osl_use(KernelGlobals *kg)
-{
-	return kg->osl.use;
-}
-
-#endif
-
 /* Memory Copy */
 
 void kernel_const_copy(KernelGlobals *kg, const char *name, void *host, size_t size)

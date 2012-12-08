@@ -16,10 +16,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#ifdef __OSL__
+#include "osl_shader.h"
+#endif
+
 #include "kernel_differential.h"
 #include "kernel_montecarlo.h"
 #include "kernel_projection.h"
 #include "kernel_object.h"
+#include "kernel_attribute.h"
+#include "kernel_projection.h"
 #include "kernel_triangle.h"
 #ifdef __QBVH__
 #include "kernel_qbvh.h"

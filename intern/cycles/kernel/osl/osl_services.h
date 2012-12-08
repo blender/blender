@@ -101,6 +101,11 @@ public:
 	bool get_texture_info(ustring filename, int subimage,
 	                      ustring dataname, TypeDesc datatype, void *data);
 
+	static bool get_background_attribute(KernelGlobals *kg, ShaderData *sd, ustring name,
+			TypeDesc type, bool derivatives, void *val);
+	static bool get_object_standard_attribute(KernelGlobals *kg, ShaderData *sd, ustring name,
+			TypeDesc type, bool derivatives, void *val);
+
 	struct TraceData {
 		Ray ray;
 		Intersection isect;
@@ -114,6 +119,34 @@ public:
 	static ustring u_screen;
 	static ustring u_raster;
 	static ustring u_ndc;
+	static ustring u_object_location;
+	static ustring u_object_index;
+	static ustring u_geom_dupli_generated;
+	static ustring u_geom_dupli_uv;
+	static ustring u_material_index;
+	static ustring u_object_random;
+	static ustring u_particle_index;
+	static ustring u_particle_age;
+	static ustring u_particle_lifetime;
+	static ustring u_particle_location;
+	static ustring u_particle_rotation;
+	static ustring u_particle_size;
+	static ustring u_particle_velocity;
+	static ustring u_particle_angular_velocity;
+	static ustring u_geom_numpolyvertices;
+	static ustring u_geom_trianglevertices;
+	static ustring u_geom_polyvertices;
+	static ustring u_geom_name;
+	static ustring u_path_ray_length;
+	static ustring u_trace;
+	static ustring u_hit;
+	static ustring u_hitdist;
+	static ustring u_N;
+	static ustring u_Ng;
+	static ustring u_P;
+	static ustring u_I;
+	static ustring u_u;
+	static ustring u_v;
 	static ustring u_empty;
 
 private:

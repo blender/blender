@@ -84,14 +84,8 @@
 #include "BKE_movieclip.h"
 
 #ifdef WITH_PYTHON
-#include "BPY_extern.h"
+#  include "BPY_extern.h"
 #endif
-
-#ifndef M_PI
-#define M_PI        3.14159265358979323846
-#endif
-
-
 
 /* ************************ Constraints - General Utilities *************************** */
 /* These functions here don't act on any specific constraints, and are therefore should/will

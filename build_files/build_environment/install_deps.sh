@@ -1,16 +1,27 @@
 #!/bin/bash
 
+# Parse command line!
+ARGS=$( \
+getopt \
+-o s:i:t:h \
+--long source:,install:,threads:,help,with-all,with-osl,all-static,force-all,force-python,\
+force-boost,force-ocio,force-oiio,force-llvm,force-osl,force-ffmpeg,\
+skip-python,skip-boost,skip-ocio,skip-oiio,skip-llvm,skip-osl,skip-ffmpeg \
+-- "$@" \
+)
+
 DISTRO=""
 SRC="$HOME/src/blender-deps"
 INST="/opt/lib"
 CWD=$PWD
 
-# OSL is horror for manual building even
-# i would want it to be setteled for manual build first,
-# and only then do it automatically
-BUILD_OSL=false
+# Do not install some optional, potentially conflicting libs by default...
+WITH_ALL=false
 
-# Try to link everything statically. Use this to produce protable versions of blender.
+# Do not yet enable osl, use --with-osl (or --with-all) option to try it.
+WITH_OSL=false
+
+# Try to link everything statically. Use this to produce portable versions of blender.
 ALL_STATIC=false
 
 THREADS=`cat /proc/cpuinfo | grep cores | uniq | sed -e "s/.*: *\(.*\)/\\1/"`
@@ -18,45 +29,140 @@ if [ -z "$THREADS" ]; then
   THREADS=1
 fi
 
-COMMON_INFO="Source code of dependencies needed to be compiled will be downloaded and extracted into '$SRC'.
-Built libs of dependencies needed to be compiled will be installed into '$INST'.
-Please edit \$SRC and/or \$INST variables at the begining of this script if you want to use other paths!
+COMMON_INFO="\"Source code of dependencies needed to be compiled will be downloaded and extracted into '\$SRC'.
+Built libs of dependencies needed to be compiled will be installed into '\$INST'.
+Please edit \\\$SRC and/or \\\$INST variables at the beginning of this script,
+or use --source/--install options, if you want to use other paths!
 
-Number of threads for building: $THREADS.
-Building OSL: $BUILD_OSL (edit \$BUILD_OSL var to change this).
-All static linking: $ALL_STATIC (edit \$ALL_STATIC var to change this)."
+Number of threads for building: \$THREADS (automatically detected, use --threads=<nbr> to override it).
+Full install: \$WITH_ALL (use --with-all option to enable it).
+Building OSL: \$WITH_OSL (use --with-osl option to enable it).
+All static linking: \$ALL_STATIC (use --all-static option to enable it).
 
+Use --help to show all available options!\""
+
+ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
+    -h, --help
+        Show this message and exit.
+
+    -s <path>, --source=<path>
+        Use a specific path where to store downloaded libraries sources (defaults to '\$SRC').
+
+    -i <path>, --install=<path>
+        Use a specific path where to install built libraries (defaults to '\$INST').
+
+    -t n, --threads=n
+        Use a specific number of threads when building the libraries (auto-detected as '\$THREADS').
+
+    --with-all
+        By default, a number of optional and not-so-often needed libraries are not installed.
+        This option will try to install them, at the cost of potential conflicts (depending on
+        how your package system is set…).
+        Note this option also implies all other (more specific) --with-foo options below.
+
+    --with-osl
+        Try to install or build the OpenShadingLanguage libraries (and their dependencies).
+        Still experimental!
+
+    --all-static
+        Build libraries as statically as possible, to create static builds of Blender.
+
+    --force-all
+        Force the rebuild of all built libraries.
+
+    --force-python
+        Force the rebuild of Python.
+
+    --force-boost
+        Force the rebuild of Boost.
+
+    --force-ocio
+        Force the rebuild of OpenColorIO.
+
+    --force-oiio
+        Force the rebuild of OpenImageIO.
+
+    --force-llvm
+        Force the rebuild of LLVM.
+
+    --force-osl
+        Force the rebuild of OpenShadingLanguage.
+
+    --force-ffmpeg
+        Force the rebuild of FFMpeg.
+
+    Note about the --force-foo options:
+        * They obviously only have an effect if those libraries are built by this script
+          (i.e. if there is no available and satisfactory package)!
+        * If the “force-rebuilt” library is a dependency of others, it will force the rebuild
+          of those libraries too (e.g. --force-boost will also rebuild oiio and osl...).
+        * Do not forget --with-osl if you built it and still want it!
+
+    --skip-python
+        Unconditionally skip Python installation/building.
+
+    --skip-boost
+        Unconditionally skip Boost installation/building.
+
+    --skip-ocio
+        Unconditionally skip OpenColorIO installation/building.
+
+    --skip-oiio
+        Unconditionally skip OpenImageIO installation/building.
+
+    --skip-llvm
+        Unconditionally skip LLVM installation/building.
+
+    --skip-osl
+        Unconditionally skip OpenShadingLanguage installation/building.
+
+    --skip-ffmpeg
+        Unconditionally skip FFMpeg installation/building.\""
 
 PYTHON_VERSION="3.3.0"
 PYTHON_VERSION_MIN="3.3"
 PYTHON_SOURCE="http://python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tar.bz2"
+PYTHON_FORCE_REBUILD=false
+PYTHON_SKIP=false
 
 BOOST_VERSION="1.51.0"
 _boost_version_nodots=`echo "$BOOST_VERSION" | sed -r 's/\./_/g'`
 BOOST_SOURCE="http://sourceforge.net/projects/boost/files/boost/$BOOST_VERSION/boost_$_boost_version_nodots.tar.bz2/download"
 BOOST_VERSION_MIN="1.49"
+BOOST_FORCE_REBUILD=false
+BOOST_SKIP=false
 
 OCIO_VERSION="1.0.7"
 OCIO_SOURCE="https://github.com/imageworks/OpenColorIO/tarball/v$OCIO_VERSION"
 OCIO_VERSION_MIN="1.0"
+OCIO_FORCE_REBUILD=false
+OCIO_SKIP=false
 
 OIIO_VERSION="1.1.1"
 OIIO_SOURCE="https://github.com/OpenImageIO/oiio/tarball/Release-$OIIO_VERSION"
 OIIO_VERSION_MIN="1.1"
+OIIO_FORCE_REBUILD=false
+OIIO_SKIP=false
 
 LLVM_VERSION="3.1"
 LLVM_VERSION_MIN="3.0"
 LLVM_VERSION_FOUND=""
 LLVM_SOURCE="http://llvm.org/releases/$LLVM_VERSION/llvm-$LLVM_VERSION.src.tar.gz"
 LLVM_CLANG_SOURCE="http://llvm.org/releases/$LLVM_VERSION/clang-$LLVM_VERSION.src.tar.gz"
+LLVM_FORCE_REBUILD=false
+LLVM_SKIP=false
 
 # OSL needs to be compiled for now!
 OSL_VERSION="1.2.0"
 OSL_SOURCE="https://github.com/mont29/OpenShadingLanguage/archive/blender-fixes.tar.gz"
+OSL_FORCE_REBUILD=false
+OSL_SKIP=false
 
 FFMPEG_VERSION="1.0"
 FFMPEG_SOURCE="http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2"
 FFMPEG_VERSION_MIN="0.7.6"
+FFMPEG_FORCE_REBUILD=false
+FFMPEG_SKIP=false
 _ffmpeg_list_sep=";"
 
 # FFMPEG optional libs.
@@ -84,13 +190,125 @@ LANG_BACK=$LANG
 LANG=""
 export LANG
 
+
+_echo() {
+  if [ "X$1" = "X-n" ]; then
+     shift; printf "%s" "$@"
+  else
+     printf "%s\n" "$@"
+  fi
+}
+
 ERROR() {
-  echo "${@}"
+  _echo "$@"
 }
 
 INFO() {
-  echo "${@}"
+  _echo "$@"
 }
+
+# Finish parsing the commandline args.
+eval set -- "$ARGS"
+while true; do
+  case $1 in
+    -s|--source)
+      SRC="$2"; shift; shift; continue
+    ;;
+    -i|--install)
+      INST="$2"; shift; shift; continue
+    ;;
+    -t|--threads)
+      THREADS="$2"; shift; shift; continue
+    ;;
+    -h|--help)
+      INFO ""
+      INFO "USAGE:"
+      INFO ""
+      INFO "`eval _echo "$COMMON_INFO"`"
+      INFO ""
+      INFO "`eval _echo "$ARGUMENTS_INFO"`"
+      INFO ""
+      exit 0
+    ;;
+    --with-all)
+      WITH_ALL=true; shift; continue
+    ;;
+    --with-osl)
+      WITH_OSL=true; shift; continue
+    ;;
+    --all-static)
+      ALL_STATIC=true; shift; continue
+    ;;
+    --force-all)
+      PYTHON_FORCE_REBUILD=true
+      BOOST_FORCE_REBUILD=true
+      OCIO_FORCE_REBUILD=true
+      OIIO_FORCE_REBUILD=true
+      LLVM_FORCE_REBUILD=true
+      OSL_FORCE_REBUILD=true
+      FFMPEG_FORCE_REBUILD=true
+      shift; continue
+    ;;
+    --force-python)
+      PYTHON_FORCE_REBUILD=true; shift; continue
+    ;;
+    --force-boost)
+      BOOST_FORCE_REBUILD=true; shift; continue
+    ;;
+    --force-ocio)
+      OCIO_FORCE_REBUILD=true; shift; continue
+    ;;
+    --force-oiio)
+      OIIO_FORCE_REBUILD=true; shift; continue
+    ;;
+    --force-llvm)
+      LLVM_FORCE_REBUILD=true; shift; continue
+    ;;
+    --force-osl)
+      OSL_FORCE_REBUILD=true; shift; continue
+    ;;
+    --force-ffmpeg)
+      FFMPEG_FORCE_REBUILD=true; shift; continue
+    ;;
+    --skip-python)
+      PYTHON_SKIP=true; shift; continue
+    ;;
+    --skip-boost)
+      BOOST_SKIP=true; shift; continue
+    ;;
+    --skip-ocio)
+      OCIO_SKIP=true; shift; continue
+    ;;
+    --skip-oiio)
+      OIIO_SKIP=true; shift; continue
+    ;;
+    --skip-llvm)
+      LLVM_SKIP=true; shift; continue
+    ;;
+    --skip-osl)
+      OSL_SKIP=true; shift; continue
+    ;;
+    --skip-ffmpeg)
+      FFMPEG_SKIP=true; shift; continue
+    ;;
+    --)
+      # no more arguments to parse
+      break
+    ;;
+    *)
+      INFO ""
+      INFO "Wrong parameter! Usage:"
+      INFO ""
+      INFO "`eval _echo "$COMMON_INFO"`"
+      INFO ""
+      exit 1
+    ;;
+  esac
+done
+
+if $WITH_ALL; then
+  WITH_OSL=true
+fi
 
 # Return 0 if $1 = $2 (i.e. 1.01.0 = 1.1, but 1.1.1 != 1.1), else 1.
 # $1 and $2 should be version numbers made of numbers only.
@@ -139,7 +357,7 @@ version_eq() {
 # $1 and $2 should be version numbers made of numbers only.
 version_ge() {
   version_eq $1 $2
-  if [ $? -eq 1 -a $(echo -e "$1\n$2" | sort --version-sort | head --lines=1) = "$1" ]; then
+  if [ $? -eq 1 -a $(_echo "$1" "$2" | sort --version-sort | head --lines=1) = "$1" ]; then
     return 1
   else
     return 0
@@ -221,7 +439,7 @@ compile_Python() {
 
   # Clean install if needed!
   magic_compile_check python-$PYTHON_VERSION $py_magic
-  if [ $? -eq 1 ]; then
+  if [ $? -eq 1 -o $PYTHON_FORCE_REBUILD == true ]; then
     rm -rf $_inst
   fi
 
@@ -258,9 +476,10 @@ compile_Python() {
     magic_compile_set python-$PYTHON_VERSION $py_magic
 
     cd $CWD
+    INFO "Done compiling Python-$PYTHON_VERSION!"
   else
     INFO "Own Python-$PYTHON_VERSION is up to date, nothing to do!"
-    INFO "If you want to force rebuild of this lib, delete the '$_src' and '$_inst' directories."
+    INFO "If you want to force rebuild of this lib, use the --force-python option."
   fi
 }
 
@@ -273,7 +492,7 @@ compile_Boost() {
 
   # Clean install if needed!
   magic_compile_check boost-$BOOST_VERSION $boost_magic
-  if [ $? -eq 1 ]; then
+  if [ $? -eq 1 -o $BOOST_FORCE_REBUILD == true ]; then
     rm -rf $_inst
   fi
 
@@ -307,10 +526,15 @@ compile_Boost() {
 
     magic_compile_set boost-$BOOST_VERSION $boost_magic
 
+    # Rebuild dependecies as well!
+    OIIO_FORCE_REBUILD=true
+    OSL_FORCE_REBUILD=true
+
     cd $CWD
+    INFO "Done compiling Boost-$BOOST_VERSION!"
   else
     INFO "Own Boost-$BOOST_VERSION is up to date, nothing to do!"
-    INFO "If you want to force rebuild of this lib, delete the '$_src' and '$_inst' directories."
+    INFO "If you want to force rebuild of this lib, use the --force-boost option."
   fi
 }
 
@@ -323,7 +547,7 @@ compile_OCIO() {
 
   # Clean install if needed!
   magic_compile_check ocio-$OCIO_VERSION $ocio_magic
-  if [ $? -eq 1 ]; then
+  if [ $? -eq 1 -o $OCIO_FORCE_REBUILD == true ]; then
     rm -rf $_inst
   fi
 
@@ -387,9 +611,10 @@ compile_OCIO() {
     magic_compile_set ocio-$OCIO_VERSION $ocio_magic
 
     cd $CWD
+    INFO "Done compiling OpenColorIO-$OCIO_VERSION!"
   else
     INFO "Own OpenColorIO-$OCIO_VERSION is up to date, nothing to do!"
-    INFO "If you want to force rebuild of this lib, delete the '$_src' and '$_inst' directories."
+    INFO "If you want to force rebuild of this lib, use the --force-ocio option."
   fi
 }
 
@@ -402,7 +627,7 @@ compile_OIIO() {
 
   # Clean install if needed!
   magic_compile_check oiio-$OIIO_VERSION $oiio_magic
-  if [ $? -eq 1 ]; then
+  if [ $? -eq 1 -o $OIIO_FORCE_REBUILD == true ]; then
     rm -rf $_inst
   fi
 
@@ -495,10 +720,14 @@ EOF
 
     magic_compile_set oiio-$OIIO_VERSION $oiio_magic
 
+    # Rebuild dependecies as well!
+    OSL_FORCE_REBUILD=true
+
     cd $CWD
+    INFO "Done compiling OpenImageIO-$OIIO_VERSION!"
   else
     INFO "Own OpenImageIO-$OIIO_VERSION is up to date, nothing to do!"
-    INFO "If you want to force rebuild of this lib, delete the '$_src' and '$_inst' directories."
+    INFO "If you want to force rebuild of this lib, use the --force-oiio option."
   fi
 }
 
@@ -512,7 +741,7 @@ compile_LLVM() {
 
   # Clean install if needed!
   magic_compile_check llvm-$LLVM_VERSION $llvm_magic
-  if [ $? -eq 1 ]; then
+  if [ $? -eq 1 -o $LLVM_FORCE_REBUILD == true ]; then
     rm -rf $_inst
     rm -rf $_inst_clang
   fi
@@ -588,10 +817,14 @@ EOF
 
     magic_compile_set llvm-$LLVM_VERSION $llvm_magic
 
+    # Rebuild dependecies as well!
+    OSL_FORCE_REBUILD=true
+
     cd $CWD
+    INFO "Done compiling LLVM-$LLVM_VERSION (CLANG included)!"
   else
     INFO "Own LLVM-$LLVM_VERSION (CLANG included) is up to date, nothing to do!"
-    INFO "If you want to force rebuild of this lib, delete the '$_src' and '$_inst' directories."
+    INFO "If you want to force rebuild of this lib, use the --force-llvm option."
   fi
 }
 
@@ -604,7 +837,7 @@ compile_OSL() {
 
   # Clean install if needed!
   magic_compile_check osl-$OSL_VERSION $osl_magic
-  if [ $? -eq 1 ]; then
+  if [ $? -eq 1 -o $OSL_FORCE_REBUILD == true ]; then
     rm -rf $_inst
   fi
 
@@ -679,9 +912,10 @@ compile_OSL() {
     magic_compile_set osl-$OSL_VERSION $osl_magic
 
     cd $CWD
+    INFO "Done compiling OpenShadingLanguage-$OSL_VERSION!"
   else
     INFO "Own OpenShadingLanguage-$OSL_VERSION is up to date, nothing to do!"
-    INFO "If you want to force rebuild of this lib, delete the '$_src' and '$_inst' directories."
+    INFO "If you want to force rebuild of this lib, use the --force-osl option."
   fi
 }
 
@@ -694,7 +928,7 @@ compile_FFmpeg() {
 
   # Clean install if needed!
   magic_compile_check ffmpeg-$FFMPEG_VERSION $ffmpeg_magic
-  if [ $? -eq 1 ]; then
+  if [ $? -eq 1 -o $FFMPEG_FORCE_REBUILD == true ]; then
     rm -rf $_inst
   fi
 
@@ -777,9 +1011,10 @@ compile_FFmpeg() {
     magic_compile_set ffmpeg-$FFMPEG_VERSION $ffmpeg_magic
 
     cd $CWD
+    INFO "Done compiling ffmpeg-$FFMPEG_VERSION!"
   else
     INFO "Own ffmpeg-$FFMPEG_VERSION is up to date, nothing to do!"
-    INFO "If you want to force rebuild of this lib, delete the '$_src' and '$_inst' directories."
+    INFO "If you want to force rebuild of this lib, use the --force-ffmpeg option."
   fi
 }
 
@@ -819,10 +1054,19 @@ check_package_version_ge_DEB() {
   return $?
 }
 
+install_packages_DEB() {
+  sudo apt-get install -y $@
+  if [ $? -ge 1 ]; then
+    ERROR "apt-get failed to install requested packages, exiting."
+    exit 1
+  fi
+}
+
 install_DEB() {
   INFO ""
   INFO "Installing dependencies for DEB-based distribution"
-  INFO "$COMMON_INFO"
+  INFO ""
+  INFO "`eval _echo "$COMMON_INFO"`"
   INFO ""
 
   if [ ! -z "`cat /etc/debian_version | grep ^6`"  ]; then
@@ -845,6 +1089,7 @@ install_DEB() {
       INFO "Hit Enter to continue running the script, or hit Ctrl-C to abort the script"
 
       read
+      INFO ""
     fi
   fi
 
@@ -858,137 +1103,194 @@ install_DEB() {
   VORBIS_DEV="libvorbis-dev"
   THEORA_DEV="libtheora-dev"
 
-  sudo apt-get install -y gawk cmake scons gcc g++ libjpeg-dev libpng-dev libtiff-dev \
-    libfreetype6-dev libx11-dev libxi-dev wget libsqlite3-dev libbz2-dev libncurses5-dev \
-    libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV libopenexr-dev libopenal-dev \
-    libglew-dev yasm $SCHRO_DEV $THEORA_DEV $VORBIS_DEV libsdl1.2-dev \
-    libfftw3-dev libjack-dev python-dev patch bzip2
-
+  _packages="gawk cmake scons build-essential libjpeg-dev libpng-dev libtiff-dev \
+             libfreetype6-dev libx11-dev libxi-dev wget libsqlite3-dev libbz2-dev \
+             libncurses5-dev libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV \
+             libopenexr-dev libopenal-dev libglew-dev yasm $THEORA_DEV \
+             $VORBIS_DEV libsdl1.2-dev libfftw3-dev python-dev patch bzip2"
   OPENJPEG_USE=true
-  SCHRO_USE=true
   VORBIS_USE=true
   THEORA_USE=true
 
-  # Grmpf, debian is libxvidcore-dev and ubuntu libxvidcore4-dev!
-  XVID_DEV="libxvidcore-dev"
-  check_package_DEB $XVID_DEV
-  if [ $? -eq 0 ]; then
-    sudo apt-get install -y $XVID_DEV
-    XVID_USE=true
-  else
-    XVID_DEV="libxvidcore4-dev"
-    check_package_DEB $XVID_DEV
-    if [ $? -eq 0 ]; then
-      sudo apt-get install -y $XVID_DEV
-      XVID_USE=true
-    fi
+  if $WITH_ALL; then
+    _packages="$_packages $SCHRO_DEV libjack0 libjack-dev"
+    SCHRO_USE=true
   fi
 
-  MP3LAME_DEV="libmp3lame-dev"
-  check_package_DEB $MP3LAME_DEV
-  if [ $? -eq 0 ]; then
-    sudo apt-get install -y $MP3LAME_DEV
-    MP3LAME_USE=true
-  fi
+  INFO ""
+  install_packages_DEB $_packages
 
+  INFO ""
   X264_DEV="libx264-dev"
   check_package_version_ge_DEB $X264_DEV $X264_VERSION_MIN
   if [ $? -eq 0 ]; then
-    sudo apt-get install -y $X264_DEV
+    install_packages_DEB $X264_DEV
     X264_USE=true
   fi
 
-  VPX_DEV="libvpx-dev"
-  check_package_version_ge_DEB $VPX_DEV $VPX_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    sudo apt-get install -y $VPX_DEV
-    VPX_USE=true
-  fi
-
-  check_package_DEB libspnav-dev
-  if [ $? -eq 0 ]; then
-    sudo apt-get install -y libspnav-dev
-  fi
-
-  check_package_DEB python3.3-dev
-  if [ $? -eq 0 ]; then
-    sudo apt-get install -y python3.3-dev
-  else
-    compile_Python
-  fi
-
-  check_package_version_ge_DEB libboost-dev $BOOST_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    sudo apt-get install -y libboost-dev
-
-    boost_version=$(echo `get_package_version_DEB libboost-dev` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
-
-    check_package_DEB libboost-locale$boost_version-dev
+  if $WITH_ALL; then
+    INFO ""
+    # Grmpf, debian is libxvidcore-dev and ubuntu libxvidcore4-dev!
+    XVID_DEV="libxvidcore-dev"
+    check_package_DEB $XVID_DEV
     if [ $? -eq 0 ]; then
-      sudo apt-get install -y libboost-locale$boost_version-dev libboost-filesystem$boost_version-dev \
-                              libboost-regex$boost_version-dev libboost-system$boost_version-dev \
-                              libboost-thread$boost_version-dev
+      install_packages_DEB $XVID_DEV
+      XVID_USE=true
     else
-      compile_Boost
-    fi
-  else
-    compile_Boost
-  fi
-
-  check_package_version_ge_DEB libopencolorio-dev $OCIO_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    sudo apt-get install -y libopencolorio-dev
-  else
-    compile_OCIO
-  fi
-
-  check_package_version_ge_DEB libopenimageio-dev $OIIO_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    sudo apt-get install -y libopenimageio-dev
-  else
-    compile_OIIO
-  fi
-
-  if $BUILD_OSL; then
-    have_llvm=false
-
-    check_package_DEB llvm-$LLVM_VERSION-dev
-    if [ $? -eq 0 ]; then
-      sudo apt-get install -y llvm-$LLVM_VERSION-dev
-      have_llvm=true
-      LLVM_VERSION_FOUND=$LLVM_VERSION
-    else
-      check_package_DEB llvm-$LLVM_VERSION_MIN-dev
+      XVID_DEV="libxvidcore4-dev"
+      check_package_DEB $XVID_DEV
       if [ $? -eq 0 ]; then
-        sudo apt-get install -y llvm-$LLVM_VERSION_MIN-dev
-        have_llvm=true
-        LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
+        install_packages_DEB $XVID_DEV
+        XVID_USE=true
       fi
     fi
 
-    if $have_llvm; then
-      sudo apt-get install -y clang flex bison libtbb-dev git
-      # No package currently!
-      compile_OSL
+    INFO ""
+    MP3LAME_DEV="libmp3lame-dev"
+    check_package_DEB $MP3LAME_DEV
+    if [ $? -eq 0 ]; then
+      install_packages_DEB $MP3LAME_DEV
+      MP3LAME_USE=true
+    fi
+
+    INFO ""
+    VPX_DEV="libvpx-dev"
+    check_package_version_ge_DEB $VPX_DEV $VPX_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_DEB $VPX_DEV
+      VPX_USE=true
+    fi
+
+    INFO ""
+    check_package_DEB libspnav-dev
+    if [ $? -eq 0 ]; then
+      install_packages_DEB libspnav-dev
     fi
   fi
 
-#  XXX Debian features libav packages as ffmpeg, those are not really compatible with blender code currently :/
-#      So for now, always build our own ffmpeg.
-#  check_package_DEB ffmpeg
-#  if [ $? -eq 0 ]; then
-#    sudo apt-get install -y ffmpeg
-#    ffmpeg_version=`get_package_version_DEB ffmpeg`
-#    INFO "ffmpeg version: $ffmpeg_version"
-#    if [ ! -z "$ffmpeg_version" ]; then
-#      if  dpkg --compare-versions $ffmpeg_version gt 0.7.2; then
-#        sudo apt-get install -y libavfilter-dev libavcodec-dev libavdevice-dev libavformat-dev libavutil-dev libswscale-dev
-#      else
-#        compile_FFmpeg
+  INFO ""
+  if $PYTHON_SKIP; then
+    INFO "WARNING! Skipping Python installation, as requested..."
+  else
+    check_package_DEB python3.3-dev
+    if [ $? -eq 0 ]; then
+      install_packages_DEB python3.3-dev
+    else
+      compile_Python
+    fi
+  fi
+
+  INFO ""
+  if $BOOST_SKIP; then
+    INFO "WARNING! Skipping Boost installation, as requested..."
+  else
+    check_package_version_ge_DEB libboost-dev $BOOST_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_DEB libboost-dev
+
+      boost_version=$(echo `get_package_version_DEB libboost-dev` | sed -r 's/^([0-9]+\.[0-9]+).*/\1/')
+
+      check_package_DEB libboost-locale$boost_version-dev
+      if [ $? -eq 0 ]; then
+        install_packages_DEB libboost-locale$boost_version-dev libboost-filesystem$boost_version-dev \
+                             libboost-regex$boost_version-dev libboost-system$boost_version-dev \
+                             libboost-thread$boost_version-dev
+      else
+        compile_Boost
+      fi
+    else
+      compile_Boost
+    fi
+  fi
+
+  INFO ""
+  if $OCIO_SKIP; then
+    INFO "WARNING! Skipping OpenColorIO installation, as requested..."
+  else
+    check_package_version_ge_DEB libopencolorio-dev $OCIO_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_DEB libopencolorio-dev
+    else
+      compile_OCIO
+    fi
+  fi
+
+  INFO ""
+  if $OIIO_SKIP; then
+    INFO "WARNING! Skipping OpenImageIO installation, as requested..."
+  else
+    check_package_version_ge_DEB libopenimageio-dev $OIIO_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_DEB libopenimageio-dev
+    else
+      compile_OIIO
+    fi
+  fi
+
+  if $WITH_OSL; then
+    have_llvm=false
+
+    if $LLVM_SKIP; then
+      INFO "WARNING! Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
+    else
+      INFO ""
+      check_package_DEB llvm-$LLVM_VERSION-dev
+      if [ $? -eq 0 ]; then
+        install_packages_DEB llvm-$LLVM_VERSION-dev
+        have_llvm=true
+        LLVM_VERSION_FOUND=$LLVM_VERSION
+      else
+        check_package_DEB llvm-$LLVM_VERSION_MIN-dev
+        if [ $? -eq 0 ]; then
+          install_packages_DEB llvm-$LLVM_VERSION_MIN-dev
+          have_llvm=true
+          LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
+        else
+          install_packages_DEB libffi-dev
+          INFO ""
+          compile_LLVM
+          have_llvm=true
+          LLVM_VERSION_FOUND=$LLVM_VERSION
+        fi
+      fi
+    fi
+
+    if $OSL_SKIP; then
+      INFO ""
+      INFO "WARNING! Skipping OpenShadingLanguage installation, as requested..."
+    else
+      if $have_llvm; then
+        INFO ""
+        install_packages_DEB clang flex bison libtbb-dev git
+        # No package currently!
+        INFO ""
+        compile_OSL
+      fi
+    fi
+  fi
+
+
+  INFO ""
+  if $FFMPEG_SKIP; then
+    INFO "WARNING! Skipping FFMpeg installation, as requested..."
+  else
+#    XXX Debian features libav packages as ffmpeg, those are not really compatible with blender code currently :/
+#        So for now, always build our own ffmpeg.
+#    check_package_DEB ffmpeg
+#    if [ $? -eq 0 ]; then
+#      install_packages_DEB ffmpeg
+#      ffmpeg_version=`get_package_version_DEB ffmpeg`
+#      INFO "ffmpeg version: $ffmpeg_version"
+#      if [ ! -z "$ffmpeg_version" ]; then
+#        if  dpkg --compare-versions $ffmpeg_version gt 0.7.2; then
+#          install_packages_DEB libavfilter-dev libavcodec-dev libavdevice-dev libavformat-dev libavutil-dev libswscale-dev
+#        else
+#          compile_FFmpeg
+#        fi
 #      fi
 #    fi
-#  fi
-  compile_FFmpeg
+    compile_FFmpeg
+  fi
 }
 
 get_package_version_RPM() {
@@ -1027,10 +1329,19 @@ check_package_version_ge_RPM() {
   return $?
 }
 
+install_packages_RPM() {
+  sudo yum install -y $@
+  if [ $? -ge 1 ]; then
+    ERROR "yum failed to install requested packages, exiting."
+    exit 1
+  fi
+}
+
 install_RPM() {
   INFO ""
   INFO "Installing dependencies for RPM-based distribution"
-  INFO "$COMMON_INFO"
+  INFO ""
+  INFO "`eval _echo "$COMMON_INFO"`"
   INFO ""
 
   sudo yum -y update
@@ -1041,113 +1352,162 @@ install_RPM() {
   VORBIS_DEV="libvorbis-devel"
   THEORA_DEV="libtheora-devel"
 
-  sudo yum -y install gawk gcc gcc-c++ cmake scons libpng-devel libtiff-devel \
-    freetype-devel libX11-devel libXi-devel wget libsqlite3x-devel ncurses-devel \
-    readline-devel $OPENJPEG_DEV openexr-devel openal-soft-devel \
-    glew-devel yasm $SCHRO_DEV $THEORA_DEV $VORBIS_DEV SDL-devel \
-    fftw-devel lame-libs jack-audio-connection-kit-devel libspnav-devel \
-    libjpeg-devel patch python-devel
-
+  _packages="gawk gcc gcc-c++ cmake scons libpng-devel libtiff-devel freetype-devel \
+             libX11-devel libXi-devel wget libsqlite3x-devel ncurses-devel \
+             readline-devel $OPENJPEG_DEV openexr-devel openal-soft-devel \
+             glew-devel yasm $THEORA_DEV $VORBIS_DEV SDL-devel fftw-devel \
+             lame-libs libjpeg-devel patch python-devel"
   OPENJPEG_USE=true
-  SCHRO_USE=true
   VORBIS_USE=true
   THEORA_USE=true
 
+  if $WITH_ALL; then
+    _packages="$_packages $SCHRO_DEV jack-audio-connection-kit-devel libspnav-devel"
+    SCHRO_USE=true
+  fi
+
+  INFO ""
+  install_packages_RPM $_packages
+
+  INFO ""
   X264_DEV="x264-devel"
   check_package_version_ge_RPM $X264_DEV $X264_VERSION_MIN
   if [ $? -eq 0 ]; then
-    sudo yum install -y $X264_DEV
+    install_packages_RPM $X264_DEV
     X264_USE=true
   fi
 
-  XVID_DEV="xvidcore-devel"
-  check_package_RPM $XVID_DEV
-  if [ $? -eq 0 ]; then
-    sudo yum install -y $XVID_DEV
-    XVID_USE=true
+  if $WITH_ALL; then
+    INFO ""
+    XVID_DEV="xvidcore-devel"
+    check_package_RPM $XVID_DEV
+    if [ $? -eq 0 ]; then
+      install_packages_RPM $XVID_DEV
+      XVID_USE=true
+    fi
+
+    INFO ""
+    VPX_DEV="libvpx-devel"
+    check_package_version_ge_RPM $VPX_DEV $VPX_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_RPM $VPX_DEV
+      VPX_USE=true
+    fi
+
+    INFO ""
+    MP3LAME_DEV="lame-devel"
+    check_package_RPM $MP3LAME_DEV
+    if [ $? -eq 0 ]; then
+      install_packages_RPM $MP3LAME_DEV
+      MP3LAME_USE=true
+    fi
   fi
 
-  VPX_DEV="libvpx-devel"
-  check_package_version_ge_RPM $VPX_DEV $VPX_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    sudo yum install -y $VPX_DEV
-    VPX_USE=true
-  fi
-
-  MP3LAME_DEV="lame-devel"
-  check_package_RPM $MP3LAME_DEV
-  if [ $? -eq 0 ]; then
-    sudo yum install -y $MP3LAME_DEV
-    MP3LAME_USE=true
-  fi
-
-  check_package_version_match_RPM python3-devel $PYTHON_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    sudo yum install -y python3-devel
+  INFO ""
+  if $PYTHON_SKIP; then
+    INFO "WARNING! Skipping Python installation, as requested..."
   else
-    compile_Python
+    check_package_version_match_RPM python3-devel $PYTHON_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_RPM python3-devel
+    else
+      compile_Python
+    fi
   fi
 
-  check_package_version_ge_RPM boost-devel $BOOST_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    sudo yum install -y boost-devel
+  INFO ""
+  if $BOOST_SKIP; then
+    INFO "WARNING! Skipping Boost installation, as requested..."
   else
-    compile_Boost
+    check_package_version_ge_RPM boost-devel $BOOST_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_RPM boost-devel
+    else
+      compile_Boost
+    fi
   fi
 
-  check_package_version_ge_RPM OpenColorIO-devel $OCIO_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    sudo yum install -y OpenColorIO-devel
+  INFO ""
+  if $OCIO_SKIP; then
+    INFO "WARNING! Skipping OpenColorIO installation, as requested..."
   else
-    compile_OCIO
+    check_package_version_ge_RPM OpenColorIO-devel $OCIO_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_RPM OpenColorIO-devel
+    else
+      compile_OCIO
+    fi
   fi
 
-  check_package_version_ge_RPM OpenImageIO-devel $OIIO_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    sudo yum install -y OpenImageIO-devel
+  INFO ""
+  if $OIIO_SKIP; then
+    INFO "WARNING! Skipping OpenImageIO installation, as requested..."
   else
-    compile_OIIO
+    check_package_version_ge_RPM OpenImageIO-devel $OIIO_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_RPM OpenImageIO-devel
+    else
+      compile_OIIO
+    fi
   fi
 
-  if $BUILD_OSL; then
+  if $WITH_OSL; then
     have_llvm=false
 
-    check_package_RPM llvm-$LLVM_VERSION-devel
-    if [ $? -eq 0 ]; then
-      sudo yum install -y llvm-$LLVM_VERSION-devel
+    INFO ""
+    if $LLVM_SKIP; then
+      INFO "WARNING! Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
+    else
+      check_package_RPM llvm-$LLVM_VERSION-devel
+      if [ $? -eq 0 ]; then
+        install_packages_RPM llvm-$LLVM_VERSION-devel
+        have_llvm=true
+        LLVM_VERSION_FOUND=$LLVM_VERSION
+      else
+#        check_package_RPM llvm-$LLVM_VERSION_MIN-devel
+#        if [ $? -eq 0 ]; then
+#          install_packages_RPM llvm-$LLVM_VERSION_MIN-devel
+#          have_llvm=true
+#          LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
+#        else
+#          check_package_version_ge_RPM llvm-devel $LLVM_VERSION_MIN
+#          if [ $? -eq 0 ]; then
+#            install_packages_RPM llvm-devel
+#            have_llvm=true
+#            LLVM_VERSION_FOUND=`get_package_version_RPM llvm-devel`
+#          fi
+#        fi
+      install_packages_RPM libffi-devel
+      # XXX Stupid fedora puts ffi header into a darn stupid dir!
+      _FFI_INCLUDE_DIR=`rpm -ql libffi-devel | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
+      INFO ""
+      compile_LLVM
       have_llvm=true
       LLVM_VERSION_FOUND=$LLVM_VERSION
-    else
-#      check_package_RPM llvm-$LLVM_VERSION_MIN-devel
-#      if [ $? -eq 0 ]; then
-#        sudo yum install -y llvm-$LLVM_VERSION_MIN-devel
-#        have_llvm=true
-#        LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
-#      else
-#        check_package_version_ge_RPM llvm-devel $LLVM_VERSION_MIN
-#        if [ $? -eq 0 ]; then
-#          sudo yum install -y llvm-devel
-#          have_llvm=true
-#          LLVM_VERSION_FOUND=`get_package_version_RPM llvm-devel`
-#        fi
-#      fi
-    sudo yum install -y libffi-devel
-    # XXX Stupid fedora puts ffi header into a darn stupid dir!
-    _FFI_INCLUDE_DIR=`rpm -ql libffi-devel | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
-    compile_LLVM
-    have_llvm=true
-    LLVM_VERSION_FOUND=$LLVM_VERSION
+      fi
     fi
 
-    if $have_llvm; then
-      sudo yum install -y flex bison clang tbb-devel git
-      # No package currently!
-      compile_OSL
+    if $OSL_SKIP; then
+      INFO ""
+      INFO "WARNING! Skipping OpenShadingLanguage installation, as requested..."
+    else
+      if $have_llvm; then
+        INFO ""
+        install_packages_RPM flex bison clang tbb-devel git
+        # No package currently!
+        INFO ""
+        compile_OSL
+      fi
     fi
   fi
 
-  # Always for now, not sure which packages should be installed
-  compile_FFmpeg
+  INFO ""
+  if $FFMPEG_SKIP; then
+    INFO "WARNING! Skipping FFMpeg installation, as requested..."
+  else
+    # Always for now, not sure which packages should be installed
+    compile_FFmpeg
+  fi
 }
 
 get_package_version_SUSE() {
@@ -1186,10 +1546,20 @@ check_package_version_ge_SUSE() {
   return $?
 }
 
+install_packages_SUSE() {
+  sudo zypper --non-interactive install --auto-agree-with-licenses $@
+  if [ $? -ge 1 ]; then
+    ERROR "zypper failed to install requested packages, exiting."
+    exit 1
+  fi
+}
+
+
 install_SUSE() {
   INFO ""
   INFO "Installing dependencies for SuSE-based distribution"
-  INFO "$COMMON_INFO"
+  INFO ""
+  INFO "`eval _echo "$COMMON_INFO"`"
   INFO ""
 
   sudo zypper --non-interactive update --auto-agree-with-licenses
@@ -1200,90 +1570,143 @@ install_SUSE() {
   VORBIS_DEV="libvorbis-devel"
   THEORA_DEV="libtheora-devel"
 
-  sudo zypper --non-interactive install --auto-agree-with-licenses \
-    gawk gcc gcc-c++ cmake scons libpng12-devel libtiff-devel \
-    freetype-devel libX11-devel libXi-devel wget sqlite3-devel ncurses-devel \
-    readline-devel $OPENJPEG_DEV libopenexr-devel openal-soft-devel \
-    glew-devel yasm $SCHRO_DEV $THEORA_DEV $VORBIS_DEV libSDL-devel \
-    fftw3-devel libjack-devel libspnav-devel \
-    libjpeg62-devel patch python-devel
+  _packages="gawk gcc gcc-c++ cmake scons libpng12-devel libtiff-devel freetype-devel \
+             libX11-devel libXi-devel wget sqlite3-devel ncurses-devel \
+             readline-devel $OPENJPEG_DEV libopenexr-devel openal-soft-devel \
+             glew-devel yasm $THEORA_DEV $VORBIS_DEV libSDL-devel fftw3-devel \
+             libjpeg62-devel patch python-devel"
+  OPENJPEG_USE=true
+  VORBIS_USE=true
+  THEORA_USE=true
+
+  if $WITH_ALL; then
+    _packages="$_packages $SCHRO_DEV libjack-devel libspnav-devel"
+    SCHRO_USE=true
+  fi
+
+  INFO ""
+  install_packages_SUSE $_packages
 
   OPENJPEG_USE=true
   SCHRO_USE=true
   VORBIS_USE=true
   THEORA_USE=true
 
+  INFO ""
   X264_DEV="x264-devel"
   check_package_version_ge_SUSE $X264_DEV $X264_VERSION_MIN
   if [ $? -eq 0 ]; then
-    sudo zypper --non-interactive install --auto-agree-with-licenses $X264_DEV
+    install_packages_SUSE $X264_DEV
     X264_USE=true
   fi
 
-  XVID_DEV="xvidcore-devel"
-  check_package_SUSE $XVID_DEV
-  if [ $? -eq 0 ]; then
-    sudo zypper --non-interactive install --auto-agree-with-licenses $XVID_DEV
-    XVID_USE=true
-  fi
+  if $WITH_ALL; then
+    INFO ""
+    XVID_DEV="xvidcore-devel"
+    check_package_SUSE $XVID_DEV
+    if [ $? -eq 0 ]; then
+      install_packages_SUSE $XVID_DEV
+      XVID_USE=true
+    fi
 
-  VPX_DEV="libvpx-devel"
-  check_package_version_ge_SUSE $VPX_DEV $VPX_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    sudo zypper --non-interactive install --auto-agree-with-licenses $VPX_DEV
-    VPX_USE=true
-  fi
+    INFO ""
+    VPX_DEV="libvpx-devel"
+    check_package_version_ge_SUSE $VPX_DEV $VPX_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_SUSE $VPX_DEV
+      VPX_USE=true
+    fi
 
-  # No mp3 in suse, it seems.
-  MP3LAME_DEV="lame-devel"
-  check_package_SUSE $MP3LAME_DEV
-  if [ $? -eq 0 ]; then
-    sudo zypper --non-interactive install --auto-agree-with-licenses $MP3LAME_DEV
-    MP3LAME_USE=true
-  fi
-
-  check_package_version_match_SUSE python3-devel 3.3.
-  if [ $? -eq 0 ]; then
-    sudo zypper --non-interactive install --auto-agree-with-licenses python3-devel
-  else
-    compile_Python
-  fi
-
-  # No boost_locale currently available, so let's build own boost.
-  compile_Boost
-
-  # No ocio currently available, so let's build own boost.
-  compile_OCIO
-
-  # No oiio currently available, so let's build own boost.
-  compile_OIIO
-
-  if $BUILD_OSL; then
-    have_llvm=false
-
-    # Suse llvm package *_$SUCKS$_* (tm) !!!
-#    check_package_version_ge_SUSE llvm-devel $LLVM_VERSION_MIN
-#    if [ $? -eq 0 ]; then
-#      sudo zypper --non-interactive install --auto-agree-with-licenses llvm-devel
-#      have_llvm=true
-#      LLVM_VERSION_FOUND=`get_package_version_SUSE llvm-devel`
-#    fi
-
-    sudo zypper --non-interactive install --auto-agree-with-licenses libffi47-devel
-    compile_LLVM
-    have_llvm=true
-    LLVM_VERSION_FOUND=$LLVM_VERSION
-
-    if $have_llvm; then
-      # XXX No tbb lib!
-      sudo zypper --non-interactive install --auto-agree-with-licenses flex bison git
-      # No package currently!
-      compile_OSL
+    INFO ""
+    # No mp3 in suse, it seems.
+    MP3LAME_DEV="lame-devel"
+    check_package_SUSE $MP3LAME_DEV
+    if [ $? -eq 0 ]; then
+      install_packages_SUSE $MP3LAME_DEV
+      MP3LAME_USE=true
     fi
   fi
 
-  # No ffmpeg currently available, so let's build own boost.
-  compile_FFmpeg
+  INFO ""
+  if $PYTHON_SKIP; then
+    INFO "WARNING! Skipping Python installation, as requested..."
+  else
+    check_package_version_match_SUSE python3-devel 3.3.
+    if [ $? -eq 0 ]; then
+      install_packages_SUSE python3-devel
+    else
+      compile_Python
+    fi
+  fi
+
+  INFO ""
+  if $BOOST_SKIP; then
+    INFO "WARNING! Skipping Boost installation, as requested..."
+  else
+    # No boost_locale currently available, so let's build own boost.
+    compile_Boost
+  fi
+
+  INFO ""
+  if $OCIO_SKIP; then
+    INFO "WARNING! Skipping OpenColorIO installation, as requested..."
+  else
+    # No ocio currently available, so let's build own boost.
+    compile_OCIO
+  fi
+
+  INFO ""
+  if $OIIO_SKIP; then
+    INFO "WARNING! Skipping OpenImageIO installation, as requested..."
+  else
+    # No oiio currently available, so let's build own boost.
+    compile_OIIO
+  fi
+
+  if $WITH_OSL; then
+    have_llvm=false
+
+    INFO ""
+    if $LLVM_SKIP; then
+      INFO "WARNING! Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
+    else
+      # Suse llvm package *_$SUCKS$_* (tm) !!!
+#      check_package_version_ge_SUSE llvm-devel $LLVM_VERSION_MIN
+#      if [ $? -eq 0 ]; then
+#        install_packages_SUSE llvm-devel
+#        have_llvm=true
+#        LLVM_VERSION_FOUND=`get_package_version_SUSE llvm-devel`
+#      fi
+
+      install_packages_SUSE libffi47-devel
+      INFO ""
+      compile_LLVM
+      have_llvm=true
+      LLVM_VERSION_FOUND=$LLVM_VERSION
+    fi
+
+    if $OSL_SKIP; then
+      INFO ""
+      INFO "WARNING! Skipping OpenShaderLanguage installation, as requested..."
+    else
+      if $have_llvm; then
+        INFO ""
+        # XXX No tbb lib!
+        install_packages_SUSE flex bison git
+        # No package currently!
+        INFO ""
+        compile_OSL
+      fi
+    fi
+  fi
+
+  INFO ""
+  if $FFMPEG_SKIP; then
+    INFO "WARNING! Skipping FFMpeg installation, as requested..."
+  else
+    # No ffmpeg currently available, so let's build own boost.
+    compile_FFmpeg
+  fi
 }
 
 print_info_ffmpeglink_DEB() {
@@ -1348,7 +1771,7 @@ print_info_ffmpeglink() {
     _packages="$_packages $OPENJPEG_DEV"
   fi
 
-  # XXX At least under Debian, static schro give problem at blender linking time... :/
+  # XXX At least under Debian, static schro gives problem at blender linking time... :/
   if $SCHRO_USE && ! $ALL_STATIC; then
     _packages="$_packages $SCHRO_DEV"
   fi
@@ -1379,7 +1802,7 @@ print_info() {
     INFO "  -D Boost_USE_ICU=ON"
   fi
 
-  if [ -d $INST/osl ]; then
+  if [ -d $INST/osl -a $WITH_OSL == true ]; then
     INFO "  -D CYCLES_OSL=$INST/osl"
     INFO "  -D WITH_CYCLES_OSL=ON"
     INFO "  -D LLVM_VERSION=$LLVM_VERSION_FOUND"

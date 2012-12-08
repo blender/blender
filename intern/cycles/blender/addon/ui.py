@@ -1026,6 +1026,8 @@ def get_panels():
         bpy.types.TEXTURE_PT_voxeldata,
         bpy.types.TEXTURE_PT_pointdensity,
         bpy.types.TEXTURE_PT_pointdensity_turbulence,
+        bpy.types.TEXTURE_PT_mapping,
+        bpy.types.TEXTURE_PT_influence,
         bpy.types.PARTICLE_PT_context_particles,
         bpy.types.PARTICLE_PT_emission,
         bpy.types.PARTICLE_PT_hair_dynamics,

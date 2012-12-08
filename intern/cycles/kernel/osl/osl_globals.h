@@ -38,7 +38,14 @@ CCL_NAMESPACE_BEGIN
 class OSLRenderServices;
 
 struct OSLGlobals {
-	/* use */
+	OSLGlobals()
+	{
+		ss = NULL;
+		ts = NULL;
+		services = NULL;
+		use = false;
+	}
+
 	bool use;
 
 	/* shading system */
@@ -66,19 +73,12 @@ struct OSLGlobals {
 	vector<AttributeMap> attribute_map;
 	ObjectNameMap object_name_map;
 	vector<ustring> object_names;
+};
 
-	/* thread key for thread specific data lookup */
-	struct ThreadData {
-		OSL::ShaderGlobals globals;
-		OSL::PerThreadInfo *thread_info;
-	};
-
-	static tls_ptr(ThreadData, thread_data);
-	static thread_mutex thread_data_mutex;
-	static volatile int thread_data_users;
-
-	void thread_data_init();
-	void thread_data_free();
+/* thread key for thread specific data lookup */
+struct OSLThreadData {
+	OSL::ShaderGlobals globals;
+	OSL::PerThreadInfo *thread_info;
 };
 
 CCL_NAMESPACE_END

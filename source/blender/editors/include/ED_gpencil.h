@@ -97,12 +97,13 @@ void  ED_gpencil_select_frame(struct bGPDlayer *gpl, int selx, short select_mode
 void  ED_gplayer_frames_delete(struct bGPDlayer *gpl);
 void  ED_gplayer_frames_duplicate(struct bGPDlayer *gpl);
 
+void  ED_gplayer_snap_frames(struct bGPDlayer *gpl, struct Scene *scene, short mode);
+
 #if 0
 void free_gpcopybuf(void);
 void copy_gpdata(void);
 void paste_gpdata(void);
 
-void snap_gplayer_frames(struct bGPDlayer *gpl, short mode);
 void mirror_gplayer_frames(struct bGPDlayer *gpl, short mode);
 #endif
 

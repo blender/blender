@@ -2019,8 +2019,14 @@ void txt_do_undo(Text *text)
 
 			/* get and restore the cursors */
 			txt_undo_read_cursors(text->undo_buf, &text->undo_pos, &curln, &curc, &selln, &selc);
+			
 			txt_move_to(text, curln, curc, 0);
-			txt_move_to(text, curln, curc + linep, 1);
+			txt_move_to(text, selln, selc, 1);
+			
+			if ((curln == selln) && (curc == selc)) {
+				for (i = 0; i < linep; i++)
+					txt_move_right(text, 1);
+			}
 			
 			txt_delete_selected(text);
 			
@@ -2269,6 +2275,8 @@ void txt_split_curline(Text *text)
 
 	txt_delete_sel(text);
 
+	if (!undoing) txt_undo_add_charop(text, UNDO_INSERT_1, '\n');
+	
 	/* Make the two half strings */
 
 	left = MEM_mallocN(text->curc + 1, "textline_string");
@@ -2300,7 +2308,6 @@ void txt_split_curline(Text *text)
 	txt_clean_text(text);
 	
 	txt_pop_sel(text);
-	if (!undoing) txt_undo_add_charop(text, UNDO_INSERT_1, '\n');
 }
 
 static void txt_delete_line(Text *text, TextLine *line)

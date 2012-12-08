@@ -27,7 +27,7 @@ shader node_normal_map(
 	string attr_sign_name = "geom:tangent_sign",
 	output normal Normal = NormalIn)
 {
-	color mcolor = 2.0*color(Color[0] - 0.5, Color[1] - 0.5, Color[2] - 0.5);
+	color mcolor = 2.0 * color(Color[0] - 0.5, Color[1] - 0.5, Color[2] - 0.5);
 
 	if (space == "Tangent") {
 		vector tangent;
@@ -47,6 +47,6 @@ shader node_normal_map(
 		Normal = normalize(vector(mcolor));
 	
 	if (Strength != 1.0)
-		Normal = normalize(NormalIn + (Normal - NormalIn)*max(Strength, 0.0));
+		Normal = normalize(NormalIn + (Normal - NormalIn) * max(Strength, 0.0));
 }
 

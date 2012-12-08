@@ -560,10 +560,10 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rj->iuser.ok = 1;
 	rj->reports = op->reports;
 
-	if(v3d) {
+	if (v3d) {
 		rj->lay = v3d->lay;
 
-		if(v3d->localvd)
+		if (v3d->localvd)
 			rj->lay |= v3d->localvd->lay;
 	}
 

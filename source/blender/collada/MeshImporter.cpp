@@ -589,7 +589,7 @@ void MeshImporter::read_lines(COLLADAFW::Mesh *mesh, Mesh *me)
 				for (int i = 0; i < edge_count; i++, med++) {
 					med->bweight = 0;
 					med->crease  = 0;
-					med->flag    = 0;
+					med->flag   |= ME_LOOSEEDGE;
 					med->v1      = indices[2 * i];
 					med->v2      = indices[2 * i + 1];
 				}

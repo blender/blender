@@ -55,6 +55,8 @@
 
 /* ********* add primitive operators ************* */
 
+/* BMESH_TODO: 'state' is not a good name, should be flipped and called 'was_editmode',
+ * or at least something more descriptive */
 static Object *make_prim_init(bContext *C, const char *idname,
                               float *dia, float mat[][4],
                               int *state, const float loc[3], const float rot[3], const unsigned int layer)
@@ -81,16 +83,17 @@ static Object *make_prim_init(bContext *C, const char *idname,
 static void make_prim_finish(bContext *C, Object *obedit, int *state, int enter_editmode)
 {
 	BMEditMesh *em = BMEdit_FromObject(obedit);
+	const int exit_editmode = (*state && !enter_editmode);
 
 	/* Primitive has all verts selected, use vert select flush
 	 * to push this up to edges & faces. */
 	EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);
 
 	/* only recalc editmode tessface if we are staying in editmode */
-	EDBM_update_generic(C, em, enter_editmode);
+	EDBM_update_generic(C, em, !exit_editmode);
 
 	/* userdef */
-	if (*state && !enter_editmode) {
+	if (exit_editmode) {
 		ED_object_exit_editmode(C, EM_FREEDATA); /* adding EM_DO_UNDO messes up operator redo */
 	}
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);

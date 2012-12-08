@@ -156,12 +156,16 @@ void ED_render_engine_changed(Main *bmain)
 	/* on changing the render engine type, clear all running render engines */
 	bScreen *sc;
 	ScrArea *sa;
+	Scene *scene;
 
 	for (sc = bmain->screen.first; sc; sc = sc->id.next)
 		for (sa = sc->areabase.first; sa; sa = sa->next)
 			ED_render_engine_area_exit(sa);
 
 	RE_FreePersistentData();
+
+	for (scene = bmain->scene.first; scene; scene = scene->id.next)
+		ED_render_id_flush_update(bmain, &scene->id);
 }
 
 /***************************** Updates ***********************************

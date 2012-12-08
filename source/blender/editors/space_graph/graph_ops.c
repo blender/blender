@@ -39,6 +39,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_sound.h"
 
@@ -65,6 +66,15 @@
  *	1) Current Frame Indicator (as per ANIM_OT_change_frame)
  *	2) Value Indicator (stored per Graph Editor instance)
  */
+
+static int graphview_cursor_poll(bContext *C)
+{
+	/* prevent changes during render */
+	if (G.is_rendering)
+		return 0;
+
+	return ED_operator_graphedit_active(C);
+}
 
 /* Set the new frame number */
 static void graphview_cursor_apply(bContext *C, wmOperator *op)
@@ -172,7 +182,7 @@ static void GRAPH_OT_cursor_set(wmOperatorType *ot)
 	ot->exec = graphview_cursor_exec;
 	ot->invoke = graphview_cursor_invoke;
 	ot->modal = graphview_cursor_modal;
-	ot->poll = ED_operator_graphedit_active;
+	ot->poll = graphview_cursor_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_UNDO;

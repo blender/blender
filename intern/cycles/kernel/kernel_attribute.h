@@ -19,13 +19,6 @@
 #ifndef __KERNEL_ATTRIBUTE_CL__
 #define __KERNEL_ATTRIBUTE_CL__
 
-#include "util_types.h"
-
-#ifdef __OSL__
-#include <string>
-#include "util_attribute.h"
-#endif
-
 CCL_NAMESPACE_BEGIN
 
 /* note: declared in kernel.h, have to add it here because kernel.h is not available */
@@ -33,20 +26,9 @@ bool kernel_osl_use(KernelGlobals *kg);
 
 __device_inline int find_attribute(KernelGlobals *kg, ShaderData *sd, uint id)
 {
-
 #ifdef __OSL__
-	if (kernel_osl_use(kg)) {
-		/* for OSL, a hash map is used to lookup the attribute by name. */
-		OSLGlobals::AttributeMap &attr_map = kg->osl.attribute_map[sd->object];
-		ustring stdname(std::string("std::") + std::string(attribute_standard_name((AttributeStandard)id)));
-		OSLGlobals::AttributeMap::const_iterator it = attr_map.find(stdname);
-		if (it != attr_map.end()) {
-			const OSLGlobals::Attribute &osl_attr = it->second;
-			/* return result */
-			return (osl_attr.elem == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : osl_attr.offset;
-		}
-		else
-			return (int)ATTR_STD_NOT_FOUND;
+	if (kg->osl) {
+		return OSLShader::find_attribute(kg, sd, id);
 	}
 	else
 #endif

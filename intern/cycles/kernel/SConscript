@@ -32,16 +32,17 @@ if env['WITH_BF_CYCLES_CUDA_BINARIES']:
     kernel_file = os.path.join(source_dir, "kernel.cu")
     util_dir = os.path.join(source_dir, "../util")
     svm_dir = os.path.join(source_dir, "../svm")
+    closure_dir = os.path.join(source_dir, "../closure")
 
     # nvcc flags
     nvcc_flags = "-m%s" % (bits)
     nvcc_flags += " --cubin --ptxas-options=\"-v\" --maxrregcount=24"
     nvcc_flags += " --opencc-options -OPT:Olimit=0"
     nvcc_flags += " -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END= -DNVCC"
-    nvcc_flags += " -I \"%s\" -I \"%s\"" % (util_dir, svm_dir)
+    nvcc_flags += " -I \"%s\" -I \"%s\" -I \"%s\"" % (util_dir, svm_dir, closure_dir)
 
     # dependencies
-    dependencies = ['kernel.cu'] + kernel.Glob('*.h') + kernel.Glob('../util/*.h') + kernel.Glob('svm/*.h')
+    dependencies = ['kernel.cu'] + kernel.Glob('*.h') + kernel.Glob('../util/*.h') + kernel.Glob('svm/*.h') + kernel.Glob('closure/*.h')
     last_cubin_file = None
 
     # add command for each cuda architecture
