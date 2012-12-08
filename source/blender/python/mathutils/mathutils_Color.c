@@ -31,7 +31,10 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_dynstr.h"
+
+#ifndef MATH_STANDALONE
+#  include "BLI_dynstr.h"
+#endif
 
 #define COLOR_SIZE 3
 
@@ -131,6 +134,7 @@ static PyObject *Color_repr(ColorObject *self)
 	return ret;
 }
 
+#ifndef MATH_STANDALONE
 static PyObject *Color_str(ColorObject *self)
 {
 	DynStr *ds;
@@ -145,6 +149,7 @@ static PyObject *Color_str(ColorObject *self)
 
 	return mathutils_dynstr_to_py(ds); /* frees ds */
 }
+#endif
 
 /* ------------------------tp_richcmpr */
 /* returns -1 exception, 0 false, 1 true */
@@ -820,7 +825,11 @@ PyTypeObject color_Type = {
 	&Color_AsMapping,               /* tp_as_mapping */
 	NULL,                           /* tp_hash */
 	NULL,                           /* tp_call */
+#ifndef MATH_STANDALONE
 	(reprfunc) Color_str,           /* tp_str */
+#else
+	NULL,                           /* tp_str */
+#endif
 	NULL,                           /* tp_getattro */
 	NULL,                           /* tp_setattro */
 	NULL,                           /* tp_as_buffer */

@@ -120,8 +120,11 @@ int mathutils_any_to_rotmat(float rmat[3][3], PyObject *value, const char *error
 
 int column_vector_multiplication(float rvec[4], VectorObject *vec, MatrixObject *mat);
 
+#ifndef MATH_STANDALONE
 /* dynstr as python string utility funcions */
 PyObject *mathutils_dynstr_to_py(struct DynStr *ds);
+#endif
+
 int mathutils_deepcopy_args_check(PyObject *args);
 
 #endif /* __MATHUTILS_H__ */
