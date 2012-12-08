@@ -1049,6 +1049,8 @@ class WM_OT_properties_edit(Operator):
 
         try:
             value_eval = eval(value)
+            # assert else None -> None, not "None", see [#33431]
+            assert(type(value_eval) in {str, float, int, bool, tuple, list})
         except:
             value_eval = value
 
