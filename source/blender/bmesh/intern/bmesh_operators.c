@@ -1225,7 +1225,7 @@ static void bmo_flag_layer_free(BMesh *bm)
 	/* de-increment the totflags first.. */
 	bm->totflags--;
 	/* allocate new flag poo */
-	bm->toolflagpool = newpool = BLI_mempool_create(new_totflags_size, 512, 512, BLI_MEMPOOL_SYSMALLOC);
+	bm->toolflagpool = newpool = BLI_mempool_create(new_totflags_size, 512, 512, 0);
 	
 	/* now go through and memcpy all the flag */
 	BM_ITER_MESH_INDEX (ele, &iter, bm, BM_VERTS_OF_MESH, i) {
