@@ -689,8 +689,16 @@ static BMFace *BME_bevel_poly(BMesh *bm, BMFace *f, float value, int options, BM
 		         BMO_elem_flag_test(bm, l->v, BME_BEVEL_ORIG) &&
 		         !BMO_elem_flag_test(bm, l->prev->e, BME_BEVEL_BEVEL))
 		{
-			max = 1.0f;
-			l = BME_bevel_vert(bm, l, value, options, up_vec, td);
+			/* avoid making double vertices [#33438] */
+			BME_TransData *vtd;
+			vtd = BME_get_transdata(td, l->v);
+			if (vtd->weight == 0.0f) {
+				BMO_elem_flag_disable(bm, l->v, BME_BEVEL_BEVEL);
+			}
+			else {
+				max = 1.0f;
+				l = BME_bevel_vert(bm, l, value, options, up_vec, td);
+			}
 		}
 	}
 
