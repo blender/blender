@@ -52,7 +52,7 @@ static char UnaryFunction1DVec3f___doc__[] =
 "   :arg integration: An integration method.\n"
 "   :type integration: :class:`IntegrationType`\n";
 
-int UnaryFunction1DVec3f___init__(BPy_UnaryFunction1DVec3f* self, PyObject *args)
+static int UnaryFunction1DVec3f___init__(BPy_UnaryFunction1DVec3f* self, PyObject *args)
 {
 	PyObject *obj = 0;
 
@@ -69,7 +69,7 @@ int UnaryFunction1DVec3f___init__(BPy_UnaryFunction1DVec3f* self, PyObject *args
 	
 	return 0;
 }
-void UnaryFunction1DVec3f___dealloc__(BPy_UnaryFunction1DVec3f* self)
+static void UnaryFunction1DVec3f___dealloc__(BPy_UnaryFunction1DVec3f* self)
 {
 	if (self->uf1D_vec3f)
 		delete self->uf1D_vec3f;
@@ -77,7 +77,7 @@ void UnaryFunction1DVec3f___dealloc__(BPy_UnaryFunction1DVec3f* self)
 }
 
 
-PyObject * UnaryFunction1DVec3f___repr__(BPy_UnaryFunction1DVec3f* self)
+static PyObject * UnaryFunction1DVec3f___repr__(BPy_UnaryFunction1DVec3f* self)
 {
 	return PyUnicode_FromFormat("type: %s - address: %p", self->uf1D_vec3f->getName().c_str(), self->uf1D_vec3f );
 }
@@ -90,12 +90,12 @@ static char UnaryFunction1DVec3f_getName___doc__[] =
 "   :return: The name of the unary 1D function.\n"
 "   :rtype: str\n";
 
-PyObject * UnaryFunction1DVec3f_getName( BPy_UnaryFunction1DVec3f *self )
+static PyObject * UnaryFunction1DVec3f_getName( BPy_UnaryFunction1DVec3f *self )
 {
 	return PyUnicode_FromString( self->uf1D_vec3f->getName().c_str() );
 }
 
-PyObject * UnaryFunction1DVec3f___call__( BPy_UnaryFunction1DVec3f *self, PyObject *args, PyObject *kwds)
+static PyObject * UnaryFunction1DVec3f___call__( BPy_UnaryFunction1DVec3f *self, PyObject *args, PyObject *kwds)
 {
 	PyObject *obj;
 
@@ -129,7 +129,7 @@ static char UnaryFunction1DVec3f_setIntegrationType___doc__[] =
 "   :arg integration: An integration method.\n"
 "   :type integration: :class:`IntegrationType`\n";
 
-PyObject * UnaryFunction1DVec3f_setIntegrationType(BPy_UnaryFunction1DVec3f* self, PyObject *args)
+static PyObject * UnaryFunction1DVec3f_setIntegrationType(BPy_UnaryFunction1DVec3f* self, PyObject *args)
 {
 	PyObject *obj;
 
@@ -148,7 +148,7 @@ static char UnaryFunction1DVec3f_getIntegrationType___doc__[] =
 "   :return: The integration method.\n"
 "   :rtype: :class:`IntegrationType`\n";
 
-PyObject * UnaryFunction1DVec3f_getIntegrationType(BPy_UnaryFunction1DVec3f* self) {
+static PyObject * UnaryFunction1DVec3f_getIntegrationType(BPy_UnaryFunction1DVec3f* self) {
 	return BPy_IntegrationType_from_IntegrationType( self->uf1D_vec3f->getIntegrationType() );
 }
 

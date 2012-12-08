@@ -50,7 +50,7 @@ int Director_BPy_BinaryPredicate0D___call__( BinaryPredicate0D *bp0D, Interface0
 		Py_XDECREF(arg2);
 		return -1;
 	}
-	PyObject *result = PyObject_CallMethod( bp0D->py_bp0D, "__call__", "OO", arg1, arg2 );
+	PyObject *result = PyObject_CallMethod( bp0D->py_bp0D, (char*)"__call__", (char*)"OO", arg1, arg2 );
 	Py_DECREF(arg1);
 	Py_DECREF(arg2);
 	if (!result)
@@ -77,7 +77,7 @@ int Director_BPy_BinaryPredicate1D___call__( BinaryPredicate1D *bp1D, Interface1
 		Py_XDECREF(arg2);
 		return -1;
 	}
-	PyObject *result = PyObject_CallMethod( bp1D->py_bp1D, "__call__", "OO", arg1, arg2 );
+	PyObject *result = PyObject_CallMethod( bp1D->py_bp1D, (char*)"__call__", (char*)"OO", arg1, arg2 );
 	Py_DECREF(arg1);
 	Py_DECREF(arg2);
 	if (!result)
@@ -100,7 +100,7 @@ int Director_BPy_UnaryPredicate0D___call__( UnaryPredicate0D *up0D, Interface0DI
 	PyObject *arg = BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, 0);
 	if (!arg)
 		return -1;
-	PyObject *result = PyObject_CallMethod( up0D->py_up0D, "__call__", "O", arg );
+	PyObject *result = PyObject_CallMethod( up0D->py_up0D, (char*)"__call__", (char*)"O", arg );
 	Py_DECREF(arg);
 	if (!result)
 		return -1;
@@ -122,7 +122,7 @@ int Director_BPy_UnaryPredicate1D___call__( UnaryPredicate1D *up1D, Interface1D&
 	PyObject *arg = Any_BPy_Interface1D_from_Interface1D(if1D);
 	if (!arg)
 		return -1;
-	PyObject *result = PyObject_CallMethod( up1D->py_up1D, "__call__", "O", arg );
+	PyObject *result = PyObject_CallMethod( up1D->py_up1D, (char*)"__call__", (char*)"O", arg );
 	Py_DECREF(arg);
 	if (!result)
 		return -1;
@@ -144,7 +144,7 @@ int Director_BPy_StrokeShader_shade( StrokeShader *ss, Stroke& s ) {
 	PyObject *arg = BPy_Stroke_from_Stroke(s);
 	if (!arg)
 		return -1;
-	PyObject *result = PyObject_CallMethod( ss->py_ss, "shade", "O", arg );
+	PyObject *result = PyObject_CallMethod( ss->py_ss, (char*)"shade", (char*)"O", arg );
 	Py_DECREF(arg);
 	if (!result)
 		return -1;
@@ -158,7 +158,7 @@ int Director_BPy_ChainingIterator_init( ChainingIterator *c_it ) {
 		PyErr_SetString(PyExc_RuntimeError, "Reference to Python object (py_c_it) not initialized");
 		return -1;
 	}
-	PyObject *result = PyObject_CallMethod( c_it->py_c_it, "init", "");
+	PyObject *result = PyObject_CallMethod( c_it->py_c_it, (char*)"init", NULL);
 	if (!result)
 		return -1;
 	Py_DECREF(result);
@@ -173,7 +173,7 @@ int Director_BPy_ChainingIterator_traverse( ChainingIterator *c_it, AdjacencyIte
 	PyObject *arg = BPy_AdjacencyIterator_from_AdjacencyIterator(a_it);
 	if (!arg)
 		return -1;
-	PyObject *result = PyObject_CallMethod( c_it->py_c_it, "traverse", "O", arg );
+	PyObject *result = PyObject_CallMethod( c_it->py_c_it, (char*)"traverse", (char*)"O", arg );
 	Py_DECREF(arg);
 	if (!result)
 		return -1;
@@ -201,7 +201,7 @@ int Director_BPy_UnaryFunction0D___call__( void *uf0D, PyObject *obj, Interface0
 	PyObject *arg = BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, 0);
 	if (!arg)
 		return -1;
-	PyObject *result = PyObject_CallMethod( obj, "__call__", "O", arg );
+	PyObject *result = PyObject_CallMethod( obj, (char*)"__call__", (char*)"O", arg );
 	Py_DECREF(arg);
 	if (!result)
 		return -1;
@@ -261,7 +261,7 @@ int Director_BPy_UnaryFunction1D___call__( void *uf1D, PyObject *obj, Interface1
 	PyObject *arg = Any_BPy_Interface1D_from_Interface1D(if1D);
 	if (!arg)
 		return -1;
-	PyObject *result = PyObject_CallMethod( obj, "__call__", "O", arg );
+	PyObject *result = PyObject_CallMethod( obj, (char*)"__call__", (char*)"O", arg );
 	Py_DECREF(arg);
 	if (!result)
 		return -1;

@@ -630,7 +630,7 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 				cleanVertices[detri.viP+2] += 1e-5 * detri.v.z();
 			}
 		}
-		printf("Warning: Object %s contains %d degenerate triangle%s (strokes may be incorrect)\n",
+		printf("Warning: Object %s contains %lu degenerated triangle%s (strokes may be incorrect)\n",
 			name, detriList.size(), (detriList.size() > 1) ? "s" : "");
 	}
 

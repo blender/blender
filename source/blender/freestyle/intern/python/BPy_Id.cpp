@@ -55,9 +55,9 @@ static char Id___doc__[] =
 static int Id___init__(BPy_Id *self, PyObject *args, PyObject *kwds)
 {
     int first = 0, second = 0;
-    static char *kwlist[] = {"first", "second", NULL};
+    static const char *kwlist[] = {"first", "second", NULL};
 
-    if (! PyArg_ParseTupleAndKeywords(args, kwds, "|ii", kwlist, &first, &second) )
+    if (! PyArg_ParseTupleAndKeywords(args, kwds, "|ii", (char**)kwlist, &first, &second) )
         return -1;
 
 	self->id = new Id( first, second );

@@ -68,7 +68,7 @@ static char CurvePointIterator_t___doc__[] =
 "   :return: The curvilinear abscissa.\n"
 "   :rtype: float\n";
 
-PyObject * CurvePointIterator_t( BPy_CurvePointIterator *self ) {
+static PyObject * CurvePointIterator_t( BPy_CurvePointIterator *self ) {
 	return PyFloat_FromDouble( self->cp_it->t() );
 }
 

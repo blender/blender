@@ -2014,13 +2014,13 @@ static bAnimChannelType ACF_DSNTREE =
 /* LineStyle Expander  ------------------------------------------- */
 
 // TODO: just get this from RNA?
-static int acf_dslinestyle_icon(bAnimListElem *ale)
+static int acf_dslinestyle_icon(bAnimListElem *UNUSED(ale))
 {
 	return ICON_BRUSH_DATA; /* FIXME */
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dslinestyle_setting_flag(bAnimContext *ac, int setting, short *neg)
+static int acf_dslinestyle_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;

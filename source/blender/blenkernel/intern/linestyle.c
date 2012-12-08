@@ -48,7 +48,7 @@
 
 #include "BLI_blenlib.h"
 
-static char *modifier_name[LS_MODIFIER_NUM] = {
+static const char *modifier_name[LS_MODIFIER_NUM] = {
 	NULL,
 	"Along Stroke",
 	"Distance from Camera",
@@ -95,7 +95,7 @@ static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 	linestyle->caps = LS_CAPS_BUTT;
 }
 
-FreestyleLineStyle *FRS_new_linestyle(char *name, struct Main *main)
+FreestyleLineStyle *FRS_new_linestyle(const char *name, struct Main *main)
 {
 	FreestyleLineStyle *linestyle;
 

@@ -56,8 +56,8 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count)
 	freestyle_scene->r.ysch= re->recty; // old_scene->r.ysch
 	freestyle_scene->r.xasp= 1.f; // old_scene->r.xasp;
 	freestyle_scene->r.yasp= 1.f; // old_scene->r.yasp;
-	freestyle_scene->r.xparts= old_scene->r.xparts;
-	freestyle_scene->r.yparts= old_scene->r.yparts;
+	freestyle_scene->r.tilex= old_scene->r.tilex;
+	freestyle_scene->r.tiley= old_scene->r.tiley;
 	freestyle_scene->r.size= 100; // old_scene->r.size
 	freestyle_scene->r.maximsize= old_scene->r.maximsize;
 	freestyle_scene->r.ocres = old_scene->r.ocres;

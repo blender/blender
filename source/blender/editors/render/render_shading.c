@@ -703,7 +703,7 @@ static int freestyle_active_lineset_poll(bContext *C)
 	return FRS_get_active_lineset(&srl->freestyleConfig) != NULL;
 }
 
-static int freestyle_lineset_copy_exec(bContext *C, wmOperator *op)
+static int freestyle_lineset_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	SceneRenderLayer *srl = (SceneRenderLayer*) BLI_findlink(&scene->r.layers, scene->r.actlay);
@@ -730,7 +730,7 @@ void SCENE_OT_freestyle_lineset_copy(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int freestyle_lineset_paste_exec(bContext *C, wmOperator *op)
+static int freestyle_lineset_paste_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene= CTX_data_scene(C);
 	SceneRenderLayer *srl = (SceneRenderLayer*) BLI_findlink(&scene->r.layers, scene->r.actlay);

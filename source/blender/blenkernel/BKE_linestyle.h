@@ -42,7 +42,7 @@
 struct Main;
 struct Object;
 
-FreestyleLineStyle *FRS_new_linestyle(char *name, struct Main *main);
+FreestyleLineStyle *FRS_new_linestyle(const char *name, struct Main *main);
 void FRS_free_linestyle(FreestyleLineStyle *linestyle);
 FreestyleLineStyle *FRS_copy_linestyle(FreestyleLineStyle *linestyle);
 

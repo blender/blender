@@ -643,8 +643,8 @@ error:
 #include "CurveIterators.h"
 
 // Internal function
-int __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredicate1D& pred, float sampling,
-                      Operators::I1DContainer& newChains, Operators::I1DContainer& splitted_chains)
+static int __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredicate1D& pred, float sampling,
+                            Operators::I1DContainer& newChains, Operators::I1DContainer& splitted_chains)
 {
   if(((_curve->nSegments() == 1) && (sampling == 0)) || (_curve->getLength2D() <= sampling)){
     newChains.push_back(_curve);
@@ -796,8 +796,8 @@ int Operators::recursiveSplit(UnaryFunction0D<double>& func, UnaryPredicate1D& p
 
 
 // recursive split with pred 0D
-int __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredicate0D& pred0d, UnaryPredicate1D& pred, float sampling,
-                      Operators::I1DContainer& newChains, Operators::I1DContainer& splitted_chains)
+static int __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryPredicate0D& pred0d, UnaryPredicate1D& pred, float sampling,
+                            Operators::I1DContainer& newChains, Operators::I1DContainer& splitted_chains)
 {
   if(((_curve->nSegments() == 1) && (sampling == 0)) || (_curve->getLength2D() <= sampling)){
     newChains.push_back(_curve);
@@ -992,7 +992,7 @@ int Operators::sort(BinaryPredicate1D& pred) {
   return 0;
 }
 
-Stroke* createStroke(Interface1D& inter) {
+static Stroke* createStroke(Interface1D& inter) {
   Stroke* stroke = new Stroke;
   stroke->setId(inter.getId());
 

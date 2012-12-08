@@ -78,13 +78,13 @@ Strip::~Strip(){
 #define MAX_RATIO_LENGTH_SINGU 2
 #define HUGE_COORD 1e4
 
-bool notValid (Vec2r p)
+static bool notValid (Vec2r p)
 {
   return (p[0]!=p[0]) || (p[1]!=p[1]) || (fabs(p[0])>HUGE_COORD) || (fabs(p[1])>HUGE_COORD) 
     || (p[0] <-HUGE_COORD) || (p[1]<-HUGE_COORD);
 }
 
-real crossP(const Vec2r& A, const Vec2r& B){
+static real crossP(const Vec2r& A, const Vec2r& B){
   return A[0]*B[1] - A[1]*B[0];
 }
 

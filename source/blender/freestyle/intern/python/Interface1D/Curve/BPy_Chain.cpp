@@ -37,7 +37,7 @@ static char Chain___doc__[] =
 "   :arg id: An Id object.\n"
 "   :type id: :class:`Id`\n";
 
-int Chain___init__(BPy_Chain *self, PyObject *args, PyObject *kwds)
+static int Chain___init__(BPy_Chain *self, PyObject *args, PyObject *kwds)
 {
 
 	PyObject *obj = 0;
@@ -77,7 +77,7 @@ static char Chain_push_viewedge_back___doc__[] =
 "      processed.\n"
 "   :type orientation: bool\n";
 
-PyObject * Chain_push_viewedge_back( BPy_Chain *self, PyObject *args ) {
+static PyObject * Chain_push_viewedge_back( BPy_Chain *self, PyObject *args ) {
 	PyObject *obj1 = 0, *obj2 = 0;
 
 	if(!( PyArg_ParseTuple(args, "O!O", &ViewEdge_Type, &obj1, &obj2) ))
@@ -101,7 +101,7 @@ static char Chain_push_viewedge_front___doc__[] =
 "      processed.\n"
 "   :type orientation: bool\n";
 
-PyObject * Chain_push_viewedge_front( BPy_Chain *self, PyObject *args ) {
+static PyObject * Chain_push_viewedge_front( BPy_Chain *self, PyObject *args ) {
 	PyObject *obj1 = 0, *obj2 = 0;
 
 	if(!( PyArg_ParseTuple(args, "O!O", &ViewEdge_Type, &obj1, &obj2) ))

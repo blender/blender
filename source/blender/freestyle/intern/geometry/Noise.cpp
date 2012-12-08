@@ -58,7 +58,7 @@
 	r0 = t - (int)t;\
 	r1 = r0 - 1.;
 
-void normalize2(float v[2])
+static void normalize2(float v[2])
 {
   float s;
 
@@ -67,7 +67,7 @@ void normalize2(float v[2])
   v[1] = v[1] / s;
 }
 
-void normalize3(float v[3])
+static void normalize3(float v[3])
 {
   float s;
 

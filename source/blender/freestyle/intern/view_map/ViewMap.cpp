@@ -262,7 +262,7 @@ ViewVertex * ViewMap::InsertViewVertex(SVertex *iVertex,
                   /**********************************/
 
 // is dve1 before dve2 ? (does it have a smaller angle ?)
-bool ViewEdgeComp(ViewVertex::directedViewEdge& dve1, ViewVertex::directedViewEdge& dve2){
+static bool ViewEdgeComp(ViewVertex::directedViewEdge& dve1, ViewVertex::directedViewEdge& dve2){
   FEdge *fe1;
   if(dve1.second)
     fe1 = dve1.first->fedgeB();

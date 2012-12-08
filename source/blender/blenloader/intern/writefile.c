@@ -2876,7 +2876,7 @@ static void write_masks(WriteData *wd, ListBase *idbase)
 static void write_linestyle_color_modifiers(WriteData *wd, ListBase *modifiers)
 {
 	LineStyleModifier *m;
-	char *struct_name;
+	const char *struct_name;
 
 	for (m = modifiers->first; m; m = m->next) {
 		switch (m->type) {
@@ -2918,7 +2918,7 @@ static void write_linestyle_color_modifiers(WriteData *wd, ListBase *modifiers)
 static void write_linestyle_alpha_modifiers(WriteData *wd, ListBase *modifiers)
 {
 	LineStyleModifier *m;
-	char *struct_name;
+	const char *struct_name;
 
 	for (m = modifiers->first; m; m = m->next) {
 		switch (m->type) {
@@ -2960,7 +2960,7 @@ static void write_linestyle_alpha_modifiers(WriteData *wd, ListBase *modifiers)
 static void write_linestyle_thickness_modifiers(WriteData *wd, ListBase *modifiers)
 {
 	LineStyleModifier *m;
-	char *struct_name;
+	const char *struct_name;
 
 	for (m = modifiers->first; m; m = m->next) {
 		switch (m->type) {
@@ -3005,7 +3005,7 @@ static void write_linestyle_thickness_modifiers(WriteData *wd, ListBase *modifie
 static void write_linestyle_geometry_modifiers(WriteData *wd, ListBase *modifiers)
 {
 	LineStyleModifier *m;
-	char *struct_name;
+	const char *struct_name;
 
 	for (m = modifiers->first; m; m = m->next) {
 		switch (m->type) {

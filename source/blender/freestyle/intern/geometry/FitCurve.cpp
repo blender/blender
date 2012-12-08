@@ -55,17 +55,17 @@ static Vector2 V2SubII(Vector2 a, Vector2 b);
 #define MAXPOINTS	1000		/* The most points you can have */
 
 /* returns squared length of input vector */	
-double V2SquaredLength(Vector2 *a) 
+static double V2SquaredLength(Vector2 *a) 
 {	return(((*a)[0] * (*a)[0])+((*a)[1] * (*a)[1]));
 }
 	
 /* returns length of input vector */
-double V2Length(Vector2 *a) 
+static double V2Length(Vector2 *a) 
 {
 	return(sqrt(V2SquaredLength(a)));
 }
 
-Vector2 *V2Scale(Vector2 *v, double newlen) 
+static Vector2 *V2Scale(Vector2 *v, double newlen) 
 {
   double len = V2Length(v);
 	if (len != 0.0) { (*v)[0] *= newlen/len;   (*v)[1] *= newlen/len; }
@@ -73,13 +73,13 @@ Vector2 *V2Scale(Vector2 *v, double newlen)
 }
 
 /* return the dot product of vectors a and b */
-double V2Dot(Vector2 *a, Vector2 *b) 
+static double V2Dot(Vector2 *a, Vector2 *b) 
 {
 	return(((*a)[0]*(*b)[0])+((*a)[1]*(*b)[1]));
 }
 
 /* return the distance between two points */
-double V2DistanceBetween2Points(Vector2 *a, Vector2 *b)
+static double V2DistanceBetween2Points(Vector2 *a, Vector2 *b)
 {
 double dx = (*a)[0] - (*b)[0];
 double dy = (*a)[1] - (*b)[1];
@@ -87,14 +87,14 @@ double dy = (*a)[1] - (*b)[1];
 }
 
 /* return vector sum c = a+b */
-Vector2 *V2Add(Vector2 *a, Vector2 *b, Vector2 *c)
+static Vector2 *V2Add(Vector2 *a, Vector2 *b, Vector2 *c)
 {
 	(*c)[0] = (*a)[0]+(*b)[0];  (*c)[1] = (*a)[1]+(*b)[1];
 	return(c);
 } 
 
 /* normalizes the input vector and returns it */
-Vector2 *V2Normalize(Vector2 *v) 
+static Vector2 *V2Normalize(Vector2 *v) 
 {
 double len = V2Length(v);
 	if (len != 0.0) { (*v)[0] /= len;  (*v)[1] /= len; }
@@ -102,7 +102,7 @@ double len = V2Length(v);
 }
 
 /* negates the input vector and returns it */
-Vector2 *V2Negate(Vector2 *v) 
+static Vector2 *V2Negate(Vector2 *v) 
 {
 	(*v)[0] = -(*v)[0];  (*v)[1] = -(*v)[1];
 	return(v);

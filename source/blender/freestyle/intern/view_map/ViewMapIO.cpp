@@ -124,7 +124,7 @@ namespace ViewMapIO {
     }
 
 
-    int load(istream& in, ViewShape* vs) {
+    static int load(istream& in, ViewShape* vs) {
 
       if (!vs || !vs->sshape())
 	return 1;
@@ -203,7 +203,7 @@ namespace ViewMapIO {
     }
 
 
-    int load(istream& in, FEdge* fe) {
+    static int load(istream& in, FEdge* fe) {
 
       if (!fe)
 	return 1;
@@ -317,7 +317,7 @@ namespace ViewMapIO {
     }
 
 
-    int load(istream& in, SVertex* sv) {
+    static int load(istream& in, SVertex* sv) {
 
       if (!sv)
 	return 1;
@@ -371,7 +371,7 @@ namespace ViewMapIO {
     }
 
 
-    int load(istream& in, ViewEdge* ve) {
+    static int load(istream& in, ViewEdge* ve) {
 
       if (!ve)
 	return 1;
@@ -438,7 +438,7 @@ namespace ViewMapIO {
     }
 
 
-    int load(istream& in, ViewVertex* vv) {
+    static int load(istream& in, ViewVertex* vv) {
 
       if (!vv)
 	return 1;
@@ -597,7 +597,7 @@ namespace ViewMapIO {
     }
 
 
-    int save(ostream& out, ViewShape* vs) {
+    static int save(ostream& out, ViewShape* vs) {
 
       if (!vs || !vs->sshape()) {
 	cerr << "Warning: null ViewShape" << endl;
@@ -667,7 +667,7 @@ namespace ViewMapIO {
     }
 
 
-    int save(ostream& out, FEdge* fe) {
+    static int save(ostream& out, FEdge* fe) {
 
       if (!fe) {
 	cerr << "Warning: null FEdge" << endl;
@@ -752,7 +752,7 @@ namespace ViewMapIO {
     }
 
 
-    int save(ostream& out, SVertex* sv) {
+    static int save(ostream& out, SVertex* sv) {
 
       if (!sv) {
 	cerr << "Warning: null SVertex" << endl;
@@ -805,7 +805,7 @@ namespace ViewMapIO {
     }
 
 
-    int save(ostream& out, ViewEdge* ve) {
+    static int save(ostream& out, ViewEdge* ve) {
 
       if (!ve) {
 	cerr << "Warning: null ViewEdge" << endl;
@@ -859,7 +859,7 @@ namespace ViewMapIO {
     }
 
 
-    int save(ostream& out, ViewVertex* vv) {
+    static int save(ostream& out, ViewVertex* vv) {
 
       if (!vv) {
 	cerr << "Warning: null ViewVertex" << endl;

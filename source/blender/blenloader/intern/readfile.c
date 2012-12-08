@@ -6550,7 +6550,7 @@ static void direct_link_linestyle_thickness_modifier(FileData *fd, LineStyleModi
 	}
 }
 
-static void direct_link_linestyle_geometry_modifier(FileData *fd, LineStyleModifier *modifier)
+static void direct_link_linestyle_geometry_modifier(FileData *UNUSED(fd), LineStyleModifier *UNUSED(modifier))
 {
 }
 

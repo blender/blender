@@ -50,7 +50,7 @@ PseudoNoise::linearNoise (real x)
   return x1*(1-t)+x2*t;
 }
 
-real 
+static real 
 LanczosWindowed(real t)
 {
   if (fabs(t)>2) return 0;

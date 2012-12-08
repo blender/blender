@@ -1466,12 +1466,12 @@ static PointerRNA rna_FreestyleSettings_active_lineset_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_FreestyleLineSet, lineset);
 }
 
-static void rna_FreestyleSettings_active_lineset_index_range(PointerRNA *ptr, int *min, int *max)
+static void rna_FreestyleSettings_active_lineset_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
-	FreestyleConfig *config= (FreestyleConfig *)ptr->data;
-	*min= 0;
-	*max= BLI_countlist(&config->linesets)-1;
-	*max= MAX2(0, *max);
+	FreestyleConfig *config = (FreestyleConfig *)ptr->data;
+
+	*min = 0;
+	*max = max_ii(0, BLI_countlist(&config->linesets) - 1);
 }
 
 static int rna_FreestyleSettings_active_lineset_index_get(PointerRNA *ptr)

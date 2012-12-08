@@ -245,7 +245,7 @@ void Smoother::smooth(int nbIteration, real iFactorPoint, real ifactorCurvature,
   copyVertices(); 
 }
 
-real edgeStopping (real x, real sigma)
+static real edgeStopping (real x, real sigma)
 {
   if (sigma==0.0) return 1.0;
   return exp(-x*x/(sigma*sigma));

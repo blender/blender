@@ -30,7 +30,7 @@ void allOccludersGridVisitor::examineOccluder(Polygon3r *occ){
     occluders_.push_back(occ);
 }
 
-bool inBox(const Vec3r& inter, const Vec3r& box_min, const Vec3r& box_max){
+static bool inBox(const Vec3r& inter, const Vec3r& box_min, const Vec3r& box_max){
     if(((inter.x()>=box_min.x()) && (inter.x() <box_max.x()))
         && ((inter.y()>=box_min.y()) && (inter.y() <box_max.y()))
         && ((inter.z()>=box_min.z()) && (inter.z() <box_max.z()))

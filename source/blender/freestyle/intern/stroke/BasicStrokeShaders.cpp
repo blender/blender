@@ -50,7 +50,7 @@ extern "C" {
 //     (*oArray)[i] = ((float)qBlue(rgb))/255.f;
 //   }
 // }
-void convert(ImBuf *imBuf, float **oArray, unsigned &oSize) {
+static void convert(ImBuf *imBuf, float **oArray, unsigned &oSize) {
 	oSize = imBuf->x;
   	*oArray = new float[oSize];
 

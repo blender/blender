@@ -2,7 +2,7 @@
 #include "NodeCamera.h"
 #include <math.h>
 
-void loadIdentity(double * matrix){
+static void loadIdentity(double * matrix){
     int i;
 
     // Build Identity matrix
