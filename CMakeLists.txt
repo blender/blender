@@ -241,11 +241,6 @@ option(WITH_PYTHON_INSTALL_NUMPY "Copy system numpy into the blender install fol
 set(PYTHON_NUMPY_PATH            "" CACHE PATH "Python to python site-packages or dist-packages containing 'numpy' module")
 mark_as_advanced(PYTHON_NUMPY_PATH)
 
-if(MINGW)
-	option(WITH_MINGW64                   "Use the 64-bit version of MinGW" OFF)
-	mark_as_advanced(WITH_MINGW64)
-endif()
-
 # Cycles
 option(WITH_CYCLES					"Enable cycles Render Engine" ON)
 option(WITH_CYCLES_TEST				"Build cycles test application" OFF)
@@ -867,8 +862,16 @@ elseif(WIN32)
 
 	if(CMAKE_COMPILER_IS_GNUCC)
 		set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw32)
-
+		INCLUDE (CheckCSourceCompiles) 
 		# Setup 64bit and 64bit windows systems
+		CHECK_C_SOURCE_COMPILES("
+			#ifndef __MINGW64__
+			#error
+			#endif
+			main(){}
+			" 
+			WITH_MINGW64)
+		
 		if(WITH_MINGW64)
 			message("Compiling for 64 bit with MinGW-w64.")
 			set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/mingw64)
@@ -939,13 +942,6 @@ elseif(WIN32)
 			message(STATUS "OSL not found")
 		endif()
 	endif()
-
-	if(WITH_LLVM)
-		set(LLVM_DIRECTORY ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
-		file(GLOB LLVM_LIBRARY ${LLVM_DIRECTORY}/lib/*.lib)
-		set(LLVM_STATIC YES)
-	endif()
-
 
 	if(MSVC)
 		set(PLATFORM_LINKLIBS ws2_32 vfw32 winmm kernel32 user32 gdi32 comdlg32 advapi32 shfolder shell32 ole32 oleaut32 uuid psapi)
@@ -1149,6 +1145,12 @@ elseif(WIN32)
 			set(OPENIMAGEIO_DEFINITIONS "-DUSE_TBB=0")
 		endif()
 
+		if(WITH_LLVM)
+			set(LLVM_DIRECTORY ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
+			file(GLOB LLVM_LIBRARY ${LLVM_DIRECTORY}/lib/*.lib)
+			set(LLVM_STATIC YES)
+		endif()
+	
 		if(WITH_OPENCOLORIO)
 			set(OPENCOLORIO ${LIBDIR}/opencolorio)
 			set(OPENCOLORIO_INCLUDE_DIRS ${OPENCOLORIO}/include)
@@ -1261,6 +1263,7 @@ elseif(WIN32)
 
 		if(WITH_IMAGE_OPENEXR)
 			set(OPENEXR ${LIBDIR}/openexr)
+			set(OPENEXR_INCLUDE_DIR ${OPENEXR}/include)
 			set(OPENEXR_INCLUDE_DIRS ${OPENEXR}/include/OpenEXR)
 			set(OPENEXR_LIBRARIES Half IlmImf Imath IlmThread Iex)
 			set(OPENEXR_LIBPATH ${OPENEXR}/lib)
@@ -1326,6 +1329,34 @@ elseif(WIN32)
 			set(OPENIMAGEIO_LIBRARIES OpenImageIO)
 			set(OPENIMAGEIO_LIBPATH ${OPENIMAGEIO}/lib)
 			set(OPENIMAGEIO_DEFINITIONS)
+		endif()
+		
+		if(WITH_LLVM)
+			set(LLVM_DIRECTORY ${LIBDIR}/llvm CACHE PATH	"Path to the LLVM installation")
+			set(LLVM_LIB_DIR ${LLVM_DIRECTORY}/lib)
+			#Explicitly set llvm lib order.
+			#---- WARNING ON GCC ORDER OF LIBS IS IMPORTANT, DO NOT CHANGE! ---------
+			set(LLVM_LIBRARY LLVMSelectionDAG LLVMCodeGen LLVMScalarOpts LLVMAnalysis LLVMArchive
+				LLVMAsmParser LLVMAsmPrinter
+				LLVMBitReader LLVMBitWriter
+				LLVMDebugInfo LLVMExecutionEngine
+				LLVMInstCombine LLVMInstrumentation
+				LLVMInterpreter LLVMJIT
+				LLVMLinker LLVMMC
+				LLVMMCDisassembler LLVMMCJIT
+				LLVMMCParser LLVMObject
+				LLVMRuntimeDyld 
+				LLVMSupport
+				LLVMTableGen LLVMTarget
+				LLVMTransformUtils LLVMVectorize
+				LLVMX86AsmParser LLVMX86AsmPrinter
+				LLVMX86CodeGen LLVMX86Desc
+				LLVMX86Disassembler LLVMX86Info
+				LLVMX86Utils LLVMipa
+				LLVMipo LLVMCore)
+				#imagehelp is needed by LLVM 3.1 on MinGW, check lib\Support\Windows\Signals.inc
+				set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} -limagehlp")
+			set(LLVM_STATIC YES)
 		endif()
 		
 		if(WITH_OPENCOLORIO)
