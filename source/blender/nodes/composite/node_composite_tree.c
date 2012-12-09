@@ -719,6 +719,16 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int rendering, int 
 
 /* *********************************************** */
 
+static void set_output_visible(bNode *node, int passflag, int index, int pass)
+{
+	bNodeSocket *sock = BLI_findlink(&node->outputs, index);
+	/* clear the SOCK_HIDDEN flag as well, in case a socket was hidden before */
+	if (passflag & pass)
+		sock->flag &= ~(SOCK_HIDDEN | SOCK_UNAVAIL);
+	else
+		sock->flag |= SOCK_UNAVAIL;
+}
+
 /* clumsy checking... should do dynamic outputs once */
 static void force_hidden_passes(bNode *node, int passflag)
 {
@@ -727,68 +737,35 @@ static void force_hidden_passes(bNode *node, int passflag)
 	for (sock= node->outputs.first; sock; sock= sock->next)
 		sock->flag &= ~SOCK_UNAVAIL;
 	
-	if (!(passflag & SCE_PASS_COMBINED)) {
-		sock= BLI_findlink(&node->outputs, RRES_OUT_IMAGE);
-		sock->flag |= SOCK_UNAVAIL;
-		sock= BLI_findlink(&node->outputs, RRES_OUT_ALPHA);
-		sock->flag |= SOCK_UNAVAIL;
-	}
+	set_output_visible(node, passflag, RRES_OUT_IMAGE,            SCE_PASS_COMBINED);
+	set_output_visible(node, passflag, RRES_OUT_ALPHA,            SCE_PASS_COMBINED);
 	
-	sock= BLI_findlink(&node->outputs, RRES_OUT_Z);
-	if (!(passflag & SCE_PASS_Z)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_NORMAL);
-	if (!(passflag & SCE_PASS_NORMAL)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_VEC);
-	if (!(passflag & SCE_PASS_VECTOR)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_UV);
-	if (!(passflag & SCE_PASS_UV)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_RGBA);
-	if (!(passflag & SCE_PASS_RGBA)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_DIFF);
-	if (!(passflag & SCE_PASS_DIFFUSE)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_SPEC);
-	if (!(passflag & SCE_PASS_SPEC)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_SHADOW);
-	if (!(passflag & SCE_PASS_SHADOW)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_AO);
-	if (!(passflag & SCE_PASS_AO)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_REFLECT);
-	if (!(passflag & SCE_PASS_REFLECT)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_REFRACT);
-	if (!(passflag & SCE_PASS_REFRACT)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_INDIRECT);
-	if (!(passflag & SCE_PASS_INDIRECT)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_INDEXOB);
-	if (!(passflag & SCE_PASS_INDEXOB)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_INDEXMA);
-	if (!(passflag & SCE_PASS_INDEXMA)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_MIST);
-	if (!(passflag & SCE_PASS_MIST)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_EMIT);
-	if (!(passflag & SCE_PASS_EMIT)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_ENV);
-	if (!(passflag & SCE_PASS_ENVIRONMENT)) sock->flag |= SOCK_UNAVAIL;
-
-	sock= BLI_findlink(&node->outputs, RRES_OUT_DIFF_DIRECT);
-	if (!(passflag & SCE_PASS_DIFFUSE_DIRECT)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_DIFF_INDIRECT);
-	if (!(passflag & SCE_PASS_DIFFUSE_INDIRECT)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_DIFF_COLOR);
-	if (!(passflag & SCE_PASS_DIFFUSE_COLOR)) sock->flag |= SOCK_UNAVAIL;
-
-	sock= BLI_findlink(&node->outputs, RRES_OUT_GLOSSY_DIRECT);
-	if (!(passflag & SCE_PASS_GLOSSY_DIRECT)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_GLOSSY_INDIRECT);
-	if (!(passflag & SCE_PASS_GLOSSY_INDIRECT)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_GLOSSY_COLOR);
-	if (!(passflag & SCE_PASS_GLOSSY_COLOR)) sock->flag |= SOCK_UNAVAIL;
-
-	sock= BLI_findlink(&node->outputs, RRES_OUT_TRANSM_DIRECT);
-	if (!(passflag & SCE_PASS_TRANSM_DIRECT)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_TRANSM_INDIRECT);
-	if (!(passflag & SCE_PASS_TRANSM_INDIRECT)) sock->flag |= SOCK_UNAVAIL;
-	sock= BLI_findlink(&node->outputs, RRES_OUT_TRANSM_COLOR);
-	if (!(passflag & SCE_PASS_TRANSM_COLOR)) sock->flag |= SOCK_UNAVAIL;
+	set_output_visible(node, passflag, RRES_OUT_Z,                SCE_PASS_Z);
+	set_output_visible(node, passflag, RRES_OUT_NORMAL,           SCE_PASS_NORMAL);
+	set_output_visible(node, passflag, RRES_OUT_VEC,              SCE_PASS_VECTOR);
+	set_output_visible(node, passflag, RRES_OUT_UV,               SCE_PASS_UV);
+	set_output_visible(node, passflag, RRES_OUT_RGBA,             SCE_PASS_RGBA);
+	set_output_visible(node, passflag, RRES_OUT_DIFF,             SCE_PASS_DIFFUSE);
+	set_output_visible(node, passflag, RRES_OUT_SPEC,             SCE_PASS_SPEC);
+	set_output_visible(node, passflag, RRES_OUT_SHADOW,           SCE_PASS_SHADOW);
+	set_output_visible(node, passflag, RRES_OUT_AO,               SCE_PASS_AO);
+	set_output_visible(node, passflag, RRES_OUT_REFLECT,          SCE_PASS_REFLECT);
+	set_output_visible(node, passflag, RRES_OUT_REFRACT,          SCE_PASS_REFRACT);
+	set_output_visible(node, passflag, RRES_OUT_INDIRECT,         SCE_PASS_INDIRECT);
+	set_output_visible(node, passflag, RRES_OUT_INDEXOB,          SCE_PASS_INDEXOB);
+	set_output_visible(node, passflag, RRES_OUT_INDEXMA,          SCE_PASS_INDEXMA);
+	set_output_visible(node, passflag, RRES_OUT_MIST,             SCE_PASS_MIST);
+	set_output_visible(node, passflag, RRES_OUT_EMIT,             SCE_PASS_EMIT);
+	set_output_visible(node, passflag, RRES_OUT_ENV,              SCE_PASS_ENVIRONMENT);
+	set_output_visible(node, passflag, RRES_OUT_DIFF_DIRECT,      SCE_PASS_DIFFUSE_DIRECT);
+	set_output_visible(node, passflag, RRES_OUT_DIFF_INDIRECT,    SCE_PASS_DIFFUSE_INDIRECT);
+	set_output_visible(node, passflag, RRES_OUT_DIFF_COLOR,       SCE_PASS_DIFFUSE_COLOR);
+	set_output_visible(node, passflag, RRES_OUT_GLOSSY_DIRECT,    SCE_PASS_GLOSSY_DIRECT);
+	set_output_visible(node, passflag, RRES_OUT_GLOSSY_INDIRECT,  SCE_PASS_GLOSSY_INDIRECT);
+	set_output_visible(node, passflag, RRES_OUT_GLOSSY_COLOR,     SCE_PASS_GLOSSY_COLOR);
+	set_output_visible(node, passflag, RRES_OUT_TRANSM_DIRECT,    SCE_PASS_TRANSM_DIRECT);
+	set_output_visible(node, passflag, RRES_OUT_TRANSM_INDIRECT,  SCE_PASS_TRANSM_INDIRECT);
+	set_output_visible(node, passflag, RRES_OUT_TRANSM_COLOR,     SCE_PASS_TRANSM_COLOR);
 }
 
 /* based on rules, force sockets hidden always */
