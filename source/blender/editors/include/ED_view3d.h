@@ -295,6 +295,8 @@ void ED_view3D_background_image_clear(struct View3D *v3d);
 
 #define VIEW3D_MARGIN 1.4f
 float ED_view3d_offset_distance(float mat[4][4], float ofs[3]);
+
+float ED_scene_grid_scale(struct Scene *scene, const char **grid_unit);
 float ED_view3d_grid_scale(struct Scene *scene, struct View3D *v3d, const char **grid_unit);
 
 /* view matrix properties utilities */

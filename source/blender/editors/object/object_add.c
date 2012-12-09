@@ -210,8 +210,8 @@ float ED_object_new_primitive_matrix(bContext *C, Object *obedit,
 	invert_m3_m3(imat, mat);
 	mul_m3_v3(imat, primmat[3]);
 
-	if (v3d) {
-		float dia = ED_view3d_grid_scale(scene, v3d, NULL);
+	{
+		const float dia = v3d ? ED_view3d_grid_scale(scene, v3d, NULL) : ED_scene_grid_scale(scene, NULL);
 
 		if (apply_diameter) {
 			primmat[0][0] *= dia;
