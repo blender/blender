@@ -94,6 +94,15 @@ static EnumPropertyItem parent_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+static EnumPropertyItem dupli_items[] = {
+	{0, "NONE", 0, "None", ""},
+	{OB_DUPLIFRAMES, "FRAMES", 0, "Frames", "Make copy of object for every frame"},
+	{OB_DUPLIVERTS, "VERTS", 0, "Verts", "Duplicate child objects on all vertices"},
+	{OB_DUPLIFACES, "FACES", 0, "Faces", "Duplicate child objects on all faces"},
+	{OB_DUPLIGROUP, "GROUP", 0, "Group", "Enable group instancing"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 static EnumPropertyItem collision_bounds_items[] = {
 	{OB_BOUND_BOX, "BOX", 0, "Box", ""},
 	{OB_BOUND_SPHERE, "SPHERE", 0, "Sphere", ""},
@@ -2019,15 +2028,7 @@ static void rna_def_object(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem dupli_items[] = {
-		{0, "NONE", 0, "None", ""},
-		{OB_DUPLIFRAMES, "FRAMES", 0, "Frames", "Make copy of object for every frame"},
-		{OB_DUPLIVERTS, "VERTS", 0, "Verts", "Duplicate child objects on all vertices"},
-		{OB_DUPLIFACES, "FACES", 0, "Faces", "Duplicate child objects on all faces"},
-		{OB_DUPLIGROUP, "GROUP", 0, "Group", "Enable group instancing"},
-		{0, NULL, 0, NULL, NULL}
-	};
-		
+	
 	/* XXX: this RNA enum define is currently duplicated for objects,
 	 *      since there is some text here which is not applicable */
 	static EnumPropertyItem prop_rotmode_items[] = {
@@ -2681,6 +2682,11 @@ static void rna_def_dupli_object(BlenderRNA *brna)
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "UV Coordinates", "UV coordinates in parent object space");
+
+	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, dupli_items);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Dupli Type", "Duplicator type that generated this dupli object");
 }
 
 static void rna_def_object_base(BlenderRNA *brna)
