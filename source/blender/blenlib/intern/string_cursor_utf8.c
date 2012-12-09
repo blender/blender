@@ -150,7 +150,7 @@ void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
 			 * list of special character, ctr -> */
 			while (TRUE) {
 				if ((jump != STRCUR_JUMP_ALL) && (delim_type != cursor_delim_type(&str[*pos]))) {
-						break;
+					break;
 				}
 				else if ((*pos) >= maxlen) {
 					break;
