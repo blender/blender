@@ -224,7 +224,7 @@ class ProjectApply(Operator):
         image_name = ProjectEdit._proj_hack[0]  # TODO, deal with this nicer
 
         try:
-            image = bpy.data.images[image_name]
+            image = bpy.data.images[image_name, None]
         except KeyError:
             import traceback
             traceback.print_exc()
