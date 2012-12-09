@@ -125,7 +125,7 @@ typedef struct FreestyleConfig {
 	int flags; /* suggestive contours, ridges/valleys, material boundaries */
 	float sphere_radius;
 	float dkr_epsilon;
-	float crease_angle;
+	float crease_angle; /* in radians! */
 
 	ListBase linesets;
 

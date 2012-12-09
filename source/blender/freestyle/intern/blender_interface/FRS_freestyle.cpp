@@ -351,7 +351,7 @@ extern "C" {
 			controller->setSuggestiveContourKrDerivativeEpsilon( DEFAULT_DKR_EPSILON );
 		}
 		controller->setFaceSmoothness( (config->flags & FREESTYLE_FACE_SMOOTHNESS_FLAG) ? true : false);
-		controller->setCreaseAngle( config->crease_angle );
+		controller->setCreaseAngle( RAD2DEGF(config->crease_angle) );
 		controller->setVisibilityAlgo( (config->flags & FREESTYLE_CULLING) ?
 			FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE : FREESTYLE_ALGO_ADAPTIVE_CUMULATIVE );
 

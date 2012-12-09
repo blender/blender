@@ -480,8 +480,7 @@ class CalligraphicThicknessShader(ThicknessBlenderMixIn, ScalarBlendModifier):
                  blend, influence, orientation, min_thickness, max_thickness):
         ThicknessBlenderMixIn.__init__(self, thickness_position, thickness_ratio)
         ScalarBlendModifier.__init__(self, blend, influence)
-        rad = orientation / 180.0 * math.pi
-        self.__orientation = mathutils.Vector((math.cos(rad), math.sin(rad)))
+        self.__orientation = mathutils.Vector((math.cos(orientation), math.sin(orientation)))
         self.__min_thickness = min_thickness
         self.__max_thickness = max_thickness
     def shade(self, stroke):
@@ -533,14 +532,13 @@ class SinusDisplacementShader(StrokeShader):
         stroke.UpdateLength()
 
 class PerlinNoise1DShader(StrokeShader):
-    def __init__(self, freq = 10, amp = 10, oct = 4, angle = 45, seed = -1):
+    def __init__(self, freq = 10, amp = 10, oct = 4, angle = math.radians(45), seed = -1):
         StrokeShader.__init__(self)
         self.__noise = Noise(seed)
         self.__freq = freq
         self.__amp = amp
         self.__oct = oct
-        theta = pi * angle / 180.0
-        self.__dir = Vector([cos(theta), sin(theta)])
+        self.__dir = Vector([cos(angle), sin(angle)])
     def getName(self):
         return "PerlinNoise1DShader"
     def shade(self, stroke):
@@ -554,14 +552,13 @@ class PerlinNoise1DShader(StrokeShader):
         stroke.UpdateLength()
 
 class PerlinNoise2DShader(StrokeShader):
-    def __init__(self, freq = 10, amp = 10, oct = 4, angle = 45, seed = -1):
+    def __init__(self, freq = 10, amp = 10, oct = 4, angle = math.radians(45), seed = -1):
         StrokeShader.__init__(self)
         self.__noise = Noise(seed)
         self.__freq = freq
         self.__amp = amp
         self.__oct = oct
-        theta = pi * angle / 180.0
-        self.__dir = Vector([cos(theta), sin(theta)])
+        self.__dir = Vector([cos(angle), sin(angle)])
     def getName(self):
         return "PerlinNoise2DShader"
     def shade(self, stroke):
@@ -647,8 +644,8 @@ class Transform2DShader(StrokeShader):
         elif self.__pivot == "ABSOLUTE":
             pivot = Vector([self.__pivot_x, self.__pivot_y])
         # apply scaling and rotation operations
-        cos_theta = math.cos(math.pi * self.__angle / 180.0)
-        sin_theta = math.sin(math.pi * self.__angle / 180.0)
+        cos_theta = math.cos(self.__angle)
+        sin_theta = math.sin(self.__angle)
         it = stroke.strokeVerticesBegin()
         while not it.isEnd():
             v = it.getObject()
@@ -883,7 +880,7 @@ class DashedLineShader(StrokeShader):
 class AngleLargerThanBP1D(BinaryPredicate1D):
     def __init__(self, angle):
         BinaryPredicate1D.__init__(self)
-        self._angle = math.pi * angle / 180.0
+        self._angle = angle
     def getName(self):
         return "AngleLargerThanBP1D"
     def __call__(self, i1, i2):

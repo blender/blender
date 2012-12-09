@@ -565,7 +565,7 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Calligraphy", "Change line thickness so that stroke looks like made with a calligraphic pen");
 	rna_def_thickness_modifier(srna);
 
-	prop= RNA_def_property(srna, "orientation", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "orientation", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "orientation");
 	RNA_def_property_ui_text(prop, "Orientation", "Angle of the main direction");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
@@ -675,9 +675,9 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Octaves", "Number of octaves (i.e., the amount of detail of the Perlin noise)");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
-	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "angle");
-	RNA_def_property_ui_text(prop, "Angle", "Displacement direction in degrees");
+	RNA_def_property_ui_text(prop, "Angle", "Displacement direction");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "seed", PROP_INT, PROP_NONE);
@@ -704,9 +704,9 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Octaves", "Number of octaves (i.e., the amount of detail of the Perlin noise)");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
-	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "angle");
-	RNA_def_property_ui_text(prop, "Angle", "Displacement direction in degrees");
+	RNA_def_property_ui_text(prop, "Angle", "Displacement direction");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "seed", PROP_INT, PROP_NONE);
@@ -830,9 +830,9 @@ static void rna_def_linestyle_modifiers(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Scale Y", "Scaling factor that is applied along the Y axis");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
-	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "angle");
-	RNA_def_property_ui_text(prop, "Rotation Angle", "Rotation angle in degrees");
+	RNA_def_property_ui_text(prop, "Rotation Angle", "Rotation angle");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
 	prop= RNA_def_property(srna, "pivot_u", PROP_FLOAT, PROP_FACTOR);
@@ -982,7 +982,7 @@ static void rna_def_linestyle(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "min_angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "min_angle");
-	RNA_def_property_range(prop, 0.0f, (float)M_PI);
+	RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
 	RNA_def_property_ui_text(prop, "Min 2D Angle", "Minimum 2D angle for splitting chains");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 
@@ -993,7 +993,7 @@ static void rna_def_linestyle(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "max_angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "max_angle");
-	RNA_def_property_range(prop, 0.0f, (float)M_PI);
+	RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
 	RNA_def_property_ui_text(prop, "Max 2D Angle", "Maximum 2D angle for splitting chains");
 	RNA_def_property_update(prop, NC_LINESTYLE, NULL);
 

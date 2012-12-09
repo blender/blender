@@ -47,6 +47,7 @@
 #include "BKE_animsys.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 
 static const char *modifier_name[LS_MODIFIER_NUM] = {
 	NULL,
@@ -506,7 +507,7 @@ LineStyleModifier *FRS_add_linestyle_thickness_modifier(FreestyleLineStyle *line
 	case LS_MODIFIER_CALLIGRAPHY:
 		((LineStyleThicknessModifier_Calligraphy *)m)->min_thickness = 1.0f;
 		((LineStyleThicknessModifier_Calligraphy *)m)->max_thickness = 10.0f;
-		((LineStyleThicknessModifier_Calligraphy *)m)->orientation = 60.0f;
+		((LineStyleThicknessModifier_Calligraphy *)m)->orientation = DEG2RADF(60.0f);
 		break;
 	default:
 		return NULL; /* unknown modifier type */
@@ -683,13 +684,13 @@ LineStyleModifier *FRS_add_linestyle_geometry_modifier(FreestyleLineStyle *lines
 		((LineStyleGeometryModifier_PerlinNoise1D *)m)->frequency = 10.0;
 		((LineStyleGeometryModifier_PerlinNoise1D *)m)->amplitude = 10.0;
 		((LineStyleGeometryModifier_PerlinNoise1D *)m)->octaves = 4;
-		((LineStyleGeometryModifier_PerlinNoise1D *)m)->angle = 45.0;
+		((LineStyleGeometryModifier_PerlinNoise1D *)m)->angle = DEG2RADF(45.0f);
 		break;
 	case LS_MODIFIER_PERLIN_NOISE_2D:
 		((LineStyleGeometryModifier_PerlinNoise2D *)m)->frequency = 10.0;
 		((LineStyleGeometryModifier_PerlinNoise2D *)m)->amplitude = 10.0;
 		((LineStyleGeometryModifier_PerlinNoise2D *)m)->octaves = 4;
-		((LineStyleGeometryModifier_PerlinNoise2D *)m)->angle = 45.0;
+		((LineStyleGeometryModifier_PerlinNoise2D *)m)->angle = DEG2RADF(45.0f);
 		break;
 	case LS_MODIFIER_BACKBONE_STRETCHER:
 		((LineStyleGeometryModifier_BackboneStretcher *)m)->backbone_length = 10.0;
@@ -721,7 +722,7 @@ LineStyleModifier *FRS_add_linestyle_geometry_modifier(FreestyleLineStyle *lines
 		((LineStyleGeometryModifier_2DTransform *)m)->pivot = LS_MODIFIER_2D_TRANSFORM_PIVOT_CENTER;
 		((LineStyleGeometryModifier_2DTransform *)m)->scale_x = 1.f;
 		((LineStyleGeometryModifier_2DTransform *)m)->scale_y = 1.f;
-		((LineStyleGeometryModifier_2DTransform *)m)->angle = 0.f;
+		((LineStyleGeometryModifier_2DTransform *)m)->angle = DEG2RADF(0.0f);
 		((LineStyleGeometryModifier_2DTransform *)m)->pivot_u = 0.5f;
 		((LineStyleGeometryModifier_2DTransform *)m)->pivot_x = 0.f;
 		((LineStyleGeometryModifier_2DTransform *)m)->pivot_y = 0.f;

@@ -2688,10 +2688,10 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Kr Derivative Epsilon", "Kr derivative epsilon for computing suggestive contours");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
-	prop= RNA_def_property(srna, "crease_angle", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "crease_angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "crease_angle");
-	RNA_def_property_range(prop, 0.0, 180.0);
-	RNA_def_property_ui_text(prop, "Crease Angle", "Angular threshold in degrees (between 0 and 180) for detecting crease edges");
+	RNA_def_property_range(prop, 0.0, DEG2RAD(180.0));
+	RNA_def_property_ui_text(prop, "Crease Angle", "Angular threshold for detecting crease edges");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop= RNA_def_property(srna, "linesets", PROP_COLLECTION, PROP_NONE);

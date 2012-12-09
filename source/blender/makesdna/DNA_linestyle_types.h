@@ -267,7 +267,8 @@ typedef struct LineStyleGeometryModifier_SpatialNoise {
 typedef struct LineStyleGeometryModifier_PerlinNoise1D {
 	struct LineStyleModifier modifier;
 
-	float frequency, amplitude, angle;
+	float frequency, amplitude;
+	float angle; /* in radians! */
 	unsigned int octaves;
 	int seed;
 	int pad1;
@@ -277,7 +278,8 @@ typedef struct LineStyleGeometryModifier_PerlinNoise1D {
 typedef struct LineStyleGeometryModifier_PerlinNoise2D {
 	struct LineStyleModifier modifier;
 
-	float frequency, amplitude, angle;
+	float frequency, amplitude;
+	float angle; /* in radians! */
 	unsigned int octaves;
 	int seed;
 	int pad1;
@@ -353,7 +355,7 @@ typedef struct LineStyleGeometryModifier_2DTransform {
 
 	int pivot;
 	float scale_x, scale_y;
-	float angle;
+	float angle; /* in radians! */
 	float pivot_u;
 	float pivot_x, pivot_y;
 	int pad;
@@ -366,7 +368,7 @@ typedef struct LineStyleThicknessModifier_Calligraphy {
 	struct LineStyleModifier modifier;
 
 	float min_thickness, max_thickness;
-	float orientation;
+	float orientation; /* in radians! */
 	int pad;
 
 } LineStyleThicknessModifier_Calligraphy;
@@ -419,7 +421,7 @@ typedef struct FreestyleLineStyle {
 	int chaining;
 	unsigned int rounds;
 	float split_length;
-	float min_angle, max_angle; /* for splitting */
+	float min_angle, max_angle; /* in radians, for splitting */
 	float min_length, max_length;
 	unsigned short split_dash1, split_gap1;
 	unsigned short split_dash2, split_gap2;
