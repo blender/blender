@@ -3114,6 +3114,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	KnifeTool_OpData *kcd = op->customdata;
+	int do_refresh = FALSE;
 
 	if (!obedit || obedit->type != OB_MESH || BMEdit_FromObject(obedit) != kcd->em) {
 		knifetool_exit(C, op);
@@ -3153,6 +3154,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, wmEvent *event)
 				knife_update_active(kcd);
 				knife_update_header(C, kcd);
 				ED_region_tag_redraw(kcd->ar);
+				do_refresh = TRUE;
 				break;
 			case KNF_MODAL_MIDPOINT_OFF:
 				kcd->snap_midpoints = 0;
@@ -3161,25 +3163,29 @@ static int knifetool_modal(bContext *C, wmOperator *op, wmEvent *event)
 				knife_update_active(kcd);
 				knife_update_header(C, kcd);
 				ED_region_tag_redraw(kcd->ar);
+				do_refresh = TRUE;
 				break;
 			case KNF_MODEL_IGNORE_SNAP_ON:
 				ED_region_tag_redraw(kcd->ar);
 				kcd->ignore_vert_snapping = kcd->ignore_edge_snapping = 1;
 				knife_update_header(C, kcd);
+				do_refresh = TRUE;
 				break;
 			case KNF_MODEL_IGNORE_SNAP_OFF:
 				ED_region_tag_redraw(kcd->ar);
 				kcd->ignore_vert_snapping = kcd->ignore_edge_snapping = 0;
 				knife_update_header(C, kcd);
+				do_refresh = TRUE;
 				break;
 			case KNF_MODAL_ANGLE_SNAP_TOGGLE:
 				kcd->angle_snapping = !kcd->angle_snapping;
 				knife_update_header(C, kcd);
+				do_refresh = TRUE;
 				break;
 			case KNF_MODAL_CUT_THROUGH_TOGGLE:
 				kcd->cut_through = !kcd->cut_through;
-				knifetool_update_mval(kcd, event->mval);  /* refresh knife path */
 				knife_update_header(C, kcd);
+				do_refresh = TRUE;
 				break;
 			case KNF_MODAL_NEW_CUT:
 				ED_region_tag_redraw(kcd->ar);
@@ -3230,6 +3236,12 @@ static int knifetool_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 				break;
 		}
+	}
+
+	if (do_refresh) {
+		/* we don't really need to update mval,
+		 * but this happens to be the best way to refresh at the moment */
+		knifetool_update_mval(kcd, event->mval);
 	}
 
 	/* keep going until the user confirms */
