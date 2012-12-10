@@ -38,11 +38,6 @@
 class AUD_ButterworthFactory : public AUD_DynamicIIRFilterFactory
 {
 private:
-	/**
-	 * The attack value in seconds.
-	 */
-	const float m_frequency;
-
 	// hide copy constructor and operator=
 	AUD_ButterworthFactory(const AUD_ButterworthFactory&);
 	AUD_ButterworthFactory& operator=(const AUD_ButterworthFactory&);
@@ -54,10 +49,6 @@ public:
 	 * \param frequency The cutoff frequency.
 	 */
 	AUD_ButterworthFactory(boost::shared_ptr<AUD_IFactory> factory, float frequency);
-
-	virtual void recalculateCoefficients(AUD_SampleRate rate,
-	                                     std::vector<float>& b,
-	                                     std::vector<float>& a);
 };
 
 #endif //__AUD_BUTTERWORTHFACTORY_H__

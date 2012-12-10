@@ -30,8 +30,10 @@
 #include "AUD_DynamicIIRFilterReader.h"
 
 
-AUD_DynamicIIRFilterFactory::AUD_DynamicIIRFilterFactory(boost::shared_ptr<AUD_IFactory> factory) :
-	AUD_EffectFactory(factory)
+AUD_DynamicIIRFilterFactory::AUD_DynamicIIRFilterFactory(boost::shared_ptr<AUD_IFactory> factory,
+														 boost::shared_ptr<AUD_IDynamicIIRFilterCalculator> calculator) :
+	AUD_EffectFactory(factory),
+	m_calculator(calculator)
 {
 }
 

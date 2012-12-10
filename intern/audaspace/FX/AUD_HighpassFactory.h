@@ -38,16 +38,6 @@
 class AUD_HighpassFactory : public AUD_DynamicIIRFilterFactory
 {
 private:
-	/**
-	 * The cutoff frequency.
-	 */
-	const float m_frequency;
-
-	/**
-	 * The Q factor.
-	 */
-	const float m_Q;
-
 	// hide copy constructor and operator=
 	AUD_HighpassFactory(const AUD_HighpassFactory&);
 	AUD_HighpassFactory& operator=(const AUD_HighpassFactory&);
@@ -60,8 +50,6 @@ public:
 	 * \param Q The Q factor.
 	 */
 	AUD_HighpassFactory(boost::shared_ptr<AUD_IFactory> factory, float frequency, float Q = 1.0f);
-
-	virtual void recalculateCoefficients(AUD_SampleRate rate, std::vector<float> &b, std::vector<float> &a);
 };
 
 #endif //__AUD_HIGHPASSFACTORY_H__
