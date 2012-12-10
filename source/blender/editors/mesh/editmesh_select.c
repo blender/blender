@@ -450,20 +450,6 @@ BMVert *EDBM_vert_find_nearest(ViewContext *vc, float *r_dist, const short sel, 
 	}
 }
 
-/* returns labda for closest distance v1 to line-piece v2 - v3 */
-float labda_PdistVL2Dfl(const float v1[2], const float v2[2], const float v3[2])
-{
-	float rc[2], len;
-	
-	rc[0] = v3[0] - v2[0];
-	rc[1] = v3[1] - v2[1];
-	len = rc[0] * rc[0] + rc[1] * rc[1];
-	if (len == 0.0f)
-		return 0.0f;
-	
-	return (rc[0] * (v1[0] - v2[0]) + rc[1] * (v1[1] - v2[1])) / len;
-}
-
 /* note; uses v3d, so needs active 3d window */
 static void findnearestedge__doClosest(void *userData, BMEdge *eed, const float screen_co_a[2], const float screen_co_b[2], int UNUSED(index))
 {
@@ -478,7 +464,7 @@ static void findnearestedge__doClosest(void *userData, BMEdge *eed, const float 
 
 	if (distance < data->dist) {
 		if (data->vc.rv3d->rflag & RV3D_CLIPPING) {
-			float labda = labda_PdistVL2Dfl(data->mval_fl, screen_co_a, screen_co_b);
+			float labda = line_point_factor_v2(data->mval_fl, screen_co_a, screen_co_b);
 			float vec[3];
 
 			vec[0] = eed->v1->co[0] + labda * (eed->v2->co[0] - eed->v1->co[0]);
