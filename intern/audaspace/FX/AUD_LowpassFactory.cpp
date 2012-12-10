@@ -29,33 +29,10 @@
 
 #include "AUD_LowpassFactory.h"
 #include "AUD_IIRFilterReader.h"
-
-#include <cmath>
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
+#include "AUD_LowpassCalculator.h"
 
 AUD_LowpassFactory::AUD_LowpassFactory(boost::shared_ptr<AUD_IFactory> factory, float frequency,
 									   float Q) :
-		AUD_DynamicIIRFilterFactory(factory),
-		m_frequency(frequency),
-		m_Q(Q)
+		AUD_DynamicIIRFilterFactory(factory, boost::shared_ptr<AUD_IDynamicIIRFilterCalculator>(new AUD_LowpassCalculator(frequency, Q)))
 {
-}
-
-void AUD_LowpassFactory::recalculateCoefficients(AUD_SampleRate rate,
-												 std::vector<float> &b,
-												 std::vector<float> &a)
-{
-	float w0 = 2 * M_PI * m_frequency / rate;
-	float alpha = sin(w0) / (2 * m_Q);
-	float norm = 1 + alpha;
-	float c = cos(w0);
-	a.push_back(1);
-	a.push_back(-2 * c / norm);
-	a.push_back((1 - alpha) / norm);
-	b.push_back((1 - c) / (2 * norm));
-	b.push_back((1 - c) / norm);
-	b.push_back(b[0]);
 }
