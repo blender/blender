@@ -152,6 +152,7 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 
 					sc.sample_weight = sample_weight;
 					sc.type = bsdf->shaderclosure_type();
+					sc.N = bsdf->sc.N; /* needed for AO */
 
 					/* add */
 					if(sc.sample_weight > 1e-5f && sd->num_closure < MAX_CLOSURE) {
