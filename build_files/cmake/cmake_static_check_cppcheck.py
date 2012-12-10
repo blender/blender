@@ -46,6 +46,9 @@ CHECKER_ARGS = [
     #  "--enable=all",  # if you want sixty hundred pedantic suggestions
     ]
 
+if USE_QUIET:
+    CHECKER_ARGS.append("--quiet")
+
 
 def main():
     source_info = project_source_info.build_info(ignore_prefix_list=CHECKER_IGNORE_PREFIX)
@@ -77,6 +80,8 @@ def main():
         process_functions.append((my_process, (i, c, cmd)))
 
     project_source_info.queue_processes(process_functions)
+
+    print("Finished!")
 
 
 if __name__ == "__main__":

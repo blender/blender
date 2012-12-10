@@ -310,6 +310,13 @@ Object *BlenderSync::sync_object(BL::Object b_parent, int persistent_id[OBJECT_P
 	return object;
 }
 
+static bool object_dupli_hide_original(BL::Object::dupli_type_enum dupli_type)
+{
+	return (dupli_type == BL::Object::dupli_type_VERTS ||
+	        dupli_type == BL::Object::dupli_type_FACES ||
+	        dupli_type == BL::Object::dupli_type_FRAMES);
+}
+
 /* Object Loop */
 
 void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
@@ -371,6 +378,12 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 									emitter_hide = false;
 						}
 
+						/* hide original object for duplis */
+						BL::Object parent = b_dup_ob.parent();
+						if(parent && object_dupli_hide_original(parent.dupli_type()))
+							if(b_dup->type() == BL::DupliObject::type_GROUP)
+								dup_hide = true;
+
 						if(!(b_dup->hide() || dup_hide || emitter_hide)) {
 							/* the persistent_id allows us to match dupli objects
 							 * between frames and updates */
@@ -399,10 +412,14 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 				/* check if we should render or hide particle emitter */
 				BL::Object::particle_systems_iterator b_psys;
 
-				for(b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end(); ++b_psys) {
+				for(b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end(); ++b_psys)
 					if(b_psys->settings().use_render_emitter())
 						hide = false;
-				}
+
+				/* hide original object for duplis */
+				BL::Object parent = b_ob->parent();
+				if(parent && object_dupli_hide_original(parent.dupli_type()))
+					hide = true;
 
 				if(!hide) {
 					/* object itself */

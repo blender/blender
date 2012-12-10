@@ -451,10 +451,9 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 }
 #undef GRID_MIN_PX
 
-float ED_view3d_grid_scale(Scene *scene, View3D *v3d, const char **grid_unit)
+/** could move this elsewhere, but tied into #ED_view3d_grid_scale */
+float ED_scene_grid_scale(Scene *scene, const char **grid_unit)
 {
-	float grid_scale = v3d->grid;
-
 	/* apply units */
 	if (scene->unit.system) {
 		void *usys;
@@ -466,11 +465,16 @@ float ED_view3d_grid_scale(Scene *scene, View3D *v3d, const char **grid_unit)
 			int i = bUnit_GetBaseUnit(usys);
 			if (grid_unit)
 				*grid_unit = bUnit_GetNameDisplay(usys, i);
-			grid_scale = (grid_scale * (float)bUnit_GetScaler(usys, i)) / scene->unit.scale_length;
+			return (float)bUnit_GetScaler(usys, i) / scene->unit.scale_length;
 		}
 	}
 
-	return grid_scale;
+	return 1.0f;
+}
+
+float ED_view3d_grid_scale(Scene *scene, View3D *v3d, const char **grid_unit)
+{
+	return v3d->grid * ED_scene_grid_scale(scene, grid_unit);
 }
 
 static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)

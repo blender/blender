@@ -1409,6 +1409,11 @@ static int ed_marker_make_links_scene_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int ed_marker_make_links_scene_invoke_wrapper(bContext *C, wmOperator *op, wmEvent *evt)
+{
+	return ed_markers_opwrap_invoke_custom(C, op, evt, WM_menu_invoke);
+}
+
 static void MARKER_OT_make_links_scene(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
@@ -1420,7 +1425,7 @@ static void MARKER_OT_make_links_scene(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = ed_marker_make_links_scene_exec;
-	ot->invoke = ed_markers_opwrap_invoke;
+	ot->invoke = ed_marker_make_links_scene_invoke_wrapper;
 	ot->poll = ed_markers_poll_selected_markers;
 
 	/* flags */

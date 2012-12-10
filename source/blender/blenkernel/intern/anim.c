@@ -1257,6 +1257,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	float (*obmat)[4], (*oldobmat)[4];
 	int a, b, hair = 0;
 	int totpart, totchild, totgroup = 0 /*, pa_num */;
+	int dupli_type_hack = !BKE_scene_use_new_shading_nodes(scene);
 
 	int no_draw_flag = PARS_UNEXIST;
 
@@ -1474,6 +1475,13 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 				}
 			}
 			else {
+				int dupli_type = OB_DUPLIPARTS;
+
+				/* blender internal needs this to be set to dupligroup to render
+				 * groups correctly, but we don't want this hack for cycles */
+				if(dupli_type_hack && GS(id->name) == ID_GR)
+					dupli_type = OB_DUPLIGROUP;
+
 				/* to give ipos in object correct offset */
 				BKE_object_where_is_calc_time(scene, ob, ctime - pa_time);
 
@@ -1527,7 +1535,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 				if (part->draw & PART_DRAW_GLOBAL_OB)
 					add_v3_v3v3(mat[3], mat[3], vec);
 
-				dob = new_dupli_object(lb, ob, mat, ob->lay, persistent_id, level, a, GS(id->name) == ID_GR ? OB_DUPLIGROUP : OB_DUPLIPARTS, (flag & DUPLILIST_ANIMATED));
+				dob = new_dupli_object(lb, ob, mat, ob->lay, persistent_id, level, a, dupli_type, (flag & DUPLILIST_ANIMATED));
 				dob->particle_system = psys;
 				copy_m4_m4(dob->omat, oldobmat);
 				if (flag & DUPLILIST_FOR_RENDER)

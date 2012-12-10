@@ -1453,9 +1453,16 @@ float line_point_factor_v3(const float p[3], const float l1[3], const float l2[3
 float line_point_factor_v2(const float p[2], const float l1[2], const float l2[2])
 {
 	float h[2], u[2];
+	float dot;
 	sub_v2_v2v2(u, l2, l1);
 	sub_v2_v2v2(h, p, l1);
+#if 0
 	return (dot_v2v2(u, h) / dot_v2v2(u, u));
+#else
+	/* better check for zero */
+	dot = dot_v2v2(u, u);
+	return (dot != 0.0f) ? (dot_v2v2(u, h) / dot) : 0.0f;
+#endif
 }
 
 /* ensure the distance between these points is no greater then 'dist'

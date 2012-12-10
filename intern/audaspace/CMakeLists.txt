@@ -34,6 +34,7 @@ set(INC_SYS
 set(SRC
 	FX/AUD_AccumulatorFactory.cpp
 	FX/AUD_BaseIIRFilterReader.cpp
+	FX/AUD_ButterworthCalculator.cpp
 	FX/AUD_ButterworthFactory.cpp
 	FX/AUD_CallbackIIRFilterReader.cpp
 	FX/AUD_DelayFactory.cpp
@@ -47,6 +48,7 @@ set(SRC
 	FX/AUD_EnvelopeFactory.cpp
 	FX/AUD_FaderFactory.cpp
 	FX/AUD_FaderReader.cpp
+	FX/AUD_HighpassCalculator.cpp
 	FX/AUD_HighpassFactory.cpp
 	FX/AUD_IIRFilterFactory.cpp
 	FX/AUD_IIRFilterReader.cpp
@@ -54,6 +56,7 @@ set(SRC
 	FX/AUD_LimiterReader.cpp
 	FX/AUD_LoopFactory.cpp
 	FX/AUD_LoopReader.cpp
+	FX/AUD_LowpassCalculator.cpp
 	FX/AUD_LowpassFactory.cpp
 	FX/AUD_PingPongFactory.cpp
 	FX/AUD_PitchFactory.cpp
@@ -145,6 +148,7 @@ set(SRC
 
 	FX/AUD_AccumulatorFactory.h
 	FX/AUD_BaseIIRFilterReader.h
+	FX/AUD_ButterworthCalculator.h
 	FX/AUD_ButterworthFactory.h
 	FX/AUD_CallbackIIRFilterReader.h
 	FX/AUD_DelayFactory.h
@@ -159,6 +163,7 @@ set(SRC
 	FX/AUD_EnvelopeFactory.h
 	FX/AUD_FaderFactory.h
 	FX/AUD_FaderReader.h
+	FX/AUD_HighpassCalculator.h
 	FX/AUD_HighpassFactory.h
 	FX/AUD_IIRFilterFactory.h
 	FX/AUD_IIRFilterReader.h
@@ -166,6 +171,7 @@ set(SRC
 	FX/AUD_LimiterReader.h
 	FX/AUD_LoopFactory.h
 	FX/AUD_LoopReader.h
+	FX/AUD_LowpassCalculator.h
 	FX/AUD_LowpassFactory.h
 	FX/AUD_PingPongFactory.h
 	FX/AUD_PitchFactory.h

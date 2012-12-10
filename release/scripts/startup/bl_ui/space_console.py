@@ -25,7 +25,7 @@ class CONSOLE_HT_header(Header):
     bl_space_type = 'CONSOLE'
 
     def draw(self, context):
-        layout = self.layout.row(align=True)
+        layout = self.layout.row()
 
         layout.template_header()
 

@@ -171,6 +171,7 @@ void		WM_event_timer_sleep(struct wmWindowManager *wm, struct wmWindow *win, str
 
 		/* operator api, default callbacks */
 			/* invoke callback, uses enum property named "type" */
+int			WM_operator_view3d_distance_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_menu_invoke			(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 			/* invoke callback, confirm menu + exec */

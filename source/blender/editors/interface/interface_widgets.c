@@ -651,8 +651,8 @@ static void widget_verts_to_quad_strip_open(uiWidgetBase *wtb, const int totvert
 	for (a = 0; a < totvert; a++) {
 		quad_strip[a * 2][0] = wtb->outer_v[a][0];
 		quad_strip[a * 2][1] = wtb->outer_v[a][1];
-		quad_strip[a * 2 + 1][0] = wtb->outer_v[a][0];
-		quad_strip[a * 2 + 1][1] = wtb->outer_v[a][1] - 1.0f;
+		quad_strip[a * 2 + 1][0] = wtb->inner_v[a][0];
+		quad_strip[a * 2 + 1][1] = wtb->inner_v[a][1];
 	}
 }
 

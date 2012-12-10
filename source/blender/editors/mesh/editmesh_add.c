@@ -204,7 +204,7 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 
 	if (!EDBM_op_call_and_selectf(em, op, "verts.out",
 	                              "create_circle segments=%i diameter=%f cap_ends=%b cap_tris=%b matrix=%m4",
-	                              RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius") * dia,
+	                              RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius"),
 	                              cap_end, cap_tri, mat))
 	{
 		return OPERATOR_CANCELLED;
@@ -225,6 +225,7 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 	ot->idname = "MESH_OT_primitive_circle_add";
 
 	/* api callbacks */
+	ot->invoke = WM_operator_view3d_distance_invoke;
 	ot->exec = add_primitive_circle_exec;
 	ot->poll = ED_operator_scene_editable;
 
@@ -260,10 +261,10 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
 	        em, op, "verts.out",
 	        "create_cone segments=%i diameter1=%f diameter2=%f cap_ends=%b cap_tris=%b depth=%f matrix=%m4",
 	        RNA_int_get(op->ptr, "vertices"),
-	        RNA_float_get(op->ptr, "radius") * dia,
-	        RNA_float_get(op->ptr, "radius") * dia,
+	        RNA_float_get(op->ptr, "radius"),
+	        RNA_float_get(op->ptr, "radius"),
 	        cap_end, cap_tri,
-	        RNA_float_get(op->ptr, "depth") * dia, mat))
+	        RNA_float_get(op->ptr, "depth"), mat))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -283,6 +284,7 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
 	ot->idname = "MESH_OT_primitive_cylinder_add";
 
 	/* api callbacks */
+	ot->invoke = WM_operator_view3d_distance_invoke;
 	ot->exec = add_primitive_cylinder_exec;
 	ot->poll = ED_operator_scene_editable;
 
@@ -319,8 +321,8 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 	if (!EDBM_op_call_and_selectf(
 	        em, op, "verts.out",
 	        "create_cone segments=%i diameter1=%f diameter2=%f cap_ends=%b cap_tris=%b depth=%f matrix=%m4",
-	        RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius1") * dia,
-	        RNA_float_get(op->ptr, "radius2") * dia, cap_end, cap_tri, RNA_float_get(op->ptr, "depth") * dia, mat))
+	        RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius1"),
+	        RNA_float_get(op->ptr, "radius2"), cap_end, cap_tri, RNA_float_get(op->ptr, "depth"), mat))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -340,6 +342,7 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 	ot->idname = "MESH_OT_primitive_cone_add";
 
 	/* api callbacks */
+	ot->invoke = WM_operator_view3d_distance_invoke;
 	ot->exec = add_primitive_cone_exec;
 	ot->poll = ED_operator_scene_editable;
 
@@ -376,7 +379,7 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 	                              "create_grid x_segments=%i y_segments=%i size=%f matrix=%m4",
 	                              RNA_int_get(op->ptr, "x_subdivisions"),
 	                              RNA_int_get(op->ptr, "y_subdivisions"),
-	                              RNA_float_get(op->ptr, "size") * dia, mat))
+	                              RNA_float_get(op->ptr, "size"), mat))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -396,6 +399,7 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 	ot->idname = "MESH_OT_primitive_grid_add";
 
 	/* api callbacks */
+	ot->invoke = WM_operator_view3d_distance_invoke;
 	ot->exec = add_primitive_grid_exec;
 	ot->poll = ED_operator_scene_editable;
 
@@ -473,7 +477,7 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 	if (!EDBM_op_call_and_selectf(em, op, "verts.out",
 	                              "create_uvsphere u_segments=%i v_segments=%i diameter=%f matrix=%m4",
 	                              RNA_int_get(op->ptr, "segments"), RNA_int_get(op->ptr, "ring_count"),
-	                              RNA_float_get(op->ptr, "size") * dia, mat))
+	                              RNA_float_get(op->ptr, "size"), mat))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -493,6 +497,7 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 	ot->idname = "MESH_OT_primitive_uv_sphere_add";
 
 	/* api callbacks */
+	ot->invoke = WM_operator_view3d_distance_invoke;
 	ot->exec = add_primitive_uvsphere_exec;
 	ot->poll = ED_operator_scene_editable;
 
@@ -525,7 +530,7 @@ static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 	        em, op, "verts.out",
 	        "create_icosphere subdivisions=%i diameter=%f matrix=%m4",
 	        RNA_int_get(op->ptr, "subdivisions"),
-	        RNA_float_get(op->ptr, "size") * dia, mat))
+	        RNA_float_get(op->ptr, "size"), mat))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -545,6 +550,7 @@ void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot)
 	ot->idname = "MESH_OT_primitive_ico_sphere_add";
 
 	/* api callbacks */
+	ot->invoke = WM_operator_view3d_distance_invoke;
 	ot->exec = add_primitive_icosphere_exec;
 	ot->poll = ED_operator_scene_editable;
 

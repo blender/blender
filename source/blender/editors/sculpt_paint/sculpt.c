@@ -3764,6 +3764,7 @@ int sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 	mval[0] = mouse[0] - vc.ar->winrct.xmin;
 	mval[1] = mouse[1] - vc.ar->winrct.ymin;
 
+	/* TODO: what if the segment is totally clipped? (return == 0) */
 	ED_view3d_win_to_segment_clip(vc.ar, vc.v3d, mval, ray_start, ray_end);
 
 	invert_m4_m4(obimat, ob->obmat);

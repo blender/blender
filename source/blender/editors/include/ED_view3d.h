@@ -193,7 +193,8 @@ void ED_view3d_global_to_vector(struct RegionView3D *rv3d, const float coord[3],
 void ED_view3d_win_to_3d(struct ARegion *ar, const float depth_pt[3], const float mval[2], float out[3]);
 void ED_view3d_win_to_delta(struct ARegion *ar, const float mval[2], float out[3]);
 void ED_view3d_win_to_vector(struct ARegion *ar, const float mval[2], float out[3]);
-void ED_view3d_win_to_segment_clip(struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3]);
+void ED_view3d_win_to_segment(struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3]);
+int  ED_view3d_win_to_segment_clip(struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3]);
 void ED_view3d_ob_project_mat_get(struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);
 void ED_view3d_unproject(struct bglMats *mats, float out[3], const float x, const float y, const float z);
 
@@ -295,6 +296,8 @@ void ED_view3D_background_image_clear(struct View3D *v3d);
 
 #define VIEW3D_MARGIN 1.4f
 float ED_view3d_offset_distance(float mat[4][4], float ofs[3]);
+
+float ED_scene_grid_scale(struct Scene *scene, const char **grid_unit);
 float ED_view3d_grid_scale(struct Scene *scene, struct View3D *v3d, const char **grid_unit);
 
 /* view matrix properties utilities */

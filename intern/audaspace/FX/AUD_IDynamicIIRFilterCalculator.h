@@ -29,6 +29,8 @@
 #ifndef AUD_IDYNAMICIIRFILTERCALCULATOR_H
 #define AUD_IDYNAMICIIRFILTERCALCULATOR_H
 
+#include "AUD_Space.h"
+
 #include <vector>
 
 /**

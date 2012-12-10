@@ -1342,46 +1342,46 @@ typedef struct Scene {
 #define TESTBASE(v3d, base)  (                                                \
 	((base)->flag & SELECT) &&                                                \
 	((base)->lay & v3d->lay) &&                                               \
-	(((base)->object->restrictflag & OB_RESTRICT_VIEW)==0)  )
+	(((base)->object->restrictflag & OB_RESTRICT_VIEW) == 0))
 #define TESTBASELIB(v3d, base)  (                                             \
 	((base)->flag & SELECT) &&                                                \
 	((base)->lay & v3d->lay) &&                                               \
-	((base)->object->id.lib==NULL) &&                                         \
-	(((base)->object->restrictflag & OB_RESTRICT_VIEW)==0)  )
+	((base)->object->id.lib == NULL) &&                                       \
+	(((base)->object->restrictflag & OB_RESTRICT_VIEW) == 0))
 #define TESTBASELIB_BGMODE(v3d, scene, base)  (                               \
 	((base)->flag & SELECT) &&                                                \
 	((base)->lay & (v3d ? v3d->lay : scene->lay)) &&                          \
-	((base)->object->id.lib==NULL) &&                                         \
-	(((base)->object->restrictflag & OB_RESTRICT_VIEW)==0)  )
+	((base)->object->id.lib == NULL) &&                                       \
+	(((base)->object->restrictflag & OB_RESTRICT_VIEW) == 0))
 #define BASE_EDITABLE_BGMODE(v3d, scene, base)  (                             \
 	((base)->lay & (v3d ? v3d->lay : scene->lay)) &&                          \
-	((base)->object->id.lib==NULL) &&                                         \
-	(((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
+	((base)->object->id.lib == NULL) &&                                       \
+	(((base)->object->restrictflag & OB_RESTRICT_VIEW) == 0))
 #define BASE_SELECTABLE(v3d, base)  (                                         \
 	(base->lay & v3d->lay) &&                                                 \
-	(base->object->restrictflag & (OB_RESTRICT_SELECT|OB_RESTRICT_VIEW))==0  )
+	(base->object->restrictflag & (OB_RESTRICT_SELECT | OB_RESTRICT_VIEW)) == 0)
 #define BASE_VISIBLE(v3d, base)  (                                            \
 	(base->lay & v3d->lay) &&                                                 \
-	(base->object->restrictflag & OB_RESTRICT_VIEW)==0  )
+	(base->object->restrictflag & OB_RESTRICT_VIEW) == 0)
 
 #define FIRSTBASE		scene->base.first
 #define LASTBASE		scene->base.last
 #define BASACT			(scene->basact)
-#define OBACT			(BASACT? BASACT->object: NULL)
+#define OBACT			(BASACT ? BASACT->object: NULL)
 
 #define V3D_CAMERA_LOCAL(v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : NULL)
 #define V3D_CAMERA_SCENE(scene, v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : (scene)->camera)
 
-#define	CFRA			(scene->r.cfra)
-#define SUBFRA			(scene->r.subframe)
-#define	SFRA			(scene->r.sfra)
-#define	EFRA			(scene->r.efra)
-#define PRVRANGEON		(scene->r.flag & SCER_PRV_RANGE)
-#define PSFRA			((PRVRANGEON) ? (scene->r.psfra) : (scene->r.sfra))
-#define PEFRA			((PRVRANGEON) ? (scene->r.pefra) : (scene->r.efra))
-#define FRA2TIME(a)           ((((double) scene->r.frs_sec_base) * (double)(a)) / (double)scene->r.frs_sec)
-#define TIME2FRA(a)           ((((double) scene->r.frs_sec) * (double)(a)) / (double)scene->r.frs_sec_base)
-#define FPS                     (((double) scene->r.frs_sec) / (double)scene->r.frs_sec_base)
+#define CFRA            (scene->r.cfra)
+#define SUBFRA          (scene->r.subframe)
+#define SFRA            (scene->r.sfra)
+#define EFRA            (scene->r.efra)
+#define PRVRANGEON      (scene->r.flag & SCER_PRV_RANGE)
+#define PSFRA           ((PRVRANGEON) ? (scene->r.psfra) : (scene->r.sfra))
+#define PEFRA           ((PRVRANGEON) ? (scene->r.pefra) : (scene->r.efra))
+#define FRA2TIME(a)     ((((double) scene->r.frs_sec_base) * (double)(a)) / (double)scene->r.frs_sec)
+#define TIME2FRA(a)     ((((double) scene->r.frs_sec) * (double)(a)) / (double)scene->r.frs_sec_base)
+#define FPS              (((double) scene->r.frs_sec) / (double)scene->r.frs_sec_base)
 
 /* base->flag is in DNA_object_types.h */
 
@@ -1614,4 +1614,4 @@ typedef enum SculptFlags {
 }
 #endif
 
-#endif
+#endif  /* __DNA_SCENE_TYPES_H__ */

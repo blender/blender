@@ -80,9 +80,6 @@ int EDBM_op_finish(struct BMEditMesh *em, struct BMOperator *bmop,
 void EDBM_flag_disable_all(struct BMEditMesh *em, const char hflag);
 void EDBM_stats_update(struct BMEditMesh *em);
 
-/* TODO, move to math_geometry.c */
-float labda_PdistVL2Dfl(const float v1[3], const float v2[3], const float v3[3]);
-
 /* ******************** editface.c */
 
 void MESH_OT_separate(struct wmOperatorType *ot);

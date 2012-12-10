@@ -193,7 +193,7 @@ class INFO_MT_mesh_add(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_context = 'EXEC_REGION_WIN'
+        layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("mesh.primitive_plane_add", icon='MESH_PLANE', text="Plane")
         layout.operator("mesh.primitive_cube_add", icon='MESH_CUBE', text="Cube")
         layout.operator("mesh.primitive_circle_add", icon='MESH_CIRCLE', text="Circle")

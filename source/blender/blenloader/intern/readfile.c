@@ -8560,7 +8560,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	{
+	if (main->versionfile < 265) {
 		Object *ob;
 		for (ob = main->object.first; ob; ob = ob->id.next) {
 			if (ob->step_height == 0.0f) {

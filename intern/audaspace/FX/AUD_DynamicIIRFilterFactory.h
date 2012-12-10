@@ -49,7 +49,8 @@ public:
 	 * Creates a new Dynmic IIR filter factory.
 	 * \param factory The input factory.
 	 */
-	AUD_DynamicIIRFilterFactory(boost::shared_ptr<AUD_IFactory> factory);
+	AUD_DynamicIIRFilterFactory(boost::shared_ptr<AUD_IFactory> factory,
+								boost::shared_ptr<AUD_IDynamicIIRFilterCalculator> calculator);
 
 	virtual boost::shared_ptr<AUD_IReader> createReader();
 };
