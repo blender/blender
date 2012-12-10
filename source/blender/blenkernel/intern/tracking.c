@@ -2932,6 +2932,31 @@ static void reconstruct_update_solve_cb(void *customdata, double progress, const
 
 	BLI_snprintf(progressdata->stats_message, progressdata->message_size, "Solving camera | %s", message);
 }
+
+static void camraIntrincicsOptionsFromContext(libmv_cameraIntrinsicsOptions *camera_intrinsics_options,
+                                              MovieReconstructContext *context)
+{
+	camera_intrinsics_options->focal_length = context->focal_length;
+
+	camera_intrinsics_options->principal_point_x = context->principal_point[0];
+	camera_intrinsics_options->principal_point_y = context->principal_point[1];
+
+	camera_intrinsics_options->k1 = context->k1;
+	camera_intrinsics_options->k2 = context->k2;
+	camera_intrinsics_options->k3 = context->k3;
+}
+
+static void reconstructionOptionsFromContext(libmv_reconstructionOptions *reconstruction_options,
+                                             MovieReconstructContext *context)
+{
+	reconstruction_options->keyframe1 = context->keyframe1;
+	reconstruction_options->keyframe2 = context->keyframe2;
+
+	reconstruction_options->refine_intrinsics = context->refine_flags;
+
+	reconstruction_options->success_threshold = context->success_threshold;
+	reconstruction_options->use_fallback_reconstruction = context->use_fallback_reconstruction;
+}
 #endif
 
 void BKE_tracking_reconstruction_solve(MovieReconstructContext *context, short *stop, short *do_update,
@@ -2942,32 +2967,27 @@ void BKE_tracking_reconstruction_solve(MovieReconstructContext *context, short *
 
 	ReconstructProgressData progressdata;
 
+	libmv_cameraIntrinsicsOptions camera_intrinsics_options;
+	libmv_reconstructionOptions reconstruction_options;
+
 	progressdata.stop = stop;
 	progressdata.do_update = do_update;
 	progressdata.progress = progress;
 	progressdata.stats_message = stats_message;
 	progressdata.message_size = message_size;
 
+	camraIntrincicsOptionsFromContext(&camera_intrinsics_options, context);
+	reconstructionOptionsFromContext(&reconstruction_options, context);
+
 	if (context->motion_flag & TRACKING_MOTION_MODAL) {
 		context->reconstruction = libmv_solveModal(context->tracks,
-		                                           context->focal_length,
-		                                           context->principal_point[0], context->principal_point[1],
-		                                           context->k1, context->k2, context->k3,
+		                                           &camera_intrinsics_options,
 		                                           reconstruct_update_solve_cb, &progressdata);
 	}
 	else {
-		struct libmv_reconstructionOptions options;
-
-		options.success_threshold = context->success_threshold;
-		options.use_fallback_reconstruction = context->use_fallback_reconstruction;
-
 		context->reconstruction = libmv_solveReconstruction(context->tracks,
-		                                                    context->keyframe1, context->keyframe2,
-		                                                    context->refine_flags,
-		                                                    context->focal_length,
-		                                                    context->principal_point[0], context->principal_point[1],
-		                                                    context->k1, context->k2, context->k3,
-		                                                    &options,
+		                                                    &camera_intrinsics_options,
+		                                                    &reconstruction_options,
 		                                                    reconstruct_update_solve_cb, &progressdata);
 	}
 

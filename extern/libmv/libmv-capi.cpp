@@ -552,40 +552,78 @@ static void libmv_solveRefineIntrinsics(libmv::Tracks *tracks, libmv::CameraIntr
 		reconstruction, intrinsics);
 }
 
-libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyframe1, int keyframe2,
-			int refine_intrinsics, double focal_length, double principal_x, double principal_y,
-			double k1, double k2, double k3, struct libmv_reconstructionOptions *options,
-			reconstruct_progress_update_cb progress_update_callback, void *callback_customdata)
+static void cameraIntrinsicsFromOptions(libmv::CameraIntrinsics *camera_intrinsics,
+                                        libmv_cameraIntrinsicsOptions *camera_intrinsics_options)
 {
-	/* Invert the camera intrinsics. */
-	libmv::vector<libmv::Marker> markers = ((libmv::Tracks*)tracks)->AllMarkers();
-	libmv_Reconstruction *libmv_reconstruction = new libmv_Reconstruction();
+	camera_intrinsics->SetFocalLength(camera_intrinsics_options->focal_length,
+	                                  camera_intrinsics_options->focal_length);
+
+	camera_intrinsics->SetPrincipalPoint(camera_intrinsics_options->principal_point_x,
+	                                     camera_intrinsics_options->principal_point_y);
+
+	camera_intrinsics->SetRadialDistortion(camera_intrinsics_options->k1,
+	                                       camera_intrinsics_options->k2,
+	                                       camera_intrinsics_options->k3);
+}
+
+static libmv::Tracks getNormalizedTracks(libmv::Tracks *tracks, libmv::CameraIntrinsics *camera_intrinsics)
+{
+	libmv::vector<libmv::Marker> markers = tracks->AllMarkers();
+
+	for (int i = 0; i < markers.size(); ++i) {
+		camera_intrinsics->InvertIntrinsics(markers[i].x, markers[i].y,
+			&(markers[i].x), &(markers[i].y));
+	}
+
+	return libmv::Tracks(markers);
+}
+
+static void finishReconstruction(libmv::Tracks *tracks, libmv::CameraIntrinsics *camera_intrinsics,
+                                 libmv_Reconstruction *libmv_reconstruction,
+                                 reconstruct_progress_update_cb progress_update_callback,
+                                 void *callback_customdata)
+{
 	libmv::EuclideanReconstruction *reconstruction = &libmv_reconstruction->reconstruction;
-	libmv::CameraIntrinsics *intrinsics = &libmv_reconstruction->intrinsics;
-	libmv::ReconstructionOptions reconstruction_options;
+
+	/* reprojection error calculation */
+	progress_update_callback(callback_customdata, 1.0, "Finishing solution");
+	libmv_reconstruction->tracks = *tracks;
+	libmv_reconstruction->error = libmv::EuclideanReprojectionError(*tracks, *reconstruction, *camera_intrinsics);
+}
+
+libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *libmv_tracks,
+			libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
+			libmv_reconstructionOptions *libmv_reconstruction_options,
+			reconstruct_progress_update_cb progress_update_callback,
+			void *callback_customdata)
+{
+	libmv_Reconstruction *libmv_reconstruction = new libmv_Reconstruction();
+
+	libmv::Tracks *tracks = ((libmv::Tracks *) libmv_tracks);
+	libmv::EuclideanReconstruction *reconstruction = &libmv_reconstruction->reconstruction;
+	libmv::CameraIntrinsics *camera_intrinsics = &libmv_reconstruction->intrinsics;
 
 	ReconstructUpdateCallback update_callback =
 		ReconstructUpdateCallback(progress_update_callback, callback_customdata);
 
-	intrinsics->SetFocalLength(focal_length, focal_length);
-	intrinsics->SetPrincipalPoint(principal_x, principal_y);
-	intrinsics->SetRadialDistortion(k1, k2, k3);
+	cameraIntrinsicsFromOptions(camera_intrinsics, libmv_camera_intrinsics_options);
 
-	reconstruction_options.success_threshold = options->success_threshold;
-	reconstruction_options.use_fallback_reconstruction = options->use_fallback_reconstruction;
+	/* Invert the camera intrinsics */
+	libmv::Tracks normalized_tracks = getNormalizedTracks(tracks, camera_intrinsics);
 
-	for (int i = 0; i < markers.size(); ++i) {
-		intrinsics->InvertIntrinsics(markers[i].x,
-			markers[i].y,
-			&(markers[i].x),
-			&(markers[i].y));
-	}
+	/* actual reconstruction */
+	libmv::ReconstructionOptions reconstruction_options;
+	reconstruction_options.success_threshold = libmv_reconstruction_options->success_threshold;
+	reconstruction_options.use_fallback_reconstruction = libmv_reconstruction_options->use_fallback_reconstruction;
 
-	libmv::Tracks normalized_tracks(markers);
+	int keyframe1 = libmv_reconstruction_options->keyframe1,
+	    keyframe2 = libmv_reconstruction_options->keyframe2;
 
 	LG << "frames to init from: " << keyframe1 << " " << keyframe2;
+
 	libmv::vector<libmv::Marker> keyframe_markers =
 		normalized_tracks.MarkersForTracksInBothImages(keyframe1, keyframe2);
+
 	LG << "number of markers for init: " << keyframe_markers.size();
 
 	update_callback.invoke(0, "Initial reconstruction");
@@ -595,49 +633,45 @@ libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *tracks, int keyfra
 	libmv::EuclideanCompleteReconstruction(reconstruction_options, normalized_tracks,
 	                                       reconstruction, &update_callback);
 
-	if (refine_intrinsics) {
-		libmv_solveRefineIntrinsics((libmv::Tracks *)tracks, intrinsics, reconstruction,
-			refine_intrinsics, progress_update_callback, callback_customdata);
+	/* refinement */
+	if (libmv_reconstruction_options->refine_intrinsics) {
+		libmv_solveRefineIntrinsics((libmv::Tracks *)tracks, camera_intrinsics, reconstruction,
+			libmv_reconstruction_options->refine_intrinsics,
+			progress_update_callback, callback_customdata);
 	}
 
-	progress_update_callback(callback_customdata, 1.0, "Finishing solution");
-	libmv_reconstruction->tracks = *(libmv::Tracks *)tracks;
-	libmv_reconstruction->error = libmv::EuclideanReprojectionError(*(libmv::Tracks *)tracks, *reconstruction, *intrinsics);
+	/* finish reconstruction */
+	finishReconstruction(tracks, camera_intrinsics, libmv_reconstruction,
+	                     progress_update_callback, callback_customdata);
 
 	return (libmv_Reconstruction *)libmv_reconstruction;
 }
 
-struct libmv_Reconstruction *libmv_solveModal(struct libmv_Tracks *tracks, double focal_length,
-			double principal_x, double principal_y, double k1, double k2, double k3,
-			reconstruct_progress_update_cb progress_update_callback, void *callback_customdata)
+struct libmv_Reconstruction *libmv_solveModal(struct libmv_Tracks *libmv_tracks,
+			libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
+			reconstruct_progress_update_cb progress_update_callback,
+			void *callback_customdata)
 {
-	/* Invert the camera intrinsics. */
-	libmv::vector<libmv::Marker> markers = ((libmv::Tracks*)tracks)->AllMarkers();
 	libmv_Reconstruction *libmv_reconstruction = new libmv_Reconstruction();
+
+	libmv::Tracks *tracks = ((libmv::Tracks *) libmv_tracks);
 	libmv::EuclideanReconstruction *reconstruction = &libmv_reconstruction->reconstruction;
-	libmv::CameraIntrinsics *intrinsics = &libmv_reconstruction->intrinsics;
+	libmv::CameraIntrinsics *camera_intrinsics = &libmv_reconstruction->intrinsics;
 
 	ReconstructUpdateCallback update_callback =
 		ReconstructUpdateCallback(progress_update_callback, callback_customdata);
 
-	intrinsics->SetFocalLength(focal_length, focal_length);
-	intrinsics->SetPrincipalPoint(principal_x, principal_y);
-	intrinsics->SetRadialDistortion(k1, k2, k3);
+	cameraIntrinsicsFromOptions(camera_intrinsics, libmv_camera_intrinsics_options);
 
-	for (int i = 0; i < markers.size(); ++i) {
-		intrinsics->InvertIntrinsics(markers[i].x,
-			markers[i].y,
-			&(markers[i].x),
-			&(markers[i].y));
-	}
+	/* Invert the camera intrinsics */
+	libmv::Tracks normalized_tracks = getNormalizedTracks(tracks, camera_intrinsics);
 
-	libmv::Tracks normalized_tracks(markers);
-
+	/* actual reconstruction */
 	libmv::ModalSolver(normalized_tracks, reconstruction, &update_callback);
 
-	progress_update_callback(callback_customdata, 1.0, "Finishing solution");
-	libmv_reconstruction->tracks = *(libmv::Tracks *)tracks;
-	libmv_reconstruction->error = libmv::EuclideanReprojectionError(*(libmv::Tracks *)tracks, *reconstruction, *intrinsics);
+	/* finish reconstruction */
+	finishReconstruction(tracks, camera_intrinsics, libmv_reconstruction,
+	                     progress_update_callback, callback_customdata);
 
 	return (libmv_Reconstruction *)libmv_reconstruction;
 }
