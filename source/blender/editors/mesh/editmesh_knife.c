@@ -1181,7 +1181,6 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 	result = results = BLI_bvhtree_overlap(tree, tree2, &tot);
 
 	for (i = 0; i < tot; i++, result++) {
-		float p[3];
 		BMLoop *l1;
 		BMFace *hitf;
 		ListBase *lst;
@@ -1200,7 +1199,7 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 			}
 
 			if (isect_line_tri_v3(kfe->v1->cageco, kfe->v2->cageco, v1, v2, v3, &lambda, NULL)) {
-				float no[3], view[3], sp[3];
+				float p[3], no[3], view[3], sp[3];
 
 				interp_v3_v3v3(p, kfe->v1->cageco, kfe->v2->cageco, lambda);
 
@@ -1212,6 +1211,11 @@ static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,
 				}
 				if (len_squared_v3v3(kcd->prev.cage, p) < depsilon_squared ||
 				    len_squared_v3v3(kcd->curr.cage, p) < depsilon_squared)
+				{
+					continue;
+				}
+				if ((kcd->vc.rv3d->rflag & RV3D_CLIPPING) &&
+				    ED_view3d_clipping_test(kcd->vc.rv3d, p, TRUE))
 				{
 					continue;
 				}
