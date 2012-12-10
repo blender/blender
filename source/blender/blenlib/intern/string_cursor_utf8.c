@@ -141,43 +141,48 @@ void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
                               int *pos, strCursorJumpDirection direction,
                               strCursorJumpType jump)
 {
+	const int pos_prev = *pos;
+
 	if (direction == STRCUR_DIR_NEXT) {
 		BLI_str_cursor_step_next_utf8(str, maxlen, pos);
+
 		if (jump != STRCUR_JUMP_NONE) {
-			const strCursorDelimType delim_type = (*pos) < maxlen ? cursor_delim_type(&str[(*pos) - 1]) : STRCUR_DELIM_NONE;
+			const strCursorDelimType delim_type = (*pos) < maxlen ? cursor_delim_type(&str[*pos]) : STRCUR_DELIM_NONE;
 			/* jump between special characters (/,\,_,-, etc.),
-			 * look at function test_special_char() for complete
+			 * look at function cursor_delim_type() for complete
 			 * list of special character, ctr -> */
-			while (TRUE) {
-				if ((jump != STRCUR_JUMP_ALL) && (delim_type != cursor_delim_type(&str[*pos]))) {
+			while ((*pos) < maxlen) {
+				if (BLI_str_cursor_step_next_utf8(str, maxlen, pos)) {
+					if ((jump != STRCUR_JUMP_ALL) && (delim_type != cursor_delim_type(&str[*pos])))
 					break;
 				}
-				else if ((*pos) >= maxlen) {
-					break;
+				else {
+					break; /* unlikely but just in case */
 				}
-				BLI_str_cursor_step_next_utf8(str, maxlen, pos);
 			}
 		}
 	}
 	else if (direction == STRCUR_DIR_PREV) {
 		BLI_str_cursor_step_prev_utf8(str, maxlen, pos);
+
 		if (jump != STRCUR_JUMP_NONE) {
-			const strCursorDelimType delim_type = (*pos) > 0 ? cursor_delim_type(&str[(*pos)]) : STRCUR_DELIM_NONE;
+			const strCursorDelimType delim_type = (*pos) > 1 ? cursor_delim_type(&str[(*pos) - 1]) : STRCUR_DELIM_NONE;
 			/* jump between special characters (/,\,_,-, etc.),
-			 * look at function test_special_char() for complete
+			 * look at function cursor_delim_type() for complete
 			 * list of special character, ctr -> */
-			while (TRUE) {
-				if ((jump != STRCUR_JUMP_ALL) && (delim_type != cursor_delim_type(&str[*pos]))) {
-					/* left only: compensate for index/change in direction */
-					if (delim_type != STRCUR_DELIM_NONE) {
-						BLI_str_cursor_step_next_utf8(str, maxlen, pos);
-					}
+			while ((*pos) > 0) {
+				if (BLI_str_cursor_step_prev_utf8(str, maxlen, pos)) {
+					if ((jump != STRCUR_JUMP_ALL) && (delim_type != cursor_delim_type(&str[*pos])))
+						break;
+				}
+				else {
 					break;
 				}
-				else if ((*pos) <= 0) {
-					break;
-				}
-				BLI_str_cursor_step_prev_utf8(str, maxlen, pos);
+			}
+
+			/* left only: compensate for index/change in direction */
+			if (((*pos) != 0) && ABS(pos_prev - (*pos)) >= 1) {
+				BLI_str_cursor_step_next_utf8(str, maxlen, pos);
 			}
 		}
 	}
