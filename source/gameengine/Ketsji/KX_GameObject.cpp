@@ -99,6 +99,7 @@ KX_GameObject::KX_GameObject(
       m_bSuspendDynamics(false),
       m_bUseObjectColor(false),
       m_bIsNegativeScaling(false),
+      m_objectColor(1.0, 1.0, 1.0, 1.0),
       m_bVisible(true),
       m_bCulled(true),
       m_bOccluder(false),
@@ -1692,8 +1693,8 @@ PyMethodDef KX_GameObject::Methods[] = {
 PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("name",		KX_GameObject, pyattr_get_name),
 	KX_PYATTRIBUTE_RO_FUNCTION("parent",	KX_GameObject, pyattr_get_parent),
-	KX_PYATTRIBUTE_RO_FUNCTION("group_children",	KX_GameObject, pyattr_get_group_children),
-	KX_PYATTRIBUTE_RO_FUNCTION("group_parent",		KX_GameObject, pyattr_get_group_parent),
+	KX_PYATTRIBUTE_RO_FUNCTION("groupMembers",	KX_GameObject, pyattr_get_group_members),
+	KX_PYATTRIBUTE_RO_FUNCTION("groupObject",	KX_GameObject, pyattr_get_group_object),
 	KX_PYATTRIBUTE_RO_FUNCTION("scene",		KX_GameObject, pyattr_get_scene),
 	KX_PYATTRIBUTE_RO_FUNCTION("life",		KX_GameObject, pyattr_get_life),
 	KX_PYATTRIBUTE_RW_FUNCTION("mass",		KX_GameObject, pyattr_get_mass,		pyattr_set_mass),
@@ -1990,7 +1991,7 @@ PyObject *KX_GameObject::pyattr_get_parent(void *self_v, const KX_PYATTRIBUTE_DE
 	Py_RETURN_NONE;
 }
 
-PyObject *KX_GameObject::pyattr_get_group_children(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_GameObject::pyattr_get_group_members(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
 	CListValue* instances = self->GetInstanceObjects();
@@ -2011,7 +2012,7 @@ PyObject* KX_GameObject::pyattr_get_scene(void *self_v, const KX_PYATTRIBUTE_DEF
 	Py_RETURN_NONE;
 }
 
-PyObject *KX_GameObject::pyattr_get_group_parent(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+PyObject *KX_GameObject::pyattr_get_group_object(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
 	KX_GameObject* pivot = self->GetDupliGroupObject();
@@ -2474,13 +2475,13 @@ PyObject *KX_GameObject::pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF
 	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
 	int state = 0;
 	state |= self->GetState();
-	return PyLong_FromSsize_t(state);
+	return PyLong_FromLong(state);
 }
 
 int KX_GameObject::pyattr_set_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
 {
 	KX_GameObject* self = static_cast<KX_GameObject*>(self_v);
-	int state_i = PyLong_AsSsize_t(value);
+	int state_i = PyLong_AsLong(value);
 	unsigned int state = 0;
 	
 	if (state_i == -1 && PyErr_Occurred()) {
@@ -2896,7 +2897,7 @@ PyObject *KX_GameObject::PyGetPhysicsId()
 	{
 		physid= (uint_ptr)ctrl->GetUserData();
 	}
-	return PyLong_FromSsize_t((long)physid);
+	return PyLong_FromLong((long)physid);
 }
 
 PyObject *KX_GameObject::PyGetPropertyNames()

@@ -39,15 +39,23 @@ typedef struct Transform {
 #endif
 } Transform;
 
+/* transform decomposed in rotation/translation/scale. we use the same data
+ * structure as Transform, and tightly pack decomposition into it. first the
+ * rotation (4), then translation (3), then 3x3 scale matrix (9).
+ *
+ * For the DecompMotionTransform we drop scale from pre/post. */
+
 typedef struct MotionTransform {
 	Transform pre;
 	Transform mid;
 	Transform post;
 } MotionTransform;
 
-/* transform decomposed in rotation/translation/scale. we use the same data
- * structure as Transform, and tightly pack decomposition into it. first the
- * rotation (4), then translation (3), then 3x3 scale matrix (9) */
+typedef struct DecompMotionTransform {
+	Transform mid;
+	float4 pre_x, pre_y;
+	float4 post_x, post_y;
+} DecompMotionTransform;
 
 /* Functions */
 
@@ -303,13 +311,15 @@ __device_inline Transform transform_clear_scale(const Transform& tfm)
 
 __device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
 {
+	/* use simpe nlerp instead of slerp. it's faster and almost the same */
+	return normalize((1.0f - t)*q1 + t*q2);
+
+#if 0
+	/* note: this does not ensure rotation around shortest angle, q1 and q2
+	 * are assumed to be matched already in transform_motion_decompose */
 	float costheta = dot(q1, q2);
 
-	/* rotate around shortest angle */
-	if(costheta < 0.0f) {
-		costheta = -costheta;
-		q1 = -q1;
-	}
+	/* possible optimization: it might be possible to precompute theta/qperp */
 
 	if(costheta > 0.9995f) {
 		/* linear interpolation in degenerate case */
@@ -318,14 +328,18 @@ __device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
 	else  {
 		/* slerp */
 		float theta = acosf(clamp(costheta, -1.0f, 1.0f));
-		float thetap = theta * t;
 		float4 qperp = normalize(q2 - q1 * costheta);
+		float thetap = theta * t;
 		return q1 * cosf(thetap) + qperp * sinf(thetap);
 	}
+#endif
 }
 
 __device_inline Transform transform_quick_inverse(Transform M)
 {
+	/* possible optimization: can we avoid doing this altogether and construct
+	 * the inverse matrix directly from negated translation, transposed rotation,
+	 * scale can be inverted but what about shearing? */
 	Transform R;
 	float det = M.x.x*(M.z.z*M.y.y - M.z.y*M.y.z) - M.y.x*(M.z.z*M.x.y - M.z.y*M.x.z) + M.z.x*(M.y.z*M.x.y - M.y.y*M.x.z);
 
@@ -380,14 +394,21 @@ __device_inline void transform_compose(Transform *tfm, const Transform *decomp)
 	tfm->w = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-__device void transform_motion_interpolate(Transform *tfm, const MotionTransform *motion, float t)
+/* Disabled for now, need arc-length parametrization for constant speed motion.
+ * #define CURVED_MOTION_INTERPOLATE */
+
+__device void transform_motion_interpolate(Transform *tfm, const DecompMotionTransform *motion, float t)
 {
+	/* possible optimization: is it worth it adding a check to skip scaling?
+	 * it's probably quite uncommon to have scaling objects. or can we skip
+	 * just shearing perhaps? */
 	Transform decomp;
 
+#ifdef CURVED_MOTION_INTERPOLATE
 	/* 3 point bezier curve interpolation for position */
-	float3 Ppre = float4_to_float3(motion->pre.y);
+	float3 Ppre = float4_to_float3(motion->pre_y);
 	float3 Pmid = float4_to_float3(motion->mid.y);
-	float3 Ppost = float4_to_float3(motion->post.y);
+	float3 Ppost = float4_to_float3(motion->post_y);
 
 	float3 Pcontrol = 2.0f*Pmid - 0.5f*(Ppre + Ppost);
 	float3 P = Ppre*t*t + Pcontrol*2.0f*t*(1.0f - t) + Ppost*(1.0f - t)*(1.0f - t);
@@ -395,24 +416,32 @@ __device void transform_motion_interpolate(Transform *tfm, const MotionTransform
 	decomp.y.x = P.x;
 	decomp.y.y = P.y;
 	decomp.y.z = P.z;
+#endif
 
 	/* linear interpolation for rotation and scale */
 	if(t < 0.5f) {
 		t *= 2.0f;
 
-		decomp.x = quat_interpolate(motion->pre.x, motion->mid.x, t);
-		decomp.y.w = (1.0f - t)*motion->pre.y.w + t*motion->mid.y.w;
-		decomp.z = (1.0f - t)*motion->pre.z + t*motion->mid.z;
-		decomp.w = (1.0f - t)*motion->pre.w + t*motion->mid.w;
+		decomp.x = quat_interpolate(motion->pre_x, motion->mid.x, t);
+#ifdef CURVED_MOTION_INTERPOLATE
+		decomp.y.w = (1.0f - t)*motion->pre_y.w + t*motion->mid.y.w;
+#else
+		decomp.y = (1.0f - t)*motion->pre_y + t*motion->mid.y;
+#endif
 	}
 	else {
 		t = (t - 0.5f)*2.0f;
 
-		decomp.x = quat_interpolate(motion->mid.x, motion->post.x, t);
-		decomp.y.w = (1.0f - t)*motion->mid.y.w + t*motion->post.y.w;
-		decomp.z = (1.0f - t)*motion->mid.z + t*motion->post.z;
-		decomp.w = (1.0f - t)*motion->mid.w + t*motion->post.w;
+		decomp.x = quat_interpolate(motion->mid.x, motion->post_x, t);
+#ifdef CURVED_MOTION_INTERPOLATE
+		decomp.y.w = (1.0f - t)*motion->mid.y.w + t*motion->post_y.w;
+#else
+		decomp.y = (1.0f - t)*motion->mid.y + t*motion->post_y;
+#endif
 	}
+
+	decomp.z = motion->mid.z;
+	decomp.w = motion->mid.w;
 
 	/* compose rotation, translation, scale into matrix */
 	transform_compose(tfm, &decomp);
@@ -425,7 +454,7 @@ __device_inline bool operator==(const MotionTransform& A, const MotionTransform&
 	return (A.pre == B.pre && A.post == B.post);
 }
 
-void transform_motion_decompose(MotionTransform *decomp, const MotionTransform *motion, const Transform *mid);
+void transform_motion_decompose(DecompMotionTransform *decomp, const MotionTransform *motion, const Transform *mid);
 
 #endif
 

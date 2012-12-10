@@ -1265,6 +1265,10 @@ activateDrawingContext()
 {
 	if (m_context != NULL) {
 		glXMakeCurrent(m_display, m_window, m_context);
+		/* Disable AA by default */
+		if (m_numOfAASamples > 0) {
+			glDisable(GL_MULTISAMPLE_ARB);
+		}
 		return GHOST_kSuccess;
 	} 
 	return GHOST_kFailure;

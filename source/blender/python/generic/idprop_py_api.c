@@ -249,7 +249,7 @@ static int BPy_IDGroup_SetName(BPy_IDProperty *self, PyObject *value, void *UNUS
 #if 0
 static PyObject *BPy_IDGroup_GetType(BPy_IDProperty *self)
 {
-	return PyLong_FromSsize_t(self->prop->type);
+	return PyLong_FromLong(self->prop->type);
 }
 #endif
 
@@ -351,7 +351,7 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 		prop = IDP_New(IDP_DOUBLE, &val, name);
 	}
 	else if (PyLong_Check(ob)) {
-		val.i = (int) PyLong_AsSsize_t(ob);
+		val.i = (int)PyLong_AsLong(ob);
 		prop = IDP_New(IDP_INT, &val, name);
 	}
 	else if (PyUnicode_Check(ob)) {
@@ -409,7 +409,7 @@ const char *BPy_IDProperty_Map_ValidateAndCreate(PyObject *name_obj, IDProperty 
 				prop = IDP_New(IDP_ARRAY, &val, name);
 				for (i = 0; i < val.array.len; i++) {
 					item = PySequence_Fast_GET_ITEM(ob_seq_fast, i);
-					((int *)IDP_Array(prop))[i] = (int)PyLong_AsSsize_t(item);
+					((int *)IDP_Array(prop))[i] = (int)PyLong_AsLong(item);
 				}
 				break;
 			case IDP_IDPARRAY:
@@ -1072,7 +1072,7 @@ static int BPy_IDArray_SetItem(BPy_IDArray *self, int index, PyObject *value)
 			((double *)IDP_Array(self->prop))[index] = d;
 			break;
 		case IDP_INT:
-			i = PyLong_AsSsize_t(value);
+			i = PyLong_AsLong(value);
 			if (i == -1 && PyErr_Occurred()) {
 				PyErr_SetString(PyExc_TypeError, "expected an int type");
 				return -1;

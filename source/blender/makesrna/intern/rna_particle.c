@@ -530,8 +530,7 @@ static void rna_ParticleSystem_active_particle_target_index_range(PointerRNA *pt
 {
 	ParticleSystem *psys = (ParticleSystem *)ptr->data;
 	*min = 0;
-	*max = BLI_countlist(&psys->targets) - 1;
-	*max = MAX2(0, *max);
+	*max = max_ii(0, BLI_countlist(&psys->targets) - 1);
 }
 
 static int rna_ParticleSystem_active_particle_target_index_get(PointerRNA *ptr)
@@ -670,8 +669,7 @@ static void rna_ParticleDupliWeight_active_index_range(PointerRNA *ptr, int *min
 {
 	ParticleSettings *part = (ParticleSettings *)ptr->id.data;
 	*min = 0;
-	*max = BLI_countlist(&part->dupliweights) - 1;
-	*max = MAX2(0, *max);
+	*max = max_ii(0, BLI_countlist(&part->dupliweights) - 1);
 }
 
 static int rna_ParticleDupliWeight_active_index_get(PointerRNA *ptr)

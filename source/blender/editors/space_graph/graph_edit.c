@@ -56,6 +56,7 @@
 #include "BLF_translation.h"
 
 #include "BKE_fcurve.h"
+#include "BKE_global.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
@@ -1763,6 +1764,15 @@ void GRAPH_OT_euler_filter(wmOperatorType *ot)
 
 /* ***************** Jump to Selected Frames Operator *********************** */
 
+static int graphkeys_framejump_poll(bContext *C)
+{
+	/* prevent changes during render */
+	if (G.is_rendering)
+		return 0;
+
+	return graphop_visible_keyframes_poll(C);
+}
+
 /* snap current-frame indicator to 'average time' of selected keyframe */
 static int graphkeys_framejump_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1829,7 +1839,7 @@ void GRAPH_OT_frame_jump(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = graphkeys_framejump_exec;
-	ot->poll = graphop_visible_keyframes_poll;
+	ot->poll = graphkeys_framejump_poll;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

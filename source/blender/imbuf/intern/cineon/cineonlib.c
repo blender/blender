@@ -188,7 +188,7 @@ LogImageFile *cineonOpen(const unsigned char *byteStuff, int fromMemory, size_t 
 	}
 	else {
 		if (verbose) printf("Cineon: Bad magic number %lu in \"%s\".\n",
-			                (uintptr_t)header.fileHeader.magic_num, byteStuff);
+			                (unsigned long)header.fileHeader.magic_num, byteStuff);
 		logImageClose(cineon);
 		return 0;
 	}

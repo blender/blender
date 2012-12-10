@@ -35,7 +35,7 @@ struct Stream
 	unsigned char *mem; // location in memory
 	unsigned int size;  // size
 	unsigned int pos;   // current position
-	Stream(unsigned char *m, unsigned int s) : mem(m), size(s), pos(0) {};
+	Stream(unsigned char *m, unsigned int s) : mem(m), size(s), pos(0) {}
 	unsigned int seek(unsigned int p);
 };
 

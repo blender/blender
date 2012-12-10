@@ -143,6 +143,7 @@ void ntlWorld::initDefaults()
 	mFirstSim = 1;
 	mSingleStepDebug =  false;
 	mFrameCnt = 0;
+	mSimFrameCnt = 0;
 	mpOpenGLRenderer = NULL;
 
   /* create scene storage */
@@ -406,7 +407,6 @@ int ntlWorld::advanceSims(int framenum)
 	}
 
 	for(size_t i=0;i<mpSims->size();i++) { (*mpSims)[i]->setFrameNum(framenum); }
-	double targetTime = mSimulationTime + (*mpSims)[mFirstSim]->getFrameTime(framenum);
 
 	// time stopped? nothing else to do...
 	if( (*mpSims)[mFirstSim]->getFrameTime(framenum) <= 0.0 ){ 
@@ -415,6 +415,13 @@ int ntlWorld::advanceSims(int framenum)
 		/* DG: Need to check for user cancel here (fix for [#30298]) */
 		(*mpSims)[mFirstSim]->checkCallerStatus(FLUIDSIM_CBSTATUS_STEP, 0);
 	}
+
+	// Prevent bug [#29186] Object contribute to fluid sim animation start earlier than keyframe
+	// Was: double targetTime = mSimulationTime + (*mpSims)[mFirstSim]->getFrameTime(framenum); - DG
+	double totalTime = 0.0, targetTime = 0.0;
+	for(size_t i = 0; i < mSimFrameCnt; i++)
+		totalTime += (*mpSims)[mFirstSim]->getFrameTime(framenum);
+	targetTime = totalTime + (*mpSims)[mFirstSim]->getFrameTime(framenum);
 
 	int gstate = 0;
 	myTime_t advsstart = getTime();
@@ -460,6 +467,8 @@ int ntlWorld::advanceSims(int framenum)
 		if(sim->getPanic()) continue;
 		sim->prepareVisualization();
 	}
+
+	mSimFrameCnt++;
 
 	return 0;
 }

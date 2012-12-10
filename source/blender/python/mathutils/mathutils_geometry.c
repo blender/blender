@@ -973,11 +973,13 @@ static PyObject *M_Geometry_points_in_planes(PyObject *UNUSED(self), PyObject *a
 
 		float n1n2[3], n2n3[3], n3n1[3];
 		float potentialVertex[3];
-		char *planes_used = MEM_callocN(sizeof(char) * len, __func__);
+		char *planes_used = PyMem_Malloc(sizeof(char) * len);
 
 		/* python */
 		PyObject *py_verts = PyList_New(0);
 		PyObject *py_plene_index = PyList_New(0);
+
+		memset(planes_used, 0, sizeof(char) * len);
 
 		for (i = 0; i < len; i++) {
 			const float *N1 = planes[i];
@@ -1031,7 +1033,7 @@ static PyObject *M_Geometry_points_in_planes(PyObject *UNUSED(self), PyObject *a
 				Py_DECREF(item);
 			}
 		}
-		MEM_freeN(planes_used);
+		PyMem_Free(planes_used);
 
 		{
 			PyObject *ret = PyTuple_New(2);

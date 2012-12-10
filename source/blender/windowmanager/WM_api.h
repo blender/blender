@@ -106,7 +106,7 @@ int			WM_homefile_read_exec(struct bContext *C, struct wmOperator *op);
 int			WM_homefile_read(struct bContext *C, struct ReportList *reports, short from_memory);
 int			WM_homefile_write_exec(struct bContext *C, struct wmOperator *op);
 void		WM_file_read(struct bContext *C, const char *filepath, struct ReportList *reports);
-int			WM_file_write(struct bContext *C, const char *target, int fileflags, struct ReportList *reports, int copy);
+int			WM_file_write(struct bContext *C, const char *target, int fileflags, struct ReportList *reports);
 void		WM_autosave_init(struct wmWindowManager *wm);
 
 			/* mouse cursors */
@@ -171,6 +171,7 @@ void		WM_event_timer_sleep(struct wmWindowManager *wm, struct wmWindow *win, str
 
 		/* operator api, default callbacks */
 			/* invoke callback, uses enum property named "type" */
+int			WM_operator_view3d_distance_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_menu_invoke			(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 			/* invoke callback, confirm menu + exec */
@@ -181,6 +182,7 @@ int         WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const char imt
 			/* poll callback, context checks */
 int			WM_operator_winactive	(struct bContext *C);
 			/* invoke callback, exec + redo popup */
+int			WM_operator_props_popup_call(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_operator_props_popup	(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int 		WM_operator_props_dialog_popup (struct bContext *C, struct wmOperator *op, int width, int height);
 int			WM_operator_redo_popup	(struct bContext *C, struct wmOperator *op);
@@ -320,9 +322,9 @@ enum {
 	WM_JOB_SUSPEND      = (1 << 3)
 };
 
-/* identifying jobs by owner alone is unreliable, this isnt saved, order can change */
+/* identifying jobs by owner alone is unreliable, this isnt saved, order can change (keep 0 for 'any') */
 enum {
-	WM_JOB_TYPE_ANY = -1,
+	WM_JOB_TYPE_ANY = 0,
 	WM_JOB_TYPE_COMPOSITE,
 	WM_JOB_TYPE_RENDER,
 	WM_JOB_TYPE_RENDER_PREVIEW,  /* UI preview */
@@ -359,8 +361,9 @@ void		WM_jobs_start(struct wmWindowManager *wm, struct wmJob *);
 void		WM_jobs_stop(struct wmWindowManager *wm, void *owner, void *startjob);
 void		WM_jobs_kill(struct wmWindowManager *wm, void *owner, void (*)(void *, short int *, short int *, float *));
 void		WM_jobs_kill_all(struct wmWindowManager *wm);
-	void		WM_jobs_kill_all_except(struct wmWindowManager *wm, void *owner);
-	
+void		WM_jobs_kill_all_except(struct wmWindowManager *wm, void *owner);
+void		WM_jobs_kill_type(struct wmWindowManager *wm, int job_type);
+
 int			WM_jobs_has_running(struct wmWindowManager *wm);
 
 			/* clipboard */

@@ -20,32 +20,15 @@
 
 shader node_brightness(
 	color ColorIn = color(0.8, 0.8, 0.8),
-	float Brightness = 0.0,
+	float Bright = 0.0,
 	float Contrast = 0.0,
 	output color ColorOut = color(0.8, 0.8, 0.8))
 {
-	float delta = Contrast * (1.0 / 200.0);
-	float a = 1.0 - delta * 2.0;
-	float b;
+	float a = 1.0 + Contrast;
+	float b = Bright - Contrast*0.5;
 
-	/* input value is a percentage */
-	float bright_factor = Brightness / 100.0;
-
-	/*
-	 * The algorithm is by Werner D. Streidt
-	 * (http://visca.com/ffactory/archives/5-99/msg00021.html)
-	 * Extracted of OpenCV demhist.c
-	 */
-
-	if (Contrast > 0.0) {
-		a = (a < 0.0 ? 1.0 / a : 0.0);
-		b = a * (bright_factor - delta);
-	}
-	else {
-		delta *= -1.0;
-		b = a * (bright_factor + delta);
-	}
-
-	ColorOut = a * ColorIn + b;
+	ColorOut[0] = max(a*ColorIn[0] + b, 0.0);
+	ColorOut[1] = max(a*ColorIn[1] + b, 0.0);
+	ColorOut[2] = max(a*ColorIn[2] + b, 0.0);
 }
 

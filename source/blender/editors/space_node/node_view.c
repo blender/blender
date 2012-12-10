@@ -241,7 +241,7 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
 
 	if (ibuf == NULL) {
-		BKE_image_release_ibuf(ima, lock);
+		BKE_image_release_ibuf(ima, ibuf, lock);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -255,7 +255,7 @@ static int snode_bg_viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	nvm->ymin = -(ar->winy / 2) - (ibuf->y * (0.5f * snode->zoom)) + pad;
 	nvm->ymax =  (ar->winy / 2) + (ibuf->y * (0.5f * snode->zoom)) - pad;
 
-	BKE_image_release_ibuf(ima, lock);
+	BKE_image_release_ibuf(ima, ibuf, lock);
 
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);
@@ -330,6 +330,12 @@ typedef struct ImageSampleInfo {
 
 	unsigned char col[4];
 	float colf[4];
+	
+	int z;
+	float zf;
+
+	int *zp;
+	float *zfp;
 
 	int draw;
 	int color_manage;
@@ -343,8 +349,7 @@ static void sample_draw(const bContext *C, ARegion *ar, void *arg_info)
 	if (info->draw) {
 		ED_image_draw_info(scene, ar, info->color_manage, FALSE, info->channels,
 		                   info->x, info->y, info->col, info->colf,
-		                   NULL, NULL /* zbuf - unused for nodes */
-		                   );
+		                   info->zp, info->zfp);
 	}
 }
 
@@ -398,7 +403,7 @@ int ED_space_node_color_sample(SpaceNode *snode, ARegion *ar, int mval[2], float
 		}
 	}
 
-	BKE_image_release_ibuf(ima, lock);
+	BKE_image_release_ibuf(ima, ibuf, lock);
 
 	return ret;
 }
@@ -443,6 +448,9 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 		info->draw = 1;
 		info->channels = ibuf->channels;
 
+		info->zp = NULL;
+		info->zfp = NULL;
+
 		if (ibuf->rect) {
 			cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
 
@@ -468,6 +476,15 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 
 			info->color_manage = TRUE;
 		}
+		
+		if (ibuf->zbuf) {
+			info->z = ibuf->zbuf[y * ibuf->x + x];
+			info->zp = &info->z;
+		}
+		if (ibuf->zbuf_float) {
+			info->zf = ibuf->zbuf_float[y * ibuf->x + x];
+			info->zfp = &info->zf;
+		}
 
 		ED_node_sample_set(info->colf);
 	}
@@ -476,7 +493,7 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 		ED_node_sample_set(NULL);
 	}
 
-	BKE_image_release_ibuf(ima, lock);
+	BKE_image_release_ibuf(ima, ibuf, lock);
 
 	ED_area_tag_redraw(CTX_wm_area(C));
 }

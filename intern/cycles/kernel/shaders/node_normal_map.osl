@@ -1,0 +1,52 @@
+/*
+ * Copyright 2011, Blender Foundation.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+#include "stdosl.h"
+
+shader node_normal_map(
+	normal NormalIn = N,
+	float Strength = 1.0,
+	color Color = color(0.5, 0.5, 1.0),
+	string space = "Tangent",
+	string attr_name = "geom:tangent",
+	string attr_sign_name = "geom:tangent_sign",
+	output normal Normal = NormalIn)
+{
+	color mcolor = 2.0 * color(Color[0] - 0.5, Color[1] - 0.5, Color[2] - 0.5);
+
+	if (space == "Tangent") {
+		vector tangent;
+		float tangent_sign;
+
+		getattribute(attr_name, tangent);
+		getattribute(attr_sign_name, tangent_sign);
+
+		tangent = transform("object", "world", tangent);
+
+		vector B = tangent_sign * cross(NormalIn, tangent);
+		Normal = normalize(mcolor[0] * tangent + mcolor[1] * B + mcolor[2] * NormalIn);
+	}
+	else if (space == "Object")
+		Normal = normalize(transform("object", "world", vector(mcolor)));
+	else if (space == "World")
+		Normal = normalize(vector(mcolor));
+	
+	if (Strength != 1.0)
+		Normal = normalize(NormalIn + (Normal - NormalIn) * max(Strength, 0.0));
+}
+

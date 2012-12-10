@@ -422,7 +422,7 @@ class USERPREF_PT_system(Panel):
         col.separator()
         col.separator()
 
-        if hasattr(system, "compute_device"):
+        if hasattr(system, "compute_device_type"):
             col.label(text="Compute Device:")
             col.row().prop(system, "compute_device_type", expand=True)
             sub = col.row()
@@ -442,10 +442,9 @@ class USERPREF_PT_system(Panel):
         col.label(text="Anisotropic Filtering")
         col.prop(system, "anisotropic_filter", text="")
         col.prop(system, "use_vertex_buffer_objects")
-        # Anti-aliasing is disabled as it breaks border/lasso select
-        #~ col.prop(system, "use_antialiasing")
         col.label(text="Window Draw Method:")
         col.prop(system, "window_draw_method", text="")
+        col.prop(system, "multi_sample", text="")
         col.label(text="Text Draw Options:")
         col.prop(system, "use_text_antialiasing")
         col.label(text="Textures:")
@@ -728,6 +727,29 @@ class USERPREF_PT_theme(Panel):
             colsub = padding.column()
             colsub.row().prop(ui, "header")
 
+            col.separator()
+            col.separator()
+
+            ui = theme.user_interface
+            col.label("Axis Colors:")
+
+            row = col.row()
+
+            subsplit = row.split(percentage=0.95)
+
+            padding = subsplit.split(percentage=0.15)
+            colsub = padding.column()
+            colsub = padding.column()
+            colsub.row().prop(ui, "axis_x")
+            colsub.row().prop(ui, "axis_y")
+            colsub.row().prop(ui, "axis_z")
+            
+            subsplit = row.split(percentage=0.85)
+
+            padding = subsplit.split(percentage=0.15)
+            colsub = padding.column()
+            colsub = padding.column()
+            
             layout.separator()
             layout.separator()
         elif theme.theme_area == 'BONE_COLOR_SETS':

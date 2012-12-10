@@ -689,8 +689,16 @@ static BMFace *BME_bevel_poly(BMesh *bm, BMFace *f, float value, int options, BM
 		         BMO_elem_flag_test(bm, l->v, BME_BEVEL_ORIG) &&
 		         !BMO_elem_flag_test(bm, l->prev->e, BME_BEVEL_BEVEL))
 		{
-			max = 1.0f;
-			l = BME_bevel_vert(bm, l, value, options, up_vec, td);
+			/* avoid making double vertices [#33438] */
+			BME_TransData *vtd;
+			vtd = BME_get_transdata(td, l->v);
+			if (vtd->weight == 0.0f) {
+				BMO_elem_flag_disable(bm, l->v, BME_BEVEL_BEVEL);
+			}
+			else {
+				max = 1.0f;
+				l = BME_bevel_vert(bm, l, value, options, up_vec, td);
+			}
 		}
 	}
 
@@ -1110,9 +1118,12 @@ BMesh *BME_bevel(BMesh *bm, float value, int res, int options, int defgrp_index,
 	td = BME_init_transdata(BLI_MEMARENA_STD_BUFSIZE);
 	/* recursion math courtesy of Martin Poirier (theeth) */
 	for (i = 0; i < res - 1; i++) {
-		if (i == 0) fac += 1.0 / 3.0; else fac += 1.0 / (3.0 * i * 2.0);
+		if (i == 0) fac += 1.0 / 3.0;
+		else        fac += 1.0 / (3.0 * i * 2.0);
 	}
 	d = 1.0 / fac;
+
+	BM_mesh_elem_toolflags_ensure(bm);
 
 	for (i = 0; i < res || (res == 0 && i == 0); i++) {
 		BMO_push(bm, NULL);

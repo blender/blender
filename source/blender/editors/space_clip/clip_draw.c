@@ -252,7 +252,6 @@ static void draw_movieclip_buffer(const bContext *C, SpaceClip *sc, ARegion *ar,
                                   int width, int height, float zoomx, float zoomy)
 {
 	int x, y;
-	MovieClip *clip = ED_space_clip_get_clip(sc);
 
 	/* find window pixel coordinates of origin */
 	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
@@ -306,6 +305,15 @@ static void draw_movieclip_buffer(const bContext *C, SpaceClip *sc, ARegion *ar,
 
 		IMB_display_buffer_release(cache_handle);
 	}
+}
+
+static void draw_stabilization_border(SpaceClip *sc, ARegion *ar, int width, int height, float zoomx, float zoomy)
+{
+	int x, y;
+	MovieClip *clip = ED_space_clip_get_clip(sc);
+
+	/* find window pixel coordinates of origin */
+	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
 	/* draw boundary border for frame if stabilization is enabled */
 	if (sc->flag & SC_SHOW_STABLE && clip->tracking.stabilization.flag & TRACKING_2D_STABILIZATION) {
@@ -1276,7 +1284,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 			BKE_tracking_undistort_v2(tracking, pos, tpos);
 
-			DO_MINMAX2(tpos, min, max);
+			minmax_v2v2_v2(min, max, tpos);
 		}
 
 		copy_v2_v2(pos, min);
@@ -1469,6 +1477,7 @@ void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
 	}
 
 	if (width && height) {
+		draw_stabilization_border(sc, ar, width, height, zoomx, zoomy);
 		draw_tracking_tracks(sc, ar, clip, width, height, zoomx, zoomy);
 		draw_distortion(sc, ar, clip, width, height, zoomx, zoomy);
 	}
@@ -1488,7 +1497,7 @@ void clip_draw_grease_pencil(bContext *C, int onlyv2d)
 
 	if (onlyv2d) {
 		/* if manual calibration is used then grease pencil data is already
-		 * drawed in draw_distortion */
+		 * drawn in draw_distortion */
 		if ((sc->flag & SC_MANUAL_CALIBRATION) == 0 || sc->mode != SC_MODE_DISTORTION) {
 			glPushMatrix();
 			glMultMatrixf(sc->unistabmat);

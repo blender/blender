@@ -29,8 +29,7 @@
 
 #ifdef __GNUC__
 #  define ATTR_ENDIAN_SWITCH \
-	__attribute__((nonnull(1))) \
-	__attribute__((pure))
+	__attribute__((nonnull(1)))
 #else
 #  define ATTR_ENDIAN_SWITCH
 #endif

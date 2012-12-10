@@ -527,7 +527,7 @@ static PyObject *bpy_bmdeformvert_keys(BPy_BMDeformVert *self)
 
 	ret = PyList_New(self->data->totweight);
 	for (i = 0; i < self->data->totweight; i++, dw++) {
-		PyList_SET_ITEM(ret, i, PyLong_FromSsize_t(dw->def_nr));
+		PyList_SET_ITEM(ret, i, PyLong_FromLong(dw->def_nr));
 	}
 
 	return ret;
@@ -576,7 +576,7 @@ static PyObject *bpy_bmdeformvert_items(BPy_BMDeformVert *self)
 	for (i = 0; i < self->data->totweight; i++, dw++) {
 		item = PyTuple_New(2);
 
-		PyTuple_SET_ITEM(item, 0, PyLong_FromSsize_t(dw->def_nr));
+		PyTuple_SET_ITEM(item, 0, PyLong_FromLong(dw->def_nr));
 		PyTuple_SET_ITEM(item, 1, PyFloat_FromDouble(dw->weight));
 
 		PyList_SET_ITEM(ret, i, item);

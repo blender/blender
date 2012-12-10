@@ -26,6 +26,7 @@
 
 #include "GHOST_WindowSDL.h"
 #include "SDL_mouse.h"
+#include <GL/glew.h>
 #include <assert.h>
 
 static SDL_GLContext s_firstContext = NULL;
@@ -48,6 +49,20 @@ GHOST_WindowSDL::GHOST_WindowSDL(GHOST_SystemSDL *system,
 	m_invalid_window(false),
 	m_sdl_custom_cursor(NULL)
 {
+	SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+
+	if (numOfAASamples) {
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, numOfAASamples);
+	}
+
+	/* creating the window _must_ come after setting attributes */
 	m_sdl_win = SDL_CreateWindow(title,
 	                             left,
 	                             top,
@@ -55,14 +70,7 @@ GHOST_WindowSDL::GHOST_WindowSDL(GHOST_SystemSDL *system,
 	                             height,
 	                             SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 
-	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-	//SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+
 
 	m_sdl_glcontext = SDL_GL_CreateContext(m_sdl_win);
 
@@ -164,6 +172,10 @@ GHOST_WindowSDL::activateDrawingContext()
 	if (m_sdl_glcontext != NULL) {
 		int status = SDL_GL_MakeCurrent(m_sdl_win, m_sdl_glcontext);
 		(void)status;
+		/* Disable AA by default */
+		if (m_numOfAASamples > 0) {
+			glDisable(GL_MULTISAMPLE_ARB);
+		}
 		return GHOST_kSuccess;
 	}
 	return GHOST_kFailure;

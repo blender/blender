@@ -164,6 +164,8 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		params->filter = 0;
 		if (RNA_struct_find_property(op->ptr, "filter_blender"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_blender") ? BLENDERFILE : 0;
+		if (RNA_struct_find_property(op->ptr, "filter_backup"))
+			params->filter |= RNA_boolean_get(op->ptr, "filter_backup") ? BLENDERFILE_BACKUP : 0;
 		if (RNA_struct_find_property(op->ptr, "filter_image"))
 			params->filter |= RNA_boolean_get(op->ptr, "filter_image") ? IMAGEFILE : 0;
 		if (RNA_struct_find_property(op->ptr, "filter_movie"))

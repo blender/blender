@@ -81,6 +81,7 @@ public:
 	bool background;
 
 protected:
+	/* stack */
 	struct Stack {
 		Stack() { memset(users, 0, sizeof(users)); }
 		Stack(const Stack& other) { memcpy(users, other.users, sizeof(users)); }
@@ -123,11 +124,15 @@ protected:
 
 	bool node_skip_input(ShaderNode *node, ShaderInput *input);
 
+	/* single closure */
 	void find_dependencies(set<ShaderNode*>& dependencies, const set<ShaderNode*>& done, ShaderInput *input);
 	void generate_svm_nodes(const set<ShaderNode*>& nodes, set<ShaderNode*>& done);
 	void generate_closure(ShaderNode *node, set<ShaderNode*>& done);
-	void generate_multi_closure(ShaderNode *node, set<ShaderNode*>& done, uint in_offset);
 
+	/* multi closure */
+	void generate_multi_closure(ShaderNode *node, set<ShaderNode*>& done, set<ShaderNode*>& closure_done);
+
+	/* compile */
 	void compile_type(Shader *shader, ShaderGraph *graph, ShaderType type);
 
 	vector<int4> svm_nodes;

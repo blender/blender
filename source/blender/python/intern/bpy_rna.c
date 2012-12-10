@@ -1344,7 +1344,7 @@ PyObject *pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop)
 			ret = PyBool_FromLong(RNA_property_boolean_get(ptr, prop));
 			break;
 		case PROP_INT:
-			ret = PyLong_FromSsize_t((Py_ssize_t)RNA_property_int_get(ptr, prop));
+			ret = PyLong_FromLong(RNA_property_int_get(ptr, prop));
 			break;
 		case PROP_FLOAT:
 			ret = PyFloat_FromDouble(RNA_property_float_get(ptr, prop));
@@ -2371,7 +2371,7 @@ static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyArrayRNA *self, Po
 
 				RNA_property_int_get_array(ptr, prop, values);
 				for (count = start; count < stop; count++)
-					PyTuple_SET_ITEM(tuple, count - start, PyLong_FromSsize_t(values[count]));
+					PyTuple_SET_ITEM(tuple, count - start, PyLong_FromLong(values[count]));
 
 				if (values != values_stack) {
 					PyMem_FREE(values);
@@ -4077,7 +4077,7 @@ static PyObject *pyrna_prop_collection_items(BPy_PropertyRNA *self)
 			}
 			else {
 				/* a bit strange but better then returning an empty list */
-				PyTuple_SET_ITEM(item, 0, PyLong_FromSsize_t(i));
+				PyTuple_SET_ITEM(item, 0, PyLong_FromLong(i));
 			}
 			PyTuple_SET_ITEM(item, 1, pyrna_struct_CreatePyObject(&itemptr));
 
@@ -4256,7 +4256,7 @@ static PyObject *pyrna_prop_collection_find(BPy_PropertyRNA *self, PyObject *key
 	}
 	RNA_PROP_END;
 
-	return PyLong_FromSsize_t(index);
+	return PyLong_FromLong(index);
 }
 
 static void foreach_attr_type(BPy_PropertyRNA *self, const char *attr,
@@ -4463,13 +4463,13 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 
 				switch (raw_type) {
 					case PROP_RAW_CHAR:
-						item = PyLong_FromSsize_t((Py_ssize_t) ((char *)array)[i]);
+						item = PyLong_FromLong((long) ((char *)array)[i]);
 						break;
 					case PROP_RAW_SHORT:
-						item = PyLong_FromSsize_t((Py_ssize_t) ((short *)array)[i]);
+						item = PyLong_FromLong((long) ((short *)array)[i]);
 						break;
 					case PROP_RAW_INT:
-						item = PyLong_FromSsize_t((Py_ssize_t) ((int *)array)[i]);
+						item = PyLong_FromLong((long) ((int *)array)[i]);
 						break;
 					case PROP_RAW_FLOAT:
 						item = PyFloat_FromDouble((double) ((float *)array)[i]);
@@ -4756,7 +4756,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 			case PROP_INT:
 				ret = PyTuple_New(len);
 				for (a = 0; a < len; a++)
-					PyTuple_SET_ITEM(ret, a, PyLong_FromSsize_t((Py_ssize_t)((int *)data)[a]));
+					PyTuple_SET_ITEM(ret, a, PyLong_FromLong(((int *)data)[a]));
 				break;
 			case PROP_FLOAT:
 				switch (RNA_property_subtype(prop)) {
@@ -4797,7 +4797,7 @@ static PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *dat
 				ret = PyBool_FromLong(*(int *)data);
 				break;
 			case PROP_INT:
-				ret = PyLong_FromSsize_t((Py_ssize_t)*(int *)data);
+				ret = PyLong_FromLong(*(int *)data);
 				break;
 			case PROP_FLOAT:
 				ret = PyFloat_FromDouble(*(float *)data);
@@ -6883,8 +6883,8 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 			/* Sneaky workaround to use the class name as the bl_idname */
 
 #define     BPY_REPLACEMENT_STRING(rna_attr, py_attr)                         \
-	if (strcmp(identifier, rna_attr) == 0) {                                  \
-		item = PyObject_GetAttrString(py_class, py_attr);                     \
+	(strcmp(identifier, rna_attr) == 0) {                                     \
+		item = PyObject_GetAttr(py_class, py_attr);                           \
 		if (item && item != Py_None) {                                        \
 			if (pyrna_py_to_prop(dummyptr, prop, NULL,                        \
 			                     item, "validating class:") != 0)             \
@@ -6894,11 +6894,10 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 			}                                                                 \
 		}                                                                     \
 		Py_XDECREF(item);                                                     \
-	} (void)0
+	}  /* intendionally allow else here */
 
-
-			BPY_REPLACEMENT_STRING("bl_idname", "__name__");
-			BPY_REPLACEMENT_STRING("bl_description", "__doc__");
+			if      BPY_REPLACEMENT_STRING("bl_idname",      bpy_intern_str___name__)
+			else if BPY_REPLACEMENT_STRING("bl_description", bpy_intern_str___doc__)
 
 #undef      BPY_REPLACEMENT_STRING
 
@@ -6912,10 +6911,11 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 			PyErr_Clear();
 		}
 		else {
-			Py_DECREF(item); /* no need to keep a ref, the class owns it */
-
-			if (pyrna_py_to_prop(dummyptr, prop, NULL, item, "validating class:") != 0)
+			if (pyrna_py_to_prop(dummyptr, prop, NULL, item, "validating class:") != 0) {
+				Py_DECREF(item);
 				return -1;
+			}
+			Py_DECREF(item);
 		}
 	}
 

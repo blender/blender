@@ -744,6 +744,7 @@ void filelist_setfilter_types(struct FileList *filelist, const char *filter_glob
 	BLI_strncpy(filelist->filter_glob, filter_glob, sizeof(filelist->filter_glob));
 }
 
+/* would recognize .blend as well */
 static int file_is_blend_backup(const char *str)
 {
 	short a, b;

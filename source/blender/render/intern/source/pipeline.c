@@ -63,6 +63,7 @@
 #include "BLI_string.h"
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
+#include "BLI_threads.h"
 #include "BLI_rand.h"
 #include "BLI_callbacks.h"
 
@@ -244,6 +245,7 @@ Render *RE_GetRender(const char *name)
 	return re;
 }
 
+
 /* if you want to know exactly what has been done */
 RenderResult *RE_AcquireResultRead(Render *re)
 {
@@ -387,6 +389,9 @@ void RE_InitRenderCB(Render *re)
 /* only call this while you know it will remove the link too */
 void RE_FreeRender(Render *re)
 {
+	if (re->engine)
+		RE_engine_free(re->engine);
+
 	BLI_rw_mutex_end(&re->resultmutex);
 	
 	free_renderdata_tables(re);
@@ -418,6 +423,22 @@ void RE_FreeAllRenderResults(void)
 
 		re->result = NULL;
 		re->pushedresult = NULL;
+	}
+}
+
+void RE_FreePersistentData(void)
+{
+	Render *re;
+
+	/* render engines can be kept around for quick re-render, this clears all */
+	for (re = RenderGlobal.renderlist.first; re; re = re->next) {
+		if (re->engine) {
+			/* if engine is currently rendering, just tag it to be freed when render is finished */
+			if (!(re->engine->flag & RE_ENGINE_RENDERING))
+				RE_engine_free(re->engine);
+
+			re->engine = NULL;
+		}
 	}
 }
 
@@ -672,7 +693,7 @@ static void *do_part_thread(void *pa_v)
 
 /* calculus for how much 1 pixel rendered should rotate the 3d geometry */
 /* is not that simple, needs to be corrected for errors of larger viewplane sizes */
-/* called in initrender.c, initparts() and convertblender.c, for speedvectors */
+/* called in initrender.c, RE_parts_init() and convertblender.c, for speedvectors */
 float panorama_pixel_rot(Render *re)
 {
 	float psize, phi, xfac;
@@ -815,7 +836,7 @@ static void threaded_tile_processor(Render *re)
 	
 	/* warning; no return here without closing exr file */
 	
-	initparts(re, TRUE);
+	RE_parts_init(re, TRUE);
 
 	if (re->result->do_exr_tile)
 		render_result_exr_file_begin(re);
@@ -907,7 +928,7 @@ static void threaded_tile_processor(Render *re)
 	g_break = 0;
 	
 	BLI_end_threads(&threads);
-	freeparts(re);
+	RE_parts_free(re);
 	re->viewplane = viewplane; /* restore viewplane, modified by pano render */
 }
 
@@ -926,6 +947,7 @@ static void do_render_3d(Render *re)
 		return;
 
 	/* internal */
+	RE_parts_clamp(re);
 	
 //	re->cfra= cfra;	/* <- unused! */
 	re->scene->r.subframe = re->mblur_offs + re->field_offs;
@@ -2507,8 +2529,8 @@ int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, 
 
 	if (env->type == ENV_CUBE) {
 		for (i = 0; i < 12; i += 2) {
-			maxX = MAX2(maxX, layout[i] + 1);
-			maxY = MAX2(maxY, layout[i + 1] + 1);
+			maxX = max_ii(maxX, (int)layout[i] + 1);
+			maxY = max_ii(maxY, (int)layout[i + 1] + 1);
 		}
 
 		ibuf = IMB_allocImBuf(maxX * dx, maxY * dx, 24, IB_rectfloat);

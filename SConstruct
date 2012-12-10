@@ -306,6 +306,15 @@ if env['OURPLATFORM']=='darwin':
         else:
             env.Append(LINKFLAGS=['-Xlinker','-weak_framework','-Xlinker','Jackmp'])
 
+    if env['WITH_BF_CYCLES_OSL'] == 1:	
+        OSX_OSL_LIBPATH = Dir(env.subst(env['BF_OSL_LIBPATH'])).abspath
+        # we need 2 variants of passing the oslexec with the force_load option, string and list type atm
+        env.Append(LINKFLAGS=['-L'+OSX_OSL_LIBPATH,'-loslcomp','-force_load '+ OSX_OSL_LIBPATH +'/liboslexec.a','-loslquery'])
+        env.Append(BF_PROGRAM_LINKFLAGS=['-Xlinker','-force_load','-Xlinker',OSX_OSL_LIBPATH +'/liboslexec.a'])
+
+    # Trying to get rid of eventually clashes, we export some explicite as local symbols		
+    env.Append(LINKFLAGS=['-Xlinker','-unexported_symbols_list','-Xlinker','./source/creator/osx_locals.map'])
+
 if env['WITH_BF_OPENMP'] == 1:
         if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
                 env['CCFLAGS'].append('/openmp')
@@ -422,16 +431,22 @@ if not quickie and do_clean:
 # with _any_ library but since we used a fixed python version this tends to
 # be most problematic.
 if env['WITH_BF_PYTHON']:
-    py_h = os.path.join(Dir(env.subst('${BF_PYTHON_INC}')).abspath, "Python.h")
+    found_python_h = found_pyconfig_h = False
+    for bf_python_inc in env.subst('${BF_PYTHON_INC}').split():
+        py_h = os.path.join(Dir(bf_python_inc).abspath, "Python.h")
+        if os.path.exists(py_h):
+            found_python_h = True
+        py_h = os.path.join(Dir(bf_python_inc).abspath, "pyconfig.h")
+        if os.path.exists(py_h):
+            found_pyconfig_h = True
 
-    if not os.path.exists(py_h):
-        print("\nMissing: \"" + env.subst('${BF_PYTHON_INC}') + os.sep + "Python.h\",\n"
+    if not (found_python_h and found_pyconfig_h):
+        print("\nMissing: Python.h and/or pyconfig.h in\"" + env.subst('${BF_PYTHON_INC}') + "\",\n"
               "  Set 'BF_PYTHON_INC' to point "
-              "to a valid python include path.\n  Containing "
-              "Python.h for python version \"" + env.subst('${BF_PYTHON_VERSION}') + "\"")
+              "to valid python include path(s).\n Containing "
+              "Python.h and pyconfig.h for python version \"" + env.subst('${BF_PYTHON_VERSION}') + "\"")
 
         Exit()
-    del py_h
 
 
 if not os.path.isdir ( B.root_build_dir):
@@ -571,11 +586,11 @@ B.init_lib_dict()
 
 Export('env')
 
-BuildDir(B.root_build_dir+'/source', 'source', duplicate=0)
+VariantDir(B.root_build_dir+'/source', 'source', duplicate=0)
 SConscript(B.root_build_dir+'/source/SConscript')
-BuildDir(B.root_build_dir+'/intern', 'intern', duplicate=0)
+VariantDir(B.root_build_dir+'/intern', 'intern', duplicate=0)
 SConscript(B.root_build_dir+'/intern/SConscript')
-BuildDir(B.root_build_dir+'/extern', 'extern', duplicate=0)
+VariantDir(B.root_build_dir+'/extern', 'extern', duplicate=0)
 SConscript(B.root_build_dir+'/extern/SConscript')
 
 # now that we have read all SConscripts, we know what
@@ -685,6 +700,8 @@ if env['OURPLATFORM']!='darwin':
             source.remove('kernel.cpp')
             source.remove('CMakeLists.txt')
             source.remove('svm')
+            source.remove('closure')
+            source.remove('shaders')
             source.remove('osl')
             source=['intern/cycles/kernel/'+s for s in source]
             source.append('intern/cycles/util/util_color.h')
@@ -699,6 +716,14 @@ if env['OURPLATFORM']!='darwin':
             if '_svn' in source: source.remove('_svn')
             if '__pycache__' in source: source.remove('__pycache__')
             source=['intern/cycles/kernel/svm/'+s for s in source]
+            scriptinstall.append(env.Install(dir=dir,source=source))
+            # closure
+            dir=os.path.join(env['BF_INSTALLDIR'], VERSION, 'scripts', 'addons','cycles', 'kernel', 'closure')
+            source=os.listdir('intern/cycles/kernel/closure')
+            if '.svn' in source: source.remove('.svn')
+            if '_svn' in source: source.remove('_svn')
+            if '__pycache__' in source: source.remove('__pycache__')
+            source=['intern/cycles/kernel/closure/'+s for s in source]
             scriptinstall.append(env.Install(dir=dir,source=source))
 
             # licenses
@@ -718,6 +743,22 @@ if env['OURPLATFORM']!='darwin':
                     kernel_build_dir = os.path.join(B.root_build_dir, 'intern/cycles/kernel')
                     cubin_file = os.path.join(kernel_build_dir, "kernel_%s.cubin" % arch)
                     scriptinstall.append(env.Install(dir=dir,source=cubin_file))
+
+            # osl shaders
+            if env['WITH_BF_CYCLES_OSL']:
+                dir=os.path.join(env['BF_INSTALLDIR'], VERSION, 'scripts', 'addons','cycles', 'shader')
+
+                osl_source_dir = Dir('./intern/cycles/kernel/shaders').srcnode().path
+                oso_build_dir = os.path.join(B.root_build_dir, 'intern/cycles/kernel/shaders')
+
+                headers='node_color.h node_fresnel.h node_texture.h oslutil.h stdosl.h'.split()
+                source=['intern/cycles/kernel/shaders/'+s for s in headers]
+                scriptinstall.append(env.Install(dir=dir,source=source))
+
+                for f in os.listdir(osl_source_dir):
+                    if f.endswith('.osl'):
+                        oso_file = os.path.join(oso_build_dir, f.replace('.osl', '.oso'))
+                        scriptinstall.append(env.Install(dir=dir,source=oso_file))
 
     if env['WITH_BF_OCIO']:
         colormanagement = os.path.join('release', 'datafiles', 'colormanagement')
@@ -819,10 +860,6 @@ else:
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
     dllsources = []
 
-    if not env['OURPLATFORM'] in ('win32-mingw', 'linuxcross'):
-        # For MinGW and linuxcross static linking will be used
-        dllsources += ['${LCGDIR}/gettext/lib/gnu_gettext.dll']
-
     dllsources += ['${BF_ZLIB_LIBPATH}/zlib.dll']
     # Used when linking to libtiff was dynamic
     # keep it here until compilation on all platform would be ok
@@ -867,9 +904,6 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
     if bitness == 32:
         dllsources.append('${LCGDIR}/thumbhandler/lib/BlendThumb.dll')
     dllsources.append('${LCGDIR}/thumbhandler/lib/BlendThumb64.dll')
-
-    if env['WITH_BF_OIIO'] and env['OURPLATFORM'] != 'win32-mingw':
-        dllsources.append('${LCGDIR}/openimageio/bin/OpenImageIO.dll')
 
     if env['WITH_BF_OCIO']:
         if not env['OURPLATFORM'] in ('win32-mingw', 'linuxcross'):

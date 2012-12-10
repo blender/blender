@@ -686,7 +686,7 @@ static int ptcache_smoke_read(PTCacheFile *pf, void *smoke_v)
 
 	/* reallocate fluid if needed*/
 	if (reallocate) {
-		sds->active_fields = active_fields;
+		sds->active_fields = active_fields | cache_fields;
 		smoke_reallocate_fluid(sds, ch_dx, ch_res, 1);
 		sds->dx = ch_dx;
 		VECCOPY(sds->res, ch_res);
@@ -755,6 +755,7 @@ static int ptcache_smoke_read(PTCacheFile *pf, void *smoke_v)
 			if (cache_fields & SM_ACTIVE_FIRE) {
 				ptcache_file_compressed_read(pf, (unsigned char *)flame, out_len_big);
 				ptcache_file_compressed_read(pf, (unsigned char *)fuel, out_len_big);
+				ptcache_file_compressed_read(pf, (unsigned char *)react, out_len_big);
 			}
 			if (cache_fields & SM_ACTIVE_COLORS) {
 				ptcache_file_compressed_read(pf, (unsigned char *)r, out_len_big);
@@ -2568,10 +2569,12 @@ int  BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 			sbFreeSimulation(pid->calldata);
 		else if (pid->type == PTCACHE_TYPE_PARTICLES)
 			psys_reset(pid->calldata, PSYS_RESET_DEPSGRAPH);
-		/*else if (pid->type == PTCACHE_TYPE_SMOKE_DOMAIN)
+#if 0
+		else if (pid->type == PTCACHE_TYPE_SMOKE_DOMAIN)
 			smokeModifier_reset(pid->calldata);
 		else if (pid->type == PTCACHE_TYPE_SMOKE_HIGHRES)
-			smokeModifier_reset_turbulence(pid->calldata);*/
+			smokeModifier_reset_turbulence(pid->calldata);
+#endif
 		else if (pid->type == PTCACHE_TYPE_DYNAMICPAINT)
 			dynamicPaint_clearSurface((DynamicPaintSurface*)pid->calldata);
 	}

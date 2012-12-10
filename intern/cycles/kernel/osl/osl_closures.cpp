@@ -48,6 +48,7 @@
 #include "closure/bsdf_diffuse.h"
 #include "closure/bsdf_microfacet.h"
 #include "closure/bsdf_oren_nayar.h"
+#include "closure/bsdf_phong_ramp.h"
 #include "closure/bsdf_reflection.h"
 #include "closure/bsdf_refraction.h"
 #include "closure/bsdf_transparent.h"
@@ -152,8 +153,9 @@ static void register_closure(OSL::ShadingSystem *ss, const char *name, int id, O
 	ss->register_closure(name, id, params, prepare, generic_closure_setup, generic_closure_compare);
 }
 
-void OSLShader::register_closures(OSL::ShadingSystem *ss)
+void OSLShader::register_closures(OSLShadingSystem *ss_)
 {
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)ss_;
 	int id = 0;
 
 	register_closure(ss, "diffuse", id++,
@@ -190,6 +192,10 @@ void OSLShader::register_closures(OSL::ShadingSystem *ss)
 		closure_background_params(), closure_background_prepare);
 	register_closure(ss, "holdout", id++,
 		closure_holdout_params(), closure_holdout_prepare);
+	register_closure(ss, "ambient_occlusion", id++,
+		closure_ambient_occlusion_params(), closure_ambient_occlusion_prepare);
+	register_closure(ss, "phong_ramp", id++,
+		closure_bsdf_phong_ramp_params(), closure_bsdf_phong_ramp_prepare);
 }
 
 CCL_NAMESPACE_END

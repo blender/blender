@@ -91,6 +91,7 @@
 #include "BKE_tracking.h"
 #include "BKE_mask.h"
 
+#include "BIK_api.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
@@ -773,6 +774,9 @@ static void pose_grab_with_ik_clear(Object *ob)
 			if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
 				data = con->data;
 				if (data->flag & CONSTRAINT_IK_TEMP) {
+					/* iTaSC needs clear for removed constraints */
+					BIK_clear_data(ob->pose);
+
 					BLI_remlink(&pchan->constraints, con);
 					MEM_freeN(con->data);
 					MEM_freeN(con);
@@ -839,7 +843,7 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 	}
 	else
 		data->flag = CONSTRAINT_IK_TIP;
-	data->flag |= CONSTRAINT_IK_TEMP | CONSTRAINT_IK_AUTO;
+	data->flag |= CONSTRAINT_IK_TEMP | CONSTRAINT_IK_AUTO | CONSTRAINT_IK_POS;
 	copy_v3_v3(data->grabtarget, pchan->pose_tail);
 	data->rootbone = 0; /* watch-it! has to be 0 here, since we're still on the same bone for the first time through the loop [#25885] */
 	
@@ -932,6 +936,10 @@ static short pose_grab_with_ik(Object *ob)
 			}
 		}
 	}
+
+	/* iTaSC needs clear for new IK constraints */
+	if (tot_ik)
+		BIK_clear_data(ob->pose);
 
 	return (tot_ik) ? 1 : 0;
 }
@@ -1917,6 +1925,10 @@ static void VertsToTransData(TransInfo *t, TransData *td, TransDataExtension *tx
 		tx->size = vs->radius;
 		td->val = vs->radius;
 	}
+	else if (t->mode == TFM_SHRINKFATTEN) {
+		td->ext = tx;
+		tx->isize[0] = BM_vert_calc_shell_factor(eve);
+	}
 }
 
 static void createTransEditVerts(TransInfo *t)
@@ -2029,7 +2041,11 @@ static void createTransEditVerts(TransInfo *t)
 	else t->total = countsel;
 
 	tob = t->data = MEM_callocN(t->total * sizeof(TransData), "TransObData(Mesh EditMode)");
-	if (t->mode == TFM_SKIN_RESIZE) {
+	if (ELEM(t->mode, TFM_SKIN_RESIZE, TFM_SHRINKFATTEN)) {
+		/* warning, this is overkill, we only need 2 extra floats,
+		 * but this stores loads of extra stuff, for TFM_SHRINKFATTEN its even more overkill
+		 * since we may not use the 'alt' transform mode to maintain shell thickness,
+		 * but with generic transform code its hard to lazy init vars */
 		tx = t->ext = MEM_callocN(t->total * sizeof(TransDataExtension),
 		                          "TransObData ext");
 	}
@@ -2478,7 +2494,7 @@ int clipUVTransform(TransInfo *t, float *vec, int resize)
 	max[0] = aspx; max[1] = aspy;
 
 	for (a = 0, td = t->data; a < t->total; a++, td++) {
-		DO_MINMAX2(td->loc, min, max);
+		minmax_v2v2_v2(min, max, td->loc);
 	}
 
 	if (resize) {
@@ -5029,9 +5045,10 @@ static void special_aftertrans_update__mask(bContext *C, TransInfo *t)
 	if (t->scene->nodetree) {
 		/* tracks can be used for stabilization nodes,
 		 * flush update for such nodes */
-		//if (nodeUpdateID(t->scene->nodetree, &mask->id)) {
+		//if (nodeUpdateID(t->scene->nodetree, &mask->id))
+		{
 			WM_event_add_notifier(C, NC_MASK | ND_DATA, &mask->id);
-		//}
+		}
 	}
 
 	/* TODO - dont key all masks... */

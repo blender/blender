@@ -57,7 +57,7 @@ struct EuclideanResectCostFunction {
 
   EuclideanResectCostFunction(const vector<Marker> &markers,
                               const EuclideanReconstruction &reconstruction,
-                              const Mat3 initial_R)
+                              const Mat3 &initial_R)
     : markers(markers),
       reconstruction(reconstruction),
       initial_R(initial_R) {}

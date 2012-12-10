@@ -88,6 +88,9 @@ OIIO_V="1.0.9"
 OCIO_V="1.0.7"
 MESA_V="8.0.5"
 
+OPENSSL_V="0.9.8o"
+OPENSSL_FV="0.9.8o-4squeeze13"
+
 CUDA_V="4.2.9"
 CUDA_DISTR="ubuntu10.04"
 CUDA_32="cudatoolkit_${CUDA_V}_linux_32_${CUDA_DISTR}.run"
@@ -611,6 +614,15 @@ INSTALL_SOURCES() {
         -P "$SOURCES_PATH/backport/gcc-4.7"
   fi
 
+  if [ ! -d "$SOURCES_PATH/backport/openssl" ]; then
+    INFO "Downloading openssl"
+    mkdir -p "$SOURCES_PATH/backport/openssl"
+    wget -c $DEBIAN_MIRROR/pool/main/o/openssl/openssl_$OPENSSL_FV.debian.tar.gz \
+            $DEBIAN_MIRROR/pool/main/o/openssl/openssl_$OPENSSL_FV.dsc \
+            $DEBIAN_MIRROR/pool/main/o/openssl/openssl_$OPENSSL_V.orig.tar.gz \
+        -P "$SOURCES_PATH/backport/openssl"
+  fi
+
   # JeMalloc
   J="$SOURCES_PATH/packages/jemalloc-$JEMALLOC_V"
   if [ ! -d "$J" ]; then
@@ -730,7 +742,6 @@ fi
 EOF
     chmod +x "$P/0config.sh"
   fi
-
 
   # OpenImageIO
   O="$SOURCES_PATH/packages/OpenImageIO-$OIIO_V"
@@ -1075,6 +1086,64 @@ DO_BACKPORT() {
     INFO "Cleaning gcc-4.7"
     $RUN sh -c "cd '$G' && fakeroot debian/rules clean"
   fi
+
+  # Backport OpenSSL
+  if [ ! -f $CHROOT_PATH/usr/lib/libssl_pic.a ]; then
+    INFO "Backporting OpenSSL"
+    O="$P/openssl/openssl-$OPENSSL_V"
+
+    pkg="libssl-dev_0.9.8o-4squeeze13_amd64.deb libssl0.9.8_0.9.8o-4squeeze13_amd64.deb  openssl_0.9.8o-4squeeze13_amd64.deb"
+
+    if [ ! -d "$CHROOT_PATH/$O" ]; then
+      INFO "Unpacking OpenSSL"
+      $RUN dpkg-source -x "$P/openssl/openssl_$OPENSSL_FV.dsc" "$O"
+    fi
+
+    if [ "$CHROOT_ARCH" = "i386" ]; then
+      pkg=`echo "$pkg" | sed -r 's/amd64/i386/g'`
+    fi
+
+    ok=true
+    for x in `echo "$pkg"`; do
+      if [ ! -f "$CHROOT_PATH/$P/openssl/$x" ]; then
+        ok=false
+        break;
+      fi
+    done
+
+    if ! $ok; then
+      INFO "Compiling OpenSSL"
+      sed -ie 's/#\s*mv debian\/tmp\/usr\/lib\/libcrypto.a debian\/tmp\/usr\/lib\/libcrypto_pic.a/	mv debian\/tmp\/usr\/lib\/libcrypto.a debian\/tmp\/usr\/lib\/libcrypto_pic.a/' "$CHROOT_PATH/$O/debian/rules"
+      sed -ie 's/#\s*mv debian\/tmp\/usr\/lib\/libssl.a debian\/tmp\/usr\/lib\/libssl_pic.a/	mv debian\/tmp\/usr\/lib\/libssl.a debian\/tmp\/usr\/lib\/libssl_pic.a/' "$CHROOT_PATH/$O/debian/rules"
+      cat << EOF > $CHROOT_PATH/$O/debian/libssl-dev.files
+usr/lib/libssl.so
+usr/lib/libcrypto.so
+usr/lib/libssl.a
+usr/lib/libcrypto.a
+usr/lib/libssl_pic.a
+usr/lib/libcrypto_pic.a
+usr/lib/pkgconfig
+usr/include
+usr/share/man/man3
+EOF
+      $RUN sh -c "cd '$O' && dpkg-buildpackage -rfakeroot -j$THREADS"
+    fi
+
+    inst=""
+    for x in `echo "$pkg"`; do
+      inst="$inst $P/openssl/$x"
+    done
+
+    INFO "Installing OpenSSL"
+    $RUN dpkg -i $inst
+
+    echo "openssl hold" | $RUN dpkg --set-selections
+    echo "libssl-dev hold" | $RUN dpkg --set-selections
+    echo "libssl0.9.8 hold" | $RUN dpkg --set-selections
+
+    INFO "Cleaning OpenSSL"
+    $RUN sh -c "cd '$O' && fakeroot debian/rules clean"
+  fi
 }
 
 DO_COMPILE() {
@@ -1160,6 +1229,8 @@ _sha1 sha1module.c
 _sha256 sha256module.c
 _sha512 sha512module.c
 EOF
+
+    sed -ie "s/libraries = \['ssl', 'crypto'\]/libraries = ['ssl_pic', 'crypto_pic', 'z']/" "$P/Python-$PYTHON_V/setup.py"
 
     $RUN sh -c "cd '$P/Python-$PYTHON_V' && ./0config.sh && make clean && make -j$THREADS && make install && make clean"
 
@@ -1356,6 +1427,7 @@ EOF
   fi
 
   INFO "Installing packages from repository"
+
   $RUN apt-get install -y mc gcc g++ cmake python dpkg-dev build-essential autoconf bison \
       flex gettext texinfo dejagnu quilt file lsb-release zlib1g-dev fakeroot debhelper \
       g++-multilib  libtool autoconf2.64 automake  gawk lzma patchutils gperf sharutils \
@@ -1366,7 +1438,7 @@ EOF
       libsqlite3-dev liblzma-dev libncurses5-dev xutils-dev libxext-dev python-libxml2 \
       libglu1-mesa-dev libfftw3-dev libfreetype6-dev libsdl1.2-dev libopenal-dev libjack-dev \
       libxi-dev portaudio19-dev po4a subversion scons libpcre3-dev libexpat1-dev sudo \
-      expect
+      expect bc
 
   if [ $CHROOT_ARCH = "amd64" ]; then
     $RUN apt-get install -y libc6-dev-i386 lib32gcc1

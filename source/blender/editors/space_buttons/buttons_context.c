@@ -680,9 +680,9 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 /************************* Context Callback ************************/
 
 const char *buttons_context_dir[] = {
-	"world", "object", "mesh", "armature", "lattice", "curve",
+	"texture_slot", "world", "object", "mesh", "armature", "lattice", "curve",
 	"meta_ball", "lamp", "speaker", "camera", "material", "material_slot",
-	"texture", "texture_slot", "texture_user", "bone", "edit_bone",
+	"texture", "texture_user", "bone", "edit_bone",
 	"pose_bone", "particle_system", "particle_system_editable", "particle_settings",
 	"cloth", "soft_body", "fluid", "smoke", "collision", "brush", "dynamic_paint", NULL
 };
@@ -697,7 +697,12 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
 	/* here we handle context, getting data from precomputed path */
 	if (CTX_data_dir(member)) {
-		CTX_data_dir_set(result, buttons_context_dir);
+		/* in case of new shading system we skip texture_slot, complex python
+		 * UI script logic depends on checking if this is available */
+		if (sbuts->texuser)
+			CTX_data_dir_set(result, buttons_context_dir + 1);
+		else
+			CTX_data_dir_set(result, buttons_context_dir);
 		return 1;
 	}
 	else if (CTX_data_equals(member, "world")) {
@@ -817,11 +822,11 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		ButsContextTexture *ct = sbuts->texuser;
 		PointerRNA *ptr;
 
-		if (ct)
-			return 0;  /* new shading system */
-
 		if ((ptr = get_pointer_type(path, &RNA_Material))) {
 			Material *ma = ptr->data;
+
+			if (ct)
+				return 0;  /* new shading system */
 
 			/* if we have a node material, get slot from material in material node */
 			if (ma && ma->use_nodes && ma->nodetree) {
@@ -843,11 +848,17 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		else if ((ptr = get_pointer_type(path, &RNA_Lamp))) {
 			Lamp *la = ptr->data;
 
+			if (ct)
+				return 0;  /* new shading system */
+
 			if (la)
 				CTX_data_pointer_set(result, &la->id, &RNA_LampTextureSlot, la->mtex[(int)la->texact]);
 		}
 		else if ((ptr = get_pointer_type(path, &RNA_World))) {
 			World *wo = ptr->data;
+
+			if (ct)
+				return 0;  /* new shading system */
 
 			if (wo)
 				CTX_data_pointer_set(result, &wo->id, &RNA_WorldTextureSlot, wo->mtex[(int)wo->texact]);

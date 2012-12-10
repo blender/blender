@@ -90,6 +90,8 @@ static ShaderSocketType convert_socket_type(BL::NodeSocket::type_enum b_type)
 		return SHADER_SOCKET_COLOR;
 	case BL::NodeSocket::type_SHADER:
 		return SHADER_SOCKET_CLOSURE;
+	case BL::NodeSocket::type_STRING:
+		return SHADER_SOCKET_STRING;
 	
 	case BL::NodeSocket::type_BOOLEAN:
 	case BL::NodeSocket::type_MESH:
@@ -98,7 +100,7 @@ static ShaderSocketType convert_socket_type(BL::NodeSocket::type_enum b_type)
 	}
 }
 
-static void set_default_value(ShaderInput *input, BL::NodeSocket sock)
+static void set_default_value(ShaderInput *input, BL::NodeSocket sock, BL::BlendData b_data, BL::ID b_id)
 {
 	/* copy values for non linked inputs */
 	switch(input->type) {
@@ -122,6 +124,11 @@ static void set_default_value(ShaderInput *input, BL::NodeSocket sock)
 	case SHADER_SOCKET_VECTOR: {
 		BL::NodeSocketVectorNone vec_sock(sock);
 		input->set(get_float3(vec_sock.default_value()));
+		break;
+	}
+	case SHADER_SOCKET_STRING: {
+		BL::NodeSocketStringNone string_sock(sock);
+		input->set((ustring)blender_absolute_path(b_data, b_id, string_sock.default_value()));
 		break;
 	}
 	case SHADER_SOCKET_CLOSURE:
@@ -173,6 +180,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		case BL::ShaderNode::type_OUTPUT: break;
 		case BL::ShaderNode::type_SQUEEZE: break;
 		case BL::ShaderNode::type_TEXTURE: break;
+		case BL::ShaderNode::type_FRAME: break;
 		/* handled outside this function */
 		case BL::ShaderNode::type_GROUP: break;
 		/* existing blender nodes */
@@ -366,6 +374,23 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			node = glass;
 			break;
 		}
+		case BL::ShaderNode::type_BSDF_REFRACTION: {
+			BL::ShaderNodeBsdfRefraction b_refraction_node(b_node);
+			RefractionBsdfNode *refraction = new RefractionBsdfNode();
+			switch(b_refraction_node.distribution()) {
+				case BL::ShaderNodeBsdfRefraction::distribution_SHARP:
+					refraction->distribution = ustring("Sharp");
+					break;
+				case BL::ShaderNodeBsdfRefraction::distribution_BECKMANN:
+					refraction->distribution = ustring("Beckmann");
+					break;
+				case BL::ShaderNodeBsdfRefraction::distribution_GGX:
+					refraction->distribution = ustring("GGX");
+					break;
+			}
+			node = refraction;
+			break;
+		}
 		case BL::ShaderNode::type_BSDF_TRANSLUCENT: {
 			node = new TranslucentBsdfNode();
 			break;
@@ -380,6 +405,10 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		}
 		case BL::ShaderNode::type_EMISSION: {
 			node = new EmissionNode();
+			break;
+		}
+		case BL::ShaderNode::type_AMBIENT_OCCLUSION: {
+			node = new AmbientOcclusionNode();
 			break;
 		}
 		case BL::ShaderNode::type_VOLUME_ISOTROPIC: {
@@ -416,7 +445,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 		}
 		case BL::ShaderNode::type_SCRIPT: {
 #ifdef WITH_OSL
-			if(scene->params.shadingsystem != SceneParams::OSL)
+			if(!scene->shader_manager->use_osl())
 				break;
 
 			/* create script node */
@@ -435,7 +464,7 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			for (b_script_node.inputs.begin(b_input); b_input != b_script_node.inputs.end(); ++b_input) {
 				script_node->input_names.push_back(ustring(b_input->name()));
 				ShaderInput *input = script_node->add_input(script_node->input_names.back().c_str(), convert_socket_type(b_input->type()));
-				set_default_value(input, *b_input);
+				set_default_value(input, *b_input, b_data, b_ntree);
 			}
 
 			BL::Node::outputs_iterator b_output;
@@ -471,8 +500,10 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			BL::Image b_image(b_image_node.image());
 			ImageTextureNode *image = new ImageTextureNode();
 			/* todo: handle generated/builtin images */
-			if(b_image && b_image.source() != BL::Image::source_MOVIE)
+			if(b_image && b_image.source() != BL::Image::source_MOVIE) {
 				image->filename = image_user_file_path(b_image_node.image_user(), b_image, b_scene.frame_current());
+				image->animated = b_image_node.image_user().use_auto_refresh();
+			}
 			image->color_space = ImageTextureNode::color_space_enum[(int)b_image_node.color_space()];
 			image->projection = ImageTextureNode::projection_enum[(int)b_image_node.projection()];
 			image->projection_blend = b_image_node.projection_blend();
@@ -484,8 +515,10 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			BL::ShaderNodeTexEnvironment b_env_node(b_node);
 			BL::Image b_image(b_env_node.image());
 			EnvironmentTextureNode *env = new EnvironmentTextureNode();
-			if(b_image && b_image.source() != BL::Image::source_MOVIE)
+			if(b_image && b_image.source() != BL::Image::source_MOVIE) {
 				env->filename = image_user_file_path(b_env_node.image_user(), b_image, b_scene.frame_current());
+				env->animated = b_env_node.image_user().use_auto_refresh();
+			}
 			env->color_space = EnvironmentTextureNode::color_space_enum[(int)b_env_node.color_space()];
 			env->projection = EnvironmentTextureNode::projection_enum[(int)b_env_node.projection()];
 			get_tex_mapping(&env->tex_mapping, b_env_node.texture_mapping());
@@ -571,6 +604,23 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			sky->turbidity = b_sky_node.turbidity();
 			get_tex_mapping(&sky->tex_mapping, b_sky_node.texture_mapping());
 			node = sky;
+			break;
+		}
+		case BL::ShaderNode::type_NORMAL_MAP: {
+			BL::ShaderNodeNormalMap b_normal_map_node(b_node);
+			NormalMapNode *nmap = new NormalMapNode();
+			nmap->space = NormalMapNode::space_enum[(int)b_normal_map_node.space()];
+			nmap->attribute = b_normal_map_node.uv_map();
+			node = nmap;
+			break;
+		}
+		case BL::ShaderNode::type_TANGENT: {
+			BL::ShaderNodeTangent b_tangent_node(b_node);
+			TangentNode *tangent = new TangentNode();
+			tangent->direction_type = TangentNode::direction_type_enum[(int)b_tangent_node.direction_type()];
+			tangent->axis = TangentNode::axis_enum[(int)b_tangent_node.axis()];
+			tangent->attribute = b_tangent_node.uv_map();
+			node = tangent;
 			break;
 		}
 	}
@@ -687,7 +737,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 				group_sockmap[b_input->group_socket().ptr.data] = SocketPair(proxy, proxy->outputs[0]->name);
 				
 				/* default input values of the group node */
-				set_default_value(proxy->inputs[0], *b_input);
+				set_default_value(proxy->inputs[0], *b_input, b_data, b_group_ntree);
 			}
 			
 			for(b_node->outputs.begin(b_output); b_output != b_node->outputs.end(); ++b_output) {
@@ -701,7 +751,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 				group_sockmap[b_output->group_socket().ptr.data] = SocketPair(proxy, proxy->inputs[0]->name);
 				
 				/* default input values of internal, unlinked group outputs */
-				set_default_value(proxy->inputs[0], b_output->group_socket());
+				set_default_value(proxy->inputs[0], b_output->group_socket(), b_data, b_group_ntree);
 			}
 			
 			add_nodes(scene, b_data, b_scene, graph, b_group_ntree, group_sockmap);
@@ -721,7 +771,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 					assert(input);
 					
 					/* copy values for non linked inputs */
-					set_default_value(input, *b_input);
+					set_default_value(input, *b_input, b_data, b_ntree);
 				}
 			}
 		}
@@ -775,7 +825,7 @@ static void add_nodes(Scene *scene, BL::BlendData b_data, BL::Scene b_scene, Sha
 
 /* Sync Materials */
 
-void BlenderSync::sync_materials()
+void BlenderSync::sync_materials(bool update_all)
 {
 	shader_map.set_default(scene->shaders[scene->default_surface]);
 
@@ -786,7 +836,7 @@ void BlenderSync::sync_materials()
 		Shader *shader;
 		
 		/* test if we need to sync */
-		if(shader_map.sync(&shader, *b_mat)) {
+		if(shader_map.sync(&shader, *b_mat) || update_all) {
 			ShaderGraph *graph = new ShaderGraph();
 
 			shader->name = b_mat->name().c_str();
@@ -822,14 +872,14 @@ void BlenderSync::sync_materials()
 
 /* Sync World */
 
-void BlenderSync::sync_world()
+void BlenderSync::sync_world(bool update_all)
 {
 	Background *background = scene->background;
 	Background prevbackground = *background;
 
 	BL::World b_world = b_scene.world();
 
-	if(world_recalc || b_world.ptr.data != world_map) {
+	if(world_recalc || update_all || b_world.ptr.data != world_map) {
 		Shader *shader = scene->shaders[scene->default_background];
 		ShaderGraph *graph = new ShaderGraph();
 
@@ -876,7 +926,7 @@ void BlenderSync::sync_world()
 
 /* Sync Lamps */
 
-void BlenderSync::sync_lamps()
+void BlenderSync::sync_lamps(bool update_all)
 {
 	shader_map.set_default(scene->shaders[scene->default_light]);
 
@@ -887,7 +937,7 @@ void BlenderSync::sync_lamps()
 		Shader *shader;
 		
 		/* test if we need to sync */
-		if(shader_map.sync(&shader, *b_lamp)) {
+		if(shader_map.sync(&shader, *b_lamp) || update_all) {
 			ShaderGraph *graph = new ShaderGraph();
 
 			/* create nodes */
@@ -926,11 +976,20 @@ void BlenderSync::sync_lamps()
 
 void BlenderSync::sync_shaders()
 {
+	/* for auto refresh images */
+	bool auto_refresh_update = false;
+
+	if(preview) {
+		ImageManager *image_manager = scene->image_manager;
+		int frame = b_scene.frame_current();
+		auto_refresh_update = image_manager->set_animation_frame_update(frame);
+	}
+
 	shader_map.pre_sync();
 
-	sync_world();
-	sync_lamps();
-	sync_materials();
+	sync_world(auto_refresh_update);
+	sync_lamps(auto_refresh_update);
+	sync_materials(auto_refresh_update);
 
 	/* false = don't delete unused shaders, not supported */
 	shader_map.post_sync(false);

@@ -145,6 +145,11 @@ EnumPropertyItem snap_node_element_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+EnumPropertyItem snap_uv_element_items[] = {
+	{SCE_SNAP_MODE_INCREMENT, "INCREMENT", ICON_SNAP_INCREMENT, "Increment", "Snap to increments of grid"},
+	{SCE_SNAP_MODE_VERTEX, "VERTEX", ICON_SNAP_VERTEX, "Vertex", "Snap to vertices"},
+	{0, NULL, 0, NULL, NULL}
+};
 
 /* workaround for duplicate enums,
  * have each enum line as a defne then conditionally set it or not
@@ -1002,8 +1007,7 @@ static void rna_RenderSettings_active_layer_index_range(PointerRNA *ptr, int *mi
 	RenderData *rd = (RenderData *)ptr->data;
 
 	*min = 0;
-	*max = BLI_countlist(&rd->layers) - 1;
-	*max = MAX2(0, *max);
+	*max = max_ii(0, BLI_countlist(&rd->layers) - 1);
 }
 
 static PointerRNA rna_RenderSettings_active_layer_get(PointerRNA *ptr)
@@ -1122,6 +1126,12 @@ static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
 			}
 		}
 	}
+}
+
+static char *rna_SceneRenderLayer_path(PointerRNA *ptr)
+{
+	SceneRenderLayer *srl = (SceneRenderLayer*)ptr->data;
+	return BLI_sprintfN("render.layers[\"%s\"]", srl->name);
 }
 
 static int rna_RenderSettings_multiple_engines_get(PointerRNA *UNUSED(ptr))
@@ -1253,6 +1263,12 @@ static void rna_Scene_simplify_update(Main *bmain, Scene *scene, PointerRNA *ptr
 {
 	if (scene->r.mode & R_SIMPLIFY)
 		rna_Scene_use_simplify_update(bmain, scene, ptr);
+}
+
+static void rna_Scene_use_persistent_data_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
+{
+	if (!(scene->r.mode & R_PERSISTENT_DATA))
+		RE_FreePersistentData();
 }
 
 static int rna_Scene_use_audio_get(PointerRNA *ptr)
@@ -1630,6 +1646,13 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "snap_node_mode");
 	RNA_def_property_enum_items(prop, snap_node_element_items);
 	RNA_def_property_ui_text(prop, "Snap Node Element", "Type of element to snap to");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
+	
+	/* image editor uses own set of snap modes */
+	prop = RNA_def_property(srna, "snap_uv_element", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "snap_uv_mode");
+	RNA_def_property_enum_items(prop, snap_uv_element_items);
+	RNA_def_property_ui_text(prop, "Snap UV Element", "Type of element to snap to");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 
 	prop = RNA_def_property(srna, "snap_target", PROP_ENUM, PROP_NONE);
@@ -2770,6 +2793,7 @@ static void rna_def_scene_render_layer(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "SceneRenderLayer", NULL);
 	RNA_def_struct_ui_text(srna, "Scene Render Layer", "Render layer");
 	RNA_def_struct_ui_icon(srna, ICON_RENDERLAYERS);
+	RNA_def_struct_path_func(srna, "rna_SceneRenderLayer_path");
 
 	rna_def_render_layer_common(srna, 1);
 }
@@ -3126,7 +3150,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Volume", "Audio volume");
-	RNA_def_property_translation_context(prop, "Audio");
+	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_SOUND);
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 #endif
 
@@ -3949,6 +3973,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_sequencer_gl_preview", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "seq_flag", R_SEQ_GL_PREV);
 	RNA_def_property_ui_text(prop, "Sequencer OpenGL", "");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SceneSequencer_update");
 
 #if 0  /* see R_SEQ_GL_REND comment */
 	prop = RNA_def_property(srna, "use_sequencer_gl_render", PROP_BOOLEAN, PROP_NONE);
@@ -4036,6 +4061,12 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_simplify_triangulate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "simplify_flag", R_SIMPLE_NO_TRIANGULATE);
 	RNA_def_property_ui_text(prop, "Skip Quad to Triangles", "Disable non-planar quads being triangulated");
+
+	/* persistent data */
+	prop = RNA_def_property(srna, "use_persistent_data", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_PERSISTENT_DATA);
+	RNA_def_property_ui_text(prop, "Persistent Data", "Keep render data around for faster re-renders");
+	RNA_def_property_update(prop, 0, "rna_Scene_use_persistent_data_update");
 
 	/* Scene API */
 	RNA_api_scene_render(srna);
@@ -4541,7 +4572,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "audio.volume");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Volume", "Audio volume");
-	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_AUDIO);
+	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_SOUND);
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	RNA_def_property_float_funcs(prop, NULL, "rna_Scene_volume_set", NULL);
 

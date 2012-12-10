@@ -68,10 +68,6 @@ set(SRC
 	intern/bmesh_construct.h
 	intern/bmesh_core.c
 	intern/bmesh_core.h
-	intern/bmesh_decimate_collapse.c
-	intern/bmesh_decimate_dissolve.c
-	intern/bmesh_decimate_unsubdivide.c
-	intern/bmesh_decimate.h
 	intern/bmesh_inline.h
 	intern/bmesh_interp.c
 	intern/bmesh_interp.h
@@ -109,6 +105,12 @@ set(SRC
 	intern/bmesh_error.h
 
 	tools/BME_bevel.c
+	tools/bmesh_bevel.c
+	tools/bmesh_bevel.h
+	tools/bmesh_decimate_collapse.c
+	tools/bmesh_decimate_dissolve.c
+	tools/bmesh_decimate_unsubdivide.c
+	tools/bmesh_decimate.h
 
 	bmesh.h
 	bmesh_class.h

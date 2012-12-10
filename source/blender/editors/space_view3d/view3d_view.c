@@ -247,9 +247,9 @@ void view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera
 			copy_qt_qt(rv3d->viewquat, sms.new_quat);
 			rv3d->dist = sms.new_dist;
 			v3d->lens = sms.new_lens;
-		}
 
-		ED_view3d_camera_lock_sync(v3d, rv3d);
+			ED_view3d_camera_lock_sync(v3d, rv3d);
+		}
 
 		if (rv3d->viewlock & RV3D_BOXVIEW)
 			view3d_boxview_copy(sa, ar);
@@ -323,8 +323,14 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent
 	
 	if (rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_copy(CTX_wm_area(C), CTX_wm_region(C));
-	
+
+	/* note: this doesn't work right because the v3d->lens is now used in ortho mode r51636,
+	 * when switching camera in quad-view the other ortho views would zoom & reset. */
+#if 0
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+#else
+	ED_region_tag_redraw(CTX_wm_region(C));
+#endif
 	
 	return OPERATOR_FINISHED;
 }
@@ -1028,7 +1034,8 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 {
 	View3D *v3d = sa->spacedata.first;
 	Base *base;
-	float size = 0.0, min[3], max[3], box[3];
+	float min[3], max[3], box[3];
+	float size = 0.0f, size_persp = 0.0f, size_ortho = 0.0f;
 	unsigned int locallay;
 	int ok = FALSE;
 
@@ -1068,7 +1075,13 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 		box[1] = (max[1] - min[1]);
 		box[2] = (max[2] - min[2]);
 		size = MAX3(box[0], box[1], box[2]);
-		if (size <= 0.01f) size = 0.01f;
+
+		/* do not zoom closer than the near clipping plane */
+		size = max_ff(size, v3d->near * 1.5f);
+
+		/* perspective size (we always switch out of camera view so no need to use its lens size) */
+		size_persp = ED_view3d_radius_to_persp_dist(focallength_to_fov(v3d->lens, DEFAULT_SENSOR_WIDTH), size / 2.0f) * VIEW3D_MARGIN;
+		size_ortho = ED_view3d_radius_to_ortho_dist(v3d->lens, size / 2.0f) * VIEW3D_MARGIN;
 	}
 	
 	if (ok == TRUE) {
@@ -1085,14 +1098,20 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 				rv3d->localvd = MEM_mallocN(sizeof(RegionView3D), "localview region");
 				memcpy(rv3d->localvd, rv3d, sizeof(RegionView3D));
 				
-				rv3d->ofs[0] = -(min[0] + max[0]) / 2.0f;
-				rv3d->ofs[1] = -(min[1] + max[1]) / 2.0f;
-				rv3d->ofs[2] = -(min[2] + max[2]) / 2.0f;
+				mid_v3_v3v3(v3d->cursor, min, max);
+				negate_v3_v3(rv3d->ofs, v3d->cursor);
 
-				rv3d->dist = size;
+				if (rv3d->persp == RV3D_CAMOB) {
+					rv3d->persp = RV3D_PERSP;
+				}
+
 				/* perspective should be a bit farther away to look nice */
-				if (rv3d->persp == RV3D_ORTHO)
-					rv3d->dist *= 0.7f;
+				if (rv3d->persp != RV3D_ORTHO) {
+					rv3d->dist = size_persp;
+				}
+				else {
+					rv3d->dist = size_ortho;
+				}
 
 				/* correction for window aspect ratio */
 				if (ar->winy > 2 && ar->winx > 2) {
@@ -1100,12 +1119,6 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 					if (asp < 1.0f) asp = 1.0f / asp;
 					rv3d->dist *= asp;
 				}
-				
-				if (rv3d->persp == RV3D_CAMOB) rv3d->persp = RV3D_PERSP;
-				
-				v3d->cursor[0] = -rv3d->ofs[0];
-				v3d->cursor[1] = -rv3d->ofs[1];
-				v3d->cursor[2] = -rv3d->ofs[2];
 			}
 		}
 		
@@ -1511,13 +1524,23 @@ static void UNUSED_FUNCTION(view3d_align_axis_to_vector)(View3D *v3d, RegionView
 	}
 }
 
-float ED_view3d_pixel_size(struct RegionView3D *rv3d, const float co[3])
+float ED_view3d_pixel_size(RegionView3D *rv3d, const float co[3])
 {
 	return (rv3d->persmat[3][3] + (
 	            rv3d->persmat[0][3] * co[0] +
 	            rv3d->persmat[1][3] * co[1] +
 	            rv3d->persmat[2][3] * co[2])
 	        ) * rv3d->pixsize;
+}
+
+float ED_view3d_radius_to_persp_dist(const float angle, const float radius)
+{
+	return (radius / 2.0f) * fabsf(1.0f / cosf((((float)M_PI) - angle) / 2.0f));
+}
+
+float ED_view3d_radius_to_ortho_dist(const float lens, const float radius)
+{
+	return radius / (DEFAULT_SENSOR_WIDTH / lens);
 }
 
 /* view matrix properties utilities */

@@ -4,6 +4,7 @@ import os
 
 sources = env.Glob('intern/*.c')
 sources.remove('intern' + os.sep + 'mask_rasterize.c')
+sources.remove('intern' + os.sep + 'mask_evaluate.c')
 sources.remove('intern' + os.sep + 'mask.c')
 
 sources_mask = env.Glob('intern/mask*.c')
@@ -40,11 +41,12 @@ if env['WITH_BF_PYTHON']:
     if env['BF_DEBUG']:
         defs.append('DEBUG')
 
+'''
 if env['WITH_BF_ELTOPO']:
     incs += ' #/extern/eltopo'
     incs += ' #/extern/eltopo/eltopo3d'
     defs.append('WITH_ELTOPO')
-        
+'''
 if env['WITH_BF_QUICKTIME']:
     incs += ' ../quicktime'
 

@@ -279,12 +279,7 @@ static int ui_is_a_warp_but(uiBut *but)
 
 static float ui_mouse_scale_warp_factor(const short shift)
 {
-	if (U.uiflag & USER_CONTINUOUS_MOUSE) {
-		return shift ? 0.05f : 1.0f;
-	}
-	else {
-		return 1.0f;
-	}
+	return shift ? 0.05f : 1.0f;
 }
 
 static void ui_mouse_scale_warp(uiHandleButtonData *data,
@@ -292,16 +287,11 @@ static void ui_mouse_scale_warp(uiHandleButtonData *data,
                                 float *r_mx, float *r_my,
                                 const short shift)
 {
-	if (U.uiflag & USER_CONTINUOUS_MOUSE) {
-		const float fac = ui_mouse_scale_warp_factor(shift);
-		/* slow down the mouse, this is fairly picky */
-		*r_mx = (data->dragstartx * (1.0f - fac) + mx * fac);
-		*r_my = (data->dragstarty * (1.0f - fac) + my * fac);
-	}
-	else {
-		*r_mx = mx;
-		*r_my = my;
-	}
+	const float fac = ui_mouse_scale_warp_factor(shift);
+	
+	/* slow down the mouse, this is fairly picky */
+	*r_mx = (data->dragstartx * (1.0f - fac) + mx * fac);
+	*r_my = (data->dragstarty * (1.0f - fac) + my * fac);
 }
 
 /* file selectors are exempt from utf-8 checks */
@@ -3306,7 +3296,7 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 
 	ui_get_but_vectorf(but, rgb);
 
-	if (color_profile && (int)but->a1)
+	if (color_profile && (int)but->a1 != UI_GRAD_SV)
 		ui_block_to_display_space_v3(but->block, rgb);
 
 	rgb_to_hsv_compat_v(rgb, hsv);
@@ -3352,7 +3342,7 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 
 	hsv_to_rgb_v(hsv, rgb);
 
-	if (color_profile && (int)but->a1)
+	if (color_profile && ((int)but->a1 != UI_GRAD_SV))
 		ui_block_to_scene_linear_v3(but->block, rgb);
 
 	copy_v3_v3(data->vec, rgb);
@@ -3378,7 +3368,7 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, wmNDOF
 
 	ui_get_but_vectorf(but, rgb);
 
-	if (color_profile && (int)but->a1)
+	if (color_profile && (int)but->a1 != UI_GRAD_SV)
 		ui_block_to_display_space_v3(but->block, rgb);
 
 	rgb_to_hsv_compat_v(rgb, hsv);
@@ -3418,7 +3408,7 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, wmNDOF
 
 	hsv_to_rgb_v(hsv, rgb);
 
-	if (color_profile && (int)but->a1)
+	if (color_profile && (int)but->a1 != UI_GRAD_SV)
 		ui_block_to_scene_linear_v3(but->block, rgb);
 
 	copy_v3_v3(data->vec, rgb);
@@ -4643,7 +4633,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	int length;
-	char *name;
+	const char *name;
 	uiStringInfo label = {BUT_GET_LABEL, NULL};
 
 /*	if ((but->rnapoin.data && but->rnaprop) == 0 && but->optype == NULL)*/
@@ -4651,7 +4641,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 	
 	button_timers_tooltip_remove(C, but);
 
-	uiButGetStrInfo(C, but, 1, &label);
+	uiButGetStrInfo(C, but, &label, NULL);
 	name = label.strinfo;
 
 	pup = uiPupMenuBegin(C, name, ICON_NONE);
@@ -6050,38 +6040,22 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 		switch (event->type) {
 			case MOUSEMOVE:
 			{
-				/* if the mouse is over the button, do nothing */
-				if (ui_mouse_inside_button(data->region, but, event->x, event->y)) {
-					break;
-				}
+				uiBut *bt;
 
-				/* if the mouse is over the menu, also do nothing */
 				if (data->menu && data->menu->region) {
 					if (ui_mouse_inside_region(data->menu->region, event->x, event->y)) {
 						break;
 					}
-					else {
-						/* make a rectangle between the menu and the button that opened it,
-						 * this avoids any space between them exiting the popup. see [#29072] - campbell */
-						rctf rct_all = but->rect;
-						rctf rct_win;
+				}
 
-						ui_block_to_window_fl(ar, block, &rct_all.xmin, &rct_all.ymin);
-						ui_block_to_window_fl(ar, block, &rct_all.xmax, &rct_all.ymax);
-
-						BLI_rctf_rcti_copy(&rct_win, &data->menu->region->winrct);
-						BLI_rctf_union(&rct_all, &rct_win);
-
-						if (BLI_rctf_isect_pt(&rct_all, event->x, event->y)) {
-							break;
-						}
+				bt = ui_but_find_mouse_over(ar, event->x, event->y);
+				
+				if (bt && bt->active != data) {
+					if (but->type != COLOR) {  /* exception */
+						data->cancel = TRUE;
 					}
+					button_activate_state(C, but, BUTTON_STATE_EXIT);
 				}
-
-				if (but->type != COLOR) {  /* exception */
-					data->cancel = TRUE;
-				}
-				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				break;
 			}
 		}

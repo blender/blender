@@ -381,13 +381,7 @@ static void rna_PoseChannel_bone_group_index_range(PointerRNA *ptr, int *min, in
 	bPose *pose = (ob) ? ob->pose : NULL;
 	
 	*min = 0;
-	
-	if (pose) {
-		*max = BLI_countlist(&pose->agroups) - 1;
-		*max = MAX2(0, *max);
-	}
-	else
-		*max = 0;
+	*max = pose ? max_ii(0, BLI_countlist(&pose->agroups) - 1) : 0;
 }
 
 static PointerRNA rna_Pose_active_bone_group_get(PointerRNA *ptr)
@@ -419,8 +413,7 @@ static void rna_Pose_active_bone_group_index_range(PointerRNA *ptr, int *min, in
 	bPose *pose = (bPose *)ptr->data;
 
 	*min = 0;
-	*max = BLI_countlist(&pose->agroups) - 1;
-	*max = MAX2(0, *max);
+	*max = max_ii(0, BLI_countlist(&pose->agroups) - 1);
 }
 
 #if 0
@@ -682,7 +675,7 @@ static void rna_def_bone_group(BlenderRNA *brna)
 }
 
 static EnumPropertyItem prop_iksolver_items[] = {
-	{IKSOLVER_LEGACY, "LEGACY", 0, "Legacy", "Original IK solver"},
+	{IKSOLVER_STANDARD, "LEGACY", 0, "Standard", "Original IK solver"},
 	{IKSOLVER_ITASC, "ITASC", 0, "iTaSC", "Multi constraint, stateful IK solver"},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -1133,7 +1126,7 @@ static void rna_def_pose_itasc(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "iterations", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "numiter");
-	RNA_def_property_range(prop, 1.f, 1000.f);
+	RNA_def_property_range(prop, 0, 1000);
 	RNA_def_property_ui_text(prop, "Iterations",
 	                         "Maximum number of iterations for convergence in case of reiteration");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Itasc_update");
@@ -1228,8 +1221,7 @@ static void rna_def_pose_ikparam(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "iksolver");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_items(prop, prop_iksolver_items);
-	RNA_def_property_ui_text(prop, "IK Solver",
-	                         "IK solver for which these parameters are defined, 0 for Legacy, 1 for iTaSC");
+	RNA_def_property_ui_text(prop, "IK Solver", "IK solver for which these parameters are defined");
 }
 
 /* pose.bone_groups */
@@ -1292,8 +1284,7 @@ static void rna_def_pose(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "iksolver");
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Pose_ik_solver_set", NULL);
 	RNA_def_property_enum_items(prop, prop_iksolver_items);
-	RNA_def_property_ui_text(prop, "IK Solver",
-	                         "Selection of IK solver for IK chain, current choice is 0 for Legacy, 1 for iTaSC");
+	RNA_def_property_ui_text(prop, "IK Solver", "Selection of IK solver for IK chain");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_ik_solver_update");
 
 	prop = RNA_def_property(srna, "ik_param", PROP_POINTER, PROP_NONE);

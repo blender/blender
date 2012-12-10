@@ -16,9 +16,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "kernel_attribute.h"
-#include "kernel_projection.h"
-
 CCL_NAMESPACE_BEGIN
 
 /* Point on triangle for Moller-Trumbore triangles */

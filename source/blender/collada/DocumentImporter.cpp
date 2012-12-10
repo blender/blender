@@ -552,8 +552,8 @@ bool DocumentImporter::writeVisualScene(const COLLADAFW::VisualScene *visualScen
 }
 
 /** When this method is called, the writer must handle all nodes contained in the 
-* library nodes.
-* \return The writer should return true, if writing succeeded, false otherwise.*/
+ * library nodes.
+ * \return The writer should return true, if writing succeeded, false otherwise.*/
 bool DocumentImporter::writeLibraryNodes(const COLLADAFW::LibraryNodes *libraryNodes)
 {
 	if (mImportStage != General)

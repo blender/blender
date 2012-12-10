@@ -90,7 +90,7 @@ class SCA_PythonController : public SCA_IController
 	void	SetDebug(bool debug) { m_debug = debug; }
 	void	AddTriggeredSensor(class SCA_ISensor* sensor)
 		{ m_triggeredSensors.push_back(sensor); }
-	int		IsTriggered(class SCA_ISensor* sensor);
+	bool	IsTriggered(class SCA_ISensor* sensor);
 	bool	Compile();
 	bool	Import();
 	void	ErrorPrint(const char *error_msg);

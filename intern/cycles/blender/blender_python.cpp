@@ -146,6 +146,32 @@ static PyObject *draw_func(PyObject *self, PyObject *args)
 	Py_RETURN_NONE;
 }
 
+static PyObject *reset_func(PyObject *self, PyObject *args)
+{
+	PyObject *pysession, *pydata, *pyscene;
+
+	if(!PyArg_ParseTuple(args, "OOO", &pysession, &pydata, &pyscene))
+		return NULL;
+
+	BlenderSession *session = (BlenderSession*)PyLong_AsVoidPtr(pysession);
+
+	PointerRNA dataptr;
+	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pydata), &dataptr);
+	BL::BlendData b_data(dataptr);
+
+	PointerRNA sceneptr;
+	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pyscene), &sceneptr);
+	BL::Scene b_scene(sceneptr);
+
+	Py_BEGIN_ALLOW_THREADS
+
+	session->reset_session(b_data, b_scene);
+
+	Py_END_ALLOW_THREADS
+
+	Py_RETURN_NONE;
+}
+
 static PyObject *sync_func(PyObject *self, PyObject *value)
 {
 	Py_BEGIN_ALLOW_THREADS
@@ -217,6 +243,7 @@ static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
 		float default_float4[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 		float default_float = 0.0f;
 		int default_int = 0;
+		std::string default_string = "";
 		
 		if(param->isclosure) {
 			socket_type = BL::NodeSocket::type_SHADER;
@@ -252,6 +279,13 @@ static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
 				if(param->validdefault)
 					default_float = param->fdefault[0];
 			}
+			else if(param->type.basetype == TypeDesc::STRING) {
+				socket_type =  BL::NodeSocket::type_STRING;
+				if(param->validdefault)
+					default_string = param->sdefault[0];
+			}
+			else
+				continue;
 		}
 		else
 			continue;
@@ -285,6 +319,10 @@ static PyObject *osl_update_node_func(PyObject *self, PyObject *args)
 			else if(socket_type == BL::NodeSocket::type_VECTOR) {
 				BL::NodeSocketVectorNone b_vector_sock(b_sock.ptr);
 				b_vector_sock.default_value(default_float4);
+			}
+			else if(socket_type == BL::NodeSocket::type_STRING) {
+				BL::NodeSocketStringNone b_string_sock(b_sock.ptr);
+				b_string_sock.default_value(default_string);
 			}
 		}
 
@@ -342,6 +380,7 @@ static PyMethodDef methods[] = {
 	{"render", render_func, METH_O, ""},
 	{"draw", draw_func, METH_VARARGS, ""},
 	{"sync", sync_func, METH_O, ""},
+	{"reset", reset_func, METH_VARARGS, ""},
 #ifdef WITH_OSL
 	{"osl_update_node", osl_update_node_func, METH_VARARGS, ""},
 	{"osl_compile", osl_compile_func, METH_VARARGS, ""},
@@ -379,14 +418,23 @@ static CCLDeviceInfo *compute_device_list(DeviceType type)
 			if(info.type == type ||
 			   (info.type == DEVICE_MULTI && info.multi_devices[0].type == type))
 			{
-				CCLDeviceInfo cinfo = {info.id.c_str(), info.description.c_str(), i++};
+				CCLDeviceInfo cinfo;
+
+				strncpy(cinfo.identifier, info.id.c_str(), sizeof(cinfo.identifier));
+				cinfo.identifier[info.id.length()] = '\0';
+
+				strncpy(cinfo.name, info.description.c_str(), sizeof(cinfo.name));
+				cinfo.name[info.description.length()] = '\0';
+
+				cinfo.value = i++;
+
 				device_list.push_back(cinfo);
 			}
 		}
 
 		/* null terminate */
 		if(!device_list.empty()) {
-			CCLDeviceInfo cinfo = {NULL, NULL, 0};
+			CCLDeviceInfo cinfo = {"", "", 0};
 			device_list.push_back(cinfo);
 		}
 	}

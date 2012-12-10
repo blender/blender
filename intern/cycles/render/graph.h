@@ -49,7 +49,8 @@ enum ShaderSocketType {
 	SHADER_SOCKET_VECTOR,
 	SHADER_SOCKET_POINT,
 	SHADER_SOCKET_NORMAL,
-	SHADER_SOCKET_CLOSURE
+	SHADER_SOCKET_CLOSURE,
+	SHADER_SOCKET_STRING
 };
 
 /* Bump
@@ -117,9 +118,16 @@ public:
 		NONE
 	};
 
+	enum Usage {
+		USE_SVM = 1,
+		USE_OSL = 2,
+		USE_ALL = USE_SVM|USE_OSL
+	};
+
 	ShaderInput(ShaderNode *parent, const char *name, ShaderSocketType type);
 	void set(const float3& v) { value = v; }
 	void set(float f) { value = make_float3(f, 0, 0); }
+	void set(const ustring v) { value_string = v; }
 
 	const char *name;
 	ShaderSocketType type;
@@ -129,9 +137,10 @@ public:
 
 	DefaultValue default_value;
 	float3 value;
+	ustring value_string;
 
 	int stack_offset; /* for SVM compiler */
-	bool osl_only;
+	int usage;
 };
 
 /* Output
@@ -164,9 +173,9 @@ public:
 	ShaderInput *input(const char *name);
 	ShaderOutput *output(const char *name);
 
-	ShaderInput *add_input(const char *name, ShaderSocketType type, float value=0.0f);
-	ShaderInput *add_input(const char *name, ShaderSocketType type, float3 value);
-	ShaderInput *add_input(const char *name, ShaderSocketType type, ShaderInput::DefaultValue value, bool osl_only=false);
+	ShaderInput *add_input(const char *name, ShaderSocketType type, float value=0.0f, int usage=ShaderInput::USE_ALL);
+	ShaderInput *add_input(const char *name, ShaderSocketType type, float3 value, int usage=ShaderInput::USE_ALL);
+	ShaderInput *add_input(const char *name, ShaderSocketType type, ShaderInput::DefaultValue value, int usage=ShaderInput::USE_ALL);
 	ShaderOutput *add_output(const char *name, ShaderSocketType type);
 
 	virtual ShaderNode *clone() const = 0;
@@ -224,7 +233,7 @@ public:
 	void connect(ShaderOutput *from, ShaderInput *to);
 	void disconnect(ShaderInput *to);
 
-	void finalize(bool do_bump = false, bool do_osl = false);
+	void finalize(bool do_bump = false, bool do_osl = false, bool do_multi_closure = false);
 
 protected:
 	typedef pair<ShaderNode* const, ShaderNode*> NodePair;
@@ -238,6 +247,7 @@ protected:
 	void bump_from_displacement();
 	void refine_bump_nodes();
 	void default_inputs(bool do_osl);
+	void transform_multi_closure(ShaderNode *node, ShaderOutput *weight_out, bool volume);
 };
 
 CCL_NAMESPACE_END

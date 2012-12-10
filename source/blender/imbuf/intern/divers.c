@@ -196,7 +196,7 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 {
 	float tmp[4];
 	int x, y;
-	DitherContext *di;
+	DitherContext *di = NULL;
 
 	/* we need valid profiles */
 	BLI_assert(profile_to != IB_PROFILE_NONE);
@@ -583,23 +583,23 @@ void IMB_partial_rect_from_float(ImBuf *ibuf, float *buffer, int x, int y, int w
 	if (is_data) {
 		/* exception for non-color data, just copy float */
 		IMB_buffer_float_from_float(buffer, rect_float,
-									ibuf->channels, IB_PROFILE_LINEAR_RGB, IB_PROFILE_LINEAR_RGB, 0,
-									w, h, w, ibuf->x);
+		                            ibuf->channels, IB_PROFILE_LINEAR_RGB, IB_PROFILE_LINEAR_RGB, 0,
+		                            w, h, w, ibuf->x);
 
 		/* and do color space conversion to byte */
 		IMB_buffer_byte_from_float(rect_byte, rect_float,
-								   4, ibuf->dither, IB_PROFILE_SRGB, profile_from, predivide,
-								   w, h, ibuf->x, w);
+		                           4, ibuf->dither, IB_PROFILE_SRGB, profile_from, predivide,
+		                           w, h, ibuf->x, w);
 	}
 	else {
 		IMB_buffer_float_from_float(buffer, rect_float,
-									ibuf->channels, IB_PROFILE_SRGB, profile_from, predivide,
-									w, h, w, ibuf->x);
+		                            ibuf->channels, IB_PROFILE_SRGB, profile_from, predivide,
+		                            w, h, w, ibuf->x);
 
 		/* XXX: need to convert to image buffer's rect space */
 		IMB_buffer_byte_from_float(rect_byte, buffer,
-								   4, ibuf->dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB, 0,
-								   w, h, ibuf->x, w);
+		                           4, ibuf->dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB, 0,
+		                           w, h, ibuf->x, w);
 	}
 
 	/* ensure user flag is reset */

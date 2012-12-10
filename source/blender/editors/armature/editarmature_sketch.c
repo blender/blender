@@ -2104,15 +2104,15 @@ static void sk_drawSketch(Scene *scene, View3D *UNUSED(v3d), SK_Sketch *sketch, 
 	if (sketch->depth_peels.first != NULL)
 	{
 		float colors[8][3] = {
-								{1, 0, 0},
-								{0, 1, 0},
-								{0, 0, 1},
-								{1, 1, 0},
-								{1, 0, 1},
-								{0, 1, 1},
-								{1, 1, 1},
-								{0, 0, 0}
-							};
+			{1, 0, 0},
+			{0, 1, 0},
+			{0, 0, 1},
+			{1, 1, 0},
+			{1, 0, 1},
+			{0, 1, 1},
+			{1, 1, 1},
+			{0, 0, 0}
+		};
 		DepthPeel *p;
 		GLUquadric *quad = gluNewQuadric();
 		gluQuadricNormals(quad, GLU_SMOOTH);

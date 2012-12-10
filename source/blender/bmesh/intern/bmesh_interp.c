@@ -174,9 +174,9 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 
 	void **blocks = NULL;
 	float (*cos)[3] = NULL, *w = NULL;
-	BLI_array_fixedstack_declare(cos,     BM_NGON_STACK_SIZE, source->len, __func__);
-	BLI_array_fixedstack_declare(w,       BM_NGON_STACK_SIZE, source->len, __func__);
-	BLI_array_fixedstack_declare(blocks,  BM_NGON_STACK_SIZE, source->len, __func__);
+	BLI_array_fixedstack_declare(cos,     BM_DEFAULT_NGON_STACK_SIZE, source->len, __func__);
+	BLI_array_fixedstack_declare(w,       BM_DEFAULT_NGON_STACK_SIZE, source->len, __func__);
+	BLI_array_fixedstack_declare(blocks,  BM_DEFAULT_NGON_STACK_SIZE, source->len, __func__);
 	int i;
 	
 	BM_elem_attrs_copy(bm, bm, source, target);
@@ -613,10 +613,10 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	void **vblocks = NULL;
 	float (*cos)[3] = NULL, co[3], *w = NULL;
 	float cent[3] = {0.0f, 0.0f, 0.0f};
-	BLI_array_fixedstack_declare(cos,      BM_NGON_STACK_SIZE, source->len, __func__);
-	BLI_array_fixedstack_declare(w,        BM_NGON_STACK_SIZE, source->len, __func__);
-	BLI_array_fixedstack_declare(blocks,   BM_NGON_STACK_SIZE, source->len, __func__);
-	BLI_array_fixedstack_declare(vblocks,  BM_NGON_STACK_SIZE, do_vertex ? source->len : 0, __func__);
+	BLI_array_fixedstack_declare(cos,      BM_DEFAULT_NGON_STACK_SIZE, source->len, __func__);
+	BLI_array_fixedstack_declare(w,        BM_DEFAULT_NGON_STACK_SIZE, source->len, __func__);
+	BLI_array_fixedstack_declare(blocks,   BM_DEFAULT_NGON_STACK_SIZE, source->len, __func__);
+	BLI_array_fixedstack_declare(vblocks,  BM_DEFAULT_NGON_STACK_SIZE, do_vertex ? source->len : 0, __func__);
 	int i, ax, ay;
 
 	BM_elem_attrs_copy(bm, bm, source, target->f);
@@ -689,9 +689,9 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source)
 	void **blocks = NULL;
 	float (*cos)[3] = NULL, *w = NULL;
 	float cent[3] = {0.0f, 0.0f, 0.0f};
-	BLI_array_fixedstack_declare(cos,      BM_NGON_STACK_SIZE, source->len, __func__);
-	BLI_array_fixedstack_declare(w,        BM_NGON_STACK_SIZE, source->len, __func__);
-	BLI_array_fixedstack_declare(blocks,   BM_NGON_STACK_SIZE, source->len, __func__);
+	BLI_array_fixedstack_declare(cos,      BM_DEFAULT_NGON_STACK_SIZE, source->len, __func__);
+	BLI_array_fixedstack_declare(w,        BM_DEFAULT_NGON_STACK_SIZE, source->len, __func__);
+	BLI_array_fixedstack_declare(blocks,   BM_DEFAULT_NGON_STACK_SIZE, source->len, __func__);
 	int i;
 
 	i = 0;

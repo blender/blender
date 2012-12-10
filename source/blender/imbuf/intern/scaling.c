@@ -331,13 +331,13 @@ void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 		for (y = ibuf2->y; y > 0; y--) {
 			p2f = p1f + (ibuf1->x << 2);
 			for (x = ibuf2->x; x > 0; x--) {
-					destf[0] = 0.25f * (p1f[0] + p2f[0] + p1f[4] + p2f[4]);
-					destf[1] = 0.25f * (p1f[1] + p2f[1] + p1f[5] + p2f[5]);
-					destf[2] = 0.25f * (p1f[2] + p2f[2] + p1f[6] + p2f[6]);
-					destf[3] = 0.25f * (p1f[3] + p2f[3] + p1f[7] + p2f[7]);
-					p1f += 8; 
-					p2f += 8; 
-					destf += 4;
+				destf[0] = 0.25f * (p1f[0] + p2f[0] + p1f[4] + p2f[4]);
+				destf[1] = 0.25f * (p1f[1] + p2f[1] + p1f[5] + p2f[5]);
+				destf[2] = 0.25f * (p1f[2] + p2f[2] + p1f[6] + p2f[6]);
+				destf[3] = 0.25f * (p1f[3] + p2f[3] + p1f[7] + p2f[7]);
+				p1f += 8;
+				p2f += 8;
+				destf += 4;
 			}
 			p1f = p2f;
 			if (ibuf1->x & 1) p1f += 4;
@@ -1467,10 +1467,10 @@ struct ImBuf *IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int
 		return ibuf;
 	}
 
-	if (newx < ibuf->x) if (newx) scaledownx(ibuf, newx);
-	if (newy < ibuf->y) if (newy) scaledowny(ibuf, newy);
-	if (newx > ibuf->x) if (newx) scaleupx(ibuf, newx);
-	if (newy > ibuf->y) if (newy) scaleupy(ibuf, newy);
+	if (newx && (newx < ibuf->x)) scaledownx(ibuf, newx);
+	if (newy && (newy < ibuf->y)) scaledowny(ibuf, newy);
+	if (newx && (newx > ibuf->x)) scaleupx(ibuf, newx);
+	if (newy && (newy > ibuf->y)) scaleupy(ibuf, newy);
 	
 	return(ibuf);
 }

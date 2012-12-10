@@ -95,6 +95,16 @@
 
 #include "view3d_intern.h"  /* own include */
 
+/* handy utility for drawing shapes in the viewport for arbitrary code.
+ * could add lines and points too */
+// #define DEBUG_DRAW
+#ifdef DEBUG_DRAW
+static void bl_debug_draw(void);
+/* add these locally when using these functions for testing */
+extern void bl_debug_draw_quad_clear(void);
+extern void bl_debug_draw_quad_add(const float v0[3], const float v1[3], const float v2[3], const float v3[3]);
+extern void bl_debug_draw_edge_add(const float v0[3], const float v1[3]);
+#endif
 
 static void star_stuff_init_func(void)
 {
@@ -441,10 +451,9 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 }
 #undef GRID_MIN_PX
 
-float ED_view3d_grid_scale(Scene *scene, View3D *v3d, const char **grid_unit)
+/** could move this elsewhere, but tied into #ED_view3d_grid_scale */
+float ED_scene_grid_scale(Scene *scene, const char **grid_unit)
 {
-	float grid_scale = v3d->grid;
-
 	/* apply units */
 	if (scene->unit.system) {
 		void *usys;
@@ -456,11 +465,16 @@ float ED_view3d_grid_scale(Scene *scene, View3D *v3d, const char **grid_unit)
 			int i = bUnit_GetBaseUnit(usys);
 			if (grid_unit)
 				*grid_unit = bUnit_GetNameDisplay(usys, i);
-			grid_scale = (grid_scale * (float)bUnit_GetScaler(usys, i)) / scene->unit.scale_length;
+			return (float)bUnit_GetScaler(usys, i) / scene->unit.scale_length;
 		}
 	}
 
-	return grid_scale;
+	return 1.0f;
+}
+
+float ED_view3d_grid_scale(Scene *scene, View3D *v3d, const char **grid_unit)
+{
+	return v3d->grid * ED_scene_grid_scale(scene, grid_unit);
 }
 
 static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
@@ -545,12 +559,8 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 			}
 		}
 	}
-
-
-
-
-	if (v3d->zbuf && scene->obedit) glDepthMask(1);
 	
+	if (v3d->zbuf && scene->obedit) glDepthMask(1);
 }
 
 static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
@@ -600,8 +610,8 @@ static void draw_view_axis(RegionView3D *rv3d)
 	mul_qt_v3(rv3d->viewquat, vec);
 	dx = vec[0] * k;
 	dy = vec[1] * k;
-
-	glColor4ub(220, 0, 0, bright);
+	
+	UI_ThemeColorShadeAlpha(TH_AXIS_X, 0, bright);
 	glBegin(GL_LINES);
 	glVertex2f(start, start + ydisp);
 	glVertex2f(start + dx, start + dy + ydisp);
@@ -620,8 +630,8 @@ static void draw_view_axis(RegionView3D *rv3d)
 	mul_qt_v3(rv3d->viewquat, vec);
 	dx = vec[0] * k;
 	dy = vec[1] * k;
-
-	glColor4ub(0, 220, 0, bright);
+	
+	UI_ThemeColorShadeAlpha(TH_AXIS_Y, 0, bright);
 	glBegin(GL_LINES);
 	glVertex2f(start, start + ydisp);
 	glVertex2f(start + dx, start + dy + ydisp);
@@ -640,7 +650,7 @@ static void draw_view_axis(RegionView3D *rv3d)
 	dx = vec[0] * k;
 	dy = vec[1] * k;
 
-	glColor4ub(30, 30, 220, bright);
+	UI_ThemeColorShadeAlpha(TH_AXIS_Z, 0, bright);
 	glBegin(GL_LINES);
 	glVertex2f(start, start + ydisp);
 	glVertex2f(start + dx, start + dy + ydisp);
@@ -1218,11 +1228,11 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 
 			hmargin = 0.1f  * (x2 - x1);
 			vmargin = 0.05f * (y2 - y1);
-			uiDrawBox(GL_LINE_LOOP, x1 + hmargin, y1+vmargin, x2 - hmargin, y2 - vmargin, 2.0f);
+			uiDrawBox(GL_LINE_LOOP, x1 + hmargin, y1 + vmargin, x2 - hmargin, y2 - vmargin, 2.0f);
 
 			hmargin = 0.035f * (x2 - x1);
 			vmargin = 0.035f * (y2 - y1);
-			uiDrawBox(GL_LINE_LOOP, x1 + hmargin, y1+vmargin, x2 - hmargin, y2 - vmargin, 2.0f);
+			uiDrawBox(GL_LINE_LOOP, x1 + hmargin, y1 + vmargin, x2 - hmargin, y2 - vmargin, 2.0f);
 		}
 		if (ca && (ca->flag & CAM_SHOWSENSOR)) {
 			/* determine sensor fit, and get sensor x/y, for auto fit we
@@ -1416,8 +1426,8 @@ ImBuf *view3d_read_backbuf(ViewContext *vc, short xmin, short ymin, short xmax, 
 	
 	ibuf = IMB_allocImBuf((xmaxc - xminc + 1), (ymaxc - yminc + 1), 32, IB_rect);
 
-	view3d_validate_backbuf(vc); 
-	
+	view3d_validate_backbuf(vc);
+
 	glReadPixels(vc->ar->winrct.xmin + xminc,
 	             vc->ar->winrct.ymin + yminc,
 	             (xmaxc - xminc + 1),
@@ -1565,7 +1575,8 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 					ibuf = NULL; /* frame is out of range, dont show */
 				}
 				else {
-					ibuf = BKE_image_get_ibuf(ima, &bgpic->iuser);
+					ibuf = BKE_image_acquire_ibuf(ima, &bgpic->iuser, NULL);
+					freeibuf = ibuf;
 				}
 
 				image_aspect[0] = ima->aspx;
@@ -1924,10 +1935,17 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	for (; dob; dob_prev = dob, dob = dob_next, dob_next = dob_next ? dupli_step(dob_next->next) : NULL) {
 		tbase.object = dob->ob;
 
-		/* extra service: draw the duplicator in drawtype of parent */
-		/* MIN2 for the drawtype to allow bounding box objects in groups for lods */
-		dt = tbase.object->dt;   tbase.object->dt = MIN2(tbase.object->dt, base->object->dt);
-		dtx = tbase.object->dtx; tbase.object->dtx = base->object->dtx;
+		/* extra service: draw the duplicator in drawtype of parent, minimum taken
+		 * to allow e.g. boundbox box objects in groups for LOD */
+		dt = tbase.object->dt;
+		tbase.object->dt = MIN2(tbase.object->dt, base->object->dt);
+
+		/* inherit draw extra, but not if a boundbox under the assumption that this
+		 * is intended to speed up drawing, and drawing extra (especially wire) can
+		 * slow it down too much */
+		dtx = tbase.object->dtx;
+		if (tbase.object->dt != OB_BOUNDBOX)
+			tbase.object->dtx = base->object->dtx;
 
 		/* negative scale flag has to propagate */
 		transflag = tbase.object->transflag;
@@ -2989,10 +3007,11 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 		v3d->zbuf = FALSE;
 
 	/* enables anti-aliasing for 3D view drawing */
-#if 0
-	if (!(U.gameflags & USER_DISABLE_AA))
+	if (U.ogl_multisamples != USER_MULTISAMPLE_NONE) {
+		// if (!(U.gameflags & USER_DISABLE_AA))
 		glEnable(GL_MULTISAMPLE_ARB);
-#endif
+	}
+
 
 	/* needs to be done always, gridview is adjusted in drawgrid() now */
 	rv3d->gridview = v3d->grid;
@@ -3105,12 +3124,13 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 
 	BIF_draw_manipulator(C);
 
-#if 0
 	/* Disable back anti-aliasing */
-	if (!(U.gameflags & USER_DISABLE_AA))
+	if (U.ogl_multisamples != USER_MULTISAMPLE_NONE) {
+		// if (!(U.gameflags & USER_DISABLE_AA))
 		glDisable(GL_MULTISAMPLE_ARB);
-#endif
+	}
 
+	
 	if (v3d->zbuf) {
 		v3d->zbuf = FALSE;
 		glDisable(GL_DEPTH_TEST);
@@ -3210,6 +3230,9 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	/* draw viewport using opengl */
 	if (v3d->drawtype != OB_RENDER || !view3d_main_area_do_render_draw(C) || draw_border) {
 		view3d_main_area_draw_objects(C, ar, &grid_unit);
+#ifdef DEBUG_DRAW
+		bl_debug_draw();
+#endif
 		ED_region_pixelspace(ar);
 	}
 
@@ -3222,3 +3245,76 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	v3d->flag |= V3D_INVALID_BACKBUF;
 }
 
+#ifdef DEBUG_DRAW
+/* debug drawing */
+#define _DEBUG_DRAW_QUAD_TOT 1024
+#define _DEBUG_DRAW_EDGE_TOT 1024
+static float _bl_debug_draw_quads[_DEBUG_DRAW_QUAD_TOT][4][3];
+static int   _bl_debug_draw_quads_tot = 0;
+static float _bl_debug_draw_edges[_DEBUG_DRAW_QUAD_TOT][2][3];
+static int   _bl_debug_draw_edges_tot = 0;
+
+void bl_debug_draw_quad_clear(void)
+{
+	_bl_debug_draw_quads_tot = 0;
+	_bl_debug_draw_edges_tot = 0;
+}
+void bl_debug_draw_quad_add(const float v0[3], const float v1[3], const float v2[3], const float v3[3])
+{
+	if (_bl_debug_draw_quads_tot >= _DEBUG_DRAW_QUAD_TOT) {
+		printf("%s: max quad count hit %d!", __func__, _bl_debug_draw_quads_tot);
+	}
+	else {
+		float *pt = &_bl_debug_draw_quads[_bl_debug_draw_quads_tot][0][0];
+		copy_v3_v3(pt, v0); pt += 3;
+		copy_v3_v3(pt, v1); pt += 3;
+		copy_v3_v3(pt, v2); pt += 3;
+		copy_v3_v3(pt, v3); pt += 3;
+		_bl_debug_draw_quads_tot++;
+	}
+}
+void bl_debug_draw_edge_add(const float v0[3], const float v1[3])
+{
+	if (_bl_debug_draw_quads_tot >= _DEBUG_DRAW_EDGE_TOT) {
+		printf("%s: max edge count hit %d!", __func__, _bl_debug_draw_edges_tot);
+	}
+	else {
+		float *pt = &_bl_debug_draw_edges[_bl_debug_draw_edges_tot][0][0];
+		copy_v3_v3(pt, v0); pt += 3;
+		copy_v3_v3(pt, v1); pt += 3;
+		_bl_debug_draw_edges_tot++;
+	}
+}
+static void bl_debug_draw(void)
+{
+	if (_bl_debug_draw_quads_tot) {
+		int i;
+		cpack(0x00FF0000);
+		glBegin(GL_LINE_LOOP);
+		for (i = 0; i < _bl_debug_draw_quads_tot; i ++) {
+			glVertex3fv(_bl_debug_draw_quads[i][0]);
+			glVertex3fv(_bl_debug_draw_quads[i][1]);
+			glVertex3fv(_bl_debug_draw_quads[i][2]);
+			glVertex3fv(_bl_debug_draw_quads[i][3]);
+		}
+		glEnd();
+	}
+	if (_bl_debug_draw_edges_tot) {
+		int i;
+		cpack(0x00FFFF00);
+		glBegin(GL_LINES);
+		for (i = 0; i < _bl_debug_draw_edges_tot; i ++) {
+			glVertex3fv(_bl_debug_draw_edges[i][0]);
+			glVertex3fv(_bl_debug_draw_edges[i][1]);
+		}
+		glEnd();
+		glPointSize(4.0);
+		glBegin(GL_POINTS);
+		for (i = 0; i < _bl_debug_draw_edges_tot; i ++) {
+			glVertex3fv(_bl_debug_draw_edges[i][0]);
+			glVertex3fv(_bl_debug_draw_edges[i][1]);
+		}
+		glEnd();
+	}
+}
+#endif

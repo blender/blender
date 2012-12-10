@@ -158,7 +158,7 @@ static void rna_KeyMap_item_remove(wmKeyMap *km, ReportList *reports, PointerRNA
 	wmKeyMapItem *kmi = kmi_ptr->data;
 
 	if (WM_keymap_remove_item(km, kmi) == FALSE) {
-		BKE_reportf(reports, RPT_ERROR, "KeyMapItem '%s' can't be removed from '%s'", kmi->idname, km->idname);
+		BKE_reportf(reports, RPT_ERROR, "KeyMapItem '%s' cannot be removed from '%s'", kmi->idname, km->idname);
 		return;
 	}
 
@@ -195,7 +195,7 @@ static void rna_KeyConfig_remove(wmWindowManager *wm, ReportList *reports, Point
 	wmKeyConfig *keyconf = keyconf_ptr->data;
 
 	if (WM_keyconfig_remove(wm, keyconf) == FALSE) {
-		BKE_reportf(reports, RPT_ERROR, "KeyConfig '%s' can't be removed", keyconf->idname);
+		BKE_reportf(reports, RPT_ERROR, "KeyConfig '%s' cannot be removed", keyconf->idname);
 		return;
 	}
 

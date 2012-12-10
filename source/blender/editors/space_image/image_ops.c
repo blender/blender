@@ -81,6 +81,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "PIL_time.h"
+
 #include "image_intern.h"
 
 /******************** view navigation utilities *********************/
@@ -167,7 +169,7 @@ static int space_image_file_exists_poll(bContext *C)
 				ret = TRUE;
 			}
 		}
-		ED_space_image_release_buffer(sima, lock);
+		ED_space_image_release_buffer(sima, ibuf, lock);
 
 		return ret;
 	}
@@ -367,10 +369,18 @@ void IMAGE_OT_view_pan(wmOperatorType *ot)
 /********************** view zoom operator *********************/
 
 typedef struct ViewZoomData {
-	float x, y;
+	float origx, origy;
 	float zoom;
 	int event_type;
 	float location[2];
+
+	/* needed for continuous zoom */
+	wmTimer *timer;
+	double timer_lastdraw;
+
+	/* */
+	SpaceImage *sima;
+	ARegion *ar;
 } ViewZoomData;
 
 static void image_view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
@@ -382,12 +392,21 @@ static void image_view_zoom_init(bContext *C, wmOperator *op, wmEvent *event)
 	op->customdata = vpd = MEM_callocN(sizeof(ViewZoomData), "ImageViewZoomData");
 	WM_cursor_modal(CTX_wm_window(C), BC_NSEW_SCROLLCURSOR);
 
-	vpd->x = event->x;
-	vpd->y = event->y;
+	vpd->origx = event->x;
+	vpd->origy = event->y;
 	vpd->zoom = sima->zoom;
 	vpd->event_type = event->type;
 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &vpd->location[0], &vpd->location[1]);
+
+	if (U.viewzoom == USER_ZOOM_CONT) {
+		/* needs a timer to continue redrawing */
+		vpd->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
+		vpd->timer_lastdraw = PIL_check_seconds_timer();
+	}
+
+	vpd->sima = sima;
+	vpd->ar = ar;
 
 	WM_event_add_modal_handler(C, op);
 }
@@ -401,6 +420,9 @@ static void image_view_zoom_exit(bContext *C, wmOperator *op, int cancel)
 		sima->zoom = vpd->zoom;
 		ED_region_tag_redraw(CTX_wm_region(C));
 	}
+
+	if (vpd->timer)
+		WM_event_remove_timer(CTX_wm_manager(C), vpd->timer->win, vpd->timer);
 
 	WM_cursor_restore(CTX_wm_window(C));
 	MEM_freeN(op->customdata);
@@ -426,6 +448,12 @@ static int image_view_zoom_exec(bContext *C, wmOperator *op)
 	
 	return OPERATOR_FINISHED;
 }
+
+enum {
+	VIEW_PASS = 0,
+	VIEW_APPLY,
+	VIEW_CONFIRM
+};
 
 static int image_view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -454,31 +482,72 @@ static int image_view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 }
 
+static void image_zoom_apply(ViewZoomData *vpd, wmOperator *op, const int x, const int y, const short viewzoom, const short zoom_invert)
+{
+	float factor;
+
+	if (viewzoom == USER_ZOOM_CONT) {
+		double time = PIL_check_seconds_timer();
+		float time_step = (float)(time - vpd->timer_lastdraw);
+		float fac;
+		float zfac;
+
+		if (U.uiflag & USER_ZOOM_HORIZ) {
+			fac = (float)(x - vpd->origx);
+		}
+		else {
+			fac = (float)(y - vpd->origy);
+		}
+
+		if (zoom_invert) {
+			fac = -fac;
+		}
+
+		/* oldstyle zoom */
+		zfac = 1.0f + ((fac / 20.0f) * time_step);
+		vpd->timer_lastdraw = time;
+		/* this is the final zoom, but instead make it into a factor */
+		//zoom = vpd->sima->zoom * zfac;
+		factor = (vpd->sima->zoom * zfac) / vpd->zoom;
+	}
+	else {
+		/* for now do the same things for scale and dolly */
+		float delta = x - vpd->origx + y - vpd->origy;
+
+		if (zoom_invert)
+			delta *= -1.0f;
+
+		factor = 1.0f + delta / 300.0f;
+	}
+
+	RNA_float_set(op->ptr, "factor", factor);
+	sima_zoom_set(vpd->sima, vpd->ar, vpd->zoom * factor, vpd->location);
+	ED_region_tag_redraw(vpd->ar);
+}
+
 static int image_view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	SpaceImage *sima = CTX_wm_space_image(C);
-	ARegion *ar = CTX_wm_region(C);
 	ViewZoomData *vpd = op->customdata;
-	float delta, factor;
+	short event_code = VIEW_PASS;
 
-	switch (event->type) {
-		case MOUSEMOVE:
-			delta = event->x - vpd->x + event->y - vpd->y;
+	/* execute the events */
+	if (event->type == TIMER && event->customdata == vpd->timer) {
+		/* continuous zoom */
+		event_code = VIEW_APPLY;
+	}
+	else if (event->type == MOUSEMOVE) {
+		event_code = VIEW_APPLY;
+	}
+	else if (event->type == vpd->event_type && event->val == KM_RELEASE) {
+		event_code = VIEW_CONFIRM;
+	}
 
-			if (U.uiflag & USER_ZOOM_INVERT)
-				delta *= -1;
-
-			factor = 1.0f + delta / 300.0f;
-			RNA_float_set(op->ptr, "factor", factor);
-			sima_zoom_set(sima, ar, vpd->zoom * factor, vpd->location);
-			ED_region_tag_redraw(CTX_wm_region(C));
-			break;
-		default:
-			if (event->type == vpd->event_type && event->val == KM_RELEASE) {
-				image_view_zoom_exit(C, op, 0);
-				return OPERATOR_FINISHED;
-			}
-			break;
+	if (event_code == VIEW_APPLY) {
+		image_zoom_apply(vpd, op, event->x, event->y, U.viewzoom, (U.uiflag & USER_ZOOM_INVERT) != 0);
+	}
+	else if (event_code == VIEW_CONFIRM) {
+		image_view_zoom_exit(C, op, 0);
+		return OPERATOR_FINISHED;
 	}
 
 	return OPERATOR_RUNNING_MODAL;
@@ -1188,7 +1257,7 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 		BKE_color_managed_view_settings_copy(&simopts->im_format.view_settings, &scene->view_settings);
 	}
 
-	ED_space_image_release_buffer(sima, lock);
+	ED_space_image_release_buffer(sima, ibuf, lock);
 
 	return (ibuf != NULL);
 }
@@ -1328,7 +1397,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			IMB_freeImBuf(colormanaged_ibuf);
 	}
 
-	ED_space_image_release_buffer(sima, lock);
+	ED_space_image_release_buffer(sima, ibuf, lock);
 }
 
 static void image_save_as_free(wmOperator *op)
@@ -1743,17 +1812,14 @@ void IMAGE_OT_new(wmOperatorType *ot)
 static int image_invert_poll(bContext *C)
 {
 	Image *ima = CTX_data_edit_image(C);
-	ImBuf *ibuf = BKE_image_get_ibuf(ima, NULL);
-	
-	if (ibuf != NULL)
-		return 1;
-	return 0;
+
+	return BKE_image_has_ibuf(ima, NULL);
 }
 
 static int image_invert_exec(bContext *C, wmOperator *op)
 {
 	Image *ima = CTX_data_edit_image(C);
-	ImBuf *ibuf = BKE_image_get_ibuf(ima, NULL);
+	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 
 	/* flags indicate if this channel should be inverted */
 	const short r = RNA_boolean_get(op->ptr, "invert_r");
@@ -1792,6 +1858,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else {
+		BKE_image_release_ibuf(ima, ibuf, NULL);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1800,6 +1867,9 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 		ibuf->userflags |= IB_MIPMAP_INVALID;
 
 	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
+
+	BKE_image_release_ibuf(ima, ibuf, NULL);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -1848,7 +1918,7 @@ static int image_pack_exec(bContext *C, wmOperator *op)
 {
 	struct Main *bmain = CTX_data_main(C);
 	Image *ima = CTX_data_edit_image(C);
-	ImBuf *ibuf = BKE_image_get_ibuf(ima, NULL);
+	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 	int as_png = RNA_boolean_get(op->ptr, "as_png");
 
 	if (!image_pack_test(C, op))
@@ -1865,29 +1935,37 @@ static int image_pack_exec(bContext *C, wmOperator *op)
 		ima->packedfile = newPackedFile(op->reports, ima->name, ID_BLEND_PATH(bmain, &ima->id));
 
 	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
-	
+
+	BKE_image_release_ibuf(ima, ibuf, NULL);
+
 	return OPERATOR_FINISHED;
 }
 
 static int image_pack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Image *ima = CTX_data_edit_image(C);
-	ImBuf *ibuf = BKE_image_get_ibuf(ima, NULL);
+	ImBuf *ibuf;
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	int as_png = RNA_boolean_get(op->ptr, "as_png");
 
 	if (!image_pack_test(C, op))
 		return OPERATOR_CANCELLED;
-	
+
+	ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+
 	if (!as_png && (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))) {
 		pup = uiPupMenuBegin(C, "OK", ICON_QUESTION);
 		layout = uiPupMenuLayout(pup);
 		uiItemBooleanO(layout, "Can't pack edited image from disk. Pack as internal PNG?", ICON_NONE, op->idname, "as_png", 1);
 		uiPupMenuEnd(C, pup);
 
+		BKE_image_release_ibuf(ima, ibuf, NULL);
+
 		return OPERATOR_CANCELLED;
 	}
+
+	BKE_image_release_ibuf(ima, ibuf, NULL);
 
 	return image_pack_exec(C, op);
 }
@@ -2032,7 +2110,7 @@ int ED_space_image_color_sample(SpaceImage *sima, ARegion *ar, int mval[2], floa
 	int ret = FALSE;
 
 	if (ibuf == NULL) {
-		ED_space_image_release_buffer(sima, lock);
+		ED_space_image_release_buffer(sima, ibuf, lock);
 		return FALSE;
 	}
 
@@ -2058,7 +2136,7 @@ int ED_space_image_color_sample(SpaceImage *sima, ARegion *ar, int mval[2], floa
 		}
 	}
 
-	ED_space_image_release_buffer(sima, lock);
+	ED_space_image_release_buffer(sima, ibuf, lock);
 	return ret;
 }
 
@@ -2074,7 +2152,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 	CurveMapping *curve_mapping = scene->view_settings.curve_mapping;
 
 	if (ibuf == NULL) {
-		ED_space_image_release_buffer(sima, lock);
+		ED_space_image_release_buffer(sima, ibuf, lock);
 		info->draw = 0;
 		return;
 	}
@@ -2175,7 +2253,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 		info->draw = 0;
 	}
 
-	ED_space_image_release_buffer(sima, lock);
+	ED_space_image_release_buffer(sima, ibuf, lock);
 	ED_area_tag_redraw(CTX_wm_area(C));
 }
 
@@ -2266,12 +2344,12 @@ static int image_sample_line_exec(bContext *C, wmOperator *op)
 	float x1f, y1f, x2f, y2f;
 	
 	if (ibuf == NULL) {
-		ED_space_image_release_buffer(sima, lock);
+		ED_space_image_release_buffer(sima, ibuf, lock);
 		return OPERATOR_CANCELLED;
 	}
 	/* hmmmm */
 	if (ibuf->channels < 3) {
-		ED_space_image_release_buffer(sima, lock);
+		ED_space_image_release_buffer(sima, ibuf, lock);
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -2288,7 +2366,7 @@ static int image_sample_line_exec(bContext *C, wmOperator *op)
 	/* reset y zoom */
 	hist->ymax = 1.0f;
 
-	ED_space_image_release_buffer(sima, lock);
+	ED_space_image_release_buffer(sima, ibuf, lock);
 	
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
@@ -2383,11 +2461,13 @@ static int image_record_composite_apply(bContext *C, wmOperator *op)
 
 	ED_area_tag_redraw(CTX_wm_area(C));
 	
-	ibuf = BKE_image_get_ibuf(sima->image, &sima->iuser);
+	ibuf = BKE_image_acquire_ibuf(sima->image, &sima->iuser, NULL);
 	/* save memory in flipbooks */
 	if (ibuf)
 		imb_freerectfloatImBuf(ibuf);
-	
+
+	BKE_image_release_ibuf(sima->image, ibuf, NULL);
+
 	scene->r.cfra++;
 
 	return (scene->r.cfra <= rcd->efra);

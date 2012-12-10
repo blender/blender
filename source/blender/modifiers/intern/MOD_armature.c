@@ -58,7 +58,7 @@ static void initData(ModifierData *md)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData *) md;
 	
-	amd->deformflag = ARM_DEF_ENVELOPE | ARM_DEF_VGROUP;
+	amd->deformflag = ARM_DEF_VGROUP;
 }
 
 static void copyData(ModifierData *md, ModifierData *target)

@@ -130,6 +130,9 @@ short hasNumInput(NumInput *n)
 	return 0;
 }
 
+/**
+ * \warning \a vec must be set beforehand otherwise we risk uninitialized vars.
+ */
 void applyNumInput(NumInput *n, float *vec)
 {
 	short i, j;

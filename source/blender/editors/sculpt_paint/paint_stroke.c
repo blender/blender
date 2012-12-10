@@ -195,7 +195,7 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 
 /* Returns zero if no sculpt changes should be made, non-zero otherwise */
 static int paint_smooth_stroke(PaintStroke *stroke, float output[2],
-							   const PaintSample *sample)
+                               const PaintSample *sample)
 {
 	output[0] = sample->mouse[0];
 	output[1] = sample->mouse[1];

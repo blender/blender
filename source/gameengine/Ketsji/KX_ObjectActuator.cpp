@@ -529,7 +529,7 @@ int KX_ObjectActuator::pyattr_set_forceLimitX(void *self_v, const KX_PYATTRIBUTE
 	{
 		self->m_drot[0] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 0));
 		self->m_dloc[0] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 1));
-		self->m_bitLocalFlag.Torque = (PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 2)) != 0);
+		self->m_bitLocalFlag.Torque = (PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 2)) != 0);
 
 		if (!PyErr_Occurred())
 		{
@@ -565,7 +565,7 @@ int	KX_ObjectActuator::pyattr_set_forceLimitY(void *self_v, const KX_PYATTRIBUTE
 	{
 		self->m_drot[1] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 0));
 		self->m_dloc[1] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 1));
-		self->m_bitLocalFlag.DLoc = (PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 2)) != 0);
+		self->m_bitLocalFlag.DLoc = (PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 2)) != 0);
 
 		if (!PyErr_Occurred())
 		{
@@ -601,7 +601,7 @@ int	KX_ObjectActuator::pyattr_set_forceLimitZ(void *self_v, const KX_PYATTRIBUTE
 	{
 		self->m_drot[2] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 0));
 		self->m_dloc[2] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, 1));
-		self->m_bitLocalFlag.DRot = (PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 2)) != 0);
+		self->m_bitLocalFlag.DRot = (PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 2)) != 0);
 
 		if (!PyErr_Occurred())
 		{

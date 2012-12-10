@@ -23,7 +23,7 @@ import bpy
 from bpy.types import Operator
 
 DEG_TO_RAD = 0.017453292519943295 # pi/180.0
-SMALL_NUM = 0.000000001
+SMALL_NUM = 0.0000001  # see bug [#31598] why we dont have smaller values
 BIG_NUM = 1e15
 
 global USER_FILL_HOLES
@@ -517,7 +517,7 @@ def mergeUvIslands(islandList):
                                     for uv in f.uv:
                                         uv+= offset
 
-                                sourceIsland[0][:] = [] # Empty
+                                del sourceIsland[0][:]  # Empty
 
 
                                 # Move edge loop into new and offset.
@@ -527,7 +527,7 @@ def mergeUvIslands(islandList):
                                      (e[0]+offset, e[1]+offset, e[2])\
                                 ) for e in sourceIsland[6] ] )
 
-                                sourceIsland[6][:] = [] # Empty
+                                del sourceIsland[6][:]  # Empty
 
                                 # Sort by edge length, reverse so biggest are first.
 
@@ -540,7 +540,7 @@ def mergeUvIslands(islandList):
                                 for p in sourceIsland[7]:
                                     p+= offset
 
-                                sourceIsland[7][:] = []
+                                del sourceIsland[7][:]
 
 
                                 # Decrement the efficiency
@@ -759,7 +759,7 @@ class thickface(object):
         self.v = [mesh_verts[i] for i in face.vertices]
         self.uv = [uv_layer[i].uv for i in face.loop_indices]
 
-        self.no = face.normal
+        self.no = face.normal.copy()
         self.area = face.area
         self.edge_keys = face.edge_keys
 
@@ -993,7 +993,7 @@ def main(context,
             if mostUniqueAngle < USER_PROJECTION_LIMIT_CONVERTED:
                 #print 'adding', mostUniqueAngle, USER_PROJECTION_LIMIT, len(newProjectMeshFaces)
                 # Now weight the vector to all its faces, will give a more direct projection
-                # if the face its self was not representive of the normal from surrounding faces.
+                # if the face its self was not representative of the normal from surrounding faces.
 
                 newProjectVec = tempMeshFaces[mostUniqueIndex].no
                 newProjectMeshFaces = [tempMeshFaces.pop(mostUniqueIndex)]

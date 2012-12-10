@@ -27,6 +27,8 @@
  *  \ingroup bli
  */
 
+#ifndef __MATH_BASE_INLINE_C__
+#define __MATH_BASE_INLINE_C__
 
 #include <float.h>
 #include <stdio.h>
@@ -34,9 +36,6 @@
 #include <string.h>
 
 #include "BLI_math.h"
-
-#ifndef __MATH_BASE_INLINE_C__
-#define __MATH_BASE_INLINE_C__
 
 /* A few small defines. Keep'em local! */
 #define SMALL_NUMBER  1.e-8f
@@ -137,6 +136,25 @@ MINLINE int power_of_2_min_i(int n)
 		n = n & (n - 1);
 
 	return n;
+}
+
+MINLINE unsigned int highest_order_bit_i(unsigned int n)
+{
+	n |= (n >>  1);
+	n |= (n >>  2);
+	n |= (n >>  4);
+	n |= (n >>  8);
+	n |= (n >> 16);
+	return n - (n >> 1);
+}
+
+MINLINE unsigned short highest_order_bit_s(unsigned short n)
+{
+	n |= (n >>  1);
+	n |= (n >>  2);
+	n |= (n >>  4);
+	n |= (n >>  8);
+	return n - (n >> 1);
 }
 
 MINLINE float min_ff(float a, float b)

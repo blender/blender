@@ -49,7 +49,7 @@ Session::Session(const SessionParams& params_)
 
 	TaskScheduler::init(params.threads);
 
-	device = Device::create(params.device, stats, params.background, params.threads);
+	device = Device::create(params.device, stats, params.background);
 
 	if(params.background) {
 		buffers = NULL;
@@ -637,6 +637,15 @@ void Session::reset(BufferParams& buffer_params, int samples)
 		reset_gpu(buffer_params, samples);
 	else
 		reset_cpu(buffer_params, samples);
+
+	if(params.progressive_refine) {
+		thread_scoped_lock buffers_lock(buffers_mutex);
+
+		foreach(RenderBuffers *buffers, tile_buffers)
+			delete buffers;
+
+		tile_buffers.clear();
+	}
 }
 
 void Session::set_samples(int samples)
@@ -757,7 +766,7 @@ void Session::update_status_time(bool show_pause, bool show_done)
 	if(preview_time == 0.0 && resolution == 1)
 		preview_time = time_dt();
 	
-	double tile_time = (tile == 0)? 0.0: (time_dt() - preview_time - paused_time)/(sample);
+	double tile_time = (tile == 0 || sample == 0)? 0.0: (time_dt() - preview_time - paused_time) / sample;
 
 	/* negative can happen when we pause a bit before rendering, can discard that */
 	if(preview_time < 0.0) preview_time = 0.0;
@@ -818,7 +827,7 @@ bool Session::update_progressive_refine(bool cancel)
 
 	double current_time = time_dt();
 
-	if (current_time - last_update_time < 1.0f) {
+	if (current_time - last_update_time < 1.0) {
 		/* if last sample was processed, we need to write buffers anyway  */
 		if (!write)
 			return false;
@@ -840,6 +849,20 @@ bool Session::update_progressive_refine(bool cancel)
 	last_update_time = current_time;
 
 	return write;
+}
+
+void Session::device_free()
+{
+	scene->device_free();
+
+	foreach(RenderBuffers *buffers, tile_buffers)
+		delete buffers;
+
+	tile_buffers.clear();
+
+	/* used from background render only, so no need to
+	 * re-create render/display buffers here
+	 */
 }
 
 CCL_NAMESPACE_END

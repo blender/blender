@@ -262,16 +262,10 @@ static PyObject *bpy_bmlayeritem_copy_from(BPy_BMLayerItem *self, BPy_BMLayerIte
 	}
 
 	BPY_BM_CHECK_OBJ(self);
-	BPY_BM_CHECK_OBJ(value);
+	BPY_BM_CHECK_SOURCE_OBJ(value, self->bm, "layer.copy_from()");
 
-	if (self->bm != value->bm) {
-		PyErr_SetString(PyExc_ValueError,
-		                "layer.copy_from(): layer is from another mesh");
-		return NULL;
-	}
-
-	else if ((self->htype != value->htype) ||
-	         (self->type  != value->type))
+	if ((self->htype != value->htype) ||
+	    (self->type  != value->type))
 	{
 		PyErr_SetString(PyExc_ValueError,
 		                "layer.copy_from(other): layer type mismatch");
@@ -981,7 +975,7 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
 		}
 		case CD_PROP_INT:
 		{
-			ret = PyLong_FromSsize_t((Py_ssize_t)(*(int *)value));
+			ret = PyLong_FromLong(*(int *)value);
 			break;
 		}
 		case CD_PROP_STR:
@@ -1060,7 +1054,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
 		}
 		case CD_PROP_INT:
 		{
-			int tmp_val = PyLong_AsSsize_t(py_value);
+			int tmp_val = PyLong_AsLong(py_value);
 			if (UNLIKELY(tmp_val == -1 && PyErr_Occurred())) {
 				PyErr_Format(PyExc_TypeError, "expected an int, not a %.200s", Py_TYPE(py_value)->tp_name);
 				ret = -1;

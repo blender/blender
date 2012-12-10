@@ -53,9 +53,9 @@
 
 void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 {
-	Object *ob = BMO_slot_ptr_get(op, "object");
-	Mesh *me = BMO_slot_ptr_get(op, "mesh");
-	int set_key = BMO_slot_bool_get(op, "set_shapekey");
+	Object *ob  = BMO_slot_ptr_get(op->slots_in,  "object");
+	Mesh *me    = BMO_slot_ptr_get(op->slots_in,  "mesh");
+	int set_key = BMO_slot_bool_get(op->slots_in, "use_shapekey");
 
 	BM_mesh_bm_from_me(bm, me, set_key, ob->shapenr);
 
@@ -66,20 +66,20 @@ void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 
 void bmo_object_load_bmesh_exec(BMesh *bm, BMOperator *op)
 {
-	Object *ob = BMO_slot_ptr_get(op, "object");
+	Object *ob = BMO_slot_ptr_get(op->slots_in, "object");
 	/* Scene *scene = BMO_slot_ptr_get(op, "scene"); */
 	Mesh *me = ob->data;
 
 	BMO_op_callf(bm, op->flag,
-	             "bmesh_to_mesh mesh=%p object=%p notessellation=%b",
+	             "bmesh_to_mesh mesh=%p object=%p skip_tessface=%b",
 	             me, ob, TRUE);
 }
 
 void bmo_bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 {
-	Mesh *me = BMO_slot_ptr_get(op, "mesh");
+	Mesh *me = BMO_slot_ptr_get(op->slots_in, "mesh");
 	/* Object *ob = BMO_slot_ptr_get(op, "object"); */
-	int dotess = !BMO_slot_bool_get(op, "notessellation");
+	int dotess = !BMO_slot_bool_get(op->slots_in, "skip_tessface");
 
 	BM_mesh_bm_to_me(bm, me, dotess);
 }

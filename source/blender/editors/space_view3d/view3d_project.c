@@ -296,7 +296,7 @@ void ED_view3d_win_to_ray(ARegion *ar, View3D *v3d, const float mval[2], float r
 {
 	float ray_end[3];
 	
-	ED_view3d_win_to_segment_clip(ar, v3d, mval, ray_start, ray_end);
+	ED_view3d_win_to_segment(ar, v3d, mval, ray_start, ray_end);
 	sub_v3_v3v3(ray_normal, ray_end, ray_start);
 	normalize_v3(ray_normal);
 }
@@ -419,19 +419,7 @@ void ED_view3d_win_to_vector(ARegion *ar, const float mval[2], float out[3])
 	normalize_v3(out);
 }
 
-/**
- * Calculate a 3d segment from 2d window coordinates.
- * This ray_start is located at the viewpoint, ray_end is a far point.
- * ray_start and ray_end are clipped by the view near and far limits
- * so points along this line are always in view.
- * In orthographic view all resulting segments will be parallel.
- * \param ar The region (used for the window width and height).
- * \param v3d The 3d viewport (used for near and far clipping range).
- * \param mval The area relative 2d location (such as event->mval, converted into float[2]).
- * \param ray_start The world-space starting point of the segment.
- * \param ray_end The world-space end point of the segment.
- */
-void ED_view3d_win_to_segment_clip(ARegion *ar, View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3])
+void ED_view3d_win_to_segment(ARegion *ar, View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3])
 {
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -455,14 +443,46 @@ void ED_view3d_win_to_segment_clip(ARegion *ar, View3D *v3d, const float mval[2]
 		madd_v3_v3v3fl(ray_start, vec, rv3d->viewinv[2],  1000.0f);
 		madd_v3_v3v3fl(ray_end, vec, rv3d->viewinv[2], -1000.0f);
 	}
+}
+
+/**
+ * Calculate a 3d segment from 2d window coordinates.
+ * This ray_start is located at the viewpoint, ray_end is a far point.
+ * ray_start and ray_end are clipped by the view near and far limits
+ * so points along this line are always in view.
+ * In orthographic view all resulting segments will be parallel.
+ * \param ar The region (used for the window width and height).
+ * \param v3d The 3d viewport (used for near and far clipping range).
+ * \param mval The area relative 2d location (such as event->mval, converted into float[2]).
+ * \param ray_start The world-space starting point of the segment.
+ * \param ray_end The world-space end point of the segment.
+ * \return success, FALSE if the segment is totally clipped.
+ */
+int ED_view3d_win_to_segment_clip(ARegion *ar, View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3])
+{
+	RegionView3D *rv3d = ar->regiondata;
+	ED_view3d_win_to_segment(ar, v3d, mval, ray_start, ray_end);
 
 	/* clipping */
 	if (rv3d->rflag & RV3D_CLIPPING) {
+		/* if the ray is totally clipped,
+		 * restore the original values but return FALSE
+		 * caller can choose what to do */
+		float tray_start[3] = {UNPACK3(ray_start)};
+		float tray_end[3]   = {UNPACK3(ray_end)};
 		int a;
 		for (a = 0; a < 4; a++) {
-			clip_line_plane(ray_start, ray_end, rv3d->clip[a]);
+			if (clip_line_plane(tray_start, tray_end, rv3d->clip[a]) == FALSE) {
+				return FALSE;
+			}
 		}
+
+		/* copy in clipped values */
+		copy_v3_v3(ray_start, tray_start);
+		copy_v3_v3(ray_end, tray_end);
 	}
+
+	return TRUE;
 }
 
 

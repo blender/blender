@@ -92,6 +92,7 @@ EnumPropertyItem node_socket_type_items[] = {
 	{SOCK_BOOLEAN, "BOOLEAN",   0,    "Boolean",   ""},
 	{SOCK_MESH,    "MESH",      0,    "Mesh",      ""},
 	{SOCK_INT,     "INT",       0,    "Int",       ""},
+	{SOCK_STRING,  "STRING",    0,    "String",    ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -192,6 +193,10 @@ EnumPropertyItem prop_wave_items[] = {
     SUBTYPE(FLOAT, Float, TIME, Time) \
     SUBTYPE(FLOAT, Float, DISTANCE, Distance)
 
+#define NODE_DEFINE_SUBTYPES_STRING \
+    SUBTYPE(STRING, String, NONE, None) \
+    SUBTYPE(STRING, String, FILEPATH, Filepath)
+
 #define NODE_DEFINE_SUBTYPES_VECTOR \
     SUBTYPE(VECTOR, Vector, NONE, None) \
     SUBTYPE(VECTOR, Vector, TRANSLATION, Translation) \
@@ -204,7 +209,8 @@ EnumPropertyItem prop_wave_items[] = {
 #define NODE_DEFINE_SUBTYPES \
     NODE_DEFINE_SUBTYPES_INT \
     NODE_DEFINE_SUBTYPES_FLOAT \
-    NODE_DEFINE_SUBTYPES_VECTOR
+    NODE_DEFINE_SUBTYPES_STRING \
+    NODE_DEFINE_SUBTYPES_VECTOR \
 
 #ifdef RNA_RUNTIME
 
@@ -214,6 +220,7 @@ EnumPropertyItem prop_wave_items[] = {
 
 #include "ED_node.h"
 
+#include "RE_engine.h"
 #include "RE_pipeline.h"
 
 #include "DNA_scene_types.h"
@@ -291,6 +298,9 @@ static StructRNA *rna_NodeSocket_refine(PointerRNA *ptr)
 				return &RNA_NodeSocketBoolean;
 			case SOCK_VECTOR:
 				NODE_DEFINE_SUBTYPES_VECTOR
+				break;
+			case SOCK_STRING:
+				NODE_DEFINE_SUBTYPES_STRING
 				break;
 			case SOCK_RGBA:
 				return &RNA_NodeSocketRGBA;
@@ -1124,6 +1134,22 @@ static IDProperty *rna_ShaderNodeScript_idprops(PointerRNA *ptr, int create)
 	return nss->prop;
 }
 
+static void rna_ShaderNodeScript_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
+	bNode *node = (bNode *)ptr->data;
+	RenderEngineType *engine_type = RE_engines_find(scene->r.engine);
+
+	if (engine_type && engine_type->update_script_node) {
+		/* auto update node */
+		RenderEngine *engine = RE_engine_create(engine_type);
+		engine_type->update_script_node(engine, ntree, node);
+		RE_engine_free(engine);
+	}
+
+	node_update(bmain, scene, ntree, node);
+}
+
 #else
 
 static EnumPropertyItem prop_image_layer_items[] = {
@@ -1166,7 +1192,7 @@ static EnumPropertyItem node_glossy_items[] = {
 
 static EnumPropertyItem node_script_mode_items[] = {
 	{NODE_SCRIPT_INTERNAL, "INTERNAL", 0, "Internal", "Use internal text datablock"},
-	{NODE_SCRIPT_EXTERNAL, "EXTERNAL", 0, "External", "Use external .osl or oso file"},
+	{NODE_SCRIPT_EXTERNAL, "EXTERNAL", 0, "External", "Use external .osl or .oso file"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1195,7 +1221,7 @@ typedef struct NodeInfo {
 static NodeInfo nodes[MaxNodes];
 
 static void reg_node(int ID, int category, const char *enum_name, const char *struct_name,
-		const char *base_name, const char *ui_name, const char *ui_desc)
+                     const char *base_name, const char *ui_name, const char *ui_desc)
 {
 	NodeInfo *ni = nodes + ID;
 	
@@ -1271,6 +1297,14 @@ static void alloc_node_type_items(EnumPropertyItem *items, int category)
 	item->identifier = "REROUTE";
 	item->icon = 0;
 	item->name = "Reroute";
+	item->description = "";
+	
+	item++;
+	
+	item->value = NODE_FRAME;
+	item->identifier = "FRAME";
+	item->icon = 0;
+	item->name = "Frame";
 	item->description = "";
 	
 	item++;
@@ -1842,6 +1876,67 @@ static void def_glossy(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_sh_normal_map(StructRNA *srna)
+{
+	static EnumPropertyItem prop_space_items[] = {
+		{SHD_NORMAL_MAP_TANGENT, "TANGENT", 0, "Tangent Space", "Tangent space normal mapping"},
+		{SHD_NORMAL_MAP_OBJECT, "OBJECT", 0, "Object Space", "Object space normal mapping"},
+		{SHD_NORMAL_MAP_WORLD, "WORLD", 0, "World Space", "World space normal mapping"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	PropertyRNA *prop;
+
+	RNA_def_struct_sdna_from(srna, "NodeShaderNormalMap", "storage");
+
+	prop = RNA_def_property(srna, "space", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_space_items);
+	RNA_def_property_ui_text(prop, "Space", "Space of the input normal");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "uv_map", PROP_STRING, PROP_NONE);
+	RNA_def_property_ui_text(prop, "UV Map", "UV Map for tangent space maps");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	RNA_def_struct_sdna_from(srna, "bNode", NULL);
+}
+
+static void def_sh_tangent(StructRNA *srna)
+{
+	static EnumPropertyItem prop_direction_type_items[] = {
+		{SHD_TANGENT_RADIAL, "RADIAL", 0, "Radial", "Radial tangent around the X, Y or Z axis"},
+		{SHD_TANGENT_UVMAP, "UV_MAP", 0, "UV Map", "Tangent from UV map"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem prop_axis_items[] = {
+		{SHD_TANGENT_AXIS_X, "X", 0, "X", "X axis"},
+		{SHD_TANGENT_AXIS_Y, "Y", 0, "Y", "Y axis"},
+		{SHD_TANGENT_AXIS_Z, "Z", 0, "Z", "Z axis"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	PropertyRNA *prop;
+
+	RNA_def_struct_sdna_from(srna, "NodeShaderTangent", "storage");
+
+	prop = RNA_def_property(srna, "direction_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_direction_type_items);
+	RNA_def_property_ui_text(prop, "Direction", "Method to use for the tangent");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_axis_items);
+	RNA_def_property_ui_text(prop, "Axis", "Axis for radial tangents");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "uv_map", PROP_STRING, PROP_NONE);
+	RNA_def_property_ui_text(prop, "UV Map", "UV Map for tangent generated from UV");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	RNA_def_struct_sdna_from(srna, "bNode", NULL);
+}
+
 static void def_sh_script(StructRNA *srna)
 {
 	FunctionRNA *func;
@@ -1852,14 +1947,14 @@ static void def_sh_script(StructRNA *srna)
 	RNA_def_property_struct_type(prop, "Text");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
 	RNA_def_property_ui_text(prop, "Script", "Internal shader script to define the shader");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNodeScript_update");
 	
 	RNA_def_struct_sdna_from(srna, "NodeShaderScript", "storage");
 	RNA_def_struct_idprops_func(srna, "rna_ShaderNodeScript_idprops");
 	
 	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_ui_text(prop, "File Path", "Shader script path");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNodeScript_update");
 
 	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_ShaderNodeScript_mode_set", NULL);
@@ -1869,11 +1964,12 @@ static void def_sh_script(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "use_auto_update", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_SCRIPT_AUTO_UPDATE);
-	RNA_def_property_ui_text(prop, "Auto Update", "Automatically updates the shader when the .osl file changes - external scripts only");
+	RNA_def_property_ui_text(prop, "Auto Update",
+	                         "Automatically update the shader when the .osl file changes (external scripts only)");
 	
 	prop = RNA_def_property(srna, "bytecode", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_funcs(prop, "rna_ShaderNodeScript_bytecode_get",
-		"rna_ShaderNodeScript_bytecode_length", "rna_ShaderNodeScript_bytecode_set");
+	RNA_def_property_string_funcs(prop, "rna_ShaderNodeScript_bytecode_get", "rna_ShaderNodeScript_bytecode_length",
+	                              "rna_ShaderNodeScript_bytecode_set");
 	RNA_def_property_ui_text(prop, "Bytecode", "Compile bytecode for shader script node");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
@@ -2100,6 +2196,16 @@ static void def_cmp_map_value(StructRNA *srna)
 	RNA_def_property_array(prop, 1);
 	RNA_def_property_range(prop, -1000.0f, 1000.0f);
 	RNA_def_property_ui_text(prop, "Maximum", "");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_cmp_map_range(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	prop = RNA_def_property(srna, "use_clamp", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "custom1", 1);
+	RNA_def_property_ui_text(prop, "Clamp", "Clamp result of the node to 0..1 range");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -4464,6 +4570,20 @@ static void rna_def_node_socket_subtype(BlenderRNA *brna, int type, int subtype,
 			RNA_def_property_ui_text(prop, "Default Value", "");
 			RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocket_update");
 			break;
+		case SOCK_STRING:
+			RNA_def_struct_sdna_from(srna, "bNodeSocketValueString", "default_value");
+
+			prop = RNA_def_property(srna, "subtype", PROP_ENUM, PROP_NONE);
+			RNA_def_property_enum_sdna(prop, NULL, "subtype");
+			RNA_def_property_enum_items(prop, subtype_items);
+			RNA_def_property_ui_text(prop, "Subtype", "Subtype defining the socket value details");
+			RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocket_update");
+			
+			prop = RNA_def_property(srna, "default_value", PROP_STRING, PROP_FILEPATH);
+			RNA_def_property_string_sdna(prop, NULL, "value");
+			RNA_def_property_ui_text(prop, "Default Value", "");
+			RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocket_update");
+			break;
 	}
 	
 	/* XXX need to reset the from-type here, so subtype subclasses cast correctly! (RNA bug) */
@@ -4531,18 +4651,22 @@ static void rna_def_node(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_SELECT);
 	RNA_def_property_ui_text(prop, "Select", "");
+	RNA_def_property_update(prop, NC_NODE | NA_SELECTED, NULL);
 
 	prop = RNA_def_property(srna, "show_options", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_OPTIONS);
 	RNA_def_property_ui_text(prop, "Show Options", "");
+	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
 
 	prop = RNA_def_property(srna, "show_preview", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_PREVIEW);
 	RNA_def_property_ui_text(prop, "Show Preview", "");
+	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
 
 	prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_HIDDEN);
 	RNA_def_property_ui_text(prop, "Hide", "");
+	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
 
 	prop = RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_MUTED);

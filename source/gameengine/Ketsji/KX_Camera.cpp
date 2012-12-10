@@ -593,7 +593,7 @@ KX_PYMETHODDEF_DOC_VARARGS(KX_Camera, sphereInsideFrustum,
 		MT_Point3 center;
 		if (PyVecTo(pycenter, center))
 		{
-			return PyLong_FromSsize_t(SphereInsideFrustum(center, radius)); /* new ref */
+			return PyLong_FromLong(SphereInsideFrustum(center, radius)); /* new ref */
 		}
 	}
 
@@ -644,7 +644,7 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, boxInsideFrustum,
 			return NULL;
 	}
 	
-	return PyLong_FromSsize_t(BoxInsideFrustum(box)); /* new ref */
+	return PyLong_FromLong(BoxInsideFrustum(box)); /* new ref */
 }
 
 KX_PYMETHODDEF_DOC_O(KX_Camera, pointInsideFrustum,
@@ -666,7 +666,7 @@ KX_PYMETHODDEF_DOC_O(KX_Camera, pointInsideFrustum,
 	MT_Point3 point;
 	if (PyVecTo(value, point))
 	{
-		return PyLong_FromSsize_t(PointInsideFrustum(point)); /* new ref */
+		return PyLong_FromLong(PointInsideFrustum(point)); /* new ref */
 	}
 	
 	PyErr_SetString(PyExc_TypeError, "camera.pointInsideFrustum(point): KX_Camera, expected point argument.");
@@ -869,11 +869,11 @@ PyObject *KX_Camera::pyattr_get_world_to_camera(void *self_v, const KX_PYATTRIBU
 
 
 PyObject *KX_Camera::pyattr_get_INSIDE(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
-{	return PyLong_FromSsize_t(INSIDE); }
+{	return PyLong_FromLong(INSIDE); }
 PyObject *KX_Camera::pyattr_get_OUTSIDE(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
-{	return PyLong_FromSsize_t(OUTSIDE); }
+{	return PyLong_FromLong(OUTSIDE); }
 PyObject *KX_Camera::pyattr_get_INTERSECT(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
-{	return PyLong_FromSsize_t(INTERSECT); }
+{	return PyLong_FromLong(INTERSECT); }
 
 
 bool ConvertPythonToCamera(PyObject *value, KX_Camera **object, bool py_none_ok, const char *error_prefix)

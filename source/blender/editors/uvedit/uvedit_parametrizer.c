@@ -450,7 +450,7 @@ static void p_chart_uv_bbox(PChart *chart, float minv[2], float maxv[2])
 	INIT_MINMAX2(minv, maxv);
 
 	for (v = chart->verts; v; v = v->nextlink) {
-		DO_MINMAX2(v->uv, minv, maxv);
+		minmax_v2v2_v2(minv, maxv, v->uv);
 	}
 }
 
@@ -3891,9 +3891,9 @@ static void p_smooth(PChart *chart)
 
 		INIT_MINMAX2(fmin, fmax);
 
-		DO_MINMAX2(e1->vert->uv, fmin, fmax);
-		DO_MINMAX2(e2->vert->uv, fmin, fmax);
-		DO_MINMAX2(e3->vert->uv, fmin, fmax);
+		minmax_v2v2_v2(fmin, fmax, e1->vert->uv);
+		minmax_v2v2_v2(fmin, fmax, e2->vert->uv);
+		minmax_v2v2_v2(fmin, fmax, e3->vert->uv);
 
 		bx1 = (int)((fmin[0] - minv[0]) * invmedian);
 		by1 = (int)((fmin[1] - minv[1]) * invmedian);

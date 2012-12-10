@@ -98,7 +98,7 @@ __device float3 fisheye_to_direction(float u, float v, float fov)
 		return make_float3(0.0f, 0.0f, 0.0f);
 
 	float phi = acosf((r != 0.0f)? u/r: 0.0f);
-	float theta = asinf(r) * (fov / M_PI_F);
+	float theta = r * fov * 0.5f;
 
 	if(v < 0.0f) phi = -phi;
 

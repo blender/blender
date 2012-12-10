@@ -367,11 +367,12 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 		nodedmelem= MEM_callocN(sizeof(LinkNode)*totdmelem, "psys node elems");
 		nodearray= MEM_callocN(sizeof(LinkNode *)*totelem, "psys node array");
 		
-		for (i=0, node=nodedmelem; i<totdmelem; i++, origindex++, node++) {
+		for (i=0, node=nodedmelem; i<totdmelem; i++, node++) {
 			int origindex_final;
 			node->link = SET_INT_IN_POINTER(i);
 
-			origindex_final = *origindex;
+			/* may be vertex or face origindex */
+			origindex_final = origindex ? origindex[i] : ORIGINDEX_NONE;
 
 			/* if we have a poly source, do an index lookup */
 			if (origindex_poly && origindex_final != ORIGINDEX_NONE) {
@@ -466,13 +467,7 @@ static void distribute_grid(DerivedMesh *dm, ParticleSystem *psys)
 	mv++;
 
 	for (i=1; i<totvert; i++, mv++) {
-		min[0]=MIN2(min[0],mv->co[0]);
-		min[1]=MIN2(min[1],mv->co[1]);
-		min[2]=MIN2(min[2],mv->co[2]);
-
-		max[0]=MAX2(max[0],mv->co[0]);
-		max[1]=MAX2(max[1],mv->co[1]);
-		max[2]=MAX2(max[2],mv->co[2]);
+		minmax_v3v3_v3(min, max, mv->co);
 	}
 
 	sub_v3_v3v3(delta, max, min);
@@ -2145,16 +2140,22 @@ static void psys_update_effectors(ParticleSimulationData *sim)
 	precalc_guides(sim, sim->psys->effectors);
 }
 
-static void integrate_particle(ParticleSettings *part, ParticleData *pa, float dtime, float *external_acceleration, void (*force_func)(void *forcedata, ParticleKey *state, float *force, float *impulse), void *forcedata)
+static void integrate_particle(ParticleSettings *part, ParticleData *pa, float dtime, float *external_acceleration,
+                               void (*force_func)(void *forcedata, ParticleKey *state, float *force, float *impulse),
+                               void *forcedata)
 {
+#define ZERO_F43 {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}
+
 	ParticleKey states[5];
-	float force[3],acceleration[3],impulse[3],dx[4][3],dv[4][3],oldpos[3];
+	float force[3], acceleration[3], impulse[3], dx[4][3] = ZERO_F43, dv[4][3] = ZERO_F43, oldpos[3];
 	float pa_mass= (part->flag & PART_SIZEMASS ? part->mass * pa->size : part->mass);
 	int i, steps=1;
 	int integrator = part->integrator;
 
+#undef ZERO_F43
+
 	copy_v3_v3(oldpos, pa->state.co);
-	
+
 	/* Verlet integration behaves strangely with moving emitters, so do first step with euler. */
 	if (pa->prev_state.time < 0.f && integrator == PART_INT_VERLET)
 		integrator = PART_INT_EULER;

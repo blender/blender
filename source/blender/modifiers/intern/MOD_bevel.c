@@ -92,20 +92,15 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 
 #ifdef USE_BM_BEVEL_OP_AS_MOD
 
-#define EDGE_MARK   1
-
 /* BMESH_TODO
  *
- * this bevel calls the operator which is missing many of the options
- * which the bevel modifier in trunk has.
+ * this bevel calls the new bevel code (added since 2.64)
+ * which is missing many of the options which the bevel modifier from 2.4x has.
  * - no vertex bevel
  * - no weight bevel
  *
  * These will need to be added to the bmesh operator.
- *       - campbell
- *
- * note: this code is very close to MOD_edgesplit.c.
- * note: if 0'd code from trunk included below.
+ * - campbell
  */
 static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
                                   DerivedMesh *dm,
@@ -116,22 +111,20 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
 	BMIter iter;
 	BMEdge *e;
 	BevelModifierData *bmd = (BevelModifierData *) md;
-	float threshold = cos((bmd->bevel_angle + 0.00001f) * M_PI / 180.0f);
+	const float threshold = cosf((bmd->bevel_angle + 0.00001f) * (float)M_PI / 180.0f);
+	const int segments = 16;  /* XXX */
 
 	bm = DM_to_bmesh(dm);
-
-	BM_mesh_normals_update(bm, FALSE);
-	BMO_push(bm, NULL);
 
 	if (bmd->lim_flags & BME_BEVEL_ANGLE) {
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 			/* check for 1 edge having 2 face users */
-			BMLoop *l1, *l2;
-			if ((l1 = e->l) &&
-			    (l2 = e->l->radial_next) != l1)
-			{
-				if (dot_v3v3(l1->f->no, l2->f->no) < threshold) {
-					BMO_elem_flag_enable(bm, e, EDGE_MARK);
+			BMLoop *l_a, *l_b;
+			if (BM_edge_loop_pair(e, &l_a, &l_b)) {
+				if (dot_v3v3(l_a->f->no, l_b->f->no) < threshold) {
+					BM_elem_flag_enable(e, BM_ELEM_TAG);
+					BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
+					BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
 				}
 			}
 		}
@@ -139,17 +132,22 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
 	else {
 		/* crummy, is there a way just to operator on all? - campbell */
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-			BMO_elem_flag_enable(bm, e, EDGE_MARK);
+			if (BM_edge_is_manifold(e)) {
+				BM_elem_flag_enable(e, BM_ELEM_TAG);
+				BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
+				BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
+			}
 		}
 	}
 
-	BMO_op_callf(bm, BMO_FLAG_DEFAULTS,
-	             "bevel geom=%fe percent=%f use_even=%b use_dist=%b",
-	             EDGE_MARK, bmd->value, (bmd->flags & BME_BEVEL_EVEN) != 0, (bmd->flags & BME_BEVEL_DIST) != 0);
-	BMO_pop(bm);
+	BM_mesh_bevel(bm, bmd->value, segments);
 
 	result = CDDM_from_bmesh(bm, TRUE);
+
+	BLI_assert(bm->toolflagpool == NULL);  /* make sure we never alloc'd this */
 	BM_mesh_free(bm);
+
+	CDDM_calc_normals(result);
 
 	return result;
 }

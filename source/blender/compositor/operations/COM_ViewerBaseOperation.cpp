@@ -87,27 +87,23 @@ void ViewerBaseOperation::initImage()
 	/* now we combine the input with ibuf */
 	this->m_outputBuffer = ibuf->rect_float;
 
-	/* needed for display buffer update
-	 *
-	 * no need to lock / reference the image buffer because it's seems
-	 * to be the single place which changes buffers of viewer image
-	 * which is this node
-	 */
+	/* needed for display buffer update */
 	this->m_ibuf = ibuf;
 
 	if (m_doDepthBuffer) {
 		this->m_depthBuffer = ibuf->zbuf_float;
 	}
 
-	BKE_image_release_ibuf(this->m_image, this->m_lock);
+	BKE_image_release_ibuf(this->m_image, this->m_ibuf, this->m_lock);
 }
+
 void ViewerBaseOperation:: updateImage(rcti *rect)
 {
 	IMB_partial_display_buffer_update(this->m_ibuf, this->m_outputBuffer, NULL, getWidth(), 0, 0,
 	                                  this->m_viewSettings, this->m_displaySettings,
 	                                  rect->xmin, rect->ymin, rect->xmax, rect->ymax, FALSE);
 
-	WM_main_add_notifier(NC_WINDOW | ND_DRAW, NULL);
+	this->updateDraw();
 }
 
 void ViewerBaseOperation::deinitExecution()

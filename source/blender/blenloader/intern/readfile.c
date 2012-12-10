@@ -360,36 +360,39 @@ static void *oldnewmap_lookup_and_inc(OldNewMap *onm, void *addr)
 }
 
 /* for libdata, nr has ID code, no increment */
-static void *oldnewmap_liblookup(OldNewMap *onm, void *addr, void *lib) 
+static void *oldnewmap_liblookup(OldNewMap *onm, void *addr, void *lib)
 {
-	int i;
-	
-	if (addr == NULL) return NULL;
-	
+	if (addr == NULL) {
+		return NULL;
+	}
+
 	/* lasthit works fine for non-libdata, linking there is done in same sequence as writing */
 	if (onm->sorted) {
 		OldNew entry_s, *entry;
-		
+
 		entry_s.old = addr;
-		
+
 		entry = bsearch(&entry_s, onm->entries, onm->nentries, sizeof(OldNew), verg_oldnewmap);
 		if (entry) {
 			ID *id = entry->newp;
-			
+
 			if (id && (!lib || id->lib)) {
-				return entry->newp;
+				return id;
 			}
 		}
 	}
-	
-	for (i = 0; i < onm->nentries; i++) {
-		OldNew *entry = &onm->entries[i];
-		
-		if (entry->old == addr) {
-			ID *id = entry->newp;
-			
-			if (id && (!lib || id->lib)) {
-				return entry->newp;
+	else {
+		/* note, this can be a bottle neck when loading some files */
+		unsigned int nentries = (unsigned int)onm->nentries;
+		unsigned int i;
+		OldNew *entry;
+
+		for (i = 0, entry = onm->entries; i < nentries; i++, entry++) {
+			if (entry->old == addr) {
+				ID *id = id = entry->newp;
+				if (id && (!lib || id->lib)) {
+					return id;
+				}
 			}
 		}
 	}
@@ -2406,6 +2409,8 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 	ntree->adt = newdataadr(fd, ntree->adt);
 	direct_link_animdata(fd, ntree->adt);
 	
+	ntree->id.flag &= ~(LIB_ID_RECALC|LIB_ID_RECALC_DATA);
+
 	link_list(fd, &ntree->nodes);
 	for (node = ntree->nodes.first; node; node = node->next) {
 		node->typeinfo = NULL;
@@ -2980,7 +2985,6 @@ static void direct_link_text(FileData *fd, Text *text)
 #endif
 	
 	link_list(fd, &text->lines);
-	link_list(fd, &text->markers);
 	
 	text->curl = newdataadr(fd, text->curl);
 	text->sell = newdataadr(fd, text->sell);
@@ -3040,7 +3044,7 @@ static void direct_link_image(FileData *fd, Image *ima)
 		link_ibuf_list(fd, &ima->ibufs);
 	else
 		ima->ibufs.first = ima->ibufs.last = NULL;
-	
+
 	/* if not restored, we keep the binded opengl index */
 	if (ima->ibufs.first == NULL) {
 		ima->bindcode = 0;
@@ -7168,7 +7172,36 @@ static void do_version_logic_264(ListBase *regionbase)
 	
 
 }
-	
+
+static void do_versions_affine_tracker_track(MovieTrackingTrack *track)
+{
+	int i;
+
+	for (i = 0; i < track->markersnr; i++) {
+		MovieTrackingMarker *marker = &track->markers[i];
+
+		if (is_zero_v2(marker->pattern_corners[0]) && is_zero_v2(marker->pattern_corners[1]) &&
+		    is_zero_v2(marker->pattern_corners[2]) && is_zero_v2(marker->pattern_corners[3]))
+			{
+				marker->pattern_corners[0][0] = track->pat_min[0];
+				marker->pattern_corners[0][1] = track->pat_min[1];
+
+				marker->pattern_corners[1][0] = track->pat_max[0];
+				marker->pattern_corners[1][1] = track->pat_min[1];
+
+				marker->pattern_corners[2][0] = track->pat_max[0];
+				marker->pattern_corners[2][1] = track->pat_max[1];
+
+				marker->pattern_corners[3][0] = track->pat_min[0];
+				marker->pattern_corners[3][1] = track->pat_max[1];
+			}
+
+		if (is_zero_v2(marker->search_min) && is_zero_v2(marker->search_max)) {
+			copy_v2_v2(marker->search_min, track->search_min);
+			copy_v2_v2(marker->search_max, track->search_max);
+		}
+	}
+}
 
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
@@ -7939,32 +7972,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			track = clip->tracking.tracks.first;
 			while (track) {
-				int i;
-
-				for (i = 0; i < track->markersnr; i++) {
-					MovieTrackingMarker *marker = &track->markers[i];
-
-					if (is_zero_v2(marker->pattern_corners[0]) && is_zero_v2(marker->pattern_corners[1]) &&
-					    is_zero_v2(marker->pattern_corners[2]) && is_zero_v2(marker->pattern_corners[3]))
-					{
-						marker->pattern_corners[0][0] = track->pat_min[0];
-						marker->pattern_corners[0][1] = track->pat_min[1];
-
-						marker->pattern_corners[1][0] = track->pat_max[0];
-						marker->pattern_corners[1][1] = track->pat_min[1];
-
-						marker->pattern_corners[2][0] = track->pat_max[0];
-						marker->pattern_corners[2][1] = track->pat_max[1];
-
-						marker->pattern_corners[3][0] = track->pat_min[0];
-						marker->pattern_corners[3][1] = track->pat_max[1];
-					}
-
-					if (is_zero_v2(marker->search_min) && is_zero_v2(marker->search_max)) {
-						copy_v2_v2(marker->search_min, track->search_min);
-						copy_v2_v2(marker->search_max, track->search_max);
-					}
-				}
+				do_versions_affine_tracker_track(track);
 
 				track = track->next;
 			}
@@ -8306,11 +8314,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			for (scene = main->scene.first; scene; scene = scene->id.next) {
 				if (scene->r.tilex == 0 || scene->r.tiley == 1) {
-					/* scene could be set for panoramic rendering, so clamp with the
-					 * lowest possible tile size value
-					 */
-					scene->r.tilex = max_ii(scene->r.xsch * scene->r.size / scene->r.xparts / 100, 8);
-					scene->r.tiley = max_ii(scene->r.ysch * scene->r.size / scene->r.yparts / 100, 8);
+					if (scene->r.xparts && scene->r.yparts) {
+						/* scene could be set for panoramic rendering, so clamp with the
+						 * lowest possible tile size value
+						 */
+						scene->r.tilex = max_ii(scene->r.xsch * scene->r.size / scene->r.xparts / 100, 8);
+						scene->r.tiley = max_ii(scene->r.ysch * scene->r.size / scene->r.yparts / 100, 8);
+					}
+					else {
+						/* happens when mixing using current trunk and previous release */
+						scene->r.tilex = scene->r.tiley = 64;
+					}
 				}
 			}
 		}
@@ -8332,8 +8346,38 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			for (clip = main->movieclip.first; clip; clip = clip->id.next) {
 				if (clip->tracking.settings.reconstruction_success_threshold == 0.0f) {
-					clip->tracking.settings.reconstruction_success_threshold = 1e-3;
+					clip->tracking.settings.reconstruction_success_threshold = 1e-3f;
 				}
+			}
+		}
+	}
+
+	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 7)) {
+		MovieClip *clip;
+
+		for (clip = main->movieclip.first; clip; clip = clip->id.next) {
+			MovieTrackingTrack *track;
+			MovieTrackingObject *object;
+
+			for (track = clip->tracking.tracks.first; track; track = track->next) {
+				do_versions_affine_tracker_track(track);
+			}
+
+			for (object = clip->tracking.objects.first; object; object = object->next) {
+				for (track = object->tracks.first; track; track = track->next) {
+					do_versions_affine_tracker_track(track);
+				}
+			}
+		}
+	}
+
+	if (main->versionfile < 265) {
+		Object *ob;
+		for (ob = main->object.first; ob; ob = ob->id.next) {
+			if (ob->step_height == 0.0f) {
+				ob->step_height = 0.15f;
+				ob->jump_speed = 10.0f;
+				ob->fall_speed = 55.0f;
 			}
 		}
 	}

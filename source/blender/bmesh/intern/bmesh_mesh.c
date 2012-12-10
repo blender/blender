@@ -42,8 +42,8 @@
 #include "intern/bmesh_private.h"
 
 /* used as an extern, defined in bmesh.h */
-BMAllocTemplate bm_mesh_allocsize_default = {512, 1024, 2048, 512};
-BMAllocTemplate bm_mesh_chunksize_default = {512, 1024, 2048, 512};
+const BMAllocTemplate bm_mesh_allocsize_default = {512, 1024, 2048, 512};
+const BMAllocTemplate bm_mesh_chunksize_default = {512, 1024, 2048, 512};
 
 static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize)
 {
@@ -59,9 +59,45 @@ static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize)
 #ifdef USE_BMESH_HOLES
 	bm->looplistpool = BLI_mempool_create(sizeof(BMLoopList), 512, 512, 0);
 #endif
+}
 
-	/* allocate one flag pool that we don't get rid of. */
-	bm->toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, 0);
+void BM_mesh_elem_toolflags_ensure(BMesh *bm)
+{
+	if (bm->toolflagpool == NULL) {
+		const int totflagpool_size = max_ii(512, bm->totvert + bm->totedge + bm->totface);
+		BLI_mempool *toolflagpool;
+
+		BMIter iter;
+		BMElemF *ele;
+		const char iter_types[3] = {BM_VERTS_OF_MESH,
+		                            BM_EDGES_OF_MESH,
+		                            BM_FACES_OF_MESH};
+
+		int i;
+
+		BLI_assert(bm->totflags == 0);
+
+		/* allocate one flag pool that we don't get rid of. */
+		toolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), totflagpool_size, 512, 0);
+
+
+		for (i = 0; i < 3; i++) {
+			BM_ITER_MESH (ele, &iter, bm, iter_types[i]) {
+				ele->oflags = BLI_mempool_calloc(toolflagpool);
+			}
+		}
+
+		bm->toolflagpool = toolflagpool;
+		bm->totflags = 1;
+	}
+}
+
+void BM_mesh_elem_toolflags_clear(BMesh *bm)
+{
+	if (bm->toolflagpool) {
+		BLI_mempool_destroy(bm->toolflagpool);
+		bm->toolflagpool = NULL;
+	}
 }
 
 /**
@@ -73,7 +109,7 @@ static void bm_mempool_init(BMesh *bm, const BMAllocTemplate *allocsize)
  *
  * \note ob is needed by multires
  */
-BMesh *BM_mesh_create(BMAllocTemplate *allocsize)
+BMesh *BM_mesh_create(const BMAllocTemplate *allocsize)
 {
 	/* allocate the structure */
 	BMesh *bm = MEM_callocN(sizeof(BMesh), __func__);
@@ -83,7 +119,7 @@ BMesh *BM_mesh_create(BMAllocTemplate *allocsize)
 
 	/* allocate one flag pool that we don't get rid of. */
 	bm->stackdepth = 1;
-	bm->totflags = 1;
+	bm->totflags = 0;
 
 	CustomData_reset(&bm->vdata);
 	CustomData_reset(&bm->edata);
@@ -143,7 +179,7 @@ void BM_mesh_data_free(BMesh *bm)
 	BLI_mempool_destroy(bm->fpool);
 
 	/* destroy flag pool */
-	BLI_mempool_destroy(bm->toolflagpool);
+	BM_mesh_elem_toolflags_clear(bm);
 
 #ifdef USE_BMESH_HOLES
 	BLI_mempool_destroy(bm->looplistpool);
@@ -170,6 +206,11 @@ void BM_mesh_clear(BMesh *bm)
 
 	bm->stackdepth = 1;
 	bm->totflags = 1;
+
+	CustomData_reset(&bm->vdata);
+	CustomData_reset(&bm->edata);
+	CustomData_reset(&bm->ldata);
+	CustomData_reset(&bm->pdata);
 }
 
 /**

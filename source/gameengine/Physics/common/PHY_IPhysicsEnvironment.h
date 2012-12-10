@@ -143,6 +143,7 @@ class PHY_IPhysicsEnvironment
 		virtual void		setUseEpa(bool epa) {}
 
 		virtual	void		setGravity(float x,float y,float z)=0;
+		virtual	void		getGravity(PHY__Vector3& grav) = 0;
 
 		virtual int			createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
 			float pivotX,float pivotY,float pivotZ,

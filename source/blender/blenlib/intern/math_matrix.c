@@ -504,6 +504,51 @@ void sub_m4_m4m4(float m1[][4], float m2[][4], float m3[][4])
 			m1[i][j] = m2[i][j] - m3[i][j];
 }
 
+/* why not make this a standard part of the API? */
+static float determinant_m3_local(float m[3][3])
+{
+	return (m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
+	        m[1][0] * (m[0][1] * m[2][2] - m[0][2] * m[2][1]) +
+	        m[2][0] * (m[0][1] * m[1][2] - m[0][2] * m[1][1]));
+}
+
+int invert_m3_ex(float m[3][3], const float epsilon)
+{
+	float tmp[3][3];
+	int success;
+
+	success = invert_m3_m3_ex(tmp, m, epsilon);
+	copy_m3_m3(m, tmp);
+
+	return success;
+}
+
+int invert_m3_m3_ex(float m1[3][3], float m2[3][3], const float epsilon)
+{
+	float det;
+	int a, b, success;
+
+	BLI_assert(epsilon >= 0.0f);
+
+	/* calc adjoint */
+	adjoint_m3_m3(m1, m2);
+
+	/* then determinant old matrix! */
+	det = determinant_m3_local(m2);
+
+	success = (fabsf(det) > epsilon);
+
+	if (LIKELY(det != 0.0f)) {
+		det = 1.0f / det;
+		for (a = 0; a < 3; a++) {
+			for (b = 0; b < 3; b++) {
+				m1[a][b] *= det;
+			}
+		}
+	}
+	return success;
+}
+
 int invert_m3(float m[3][3])
 {
 	float tmp[3][3];
@@ -524,17 +569,16 @@ int invert_m3_m3(float m1[3][3], float m2[3][3])
 	adjoint_m3_m3(m1, m2);
 
 	/* then determinant old matrix! */
-	det = (m2[0][0] * (m2[1][1] * m2[2][2] - m2[1][2] * m2[2][1]) -
-	       m2[1][0] * (m2[0][1] * m2[2][2] - m2[0][2] * m2[2][1]) +
-	       m2[2][0] * (m2[0][1] * m2[1][2] - m2[0][2] * m2[1][1]));
+	det = determinant_m3_local(m2);
 
-	success = (det != 0);
+	success = (det != 0.0f);
 
-	if (det == 0) det = 1;
-	det = 1 / det;
-	for (a = 0; a < 3; a++) {
-		for (b = 0; b < 3; b++) {
-			m1[a][b] *= det;
+	if (LIKELY(det != 0.0f)) {
+		det = 1.0f / det;
+		for (a = 0; a < 3; a++) {
+			for (b = 0; b < 3; b++) {
+				m1[a][b] *= det;
+			}
 		}
 	}
 

@@ -41,6 +41,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_node.h"
@@ -157,6 +158,20 @@ static bNodeSocketType node_socket_type_mesh = {
 	/* buttonfunc */		NULL,
 };
 
+/****************** STRING ******************/
+
+static bNodeSocketType node_socket_type_string = {
+	/* type */				SOCK_STRING,
+	/* ui_name */			"String",
+	/* ui_description */	"String",
+	/* ui_icon */			0,
+	/* ui_color */			{255, 255, 255, 255},
+	
+	/* value_structname */	"bNodeSocketValueString",
+	/* value_structsize */	sizeof(bNodeSocketValueString),
+	
+	/* buttonfunc */		NULL,
+};
 
 void node_socket_type_init(bNodeSocketType *types[])
 {
@@ -169,6 +184,7 @@ void node_socket_type_init(bNodeSocketType *types[])
 	INIT_TYPE(boolean);
 	INIT_TYPE(shader);
 	INIT_TYPE(mesh);
+	INIT_TYPE(string);
 	
 	#undef INIT_TYPE
 }
@@ -218,6 +234,9 @@ void node_socket_init_default_value(int type, void *default_value)
 	case SOCK_MESH:
 		node_socket_set_default_value_mesh(default_value);
 		break;
+	case SOCK_STRING:
+		node_socket_set_default_value_string(default_value, PROP_NONE, (char *)"");
+		break;
 	}
 }
 
@@ -265,6 +284,13 @@ void node_socket_set_default_value_rgba(void *default_value, float r, float g, f
 	val->value[3] = a;
 }
 
+void node_socket_set_default_value_string(void *default_value, PropertySubType subtype, const char *value)
+{
+	bNodeSocketValueString *val = default_value;
+	val->subtype = subtype;
+	BLI_strncpy(val->value, value, 1024);//FILE_MAX
+}
+
 void node_socket_set_default_value_shader(void *UNUSED(default_value))
 {
 }
@@ -282,12 +308,14 @@ void node_socket_copy_default_value(int type, void *to_default_value, void *from
 	bNodeSocketValueBoolean *frombool= (bNodeSocketValueBoolean*)from_default_value;
 	bNodeSocketValueVector *fromvector= (bNodeSocketValueVector*)from_default_value;
 	bNodeSocketValueRGBA *fromrgba= (bNodeSocketValueRGBA*)from_default_value;
+	bNodeSocketValueString *fromstring= (bNodeSocketValueString*)from_default_value;
 
 	bNodeSocketValueFloat *tofloat= (bNodeSocketValueFloat*)to_default_value;
 	bNodeSocketValueInt *toint= (bNodeSocketValueInt*)to_default_value;
 	bNodeSocketValueBoolean *tobool= (bNodeSocketValueBoolean*)to_default_value;
 	bNodeSocketValueVector *tovector= (bNodeSocketValueVector*)to_default_value;
 	bNodeSocketValueRGBA *torgba= (bNodeSocketValueRGBA*)to_default_value;
+	bNodeSocketValueString *tostring= (bNodeSocketValueString*)to_default_value;
 
 	switch (type) {
 	case SOCK_FLOAT:
@@ -304,6 +332,9 @@ void node_socket_copy_default_value(int type, void *to_default_value, void *from
 		break;
 	case SOCK_RGBA:
 		*torgba = *fromrgba;
+		break;
+	case SOCK_STRING:
+		*tostring = *fromstring;
 		break;
 	}
 }
@@ -442,6 +473,35 @@ void node_socket_convert_default_value(int to_type, void *to_default_value, int 
 	}
 }
 
+static void node_socket_set_minmax_subtype(bNodeSocket *sock, struct bNodeSocketTemplate *stemp)
+{
+	switch (sock->type) {
+		case SOCK_FLOAT:
+		{
+			bNodeSocketValueFloat *dval= sock->default_value;
+			dval->min = stemp->min;
+			dval->max = stemp->max;
+			dval->subtype = stemp->subtype;
+			break;
+		}
+		case SOCK_INT:
+		{
+			bNodeSocketValueInt *dval= sock->default_value;
+			dval->min = stemp->min;
+			dval->max = stemp->max;
+			dval->subtype = stemp->subtype;
+			break;
+		}
+		case SOCK_VECTOR:
+		{
+			bNodeSocketValueVector *dval= sock->default_value;
+			dval->min = stemp->min;
+			dval->max = stemp->max;
+			dval->subtype = stemp->subtype;
+			break;
+		}
+	}
+}
 
 struct bNodeSocket *node_add_input_from_template(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocketTemplate *stemp)
 {
@@ -470,6 +530,9 @@ struct bNodeSocket *node_add_input_from_template(struct bNodeTree *ntree, struct
 	case SOCK_MESH:
 		node_socket_set_default_value_mesh(sock->default_value);
 		break;
+	case SOCK_STRING:
+		node_socket_set_default_value_string(sock->default_value, stemp->subtype, (char *)"");
+		break;
 	}
 	
 	return sock;
@@ -478,6 +541,7 @@ struct bNodeSocket *node_add_input_from_template(struct bNodeTree *ntree, struct
 struct bNodeSocket *node_add_output_from_template(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocketTemplate *stemp)
 {
 	bNodeSocket *sock = nodeAddSocket(ntree, node, SOCK_OUT, stemp->name, stemp->type);
+	node_socket_set_minmax_subtype(sock, stemp);
 	return sock;
 }
 
@@ -498,32 +562,7 @@ static bNodeSocket *verify_socket_template(bNodeTree *ntree, bNode *node, int in
 		/* Copy the property range and subtype parameters in case the template changed.
 		 * NOT copying the actual value here, only button behavior changes!
 		 */
-		switch (sock->type) {
-			case SOCK_FLOAT:
-			{
-				bNodeSocketValueFloat *dval= sock->default_value;
-				dval->min = stemp->min;
-				dval->max = stemp->max;
-				dval->subtype = stemp->subtype;
-				break;
-			}
-			case SOCK_INT:
-			{
-				bNodeSocketValueInt *dval= sock->default_value;
-				dval->min = stemp->min;
-				dval->max = stemp->max;
-				dval->subtype = stemp->subtype;
-				break;
-			}
-			case SOCK_VECTOR:
-			{
-				bNodeSocketValueVector *dval= sock->default_value;
-				dval->min = stemp->min;
-				dval->max = stemp->max;
-				dval->subtype = stemp->subtype;
-				break;
-			}
-		}
+		node_socket_set_minmax_subtype(sock, stemp);
 		
 		BLI_remlink(socklist, sock);
 		

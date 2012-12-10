@@ -41,7 +41,9 @@
 #define __align(...) __declspec(align(__VA_ARGS__))
 #else
 #define __device_inline static inline __attribute__((always_inline))
+#ifndef FREE_WINDOWS64
 #define __forceinline inline __attribute__((always_inline))
+#endif
 #define __align(...) __attribute__((aligned(__VA_ARGS__)))
 #endif
 
@@ -449,7 +451,8 @@ typedef enum AttributeStandard {
 	ATTR_STD_VERTEX_NORMAL,
 	ATTR_STD_FACE_NORMAL,
 	ATTR_STD_UV,
-	ATTR_STD_TANGENT,
+	ATTR_STD_UV_TANGENT,
+	ATTR_STD_UV_TANGENT_SIGN,
 	ATTR_STD_GENERATED,
 	ATTR_STD_POSITION_UNDEFORMED,
 	ATTR_STD_POSITION_UNDISPLACED,

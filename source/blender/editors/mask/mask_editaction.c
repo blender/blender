@@ -18,13 +18,13 @@
  * The Original Code is Copyright (C) 2008, Blender Foundation
  * This is a new part of Blender
  *
- * Contributor(s): Joshua Leung
+ * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/editors/mask/mask_editaction.c
- *  \ingroup edgpencil
+ *  \ingroup edmask
  */
 
 #include <stdio.h>
@@ -49,17 +49,18 @@
 #include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"
 #include "ED_mask.h"  /* own include */
+#include "ED_markers.h"
 
 /* ***************************************** */
 /* NOTE ABOUT THIS FILE:
- *  This file contains code for editing Grease Pencil data in the Action Editor
- *  as a 'keyframes', so that a user can adjust the timing of Grease Pencil drawings.
- *  Therefore, this file mostly contains functions for selecting Grease-Pencil frames.
+ *  This file contains code for editing Mask data in the Action Editor
+ *  as a 'keyframes', so that a user can adjust the timing of Mask shapekeys.
+ *  Therefore, this file mostly contains functions for selecting Mask frames (shapekeys).
  */
 /* ***************************************** */
 /* Generics - Loopers */
 
-/* Loops over the gp-frames for a gp-layer, and applies the given callback */
+/* Loops over the mask-frames for a mask-layer, and applies the given callback */
 short ED_masklayer_frames_looper(MaskLayer *masklay, Scene *scene, short (*masklay_shape_cb)(MaskLayerShape *, Scene *))
 {
 	MaskLayerShape *masklay_shape;
@@ -82,7 +83,7 @@ short ED_masklayer_frames_looper(MaskLayer *masklay, Scene *scene, short (*maskl
 /* ****************************************** */
 /* Data Conversion Tools */
 
-/* make a listing all the gp-frames in a layer as cfraelems */
+/* make a listing all the mask-frames in a layer as cfraelems */
 void ED_masklayer_make_cfra_list(MaskLayer *masklay, ListBase *elems, short onlysel)
 {
 	MaskLayerShape *masklay_shape;
@@ -92,7 +93,7 @@ void ED_masklayer_make_cfra_list(MaskLayer *masklay, ListBase *elems, short only
 	if (ELEM(NULL, masklay, elems))
 		return;
 
-	/* loop through gp-frames, adding */
+	/* loop through mask-frames, adding */
 	for (masklay_shape = masklay->splines_shapes.first; masklay_shape; masklay_shape = masklay_shape->next) {
 		if ((onlysel == 0) || (masklay_shape->flag & MASK_SHAPE_SELECT)) {
 			ce = MEM_callocN(sizeof(CfraElem), "CfraElem");
@@ -127,7 +128,7 @@ short ED_masklayer_frame_select_check(MaskLayer *masklay)
 	return 0;
 }
 
-/* helper function - select gp-frame based on SELECT_* mode */
+/* helper function - select mask-frame based on SELECT_* mode */
 static void masklayshape_select(MaskLayerShape *masklay_shape, short select_mode)
 {
 	if (masklay_shape == NULL)
@@ -223,7 +224,7 @@ void ED_masklayer_frames_delete(MaskLayer *masklay)
 	}
 }
 
-/* Duplicate selected frames from given gp-layer */
+/* Duplicate selected frames from given mask-layer */
 void ED_masklayer_frames_duplicate(MaskLayer *masklay)
 {
 	MaskLayerShape *masklay_shape, *gpfn;
@@ -249,3 +250,57 @@ void ED_masklayer_frames_duplicate(MaskLayer *masklay)
 		}
 	}
 }
+
+/* -------------------------------------- */
+/* Snap Tools */
+
+static short snap_masklayer_nearest(MaskLayerShape *masklay_shape, Scene *UNUSED(scene))
+{
+	if (masklay_shape->flag & MASK_SHAPE_SELECT)
+		masklay_shape->frame = (int)(floor(masklay_shape->frame + 0.5));
+	return 0;
+}
+
+static short snap_masklayer_nearestsec(MaskLayerShape *masklay_shape, Scene *scene)
+{
+	float secf = (float)FPS;
+	if (masklay_shape->flag & MASK_SHAPE_SELECT)
+		masklay_shape->frame = (int)(floorf(masklay_shape->frame / secf + 0.5f) * secf);
+	return 0;
+}
+
+static short snap_masklayer_cframe(MaskLayerShape *masklay_shape, Scene *scene)
+{
+	if (masklay_shape->flag & MASK_SHAPE_SELECT)
+		masklay_shape->frame = (int)CFRA;
+	return 0;
+}
+
+static short snap_masklayer_nearmarker(MaskLayerShape *masklay_shape, Scene *scene)
+{
+	if (masklay_shape->flag & MASK_SHAPE_SELECT)
+		masklay_shape->frame = (int)ED_markers_find_nearest_marker_time(&scene->markers, (float)masklay_shape->frame);
+	return 0;
+}
+
+/* snap selected frames to ... */
+void ED_masklayer_snap_frames(MaskLayer *masklay, Scene *scene, short mode)
+{
+	switch (mode) {
+		case SNAP_KEYS_NEARFRAME: /* snap to nearest frame */
+			ED_masklayer_frames_looper(masklay, scene, snap_masklayer_nearest);
+			break;
+		case SNAP_KEYS_CURFRAME: /* snap to current frame */
+			ED_masklayer_frames_looper(masklay, scene, snap_masklayer_cframe);
+			break;
+		case SNAP_KEYS_NEARMARKER: /* snap to nearest marker */
+			ED_masklayer_frames_looper(masklay, scene, snap_masklayer_nearmarker);
+			break;
+		case SNAP_KEYS_NEARSEC: /* snap to nearest second */
+			ED_masklayer_frames_looper(masklay, scene, snap_masklayer_nearestsec);
+			break;
+		default: /* just in case */
+			break;
+	}
+}
+

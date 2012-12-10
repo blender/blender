@@ -35,7 +35,10 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
-#include "BLI_dynstr.h"
+
+#ifndef MATH_STANDALONE
+#  include "BLI_dynstr.h"
+#endif
 
 typedef enum eMatrixAccess_t {
 	MAT_ACCESS_ROW,
@@ -1647,6 +1650,7 @@ static PyObject *Matrix_repr(MatrixObject *self)
 	return NULL;
 }
 
+#ifndef MATH_STANDALONE
 static PyObject *Matrix_str(MatrixObject *self)
 {
 	DynStr *ds;
@@ -1682,6 +1686,7 @@ static PyObject *Matrix_str(MatrixObject *self)
 
 	return mathutils_dynstr_to_py(ds); /* frees ds */
 }
+#endif
 
 static PyObject *Matrix_richcmpr(PyObject *a, PyObject *b, int op)
 {
@@ -2418,7 +2423,11 @@ PyTypeObject matrix_Type = {
 	&Matrix_AsMapping,                  /*tp_as_mapping*/
 	NULL,                               /*tp_hash*/
 	NULL,                               /*tp_call*/
+#ifndef MATH_STANDALONE
 	(reprfunc) Matrix_str,              /*tp_str*/
+#else
+	NULL,                               /*tp_str*/
+#endif
 	NULL,                               /*tp_getattro*/
 	NULL,                               /*tp_setattro*/
 	NULL,                               /*tp_as_buffer*/

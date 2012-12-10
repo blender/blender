@@ -20,6 +20,7 @@
 
 shader node_convert_from_color(
 	color Color = color(0.0, 0.0, 0.0),
+	output string String = "",
 	output float Val = 0.0,
 	output int ValInt = 0,
 	output vector Vector = vector(0.0, 0.0, 0.0),
@@ -27,7 +28,7 @@ shader node_convert_from_color(
 	output normal Normal = normal(0.0, 0.0, 0.0))
 {
 	Val = Color[0] * 0.2126 + Color[1] * 0.7152 + Color[2] * 0.0722;
-	ValInt = (int)(Color[0]*0.2126 + Color[1]*0.7152 + Color[2]*0.0722);
+	ValInt = (int)(Color[0] * 0.2126 + Color[1] * 0.7152 + Color[2] * 0.0722);
 	Vector = vector(Color[0], Color[1], Color[2]);
 	Point = point(Color[0], Color[1], Color[2]);
 	Normal = normal(Color[0], Color[1], Color[2]);

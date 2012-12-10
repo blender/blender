@@ -34,8 +34,6 @@
 
 #include "DNA_listBase.h"
 
-#include "RNA_types.h"
-
 /* not very important, but the stack solver likes to know a maximum */
 #define MAX_SOCKET	64
 
@@ -82,7 +80,7 @@ typedef struct bNodeSocketTemplate {
 	char name[64];	/* MAX_NAME */
 	float val1, val2, val3, val4;   /* default alloc value for inputs */
 	float min, max;
-	PropertySubType subtype;
+	int subtype;  /* would use PropertySubType but this is a bad level include to use RNA */
 	int flag;
 	
 	/* after this line is used internal only */
@@ -315,6 +313,8 @@ void              ntreeSwitchID(struct bNodeTree *ntree, struct ID *sce_from, st
 void              ntreeUserIncrefID(struct bNodeTree *ntree);
 void              ntreeUserDecrefID(struct bNodeTree *ntree);
 
+
+struct bNodeTree *ntreeFromID(struct ID *id);
 
 void              ntreeMakeLocal(struct bNodeTree *ntree);
 int               ntreeHasType(struct bNodeTree *ntree, int type);
@@ -553,6 +553,10 @@ struct ShadeResult;
 #define SH_NODE_TEX_BRICK				169
 #define SH_NODE_BUMP					170
 #define SH_NODE_SCRIPT					171
+#define SH_NODE_AMBIENT_OCCLUSION		172
+#define SH_NODE_BSDF_REFRACTION			173
+#define SH_NODE_TANGENT					174
+#define SH_NODE_NORMAL_MAP				175
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1
@@ -701,6 +705,8 @@ void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMateria
 #define CMP_NODE_BOKEHBLUR      316
 #define CMP_NODE_SWITCH         317
 #define CMP_NODE_PIXELATE       318
+
+#define CMP_NODE_MAP_RANGE	319
 
 /* channel toggles */
 #define CMP_CHAN_RGB		1

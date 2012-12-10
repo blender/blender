@@ -386,6 +386,9 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	node->id = (ID *)ima;
 	id_us_plus(node->id);
 
+	BKE_image_signal(ima, NULL, IMA_SIGNAL_RELOAD);
+	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, ima);
+
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
 

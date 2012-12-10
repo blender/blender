@@ -248,7 +248,7 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 
 void buttons_texture_context_compute(const bContext *C, SpaceButs *sbuts)
 {
-	/* gatheravailable texture users in context. runs on every draw of
+	/* gather available texture users in context. runs on every draw of
 	 * properties editor, before the buttons are created. */
 	ButsContextTexture *ct = sbuts->texuser;
 	Scene *scene = CTX_data_scene(C);

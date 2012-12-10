@@ -22,22 +22,35 @@
 #ifdef WITH_OSL
 
 #include <OSL/oslexec.h>
+#include <cmath>
 
 #include "util_map.h"
 #include "util_param.h"
 #include "util_thread.h"
 #include "util_vector.h"
 
+#ifndef WIN32
+using std::isfinite;
+#endif
+
 CCL_NAMESPACE_BEGIN
 
 class OSLRenderServices;
 
 struct OSLGlobals {
-	/* use */
+	OSLGlobals()
+	{
+		ss = NULL;
+		ts = NULL;
+		services = NULL;
+		use = false;
+	}
+
 	bool use;
 
 	/* shading system */
 	OSL::ShadingSystem *ss;
+	OSL::TextureSystem *ts;
 	OSLRenderServices *services;
 
 	/* shader states */
@@ -59,14 +72,13 @@ struct OSLGlobals {
 
 	vector<AttributeMap> attribute_map;
 	ObjectNameMap object_name_map;
+	vector<ustring> object_names;
+};
 
-	/* thread key for thread specific data lookup */
-	struct ThreadData {
-		OSL::ShaderGlobals globals;
-		OSL::PerThreadInfo *thread_info;
-	};
-
-	static tls_ptr(ThreadData, thread_data);
+/* thread key for thread specific data lookup */
+struct OSLThreadData {
+	OSL::ShaderGlobals globals;
+	OSL::PerThreadInfo *thread_info;
 };
 
 CCL_NAMESPACE_END

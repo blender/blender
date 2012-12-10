@@ -116,7 +116,7 @@ static void mikk_set_tangent_space(const SMikkTSpaceContext *context, const floa
 	userdata->tangent[face*4 + vert] = make_float4(T[0], T[1], T[2], sign);
 }
 
-static void mikk_compute_tangents(BL::Mesh b_mesh, BL::MeshTextureFaceLayer b_layer, Mesh *mesh, vector<int>& nverts)
+static void mikk_compute_tangents(BL::Mesh b_mesh, BL::MeshTextureFaceLayer b_layer, Mesh *mesh, vector<int>& nverts, bool need_sign, bool active_render)
 {
 	/* setup userdata */
 	MikkUserData userdata(b_mesh, b_layer, nverts.size());
@@ -140,22 +140,57 @@ static void mikk_compute_tangents(BL::Mesh b_mesh, BL::MeshTextureFaceLayer b_la
 	/* compute tangents */
 	genTangSpaceDefault(&context);
 
-	/* create attribute */
-	/* todo: create float4 attribute for sign */
-	Attribute *attr = mesh->attributes.add(ATTR_STD_TANGENT, ustring("tangent"));
+	/* create tangent attributes */
+	Attribute *attr;
+	ustring name = ustring((string(b_layer.name().c_str()) + ".tangent").c_str());
+
+	if(active_render)
+		attr = mesh->attributes.add(ATTR_STD_UV_TANGENT, name);
+	else
+		attr = mesh->attributes.add(name, TypeDesc::TypeVector, Attribute::CORNER);
+
 	float3 *tangent = attr->data_float3();
 
-	for (int i = 0; i < nverts.size(); i++) {
+	/* create bitangent sign attribute */
+	float *tangent_sign = NULL;
+
+	if(need_sign) {
+		Attribute *attr_sign;
+		ustring name_sign = ustring((string(b_layer.name().c_str()) + ".tangent_sign").c_str());
+
+		if(active_render)
+			attr_sign = mesh->attributes.add(ATTR_STD_UV_TANGENT_SIGN, name_sign);
+		else
+			attr_sign = mesh->attributes.add(name_sign, TypeDesc::TypeFloat, Attribute::CORNER);
+
+		tangent_sign = attr_sign->data_float();
+	}
+
+	for(int i = 0; i < nverts.size(); i++) {
 		tangent[0] = float4_to_float3(userdata.tangent[i*4 + 0]);
 		tangent[1] = float4_to_float3(userdata.tangent[i*4 + 1]);
 		tangent[2] = float4_to_float3(userdata.tangent[i*4 + 2]);
 		tangent += 3;
+
+		if(tangent_sign) {
+			tangent_sign[0] = userdata.tangent[i*4 + 0].w;
+			tangent_sign[1] = userdata.tangent[i*4 + 1].w;
+			tangent_sign[2] = userdata.tangent[i*4 + 2].w;
+			tangent_sign += 3;
+		}
 
 		if(nverts[i] == 4) {
 			tangent[0] = float4_to_float3(userdata.tangent[i*4 + 0]);
 			tangent[1] = float4_to_float3(userdata.tangent[i*4 + 2]);
 			tangent[2] = float4_to_float3(userdata.tangent[i*4 + 3]);
 			tangent += 3;
+
+			if(tangent_sign) {
+				tangent_sign[0] = userdata.tangent[i*4 + 0].w;
+				tangent_sign[1] = userdata.tangent[i*4 + 2].w;
+				tangent_sign[2] = userdata.tangent[i*4 + 3].w;
+				tangent_sign += 3;
+			}
 		}
 	}
 }
@@ -233,48 +268,49 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 		BL::Mesh::tessface_uv_textures_iterator l;
 
 		for(b_mesh.tessface_uv_textures.begin(l); l != b_mesh.tessface_uv_textures.end(); ++l) {
-			AttributeStandard std = (l->active_render())? ATTR_STD_UV: ATTR_STD_NONE;
+			bool active_render = l->active_render();
+			AttributeStandard std = (active_render)? ATTR_STD_UV: ATTR_STD_NONE;
 			ustring name = ustring(l->name().c_str());
 
-			if(!(mesh->need_attribute(scene, name) || mesh->need_attribute(scene, std)))
-				continue;
+			/* UV map */
+			if(mesh->need_attribute(scene, name) || mesh->need_attribute(scene, std)) {
+				Attribute *attr;
 
-			Attribute *attr;
+				if(active_render)
+					attr = mesh->attributes.add(std, name);
+				else
+					attr = mesh->attributes.add(name, TypeDesc::TypePoint, Attribute::CORNER);
 
-			if(l->active_render())
-				attr = mesh->attributes.add(std, name);
-			else
-				attr = mesh->attributes.add(name, TypeDesc::TypePoint, Attribute::CORNER);
+				BL::MeshTextureFaceLayer::data_iterator t;
+				float3 *fdata = attr->data_float3();
+				size_t i = 0;
 
-			BL::MeshTextureFaceLayer::data_iterator t;
-			float3 *fdata = attr->data_float3();
-			size_t i = 0;
-
-			for(l->data.begin(t); t != l->data.end(); ++t, ++i) {
-				fdata[0] =  get_float3(t->uv1());
-				fdata[1] =  get_float3(t->uv2());
-				fdata[2] =  get_float3(t->uv3());
-				fdata += 3;
-
-				if(nverts[i] == 4) {
+				for(l->data.begin(t); t != l->data.end(); ++t, ++i) {
 					fdata[0] =  get_float3(t->uv1());
-					fdata[1] =  get_float3(t->uv3());
-					fdata[2] =  get_float3(t->uv4());
+					fdata[1] =  get_float3(t->uv2());
+					fdata[2] =  get_float3(t->uv3());
 					fdata += 3;
+
+					if(nverts[i] == 4) {
+						fdata[0] =  get_float3(t->uv1());
+						fdata[1] =  get_float3(t->uv3());
+						fdata[2] =  get_float3(t->uv4());
+						fdata += 3;
+					}
 				}
 			}
-		}
-	}
 
-	/* create texcoord-based tangent attributes */
-	if(mesh->need_attribute(scene, ATTR_STD_TANGENT)) {
-		BL::Mesh::tessface_uv_textures_iterator l;
+			/* UV tangent */
+			std = (active_render)? ATTR_STD_UV_TANGENT: ATTR_STD_NONE;
+			name = ustring((string(l->name().c_str()) + ".tangent").c_str());
 
-		for(b_mesh.tessface_uv_textures.begin(l); l != b_mesh.tessface_uv_textures.end(); ++l) {
-			if(!l->active_render())
-				continue;
+			if(mesh->need_attribute(scene, name) || mesh->need_attribute(scene, std)) {
+				std = (active_render)? ATTR_STD_UV_TANGENT_SIGN: ATTR_STD_NONE;
+				name = ustring((string(l->name().c_str()) + ".tangent_sign").c_str());
+				bool need_sign = (mesh->need_attribute(scene, name) || mesh->need_attribute(scene, std));
 
-			mikk_compute_tangents(b_mesh, *l, mesh, nverts);
+				mikk_compute_tangents(b_mesh, *l, mesh, nverts, need_sign, active_render);
+			}
 		}
 	}
 

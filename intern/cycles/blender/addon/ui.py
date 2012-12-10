@@ -216,6 +216,10 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         sub.label(text="Viewport:")
         sub.prop(cscene, "preview_start_resolution")
 
+        sub = col.column(align=True)
+        sub.label(text="Final Render:")
+        sub.prop(rd, "use_persistent_data", text="Persistent Images")
+
 
 class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
     bl_label = "Layers"
@@ -953,7 +957,7 @@ def draw_device(self, context):
         elif device_type == 'OPENCL' and cscene.feature_set == 'EXPERIMENTAL':
             layout.prop(cscene, "device")
 
-        if engine.with_osl() and (cscene.device == 'CPU' or device_type == 'None'):
+        if engine.with_osl() and (cscene.device == 'CPU' or device_type == 'NONE'):
             layout.prop(cscene, "shading_system")
 
 
@@ -1022,6 +1026,8 @@ def get_panels():
         bpy.types.TEXTURE_PT_voxeldata,
         bpy.types.TEXTURE_PT_pointdensity,
         bpy.types.TEXTURE_PT_pointdensity_turbulence,
+        bpy.types.TEXTURE_PT_mapping,
+        bpy.types.TEXTURE_PT_influence,
         bpy.types.PARTICLE_PT_context_particles,
         bpy.types.PARTICLE_PT_emission,
         bpy.types.PARTICLE_PT_hair_dynamics,

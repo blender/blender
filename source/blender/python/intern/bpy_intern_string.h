@@ -33,3 +33,5 @@ extern PyObject *bpy_intern_str_bl_rna;
 extern PyObject *bpy_intern_str_order;
 extern PyObject *bpy_intern_str_attr;
 extern PyObject *bpy_intern_str___slots__;
+extern PyObject *bpy_intern_str___name__;
+extern PyObject *bpy_intern_str___doc__;

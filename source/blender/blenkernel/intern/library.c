@@ -998,7 +998,6 @@ void free_main(Main *mainvar)
 #endif
 		}
 	}
-	a = set_listbasepointers(mainvar, lbarray);
 
 	MEM_freeN(mainvar);
 }
@@ -1521,7 +1520,9 @@ void test_idbutton(char *name)
 	/* search for id */
 	idtest = BLI_findstring(lb, name, offsetof(ID, name) + 2);
 
-	if (idtest) if (new_id(lb, idtest, name) == 0) id_sort_by_name(lb, idtest);
+	if (idtest && (new_id(lb, idtest, name) == 0)) {
+		id_sort_by_name(lb, idtest);
+	}
 }
 
 void text_idbutton(struct ID *id, char *text)

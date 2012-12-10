@@ -68,6 +68,21 @@ public:
 		return *this;
 	}
 
+	void reset()
+	{
+		tile = 0;
+		sample = 0;
+		start_time = time_dt();
+		total_time = 0.0f;
+		tile_time = 0.0f;
+		status = "Initializing";
+		substatus = "";
+		sync_status = "";
+		sync_substatus = "";
+		cancel = false;
+		cancel_message = "";
+	}
+
 	/* cancel */
 	void set_cancel(const string& cancel_message_)
 	{

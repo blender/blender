@@ -165,7 +165,7 @@ void flame_get_spectrum(unsigned char *UNUSED(spec), int UNUSED(width), float UN
 void smoke_reallocate_fluid(SmokeDomainSettings *sds, float dx, int res[3], int free_old)
 {
 	int use_heat = (sds->active_fields & SM_ACTIVE_HEAT);
-	int use_fire = (sds->active_fields & (SM_ACTIVE_HEAT | SM_ACTIVE_FIRE));
+	int use_fire = (sds->active_fields & SM_ACTIVE_FIRE);
 	int use_colors = (sds->active_fields & SM_ACTIVE_COLORS);
 
 	if (free_old && sds->fluid)
@@ -262,21 +262,21 @@ static void smoke_set_domain_from_derivedmesh(SmokeDomainSettings *sds, Object *
 		scale = res / size[0];
 		sds->scale = size[0] / ob->size[0];
 		sds->base_res[0] = res;
-		sds->base_res[1] = (int)(size[1] * scale + 0.5);
-		sds->base_res[2] = (int)(size[2] * scale + 0.5);
+		sds->base_res[1] = (int)(size[1] * scale + 0.5f);
+		sds->base_res[2] = (int)(size[2] * scale + 0.5f);
 	}
 	else if (size[1] > MAX2(size[0], size[2])) {
 		scale = res / size[1];
 		sds->scale = size[1] / ob->size[1];
-		sds->base_res[0] = (int)(size[0] * scale + 0.5);
+		sds->base_res[0] = (int)(size[0] * scale + 0.5f);
 		sds->base_res[1] = res;
-		sds->base_res[2] = (int)(size[2] * scale + 0.5);
+		sds->base_res[2] = (int)(size[2] * scale + 0.5f);
 	}
 	else {
 		scale = res / size[2];
 		sds->scale = size[2] / ob->size[2];
-		sds->base_res[0] = (int)(size[0] * scale + 0.5);
-		sds->base_res[1] = (int)(size[1] * scale + 0.5);
+		sds->base_res[0] = (int)(size[0] * scale + 0.5f);
+		sds->base_res[1] = (int)(size[1] * scale + 0.5f);
 		sds->base_res[2] = res;
 	}
 
@@ -1581,7 +1581,7 @@ BLI_INLINE void apply_inflow_fields(SmokeFlowSettings *sfs, float emission_value
 	if (fuel && fuel[index]) {
 		/* instead of using 1.0 for all new fuel add slight falloff
 		 * to reduce flow blockiness */
-		float value = 1.0f - pow(1.0f - emission_value, 2.0f);
+		float value = 1.0f - powf(1.0f - emission_value, 2.0f);
 
 		if (value > react[index]) {
 			float f = fuel_flow / fuel[index];
@@ -1944,9 +1944,9 @@ static void update_effectors(Scene *scene, Object *ob, SmokeDomainSettings *sds,
 					mul_v3_fl(retvel, mag);
 
 					// TODO dg - do in force!
-					force_x[index] = MIN2(MAX2(-1.0, retvel[0] * 0.2), 1.0);
-					force_y[index] = MIN2(MAX2(-1.0, retvel[1] * 0.2), 1.0);
-					force_z[index] = MIN2(MAX2(-1.0, retvel[2] * 0.2), 1.0);
+					force_x[index] = min_ff(max_ff(-1.0f, retvel[0] * 0.2f), 1.0f);
+					force_y[index] = min_ff(max_ff(-1.0f, retvel[1] * 0.2f), 1.0f);
+					force_z[index] = min_ff(max_ff(-1.0f, retvel[2] * 0.2f), 1.0f);
 				}
 		}
 	}
@@ -1999,7 +1999,7 @@ static void step(Scene *scene, Object *ob, SmokeModifierData *smd, DerivedMesh *
 	/* adapt timestep for different framerates, dt = 0.1 is at 25fps */
 	dt = DT_DEFAULT * (25.0f / fps);
 	// maximum timestep/"CFL" constraint: dt < 5.0 *dx / maxVel
-	maxVel = (sds->dx * 5.0);
+	maxVel = (sds->dx * 5.0f);
 
 #if 0
 	for (i = 0; i < size; i++) {
@@ -2009,7 +2009,7 @@ static void step(Scene *scene, Object *ob, SmokeModifierData *smd, DerivedMesh *
 	}
 #endif
 
-	maxVelMag = sqrt(maxVelMag) * dt * sds->time_scale;
+	maxVelMag = sqrtf(maxVelMag) * dt * sds->time_scale;
 	totalSubsteps = (int)((maxVelMag / maxVel) + 1.0f); /* always round up */
 	totalSubsteps = (totalSubsteps < 1) ? 1 : totalSubsteps;
 	totalSubsteps = (totalSubsteps > maxSubSteps) ? maxSubSteps : totalSubsteps;
@@ -2267,7 +2267,8 @@ static void smokeModifier_process(SmokeModifierData *smd, Scene *scene, Object *
 	}
 }
 
-struct DerivedMesh *smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm){
+struct DerivedMesh *smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedMesh *dm)
+{
 	smokeModifier_process(smd, scene, ob, dm);
 
 	/* return generated geometry for adaptive domain */
@@ -2285,7 +2286,7 @@ static float calc_voxel_transp(float *result, float *input, int res[3], int *pix
 	const size_t index = smoke_get_index(pixel[0], res[0], pixel[1], res[1], pixel[2]);
 
 	// T_ray *= T_vox
-	*tRay *= exp(input[index] * correct);
+	*tRay *= expf(input[index] * correct);
 
 	if (result[index] < 0.0f)
 	{
@@ -2385,7 +2386,7 @@ static void smoke_calc_transparency(SmokeDomainSettings *sds, Scene *scene)
 	float light[3];
 	int a, z, slabsize = sds->res[0] * sds->res[1], size = sds->res[0] * sds->res[1] * sds->res[2];
 	float *density = smoke_get_density(sds->fluid);
-	float correct = -7.0 * sds->dx;
+	float correct = -7.0f * sds->dx;
 
 	if (!get_lamp(scene, light)) return;
 

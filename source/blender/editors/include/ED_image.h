@@ -49,7 +49,7 @@ void          ED_space_image_set_mask(struct bContext *C, struct SpaceImage *sim
 
 int ED_space_image_color_sample(struct SpaceImage *sima, struct ARegion *ar, int mval[2], float r_col[3]);
 struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **lock_r);
-void ED_space_image_release_buffer(struct SpaceImage *sima, void *lock);
+void ED_space_image_release_buffer(struct SpaceImage *sima, struct ImBuf *ibuf, void *lock);
 int ED_space_image_has_buffer(struct SpaceImage *sima);
 
 void ED_space_image_get_size(struct SpaceImage *sima, int *width, int *height);

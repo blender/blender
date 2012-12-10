@@ -868,7 +868,7 @@ GHOST_TSuccess GHOST_WindowWin32::installDrawingContext(GHOST_TDrawingContextTyp
 				}
 
 				// Attempt to enable multisample
-				if (m_multisample && WGL_ARB_multisample && !m_multisampleEnabled)
+				if (m_multisample && WGL_ARB_multisample && !m_multisampleEnabled && !is_crappy_intel_card())
 				{
 					success = initMultisample(preferredFormat);
 

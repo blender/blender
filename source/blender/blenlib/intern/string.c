@@ -56,7 +56,7 @@ char *BLI_strdup(const char *str)
 	return BLI_strdupn(str, strlen(str));
 }
 
-char *BLI_strdupcat(const char *str1, const char *str2)
+char *BLI_strdupcat(const char *__restrict str1, const char *__restrict str2)
 {
 	size_t len;
 	char *n;
@@ -69,7 +69,7 @@ char *BLI_strdupcat(const char *str1, const char *str2)
 	return n;
 }
 
-char *BLI_strncpy(char *dst, const char *src, const size_t maxncpy)
+char *BLI_strncpy(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
 {
 	size_t srclen = strlen(src);
 	size_t cpylen = (srclen > (maxncpy - 1)) ? (maxncpy - 1) : srclen;
@@ -81,9 +81,13 @@ char *BLI_strncpy(char *dst, const char *src, const size_t maxncpy)
 	return dst;
 }
 
-size_t BLI_vsnprintf(char *buffer, size_t count, const char *format, va_list arg)
+size_t BLI_vsnprintf(char *__restrict buffer, size_t count, const char *__restrict format, va_list arg)
 {
 	size_t n;
+
+	BLI_assert(buffer != NULL);
+	BLI_assert(count > 0);
+	BLI_assert(format != NULL);
 
 	n = vsnprintf(buffer, count, format, arg);
 
@@ -97,7 +101,7 @@ size_t BLI_vsnprintf(char *buffer, size_t count, const char *format, va_list arg
 	return n;
 }
 
-size_t BLI_snprintf(char *buffer, size_t count, const char *format, ...)
+size_t BLI_snprintf(char *__restrict buffer, size_t count, const char *__restrict format, ...)
 {
 	size_t n;
 	va_list arg;
@@ -109,11 +113,13 @@ size_t BLI_snprintf(char *buffer, size_t count, const char *format, ...)
 	return n;
 }
 
-char *BLI_sprintfN(const char *format, ...)
+char *BLI_sprintfN(const char *__restrict format, ...)
 {
 	DynStr *ds;
 	va_list arg;
 	char *n;
+
+	BLI_assert(format != NULL);
 
 	va_start(arg, format);
 
@@ -133,7 +139,7 @@ char *BLI_sprintfN(const char *format, ...)
  * TODO: support more fancy string escaping. current code is primitive
  *    this basically is an ascii version of PyUnicode_EncodeUnicodeEscape()
  *    which is a useful reference. */
-size_t BLI_strescape(char *dst, const char *src, const size_t maxncpy)
+size_t BLI_strescape(char *__restrict dst, const char *__restrict src, const size_t maxncpy)
 {
 	size_t len = 0;
 
@@ -186,7 +192,7 @@ escape_finish:
  *
  * TODO, return the offset and a length so as to avoid doing an allocation.
  */
-char *BLI_str_quoted_substrN(const char *str, const char *prefix)
+char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict prefix)
 {
 	size_t prefixLen = strlen(prefix);
 	char *startMatch, *endMatch;
@@ -207,7 +213,7 @@ char *BLI_str_quoted_substrN(const char *str, const char *prefix)
 
 /* A rather wasteful string-replacement utility, though this shall do for now...
  * Feel free to replace this with an even safe + nicer alternative */
-char *BLI_replacestr(char *str, const char *oldText, const char *newText)
+char *BLI_replacestr(char *__restrict str, const char *__restrict oldText, const char *__restrict newText)
 {
 	DynStr *ds = NULL;
 	size_t lenOld = strlen(oldText);

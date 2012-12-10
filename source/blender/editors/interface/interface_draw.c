@@ -1597,17 +1597,15 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 		                                            &scopes->undist_marker, scopes->use_track_mask,
 		                                            width, height, scopes->track_pos);
 
-		if (tmpibuf->rect_float)
-			IMB_rect_from_float(tmpibuf);
+		if (tmpibuf) {
+			if (tmpibuf->rect_float)
+				IMB_rect_from_float(tmpibuf);
 
-		/* XXX: for debug only
-		 * tmpibuf->ftype = PNG;
-		 * IMB_saveiff(tmpibuf, "sample.png", IB_rect); */
-
-		if (tmpibuf->rect)
-			scopes->track_preview = tmpibuf;
-		else
-			IMB_freeImBuf(tmpibuf);
+			if (tmpibuf->rect)
+				scopes->track_preview = tmpibuf;
+			else
+				IMB_freeImBuf(tmpibuf);
+		}
 	}
 
 	if (!ok && scopes->track_preview) {

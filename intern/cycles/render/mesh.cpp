@@ -325,6 +325,7 @@ void MeshManager::update_osl_attributes(Device *device, Scene *scene, vector<Att
 
 	og->object_name_map.clear();
 	og->attribute_map.clear();
+	og->object_names.clear();
 
 	og->attribute_map.resize(scene->objects.size());
 
@@ -332,6 +333,7 @@ void MeshManager::update_osl_attributes(Device *device, Scene *scene, vector<Att
 		/* set object name to object index map */
 		Object *object = scene->objects[i];
 		og->object_name_map[object->name] = i;
+		og->object_names.push_back(object->name);
 
 		/* set object attributes */
 		foreach(ParamValue& attr, object->attributes) {
@@ -545,7 +547,7 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 	}
 
 	/* create attribute lookup maps */
-	if(scene->params.shadingsystem == SceneParams::OSL)
+	if(scene->shader_manager->use_osl())
 		update_osl_attributes(device, scene, mesh_attributes);
 	else
 		update_svm_attributes(device, dscene, scene, mesh_attributes);

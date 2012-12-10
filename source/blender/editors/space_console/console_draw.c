@@ -146,7 +146,8 @@ static int console_textview_line_get(struct TextViewContext *tvc, const char **l
 	ConsoleLine *cl = (ConsoleLine *)tvc->iter;
 	*line = cl->line;
 	*len = cl->len;
-
+	// printf("'%s' %d\n", *line, cl->len);
+	BLI_assert(cl->line[cl->len] == '\0' && (cl->len == 0 || cl->line[cl->len - 1] != '\0'));
 	return 1;
 }
 

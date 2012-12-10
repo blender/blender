@@ -249,14 +249,14 @@ static int build_hull(SkinOutput *so, Frame **frames, int totframe)
 	}
 
 	/* Apply face attributes to hull output */
-	BMO_ITER (f, &oiter, bm, &op, "geomout", BM_FACE) {
+	BMO_ITER (f, &oiter, op.slots_out, "geom.out", BM_FACE) {
 		if (so->smd->flag & MOD_SKIN_SMOOTH_SHADING)
 			BM_elem_flag_enable(f, BM_ELEM_SMOOTH);
 		f->mat_nr = so->mat_nr;
 	}
 
 	/* Mark interior frames */
-	BMO_ITER (v, &oiter, bm, &op, "interior_geom", BM_VERT) {
+	BMO_ITER (v, &oiter, op.slots_out, "geom_interior.out", BM_VERT) {
 		for (i = 0; i < totframe; i++) {
 			Frame *frame = frames[i];
 			
@@ -309,7 +309,7 @@ static int build_hull(SkinOutput *so, Frame **frames, int totframe)
 
 	/* Check if removing triangles above will create wire triangles,
 	 * mark them too */
-	BMO_ITER (e, &oiter, bm, &op, "geomout", BM_EDGE) {
+	BMO_ITER (e, &oiter, op.slots_out, "geom.out", BM_EDGE) {
 		int is_wire = TRUE;
 		BM_ITER_ELEM (f, &iter, e, BM_FACES_OF_EDGE) {
 			if (!BM_elem_flag_test(f, BM_ELEM_TAG)) {
@@ -537,6 +537,7 @@ static int connection_node_mat(float mat[3][3], int v, const MeshElemMap *emap, 
 	/* Get axis and angle to rotate frame by */
 	angle = angle_normalized_v3v3(ine[0], oute[0]) / 2.0f;
 	cross_v3_v3v3(axis, ine[0], oute[0]);
+	normalize_v3(axis);
 
 	/* Build frame matrix (don't care about X axis here) */
 	copy_v3_v3(mat[0], ine[0]);
@@ -644,8 +645,8 @@ typedef struct {
 } EdgeStackElem;
 
 static void build_emats_stack(BLI_Stack *stack, int *visited_e, EMat *emat,
-							  const MeshElemMap *emap, const MEdge *medge,
-							  const MVertSkin *vs, const MVert *mvert)
+                              const MeshElemMap *emap, const MEdge *medge,
+                              const MVertSkin *vs, const MVert *mvert)
 {
 	EdgeStackElem stack_elem;
 	float axis[3], angle;
@@ -673,7 +674,7 @@ static void build_emats_stack(BLI_Stack *stack, int *visited_e, EMat *emat,
 	/* If parent is a branch node, start a new edge chain */
 	if (parent_is_branch) {
 		calc_edge_mat(emat[e].mat, mvert[parent_v].co,
-					  mvert[v].co);
+		              mvert[v].co);
 	}
 	else {
 		/* Build edge matrix guided by parent matrix */
@@ -940,18 +941,18 @@ static void add_poly(SkinOutput *so,
 	BLI_assert(v3 != v4);
 	BLI_assert(v1 && v2 && v3);
 
-	edges[0] = BM_edge_create(so->bm, v1, v2, NULL, TRUE);
-	edges[1] = BM_edge_create(so->bm, v2, v3, NULL, TRUE);
+	edges[0] = BM_edge_create(so->bm, v1, v2, NULL, BM_CREATE_NO_DOUBLE);
+	edges[1] = BM_edge_create(so->bm, v2, v3, NULL, BM_CREATE_NO_DOUBLE);
 	if (v4) {
-		edges[2] = BM_edge_create(so->bm, v3, v4, NULL, TRUE);
-		edges[3] = BM_edge_create(so->bm, v4, v1, NULL, TRUE);
+		edges[2] = BM_edge_create(so->bm, v3, v4, NULL, BM_CREATE_NO_DOUBLE);
+		edges[3] = BM_edge_create(so->bm, v4, v1, NULL, BM_CREATE_NO_DOUBLE);
 	}
 	else {
-		edges[2] = BM_edge_create(so->bm, v3, v1, NULL, TRUE);
+		edges[2] = BM_edge_create(so->bm, v3, v1, NULL, BM_CREATE_NO_DOUBLE);
 		edges[3] = NULL;
 	}
 
-	f = BM_face_create(so->bm, verts, edges, v4 ? 4 : 3, TRUE);
+	f = BM_face_create(so->bm, verts, edges, v4 ? 4 : 3, BM_CREATE_NO_DOUBLE);
 	if (so->smd->flag & MOD_SKIN_SMOOTH_SHADING)
 		BM_elem_flag_enable(f, BM_ELEM_SMOOTH);
 	f->mat_nr = so->mat_nr;
@@ -959,12 +960,12 @@ static void add_poly(SkinOutput *so,
 
 static void connect_frames(SkinOutput *so,
                            BMVert *frame1[4],
-                           BMVert *frame2[4])
+BMVert *frame2[4])
 {
 	BMVert *q[4][4] = {{frame2[0], frame2[1], frame1[1], frame1[0]},
-					   {frame2[1], frame2[2], frame1[2], frame1[1]},
-					   {frame2[2], frame2[3], frame1[3], frame1[2]},
-					   {frame2[3], frame2[0], frame1[0], frame1[3]}};
+	                   {frame2[1], frame2[2], frame1[2], frame1[1]},
+	                   {frame2[2], frame2[3], frame1[3], frame1[2]},
+	                   {frame2[3], frame2[0], frame1[0], frame1[3]}};
 	float p[3], no[3];
 	int i, swap;
 
@@ -995,7 +996,7 @@ static void output_frames(BMesh *bm,
 		f = &sn->frames[i];
 		for (j = 0; j < 4; j++) {
 			if (!f->merge[j].frame) {
-				BMVert *v = f->verts[j] = BM_vert_create(bm, f->co[j], NULL);
+				BMVert *v = f->verts[j] = BM_vert_create(bm, f->co[j], NULL, 0);
 
 				if (input_dvert) {
 					MDeformVert *dv;
@@ -1079,9 +1080,12 @@ static BMFace *collapse_face_corners(BMesh *bm, BMFace *f, int n,
 		BMOperator op;
 		BMIter iter;
 		int i;
+		BMOpSlot *slot_targetmap;
 
 		shortest_edge = BM_face_find_shortest_loop(f)->e;
 		BMO_op_initf(bm, &op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE), "weld_verts");
+
+		slot_targetmap = BMO_slot_get(op.slots_in, "targetmap");
 
 		/* Note: could probably calculate merges in one go to be
 		 * faster */
@@ -1089,7 +1093,7 @@ static BMFace *collapse_face_corners(BMesh *bm, BMFace *f, int n,
 		v_safe = shortest_edge->v1;
 		v_merge = shortest_edge->v2;
 		mid_v3_v3v3(v_safe->co, v_safe->co, v_merge->co);
-		BMO_slot_map_ptr_insert(bm, &op, "targetmap", v_merge, v_safe);
+		BMO_slot_map_elem_insert(&op, slot_targetmap, v_merge, v_safe);
 		BMO_op_exec(bm, &op);
 		BMO_op_finish(bm, &op);
 
@@ -1215,6 +1219,7 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 	BMOIter oiter;
 	BMOperator op;
 	int i, best_order[4];
+	BMOpSlot *slot_targetmap;
 
 	BLI_assert(split_face->len >= 3);
 
@@ -1228,7 +1233,7 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 	/* Update split face (should only be one new face created
 	 * during extrusion) */
 	split_face = NULL;
-	BMO_ITER (f, &oiter, bm, &op, "faceout", BM_FACE) {
+	BMO_ITER (f, &oiter, op.slots_out, "faces.out", BM_FACE) {
 		BLI_assert(!split_face);
 		split_face = f;
 	}
@@ -1246,7 +1251,7 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 		BM_elem_flag_enable(longest_edge, BM_ELEM_TAG);
 
 		BMO_op_callf(bm, BMO_FLAG_DEFAULTS,
-		             "subdivide_edges edges=%he numcuts=%i quadcornertype=%i",
+		             "subdivide_edges edges=%he cuts=%i quad_corner_type=%i",
 		             BM_ELEM_TAG, 1, SUBD_STRAIGHT_CUT);
 	}
 	else if (split_face->len > 4) {
@@ -1280,9 +1285,9 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 	BM_face_kill(bm, split_face);
 	BMO_op_init(bm, &op, (BMO_FLAG_DEFAULTS & ~BMO_FLAG_RESPECT_HIDE),
 	            "weld_verts");
+	slot_targetmap = BMO_slot_get(op.slots_in, "targetmap");
 	for (i = 0; i < 4; i++) {
-		BMO_slot_map_ptr_insert(bm, &op, "targetmap",
-		                        verts[i], frame->verts[best_order[i]]);
+		BMO_slot_map_elem_insert(&op, slot_targetmap, verts[i], frame->verts[best_order[i]]);
 	}
 	BMO_op_exec(bm, &op);
 	BMO_op_finish(bm, &op);
@@ -1304,7 +1309,7 @@ static void skin_hole_detach_partially_attached_frame(BMesh *bm, Frame *frame)
 	/* Detach everything */
 	for (i = 0; i < totattached; i++) {
 		BMVert **av = &frame->verts[attached[i]];
-		(*av) = BM_vert_create(bm, (*av)->co, *av);
+		(*av) = BM_vert_create(bm, (*av)->co, *av, 0);
 	}
 }
 
@@ -1352,24 +1357,6 @@ static void add_quad_from_tris(SkinOutput *so, BMEdge *e, BMFace *adj[2])
 	quad_from_tris(so->bm, e, adj, quad);
 
 	add_poly(so, quad[0], quad[1], quad[2], quad[3]);
-}
-
-/* Returns the number of faces that are adjacent to both f1 and f2 */
-static int BM_face_share_face_count(BMFace *f1, BMFace *f2)
-{
-	BMIter iter1, iter2;
-	BMEdge *e;
-	BMFace *f;
-	int count = 0;
-
-	BM_ITER_ELEM (e, &iter1, f1, BM_EDGES_OF_FACE) {
-		BM_ITER_ELEM (f, &iter2, e, BM_FACES_OF_EDGE) {
-			if (f != f1 && f != f2 && BM_face_share_edge_count(f, f2))
-				count++;
-		}
-	}
-
-	return count;
 }
 
 static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
@@ -1434,7 +1421,7 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 			 * share a border with another face, output as a quad */
 			if (!BM_elem_flag_test(adj[0], BM_ELEM_TAG) &&
 			    !BM_elem_flag_test(adj[1], BM_ELEM_TAG) &&
-			    !BM_face_share_face_count(adj[0], adj[1]))
+			    !BM_face_share_face_check(adj[0], adj[1]))
 			{
 				add_quad_from_tris(so, e, adj);
 				BM_elem_flag_enable(adj[0], BM_ELEM_TAG);

@@ -115,7 +115,7 @@ def main():
         if not os.path.exists(os.path.join(TRUNK_PO_DIR, ".".join((lang, "po")))):
             failed.add(lang)
 
-    # Check and compile each po separatly, to keep track of those failing.
+    # Check and compile each po separately, to keep track of those failing.
     # XXX There should not be any failing at this stage, import step is
     #     supposed to have already filtered them out!
     for po in os.listdir(TRUNK_PO_DIR):

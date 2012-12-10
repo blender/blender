@@ -9,10 +9,10 @@ BF_FFMPEG_LIB = 'avformat-53.lib avcodec-53.lib avdevice-53.lib avutil-51.lib sw
 BF_FFMPEG_DLL = '${BF_FFMPEG_LIBPATH}/avformat-53.dll ${BF_FFMPEG_LIBPATH}/avcodec-53.dll ${BF_FFMPEG_LIBPATH}/avdevice-53.dll ${BF_FFMPEG_LIBPATH}/avutil-51.dll ${BF_FFMPEG_LIBPATH}/swscale-2.dll'
 
 BF_PYTHON = LIBDIR + '/python'
-BF_PYTHON_VERSION = '3.2'
+BF_PYTHON_VERSION = '3.3'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = 'python'
-BF_PYTHON_LIB = 'python32'
+BF_PYTHON_LIB = 'python33'
 BF_PYTHON_DLL = '${BF_PYTHON_LIB}'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 
@@ -50,7 +50,7 @@ BF_PTHREADS_LIBPATH = '${BF_PTHREADS}/lib'
 WITH_BF_OPENEXR = True
 WITH_BF_STATICOPENEXR = False
 BF_OPENEXR = LIBDIR + '/openexr'
-BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/IlmImf ${BF_OPENEXR}/include/Iex ${BF_OPENEXR}/include/Imath '
+BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/OpenEXR '
 BF_OPENEXR_LIB = ' Iex Half IlmImf Imath IlmThread '
 BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib'
 BF_OPENEXR_LIB_STATIC = '${BF_OPENEXR}/lib/libHalf.a ${BF_OPENEXR}/lib/libIlmImf.a ${BF_OPENEXR}/lib/libIex.a ${BF_OPENEXR}/lib/libImath.a ${BF_OPENEXR}/lib/libIlmThread.a'
@@ -82,11 +82,6 @@ BF_ZLIB_LIB = 'libz'
 BF_ZLIB_LIBPATH = '${BF_ZLIB}/lib'
 
 WITH_BF_INTERNATIONAL = True
-
-BF_GETTEXT = LIBDIR + '/gettext'
-BF_GETTEXT_INC = '${BF_GETTEXT}/include'
-BF_GETTEXT_LIB = 'gnu_gettext'
-BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
 WITH_BF_GAMEENGINE = True
 WITH_BF_PLAYER = True
@@ -151,24 +146,40 @@ WITH_BF_OPENMP = True
 #Cycles
 WITH_BF_CYCLES = True
 
+WITH_BF_CYCLES_OSL = True
+WITH_BF_STATICOSL = True
+BF_OSL = '${LIBDIR}/osl'
+BF_OSL_INC = '${BF_OSL}/include'
+BF_OSL_LIBPATH = '${BF_OSL}/lib'
+BF_OSL_LIB_STATIC = '${BF_OSL_LIBPATH}/oslcomp.lib ${BF_OSL_LIBPATH}/oslexec.lib ${BF_OSL_LIBPATH}/oslquery.lib '
+BF_OSL_COMPILER = '${BF_OSL}/bin/oslc'
+
+WITH_BF_LLVM = True
+BF_LLVM = LIBDIR + '/llvm'
+BF_LLVM_LIB = 'LLVMBitReader LLVMJIT LLVMipo LLVMVectorize LLVMBitWriter LLVMX86CodeGen LLVMX86Desc LLVMX86Info LLVMX86AsmPrinter ' + \
+    'LLVMX86Utils LLVMSelectionDAG LLVMCodeGen LLVMScalarOpts LLVMInstCombine LLVMTransformUtils LLVMipa LLVMAnalysis LLVMExecutionEngine ' + \
+    'LLVMTarget LLVMMC LLVMCore LLVMSupport'
+BF_LLVM_LIBPATH = '${BF_LLVM}/lib'
+
 WITH_BF_OIIO = True
 BF_OIIO = '${LIBDIR}/openimageio'
 BF_OIIO_INC = '${BF_OIIO}/include'
-BF_OIIO_LIB = 'OpenImageIO'
 BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
-BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
+BF_OIIO_LIB_STATIC = '${BF_OIIO_LIBPATH}/OpenImageIO.lib'
+WITH_BF_STATICOIIO = True
 
 WITH_BF_OCIO = True
 BF_OCIO = '${LIBDIR}/opencolorio'
 BF_OCIO_INC = '${BF_OCIO}/include'
-BF_OCIO_LIB = 'OpenColorIO'
 BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
-BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
+BF_OCIO_LIB_STATIC = '${BF_OCIO_LIBPATH}/OpenColorIO.lib'
+WITH_BF_STATICOCIO = True
 
 WITH_BF_BOOST = True
 BF_BOOST = '${LIBDIR}/boost'
 BF_BOOST_INC = '${BF_BOOST}/include'
 BF_BOOST_LIB = 'libboost_date_time-vc90-mt-s-1_49 libboost_filesystem-vc90-mt-s-1_49 libboost_regex-vc90-mt-s-1_49 libboost_system-vc90-mt-s-1_49 libboost_thread-vc90-mt-s-1_49'
+BF_BOOST_LIB_INTERNATIONAL = ' libboost_locale-vc90-mt-s-1_49'
 BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 
 #CUDA
@@ -207,7 +218,7 @@ C_WARN = []
 CC_WARN = []
 CXX_WARN = []
 
-LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 'advapi32', 'shfolder', 'shell32', 'ole32', 'oleaut32', 'uuid']
+LLIBS = ['ws2_32', 'vfw32', 'winmm', 'kernel32', 'user32', 'gdi32', 'comdlg32', 'advapi32', 'shfolder', 'shell32', 'ole32', 'oleaut32', 'uuid', 'psapi']
 
 PLATFORM_LINKFLAGS = ['/SUBSYSTEM:CONSOLE','/MACHINE:X64','/STACK:2097152','/OPT:NOREF','/INCREMENTAL:NO', '/NODEFAULTLIB:msvcrt.lib', '/NODEFAULTLIB:msvcmrt.lib', '/NODEFAULTLIB:msvcurt.lib', '/NODEFAULTLIB:msvcrtd.lib']
 

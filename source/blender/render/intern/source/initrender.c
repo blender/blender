@@ -525,7 +525,7 @@ void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, flo
 /* ~~~~~~~~~~~~~~~~ part (tile) calculus ~~~~~~~~~~~~~~~~~~~~~~ */
 
 
-void freeparts(Render *re)
+void RE_parts_free(Render *re)
 {
 	RenderPart *part = re->parts.first;
 	
@@ -537,12 +537,19 @@ void freeparts(Render *re)
 	BLI_freelistN(&re->parts);
 }
 
-void initparts(Render *re, int do_crop)
+void RE_parts_clamp(Render *re)
+{
+	/* part size */
+	re->partx = min_ii(re->r.tilex, re->rectx);
+	re->party = min_ii(re->r.tiley, re->recty);
+}
+
+void RE_parts_init(Render *re, int do_crop)
 {
 	int nr, xd, yd, partx, party, xparts, yparts;
 	int xminb, xmaxb, yminb, ymaxb;
 	
-	freeparts(re);
+	RE_parts_free(re);
 	
 	/* this is render info for caller, is not reset when parts are freed! */
 	re->i.totpart = 0;
@@ -555,13 +562,10 @@ void initparts(Render *re, int do_crop)
 	xmaxb = re->disprect.xmax;
 	ymaxb = re->disprect.ymax;
 	
-	/* part size */
-	partx = min_ii(re->r.tilex, re->rectx);
-	party = min_ii(re->r.tiley, re->recty);
-	
-	re->partx = partx;
-	re->party = party;
-	
+	RE_parts_clamp(re);
+
+	partx = re->partx;
+	party = re->party;
 	/* part count */
 	xparts = (re->rectx + partx - 1) / partx;
 	yparts = (re->recty + party - 1) / party;

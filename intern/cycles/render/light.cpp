@@ -147,6 +147,10 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 		Mesh *mesh = object->mesh;
 		bool have_emission = false;
 
+		/* skip if we are not visible for BSDFs */
+		if(!(object->visibility & (PATH_RAY_DIFFUSE|PATH_RAY_GLOSSY|PATH_RAY_TRANSMIT)))
+			continue;
+
 		/* skip if we have no emission shaders */
 		foreach(uint sindex, mesh->used_shaders) {
 			Shader *shader = scene->shaders[sindex];
@@ -182,6 +186,10 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 	foreach(Object *object, scene->objects) {
 		Mesh *mesh = object->mesh;
 		bool have_emission = false;
+
+		/* skip if we are not visible for BSDFs */
+		if(!(object->visibility & (PATH_RAY_DIFFUSE|PATH_RAY_GLOSSY|PATH_RAY_TRANSMIT)))
+			continue;
 
 		/* skip if we have no emission shaders */
 		foreach(uint sindex, mesh->used_shaders) {

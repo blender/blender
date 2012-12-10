@@ -246,7 +246,7 @@ void BL_ArmatureConstraint::SetSubtarget(KX_GameObject* subtarget)
 // PYTHON
 
 PyMethodDef BL_ArmatureConstraint::Methods[] = {
-  {NULL,NULL} //Sentinel
+	{NULL,NULL} //Sentinel
 };
 
 // order of definition of attributes, must match Attributes[] array

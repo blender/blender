@@ -70,13 +70,15 @@ PyTypeObject KX_MeshProxy::Type = {
 };
 
 PyMethodDef KX_MeshProxy::Methods[] = {
-{"getMaterialName", (PyCFunction)KX_MeshProxy::sPyGetMaterialName,METH_VARARGS},
-{"getTextureName", (PyCFunction)KX_MeshProxy::sPyGetTextureName,METH_VARARGS},
-{"getVertexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetVertexArrayLength,METH_VARARGS},
-{"getVertex", (PyCFunction)KX_MeshProxy::sPyGetVertex,METH_VARARGS},
-{"getPolygon", (PyCFunction)KX_MeshProxy::sPyGetPolygon,METH_VARARGS},
-//{"getIndexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetIndexArrayLength,METH_VARARGS},
-  {NULL,NULL} //Sentinel
+	{"getMaterialName", (PyCFunction)KX_MeshProxy::sPyGetMaterialName,METH_VARARGS},
+	{"getTextureName", (PyCFunction)KX_MeshProxy::sPyGetTextureName,METH_VARARGS},
+	{"getVertexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetVertexArrayLength,METH_VARARGS},
+	{"getVertex", (PyCFunction)KX_MeshProxy::sPyGetVertex,METH_VARARGS},
+	{"getPolygon", (PyCFunction)KX_MeshProxy::sPyGetPolygon,METH_VARARGS},
+	{"transform", (PyCFunction)KX_MeshProxy::sPyTransform,METH_VARARGS},
+	{"transformUV", (PyCFunction)KX_MeshProxy::sPyTransformUV,METH_VARARGS},
+	//{"getIndexArrayLength", (PyCFunction)KX_MeshProxy::sPyGetIndexArrayLength,METH_VARARGS},
+	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef KX_MeshProxy::Attributes[] = {
@@ -170,7 +172,7 @@ PyObject *KX_MeshProxy::PyGetVertexArrayLength(PyObject *args, PyObject *kwds)
 			length = m_meshobj->NumVertices(mat);
 	}
 	
-	return PyLong_FromSsize_t(length);
+	return PyLong_FromLong(length);
 }
 
 
@@ -218,6 +220,160 @@ PyObject *KX_MeshProxy::PyGetPolygon(PyObject *args, PyObject *kwds)
 	return polyob;
 }
 
+PyObject *KX_MeshProxy::PyTransform(PyObject *args, PyObject *kwds)
+{
+	int matindex;
+	PyObject *pymat;
+	bool ok = false;
+
+	MT_Matrix4x4 transform;
+
+	if (!PyArg_ParseTuple(args,"iO:transform", &matindex, &pymat) ||
+	    !PyMatTo(pymat, transform))
+	{
+		return NULL;
+	}
+
+	MT_Matrix4x4 ntransform = transform.inverse().transposed();
+	ntransform[0][3] = ntransform[1][3] = ntransform[2][3] = 0.0f;
+
+	/* transform mesh verts */
+	unsigned int mit_index = 0;
+	for (list<RAS_MeshMaterial>::iterator mit = m_meshobj->GetFirstMaterial();
+	     (mit != m_meshobj->GetLastMaterial());
+	     ++mit, ++mit_index)
+	{
+		if (matindex == -1) {
+			/* always transform */
+		}
+		else if (matindex == mit_index) {
+			/* we found the right index! */
+		}
+		else {
+			continue;
+		}
+
+		RAS_MeshSlot *slot = mit->m_baseslot;
+		RAS_MeshSlot::iterator it;
+		ok = true;
+
+		for (slot->begin(it); !slot->end(it); slot->next(it)) {
+			size_t i;
+			for (i = it.startvertex; i < it.endvertex; i++) {
+				RAS_TexVert *vert = &it.vertex[i];
+				vert->Transform(transform, ntransform);
+			}
+		}
+
+		/* if we set a material index, quit when done */
+		if (matindex == mit_index) {
+			break;
+		}
+	}
+
+	if (ok == false) {
+		PyErr_Format(PyExc_ValueError,
+		             "mesh.transform(...): invalid material index %d", matindex);
+		return NULL;
+	}
+
+	m_meshobj->SetMeshModified(true);
+
+	Py_RETURN_NONE;
+}
+
+PyObject *KX_MeshProxy::PyTransformUV(PyObject *args, PyObject *kwds)
+{
+	int matindex;
+	PyObject *pymat;
+	int uvindex = -1;
+	int uvindex_from = -1;
+	bool ok = false;
+
+	MT_Matrix4x4 transform;
+
+	if (!PyArg_ParseTuple(args,"iO|iii:transformUV", &matindex, &pymat, &uvindex, &uvindex_from) ||
+	    !PyMatTo(pymat, transform))
+	{
+		return NULL;
+	}
+
+	if (uvindex < -1 || uvindex > 1) {
+		PyErr_Format(PyExc_ValueError,
+		             "mesh.transformUV(...): invalid uv_index %d", uvindex);
+		return NULL;
+	}
+	if (uvindex_from < -1 || uvindex_from > 1 || uvindex == -1) {
+		PyErr_Format(PyExc_ValueError,
+		             "mesh.transformUV(...): invalid uv_index_from %d", uvindex);
+		return NULL;
+	}
+	if (uvindex_from == uvindex) {
+		uvindex_from = -1;
+	}
+
+	/* transform mesh verts */
+	unsigned int mit_index = 0;
+	for (list<RAS_MeshMaterial>::iterator mit = m_meshobj->GetFirstMaterial();
+	     (mit != m_meshobj->GetLastMaterial());
+	     ++mit, ++mit_index)
+	{
+		if (matindex == -1) {
+			/* always transform */
+		}
+		else if (matindex == mit_index) {
+			/* we found the right index! */
+		}
+		else {
+			continue;
+		}
+
+		RAS_MeshSlot *slot = mit->m_baseslot;
+		RAS_MeshSlot::iterator it;
+		ok = true;
+
+		for (slot->begin(it); !slot->end(it); slot->next(it)) {
+			size_t i;
+
+			for (i = it.startvertex; i < it.endvertex; i++) {
+				RAS_TexVert *vert = &it.vertex[i];
+				if (uvindex_from != -1) {
+					if (uvindex_from == 0) vert->SetUV2(vert->getUV1());
+					else                   vert->SetUV1(vert->getUV2());
+				}
+
+				switch (uvindex) {
+					case 0:
+						vert->TransformUV1(transform);
+						break;
+					case 1:
+						vert->TransformUV2(transform);
+						break;
+					case -1:
+						vert->TransformUV1(transform);
+						vert->TransformUV2(transform);
+						break;
+				}
+			}
+		}
+
+		/* if we set a material index, quit when done */
+		if (matindex == mit_index) {
+			break;
+		}
+	}
+
+	if (ok == false) {
+		PyErr_Format(PyExc_ValueError,
+		             "mesh.transformUV(...): invalid material index %d", matindex);
+		return NULL;
+	}
+
+	m_meshobj->SetMeshModified(true);
+
+	Py_RETURN_NONE;
+}
+
 PyObject *KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_MeshProxy* self = static_cast<KX_MeshProxy*>(self_v);
@@ -250,13 +406,13 @@ PyObject *KX_MeshProxy::pyattr_get_materials(void *self_v, const KX_PYATTRIBUTE_
 PyObject * KX_MeshProxy::pyattr_get_numMaterials(void * selfv, const KX_PYATTRIBUTE_DEF * attrdef)
 {
 	KX_MeshProxy * self = static_cast<KX_MeshProxy *> (selfv);
-	return PyLong_FromSsize_t(self->m_meshobj->NumMaterials());
+	return PyLong_FromLong(self->m_meshobj->NumMaterials());
 }
 
 PyObject * KX_MeshProxy::pyattr_get_numPolygons(void * selfv, const KX_PYATTRIBUTE_DEF * attrdef)
 {
 	KX_MeshProxy * self = static_cast<KX_MeshProxy *> (selfv);
-	return PyLong_FromSsize_t(self->m_meshobj->NumPolygons());
+	return PyLong_FromLong(self->m_meshobj->NumPolygons());
 }
 
 /* a close copy of ConvertPythonToGameObject but for meshes */

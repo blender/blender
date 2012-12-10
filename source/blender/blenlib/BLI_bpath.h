@@ -48,6 +48,11 @@ void BLI_bpath_traverse_id_list(struct Main *bmain, struct ListBase *lb, BPathVi
 void BLI_bpath_traverse_main(struct Main *bmain, BPathVisitor visit_cb, const int flag, void *userdata);
 int  BLI_bpath_relocate_visitor(void *oldbasepath, char *path_dst, const char *path_src);
 
+/* Functions for temp backup/restore of paths, path count must NOT change */
+void *BLI_bpath_list_backup(struct Main *bmain, const int flag);
+void  BLI_bpath_list_restore(struct Main *bmain, const int flag, void *ls_handle);
+void  BLI_bpath_list_free(void *ls_handle);
+
 #define BLI_BPATH_TRAVERSE_ABS             (1 << 0) /* convert paths to absolute */
 #define BLI_BPATH_TRAVERSE_SKIP_LIBRARY    (1 << 2) /* skip library paths */
 #define BLI_BPATH_TRAVERSE_SKIP_PACKED     (1 << 3) /* skip packed data */

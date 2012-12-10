@@ -49,6 +49,7 @@
 #include "ED_anim_api.h"
 #include "ED_gpencil.h"
 #include "ED_keyframes_edit.h"
+#include "ED_markers.h"
 
 #include "gpencil_intern.h"
 
@@ -460,11 +461,12 @@ void paste_gpdata(Scene *scene)
 	/* undo and redraw stuff */
 	BIF_undo_push("Paste Grease Pencil Frames");
 }
+#endif /* XXX disabled until Grease Pencil code stabilises again... */
 
 /* -------------------------------------- */
 /* Snap Tools */
 
-static short snap_gpf_nearest(bGPDframe *gpf, Scene *scene)
+static short snap_gpf_nearest(bGPDframe *gpf, Scene *UNUSED(scene))
 {
 	if (gpf->flag & GP_FRAME_SELECT)
 		gpf->framenum = (int)(floor(gpf->framenum + 0.5));
@@ -475,7 +477,7 @@ static short snap_gpf_nearestsec(bGPDframe *gpf, Scene *scene)
 {
 	float secf = (float)FPS;
 	if (gpf->flag & GP_FRAME_SELECT)
-		gpf->framenum = (int)(floor(gpf->framenum / secf + 0.5f) * secf);
+		gpf->framenum = (int)(floorf(gpf->framenum / secf + 0.5f) * secf);
 	return 0;
 }
 
@@ -489,33 +491,32 @@ static short snap_gpf_cframe(bGPDframe *gpf, Scene *scene)
 static short snap_gpf_nearmarker(bGPDframe *gpf, Scene *scene)
 {
 	if (gpf->flag & GP_FRAME_SELECT)
-		gpf->framenum = (int)find_nearest_marker_time(&scene->markers, (float)gpf->framenum);
+		gpf->framenum = (int)ED_markers_find_nearest_marker_time(&scene->markers, (float)gpf->framenum);
 	return 0;
 }
 
-
 /* snap selected frames to ... */
-void snap_gplayer_frames(bGPDlayer *gpl, Scene *scene, short mode)
+void ED_gplayer_snap_frames(bGPDlayer *gpl, Scene *scene, short mode)
 {
 	switch (mode) {
-		case 1: /* snap to nearest frame */
+		case SNAP_KEYS_NEARFRAME: /* snap to nearest frame */
 			ED_gplayer_frames_looper(gpl, scene, snap_gpf_nearest);
 			break;
-		case 2: /* snap to current frame */
+		case SNAP_KEYS_CURFRAME: /* snap to current frame */
 			ED_gplayer_frames_looper(gpl, scene, snap_gpf_cframe);
 			break;
-		case 3: /* snap to nearest marker */
+		case SNAP_KEYS_NEARMARKER: /* snap to nearest marker */
 			ED_gplayer_frames_looper(gpl, scene, snap_gpf_nearmarker);
 			break;
-		case 4: /* snap to nearest second */
+		case SNAP_KEYS_NEARSEC: /* snap to nearest second */
 			ED_gplayer_frames_looper(gpl, scene, snap_gpf_nearestsec);
 			break;
 		default: /* just in case */
-			ED_gplayer_frames_looper(gpl, scene, snap_gpf_nearest);
 			break;
 	}
 }
 
+#if 0 /* XXX disabled until grease pencil code stabilises again */
 /* -------------------------------------- */
 /* Mirror Tools */
 

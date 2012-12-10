@@ -101,7 +101,6 @@ set(SRC
 	KX_ObstacleSimulation.cpp
 	KX_OrientationInterpolator.cpp
 	KX_ParentActuator.cpp
-	KX_PhysicsObjectWrapper.cpp
 	KX_PolyProxy.cpp
 	KX_PolygonMaterial.cpp
 	KX_PositionInterpolator.cpp
@@ -184,7 +183,6 @@ set(SRC
 	KX_OrientationInterpolator.h
 	KX_ParentActuator.h
 	KX_PhysicsEngineEnums.h
-	KX_PhysicsObjectWrapper.h
 	KX_PhysicsPropertiesobsolete.h
 	KX_PolyProxy.h
 	KX_PolygonMaterial.h

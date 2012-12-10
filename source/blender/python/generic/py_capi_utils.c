@@ -83,13 +83,13 @@ int PyC_AsArray(void *array, PyObject *value, const Py_ssize_t length,
 		/* could use is_double for 'long int' but no use now */
 		int *array_int = array;
 		for (i = 0; i < length; i++) {
-			array_int[i] = PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value_fast, i));
+			array_int[i] = PyLong_AsLong(PySequence_Fast_GET_ITEM(value_fast, i));
 		}
 	}
 	else if (type == &PyBool_Type) {
 		int *array_bool = array;
 		for (i = 0; i < length; i++) {
-			array_bool[i] = (PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value_fast, i)) != 0);
+			array_bool[i] = (PyLong_AsLong(PySequence_Fast_GET_ITEM(value_fast, i)) != 0);
 		}
 	}
 	else {
@@ -504,7 +504,7 @@ void PyC_SetHomePath(const char *py_path_bundle)
 	 * but current Python lib (release 3.1.1) doesn't handle these correctly */
 	if (strchr(py_path_bundle, ':'))
 		printf("Warning : Blender application is located in a path containing : or / chars\
-			   \nThis may make python import function fail\n");
+		       \nThis may make python import function fail\n");
 #endif
 
 
@@ -567,7 +567,7 @@ void PyC_RunQuicky(const char *filepath, int n, ...)
 			ret = PyObject_CallFunction(calcsize, (char *)"s", format);
 
 			if (ret) {
-				sizes[i] = PyLong_AsSsize_t(ret);
+				sizes[i] = PyLong_AsLong(ret);
 				Py_DECREF(ret);
 				ret = PyObject_CallFunction(unpack, (char *)"sy#", format, (char *)ptr, sizes[i]);
 			}

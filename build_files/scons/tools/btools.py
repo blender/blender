@@ -116,11 +116,11 @@ def validate_arguments(args, bc):
             'WITH_BF_TIFF', 'BF_TIFF', 'BF_TIFF_INC', 'BF_TIFF_LIB', 'BF_TIFF_LIBPATH', 'WITH_BF_STATICTIFF', 'BF_TIFF_LIB_STATIC',
             'WITH_BF_ZLIB', 'BF_ZLIB', 'BF_ZLIB_INC', 'BF_ZLIB_LIB', 'BF_ZLIB_LIBPATH', 'WITH_BF_STATICZLIB', 'BF_ZLIB_LIB_STATIC',
             'WITH_BF_INTERNATIONAL',
-            'BF_GETTEXT', 'BF_GETTEXT_INC', 'BF_GETTEXT_LIB', 'WITH_BF_GETTEXT_STATIC', 'BF_GETTEXT_LIB_STATIC', 'BF_GETTEXT_LIBPATH',
             'WITH_BF_ICONV', 'BF_ICONV', 'BF_ICONV_INC', 'BF_ICONV_LIB', 'BF_ICONV_LIBPATH',
             'WITH_BF_GAMEENGINE',
             'WITH_BF_BULLET', 'BF_BULLET', 'BF_BULLET_INC', 'BF_BULLET_LIB',
-            'WITH_BF_ELTOPO', 'BF_LAPACK', 'BF_LAPACK_LIB', 'BF_LAPACK_LIBPATH', 'BF_LAPACK_LIB_STATIC',
+            # 'WITH_BF_ELTOPO',  # now only available in a branch
+            'BF_LAPACK', 'BF_LAPACK_LIB', 'BF_LAPACK_LIBPATH', 'BF_LAPACK_LIB_STATIC',
             'BF_WINTAB', 'BF_WINTAB_INC',
             'BF_FREETYPE', 'BF_FREETYPE_INC', 'BF_FREETYPE_LIB', 'BF_FREETYPE_LIBPATH', 'BF_FREETYPE_LIB_STATIC', 'WITH_BF_FREETYPE_STATIC',
             'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
@@ -164,8 +164,10 @@ def validate_arguments(args, bc):
             'WITH_BF_CYCLES', 'WITH_BF_CYCLES_CUDA_BINARIES', 'BF_CYCLES_CUDA_NVCC', 'BF_CYCLES_CUDA_NVCC', 'WITH_BF_CYCLES_CUDA_THREADED_COMPILE',
             'WITH_BF_OIIO', 'WITH_BF_STATICOIIO', 'BF_OIIO', 'BF_OIIO_INC', 'BF_OIIO_LIB', 'BF_OIIO_LIB_STATIC', 'BF_OIIO_LIBPATH',
             'WITH_BF_OCIO', 'WITH_BF_STATICOCIO', 'BF_OCIO', 'BF_OCIO_INC', 'BF_OCIO_LIB', 'BF_OCIO_LIB_STATIC', 'BF_OCIO_LIBPATH',
-            'WITH_BF_BOOST', 'WITH_BF_STATICBOOST', 'BF_BOOST', 'BF_BOOST_INC', 'BF_BOOST_LIB', 'BF_BOOST_LIB_STATIC', 'BF_BOOST_LIBPATH',
-            'WITH_BF_LIBMV'
+            'WITH_BF_BOOST', 'WITH_BF_STATICBOOST', 'BF_BOOST', 'BF_BOOST_INC', 'BF_BOOST_LIB', 'BF_BOOST_LIB_INTERNATIONAL', 'BF_BOOST_LIB_STATIC', 'BF_BOOST_LIBPATH',
+            'WITH_BF_LIBMV',
+            'WITH_BF_CYCLES_OSL', 'WITH_BF_STATICOSL', 'BF_OSL', 'BF_OSL_INC', 'BF_OSL_LIB', 'BF_OSL_LIBPATH', 'BF_OSL_LIB_STATIC', 'BF_OSL_COMPILER',
+            'WITH_BF_LLVM', 'WITH_BF_STATICLLVM', 'BF_LLVM', 'BF_LLVM_LIB', 'BF_LLVM_LIBPATH', 'BF_LLVM_LIB_STATIC', 'BF_PROGRAM_LINKFLAGS'
             ]
     
     # Have options here that scons expects to be lists
@@ -179,7 +181,7 @@ def validate_arguments(args, bc):
             'BF_DEBUG_CFLAGS', 'BF_DEBUG_CCFLAGS', 'BF_DEBUG_CXXFLAGS',
             'C_WARN', 'CC_WARN', 'CXX_WARN',
             'LLIBS', 'PLATFORM_LINKFLAGS','MACOSX_ARCHITECTURE', 'MACOSX_SDK_CHECK', 'XCODE_CUR_VER',
-            'BF_CYCLES_CUDA_BINARIES_ARCH',
+            'BF_CYCLES_CUDA_BINARIES_ARCH', 'BF_PROGRAM_LINKFLAGS', 'MACOSX_DEPLOYMENT_TARGET'
     ]
     
     
@@ -381,15 +383,8 @@ def read_opts(env, cfg, args):
         ('BF_ZLIB_LIBPATH', 'ZLib library path', ''),
         ('BF_ZLIB_LIB_STATIC', 'ZLib static library', ''),
 
-        (BoolVariable('WITH_BF_INTERNATIONAL', 'Use Gettext if true', True)),
+        (BoolVariable('WITH_BF_INTERNATIONAL', 'Use Boost::locale if true', True)),
 
-        ('BF_GETTEXT', 'gettext base path', ''),
-        ('BF_GETTEXT_INC', 'gettext include path', ''),
-        ('BF_GETTEXT_LIB', 'gettext library', ''),
-        (BoolVariable('WITH_BF_GETTEXT_STATIC', 'Use static gettext library if true', False)),
-        ('BF_GETTEXT_LIB_STATIC', 'static gettext library', ''),
-        ('BF_GETTEXT_LIBPATH', 'gettext library path', ''),
-        
         (BoolVariable('WITH_BF_ICONV', 'Use iconv if true', True)),
         ('BF_ICONV', 'iconv base path', ''),
         ('BF_ICONV_INC', 'iconv include path', ''),
@@ -399,8 +394,7 @@ def read_opts(env, cfg, args):
         (BoolVariable('WITH_BF_GAMEENGINE', 'Build with gameengine' , False)),
 
         (BoolVariable('WITH_BF_BULLET', 'Use Bullet if true', True)),
-        
-        (BoolVariable('WITH_BF_ELTOPO', 'Use Eltopo collision library if true', False)),
+        # (BoolVariable('WITH_BF_ELTOPO', 'Use Eltopo collision library if true', False)),  # this is now only available in a branch
         ('BF_LAPACK', 'LAPACK base path', ''),
         ('BF_LAPACK_LIB', 'LAPACK library', ''),
         ('BF_LAPACK_LIB_STATIC', 'LAPACK library', ''),
@@ -508,8 +502,9 @@ def read_opts(env, cfg, args):
         ('LLIBS', 'Platform libs', []),
         ('PLATFORM_LINKFLAGS', 'Platform linkflags', []),
         ('MACOSX_ARCHITECTURE', 'python_arch.zip select', ''),
-        ('MACOSX_SDK_CHECK', 'detect available OSX sdk`s', ''),
-        ('XCODE_CUR_VER', 'detect XCode version', ''),
+        ('MACOSX_SDK_CHECK', 'Detect available OS X SDK`s', ''),
+        ('XCODE_CUR_VER', 'Detect XCode version', ''),
+        ('MACOSX_DEPLOYMENT_TARGET', 'Detect OS X target version', ''),
 
         (BoolVariable('BF_PROFILE', 'Add profiling information if true', False)),
         ('BF_PROFILE_CFLAGS', 'C only profiling flags', []),
@@ -598,11 +593,30 @@ def read_opts(env, cfg, args):
         ('BF_BOOST', 'Boost root path', ''),
         ('BF_BOOST_INC', 'Boost include path', ''),
         ('BF_BOOST_LIB', 'Boost library', ''),
+        ('BF_BOOST_LIB_INTERNATIONAL', 'Boost library', ''),
         ('BF_BOOST_LIBPATH', 'Boost library path', ''),
         ('BF_BOOST_LIB_STATIC', 'Boost static library', ''),
 
         (BoolVariable('WITH_GHOST_XDND', 'Build with drag-n-drop support on Linux platforms using XDND protocol', True)),
-        (BoolVariable('WITH_BF_COMPOSITOR_LEGACY', 'Enable the legacy compositor', False))
+        (BoolVariable('WITH_BF_COMPOSITOR_LEGACY', 'Enable the legacy compositor', False)),
+
+        (BoolVariable('WITH_BF_CYCLES_OSL', 'Build with OSL sypport in Cycles', False)),
+        (BoolVariable('WITH_BF_STATICOSL', 'Staticly link to OSL', False)),
+        ('BF_OSL', 'OSL root path', ''),
+        ('BF_OSL_INC', 'OSL include path', ''),
+        ('BF_OSL_LIB', 'OSL library', ''),
+        ('BF_OSL_LIBPATH', 'OSL library path', ''),
+        ('BF_OSL_LIB_STATIC', 'OSL static library', ''),
+        ('BF_OSL_COMPILER', 'OSL compiler', ''),
+
+        (BoolVariable('WITH_BF_LLVM', 'Build with LLVM sypport (required for OSL)', False)),
+        (BoolVariable('WITH_BF_STATICLLVM', 'Staticly link to LLVM', False)),
+        ('BF_LLVM', 'LLVM root path', ''),
+        ('BF_LLVM_LIB', 'LLVM library', ''),
+        ('BF_LLVM_LIBPATH', 'LLVM library path', ''),
+        ('BF_LLVM_LIB_STATIC', 'LLVM static library', ''),
+
+        ('BF_PROGRAM_LINKFLAGS', 'Link flags applied only to final binaries (blender and blenderplayer, not makesrna/makesdna)', '')
     ) # end of opts.AddOptions()
 
     return localopts
@@ -673,7 +687,7 @@ def buildslave(target=None, source=None, env=None):
         elif bitness == '32bit':
             platform = 'linux-' + glibc + '-i686'
     if platform == 'darwin':
-        platform = 'OSX-' + env['MACOSX_ARCHITECTURE']
+        platform = 'OSX-' + env['MACOSX_DEPLOYMENT_TARGET'] + '-' + env['MACOSX_ARCHITECTURE']
 
     branch = env['BUILDBOT_BRANCH']
 

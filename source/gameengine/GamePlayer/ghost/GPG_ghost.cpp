@@ -60,6 +60,7 @@ extern "C"
 #include "BKE_blender.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
+#include "BKE_image.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_library.h"
@@ -172,7 +173,7 @@ static BOOL scr_saver_init(int argc, char **argv)
 
 #endif /* WIN32 */
 
-void usage(const char* program, bool isBlenderPlayer)
+static void usage(const char* program, bool isBlenderPlayer)
 {
 	const char * consoleoption;
 	const char * example_filename = "";
@@ -332,7 +333,7 @@ static BlendFileData *load_game_data(const char *progname, char *filename = NULL
 	return bfd;
 }
 
-bool GPG_NextFrame(GHOST_ISystem* system, GPG_Application *app, int &exitcode, STR_String &exitstring, GlobalSettings *gs)
+static bool GPG_NextFrame(GHOST_ISystem* system, GPG_Application *app, int &exitcode, STR_String &exitstring, GlobalSettings *gs)
 {
 	bool run = true;
 	system->processEvents(false);
@@ -352,7 +353,7 @@ struct GPG_NextFrameState {
 	GlobalSettings *gs;
 } gpg_nextframestate;
 
-int GPG_PyNextFrame(void *state0)
+static int GPG_PyNextFrame(void *state0)
 {
 	GPG_NextFrameState *state = (GPG_NextFrameState *) state0;
 	int exitcode;
@@ -446,11 +447,11 @@ int main(int argc, char** argv)
 	G.main = NULL;
 
 	IMB_init();
+	BKE_images_init();
 
 	// Setup builtin font for BLF (mostly copied from creator.c, wm_init_exit.c and interface_style.c)
 	BLF_init(11, U.dpi);
 	BLF_lang_init();
-	BLF_lang_encoding("");
 	BLF_lang_set("");
 
 	BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
@@ -755,6 +756,7 @@ int main(int argc, char** argv)
 		}
 
 		GPU_set_anisotropic(U.anisotropic_filter);
+		GPU_set_gpu_mipmapping(U.use_gpu_mipmap);
 		
 		// Create the system
 		if (GHOST_ISystem::createSystem() == GHOST_kSuccess)
@@ -1068,6 +1070,7 @@ int main(int argc, char** argv)
 #endif
 
 	IMB_exit();
+	BKE_images_exit();
 	free_nodesystem();
 
 	SYS_DeleteSystem(syshandle);

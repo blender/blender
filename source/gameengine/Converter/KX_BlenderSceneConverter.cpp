@@ -103,6 +103,7 @@ extern "C"
 #include "KX_MeshProxy.h"
 #include "RAS_MeshObject.h"
 extern "C" {
+	#include "PIL_time.h"
 	#include "BKE_context.h"
 	#include "BLO_readfile.h"
 	#include "BKE_idcode.h"
@@ -957,10 +958,12 @@ static void load_datablocks(Main *main_newlib, BlendHandle *bpy_openlib, const c
 bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const char *path, char *group, KX_Scene *scene_merge, char **err_str, short options)
 {
 	Main *main_newlib; /* stored as a dynamic 'main' until we free it */
-	int idcode= BKE_idcode_from_name(group);
+	const int idcode = BKE_idcode_from_name(group);
 	ReportList reports;
 	static char err_local[255];
-	
+
+//	TIMEIT_START(bge_link_blend_file);
+
 	/* only scene and mesh supported right now */
 	if (idcode!=ID_SCE && idcode!=ID_ME &&idcode!=ID_AC) {
 		snprintf(err_local, sizeof(err_local), "invalid ID type given \"%s\"\n", group);
@@ -1059,7 +1062,9 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 			}
 		}
 	}
-	
+
+//	TIMEIT_END(bge_link_blend_file);
+
 	return true;
 }
 

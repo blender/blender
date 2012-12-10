@@ -127,8 +127,8 @@ struct	SG_Callbacks
 		m_schedulefunc(NULL),
 		m_reschedulefunc(NULL)
 	{
-	};
-		
+	}
+
 	SG_Callbacks(
 		SG_ReplicationNewCallback repfunc,
 		SG_DestructionNewCallback destructfunc,
@@ -142,7 +142,7 @@ struct	SG_Callbacks
 		m_schedulefunc(schedulefunc),
 		m_reschedulefunc(reschedulefunc)
 	{
-	};
+	}
 
 	SG_ReplicationNewCallback	m_replicafunc;
 	SG_DestructionNewCallback	m_destructionfunc;
@@ -152,8 +152,8 @@ struct	SG_Callbacks
 };
 
 /**
-base object that can be part of the scenegraph.
-*/
+ * base object that can be part of the scenegraph.
+ */
 class SG_IObject : public SG_QList
 {
 private :

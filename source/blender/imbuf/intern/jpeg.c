@@ -235,19 +235,19 @@ static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, size_t 
  */
 #define INPUT_BYTE(cinfo, V, action)  \
 	MAKESTMT(MAKE_BYTE_AVAIL(cinfo,action); \
-		  bytes_in_buffer--; \
-		  V = GETJOCTET(*next_input_byte++); )
+	         bytes_in_buffer--; \
+	         V = GETJOCTET(*next_input_byte++); )
 
 /* As above, but read two bytes interpreted as an unsigned 16-bit integer.
  * V should be declared unsigned int or perhaps INT32.
  */
 #define INPUT_2BYTES(cinfo, V, action)  \
 	MAKESTMT(MAKE_BYTE_AVAIL(cinfo,action); \
-		  bytes_in_buffer--; \
-		  V = ((unsigned int) GETJOCTET(*next_input_byte++)) << 8; \
-		  MAKE_BYTE_AVAIL(cinfo, action); \
-		  bytes_in_buffer--; \
-		  V += GETJOCTET(*next_input_byte++); )
+	      bytes_in_buffer--; \
+	      V = ((unsigned int) GETJOCTET(*next_input_byte++)) << 8; \
+	      MAKE_BYTE_AVAIL(cinfo, action); \
+	      bytes_in_buffer--; \
+	      V += GETJOCTET(*next_input_byte++); )
 
 
 static boolean
@@ -348,25 +348,12 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int fla
 							g = *buffer++;
 							b = *buffer++;
 							k = *buffer++;
-							
-							k = 255 - k;
-							r -= k;
-							if (r & 0xffffff00) {
-								if (r < 0) r = 0;
-								else r = 255;
-							}
-							g -= k;
-							if (g & 0xffffff00) {
-								if (g < 0) g = 0;
-								else g = 255;
-							}
-							b -= k;
-							if (b & 0xffffff00) {
-								if (b < 0) b = 0;
-								else b = 255;
-							}
-							
-							rect[3] = 255 - k;
+
+							r = (r * k) / 255;
+							g = (g * k) / 255;
+							b = (b * k) / 255;
+
+							rect[3] = 255;
 							rect[2] = b;
 							rect[1] = g;
 							rect[0] = r;

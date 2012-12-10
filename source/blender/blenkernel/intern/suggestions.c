@@ -47,6 +47,7 @@ static SuggList suggestions = {NULL, NULL, NULL, NULL, NULL};
 static char *documentation = NULL;
 //static int doc_lines = 0;
 
+/* TODO, replace with  BLI_strncasecmp() */
 static int txttl_cmp(const char *first, const char *second, int len)
 {
 	int cmp, i;
@@ -113,19 +114,18 @@ short texttool_text_is_active(Text *text)
 
 void texttool_suggest_add(const char *name, char type)
 {
+	const int len = strlen(name);
+	int cmp;
 	SuggItem *newitem, *item;
-	int len, cmp;
 
-	newitem = MEM_mallocN(sizeof(SuggItem) + strlen(name) + 1, "SuggestionItem");
+	newitem = MEM_mallocN(sizeof(SuggItem) + len + 1, "SuggItem");
 	if (!newitem) {
 		printf("Failed to allocate memory for suggestion.\n");
 		return;
 	}
 
 	newitem->name = (char *) (newitem + 1);
-	len = strlen(name);
-	strncpy(newitem->name, name, len);
-	newitem->name[len] = '\0';
+	memcpy(newitem->name, name, len + 1);
 	newitem->type = type;
 	newitem->prev = newitem->next = NULL;
 

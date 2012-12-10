@@ -61,6 +61,7 @@
 
 #include "BKE_blender.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -74,17 +75,19 @@
 
 #include "WM_api.h"  /* only for WM_main_playanim */
 
+struct PlayState;
+static void playanim_window_zoom(const struct PlayState *ps, const float zoom_offset);
+
 typedef struct PlayState {
 
 	/* playback state */
 	short direction;
-	short next;
+	short next_frame;
 	short once;
 	short turbo;
 	short pingpong;
 	short noskip;
 	short sstep;
-	short pause;
 	short wait2;
 	short stopped;
 	short go;
@@ -132,6 +135,7 @@ typedef enum eWS_Qual {
 	WS_QUAL_ALT     = (WS_QUAL_LALT | WS_QUAL_RALT),
 	WS_QUAL_LCTRL   = (1 << 4),
 	WS_QUAL_RCTRL   = (1 << 5),
+	WS_QUAL_CTRL    = (WS_QUAL_LCTRL | WS_QUAL_RCTRL),
 	WS_QUAL_LMOUSE  = (1 << 16),
 	WS_QUAL_MMOUSE  = (1 << 17),
 	WS_QUAL_RMOUSE  = (1 << 18),
@@ -179,27 +183,12 @@ static void playanim_event_qual_update(void)
 
 	/* Alt */
 	GHOST_GetModifierKeyState(g_WS.ghost_system, GHOST_kModifierKeyLeftAlt, &val);
-	if (val) g_WS.qual |=  WS_QUAL_LCTRL;
-	else     g_WS.qual &= ~WS_QUAL_LCTRL;
+	if (val) g_WS.qual |=  WS_QUAL_LALT;
+	else     g_WS.qual &= ~WS_QUAL_LALT;
 
 	GHOST_GetModifierKeyState(g_WS.ghost_system, GHOST_kModifierKeyRightAlt, &val);
-	if (val) g_WS.qual |=  WS_QUAL_RCTRL;
-	else     g_WS.qual &= ~WS_QUAL_RCTRL;
-
-	/* LMB */
-	GHOST_GetButtonState(g_WS.ghost_system, GHOST_kButtonMaskLeft, &val);
-	if (val) g_WS.qual |=  WS_QUAL_LMOUSE;
-	else     g_WS.qual &= ~WS_QUAL_LMOUSE;
-
-	/* MMB */
-	GHOST_GetButtonState(g_WS.ghost_system, GHOST_kButtonMaskMiddle, &val);
-	if (val) g_WS.qual |=  WS_QUAL_MMOUSE;
-	else     g_WS.qual &= ~WS_QUAL_MMOUSE;
-
-	/* RMB */
-	GHOST_GetButtonState(g_WS.ghost_system, GHOST_kButtonMaskRight, &val);
-	if (val) g_WS.qual |=  WS_QUAL_RMOUSE;
-	else     g_WS.qual &= ~WS_QUAL_RMOUSE;
+	if (val) g_WS.qual |=  WS_QUAL_RALT;
+	else     g_WS.qual &= ~WS_QUAL_RALT;
 }
 
 typedef struct PlayAnimPict {
@@ -218,6 +207,21 @@ static int fromdisk = FALSE;
 static float zoomx = 1.0, zoomy = 1.0;
 static double ptottime = 0.0, swaptime = 0.04;
 
+static PlayAnimPict *playanim_step(PlayAnimPict *playanim, int step)
+{
+	if (step > 0) {
+		while (step-- && playanim) {
+			playanim = playanim->next;
+		}
+	}
+	else if (step < 0) {
+		while (step++ && playanim) {
+			playanim = playanim->prev;
+		}
+	}
+	return playanim;
+}
+
 static int pupdate_time(void)
 {
 	static double ltime;
@@ -234,7 +238,7 @@ static void playanim_toscreen(PlayAnimPict *picture, struct ImBuf *ibuf, int fon
 {
 
 	if (ibuf == NULL) {
-		printf("no ibuf !\n");
+		printf("%s: no ibuf for picture '%s'\n", __func__, picture ? picture->name : "<NIL>");
 		return;
 	}
 	if (ibuf->rect == NULL && ibuf->rect_float) {
@@ -432,6 +436,11 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 		ps->stopped = FALSE;
 	}
 
+	if (ps->wait2) {
+		pupdate_time();
+		ptottime = 0;
+	}
+
 	switch (type) {
 		case GHOST_kEventKeyDown:
 		case GHOST_kEventKeyUp:
@@ -446,33 +455,42 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 				case GHOST_kKeyP:
 					if (val) ps->pingpong = !ps->pingpong;
 					break;
+				case GHOST_kKey1:
 				case GHOST_kKeyNumpad1:
 					if (val) swaptime = ps->fstep / 60.0;
 					break;
+				case GHOST_kKey2:
 				case GHOST_kKeyNumpad2:
 					if (val) swaptime = ps->fstep / 50.0;
 					break;
+				case GHOST_kKey3:
 				case GHOST_kKeyNumpad3:
 					if (val) swaptime = ps->fstep / 30.0;
 					break;
+				case GHOST_kKey4:
 				case GHOST_kKeyNumpad4:
 					if (g_WS.qual & WS_QUAL_SHIFT)
 						swaptime = ps->fstep / 24.0;
 					else
 						swaptime = ps->fstep / 25.0;
 					break;
+				case GHOST_kKey5:
 				case GHOST_kKeyNumpad5:
 					if (val) swaptime = ps->fstep / 20.0;
 					break;
+				case GHOST_kKey6:
 				case GHOST_kKeyNumpad6:
 					if (val) swaptime = ps->fstep / 15.0;
 					break;
+				case GHOST_kKey7:
 				case GHOST_kKeyNumpad7:
 					if (val) swaptime = ps->fstep / 12.0;
 					break;
+				case GHOST_kKey8:
 				case GHOST_kKeyNumpad8:
 					if (val) swaptime = ps->fstep / 10.0;
 					break;
+				case GHOST_kKey9:
 				case GHOST_kKeyNumpad9:
 					if (val) swaptime = ps->fstep / 6.0;
 					break;
@@ -482,10 +500,10 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 						ps->wait2 = FALSE;
 						if (g_WS.qual & WS_QUAL_SHIFT) {
 							ps->picture = picsbase.first;
-							ps->next = 0;
+							ps->next_frame = 0;
 						}
 						else {
-							ps->next = -1;
+							ps->next_frame = -1;
 						}
 					}
 					break;
@@ -493,10 +511,10 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 					if (val) {
 						ps->wait2 = FALSE;
 						if (g_WS.qual & WS_QUAL_SHIFT) {
-							ps->next = ps->direction = -1;
+							ps->next_frame = ps->direction = -1;
 						}
 						else {
-							ps->next = -10;
+							ps->next_frame = -10;
 							ps->sstep = TRUE;
 						}
 					}
@@ -507,10 +525,10 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 						ps->wait2 = FALSE;
 						if (g_WS.qual & WS_QUAL_SHIFT) {
 							ps->picture = picsbase.last;
-							ps->next = 0;
+							ps->next_frame = 0;
 						}
 						else {
-							ps->next = 1;
+							ps->next_frame = 1;
 						}
 					}
 					break;
@@ -518,10 +536,10 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 					if (val) {
 						ps->wait2 = FALSE;
 						if (g_WS.qual & WS_QUAL_SHIFT) {
-							ps->next = ps->direction = 1;
+							ps->next_frame = ps->direction = 1;
 						}
 						else {
-							ps->next = 10;
+							ps->next_frame = 10;
 							ps->sstep = TRUE;
 						}
 					}
@@ -532,35 +550,15 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 					if (val) {
 						if (g_WS.qual & WS_QUAL_SHIFT) {
 							if (ps->curframe_ibuf)
-								printf(" Name: %s | Speed: %.2f frames/s\n", ps->curframe_ibuf->name, ps->fstep / swaptime);
+								printf(" Name: %s | Speed: %.2f frames/s\n",
+								       ps->curframe_ibuf->name, ps->fstep / swaptime);
 						}
 						else {
 							swaptime = ps->fstep / 5.0;
 						}
 					}
 					break;
-				case GHOST_kKeyEqual:
-					if (val) {
-						if (g_WS.qual & WS_QUAL_SHIFT) {
-							ps->pause++;
-							printf("pause:%d\n", ps->pause);
-						}
-						else {
-							swaptime /= 1.1;
-						}
-					}
-					break;
-				case GHOST_kKeyMinus:
-					if (val) {
-						if (g_WS.qual & WS_QUAL_SHIFT) {
-							ps->pause--;
-							printf("pause:%d\n", ps->pause);
-						}
-						else {
-							swaptime *= 1.1;
-						}
-					}
-					break;
+				case GHOST_kKey0:
 				case GHOST_kKeyNumpad0:
 					if (val) {
 						if (ps->once) {
@@ -579,6 +577,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 						ps->wait2 = ps->sstep = FALSE;
 					}
 					break;
+				case GHOST_kKeyPeriod:
 				case GHOST_kKeyNumpadPeriod:
 					if (val) {
 						if (ps->sstep) ps->wait2 = FALSE;
@@ -588,29 +587,28 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 						}
 					}
 					break;
+				case GHOST_kKeyEqual:
 				case GHOST_kKeyNumpadPlus:
+				{
 					if (val == 0) break;
-					zoomx += 2.0f;
-					zoomy += 2.0f;
-					/* no break??? - is this intentional? - campbell XXX25 */
+					if (g_WS.qual & WS_QUAL_CTRL) {
+						playanim_window_zoom(ps, 1.0f);
+					}
+					else {
+						swaptime /= 1.1;
+					}
+					break;
+				}
+				case GHOST_kKeyMinus:
 				case GHOST_kKeyNumpadMinus:
 				{
-					int sizex, sizey;
-					/* int ofsx, ofsy; */ /* UNUSED */
-
 					if (val == 0) break;
-					if (zoomx > 1.0f) zoomx -= 1.0f;
-					if (zoomy > 1.0f) zoomy -= 1.0f;
-					// playanim_window_get_position(&ofsx, &ofsy);
-					playanim_window_get_size(&sizex, &sizey);
-					/* ofsx += sizex / 2; */ /* UNUSED */
-					/* ofsy += sizey / 2; */ /* UNUSED */
-					sizex = zoomx * ps->ibufx;
-					sizey = zoomy * ps->ibufy;
-					/* ofsx -= sizex / 2; */ /* UNUSED */
-					/* ofsy -= sizey / 2; */ /* UNUSED */
-					// window_set_position(g_WS.ghost_window,sizex,sizey);
-					GHOST_SetClientSize(g_WS.ghost_window, sizex, sizey);
+					if (g_WS.qual & WS_QUAL_CTRL) {
+						playanim_window_zoom(ps, -1.0f);
+					}
+					else {
+						swaptime *= 1.1;
+					}
 					break;
 				}
 				case GHOST_kKeyEsc:
@@ -618,6 +616,44 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 					break;
 				default:
 					break;
+			}
+			break;
+		}
+		case GHOST_kEventButtonDown:
+		case GHOST_kEventButtonUp:
+		{
+			GHOST_TEventButtonData *bd = GHOST_GetEventData(evt);
+			int cx, cy, sizex, sizey, inside_window;
+			
+			GHOST_GetCursorPosition(g_WS.ghost_system, &cx, &cy);
+			GHOST_ScreenToClient(g_WS.ghost_window, cx, cy, &cx, &cy);
+			playanim_window_get_size(&sizex, &sizey);
+
+			inside_window = (cx >= 0 && cx < sizex && cy >= 0 && cy <= sizey);
+			
+			if (bd->button == GHOST_kButtonMaskLeft) {
+				if (type == GHOST_kEventButtonDown) {
+					if (inside_window)
+						g_WS.qual |= WS_QUAL_LMOUSE;
+				}
+				else
+					g_WS.qual &= ~WS_QUAL_LMOUSE;
+			}
+			else if (bd->button == GHOST_kButtonMaskMiddle) {
+				if (type == GHOST_kEventButtonDown) {
+					if (inside_window)
+						g_WS.qual |= WS_QUAL_MMOUSE;
+				}
+				else
+					g_WS.qual &= ~WS_QUAL_MMOUSE;
+			}
+			else if (bd->button == GHOST_kButtonMaskRight) {
+				if (type == GHOST_kEventButtonDown) {
+					if (inside_window)
+						g_WS.qual |= WS_QUAL_RMOUSE;
+				}
+				else
+					g_WS.qual &= ~WS_QUAL_RMOUSE;
 			}
 			break;
 		}
@@ -648,8 +684,13 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 				}
 				ps->sstep = TRUE;
 				ps->wait2 = FALSE;
-				ps->next = 0;
+				ps->next_frame = 0;
 			}
+			break;
+		}
+		case GHOST_kEventWindowActivate:
+		case GHOST_kEventWindowDeactivate: {
+			g_WS.qual &= ~WS_QUAL_MOUSE;
 			break;
 		}
 		case GHOST_kEventWindowSize:
@@ -716,6 +757,25 @@ static void playanim_window_open(const char *title, int posx, int posy, int size
 	                                       FALSE /* no stereo */, FALSE);
 }
 
+static void playanim_window_zoom(const PlayState *ps, const float zoom_offset)
+{
+	int sizex, sizey;
+	/* int ofsx, ofsy; */ /* UNUSED */
+
+	if (zoomx + zoom_offset > 0.0f) zoomx += zoom_offset;
+	if (zoomy + zoom_offset > 0.0f) zoomy += zoom_offset;
+
+	// playanim_window_get_position(&ofsx, &ofsy);
+	playanim_window_get_size(&sizex, &sizey);
+	/* ofsx += sizex / 2; */ /* UNUSED */
+	/* ofsy += sizey / 2; */ /* UNUSED */
+	sizex = zoomx * ps->ibufx;
+	sizey = zoomy * ps->ibufy;
+	/* ofsx -= sizex / 2; */ /* UNUSED */
+	/* ofsy -= sizey / 2; */ /* UNUSED */
+	// window_set_position(g_WS.ghost_window,sizex,sizey);
+	GHOST_SetClientSize(g_WS.ghost_window, sizex, sizey);
+}
 
 void WM_main_playanim(int argc, const char **argv)
 {
@@ -736,13 +796,12 @@ void WM_main_playanim(int argc, const char **argv)
 	/* ps.doubleb   = TRUE;*/ /* UNUSED */
 	ps.go        = TRUE;
 	ps.direction = TRUE;
-	ps.next      = TRUE;
+	ps.next_frame = 1;
 	ps.once      = FALSE;
 	ps.turbo     = FALSE;
 	ps.pingpong  = FALSE;
 	ps.noskip    = FALSE;
 	ps.sstep     = FALSE;
-	ps.pause     = FALSE;
 	ps.wait2     = FALSE;
 	ps.stopped   = FALSE;
 	ps.picture   = NULL;
@@ -939,6 +998,7 @@ void WM_main_playanim(int argc, const char **argv)
 		if (ptottime > 0.0) ptottime = 0.0;
 
 		while (ps.picture) {
+			int hasevent;
 #ifndef USE_IMB_CACHE
 			if (ibuf != NULL && ibuf->ftype == 0) IMB_freeImBuf(ibuf);
 #endif
@@ -989,22 +1049,25 @@ void WM_main_playanim(int argc, const char **argv)
 				}
 			}
 
-			ps.next = ps.direction;
+			ps.next_frame = ps.direction;
 
 
-			{
-				int hasevent = GHOST_ProcessEvents(g_WS.ghost_system, 0);
+			while ((hasevent = GHOST_ProcessEvents(g_WS.ghost_system, 0) || ps.wait2 != 0)) {
 				if (hasevent) {
 					GHOST_DispatchEvents(g_WS.ghost_system);
 				}
-			}
-
-			/* XXX25 - we should not have to do this, but it makes scrubbing functional! */
-			if (g_WS.qual & WS_QUAL_LMOUSE) {
-				ps.next = 0;
-			}
-			else {
-				ps.sstep = 0;
+				if (ps.wait2) {
+					if (hasevent) {
+						if (ibuf) {
+							while (pupdate_time()) PIL_sleep_ms(1);
+							ptottime -= swaptime;
+							playanim_toscreen(ps.picture, ibuf, ps.fontid, ps.fstep);
+						}
+					}
+				}
+				if (!ps.go) {
+					break;
+				}
 			}
 
 			ps.wait2 = ps.sstep;
@@ -1015,15 +1078,10 @@ void WM_main_playanim(int argc, const char **argv)
 
 			pupdate_time();
 
-			if (ps.picture && ps.next) {
+			if (ps.picture && ps.next_frame) {
 				/* always at least set one step */
 				while (ps.picture) {
-					if (ps.next < 0) {
-						ps.picture = ps.picture->prev;
-					}
-					else {
-						ps.picture = ps.picture->next;
-					}
+					ps.picture = playanim_step(ps.picture, ps.next_frame);
 
 					if (ps.once && ps.picture != NULL) {
 						if (ps.picture->next == NULL) {
@@ -1038,12 +1096,7 @@ void WM_main_playanim(int argc, const char **argv)
 					ptottime -= swaptime;
 				}
 				if (ps.picture == NULL && ps.sstep) {
-					if (ps.next < 0) {
-						ps.picture = picsbase.last;
-					}
-					else if (ps.next > 0) {
-						ps.picture = picsbase.first;
-					}
+					ps.picture = playanim_step(ps.picture, ps.next_frame);
 				}
 			}
 			if (ps.go == FALSE) {
@@ -1082,6 +1135,7 @@ void WM_main_playanim(int argc, const char **argv)
 	/* we still miss freeing a lot!,
 	 * but many areas could skip initialization too for anim play */
 	IMB_exit();
+	BKE_images_exit();
 	BLF_exit();
 #endif
 	GHOST_DisposeWindow(g_WS.ghost_system, g_WS.ghost_window);

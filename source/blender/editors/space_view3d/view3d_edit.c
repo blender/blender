@@ -992,8 +992,10 @@ void ndof_to_quat(struct wmNDOFMotionData *ndof, float q[4])
  * -- zooming
  * -- panning in rotationally-locked views
  */
-static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	ViewOpsData *vod = op->customdata;
+	
 	if (event->type != NDOF_MOTION)
 		return OPERATOR_CANCELLED;
 	else {
@@ -1074,6 +1076,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 					rot[1] = rot[2] = 0.0;
 					rot[3] = sin(angle);
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
+					
 				}
 				else {
 					float rot[4];
@@ -1088,6 +1091,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 
 					if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
 						axis[1] = -axis[1];
+					
 
 					/* transform rotation axis from view to world coordinates */
 					mul_qt_v3(view_inv, axis);
@@ -1100,7 +1104,22 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 
 					/* apply rotation */
 					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
-
+					
+				}
+				
+				/* rotate around custom center */
+				if (vod && vod->use_dyn_ofs) {
+					float q1[4];
+					
+					/* compute the post multiplication quat, to rotate the offset correctly */
+					conjugate_qt_qt(q1, vod->oldquat);
+					mul_qt_qtqt(q1, q1, rv3d->viewquat);
+					
+					conjugate_qt(q1); /* conj == inv for unit quat */
+					copy_v3_v3(rv3d->ofs, vod->ofs);
+					sub_v3_v3(rv3d->ofs, vod->dyn_ofs);
+					mul_qt_v3(q1, rv3d->ofs);
+					add_v3_v3(rv3d->ofs, vod->dyn_ofs);
 				}
 			}
 		}
@@ -1267,6 +1286,9 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			float axis[3];
 #endif
 
+			/* inverse view */
+			invert_qt_qt(view_inv, rv3d->viewquat);
+			
 			if (U.ndof_flag & NDOF_PANX_INVERT_AXIS)
 				pan_vec[0] = -lateral_sensitivity * ndof->tvec[0];
 			else
@@ -1285,12 +1307,11 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			mul_v3_fl(pan_vec, speed * dt);
 
 			/* transform motion from view to world coordinates */
-			invert_qt_qt(view_inv, rv3d->viewquat);
 			mul_qt_v3(view_inv, pan_vec);
 
 			/* move center of view opposite of hand motion (this is camera mode, not object mode) */
 			sub_v3_v3(rv3d->ofs, pan_vec);
-
+			
 			if (U.ndof_flag & NDOF_TURNTABLE) {
 				/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
 				float angle, rot[4];
@@ -1350,8 +1371,24 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 				/* apply rotation */
 				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
-
+				
 			}
+			
+			/* rotate around custom center */
+			if (vod && vod->use_dyn_ofs) {
+				float q1[4];
+				
+				/* compute the post multiplication quat, to rotate the offset correctly */
+				conjugate_qt_qt(q1, vod->oldquat);
+				mul_qt_qtqt(q1, q1, rv3d->viewquat);
+				
+				conjugate_qt(q1); /* conj == inv for unit quat */
+				copy_v3_v3(rv3d->ofs, vod->ofs);
+				sub_v3_v3(rv3d->ofs, vod->dyn_ofs);
+				mul_qt_v3(q1, rv3d->ofs);
+				add_v3_v3(rv3d->ofs, vod->dyn_ofs);
+			}
+
 		}
 		ED_view3d_camera_lock_sync(v3d, rv3d);
 
@@ -1616,7 +1653,7 @@ static void view_zoom_mouseloc(ARegion *ar, float dfac, int mx, int my)
 }
 
 
-static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom, const short zoom_invert)
+static void viewzoom_apply(ViewOpsData *vod, const int x, const int y, const short viewzoom, const short zoom_invert)
 {
 	float zfac = 1.0;
 	short use_cam_zoom;
@@ -1637,10 +1674,10 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom,
 		float fac;
 
 		if (U.uiflag & USER_ZOOM_HORIZ) {
-			fac = (float)(x - vod->origx);
+			fac = (float)(vod->origx - x);
 		}
 		else {
-			fac = (float)(y - vod->origy);
+			fac = (float)(vod->origy - y);
 		}
 
 		if (zoom_invert) {
@@ -2187,10 +2224,24 @@ static void view3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
 		/* fix up zoom distance if needed */
 
 		if (rv3d->is_persp) {
-			if (size <= v3d->near * 1.5f) {
-				/* do not zoom closer than the near clipping plane */
-				size = v3d->near * 1.5f;
+			float lens, sensor_size;
+			/* offset the view based on the lens */
+			if (rv3d->persp == RV3D_CAMOB && ED_view3d_camera_lock_check(v3d, rv3d)) {
+				CameraParams params;
+				BKE_camera_params_init(&params);
+				BKE_camera_params_from_object(&params, v3d->camera);
+
+				lens = params.lens;
+				sensor_size = BKE_camera_sensor_size(params.sensor_fit, params.sensor_x, params.sensor_y);
 			}
+			else {
+				lens = v3d->lens;
+				sensor_size = DEFAULT_SENSOR_WIDTH;
+			}
+			size = ED_view3d_radius_to_persp_dist(focallength_to_fov(lens, sensor_size), size / 2.0f) * VIEW3D_MARGIN;
+
+			/* do not zoom closer than the near clipping plane */
+			size = max_ff(size, v3d->near * 1.5f);
 		}
 		else { /* ortho */
 			if (size < 0.0001f) {
@@ -2199,7 +2250,7 @@ static void view3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
 			}
 			else {
 				/* adjust zoom so it looks nicer */
-				size *= 0.7f;
+				size = ED_view3d_radius_to_ortho_dist(v3d->lens, size / 2.0f) * VIEW3D_MARGIN;
 			}
 		}
 	}

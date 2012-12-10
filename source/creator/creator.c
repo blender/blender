@@ -1077,7 +1077,9 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 		"\n\t\t-p <sx> <sy>\tOpen with lower left corner at <sx>, <sy>"
 		"\n\t\t-m\t\tRead from disk (Don't buffer)"
 		"\n\t\t-f <fps> <fps-base>\t\tSpecify FPS to start with"
-		"\n\t\t-j <frame>\tSet frame step to <frame>";
+		"\n\t\t-j <frame>\tSet frame step to <frame>"
+		"\n\t\t-s <frame>\tPlay from <frame>"
+		"\n\t\t-e <frame>\tPlay until <frame>";
 
 	static char game_doc[] = "Game Engine specific options"
 		"\n\t-g fixedtime\t\tRun on 50 hertz without dropping frames"
@@ -1270,6 +1272,7 @@ int main(int argc, const char **argv)
 	initglobals();  /* blender.c */
 
 	IMB_init();
+	BKE_images_init();
 
 #ifdef WITH_FFMPEG
 	IMB_ffmpeg_init();

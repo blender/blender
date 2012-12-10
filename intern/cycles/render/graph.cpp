@@ -37,7 +37,7 @@ ShaderInput::ShaderInput(ShaderNode *parent_, const char *name_, ShaderSocketTyp
 	value = make_float3(0, 0, 0);
 	stack_offset = SVM_STACK_INVALID;
 	default_value = NONE;
-	osl_only = false;
+	usage = USE_ALL;
 }
 
 ShaderOutput::ShaderOutput(ShaderNode *parent_, const char *name_, ShaderSocketType type_)
@@ -85,27 +85,29 @@ ShaderOutput *ShaderNode::output(const char *name)
 	return NULL;
 }
 
-ShaderInput *ShaderNode::add_input(const char *name, ShaderSocketType type, float value)
+ShaderInput *ShaderNode::add_input(const char *name, ShaderSocketType type, float value, int usage)
 {
 	ShaderInput *input = new ShaderInput(this, name, type);
 	input->value.x = value;
+	input->usage = usage;
 	inputs.push_back(input);
 	return input;
 }
 
-ShaderInput *ShaderNode::add_input(const char *name, ShaderSocketType type, float3 value)
+ShaderInput *ShaderNode::add_input(const char *name, ShaderSocketType type, float3 value, int usage)
 {
 	ShaderInput *input = new ShaderInput(this, name, type);
 	input->value = value;
+	input->usage = usage;
 	inputs.push_back(input);
 	return input;
 }
 
-ShaderInput *ShaderNode::add_input(const char *name, ShaderSocketType type, ShaderInput::DefaultValue value, bool osl_only)
+ShaderInput *ShaderNode::add_input(const char *name, ShaderSocketType type, ShaderInput::DefaultValue value, int usage)
 {
 	ShaderInput *input = add_input(name, type);
 	input->default_value = value;
-	input->osl_only = osl_only;
+	input->usage = usage;
 	return input;
 }
 
@@ -219,7 +221,7 @@ void ShaderGraph::disconnect(ShaderInput *to)
 	from->links.erase(remove(from->links.begin(), from->links.end(), to), from->links.end());
 }
 
-void ShaderGraph::finalize(bool do_bump, bool do_osl)
+void ShaderGraph::finalize(bool do_bump, bool do_osl, bool do_multi_transform)
 {
 	/* before compiling, the shader graph may undergo a number of modifications.
 	 * currently we set default geometry shader inputs, and create automatic bump
@@ -233,6 +235,18 @@ void ShaderGraph::finalize(bool do_bump, bool do_osl)
 
 		if(do_bump)
 			bump_from_displacement();
+
+		if(do_multi_transform) {
+			ShaderInput *surface_in = output()->input("Surface");
+			ShaderInput *volume_in = output()->input("Volume");
+
+			/* todo: make this work when surface and volume closures are tangled up */
+
+			if(surface_in->link)
+				transform_multi_closure(surface_in->link->parent, NULL, false);
+			if(volume_in->link)
+				transform_multi_closure(volume_in->link->parent, NULL, true);
+		}
 
 		finalized = true;
 	}
@@ -326,6 +340,7 @@ void ShaderGraph::remove_proxy_nodes(vector<bool>& removed)
 					
 					/* transfer the default input value to the target socket */
 					to->set(input->value);
+					to->set(input->value_string);
 				}
 			}
 			
@@ -439,7 +454,7 @@ void ShaderGraph::default_inputs(bool do_osl)
 
 	foreach(ShaderNode *node, nodes) {
 		foreach(ShaderInput *input, node->inputs) {
-			if(!input->link && !(input->osl_only && !do_osl)) {
+			if(!input->link && ((input->usage & ShaderInput::USE_SVM) || do_osl)) {
 				if(input->default_value == ShaderInput::TEXTURE_GENERATED) {
 					if(!texco)
 						texco = new TextureCoordinateNode();
@@ -626,6 +641,82 @@ void ShaderGraph::bump_from_displacement()
 		add(pair.second);
 	foreach(NodePair& pair, nodes_dy)
 		add(pair.second);
+}
+
+void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight_out, bool volume)
+{
+	/* for SVM in multi closure mode, this transforms the shader mix/add part of
+	 * the graph into nodes that feed weights into closure nodes. this is too
+	 * avoid building a closure tree and then flattening it, and instead write it
+	 * directly to an array */
+	
+	if(node->name == ustring("mix_closure") || node->name == ustring("add_closure")) {
+		ShaderInput *fin = node->input("Fac");
+		ShaderInput *cl1in = node->input("Closure1");
+		ShaderInput *cl2in = node->input("Closure2");
+		ShaderOutput *weight1_out, *weight2_out;
+
+		if(fin) {
+			/* mix closure: add node to mix closure weights */
+			ShaderNode *mix_node = add(new MixClosureWeightNode());
+			ShaderInput *fac_in = mix_node->input("Fac"); 
+			ShaderInput *weight_in = mix_node->input("Weight"); 
+
+			if(fin->link)
+				connect(fin->link, fac_in);
+			else
+				fac_in->value = fin->value;
+
+			if(weight_out)
+				connect(weight_out, weight_in);
+
+			weight1_out = mix_node->output("Weight1");
+			weight2_out = mix_node->output("Weight2");
+		}
+		else {
+			/* add closure: just pass on any weights */
+			weight1_out = weight_out;
+			weight2_out = weight_out;
+		}
+
+		if(cl1in->link)
+			transform_multi_closure(cl1in->link->parent, weight1_out, volume);
+		if(cl2in->link)
+			transform_multi_closure(cl2in->link->parent, weight2_out, volume);
+	}
+	else {
+		ShaderInput *weight_in = node->input((volume)? "VolumeMixWeight": "SurfaceMixWeight");
+
+		/* not a closure node? */
+		if(!weight_in)
+			return;
+
+		/* already has a weight connected to it? add weights */
+		if(weight_in->link || weight_in->value.x != 0.0f) {
+			ShaderNode *math_node = add(new MathNode());
+			ShaderInput *value1_in = math_node->input("Value1");
+			ShaderInput *value2_in = math_node->input("Value2");
+
+			if(weight_in->link)
+				connect(weight_in->link, value1_in);
+			else
+				value1_in->value = weight_in->value;
+
+			if(weight_out)
+				connect(weight_out, value2_in);
+			else
+				value2_in->value.x = 1.0f;
+
+			weight_out = math_node->output("Value");
+			disconnect(weight_in);
+		}
+
+		/* connected to closure mix weight */
+		if(weight_out)
+			connect(weight_out, weight_in);
+		else
+			weight_in->value.x += 1.0f;
+	}
 }
 
 CCL_NAMESPACE_END

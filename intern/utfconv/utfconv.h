@@ -57,18 +57,18 @@ size_t count_utf_16_from_8(const char *string8);
 
 /**
  * Converts utf-16 string to allocated utf-8 string
- * @params in16 utf-16 string to convert
- * @params out8 utf-8 string to string the conversion
- * @params size8 the allocated size in bytes of out8
+ * @param in16 utf-16 string to convert
+ * @param out8 utf-8 string to string the conversion
+ * @param size8 the allocated size in bytes of out8
  * @return Returns any errors occured during conversion. See the block above,
  */
 int conv_utf_16_to_8(const wchar_t *in16, char *out8, size_t size8);
 
 /**
  * Converts utf-8 string to allocated utf-16 string
- * @params in8 utf-8 string to convert
- * @params out16 utf-16 string to string the conversion
- * @params size16 the allocated size in wchar_t (two byte) of out16
+ * @param in8 utf-8 string to convert
+ * @param out16 utf-16 string to string the conversion
+ * @param size16 the allocated size in wchar_t (two byte) of out16
  * @return Returns any errors occured during conversion. See the block above,
  */
 int conv_utf_8_to_16(const char *in8, wchar_t *out16, size_t size16);
@@ -76,16 +76,16 @@ int conv_utf_8_to_16(const char *in8, wchar_t *out16, size_t size16);
 
 /**
  * Allocates and converts the utf-8 string from utf-16
- * @params in16 utf-16 string to convert
- * @params add any additional size which will be allocated for new utf-8 string in bytes
+ * @param in16 utf-16 string to convert
+ * @param add any additional size which will be allocated for new utf-8 string in bytes
  * @return New allocated and converted utf-8 string or NULL if in16 is 0.
  */
 char *alloc_utf_8_from_16(const wchar_t *in16, size_t add);
 
 /**
  * Allocates and converts the utf-16 string from utf-8
- * @params in8 utf-8 string to convert
- * @params add any additional size which will be allocated for new utf-16 string in wchar_t (two bytes)
+ * @param in8 utf-8 string to convert
+ * @param add any additional size which will be allocated for new utf-16 string in wchar_t (two bytes)
  * @return New allocated and converted utf-16 string or NULL if in8 is 0.
  */
 wchar_t *alloc_utf16_from_8(const char *in8, size_t add);

@@ -110,7 +110,6 @@ GPUNodeLink *GPU_dynamic_uniform(float *num, int dynamictype, void *data);
 GPUNodeLink *GPU_image(struct Image *ima, struct ImageUser *iuser, int isdata);
 GPUNodeLink *GPU_texture(int size, float *pixels);
 GPUNodeLink *GPU_dynamic_texture(struct GPUTexture *tex, int dynamictype, void *data);
-GPUNodeLink *GPU_socket(GPUNodeStack *sock);
 GPUNodeLink *GPU_builtin(GPUBuiltin builtin);
 
 int GPU_link(GPUMaterial *mat, const char *name, ...);

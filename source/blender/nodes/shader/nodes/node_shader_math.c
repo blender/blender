@@ -142,7 +142,7 @@ bNodeStack **out)
 				out[0]->vec[0] = pow(in[0]->vec[0], in[1]->vec[0]);
 			}
 			else {
-				float y_mod_1 = ABS(fmod(in[1]->vec[0], 1));
+				float y_mod_1 = fabsf(fmodf(in[1]->vec[0], 1.0f));
 				
 				/* if input value is not nearly an integer, fall back to zero, nicer than straight rounding */
 				if (y_mod_1 > 0.999f || y_mod_1 < 0.001f) {
@@ -225,8 +225,7 @@ static int gpu_shader_math(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUN
 		case 13:
 		case 15:
 		case 16:
-			GPU_stack_link(mat, names[node->custom1], NULL, out,
-				GPU_socket(&in[0]), GPU_socket(&in[1]));
+			GPU_stack_link(mat, names[node->custom1], in, out);
 			break;
 		case 4:
 		case 5:
@@ -235,10 +234,20 @@ static int gpu_shader_math(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUN
 		case 8:
 		case 9:
 		case 14:
-			if (in[0].hasinput || !in[1].hasinput)
-				GPU_stack_link(mat, names[node->custom1], NULL, out, GPU_socket(&in[0]));
-			else
-				GPU_stack_link(mat, names[node->custom1], NULL, out, GPU_socket(&in[1]));
+			if (in[0].hasinput || !in[1].hasinput) {
+				/* use only first item and terminator */
+				GPUNodeStack tmp_in[2];
+				memcpy(&tmp_in[0], &in[0], sizeof(GPUNodeStack));
+				memcpy(&tmp_in[1], &in[2], sizeof(GPUNodeStack));
+				GPU_stack_link(mat, names[node->custom1], tmp_in, out);
+			}
+			else {
+				/* use only second item and terminator */
+				GPUNodeStack tmp_in[2];
+				memcpy(&tmp_in[0], &in[1], sizeof(GPUNodeStack));
+				memcpy(&tmp_in[1], &in[2], sizeof(GPUNodeStack));
+				GPU_stack_link(mat, names[node->custom1], tmp_in, out);
+			}
 			break;
 		default:
 			return 0;

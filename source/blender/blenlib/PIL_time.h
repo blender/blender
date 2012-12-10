@@ -20,7 +20,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -75,6 +75,17 @@ void    PIL_sleep_ms(int ms);
 	printf("time end   (" #var "): %.6f" "  " AT "\n", TIMEIT_VALUE(var));    \
 	fflush(stdout);                                                           \
 } (void)0
+
+/**
+ * Given some function/expression:
+ *   TIMEIT_BENCH(some_function(), some_unique_description);
+ */
+#define TIMEIT_BENCH(expr, id)                                                \
+	{                                                                         \
+		TIMEIT_START(id);                                                     \
+		(expr);                                                               \
+		TIMEIT_END(id);                                                       \
+	} (void)0
 
 #ifdef __cplusplus
 }

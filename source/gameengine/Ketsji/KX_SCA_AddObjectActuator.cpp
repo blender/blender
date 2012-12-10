@@ -190,8 +190,8 @@ PyTypeObject KX_SCA_AddObjectActuator::Type = {
 };
 
 PyMethodDef KX_SCA_AddObjectActuator::Methods[] = {
-  {"instantAddObject", (PyCFunction) KX_SCA_AddObjectActuator::sPyInstantAddObject, METH_NOARGS,"instantAddObject() : immediately add object without delay\n"},
-  {NULL,NULL} //Sentinel
+	{"instantAddObject", (PyCFunction) KX_SCA_AddObjectActuator::sPyInstantAddObject, METH_NOARGS, NULL},
+	{NULL,NULL} //Sentinel
 };
 
 PyAttributeDef KX_SCA_AddObjectActuator::Attributes[] = {

@@ -40,46 +40,46 @@ LANGUAGES_CATEGORIES = (
 )
 LANGUAGES = (
     # ID, UI english label, ISO code.
-    ( 0, "Default (Default)", "DEFAULT", ""),
-    ( 1, "English (English)", "en_US", "english"),
-    ( 2, "Japanese (日本語)", "ja_JP", "japanese"),
-    ( 3, "Dutch (Nederlandse taal)", "nl_NL", "dutch"),
-    ( 4, "Italian (Italiano)", "it_IT", "italian"),
-    ( 5, "German (Deutsch)", "de_DE", "german"),
-    ( 6, "Finnish (Suomi)", "fi_FI", "finnish"),
-    ( 7, "Swedish (Svenska)", "sv_SE", "swedish"),
-    ( 8, "French (Français)", "fr_FR", "french"),
-    ( 9, "Spanish (Español)", "es", "spanish"),
-    (10, "Catalan (Català)", "ca_AD", "catalan"),
-    (11, "Czech (Český)", "cs_CZ", "czech"),
-    (12, "Portuguese (Português)", "pt_PT", "portuguese_portugal"),
-    (13, "Simplified Chinese (简体中文)", "zh_CN", "Chinese (Simplified)_China.1252"),
-    (14, "Traditional Chinese (繁體中文)", "zh_TW", "Chinese (Traditional)_China.1252"),
-    (15, "Russian (Русский)", "ru_RU", "russian"),
-    (16, "Croatian (Hrvatski)", "hr_HR", "croatian"),
-    (17, "Serbian (Српски)", "sr_RS", "serbian"),
-    (18, "Ukrainian (Український)", "uk_UA", "ukrainian"),
-    (19, "Polish (Polski)", "pl_PL", "polish"),
-    (20, "Romanian (Român)", "ro_RO", "romanian"),
+    ( 0, "Default (Default)", "DEFAULT"),
+    ( 1, "English (English)", "en_US"),
+    ( 2, "Japanese (日本語)", "ja_JP"),
+    ( 3, "Dutch (Nederlandse taal)", "nl_NL"),
+    ( 4, "Italian (Italiano)", "it_IT"),
+    ( 5, "German (Deutsch)", "de_DE"),
+    ( 6, "Finnish (Suomi)", "fi_FI"),
+    ( 7, "Swedish (Svenska)", "sv_SE"),
+    ( 8, "French (Français)", "fr_FR"),
+    ( 9, "Spanish (Español)", "es"),
+    (10, "Catalan (Català)", "ca_AD"),
+    (11, "Czech (Český)", "cs_CZ"),
+    (12, "Portuguese (Português)", "pt_PT"),
+    (13, "Simplified Chinese (简体中文)", "zh_CN"),
+    (14, "Traditional Chinese (繁體中文)", "zh_TW"),
+    (15, "Russian (Русский)", "ru_RU"),
+    (16, "Croatian (Hrvatski)", "hr_HR"),
+    (17, "Serbian (Српски)", "sr_RS"),
+    (18, "Ukrainian (Український)", "uk_UA"),
+    (19, "Polish (Polski)", "pl_PL"),
+    (20, "Romanian (Român)", "ro_RO"),
     # Using the utf8 flipped form of Arabic (العربية).
-    (21, "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)", "ar_EG", "arabic"),
-    (22, "Bulgarian (Български)", "bg_BG", "bulgarian"),
-    (23, "Greek (Ελληνικά)", "el_GR", "greek"),
-    (24, "Korean (한국 언어)", "ko_KR", "korean"),
-    (25, "Nepali (नेपाली)", "ne_NP", "nepali"),
+    (21, "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)", "ar_EG"),
+    (22, "Bulgarian (Български)", "bg_BG"),
+    (23, "Greek (Ελληνικά)", "el_GR"),
+    (24, "Korean (한국 언어)", "ko_KR"),
+    (25, "Nepali (नेपाली)", "ne_NP"),
     # Using the utf8 flipped form of Persian (فارسی).
-    (26, "Persian (ﯽﺳﺭﺎﻓ)", "fa_IR", "farsi"),
-    (27, "Indonesian (Bahasa indonesia)", "id_ID", "indonesian"),
-    (28, "Serbian Latin (Srpski latinica)", "sr_RS@latin", "serbian (latin)"),
-    (29, "Kyrgyz (Кыргыз тили)", "ky_KG", "kyrgyz"),
-    (30, "Turkish (Türkçe)", "tr_TR", "turkish"),
-    (31, "Hungarian (Magyar)", "hu_HU", "hungarian"),
-    (32, "Brazilian Portuguese (Português do Brasil)", "pt_BR", "protuguese_brazil"),
+    (26, "Persian (ﯽﺳﺭﺎﻓ)", "fa_IR"),
+    (27, "Indonesian (Bahasa indonesia)", "id_ID"),
+    (28, "Serbian Latin (Srpski latinica)", "sr_RS@latin"),
+    (29, "Kyrgyz (Кыргыз тили)", "ky_KG"),
+    (30, "Turkish (Türkçe)", "tr_TR"),
+    (31, "Hungarian (Magyar)", "hu_HU"),
+    (32, "Brazilian Portuguese (Português do Brasil)", "pt_BR"),
     # Using the utf8 flipped form of Hebrew (עִבְרִית)).
-    (33, "Hebrew (תירִבְעִ)", "he_IL", "hebrew"),
-    (34, "Estonian (Eestlane)", "et_EE", "estonian"),
-    (35, "Esperanto (Esperanto)", "eo", "esperanto"),
-    (36, "Spanish from Spain (Español de España)", "es_ES", "spanish_spain"),
+    (33, "Hebrew (תירִבְעִ)", "he_IL"),
+    (34, "Estonian (Eestlane)", "et_EE"),
+    (35, "Esperanto (Esperanto)", "eo"),
+    (36, "Spanish from Spain (Español de España)", "es_ES"),
 )
 
 # Name of language file used by Blender to generate translations' menu.
@@ -113,6 +113,9 @@ DOMAIN = "blender"
 # Our own "gettext" stuff.
 # File type (ext) to parse.
 PYGETTEXT_ALLOWED_EXTS = {".c", ".cpp", ".cxx", ".hpp", ".hxx", ".h"}
+
+# Max number of contexts into a BLF_I18N_MSGID_MULTI_CTXT macro...
+PYGETTEXT_MAX_MULTI_CTXT = 16
 
 # Where to search contexts definitions, relative to SOURCE_DIR (defined below).
 PYGETTEXT_CONTEXTS_DEFSRC = os.path.join("source", "blender", "blenfont",
@@ -149,7 +152,10 @@ _str_whole_re = (
     # End of loop.
     "))*"
 )
-_ctxt_re = r"(?P<ctxt_raw>(?:" + _str_whole_re.format(_="_ctxt") + r")|(?:[A-Z_0-9]+))"
+_ctxt_re_gen = lambda uid : r"(?P<ctxt_raw{uid}>(?:".format(uid=uid) + \
+                            _str_whole_re.format(_="_ctxt{uid}".format(uid=uid)) + \
+                            r")|(?:[A-Z_0-9]+))"
+_ctxt_re = _ctxt_re_gen("")
 _msg_re = r"(?P<msg_raw>" + _str_whole_re.format(_="_msg") + r")"
 PYGETTEXT_KEYWORDS = (() +
     tuple((r"{}\(\s*" + _msg_re + r"\s*\)").format(it)
@@ -165,7 +171,11 @@ PYGETTEXT_KEYWORDS = (() +
           for it in ("BMO_error_raise",)) +
 
     tuple(("{}\\((?:[^\"',]+,)\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
-          for it in ("modifier_setError",))
+          for it in ("modifier_setError",)) +
+
+    tuple((r"{}\(\s*" + _msg_re + r"\s*,\s*(?:" + \
+           r"\s*,\s*)?(?:".join(_ctxt_re_gen(i) for i in range(PYGETTEXT_MAX_MULTI_CTXT)) + r")?\s*\)").format(it)
+          for it in ("BLF_I18N_MSGID_MULTI_CTXT",))
 )
 
 ESCAPE_RE = (

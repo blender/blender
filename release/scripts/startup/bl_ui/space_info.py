@@ -193,7 +193,7 @@ class INFO_MT_mesh_add(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator_context = 'EXEC_REGION_WIN'
+        layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("mesh.primitive_plane_add", icon='MESH_PLANE', text="Plane")
         layout.operator("mesh.primitive_cube_add", icon='MESH_CUBE', text="Cube")
         layout.operator("mesh.primitive_circle_add", icon='MESH_CIRCLE', text="Circle")
@@ -373,7 +373,7 @@ class INFO_MT_help(Menu):
         layout = self.layout
 
         layout.operator("wm.url_open", text="Manual", icon='HELP').url = "http://wiki.blender.org/index.php/Doc:2.6/Manual"
-        layout.operator("wm.url_open", text="Release Log", icon='URL').url = "http://www.blender.org/development/release-logs/blender-264"
+        layout.operator("wm.url_open", text="Release Log", icon='URL').url = "http://www.blender.org/development/release-logs/blender-265"
         layout.separator()
 
         layout.operator("wm.url_open", text="Blender Website", icon='URL').url = "http://www.blender.org"

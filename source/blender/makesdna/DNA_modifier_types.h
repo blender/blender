@@ -76,6 +76,7 @@ typedef enum ModifierType {
 	eModifierType_Remesh            = 41,
 	eModifierType_Skin              = 42,
 	eModifierType_LaplacianSmooth   = 43,
+	eModifierType_Triangulate		= 44,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -665,7 +666,8 @@ typedef struct ShrinkwrapModifierData {
 	float keepDist;			/* distance offset to keep from mesh/projection point */
 	short shrinkType;		/* shrink type projection */
 	short shrinkOpts;		/* shrink options */
-	char projAxis;			/* axis to project over */
+	float projLimit;		/* limit the projection ray cast */
+	char  projAxis;			/* axis to project over */
 
 	/*
 	 * if using projection over vertex normal this controls the
@@ -674,7 +676,7 @@ typedef struct ShrinkwrapModifierData {
 	 */
 	char subsurfLevels;
 
-	char pad[6];
+	char pad[2];
 
 } ShrinkwrapModifierData;
 
@@ -1113,11 +1115,23 @@ enum {
 	MOD_SKIN_SMOOTH_SHADING = 1
 };
 
+/* Triangulate modifier */
+
+typedef struct TriangulateModifierData {
+	ModifierData modifier;
+	int flag;
+	int pad;
+} TriangulateModifierData;
+
+enum {
+	MOD_TRIANGULATE_BEAUTY = (1 << 0),
+};
+
 /* Smooth modifier flags */
 #define MOD_LAPLACIANSMOOTH_X (1<<1)
 #define MOD_LAPLACIANSMOOTH_Y (1<<2)
 #define MOD_LAPLACIANSMOOTH_Z (1<<3)
-#define MOD_LAPLACIANSMOOTH_VOLUME_PRESERVATION (1<<4)
+#define MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME (1 << 4)
 
 typedef struct LaplacianSmoothModifierData {
 	ModifierData modifier;

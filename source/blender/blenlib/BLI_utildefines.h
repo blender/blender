@@ -257,6 +257,15 @@
 #define IN_RANGE(a, b, c) ((b < c) ? ((b < a && a < c) ? 1 : 0) : ((c < a && a < b) ? 1 : 0))
 #define IN_RANGE_INCL(a, b, c) ((b < c) ? ((b <= a && a <= c) ? 1 : 0) : ((c <= a && a <= b) ? 1 : 0))
 
+/* unpack vector for args */
+#define UNPACK2(a)  ((a)[0]), ((a)[1])
+#define UNPACK3(a)  ((a)[0]), ((a)[1]), ((a)[2])
+#define UNPACK4(a)  ((a)[0]), ((a)[1]), ((a)[2]), ((a)[3])
+/* op may be '&' or '*' */
+#define UNPACK2OP(a, op)  op((a)[0]), op((a)[1])
+#define UNPACK3OP(a, op)  op((a)[0]), op((a)[1]), op((a)[2])
+#define UNPACK4OP(a, op)  op((a)[0]), op((a)[1]), op((a)[2]), op((a)[3])
+
 /* array helpers */
 #define ARRAY_LAST_ITEM(arr_start, arr_dtype, elem_size, tot)                 \
 	(arr_dtype *)((char *)arr_start + (elem_size * (tot - 1)))
@@ -315,11 +324,13 @@
 /*little macro so inline keyword works*/
 #if defined(_MSC_VER)
 #  define BLI_INLINE static __forceinline
-#elif defined(__GNUC__)
-#  define BLI_INLINE static inline __attribute((always_inline))
 #else
-/* #warning "MSC/GNUC defines not found, inline non-functional" */
-#  define BLI_INLINE static
+#  if (defined(__APPLE__) && defined(__ppc__))
+/* static inline __attribute__ here breaks osx ppc gcc42 build */
+#    define BLI_INLINE static __attribute__((always_inline))
+#  else
+#    define BLI_INLINE static inline __attribute__((always_inline))
+#  endif
 #endif
 
 

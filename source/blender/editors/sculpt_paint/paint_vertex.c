@@ -125,9 +125,11 @@ static void update_tessface_data(Object *ob, Mesh *me)
 		if (!me->mcol || !me->mface) {
 			/* should always be true */
 			/* XXX Why this clearing? tessface_calc will reset it anyway! */
-/*			if (me->mcol) {*/
-/*				memset(me->mcol, 255, 4 * sizeof(MCol) * me->totface);*/
-/*			}*/
+#if 0
+			if (me->mcol) {
+				memset(me->mcol, 255, 4 * sizeof(MCol) * me->totface);
+			}
+#endif
 
 			/* create tessfaces because they will be used for drawing & fast updates */
 			BKE_mesh_tessface_calc(me); /* does own call to update pointers */

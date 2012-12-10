@@ -23,12 +23,12 @@
 extern "C" {
 #endif
 
-/* returns a list of devices for selection, array is name NULL pointer
+/* returns a list of devices for selection, array is empty identifier
  * terminated and must not be freed */
 
 typedef struct CCLDeviceInfo {
-	const char *identifier;
-	const char *name;
+	char identifier[128];
+	char name[512];
 	int value;
 } CCLDeviceInfo;
 

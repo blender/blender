@@ -52,9 +52,7 @@ __device_inline void kernel_write_data_passes(KernelGlobals *kg, __global float 
 	if(!(path_flag & PATH_RAY_TRANSPARENT)) {
 		if(sample == 0) {
 			if(flag & PASS_DEPTH) {
-				Transform tfm = kernel_data.cam.worldtocamera;
-				float depth = len(transform_point(&tfm, sd->P));
-
+				float depth = camera_distance(kg, sd->P);
 				kernel_write_pass_float(buffer + kernel_data.film.pass_depth, sample, depth);
 			}
 			if(flag & PASS_OBJECT_ID) {

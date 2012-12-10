@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.2
+#!/usr/bin/env python3
 
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -37,7 +37,9 @@ CHECKER_ARGS = [
 import project_source_info
 import subprocess
 import sys
+import os
 
+USE_QUIET = (os.environ.get("QUIET", None) is not None)
 
 def main():
     source_info = project_source_info.build_info(use_cxx=False, ignore_prefix_list=CHECKER_IGNORE_PREFIX)
@@ -55,11 +57,12 @@ def main():
         check_commands.append((c, cmd))
 
     def my_process(i, c, cmd):
-        percent = 100.0 * (i / (len(check_commands) - 1))
-        percent_str = "[" + ("%.2f]" % percent).rjust(7) + " %:"
+        if not USE_QUIET:
+            percent = 100.0 * (i / (len(check_commands) - 1))
+            percent_str = "[" + ("%.2f]" % percent).rjust(7) + " %:"
 
-        sys.stdout.flush()
-        sys.stdout.write("%s %s\n" % (percent_str, c))
+            sys.stdout.flush()
+            sys.stdout.write("%s %s\n" % (percent_str, c))
 
         return subprocess.Popen(cmd)
 

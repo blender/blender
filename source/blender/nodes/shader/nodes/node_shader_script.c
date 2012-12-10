@@ -64,7 +64,7 @@ static void node_copy_script(bNode *orig_node, bNode *new_node)
 	NodeShaderScript *orig_nss = orig_node->storage;
 	NodeShaderScript *new_nss = MEM_dupallocN(orig_nss);
 
-	if(orig_nss->bytecode)
+	if (orig_nss->bytecode)
 		new_nss->bytecode = MEM_dupallocN(orig_nss->bytecode);
 
 	if (orig_nss->prop)

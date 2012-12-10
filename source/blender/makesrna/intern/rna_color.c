@@ -503,6 +503,10 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *UNUSED(bmain)
 
 		BKE_movieclip_reload(clip);
 
+		/* all sequencers for now, we don't know which scenes are using this clip as a strip */
+		BKE_sequencer_cache_cleanup();
+		BKE_sequencer_preprocessed_cache_cleanup();
+
 		WM_main_add_notifier(NC_MOVIECLIP | ND_DISPLAY, &clip->id);
 		WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, &clip->id);
 	}

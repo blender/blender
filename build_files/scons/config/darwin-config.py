@@ -118,16 +118,16 @@ BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 BF_FFMPEG_LIB = 'avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg bz2'
 #bz2 is a standard osx dynlib
 
-BF_PYTHON_VERSION = '3.2'
+BF_PYTHON_VERSION = '3.3'
 WITH_OSX_STATICPYTHON = True
 
 if WITH_OSX_STATICPYTHON:
-    # python 3.2 uses precompiled libraries in bf svn /lib by default
+    # python 3.3 uses precompiled libraries in bf svn /lib by default
 
     BF_PYTHON = LIBDIR + '/python'
-    BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
+    BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}m'
     # BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
-    BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}'
+    BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}m'
     BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/python${BF_PYTHON_VERSION}'
     # BF_PYTHON_LINKFLAGS = ['-u', '_PyMac_Error', '-framework', 'System']
 else:
@@ -223,11 +223,6 @@ BF_ZLIB_LIB = 'z'
 
 WITH_BF_INTERNATIONAL = True
 
-BF_GETTEXT = LIBDIR + '/gettext'
-BF_GETTEXT_INC = '${BF_GETTEXT}/include'
-BF_GETTEXT_LIB = 'intl'
-BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
-
 WITH_BF_GAMEENGINE = True
 WITH_BF_PLAYER = True
 WITH_BF_OCEANSIM = True
@@ -281,23 +276,42 @@ BF_PCRE_LIBPATH = '${BF_PCRE}/lib'
 # Cycles
 WITH_BF_CYCLES = True
 
+#OSL
+
+WITH_BF_CYCLES_OSL = True
+BF_OSL = LIBDIR + '/osl'
+BF_OSL_INC = '${BF_OSL}/include'
+# note oslexec would passed via program linkflags, which is needed to
+# make llvm happy with osl_allocate_closure_component
+#BF_OSL_LIB = 'oslcomp oslquery'
+BF_OSL_LIBPATH = '${BF_OSL}/lib'
+BF_OSL_COMPILER = '${BF_OSL}/bin/oslc'
+
+WITH_BF_LLVM = True
+BF_LLVM = LIBDIR + '/llvm'
+BF_LLVM_LIB = 'LLVMBitReader LLVMJIT LLVMipo LLVMVectorize LLVMBitWriter LLVMX86CodeGen LLVMX86Desc LLVMX86Info LLVMX86AsmPrinter ' + \
+    'LLVMX86Utils LLVMSelectionDAG LLVMCodeGen LLVMScalarOpts LLVMInstCombine LLVMTransformUtils LLVMipa LLVMAnalysis LLVMExecutionEngine ' + \
+    'LLVMTarget LLVMMC LLVMCore LLVMSupport'
+BF_LLVM_LIBPATH = '${BF_LLVM}/lib'
+
 WITH_BF_OIIO = True
 BF_OIIO = LIBDIR + '/openimageio'
-BF_OIIO_INC = BF_OIIO + '/include'
+BF_OIIO_INC = '${BF_OIIO}/include'
 BF_OIIO_LIB = 'OpenImageIO'
-BF_OIIO_LIBPATH = BF_OIIO + '/lib'
+BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
 
 WITH_BF_OCIO = True
 BF_OCIO = LIBDIR + '/opencolorio'
-BF_OCIO_INC = BF_OCIO + '/include'
+BF_OCIO_INC = '${BF_OCIO}/include'
 BF_OCIO_LIB = 'OpenColorIO tinyxml yaml-cpp'
-BF_OCIO_LIBPATH = BF_OCIO + '/lib'
+BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
 
 WITH_BF_BOOST = True
 BF_BOOST = LIBDIR + '/boost'
-BF_BOOST_INC = BF_BOOST + '/include'
-BF_BOOST_LIB = 'boost_date_time-mt boost_filesystem-mt boost_regex-mt boost_system-mt boost_thread-mt'
-BF_BOOST_LIBPATH = BF_BOOST + '/lib'
+BF_BOOST_INC = '${BF_BOOST}/include'
+BF_BOOST_LIB = 'boost_date_time-mt boost_filesystem-mt boost_regex-mt boost_system-mt boost_thread-mt boost_wave-mt'
+BF_BOOST_LIB_INTERNATIONAL = 'boost_locale-mt'
+BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 
 WITH_BF_CYCLES_CUDA_BINARIES = False
 BF_CYCLES_CUDA_NVCC = '/usr/local/cuda/bin/nvcc'

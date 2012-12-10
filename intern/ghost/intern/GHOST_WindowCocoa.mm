@@ -28,7 +28,7 @@
 
 #include <Cocoa/Cocoa.h>
 
-#ifndef MAC_OS_X_VERSION_10_6
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_5
 //Use of the SetSystemUIMode function (64bit compatible)
 #include <Carbon/Carbon.h>
 #endif
@@ -58,7 +58,7 @@ extern "C" {
 	extern void wm_draw_update(bContext *C);
 };*/
 @interface CocoaWindowDelegate : NSObject
-#ifdef MAC_OS_X_VERSION_10_6
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
 <NSWindowDelegate>
 #endif
 {
@@ -115,12 +115,12 @@ extern "C" {
 
 - (void)windowDidResize:(NSNotification *)notification
 {
-#ifdef MAC_OS_X_VERSION_10_6
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
 	//if (![[notification object] inLiveResize]) {
 		//Send event only once, at end of resize operation (when user has released mouse button)
 #endif
 		systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, associatedWindow);
-#ifdef MAC_OS_X_VERSION_10_6
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
 	//}
 #endif
 	/* Live resize ugly patch. Needed because live resize runs in a modal loop, not letting main loop run
@@ -609,9 +609,12 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 	[m_openGLView release];
 	
 	if (m_window) {
+		// previously we called [m_window release], but on 10.8 this does not
+		// remove the window from [NSApp orderedWindows] and perhaps other
+		// places, leading to crashes. so instead we set setReleasedWhenClosed
+		// back to YES right before closing
+		[m_window setReleasedWhenClosed:YES];
 		[m_window close];
-		[[m_window delegate] release];
-		[m_window release];
 		m_window = nil;
 	}
 	
@@ -913,7 +916,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				 * doesn't know view/window difference. */
 				m_fullScreen = true;
 
-#ifdef MAC_OS_X_VERSION_10_6
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
 				//10.6 provides Cocoa functions to autoshow menu bar, and to change a window style
 				//Hide menu & dock if needed
 				if ([[m_window screen] isEqual:[[NSScreen screens] objectAtIndex:0]]) {
@@ -972,7 +975,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				m_fullScreen = false;
 
 				//Exit fullscreen
-#ifdef MAC_OS_X_VERSION_10_6
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
 				//Show again menu & dock if needed
 				if ([[m_window screen] isEqual:[NSScreen mainScreen]]) {
 					[NSApp setPresentationOptions:NSApplicationPresentationDefault];

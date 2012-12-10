@@ -300,6 +300,7 @@ typedef struct wmNotifier {
 	/* NC_MATERIAL Material */
 #define	ND_SHADING			(30<<16)
 #define	ND_SHADING_DRAW		(31<<16)
+#define	ND_SHADING_LINKS	(32<<16)
 
 	/* NC_LAMP Lamp */
 #define	ND_LIGHTING			(40<<16)
@@ -326,6 +327,7 @@ typedef struct wmNotifier {
 	/* Mesh, Curve, MetaBall, Armature, .. */
 #define ND_SELECT			(90<<16)
 #define ND_DATA				(91<<16)
+#define ND_VERTEX_GROUP		(92<<16)
 
 	/* NC_NODE Nodes */
 

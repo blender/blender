@@ -60,7 +60,7 @@
  *
  * \param inset is used so we get some useful distance
  * when comparing multiple edges that meet at the same
- * point and would result in teh same distance.
+ * point and would result in the same distance.
  */
 #define INSET_DEFAULT 0.00001f
 static float edbm_rip_edgedist(ARegion *ar, float mat[][4],
@@ -489,7 +489,7 @@ static void edbm_tagged_loop_pairs_do_fill_faces(BMesh *bm, UnorderedLoopPair *u
 			}
 
 			/* face should never exist */
-			BLI_assert(BM_face_exists(bm, f_verts, f_verts[3] ? 4 : 3, &f) == FALSE);
+			BLI_assert(BM_face_exists(f_verts, f_verts[3] ? 4 : 3, &f) == FALSE);
 
 			f = BM_face_create_quad_tri_v(bm, f_verts, f_verts[3] ? 4 : 3, f_example, FALSE);
 

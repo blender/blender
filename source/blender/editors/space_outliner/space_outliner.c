@@ -326,19 +326,14 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_MATERIAL:
 			switch (wmn->data) {
-				case ND_SHADING:
-				case ND_SHADING_DRAW:
+				case ND_SHADING_LINKS:
 					ED_region_tag_redraw(ar);
 					break;
 			}
 			break;
-		case NC_TEXTURE:
-			ED_region_tag_redraw(ar);
-			break;
 		case NC_GEOM:
 			switch (wmn->data) {
-				case ND_DATA:
-					/* needed for vertex groups only, no special notifier atm so use NC_GEOM|ND_DATA */
+				case ND_VERTEX_GROUP:
 					ED_region_tag_redraw(ar);
 					break;
 			}

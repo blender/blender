@@ -31,18 +31,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "BLF_translation.h"
+
 #ifdef WITH_INTERNATIONAL
-#include <libintl.h>
-#include <locale.h>
 
-#define GETTEXT_CONTEXT_GLUE "\004"
-
-/* needed for windows version of gettext */
-#ifndef LC_MESSAGES
-#  define LC_MESSAGES 1729
-#endif
-
-#endif
+#include "boost_locale_wrapper.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -52,11 +45,8 @@
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
 
-#include "BLF_translation.h"
-
 #include "DNA_userdef_types.h" /* For user settings. */
 
-#ifdef WITH_INTERNATIONAL
 static const char unifont_filename[] = "droidsans.ttf.gz";
 static unsigned char *unifont_ttf = NULL;
 static int unifont_size = 0;
@@ -90,52 +80,16 @@ void BLF_free_unifont(void)
 
 #endif
 
-const char *BLF_gettext(const char *msgid)
+const char *BLF_pgettext(const char *msgctxt, const char *msgid)
 {
 #ifdef WITH_INTERNATIONAL
-	if (msgid && msgid[0])
-		return gettext(msgid);
+	if (msgid && msgid[0]) {
+		return bl_locale_pgettext(msgctxt, msgid);
+	}
 	return "";
 #else
+	(void)msgctxt;
 	return msgid;
-#endif
-}
-
-const char *BLF_pgettext(const char *context, const char *message)
-{
-#ifdef WITH_INTERNATIONAL
-	char static_msg_ctxt_id[1024];
-	char *dynamic_msg_ctxt_id = NULL;
-	char *msg_ctxt_id;
-	const char *translation;
-
-	size_t overall_length = strlen(context) + strlen(message) + sizeof(GETTEXT_CONTEXT_GLUE) + 1;
-
-	if (!message || !context || !message[0])
-		return "";
-
-	if (overall_length > sizeof(static_msg_ctxt_id)) {
-		dynamic_msg_ctxt_id = malloc(overall_length);
-		msg_ctxt_id = dynamic_msg_ctxt_id;
-	}
-	else {
-		msg_ctxt_id = static_msg_ctxt_id;
-	}
-
-	sprintf(msg_ctxt_id, "%s%s%s", context, GETTEXT_CONTEXT_GLUE, message);
-
-	translation = (char *)dcgettext(TEXT_DOMAIN_NAME, msg_ctxt_id, LC_MESSAGES);
-
-	if (dynamic_msg_ctxt_id)
-		free(dynamic_msg_ctxt_id);
-
-	if (translation == msg_ctxt_id)
-		translation = message;
-
-	return translation;
-#else
-	(void)context;
-	return message;
 #endif
 }
 
@@ -157,36 +111,32 @@ int BLF_translate_tooltips(void)
 #endif
 }
 
-const char *BLF_translate_do_iface(const char *context, const char *msgid)
+const char *BLF_translate_do_iface(const char *msgctxt, const char *msgid)
 {
 #ifdef WITH_INTERNATIONAL
 	if (BLF_translate_iface()) {
-		if (context)
-			return BLF_pgettext(context, msgid);
-		else
-			return BLF_gettext(msgid);
+		return BLF_pgettext(msgctxt, msgid);
 	}
-	else
+	else {
 		return msgid;
+	}
 #else
-	(void)context;
+	(void)msgctxt;
 	return msgid;
 #endif
 }
 
-const char *BLF_translate_do_tooltip(const char *context, const char *msgid)
+const char *BLF_translate_do_tooltip(const char *msgctxt, const char *msgid)
 {
 #ifdef WITH_INTERNATIONAL
 	if (BLF_translate_tooltips()) {
-		if (context)
-			return BLF_pgettext(context, msgid);
-		else
-			return BLF_gettext(msgid);
+		return BLF_pgettext(msgctxt, msgid);
 	}
-	else
+	else {
 		return msgid;
+	}
 #else
-	(void)context;
+	(void)msgctxt;
 	return msgid;
 #endif
 }

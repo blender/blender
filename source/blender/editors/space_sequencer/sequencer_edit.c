@@ -1686,7 +1686,7 @@ static int sequencer_delete_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	if (ar->regiontype == RGN_TYPE_WINDOW) {
 		/* bounding box of 30 pixels is used for markers shortcuts,
-		 * prevent conflict with markers shortcurts here
+		 * prevent conflict with markers shortcuts here
 		 */
 		if (event->mval[1] <= 30)
 			return OPERATOR_PASS_THROUGH;
@@ -1850,6 +1850,7 @@ void SEQUENCER_OT_images_separate(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = sequencer_separate_images_exec;
+	ot->invoke = WM_operator_props_popup;
 	ot->poll = sequencer_edit_poll;
 	
 	/* flags */
@@ -2404,6 +2405,15 @@ static int strip_jump_internal(Scene *scene,
 	return change;
 }
 
+static int sequencer_strip_jump_poll(bContext *C)
+{
+	/* prevent changes during render */
+	if (G.is_rendering)
+		return 0;
+
+	return sequencer_edit_poll(C);
+}
+
 /* jump frame to edit point operator */
 static int sequencer_strip_jump_exec(bContext *C, wmOperator *op)
 {
@@ -2430,7 +2440,7 @@ void SEQUENCER_OT_strip_jump(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = sequencer_strip_jump_exec;
-	ot->poll = sequencer_edit_poll;
+	ot->poll = sequencer_strip_jump_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -3075,8 +3085,12 @@ static int sequencer_change_path_invoke(bContext *C, wmOperator *op, wmEvent *UN
 {
 	Scene *scene = CTX_data_scene(C);
 	Sequence *seq = BKE_sequencer_active_get(scene);
+	char filepath[FILE_MAX];
+
+	BLI_join_dirfile(filepath, sizeof(filepath), seq->strip->dir, seq->strip->stripdata->name);
 
 	RNA_string_set(op->ptr, "directory", seq->strip->dir);
+	RNA_string_set(op->ptr, "filepath",  filepath);
 
 	/* set default display depending on seq type */
 	if (seq->type == SEQ_TYPE_IMAGE) {

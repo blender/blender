@@ -95,7 +95,7 @@ BL_ArmatureChannel::~BL_ArmatureChannel()
 // PYTHON
 
 PyMethodDef BL_ArmatureChannel::Methods[] = {
-  {NULL,NULL} //Sentinel
+	{NULL,NULL} //Sentinel
 };
 
 // order of definition of attributes, must match Attributes[] array

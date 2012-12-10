@@ -100,11 +100,6 @@ void  ED_view3d_depth_tag_update(struct RegionView3D *rv3d);
 /* Projection */
 #define IS_CLIPPED        12000
 
-/* TODO, these functions work quite differently, we should make them behave in a uniform way
- * otherwise we can't be sure bugs are not added when we need to move from short->float types for eg
- * - Campbell */
-
-
 /* return values for ED_view3d_project_...() */
 typedef enum {
 	V3D_PROJ_RET_OK   = 0,
@@ -198,7 +193,8 @@ void ED_view3d_global_to_vector(struct RegionView3D *rv3d, const float coord[3],
 void ED_view3d_win_to_3d(struct ARegion *ar, const float depth_pt[3], const float mval[2], float out[3]);
 void ED_view3d_win_to_delta(struct ARegion *ar, const float mval[2], float out[3]);
 void ED_view3d_win_to_vector(struct ARegion *ar, const float mval[2], float out[3]);
-void ED_view3d_win_to_segment_clip(struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3]);
+void ED_view3d_win_to_segment(struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3]);
+int  ED_view3d_win_to_segment_clip(struct ARegion *ar, struct View3D *v3d, const float mval[2], float ray_start[3], float ray_end[3]);
 void ED_view3d_ob_project_mat_get(struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);
 void ED_view3d_unproject(struct bglMats *mats, float out[3], const float x, const float y, const float z);
 
@@ -219,6 +215,9 @@ void ED_view3d_clipping_enable(void);
 void ED_view3d_clipping_disable(void);
 
 float ED_view3d_pixel_size(struct RegionView3D *rv3d, const float co[3]);
+
+float ED_view3d_radius_to_persp_dist(const float angle, const float radius);
+float ED_view3d_radius_to_ortho_dist(const float lens, const float radius);
 
 void drawcircball(int mode, const float cent[3], float rad, float tmat[][4]);
 
@@ -295,7 +294,10 @@ struct BGpic *ED_view3D_background_image_new(struct View3D *v3d);
 void ED_view3D_background_image_remove(struct View3D *v3d, struct BGpic *bgpic);
 void ED_view3D_background_image_clear(struct View3D *v3d);
 
+#define VIEW3D_MARGIN 1.4f
 float ED_view3d_offset_distance(float mat[4][4], float ofs[3]);
+
+float ED_scene_grid_scale(struct Scene *scene, const char **grid_unit);
 float ED_view3d_grid_scale(struct Scene *scene, struct View3D *v3d, const char **grid_unit);
 
 /* view matrix properties utilities */

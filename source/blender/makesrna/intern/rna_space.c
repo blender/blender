@@ -598,7 +598,7 @@ static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *UNUS
 	alpha = ibuf && (ibuf->channels == 4);
 	zbuf = ibuf && (ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels == 1));
 
-	ED_space_image_release_buffer(sima, lock);
+	ED_space_image_release_buffer(sima, ibuf, lock);
 
 	if (alpha && zbuf)
 		return draw_channels_items;
@@ -678,7 +678,7 @@ static void rna_SpaceImageEditor_scopes_update(Main *UNUSED(bmain), Scene *scene
 		scopes_update(&sima->scopes, ibuf, &scene->view_settings, &scene->display_settings);
 		WM_main_add_notifier(NC_IMAGE, sima->image);
 	}
-	ED_space_image_release_buffer(sima, lock);
+	ED_space_image_release_buffer(sima, ibuf, lock);
 }
 
 /* Space Text Editor */
@@ -2976,10 +2976,9 @@ static void rna_def_space_node(BlenderRNA *brna)
 		{SNODE_USE_ALPHA, "COLOR_ALPHA", ICON_IMAGE_RGB_ALPHA, "Color and Alpha",
 		                  "Draw image with RGB colors and alpha transparency"},
 		{SNODE_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Draw alpha transparency channel"},
-		                        /* XXX, we could use better icons here  */
-		{SNODE_SHOW_R, "RED",   ICON_COLOR, "Red", ""},
-		{SNODE_SHOW_G, "GREEN", ICON_COLOR, "Green", ""},
-		{SNODE_SHOW_B, "BLUE",  ICON_COLOR, "Blue", ""},
+		{SNODE_SHOW_R, "RED",   ICON_COLOR_RED, "Red", ""},
+		{SNODE_SHOW_G, "GREEN", ICON_COLOR_GREEN, "Green", ""},
+		{SNODE_SHOW_B, "BLUE",  ICON_COLOR_BLUE, "Blue", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

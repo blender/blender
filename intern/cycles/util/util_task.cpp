@@ -168,10 +168,16 @@ void TaskScheduler::init(int num_threads)
 	if(users == 0) {
 		do_exit = false;
 
-		/* launch threads that will be waiting for work */
-		if(num_threads == 0)
+		if(num_threads == 0) {
+			/* automatic number of threads will be main thread + num cores */
 			num_threads = system_cpu_thread_count();
+		}
+		else {
+			/* main thread will also work, for fixed threads we count it too */
+			num_threads -= 1;
+		}
 
+		/* launch threads that will be waiting for work */
 		threads.resize(num_threads);
 		thread_level.resize(num_threads);
 

@@ -99,23 +99,23 @@ BMFace *BM_face_create_quad_tri_v(BMesh *bm, BMVert **verts, int len, const BMFa
 
 	if (nodouble) {
 		/* check if face exists or overlaps */
-		is_overlap = BM_face_exists(bm, verts, len, &f);
+		is_overlap = BM_face_exists(verts, len, &f);
 	}
 
 	/* make new face */
 	if ((f == NULL) && (!is_overlap)) {
 		BMEdge *edar[4] = {NULL};
-		edar[0] = BM_edge_create(bm, verts[0], verts[1], NULL, TRUE);
-		edar[1] = BM_edge_create(bm, verts[1], verts[2], NULL, TRUE);
+		edar[0] = BM_edge_create(bm, verts[0], verts[1], NULL, BM_CREATE_NO_DOUBLE);
+		edar[1] = BM_edge_create(bm, verts[1], verts[2], NULL, BM_CREATE_NO_DOUBLE);
 		if (len == 4) {
-			edar[2] = BM_edge_create(bm, verts[2], verts[3], NULL, TRUE);
-			edar[3] = BM_edge_create(bm, verts[3], verts[0], NULL, TRUE);
+			edar[2] = BM_edge_create(bm, verts[2], verts[3], NULL, BM_CREATE_NO_DOUBLE);
+			edar[3] = BM_edge_create(bm, verts[3], verts[0], NULL, BM_CREATE_NO_DOUBLE);
 		}
 		else {
-			edar[2] = BM_edge_create(bm, verts[2], verts[0], NULL, TRUE);
+			edar[2] = BM_edge_create(bm, verts[2], verts[0], NULL, BM_CREATE_NO_DOUBLE);
 		}
 
-		f = BM_face_create(bm, verts, edar, len, FALSE);
+		f = BM_face_create(bm, verts, edar, len, 0);
 
 		if (example && f) {
 			BM_elem_attrs_copy(bm, bm, example, f);
@@ -171,12 +171,12 @@ void BM_face_copy_shared(BMesh *bm, BMFace *f)
  * #BM_face_create should be considered over this function as it
  * avoids some unnecessary work.
  */
-BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len, int nodouble)
+BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len, const int create_flag)
 {
 	BMEdge **edges2 = NULL;
-	BLI_array_staticdeclare(edges2, BM_NGON_STACK_SIZE);
+	BLI_array_staticdeclare(edges2, BM_DEFAULT_NGON_STACK_SIZE);
 	BMVert **verts = NULL;
-	BLI_array_staticdeclare(verts, BM_NGON_STACK_SIZE);
+	BLI_array_staticdeclare(verts, BM_DEFAULT_NGON_STACK_SIZE);
 	BMFace *f = NULL;
 	BMEdge *e;
 	BMVert *v, *ev1, *ev2;
@@ -187,8 +187,10 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 	 *  _and_ the old bmesh_mf functions, so its kindof smashed together
 	 * - joeedh */
 
-	if (!len || !v1 || !v2 || !edges || !bm)
+	if (!len || !v1 || !v2 || !edges || !bm) {
+		BLI_assert(0);
 		return NULL;
+	}
 
 	/* put edges in correct order */
 	for (i = 0; i < len; i++) {
@@ -280,7 +282,7 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 		BM_ELEM_API_FLAG_DISABLE(verts[i], _FLAG_MV);
 	}
 
-	f = BM_face_create(bm, verts, edges2, len, nodouble);
+	f = BM_face_create(bm, verts, edges2, len, create_flag);
 
 	/* clean up flags */
 	for (i = 0; i < len; i++) {
@@ -336,7 +338,7 @@ static int angle_index_pair_cmp(const void *e1, const void *e2)
  *
  * \note Since this is a vcloud there is no direction.
  */
-BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int totv, int nodouble)
+BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int totv, const int create_flag)
 {
 	BMFace *f;
 
@@ -397,11 +399,11 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int totv, int n
 
 		/* more of a weight then a distance */
 		far_cross_dist = (/* first we want to have a value close to zero mapped to 1 */
-						  1.0f - fabsf(dot_v3v3(far_vec, far_cross_vec)) *
+		                  1.0f - fabsf(dot_v3v3(far_vec, far_cross_vec)) *
 
-						  /* second  we multiply by the distance
-						   * so points close to the center are not preferred */
-						  far_cross_dist);
+		                  /* second  we multiply by the distance
+		                   * so points close to the center are not preferred */
+		                  far_cross_dist);
 
 		if (far_cross_dist > far_cross_best || far_cross == NULL) {
 			far_cross = vert_arr[i]->co;
@@ -462,7 +464,7 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int totv, int n
 
 	i_prev = totv - 1;
 	for (i = 0; i < totv; i++) {
-		edge_arr[i] = BM_edge_create(bm, vert_arr_map[i_prev], vert_arr_map[i], NULL, TRUE);
+		edge_arr[i] = BM_edge_create(bm, vert_arr_map[i_prev], vert_arr_map[i], NULL, BM_CREATE_NO_DOUBLE);
 
 		/* the edge may exist already and be attached to a face
 		 * in this case we can find the best winding to use for the new face */
@@ -491,7 +493,7 @@ BMFace *BM_face_create_ngon_vcloud(BMesh *bm, BMVert **vert_arr, int totv, int n
 	/* --- */
 
 	/* create the face */
-	f = BM_face_create_ngon(bm, vert_arr_map[winding[0]], vert_arr_map[winding[1]], edge_arr, totv, nodouble);
+	f = BM_face_create_ngon(bm, vert_arr_map[winding[0]], vert_arr_map[winding[1]], edge_arr, totv, create_flag);
 
 	MEM_freeN(edge_arr);
 	MEM_freeN(vert_arr_map);
@@ -854,7 +856,7 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 
 	v = BM_iter_new(&iter, bm_old, BM_VERTS_OF_MESH, NULL);
 	for (i = 0; v; v = BM_iter_step(&iter), i++) {
-		v2 = BM_vert_create(bm_new, v->co, NULL); /* copy between meshes so cant use 'example' argument */
+		v2 = BM_vert_create(bm_new, v->co, NULL, BM_CREATE_SKIP_CD); /* copy between meshes so cant use 'example' argument */
 		BM_elem_attrs_copy(bm_old, bm_new, v, v2);
 		vtable[i] = v2;
 		BM_elem_index_set(v, i); /* set_inline */
@@ -871,7 +873,7 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 		e2 = BM_edge_create(bm_new,
 		                    vtable[BM_elem_index_get(e->v1)],
 		                    vtable[BM_elem_index_get(e->v2)],
-		                    e, FALSE);
+		                    e, BM_CREATE_SKIP_CD);
 
 		BM_elem_attrs_copy(bm_old, bm_new, e, e2);
 		etable[i] = e2;
@@ -907,7 +909,7 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 			v2 = vtable[BM_elem_index_get(loops[0]->v)];
 		}
 
-		f2 = BM_face_create_ngon(bm_new, v, v2, edges, f->len, FALSE);
+		f2 = BM_face_create_ngon(bm_new, v, v2, edges, f->len, BM_CREATE_SKIP_CD);
 		if (UNLIKELY(f2 == NULL)) {
 			continue;
 		}

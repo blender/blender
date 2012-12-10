@@ -37,6 +37,10 @@ extern "C" {
 
 #include <pthread.h>
 
+#ifdef __APPLE__
+#include <libkern/OSAtomic.h>
+#endif
+
 /* for tables, button in UI, etc */
 #define BLENDER_MAX_THREADS     64
 
@@ -91,6 +95,19 @@ void BLI_mutex_init(ThreadMutex *mutex);
 void BLI_mutex_lock(ThreadMutex *mutex);
 void BLI_mutex_unlock(ThreadMutex *mutex);
 void BLI_mutex_end(ThreadMutex *mutex);
+
+/* Spin Lock */
+
+#ifdef __APPLE__
+typedef OSSpinLock SpinLock;
+#else
+typedef pthread_spinlock_t SpinLock;
+#endif
+
+void BLI_spin_init(SpinLock *spin);
+void BLI_spin_lock(SpinLock *spin);
+void BLI_spin_unlock(SpinLock *spin);
+void BLI_spin_end(SpinLock *spin);
 
 /* Read/Write Mutex Lock */
 

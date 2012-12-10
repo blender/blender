@@ -651,8 +651,8 @@ static void widget_verts_to_quad_strip_open(uiWidgetBase *wtb, const int totvert
 	for (a = 0; a < totvert; a++) {
 		quad_strip[a * 2][0] = wtb->outer_v[a][0];
 		quad_strip[a * 2][1] = wtb->outer_v[a][1];
-		quad_strip[a * 2 + 1][0] = wtb->outer_v[a][0];
-		quad_strip[a * 2 + 1][1] = wtb->outer_v[a][1] - 1.0f;
+		quad_strip[a * 2 + 1][0] = wtb->inner_v[a][0];
+		quad_strip[a * 2 + 1][1] = wtb->inner_v[a][1];
 	}
 }
 
@@ -1044,6 +1044,8 @@ static void ui_text_clip_cursor(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 				ui_text_clip_give_prev_off(but);
 			len = strlen(but->drawstr);
 			bytes = BLI_str_utf8_size(BLI_str_find_prev_char_utf8(but->drawstr, but->drawstr + len));
+			if (bytes < 0)
+				bytes = 1;
 			but->drawstr[len - bytes] = 0;
 		}
 
@@ -2057,7 +2059,7 @@ void ui_draw_gradient(rcti *rect, const float hsv[3], const int type, const floa
 	
 	/* old below */
 	
-	for (dx = 0.0f; dx < 1.0f; dx += color_step) {
+	for (dx = 0.0f; dx < 0.999f; dx += color_step) { /* 0.999 = prevent float inaccuracy for steps */
 		/* previous color */
 		copy_v3_v3(col0[0], col1[0]);
 		copy_v3_v3(col0[1], col1[1]);
@@ -2112,7 +2114,7 @@ void ui_draw_gradient(rcti *rect, const float hsv[3], const int type, const floa
 		sx1 = rect->xmin +  dx               * BLI_rcti_size_x(rect);
 		sx2 = rect->xmin + (dx + color_step) * BLI_rcti_size_x(rect);
 		sy = rect->ymin;
-		dy = BLI_rcti_size_y(rect) / 3.0;
+		dy = (float)BLI_rcti_size_y(rect) / 3.0f;
 		
 		glBegin(GL_QUADS);
 		for (a = 0; a < 3; a++, sy += dy) {
@@ -2621,6 +2623,11 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	
 }
 
+static void widget_normal(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))
+{
+	ui_draw_but_NORMAL(but, wcol, rect);
+}
+
 static void widget_icon_has_anim(uiBut *UNUSED(but), uiWidgetColors *wcol, rcti *rect, int state, int UNUSED(roundboxalign))
 {
 	if (state & (UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN | UI_BUT_REDALERT)) {
@@ -3028,6 +3035,7 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			break;
 			
 		case UI_WTYPE_NORMAL:
+			wt.custom = widget_normal;
 			break;
 
 		case UI_WTYPE_SCROLL:
@@ -3267,7 +3275,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				break;
 				
 			case BUT_NORMAL:
-				ui_draw_but_NORMAL(but, &tui->wcol_regular, rect);
+				wt = widget_type(UI_WTYPE_NORMAL);
 				break;
 				
 			case BUT_IMAGE:

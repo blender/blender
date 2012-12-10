@@ -22,42 +22,56 @@
 #include "kernel_object.h"
 
 #include "osl_closures.h"
+#include "osl_globals.h"
 #include "osl_services.h"
 #include "osl_shader.h"
 
+#include "util_attribute.h"
 #include "util_foreach.h"
 
 #include <OSL/oslexec.h>
 
 CCL_NAMESPACE_BEGIN
 
-tls_ptr(OSLGlobals::ThreadData, OSLGlobals::thread_data);
-
 /* Threads */
 
-void OSLShader::thread_init(KernelGlobals *kg)
+void OSLShader::thread_init(KernelGlobals *kg, KernelGlobals *kernel_globals, OSLGlobals *osl_globals)
 {
-	OSL::ShadingSystem *ss = kg->osl.ss;
+	/* no osl used? */
+	if(!osl_globals->use) {
+		kg->osl = NULL;
+		return;
+	}
 
-	OSLGlobals::ThreadData *tdata = new OSLGlobals::ThreadData();
+	/* per thread kernel data init*/
+	kg->osl = osl_globals;
+	kg->osl->services->thread_init(kernel_globals);
+
+	OSL::ShadingSystem *ss = kg->osl->ss;
+	OSLThreadData *tdata = new OSLThreadData();
 
 	memset(&tdata->globals, 0, sizeof(OSL::ShaderGlobals));
 	tdata->thread_info = ss->create_thread_info();
 
-	tls_set(kg->osl.thread_data, tdata);
-
-	kg->osl.services->thread_init(kg);
+	kg->osl_ss = (OSLShadingSystem*)ss;
+	kg->osl_tdata = tdata;
 }
 
 void OSLShader::thread_free(KernelGlobals *kg)
 {
-	OSL::ShadingSystem *ss = kg->osl.ss;
+	if(!kg->osl)
+		return;
 
-	OSLGlobals::ThreadData *tdata = tls_get(OSLGlobals::ThreadData, kg->osl.thread_data);
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)kg->osl_ss;
+	OSLThreadData *tdata = kg->osl_tdata;
 
 	ss->destroy_thread_info(tdata->thread_info);
 
 	delete tdata;
+
+	kg->osl = NULL;
+	kg->osl_ss = NULL;
+	kg->osl_tdata = NULL;
 }
 
 /* Globals */
@@ -83,6 +97,7 @@ static void shaderdata_to_shaderglobals(KernelGlobals *kg, ShaderData *sd,
 	globals->dPdu = TO_VEC3(sd->dPdu);
 	globals->dPdv = TO_VEC3(sd->dPdv);
 	globals->surfacearea = (sd->object == ~0) ? 1.0f : object_surface_area(kg, sd->object);
+	globals->time = sd->time;
 
 	/* booleans */
 	globals->raytype = path_flag; /* todo: add our own ray types */
@@ -93,6 +108,7 @@ static void shaderdata_to_shaderglobals(KernelGlobals *kg, ShaderData *sd,
 	
 	/* shader data to be used in services callbacks */
 	globals->renderstate = sd; 
+	globals->tracedata = NULL;
 
 	/* hacky, we leave it to services to fetch actual object matrix */
 	globals->shader2common = sd;
@@ -134,13 +150,15 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 					/* sample weight */
 					float sample_weight = fabsf(average(weight));
 
-					sd->flag |= bsdf->shaderdata_flag();
-
 					sc.sample_weight = sample_weight;
 					sc.type = bsdf->shaderclosure_type();
+					sc.N = bsdf->sc.N; /* needed for AO */
 
 					/* add */
-					sd->closure[sd->num_closure++] = sc;
+					if(sc.sample_weight > 1e-5f && sd->num_closure < MAX_CLOSURE) {
+						sd->closure[sd->num_closure++] = sc;
+						sd->flag |= bsdf->shaderdata_flag();
+					}
 					break;
 				}
 				case OSL::ClosurePrimitive::Emissive: {
@@ -154,9 +172,26 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 					sc.type = CLOSURE_EMISSION_ID;
 
 					/* flag */
-					sd->flag |= SD_EMISSION;
+					if(sd->num_closure < MAX_CLOSURE) {
+						sd->closure[sd->num_closure++] = sc;
+						sd->flag |= SD_EMISSION;
+					}
+					break;
+				}
+				case AmbientOcclusion: {
+					if (sd->num_closure == MAX_CLOSURE)
+						return;
 
-					sd->closure[sd->num_closure++] = sc;
+					/* sample weight */
+					float sample_weight = fabsf(average(weight));
+
+					sc.sample_weight = sample_weight;
+					sc.type = CLOSURE_AMBIENT_OCCLUSION_ID;
+
+					if(sd->num_closure < MAX_CLOSURE) {
+						sd->closure[sd->num_closure++] = sc;
+						sd->flag |= SD_AO;
+					}
 					break;
 				}
 				case OSL::ClosurePrimitive::Holdout:
@@ -165,8 +200,11 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 
 					sc.sample_weight = 0.0f;
 					sc.type = CLOSURE_HOLDOUT_ID;
-					sd->flag |= SD_HOLDOUT;
-					sd->closure[sd->num_closure++] = sc;
+
+					if(sd->num_closure < MAX_CLOSURE) {
+						sd->closure[sd->num_closure++] = sc;
+						sd->flag |= SD_HOLDOUT;
+					}
 					break;
 				case OSL::ClosurePrimitive::BSSRDF:
 				case OSL::ClosurePrimitive::Debug:
@@ -191,8 +229,8 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 void OSLShader::eval_surface(KernelGlobals *kg, ShaderData *sd, float randb, int path_flag)
 {
 	/* gather pointers */
-	OSL::ShadingSystem *ss = kg->osl.ss;
-	OSLGlobals::ThreadData *tdata = tls_get(OSLGlobals::ThreadData, kg->osl.thread_data);
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)kg->osl_ss;
+	OSLThreadData *tdata = kg->osl_tdata;
 	OSL::ShaderGlobals *globals = &tdata->globals;
 	OSL::ShadingContext *ctx = (OSL::ShadingContext *)sd->osl_ctx;
 
@@ -202,8 +240,12 @@ void OSLShader::eval_surface(KernelGlobals *kg, ShaderData *sd, float randb, int
 	/* execute shader for this point */
 	int shader = sd->shader & SHADER_MASK;
 
-	if (kg->osl.surface_state[shader])
-		ss->execute(*ctx, *(kg->osl.surface_state[shader]), *globals);
+	if (kg->osl->surface_state[shader])
+		ss->execute(*ctx, *(kg->osl->surface_state[shader]), *globals);
+
+	/* free trace data */
+	if(globals->tracedata)
+		delete (OSLRenderServices::TraceData*)globals->tracedata;
 
 	/* flatten closure tree */
 	sd->num_closure = 0;
@@ -248,8 +290,8 @@ static float3 flatten_background_closure_tree(const OSL::ClosureColor *closure)
 float3 OSLShader::eval_background(KernelGlobals *kg, ShaderData *sd, int path_flag)
 {
 	/* gather pointers */
-	OSL::ShadingSystem *ss = kg->osl.ss;
-	OSLGlobals::ThreadData *tdata = tls_get(OSLGlobals::ThreadData, kg->osl.thread_data);
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)kg->osl_ss;
+	OSLThreadData *tdata = kg->osl_tdata;
 	OSL::ShaderGlobals *globals = &tdata->globals;
 	OSL::ShadingContext *ctx = (OSL::ShadingContext *)sd->osl_ctx;
 
@@ -257,8 +299,12 @@ float3 OSLShader::eval_background(KernelGlobals *kg, ShaderData *sd, int path_fl
 	shaderdata_to_shaderglobals(kg, sd, path_flag, globals);
 
 	/* execute shader for this point */
-	if (kg->osl.background_state)
-		ss->execute(*ctx, *(kg->osl.background_state), *globals);
+	if (kg->osl->background_state)
+		ss->execute(*ctx, *(kg->osl->background_state), *globals);
+
+	/* free trace data */
+	if(globals->tracedata)
+		delete (OSLRenderServices::TraceData*)globals->tracedata;
 
 	/* return background color immediately */
 	if (globals->Ci)
@@ -296,7 +342,8 @@ static void flatten_volume_closure_tree(ShaderData *sd,
 					sc.type = CLOSURE_VOLUME_ID;
 
 					/* add */
-					sd->closure[sd->num_closure++] = sc;
+					if(sc.sample_weight > 1e-5f && sd->num_closure < MAX_CLOSURE)
+						sd->closure[sd->num_closure++] = sc;
 					break;
 				}
 				case OSL::ClosurePrimitive::Holdout:
@@ -324,8 +371,8 @@ static void flatten_volume_closure_tree(ShaderData *sd,
 void OSLShader::eval_volume(KernelGlobals *kg, ShaderData *sd, float randb, int path_flag)
 {
 	/* gather pointers */
-	OSL::ShadingSystem *ss = kg->osl.ss;
-	OSLGlobals::ThreadData *tdata = tls_get(OSLGlobals::ThreadData, kg->osl.thread_data);
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)kg->osl_ss;
+	OSLThreadData *tdata = kg->osl_tdata;
 	OSL::ShaderGlobals *globals = &tdata->globals;
 	OSL::ShadingContext *ctx = (OSL::ShadingContext *)sd->osl_ctx;
 
@@ -335,8 +382,12 @@ void OSLShader::eval_volume(KernelGlobals *kg, ShaderData *sd, float randb, int 
 	/* execute shader */
 	int shader = sd->shader & SHADER_MASK;
 
-	if (kg->osl.volume_state[shader])
-		ss->execute(*ctx, *(kg->osl.volume_state[shader]), *globals);
+	if (kg->osl->volume_state[shader])
+		ss->execute(*ctx, *(kg->osl->volume_state[shader]), *globals);
+
+	/* free trace data */
+	if(globals->tracedata)
+		delete (OSLRenderServices::TraceData*)globals->tracedata;
 
 	if (globals->Ci)
 		flatten_volume_closure_tree(sd, globals->Ci);
@@ -347,8 +398,8 @@ void OSLShader::eval_volume(KernelGlobals *kg, ShaderData *sd, float randb, int 
 void OSLShader::eval_displacement(KernelGlobals *kg, ShaderData *sd)
 {
 	/* gather pointers */
-	OSL::ShadingSystem *ss = kg->osl.ss;
-	OSLGlobals::ThreadData *tdata = tls_get(OSLGlobals::ThreadData, kg->osl.thread_data);
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)kg->osl_ss;
+	OSLThreadData *tdata = kg->osl_tdata;
 	OSL::ShaderGlobals *globals = &tdata->globals;
 	OSL::ShadingContext *ctx = (OSL::ShadingContext *)sd->osl_ctx;
 
@@ -358,8 +409,12 @@ void OSLShader::eval_displacement(KernelGlobals *kg, ShaderData *sd)
 	/* execute shader */
 	int shader = sd->shader & SHADER_MASK;
 
-	if (kg->osl.displacement_state[shader])
-		ss->execute(*ctx, *(kg->osl.displacement_state[shader]), *globals);
+	if (kg->osl->displacement_state[shader])
+		ss->execute(*ctx, *(kg->osl->displacement_state[shader]), *globals);
+
+	/* free trace data */
+	if(globals->tracedata)
+		delete (OSLRenderServices::TraceData*)globals->tracedata;
 
 	/* get back position */
 	sd->P = TO_FLOAT3(globals->P);
@@ -367,15 +422,15 @@ void OSLShader::eval_displacement(KernelGlobals *kg, ShaderData *sd)
 
 void OSLShader::init(KernelGlobals *kg, ShaderData *sd)
 {
-	OSL::ShadingSystem *ss = kg->osl.ss;
-	OSLGlobals::ThreadData *tdata = tls_get(OSLGlobals::ThreadData, kg->osl.thread_data);
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)kg->osl_ss;
+	OSLThreadData *tdata = kg->osl_tdata;
 	
 	sd->osl_ctx = ss->get_context(tdata->thread_info);
 }
 
 void OSLShader::release(KernelGlobals *kg, ShaderData *sd)
 {
-	OSL::ShadingSystem *ss = kg->osl.ss;
+	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)kg->osl_ss;
 	
 	ss->release_context((OSL::ShadingContext *)sd->osl_ctx);
 }
@@ -431,6 +486,24 @@ float3 OSLShader::volume_eval_phase(const ShaderClosure *sc, const float3 omega_
 	OSL::VolumeClosure *volume = (OSL::VolumeClosure *)sc->prim;
 	OSL::Color3 volume_eval = volume->eval_phase(TO_VEC3(omega_in), TO_VEC3(omega_out));
 	return TO_FLOAT3(volume_eval) * sc->weight;
+}
+
+/* Attributes */
+
+int OSLShader::find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id)
+{
+	/* for OSL, a hash map is used to lookup the attribute by name. */
+	OSLGlobals::AttributeMap &attr_map = kg->osl->attribute_map[sd->object];
+	ustring stdname(std::string("std::") + std::string(attribute_standard_name((AttributeStandard)id)));
+	OSLGlobals::AttributeMap::const_iterator it = attr_map.find(stdname);
+
+	if (it != attr_map.end()) {
+		const OSLGlobals::Attribute &osl_attr = it->second;
+		/* return result */
+		return (osl_attr.elem == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : osl_attr.offset;
+	}
+	else
+		return (int)ATTR_STD_NOT_FOUND;
 }
 
 CCL_NAMESPACE_END

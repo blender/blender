@@ -73,7 +73,7 @@ void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 	/* force a load, we assume iuser index will be set OK anyway */
 	if (image && image->type == IMA_TYPE_MULTILAYER) {
 		bool is_multilayer_ok = false;
-		BKE_image_get_ibuf(image, imageuser);
+		ImBuf *ibuf = BKE_image_acquire_ibuf(image, imageuser, NULL);
 		if (image->rr) {
 			RenderLayer *rl = (RenderLayer *)BLI_findlink(&image->rr->layers, imageuser->layer);
 			if (rl) {
@@ -83,6 +83,7 @@ void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 				is_multilayer_ok = true;
 
 				for (index = 0; index < numberOfOutputs; index++) {
+					NodeOperation *operation = NULL;
 					socket = this->getOutputSocket(index);
 					if (socket->isConnected() || index == 0) {
 						bNodeSocket *bnodeSocket = socket->getbNodeSocket();
@@ -91,7 +92,6 @@ void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 						
 						RenderPass *rpass = (RenderPass *)BLI_findlink(&rl->passes, passindex);
 						if (rpass) {
-							NodeOperation *operation = NULL;
 							imageuser->pass = passindex;
 							switch (rpass->channels) {
 								case 1:
@@ -105,19 +105,25 @@ void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 								case 4:
 									operation = doMultilayerCheck(graph, rl, image, imageuser, framenumber, index, passindex, COM_DT_COLOR);
 									break;
-
 								default:
-									/* XXX add a dummy operation? */
+									/* dummy operation is added below */
 									break;
 							}
+
 							if (index == 0 && operation) {
 								addPreviewOperation(graph, context, operation->getOutputSocket());
 							}
 						}
 					}
+
+					/* incase we can't load the layer */
+					if (operation == NULL) {
+						convertToOperations_invalid_index(graph, index);
+					}
 				}
 			}
 		}
+		BKE_image_release_ibuf(image, ibuf, NULL);
 
 		/* without this, multilayer that fail to load will crash blender [#32490] */
 		if (is_multilayer_ok == false) {

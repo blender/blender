@@ -8,4 +8,7 @@ import os
 filename = "my_script.py"
 
 filepath = os.path.join(os.path.dirname(bpy.data.filepath), filename)
-exec(compile(open(filepath).read(), filepath, 'exec'))
+global_namespace = {"__file__": filepath, "__name__": "__main__"}
+file = open(filepath, 'rb')
+exec(compile(file.read(), filepath, 'exec'), global_namespace)
+file.close()

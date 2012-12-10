@@ -245,7 +245,7 @@ static void feather_bucket_add_edge(FeatherEdgesBucket *bucket, int start, int e
 		}
 		else {
 			bucket->segments = MEM_reallocN(bucket->segments,
-					(alloc_delta + bucket->tot_segment) * sizeof(*bucket->segments));
+			                                (alloc_delta + bucket->tot_segment) * sizeof(*bucket->segments));
 		}
 
 		bucket->alloc_segment += alloc_delta;
@@ -289,10 +289,10 @@ static void feather_bucket_check_intersect(float (*feather_points)[2], int tot_f
 			/* collapse loop with smaller AABB */
 			for (k = 0; k < tot_feather_point; k++) {
 				if (k >= check_b && k <= cur_a) {
-					DO_MINMAX2(feather_points[k], min_a, max_a);
+					minmax_v2v2_v2(min_a, max_a, feather_points[k]);
 				}
 				else {
-					DO_MINMAX2(feather_points[k], min_b, max_b);
+					minmax_v2v2_v2(min_b, max_b, feather_points[k]);
 				}
 			}
 
@@ -379,7 +379,7 @@ void BKE_mask_spline_feather_collapse_inner_loops(MaskSpline *spline, float (*fe
 		int next = i + 1;
 		float delta;
 
-		DO_MINMAX2(feather_points[i], min, max);
+		minmax_v2v2_v2(min, max, feather_points[i]);
 
 		if (next == tot_feather_point) {
 			if (spline->flag & MASK_SPLINE_CYCLIC)

@@ -72,6 +72,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h" /* BKE_ST_MAXNAME */
+#include "BKE_utildefines.h"
 
 #include "BKE_idcode.h"
 
@@ -86,6 +87,7 @@
 #include "ED_screen.h"
 #include "ED_util.h"
 #include "ED_object.h"
+#include "ED_view3d.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -623,7 +625,7 @@ void WM_operator_properties_sanitize(PointerRNA *ptr, const short no_context)
 /** set all props to their default,
  * \param do_update Only update un-initialized props.
  *
- * \note, theres nothing spesific to operators here.
+ * \note, theres nothing specific to operators here.
  * this could be made a general function.
  */
 int WM_operator_properties_default(PointerRNA *ptr, const int do_update)
@@ -687,6 +689,35 @@ void WM_operator_properties_free(PointerRNA *ptr)
 }
 
 /* ************ default op callbacks, exported *********** */
+
+int WM_operator_view3d_distance_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *UNUSED(event))
+{
+	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+
+	const float dia = v3d ? ED_view3d_grid_scale(scene, v3d, NULL) : ED_scene_grid_scale(scene, NULL);
+
+	/* always run, so the values are initialized,
+	 * otherwise we may get differ behavior when (dia != 1.0) */
+	RNA_STRUCT_BEGIN(op->ptr, prop)
+	{
+		if (RNA_property_type(prop) == PROP_FLOAT) {
+			PropertySubType pstype = RNA_property_subtype(prop);
+			if (pstype == PROP_DISTANCE) {
+				/* we don't support arrays yet */
+				BLI_assert(RNA_property_array_check(prop) == FALSE);
+				/* initialize */
+				if (!RNA_property_is_set_ex(op->ptr, prop, FALSE)) {
+					const float value = RNA_property_float_get_default(op->ptr, prop) * dia;
+					RNA_property_float_set(op->ptr, prop, value);
+				}
+			}
+		}
+	}
+	RNA_STRUCT_END;
+
+	return op->type->exec(C, op);
+}
 
 /* invoke callback, uses enum property named "type" */
 int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
@@ -792,7 +823,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg_op)
 	uiButSetSearchFunc(but, operator_enum_search_cb, op->type, operator_enum_call_cb, NULL);
 
 	/* fake button, it holds space for search items */
-	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 9 * UI_UNIT_X, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxHeight(), uiSearchBoxWidth(), uiSearchBoxHeight(), NULL, 0, 0, 0, 0, NULL);
 
 	uiPopupBoundsBlock(block, 6, 0, -UI_UNIT_Y); /* move it downwards, mouse over button */
 	uiEndBlock(C, block);
@@ -902,6 +933,8 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 	}
 	
 	prop = RNA_def_boolean(ot->srna, "filter_blender", (filter & BLENDERFILE), "Filter .blend files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "filter_backup", (filter & BLENDERFILE_BACKUP), "Filter .blend files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "filter_image", (filter & IMAGEFILE), "Filter image files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
@@ -1022,6 +1055,23 @@ wmOperator *WM_operator_last_redo(const bContext *C)
 	return op;
 }
 
+static void wm_block_redo_cb(bContext *C, void *arg_op, int UNUSED(arg_event))
+{
+	wmOperator *op = arg_op;
+
+	if (op == WM_operator_last_redo(C)) {
+		/* operator was already executed once? undo & repeat */
+		ED_undo_operator_repeat(C, op);
+	}
+	else {
+		/* operator not executed yet, call it */
+		ED_undo_push_op(C, op);
+		wm_operator_register(C, op);
+
+		WM_operator_repeat(C, op);
+	}
+}
+
 static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 {
 	wmOperator *op = arg_op;
@@ -1029,7 +1079,6 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	uiLayout *layout;
 	uiStyle *style = UI_GetStyle();
 	int width = 300;
-	
 
 	block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
@@ -1039,11 +1088,12 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	 * ui_apply_but_funcs_after calls ED_undo_operator_repeate_cb and crashes */
 	assert(op->type->flag & OPTYPE_REGISTER);
 
-	uiBlockSetHandleFunc(block, ED_undo_operator_repeat_cb_evt, arg_op);
+	uiBlockSetHandleFunc(block, wm_block_redo_cb, arg_op);
 	layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, UI_UNIT_Y, style);
 
-	if (!WM_operator_check_ui_enabled(C, op->type->name))
-		uiLayoutSetEnabled(layout, FALSE);
+	if (op == WM_operator_last_redo(C))
+		if (!WM_operator_check_ui_enabled(C, op->type->name))
+			uiLayoutSetEnabled(layout, FALSE);
 
 	if (op->type->flag & OPTYPE_MACRO) {
 		for (op = op->macro.first; op; op = op->next) {
@@ -1055,7 +1105,6 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 		uiLayoutOperatorButs(C, layout, op, NULL, 'H', UI_LAYOUT_OP_SHOW_TITLE);
 	}
 	
-
 	uiPopupBoundsBlock(block, 4, 0, 0);
 	uiEndBlock(C, block);
 
@@ -1183,6 +1232,8 @@ static void wm_operator_ui_popup_ok(struct bContext *C, void *arg, int retval)
 
 	if (op && retval > 0)
 		WM_operator_call(C, op);
+	
+	MEM_freeN(data);
 }
 
 int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
@@ -1196,22 +1247,43 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-/* operator menu needs undo, for redo callback */
-int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+/**
+ * For use by #WM_operator_props_popup_call, #WM_operator_props_popup only.
+ *
+ * \note operator menu needs undo flag enabled , for redo callback */
+static int wm_operator_props_popup_ex(bContext *C, wmOperator *op, const int do_call)
 {
-	
 	if ((op->type->flag & OPTYPE_REGISTER) == 0) {
 		BKE_reportf(op->reports, RPT_ERROR,
 		            "Operator '%s' does not have register enabled, incorrect invoke function", op->type->idname);
 		return OPERATOR_CANCELLED;
 	}
-	
-	ED_undo_push_op(C, op);
-	wm_operator_register(C, op);
+
+	/* if we don't have global undo, we can't do undo push for automatic redo,
+	 * so we require manual OK clicking in this popup */
+	if (!(U.uiflag & USER_GLOBALUNDO))
+		return WM_operator_props_dialog_popup(C, op, 300, UI_UNIT_Y);
 
 	uiPupBlock(C, wm_block_create_redo, op);
 
+	if (do_call)
+		wm_block_redo_cb(C, op, 0);
+
 	return OPERATOR_RUNNING_MODAL;
+}
+
+/* Same as WM_operator_props_popup but call the operator first,
+ * This way - the button values correspond to the result of the operator.
+ * Without this, first access to a button will make the result jump,
+ * see [#32452] */
+int WM_operator_props_popup_call(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	return wm_operator_props_popup_ex(C, op, TRUE);
+}
+
+int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	return wm_operator_props_popup_ex(C, op, FALSE);
 }
 
 int WM_operator_props_dialog_popup(bContext *C, wmOperator *op, int width, int height)
@@ -1277,6 +1349,31 @@ static void WM_OT_debug_menu(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "debug_value", 0, SHRT_MIN, SHRT_MAX, "Debug Value", "", -10000, 10000);
 }
 
+/* ***************** Operator defaults ************************* */
+static int wm_operator_defaults_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr = CTX_data_pointer_get_type(C, "active_operator", &RNA_Operator);
+
+	if (!ptr.data) {
+		BKE_report(op->reports, RPT_ERROR, "No operator in context");
+		return OPERATOR_CANCELLED;
+	}
+
+	WM_operator_properties_reset((wmOperator *)ptr.data);
+	return OPERATOR_FINISHED;
+}
+
+/* used by operator preset menu. pre-2.65 this was a 'Reset' button */
+static void WM_OT_operator_defaults(wmOperatorType *ot)
+{
+	ot->name = "Restore Defaults";
+	ot->idname = "WM_OT_operator_defaults";
+	ot->description = "Set the active operator to its default values";
+
+	ot->exec = wm_operator_defaults_exec;
+
+	ot->flag = OPTYPE_INTERNAL;
+}
 
 /* ***************** Splash Screen ************************* */
 
@@ -1332,6 +1429,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	int i;
 	MenuType *mt = WM_menutype_find("USERPREF_MT_splash", TRUE);
 	char url[96];
+	char file [FILE_MAX];
 
 #ifndef WITH_HEADLESS
 	extern char datatoc_splash_png[];
@@ -1397,7 +1495,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiItemL(col, "Links", ICON_NONE);
 	uiItemStringO(col, IFACE_("Donations"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/blenderorg/blender-foundation/donation-payment");
 	uiItemStringO(col, IFACE_("Credits"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/credits");
-	uiItemStringO(col, IFACE_("Release Log"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-264");
+	uiItemStringO(col, IFACE_("Release Log"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-265");
 	uiItemStringO(col, IFACE_("Manual"), ICON_URL, "WM_OT_url_open", "url", "http://wiki.blender.org/index.php/Doc:2.6/Manual");
 	uiItemStringO(col, IFACE_("Blender Website"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org");
 	uiItemStringO(col, IFACE_("User Community"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/community/user-community");
@@ -1419,7 +1517,11 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 
 	uiItemL(col, IFACE_("Recent"), ICON_NONE);
 	for (recent = G.recent_files.first, i = 0; (i < 5) && (recent); recent = recent->next, i++) {
-		uiItemStringO(col, BLI_path_basename(recent->filepath), ICON_FILE_BLEND, "WM_OT_open_mainfile", "filepath", recent->filepath);
+		BLI_split_file_part(recent->filepath, file, sizeof(file));
+		if (BLO_has_bfile_extension(file))
+			uiItemStringO(col, BLI_path_basename(recent->filepath), ICON_FILE_BLEND, "WM_OT_open_mainfile", "filepath", recent->filepath);
+		else
+			uiItemStringO(col, BLI_path_basename(recent->filepath), ICON_FILE_BACKUP, "WM_OT_open_mainfile", "filepath", recent->filepath);
 	}
 
 	uiItemS(col);
@@ -1451,49 +1553,6 @@ static void WM_OT_splash(wmOperatorType *ot)
 
 
 /* ***************** Search menu ************************* */
-static void operator_call_cb(struct bContext *C, void *UNUSED(arg1), void *arg2)
-{
-	wmOperatorType *ot = arg2;
-	
-	if (ot)
-		WM_operator_name_call(C, ot->idname, WM_OP_INVOKE_DEFAULT, NULL);
-}
-
-static void operator_search_cb(const struct bContext *C, void *UNUSED(arg), const char *str, uiSearchItems *items)
-{
-	GHashIterator *iter = WM_operatortype_iter();
-
-	for (; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
-		wmOperatorType *ot = BLI_ghashIterator_getValue(iter);
-
-		if ((ot->flag & OPTYPE_INTERNAL) && (G.debug & G_DEBUG_WM) == 0)
-			continue;
-
-		if (BLI_strcasestr(ot->name, str)) {
-			if (WM_operator_poll((bContext *)C, ot)) {
-				char name[256];
-				int len = strlen(ot->name);
-				
-				/* display name for menu, can hold hotkey */
-				BLI_strncpy(name, ot->name, sizeof(name));
-				
-				/* check for hotkey */
-				if (len < sizeof(name) - 6) {
-					if (WM_key_event_operator_string(C, ot->idname, WM_OP_EXEC_DEFAULT, NULL, TRUE,
-					                                 &name[len + 1], sizeof(name) - len - 1))
-					{
-						name[len] = '|';
-					}
-				}
-				
-				if (0 == uiSearchItemAdd(items, name, ot, 0))
-					break;
-			}
-		}
-	}
-	BLI_ghashIterator_free(iter);
-}
-
 static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *UNUSED(arg_op))
 {
 	static char search[256] = "";
@@ -1506,10 +1565,10 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *UNUSED(arg_
 	uiBlockSetFlag(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
 	
 	but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, 9 * UI_UNIT_X, UI_UNIT_Y, 0, 0, "");
-	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb, NULL);
+	uiOperatorSearch_But(but);
 	
 	/* fake button, it holds space for search items */
-	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 9 * UI_UNIT_X, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxHeight(), uiSearchBoxWidth(), uiSearchBoxHeight(), NULL, 0, 0, 0, 0, NULL);
 	
 	uiPopupBoundsBlock(block, 6, 0, -UI_UNIT_Y); /* move it downwards, mouse over button */
 	uiEndBlock(C, block);
@@ -2070,7 +2129,6 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 {
 	char path[FILE_MAX];
 	int fileflags;
-	int copy = 0;
 
 	save_set_compress(op);
 	
@@ -2080,29 +2138,27 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 		BLI_strncpy(path, G.main->name, FILE_MAX);
 		untitled(path);
 	}
-
-	if (RNA_struct_property_is_set(op->ptr, "copy"))
-		copy = RNA_boolean_get(op->ptr, "copy");
 	
 	fileflags = G.fileflags;
 
 	/* set compression flag */
-	if (RNA_boolean_get(op->ptr, "compress")) fileflags |=  G_FILE_COMPRESS;
-	else fileflags &= ~G_FILE_COMPRESS;
-	if (RNA_boolean_get(op->ptr, "relative_remap")) fileflags |=  G_FILE_RELATIVE_REMAP;
-	else fileflags &= ~G_FILE_RELATIVE_REMAP;
+	BKE_BIT_TEST_SET(fileflags, RNA_boolean_get(op->ptr, "compress"),
+	                 G_FILE_COMPRESS);
+	BKE_BIT_TEST_SET(fileflags, RNA_boolean_get(op->ptr, "relative_remap"),
+	                 G_FILE_RELATIVE_REMAP);
+	BKE_BIT_TEST_SET(fileflags,
+	                 (RNA_struct_property_is_set(op->ptr, "copy") &&
+	                  RNA_boolean_get(op->ptr, "copy")),
+	                 G_FILE_SAVE_COPY);
+
 #ifdef USE_BMESH_SAVE_AS_COMPAT
-	/* property only exists for 'Save As' */
-	if (RNA_struct_find_property(op->ptr, "use_mesh_compat")) {
-		if (RNA_boolean_get(op->ptr, "use_mesh_compat")) fileflags |=  G_FILE_MESH_COMPAT;
-		else fileflags &= ~G_FILE_MESH_COMPAT;
-	}
-	else {
-		fileflags &= ~G_FILE_MESH_COMPAT;
-	}
+	BKE_BIT_TEST_SET(fileflags,
+	                 (RNA_struct_find_property(op->ptr, "use_mesh_compat") &&
+	                  RNA_boolean_get(op->ptr, "use_mesh_compat")),
+	                 G_FILE_MESH_COMPAT);
 #endif
 
-	if (WM_file_write(C, path, fileflags, op->reports, copy) != 0)
+	if (WM_file_write(C, path, fileflags, op->reports) != 0)
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_WM | ND_FILESAVE, NULL);
@@ -3743,6 +3799,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_memory_statistics);
 	WM_operatortype_append(WM_OT_dependency_relations);
 	WM_operatortype_append(WM_OT_debug_menu);
+	WM_operatortype_append(WM_OT_operator_defaults);
 	WM_operatortype_append(WM_OT_splash);
 	WM_operatortype_append(WM_OT_search_menu);
 	WM_operatortype_append(WM_OT_call_menu);

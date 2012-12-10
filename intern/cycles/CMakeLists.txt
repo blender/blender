@@ -21,8 +21,11 @@ elseif(CMAKE_COMPILER_IS_GNUCC)
 endif()
 
 # for OSL
-set(RTTI_DISABLE_FLAGS "-fno-rtti -DBOOST_NO_RTTI -DBOOST_NO_TYPEID")
-# set(RTTI_DISABLE_FLAGS "/GR- -DBOOST_NO_RTTI -DBOOST_NO_TYPEID")
+if(WIN32 AND MSVC)
+	set(RTTI_DISABLE_FLAGS "/GR- -DBOOST_NO_RTTI -DBOOST_NO_TYPEID")
+elseif(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_C_COMPILER_ID MATCHES "Clang"))
+	set(RTTI_DISABLE_FLAGS "-fno-rtti -DBOOST_NO_RTTI -DBOOST_NO_TYPEID")
+endif()
 
 # Definitions and Includes
 
@@ -42,10 +45,6 @@ endif()
 if(WITH_CYCLES_OSL)
 	add_definitions(-DWITH_OSL)
 	include_directories(${OSL_INCLUDES})
-endif()
-
-if(WITH_CYCLES_PARTIO)
-	add_definitions(-DWITH_PARTIO)
 endif()
 
 if(WITH_CYCLES_CUDA_BINARIES)
@@ -69,7 +68,10 @@ if(WITH_CYCLES_BLENDER)
 	add_subdirectory(blender)
 endif()
 
-add_subdirectory(app)
+if(WITH_CYCLES_TEST)
+	add_subdirectory(app)
+endif()
+
 add_subdirectory(bvh)
 add_subdirectory(device)
 add_subdirectory(doc)

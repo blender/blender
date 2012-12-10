@@ -401,6 +401,7 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 static int key_test_depth(PEData *data, const float co[3], const int screen_co[2])
 {
 	View3D *v3d= data->vc.v3d;
+	ViewDepths *vd = data->vc.rv3d->depths;
 	double ux, uy, uz;
 	float depth;
 
@@ -428,12 +429,15 @@ static int key_test_depth(PEData *data, const float co[3], const int screen_co[2
 	/* view3d_validate_backbuf(&data->vc); */
 	glReadPixels(screen_co[0], screen_co[1], 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
 #else /* faster to use depths, these are calculated in PE_set_view3d_data */
-	{
-		ViewDepths *vd = data->vc.rv3d->depths;
-		assert(vd && vd->depths);
+
+	/* check if screen_co is within bounds because brush_cut uses out of screen coords */
+	if (screen_co[0] >= 0 && screen_co[0] < vd->w && screen_co[1] >= 0 && screen_co[1] < vd->h) {
+		BLI_assert(vd && vd->depths);
 		/* we know its not clipped */
 		depth = vd->depths[screen_co[1] * vd->w + screen_co[0]];
 	}
+	else
+		return 0;
 #endif
 
 	if ((float)uz - 0.00001f > depth)
@@ -2437,7 +2441,8 @@ void PARTICLE_OT_remove_doubles(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float(ot->srna, "threshold", 0.0002f, 0.0f, FLT_MAX, "Threshold", "Threshold distance withing which particles are removed", 0.00001f, 0.1f);
+	RNA_def_float(ot->srna, "threshold", 0.0002f, 0.0f, FLT_MAX,
+	              "Merge Distance", "Threshold distance withing which particles are removed", 0.00001f, 0.1f);
 }
 
 

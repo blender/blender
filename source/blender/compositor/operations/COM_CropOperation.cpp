@@ -58,6 +58,12 @@ void CropBaseOperation::updateArea()
 		this->m_ymax = max(this->m_settings->y1, this->m_settings->y2) + 1;
 		this->m_ymin = min(this->m_settings->y1, this->m_settings->y2);
 	}
+	else {
+		this->m_xmax = 0;
+		this->m_xmin = 0;
+		this->m_ymax = 0;
+		this->m_ymin = 0;
+	}
 }
 
 void CropBaseOperation::initExecution()

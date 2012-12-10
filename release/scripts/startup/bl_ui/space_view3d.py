@@ -168,6 +168,8 @@ class VIEW3D_MT_transform(VIEW3D_MT_transform_base):
 
         # generic...
         layout = self.layout
+        layout.operator("transform.shrink_fatten", text="Shrink Fatten")
+
         layout.separator()
 
         layout.operator("transform.translate", text="Move Texture Space").texture_space = True
@@ -1734,18 +1736,9 @@ class VIEW3D_MT_edit_mesh_select_mode(Menu):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
-
-        props = layout.operator("wm.context_set_value", text="Vertex", icon='VERTEXSEL')
-        props.value = "(True, False, False)"
-        props.data_path = "tool_settings.mesh_select_mode"
-
-        props = layout.operator("wm.context_set_value", text="Edge", icon='EDGESEL')
-        props.value = "(False, True, False)"
-        props.data_path = "tool_settings.mesh_select_mode"
-
-        props = layout.operator("wm.context_set_value", text="Face", icon='FACESEL')
-        props.value = "(False, False, True)"
-        props.data_path = "tool_settings.mesh_select_mode"
+        layout.operator("mesh.select_mode", text="Vertex", icon='VERTEXSEL').type = 'VERT'
+        layout.operator("mesh.select_mode", text="Edge", icon='EDGESEL').type = 'EDGE'
+        layout.operator("mesh.select_mode", text="Face", icon='FACESEL').type = 'FACE'
 
 
 class VIEW3D_MT_edit_mesh_extrude(Menu):
@@ -1845,8 +1838,8 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.edge_rotate", text="Rotate Edge CW").direction = 'CW'
-        layout.operator("mesh.edge_rotate", text="Rotate Edge CCW").direction = 'CCW'
+        layout.operator("mesh.edge_rotate", text="Rotate Edge CW").use_ccw = False
+        layout.operator("mesh.edge_rotate", text="Rotate Edge CCW").use_ccw = True
 
         layout.separator()
 
@@ -1895,13 +1888,13 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.edge_rotate", text="Rotate Edge CW").direction = 'CW'
+        layout.operator("mesh.edge_rotate", text="Rotate Edge CW").use_ccw = False
 
         layout.separator()
 
-        layout.operator_menu_enum("mesh.uvs_rotate", "direction")
+        layout.operator("mesh.uvs_rotate")
         layout.operator("mesh.uvs_reverse")
-        layout.operator_menu_enum("mesh.colors_rotate", "direction")
+        layout.operator("mesh.colors_rotate")
         layout.operator("mesh.colors_reverse")
 
 

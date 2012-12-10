@@ -901,7 +901,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 
 				ob->matbits = MEM_callocN(sizeof(char)*ob->totcol, "ob->matbits");
 				for (a = 0; a < ob->totcol; a++)
-					ob->matbits[a] = ob->colbits & (1<<a);
+					ob->matbits[a] = (ob->colbits & (1<<a)) != 0;
 			}
 		}
 

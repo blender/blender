@@ -45,6 +45,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_group_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
@@ -350,8 +351,8 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 /* XXX: forward def for material driver handling... */
 static void dag_add_material_driver_relations(DagForest *dag, DagNode *node, Material *ma);
 
-/* recursive handling for material nodetree drivers */
-static void dag_add_material_nodetree_driver_relations(DagForest *dag, DagNode *node, bNodeTree *ntree)
+/* recursive handling for shader nodetree drivers */
+static void dag_add_shader_nodetree_driver_relations(DagForest *dag, DagNode *node, bNodeTree *ntree)
 {
 	bNode *n;
 
@@ -367,7 +368,7 @@ static void dag_add_material_nodetree_driver_relations(DagForest *dag, DagNode *
 				dag_add_material_driver_relations(dag, node, (Material *)n->id);
 			}
 			else if (n->type == NODE_GROUP) {
-				dag_add_material_nodetree_driver_relations(dag, node, (bNodeTree *)n->id);
+				dag_add_shader_nodetree_driver_relations(dag, node, (bNodeTree *)n->id);
 			}
 		}
 	}
@@ -386,21 +387,45 @@ static void dag_add_material_driver_relations(DagForest *dag, DagNode *node, Mat
 		ma->id.flag |= LIB_DOIT;
 	
 	/* material itself */
-	if (ma->adt) {
+	if (ma->adt)
 		dag_add_driver_relation(ma->adt, dag, node, 1);
-	}
 
 	/* textures */
 	// TODO...
 	//dag_add_texture_driver_relations(DagForest *dag, DagNode *node, ID *id);
 
 	/* material's nodetree */
-	if (ma->nodetree) {
-		dag_add_material_nodetree_driver_relations(dag, node, ma->nodetree);
-	}
+	if (ma->nodetree)
+		dag_add_shader_nodetree_driver_relations(dag, node, ma->nodetree);
 }
 
-static void dag_add_collision_field_relation(DagForest *dag, Scene *scene, Object *ob, DagNode *node, int skip_forcefield){
+/* recursive handling for lamp drivers */
+static void dag_add_lamp_driver_relations(DagForest *dag, DagNode *node, Lamp *la)
+{
+	/* Prevent infinite recursion by checking (and tagging the lamp) as having been visited 
+	 * already (see build_dag()). This assumes la->id.flag & LIB_DOIT isn't set by anything else
+	 * in the meantime... [#32017]
+	 */
+	if (la->id.flag & LIB_DOIT)
+		return;
+	else
+		la->id.flag |= LIB_DOIT;
+	
+	/* lamp itself */
+	if (la->adt)
+		dag_add_driver_relation(la->adt, dag, node, 1);
+
+	/* textures */
+	// TODO...
+	//dag_add_texture_driver_relations(DagForest *dag, DagNode *node, ID *id);
+
+	/* lamp's nodetree */
+	if (la->nodetree)
+		dag_add_shader_nodetree_driver_relations(dag, node, la->nodetree);
+}
+
+static void dag_add_collision_field_relation(DagForest *dag, Scene *scene, Object *ob, DagNode *node, int skip_forcefield)
+{
 	Base *base;
 	DagNode *node2;
 
@@ -646,6 +671,9 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 			}
 		}
 	}
+	else if (ob->type == OB_LAMP) {
+		dag_add_lamp_driver_relations(dag, node, ob->data);
+	}
 	
 	/* particles */
 	psys = ob->particlesystem.first;
@@ -816,6 +844,7 @@ DagForest *build_dag(Main *bmain, Scene *sce, short mask)
 	
 	/* clear "LIB_DOIT" flag from all materials, to prevent infinite recursion problems later [#32017] */
 	tag_main_idcode(bmain, ID_MA, FALSE);
+	tag_main_idcode(bmain, ID_LA, FALSE);
 	
 	/* add base node for scene. scene is always the first node in DAG */
 	scenenode = dag_add_node(dag, sce);
@@ -1911,13 +1940,13 @@ void DAG_scene_sort(Main *bmain, Scene *sce)
 static void lib_id_recalc_tag(Main *bmain, ID *id)
 {
 	id->flag |= LIB_ID_RECALC;
-	bmain->id_tag_update[id->name[0]] = 1;
+	DAG_id_type_tag(bmain, GS(id->name));
 }
 
 static void lib_id_recalc_data_tag(Main *bmain, ID *id)
 {
 	id->flag |= LIB_ID_RECALC_DATA;
-	bmain->id_tag_update[id->name[0]] = 1;
+	DAG_id_type_tag(bmain, GS(id->name));
 }
 
 /* node was checked to have lasttime != curtime and is if type ID_OB */
@@ -2789,6 +2818,7 @@ void DAG_ids_check_recalc(Main *bmain, Scene *scene, int time)
 void DAG_ids_clear_recalc(Main *bmain)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
+	bNodeTree *ntree;
 	int a;
 
 	/* loop over all ID types */
@@ -2801,9 +2831,15 @@ void DAG_ids_clear_recalc(Main *bmain)
 		/* we tag based on first ID type character to avoid 
 		 * looping over all ID's in case there are no tags */
 		if (id && bmain->id_tag_update[id->name[0]]) {
-			for (; id; id = id->next)
+			for (; id; id = id->next) {
 				if (id->flag & (LIB_ID_RECALC | LIB_ID_RECALC_DATA))
 					id->flag &= ~(LIB_ID_RECALC | LIB_ID_RECALC_DATA);
+
+				/* some ID's contain semi-datablock nodetree */
+				ntree = ntreeFromID(id);
+				if (ntree && (ntree->id.flag & (LIB_ID_RECALC | LIB_ID_RECALC_DATA)))
+					ntree->id.flag &= ~(LIB_ID_RECALC | LIB_ID_RECALC_DATA);
+			}
 		}
 	}
 
@@ -2870,8 +2906,18 @@ void DAG_id_tag_update(ID *id, short flag)
 	}
 }
 
-void DAG_id_type_tag(struct Main *bmain, short idtype)
+void DAG_id_type_tag(Main *bmain, short idtype)
 {
+	if (idtype == ID_NT) {
+		/* stupid workaround so parent datablocks of nested nodetree get looped
+		 * over when we loop over tagged datablock types */
+		DAG_id_type_tag(bmain, ID_MA);
+		DAG_id_type_tag(bmain, ID_TE);
+		DAG_id_type_tag(bmain, ID_LA);
+		DAG_id_type_tag(bmain, ID_WO);
+		DAG_id_type_tag(bmain, ID_SCE);
+	}
+
 	bmain->id_tag_update[((char *)&idtype)[0]] = 1;
 }
 

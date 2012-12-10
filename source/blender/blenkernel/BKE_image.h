@@ -48,6 +48,9 @@ struct Main;
 
 #define IMA_MAX_SPACE       64
 
+void   BKE_images_init(void);
+void   BKE_images_exit(void);
+
 /* call from library */
 void    BKE_image_free(struct Image *me);
 
@@ -133,14 +136,13 @@ enum {
 #define IMA_CHAN_FLAG_RGB   2
 #define IMA_CHAN_FLAG_ALPHA 4
 
-/* depending Image type, and (optional) ImageUser setting it returns ibuf */
-/* always call to make signals work */
-struct ImBuf *BKE_image_get_ibuf(struct Image *ima, struct ImageUser *iuser);
+/* checks whether there's an image buffer for given image and user */
+int BKE_image_has_ibuf(struct Image *ima, struct ImageUser *iuser);
 
 /* same as above, but can be used to retrieve images being rendered in
  * a thread safe way, always call both acquire and release */
 struct ImBuf *BKE_image_acquire_ibuf(struct Image *ima, struct ImageUser *iuser, void **lock_r);
-void BKE_image_release_ibuf(struct Image *ima, void *lock);
+void BKE_image_release_ibuf(struct Image *ima, struct ImBuf *ibuf, void *lock);
 
 /* returns a new image or NULL if it can't load */
 struct Image *BKE_image_load(const char *filepath);

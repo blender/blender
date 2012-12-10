@@ -1,24 +1,28 @@
 /*
------------------------------------------------------------------------------
-This source file is part of VideoTexture library
-
-Copyright (c) 2007 The Zdeno Ash Miklas
-
-This program is free software; you can redistribute it and/or modify it under
-the terms of the GNU Lesser General Public License as published by the Free Software
-Foundation; either version 2 of the License, or (at your option) any later
-version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License along with
-this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-http://www.gnu.org/copyleft/lesser.txt.
------------------------------------------------------------------------------
-*/
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software  Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Copyright (c) 2007 The Zdeno Ash Miklas
+ *
+ * This source file is part of VideoTexture library
+ *
+ * Contributor(s):
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 
 /** \file gameengine/VideoTexture/ImageRender.cpp
  *  \ingroup bgevideotex
@@ -356,10 +360,11 @@ static int setBackground (PyImage *self, PyObject *value, void *closure)
 		return -1;
 	}
 	// set background color
-	getImageRender(self)->setBackground((unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 0))),
-		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 1))),
-		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 2))),
-		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 3))));
+	getImageRender(self)->setBackground(
+	        (unsigned char)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 0))),
+	        (unsigned char)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 1))),
+	        (unsigned char)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 2))),
+	        (unsigned char)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 3))));
 	// success
 	return 0;
 }
@@ -375,7 +380,7 @@ static PyMethodDef imageRenderMethods[] =
 static PyGetSetDef imageRenderGetSets[] =
 { 
 	{(char*)"background", (getter)getBackground, (setter)setBackground, (char*)"background color", NULL},
-    // attribute from ImageViewport
+	// attribute from ImageViewport
 	{(char*)"capsize", (getter)ImageViewport_getCaptureSize, (setter)ImageViewport_setCaptureSize, (char*)"size of render area", NULL},
 	{(char*)"alpha", (getter)ImageViewport_getAlpha, (setter)ImageViewport_setAlpha, (char*)"use alpha in texture", NULL},
 	{(char*)"whole", (getter)ImageViewport_getWhole, (setter)ImageViewport_setWhole, (char*)"use whole viewport to render", NULL},

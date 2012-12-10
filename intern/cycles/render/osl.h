@@ -52,6 +52,8 @@ public:
 	OSLShaderManager();
 	~OSLShaderManager();
 
+	bool use_osl() { return true; }
+
 	void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
 	void device_free(Device *device, DeviceScene *dscene);
 
@@ -81,7 +83,7 @@ protected:
 
 class OSLCompiler {
 public:
-	OSLCompiler(void *manager, void *shadingsys);
+	OSLCompiler(void *manager, void *shadingsys, ImageManager *image_manager);
 	void compile(OSLGlobals *og, Shader *shader);
 
 	void add(ShaderNode *node, const char *name, bool isfilepath = false);
@@ -108,6 +110,7 @@ public:
 	ShaderType output_type() { return current_type; }
 
 	bool background;
+	ImageManager *image_manager;
 
 private:
 	string id(ShaderNode *node);

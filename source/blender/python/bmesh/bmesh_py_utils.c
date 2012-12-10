@@ -557,16 +557,10 @@ static PyObject *bpy_bm_utils_face_vert_separate(PyObject *UNUSED(self), PyObjec
 		return NULL;
 	}
 
-	BPY_BM_CHECK_OBJ(py_face);
-	BPY_BM_CHECK_OBJ(py_vert);
-
 	bm = py_face->bm;
 
-	if (bm != py_vert->bm) {
-		PyErr_SetString(PyExc_ValueError,
-		                "mesh elements are from different meshes");
-		return NULL;
-	}
+	BPY_BM_CHECK_OBJ(py_face);
+	BPY_BM_CHECK_SOURCE_OBJ(py_vert, bm, "face_vert_separate()");
 
 	l = BM_face_vert_share_loop(py_face->f, py_vert->v);
 

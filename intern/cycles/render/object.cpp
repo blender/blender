@@ -56,7 +56,7 @@ void Object::compute_bounds(bool motion_blur, float shuttertime)
 	BoundBox mbounds = mesh->bounds;
 
 	if(motion_blur && use_motion) {
-		MotionTransform decomp;
+		DecompMotionTransform decomp;
 		transform_motion_decompose(&decomp, &motion, &tfm);
 
 		bounds = BoundBox::empty;
@@ -148,10 +148,9 @@ ObjectManager::~ObjectManager()
 {
 }
 
-void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
+void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene, Scene *scene, uint *object_flag, Progress& progress)
 {
 	float4 *objects = dscene->objects.resize(OBJECT_SIZE*scene->objects.size());
-	uint *object_flag = dscene->object_flag.resize(scene->objects.size());
 	int i = 0;
 	map<Mesh*, float> surface_area_map;
 	Scene::MotionType need_motion = scene->need_motion(device->info.advanced_shading);
@@ -222,29 +221,29 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 				mtfm_post = mtfm_post * itfm;
 
 			memcpy(&objects[offset+8], &mtfm_pre, sizeof(float4)*4);
-			memcpy(&objects[offset+16], &mtfm_post, sizeof(float4)*4);
+			memcpy(&objects[offset+12], &mtfm_post, sizeof(float4)*4);
 		}
 #ifdef __OBJECT_MOTION__
 		else if(need_motion == Scene::MOTION_BLUR) {
 			if(ob->use_motion) {
 				/* decompose transformations for interpolation */
-				MotionTransform decomp;
+				DecompMotionTransform decomp;
 
 				transform_motion_decompose(&decomp, &ob->motion, &ob->tfm);
-				memcpy(&objects[offset+8], &decomp, sizeof(float4)*12);
+				memcpy(&objects[offset+8], &decomp, sizeof(float4)*8);
 				flag |= SD_OBJECT_MOTION;
 				have_motion = true;
 			}
 			else {
 				float4 no_motion = make_float4(FLT_MAX);
-				memcpy(&objects[offset+8], &no_motion, sizeof(float4)*12);
+				memcpy(&objects[offset+8], &no_motion, sizeof(float4)*8);
 			}
 		}
 #endif
 
 		/* dupli object coords */
-		objects[offset+20] = make_float4(ob->dupli_generated[0], ob->dupli_generated[1], ob->dupli_generated[2], 0.0f);
-		objects[offset+21] = make_float4(ob->dupli_uv[0], ob->dupli_uv[1], 0.0f, 0.0f);
+		objects[offset+16] = make_float4(ob->dupli_generated[0], ob->dupli_generated[1], ob->dupli_generated[2], 0.0f);
+		objects[offset+17] = make_float4(ob->dupli_uv[0], ob->dupli_uv[1], 0.0f, 0.0f);
 
 		/* object flag */
 		if(ob->use_holdout)
@@ -257,7 +256,6 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 	}
 
 	device->tex_alloc("__objects", dscene->objects);
-	device->tex_alloc("__object_flag", dscene->object_flag);
 
 	dscene->data.bvh.have_motion = have_motion;
 }
@@ -272,9 +270,12 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 	if(scene->objects.size() == 0)
 		return;
 
+	/* object info flag */
+	uint *object_flag = dscene->object_flag.resize(scene->objects.size());
+
 	/* set object transform matrices, before applying static transforms */
 	progress.set_status("Updating Objects", "Copying Transformations to device");
-	device_update_transforms(device, dscene, scene, progress);
+	device_update_transforms(device, dscene, scene, object_flag, progress);
 
 	if(progress.get_cancel()) return;
 
@@ -282,10 +283,11 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 	/* todo: do before to support getting object level coords? */
 	if(scene->params.bvh_type == SceneParams::BVH_STATIC) {
 		progress.set_status("Updating Objects", "Applying Static Transformations");
-		apply_static_transforms(scene, progress);
+		apply_static_transforms(scene, object_flag, progress);
 	}
 
-	if(progress.get_cancel()) return;
+	/* allocate object flag */
+	device->tex_alloc("__object_flag", dscene->object_flag);
 
 	need_update = false;
 }
@@ -299,7 +301,7 @@ void ObjectManager::device_free(Device *device, DeviceScene *dscene)
 	dscene->object_flag.clear();
 }
 
-void ObjectManager::apply_static_transforms(Scene *scene, Progress& progress)
+void ObjectManager::apply_static_transforms(Scene *scene, uint *object_flag, Progress& progress)
 {
 	/* todo: normals and displacement should be done before applying transform! */
 	/* todo: create objects/meshes in right order! */
@@ -312,6 +314,7 @@ void ObjectManager::apply_static_transforms(Scene *scene, Progress& progress)
 #else
 	bool motion_blur = false;
 #endif
+	int i = 0;
 
 	foreach(Object *object, scene->objects) {
 		map<Mesh*, int>::iterator it = mesh_users.find(object->mesh);
@@ -334,8 +337,12 @@ void ObjectManager::apply_static_transforms(Scene *scene, Progress& progress)
 
 					if(progress.get_cancel()) return;
 				}
+
+				object_flag[i] |= SD_TRANSFORM_APPLIED;
 			}
 		}
+
+		i++;
 	}
 }
 

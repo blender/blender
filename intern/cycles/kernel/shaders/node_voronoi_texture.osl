@@ -22,17 +22,24 @@
 /* Voronoi */
 
 shader node_voronoi_texture(
+	int use_mapping = 0,
+	matrix mapping = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 	string Coloring = "Intensity",
 	float Scale = 5.0,
 	point Vector = P,
 	output float Fac = 0.0,
 	output color Color = color(0.0, 0.0, 0.0))
 {
+	point p = Vector;
+
+	if (use_mapping)
+		p = transform(mapping, p);
+
 	/* compute distance and point coordinate of 4 nearest neighbours */
 	float da[4];
 	point pa[4];
 
-	voronoi(Vector * Scale, "Distance Squared", 1.0, da, pa);
+	voronoi(p * Scale, "Distance Squared", 1.0, da, pa);
 
 	/* Colored output */
 	if (Coloring == "Intensity") {

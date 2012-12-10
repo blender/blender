@@ -1117,7 +1117,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int
 		data[j]->overlap = (BVHTreeOverlap *)malloc(sizeof(BVHTreeOverlap) * max_ii(tree1->totleaf, tree2->totleaf));
 		data[j]->tree1 = tree1;
 		data[j]->tree2 = tree2;
-		data[j]->max_overlap = MAX2(tree1->totleaf, tree2->totleaf);
+		data[j]->max_overlap = max_ii(tree1->totleaf, tree2->totleaf);
 		data[j]->i = 0;
 		data[j]->start_axis = min_axis(tree1->start_axis, tree2->start_axis);
 		data[j]->stop_axis  = min_axis(tree1->stop_axis,  tree2->stop_axis);
@@ -1410,7 +1410,7 @@ static float ray_nearest_hit(BVHRayCastData *data, const float bv[6])
  * Based on Tactical Optimization of Ray/Box Intersection, by Graham Fyffe
  * [http://tog.acm.org/resources/RTNews/html/rtnv21n1.html#art9]
  *
- * TODO this doens't has data->ray.radius in consideration */
+ * TODO this doesn't take data->ray.radius into consideration */
 static float fast_ray_nearest_hit(const BVHRayCastData *data, const BVHNode *node)
 {
 	const float *bv = node->bv;

@@ -2,12 +2,12 @@ LCGDIR = '#../lib/mingw32'
 LIBDIR = "${LCGDIR}"
 
 BF_PYTHON = LIBDIR + '/python'
-BF_PYTHON_VERSION = '3.2'
+BF_PYTHON_VERSION = '3.3'
 WITH_BF_STATICPYTHON = False
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = 'python'
 BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION[0]}${BF_PYTHON_VERSION[2]}mw'
-BF_PYTHON_DLL = 'python32'
+BF_PYTHON_DLL = 'python33'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 BF_PYTHON_LIB_STATIC = '${BF_PYTHON}/lib/libpython${BF_PYTHON_VERSION[0]}${BF_PYTHON_VERSION[2]}.a'
 
@@ -83,11 +83,6 @@ BF_ZLIB_LIBPATH = '${BF_ZLIB}/lib'
 
 WITH_BF_INTERNATIONAL = True
 
-BF_GETTEXT = LIBDIR + '/gettext'
-BF_GETTEXT_INC = '${BF_GETTEXT}/include'
-BF_GETTEXT_LIB = 'intl'
-BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
-
 WITH_BF_OPENJPEG = True
 BF_OPENJPEG = '#extern/libopenjpeg'
 BF_OPENJPEG_LIB = ''
@@ -155,21 +150,22 @@ WITH_BF_CYCLES = True
 
 WITH_BF_OIIO = True
 BF_OIIO = LIBDIR + '/openimageio'
-BF_OIIO_INC = BF_OIIO + '/include'
+BF_OIIO_INC = '${BF_OIIO}/include'
 BF_OIIO_LIB = 'OpenImageIO'
-BF_OIIO_LIBPATH = BF_OIIO + '/lib'
+BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
 
 WITH_BF_OCIO = True
 BF_OCIO = LIBDIR + '/opencolorio'
-BF_OCIO_INC = BF_OCIO + '/include'
+BF_OCIO_INC = '${BF_OCIO}/include'
 BF_OCIO_LIB = 'OpenColorIO'
-BF_OCIO_LIBPATH = BF_OCIO + '/lib'
+BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
 
 WITH_BF_BOOST = True
 BF_BOOST = LIBDIR + '/boost'
-BF_BOOST_INC = BF_BOOST + '/include'
+BF_BOOST_INC = '${BF_BOOST}/include'
 BF_BOOST_LIB = 'boost_date_time-mgw46-mt-s-1_49 boost_filesystem-mgw46-mt-s-1_49 boost_regex-mgw46-mt-s-1_49 boost_system-mgw46-mt-s-1_49 boost_thread-mgw46-mt-s-1_49'
-BF_BOOST_LIBPATH = BF_BOOST + '/lib'
+BF_BOOST_LIB_INTERNATIONAL = 'boost_locale-mgw46-mt-s-1_49'
+BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 
 #Ray trace optimization
 WITH_BF_RAYOPTIMIZATION = True

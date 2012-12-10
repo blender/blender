@@ -1677,7 +1677,7 @@ void ui_get_but_string(uiBut *but, char *str, size_t maxlen)
 {
 	if (but->rnaprop && ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
 		PropertyType type;
-		char *buf = NULL;
+		const char *buf = NULL;
 		int buf_len;
 
 		type = RNA_property_type(but->rnaprop);
@@ -1686,10 +1686,21 @@ void ui_get_but_string(uiBut *but, char *str, size_t maxlen)
 			/* RNA string */
 			buf = RNA_property_string_get_alloc(&but->rnapoin, but->rnaprop, str, maxlen, &buf_len);
 		}
+		else if (type == PROP_ENUM) {
+			/* RNA enum */
+			int value = RNA_property_enum_get(&but->rnapoin, but->rnaprop);
+			if (RNA_property_enum_name(but->block->evil_C, &but->rnapoin, but->rnaprop, value, &buf)) {
+				BLI_strncpy(str, buf, maxlen);
+				buf = str;
+			}
+		}
 		else if (type == PROP_POINTER) {
 			/* RNA pointer */
 			PointerRNA ptr = RNA_property_pointer_get(&but->rnapoin, but->rnaprop);
 			buf = RNA_struct_name_get_alloc(&ptr, str, maxlen, &buf_len);
+		}
+		else {
+			BLI_assert(0);
 		}
 
 		if (!buf) {
@@ -1698,7 +1709,7 @@ void ui_get_but_string(uiBut *but, char *str, size_t maxlen)
 		else if (buf && buf != str) {
 			/* string was too long, we have to truncate */
 			memcpy(str, buf, MIN2(maxlen, (size_t)buf_len + 1));
-			MEM_freeN(buf);
+			MEM_freeN((void *)buf);
 		}
 	}
 	else if (but->type == IDPOIN) {
@@ -1841,6 +1852,17 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 
 				return 0;
 			}
+			else if (type == PROP_ENUM) {
+				int value;
+				if (RNA_property_enum_value(but->block->evil_C, &but->rnapoin, but->rnaprop, str, &value)) {
+					RNA_property_enum_set(&but->rnapoin, but->rnaprop, value);
+					return 1;
+				}
+				return 0;
+			}
+			else {
+				BLI_assert(0);
+			}
 		}
 	}
 	else if (but->type == IDPOIN) {
@@ -1902,8 +1924,9 @@ void ui_set_but_default(bContext *C, short all)
 
 static double soft_range_round_up(double value, double max)
 {
-	/* round up to .., 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, .. */
-	double newmax = pow(10.0, ceil(log(value) / M_LN10));
+	/* round up to .., 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, ..
+	 * checking for 0.0 prevents floating point exceptions */
+	double newmax = (value != 0.0) ? pow(10.0, ceil(log(value) / M_LN10)) : 0.0;
 
 	if (newmax * 0.2 >= max && newmax * 0.2 >= value)
 		return newmax * 0.2;
@@ -1915,8 +1938,9 @@ static double soft_range_round_up(double value, double max)
 
 static double soft_range_round_down(double value, double max)
 {
-	/* round down to .., 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, .. */
-	double newmax = pow(10.0, floor(log(value) / M_LN10));
+	/* round down to .., 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, ..
+	 * checking for 0.0 prevents floating point exceptions */
+	double newmax = (value != 0.0) ? pow(10.0, floor(log(value) / M_LN10)) : 0.0;
 
 	if (newmax * 5.0 <= max && newmax * 5.0 <= value)
 		return newmax * 5.0;
@@ -2422,7 +2446,7 @@ void uiBlockEndAlign(uiBlock *block)
 
 int ui_but_can_align(uiBut *but)
 {
-	return !ELEM3(but->type, LABEL, OPTION, OPTIONN);
+	return !ELEM4(but->type, LABEL, OPTION, OPTIONN, SEPR);
 }
 
 static void ui_block_do_align_but(uiBut *first, short nr)
@@ -2802,6 +2826,7 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 			EnumPropertyItem *item;
 			int i, totitem, free;
 
+			/* TODO, translate after getting the item, saves many lookups */
 			RNA_property_enum_items_gettexted(block->evil_C, ptr, prop, &item, &totitem, &free);
 			for (i = 0; i < totitem; i++) {
 				if (item[i].identifier[0] && item[i].value == (int)max) {
@@ -3772,16 +3797,16 @@ void uiButSetFocusOnEnter(wmWindow *win, uiBut *but)
 	wm_event_add(win, &event);
 }
 
-void uiButGetStrInfo(bContext *C, uiBut *but, int nbr, ...)
+void uiButGetStrInfo(bContext *C, uiBut *but, ...)
 {
 	va_list args;
+	uiStringInfo *si;
 
 	EnumPropertyItem *items = NULL, *item = NULL;
 	int totitems, free_items = FALSE;
 
-	va_start(args, nbr);
-	while (nbr--) {
-		uiStringInfo *si = (uiStringInfo *) va_arg(args, void *);
+	va_start(args, but);
+	while ((si = (uiStringInfo *) va_arg(args, void *))) {
 		int type = si->type;
 		char *tmp = NULL;
 

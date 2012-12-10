@@ -43,8 +43,22 @@
 #define SMHASH_CELL_UNUSED  ((void *)0x7FFFFFFF)
 #define SMHASH_CELL_FREE    ((void *)0x7FFFFFFD)
 
-#define SMHASH_NONZERO(n) ((n) + !(n))
-#define SMHASH_NEXT(h, hoff) ABS(((h) + ((hoff = SMHASH_NONZERO(hoff * 2) + 1), hoff)))
+BLI_INLINE int smhash_nonzero(const int n)
+{
+	return n + !n;
+}
+
+BLI_INLINE int smhash_abs_i(const int n)
+{
+	return (n > 0) ? n : -n;
+}
+
+/* typically this re-assigns 'h' */
+#define SMHASH_NEXT(h, hoff)  ( \
+	CHECK_TYPE_INLINE(&(h),    int), \
+	CHECK_TYPE_INLINE(&(hoff), int), \
+	smhash_abs_i((h) + (((hoff) = smhash_nonzero((hoff) * 2) + 1), (hoff))) \
+	)
 
 extern unsigned int hashsizes[];
 

@@ -140,6 +140,10 @@ int clLibraryInit()
 #endif
 	int error = 0;
 
+	// OpenCL disabled for now, only works with this environment variable set
+	if(!getenv("CYCLES_OPENCL_TEST"))
+		return 0;
+
 	//  Check if already initialized
 	if (module != NULL)
 	{

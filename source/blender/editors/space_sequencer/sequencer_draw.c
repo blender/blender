@@ -285,8 +285,8 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
 		drawmeta_stipple(1);
 
 	for (seq = seqm->seqbase.first; seq; seq = seq->next) {
-		chan_min = MIN2(chan_min, seq->machine);
-		chan_max = MAX2(chan_max, seq->machine);
+		chan_min = min_ii(chan_min, seq->machine);
+		chan_max = max_ii(chan_max, seq->machine);
 	}
 
 	chan_range = (chan_max - chan_min) + 1;
@@ -822,6 +822,7 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain, Scene *scene, SpaceSeq *sseq, int 
 	int rectx, recty;
 	float render_size = 0.0;
 	float proxy_size = 100.0;
+	short is_break = G.is_break;
 
 	render_size = sseq->render_size;
 	if (render_size == 0) {
@@ -840,12 +841,20 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain, Scene *scene, SpaceSeq *sseq, int 
 
 	context = BKE_sequencer_new_render_data(bmain, scene, rectx, recty, proxy_size);
 
+	/* sequencer could start rendering, in this case we need to be sure it wouldn't be canceled
+	 * by Esc pressed somewhere in the past
+	 */
+	G.is_break = FALSE;
+
 	if (special_seq_update)
 		ibuf = BKE_sequencer_give_ibuf_direct(context, cfra + frame_ofs, special_seq_update);
 	else if (!U.prefetchframes) // XXX || (G.f & G_PLAYANIM) == 0) {
 		ibuf = BKE_sequencer_give_ibuf(context, cfra + frame_ofs, sseq->chanshown);
 	else
 		ibuf = BKE_sequencer_give_ibuf_threaded(context, cfra + frame_ofs, sseq->chanshown);
+
+	/* restore state so real rendering would be canceled (if needed) */
+	G.is_break = is_break;
 
 	return ibuf;
 }
@@ -912,6 +921,13 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	GLuint last_texid;
 	unsigned char *display_buffer;
 	void *cache_handle = NULL;
+
+	if (G.is_rendering == FALSE) {
+		/* stop all running jobs, except screen one. currently previews frustrate Render
+		 * needed to make so sequencer's rendering doesn't conflict with compositor
+		 */
+		WM_jobs_kill_type(CTX_wm_manager(C), WM_JOB_TYPE_COMPOSITE);
+	}
 
 	render_size = sseq->render_size;
 	if (render_size == 0) {

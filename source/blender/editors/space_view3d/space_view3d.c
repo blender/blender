@@ -702,6 +702,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_GEOM:
 			switch (wmn->data) {
 				case ND_DATA:
+				case ND_VERTEX_GROUP:
 				case ND_SELECT:
 					ED_region_tag_redraw(ar);
 					break;
@@ -723,6 +724,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_MATERIAL:
 			switch (wmn->data) {
 				case ND_SHADING_DRAW:
+				case ND_SHADING_LINKS:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -920,6 +922,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_GEOM:
 			switch (wmn->data) {
 				case ND_DATA:
+				case ND_VERTEX_GROUP:
 				case ND_SELECT:
 					ED_region_tag_redraw(ar);
 					break;
@@ -945,7 +948,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_GPENCIL:
-			if (wmn->data == ND_DATA)
+			if (wmn->data == ND_DATA || wmn->action == NA_EDITED)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -1119,16 +1122,21 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 		return 1;
 	}
 	else if (CTX_data_equals(member, "active_base")) {
-		if (scene->basact && (scene->basact->lay & lay))
-			if ((scene->basact->object->restrictflag & OB_RESTRICT_VIEW) == 0)
+		if (scene->basact && (scene->basact->lay & lay)) {
+			Object *ob = scene->basact->object;
+			/* if hidden but in edit mode, we still display, can happen with animation */
+			if ((ob->restrictflag & OB_RESTRICT_VIEW) == 0 || (ob->mode & OB_MODE_EDIT))
 				CTX_data_pointer_set(result, &scene->id, &RNA_ObjectBase, scene->basact);
+		}
 		
 		return 1;
 	}
 	else if (CTX_data_equals(member, "active_object")) {
-		if (scene->basact && (scene->basact->lay & lay))
-			if ((scene->basact->object->restrictflag & OB_RESTRICT_VIEW) == 0)
+		if (scene->basact && (scene->basact->lay & lay)) {
+			Object *ob = scene->basact->object;
+			if ((ob->restrictflag & OB_RESTRICT_VIEW) == 0 || (ob->mode & OB_MODE_EDIT))
 				CTX_data_id_pointer_set(result, &scene->basact->object->id);
+		}
 		
 		return 1;
 	}

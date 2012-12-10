@@ -1009,7 +1009,7 @@ typedef struct ToolSettings {
 
 	/* Transform */
 	char snap_mode, snap_node_mode;
-	char pad3;
+	char snap_uv_mode;
 	short snap_flag, snap_target;
 	short proportional, prop_mode;
 	char proportional_objects; /* proportional edit, object mode */
@@ -1187,11 +1187,13 @@ typedef struct Scene {
 		/* Use the same flag for autothreads */
 #define R_FIXED_THREADS		0x80000 
 
-#define R_SPEED			0x100000
-#define R_SSS			0x200000
-#define R_NO_OVERWRITE	0x400000 /* skip existing files */
-#define R_TOUCH			0x800000 /* touch files before rendering */
-#define R_SIMPLIFY		0x1000000
+#define R_SPEED				0x100000
+#define R_SSS				0x200000
+#define R_NO_OVERWRITE		0x400000  /* skip existing files */
+#define R_TOUCH				0x800000  /* touch files before rendering */
+#define R_SIMPLIFY			0x1000000
+#define R_EDGE_FRS			0x2000000 /* R_EDGE reserved for Freestyle */
+#define R_PERSISTENT_DATA	0x4000000 /* keep data around for re-render */
 
 /* seq_flag */
 #define R_SEQ_GL_PREV 1
@@ -1327,46 +1329,46 @@ typedef struct Scene {
 #define TESTBASE(v3d, base)  (                                                \
 	((base)->flag & SELECT) &&                                                \
 	((base)->lay & v3d->lay) &&                                               \
-	(((base)->object->restrictflag & OB_RESTRICT_VIEW)==0)  )
+	(((base)->object->restrictflag & OB_RESTRICT_VIEW) == 0))
 #define TESTBASELIB(v3d, base)  (                                             \
 	((base)->flag & SELECT) &&                                                \
 	((base)->lay & v3d->lay) &&                                               \
-	((base)->object->id.lib==NULL) &&                                         \
-	(((base)->object->restrictflag & OB_RESTRICT_VIEW)==0)  )
+	((base)->object->id.lib == NULL) &&                                       \
+	(((base)->object->restrictflag & OB_RESTRICT_VIEW) == 0))
 #define TESTBASELIB_BGMODE(v3d, scene, base)  (                               \
 	((base)->flag & SELECT) &&                                                \
 	((base)->lay & (v3d ? v3d->lay : scene->lay)) &&                          \
-	((base)->object->id.lib==NULL) &&                                         \
-	(((base)->object->restrictflag & OB_RESTRICT_VIEW)==0)  )
+	((base)->object->id.lib == NULL) &&                                       \
+	(((base)->object->restrictflag & OB_RESTRICT_VIEW) == 0))
 #define BASE_EDITABLE_BGMODE(v3d, scene, base)  (                             \
 	((base)->lay & (v3d ? v3d->lay : scene->lay)) &&                          \
-	((base)->object->id.lib==NULL) &&                                         \
-	(((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
+	((base)->object->id.lib == NULL) &&                                       \
+	(((base)->object->restrictflag & OB_RESTRICT_VIEW) == 0))
 #define BASE_SELECTABLE(v3d, base)  (                                         \
 	(base->lay & v3d->lay) &&                                                 \
-	(base->object->restrictflag & (OB_RESTRICT_SELECT|OB_RESTRICT_VIEW))==0  )
+	(base->object->restrictflag & (OB_RESTRICT_SELECT | OB_RESTRICT_VIEW)) == 0)
 #define BASE_VISIBLE(v3d, base)  (                                            \
 	(base->lay & v3d->lay) &&                                                 \
-	(base->object->restrictflag & OB_RESTRICT_VIEW)==0  )
+	(base->object->restrictflag & OB_RESTRICT_VIEW) == 0)
 
 #define FIRSTBASE		scene->base.first
 #define LASTBASE		scene->base.last
 #define BASACT			(scene->basact)
-#define OBACT			(BASACT? BASACT->object: NULL)
+#define OBACT			(BASACT ? BASACT->object: NULL)
 
 #define V3D_CAMERA_LOCAL(v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : NULL)
 #define V3D_CAMERA_SCENE(scene, v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : (scene)->camera)
 
-#define	CFRA			(scene->r.cfra)
-#define SUBFRA			(scene->r.subframe)
-#define	SFRA			(scene->r.sfra)
-#define	EFRA			(scene->r.efra)
-#define PRVRANGEON		(scene->r.flag & SCER_PRV_RANGE)
-#define PSFRA			((PRVRANGEON) ? (scene->r.psfra) : (scene->r.sfra))
-#define PEFRA			((PRVRANGEON) ? (scene->r.pefra) : (scene->r.efra))
-#define FRA2TIME(a)           ((((double) scene->r.frs_sec_base) * (double)(a)) / (double)scene->r.frs_sec)
-#define TIME2FRA(a)           ((((double) scene->r.frs_sec) * (double)(a)) / (double)scene->r.frs_sec_base)
-#define FPS                     (((double) scene->r.frs_sec) / (double)scene->r.frs_sec_base)
+#define CFRA            (scene->r.cfra)
+#define SUBFRA          (scene->r.subframe)
+#define SFRA            (scene->r.sfra)
+#define EFRA            (scene->r.efra)
+#define PRVRANGEON      (scene->r.flag & SCER_PRV_RANGE)
+#define PSFRA           ((PRVRANGEON) ? (scene->r.psfra) : (scene->r.sfra))
+#define PEFRA           ((PRVRANGEON) ? (scene->r.pefra) : (scene->r.efra))
+#define FRA2TIME(a)     ((((double) scene->r.frs_sec_base) * (double)(a)) / (double)scene->r.frs_sec)
+#define TIME2FRA(a)     ((((double) scene->r.frs_sec) * (double)(a)) / (double)scene->r.frs_sec_base)
+#define FPS              (((double) scene->r.frs_sec) / (double)scene->r.frs_sec_base)
 
 /* base->flag is in DNA_object_types.h */
 
@@ -1444,9 +1446,9 @@ typedef struct Scene {
 
 /* Paint.flags */
 typedef enum {
-	PAINT_SHOW_BRUSH = (1<<0),
-	PAINT_FAST_NAVIGATE = (1<<1),
-	PAINT_SHOW_BRUSH_ON_SURFACE = (1<<2),
+	PAINT_SHOW_BRUSH = (1 << 0),
+	PAINT_FAST_NAVIGATE = (1 << 1),
+	PAINT_SHOW_BRUSH_ON_SURFACE = (1 << 2),
 } PaintFlags;
 
 /* Sculpt.flags */
@@ -1598,4 +1600,4 @@ typedef enum SculptFlags {
 }
 #endif
 
-#endif
+#endif  /* __DNA_SCENE_TYPES_H__ */

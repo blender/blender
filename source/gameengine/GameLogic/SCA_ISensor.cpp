@@ -383,16 +383,16 @@ PyAttributeDef SCA_ISensor::Attributes[] = {
 PyObject *SCA_ISensor::pyattr_get_triggered(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_ISensor* self = static_cast<SCA_ISensor*>(self_v);
-	int retval = 0;
+	bool retval = false;
 	if (SCA_PythonController::m_sCurrentController)
 		retval = SCA_PythonController::m_sCurrentController->IsTriggered(self);
-	return PyLong_FromSsize_t(retval);
+	return PyBool_FromLong(retval);
 }
 
 PyObject *SCA_ISensor::pyattr_get_positive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	SCA_ISensor* self = static_cast<SCA_ISensor*>(self_v);
-	return PyLong_FromSsize_t(self->GetState());
+	return PyBool_FromLong(self->GetState());
 }
 
 PyObject *SCA_ISensor::pyattr_get_status(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -414,7 +414,7 @@ PyObject *SCA_ISensor::pyattr_get_status(void *self_v, const KX_PYATTRIBUTE_DEF 
 	{
 		status = 3;
 	}
-	return PyLong_FromSsize_t(status);
+	return PyLong_FromLong(status);
 }
 
 PyObject *SCA_ISensor::pyattr_get_posTicks(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

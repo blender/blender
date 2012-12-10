@@ -31,21 +31,21 @@ def act_strip(context):
 def draw_color_balance(layout, color_balance):
     col = layout.column()
     col.label(text="Lift:")
-    col.template_color_wheel(color_balance, "lift", value_slider=True, cubic=True)
+    col.template_color_picker(color_balance, "lift", value_slider=True, cubic=True)
     row = col.row()
     row.prop(color_balance, "lift", text="")
     row.prop(color_balance, "invert_lift", text="Inverse")
 
     col = layout.column()
     col.label(text="Gamma:")
-    col.template_color_wheel(color_balance, "gamma", value_slider=True, lock_luminosity=True, cubic=True)
+    col.template_color_picker(color_balance, "gamma", value_slider=True, lock_luminosity=True, cubic=True)
     row = col.row()
     row.prop(color_balance, "gamma", text="")
     row.prop(color_balance, "invert_gamma", text="Inverse")
 
     col = layout.column()
     col.label(text="Gain:")
-    col.template_color_wheel(color_balance, "gain", value_slider=True, lock_luminosity=True, cubic=True)
+    col.template_color_picker(color_balance, "gain", value_slider=True, lock_luminosity=True, cubic=True)
     row = col.row()
     row.prop(color_balance, "gain", text="")
     row.prop(color_balance, "invert_gain", text="Inverse")
@@ -707,8 +707,6 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
         layout.template_ID(strip, "scene")
 
         scene = strip.scene
-        if scene:
-            layout.prop(scene.render, "use_sequencer")
 
         layout.label(text="Camera Override")
         layout.template_ID(strip, "scene_camera")

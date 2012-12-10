@@ -58,11 +58,14 @@
 #include "GPU_material.h"
 
 #include "RE_engine.h"
+#include "RE_pipeline.h"
 
 #include "ED_node.h"
 #include "ED_render.h"
 
 #include "render_intern.h"  // own include
+
+extern Material defmaterial;
 
 /***************************** Render Engines ********************************/
 
@@ -153,10 +156,16 @@ void ED_render_engine_changed(Main *bmain)
 	/* on changing the render engine type, clear all running render engines */
 	bScreen *sc;
 	ScrArea *sa;
+	Scene *scene;
 
 	for (sc = bmain->screen.first; sc; sc = sc->id.next)
 		for (sa = sc->areabase.first; sa; sa = sa->next)
 			ED_render_engine_area_exit(sa);
+
+	RE_FreePersistentData();
+
+	for (scene = bmain->scene.first; scene; scene = scene->id.next)
+		ED_render_id_flush_update(bmain, &scene->id);
 }
 
 /***************************** Updates ***********************************
@@ -247,6 +256,27 @@ static void material_changed(Main *bmain, Material *ma)
 	}
 }
 
+static void lamp_changed(Main *bmain, Lamp *la)
+{
+	Object *ob;
+	Material *ma;
+
+	/* icons */
+	BKE_icon_changed(BKE_icon_getid(&la->id));
+
+	/* glsl */
+	for (ob = bmain->object.first; ob; ob = ob->id.next)
+		if (ob->data == la && ob->gpulamp.first)
+			GPU_lamp_free(ob);
+
+	for (ma = bmain->mat.first; ma; ma = ma->id.next)
+		if (ma->gpumaterial.first)
+			GPU_material_free(ma);
+
+	if (defmaterial.gpumaterial.first)
+		GPU_material_free(&defmaterial);
+}
+
 static void texture_changed(Main *bmain, Tex *tex)
 {
 	Material *ma;
@@ -279,16 +309,14 @@ static void texture_changed(Main *bmain, Tex *tex)
 	/* find lamps */
 	for (la = bmain->lamp.first; la; la = la->id.next) {
 		if (mtex_use_tex(la->mtex, MAX_MTEX, tex)) {
-			/* pass */
+			lamp_changed(bmain, la);
 		}
 		else if (la->nodetree && nodes_use_tex(la->nodetree, tex)) {
-			/* pass */
+			lamp_changed(bmain, la);
 		}
 		else {
 			continue;
 		}
-
-		BKE_icon_changed(BKE_icon_getid(&la->id));
 	}
 
 	/* find worlds */
@@ -317,24 +345,6 @@ static void texture_changed(Main *bmain, Tex *tex)
 	}
 }
 
-static void lamp_changed(Main *bmain, Lamp *la)
-{
-	Object *ob;
-	Material *ma;
-
-	/* icons */
-	BKE_icon_changed(BKE_icon_getid(&la->id));
-
-	/* glsl */
-	for (ob = bmain->object.first; ob; ob = ob->id.next)
-		if (ob->data == la && ob->gpulamp.first)
-			GPU_lamp_free(ob);
-
-	for (ma = bmain->mat.first; ma; ma = ma->id.next)
-		if (ma->gpumaterial.first)
-			GPU_material_free(ma);
-}
-
 static void world_changed(Main *bmain, World *wo)
 {
 	Material *ma;
@@ -346,6 +356,9 @@ static void world_changed(Main *bmain, World *wo)
 	for (ma = bmain->mat.first; ma; ma = ma->id.next)
 		if (ma->gpumaterial.first)
 			GPU_material_free(ma);
+
+	if (defmaterial.gpumaterial.first)
+		GPU_material_free(&defmaterial);
 }
 
 static void image_changed(Main *bmain, Image *ima)
@@ -374,10 +387,19 @@ static void scene_changed(Main *bmain, Scene *UNUSED(scene))
 	for (ma = bmain->mat.first; ma; ma = ma->id.next)
 		if (ma->gpumaterial.first)
 			GPU_material_free(ma);
+
+	if (defmaterial.gpumaterial.first)
+		GPU_material_free(&defmaterial);
 }
 
 void ED_render_id_flush_update(Main *bmain, ID *id)
 {
+	/* this can be called from render or baking thread when a python script makes
+	 * changes, in that case we don't want to do any editor updates, and making
+	 * GPU changes is not possible because OpenGL only works in the main thread */
+	if (!BLI_thread_is_main())
+		return;
+
 	switch (GS(id->name)) {
 		case ID_MA:
 			material_changed(bmain, (Material *)id);

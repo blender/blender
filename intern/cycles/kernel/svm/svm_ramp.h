@@ -25,7 +25,8 @@ __device float4 rgb_ramp_lookup(KernelGlobals *kg, int offset, float f)
 {
 	f = clamp(f, 0.0f, 1.0f)*(RAMP_TABLE_SIZE-1);
 
-	int i = (int)f;
+	/* clamp int as well in case of NaN */
+	int i = clamp((int)f, 0, RAMP_TABLE_SIZE-1);
 	float t = f - (float)i;
 
 	float4 a = fetch_node_float(kg, offset+i);

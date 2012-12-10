@@ -232,7 +232,6 @@ def enable(module_name, default_set=True, persistent=False):
 
     import os
     import sys
-    import imp
 
     def handle_error():
         import traceback
@@ -246,6 +245,7 @@ def enable(module_name, default_set=True, persistent=False):
         mtime_orig = getattr(mod, "__time__", 0)
         mtime_new = os.path.getmtime(mod.__file__)
         if mtime_orig != mtime_new:
+            import imp
             print("module changed on disk:", mod.__file__, "reloading...")
 
             try:

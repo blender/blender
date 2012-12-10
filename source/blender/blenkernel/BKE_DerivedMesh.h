@@ -709,10 +709,16 @@ void DM_debug_print(DerivedMesh *dm);
 void DM_debug_print_cdlayers(CustomData *cdata);
 #endif
 
+#ifdef __GNUC__
+BLI_INLINE int DM_origindex_mface_mpoly(const int *index_mf_to_mpoly, const int *index_mp_to_orig, const int i)
+	__attribute__((nonnull(1)))
+;
+#endif
+
 BLI_INLINE int DM_origindex_mface_mpoly(const int *index_mf_to_mpoly, const int *index_mp_to_orig, const int i)
 {
 	const int j = index_mf_to_mpoly[i];
-	return (j != ORIGINDEX_NONE) ? index_mp_to_orig[j] : ORIGINDEX_NONE;
+	return (j != ORIGINDEX_NONE) ? (index_mp_to_orig ? index_mp_to_orig[j] : j) : ORIGINDEX_NONE;
 }
 
 #endif

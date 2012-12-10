@@ -51,16 +51,17 @@ public:
 	ImageManager();
 	~ImageManager();
 
-	int add_image(const string& filename, bool& is_float);
+	int add_image(const string& filename, bool animated, bool& is_float);
 	void remove_image(const string& filename);
+	bool is_float_image(const string& filename);
 
 	void device_update(Device *device, DeviceScene *dscene, Progress& progress);
 	void device_free(Device *device, DeviceScene *dscene);
 
 	void set_osl_texture_system(void *texture_system);
 	void set_pack_images(bool pack_images_);
-
 	void set_extended_image_limits(void);
+	bool set_animation_frame_update(int frame);
 
 	bool need_update;
 
@@ -69,11 +70,13 @@ private:
 	int tex_num_float_images;
 	int tex_image_byte_start;
 	thread_mutex device_mutex;
+	int animation_frame;
 
 	struct Image {
 		string filename;
 
 		bool need_load;
+		bool animated;
 		int users;
 	};
 

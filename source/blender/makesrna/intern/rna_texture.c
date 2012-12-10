@@ -46,6 +46,9 @@
 
 #include "BKE_node.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 EnumPropertyItem texture_filter_items[] = {
 	{TXF_BOX, "BOX", 0, "Box", ""},
 	{TXF_EWA, "EWA", 0, "EWA", ""},
@@ -109,9 +112,6 @@ EnumPropertyItem blend_type_items[] = {
 #include "BKE_main.h"
 
 #include "ED_node.h"
-
-#include "WM_api.h"
-#include "WM_types.h"
 
 static StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 {
@@ -233,6 +233,7 @@ void rna_TextureSlot_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRN
 			break;
 		case ID_LA:
 			WM_main_add_notifier(NC_LAMP | ND_LIGHTING, id);
+			WM_main_add_notifier(NC_LAMP | ND_LIGHTING_DRAW, id);
 			break;
 		case ID_BR:
 			WM_main_add_notifier(NC_BRUSH, id);
@@ -263,19 +264,24 @@ char *rna_TextureSlot_path(PointerRNA *ptr)
 	 * may be used multiple times in the same stack
 	 */
 	if (ptr->id.data) {
-		PointerRNA id_ptr;
-		PropertyRNA *prop;
-		
-		/* find the 'textures' property of the ID-struct */
-		RNA_id_pointer_create(ptr->id.data, &id_ptr);
-		prop = RNA_struct_find_property(&id_ptr, "texture_slots");
-		
-		/* get an iterator for this property, and try to find the relevant index */
-		if (prop) {
-			int index = RNA_property_collection_lookup_index(&id_ptr, prop, ptr);
-			
-			if (index >= 0)
-				return BLI_sprintfN("texture_slots[%d]", index);
+		if (GS(((ID *)ptr->id.data)->name) == ID_BR) {
+			return BLI_strdup("texture_slot");
+		}
+		else {
+			PointerRNA id_ptr;
+			PropertyRNA *prop;
+
+			/* find the 'textures' property of the ID-struct */
+			RNA_id_pointer_create(ptr->id.data, &id_ptr);
+			prop = RNA_struct_find_property(&id_ptr, "texture_slots");
+
+			/* get an iterator for this property, and try to find the relevant index */
+			if (prop) {
+				int index = RNA_property_collection_lookup_index(&id_ptr, prop, ptr);
+
+				if (index >= 0)
+					return BLI_sprintfN("texture_slots[%d]", index);
+			}
 		}
 	}
 	
@@ -602,7 +608,7 @@ static void rna_def_mtex(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Texture");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Texture", "Texture datablock used by this texture slot");
-	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING_LINKS, "rna_TextureSlot_update");
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_TextureSlot_name_get", "rna_TextureSlot_name_length", NULL);

@@ -1165,13 +1165,14 @@ static void do_material_tex(GPUShadeInput *shi)
 
 						// resolve texture resolution
 						if ( (mtex->texflag & MTEX_BUMP_TEXTURESPACE) || found_deriv_map ) {
-							ImBuf *ibuf= BKE_image_get_ibuf(tex->ima, &tex->iuser);
+							ImBuf *ibuf= BKE_image_acquire_ibuf(tex->ima, &tex->iuser, NULL);
 							ima_x= 512.0f; ima_y= 512.f;		// prevent calling textureSize, glsl 1.3 only
 							if (ibuf) {
 								ima_x= ibuf->x;
 								ima_y= ibuf->y;
 								aspect = ((float) ima_y) / ima_x;
 							}
+							BKE_image_release_ibuf(tex->ima, ibuf, NULL);
 						}
 
 						// The negate on norfac is done because the
@@ -1496,6 +1497,16 @@ static GPUNodeLink *GPU_blender_material(GPUMaterial *mat, Material *ma)
 	return shr.combined;
 }
 
+static GPUNodeLink *gpu_material_diffuse_bsdf(GPUMaterial *mat, Material *ma)
+{
+	static float roughness = 0.0f;
+	GPUNodeLink *outlink;
+
+	GPU_link(mat, "node_bsdf_diffuse", GPU_uniform(&ma->r), GPU_uniform(&roughness), GPU_builtin(GPU_VIEW_NORMAL), &outlink);
+
+	return outlink;
+}
+
 GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
 {
 	GPUMaterial *mat;
@@ -1515,8 +1526,15 @@ GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
 		ntreeGPUMaterialNodes(ma->nodetree, mat);
 	}
 	else {
-		/* create material */
-		outlink = GPU_blender_material(mat, ma);
+		if(BKE_scene_use_new_shading_nodes(scene)) {
+			/* create simple diffuse material instead of nodes */
+			outlink = gpu_material_diffuse_bsdf(mat, ma);
+		}
+		else {
+			/* create blender material */
+			outlink = GPU_blender_material(mat, ma);
+		}
+
 		GPU_material_output_link(mat, outlink);
 	}
 

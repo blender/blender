@@ -1453,9 +1453,16 @@ float line_point_factor_v3(const float p[3], const float l1[3], const float l2[3
 float line_point_factor_v2(const float p[2], const float l1[2], const float l2[2])
 {
 	float h[2], u[2];
+	float dot;
 	sub_v2_v2v2(u, l2, l1);
 	sub_v2_v2v2(h, p, l1);
+#if 0
 	return (dot_v2v2(u, h) / dot_v2v2(u, u));
+#else
+	/* better check for zero */
+	dot = dot_v2v2(u, u);
+	return (dot != 0.0f) ? (dot_v2v2(u, h) / dot) : 0.0f;
+#endif
 }
 
 /* ensure the distance between these points is no greater then 'dist'
@@ -2398,6 +2405,33 @@ void resolve_quad_uv(float r_uv[2], const float st[2], const float st0[2], const
 }
 
 #undef IS_ZERO
+
+/* reverse of the functions above */
+void interp_bilinear_quad_v3(float data[4][3], float u, float v, float res[3])
+{
+	float vec[3];
+
+	copy_v3_v3(res, data[0]);
+	mul_v3_fl(res, (1 - u) * (1 - v));
+	copy_v3_v3(vec, data[1]);
+	mul_v3_fl(vec, u * (1 - v)); add_v3_v3(res, vec);
+	copy_v3_v3(vec, data[2]);
+	mul_v3_fl(vec, u * v); add_v3_v3(res, vec);
+	copy_v3_v3(vec, data[3]);
+	mul_v3_fl(vec, (1 - u) * v); add_v3_v3(res, vec);
+}
+
+void interp_barycentric_tri_v3(float data[3][3], float u, float v, float res[3])
+{
+	float vec[3];
+
+	copy_v3_v3(res, data[0]);
+	mul_v3_fl(res, u);
+	copy_v3_v3(vec, data[1]);
+	mul_v3_fl(vec, v); add_v3_v3(res, vec);
+	copy_v3_v3(vec, data[2]);
+	mul_v3_fl(vec, 1.0f - u - v); add_v3_v3(res, vec);
+}
 
 /***************************** View & Projection *****************************/
 

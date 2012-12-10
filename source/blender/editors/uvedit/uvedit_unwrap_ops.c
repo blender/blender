@@ -232,7 +232,7 @@ static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh 
 	BLI_srand(0);
 	
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		ScanFillVert *sf_vert, *sf_vert_last, *sf_vert_first;
+		ScanFillVert *sf_vert = NULL, *sf_vert_last, *sf_vert_first;
 		ScanFillFace *sf_tri;
 		ParamKey key, vkeys[4];
 		ParamBool pin[4], select[4];
@@ -306,7 +306,7 @@ static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh 
 
 			BLI_scanfill_edge_add(&sf_ctx, sf_vert_first, sf_vert);
 
-			BLI_scanfill_calc_ex(&sf_ctx, TRUE, efa->no);
+			BLI_scanfill_calc_ex(&sf_ctx, 0, efa->no);
 			for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
 				int i;
 				ls[0] = sf_tri->v1->tmp.p;
@@ -1089,7 +1089,7 @@ static void uv_map_clip_correct(Scene *scene, Object *ob, BMEditMesh *em, wmOper
 
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-				DO_MINMAX2(luv->uv, min, max);
+				minmax_v2v2_v2(min, max, luv->uv);
 			}
 		}
 		
@@ -1414,7 +1414,7 @@ static void uv_map_mirror(BMEditMesh *em, BMFace *efa, MTexPoly *UNUSED(tf))
 	BMIter liter;
 	MLoopUV *luv;
 	float **uvs = NULL;
-	BLI_array_fixedstack_declare(uvs, BM_NGON_STACK_SIZE, efa->len, __func__);
+	BLI_array_fixedstack_declare(uvs, BM_DEFAULT_NGON_STACK_SIZE, efa->len, __func__);
 	float dx;
 	int i, mi;
 

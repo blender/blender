@@ -94,6 +94,15 @@ static EnumPropertyItem parent_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+static EnumPropertyItem dupli_items[] = {
+	{0, "NONE", 0, "None", ""},
+	{OB_DUPLIFRAMES, "FRAMES", 0, "Frames", "Make copy of object for every frame"},
+	{OB_DUPLIVERTS, "VERTS", 0, "Verts", "Duplicate child objects on all vertices"},
+	{OB_DUPLIFACES, "FACES", 0, "Faces", "Duplicate child objects on all faces"},
+	{OB_DUPLIGROUP, "GROUP", 0, "Group", "Enable group instancing"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 static EnumPropertyItem collision_bounds_items[] = {
 	{OB_BOUND_BOX, "BOX", 0, "Box", ""},
 	{OB_BOUND_SPHERE, "SPHERE", 0, "Sphere", ""},
@@ -547,8 +556,7 @@ static void rna_Object_active_vertex_group_index_range(PointerRNA *ptr, int *min
 	Object *ob = (Object *)ptr->id.data;
 
 	*min = 0;
-	*max = BLI_countlist(&ob->defbase) - 1;
-	*max = MAX2(0, *max);
+	*max = max_ii(0, BLI_countlist(&ob->defbase) - 1);
 }
 
 void rna_object_vgroup_name_index_get(PointerRNA *ptr, char *value, int index)
@@ -658,7 +666,7 @@ static void rna_Object_active_material_index_range(PointerRNA *ptr, int *min, in
 {
 	Object *ob = (Object *)ptr->id.data;
 	*min = 0;
-	*max = MAX2(ob->totcol - 1, 0);
+	*max = max_ii(ob->totcol - 1, 0);
 }
 
 /* returns active base material */
@@ -684,8 +692,7 @@ static void rna_Object_active_particle_system_index_range(PointerRNA *ptr, int *
 {
 	Object *ob = (Object *)ptr->id.data;
 	*min = 0;
-	*max = BLI_countlist(&ob->particlesystem) - 1;
-	*max = MAX2(0, *max);
+	*max = max_ii(0, BLI_countlist(&ob->particlesystem) - 1);
 }
 
 static int rna_Object_active_particle_system_index_get(PointerRNA *ptr)
@@ -1421,6 +1428,12 @@ int rna_Camera_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 	return ((Object *)value.id.data)->type == OB_CAMERA;
 }
 
+int rna_DupliObject_index_get(PointerRNA *ptr)
+{
+	DupliObject *dob = (DupliObject *)ptr->data;
+	return dob->persistent_id[0];
+}
+
 #else
 
 static int rna_matrix_dimsize_4x4[] = {4, 4};
@@ -1639,21 +1652,23 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0, 1000.0);
 	RNA_def_property_ui_text(prop, "Velocity Max", "Clamp velocity to this maximum speed");
 	
+	/* Character physics */
 	prop = RNA_def_property(srna, "step_height", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "step_height");
-	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_range(prop, 0.01, 1.0);
 	RNA_def_property_ui_text(prop, "Step Height", "Maximum height of steps the character can run over");
 
 	prop = RNA_def_property(srna, "jump_speed", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "jump_speed");
 	RNA_def_property_range(prop, 0.0, 1000.0);
-	RNA_def_property_ui_text(prop, "Jump Force", "Upward velocity applied to the character when jumping (with the Motion actuator)");
+	RNA_def_property_ui_text(prop, "Jump Force", "Upward velocity applied to the character when jumping");
 
 	prop = RNA_def_property(srna, "fall_speed", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fall_speed");
 	RNA_def_property_range(prop, 0.0, 1000.0);
 	RNA_def_property_ui_text(prop, "Fall Speed Max", "Maximum speed at which the character will fall");
 
+	/* Collision Masks */
 	prop = RNA_def_property(srna, "collision_group", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "col_group", 1);
 	RNA_def_property_array(prop, OB_MAX_COL_MASKS);
@@ -2013,15 +2028,7 @@ static void rna_def_object(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem dupli_items[] = {
-		{0, "NONE", 0, "None", ""},
-		{OB_DUPLIFRAMES, "FRAMES", 0, "Frames", "Make copy of object for every frame"},
-		{OB_DUPLIVERTS, "VERTS", 0, "Verts", "Duplicate child objects on all vertices"},
-		{OB_DUPLIFACES, "FACES", 0, "Faces", "Duplicate child objects on all faces"},
-		{OB_DUPLIGROUP, "GROUP", 0, "Group", "Enable group instancing"},
-		{0, NULL, 0, NULL, NULL}
-	};
-		
+	
 	/* XXX: this RNA enum define is currently duplicated for objects,
 	 *      since there is some text here which is not applicable */
 	static EnumPropertyItem prop_rotmode_items[] = {
@@ -2168,7 +2175,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, "rna_Object_active_material_index_get", "rna_Object_active_material_index_set",
 	                           "rna_Object_active_material_index_range");
 	RNA_def_property_ui_text(prop, "Active Material Index", "Index of active material slot");
-	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
+	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING_LINKS, NULL);
 	
 	/* transform */
 	prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_TRANSLATION);
@@ -2655,25 +2662,31 @@ static void rna_def_dupli_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Hide", "Don't show dupli object in viewport or render");
 
 	prop = RNA_def_property(srna, "index", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "index");
+	RNA_def_property_int_funcs(prop, "rna_DupliObject_index_get", NULL, NULL);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Index", "Index in the lowest-level dupli list");
-	
-	prop = RNA_def_property(srna, "particle_index", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "particle_index");
+
+	prop = RNA_def_property(srna, "persistent_id", PROP_INT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Particle Index", "Index in the lowest-level particle dupli list");
+	RNA_def_property_ui_text(prop, "Persistent ID", "Persistent identifier for inter-frame matching of objects with motion blur");
+
+	prop = RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Particle System", "Particle system that this dupli object was instanced from");
 
 	prop = RNA_def_property(srna, "orco", PROP_FLOAT, PROP_TRANSLATION);
-	RNA_def_property_float_sdna(prop, NULL, "orco");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Generated Coordinates", "Generated coordinates in parent object space");
 
 	prop = RNA_def_property(srna, "uv", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "uv");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "UV Coordinates", "UV coordinates in parent object space");
+
+	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, dupli_items);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Dupli Type", "Duplicator type that generated this dupli object");
 }
 
 static void rna_def_object_base(BlenderRNA *brna)

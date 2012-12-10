@@ -210,8 +210,8 @@ float ED_object_new_primitive_matrix(bContext *C, Object *obedit,
 	invert_m3_m3(imat, mat);
 	mul_m3_v3(imat, primmat[3]);
 
-	if (v3d) {
-		float dia = ED_view3d_grid_scale(scene, v3d, NULL);
+	{
+		const float dia = v3d ? ED_view3d_grid_scale(scene, v3d, NULL) : ED_scene_grid_scale(scene, NULL);
 
 		if (apply_diameter) {
 			primmat[0][0] *= dia;
@@ -271,7 +271,7 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float loc[3], fl
 		if (RNA_struct_property_is_set(op->ptr, "enter_editmode") && enter_editmode)
 			*enter_editmode = RNA_boolean_get(op->ptr, "enter_editmode");
 		else {
-			*enter_editmode = U.flag & USER_ADD_EDITMODE;
+			*enter_editmode = (U.flag & USER_ADD_EDITMODE) != 0;
 			RNA_boolean_set(op->ptr, "enter_editmode", *enter_editmode);
 		}
 	}
@@ -1136,7 +1136,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 		if (dupli_gh)
 			BLI_ghash_insert(dupli_gh, dob, ob);
 		if (parent_gh)
-			BLI_ghash_insert(parent_gh, BLI_ghashutil_pairalloc(dob->ob, SET_INT_IN_POINTER(dob->index)), ob);
+			BLI_ghash_insert(parent_gh, BLI_ghashutil_pairalloc(dob->ob, SET_INT_IN_POINTER(dob->persistent_id[0])), ob);
 	}
 
 	if (use_hierarchy) {
@@ -1150,7 +1150,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 
 			/* find parent that was also made real */
 			if (ob_src_par) {
-				GHashPair *pair = BLI_ghashutil_pairalloc(ob_src_par, SET_INT_IN_POINTER(dob->index));
+				GHashPair *pair = BLI_ghashutil_pairalloc(ob_src_par, SET_INT_IN_POINTER(dob->persistent_id[0]));
 				ob_dst_par = BLI_ghash_lookup(parent_gh, pair);
 				BLI_ghashutil_pairfree(pair);
 			}

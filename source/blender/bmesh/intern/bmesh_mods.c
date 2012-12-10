@@ -118,7 +118,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 		e = v->e;
 		do {
 			e = bmesh_disk_edge_next(e, v);
-			if (!(BM_edge_share_face_count(e, v->e))) {
+			if (!(BM_edge_share_face_check(e, v->e))) {
 				keepedge = e;
 				baseedge = v->e;
 				break;
@@ -142,9 +142,10 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 			return FALSE;
 		}
 #else
-		BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e, TRUE);
-
-		if (!BM_vert_collapse_faces(bm, v->e, v, 1.0, FALSE, TRUE)) {
+		if (UNLIKELY(!BM_faces_join_pair(bm, e->l->f, e->l->radial_next->f, e, TRUE))) {
+			return FALSE;
+		}
+		else if (UNLIKELY(!BM_vert_collapse_faces(bm, v->e, v, 1.0, FALSE, TRUE))) {
 			return FALSE;
 		}
 #endif

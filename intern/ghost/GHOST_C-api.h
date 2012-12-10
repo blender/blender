@@ -120,7 +120,7 @@ extern GHOST_TimerTaskHandle GHOST_InstallTimer(GHOST_SystemHandle systemhandle,
 /**
  * Removes a timer.
  * \param systemhandle The handle to the system
- * \param timerTask Timer task to be removed.
+ * \param timertaskhandle Timer task to be removed.
  * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_RemoveTimer(GHOST_SystemHandle systemhandle,
@@ -185,7 +185,7 @@ extern GHOST_TUserDataPtr GHOST_GetWindowUserData(GHOST_WindowHandle windowhandl
 /**
  * Changes the window user data.
  * \param windowhandle The handle to the window
- * \param data The window user data.
+ * \param userdata The window user data.
  */
 extern void GHOST_SetWindowUserData(GHOST_WindowHandle windowhandle, 
                                     GHOST_TUserDataPtr userdata);
@@ -212,6 +212,7 @@ extern int GHOST_ValidWindow(GHOST_SystemHandle systemhandle,
  * Begins full screen mode.
  * \param systemhandle The handle to the system
  * \param setting The new setting of the display.
+ * \param stereoVisual Option for stereo display.
  * \return A handle to the window displayed in full screen.
  *         This window is invalid after full screen has been ended.
  */
@@ -302,7 +303,7 @@ extern GHOST_TStandardCursor GHOST_GetCursorShape(GHOST_WindowHandle windowhandl
 /**
  * Set the shape of the cursor.
  * \param windowhandle The handle to the window
- * \param cursor The new cursor shape type id.
+ * \param cursorshape The new cursor shape type id.
  * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_SetCursorShape(GHOST_WindowHandle windowhandle,
@@ -484,10 +485,10 @@ extern GHOST_TUserDataPtr GHOST_GetTimerTaskUserData(GHOST_TimerTaskHandle timer
 /**
  * Changes the time user data.
  * \param timertaskhandle The handle to the timertask
- * \param data The timer user data.
+ * \param userdata The timer user data.
  */
 extern void GHOST_SetTimerTaskUserData(GHOST_TimerTaskHandle timertaskhandle,
-                                       GHOST_TUserDataPtr userData);
+                                       GHOST_TUserDataPtr userdata);
 
 /**
  * Returns indication as to whether the window is valid.
@@ -825,7 +826,8 @@ extern GHOST_TUns8 *GHOST_getClipboard(int selection);
 
 /**
  * Put data to the Clipboard
- * \param set the selection instead, X11 only feature
+ * \param buffer the string buffer to set.
+ * \param selection Set the selection instead, X11 only feature.
  */
 extern void GHOST_putClipboard(GHOST_TInt8 *buffer, int selection);
 

@@ -207,9 +207,10 @@ BLI_INLINE void madd_v3v3short_fl(float r[3], const short a[3], const float f)
 	r[2] += (float)a[2] * f;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
-		DerivedMesh *dm,
-		ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(
+        ModifierData *md, Object *ob,
+        DerivedMesh *dm,
+        ModifierApplyFlag UNUSED(flag))
 {
 	int i;
 	DerivedMesh *result;
@@ -747,6 +748,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	/* must recalculate normals with vgroups since they can displace unevenly [#26888] */
 	if (dvert) {
 		CDDM_calc_normals(result);
+	}
+
+	if (numFaces == 0 && numEdges != 0) {
+		modifier_setError(md, "Faces needed for useful output");
 	}
 
 	return result;

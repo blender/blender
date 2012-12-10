@@ -92,7 +92,7 @@ int RE_rayobjectcontrol_test_break(RayObjectControl *c);
  *               eg.: on render code)
  *
  *  0 means it's reserved and has it own meaning inside each ray acceleration structure
- *  (this way each structure can use the allign offset to determine if a node represents a
+ *  (this way each structure can use the align offset to determine if a node represents a
  *   RayObject primitive, which can be used to save memory)
  */
 

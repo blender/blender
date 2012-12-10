@@ -1148,15 +1148,6 @@ GPUNodeLink *GPU_dynamic_texture(GPUTexture *tex, int dynamictype, void *data)
 	return link;
 }
 
-GPUNodeLink *GPU_socket(GPUNodeStack *sock)
-{
-	GPUNodeLink *link = GPU_node_link_create(0);
-
-	link->socket= sock;
-
-	return link;
-}
-
 GPUNodeLink *GPU_builtin(GPUBuiltin builtin)
 {
 	GPUNodeLink *link = GPU_node_link_create(0);

@@ -173,9 +173,10 @@ static void cmp_node_image_create_outputs(bNodeTree *ntree, bNode *node)
 	Image *ima= (Image *)node->id;
 	if (ima) {
 		ImageUser *iuser= node->storage;
+		ImBuf *ibuf;
 		
 		/* make sure ima->type is correct */
-		BKE_image_get_ibuf(ima, iuser);
+		ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
 		
 		if (ima->rr) {
 			RenderLayer *rl= BLI_findlink(&ima->rr->layers, iuser->layer);
@@ -191,6 +192,8 @@ static void cmp_node_image_create_outputs(bNodeTree *ntree, bNode *node)
 		}
 		else
 			cmp_node_image_add_render_pass_outputs(ntree, node, RRES_OUT_IMAGE|RRES_OUT_ALPHA|RRES_OUT_Z);
+		
+		BKE_image_release_ibuf(ima, ibuf, NULL);
 	}
 	else
 		cmp_node_image_add_render_pass_outputs(ntree, node, RRES_OUT_IMAGE|RRES_OUT_ALPHA);
@@ -312,7 +315,7 @@ float *node_composit_get_float_buffer(RenderData *rd, ImBuf *ibuf, int *alloc)
 }
 
 /* note: this function is used for multilayer too, to ensure uniform 
- * handling with BKE_image_get_ibuf() */
+ * handling with BKE_image_acquire_ibuf() */
 static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *iuser)
 {
 	ImBuf *ibuf;
@@ -322,7 +325,7 @@ static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *i
 	float *rect;
 	int alloc= FALSE;
 
-	ibuf= BKE_image_get_ibuf(ima, iuser);
+	ibuf= BKE_image_acquire_ibuf(ima, iuser, NULL);
 	if (ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL)) {
 		return NULL;
 	}
@@ -374,12 +377,15 @@ static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *i
 		}
 	}
 #endif
+
+	BKE_image_release_ibuf(ima, ibuf, NULL);
+
 	return stackbuf;
 }
 
 static CompBuf *node_composit_get_zimage(bNode *node, RenderData *rd)
 {
-	ImBuf *ibuf= BKE_image_get_ibuf((Image *)node->id, node->storage);
+	ImBuf *ibuf= BKE_image_acquire_ibuf((Image *)node->id, node->storage, NULL);
 	CompBuf *zbuf= NULL;
 	
 	if (ibuf && ibuf->zbuf_float) {
@@ -391,6 +397,9 @@ static CompBuf *node_composit_get_zimage(bNode *node, RenderData *rd)
 			zbuf->rect= ibuf->zbuf_float;
 		}
 	}
+
+	BKE_image_release_ibuf((Image *)node->id, ibuf, NULL);
+
 	return zbuf;
 }
 
@@ -418,13 +427,14 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSE
 		RenderData *rd= data;
 		Image *ima= (Image *)node->id;
 		ImageUser *iuser= (ImageUser *)node->storage;
+		ImBuf *ibuf = NULL;
 		
 		/* first set the right frame number in iuser */
 		BKE_image_user_frame_calc(iuser, rd->cfra, 0);
 		
 		/* force a load, we assume iuser index will be set OK anyway */
 		if (ima->type==IMA_TYPE_MULTILAYER)
-			BKE_image_get_ibuf(ima, iuser);
+			ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
 		
 		if (ima->type==IMA_TYPE_MULTILAYER && ima->rr) {
 			RenderLayer *rl= BLI_findlink(&ima->rr->layers, iuser->layer);
@@ -505,6 +515,8 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSE
 				generate_preview(data, node, stackbuf);
 			}
 		}
+
+		BKE_image_release_ibuf(ima, ibuf, NULL);
 	}
 }
 

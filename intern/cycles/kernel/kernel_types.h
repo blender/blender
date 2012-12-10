@@ -29,7 +29,7 @@
 CCL_NAMESPACE_BEGIN
 
 /* constants */
-#define OBJECT_SIZE 		22
+#define OBJECT_SIZE 		18
 #define LIGHT_SIZE			4
 #define FILTER_TABLE_SIZE	256
 #define RAMP_TABLE_SIZE		256
@@ -102,6 +102,7 @@ CCL_NAMESPACE_BEGIN
 #define __IMAGE_TEXTURES__
 #define __EXTRA_NODES__
 #define __HOLDOUT__
+#define __NORMAL_MAP__
 #endif
 
 #ifdef __KERNEL_ADV_SHADING__
@@ -111,11 +112,8 @@ CCL_NAMESPACE_BEGIN
 #define __BACKGROUND_MIS__
 #define __AO__
 #define __CAMERA_MOTION__
-
-#ifndef __KERNEL_CUDA__
+#define __ANISOTROPIC__
 #define __OBJECT_MOTION__
-#endif
-
 #endif
 
 //#define __SOBOL_FULL_SCREEN__
@@ -368,15 +366,17 @@ typedef struct ShaderClosure {
 	float sample_weight;
 #endif
 
-#ifdef __OSL__
-	void *prim;
-#endif
 	float data0;
 	float data1;
 
 	float3 N;
+#ifdef __ANISOTROPIC__
 	float3 T;
+#endif
 
+#ifdef __OSL__
+	void *prim;
+#endif
 } ShaderClosure;
 
 /* Shader Data
@@ -393,16 +393,18 @@ enum ShaderDataFlag {
 	SD_BSDF_GLOSSY = 16,	/* have glossy bsdf */
 	SD_HOLDOUT = 32,		/* have holdout closure? */
 	SD_VOLUME = 64,			/* have volume closure? */
+	SD_AO = 128,			/* have ao closure? */
 
 	/* shader flags */
-	SD_SAMPLE_AS_LIGHT = 128,			/* direct light sample */
-	SD_HAS_SURFACE_TRANSPARENT = 256,	/* has surface transparency */
-	SD_HAS_VOLUME = 512,				/* has volume shader */
-	SD_HOMOGENEOUS_VOLUME = 1024,		/* has homogeneous volume */
+	SD_SAMPLE_AS_LIGHT = 256,			/* direct light sample */
+	SD_HAS_SURFACE_TRANSPARENT = 512,	/* has surface transparency */
+	SD_HAS_VOLUME = 1024,				/* has volume shader */
+	SD_HOMOGENEOUS_VOLUME = 2048,		/* has homogeneous volume */
 
 	/* object flags */
-	SD_HOLDOUT_MASK = 2048,				/* holdout for camera rays */
-	SD_OBJECT_MOTION = 4096				/* has object motion blur */
+	SD_HOLDOUT_MASK = 4096,				/* holdout for camera rays */
+	SD_OBJECT_MOTION = 8192,			/* has object motion blur */
+	SD_TRANSFORM_APPLIED = 16384 		/* vertices have transform applied */
 };
 
 typedef struct ShaderData {

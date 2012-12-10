@@ -77,7 +77,9 @@
 #include "zbuf.h"
 
 /* could enable at some point but for now there are far too many conversions */
-#pragma GCC diagnostic ignored "-Wdouble-promotion"
+#ifdef __GNUC__
+#  pragma GCC diagnostic ignored "-Wdouble-promotion"
+#endif
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* defined in pipeline.c, is hardcopy of active dynamic allocated Render */

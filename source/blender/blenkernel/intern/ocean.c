@@ -183,7 +183,7 @@ MINLINE float catrom(float p0, float p1, float p2, float p3, float f)
 
 MINLINE float omega(float k, float depth)
 {
-	return sqrt(GRAVITY * k * tanh(k * depth));
+	return sqrtf(GRAVITY * k * tanhf(k * depth));
 }
 
 // modified Phillips spectrum
@@ -256,8 +256,8 @@ static void add_comlex_c(fftw_complex res, fftw_complex cmpl1, fftw_complex cmpl
 
 static void mul_complex_f(fftw_complex res, fftw_complex cmpl, float f)
 {
-	res[0] = cmpl[0] * f;
-	res[1] = cmpl[1] * f;
+	res[0] = cmpl[0] * (double)f;
+	res[1] = cmpl[1] * (double)f;
 }
 
 static void mul_complex_c(fftw_complex res, fftw_complex cmpl1, fftw_complex cmpl2)
@@ -289,8 +289,8 @@ static void exp_complex(fftw_complex res, fftw_complex cmpl)
 {
 	float r = expf(cmpl[0]);
 
-	res[0] = cos(cmpl[1]) * r;
-	res[1] = sin(cmpl[1]) * r;
+	res[0] = cosf(cmpl[1]) * r;
+	res[1] = sinf(cmpl[1]) * r;
 }
 
 float BKE_ocean_jminus_to_foam(float jminus, float coverage)
@@ -462,7 +462,7 @@ void BKE_ocean_eval_ij(struct Ocean *oc, struct OceanResult *ocr, int i, int j)
 	i = abs(i) % oc->_M;
 	j = abs(j) % oc->_N;
 
-	ocr->disp[1] = oc->_do_disp_y ? oc->_disp_y[i * oc->_N + j] : 0.0f;
+	ocr->disp[1] = oc->_do_disp_y ? (float)oc->_disp_y[i * oc->_N + j] : 0.0f;
 
 	if (oc->_do_chop) {
 		ocr->disp[0] = oc->_disp_x[i * oc->_N + j];
@@ -546,7 +546,7 @@ void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount
 						mul_complex_f(mul_param, mul_param, chop_amount);
 						mul_complex_c(mul_param, mul_param, minus_i);
 						mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
-						mul_complex_f(mul_param, mul_param, (o->_k[i * (1 + o->_N / 2) + j] == 0.0 ? 0.0 : o->_kx[i] / o->_k[i * (1 + o->_N / 2) + j]));
+						mul_complex_f(mul_param, mul_param, (o->_k[i * (1 + o->_N / 2) + j] == 0.0f ? 0.0f : o->_kx[i] / o->_k[i * (1 + o->_N / 2) + j]));
 						init_complex(o->_fft_in_x[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
 					}
 				}
@@ -568,7 +568,7 @@ void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount
 						mul_complex_f(mul_param, mul_param, chop_amount);
 						mul_complex_c(mul_param, mul_param, minus_i);
 						mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
-						mul_complex_f(mul_param, mul_param, (o->_k[i * (1 + o->_N / 2) + j] == 0.0 ? 0.0 : o->_kz[j] / o->_k[i * (1 + o->_N / 2) + j]));
+						mul_complex_f(mul_param, mul_param, (o->_k[i * (1 + o->_N / 2) + j] == 0.0f ? 0.0f : o->_kz[j] / o->_k[i * (1 + o->_N / 2) + j]));
 						init_complex(o->_fft_in_z[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
 					}
 				}
@@ -589,7 +589,7 @@ void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount
 
 						mul_complex_f(mul_param, mul_param, chop_amount);
 						mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
-						mul_complex_f(mul_param, mul_param, (o->_k[i * (1 + o->_N / 2) + j] == 0.0 ? 0.0 : o->_kx[i] * o->_kx[i] / o->_k[i * (1 + o->_N / 2) + j]));
+						mul_complex_f(mul_param, mul_param, (o->_k[i * (1 + o->_N / 2) + j] == 0.0f ? 0.0f : o->_kx[i] * o->_kx[i] / o->_k[i * (1 + o->_N / 2) + j]));
 						init_complex(o->_fft_in_jxx[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
 					}
 				}
@@ -616,7 +616,7 @@ void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount
 
 						mul_complex_f(mul_param, mul_param, chop_amount);
 						mul_complex_c(mul_param, mul_param, o->_htilda[i * (1 + o->_N / 2) + j]);
-						mul_complex_f(mul_param, mul_param, (o->_k[i * (1 + o->_N / 2) + j] == 0.0 ? 0.0 : o->_kz[j] * o->_kz[j] / o->_k[i * (1 + o->_N / 2) + j]));
+						mul_complex_f(mul_param, mul_param, (o->_k[i * (1 + o->_N / 2) + j] == 0.0f ? 0.0f : o->_kz[j] * o->_kz[j] / o->_k[i * (1 + o->_N / 2) + j]));
 						init_complex(o->_fft_in_jzz[i * (1 + o->_N / 2) + j], real_c(mul_param), image_c(mul_param));
 					}
 				}

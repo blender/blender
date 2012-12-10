@@ -126,7 +126,6 @@ bool SCA_PropertySensor::Evaluate()
 
 bool	SCA_PropertySensor::CheckPropertyCondition()
 {
-
 	m_recentresult=false;
 	bool result=false;
 	bool reverse = false;
@@ -153,13 +152,11 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 				 */
 				if (result==false && dynamic_cast<CFloatValue *>(orgprop) != NULL) {
 					float f;
-					
-					if (EOF == sscanf(m_checkpropval.ReadPtr(), "%f", &f))
-					{
-						//error
+					if (sscanf(m_checkpropval.ReadPtr(), "%f", &f) == 1) {
+						result = (f == ((CFloatValue *)orgprop)->GetFloat());
 					} 
 					else {
-						result = (f == ((CFloatValue *)orgprop)->GetFloat());
+						/* error */
 					}
 				}
 				/* end patch */
@@ -174,7 +171,7 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 
 	case KX_PROPSENSOR_EXPRESSION:
 		{
-			/*
+#if 0
 			if (m_rightexpr)
 			{
 				CValue* resultval = m_rightexpr->Calculate();
@@ -189,7 +186,7 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 					result = resultval->GetNumber() != 0;
 				}
 			}
-			*/
+#endif
 			break;
 		}
 	case KX_PROPSENSOR_INTERVAL:
@@ -197,7 +194,16 @@ bool	SCA_PropertySensor::CheckPropertyCondition()
 			CValue* orgprop = GetParent()->FindIdentifier(m_checkpropname);
 			if (!orgprop->IsError())
 			{
-				float val = orgprop->GetText().ToFloat(), min = m_checkpropval.ToFloat(), max = m_checkpropmaxval.ToFloat();
+				const float min = m_checkpropval.ToFloat();
+				const float max = m_checkpropmaxval.ToFloat();
+				float val;
+
+				if (dynamic_cast<CStringValue *>(orgprop) == NULL) {
+					val = orgprop->GetNumber();
+				}
+				else {
+					val = orgprop->GetText().ToFloat();
+				}
 
 				result = (min <= val) && (val <= max);
 			}

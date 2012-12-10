@@ -239,7 +239,7 @@ class DATA_PT_ghost(ArmatureButtonsPanel, Panel):
 
 
 class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
-    bl_label = "iTaSC parameters"
+    bl_label = "Inverse Kinematics"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod

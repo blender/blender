@@ -114,13 +114,7 @@ static PyObject *bpy_bmeditselseq_add(BPy_BMEditSelSeq *self, BPy_BMElem *value)
 		return NULL;
 	}
 
-	BPY_BM_CHECK_OBJ(value);
-
-	if (self->bm != value->bm) {
-		PyErr_SetString(PyExc_ValueError,
-		                "Element is not from this mesh");
-		return NULL;
-	}
+	BPY_BM_CHECK_SOURCE_OBJ(value, self->bm, "select_history.add()");
 
 	BM_select_history_store(self->bm, value->ele);
 
@@ -145,11 +139,9 @@ static PyObject *bpy_bmeditselseq_remove(BPy_BMEditSelSeq *self, BPy_BMElem *val
 		return NULL;
 	}
 
-	BPY_BM_CHECK_OBJ(value);
+	BPY_BM_CHECK_SOURCE_OBJ(value, self->bm, "select_history.remove()");
 
-	if ((self->bm != value->bm) ||
-	    (BM_select_history_remove(self->bm, value->ele) == FALSE))
-	{
+	if (BM_select_history_remove(self->bm, value->ele) == FALSE) {
 		PyErr_SetString(PyExc_ValueError,
 		                "Element not found in selection history");
 		return NULL;

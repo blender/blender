@@ -40,8 +40,6 @@ extern bNodeTreeType ntreeType_Texture;
 /* ****************** types array for all texture nodes ****************** */
 
 void register_node_type_tex_group(struct bNodeTreeType *ttype);
-void register_node_type_tex_forloop(struct bNodeTreeType *ttype);
-void register_node_type_tex_whileloop(struct bNodeTreeType *ttype);
 
 void register_node_type_tex_math(struct bNodeTreeType *ttype);
 void register_node_type_tex_mix_rgb(struct bNodeTreeType *ttype);

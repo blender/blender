@@ -242,16 +242,14 @@ static void rna_Curve_material_index_range(PointerRNA *ptr, int *min, int *max, 
 {
 	Curve *cu = (Curve *)ptr->id.data;
 	*min = 0;
-	*max = cu->totcol - 1;
-	*max = MAX2(0, *max);
+	*max = max_ii(0, cu->totcol - 1);
 }
 
 static void rna_Curve_active_textbox_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	Curve *cu = (Curve *)ptr->id.data;
 	*min = 0;
-	*max = cu->totbox - 1;
-	*max = MAX2(0, *max);
+	*max = max_ii(0, cu->totbox - 1);
 }
 
 
@@ -1422,6 +1420,11 @@ static void rna_def_curve(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_fill_caps", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_FILL_CAPS);
 	RNA_def_property_ui_text(prop, "Fill Caps", "Fill caps for beveled curves");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
+	prop = RNA_def_property(srna, "use_map_taper", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_MAP_TAPER);
+	RNA_def_property_ui_text(prop, "Map Taper", "Map effect of taper object on actually beveled curve");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	/* texture space */

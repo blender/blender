@@ -204,16 +204,16 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e;
 	BLI_array_declare(jedges);
 	JoinEdge *jedges = NULL;
-	int do_sharp = BMO_slot_bool_get(op, "cmp_sharp");
-	int do_uv    = BMO_slot_bool_get(op, "cmp_uvs");
+	int do_sharp = BMO_slot_bool_get(op->slots_in, "cmp_sharp");
+	int do_uv    = BMO_slot_bool_get(op->slots_in, "cmp_uvs");
 	int do_tf    = do_uv;  /* texture face, make make its own option eventually */
-	int do_vcol  = BMO_slot_bool_get(op, "cmp_vcols");
-	int do_mat   = BMO_slot_bool_get(op, "cmp_materials");
-	float limit  = BMO_slot_float_get(op, "limit");
+	int do_vcol  = BMO_slot_bool_get(op->slots_in, "cmp_vcols");
+	int do_mat   = BMO_slot_bool_get(op->slots_in, "cmp_materials");
+	float limit  = BMO_slot_float_get(op->slots_in, "limit");
 	int i, totedge;
 
 	/* flag all edges of all input face */
-	BMO_ITER (f, &siter, bm, op, "faces", BM_FACE) {
+	BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
 		BMO_elem_flag_enable(bm, f, FACE_INPUT);
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 			BMO_elem_flag_enable(bm, l->e, EDGE_MARK);

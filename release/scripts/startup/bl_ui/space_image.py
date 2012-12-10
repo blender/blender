@@ -249,6 +249,7 @@ class IMAGE_MT_uvs_weldalign(Menu):
         layout = self.layout
 
         layout.operator("uv.weld")  # W, 1
+        layout.operator("uv.remove_doubles")
         layout.operator_enum("uv.align", "axis")  # W, 2/3/4
 
 
@@ -413,7 +414,9 @@ class IMAGE_HT_header(Header):
 
             row = layout.row(align=True)
             row.prop(toolsettings, "use_snap", text="")
-            row.prop(toolsettings, "snap_target", text="")
+            row.prop(toolsettings, "snap_uv_element", text="", icon_only=True)
+            if toolsettings.snap_uv_element != 'INCREMENT':
+                row.prop(toolsettings, "snap_target", text="")
 
             mesh = context.edit_object.data
             layout.prop_search(mesh.uv_textures, "active", mesh, "uv_textures", text="")
@@ -684,7 +687,7 @@ class IMAGE_PT_paint(Panel, ImagePaintPanel):
 
         if brush:
             col = layout.column()
-            col.template_color_wheel(brush, "color", value_slider=True)
+            col.template_color_picker(brush, "color", value_slider=True)
             col.prop(brush, "color", text="")
 
             row = col.row(align=True)

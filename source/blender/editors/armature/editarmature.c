@@ -3569,16 +3569,16 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	bArmature *arm = obedit->data;
 	EditBone *newbone, *tbone;
-	int numcuts, i;
+	int cuts, i;
 	
 	/* there may not be a number_cuts property defined (for 'simple' subdivide) */
-	numcuts = RNA_int_get(op->ptr, "number_cuts");
+	cuts = RNA_int_get(op->ptr, "number_cuts");
 	
 	/* loop over all editable bones */
 	// XXX the old code did this in reverse order though!
 	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones)
 	{
-		for (i = numcuts + 1; i > 1; i--) {
+		for (i = cuts + 1; i > 1; i--) {
 			/* compute cut ratio first */
 			float cutratio = 1.0f / (float)i;
 			float cutratioI = 1.0f - cutratio;

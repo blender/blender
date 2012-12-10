@@ -65,7 +65,6 @@
 #define BLU 2
 #define EXP 3
 #define COLXS 128
-#define STR_MAX 540
 typedef unsigned char RGBE[4];
 typedef float fCOLOR[3];
 

@@ -164,7 +164,7 @@ typedef struct ColormanageProcessor {
  *       but they holds indexes of all transformations and color spaces, not
  *       their names.
  *
- *       This helps avoid extra colorsmace / display / view lookup without
+ *       This helps avoid extra colorspace / display / view lookup without
  *       requiring to pass all variables which affects on display buffer
  *       to color management cache system and keeps calls small and nice.
  */
@@ -890,7 +890,7 @@ void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace)
 {
 	ColorSpace *colorspace = colormanage_colorspace_get_named(from_colorspace);
 
-	if (colorspace->is_data) {
+	if (colorspace && colorspace->is_data) {
 		ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
 		return;
 	}
@@ -1083,7 +1083,7 @@ void IMB_colormanagement_check_is_data(ImBuf *ibuf, const char *name)
 {
 	ColorSpace *colorspace = colormanage_colorspace_get_named(name);
 
-	if (colorspace->is_data)
+	if (colorspace && colorspace->is_data)
 		ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
 	else
 		ibuf->colormanage_flag &= ~IMB_COLORMANAGE_IS_DATA;
@@ -1095,7 +1095,7 @@ void IMB_colormanagement_assign_float_colorspace(ImBuf *ibuf, const char *name)
 
 	ibuf->float_colorspace = colorspace;
 
-	if (colorspace->is_data)
+	if (colorspace && colorspace->is_data)
 		ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
 	else
 		ibuf->colormanage_flag &= ~IMB_COLORMANAGE_IS_DATA;
@@ -1107,7 +1107,7 @@ void IMB_colormanagement_assign_rect_colorspace(ImBuf *ibuf, const char *name)
 
 	ibuf->rect_colorspace = colorspace;
 
-	if (colorspace->is_data)
+	if (colorspace && colorspace->is_data)
 		ibuf->colormanage_flag |= IMB_COLORMANAGE_IS_DATA;
 	else
 		ibuf->colormanage_flag &= ~IMB_COLORMANAGE_IS_DATA;
@@ -2385,7 +2385,7 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
                                        const ColorManagedDisplaySettings *display_settings,
                                        int xmin, int ymin, int xmax, int ymax, int update_orig_byte_buffer)
 {
-	if ((ibuf->rect && ibuf->rect_float) || update_orig_byte_buffer)  {
+	if ((ibuf->rect && ibuf->rect_float) || update_orig_byte_buffer) {
 		/* update byte buffer created by legacy color management */
 
 		unsigned char *rect = (unsigned char *) ibuf->rect;
@@ -2465,7 +2465,8 @@ ColormanageProcessor *IMB_colormanagement_display_processor_new(const ColorManag
 	}
 
 	display_space =  display_transform_get_colorspace(applied_view_settings, display_settings);
-	cm_processor->is_data_result = display_space->is_data;
+	if (display_space)
+		cm_processor->is_data_result = display_space->is_data;
 
 	cm_processor->processor = create_display_buffer_processor(applied_view_settings->view_transform, display_settings->display_device,
 	                                                          applied_view_settings->exposure, applied_view_settings->gamma);

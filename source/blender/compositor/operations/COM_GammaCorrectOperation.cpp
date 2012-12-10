@@ -48,15 +48,13 @@ void GammaCorrectOperation::executePixel(float output[4], float x, float y, Pixe
 	output[0] = inputColor[0] > 0.0f ? inputColor[0] * inputColor[0] : 0.0f;
 	output[1] = inputColor[1] > 0.0f ? inputColor[1] * inputColor[1] : 0.0f;
 	output[2] = inputColor[2] > 0.0f ? inputColor[2] * inputColor[2] : 0.0f;
-
-	inputColor[0] *= inputColor[3];
-	inputColor[1] *= inputColor[3];
-	inputColor[2] *= inputColor[3];
-
-	output[0] = inputColor[0];
-	output[1] = inputColor[1];
-	output[2] = inputColor[2];
 	output[3] = inputColor[3];
+
+	if (inputColor[3] > 0.0f) {
+		output[0] *= inputColor[3];
+		output[1] *= inputColor[3];
+		output[2] *= inputColor[3];
+	}
 }
 
 void GammaCorrectOperation::deinitExecution()
@@ -89,15 +87,13 @@ void GammaUncorrectOperation::executePixel(float output[4], float x, float y, Pi
 	output[0] = inputColor[0] > 0.0f ? sqrtf(inputColor[0]) : 0.0f;
 	output[1] = inputColor[1] > 0.0f ? sqrtf(inputColor[1]) : 0.0f;
 	output[2] = inputColor[2] > 0.0f ? sqrtf(inputColor[2]) : 0.0f;
-
-	inputColor[0] *= inputColor[3];
-	inputColor[1] *= inputColor[3];
-	inputColor[2] *= inputColor[3];
-
-	output[0] = inputColor[0];
-	output[1] = inputColor[1];
-	output[2] = inputColor[2];
 	output[3] = inputColor[3];
+
+	if (inputColor[3] > 0.0f) {
+		output[0] *= inputColor[3];
+		output[1] *= inputColor[3];
+		output[2] *= inputColor[3];
+	}
 }
 
 void GammaUncorrectOperation::deinitExecution()

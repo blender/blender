@@ -446,7 +446,7 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 		for (fobj=fobjects->first; fobj; fobj=fobj->next) {
 			Object *ob = fobj->object;
 			FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
-			float active= (float)(fluidmd->fss->flag & OB_FLUIDSIM_ACTIVE);
+			float active= (float) ((fluidmd->fss->flag & OB_FLUIDSIM_ACTIVE) > 0 ? 1 : 0);
 			float rot_d[3] = {0.f, 0.f, 0.f}, old_rot[3] = {0.f, 0.f, 0.f};
 			
 			if (ELEM(fluidmd->fss->type, OB_FLUIDSIM_DOMAIN, OB_FLUIDSIM_PARTICLE))
@@ -467,6 +467,8 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 			set_channel(fobj->Scale, timeAtFrame, ob->size, i, CHANNEL_VEC);
 			set_channel(fobj->Active, timeAtFrame, &active, i, CHANNEL_FLOAT);
 			set_channel(fobj->InitialVelocity, timeAtFrame, &fluidmd->fss->iniVelx, i, CHANNEL_VEC);
+
+			// printf("Active: %f, Frame: %f\n", active, timeAtFrame);
 			
 			if (fluidmd->fss->type == OB_FLUIDSIM_CONTROL) {
 				set_channel(fobj->AttractforceStrength, timeAtFrame, &fluidmd->fss->attractforceStrength, i, CHANNEL_FLOAT);
@@ -574,7 +576,8 @@ static void export_fluid_objects(ListBase *fobjects, Scene *scene, int length)
 			fsmesh.channelScale            = NULL;
 			
 			/* Override user settings, only noslip is supported here! */
-			fsmesh.obstacleType = FLUIDSIM_OBSTACLE_NOSLIP;
+			if (fsmesh.type != OB_FLUIDSIM_CONTROL)
+				fsmesh.obstacleType = FLUIDSIM_OBSTACLE_NOSLIP;
 		}
 		
 		elbeemAddMesh(&fsmesh);
@@ -961,8 +964,8 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 	
 	/* ******** prepare output file paths ******** */
 	outStringsChanged = fluid_init_filepaths(fsDomain, targetDir, targetFile, debugStrBuffer);
-	channels->length = scene->r.efra;
-	channels->aniFrameTime = (double)(domainSettings->animEnd - domainSettings->animStart) / (double)noFrames;
+	channels->length = scene->r.efra; // DG TODO: why using endframe and not "noFrames" here? .. because "noFrames" is buggy too? (not using sfra)
+	channels->aniFrameTime = (double)((double)domainSettings->animEnd - (double)domainSettings->animStart) / (double)noFrames;
 	
 	/* ******** initialize and allocate animation channels ******** */
 	fluid_init_all_channels(C, fsDomain, domainSettings, channels, fobjects);

@@ -178,7 +178,7 @@ void *BLI_ghash_pop(GHash *gh, void *key, GHashKeyFreeFP keyfreefp)
 	return NULL;
 }
 
-int BLI_ghash_haskey(GHash *gh, void *key)
+int BLI_ghash_haskey(GHash *gh, const void *key)
 {
 	unsigned int hash = gh->hashfp(key) % gh->nbuckets;
 	Entry *e;

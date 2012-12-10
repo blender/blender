@@ -29,29 +29,18 @@ __device void svm_node_geometry(KernelGlobals *kg, ShaderData *sd, float *stack,
 		case NODE_GEOM_N: data = sd->N; break;
 #ifdef __DPDU__
 		case NODE_GEOM_T: {
-			/* first try to get tangent attribute */
-			int attr_offset = (sd->object != ~0)? find_attribute(kg, sd, ATTR_STD_TANGENT): ATTR_STD_NOT_FOUND;
+			/* try to create spherical tangent from generated coordinates */
+			int attr_offset = (sd->object != ~0)? find_attribute(kg, sd, ATTR_STD_GENERATED): ATTR_STD_NOT_FOUND;
 
 			if(attr_offset != ATTR_STD_NOT_FOUND) {
-				/* ensure orthogonal and normalized (interpolation breaks it) */
-				data = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_CORNER, attr_offset, NULL, NULL);
+				data = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, attr_offset, NULL, NULL);
+				data = make_float3(-(data.y - 0.5f), (data.x - 0.5f), 0.0f);
 				object_normal_transform(kg, sd, &data);
 				data = cross(sd->N, normalize(cross(data, sd->N)));;
 			}
 			else {
-				/* try to create spherical tangent from generated coordinates */
-				int attr_offset = (sd->object != ~0)? find_attribute(kg, sd, ATTR_STD_GENERATED): ATTR_STD_NOT_FOUND;
-
-				if(attr_offset != ATTR_STD_NOT_FOUND) {
-					data = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, attr_offset, NULL, NULL);
-					data = make_float3(-(data.y - 0.5), (data.x - 0.5), 0.0f);
-					object_normal_transform(kg, sd, &data);
-					data = cross(sd->N, normalize(cross(data, sd->N)));;
-				}
-				else {
-					/* otherwise use surface derivatives */
-					data = normalize(sd->dPdu);
-				}
+				/* otherwise use surface derivatives */
+				data = normalize(sd->dPdu);
 			}
 
 			break;

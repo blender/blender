@@ -1835,6 +1835,8 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float cfra,
 		StripCrop c = {0};
 		StripTransform t = {0};
 		int sx, sy, dx, dy;
+		double xscale = 1.0;
+		double yscale = 1.0;
 
 		if (is_proxy_image) {
 			double f = seq_rendersize_to_scale_factor(context.preview_render_size);
@@ -1850,6 +1852,17 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float cfra,
 		if (seq->flag & SEQ_USE_TRANSFORM && seq->strip->transform) {
 			t = *seq->strip->transform;
 		}
+
+		xscale = context.scene->r.xsch ? ((double)context.rectx / (double)context.scene->r.xsch) : 1.0;
+		yscale = context.scene->r.ysch ? ((double)context.recty / (double)context.scene->r.ysch) : 1.0;
+
+		xscale /= (double)context.rectx / (double)ibuf->x;
+		yscale /= (double)context.recty / (double)ibuf->y;
+
+		c.left *= xscale; c.right *= xscale;
+		c.top *= yscale; c.bottom *= yscale;
+
+		t.xofs *= xscale; t.yofs *= yscale;
 
 		sx = ibuf->x - c.left - c.right;
 		sy = ibuf->y - c.top - c.bottom;
@@ -2338,12 +2351,15 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	 */
 
 	const short is_rendering = G.is_rendering;
+	const short is_background = G.background;
 	const int do_seq_gl = G.is_rendering ?
 	            0 /* (context.scene->r.seq_flag & R_SEQ_GL_REND) */ :
 	            (context.scene->r.seq_flag & R_SEQ_GL_PREV);
 	int do_seq;
-	int have_seq = FALSE;
+	// int have_seq = FALSE;  /* UNUSED */
+	int have_comp = FALSE;
 	Scene *scene;
+	int is_thread_main = BLI_thread_is_main();
 
 	/* don't refer to seq->scene above this point!, it can be NULL */
 	if (seq->scene == NULL) {
@@ -2353,7 +2369,8 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	scene = seq->scene;
 	frame = scene->r.sfra + nr + seq->anim_startofs;
 
-	have_seq = (scene->r.scemode & R_DOSEQ) && scene->ed && scene->ed->seqbase.first;
+	// have_seq = (scene->r.scemode & R_DOSEQ) && scene->ed && scene->ed->seqbase.first;  /* UNUSED */
+	have_comp = (scene->r.scemode & R_DOCOMP) && scene->use_nodes && scene->nodetree;
 
 	oldcfra = scene->r.cfra;
 	scene->r.cfra = frame;
@@ -2366,14 +2383,14 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 		camera = scene->camera;
 	}
 
-	if (have_seq == FALSE && camera == NULL) {
+	if (have_comp == FALSE && camera == NULL) {
 		scene->r.cfra = oldcfra;
 		return NULL;
 	}
 
 	/* prevent eternal loop */
 	do_seq = context.scene->r.scemode & R_DOSEQ;
-	context.scene->r.scemode &= ~R_DOSEQ;
+	scene->r.scemode &= ~R_DOSEQ;
 	
 #ifdef DURIAN_CAMERA_SWITCH
 	/* stooping to new low's in hackyness :( */
@@ -2383,10 +2400,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	(void)oldmarkers;
 #endif
 
-	if ((sequencer_view3d_cb && do_seq_gl && camera) &&
-	    (BLI_thread_is_main() == TRUE) &&
-	    ((have_seq == FALSE) || (scene == context.scene)))
-	{
+	if ((sequencer_view3d_cb && do_seq_gl && camera) && is_thread_main) {
 		char err_out[256] = "unknown";
 		/* for old scened this can be uninitialized,
 		 * should probably be added to do_versions at some point if the functionality stays */
@@ -2405,11 +2419,19 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 		Render *re = RE_GetRender(scene->id.name);
 		RenderResult rres;
 
-		/* XXX: this if can be removed when sequence preview rendering uses the job system */
-		if (is_rendering || context.scene != scene) {
+		/* XXX: this if can be removed when sequence preview rendering uses the job system
+		 *
+		 * disable rendered preview for sequencer while rendering -- it's very much possible
+		 * that preview render will went into conflict with final render
+		 *
+		 * When rendering from command line renderer is called from main thread, in this
+		 * case it's always safe to render scene here
+		 */
+		if (!is_thread_main || is_rendering == FALSE || is_background) {
 			if (re == NULL)
 				re = RE_NewRender(scene->id.name);
 			
+			BKE_scene_update_for_newframe(context.bmain, scene, scene->lay);
 			RE_BlenderFrame(re, context.bmain, scene, NULL, camera, scene->lay, frame, FALSE);
 
 			/* restore previous state after it was toggled on & off by RE_BlenderFrame */
@@ -2440,7 +2462,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 	}
 	
 	/* restore */
-	context.scene->r.scemode |= do_seq;
+	scene->r.scemode |= do_seq;
 	
 	scene->r.cfra = oldcfra;
 

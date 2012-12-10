@@ -56,6 +56,7 @@
 
 #include "ED_mesh.h"
 #include "ED_screen.h"
+#include "ED_util.h"
 #include "ED_uvedit.h"
 #include "ED_object.h"
 #include "ED_view3d.h"
@@ -68,6 +69,7 @@
 
 #include "mesh_intern.h"
 
+#include "UI_resources.h"
 
 /* ****************************** MIRROR **************** */
 
@@ -448,20 +450,6 @@ BMVert *EDBM_vert_find_nearest(ViewContext *vc, float *r_dist, const short sel, 
 	}
 }
 
-/* returns labda for closest distance v1 to line-piece v2 - v3 */
-float labda_PdistVL2Dfl(const float v1[2], const float v2[2], const float v3[2])
-{
-	float rc[2], len;
-	
-	rc[0] = v3[0] - v2[0];
-	rc[1] = v3[1] - v2[1];
-	len = rc[0] * rc[0] + rc[1] * rc[1];
-	if (len == 0.0f)
-		return 0.0f;
-	
-	return (rc[0] * (v1[0] - v2[0]) + rc[1] * (v1[1] - v2[1])) / len;
-}
-
 /* note; uses v3d, so needs active 3d window */
 static void findnearestedge__doClosest(void *userData, BMEdge *eed, const float screen_co_a[2], const float screen_co_b[2], int UNUSED(index))
 {
@@ -476,7 +464,7 @@ static void findnearestedge__doClosest(void *userData, BMEdge *eed, const float 
 
 	if (distance < data->dist) {
 		if (data->vc.rv3d->rflag & RV3D_CLIPPING) {
-			float labda = labda_PdistVL2Dfl(data->mval_fl, screen_co_a, screen_co_b);
+			float labda = line_point_factor_v2(data->mval_fl, screen_co_a, screen_co_b);
 			float vec[3];
 
 			vec[0] = eed->v1->co[0] + labda * (eed->v2->co[0] - eed->v1->co[0]);
@@ -730,7 +718,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
 	/* select the output */
-	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_ALL, BM_ELEM_SELECT, TRUE);
+	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, TRUE);
 
 	/* finish the operator */
 	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
@@ -771,7 +759,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
 	/* select the output */
-	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "edgeout", BM_ALL, BM_ELEM_SELECT, TRUE);
+	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_SELECT, TRUE);
 	EDBM_selectmode_flush(em);
 
 	/* finish the operator */
@@ -815,7 +803,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
 	/* select the output */
-	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "vertout", BM_ALL, BM_ELEM_SELECT, TRUE);
+	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "verts.out", BM_VERT, BM_ELEM_SELECT, TRUE);
 
 	/* finish the operator */
 	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
@@ -913,6 +901,74 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "compare", prop_similar_compare_types, SIM_CMP_EQ, "Compare", "");
 
 	RNA_def_float(ot->srna, "threshold", 0.0, 0.0, 1.0, "Threshold", "", 0.0, 1.0);
+}
+
+
+/* ****************  Mode Select *************** */
+
+static int edbm_select_mode_exec(bContext *C, wmOperator *op)
+{
+	const int type       = RNA_enum_get(op->ptr,    "type");
+	const int action     = RNA_enum_get(op->ptr,    "action");
+	const int use_extend = RNA_boolean_get(op->ptr, "use_extend");
+	const int use_expand = RNA_boolean_get(op->ptr, "use_expand");
+
+	if (EDBM_selectmode_toggle(C, type, action, use_extend, use_expand)) {
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+static int edbm_select_mode_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	// RNA_enum_set(op->ptr, "type");  /* type must be set already */
+	RNA_boolean_set(op->ptr, "use_extend", event->shift);
+	RNA_boolean_set(op->ptr, "use_expand", event->ctrl);
+	return edbm_select_mode_exec(C, op);
+}
+
+void MESH_OT_select_mode(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	static EnumPropertyItem elem_items[] = {
+		{SCE_SELECT_VERTEX, "VERT", ICON_VERTEXSEL, "Vertices", ""},
+		{SCE_SELECT_EDGE,   "EDGE", ICON_EDGESEL, "Edges", ""},
+		{SCE_SELECT_FACE,   "FACE", ICON_FACESEL, "Faces", ""},
+		{0, NULL, 0, NULL, NULL},
+	};
+
+	static EnumPropertyItem actions_items[] = {
+		{0, "DISABLE", 0, "Disable", "Disable selected markers"},
+		{1, "ENABLE", 0, "Enable", "Enable selected markers"},
+		{2, "TOGGLE", 0, "Toggle", "Toggle disabled flag for selected markers"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name = "Select Mode";
+	ot->idname = "MESH_OT_select_mode";
+	ot->description = "Change selection mode";
+
+	/* api callbacks */
+	ot->invoke = edbm_select_mode_invoke;
+	ot->exec = edbm_select_mode_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	prop = RNA_def_boolean(ot->srna, "use_extend", FALSE, "Extend", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "use_expand", FALSE, "Expand", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	ot->prop = prop = RNA_def_enum(ot->srna, "type", elem_items, 0, "Type", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+	RNA_def_enum(ot->srna, "action", actions_items, 2, "Action", "Selection action to execute");
 }
 
 /* ***************************************************** */
@@ -1013,7 +1069,7 @@ void MESH_OT_loop_multi_select(wmOperatorType *ot)
 
 /* ***************** loop select (non modal) ************** */
 
-static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
+static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short deselect, short toggle, short ring)
 {
 	ViewContext vc;
 	BMEditMesh *em;
@@ -1032,14 +1088,20 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 
 	eed = EDBM_edge_find_nearest(&vc, &dist);
 	if (eed) {
-		if (extend == 0) {
+		if (extend == 0 && deselect == 0 && toggle == 0) {
 			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 		}
 	
-		if (BM_elem_flag_test(eed, BM_ELEM_SELECT) == 0) {
+		if (extend) {
 			select = TRUE;
 		}
-		else if (extend) {
+		else if (deselect) {
+			select = FALSE;
+		}
+		else if (BM_elem_flag_test(eed, BM_ELEM_SELECT) == 0) {
+			select = TRUE;
+		}
+		else if (toggle) {
 			select = FALSE;
 		}
 
@@ -1132,6 +1194,8 @@ static int edbm_select_loop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	view3d_operator_needs_opengl(C);
 	
 	mouse_mesh_loop(C, event->mval, RNA_boolean_get(op->ptr, "extend"),
+	                RNA_boolean_get(op->ptr, "deselect"),
+	                RNA_boolean_get(op->ptr, "toggle"),
 	                RNA_boolean_get(op->ptr, "ring"));
 	
 	/* cannot do tweaks for as long this keymap is after transform map */
@@ -1154,6 +1218,8 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "Extend the selection");
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Remove from the selection");
+	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle Select", "Toggle the selection");
 	RNA_def_boolean(ot->srna, "ring", 0, "Select Ring", "Select ring");
 }
 
@@ -1172,64 +1238,74 @@ void MESH_OT_edgering_select(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Remove from the selection");
+	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle Select", "Toggle the selection");
 	RNA_def_boolean(ot->srna, "ring", 1, "Select Ring", "Select ring");
 }
 
-/* ******************* edgetag_shortest_path and helpers ****************** */
+/* ******************* generic tag_shortest_path and helpers ****************** */
 
-static float edgetag_cut_cost(BMEditMesh *UNUSED(em), BMEdge *e1, BMEdge *e2, BMVert *v)
+static float step_cost_3_v3(const float v1[3], const float v2[3], const float v3[3])
 {
-	BMVert *v1 = (e1->v1 == v) ? e1->v2 : e1->v1;
-	BMVert *v2 = (e2->v1 == v) ? e2->v2 : e2->v1;
 	float cost, d1[3], d2[3];
 
+
 	/* The cost is based on the simple sum of the length of the two edgees... */
-	sub_v3_v3v3(d1, v->co, v1->co);
-	sub_v3_v3v3(d2, v2->co, v->co);
-	cost = len_v3(d1);
-	cost += len_v3(d2);
+	sub_v3_v3v3(d1, v2, v1);
+	sub_v3_v3v3(d2, v3, v2);
+	cost = normalize_v3(d1) + normalize_v3(d2);
 
 	/* but is biased to give higher values to sharp turns, so that it will take
 	 * paths with fewer "turns" when selecting between equal-weighted paths between
 	 * the two edges */
-	cost = cost + 0.5f * cost * (2.0f - sqrtf(fabsf(dot_v3v3(d1, d2))));
+	cost = cost * (1.0f + 0.5f * (2.0f - sqrtf(fabsf(dot_v3v3(d1, d2)))));
 
 	return cost;
 }
 
-static void edgetag_add_adjacent(BMEditMesh *em, SmallHash *visithash, Heap *heap, int mednum, int vertnum, 
-                                 int *nedges, int *edges, int *prevedge, float *cost)
+/* ******************* edgetag_shortest_path and helpers ****************** */
+
+static float edgetag_cut_cost(BMEdge *e1, BMEdge *e2, BMVert *v)
 {
-	BMEdge *e1 = EDBM_edge_at_index(em, mednum);
-	BMVert *v = EDBM_vert_at_index(em, vertnum);
-	int startadj, endadj = nedges[vertnum + 1];
+	BMVert *v1 = BM_edge_other_vert(e1, v);
+	BMVert *v2 = BM_edge_other_vert(e2, v);
+	return step_cost_3_v3(v1->co, v->co, v2->co);
+}
 
-	for (startadj = nedges[vertnum]; startadj < endadj; startadj++) {
-		int adjnum = edges[startadj];
-		BMEdge *e2 = EDBM_edge_at_index(em, adjnum);
-		float newcost;
-		float cutcost;
+static void edgetag_add_adjacent(Heap *heap, BMEdge *e1, BMEdge **edges_prev, float *cost)
+{
+	BMIter viter;
+	BMVert *v;
 
-		if (BLI_smallhash_haskey(visithash, (uintptr_t)e2))
-			continue;
+	BMIter eiter;
+	BMEdge *e2;
 
-		cutcost = edgetag_cut_cost(em, e1, e2, v);
-		newcost = cost[mednum] + cutcost;
+	const int e1_index = BM_elem_index_get(e1);
 
-		if (cost[adjnum] > newcost) {
-			cost[adjnum] = newcost;
-			prevedge[adjnum] = mednum;
-			BLI_heap_insert(heap, newcost, SET_INT_IN_POINTER(adjnum));
+	BM_ITER_ELEM (v, &viter, e1, BM_VERTS_OF_EDGE) {
+		BM_ITER_ELEM (e2, &eiter, v, BM_EDGES_OF_VERT) {
+			if (!BM_elem_flag_test(e2, BM_ELEM_TAG)) {
+				/* we know 'e2' is not visited, check it out! */
+				const int e2_index = BM_elem_index_get(e2);
+				const float cost_cut = edgetag_cut_cost(e1, e2, v);
+				const float cost_new = cost[e1_index] + cost_cut;
+
+				if (cost[e2_index] > cost_new) {
+					cost[e2_index] = cost_new;
+					edges_prev[e2_index] = e1;
+					BLI_heap_insert(heap, cost_new, e2);
+				}
+			}
 		}
 	}
 }
 
-static void edgetag_context_set(BMEditMesh *em, Scene *scene, BMEdge *e, int val)
+static void edgetag_context_set(BMesh *bm, Scene *scene, BMEdge *e, int val)
 {
 	
 	switch (scene->toolsettings->edge_mode) {
 		case EDGE_MODE_SELECT:
-			BM_edge_select_set(em->bm, e, val);
+			BM_edge_select_set(bm, e, val);
 			break;
 		case EDGE_MODE_TAG_SEAM:
 			BM_elem_flag_set(e, BM_ELEM_SEAM, val);
@@ -1238,97 +1314,65 @@ static void edgetag_context_set(BMEditMesh *em, Scene *scene, BMEdge *e, int val
 			BM_elem_flag_set(e, BM_ELEM_SMOOTH, !val);
 			break;
 		case EDGE_MODE_TAG_CREASE:
-		{
-			float *crease = CustomData_bmesh_get(&em->bm->edata, e->head.data, CD_CREASE);
-			*crease = (val) ? 1.0f : 0.0f;
+			BM_elem_float_data_set(&bm->edata, e, CD_CREASE, (val) ? 1.0f : 0.0f);
 			break;
-		}
 		case EDGE_MODE_TAG_BEVEL:
-		{
-			float *bweight = CustomData_bmesh_get(&em->bm->edata, e->head.data, CD_BWEIGHT);
-			*bweight = (val) ? 1.0f : 0.0f;
+			BM_elem_float_data_set(&bm->edata, e, CD_BWEIGHT, (val) ? 1.0f : 0.0f);
 			break;
-		}
 	}
 }
 
-static int edgetag_context_check(Scene *scene, BMEditMesh *em, BMEdge *e)
+static int edgetag_context_check(Scene *scene, BMesh *bm, BMEdge *e)
 {
 	switch (scene->toolsettings->edge_mode) {
 		case EDGE_MODE_SELECT:
-			return BM_elem_flag_test(e, BM_ELEM_SELECT) ? 1 : 0;
+			return BM_elem_flag_test(e, BM_ELEM_SELECT) ? TRUE : FALSE;
 		case EDGE_MODE_TAG_SEAM:
 			return BM_elem_flag_test(e, BM_ELEM_SEAM);
 		case EDGE_MODE_TAG_SHARP:
 			return !BM_elem_flag_test(e, BM_ELEM_SMOOTH);
 		case EDGE_MODE_TAG_CREASE:
-			return BM_elem_float_data_get(&em->bm->edata, e, CD_CREASE) ? 1 : 0;
+			return BM_elem_float_data_get(&bm->edata, e, CD_CREASE) ? TRUE : FALSE;
 		case EDGE_MODE_TAG_BEVEL:
-			return BM_elem_float_data_get(&em->bm->edata, e, CD_BWEIGHT) ? 1 : 0;
+			return BM_elem_float_data_get(&bm->edata, e, CD_BWEIGHT) ? TRUE : FALSE;
 	}
 	return 0;
 }
 
-static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *target)
+static int edgetag_shortest_path(Scene *scene, BMesh *bm, BMEdge *e_src, BMEdge *e_dst)
 {
+	/* BM_ELEM_TAG flag is used to store visited edges */
 	BMEdge *e;
-	BMIter iter;
+	BMIter eiter;
 	Heap *heap;
-	SmallHash visithash;
 	float *cost;
-	int i, totvert = 0, totedge = 0, *nedges, *edges, *prevedge, mednum = -1, nedgeswap = 0;
-	int targetnum;
-
-	BLI_smallhash_init(&visithash);
+	BMEdge **edges_prev;
+	int i, totedge;
 
 	/* note, would pass BM_EDGE except we are looping over all edges anyway */
-	BM_mesh_elem_index_ensure(em->bm, BM_VERT /* | BM_EDGE */);
+	BM_mesh_elem_index_ensure(bm, BM_VERT /* | BM_EDGE */);
 
-	BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-		if (BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
-			BLI_smallhash_insert(&visithash, (uintptr_t)e, NULL);
+	BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, i) {
+		if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) == FALSE) {
+			BM_elem_flag_disable(e, BM_ELEM_TAG);
+		}
+		else {
+			BM_elem_flag_enable(e, BM_ELEM_TAG);
 		}
 
-		BM_elem_index_set(e, totedge); /* set_inline */
-		totedge++;
+		BM_elem_index_set(e, i); /* set_inline */
 	}
-	em->bm->elem_index_dirty &= ~BM_EDGE;
+	bm->elem_index_dirty &= ~BM_EDGE;
 
 	/* alloc */
-	totvert = em->bm->totvert;
-	nedges = MEM_callocN(sizeof(*nedges) * totvert + 1, "SeamPathNEdges");
-	edges = MEM_mallocN(sizeof(*edges) * totedge * 2, "SeamPathEdges");
-	prevedge = MEM_mallocN(sizeof(*prevedge) * totedge, "SeamPathPrevious");
+	totedge = bm->totedge;
+	edges_prev = MEM_callocN(sizeof(*edges_prev) * totedge, "SeamPathPrevious");
 	cost = MEM_mallocN(sizeof(*cost) * totedge, "SeamPathCost");
 
-	/* count edges, compute adjacent edges offsets and fill adjacent */
-	BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-		nedges[BM_elem_index_get(e->v1) + 1]++;
-		nedges[BM_elem_index_get(e->v2) + 1]++;
-	}
-
-	for (i = 1; i < totvert; i++) {
-		int newswap = nedges[i + 1];
-		nedges[i + 1] = nedgeswap + nedges[i];
-		nedgeswap = newswap;
-	}
-	nedges[0] = nedges[1] = 0;
-
-	i = 0;
-	BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-		edges[nedges[BM_elem_index_get(e->v1) + 1]++] = i;
-		edges[nedges[BM_elem_index_get(e->v2) + 1]++] = i;
-
-		cost[i] = 1e20f;
-		prevedge[i] = -1;
-		i++;
-	}
+	fill_vn_fl(cost, totedge, 1e20f);
 
 	/*
 	 * Arrays are now filled as follows:
-	 *
-	 *	nedges[n] = sum of the # of edges incident to all vertices numbered 0 through n - 1
-	 *	edges[edges[n]..edges[n - 1]] = the indices of of the edges incident to vertex n
 	 *
 	 * As the search continues, prevedge[n] will be the previous edge on the shortest
 	 * path found so far to edge n. The visitedhash will of course contain entries
@@ -1340,61 +1384,46 @@ static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, B
 
 	/* regular dijkstra shortest path, but over edges instead of vertices */
 	heap = BLI_heap_new();
-	BLI_heap_insert(heap, 0.0f, SET_INT_IN_POINTER(BM_elem_index_get(source)));
-	cost[BM_elem_index_get(source)] = 0.0f;
-	EDBM_index_arrays_init(em, 1, 1, 0);
-	targetnum = BM_elem_index_get(target);
+	BLI_heap_insert(heap, 0.0f, e_src);
+	cost[BM_elem_index_get(e_src)] = 0.0f;
+
+	e = NULL;
 
 	while (!BLI_heap_is_empty(heap)) {
-		mednum = GET_INT_FROM_POINTER(BLI_heap_popmin(heap));
-		e = EDBM_edge_at_index(em, mednum);
+		e = BLI_heap_popmin(heap);
 
-		if (mednum == targetnum)
+		if (e == e_dst)
 			break;
 
-		if (BLI_smallhash_haskey(&visithash, (uintptr_t)e))
-			continue;
-
-		BLI_smallhash_insert(&visithash, (uintptr_t)e, NULL);
-
-		edgetag_add_adjacent(em, &visithash, heap, mednum, BM_elem_index_get(e->v1), nedges, edges, prevedge, cost);
-		edgetag_add_adjacent(em, &visithash, heap, mednum, BM_elem_index_get(e->v2), nedges, edges, prevedge, cost);
+		if (!BM_elem_flag_test(e, BM_ELEM_TAG)) {
+			BM_elem_flag_enable(e, BM_ELEM_TAG);
+			edgetag_add_adjacent(heap, e, edges_prev, cost);
+		}
 	}
 	
-	if (mednum == targetnum) {
-		short allseams = 1;
+	if (e == e_dst) {
+		short all_set = TRUE;
 
 		/* Check whether the path is already completely tagged.
 		 * if it is, the tags will be cleared instead of set. */
-		mednum = targetnum;
+		e = e_dst;
 		do {
-			e = EDBM_edge_at_index(em, mednum);
-			if (!edgetag_context_check(scene, em, e)) {
-				allseams = 0;
+			if (!edgetag_context_check(scene, bm, e)) {
+				all_set = FALSE;
 				break;
 			}
-			mednum = prevedge[mednum];
-		} while (mednum != BM_elem_index_get(source));
+		} while ((e = edges_prev[BM_elem_index_get(e)]));
 
 		/* Follow path back and source and add or remove tags */
-		mednum = targetnum;
+		e = e_dst;
 		do {
-			e = EDBM_edge_at_index(em, mednum);
-			if (allseams)
-				edgetag_context_set(em, scene, e, 0);
-			else
-				edgetag_context_set(em, scene, e, 1);
-			mednum = prevedge[mednum];
-		} while (mednum != -1);
+			edgetag_context_set(bm, scene, e, !all_set);
+		} while ((e = edges_prev[BM_elem_index_get(e)]));
 	}
 
-	EDBM_index_arrays_free(em);
-	MEM_freeN(nedges);
-	MEM_freeN(edges);
-	MEM_freeN(prevedge);
+	MEM_freeN(edges_prev);
 	MEM_freeN(cost);
 	BLI_heap_free(heap, NULL);
-	BLI_smallhash_release(&visithash);
 
 	return 1;
 }
@@ -1402,21 +1431,15 @@ static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, B
 /* ******************* mesh shortest path select, uses prev-selected edge ****************** */
 
 /* since you want to create paths with multiple selects, it doesn't have extend option */
-static int mouse_mesh_shortest_path(bContext *C, int mval[2])
+static int mouse_mesh_shortest_path_edge(bContext *C, ViewContext *vc)
 {
-	ViewContext vc;
-	BMEditMesh *em;
-	BMEdge *e;
+	BMEditMesh *em = vc->em;
+	BMEdge *e_dst;
 	float dist = 75.0f;
 	
-	em_setup_viewcontext(C, &vc);
-	vc.mval[0] = mval[0];
-	vc.mval[1] = mval[1];
-	em = vc.em;
-	
-	e = EDBM_edge_find_nearest(&vc, &dist);
-	if (e) {
-		Mesh *me = vc.obedit->data;
+	e_dst = EDBM_edge_find_nearest(vc, &dist);
+	if (e_dst) {
+		Mesh *me = vc->obedit->data;
 		int path = 0;
 		
 		if (em->bm->selected.last) {
@@ -1425,8 +1448,8 @@ static int mouse_mesh_shortest_path(bContext *C, int mval[2])
 			if (ese && ese->htype == BM_EDGE) {
 				BMEdge *e_act;
 				e_act = (BMEdge *)ese->ele;
-				if (e_act != e) {
-					if (edgetag_shortest_path(vc.scene, em, e_act, e)) {
+				if (e_act != e_dst) {
+					if (edgetag_shortest_path(vc->scene, em->bm, e_act, e_dst)) {
 						BM_select_history_remove(em->bm, e_act);
 						path = 1;
 					}
@@ -1434,24 +1457,24 @@ static int mouse_mesh_shortest_path(bContext *C, int mval[2])
 			}
 		}
 		if (path == 0) {
-			int act = (edgetag_context_check(vc.scene, em, e) == 0);
-			edgetag_context_set(em, vc.scene, e, act); /* switch the edge option */
+			int act = (edgetag_context_check(vc->scene, em->bm, e_dst) == 0);
+			edgetag_context_set(em->bm, vc->scene, e_dst, act); /* switch the edge option */
 		}
 		
 		EDBM_selectmode_flush(em);
 
 		/* even if this is selected it may not be in the selection list */
-		if (edgetag_context_check(vc.scene, em, e) == 0)
-			BM_select_history_remove(em->bm, e);
+		if (edgetag_context_check(vc->scene, em->bm, e_dst) == 0)
+			BM_select_history_remove(em->bm, e_dst);
 		else
-			BM_select_history_store(em->bm, e);
+			BM_select_history_store(em->bm, e_dst);
 	
 		/* force drawmode for mesh */
 		switch (CTX_data_tool_settings(C)->edge_mode) {
 			
 			case EDGE_MODE_TAG_SEAM:
 				me->drawflag |= ME_DRAWSEAMS;
-				ED_uvedit_live_unwrap(vc.scene, vc.obedit);
+				ED_uvedit_live_unwrap(vc->scene, vc->obedit);
 				break;
 			case EDGE_MODE_TAG_SHARP:
 				me->drawflag |= ME_DRAWSHARP;
@@ -1474,17 +1497,229 @@ static int mouse_mesh_shortest_path(bContext *C, int mval[2])
 }
 
 
-static int edbm_shortest_path_select_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
-{
-	
-	view3d_operator_needs_opengl(C);
+/* ******************* facetag_shortest_path and helpers ****************** */
 
-	if (mouse_mesh_shortest_path(C, event->mval)) {
-		return OPERATOR_FINISHED;
+
+static float facetag_cut_cost(BMFace *f1, BMFace *f2, BMEdge *e)
+{
+	float f1_cent[3];
+	float f2_cent[3];
+	float e_cent[3];
+
+	BM_face_calc_center_mean(f1, f1_cent);
+	BM_face_calc_center_mean(f2, f2_cent);
+	mid_v3_v3v3(e_cent, e->v1->co, e->v2->co);
+
+	return step_cost_3_v3(f1_cent, e_cent, f2_cent);
+}
+
+static void facetag_add_adjacent(Heap *heap, BMFace *f1, BMFace **faces_prev, float *cost)
+{
+	BMIter liter;
+	BMLoop *l2;
+	BMFace *f2;
+
+	const int f1_index = BM_elem_index_get(f1);
+
+	/* loop over faces of face, but do so by first looping over loops */
+	BM_ITER_ELEM (l2, &liter, f1, BM_LOOPS_OF_FACE) {
+		BMLoop *l_first;
+		BMLoop *l_iter;
+
+		l_iter = l_first = l2;
+		do {
+			f2 = l_iter->f;
+			if (!BM_elem_flag_test(f2, BM_ELEM_TAG)) {
+				/* we know 'f2' is not visited, check it out! */
+				const int f2_index = BM_elem_index_get(f2);
+				const float cost_cut = facetag_cut_cost(f1, f2, l_iter->e);
+				const float cost_new = cost[f1_index] + cost_cut;
+
+				if (cost[f2_index] > cost_new) {
+					cost[f2_index] = cost_new;
+					faces_prev[f2_index] = f1;
+					BLI_heap_insert(heap, cost_new, f2);
+				}
+			}
+		} while ((l_iter = l_iter->radial_next) != l_first);
+	}
+}
+
+static void facetag_context_set(BMesh *bm, Scene *UNUSED(scene), BMFace *f, int val)
+{
+	BM_face_select_set(bm, f, val);
+}
+
+static int facetag_context_check(Scene *UNUSED(scene), BMesh *UNUSED(bm), BMFace *f)
+{
+	return BM_elem_flag_test(f, BM_ELEM_SELECT) ? 1 : 0;
+}
+
+static int facetag_shortest_path(Scene *scene, BMesh *bm, BMFace *f_src, BMFace *f_dst)
+{
+	/* BM_ELEM_TAG flag is used to store visited edges */
+	BMFace *f;
+	BMIter fiter;
+	Heap *heap;
+	float *cost;
+	BMFace **faces_prev;
+	int i, totface;
+
+	/* note, would pass BM_EDGE except we are looping over all faces anyway */
+	// BM_mesh_elem_index_ensure(bm, BM_VERT /* | BM_EDGE */); // NOT NEEDED FOR FACETAG
+
+	BM_ITER_MESH_INDEX (f, &fiter, bm, BM_FACES_OF_MESH, i) {
+		if (BM_elem_flag_test(f, BM_ELEM_HIDDEN) == FALSE) {
+			BM_elem_flag_disable(f, BM_ELEM_TAG);
+		}
+		else {
+			BM_elem_flag_enable(f, BM_ELEM_TAG);
+		}
+
+		BM_elem_index_set(f, i); /* set_inline */
+	}
+	bm->elem_index_dirty &= ~BM_FACE;
+
+	/* alloc */
+	totface = bm->totface;
+	faces_prev = MEM_callocN(sizeof(*faces_prev) * totface, "SeamPathPrevious");
+	cost = MEM_mallocN(sizeof(*cost) * totface, "SeamPathCost");
+
+	fill_vn_fl(cost, totface, 1e20f);
+
+	/*
+	 * Arrays are now filled as follows:
+	 *
+	 * As the search continues, faces_prev[n] will be the previous face on the shortest
+	 * path found so far to face n. The visitedhash will of course contain entries
+	 * for faces that have been visited, cost[n] will contain the length of the shortest
+	 * path to face n found so far, Finally, heap is a priority heap which is built on the
+	 * the same data as the cost array, but inverted: it is a worklist of faces prioritized
+	 * by the shortest path found so far to the face.
+	 */
+
+	/* regular dijkstra shortest path, but over faces instead of vertices */
+	heap = BLI_heap_new();
+	BLI_heap_insert(heap, 0.0f, f_src);
+	cost[BM_elem_index_get(f_src)] = 0.0f;
+
+	f = NULL;
+
+	while (!BLI_heap_is_empty(heap)) {
+		f = BLI_heap_popmin(heap);
+
+		if (f == f_dst)
+			break;
+
+		if (!BM_elem_flag_test(f, BM_ELEM_TAG)) {
+			BM_elem_flag_enable(f, BM_ELEM_TAG);
+			facetag_add_adjacent(heap, f, faces_prev, cost);
+		}
+	}
+
+	if (f == f_dst) {
+		short all_set = TRUE;
+
+		/* Check whether the path is already completely tagged.
+		 * if it is, the tags will be cleared instead of set. */
+		f = f_dst;
+		do {
+			if (!facetag_context_check(scene, bm, f)) {
+				all_set = FALSE;
+				break;
+			}
+		} while ((f = faces_prev[BM_elem_index_get(f)]));
+
+		/* Follow path back and source and add or remove tags */
+		f = f_dst;
+		do {
+			facetag_context_set(bm, scene, f, !all_set);
+		} while ((f = faces_prev[BM_elem_index_get(f)]));
+	}
+
+	MEM_freeN(faces_prev);
+	MEM_freeN(cost);
+	BLI_heap_free(heap, NULL);
+
+	return 1;
+}
+
+static int mouse_mesh_shortest_path_face(bContext *C, ViewContext *vc)
+{
+	BMEditMesh *em = vc->em;
+	BMFace *f_dst;
+	float dist = 75.0f;
+
+	f_dst = EDBM_face_find_nearest(vc, &dist);
+	if (f_dst) {
+		int path = 0;
+		BMFace *f_act = BM_active_face_get(em->bm, FALSE, TRUE);
+
+		if (f_act) {
+			if (f_act != f_dst) {
+				if (facetag_shortest_path(vc->scene, em->bm, f_act, f_dst)) {
+					BM_select_history_remove(em->bm, f_act);
+					path = 1;
+				}
+			}
+		}
+		if (path == 0) {
+			int act = (facetag_context_check(vc->scene, em->bm, f_dst) == 0);
+			facetag_context_set(em->bm, vc->scene, f_dst, act); /* switch the face option */
+		}
+
+		EDBM_selectmode_flush(em);
+
+		/* even if this is selected it may not be in the selection list */
+		if (facetag_context_check(vc->scene, em->bm, f_dst) == 0)
+			BM_select_history_remove(em->bm, f_dst);
+		else
+			BM_select_history_store(em->bm, f_dst);
+
+		BM_active_face_set(em->bm, f_dst);
+
+		EDBM_update_generic(C, em, FALSE);
+
+		return TRUE;
 	}
 	else {
-		return OPERATOR_PASS_THROUGH;
+		return FALSE;
 	}
+}
+
+
+/* ******************* operator for edge and face tag ****************** */
+
+static int edbm_shortest_path_select_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+{
+	ViewContext vc;
+	BMEditMesh *em;
+
+	view3d_operator_needs_opengl(C);
+
+	em_setup_viewcontext(C, &vc);
+	vc.mval[0] = event->mval[0];
+	vc.mval[1] = event->mval[1];
+	em = vc.em;
+
+	if (em->selectmode & SCE_SELECT_EDGE) {
+		if (mouse_mesh_shortest_path_edge(C, &vc)) {
+			return OPERATOR_FINISHED;
+		}
+		else {
+			return OPERATOR_PASS_THROUGH;
+		}
+	}
+	else if (em->selectmode & SCE_SELECT_FACE) {
+		if (mouse_mesh_shortest_path_face(C, &vc)) {
+			return OPERATOR_FINISHED;
+		}
+		else {
+			return OPERATOR_PASS_THROUGH;
+		}
+	}
+
+	return OPERATOR_PASS_THROUGH;
 }
 
 static int edbm_shortest_path_select_poll(bContext *C)
@@ -1492,7 +1727,7 @@ static int edbm_shortest_path_select_poll(bContext *C)
 	if (ED_operator_editmesh_region_view3d(C)) {
 		Object *obedit = CTX_data_edit_object(C);
 		BMEditMesh *em = BMEdit_FromObject(obedit);
-		return (em->selectmode & SCE_SELECT_EDGE) != 0;
+		return (em->selectmode & (SCE_SELECT_EDGE | SCE_SELECT_FACE)) != 0;
 	}
 	return 0;
 }
@@ -1622,7 +1857,7 @@ int EDBM_select_pick(bContext *C, const int mval[2], short extend, short deselec
 			vc.obedit->actcol = efa->mat_nr + 1;
 			vc.em->mat_nr = efa->mat_nr;
 
-			WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING, NULL);
+			WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, NULL);
 
 		}
 
@@ -1714,56 +1949,146 @@ void EDBM_selectmode_convert(BMEditMesh *em, const short selectmode_old, const s
 	BMFace *efa;
 	BMIter iter;
 
+	/* first tag-to-select, then select --- this avoids a feedback loop */
+
 	/* have to find out what the selectionmode was previously */
 	if (selectmode_old == SCE_SELECT_VERTEX) {
 		if (selectmode_new == SCE_SELECT_EDGE) {
-			/* select all edges associated with every selected vertex */
-			eed = BM_iter_new(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-			for (; eed; eed = BM_iter_step(&iter)) {
-				if ((BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
-				     BM_elem_flag_test(eed->v2, BM_ELEM_SELECT)))
-				{
+			/* select all edges associated with every selected vert */
+			BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+				BM_elem_flag_set(eed, BM_ELEM_TAG, BM_edge_is_any_vert_flag_test(eed, BM_ELEM_SELECT));
+			}
+
+			BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+				if (BM_elem_flag_test(eed, BM_ELEM_TAG)) {
 					BM_edge_select_set(em->bm, eed, TRUE);
 				}
 			}
 		}
 		else if (selectmode_new == SCE_SELECT_FACE) {
-			BMIter liter;
-			BMLoop *l;
+			/* select all faces associated with every selected vert */
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				BM_elem_flag_set(efa, BM_ELEM_TAG, BM_face_is_any_vert_flag_test(efa, BM_ELEM_SELECT));
+			}
 
-			/* select all faces associated with every selected vertex */
-			efa = BM_iter_new(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-			for (; efa; efa = BM_iter_step(&iter)) {
-				l = BM_iter_new(&liter, em->bm, BM_LOOPS_OF_FACE, efa);
-				for (; l; l = BM_iter_step(&liter)) {
-					if (BM_elem_flag_test(l->v, BM_ELEM_SELECT)) {
-						BM_face_select_set(em->bm, efa, TRUE);
-						break;
-					}
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
+					BM_face_select_set(em->bm, efa, TRUE);
 				}
 			}
 		}
 	}
 	else if (selectmode_old == SCE_SELECT_EDGE) {
 		if (selectmode_new == SCE_SELECT_FACE) {
-			BMIter liter;
-			BMLoop *l;
+			/* select all faces associated with every selected edge */
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				BM_elem_flag_set(efa, BM_ELEM_TAG, BM_face_is_any_edge_flag_test(efa, BM_ELEM_SELECT));
+			}
 
-			/* select all faces associated with every selected vertex */
-			efa = BM_iter_new(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-			for (; efa; efa = BM_iter_step(&iter)) {
-				l = BM_iter_new(&liter, em->bm, BM_LOOPS_OF_FACE, efa);
-				for (; l; l = BM_iter_step(&liter)) {
-					if (BM_elem_flag_test(l->v, BM_ELEM_SELECT)) {
-						BM_face_select_set(em->bm, efa, TRUE);
-						break;
-					}
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
+					BM_face_select_set(em->bm, efa, TRUE);
 				}
 			}
 		}
 	}
 }
 
+/* user facing function, does notification and undo push */
+int EDBM_selectmode_toggle(bContext *C, const short selectmode_new,
+                           const int action, const int use_extend, const int use_expand)
+{
+	ToolSettings *ts = CTX_data_tool_settings(C);
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = NULL;
+	int ret = FALSE;
+
+	if (obedit && obedit->type == OB_MESH) {
+		em = BMEdit_FromObject(obedit);
+	}
+
+	if (em == NULL) {
+		return ret;
+	}
+
+	switch (action) {
+		case -1:
+			/* already set */
+			break;
+		case 0:  /* disable */
+			/* check we have something to do */
+			if ((em->selectmode & selectmode_new) == 0) {
+				return FALSE;
+			}
+			em->selectmode &= ~selectmode_new;
+			break;
+		case 1:  /* enable */
+			/* check we have something to do */
+			if ((em->selectmode & selectmode_new) != 0) {
+				return FALSE;
+			}
+			em->selectmode |= selectmode_new;
+			break;
+		case 2:  /* toggle */
+			/* can't disable this flag if its the only one set */
+			if (em->selectmode == selectmode_new) {
+				return FALSE;
+			}
+			em->selectmode ^= selectmode_new;
+			break;
+		default:
+			BLI_assert(0);
+	}
+
+	switch (selectmode_new) {
+		case SCE_SELECT_VERTEX:
+			if (use_extend == 0 || em->selectmode == 0)
+				em->selectmode = SCE_SELECT_VERTEX;
+			ts->selectmode = em->selectmode;
+			EDBM_selectmode_set(em);
+			ret = TRUE;
+			break;
+		case SCE_SELECT_EDGE:
+			if (use_extend == 0 || em->selectmode == 0) {
+				if (use_expand) {
+					const short selmode_max = highest_order_bit_s(ts->selectmode);
+					if (selmode_max == SCE_SELECT_VERTEX) {
+						EDBM_selectmode_convert(em, selmode_max, SCE_SELECT_EDGE);
+					}
+				}
+				em->selectmode = SCE_SELECT_EDGE;
+			}
+			ts->selectmode = em->selectmode;
+			EDBM_selectmode_set(em);
+			ret = TRUE;
+			break;
+		case SCE_SELECT_FACE:
+			if (use_extend == 0 || em->selectmode == 0) {
+				if (use_expand) {
+					const short selmode_max = highest_order_bit_s(ts->selectmode);
+					if (ELEM(selmode_max, SCE_SELECT_VERTEX, SCE_SELECT_EDGE)) {
+						EDBM_selectmode_convert(em, selmode_max, SCE_SELECT_FACE);
+					}
+				}
+
+				em->selectmode = SCE_SELECT_FACE;
+			}
+			ts->selectmode = em->selectmode;
+			EDBM_selectmode_set(em);
+			ret = TRUE;
+			break;
+		default:
+			BLI_assert(0);
+			break;
+	}
+
+	if (ret == TRUE) {
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+		WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, NULL);
+	}
+
+	return ret;
+}
 
 void EDBM_deselect_by_material(BMEditMesh *em, const short index, const short select)
 {
@@ -1911,6 +2236,8 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *
 			return OPERATOR_CANCELLED;
 
 		if (limit) {
+			/* grr, shouldn't need to alloc BMO flags here */
+			BM_mesh_elem_toolflags_ensure(bm);
 			/* hflag no-seam --> bmo-tag */
 			BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 				/* BMESH_TODO, don't use 'BM_ELEM_SELECT' here, its a HFLAG only! */
@@ -2003,6 +2330,8 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 		}
 
 		if (limit) {
+			/* grr, shouldn't need to alloc BMO flags here */
+			BM_mesh_elem_toolflags_ensure(bm);
 			BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 				/* BMESH_TODO, don't use 'BM_ELEM_SELECT' here, its a HFLAG only! */
 				BMO_elem_flag_set(bm, e, BM_ELEM_SELECT, !BM_elem_flag_test(e, BM_ELEM_SEAM));
@@ -2023,6 +2352,10 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 			}
 		}
 		BMW_end(&walker);
+
+		if (limit) {
+			BM_mesh_elem_toolflags_clear(bm);
+		}
 	}
 	else {
 		BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
@@ -2167,6 +2500,9 @@ static void walker_deselect_nth(BMEditMesh *em, int nth, int offset, BMHeader *h
 			mask_face = BM_ELEM_SELECT;
 			break;
 	}
+
+	/* grr, shouldn't need to alloc BMO flags here */
+	BM_mesh_elem_toolflags_ensure(bm);
 
 	/* Walker restrictions uses BMO flags, not header flags,
 	 * so transfer BM_ELEM_SELECT from HFlags onto a BMO flag layer. */

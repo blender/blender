@@ -843,7 +843,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	rctf *rct = &node->totr;
 	float dx, centy = BLI_rctf_cent_y(rct);
 	float hiddenrad = BLI_rctf_size_y(rct) / 2.0f;
-	float socket_size = NODE_SOCKSIZE * U.dpi / 72;
+	float socket_size = NODE_SOCKSIZE * UI_DPI_ICON_FAC;
 	int color_id = node_get_colorid(node);
 	char showname[128]; /* 128 is used below */
 	

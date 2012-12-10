@@ -92,13 +92,13 @@ static BMLoop *bm_edge_is_mixed_face_tag(BMLoop *l)
 
 void bmo_inset_exec(BMesh *bm, BMOperator *op)
 {
-	const int use_outset          = BMO_slot_bool_get(op, "use_outset");
-	const int use_boundary        = BMO_slot_bool_get(op, "use_boundary") && (use_outset == FALSE);
-	const int use_even_offset     = BMO_slot_bool_get(op, "use_even_offset");
+	const int use_outset          = BMO_slot_bool_get(op->slots_in, "use_outset");
+	const int use_boundary        = BMO_slot_bool_get(op->slots_in, "use_boundary") && (use_outset == FALSE);
+	const int use_even_offset     = BMO_slot_bool_get(op->slots_in, "use_even_offset");
 	const int use_even_boundry    = use_even_offset; /* could make own option */
-	const int use_relative_offset = BMO_slot_bool_get(op, "use_relative_offset");
-	const float thickness         = BMO_slot_float_get(op, "thickness");
-	const float depth             = BMO_slot_float_get(op, "depth");
+	const int use_relative_offset = BMO_slot_bool_get(op->slots_in, "use_relative_offset");
+	const float thickness         = BMO_slot_float_get(op->slots_in, "thickness");
+	const float depth             = BMO_slot_float_get(op->slots_in, "depth");
 
 	int edge_info_len = 0;
 
@@ -113,11 +113,11 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 
 	if (use_outset == FALSE) {
 		BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, FALSE);
-		BMO_slot_buffer_hflag_enable(bm, op, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
+		BMO_slot_buffer_hflag_enable(bm, op->slots_in, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
 	}
 	else {
 		BM_mesh_elem_hflag_enable_all(bm, BM_FACE, BM_ELEM_TAG, FALSE);
-		BMO_slot_buffer_hflag_disable(bm, op, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
+		BMO_slot_buffer_hflag_disable(bm, op->slots_in, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
 	}
 
 	/* first count all inset edges we will split */
@@ -181,7 +181,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 
 		if (es->e_new == es->e_old) { /* happens on boundary edges */
 			/* take care here, we're creating this double edge which _must_ have its verts replaced later on */
-			es->e_old = BM_edge_create(bm, es->e_new->v1, es->e_new->v2, es->e_new, FALSE);
+			es->e_old = BM_edge_create(bm, es->e_new->v1, es->e_new->v2, es->e_new, 0);
 		}
 
 		/* store index back to original in 'edge_info' */
@@ -205,7 +205,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		v1 = BM_vert_create(bm, tvec, NULL);
 		v2 = BM_vert_create(bm, tvec, NULL);
 		madd_v3_v3fl(v2->co, es->no, 0.1f);
-		BM_edge_create(bm, v1, v2, NULL, FALSE);
+		BM_edge_create(bm, v1, v2, NULL, 0);
 	}
 #endif
 
@@ -477,11 +477,48 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		/* copy for loop data, otherwise UV's and vcols are no good.
 		 * tiny speedup here we could be more clever and copy from known adjacent data
 		 * also - we could attempt to interpolate the loop data, this would be much slower but more useful too */
+#if 0
+		/* don't use this because face boundaries have no adjacent loops and won't be filled in.
+		 * instead copy from the opposite side with the code below */
 		BM_face_copy_shared(bm, f);
+#else
+		{
+			/* 2 inner loops on the edge between the new face and the original */
+			BMLoop *l_a;
+			BMLoop *l_b;
+			BMLoop *l_a_other;
+			BMLoop *l_b_other;
+
+			l_a = BM_FACE_FIRST_LOOP(f);
+			l_b = l_a->next;
+
+			/* we know this side has a radial_next because of the order of created verts in the quad */
+			l_a_other = BM_edge_other_loop(l_a->e, l_a);
+			l_b_other = BM_edge_other_loop(l_a->e, l_b);
+			BM_elem_attrs_copy(bm, bm, l_a_other, l_a);
+			BM_elem_attrs_copy(bm, bm, l_b_other, l_b);
+
+			/* step around to the opposite side of the quad - warning, this may have no other edges! */
+			l_a = l_a->next->next;
+			l_b = l_a->next;
+			if (!BM_edge_is_boundary(l_a->e)) {
+				/* same as above */
+				l_a_other = BM_edge_other_loop(l_a->e, l_a);
+				l_b_other = BM_edge_other_loop(l_a->e, l_b);
+				BM_elem_attrs_copy(bm, bm, l_a_other, l_a);
+				BM_elem_attrs_copy(bm, bm, l_b_other, l_b);
+			}
+			else {  /* boundary edges have no useful data to copy from, use opposite side of face */
+				/* swap a<->b intentionally */
+				BM_elem_attrs_copy(bm, bm, l_a_other, l_b);
+				BM_elem_attrs_copy(bm, bm, l_b_other, l_a);
+			}
+		}
+#endif
 	}
 
 	/* we could flag new edges/verts too, is it useful? */
-	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, ELE_NEW);
+	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, ELE_NEW);
 
 	/* cheap feature to add depth to the inset */
 	if (depth != 0.0f) {
@@ -514,7 +551,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, FALSE);
 
 		/* tag face verts */
-		BMO_ITER (f, &oiter, bm, op, "faces", BM_FACE) {
+		BMO_ITER (f, &oiter, op->slots_in, "faces", BM_FACE) {
 			BM_ITER_ELEM (v, &iter, f, BM_VERTS_OF_FACE) {
 				BM_elem_flag_enable(v, BM_ELEM_TAG);
 			}

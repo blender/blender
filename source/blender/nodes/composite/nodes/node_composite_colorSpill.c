@@ -29,11 +29,7 @@
  *  \ingroup cmpnodes
  */
 
-
-
 #include "node_composite_util.h"
-
-#define AVG(a, b) ((a + b) / 2)
 
 /* ******************* Color Spill Supression ********************************* */
 static bNodeSocketTemplate cmp_node_color_spill_in[] = {
@@ -48,6 +44,9 @@ static bNodeSocketTemplate cmp_node_color_spill_out[] = {
 };
 
 #ifdef WITH_COMPOSITOR_LEGACY
+
+#define AVG(a, b) ((a + b) / 2)
+
 
 static void do_simple_spillmap_red(bNode *node, float* out, float *in)
 {

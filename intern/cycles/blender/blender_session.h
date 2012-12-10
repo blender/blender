@@ -46,6 +46,8 @@ public:
 	void create_session();
 	void free_session();
 
+	void reset_session(BL::BlendData b_data, BL::Scene b_scene);
+
 	/* offline render */
 	void render();
 

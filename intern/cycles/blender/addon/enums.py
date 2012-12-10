@@ -57,7 +57,7 @@ aperture_types = (
 
 panorama_types = (
     ('EQUIRECTANGULAR', "Equirectangular", "Render the scene with a spherical camera, also known as Lat Long panorama"),
-    ('FISHEYE_EQUIDISTANT', "Fisheye Equidistant", "Ignore the sensor dimensions"),
-    ('FISHEYE_EQUISOLID', "Fisheye Equisolid", "Similar to most fisheye modern lens, take sensor dimensions into consideration. For fulldomes use it with a square sensor ratio",
+    ('FISHEYE_EQUIDISTANT', "Fisheye Equidistant", "Ideal for fulldomes, ignore the sensor dimensions"),
+    ('FISHEYE_EQUISOLID', "Fisheye Equisolid",
+                          "Similar to most fisheye modern lens, takes sensor dimensions into consideration"),
     )
-

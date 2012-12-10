@@ -623,8 +623,8 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 	/* double lookup */
 	const int *index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	const int *index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
-	if ((index_mf_to_mpoly && index_mp_to_orig) == FALSE) {
-		index_mf_to_mpoly = index_mp_to_orig = NULL;
+	if (index_mf_to_mpoly == NULL) {
+		index_mp_to_orig = NULL;
 	}
 
 	colType = CD_TEXTURE_MCOL;
@@ -653,12 +653,29 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 			else {
 				if (index_mf_to_mpoly) {
 					orig = DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, i);
-					if (orig == ORIGINDEX_NONE) { if (nors) nors += 3; continue; }
-					if (drawParamsMapped)       { draw_option = drawParamsMapped(userData, orig); }
-					else                        { if (nors) nors += 3; continue; }
+					if (orig == ORIGINDEX_NONE) {
+						/* XXX, this is not really correct
+						 * it will draw the previous faces context for this one when we don't know its settings.
+						 * but better then skipping it altogether. - campbell */
+						draw_option = DM_DRAW_OPTION_NORMAL;
+					}
+					else if (drawParamsMapped) {
+						draw_option = drawParamsMapped(userData, orig);
+					}
+					else {
+						if (nors) {
+							nors += 3; continue;
+						}
+					}
 				}
-				else if (drawParamsMapped) { draw_option = drawParamsMapped(userData, i); }
-				else                       { if (nors) nors += 3; continue; }
+				else if (drawParamsMapped) {
+					draw_option = drawParamsMapped(userData, i);
+				}
+				else {
+					if (nors) {
+						nors += 3; continue;
+					}
+				}
 			}
 			
 			if (draw_option != DM_DRAW_OPTION_SKIP) {
@@ -742,9 +759,12 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 					if (index_mf_to_mpoly) {
 						orig = DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, actualFace);
 						if (orig == ORIGINDEX_NONE) {
-							continue;
+							/* XXX, this is not really correct
+							 * it will draw the previous faces context for this one when we don't know its settings.
+							 * but better then skipping it altogether. - campbell */
+							draw_option = DM_DRAW_OPTION_NORMAL;
 						}
-						if (drawParamsMapped) {
+						else if (drawParamsMapped) {
 							draw_option = drawParamsMapped(userData, orig);
 						}
 					}
@@ -812,8 +832,8 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 	/* double lookup */
 	const int *index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	const int *index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
-	if ((index_mf_to_mpoly && index_mp_to_orig) == FALSE) {
-		index_mf_to_mpoly = index_mp_to_orig = NULL;
+	if (index_mf_to_mpoly == NULL) {
+		index_mp_to_orig = NULL;
 	}
 
 
@@ -827,8 +847,6 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 		colType = CD_MCOL;
 		mcol = DM_get_tessface_data_layer(dm, colType);
 	}
-
-	printf("%s: %p(%d/%d)\n", __func__, mcol, CD_ID_MCOL, colType);
 
 	cdDM_update_normals_from_pbvh(dm);
 
@@ -1050,8 +1068,8 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	/* double lookup */
 	const int *index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	const int *index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
-	if ((index_mf_to_mpoly && index_mp_to_orig) == FALSE) {
-		index_mf_to_mpoly = index_mp_to_orig = NULL;
+	if (index_mf_to_mpoly == NULL) {
+		index_mp_to_orig = NULL;
 	}
 
 	cdDM_update_normals_from_pbvh(dm);
@@ -1351,8 +1369,8 @@ static void cdDM_drawMappedFacesMat(DerivedMesh *dm,
 	/* double lookup */
 	const int *index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	const int *index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
-	if ((index_mf_to_mpoly && index_mp_to_orig) == FALSE) {
-		index_mf_to_mpoly = index_mp_to_orig = NULL;
+	if (index_mf_to_mpoly == NULL) {
+		index_mp_to_orig = NULL;
 	}
 
 	cdDM_update_normals_from_pbvh(dm);
@@ -1956,12 +1974,11 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, int use_mdisps,
 
 	/* avoid this where possiblem, takes extra memory */
 	if (use_tessface) {
-		int *polyindex;
 
 		BM_mesh_elem_index_ensure(bm, BM_FACE);
 
 		index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
-		for (i = 0; i < dm->numTessFaceData; i++, index++, polyindex++) {
+		for (i = 0; i < dm->numTessFaceData; i++, index++) {
 			MFace *mf = &mface[i];
 			const BMLoop **l = em_looptris[i];
 			efa = l[0]->f;
@@ -2257,6 +2274,11 @@ void CDDM_calc_normals_tessface(DerivedMesh *dm)
  * this is a really horribly written function.  ger. - joeedh
  *
  * note, CDDM_recalc_tessellation has to run on the returned DM if you want to access tessfaces.
+ *
+ * Note: This function is currently only used by the Mirror modifier, so it
+ *       skips any faces that have all vertices merged (to avoid creating pairs
+ *       of faces sharing the same set of vertices). If used elsewhere, it may
+ *       be necessary to make this functionality optional.
  */
 DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 {
@@ -2300,14 +2322,11 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 			newv[i] = newv[vtargetmap[i]];
 		}
 	}
-	
-	/* find-replace merged vertices with target vertices */
-	ml = cddm->mloop;
-	for (i = 0; i < totloop; i++, ml++) {
-		if (vtargetmap[ml->v] != -1) {
-			ml->v = vtargetmap[ml->v];
-		}
-	}
+
+	/* Don't remap vertices in cddm->mloop, because we need to know the original
+	 * indices in order to skip faces with all vertices merged.
+	 * The "update loop indices..." section further down remaps vertices in mloop.
+	 */
 
 	/* now go through and fix edges and faces */
 	med = cddm->medge;
@@ -2339,6 +2358,24 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 	for (i = 0; i < totpoly; i++, mp++) {
 		MPoly *mp2;
 		
+		ml = cddm->mloop + mp->loopstart;
+
+		/* skip faces with all vertices merged */
+		{
+			int all_vertices_merged = TRUE;
+
+			for (j = 0; j < mp->totloop; j++, ml++) {
+				if (vtargetmap[ml->v] == -1) {
+					all_vertices_merged = FALSE;
+					break;
+				}
+			}
+
+			if (UNLIKELY(all_vertices_merged)) {
+				continue;
+			}
+		}
+
 		ml = cddm->mloop + mp->loopstart;
 
 		c = 0;
@@ -2499,7 +2536,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	EdgeHashIterator *ehi;
 	MPoly *mp = cddm->mpoly;
 	MLoop *ml;
-	MEdge *med;
+	MEdge *med, *origmed;
 	EdgeHash *eh = BLI_edgehash_new();
 	int v1, v2;
 	int *eindex;
@@ -2532,6 +2569,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	CustomData_add_layer(&edgeData, CD_MEDGE, CD_CALLOC, NULL, numEdges);
 	CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
 
+	origmed = cddm->medge;
 	med = CustomData_get_layer(&edgeData, CD_MEDGE);
 	index = CustomData_get_layer(&edgeData, CD_ORIGINDEX);
 
@@ -2542,8 +2580,14 @@ void CDDM_calc_edges(DerivedMesh *dm)
 		BLI_edgehashIterator_getKey(ehi, &med->v1, &med->v2);
 		j = GET_INT_FROM_POINTER(BLI_edgehashIterator_getValue(ehi));
 
-		med->flag = ME_EDGEDRAW | ME_EDGERENDER;
-		*index = j == 0 ? ORIGINDEX_NONE : eindex[j - 1];
+		if (j == 0) {
+			med->flag = ME_EDGEDRAW | ME_EDGERENDER;
+			*index = ORIGINDEX_NONE;
+		}
+		else {
+			med->flag = ME_EDGEDRAW | ME_EDGERENDER | origmed[j - 1].flag;
+			*index = eindex[j - 1];
+		}
 
 		BLI_edgehashIterator_setValue(ehi, SET_INT_IN_POINTER(i));
 	}

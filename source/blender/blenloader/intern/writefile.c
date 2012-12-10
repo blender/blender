@@ -2607,7 +2607,6 @@ static void write_texts(WriteData *wd, ListBase *idbase)
 {
 	Text *text;
 	TextLine *tmp;
-	TextMarker *mrk;
 
 	text= idbase->first;
 	while (text) {
@@ -2630,13 +2629,6 @@ static void write_texts(WriteData *wd, ListBase *idbase)
 			while (tmp) {
 				writedata(wd, DATA, tmp->len+1, tmp->line);
 				tmp= tmp->next;
-			}
-
-			/* write markers */
-			mrk= text->markers.first;
-			while (mrk) {
-				writestruct(wd, DATA, "TextMarker", 1, mrk);
-				mrk= mrk->next;
 			}
 		}
 
@@ -2890,7 +2882,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	fg.winpos= G.winpos;
 
 	/* prevent to save this, is not good convention, and feature with concerns... */
-	fg.fileflags= (fileflags & ~(G_FILE_NO_UI|G_FILE_RELATIVE_REMAP|G_FILE_MESH_COMPAT));
+	fg.fileflags= (fileflags & ~G_FILE_FLAGS_RUNTIME);
 
 	fg.globalf= G.f;
 	BLI_strncpy(fg.filename, mainvar->name, sizeof(fg.filename));
@@ -3039,6 +3031,10 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	char tempname[FILE_MAX+1];
 	int file, err, write_user_block;
 
+	/* path backup/restore */
+	void     *path_list_backup = NULL;
+	const int path_list_flag = (BLI_BPATH_TRAVERSE_SKIP_LIBRARY | BLI_BPATH_TRAVERSE_SKIP_MULTIFILE);
+
 	/* open temporary file, so we preserve the original in case we crash */
 	BLI_snprintf(tempname, sizeof(tempname), "%s@", filepath);
 
@@ -3046,6 +3042,11 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	if (file == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Cannot open file %s for writing: %s", tempname, strerror(errno));
 		return 0;
+	}
+
+	/* check if we need to backup and restore paths */
+	if (UNLIKELY((write_flags & G_FILE_RELATIVE_REMAP) && (G_FILE_SAVE_COPY & write_flags))) {
+		path_list_backup = BLI_bpath_list_backup(mainvar, path_list_flag);
 	}
 
 	/* remapping of relative paths to new file location */
@@ -3082,6 +3083,11 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	/* actual file writing */
 	err= write_file_handle(mainvar, file, NULL, NULL, write_user_block, write_flags, thumb);
 	close(file);
+
+	if (UNLIKELY(path_list_backup)) {
+		BLI_bpath_list_restore(mainvar, path_list_flag, path_list_backup);
+		BLI_bpath_list_free(path_list_backup);
+	}
 
 	if (err) {
 		BKE_report(reports, RPT_ERROR, strerror(errno));

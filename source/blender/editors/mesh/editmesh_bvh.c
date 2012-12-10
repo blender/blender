@@ -157,13 +157,13 @@ BMBVHTree *BMBVH_NewBVH(BMEditMesh *em, int flag, Scene *scene, Object *obedit)
 
 
 		if (flag & BMBVH_RESPECT_SELECT) {
-			/* note, the arrays wont allign now! take care */
+			/* note, the arrays wont align now! take care */
 			if (!BM_elem_flag_test(em->looptris[i][0]->f, BM_ELEM_SELECT)) {
 				continue;
 			}
 		}
 		else if (flag & BMBVH_RESPECT_HIDDEN) {
-			/* note, the arrays wont allign now! take care */
+			/* note, the arrays wont align now! take care */
 			if (BM_elem_flag_test(em->looptris[i][0]->f, BM_ELEM_HIDDEN)) {
 				continue;
 			}
@@ -399,7 +399,7 @@ int BMBVH_EdgeVisible(BMBVHTree *tree, BMEdge *e, ARegion *ar, View3D *v3d, Obje
 	const float mval_f[2] = {ar->winx / 2.0f,
 	                         ar->winy / 2.0f};
 
-	ED_view3d_win_to_segment_clip(ar, v3d, mval_f, origin, end);
+	ED_view3d_win_to_segment(ar, v3d, mval_f, origin, end);
 	
 	invert_m4_m4(invmat, obedit->obmat);
 	mul_m4_v3(invmat, origin);

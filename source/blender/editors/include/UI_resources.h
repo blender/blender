@@ -215,7 +215,11 @@ enum {
 	TH_NLA_META,
 	TH_NLA_META_SEL,
 	TH_NLA_SOUND,
-	TH_NLA_SOUND_SEL
+	TH_NLA_SOUND_SEL,
+	
+	TH_AXIS_X,		/* X/Y/Z Axis */
+	TH_AXIS_Y,
+	TH_AXIS_Z
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 

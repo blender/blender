@@ -59,7 +59,7 @@ public:
 	virtual 
 	~RAS_ICanvas(
 	) {
-	};
+	}
 
 	virtual 
 		void 

@@ -526,6 +526,10 @@ static void viewRedrawPost(bContext *C, TransInfo *t)
 		/* if autokeying is enabled, send notifiers that keyframes were added */
 		if (IS_AUTOKEY_ON(t->scene))
 			WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
+
+		/* redraw UV editor */
+		if (t->mode == TFM_EDGE_SLIDE && (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT))
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
 		
 		/* XXX temp, first hack to get auto-render in compositor work (ton) */
 		WM_event_add_notifier(C, NC_SCENE | ND_TRANSFORM_DONE, CTX_data_scene(C));
@@ -1223,8 +1227,10 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				break;
 			case LEFTALTKEY:
 			case RIGHTALTKEY:
-				if (t->spacetype == SPACE_SEQ)
+				if (ELEM(t->spacetype, SPACE_SEQ, SPACE_VIEW3D)) {
 					t->flag |= T_ALT_TRANSFORM;
+					t->redraw |= TREDRAW_HARD;
+				}
 
 				break;
 			default:
@@ -1262,8 +1268,10 @@ int transformEvent(TransInfo *t, wmEvent *event)
 //			break;
 			case LEFTALTKEY:
 			case RIGHTALTKEY:
-				if (t->spacetype == SPACE_SEQ)
+				if (ELEM(t->spacetype, SPACE_SEQ, SPACE_VIEW3D)) {
 					t->flag &= ~T_ALT_TRANSFORM;
+					t->redraw |= TREDRAW_HARD;
+				}
 
 				break;
 			default:
@@ -2419,6 +2427,8 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 		bConstraintTypeInfo *cti = get_constraint_typeinfo(CONSTRAINT_TYPE_SIZELIMIT);
 		bConstraintOb cob = {NULL};
 		bConstraint *con;
+		float size_sign[3], size_abs[3];
+		int i;
 		
 		/* Make a temporary bConstraintOb for using these limit constraints
 		 *  - they only care that cob->matrix is correctly set ;-)
@@ -2432,8 +2442,14 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 			/* Reset val if SINGLESIZE but using a constraint */
 			if (td->flag & TD_SINGLESIZE)
 				return;
+
+			/* separate out sign to apply back later */
+			for (i = 0; i < 3; i++) {
+				size_sign[i] = signf(td->ext->size[i]);
+				size_abs[i] = fabsf(td->ext->size[i]);
+			}
 			
-			size_to_mat4(cob.matrix, td->ext->size);
+			size_to_mat4(cob.matrix, size_abs);
 		}
 		
 		/* Evaluate valid constraints */
@@ -2481,7 +2497,9 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 			if (td->flag & TD_SINGLESIZE)
 				return;
 
+			/* extrace scale from matrix and apply back sign */
 			mat4_to_size(td->ext->size, cob.matrix);
+			mul_v3_v3(td->ext->size, size_sign);
 		}
 	}
 }
@@ -2852,11 +2870,21 @@ static void headerResize(TransInfo *t, float vec[3], char *str)
 	(void)spos;
 }
 
-#define SIGN(a)     (a<-FLT_EPSILON ? 1 : a>FLT_EPSILON ? 2 : 3)
-#define VECSIGNFLIP(a, b) ((SIGN(a[0]) & SIGN(b[0])) == 0 || (SIGN(a[1]) & SIGN(b[1])) == 0 || (SIGN(a[2]) & SIGN(b[2])) == 0)
+/* FLT_EPSILON is too small [#29633], 0.0000001f starts to flip */
+#define TX_FLIP_EPS 0.00001f
+BLI_INLINE int tx_sign(const float a)
+{
+	return (a < -TX_FLIP_EPS ? 1 : a > TX_FLIP_EPS ? 2 : 3);
+}
+BLI_INLINE int tx_vec_sign_flip(const float a[3], const float b[3])
+{
+	return ((tx_sign(a[0]) & tx_sign(b[0])) == 0 ||
+	        (tx_sign(a[1]) & tx_sign(b[1])) == 0 ||
+	        (tx_sign(a[2]) & tx_sign(b[2])) == 0);
+}
 
 /* smat is reference matrix, only scaled */
-static void TransMat3ToSize(float mat[][3], float smat[][3], float *size)
+static void TransMat3ToSize(float mat[][3], float smat[][3], float size[3])
 {
 	float vec[3];
 	
@@ -2868,9 +2896,9 @@ static void TransMat3ToSize(float mat[][3], float smat[][3], float *size)
 	size[2] = normalize_v3(vec);
 	
 	/* first tried with dotproduct... but the sign flip is crucial */
-	if (VECSIGNFLIP(mat[0], smat[0]) ) size[0] = -size[0];
-	if (VECSIGNFLIP(mat[1], smat[1]) ) size[1] = -size[1];
-	if (VECSIGNFLIP(mat[2], smat[2]) ) size[2] = -size[2];
+	if (tx_vec_sign_flip(mat[0], smat[0]) ) size[0] = -size[0];
+	if (tx_vec_sign_flip(mat[1], smat[1]) ) size[1] = -size[1];
+	if (tx_vec_sign_flip(mat[2], smat[2]) ) size[2] = -size[2];
 }
 
 
@@ -3947,10 +3975,8 @@ void initShrinkFatten(TransInfo *t)
 }
 
 
-
 int ShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 {
-	float vec[3];
 	float distance;
 	int i;
 	char str[64];
@@ -3978,17 +4004,20 @@ int ShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 	t->values[0] = -distance;
 
 	for (i = 0; i < t->total; i++, td++) {
+		float tdistance;  /* temp dist */
 		if (td->flag & TD_NOACTION)
 			break;
 
 		if (td->flag & TD_SKIP)
 			continue;
 
-		copy_v3_v3(vec, td->axismtx[2]);
-		mul_v3_fl(vec, distance);
-		mul_v3_fl(vec, td->factor);
+		/* get the final offset */
+		tdistance = distance * td->factor;
+		if (td->ext && (t->flag & T_ALT_TRANSFORM)) {
+			tdistance *= td->ext->isize[0];  /* shell factor */
+		}
 
-		add_v3_v3v3(td->loc, td->iloc, vec);
+		madd_v3_v3v3fl(td->loc, td->iloc, td->axismtx[2], tdistance);
 	}
 
 	recalcData(t);
@@ -4847,14 +4876,9 @@ static void calcNonProportionalEdgeSlide(TransInfo *t, SlideData *sld, const flo
 		float dist = 0;
 		float min_dist = FLT_MAX;
 
-		float up_p[3];
-		float dw_p[3];
-
 		for (i = 0; i < sld->totsv; i++, sv++) {
 			/* Set length */
-			add_v3_v3v3(up_p, sv->origvert.co, sv->upvec);
-			add_v3_v3v3(dw_p, sv->origvert.co, sv->downvec);
-			sv->edge_len = len_v3v3(dw_p, up_p);
+			sv->edge_len = len_v3v3(sv->upvec, sv->downvec);
 
 			mul_v3_m4v3(v_proj, t->obedit->obmat, sv->v->co);
 			if (ED_view3d_project_float_global(t->ar, v_proj, v_proj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
@@ -5595,7 +5619,6 @@ static int doEdgeSlide(TransInfo *t, float perc)
 {
 	SlideData *sld = t->customData;
 	TransDataSlideVert *svlist = sld->sv, *sv;
-	float vec[3];
 	int i;
 
 	sld->perc = perc;
@@ -5603,6 +5626,7 @@ static int doEdgeSlide(TransInfo *t, float perc)
 
 	if (sld->is_proportional == TRUE) {
 		for (i = 0; i < sld->totsv; i++, sv++) {
+			float vec[3];
 			if (perc > 0.0f) {
 				copy_v3_v3(vec, sv->upvec);
 				mul_v3_fl(vec, perc);
@@ -5620,20 +5644,29 @@ static int doEdgeSlide(TransInfo *t, float perc)
 		 * Implementation note, non proportional mode ignores the starting positions and uses only the
 		 * up/down verts, this could be changed/improved so the distance is still met but the verts are moved along
 		 * their original path (which may not be straight), however how it works now is OK and matches 2.4x - Campbell
+		 *
+		 * \note len_v3v3(curr_sv->upvec, curr_sv->downvec)
+		 * is the same as the distance between the original vert locations, same goes for the lines below.
 		 */
 		TransDataSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
-		const float curr_length_perc = len_v3v3(curr_sv->up->co, curr_sv->down->co) *
-		                               (((sld->flipped_vtx ? perc : -perc) + 1.0f) / 2.0f);
+		const float curr_length_perc = curr_sv->edge_len * (((sld->flipped_vtx ? perc : -perc) + 1.0f) / 2.0f);
+
+		float down_co[3];
+		float up_co[3];
 
 		for (i = 0; i < sld->totsv; i++, sv++) {
-			const float sv_length = len_v3v3(sv->up->co, sv->down->co);
-			const float fac = min_ff(sv_length, curr_length_perc) / sv_length;
+			if (sv->edge_len > FLT_EPSILON) {
+				const float fac = min_ff(sv->edge_len, curr_length_perc) / sv->edge_len;
 
-			if (sld->flipped_vtx) {
-				interp_v3_v3v3(sv->v->co, sv->down->co, sv->up->co, fac);
-			}
-			else {
-				interp_v3_v3v3(sv->v->co, sv->up->co, sv->down->co, fac);
+				add_v3_v3v3(up_co, sv->origvert.co, sv->upvec);
+				add_v3_v3v3(down_co, sv->origvert.co, sv->downvec);
+
+				if (sld->flipped_vtx) {
+					interp_v3_v3v3(sv->v->co, down_co, up_co, fac);
+				}
+				else {
+					interp_v3_v3v3(sv->v->co, up_co, down_co, fac);
+				}
 			}
 		}
 	}

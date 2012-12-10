@@ -125,7 +125,9 @@
 #define FLT_EPSILON10 1.19209290e-06F
 
 /* could enable at some point but for now there are far too many conversions */
-#pragma GCC diagnostic ignored "-Wdouble-promotion"
+#ifdef __GNUC__
+#  pragma GCC diagnostic ignored "-Wdouble-promotion"
+#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -1705,8 +1707,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			totface= psmd->dm->getNumTessFaces(psmd->dm);
 			index_mf_to_mpoly = psmd->dm->getTessFaceDataArray(psmd->dm, CD_ORIGINDEX);
 			index_mp_to_orig = psmd->dm->getPolyDataArray(psmd->dm, CD_ORIGINDEX);
-			if ((index_mf_to_mpoly && index_mp_to_orig) == FALSE) {
-				index_mf_to_mpoly = index_mp_to_orig = NULL;
+			if (index_mf_to_mpoly == NULL) {
+				index_mp_to_orig = NULL;
 			}
 			for (a=0; a<totface; a++)
 				strandbuf->totbound = max_ii(strandbuf->totbound, (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, a): a);
@@ -4296,7 +4298,7 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 				
 				/* compute average bounding box of strandpoint itself (width) */
 				if (obr->strandbuf->flag & R_STRAND_B_UNITS)
-					obr->strandbuf->maxwidth= MAX2(obr->strandbuf->ma->strand_sta, obr->strandbuf->ma->strand_end);
+					obr->strandbuf->maxwidth = max_ff(obr->strandbuf->ma->strand_sta, obr->strandbuf->ma->strand_end);
 				else
 					obr->strandbuf->maxwidth= 0.0f;
 				
@@ -4501,7 +4503,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 	ParticleSystem *psys;
 	int show_emitter, allow_render= 1, index, psysindex, i;
 
-	index= (dob)? dob->index: 0;
+	index= (dob)? dob->persistent_id[0]: 0;
 
 	/* the emitter has to be processed first (render levels of modifiers) */
 	/* so here we only check if the emitter should be rendered */
@@ -4900,7 +4902,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 						if (dob->type != OB_DUPLIGROUP || (obr=find_dupligroup_dupli(re, obd, 0))) {
 							mult_m4_m4m4(mat, re->viewmat, dob->mat);
 														/* ob = particle system, use that layer */
-							obi= RE_addRenderInstance(re, NULL, obd, ob, dob->index, 0, mat, ob->lay); 
+							obi= RE_addRenderInstance(re, NULL, obd, ob, dob->persistent_id[0], 0, mat, ob->lay); 
 
 							/* fill in instance variables for texturing */
 							set_dupli_tex_mat(re, obi, dob);
@@ -4927,7 +4929,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 							if (dob->type != OB_DUPLIGROUP || (obr=find_dupligroup_dupli(re, obd, psysindex))) {
 								if (obi == NULL)
 									mult_m4_m4m4(mat, re->viewmat, dob->mat);
-								obi= RE_addRenderInstance(re, NULL, obd, ob, dob->index, psysindex++, mat, obd->lay);
+								obi= RE_addRenderInstance(re, NULL, obd, ob, dob->persistent_id[0], psysindex++, mat, obd->lay);
 
 								set_dupli_tex_mat(re, obi, dob);
 								if (dob->type != OB_DUPLIGROUP) {

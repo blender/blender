@@ -98,7 +98,7 @@ void *avi_converter_from_avi_rgb(AviMovie *movie, int stream, unsigned char *buf
 		buf = MEM_mallocN(movie->header->Height * movie->header->Width * 3, "fromavirgbbuf");
 	
 		rowstride = movie->header->Width * 3;
-		if (bits != 16) if (movie->header->Width % 2) rowstride++;
+		if ((bits != 16) && (movie->header->Width % 2)) rowstride++;
 	
 		for (y = 0; y < movie->header->Height; y++) {
 			memcpy(&buf[y * movie->header->Width * 3], &buffer[((movie->header->Height - 1) - y) * rowstride], movie->header->Width * 3);

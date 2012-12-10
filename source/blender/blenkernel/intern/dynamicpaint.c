@@ -86,11 +86,13 @@
 #include "RE_shader_ext.h"
 
 #ifdef _OPENMP
-#include <omp.h>
+#  include <omp.h>
 #endif
 
 /* could enable at some point but for now there are far too many conversions */
-#pragma GCC diagnostic ignored "-Wdouble-promotion"
+#ifdef __GNUC__
+#  pragma GCC diagnostic ignored "-Wdouble-promotion"
+#endif
 
 /* precalculated gaussian factors for 5x super sampling	*/
 static float gaussianFactors[5] = {0.996849f,
@@ -3364,7 +3366,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 							    (!hit_found || (brush->flags & MOD_DPAINT_INVERSE_PROX)))
 							{
 								float proxDist = -1.0f;
-								float hitCo[3];
+								float hitCo[3] = {0.0f, 0.0f, 0.0f};
 								short hQuad;
 								int face;
 
@@ -3721,6 +3723,8 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 					float smooth_range = smooth * (1.0f - strength), dist;
 					/* calculate max range that can have particles with higher influence than the nearest one */
 					float max_range = smooth - strength * smooth + solidradius;
+					/* Make gcc happy! */
+					dist = max_range;
 
 					particles = BLI_kdtree_range_search(tree, max_range, bData->realCoord[bData->s_pos[index]].v, NULL, &nearest);
 

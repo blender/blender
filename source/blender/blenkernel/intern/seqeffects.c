@@ -139,6 +139,9 @@ static ImBuf *prepare_effect_imbufs(SeqRenderData context, ImBuf *ibuf1, ImBuf *
 		IMB_rect_from_float(ibuf3);
 	}
 
+	if (out->rect_float)
+		IMB_colormanagement_assign_float_colorspace(out, context.scene->sequencer_colorspace_settings.name);
+
 	return out;
 }
 

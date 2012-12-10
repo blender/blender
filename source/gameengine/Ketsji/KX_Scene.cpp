@@ -55,7 +55,7 @@
 #include "SCA_BasicEventManager.h"
 #include "KX_Camera.h"
 #include "SCA_JoystickManager.h"
-
+#include "KX_PyMath.h"
 #include "RAS_MeshObject.h"
 
 #include "RAS_IRasterizer.h"
@@ -1706,6 +1706,17 @@ void	KX_Scene::SetGravity(const MT_Vector3& gravity)
 	GetPhysicsEnvironment()->setGravity(gravity[0],gravity[1],gravity[2]);
 }
 
+MT_Vector3 KX_Scene::GetGravity()
+{
+	PHY__Vector3 gravity;
+	MT_Vector3 vec;
+
+	GetPhysicsEnvironment()->getGravity(gravity);
+	vec = gravity.m_vec;
+
+	return vec;
+}
+
 void KX_Scene::SetSceneConverter(class KX_BlenderSceneConverter* sceneConverter)
 {
 	m_sceneConverter = sceneConverter;
@@ -2270,6 +2281,25 @@ int KX_Scene::pyattr_set_drawing_callback_post(void *self_v, const KX_PYATTRIBUT
 	return PY_SET_ATTR_SUCCESS;
 }
 
+PyObject *KX_Scene::pyattr_get_gravity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_Scene* self = static_cast<KX_Scene*>(self_v);
+
+	return PyObjectFrom(self->GetGravity());
+}
+
+int KX_Scene::pyattr_set_gravity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_Scene* self = static_cast<KX_Scene*>(self_v);
+
+	MT_Vector3 vec;
+	if (!PyVecTo(value, vec))
+		return PY_SET_ATTR_FAIL;
+
+	self->SetGravity(vec);
+	return PY_SET_ATTR_SUCCESS;
+}
+
 PyAttributeDef KX_Scene::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("name",				KX_Scene, pyattr_get_name),
 	KX_PYATTRIBUTE_RO_FUNCTION("objects",			KX_Scene, pyattr_get_objects),
@@ -2280,6 +2310,7 @@ PyAttributeDef KX_Scene::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("active_camera",		KX_Scene, pyattr_get_active_camera, pyattr_set_active_camera),
 	KX_PYATTRIBUTE_RW_FUNCTION("pre_draw",			KX_Scene, pyattr_get_drawing_callback_pre, pyattr_set_drawing_callback_pre),
 	KX_PYATTRIBUTE_RW_FUNCTION("post_draw",			KX_Scene, pyattr_get_drawing_callback_post, pyattr_set_drawing_callback_post),
+	KX_PYATTRIBUTE_RW_FUNCTION("gravity",			KX_Scene, pyattr_get_gravity, pyattr_set_gravity),
 	KX_PYATTRIBUTE_BOOL_RO("suspended",				KX_Scene, m_suspend),
 	KX_PYATTRIBUTE_BOOL_RO("activity_culling",		KX_Scene, m_activity_culling),
 	KX_PYATTRIBUTE_FLOAT_RW("activity_culling_radius", 0.5f, FLT_MAX, KX_Scene, m_activity_box_radius),

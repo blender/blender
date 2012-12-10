@@ -80,13 +80,15 @@ static void rna_generate_static_parameter_prototypes(FILE *f, StructRNA *srna, F
                                                      const char *name_override, int close_prototype);
 
 /* helpers */
-#define WRITE_COMMA { \
+#define WRITE_COMMA \
+	{ \
 		if (!first) \
 			fprintf(f, ", "); \
 		first = 0; \
 	} (void)0
 
-#define WRITE_PARAM(param) { \
+#define WRITE_PARAM(param) \
+	{ \
 		WRITE_COMMA; \
 		fprintf(f, param); \
 	}
@@ -1221,6 +1223,89 @@ static char *rna_def_property_lookup_int_func(FILE *f, StructRNA *srna, Property
 	return func;
 }
 
+static char *rna_def_property_lookup_string_func(FILE *f, StructRNA *srna, PropertyRNA *prop, PropertyDefRNA *dp,
+                                                 const char *manualfunc, const char *item_type)
+{
+	char *func;
+	StructRNA *item_srna, *item_name_base;
+	PropertyRNA *item_name_prop;
+	const int namebuflen = 1024;
+
+	if (prop->flag & PROP_IDPROPERTY && manualfunc == NULL)
+		return NULL;
+
+	if (!manualfunc) {
+		if (!dp->dnastructname || !dp->dnaname)
+			return NULL;
+
+		/* only supported for collection items with name properties */
+		item_srna = rna_find_struct(item_type);
+		if (item_srna && item_srna->nameproperty) {
+			item_name_prop = item_srna->nameproperty;
+			item_name_base = item_srna;
+			while (item_name_base->base && item_name_base->base->nameproperty == item_name_prop)
+				item_name_base = item_name_base->base;
+		}
+		else
+			return NULL;
+	}
+
+	func = rna_alloc_function_name(srna->identifier, rna_safe_id(prop->identifier), "lookup_string");
+
+	fprintf(f, "int %s(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)\n", func);
+	fprintf(f, "{\n");
+
+	if (manualfunc) {
+		fprintf(f, "	return %s(ptr, key, r_ptr);\n", manualfunc);
+		fprintf(f, "}\n\n");
+		return func;
+	}
+
+	/* XXX extern declaration could be avoid by including RNA_blender.h, but this has lots of unknown
+	 * DNA types in functions, leading to conflicting function signatures.
+	 */
+	fprintf(f, "	extern int %s_%s_length(PointerRNA *);\n", item_name_base->identifier, rna_safe_id(item_name_prop->identifier));
+	fprintf(f, "	extern void %s_%s_get(PointerRNA *, char *);\n\n", item_name_base->identifier, rna_safe_id(item_name_prop->identifier));
+
+	fprintf(f, "	int found= 0;\n");
+	fprintf(f, "	CollectionPropertyIterator iter;\n");
+	fprintf(f, "	char namebuf[%d];\n", namebuflen);
+	fprintf(f, "	char *name;\n\n");
+
+	fprintf(f, "	%s_%s_begin(&iter, ptr);\n\n", srna->identifier, rna_safe_id(prop->identifier));
+
+	fprintf(f, "	while (iter.valid) {\n");
+	fprintf(f, "		int namelen = %s_%s_length(&iter.ptr);\n", item_name_base->identifier, rna_safe_id(item_name_prop->identifier));
+	fprintf(f, "		if (namelen < %d) {\n", namebuflen);
+	fprintf(f, "			%s_%s_get(&iter.ptr, namebuf);\n", item_name_base->identifier, rna_safe_id(item_name_prop->identifier));
+	fprintf(f, "			if (strcmp(namebuf, key) == 0) {\n");
+	fprintf(f, "				found = 1;\n");
+	fprintf(f, "				*r_ptr = iter.ptr;\n");
+	fprintf(f, "				break;\n");
+	fprintf(f, "			}\n");
+	fprintf(f, "		}\n");
+	fprintf(f, "		else {\n");
+	fprintf(f, "			name = MEM_mallocN(namelen+1, \"name string\");\n");
+	fprintf(f, "			%s_%s_get(&iter.ptr, name);\n", item_name_base->identifier, rna_safe_id(item_name_prop->identifier));
+	fprintf(f, "			if (strcmp(name, key) == 0) {\n");
+	fprintf(f, "				MEM_freeN(name);\n\n");
+	fprintf(f, "				found = 1;\n");
+	fprintf(f, "				*r_ptr = iter.ptr;\n");
+	fprintf(f, "				break;\n");
+	fprintf(f, "			}\n");
+	fprintf(f, "			else\n");
+	fprintf(f, "				MEM_freeN(name);\n");
+	fprintf(f, "		}\n");
+	fprintf(f, "		%s_%s_next(&iter);\n", srna->identifier, rna_safe_id(prop->identifier));
+	fprintf(f, "	}\n");
+	fprintf(f, "	%s_%s_end(&iter);\n\n", srna->identifier, rna_safe_id(prop->identifier));
+
+	fprintf(f, "	return found;\n");
+	fprintf(f, "}\n\n");
+
+	return func;
+}
+
 static char *rna_def_property_next_func(FILE *f, StructRNA *srna, PropertyRNA *prop, PropertyDefRNA *UNUSED(dp),
                                         const char *manualfunc)
 {
@@ -1401,6 +1486,7 @@ static void rna_def_property_funcs(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
 		{
 			CollectionPropertyRNA *cprop = (CollectionPropertyRNA *)prop;
 			const char *nextfunc = (const char *)cprop->next;
+			const char *item_type = (const char *)cprop->item_type;
 
 			if (dp->dnatype && strcmp(dp->dnatype, "ListBase") == 0) {
 				/* pass */
@@ -1424,6 +1510,8 @@ static void rna_def_property_funcs(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
 			cprop->end = (void *)rna_def_property_end_func(f, srna, prop, dp, (const char *)cprop->end);
 			cprop->lookupint = (void *)rna_def_property_lookup_int_func(f, srna, prop, dp,
 			                                                            (const char *)cprop->lookupint, nextfunc);
+			cprop->lookupstring = (void *)rna_def_property_lookup_string_func(f, srna, prop, dp,
+			                                                                  (const char *)cprop->lookupstring, item_type);
 
 			if (!(prop->flag & PROP_IDPROPERTY)) {
 				if (!cprop->begin) {
@@ -3169,6 +3257,8 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
 	fprintf(f, "#include <string.h>\n\n");
 	fprintf(f, "#include <stddef.h>\n\n");
 
+	fprintf(f, "#include \"MEM_guardedalloc.h\"\n\n");
+
 	fprintf(f, "#include \"DNA_ID.h\"\n");
 	fprintf(f, "#include \"DNA_scene_types.h\"\n");
 
@@ -3579,10 +3669,10 @@ static void rna_generate_header_class_cpp(StructDefRNA *ds, FILE *f)
 	fprintf(f, "class %s : public %s {\n", srna->identifier, (srna->base) ? srna->base->identifier : "Pointer");
 	fprintf(f, "public:\n");
 	fprintf(f, "\t%s(const PointerRNA &ptr_arg) :\n\t\t%s(ptr_arg)", srna->identifier,
-			(srna->base) ? srna->base->identifier : "Pointer");
+	        (srna->base) ? srna->base->identifier : "Pointer");
 	for (dp = ds->cont.properties.first; dp; dp = dp->next)
 		if (rna_is_collection_prop(dp->prop))
-				fprintf(f, ",\n\t\t%s(ptr_arg)", dp->prop->identifier);
+			fprintf(f, ",\n\t\t%s(ptr_arg)", dp->prop->identifier);
 	fprintf(f, "\n\t\t{}\n\n");
 
 	for (dp = ds->cont.properties.first; dp; dp = dp->next)

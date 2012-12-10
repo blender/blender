@@ -79,19 +79,18 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 		if(shader->sample_as_light && shader->has_surface_emission)
 			scene->light_manager->need_update = true;
 
-		OSLCompiler compiler((void*)this, (void*)ss);
+		OSLCompiler compiler((void*)this, (void*)ss, scene->image_manager);
 		compiler.background = (shader == scene->shaders[scene->default_background]);
 		compiler.compile(og, shader);
 	}
 
 	/* setup shader engine */
 	og->ss = ss;
+	og->ts = ts;
 	og->services = services;
 	int background_id = scene->shader_manager->get_shader_id(scene->default_background);
 	og->background_state = og->surface_state[background_id & SHADER_MASK];
 	og->use = true;
-
-	tls_create(OSLGlobals::ThreadData, og->thread_data);
 
 	foreach(Shader *shader, scene->shaders)
 		shader->need_update = false;
@@ -113,8 +112,7 @@ void OSLShaderManager::device_free(Device *device, DeviceScene *dscene)
 	/* clear shader engine */
 	og->use = false;
 	og->ss = NULL;
-
-	tls_delete(OSLGlobals::ThreadData, og->thread_data);
+	og->ts = NULL;
 
 	og->surface_state.clear();
 	og->volume_state.clear();
@@ -128,6 +126,7 @@ void OSLShaderManager::texture_system_init()
 	ts = TextureSystem::create(true);
 	ts->attribute("automip",  1);
 	ts->attribute("autotile", 64);
+	ts->attribute("gray_to_rgb", 1);
 
 	/* effectively unlimited for now, until we support proper mipmap lookups */
 	ts->attribute("max_memory_MB", 16384);
@@ -159,7 +158,7 @@ void OSLShaderManager::shading_system_init()
 	const int nraytypes = sizeof(raytypes)/sizeof(raytypes[0]);
 	ss->attribute("raytypes", TypeDesc(TypeDesc::STRING, nraytypes), raytypes);
 
-	OSLShader::register_closures(ss);
+	OSLShader::register_closures((OSLShadingSystem*)ss);
 
 	loaded_shaders.clear();
 }
@@ -278,10 +277,11 @@ const char *OSLShaderManager::shader_load_bytecode(const string& hash, const str
 
 /* Graph Compiler */
 
-OSLCompiler::OSLCompiler(void *manager_, void *shadingsys_)
+OSLCompiler::OSLCompiler(void *manager_, void *shadingsys_, ImageManager *image_manager_)
 {
 	manager = manager_;
 	shadingsys = shadingsys_;
+	image_manager = image_manager_;
 	current_type = SHADER_TYPE_SURFACE;
 	current_shader = NULL;
 	background = false;
@@ -325,7 +325,7 @@ string OSLCompiler::compatible_name(ShaderNode *node, ShaderOutput *output)
 	while((i = sname.find(" ")) != string::npos)
 		sname.replace(i, 1, "");
 	
-	/* if output exists with the same name, add "In" suffix */
+	/* if input exists with the same name, add "Out" suffix */
 	foreach(ShaderInput *input, node->inputs) {
 		if (strcmp(input->name, output->name)==0) {
 			sname += "Out";
@@ -340,6 +340,9 @@ bool OSLCompiler::node_skip_input(ShaderNode *node, ShaderInput *input)
 {
 	/* exception for output node, only one input is actually used
 	 * depending on the current shader type */
+	
+	if(!(input->usage & ShaderInput::USE_OSL))
+		return true;
 
 	if(node->name == ustring("output")) {
 		if(strcmp(input->name, "Surface") == 0 && current_type != SHADER_TYPE_SURFACE)
@@ -402,6 +405,9 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 					break;
 				case SHADER_SOCKET_INT:
 					parameter(param_name.c_str(), (int)input->value.x);
+					break;
+				case SHADER_SOCKET_STRING:
+					parameter(param_name.c_str(), input->value_string);
 					break;
 				case SHADER_SOCKET_CLOSURE:
 					break;

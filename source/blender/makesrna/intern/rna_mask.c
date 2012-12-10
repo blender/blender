@@ -158,8 +158,7 @@ static void rna_Mask_layer_active_index_range(PointerRNA *ptr, int *min, int *ma
 	Mask *mask = (Mask *)ptr->id.data;
 
 	*min = 0;
-	*max = mask->masklay_tot - 1;
-	*max = MAX2(0, *max);
+	*max = max_ii(0, mask->masklay_tot - 1);
 
 	*softmin = *min;
 	*softmax = *max;

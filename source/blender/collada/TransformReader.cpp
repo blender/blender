@@ -84,7 +84,7 @@ void TransformReader::dae_rotate_to_mat4(COLLADAFW::Transformation *tm, float m[
 	COLLADAFW::Rotate *ro = (COLLADAFW::Rotate *)tm;
 	COLLADABU::Math::Vector3& axis = ro->getRotationAxis();
 	const float angle = (float)DEG2RAD(ro->getRotationAngle());
-	const float ax[] = {axis[0], axis[1], axis[2]};
+	const float ax[] = {(float)axis[0], (float)axis[1], (float)axis[2]};
 	// float quat[4];
 	// axis_angle_to_quat(quat, axis, angle);
 	// quat_to_mat4(m, quat);

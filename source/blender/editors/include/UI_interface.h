@@ -542,7 +542,7 @@ typedef struct uiStringInfo {
 /* Note: Expects pointers to uiStringInfo structs as parameters.
  *       Will fill them with translated strings, when possible.
  *       Strings in uiStringInfo must be MEM_freeN'ed by caller. */
-void uiButGetStrInfo(struct bContext *C, uiBut *but, int nbr, ...);
+void uiButGetStrInfo(struct bContext *C, uiBut *but, ...);
 
 /* Edit i18n stuff. */
 /* Name of the main py op from i18n addon. */
@@ -615,7 +615,8 @@ int     uiSearchItemAdd(uiSearchItems *items, const char *name, void *poin, int 
 /* bfunc gets search item *poin as arg2, or if NULL the old string */
 void    uiButSetSearchFunc(uiBut *but,        uiButSearchFunc sfunc, void *arg1, uiButHandleFunc bfunc, void *active);
 /* height in pixels, it's using hardcoded values still */
-int     uiSearchBoxhHeight(void);
+int     uiSearchBoxHeight(void);
+int     uiSearchBoxWidth(void);
 
 void    uiBlockSetHandleFunc(uiBlock *block,    uiBlockHandleFunc func, void *arg);
 void    uiBlockSetButmFunc(uiBlock *block,    uiMenuHandleFunc func, void *arg);
@@ -807,7 +808,7 @@ void uiTemplateHistogram(uiLayout *layout, struct PointerRNA *ptr, const char *p
 void uiTemplateWaveform(uiLayout *layout, struct PointerRNA *ptr, const char *propname);
 void uiTemplateVectorscope(uiLayout *layout, struct PointerRNA *ptr, const char *propname);
 void uiTemplateCurveMapping(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int type, int levels, int brush);
-void uiTemplateColorWheel(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int value_slider, int lock, int lock_luminosity, int cubic);
+void uiTemplateColorPicker(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int value_slider, int lock, int lock_luminosity, int cubic);
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, const char *propname,
                       PointerRNA *used_ptr, const char *used_propname, int active_layer);
 void uiTemplateGameStates(uiLayout *layout, struct PointerRNA *ptr, const char *propname,
@@ -816,6 +817,7 @@ void uiTemplateImage(uiLayout *layout, struct bContext *C, struct PointerRNA *pt
 void uiTemplateImageSettings(uiLayout *layout, struct PointerRNA *imfptr, int color_management);
 void uiTemplateImageLayers(uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser);
 void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);
+void uiOperatorSearch_But(uiBut *but);
 void uiTemplateOperatorSearch(uiLayout *layout);
 void uiTemplateHeader3D(uiLayout *layout, struct bContext *C);
 void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C);

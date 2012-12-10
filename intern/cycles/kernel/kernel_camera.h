@@ -65,7 +65,7 @@ __device void camera_sample_perspective(KernelGlobals *kg, float raster_x, float
 
 #ifdef __CAMERA_MOTION__
 	if(kernel_data.cam.have_motion)
-		transform_motion_interpolate(&cameratoworld, &kernel_data.cam.motion, ray->time);
+		transform_motion_interpolate(&cameratoworld, (const DecompMotionTransform*)&kernel_data.cam.motion, ray->time);
 #endif
 
 	ray->P = transform_point(&cameratoworld, ray->P);
@@ -108,7 +108,7 @@ __device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, floa
 
 #ifdef __CAMERA_MOTION__
 	if(kernel_data.cam.have_motion)
-		transform_motion_interpolate(&cameratoworld, &kernel_data.cam.motion, ray->time);
+		transform_motion_interpolate(&cameratoworld, (const DecompMotionTransform*)&kernel_data.cam.motion, ray->time);
 #endif
 
 	ray->P = transform_point(&cameratoworld, ray->P);
@@ -182,7 +182,7 @@ __device void camera_sample_panorama(KernelGlobals *kg, float raster_x, float ra
 
 #ifdef __CAMERA_MOTION__
 	if(kernel_data.cam.have_motion)
-		transform_motion_interpolate(&cameratoworld, &kernel_data.cam.motion, ray->time);
+		transform_motion_interpolate(&cameratoworld, (const DecompMotionTransform*)&kernel_data.cam.motion, ray->time);
 #endif
 
 	ray->P = transform_point(&cameratoworld, ray->P);
@@ -227,6 +227,21 @@ __device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, flo
 		camera_sample_orthographic(kg, raster_x, raster_y, ray);
 	else
 		camera_sample_panorama(kg, raster_x, raster_y, lens_u, lens_v, ray);
+}
+
+/* Utilities */
+
+__device_inline float camera_distance(KernelGlobals *kg, float3 P)
+{
+	Transform cameratoworld = kernel_data.cam.cameratoworld;
+	float3 camP = make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
+
+	if(kernel_data.cam.type == CAMERA_ORTHOGRAPHIC) {
+		float3 camD = make_float3(cameratoworld.x.z, cameratoworld.y.z, cameratoworld.z.z);
+		return fabsf(dot((P - camP), camD));
+	}
+	else
+		return len(P - camP);
 }
 
 CCL_NAMESPACE_END

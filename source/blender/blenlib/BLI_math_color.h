@@ -121,7 +121,7 @@ MINLINE int compare_rgb_uchar(const unsigned char a[3], const unsigned char b[3]
 
 void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *offset, float *slope, float *power);
 
-#ifdef __BLI_MATH_INLINE_H__
+#if BLI_MATH_DO_INLINE
 #include "intern/math_color_inline.c"
 #endif
 

@@ -2388,7 +2388,7 @@ void create_vert_poly_map(MeshElemMap **map, int **mem,
  * of edges that use that vertex as an endpoint. The lists are allocated
  * from one memory pool. */
 void create_vert_edge_map(MeshElemMap **map, int **mem,
-						  const MEdge *medge, int totvert, int totedge)
+                          const MEdge *medge, int totvert, int totedge)
 {
 	int i, *indices;
 
@@ -2607,7 +2607,7 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 			}
 			BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert_first);
 			
-			totfilltri = BLI_scanfill_calc(&sf_ctx, FALSE);
+			totfilltri = BLI_scanfill_calc(&sf_ctx, 0);
 			if (totfilltri) {
 				BLI_array_grow_items(mface_to_poly_map, totfilltri);
 				BLI_array_grow_items(mface, totfilltri);
@@ -3011,7 +3011,7 @@ float BKE_mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
 		MLoop *l_iter = loopstart;
 		float area, polynorm_local[3], (*vertexcos)[3];
 		const float *no = polynormal ? polynormal : polynorm_local;
-		BLI_array_fixedstack_declare(vertexcos, BM_NGON_STACK_SIZE, mpoly->totloop, __func__);
+		BLI_array_fixedstack_declare(vertexcos, BM_DEFAULT_NGON_STACK_SIZE, mpoly->totloop, __func__);
 
 		/* pack vertex cos into an array for area_poly_v3 */
 		for (i = 0; i < mpoly->totloop; i++, l_iter++) {

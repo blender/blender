@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/intern/bmesh_decimate_dissolve.c
+/** \file blender/bmesh/tools/bmesh_decimate_dissolve.c
  *  \ingroup bmesh
  *
  * BMesh decimator that dissolves flat areas into polygons (ngons).
@@ -69,9 +69,6 @@ static int dissolve_elem_cmp(const void *a1, const void *a2)
 	return 0;
 }
 
-/**
- * \param do_all_verts Collapse all verts between 2 faces - don't check their edge angle.
- */
 void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const int do_dissolve_boundaries,
                                   BMVert **vinput_arr, const int vinput_len,
                                   BMEdge **einput_arr, const int einput_len)
@@ -231,8 +228,8 @@ void BM_mesh_decimate_dissolve(BMesh *bm, const float angle_limit, const int do_
 	int vinput_len;
 	int einput_len;
 
-	BMVert **vinput_arr = BM_iter_as_arrayN(bm, BM_VERTS_OF_MESH, NULL, &vinput_len);
-	BMEdge **einput_arr = BM_iter_as_arrayN(bm, BM_EDGES_OF_MESH, NULL, &einput_len);
+	BMVert **vinput_arr = BM_iter_as_arrayN(bm, BM_VERTS_OF_MESH, NULL, &vinput_len, NULL, 0);
+	BMEdge **einput_arr = BM_iter_as_arrayN(bm, BM_EDGES_OF_MESH, NULL, &einput_len, NULL, 0);
 
 	BM_mesh_decimate_dissolve_ex(bm, angle_limit, do_dissolve_boundaries,
 	                             vinput_arr, vinput_len,

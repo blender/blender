@@ -36,6 +36,7 @@ public:
 	Transform compute_transform();
 	bool skip();
 	void compile(SVMCompiler& compiler, int offset_in, int offset_out);
+	void compile(OSLCompiler &compiler);
 
 	float3 translation;
 	float3 rotation;
@@ -67,11 +68,12 @@ public:
 
 	ImageManager *image_manager;
 	int slot;
-	bool is_float;
+	int is_float;
 	string filename;
 	ustring color_space;
 	ustring projection;
 	float projection_blend;
+	bool animated;
 
 	static ShaderEnum color_space_enum;
 	static ShaderEnum projection_enum;
@@ -85,10 +87,11 @@ public:
 
 	ImageManager *image_manager;
 	int slot;
-	bool is_float;
+	int is_float;
 	string filename;
 	ustring color_space;
 	ustring projection;
+	bool animated;
 
 	static ShaderEnum color_space_enum;
 	static ShaderEnum projection_enum;
@@ -240,6 +243,14 @@ public:
 	static ShaderEnum distribution_enum;
 };
 
+class RefractionBsdfNode : public BsdfNode {
+public:
+	SHADER_NODE_CLASS(RefractionBsdfNode)
+
+	ustring distribution;
+	static ShaderEnum distribution_enum;
+};
+
 class EmissionNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(EmissionNode)
@@ -255,6 +266,11 @@ public:
 class HoldoutNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(HoldoutNode)
+};
+
+class AmbientOcclusionNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(AmbientOcclusionNode)
 };
 
 class VolumeNode : public ShaderNode {
@@ -333,6 +349,11 @@ public:
 class MixClosureNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(MixClosureNode)
+};
+
+class MixClosureWeightNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(MixClosureWeightNode);
 };
 
 class InvertNode : public ShaderNode {
@@ -455,6 +476,31 @@ public:
 	 * The actual socket names have to be stored externally to avoid memory errors. */
 	vector<ustring> input_names;
 	vector<ustring> output_names;
+};
+
+class NormalMapNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(NormalMapNode)
+	void attributes(AttributeRequestSet *attributes);
+
+	ustring space;
+	static ShaderEnum space_enum;
+
+	ustring attribute;
+};
+
+class TangentNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(TangentNode)
+	void attributes(AttributeRequestSet *attributes);
+
+	ustring direction_type;
+	static ShaderEnum direction_type_enum;
+
+	ustring axis;
+	static ShaderEnum axis_enum;
+
+	ustring attribute;
 };
 
 CCL_NAMESPACE_END

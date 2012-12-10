@@ -145,12 +145,14 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 				if (dmd->flag & MOD_DECIM_FLAG_INVERT_VGROUP) {
 					for (i = 0; i < vert_tot; i++) {
-						vweights[i] = 1.0f - defvert_find_weight(&dvert[i], defgrp_index);
+						const float f = 1.0f - defvert_find_weight(&dvert[i], defgrp_index);
+						vweights[i] = f > BM_MESH_DECIM_WEIGHT_EPS ? (1.0f / f) : BM_MESH_DECIM_WEIGHT_MAX;
 					}
 				}
 				else {
 					for (i = 0; i < vert_tot; i++) {
-						vweights[i] = defvert_find_weight(&dvert[i], defgrp_index);
+						const float f = defvert_find_weight(&dvert[i], defgrp_index);
+						vweights[i] = f > BM_MESH_DECIM_WEIGHT_EPS ? (1.0f / f) : BM_MESH_DECIM_WEIGHT_MAX;
 					}
 				}
 			}
@@ -186,6 +188,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	/* update for display only */
 	dmd->face_count = bm->totface;
 	result = CDDM_from_bmesh(bm, FALSE);
+	BLI_assert(bm->toolflagpool == NULL);  /* make sure we never alloc'd this */
 	BM_mesh_free(bm);
 
 #ifdef USE_TIMEIT

@@ -637,7 +637,7 @@ static void shadowbuf_autoclip(Render *re, LampRen *lar)
 
 	maxtotvert= 0;
 	for (obr=re->objecttable.first; obr; obr=obr->next)
-		maxtotvert= MAX2(obr->totvert, maxtotvert);
+		maxtotvert = max_ii(obr->totvert, maxtotvert);
 
 	clipflag= MEM_callocN(sizeof(char)*maxtotvert, "autoclipflag");
 

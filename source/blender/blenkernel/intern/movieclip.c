@@ -1176,13 +1176,16 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 
 					search_ibuf = BKE_tracking_get_search_imbuf(ibuf, track, &undist_marker, TRUE, TRUE);
 
-					if (!search_ibuf->rect_float) {
-						/* sampling happens in float buffer */
-						IMB_float_from_rect(search_ibuf);
+					if (search_ibuf) {
+						if (!search_ibuf->rect_float) {
+							/* sampling happens in float buffer */
+							IMB_float_from_rect(search_ibuf);
+						}
+
+						scopes->track_search = search_ibuf;
 					}
 
 					scopes->undist_marker = undist_marker;
-					scopes->track_search = search_ibuf;
 
 					scopes->frame_width = ibuf->x;
 					scopes->frame_height = ibuf->y;

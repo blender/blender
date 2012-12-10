@@ -44,15 +44,6 @@ typedef struct TextLine {
 	int len, blen; /* blen unused */
 } TextLine;
 
-typedef struct TextMarker {
-	struct TextMarker *next, *prev;
-
-	int lineno, start, end, pad1; /* line number and start/end character indices */
-	
-	int group, flags; /* see BKE_text.h for flag defines */
-	unsigned char color[4], pad[4]; /* draw color of the marker */
-} TextMarker;
-
 typedef struct Text {
 	ID id;
 	
@@ -63,7 +54,6 @@ typedef struct Text {
 	ListBase lines;
 	TextLine *curl, *sell;
 	int curc, selc;
-	ListBase markers;
 	
 	char *undo_buf;
 	int undo_pos, undo_len;
@@ -78,7 +68,6 @@ typedef struct Text {
 
 /* text flags */
 #define TXT_ISDIRTY             0x0001
-#define TXT_DEPRECATED          0x0004 /* deprecated ISTMP flag */
 #define TXT_ISMEM               0x0004
 #define TXT_ISEXT               0x0008
 #define TXT_ISSCRIPT            0x0010 /* used by space handler scriptlinks */

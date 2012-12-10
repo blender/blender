@@ -215,6 +215,9 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 			case NODE_CLOSURE_HOLDOUT:
 				svm_node_closure_holdout(sd, stack, node);
 				break;
+			case NODE_CLOSURE_AMBIENT_OCCLUSION:
+				svm_node_closure_ambient_occlusion(sd, stack, node);
+				break;
 			case NODE_CLOSURE_VOLUME:
 				svm_node_closure_volume(kg, sd, stack, node, path_flag);
 				break;
@@ -397,6 +400,16 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				break;
 			case NODE_LIGHT_FALLOFF:
 				svm_node_light_falloff(sd, stack, node);
+				break;
+#endif			
+#ifdef __ANISOTROPIC__
+			case NODE_TANGENT:
+				svm_node_tangent(kg, sd, stack, node);
+				break;
+#endif			
+#ifdef __NORMAL_MAP__
+			case NODE_NORMAL_MAP:
+				svm_node_normal_map(kg, sd, stack, node);
 				break;
 #endif			
 			case NODE_END:

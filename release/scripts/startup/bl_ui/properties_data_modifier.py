@@ -625,6 +625,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "wrap_method", text="")
 
         if md.wrap_method == 'PROJECT':
+            col.prop(md, "project_limit", text="Limit")
             split = layout.split(percentage=0.25)
 
             col = split.column()
@@ -642,8 +643,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             col.label(text="Cull Faces:")
             col.prop(md, "cull_face", expand=True)
 
-            layout.label(text="Auxiliary Target:")
-            layout.prop(md, "auxiliary_target", text="")
+            layout.prop(md, "auxiliary_target")
 
         elif md.wrap_method == 'NEAREST_SURFACEPOINT':
             layout.prop(md, "use_keep_above_surface")
@@ -1028,6 +1028,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "use_x_symmetry")
         col.prop(md, "use_y_symmetry")
         col.prop(md, "use_z_symmetry")
+
+    def TRIANGULATE(self, layout, ob, md):
+        layout.prop(md, "use_beauty")
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

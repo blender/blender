@@ -3,9 +3,11 @@
 
 set(SRC_OSL
 	node_add_closure.osl
+	node_ambient_occlusion.osl
 	node_attribute.osl
 	node_background.osl
 	node_brick_texture.osl
+	node_brightness.osl
 	node_bump.osl
 	node_camera.osl
 	node_checker_texture.osl
@@ -21,35 +23,37 @@ set(SRC_OSL
 	node_environment_texture.osl
 	node_fresnel.osl
 	node_gamma.osl
-	node_gradient_texture.osl
-	node_brightness.osl
 	node_geometry.osl
 	node_glass_bsdf.osl
 	node_glossy_bsdf.osl
+	node_gradient_texture.osl
 	node_holdout.osl
 	node_hsv.osl
 	node_image_texture.osl
 	node_invert.osl
 	node_layer_weight.osl
-	node_light_path.osl
 	node_light_falloff.osl
+	node_light_path.osl
 	node_magic_texture.osl
 	node_mapping.osl
 	node_math.osl
 	node_mix.osl
 	node_mix_closure.osl
 	node_musgrave_texture.osl
-	node_normal.osl
 	node_noise_texture.osl
+	node_normal.osl
+	node_normal_map.osl
 	node_object_info.osl
 	node_output_displacement.osl
 	node_output_surface.osl
 	node_output_volume.osl
 	node_particle_info.osl
+	node_refraction_bsdf.osl
 	node_rgb_ramp.osl
 	node_separate_rgb.osl
 	node_set_normal.osl
 	node_sky_texture.osl
+	node_tangent.osl
 	node_texture_coordinate.osl
 	node_translucent_bsdf.osl
 	node_transparent_bsdf.osl
@@ -85,7 +89,7 @@ foreach(_file ${SRC_OSL})
 	list(APPEND SRC_OSO
 		${_OSO_FILE}
 	)
-	
+
 	unset(_OSL_FILE)
 	unset(_OSO_FILE)
 endforeach()

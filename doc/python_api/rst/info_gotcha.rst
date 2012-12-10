@@ -5,6 +5,8 @@ Gotchas
 This document attempts to help you work with the Blender API in areas that can be troublesome and avoid practices that are known to give instability.
 
 
+.. _using_operators:
+
 Using Operators
 ===============
 
@@ -118,18 +120,19 @@ If you insist - yes its possible, but scripts that use this hack wont be conside
    bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
 
 
-I can't edit the mesh in edit-mode!
-===================================
+Modes and Mesh Access
+=====================
 
-Blender's EditMesh is an internal data structure (not saved and not exposed to python), this gives the main annoyance that you need to exit edit-mode to edit the mesh from python.
+When working with mesh data you may run into the problem where a script fails to run as expected in edit-mode. This is caused by edit-mode having its own data which is only written back to the mesh when exiting edit-mode.
 
-The reason we have not made much attempt to fix this yet is because we
-will likely move to BMesh mesh API eventually, so any work on the API now will be wasted effort.
+A common example is that exporters may access a mesh through ``obj.data`` (a :class:`bpy.types.Mesh`) but the user is in edit-mode, where the mesh data is available but out of sync with the edit mesh.
 
-With the BMesh API we may expose mesh data to python so we can
-write useful tools in python which are also fast to execute while in edit-mode.
+In this situation you can...
 
-For the time being this limitation just has to be worked around but we're aware its frustrating needs to be addressed.
+* Exit edit-mode before running the tool.
+* Explicitly update the mesh by calling :class:`bmesh.types.BMesh.to_mesh`.
+* Modify the script to support working on the edit-mode data directly, see: :mod:`bmesh.from_edit_mesh`.
+* Report the context as incorrect and only allow the script to run outside edit-mode.
 
 
 .. _info_gotcha_mesh_faces:
@@ -311,7 +314,7 @@ Naming Limitations
 
 A common mistake is to assume newly created data is given the requested name.
 
-This can cause bugs when you add some data (normally imported) and then reference it later by name.
+This can cause bugs when you add some data (normally imported) then reference it later by name.
 
 .. code-block:: python
 
@@ -493,7 +496,7 @@ Heres an example of threading supported by Blender:
        t.join()
 
 
-This an example of a timer which runs many times a second and moves the default cube continuously while Blender runs (Unsupported).
+This an example of a timer which runs many times a second and moves the default cube continuously while Blender runs **(Unsupported)**.
 
 .. code-block:: python
 
@@ -516,7 +519,7 @@ So far, no work has gone into making Blender's python integration thread safe, s
 
 .. note::
 
-   Pythons threads only allow co-currency and won't speed up your scripts on multi-processor systems, the ``subprocess`` and ``multiprocess`` modules can be used with blender and make use of multiple CPU's too.
+   Pythons threads only allow co-currency and won't speed up your scripts on multi-processor systems, the ``subprocess`` and ``multiprocess`` modules can be used with Blender and make use of multiple CPU's too.
 
 
 Help! My script crashes Blender
@@ -536,11 +539,18 @@ Here are some general hints to avoid running into these problems.
 
 * Crashes may not happen every time, they may happen more on some configurations/operating-systems.
 
+.. note::
+
+   To find the line of your script that crashes you can use the ``faulthandler`` module.
+   See `faulthandler docs <http://docs.python.org/dev/library/faulthandler.html>`_.
+
+   While the crash may be in Blenders C/C++ code, this can help a lot to track down the area of the script that causes the crash.
+
 
 Undo/Redo
 ---------
 
-Undo invalidates all :class:`bpy.types.ID` instances (Object, Scene, Mesh etc).
+Undo invalidates all :class:`bpy.types.ID` instances (Object, Scene, Mesh, Lamp... etc).
 
 This example shows how you can tell undo changes the memory locations.
 
@@ -555,6 +565,21 @@ This example shows how you can tell undo changes the memory locations.
    -9223372036849951740
 
 As suggested above, simply not holding references to data when Blender is used interactively by the user is the only way to ensure the script doesn't become unstable.
+
+
+Undo & Library Data
+^^^^^^^^^^^^^^^^^^^
+
+One of the advantages with Blenders library linking system that undo can skip checking changes in library data since it is assumed to be static.
+
+Tools in Blender are not allowed to modify library data.
+
+Python however does not enforce this restriction.
+
+This can be useful in some cases, using a script to adjust material values for example.
+But its also possible to use a script to make library data point to newly created local data, which is not supported since a call to undo will remove the local data but leave the library referencing it and likely crash.
+
+So it's best to consider modifying library data an advanced usage of the API and only to use it when you know what you're doing.
 
 
 Edit Mode / Memory Access
@@ -616,15 +641,36 @@ Removing Data
 
 **Any** data that you remove shouldn't be modified or accessed afterwards, this includes f-curves, drivers, render layers, timeline markers, modifiers, constraints along with objects, scenes, groups, bones.. etc.
 
-This is a problem in the API at the moment that we should eventually solve.
+The ``remove()`` api calls will invalidate the data they free to prevent common mistakes.
+
+The following example shows how this precortion works.
+
+.. code-block:: python
+
+   mesh = bpy.data.meshes.new(name="MyMesh")
+   # normally the script would use the mesh here...
+   bpy.data.meshes.remove(mesh)
+   print(mesh.name)  # <- give an exception rather then crashing:
+
+   # ReferenceError: StructRNA of type Mesh has been removed
+
+
+But take care because this is limited to scripts accessing the variable which is removed, the next example will still crash.
+
+.. code-block:: python
+
+   mesh = bpy.data.meshes.new(name="MyMesh")
+   vertices = mesh.vertices
+   bpy.data.meshes.remove(mesh)
+   print(vertices)  # <- this may crash
 
 
 sys.exit
 ========
 
-Some python modules will call sys.exit() themselves when an error occurs, while not common behavior this is something to watch out for because it may seem as if blender is crashing since sys.exit() will quit blender immediately.
+Some python modules will call ``sys.exit()`` themselves when an error occurs, while not common behavior this is something to watch out for because it may seem as if blender is crashing since ``sys.exit()`` will quit blender immediately.
 
 For example, the ``optparse`` module will print an error and exit if the arguments are invalid.
 
-An ugly way of troubleshooting this is to set ``sys.exit = None`` and see what line of python code is quitting, you could of course replace ``sys.exit``/ with your own function but manipulating python in this way is bad practice.
+An ugly way of troubleshooting this is to set ``sys.exit = None`` and see what line of python code is quitting, you could of course replace ``sys.exit`` with your own function but manipulating python in this way is bad practice.
 

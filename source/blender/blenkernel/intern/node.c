@@ -38,9 +38,13 @@
 
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
+#include "DNA_lamp_types.h"
+#include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_texture_types.h"
+#include "DNA_world_types.h"
 
 #include "BLI_string.h"
 #include "BLI_math.h"
@@ -406,13 +410,14 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 	
 	/* only shader nodes get pleasant preview updating this way, compo uses own system */
 	if (node->preview) {
-		if (ntree->type == NTREE_SHADER) {
+		if (ntree && (ntree->type == NTREE_SHADER)) {
 			nnode->preview = MEM_dupallocN(node->preview);
 			if (node->preview->rect)
 				nnode->preview->rect = MEM_dupallocN(node->preview->rect);
 		}
-		else 
+		else {
 			nnode->preview = NULL;
+		}
 	}
 	
 	if (ntree)
@@ -1151,6 +1156,18 @@ void ntreeSetOutput(bNodeTree *ntree)
 	
 	/* here we could recursively set which nodes have to be done,
 	 * might be different for editor or for "real" use... */
+}
+
+bNodeTree *ntreeFromID(ID *id)
+{
+	switch (GS(id->name)) {
+		case ID_MA: return ((Material*)id)->nodetree;
+		case ID_LA: return ((Lamp*)id)->nodetree;
+		case ID_WO: return ((World*)id)->nodetree;
+		case ID_TE: return ((Tex*)id)->nodetree;
+		case ID_SCE: return ((Scene*)id)->nodetree;
+		default: return NULL;
+	}
 }
 
 typedef struct MakeLocalCallData {
@@ -2153,8 +2170,6 @@ static void registerCompositNodes(bNodeTreeType *ttype)
 	register_node_type_reroute(ttype);
 	
 	register_node_type_cmp_group(ttype);
-//	register_node_type_cmp_forloop(ttype);
-//	register_node_type_cmp_whileloop(ttype);
 	
 	register_node_type_cmp_rlayers(ttype);
 	register_node_type_cmp_image(ttype);
@@ -2184,6 +2199,7 @@ static void registerCompositNodes(bNodeTreeType *ttype)
 	register_node_type_cmp_normal(ttype);
 	register_node_type_cmp_curve_vec(ttype);
 	register_node_type_cmp_map_value(ttype);
+	register_node_type_cmp_map_range(ttype);
 	register_node_type_cmp_normalize(ttype);
 	
 	register_node_type_cmp_filter(ttype);
@@ -2254,8 +2270,6 @@ static void registerShaderNodes(bNodeTreeType *ttype)
 	register_node_type_reroute(ttype);
 	
 	register_node_type_sh_group(ttype);
-	//register_node_type_sh_forloop(ttype);
-	//register_node_type_sh_whileloop(ttype);
 
 	register_node_type_sh_output(ttype);
 	register_node_type_sh_material(ttype);
@@ -2293,17 +2307,21 @@ static void registerShaderNodes(bNodeTreeType *ttype)
 	register_node_type_sh_particle_info(ttype);
 	register_node_type_sh_bump(ttype);
 	register_node_type_sh_script(ttype);
+	register_node_type_sh_tangent(ttype);
+	register_node_type_sh_normal_map(ttype);
 
 	register_node_type_sh_background(ttype);
 	register_node_type_sh_bsdf_anisotropic(ttype);
 	register_node_type_sh_bsdf_diffuse(ttype);
 	register_node_type_sh_bsdf_glossy(ttype);
 	register_node_type_sh_bsdf_glass(ttype);
+	register_node_type_sh_bsdf_refraction(ttype);
 	register_node_type_sh_bsdf_translucent(ttype);
 	register_node_type_sh_bsdf_transparent(ttype);
 	register_node_type_sh_bsdf_velvet(ttype);
 	register_node_type_sh_emission(ttype);
 	register_node_type_sh_holdout(ttype);
+	register_node_type_sh_ambient_occlusion(ttype);
 	//register_node_type_sh_volume_transparent(ttype);
 	//register_node_type_sh_volume_isotropic(ttype);
 	register_node_type_sh_mix_shader(ttype);
@@ -2332,8 +2350,6 @@ static void registerTextureNodes(bNodeTreeType *ttype)
 	register_node_type_reroute(ttype);
 	
 	register_node_type_tex_group(ttype);
-//	register_node_type_tex_forloop(ttype);
-//	register_node_type_tex_whileloop(ttype);
 	
 	register_node_type_tex_math(ttype);
 	register_node_type_tex_mix_rgb(ttype);

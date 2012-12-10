@@ -170,7 +170,7 @@
 } (void)0
 #endif
 
-#ifdef __BLI_MATH_INLINE_H__
+#if BLI_MATH_DO_INLINE
 #include "intern/math_base_inline.c"
 #endif
 
@@ -203,7 +203,7 @@ MINLINE int is_power_of_2_i(int n);
 MINLINE int power_of_2_max_i(int n);
 MINLINE int power_of_2_min_i(int n);
 
-MINLINE float shell_angle_to_dist(float angle);
+MINLINE float shell_angle_to_dist(const float angle);
 
 #if (defined(WIN32) || defined(WIN64)) && !defined(FREE_WINDOWS)
 extern double copysign(double x, double y);

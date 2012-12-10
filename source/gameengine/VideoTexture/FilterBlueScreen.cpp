@@ -1,24 +1,28 @@
 /*
------------------------------------------------------------------------------
-This source file is part of VideoTexture library
-
-Copyright (c) 2007 The Zdeno Ash Miklas
-
-This program is free software; you can redistribute it and/or modify it under
-the terms of the GNU Lesser General Public License as published by the Free Software
-Foundation; either version 2 of the License, or (at your option) any later
-version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public License along with
-this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-Place - Suite 330, Boston, MA 02111-1307, USA, or go to
-http://www.gnu.org/copyleft/lesser.txt.
------------------------------------------------------------------------------
-*/
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software  Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Copyright (c) 2007 The Zdeno Ash Miklas
+ *
+ * This source file is part of VideoTexture library
+ *
+ * Contributor(s):
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 
 /** \file gameengine/VideoTexture/FilterBlueScreen.cpp
  *  \ingroup bgevideotex
@@ -83,18 +87,21 @@ static PyObject *getColor (PyFilter *self, void *closure)
 static int setColor (PyFilter *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
-	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 3
-		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0))
-		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1))
-		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 2)))
+	if (value == NULL ||
+	    !(PyTuple_Check(value) || PyList_Check(value)) ||
+	    PySequence_Fast_GET_SIZE(value) != 3 ||
+	    !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0)) ||
+	    !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1)) ||
+	    !PyLong_Check(PySequence_Fast_GET_ITEM(value, 2)))
 	{
 		PyErr_SetString(PyExc_TypeError, "The value must be a sequence of 3 ints");
 		return -1;
 	}
 	// set color
-	getFilter(self)->setColor((unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 0))),
-		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 1))),
-		(unsigned char)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 2))));
+	getFilter(self)->setColor(
+	        (unsigned char)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 0))),
+	        (unsigned char)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 1))),
+	        (unsigned char)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 2))));
 	// success
 	return 0;
 }
@@ -110,16 +117,19 @@ static PyObject *getLimits (PyFilter *self, void *closure)
 static int setLimits (PyFilter *self, PyObject *value, void *closure)
 {
 	// check validity of parameter
-	if (value == NULL || !PySequence_Check(value) || PySequence_Size(value) != 2
-		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0))
-		|| !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1)))
+	if (value == NULL ||
+	    !(PyTuple_Check(value) || PyList_Check(value)) ||
+	    PySequence_Fast_GET_SIZE(value) != 2 ||
+	    !PyLong_Check(PySequence_Fast_GET_ITEM(value, 0)) ||
+	    !PyLong_Check(PySequence_Fast_GET_ITEM(value, 1)))
 	{
 		PyErr_SetString(PyExc_TypeError, "The value must be a sequence of 2 ints");
 		return -1;
 	}
 	// set limits
-	getFilter(self)->setLimits((unsigned short)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 0))),
-		(unsigned short)(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 1))));
+	getFilter(self)->setLimits(
+	        (unsigned short)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 0))),
+	        (unsigned short)(PyLong_AsLong(PySequence_Fast_GET_ITEM(value, 1))));
 	// success
 	return 0;
 }
@@ -159,14 +169,14 @@ PyTypeObject FilterBlueScreenType =
 	0,                         /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,        /*tp_flags*/
 	"Filter for Blue Screen objects",       /* tp_doc */
-	0,		               /* tp_traverse */
-	0,		               /* tp_clear */
-	0,		               /* tp_richcompare */
-	0,		               /* tp_weaklistoffset */
-	0,		               /* tp_iter */
-	0,		               /* tp_iternext */
-	NULL,                /* tp_methods */
-	0,                   /* tp_members */
+	0,                         /* tp_traverse */
+	0,                         /* tp_clear */
+	0,                         /* tp_richcompare */
+	0,                         /* tp_weaklistoffset */
+	0,                         /* tp_iter */
+	0,                         /* tp_iternext */
+	NULL,                      /* tp_methods */
+	0,                         /* tp_members */
 	filterBSGetSets,           /* tp_getset */
 	0,                         /* tp_base */
 	0,                         /* tp_dict */

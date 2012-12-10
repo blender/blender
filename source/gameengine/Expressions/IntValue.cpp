@@ -286,7 +286,7 @@ cInt CIntValue::GetInt()
 
 double CIntValue::GetNumber()
 {
-	return (float) m_int;
+	return (double) m_int;
 }
 
 
@@ -323,9 +323,6 @@ void CIntValue::SetValue(CValue* newval)
 #ifdef WITH_PYTHON
 PyObject *CIntValue::ConvertValueToPython()
 {
-	if ((m_int > INT_MIN) && (m_int < INT_MAX))
-		return PyLong_FromSsize_t(m_int);
-	else
-		return PyLong_FromLongLong(m_int);
+	return PyLong_FromLongLong(m_int);
 }
 #endif // WITH_PYTHON

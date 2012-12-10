@@ -554,6 +554,12 @@ class WM_MT_operator_presets(Menu):
 
     def draw(self, context):
         self.operator = context.active_operator.bl_idname
+
+        # dummy 'default' menu item
+        layout = self.layout
+        layout.operator("wm.operator_defaults")
+        layout.separator()
+
         Menu.draw_preset(self, context)
 
     @property

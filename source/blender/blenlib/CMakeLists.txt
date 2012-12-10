@@ -70,6 +70,7 @@ set(SRC
 	intern/math_color_inline.c
 	intern/math_geom.c
 	intern/math_geom_inline.c
+	intern/math_interp.c
 	intern/math_matrix.c
 	intern/math_rotation.c
 	intern/math_vector.c
@@ -127,6 +128,7 @@ set(SRC
 	BLI_math_color.h
 	BLI_math_geom.h
 	BLI_math_inline.h
+	BLI_math_interp.h
 	BLI_math_matrix.h
 	BLI_math_rotation.h
 	BLI_math_vector.h
@@ -173,3 +175,9 @@ if(WIN32)
 endif()
 
 blender_add_lib(bf_blenlib "${SRC}" "${INC}" "${INC_SYS}")
+
+if(MSVC)
+	# Quiet warning about inline math library files that do not export symbols.
+	# (normally you'd exclude from project, but we still want to see the files in MSVC)
+	set_target_properties(bf_blenlib PROPERTIES STATIC_LIBRARY_FLAGS /ignore:4221)
+endif()

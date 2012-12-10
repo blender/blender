@@ -14,6 +14,7 @@ set(INC_SYS
 
 set(SRC
 	background.cpp
+	bsdf_phong_ramp.cpp
 	emissive.cpp
 	osl_closures.cpp
 	osl_services.cpp

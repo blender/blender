@@ -394,7 +394,7 @@ class Mesh(bpy_types.ID):
             p.vertices = f
             loop_index += loop_len
 
-        # if no edges - calculae them
+        # if no edges - calculate them
         if faces and (not edges):
             self.update(calc_edges=True)
 

@@ -101,11 +101,8 @@ static int wm_keymap_item_equals_result(wmKeyMapItem *a, wmKeyMapItem *b)
 	if (strcmp(a->idname, b->idname) != 0)
 		return 0;
 	
-	if (!((a->ptr == NULL && b->ptr == NULL) ||
-	      (a->ptr && b->ptr && IDP_EqualsProperties(a->ptr->data, b->ptr->data))))
-	{
+	if (!RNA_struct_equals(a->ptr, b->ptr))
 		return 0;
-	}
 	
 	if ((a->flag & KMI_INACTIVE) != (b->flag & KMI_INACTIVE))
 		return 0;
@@ -395,7 +392,7 @@ int WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi)
 		}
 		BLI_freelinkN(&keymap->items, kmi);
 
-		WM_keyconfig_update_tag(keymap, kmi);
+		WM_keyconfig_update_tag(keymap, NULL);
 		return TRUE;
 	}
 	else {
@@ -545,7 +542,7 @@ static wmKeyMap *wm_keymap_patch_update(ListBase *lb, wmKeyMap *defaultmap, wmKe
 
 	/* copy new keymap from an existing one */
 	if (usermap && !(usermap->flag & KEYMAP_DIFF)) {
-		/* for compatibiltiy with old user preferences with non-diff
+		/* for compatibility with old user preferences with non-diff
 		 * keymaps we override the original entirely */
 		wmKeyMapItem *kmi, *orig_kmi;
 

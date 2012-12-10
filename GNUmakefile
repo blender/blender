@@ -173,14 +173,15 @@ help:
 	@echo "  * test_style_osl_qtc - checks OpenShadingLanguage conforms with blenders style guide: http://wiki.blender.org/index.php/Dev:Doc/CodeStyle"
 	@echo ""
 	@echo "Static Source Code Checking (not associated with building blender)"
-	@echo "  * check_cppcheck     - run blender source through cppcheck (C & C++)"
-	@echo "  * check_clang_array  - run blender source through clang array checking script (C & C++)"
-	@echo "  * check_splint       - run blenders source through splint (C only)"
-	@echo "  * check_sparse       - run blenders source through sparse (C only)"
-	@echo "  * check_smatch       - run blenders source through smatch (C only)"
-	@echo "  * check_spelling_c   - check for spelling errors (OSL only)"
-	@echo "  * check_spelling_osl - check for spelling errors (C/C++ only)"
-	@echo "  * check_spelling_py  - check for spelling errors (Python only)"
+	@echo "  * check_cppcheck       - run blender source through cppcheck (C & C++)"
+	@echo "  * check_clang_array    - run blender source through clang array checking script (C & C++)"
+	@echo "  * check_splint         - run blenders source through splint (C only)"
+	@echo "  * check_sparse         - run blenders source through sparse (C only)"
+	@echo "  * check_smatch         - run blenders source through smatch (C only)"
+	@echo "  * check_spelling_c     - check for spelling errors (OSL only)"
+	@echo "  * check_spelling_c_qtc - same as check_spelling_c but outputs QtCreator tasks format"
+	@echo "  * check_spelling_osl   - check for spelling errors (C/C++ only)"
+	@echo "  * check_spelling_py    - check for spelling errors (Python only)"
 	@echo ""
 	@echo "Utilities (not associated with building blender)"
 	@echo "  * tbz      - create a compressed svn export 'blender_archive.tar.bz2'"
@@ -240,13 +241,13 @@ test_style_c_qtc:
 
 test_style_osl:
 	# run our own checks on C/C++ style
-	PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/check_style_c.py $(BLENDER_DIR)/intern/cycles/kernel/osl
+	PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/check_style_c.py $(BLENDER_DIR)/intern/cycles/kernel/shaders
 
 
 test_style_osl_qtc:
 	# run our own checks on C/C++ style
 	USE_QTC_TASK=1 \
-	PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/check_style_c.py $(BLENDER_DIR)/intern/cycles/kernel/osl > \
+	PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/check_style_c.py $(BLENDER_DIR)/intern/cycles/kernel/shaders > \
 	test_style.tasks
 	@echo "written: test_style.tasks"
 
@@ -270,32 +271,44 @@ project_eclipse:
 
 check_cppcheck:
 	$(CMAKE_CONFIG)
-	cd $(BUILD_DIR) ; python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_cppcheck.py
+	cd $(BUILD_DIR) ; \
+	python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_cppcheck.py
 
 check_clang_array:
 	$(CMAKE_CONFIG)
-	cd $(BUILD_DIR) ; python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_clang_array.py
+	cd $(BUILD_DIR) ; \
+	python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_clang_array.py
 
 check_splint:
 	$(CMAKE_CONFIG)
-	cd $(BUILD_DIR) ; python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_splint.py
+	cd $(BUILD_DIR) ; \
+	python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_splint.py
 
 check_sparse:
 	$(CMAKE_CONFIG)
-	cd $(BUILD_DIR) ; python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_sparse.py
+	cd $(BUILD_DIR) ; \
+	python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_sparse.py
 
 check_smatch:
 	$(CMAKE_CONFIG)
-	cd $(BUILD_DIR) ; python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_smatch.py
+	cd $(BUILD_DIR) ; \
+	python3 $(BLENDER_DIR)/build_files/cmake/cmake_static_check_smatch.py
 
 check_spelling_py:
-	cd $(BUILD_DIR) ; PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/spell_check_source.py $(BLENDER_DIR)/release/scripts
+	cd $(BUILD_DIR) ; \
+	PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/spell_check_source.py $(BLENDER_DIR)/release/scripts
 
 check_spelling_c:
-	cd $(BUILD_DIR) ; PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/spell_check_source.py $(BLENDER_DIR)/source
+	cd $(BUILD_DIR) ; \
+	PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/spell_check_source.py $(BLENDER_DIR)/source
+
+check_spelling_c_qtc:
+	cd $(BUILD_DIR) ; USE_QTC_TASK=1 \
+	PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/spell_check_source.py $(BLENDER_DIR)/source > \
+	$(BLENDER_DIR)/check_spelling_c.tasks
 
 check_spelling_osl:
-	cd $(BUILD_DIR) ; PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/spell_check_source.py $(BLENDER_DIR)/intern/cycles/kernel/osl
+	cd $(BUILD_DIR) ; PYTHONIOENCODING=utf_8 python3 $(BLENDER_DIR)/source/tools/spell_check_source.py $(BLENDER_DIR)/intern/cycles/kernel/shaders
 
 # -----------------------------------------------------------------------------
 # Utilities

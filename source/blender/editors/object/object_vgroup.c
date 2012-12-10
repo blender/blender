@@ -400,22 +400,22 @@ typedef enum WT_ReplaceMode {
 } WT_ReplaceMode;
 
 static EnumPropertyItem WT_vertex_group_mode_item[] = {
-	{WT_REPLACE_ACTIVE_VERTEX_GROUP, "WT_REPLACE_ACTIVE_VERTEX_GROUP", 1, "Active", "Transfer active vertex group from selected to active mesh"},
-	{WT_REPLACE_ALL_VERTEX_GROUPS, "WT_REPLACE_ALL_VERTEX_GROUPS", 1, "All", "Transfer all vertex groups from selected to active mesh"},
+	{WT_REPLACE_ACTIVE_VERTEX_GROUP, "WT_REPLACE_ACTIVE_VERTEX_GROUP", 0, "Active", "Transfer active vertex group from selected to active mesh"},
+	{WT_REPLACE_ALL_VERTEX_GROUPS, "WT_REPLACE_ALL_VERTEX_GROUPS", 0, "All", "Transfer all vertex groups from selected to active mesh"},
 	{0, NULL, 0, NULL, NULL}
 };
 
 static EnumPropertyItem WT_method_item[] = {
-	{WT_BY_INDEX, "WT_BY_INDEX", 1, "Vertex index", "Copy for identical meshes"},
-	{WT_BY_NEAREST_VERTEX, "WT_BY_NEAREST_VERTEX", 1, "Nearest vertex", "Copy weight from closest vertex"},
-	{WT_BY_NEAREST_FACE, "WT_BY_NEAREST_FACE", 1, "Nearest face", "Barycentric interpolation from nearest face"},
-	{WT_BY_NEAREST_VERTEX_IN_FACE, "WT_BY_NEAREST_VERTEX_IN_FACE", 1, "Nearest vertex in face", "Copy weight from closest vertex in nearest face"},
+	{WT_BY_INDEX, "WT_BY_INDEX", 0, "Vertex index", "Copy for identical meshes"},
+	{WT_BY_NEAREST_VERTEX, "WT_BY_NEAREST_VERTEX", 0, "Nearest vertex", "Copy weight from closest vertex"},
+	{WT_BY_NEAREST_FACE, "WT_BY_NEAREST_FACE", 0, "Nearest face", "Barycentric interpolation from nearest face"},
+	{WT_BY_NEAREST_VERTEX_IN_FACE, "WT_BY_NEAREST_VERTEX_IN_FACE", 0, "Nearest vertex in face", "Copy weight from closest vertex in nearest face"},
 	{0, NULL, 0, NULL, NULL}
 };
 
 static EnumPropertyItem WT_replace_mode_item[] = {
-	{WT_REPLACE_ALL_WEIGHTS, "WT_REPLACE_ALL_WEIGHTS", 1, "All", "Overwrite all weights"},
-	{WT_REPLACE_EMPTY_WEIGHTS, "WT_REPLACE_EMPTY_WEIGHTS", 1, "Empty", "Add weights to vertices with no weight"},
+	{WT_REPLACE_ALL_WEIGHTS, "WT_REPLACE_ALL_WEIGHTS", 0, "All", "Overwrite all weights"},
+	{WT_REPLACE_EMPTY_WEIGHTS, "WT_REPLACE_EMPTY_WEIGHTS", 0, "Empty", "Add weights to vertices with no weight"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -845,25 +845,26 @@ void ED_vgroup_vert_remove(Object *ob, bDeformGroup *dg, int vertnum)
 static float get_vert_def_nr(Object *ob, const int def_nr, const int vertnum)
 {
 	MDeformVert *dv = NULL;
-	BMVert *eve;
-	Mesh *me;
 
 	/* get the deform vertices corresponding to the vertnum */
 	if (ob->type == OB_MESH) {
-		me = ob->data;
+		Mesh *me = ob->data;
 
 		if (me->edit_btmesh) {
-			eve = BM_vert_at_index(me->edit_btmesh->bm, vertnum);
+			/* warning, this lookup is _not_ fast */
+			BMVert *eve = BM_vert_at_index(me->edit_btmesh->bm, vertnum);
 			if (!eve) {
 				return 0.0f;
 			}
 			dv = CustomData_bmesh_get(&me->edit_btmesh->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 		}
 		else {
-			if (vertnum >= me->totvert) {
-				return 0.0f;
+			if (me->dvert) {
+				if (vertnum >= me->totvert) {
+					return 0.0f;
+				}
+				dv = &me->dvert[vertnum];
 			}
-			dv = &me->dvert[vertnum];
 		}
 	}
 	else if (ob->type == OB_LATTICE) {
@@ -2573,7 +2574,7 @@ static int vertex_group_add_exec(bContext *C, wmOperator *UNUSED(op))
 
 	ED_vgroup_add(ob);
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, ob->data);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	
 	return OPERATOR_FINISHED;
@@ -2604,7 +2605,7 @@ static int vertex_group_remove_exec(bContext *C, wmOperator *op)
 		vgroup_delete(ob);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, ob->data);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	
 	return OPERATOR_FINISHED;
@@ -2770,7 +2771,7 @@ static int vertex_group_copy_exec(bContext *C, wmOperator *UNUSED(op))
 	vgroup_duplicate(ob);
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+	WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, ob->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -3198,7 +3199,7 @@ static int vertex_group_copy_to_linked_exec(bContext *C, wmOperator *UNUSED(op))
 
 				DAG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 				WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, base->object);
-				WM_event_add_notifier(C, NC_GEOM | ND_DATA, base->object->data);
+				WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, base->object->data);
 
 				retval = OPERATOR_FINISHED;
 			}
@@ -3355,7 +3356,7 @@ static int set_active_group_exec(bContext *C, wmOperator *op)
 	ob->actdef = nr + 1;
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob);
+	WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -3519,7 +3520,7 @@ static int vertex_group_sort_exec(bContext *C, wmOperator *op)
 
 	if (ret != OPERATOR_CANCELLED) {
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob);
+		WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, ob);
 	}
 
 	if (name_array) MEM_freeN(name_array);
@@ -3574,7 +3575,7 @@ static int vgroup_move_exec(bContext *C, wmOperator *op)
 
 	if (ret != OPERATOR_CANCELLED) {
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob);
+		WM_event_add_notifier(C, NC_GEOM | ND_VERTEX_GROUP, ob);
 	}
 
 	return ret;

@@ -643,8 +643,8 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 
 			/* apply transformation of previous parenting */
 			if (keep_transform) {
-				 /* was removed because of bug [#23577],
-				  * but this can be handy in some cases too [#32616], so make optional */
+				/* was removed because of bug [#23577],
+				 * but this can be handy in some cases too [#32616], so make optional */
 				BKE_object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
 			}
 
@@ -2148,7 +2148,7 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *even
 	
 	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
-	WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING, ma);
+	WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, ma);
 	
 	return OPERATOR_FINISHED;
 }

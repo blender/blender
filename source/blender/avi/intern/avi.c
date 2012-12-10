@@ -665,13 +665,13 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
 			}
 		}
 
-/* Some AVI's have offset entries in absolute coordinates
- * instead of an offset from the movie beginning... this is...
- * wacky, but we need to handle it. The wacky offset always
- * starts at movi_offset it seems... so we'll check that.
- * Note the the offset needs an extra 4 bytes for some 
- * undetermined reason */
- 
+		/* Some AVI's have offset entries in absolute coordinates
+		 * instead of an offset from the movie beginning... this is...
+		 * wacky, but we need to handle it. The wacky offset always
+		 * starts at movi_offset it seems... so we'll check that.
+		 * Note the the offset needs an extra 4 bytes for some
+		 * undetermined reason */
+
 		if (movie->entries[0].Offset == movie->movi_offset)
 			movie->read_offset = 4;
 	}
