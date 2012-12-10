@@ -1964,7 +1964,7 @@ if(WITH_PYTHON)
 	if(WITH_PYTHON_INSTALL AND WITH_PYTHON_INSTALL_NUMPY)
 		# set but invalid
         # -- disabled until we make numpy bundled with blender - campbell
-		if(NOT ${PYTHON_NUMPY_PATH} STREQUAL "")
+		if((NOT ${PYTHON_NUMPY_PATH} STREQUAL "") AND (NOT ${PYTHON_NUMPY_PATH} MATCHES NOTFOUND))
 #			if(NOT EXISTS "${PYTHON_NUMPY_PATH}/numpy")
 #				message(WARNING "PYTHON_NUMPY_PATH is invalid, numpy not found in '${PYTHON_NUMPY_PATH}' "
 #				                "WITH_PYTHON_INSTALL_NUMPY option will be ignored when installing python")
