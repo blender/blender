@@ -1523,12 +1523,7 @@ static int knife_sample_screen_density(KnifeTool_OpData *kcd, float radius)
 				dis = len_v2v2(kfv->sco, sco);
 				if (dis < radius) {
 					if (kcd->vc.rv3d->rflag & RV3D_CLIPPING) {
-						float vec[3];
-
-						copy_v3_v3(vec, kfv->cageco);
-						mul_m4_v3(kcd->vc.obedit->obmat, vec);
-
-						if (ED_view3d_clipping_test(kcd->vc.rv3d, vec, TRUE) == 0) {
+						if (ED_view3d_clipping_test(kcd->vc.rv3d, kfv->cageco, TRUE) == 0) {
 							c++;
 						}
 					}
@@ -1599,7 +1594,6 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 					float vec[3];
 
 					interp_v3_v3v3(vec, kfe->v1->cageco, kfe->v2->cageco, labda);
-					mul_m4_v3(kcd->vc.obedit->obmat, vec);
 
 					if (ED_view3d_clipping_test(kcd->vc.rv3d, vec, TRUE) == 0) {
 						cure = kfe;
@@ -1691,12 +1685,7 @@ static KnifeVert *knife_find_closest_vert(KnifeTool_OpData *kcd, float p[3], flo
 				dis = len_v2v2(kfv->sco, sco);
 				if (dis < curdis && dis < maxdist) {
 					if (kcd->vc.rv3d->rflag & RV3D_CLIPPING) {
-						float vec[3];
-
-						copy_v3_v3(vec, kfv->cageco);
-						mul_m4_v3(kcd->vc.obedit->obmat, vec);
-
-						if (ED_view3d_clipping_test(kcd->vc.rv3d, vec, TRUE) == 0) {
+						if (ED_view3d_clipping_test(kcd->vc.rv3d, kfv->cageco, TRUE) == 0) {
 							curv = kfv;
 							curdis = dis;
 						}
@@ -3121,6 +3110,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	view3d_operator_needs_opengl(C);
+	ED_view3d_init_mats_rv3d(obedit, kcd->vc.rv3d);  /* needed to initialize clipping */
 
 	if (kcd->mode == MODE_PANNING)
 		kcd->mode = kcd->prevmode;
