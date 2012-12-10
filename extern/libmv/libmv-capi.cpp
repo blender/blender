@@ -117,51 +117,7 @@ void libmv_setLoggingVerbosity(int verbosity)
 	V3D::optimizerVerbosenessLevel = verbosity;
 }
 
-/* ************ RegionTracker ************ */
-
-libmv_RegionTracker *libmv_pyramidRegionTrackerNew(int max_iterations, int pyramid_level, int half_window_size, double minimum_correlation)
-{
-	libmv::EsmRegionTracker *esm_region_tracker = new libmv::EsmRegionTracker;
-	esm_region_tracker->half_window_size = half_window_size;
-	esm_region_tracker->max_iterations = max_iterations;
-	esm_region_tracker->min_determinant = 1e-4;
-	esm_region_tracker->minimum_correlation = minimum_correlation;
-
-	libmv::PyramidRegionTracker *pyramid_region_tracker =
-		new libmv::PyramidRegionTracker(esm_region_tracker, pyramid_level);
-
-	return (libmv_RegionTracker *)pyramid_region_tracker;
-}
-
-libmv_RegionTracker *libmv_hybridRegionTrackerNew(int max_iterations, int half_window_size, double minimum_correlation)
-{
-	libmv::EsmRegionTracker *esm_region_tracker = new libmv::EsmRegionTracker;
-	esm_region_tracker->half_window_size = half_window_size;
-	esm_region_tracker->max_iterations = max_iterations;
-	esm_region_tracker->min_determinant = 1e-4;
-	esm_region_tracker->minimum_correlation = minimum_correlation;
-
-	libmv::BruteRegionTracker *brute_region_tracker = new libmv::BruteRegionTracker;
-	brute_region_tracker->half_window_size = half_window_size;
-
-	/* do not use correlation check for brute checker itself,
-	 * this check will happen in esm tracker */
-	brute_region_tracker->minimum_correlation = 0.0;
-
-	libmv::HybridRegionTracker *hybrid_region_tracker =
-		new libmv::HybridRegionTracker(brute_region_tracker, esm_region_tracker);
-
-	return (libmv_RegionTracker *)hybrid_region_tracker;
-}
-
-libmv_RegionTracker *libmv_bruteRegionTrackerNew(int half_window_size, double minimum_correlation)
-{
-	libmv::BruteRegionTracker *brute_region_tracker = new libmv::BruteRegionTracker;
-	brute_region_tracker->half_window_size = half_window_size;
-	brute_region_tracker->minimum_correlation = minimum_correlation;
-
-	return (libmv_RegionTracker *)brute_region_tracker;
-}
+/* ************ Utility ************ */
 
 static void floatBufToImage(const float *buf, int width, int height, int channels, libmv::FloatImage *image)
 {
@@ -315,43 +271,6 @@ static void saveBytesImage(const char *prefix, unsigned char *data, int width, i
 	free(row_pointers);
 }
 #endif
-
-int libmv_regionTrackerTrack(libmv_RegionTracker *libmv_tracker, const float *ima1, const float *ima2,
-			 int width, int height, double x1, double y1, double *x2, double *y2)
-{
-	libmv::RegionTracker *region_tracker = (libmv::RegionTracker *)libmv_tracker;
-	libmv::FloatImage old_patch, new_patch;
-
-	floatBufToImage(ima1, width, height, 1, &old_patch);
-	floatBufToImage(ima2, width, height, 1, &new_patch);
-
-#if !defined(DUMP_FAILURE) && !defined(DUMP_ALWAYS)
-	return region_tracker->Track(old_patch, new_patch, x1, y1, x2, y2);
-#else
-	{
-		/* double sx2 = *x2, sy2 = *y2; */
-		int result = region_tracker->Track(old_patch, new_patch, x1, y1, x2, y2);
-
-#if defined(DUMP_ALWAYS)
-		{
-#else
-		if (!result) {
-#endif
-			saveImage("old_patch", old_patch, x1, y1);
-			saveImage("new_patch", new_patch, *x2, *y2);
-		}
-
-		return result;
-	}
-#endif
-}
-
-void libmv_regionTrackerDestroy(libmv_RegionTracker *libmv_tracker)
-{
-	libmv::RegionTracker *region_tracker= (libmv::RegionTracker *)libmv_tracker;
-
-	delete region_tracker;
-}
 
 /* ************ Planar tracker ************ */
 
@@ -1004,52 +923,6 @@ void libmv_CameraIntrinsicsDistortFloat(struct libmv_CameraIntrinsics *libmvIntr
 	libmv::CameraIntrinsics *intrinsics = (libmv::CameraIntrinsics *) libmvIntrinsics;
 
 	intrinsics->Distort(src, dst, width, height, overscan, channels);
-}
-
-/* ************ distortion ************ */
-
-void libmv_undistortByte(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
-                         unsigned char *src, unsigned char *dst, int width, int height,
-                         float overscan, int channels)
-{
-	libmv::CameraIntrinsics camera_intrinsics;
-
-	cameraIntrinsicsFromOptions(&camera_intrinsics, libmv_camera_intrinsics_options);
-
-	camera_intrinsics.Undistort(src, dst, width, height, overscan, channels);
-}
-
-void libmv_undistortFloat(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
-                          float *src, float *dst, int width, int height,
-                          float overscan, int channels)
-{
-	libmv::CameraIntrinsics camera_intrinsics;
-
-	cameraIntrinsicsFromOptions(&camera_intrinsics, libmv_camera_intrinsics_options);
-
-	camera_intrinsics.Undistort(src, dst, width, height, overscan, channels);
-}
-
-void libmv_distortByte(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
-                       unsigned char *src, unsigned char *dst, int width, int height,
-                       float overscan, int channels)
-{
-	libmv::CameraIntrinsics camera_intrinsics;
-
-	cameraIntrinsicsFromOptions(&camera_intrinsics, libmv_camera_intrinsics_options);
-
-	camera_intrinsics.Distort(src, dst, width, height, overscan, channels);
-}
-
-void libmv_distortFloat(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
-                        float *src, float *dst, int width, int height,
-                        float overscan, int channels)
-{
-	libmv::CameraIntrinsics camera_intrinsics;
-
-	cameraIntrinsicsFromOptions(&camera_intrinsics, libmv_camera_intrinsics_options);
-
-	camera_intrinsics.Distort(src, dst, width, height, overscan, channels);
 }
 
 /* ************ utils ************ */

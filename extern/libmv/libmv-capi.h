@@ -42,14 +42,6 @@ void libmv_initLogging(const char *argv0);
 void libmv_startDebugLogging(void);
 void libmv_setLoggingVerbosity(int verbosity);
 
-/* RegionTracker */
-struct libmv_RegionTracker *libmv_pyramidRegionTrackerNew(int max_iterations, int pyramid_level, int half_window_size, double minimum_correlation);
-struct libmv_RegionTracker *libmv_hybridRegionTrackerNew(int max_iterations, int half_window_size, double minimum_correlation);
-struct libmv_RegionTracker *libmv_bruteRegionTrackerNew(int half_window_size, double minimum_correlation);
-int libmv_regionTrackerTrack(struct libmv_RegionTracker *libmv_tracker, const float *ima1, const float *ima2,
-			int width, int height, double  x1, double  y1, double *x2, double *y2);
-void libmv_regionTrackerDestroy(struct libmv_RegionTracker *libmv_tracker);
-
 /* TrackRegion (new planar tracker) */
 struct libmv_trackRegionOptions {
 	int motion_model;
@@ -162,17 +154,6 @@ void libmv_CameraIntrinsicsDistortByte(struct libmv_CameraIntrinsics *libmv_intr
 			unsigned char *src, unsigned char *dst, int width, int height, float overscan, int channels);
 
 void libmv_CameraIntrinsicsDistortFloat(struct libmv_CameraIntrinsics *libmv_intrinsics,
-			float *src, float *dst, int width, int height, float overscan, int channels);
-
-/* dsitortion */
-void libmv_undistortByte(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
-			unsigned char *src, unsigned char *dst, int width, int height, float overscan, int channels);
-void libmv_undistortFloat(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
-			float *src, float *dst, int width, int height, float overscan, int channels);
-
-void libmv_distortByte(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
-			unsigned char *src, unsigned char *dst, int width, int height, float overscan, int channels);
-void libmv_distortFloat(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
 			float *src, float *dst, int width, int height, float overscan, int channels);
 
 /* utils */
