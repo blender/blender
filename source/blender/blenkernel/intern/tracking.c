@@ -1426,6 +1426,27 @@ void BKE_tracking_camera_get_reconstructed_interpolate(MovieTracking *tracking, 
 
 /*********************** Distortion/Undistortion *************************/
 
+#ifdef WITH_LIBMV
+static void cameraIntrinscisOptionsFromTracking(libmv_cameraIntrinsicsOptions *camera_intrinsics_options,
+                                                MovieTracking *tracking, int calibration_width, int calibration_height)
+{
+	MovieTrackingCamera *camera = &tracking->camera;
+	float aspy = 1.0f / tracking->camera.pixel_aspect;
+
+	camera_intrinsics_options->focal_length = camera->focal;
+
+	camera_intrinsics_options->principal_point_x = camera->principal[0];
+	camera_intrinsics_options->principal_point_y = camera->principal[1] * aspy;
+
+	camera_intrinsics_options->k1 = camera->k1;
+	camera_intrinsics_options->k2 = camera->k2;
+	camera_intrinsics_options->k3 = camera->k3;
+
+	camera_intrinsics_options->image_width = calibration_width;
+	camera_intrinsics_options->image_height = (double) calibration_height * aspy;
+}
+#endif
+
 MovieDistortion *BKE_tracking_distortion_new(void)
 {
 	MovieDistortion *distortion;
@@ -1438,21 +1459,17 @@ MovieDistortion *BKE_tracking_distortion_new(void)
 void BKE_tracking_distortion_update(MovieDistortion *distortion, MovieTracking *tracking,
                                     int calibration_width, int calibration_height)
 {
-	MovieTrackingCamera *camera = &tracking->camera;
-	float aspy = 1.0f / tracking->camera.pixel_aspect;
-
 #ifdef WITH_LIBMV
+	libmv_cameraIntrinsicsOptions camera_intrinsics_options;
+
+	cameraIntrinscisOptionsFromTracking(&camera_intrinsics_options, tracking,
+	                                    calibration_width, calibration_height);
+
 	if (!distortion->intrinsics) {
-		distortion->intrinsics = libmv_CameraIntrinsicsNew(camera->focal,
-		                                                   camera->principal[0], camera->principal[1] * aspy,
-		                                                   camera->k1, camera->k2, camera->k3,
-		                                                   calibration_width, calibration_height * aspy);
+		distortion->intrinsics = libmv_CameraIntrinsicsNew(&camera_intrinsics_options);
 	}
 	else {
-		libmv_CameraIntrinsicsUpdate(distortion->intrinsics, camera->focal,
-		                             camera->principal[0], camera->principal[1] * aspy,
-		                             camera->k1, camera->k2, camera->k3,
-		                             calibration_width, calibration_height * aspy);
+		libmv_CameraIntrinsicsUpdate(distortion->intrinsics, &camera_intrinsics_options);
 	}
 #else
 	(void) distortion;
@@ -1540,15 +1557,17 @@ void BKE_tracking_distort_v2(MovieTracking *tracking, const float co[2], float r
 	MovieTrackingCamera *camera = &tracking->camera;
 
 #ifdef WITH_LIBMV
+	libmv_cameraIntrinsicsOptions camera_intrinsics_options;
 	double x, y;
 	float aspy = 1.0f / tracking->camera.pixel_aspect;
+
+	cameraIntrinscisOptionsFromTracking(&camera_intrinsics_options, tracking, 0, 0);
 
 	/* normalize coords */
 	x = (co[0] - camera->principal[0]) / camera->focal;
 	y = (co[1] - camera->principal[1] * aspy) / camera->focal;
 
-	libmv_applyCameraIntrinsics(camera->focal, camera->principal[0], camera->principal[1] * aspy,
-	                            camera->k1, camera->k2, camera->k3, x, y, &x, &y);
+	libmv_applyCameraIntrinsics(&camera_intrinsics_options, x, y, &x, &y);
 
 	/* result is in image coords already */
 	r_co[0] = x;
@@ -1565,11 +1584,13 @@ void BKE_tracking_undistort_v2(MovieTracking *tracking, const float co[2], float
 	MovieTrackingCamera *camera = &tracking->camera;
 
 #ifdef WITH_LIBMV
+	libmv_cameraIntrinsicsOptions camera_intrinsics_options;
 	double x = co[0], y = co[1];
 	float aspy = 1.0f / tracking->camera.pixel_aspect;
 
-	libmv_InvertIntrinsics(camera->focal, camera->principal[0], camera->principal[1] * aspy,
-	                       camera->k1, camera->k2, camera->k3, x, y, &x, &y);
+	cameraIntrinscisOptionsFromTracking(&camera_intrinsics_options, tracking, 0, 0);
+
+	libmv_InvertIntrinsics(&camera_intrinsics_options, x, y, &x, &y);
 
 	r_co[0] = x * camera->focal + camera->principal[0];
 	r_co[1] = y * camera->focal + camera->principal[1] * aspy;
@@ -2944,6 +2965,9 @@ static void camraIntrincicsOptionsFromContext(libmv_cameraIntrinsicsOptions *cam
 	camera_intrinsics_options->k1 = context->k1;
 	camera_intrinsics_options->k2 = context->k2;
 	camera_intrinsics_options->k3 = context->k3;
+
+	camera_intrinsics_options->image_width = 0;
+	camera_intrinsics_options->image_height = 0;
 }
 
 static void reconstructionOptionsFromContext(libmv_reconstructionOptions *reconstruction_options,
