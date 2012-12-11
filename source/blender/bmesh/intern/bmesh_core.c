@@ -78,7 +78,7 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example, cons
 		copy_v3_v3(v->co, co);
 	}
 
-	/* allocate flag */
+	/* allocate flags */
 	if (bm->toolflagpool) {
 		v->oflags = BLI_mempool_calloc(bm->toolflagpool);
 	}
@@ -132,7 +132,7 @@ BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example,
 
 	e->head.htype = BM_EDGE;
 	
-	/* allocate flag */
+	/* allocate flags */
 	if (bm->toolflagpool) {
 		e->oflags = BLI_mempool_calloc(bm->toolflagpool);
 	}
@@ -295,7 +295,7 @@ BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm, const eBMCreateFlag creat
 
 	f->head.htype = BM_FACE;
 
-	/* allocate flag */
+	/* allocate flags */
 	if (bm->toolflagpool) {
 		f->oflags = BLI_mempool_calloc(bm->toolflagpool);
 	}
@@ -321,7 +321,7 @@ BMFace *BM_face_create(BMesh *bm, BMVert **verts, BMEdge **edges, const int len,
 	int i, overlap;
 	
 	if (len == 0) {
-		/* just return NULL for no */
+		/* just return NULL for now */
 		return NULL;
 	}
 
@@ -814,11 +814,11 @@ static int bm_loop_reverse_loop(BMesh *bm, BMFace *f
 			}
 		}
 	}
-	/* rebuild radia */
+	/* rebuild radial */
 	for (i = 0, l_iter = l_first; i < len; i++, l_iter = l_iter->next)
 		bmesh_radial_append(l_iter->e, l_iter);
 
-	/* validate radia */
+	/* validate radial */
 	for (i = 0, l_iter = l_first; i < len; i++, l_iter = l_iter->next) {
 		BM_CHECK_ELEMENT(l_iter);
 		BM_CHECK_ELEMENT(l_iter->e);
@@ -1068,7 +1068,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const short do_del
 		} while (l2 != l_iter);
 
 		if (l2 != l_iter) {
-			/* I think this is correct */
+			/* I think this is correct? */
 			if (l2->v != l_iter->v) {
 				l2 = l2->next;
 			}
@@ -1080,7 +1080,7 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const short do_del
 	BM_elem_attrs_copy(bm, bm, faces[0], newf);
 
 #ifdef USE_BMESH_HOLES
-	/* add hole */
+	/* add holes */
 	BLI_movelisttolist(&newf->loops, &holes);
 #endif
 
@@ -1396,7 +1396,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 	/* add ne to tv's disk cycle */
 	bmesh_disk_edge_append(ne, tv);
 
-	/* verify disk cycle */
+	/* verify disk cycles */
 	edok = bmesh_disk_validate(valence1, ov->e, ov);
 	BMESH_ASSERT(edok != FALSE);
 	edok = bmesh_disk_validate(valence2, tv->e, tv);
@@ -1483,7 +1483,7 @@ BMVert *bmesh_semv(BMesh *bm, BMVert *tv, BMEdge *e, BMEdge **r_e)
 			BMESH_ASSERT(l->v != l->next->v);
 			BMESH_ASSERT(l->e != l->next->e);
 
-			/* verify loop cycle for kloop-> */
+			/* verify loop cycle for kloop->f */
 			BM_CHECK_ELEMENT(l);
 			BM_CHECK_ELEMENT(l->v);
 			BM_CHECK_ELEMENT(l->e);
@@ -1564,7 +1564,7 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_dou
 		oe = bmesh_disk_edge_next(ke, kv);
 		tv = bmesh_edge_other_vert_get(ke, kv);
 		ov = bmesh_edge_other_vert_get(oe, kv);
-		halt = bmesh_verts_in_edge(kv, tv, oe); /* check for double edge */
+		halt = bmesh_verts_in_edge(kv, tv, oe); /* check for double edges */
 		
 		if (halt) {
 			return NULL;
@@ -1572,7 +1572,7 @@ BMEdge *bmesh_jekv(BMesh *bm, BMEdge *ke, BMVert *kv, const short check_edge_dou
 		else {
 			BMEdge *e_splice;
 
-			/* For verification later, count valence of ov and t */
+			/* For verification later, count valence of ov and tv */
 			valence1 = bmesh_disk_count(ov);
 			valence2 = bmesh_disk_count(tv);
 

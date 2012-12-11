@@ -152,14 +152,14 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 		return TRUE;
 	}
 	else if (keepedge == NULL && len == 2) {
-		/* collapse the verte */
+		/* collapse the vertex */
 		e = BM_vert_collapse_faces(bm, v->e, v, 1.0, TRUE, TRUE);
 
 		if (!e) {
 			return FALSE;
 		}
 
-		/* handle two-valenc */
+		/* handle two-valence */
 		f = e->l->f;
 		f2 = e->l->radial_next->f;
 
@@ -205,12 +205,12 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 			return FALSE;
 		}
 		
-		/* get remaining two face */
+		/* get remaining two faces */
 		f = e->l->f;
 		f2 = e->l->radial_next->f;
 
 		if (f != f2) {
-			/* join two remaining face */
+			/* join two remaining faces */
 			if (!BM_faces_join_pair(bm, f, f2, e, TRUE)) {
 				return FALSE;
 			}
@@ -343,7 +343,7 @@ BMFace *BM_face_split(BMesh *bm, BMFace *f, BMVert *v1, BMVert *v2, BMLoop **r_l
 
 	BLI_assert(v1 != v2);
 
-	/* do we have a multires layer */
+	/* do we have a multires layer? */
 	if (has_mdisp) {
 		of = BM_face_copy(bm, f, FALSE, FALSE);
 	}
@@ -649,7 +649,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 		r_e = &e_dummy;
 	}
 
-	/* do we have a multi-res layer */
+	/* do we have a multi-res layer? */
 	if (do_mdisp) {
 		BMLoop *l;
 		int i;
@@ -689,7 +689,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 	if (do_mdisp) {
 		int i, j;
 
-		/* interpolate new/changed loop data from copied old face */
+		/* interpolate new/changed loop data from copied old faces */
 		for (j = 0; j < 2; j++) {
 			for (i = 0; i < BLI_array_count(oldfaces); i++) {
 				BMEdge *e1 = j ? *r_e : e;
@@ -716,7 +716,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 			}
 		}
 		
-		/* destroy the old face */
+		/* destroy the old faces */
 		for (i = 0; i < BLI_array_count(oldfaces); i++) {
 			BM_face_verts_kill(bm, oldfaces[i]);
 		}

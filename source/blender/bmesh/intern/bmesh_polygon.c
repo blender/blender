@@ -1042,7 +1042,7 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		}
 	}
 
-	/* do line crossing test */
+	/* do line crossing tests */
 	for (i = 0; i < f->len; i++) {
 		p1 = projverts[i];
 		p2 = projverts[(i + 1) % f->len];

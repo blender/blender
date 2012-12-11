@@ -965,7 +965,7 @@ static BMesh *BME_bevel_initialize(BMesh *bm, int options,
 	BMIter iter;
 	int /* wire, */ len;
 
-	/* tag non-manifold geometr */
+	/* tag non-manifold geometry */
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		BMO_elem_flag_enable(bm, v, BME_BEVEL_ORIG);
 		if (v->e) {

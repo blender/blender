@@ -339,7 +339,7 @@ static BMOpDefine bmo_automerge_def = {
 static BMOpDefine bmo_collapse_def = {
 	"collapse",
 	/* slots_in */
-	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* input edge */
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* input edges */
 	 {{'\0'}},
 	},
 	{{{'\0'}}},  /* no output */
@@ -374,7 +374,7 @@ static BMOpDefine bmo_pointmerge_facedata_def = {
 static BMOpDefine bmo_average_vert_facedata_def = {
 	"average_vert_facedata",
 	/* slots_in */
-	{{"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}}, /* input vertice */
+	{{"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}}, /* input vertices */
 	 {{'\0'}},
 	},
 	{{{'\0'}}},  /* no output */
@@ -390,7 +390,7 @@ static BMOpDefine bmo_average_vert_facedata_def = {
 static BMOpDefine bmo_pointmerge_def = {
 	"pointmerge",
 	/* slots_in */
-	{{"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}}, /* input vertice */
+	{{"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}}, /* input vertices */
 	 {"merge_co",         BMO_OP_SLOT_VEC},
 	 {{'\0'}},
 	},
@@ -407,7 +407,7 @@ static BMOpDefine bmo_pointmerge_def = {
 static BMOpDefine bmo_collapse_uvs_def = {
 	"collapse_uvs",
 	/* slots_in */
-	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* input edge */
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* input edges */
 	 {{'\0'}},
 	},
 	{{{'\0'}}},  /* no output */
@@ -513,7 +513,7 @@ static BMOpDefine bmo_contextual_create_def = {
 static BMOpDefine bmo_bridge_loops_def = {
 	"bridge_loops",
 	/* slots_in */
-	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* input edge */
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* input edges */
 	 {"use_merge",        BMO_OP_SLOT_BOOL},
 	 {"merge_factor",         BMO_OP_SLOT_FLT},
 	 {{'\0'}},
@@ -534,7 +534,7 @@ static BMOpDefine bmo_bridge_loops_def = {
 static BMOpDefine bmo_edgenet_fill_def = {
 	"edgenet_fill",
 	/* slots_in */
-	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* input edge */
+	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* input edges */
 	/* restricts edges to groups.  maps edges to integer */
 	 {"restrict",     BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_BOOL}},
 	 {"use_restrict",        BMO_OP_SLOT_BOOL},
@@ -547,7 +547,7 @@ static BMOpDefine bmo_edgenet_fill_def = {
 	/* slots_out */
 	/* maps new faces to the group numbers they came from */
 	{{"face_groupmap.out",     BMO_OP_SLOT_MAPPING, {BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
-	 {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},     /* new face */
+	 {"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},     /* new faces */
 	 {{'\0'}},
 	},
 	bmo_edgenet_fill_exec,
@@ -962,7 +962,7 @@ static BMOpDefine bmo_subdivide_edges_def = {
 	{/* these next three can have multiple types of elements in them */
 	 {"geom_inner.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
 	 {"geom_split.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},
-	 {"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}}, /* contains all output geometr */
+	 {"geom.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}}, /* contains all output geometry */
 	 {{'\0'}},
 	},
 	bmo_subdivide_edges_exec,

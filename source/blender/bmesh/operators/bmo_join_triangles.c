@@ -331,13 +331,13 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 					}
 				}
 				
-				/* if l isn't NULL, we broke out of the loo */
+				/* if l isn't NULL, we broke out of the loop */
 				if (l) {
 					break;
 				}
 			}
 
-			/* if i isn't 2, we broke out of that loo */
+			/* if i isn't 2, we broke out of that loop */
 			if (i != 2) {
 				continue;
 			}

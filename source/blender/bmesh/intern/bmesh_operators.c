@@ -1176,7 +1176,7 @@ static void bmo_flag_layer_alloc(BMesh *bm)
 
 	bm->totflags++;
 
-	/* allocate new flag poo */
+	/* allocate new flag pool */
 	bm->toolflagpool = newpool = BLI_mempool_create(sizeof(BMFlagLayer) * bm->totflags, 512, 512, 0);
 	
 	/* now go through and memcpy all the flags. Loops don't get a flag layer at this time.. */
@@ -1224,10 +1224,10 @@ static void bmo_flag_layer_free(BMesh *bm)
 
 	/* de-increment the totflags first.. */
 	bm->totflags--;
-	/* allocate new flag poo */
+	/* allocate new flag pool */
 	bm->toolflagpool = newpool = BLI_mempool_create(new_totflags_size, 512, 512, 0);
 	
-	/* now go through and memcpy all the flag */
+	/* now go through and memcpy all the flags */
 	BM_ITER_MESH_INDEX (ele, &iter, bm, BM_VERTS_OF_MESH, i) {
 		oldflags = ele->oflags;
 		ele->oflags = BLI_mempool_calloc(newpool);
@@ -1265,7 +1265,7 @@ static void bmo_flag_layer_clear(BMesh *bm)
 	BMIter iter;
 	const int totflags_offset = bm->totflags - 1;
 
-	/* now go through and memcpy all the flag */
+	/* now go through and memcpy all the flags */
 	BM_ITER_MESH_INDEX (ele, &iter, bm, BM_VERTS_OF_MESH, i) {
 		memset(ele->oflags + totflags_offset, 0, sizeof(BMFlagLayer));
 		BM_elem_index_set(ele, i); /* set_inline */
@@ -1364,7 +1364,7 @@ void *BMO_iter_step(BMOIter *iter)
 	return NULL;
 }
 
-/* used for iterating over mapping */
+/* used for iterating over mappings */
 void *BMO_iter_map_value(BMOIter *iter)
 {
 	return iter->val;
@@ -1380,7 +1380,7 @@ float BMO_iter_map_value_f(BMOIter *iter)
 	return *((float *)iter->val);
 }
 
-/* error syste */
+/* error system */
 typedef struct BMOpError {
 	struct BMOpError *next, *prev;
 	int errorcode;
@@ -1562,7 +1562,7 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, v
 		goto error;          \
 	} (void)0
 
-	/* we muck around in here, so dup i */
+	/* we muck around in here, so dup it */
 	fmt = ofmt = BLI_strdup(_fmt);
 	
 	/* find operator name */
@@ -1589,11 +1589,11 @@ int BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, v
 
 	while (*fmt) {
 		if (state) {
-			/* jump past leading whitespac */
+			/* jump past leading whitespace */
 			i = strspn(fmt, " ");
 			fmt += i;
 			
-			/* ignore trailing whitespac */
+			/* ignore trailing whitespace */
 			if (!fmt[i])
 				break;
 
