@@ -641,7 +641,6 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 	BMFace **oldfaces = NULL;
 	BMEdge *e_dummy;
 	BLI_array_staticdeclare(oldfaces, 32);
-	SmallHash hash;
 	const int do_mdisp = (e->l && CustomData_has_layer(&bm->ldata, CD_MDISPS));
 
 	/* we need this for handling multi-res */
@@ -660,12 +659,11 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 			l = l->radial_next;
 		} while (l != e->l);
 		
-		/* create a hash so we can differentiate oldfaces from new face */
-		BLI_smallhash_init(&hash);
-		
+		/* flag existing faces so we can differentiate oldfaces from new faces */
 		for (i = 0; i < BLI_array_count(oldfaces); i++) {
+			BM_ELEM_API_FLAG_ENABLE(oldfaces[i], _FLAG_OVERLAP);
 			oldfaces[i] = BM_face_copy(bm, oldfaces[i], TRUE, TRUE);
-			BLI_smallhash_insert(&hash, (intptr_t)oldfaces[i], NULL);
+			BM_ELEM_API_FLAG_DISABLE(oldfaces[i], _FLAG_OVERLAP);
 		}
 	}
 
@@ -703,7 +701,8 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 				}
 				
 				do {
-					if (!BLI_smallhash_haskey(&hash, (intptr_t)l->f)) {
+					/* check this is an old face */
+					if (BM_ELEM_API_FLAG_TEST(l->f, _FLAG_OVERLAP)) {
 						BMLoop *l2_first;
 
 						l2 = l2_first = BM_FACE_FIRST_LOOP(l->f);
@@ -741,7 +740,6 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float perce
 #endif
 		
 		BLI_array_free(oldfaces);
-		BLI_smallhash_release(&hash);
 	}
 
 	return nv;
