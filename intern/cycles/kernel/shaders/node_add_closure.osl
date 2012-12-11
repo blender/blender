@@ -19,9 +19,9 @@
 #include "stdosl.h"
 
 shader node_add_closure(
-	closure color Closure1 = background(),
-	closure color Closure2 = background(),
-	output closure color Closure = background())
+	closure color Closure1 = 0,
+	closure color Closure2 = 0,
+	output closure color Closure = 0)
 {
 	Closure = Closure1 + Closure2;
 }

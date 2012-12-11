@@ -282,9 +282,9 @@ shader node_mix(
 	string type = "Mix",
 	int Clamp = 0,
 	float Fac = 0.5,
-	color Color1 = color(0.0, 0.0, 0.0),
-	color Color2 = color(0.0, 0.0, 0.0),
-	output color Color = color(0.0, 0.0, 0.0))
+	color Color1 = 0.0,
+	color Color2 = 0.0,
+	output color Color = 0.0)
 {
 	float t = clamp(Fac, 0.0, 1.0);
 

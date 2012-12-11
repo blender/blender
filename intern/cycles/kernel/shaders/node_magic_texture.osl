@@ -99,7 +99,7 @@ shader node_magic_texture(
 	float Distortion = 5.0,
 	float Scale = 5.0,
 	point Vector = P,
-	output color Color = color(0.0, 0.0, 0.0))
+	output color Color = 0.0)
 {
 	point p = Vector;
 

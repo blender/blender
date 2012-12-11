@@ -19,9 +19,9 @@
 #include "stdosl.h"
 
 shader node_translucent_bsdf(
-	color Color = color(0.8, 0.8, 0.8),
+	color Color = 0.8,
 	normal Normal = N,
-	output closure color BSDF = diffuse(Normal))
+	output closure color BSDF = 0)
 {
 	BSDF = Color * translucent(Normal);
 }

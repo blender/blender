@@ -48,7 +48,7 @@ shader node_environment_texture(
 	string filename = "",
 	string projection = "Equirectangular",
 	string color_space = "sRGB",
-	output color Color = color(0.0, 0.0, 0.0),
+	output color Color = 0.0,
 	output float Alpha = 1.0)
 {
 	vector p = Vector;

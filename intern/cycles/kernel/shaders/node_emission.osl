@@ -20,9 +20,9 @@
 
 shader node_emission(
 	int TotalPower = 0,
-	color Color = color(0.8, 0.8, 0.8),
+	color Color = 0.8,
 	float Strength = 1.0,
-	output closure color Emission = emission())
+	output closure color Emission = 0)
 {
 	if (TotalPower)
 		Emission = ((Strength / surfacearea()) * Color) * emission();

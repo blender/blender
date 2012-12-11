@@ -18,7 +18,7 @@
 
 #include "stdosl.h"
 
-surface node_output_surface(closure color Surface = background())
+surface node_output_surface(closure color Surface = 0)
 {
 	Ci = Surface;
 }

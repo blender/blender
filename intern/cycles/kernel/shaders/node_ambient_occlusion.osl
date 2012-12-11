@@ -20,8 +20,8 @@
 
 shader node_ambient_occlusion(
 	normal NormalIn = N,
-	color Color = color(0.8, 0.8, 0.8),
-	output closure color AO = ambient_occlusion())
+	color Color = 0.8,
+	output closure color AO = 0)
 {
 	AO = Color * ambient_occlusion();
 }

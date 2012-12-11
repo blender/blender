@@ -37,7 +37,7 @@ shader node_image_texture(
 	string color_space = "sRGB",
 	string projection = "Flat",
 	float projection_blend = 0.0,
-	output color Color = color(0.0, 0.0, 0.0),
+	output color Color = 0.0,
 	output float Alpha = 1.0)
 {
 	point p = Vector;

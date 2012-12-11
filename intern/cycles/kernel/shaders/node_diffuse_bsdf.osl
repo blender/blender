@@ -19,10 +19,10 @@
 #include "stdosl.h"
 
 shader node_diffuse_bsdf(
-	color Color = color(0.8, 0.8, 0.8),
+	color Color = 0.8,
 	float Roughness = 0.0,
 	normal Normal = N,
-	output closure color BSDF = diffuse(Normal))
+	output closure color BSDF = 0)
 {
 	if (Roughness == 0.0)
 		BSDF = Color * diffuse(Normal);

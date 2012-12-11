@@ -40,9 +40,9 @@ float ramp_lookup(color ramp[RAMP_TABLE_SIZE], float at, int component)
 shader node_rgb_curves(
 	color ramp[RAMP_TABLE_SIZE] = {0.0},
 
-	color ColorIn = color(0.0, 0.0, 0.0),
+	color ColorIn = 0.0,
 	float Fac = 0.0,
-	output color ColorOut = color(0.0, 0.0, 0.0))
+	output color ColorOut = 0.0)
 {
 	ColorOut[0] = ramp_lookup(ramp, ColorIn[0], 0);
 	ColorOut[1] = ramp_lookup(ramp, ColorIn[1], 1);

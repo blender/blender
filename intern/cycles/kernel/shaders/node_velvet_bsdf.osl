@@ -20,10 +20,10 @@
 #include "node_fresnel.h"
 
 shader node_velvet_bsdf(
-	color Color = color(0.8, 0.8, 0.8),
+	color Color = 0.8,
 	float Sigma = 0.0,
 	normal Normal = N,
-	output closure color BSDF = diffuse(Normal))
+	output closure color BSDF = 0)
 {
 	float sigma = clamp(Sigma, 0.0, 1.0);
 

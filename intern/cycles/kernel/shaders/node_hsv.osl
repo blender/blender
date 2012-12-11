@@ -24,8 +24,8 @@ shader node_hsv(
 	float Saturation = 1.0,
 	float Value = 1.0,
 	float Fac = 0.5,
-	color ColorIn = color(0.0, 0.0, 0.0),
-	output color ColorOut = color(0.0, 0.0, 0.0))
+	color ColorIn = 0.0,
+	output color ColorOut = 0.0)
 {
 	color Color = rgb_to_hsv(ColorIn);
 

@@ -28,7 +28,7 @@ shader node_voronoi_texture(
 	float Scale = 5.0,
 	point Vector = P,
 	output float Fac = 0.0,
-	output color Color = color(0.0, 0.0, 0.0))
+	output color Color = 0.0)
 {
 	point p = Vector;
 
