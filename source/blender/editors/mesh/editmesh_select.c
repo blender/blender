@@ -573,7 +573,7 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
 
 			data.mval_fl[0] = vc->mval[0];
 			data.mval_fl[1] = vc->mval[1];
-			data.dist = 0x7FFF;     /* largest short */
+			data.dist = FLT_MAX;
 			data.toFace = efa;
 
 			mesh_foreachScreenFace(vc, findnearestface__getDistance, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
