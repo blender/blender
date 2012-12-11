@@ -199,6 +199,10 @@
 
 
 /* alloca */
+#ifdef _MSC_VER
+#  define alloca _alloca
+#endif
+
 #if defined(__GNUC__) || defined(__clang__)
 #define BLI_array_alloca(arr, realsize) \
 	(typeof(arr))alloca(sizeof(*arr) * (realsize))
