@@ -161,7 +161,7 @@ void view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera
 	if (lens) sms.new_lens = *lens;
 
 	if (camera) {
-		sms.new_dist = ED_view3d_offset_distance(camera->obmat, ofs);
+		sms.new_dist = ED_view3d_offset_distance(camera->obmat, ofs, VIEW3D_DIST_FALLBACK);
 		ED_view3d_from_object(camera, sms.new_ofs, sms.new_quat, &sms.new_dist, &sms.new_lens);
 		sms.to_camera = TRUE; /* restore view3d values in end */
 	}
@@ -186,7 +186,7 @@ void view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera
 
 			/* original values */
 			if (oldcamera) {
-				sms.orig_dist = ED_view3d_offset_distance(oldcamera->obmat, rv3d->ofs);
+				sms.orig_dist = ED_view3d_offset_distance(oldcamera->obmat, rv3d->ofs, 0.0f);
 				ED_view3d_from_object(oldcamera, sms.orig_ofs, sms.orig_quat, &sms.orig_dist, &sms.orig_lens);
 			}
 			else {
