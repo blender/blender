@@ -20,6 +20,7 @@
 #include "../closure/bsdf_diffuse.h"
 #include "../closure/bsdf_oren_nayar.h"
 #include "../closure/bsdf_phong_ramp.h"
+#include "../closure/bsdf_diffuse_ramp.h"
 #include "../closure/bsdf_microfacet.h"
 #include "../closure/bsdf_reflection.h"
 #include "../closure/bsdf_refraction.h"
@@ -47,6 +48,10 @@ __device int svm_bsdf_sample(const ShaderData *sd, const ShaderClosure *sc, floa
 			break;
 		/*case CLOSURE_BSDF_PHONG_RAMP_ID:
 			label = bsdf_phong_ramp_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
+				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
+			break;
+		case CLOSURE_BSDF_DIFFUSE_RAMP_ID:
+			label = bsdf_diffuse_ramp_sample(sc, sd->Ng, sd->I, sd->dI.dx, sd->dI.dy, randu, randv,
 				eval, omega_in, &domega_in->dx, &domega_in->dy, pdf);
 			break;*/
 		case CLOSURE_BSDF_TRANSLUCENT_ID:
@@ -117,6 +122,9 @@ __device float3 svm_bsdf_eval(const ShaderData *sd, const ShaderClosure *sc, con
 				break;
 			/*case CLOSURE_BSDF_PHONG_RAMP_ID:
 				eval = bsdf_phong_ramp_eval_reflect(sc, sd->I, omega_in, pdf);
+				break;
+			case CLOSURE_BSDF_DIFFUSE_RAMP_ID:
+				eval = bsdf_diffuse_ramp_eval_reflect(sc, sd->I, omega_in, pdf);
 				break;*/
 			case CLOSURE_BSDF_TRANSLUCENT_ID:
 				eval = bsdf_translucent_eval_reflect(sc, sd->I, omega_in, pdf);
@@ -223,6 +231,9 @@ __device void svm_bsdf_blur(ShaderClosure *sc, float roughness)
 			break;
 		/*case CLOSURE_BSDF_PHONG_RAMP_ID:
 			bsdf_phong_ramp_blur(sc, roughness);
+			break;
+		case CLOSURE_BSDF_DIFFUSE_RAMP_ID:
+			bsdf_diffuse_ramp_blur(sc, roughness);
 			break;*/
 		case CLOSURE_BSDF_TRANSLUCENT_ID:
 			bsdf_translucent_blur(sc, roughness);
