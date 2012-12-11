@@ -2812,7 +2812,7 @@ static void rna_def_render_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_sdna(srna, "RenderData");
 	RNA_def_struct_ui_text(srna, "Render Layers", "Collection of render layers");
 
-	prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "actlay");
 	RNA_def_property_int_funcs(prop, "rna_RenderSettings_active_layer_index_get",
 	                           "rna_RenderSettings_active_layer_index_set",
@@ -2820,7 +2820,7 @@ static void rna_def_render_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_ui_text(prop, "Active Layer Index", "Active index in render layer array");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 	
-	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_UNSIGNED);
+	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "SceneRenderLayer");
 	RNA_def_property_pointer_funcs(prop, "rna_RenderSettings_active_layer_get",
 	                               "rna_RenderSettings_active_layer_set", NULL, NULL);

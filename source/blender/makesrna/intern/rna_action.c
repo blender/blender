@@ -596,7 +596,7 @@ static void rna_def_action_pose_markers(BlenderRNA *brna, PropertyRNA *cprop)
 	                               "rna_Action_active_pose_marker_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Pose Marker", "Active pose marker for this action");
 	
-	prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "active_marker");
 	RNA_def_property_int_funcs(prop, "rna_Action_active_pose_marker_index_get",
 	                           "rna_Action_active_pose_marker_index_set", "rna_Action_active_pose_marker_index_range");
