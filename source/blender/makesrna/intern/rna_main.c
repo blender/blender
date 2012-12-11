@@ -260,7 +260,7 @@ static void rna_Main_masks_begin(CollectionPropertyIterator *iter, PointerRNA *p
 
 static void rna_Main_linestyle_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-	Main *bmain= (Main*)ptr->data;
+	Main *bmain = (Main*)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->linestyle, NULL);
 }
 

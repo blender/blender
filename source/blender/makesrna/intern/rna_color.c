@@ -195,8 +195,8 @@ static char *rna_ColorRamp_path(PointerRNA *ptr)
 				char *path = FRS_path_from_ID_to_color_ramp((FreestyleLineStyle *)id, (ColorBand *)ptr->data);
 				if (path)
 					return path;
-			}
 				break;
+			}
 		}
 	}
 	else {
@@ -279,8 +279,8 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 					COLRAMP_GETPATH;
 				}
 				BLI_freelistN(&listbase);
-			}
 				break;
+			}
 
 			default: /* everything else should have a "color_ramp" property */
 			{
@@ -338,8 +338,8 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 				FreestyleLineStyle *linestyle= ptr->id.data;
 
 				WM_main_add_notifier(NC_LINESTYLE, linestyle);
-			}
 				break;
+			}
 			default:
 				break;
 		}

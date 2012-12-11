@@ -1,7 +1,4 @@
-/* linestyle.c
- *
- * $Id$
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -26,6 +23,10 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/blenkernel/intern/linestyle.c
+ *  \ingroup bke
  */
 
 #include <stdio.h>
@@ -68,20 +69,21 @@ static const char *modifier_name[LS_MODIFIER_NUM] = {
 	"Guiding Lines",
 	"Blueprint",
 	"2D Offset",
-	"2D Transform"};
+	"2D Transform",
+};
 
 static void default_linestyle_settings(FreestyleLineStyle *linestyle)
 {
 	linestyle->panel = LS_PANEL_STROKES;
-	linestyle->r = linestyle->g = linestyle->b = 0.0;
-	linestyle->alpha = 1.0;
-	linestyle->thickness = 1.0;
+	linestyle->r = linestyle->g = linestyle->b = 0.0f;
+	linestyle->alpha = 1.0f;
+	linestyle->thickness = 1.0f;
 	linestyle->thickness_position = LS_THICKNESS_CENTER;
 	linestyle->thickness_ratio = 0.5f;
 	linestyle->chaining = LS_CHAINING_PLAIN;
 	linestyle->rounds = 3;
-	linestyle->min_angle = 0.0f;
-	linestyle->max_angle = 0.0f;
+	linestyle->min_angle = DEG2RADF(0.0f);
+	linestyle->max_angle = DEG2RADF(0.0f);
 	linestyle->min_length = 0.0f;
 	linestyle->max_length = 10000.0f;
 	linestyle->split_length = 100;
@@ -104,7 +106,7 @@ FreestyleLineStyle *FRS_new_linestyle(const char *name, struct Main *main)
 		main = G.main;
 
 	linestyle = (FreestyleLineStyle *)BKE_libblock_alloc(&main->linestyle, ID_LS, name);
-	
+
 	default_linestyle_settings(linestyle);
 
 	return linestyle;
@@ -130,7 +132,7 @@ FreestyleLineStyle *FRS_copy_linestyle(FreestyleLineStyle *linestyle)
 	FreestyleLineStyle *new_linestyle;
 	LineStyleModifier *m;
 
-	new_linestyle = FRS_new_linestyle(linestyle->id.name+2, NULL);
+	new_linestyle = FRS_new_linestyle(linestyle->id.name + 2, NULL);
 	FRS_free_linestyle(new_linestyle);
 
 	new_linestyle->r = linestyle->r;
@@ -164,6 +166,7 @@ FreestyleLineStyle *FRS_copy_linestyle(FreestyleLineStyle *linestyle)
 		FRS_copy_linestyle_thickness_modifier(new_linestyle, m);
 	for (m = (LineStyleModifier *)linestyle->geometry_modifiers.first; m; m = m->next)
 		FRS_copy_linestyle_geometry_modifier(new_linestyle, m);
+
 	return new_linestyle;
 }
 
@@ -178,6 +181,7 @@ static LineStyleModifier *new_modifier(int type, size_t size)
 		m->influence = 1.0f;
 		m->flags = LS_MODIFIER_ENABLED | LS_MODIFIER_EXPANDED;
 	}
+
 	return m;
 }
 
@@ -207,17 +211,19 @@ static LineStyleModifier *alloc_color_modifier(int type)
 	default:
 		return NULL; /* unknown modifier type */
 	}
+
 	return new_modifier(type, size);
 }
 
 LineStyleModifier *FRS_add_linestyle_color_modifier(FreestyleLineStyle *linestyle, int type)
 {
 	LineStyleModifier *m;
-	
+
 	m = alloc_color_modifier(type);
 	if (!m)
 		return NULL;
 	m->blend = MA_RAMP_BLEND;
+
 	switch (type) {
 	case LS_MODIFIER_ALONG_STROKE:
 		((LineStyleColorModifier_AlongStroke *)m)->color_ramp = add_colorband(1);
@@ -248,13 +254,14 @@ LineStyleModifier *FRS_add_linestyle_color_modifier(FreestyleLineStyle *linestyl
 LineStyleModifier *FRS_copy_linestyle_color_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m)
 {
 	LineStyleModifier *new_m;
-	
+
 	new_m = alloc_color_modifier(m->type);
 	if (!new_m)
 		return NULL;
 	new_m->influence = m->influence;
 	new_m->flags = m->flags;
 	new_m->blend = m->blend;
+
 	switch (m->type) {
 	case LS_MODIFIER_ALONG_STROKE:
 		{
@@ -341,11 +348,12 @@ static LineStyleModifier *alloc_alpha_modifier(int type)
 LineStyleModifier *FRS_add_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, int type)
 {
 	LineStyleModifier *m;
-	
+
 	m = alloc_alpha_modifier(type);
 	if (!m)
 		return NULL;
 	m->blend = LS_VALUE_BLEND;
+
 	switch (type) {
 	case LS_MODIFIER_ALONG_STROKE:
 		((LineStyleAlphaModifier_AlongStroke *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
@@ -376,13 +384,14 @@ LineStyleModifier *FRS_add_linestyle_alpha_modifier(FreestyleLineStyle *linestyl
 LineStyleModifier *FRS_copy_linestyle_alpha_modifier(FreestyleLineStyle *linestyle, LineStyleModifier *m)
 {
 	LineStyleModifier *new_m;
-	
+
 	new_m = alloc_alpha_modifier(m->type);
 	if (!new_m)
 		return NULL;
 	new_m->influence = m->influence;
 	new_m->flags = m->flags;
 	new_m->blend = m->blend;
+
 	switch (m->type) {
 	case LS_MODIFIER_ALONG_STROKE:
 		{
@@ -466,6 +475,7 @@ static LineStyleModifier *alloc_thickness_modifier(int type)
 	default:
 		return NULL; /* unknown modifier type */
 	}
+
 	return new_modifier(type, size);
 }
 
@@ -477,6 +487,7 @@ LineStyleModifier *FRS_add_linestyle_thickness_modifier(FreestyleLineStyle *line
 	if (!m)
 		return NULL;
 	m->blend = LS_VALUE_BLEND;
+
 	switch (type) {
 	case LS_MODIFIER_ALONG_STROKE:
 		((LineStyleThicknessModifier_AlongStroke *)m)->curve = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
@@ -527,6 +538,7 @@ LineStyleModifier *FRS_copy_linestyle_thickness_modifier(FreestyleLineStyle *lin
 	new_m->influence = m->influence;
 	new_m->flags = m->flags;
 	new_m->blend = m->blend;
+
 	switch (m->type) {
 	case LS_MODIFIER_ALONG_STROKE:
 		{
@@ -652,6 +664,7 @@ static LineStyleModifier *alloc_geometry_modifier(int type)
 	default:
 		return NULL; /* unknown modifier type */
 	}
+
 	return new_modifier(type, size);
 }
 
@@ -662,70 +675,71 @@ LineStyleModifier *FRS_add_linestyle_geometry_modifier(FreestyleLineStyle *lines
 	m = alloc_geometry_modifier(type);
 	if (!m)
 		return NULL;
+
 	switch (type) {
 	case LS_MODIFIER_SAMPLING:
-		((LineStyleGeometryModifier_Sampling *)m)->sampling = 10.0;
+		((LineStyleGeometryModifier_Sampling *)m)->sampling = 10.0f;
 		break;
 	case LS_MODIFIER_BEZIER_CURVE:
-		((LineStyleGeometryModifier_BezierCurve *)m)->error = 10.0;
+		((LineStyleGeometryModifier_BezierCurve *)m)->error = 10.0f;
 		break;
 	case LS_MODIFIER_SINUS_DISPLACEMENT:
-		((LineStyleGeometryModifier_SinusDisplacement *)m)->wavelength = 20.0;
-		((LineStyleGeometryModifier_SinusDisplacement *)m)->amplitude = 5.0;
-		((LineStyleGeometryModifier_SinusDisplacement *)m)->phase = 0.0;
+		((LineStyleGeometryModifier_SinusDisplacement *)m)->wavelength = 20.0f;
+		((LineStyleGeometryModifier_SinusDisplacement *)m)->amplitude = 5.0f;
+		((LineStyleGeometryModifier_SinusDisplacement *)m)->phase = 0.0f;
 		break;
 	case LS_MODIFIER_SPATIAL_NOISE:
-		((LineStyleGeometryModifier_SpatialNoise *)m)->amplitude = 5.0;
-		((LineStyleGeometryModifier_SpatialNoise *)m)->scale = 20.0;
+		((LineStyleGeometryModifier_SpatialNoise *)m)->amplitude = 5.0f;
+		((LineStyleGeometryModifier_SpatialNoise *)m)->scale = 20.0f;
 		((LineStyleGeometryModifier_SpatialNoise *)m)->octaves = 4;
 		((LineStyleGeometryModifier_SpatialNoise *)m)->flags = LS_MODIFIER_SPATIAL_NOISE_SMOOTH | LS_MODIFIER_SPATIAL_NOISE_PURERANDOM;
 		break;
 	case LS_MODIFIER_PERLIN_NOISE_1D:
-		((LineStyleGeometryModifier_PerlinNoise1D *)m)->frequency = 10.0;
-		((LineStyleGeometryModifier_PerlinNoise1D *)m)->amplitude = 10.0;
+		((LineStyleGeometryModifier_PerlinNoise1D *)m)->frequency = 10.0f;
+		((LineStyleGeometryModifier_PerlinNoise1D *)m)->amplitude = 10.0f;
 		((LineStyleGeometryModifier_PerlinNoise1D *)m)->octaves = 4;
 		((LineStyleGeometryModifier_PerlinNoise1D *)m)->angle = DEG2RADF(45.0f);
 		break;
 	case LS_MODIFIER_PERLIN_NOISE_2D:
-		((LineStyleGeometryModifier_PerlinNoise2D *)m)->frequency = 10.0;
-		((LineStyleGeometryModifier_PerlinNoise2D *)m)->amplitude = 10.0;
+		((LineStyleGeometryModifier_PerlinNoise2D *)m)->frequency = 10.0f;
+		((LineStyleGeometryModifier_PerlinNoise2D *)m)->amplitude = 10.0f;
 		((LineStyleGeometryModifier_PerlinNoise2D *)m)->octaves = 4;
 		((LineStyleGeometryModifier_PerlinNoise2D *)m)->angle = DEG2RADF(45.0f);
 		break;
 	case LS_MODIFIER_BACKBONE_STRETCHER:
-		((LineStyleGeometryModifier_BackboneStretcher *)m)->backbone_length = 10.0;
+		((LineStyleGeometryModifier_BackboneStretcher *)m)->backbone_length = 10.0f;
 		break;
 	case LS_MODIFIER_TIP_REMOVER:
-		((LineStyleGeometryModifier_TipRemover *)m)->tip_length = 10.0;
+		((LineStyleGeometryModifier_TipRemover *)m)->tip_length = 10.0f;
 		break;
 	case LS_MODIFIER_POLYGONIZATION:
-		((LineStyleGeometryModifier_Polygonalization *)m)->error = 10.0;
+		((LineStyleGeometryModifier_Polygonalization *)m)->error = 10.0f;
 		break;
 	case LS_MODIFIER_GUIDING_LINES:
-		((LineStyleGeometryModifier_GuidingLines *)m)->offset = 0.0;
+		((LineStyleGeometryModifier_GuidingLines *)m)->offset = 0.0f;
 		break;
 	case LS_MODIFIER_BLUEPRINT:
 		((LineStyleGeometryModifier_Blueprint *)m)->flags = LS_MODIFIER_BLUEPRINT_CIRCLES;
 		((LineStyleGeometryModifier_Blueprint *)m)->rounds = 1;
-		((LineStyleGeometryModifier_Blueprint *)m)->backbone_length = 10.f;
+		((LineStyleGeometryModifier_Blueprint *)m)->backbone_length = 10.0f;
 		((LineStyleGeometryModifier_Blueprint *)m)->random_radius = 3;
 		((LineStyleGeometryModifier_Blueprint *)m)->random_center = 5;
 		((LineStyleGeometryModifier_Blueprint *)m)->random_backbone = 5;
 		break;
 	case LS_MODIFIER_2D_OFFSET:
-		((LineStyleGeometryModifier_2DOffset *)m)->start = 0.f;
-		((LineStyleGeometryModifier_2DOffset *)m)->end = 0.f;
-		((LineStyleGeometryModifier_2DOffset *)m)->x = 0.f;
-		((LineStyleGeometryModifier_2DOffset *)m)->y = 0.f;
+		((LineStyleGeometryModifier_2DOffset *)m)->start = 0.0f;
+		((LineStyleGeometryModifier_2DOffset *)m)->end = 0.0f;
+		((LineStyleGeometryModifier_2DOffset *)m)->x = 0.0f;
+		((LineStyleGeometryModifier_2DOffset *)m)->y = 0.0f;
 		break;
 	case LS_MODIFIER_2D_TRANSFORM:
 		((LineStyleGeometryModifier_2DTransform *)m)->pivot = LS_MODIFIER_2D_TRANSFORM_PIVOT_CENTER;
-		((LineStyleGeometryModifier_2DTransform *)m)->scale_x = 1.f;
-		((LineStyleGeometryModifier_2DTransform *)m)->scale_y = 1.f;
+		((LineStyleGeometryModifier_2DTransform *)m)->scale_x = 1.0f;
+		((LineStyleGeometryModifier_2DTransform *)m)->scale_y = 1.0f;
 		((LineStyleGeometryModifier_2DTransform *)m)->angle = DEG2RADF(0.0f);
 		((LineStyleGeometryModifier_2DTransform *)m)->pivot_u = 0.5f;
-		((LineStyleGeometryModifier_2DTransform *)m)->pivot_x = 0.f;
-		((LineStyleGeometryModifier_2DTransform *)m)->pivot_y = 0.f;
+		((LineStyleGeometryModifier_2DTransform *)m)->pivot_x = 0.0f;
+		((LineStyleGeometryModifier_2DTransform *)m)->pivot_y = 0.0f;
 		break;
 	default:
 		return NULL; /* unknown modifier type */
@@ -743,6 +757,7 @@ LineStyleModifier *FRS_copy_linestyle_geometry_modifier(FreestyleLineStyle *line
 	if (!new_m)
 		return NULL;
 	new_m->flags = m->flags;
+
 	switch (m->type) {
 	case LS_MODIFIER_SAMPLING:
 		{
@@ -947,6 +962,7 @@ void FRS_list_modifier_color_ramps(FreestyleLineStyle *linestyle, ListBase *list
 	}
 }
 
+/* XXX Do we want to keep that goto? Or use a boolean var? */
 char *FRS_path_from_ID_to_color_ramp(FreestyleLineStyle *linestyle, ColorBand *color_ramp)
 {
 	LineStyleModifier *m;

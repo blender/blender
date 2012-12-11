@@ -380,7 +380,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			break;
 		case NC_LINESTYLE:
 			ED_area_tag_redraw(sa);
-			sbuts->preview= 1;
+			sbuts->preview = 1;
 			break;
 	}
 

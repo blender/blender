@@ -739,15 +739,15 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 			break;
 			case ANIMTYPE_DSLINESTYLE:
 			{
-				FreestyleLineStyle *linestyle= (FreestyleLineStyle *)data;
-				AnimData *adt= linestyle->adt;
+				FreestyleLineStyle *linestyle = (FreestyleLineStyle *)data;
+				AnimData *adt = linestyle->adt;
 				
-				ale->flag= FILTER_LS_SCED(linestyle); 
+				ale->flag = FILTER_LS_SCED(linestyle); 
 				
-				ale->key_data= (adt) ? adt->action : NULL;
-				ale->datatype= ALE_ACT;
+				ale->key_data = (adt) ? adt->action : NULL;
+				ale->datatype = ALE_ACT;
 				
-				ale->adt= BKE_animdata_from_id(data);
+				ale->adt = BKE_animdata_from_id(data);
 			}
 				break;
 			case ANIMTYPE_DSPART:
@@ -1532,7 +1532,7 @@ static size_t animdata_filter_ds_linestyle (bAnimContext *ac, ListBase *anim_dat
 	SceneRenderLayer *srl;
 	size_t items = 0;
 
-	for (srl= sce->r.layers.first; srl; srl= srl->next) {
+	for (srl = sce->r.layers.first; srl; srl = srl->next) {
 		FreestyleLineSet *lineset;
 
 		/* skip render layers without Freestyle enabled */
@@ -1540,7 +1540,7 @@ static size_t animdata_filter_ds_linestyle (bAnimContext *ac, ListBase *anim_dat
 			continue;
 
 		/* loop over linesets defined in the render layer */
-		for (lineset= srl->freestyleConfig.linesets.first; lineset; lineset= lineset->next) {
+		for (lineset = srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
 			FreestyleLineStyle *linestyle = lineset->linestyle;
 			ListBase tmp_data = {NULL, NULL};
 			size_t tmp_items = 0;

@@ -2013,7 +2013,7 @@ static bAnimChannelType ACF_DSNTREE =
 
 /* LineStyle Expander  ------------------------------------------- */
 
-// TODO: just get this from RNA?
+/* TODO: just get this from RNA? */
 static int acf_dslinestyle_icon(bAnimListElem *UNUSED(ale))
 {
 	return ICON_BRUSH_DATA; /* FIXME */
@@ -2023,7 +2023,7 @@ static int acf_dslinestyle_icon(bAnimListElem *UNUSED(ale))
 static int acf_dslinestyle_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
 {
 	/* clear extra return data first */
-	*neg= 0;
+	*neg = 0;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -2033,7 +2033,7 @@ static int acf_dslinestyle_setting_flag(bAnimContext *UNUSED(ac), int setting, s
 			return ADT_NLA_EVAL_OFF;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-			*neg= 1;
+			*neg = 1;
 			return ADT_CURVES_NOT_VISIBLE;
 			
 		case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2047,10 +2047,10 @@ static int acf_dslinestyle_setting_flag(bAnimContext *UNUSED(ac), int setting, s
 /* get pointer to the setting */
 static void *acf_dslinestyle_setting_ptr(bAnimListElem *ale, int setting, short *type)
 {
-	FreestyleLineStyle *linestyle= (FreestyleLineStyle *)ale->data;
+	FreestyleLineStyle *linestyle = (FreestyleLineStyle *)ale->data;
 	
 	/* clear extra return data first */
-	*type= 0;
+	*type = 0;
 	
 	switch (setting) {
 		case ACHANNEL_SETTING_EXPAND: /* expanded */

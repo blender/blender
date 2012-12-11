@@ -221,86 +221,6 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         sub.prop(rd, "use_persistent_data", text="Persistent Images")
 
 
-class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
-    bl_label = "Layers"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        scene = context.scene
-        rd = scene.render
-
-        row = layout.row()
-        row.template_list(rd, "layers", rd.layers, "active_index", rows=2)
-
-        col = row.column(align=True)
-        col.operator("scene.render_layer_add", icon='ZOOMIN', text="")
-        col.operator("scene.render_layer_remove", icon='ZOOMOUT', text="")
-
-        row = layout.row()
-        rl = rd.layers.active
-        row.prop(rl, "name")
-        row.prop(rd, "use_single_layer", text="", icon_only=True)
-
-        split = layout.split()
-
-        col = split.column()
-        col.prop(scene, "layers", text="Scene")
-        col.prop(rl, "layers_exclude", text="Exclude")
-
-        col = split.column()
-        col.prop(rl, "layers", text="Layer")
-        col.label(text="Mask Layers:")
-        col.prop(rl, "layers_zmask", text="")
-
-        split = layout.split()
-
-        col = split.column()
-        col.label(text="Material:")
-        col.prop(rl, "material_override", text="")
-
-        col = split.column()
-        col.prop(rl, "samples")
-        col.prop(rl, "use_sky", "Use Environment")
-
-        split = layout.split()
-
-        col = split.column()
-        col.label(text="Passes:")
-        col.prop(rl, "use_pass_combined")
-        col.prop(rl, "use_pass_z")
-        col.prop(rl, "use_pass_normal")
-        col.prop(rl, "use_pass_vector")
-        col.prop(rl, "use_pass_uv")
-        col.prop(rl, "use_pass_object_index")
-        col.prop(rl, "use_pass_material_index")
-        col.prop(rl, "use_pass_ambient_occlusion")
-        col.prop(rl, "use_pass_shadow")
-
-        col = split.column()
-        col.label()
-        col.label(text="Diffuse:")
-        row = col.row(align=True)
-        row.prop(rl, "use_pass_diffuse_direct", text="Direct", toggle=True)
-        row.prop(rl, "use_pass_diffuse_indirect", text="Indirect", toggle=True)
-        row.prop(rl, "use_pass_diffuse_color", text="Color", toggle=True)
-        col.label(text="Glossy:")
-        row = col.row(align=True)
-        row.prop(rl, "use_pass_glossy_direct", text="Direct", toggle=True)
-        row.prop(rl, "use_pass_glossy_indirect", text="Indirect", toggle=True)
-        row.prop(rl, "use_pass_glossy_color", text="Color", toggle=True)
-        col.label(text="Transmission:")
-        row = col.row(align=True)
-        row.prop(rl, "use_pass_transmission_direct", text="Direct", toggle=True)
-        row.prop(rl, "use_pass_transmission_indirect", text="Indirect", toggle=True)
-        row.prop(rl, "use_pass_transmission_color", text="Color", toggle=True)
-
-        col.prop(rl, "use_pass_emit", text="Emission")
-        col.prop(rl, "use_pass_environment")
-
-
 class Cycles_PT_post_processing(CyclesButtonsPanel, Panel):
     bl_label = "Post Processing"
     bl_options = {'DEFAULT_CLOSED'}
@@ -357,6 +277,116 @@ class CyclesCamera_PT_dof(CyclesButtonsPanel, Panel):
         sub = col.column(align=True)
         sub.prop(ccam, "aperture_blades", text="Blades")
         sub.prop(ccam, "aperture_rotation", text="Rotation")
+
+
+class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
+    bl_label = "Layers"
+    bl_options = {'HIDE_HEADER'}
+    bl_context = "render_layer"
+    COMPAT_ENGINES = {'CYCLES'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+
+        row = layout.row()
+        row.template_list(rd, "layers", rd.layers, "active_index", rows=2)
+
+        col = row.column(align=True)
+        col.operator("scene.render_layer_add", icon='ZOOMIN', text="")
+        col.operator("scene.render_layer_remove", icon='ZOOMOUT', text="")
+
+        row = layout.row()
+        rl = rd.layers.active
+        if rl:
+            row.prop(rl, "name")
+        row.prop(rd, "use_single_layer", text="", icon_only=True)
+
+
+class CyclesRender_PT_layer_options(CyclesButtonsPanel, Panel):
+    bl_label = "Layer"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_context = "render_layer"
+    COMPAT_ENGINES = {'CYCLES'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+        rl = rd.layers.active
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(scene, "layers", text="Scene")
+        col.prop(rl, "layers_exclude", text="Exclude")
+
+        col = split.column()
+        col.prop(rl, "layers", text="Layer")
+        col.label(text="Mask Layers:")
+        col.prop(rl, "layers_zmask", text="")
+
+        split = layout.split()
+
+        col = split.column()
+        col.label(text="Material:")
+        col.prop(rl, "material_override", text="")
+
+        col = split.column()
+        col.prop(rl, "samples")
+        col.prop(rl, "use_sky", "Use Environment")
+
+
+class CyclesRender_PT_layer_passes(CyclesButtonsPanel, Panel):
+    bl_label = "Layer"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_context = "render_layer"
+    COMPAT_ENGINES = {'CYCLES'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+        rl = rd.layers.active
+
+        split = layout.split()
+
+        col = split.column()
+        col.label(text="Passes:")
+        col.prop(rl, "use_pass_combined")
+        col.prop(rl, "use_pass_z")
+        col.prop(rl, "use_pass_normal")
+        col.prop(rl, "use_pass_vector")
+        col.prop(rl, "use_pass_uv")
+        col.prop(rl, "use_pass_object_index")
+        col.prop(rl, "use_pass_material_index")
+        col.prop(rl, "use_pass_ambient_occlusion")
+        col.prop(rl, "use_pass_shadow")
+
+        col = split.column()
+        col.label()
+        col.label(text="Diffuse:")
+        row = col.row(align=True)
+        row.prop(rl, "use_pass_diffuse_direct", text="Direct", toggle=True)
+        row.prop(rl, "use_pass_diffuse_indirect", text="Indirect", toggle=True)
+        row.prop(rl, "use_pass_diffuse_color", text="Color", toggle=True)
+        col.label(text="Glossy:")
+        row = col.row(align=True)
+        row.prop(rl, "use_pass_glossy_direct", text="Direct", toggle=True)
+        row.prop(rl, "use_pass_glossy_indirect", text="Indirect", toggle=True)
+        row.prop(rl, "use_pass_glossy_color", text="Color", toggle=True)
+        col.label(text="Transmission:")
+        row = col.row(align=True)
+        row.prop(rl, "use_pass_transmission_direct", text="Direct", toggle=True)
+        row.prop(rl, "use_pass_transmission_indirect", text="Indirect", toggle=True)
+        row.prop(rl, "use_pass_transmission_color", text="Color", toggle=True)
+
+        col.prop(rl, "use_pass_emit", text="Emission")
+        col.prop(rl, "use_pass_environment")
 
 
 class Cycles_PT_context_material(CyclesButtonsPanel, Panel):

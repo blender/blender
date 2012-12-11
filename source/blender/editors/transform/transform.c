@@ -836,6 +836,9 @@ int transformEvent(TransInfo *t, wmEvent *event)
 	t->redraw |= handleMouseInput(t, &t->mouse, event);
 
 	if (event->type == MOUSEMOVE) {
+		if (t->modifiers & MOD_CONSTRAINT_SELECT)
+			t->con.mode |= CON_SELECT;
+
 		copy_v2_v2_int(t->mval, event->mval);
 
 		// t->redraw |= TREDRAW_SOFT; /* Use this for soft redraw. Might cause flicker in object mode */
@@ -2037,9 +2040,6 @@ void transformApply(bContext *C, TransInfo *t)
 	t->context = C;
 
 	if ((t->redraw & TREDRAW_HARD) || (t->draw_handle_apply == NULL && (t->redraw & TREDRAW_SOFT))) {
-		if (t->modifiers & MOD_CONSTRAINT_SELECT)
-			t->con.mode |= CON_SELECT;
-
 		selectConstraint(t);
 		if (t->transform) {
 			t->transform(t, t->mval);  // calls recalcData()

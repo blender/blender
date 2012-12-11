@@ -1976,9 +1976,9 @@ void init_userdef_do_versions(void)
 	{
 		bTheme *btheme;
 
-		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
-			/* check for alpha==0 is safe, then color was never set */
-			if(btheme->tv3d.freestyle_edge_mark[3]==0) {
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			/* check for alpha == 0 is safe, then color was never set */
+			if (btheme->tv3d.freestyle_edge_mark[3] == 0) {
 				rgba_char_args_set(btheme->tv3d.freestyle_edge_mark, 0x7f, 0xff, 0x7f, 255);
 				rgba_char_args_set(btheme->tv3d.freestyle_face_mark, 0x7f, 0xff, 0x7f, 51);
 			}

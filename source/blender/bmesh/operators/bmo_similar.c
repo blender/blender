@@ -472,7 +472,7 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 					case SIMEDGE_FREESTYLE:
 						if (BM_elem_flag_test(e, BM_ELEM_FREESTYLE) == BM_elem_flag_test(es, BM_ELEM_FREESTYLE)) {
 							BMO_elem_flag_enable(bm, e, EDGE_MARK);
-							cont = 0;
+							cont = FALSE;
 						}
 						break;
 					default:

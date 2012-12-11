@@ -822,7 +822,7 @@ static void decode_blender_header(FileData *fd)
 			/* is the file saved in a different endian
 			 * than we need ?
 			 */
-			if (((((char*)&remove_this_endian_test)[0]==1)?L_ENDIAN:B_ENDIAN) != ((header[8]=='v')?L_ENDIAN:B_ENDIAN)) {
+			if (((((char *)&remove_this_endian_test)[0] == 1) ? L_ENDIAN : B_ENDIAN) != ((header[8] == 'v') ? L_ENDIAN : B_ENDIAN)) {
 				fd->flags |= FD_FLAGS_SWITCH_ENDIAN;
 			}
 			
@@ -944,7 +944,7 @@ static int fd_read_from_memfile(FileData *filedata, void *buffer, unsigned int s
 			if (chunkoffset+readsize > chunk->size)
 				readsize= chunk->size-chunkoffset;
 			
-			memcpy((char*)buffer + totread, chunk->buf + chunkoffset, readsize);
+			memcpy((char *)buffer + totread, chunk->buf + chunkoffset, readsize);
 			totread += readsize;
 			filedata->seek += readsize;
 			seek += readsize;
@@ -986,7 +986,7 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 			blo_freefiledata(fd);
 			fd = NULL;
 		}
-	} 
+	}
 	else {
 		BKE_reportf(reports, RPT_ERROR, "Failed to read blend file '%s', not a blend file", fd->relabase);
 		blo_freefiledata(fd);
@@ -1133,7 +1133,7 @@ int BLO_is_a_library(const char *path, char *dir, char *group)
 		/* the last part of the dir is a .blend file, no group follows */
 		*fd = '/'; /* put back the removed slash separating the dir and the .blend file name */
 	}
-	else {		
+	else {
 		char *gp = fd + 1; // in case we have a .blend file, gp points to the group
 		
 		/* Find the last slash */
@@ -1842,7 +1842,7 @@ static void lib_link_fcurves(FileData *fd, ID *id, ListBase *list)
 			
 			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
 				DRIVER_TARGETS_LOOPER(dvar)
-				{	
+				{
 					/* only relink if still used */
 					if (tarIndex < dvar->num_targets)
 						dtar->id = newlibadr(fd, id->lib, dtar->id); 
@@ -2437,7 +2437,7 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 			/* could be handlerized at some point */
 			if (ntree->type==NTREE_SHADER) {
 				if (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB) {
-				direct_link_curvemapping(fd, node->storage);
+					direct_link_curvemapping(fd, node->storage);
 				}
 				else if (node->type==SH_NODE_SCRIPT) {
 					NodeShaderScript *nss = (NodeShaderScript *) node->storage;
@@ -2821,7 +2821,7 @@ static void switch_endian_keyblock(Key *key, KeyBlock *kb)
 			
 			cp += 2;
 		}
-		data+= elemsize;
+		data += elemsize;
 	}
 }
 
@@ -2856,7 +2856,7 @@ static void lib_link_mball(FileData *fd, Main *main)
 			if (mb->adt) lib_link_animdata(fd, &mb->id, mb->adt);
 			
 			for (a = 0; a < mb->totcol; a++) 
-				mb->mat[a]= newlibadr_us(fd, mb->id.lib, mb->mat[a]);
+				mb->mat[a] = newlibadr_us(fd, mb->id.lib, mb->mat[a]);
 			
 			mb->ipo = newlibadr_us(fd, mb->id.lib, mb->ipo); // XXX deprecated - old animation system
 			
@@ -3045,7 +3045,7 @@ static void direct_link_image(FileData *fd, Image *ima)
 		link_ibuf_list(fd, &ima->ibufs);
 	else
 		ima->ibufs.first = ima->ibufs.last = NULL;
-	
+
 	/* if not restored, we keep the binded opengl index */
 	if (ima->ibufs.first == NULL) {
 		ima->bindcode = 0;
@@ -3093,7 +3093,7 @@ static void lib_link_curve(FileData *fd, Main *main)
 			cu->taperobj = newlibadr(fd, cu->id.lib, cu->taperobj);
 			cu->textoncurve = newlibadr(fd, cu->id.lib, cu->textoncurve);
 			cu->vfont = newlibadr_us(fd, cu->id.lib, cu->vfont);
-			cu->vfontb = newlibadr_us(fd, cu->id.lib, cu->vfontb);			
+			cu->vfontb = newlibadr_us(fd, cu->id.lib, cu->vfontb);
 			cu->vfonti = newlibadr_us(fd, cu->id.lib, cu->vfonti);
 			cu->vfontbi = newlibadr_us(fd, cu->id.lib, cu->vfontbi);
 			
@@ -3127,7 +3127,7 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 	cu->mat = newdataadr(fd, cu->mat);
 	test_pointer_array(fd, (void **)&cu->mat);
 	cu->str = newdataadr(fd, cu->str);
-	cu->strinfo= newdataadr(fd, cu->strinfo);	
+	cu->strinfo= newdataadr(fd, cu->strinfo);
 	cu->tb = newdataadr(fd, cu->tb);
 
 	if (cu->vfont == NULL) link_list(fd, &(cu->nurb));
@@ -3138,14 +3138,14 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 		if (cu->tb) {
 			memcpy(tb, cu->tb, cu->totbox*sizeof(TextBox));
 			MEM_freeN(cu->tb);
-			cu->tb = tb;			
+			cu->tb = tb;
 		}
 		else {
 			cu->totbox = 1;
 			cu->actbox = 1;
 			cu->tb = tb;
 			cu->tb[0].w = cu->linewidth;
-		}		
+		}
 		if (cu->wordspace == 0.0f) cu->wordspace = 1.0f;
 	}
 
@@ -3314,7 +3314,7 @@ static const char *ptcache_data_struct[] = {
 	"", // BPHYS_DATA_ROTATION
 	"", // BPHYS_DATA_AVELOCITY / BPHYS_DATA_XCONST */
 	"", // BPHYS_DATA_SIZE:
-	"", // BPHYS_DATA_TIMES:	
+	"", // BPHYS_DATA_TIMES:
 	"BoidData" // case BPHYS_DATA_BOIDS:
 };
 static void direct_link_pointcache(FileData *fd, PointCache *cache)
@@ -3423,7 +3423,7 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 					/* special case for only one object in the group */
 					index_ok = 1;
 				}
-				else { 
+				else {
 					for (dw = part->dupliweights.first; dw; dw = dw->next) {
 						if (dw->index > 0) {
 							index_ok = 1;
@@ -3431,7 +3431,7 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 						}
 					}
 				}
-				
+
 				if (index_ok) {
 					/* if we have indexes, let's use them */
 					for (dw = part->dupliweights.first; dw; dw = dw->next) {
@@ -3443,8 +3443,8 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 					/* otherwise try to get objects from own library (won't work on library linked groups) */
 					for (dw = part->dupliweights.first; dw; dw = dw->next) {
 						dw->ob = newlibadr(fd, part->id.lib, dw->ob);
+					}
 				}
-			}
 			}
 			else {
 				part->dupliweights.first = part->dupliweights.last = NULL;
@@ -3660,7 +3660,7 @@ static void lib_link_mtface(FileData *fd, Mesh *me, MTFace *mtface, int totface)
 
 static void lib_link_customdata_mtface(FileData *fd, Mesh *me, CustomData *fdata, int totface)
 {
-	int i;	
+	int i;
 	for (i = 0; i < fdata->totlayer; i++) {
 		CustomDataLayer *layer = &fdata->layers[i];
 		
@@ -3685,10 +3685,10 @@ static void lib_link_customdata_mtpoly(FileData *fd, Mesh *me, CustomData *pdata
 				tf->tpage = newlibadr(fd, me->id.lib, tf->tpage);
 				if (tf->tpage && tf->tpage->id.us == 0) {
 					tf->tpage->id.us = 1;
+				}
 			}
 		}
 	}
-}
 }
 
 static void lib_link_mesh(FileData *fd, Main *main)
@@ -4109,7 +4109,7 @@ static void lib_link_object(FileData *fd, Main *main)
 				if (paf->type == EFF_PARTICLE) {
 					paf->group = newlibadr_us(fd, ob->id.lib, paf->group);
 				}
-			}				
+			}
 			
 			for (sens = ob->sensors.first; sens; sens = sens->next) {
 				for (a = 0; a < sens->totlinks; a++)
@@ -4641,7 +4641,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	direct_link_partdeflect(ob->pd);
 	ob->soft= newdataadr(fd, ob->soft);
 	if (ob->soft) {
-		SoftBody *sb = ob->soft;		
+		SoftBody *sb = ob->soft;
 		
 		sb->bpoint = NULL;	// init pointers so it gets rebuilt nicely
 		sb->bspring = NULL;
@@ -5090,7 +5090,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 					ed->seqbasep = (ListBase *)(poin+offset);
 				else
 					ed->seqbasep = &ed->seqbase;
-			}			
+			}
 			/* stack */
 			link_list(fd, &(ed->metastack));
 			
@@ -5124,7 +5124,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	}
 	if (sce->r.ffcodecdata.properties) {
 		sce->r.ffcodecdata.properties = newdataadr(fd, sce->r.ffcodecdata.properties);
-		if (sce->r.ffcodecdata.properties) { 
+		if (sce->r.ffcodecdata.properties) {
 			IDP_DirectLinkProperty(sce->r.ffcodecdata.properties, 
 				(fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 		}
@@ -6415,8 +6415,10 @@ static void lib_link_linestyle(FileData *fd, Main *main)
 		if (linestyle->id.flag & LIB_NEED_LINK) {
 			linestyle->id.flag -= LIB_NEED_LINK;
 
-			if (linestyle->id.properties) IDP_LibLinkProperty(linestyle->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
-			if (linestyle->adt) lib_link_animdata(fd, &linestyle->id, linestyle->adt);
+			if (linestyle->id.properties)
+				IDP_LibLinkProperty(linestyle->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			if (linestyle->adt)
+				lib_link_animdata(fd, &linestyle->id, linestyle->adt);
 			for (m = linestyle->color_modifiers.first; m; m = m->next) {
 				switch (m->type) {
 				case LS_MODIFIER_DISTANCE_FROM_OBJECT:
@@ -6561,16 +6563,16 @@ static void direct_link_linestyle(FileData *fd, FreestyleLineStyle *linestyle)
 	linestyle->adt= newdataadr(fd, linestyle->adt);
 	direct_link_animdata(fd, linestyle->adt);
 	link_list(fd, &linestyle->color_modifiers);
-	for(modifier=linestyle->color_modifiers.first; modifier; modifier= modifier->next)
+	for(modifier = linestyle->color_modifiers.first; modifier; modifier = modifier->next)
 		direct_link_linestyle_color_modifier(fd, modifier);
 	link_list(fd, &linestyle->alpha_modifiers);
-	for(modifier=linestyle->alpha_modifiers.first; modifier; modifier= modifier->next)
+	for(modifier = linestyle->alpha_modifiers.first; modifier; modifier = modifier->next)
 		direct_link_linestyle_alpha_modifier(fd, modifier);
 	link_list(fd, &linestyle->thickness_modifiers);
-	for(modifier=linestyle->thickness_modifiers.first; modifier; modifier= modifier->next)
+	for(modifier = linestyle->thickness_modifiers.first; modifier; modifier = modifier->next)
 		direct_link_linestyle_thickness_modifier(fd, modifier);
 	link_list(fd, &linestyle->geometry_modifiers);
-	for(modifier=linestyle->geometry_modifiers.first; modifier; modifier= modifier->next)
+	for(modifier = linestyle->geometry_modifiers.first; modifier; modifier = modifier->next)
 		direct_link_linestyle_geometry_modifier(fd, modifier);
 }
 
@@ -7340,7 +7342,7 @@ static void do_version_node_fix_internal_links_264(void *UNUSED(data), ID *UNUSE
 		}
 	}
 }
-
+	
 static void do_version_logic_264(ListBase *regionbase)
 {
 	ARegion *ar;
@@ -7588,10 +7590,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if ( (ob->dsize[i] == 0.0f) || /* simple case, user never touched dsize */
 					     (ob->size[i]  == 0.0f))   /* cant scale the dsize to give a non zero result, so fallback to 1.0f */
 					{
-						ob->dscale[i]= 1.0f;
+						ob->dscale[i] = 1.0f;
 					}
 					else {
-						ob->dscale[i]= (ob->size[i] + ob->dsize[i]) / ob->size[i];
+						ob->dscale[i] = (ob->size[i] + ob->dsize[i]) / ob->size[i];
 					}
 				}
 			}
@@ -8477,7 +8479,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			do_version_node_fix_internal_links_264(NULL, NULL, ntree);
 		
 	}
-
+	
 	if (main->versionfile < 264 || (main->versionfile == 264 && main->subversionfile < 6)) {
 		bScreen *sc;
 		
@@ -8579,28 +8581,28 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
 			if (sce->r.line_thickness_mode == 0) {
-				sce->r.line_thickness_mode= R_LINE_THICKNESS_ABSOLUTE;
-				sce->r.unit_line_thickness= 1.f;
+				sce->r.line_thickness_mode = R_LINE_THICKNESS_ABSOLUTE;
+				sce->r.unit_line_thickness = 1.0f;
 			}
-			for(srl= sce->r.layers.first; srl; srl= srl->next) {
+			for(srl = sce->r.layers.first; srl; srl = srl->next) {
 				if (srl->freestyleConfig.mode == 0)
-					srl->freestyleConfig.mode= FREESTYLE_CONTROL_EDITOR_MODE;
+					srl->freestyleConfig.mode = FREESTYLE_CONTROL_EDITOR_MODE;
 				if (srl->freestyleConfig.raycasting_algorithm == FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE ||
-					srl->freestyleConfig.raycasting_algorithm == FREESTYLE_ALGO_CULLED_ADAPTIVE_TRADITIONAL) {
-					srl->freestyleConfig.raycasting_algorithm= 0; /* deprecated */
+				    srl->freestyleConfig.raycasting_algorithm == FREESTYLE_ALGO_CULLED_ADAPTIVE_TRADITIONAL) {
+					srl->freestyleConfig.raycasting_algorithm = 0; /* deprecated */
 					srl->freestyleConfig.flags |= FREESTYLE_CULLING;
 				}
 			}
 		}
 		for(linestyle = main->linestyle.first; linestyle; linestyle = linestyle->id.next) {
 			if (linestyle->thickness_position == 0) {
-				linestyle->thickness_position= LS_THICKNESS_CENTER;
-				linestyle->thickness_ratio= 0.5f;
+				linestyle->thickness_position = LS_THICKNESS_CENTER;
+				linestyle->thickness_ratio = 0.5f;
 			}
 			if (linestyle->chaining == 0)
-				linestyle->chaining= LS_CHAINING_PLAIN;
+				linestyle->chaining = LS_CHAINING_PLAIN;
 			if (linestyle->rounds == 0)
-				linestyle->rounds= 3;
+				linestyle->rounds = 3;
 		}
 	}
 
@@ -9261,7 +9263,7 @@ static void expand_curve(FileData *fd, Main *mainvar, Curve *cu)
 	}
 	
 	expand_doit(fd, mainvar, cu->vfont);
-	expand_doit(fd, mainvar, cu->vfontb);	
+	expand_doit(fd, mainvar, cu->vfontb);
 	expand_doit(fd, mainvar, cu->vfonti);
 	expand_doit(fd, mainvar, cu->vfontbi);
 	expand_doit(fd, mainvar, cu->key);
@@ -10113,7 +10115,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 	if ((*fd)->flags & FD_FLAGS_SWITCH_ENDIAN) {
 		blo_freefiledata(*fd);
 		*fd = NULL;
-	}	
+	}
 }
 
 void BLO_library_append_end(const bContext *C, struct Main *mainl, BlendHandle** bh, int idcode, short flag)

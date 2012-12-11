@@ -2286,14 +2286,14 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		for (ts = sce->transform_spaces.first; ts; ts = ts->next)
 			writestruct(wd, DATA, "TransformOrientation", 1, ts);
 		
-		for (srl= sce->r.layers.first; srl; srl= srl->next) {
+		for (srl = sce->r.layers.first; srl; srl = srl->next) {
 			writestruct(wd, DATA, "SceneRenderLayer", 1, srl);
 			
-			for(fmc= srl->freestyleConfig.modules.first; fmc; fmc = fmc->next) {
+			for(fmc = srl->freestyleConfig.modules.first; fmc; fmc = fmc->next) {
 				writestruct(wd, DATA, "FreestyleModuleConfig", 1, fmc);
 			}
 			
-			for(fls= srl->freestyleConfig.linesets.first; fls; fls = fls->next) {
+			for(fls = srl->freestyleConfig.linesets.first; fls; fls = fls->next) {
 				writestruct(wd, DATA, "FreestyleLineSet", 1, fls);
 			}
 
@@ -2893,7 +2893,7 @@ static void write_linestyle_color_modifiers(WriteData *wd, ListBase *modifiers)
 			struct_name = "LineStyleColorModifier_Material";
 			break;
 		default:
-			struct_name = "LineStyleColorModifier"; // this should not happen
+			struct_name = "LineStyleColorModifier"; /* this should not happen */
 		}
 		writestruct(wd, DATA, struct_name, 1, m);
 	}
@@ -2935,7 +2935,7 @@ static void write_linestyle_alpha_modifiers(WriteData *wd, ListBase *modifiers)
 			struct_name = "LineStyleAlphaModifier_Material";
 			break;
 		default:
-			struct_name = "LineStyleAlphaModifier"; // this should not happen
+			struct_name = "LineStyleAlphaModifier"; /* this should not happen */
 		}
 		writestruct(wd, DATA, struct_name, 1, m);
 	}
@@ -2980,7 +2980,7 @@ static void write_linestyle_thickness_modifiers(WriteData *wd, ListBase *modifie
 			struct_name = "LineStyleThicknessModifier_Calligraphy";
 			break;
 		default:
-			struct_name = "LineStyleThicknessModifier"; // this should not happen
+			struct_name = "LineStyleThicknessModifier"; /* this should not happen */
 		}
 		writestruct(wd, DATA, struct_name, 1, m);
 	}
@@ -3049,7 +3049,7 @@ static void write_linestyle_geometry_modifiers(WriteData *wd, ListBase *modifier
 			struct_name = "LineStyleGeometryModifier_2DTransform";
 			break;
 		default:
-			struct_name = "LineStyleGeometryModifier"; // this should not happen
+			struct_name = "LineStyleGeometryModifier"; /* this should not happen */
 		}
 		writestruct(wd, DATA, struct_name, 1, m);
 	}
@@ -3059,11 +3059,13 @@ static void write_linestyles(WriteData *wd, ListBase *idbase)
 {
 	FreestyleLineStyle *linestyle;
 
-	for(linestyle=idbase->first; linestyle; linestyle= linestyle->id.next) {
-		if(linestyle->id.us>0 || wd->current) {
+	for (linestyle = idbase->first; linestyle; linestyle = linestyle->id.next) {
+		if (linestyle->id.us>0 || wd->current) {
 			writestruct(wd, ID_LS, "FreestyleLineStyle", 1, linestyle);
-			if (linestyle->id.properties) IDP_WriteProperty(linestyle->id.properties, wd);
-			if (linestyle->adt) write_animdata(wd, linestyle->adt);
+			if (linestyle->id.properties)
+				IDP_WriteProperty(linestyle->id.properties, wd);
+			if (linestyle->adt)
+				write_animdata(wd, linestyle->adt);
 			write_linestyle_color_modifiers(wd, &linestyle->color_modifiers);
 			write_linestyle_alpha_modifiers(wd, &linestyle->alpha_modifiers);
 			write_linestyle_thickness_modifiers(wd, &linestyle->thickness_modifiers);

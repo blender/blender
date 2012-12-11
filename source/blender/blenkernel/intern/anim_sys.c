@@ -762,7 +762,7 @@ void BKE_animdata_main_cb(Main *mainptr, ID_AnimData_Edit_Callback func, void *u
 		AnimData *adt = BKE_animdata_from_id(id); \
 		if (adt) func(id, adt, user_data); \
 	} (void)0
-
+	
 	/* "embedded" nodetree cases (i.e. scene/material/texture->nodetree) */
 #define ANIMDATA_NODETREE_IDS_CB(first, NtId_Type) \
 	for (id = first; id; id = id->next) { \
@@ -774,13 +774,13 @@ void BKE_animdata_main_cb(Main *mainptr, ID_AnimData_Edit_Callback func, void *u
 		} \
 		if (adt) func(id, adt, user_data); \
 	} (void)0
-
+	
 	/* nodes */
 	ANIMDATA_IDS_CB(mainptr->nodetree.first);
-		
+	
 	/* textures */
 	ANIMDATA_NODETREE_IDS_CB(mainptr->tex.first, Tex);
-		
+	
 	/* lamps */
 	ANIMDATA_NODETREE_IDS_CB(mainptr->lamp.first, Lamp);
 	
@@ -921,8 +921,8 @@ void BKE_all_animdata_fix_paths_rename(ID *ref_id, const char *prefix, const cha
 	
 	/* scenes */
 	RENAMEFIX_ANIM_NODETREE_IDS(mainptr->scene.first, Scene);
-		}
-		
+}
+
 /* *********************************** */ 
 /* KeyingSet API */
 

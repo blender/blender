@@ -431,43 +431,43 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 		}                                                                      \
 	} (void)0
 
-				/* do via modifiers instead */
+			/* do via modifiers instead */
 #if 0
-				if (ob->fluidsimSettings) {
-					rewrite_path_fixed(ob->fluidsimSettings->surfdataPath, visit_cb, absbase, bpath_user_data);
-				}
+			if (ob->fluidsimSettings) {
+				rewrite_path_fixed(ob->fluidsimSettings->surfdataPath, visit_cb, absbase, bpath_user_data);
+			}
 #endif
 
-				for (md = ob->modifiers.first; md; md = md->next) {
-					if (md->type == eModifierType_Fluidsim) {
-						FluidsimModifierData *fluidmd = (FluidsimModifierData *)md;
-						if (fluidmd->fss) {
-							rewrite_path_fixed(fluidmd->fss->surfdataPath, visit_cb, absbase, bpath_user_data);
-						}
-					}
-					else if (md->type == eModifierType_Smoke) {
-						SmokeModifierData *smd = (SmokeModifierData *)md;
-						if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
-							BPATH_TRAVERSE_POINTCACHE(smd->domain->ptcaches[0]);
-						}
-					}
-					else if (md->type == eModifierType_Cloth) {
-						ClothModifierData *clmd = (ClothModifierData *) md;
-						BPATH_TRAVERSE_POINTCACHE(clmd->ptcaches);
-					}
-					else if (md->type == eModifierType_Ocean) {
-						OceanModifierData *omd = (OceanModifierData *) md;
-						rewrite_path_fixed(omd->cachepath, visit_cb, absbase, bpath_user_data);
+			for (md = ob->modifiers.first; md; md = md->next) {
+				if (md->type == eModifierType_Fluidsim) {
+					FluidsimModifierData *fluidmd = (FluidsimModifierData *)md;
+					if (fluidmd->fss) {
+						rewrite_path_fixed(fluidmd->fss->surfdataPath, visit_cb, absbase, bpath_user_data);
 					}
 				}
+				else if (md->type == eModifierType_Smoke) {
+					SmokeModifierData *smd = (SmokeModifierData *)md;
+					if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
+						BPATH_TRAVERSE_POINTCACHE(smd->domain->ptcaches[0]);
+					}
+				}
+				else if (md->type == eModifierType_Cloth) {
+					ClothModifierData *clmd = (ClothModifierData *) md;
+					BPATH_TRAVERSE_POINTCACHE(clmd->ptcaches);
+				}
+				else if (md->type == eModifierType_Ocean) {
+					OceanModifierData *omd = (OceanModifierData *) md;
+					rewrite_path_fixed(omd->cachepath, visit_cb, absbase, bpath_user_data);
+				}
+			}
 
-				if (ob->soft) {
-					BPATH_TRAVERSE_POINTCACHE(ob->soft->ptcaches);
-				}
+			if (ob->soft) {
+				BPATH_TRAVERSE_POINTCACHE(ob->soft->ptcaches);
+			}
 
-				for (psys = ob->particlesystem.first; psys; psys = psys->next) {
-					BPATH_TRAVERSE_POINTCACHE(psys->ptcaches);
-				}
+			for (psys = ob->particlesystem.first; psys; psys = psys->next) {
+				BPATH_TRAVERSE_POINTCACHE(psys->ptcaches);
+			}
 
 #undef BPATH_TRAVERSE_POINTCACHE
 
@@ -511,7 +511,7 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 					}
 				}
 			}
-		break;
+			break;
 		}
 		case ID_NT:
 		{

@@ -1,8 +1,4 @@
-/* BKE_linestyle.h
- *
- *
- * $Id: BKE_particle.h 29187 2010-06-03 15:39:02Z kjym3 $
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -29,8 +25,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_LINESTYLE_H
-#define BKE_LINESTYLE_H
+#ifndef __BKE_LINESTYLE_H__
+#define __BKE_LINESTYLE_H__
+/** \file BKE_linestyle.h
+ *  \ingroup bke
+ *  \brief Blender kernel freestyle line style functionality.
+ */
 
 #include "DNA_linestyle_types.h"
 

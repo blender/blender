@@ -2412,7 +2412,8 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, ptr, "use_textures", i, 0, 0, 0, 0,  NULL);
 	}
-	else if (RNA_struct_is_a(itemptr->type, &RNA_SceneRenderLayer) || RNA_struct_is_a(itemptr->type, &RNA_FreestyleLineSet)) {
+	else if (RNA_struct_is_a(itemptr->type, &RNA_SceneRenderLayer) || 
+	         RNA_struct_is_a(itemptr->type, &RNA_FreestyleLineSet)) {
 		uiItemL(sub, name, icon);
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "use", 0, 0, 0, 0, 0,  NULL);

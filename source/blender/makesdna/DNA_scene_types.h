@@ -190,7 +190,6 @@ typedef struct SceneRenderLayer {
 	int pad;
 	
 	struct FreestyleConfig freestyleConfig;
-	
 } SceneRenderLayer;
 
 /* srl->layflag */
@@ -1459,9 +1458,9 @@ typedef struct Scene {
 
 /* Paint.flags */
 typedef enum {
-	PAINT_SHOW_BRUSH = (1<<0),
-	PAINT_FAST_NAVIGATE = (1<<1),
-	PAINT_SHOW_BRUSH_ON_SURFACE = (1<<2),
+	PAINT_SHOW_BRUSH = (1 << 0),
+	PAINT_FAST_NAVIGATE = (1 << 1),
+	PAINT_SHOW_BRUSH_ON_SURFACE = (1 << 2),
 } PaintFlags;
 
 /* Sculpt.flags */

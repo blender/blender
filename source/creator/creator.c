@@ -1311,7 +1311,7 @@ int main(int argc, const char **argv)
 	/* for all platforms, even windos has it! */
 	if (G.background) signal(SIGINT, blender_esc);  /* ctrl c out bg render */
 #endif
-	
+
 	/* background render uses this font too */
 	BKE_vfont_builtin_register(datatoc_bfont_pfb, datatoc_bfont_pfb_size);
 

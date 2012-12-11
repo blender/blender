@@ -1271,11 +1271,11 @@ static int edbm_vert_connect(bContext *C, wmOperator *op)
 	}
 	else {
 		EDBM_selectmode_flush(em);  /* so newly created edges get the selection state from the vertex */
-	
-	EDBM_update_generic(C, em, TRUE);
 
-	return len ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
-}
+		EDBM_update_generic(C, em, TRUE);
+
+		return len ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+	}
 }
 
 void MESH_OT_vert_connect(wmOperatorType *ot)
@@ -5772,7 +5772,8 @@ static int edbm_mark_freestyle_edge(bContext *C, wmOperator *op)
 	BMIter iter;
 	int clear = RNA_boolean_get(op->ptr, "clear");
 
-	if (em == NULL) return OPERATOR_FINISHED;
+	if (em == NULL)
+		return OPERATOR_FINISHED;
 
 	/* auto-enable seams drawing */
 	if (clear == 0) {
@@ -5865,4 +5866,3 @@ void MESH_OT_mark_freestyle_face(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
 }
-

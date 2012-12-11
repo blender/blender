@@ -288,7 +288,7 @@ void BKE_scene_free(Scene *sce)
 {
 	Base *base;
 	SceneRenderLayer *srl;
-	
+
 	base = sce->base.first;
 	while (base) {
 		base->object->id.us--;

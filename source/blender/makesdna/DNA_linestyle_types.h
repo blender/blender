@@ -1,13 +1,10 @@
-/* DNA_linestyle_types.h
- *
- * $Id$
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * of the License, or (at your option) any later version. 
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef DNA_LINESTYLE_TYPES_H
-#define DNA_LINESTYLE_TYPES_H
+#ifndef __DNA_LINESTYLE_TYPES_H__
+#define __DNA_LINESTYLE_TYPES_H__
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
@@ -96,7 +93,6 @@ typedef struct LineStyleColorModifier_AlongStroke {
 	struct LineStyleModifier modifier;
 
 	struct ColorBand *color_ramp;
-
 } LineStyleColorModifier_AlongStroke;
 
 typedef struct LineStyleAlphaModifier_AlongStroke {
@@ -105,7 +101,6 @@ typedef struct LineStyleAlphaModifier_AlongStroke {
 	struct CurveMapping	*curve;
 	int flags;
 	int pad;
-
 } LineStyleAlphaModifier_AlongStroke;
 
 typedef struct LineStyleThicknessModifier_AlongStroke {
@@ -115,7 +110,6 @@ typedef struct LineStyleThicknessModifier_AlongStroke {
 	int flags;
 	float value_min, value_max;
 	int pad;
-
 } LineStyleThicknessModifier_AlongStroke;
 
 /* Distance from Camera modifiers */
@@ -125,7 +119,6 @@ typedef struct LineStyleColorModifier_DistanceFromCamera {
 
 	struct ColorBand *color_ramp;
 	float range_min, range_max;
-
 } LineStyleColorModifier_DistanceFromCamera;
 
 typedef struct LineStyleAlphaModifier_DistanceFromCamera {
@@ -135,7 +128,6 @@ typedef struct LineStyleAlphaModifier_DistanceFromCamera {
 	int flags;
 	float range_min, range_max;
 	int pad;
-
 } LineStyleAlphaModifier_DistanceFromCamera;
 
 typedef struct LineStyleThicknessModifier_DistanceFromCamera {
@@ -146,7 +138,6 @@ typedef struct LineStyleThicknessModifier_DistanceFromCamera {
 	float range_min, range_max;
 	float value_min, value_max;
 	int pad;
-
 } LineStyleThicknessModifier_DistanceFromCamera;
 
 /* Distance from Object modifiers */
@@ -157,7 +148,6 @@ typedef struct LineStyleColorModifier_DistanceFromObject {
 	struct Object *target;
 	struct ColorBand *color_ramp;
 	float range_min, range_max;
-
 } LineStyleColorModifier_DistanceFromObject;
 
 typedef struct LineStyleAlphaModifier_DistanceFromObject {
@@ -168,7 +158,6 @@ typedef struct LineStyleAlphaModifier_DistanceFromObject {
 	int flags;
 	float range_min, range_max;
 	int pad;
-
 } LineStyleAlphaModifier_DistanceFromObject;
 
 typedef struct LineStyleThicknessModifier_DistanceFromObject {
@@ -180,21 +169,20 @@ typedef struct LineStyleThicknessModifier_DistanceFromObject {
 	float range_min, range_max;
 	float value_min, value_max;
 	int pad;
-
 } LineStyleThicknessModifier_DistanceFromObject;
 
 /* Material modifiers */
 
 /* mat_attr */
-#define LS_MODIFIER_MATERIAL_DIFF       1
-#define LS_MODIFIER_MATERIAL_DIFF_R     2
-#define LS_MODIFIER_MATERIAL_DIFF_G     3
-#define LS_MODIFIER_MATERIAL_DIFF_B     4
-#define LS_MODIFIER_MATERIAL_SPEC       5
-#define LS_MODIFIER_MATERIAL_SPEC_R     6
-#define LS_MODIFIER_MATERIAL_SPEC_G     7
-#define LS_MODIFIER_MATERIAL_SPEC_B     8
-#define LS_MODIFIER_MATERIAL_SPEC_HARD  9
+#define LS_MODIFIER_MATERIAL_DIFF        1
+#define LS_MODIFIER_MATERIAL_DIFF_R      2
+#define LS_MODIFIER_MATERIAL_DIFF_G      3
+#define LS_MODIFIER_MATERIAL_DIFF_B      4
+#define LS_MODIFIER_MATERIAL_SPEC        5
+#define LS_MODIFIER_MATERIAL_SPEC_R      6
+#define LS_MODIFIER_MATERIAL_SPEC_G      7
+#define LS_MODIFIER_MATERIAL_SPEC_B      8
+#define LS_MODIFIER_MATERIAL_SPEC_HARD   9
 #define LS_MODIFIER_MATERIAL_ALPHA      10
 
 typedef struct LineStyleColorModifier_Material {
@@ -203,7 +191,6 @@ typedef struct LineStyleColorModifier_Material {
 	struct ColorBand *color_ramp;
 	int flags;
 	int mat_attr;
-
 } LineStyleColorModifier_Material;
 
 typedef struct LineStyleAlphaModifier_Material {
@@ -212,7 +199,6 @@ typedef struct LineStyleAlphaModifier_Material {
 	struct CurveMapping	*curve;
 	int flags;
 	int mat_attr;
-
 } LineStyleAlphaModifier_Material;
 
 typedef struct LineStyleThicknessModifier_Material {
@@ -222,7 +208,6 @@ typedef struct LineStyleThicknessModifier_Material {
 	int flags;
 	float value_min, value_max;
 	int mat_attr;
-
 } LineStyleThicknessModifier_Material;
 
 /* Geometry modifiers */
@@ -232,7 +217,6 @@ typedef struct LineStyleGeometryModifier_Sampling {
 
 	float sampling;
 	int pad;
-
 } LineStyleGeometryModifier_Sampling;
 
 typedef struct LineStyleGeometryModifier_BezierCurve {
@@ -240,7 +224,6 @@ typedef struct LineStyleGeometryModifier_BezierCurve {
 
 	float error;
 	int pad;
-
 } LineStyleGeometryModifier_BezierCurve;
 
 typedef struct LineStyleGeometryModifier_SinusDisplacement {
@@ -248,7 +231,6 @@ typedef struct LineStyleGeometryModifier_SinusDisplacement {
 
 	float wavelength, amplitude, phase;
 	int pad;
-
 } LineStyleGeometryModifier_SinusDisplacement;
 
 /* LineStyleGeometryModifier_SpatialNoise::flags */
@@ -261,7 +243,6 @@ typedef struct LineStyleGeometryModifier_SpatialNoise {
 	float amplitude, scale;
 	unsigned int octaves;
 	int flags;
-
 } LineStyleGeometryModifier_SpatialNoise;
 
 typedef struct LineStyleGeometryModifier_PerlinNoise1D {
@@ -272,7 +253,6 @@ typedef struct LineStyleGeometryModifier_PerlinNoise1D {
 	unsigned int octaves;
 	int seed;
 	int pad1;
-
 } LineStyleGeometryModifier_PerlinNoise1D;
 
 typedef struct LineStyleGeometryModifier_PerlinNoise2D {
@@ -283,7 +263,6 @@ typedef struct LineStyleGeometryModifier_PerlinNoise2D {
 	unsigned int octaves;
 	int seed;
 	int pad1;
-
 } LineStyleGeometryModifier_PerlinNoise2D;
 
 typedef struct LineStyleGeometryModifier_BackboneStretcher {
@@ -291,7 +270,6 @@ typedef struct LineStyleGeometryModifier_BackboneStretcher {
 
 	float backbone_length;
 	int pad;
-
 } LineStyleGeometryModifier_BackboneStretcher;
 
 typedef struct LineStyleGeometryModifier_TipRemover {
@@ -299,7 +277,6 @@ typedef struct LineStyleGeometryModifier_TipRemover {
 
 	float tip_length;
 	int pad;
-
 } LineStyleGeometryModifier_TipRemover;
 
 typedef struct LineStyleGeometryModifier_Polygonalization {
@@ -307,7 +284,6 @@ typedef struct LineStyleGeometryModifier_Polygonalization {
 
 	float error;
 	int pad;
-
 } LineStyleGeometryModifier_Polygonalization;
 
 typedef struct LineStyleGeometryModifier_GuidingLines {
@@ -315,7 +291,6 @@ typedef struct LineStyleGeometryModifier_GuidingLines {
 
 	float offset;
 	int pad;
-
 } LineStyleGeometryModifier_GuidingLines;
 
 /* LineStyleGeometryModifier_BluePrintLines::shape */
@@ -332,7 +307,6 @@ typedef struct LineStyleGeometryModifier_Blueprint {
 	unsigned int random_radius;
 	unsigned int random_center;
 	unsigned int random_backbone;
-
 } LineStyleGeometryModifier_Blueprint;
 
 typedef struct LineStyleGeometryModifier_2DOffset {
@@ -340,7 +314,6 @@ typedef struct LineStyleGeometryModifier_2DOffset {
 
 	float start, end;
 	float x, y;
-
 } LineStyleGeometryModifier_2DOffset;
 
 /* LineStyleGeometryModifier_2DTransform::pivot */
@@ -359,7 +332,6 @@ typedef struct LineStyleGeometryModifier_2DTransform {
 	float pivot_u;
 	float pivot_x, pivot_y;
 	int pad;
-
 } LineStyleGeometryModifier_2DTransform;
 
 /* Calligraphic thickness modifier */
@@ -370,7 +342,6 @@ typedef struct LineStyleThicknessModifier_Calligraphy {
 	float min_thickness, max_thickness;
 	float orientation; /* in radians! */
 	int pad;
-
 } LineStyleThicknessModifier_Calligraphy;
 
 /* FreestyleLineStyle::panel */
@@ -382,17 +353,17 @@ typedef struct LineStyleThicknessModifier_Calligraphy {
 #define LS_PANEL_MISC         6
 
 /* FreestyleLineStyle::flag */
-#define LS_DS_EXPAND          1  /* for animation editors */
-#define LS_SAME_OBJECT        2
-#define LS_DASHED_LINE        4
-#define LS_MATERIAL_BOUNDARY  8
-#define LS_MIN_2D_LENGTH      16
-#define LS_MAX_2D_LENGTH      32
-#define LS_NO_CHAINING        64
-#define LS_MIN_2D_ANGLE       128
-#define LS_MAX_2D_ANGLE       256
-#define LS_SPLIT_LENGTH       512
-#define LS_SPLIT_PATTERN      1024
+#define LS_DS_EXPAND          (1 <<  0)  /* for animation editors */
+#define LS_SAME_OBJECT        (1 <<  1)
+#define LS_DASHED_LINE        (1 <<  2)
+#define LS_MATERIAL_BOUNDARY  (1 <<  3)
+#define LS_MIN_2D_LENGTH      (1 <<  4)
+#define LS_MAX_2D_LENGTH      (1 <<  5)
+#define LS_NO_CHAINING        (1 <<  6)
+#define LS_MIN_2D_ANGLE       (1 <<  7)
+#define LS_MAX_2D_ANGLE       (1 <<  8)
+#define LS_SPLIT_LENGTH       (1 <<  9)
+#define LS_SPLIT_PATTERN      (1 << 10)
 
 /* FreestyleLineStyle::chaining */
 #define LS_CHAINING_PLAIN    1
@@ -434,7 +405,6 @@ typedef struct FreestyleLineStyle {
 	ListBase alpha_modifiers;
 	ListBase thickness_modifiers;
 	ListBase geometry_modifiers;
-
 } FreestyleLineStyle;
 
 #endif

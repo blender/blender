@@ -646,7 +646,7 @@ void rna_Main_linestyles_remove(Main *bmain, ReportList *reports, FreestyleLineS
 	if(ID_REAL_USERS(linestyle) <= 0)
 		BKE_libblock_free(&bmain->linestyle, linestyle);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Line style \"%s\" must have zero users to be removed, found %d.", linestyle->id.name+2, ID_REAL_USERS(linestyle));
+		BKE_reportf(reports, RPT_ERROR, "Line style '%s' must have zero users to be removed, found %d", linestyle->id.name+2, ID_REAL_USERS(linestyle));
 
 	/* XXX python now has invalid pointer? */
 }
@@ -1711,22 +1711,22 @@ void RNA_def_main_linestyles(BlenderRNA *brna, PropertyRNA *cprop)
 	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "BlendDataLineStyles");
-	srna= RNA_def_struct(brna, "BlendDataLineStyles", NULL);
+	srna = RNA_def_struct(brna, "BlendDataLineStyles", NULL);
 	RNA_def_struct_sdna(srna, "Main");
 	RNA_def_struct_ui_text(srna, "Main Line Styles", "Collection of line styles");
 
-	func= RNA_def_function(srna, "new", "rna_Main_linestyles_new");
+	func = RNA_def_function(srna, "new", "rna_Main_linestyles_new");
 	RNA_def_function_ui_description(func, "Add a new line style instance to the main database");
-	parm= RNA_def_string(func, "name", "FreestyleLineStyle", 0, "", "New name for the datablock");
+	parm = RNA_def_string(func, "name", "FreestyleLineStyle", 0, "", "New name for the datablock");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
-	parm= RNA_def_pointer(func, "linestyle", "FreestyleLineStyle", "", "New line style datablock");
+	parm = RNA_def_pointer(func, "linestyle", "FreestyleLineStyle", "", "New line style datablock");
 	RNA_def_function_return(func, parm);
 
-	func= RNA_def_function(srna, "remove", "rna_Main_linestyles_remove");
+	func = RNA_def_function(srna, "remove", "rna_Main_linestyles_remove");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Remove a line style instance from the current blendfile");
-	parm= RNA_def_pointer(func, "linestyle", "FreestyleLineStyle", "", "Line style to remove");
+	parm = RNA_def_pointer(func, "linestyle", "FreestyleLineStyle", "", "Line style to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
