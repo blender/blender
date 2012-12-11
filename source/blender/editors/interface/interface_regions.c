@@ -2240,7 +2240,7 @@ uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_
 
 /************************ Popup Menu Memory ****************************/
 
-static int ui_popup_string_hash(char *str)
+static int ui_popup_string_hash(const char *str)
 {
 	/* sometimes button contains hotkey, sometimes not, strip for proper compare */
 	int hash;
