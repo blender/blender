@@ -3977,16 +3977,25 @@ int ED_view3d_autodist_depth_seg(ARegion *ar, const int mval_sta[2], const int m
 	return (*depth == FLT_MAX) ? 0 : 1;
 }
 
-float ED_view3d_offset_distance(float mat[4][4], float ofs[3]) {
+float ED_view3d_offset_distance(float mat[4][4], float ofs[3])
+{
 	float pos[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 	float dir[4] = {0.0f, 0.0f, 1.0f, 0.0f};
-
+	float dist;
+	
 	mul_m4_v4(mat, pos);
 	add_v3_v3(pos, ofs);
 	mul_m4_v4(mat, dir);
 	normalize_v3(dir);
 
-	return dot_v3v3(pos, dir);
+	dist = dot_v3v3(pos, dir);
+	
+	/* problem - ofs[3] can be on same location as camera itself. 
+	   Blender needs proper dist value for zoom */
+	if ( fabs(dist) <= FLT_EPSILON) {
+		return 1.0f;
+	}
+	return dist;
 }
 
 /**
