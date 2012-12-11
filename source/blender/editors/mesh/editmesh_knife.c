@@ -2591,10 +2591,8 @@ static void knife_make_chain_cut(KnifeTool_OpData *kcd, BMFace *f, ListBase *cha
 	BMLoop *lnew, *l_iter;
 	int i;
 	int nco = BLI_countlist(chain) - 1;
-	float (*cos)[3] = NULL;
-	KnifeVert **kverts;
-	BLI_array_fixedstack_declare(cos, BM_DEFAULT_NGON_STACK_SIZE, nco, __func__);
-	BLI_array_fixedstack_declare(kverts, BM_DEFAULT_NGON_STACK_SIZE, nco, __func__);
+	float (*cos)[3] = BLI_array_alloca(cos, nco);
+	KnifeVert **kverts = BLI_array_alloca(kverts, nco);
 
 	kfe = ((Ref *)chain->first)->ref;
 	v1 = kfe->v1->v ? kfe->v1->v : kfe->v2->v;
@@ -2643,9 +2641,6 @@ static void knife_make_chain_cut(KnifeTool_OpData *kcd, BMFace *f, ListBase *cha
 			BM_edge_select_set(bm, lnew->e, TRUE);
 		}
 	}
-
-	BLI_array_fixedstack_free(cos);
-	BLI_array_fixedstack_free(kverts);
 }
 
 static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMFace *f, ListBase *kfedges)

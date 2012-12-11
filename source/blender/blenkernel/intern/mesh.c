@@ -3009,9 +3009,9 @@ float BKE_mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
 	else {
 		int i;
 		MLoop *l_iter = loopstart;
-		float area, polynorm_local[3], (*vertexcos)[3];
+		float area, polynorm_local[3];
+		float (*vertexcos)[3] = BLI_array_alloca(vertexcos, mpoly->totloop);
 		const float *no = polynormal ? polynormal : polynorm_local;
-		BLI_array_fixedstack_declare(vertexcos, BM_DEFAULT_NGON_STACK_SIZE, mpoly->totloop, __func__);
 
 		/* pack vertex cos into an array for area_poly_v3 */
 		for (i = 0; i < mpoly->totloop; i++, l_iter++) {
@@ -3025,8 +3025,6 @@ float BKE_mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
 
 		/* finally calculate the area */
 		area = area_poly_v3(mpoly->totloop, vertexcos, no);
-
-		BLI_array_fixedstack_free(vertexcos);
 
 		return area;
 	}

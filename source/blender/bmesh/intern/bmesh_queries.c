@@ -1415,8 +1415,7 @@ int BM_face_exists_multi(BMVert **varr, BMEdge **earr, int len)
 /* same as 'BM_face_exists_multi' but built vert array from edges */
 int BM_face_exists_multi_edge(BMEdge **earr, int len)
 {
-	BMVert **varr;
-	BLI_array_fixedstack_declare(varr, BM_DEFAULT_NGON_STACK_SIZE, len, __func__);
+	BMVert **varr = BLI_array_alloca(varr, len);
 
 	int ok;
 	int i, i_next;
@@ -1432,13 +1431,10 @@ int BM_face_exists_multi_edge(BMEdge **earr, int len)
 
 	if (ok == FALSE) {
 		BMESH_ASSERT(0);
-		BLI_array_fixedstack_free(varr);
 		return FALSE;
 	}
 
 	ok = BM_face_exists_multi(varr, earr, len);
-
-	BLI_array_fixedstack_free(varr);
 
 	return ok;
 }

@@ -1413,8 +1413,7 @@ static void uv_map_mirror(BMEditMesh *em, BMFace *efa, MTexPoly *UNUSED(tf))
 	BMLoop *l;
 	BMIter liter;
 	MLoopUV *luv;
-	float **uvs = NULL;
-	BLI_array_fixedstack_declare(uvs, BM_DEFAULT_NGON_STACK_SIZE, efa->len, __func__);
+	float **uvs = BLI_array_alloca(uvs, efa->len);
 	float dx;
 	int i, mi;
 
@@ -1436,8 +1435,6 @@ static void uv_map_mirror(BMEditMesh *em, BMFace *efa, MTexPoly *UNUSED(tf))
 			if (dx > 0.5f) uvs[i][0] += 1.0f;
 		}
 	}
-
-	BLI_array_fixedstack_free(uvs);
 }
 
 static int sphere_project_exec(bContext *C, wmOperator *op)
