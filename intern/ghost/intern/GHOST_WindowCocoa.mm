@@ -1221,7 +1221,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setProgressBar(float progress)
 		[dockIcon lockFocus];
 		NSRect progressBox = {{4, 4}, {120, 16}};
 
-		[[NSImage imageNamed:@"NSApplicationIcon"] dissolveToPoint:NSZeroPoint fraction:1.0];
+		[[NSImage imageNamed:@"NSApplicationIcon"] drawAtPoint:NSZeroPoint fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1.0];
 
 		// Track & Outline
 		[[NSColor blackColor] setFill];
@@ -1260,7 +1260,7 @@ GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
 	
 	NSImage* dockIcon = [[NSImage alloc] initWithSize:NSMakeSize(128,128)];
 	[dockIcon lockFocus];
-	[[NSImage imageNamed:@"NSApplicationIcon"] dissolveToPoint:NSZeroPoint fraction:1.0];
+	[[NSImage imageNamed:@"NSApplicationIcon"] drawAtPoint:NSZeroPoint fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1.0];
 	[dockIcon unlockFocus];
 	[NSApp setApplicationIconImage:dockIcon];
 	[dockIcon release];
