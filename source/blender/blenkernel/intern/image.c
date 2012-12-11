@@ -1400,7 +1400,9 @@ static void timecode_simple_string(char *text, size_t text_size, const int cfra,
 	}
 }
 
-/* could allow access externally - 512 is for long names, 64 is for id names */
+#define STAMP_NAME_SIZE ((MAX_ID_NAME - 2) + 16)
+/* could allow access externally - 512 is for long names,
+ * STAMP_NAME_SIZE is for id names, allowing them some room for description */
 typedef struct StampData {
 	char file[512];
 	char note[512];
@@ -1408,12 +1410,13 @@ typedef struct StampData {
 	char marker[512];
 	char time[512];
 	char frame[512];
-	char camera[64];
-	char cameralens[64];
-	char scene[64];
-	char strip[64];
-	char rendertime[64];
+	char camera[STAMP_NAME_SIZE];
+	char cameralens[STAMP_NAME_SIZE];
+	char scene[STAMP_NAME_SIZE];
+	char strip[STAMP_NAME_SIZE];
+	char rendertime[STAMP_NAME_SIZE];
 } StampData;
+#undef STAMP_NAME_SIZE
 
 static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int do_prefix)
 {
