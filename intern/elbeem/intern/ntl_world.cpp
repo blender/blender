@@ -420,7 +420,12 @@ int ntlWorld::advanceSims(int framenum)
 	// Was: double targetTime = mSimulationTime + (*mpSims)[mFirstSim]->getFrameTime(framenum); - DG
 	double totalTime = 0.0, targetTime = 0.0;
 	for(size_t i = 0; i < mSimFrameCnt; i++)
-		totalTime += (*mpSims)[mFirstSim]->getFrameTime(framenum);
+	{
+		/* We need an intermediate array "mSimFrameValue" because
+		otherwise if we don't start with starttime = 0, 
+		the sim gets out of sync - DG */
+		totalTime += (*mpSims)[mFirstSim]->getFrameTime(mSimFrameValue[i]);	
+	}
 	targetTime = totalTime + (*mpSims)[mFirstSim]->getFrameTime(framenum);
 
 	int gstate = 0;
@@ -468,6 +473,7 @@ int ntlWorld::advanceSims(int framenum)
 		sim->prepareVisualization();
 	}
 
+	mSimFrameValue.push_back(framenum);
 	mSimFrameCnt++;
 
 	return 0;
