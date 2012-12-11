@@ -1588,11 +1588,6 @@ install_SUSE() {
   INFO ""
   install_packages_SUSE $_packages
 
-  OPENJPEG_USE=true
-  SCHRO_USE=true
-  VORBIS_USE=true
-  THEORA_USE=true
-
   INFO ""
   X264_DEV="x264-devel"
   check_package_version_ge_SUSE $X264_DEV $X264_VERSION_MIN
