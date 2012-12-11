@@ -1120,7 +1120,7 @@ typedef struct MeshDeformBind {
 typedef struct MeshDeformIsect {
 	float start[3];
 	float vec[3];
-	float labda;
+	float lambda;
 
 	void *face;
 	int isect;
@@ -1227,7 +1227,7 @@ static void harmonic_ray_callback(void *userdata, int index, const BVHTreeRay *r
 		copy_v3_v3(hit->co, co);
 		
 		isec->isect = (dot_v3v3(no, ray->direction) <= 0.0f);
-		isec->labda = dist;
+		isec->lambda = dist;
 		isec->face = mf;
 	}
 }
@@ -1245,7 +1245,7 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, float 
 
 	/* setup isec */
 	memset(&isect_mdef, 0, sizeof(isect_mdef));
-	isect_mdef.labda = 1e10f;
+	isect_mdef.lambda = 1e10f;
 
 	add_v3_v3v3(isect_mdef.start, co1, epsilon);
 	add_v3_v3v3(end, co2, epsilon);
@@ -1256,7 +1256,7 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, float 
 	if (BLI_bvhtree_ray_cast(mdb->bvhtree, isect_mdef.start, isect_mdef.vec,
 	                         0.0, &hit, harmonic_ray_callback, data) != -1)
 	{
-		len = isect_mdef.labda;
+		len = isect_mdef.lambda;
 		isect_mdef.face = mface = mface1 + hit.index;
 
 		/* create MDefBoundIsect */

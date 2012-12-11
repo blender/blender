@@ -464,12 +464,12 @@ static void findnearestedge__doClosest(void *userData, BMEdge *eed, const float 
 
 	if (distance < data->dist) {
 		if (data->vc.rv3d->rflag & RV3D_CLIPPING) {
-			float labda = line_point_factor_v2(data->mval_fl, screen_co_a, screen_co_b);
+			float lambda = line_point_factor_v2(data->mval_fl, screen_co_a, screen_co_b);
 			float vec[3];
 
-			vec[0] = eed->v1->co[0] + labda * (eed->v2->co[0] - eed->v1->co[0]);
-			vec[1] = eed->v1->co[1] + labda * (eed->v2->co[1] - eed->v1->co[1]);
-			vec[2] = eed->v1->co[2] + labda * (eed->v2->co[2] - eed->v1->co[2]);
+			vec[0] = eed->v1->co[0] + lambda * (eed->v2->co[0] - eed->v1->co[0]);
+			vec[1] = eed->v1->co[1] + lambda * (eed->v2->co[1] - eed->v1->co[1]);
+			vec[2] = eed->v1->co[2] + lambda * (eed->v2->co[2] - eed->v1->co[2]);
 
 			if (ED_view3d_clipping_test(data->vc.rv3d, vec, TRUE) == 0) {
 				data->dist = distance;

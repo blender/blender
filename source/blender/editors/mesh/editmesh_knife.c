@@ -1594,10 +1594,10 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 			dis = dist_to_line_segment_v2(sco, kfe->v1->sco, kfe->v2->sco);
 			if (dis < curdis && dis < maxdist) {
 				if (kcd->vc.rv3d->rflag & RV3D_CLIPPING) {
-					float labda = line_point_factor_v2(sco, kfe->v1->sco, kfe->v2->sco);
+					float lambda = line_point_factor_v2(sco, kfe->v1->sco, kfe->v2->sco);
 					float vec[3];
 
-					interp_v3_v3v3(vec, kfe->v1->cageco, kfe->v2->cageco, labda);
+					interp_v3_v3v3(vec, kfe->v1->cageco, kfe->v2->cageco, lambda);
 
 					if (ED_view3d_clipping_test(kcd->vc.rv3d, vec, TRUE) == 0) {
 						cure = kfe;

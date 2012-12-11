@@ -68,7 +68,7 @@
 /* local */
 static int cu_isectLL(const float v1[3], const float v2[3], const float v3[3], const float v4[3],
                       short cox, short coy,
-                      float *labda, float *mu, float vec[3]);
+                      float *lambda, float *mu, float vec[3]);
 
 void BKE_curve_unlink(Curve *cu)
 {
@@ -1615,7 +1615,7 @@ void BKE_curve_bevel_make(Scene *scene, Object *ob, ListBase *disp, int forRende
 
 static int cu_isectLL(const float v1[3], const float v2[3], const float v3[3], const float v4[3],
                       short cox, short coy,
-                      float *labda, float *mu, float vec[3])
+                      float *lambda, float *mu, float vec[3])
 {
 	/* return:
 	 * -1: collinear
@@ -1629,22 +1629,22 @@ static int cu_isectLL(const float v1[3], const float v2[3], const float v3[3], c
 	if (deler == 0.0f)
 		return -1;
 
-	*labda = (v1[coy] - v3[coy]) * (v3[cox] - v4[cox]) - (v1[cox] - v3[cox]) * (v3[coy] - v4[coy]);
-	*labda = -(*labda / deler);
+	*lambda = (v1[coy] - v3[coy]) * (v3[cox] - v4[cox]) - (v1[cox] - v3[cox]) * (v3[coy] - v4[coy]);
+	*lambda = -(*lambda / deler);
 
 	deler = v3[coy] - v4[coy];
 	if (deler == 0) {
 		deler = v3[cox] - v4[cox];
-		*mu = -(*labda * (v2[cox] - v1[cox]) + v1[cox] - v3[cox]) / deler;
+		*mu = -(*lambda * (v2[cox] - v1[cox]) + v1[cox] - v3[cox]) / deler;
 	}
 	else {
-		*mu = -(*labda * (v2[coy] - v1[coy]) + v1[coy] - v3[coy]) / deler;
+		*mu = -(*lambda * (v2[coy] - v1[coy]) + v1[coy] - v3[coy]) / deler;
 	}
-	vec[cox] = *labda * (v2[cox] - v1[cox]) + v1[cox];
-	vec[coy] = *labda * (v2[coy] - v1[coy]) + v1[coy];
+	vec[cox] = *lambda * (v2[cox] - v1[cox]) + v1[cox];
+	vec[coy] = *lambda * (v2[coy] - v1[coy]) + v1[coy];
 
-	if (*labda >= 0.0f && *labda <= 1.0f && *mu >= 0.0f && *mu <= 1.0f) {
-		if (*labda == 0.0f || *labda == 1.0f || *mu == 0.0f || *mu == 1.0f)
+	if (*lambda >= 0.0f && *lambda <= 1.0f && *mu >= 0.0f && *mu <= 1.0f) {
+		if (*lambda == 0.0f || *lambda == 1.0f || *mu == 0.0f || *mu == 1.0f)
 			return 1;
 		return 2;
 	}
@@ -1654,7 +1654,7 @@ static int cu_isectLL(const float v1[3], const float v2[3], const float v3[3], c
 
 static short bevelinside(BevList *bl1, BevList *bl2)
 {
-	/* is bl2 INSIDE bl1 ? with left-right method and "labda's" */
+	/* is bl2 INSIDE bl1 ? with left-right method and "lambda's" */
 	/* returns '1' if correct hole  */
 	BevPoint *bevp, *prevbevp;
 	float min, max, vec[3], hvec1[3], hvec2[3], lab, mu;

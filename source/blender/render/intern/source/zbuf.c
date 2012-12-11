@@ -1600,8 +1600,8 @@ void zspan_scanconvert(ZSpan *zspan, void *handle, float *v1, float *v2, float *
 
 /**
  * (clip pyramid)
- * Sets labda: flag, and parametrize the clipping of vertices in
- * viewspace coordinates. labda = -1 means no clipping, labda in [0, 1] means a clipping.
+ * Sets lambda: flag, and parametrize the clipping of vertices in
+ * viewspace coordinates. lambda = -1 means no clipping, lambda in [0, 1] means a clipping.
  * Note: uses globals.
  * \param v1 start coordinate s
  * \param v2 target coordinate t
@@ -1611,13 +1611,13 @@ void zspan_scanconvert(ZSpan *zspan, void *handle, float *v1, float *v2, float *
  * \param a index for coordinate (x, y, or z)
  */
 
-static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a, float clipcrop)
+static void clippyra(float *lambda, float *v1, float *v2, int *b2, int *b3, int a, float clipcrop)
 {
 	float da, dw, u1=0.0, u2=1.0;
 	float v13;
 	
-	labda[0]= -1.0;
-	labda[1]= -1.0;
+	lambda[0]= -1.0;
+	lambda[1]= -1.0;
 
 	da= v2[a]-v1[a];
 	/* prob; we clip slightly larger, osa renders add 2 pixels on edges, should become variable? */
@@ -1641,16 +1641,16 @@ static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a
 		if (cliptestf(da, -dw, v13, -v1[a], &u1, &u2)) {
 			*b3=1;
 			if (u2<1.0f) {
-				labda[1]= u2;
+				lambda[1]= u2;
 				*b2=1;
 			}
-			else labda[1]=1.0;  /* u2 */
+			else lambda[1]=1.0;  /* u2 */
 			if (u1>0.0f) {
-				labda[0] = u1;
+				lambda[0] = u1;
 				*b2 = 1;
 			}
 			else {
-				labda[0] = 0.0;
+				lambda[0] = 0.0;
 			}
 		}
 	}
@@ -1658,8 +1658,8 @@ static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a
 
 /**
  * (make vertex pyramide clip)
- * Checks labda and uses this to make decision about clipping the line
- * segment from v1 to v2. labda is the factor by which the vector is
+ * Checks lambda and uses this to make decision about clipping the line
+ * segment from v1 to v2. lambda is the factor by which the vector is
  * cut. ( calculate s + l * ( t - s )). The result is appended to the
  * vertex list of this face.
  * 
@@ -1671,12 +1671,12 @@ static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a
  * \param clve vertex vector.
  */
 
-static void makevertpyra(float *vez, float *labda, float **trias, float *v1, float *v2, int *b1, int *clve)
+static void makevertpyra(float *vez, float *lambda, float **trias, float *v1, float *v2, int *b1, int *clve)
 {
 	float l1, l2, *adr;
 
-	l1= labda[0];
-	l2= labda[1];
+	l1= lambda[0];
+	l2= lambda[1];
 
 	if (l1!= -1.0f) {
 		if (l1!= 0.0f) {
@@ -1847,7 +1847,7 @@ void zbuf_make_winmat(Render *re, float winmat[][4])
 
 void zbufclip(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3, int c1, int c2, int c3)
 {
-	float *vlzp[32][3], labda[3][2];
+	float *vlzp[32][3], lambda[3][2];
 	float vez[400], *trias[40];
 	
 	if (c1 | c2 | c3) {	/* not in middle */
@@ -1887,9 +1887,9 @@ void zbufclip(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3,
 							else if (b==1) arg= 0;
 							else arg= 1;
 							
-							clippyra(labda[0], vlzp[v][0], vlzp[v][1], &b2, &b3, arg, zspan->clipcrop);
-							clippyra(labda[1], vlzp[v][1], vlzp[v][2], &b2, &b3, arg, zspan->clipcrop);
-							clippyra(labda[2], vlzp[v][2], vlzp[v][0], &b2, &b3, arg, zspan->clipcrop);
+							clippyra(lambda[0], vlzp[v][0], vlzp[v][1], &b2, &b3, arg, zspan->clipcrop);
+							clippyra(lambda[1], vlzp[v][1], vlzp[v][2], &b2, &b3, arg, zspan->clipcrop);
+							clippyra(lambda[2], vlzp[v][2], vlzp[v][0], &b2, &b3, arg, zspan->clipcrop);
 
 							if (b2==0 && b3==1) {
 								/* completely 'in', but we copy because of last for () loop in this section */;
@@ -1905,9 +1905,9 @@ void zbufclip(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3,
 							}
 							else {
 								b1=0;
-								makevertpyra(vez, labda[0], trias, vlzp[v][0], vlzp[v][1], &b1, &clve);
-								makevertpyra(vez, labda[1], trias, vlzp[v][1], vlzp[v][2], &b1, &clve);
-								makevertpyra(vez, labda[2], trias, vlzp[v][2], vlzp[v][0], &b1, &clve);
+								makevertpyra(vez, lambda[0], trias, vlzp[v][0], vlzp[v][1], &b1, &clve);
+								makevertpyra(vez, lambda[1], trias, vlzp[v][1], vlzp[v][2], &b1, &clve);
+								makevertpyra(vez, lambda[2], trias, vlzp[v][2], vlzp[v][0], &b1, &clve);
 
 								/* after front clip done: now set clip flags */
 								if (b==0) {

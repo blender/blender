@@ -587,53 +587,53 @@ void make_envmaps(Render *re)
 
 static int envcube_isect(EnvMap *env, const float vec[3], float answ[2])
 {
-	float labda;
+	float lambda;
 	int face;
 	
 	if (env->type == ENV_PLANE) {
 		face = 1;
 		
-		labda = 1.0f / vec[2];
-		answ[0] = env->viewscale * labda * vec[0];
-		answ[1] = -env->viewscale * labda * vec[1];
+		lambda = 1.0f / vec[2];
+		answ[0] = env->viewscale * lambda * vec[0];
+		answ[1] = -env->viewscale * lambda * vec[1];
 	}
 	else {
 		/* which face */
 		if (vec[2] <= -fabsf(vec[0]) && vec[2] <= -fabsf(vec[1]) ) {
 			face = 0;
-			labda = -1.0f / vec[2];
-			answ[0] = labda * vec[0];
-			answ[1] = labda * vec[1];
+			lambda = -1.0f / vec[2];
+			answ[0] = lambda * vec[0];
+			answ[1] = lambda * vec[1];
 		}
 		else if (vec[2] >= fabsf(vec[0]) && vec[2] >= fabsf(vec[1])) {
 			face = 1;
-			labda = 1.0f / vec[2];
-			answ[0] = labda * vec[0];
-			answ[1] = -labda * vec[1];
+			lambda = 1.0f / vec[2];
+			answ[0] = lambda * vec[0];
+			answ[1] = -lambda * vec[1];
 		}
 		else if (vec[1] >= fabsf(vec[0])) {
 			face = 2;
-			labda = 1.0f / vec[1];
-			answ[0] = labda * vec[0];
-			answ[1] = labda * vec[2];
+			lambda = 1.0f / vec[1];
+			answ[0] = lambda * vec[0];
+			answ[1] = lambda * vec[2];
 		}
 		else if (vec[0] <= -fabsf(vec[1])) {
 			face = 3;
-			labda = -1.0f / vec[0];
-			answ[0] = labda * vec[1];
-			answ[1] = labda * vec[2];
+			lambda = -1.0f / vec[0];
+			answ[0] = lambda * vec[1];
+			answ[1] = lambda * vec[2];
 		}
 		else if (vec[1] <= -fabsf(vec[0])) {
 			face = 4;
-			labda = -1.0f / vec[1];
-			answ[0] = -labda * vec[0];
-			answ[1] = labda * vec[2];
+			lambda = -1.0f / vec[1];
+			answ[0] = -lambda * vec[0];
+			answ[1] = lambda * vec[2];
 		}
 		else {
 			face = 5;
-			labda = 1.0f / vec[0];
-			answ[0] = -labda * vec[1];
-			answ[1] = labda * vec[2];
+			lambda = 1.0f / vec[0];
+			answ[0] = -lambda * vec[1];
+			answ[1] = lambda * vec[2];
 		}
 	}
 	
