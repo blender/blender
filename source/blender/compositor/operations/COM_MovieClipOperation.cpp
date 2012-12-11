@@ -95,7 +95,7 @@ void MovieClipOperation::executePixel(float output[4], float x, float y, PixelSa
 	else {
 		switch (sampler) {
 			case COM_PS_NEAREST:
-				neareast_interpolation_color(this->m_movieClipBuffer, NULL, output, x, y);
+				nearest_interpolation_color(this->m_movieClipBuffer, NULL, output, x, y);
 				break;
 			case COM_PS_BILINEAR:
 				bilinear_interpolation_color(this->m_movieClipBuffer, NULL, output, x, y);

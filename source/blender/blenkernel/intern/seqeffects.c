@@ -1745,7 +1745,7 @@ static void transform_image(int x, int y, ImBuf *ibuf1, ImBuf *out,  float scale
 			/* interpolate */
 			switch (interpolation) {
 				case 0:
-					neareast_interpolation(ibuf1, out, xt, yt, xi, yi);
+					nearest_interpolation(ibuf1, out, xt, yt, xi, yi);
 					break;
 				case 1:
 					bilinear_interpolation(ibuf1, out, xt, yt, xi, yi);

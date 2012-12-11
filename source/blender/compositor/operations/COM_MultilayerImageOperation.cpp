@@ -54,7 +54,7 @@ void MultilayerColorOperation::executePixel(float output[4], float x, float y, P
 		if (this->m_numberOfChannels == 4) {
 			switch (sampler) {
 				case COM_PS_NEAREST:
-					neareast_interpolation_color(this->m_buffer, NULL, output, x, y);
+					nearest_interpolation_color(this->m_buffer, NULL, output, x, y);
 					break;
 				case COM_PS_BILINEAR:
 					bilinear_interpolation_color(this->m_buffer, NULL, output, x, y);

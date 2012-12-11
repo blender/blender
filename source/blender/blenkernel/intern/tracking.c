@@ -3462,15 +3462,15 @@ ImBuf *BKE_tracking_stabilize_frame(MovieTracking *tracking, int framenr, ImBuf 
 		BKE_tracking_stabilization_data_to_mat4(ibuf->x, ibuf->y, aspect, tloc, tscale, tangle, mat);
 		invert_m4(mat);
 
-		if (filter == TRACKING_FILTER_NEAREAST)
-			interpolation = neareast_interpolation;
+		if (filter == TRACKING_FILTER_NEAREST)
+			interpolation = nearest_interpolation;
 		else if (filter == TRACKING_FILTER_BILINEAR)
 			interpolation = bilinear_interpolation;
 		else if (filter == TRACKING_FILTER_BICUBIC)
 			interpolation = bicubic_interpolation;
 		else
 			/* fallback to default interpolation method */
-			interpolation = neareast_interpolation;
+			interpolation = nearest_interpolation;
 
 		for (j = 0; j < tmpibuf->y; j++) {
 			for (i = 0; i < tmpibuf->x; i++) {

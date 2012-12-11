@@ -219,7 +219,7 @@ void bilinear_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, i
 
 /* function assumes out to be zero'ed, only does RGBA */
 /* NEAREST INTERPOLATION */
-void neareast_interpolation_color(struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
+void nearest_interpolation_color(struct ImBuf *in, unsigned char outI[4], float outF[4], float u, float v)
 {
 	float *dataF;
 	unsigned char *dataI;
@@ -268,7 +268,7 @@ void neareast_interpolation_color(struct ImBuf *in, unsigned char outI[4], float
 	}
 }
 
-void neareast_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, int yout)
+void nearest_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, int yout)
 {
 	unsigned char *outI = NULL;
 	float *outF = NULL;
@@ -279,7 +279,7 @@ void neareast_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, i
 	
 	pixel_from_buffer(out, &outI, &outF, xout, yout); /* gcc warns these could be uninitialized, but its ok */
 	
-	neareast_interpolation_color(in, outI, outF, x, y);
+	nearest_interpolation_color(in, outI, outF, x, y);
 }
 
 /*********************** Threaded image processing *************************/
