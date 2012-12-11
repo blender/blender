@@ -455,6 +455,12 @@ public:
 	float4 curves[RAMP_TABLE_SIZE];
 };
 
+class VectorCurvesNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(VectorCurvesNode)
+	float4 curves[RAMP_TABLE_SIZE];
+};
+
 class RGBRampNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(RGBRampNode)
