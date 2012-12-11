@@ -91,7 +91,7 @@ void UnitConverter::mat4_to_dae(float out[4][4], float const in[4][4])
 	transpose_m4(out);
 }
 
-void UnitConverter::mat4_to_dae_double(double out[4][4], float in[4][4])
+void UnitConverter::mat4_to_dae_double(double out[4][4], float const in[4][4])
 {
 	float mat[4][4];
 

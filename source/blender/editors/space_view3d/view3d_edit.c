@@ -3992,7 +3992,7 @@ float ED_view3d_offset_distance(float mat[4][4], float ofs[3])
 	
 	/* problem - ofs[3] can be on same location as camera itself. 
 	   Blender needs proper dist value for zoom */
-	if ( fabs(dist) <= FLT_EPSILON) {
+	if (fabsf(dist) <= FLT_EPSILON) {
 		return 1.0f;
 	}
 	return dist;
