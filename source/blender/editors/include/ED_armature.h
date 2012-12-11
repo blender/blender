@@ -184,7 +184,7 @@ int BDR_drawSketchNames(struct ViewContext *vc);
 /* meshlaplacian.c */
 void mesh_deform_bind(struct Scene *scene,
                       struct MeshDeformModifierData *mmd,
-                      float *vertexcos, int totvert, float cagemat[][4]);
+                      float *vertexcos, int totvert, float cagemat[4][4]);
 	
 #ifdef __cplusplus
 }

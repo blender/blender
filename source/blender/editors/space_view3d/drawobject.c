@@ -622,7 +622,7 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 	BKE_image_release_ibuf(ima, ibuf, NULL);
 }
 
-static void circball_array_fill(float verts[CIRCLE_RESOL][3], const float cent[3], float rad, float tmat[][4])
+static void circball_array_fill(float verts[CIRCLE_RESOL][3], const float cent[3], float rad, float tmat[4][4])
 {
 	float vx[3], vy[3];
 	float *viter = (float *)verts;
@@ -638,7 +638,7 @@ static void circball_array_fill(float verts[CIRCLE_RESOL][3], const float cent[3
 	}
 }
 
-void drawcircball(int mode, const float cent[3], float rad, float tmat[][4])
+void drawcircball(int mode, const float cent[3], float rad, float tmat[4][4])
 {
 	float verts[CIRCLE_RESOL][3];
 
@@ -739,7 +739,7 @@ void view3d_cached_text_draw_add(const float co[3],
 	memcpy(++vos, str, alloc_len);
 }
 
-void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, float mat[][4])
+void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, float mat[4][4])
 {
 	RegionView3D *rv3d = ar->regiondata;
 	ListBase *strings = &CachedText[CachedTextLevel - 1];
@@ -929,7 +929,7 @@ static void drawcube_size(const float size[3])
 }
 #endif
 
-static void drawshadbuflimits(Lamp *la, float mat[][4])
+static void drawshadbuflimits(Lamp *la, float mat[4][4])
 {
 	float sta[3], end[3], lavec[3];
 
@@ -5446,7 +5446,7 @@ static void draw_textcurs(float textcurs[4][2])
 	set_inverted_drawing(0);
 }
 
-static void drawspiral(const float cent[3], float rad, float tmat[][4], int start)
+static void drawspiral(const float cent[3], float rad, float tmat[4][4], int start)
 {
 	float vec[3], vx[3], vy[3];
 	const float tot_inv = (1.0f / (float)CIRCLE_RESOL);
@@ -5535,7 +5535,7 @@ static void drawcircle_size(float size)
 }
 
 /* needs fixing if non-identity matrice used */
-static void drawtube(const float vec[3], float radius, float height, float tmat[][4])
+static void drawtube(const float vec[3], float radius, float height, float tmat[4][4])
 {
 	float cur[3];
 	drawcircball(GL_LINE_LOOP, vec, radius, tmat);
@@ -5557,7 +5557,7 @@ static void drawtube(const float vec[3], float radius, float height, float tmat[
 	glEnd();
 }
 /* needs fixing if non-identity matrice used */
-static void drawcone(const float vec[3], float radius, float height, float tmat[][4])
+static void drawcone(const float vec[3], float radius, float height, float tmat[4][4])
 {
 	float cur[3];
 

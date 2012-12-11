@@ -37,7 +37,7 @@
 class TransformWriter : protected TransformBase
 {
 protected:
-	void add_node_transform(COLLADASW::Node& node, float mat[][4], float parent_mat[][4]);
+	void add_node_transform(COLLADASW::Node& node, float mat[4][4], float parent_mat[4][4]);
 
 	void add_node_transform_ob(COLLADASW::Node& node, Object *ob);
 

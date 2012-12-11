@@ -217,7 +217,7 @@ void ED_view3d_clipping_enable(void)
 	}
 }
 
-static int view3d_clipping_test(const float vec[3], float clip[][4])
+static int view3d_clipping_test(const float vec[3], float clip[6][4])
 {
 	float view[3];
 	copy_v3_v3(view, vec);
@@ -2307,7 +2307,7 @@ typedef struct View3DShadow {
 } View3DShadow;
 
 static void gpu_render_lamp_update(Scene *scene, View3D *v3d, Object *ob, Object *par,
-                                   float obmat[][4], ListBase *shadows)
+                                   float obmat[4][4], ListBase *shadows)
 {
 	GPULamp *lamp;
 	Lamp *la = (Lamp *)ob->data;
@@ -2466,7 +2466,7 @@ CustomDataMask ED_view3d_screen_datamask(bScreen *screen)
 	return mask;
 }
 
-void ED_view3d_update_viewmat(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[][4], float winmat[][4])
+void ED_view3d_update_viewmat(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[4][4], float winmat[4][4])
 {
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -2509,7 +2509,7 @@ void ED_view3d_update_viewmat(Scene *scene, View3D *v3d, ARegion *ar, float view
 	}
 }
 
-static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[][4], float winmat[][4])
+static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[4][4], float winmat[4][4])
 {
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -2533,7 +2533,7 @@ void ED_view3d_draw_offscreen_init(Scene *scene, View3D *v3d)
  * stuff like shadow buffers
  */
 void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
-                              int winx, int winy, float viewmat[][4], float winmat[][4],
+                              int winx, int winy, float viewmat[4][4], float winmat[4][4],
                               int do_bgpic, int colormanage_background)
 {
 	RegionView3D *rv3d = ar->regiondata;

@@ -305,7 +305,7 @@ static Object *AddNewBlenderMesh(Scene *scene, Base *base)
 
 static void InterpCSGFace(
         DerivedMesh *dm, DerivedMesh *orig_dm, int index, int orig_index, int nr,
-        float mapmat[][4])
+        float mapmat[4][4])
 {
 	float obco[3], *co[4], *orig_co[4], w[4][4];
 	MFace *mface, *orig_mface;
@@ -344,8 +344,8 @@ static void InterpCSGFace(
 static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
         CSG_FaceIteratorDescriptor *face_it,
         CSG_VertexIteratorDescriptor *vertex_it,
-        float parinv[][4],
-        float mapmat[][4],
+        float parinv[4][4],
+        float mapmat[4][4],
         Material **mat,
         int *totmat,
         DerivedMesh *dm1,

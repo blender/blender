@@ -873,7 +873,7 @@ static float calc_vp_strength_dl(VPaint *vp, ViewContext *vc, const float vert_n
 }
 
 static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc,
-                              float vpimat[][3], const float *vert_nor,
+                              float vpimat[3][3], const float *vert_nor,
                               const float mval[2],
                               const float brush_size_pressure, const float brush_alpha_pressure)
 {

@@ -103,7 +103,7 @@ public:
 
 	Object* set_armature(Object *ob_arm);
 
-	bool get_joint_inv_bind_matrix(float inv_bind_mat[][4], COLLADAFW::Node *node);
+	bool get_joint_inv_bind_matrix(float inv_bind_mat[4][4], COLLADAFW::Node *node);
 
 	Object *BKE_armature_from_object();
 

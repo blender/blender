@@ -223,7 +223,7 @@ static Node *addnode(Octree *oc)
 	return oc->adrnode[index] + (oc->nodecount & 4095);
 }
 
-static int face_in_node(RayFace *face, short x, short y, short z, float rtf[][3])
+static int face_in_node(RayFace *face, short x, short y, short z, float rtf[4][3])
 {
 	static float nor[3], d;
 	float fx, fy, fz;
@@ -321,7 +321,7 @@ static void ocwrite(Octree *oc, RayFace *face, int quad, short x, short y, short
 		calc_ocval_face(rtf[0], rtf[1], rtf[2], NULL, x >> 2, y >> 1, z, &no->ov[a]);
 }
 
-static void d2dda(Octree *oc, short b1, short b2, short c1, short c2, char *ocface, short rts[][3], float rtf[][3])
+static void d2dda(Octree *oc, short b1, short b2, short c1, short c2, char *ocface, short rts[4][3], float rtf[4][3])
 {
 	int ocx1, ocx2, ocy1, ocy2;
 	int x, y, dx = 0, dy = 0;

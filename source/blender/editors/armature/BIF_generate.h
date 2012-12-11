@@ -40,9 +40,10 @@ int nextFixedSubdivision(struct ToolSettings *toolsettings, struct BArcIterator 
 int nextLengthSubdivision(struct ToolSettings *toolsettings, struct BArcIterator *iter, int start, int end, float head[3], float p[3]);
 int nextAdaptativeSubdivision(struct ToolSettings *toolsettings, struct BArcIterator *iter, int start, int end, float head[3], float p[3]);
 
-struct EditBone *subdivideArcBy(struct ToolSettings *toolsettings, struct bArmature *arm, ListBase *editbones, struct BArcIterator *iter, float invmat[][4], float tmat[][3], NextSubdivisionFunc next_subdividion);
+struct EditBone *subdivideArcBy(struct ToolSettings *toolsettings, struct bArmature *arm, ListBase *editbones, struct BArcIterator *iter,
+                                float invmat[4][4], float tmat[3][3], NextSubdivisionFunc next_subdividion);
 
-void setBoneRollFromNormal(struct EditBone *bone, const float no[3], float invmat[][4], float tmat[][3]);
+void setBoneRollFromNormal(struct EditBone *bone, const float no[3], float invmat[4][4], float tmat[3][3]);
  
 
 #endif /* __BIF_GENERATE_H__ */

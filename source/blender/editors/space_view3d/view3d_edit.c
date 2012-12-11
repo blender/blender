@@ -3576,7 +3576,7 @@ static void calc_clipping_plane(float clip[6][4], BoundBox *clipbb)
 	}
 }
 
-static void calc_local_clipping(float clip_local[][4], BoundBox *clipbb, float mat[][4])
+static void calc_local_clipping(float clip_local[6][4], BoundBox *clipbb, float mat[4][4])
 {
 	BoundBox clipbb_local;
 	float imat[4][4];
@@ -3591,7 +3591,7 @@ static void calc_local_clipping(float clip_local[][4], BoundBox *clipbb, float m
 	calc_clipping_plane(clip_local, &clipbb_local);
 }
 
-void ED_view3d_clipping_local(RegionView3D *rv3d, float mat[][4])
+void ED_view3d_clipping_local(RegionView3D *rv3d, float mat[4][4])
 {
 	if (rv3d->rflag & RV3D_CLIPPING)
 		calc_local_clipping(rv3d->clip_local, rv3d->clipbb, mat);
@@ -3997,7 +3997,7 @@ float ED_view3d_offset_distance(float mat[4][4], float ofs[3]) {
  * \param quat The view rotation, quaternion normally from RegionView3D.viewquat.
  * \param dist The view distance from ofs, normally from RegionView3D.dist.
  */
-void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist)
+void ED_view3d_from_m4(float mat[4][4], float ofs[3], float quat[4], float *dist)
 {
 	/* Offset */
 	if (ofs)
@@ -4034,7 +4034,7 @@ void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist)
  * \param quat The view rotation, quaternion normally from RegionView3D.viewquat.
  * \param dist The view distance from ofs, normally from RegionView3D.dist.
  */
-void ED_view3d_to_m4(float mat[][4], const float ofs[3], const float quat[4], const float dist)
+void ED_view3d_to_m4(float mat[4][4], const float ofs[3], const float quat[4], const float dist)
 {
 	float iviewquat[4] = {-quat[0], quat[1], quat[2], quat[3]};
 	float dvec[3] = {0.0f, 0.0f, dist};

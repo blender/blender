@@ -361,7 +361,7 @@ static void sk_autoname(bContext *C, ReebArc *arc)
 	}
 }
 
-static ReebNode *sk_pointToNode(SK_Point *pt, float imat[][4], float tmat[][3])
+static ReebNode *sk_pointToNode(SK_Point *pt, float imat[4][4], float tmat[3][3])
 {
 	ReebNode *node;
 
@@ -375,7 +375,7 @@ static ReebNode *sk_pointToNode(SK_Point *pt, float imat[][4], float tmat[][3])
 	return node;
 }
 
-static ReebArc *sk_strokeToArc(SK_Stroke *stk, float imat[][4], float tmat[][3])
+static ReebArc *sk_strokeToArc(SK_Stroke *stk, float imat[4][4], float tmat[3][3])
 {
 	ReebArc *arc;
 	int i;

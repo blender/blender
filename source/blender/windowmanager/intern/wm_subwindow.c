@@ -131,7 +131,7 @@ void wm_subwindow_getorigin(wmWindow *win, int swinid, int *x, int *y)
 	}
 }
 
-void wm_subwindow_getmatrix(wmWindow *win, int swinid, float mat[][4])
+void wm_subwindow_getmatrix(wmWindow *win, int swinid, float mat[4][4])
 {
 	wmSubWindow *swin = swin_from_swinid(win, swinid);
 

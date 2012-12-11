@@ -680,7 +680,7 @@ static float psys_render_projected_area(ParticleSystem *psys, const float center
 	return area;
 }
 
-void psys_render_set(Object *ob, ParticleSystem *psys, float viewmat[][4], float winmat[][4], int winx, int winy, int timeoffset)
+void psys_render_set(Object *ob, ParticleSystem *psys, float viewmat[4][4], float winmat[4][4], int winx, int winy, int timeoffset)
 {
 	ParticleRenderData *data;
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
@@ -1919,7 +1919,7 @@ void psys_particle_on_emitter(ParticleSystemModifierData *psmd, int from, int in
 /*			Path Cache							*/
 /************************************************/
 
-static void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float time, float freq, float shape, float amplitude, float flat, short type, short axis, float obmat[][4], int smooth_start)
+static void do_kink(ParticleKey *state, ParticleKey *par, float *par_rot, float time, float freq, float shape, float amplitude, float flat, short type, short axis, float obmat[4][4], int smooth_start)
 {
 	float kink[3] = {1.f, 0.f, 0.f}, par_vec[3], q1[4] = {1.f, 0.f, 0.f, 0.f};
 	float t, dt = 1.f, result[3];
@@ -3351,7 +3351,7 @@ static void key_from_object(Object *ob, ParticleKey *key)
 }
 #endif
 
-static void triatomat(float *v1, float *v2, float *v3, float (*uv)[2], float mat[][4])
+static void triatomat(float *v1, float *v2, float *v3, float (*uv)[2], float mat[4][4])
 {
 	float det, w1, w2, d1[2], d2[2];
 
@@ -3392,7 +3392,7 @@ static void triatomat(float *v1, float *v2, float *v3, float (*uv)[2], float mat
 	cross_v3_v3v3(mat[0], mat[1], mat[2]);
 }
 
-static void psys_face_mat(Object *ob, DerivedMesh *dm, ParticleData *pa, float mat[][4], int orco)
+static void psys_face_mat(Object *ob, DerivedMesh *dm, ParticleData *pa, float mat[4][4], int orco)
 {
 	float v[3][3];
 	MFace *mface;
@@ -3425,7 +3425,7 @@ static void psys_face_mat(Object *ob, DerivedMesh *dm, ParticleData *pa, float m
 	triatomat(v[0], v[1], v[2], (osface) ? osface->uv : NULL, mat);
 }
 
-void psys_mat_hair_to_object(Object *UNUSED(ob), DerivedMesh *dm, short from, ParticleData *pa, float hairmat[][4])
+void psys_mat_hair_to_object(Object *UNUSED(ob), DerivedMesh *dm, short from, ParticleData *pa, float hairmat[4][4])
 {
 	float vec[3];
 
@@ -3440,7 +3440,7 @@ void psys_mat_hair_to_object(Object *UNUSED(ob), DerivedMesh *dm, short from, Pa
 	copy_v3_v3(hairmat[3], vec);
 }
 
-void psys_mat_hair_to_orco(Object *ob, DerivedMesh *dm, short from, ParticleData *pa, float hairmat[][4])
+void psys_mat_hair_to_orco(Object *ob, DerivedMesh *dm, short from, ParticleData *pa, float hairmat[4][4])
 {
 	float vec[3], orco[3];
 
@@ -3462,7 +3462,7 @@ void psys_vec_rot_to_face(DerivedMesh *dm, ParticleData *pa, float vec[3])
 	mul_mat3_m4_v3(mat, vec);
 }
 
-void psys_mat_hair_to_global(Object *ob, DerivedMesh *dm, short from, ParticleData *pa, float hairmat[][4])
+void psys_mat_hair_to_global(Object *ob, DerivedMesh *dm, short from, ParticleData *pa, float hairmat[4][4])
 {
 	float facemat[4][4];
 
@@ -4502,7 +4502,7 @@ void psys_get_dupli_texture(ParticleSystem *psys, ParticleSettings *part,
 	psys_particle_on_emitter(psmd, part->from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, loc, 0, 0, 0, orco, 0);
 }
 
-void psys_get_dupli_path_transform(ParticleSimulationData *sim, ParticleData *pa, ChildParticle *cpa, ParticleCacheKey *cache, float mat[][4], float *scale)
+void psys_get_dupli_path_transform(ParticleSimulationData *sim, ParticleData *pa, ChildParticle *cpa, ParticleCacheKey *cache, float mat[4][4], float *scale)
 {
 	Object *ob = sim->ob;
 	ParticleSystem *psys = sim->psys;

@@ -124,7 +124,7 @@ void BIF_createTransformOrientation(struct bContext *C, struct ReportList *repor
 void BIF_selectTransformOrientation(struct bContext *C, struct TransformOrientation *ts);
 void BIF_selectTransformOrientationValue(struct bContext *C, int orientation);
 
-void ED_getTransformOrientationMatrix(const struct bContext *C, float orientation_mat[][3], int activeOnly);
+void ED_getTransformOrientationMatrix(const struct bContext *C, float orientation_mat[3][3], int activeOnly);
 
 struct EnumPropertyItem *BIF_enumTransformOrientation(struct bContext *C);
 const char *BIF_menustringTransformOrientation(const struct bContext *C, const char *title);  /* the returned value was allocated and needs to be freed after use */

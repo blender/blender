@@ -907,7 +907,7 @@ static void uv_map_transform_center(Scene *scene, View3D *v3d, float *result,
 	}
 }
 
-static void uv_map_rotation_matrix(float result[][4], RegionView3D *rv3d, Object *ob,
+static void uv_map_rotation_matrix(float result[4][4], RegionView3D *rv3d, Object *ob,
                                    float upangledeg, float sideangledeg, float radius)
 {
 	float rotup[4][4], rotside[4][4], viewmatrix[4][4], rotobj[4][4];

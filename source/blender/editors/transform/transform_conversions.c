@@ -1769,7 +1769,7 @@ void flushTransParticles(TransInfo *t)
  * but instead it's a depth-first search, fudged
  * to report shortest distances.  I have no idea how fast
  * or slow this is. */
-static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], float *dists)
+static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[3][3], float *dists)
 {
 	BMVert **queue = NULL;
 	float *dqueue = NULL;

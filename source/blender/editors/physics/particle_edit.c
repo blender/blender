@@ -516,7 +516,7 @@ static int point_is_selected(PTCacheEditPoint *point)
 
 typedef void (*ForPointFunc)(PEData *data, int point_index);
 typedef void (*ForKeyFunc)(PEData *data, int point_index, int key_index);
-typedef void (*ForKeyMatFunc)(PEData *data, float mat[][4], float imat[][4], int point_index, int key_index, PTCacheEditKey *key);
+typedef void (*ForKeyMatFunc)(PEData *data, float mat[4][4], float imat[4][4], int point_index, int key_index, PTCacheEditKey *key);
 
 static void for_mouse_hit_keys(PEData *data, ForKeyFunc func, int nearest)
 {
@@ -2766,7 +2766,7 @@ void PARTICLE_OT_mirror(wmOperatorType *ot)
 
 /************************* brush edit callbacks ********************/
 
-static void brush_comb(PEData *data, float UNUSED(mat[][4]), float imat[][4], int point_index, int key_index, PTCacheEditKey *key)
+static void brush_comb(PEData *data, float UNUSED(mat[4][4]), float imat[4][4], int point_index, int key_index, PTCacheEditKey *key)
 {
 	ParticleEditSettings *pset= PE_settings(data->scene);
 	float cvec[3], fac;
@@ -3038,7 +3038,7 @@ static void brush_puff(PEData *data, int point_index)
 }
 
 
-static void BKE_brush_weight_get(PEData *data, float UNUSED(mat[][4]), float UNUSED(imat[][4]), int point_index, int key_index, PTCacheEditKey *UNUSED(key))
+static void BKE_brush_weight_get(PEData *data, float UNUSED(mat[4][4]), float UNUSED(imat[4][4]), int point_index, int key_index, PTCacheEditKey *UNUSED(key))
 {
 	/* roots have full weight allways */
 	if (key_index) {
@@ -3052,7 +3052,7 @@ static void BKE_brush_weight_get(PEData *data, float UNUSED(mat[][4]), float UNU
 	}
 }
 
-static void brush_smooth_get(PEData *data, float mat[][4], float UNUSED(imat[][4]), int UNUSED(point_index), int key_index, PTCacheEditKey *key)
+static void brush_smooth_get(PEData *data, float mat[4][4], float UNUSED(imat[4][4]), int UNUSED(point_index), int key_index, PTCacheEditKey *key)
 {	
 	if (key_index) {
 		float dvec[3];
@@ -3064,7 +3064,7 @@ static void brush_smooth_get(PEData *data, float mat[][4], float UNUSED(imat[][4
 	}
 }
 
-static void brush_smooth_do(PEData *data, float UNUSED(mat[][4]), float imat[][4], int point_index, int key_index, PTCacheEditKey *key)
+static void brush_smooth_do(PEData *data, float UNUSED(mat[4][4]), float imat[4][4], int point_index, int key_index, PTCacheEditKey *key)
 {
 	float vec[3], dvec[3];
 	

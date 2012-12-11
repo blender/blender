@@ -115,7 +115,7 @@ void KX_CameraActuator::Relink(CTR_Map<CTR_HashedPtr, void*> *obj_map)
 
 /* copied from blender BLI_math ... don't know if there's an equivalent */
 
-static void Kx_VecUpMat3(float vec[3], float mat[][3], short axis)
+static void Kx_VecUpMat3(float vec[3], float mat[3][3], short axis)
 {
 
 	// Construct a camera matrix s.t. the specified axis

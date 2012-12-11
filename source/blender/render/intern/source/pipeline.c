@@ -582,7 +582,7 @@ void RE_SetOrtho(Render *re, rctf *viewplane, float clipsta, float clipend)
 	                re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend);
 }
 
-void RE_SetView(Render *re, float mat[][4])
+void RE_SetView(Render *re, float mat[4][4])
 {
 	/* re->ok flag? */
 	copy_m4_m4(re->viewmat, mat);

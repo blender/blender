@@ -476,13 +476,13 @@ static int compare_strand_segment(const void *poin1, const void *poin2)
 		return 1;
 }
 
-static void do_strand_point_project(float winmat[][4], ZSpan *zspan, float *co, float *hoco, float *zco)
+static void do_strand_point_project(float winmat[4][4], ZSpan *zspan, float *co, float *hoco, float *zco)
 {
 	projectvert(co, winmat, hoco);
 	hoco_to_zco(zspan, zco, hoco);
 }
 
-static void strand_project_point(float winmat[][4], float winx, float winy, StrandPoint *spoint)
+static void strand_project_point(float winmat[4][4], float winx, float winy, StrandPoint *spoint)
 {
 	float div;
 
@@ -603,7 +603,7 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 }
 
 /* width is calculated in hoco space, to ensure strands are visible */
-static int strand_test_clip(float winmat[][4], ZSpan *UNUSED(zspan), float *bounds, float *co, float *zcomp, float widthx, float widthy)
+static int strand_test_clip(float winmat[4][4], ZSpan *UNUSED(zspan), float *bounds, float *co, float *zcomp, float widthx, float widthy)
 {
 	float hoco[4];
 	int clipflag= 0;
@@ -663,7 +663,7 @@ static void do_scanconvert_strand(Render *UNUSED(re), StrandPart *spart, ZSpan *
 	zspan_scanconvert_strand(zspan, spart, jco1, jco3, jco4, do_strand_fillac);
 }
 
-static void strand_render(Render *re, StrandSegment *sseg, float winmat[][4], StrandPart *spart, ZSpan *zspan, int totzspan, StrandPoint *p1, StrandPoint *p2)
+static void strand_render(Render *re, StrandSegment *sseg, float winmat[4][4], StrandPart *spart, ZSpan *zspan, int totzspan, StrandPoint *p1, StrandPoint *p2)
 {
 	if (spart) {
 		float t= p2->t;
@@ -696,7 +696,7 @@ static void strand_render(Render *re, StrandSegment *sseg, float winmat[][4], St
 	}
 }
 
-static int strand_segment_recursive(Render *re, float winmat[][4], StrandPart *spart, ZSpan *zspan, int totzspan, StrandSegment *sseg, StrandPoint *p1, StrandPoint *p2, int depth)
+static int strand_segment_recursive(Render *re, float winmat[4][4], StrandPart *spart, ZSpan *zspan, int totzspan, StrandSegment *sseg, StrandPoint *p1, StrandPoint *p2, int depth)
 {
 	StrandPoint p;
 	StrandBuffer *buffer= sseg->buffer;
@@ -745,7 +745,7 @@ static int strand_segment_recursive(Render *re, float winmat[][4], StrandPart *s
 	return 1;
 }
 
-void render_strand_segment(Render *re, float winmat[][4], StrandPart *spart, ZSpan *zspan, int totzspan, StrandSegment *sseg)
+void render_strand_segment(Render *re, float winmat[4][4], StrandPart *spart, ZSpan *zspan, int totzspan, StrandSegment *sseg)
 {
 	StrandBuffer *buffer= sseg->buffer;
 	StrandPoint *p1= &sseg->point1;
@@ -783,7 +783,7 @@ void render_strand_segment(Render *re, float winmat[][4], StrandPart *spart, ZSp
 }
 
 /* render call to fill in strands */
-int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBase *apsmbase, unsigned int lay, int UNUSED(negzmask), float winmat[][4], int winx, int winy, int samples, float (*jit)[2], float clipcrop, int shadow, StrandShadeCache *cache)
+int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBase *apsmbase, unsigned int lay, int UNUSED(negzmask), float winmat[4][4], int winx, int winy, int samples, float (*jit)[2], float clipcrop, int shadow, StrandShadeCache *cache)
 {
 	ObjectRen *obr;
 	ObjectInstanceRen *obi;
@@ -976,7 +976,7 @@ int zbuffer_strands_abuf(Render *re, RenderPart *pa, APixstrand *apixbuf, ListBa
 
 /* *************** */
 
-StrandSurface *cache_strand_surface(Render *re, ObjectRen *obr, DerivedMesh *dm, float mat[][4], int timeoffset)
+StrandSurface *cache_strand_surface(Render *re, ObjectRen *obr, DerivedMesh *dm, float mat[4][4], int timeoffset)
 {
 	StrandSurface *mesh;
 	MFace *mface;

@@ -862,7 +862,7 @@ static void rigid_add_edge_to_R(LaplacianSystem *sys, EditVert *v1, EditVert *v2
 	rigid_add_half_edge_to_R(sys, v2, v1, w);
 }
 
-static void rigid_orthogonalize_R(float R[][3])
+static void rigid_orthogonalize_R(float R[3][3])
 {
 	HMatrix M, Q, S;
 
@@ -1956,7 +1956,7 @@ static void heat_weighting_bind(Scene *scene, DerivedMesh *dm, MeshDeformModifie
 }
 #endif
 
-void mesh_deform_bind(Scene *scene, MeshDeformModifierData *mmd, float *vertexcos, int totvert, float cagemat[][4])
+void mesh_deform_bind(Scene *scene, MeshDeformModifierData *mmd, float *vertexcos, int totvert, float cagemat[4][4])
 {
 	MeshDeformBind mdb;
 	MVert *mvert;

@@ -2435,7 +2435,7 @@ void interp_barycentric_tri_v3(float data[3][3], float u, float v, float res[3])
 
 /***************************** View & Projection *****************************/
 
-void orthographic_m4(float matrix[][4], const float left, const float right, const float bottom, const float top,
+void orthographic_m4(float matrix[4][4], const float left, const float right, const float bottom, const float top,
                      const float nearClip, const float farClip)
 {
 	float Xdelta, Ydelta, Zdelta;
@@ -2481,7 +2481,7 @@ void perspective_m4(float mat[4][4], const float left, const float right, const 
 }
 
 /* translate a matrix created by orthographic_m4 or perspective_m4 in XY coords (used to jitter the view) */
-void window_translate_m4(float winmat[][4], float perspmat[][4], const float x, const float y)
+void window_translate_m4(float winmat[4][4], float perspmat[4][4], const float x, const float y)
 {
 	if (winmat[2][3] == -1.0f) {
 		/* in the case of a win-matrix, this means perspective always */
@@ -2509,7 +2509,7 @@ void window_translate_m4(float winmat[][4], float perspmat[][4], const float x, 
 	}
 }
 
-static void i_multmatrix(float icand[][4], float Vm[][4])
+static void i_multmatrix(float icand[4][4], float Vm[4][4])
 {
 	int row, col;
 	float temp[4][4];
@@ -2523,7 +2523,7 @@ static void i_multmatrix(float icand[][4], float Vm[][4])
 	copy_m4_m4(Vm, temp);
 }
 
-void polarview_m4(float Vm[][4], float dist, float azimuth, float incidence, float twist)
+void polarview_m4(float Vm[4][4], float dist, float azimuth, float incidence, float twist)
 {
 
 	unit_m4(Vm);
@@ -2534,7 +2534,7 @@ void polarview_m4(float Vm[][4], float dist, float azimuth, float incidence, flo
 	rotate_m4(Vm, 'Z', -azimuth);
 }
 
-void lookat_m4(float mat[][4], float vx, float vy, float vz, float px, float py, float pz, float twist)
+void lookat_m4(float mat[4][4], float vx, float vy, float vz, float px, float py, float pz, float twist)
 {
 	float sine, cosine, hyp, hyp1, dx, dy, dz;
 	float mat1[4][4] = MAT4_UNITY;

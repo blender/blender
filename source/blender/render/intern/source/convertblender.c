@@ -759,7 +759,7 @@ static VertRen *as_findvertex(VlakRen *vlr, VertRen *UNUSED(ver), ASvert *asv, f
 
 /* note; autosmooth happens in object space still, after applying autosmooth we rotate */
 /* note2; actually, when original mesh and displist are equal sized, face normals are from original mesh */
-static void autosmooth(Render *UNUSED(re), ObjectRen *obr, float mat[][4], int degr)
+static void autosmooth(Render *UNUSED(re), ObjectRen *obr, float mat[4][4], int degr)
 {
 	ASvert *asv, *asverts;
 	ASface *asf;
@@ -2186,7 +2186,7 @@ static short test_for_displace(Render *re, Object *ob)
 	return 0;
 }
 
-static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, VertRen *vr, int vindex, float *scale, float mat[][4], float imat[][3])
+static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, VertRen *vr, int vindex, float *scale, float mat[4][4], float imat[3][3])
 {
 	MTFace *tface;
 	short texco= shi->mat->texco;
@@ -2285,7 +2285,7 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 	return;
 }
 
-static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float *scale, float mat[][4], float imat[][3])
+static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float *scale, float mat[4][4], float imat[3][3])
 {
 	ShadeInput shi;
 
@@ -2340,7 +2340,7 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 	}
 }
 
-static void do_displacement(Render *re, ObjectRen *obr, float mat[][4], float imat[][3])
+static void do_displacement(Render *re, ObjectRen *obr, float mat[4][4], float imat[3][3])
 {
 	VertRen *vr;
 	VlakRen *vlr;
@@ -3520,7 +3520,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 /* Lamps and Shadowbuffers													 */
 /* ------------------------------------------------------------------------- */
 
-static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
+static void initshadowbuf(Render *re, LampRen *lar, float mat[4][4])
 {
 	struct ShadBuf *shb;
 	float viewinv[4][4];
@@ -5136,7 +5136,7 @@ void RE_DataBase_ApplyWindow(Render *re)
 	project_renderdata(re, projectverto, 0, 0, 0);
 }
 
-void RE_DataBase_GetView(Render *re, float mat[][4])
+void RE_DataBase_GetView(Render *re, float mat[4][4])
 {
 	copy_m4_m4(mat, re->viewmat);
 }

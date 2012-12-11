@@ -579,7 +579,7 @@ void ED_view3d_clipping_calc(BoundBox *bb, float planes[4][4], bglMats *mats, co
 }
 
 
-int ED_view3d_boundbox_clip(RegionView3D *rv3d, float obmat[][4], BoundBox *bb)
+int ED_view3d_boundbox_clip(RegionView3D *rv3d, float obmat[4][4], BoundBox *bb)
 {
 	/* return 1: draw */
 

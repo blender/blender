@@ -186,7 +186,7 @@ void ED_object_base_init_transform(bContext *C, Base *base, const float loc[3], 
 /* Uses context to figure out transform for primitive.
  * Returns standard diameter. */
 float ED_object_new_primitive_matrix(bContext *C, Object *obedit,
-                                     const float loc[3], const float rot[3], float primmat[][4],
+                                     const float loc[3], const float rot[3], float primmat[4][4],
                                      int apply_diameter)
 {
 	Scene *scene = CTX_data_scene(C);

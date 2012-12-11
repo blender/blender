@@ -586,7 +586,7 @@ typedef struct MeshDeformModifierData {
 	/* runtime */
 	void (*bindfunc)(struct Scene *scene,
 		struct MeshDeformModifierData *mmd,
-		float *vertexcos, int totvert, float cagemat[][4]);
+		float *vertexcos, int totvert, float cagemat[4][4]);
 } MeshDeformModifierData;
 
 typedef enum {

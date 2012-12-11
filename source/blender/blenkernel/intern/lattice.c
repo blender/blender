@@ -753,7 +753,7 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 /* orco is original not-animated or deformed reference point */
 /* result written in vec and mat */
 void curve_deform_vector(Scene *scene, Object *cuOb, Object *target,
-                         float orco[3], float vec[3], float mat[][3], int no_rot_axis)
+                         float orco[3], float vec[3], float mat[3][3], int no_rot_axis)
 {
 	CurveDeform cd;
 	float quat[4];

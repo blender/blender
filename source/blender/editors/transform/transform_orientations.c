@@ -851,7 +851,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 	return result;
 }
 
-void ED_getTransformOrientationMatrix(const bContext *C, float orientation_mat[][3], int activeOnly)
+void ED_getTransformOrientationMatrix(const bContext *C, float orientation_mat[3][3], int activeOnly)
 {
 	float normal[3] = {0.0, 0.0, 0.0};
 	float plane[3] = {0.0, 0.0, 0.0};

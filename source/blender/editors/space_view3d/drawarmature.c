@@ -637,7 +637,7 @@ static float co[16] = {
 
 
 /* smat, imat = mat & imat to draw screenaligned */
-static void draw_sphere_bone_dist(float smat[][4], float imat[][4], bPoseChannel *pchan, EditBone *ebone)
+static void draw_sphere_bone_dist(float smat[4][4], float imat[4][4], bPoseChannel *pchan, EditBone *ebone)
 {
 	float head, tail, dist /*, length*/;
 	float *headvec, *tailvec, dirvec[3];
@@ -755,7 +755,7 @@ static void draw_sphere_bone_dist(float smat[][4], float imat[][4], bPoseChannel
 
 
 /* smat, imat = mat & imat to draw screenaligned */
-static void draw_sphere_bone_wire(float smat[][4], float imat[][4],
+static void draw_sphere_bone_wire(float smat[4][4], float imat[4][4],
                                   int armflag, int boneflag, short constflag, unsigned int id,
                                   bPoseChannel *pchan, EditBone *ebone)
 {
@@ -1648,7 +1648,7 @@ static void draw_pose_dofs(Object *ob)
 	}
 }
 
-static void bone_matrix_translate_y(float mat[][4], float y)
+static void bone_matrix_translate_y(float mat[4][4], float y)
 {
 	float trans[3];
 
@@ -2069,7 +2069,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 }
 
 /* in editmode, we don't store the bone matrix... */
-static void get_matrix_editbone(EditBone *eBone, float bmat[][4])
+static void get_matrix_editbone(EditBone *eBone, float bmat[4][4])
 {
 	float delta[3];
 	float mat[3][3];

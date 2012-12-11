@@ -210,7 +210,7 @@ static void envmap_free_render_copy(Render *envre)
 
 /* ------------------------------------------------------------------------- */
 
-static void envmap_transmatrix(float mat[][4], int part)
+static void envmap_transmatrix(float mat[4][4], int part)
 {
 	float tmat[4][4], eul[3], rotmat[4][4];
 	
@@ -247,7 +247,7 @@ static void envmap_transmatrix(float mat[][4], int part)
 
 /* ------------------------------------------------------------------------- */
 
-static void env_rotate_scene(Render *re, float mat[][4], int mode)
+static void env_rotate_scene(Render *re, float mat[4][4], int mode)
 {
 	GroupObject *go;
 	ObjectRen *obr;

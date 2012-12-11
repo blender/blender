@@ -2884,7 +2884,7 @@ BLI_INLINE int tx_vec_sign_flip(const float a[3], const float b[3])
 }
 
 /* smat is reference matrix, only scaled */
-static void TransMat3ToSize(float mat[][3], float smat[][3], float size[3])
+static void TransMat3ToSize(float mat[3][3], float smat[3][3], float size[3])
 {
 	float vec[3];
 	

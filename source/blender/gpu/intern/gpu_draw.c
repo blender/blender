@@ -1593,7 +1593,7 @@ int GPU_default_lights(void)
 	return count;
 }
 
-int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4], int ortho)
+int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[4][4], int ortho)
 {
 	Base *base;
 	Lamp *la;

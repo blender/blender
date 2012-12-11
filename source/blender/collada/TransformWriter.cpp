@@ -32,7 +32,7 @@
 
 #include "BLI_math.h"
 
-void TransformWriter::add_node_transform(COLLADASW::Node& node, float mat[][4], float parent_mat[][4])
+void TransformWriter::add_node_transform(COLLADASW::Node& node, float mat[4][4], float parent_mat[4][4])
 {
 	float loc[3], rot[3], scale[3];
 	float local[4][4];

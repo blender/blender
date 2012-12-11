@@ -1708,7 +1708,7 @@ static void makevertpyra(float *vez, float *lambda, float **trias, float *v1, fl
 
 /* ------------------------------------------------------------------------- */
 
-void projectverto(const float v1[3], float winmat[][4], float adr[4])
+void projectverto(const float v1[3], float winmat[4][4], float adr[4])
 {
 	/* calcs homogenic coord of vertex v1 */
 	float x, y, z;
@@ -1726,7 +1726,7 @@ void projectverto(const float v1[3], float winmat[][4], float adr[4])
 
 /* ------------------------------------------------------------------------- */
 
-void projectvert(const float v1[3], float winmat[][4], float adr[4])
+void projectvert(const float v1[3], float winmat[4][4], float adr[4])
 {
 	/* calcs homogenic coord of vertex v1 */
 	float x, y, z;
@@ -1761,7 +1761,7 @@ static void zbuf_project_cache_clear(ZbufProjectCache *cache, int size)
 		cache[i].index= -1;
 }
 
-static int zbuf_shadow_project(ZbufProjectCache *cache, int index, float winmat[][4], float *co, float *ho)
+static int zbuf_shadow_project(ZbufProjectCache *cache, int index, float winmat[4][4], float *co, float *ho)
 {
 	int cindex= index & 255;
 
@@ -1790,7 +1790,7 @@ static void zbuffer_part_bounds(int winx, int winy, RenderPart *pa, float *bound
 	bounds[3]= (2*pa->disprect.ymax - winy+1)/(float)winy;
 }
 
-static int zbuf_part_project(ZbufProjectCache *cache, int index, float winmat[][4], float *bounds, float *co, float *ho)
+static int zbuf_part_project(ZbufProjectCache *cache, int index, float winmat[4][4], float *bounds, float *co, float *ho)
 {
 	float vec[3];
 	int cindex= index & 255;
@@ -1819,7 +1819,7 @@ static int zbuf_part_project(ZbufProjectCache *cache, int index, float winmat[][
 	}
 }
 
-void zbuf_render_project(float winmat[][4], const float co[3], float ho[4])
+void zbuf_render_project(float winmat[4][4], const float co[3], float ho[4])
 {
 	float vec[3];
 
@@ -1827,7 +1827,7 @@ void zbuf_render_project(float winmat[][4], const float co[3], float ho[4])
 	projectvert(vec, winmat, ho);
 }
 
-void zbuf_make_winmat(Render *re, float winmat[][4])
+void zbuf_make_winmat(Render *re, float winmat[4][4])
 {
 	if (re->r.mode & R_PANORAMA) {
 		float panomat[4][4]= MAT4_UNITY;
@@ -2296,7 +2296,7 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 	}
 }
 
-void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int size, float jitx, float jity)
+void zbuffer_shadow(Render *re, float winmat[4][4], LampRen *lar, int *rectz, int size, float jitx, float jity)
 {
 	ZbufProjectCache cache[ZBUF_PROJECT_CACHE_SIZE];
 	ZSpan zspan;
@@ -3261,7 +3261,7 @@ static void copyto_abufz(RenderPart *pa, int *arectz, int *rectmask, int sample)
  * Do accumulation z buffering.
  */
 
-static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, unsigned int lay, int negzmask, float winmat[][4], int winx, int winy, int samples, float (*jit)[2], float UNUSED(clipcrop), int shadow)
+static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, unsigned int lay, int negzmask, float winmat[4][4], int winx, int winy, int samples, float (*jit)[2], float UNUSED(clipcrop), int shadow)
 {
 	ZbufProjectCache cache[ZBUF_PROJECT_CACHE_SIZE];
 	ZSpan zspans[16], *zspan;	/* MAX_OSA */
@@ -3459,7 +3459,7 @@ static int zbuffer_abuf_render(RenderPart *pa, APixstr *APixbuf, APixstrand *APi
 	return doztra;
 }
 
-void zbuffer_abuf_shadow(Render *re, LampRen *lar, float winmat[][4], APixstr *APixbuf, APixstrand *APixbufstrand, ListBase *apsmbase, int size, int samples, float (*jit)[2])
+void zbuffer_abuf_shadow(Render *re, LampRen *lar, float winmat[4][4], APixstr *APixbuf, APixstrand *APixbufstrand, ListBase *apsmbase, int size, int samples, float (*jit)[2])
 {
 	RenderPart pa;
 	int lay= -1;

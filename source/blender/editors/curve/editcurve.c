@@ -1493,7 +1493,7 @@ static void setflagsNurb(ListBase *editnurb, short flag)
 	}
 }
 
-static void rotateflagNurb(ListBase *editnurb, short flag, float *cent, float rotmat[][3])
+static void rotateflagNurb(ListBase *editnurb, short flag, float *cent, float rotmat[3][3])
 {
 	/* all verts with (flag & 'flag') rotate */
 	Nurb *nu;
@@ -4278,7 +4278,7 @@ int mouse_nurb(bContext *C, const int mval[2], int extend, int deselect, int tog
 
 /* 'cent' is in object space and 'dvec' in worldspace.
  */
-static int spin_nurb(float viewmat[][4], Object *obedit, float *axis, float *cent)
+static int spin_nurb(float viewmat[4][4], Object *obedit, float *axis, float *cent)
 {
 	Curve *cu = (Curve *)obedit->data;
 	ListBase *editnurb = object_editcurve_get(obedit);
