@@ -52,6 +52,7 @@ set(SRC
 	node_relationships.c
 	node_select.c
 	node_templates.c
+	node_toolbar.c
 	node_view.c
 	space_node.c
 

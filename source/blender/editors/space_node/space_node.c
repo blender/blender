@@ -85,6 +85,30 @@ ARegion *node_has_buttons_region(ScrArea *sa)
 	return arnew;
 }
 
+ARegion *node_has_tools_region(ScrArea *sa)
+{
+	ARegion *ar, *arnew;
+	
+	ar = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
+	if (ar) return ar;
+	
+	/* add subdiv level; after header */
+	ar = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+	
+	/* is error! */
+	if (ar == NULL) return NULL;
+	
+	arnew = MEM_callocN(sizeof(ARegion), "node tools");
+	
+	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
+	arnew->regiontype = RGN_TYPE_TOOLS;
+	arnew->alignment = RGN_ALIGN_LEFT;
+	
+	arnew->flag = RGN_FLAG_HIDDEN;
+	
+	return arnew;
+}
+
 /* ******************** default callbacks for node space ***************** */
 
 static SpaceLink *node_new(const bContext *UNUSED(C))
@@ -342,6 +366,22 @@ static void node_buttons_area_draw(const bContext *C, ARegion *ar)
 	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
+/* add handlers, stuff you only do once or on area/region changes */
+static void node_toolbar_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	wmKeyMap *keymap;
+
+	ED_region_panels_init(wm, ar);
+
+	keymap = WM_keymap_find(wm->defaultconf, "Node Generic", SPACE_NODE, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+}
+
+static void node_toolbar_area_draw(const bContext *C, ARegion *ar)
+{
+	ED_region_panels(C, ar, 1, NULL, -1);
+}
+
 static void node_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 {
 	SpaceNode *snode = sa->spacedata.first;
@@ -569,6 +609,19 @@ void ED_spacetype_node(void)
 	BLI_addhead(&st->regiontypes, art);
 
 	node_buttons_register(art);
+
+	/* regions: toolbar */
+	art = MEM_callocN(sizeof(ARegionType), "spacetype view3d tools region");
+	art->regionid = RGN_TYPE_TOOLS;
+	art->prefsizex = 160; /* XXX */
+	art->prefsizey = 50; /* XXX */
+	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
+	art->listener = node_region_listener;
+	art->init = node_toolbar_area_init;
+	art->draw = node_toolbar_area_draw;
+	BLI_addhead(&st->regiontypes, art);
+	
+	node_toolbar_register(art);
 
 	BKE_spacetype_register(st);
 }

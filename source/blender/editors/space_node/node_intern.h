@@ -63,6 +63,7 @@ typedef struct bNodeLinkDrag {
 
 /* space_node.c */
 ARegion *node_has_buttons_region(ScrArea *sa);
+ARegion *node_has_tools_region(ScrArea *sa);
 
 /* node_header.c */
 void node_menus_register(void);
@@ -85,6 +86,10 @@ void node_set_cursor(struct wmWindow *win, struct SpaceNode *snode);
 /* node_buttons.c */
 void node_buttons_register(struct ARegionType *art);
 void NODE_OT_properties(struct wmOperatorType *ot);
+
+/* node_toolbar.c */
+void node_toolbar_register(struct ARegionType *art);
+void NODE_OT_toolbar(struct wmOperatorType *ot);
 
 /* node_ops.c */
 void node_operatortypes(void);
