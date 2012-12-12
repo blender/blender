@@ -71,9 +71,9 @@ public:
 
 	void dae_matrix_to_mat4_(float out[4][4], const COLLADABU::Math::Matrix4& in);
 
-	void mat4_to_dae(float out[4][4], float const in[4][4]);
+	void mat4_to_dae(float out[4][4], float in[4][4]);
 
-	void mat4_to_dae_double(double out[4][4], float const in[4][4]);
+	void mat4_to_dae_double(double out[4][4], float in[4][4]);
 };
 
 class TransformBase
