@@ -45,7 +45,9 @@
 
 
 GHOST_System::GHOST_System()
-	: m_displayManager(0),
+	: m_nativePixel(false),
+	m_nativePixelSize(1),
+	m_displayManager(0),
 	m_timerManager(0),
 	m_windowManager(0),
 	m_eventManager(0)
@@ -376,7 +378,7 @@ int GHOST_System::confirmQuit(GHOST_IWindow *window) const
 
 bool GHOST_System::useNativePixel(void)
 {
-	m_nativePixel = 1;
+	m_nativePixel = true;
 	return 1;
 }
 
