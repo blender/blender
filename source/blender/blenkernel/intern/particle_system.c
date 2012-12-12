@@ -3781,11 +3781,12 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
 
 /* Code for an adaptive time step based on the Courant-Friedrichs-Lewy
  * condition. */
-#define MIN_TIMESTEP 1.0f / 101.0f
+static const float MIN_TIMESTEP = 1.0f / 101.0f;
 /* Tolerance of 1.5 means the last subframe neither favors growing nor
  * shrinking (e.g if it were 1.3, the last subframe would tend to be too
  * small). */
-#define TIMESTEP_EXPANSION_TOLERANCE 1.5f
+static const float TIMESTEP_EXPANSION_FACTOR = 0.1f;
+static const float TIMESTEP_EXPANSION_TOLERANCE = 1.5f;
 
 /* Calculate the speed of the particle relative to the local scale of the
  * simulation. This should be called once per particle during a simulation
@@ -3802,14 +3803,31 @@ static void update_courant_num(ParticleSimulationData *sim, ParticleData *pa,
 	if (sim->courant_num < speed * dtime / sphdata->element_size)
 		sim->courant_num = speed * dtime / sphdata->element_size;
 }
+static float get_base_time_step(ParticleSettings *part) {
+	return 1.0f / (float) (part->subframes + 1);
+}
 /* Update time step size to suit current conditions. */
 static float update_timestep(ParticleSystem *psys, ParticleSimulationData *sim, float t_frac)
 {
+	float dt_target;
 	if (sim->courant_num == 0.0f)
-		psys->dt_frac = 1.0f;
+		dt_target = 1.0f;
 	else
-		psys->dt_frac *= (psys->part->courant_target / sim->courant_num);
-	CLAMP(psys->dt_frac, MIN_TIMESTEP, 1.0f);
+		dt_target = psys->dt_frac * (psys->part->courant_target / sim->courant_num);
+
+	/* Make sure the time step is reasonable.
+	 * For some reason, the CLAMP macro doesn't work here. The time step becomes
+	 * too large. - z0r */
+	if (dt_target < MIN_TIMESTEP)
+		dt_target = MIN_TIMESTEP;
+	else if (dt_target > get_base_time_step(psys->part))
+		dt_target = get_base_time_step(psys->part);
+
+	/* Decrease time step instantly, but expand slowly. */
+	if (dt_target > psys->dt_frac)
+		psys->dt_frac = interpf(dt_target, psys->dt_frac, TIMESTEP_EXPANSION_FACTOR);
+	else
+		psys->dt_frac = dt_target;
 
 	/* Sync with frame end if it's close. */
 	if (t_frac == 1.0f)
@@ -4307,14 +4325,16 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 		if ((int)cfra == startframe && part->sta < startframe)
 			totframesback = (startframe - (int)part->sta);
 
+		/* Initialise time step. This may change if automatic subframes are
+		 * enabled. */
 		if (!(part->time_flag & PART_TIME_AUTOSF)) {
 			/* Constant time step */
-			psys->dt_frac = 1.0f / (float) (part->subframes + 1);
+			psys->dt_frac = get_base_time_step(part);
 		}
 		else if ((int)cfra == startframe) {
 			/* Variable time step; use a very conservative value at the start.
 			 * If it doesn't need to be so small, it will quickly grow. */
-			psys->dt_frac = 1.0;
+			psys->dt_frac = get_base_time_step(part);
 		}
 		else if (psys->dt_frac < MIN_TIMESTEP) {
 			psys->dt_frac = MIN_TIMESTEP;

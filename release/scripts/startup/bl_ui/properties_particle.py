@@ -490,11 +490,13 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
             col.prop(part, "integrator", text="")
             col.prop(part, "timestep")
             sub = col.row()
-            if part.adaptive_subframes:
-                sub.prop(part, "courant_target", text="Threshold")
-            else:
-                sub.prop(part, "subframes")
-            sub.prop(part, "adaptive_subframes", text="")
+            sub.prop(part, "subframes")
+            supports_courant = part.physics_type == 'FLUID'
+            subsub = sub.row()
+            subsub.enabled = supports_courant
+            subsub.prop(part, "adaptive_subframes", text="")
+            if supports_courant and part.adaptive_subframes:
+                col.prop(part, "courant_target", text="Threshold")
 
             row = layout.row()
             row.prop(part, "use_size_deflect")
