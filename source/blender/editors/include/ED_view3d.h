@@ -269,7 +269,7 @@ void ED_view3d_draw_offscreen(struct Scene *scene, struct View3D *v3d, struct AR
 struct ImBuf *ED_view3d_draw_offscreen_imbuf(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, int sizex, int sizey, unsigned int flag,
                                              int draw_background, int colormanage_background, char err_out[256]);
 struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(struct Scene *scene, struct Object *camera, int width, int height, unsigned int flag, int drawtype,
-                                                    int draw_background, int colormanage_background, char err_out[256]);
+                                                    int use_solid_tex, int draw_background, int colormanage_background, char err_out[256]);
 
 
 struct Base *ED_view3d_give_base_under_cursor(struct bContext *C, const int mval[2]);
