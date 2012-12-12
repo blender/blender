@@ -1129,7 +1129,7 @@ void WM_event_remove_timer(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *
 			wmEvent *event;
 			for (event = win->queue.first; event; event = event->next) {
 				if (event->customdata == wt) {
-					event->customdata = NULL;
+					//event->customdata = NULL;
 				}
 			}
 		}
