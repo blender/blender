@@ -92,7 +92,7 @@ void EDBM_mesh_load(struct Object *ob);
 void           EDBM_index_arrays_ensure(struct BMEditMesh *em, const char htype);
 void           EDBM_index_arrays_init(struct BMEditMesh *em, const char htype);
 void           EDBM_index_arrays_free(struct BMEditMesh *em);
-#ifdef DEBUG
+#ifndef NDEBUG
 int            EDBM_index_arrays_check(struct BMEditMesh *em);
 #endif
 struct BMVert *EDBM_vert_at_index(struct BMEditMesh *em, int index);

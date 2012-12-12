@@ -466,7 +466,7 @@ void EDBM_index_arrays_free(BMEditMesh *em)
 }
 
 /* debug check only - no need to optimize */
-#ifdef DEBUG
+#ifndef NDEBUG
 int EDBM_index_arrays_check(BMEditMesh *em)
 {
 	BMIter iter;
