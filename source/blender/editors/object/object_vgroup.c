@@ -1516,16 +1516,30 @@ static void vgroup_normalize_all(Object *ob, int lock_active)
 	}
 }
 
+enum {
+	VGROUP_TOGGLE,
+	VGROUP_LOCK,
+	VGROUP_UNLOCK,
+	VGROUP_INVERT
+};
+
+static EnumPropertyItem vgroup_lock_actions[] = {
+	{VGROUP_TOGGLE, "TOGGLE", 0, "Toggle", "Unlock all vertex groups if there is at least one locked group, lock all in other case"},
+	{VGROUP_LOCK, "LOCK", 0, "Lock", "Lock all vertex groups"},
+	{VGROUP_UNLOCK, "UNLOCK", 0, "Unlock", "Unlock all vertex groups"},
+	{VGROUP_INVERT, "INVERT", 0, "Invert", "Invert the lock state of all vertex groups"},
+	{0, NULL, 0, NULL, NULL}
+};
 
 static void vgroup_lock_all(Object *ob, int action)
 {
 	bDeformGroup *dg;
 
-	if (action == SEL_TOGGLE) {
-		action = SEL_SELECT;
+	if (action == VGROUP_TOGGLE) {
+		action = VGROUP_LOCK;
 		for (dg = ob->defbase.first; dg; dg = dg->next) {
 			if (dg->flag & DG_LOCK_WEIGHT) {
-				action = SEL_DESELECT;
+				action = VGROUP_UNLOCK;
 				break;
 			}
 		}
@@ -1533,13 +1547,13 @@ static void vgroup_lock_all(Object *ob, int action)
 
 	for (dg = ob->defbase.first; dg; dg = dg->next) {
 		switch (action) {
-			case SEL_SELECT:
+			case VGROUP_LOCK:
 				dg->flag |= DG_LOCK_WEIGHT;
 				break;
-			case SEL_DESELECT:
+			case VGROUP_UNLOCK:
 				dg->flag &= ~DG_LOCK_WEIGHT;
 				break;
-			case SEL_INVERT:
+			case VGROUP_INVERT:
 				dg->flag ^= DG_LOCK_WEIGHT;
 				break;
 		}
@@ -2963,7 +2977,7 @@ void OBJECT_OT_vertex_group_lock(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	WM_operator_properties_select_all(ot);
+	RNA_def_enum(ot->srna, "action", vgroup_lock_actions, VGROUP_TOGGLE, "Action", "Lock action to execute on vertex groups");
 }
 
 static int vertex_group_invert_exec(bContext *C, wmOperator *op)
