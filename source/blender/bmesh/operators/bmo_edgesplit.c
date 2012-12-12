@@ -32,16 +32,8 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
-enum {
-	EDGE_SEAM  = 1
-};
-
-enum {
-	VERT_SEAM  = 2
-};
-
 /**
- * Remove the EDGE_SEAM flag for edges we cant split
+ * Remove the BM_ELEM_TAG flag for edges we cant split
  *
  * un-tag edges not connected to other tagged edges,
  * unless they are on a boundary
@@ -67,7 +59,7 @@ static void bm_edgesplit_validate_seams(BMesh *bm, BMOperator *op)
 		BM_elem_flag_disable(e, BM_ELEM_INTERNAL_TAG);
 
 		if (e->l == NULL) {
-			BMO_elem_flag_disable(bm, e, EDGE_SEAM);
+			BM_elem_flag_disable(e, BM_ELEM_TAG);
 		}
 		else if (BM_edge_is_boundary(e)) {
 			vt = &vtouch[BM_elem_index_get(e->v1)]; if (*vt < 2) (*vt)++;
@@ -75,7 +67,7 @@ static void bm_edgesplit_validate_seams(BMesh *bm, BMOperator *op)
 
 			/* while the boundary verts need to be tagged,
 			 * the edge its self can't be split */
-			BMO_elem_flag_disable(bm, e, EDGE_SEAM);
+			BM_elem_flag_disable(e, BM_ELEM_TAG);
 		}
 	}
 
@@ -92,7 +84,7 @@ static void bm_edgesplit_validate_seams(BMesh *bm, BMOperator *op)
 		if (vtouch[BM_elem_index_get(e->v1)] == 1 &&
 		    vtouch[BM_elem_index_get(e->v2)] == 1)
 		{
-			BMO_elem_flag_disable(bm, e, EDGE_SEAM);
+			BM_elem_flag_disable(e, BM_ELEM_TAG);
 		}
 	}
 
@@ -106,11 +98,11 @@ void bmo_split_edges_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e;
 	const int use_verts = BMO_slot_bool_get(op->slots_in, "use_verts");
 
-	BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, EDGE_SEAM);
+	BMO_slot_buffer_hflag_enable(bm, op->slots_in, "edges", BM_EDGE, BM_ELEM_TAG, FALSE);
 
 	if (use_verts) {
 		/* this slows down the operation but its ok because the modifier doesn't use */
-		BMO_slot_buffer_flag_enable(bm, op->slots_in, "verts", BM_VERT, VERT_SEAM);
+		BMO_slot_buffer_hflag_enable(bm, op->slots_in, "verts", BM_VERT, BM_ELEM_TAG, FALSE);
 
 		/* prevent one edge having both verts unflagged
 		 * we could alternately disable these edges, either way its a corner case.
@@ -119,11 +111,11 @@ void bmo_split_edges_exec(BMesh *bm, BMOperator *op)
 		 * would leave a duplicate edge.
 		 */
 		BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
-			if (UNLIKELY((BMO_elem_flag_test(bm, e->v1, VERT_SEAM) == FALSE &&
-			              (BMO_elem_flag_test(bm, e->v2, VERT_SEAM) == FALSE))))
+			if (UNLIKELY((BM_elem_flag_test(e->v1, BM_ELEM_TAG) == FALSE &&
+			             (BM_elem_flag_test(e->v2, BM_ELEM_TAG) == FALSE))))
 			{
-				BMO_elem_flag_enable(bm, e->v1, VERT_SEAM);
-				BMO_elem_flag_enable(bm, e->v2, VERT_SEAM);
+				BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
+				BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
 			}
 		}
 	}
@@ -131,7 +123,7 @@ void bmo_split_edges_exec(BMesh *bm, BMOperator *op)
 	bm_edgesplit_validate_seams(bm, op);
 
 	BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
-		if (BMO_elem_flag_test(bm, e, EDGE_SEAM)) {
+		if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
 			/* this flag gets copied so we can be sure duplicate edges get it too (important) */
 			BM_elem_flag_enable(e, BM_ELEM_INTERNAL_TAG);
 
@@ -147,17 +139,17 @@ void bmo_split_edges_exec(BMesh *bm, BMOperator *op)
 
 	if (use_verts) {
 		BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
-			if (BMO_elem_flag_test(bm, e->v1, VERT_SEAM) == FALSE) {
+			if (BM_elem_flag_test(e->v1, BM_ELEM_TAG) == FALSE) {
 				BM_elem_flag_disable(e->v1, BM_ELEM_TAG);
 			}
-			if (BMO_elem_flag_test(bm, e->v2, VERT_SEAM) == FALSE) {
+			if (BM_elem_flag_test(e->v2, BM_ELEM_TAG) == FALSE) {
 				BM_elem_flag_disable(e->v2, BM_ELEM_TAG);
 			}
 		}
 	}
 
 	BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
-		if (BMO_elem_flag_test(bm, e, EDGE_SEAM)) {
+		if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
 			if (BM_elem_flag_test(e->v1, BM_ELEM_TAG)) {
 				BM_elem_flag_disable(e->v1, BM_ELEM_TAG);
 				bmesh_vert_separate(bm, e->v1, NULL, NULL);
