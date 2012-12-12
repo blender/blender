@@ -725,7 +725,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, FALSE);
+	EDBM_update_generic(C, em, FALSE, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -767,7 +767,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, FALSE);
+	EDBM_update_generic(C, em, FALSE, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -812,7 +812,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 
 	EDBM_selectmode_flush(em);
 
-	EDBM_update_generic(C, em, FALSE);
+	EDBM_update_generic(C, em, FALSE, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -1487,7 +1487,7 @@ static int mouse_mesh_shortest_path_edge(bContext *C, ViewContext *vc)
 				break;
 		}
 		
-		EDBM_update_generic(C, em, FALSE);
+		EDBM_update_generic(C, em, FALSE, FALSE);
 
 		return TRUE;
 	}
@@ -1678,7 +1678,7 @@ static int mouse_mesh_shortest_path_face(bContext *C, ViewContext *vc)
 
 		BM_active_face_set(em->bm, f_dst);
 
-		EDBM_update_generic(C, em, FALSE);
+		EDBM_update_generic(C, em, FALSE, FALSE);
 
 		return TRUE;
 	}
@@ -2635,7 +2635,7 @@ static int edbm_select_nth_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, FALSE);
+	EDBM_update_generic(C, em, FALSE, FALSE);
 
 	return OPERATOR_FINISHED;
 }

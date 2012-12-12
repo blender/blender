@@ -2841,7 +2841,7 @@ static void knifetool_finish(bContext *C, wmOperator *op)
 #endif
 
 	EDBM_mesh_normals_update(kcd->em);
-	EDBM_update_generic(C, kcd->em, TRUE);
+	EDBM_update_generic(C, kcd->em, TRUE, TRUE);
 }
 
 /* copied from paint_image.c */

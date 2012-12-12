@@ -80,7 +80,6 @@ typedef struct BMEditMesh {
 
 	/*temp variables for x-mirror editing*/
 	int mirror_cdlayer; /* -1 is invalid */
-	int mirr_free_arrays;
 } BMEditMesh;
 
 void BMEdit_RecalcTessellation(BMEditMesh *em);

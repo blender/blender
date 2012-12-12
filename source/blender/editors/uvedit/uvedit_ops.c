@@ -999,8 +999,8 @@ static int select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit 
 	int a, looking, nverts, starttotf, select;
 
 	/* setup */
-	EDBM_index_arrays_init(em, BM_FACE);
-	vmap = EDBM_uv_vert_map_create(em, 0, 0, limit);
+	EDBM_index_arrays_ensure(em, BM_FACE);
+	vmap = EDBM_uv_vert_map_create(em, 0, limit);
 
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
 
@@ -1091,7 +1091,6 @@ static int select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit 
 
 	/* cleanup */
 	EDBM_uv_vert_map_free(vmap);
-	EDBM_index_arrays_free(em);
 
 	return (select) ? 1 : -1;
 }
@@ -1111,8 +1110,8 @@ static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, const float 
 	unsigned int a;
 	char *flag;
 
-	EDBM_index_arrays_init(em, BM_FACE); /* we can use this too */
-	vmap = EDBM_uv_vert_map_create(em, 1, 1, limit);
+	EDBM_index_arrays_ensure(em, BM_FACE); /* we can use this too */
+	vmap = EDBM_uv_vert_map_create(em, 1, limit);
 
 	if (vmap == NULL)
 		return;
@@ -1270,7 +1269,6 @@ static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, const float 
 	MEM_freeN(stack);
 	MEM_freeN(flag);
 	EDBM_uv_vert_map_free(vmap);
-	EDBM_index_arrays_free(em);
 }
 
 /* WATCH IT: this returns first selected UV,
@@ -2608,8 +2606,8 @@ static void uv_faces_do_sticky(SpaceImage *sima, Scene *scene, Object *obedit, s
 		
 		uvedit_pixel_to_float(sima, limit, 0.05);
 		
-		EDBM_index_arrays_init(em, BM_FACE);
-		vmap = EDBM_uv_vert_map_create(em, 0, 0, limit);
+		EDBM_index_arrays_ensure(em, BM_FACE);
+		vmap = EDBM_uv_vert_map_create(em, 0, limit);
 		
 		/* verts are numbered above in make_uv_vert_map_EM, make sure this stays true! */
 		if (vmap == NULL) {
@@ -2662,7 +2660,6 @@ static void uv_faces_do_sticky(SpaceImage *sima, Scene *scene, Object *obedit, s
 				}
 			}
 		}
-		EDBM_index_arrays_free(em);
 		EDBM_uv_vert_map_free(vmap);
 		
 	}
@@ -3795,8 +3792,8 @@ static int seams_from_islands_exec(bContext *C, wmOperator *op)
 	}
 
 	/* This code sets editvert->tmp.l to the index. This will be useful later on. */
-	EDBM_index_arrays_init(em, BM_FACE);
-	vmap = EDBM_uv_vert_map_create(em, 0, 0, limit);
+	EDBM_index_arrays_ensure(em, BM_FACE);
+	vmap = EDBM_uv_vert_map_create(em, 0, limit);
 
 	BM_ITER_MESH (editedge, &iter, bm, BM_EDGES_OF_MESH) {
 		/* flags to determine if we uv is separated from first editface match */
@@ -3875,7 +3872,6 @@ static int seams_from_islands_exec(bContext *C, wmOperator *op)
 	me->drawflag |= ME_DRAWSEAMS;
 
 	EDBM_uv_vert_map_free(vmap);
-	EDBM_index_arrays_free(em);
 
 	DAG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);

@@ -1417,7 +1417,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 					
 					if (em != NULL) {
 						index_array = dm->getVertDataArray(dm, CD_ORIGINDEX);
-						EDBM_index_arrays_init(em, BM_VERT);
+						EDBM_index_arrays_ensure(em, BM_VERT);
 					}
 					
 					for (i = 0; i < totvert; i++) {
@@ -1452,9 +1452,6 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 						}
 					}
 
-					if (em != NULL) {
-						EDBM_index_arrays_free(em);
-					}
 					break;
 				}
 				case SCE_SNAP_MODE_EDGE:
@@ -1468,7 +1465,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 					
 					if (em != NULL) {
 						index_array = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
-						EDBM_index_arrays_init(em, BM_EDGE);
+						EDBM_index_arrays_ensure(em, BM_EDGE);
 					}
 					
 					for (i = 0; i < totedge; i++) {
@@ -1505,9 +1502,6 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 						}
 					}
 
-					if (em != NULL) {
-						EDBM_index_arrays_free(em);
-					}
 					break;
 				}
 			}

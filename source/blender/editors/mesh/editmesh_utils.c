@@ -391,11 +391,13 @@ void EDBM_mesh_free(BMEditMesh *em)
 	BMEdit_Free(em);
 }
 
-void EDBM_index_arrays_init(BMEditMesh *em, const char htype)
+
+void EDBM_index_arrays_ensure(BMEditMesh *em, const char htype)
 {
 	BLI_assert((htype & ~BM_ALL_NOLOOP) == 0);
 
-	EDBM_index_arrays_free(em);
+	/* in debug mode double check we didn't need to recalculate */
+	BLI_assert(EDBM_index_arrays_check(em) == TRUE);
 
 	if (htype & BM_VERT) {
 		em->vert_index = MEM_mallocN(sizeof(void **) * em->bm->totvert, "em->vert_index");
@@ -430,6 +432,16 @@ void EDBM_index_arrays_init(BMEditMesh *em, const char htype)
 	}
 }
 
+/* use EDBM_index_arrays_ensure where possible to avoid full rebuild */
+void EDBM_index_arrays_init(BMEditMesh *em, const char htype)
+{
+	BLI_assert((htype & ~BM_ALL_NOLOOP) == 0);
+
+	/* force recalc */
+	EDBM_index_arrays_free(em);
+	EDBM_index_arrays_ensure(em, htype);
+}
+
 void EDBM_index_arrays_free(BMEditMesh *em)
 {
 	if (em->vert_index) {
@@ -447,6 +459,42 @@ void EDBM_index_arrays_free(BMEditMesh *em)
 		em->face_index = NULL;
 	}
 }
+
+/* debug check only - no need to optimize */
+#ifdef DEBUG
+int EDBM_index_arrays_check(BMEditMesh *em)
+{
+	BMIter iter;
+	BMElem *ele;
+	int i;
+
+	if (em->vert_index) {
+		BM_ITER_MESH_INDEX (ele, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+			if (ele != (BMElem *)em->vert_index[i]) {
+				return FALSE;
+			}
+		}
+	}
+
+	if (em->edge_index) {
+		BM_ITER_MESH_INDEX (ele, &iter, em->bm, BM_EDGES_OF_MESH, i) {
+			if (ele != (BMElem *)em->edge_index[i]) {
+				return FALSE;
+			}
+		}
+	}
+
+	if (em->face_index) {
+		BM_ITER_MESH_INDEX (ele, &iter, em->bm, BM_FACES_OF_MESH, i) {
+			if (ele != (BMElem *)em->face_index[i]) {
+				return FALSE;
+			}
+		}
+	}
+
+	return TRUE;
+}
+#endif
 
 BMVert *EDBM_vert_at_index(BMEditMesh *em, int index)
 {
@@ -634,7 +682,7 @@ void undo_push_mesh(bContext *C, const char *name)
 }
 
 /* write comment here */
-UvVertMap *EDBM_uv_vert_map_create(BMEditMesh *em, int selected, int do_face_idx_array, const float limit[2])
+UvVertMap *EDBM_uv_vert_map_create(BMEditMesh *em, int selected, const float limit[2])
 {
 	BMVert *ev;
 	BMFace *efa;
@@ -647,11 +695,8 @@ UvVertMap *EDBM_uv_vert_map_create(BMEditMesh *em, int selected, int do_face_idx
 	MLoopUV *luv;
 	unsigned int a;
 	int totverts, i, totuv;
-	
-	if (do_face_idx_array)
-		EDBM_index_arrays_init(em, BM_FACE);
 
-	BM_mesh_elem_index_ensure(em->bm, BM_VERT);
+	BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
 	
 	totverts = em->bm->totvert;
 	totuv = 0;
@@ -663,14 +708,10 @@ UvVertMap *EDBM_uv_vert_map_create(BMEditMesh *em, int selected, int do_face_idx
 	}
 
 	if (totuv == 0) {
-		if (do_face_idx_array)
-			EDBM_index_arrays_free(em);
 		return NULL;
 	}
 	vmap = (UvVertMap *)MEM_callocN(sizeof(*vmap), "UvVertMap");
 	if (!vmap) {
-		if (do_face_idx_array)
-			EDBM_index_arrays_free(em);
 		return NULL;
 	}
 
@@ -679,8 +720,6 @@ UvVertMap *EDBM_uv_vert_map_create(BMEditMesh *em, int selected, int do_face_idx
 
 	if (!vmap->vert || !vmap->buf) {
 		BKE_mesh_uv_vert_map_free(vmap);
-		if (do_face_idx_array)
-			EDBM_index_arrays_free(em);
 		return NULL;
 	}
 	
@@ -757,10 +796,7 @@ UvVertMap *EDBM_uv_vert_map_create(BMEditMesh *em, int selected, int do_face_idx
 		vmap->vert[a] = newvlist;
 		a++;
 	}
-	
-	if (do_face_idx_array)
-		EDBM_index_arrays_free(em);
-	
+
 	return vmap;
 }
 
@@ -1105,10 +1141,7 @@ void EDBM_verts_mirror_cache_begin(BMEditMesh *em, const short use_select)
 		topo = 1;
 	}
 
-	if (!em->vert_index) {
-		EDBM_index_arrays_init(em, BM_VERT);
-		em->mirr_free_arrays = 1;
-	}
+	EDBM_index_arrays_ensure(em, BM_VERT);
 
 	if (!CustomData_get_layer_named(&bm->vdata, CD_PROP_INT, BM_CD_LAYER_ID)) {
 		BM_data_layer_add_named(bm, &bm->vdata, CD_PROP_INT, BM_CD_LAYER_ID);
@@ -1200,11 +1233,6 @@ void EDBM_verts_mirror_cache_clear(BMEditMesh *em, BMVert *v)
 
 void EDBM_verts_mirror_cache_end(BMEditMesh *em)
 {
-	if (em->mirr_free_arrays) {
-		MEM_freeN(em->vert_index);
-		em->vert_index = NULL;
-	}
-
 	em->mirror_cdlayer = -1;
 }
 
@@ -1309,7 +1337,8 @@ void EDBM_mesh_reveal(BMEditMesh *em)
 
 /* so many tools call these that we better make it a generic function.
  */
-void EDBM_update_generic(bContext *C, BMEditMesh *em, const short do_tessface)
+void EDBM_update_generic(bContext *C, BMEditMesh *em,
+                         const short do_tessface, const short is_destructive)
 {
 	Object *ob = em->ob;
 	/* order of calling isn't important */
@@ -1318,5 +1347,13 @@ void EDBM_update_generic(bContext *C, BMEditMesh *em, const short do_tessface)
 
 	if (do_tessface) {
 		BMEdit_RecalcTessellation(em);
+	}
+
+	if (is_destructive) {
+		EDBM_index_arrays_free(em);
+	}
+	else {
+		/* in debug mode double check we didn't need to recalculate */
+		BLI_assert(EDBM_index_arrays_check(em) == TRUE);
 	}
 }

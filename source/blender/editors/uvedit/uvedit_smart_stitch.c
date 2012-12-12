@@ -1256,7 +1256,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 		int faceIndex, elementIndex;
 		UvElement *element;
 
-		EDBM_index_arrays_init(em, BM_FACE);
+		EDBM_index_arrays_ensure(em, BM_FACE);
 
 		RNA_BEGIN (op->ptr, itemptr, "selection")
 		{
@@ -1268,7 +1268,6 @@ static int stitch_init(bContext *C, wmOperator *op)
 		}
 		RNA_END;
 
-		EDBM_index_arrays_free(em);
 		/* Clear the selection */
 		RNA_collection_clear(op->ptr, "selection");
 

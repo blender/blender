@@ -112,7 +112,7 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	                   RNA_boolean_get(op->ptr, "quadtri"), TRUE, FALSE,
 	                   RNA_int_get(op->ptr, "seed"));
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -181,7 +181,7 @@ static int edbm_unsubdivide_exec(bContext *C, wmOperator *op)
 	}
 	EDBM_selectmode_flush(em);
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -463,7 +463,7 @@ static int edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
 	
 	EDBM_mesh_normals_update(em);
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -585,7 +585,7 @@ static int edbm_extrude_region_exec(bContext *C, wmOperator *op)
 	 * done.*/
 	EDBM_mesh_normals_update(em);
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 	
 	return OPERATOR_FINISHED;
 }
@@ -678,7 +678,7 @@ static int edbm_extrude_faces_exec(bContext *C, wmOperator *op)
 
 	edbm_extrude_discrete_faces(em, op, BM_ELEM_SELECT, nor);
 	
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 	
 	return OPERATOR_FINISHED;
 }
@@ -936,7 +936,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 	 * done. */
 	EDBM_mesh_normals_update(vc.em);
 
-	EDBM_update_generic(C, vc.em, TRUE);
+	EDBM_update_generic(C, vc.em, TRUE, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1001,7 +1001,7 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
 
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1034,7 +1034,7 @@ static int edbm_collapse_edge_exec(bContext *C, wmOperator *op)
 	if (!EDBM_op_callf(em, op, "collapse edges=%he", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1062,7 +1062,7 @@ static int edbm_collapse_edge_loop_exec(bContext *C, wmOperator *op)
 	if (!EDBM_op_callf(em, op, "dissolve_edge_loop edges=%he", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1121,7 +1121,7 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1176,7 +1176,7 @@ static int edbm_mark_seam(bContext *C, wmOperator *op)
 	}
 
 	ED_uvedit_live_unwrap(scene, obedit);
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, FALSE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1230,7 +1230,7 @@ static int edbm_mark_sharp(bContext *C, wmOperator *op)
 		}
 	}
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, FALSE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1272,7 +1272,7 @@ static int edbm_vert_connect(bContext *C, wmOperator *op)
 	else {
 		EDBM_selectmode_flush(em);  /* so newly created edges get the selection state from the vertex */
 
-		EDBM_update_generic(C, em, TRUE);
+		EDBM_update_generic(C, em, TRUE, TRUE);
 
 		return len ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 	}
@@ -1310,7 +1310,7 @@ static int edbm_edge_split_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 
 	return len ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
@@ -1349,7 +1349,7 @@ static int edbm_duplicate_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1388,7 +1388,7 @@ static int edbm_flip_normals_exec(bContext *C, wmOperator *op)
 	if (!EDBM_op_callf(em, op, "reverse_faces faces=%hf", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
 	
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, FALSE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1469,7 +1469,7 @@ static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1500,7 +1500,7 @@ static int edbm_hide_exec(bContext *C, wmOperator *op)
 	
 	EDBM_mesh_hide(em, RNA_boolean_get(op->ptr, "unselected"));
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, FALSE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1530,7 +1530,7 @@ static int edbm_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	EDBM_mesh_reveal(em);
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, FALSE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1563,7 +1563,7 @@ static int edbm_normals_make_consistent_exec(bContext *C, wmOperator *op)
 	if (RNA_boolean_get(op->ptr, "inside"))
 		EDBM_op_callf(em, op, "reverse_faces faces=%hf", BM_ELEM_SELECT);
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, FALSE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1645,7 +1645,7 @@ static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
 		EDBM_verts_mirror_cache_end(em);
 	}
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, FALSE);
 
 	return OPERATOR_FINISHED;
 }	
@@ -1721,7 +1721,7 @@ static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 		EDBM_verts_mirror_cache_end(em);
 	}
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, FALSE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1775,7 +1775,7 @@ static int edbm_faces_shade_smooth_exec(bContext *C, wmOperator *UNUSED(op))
 
 	mesh_set_smooth_faces(em, 1);
 
-	EDBM_update_generic(C, em, FALSE);
+	EDBM_update_generic(C, em, FALSE, FALSE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1802,7 +1802,7 @@ static int edbm_faces_shade_flat_exec(bContext *C, wmOperator *UNUSED(op))
 
 	mesh_set_smooth_faces(em, 0);
 
-	EDBM_update_generic(C, em, FALSE);
+	EDBM_update_generic(C, em, FALSE, FALSE);
 
 	return OPERATOR_FINISHED;
 }
@@ -1845,7 +1845,7 @@ static int edbm_rotate_uvs_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, FALSE);
+	EDBM_update_generic(C, em, FALSE, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -1868,7 +1868,7 @@ static int edbm_reverse_uvs_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, FALSE);
+	EDBM_update_generic(C, em, FALSE, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -1895,7 +1895,7 @@ static int edbm_rotate_colors_exec(bContext *C, wmOperator *op)
 	}
 
 	/* dependencies graph and notification stuff */
-	EDBM_update_generic(C, em, FALSE);
+	EDBM_update_generic(C, em, FALSE, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -1919,7 +1919,7 @@ static int edbm_reverse_colors_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, FALSE);
+	EDBM_update_generic(C, em, FALSE, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -2104,7 +2104,7 @@ static int edbm_merge_exec(bContext *C, wmOperator *op)
 	if (!status)
 		return OPERATOR_CANCELLED;
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -2221,7 +2221,7 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 	count = totvert_orig - em->bm->totvert;
 	BKE_reportf(op->reports, RPT_INFO, "Removed %d vertices", count);
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -2328,7 +2328,7 @@ static int edbm_select_vertex_path_exec(bContext *C, wmOperator *op)
 
 	EDBM_selectmode_flush(em);
 
-	EDBM_update_generic(C, em, FALSE);
+	EDBM_update_generic(C, em, FALSE, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -2403,7 +2403,7 @@ static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
 
 	shape_propagate(em, op);
 
-	EDBM_update_generic(C, em, FALSE);
+	EDBM_update_generic(C, em, FALSE, FALSE);
 
 	return OPERATOR_FINISHED;
 }
@@ -2474,7 +2474,7 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, FALSE);
 
 	return OPERATOR_FINISHED;
 }
@@ -2665,7 +2665,7 @@ static int edbm_solidify_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -2990,7 +2990,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -3232,7 +3232,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 		else                BLI_assert(0);
 
 		if (retval) {
-			EDBM_update_generic(C, em, TRUE);
+			EDBM_update_generic(C, em, TRUE, TRUE);
 		}
 	}
 	else {
@@ -3332,7 +3332,7 @@ static int edbm_fill_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 	
 	return OPERATOR_FINISHED;
 
@@ -3361,7 +3361,7 @@ static int edbm_beautify_fill_exec(bContext *C, wmOperator *op)
 	if (!EDBM_op_callf(em, op, "beautify_fill faces=%hf", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3392,7 +3392,7 @@ static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 	if (!EDBM_op_callf(em, op, "triangulate faces=%hf use_beauty=%b", BM_ELEM_SELECT, use_beauty))
 		return OPERATOR_CANCELLED;
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -3433,7 +3433,7 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -3489,7 +3489,7 @@ static int edbm_dissolve_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -3561,7 +3561,7 @@ static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -3606,7 +3606,7 @@ static int edbm_split_exec(bContext *C, wmOperator *op)
 	/* Geometry has changed, need to recalc normals and looptris */
 	EDBM_mesh_normals_update(em);
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -3665,7 +3665,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -3788,7 +3788,7 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, TRUE);
 
 	return OPERATOR_FINISHED;
 }
@@ -4603,7 +4603,7 @@ static int edbm_noise_exec(bContext *C, wmOperator *op)
 
 	EDBM_mesh_normals_update(em);
 
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, FALSE);
 
 	return OPERATOR_FINISHED;
 }
@@ -4827,7 +4827,7 @@ static int edbm_bevel_calc(bContext *C, wmOperator *op)
 	
 	EDBM_mesh_normals_update(opdata->em);
 	
-	EDBM_update_generic(C, opdata->em, TRUE);
+	EDBM_update_generic(C, opdata->em, TRUE, TRUE);
 
 	return 1;
 }
@@ -4859,7 +4859,7 @@ static int edbm_bevel_cancel(bContext *C, wmOperator *op)
 	BevelData *opdata = op->customdata;
 	if (opdata->is_modal) {
 		EDBM_redo_state_free(&opdata->mesh_backup, opdata->em, TRUE);
-		EDBM_update_generic(C, opdata->em, FALSE);
+		EDBM_update_generic(C, opdata->em, FALSE, TRUE);
 	}
 
 	edbm_bevel_exit(C, op);
@@ -5140,7 +5140,7 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 
 	}
 	else {
-		EDBM_update_generic(C, em, TRUE);
+		EDBM_update_generic(C, em, TRUE, TRUE);
 		return OPERATOR_FINISHED;
 	}
 }
@@ -5263,7 +5263,7 @@ static int edbm_inset_cancel(bContext *C, wmOperator *op)
 	opdata = op->customdata;
 	if (opdata->is_modal) {
 		EDBM_redo_state_free(&opdata->backup, opdata->em, TRUE);
-		EDBM_update_generic(C, opdata->em, FALSE);
+		EDBM_update_generic(C, opdata->em, FALSE, TRUE);
 	}
 
 	edbm_inset_exit(C, op);
@@ -5318,7 +5318,7 @@ static int edbm_inset_calc(bContext *C, wmOperator *op)
 		return 0;
 	}
 	else {
-		EDBM_update_generic(C, em, TRUE);
+		EDBM_update_generic(C, em, TRUE, TRUE);
 		return 1;
 	}
 }
@@ -5581,7 +5581,7 @@ static int edbm_wireframe_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else {
-		EDBM_update_generic(C, em, TRUE);
+		EDBM_update_generic(C, em, TRUE, TRUE);
 		return OPERATOR_FINISHED;
 	}
 }
@@ -5671,7 +5671,7 @@ static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else {
-		EDBM_update_generic(C, em, TRUE);
+		EDBM_update_generic(C, em, TRUE, TRUE);
 		EDBM_selectmode_flush(em);
 		return OPERATOR_FINISHED;
 	}
@@ -5726,7 +5726,7 @@ static int mesh_symmetrize_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	else {
-		EDBM_update_generic(C, em, TRUE);
+		EDBM_update_generic(C, em, TRUE, TRUE);
 		EDBM_selectmode_flush(em);
 		return OPERATOR_FINISHED;
 	}

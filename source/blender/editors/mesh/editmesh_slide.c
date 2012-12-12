@@ -264,7 +264,7 @@ static void vtx_slide_confirm(bContext *C, wmOperator *op)
 	EDBM_selectmode_flush(em);
 	
 	/* NC_GEOM | ND_DATA & Retess */
-	EDBM_update_generic(C, em, TRUE);
+	EDBM_update_generic(C, em, TRUE, FALSE);
 	
 	ED_region_tag_redraw(vso->active_region);
 }
@@ -752,7 +752,7 @@ static int edbm_vertex_slide_exec_ex(bContext *C, wmOperator *op, const int do_u
 
 	if (do_update) {
 		/* Update Geometry */
-		EDBM_update_generic(C, em, TRUE);
+		EDBM_update_generic(C, em, TRUE, FALSE);
 	}
 
 	return OPERATOR_FINISHED;
