@@ -1150,7 +1150,7 @@ View2DGrid *UI_view2d_grid_calc(Scene *scene, View2D *v2d,
 		pixels = (float)BLI_rcti_size_x(&v2d->mask);
 		
 		if (pixels != 0.0f) {
-			grid->dx = (U.v2d_min_gridsize * space) / (seconddiv * pixels);
+			grid->dx = (U.v2d_min_gridsize * U.pixelsize * space) / (seconddiv * pixels);
 			step_to_grid(&grid->dx, &grid->powerx, xunits);
 			grid->dx *= seconddiv;
 		}
@@ -1167,7 +1167,7 @@ View2DGrid *UI_view2d_grid_calc(Scene *scene, View2D *v2d,
 		space = BLI_rctf_size_y(&v2d->cur);
 		pixels = (float)winy;
 		
-		grid->dy = U.v2d_min_gridsize * space / pixels;
+		grid->dy = U.v2d_min_gridsize * U.pixelsize * space / pixels;
 		step_to_grid(&grid->dy, &grid->powery, yunits);
 		
 		if (yclamp == V2D_GRID_CLAMP) {
@@ -1212,7 +1212,7 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		vec2[1] = v2d->cur.ymax;
 		
 		/* minor gridlines */
-		step = (BLI_rcti_size_x(&v2d->mask) + 1) / U.v2d_min_gridsize;
+		step = (BLI_rcti_size_x(&v2d->mask) + 1) / (U.v2d_min_gridsize * U.pixelsize);
 		UI_ThemeColor(TH_GRID);
 		
 		for (a = 0; a < step; a++) {
@@ -1246,7 +1246,7 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		vec1[0] = grid->startx;
 		vec2[0] = v2d->cur.xmax;
 		
-		step = (BLI_rcti_size_y(&v2d->mask) + 1) / U.v2d_min_gridsize;
+		step = (BLI_rcti_size_y(&v2d->mask) + 1) / (U.v2d_min_gridsize * U.pixelsize);
 		
 		UI_ThemeColor(TH_GRID);
 		for (a = 0; a <= step; a++) {
@@ -1427,6 +1427,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d,
 	rcti vert, hor;
 	float fac1, fac2, totsize, scrollsize;
 	int scroll = view2d_scroll_mapped(v2d->scroll);
+	int smaller;
 	
 	/* scrollers is allocated here... */
 	scrollers = MEM_callocN(sizeof(View2DScrollers), "View2DScrollers");
@@ -1435,19 +1436,20 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d,
 	hor = v2d->hor;
 	
 	/* slider rects need to be smaller than region */
-	hor.xmin += 4;
-	hor.xmax -= 4;
+	smaller = (int)(0.2f * U.widget_unit);
+	hor.xmin += smaller;
+	hor.xmax -= smaller;
 	if (scroll & V2D_SCROLL_BOTTOM)
-		hor.ymin += 4;
+		hor.ymin += smaller;
 	else
-		hor.ymax -= 4;
+		hor.ymax -= smaller;
 	
 	if (scroll & V2D_SCROLL_LEFT)
-		vert.xmin += 4;
+		vert.xmin += smaller;
 	else
-		vert.xmax -= 4;
-	vert.ymin += 4;
-	vert.ymax -= 4;
+		vert.xmax -= smaller;
+	vert.ymin += smaller;
+	vert.ymax -= smaller;
 	
 	CLAMP(vert.ymin, vert.ymin, vert.ymax - V2D_SCROLLER_HANDLE_SIZE);
 	CLAMP(hor.xmin, hor.xmin, hor.xmax - V2D_SCROLLER_HANDLE_SIZE);
@@ -1621,6 +1623,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			uiWidgetColors wcol = btheme->tui.wcol_scroll;
 			rcti slider;
 			int state;
+			unsigned char col[4];
 			
 			slider.xmin = vs->hor_min;
 			slider.xmax = vs->hor_max;
@@ -1643,8 +1646,12 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 				state |= UI_SCROLL_ARROWS;
 			}
 			
-			UI_ThemeColor(TH_BACK);
-			glRecti(v2d->hor.xmin, v2d->hor.ymin, v2d->hor.xmax, v2d->hor.ymax);
+			/* clean rect behind slider, but not with transparent background */
+			UI_GetThemeColor4ubv(TH_BACK, col);
+			if (col[3] == 255) {
+				glColor3ub(col[0], col[1],col[2]);
+				glRecti(v2d->hor.xmin, v2d->hor.ymin, v2d->hor.xmax, v2d->hor.ymax);
+			}
 			
 			uiWidgetScrollDraw(&wcol, &hor, &slider, state);
 		}
@@ -1680,12 +1687,12 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			
 			/* draw numbers in the appropriate range */
 			if (dfac > 0.0f) {
-				float h = 2.0f + (float)(hor.ymin);
+				float h = 0.1f*UI_UNIT_Y + (float)(hor.ymin);
 				
-				for (; fac < hor.xmax - 10; fac += dfac, val += grid->dx) {
+				for (; fac < hor.xmax - 0.5f * U.widget_unit; fac += dfac, val += grid->dx) {
 					
 					/* make prints look nicer for scrollers */
-					if (fac < hor.xmin + 10)
+					if (fac < hor.xmin + 0.5f * U.widget_unit)
 						continue;
 					
 					switch (vs->xunits) {
@@ -1732,6 +1739,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			uiWidgetColors wcol = btheme->tui.wcol_scroll;
 			rcti slider;
 			int state;
+			unsigned char col[4];
 			
 			slider.xmin = vert.xmin;
 			slider.xmax = vert.xmax;
@@ -1753,9 +1761,13 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			{
 				state |= UI_SCROLL_ARROWS;
 			}
-				
-			UI_ThemeColor(TH_BACK);
-			glRecti(v2d->vert.xmin, v2d->vert.ymin, v2d->vert.xmax, v2d->vert.ymax);
+			
+			/* clean rect behind slider, but not with transparent background */
+			UI_GetThemeColor4ubv(TH_BACK, col);
+			if (col[3] == 255) {
+				glColor3ub(col[0], col[1],col[2]);
+				glRecti(v2d->vert.xmin, v2d->vert.ymin, v2d->vert.xmax, v2d->vert.ymax);
+			}
 			
 			uiWidgetScrollDraw(&wcol, &vert, &slider, state);
 		}

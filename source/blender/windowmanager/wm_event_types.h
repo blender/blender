@@ -148,6 +148,7 @@ enum {
 #define TIMERJOBS		0x0114  /* timer event, jobs system */
 #define TIMERAUTOSAVE	0x0115  /* timer event, autosave */
 #define TIMERREPORT		0x0116	/* timer event, reports */
+#define TIMERREGION		0x0117	/* timer event, region slide in/out */
 #define TIMERF			0x011F	/* last timer */
 
 /* test whether the event is timer event */

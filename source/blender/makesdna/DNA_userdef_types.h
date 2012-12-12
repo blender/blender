@@ -359,9 +359,10 @@ typedef struct UserDef {
 	short versions;
 	short dbl_click_time;
 	
-	int gameflags;
-	int wheellinescroll;
-	int uiflag, language;
+	short gameflags;
+	short wheellinescroll;
+	int uiflag, uiflag2;
+	int language;
 	short userpref, viewzoom;
 	
 	int mixbufsize;
@@ -412,7 +413,7 @@ typedef struct UserDef {
 	short scrcastfps;		/* frame rate for screencast to be played back */
 	short scrcastwait;		/* milliseconds between screencast snapshots */
 	
-	short widget_unit;		/* defaults to 20 for 72 DPI setting */
+	short widget_unit;		/* private, defaults to 20 for 72 DPI setting */
 	short anisotropic_filter;
 	short use_16bit_textures, use_gpu_mipmap;
 
@@ -443,7 +444,7 @@ typedef struct UserDef {
 	int compute_device_id;
 	
 	float fcu_inactive_alpha;	/* opacity of inactive F-Curves in F-Curve Editor */
-	float pad;
+	float pixelsize;			/* private, set by GHOST, to multiply DPI with */
 } UserDef;
 
 extern UserDef U; /* from blenkernel blender.c */
@@ -539,6 +540,12 @@ typedef enum eUserpref_UI_Flag {
 	USER_HIDE_SYSTEM_BOOKMARKS = (1 << 31)
 } eUserpref_UI_Flag;
 
+/* uiflag2 */
+typedef enum eUserpref_UI_Flag2 {
+	USER_KEEP_SESSION		= (1 << 0),
+	USER_REGION_OVERLAP		= (1 << 1)
+} eUserpref_UI_Flag2;
+	
 /* Auto-Keying mode */
 typedef enum eAutokey_Mode {
 	/* AUTOKEY_ON is a bitflag */

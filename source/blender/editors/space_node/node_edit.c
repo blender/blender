@@ -874,8 +874,8 @@ static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MOUSEMOVE:
 			
 			UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &mx, &my);
-			dx = mx - nsw->mxstart;
-			dy = my - nsw->mystart;
+			dx = (mx - nsw->mxstart) / UI_DPI_FAC;
+			dy = (my - nsw->mystart) / UI_DPI_FAC;
 			
 			if (node) {
 				if (node->flag & NODE_HIDDEN) {
@@ -894,8 +894,8 @@ static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
 					}
 				}
 				else {
-					float widthmin = UI_DPI_FAC * node->typeinfo->minwidth;
-					float widthmax = UI_DPI_FAC * node->typeinfo->maxwidth;
+					float widthmin = node->typeinfo->minwidth;
+					float widthmax = node->typeinfo->maxwidth;
 					if (nsw->directions & NODE_RESIZE_RIGHT) {
 						node->width = nsw->oldwidth + dx;
 						CLAMP(node->width, widthmin, widthmax);
@@ -1967,7 +1967,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* get group node offset */
 	if (gnode)
-		nodeToView(gnode, 0.0f, 0.0f, &gnode_x, &gnode_y);
+		node_to_view(gnode, 0.0f, 0.0f, &gnode_x, &gnode_y);
 	
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->flag & SELECT) {
@@ -2080,7 +2080,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 
 	/* get group node offset */
 	if (gnode) {
-		nodeToView(gnode, 0.0f, 0.0f, &gnode_center[0], &gnode_center[1]);
+		node_to_view(gnode, 0.0f, 0.0f, &gnode_center[0], &gnode_center[1]);
 	}
 	else {
 		zero_v2(gnode_center);

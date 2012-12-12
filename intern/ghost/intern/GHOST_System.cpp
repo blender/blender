@@ -373,3 +373,16 @@ int GHOST_System::confirmQuit(GHOST_IWindow *window) const
 {
 	return 1;
 }
+
+bool GHOST_System::useNativePixel(void)
+{
+	m_nativePixel = 1;
+	return 1;
+}
+
+float GHOST_System::getNativePixelSize(void)
+{
+	if (m_nativePixel)
+		return m_nativePixelSize;
+	return 1.0f;
+}

@@ -305,7 +305,7 @@ void uiEndPanel(uiBlock *block, int width, int height)
 
 static void ui_offset_panel_block(uiBlock *block)
 {
-	uiStyle *style = UI_GetStyle();
+	uiStyle *style = UI_GetStyleDraw();
 	uiBut *but;
 	int ofsy;
 
@@ -345,14 +345,18 @@ static void uiPanelPop(uiBlock *UNUSED(block))
 /* triangle 'icon' for panel header */
 void UI_DrawTriIcon(float x, float y, char dir)
 {
+	float f3 = 0.15 * U.widget_unit;
+	float f5 = 0.25 * U.widget_unit;
+	float f7 = 0.35 * U.widget_unit;
+	
 	if (dir == 'h') {
-		ui_draw_anti_tria(x - 3, y - 5, x - 3, y + 5, x + 7, y);
+		ui_draw_anti_tria(x - f3, y - f5, x - f3, y + f5, x + f7, y);
 	}
 	else if (dir == 't') {
-		ui_draw_anti_tria(x - 5, y - 7, x + 5, y - 7, x, y + 3);
+		ui_draw_anti_tria(x - f5, y - f7, x + f5, y - f7, x, y + f3);
 	}
 	else { /* 'v' = vertical, down */
-		ui_draw_anti_tria(x - 5, y + 3, x + 5, y + 3, x, y - 7);
+		ui_draw_anti_tria(x - f5, y + f3, x + f5, y + f3, x, y - f7);
 	}
 }
 

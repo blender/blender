@@ -65,7 +65,7 @@
 
 static void text_font_begin(SpaceText *st)
 {
-	BLF_size(mono, st->lheight, 72);
+	BLF_size(mono, st->lheight_dpi, 72);
 }
 
 static void text_font_end(SpaceText *UNUSED(st))
@@ -734,7 +734,7 @@ static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w
 				if (st->showsyntax && format) format_draw_color(format[a]);
 				x += text_font_draw_character_utf8(st, x, y, str + ma);
 			}
-			y -= st->lheight + TXT_LINE_SPACING;
+			y -= st->lheight_dpi + TXT_LINE_SPACING;
 			x = basex;
 			lines++;
 			start = end; mstart = mend;
@@ -852,7 +852,7 @@ static void text_update_drawcache(SpaceText *st, ARegion *ar)
 	full_update |= drawcache->wordwrap != st->wordwrap;       /* word-wrapping option was toggled */
 	full_update |= drawcache->showlinenrs != st->showlinenrs; /* word-wrapping option was toggled */
 	full_update |= drawcache->tabnumber != st->tabnumber;     /* word-wrapping option was toggled */
-	full_update |= drawcache->lheight != st->lheight;         /* word-wrapping option was toggled */
+	full_update |= drawcache->lheight != st->lheight_dpi;         /* word-wrapping option was toggled */
 	full_update |= drawcache->cwidth != st->cwidth;           /* word-wrapping option was toggled */
 	full_update |= strncmp(drawcache->text_id, txt->id.name, MAX_ID_NAME); /* text datablock was changed */
 
@@ -928,7 +928,7 @@ static void text_update_drawcache(SpaceText *st, ARegion *ar)
 	/* store settings */
 	drawcache->winx        = ar->winx;
 	drawcache->wordwrap    = st->wordwrap;
-	drawcache->lheight     = st->lheight;
+	drawcache->lheight     = st->lheight_dpi;
 	drawcache->cwidth      = st->cwidth;
 	drawcache->showlinenrs = st->showlinenrs;
 	drawcache->tabnumber   = st->tabnumber;
@@ -1237,9 +1237,9 @@ static void draw_documentation(SpaceText *st, ARegion *ar)
 		x += SUGG_LIST_WIDTH * st->cwidth + 50;
 	}
 
-	/* top = */ /* UNUSED */ y = ar->winy - st->lheight * l - 2;
+	/* top = */ /* UNUSED */ y = ar->winy - st->lheight_dpi * l - 2;
 	boxw = DOC_WIDTH * st->cwidth + 20;
-	boxh = (DOC_HEIGHT + 1) * st->lheight;
+	boxh = (DOC_HEIGHT + 1) * st->lheight_dpi;
 
 	/* Draw panel */
 	UI_ThemeColor(TH_BACK);
@@ -1271,7 +1271,7 @@ static void draw_documentation(SpaceText *st, ARegion *ar)
 		else if (*p == '\n') {
 			buf[i] = '\0';
 			if (lines >= 0) {
-				y -= st->lheight;
+				y -= st->lheight_dpi;
 				text_draw(st, buf, 0, 0, 1, x + 4, y - 3, NULL);
 			}
 			i = 0; br = DOC_WIDTH; lines++;
@@ -1280,7 +1280,7 @@ static void draw_documentation(SpaceText *st, ARegion *ar)
 		if (i == DOC_WIDTH) { /* Reached the width, go to last break and wrap there */
 			buf[br] = '\0';
 			if (lines >= 0) {
-				y -= st->lheight;
+				y -= st->lheight_dpi;
 				text_draw(st, buf, 0, 0, 1, x + 4, y - 3, NULL);
 			}
 			p -= i - br - 1; /* Rewind pointer to last break */
@@ -1326,10 +1326,10 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 	else {
 		x = st->cwidth * (st->text->curc - st->left) + TXT_OFFSET - 4;
 	}
-	y = ar->winy - st->lheight * l - 2;
+	y = ar->winy - st->lheight_dpi * l - 2;
 
 	boxw = SUGG_LIST_WIDTH * st->cwidth + 20;
-	boxh = SUGG_LIST_SIZE * st->lheight + 8;
+	boxh = SUGG_LIST_SIZE * st->lheight_dpi + 8;
 	
 	UI_ThemeColor(TH_SHADE1);
 	glRecti(x - 1, y + 1, x + boxw + 1, y - boxh - 1);
@@ -1341,7 +1341,7 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 
 	for (i = 0; i < SUGG_LIST_SIZE && item; i++, item = item->next) {
 
-		y -= st->lheight;
+		y -= st->lheight_dpi;
 
 		BLI_strncpy(str, item->name, SUGG_LIST_WIDTH);
 
@@ -1349,7 +1349,7 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 		
 		if (item == sel) {
 			UI_ThemeColor(TH_SHADE2);
-			glRecti(x + 16, y - 3, x + 16 + w, y + st->lheight - 3);
+			glRecti(x + 16, y - 3, x + 16 + w, y + st->lheight_dpi - 3);
 		}
 		b = 1; /* b=1 color block, text is default. b=0 no block, color text */
 		switch (item->type) {
@@ -1376,7 +1376,7 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 	Text *text = st->text;
 	int vcurl, vcurc, vsell, vselc, hidden = 0;
 	int x, y, w, i;
-	int lheight = st->lheight + TXT_LINE_SPACING;
+	int lheight = st->lheight_dpi + TXT_LINE_SPACING;
 
 	/* Draw the selection */
 	if (text->curl != text->sell || text->curc != text->selc) {
@@ -1588,7 +1588,7 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 
 	UI_ThemeColor(TH_HILITE);
 	x = st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
-	y = ar->winy - st->lheight;
+	y = ar->winy - st->lheight_dpi;
 
 	/* draw opening bracket */
 	ch = startl->line[startc];
@@ -1598,8 +1598,8 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 	if (viewc >= 0) {
 		viewl = txt_get_span(text->lines.first, startl) - st->top + offl;
 
-		text_font_draw_character(st, x + viewc * st->cwidth, y - viewl * (st->lheight + TXT_LINE_SPACING), ch);
-		text_font_draw_character(st, x + viewc * st->cwidth + 1, y - viewl * (st->lheight + TXT_LINE_SPACING), ch);
+		text_font_draw_character(st, x + viewc * st->cwidth, y - viewl * (st->lheight_dpi + TXT_LINE_SPACING), ch);
+		text_font_draw_character(st, x + viewc * st->cwidth + 1, y - viewl * (st->lheight_dpi + TXT_LINE_SPACING), ch);
 	}
 
 	/* draw closing bracket */
@@ -1610,8 +1610,8 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 	if (viewc >= 0) {
 		viewl = txt_get_span(text->lines.first, endl) - st->top + offl;
 
-		text_font_draw_character(st, x + viewc * st->cwidth, y - viewl * (st->lheight + TXT_LINE_SPACING), ch);
-		text_font_draw_character(st, x + viewc * st->cwidth + 1, y - viewl * (st->lheight + TXT_LINE_SPACING), ch);
+		text_font_draw_character(st, x + viewc * st->cwidth, y - viewl * (st->lheight_dpi + TXT_LINE_SPACING), ch);
+		text_font_draw_character(st, x + viewc * st->cwidth + 1, y - viewl * (st->lheight_dpi + TXT_LINE_SPACING), ch);
 	}
 }
 
@@ -1627,7 +1627,10 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	int wraplinecount = 0, wrap_skip = 0;
 	int margin_column_x;
 
-	if (st->lheight) st->viewlines = (int)ar->winy / (st->lheight + TXT_LINE_SPACING);
+	/* dpi controlled line height and font size */
+	st->lheight_dpi = (U.widget_unit * st->lheight) / 20;
+	
+	if (st->lheight_dpi) st->viewlines = (int)ar->winy / (st->lheight_dpi + TXT_LINE_SPACING);
 	else st->viewlines = 0;
 
 	/* if no text, nothing to do */
@@ -1686,7 +1689,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 		st->linenrs_tot = 0; /* not used */
 		x = TXT_OFFSET;
 	}
-	y = ar->winy - st->lheight;
+	y = ar->winy - st->lheight_dpi;
 	winx = ar->winx - TXT_SCROLL_WIDTH;
 	
 	/* draw cursor */
@@ -1716,12 +1719,12 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 		if (st->wordwrap) {
 			/* draw word wrapped text */
 			int lines = text_draw_wrapped(st, tmp->line, x, y, winx - x, tmp->format, wrap_skip);
-			y -= lines * (st->lheight + TXT_LINE_SPACING);
+			y -= lines * (st->lheight_dpi + TXT_LINE_SPACING);
 		}
 		else {
 			/* draw unwrapped text */
 			text_draw(st, tmp->line, st->left, ar->winx / st->cwidth, 1, x, y, tmp->format);
-			y -= st->lheight + TXT_LINE_SPACING;
+			y -= st->lheight_dpi + TXT_LINE_SPACING;
 		}
 		
 		wrap_skip = 0;

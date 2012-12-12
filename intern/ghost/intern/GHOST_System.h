@@ -167,6 +167,16 @@ public:
 	 */
 	virtual bool getFullScreen(void);
 
+	
+	/**
+	 * Native pixel size support (MacBook 'retina').
+	 * \return The pixel size in float.
+	 */
+	virtual bool useNativePixel(void);
+	bool m_nativePixel;
+
+	virtual float getNativePixelSize(void);
+	float m_nativePixelSize;
 
 	/***************************************************************************************
 	 * Event management functionality
@@ -350,6 +360,7 @@ protected:
 
 	/** Settings of the display before the display went fullscreen. */
 	GHOST_DisplaySetting m_preFullScreenSetting;
+	
 };
 
 inline GHOST_TimerManager *GHOST_System::getTimerManager() const

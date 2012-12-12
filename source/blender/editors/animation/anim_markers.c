@@ -395,7 +395,7 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 		          ICON_MARKER;
 	}
 	
-	UI_icon_draw(xpos * xscale - 5.0f, 16.0f, icon_id);
+	UI_icon_draw(xpos * xscale - 0.3f * UI_DPI_ICON_SIZE, UI_DPI_ICON_SIZE, icon_id);
 	
 	glDisable(GL_BLEND);
 	
@@ -405,18 +405,18 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 		
 		if (marker->flag & SELECT) {
 			UI_ThemeColor(TH_TEXT_HI);
-			x = xpos * xscale + 4.0f;
-			y = (ypixels <= 39.0f) ? (ypixels - 10.0f) : 29.0f;
+			x = xpos * xscale + 4.0f * UI_DPI_FAC;
+			y = (ypixels <= 39.0f * UI_DPI_FAC) ? (ypixels - 10.0f * UI_DPI_FAC) : 29.0f * UI_DPI_FAC;
 		}
 		else {
 			UI_ThemeColor(TH_TEXT);
 			if ((marker->frame <= cfra) && (marker->frame + 5 > cfra)) {
-				x = xpos * xscale + 4.0f;
-				y = (ypixels <= 39.0f) ? (ypixels - 10.0f) : 29.0f;
+				x = xpos * xscale + 8.0f * UI_DPI_FAC;
+				y = (ypixels <= 39.0f * UI_DPI_FAC) ? (ypixels - 10.0f * UI_DPI_FAC) : 29.0f * UI_DPI_FAC;
 			}
 			else {
-				x = xpos * xscale + 4.0f;
-				y = 17.0f;
+				x = xpos * xscale + 8.0f * UI_DPI_FAC;
+				y = 17.0f * UI_DPI_FAC;
 			}
 		}
 

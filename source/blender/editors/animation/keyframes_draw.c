@@ -649,7 +649,7 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 	ActKeyColumn *ak;
 	ActKeyBlock *ab;
 	float xscale;
-	
+	float iconsize = U.widget_unit / 4.0f;
 	glEnable(GL_BLEND);
 	
 	/* get View2D scaling factor */
@@ -665,7 +665,7 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 				else
 					UI_ThemeColor4(TH_STRIP);
 				
-				glRectf(ab->start, ypos - 5, ab->end, ypos + 5);
+				glRectf(ab->start, ypos - iconsize, ab->end, ypos + iconsize);
 			}
 		}
 	}
@@ -686,7 +686,7 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 			/* draw using OpenGL - uglier but faster */
 			/* NOTE1: a previous version of this didn't work nice for some intel cards
 			 * NOTE2: if we wanted to go back to icons, these are  icon = (ak->sel & SELECT) ? ICON_SPACE2 : ICON_SPACE3; */
-			draw_keyframe_shape(ak->cfra, ypos, xscale, 5.0f, (ak->sel & SELECT), ak->key_type, KEYFRAME_SHAPE_BOTH, kalpha);
+			draw_keyframe_shape(ak->cfra, ypos, xscale, iconsize, (ak->sel & SELECT), ak->key_type, KEYFRAME_SHAPE_BOTH, kalpha);
 		}
 	}
 

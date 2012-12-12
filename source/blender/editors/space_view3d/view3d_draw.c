@@ -563,35 +563,60 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 	if (v3d->zbuf && scene->obedit) glDepthMask(1);
 }
 
+/* checks overlapping region for labels, axes, icons */
+static int draw_name_offset(ARegion *ar)
+{
+	ARegion *arn = ar;
+	
+	/* too lazy to pass on area listbase */
+	while (arn->prev)
+		arn = arn->prev;
+	
+	/* check if a region overlaps with the current one */
+	for (; arn; arn= arn->next) {
+		if (ar != arn)
+			if (ar->winrct.xmin == arn->winrct.xmin)
+				if (ar->winrct.ymin == arn->winrct.ymin)
+					return arn->winrct.xmax - arn->winrct.xmin;
+	}
+	return 0;
+}
+
+
 static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	int co[2];
 
 	/* we don't want the clipping for cursor */
 	if (ED_view3d_project_int_global(ar, give_cursor(scene, v3d), co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+		float f5 = 0.25f * U.widget_unit;
+		float f10 = 0.5f * U.widget_unit;
+		float f20 = U.widget_unit;
+		
 		setlinestyle(0); 
 		cpack(0xFF);
-		circ((float)co[0], (float)co[1], 10.0);
-		setlinestyle(4); 
+		circ((float)co[0], (float)co[1], f10);
+		setlinestyle(4);
 		cpack(0xFFFFFF);
-		circ((float)co[0], (float)co[1], 10.0);
+		circ((float)co[0], (float)co[1], f10);
 		setlinestyle(0);
 		cpack(0x0);
 		
-		sdrawline(co[0] - 20, co[1], co[0] - 5, co[1]);
-		sdrawline(co[0] + 5, co[1], co[0] + 20, co[1]);
-		sdrawline(co[0], co[1] - 20, co[0], co[1] - 5);
-		sdrawline(co[0], co[1] + 5, co[0], co[1] + 20);
+		sdrawline(co[0] - f20, co[1], co[0] - f5, co[1]);
+		sdrawline(co[0] + f5, co[1], co[0] + f20, co[1]);
+		sdrawline(co[0], co[1] - f20, co[0], co[1] - f5);
+		sdrawline(co[0], co[1] + f5, co[0], co[1] + f20);
 	}
 }
 
 /* Draw a live substitute of the view icon, which is always shown
  * colors copied from transform_manipulator.c, we should keep these matching. */
-static void draw_view_axis(RegionView3D *rv3d)
+static void draw_view_axis(ARegion *ar, RegionView3D *rv3d)
 {
 	const float k = U.rvisize;   /* axis size */
 	const float toll = 0.5;      /* used to see when view is quasi-orthogonal */
-	const float start = k + 1.0f; /* axis center in screen coordinates, x=y */
+	const float startx = k + 1.0f + draw_name_offset(ar); /* axis center in screen coordinates, x=y */
+	const float starty = k + 1.0f;
 	float ydisp = 0.0;          /* vertical displacement to allow obj info text */
 	int bright = 25 * (float)U.rvibright + 5; /* axis alpha (rvibright has range 0-10) */
 
@@ -613,12 +638,12 @@ static void draw_view_axis(RegionView3D *rv3d)
 	
 	UI_ThemeColorShadeAlpha(TH_AXIS_X, 0, bright);
 	glBegin(GL_LINES);
-	glVertex2f(start, start + ydisp);
-	glVertex2f(start + dx, start + dy + ydisp);
+	glVertex2f(startx, starty + ydisp);
+	glVertex2f(startx + dx, starty + dy + ydisp);
 	glEnd();
 
 	if (fabsf(dx) > toll || fabsf(dy) > toll) {
-		BLF_draw_default_ascii(start + dx + 2, start + dy + ydisp + 2, 0.0f, "x", 1);
+		BLF_draw_default_ascii(startx + dx + 2, starty + dy + ydisp + 2, 0.0f, "x", 1);
 	}
 	
 	/* BLF_draw_default disables blending */
@@ -633,12 +658,12 @@ static void draw_view_axis(RegionView3D *rv3d)
 	
 	UI_ThemeColorShadeAlpha(TH_AXIS_Y, 0, bright);
 	glBegin(GL_LINES);
-	glVertex2f(start, start + ydisp);
-	glVertex2f(start + dx, start + dy + ydisp);
+	glVertex2f(startx, starty + ydisp);
+	glVertex2f(startx + dx, starty + dy + ydisp);
 	glEnd();
 
 	if (fabsf(dx) > toll || fabsf(dy) > toll) {
-		BLF_draw_default_ascii(start + dx + 2, start + dy + ydisp + 2, 0.0f, "y", 1);
+		BLF_draw_default_ascii(startx + dx + 2, starty + dy + ydisp + 2, 0.0f, "y", 1);
 	}
 
 	glEnable(GL_BLEND);
@@ -652,12 +677,12 @@ static void draw_view_axis(RegionView3D *rv3d)
 
 	UI_ThemeColorShadeAlpha(TH_AXIS_Z, 0, bright);
 	glBegin(GL_LINES);
-	glVertex2f(start, start + ydisp);
-	glVertex2f(start + dx, start + dy + ydisp);
+	glVertex2f(startx, starty + ydisp);
+	glVertex2f(startx + dx, starty + dy + ydisp);
 	glEnd();
 
 	if (fabsf(dx) > toll || fabsf(dy) > toll) {
-		BLF_draw_default_ascii(start + dx + 2, start + dy + ydisp + 2, 0.0f, "z", 1);
+		BLF_draw_default_ascii(startx + dx + 2, starty + dy + ydisp + 2, 0.0f, "z", 1);
 	}
 
 	/* restore line-width */
@@ -770,7 +795,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 	glDepthMask(1);
 }
 
-static void draw_view_icon(RegionView3D *rv3d)
+static void draw_view_icon(ARegion *ar, RegionView3D *rv3d)
 {
 	BIFIconID icon;
 	
@@ -785,7 +810,7 @@ static void draw_view_icon(RegionView3D *rv3d)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 	
-	UI_icon_draw(5.0, 5.0, icon);
+	UI_icon_draw(5.0 + draw_name_offset(ar), 5.0, icon);
 	
 	glDisable(GL_BLEND);
 }
@@ -853,17 +878,17 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 
 	if (name) {
 		UI_ThemeColor(TH_TEXT_HI);
-		BLF_draw_default_ascii(22,  ar->winy - 17, 0.0f, name, sizeof(tmpstr));
+		BLF_draw_default_ascii(U.widget_unit + draw_name_offset(ar),  ar->winy - U.widget_unit, 0.0f, name, sizeof(tmpstr));
 	}
 }
 
 /* draw info beside axes in bottom left-corner: 
  * framenum, object name, bone name (if available), marker name (if available)
  */
-static void draw_selected_name(Scene *scene, Object *ob)
+static void draw_selected_name(ARegion *ar, Scene *scene, Object *ob)
 {
 	char info[256], *markern;
-	short offset = 30;
+	short offset = 30 + draw_name_offset(ar);
 	
 	/* get name of marker on current frame (if available) */
 	markern = BKE_scene_find_marker_name(scene, CFRA);
@@ -946,9 +971,9 @@ static void draw_selected_name(Scene *scene, Object *ob)
 	}
 	
 	if (U.uiflag & USER_SHOW_ROTVIEWICON)
-		offset = 14 + (U.rvisize * 2);
+		offset = U.widget_unit + (U.rvisize * 2) + draw_name_offset(ar);
 
-	BLF_draw_default(offset,  10, 0.0f, info, sizeof(info));
+	BLF_draw_default(offset, 0.5f * U.widget_unit, 0.0f, info, sizeof(info));
 }
 
 static void view3d_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d,
@@ -1289,7 +1314,6 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	RegionView3D *rv3d = ar->regiondata;
 	struct Base *base = scene->basact;
 	int multisample_enabled;
-	rcti winrct;
 
 	BLI_assert(ar->regiontype == RGN_TYPE_WINDOW);
 
@@ -1338,8 +1362,7 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	if (multisample_enabled)
 		glDisable(GL_MULTISAMPLE_ARB);
 
-	region_scissor_winrct(ar, &winrct);
-	glScissor(winrct.xmin, winrct.ymin, BLI_rcti_size_x(&winrct), BLI_rcti_size_y(&winrct));
+	glScissor(ar->winrct.xmin, ar->winrct.ymin, BLI_rcti_size_x(&ar->winrct), BLI_rcti_size_y(&ar->winrct));
 
 	glClearColor(0.0, 0.0, 0.0, 0.0); 
 	if (v3d->zbuf) {
@@ -2846,7 +2869,7 @@ static void draw_viewport_fps(Scene *scene, ARegion *ar)
 		BLI_snprintf(printable, sizeof(printable), "fps: %i", (int)(fps + 0.5f));
 	}
 	
-	BLF_draw_default_ascii(22,  ar->winy - 17, 0.0f, printable, sizeof(printable));
+	BLF_draw_default_ascii(U.widget_unit,  ar->winy - U.widget_unit, 0.0f, printable, sizeof(printable));
 }
 
 static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const char **grid_unit);
@@ -3181,13 +3204,13 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 		drawcursor(scene, ar, v3d);
 
 		if (U.uiflag & USER_SHOW_ROTVIEWICON)
-			draw_view_axis(rv3d);
+			draw_view_axis(ar, rv3d);
 		else
-			draw_view_icon(rv3d);
+			draw_view_icon(ar, rv3d);
 
 		ob = OBACT;
 		if (U.uiflag & USER_DRAWVIEWINFO)
-			draw_selected_name(scene, ob);
+			draw_selected_name(ar, scene, ob);
 	}
 
 	if (rv3d->render_engine) {
@@ -3211,7 +3234,7 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 				BLI_snprintf(numstr, sizeof(numstr), "%s x %.4g", grid_unit, v3d->grid);
 			}
 
-			BLF_draw_default_ascii(22,  ar->winy - (USER_SHOW_VIEWPORTNAME ? 40 : 20), 0.0f,
+			BLF_draw_default_ascii(U.widget_unit,  ar->winy - (USER_SHOW_VIEWPORTNAME ? 2 * U.widget_unit : U.widget_unit), 0.0f,
 			                       numstr[0] ? numstr : grid_unit, sizeof(numstr));
 		}
 	}

@@ -4530,7 +4530,7 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *ar, void *arg)
 	wmKeyMapItem *kmi;
 	PointerRNA ptr;
 	uiLayout *layout;
-	uiStyle *style = UI_GetStyle();
+	uiStyle *style = UI_GetStyleDraw();
 	IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
 	int kmi_id = WM_key_event_operator_id(C, but->optype->idname, but->opcontext, prop, 1, &km);
 
@@ -4562,7 +4562,7 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
 	wmKeyMapItem *kmi;
 	PointerRNA ptr;
 	uiLayout *layout;
-	uiStyle *style = UI_GetStyle();
+	uiStyle *style = UI_GetStyleDraw();
 	IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
 	int kmi_id;
 	

@@ -300,34 +300,34 @@ typedef enum eAnimFilter_Flags {
 /* -------------- Channel Defines -------------- */
 
 /* channel heights */
-#define ACHANNEL_FIRST          -16
-#define ACHANNEL_HEIGHT         16
-#define ACHANNEL_HEIGHT_HALF    8
-#define ACHANNEL_SKIP           2
+#define ACHANNEL_FIRST          (-0.8f * U.widget_unit)
+#define ACHANNEL_HEIGHT         (0.8f * U.widget_unit)
+#define ACHANNEL_HEIGHT_HALF    (0.4f * U.widget_unit)
+#define ACHANNEL_SKIP           (0.1f * U.widget_unit)
 #define ACHANNEL_STEP           (ACHANNEL_HEIGHT + ACHANNEL_SKIP)
 
 /* channel widths */
-#define ACHANNEL_NAMEWIDTH      200
+#define ACHANNEL_NAMEWIDTH      (10 * U.widget_unit)
 
 /* channel toggle-buttons */
-#define ACHANNEL_BUTTON_WIDTH   16
+#define ACHANNEL_BUTTON_WIDTH   (0.8f * U.widget_unit)
 
 
 /* -------------- NLA Channel Defines -------------- */
 
 /* NLA channel heights */
 // XXX: NLACHANNEL_FIRST isn't used?
-#define NLACHANNEL_FIRST                -16
-#define NLACHANNEL_HEIGHT(snla)         ((snla && (snla->flag & SNLA_NOSTRIPCURVES)) ? 16 : 24)
-#define NLACHANNEL_HEIGHT_HALF(snla)    ((snla && (snla->flag & SNLA_NOSTRIPCURVES)) ?  8 : 12)
-#define NLACHANNEL_SKIP                 2
+#define NLACHANNEL_FIRST                (-0.8f * U.widget_unit)
+#define NLACHANNEL_HEIGHT(snla)         ((snla && (snla->flag & SNLA_NOSTRIPCURVES)) ? (0.8f * U.widget_unit) : (1.2f * U.widget_unit))
+#define NLACHANNEL_HEIGHT_HALF(snla)    ((snla && (snla->flag & SNLA_NOSTRIPCURVES)) ? (0.4f * U.widget_unit) : (0.6f * U.widget_unit))
+#define NLACHANNEL_SKIP                 (0.1f * U.widget_unit)
 #define NLACHANNEL_STEP(snla)           (NLACHANNEL_HEIGHT(snla) + NLACHANNEL_SKIP)
 
 /* channel widths */
-#define NLACHANNEL_NAMEWIDTH        200
+#define NLACHANNEL_NAMEWIDTH			(10 * U.widget_unit)
 
 /* channel toggle-buttons */
-#define NLACHANNEL_BUTTON_WIDTH 16
+#define NLACHANNEL_BUTTON_WIDTH			(0.8f * U.widget_unit)
 
 /* ---------------- API  -------------------- */
 

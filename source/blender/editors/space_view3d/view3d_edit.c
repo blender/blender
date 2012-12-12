@@ -1911,7 +1911,7 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		viewzoom_exec(C, op);
 	}
 	else {
-		if (event->type == MOUSEZOOM) {
+		if (event->type == MOUSEZOOM || event->type == MOUSEPAN) {
 			/* Bypass Zoom invert flag for track pads (pass FALSE always) */
 
 			if (U.uiflag & USER_ZOOM_HORIZ) {

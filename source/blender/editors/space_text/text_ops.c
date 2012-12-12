@@ -2106,10 +2106,10 @@ static void text_scroll_apply(bContext *C, wmOperator *op, wmEvent *event)
 
 	if (!tsc->scrollbar) {
 		txtdelta[0] = -tsc->delta[0] / st->cwidth;
-		txtdelta[1] = tsc->delta[1] / (st->lheight + TXT_LINE_SPACING);
+		txtdelta[1] = tsc->delta[1] / (st->lheight_dpi + TXT_LINE_SPACING);
 
 		tsc->delta[0] %= st->cwidth;
-		tsc->delta[1] %= (st->lheight + TXT_LINE_SPACING);
+		tsc->delta[1] %= (st->lheight_dpi + TXT_LINE_SPACING);
 	}
 	else {
 		txtdelta[1] = -tsc->delta[1] * st->pix_per_line;
@@ -2204,7 +2204,7 @@ static int text_scroll_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		tsc->old[1] = event->y;
 		/* Sensitivity of scroll set to 4pix per line/char */
 		tsc->delta[0] = (event->x - event->prevx) * st->cwidth / 4;
-		tsc->delta[1] = (event->y - event->prevy) * st->lheight / 4;
+		tsc->delta[1] = (event->y - event->prevy) * st->lheight_dpi / 4;
 		tsc->first = 0;
 		tsc->scrollbar = 0;
 		text_scroll_apply(C, op, event);
@@ -2503,7 +2503,7 @@ static void text_cursor_set_to_pos(SpaceText *st, ARegion *ar, int x, int y, int
 {
 	Text *text = st->text;
 	text_update_character_width(st);
-	y = (ar->winy - 2 - y) / (st->lheight + TXT_LINE_SPACING);
+	y = (ar->winy - 2 - y) / (st->lheight_dpi + TXT_LINE_SPACING);
 
 	if (st->showlinenrs) x -= TXT_OFFSET + TEXTXLOC;
 	else x -= TXT_OFFSET;

@@ -797,7 +797,7 @@ typedef struct SpaceText {
 	int top, viewlines;
 	short flags, menunr;
 
-	short lheight;      /* user preference */
+	short lheight;      /* user preference, is font_size! */
 	char cwidth, linenrs_tot;       /* runtime computed, character width and the number of chars to use when showing line numbers */
 	int left;
 	int showlinenrs;
@@ -816,8 +816,9 @@ typedef struct SpaceText {
 	char findstr[256];      /* ST_MAX_FIND_STR */
 	char replacestr[256];   /* ST_MAX_FIND_STR */
 
-	short margin_column; /* column number to show right margin at */
-	char pad[6];
+	short margin_column;	/* column number to show right margin at */
+	short lheight_dpi;		/* actual lineheight, dpi controlled */
+	char pad[4];
 
 	void *drawcache; /* cache for faster drawing */
 } SpaceText;
@@ -886,7 +887,7 @@ typedef struct SpaceNode {
 	
 	struct ID *id, *from;       /* context, no need to save in file? well... pinning... */
 	short flag, pad1;           /* menunr: browse id block in header */
-	float aspect, aspect_sqrt;
+	float aspect, pad2;	/* internal state variables */
 	
 	float xof, yof;     /* offset for drawing the backdrop */
 	float zoom;   /* zoom for backdrop */

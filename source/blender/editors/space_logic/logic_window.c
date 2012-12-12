@@ -2270,11 +2270,11 @@ void logic_buttons(bContext *C, ARegion *ar)
 	
 	/* ****************** Controllers ****************** */
 	
-	xco= 420; yco= -10; width= 300;
+	xco= 21 * U.widget_unit; yco= - U.widget_unit / 2; width= 15 * U.widget_unit;
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, UI_GetStyle());
 	row = uiLayoutRow(layout, TRUE);
 	
-	uiDefBlockBut(block, controller_menu, NULL, IFACE_("Controllers"), xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
+	uiDefBlockBut(block, controller_menu, NULL, IFACE_("Controllers"), xco - U.widget_unit / 2, yco, width, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
 	
 	uiItemR(row, &logic_ptr, "show_controllers_selected_objects", 0, IFACE_("Sel"), ICON_NONE);
 	uiItemR(row, &logic_ptr, "show_controllers_active_object", 0, IFACE_("Act"), ICON_NONE);
@@ -2301,7 +2301,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 		uiItemR(split, &settings_ptr, "show_state_panel", UI_ITEM_R_NO_BG, "", ICON_DISCLOSURE_TRI_RIGHT);
 
 		row = uiLayoutRow(split, TRUE);
-		uiDefButBitS(block, TOG, OB_SHOWCONT, B_REDR, ob->id.name+2, (short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, TIP_("Object name, click to show/hide controllers"));
+		uiDefButBitS(block, TOG, OB_SHOWCONT, B_REDR, ob->id.name+2, (short)(xco - U.widget_unit / 2), yco, (short)(width - 1.5f * U.widget_unit), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, TIP_("Object name, click to show/hide controllers"));
 
 		RNA_pointer_create((ID *)ob, &RNA_Object, ob, &object_ptr);
 		uiLayoutSetContextPointer(row, "object", &object_ptr);
@@ -2377,11 +2377,11 @@ void logic_buttons(bContext *C, ARegion *ar)
 	
 	/* ****************** Sensors ****************** */
 	
-	xco= 10; yco= -10; width= 340;
+	xco= U.widget_unit / 2; yco= -U.widget_unit / 2; width= 17 * U.widget_unit;
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, UI_GetStyle());
 	row = uiLayoutRow(layout, TRUE);
 	
-	uiDefBlockBut(block, sensor_menu, NULL, IFACE_("Sensors"), xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
+	uiDefBlockBut(block, sensor_menu, NULL, IFACE_("Sensors"), xco - U.widget_unit / 2, yco, 15 * U.widget_unit, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
 	
 	uiItemR(row, &logic_ptr, "show_sensors_selected_objects", 0, IFACE_("Sel"), ICON_NONE);
 	uiItemR(row, &logic_ptr, "show_sensors_active_object", 0, IFACE_("Act"), ICON_NONE);
@@ -2398,7 +2398,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 		if ((ob->scavisflag & OB_VIS_SENS) == 0) continue;
 
 		row = uiLayoutRow(layout, TRUE);
-		uiDefButBitS(block, TOG, OB_SHOWSENS, B_REDR, ob->id.name+2, (short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, TIP_("Object name, click to show/hide sensors"));
+		uiDefButBitS(block, TOG, OB_SHOWSENS, B_REDR, ob->id.name+2, (short)(xco - U.widget_unit / 2), yco, (short)(width - 1.5f * U.widget_unit), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, TIP_("Object name, click to show/hide sensors"));
 
 		RNA_pointer_create((ID *)ob, &RNA_Object, ob, &object_ptr);
 		uiLayoutSetContextPointer(row, "object", &object_ptr);
@@ -2446,11 +2446,11 @@ void logic_buttons(bContext *C, ARegion *ar)
 	
 	/* ****************** Actuators ****************** */
 	
-	xco= 800; yco= -10; width= 340;
+	xco= 40 * U.widget_unit; yco= -U.widget_unit / 2; width= 17 * U.widget_unit;
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, xco, yco, width, 20, UI_GetStyle());
 	row = uiLayoutRow(layout, TRUE);
 	
-	uiDefBlockBut(block, actuator_menu, NULL, IFACE_("Actuators"), xco-10, yco, 300, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
+	uiDefBlockBut(block, actuator_menu, NULL, IFACE_("Actuators"), xco - U.widget_unit / 2, yco, 15 * U.widget_unit, UI_UNIT_Y, "");		/* replace this with uiLayout stuff later */
 	
 	uiItemR(row, &logic_ptr, "show_actuators_selected_objects", 0, IFACE_("Sel"), ICON_NONE);
 	uiItemR(row, &logic_ptr, "show_actuators_active_object", 0, IFACE_("Act"), ICON_NONE);
@@ -2469,7 +2469,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 		}
 
 		row = uiLayoutRow(layout, TRUE);
-		uiDefButBitS(block, TOG, OB_SHOWACT, B_REDR, ob->id.name+2, (short)(xco-10), yco, (short)(width-30), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, TIP_("Object name, click to show/hide actuators"));
+		uiDefButBitS(block, TOG, OB_SHOWACT, B_REDR, ob->id.name+2, (short)(xco - U.widget_unit / 2), yco, (short)(width - 1.5f * U.widget_unit), UI_UNIT_Y, &ob->scaflag, 0, 31, 0, 0, TIP_("Object name, click to show/hide actuators"));
 
 		RNA_pointer_create((ID *)ob, &RNA_Object, ob, &object_ptr);
 		uiLayoutSetContextPointer(row, "object", &object_ptr);
@@ -2516,7 +2516,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	uiBlockLayoutResolve(block, NULL, &yco);	/* stores final height in yco */
 	height = MIN2(height, yco);
 
-	UI_view2d_totRect_set(&ar->v2d, 1150, height);
+	UI_view2d_totRect_set(&ar->v2d, 57.5f * U.widget_unit, height);
 	
 	/* set the view */
 	UI_view2d_view_ortho(&ar->v2d);

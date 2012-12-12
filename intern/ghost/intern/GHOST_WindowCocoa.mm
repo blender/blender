@@ -470,8 +470,8 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	[m_window setSystemAndWindowCocoa:systemCocoa windowCocoa:this];
 	
 	//Forbid to resize the window below the blender defined minimum one
-	minSize.width = 320;
-	minSize.height = 240;
+	minSize.width = 640;
+	minSize.height = 480;
 	[m_window setContentMinSize:minSize];
 	
 	setTitle(title);
@@ -578,6 +578,13 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	setDrawingContextType(type);
 	updateDrawingContext();
 	activateDrawingContext();
+	
+	if (m_systemCocoa->m_nativePixel) {
+		[m_openGLView setWantsBestResolutionOpenGLSurface:YES];
+		NSRect backingBounds = [m_openGLView convertRectToBacking:[m_openGLView bounds]];
+		m_systemCocoa->m_nativePixelSize = (float)backingBounds.size.width / (float)rect.size.width;
+	}
+	
 	
 	m_tablet.Active = GHOST_kTabletModeNone;
 	
@@ -1008,7 +1015,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				[tmpWindow registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
 												   NSStringPboardType, NSTIFFPboardType, nil]];
 				//Forbid to resize the window below the blender defined minimum one
-				[tmpWindow setContentMinSize:NSMakeSize(320, 240)];
+				[tmpWindow setContentMinSize:NSMakeSize(640, 480)];
 				
 				//Assign the openGL view to the new window
 				[tmpWindow setContentView:m_openGLView];

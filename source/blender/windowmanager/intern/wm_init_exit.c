@@ -48,6 +48,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -128,6 +129,7 @@ int wm_start_with_console = 0; /* used in creator.c */
 /* only called once, for startup */
 void WM_init(bContext *C, int argc, const char **argv)
 {
+	
 	if (!G.background) {
 		wm_ghost_init(C);   /* note: it assigns C to ghost! */
 		wm_init_cursor_data();
@@ -149,8 +151,8 @@ void WM_init(bContext *C, int argc, const char **argv)
 	BLF_lang_init();
 
 	/* get the default database, plus a wm */
-	WM_homefile_read(C, NULL, G.factory_startup);
-
+	wm_homefile_read(C, NULL, G.factory_startup);
+	
 	BLF_lang_set(NULL);
 
 	/* note: there is a bug where python needs initializing before loading the
@@ -158,7 +160,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	 * initializing space types and other internal data.
 	 *
 	 * However cant redo this at the moment. Solution is to load python
-	 * before WM_homefile_read() or make py-drivers check if python is running.
+	 * before wm_homefile_read() or make py-drivers check if python is running.
 	 * Will try fix when the crash can be repeated. - campbell. */
 
 #ifdef WITH_PYTHON
@@ -195,7 +197,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 		
 	ED_preview_init_dbase();
 	
-	WM_read_history();
+	wm_read_history();
 
 	/* allow a path of "", this is what happens when making a new file */
 #if 0
@@ -211,6 +213,10 @@ void WM_init(bContext *C, int argc, const char **argv)
 		COM_linker_hack = COM_execute;
 	}
 #endif
+	
+	/* load last session, uses regular file reading so it has to be in end (after init py etc) */
+	if (U.uiflag2 & USER_KEEP_SESSION)
+		wm_recover_last_session(C, NULL);
 }
 
 void WM_init_splash(bContext *C)
@@ -372,6 +378,18 @@ void WM_exit_ext(bContext *C, const short do_python)
 	if (C && wm) {
 		wmWindow *win;
 
+		if (!G.background) {
+			if ((U.uiflag2 & USER_KEEP_SESSION) || BKE_undo_valid(NULL)) {
+				/* save the undo state as quit.blend */
+				char filename[FILE_MAX];
+				
+				BLI_make_file_string("/", filename, BLI_temporary_dir(), "quit.blend");
+
+				if (BKE_undo_save_file(C, filename))
+					printf("Saved session recovery to '%s'\n", filename);
+			}
+		}
+		
 		WM_jobs_kill_all(wm);
 
 		for (win = wm->windows.first; win; win = win->next) {
@@ -454,9 +472,6 @@ void WM_exit_ext(bContext *C, const short do_python)
 	GPU_free_unused_buffers();
 	GPU_extensions_exit();
 
-	if (!G.background) {
-		BKE_undo_save_quit();  /* saves quit.blend if global undo is on */
-	}
 	BKE_reset_undo(); 
 	
 	ED_file_exit(); /* for fsmenu */

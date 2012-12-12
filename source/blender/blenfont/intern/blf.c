@@ -87,6 +87,11 @@ int BLF_init(int points, int dpi)
 	return blf_font_init();
 }
 
+void BLF_default_dpi(int dpi)
+{
+	global_font_dpi = dpi;
+}
+
 void BLF_exit(void)
 {
 	FontBLF *font;

@@ -45,7 +45,8 @@
 
 static void console_font_begin(TextViewContext *sc)
 {
-	BLF_size(blf_mono_font, sc->lheight - 2, 72);
+	/* 0.875 is based on: 16 pixels lines get 14 pixel text */
+	BLF_size(blf_mono_font, 0.875 * sc->lheight, 72);
 }
 
 typedef struct ConsoleDrawContext {

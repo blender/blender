@@ -102,11 +102,11 @@ enum {
 /* ------ Defines for Scrollers ----- */
 
 /* scroller area */
-#define V2D_SCROLL_HEIGHT   17
-#define V2D_SCROLL_WIDTH    17
+#define V2D_SCROLL_HEIGHT   (0.85f * U.widget_unit)
+#define V2D_SCROLL_WIDTH    (0.85f * U.widget_unit)
 
 /* scroller 'handles' hotspot radius for mouse */
-#define V2D_SCROLLER_HANDLE_SIZE    12
+#define V2D_SCROLLER_HANDLE_SIZE    (0.6f * U.widget_unit)
 
 /* ------ Define for UI_view2d_sync ----- */
 

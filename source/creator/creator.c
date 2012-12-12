@@ -481,6 +481,12 @@ static int prefsize(int argc, const char **argv, void *UNUSED(data))
 	return 4;
 }
 
+static int native_pixels(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+{
+	WM_init_native_pixels(0);
+	return 0;
+}
+
 static int with_borders(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	WM_init_state_normal_set();
@@ -1159,6 +1165,7 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 2, "-con", "--start-console", "\n\tStart with the console window open (ignored if -b is set)", start_with_console, NULL);
 	BLI_argsAdd(ba, 2, "-R", NULL, "\n\tRegister .blend extension, then exit (Windows only)", register_extension, NULL);
 	BLI_argsAdd(ba, 2, "-r", NULL, "\n\tSilently register .blend extension, then exit (Windows only)", register_extension, ba);
+	BLI_argsAdd(ba, 2, NULL, "--no-native-pixels", "\n\tDo not use native pixel size, for high resolution displays (MacBook 'Retina')", native_pixels, ba);
 
 	/* third pass: disabling things and forcing settings */
 	BLI_argsAddCase(ba, 3, "-nojoystick", 1, NULL, 0, "\n\tDisable joystick support", no_joystick, syshandle);

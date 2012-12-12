@@ -750,7 +750,7 @@ static DrawInfo *icon_create_drawinfo(void)
 	return di;
 }
 
-/* note!, returns unscaled by DPI, may need to multiply result by UI_DPI_ICON_FAC */
+/* note!, returns unscaled by DPI */
 int UI_icon_get_width(int icon_id)
 {
 	Icon *icon = NULL;
@@ -887,7 +887,7 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 		/* first allocate imbuf for scaling and copy preview into it */
 		ima = IMB_allocImBuf(rw, rh, 32, IB_rect);
 		memcpy(ima->rect, rect, rw * rh * sizeof(unsigned int));
-		IMB_scaleImBuf(ima, w, h); /* scale it */
+		IMB_scalefastImBuf(ima, w, h); /* scale it */
 		rect = ima->rect;
 	}
 
@@ -965,7 +965,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	Icon *icon = NULL;
 	DrawInfo *di = NULL;
 	IconImage *iimg;
-	float fdraw_size = is_preview ? draw_size : (draw_size * UI_DPI_ICON_FAC);
+	float fdraw_size = draw_size;
 	int w, h;
 	
 	icon = BKE_icon_get(icon_id);
@@ -1158,9 +1158,10 @@ void UI_icon_draw_aspect_color(float x, float y, int icon_id, float aspect, cons
 	icon_draw_size(x, y, icon_id, aspect, 1.0f, rgb, ICON_SIZE_ICON, draw_size, FALSE, FALSE);
 }
 
+/* draws icon with dpi scale factor */
 void UI_icon_draw(float x, float y, int icon_id)
 {
-	UI_icon_draw_aspect(x, y, icon_id, 1.0f, 1.0f);
+	UI_icon_draw_aspect(x, y, icon_id, 1.0f / UI_DPI_ICON_FAC, 1.0f);
 }
 
 void UI_icon_draw_size(float x, float y, int size, int icon_id, float alpha)

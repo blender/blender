@@ -117,7 +117,7 @@ ARegion *view3d_has_tools_region(ScrArea *sa)
 		
 		BLI_insertlinkafter(&sa->regionbase, arhead, artool);
 		artool->regiontype = RGN_TYPE_TOOLS;
-		artool->alignment = RGN_ALIGN_LEFT; //RGN_OVERLAP_LEFT;
+		artool->alignment = RGN_ALIGN_LEFT;
 		artool->flag = RGN_FLAG_HIDDEN;
 	}
 

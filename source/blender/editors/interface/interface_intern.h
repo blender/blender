@@ -267,7 +267,7 @@ struct uiBut {
 	void *dragpoin;
 	struct ImBuf *imb;
 	float imb_scale;
-
+	
 	/* active button data */
 	struct uiHandleButtonData *active;
 

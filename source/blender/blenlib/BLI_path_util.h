@@ -67,6 +67,7 @@ char *BLI_get_folder_version(const int id, const int ver, const int do_check);
 #define BLENDER_RESOURCE_PATH_SYSTEM    2
 
 #define BLENDER_STARTUP_FILE    "startup.blend"
+#define BLENDER_USERPREF_FILE   "userpref.blend"
 #define BLENDER_BOOKMARK_FILE   "bookmarks.txt"
 #define BLENDER_HISTORY_FILE    "recent-files.txt"
 

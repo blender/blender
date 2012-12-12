@@ -782,8 +782,8 @@ GHOST_TSuccess GHOST_SystemWin32::pushDragDropEvent(GHOST_TEventType eventType,
 
 void GHOST_SystemWin32::processMinMaxInfo(MINMAXINFO *minmax)
 {
-	minmax->ptMinTrackSize.x = 320;
-	minmax->ptMinTrackSize.y = 240;
+	minmax->ptMinTrackSize.x = 640;
+	minmax->ptMinTrackSize.y = 480;
 }
 
 #ifdef WITH_INPUT_NDOF

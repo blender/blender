@@ -113,6 +113,7 @@
 #include "WM_types.h"
 
 #include "UI_view2d.h"
+#include "UI_interface.h"
 
 #include "RNA_access.h"
 
@@ -2229,7 +2230,12 @@ void flushTransNodes(TransInfo *t)
 	/* flush to 2d vector from internally used 3d vector */
 	for (a = 0, td = t->data, td2d = t->data2d; a < t->total; a++, td++, td2d++) {
 		bNode *node = td->extra;
-		add_v2_v2v2(&node->locx, td2d->loc, td2d->ih1);
+		float vec[2];
+		
+		/* weirdo - but the node system is a mix of free 2d elements and dpi sensitive UI */
+		add_v2_v2v2(vec, td2d->loc, td2d->ih1);
+		node->locx = vec[0] / UI_DPI_FAC;
+		node->locy = vec[1] / UI_DPI_FAC;
 	}
 	
 	/* handle intersection with noodles */
@@ -5626,7 +5632,8 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 	/* hold original location */
 	float locxy[2] = {BLI_rctf_cent_x(&node->totr),
 	                  BLI_rctf_cent_y(&node->totr)};
-
+	float nodeloc[2];
+	
 	copy_v2_v2(td2d->loc, locxy);
 	td2d->loc[2] = 0.0f;
 	td2d->loc2d = td2d->loc; /* current location */
@@ -5651,7 +5658,10 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 	unit_m3(td->mtx);
 	unit_m3(td->smtx);
 
-	sub_v2_v2v2(td2d->ih1, &node->locx, locxy);
+	/* weirdo - but the node system is a mix of free 2d elements and dpi sensitive UI */
+	nodeloc[0] = UI_DPI_FAC * node->locx;
+	nodeloc[1] = UI_DPI_FAC * node->locy;
+	sub_v2_v2v2(td2d->ih1, nodeloc, locxy);
 
 	td->extra = node;
 }

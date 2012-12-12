@@ -179,29 +179,29 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 	
 	/* preview thumbnails */
 	if (template.prv_rows > 0 && template.prv_cols > 0) {
-		int w = 96 * template.prv_cols;
-		int h = 96 * template.prv_rows + 20;
+		int w = 4 * U.widget_unit * template.prv_cols;
+		int h = 4 * U.widget_unit * template.prv_rows + U.widget_unit;
 		
 		/* fake button, it holds space for search items */
 		uiDefBut(block, LABEL, 0, "", 10, 15, w, h, NULL, 0, 0, 0, 0, NULL);
 		
-		but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, w, 19,
-		                     template.prv_rows, template.prv_cols, "");
+		but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, w, UI_UNIT_Y,
+							 template.prv_rows, template.prv_cols, "");
 		uiButSetSearchFunc(but, id_search_cb, &template, id_search_call_cb, idptr.data);
 	}
 	/* list view */
 	else {
 		const int searchbox_width  = uiSearchBoxWidth();
 		const int searchbox_height = uiSearchBoxHeight();
+		
 		/* fake button, it holds space for search items */
 		uiDefBut(block, LABEL, 0, "", 10, 15, searchbox_width, searchbox_height, NULL, 0, 0, 0, 0, NULL);
-		
 		but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, searchbox_width, UI_UNIT_Y - 1, 0, 0, "");
 		uiButSetSearchFunc(but, id_search_cb, &template, id_search_call_cb, idptr.data);
 	}
 		
 	
-	uiBoundsBlock(block, 6);
+	uiBoundsBlock(block, 0.3f * U.widget_unit);
 	uiBlockSetDirection(block, UI_DOWN);
 	uiEndBlock(C, block);
 	
@@ -1437,7 +1437,7 @@ static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand 
 	const int line2_y = yoffs + 65;
 
 	if (coba == NULL) return;
-
+	
 	bt = uiDefBut(block, BUT, 0, IFACE_("Add"), 0 + xoffs, line1_y, 40, UI_UNIT_Y, NULL, 0, 0, 0, 0,
 	              TIP_("Add a new color stop to the colorband"));
 	uiButSetNFunc(bt, colorband_add_cb, MEM_dupallocN(cb), coba);
@@ -1547,8 +1547,8 @@ void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, const char *propname
 	cb->ptr = *ptr;
 	cb->prop = prop;
 
-	rect.xmin = 0; rect.xmax = 200;
-	rect.ymin = 0; rect.ymax = 190;
+	rect.xmin = 0; rect.xmax = 10.0f * UI_UNIT_X;
+	rect.ymin = 0; rect.ymax = 19.5f * UI_UNIT_X;
 
 	block = uiLayoutAbsoluteBlock(layout);
 	colorband_buttons_layout(layout, block, cptr.data, &rect, !expand, cb);
@@ -1579,8 +1579,8 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, const char *propname
 	cb->ptr = *ptr;
 	cb->prop = prop;
 	
-	rect.xmin = 0; rect.xmax = 200;
-	rect.ymin = 0; rect.ymax = 190;
+	rect.xmin = 0; rect.xmax = 10.0f * UI_UNIT_X;
+	rect.ymin = 0; rect.ymax = 9.5f * UI_UNIT_Y;
 	
 	block = uiLayoutAbsoluteBlock(layout);
 	//colorband_buttons_layout(layout, block, cptr.data, &rect, !expand, cb);
@@ -1589,8 +1589,9 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, const char *propname
 
 	hist->height = (hist->height <= UI_UNIT_Y) ? UI_UNIT_Y : hist->height;
 
-	bt = uiDefBut(block, HISTOGRAM, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect), hist->height, hist,
-	              0, 0, 0, 0, "");
+	bt = uiDefBut(block, HISTOGRAM, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect), UI_DPI_FAC * hist->height,
+				  hist, 0, 0, 0, 0, "");
+
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
 	MEM_freeN(cb);
@@ -1620,15 +1621,15 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	cb->ptr = *ptr;
 	cb->prop = prop;
 	
-	rect.xmin = 0; rect.xmax = 200;
-	rect.ymin = 0; rect.ymax = 190;
+	rect.xmin = 0; rect.xmax = 10.0f * UI_UNIT_X;
+	rect.ymin = 0; rect.ymax = 9.5f * UI_UNIT_Y;
 	
 	block = uiLayoutAbsoluteBlock(layout);
 	
 	scopes->wavefrm_height = (scopes->wavefrm_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->wavefrm_height;
 
-	bt = uiDefBut(block, WAVEFORM, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect), scopes->wavefrm_height, scopes,
-	              0, 0, 0, 0, "");
+	bt = uiDefBut(block, WAVEFORM, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect), UI_DPI_FAC * scopes->wavefrm_height,
+				  scopes, 0, 0, 0, 0, "");
 	(void)bt;  /* UNUSED */
 	
 	MEM_freeN(cb);
@@ -1658,15 +1659,15 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, const char *propna
 	cb->ptr = *ptr;
 	cb->prop = prop;
 	
-	rect.xmin = 0; rect.xmax = 200;
-	rect.ymin = 0; rect.ymax = 190;
+	rect.xmin = 0; rect.xmax = 10.0f * UI_UNIT_X;
+	rect.ymin = 0; rect.ymax = 9.5f * UI_UNIT_Y;
 	
 	block = uiLayoutAbsoluteBlock(layout);
 
 	scopes->vecscope_height = (scopes->vecscope_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->vecscope_height;
 	
 	bt = uiDefBut(block, VECTORSCOPE, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect),
-	              scopes->vecscope_height, scopes, 0, 0, 0, 0, "");
+				  UI_DPI_FAC * scopes->vecscope_height, scopes, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 	
 	MEM_freeN(cb);
@@ -2010,7 +2011,7 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 	/* curve itself */
 	size = uiLayoutGetWidth(layout);
 	row = uiLayoutRow(layout, FALSE);
-	uiDefBut(block, BUT_CURVE, 0, "", 0, 0, size, MIN2(size, 200), cumap, 0.0f, 1.0f, bg, 0, "");
+	uiDefBut(block, BUT_CURVE, 0, "", 0, 0, size, MIN2(size, 10.0f * UI_UNIT_X), cumap, 0.0f, 1.0f, bg, 0, "");
 
 	/* sliders for selected point */
 	for (i = 0; i < cm->totpoint; i++) {
@@ -2081,7 +2082,7 @@ void uiTemplateCurveMapping(uiLayout *layout, PointerRNA *ptr, const char *propn
 
 /********************* ColorPicker Template ************************/
 
-#define WHEEL_SIZE  100
+#define WHEEL_SIZE  (5*U.widget_unit)
 
 /* This template now follows User Preference for type - name is not correct anymore... */
 void uiTemplateColorPicker(uiLayout *layout, PointerRNA *ptr, const char *propname, int value_slider,

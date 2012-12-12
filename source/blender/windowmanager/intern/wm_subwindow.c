@@ -217,10 +217,10 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 		 * fixed it). - zr  (2001!)
 		 */
 		
-		if (swin->winrct.xmax > win->sizex)
-			swin->winrct.xmax = win->sizex;
-		if (swin->winrct.ymax > win->sizey)
-			swin->winrct.ymax = win->sizey;
+		if (swin->winrct.xmax > WM_window_pixels_x(win))
+			swin->winrct.xmax = WM_window_pixels_x(win);
+		if (swin->winrct.ymax > WM_window_pixels_y(win))
+			swin->winrct.ymax = WM_window_pixels_y(win);
 		
 		/* extra service */
 		wmSubWindowSet(win, swinid);
@@ -257,8 +257,8 @@ void wmSubWindowScissorSet(wmWindow *win, int swinid, rcti *srct)
 	glViewport(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
 
 	if (srct) {
-		width  = BLI_rcti_size_x(srct) + 1;
-		height = BLI_rcti_size_y(srct) + 1;
+		int width  = BLI_rcti_size_x(srct) + 1; /* only here */
+		int height = BLI_rcti_size_y(srct) + 1;
 		glScissor(srct->xmin, srct->ymin, width, height);
 	}
 	else

@@ -1990,7 +1990,7 @@ void init_userdef_do_versions(void)
 	if (U.dragthreshold == 0)
 		U.dragthreshold = 5;
 	if (U.widget_unit == 0)
-		U.widget_unit = (U.dpi * 20 + 36) / 72;
+		U.widget_unit = 20;
 	if (U.anisotropic_filter <= 0)
 		U.anisotropic_filter = 1;
 
@@ -2009,6 +2009,23 @@ void init_userdef_do_versions(void)
 	if (U.tweak_threshold == 0)
 		U.tweak_threshold = 10;
 
+	if (bmain->versionfile < 265) {	/* XXX fix for when you apply */
+		bTheme *btheme;
+		
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			/* note: the toggle operator for transparent backdrops limits to these spacetypes */
+			if (btheme->tnode.button[3] == 255) {
+				btheme->tv3d.button[3] = 128;
+				btheme->tnode.button[3] = 128;
+				btheme->tima.button[3] = 128;
+				btheme->tseq.button[3] = 128;
+				btheme->tclip.button[3] = 128;
+			}
+		}
+	}
+	if (U.pixelsize == 0.0f)
+		U.pixelsize = 1.0f;
+	
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */
 // XXX	space_set_commmandline_options();
 	/* this timer uses U */

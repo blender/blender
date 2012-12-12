@@ -672,7 +672,9 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		BLI_rcti_translate(&rect_i, butregion->winrct.xmin, butregion->winrct.ymin);
 	}
 
-	wm_window_get_size(CTX_wm_window(C), &winx, &winy);
+	winx = WM_window_pixels_x(CTX_wm_window(C));
+	winy = WM_window_pixels_y(CTX_wm_window(C));
+	//wm_window_get_size(CTX_wm_window(C), &winx, &winy);
 
 	if (rect_i.xmax > winx) {
 		/* super size */
@@ -1185,7 +1187,9 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 
 		BLI_rcti_translate(&rect_i, butregion->winrct.xmin, butregion->winrct.ymin);
 
-		wm_window_get_size(CTX_wm_window(C), &winx, &winy);
+		winx = WM_window_pixels_x(CTX_wm_window(C));
+		winy = WM_window_pixels_y(CTX_wm_window(C));
+		//wm_window_get_size(CTX_wm_window(C), &winx, &winy);
 		
 		if (rect_i.xmax > winx) {
 			/* super size */
@@ -1314,11 +1318,11 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	/* widget_roundbox_set has this correction too, keep in sync */
 	if (but->type != PULLDOWN) {
 		if (but->flag & UI_BUT_ALIGN_TOP)
-			butrct.ymax += 1.0f;
+			butrct.ymax += U.pixelsize;
 		if (but->flag & UI_BUT_ALIGN_LEFT)
-			butrct.xmin -= 1.0f;
+			butrct.xmin -= U.pixelsize;
 	}
-
+	
 	/* calc block rect */
 	if (block->rect.xmin == 0.0f && block->rect.xmax == 0.0f) {
 		if (block->buttons.first) {
@@ -1334,7 +1338,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 			block->rect.xmax = block->rect.ymax = 20;
 		}
 	}
-	
+		
 	/* aspect = (float)(BLI_rcti_size_x(&block->rect) + 4);*/ /*UNUSED*/
 	ui_block_to_window_fl(butregion, but->block, &block->rect.xmin, &block->rect.ymin);
 	ui_block_to_window_fl(butregion, but->block, &block->rect.xmax, &block->rect.ymax);
@@ -1342,8 +1346,8 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	//block->rect.xmin -= 2.0; block->rect.ymin -= 2.0;
 	//block->rect.xmax += 2.0; block->rect.ymax += 2.0;
 	
-	xsize = BLI_rctf_size_x(&block->rect) + 4;  /* 4 for shadow */
-	ysize = BLI_rctf_size_y(&block->rect) + 4;
+	xsize = BLI_rctf_size_x(&block->rect) + 0.2f * UI_UNIT_X;  /* 4 for shadow */
+	ysize = BLI_rctf_size_y(&block->rect) + 0.2f * UI_UNIT_Y;
 	/* aspect /= (float)xsize;*/ /*UNUSED*/
 
 	{
@@ -1351,7 +1355,9 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		int winx, winy;
 		// int offscreen;
 
-		wm_window_get_size(window, &winx, &winy);
+		winx = WM_window_pixels_x(window);
+		winy = WM_window_pixels_y(window);
+		// wm_window_get_size(window, &winx, &winy);
 
 		if (block->direction & UI_CENTER) center = ysize / 2;
 		else center = 0;
@@ -1523,7 +1529,9 @@ static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 		return;
 	}
 
-	wm_window_get_size(window, &winx, &winy);
+	winx = WM_window_pixels_x(window);
+	winy = WM_window_pixels_y(window);
+	// wm_window_get_size(window, &winx, &winy);
 	
 	if (block->rect.xmin < MENU_SHADOW_SIDE)
 		block->rect.xmin = MENU_SHADOW_SIDE;
@@ -1635,7 +1643,6 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 	/* if this is being created from a button */
 	if (but) {
 		block->aspect = but->block->aspect;
-
 		ui_block_position(window, butregion, but, block);
 		handle->direction = block->direction;
 	}
@@ -2019,10 +2026,10 @@ static void do_picker_new_mode_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(a
 	picker_new_hide_reveal(bt->block, colormode);
 }
 
-#define PICKER_H    150
-#define PICKER_W    150
-#define PICKER_SPACE    6
-#define PICKER_BAR      14
+#define PICKER_H    (7.5f * U.widget_unit)
+#define PICKER_W    (7.5f * U.widget_unit)
+#define PICKER_SPACE    (0.3f * U.widget_unit)
+#define PICKER_BAR      (0.7f * U.widget_unit)
 
 #define PICKER_TOTAL_W  (PICKER_W + PICKER_SPACE + PICKER_BAR)
 
@@ -2066,11 +2073,12 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	float rgb_gamma[3];
 	float min, max, step, precision;
 	float *hsv = ui_block_hsv_get(block);
+	int yco;
 	
 	ui_block_hsv_get(block);
 	
 	width = PICKER_TOTAL_W;
-	butwidth = width - UI_UNIT_X - 10;
+	butwidth = width - 1.5f * UI_UNIT_X;
 	
 	/* existence of profile means storage is in linear color space, with display correction */
 	/* XXX That tip message is not use anywhere! */
@@ -2108,44 +2116,47 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	}
 	
 	/* mode */
+	yco = -1.5f * UI_UNIT_Y;
 	uiBlockBeginAlign(block);
-	bt = uiDefButS(block, ROW, 0, IFACE_("RGB"), 0, -30, width / 3, UI_UNIT_Y, &colormode, 0.0, 0.0, 0, 0, "");
+	bt = uiDefButS(block, ROW, 0, IFACE_("RGB"), 0, yco, width / 3, UI_UNIT_Y, &colormode, 0.0, 0.0, 0, 0, "");
 	uiButSetFunc(bt, do_picker_new_mode_cb, bt, NULL);
-	bt = uiDefButS(block, ROW, 0, IFACE_("HSV"), width / 3, -30, width / 3, UI_UNIT_Y, &colormode, 0.0, 1.0, 0, 0, "");
+	bt = uiDefButS(block, ROW, 0, IFACE_("HSV"), width / 3, yco, width / 3, UI_UNIT_Y, &colormode, 0.0, 1.0, 0, 0, "");
 	uiButSetFunc(bt, do_picker_new_mode_cb, bt, NULL);
-	bt = uiDefButS(block, ROW, 0, IFACE_("Hex"), 2 * width / 3, -30, width / 3, UI_UNIT_Y, &colormode, 0.0, 2.0, 0, 0, "");
+	bt = uiDefButS(block, ROW, 0, IFACE_("Hex"), 2 * width / 3, yco, width / 3, UI_UNIT_Y, &colormode, 0.0, 2.0, 0, 0, "");
 	uiButSetFunc(bt, do_picker_new_mode_cb, bt, NULL);
 	uiBlockEndAlign(block);
 
+	yco = -3.0f * UI_UNIT_Y;
 	if (show_picker) {
-		bt = uiDefIconButO(block, BUT, "UI_OT_eyedropper", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER, butwidth + 10, -60, UI_UNIT_X, UI_UNIT_Y, NULL);
+		bt = uiDefIconButO(block, BUT, "UI_OT_eyedropper", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER, butwidth + 10, yco, UI_UNIT_X, UI_UNIT_Y, NULL);
 		uiButSetFunc(bt, close_popup_cb, bt, NULL);
 	}
 	
 	/* RGB values */
 	uiBlockBeginAlign(block);
-	bt = uiDefButR_prop(block, NUMSLI, 0, IFACE_("R "),  0, -60, butwidth, UI_UNIT_Y, ptr, prop, 0, 0.0, 0.0, 0, 3, TIP_("Red"));
+	bt = uiDefButR_prop(block, NUMSLI, 0, IFACE_("R "),  0, yco, butwidth, UI_UNIT_Y, ptr, prop, 0, 0.0, 0.0, 0, 3, TIP_("Red"));
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
-	bt = uiDefButR_prop(block, NUMSLI, 0, IFACE_("G "),  0, -80, butwidth, UI_UNIT_Y, ptr, prop, 1, 0.0, 0.0, 0, 3, TIP_("Green"));
+	bt = uiDefButR_prop(block, NUMSLI, 0, IFACE_("G "),  0, yco -= UI_UNIT_Y, butwidth, UI_UNIT_Y, ptr, prop, 1, 0.0, 0.0, 0, 3, TIP_("Green"));
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
-	bt = uiDefButR_prop(block, NUMSLI, 0, IFACE_("B "),  0, -100, butwidth, UI_UNIT_Y, ptr, prop, 2, 0.0, 0.0, 0, 3, TIP_("Blue"));
+	bt = uiDefButR_prop(block, NUMSLI, 0, IFACE_("B "),  0, yco -= UI_UNIT_Y, butwidth, UI_UNIT_Y, ptr, prop, 2, 0.0, 0.0, 0, 3, TIP_("Blue"));
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 
 	/* could use uiItemFullR(col, ptr, prop, -1, 0, UI_ITEM_R_EXPAND|UI_ITEM_R_SLIDER, "", ICON_NONE);
 	 * but need to use uiButSetFunc for updating other fake buttons */
 	
 	/* HSV values */
+	yco = -3.0f * UI_UNIT_Y;
 	uiBlockBeginAlign(block);
-	bt = uiDefButF(block, NUMSLI, 0, IFACE_("H "),   0, -60, butwidth, UI_UNIT_Y, hsv, 0.0, 1.0, 10, 3, TIP_("Hue"));
+	bt = uiDefButF(block, NUMSLI, 0, IFACE_("H "),   0, yco, butwidth, UI_UNIT_Y, hsv, 0.0, 1.0, 10, 3, TIP_("Hue"));
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
-	bt = uiDefButF(block, NUMSLI, 0, IFACE_("S "),   0, -80, butwidth, UI_UNIT_Y, hsv + 1, 0.0, 1.0, 10, 3, TIP_("Saturation"));
+	bt = uiDefButF(block, NUMSLI, 0, IFACE_("S "),   0, yco -= UI_UNIT_Y, butwidth, UI_UNIT_Y, hsv + 1, 0.0, 1.0, 10, 3, TIP_("Saturation"));
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
-	bt = uiDefButF(block, NUMSLI, 0, IFACE_("V "),   0, -100, butwidth, UI_UNIT_Y, hsv + 2, 0.0, max, 10, 3, TIP_("Value"));
+	bt = uiDefButF(block, NUMSLI, 0, IFACE_("V "),   0, yco -= UI_UNIT_Y, butwidth, UI_UNIT_Y, hsv + 2, 0.0, max, 10, 3, TIP_("Value"));
 	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
 	uiBlockEndAlign(block);
 
 	if (rgba[3] != FLT_MAX) {
-		bt = uiDefButR_prop(block, NUMSLI, 0, IFACE_("A "),  0, -120, butwidth, UI_UNIT_Y, ptr, prop, 3, 0.0, 0.0, 0, 0, TIP_("Alpha"));
+		bt = uiDefButR_prop(block, NUMSLI, 0, IFACE_("A "),  0, yco -= UI_UNIT_Y, butwidth, UI_UNIT_Y, ptr, prop, 3, 0.0, 0.0, 0, 0, TIP_("Alpha"));
 		uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	}
 	else {
@@ -2154,9 +2165,10 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 
 	BLI_snprintf(hexcol, sizeof(hexcol), "%02X%02X%02X", FTOCHAR(rgb_gamma[0]), FTOCHAR(rgb_gamma[1]), FTOCHAR(rgb_gamma[2]));
 
-	bt = uiDefBut(block, TEX, 0, IFACE_("Hex: "), 0, -60, butwidth, UI_UNIT_Y, hexcol, 0, 8, 0, 0, TIP_("Hex triplet for color (#RRGGBB)"));
+	yco = -3.0f * UI_UNIT_Y;
+	bt = uiDefBut(block, TEX, 0, IFACE_("Hex: "), 0, yco, butwidth, UI_UNIT_Y, hexcol, 0, 8, 0, 0, TIP_("Hex triplet for color (#RRGGBB)"));
 	uiButSetFunc(bt, do_hex_rna_cb, bt, hexcol);
-	uiDefBut(block, LABEL, 0, IFACE_("(Gamma Corrected)"), 0, -80, butwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, IFACE_("(Gamma Corrected)"), 0, yco - UI_UNIT_Y, butwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
 	rgb_to_hsv_v(rgba, hsv);
 
@@ -2228,7 +2240,7 @@ uiBlock *ui_block_func_COLOR(bContext *C, uiPopupBlockHandle *handle, void *arg_
 	uiBlockPicker(block, handle->retvec, &but->rnapoin, but->rnaprop, show_picker);
 	
 	block->flag = UI_BLOCK_LOOP | UI_BLOCK_REDRAW | UI_BLOCK_KEEP_OPEN | UI_BLOCK_OUT_1 | UI_BLOCK_MOVEMOUSE_QUIT;
-	uiBoundsBlock(block, 10);
+	uiBoundsBlock(block, 0.5 * UI_UNIT_X);
 	
 	block->block_event_func = ui_picker_small_wheel_cb;
 	
@@ -2386,7 +2398,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 		}
 
 		block->minbounds = minwidth;
-		uiTextBoundsBlock(block, 50);
+		uiTextBoundsBlock(block, 2.5 * UI_UNIT_X);
 	}
 
 	/* if menu slides out of other menu, override direction */
@@ -2402,7 +2414,7 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
                                          uiMenuCreateFunc menu_func, void *arg, char *str)
 {
 	wmWindow *window = CTX_wm_window(C);
-	uiStyle *style = UI_GetStyle();
+	uiStyle *style = UI_GetStyleDraw();
 	uiPopupBlockHandle *handle;
 	uiPopupMenu *pup;
 	pup = MEM_callocN(sizeof(uiPopupMenu), __func__);
@@ -2466,7 +2478,7 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 /* only return handler, and set optional title */
 uiPopupMenu *uiPupMenuBegin(bContext *C, const char *title, int icon)
 {
-	uiStyle *style = UI_GetStyle();
+	uiStyle *style = UI_GetStyleDraw();
 	uiPopupMenu *pup = MEM_callocN(sizeof(uiPopupMenu), "popup menu");
 	uiBut *but;
 	

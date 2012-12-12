@@ -50,6 +50,7 @@
 #include "ED_datafiles.h"
 #include "ED_types.h"
 
+#include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "console_intern.h"
@@ -119,7 +120,7 @@ void console_scrollback_prompt_end(struct SpaceConsole *sc, ConsoleLine *cl_dumm
 static int console_textview_begin(TextViewContext *tvc)
 {
 	SpaceConsole *sc = (SpaceConsole *)tvc->arg1;
-	tvc->lheight = sc->lheight;
+	tvc->lheight = sc->lheight * UI_DPI_FAC;
 	tvc->sel_start = sc->sel_start;
 	tvc->sel_end = sc->sel_end;
 	
@@ -217,7 +218,7 @@ static int console_textview_main__internal(struct SpaceConsole *sc, ARegion *ar,
 	/* view */
 	tvc.sel_start = sc->sel_start;
 	tvc.sel_end = sc->sel_end;
-	tvc.lheight = sc->lheight;
+	tvc.lheight = sc->lheight * UI_DPI_FAC;
 	tvc.ymin = v2d->cur.ymin;
 	tvc.ymax = v2d->cur.ymax;
 	tvc.winx = ar->winx;
