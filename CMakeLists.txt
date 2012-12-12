@@ -1522,7 +1522,7 @@ elseif(APPLE)
 
 			if(WITH_INPUT_NDOF)
 				set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} -F/Library/Frameworks -weak_framework 3DconnexionClient")
-				set(NDOF_INCLUDE_DIRS /Library/Frameworks/3DconnexionClient.framework )
+				set(NDOF_INCLUDE_DIRS /Library/Frameworks/3DconnexionClient.framework/Headers )
 			endif()
 		endif()
 

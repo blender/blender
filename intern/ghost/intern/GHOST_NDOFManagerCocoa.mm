@@ -27,7 +27,7 @@
 #include "GHOST_SystemCocoa.h"
 
 extern "C" {
-	#include <3DconnexionClient/ConnexionClientAPI.h>
+	#include <ConnexionClientAPI.h>
 	#include <stdio.h>
 	}
 
