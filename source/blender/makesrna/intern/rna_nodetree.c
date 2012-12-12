@@ -499,6 +499,20 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
 	BKE_all_animdata_fix_paths_rename(NULL, "nodes", oldname, node->name);
 }
 
+static void rna_Node_width_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
+{
+	bNode *node = ptr->data;
+	*min = *softmin = node->typeinfo->minwidth;
+	*max = *softmax = node->typeinfo->maxwidth;
+}
+
+static void rna_Node_height_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
+{
+	bNode *node = ptr->data;
+	*min = *softmin = node->typeinfo->minheight;
+	*max = *softmax = node->typeinfo->maxheight;
+}
+
 static void rna_NodeSocket_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
@@ -4608,6 +4622,24 @@ static void rna_def_node(BlenderRNA *brna)
 	RNA_def_property_range(prop, -10000.0f, 10000.0f);
 	RNA_def_property_ui_text(prop, "Location", "");
 	RNA_def_property_update(prop, NC_NODE, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "width", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "width");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_Node_width_range");
+	RNA_def_property_ui_text(prop, "Width", "Width of the node");
+	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
+	
+	prop = RNA_def_property(srna, "width_hidden", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "miniwidth");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_Node_width_range");
+	RNA_def_property_ui_text(prop, "Width Hidden", "Width of the node in hidden state");
+	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
+	
+	prop = RNA_def_property(srna, "height", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "height");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_Node_height_range");
+	RNA_def_property_ui_text(prop, "Height", "Height of the node");
+	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
 	
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Unique node identifier");
