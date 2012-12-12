@@ -37,11 +37,13 @@ class NodeAddOperator():
         space = context.space_data
         tree = space.edit_tree
 
-        node = tree.nodes.new(type=node_type)
-
         # select only the new node
         for n in tree.nodes:
-            n.select = (n == node)
+            n.select = False
+
+        node = tree.nodes.new(type=node_type)
+
+        node.select = True
         tree.nodes.active = node
         node.location = space.cursor_location
         return node
@@ -64,11 +66,15 @@ class NODE_OT_add_node(NodeAddOperator, Operator):
     bl_idname = "node.add_node"
     bl_label = "Add Node"
 
-    type = StringProperty(name="Node Type", description="Node type")
-    
+    type = StringProperty(
+            name="Node Type",
+            description="Node type",
+            )
     # optional group tree parameter for group nodes
-    group_tree = StringProperty(name="Group tree", description="Group node tree name")
-
+    group_tree = StringProperty(
+            name="Group tree",
+            description="Group node tree name",
+            )
     def execute(self, context):
         node = self.create_node(context, self.type)
 
@@ -85,10 +91,15 @@ class NODE_OT_add_node_move(NODE_OT_add_node):
     bl_idname = "node.add_node_move"
     bl_label = "Add Node and Move"
 
-    type = StringProperty(name="Node Type", description="Node type")
-    
+    type = StringProperty(
+            name="Node Type",
+            description="Node type",
+            )
     # optional group tree parameter for group nodes
-    group_tree = StringProperty(name="Group tree", description="Group node tree name")
+    group_tree = StringProperty(
+            name="Group tree",
+            description="Group node tree name",
+            )
 
     def invoke(self, context, event):
         self.store_mouse_cursor(context, event)
