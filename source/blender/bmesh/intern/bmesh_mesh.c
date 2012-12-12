@@ -71,7 +71,7 @@ void BM_mesh_elem_toolflags_ensure(BMesh *bm)
 	bm->etoolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), max_ii(512, bm->totedge), 512, 0);
 	bm->ftoolflagpool = BLI_mempool_create(sizeof(BMFlagLayer), max_ii(512, bm->totface), 512, 0);
 
-#pragma omp parallel sections
+#pragma omp parallel sections if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
 	{
 #pragma omp section
 		{
@@ -468,7 +468,7 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag)
 	BM_ELEM_INDEX_VALIDATE(bm, "Should Never Fail!", __func__);
 #endif
 
-#pragma omp parallel sections
+#pragma omp parallel sections if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
 	{
 #pragma omp section
 		{

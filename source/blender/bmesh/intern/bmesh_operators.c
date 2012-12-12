@@ -599,7 +599,7 @@ void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *UNUSED(op), const char hty
 	BMElemF *ele;
 	int i;
 
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic) if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
 	for (i = 0; i < 3; i++) {
 		if (htype & flag_types[i]) {
 			BM_ITER_MESH (ele, &iter, bm, iter_types[i]) {
@@ -1176,7 +1176,7 @@ static void bmo_flag_layer_alloc(BMesh *bm)
 	bm->etoolflagpool = BLI_mempool_create(sizeof(BMFlagLayer) * bm->totflags, max_ii(512, bm->totedge), 512, 0);
 	bm->ftoolflagpool = BLI_mempool_create(sizeof(BMFlagLayer) * bm->totflags, max_ii(512, bm->totface), 512, 0);
 
-#pragma omp parallel sections
+#pragma omp parallel sections if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
 	{
 #pragma omp section
 		{
@@ -1257,7 +1257,7 @@ static void bmo_flag_layer_free(BMesh *bm)
 	bm->etoolflagpool = BLI_mempool_create(new_totflags_size, bm->totedge, 512, 0);
 	bm->ftoolflagpool = BLI_mempool_create(new_totflags_size, bm->totface, 512, 0);
 
-#pragma omp parallel sections
+#pragma omp parallel sections if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
 	{
 #pragma omp section
 		{
@@ -1328,7 +1328,7 @@ static void bmo_flag_layer_clear(BMesh *bm)
 	BMIter iter;
 	const int totflags_offset = bm->totflags - 1;
 
-#pragma omp parallel sections
+#pragma omp parallel sections if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
 	{
 		/* now go through and memcpy all the flag */
 #pragma omp section

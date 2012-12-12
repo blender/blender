@@ -165,7 +165,7 @@ void BM_mesh_deselect_flush(BMesh *bm)
 	int ok;
 
 	/* we can use 2 sections here because the second loop isnt checking edge selection */
-#pragma omp parallel sections
+#pragma omp parallel sections if (bm->totedge + bm->totface >= BM_OMP_LIMIT)
 	{
 #pragma omp section
 		{
@@ -227,7 +227,7 @@ void BM_mesh_select_flush(BMesh *bm)
 	int ok;
 
 	/* we can use 2 sections here because the second loop isnt checking edge selection */
-#pragma omp parallel sections
+#pragma omp parallel sections if (bm->totedge + bm->totface >= BM_OMP_LIMIT)
 	{
 #pragma omp section
 		{
@@ -848,7 +848,7 @@ void BM_mesh_elem_hflag_disable_test(BMesh *bm, const char htype, const char hfl
 		/* fast path for deselect all, avoid topology loops
 		 * since we know all will be de-selected anyway. */
 
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic) if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
 		for (i = 0; i < 3; i++) {
 			BMIter iter;
 			BMElem *ele;

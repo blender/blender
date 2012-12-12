@@ -409,7 +409,7 @@ void EDBM_index_arrays_ensure(BMEditMesh *em, const char htype)
 		em->face_index = MEM_mallocN(sizeof(void **) * em->bm->totface, "em->face_index");
 	}
 
-#pragma omp parallel sections
+#pragma omp parallel sections if (em->bm->totvert + em->bm->totedge + em->bm->totface >= BM_OMP_LIMIT)
 	{
 #pragma omp section
 		{
@@ -1306,7 +1306,7 @@ void EDBM_mesh_reveal(BMEditMesh *em)
 
 	/* Use tag flag to remember what was hidden before all is revealed.
 	 * BM_ELEM_HIDDEN --> BM_ELEM_TAG */
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(dynamic) if (em->bm->totvert + em->bm->totedge + em->bm->totface >= BM_OMP_LIMIT)
 	for (i = 0; i < 3; i++) {
 		BM_ITER_MESH (ele, &iter, em->bm, iter_types[i]) {
 			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_HIDDEN));
