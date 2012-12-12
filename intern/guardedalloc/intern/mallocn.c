@@ -110,6 +110,15 @@ typedef struct MemHead {
 #endif
 } MemHead;
 
+/* for openmp threading asserts, saves time troubleshooting
+ * we may need to extend this if blender code starts using MEM_
+ * functions inside OpenMP correctly with omp_set_lock() */
+#if defined(_OPENMP) && defined(DEBUG)
+#  include <assert.h>
+#  include <omp.h>
+#  define DEBUG_OMP_MALLOC
+#endif
+
 typedef struct MemTail {
 	int tag3, pad;
 } MemTail;
@@ -194,6 +203,10 @@ static void print_error(const char *str, ...)
 
 static void mem_lock_thread(void)
 {
+#ifdef DEBUG_OMP_MALLOC
+	assert(omp_in_parallel() == 0);
+#endif
+
 	if (thread_lock_callback)
 		thread_lock_callback();
 }
@@ -214,8 +227,7 @@ int MEM_check_memory_integrity(void)
 	
 	err_val = check_memlist(listend);
 
-	if (err_val == NULL) return 0;
-	return 1;
+	return (err_val != NULL);
 }
 
 
