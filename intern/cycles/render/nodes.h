@@ -26,7 +26,7 @@
 CCL_NAMESPACE_BEGIN
 
 class ImageManager;
-class Shadr;
+class Shader;
 
 /* Texture Mapping */
 
@@ -220,6 +220,8 @@ public:
 class TransparentBsdfNode : public BsdfNode {
 public:
 	SHADER_NODE_CLASS(TransparentBsdfNode)
+
+	bool has_surface_transparent() { return true; }
 };
 
 class VelvetBsdfNode : public BsdfNode {
@@ -254,6 +256,8 @@ public:
 class EmissionNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(EmissionNode)
+
+	bool has_surface_emission() { return true; }
 
 	bool total_power;
 };
