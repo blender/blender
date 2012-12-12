@@ -44,8 +44,6 @@
 
 static void recount_totsels(BMesh *bm)
 {
-	BMIter iter;
-	BMElem *ele;
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
 	                            BM_FACES_OF_MESH};
@@ -58,11 +56,16 @@ static void recount_totsels(BMesh *bm)
 	tots[1] = &bm->totedgesel;
 	tots[2] = &bm->totfacesel;
 
+#pragma omp parallel for schedule(dynamic)
 	for (i = 0; i < 3; i++) {
-		ele = BM_iter_new(&iter, bm, iter_types[i], NULL);
-		for ( ; ele; ele = BM_iter_step(&iter)) {
-			if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) *tots[i] += 1;
+		BMIter iter;
+		BMElem *ele;
+		int count = 0;
+
+		BM_ITER_MESH (ele, &iter, bm, iter_types[i]) {
+			if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) count += 1;
 		}
+		*tots[i] = count;
 	}
 }
 
@@ -161,34 +164,45 @@ void BM_mesh_deselect_flush(BMesh *bm)
 
 	int ok;
 
-	BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
-		if (!(BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
-		      BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
-		      !BM_elem_flag_test(e, BM_ELEM_HIDDEN)))
+	/* we can use 2 sections here because the second loop isnt checking edge selection */
+#pragma omp parallel sections
+	{
+#pragma omp section
 		{
-			BM_elem_flag_disable(e, BM_ELEM_SELECT);
-		}
-	}
-
-	BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-		ok = TRUE;
-		if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-			do {
-				if (!BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
-					ok = FALSE;
-					break;
+			BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
+				if (!(BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
+				      BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
+				      !BM_elem_flag_test(e, BM_ELEM_HIDDEN)))
+				{
+					BM_elem_flag_disable(e, BM_ELEM_SELECT);
 				}
-			} while ((l_iter = l_iter->next) != l_first);
-		}
-		else {
-			ok = FALSE;
+			}
 		}
 
-		if (ok == FALSE) {
-			BM_elem_flag_disable(f, BM_ELEM_SELECT);
+#pragma omp section
+		{
+			BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+				ok = TRUE;
+				if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+					l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+					do {
+						if (!BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
+							ok = FALSE;
+							break;
+						}
+					} while ((l_iter = l_iter->next) != l_first);
+				}
+				else {
+					ok = FALSE;
+				}
+
+				if (ok == FALSE) {
+					BM_elem_flag_disable(f, BM_ELEM_SELECT);
+				}
+			}
 		}
 	}
+	/* end sections */
 
 	/* Remove any deselected elements from the BMEditSelection */
 	BM_select_history_validate(bm);
@@ -212,32 +226,42 @@ void BM_mesh_select_flush(BMesh *bm)
 
 	int ok;
 
-	BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
-		if (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
-		    BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
-		    !BM_elem_flag_test(e, BM_ELEM_HIDDEN))
+	/* we can use 2 sections here because the second loop isnt checking edge selection */
+#pragma omp parallel sections
+	{
+#pragma omp section
 		{
-			BM_elem_flag_enable(e, BM_ELEM_SELECT);
-		}
-	}
-
-	BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-		ok = TRUE;
-		if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-			do {
-				if (!BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
-					ok = FALSE;
-					break;
+			BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
+				if (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
+				    BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
+				    !BM_elem_flag_test(e, BM_ELEM_HIDDEN))
+				{
+					BM_elem_flag_enable(e, BM_ELEM_SELECT);
 				}
-			} while ((l_iter = l_iter->next) != l_first);
-		}
-		else {
-			ok = FALSE;
+			}
 		}
 
-		if (ok) {
-			BM_elem_flag_enable(f, BM_ELEM_SELECT);
+#pragma omp section
+		{
+			BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+				ok = TRUE;
+				if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+					l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+					do {
+						if (!BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
+							ok = FALSE;
+							break;
+						}
+					} while ((l_iter = l_iter->next) != l_first);
+				}
+				else {
+					ok = FALSE;
+				}
+
+				if (ok) {
+					BM_elem_flag_enable(f, BM_ELEM_SELECT);
+				}
+			}
 		}
 	}
 
@@ -810,8 +834,6 @@ void BM_mesh_elem_hflag_disable_test(BMesh *bm, const char htype, const char hfl
 
 	const char flag_types[3] = {BM_VERT, BM_EDGE, BM_FACE};
 
-	BMIter iter;
-	BMElem *ele;
 	int i;
 
 	if (hflag & BM_ELEM_SELECT) {
@@ -825,16 +847,25 @@ void BM_mesh_elem_hflag_disable_test(BMesh *bm, const char htype, const char hfl
 	{
 		/* fast path for deselect all, avoid topology loops
 		 * since we know all will be de-selected anyway. */
+
+#pragma omp parallel for schedule(dynamic)
 		for (i = 0; i < 3; i++) {
+			BMIter iter;
+			BMElem *ele;
+
 			ele = BM_iter_new(&iter, bm, iter_types[i], NULL);
 			for ( ; ele; ele = BM_iter_step(&iter)) {
 				BM_elem_flag_disable(ele, BM_ELEM_SELECT);
 			}
 		}
+
 		bm->totvertsel = bm->totedgesel = bm->totfacesel = 0;
 	}
 	else {
 		for (i = 0; i < 3; i++) {
+			BMIter iter;
+			BMElem *ele;
+
 			if (htype & flag_types[i]) {
 				ele = BM_iter_new(&iter, bm, iter_types[i], NULL);
 				for ( ; ele; ele = BM_iter_step(&iter)) {

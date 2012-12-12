@@ -187,8 +187,9 @@ typedef struct BMesh {
 	/*element pools*/
 	struct BLI_mempool *vpool, *epool, *lpool, *fpool;
 
-	/*operator api stuff*/
-	struct BLI_mempool *toolflagpool;
+	/*operator api stuff (must be all NULL or all alloc'd)*/
+	struct BLI_mempool *vtoolflagpool, *etoolflagpool, *ftoolflagpool;
+
 	int stackdepth;
 	struct BMOperator *currentop;
 	

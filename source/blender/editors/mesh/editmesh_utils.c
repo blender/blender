@@ -396,41 +396,34 @@ void EDBM_index_arrays_init(BMEditMesh *tm, int forvert, int foredge, int forfac
 	EDBM_index_arrays_free(tm);
 
 	if (forvert) {
-		BMIter iter;
-		BMVert *ele;
-		int i = 0;
-		
 		tm->vert_index = MEM_mallocN(sizeof(void **) * tm->bm->totvert, "tm->vert_index");
-
-		ele = BM_iter_new(&iter, tm->bm, BM_VERTS_OF_MESH, NULL);
-		for ( ; ele; ele = BM_iter_step(&iter)) {
-			tm->vert_index[i++] = ele;
-		}
 	}
-
 	if (foredge) {
-		BMIter iter;
-		BMEdge *ele;
-		int i = 0;
-		
 		tm->edge_index = MEM_mallocN(sizeof(void **) * tm->bm->totedge, "tm->edge_index");
-
-		ele = BM_iter_new(&iter, tm->bm, BM_EDGES_OF_MESH, NULL);
-		for ( ; ele; ele = BM_iter_step(&iter)) {
-			tm->edge_index[i++] = ele;
-		}
+	}
+	if (forface) {
+		tm->face_index = MEM_mallocN(sizeof(void **) * tm->bm->totface, "tm->face_index");
 	}
 
-	if (forface) {
-		BMIter iter;
-		BMFace *ele;
-		int i = 0;
-		
-		tm->face_index = MEM_mallocN(sizeof(void **) * tm->bm->totface, "tm->face_index");
-
-		ele = BM_iter_new(&iter, tm->bm, BM_FACES_OF_MESH, NULL);
-		for ( ; ele; ele = BM_iter_step(&iter)) {
-			tm->face_index[i++] = ele;
+#pragma omp parallel sections
+	{
+#pragma omp section
+		{
+			if (forvert) {
+				BM_iter_as_array(tm->bm, BM_VERTS_OF_MESH, NULL, (void **)tm->vert_index, tm->bm->totvert);
+			}
+		}
+#pragma omp section
+		{
+			if (foredge) {
+				BM_iter_as_array(tm->bm, BM_EDGES_OF_MESH, NULL, (void **)tm->edge_index, tm->bm->totedge);
+			}
+		}
+#pragma omp section
+		{
+			if (forface) {
+				BM_iter_as_array(tm->bm, BM_FACES_OF_MESH, NULL, (void **)tm->face_index, tm->bm->totface);
+			}
 		}
 	}
 }
@@ -1283,6 +1276,7 @@ void EDBM_mesh_reveal(BMEditMesh *em)
 
 	/* Use tag flag to remember what was hidden before all is revealed.
 	 * BM_ELEM_HIDDEN --> BM_ELEM_TAG */
+#pragma omp parallel for schedule(dynamic)
 	for (i = 0; i < 3; i++) {
 		BM_ITER_MESH (ele, &iter, em->bm, iter_types[i]) {
 			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_HIDDEN));
