@@ -4903,7 +4903,7 @@ static int createSlideVerts(TransInfo *t)
 	BMEdge *e, *e1;
 	BMVert *v, *v2, *first;
 	TransDataSlideVert *sv_array;
-	BMBVHTree *btree = BMBVH_NewBVH(em, BMBVH_RESPECT_HIDDEN, NULL, NULL);
+	BMBVHTree *btree;
 	SmallHash table;
 	SlideData *sld = MEM_callocN(sizeof(*sld), "sld");
 	View3D *v3d = NULL;
@@ -4915,11 +4915,21 @@ static int createSlideVerts(TransInfo *t)
 	float vec[3], vec2[3] /*, lastvec[3], size, dis=0.0, z */ /* UNUSED */;
 	float dir[3], maxdist, (*loop_dir)[3], *loop_maxdist;
 	int numsel, i, j, loop_nr, l_nr;
+	int use_btree_disp;
 
 	if (t->spacetype == SPACE_VIEW3D) {
 		/* background mode support */
 		v3d = t->sa ? t->sa->spacedata.first : NULL;
 		rv3d = t->ar ? t->ar->regiondata : NULL;
+	}
+
+	use_btree_disp = (v3d && t->obedit->dt > OB_WIRE && v3d->drawtype > OB_WIRE);
+
+	if (use_btree_disp) {
+		btree = BMBVH_NewBVH(em, BMBVH_RESPECT_HIDDEN, NULL, NULL);
+	}
+	else {
+		btree = NULL;
 	}
 
 	sld->is_proportional = TRUE;
@@ -4955,7 +4965,8 @@ static int createSlideVerts(TransInfo *t)
 
 			if (numsel == 0 || numsel > 2) {
 				MEM_freeN(sld);
-				BMBVH_FreeBVH(btree);
+				if (btree)
+					BMBVH_FreeBVH(btree);
 				return 0; /* invalid edge selection */
 			}
 		}
@@ -4965,7 +4976,8 @@ static int createSlideVerts(TransInfo *t)
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 			if (!BM_edge_is_manifold(e)) {
 				MEM_freeN(sld);
-				BMBVH_FreeBVH(btree);
+				if (btree)
+					BMBVH_FreeBVH(btree);
 				return 0; /* can only handle exactly 2 faces around each edge */
 			}
 		}
@@ -4985,7 +4997,8 @@ static int createSlideVerts(TransInfo *t)
 
 	if (!j) {
 		MEM_freeN(sld);
-		BMBVH_FreeBVH(btree);
+		if (btree)
+			BMBVH_FreeBVH(btree);
 		return 0;
 	}
 
@@ -5140,9 +5153,7 @@ static int createSlideVerts(TransInfo *t)
 						continue;
 
 					/* This test is only relevant if object is not wire-drawn! See [#32068]. */
-					if (v3d && t->obedit->dt > OB_WIRE && v3d->drawtype > OB_WIRE &&
-					    !BMBVH_EdgeVisible(btree, e2, ar, v3d, t->obedit))
-					{
+					if (use_btree_disp && !BMBVH_EdgeVisible(btree, e2, ar, v3d, t->obedit)) {
 						continue;
 					}
 
@@ -5244,10 +5255,12 @@ static int createSlideVerts(TransInfo *t)
 	t->customData = sld;
 	
 	BLI_smallhash_release(&table);
-	BMBVH_FreeBVH(btree);
+	if (btree) {
+		BMBVH_FreeBVH(btree);
+	}
 	MEM_freeN(loop_dir);
 	MEM_freeN(loop_maxdist);
-	
+
 	return 1;
 }
 
