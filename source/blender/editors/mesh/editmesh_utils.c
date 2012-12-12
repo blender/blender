@@ -394,18 +394,23 @@ void EDBM_mesh_free(BMEditMesh *em)
 
 void EDBM_index_arrays_ensure(BMEditMesh *em, const char htype)
 {
+	/* assume if the array is non-null then its valid and no need to recalc */
+	const char htype_needed = ((em->vert_index ? 0 : BM_VERT) |
+	                           (em->edge_index ? 0 : BM_EDGE) |
+	                           (em->face_index ? 0 : BM_FACE)) & htype;
+
 	BLI_assert((htype & ~BM_ALL_NOLOOP) == 0);
 
 	/* in debug mode double check we didn't need to recalculate */
 	BLI_assert(EDBM_index_arrays_check(em) == TRUE);
 
-	if (htype & BM_VERT) {
+	if (htype_needed & BM_VERT) {
 		em->vert_index = MEM_mallocN(sizeof(void **) * em->bm->totvert, "em->vert_index");
 	}
-	if (htype & BM_EDGE) {
+	if (htype_needed & BM_EDGE) {
 		em->edge_index = MEM_mallocN(sizeof(void **) * em->bm->totedge, "em->edge_index");
 	}
-	if (htype & BM_FACE) {
+	if (htype_needed & BM_FACE) {
 		em->face_index = MEM_mallocN(sizeof(void **) * em->bm->totface, "em->face_index");
 	}
 
@@ -413,19 +418,19 @@ void EDBM_index_arrays_ensure(BMEditMesh *em, const char htype)
 	{
 #pragma omp section
 		{
-			if (htype & BM_VERT) {
+			if (htype_needed & BM_VERT) {
 				BM_iter_as_array(em->bm, BM_VERTS_OF_MESH, NULL, (void **)em->vert_index, em->bm->totvert);
 			}
 		}
 #pragma omp section
 		{
-			if (htype & BM_EDGE) {
+			if (htype_needed & BM_EDGE) {
 				BM_iter_as_array(em->bm, BM_EDGES_OF_MESH, NULL, (void **)em->edge_index, em->bm->totedge);
 			}
 		}
 #pragma omp section
 		{
-			if (htype & BM_FACE) {
+			if (htype_needed & BM_FACE) {
 				BM_iter_as_array(em->bm, BM_FACES_OF_MESH, NULL, (void **)em->face_index, em->bm->totface);
 			}
 		}
