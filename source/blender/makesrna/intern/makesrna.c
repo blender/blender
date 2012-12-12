@@ -760,7 +760,7 @@ static void rna_clamp_value(FILE *f, PropertyRNA *prop, int array)
 	if (prop->type == PROP_INT) {
 		IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
 
-		if (iprop->hardmin != INT_MIN || iprop->hardmax != INT_MAX) {
+		if (iprop->hardmin != INT_MIN || iprop->hardmax != INT_MAX || iprop->range) {
 			if (array) fprintf(f, "CLAMPIS(values[i], ");
 			else fprintf(f, "CLAMPIS(value, ");
 			if (iprop->range) {
@@ -776,7 +776,7 @@ static void rna_clamp_value(FILE *f, PropertyRNA *prop, int array)
 	else if (prop->type == PROP_FLOAT) {
 		FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
 
-		if (fprop->hardmin != -FLT_MAX || fprop->hardmax != FLT_MAX) {
+		if (fprop->hardmin != -FLT_MAX || fprop->hardmax != FLT_MAX || fprop->range) {
 			if (array) fprintf(f, "CLAMPIS(values[i], ");
 			else fprintf(f, "CLAMPIS(value, ");
 			if (fprop->range) {
