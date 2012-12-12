@@ -22,80 +22,21 @@
 
 /** \file blender/bmesh/operators/bmo_edgesplit.c
  *  \ingroup bmesh
+ *
+ * Just a wrapper around #BM_mesh_edgesplit
  */
-
-#include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
 
 #include "bmesh.h"
+#include "tools/bmesh_edgesplit.h"
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
-/**
- * Remove the BM_ELEM_TAG flag for edges we cant split
- *
- * un-tag edges not connected to other tagged edges,
- * unless they are on a boundary
- */
-static void bm_edgesplit_validate_seams(BMesh *bm, BMOperator *op)
-{
-	BMOIter siter;
-	BMIter iter;
-	BMEdge *e;
-
-	unsigned char *vtouch;
-	unsigned char *vt;
-
-	BM_mesh_elem_index_ensure(bm, BM_VERT);
-
-	vtouch = MEM_callocN(sizeof(char) * bm->totvert, __func__);
-
-	/* tag all boundary verts so as not to untag an edge which is inbetween only 2 faces [] */
-	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-
-		/* unrelated to flag assignment in this function - since this is the
-		 * only place we loop over all edges, disable tag */
-		BM_elem_flag_disable(e, BM_ELEM_INTERNAL_TAG);
-
-		if (e->l == NULL) {
-			BM_elem_flag_disable(e, BM_ELEM_TAG);
-		}
-		else if (BM_edge_is_boundary(e)) {
-			vt = &vtouch[BM_elem_index_get(e->v1)]; if (*vt < 2) (*vt)++;
-			vt = &vtouch[BM_elem_index_get(e->v2)]; if (*vt < 2) (*vt)++;
-
-			/* while the boundary verts need to be tagged,
-			 * the edge its self can't be split */
-			BM_elem_flag_disable(e, BM_ELEM_TAG);
-		}
-	}
-
-	/* single marked edges unconnected to any other marked edges
-	 * are illegal, go through and unmark them */
-	BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
-		/* lame, but we don't want the count to exceed 255,
-		 * so just count to 2, its all we need */
-		unsigned char *vt;
-		vt = &vtouch[BM_elem_index_get(e->v1)]; if (*vt < 2) (*vt)++;
-		vt = &vtouch[BM_elem_index_get(e->v2)]; if (*vt < 2) (*vt)++;
-	}
-	BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
-		if (vtouch[BM_elem_index_get(e->v1)] == 1 &&
-		    vtouch[BM_elem_index_get(e->v2)] == 1)
-		{
-			BM_elem_flag_disable(e, BM_ELEM_TAG);
-		}
-	}
-
-	MEM_freeN(vtouch);
-}
 
 /* keep this operator fast, its used in a modifier */
 void bmo_split_edges_exec(BMesh *bm, BMOperator *op)
 {
-	BMOIter siter;
-	BMEdge *e;
 	const int use_verts = BMO_slot_bool_get(op->slots_in, "use_verts");
 
 	BMO_slot_buffer_hflag_enable(bm, op->slots_in, "edges", BM_EDGE, BM_ELEM_TAG, FALSE);
@@ -103,63 +44,10 @@ void bmo_split_edges_exec(BMesh *bm, BMOperator *op)
 	if (use_verts) {
 		/* this slows down the operation but its ok because the modifier doesn't use */
 		BMO_slot_buffer_hflag_enable(bm, op->slots_in, "verts", BM_VERT, BM_ELEM_TAG, FALSE);
-
-		/* prevent one edge having both verts unflagged
-		 * we could alternately disable these edges, either way its a corner case.
-		 *
-		 * This is needed so we don't split off the edge but then none of its verts which
-		 * would leave a duplicate edge.
-		 */
-		BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
-			if (UNLIKELY((BM_elem_flag_test(e->v1, BM_ELEM_TAG) == FALSE &&
-			             (BM_elem_flag_test(e->v2, BM_ELEM_TAG) == FALSE))))
-			{
-				BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
-				BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
-			}
-		}
 	}
 
-	bm_edgesplit_validate_seams(bm, op);
-
-	BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
-		if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
-			/* this flag gets copied so we can be sure duplicate edges get it too (important) */
-			BM_elem_flag_enable(e, BM_ELEM_INTERNAL_TAG);
-
-			/* keep splitting until each loop has its own edge */
-			do {
-				bmesh_edge_separate(bm, e, e->l);
-			} while (!BM_edge_is_boundary(e));
-
-			BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
-			BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
-		}
-	}
-
-	if (use_verts) {
-		BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
-			if (BM_elem_flag_test(e->v1, BM_ELEM_TAG) == FALSE) {
-				BM_elem_flag_disable(e->v1, BM_ELEM_TAG);
-			}
-			if (BM_elem_flag_test(e->v2, BM_ELEM_TAG) == FALSE) {
-				BM_elem_flag_disable(e->v2, BM_ELEM_TAG);
-			}
-		}
-	}
-
-	BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
-		if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
-			if (BM_elem_flag_test(e->v1, BM_ELEM_TAG)) {
-				BM_elem_flag_disable(e->v1, BM_ELEM_TAG);
-				bmesh_vert_separate(bm, e->v1, NULL, NULL);
-			}
-			if (BM_elem_flag_test(e->v2, BM_ELEM_TAG)) {
-				BM_elem_flag_disable(e->v2, BM_ELEM_TAG);
-				bmesh_vert_separate(bm, e->v2, NULL, NULL);
-			}
-		}
-	}
+	/* this is where everything happens */
+	BM_mesh_edgesplit(bm, use_verts, TRUE);
 
 	BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "edges.out", BM_EDGE, BM_ELEM_INTERNAL_TAG);
 }

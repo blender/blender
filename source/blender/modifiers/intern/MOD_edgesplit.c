@@ -30,31 +30,23 @@
 
 /** \file blender/modifiers/intern/MOD_edgesplit.c
  *  \ingroup modifiers
+ *
+ * EdgeSplit modifier
+ *
+ * Splits edges in the mesh according to sharpness flag
+ * or edge angle (can be used to achieve autosmoothing)
  */
-
-
-/* EdgeSplit modifier: Splits edges in the mesh according to sharpness flag
- * or edge angle (can be used to achieve autosmoothing) */
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
-#include "BKE_mesh.h"
 
 #include "bmesh.h"
+#include "tools/bmesh_edgesplit.h"
 
 #include "DNA_object_types.h"
-
-/* EdgeSplit */
-/* EdgeSplit modifier: Splits edges in the mesh according to sharpness flag
- * or edge angle (can be used to achieve autosmoothing)
- *
- * note: this code is very close to MOD_bevel.c
- */
 
 #define EDGE_MARK  1
 
@@ -67,7 +59,6 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 	float threshold = cosf((emd->split_angle + 0.00001f) * (float)M_PI / 180.0f);
 
 	bm = DM_to_bmesh(dm);
-	BM_mesh_elem_toolflags_ensure(bm);
 	
 	if (emd->flags & MOD_EDGESPLIT_FROMANGLE) {
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
@@ -81,7 +72,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 				    /* 2 face edge - check angle*/
 				    (dot_v3v3(l1->f->no, l2->f->no) < threshold))
 				{
-					BMO_elem_flag_enable(bm, e, EDGE_MARK);
+					BM_elem_flag_enable(e, BM_ELEM_TAG);
 				}
 			}
 		}
@@ -94,14 +85,13 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 			    (e->l->next != e->l))
 			{
 				if (!BM_elem_flag_test(e, BM_ELEM_SMOOTH)) {
-					BMO_elem_flag_enable(bm, e, EDGE_MARK);
+					BM_elem_flag_enable(e, BM_ELEM_TAG);
 				}
 			}
 		}
 	}
 	
-	BMO_op_callf(bm, BMO_FLAG_DEFAULTS,
-	             "split_edges edges=%fe", EDGE_MARK);
+	BM_mesh_edgesplit(bm, FALSE, TRUE);
 
 	/* BM_mesh_validate(bm); */ /* for troubleshooting */
 

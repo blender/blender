@@ -111,6 +111,8 @@ set(SRC
 	tools/bmesh_decimate_dissolve.c
 	tools/bmesh_decimate_unsubdivide.c
 	tools/bmesh_decimate.h
+	tools/bmesh_edgesplit.c
+	tools/bmesh_edgesplit.h
 
 	bmesh.h
 	bmesh_class.h
