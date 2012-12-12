@@ -1417,7 +1417,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 					
 					if (em != NULL) {
 						index_array = dm->getVertDataArray(dm, CD_ORIGINDEX);
-						EDBM_index_arrays_init(em, 1, 0, 0);
+						EDBM_index_arrays_init(em, BM_VERT);
 					}
 					
 					for (i = 0; i < totvert; i++) {
@@ -1468,7 +1468,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 					
 					if (em != NULL) {
 						index_array = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
-						EDBM_index_arrays_init(em, 0, 1, 0);
+						EDBM_index_arrays_init(em, BM_EDGE);
 					}
 					
 					for (i = 0; i < totedge; i++) {

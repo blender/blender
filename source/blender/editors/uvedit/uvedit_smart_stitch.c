@@ -1256,7 +1256,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 		int faceIndex, elementIndex;
 		UvElement *element;
 
-		EDBM_index_arrays_init(em, 0, 0, 1);
+		EDBM_index_arrays_init(em, BM_FACE);
 
 		RNA_BEGIN (op->ptr, itemptr, "selection")
 		{

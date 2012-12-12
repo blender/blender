@@ -71,24 +71,24 @@ extern GLubyte stipple_quarttone[128]; /* glutil.c, bad level data */
 
 BMEditMesh *BMEdit_Create(BMesh *bm, int do_tessellate)
 {
-	BMEditMesh *tm = MEM_callocN(sizeof(BMEditMesh), __func__);
+	BMEditMesh *em = MEM_callocN(sizeof(BMEditMesh), __func__);
 
-	tm->bm = bm;
+	em->bm = bm;
 	if (do_tessellate) {
-		BMEdit_RecalcTessellation(tm);
+		BMEdit_RecalcTessellation(em);
 	}
 
-	return tm;
+	return em;
 }
 
-BMEditMesh *BMEdit_Copy(BMEditMesh *tm)
+BMEditMesh *BMEdit_Copy(BMEditMesh *em)
 {
-	BMEditMesh *tm2 = MEM_callocN(sizeof(BMEditMesh), __func__);
-	*tm2 = *tm;
+	BMEditMesh *em_copy = MEM_callocN(sizeof(BMEditMesh), __func__);
+	*em_copy = *em;
 
-	tm2->derivedCage = tm2->derivedFinal = NULL;
+	em_copy->derivedCage = em_copy->derivedFinal = NULL;
 
-	tm2->bm = BM_mesh_copy(tm->bm);
+	em_copy->bm = BM_mesh_copy(em->bm);
 
 	/* The tessellation is NOT calculated on the copy here,
 	 * because currently all the callers of this function use
@@ -97,22 +97,22 @@ BMEditMesh *BMEdit_Copy(BMEditMesh *tm)
 	 * reasons, in that case it makes more sense to do the
 	 * tessellation only when/if that copy ends up getting
 	 * used.*/
-	tm2->looptris = NULL;
+	em_copy->looptris = NULL;
 
-	tm2->vert_index = NULL;
-	tm2->edge_index = NULL;
-	tm2->face_index = NULL;
+	em_copy->vert_index = NULL;
+	em_copy->edge_index = NULL;
+	em_copy->face_index = NULL;
 
-	return tm2;
+	return em_copy;
 }
 
-static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
+static void BMEdit_RecalcTessellation_intern(BMEditMesh *em)
 {
 	/* use this to avoid locking pthread for _every_ polygon
 	 * and calling the fill function */
 #define USE_TESSFACE_SPEEDUP
 
-	BMesh *bm = tm->bm;
+	BMesh *bm = em->bm;
 	BMLoop *(*looptris)[3] = NULL;
 	BLI_array_declare(looptris);
 	BMIter iter, liter;
@@ -125,26 +125,26 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 #if 0
 	/* note, we could be clever and re-use this array but would need to ensure
 	 * its realloced at some point, for now just free it */
-	if (tm->looptris) MEM_freeN(tm->looptris);
+	if (em->looptris) MEM_freeN(em->looptris);
 
-	/* Use tm->tottri when set, this means no reallocs while transforming,
+	/* Use em->tottri when set, this means no reallocs while transforming,
 	 * (unless scanfill fails), otherwise... */
 	/* allocate the length of totfaces, avoid many small reallocs,
 	 * if all faces are tri's it will be correct, quads == 2x allocs */
-	BLI_array_reserve(looptris, (tm->tottri && tm->tottri < bm->totface * 3) ? tm->tottri : bm->totface);
+	BLI_array_reserve(looptris, (em->tottri && em->tottri < bm->totface * 3) ? em->tottri : bm->totface);
 #else
 
 	/* this means no reallocs for quad dominant models, for */
-	if ( (tm->looptris != NULL) &&
-	     (tm->tottri != 0) &&
+	if ( (em->looptris != NULL) &&
+	     (em->tottri != 0) &&
 	     /* (totrti <= bm->totface * 2) would be fine for all quads,
 	      * but in case there are some ngons, still re-use the array */
-	     (tm->tottri <= bm->totface * 3))
+	     (em->tottri <= bm->totface * 3))
 	{
-		looptris = tm->looptris;
+		looptris = em->looptris;
 	}
 	else {
-		if (tm->looptris) MEM_freeN(tm->looptris);
+		if (em->looptris) MEM_freeN(em->looptris);
 		BLI_array_reserve(looptris, bm->totface);
 	}
 
@@ -237,8 +237,8 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 		}
 	}
 
-	tm->tottri = i;
-	tm->looptris = looptris;
+	em->tottri = i;
+	em->looptris = looptris;
 
 #undef USE_TESSFACE_SPEEDUP
 

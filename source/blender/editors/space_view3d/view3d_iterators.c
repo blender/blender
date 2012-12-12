@@ -113,7 +113,7 @@ void mesh_foreachScreenVert(
 		ED_view3d_clipping_local(vc->rv3d, vc->obedit->obmat);  /* for local clipping lookups */
 	}
 
-	EDBM_index_arrays_init(vc->em, 1, 0, 0);
+	EDBM_index_arrays_init(vc->em, BM_VERT);
 	dm->foreachMappedVert(dm, mesh_foreachScreenVert__mapFunc, &data);
 	EDBM_index_arrays_free(vc->em);
 
@@ -172,7 +172,7 @@ void mesh_foreachScreenEdge(
 		ED_view3d_clipping_local(vc->rv3d, vc->obedit->obmat);  /* for local clipping lookups */
 	}
 
-	EDBM_index_arrays_init(vc->em, 0, 1, 0);
+	EDBM_index_arrays_init(vc->em, BM_EDGE);
 	dm->foreachMappedEdge(dm, mesh_foreachScreenEdge__mapFunc, &data);
 	EDBM_index_arrays_free(vc->em);
 
@@ -209,7 +209,7 @@ void mesh_foreachScreenFace(
 
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
-	EDBM_index_arrays_init(vc->em, 0, 0, 1);
+	EDBM_index_arrays_init(vc->em, BM_FACE);
 	dm->foreachMappedFaceCenter(dm, mesh_foreachScreenFace__mapFunc, &data);
 	EDBM_index_arrays_free(vc->em);
 

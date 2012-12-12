@@ -375,7 +375,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 			BM_vert_create(em->bm, co, NULL, 0);
 		}
 
-		EDBM_index_arrays_init(em, 1, 0, 0);
+		EDBM_index_arrays_init(em, BM_VERT);
 
 		/* create faces */
 		for (j = 0; j < trinum; j++) {

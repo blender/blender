@@ -2838,7 +2838,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		}
 	}
 	
-	EDBM_index_arrays_init(em, 1, 1, 1);
+	EDBM_index_arrays_init(em, BM_VERT | BM_EDGE | BM_FACE);
 
 	if (dt > OB_WIRE) {
 		if (check_object_draw_texture(scene, v3d, dt)) {
@@ -7123,7 +7123,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 
 				DerivedMesh *dm = editbmesh_get_derived_cage(scene, ob, em, CD_MASK_BAREMESH);
 
-				EDBM_index_arrays_init(em, 1, 1, 1);
+				EDBM_index_arrays_init(em, BM_VERT | BM_EDGE | BM_FACE);
 
 				bbs_mesh_solid_EM(em, scene, v3d, ob, dm, ts->selectmode & SCE_SELECT_FACE);
 				if (ts->selectmode & SCE_SELECT_FACE)

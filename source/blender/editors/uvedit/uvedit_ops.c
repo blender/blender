@@ -999,7 +999,7 @@ static int select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit 
 	int a, looking, nverts, starttotf, select;
 
 	/* setup */
-	EDBM_index_arrays_init(em, 0, 0, 1);
+	EDBM_index_arrays_init(em, BM_FACE);
 	vmap = EDBM_uv_vert_map_create(em, 0, 0, limit);
 
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
@@ -1111,7 +1111,7 @@ static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, const float 
 	unsigned int a;
 	char *flag;
 
-	EDBM_index_arrays_init(em, 0, 0, 1); /* we can use this too */
+	EDBM_index_arrays_init(em, BM_FACE); /* we can use this too */
 	vmap = EDBM_uv_vert_map_create(em, 1, 1, limit);
 
 	if (vmap == NULL)
@@ -2608,7 +2608,7 @@ static void uv_faces_do_sticky(SpaceImage *sima, Scene *scene, Object *obedit, s
 		
 		uvedit_pixel_to_float(sima, limit, 0.05);
 		
-		EDBM_index_arrays_init(em, 0, 0, 1);
+		EDBM_index_arrays_init(em, BM_FACE);
 		vmap = EDBM_uv_vert_map_create(em, 0, 0, limit);
 		
 		/* verts are numbered above in make_uv_vert_map_EM, make sure this stays true! */
@@ -3795,7 +3795,7 @@ static int seams_from_islands_exec(bContext *C, wmOperator *op)
 	}
 
 	/* This code sets editvert->tmp.l to the index. This will be useful later on. */
-	EDBM_index_arrays_init(em, 0, 0, 1);
+	EDBM_index_arrays_init(em, BM_FACE);
 	vmap = EDBM_uv_vert_map_create(em, 0, 0, limit);
 
 	BM_ITER_MESH (editedge, &iter, bm, BM_EDGES_OF_MESH) {

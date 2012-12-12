@@ -434,7 +434,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, Object *ob, B
 	faceMap = MEM_mallocN(numOfFaces * sizeof(BMFace *), "unwrap_edit_face_map");
 
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT);
-	EDBM_index_arrays_init(em, 0, 1, 1);
+	EDBM_index_arrays_init(em, BM_EDGE | BM_FACE);
 
 	/* map subsurfed faces to original editFaces */
 	for (i = 0; i < numOfFaces; i++)

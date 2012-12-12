@@ -86,10 +86,10 @@ void EDBM_mesh_clear(struct BMEditMesh *em);
 
 void EDBM_selectmode_to_scene(struct bContext *C);
 void EDBM_mesh_make(struct ToolSettings *ts, struct Scene *scene, struct Object *ob);
-void EDBM_mesh_free(struct BMEditMesh *tm);
+void EDBM_mesh_free(struct BMEditMesh *em);
 void EDBM_mesh_load(struct Object *ob);
 
-void           EDBM_index_arrays_init(struct BMEditMesh *em, int forvert, int foredge, int forface);
+void           EDBM_index_arrays_init(struct BMEditMesh *em, const char htype);
 void           EDBM_index_arrays_free(struct BMEditMesh *em);
 struct BMVert *EDBM_vert_at_index(struct BMEditMesh *em, int index);
 struct BMEdge *EDBM_edge_at_index(struct BMEditMesh *em, int index);
