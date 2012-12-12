@@ -1466,7 +1466,13 @@ static void ui_item_menutype_func(bContext *C, uiLayout *layout, void *arg_mt)
 		printf("%s: opening menu \"%s\"\n", __func__, mt->idname);
 	}
 
+	if (layout->context)
+		CTX_store_set(C, layout->context);
+
 	mt->draw(C, &menu);
+
+	if (layout->context)
+		CTX_store_set(C, NULL);
 }
 
 static void ui_item_menu(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc func, void *arg, void *argN, const char *tip)
