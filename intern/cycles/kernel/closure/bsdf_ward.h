@@ -182,12 +182,6 @@ __device int bsdf_ward_sample(const ShaderClosure *sc, float3 Ng, float3 I, floa
 #ifdef __RAY_DIFFERENTIALS__
 				*domega_in_dx = (2 * dot(N, dIdx)) * N - dIdx;
 				*domega_in_dy = (2 * dot(N, dIdy)) * N - dIdy;
-				// Since there is some blur to this reflection, make the
-				// derivatives a bit bigger. In theory this varies with the
-				// roughness but the exact relationship is complex and
-				// requires more ops than are practical.
-				*domega_in_dx *= 10.0f;
-				*domega_in_dy *= 10.0f;
 #endif
 			}
 		}

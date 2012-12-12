@@ -119,15 +119,6 @@ __device int bsdf_phong_ramp_sample(const ShaderClosure *sc, const float3 colors
 				*pdf = (m_exponent + 1) * common;
 				float out = cosNI * (m_exponent + 2) * common;
 				*eval = bsdf_phong_ramp_get_color(sc, colors, cosp) * out;
-				
-#ifdef __RAY_DIFFERENTIALS__
-				// Since there is some blur to this reflection, make the
-				// derivatives a bit bigger. In theory this varies with the
-				// exponent but the exact relationship is complex and
-				// requires more ops than are practical.
-				*domega_in_dx *= 10;
-				*domega_in_dy *= 10;
-#endif
 			}
 		}
 	}
