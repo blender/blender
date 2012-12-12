@@ -335,7 +335,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			                   use_only_quads, 0);
 
 			/* tessface is already re-recalculated */
-			EDBM_update_generic(C, em, FALSE, TRUE);
+			EDBM_update_generic(em, FALSE, TRUE);
 
 			/* force edge slide to edge select mode in in face select mode */
 			if (em->selectmode & SCE_SELECT_FACE) {

@@ -2830,7 +2830,7 @@ static void knife_make_cuts(KnifeTool_OpData *kcd)
 #endif
 
 /* called on tool confirmation */
-static void knifetool_finish(bContext *C, wmOperator *op)
+static void knifetool_finish(wmOperator *op)
 {
 	KnifeTool_OpData *kcd = op->customdata;
 
@@ -2841,7 +2841,7 @@ static void knifetool_finish(bContext *C, wmOperator *op)
 #endif
 
 	EDBM_mesh_normals_update(kcd->em);
-	EDBM_update_generic(C, kcd->em, TRUE, TRUE);
+	EDBM_update_generic(kcd->em, TRUE, TRUE);
 }
 
 /* copied from paint_image.c */
@@ -3129,7 +3129,7 @@ static int knifetool_modal(bContext *C, wmOperator *op, wmEvent *event)
 				/* finish */
 				ED_region_tag_redraw(kcd->ar);
 
-				knifetool_finish(C, op);
+				knifetool_finish(op);
 				knifetool_exit(C, op);
 				ED_area_headerprint(CTX_wm_area(C), NULL);
 

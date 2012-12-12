@@ -134,14 +134,8 @@ static PyObject *bpy_bm_update_edit_mesh(PyObject *UNUSED(self), PyObject *args)
 	}
 
 	{
-		/* XXX, not great - infact this function could just not use the context at all
-		 * postpone that change until after release: BMESH_TODO - campbell */
-		extern struct bContext *BPy_GetContext(void);
-		extern void EDBM_update_generic(struct bContext *C, BMEditMesh *em,
-		                                const short do_tessface, const short is_destructive);
-
-		struct bContext *C = BPy_GetContext();
-		EDBM_update_generic(C, me->edit_btmesh, do_tessface, is_destructive);
+		extern void EDBM_update_generic(BMEditMesh *em, const short do_tessface, const short is_destructive);
+		EDBM_update_generic(me->edit_btmesh, do_tessface, is_destructive);
 	}
 
 	Py_RETURN_NONE;

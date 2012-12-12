@@ -1044,7 +1044,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, TRUE, TRUE);
+	EDBM_update_generic(em, TRUE, TRUE);
 
 	return OPERATOR_FINISHED;
 }

@@ -725,7 +725,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, FALSE, FALSE);
+	EDBM_update_generic(em, FALSE, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -767,7 +767,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, FALSE, FALSE);
+	EDBM_update_generic(em, FALSE, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -812,7 +812,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 
 	EDBM_selectmode_flush(em);
 
-	EDBM_update_generic(C, em, FALSE, FALSE);
+	EDBM_update_generic(em, FALSE, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -1431,7 +1431,7 @@ static int edgetag_shortest_path(Scene *scene, BMesh *bm, BMEdge *e_src, BMEdge 
 /* ******************* mesh shortest path select, uses prev-selected edge ****************** */
 
 /* since you want to create paths with multiple selects, it doesn't have extend option */
-static int mouse_mesh_shortest_path_edge(bContext *C, ViewContext *vc)
+static int mouse_mesh_shortest_path_edge(ViewContext *vc)
 {
 	BMEditMesh *em = vc->em;
 	BMEdge *e_dst;
@@ -1470,7 +1470,7 @@ static int mouse_mesh_shortest_path_edge(bContext *C, ViewContext *vc)
 			BM_select_history_store(em->bm, e_dst);
 	
 		/* force drawmode for mesh */
-		switch (CTX_data_tool_settings(C)->edge_mode) {
+		switch (vc->scene->toolsettings->edge_mode) {
 			
 			case EDGE_MODE_TAG_SEAM:
 				me->drawflag |= ME_DRAWSEAMS;
@@ -1487,7 +1487,7 @@ static int mouse_mesh_shortest_path_edge(bContext *C, ViewContext *vc)
 				break;
 		}
 		
-		EDBM_update_generic(C, em, FALSE, FALSE);
+		EDBM_update_generic(em, FALSE, FALSE);
 
 		return TRUE;
 	}
@@ -1644,7 +1644,7 @@ static int facetag_shortest_path(Scene *scene, BMesh *bm, BMFace *f_src, BMFace 
 	return 1;
 }
 
-static int mouse_mesh_shortest_path_face(bContext *C, ViewContext *vc)
+static int mouse_mesh_shortest_path_face(ViewContext *vc)
 {
 	BMEditMesh *em = vc->em;
 	BMFace *f_dst;
@@ -1678,7 +1678,7 @@ static int mouse_mesh_shortest_path_face(bContext *C, ViewContext *vc)
 
 		BM_active_face_set(em->bm, f_dst);
 
-		EDBM_update_generic(C, em, FALSE, FALSE);
+		EDBM_update_generic(em, FALSE, FALSE);
 
 		return TRUE;
 	}
@@ -1703,7 +1703,7 @@ static int edbm_shortest_path_select_invoke(bContext *C, wmOperator *UNUSED(op),
 	em = vc.em;
 
 	if (em->selectmode & SCE_SELECT_EDGE) {
-		if (mouse_mesh_shortest_path_edge(C, &vc)) {
+		if (mouse_mesh_shortest_path_edge(&vc)) {
 			return OPERATOR_FINISHED;
 		}
 		else {
@@ -1711,7 +1711,7 @@ static int edbm_shortest_path_select_invoke(bContext *C, wmOperator *UNUSED(op),
 		}
 	}
 	else if (em->selectmode & SCE_SELECT_FACE) {
-		if (mouse_mesh_shortest_path_face(C, &vc)) {
+		if (mouse_mesh_shortest_path_face(&vc)) {
 			return OPERATOR_FINISHED;
 		}
 		else {
@@ -2635,7 +2635,7 @@ static int edbm_select_nth_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, FALSE, FALSE);
+	EDBM_update_generic(em, FALSE, FALSE);
 
 	return OPERATOR_FINISHED;
 }

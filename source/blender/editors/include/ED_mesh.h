@@ -119,8 +119,7 @@ int  EDBM_vert_color_check(struct BMEditMesh *em);
 void EDBM_mesh_hide(struct BMEditMesh *em, int swap);
 void EDBM_mesh_reveal(struct BMEditMesh *em);
 
-void EDBM_update_generic(struct bContext *C, struct BMEditMesh *em,
-                         const short do_tessface, const short is_destructive);
+void EDBM_update_generic(struct BMEditMesh *em, const short do_tessface, const short is_destructive);
 
 struct UvElementMap *EDBM_uv_element_map_create(struct BMEditMesh *em, int selected, int doIslands);
 void                 EDBM_uv_element_map_free(struct UvElementMap *vmap);

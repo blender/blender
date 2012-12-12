@@ -1342,13 +1342,12 @@ void EDBM_mesh_reveal(BMEditMesh *em)
 
 /* so many tools call these that we better make it a generic function.
  */
-void EDBM_update_generic(bContext *C, BMEditMesh *em,
-                         const short do_tessface, const short is_destructive)
+void EDBM_update_generic(BMEditMesh *em, const short do_tessface, const short is_destructive)
 {
 	Object *ob = em->ob;
 	/* order of calling isn't important */
 	DAG_id_tag_update(ob->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+	WM_main_add_notifier(NC_GEOM | ND_DATA, ob->data);
 
 	if (do_tessface) {
 		BMEdit_RecalcTessellation(em);
