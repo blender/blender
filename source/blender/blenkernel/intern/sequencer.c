@@ -2408,8 +2408,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 			context.scene->r.seq_prev_type = 3 /* == OB_SOLID */;
 
 		/* opengl offscreen render */
-		if (oldcfra != scene->r.cfra)
-			BKE_scene_update_for_newframe(context.bmain, scene, scene->lay);
+		BKE_scene_update_for_newframe(context.bmain, scene, scene->lay);
 		ibuf = sequencer_view3d_cb(scene, camera, context.rectx, context.recty,
 		                           IB_rect, context.scene->r.seq_prev_type, TRUE, FALSE, err_out);
 		if (ibuf == NULL) {
@@ -2432,8 +2431,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 			if (re == NULL)
 				re = RE_NewRender(scene->id.name);
 			
-			if (oldcfra != scene->r.cfra)
-				BKE_scene_update_for_newframe(context.bmain, scene, scene->lay);
+			BKE_scene_update_for_newframe(context.bmain, scene, scene->lay);
 			RE_BlenderFrame(re, context.bmain, scene, NULL, camera, scene->lay, frame, FALSE);
 
 			/* restore previous state after it was toggled on & off by RE_BlenderFrame */
