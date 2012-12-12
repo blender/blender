@@ -5261,6 +5261,9 @@ static int createSlideVerts(TransInfo *t)
 	MEM_freeN(loop_dir);
 	MEM_freeN(loop_maxdist);
 
+	/* arrays are dirty from copying faces: EDBM_index_arrays_free */
+	EDBM_update_generic(em, FALSE, TRUE);
+
 	return 1;
 }
 
@@ -5432,6 +5435,9 @@ void freeSlideTempFaces(SlideData *sld)
 		BLI_smallhash_release(&sld->origfaces);
 
 		sld->origfaces_init = FALSE;
+
+		/* arrays are dirty from removing faces: EDBM_index_arrays_free */
+		EDBM_update_generic(sld->em, FALSE, TRUE);
 	}
 }
 
