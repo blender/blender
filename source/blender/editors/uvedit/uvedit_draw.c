@@ -169,10 +169,8 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 	MTexPoly *tf;
 	MLoopUV *luv;
 	Image *ima = sima->image;
-	BLI_array_declare(tf_uv);
-	BLI_array_declare(tf_uvorig);
-	float aspx, aspy, col[4], (*tf_uv)[2] = NULL, (*tf_uvorig)[2] = NULL;
-	int i, j, nverts;
+	float aspx, aspy, col[4];
+	int i;
 
 	ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
 	
@@ -182,20 +180,14 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 			float totarea = 0.0f, totuvarea = 0.0f, areadiff, uvarea, area;
 			
 			BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+				const int efa_len = efa->len;
+				float (*tf_uv)[2] = BLI_array_alloca(tf_uv, efa_len);
+				float (*tf_uvorig)[2] = BLI_array_alloca(tf_uvorig, efa_len);
 				tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
-				
-				BLI_array_empty(tf_uv);
-				BLI_array_empty(tf_uvorig);
-				BLI_array_grow_items(tf_uv, efa->len);
-				BLI_array_grow_items(tf_uvorig, efa->len);
 
-				i = 0;
-				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+				BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 					luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
-
 					copy_v2_v2(tf_uvorig[i], luv->uv);
-
-					i++;
 				}
 
 				uv_poly_copy_aspect(tf_uvorig, tf_uv, aspx, aspy, efa->len);
@@ -232,20 +224,15 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 			else {
 				BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 					if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
+						const int efa_len = efa->len;
+						float (*tf_uv)[2] = BLI_array_alloca(tf_uv, efa_len);
+						float (*tf_uvorig)[2] = BLI_array_alloca(tf_uvorig, efa_len);
+
 						area = BM_face_calc_area(efa) / totarea;
 
-						BLI_array_empty(tf_uv);
-						BLI_array_empty(tf_uvorig);
-						BLI_array_grow_items(tf_uv, efa->len);
-						BLI_array_grow_items(tf_uvorig, efa->len);
-
-						i = 0;
-						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+						BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 							luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
-
 							copy_v2_v2(tf_uvorig[i], luv->uv);
-
-							i++;
 						}
 
 						uv_poly_copy_aspect(tf_uvorig, tf_uv, aspx, aspy, efa->len);
@@ -276,18 +263,9 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 		}
 		case SI_UVDT_STRETCH_ANGLE:
 		{
-			float *uvang = NULL;
-			float *ang = NULL;
-			float (*av)[3] = NULL;  /* use for 2d and 3d  angle vectors */
-			float (*auv)[2] = NULL;
 			float a;
 
-			BLI_array_declare(uvang);
-			BLI_array_declare(ang);
-			BLI_array_declare(av);
-			BLI_array_declare(auv);
-
-			col[3] = 0.5; /* hard coded alpha, not that nice */
+			col[3] = 0.5f; /* hard coded alpha, not that nice */
 			
 			glShadeModel(GL_SMOOTH);
 			
@@ -295,44 +273,40 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 				tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
 				
 				if (uvedit_face_visible_test(scene, ima, efa, tf)) {
-					nverts = efa->len;
+					const int efa_len = efa->len;
+					float (*tf_uv)[2] = BLI_array_alloca(tf_uv, efa_len);
+					float (*tf_uvorig)[2] = BLI_array_alloca(tf_uvorig, efa_len);
+					float *uvang = BLI_array_alloca(uvang, efa_len);
+					float *ang = BLI_array_alloca(ang, efa_len);
+					float (*av)[3] = BLI_array_alloca(av, efa_len);  /* use for 2d and 3d  angle vectors */
+					float (*auv)[2] = BLI_array_alloca(auv, efa_len);
+					int j;
+
 					BM_elem_flag_enable(efa, BM_ELEM_TAG);
-					BLI_array_empty(tf_uv);
-					BLI_array_empty(tf_uvorig);
-					BLI_array_empty(uvang);
-					BLI_array_empty(ang);
-					BLI_array_empty(av);
-					BLI_array_empty(auv);
-					BLI_array_grow_items(tf_uv, nverts);
-					BLI_array_grow_items(tf_uvorig, nverts);
-					BLI_array_grow_items(uvang, nverts);
-					BLI_array_grow_items(ang, nverts);
-					BLI_array_grow_items(av, nverts);
-					BLI_array_grow_items(auv, nverts);
 
 					BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 						luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
 						copy_v2_v2(tf_uvorig[i], luv->uv);
 					}
 
-					uv_poly_copy_aspect(tf_uvorig, tf_uv, aspx, aspy, nverts);
+					uv_poly_copy_aspect(tf_uvorig, tf_uv, aspx, aspy, efa_len);
 
-					j = nverts - 1;
+					j = efa_len - 1;
 					BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 						sub_v2_v2v2(auv[i], tf_uv[j], tf_uv[i]); normalize_v2(auv[i]);
 						sub_v3_v3v3(av[i], l->prev->v->co, l->v->co); normalize_v3(av[i]);
 						j = i;
 					}
 
-					for (i = 0; i < nverts; i++) {
+					for (i = 0; i < efa_len; i++) {
 #if 0
 						/* Simple but slow, better reuse normalized vectors
 						 * (Not ported to bmesh, copied for reference) */
 						uvang1 = RAD2DEG(angle_v2v2v2(tf_uv[3], tf_uv[0], tf_uv[1]));
 						ang1 = RAD2DEG(angle_v3v3v3(efa->v4->co, efa->v1->co, efa->v2->co));
 #endif
-						uvang[i] = angle_normalized_v2v2(auv[i], auv[(i + 1) % nverts]);
-						ang[i] = angle_normalized_v3v3(av[i], av[(i + 1) % nverts]);
+						uvang[i] = angle_normalized_v2v2(auv[i], auv[(i + 1) % efa_len]);
+						ang[i] = angle_normalized_v3v3(av[i], av[(i + 1) % efa_len]);
 					}
 
 					glBegin(GL_POLYGON);
@@ -354,17 +328,9 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 
 			glShadeModel(GL_FLAT);
 
-			BLI_array_free(uvang);
-			BLI_array_free(ang);
-			BLI_array_free(av);
-			BLI_array_free(auv);
-
 			break;
 		}
 	}
-
-	BLI_array_free(tf_uv);
-	BLI_array_free(tf_uvorig);
 }
 
 static void draw_uvs_other(Scene *scene, Object *obedit, Image *curimage)

@@ -1135,7 +1135,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 	/* Make center ngon if odd number of segments and fully beveled */
 	if (ns % 2 == 1 && vm->count == bv->selcount) {
 		BMVert **vv = NULL;
-		BLI_array_declare(vv);
+		BLI_array_staticdeclare(vv, BM_DEFAULT_NGON_STACK_SIZE);
 
 		v = vm->boundstart;
 		do {
@@ -1153,7 +1153,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 	if (vm->count > bv->selcount) {
 		int j;
 		BMVert **vv = NULL;
-		BLI_array_declare(vv);
+		BLI_array_staticdeclare(vv, BM_DEFAULT_NGON_STACK_SIZE);
 
 		v = vm->boundstart;
 		f = boundvert_rep_face(v);
@@ -1215,7 +1215,7 @@ static BMFace *bevel_build_poly_ex(BMesh *bm, BevVert *bv)
 	VMesh *vm = bv->vmesh;
 	BoundVert *v;
 	BMVert **vv = NULL;
-	BLI_array_declare(vv);
+	BLI_array_staticdeclare(vv, BM_DEFAULT_NGON_STACK_SIZE);
 
 	v = vm->boundstart;
 	n = 0;

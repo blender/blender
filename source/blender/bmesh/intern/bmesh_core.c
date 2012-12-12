@@ -1879,7 +1879,7 @@ int BM_vert_splice(BMesh *bm, BMVert *v, BMVert *v_target)
 int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 {
 	BMEdge **stack = NULL;
-	BLI_array_declare(stack);
+	BLI_array_staticdeclare(stack, BM_DEFAULT_ITER_STACK_SIZE);
 	BMVert **verts = NULL;
 	GHash *visithash;
 	BMIter eiter, liter;
