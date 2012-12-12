@@ -305,6 +305,7 @@ static void wm_init_userdef(bContext *C)
 	
 	/* displays with larger native pixels, like Macbook. Used to scale dpi with */
 	U.pixelsize = GHOST_GetNativePixelSize();
+	if (U.pixelsize == 0) U.pixelsize = 1;
 	BKE_userdef_state();
 }
 
