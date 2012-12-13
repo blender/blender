@@ -435,7 +435,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 		Scene *scene = CTX_data_scene(C);
 		Object *ob = OBACT;
 
-		if (ob->mode & OB_MODE_ALL_PAINT) {
+		if (ob && ob->mode & OB_MODE_ALL_PAINT) {
 			/* transformation is disabled for painting modes, which will make it
 			 * so previous offset is used. This is annoying when you open file
 			 * saved with active object in painting mode
