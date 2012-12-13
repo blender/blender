@@ -94,6 +94,7 @@ static EnumPropertyItem parent_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+#ifndef RNA_RUNTIME
 static EnumPropertyItem dupli_items[] = {
 	{0, "NONE", 0, "None", ""},
 	{OB_DUPLIFRAMES, "FRAMES", 0, "Frames", "Make copy of object for every frame"},
@@ -102,6 +103,7 @@ static EnumPropertyItem dupli_items[] = {
 	{OB_DUPLIGROUP, "GROUP", 0, "Group", "Enable group instancing"},
 	{0, NULL, 0, NULL, NULL}
 };
+#endif
 
 static EnumPropertyItem collision_bounds_items[] = {
 	{OB_BOUND_BOX, "BOX", 0, "Box", ""},

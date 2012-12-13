@@ -107,21 +107,23 @@ void EDBM_select_mirrored(Object *UNUSED(obedit), BMEditMesh *em, int extend)
 
 void EDBM_automerge(Scene *scene, Object *obedit, int update)
 {
-	BMEditMesh *em;
 	
 	if ((scene->toolsettings->automerge) &&
 	    (obedit && obedit->type == OB_MESH))
 	{
-		em = BMEdit_FromObject(obedit);
-		if (!em)
-			return;
+		int ok;
+		BMEditMesh *em = BMEdit_FromObject(obedit);
 
-		BMO_op_callf(em->bm, BMO_FLAG_DEFAULTS,
-		             "automerge verts=%hv dist=%f",
-		             BM_ELEM_SELECT, scene->toolsettings->doublimit);
-		if (update) {
-			DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-			BMEdit_RecalcTessellation(em);
+		if (!em) {
+			return;
+		}
+
+		ok = BMO_op_callf(em->bm, BMO_FLAG_DEFAULTS,
+		                  "automerge verts=%hv dist=%f",
+		                  BM_ELEM_SELECT, scene->toolsettings->doublimit);
+
+		if (LIKELY(ok) && update) {
+			EDBM_update_generic(em, TRUE, TRUE);
 		}
 	}
 }
