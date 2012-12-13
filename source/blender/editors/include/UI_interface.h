@@ -175,12 +175,11 @@ typedef struct uiLayout uiLayout;
 /* uiBut->drawflag */
 #define UI_BUT_DRAW_ENUM_ARROWS    (1 << 0) /* draw enum-like up/down arrows for button */
 
-/* scale fixed button widths by this to account for DPI (no difference for buttons or icons anymore */
+/* scale fixed button widths by this to account for DPI */
 
 #define UI_DPI_FAC ((U.pixelsize * (float)U.dpi) / 72.0f)
-#define UI_DPI_ICON_FAC ((U.pixelsize * (float)U.dpi) / 72.0f)
 /* 16 to copy ICON_DEFAULT_HEIGHT */
-#define UI_DPI_ICON_SIZE ((float)16 * UI_DPI_ICON_FAC)
+#define UI_DPI_ICON_SIZE ((float)16 * UI_DPI_FAC)
 
 /* Button types, bits stored in 1 value... and a short even!
  * - bits 0-4:  bitnr (0-31)

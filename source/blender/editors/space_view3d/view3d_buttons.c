@@ -365,7 +365,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 	if (block) { /* buttons */
 		uiBut *but;
 		int yi = 200;
-		const int buth = 20 * UI_DPI_ICON_FAC;
+		const int buth = 20 * UI_DPI_FAC;
 		const int but_margin = 2;
 		const char *c;
 

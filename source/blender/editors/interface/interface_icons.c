@@ -1161,7 +1161,7 @@ void UI_icon_draw_aspect_color(float x, float y, int icon_id, float aspect, cons
 /* draws icon with dpi scale factor */
 void UI_icon_draw(float x, float y, int icon_id)
 {
-	UI_icon_draw_aspect(x, y, icon_id, 1.0f / UI_DPI_ICON_FAC, 1.0f);
+	UI_icon_draw_aspect(x, y, icon_id, 1.0f / UI_DPI_FAC, 1.0f);
 }
 
 void UI_icon_draw_size(float x, float y, int size, int icon_id, float alpha)
