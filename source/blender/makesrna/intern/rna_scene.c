@@ -1247,27 +1247,32 @@ static void object_simplify_update(Object *ob)
 	}
 }
 
-static void rna_Scene_use_simplify_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_Scene_use_simplify_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
+	Scene *sce = ptr->id.data;
 	Scene *sce_iter;
 	Base *base;
 
-	for (SETLOOPER(scene, sce_iter, base))
+	for (SETLOOPER(sce, sce_iter, base))
 		object_simplify_update(base->object);
 	
 	DAG_ids_flush_update(bmain, 0);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, NULL);
 }
 
-static void rna_Scene_simplify_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Scene_simplify_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	if (scene->r.mode & R_SIMPLIFY)
-		rna_Scene_use_simplify_update(bmain, scene, ptr);
+	Scene *sce = ptr->id.data;
+
+	if (sce->r.mode & R_SIMPLIFY)
+		rna_Scene_use_simplify_update(bmain, sce, ptr);
 }
 
-static void rna_Scene_use_persistent_data_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
+static void rna_Scene_use_persistent_data_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	if (!(scene->r.mode & R_PERSISTENT_DATA))
+	Scene *sce = ptr->id.data;
+
+	if (!(sce->r.mode & R_PERSISTENT_DATA))
 		RE_FreePersistentData();
 }
 
