@@ -60,48 +60,49 @@
 #include "ED_uvedit.h"
 
 #include "UI_resources.h"
+#include "UI_interface.h"
 
 #include "uvedit_intern.h"
 
 void draw_image_cursor(SpaceImage *sima, ARegion *ar)
 {
-	float zoomx, zoomy, w, h;
+	float zoomx, zoomy, x_fac, y_fac;
 	int width, height;
 
 	ED_space_image_get_size(sima, &width, &height);
 	ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
 
-	w = zoomx * width / 256.0f;
-	h = zoomy * height / 256.0f;
+	x_fac = (1.0f / (zoomx * width  / 256.0f)) * UI_DPI_FAC;
+	y_fac = (1.0f / (zoomy * height / 256.0f)) * UI_DPI_FAC;
 	
 	cpack(0xFFFFFF);
 	glTranslatef(sima->cursor[0], sima->cursor[1], 0.0);
-	fdrawline(-0.05f / w, 0, 0, 0.05f / h);
-	fdrawline(0, 0.05f / h, 0.05f / w, 0.0f);
-	fdrawline(0.05f / w, 0.0f, 0.0f, -0.05f / h);
-	fdrawline(0.0f, -0.05f / h, -0.05f / w, 0.0f);
+	fdrawline(-0.05f * x_fac, 0, 0, 0.05f * y_fac);
+	fdrawline(0, 0.05f * y_fac, 0.05f * x_fac, 0.0f);
+	fdrawline(0.05f * x_fac, 0.0f, 0.0f, -0.05f * y_fac);
+	fdrawline(0.0f, -0.05f * y_fac, -0.05f * x_fac, 0.0f);
 
 	setlinestyle(4);
 	cpack(0xFF);
-	fdrawline(-0.05f / w, 0.0f, 0.0f, 0.05f / h);
-	fdrawline(0.0f, 0.05f / h, 0.05f / w, 0.0f);
-	fdrawline(0.05f / w, 0.0f, 0.0f, -0.05f / h);
-	fdrawline(0.0f, -0.05f / h, -0.05f / w, 0.0f);
+	fdrawline(-0.05f * x_fac, 0.0f, 0.0f, 0.05f * y_fac);
+	fdrawline(0.0f, 0.05f * y_fac, 0.05f * x_fac, 0.0f);
+	fdrawline(0.05f * x_fac, 0.0f, 0.0f, -0.05f * y_fac);
+	fdrawline(0.0f, -0.05f * y_fac, -0.05f * x_fac, 0.0f);
 
 
 	setlinestyle(0.0f);
 	cpack(0x0);
-	fdrawline(-0.020f / w, 0.0f, -0.1f / w, 0.0f);
-	fdrawline(0.1f / w, 0.0f, 0.020f / w, 0.0f);
-	fdrawline(0.0f, -0.020f / h, 0.0f, -0.1f / h);
-	fdrawline(0.0f, 0.1f / h, 0.0f, 0.020f / h);
+	fdrawline(-0.020f * x_fac, 0.0f, -0.1f * x_fac, 0.0f);
+	fdrawline(0.1f * x_fac, 0.0f, 0.020f * x_fac, 0.0f);
+	fdrawline(0.0f, -0.020f * y_fac, 0.0f, -0.1f * y_fac);
+	fdrawline(0.0f, 0.1f * y_fac, 0.0f, 0.020f * y_fac);
 
 	setlinestyle(1);
 	cpack(0xFFFFFF);
-	fdrawline(-0.020f / w, 0.0f, -0.1f / w, 0.0f);
-	fdrawline(0.1f / w, 0.0f, 0.020f / w, 0.0f);
-	fdrawline(0.0f, -0.020f / h, 0.0f, -0.1f / h);
-	fdrawline(0.0f, 0.1f / h, 0.0f, 0.020f / h);
+	fdrawline(-0.020f * x_fac, 0.0f, -0.1f * x_fac, 0.0f);
+	fdrawline(0.1f * x_fac, 0.0f, 0.020f * x_fac, 0.0f);
+	fdrawline(0.0f, -0.020f * y_fac, 0.0f, -0.1f * y_fac);
+	fdrawline(0.0f, 0.1f * y_fac, 0.0f, 0.020f * y_fac);
 
 	glTranslatef(-sima->cursor[0], -sima->cursor[1], 0.0);
 	setlinestyle(0);
