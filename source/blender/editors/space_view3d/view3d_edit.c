@@ -432,8 +432,21 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 	copy_v3_v3(vod->ofs, rv3d->ofs);
 
 	if (vod->use_dyn_ofs) {
-		/* If there's no selection, lastofs is unmodified and last value since static */
-		calculateTransformCenter(C, V3D_CENTROID, lastofs, NULL);
+		Scene *scene = CTX_data_scene(C);
+		Object *ob = OBACT;
+
+		if (ob->mode & OB_MODE_ALL_PAINT) {
+			/* transformation is disabled for painting modes, which will make it
+			 * so previous offset is used. This is annoying when you open file
+			 * saved with active object in painting mode
+			 */
+			copy_v3_v3(lastofs, ob->obmat[3]);
+		}
+		else {
+			/* If there's no selection, lastofs is unmodified and last value since static */
+			calculateTransformCenter(C, V3D_CENTROID, lastofs, NULL);
+		}
+
 		negate_v3_v3(vod->dyn_ofs, lastofs);
 	}
 	else if (U.uiflag & USER_ZBUF_ORBIT) {
