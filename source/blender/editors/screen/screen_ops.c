@@ -3595,7 +3595,7 @@ typedef struct RegionAlphaInfo {
 } RegionAlphaInfo;
 
 #define TIMEOUT		0.3f
-#define TIMESTEP	0.04
+#define TIMESTEP	0.04f
 
 float ED_region_blend_factor(ARegion *ar)
 {
@@ -3609,7 +3609,7 @@ float ED_region_blend_factor(ARegion *ar)
 			
 		alpha = (float)ar->regiontimer->duration / TIMEOUT;
 		/* makes sure the blend out works 100% - without area redraws */
-		if (rgi->hidden) alpha = 0.9 - TIMESTEP - alpha;
+		if (rgi->hidden) alpha = 0.9f - TIMESTEP - alpha;
 		
 		CLAMP(alpha, 0.0f, 1.0f);
 		return alpha;
@@ -3697,7 +3697,7 @@ static int region_blend_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *eve
 		ED_region_tag_redraw(rgi->child_ar);
 	
 	/* end timer? */
-	if (rgi->ar->regiontimer->duration > TIMEOUT) {
+	if (rgi->ar->regiontimer->duration > (double)TIMEOUT) {
 		region_blend_end(C, rgi->ar, 0);
 		return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
 	}

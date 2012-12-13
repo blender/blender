@@ -1432,7 +1432,10 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 					
 					/* divider */
 					UI_ThemeColorShade(TH_BACK, -40);
-					glRecti(tempx - 10.0 * ufac, *starty + 4.0f * ufac, tempx - 8.0f * ufac, *starty + UI_UNIT_Y - 4.0f * ufac);
+					glRecti(tempx   - 10.0f * ufac,
+					        *starty +  4.0f * ufac,
+					        tempx   -  8.0f * ufac,
+					        *starty + UI_UNIT_Y - 4.0f * ufac);
 					
 					glEnable(GL_BLEND);
 					glPixelTransferf(GL_ALPHA_SCALE, 0.5);

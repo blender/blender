@@ -699,28 +699,28 @@ static void region_azone_tab_plus(ScrArea *sa, AZone *az, ARegion *ar)
 	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
 			if (ar->winrct.ymax == sa->totrct.ymin) add = 1; else add = 0;
-			az->x1 = ar->winrct.xmax - 2.5 * AZONEPAD_TAB_PLUSW;
+			az->x1 = ar->winrct.xmax - 2.5f * AZONEPAD_TAB_PLUSW;
 			az->y1 = ar->winrct.ymax - add;
-			az->x2 = ar->winrct.xmax - 1.5 * AZONEPAD_TAB_PLUSW;
+			az->x2 = ar->winrct.xmax - 1.5f * AZONEPAD_TAB_PLUSW;
 			az->y2 = ar->winrct.ymax - add + AZONEPAD_TAB_PLUSH;
 			break;
 		case AE_BOTTOM_TO_TOPLEFT:
-			az->x1 = ar->winrct.xmax - 2.5 * AZONEPAD_TAB_PLUSW;
+			az->x1 = ar->winrct.xmax - 2.5f * AZONEPAD_TAB_PLUSW;
 			az->y1 = ar->winrct.ymin - AZONEPAD_TAB_PLUSH;
-			az->x2 = ar->winrct.xmax - 1.5 * AZONEPAD_TAB_PLUSW;
+			az->x2 = ar->winrct.xmax - 1.5f * AZONEPAD_TAB_PLUSW;
 			az->y2 = ar->winrct.ymin;
 			break;
 		case AE_LEFT_TO_TOPRIGHT:
 			az->x1 = ar->winrct.xmin - AZONEPAD_TAB_PLUSH;
-			az->y1 = ar->winrct.ymax - 2.5 * AZONEPAD_TAB_PLUSW;
+			az->y1 = ar->winrct.ymax - 2.5f * AZONEPAD_TAB_PLUSW;
 			az->x2 = ar->winrct.xmin;
-			az->y2 = ar->winrct.ymax - 1.5 * AZONEPAD_TAB_PLUSW;
+			az->y2 = ar->winrct.ymax - 1.5f * AZONEPAD_TAB_PLUSW;
 			break;
 		case AE_RIGHT_TO_TOPLEFT:
 			az->x1 = ar->winrct.xmax - 1;
-			az->y1 = ar->winrct.ymax - 2.5 * AZONEPAD_TAB_PLUSW;
+			az->y1 = ar->winrct.ymax - 2.5f * AZONEPAD_TAB_PLUSW;
 			az->x2 = ar->winrct.xmax - 1 + AZONEPAD_TAB_PLUSH;
-			az->y2 = ar->winrct.ymax - 1.5 * AZONEPAD_TAB_PLUSW;
+			az->y2 = ar->winrct.ymax - 1.5f * AZONEPAD_TAB_PLUSW;
 			break;
 	}
 	/* rect needed for mouse pointer test */

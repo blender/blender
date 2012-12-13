@@ -385,7 +385,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 				
 				BLI_make_file_string("/", filename, BLI_temporary_dir(), "quit.blend");
 
-				if (BKE_undo_save_file(C, filename))
+				if (BKE_undo_save_file(filename))
 					printf("Saved session recovery to '%s'\n", filename);
 			}
 		}

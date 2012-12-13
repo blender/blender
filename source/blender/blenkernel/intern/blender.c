@@ -788,7 +788,7 @@ char *BKE_undo_menu_string(void)
 }
 
 /* saves .blend using undo buffer, returns 1 == success */
-int BKE_undo_save_file(const bContext *C, char *filename)
+int BKE_undo_save_file(const char *filename)
 {
 	UndoElem *uel;
 	MemFileChunk *chunk;

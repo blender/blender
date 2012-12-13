@@ -99,7 +99,7 @@ extern void BKE_reset_undo(void);
 extern char *BKE_undo_menu_string(void);
 extern void BKE_undo_number(struct bContext *C, int nr);
 extern const char *BKE_undo_get_name(int nr, int *active);
-extern int BKE_undo_save_file(const struct bContext *C, char *filename);
+extern int BKE_undo_save_file(const char *filename);
 extern struct Main *BKE_undo_get_main(struct Scene **scene);
 
 	/* copybuffer */

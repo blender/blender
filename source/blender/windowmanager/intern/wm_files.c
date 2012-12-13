@@ -1006,7 +1006,7 @@ void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *UNUSED(w
 
 	if (U.uiflag & USER_GLOBALUNDO) {
 		/* fast save of last undobuffer, now with UI */
-		BKE_undo_save_file(C, filepath);
+		BKE_undo_save_file(filepath);
 	}
 	else {
 		/*  save as regular blend file */
