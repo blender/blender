@@ -622,14 +622,19 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 		// back to YES right before closing
 		[m_window setReleasedWhenClosed:YES];
 		[m_window close];
-		m_window = nil;
 	}
 	
-	//Check for other blender opened windows and make the frontmost key
+	// Check for other blender opened windows and make the frontmost key
+	// Note: for some reason the closed window is still in the list
 	NSArray *windowsList = [NSApp orderedWindows];
-	if ([windowsList count]) {
-		[[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
+	for (int a = 0; a < [windowsList count]; a++) {
+		if (m_window != (CocoaWindow *)[windowsList objectAtIndex:a]) {
+			[[windowsList objectAtIndex:a] makeKeyAndOrderFront:nil];
+			break;
+		}
 	}
+	m_window = nil;
+
 	[pool drain];
 }
 
