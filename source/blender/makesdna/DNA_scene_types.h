@@ -945,7 +945,7 @@ typedef struct ToolSettings {
 	short uvcalc_mapalign;
 	short uvcalc_flag;
 	short uv_flag, uv_selectmode;
-	short uv_subsurf_level;
+	short pad2;
 	
 	/* Grease Pencil */
 	short gpencil_flags;
@@ -973,7 +973,7 @@ typedef struct ToolSettings {
 
 	/* Multires */
 	char multires_subdiv_type;
-	char pad2[5];
+	char pad3[5];
 
 	/* Skeleton generation */
 	short skgen_resolution;
