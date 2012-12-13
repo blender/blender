@@ -25,10 +25,49 @@ from bpy.props import (BoolProperty,
                        IntProperty,
                        PointerProperty)
 
-import math
+# enums
 
-from . import enums
+enum_devices = (
+    ('CPU', "CPU", "Use CPU for rendering"),
+    ('GPU', "GPU Compute", "Use GPU compute device for rendering, configured in user preferences"))
 
+enum_feature_set = (
+    ('SUPPORTED', "Supported", "Only use finished and supported features"),
+    ('EXPERIMENTAL', "Experimental", "Use experimental and incomplete features that might be broken or change in the future"),
+    )
+
+enum_shading_systems = (
+    ('GPU_COMPATIBLE', "GPU Compatible", "Restricted shading system compatible with GPU rendering"),
+    ('OSL', "Open Shading Language", "Open Shading Language shading system that only runs on the CPU"),
+    )
+
+enum_displacement_methods = (
+    ('BUMP', "Bump", "Bump mapping to simulate the appearance of displacement"),
+    ('TRUE', "True", "Use true displacement only, requires fine subdivision"),
+    ('BOTH', "Both", "Combination of displacement and bump mapping"),
+    )
+
+enum_bvh_types = (
+    ('DYNAMIC_BVH', "Dynamic BVH", "Objects can be individually updated, at the cost of slower render time"),
+    ('STATIC_BVH', "Static BVH", "Any object modification requires a complete BVH rebuild, but renders faster"),
+    )
+
+enum_filter_types = (
+    ('BOX', "Box", "Box filter"),
+    ('GAUSSIAN', "Gaussian", "Gaussian filter"),
+    )
+
+enum_aperture_types = (
+    ('RADIUS', "Radius", "Directly change the size of the aperture"),
+    ('FSTOP', "F/stop", "Change the size of the aperture by f/stops"),
+    )
+
+enum_panorama_types = (
+    ('EQUIRECTANGULAR', "Equirectangular", "Render the scene with a spherical camera, also known as Lat Long panorama"),
+    ('FISHEYE_EQUIDISTANT', "Fisheye Equidistant", "Ideal for fulldomes, ignore the sensor dimensions"),
+    ('FISHEYE_EQUISOLID', "Fisheye Equisolid",
+                          "Similar to most fisheye modern lens, takes sensor dimensions into consideration"),
+    )
 
 class CyclesRenderSettings(bpy.types.PropertyGroup):
     @classmethod
@@ -41,19 +80,19 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         cls.device = EnumProperty(
                 name="Device",
                 description="Device to use for rendering",
-                items=enums.devices,
+                items=enum_devices,
                 default='CPU',
                 )
         cls.feature_set = EnumProperty(
                 name="Feature Set",
                 description="Feature set to use for rendering",
-                items=enums.feature_set,
+                items=enum_feature_set,
                 default='SUPPORTED',
                 )
         cls.shading_system = EnumProperty(
                 name="Shading System",
                 description="Shading system to use for rendering",
-                items=enums.shading_systems,
+                items=enum_shading_systems,
                 default='GPU_COMPATIBLE',
                 )
 
@@ -212,7 +251,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         cls.filter_type = EnumProperty(
                 name="Filter Type",
                 description="Pixel filter type",
-                items=enums.filter_types,
+                items=enum_filter_types,
                 default='GAUSSIAN',
                 )
         cls.filter_width = FloatProperty(
@@ -275,7 +314,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         cls.debug_bvh_type = EnumProperty(
                 name="Viewport BVH Type",
                 description="Choose between faster updates, or faster render",
-                items=enums.bvh_types,
+                items=enum_bvh_types,
                 default='DYNAMIC_BVH',
                 )
         cls.debug_use_spatial_splits = BoolProperty(
@@ -305,6 +344,8 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
 class CyclesCameraSettings(bpy.types.PropertyGroup):
     @classmethod
     def register(cls):
+        import math
+
         bpy.types.Camera.cycles = PointerProperty(
                 name="Cycles Camera Settings",
                 description="Cycles camera settings",
@@ -314,7 +355,7 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
         cls.aperture_type = EnumProperty(
                 name="Aperture Type",
                 description="Use F/stop number or aperture radius",
-                items=enums.aperture_types,
+                items=enum_aperture_types,
                 default='RADIUS',
                 )
         cls.aperture_fstop = FloatProperty(
@@ -349,7 +390,7 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
         cls.panorama_type = EnumProperty(
                 name="Panorama Type",
                 description="Distortion to use for the calculation",
-                items=enums.panorama_types,
+                items=enum_panorama_types,
                 default='FISHEYE_EQUISOLID',
                 )
         cls.fisheye_fov = FloatProperty(
@@ -518,7 +559,7 @@ class CyclesMeshSettings(bpy.types.PropertyGroup):
         cls.displacement_method = EnumProperty(
                 name="Displacement Method",
                 description="Method to use for the displacement",
-                items=enums.displacement_methods,
+                items=enum_displacement_methods,
                 default='BUMP',
                 )
         cls.use_subdivision = BoolProperty(

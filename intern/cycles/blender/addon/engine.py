@@ -18,10 +18,8 @@
 
 # <pep8 compliant>
 
-import bpy
-
-
 def init():
+    import bpy
     import _cycles
     import os.path
 
@@ -32,6 +30,7 @@ def init():
 
 
 def create(engine, data, scene, region=0, v3d=0, rv3d=0):
+    import bpy
     import _cycles
 
     data = data.as_pointer()

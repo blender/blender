@@ -22,8 +22,6 @@ import bpy
 
 from bpy.types import Panel, Menu
 
-from . import enums, engine
-
 
 class CYCLES_MT_integrator_presets(Menu):
     bl_label = "Integrator Presets"
@@ -947,6 +945,7 @@ def draw_device(self, context):
     layout = self.layout
 
     if scene.render.engine == 'CYCLES':
+        from . import engine
         cscene = scene.cycles
 
         layout.prop(cscene, "feature_set")
