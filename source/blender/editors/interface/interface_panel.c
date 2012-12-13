@@ -1096,27 +1096,45 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 	ARegion *ar = CTX_wm_region(C);
 	uiBlock *block;
 	Panel *pa;
-	int retval, mx, my, inside_header = 0, inside_scale = 0, inside;
+	int retval, mx, my;
 
 	retval = WM_UI_HANDLER_CONTINUE;
 	for (block = ar->uiblocks.last; block; block = block->prev) {
+		int inside = 0, inside_header = 0, inside_scale = 0;
+		
 		mx = event->x;
 		my = event->y;
 		ui_window_to_block(ar, block, &mx, &my);
 
-		/* check if inside boundbox */
-		inside = 0;
+		/* checks for mouse position inside */
 		pa = block->panel;
 
 		if (!pa || pa->paneltab != NULL)
 			continue;
 		if (pa->type && pa->type->flag & PNL_NO_HEADER)  /* XXX - accessed freed panels when scripts reload, need to fix. */
 			continue;
-
-		if (block->rect.xmin <= mx && block->rect.xmax >= mx)
-			if (block->rect.ymin <= my && block->rect.ymax + PNL_HEADER >= my)
-				inside = 1;
 		
+		/* clicked at panel header? */
+		if (pa->flag & PNL_CLOSEDX) {
+			if (block->rect.xmin <= mx && block->rect.xmin + PNL_HEADER >= mx)
+				inside_header = 1;
+		}
+		else if ((block->rect.ymax <= my) && (block->rect.ymax + PNL_HEADER >= my)) {
+			inside_header = 1;
+		}
+		else if (!(pa->flag & PNL_CLOSEDY)) {
+			/* open panel */
+			if (pa->control & UI_PNL_SCALE) {
+				if (block->rect.xmax - PNL_HEADER <= mx)
+					if (block->rect.ymin + PNL_HEADER >= my)
+						inside_scale = 1;
+			}
+			if (block->rect.xmin <= mx && block->rect.xmax >= mx)
+				if (block->rect.ymin <= my && block->rect.ymax + PNL_HEADER >= my)
+					inside = 1;
+		}
+		
+		/* XXX hardcoded key warning */
 		if (inside && event->val == KM_PRESS) {
 			if (event->type == AKEY && !ELEM4(KM_MOD_FIRST, event->ctrl, event->oskey, event->shift, event->alt)) {
 				
@@ -1135,22 +1153,13 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 		if (ui_button_is_active(ar))
 			continue;
 		
-		if (inside) {
-			/* clicked at panel header? */
-			if (pa->flag & PNL_CLOSEDX) {
-				if (block->rect.xmin <= mx && block->rect.xmin + PNL_HEADER >= mx)
-					inside_header = 1;
-			}
-			else if ((block->rect.ymax <= my) && (block->rect.ymax + PNL_HEADER >= my)) {
-				inside_header = 1;
-			}
-			else if (pa->control & UI_PNL_SCALE) {
-				if (block->rect.xmax - PNL_HEADER <= mx)
-					if (block->rect.ymin + PNL_HEADER >= my)
-						inside_scale = 1;
-			}
+		if (inside || inside_header) {
 
 			if (event->val == KM_PRESS) {
+				
+				/* all inside clicks should return in break - overlapping/float panels */
+				retval = WM_UI_HANDLER_BREAK;
+
 				/* open close on header */
 				if (ELEM(event->type, RETKEY, PADENTER)) {
 					if (inside_header) {
