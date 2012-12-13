@@ -288,7 +288,7 @@
                              header="#000000"
                              header_text="#979797"
                              header_text_hi="#ffffff"
-                             button="#000000"
+                             button="#00000057"
                              button_title="#c5c5c5"
                              button_text="#c3c3c3"
                              button_text_hi="#ffffff">
@@ -331,7 +331,7 @@
                              header="#000000"
                              header_text="#979797"
                              header_text_hi="#ffffff"
-                             button="#000000"
+                             button="#000000ff"
                              button_title="#c5c5c5"
                              button_text="#c3c3c3"
                              button_text_hi="#ffffff">
@@ -361,7 +361,7 @@
                              header="#000000"
                              header_text="#979797"
                              header_text_hi="#ffffff"
-                             button="#000000"
+                             button="#000000ff"
                              button_title="#c5c5c5"
                              button_text="#c3c3c3"
                              button_text_hi="#ffffff">
@@ -400,7 +400,7 @@
                              header="#000000"
                              header_text="#979797"
                              header_text_hi="#ffffff"
-                             button="#000000"
+                             button="#000000ff"
                              button_title="#c3c3c3"
                              button_text="#c3c3c3"
                              button_text_hi="#ffffff">
@@ -437,7 +437,7 @@
                              header="#000000"
                              header_text="#979797"
                              header_text_hi="#ffffff"
-                             button="#000000"
+                             button="#000000ff"
                              button_title="#c5c5c5"
                              button_text="#c3c3c3"
                              button_text_hi="#ffffff">
@@ -476,7 +476,7 @@
                              header="#000000"
                              header_text="#979797"
                              header_text_hi="#ffffff"
-                             button="#000000"
+                             button="#000000ff"
                              button_title="#c5c5c5"
                              button_text="#c3c3c3"
                              button_text_hi="#ffffff">
@@ -507,7 +507,7 @@
                              header="#000000"
                              header_text="#f3f3f3"
                              header_text_hi="#ffffff"
-                             button="#020202"
+                             button="#02020242"
                              button_title="#bdbdbd"
                              button_text="#dddddd"
                              button_text_hi="#ffffff">
@@ -525,7 +525,7 @@
                              header="#000000"
                              header_text="#979797"
                              header_text_hi="#ffffff"
-                             button="#000000"
+                             button="#000000ff"
                              button_title="#c5c5c5"
                              button_text="#c3c3c3"
                              button_text_hi="#ffffff">
@@ -550,7 +550,7 @@
                              header="#000000"
                              header_text="#b9b9b9"
                              header_text_hi="#ffffff"
-                             button="#000000"
+                             button="#000000ff"
                              button_title="#d8d8d8"
                              button_text="#cccccc"
                              button_text_hi="#ffffff">
@@ -569,7 +569,7 @@
                              header="#000000"
                              header_text="#979797"
                              header_text_hi="#ffffff"
-                             button="#000000"
+                             button="#000000ff"
                              button_title="#c5c5c5"
                              button_text="#c3c3c3"
                              button_text_hi="#ffffff">
@@ -598,7 +598,7 @@
                              header="#000000"
                              header_text="#c7c7c7"
                              header_text_hi="#ffffff"
-                             button="#000000"
+                             button="#0000002f"
                              button_title="#c5c5c5"
                              button_text="#c3c3c3"
                              button_text_hi="#ffffff">
@@ -623,7 +623,7 @@
                              header="#000000"
                              header_text="#979797"
                              header_text_hi="#ffffff"
-                             button="#000000"
+                             button="#000000ff"
                              button_title="#c5c5c5"
                              button_text="#c3c3c3"
                              button_text_hi="#ffffff">
@@ -642,7 +642,7 @@
                              header="#000000"
                              header_text="#979797"
                              header_text_hi="#ffffff"
-                             button="#000000"
+                             button="#000000ff"
                              button_title="#c5c5c5"
                              button_text="#c3c3c3"
                              button_text_hi="#ffffff">
@@ -660,7 +660,7 @@
                              header="#000000"
                              header_text="#adadad"
                              header_text_hi="#ffffff"
-                             button="#000000"
+                             button="#000000ff"
                              button_title="#c5c5c5"
                              button_text="#c3c3c3"
                              button_text_hi="#ffffff">
@@ -678,7 +678,7 @@
                              header="#000000"
                              header_text="#979797"
                              header_text_hi="#ffffff"
-                             button="#000000"
+                             button="#000000ff"
                              button_title="#c5c5c5"
                              button_text="#c3c3c3"
                              button_text_hi="#ffffff">
@@ -700,7 +700,7 @@
                              header="#000000"
                              header_text="#979797"
                              header_text_hi="#ffffff"
-                             button="#000000"
+                             button="#000000ff"
                              button_title="#c5c5c5"
                              button_text="#c3c3c3"
                              button_text_hi="#ffffff">
@@ -732,7 +732,7 @@
                              header="#000000"
                              header_text="#979797"
                              header_text_hi="#ffffff"
-                             button="#070707"
+                             button="#070707ff"
                              button_title="#c5c5c5"
                              button_text="#c3c3c3"
                              button_text_hi="#ffffff">
