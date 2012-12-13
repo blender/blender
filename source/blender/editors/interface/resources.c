@@ -2009,7 +2009,7 @@ void init_userdef_do_versions(void)
 	if (U.tweak_threshold == 0)
 		U.tweak_threshold = 10;
 
-	if (bmain->versionfile < 265) {	/* XXX fix for when you apply */
+	if (bmain->versionfile < 265 || (bmain->versionfile == 265 && bmain->subversionfile < 1)) {
 		bTheme *btheme;
 		
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
