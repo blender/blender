@@ -67,8 +67,7 @@ void free_avicodecdata(struct AviCodecData *acd);
 void free_qtcodecdata(struct QuicktimeCodecData *acd);
 
 void BKE_scene_free(struct Scene *sce);
-struct Scene *BKE_scene_add(const char *name);
-struct Scene *BKE_main_scene_add(struct Main *bmain, const char *name);
+struct Scene *BKE_scene_add(struct Main *bmain, const char *name);
 
 /* base functions */
 struct Base *BKE_scene_base_find(struct Scene *scene, struct Object *ob);

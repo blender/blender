@@ -234,7 +234,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 		curscene = bfd->curscene;
 		if (curscene == NULL) curscene = bfd->main->scene.first;
 		/* empty file, we add a scene to make Blender work */
-		if (curscene == NULL) curscene = BKE_main_scene_add(bfd->main, "Empty");
+		if (curscene == NULL) curscene = BKE_scene_add(bfd->main, "Empty");
 		
 		/* and we enforce curscene to be in current screen */
 		if (curscreen) curscreen->scene = curscene;  /* can run in bgmode */
@@ -286,7 +286,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	if (CTX_data_scene(C) == NULL) {
 		/* in case we don't even have a local scene, add one */
 		if (!G.main->scene.first)
-			BKE_scene_add("Scene");
+			BKE_scene_add(G.main, "Scene");
 
 		CTX_data_scene_set(C, G.main->scene.first);
 		CTX_wm_screen(C)->scene = CTX_data_scene(C);

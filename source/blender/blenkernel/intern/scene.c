@@ -143,7 +143,8 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 	
 	if (type == SCE_COPY_EMPTY) {
 		ListBase lb;
-		scen = BKE_scene_add(sce->id.name + 2);
+		/* XXX. main should become an arg */
+		scen = BKE_scene_add(G.main, sce->id.name + 2);
 		
 		lb = scen->r.layers;
 		scen->r = sce->r;
@@ -604,12 +605,7 @@ static Scene *scene_add(Main *bmain, const char *name)
 	return sce;
 }
 
-Scene *BKE_scene_add(const char *name)
-{
-	return scene_add(G.main, name);
-}
-
-Scene *BKE_main_scene_add(Main *bmain, const char *name)
+Scene *BKE_scene_add(Main *bmain, const char *name)
 {
 	return scene_add(bmain, name);
 }
