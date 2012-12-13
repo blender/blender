@@ -119,7 +119,7 @@ typedef struct uiWidgetType {
 	void (*state)(struct uiWidgetType *, int state);
 	void (*draw)(uiWidgetColors *, rcti *, int state, int roundboxalign);
 	void (*custom)(uiBut *, uiWidgetColors *, rcti *, int state, int roundboxalign);
-	void (*text)(uiFontStyle *, uiWidgetColors *, uiBut *, rcti *);
+	void (*text)(uiFontStyle *, uiWidgetColors *, uiBut *,  rcti *);
 	
 } uiWidgetType;
 
@@ -251,7 +251,7 @@ static void widget_init(uiWidgetBase *wtb)
 
 /* helper call, makes shadow rect, with 'sun' above menu, so only shadow to left/right/bottom */
 /* return tot */
-static int round_box_shadow_edges(float (*vert)[2], rcti *rect, float rad, int roundboxalign, float step)
+static int round_box_shadow_edges(float (*vert)[2], const rcti *rect, float rad, int roundboxalign, float step)
 {
 	float vec[WIDGET_CURVE_RESOLU][2];
 	float minx, miny, maxx, maxy;
@@ -329,7 +329,7 @@ static int round_box_shadow_edges(float (*vert)[2], rcti *rect, float rad, int r
 }
 
 /* this call has 1 extra arg to allow mask outline */
-static void round_box__edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, float rad, float radi)
+static void round_box__edges(uiWidgetBase *wt, int roundboxalign, const rcti *rect, float rad, float radi)
 {
 	float vec[WIDGET_CURVE_RESOLU][2], veci[WIDGET_CURVE_RESOLU][2];
 	float minx = rect->xmin, miny = rect->ymin, maxx = rect->xmax, maxy = rect->ymax;
@@ -479,14 +479,14 @@ static void round_box__edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, fl
 	wt->totvert = tot;
 }
 
-static void round_box_edges(uiWidgetBase *wt, int roundboxalign, rcti *rect, float rad)
+static void round_box_edges(uiWidgetBase *wt, int roundboxalign, const rcti *rect, float rad)
 {
 	round_box__edges(wt, roundboxalign, rect, rad, rad - U.pixelsize);
 }
 
 
 /* based on button rect, return scaled array of triangles */
-static void widget_num_tria(uiWidgetTrias *tria, rcti *rect, float triasize, char where)
+static void widget_num_tria(uiWidgetTrias *tria, const rcti *rect, float triasize, char where)
 {
 	float centx, centy, sizex, sizey, minsize;
 	int a, i1 = 0, i2 = 1;
@@ -521,7 +521,7 @@ static void widget_num_tria(uiWidgetTrias *tria, rcti *rect, float triasize, cha
 	tria->index = num_tria_face;
 }
 
-static void widget_scroll_circle(uiWidgetTrias *tria, rcti *rect, float triasize, char where)
+static void widget_scroll_circle(uiWidgetTrias *tria, const rcti *rect, float triasize, char where)
 {
 	float centx, centy, sizex, sizey, minsize;
 	int a, i1 = 0, i2 = 1;
@@ -564,7 +564,7 @@ static void widget_trias_draw(uiWidgetTrias *tria)
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-static void widget_menu_trias(uiWidgetTrias *tria, rcti *rect)
+static void widget_menu_trias(uiWidgetTrias *tria, const rcti *rect)
 {
 	float centx, centy, size, asp;
 	int a;
@@ -588,7 +588,7 @@ static void widget_menu_trias(uiWidgetTrias *tria, rcti *rect)
 	tria->index = menu_tria_face;
 }
 
-static void widget_check_trias(uiWidgetTrias *tria, rcti *rect)
+static void widget_check_trias(uiWidgetTrias *tria, const rcti *rect)
 {
 	float centx, centy, size;
 	int a;
@@ -833,7 +833,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 #define PREVIEW_PAD 4
 
-static void widget_draw_preview(BIFIconID icon, float UNUSED(alpha), rcti *rect)
+static void widget_draw_preview(BIFIconID icon, float UNUSED(alpha), const rcti *rect)
 {
 	int w, h, size;
 
@@ -861,7 +861,7 @@ static int ui_but_draw_menu_icon(uiBut *but)
 
 /* icons have been standardized... and this call draws in untransformed coordinates */
 
-static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect)
+static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, const rcti *rect)
 {
 	float xs = 0.0f, ys = 0.0f;
 	float aspect, height;
@@ -963,7 +963,7 @@ static void ui_text_clip_give_next_off(uiBut *but)
  * \note Sets but->ofs to make sure text is correctly visible.
  * \note Clips right in some cases, this function could be cleaned up.
  */
-static void ui_text_clip_left(uiFontStyle *fstyle, uiBut *but, rcti *rect)
+static void ui_text_clip_left(uiFontStyle *fstyle, uiBut *but, const rcti *rect)
 {
 	int border = (but->flag & UI_BUT_ALIGN_RIGHT) ? 8 : 10;
 	int okwidth = BLI_rcti_size_x(rect) - border;
@@ -992,7 +992,7 @@ static void ui_text_clip_left(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 /**
  * Cut off the text, taking into account the cursor location (text display while editing).
  */
-static void ui_text_clip_cursor(uiFontStyle *fstyle, uiBut *but, rcti *rect)
+static void ui_text_clip_cursor(uiFontStyle *fstyle, uiBut *but, const rcti *rect)
 {
 	int border = (but->flag & UI_BUT_ALIGN_RIGHT) ? 8 : 10;
 	int okwidth = BLI_rcti_size_x(rect) - border;
@@ -1056,7 +1056,7 @@ static void ui_text_clip_cursor(uiFontStyle *fstyle, uiBut *but, rcti *rect)
  *
  * \note deals with ': ' especially for number buttons
  */
-static void ui_text_clip_right_label(uiFontStyle *fstyle, uiBut *but, rcti *rect)
+static void ui_text_clip_right_label(uiFontStyle *fstyle, uiBut *but, const rcti *rect)
 {
 	int border = (but->flag & UI_BUT_ALIGN_RIGHT) ? 8 : 10;
 	int okwidth = BLI_rcti_size_x(rect) - border;
@@ -1800,7 +1800,7 @@ static void widget_state_menu_item(uiWidgetType *wt, int state)
 /* ************ menu backdrop ************************* */
 
 /* outside of rect, rad to left/bottom/right */
-static void widget_softshadow(rcti *rect, int roundboxalign, float radin, float radout)
+static void widget_softshadow(const rcti *rect, int roundboxalign, const float radin, const float radout)
 {
 	uiWidgetBase wtb;
 	rcti rect1 = *rect;
@@ -1996,7 +1996,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 /* ************ custom buttons, old stuff ************** */
 
 /* draws in resolution of 20x4 colors */
-void ui_draw_gradient(rcti *rect, const float hsv[3], const int type, const float alpha)
+void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, const float alpha)
 {
 	const float color_step = (type == UI_GRAD_H) ? 0.02f : 0.05f;
 	int a;
@@ -2135,7 +2135,7 @@ void ui_draw_gradient(rcti *rect, const float hsv[3], const int type, const floa
 
 
 
-static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
+static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
 {
 	float rgb[3];
 	float x = 0.0f, y = 0.0f;
@@ -2178,10 +2178,10 @@ static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 }
 
 /* vertical 'value' slider, using new widget code */
-static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
+static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 {
 	uiWidgetBase wtb;
-	float rad = 0.5f * BLI_rcti_size_x(rect);
+	const float rad = 0.5f * BLI_rcti_size_x(rect);
 	float x, y;
 	float rgb[3], hsv[3], v, range;
 	int color_profile = but->block->color_profile;
@@ -2226,7 +2226,7 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 
 
 /* ************ separator, for menus etc ***************** */
-static void ui_draw_separator(rcti *rect,  uiWidgetColors *wcol)
+static void ui_draw_separator(const rcti *rect,  uiWidgetColors *wcol)
 {
 	int y = rect->ymin + BLI_rcti_size_y(rect) / 2 - 1;
 	unsigned char col[4];
@@ -2247,7 +2247,7 @@ static void ui_draw_separator(rcti *rect,  uiWidgetColors *wcol)
 static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	uiWidgetBase wtb;
-	float rad = 0.5f * BLI_rcti_size_y(rect);
+	const float rad = 0.5f * BLI_rcti_size_y(rect);
 	float textofs = rad * 0.75f;
 
 	if (state & UI_SELECT)
@@ -2271,7 +2271,7 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 	rect->xmax -= textofs;
 }
 
-int ui_link_bezier_points(rcti *rect, float coord_array[][2], int resol)
+int ui_link_bezier_points(const rcti *rect, float coord_array[][2], int resol)
 {
 	float dist, vec[4][2];
 
@@ -2295,7 +2295,7 @@ int ui_link_bezier_points(rcti *rect, float coord_array[][2], int resol)
 }
 
 #define LINK_RESOL  24
-void ui_draw_link_bezier(rcti *rect)
+void ui_draw_link_bezier(const rcti *rect)
 {
 	float coord_array[LINK_RESOL + 1][2];
 	
@@ -2318,18 +2318,18 @@ void ui_draw_link_bezier(rcti *rect)
 }
 
 /* function in use for buttons and for view2d sliders */
-void uiWidgetScrollDraw(uiWidgetColors *wcol, rcti *rect, rcti *slider, int state)
+void uiWidgetScrollDraw(uiWidgetColors *wcol, const rcti *rect, const rcti *slider, int state)
 {
 	uiWidgetBase wtb;
-	float rad;
 	int horizontal;
+	float rad;
 	short outline = 0;
 
 	widget_init(&wtb);
 
 	/* determine horizontal/vertical */
 	horizontal = (BLI_rcti_size_x(rect) > BLI_rcti_size_y(rect));
-	
+
 	if (horizontal)
 		rad = 0.5f * BLI_rcti_size_y(rect);
 	else
@@ -2726,7 +2726,7 @@ static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int 
 {
 	if (state & UI_ACTIVE) {
 		uiWidgetBase wtb;
-		float rad = 0.2f * U.widget_unit;
+		const float rad = 0.2f * U.widget_unit;
 
 		widget_init(&wtb);
 
@@ -2864,7 +2864,7 @@ static void widget_but(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int 
 static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
 {
 	uiWidgetBase wtb;
-	float rad = 0.25f * U.widget_unit;
+	const float rad = 0.25f * U.widget_unit;
 	
 	widget_init(&wtb);
 	
@@ -2877,7 +2877,7 @@ static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state),
 static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *wt, rcti *rect)
 {
 	uiWidgetBase wtb;
-	float rad = 0.25f * U.widget_unit;
+	const float rad = 0.25f * U.widget_unit;
 	unsigned char col[4];
 	
 	/* state copy! */
@@ -2906,7 +2906,7 @@ static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *
 }
 
 
-static void widget_disabled(rcti *rect)
+static void widget_disabled(const rcti *rect)
 {
 	float col[4];
 	

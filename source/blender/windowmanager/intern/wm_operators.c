@@ -2020,7 +2020,7 @@ void wm_recover_last_session(bContext *C, ReportList *reports)
 {
 	char filename[FILE_MAX];
 	
-	BLI_make_file_string("/", filename, BLI_temporary_dir(), "quit.blend");
+	BLI_make_file_string("/", filename, BLI_temporary_dir(), BLENDER_QUIT_FILE);
 	/* if reports==NULL, it's called directly without operator, we add a quick check here */
 	if (reports || BLI_exists(filename)) {
 		G.fileflags |= G_FILE_RECOVER;
@@ -2050,7 +2050,7 @@ static void WM_OT_recover_last_session(wmOperatorType *ot)
 {
 	ot->name = "Recover Last Session";
 	ot->idname = "WM_OT_recover_last_session";
-	ot->description = "Open the last closed file (\"quit.blend\")";
+	ot->description = "Open the last closed file (\"" BLENDER_QUIT_FILE "\")";
 	
 	ot->exec = wm_recover_last_session_exec;
 	ot->poll = WM_operator_winactive;

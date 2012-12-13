@@ -2082,7 +2082,7 @@ void uiTemplateCurveMapping(uiLayout *layout, PointerRNA *ptr, const char *propn
 
 /********************* ColorPicker Template ************************/
 
-#define WHEEL_SIZE  (5*U.widget_unit)
+#define WHEEL_SIZE  (5 * U.widget_unit)
 
 /* This template now follows User Preference for type - name is not correct anymore... */
 void uiTemplateColorPicker(uiLayout *layout, PointerRNA *ptr, const char *propname, int value_slider,

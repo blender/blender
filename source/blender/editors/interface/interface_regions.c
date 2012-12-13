@@ -306,8 +306,9 @@ static ARegion *ui_add_temporary_region(bScreen *sc)
 
 static void ui_remove_temporary_region(bContext *C, bScreen *sc, ARegion *ar)
 {
-	if (CTX_wm_window(C))
-		wm_draw_region_clear(CTX_wm_window(C), ar);
+	wmWindow *win = CTX_wm_window(C);
+	if (win)
+		wm_draw_region_clear(win, ar);
 
 	ED_region_exit(C, ar);
 	BKE_area_region_free(NULL, ar);     /* NULL: no spacetype */
@@ -416,6 +417,7 @@ static void ui_tooltip_region_free_cb(ARegion *ar)
 
 ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 {
+	wmWindow *win = CTX_wm_window(C);
 	uiStyle *style = UI_GetStyle();
 	static ARegionType type;
 	ARegion *ar;
@@ -672,9 +674,9 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		BLI_rcti_translate(&rect_i, butregion->winrct.xmin, butregion->winrct.ymin);
 	}
 
-	winx = WM_window_pixels_x(CTX_wm_window(C));
-	winy = WM_window_pixels_y(CTX_wm_window(C));
-	//wm_window_get_size(CTX_wm_window(C), &winx, &winy);
+	winx = WM_window_pixels_x(win);
+	winy = WM_window_pixels_y(win);
+	//wm_window_get_size(win, &winx, &winy);
 
 	if (rect_i.xmax > winx) {
 		/* super size */
@@ -1099,6 +1101,7 @@ static void ui_searchbox_region_free_cb(ARegion *ar)
 
 ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 {
+	wmWindow *win = CTX_wm_window(C);
 	uiStyle *style = UI_GetStyle();
 	static ARegionType type;
 	ARegion *ar;
@@ -1187,9 +1190,9 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 
 		BLI_rcti_translate(&rect_i, butregion->winrct.xmin, butregion->winrct.ymin);
 
-		winx = WM_window_pixels_x(CTX_wm_window(C));
-		winy = WM_window_pixels_y(CTX_wm_window(C));
-		//wm_window_get_size(CTX_wm_window(C), &winx, &winy);
+		winx = WM_window_pixels_x(win);
+		winy = WM_window_pixels_y(win);
+		//wm_window_get_size(win, &winx, &winy);
 		
 		if (rect_i.xmax > winx) {
 			/* super size */

@@ -383,7 +383,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 				/* save the undo state as quit.blend */
 				char filename[FILE_MAX];
 				
-				BLI_make_file_string("/", filename, BLI_temporary_dir(), "quit.blend");
+				BLI_make_file_string("/", filename, BLI_temporary_dir(), BLENDER_QUIT_FILE);
 
 				if (BKE_undo_save_file(filename))
 					printf("Saved session recovery to '%s'\n", filename);

@@ -143,7 +143,7 @@ static uiFont *uifont_to_blfont(int id)
 /* *************** draw ************************ */
 
 
-void uiStyleFontDrawExt(uiFontStyle *fs, rcti *rect, const char *str,
+void uiStyleFontDrawExt(uiFontStyle *fs, const rcti *rect, const char *str,
                         float *r_xofs, float *r_yofs)
 {
 	float height;

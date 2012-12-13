@@ -1035,7 +1035,7 @@ void wm_autosave_delete(void)
 
 	if (BLI_exists(filename)) {
 		char str[FILE_MAX];
-		BLI_make_file_string("/", str, BLI_temporary_dir(), "quit.blend");
+		BLI_make_file_string("/", str, BLI_temporary_dir(), BLENDER_QUIT_FILE);
 
 		/* if global undo; remove tempsave, otherwise rename */
 		if (U.uiflag & USER_GLOBALUNDO) BLI_delete(filename, 0, 0);

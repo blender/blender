@@ -286,7 +286,7 @@ void uiDrawBoxVerticalShade(int mode, float minx, float miny, float maxx, float 
 #define UI_SCROLL_PRESSED       1
 #define UI_SCROLL_ARROWS        2
 #define UI_SCROLL_NO_OUTLINE    4
-void uiWidgetScrollDraw(struct uiWidgetColors *wcol, struct rcti *rect, struct rcti *slider, int state);
+void uiWidgetScrollDraw(struct uiWidgetColors *wcol, const struct rcti *rect, const struct rcti *slider, int state);
 
 /* Callbacks
  *
@@ -884,7 +884,7 @@ void uiIDContextProperty(struct bContext *C, struct PointerRNA *ptr, struct Prop
 
 /* Styled text draw */
 void uiStyleFontSet(struct uiFontStyle *fs);
-void uiStyleFontDrawExt(struct uiFontStyle *fs, struct rcti *rect, const char *str,
+void uiStyleFontDrawExt(struct uiFontStyle *fs, const struct rcti *rect, const char *str,
                         float *r_xofs, float *r_yofs);
 void uiStyleFontDraw(struct uiFontStyle *fs, struct rcti *rect, const char *str);
 void uiStyleFontDrawRotated(struct uiFontStyle *fs, struct rcti *rect, const char *str);
