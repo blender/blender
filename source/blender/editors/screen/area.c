@@ -874,6 +874,36 @@ static int rct_fits(rcti *rect, char dir, int size)
 
 /* *************************************************************** */
 
+/* ar should be overlapping */
+/* function checks if some overlapping region was defined before - on same place */
+static void region_overlap_fix(ARegion *ar)
+{
+	ARegion *ar1 = ar->prev;
+	
+	/* find overlapping previous region on same place */
+	while (ar1) {
+		if (ar1->overlap) {
+			if ((ar1->alignment & RGN_SPLIT_PREV)==0)
+				if (BLI_rcti_isect(&ar1->winrct, &ar->winrct, NULL))
+					break;
+		}
+		ar1 = ar1->prev;
+	}
+	
+	/* translate */
+	if (ar1) {
+		int align1 = ar1->alignment & ~RGN_SPLIT_PREV;
+
+		if (align1 == RGN_ALIGN_LEFT) {
+			BLI_rcti_translate(&ar->winrct, ar1->winx, 0);
+		}
+		else if (align1 == RGN_ALIGN_RIGHT) {
+			BLI_rcti_translate(&ar->winrct, -ar1->winx, 0);
+		}
+	}
+
+}
+
 /* overlapping regions only in the following restricted cases */
 static int region_is_overlap(wmWindow *win, ScrArea *sa, ARegion *ar)
 {
@@ -1061,6 +1091,10 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 	ar->winx = BLI_rcti_size_x(&ar->winrct) + 1;
 	ar->winy = BLI_rcti_size_y(&ar->winrct) + 1;
 	
+	/* exception for multiple aligned overlapping regions on same spot */
+	if (ar->overlap)
+		region_overlap_fix(ar);
+
 	/* set winrect for azones */
 	if (ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) {
 		ar->winrct = *remainder;
