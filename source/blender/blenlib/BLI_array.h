@@ -203,6 +203,10 @@
 #  define alloca _alloca
 #endif
 
+#if defined(__MINGW32__)
+#  include <malloc.h>  /* mingw needs for alloca() */
+#endif
+
 #if defined(__GNUC__) || defined(__clang__)
 #define BLI_array_alloca(arr, realsize) \
 	(typeof(arr))alloca(sizeof(*arr) * (realsize))
@@ -219,3 +223,4 @@
 	alloca(sizeof(*arr) * (realsize));  \
 	const int _##arr##_count = (realsize)
 #endif
+
