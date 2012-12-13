@@ -186,7 +186,7 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 		uiDefBut(block, LABEL, 0, "", 10, 15, w, h, NULL, 0, 0, 0, 0, NULL);
 		
 		but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, w, UI_UNIT_Y,
-							 template.prv_rows, template.prv_cols, "");
+		                     template.prv_rows, template.prv_cols, "");
 		uiButSetSearchFunc(but, id_search_cb, &template, id_search_call_cb, idptr.data);
 	}
 	/* list view */
@@ -1590,7 +1590,7 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, const char *propname
 	hist->height = (hist->height <= UI_UNIT_Y) ? UI_UNIT_Y : hist->height;
 
 	bt = uiDefBut(block, HISTOGRAM, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect), UI_DPI_FAC * hist->height,
-				  hist, 0, 0, 0, 0, "");
+	              hist, 0, 0, 0, 0, "");
 
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
@@ -1629,7 +1629,7 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	scopes->wavefrm_height = (scopes->wavefrm_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->wavefrm_height;
 
 	bt = uiDefBut(block, WAVEFORM, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect), UI_DPI_FAC * scopes->wavefrm_height,
-				  scopes, 0, 0, 0, 0, "");
+	              scopes, 0, 0, 0, 0, "");
 	(void)bt;  /* UNUSED */
 	
 	MEM_freeN(cb);
@@ -1667,7 +1667,7 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, const char *propna
 	scopes->vecscope_height = (scopes->vecscope_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->vecscope_height;
 	
 	bt = uiDefBut(block, VECTORSCOPE, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect),
-				  UI_DPI_FAC * scopes->vecscope_height, scopes, 0, 0, 0, 0, "");
+	              UI_DPI_FAC * scopes->vecscope_height, scopes, 0, 0, 0, 0, "");
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 	
 	MEM_freeN(cb);

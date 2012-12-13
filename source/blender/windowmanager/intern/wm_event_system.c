@@ -1640,9 +1640,9 @@ static int wm_action_not_handled(int action)
 static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers)
 {
 #ifndef NDEBUG
-	const int do_debug_handler = (G.debug & G_DEBUG_HANDLERS)
+	const int do_debug_handler = (G.debug & G_DEBUG_HANDLERS) &&
 	        /* comment this out to flood the console! (if you really want to test) */
-	        && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)
+	        !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)
 	        ;
 #endif
 	wmWindowManager *wm = CTX_wm_manager(C);

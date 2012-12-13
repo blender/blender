@@ -895,7 +895,7 @@ int BKE_copybuffer_save(char *filename, ReportList *reports)
 		ID *id, *nextid;
 		ListBase *lb1 = lbarray[a], *lb2 = fromarray[a];
 		
-		for (id = lb2->first; id; id= nextid) {
+		for (id = lb2->first; id; id = nextid) {
 			nextid = id->next;
 			if (id->flag & LIB_DOIT) {
 				BLI_remlink(lb2, id);

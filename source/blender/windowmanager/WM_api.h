@@ -147,7 +147,7 @@ struct wmEventHandler *WM_event_add_ui_handler(const struct bContext *C, ListBas
 			int (*func)(struct bContext *C, struct wmEvent *event, void *userdata),
 			void (*remove)(struct bContext *C, void *userdata), void *userdata);
 void		WM_event_remove_ui_handler(ListBase *handlers,
-			int (*func)(struct bContext *C, struct wmEvent *event, void *userdata),
+                                       int (*func)(struct bContext *C, struct wmEvent *event, void *userdata),
 			void (*remove)(struct bContext *C, void *userdata), void *userdata, int postpone);
 void		WM_event_remove_area_handler(struct ListBase *handlers, void *area);
 
@@ -301,7 +301,7 @@ struct wmDrag		*WM_event_start_drag(struct bContext *C, int icon, int type, void
 void				WM_event_drag_image(struct wmDrag *, struct ImBuf *, float scale, int sx, int sy);
 
 struct wmDropBox	*WM_dropbox_add(ListBase *lb, const char *idname, int (*poll)(struct bContext *, struct wmDrag *, struct wmEvent *event),
-						  void (*copy)(struct wmDrag *, struct wmDropBox *));
+                                    void (*copy)(struct wmDrag *, struct wmDropBox *));
 ListBase	*WM_dropboxmap_find(const char *idname, int spaceid, int regionid);
 
 			/* Set a subwindow active in pixelspace view, with optional scissor subset */

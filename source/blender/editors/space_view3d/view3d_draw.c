@@ -573,7 +573,7 @@ static int draw_name_offset(ARegion *ar)
 		arn = arn->prev;
 	
 	/* check if a region overlaps with the current one */
-	for (; arn; arn= arn->next) {
+	for (; arn; arn = arn->next) {
 		if (ar != arn)
 			if (ar->winrct.xmin == arn->winrct.xmin)
 				if (ar->winrct.ymin == arn->winrct.ymin)

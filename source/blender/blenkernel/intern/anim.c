@@ -1480,7 +1480,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 
 				/* blender internal needs this to be set to dupligroup to render
 				 * groups correctly, but we don't want this hack for cycles */
-				if(dupli_type_hack && GS(id->name) == ID_GR)
+				if (dupli_type_hack && GS(id->name) == ID_GR)
 					dupli_type = OB_DUPLIGROUP;
 
 				/* to give ipos in object correct offset */

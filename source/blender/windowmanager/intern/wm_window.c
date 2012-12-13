@@ -311,7 +311,7 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 		if (G.save_over && G.main->name[0]) {
 			char str[sizeof(G.main->name) + 12];
 			BLI_snprintf(str, sizeof(str), "Blender%s [%s%s]", wm->file_saved ? "" : "*", G.main->name,
-						 G.main->recovered ? " (Recovered)" : "");
+			             G.main->recovered ? " (Recovered)" : "");
 			GHOST_SetTitle(win->ghostwin, str);
 		}
 		else

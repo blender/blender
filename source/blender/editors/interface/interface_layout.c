@@ -1495,7 +1495,7 @@ static void ui_item_menu(uiLayout *layout, const char *name, int icon, uiMenuCre
 	h = UI_UNIT_Y;
 
 	if (layout->root->type == UI_LAYOUT_HEADER) /* ugly .. */
-		w -= UI_UNIT_Y/2;
+		w -= UI_UNIT_Y / 2;
 
 	if (name[0] && icon)
 		but = uiDefIconTextMenuBut(block, func, arg, icon, name, 0, 0, w, h, tip);

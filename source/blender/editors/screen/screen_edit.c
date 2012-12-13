@@ -263,7 +263,7 @@ int scredge_is_horizontal(ScrEdge *se)
 ScrEdge *screen_find_active_scredge(bScreen *sc, int mx, int my)
 {
 	ScrEdge *se;
-	int safety = U.widget_unit/10;
+	int safety = U.widget_unit / 10;
 	
 	if (safety < 2) safety = 2;
 	

@@ -3600,13 +3600,14 @@ typedef struct RegionAlphaInfo {
 float ED_region_blend_factor(ARegion *ar)
 {
 	/* check parent too */
-	if(ar->regiontimer == NULL && (ar->alignment & RGN_SPLIT_PREV) && ar->prev)
+	if (ar->regiontimer == NULL && (ar->alignment & RGN_SPLIT_PREV) && ar->prev) {
 		ar = ar->prev;
-	
+	}
+
 	if (ar->regiontimer) {
 		RegionAlphaInfo *rgi = ar->regiontimer->customdata;
 		float alpha;
-			
+
 		alpha = (float)ar->regiontimer->duration / TIMEOUT;
 		/* makes sure the blend out works 100% - without area redraws */
 		if (rgi->hidden) alpha = 0.9f - TIMESTEP - alpha;
@@ -3669,10 +3670,12 @@ void region_blend_start(bContext *C, ScrArea *sa, ARegion *ar)
 	else
 		WM_event_remove_handlers(C, &ar->handlers);
 
-	if(ar->next)
-		if (ar->next->alignment & RGN_SPLIT_PREV)
+	if (ar->next) {
+		if (ar->next->alignment & RGN_SPLIT_PREV) {
 			rgi->child_ar = ar->next;
-	
+		}
+	}
+
 	/* new timer */
 	ar->regiontimer = WM_event_add_timer(wm, win, TIMERREGION, TIMESTEP);
 	ar->regiontimer->customdata = rgi;
