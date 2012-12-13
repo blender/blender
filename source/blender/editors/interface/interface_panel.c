@@ -1157,27 +1157,31 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 
 			if (event->val == KM_PRESS) {
 				
-				/* all inside clicks should return in break - overlapping/float panels */
-				retval = WM_UI_HANDLER_BREAK;
-
 				/* open close on header */
 				if (ELEM(event->type, RETKEY, PADENTER)) {
 					if (inside_header) {
 						ui_handle_panel_header(C, block, mx, my, RETKEY);
+						retval = WM_UI_HANDLER_BREAK;
 						break;
 					}
 				}
 				else if (event->type == LEFTMOUSE) {
+					/* all inside clicks should return in break - overlapping/float panels */
+					retval = WM_UI_HANDLER_BREAK;
+					
 					if (inside_header) {
 						if (event->ctrl)
 							panels_collapse_all(sa, ar);
 						ui_handle_panel_header(C, block, mx, my, 0);
+						retval = WM_UI_HANDLER_BREAK;
 						break;
 					}
 					else if (inside_scale && !(pa->flag & PNL_CLOSED)) {
 						panel_activate_state(C, pa, PANEL_STATE_DRAG_SCALE);
+						retval = WM_UI_HANDLER_BREAK;
 						break;
 					}
+
 				}
 				else if (event->type == ESCKEY) {
 					/*XXX 2.50*/
