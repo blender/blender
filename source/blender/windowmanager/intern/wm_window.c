@@ -309,7 +309,7 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 		
 		/* this is set to 1 if you don't have startup.blend open */
 		if (G.save_over && G.main->name[0]) {
-			char str[sizeof(G.main->name) + 12];
+			char str[sizeof(G.main->name) + 24];
 			BLI_snprintf(str, sizeof(str), "Blender%s [%s%s]", wm->file_saved ? "" : "*", G.main->name,
 			             G.main->recovered ? " (Recovered)" : "");
 			GHOST_SetTitle(win->ghostwin, str);
