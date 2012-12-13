@@ -529,10 +529,6 @@ int wm_homefile_read(bContext *C, ReportList *UNUSED(reports), short from_memory
 		success = (BKE_read_file(C, startstr, NULL) != BKE_READ_FILE_FAIL);
 		
 	}
-	if (!from_memory && BLI_exists(prefstr)) {
-		success = BKE_read_file_userdef(prefstr, NULL);
-		if (success) printf("read new prefs: %s\n", prefstr);
-	}
 	
 	if (U.themes.first == NULL) {
 		printf("\nError: No valid "STRINGIFY (BLENDER_STARTUP_FILE)", fall back to built-in default.\n\n");
@@ -548,6 +544,12 @@ int wm_homefile_read(bContext *C, ReportList *UNUSED(reports), short from_memory
 		 * otherwise we'd need to patch the binary blob - startup.blend.c */
 		U.flag |= USER_SCRIPT_AUTOEXEC_DISABLE;
 #endif
+	}
+	
+	/* check new prefs only after startup.blend was finished */
+	if (!from_memory && BLI_exists(prefstr)) {
+		int done = BKE_read_file_userdef(prefstr, NULL);
+		if (done) printf("read new prefs: %s\n", prefstr);
 	}
 	
 	/* prevent buggy files that had G_FILE_RELATIVE_REMAP written out by mistake. Screws up autosaves otherwise
