@@ -589,9 +589,9 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 
 	/* we don't want the clipping for cursor */
 	if (ED_view3d_project_int_global(ar, give_cursor(scene, v3d), co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
-		float f5 = 0.25f * U.widget_unit;
-		float f10 = 0.5f * U.widget_unit;
-		float f20 = U.widget_unit;
+		const float f5 = 0.25f * U.widget_unit;
+		const float f10 = 0.5f * U.widget_unit;
+		const float f20 = U.widget_unit;
 		
 		setlinestyle(0); 
 		cpack(0xFF);
