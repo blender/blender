@@ -1786,7 +1786,7 @@ static void region_scale_validate_size(RegionMoveData *rmd)
 
 static void region_scale_toggle_hidden(bContext *C, RegionMoveData *rmd)
 {
-	ED_region_toggle_hidden(C, rmd->ar);
+	region_toggle_hidden(C, rmd->ar, 0);
 	region_scale_validate_size(rmd);
 }
 
@@ -3594,7 +3594,7 @@ typedef struct RegionAlphaInfo {
 	int hidden;
 } RegionAlphaInfo;
 
-#define TIMEOUT		0.3f
+#define TIMEOUT		0.2f
 #define TIMESTEP	0.04f
 
 float ED_region_blend_factor(ARegion *ar)

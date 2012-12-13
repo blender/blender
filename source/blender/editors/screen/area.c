@@ -1257,23 +1257,30 @@ void ED_region_init(bContext *C, ARegion *ar)
 	glLoadIdentity();
 }
 
-void ED_region_toggle_hidden(bContext *C, ARegion *ar)
+/* for quick toggle, can skip fades */
+void region_toggle_hidden(bContext *C, ARegion *ar, int do_fade)
 {
 	ScrArea *sa = CTX_wm_area(C);
-
+	
 	ar->flag ^= RGN_FLAG_HIDDEN;
-
-	if (ar->overlap) {
+	
+	if (do_fade && ar->overlap) {
 		/* starts a timer, and in end calls the stuff below itself (region_sblend_invoke()) */
 		region_blend_start(C, sa, ar);
 	}
 	else {
 		if (ar->flag & RGN_FLAG_HIDDEN)
 			WM_event_remove_handlers(C, &ar->handlers);
-
+		
 		ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
 		ED_area_tag_redraw(sa);
 	}
+}
+
+/* exported to all editors, uses fading default */
+void ED_region_toggle_hidden(bContext *C, ARegion *ar)
+{
+	region_toggle_hidden(C, ar, 1);
 }
 
 /* sa2 to sa1, we swap spaces for fullscreen to keep all allocated data */
