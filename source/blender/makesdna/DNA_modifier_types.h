@@ -76,7 +76,8 @@ typedef enum ModifierType {
 	eModifierType_Remesh            = 41,
 	eModifierType_Skin              = 42,
 	eModifierType_LaplacianSmooth   = 43,
-	eModifierType_Triangulate		= 44,
+	eModifierType_Triangulate       = 44,
+	eModifierType_UVWarp          = 45,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -1140,4 +1141,20 @@ typedef struct LaplacianSmoothModifierData {
 	short flag, repeat;
 } LaplacianSmoothModifierData;
 
-#endif
+typedef struct UVWarpModifierData {
+	ModifierData modifier;
+
+	char axis_u, axis_v;
+	char pad[6];
+	float center[2];       /* used for rotate/scale */
+
+	struct Object *object_src;  /* source */
+	char bone_src[64];     /* optional name of bone target, MAX_ID_NAME-2 */
+	struct Object *object_dst;  /* target */
+	char bone_dst[64];     /* optional name of bone target, MAX_ID_NAME-2 */
+
+	char vgroup_name[64];   /* optional vertexgroup name, MAX_VGROUP_NAME */
+	char uvlayer_name[64];  /* MAX_CUSTOMDATA_LAYER_NAME */
+} UVWarpModifierData;
+
+#endif  /* __DNA_MODIFIER_TYPES_H__ */

@@ -996,6 +996,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 					case eModifierType_Array:
 						UI_icon_draw(x, y, ICON_MOD_ARRAY); break;
 					case eModifierType_UVProject:
+					case eModifierType_UVWarp:  /* TODO, get own icon */
 						UI_icon_draw(x, y, ICON_MOD_UVPROJECT); break;
 					case eModifierType_Displace:
 						UI_icon_draw(x, y, ICON_MOD_DISPLACE); break;

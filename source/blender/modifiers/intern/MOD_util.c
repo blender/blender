@@ -279,5 +279,6 @@ void modifier_type_init(ModifierTypeInfo *types[])
 	INIT_TYPE(Skin);
 	INIT_TYPE(LaplacianSmooth);
 	INIT_TYPE(Triangulate);
+	INIT_TYPE(UVWarp);
 #undef INIT_TYPE
 }

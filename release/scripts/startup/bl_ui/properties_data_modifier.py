@@ -1032,5 +1032,47 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
     def TRIANGULATE(self, layout, ob, md):
         layout.prop(md, "use_beauty")
 
+    def UV_WARP(self, layout, ob, md):
+        split = layout.split()
+        col = split.column()
+        col.prop(md, "center");
+
+        col = split.column()
+        col.label(text="UV Axis:")
+        col.prop(md, "axis_u", text="");
+        col.prop(md, "axis_v", text="");
+
+        split = layout.split()
+        col = split.column()
+        col.label(text="From:")
+        col.prop(md, "object_from", text="")
+
+        col = split.column()
+        col.label(text="To:")
+        col.prop(md, "object_to", text="")
+
+        split = layout.split()
+        col = split.column()
+        obj = md.object_from
+        if obj and obj.type == 'ARMATURE':
+            col.label(text="Bone:")
+            col.prop_search(md, "bone_from", obj.data, "bones", text="")
+
+        col = split.column()
+        obj = md.object_to
+        if obj and obj.type == 'ARMATURE':
+            col.label(text="Bone:")
+            col.prop_search(md, "bone_to", obj.data, "bones", text="")
+
+        split = layout.split()
+
+        col = split.column()
+        col.label(text="Vertex Group:")
+        col.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+
+        col = split.column()
+        col.label(text="UV Map:")
+        col.prop_search(md, "uv_layer", ob.data, "uv_textures", text="")
+
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)
