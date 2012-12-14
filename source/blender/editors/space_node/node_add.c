@@ -207,7 +207,7 @@ static bNodeSocketLink *add_reroute_do_socket_section(bContext *C, bNodeSocketLi
 			}
 			
 			add_v2_v2(insert_point, socklink->point);
-			++num_links;
+			num_links++;
 		}
 		socklink = socklink->next;
 	}

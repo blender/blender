@@ -1235,7 +1235,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 	/* double up the check here but better keep ED_unwrap_lscm interface simple and not
 	 * pass operator for warning append */
 	modifier_unwrap_state(obedit, scene, &use_subsurf_final);
-	if(use_subsurf != use_subsurf_final)
+	if (use_subsurf != use_subsurf_final)
 		BKE_report(op->reports, RPT_INFO, "Subsurf modifier needs to be first to work with unwrap");
 
 	/* execute unwrap */

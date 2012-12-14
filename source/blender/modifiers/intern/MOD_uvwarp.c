@@ -45,7 +45,7 @@
 
 
 static void uv_warp_from_mat4_pair(float uv_dst[2], const float uv_src[2], float warp_mat[4][4],
-                                     int axis_u, int axis_v)
+                                   int axis_u, int axis_v)
 {
 	float tuv[3] = {0.0f};
 

@@ -399,7 +399,7 @@ int handleMouseInput(TransInfo *t, MouseInput *mi, wmEvent *event)
 				mi->precision = 1;
 				redraw = TREDRAW_HARD;
 			}
-			else if(event->val == KM_RELEASE) {
+			else if (event->val == KM_RELEASE) {
 				t->modifiers &= ~MOD_PRECISION;
 				mi->precision = 0;
 				redraw = TREDRAW_HARD;

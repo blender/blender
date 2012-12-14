@@ -883,7 +883,7 @@ static void region_overlap_fix(ARegion *ar)
 	/* find overlapping previous region on same place */
 	while (ar1) {
 		if (ar1->overlap) {
-			if ((ar1->alignment & RGN_SPLIT_PREV)==0)
+			if ((ar1->alignment & RGN_SPLIT_PREV) == 0)
 				if (BLI_rcti_isect(&ar1->winrct, &ar->winrct, NULL))
 					break;
 		}
