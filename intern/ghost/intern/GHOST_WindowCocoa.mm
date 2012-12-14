@@ -578,13 +578,13 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	setDrawingContextType(type);
 	updateDrawingContext();
 	activateDrawingContext();
-	
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7	// retina support started with 10.7.4 afaik
 	if (m_systemCocoa->m_nativePixel) {
 		[m_openGLView setWantsBestResolutionOpenGLSurface:YES];
 		NSRect backingBounds = [m_openGLView convertRectToBacking:[m_openGLView bounds]];
 		m_systemCocoa->m_nativePixelSize = (float)backingBounds.size.width / (float)rect.size.width;
 	}
-	
+#endif
 	
 	m_tablet.Active = GHOST_kTabletModeNone;
 	
