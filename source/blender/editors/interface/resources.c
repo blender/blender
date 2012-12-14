@@ -683,7 +683,7 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tv3d.text_hi, 255, 255, 255, 255);
 	
 	rgba_char_args_set_fl(btheme->tv3d.header,  0.45, 0.45, 0.45, 1.0);
-	rgba_char_args_set_fl(btheme->tv3d.button,  0.45, 0.45, 0.45, 1.0);
+	rgba_char_args_set_fl(btheme->tv3d.button,  0.45, 0.45, 0.45, 0.5);
 	rgba_char_args_set(btheme->tv3d.panel,      165, 165, 165, 127);
 	
 	rgba_char_args_set(btheme->tv3d.shade1,  160, 160, 160, 100);
