@@ -57,6 +57,7 @@
 
 #include "UI_resources.h"
 #include "UI_interface.h"
+#include "UI_view2d.h"
 
 #include "info_intern.h"
 #include "../space_info/textview.h"
@@ -273,7 +274,7 @@ static int info_textview_main__internal(struct SpaceInfo *sinfo, ARegion *ar, Re
 	tvc.lheight = 14 * UI_DPI_FAC; //sc->lheight;
 	tvc.ymin = v2d->cur.ymin;
 	tvc.ymax = v2d->cur.ymax;
-	tvc.winx = ar->winx;
+	tvc.winx = ar->winx - V2D_SCROLL_WIDTH;
 
 	ret = textview_draw(&tvc, draw, mval, mouse_pick, pos_pick);
 	

@@ -52,6 +52,7 @@
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+#include "UI_view2d.h"
 
 #include "console_intern.h"
 
@@ -80,9 +81,9 @@ typedef struct ConsoleDrawContext {
 	int cwidth;
 	int lheight;
 	int console_width;
-	int winx;
 	int ymin, ymax;
 #if 0 /* used by textview, may use later */
+	int winx;
 	int *xy; // [2]
 	int *sel; // [2]
 	int *pos_pick;  /* bottom of view == 0, top of file == combine chars, end of line is lower then start. */
@@ -112,9 +113,6 @@ void console_scrollback_prompt_end(struct SpaceConsole *sc, ConsoleLine *cl_dumm
 }
 
 #define CONSOLE_DRAW_MARGIN 4
-#define CONSOLE_DRAW_SCROLL 16
-
-
 
 /* console textview callbacks */
 static int console_textview_begin(TextViewContext *tvc)
@@ -222,7 +220,7 @@ static int console_textview_main__internal(struct SpaceConsole *sc, ARegion *ar,
 	tvc.lheight = sc->lheight * UI_DPI_FAC;
 	tvc.ymin = v2d->cur.ymin;
 	tvc.ymax = v2d->cur.ymax;
-	tvc.winx = ar->winx;
+	tvc.winx = ar->winx - V2D_SCROLL_WIDTH;
 
 	console_scrollback_prompt_begin(sc, &cl_dummy);
 	ret = textview_draw(&tvc, draw, mval, mouse_pick, pos_pick);
@@ -250,7 +248,7 @@ int console_char_pick(struct SpaceConsole *sc, ARegion *ar, const int mval[2])
 	void *mouse_pick = NULL;
 	int mval_clamp[2];
 
-	mval_clamp[0] = CLAMPIS(mval[0], CONSOLE_DRAW_MARGIN, ar->winx - (CONSOLE_DRAW_SCROLL + CONSOLE_DRAW_MARGIN));
+	mval_clamp[0] = CLAMPIS(mval[0], CONSOLE_DRAW_MARGIN, ar->winx - CONSOLE_DRAW_MARGIN);
 	mval_clamp[1] = CLAMPIS(mval[1], CONSOLE_DRAW_MARGIN, ar->winy - CONSOLE_DRAW_MARGIN);
 
 	console_textview_main__internal(sc, ar, 0, mval_clamp, &mouse_pick, &pos_pick);

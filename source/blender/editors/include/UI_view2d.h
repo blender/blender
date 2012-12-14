@@ -132,6 +132,7 @@ struct View2DScrollers;
 
 struct wmKeyConfig;
 struct bScreen;
+struct Scene;
 struct ScrArea;
 struct ARegion;
 struct bContext;

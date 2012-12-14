@@ -221,7 +221,6 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, const i
 }
 
 #define CONSOLE_DRAW_MARGIN 4
-#define CONSOLE_DRAW_SCROLL 16
 
 int textview_draw(TextViewContext *tvc, const int draw, int mval[2], void **mouse_pick, int *pos_pick)
 {
@@ -247,9 +246,10 @@ int textview_draw(TextViewContext *tvc, const int draw, int mval[2], void **mous
 	cdc.cwidth = (int)BLF_fixed_width(mono);
 	assert(cdc.cwidth > 0);
 	cdc.lheight = tvc->lheight;
-	cdc.console_width = (tvc->winx - (CONSOLE_DRAW_SCROLL + CONSOLE_DRAW_MARGIN * 2) ) / cdc.cwidth;
+	/* note, scroll bar must be already subtracted () */
+	cdc.console_width = (tvc->winx - (CONSOLE_DRAW_MARGIN * 2) ) / cdc.cwidth;
 	CLAMP(cdc.console_width, 1, INT_MAX); /* avoid divide by zero on small windows */
-	cdc.winx = tvc->winx - (CONSOLE_DRAW_MARGIN + CONSOLE_DRAW_SCROLL);
+	cdc.winx = tvc->winx - CONSOLE_DRAW_MARGIN;
 	cdc.ymin = tvc->ymin;
 	cdc.ymax = tvc->ymax;
 	cdc.xy = xy;
