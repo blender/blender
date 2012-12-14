@@ -196,7 +196,8 @@ static int console_textview_line_color(struct TextViewContext *tvc, unsigned cha
 }
 
 
-static int console_textview_main__internal(struct SpaceConsole *sc, ARegion *ar, int draw, int mval[2], void **mouse_pick, int *pos_pick)
+static int console_textview_main__internal(struct SpaceConsole *sc, ARegion *ar, int draw,
+                                           int mval[2], void **mouse_pick, int *pos_pick)
 {
 	ConsoleLine cl_dummy = {NULL};
 	int ret = 0;
@@ -243,7 +244,7 @@ int console_textview_height(struct SpaceConsole *sc, ARegion *ar)
 	return console_textview_main__internal(sc, ar, 0,  mval, NULL, NULL);
 }
 
-int console_char_pick(struct SpaceConsole *sc, ARegion *ar, int mval[2])
+int console_char_pick(struct SpaceConsole *sc, ARegion *ar, const int mval[2])
 {
 	int pos_pick = 0;
 	void *mouse_pick = NULL;

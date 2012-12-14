@@ -54,7 +54,7 @@ typedef struct TextViewContext {
 
 } TextViewContext;
 
-int textview_draw(struct TextViewContext *tvc, int draw, int mval[2], void **mouse_pick, int *pos_pick);
+int textview_draw(struct TextViewContext *tvc, const int draw, int mval[2], void **mouse_pick, int *pos_pick);
 
 #define TVC_LINE_FG	(1<<0)
 #define TVC_LINE_BG	(1<<1)
