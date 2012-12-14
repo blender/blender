@@ -657,11 +657,11 @@ BLI_INLINE unsigned int mcol_sub(unsigned int col1, unsigned int col2, int fac)
 	cp  = (unsigned char *)&col;
 
 	temp = cp1[0] - ((fac * cp2[0]) / 255);
-	cp1[0] = (temp < 0) ? 0 : temp;
+	cp[0] = (temp < 0) ? 0 : temp;
 	temp = cp1[1] - ((fac * cp2[1]) / 255);
-	cp1[1] = (temp < 0) ? 0 : temp;
+	cp[1] = (temp < 0) ? 0 : temp;
 	temp = cp1[2] - ((fac * cp2[2]) / 255);
-	cp1[2] = (temp < 0) ? 0 : temp;
+	cp[2] = (temp < 0) ? 0 : temp;
 	cp[3] = 255;
 
 	return col;
