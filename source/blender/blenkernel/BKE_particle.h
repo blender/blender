@@ -20,7 +20,9 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Adaptive time step
+ * Classical SPH
+ * Copyright 2011-2012 AutoCRC
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -58,6 +60,7 @@ struct RNG;
 struct SurfaceModifierData;
 struct BVHTreeRay;
 struct BVHTreeRayHit; 
+struct EdgeHash;
 
 #define PARTICLE_P              ParticleData * pa; int p
 #define LOOP_PARTICLES  for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++)
@@ -84,6 +87,24 @@ typedef struct ParticleSimulationData {
 	 * this at the moment. Other solvers could, too. */
 	float courant_num;
 } ParticleSimulationData;
+
+typedef struct SPHData {
+	ParticleSystem *psys[10];
+	ParticleData *pa;
+	float mass;
+	struct EdgeHash *eh;
+	float *gravity;
+	float hfac;
+	/* Average distance to neighbours (other particles in the support domain),
+	   for calculating the Courant number (adaptive time step). */
+	int pass;
+	float element_size;
+	float flow[3];
+
+	/* Integrator callbacks. This allows different SPH implementations. */
+	void (*force_cb) (void *sphdata_v, ParticleKey *state, float *force, float *impulse);
+	void (*density_cb) (void *rangedata_v, int index, float squared_dist);
+} SPHData;
 
 typedef struct ParticleTexture {
 	float ivel;                           /* used in reset */
@@ -282,6 +303,10 @@ float psys_get_child_time(struct ParticleSystem *psys, struct ChildParticle *cpa
 float psys_get_child_size(struct ParticleSystem *psys, struct ChildParticle *cpa, float cfra, float *pa_time);
 void psys_get_particle_on_path(struct ParticleSimulationData *sim, int pa_num, struct ParticleKey *state, int vel);
 int psys_get_particle_state(struct ParticleSimulationData *sim, int p, struct ParticleKey *state, int always);
+
+void psys_sph_init(struct ParticleSimulationData *sim, struct SPHData *sphdata);
+void psys_sph_finalise(struct SPHData *sphdata);
+void psys_sph_density(struct BVHTree *tree, struct SPHData* data, float co[3], float vars[2]);
 
 /* for anim.c */
 void psys_get_dupli_texture(struct ParticleSystem *psys, struct ParticleSettings *part,
