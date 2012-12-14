@@ -3419,8 +3419,9 @@ static int userpref_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *ev
 	sizey = 480;
 	
 	/* some magic to calculate postition */
-	rect.xmin = event->x + CTX_wm_window(C)->posx - sizex / 2;
-	rect.ymin = event->y + CTX_wm_window(C)->posy - sizey / 2;
+	/* pixelsize: mouse coords are in U.pixelsize units :/ */
+	rect.xmin = (event->x / U.pixelsize) + CTX_wm_window(C)->posx - sizex / 2;
+	rect.ymin = (event->y / U.pixelsize) + CTX_wm_window(C)->posy - sizey / 2;
 	rect.xmax = rect.xmin + sizex;
 	rect.ymax = rect.ymin + sizey;
 	

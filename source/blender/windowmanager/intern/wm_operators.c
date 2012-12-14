@@ -1079,7 +1079,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	uiBlock *block;
 	uiLayout *layout;
 	uiStyle *style = UI_GetStyle();
-	int width = 300;
+	int width = 15 * UI_UNIT_X;
 
 	block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
@@ -1263,7 +1263,7 @@ static int wm_operator_props_popup_ex(bContext *C, wmOperator *op, const int do_
 	/* if we don't have global undo, we can't do undo push for automatic redo,
 	 * so we require manual OK clicking in this popup */
 	if (!(U.uiflag & USER_GLOBALUNDO))
-		return WM_operator_props_dialog_popup(C, op, 300, UI_UNIT_Y);
+		return WM_operator_props_dialog_popup(C, op, 15 * UI_UNIT_X, UI_UNIT_Y);
 
 	uiPupBlock(C, wm_block_create_redo, op);
 

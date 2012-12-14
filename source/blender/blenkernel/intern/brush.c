@@ -39,6 +39,7 @@
 #include "DNA_color_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "WM_types.h"
@@ -51,6 +52,7 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_blender.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_global.h"
@@ -644,8 +646,9 @@ void BKE_brush_size_set(Scene *scene, Brush *brush, int size)
 int BKE_brush_size_get(const Scene *scene, Brush *brush)
 {
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-
-	return (ups->flag & UNIFIED_PAINT_SIZE) ? ups->size : brush->size;
+	int size = (ups->flag & UNIFIED_PAINT_SIZE) ? ups->size : brush->size;
+	
+	return (int)((float)size * U.pixelsize);
 }
 
 int BKE_brush_use_locked_size(const Scene *scene, Brush *brush)
