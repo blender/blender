@@ -1880,40 +1880,6 @@ static void get_edge_center(float cent_r[3], BMVert *eve)
 	}
 }
 
-/* local version of #BM_vert_calc_shell_factor which only
- * uses selected faces */
-static float bm_vert_calc_shell_factor_selected(BMVert *v)
-{
-	BMIter iter;
-	BMLoop *l;
-	float accum_shell = 0.0f;
-	float accum_angle = 0.0f;
-	int tot_sel = 0, tot = 0;
-
-	BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
-		if (BM_elem_flag_test(l->f, BM_ELEM_SELECT)) {  /* <-- only difference to BM_vert_calc_shell_factor! */
-			const float face_angle = BM_loop_calc_face_angle(l);
-			accum_shell += shell_angle_to_dist(angle_normalized_v3v3(v->no, l->f->no)) * face_angle;
-			accum_angle += face_angle;
-			tot_sel++;
-		}
-		tot++;
-	}
-
-	if (accum_angle != 0.0f) {
-		return accum_shell / accum_angle;
-	}
-	else {
-		if (tot != 0 && tot_sel == 0) {
-			/* none selected, so use all */
-			return BM_vert_calc_shell_factor(v);
-		}
-		else {
-			return 1.0f;
-		}
-	}
-}
-
 /* way to overwrite what data is edited with transform */
 static void VertsToTransData(TransInfo *t, TransData *td, TransDataExtension *tx,
                              BMEditMesh *em, BMVert *eve, float *bweight)
@@ -1962,7 +1928,7 @@ static void VertsToTransData(TransInfo *t, TransData *td, TransDataExtension *tx
 	}
 	else if (t->mode == TFM_SHRINKFATTEN) {
 		td->ext = tx;
-		tx->isize[0] = bm_vert_calc_shell_factor_selected(eve);
+		tx->isize[0] = BM_vert_calc_shell_factor_ex(eve, BM_ELEM_SELECT);
 	}
 }
 

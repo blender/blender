@@ -1113,6 +1113,40 @@ float BM_vert_calc_shell_factor(BMVert *v)
 		return 1.0f;
 	}
 }
+/* alternate version of #BM_vert_calc_shell_factor which only
+ * uses 'hflag' faces, but falls back to all if none found. */
+float BM_vert_calc_shell_factor_ex(BMVert *v, const char hflag)
+{
+	BMIter iter;
+	BMLoop *l;
+	float accum_shell = 0.0f;
+	float accum_angle = 0.0f;
+	int tot_sel = 0, tot = 0;
+
+	BM_ITER_ELEM (l, &iter, v, BM_LOOPS_OF_VERT) {
+		if (BM_elem_flag_test(l->f, hflag)) {  /* <-- main difference to BM_vert_calc_shell_factor! */
+			const float face_angle = BM_loop_calc_face_angle(l);
+			accum_shell += shell_angle_to_dist(angle_normalized_v3v3(v->no, l->f->no)) * face_angle;
+			accum_angle += face_angle;
+			tot_sel++;
+		}
+		tot++;
+	}
+
+	if (accum_angle != 0.0f) {
+		return accum_shell / accum_angle;
+	}
+	else {
+		/* other main difference from BM_vert_calc_shell_factor! */
+		if (tot != 0 && tot_sel == 0) {
+			/* none selected, so use all */
+			return BM_vert_calc_shell_factor(v);
+		}
+		else {
+			return 1.0f;
+		}
+	}
+}
 
 /**
  * \note quite an obscure function.

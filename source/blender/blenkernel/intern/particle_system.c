@@ -2616,12 +2616,12 @@ MINLINE float pow7(float x) {
 	return pow2(pow3(x)) * x;
 }
 
-static void sphclassical_density_accum_cb(void *userdata, int index, float squared_dist)
+static void sphclassical_density_accum_cb(void *userdata, int index, float UNUSED(squared_dist))
 {
 	SPHRangeData *pfr = (SPHRangeData *)userdata;
 	ParticleData *npa = pfr->npsys->particles + index;
 	float q;
-	float qfac = 21.0f / (256.f * M_PI);
+	float qfac = 21.0f / (256.f * (float)M_PI);
 	float rij, rij_h;
 	float vec[3];
 
@@ -2647,7 +2647,7 @@ static void sphclassical_density_accum_cb(void *userdata, int index, float squar
 	pfr->data[1] += q / npa->sphdensity;
 }
 
-static void sphclassical_neighbour_accum_cb(void *userdata, int index, float squared_dist)
+static void sphclassical_neighbour_accum_cb(void *userdata, int index, float UNUSED(squared_dist))
 {
 	SPHRangeData *pfr = (SPHRangeData *)userdata;
 	ParticleData *npa = pfr->npsys->particles + index;
@@ -2699,7 +2699,7 @@ static void sphclassical_force_cb(void *sphdata_v, ParticleKey *state, float *fo
 
 	int i;
 
-	float qfac2 = 42.0f / (256.0f * M_PI);
+	float qfac2 = 42.0f / (256.0f * (float)M_PI);
 	float rij_h;
 
 	/* 4.0 here is to be consistent with previous formulation/interface */

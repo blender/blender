@@ -140,9 +140,11 @@ static int screen_active_editable(bContext *C)
 /* when mouse is over area-edge */
 int ED_operator_screen_mainwinactive(bContext *C)
 {
+	bScreen *screen;
 	if (CTX_wm_window(C) == NULL) return 0;
-	if (CTX_wm_screen(C) == NULL) return 0;
-	if (CTX_wm_screen(C)->subwinactive != CTX_wm_screen(C)->mainwin) return 0;
+	screen = CTX_wm_screen(C);
+	if (screen == NULL) return 0;
+	if (screen->subwinactive != screen->mainwin) return 0;
 	return 1;
 }
 
@@ -3412,6 +3414,7 @@ static void SCREEN_OT_back_to_previous(struct wmOperatorType *ot)
 
 static int userpref_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
+	wmWindow *win = CTX_wm_window(C);
 	rcti rect;
 	int sizex, sizey;
 	
@@ -3420,8 +3423,8 @@ static int userpref_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *ev
 	
 	/* some magic to calculate postition */
 	/* pixelsize: mouse coords are in U.pixelsize units :/ */
-	rect.xmin = (event->x / U.pixelsize) + CTX_wm_window(C)->posx - sizex / 2;
-	rect.ymin = (event->y / U.pixelsize) + CTX_wm_window(C)->posy - sizey / 2;
+	rect.xmin = (event->x / U.pixelsize) + win->posx - sizex / 2;
+	rect.ymin = (event->y / U.pixelsize) + win->posy - sizey / 2;
 	rect.xmax = rect.xmin + sizex;
 	rect.ymax = rect.ymin + sizey;
 	
