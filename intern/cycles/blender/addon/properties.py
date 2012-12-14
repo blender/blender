@@ -36,11 +36,6 @@ enum_feature_set = (
     ('EXPERIMENTAL', "Experimental", "Use experimental and incomplete features that might be broken or change in the future"),
     )
 
-enum_shading_systems = (
-    ('GPU_COMPATIBLE', "GPU Compatible", "Restricted shading system compatible with GPU rendering"),
-    ('OSL', "Open Shading Language", "Open Shading Language shading system that only runs on the CPU"),
-    )
-
 enum_displacement_methods = (
     ('BUMP', "Bump", "Bump mapping to simulate the appearance of displacement"),
     ('TRUE', "True", "Use true displacement only, requires fine subdivision"),
@@ -89,11 +84,9 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 items=enum_feature_set,
                 default='SUPPORTED',
                 )
-        cls.shading_system = EnumProperty(
-                name="Shading System",
-                description="Shading system to use for rendering",
-                items=enum_shading_systems,
-                default='GPU_COMPATIBLE',
+        cls.shading_system = BoolProperty(
+                name="Open Shading Language",
+                description="Use Open Shading Language (CPU rendering only)",
                 )
 
         cls.progressive = BoolProperty(
