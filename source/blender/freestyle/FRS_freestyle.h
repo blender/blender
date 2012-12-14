@@ -1,7 +1,5 @@
 /* FRS_freestyle.h
  *
- * $Id: FRS_freestyle.h 43652 2012-01-23 23:32:09Z kjym3 $
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
