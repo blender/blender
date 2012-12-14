@@ -841,6 +841,14 @@ int wm_file_write(bContext *C, const char *target, int fileflags, ReportList *re
 	
 	fileflags |= G_FILE_HISTORY; /* write file history */
 
+	/* first time saving */
+	/* XXX temp solution to solve bug, real fix coming (ton) */
+	if (G.main->name[0] == 0)
+		BLI_strncpy(G.main->name, filepath, sizeof(G.main->name));
+	
+	/* XXX temp solution to solve bug, real fix coming (ton) */
+	G.main->recovered = 0;
+	
 	if (BLO_write_file(CTX_data_main(C), filepath, fileflags, reports, thumb)) {
 		if (!(fileflags & G_FILE_SAVE_COPY)) {
 			G.relbase_valid = 1;

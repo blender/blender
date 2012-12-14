@@ -2037,6 +2037,8 @@ void wm_recover_last_session(bContext *C, ReportList *reports)
 		/* XXX bad global... fixme */
 		if (G.main->name[0])
 			G.file_loaded = 1;	/* prevents splash to show */
+		else
+			G.relbase_valid = 0;
 	}
 }
 
