@@ -1,14 +1,4 @@
-# find library directory
-import platform
-import os
 from Modules.FindPython import FindPython
-
-bitness = platform.architecture()[0]
-if bitness == '64bit':
-    LCGDIR = '../lib/linux64'
-else:
-    LCGDIR = '../lib/linux'
-LIBDIR = "#${LCGDIR}"
 
 py = FindPython()
 
@@ -113,7 +103,7 @@ BF_QUICKTIME = '/usr/local'
 BF_QUICKTIME_INC = '${BF_QUICKTIME}/include'
 
 WITH_BF_ICONV = False
-BF_ICONV = LIBDIR + "/iconv"
+BF_ICONV = "/usr"
 BF_ICONV_INC = '${BF_ICONV}/include'
 BF_ICONV_LIB = 'iconv'
 BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
@@ -122,18 +112,7 @@ WITH_BF_BINRELOC = True
 
 # enable ffmpeg  support
 WITH_BF_FFMPEG = True
-BF_FFMPEG = LIBDIR + '/ffmpeg'
-if os.path.exists(LCGDIR + '/ffmpeg'):
-    WITH_BF_STATICFFMPEG = True
-    BF_FFMPEG_LIB_STATIC = '${BF_FFMPEG_LIBPATH}/libavformat.a ${BF_FFMPEG_LIBPATH}/libswscale.a ' + \
-        '${BF_FFMPEG_LIBPATH}/libavcodec.a ${BF_FFMPEG_LIBPATH}/libavdevice.a ${BF_FFMPEG_LIBPATH}/libavutil.a ' + \
-        '${BF_FFMPEG_LIBPATH}/libxvidcore.a ${BF_FFMPEG_LIBPATH}/libx264.a ${BF_FFMPEG_LIBPATH}/libmp3lame.a ' + \
-        '${BF_FFMPEG_LIBPATH}/libvpx.a ${BF_FFMPEG_LIBPATH}/libvorbis.a ${BF_FFMPEG_LIBPATH}/libogg.a ' + \
-        '${BF_FFMPEG_LIBPATH}/libvorbisenc.a ${BF_FFMPEG_LIBPATH}/libtheora.a ' + \
-        '${BF_FFMPEG_LIBPATH}/libschroedinger-1.0.a ${BF_FFMPEG_LIBPATH}/liborc-0.4.a ${BF_FFMPEG_LIBPATH}/libdirac_encoder.a ' + \
-        '${BF_FFMPEG_LIBPATH}/libfaad.a'
-else:
-    BF_FFMPEG = '/usr'
+BF_FFMPEG = '/usr'
 BF_FFMPEG_LIB = 'avformat avcodec swscale avutil avdevice'
 BF_FFMPEG_INC = '${BF_FFMPEG}/include'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
@@ -198,34 +177,25 @@ BF_JEMALLOC_LIBPATH = '${BF_JEMALLOC}/lib'
 BF_JEMALLOC_LIB = 'jemalloc'
 BF_JEMALLOC_LIB_STATIC = '${BF_JEMALLOC_LIBPATH}/libjemalloc.a'
 
-WITH_BF_OIIO = True
+WITH_BF_OIIO = False
 WITH_BF_STATICOIIO = False
-BF_OIIO = LIBDIR + '/oiio'
-if not os.path.exists(LCGDIR + '/oiio'):
-    WITH_BF_OIIO = False
-    BF_OIIO = '/usr'
+BF_OIIO = '/usr'
 BF_OIIO_INC = '${BF_OIIO}/include'
 BF_OIIO_LIB = 'OpenImageIO'
 BF_OIIO_LIB_STATIC = '${BF_OIIO_LIBPATH}/libOpenImageIO.a ${BF_OPENEXR}/lib/libIlmImf.a ${BF_JPEG}/lib/libjpeg.a'
 BF_OIIO_LIBPATH = '${BF_OIIO}/lib'
 
-WITH_BF_OCIO = True
+WITH_BF_OCIO = False
 WITH_BF_STATICOCIO = False
-BF_OCIO = LIBDIR + '/ocio'
-if not os.path.exists(LCGDIR + '/ocio'):
-    WITH_BF_OCIO = False
-    BF_OCIO = '/usr'
+BF_OCIO = '/usr'
 BF_OCIO_INC = '${BF_OCIO}/include'
 BF_OCIO_LIB = 'OpenColorIO yaml-cpp tinyxml'
 BF_OCIO_LIB_STATIC = '${BF_OCIO_LIBPATH}/libOpenColorIO.a ${BF_OCIO_LIBPATH}/libtinyxml.a ${BF_OCIO_LIBPATH}/libyaml-cpp.a'
 BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
 
-WITH_BF_BOOST = True
+WITH_BF_BOOST = False
 WITH_BF_STATICBOOST = False
-BF_BOOST = LIBDIR + '/boost'
-if not os.path.exists(LCGDIR + '/boost'):
-    WITH_BF_BOOST = False
-    BF_BOOST = '/usr'
+BF_BOOST = '/usr'
 BF_BOOST_INC = '${BF_BOOST}/include'
 BF_BOOST_LIB = 'boost_date_time boost_filesystem boost_regex boost_system boost_thread'
 BF_BOOST_LIB_STATIC = '${BF_BOOST_LIBPATH}/libboost_filesystem.a ${BF_BOOST_LIBPATH}/libboost_date_time.a ' + \
@@ -306,4 +276,3 @@ PLATFORM_LINKFLAGS = ['-pthread']
 #Fix for LLVM conflict with Mesa llvmpipe
 if WITH_BF_LLVM:
     PLATFORM_LINKFLAGS += ['-Wl,--version-script=source/creator/blender.map']
-
