@@ -61,19 +61,19 @@
 
 #include "UI_resources.h"
 #include "UI_interface.h"
+#include "UI_view2d.h"
 
 #include "uvedit_intern.h"
 
 void draw_image_cursor(SpaceImage *sima, ARegion *ar)
 {
-	float zoomx, zoomy, x_fac, y_fac;
-	int width, height;
+	float zoom[2], x_fac, y_fac;
 
-	ED_space_image_get_size(sima, &width, &height);
-	ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
+	UI_view2d_getscale_inverse(&ar->v2d, &zoom[0], &zoom[1]);
 
-	x_fac = (1.0f / (zoomx * width  / 256.0f)) * UI_DPI_FAC;
-	y_fac = (1.0f / (zoomy * height / 256.0f)) * UI_DPI_FAC;
+	mul_v2_fl(zoom, 256.0f * UI_DPI_FAC);
+	x_fac = zoom[0];
+	y_fac = zoom[1];
 	
 	cpack(0xFFFFFF);
 	glTranslatef(sima->cursor[0], sima->cursor[1], 0.0);

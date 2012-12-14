@@ -2059,6 +2059,12 @@ void UI_view2d_getscale(View2D *v2d, float *x, float *y)
 	if (x) *x = BLI_rcti_size_x(&v2d->mask) / BLI_rctf_size_x(&v2d->cur);
 	if (y) *y = BLI_rcti_size_y(&v2d->mask) / BLI_rctf_size_y(&v2d->cur);
 }
+/* Same as UI_view2d_getscale() - 1.0f / x, y */
+void UI_view2d_getscale_inverse(View2D *v2d, float *x, float *y)
+{
+	if (x) *x = BLI_rctf_size_x(&v2d->cur) / BLI_rcti_size_x(&v2d->mask);
+	if (y) *y = BLI_rctf_size_y(&v2d->cur) / BLI_rcti_size_y(&v2d->mask);
+}
 
 /* Check if mouse is within scrollers
  *	- Returns appropriate code for match
