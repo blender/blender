@@ -504,8 +504,7 @@ void sub_m4_m4m4(float m1[4][4], float m2[4][4], float m3[4][4])
 			m1[i][j] = m2[i][j] - m3[i][j];
 }
 
-/* why not make this a standard part of the API? */
-static float determinant_m3_local(float m[3][3])
+float determinant_m3_array(float m[3][3])
 {
 	return (m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
 	        m[1][0] * (m[0][1] * m[2][2] - m[0][2] * m[2][1]) +
@@ -534,7 +533,7 @@ int invert_m3_m3_ex(float m1[3][3], float m2[3][3], const float epsilon)
 	adjoint_m3_m3(m1, m2);
 
 	/* then determinant old matrix! */
-	det = determinant_m3_local(m2);
+	det = determinant_m3_array(m2);
 
 	success = (fabsf(det) > epsilon);
 
@@ -569,7 +568,7 @@ int invert_m3_m3(float m1[3][3], float m2[3][3])
 	adjoint_m3_m3(m1, m2);
 
 	/* then determinant old matrix! */
-	det = determinant_m3_local(m2);
+	det = determinant_m3_array(m2);
 
 	success = (det != 0.0f);
 
@@ -1903,3 +1902,16 @@ void pseudoinverse_m4_m4(float Ainv[4][4], float A[4][4], float epsilon)
 
 	mul_serie_m4(Ainv, U, Wm, V, NULL, NULL, NULL, NULL, NULL);
 }
+
+void pseudoinverse_m3_m3(float Ainv[3][3], float A[3][3], float epsilon)
+{
+	/* try regular inverse when possible, otherwise fall back to slow svd */
+	if(!invert_m3_m3(Ainv, A)) {
+		float tmp[4][4], tmpinv[4][4];
+
+		copy_m4_m3(tmp, A);
+		pseudoinverse_m4_m4(tmpinv, tmp, epsilon);
+		copy_m3_m4(Ainv, tmpinv);
+	}
+}
+

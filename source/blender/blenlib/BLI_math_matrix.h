@@ -144,10 +144,14 @@ float determinant_m2(float a, float b,
 float determinant_m3(float a, float b, float c,
                      float d, float e, float f,
                      float g, float h, float i);
+float determinant_m3_array(float m[3][3]);
 float determinant_m4(float A[4][4]);
+
+#define PSEUDOINVERSE_EPSILON 1e-8f
 
 void svd_m4(float U[4][4], float s[4], float V[4][4], float A[4][4]);
 void pseudoinverse_m4_m4(float Ainv[4][4], float A[4][4], float epsilon);
+void pseudoinverse_m3_m3(float Ainv[3][3], float A[3][3], float epsilon);
 
 /****************************** Transformations ******************************/
 

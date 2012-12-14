@@ -272,7 +272,7 @@ static void createTransTexspace(TransInfo *t)
 	copy_m3_m4(td->mtx, ob->obmat);
 	copy_m3_m4(td->axismtx, ob->obmat);
 	normalize_m3(td->axismtx);
-	invert_m3_m3(td->smtx, td->mtx);
+	pseudoinverse_m3_m3(td->smtx, td->mtx, PSEUDOINVERSE_EPSILON);
 
 	if (BKE_object_obdata_texspace_get(ob, &texflag, &td->loc, &td->ext->size, &td->ext->rot)) {
 		ob->dtx |= OB_TEXSPACE;
@@ -316,7 +316,7 @@ static void createTransEdge(TransInfo *t)
 	td = t->data = MEM_callocN(t->total * sizeof(TransData), "TransCrease");
 
 	copy_m3_m4(mtx, t->obedit->obmat);
-	invert_m3_m3(smtx, mtx);
+	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
 	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 		if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && (BM_elem_flag_test(eed, BM_ELEM_SELECT) || propmode)) {
@@ -553,7 +553,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		invert_m3_m3(td->ext->r_smtx, td->ext->r_mtx);
 	}
 
-	invert_m3_m3(td->smtx, td->mtx);
+	pseudoinverse_m3_m3(td->smtx, td->mtx, PSEUDOINVERSE_EPSILON);
 
 	/* exceptional case: rotate the pose bone which also applies transformation
 	 * when a parentless bone has BONE_NO_LOCAL_LOCATION [] */
@@ -605,7 +605,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 
 			/* only object matrix correction */
 			copy_m3_m3(td->mtx, omat);
-			invert_m3_m3(td->smtx, td->mtx);
+			pseudoinverse_m3_m3(td->smtx, td->mtx, PSEUDOINVERSE_EPSILON);
 		}
 	}
 
@@ -1054,7 +1054,7 @@ static void createTransArmatureVerts(TransInfo *t)
 	if (!t->total) return;
 
 	copy_m3_m4(mtx, t->obedit->obmat);
-	invert_m3_m3(smtx, mtx);
+	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
 	td = t->data = MEM_callocN(t->total * sizeof(TransData), "TransEditBone");
 
@@ -1222,7 +1222,7 @@ static void createTransMBallVerts(TransInfo *t)
 	tx = t->ext = MEM_callocN(t->total * sizeof(TransDataExtension), "MetaElement_TransExtension");
 
 	copy_m3_m4(mtx, t->obedit->obmat);
-	invert_m3_m3(smtx, mtx);
+	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
 	for (ml = mb->editelems->first; ml; ml = ml->next) {
 		if (propmode || (ml->flag & SELECT)) {
@@ -1379,7 +1379,7 @@ static void createTransCurveVerts(TransInfo *t)
 	t->data = MEM_callocN(t->total * sizeof(TransData), "TransObData(Curve EditMode)");
 
 	copy_m3_m4(mtx, t->obedit->obmat);
-	invert_m3_m3(smtx, mtx);
+	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
 	td = t->data;
 	for (nu = nurbs->first; nu; nu = nu->next) {
@@ -1570,7 +1570,7 @@ static void createTransLatticeVerts(TransInfo *t)
 	t->data = MEM_callocN(t->total * sizeof(TransData), "TransObData(Lattice EditMode)");
 
 	copy_m3_m4(mtx, t->obedit->obmat);
-	invert_m3_m3(smtx, mtx);
+	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
 	td = t->data;
 	bp = latt->def;
@@ -2052,7 +2052,9 @@ static void createTransEditVerts(TransInfo *t)
 	}
 
 	copy_m3_m4(mtx, t->obedit->obmat);
-	invert_m3_m3(smtx, mtx);
+	/* we use a pseudoinverse so that when one of the axes is scaled to 0,
+	 * matrix inversion still works and we can still moving along the other */
+	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
 	if (propmode & T_PROP_CONNECTED) {
 		editmesh_set_connectivity_distance(em, mtx, dists);
