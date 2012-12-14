@@ -228,8 +228,6 @@ BF_3DMOUSE_LIB_STATIC = '${BF_3DMOUSE_LIBPATH}/libspnav.a'
 ##
 CC = 'gcc'
 CXX = 'g++'
-##ifeq ($CPU),alpha)
-##   CFLAGS += -pipe -fPIC -funsigned-char -fno-strict-aliasing -mieee
 
 CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing','-D_LARGEFILE_SOURCE', '-D_FILE_OFFSET_BITS=64','-D_LARGEFILE64_SOURCE']
 CXXFLAGS = []
@@ -243,22 +241,12 @@ if WITH_BF_FFMPEG:
 REL_CFLAGS = []
 REL_CXXFLAGS = []
 REL_CCFLAGS = ['-DNDEBUG', '-O2']
-##BF_DEPEND = True
-##
-##AR = ar
-##ARFLAGS = ruv
-##ARFLAGSQUIET = ru
-##
+
 C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement', '-Wunused-parameter', '-Wstrict-prototypes', '-Werror=declaration-after-statement', '-Werror=implicit-function-declaration', '-Werror=return-type']
 CC_WARN = ['-Wall']
 CXX_WARN = ['-Wno-invalid-offsetof', '-Wno-sign-compare']
 
-
-##FIX_STUBS_WARNINGS = -Wno-unused
-
 LLIBS = ['util', 'c', 'm', 'dl', 'pthread', 'stdc++']
-##LOPTS = --dynamic
-##DYNLDFLAGS = -shared $(LDFLAGS)
 
 BF_PROFILE = False
 BF_PROFILE_CCFLAGS = ['-pg','-g']
