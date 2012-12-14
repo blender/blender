@@ -1399,9 +1399,9 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 		if (vcurl == vsell) {
 			y -= vcurl * lheight;
 			if (vcurc < vselc)
-				glRecti(x + vcurc * st->cwidth - 1, y, x + vselc * st->cwidth, y - lheight + TXT_LINE_SPACING);
+				glRecti(x + vcurc * st->cwidth - 1, y, x + vselc * st->cwidth, y - lheight);
 			else
-				glRecti(x + vselc * st->cwidth - 1, y, x + vcurc * st->cwidth, y - lheight + TXT_LINE_SPACING);
+				glRecti(x + vselc * st->cwidth - 1, y, x + vcurc * st->cwidth, y - lheight);
 		}
 		else {
 			int froml, fromc, tol, toc;
@@ -1420,7 +1420,7 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 			for (i = froml + 1; i < tol; i++)
 				glRecti(x - 4, y, ar->winx, y - lheight),  y -= lheight;
 
-			glRecti(x - 4, y, x + toc * st->cwidth, y - lheight + TXT_LINE_SPACING);  y -= lheight;
+			glRecti(x - 4, y, x + toc * st->cwidth, y - lheight);  y -= lheight;
 		}
 	}
 	else {
@@ -1445,11 +1445,11 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 			wrap_offset_in_line(st, ar, text->sell, text->selc, &offl, &offc);
 
 			y1 = ar->winy - 2 - (vsell - offl) * lheight;
-			y2 = y1 - lheight * visible_lines + 1;
+			y2 = y1 - (lheight * visible_lines + TXT_LINE_SPACING);
 		}
 		else {
 			y1 = ar->winy - 2 - vsell * lheight;
-			y2 = y1 - lheight + 1;
+			y2 = y1 - (lheight + TXT_LINE_SPACING);
 		}
 
 		if (!(y1 < 0 || y2 > ar->winy)) { /* check we need to draw */
@@ -1483,7 +1483,7 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 		}
 		else {
 			UI_ThemeColor(TH_HILITE);
-			glRecti(x - 1, y, x + 1, y - lheight + TXT_LINE_SPACING);
+			glRecti(x - 1, y, x + 1, y - lheight);
 		}
 	}
 }
