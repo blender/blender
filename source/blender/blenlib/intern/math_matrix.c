@@ -613,6 +613,8 @@ int invert_m4_m4(float inverse[4][4], float mat[4][4])
 	float max;
 	int maxj;
 
+	BLI_assert(inverse != mat);
+
 	/* Set inverse to identity */
 	for (i = 0; i < 4; i++)
 		for (j = 0; j < 4; j++)
