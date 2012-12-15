@@ -2646,13 +2646,12 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const fl
 	return 1;
 }
 
-static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Object *ob,
+static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Mesh *me,
                               const unsigned int index, const float mval[2],
                               const float brush_size_pressure, const float brush_alpha_pressure)
 {
 	ViewContext *vc = &vpd->vc;
 	Brush *brush = paint_brush(&vp->paint);
-	Mesh *me = BKE_mesh_from_object(ob);
 	MPoly *mpoly = &me->mpoly[index];
 	MFace *mf;
 	MCol *mc;
@@ -2786,7 +2785,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 	for (index = 0; index < totindex; index++) {
 		if (indexar[index] && indexar[index] <= me->totpoly) {
-			vpaint_paint_poly(vp, vpd, ob, indexar[index] - 1, mval, brush_size_pressure, brush_alpha_pressure);
+			vpaint_paint_poly(vp, vpd, me, indexar[index] - 1, mval, brush_size_pressure, brush_alpha_pressure);
 		}
 	}
 		

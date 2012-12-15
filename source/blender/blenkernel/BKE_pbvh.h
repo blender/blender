@@ -21,8 +21,8 @@
 #ifndef __BLI_PBVH_H__
 #define __BLI_PBVH_H__
 
-/** \file BLI_pbvh.h
- *  \ingroup bli
+/** \file BKE_pbvh.h
+ *  \ingroup bke
  *  \brief A BVH for high poly meshes.
  */
 

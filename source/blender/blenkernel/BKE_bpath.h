@@ -26,7 +26,7 @@
  */
 
 /** \file BKE_bpath.h
- *  \ingroup bli
+ *  \ingroup bke
  *  \attention Based on ghash, difference is ghash is not a fixed size,
  *   so for BPath we don't need to malloc
  */
