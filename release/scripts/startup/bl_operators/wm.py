@@ -1620,7 +1620,7 @@ class WM_OT_addon_disable(Operator):
 
 
 class WM_OT_theme_install(Operator):
-    "Install a theme"
+    "Load and apply a Blender XML theme file"
     bl_idname = "wm.theme_install"
     bl_label = "Install Theme..."
 
