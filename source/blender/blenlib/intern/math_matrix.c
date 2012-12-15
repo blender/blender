@@ -1906,7 +1906,7 @@ void pseudoinverse_m4_m4(float Ainv[4][4], float A[4][4], float epsilon)
 void pseudoinverse_m3_m3(float Ainv[3][3], float A[3][3], float epsilon)
 {
 	/* try regular inverse when possible, otherwise fall back to slow svd */
-	if(!invert_m3_m3(Ainv, A)) {
+	if (!invert_m3_m3(Ainv, A)) {
 		float tmp[4][4], tmpinv[4][4];
 
 		copy_m4_m3(tmp, A);

@@ -425,7 +425,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 /*	IDProperty *prop;*/
 	char buf[512];
 	float fonth, fontw, aspect = but->block->aspect;
-	int winx, winy, ofsx, ofsy, w, h, a;
+	int winx /*, winy */, ofsx, ofsy, w, h, a;
 	rctf rect_fl;
 	rcti rect_i;
 
@@ -675,7 +675,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	}
 
 	winx = WM_window_pixels_x(win);
-	winy = WM_window_pixels_y(win);
+	// winy = WM_window_pixels_y(win);  /* UNUSED */
 	//wm_window_get_size(win, &winx, &winy);
 
 	if (rect_i.xmax > winx) {
@@ -1109,7 +1109,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	float aspect = but->block->aspect;
 	rctf rect_fl;
 	rcti rect_i;
-	int winx, winy, ofsx, ofsy;
+	int winx /*, winy */, ofsx, ofsy;
 	int i;
 	
 	/* create area region */
@@ -1191,7 +1191,7 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		BLI_rcti_translate(&rect_i, butregion->winrct.xmin, butregion->winrct.ymin);
 
 		winx = WM_window_pixels_x(win);
-		winy = WM_window_pixels_y(win);
+		// winy = WM_window_pixels_y(win);  /* UNUSED */
 		//wm_window_get_size(win, &winx, &winy);
 		
 		if (rect_i.xmax > winx) {

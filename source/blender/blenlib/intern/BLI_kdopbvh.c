@@ -1237,7 +1237,7 @@ static void dfs_find_nearest_begin(BVHNearestData *data, BVHNode *node)
 
 #define DEFAULT_FIND_NEAREST_HEAP_SIZE 1024
 
-#define NodeDistance_priority(a, b) ( (a).dist < (b).dist)
+#define NodeDistance_priority(a, b) ((a).dist < (b).dist)
 
 static void NodeDistance_push_heap(NodeDistance *heap, int heap_size)
 PUSH_HEAP_BODY(NodeDistance, NodeDistance_priority, heap, heap_size)
