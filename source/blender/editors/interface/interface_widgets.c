@@ -2141,10 +2141,18 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
 	float x = 0.0f, y = 0.0f;
 	float *hsv = ui_block_hsv_get(but->block);
 	float hsv_n[3];
+	int color_profile = but->block->color_profile;
+	
+	if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
+		color_profile = FALSE;
 	
 	copy_v3_v3(hsv_n, hsv);
 	
 	ui_get_but_vectorf(but, rgb);
+	
+	if (color_profile && (int)but->a1 != UI_GRAD_SV)
+		ui_block_to_display_space_v3(but->block, rgb);
+	
 	rgb_to_hsv_compat_v(rgb, hsv_n);
 	
 	ui_draw_gradient(rect, hsv_n, but->a1, 1.0f);
