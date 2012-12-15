@@ -345,7 +345,7 @@ void *BLI_rfindlink(const ListBase *listbase, int number)
 	return link;
 }
 
-int BLI_findindex(const ListBase *listbase, void *vlink)
+int BLI_findindex(const ListBase *listbase, const void *vlink)
 {
 	Link *link = NULL;
 	int number = 0;

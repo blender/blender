@@ -623,12 +623,7 @@ int modifiers_isPreview(Object *ob)
 
 int modifiers_indexInObject(Object *ob, ModifierData *md_seek)
 {
-	int i = 0;
-	ModifierData *md;
-	
-	for (md = ob->modifiers.first; (md && md_seek != md); md = md->next, i++) ;
-	if (!md) return -1;  /* modifier isn't in the object */
-	return i;
+	return BLI_findindex(&ob->modifiers, md_seek);
 }
 
 void modifier_freeTemporaryData(ModifierData *md)

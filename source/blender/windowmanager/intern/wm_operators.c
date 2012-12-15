@@ -1430,7 +1430,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	int i;
 	MenuType *mt = WM_menutype_find("USERPREF_MT_splash", TRUE);
 	char url[96];
-	char file [FILE_MAX];
+	char file[FILE_MAX];
 
 #ifndef WITH_HEADLESS
 	extern char datatoc_splash_png[];
