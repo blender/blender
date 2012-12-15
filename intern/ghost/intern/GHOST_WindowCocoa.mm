@@ -629,7 +629,7 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 	NSArray *windowsList = [NSApp orderedWindows];
 	for (int a = 0; a < [windowsList count]; a++) {
 		if (m_window != (CocoaWindow *)[windowsList objectAtIndex:a]) {
-			[[windowsList objectAtIndex:a] makeKeyAndOrderFront:nil];
+			[[windowsList objectAtIndex:a] makeKeyWindow];
 			break;
 		}
 	}
