@@ -5432,10 +5432,10 @@ static void curve_draw_speed(Scene *scene, Object *ob)
 #endif  /* XXX old animation system stuff */
 
 
-static void draw_textcurs(float textcurs[4][2])
+static void draw_textcurs(RegionView3D *rv3d, float textcurs[4][2])
 {
 	cpack(0);
-	
+	bglPolygonOffset(rv3d->dist, -1.0);
 	set_inverted_drawing(1);
 	glBegin(GL_QUADS);
 	glVertex2fv(textcurs[0]);
@@ -5444,6 +5444,7 @@ static void draw_textcurs(float textcurs[4][2])
 	glVertex2fv(textcurs[3]);
 	glEnd();
 	set_inverted_drawing(0);
+	bglPolygonOffset(rv3d->dist, 0.0);
 }
 
 static void drawspiral(const float cent[3], float rad, float tmat[4][4], int start)
@@ -6364,7 +6365,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		case OB_FONT:
 			cu = ob->data;
 			if (cu->editfont) {
-				draw_textcurs(cu->editfont->textcurs);
+				draw_textcurs(rv3d, cu->editfont->textcurs);
 
 				if (cu->flag & CU_FAST) {
 					cpack(0xFFFFFF);
