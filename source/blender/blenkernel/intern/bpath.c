@@ -72,7 +72,6 @@
 #include "DNA_smoke_types.h"
 
 #include "BLI_blenlib.h"
-#include "BKE_bpath.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_font.h"
@@ -82,6 +81,8 @@
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
 #include "BKE_image.h" /* so we can check the image's type */
+
+#include "BKE_bpath.h"  /* own include */
 
 static int checkMissingFiles_visit_cb(void *userdata, char *UNUSED(path_dst), const char *path_src)
 {

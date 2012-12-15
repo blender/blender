@@ -56,7 +56,6 @@
 #include "DNA_sound_types.h"
 
 #include "BLI_blenlib.h"
-#include "BKE_bpath.h"
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 #include "BLI_callbacks.h"
@@ -65,6 +64,7 @@
 #include "IMB_moviecache.h"
 
 #include "BKE_blender.h"
+#include "BKE_bpath.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"

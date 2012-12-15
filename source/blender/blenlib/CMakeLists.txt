@@ -25,9 +25,7 @@
 
 set(INC 
 	.
-	../blenkernel
-	../blenloader
-	../gpu
+	# ../blenkernel  # dont add this back!
 	../makesdna
 	../../../intern/ghost
 	../../../intern/guardedalloc
@@ -77,7 +75,6 @@ set(SRC
 	intern/md5.c
 	intern/noise.c
 	intern/path_util.c
-	intern/pbvh.c
 	intern/quadric.c
 	intern/rand.c
 	intern/rct.c
@@ -135,7 +132,6 @@ set(SRC
 	BLI_mempool.h
 	BLI_noise.h
 	BLI_path_util.h
-	BLI_pbvh.h
 	BLI_quadric.h
 	BLI_rand.h
 	BLI_rect.h

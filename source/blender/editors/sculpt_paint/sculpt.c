@@ -40,7 +40,6 @@
 #include "BLI_utildefines.h"
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
-#include "BLI_pbvh.h"
 #include "BLI_threads.h"
 #include "BLI_rand.h"
 
@@ -51,6 +50,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
 
+#include "BKE_pbvh.h"
 #include "BKE_brush.h"
 #include "BKE_ccg.h"
 #include "BKE_cdderivedmesh.h"

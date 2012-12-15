@@ -38,7 +38,7 @@
 #include "DNA_key_types.h"
 
 #include "BLI_bitmap.h"
-#include "BLI_pbvh.h"
+#include "BKE_pbvh.h"
 
 struct bContext;
 struct Brush;

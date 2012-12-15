@@ -122,6 +122,7 @@ set(SRC
 	intern/paint.c
 	intern/particle.c
 	intern/particle_system.c
+	intern/pbvh.c
 	intern/pointcache.c
 	intern/property.c
 	intern/report.c
@@ -149,7 +150,6 @@ set(SRC
 	intern/writeavi.c
 	intern/writeframeserver.c
 
-	
 	BKE_DerivedMesh.h
 	BKE_action.h
 	BKE_anim.h
@@ -161,6 +161,7 @@ set(SRC
 	BKE_bmfont_types.h
 	BKE_boids.h
 	BKE_booleanops_mesh.h
+	BKE_bpath.h
 	BKE_brush.h
 	BKE_bullet.h
 	BKE_bvhutils.h
@@ -211,6 +212,7 @@ set(SRC
 	BKE_packedFile.h
 	BKE_paint.h
 	BKE_particle.h
+	BKE_pbvh.h
 	BKE_pointcache.h
 	BKE_property.h
 	BKE_report.h
@@ -236,7 +238,6 @@ set(SRC
 	BKE_world.h
 	BKE_writeavi.h
 	BKE_writeframeserver.h
-	BKE_bpath.h
 
 	depsgraph_private.h
 	nla_private.h

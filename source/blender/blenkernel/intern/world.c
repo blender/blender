@@ -40,7 +40,6 @@
 
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
-#include "BKE_bpath.h"
 
 #include "BKE_animsys.h"
 #include "BKE_global.h"
