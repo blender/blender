@@ -621,11 +621,6 @@ int modifiers_isPreview(Object *ob)
 	return FALSE;
 }
 
-int modifiers_indexInObject(Object *ob, ModifierData *md_seek)
-{
-	return BLI_findindex(&ob->modifiers, md_seek);
-}
-
 void modifier_freeTemporaryData(ModifierData *md)
 {
 	if (md->type == eModifierType_Armature) {

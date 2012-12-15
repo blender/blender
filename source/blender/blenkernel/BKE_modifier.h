@@ -358,8 +358,6 @@ int           modifiers_isCorrectableDeformed(struct Object *ob);
 void          modifier_freeTemporaryData(struct ModifierData *md);
 int           modifiers_isPreview(struct Object *ob);
 
-int           modifiers_indexInObject(struct Object *ob, struct ModifierData *md);
-
 typedef struct CDMaskLink {
 	struct CDMaskLink *next;
 	CustomDataMask mask;

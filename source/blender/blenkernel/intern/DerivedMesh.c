@@ -1421,7 +1421,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			}
 			
 			/* grab modifiers until index i */
-			if ((index >= 0) && (modifiers_indexInObject(ob, md) >= index))
+			if ((index >= 0) && (BLI_findindex(&ob->modifiers, md) >= index))
 				break;
 		}
 
@@ -1666,7 +1666,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		isPrevDeform = (mti->type == eModifierTypeType_OnlyDeform);
 
 		/* grab modifiers until index i */
-		if ((index >= 0) && (modifiers_indexInObject(ob, md) >= index))
+		if ((index >= 0) && (BLI_findindex(&ob->modifiers, md) >= index))
 			break;
 
 		if (sculpt_mode && md->type == eModifierType_Multires)
