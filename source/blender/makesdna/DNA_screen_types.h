@@ -82,7 +82,8 @@ typedef struct bScreen {
 typedef struct ScrVert {
 	struct ScrVert *next, *prev, *newv;
 	vec2s vec;
-	int flag;
+	/* first one used internally, second one for tools */
+	short flag, editflag;
 } ScrVert;
 
 typedef struct ScrEdge {

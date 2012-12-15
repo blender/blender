@@ -1139,7 +1139,7 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 
 static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
 {
-	short rt = U.pixelsize > 1 ? 1 : 0;
+	short rt = U.pixelsize > 1.0f ? 1 : 0;
 
 	if (sa->v1->vec.x > 0) sa->totrct.xmin = sa->v1->vec.x + 1 + rt;
 	else sa->totrct.xmin = sa->v1->vec.x;

@@ -977,18 +977,18 @@ static void area_move_set_limits(bScreen *sc, int dir, int *bigger, int *smaller
 			int y1 = sa->v2->vec.y - sa->v1->vec.y - areaminy;
 			
 			/* if top or down edge selected, test height */
-			if (sa->v1->flag && sa->v4->flag)
+			if (sa->v1->editflag && sa->v4->editflag)
 				*bigger = min_ii(*bigger, y1);
-			else if (sa->v2->flag && sa->v3->flag)
+			else if (sa->v2->editflag && sa->v3->editflag)
 				*smaller = min_ii(*smaller, y1);
 		}
 		else {
 			int x1 = sa->v4->vec.x - sa->v1->vec.x - AREAMINX;
 			
 			/* if left or right edge selected, test width */
-			if (sa->v1->flag && sa->v2->flag)
+			if (sa->v1->editflag && sa->v2->editflag)
 				*bigger = min_ii(*bigger, x1);
-			else if (sa->v3->flag && sa->v4->flag)
+			else if (sa->v3->editflag && sa->v4->editflag)
 				*smaller = min_ii(*smaller, x1);
 		}
 	}
@@ -1038,7 +1038,7 @@ static void area_move_apply_do(bContext *C, int origval, int delta, int dir, int
 	delta = CLAMPIS(delta, -smaller, bigger);
 	
 	for (v1 = sc->vertbase.first; v1; v1 = v1->next) {
-		if (v1->flag) {
+		if (v1->editflag) {
 			/* that way a nice AREAGRID  */
 			if ((dir == 'v') && v1->vec.x > 0 && v1->vec.x < WM_window_pixels_x(win) - 1) {
 				v1->vec.x = origval + delta;
@@ -1058,7 +1058,7 @@ static void area_move_apply_do(bContext *C, int origval, int delta, int dir, int
 	}
 
 	for (sa = sc->areabase.first; sa; sa = sa->next) {
-		if (sa->v1->flag || sa->v2->flag || sa->v3->flag || sa->v4->flag)
+		if (sa->v1->editflag || sa->v2->editflag || sa->v3->editflag || sa->v4->editflag)
 			ED_area_tag_redraw(sa);
 	}
 
@@ -1336,10 +1336,10 @@ static int area_split_apply(bContext *C, wmOperator *op)
 		
 		/* select newly created edge, prepare for moving edge */
 		for (sv = sc->vertbase.first; sv; sv = sv->next)
-			sv->flag = 0;
+			sv->editflag = 0;
 		
-		sd->nedge->v1->flag = 1;
-		sd->nedge->v2->flag = 1;
+		sd->nedge->v1->editflag = 1;
+		sd->nedge->v2->editflag = 1;
 		
 		if (dir == 'h') sd->origval = sd->nedge->v1->vec.y;
 		else sd->origval = sd->nedge->v1->vec.x;
