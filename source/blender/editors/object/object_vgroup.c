@@ -465,7 +465,7 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 	float weight, tmp_weight[4], tmp_co[3], normal[3], tmp_mat[4][4], dist_v1, dist_v2, dist_v3, dist_v4;
 	const int use_vert_sel = vertex_group_use_vert_sel(ob_dst);
 
-	/* Create new and overwrite vertex group on destination without data.*/
+	/* Ensure vertex group on target.*/
 	if (!defgroup_find_name(ob_dst, dg_src->name)) {
 		ED_vgroup_add_name(ob_dst, dg_src->name);
 	}
@@ -570,8 +570,8 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 				BLI_bvhtree_find_nearest(tree_mesh_vertices_src.tree, tmp_co,
 				                         &nearest, tree_mesh_vertices_src.nearest_callback, &tree_mesh_vertices_src);
 
-				/* Copy weight that are not NULL including weight value 0.
-				 * Existing target weights are overwritten prior to this in relevant cases.*/
+				/* Copy weight that are not NULL including weight value 0. In relevant cases, existing weights are
+				 * overwritten prior to this. See the "Clear weights." step above.*/
 				dw_src = defvert_find_index(dv_array_src[nearest.index], index_src);
 				if (dw_src && dw_src->weight) {
 					dw_dst = defvert_verify_index(*dv_dst, index_dst);
@@ -634,8 +634,8 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 					weight += tmp_weight[f_index] * defvert_find_weight(dv_array_src[v_index], index_src);
 				} while (f_index--);
 
-				/* Copy weight that are not NULL including weight value 0.
-				 * Existing target weights are overwritten prior to this in relevant cases.*/
+				/* Copy weight that are not NULL including weight value 0. In relevant cases, existing weights are
+				 * overwritten prior to this. See the "Clear weights." step above.*/
 				if (weight > 0) {
 					dw_dst = defvert_verify_index(*dv_dst, index_dst);
 					vgroup_transfer_weight(&dw_dst->weight, weight, replace_mode);
@@ -692,8 +692,8 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 					}
 				}
 
-				/* Copy weight that are not NULL including weight value 0.
-				 * Existing target weights are overwritten prior to this in relevant cases.*/
+				/* Copy weight that are not NULL including weight value 0. In relevant cases, existing weights are
+				 * overwritten prior to this. See the "Clear weights." step above.*/
 				dw_src = defvert_find_index(dv_array_src[index_nearest_vertex], index_src);
 				if (dw_src && dw_src->weight) {
 					dw_dst = defvert_verify_index(*dv_dst, index_dst);
