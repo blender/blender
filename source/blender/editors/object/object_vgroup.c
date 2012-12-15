@@ -448,7 +448,7 @@ static void vgroup_transfer_weight(float *r_weight_dst, const float weight_src, 
 }
 
 /* Could be exposed externally */
-static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_src, Scene *scene,
+static int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_src, Scene *scene,
                                      WT_Method method, WT_ReplaceMode replace_mode, wmOperator *op)
 {
 	bDeformGroup *dg_dst;
@@ -3309,7 +3309,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 			switch (vertex_group_mode) {
 
 				case WT_REPLACE_ACTIVE_VERTEX_GROUP:
-					if (!ed_vgroup_transfer_weight(ob_act, ob_slc, BLI_findlink(&ob_slc->defbase, ob_slc->actdef - 1),
+					if (!ED_vgroup_transfer_weight(ob_act, ob_slc, BLI_findlink(&ob_slc->defbase, ob_slc->actdef - 1),
 					                               scene, method, replace_mode, op))
 					{
 						fail++;
@@ -3318,7 +3318,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 
 				case WT_REPLACE_ALL_VERTEX_GROUPS:
 					for (dg_src = ob_slc->defbase.first; dg_src; dg_src = dg_src->next) {
-						if (!ed_vgroup_transfer_weight(ob_act, ob_slc, dg_src, scene, method, replace_mode, op))
+						if (!ED_vgroup_transfer_weight(ob_act, ob_slc, dg_src, scene, method, replace_mode, op))
 						{
 							fail++;
 						}
