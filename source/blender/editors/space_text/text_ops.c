@@ -1131,21 +1131,20 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 	TextLine *tmp;
 	FlattenString fs;
 	size_t a, j;
-	char *text_check_line, *new_line;
+	char *new_line;
 	int extra, number; //unknown for now
 	int type = RNA_enum_get(op->ptr, "type");
-	
-	tmp = text->lines.first;
-	
+
 	/* first convert to all space, this make it a lot easier to convert to tabs
 	 * because there is no mixtures of ' ' && '\t' */
-	while (tmp) {
-		text_check_line = tmp->line;
+	for (tmp = text->lines.first; tmp; tmp = tmp->next) {
+		const char *text_check_line     = tmp->line;
+		const int   text_check_line_len = tmp->len;
 		number = flatten_string(st, &fs, text_check_line) + 1;
 		flatten_string_free(&fs);
 		new_line = MEM_callocN(number, "Converted_Line");
 		j = 0;
-		for (a = 0; a < strlen(text_check_line); a++) { //foreach char in line
+		for (a = 0; a < text_check_line_len; a++) { //foreach char in line
 			if (text_check_line[a] == '\t') { //checking for tabs
 				//get the number of spaces this tabs is showing
 				//i don't like doing it this way but will look into it later
@@ -1175,20 +1174,19 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 		tmp->line = new_line;
 		tmp->len = strlen(new_line);
 		tmp->format = NULL;
-		tmp = tmp->next;
 	}
 	
 	if (type == TO_TABS) { // Converting to tabs
 		//start over from the beginning
-		tmp = text->lines.first;
 		
-		while (tmp) {
-			text_check_line = tmp->line;
+		for (tmp = text->lines.first; tmp; tmp = tmp->next) {
+			const char *text_check_line     = tmp->line;
+			const int   text_check_line_len = tmp->len;
 			extra = 0;
-			for (a = 0; a < strlen(text_check_line); a++) {
+			for (a = 0; a < text_check_line_len; a++) {
 				number = 0;
 				for (j = 0; j < (size_t)st->tabnumber; j++) {
-					if ((a + j) <= strlen(text_check_line)) { //check to make sure we are not pass the end of the line
+					if ((a + j) <= text_check_line_len) { //check to make sure we are not pass the end of the line
 						if (text_check_line[a + j] != ' ') {
 							number = 1;
 						}
@@ -1201,12 +1199,12 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 			}
 			
 			if (extra > 0) {   //got tabs make malloc and do what you have to do
-				new_line = MEM_callocN(strlen(text_check_line) - (((st->tabnumber * extra) - extra) - 1), "Converted_Line");
+				new_line = MEM_callocN(text_check_line_len - (((st->tabnumber * extra) - extra) - 1), "Converted_Line");
 				extra = 0; //reuse vars
-				for (a = 0; a < strlen(text_check_line); a++) {
+				for (a = 0; a < text_check_line_len; a++) {
 					number = 0;
 					for (j = 0; j < (size_t)st->tabnumber; j++) {
-						if ((a + j) <= strlen(text_check_line)) { //check to make sure we are not pass the end of the line
+						if ((a + j) <= text_check_line_len) { //check to make sure we are not pass the end of the line
 							if (text_check_line[a + j] != ' ') {
 								number = 1;
 							}
@@ -1233,7 +1231,6 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 				tmp->len = strlen(new_line);
 				tmp->format = NULL;
 			}
-			tmp = tmp->next;
 		}
 	}
 

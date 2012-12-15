@@ -984,7 +984,7 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 	/* little test first...                                                  */
 	/* Mind the breaking condition here!                                     */
 	if (debugSDNA) printf("\tStart of header scan:\n"); 
-	for (i = 0; strlen(includefiles[i]); i++) {
+	for (i = 0; *(includefiles[i]) != '\0'; i++) {
 		sprintf(str, "%s%s", baseDirectory, includefiles[i]);
 		if (debugSDNA) printf("\t|-- Converting %s\n", str);
 		if (convert_include(str)) {
@@ -1100,7 +1100,7 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 			else {
 
 				/* add all include files defined in the global array */
-				for (i = 0; strlen(includefiles[i]); i++) {
+				for (i = 0; *(includefiles[i]) != '\0'; i++) {
 					fprintf(fp, "#include \"%s%s\"\n", baseDirectory, includefiles[i]);
 				}
 

@@ -1674,10 +1674,11 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 {
 	char buf[UI_MAX_DRAW_STR] = {0};
 	char *str, *p, *pbuf;
-	int len, x, i, changed = 0;
+	int x, changed = 0;
+	int str_len, buf_len;
 
 	str = data->str;
-	len = strlen(str);
+	str_len = strlen(str);
 	
 	/* paste */
 	if (paste) {
@@ -1687,28 +1688,28 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 
 		if (p && p[0]) {
 			unsigned int y;
-			i = 0;
-			while (*p && *p != '\r' && *p != '\n' && i < UI_MAX_DRAW_STR - 1) {
-				buf[i++] = *p;
+			buf_len = 0;
+			while (*p && *p != '\r' && *p != '\n' && buf_len < UI_MAX_DRAW_STR - 1) {
+				buf[buf_len++] = *p;
 				p++;
 			}
-			buf[i] = 0;
+			buf[buf_len] = 0;
 
 			/* paste over the current selection */
 			if ((but->selend - but->selsta) > 0) {
 				ui_textedit_delete_selection(but, data);
-				len = strlen(str);
+				str_len = strlen(str);
 			}
 			
-			for (y = 0; y < strlen(buf); y++) {
+			for (y = 0; y < buf_len; y++) {
 				/* add contents of buffer */
-				if (len + 1 < data->maxlen) {
+				if (str_len + 1 < data->maxlen) {
 					for (x = data->maxlen; x > but->pos; x--)
 						str[x] = str[x - 1];
 					str[but->pos] = buf[y];
 					but->pos++; 
-					len++;
-					str[len] = '\0';
+					str_len++;
+					str[str_len] = '\0';
 				}
 			}
 
