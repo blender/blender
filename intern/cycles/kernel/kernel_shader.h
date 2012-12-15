@@ -752,7 +752,11 @@ __device void shader_merge_closures(KernelGlobals *kg, ShaderData *sd)
 		for(int j = i + 1; j < sd->num_closure; j++) {
 			ShaderClosure *scj = &sd->closure[j];
 
+#ifdef __OSL__
 			if(!sci->prim && sci->type == scj->type && sci->data0 == scj->data0 && sci->data1 == scj->data1) {
+#else
+			if(sci->type == scj->type && sci->data0 == scj->data0 && sci->data1 == scj->data1) {
+#endif
 				sci->weight += scj->weight;
 				sci->sample_weight += scj->sample_weight;
 
