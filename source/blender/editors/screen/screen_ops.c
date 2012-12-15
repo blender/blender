@@ -1001,6 +1001,7 @@ static int area_move_init(bContext *C, wmOperator *op)
 	bScreen *sc = CTX_wm_screen(C);
 	ScrEdge *actedge;
 	sAreaMoveData *md;
+	ScrVert *v1;
 	int x, y;
 	
 	/* required properties */
@@ -1019,7 +1020,11 @@ static int area_move_init(bContext *C, wmOperator *op)
 	else md->origval = actedge->v1->vec.x;
 	
 	select_connected_scredge(sc, actedge);
-	/* now all vertices with 'flag==1' are the ones that can be moved. */
+	/* now all vertices with 'flag==1' are the ones that can be moved. Move this to editflag */
+	for (v1 = sc->vertbase.first; v1; v1 = v1->next)
+		if (v1->flag)
+			v1->editflag = 1;
+
 	
 	area_move_set_limits(sc, md->dir, &md->bigger, &md->smaller);
 	
