@@ -707,30 +707,6 @@ class USERPREF_PT_theme(Panel):
             col.separator()
             col.separator()
 
-            ui = theme.user_interface.panel
-            col.label("Panels:")
-
-            row = col.row()
-
-            subsplit = row.split(percentage=0.95)
-
-            padding = subsplit.split(percentage=0.15)
-            colsub = padding.column()
-            colsub = padding.column()
-            rowsub = colsub.row()
-            rowsub.prop(ui, "show_header")
-            rowsub.label()
-
-            subsplit = row.split(percentage=0.85)
-
-            padding = subsplit.split(percentage=0.15)
-            colsub = padding.column()
-            colsub = padding.column()
-            colsub.row().prop(ui, "header")
-
-            col.separator()
-            col.separator()
-
             ui = theme.user_interface
             col.label("Axis Colors:")
 

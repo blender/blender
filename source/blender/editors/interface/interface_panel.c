@@ -499,7 +499,6 @@ static void rectf_scale(rctf *rect, const float scale)
 /* panel integrated in buttonswindow, tool/property lists etc */
 void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 {
-	bTheme *btheme = UI_GetTheme();
 	Panel *panel = block->panel;
 	rcti headrect;
 	rctf itemrect;
@@ -521,10 +520,11 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 
 		glEnable(GL_BLEND);
 
-		if (btheme->tui.panel.show_header) {
+		
+		if (UI_GetThemeValue(TH_PANEL_SHOW_HEADER)) {
 			/* draw with background color */
 			glEnable(GL_BLEND);
-			glColor4ubv((unsigned char *)btheme->tui.panel.header);
+			UI_ThemeColor4(TH_PANEL_HEADER);
 			glRectf(minx, headrect.ymin + 1, maxx, y);
 
 			fdrawline(minx, y, maxx, y);
@@ -579,6 +579,14 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 			
 			UI_ThemeColorShade(TH_BACK, -120);
 			uiRoundRect(0.5f + rect->xmin, 0.5f + rect->ymin, 0.5f + rect->xmax, 0.5f + headrect.ymax + 1, 8);
+		}
+		
+		/* panel backdrop */
+		if (UI_GetThemeValue(TH_PANEL_SHOW_BACK)) {
+			/* draw with background color */
+			glEnable(GL_BLEND);
+			UI_ThemeColor4(TH_PANEL_BACK);
+			glRecti(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 		}
 		
 		if (panel->control & UI_PNL_SCALE)

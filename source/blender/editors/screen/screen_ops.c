@@ -1021,11 +1021,8 @@ static int area_move_init(bContext *C, wmOperator *op)
 	
 	select_connected_scredge(sc, actedge);
 	/* now all vertices with 'flag==1' are the ones that can be moved. Move this to editflag */
-	for (v1 = sc->vertbase.first; v1; v1 = v1->next) {
-		v1->editflag = 0;
-		if (v1->flag)
-			v1->editflag = 1;
-	}
+	for (v1 = sc->vertbase.first; v1; v1 = v1->next)
+		v1->editflag = v1->flag;
 	
 	area_move_set_limits(sc, md->dir, &md->bigger, &md->smaller);
 	

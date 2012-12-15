@@ -143,8 +143,10 @@ typedef struct uiWidgetStateColors {
 
 typedef struct uiPanelColors {
 	char header[4];
+	char back[4];
 	short show_header;
-	short pad;
+	short show_back;
+	int pad;
 } uiPanelColors;
 
 typedef struct ThemeUI {
@@ -157,7 +159,7 @@ typedef struct ThemeUI {
 	
 	uiWidgetStateColors wcol_state;
 
-	uiPanelColors panel;
+	uiPanelColors panel; /* depricated, but we keep it for do_versions (2.66.1) */
 
 	char iconfile[256];	// FILE_MAXFILE length
 	float icon_alpha;
@@ -172,33 +174,36 @@ typedef struct ThemeUI {
 typedef struct ThemeSpace {
 	/* main window colors */
 	char back[4];
-	char title[4];
+	char title[4]; 	/* panel title */
 	char text[4];
 	char text_hi[4];
 	
 	/* header colors */
-	char header[4];
-	char header_title[4];
+	char header[4];			/* region background */
+	char header_title[4];	/* unused */
 	char header_text[4];
 	char header_text_hi[4];
 
 	/* button/tool regions */
-	char button[4];
-	char button_title[4];
+	char button[4];			/* region background */
+	char button_title[4];	/* panel title */
 	char button_text[4];
 	char button_text_hi[4];
 	
 	/* listview regions */
-	char list[4];
-	char list_title[4];
+	char list[4];			/* region background */
+	char list_title[4]; 	/* panel title */
 	char list_text[4];
 	char list_text_hi[4];
 	
 	/* float panel */
-	char panel[4];
-	char panel_title[4];
-	char panel_text[4];
-	char panel_text_hi[4];
+/*	char panel[4];			unused */
+/*	char panel_title[4];	unused */
+/*	char panel_text[4];		unused */
+/*	char panel_text_hi[4];	unused */
+	
+	/* note, cannot use name 'panel' because of DNA mapping old files */
+	uiPanelColors panelcolors;
 	
 	char shade1[4];
 	char shade2[4];

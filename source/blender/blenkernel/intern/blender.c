@@ -403,7 +403,6 @@ void BKE_userdef_free(void)
 /* handle changes in settings that need recalc */
 void BKE_userdef_state(void)
 {
-	if (U.pixelsize == 0) U.pixelsize = 1;
 	BLF_default_dpi(U.pixelsize * U.dpi);
 	U.widget_unit = (U.pixelsize * U.dpi * 20 + 36) / 72;
 
