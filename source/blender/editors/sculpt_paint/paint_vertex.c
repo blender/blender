@@ -851,12 +851,12 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 }
 
 /* whats _dl mean? */
-static float calc_vp_strength_dl(VPaint *vp, ViewContext *vc, const float vert_nor[3],
+static float calc_vp_strength_dl(VPaint *vp, ViewContext *vc, const float co[3],
                                  const float mval[2], const float brush_size_pressure)
 {
 	float vertco[2];
 
-	if (ED_view3d_project_float_global(vc->ar, vert_nor, vertco, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+	if (ED_view3d_project_float_global(vc->ar, co, vertco, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 		float delta[2];
 		float dist_squared;
 
@@ -873,24 +873,23 @@ static float calc_vp_strength_dl(VPaint *vp, ViewContext *vc, const float vert_n
 }
 
 static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc,
-                              float vpimat[3][3], const float *vert_nor,
+                              float vpimat[3][3], const DMCoNo *v_co_no,
                               const float mval[2],
                               const float brush_size_pressure, const float brush_alpha_pressure)
 {
-	float strength = calc_vp_strength_dl(vp, vc, vert_nor, mval, brush_size_pressure);
+	float strength = calc_vp_strength_dl(vp, vc, v_co_no->co, mval, brush_size_pressure);
 
 	if (strength > 0.0f) {
 		float alpha = brush_alpha_pressure * strength;
 
 		if (vp->flag & VP_NORMALS) {
 			float dvec[3];
-			const float *no = vert_nor + 3;
 
 			/* transpose ! */
-			dvec[2] = dot_v3v3(vpimat[2], no);
+			dvec[2] = dot_v3v3(vpimat[2], v_co_no->no);
 			if (dvec[2] > 0.0f) {
-				dvec[0] = dot_v3v3(vpimat[0], no);
-				dvec[1] = dot_v3v3(vpimat[1], no);
+				dvec[0] = dot_v3v3(vpimat[0], v_co_no->no);
+				dvec[1] = dot_v3v3(vpimat[1], v_co_no->no);
 
 				alpha *= dvec[2] / len_v3(dvec);
 			}
@@ -2038,7 +2037,7 @@ struct WPaintData {
 	int *indexar;
 	int vgroup_active;
 	int vgroup_mirror;
-	float *vertexcosnos;
+	DMCoNo *vertexcosnos;
 	float wpimat[3][3];
 	
 	/* variables for auto normalize */
@@ -2286,7 +2285,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 				ml = me->mloop + mpoly->loopstart;
 				for (i = 0; i < mpoly->totloop; i++, ml++) {
 					unsigned int vidx = ml->v;
-					const float fac = calc_vp_strength_dl(wp, vc, wpd->vertexcosnos + 6 * vidx, mval, brush_size_pressure);
+					const float fac = calc_vp_strength_dl(wp, vc, wpd->vertexcosnos[vidx].co, mval, brush_size_pressure);
 					if (fac > 0.0f) {
 						dw = dw_func(&me->dvert[vidx], wpi.vgroup_active);
 						paintweight += dw ? (dw->weight * fac) : 0.0f;
@@ -2312,7 +2311,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 				unsigned int vidx = ml->v;
 
 				if (me->dvert[vidx].flag) {
-					alpha = calc_vp_alpha_dl(wp, vc, wpd->wpimat, wpd->vertexcosnos + 6 * vidx,
+					alpha = calc_vp_alpha_dl(wp, vc, wpd->wpimat, &wpd->vertexcosnos[vidx],
 					                         mval, brush_size_pressure, brush_alpha_pressure);
 					if (alpha) {
 						do_weight_paint_vertex(wp, ob, &wpi, vidx, alpha, paintweight);
@@ -2548,7 +2547,7 @@ typedef struct VPaintData {
 	ViewContext vc;
 	unsigned int paintcol;
 	int *indexar;
-	float *vertexcosnos;
+	DMCoNo *vertexcosnos;
 	float vpimat[3][3];
 
 	/* modify 'me->mcol' directly, since the derived mesh is drawing from this array,
@@ -2696,7 +2695,7 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Object *ob,
 	ml = me->mloop + mpoly->loopstart;
 	for (i = 0; i < mpoly->totloop; i++, ml++) {
 		alpha = calc_vp_alpha_dl(vp, vc, vpd->vpimat,
-		                         vpd->vertexcosnos + 6 * ml->v, mval,
+		                         &vpd->vertexcosnos[ml->v], mval,
 		                         brush_size_pressure, brush_alpha_pressure);
 		if (alpha > 0.0f) {
 			const int alpha_i = (int)(alpha * 255.0f);
