@@ -87,7 +87,7 @@ void makeqtstring(struct RenderData *rd, char *string);		//for playanim.c
 
 
 
-#if (defined(USE_QTKIT) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5 && __LP64__)
+#if (defined(USE_QTKIT) && MAC_OS_X_VERSION_MIN_REQUIRED >= 1050 && __LP64__)
 //Include the quicktime codec types constants that are missing in QTKitDefines.h
 enum {
 	kRawCodecType						= 'raw ',

@@ -28,7 +28,7 @@
 
 #include <Cocoa/Cocoa.h>
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_5
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= 1050
 //Use of the SetSystemUIMode function (64bit compatible)
 #include <Carbon/Carbon.h>
 #endif
@@ -58,7 +58,7 @@ extern "C" {
 	extern void wm_draw_update(bContext *C);
 };*/
 @interface CocoaWindowDelegate : NSObject
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 <NSWindowDelegate>
 #endif
 {
@@ -115,12 +115,12 @@ extern "C" {
 
 - (void)windowDidResize:(NSNotification *)notification
 {
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 	//if (![[notification object] inLiveResize]) {
 		//Send event only once, at end of resize operation (when user has released mouse button)
 #endif
 		systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, associatedWindow);
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 	//}
 #endif
 	/* Live resize ugly patch. Needed because live resize runs in a modal loop, not letting main loop run
@@ -287,7 +287,7 @@ extern "C" {
 	}
 }
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= 1040
 //Cmd+key are handled differently before 10.5
 - (BOOL)performKeyEquivalent:(NSEvent *)theEvent
 {
@@ -578,7 +578,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	setDrawingContextType(type);
 	updateDrawingContext();
 	activateDrawingContext();
-#if defined(MAC_OS_X_VERSION_10_7) && (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7)	// retina support started with 10.7.4 afaik
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070	// retina support started with 10.7.4 afaik
 	if (m_systemCocoa->m_nativePixel) {
 		[m_openGLView setWantsBestResolutionOpenGLSurface:YES];
 		NSRect backingBounds = [m_openGLView convertRectToBacking:[m_openGLView bounds]];
@@ -928,7 +928,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				 * doesn't know view/window difference. */
 				m_fullScreen = true;
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 				//10.6 provides Cocoa functions to autoshow menu bar, and to change a window style
 				//Hide menu & dock if needed
 				if ([[m_window screen] isEqual:[[NSScreen screens] objectAtIndex:0]]) {
@@ -987,7 +987,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				m_fullScreen = false;
 
 				//Exit fullscreen
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 				//Show again menu & dock if needed
 				if ([[m_window screen] isEqual:[NSScreen mainScreen]]) {
 					[NSApp setPresentationOptions:NSApplicationPresentationDefault];

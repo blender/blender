@@ -56,7 +56,7 @@
 #include "AssertMacros.h"
 
 #pragma mark KeyMap, mouse converters
-#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= 1040
 /* Keycodes not defined in Tiger */
 /*  
  *  Summary:
@@ -360,7 +360,7 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 				return (GHOST_TKey) (recvChar - 'a' + GHOST_kKeyA);
 			}
 			else {
-#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= 1040
 				KeyboardLayoutRef keyLayout;
 				UCKeyboardLayout *uchrData;
 				
@@ -423,7 +423,7 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 
 
 #pragma mark defines for 10.6 api not documented in 10.5
-#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= 1040
 enum {
 	/* The following event types are available on some hardware on 10.5.2 and later */
 	NSEventTypeGesture          = 29,
