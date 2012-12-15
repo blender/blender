@@ -467,7 +467,6 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 
 	/* Create new and overwrite vertex group on destination without data.*/
 	if (!defgroup_find_name(ob_dst, dg_src->name)) {
-		ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
 		ED_vgroup_add_name(ob_dst, dg_src->name);
 	}
 
