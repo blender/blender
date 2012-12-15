@@ -54,7 +54,7 @@ public:
 
 	void setup()
 	{
-		sc.N = TO_FLOAT3(N);
+		sc.prim = this;
 		m_shaderdata_flag = bsdf_phong_ramp_setup(&sc);
 
 		for(int i = 0; i < 8; i++)
@@ -100,7 +100,7 @@ public:
 ClosureParam *closure_bsdf_phong_ramp_params()
 {
 	static ClosureParam params[] = {
-		CLOSURE_VECTOR_PARAM(PhongRampClosure, N),
+		CLOSURE_FLOAT3_PARAM(PhongRampClosure, sc.N),
 		CLOSURE_FLOAT_PARAM(PhongRampClosure, sc.data0),
 		CLOSURE_COLOR_ARRAY_PARAM(PhongRampClosure, colors, 8),
 		CLOSURE_STRING_KEYPARAM("label"),

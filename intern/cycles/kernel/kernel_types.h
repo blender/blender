@@ -379,6 +379,18 @@ typedef struct ShaderClosure {
 #endif
 } ShaderClosure;
 
+/* Shader Context
+ *
+ * For OSL we recycle a fixed number of contexts for speed */
+
+typedef enum ShaderContext {
+	SHADER_CONTEXT_MAIN = 0,
+	SHADER_CONTEXT_INDIRECT = 1,
+	SHADER_CONTEXT_EMISSION = 2,
+	SHADER_CONTEXT_SHADOW = 3,
+	SHADER_CONTEXT_NUM = 4
+} ShaderContext;
+
 /* Shader Data
  *
  * Main shader state at a point on the surface or in a volume. All coordinates
@@ -465,11 +477,6 @@ typedef struct ShaderData {
 #else
 	/* Closure data, with a single sampled closure for low memory usage */
 	ShaderClosure closure;
-#endif
-
-#ifdef __OSL__
-	/* OSL context */
-	void *osl_ctx;
 #endif
 } ShaderData;
 

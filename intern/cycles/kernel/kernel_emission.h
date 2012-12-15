@@ -42,7 +42,7 @@ __device float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 		ray.time = time;
 #endif
 		shader_setup_from_background(kg, &sd, &ray);
-		eval = shader_eval_background(kg, &sd, 0);
+		eval = shader_eval_background(kg, &sd, 0, SHADER_CONTEXT_EMISSION);
 	}
 	else
 #endif
@@ -52,7 +52,7 @@ __device float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 
 		/* no path flag, we're evaluating this for all closures. that's weak but
 		 * we'd have to do multiple evaluations otherwise */
-		shader_eval_surface(kg, &sd, rando, 0);
+		shader_eval_surface(kg, &sd, rando, 0, SHADER_CONTEXT_EMISSION);
 
 		/* evaluate emissive closure */
 		if(sd.flag & SD_EMISSION)
@@ -170,7 +170,7 @@ __device float3 indirect_background(KernelGlobals *kg, Ray *ray, int path_flag, 
 	/* evaluate background closure */
 	ShaderData sd;
 	shader_setup_from_background(kg, &sd, ray);
-	float3 L = shader_eval_background(kg, &sd, path_flag);
+	float3 L = shader_eval_background(kg, &sd, path_flag, SHADER_CONTEXT_EMISSION);
 	shader_release(kg, &sd);
 
 #ifdef __BACKGROUND_MIS__

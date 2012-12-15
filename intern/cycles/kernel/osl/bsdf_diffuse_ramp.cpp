@@ -55,7 +55,7 @@ public:
 
 	void setup()
 	{
-		sc.N = TO_FLOAT3(N);
+		sc.prim = this;
 		m_shaderdata_flag = bsdf_diffuse_ramp_setup(&sc);
 
 		for(int i = 0; i < 8; i++)
@@ -101,7 +101,7 @@ public:
 ClosureParam *closure_bsdf_diffuse_ramp_params()
 {
 	static ClosureParam params[] = {
-		CLOSURE_VECTOR_PARAM(DiffuseRampClosure, N),
+		CLOSURE_FLOAT3_PARAM(DiffuseRampClosure, sc.N),
 		CLOSURE_COLOR_ARRAY_PARAM(DiffuseRampClosure, colors, 8),
 		CLOSURE_STRING_KEYPARAM("label"),
 	    CLOSURE_FINISH_PARAM(DiffuseRampClosure)

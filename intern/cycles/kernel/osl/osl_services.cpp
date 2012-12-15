@@ -47,7 +47,7 @@ CCL_NAMESPACE_BEGIN
 
 /* RenderServices implementation */
 
-#define TO_MATRIX44(m) (*(OSL::Matrix44 *)&(m))
+#define COPY_MATRIX44(m1, m2) memcpy(m1, m2, sizeof(*m2))
 
 /* static ustrings */
 ustring OSLRenderServices::u_distance("distance");
@@ -121,7 +121,7 @@ bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr
 			Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
 #endif
 			tfm = transform_transpose(tfm);
-			result = TO_MATRIX44(tfm);
+			COPY_MATRIX44(&result, &tfm);
 
 			return true;
 		}
@@ -151,7 +151,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, OSL::Transform
 			Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
 #endif
 			itfm = transform_transpose(itfm);
-			result = TO_MATRIX44(itfm);
+			COPY_MATRIX44(&result, &itfm);
 
 			return true;
 		}
@@ -166,22 +166,22 @@ bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, ustring from, float ti
 
 	if (from == u_ndc) {
 		Transform tfm = transform_transpose(transform_quick_inverse(kernel_data.cam.worldtondc));
-		result = TO_MATRIX44(tfm);
+		COPY_MATRIX44(&result, &tfm);
 		return true;
 	}
 	else if (from == u_raster) {
 		Transform tfm = transform_transpose(kernel_data.cam.rastertoworld);
-		result = TO_MATRIX44(tfm);
+		COPY_MATRIX44(&result, &tfm);
 		return true;
 	}
 	else if (from == u_screen) {
 		Transform tfm = transform_transpose(kernel_data.cam.screentoworld);
-		result = TO_MATRIX44(tfm);
+		COPY_MATRIX44(&result, &tfm);
 		return true;
 	}
 	else if (from == u_camera) {
 		Transform tfm = transform_transpose(kernel_data.cam.cameratoworld);
-		result = TO_MATRIX44(tfm);
+		COPY_MATRIX44(&result, &tfm);
 		return true;
 	}
 
@@ -194,22 +194,22 @@ bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, ustring to, fl
 
 	if (to == u_ndc) {
 		Transform tfm = transform_transpose(kernel_data.cam.worldtondc);
-		result = TO_MATRIX44(tfm);
+		COPY_MATRIX44(&result, &tfm);
 		return true;
 	}
 	else if (to == u_raster) {
 		Transform tfm = transform_transpose(kernel_data.cam.worldtoraster);
-		result = TO_MATRIX44(tfm);
+		COPY_MATRIX44(&result, &tfm);
 		return true;
 	}
 	else if (to == u_screen) {
 		Transform tfm = transform_transpose(kernel_data.cam.worldtoscreen);
-		result = TO_MATRIX44(tfm);
+		COPY_MATRIX44(&result, &tfm);
 		return true;
 	}
 	else if (to == u_camera) {
 		Transform tfm = transform_transpose(kernel_data.cam.worldtocamera);
-		result = TO_MATRIX44(tfm);
+		COPY_MATRIX44(&result, &tfm);
 		return true;
 	}
 
@@ -232,7 +232,7 @@ bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr
 			Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
 #endif
 			tfm = transform_transpose(tfm);
-			result = TO_MATRIX44(tfm);
+			COPY_MATRIX44(&result, &tfm);
 
 			return true;
 		}
@@ -257,7 +257,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, OSL::Transform
 			Transform tfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
 #endif
 			tfm = transform_transpose(tfm);
-			result = TO_MATRIX44(tfm);
+			COPY_MATRIX44(&result, &tfm);
 
 			return true;
 		}
@@ -272,22 +272,22 @@ bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, ustring from)
 
 	if (from == u_ndc) {
 		Transform tfm = transform_transpose(transform_quick_inverse(kernel_data.cam.worldtondc));
-		result = TO_MATRIX44(tfm);
+		COPY_MATRIX44(&result, &tfm);
 		return true;
 	}
 	else if (from == u_raster) {
 		Transform tfm = transform_transpose(kernel_data.cam.rastertoworld);
-		result = TO_MATRIX44(tfm);
+		COPY_MATRIX44(&result, &tfm);
 		return true;
 	}
 	else if (from == u_screen) {
 		Transform tfm = transform_transpose(kernel_data.cam.screentoworld);
-		result = TO_MATRIX44(tfm);
+		COPY_MATRIX44(&result, &tfm);
 		return true;
 	}
 	else if (from == u_camera) {
 		Transform tfm = transform_transpose(kernel_data.cam.cameratoworld);
-		result = TO_MATRIX44(tfm);
+		COPY_MATRIX44(&result, &tfm);
 		return true;
 	}
 
@@ -300,22 +300,22 @@ bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, ustring to)
 	
 	if (to == u_ndc) {
 		Transform tfm = transform_transpose(kernel_data.cam.worldtondc);
-		result = TO_MATRIX44(tfm);
+		COPY_MATRIX44(&result, &tfm);
 		return true;
 	}
 	else if (to == u_raster) {
 		Transform tfm = transform_transpose(kernel_data.cam.worldtoraster);
-		result = TO_MATRIX44(tfm);
+		COPY_MATRIX44(&result, &tfm);
 		return true;
 	}
 	else if (to == u_screen) {
 		Transform tfm = transform_transpose(kernel_data.cam.worldtoscreen);
-		result = TO_MATRIX44(tfm);
+		COPY_MATRIX44(&result, &tfm);
 		return true;
 	}
 	else if (to == u_camera) {
 		Transform tfm = transform_transpose(kernel_data.cam.worldtocamera);
-		result = TO_MATRIX44(tfm);
+		COPY_MATRIX44(&result, &tfm);
 		return true;
 	}
 	
@@ -815,13 +815,10 @@ bool OSLRenderServices::trace(TraceOpt &options, OSL::ShaderGlobals *sg,
 	ray.dD.dy = TO_FLOAT3(dRdy);
 
 	/* allocate trace data */
-	TraceData *tracedata = new TraceData();
+	OSLTraceData *tracedata = (OSLTraceData*)sg->tracedata;
 	tracedata->ray = ray;
 	tracedata->setup = false;
-
-	if(sg->tracedata)
-		delete (TraceData*)sg->tracedata;
-	sg->tracedata = tracedata;
+	tracedata->init = true;
 
 	/* raytrace */
 	return scene_intersect(kernel_globals, &ray, ~0, &tracedata->isect);
@@ -831,9 +828,9 @@ bool OSLRenderServices::trace(TraceOpt &options, OSL::ShaderGlobals *sg,
 bool OSLRenderServices::getmessage(OSL::ShaderGlobals *sg, ustring source, ustring name,
 	TypeDesc type, void *val, bool derivatives)
 {
-	TraceData *tracedata = (TraceData*)sg->tracedata;
+	OSLTraceData *tracedata = (OSLTraceData*)sg->tracedata;
 
-	if(source == u_trace && tracedata) {
+	if(source == u_trace && tracedata->init) {
 		if(name == u_hit) {
 			return set_attribute_int((tracedata->isect.prim != ~0), type, derivatives, val);
 		}

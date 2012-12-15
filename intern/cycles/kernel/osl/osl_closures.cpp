@@ -43,7 +43,7 @@
 #include "kernel_types.h"
 #include "kernel_montecarlo.h"
 
-#include "closure/bsdf.h"
+#include "closure/bsdf_util.h"
 #include "closure/bsdf_ashikhmin_velvet.h"
 #include "closure/bsdf_diffuse.h"
 #include "closure/bsdf_microfacet.h"
@@ -62,34 +62,34 @@ using namespace OSL;
 /* BSDF class definitions */
 
 BSDF_CLOSURE_CLASS_BEGIN(Diffuse, diffuse, diffuse, LABEL_DIFFUSE)
-	CLOSURE_VECTOR_PARAM(DiffuseClosure, N),
+	CLOSURE_FLOAT3_PARAM(DiffuseClosure, sc.N),
 BSDF_CLOSURE_CLASS_END(Diffuse, diffuse)
 
 BSDF_CLOSURE_CLASS_BEGIN(Translucent, translucent, translucent, LABEL_DIFFUSE)
-	CLOSURE_VECTOR_PARAM(TranslucentClosure, N),
+	CLOSURE_FLOAT3_PARAM(TranslucentClosure, sc.N),
 BSDF_CLOSURE_CLASS_END(Translucent, translucent)
 
 BSDF_CLOSURE_CLASS_BEGIN(OrenNayar, oren_nayar, oren_nayar, LABEL_DIFFUSE)
-	CLOSURE_VECTOR_PARAM(OrenNayarClosure, N),
+	CLOSURE_FLOAT3_PARAM(OrenNayarClosure, sc.N),
 	CLOSURE_FLOAT_PARAM(OrenNayarClosure, sc.data0),
 BSDF_CLOSURE_CLASS_END(OrenNayar, oren_nayar)
 
 BSDF_CLOSURE_CLASS_BEGIN(Reflection, reflection, reflection, LABEL_SINGULAR)
-	CLOSURE_VECTOR_PARAM(ReflectionClosure, N),
+	CLOSURE_FLOAT3_PARAM(ReflectionClosure, sc.N),
 BSDF_CLOSURE_CLASS_END(Reflection, reflection)
 
 BSDF_CLOSURE_CLASS_BEGIN(Refraction, refraction, refraction, LABEL_SINGULAR)
-	CLOSURE_VECTOR_PARAM(RefractionClosure, N),
+	CLOSURE_FLOAT3_PARAM(RefractionClosure, sc.N),
 	CLOSURE_FLOAT_PARAM(RefractionClosure, sc.data0),
 BSDF_CLOSURE_CLASS_END(Refraction, refraction)
 
 BSDF_CLOSURE_CLASS_BEGIN(WestinBackscatter, westin_backscatter, westin_backscatter, LABEL_GLOSSY)
-	CLOSURE_VECTOR_PARAM(WestinBackscatterClosure, N),
+	CLOSURE_FLOAT3_PARAM(WestinBackscatterClosure, sc.N),
 	CLOSURE_FLOAT_PARAM(WestinBackscatterClosure, sc.data0),
 BSDF_CLOSURE_CLASS_END(WestinBackscatter, westin_backscatter)
 
 BSDF_CLOSURE_CLASS_BEGIN(WestinSheen, westin_sheen, westin_sheen, LABEL_DIFFUSE)
-	CLOSURE_VECTOR_PARAM(WestinSheenClosure, N),
+	CLOSURE_FLOAT3_PARAM(WestinSheenClosure, sc.N),
 	CLOSURE_FLOAT_PARAM(WestinSheenClosure, sc.data0),
 BSDF_CLOSURE_CLASS_END(WestinSheen, westin_sheen)
 
@@ -97,35 +97,35 @@ BSDF_CLOSURE_CLASS_BEGIN(Transparent, transparent, transparent, LABEL_SINGULAR)
 BSDF_CLOSURE_CLASS_END(Transparent, transparent)
 
 BSDF_CLOSURE_CLASS_BEGIN(AshikhminVelvet, ashikhmin_velvet, ashikhmin_velvet, LABEL_DIFFUSE)
-	CLOSURE_VECTOR_PARAM(AshikhminVelvetClosure, N),
+	CLOSURE_FLOAT3_PARAM(AshikhminVelvetClosure, sc.N),
 	CLOSURE_FLOAT_PARAM(AshikhminVelvetClosure, sc.data0),
 BSDF_CLOSURE_CLASS_END(AshikhminVelvet, ashikhmin_velvet)
 
 BSDF_CLOSURE_CLASS_BEGIN(Ward, ward, ward, LABEL_GLOSSY)
-	CLOSURE_VECTOR_PARAM(WardClosure, N),
-	CLOSURE_VECTOR_PARAM(WardClosure, T),
+	CLOSURE_FLOAT3_PARAM(WardClosure, sc.N),
+	CLOSURE_FLOAT3_PARAM(WardClosure, sc.T),
 	CLOSURE_FLOAT_PARAM(WardClosure, sc.data0),
 	CLOSURE_FLOAT_PARAM(WardClosure, sc.data1),
 BSDF_CLOSURE_CLASS_END(Ward, ward)
 
 BSDF_CLOSURE_CLASS_BEGIN(MicrofacetGGX, microfacet_ggx, microfacet_ggx, LABEL_GLOSSY)
-	CLOSURE_VECTOR_PARAM(MicrofacetGGXClosure, N),
+	CLOSURE_FLOAT3_PARAM(MicrofacetGGXClosure, sc.N),
 	CLOSURE_FLOAT_PARAM(MicrofacetGGXClosure, sc.data0),
 BSDF_CLOSURE_CLASS_END(MicrofacetGGX, microfacet_ggx)
 
 BSDF_CLOSURE_CLASS_BEGIN(MicrofacetBeckmann, microfacet_beckmann, microfacet_beckmann, LABEL_GLOSSY)
-	CLOSURE_VECTOR_PARAM(MicrofacetBeckmannClosure, N),
+	CLOSURE_FLOAT3_PARAM(MicrofacetBeckmannClosure, sc.N),
 	CLOSURE_FLOAT_PARAM(MicrofacetBeckmannClosure, sc.data0),
 BSDF_CLOSURE_CLASS_END(MicrofacetBeckmann, microfacet_beckmann)
 
 BSDF_CLOSURE_CLASS_BEGIN(MicrofacetGGXRefraction, microfacet_ggx_refraction, microfacet_ggx, LABEL_GLOSSY)
-	CLOSURE_VECTOR_PARAM(MicrofacetGGXRefractionClosure, N),
+	CLOSURE_FLOAT3_PARAM(MicrofacetGGXRefractionClosure, sc.N),
 	CLOSURE_FLOAT_PARAM(MicrofacetGGXRefractionClosure, sc.data0),
 	CLOSURE_FLOAT_PARAM(MicrofacetGGXRefractionClosure, sc.data1),
 BSDF_CLOSURE_CLASS_END(MicrofacetGGXRefraction, microfacet_ggx_refraction)
 
 BSDF_CLOSURE_CLASS_BEGIN(MicrofacetBeckmannRefraction, microfacet_beckmann_refraction, microfacet_beckmann, LABEL_GLOSSY)
-	CLOSURE_VECTOR_PARAM(MicrofacetBeckmannRefractionClosure, N),
+	CLOSURE_FLOAT3_PARAM(MicrofacetBeckmannRefractionClosure, sc.N),
 	CLOSURE_FLOAT_PARAM(MicrofacetBeckmannRefractionClosure, sc.data0),
 	CLOSURE_FLOAT_PARAM(MicrofacetBeckmannRefractionClosure, sc.data1),
 BSDF_CLOSURE_CLASS_END(MicrofacetBeckmannRefraction, microfacet_beckmann_refraction)

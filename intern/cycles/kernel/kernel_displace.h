@@ -35,7 +35,7 @@ __device void kernel_shader_evaluate(KernelGlobals *kg, uint4 *input, float4 *ou
 
 		/* evaluate */
 		float3 P = sd.P;
-		shader_eval_displacement(kg, &sd);
+		shader_eval_displacement(kg, &sd, SHADER_CONTEXT_MAIN);
 		out = sd.P - P;
 	}
 	else { // SHADER_EVAL_BACKGROUND
@@ -63,7 +63,7 @@ __device void kernel_shader_evaluate(KernelGlobals *kg, uint4 *input, float4 *ou
 
 		/* evaluate */
 		int flag = 0; /* we can't know which type of BSDF this is for */
-		out = shader_eval_background(kg, &sd, flag);
+		out = shader_eval_background(kg, &sd, flag, SHADER_CONTEXT_MAIN);
 	}
 	
 	shader_release(kg, &sd);

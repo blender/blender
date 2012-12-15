@@ -56,6 +56,7 @@ set(SRC_CLOSURE_HEADERS
 	closure/bsdf_reflection.h
 	closure/bsdf_refraction.h
 	closure/bsdf_transparent.h
+	closure/bsdf_util.h
 	closure/bsdf_ward.h
 	closure/bsdf_westin.h
 	closure/emissive.h
@@ -64,7 +65,6 @@ set(SRC_CLOSURE_HEADERS
 set(SRC_SVM_HEADERS
 	svm/svm.h
 	svm/svm_attribute.h
-	svm/svm_bsdf.h
 	svm/svm_camera.h
 	svm/svm_closure.h
 	svm/svm_convert.h

@@ -70,8 +70,11 @@ void name(RendererServices *, int id, void *data) \
 
 #define CLOSURE_PREPARE_STATIC(name, classname) static CLOSURE_PREPARE(name, classname)
 
-#define TO_VEC3(v) (*(OSL::Vec3 *)&(v))
-#define TO_COLOR3(v) (*(OSL::Color3 *)&(v))
+#define CLOSURE_FLOAT3_PARAM(st, fld) \
+    { TypeDesc::TypeVector, reckless_offsetof(st, fld), NULL, sizeof(OSL::Vec3) }
+
+#define TO_VEC3(v) OSL::Vec3(v.x, v.y, v.z)
+#define TO_COLOR3(v) OSL::Color3(v.x, v.y, v.z)
 #define TO_FLOAT3(v) make_float3(v[0], v[1], v[2])
 
 /* BSDF */
@@ -79,7 +82,6 @@ void name(RendererServices *, int id, void *data) \
 class CBSDFClosure : public OSL::ClosurePrimitive {
 public:
 	ShaderClosure sc;
-	OSL::Vec3 N, T;
 
 	CBSDFClosure(int scattering) : OSL::ClosurePrimitive(BSDF),
 	  m_scattering_label(scattering), m_shaderdata_flag(0) { }
@@ -87,7 +89,6 @@ public:
 
 	int scattering() const { return m_scattering_label; }
 	int shaderdata_flag() const { return m_shaderdata_flag; }
-	ClosureType shaderclosure_type() const { return sc.type; }
 
 	virtual void blur(float roughness) = 0;
 	virtual float3 eval_reflect(const float3 &omega_out, const float3 &omega_in, float &pdf) const = 0;
@@ -114,8 +115,7 @@ public: \
 \
 	void setup() \
 	{ \
-		sc.N = TO_FLOAT3(N); \
-		sc.T = TO_FLOAT3(T); \
+		sc.prim = NULL; \
 		m_shaderdata_flag = bsdf_##lower##_setup(&sc); \
 	} \
 \
