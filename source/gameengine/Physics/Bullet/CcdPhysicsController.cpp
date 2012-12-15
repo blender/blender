@@ -24,7 +24,7 @@ subject to the following restrictions:
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionDispatch/btGhostObject.h"
 #include "BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.h"
-
+#include "BulletCollision/Gimpact/btCompoundFromGimpact.h"
 #include "BulletCollision/CollisionShapes/btTriangleIndexVertexArray.h"
 
 #include "PHY_IMotionState.h"
@@ -2169,8 +2169,15 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin, b
 				);
 				btGImpactMeshShape* gimpactShape =  new btGImpactMeshShape(indexVertexArrays);
 				gimpactShape->setMargin(margin);
-				collisionShape = gimpactShape;
 				gimpactShape->updateBound();
+
+				//the depth value is how far along the triangle normal, the centroid is moved inwards
+				//to create surface tetrahedra for the btCompoundShape
+				//would be nice to expose this in the Blender user interfaceb
+				btScalar depth=btScalar(0.2);
+				collisionShape = btCreateCompoundFromGimpactShape(gimpactShape,depth);
+				delete gimpactShape;
+				
 
 		} else
 		{
