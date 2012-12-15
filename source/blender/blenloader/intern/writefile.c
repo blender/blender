@@ -139,7 +139,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
-#include "BLI_bpath.h"
+#include "BKE_bpath.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -3031,7 +3031,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 
 	/* path backup/restore */
 	void     *path_list_backup = NULL;
-	const int path_list_flag = (BLI_BPATH_TRAVERSE_SKIP_LIBRARY | BLI_BPATH_TRAVERSE_SKIP_MULTIFILE);
+	const int path_list_flag = (BKE_BPATH_TRAVERSE_SKIP_LIBRARY | BKE_BPATH_TRAVERSE_SKIP_MULTIFILE);
 
 	/* open temporary file, so we preserve the original in case we crash */
 	BLI_snprintf(tempname, sizeof(tempname), "%s@", filepath);
@@ -3044,7 +3044,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 
 	/* check if we need to backup and restore paths */
 	if (UNLIKELY((write_flags & G_FILE_RELATIVE_REMAP) && (G_FILE_SAVE_COPY & write_flags))) {
-		path_list_backup = BLI_bpath_list_backup(mainvar, path_list_flag);
+		path_list_backup = BKE_bpath_list_backup(mainvar, path_list_flag);
 	}
 
 	/* remapping of relative paths to new file location */
@@ -3067,7 +3067,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 				 * we should not have any relative paths, but if there
 				 * is somehow, an invalid or empty G.main->name it will
 				 * print an error, don't try make the absolute in this case. */
-				BLI_bpath_absolute_convert(mainvar, G.main->name, NULL);
+				BKE_bpath_absolute_convert(mainvar, G.main->name, NULL);
 			}
 		}
 	}
@@ -3075,15 +3075,15 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	write_user_block= write_flags & G_FILE_USERPREFS;
 
 	if (write_flags & G_FILE_RELATIVE_REMAP)
-		BLI_bpath_relative_convert(mainvar, filepath, NULL); /* note, making relative to something OTHER then G.main->name */
+		BKE_bpath_relative_convert(mainvar, filepath, NULL); /* note, making relative to something OTHER then G.main->name */
 
 	/* actual file writing */
 	err= write_file_handle(mainvar, file, NULL, NULL, write_user_block, write_flags, thumb);
 	close(file);
 
 	if (UNLIKELY(path_list_backup)) {
-		BLI_bpath_list_restore(mainvar, path_list_flag, path_list_backup);
-		BLI_bpath_list_free(path_list_backup);
+		BKE_bpath_list_restore(mainvar, path_list_flag, path_list_backup);
+		BKE_bpath_list_free(path_list_backup);
 	}
 
 	if (err) {

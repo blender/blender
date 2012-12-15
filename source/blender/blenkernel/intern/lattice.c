@@ -37,7 +37,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_bpath.h"
+#include "BKE_bpath.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 

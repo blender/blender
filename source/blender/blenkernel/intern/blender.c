@@ -56,7 +56,7 @@
 #include "DNA_sound_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_bpath.h"
+#include "BKE_bpath.h"
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 #include "BLI_callbacks.h"
@@ -182,7 +182,7 @@ static void clean_paths(Main *main)
 {
 	Scene *scene;
 
-	BLI_bpath_traverse_main(main, clean_paths_visit_cb, BLI_BPATH_TRAVERSE_SKIP_MULTIFILE, NULL);
+	BKE_bpath_traverse_main(main, clean_paths_visit_cb, BKE_BPATH_TRAVERSE_SKIP_MULTIFILE, NULL);
 
 	for (scene = main->scene.first; scene; scene = scene->id.next) {
 		BLI_clean(scene->r.pic);

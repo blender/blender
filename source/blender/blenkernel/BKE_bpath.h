@@ -25,14 +25,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file BLI_bpath.h
+/** \file BKE_bpath.h
  *  \ingroup bli
  *  \attention Based on ghash, difference is ghash is not a fixed size,
  *   so for BPath we don't need to malloc
  */
 
-#ifndef __BLI_BPATH_H__
-#define __BLI_BPATH_H__
+#ifndef __BKE_BPATH_H__
+#define __BKE_BPATH_H__
 
 struct ID;
 struct ListBase;
@@ -43,20 +43,20 @@ struct ReportList;
  * path has changed, and in that case, should write the result to pathOut. */
 typedef int (*BPathVisitor)(void *userdata, char *path_dst, const char *path_src);
 /* Executes 'visit' for each path associated with 'id'. */
-void BLI_bpath_traverse_id(struct Main *bmain, struct ID *id, BPathVisitor visit_cb, const int flag, void *userdata);
-void BLI_bpath_traverse_id_list(struct Main *bmain, struct ListBase *lb, BPathVisitor visit_cb, const int flag, void *userdata);
-void BLI_bpath_traverse_main(struct Main *bmain, BPathVisitor visit_cb, const int flag, void *userdata);
-int  BLI_bpath_relocate_visitor(void *oldbasepath, char *path_dst, const char *path_src);
+void BKE_bpath_traverse_id(struct Main *bmain, struct ID *id, BPathVisitor visit_cb, const int flag, void *userdata);
+void BKE_bpath_traverse_id_list(struct Main *bmain, struct ListBase *lb, BPathVisitor visit_cb, const int flag, void *userdata);
+void BKE_bpath_traverse_main(struct Main *bmain, BPathVisitor visit_cb, const int flag, void *userdata);
+int  BKE_bpath_relocate_visitor(void *oldbasepath, char *path_dst, const char *path_src);
 
 /* Functions for temp backup/restore of paths, path count must NOT change */
-void *BLI_bpath_list_backup(struct Main *bmain, const int flag);
-void  BLI_bpath_list_restore(struct Main *bmain, const int flag, void *ls_handle);
-void  BLI_bpath_list_free(void *ls_handle);
+void *BKE_bpath_list_backup(struct Main *bmain, const int flag);
+void  BKE_bpath_list_restore(struct Main *bmain, const int flag, void *ls_handle);
+void  BKE_bpath_list_free(void *ls_handle);
 
-#define BLI_BPATH_TRAVERSE_ABS             (1 << 0) /* convert paths to absolute */
-#define BLI_BPATH_TRAVERSE_SKIP_LIBRARY    (1 << 2) /* skip library paths */
-#define BLI_BPATH_TRAVERSE_SKIP_PACKED     (1 << 3) /* skip packed data */
-#define BLI_BPATH_TRAVERSE_SKIP_MULTIFILE  (1 << 4) /* skip paths where a single dir is used with an array of files, eg.
+#define BKE_BPATH_TRAVERSE_ABS             (1 << 0) /* convert paths to absolute */
+#define BKE_BPATH_TRAVERSE_SKIP_LIBRARY    (1 << 2) /* skip library paths */
+#define BKE_BPATH_TRAVERSE_SKIP_PACKED     (1 << 3) /* skip packed data */
+#define BKE_BPATH_TRAVERSE_SKIP_MULTIFILE  (1 << 4) /* skip paths where a single dir is used with an array of files, eg.
                                                      * sequence strip images and pointcache. in this case only use the first
                                                      * file, this is needed for directory manipulation functions which might
                                                      * otherwise modify the same directory multiple times */
@@ -64,9 +64,9 @@ void  BLI_bpath_list_free(void *ls_handle);
 /* high level funcs */
 
 /* creates a text file with missing files if there are any */
-void BLI_bpath_missing_files_check(struct Main *bmain, struct ReportList *reports);
-void BLI_bpath_missing_files_find(struct Main *bmain, const char *searchpath, struct ReportList *reports);
-void BLI_bpath_relative_convert(struct Main *bmain, const char *basedir, struct ReportList *reports);
-void BLI_bpath_absolute_convert(struct Main *bmain, const char *basedir, struct ReportList *reports);
+void BKE_bpath_missing_files_check(struct Main *bmain, struct ReportList *reports);
+void BKE_bpath_missing_files_find(struct Main *bmain, const char *searchpath, struct ReportList *reports);
+void BKE_bpath_relative_convert(struct Main *bmain, const char *basedir, struct ReportList *reports);
+void BKE_bpath_absolute_convert(struct Main *bmain, const char *basedir, struct ReportList *reports);
 
-#endif  /* __BLI_BPATH_H__ */
+#endif  /* __BKE_BPATH_H__ */

@@ -65,6 +65,7 @@ set(SRC
 	intern/bmfont.c
 	intern/boids.c
 	intern/booleanops_mesh.c
+	intern/bpath.c
 	intern/brush.c
 	intern/bullet.c
 	intern/bvhutils.c
@@ -101,9 +102,9 @@ set(SRC
 	intern/lamp.c
 	intern/lattice.c
 	intern/library.c
+	intern/mask.c
 	intern/mask_evaluate.c
 	intern/mask_rasterize.c
-	intern/mask.c
 	intern/material.c
 	intern/mball.c
 	intern/mesh.c
@@ -147,6 +148,7 @@ set(SRC
 	intern/world.c
 	intern/writeavi.c
 	intern/writeframeserver.c
+
 	
 	BKE_DerivedMesh.h
 	BKE_action.h
@@ -234,6 +236,8 @@ set(SRC
 	BKE_world.h
 	BKE_writeavi.h
 	BKE_writeframeserver.h
+	BKE_bpath.h
+
 	depsgraph_private.h
 	nla_private.h
 	intern/CCGSubSurf.h

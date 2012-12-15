@@ -68,7 +68,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
-#include "BLI_bpath.h"
+#include "BKE_bpath.h"
 
 #include "BKE_bmfont.h"
 #include "BKE_colortools.h"
