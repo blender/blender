@@ -944,7 +944,7 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 		alignment = RGN_ALIGN_NONE;
 	
 	/* prefsize, for header we stick to exception */
-	prefsizex = ar->sizex ? ar->sizex : UI_DPI_FAC * ar->type->prefsizex;
+	prefsizex = ar->sizex > 1 ? ar->sizex : UI_DPI_FAC * ar->type->prefsizex;
 	if (ar->regiontype == RGN_TYPE_HEADER) {
 		prefsizey = ED_area_headersize();
 	}
@@ -952,7 +952,7 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 		prefsizey = UI_UNIT_Y * 2 + (UI_UNIT_Y / 2);
 	}
 	else {
-		prefsizey = ar->sizey ? ar->sizey : UI_DPI_FAC * ar->type->prefsizey;
+		prefsizey = ar->sizey > 1 ? ar->sizey : UI_DPI_FAC * ar->type->prefsizey;
 	}
 
 
@@ -1091,6 +1091,10 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 	ar->winx = BLI_rcti_size_x(&ar->winrct) + 1;
 	ar->winy = BLI_rcti_size_y(&ar->winrct) + 1;
 	
+	/* if region opened normally, we store this for hide/reveal usage */
+	if (ar->winx > 1) ar->sizex = ar->winx;
+	if (ar->winy > 1) ar->sizey = ar->winy;
+		
 	/* exception for multiple aligned overlapping regions on same spot */
 	if (ar->overlap)
 		region_overlap_fix(ar);
@@ -1297,6 +1301,8 @@ void region_toggle_hidden(bContext *C, ARegion *ar, int do_fade)
 	ScrArea *sa = CTX_wm_area(C);
 	
 	ar->flag ^= RGN_FLAG_HIDDEN;
+	
+	printf("%d\n", ar->winx);
 	
 	if (do_fade && ar->overlap) {
 		/* starts a timer, and in end calls the stuff below itself (region_sblend_invoke()) */
