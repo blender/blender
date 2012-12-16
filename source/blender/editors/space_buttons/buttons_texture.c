@@ -358,7 +358,17 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void *UNUS
 		}
 
 		/* create button */
-		BLI_snprintf(name, UI_MAX_NAME_STR, "  %s", user->name);
+		if (user->prop) {
+			PointerRNA texptr = RNA_property_pointer_get(&user->ptr, user->prop);
+			Tex *tex = texptr.data;
+
+			if (tex)
+				BLI_snprintf(name, UI_MAX_NAME_STR, "  %s - %s", user->name, tex->id.name+2);
+			else
+				BLI_snprintf(name, UI_MAX_NAME_STR, "  %s", user->name);
+		}
+		else
+			BLI_snprintf(name, UI_MAX_NAME_STR, "  %s", user->name);
 
 		but = uiDefIconTextBut(block, BUT, 0, user->icon, name, 0, 0, UI_UNIT_X * 4, UI_UNIT_Y,
 		                       NULL, 0.0, 0.0, 0.0, 0.0, "");
