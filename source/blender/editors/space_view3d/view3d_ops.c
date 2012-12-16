@@ -188,7 +188,13 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	wmKeyMapItem *kmi;
 	
 	keymap = WM_keymap_find(keyconf, "3D View Generic", SPACE_VIEW3D, 0);
+
+	WM_keymap_add_item(keymap, "VIEW3D_OT_properties", NKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_toolshelf", TKEY, KM_PRESS, 0, 0);
 	
+	/* only for region 3D window */
+	keymap = WM_keymap_find(keyconf, "3D View", SPACE_VIEW3D, 0);
+
 	/* 3D mouse align */
 	/* note: positioned here so keymaps show keyboard keys if assigned */
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_FRONT, KM_PRESS, KM_SHIFT, 0);
@@ -200,12 +206,6 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_TOP, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_TOP);
 	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
-
-	WM_keymap_add_item(keymap, "VIEW3D_OT_properties", NKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "VIEW3D_OT_toolshelf", TKEY, KM_PRESS, 0, 0);
-	
-	/* only for region 3D window */
-	keymap = WM_keymap_find(keyconf, "3D View", SPACE_VIEW3D, 0);
 
 	kmi = WM_keymap_verify_item(keymap, "VIEW3D_OT_manipulator", LEFTMOUSE, KM_PRESS, KM_ANY, 0);
 	RNA_boolean_set(kmi->ptr, "release_confirm", TRUE);
