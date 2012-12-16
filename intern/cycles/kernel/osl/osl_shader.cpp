@@ -172,9 +172,6 @@ static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
 					break;
 				}
 				case OSL::ClosurePrimitive::Emissive: {
-					if (sd->num_closure == MAX_CLOSURE)
-						return;
-
 					/* sample weight */
 					float sample_weight = fabsf(average(weight));
 
