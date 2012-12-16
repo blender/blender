@@ -220,16 +220,10 @@
                                   blend="0.1">
           </ThemeWidgetStateColors>
         </wcol_state>
-        <panel>
-          <ThemePanelColors header="#00000000"
-                            show_header="TRUE">
-          </ThemePanelColors>
-        </panel>
       </ThemeUserInterface>
     </user_interface>
     <view_3d>
       <ThemeView3D grid="#3c3b37"
-                   panel="#a5a5a57f"
                    wire="#93237f"
                    lamp="#ffffff34"
                    speaker="#93237f"
@@ -292,13 +286,19 @@
                              button_title="#9c9c9c"
                              button_text="#9c9c9c"
                              button_text_hi="#ffffff">
+            <panelcolors>
+              <ThemePanelColors header="#00000000"
+                                back="#72727280"
+                                show_header="TRUE"
+                                show_back="FALSE">
+              </ThemePanelColors>
+            </panelcolors>
           </ThemeSpaceGeneric>
         </space>
       </ThemeView3D>
     </view_3d>
     <graph_editor>
       <ThemeGraphEditor grid="#3c3b37"
-                        panel="#ffffff"
                         window_sliders="#95948f"
                         channels_region="#707070"
                         vertex="#ffffff"
@@ -335,6 +335,13 @@
                              button_title="#9c9c9c"
                              button_text="#9c9c9c"
                              button_text_hi="#ffffff">
+            <panelcolors>
+              <ThemePanelColors header="#00000000"
+                                back="#72727280"
+                                show_header="TRUE"
+                                show_back="FALSE">
+              </ThemePanelColors>
+            </panelcolors>
           </ThemeSpaceGeneric>
         </space>
         <space_list>
@@ -348,7 +355,6 @@
     </graph_editor>
     <file_browser>
       <ThemeFileBrowser selected_file="#6b395a"
-                        tiles="#3c3b37"
                         scrollbar="#a0a0a0"
                         scroll_handle="#7f7070"
                         active_file="#eeedeb"
@@ -365,6 +371,13 @@
                              button_title="#000000"
                              button_text="#000000"
                              button_text_hi="#ffffff">
+            <panelcolors>
+              <ThemePanelColors header="#00000000"
+                                back="#72727280"
+                                show_header="TRUE"
+                                show_back="FALSE">
+              </ThemePanelColors>
+            </panelcolors>
           </ThemeSpaceGeneric>
         </space>
         <space_list>
@@ -404,6 +417,13 @@
                              button_title="#000000"
                              button_text="#000000"
                              button_text_hi="#ffffff">
+            <panelcolors>
+              <ThemePanelColors header="#00000000"
+                                back="#72727280"
+                                show_header="TRUE"
+                                show_back="FALSE">
+              </ThemePanelColors>
+            </panelcolors>
           </ThemeSpaceGeneric>
         </space>
         <space_list>
@@ -441,6 +461,13 @@
                              button_title="#9c9c9c"
                              button_text="#9c9c9c"
                              button_text_hi="#ffffff">
+            <panelcolors>
+              <ThemePanelColors header="#00000000"
+                                back="#72727280"
+                                show_header="TRUE"
+                                show_back="FALSE">
+              </ThemePanelColors>
+            </panelcolors>
           </ThemeSpaceGeneric>
         </space>
         <space_list>
@@ -480,6 +507,13 @@
                              button_title="#b1b1b1"
                              button_text="#b9b9b9"
                              button_text_hi="#ffffff">
+            <panelcolors>
+              <ThemePanelColors header="#00000000"
+                                back="#72727280"
+                                show_header="TRUE"
+                                show_back="FALSE">
+              </ThemePanelColors>
+            </panelcolors>
           </ThemeSpaceGeneric>
         </space>
       </ThemeImageEditor>
@@ -511,12 +545,19 @@
                              button_title="#acacac"
                              button_text="#acacac"
                              button_text_hi="#ffffff">
+            <panelcolors>
+              <ThemePanelColors header="#00000000"
+                                back="#72727280"
+                                show_header="TRUE"
+                                show_back="FALSE">
+              </ThemePanelColors>
+            </panelcolors>
           </ThemeSpaceGeneric>
         </space>
       </ThemeSequenceEditor>
     </sequence_editor>
     <properties>
-      <ThemeProperties panel="#3c3b37">
+      <ThemeProperties>
         <space>
           <ThemeSpaceGeneric back="#3c3b37"
                              title="#acacac"
@@ -529,6 +570,13 @@
                              button_title="#000000"
                              button_text="#000000"
                              button_text_hi="#ffffff">
+            <panelcolors>
+              <ThemePanelColors header="#00000000"
+                                back="#72727280"
+                                show_header="TRUE"
+                                show_back="FALSE">
+              </ThemePanelColors>
+            </panelcolors>
           </ThemeSpaceGeneric>
         </space>
       </ThemeProperties>
@@ -554,6 +602,13 @@
                              button_title="#64645e"
                              button_text="#95948f"
                              button_text_hi="#ffffff">
+            <panelcolors>
+              <ThemePanelColors header="#00000000"
+                                back="#72727280"
+                                show_header="TRUE"
+                                show_back="FALSE">
+              </ThemePanelColors>
+            </panelcolors>
           </ThemeSpaceGeneric>
         </space>
       </ThemeTextEditor>
@@ -573,6 +628,13 @@
                              button_title="#9c9c9c"
                              button_text="#9c9c9c"
                              button_text_hi="#ffffff">
+            <panelcolors>
+              <ThemePanelColors header="#00000000"
+                                back="#72727280"
+                                show_header="TRUE"
+                                show_back="FALSE">
+              </ThemePanelColors>
+            </panelcolors>
           </ThemeSpaceGeneric>
         </space>
       </ThemeTimeline>
@@ -602,6 +664,13 @@
                              button_title="#acacac"
                              button_text="#acacac"
                              button_text_hi="#ffffff">
+            <panelcolors>
+              <ThemePanelColors header="#00000000"
+                                back="#72727280"
+                                show_header="TRUE"
+                                show_back="FALSE">
+              </ThemePanelColors>
+            </panelcolors>
           </ThemeSpaceGeneric>
         </space>
         <space_list>
@@ -614,7 +683,7 @@
       </ThemeNodeEditor>
     </node_editor>
     <logic_editor>
-      <ThemeLogicEditor panel="#acacac">
+      <ThemeLogicEditor>
         <space>
           <ThemeSpaceGeneric back="#29001b"
                              title="#000000"
@@ -627,6 +696,13 @@
                              button_title="#7d7d7d"
                              button_text="#acacac"
                              button_text_hi="#ffffff">
+            <panelcolors>
+              <ThemePanelColors header="#00000000"
+                                back="#72727280"
+                                show_header="TRUE"
+                                show_back="FALSE">
+              </ThemePanelColors>
+            </panelcolors>
           </ThemeSpaceGeneric>
         </space>
       </ThemeLogicEditor>
@@ -646,6 +722,13 @@
                              button_title="#000000"
                              button_text="#000000"
                              button_text_hi="#f47421">
+            <panelcolors>
+              <ThemePanelColors header="#00000000"
+                                back="#72727280"
+                                show_header="TRUE"
+                                show_back="FALSE">
+              </ThemePanelColors>
+            </panelcolors>
           </ThemeSpaceGeneric>
         </space>
       </ThemeOutliner>
@@ -664,6 +747,13 @@
                              button_title="#eeedeb"
                              button_text="#eeedeb"
                              button_text_hi="#ffffff">
+            <panelcolors>
+              <ThemePanelColors header="#00000000"
+                                back="#72727280"
+                                show_header="TRUE"
+                                show_back="FALSE">
+              </ThemePanelColors>
+            </panelcolors>
           </ThemeSpaceGeneric>
         </space>
       </ThemeInfo>
@@ -682,6 +772,13 @@
                              button_title="#000000"
                              button_text="#000000"
                              button_text_hi="#ffffff">
+            <panelcolors>
+              <ThemePanelColors header="#00000000"
+                                back="#72727280"
+                                show_header="TRUE"
+                                show_back="FALSE">
+              </ThemePanelColors>
+            </panelcolors>
           </ThemeSpaceGeneric>
         </space>
       </ThemeUserPreferences>
@@ -704,6 +801,13 @@
                              button_title="#000000"
                              button_text="#000000"
                              button_text_hi="#ffffff">
+            <panelcolors>
+              <ThemePanelColors header="#00000000"
+                                back="#72727280"
+                                show_header="TRUE"
+                                show_back="FALSE">
+              </ThemePanelColors>
+            </panelcolors>
           </ThemeSpaceGeneric>
         </space>
       </ThemeConsole>
@@ -736,6 +840,13 @@
                              button_title="#9c9c9c"
                              button_text="#ffffff"
                              button_text_hi="#ffffff">
+            <panelcolors>
+              <ThemePanelColors header="#00000000"
+                                back="#72727280"
+                                show_header="TRUE"
+                                show_back="FALSE">
+              </ThemePanelColors>
+            </panelcolors>
           </ThemeSpaceGeneric>
         </space>
         <space_list>
