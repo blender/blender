@@ -2820,7 +2820,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	ListBase disp={NULL, NULL};
 	Material **matar;
 	float *data, *fp, *orco=NULL;
-	float n[3], mat[4][4];
+	float n[3], mat[4][4], nmat[4][4];
 	int nr, startvert, a, b;
 	int need_orco=0, totmat;
 
@@ -2834,6 +2834,11 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	
 	mult_m4_m4m4(mat, re->viewmat, ob->obmat);
 	invert_m4_m4(ob->imat, mat);
+
+	/* local object -> world space transform for normals */
+	copy_m4_m4(nmat, mat);
+	transpose_m4(nmat);
+	invert_m4(nmat);
 
 	/* material array */
 	totmat= ob->totcol+1;
@@ -2891,13 +2896,20 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 					zero_v3(n);
 					index= dl->index;
 					for (a=0; a<dl->parts; a++, index+=3) {
+						int v1 = index[0], v2 = index[1], v3 = index[2];
+						float *co1 = &dl->verts[v1 * 3],
+						      *co2 = &dl->verts[v2 * 3],
+						      *co3 = &dl->verts[v3 * 3];
+
 						vlr= RE_findOrAddVlak(obr, obr->totvlak++);
-						vlr->v1= RE_findOrAddVert(obr, startvert+index[0]);
-						vlr->v2= RE_findOrAddVert(obr, startvert+index[1]);
-						vlr->v3= RE_findOrAddVert(obr, startvert+index[2]);
+						vlr->v1= RE_findOrAddVert(obr, startvert + v1);
+						vlr->v2= RE_findOrAddVert(obr, startvert + v2);
+						vlr->v3= RE_findOrAddVert(obr, startvert + v3);
 						vlr->v4= NULL;
-						if (area_tri_v3(vlr->v3->co, vlr->v2->co, vlr->v1->co)>FLT_EPSILON10) {
-							normal_tri_v3(tmp, vlr->v3->co, vlr->v2->co, vlr->v1->co);
+
+						/* to prevent float accuracy issues, we calculate normal in local object space (not world) */
+						if (area_tri_v3(co3, co2, co1)>FLT_EPSILON10) {
+							normal_tri_v3(tmp, co3, co2, co1);
 							add_v3_v3(n, tmp);
 						}
 
@@ -2906,6 +2918,8 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 						vlr->ec= 0;
 					}
 
+					/* transform normal to world space */
+					mul_m4_v3(nmat, n);
 					normalize_v3(n);
 
 					/* vertex normals */
