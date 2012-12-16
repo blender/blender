@@ -4950,9 +4950,9 @@ static float edbm_bevel_mval_factor(wmOperator *op, wmEvent *event)
 	if (event->shift) {
 		if (opdata->shift_factor < 0.0f) {
 #ifdef NEW_BEVEL
-			opdata->shift_factor = RNA_float_get(op->ptr, "factor");
-#else
 			opdata->shift_factor = RNA_float_get(op->ptr, "percent");
+#else
+			opdata->shift_factor = RNA_float_get(op->ptr, "factor");
 #endif
 		}
 		factor = (factor - opdata->shift_factor) * 0.1f + opdata->shift_factor;
