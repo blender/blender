@@ -1302,8 +1302,6 @@ void region_toggle_hidden(bContext *C, ARegion *ar, int do_fade)
 	
 	ar->flag ^= RGN_FLAG_HIDDEN;
 	
-	printf("%d\n", ar->winx);
-	
 	if (do_fade && ar->overlap) {
 		/* starts a timer, and in end calls the stuff below itself (region_sblend_invoke()) */
 		region_blend_start(C, sa, ar);
