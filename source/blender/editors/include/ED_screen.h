@@ -67,6 +67,8 @@ void    ED_region_toggle_hidden(struct bContext *C, struct ARegion *ar);
 void    ED_region_info_draw(struct ARegion *ar, const char *text, int block, float alpha);
 void    ED_region_grid_draw(struct ARegion *ar, float zoomx, float zoomy);
 float	ED_region_blend_factor(struct ARegion *ar);
+int		ED_region_overlapping_offset(struct ARegion *ar);
+
 
 /* spaces */
 void    ED_spacetypes_init(void);

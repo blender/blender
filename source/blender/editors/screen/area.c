@@ -1852,7 +1852,7 @@ void ED_region_info_draw(ARegion *ar, const char *text, int block, float alpha)
 
 	/* text */
 	UI_ThemeColor(TH_TEXT_HI);
-	BLF_position(fontid, 12, rect.ymin + 5, 0.0f);
+	BLF_position(fontid, 12 + ED_region_overlapping_offset(ar), rect.ymin + 5, 0.0f);
 	BLF_draw(fontid, text, BLF_DRAW_STR_DUMMY_MAX);
 }
 
@@ -1915,3 +1915,23 @@ void ED_region_grid_draw(ARegion *ar, float zoomx, float zoomy)
 	}
 	glEnd();
 }
+
+/* checks overlapping region for labels, axes, icons */
+int ED_region_overlapping_offset(ARegion *ar)
+{
+	ARegion *arn = ar;
+	
+	/* too lazy to pass on area listbase */
+	while (arn->prev)
+		arn = arn->prev;
+	
+	/* check if a region overlaps with the current one */
+	for (; arn; arn = arn->next) {
+		if (ar != arn)
+			if (ar->winrct.xmin == arn->winrct.xmin)
+				if (ar->winrct.ymin == arn->winrct.ymin)
+					return arn->winrct.xmax - arn->winrct.xmin;
+	}
+	return 0;
+}
+
