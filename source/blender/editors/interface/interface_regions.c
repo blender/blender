@@ -624,12 +624,14 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	/* set font, get bb */
 	data->fstyle = style->widget; /* copy struct */
 	data->fstyle.align = UI_STYLE_TEXT_CENTER;
+	ui_fontscale(&data->fstyle.points, aspect);
+
 	uiStyleFontSet(&data->fstyle);
 
-	/* these defines may need to be tweaked depending on font */
-#define TIP_MARGIN_Y 2
-#define TIP_BORDER_X 16.0f
-#define TIP_BORDER_Y 6.0f
+	/* these defines tweaked depending on font */
+#define TIP_MARGIN_Y (2.0f / aspect)
+#define TIP_BORDER_X (16.0f / aspect)
+#define TIP_BORDER_Y (6.0f / aspect)
 
 	h = BLF_height_max(data->fstyle.uifont_id);
 
@@ -639,7 +641,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		fonth += (a == 0) ? h : h + TIP_MARGIN_Y;
 	}
 
-	fontw *= aspect;
+	//fontw *= aspect;
 
 	ar->regiondata = data;
 
@@ -647,36 +649,30 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	data->lineh = h;
 	data->spaceh = TIP_MARGIN_Y;
 
-
 	/* compute position */
-	ofsx = (but->block->panel) ? but->block->panel->ofsx : 0;
-	ofsy = (but->block->panel) ? but->block->panel->ofsy : 0;
+	ofsx = 0; //(but->block->panel) ? but->block->panel->ofsx : 0;
+	ofsy = 0; //(but->block->panel) ? but->block->panel->ofsy : 0;
 
-	rect_fl.xmin = (but->rect.xmin + but->rect.xmax) * 0.5f + ofsx - (TIP_BORDER_X * aspect);
-	rect_fl.xmax = rect_fl.xmin + fontw + (TIP_BORDER_X * aspect);
-	rect_fl.ymax = but->rect.ymin + ofsy - (TIP_BORDER_Y * aspect);
-	rect_fl.ymin = rect_fl.ymax - fonth * aspect - (TIP_BORDER_Y * aspect);
-	
+	rect_fl.xmin = (but->rect.xmin + but->rect.xmax) * 0.5f + ofsx - (TIP_BORDER_X );
+	rect_fl.xmax = rect_fl.xmin + fontw + (TIP_BORDER_X );
+	rect_fl.ymax = but->rect.ymin + ofsy - (TIP_BORDER_Y );
+	rect_fl.ymin = rect_fl.ymax - fonth  - (TIP_BORDER_Y );
+
 #undef TIP_MARGIN_Y
 #undef TIP_BORDER_X
 #undef TIP_BORDER_Y
-
-	/* copy to int, gets projected if possible too */
-	BLI_rcti_rctf_copy(&rect_i, &rect_fl);
 	
+	/* since the text has beens caled already, the size of tooltips is defined now */
+	/* here we try to figure out the right location */
 	if (butregion) {
-		/* XXX temp, region v2ds can be empty still */
-		if (butregion->v2d.cur.xmin != butregion->v2d.cur.xmax) {
-			UI_view2d_to_region_no_clip(&butregion->v2d, rect_fl.xmin, rect_fl.ymin, &rect_i.xmin, &rect_i.ymin);
-			UI_view2d_to_region_no_clip(&butregion->v2d, rect_fl.xmax, rect_fl.ymax, &rect_i.xmax, &rect_i.ymax);
-		}
-
-		BLI_rcti_translate(&rect_i, butregion->winrct.xmin, butregion->winrct.ymin);
+		float ofsx = rect_fl.xmin, ofsy = rect_fl.ymax;
+		ui_block_to_window_fl(butregion, but->block, &ofsx, &ofsy);
+		BLI_rctf_translate(&rect_fl, ofsx - rect_fl.xmin, ofsy - rect_fl.ymax);
 	}
+	BLI_rcti_rctf_copy(&rect_i, &rect_fl);
 
+	/* clip with window boundaries */
 	winx = WM_window_pixels_x(win);
-	// winy = WM_window_pixels_y(win);  /* UNUSED */
-	//wm_window_get_size(win, &winx, &winy);
 
 	if (rect_i.xmax > winx) {
 		/* super size */
