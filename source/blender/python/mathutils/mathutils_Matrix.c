@@ -1025,13 +1025,13 @@ static PyObject *Matrix_resize_4x4(MatrixObject *self)
 	int col;
 
 	if (self->wrapped == Py_WRAP) {
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "Matrix.resize_4x4(): "
 		                "cannot resize wrapped data - make a copy and resize that");
 		return NULL;
 	}
 	if (self->cb_user) {
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "Matrix.resize_4x4(): "
 		                "cannot resize owned data - make a copy and resize that");
 		return NULL;
@@ -1080,7 +1080,7 @@ static PyObject *Matrix_to_4x4(MatrixObject *self)
 	}
 	/* TODO, 2x2 matrix */
 
-	PyErr_SetString(PyExc_TypeError,
+	PyErr_SetString(PyExc_ValueError,
 	                "Matrix.to_4x4(): "
 	                "inappropriate matrix size");
 	return NULL;
@@ -1102,7 +1102,7 @@ static PyObject *Matrix_to_3x3(MatrixObject *self)
 		return NULL;
 
 	if ((self->num_row < 3) || (self->num_col < 3)) {
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "Matrix.to_3x3(): inappropriate matrix size");
 		return NULL;
 	}
@@ -1126,7 +1126,7 @@ static PyObject *Matrix_to_translation(MatrixObject *self)
 		return NULL;
 
 	if ((self->num_row < 3) || self->num_col < 4) {
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "Matrix.to_translation(): "
 		                "inappropriate matrix size");
 		return NULL;
@@ -1156,7 +1156,7 @@ static PyObject *Matrix_to_scale(MatrixObject *self)
 
 	/*must be 3-4 cols, 3-4 rows, square matrix */
 	if ((self->num_row < 3) || (self->num_col < 3)) {
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "Matrix.to_scale(): "
 		                "inappropriate matrix size, 3x3 minimum size");
 		return NULL;
@@ -1194,7 +1194,7 @@ static PyObject *Matrix_invert(MatrixObject *self)
 		return NULL;
 
 	if (self->num_col != self->num_row) {
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "Matrix.invert(ed): "
 		                "only square matrices are supported");
 		return NULL;
@@ -1222,7 +1222,7 @@ static PyObject *Matrix_invert(MatrixObject *self)
 				break;
 			}
 			default:
-				PyErr_Format(PyExc_TypeError,
+				PyErr_Format(PyExc_ValueError,
 				             "Matrix invert(ed): size (%d) unsupported",
 				             (int)self->num_col);
 				return NULL;
@@ -1281,7 +1281,7 @@ static PyObject *Matrix_adjugate(MatrixObject *self)
 		return NULL;
 
 	if (self->num_col != self->num_row) {
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "Matrix.adjugate(d): "
 		                "only square matrices are supported");
 		return NULL;
@@ -1311,7 +1311,7 @@ static PyObject *Matrix_adjugate(MatrixObject *self)
 			break;
 		}
 		default:
-			PyErr_Format(PyExc_TypeError,
+			PyErr_Format(PyExc_ValueError,
 			             "Matrix adjugate(d): size (%d) unsupported",
 			             (int)self->num_col);
 			return NULL;
@@ -1357,7 +1357,7 @@ static PyObject *Matrix_rotate(MatrixObject *self, PyObject *value)
 		return NULL;
 
 	if (self->num_row != 3 || self->num_col != 3) {
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "Matrix.rotate(): "
 		                "must have 3x3 dimensions");
 		return NULL;
@@ -1390,7 +1390,7 @@ static PyObject *Matrix_decompose(MatrixObject *self)
 	float size[3];
 
 	if (self->num_row != 4 || self->num_col != 4) {
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "Matrix.decompose(): "
 		                "inappropriate matrix size - expects 4x4 matrix");
 		return NULL;
@@ -1476,7 +1476,7 @@ static PyObject *Matrix_determinant(MatrixObject *self)
 		return NULL;
 
 	if (self->num_col != self->num_row) {
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "Matrix.determinant(): "
 		                "only square matrices are supported");
 		return NULL;
@@ -1498,7 +1498,7 @@ static PyObject *Matrix_transpose(MatrixObject *self)
 		return NULL;
 
 	if (self->num_col != self->num_row) {
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "Matrix.transpose(d): "
 		                "only square matrices are supported");
 		return NULL;
@@ -1570,9 +1570,9 @@ static PyObject *Matrix_normalize(MatrixObject *self)
 PyDoc_STRVAR(Matrix_normalized_doc,
 ".. method:: normalized()\n"
 "\n"
-"   Return a row normalized matrix\n"
+"   Return a column normalized matrix\n"
 "\n"
-"   :return: a row normalized matrix\n"
+"   :return: a column normalized matrix\n"
 "   :rtype: :class:`Matrix`\n"
 );
 static PyObject *Matrix_normalized(MatrixObject *self)
@@ -1615,7 +1615,7 @@ static PyObject *Matrix_identity(MatrixObject *self)
 		return NULL;
 
 	if (self->num_col != self->num_row) {
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "Matrix.identity(): "
 		                "only square matrices are supported");
 		return NULL;
@@ -1971,7 +1971,7 @@ static PyObject *Matrix_add(PyObject *m1, PyObject *m2)
 		return NULL;
 
 	if (mat1->num_col != mat2->num_col || mat1->num_row != mat2->num_row) {
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "Matrix addition: "
 		                "matrices must have the same dimensions for this operation");
 		return NULL;
@@ -2003,7 +2003,7 @@ static PyObject *Matrix_sub(PyObject *m1, PyObject *m2)
 		return NULL;
 
 	if (mat1->num_col != mat2->num_col || mat1->num_row != mat2->num_row) {
-		PyErr_SetString(PyExc_TypeError,
+		PyErr_SetString(PyExc_ValueError,
 		                "Matrix addition: "
 		                "matrices must have the same dimensions for this operation");
 		return NULL;
