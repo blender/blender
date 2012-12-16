@@ -57,6 +57,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 #include "DNA_object_types.h"
+#include "DNA_property_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"

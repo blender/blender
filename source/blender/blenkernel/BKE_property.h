@@ -47,6 +47,7 @@ void              BKE_bproperty_object_set(struct Object *ob, struct bProperty *
 // int               BKE_bproperty_cmp(struct bProperty *prop, const char *str);
 void              BKE_bproperty_set(struct bProperty *prop, const char *str);
 void              BKE_bproperty_add(struct bProperty *prop, const char *str);
-void              BKE_bproperty_set_valstr(struct bProperty *prop, char *str);
+/* should really be called '_get_valstr()' or '_as_string()' */
+void              BKE_bproperty_set_valstr(struct bProperty *prop, char str[MAX_PROPSTRING]);
 	
 #endif

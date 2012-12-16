@@ -287,7 +287,7 @@ void BKE_bproperty_add(bProperty *prop, const char *str)
 }
 
 /* reads value of property, sets it in chars in str */
-void BKE_bproperty_set_valstr(bProperty *prop, char *str)
+void BKE_bproperty_set_valstr(bProperty *prop, char str[MAX_PROPSTRING])
 {
 //	extern int Gdfra;		/* sector.c */
 

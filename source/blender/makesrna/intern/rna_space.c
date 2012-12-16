@@ -775,7 +775,7 @@ static void rna_SpaceProperties_align_set(PointerRNA *ptr, int value)
 static void rna_ConsoleLine_body_get(PointerRNA *ptr, char *value)
 {
 	ConsoleLine *ci = (ConsoleLine *)ptr->data;
-	strcpy(value, ci->line);
+	memcpy(value, ci->line, ci->len + 1);
 }
 
 static int rna_ConsoleLine_body_length(PointerRNA *ptr)

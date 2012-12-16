@@ -2104,7 +2104,7 @@ int CustomData_set_layer_name(const CustomData *data, int type, int n, const cha
 	if (layer_index < 0) return 0;
 	if (!name) return 0;
 	
-	strcpy(data->layers[layer_index].name, name);
+	BLI_strncpy(data->layers[layer_index].name, name, sizeof(data->layers[layer_index].name));
 	
 	return 1;
 }
@@ -2854,10 +2854,11 @@ void CustomData_validate_layer_name(const CustomData *data, int type, const char
 		 * deleted, so assign the active layer to name
 		 */
 		index = CustomData_get_active_layer_index(data, type);
-		strcpy(outname, data->layers[index].name);
+		BLI_strncpy(outname, data->layers[index].name, MAX_CUSTOMDATA_LAYER_NAME);
 	}
-	else
-		strcpy(outname, name);
+	else {
+		BLI_strncpy(outname, name, MAX_CUSTOMDATA_LAYER_NAME);
+	}
 }
 
 int CustomData_verify_versions(struct CustomData *data, int index)

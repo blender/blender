@@ -437,7 +437,7 @@ int BIF_countTransformOrientation(const bContext *C)
 	return count;
 }
 
-void applyTransformOrientation(const bContext *C, float mat[3][3], char *name)
+void applyTransformOrientation(const bContext *C, float mat[3][3], char name[MAX_NAME])
 {
 	TransformOrientation *ts;
 	View3D *v3d = CTX_wm_view3d(C);
@@ -448,8 +448,9 @@ void applyTransformOrientation(const bContext *C, float mat[3][3], char *name)
 		for (i = 0, ts = CTX_data_scene(C)->transform_spaces.first; ts; ts = ts->next, i++) {
 			if (selected_index == i) {
 				
-				if (name)
-					strcpy(name, ts->name);
+				if (name) {
+					BLI_strncpy(name, ts->name, MAX_NAME);
+				}
 				
 				copy_m3_m3(mat, ts->mat);
 				break;
