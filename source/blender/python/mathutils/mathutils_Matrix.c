@@ -1533,6 +1533,53 @@ static PyObject *Matrix_transposed(MatrixObject *self)
 	return matrix__apply_to_copy((PyNoArgsFunction)Matrix_transpose, self);
 }
 
+/*---------------------------matrix.normalize() ------------------*/
+PyDoc_STRVAR(Matrix_normalize_doc,
+".. method:: normalize()\n"
+"\n"
+"   Normalize each of the columns of the matrix (useful for transforming unit length normals).\n"
+);
+static PyObject *Matrix_normalize(MatrixObject *self)
+{
+	if (BaseMath_ReadCallback(self) == -1)
+		return NULL;
+
+	if (self->num_col != self->num_row) {
+		PyErr_SetString(PyExc_ValueError,
+		                "Matrix.normalize(): "
+		                "only square matrices are supported");
+		return NULL;
+	}
+
+	if (self->num_col == 3) {
+		normalize_m3((float (*)[3])self->matrix);
+	}
+	else if (self->num_col == 4) {
+		normalize_m4((float (*)[4])self->matrix);
+	}
+	else {
+		PyErr_SetString(PyExc_ValueError,
+		                "Matrix.normalize(): "
+		                "can only use a 3x3 or 4x4 matrix");
+	}
+
+	(void)BaseMath_WriteCallback(self);
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(Matrix_normalized_doc,
+".. method:: normalized()\n"
+"\n"
+"   Return a row normalized matrix\n"
+"\n"
+"   :return: a row normalized matrix\n"
+"   :rtype: :class:`Matrix`\n"
+);
+static PyObject *Matrix_normalized(MatrixObject *self)
+{
+	return matrix__apply_to_copy((PyNoArgsFunction)Matrix_normalize, self);
+}
+
 /*---------------------------matrix.zero() -----------------------*/
 PyDoc_STRVAR(Matrix_zero_doc,
 ".. method:: zero()\n"
@@ -2371,6 +2418,8 @@ static struct PyMethodDef Matrix_methods[] = {
 	/* operate on original or copy */
 	{"transpose", (PyCFunction) Matrix_transpose, METH_NOARGS, Matrix_transpose_doc},
 	{"transposed", (PyCFunction) Matrix_transposed, METH_NOARGS, Matrix_transposed_doc},
+	{"normalize", (PyCFunction) Matrix_normalize, METH_NOARGS, Matrix_normalize_doc},
+	{"normalized", (PyCFunction) Matrix_normalized, METH_NOARGS, Matrix_normalized_doc},
 	{"invert", (PyCFunction) Matrix_invert, METH_NOARGS, Matrix_invert_doc},
 	{"inverted", (PyCFunction) Matrix_inverted, METH_NOARGS, Matrix_inverted_doc},
 	{"adjugate", (PyCFunction) Matrix_adjugate, METH_NOARGS, Matrix_adjugate_doc},
