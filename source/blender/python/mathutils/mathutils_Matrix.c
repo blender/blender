@@ -1537,7 +1537,7 @@ static PyObject *Matrix_transposed(MatrixObject *self)
 PyDoc_STRVAR(Matrix_normalize_doc,
 ".. method:: normalize()\n"
 "\n"
-"   Normalize each of the columns of the matrix (useful for transforming unit length normals).\n"
+"   Normalize each of the matrix columns.\n"
 );
 static PyObject *Matrix_normalize(MatrixObject *self)
 {

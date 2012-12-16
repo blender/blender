@@ -91,7 +91,7 @@ static void rna_generate_static_parameter_prototypes(FILE *f, StructRNA *srna, F
 	{ \
 		WRITE_COMMA; \
 		fprintf(f, param); \
-	}
+	} (void)0
 
 static int replace_if_different(char *tmpfile, const char *dep_files[])
 {
