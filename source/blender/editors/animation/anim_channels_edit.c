@@ -538,12 +538,26 @@ void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *f
 		BLI_remlink(&adt->drivers, fcu);
 	}
 	else if (adt->action) {
+		bAction *act = adt->action;
+		
 		/* remove from group or action, whichever one "owns" the F-Curve */
-		if (fcu->grp)
-			action_groups_remove_channel(adt->action, fcu);
-		else
-			BLI_remlink(&adt->action->curves, fcu);
+		if (fcu->grp) {
+			bActionGroup *agrp = fcu->grp;
 			
+			/* remove F-Curve from group+action */
+			action_groups_remove_channel(act, fcu);
+			
+			/* if group has no more channels, remove it too, 
+			 * otherwise can have many dangling groups [#33541]
+			 */
+			if (agrp->channels.first == NULL) {
+				BLI_freelinkN(&act->groups, agrp);
+			}
+		}
+		else {
+			BLI_remlink(&act->curves, fcu);
+		}
+		
 		/* if action has no more F-Curves as a result of this, unlink it from
 		 * AnimData if it did not come from a NLA Strip being tweaked.
 		 *
@@ -551,12 +565,8 @@ void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, AnimData *adt, FCurve *f
 		 * channel list that are empty, and linger around long after the data they
 		 * are for has disappeared (and probably won't come back).
 		 */
-		// XXX: does everybody always want this?
-		/* XXX: there's a problem where many actions could build up in the file if multiple
-		 * full add/delete cycles are performed on the same objects, but assume that this is rare
-		 */
-		if ((adt->action->curves.first == NULL) && (adt->flag & ADT_NLA_EDIT_ON) == 0) {
-			id_us_min(&adt->action->id);
+		if ((act->curves.first == NULL) && (adt->flag & ADT_NLA_EDIT_ON) == 0) {
+			id_us_min(&act->id);
 			adt->action = NULL;
 		}
 	}
