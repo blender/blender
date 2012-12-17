@@ -729,6 +729,50 @@ void BKE_object_unlink(Object *ob)
 	}
 }
 
+/* actual check for internal data, not context or flags */
+int BKE_object_is_in_editmode(Object *ob)
+{
+	if (ob->data == NULL)
+		return 0;
+	
+	if (ob->type == OB_MESH) {
+		Mesh *me = ob->data;
+		if (me->edit_btmesh)
+			return 1;
+	}
+	else if (ob->type == OB_ARMATURE) {
+		bArmature *arm = ob->data;
+		
+		if (arm->edbo)
+			return 1;
+	}
+	else if (ob->type == OB_FONT) {
+		Curve *cu = ob->data;
+		
+		if (cu->editfont)
+			return 1;
+	}
+	else if (ob->type == OB_MBALL) {
+		MetaBall *mb = ob->data;
+		
+		if (mb->editelems)
+			return 1;
+	}
+	else if (ob->type == OB_LATTICE) {
+		Lattice *lt = ob->data;
+		
+		if (lt->editlatt)
+			return 1;
+	}
+	else if (ob->type == OB_SURF || ob->type == OB_CURVE) {
+		Curve *cu = ob->data;
+
+		if (cu->editnurb)
+			return 1;
+	}
+	return 0;
+}
+
 int BKE_object_exists_check(Object *obtest)
 {
 	Object *ob;

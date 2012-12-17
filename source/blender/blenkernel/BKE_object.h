@@ -76,7 +76,8 @@ void BKE_object_copy_proxy_drivers(struct Object *ob, struct Object *target);
 
 void BKE_object_unlink(struct Object *ob);
 int  BKE_object_exists_check(struct Object *obtest);
-	
+int BKE_object_is_in_editmode(struct Object *ob);
+
 struct Object *BKE_object_add_only_object(int type, const char *name);
 struct Object *BKE_object_add(struct Scene *scene, int type);
 void *BKE_object_obdata_add_from_type(int type);
