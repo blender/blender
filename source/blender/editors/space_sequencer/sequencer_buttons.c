@@ -41,6 +41,7 @@
 
 #include "ED_screen.h"
 #include "ED_gpencil.h"
+#include "ED_sequencer.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -51,6 +52,14 @@
 
 /* **************************** buttons ********************************* */
 
+static int sequencer_grease_pencil_panel_poll(const bContext *C, PanelType *UNUSED(pt))
+{
+	SpaceSeq *sseq = CTX_wm_space_seq(C);
+
+	/* don't show the gpencil if we are not showing the image */
+	return ED_space_sequencer_check_show_imbuf(sseq);
+}
+
 void sequencer_buttons_register(ARegionType *art)
 {
 	PanelType *pt;
@@ -60,6 +69,7 @@ void sequencer_buttons_register(ARegionType *art)
 	strcpy(pt->label, N_("Grease Pencil"));
 	pt->draw_header = gpencil_panel_standard_header;
 	pt->draw = gpencil_panel_standard;
+	pt->poll = sequencer_grease_pencil_panel_poll;
 	BLI_addtail(&art->paneltypes, pt);
 }
 

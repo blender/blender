@@ -38,6 +38,8 @@ int ED_space_sequencer_maskedit_mask_poll(struct bContext *C);
 int ED_space_sequencer_check_show_maskedit(struct SpaceSeq *sseq, struct Scene *scene);
 int ED_space_sequencer_maskedit_poll(struct bContext *C);
 
+int ED_space_sequencer_check_show_imbuf(struct SpaceSeq *sseq);
+
 void ED_operatormacros_sequencer(void);
 
 #endif /*  __ED_SEQUENCER_H__ */

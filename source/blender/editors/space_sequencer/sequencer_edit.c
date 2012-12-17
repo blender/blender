@@ -496,6 +496,13 @@ int ED_space_sequencer_maskedit_poll(bContext *C)
 	return FALSE;
 }
 
+/* are we displaying the seq output (not channels or histogram)*/
+int ED_space_sequencer_check_show_imbuf(SpaceSeq *sseq)
+{
+	return (ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW) &&
+	        ELEM(sseq->mainb, SEQ_DRAW_SEQUENCE, SEQ_DRAW_IMG_IMBUF));
+}
+
 int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequence **selseq1, Sequence **selseq2, Sequence **selseq3, const char **error_str)
 {
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);

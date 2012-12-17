@@ -62,6 +62,7 @@
 #include "ED_gpencil.h"
 #include "ED_markers.h"
 #include "ED_mask.h"
+#include "ED_sequencer.h"
 #include "ED_types.h"
 #include "ED_space_api.h"
 
@@ -921,6 +922,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	GLuint last_texid;
 	unsigned char *display_buffer;
 	void *cache_handle = NULL;
+	const int is_imbuf = ED_space_sequencer_check_show_imbuf(sseq);
 
 	if (G.is_rendering == FALSE) {
 		/* stop all running jobs, except screen one. currently previews frustrate Render
@@ -1126,8 +1128,10 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	}
 	
 	if (sseq->flag & SEQ_SHOW_GPENCIL) {
-		/* draw grease-pencil (image aligned) */
-		draw_gpencil_2dimage(C);
+		if (is_imbuf) {
+			/* draw grease-pencil (image aligned) */
+			draw_gpencil_2dimage(C);
+		}
 	}
 
 	if (!scope)
@@ -1137,8 +1141,10 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	UI_view2d_view_restore(C);
 	
 	if (sseq->flag & SEQ_SHOW_GPENCIL) {
-		/* draw grease-pencil (screen aligned) */
-		draw_gpencil_view2d(C, 0);
+		if (is_imbuf) {
+			/* draw grease-pencil (screen aligned) */
+			draw_gpencil_view2d(C, 0);
+		}
 	}
 
 
