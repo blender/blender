@@ -6031,10 +6031,9 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 
 	/* add classmethods */
 	{
+		const PointerRNA func_ptr = {{NULL}, srna, NULL};
 		const ListBase *lb;
 		Link *link;
-
-		const PointerRNA func_ptr = {{NULL}, srna, NULL};
 
 		lb = RNA_struct_type_functions(srna);
 		for (link = lb->first; link; link = link->next) {
@@ -6042,7 +6041,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 			const int flag = RNA_function_flag(func);
 			if ((flag & FUNC_NO_SELF) &&          /* is classmethod */
 			    (flag & FUNC_REGISTER) == FALSE)  /* is not for registration */
-			{  /* is not for registration */
+			{
 				/* we may went to set the type of this later */
 				PyObject *func_py = pyrna_func_to_py(&func_ptr, func);
 				PyObject_SetAttrString(newclass, RNA_function_identifier(func), func_py);
