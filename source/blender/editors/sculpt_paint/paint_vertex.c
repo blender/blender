@@ -346,7 +346,7 @@ static void make_vertexcol(Object *ob)  /* single ob */
 	if (me->edit_btmesh) return;
 
 	/* copies from shadedisplist to mcol */
-	if (!me->mloopcol) {
+	if (!me->mloopcol && me->totloop) {
 		if (!me->mcol) {
 			CustomData_add_layer(&me->fdata, CD_MCOL, CD_DEFAULT, NULL, me->totface);
 		}
