@@ -112,8 +112,8 @@ template<typename T> struct texture_image  {
 			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 
 		int ix, iy, nix, niy;
-		float tx = frac(x*width, &ix);
-		float ty = frac(y*height, &iy);
+		float tx = frac(x*width - 0.5f, &ix);
+		float ty = frac(y*height - 0.5f, &iy);
 
 		if(periodic) {
 			ix = wrap_periodic(ix, width);

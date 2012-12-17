@@ -53,6 +53,8 @@
 #define MOUSEX		4
 #define MOUSEY		5
 
+/* non-event, for example disabled timer */
+#define EVENT_NONE		0
 /* MOUSE : 0x00x */
 #define LEFTMOUSE		1
 #define MIDDLEMOUSE		2

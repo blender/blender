@@ -3158,7 +3158,12 @@ static void init_camera_inside_volumes(Render *re)
 {
 	ObjectInstanceRen *obi;
 	VolumeOb *vo;
-	float co[3] = {0.f, 0.f, 0.f};
+	/* coordinates are all in camera space, so camera coordinate is zero. we also
+	 * add an offset for the clip start, however note that with clip start it's
+	 * actually impossible to do a single 'inside' test, since there will not be
+	 * a single point where all camera rays start from, though for small clip start
+	 * they will be close together. */
+	float co[3] = {0.f, 0.f, -re->clipsta};
 
 	for (vo= re->volumes.first; vo; vo= vo->next) {
 		for (obi= re->instancetable.first; obi; obi= obi->next) {

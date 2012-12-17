@@ -118,6 +118,7 @@ class ntlWorld
 
 		/*! count no. of frame for correct sim time */
 		int mSimFrameCnt;
+		vector<int> mSimFrameValue;
 };
 
 

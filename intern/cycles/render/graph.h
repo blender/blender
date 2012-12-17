@@ -183,6 +183,9 @@ public:
 	virtual void compile(SVMCompiler& compiler) = 0;
 	virtual void compile(OSLCompiler& compiler) = 0;
 
+	virtual bool has_surface_emission() { return false; }
+	virtual bool has_surface_transparent() { return false; }
+
 	vector<ShaderInput*> inputs;
 	vector<ShaderOutput*> outputs;
 

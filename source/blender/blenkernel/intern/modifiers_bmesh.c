@@ -40,7 +40,11 @@
 #include "BKE_bmesh.h"
 #include "BKE_tessmesh.h"
 
-/* main function for copying DerivedMesh data into BMesh */
+/**
+ * The main function for copying DerivedMesh data into BMesh.
+ *
+ * \note The mesh may already have geometry. see 'is_init'
+ */
 void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 {
 	MVert *mv, *mvert;
@@ -56,6 +60,14 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 	BLI_array_declare(edges);
 	int i, j, k, totvert, totedge /* , totface */ /* UNUSED */ ;
 	int is_init = (bm->totvert == 0) && (bm->totedge == 0) && (bm->totface == 0);
+	char has_orig_hflag = 0;
+
+	if (is_init == FALSE) {
+		/* check if we have an origflag */
+		has_orig_hflag |= CustomData_has_layer(&bm->vdata, CD_ORIGINDEX) ? BM_VERT : 0;
+		has_orig_hflag |= CustomData_has_layer(&bm->edata, CD_ORIGINDEX) ? BM_EDGE : 0;
+		has_orig_hflag |= CustomData_has_layer(&bm->pdata, CD_ORIGINDEX) ? BM_FACE : 0;
+	}
 
 	/*merge custom data layout*/
 	CustomData_bmesh_merge(&dm->vertData, &bm->vdata, CD_MASK_DERIVEDMESH, CD_CALLOC, bm, BM_VERT);
@@ -85,10 +97,15 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 		BM_elem_index_set(v, i); /* set_inline */
 
 		CustomData_to_bmesh_block(&dm->vertData, &bm->vdata, i, &v->head.data);
+		vtable[i] = v;
 
 		/* add bevel weight */
 		BM_elem_float_data_set(&bm->vdata, v, CD_BWEIGHT, (float)mv->bweight / 255.0f);
-		vtable[i] = v;
+
+		if (UNLIKELY(has_orig_hflag & BM_VERT)) {
+			int *orig_index = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_ORIGINDEX);
+			*orig_index = ORIGINDEX_NONE;
+		}
 	}
 	MEM_freeN(mvert);
 	if (is_init) bm->elem_index_dirty &= ~BM_VERT;
@@ -109,6 +126,11 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 		BM_elem_float_data_set(&bm->edata, e, CD_CREASE, (float)me->crease / 255.0f);
 		/* add bevel weight */
 		BM_elem_float_data_set(&bm->edata, e, CD_BWEIGHT, (float)me->bweight / 255.0f);
+
+		if (UNLIKELY(has_orig_hflag & BM_EDGE)) {
+			int *orig_index = CustomData_bmesh_get(&bm->edata, e->head.data, CD_ORIGINDEX);
+			*orig_index = ORIGINDEX_NONE;
+		}
 	}
 	MEM_freeN(medge);
 	if (is_init) bm->elem_index_dirty &= ~BM_EDGE;
@@ -157,6 +179,11 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 		}
 		else {
 			BM_face_normal_update(f);
+		}
+
+		if (UNLIKELY(has_orig_hflag & BM_FACE)) {
+			int *orig_index = CustomData_bmesh_get(&bm->pdata, f->head.data, CD_ORIGINDEX);
+			*orig_index = ORIGINDEX_NONE;
 		}
 	}
 	if (is_init) bm->elem_index_dirty &= ~BM_FACE;

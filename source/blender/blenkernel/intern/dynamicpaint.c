@@ -1193,7 +1193,68 @@ void dynamicPaint_Modifier_copy(struct DynamicPaintModifierData *pmd, struct Dyn
 
 	/* Copy data	*/
 	if (tpmd->canvas) {
+		DynamicPaintSurface *surface;
 		tpmd->canvas->pmd = tpmd;
+		/* free default surface */
+		if (tpmd->canvas->surfaces.first)
+			dynamicPaint_freeSurface(tpmd->canvas->surfaces.first);
+
+		/* copy existing surfaces */
+		for (surface = pmd->canvas->surfaces.first; surface; surface = surface->next) {
+			DynamicPaintSurface *t_surface = dynamicPaint_createNewSurface(tpmd->canvas, NULL);
+
+			/* surface settings */
+			t_surface->brush_group = surface->brush_group;
+			MEM_freeN(t_surface->effector_weights);
+			t_surface->effector_weights = MEM_dupallocN(surface->effector_weights);
+
+			BLI_strncpy(t_surface->name, surface->name, sizeof(t_surface->name));
+			t_surface->format = surface->format;
+			t_surface->type = surface->type;
+			t_surface->disp_type = surface->disp_type;
+			t_surface->image_fileformat = surface->image_fileformat;
+			t_surface->effect_ui = surface->effect_ui;
+			t_surface->preview_id = surface->preview_id;
+			t_surface->init_color_type = surface->init_color_type;
+			t_surface->flags = surface->flags;
+			t_surface->effect = surface->effect;
+
+			t_surface->image_resolution = surface->image_resolution;
+			t_surface->substeps = surface->substeps;
+			t_surface->start_frame = surface->start_frame;
+			t_surface->end_frame = surface->end_frame;
+
+			copy_v4_v4(t_surface->init_color, surface->init_color);
+			t_surface->init_texture = surface->init_texture;
+			BLI_strncpy(t_surface->init_layername, surface->init_layername, sizeof(t_surface->init_layername));
+
+			t_surface->dry_speed = surface->dry_speed;
+			t_surface->diss_speed = surface->diss_speed;
+			t_surface->color_dry_threshold = surface->color_dry_threshold;
+			t_surface->depth_clamp = surface->depth_clamp;
+			t_surface->disp_factor = surface->disp_factor;
+
+
+			t_surface->spread_speed = surface->spread_speed;
+			t_surface->color_spread_speed = surface->color_spread_speed;
+			t_surface->shrink_speed = surface->shrink_speed;
+			t_surface->drip_vel = surface->drip_vel;
+			t_surface->drip_acc = surface->drip_acc;
+
+			t_surface->influence_scale = surface->influence_scale;
+			t_surface->radius_scale = surface->radius_scale;
+
+			t_surface->wave_damping = surface->wave_damping;
+			t_surface->wave_speed = surface->wave_speed;
+			t_surface->wave_timescale = surface->wave_timescale;
+			t_surface->wave_spring = surface->wave_spring;
+
+			BLI_strncpy(t_surface->uvlayer_name, surface->uvlayer_name, sizeof(t_surface->uvlayer_name));
+			BLI_strncpy(t_surface->image_output_path, surface->image_output_path, sizeof(t_surface->image_output_path));
+			BLI_strncpy(t_surface->output_name, surface->output_name, sizeof(t_surface->output_name));
+			BLI_strncpy(t_surface->output_name2, surface->output_name2, sizeof(t_surface->output_name2));
+		}
+		dynamicPaint_resetPreview(tpmd->canvas);
 	}
 	else if (tpmd->brush) {
 		DynamicPaintBrushSettings *brush = pmd->brush, *t_brush = tpmd->brush;

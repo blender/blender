@@ -194,9 +194,7 @@ void ED_space_image_get_size_fl(SpaceImage *sima, float size[2])
 void ED_space_image_get_aspect(SpaceImage *sima, float *aspx, float *aspy)
 {
 	Image *ima = sima->image;
-	if ((ima == NULL) || (ima->type == IMA_TYPE_R_RESULT) || (ima->type == IMA_TYPE_COMPOSITE) ||
-	    (ima->aspx == 0.0f || ima->aspy == 0.0f))
-	{
+	if ((ima == NULL) || (ima->aspx == 0.0f || ima->aspy == 0.0f)) {
 		*aspx = *aspy = 1.0;
 	}
 	else {

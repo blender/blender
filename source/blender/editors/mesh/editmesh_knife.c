@@ -720,7 +720,7 @@ static void knife_cut_through(KnifeTool_OpData *kcd)
 		for (r = firstfaces.first; r; r = r->next) {
 			f = r->ref;
 			found = 0;
-			for (j = 0, lh2 = kcd->linehits; j < kcd->totlinehit; j++, lh2++) {
+			for (j = 0, lh2 = kcd->linehits; j < kcd->totlinehit && !found; j++, lh2++) {
 				kfe2 = lh2->kfe;
 				for (r2 = kfe2->faces.first; r2; r2 = r2->next) {
 					if (r2->ref == f) {
@@ -750,7 +750,7 @@ static void knife_cut_through(KnifeTool_OpData *kcd)
 		for (r = kfe->faces.first; r; r = r->next) {
 			f = r->ref;
 			found = 0;
-			for (j = i + 1, lh2 = lh + 1; j < kcd->totlinehit; j++, lh2++) {
+			for (j = i + 1, lh2 = lh + 1; j < kcd->totlinehit && !found; j++, lh2++) {
 				kfe2 = lh2->kfe;
 				for (r2 = kfe2->faces.first; r2; r2 = r2->next) {
 					if (r2->ref == f) {

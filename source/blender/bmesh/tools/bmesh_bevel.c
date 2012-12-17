@@ -37,6 +37,7 @@
 #include "BKE_customdata.h"
 
 #include "bmesh.h"
+#include "./intern/bmesh_private.h"
 
 
 
@@ -1477,9 +1478,9 @@ static void build_vmesh(MemArena *mem_arena, BMesh *bm, BevVert *bv)
 }
 
 /* take care, this flag isn't cleared before use, it just so happens that its not set */
-#define BM_BEVEL_EDGE_TAG_ENABLE(bme)  BM_elem_flag_enable(  (bme)->l, BM_ELEM_TAG)
-#define BM_BEVEL_EDGE_TAG_DISABLE(bme) BM_elem_flag_disable( (bme)->l, BM_ELEM_TAG)
-#define BM_BEVEL_EDGE_TAG_TEST(bme)    BM_elem_flag_test(    (bme)->l, BM_ELEM_TAG)
+#define BM_BEVEL_EDGE_TAG_ENABLE(bme)  BM_ELEM_API_FLAG_ENABLE(  (bme), _FLAG_OVERLAP)
+#define BM_BEVEL_EDGE_TAG_DISABLE(bme) BM_ELEM_API_FLAG_DISABLE( (bme), _FLAG_OVERLAP)
+#define BM_BEVEL_EDGE_TAG_TEST(bme)    BM_ELEM_API_FLAG_TEST(    (bme), _FLAG_OVERLAP)
 
 /*
  * Construction around the vertex
@@ -1506,6 +1507,8 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 			nsel++;
 		}
 		ntot++;
+
+		BM_BEVEL_EDGE_TAG_DISABLE(bme);
 	}
 
 	if (nsel == 0) {

@@ -1068,6 +1068,8 @@ void WM_event_remove_timer(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *
 		if (wt == timer)
 			break;
 	if (wt) {
+		wmWindow *win;
+		
 		if (wm->reports.reporttimer == wt)
 			wm->reports.reporttimer = NULL;
 		
@@ -1075,6 +1077,17 @@ void WM_event_remove_timer(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *
 		if (wt->customdata)
 			MEM_freeN(wt->customdata);
 		MEM_freeN(wt);
+		
+		/* there might be events in queue with this timer as customdata */
+		for (win = wm->windows.first; win; win = win->next) {
+			wmEvent *event;
+			for (event = win->queue.first; event; event = event->next) {
+				if (event->customdata == wt) {
+					event->customdata = NULL;
+					event->type = EVENT_NONE;	/* timer users customdata, dont want NULL == NULL */
+				}
+			}
+		}
 	}
 }
 

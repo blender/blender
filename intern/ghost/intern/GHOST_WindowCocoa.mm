@@ -620,8 +620,11 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 	
 	//Check for other blender opened windows and make the frontmost key
 	NSArray *windowsList = [NSApp orderedWindows];
-	if ([windowsList count]) {
-		[[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
+	for (int a = 0; a < [windowsList count]; a++) {
+		if (m_window != (CocoaWindow *)[windowsList objectAtIndex:a]) {
+			[[windowsList objectAtIndex:a] makeKeyWindow];
+			break;
+		}
 	}
 	[pool drain];
 }
