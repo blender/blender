@@ -1125,8 +1125,10 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		setlinestyle(0);
 	}
 	
-	/* draw grease-pencil (image aligned) */
-	draw_gpencil_2dimage(C);
+	if (sseq->flag & SEQ_SHOW_GPENCIL) {
+		/* draw grease-pencil (image aligned) */
+		draw_gpencil_2dimage(C);
+	}
 
 	if (!scope)
 		IMB_freeImBuf(ibuf);
@@ -1134,9 +1136,10 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	/* ortho at pixel level */
 	UI_view2d_view_restore(C);
 	
-	/* draw grease-pencil (screen aligned) */
-	draw_gpencil_view2d(C, 0);
-
+	if (sseq->flag & SEQ_SHOW_GPENCIL) {
+		/* draw grease-pencil (screen aligned) */
+		draw_gpencil_view2d(C, 0);
+	}
 
 
 	/* NOTE: sequencer mask editing isnt finished, the draw code is working but editing not,

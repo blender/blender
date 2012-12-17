@@ -151,6 +151,7 @@ static SpaceLink *image_new(const bContext *UNUSED(C))
 	simage->spacetype = SPACE_IMAGE;
 	simage->zoom = 1.0f;
 	simage->lock = TRUE;
+	simage->flag = SI_SHOW_GPENCIL;
 
 	simage->iuser.ok = TRUE;
 	simage->iuser.fie_ima = 2;
@@ -674,16 +675,20 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 
-	/* Grease Pencil too (in addition to UV's) */
-	draw_image_grease_pencil((bContext *)C, 1); 
+	if (sima->flag & SI_SHOW_GPENCIL) {
+		/* Grease Pencil too (in addition to UV's) */
+		draw_image_grease_pencil((bContext *)C, TRUE);
+	}
 
 	/* sample line */
 	draw_image_sample_line(sima);
 
 	UI_view2d_view_restore(C);
 
-	/* draw Grease Pencil - screen space only */
-	draw_image_grease_pencil((bContext *)C, 0);
+	if (sima->flag & SI_SHOW_GPENCIL) {
+		/* draw Grease Pencil - screen space only */
+		draw_image_grease_pencil((bContext *)C, FALSE);
+	}
 
 	if (mask) {
 		int width, height;

@@ -312,6 +312,13 @@ static void draw_gpencil_panel(bContext *C, uiLayout *layout, bGPdata *gpd, Poin
 	}
 }
 
+void gpencil_panel_standard_header(const bContext *C, Panel *pa)
+{
+	PointerRNA ptr;
+	RNA_pointer_create((ID *)CTX_wm_screen(C), &RNA_Space, CTX_wm_space_data(C), &ptr);
+
+	uiItemR(pa->layout, &ptr, "show_grease_pencil", 0, "", ICON_NONE);
+}
 
 /* Standard panel to be included wherever Grease Pencil is used... */
 void gpencil_panel_standard(const bContext *C, Panel *pa)

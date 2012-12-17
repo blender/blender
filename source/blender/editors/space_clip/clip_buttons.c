@@ -78,6 +78,7 @@ void ED_clip_buttons_register(ARegionType *art)
 	pt = MEM_callocN(sizeof(PanelType), "spacetype clip panel gpencil");
 	strcpy(pt->idname, "CLIP_PT_gpencil");
 	strcpy(pt->label, "Grease Pencil");
+	pt->draw_header = gpencil_panel_standard_header;
 	pt->draw = gpencil_panel_standard;
 	pt->flag |= PNL_DEFAULT_CLOSED;
 	pt->poll = clip_grease_pencil_panel_poll;

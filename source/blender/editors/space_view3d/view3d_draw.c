@@ -2169,7 +2169,9 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 	v3d->zbuf = TRUE;
 	glEnable(GL_DEPTH_TEST);
 
-	draw_gpencil_view3d(scene, v3d, ar, 1);
+	if (v3d->flag2 & V3D_SHOW_GPENCIL) {
+		draw_gpencil_view3d(scene, v3d, ar, TRUE);
+	}
 	
 	v3d->zbuf = zbuf;
 
@@ -2649,9 +2651,11 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	}
 
 	/* must be before xray draw which clears the depth buffer */
-	if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
-	draw_gpencil_view3d(scene, v3d, ar, 1);
-	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
+	if (v3d->flag2 & V3D_SHOW_GPENCIL) {
+		if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
+		draw_gpencil_view3d(scene, v3d, ar, TRUE);
+		if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
+	}
 
 	/* transp and X-ray afterdraw stuff */
 	if (v3d->afterdraw_transp.first)     view3d_draw_transp(scene, ar, v3d);
@@ -2675,8 +2679,11 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	/* draw grease-pencil stuff */
 	ED_region_pixelspace(ar);
 
-	/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
-	draw_gpencil_view3d(scene, v3d, ar, 0);
+
+	if (v3d->flag2 & V3D_SHOW_GPENCIL) {
+		/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
+		draw_gpencil_view3d(scene, v3d, ar, FALSE);
+	}
 
 	/* freeing the images again here could be done after the operator runs, leaving for now */
 	GPU_free_images_anim();
@@ -3109,10 +3116,10 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 
 //	REEB_draw();
 
-	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
+	if (v3d->flag2 & V3D_SHOW_GPENCIL) {
 		/* must be before xray draw which clears the depth buffer */
 		if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
-		draw_gpencil_view3d(scene, v3d, ar, 1);
+		draw_gpencil_view3d(scene, v3d, ar, TRUE);
 		if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 	}
 
@@ -3178,9 +3185,10 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 		Object *ob;
 
-		/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
-		//	if (v3d->flag2 & V3D_DISPGP)
-		draw_gpencil_view3d(scene, v3d, ar, 0);
+		if (v3d->flag2 & V3D_SHOW_GPENCIL) {
+			/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
+			draw_gpencil_view3d(scene, v3d, ar, FALSE);
+		}
 
 		drawcursor(scene, ar, v3d);
 

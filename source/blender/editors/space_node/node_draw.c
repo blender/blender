@@ -1172,16 +1172,22 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 	
-	/* draw grease-pencil ('canvas' strokes) */
-	if (snode->nodetree)
-		draw_gpencil_view2d(C, 1);
+	if (snode->flag & SNODE_SHOW_GPENCIL) {
+		/* draw grease-pencil ('canvas' strokes) */
+		if (snode->nodetree) {
+			draw_gpencil_view2d(C, TRUE);
+		}
+	}
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
 	
-	/* draw grease-pencil (screen strokes, and also paintbuffer) */
-	if (snode->nodetree)
-		draw_gpencil_view2d(C, 0);
+	if (snode->flag & SNODE_SHOW_GPENCIL) {
+		/* draw grease-pencil (screen strokes, and also paintbuffer) */
+		if (snode->nodetree) {
+			draw_gpencil_view2d(C, FALSE);
+		}
+	}
 	
 	/* scrollers */
 	scrollers = UI_view2d_scrollers_calc(C, v2d, 10, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
