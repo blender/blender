@@ -6608,6 +6608,10 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	bfd->globalf = fg->globalf;
 	BLI_strncpy(bfd->filename, fg->filename, sizeof(bfd->filename));
 	
+	/* early 2.50 version patch - filename not in FileGlobal struct */
+	if (fd->fileversion <= 250)
+		BLI_strncpy(bfd->filename, bfd->main->name, sizeof(bfd->main->name));
+	
 	if (G.fileflags & G_FILE_RECOVER)
 		BLI_strncpy(fd->relabase, fg->filename, sizeof(fd->relabase));
 	
