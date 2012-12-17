@@ -906,7 +906,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		              BM_ELEM_SELECT, min);
 	}
 	else {
-		float *curs = give_cursor(vc.scene, vc.v3d);
+		const float *curs = give_cursor(vc.scene, vc.v3d);
 		BMOperator bmop;
 		BMOIter oiter;
 		
@@ -2033,7 +2033,8 @@ static int merge_target(BMEditMesh *em, Scene *scene, View3D *v3d, Object *ob,
 {
 	BMIter iter;
 	BMVert *v;
-	float *vco = NULL, co[3], cent[3] = {0.0f, 0.0f, 0.0f};
+	float co[3], cent[3] = {0.0f, 0.0f, 0.0f};
+	const float *vco = NULL;
 
 	if (target) {
 		vco = give_cursor(scene, v3d);

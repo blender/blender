@@ -1445,7 +1445,7 @@ void calculateCenter2D(TransInfo *t)
 
 void calculateCenterCursor(TransInfo *t)
 {
-	float *cursor;
+	const float *cursor;
 	
 	cursor = give_cursor(t->scene, t->view);
 	copy_v3_v3(t->center, cursor);

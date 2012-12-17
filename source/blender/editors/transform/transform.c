@@ -2579,7 +2579,8 @@ int handleEventWarp(TransInfo *t, wmEvent *event)
 int Warp(TransInfo *t, const int UNUSED(mval[2]))
 {
 	TransData *td = t->data;
-	float vec[3], circumfac, dist, phi0, co, si, *curs, cursor[3], gcursor[3];
+	float vec[3], circumfac, dist, phi0, co, si, cursor[3], gcursor[3];
+	const float *curs;
 	int i;
 	char str[50];
 	
