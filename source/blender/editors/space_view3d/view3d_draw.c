@@ -3182,13 +3182,13 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
+	if (v3d->flag2 & V3D_SHOW_GPENCIL) {
+		/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
+		draw_gpencil_view3d(scene, v3d, ar, FALSE);
+	}
+
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 		Object *ob;
-
-		if (v3d->flag2 & V3D_SHOW_GPENCIL) {
-			/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
-			draw_gpencil_view3d(scene, v3d, ar, FALSE);
-		}
 
 		drawcursor(scene, ar, v3d);
 
