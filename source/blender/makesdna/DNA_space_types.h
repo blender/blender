@@ -494,9 +494,8 @@ typedef enum eSpaceSeq_Flag {
 	SEQ_MARKER_TRANS            = (1 << 1),
 	SEQ_DRAW_COLOR_SEPARATED    = (1 << 2),
 	SEQ_DRAW_SAFE_MARGINS       = (1 << 3),
-/*  SEQ_DRAW_GPENCIL            = (1 << 4), */ /* DEPRECATED */
+	SEQ_SHOW_GPENCIL            = (1 << 4),
 	SEQ_NO_DRAW_CFRANUM         = (1 << 5),
-	SEQ_SHOW_GPENCIL            = (1 << 6),
 } eSpaceSeq_Flag;
 
 /* sseq->view */

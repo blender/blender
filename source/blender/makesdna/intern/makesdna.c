@@ -208,7 +208,7 @@ static int calculate_structlens(int);
 /**
  * Construct the DNA.c file
  */ 
-void dna_write(FILE *file, void *pntr, int size);
+static void dna_write(FILE *file, const void *pntr, const int size);
 
 /**
  * Report all structures found so far, and print their lengths.
@@ -892,7 +892,7 @@ static int calculate_structlens(int firststruct)
 
 #define MAX_DNA_LINE_LENGTH 20
 
-void dna_write(FILE *file, void *pntr, int size)
+static void dna_write(FILE *file, const void *pntr, const int size)
 {
 	static int linelength = 0;
 	int i;
@@ -934,7 +934,7 @@ void printStructLengths(void)
 }
 
 
-static int make_structDNA(char *baseDirectory, FILE *file)
+static int make_structDNA(const char *baseDirectory, FILE *file)
 {
 	int len, i;
 	short *sp;
@@ -1036,12 +1036,10 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 		/* pass */
 	}
 	else {
-		strcpy(str, "SDNA");
-		dna_write(file, str, 4);
+		dna_write(file, "SDNA", 4);
 		
 		/* write names */
-		strcpy(str, "NAME");
-		dna_write(file, str, 4);
+		dna_write(file, "NAME", 4);
 		len = nr_names;
 		dna_write(file, &len, 4);
 		
@@ -1053,8 +1051,7 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 		dna_write(file, names[0], len);
 		
 		/* write TYPES */
-		strcpy(str, "TYPE");
-		dna_write(file, str, 4);
+		dna_write(file, "TYPE", 4);
 		len = nr_types;
 		dna_write(file, &len, 4);
 	
@@ -1067,16 +1064,14 @@ static int make_structDNA(char *baseDirectory, FILE *file)
 		dna_write(file, types[0], len);
 		
 		/* WRITE TYPELENGTHS */
-		strcpy(str, "TLEN");
-		dna_write(file, str, 4);
+		dna_write(file, "TLEN", 4);
 		
 		len = 2 * nr_types;
 		if (nr_types & 1) len += 2;
 		dna_write(file, typelens_native, len);
 		
 		/* WRITE STRUCTS */
-		strcpy(str, "STRC");
-		dna_write(file, str, 4);
+		dna_write(file, "STRC", 4);
 		len = nr_structs;
 		dna_write(file, &len, 4);
 	
@@ -1165,13 +1160,13 @@ int main(int argc, char **argv)
 			return_status = 1;
 		}
 		else {
-			char baseDirectory[256];
+			const char *baseDirectory;
 
 			if (argc == 3) {
-				strcpy(baseDirectory, argv[2]);
+				baseDirectory = argv[2];
 			}
 			else {
-				strcpy(baseDirectory, BASE_HEADER);
+				baseDirectory = BASE_HEADER;
 			}
 
 			fprintf(file, "const unsigned char DNAstr[] = {\n");
