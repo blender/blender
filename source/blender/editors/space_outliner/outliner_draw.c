@@ -1227,10 +1227,10 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Spa
 				float ufac = UI_UNIT_X / 20.0f;
 
 				uiSetRoundBox(UI_CNR_ALL);
-				glColor4ub(255, 255, 255, 100);
-				uiRoundBox((float) *offsx - 1.5f * ufac,
-				           (float)ys + 2.0f * ufac,
-				           (float)*offsx + UI_UNIT_X - 3.0f * ufac,
+				glColor4ub(255, 255, 255, 128);
+				uiRoundBox((float) *offsx - 1.0f * ufac,
+				           (float)ys + 1.0f * ufac,
+				           (float)*offsx + UI_UNIT_X - 1.0f * ufac,
 				           (float)ys + UI_UNIT_Y - 1.0f * ufac,
 				           (float)UI_UNIT_Y / 2.0f - 2.0f * ufac);
 				glEnable(GL_BLEND); /* roundbox disables */
@@ -1278,6 +1278,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 
 	if (*starty + 2 * UI_UNIT_Y >= ar->v2d.cur.ymin && *starty <= ar->v2d.cur.ymax) {
 		int xmax = ar->v2d.cur.xmax;
+		unsigned char alpha = 128;
 		
 		/* icons can be ui buts, we don't want it to overlap with restrict */
 		if ((soops->flag & SO_HIDE_RESTRICTCOLS) == 0)
@@ -1294,16 +1295,17 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 		{
 			char col[4];
 			UI_GetThemeColorType4ubv(TH_MATCH, SPACE_OUTLINER, col);
-			col[3] = 100;
+			col[3] = alpha;
 			glColor4ubv((GLubyte *)col);
 			glRecti(startx, *starty + 1, ar->v2d.cur.xmax, *starty + UI_UNIT_Y - 1);
 		}
 
 		/* colors for active/selected data */
 		if (tselem->type == 0) {
+			
 			if (te->idcode == ID_SCE) {
 				if (tselem->id == (ID *)scene) {
-					glColor4ub(255, 255, 255, 100);
+					glColor4ub(255, 255, 255, alpha);
 					active = 2;
 				}
 			}
@@ -1312,7 +1314,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 				if (group_select_flag(gr)) {
 					char col[4];
 					UI_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
-					col[3] = 100;
+					col[3] = alpha;
 					glColor4ubv((GLubyte *)col);
 					
 					active = 2;
@@ -1330,14 +1332,14 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 					if (ob == OBACT) {
 						if (ob->flag & SELECT) {
 							UI_GetThemeColorType4ubv(TH_ACTIVE, SPACE_VIEW3D, col);
-							col[3] = 100;
+							col[3] = alpha;
 						}
 						
 						active = 1; /* means it draws white text */
 					}
 					else if (ob->flag & SELECT) {
 						UI_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
-						col[3] = 100;
+						col[3] = alpha;
 					}
 					
 					glColor4ubv((GLubyte *)col);
@@ -1345,27 +1347,27 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 			
 			}
 			else if (scene->obedit && scene->obedit->data == tselem->id) {
-				glColor4ub(255, 255, 255, 100);
+				glColor4ub(255, 255, 255, alpha);
 				active = 2;
 			}
 			else {
 				if (tree_element_active(C, scene, soops, te, 0)) {
-					glColor4ub(220, 220, 255, 100);
+					glColor4ub(220, 220, 255, alpha);
 					active = 2;
 				}
 			}
 		}
 		else {
 			if (tree_element_type_active(NULL, scene, soops, te, tselem, 0) ) active = 2;
-			glColor4ub(220, 220, 255, 100);
+			glColor4ub(220, 220, 255, alpha);
 		}
 		
 		/* active circle */
 		if (active) {
 			uiSetRoundBox(UI_CNR_ALL);
-			uiRoundBox((float)startx + UI_UNIT_X - 1.5f * ufac,
-			           (float)*starty + 2.0f * ufac,
-			           (float)startx + 2.0f * UI_UNIT_X - 3.0f * ufac,
+			uiRoundBox((float)startx + UI_UNIT_X - 1.0f * ufac,
+			           (float)*starty + 1.0f * ufac,
+			           (float)startx + 2.0f * UI_UNIT_X - 1.0f * ufac,
 			           (float)*starty + UI_UNIT_Y - 1.0f * ufac,
 			           UI_UNIT_Y / 2.0f - 2.0f * ufac);
 			glEnable(GL_BLEND); /* roundbox disables it */

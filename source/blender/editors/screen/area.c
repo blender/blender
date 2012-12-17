@@ -1703,7 +1703,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		v2d->keepofs &= ~(V2D_LOCKOFS_Y | V2D_KEEPOFS_X);
 		v2d->scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
 		v2d->scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
-		
+
 		/* ensure tot is set correctly, to keep views on bottons, with sliders */
 		y = min_ii(y, v2d->cur.ymin);
 		y = -y;
@@ -1724,8 +1724,8 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		y = -y;
 	}
 
-	/* +V2D_SCROLL_HEIGHT is workaround to set the actual height */
-	UI_view2d_totRect_set(v2d, x + V2D_SCROLL_WIDTH, y + V2D_SCROLL_HEIGHT);
+	/* +V2D_SCROLL_HEIGHT is workaround to set the actual height (needs to be int) */
+	UI_view2d_totRect_set(v2d, x + (int)V2D_SCROLL_WIDTH, y + (int)V2D_SCROLL_HEIGHT);
 
 	/* set the view */
 	UI_view2d_view_ortho(v2d);

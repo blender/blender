@@ -852,10 +852,11 @@ void UI_view2d_totRect_set_resize(View2D *v2d, int width, int height, int resize
 	
 	/* hrumf! */
 	/* XXX: there are work arounds for this in the panel and file browse code. */
+	/* round to int, because this is called with width + V2D_SCROLL_WIDTH */
 	if (scroll & V2D_SCROLL_HORIZONTAL) 
-		width -= V2D_SCROLL_WIDTH;
+		width -= (int)V2D_SCROLL_WIDTH;
 	if (scroll & V2D_SCROLL_VERTICAL) 
-		height -= V2D_SCROLL_HEIGHT;
+		height -= (int)V2D_SCROLL_HEIGHT;
 	
 	if (ELEM(0, width, height)) {
 		if (G.debug & G_DEBUG)
