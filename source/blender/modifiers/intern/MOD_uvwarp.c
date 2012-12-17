@@ -130,7 +130,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		return dm;
 	}
 	else if (ELEM(NULL, umd->object_src, umd->object_dst)) {
-		modifier_setError(md, "from/to objects must be set");
+		modifier_setError(md, "From/To objects must be set");
 		return dm;
 	}
 

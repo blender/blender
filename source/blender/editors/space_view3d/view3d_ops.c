@@ -111,7 +111,7 @@ static void VIEW3D_OT_pastebuffer(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Paste Selection from Buffer";
 	ot->idname = "VIEW3D_OT_pastebuffer";
-	ot->description = "Contents of copybuffer gets pasted";
+	ot->description = "Contents of copy buffer gets pasted";
 	
 	/* api callbacks */
 	ot->invoke = WM_operator_confirm;
