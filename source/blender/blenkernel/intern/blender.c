@@ -54,6 +54,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -334,6 +335,20 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	}
 	
 	/* baseflags, groups, make depsgraph, etc */
+	/* first handle case if other windows have different scenes visible */
+	if (mode == 0) {
+		wmWindowManager *wm = G.main->wm.first;
+		
+		if (wm) {
+			wmWindow *win;
+			
+			for (win = wm->windows.first; win; win = win->next) {
+				if (win->screen && win->screen->scene) /* zealous check... */
+					if (win->screen->scene != CTX_data_scene(C))
+						BKE_scene_set_background(G.main, win->screen->scene);
+			}
+		}
+	}
 	BKE_scene_set_background(G.main, CTX_data_scene(C));
 
 	if (mode != 'u') {
@@ -341,8 +356,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 	}
 
 	MEM_freeN(bfd);
-	
-	(void)curscene; /* quiet warning */
+
 }
 
 static int handle_subversion_warning(Main *main, ReportList *reports)

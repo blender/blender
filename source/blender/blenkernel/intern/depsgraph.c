@@ -2482,30 +2482,51 @@ void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay, const s
 	
 }
 
-static void dag_current_scene_layers(Main *bmain, Scene **sce, unsigned int *lay)
+/* struct returned by DagSceneLayer */
+typedef struct DagSceneLayer {
+	struct DagSceneLayer *next, *prev;
+	Scene *scene;
+	unsigned int layer;
+} DagSceneLayer;
+
+/* returns visible scenes with valid DAG */
+static void dag_current_scene_layers(Main *bmain, ListBase *lb)
 {
 	wmWindowManager *wm;
 	wmWindow *win;
+	
+	lb->first = lb->last = NULL;
 
-	/* only one scene supported currently, making more scenes work
-	 * correctly requires changes beyond just the dependency graph */
-
-	*sce = NULL;
-	*lay = 0;
-
+	/* if we have a windowmanager, look into windows */
 	if ((wm = bmain->wm.first)) {
-		/* if we have a windowmanager, look into windows */
+		
+		flag_listbase_ids(&bmain->scene, LIB_DOIT, 1);
+
 		for (win = wm->windows.first; win; win = win->next) {
-			if (win->screen) {
-				if (*sce == NULL) *sce = win->screen->scene;
-				*lay |= BKE_screen_visible_layers(win->screen, win->screen->scene);
+			if (win->screen && win->screen->scene->theDag) {
+				Scene *scene = win->screen->scene;
+				
+				if (scene->id.flag & LIB_DOIT) {
+					DagSceneLayer *dsl = MEM_mallocN(sizeof(DagSceneLayer), "dag scene layer");
+					
+					BLI_addtail(lb, dsl);
+					
+					dsl->scene = scene;
+					dsl->layer = BKE_screen_visible_layers(win->screen, scene);
+					
+					scene->id.flag &= ~LIB_DOIT;
+				}
 			}
 		}
 	}
 	else {
 		/* if not, use the first sce */
-		*sce = bmain->scene.first;
-		if (*sce) *lay = (*sce)->lay;
+		DagSceneLayer *dsl = MEM_mallocN(sizeof(DagSceneLayer), "dag scene layer");
+		
+		BLI_addtail(lb, dsl);
+		
+		dsl->scene = bmain->scene.first;
+		dsl->layer = dsl->scene->lay;
 
 		/* XXX for background mode, we should get the scene
 		 * from somewhere, for the -S option, but it's in
@@ -2515,29 +2536,36 @@ static void dag_current_scene_layers(Main *bmain, Scene **sce, unsigned int *lay
 
 void DAG_ids_flush_update(Main *bmain, int time)
 {
-	Scene *sce;
-	unsigned int lay;
+	ListBase listbase;
+	DagSceneLayer *dsl;
+	
+	/* get list of visible scenes and layers */
+	dag_current_scene_layers(bmain, &listbase);
 
-	dag_current_scene_layers(bmain, &sce, &lay);
-
-	if (sce)
-		DAG_scene_flush_update(bmain, sce, lay, time);
+	for (dsl = listbase.first; dsl; dsl = dsl->next)
+		DAG_scene_flush_update(bmain, dsl->scene, dsl->layer, time);
+	
+	BLI_freelistN(&listbase);
 }
 
 void DAG_on_visible_update(Main *bmain, const short do_time)
 {
-	Scene *scene;
-	Base *base;
-	Object *ob;
-	Group *group;
-	GroupObject *go;
-	DagNode *node;
-	unsigned int lay, oblay;
-
-	dag_current_scene_layers(bmain, &scene, &lay);
-
-	if (scene && scene->theDag) {
+	ListBase listbase;
+	DagSceneLayer *dsl;
+	
+	/* get list of visible scenes and layers */
+	dag_current_scene_layers(bmain, &listbase);
+	
+	for (dsl = listbase.first; dsl; dsl = dsl->next) {
+		Scene *scene = dsl->scene;
 		Scene *sce_iter;
+		Base *base;
+		Object *ob;
+		Group *group;
+		GroupObject *go;
+		DagNode *node;
+		unsigned int lay = dsl->layer, oblay;
+	
 		/* derivedmeshes and displists are not saved to file so need to be
 		 * remade, tag them so they get remade in the scene update loop,
 		 * note armature poses or object matrices are preserved and do not
@@ -2574,6 +2602,8 @@ void DAG_on_visible_update(Main *bmain, const short do_time)
 		DAG_scene_update_flags(bmain, scene, lay, do_time);
 		scene->lay_updated |= lay;
 	}
+	
+	BLI_freelistN(&listbase);
 
 	/* hack to get objects updating on layer changes */
 	DAG_id_type_tag(bmain, ID_OB);
@@ -2758,14 +2788,15 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 
 void DAG_ids_flush_tagged(Main *bmain)
 {
+	ListBase listbase;
+	DagSceneLayer *dsl;
 	ListBase *lbarray[MAX_LIBARRAY];
-	Scene *sce;
-	unsigned int lay;
 	int a, do_flush = FALSE;
+	
+	/* get list of visible scenes and layers */
+	dag_current_scene_layers(bmain, &listbase);
 
-	dag_current_scene_layers(bmain, &sce, &lay);
-
-	if (!sce || !sce->theDag)
+	if (listbase.first == NULL)
 		return;
 
 	/* loop over all ID types */
@@ -2780,7 +2811,10 @@ void DAG_ids_flush_tagged(Main *bmain)
 		if (id && bmain->id_tag_update[id->name[0]]) {
 			for (; id; id = id->next) {
 				if (id->flag & (LIB_ID_RECALC | LIB_ID_RECALC_DATA)) {
-					dag_id_flush_update(sce, id);
+					
+					for (dsl = listbase.first; dsl; dsl = dsl->next)
+						dag_id_flush_update(dsl->scene, id);
+					
 					do_flush = TRUE;
 				}
 			}
@@ -2788,8 +2822,12 @@ void DAG_ids_flush_tagged(Main *bmain)
 	}
 
 	/* flush changes to other objects */
-	if (do_flush)
-		DAG_scene_flush_update(bmain, sce, lay, 0);
+	if (do_flush) {
+		for (dsl = listbase.first; dsl; dsl = dsl->next)
+			DAG_scene_flush_update(bmain, dsl->scene, dsl->layer, 0);
+	}
+	
+	BLI_freelistN(&listbase);
 }
 
 void DAG_ids_check_recalc(Main *bmain, Scene *scene, int time)
