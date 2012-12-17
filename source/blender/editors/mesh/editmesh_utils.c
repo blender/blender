@@ -876,7 +876,6 @@ UvElementMap *EDBM_uv_element_map_create(BMEditMesh *em, int selected, int do_is
 		if (!selected || ((!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) && BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
 			BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 				buf->l = l;
-				buf->face = efa;
 				buf->separate = 0;
 				buf->island = INVALID_ISLAND;
 				buf->tfindex = i;
@@ -948,7 +947,7 @@ UvElementMap *EDBM_uv_element_map_create(BMEditMesh *em, int selected, int do_is
 		for (i = 0; i < totuv; i++) {
 			if (element_map->buf[i].island == INVALID_ISLAND) {
 				element_map->buf[i].island = nislands;
-				stack[0] = element_map->buf[i].face;
+				stack[0] = element_map->buf[i].l->f;
 				island_number[BM_elem_index_get(stack[0])] = nislands;
 				stacksize = 1;
 
@@ -962,12 +961,11 @@ UvElementMap *EDBM_uv_element_map_create(BMEditMesh *em, int selected, int do_is
 							if (element->separate)
 								initelement = element;
 
-							if (element->face == efa) {
+							if (element->l->f == efa) {
 								/* found the uv corresponding to our face and vertex. Now fill it to the buffer */
 								element->island = nislands;
 								map[element - element_map->buf] = islandbufsize;
 								islandbuf[islandbufsize].l = element->l;
-								islandbuf[islandbufsize].face = element->face;
 								islandbuf[islandbufsize].separate = element->separate;
 								islandbuf[islandbufsize].tfindex = element->tfindex;
 								islandbuf[islandbufsize].island =  nislands;
@@ -977,9 +975,9 @@ UvElementMap *EDBM_uv_element_map_create(BMEditMesh *em, int selected, int do_is
 									if (element->separate && element != initelement)
 										break;
 
-									if (island_number[BM_elem_index_get(element->face)] == INVALID_ISLAND) {
-										stack[stacksize++] = element->face;
-										island_number[BM_elem_index_get(element->face)] = nislands;
+									if (island_number[BM_elem_index_get(element->l->f)] == INVALID_ISLAND) {
+										stack[stacksize++] = element->l->f;
+										island_number[BM_elem_index_get(element->l->f)] = nislands;
 									}
 								}
 								break;
@@ -1060,7 +1058,7 @@ UvElement *ED_uv_element_get(UvElementMap *map, BMFace *efa, BMLoop *l)
 	element = map->vert[BM_elem_index_get(l->v)];
 
 	for (; element; element = element->next)
-		if (element->face == efa)
+		if (element->l->f == efa)
 			return element;
 
 	return NULL;

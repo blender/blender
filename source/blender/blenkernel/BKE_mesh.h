@@ -229,8 +229,6 @@ typedef struct UvElement {
 	/* Next UvElement corresponding to same vertex */
 	struct UvElement *next;
 	/* Face the element belongs to */
-	struct BMFace *face;
-	/* Index in the editFace of the uv */
 	struct BMLoop *l;
 	/* index in loop. */
 	unsigned short tfindex;
