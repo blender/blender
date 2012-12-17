@@ -29,11 +29,6 @@ feature_set = (
     ('EXPERIMENTAL', "Experimental", "Use experimental and incomplete features that might be broken or change in the future"),
     )
 
-shading_systems = (
-    ('GPU_COMPATIBLE', "GPU Compatible", "Restricted shading system compatible with GPU rendering"),
-    ('OSL', "Open Shading Language", "Open Shading Language shading system that only runs on the CPU"),
-    )
-
 displacement_methods = (
     ('BUMP', "Bump", "Bump mapping to simulate the appearance of displacement"),
     ('TRUE', "True", "Use true displacement only, requires fine subdivision"),

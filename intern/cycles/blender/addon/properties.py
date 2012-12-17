@@ -50,11 +50,9 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 items=enums.feature_set,
                 default='SUPPORTED',
                 )
-        cls.shading_system = EnumProperty(
-                name="Shading System",
-                description="Shading system to use for rendering",
-                items=enums.shading_systems,
-                default='GPU_COMPATIBLE',
+        cls.shading_system = BoolProperty(
+                name="Open Shading Language",
+                description="Use Open Shading Language (CPU rendering only)",
                 )
 
         cls.progressive = BoolProperty(
