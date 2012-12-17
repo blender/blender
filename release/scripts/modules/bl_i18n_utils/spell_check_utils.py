@@ -385,6 +385,7 @@ dict_uimsgs = {
     "vinterlace",
     "wetmap", "wetmaps",
     "wpaint",
+    "uvwarp",
 
     # Algorithm names
     "beckmann",
