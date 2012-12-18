@@ -3777,7 +3777,7 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
 
 	if (!EDBM_op_init(em, &spinop, op,
 	                  "spin geom=%hvef cent=%v axis=%v dvec=%v steps=%i angle=%f use_duplicate=%b",
-	                  BM_ELEM_SELECT, cent, axis, dvec, turns * steps, 360.0f * turns, FALSE))
+	                  BM_ELEM_SELECT, cent, axis, dvec, turns * steps, DEG2RADF(360.0f * turns), FALSE))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -3822,8 +3822,8 @@ void MESH_OT_screw(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_int(ot->srna, "steps", 9, 0, INT_MAX, "Steps", "Steps", 0, 256);
-	RNA_def_int(ot->srna, "turns", 1, 0, INT_MAX, "Turns", "Turns", 0, 256);
+	RNA_def_int(ot->srna, "steps", 9, 1, INT_MAX, "Steps", "Steps", 3, 256);
+	RNA_def_int(ot->srna, "turns", 1, 1, INT_MAX, "Turns", "Turns", 1, 256);
 
 	RNA_def_float_vector(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX,
 	                     "Center", "Center in global view space", -FLT_MAX, FLT_MAX);

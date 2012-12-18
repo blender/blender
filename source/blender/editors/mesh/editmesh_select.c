@@ -2628,7 +2628,8 @@ static int edbm_select_nth_exec(bContext *C, wmOperator *op)
 	int nth = RNA_int_get(op->ptr, "nth");
 	int offset = RNA_int_get(op->ptr, "offset");
 
-	offset = MIN2(nth, offset);
+	/* so input of offset zero ends up being (nth - 1) */
+	offset = (offset + (nth - 1)) % nth;
 
 	if (edbm_deselect_nth(em, nth, offset) == 0) {
 		BKE_report(op->reports, RPT_ERROR, "Mesh has no active vert/edge/face");
