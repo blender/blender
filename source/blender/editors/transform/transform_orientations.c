@@ -738,7 +738,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 				}
 			}
 			
-			if (normal[0] != 0 || normal[1] != 0 || normal[2] != 0) {
+			if (!is_zero_v3(normal)) {
 				result = ORIENTATION_NORMAL;
 			}
 		}
@@ -780,7 +780,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			normalize_v3(normal);
 			normalize_v3(plane);
 
-			if (plane[0] != 0 || plane[1] != 0 || plane[2] != 0) {
+			if (!is_zero_v3(plane)) {
 				result = ORIENTATION_EDGE;
 			}
 
