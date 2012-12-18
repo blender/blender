@@ -308,7 +308,8 @@ static void sequencer_refresh(const bContext *C, ScrArea *sa)
 	}
 }
 
-static SpaceLink *sequencer_duplicate(SpaceLink *sl){
+static SpaceLink *sequencer_duplicate(SpaceLink *sl)
+{
 	SpaceSeq *sseqn = MEM_dupallocN(sl);
 	
 	/* clear or remove stuff from old */

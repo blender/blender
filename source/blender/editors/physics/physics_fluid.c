@@ -142,7 +142,7 @@ static int fluid_is_animated_mesh(FluidsimSettings *fss)
 
 #if 0
 /* helper function */
-void fluidsimGetGeometryObjFilename(Object *ob, char *dst) { //, char *srcname)
+void fluidsimGetGeometryObjFilename(Object *ob, char *dst)  //, char *srcname)
 {
 	//BLI_snprintf(dst, FILE_MAXFILE, "%s_cfgdata_%s.bobj.gz", srcname, ob->id.name);
 	BLI_snprintf(dst, FILE_MAXFILE, "fluidcfgdata_%s.bobj.gz", ob->id.name);

@@ -2400,7 +2400,8 @@ typedef struct SPHRangeData {
 	int use_size;
 } SPHRangeData;
 
-static void sph_evaluate_func(BVHTree *tree, ParticleSystem **psys, float co[3], SPHRangeData *pfr, float interaction_radius, BVHTree_RangeQuery callback) {
+static void sph_evaluate_func(BVHTree *tree, ParticleSystem **psys, float co[3], SPHRangeData *pfr, float interaction_radius, BVHTree_RangeQuery callback)
+{
 	int i;
 
 	pfr->tot_neighbors = 0;
@@ -2604,16 +2605,20 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 }
 
 /* powf is really slow for raising to integer powers. */
-MINLINE float pow2(float x) {
+MINLINE float pow2(float x)
+{
 	return x * x;
 }
-MINLINE float pow3(float x) {
+MINLINE float pow3(float x)
+{
 	return pow2(x) * x;
 }
-MINLINE float pow4(float x) {
+MINLINE float pow4(float x)
+{
 	return pow2(pow2(x));
 }
-MINLINE float pow7(float x) {
+MINLINE float pow7(float x)
+{
 	return pow2(pow3(x)) * x;
 }
 
@@ -2773,7 +2778,8 @@ static void sphclassical_force_cb(void *sphdata_v, ParticleKey *state, float *fo
 	sphdata->pass++;
 }
 
-static void sphclassical_calc_dens(ParticleData *pa, float UNUSED(dfra), SPHData *sphdata){
+static void sphclassical_calc_dens(ParticleData *pa, float UNUSED(dfra), SPHData *sphdata)
+{
 	ParticleSystem **psys = sphdata->psys;
 	SPHFluidSettings *fluid = psys[0]->part->fluid;
 	/* 4.0 seems to be a pretty good value */
@@ -2834,7 +2840,8 @@ void psys_sph_finalise(SPHData *sphdata)
 	}
 }
 /* Sample the density field at a point in space. */
-void psys_sph_density(BVHTree *tree, SPHData *sphdata, float co[3], float vars[2]) {
+void psys_sph_density(BVHTree *tree, SPHData *sphdata, float co[3], float vars[2])
+{
 	ParticleSystem **psys = sphdata->psys;
 	SPHFluidSettings *fluid = psys[0]->part->fluid;
 	/* 4.0 seems to be a pretty good value */
@@ -4012,7 +4019,7 @@ static const float TIMESTEP_EXPANSION_TOLERANCE = 1.5f;
  * step, after the velocity has been updated. element_size defines the scale of
  * the simulation, and is typically the distance to neighboring particles. */
 static void update_courant_num(ParticleSimulationData *sim, ParticleData *pa,
-	float dtime, SPHData *sphdata)
+                               float dtime, SPHData *sphdata)
 {
 	float relative_vel[3];
 	float speed;
@@ -4022,7 +4029,8 @@ static void update_courant_num(ParticleSimulationData *sim, ParticleData *pa,
 	if (sim->courant_num < speed * dtime / sphdata->element_size)
 		sim->courant_num = speed * dtime / sphdata->element_size;
 }
-static float get_base_time_step(ParticleSettings *part) {
+static float get_base_time_step(ParticleSettings *part)
+{
 	return 1.0f / (float) (part->subframes + 1);
 }
 /* Update time step size to suit current conditions. */
