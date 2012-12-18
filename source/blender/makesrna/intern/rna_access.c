@@ -1222,10 +1222,8 @@ void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA
 
 		for (i = 0; nitem[i].identifier; i++) {
 			if (nitem[i].name) {
-				if (prop->translation_context)
-					nitem[i].name = BLF_pgettext(prop->translation_context, nitem[i].name);
-				else
-					nitem[i].name = BLF_pgettext(NULL, nitem[i].name);
+				/* note: prop->translation_context may be NULL, this just means we dont use a context */
+				nitem[i].name = BLF_pgettext(prop->translation_context, nitem[i].name);
 			}
 			if (nitem[i].description)
 				nitem[i].description = BLF_pgettext(NULL, nitem[i].description);
