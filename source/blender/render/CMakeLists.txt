@@ -60,6 +60,7 @@ set(SRC
 	intern/source/gammaCorrectionTables.c
 	intern/source/imagetexture.c
 	intern/source/initrender.c
+	intern/source/multires_bake.c
 	intern/source/occlusion.c
 	intern/source/pipeline.c
 	intern/source/pixelblending.c
@@ -83,6 +84,7 @@ set(SRC
 	intern/source/zbuf.c
 
 	extern/include/RE_engine.h
+	extern/include/RE_multires_bake.h
 	extern/include/RE_pipeline.h
 	extern/include/RE_render_ext.h
 	extern/include/RE_shader_ext.h
