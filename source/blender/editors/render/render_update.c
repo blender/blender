@@ -47,7 +47,7 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_derivedmesh.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
@@ -262,9 +262,12 @@ static void material_changed(Main *bmain, Material *ma)
 	}
 
 	/* find if we have a scene with textured display */
-	for (scene = bmain->scene.first; scene; scene = scene->id.next)
-		if (scene->customdata_mask & CD_MASK_MTFACE)
+	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
+		if (scene->customdata_mask & CD_MASK_MTFACE) {
 			texture_draw = TRUE;
+			break;
+		}
+	}
 
 	/* find textured objects */
 	if (texture_draw && !(U.gameflags & USER_DISABLE_VBO)) {
