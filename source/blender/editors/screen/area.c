@@ -235,7 +235,7 @@ static void region_draw_azone_icon(AZone *az)
 
 static void draw_azone_plus(float x1, float y1, float x2, float y2)
 {
-	float width = 0.05f * U.widget_unit;
+	float width = 0.1f * U.widget_unit;
 	float pad = 0.2f * U.widget_unit;
 	
 	glRectf((x1 + x2 - width) * 0.5f, y1 + pad, (x1 + x2 + width) * 0.5f, y2 - pad);
