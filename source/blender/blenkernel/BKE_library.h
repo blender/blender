@@ -62,6 +62,7 @@ void  BKE_libblock_copy_data(struct ID *id, const struct ID *id_from, const shor
 void BKE_id_lib_local_paths(struct Main *bmain, struct Library *lib, struct ID *id);
 void id_lib_extern(struct ID *id);
 void BKE_library_filepath_set(struct Library *lib, const char *filepath);
+void id_us_ensure_real(struct ID *id);
 void id_us_plus(struct ID *id);
 void id_us_min(struct ID *id);
 
