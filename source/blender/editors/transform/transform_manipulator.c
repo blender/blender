@@ -148,10 +148,8 @@ static void stats_pose(Scene *scene, RegionView3D *rv3d, bPoseChannel *pchan)
 	Bone *bone = pchan->bone;
 
 	if (bone) {
-		if (bone->flag & BONE_TRANSFORM) {
-			calc_tw_center(scene, pchan->pose_head);
-			protectflag_to_drawflags(pchan->protectflag, &rv3d->twdrawflag);
-		}
+		calc_tw_center(scene, pchan->pose_head);
+		protectflag_to_drawflags(pchan->protectflag, &rv3d->twdrawflag);
 	}
 }
 
@@ -503,9 +501,12 @@ int calc_manipulator_stats(const bContext *C)
 
 		if ((v3d->around == V3D_ACTIVE) && (pchan = BKE_pose_channel_active(ob))) {
 			/* doesn't check selection or visibility intentionally */
-			stats_pose(scene, rv3d, pchan);
-			totsel = 1;
-			ok = TRUE;
+			Bone *bone = pchan->bone;
+			if (bone) {
+				stats_pose(scene, rv3d, pchan);
+				totsel = 1;
+				ok = TRUE;
+			}
 		}
 		else {
 			totsel = count_set_pose_transflags(&mode, 0, ob);
@@ -513,7 +514,10 @@ int calc_manipulator_stats(const bContext *C)
 			if (totsel) {
 				/* use channels to get stats */
 				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-					stats_pose(scene, rv3d, pchan);
+					Bone *bone = pchan->bone;
+					if (bone && (bone->flag & BONE_TRANSFORM)) {
+						stats_pose(scene, rv3d, pchan);
+					}
 				}
 				ok = TRUE;
 			}
