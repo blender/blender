@@ -400,6 +400,11 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, int require_ta
 				data.i2 = verts[2][t];
 
 				bake_rasterize(&bake_rast, mtfate->uv[data.i0], mtfate->uv[data.i1], mtfate->uv[data.i2]);
+
+				if (ibuf->rect_float)
+					ibuf->userflags |= IB_RECT_INVALID;
+
+				ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 			}
 
 			bkr->baked_faces++;
@@ -620,7 +625,10 @@ static void apply_heights_data(void *bake_data)
 		}
 	}
 
-	ibuf->userflags = IB_RECT_INVALID | IB_DISPLAY_BUFFER_INVALID;
+	if (ibuf->rect_float)
+		ibuf->userflags |= IB_RECT_INVALID;
+
+	ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 
 	BKE_image_release_ibuf(height_data->ima, ibuf, NULL);
 }
@@ -701,15 +709,11 @@ static void apply_heights_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 	if (ibuf->rect_float) {
 		float *rrgbf = ibuf->rect_float + pixel * 4;
 		rrgbf[3] = 1.0f;
-
-		ibuf->userflags = IB_RECT_INVALID;
 	}
 	else {
 		char *rrgb = (char *)ibuf->rect + pixel * 4;
 		rrgb[3] = 255;
 	}
-
-	ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 }
 
 /* **************** Normal Maps Baker **************** */
@@ -781,16 +785,12 @@ static void apply_tangmat_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 		rrgbf[1] = vec[1];
 		rrgbf[2] = vec[2];
 		rrgbf[3] = 1.0f;
-
-		ibuf->userflags = IB_RECT_INVALID;
 	}
 	else {
 		unsigned char *rrgb = (unsigned char *)ibuf->rect + pixel * 4;
 		rgb_float_to_uchar(rrgb, vec);
 		rrgb[3] = 255;
 	}
-
-	ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 }
 
 /* **************** Ambient Occlusion Baker **************** */
@@ -1073,16 +1073,12 @@ static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, cons
 		float *rrgbf = ibuf->rect_float + pixel * 4;
 		rrgbf[0] = rrgbf[1] = rrgbf[2] = value;
 		rrgbf[3] = 1.0f;
-
-		ibuf->userflags = IB_RECT_INVALID;
 	}
 	else {
 		unsigned char *rrgb = (unsigned char *) ibuf->rect + pixel * 4;
 		rrgb[0] = rrgb[1] = rrgb[2] = FTOCHAR(value);
 		rrgb[3] = 255;
 	}
-
-	ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 }
 
 /* **************** Common functions public API relates on **************** */
