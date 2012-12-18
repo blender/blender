@@ -2166,7 +2166,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 		untitled(path);
 	}
 	
-	fileflags = G.fileflags;
+	fileflags = G.fileflags & ~G_FILE_USERPREFS;
 
 	/* set compression flag */
 	BKE_BIT_TEST_SET(fileflags, RNA_boolean_get(op->ptr, "compress"),
