@@ -4627,7 +4627,7 @@ char *RNA_pointer_as_string(bContext *C, PointerRNA *ptr)
 			BLI_dynstr_append(dynstr, ", ");
 		first_time = 0;
 		
-		cstring = RNA_property_as_string(C, ptr, prop);
+		cstring = RNA_property_as_string(C, ptr, prop, -1);
 		BLI_dynstr_appendf(dynstr, "\"%s\":%s", propname, cstring);
 		MEM_freeN(cstring);
 	}
@@ -4693,7 +4693,7 @@ char *RNA_pointer_as_string_keywords_ex(bContext *C, PointerRNA *ptr, PointerRNA
 				}
 			}
 			else {
-				buf = RNA_property_as_string(C, ptr, prop);
+				buf = RNA_property_as_string(C, ptr, prop, -1);
 			}
 
 			ok = TRUE;
@@ -4704,7 +4704,7 @@ char *RNA_pointer_as_string_keywords_ex(bContext *C, PointerRNA *ptr, PointerRNA
 				prop_default = RNA_struct_find_property(ptr_default, arg_name);
 
 				if (prop_default) {
-					buf_default = RNA_property_as_string(C, ptr_default, prop_default);
+					buf_default = RNA_property_as_string(C, ptr_default, prop_default, -1);
 
 					if (strcmp(buf, buf_default) == 0)
 						ok = FALSE;  /* values match, don't bother printing */
@@ -4754,7 +4754,12 @@ char *RNA_function_as_string_keywords(bContext *C, FunctionRNA *func, PointerRNA
 	                                         iterprop);
 }
 
-char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
+static const char *bool_as_py_string(const int var)
+{
+	return var ? "True" : "False";
+}
+
+char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index)
 {
 	int type = RNA_property_type(prop);
 	int len = RNA_property_array_length(ptr, prop);
@@ -4768,17 +4773,22 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 	switch (type) {
 		case PROP_BOOLEAN:
 			if (len == 0) {
-				BLI_dynstr_append(dynstr, RNA_property_boolean_get(ptr, prop) ? "True" : "False");
+				BLI_dynstr_append(dynstr, bool_as_py_string(RNA_property_boolean_get(ptr, prop)));
 			}
 			else {
-				BLI_dynstr_append(dynstr, "(");
-				for (i = 0; i < len; i++) {
-					BLI_dynstr_appendf(dynstr, i ? ", %s" : "%s",
-					                   RNA_property_boolean_get_index(ptr, prop, i) ? "True" : "False");
+				if (index != -1) {
+					BLI_dynstr_append(dynstr, bool_as_py_string(RNA_property_boolean_get_index(ptr, prop, index)));
 				}
-				if (len == 1)
-					BLI_dynstr_append(dynstr, ",");  /* otherwise python wont see it as a tuple */
-				BLI_dynstr_append(dynstr, ")");
+				else {
+					BLI_dynstr_append(dynstr, "(");
+					for (i = 0; i < len; i++) {
+						BLI_dynstr_appendf(dynstr, i ? ", %s" : "%s",
+						                   bool_as_py_string(RNA_property_boolean_get_index(ptr, prop, i)));
+					}
+					if (len == 1)
+						BLI_dynstr_append(dynstr, ",");  /* otherwise python wont see it as a tuple */
+					BLI_dynstr_append(dynstr, ")");
+				}
 			}
 			break;
 		case PROP_INT:
@@ -4786,13 +4796,18 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 				BLI_dynstr_appendf(dynstr, "%d", RNA_property_int_get(ptr, prop));
 			}
 			else {
-				BLI_dynstr_append(dynstr, "(");
-				for (i = 0; i < len; i++) {
-					BLI_dynstr_appendf(dynstr, i ? ", %d" : "%d", RNA_property_int_get_index(ptr, prop, i));
+				if (index != -1) {
+					BLI_dynstr_appendf(dynstr, "%d", RNA_property_int_get_index(ptr, prop, index));
 				}
-				if (len == 1)
-					BLI_dynstr_append(dynstr, ",");  /* otherwise python wont see it as a tuple */
-				BLI_dynstr_append(dynstr, ")");
+				else {
+					BLI_dynstr_append(dynstr, "(");
+					for (i = 0; i < len; i++) {
+						BLI_dynstr_appendf(dynstr, i ? ", %d" : "%d", RNA_property_int_get_index(ptr, prop, i));
+					}
+					if (len == 1)
+						BLI_dynstr_append(dynstr, ",");  /* otherwise python wont see it as a tuple */
+					BLI_dynstr_append(dynstr, ")");
+				}
 			}
 			break;
 		case PROP_FLOAT:
@@ -4800,13 +4815,18 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 				BLI_dynstr_appendf(dynstr, "%g", RNA_property_float_get(ptr, prop));
 			}
 			else {
-				BLI_dynstr_append(dynstr, "(");
-				for (i = 0; i < len; i++) {
-					BLI_dynstr_appendf(dynstr, i ? ", %g" : "%g", RNA_property_float_get_index(ptr, prop, i));
+				if (index != -1) {
+					BLI_dynstr_appendf(dynstr, "%g", RNA_property_float_get_index(ptr, prop, index));
 				}
-				if (len == 1)
-					BLI_dynstr_append(dynstr, ",");  /* otherwise python wont see it as a tuple */
-				BLI_dynstr_append(dynstr, ")");
+				else {
+					BLI_dynstr_append(dynstr, "(");
+					for (i = 0; i < len; i++) {
+						BLI_dynstr_appendf(dynstr, i ? ", %g" : "%g", RNA_property_float_get_index(ptr, prop, i));
+					}
+					if (len == 1)
+						BLI_dynstr_append(dynstr, ",");  /* otherwise python wont see it as a tuple */
+					BLI_dynstr_append(dynstr, ")");
+				}
 			}
 			break;
 		case PROP_STRING:
