@@ -77,11 +77,12 @@ PyC_FlagSet bpy_bm_htype_all_flags[] = {
 };
 
 PyC_FlagSet bpy_bm_hflag_all_flags[] = {
-	{BM_ELEM_SELECT,  "SELECT"},
-	{BM_ELEM_HIDDEN,  "HIDE"},
-	{BM_ELEM_SEAM,    "SEAM"},
-	{BM_ELEM_SMOOTH,  "SMOOTH"},
-	{BM_ELEM_TAG,     "TAG"},
+	{BM_ELEM_SELECT,     "SELECT"},
+	{BM_ELEM_HIDDEN,     "HIDE"},
+	{BM_ELEM_SEAM,       "SEAM"},
+	{BM_ELEM_SMOOTH,     "SMOOTH"},
+	{BM_ELEM_TAG,        "TAG"},
+	{BM_ELEM_FREESTYLE,  "FREESTYLE"},
 	{0, NULL}
 };
 
@@ -101,6 +102,8 @@ PyDoc_STRVAR(bpy_bm_elem_tag_doc,     "Generic attribute scripts can use for own
 PyDoc_STRVAR(bpy_bm_elem_smooth_doc,  "Smooth state of this element.\n\n:type: boolean");
 PyDoc_STRVAR(bpy_bm_elem_seam_doc,    "Seam for UV unwrapping.\n\n:type: boolean");
 
+PyDoc_STRVAR(bpy_bm_freestyle_edge_mark_doc,  "Freestyle edge mark.\n\n:type: boolean");
+PyDoc_STRVAR(bpy_bm_freestyle_face_mark_doc,  "Freestyle face mark.\n\n:type: boolean");
 
 static PyObject *bpy_bm_elem_hflag_get(BPy_BMElem *self, void *flag)
 {
@@ -662,6 +665,8 @@ static PyGetSetDef bpy_bmedge_getseters[] = {
 	{(char *)"smooth", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_smooth_doc, (void *)BM_ELEM_SMOOTH},
 	{(char *)"seam",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_seam_doc, (void *)BM_ELEM_SEAM},
 
+	{(char *)"freestyle_edge_mark", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_freestyle_edge_mark_doc, (void *)BM_ELEM_FREESTYLE},
+
 	/* connectivity data */
 	{(char *)"verts", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmedge_verts_doc, (void *)BM_VERTS_OF_EDGE},
 
@@ -685,6 +690,8 @@ static PyGetSetDef bpy_bmface_getseters[] = {
 	{(char *)"index",  (getter)bpy_bm_elem_index_get, (setter)bpy_bm_elem_index_set, (char *)bpy_bm_elem_index_doc,  NULL},
 
 	{(char *)"smooth", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_smooth_doc, (void *)BM_ELEM_SMOOTH},
+
+	{(char *)"freestyle_face_mark", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_freestyle_face_mark_doc, (void *)BM_ELEM_FREESTYLE},
 
 	{(char *)"normal", (getter)bpy_bmface_normal_get, (setter)bpy_bmface_normal_set, (char *)bpy_bmface_normal_doc, NULL},
 
