@@ -94,6 +94,7 @@ PyAttributeDef KX_VertexProxy::Attributes[] = {
 
 	KX_PYATTRIBUTE_RW_FUNCTION("XYZ", KX_VertexProxy, pyattr_get_XYZ, pyattr_set_XYZ),
 	KX_PYATTRIBUTE_RW_FUNCTION("UV", KX_VertexProxy, pyattr_get_UV, pyattr_set_UV),
+	KX_PYATTRIBUTE_RW_FUNCTION("uvs", KX_VertexProxy, pyattr_get_uvs, pyattr_set_uvs),
 
 	KX_PYATTRIBUTE_RW_FUNCTION("color", KX_VertexProxy, pyattr_get_color, pyattr_set_color),
 	KX_PYATTRIBUTE_RW_FUNCTION("normal", KX_VertexProxy, pyattr_get_normal, pyattr_set_normal),
@@ -146,25 +147,25 @@ PyObject *KX_VertexProxy::pyattr_get_a(void *self_v, const KX_PYATTRIBUTE_DEF *a
 PyObject *KX_VertexProxy::pyattr_get_u(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
-	return PyFloat_FromDouble(self->m_vertex->getUV1()[0]);
+	return PyFloat_FromDouble(self->m_vertex->getUV(0)[0]);
 }
 
 PyObject *KX_VertexProxy::pyattr_get_v(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
-	return PyFloat_FromDouble(self->m_vertex->getUV1()[1]);
+	return PyFloat_FromDouble(self->m_vertex->getUV(0)[1]);
 }
 
 PyObject *KX_VertexProxy::pyattr_get_u2(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
-	return PyFloat_FromDouble(self->m_vertex->getUV2()[0]);
+	return PyFloat_FromDouble(self->m_vertex->getUV(1)[0]);
 }
 
 PyObject *KX_VertexProxy::pyattr_get_v2(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
-	return PyFloat_FromDouble(self->m_vertex->getUV2()[1]);
+	return PyFloat_FromDouble(self->m_vertex->getUV(1)[1]);
 }
 
 PyObject *KX_VertexProxy::pyattr_get_XYZ(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -176,7 +177,20 @@ PyObject *KX_VertexProxy::pyattr_get_XYZ(void *self_v, const KX_PYATTRIBUTE_DEF 
 PyObject *KX_VertexProxy::pyattr_get_UV(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_VertexProxy* self = static_cast<KX_VertexProxy*>(self_v);
-	return PyObjectFrom(MT_Point2(self->m_vertex->getUV1()));
+	return PyObjectFrom(MT_Point2(self->m_vertex->getUV(0)));
+}
+
+PyObject *KX_VertexProxy::pyattr_get_uvs(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	
+	PyObject* uvlist = PyList_New(RAS_TexVert::MAX_UNIT);
+	for (int i=0; i<RAS_TexVert::MAX_UNIT; ++i)
+	{
+		PyList_SET_ITEM(uvlist, i, PyObjectFrom(MT_Point2(self->m_vertex->getUV(i))));
+	}
+
+	return uvlist;
 }
 
 PyObject *KX_VertexProxy::pyattr_get_color(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
@@ -245,9 +259,9 @@ int KX_VertexProxy::pyattr_set_u(void *self_v, const struct KX_PYATTRIBUTE_DEF *
 	if (PyFloat_Check(value))
 	{
 		float val = PyFloat_AsDouble(value);
-		MT_Point2 uv = self->m_vertex->getUV1();
+		MT_Point2 uv = self->m_vertex->getUV(0);
 		uv[0] = val;
-		self->m_vertex->SetUV1(uv);
+		self->m_vertex->SetUV(0, uv);
 		self->m_mesh->SetMeshModified(true);
 		return PY_SET_ATTR_SUCCESS;
 	}
@@ -260,9 +274,9 @@ int KX_VertexProxy::pyattr_set_v(void *self_v, const struct KX_PYATTRIBUTE_DEF *
 	if (PyFloat_Check(value))
 	{
 		float val = PyFloat_AsDouble(value);
-		MT_Point2 uv = self->m_vertex->getUV1();
+		MT_Point2 uv = self->m_vertex->getUV(0);
 		uv[1] = val;
-		self->m_vertex->SetUV1(uv);
+		self->m_vertex->SetUV(0, uv);
 		self->m_mesh->SetMeshModified(true);
 		return PY_SET_ATTR_SUCCESS;
 	}
@@ -275,9 +289,9 @@ int KX_VertexProxy::pyattr_set_u2(void *self_v, const struct KX_PYATTRIBUTE_DEF 
 	if (PyFloat_Check(value))
 	{
 		float val = PyFloat_AsDouble(value);
-		MT_Point2 uv = self->m_vertex->getUV2();
+		MT_Point2 uv = self->m_vertex->getUV(1);
 		uv[0] = val;
-		self->m_vertex->SetUV2(uv);
+		self->m_vertex->SetUV(1, uv);
 		self->m_mesh->SetMeshModified(true);
 		return PY_SET_ATTR_SUCCESS;
 	}
@@ -290,9 +304,9 @@ int KX_VertexProxy::pyattr_set_v2(void *self_v, const struct KX_PYATTRIBUTE_DEF 
 	if (PyFloat_Check(value))
 	{
 		float val = PyFloat_AsDouble(value);
-		MT_Point2 uv = self->m_vertex->getUV2();
+		MT_Point2 uv = self->m_vertex->getUV(1);
 		uv[1] = val;
-		self->m_vertex->SetUV2(uv);
+		self->m_vertex->SetUV(1, uv);
 		self->m_mesh->SetMeshModified(true);
 		return PY_SET_ATTR_SUCCESS;
 	}
@@ -390,10 +404,36 @@ int KX_VertexProxy::pyattr_set_UV(void *self_v, const struct KX_PYATTRIBUTE_DEF 
 	{
 		MT_Point2 vec;
 		if (PyVecTo(value, vec)) {
-			self->m_vertex->SetUV1(vec);
+			self->m_vertex->SetUV(0, vec);
 			self->m_mesh->SetMeshModified(true);
 			return PY_SET_ATTR_SUCCESS;
 		}
+	}
+	return PY_SET_ATTR_FAIL;
+}
+
+int KX_VertexProxy::pyattr_set_uvs(void *self_v, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_VertexProxy* self= static_cast<KX_VertexProxy*>(self_v);
+	if (PySequence_Check(value))
+	{
+		MT_Point2 vec;
+		for (int i=0; i<PySequence_Size(value) && i<RAS_TexVert::MAX_UNIT; ++i)
+		{
+			if (PyVecTo(PySequence_GetItem(value, i), vec))
+			{
+				self->m_vertex->SetUV(i, vec);
+				self->m_mesh->SetMeshModified(true);
+			}
+			else
+			{
+				PyErr_SetString(PyExc_AttributeError, STR_String().Format("list[%d] was not a vector", i).ReadPtr());
+				return PY_SET_ATTR_FAIL;
+			}
+		}
+		
+		self->m_mesh->SetMeshModified(true);
+		return PY_SET_ATTR_SUCCESS;
 	}
 	return PY_SET_ATTR_FAIL;
 }
@@ -522,7 +562,7 @@ PyObject *KX_VertexProxy::PySetRGBA(PyObject *value)
 
 PyObject *KX_VertexProxy::PyGetUV1()
 {
-	return PyObjectFrom(MT_Vector2(m_vertex->getUV1()));
+	return PyObjectFrom(MT_Vector2(m_vertex->getUV(0)));
 }
 
 PyObject *KX_VertexProxy::PySetUV1(PyObject *value)
@@ -531,31 +571,23 @@ PyObject *KX_VertexProxy::PySetUV1(PyObject *value)
 	if (!PyVecTo(value, vec))
 		return NULL;
 
-	m_vertex->SetUV1(vec);
+	m_vertex->SetUV(0, vec);
 	m_mesh->SetMeshModified(true);
 	Py_RETURN_NONE;
 }
 
 PyObject *KX_VertexProxy::PyGetUV2()
 {
-	return PyObjectFrom(MT_Vector2(m_vertex->getUV2()));
+	return PyObjectFrom(MT_Vector2(m_vertex->getUV(1)));
 }
 
 PyObject *KX_VertexProxy::PySetUV2(PyObject *args)
 {
 	MT_Point2 vec;
-	unsigned int unit= RAS_TexVert::SECOND_UV;
-
-	PyObject *list = NULL;
-	if (!PyArg_ParseTuple(args, "O|i:setUV2", &list, &unit))
+	if (!PyVecTo(args, vec))
 		return NULL;
 
-	if (!PyVecTo(list, vec))
-		return NULL;
-
-	m_vertex->SetFlag((m_vertex->getFlag()|RAS_TexVert::SECOND_UV));
-	m_vertex->SetUnit(unit);
-	m_vertex->SetUV2(vec);
+	m_vertex->SetUV(1, vec);
 	m_mesh->SetMeshModified(true);
 	Py_RETURN_NONE;
 }

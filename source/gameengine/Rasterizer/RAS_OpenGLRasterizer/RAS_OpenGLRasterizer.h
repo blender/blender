@@ -41,6 +41,7 @@
 using namespace std;
 
 #include "RAS_IRasterizer.h"
+#include "RAS_IStorage.h"
 #include "RAS_MaterialBucket.h"
 #include "RAS_ICanvas.h"
 
@@ -83,7 +84,6 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	float			m_ambr;
 	float			m_ambg;
 	float			m_ambb;
-
 	double			m_time;
 	MT_Matrix4x4	m_viewmatrix;
 	MT_Matrix4x4	m_viewinvmatrix;
@@ -115,9 +115,15 @@ protected:
 	/** Stores the caching information for the last material activated. */
 	RAS_IPolyMaterial::TCachingInfo m_materialCachingInfo;
 
+	/** Making use of a Strategy desing pattern for storage behavior.
+	    Examples of concrete strategies: Vertex Arrays, VBOs, Immediate Mode*/
+	int				m_storage_type;
+	RAS_IStorage*	m_storage;
+	RAS_IStorage*	m_failsafe_storage; //So derived mesh can use immediate mode
+
 public:
 	double GetTime();
-	RAS_OpenGLRasterizer(RAS_ICanvas* canv);
+	RAS_OpenGLRasterizer(RAS_ICanvas* canv, int storage=RAS_AUTO_STORAGE);
 	virtual ~RAS_OpenGLRasterizer();
 
 	/*enum DrawType
@@ -165,8 +171,6 @@ public:
 						class RAS_MeshSlot& ms,
 						class RAS_IPolyMaterial* polymat,
 						class RAS_IRenderTools* rendertools);
-
-	void			IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi);
 
 	virtual void	SetProjectionMatrix(MT_CmMatrix4x4 & mat);
 	virtual void	SetProjectionMatrix(const MT_Matrix4x4 & mat);

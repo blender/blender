@@ -25,46 +25,53 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file RAS_VAOpenGLRasterizer.h
- *  \ingroup bgerastogl
- */
+#ifndef __KX_VERTEXARRAYSTORAGE
+#define __KX_VERTEXARRAYSTORAGE
 
-#ifndef __RAS_VAOPENGLRASTERIZER_H__
-#define __RAS_VAOPENGLRASTERIZER_H__
+#include "RAS_IStorage.h"
+#include "RAS_IRasterizer.h"
 
 #include "RAS_OpenGLRasterizer.h"
 
-class RAS_VAOpenGLRasterizer : public RAS_OpenGLRasterizer
+class RAS_StorageVA : public RAS_IStorage
 {
-	void TexCoordPtr(const RAS_TexVert *tv);
-	/* bool m_Lock; */ /* UNUSED */
-
-	TexCoGen		m_last_texco[RAS_MAX_TEXCO];
-	TexCoGen		m_last_attrib[RAS_MAX_ATTRIB];
-	int				m_last_texco_num;
-	int				m_last_attrib_num;
 
 public:
-	RAS_VAOpenGLRasterizer(RAS_ICanvas* canvas, bool lock=false);
-	virtual ~RAS_VAOpenGLRasterizer();
+	RAS_StorageVA(int *texco_num, RAS_IRasterizer::TexCoGen *texco, int *attrib_num, RAS_IRasterizer::TexCoGen *attrib);
+	virtual ~RAS_StorageVA();
 
 	virtual bool	Init();
 	virtual void	Exit();
 
-	virtual void	SetDrawingMode(int drawingmode);
-
-	virtual void	IndexPrimitives(class RAS_MeshSlot& ms);
+	virtual void	IndexPrimitives(RAS_MeshSlot& ms);
 	virtual void	IndexPrimitivesMulti(class RAS_MeshSlot& ms);
 
-private:
+	virtual void	SetDrawingMode(int drawingmode){m_drawingmode=drawingmode;};
+
+protected:
+	int				m_drawingmode;
+
+	int*			m_texco_num;
+	int*			m_attrib_num;
+
+	int				m_last_texco_num;
+	int				m_last_attrib_num;
+
+	RAS_IRasterizer::TexCoGen*		m_texco;
+	RAS_IRasterizer::TexCoGen*		m_attrib;
+
+	RAS_IRasterizer::TexCoGen		m_last_texco[RAS_MAX_TEXCO];
+	RAS_IRasterizer::TexCoGen		m_last_attrib[RAS_MAX_ATTRIB];
+
 	virtual void	EnableTextures(bool enable);
-	//virtual bool	QueryArrays() {return true;}
-	//virtual bool	QueryLists() {return m_Lock;}
+	virtual void	TexCoordPtr(const RAS_TexVert *tv);
 
 
 #ifdef WITH_CXX_GUARDEDALLOC
-	MEM_CXX_CLASS_ALLOC_FUNCS("GE:RAS_VAOpenGLRasterizer")
+public:
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_StorageVA"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
 #endif
 };
 
-#endif  /* __RAS_VAOPENGLRASTERIZER_H__ */
+#endif //__KX_VERTEXARRAYSTORAGE

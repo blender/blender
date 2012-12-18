@@ -25,32 +25,38 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file BL_BlenderDataConversion.h
- *  \ingroup bgeconv
- */
+#ifndef __KX_STORAGE
+#define __KX_STORAGE
 
-#ifndef __BL_BLENDERDATACONVERSION_H__
-#define __BL_BLENDERDATACONVERSION_H__
+#include "RAS_MaterialBucket.h"
 
-#include "CTR_HashedPtr.h"
-#include "STR_String.h"
-#include "KX_Python.h"
-#include "KX_PhysicsEngineEnums.h"
-#include "SCA_IInputDevice.h"
+enum RAS_STORAGE_TYPE	{
+	RAS_AUTO_STORAGE,
+	RAS_IMMEDIATE,
+	RAS_VA,
+	RAS_VBO
+};
 
-class RAS_MeshObject* BL_ConvertMesh(struct Mesh* mesh,struct Object* lightobj,class KX_Scene* scene, class KX_BlenderSceneConverter *converter, bool libloading);
+class RAS_IStorage
+{
 
-void BL_ConvertBlenderObjects(struct Main* maggie,
-							  class KX_Scene* kxscene,
-							  class KX_KetsjiEngine* ketsjiEngine,
-							  e_PhysicsEngine	physics_engine,
-							  class RAS_IRenderTools* rendertools,
-							  class RAS_ICanvas* canvas, 
-							  class KX_BlenderSceneConverter* sceneconverter, 
-							  bool alwaysUseExpandFraming,
-							  bool libloading=false
-							  );
+public:
+	virtual ~RAS_IStorage() {};
 
-SCA_IInputDevice::KX_EnumInputs ConvertKeyCode(int key_code);
+	virtual bool	Init()=0;
+	virtual void	Exit()=0;
 
-#endif  /* __BL_BLENDERDATACONVERSION_H__ */
+	virtual void	IndexPrimitives(RAS_MeshSlot& ms)=0;
+	virtual void	IndexPrimitivesMulti(class RAS_MeshSlot& ms)=0;
+
+	virtual void	SetDrawingMode(int drawingmode)=0;
+
+
+#ifdef WITH_CXX_GUARDEDALLOC
+public:
+	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GE:RAS_IStorage"); }
+	void operator delete( void *mem ) { MEM_freeN(mem); }
+#endif
+};
+
+#endif //__KX_STORAGE

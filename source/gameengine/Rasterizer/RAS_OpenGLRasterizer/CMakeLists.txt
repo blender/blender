@@ -46,12 +46,17 @@ set(SRC
 	RAS_GLExtensionManager.cpp
 	RAS_ListRasterizer.cpp
 	RAS_OpenGLRasterizer.cpp
-	RAS_VAOpenGLRasterizer.cpp
+	RAS_StorageIM.cpp
+	RAS_StorageVA.cpp
+	RAS_StorageVBO.cpp
 
 	RAS_GLExtensionManager.h
+	RAS_IStorage.h
 	RAS_ListRasterizer.h
 	RAS_OpenGLRasterizer.h
-	RAS_VAOpenGLRasterizer.h
+	RAS_StorageIM.h
+	RAS_StorageVA.h
+	RAS_StorageVBO.h
 )
 
 add_definitions(-DGLEW_STATIC)

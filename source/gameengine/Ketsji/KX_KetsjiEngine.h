@@ -413,7 +413,7 @@ public:
 	void GetOverrideFrameColor(float& r, float& g, float& b) const;
 
 	KX_Scene*		CreateScene(const STR_String& scenename);
-	KX_Scene*		CreateScene(Scene *scene);
+	KX_Scene*		CreateScene(Scene *scene, bool libloading=false);
 
 	GlobalSettings*	GetGlobalSettings(void);
 	void			SetGlobalSettings(GlobalSettings* gs);

@@ -60,6 +60,7 @@ public:
 
 typedef std::map<char*, BL_TextureObject> BL_TextureMap;
 static BL_TextureMap g_textureManager;
+static GLint g_max_units = -1;
 
 
 BL_Texture::BL_Texture()
@@ -379,14 +380,17 @@ unsigned int BL_Texture::GetTextureType() const
 
 int BL_Texture::GetMaxUnits()
 {
-	GLint unit=0;
-
-	if (GLEW_ARB_multitexture) {
-		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &unit);
-		return (MAXTEX>=unit?unit:MAXTEX);
+	if (g_max_units < 0) {
+		GLint unit;
+		if (GLEW_ARB_multitexture) {
+			glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &unit);
+			g_max_units = (MAXTEX>=unit)?unit:MAXTEX;
+		} else {
+			g_max_units = 0;
+		}
 	}
 
-	return 0;
+	return g_max_units;
 }
 
 void BL_Texture::ActivateFirst()

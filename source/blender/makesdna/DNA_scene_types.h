@@ -636,7 +636,8 @@ typedef struct GameData {
 	short physicsEngine;
 	short exitkey, pad;
 	short ticrate, maxlogicstep, physubstep, maxphystep;
-	short obstacleSimulation, pad1;
+	short obstacleSimulation;
+	short raster_storage;
 	float levelHeight;
 	float deactivationtime, lineardeactthreshold, angulardeactthreshold, pad2;
 } GameData;
@@ -662,6 +663,12 @@ typedef struct GameData {
 #define OBSTSIMULATION_NONE		0
 #define OBSTSIMULATION_TOI_rays		1
 #define OBSTSIMULATION_TOI_cells	2
+
+/* Raster storage */
+#define RAS_STORE_AUTO		0
+#define RAS_STORE_IMMEDIATE	1
+#define RAS_STORE_VA		2
+#define RAS_STORE_VBO		3
 
 /* GameData.flag */
 #define GAME_RESTRICT_ANIM_UPDATES			(1 << 0)

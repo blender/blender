@@ -106,9 +106,8 @@ bool RAS_ListSlot::End()
 
 
 
-RAS_ListRasterizer::RAS_ListRasterizer(RAS_ICanvas* canvas, bool useVertexArrays, bool lock)
-:	RAS_VAOpenGLRasterizer(canvas, lock),
-	mUseVertexArrays(useVertexArrays),
+RAS_ListRasterizer::RAS_ListRasterizer(RAS_ICanvas* canvas, bool lock, int storage)
+:	RAS_OpenGLRasterizer(canvas, storage),
 	mATI(false)
 {
 	if (!strcmp((const char*)glGetString(GL_VENDOR), "ATI Technologies Inc."))
@@ -238,11 +237,8 @@ void RAS_ListRasterizer::IndexPrimitives(RAS_MeshSlot& ms)
 			return;
 		}
 	}
-	// derived mesh cannot use vertex array
-	if (mUseVertexArrays && !ms.m_pDerivedMesh)
-		RAS_VAOpenGLRasterizer::IndexPrimitives(ms);
-	else
-		RAS_OpenGLRasterizer::IndexPrimitives(ms);
+	
+	RAS_OpenGLRasterizer::IndexPrimitives(ms);
 
 	if (ms.m_bDisplayList) {
 		localSlot->EndList();
@@ -267,13 +263,7 @@ void RAS_ListRasterizer::IndexPrimitivesMulti(RAS_MeshSlot& ms)
 		}
 	}
 
-	// workaround: note how we do not use vertex arrays for making display
-	// lists, since glVertexAttribPointerARB doesn't seem to work correct
-	// in display lists on ATI? either a bug in the driver or in Blender ..
-	if (mUseVertexArrays && !mATI && !ms.m_pDerivedMesh)
-		RAS_VAOpenGLRasterizer::IndexPrimitivesMulti(ms);
-	else
-		RAS_OpenGLRasterizer::IndexPrimitivesMulti(ms);
+	RAS_OpenGLRasterizer::IndexPrimitivesMulti(ms);
 
 	if (ms.m_bDisplayList) {
 		localSlot->EndList();
@@ -283,29 +273,17 @@ void RAS_ListRasterizer::IndexPrimitivesMulti(RAS_MeshSlot& ms)
 
 bool RAS_ListRasterizer::Init(void)
 {
-	if (mUseVertexArrays) {
-		return RAS_VAOpenGLRasterizer::Init();
-	} else {
-		return RAS_OpenGLRasterizer::Init();
-	}
+	return RAS_OpenGLRasterizer::Init();
 }
 
 void RAS_ListRasterizer::SetDrawingMode(int drawingmode)
 {
-	if (mUseVertexArrays) {
-		RAS_VAOpenGLRasterizer::SetDrawingMode(drawingmode);
-	} else {
-		RAS_OpenGLRasterizer::SetDrawingMode(drawingmode);
-	}
+	RAS_OpenGLRasterizer::SetDrawingMode(drawingmode);
 }
 
 void RAS_ListRasterizer::Exit()
 {
-	if (mUseVertexArrays) {
-		RAS_VAOpenGLRasterizer::Exit();
-	} else {
-		RAS_OpenGLRasterizer::Exit();
-	}
+	RAS_OpenGLRasterizer::Exit();
 }
 
 // eof

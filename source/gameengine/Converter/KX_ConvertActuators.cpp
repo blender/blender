@@ -523,7 +523,8 @@ void BL_ConvertActuators(const char* maggiename,
 							            editobact->me,
 							            blenderobject,
 							            scene,
-							            converter
+							            converter,
+							            false
 							            );
 
 						KX_SCA_ReplaceMeshActuator* tmpreplaceact = new KX_SCA_ReplaceMeshActuator(

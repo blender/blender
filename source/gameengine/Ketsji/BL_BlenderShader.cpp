@@ -95,21 +95,15 @@ void BL_BlenderShader::SetAttribs(RAS_IRasterizer* ras, const BL_Material *mat)
 
 		ras->SetTexCoordNum(0);
 		ras->SetAttribNum(attrib_num);
-		for (i=0; i<attrib_num; i++)
+		for (i = 0; i < attrib_num; i++)
 			ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_DISABLE, i);
 
 		for (i = 0; i < attribs.totlayer; i++) {
 			if (attribs.layer[i].glindex > attrib_num)
 				continue;
 
-			if (attribs.layer[i].type == CD_MTFACE) {
-				if (!mat->uvName.IsEmpty() && strcmp(mat->uvName.ReadPtr(), attribs.layer[i].name) == 0)
-					ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_UV1, attribs.layer[i].glindex);
-				else if (!mat->uv2Name.IsEmpty() && strcmp(mat->uv2Name.ReadPtr(), attribs.layer[i].name) == 0)
-					ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_UV2, attribs.layer[i].glindex);
-				else
-					ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_UV1, attribs.layer[i].glindex);
-			}
+			if (attribs.layer[i].type == CD_MTFACE)
+				ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_UV, attribs.layer[i].glindex);
 			else if (attribs.layer[i].type == CD_TANGENT)
 				ras->SetAttrib(RAS_IRasterizer::RAS_TEXTANGENT, attribs.layer[i].glindex);
 			else if (attribs.layer[i].type == CD_ORCO)

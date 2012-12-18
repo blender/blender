@@ -402,14 +402,18 @@ class RENDER_PT_game_system(RenderButtonsPanel, Panel):
         layout = self.layout
 
         gs = context.scene.game_settings
-
+        col = layout.column()
+        row = col.row()
+        col = row.column()
+        col.prop(gs, "use_frame_rate")
+        col.prop(gs, "restrict_animation_updates")
+        col = row.column()
+        col.prop(gs, "use_display_lists")
+        col.active = gs.raster_storage != 'VERTEX_BUFFER_OBJECT'
+		
         row = layout.row()
-        row.prop(gs, "use_frame_rate")
-        row.prop(gs, "restrict_animation_updates")
-
-        row = layout.row()
-        row.prop(gs, "use_display_lists")
-
+        row.prop(gs, "raster_storage")
+        
         row = layout.row()
         row.label("Exit Key")
         row.prop(gs, "exit_key", text="", event=True)
