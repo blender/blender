@@ -572,6 +572,16 @@ int calc_manipulator_stats(const bContext *C)
 				}
 			/* no break we define 'normal' as 'local' in Object mode */
 			case V3D_MANIP_LOCAL:
+				if (ob->mode & OB_MODE_POSE) {
+					/* each bone moves on its own local axis, but  to avoid confusion,
+					 * use the active pones axis for display [#33575], this works as expected on a single bone
+					 * and users who select many bones will understand whats going on and what local means
+					 * when they start transforming */
+					float mat[3][3];
+					ED_getTransformOrientationMatrix(C, mat, (v3d->around == V3D_ACTIVE));
+					copy_m4_m3(rv3d->twmat, mat);
+					break;
+				}
 				copy_m4_m4(rv3d->twmat, ob->obmat);
 				normalize_m4(rv3d->twmat);
 				break;
