@@ -164,15 +164,20 @@ static int panels_re_align(ScrArea *sa, ARegion *ar, Panel **r_pa)
 
 /****************************** panels ******************************/
 
-static void panels_collapse_all(ScrArea *sa, ARegion *ar)
+static void panels_collapse_all(ScrArea *sa, ARegion *ar, Panel *from_pa)
 {
 	Panel *pa;
+	PanelType *pt, *from_pt;
 	int flag = ((panel_aligned(sa, ar) == BUT_HORIZONTAL) ? PNL_CLOSEDX : PNL_CLOSEDY);
 
 	for (pa = ar->panels.first; pa; pa = pa->next) {
-		if (pa->type && !(pa->type->flag & PNL_NO_HEADER)) {
-			pa->flag = flag;
-		}
+		pt = pa->type;
+		from_pt = from_pa->type;
+
+		/* close panels with headers in the same context */
+		if (pt && from_pt && !(pt->flag & PNL_NO_HEADER))
+			if (!pt->context[0] || strcmp(pt->context, from_pt->context) == 0)
+				pa->flag = flag;
 	}
 }
 
@@ -1028,7 +1033,7 @@ static void ui_do_drag(const bContext *C, wmEvent *event, Panel *panel)
 
 /* this function is supposed to call general window drawing too */
 /* also it supposes a block has panel, and isn't a menu */
-static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, int my, int event)
+static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, int my, int event, int ctrl)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -1061,6 +1066,9 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 			ED_region_tag_redraw(ar);
 		}
 		else {  /* collapse */
+			if(ctrl)
+				panels_collapse_all(sa, ar, block->panel);
+
 			if (block->panel->flag & PNL_CLOSED) {
 				block->panel->flag &= ~PNL_CLOSED;
 				/* snap back up so full panel aligns with screen edge */
@@ -1100,7 +1108,6 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 
 int ui_handler_panel_region(bContext *C, wmEvent *event)
 {
-	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	uiBlock *block;
 	Panel *pa;
@@ -1148,10 +1155,10 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 				
 				if (pa->flag & PNL_CLOSEDY) {
 					if ((block->rect.ymax <= my) && (block->rect.ymax + PNL_HEADER >= my))
-						ui_handle_panel_header(C, block, mx, my, event->type);
+						ui_handle_panel_header(C, block, mx, my, event->type, event->ctrl);
 				}
 				else
-					ui_handle_panel_header(C, block, mx, my, event->type);
+					ui_handle_panel_header(C, block, mx, my, event->type, event->ctrl);
 				
 				continue;
 			}
@@ -1168,7 +1175,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 				/* open close on header */
 				if (ELEM(event->type, RETKEY, PADENTER)) {
 					if (inside_header) {
-						ui_handle_panel_header(C, block, mx, my, RETKEY);
+						ui_handle_panel_header(C, block, mx, my, RETKEY, event->ctrl);
 						retval = WM_UI_HANDLER_BREAK;
 						break;
 					}
@@ -1178,9 +1185,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 					retval = WM_UI_HANDLER_BREAK;
 					
 					if (inside_header) {
-						if (event->ctrl)
-							panels_collapse_all(sa, ar);
-						ui_handle_panel_header(C, block, mx, my, 0);
+						ui_handle_panel_header(C, block, mx, my, 0, event->ctrl);
 						retval = WM_UI_HANDLER_BREAK;
 						break;
 					}
