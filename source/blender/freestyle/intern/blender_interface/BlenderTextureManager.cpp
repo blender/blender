@@ -1,71 +1,98 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2010 Blender Foundation.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/freestyle/intern/blender_interface/BlenderTextureManager.cpp
+ *  \ingroup freestyle
+ */
+
 #include "BlenderTextureManager.h"
 
-
-BlenderTextureManager::BlenderTextureManager ()
+BlenderTextureManager::BlenderTextureManager()
 : TextureManager()
 {
-  //_brushes_path = Config::getInstance()...
+	//_brushes_path = Config::getInstance()...
 }
 
-BlenderTextureManager::~BlenderTextureManager ()
+BlenderTextureManager::~BlenderTextureManager()
 {
 }
 
 void BlenderTextureManager::loadStandardBrushes()
 {
-  //  getBrushTextureIndex(TEXTURES_DIR "/brushes/charcoalAlpha.bmp", Stroke::HUMID_MEDIUM);
-  //  getBrushTextureIndex(TEXTURES_DIR "/brushes/washbrushAlpha.bmp", Stroke::HUMID_MEDIUM);
-  //  getBrushTextureIndex(TEXTURES_DIR "/brushes/oil.bmp", Stroke::HUMID_MEDIUM);
-  //  getBrushTextureIndex(TEXTURES_DIR "/brushes/oilnoblend.bmp", Stroke::HUMID_MEDIUM);
-  //  getBrushTextureIndex(TEXTURES_DIR "/brushes/charcoalAlpha.bmp", Stroke::DRY_MEDIUM);
-  //  getBrushTextureIndex(TEXTURES_DIR "/brushes/washbrushAlpha.bmp", Stroke::DRY_MEDIUM);
-  //  getBrushTextureIndex(TEXTURES_DIR "/brushes/opaqueDryBrushAlpha.bmp", Stroke::OPAQUE_MEDIUM);
-  //  getBrushTextureIndex(TEXTURES_DIR "/brushes/opaqueBrushAlpha.bmp", Stroke::OPAQUE_MEDIUM);
-  //_defaultTextureId = getBrushTextureIndex("smoothAlpha.bmp", Stroke::OPAQUE_MEDIUM);
+#if 0
+	getBrushTextureIndex(TEXTURES_DIR "/brushes/charcoalAlpha.bmp", Stroke::HUMID_MEDIUM);
+	getBrushTextureIndex(TEXTURES_DIR "/brushes/washbrushAlpha.bmp", Stroke::HUMID_MEDIUM);
+	getBrushTextureIndex(TEXTURES_DIR "/brushes/oil.bmp", Stroke::HUMID_MEDIUM);
+	getBrushTextureIndex(TEXTURES_DIR "/brushes/oilnoblend.bmp", Stroke::HUMID_MEDIUM);
+	getBrushTextureIndex(TEXTURES_DIR "/brushes/charcoalAlpha.bmp", Stroke::DRY_MEDIUM);
+	getBrushTextureIndex(TEXTURES_DIR "/brushes/washbrushAlpha.bmp", Stroke::DRY_MEDIUM);
+	getBrushTextureIndex(TEXTURES_DIR "/brushes/opaqueDryBrushAlpha.bmp", Stroke::OPAQUE_MEDIUM);
+	getBrushTextureIndex(TEXTURES_DIR "/brushes/opaqueBrushAlpha.bmp", Stroke::OPAQUE_MEDIUM);
+	_defaultTextureId = getBrushTextureIndex("smoothAlpha.bmp", Stroke::OPAQUE_MEDIUM);
+#endif
 }
 
-
-unsigned
-BlenderTextureManager::loadBrush(string sname, Stroke::MediumType mediumType)
+unsigned int BlenderTextureManager::loadBrush(string sname, Stroke::MediumType mediumType)
 {
-//   GLuint texId;
-//   glGenTextures(1, &texId);
-//   bool found = false;
-//   vector<string> pathnames;
-//   string path; //soc
-//   StringUtils::getPathName(TextureManager::Options::getBrushesPath(),
-//   sname,
-//   pathnames);
-//   for (vector<string>::const_iterator j = pathnames.begin(); j != pathnames.end(); j++) {
-//     path = j->c_str();
-//     //soc if(QFile::exists(path)){
-// 	if( BLI_exists( const_cast<char *>(path.c_str()) ) ) {
-//       found = true;
-//       break;
-//     }
-//   }
-//   if(!found)
-//     return 0;
-//   // Brush texture
-//   cout << "Loading brush texture..." << endl;
-//   switch(mediumType){
-//   case Stroke::DRY_MEDIUM:
-//     //soc prepareTextureLuminance((const char*)path.toAscii(), texId);
-// 	prepareTextureLuminance(StringUtils::toAscii(path), texId);
-//     break;
-//   case Stroke::HUMID_MEDIUM:
-//   case Stroke::OPAQUE_MEDIUM:
-//   default:
-//     //soc prepareTextureAlpha((const char*)path.toAscii(), texId);
-// 	prepareTextureAlpha(StringUtils::toAscii(path), texId);
-//     break;
-//   }
-//   cout << "Done." << endl << endl;
-// 
-//   return texId;
-//
+#if 0
+	GLuint texId;
+	glGenTextures(1, &texId);
+	bool found = false;
+	vector<string> pathnames;
+	string path; //soc
+	StringUtils::getPathName(TextureManager::Options::getBrushesPath(), sname, pathnames);
+	for (vector<string>::const_iterator j = pathnames.begin(); j != pathnames.end(); j++) {
+		path = j->c_str();
+		//soc if (QFile::exists(path)) {
+		if (BLI_exists( const_cast<char *>(path.c_str()))) {
+			found = true;
+			break;
+		}
+	}
+	if (!found)
+		return 0;
+	// Brush texture
+	cout << "Loading brush texture..." << endl;
+	switch (mediumType) {
+	case Stroke::DRY_MEDIUM:
+		//soc prepareTextureLuminance((const char*)path.toAscii(), texId);
+		prepareTextureLuminance(StringUtils::toAscii(path), texId);
+		break;
+	case Stroke::HUMID_MEDIUM:
+	case Stroke::OPAQUE_MEDIUM:
+	default:
+		//soc prepareTextureAlpha((const char*)path.toAscii(), texId);
+		prepareTextureAlpha(StringUtils::toAscii(path), texId);
+		break;
+	}
+	cout << "Done." << endl << endl;
+
+	return texId;
+#else
 	return 0;
+#endif
 }
-
-
-

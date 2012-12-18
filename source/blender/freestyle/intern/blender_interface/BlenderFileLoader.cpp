@@ -1,6 +1,37 @@
-#include "BlenderFileLoader.h"
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2010 Blender Foundation.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/freestyle/intern/blender_interface/BlenderFileLoader.cpp
+ *  \ingroup freestyle
+ */
 
 #include <assert.h>
+
+#include "BlenderFileLoader.h"
 
 BlenderFileLoader::BlenderFileLoader(Render *re, SceneRenderLayer* srl)
 {
@@ -26,20 +57,20 @@ NodeGroup* BlenderFileLoader::Load()
 	// creation of the scene root node
 	_Scene = new NodeGroup;
 
-	_viewplane_left=   _re->viewplane.xmin;
-	_viewplane_right=  _re->viewplane.xmax;
-	_viewplane_bottom= _re->viewplane.ymin;
-	_viewplane_top=    _re->viewplane.ymax;
-	_z_near= -_re->clipsta;
-	_z_far=  -_re->clipend;
+	_viewplane_left =   _re->viewplane.xmin;
+	_viewplane_right =  _re->viewplane.xmax;
+	_viewplane_bottom = _re->viewplane.ymin;
+	_viewplane_top =    _re->viewplane.ymax;
+	_z_near = -_re->clipsta;
+	_z_far =  -_re->clipend;
 #if 0
 	cout << "Frustum: l " << _viewplane_left << " r " << _viewplane_right
-		<< " b " << _viewplane_bottom << " t " << _viewplane_top
-		<< " n " << _z_near << " f " << _z_far << endl;
+	     << " b " << _viewplane_bottom << " t " << _viewplane_top
+	     << " n " << _z_near << " f " << _z_far << endl;
 #endif
 
 	int id = 0;
-	for(obi= (ObjectInstanceRen *) _re->instancetable.first; obi; obi=obi->next) {
+	for (obi = (ObjectInstanceRen *)_re->instancetable.first; obi; obi = obi->next) {
 		if (_pRenderMonitor && _pRenderMonitor->testBreak())
 			break;
 		if (!(obi->lay & _srl->lay))
@@ -48,13 +79,13 @@ NodeGroup* BlenderFileLoader::Load()
 		//cout << name[0] << name[1] << ":" << (name+2) <<;
 		//print_m4("obi->mat", obi->mat);
 
-		if( obi->obr->totvlak > 0)
+		if (obi->obr->totvlak > 0)
 			insertShapeNode(obi, ++id);
 		else
 			cout << "Warning: " << (name+2) << " is not a vlak-based object (ignored)" << endl;
 	}
 
-	//Returns the built scene.
+	// Return the built scene.
 	return _Scene;
 }
 
@@ -77,13 +108,15 @@ int BlenderFileLoader::countClippedFaces(float v1[3], float v2[3], float v3[3], 
 		if (v[i][2] > _z_near) {
 			clip[i] = CLIPPED_BY_NEAR;
 			numClipped++;
-		} else if (v[i][2] < _z_far) {
+		}
+		else if (v[i][2] < _z_far) {
 			clip[i] = CLIPPED_BY_FAR;
 			numClipped++;
-		} else {
+		}
+		else {
 			clip[i] = NOT_CLIPPED;
 		}
-//		printf("%d %s\n", i, (clip[i] == NOT_CLIPPED) ? "not" : (clip[i] == CLIPPED_BY_NEAR) ? "near" : "far");
+		//printf("%d %s\n", i, (clip[i] == NOT_CLIPPED) ? "not" : (clip[i] == CLIPPED_BY_NEAR) ? "near" : "far");
 		sum += clip[i];
 	}
 	switch (numClipped) {
@@ -120,7 +153,8 @@ void BlenderFileLoader::clipLine(float v1[3], float v2[3], float c[3], float z)
 	if (v1[2] < v2[2]) {
 		p = v1;
 		q = v2;
-	} else {
+	}
+	else {
 		p = v2;
 		q = v1;
 	}
@@ -137,8 +171,8 @@ void BlenderFileLoader::clipLine(float v1[3], float v2[3], float c[3], float z)
 // obtain a set of vertices after the clipping.  The number of vertices
 // is at most 5.
 void BlenderFileLoader::clipTriangle(int numTris, float triCoords[][3], float v1[3], float v2[3], float v3[3],
-									 float triNormals[][3], float n1[3], float n2[3], float n3[3],
-									 bool edgeMarks[], bool em1, bool em2, bool em3, int clip[3])
+                                     float triNormals[][3], float n1[3], float n2[3], float n3[3],
+                                     bool edgeMarks[], bool em1, bool em2, bool em3, int clip[3])
 {
 	float *v[3], *n[3];
 	bool em[3];
@@ -164,13 +198,15 @@ void BlenderFileLoader::clipTriangle(int numTris, float triCoords[][3], float v1
 				edgeMarks[k] = false;
 				k++;
 			}
-		} else if (clip[i] != clip[j]) {
+		}
+		else if (clip[i] != clip[j]) {
 			if (clip[j] == NOT_CLIPPED) {
 				clipLine(v[i], v[j], triCoords[k], (clip[i] == CLIPPED_BY_NEAR) ? _z_near : _z_far);
 				copy_v3_v3(triNormals[k], n[i]);
 				edgeMarks[k] = em[i];
 				k++;
-			} else {
+			}
+			else {
 				clipLine(v[i], v[j], triCoords[k], (clip[i] == CLIPPED_BY_NEAR) ? _z_near : _z_far);
 				copy_v3_v3(triNormals[k], n[i]);
 				edgeMarks[k] = em[i];
@@ -182,15 +218,15 @@ void BlenderFileLoader::clipTriangle(int numTris, float triCoords[][3], float v1
 			}
 		}
 	}
-	assert (k == 2 + numTris);
+	assert(k == 2 + numTris);
 }
 
 void BlenderFileLoader::addTriangle(struct LoaderState *ls, float v1[3], float v2[3], float v3[3],
-									float n1[3], float n2[3], float n3[3],
-									bool fm, bool em1, bool em2, bool em3)
+                                    float n1[3], float n2[3], float n3[3],
+                                    bool fm, bool em1, bool em2, bool em3)
 {
 	float *fv[3], *fn[3], len;
-	unsigned i, j;
+	unsigned int i, j;
 	IndexedFaceSet::FaceEdgeMark marks = 0;
 
 	// initialize the bounding box by the first vertex
@@ -208,24 +244,23 @@ void BlenderFileLoader::addTriangle(struct LoaderState *ls, float v1[3], float v
 		copy_v3_v3(ls->pn, fn[i]);
 
 		// update the bounding box
-		for (j = 0; j < 3; j++)
-		{
-	  		if (ls->minBBox[j] > ls->pv[j])
-	    		ls->minBBox[j] = ls->pv[j];
+		for (j = 0; j < 3; j++) {
+			if (ls->minBBox[j] > ls->pv[j])
+				ls->minBBox[j] = ls->pv[j];
 
-	  		if (ls->maxBBox[j] < ls->pv[j])
-	    		ls->maxBBox[j] = ls->pv[j];
+			if (ls->maxBBox[j] < ls->pv[j])
+				ls->maxBBox[j] = ls->pv[j];
 		}
 
 		len = len_v3v3(fv[i], fv[(i + 1) % 3]);
 		if (_minEdgeSize > len)
-	  		_minEdgeSize = len;
-		
+			_minEdgeSize = len;
+
 		*ls->pvi = ls->currentIndex;
 		*ls->pni = ls->currentIndex;
 		*ls->pmi = ls->currentMIndex;
 
-		ls->currentIndex +=3;
+		ls->currentIndex += 3;
 		ls->pv += 3;
 		ls->pn += 3;
 
@@ -233,11 +268,16 @@ void BlenderFileLoader::addTriangle(struct LoaderState *ls, float v1[3], float v
 		ls->pni++;
 		ls->pmi++;
 	}
-	if (fm) marks |= IndexedFaceSet::FACE_MARK;
-	if (em1) marks |= IndexedFaceSet::EDGE_MARK_V1V2;
-	if (em2) marks |= IndexedFaceSet::EDGE_MARK_V2V3;
-	if (em3) marks |= IndexedFaceSet::EDGE_MARK_V3V1;
-	*ls->pm++ = marks;
+
+	if (fm)
+		marks |= IndexedFaceSet::FACE_MARK;
+	if (em1)
+		marks |= IndexedFaceSet::EDGE_MARK_V1V2;
+	if (em2)
+		marks |= IndexedFaceSet::EDGE_MARK_V2V3;
+	if (em3)
+		marks |= IndexedFaceSet::EDGE_MARK_V3V1;
+	*(ls->pm++) = marks;
 }
 
 // With A, B and P indicating the three vertices of a given triangle, returns:
@@ -246,20 +286,32 @@ void BlenderFileLoader::addTriangle(struct LoaderState *ls, float v1[3], float v
 // zero otherwise.
 int BlenderFileLoader::testDegenerateTriangle(float v1[3], float v2[3], float v3[3])
 {
-	//float area = area_tri_v3(v1, v2, v3);
-	//bool verbose = (area < 1e-6);
+#if 0
+	float area = area_tri_v3(v1, v2, v3);
+	bool verbose = (area < 1.0e-6);
+#endif
 
 	if (equals_v3v3(v1, v2) || equals_v3v3(v2, v3) || equals_v3v3(v1, v3)) {
-		//if (verbose) printf("BlenderFileLoader::testDegenerateTriangle = 1\n");
+#if 0
+		if (verbose)
+			printf("BlenderFileLoader::testDegenerateTriangle = 1\n");
+#endif
 		return 1;
 	}
-	if (dist_to_line_segment_v3(v1, v2, v3) < 1e-6 ||
-		dist_to_line_segment_v3(v2, v1, v3) < 1e-6 ||
-		dist_to_line_segment_v3(v3, v1, v2) < 1e-6) {
-		//if (verbose) printf("BlenderFileLoader::testDegenerateTriangle = 2\n");
+	if (dist_to_line_segment_v3(v1, v2, v3) < 1.0e-6 ||
+	    dist_to_line_segment_v3(v2, v1, v3) < 1.0e-6 ||
+	    dist_to_line_segment_v3(v3, v1, v2) < 1.0e-6)
+	{
+#if 0
+		if (verbose)
+			printf("BlenderFileLoader::testDegenerateTriangle = 2\n");
+#endif
 		return 2;
 	}
-	//if (verbose) printf("BlenderFileLoader::testDegenerateTriangle = 0\n");
+#if 0
+	if (verbose)
+		printf("BlenderFileLoader::testDegenerateTriangle = 0\n");
+#endif
 	return 0;
 }
 
@@ -280,7 +332,7 @@ bool BlenderFileLoader::testEdgeRotation(float v1[3], float v2[3], float v3[3], 
 void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 {
 	ObjectRen *obr = obi->obr;
-	char *name = obi->ob->id.name+2;
+	char *name = obi->ob->id.name + 2;
 
 	// We parse vlak nodes and count the number of faces after the clipping by
 	// the near and far view planes is applied (Note: mesh vertices are in the
@@ -291,9 +343,11 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	float n1[3], n2[3], n3[3], n4[3], facenormal[3];
 	int clip_1[3], clip_2[3];
 	int wire_material = 0;
-	for(int a=0; a < obr->totvlak; a++) {
-		if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak;
-		else vlr++;
+	for (int a = 0; a < obr->totvlak; a++) {
+		if ((a & 255) == 0)
+			vlr = obr->vlaknodes[a>>8].vlak;
+		else
+			vlr++;
 		if (vlr->mat->material_type == MA_TYPE_WIRE) {
 			wire_material = 1;
 			continue;
@@ -301,58 +355,64 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 		copy_v3_v3(v1, vlr->v1->co);
 		copy_v3_v3(v2, vlr->v2->co);
 		copy_v3_v3(v3, vlr->v3->co);
-		if (vlr->v4) copy_v3_v3(v4, vlr->v4->co);
+		if (vlr->v4)
+			copy_v3_v3(v4, vlr->v4->co);
 		if (obi->flag & R_TRANSFORMED) {
 			mul_m4_v3(obi->mat, v1);
 			mul_m4_v3(obi->mat, v2);
 			mul_m4_v3(obi->mat, v3);
-			if (vlr->v4) mul_m4_v3(obi->mat, v4);
+			if (vlr->v4)
+				mul_m4_v3(obi->mat, v4);
 		}
-//		print_v3("v1", v1);
-//		print_v3("v2", v2);
-//		print_v3("v3", v3);
-//		if (vlr->v4) print_v3("v4", v4);
+#if 0
+		print_v3("v1", v1);
+		print_v3("v2", v2);
+		print_v3("v3", v3);
+		if (vlr->v4)
+			print_v3("v4", v4);
+#endif
 		if (!vlr->v4 || !testEdgeRotation(v1, v2, v3, v4)) {
 			numFaces += countClippedFaces(v1, v2, v3, clip_1);
 			if (vlr->v4)
 				numFaces += countClippedFaces(v1, v3, v4, clip_2);
-		} else {
+		}
+		else {
 			numFaces += countClippedFaces(v1, v2, v4, clip_1);
 			numFaces += countClippedFaces(v2, v3, v4, clip_2);
 		}
 	}
 	if (wire_material)
 		printf("Warning: Object %s has wire materials (ignored)\n", name);
-//	cout <<"numFaces " <<numFaces<<endl;
+//	cout << "numFaces " << numFaces << endl;
 	if (numFaces == 0)
 		return;
 
 	// We allocate memory for the meshes to be imported
 	NodeTransform *currentMesh = new NodeTransform;
-	NodeShape * shape = new NodeShape;
+	NodeShape *shape = new NodeShape;
 
-	unsigned vSize = 3*3*numFaces;
+	unsigned vSize = 3 * 3 * numFaces;
 	float *vertices = new float[vSize];
 	unsigned nSize = vSize;
 	float *normals = new float[nSize];
 	unsigned *numVertexPerFaces = new unsigned[numFaces];
 	vector<FrsMaterial> meshFrsMaterials;
-	
+
 	IndexedFaceSet::TRIANGLES_STYLE *faceStyle = new IndexedFaceSet::TRIANGLES_STYLE[numFaces];
 	unsigned i;
 	for (i = 0; i <numFaces; i++) {
-	  faceStyle[i] = IndexedFaceSet::TRIANGLES;
-	  numVertexPerFaces[i] = 3;
+		faceStyle[i] = IndexedFaceSet::TRIANGLES;
+		numVertexPerFaces[i] = 3;
 	}
 
 	IndexedFaceSet::FaceEdgeMark *faceEdgeMarks = new IndexedFaceSet::FaceEdgeMark[numFaces];
-	
-	unsigned viSize = 3*numFaces;
+
+	unsigned viSize = 3 * numFaces;
 	unsigned *VIndices = new unsigned[viSize];
 	unsigned niSize = viSize;
 	unsigned *NIndices = new unsigned[niSize];
 	unsigned *MIndices = new unsigned[viSize]; // Material Indices
-	
+
 	struct LoaderState ls;
 	ls.pv = vertices;
 	ls.pn = normals;
@@ -362,185 +422,190 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	ls.pmi = MIndices;
 	ls.currentIndex = 0;
 	ls.currentMIndex = 0;
-	
+
 	FrsMaterial tmpMat;
 
 	// We parse the vlak nodes again and import meshes while applying the clipping
 	// by the near and far view planes.
 	int p;
-	for(p=0; p < obr->totvlak; ++p) // we parse the faces of the mesh
-	{
-			// Lib3dsFace *f=&mesh->faceL[p];
-			// Lib3dsMaterial *mat=0;
-			if((p & 255)==0) vlr = obr->vlaknodes[p>>8].vlak;
-			else vlr++;
-			copy_v3_v3(v1, vlr->v1->co);
-			copy_v3_v3(v2, vlr->v2->co);
-			copy_v3_v3(v3, vlr->v3->co);
-			if (vlr->v4) copy_v3_v3(v4, vlr->v4->co);
+	for (p = 0; p < obr->totvlak; ++p) { // we parse the faces of the mesh
+#if 0
+		Lib3dsFace *f = &mesh->faceL[p];
+		Lib3dsMaterial *mat = NULL;
+#endif
+		if ((p & 255) == 0)
+			vlr = obr->vlaknodes[p>>8].vlak;
+		else
+			vlr++;
+		copy_v3_v3(v1, vlr->v1->co);
+		copy_v3_v3(v2, vlr->v2->co);
+		copy_v3_v3(v3, vlr->v3->co);
+		if (vlr->v4)
+			copy_v3_v3(v4, vlr->v4->co);
+		if (obi->flag & R_TRANSFORMED) {
+			mul_m4_v3(obi->mat, v1);
+			mul_m4_v3(obi->mat, v2);
+			mul_m4_v3(obi->mat, v3);
+			if (vlr->v4)
+				mul_m4_v3(obi->mat, v4);
+		}
+		if (_smooth && (vlr->flag & R_SMOOTH)) {
+			copy_v3_v3(n1, vlr->v1->n);
+			copy_v3_v3(n2, vlr->v2->n);
+			copy_v3_v3(n3, vlr->v3->n);
+			if (vlr->v4)
+				copy_v3_v3(n4, vlr->v4->n);
 			if (obi->flag & R_TRANSFORMED) {
-				mul_m4_v3(obi->mat, v1);
-				mul_m4_v3(obi->mat, v2);
-				mul_m4_v3(obi->mat, v3);
-				if (vlr->v4) mul_m4_v3(obi->mat, v4);
-			}
-			if (_smooth && (vlr->flag & R_SMOOTH)) {
-				copy_v3_v3(n1, vlr->v1->n);
-				copy_v3_v3(n2, vlr->v2->n);
-				copy_v3_v3(n3, vlr->v3->n);
-				if (vlr->v4) copy_v3_v3(n4, vlr->v4->n);
-				if (obi->flag & R_TRANSFORMED) {
-					mul_m3_v3(obi->nmat, n1);
-					mul_m3_v3(obi->nmat, n2);
-					mul_m3_v3(obi->nmat, n3);
-					normalize_v3(n1);
-					normalize_v3(n2);
-					normalize_v3(n3);
-					if (vlr->v4) {
-						mul_m3_v3(obi->nmat, n4);
-						normalize_v3(n4);
-					}
+				mul_m3_v3(obi->nmat, n1);
+				mul_m3_v3(obi->nmat, n2);
+				mul_m3_v3(obi->nmat, n3);
+				normalize_v3(n1);
+				normalize_v3(n2);
+				normalize_v3(n3);
+				if (vlr->v4) {
+					mul_m3_v3(obi->nmat, n4);
+					normalize_v3(n4);
 				}
-			} else {
-				RE_vlakren_get_normal(_re, obi, vlr, facenormal);
-				copy_v3_v3(n1, facenormal);
-				copy_v3_v3(n2, facenormal);
-				copy_v3_v3(n3, facenormal);
-				if (vlr->v4) copy_v3_v3(n4, facenormal);
+			}
+		}
+		else {
+			RE_vlakren_get_normal(_re, obi, vlr, facenormal);
+			copy_v3_v3(n1, facenormal);
+			copy_v3_v3(n2, facenormal);
+			copy_v3_v3(n3, facenormal);
+			if (vlr->v4)
+				copy_v3_v3(n4, facenormal);
+		}
+
+		unsigned int numTris_1, numTris_2;
+		bool edge_rotation;
+		if (!vlr->v4 || !testEdgeRotation(v1, v2, v3, v4)) {
+			numTris_1 = countClippedFaces(v1, v2, v3, clip_1);
+			numTris_2 = (!vlr->v4) ? 0 : countClippedFaces(v1, v3, v4, clip_2);
+			edge_rotation = false;
+		}
+		else {
+			numTris_1 = countClippedFaces(v1, v2, v4, clip_1);
+			numTris_2 = countClippedFaces(v2, v3, v4, clip_2);
+			edge_rotation = true;
+			printf("BlenderFileLoader::insertShapeNode: edge rotation is performed.\n");
+		}
+		if (numTris_1 == 0 && numTris_2 == 0)
+			continue;
+		bool fm, em1, em2, em3, em4;
+		fm = (vlr->flag & ME_FREESTYLE_FACE) != 0;
+		em1 = (vlr->freestyle_edge_mark & R_EDGE_V1V2) != 0;
+		em2 = (vlr->freestyle_edge_mark & R_EDGE_V2V3) != 0;
+		if (!vlr->v4) {
+			em3 = (vlr->freestyle_edge_mark & R_EDGE_V3V1) != 0;
+			em4 = false;
+		}
+		else {
+			em3 = (vlr->freestyle_edge_mark & R_EDGE_V3V4) != 0;
+			em4 = (vlr->freestyle_edge_mark & R_EDGE_V4V1) != 0;
+		}
+
+		Material *mat = vlr->mat;
+		if (mat) {
+			tmpMat.setDiffuse(mat->r, mat->g, mat->b, mat->alpha);
+			tmpMat.setSpecular(mat->specr, mat->specg, mat->specb, mat->spectra);
+			float s = 1.0 * (mat->har + 1) / 4 ; // in Blender: [1;511] => in OpenGL: [0;128]
+			if (s > 128.f)
+				s = 128.f;
+			tmpMat.setShininess(s);
+		}
+
+		if (meshFrsMaterials.empty()) {
+			meshFrsMaterials.push_back(tmpMat);
+			shape->setFrsMaterial(tmpMat);
+		}
+		else {
+			// find if the material is aleady in the list
+			unsigned int i = 0;
+			bool found = false;
+
+			for (vector<FrsMaterial>::iterator it = meshFrsMaterials.begin(), itend = meshFrsMaterials.end();
+			     it != itend;
+			     it++, i++)
+			{
+				if (*it == tmpMat) {
+					ls.currentMIndex = i;
+					found = true;
+					break;
+				}
 			}
 
-			unsigned numTris_1, numTris_2;
-			bool edge_rotation;
-			if (!vlr->v4 || !testEdgeRotation(v1, v2, v3, v4)) {
-				numTris_1 = countClippedFaces(v1, v2, v3, clip_1);
-				numTris_2 = (!vlr->v4) ? 0 : countClippedFaces(v1, v3, v4, clip_2);
-				edge_rotation = false;
-			} else {
-				numTris_1 = countClippedFaces(v1, v2, v4, clip_1);
-				numTris_2 = countClippedFaces(v2, v3, v4, clip_2);
-				edge_rotation = true;
-				printf("BlenderFileLoader::insertShapeNode: edge rotation is performed.\n");
-			}
-			if (numTris_1 == 0 && numTris_2 == 0)
-				continue;
-			bool fm, em1, em2, em3, em4;
-			fm = (vlr->flag & ME_FREESTYLE_FACE) != 0;
-			em1= (vlr->freestyle_edge_mark & R_EDGE_V1V2) != 0;
-			em2= (vlr->freestyle_edge_mark & R_EDGE_V2V3) != 0;
-			if (!vlr->v4) {
-				em3= (vlr->freestyle_edge_mark & R_EDGE_V3V1) != 0;
-				em4= false;
-			} else {
-				em3= (vlr->freestyle_edge_mark & R_EDGE_V3V4) != 0;
-				em4= (vlr->freestyle_edge_mark & R_EDGE_V4V1) != 0;
-			}
-
-			Material *mat = vlr->mat;
-	
-			if (mat) 
-			{
-			    tmpMat.setDiffuse( mat->r, mat->g, mat->b, mat->alpha );
-			    tmpMat.setSpecular( mat->specr, mat->specg, mat->specb, mat->spectra);
-			    float s = 1.0 * (mat->har + 1) / 4 ; // in Blender: [1;511] => in OpenGL: [0;128]
-			    if(s > 128.f)
-			      s = 128.f;
-			    tmpMat.setShininess(s);
-			}
-	  
-			if(meshFrsMaterials.empty())
-			{
+			if (!found) {
 				meshFrsMaterials.push_back(tmpMat);
-		    	shape->setFrsMaterial(tmpMat);
-		  	} else {
-		    	// find if the material is aleady in the list
-		    	unsigned i=0;
-		    	bool found = false;
-		
-		    	for(vector<FrsMaterial>::iterator it=meshFrsMaterials.begin(), itend=meshFrsMaterials.end();
-		    		it!=itend;
-		    		++it){
-		      			if(*it == tmpMat){
-		        			ls.currentMIndex = i;
-		        			found = true;
-		        			break;
-		      			}
-		      			++i;
-		    	}
-		
-		    	if(!found){
-		      		meshFrsMaterials.push_back(tmpMat);
-		      		ls.currentMIndex = meshFrsMaterials.size()-1;
-		    	}
-	  		}
-
-			float triCoords[5][3], triNormals[5][3];
-			bool edgeMarks[5]; // edgeMarks[i] is for the edge between i-th and (i+1)-th vertices
-
-			if (numTris_1 > 0) {
-				if (!edge_rotation)
-					clipTriangle(numTris_1, triCoords, v1, v2, v3, triNormals, n1, n2, n3,
-						edgeMarks, em1, em2, (!vlr->v4) ? em3 : false, clip_1);
-				else
-					clipTriangle(numTris_1, triCoords, v1, v2, v4, triNormals, n1, n2, n4,
-						edgeMarks, em1, false, em4, clip_1);
-				for (i = 0; i < numTris_1; i++) {
-					addTriangle(&ls, triCoords[0], triCoords[i+1], triCoords[i+2],
-						triNormals[0], triNormals[i+1], triNormals[i+2],
-						fm, (i == 0) ? edgeMarks[0] : false, edgeMarks[i+1],
-						(i == numTris_1 - 1) ? edgeMarks[i+2] : false);
-					_numFacesRead++;
-				}
+				ls.currentMIndex = meshFrsMaterials.size() - 1;
 			}
+		}
 
-			if (numTris_2 > 0) {
-				if (!edge_rotation)
-					clipTriangle(numTris_2, triCoords, v1, v3, v4, triNormals, n1, n3, n4,
-						edgeMarks, false, em3, em4, clip_2);
-				else
-					clipTriangle(numTris_2, triCoords, v2, v3, v4, triNormals, n2, n3, n4,
-						edgeMarks, em2, em3, false, clip_2);
-				for (i = 0; i < numTris_2; i++) {
-					addTriangle(&ls, triCoords[0], triCoords[i+1], triCoords[i+2],
-						triNormals[0], triNormals[i+1], triNormals[i+2],
-						fm, (i == 0) ? edgeMarks[0] : false, edgeMarks[i+1],
-						(i == numTris_2 - 1) ? edgeMarks[i+2] : false);
-					_numFacesRead++;
-				}
+		float triCoords[5][3], triNormals[5][3];
+		bool edgeMarks[5]; // edgeMarks[i] is for the edge between i-th and (i+1)-th vertices
+
+		if (numTris_1 > 0) {
+			if (!edge_rotation) {
+				clipTriangle(numTris_1, triCoords, v1, v2, v3, triNormals, n1, n2, n3,
+				             edgeMarks, em1, em2, (!vlr->v4) ? em3 : false, clip_1);
 			}
+			else {
+				clipTriangle(numTris_1, triCoords, v1, v2, v4, triNormals, n1, n2, n4,
+				             edgeMarks, em1, false, em4, clip_1);
+			}
+			for (i = 0; i < numTris_1; i++) {
+				addTriangle(&ls, triCoords[0], triCoords[i+1], triCoords[i+2],
+				            triNormals[0], triNormals[i+1], triNormals[i+2],
+				            fm, (i == 0) ? edgeMarks[0] : false, edgeMarks[i+1],
+				            (i == numTris_1 - 1) ? edgeMarks[i+2] : false);
+				_numFacesRead++;
+			}
+		}
+
+		if (numTris_2 > 0) {
+			if (!edge_rotation) {
+				clipTriangle(numTris_2, triCoords, v1, v3, v4, triNormals, n1, n3, n4,
+				             edgeMarks, false, em3, em4, clip_2);
+			}
+			else {
+				clipTriangle(numTris_2, triCoords, v2, v3, v4, triNormals, n2, n3, n4,
+				             edgeMarks, em2, em3, false, clip_2);
+			}
+			for (i = 0; i < numTris_2; i++) {
+				addTriangle(&ls, triCoords[0], triCoords[i+1], triCoords[i+2],
+				            triNormals[0], triNormals[i+1], triNormals[i+2],
+				            fm, (i == 0) ? edgeMarks[0] : false, edgeMarks[i+1],
+				            (i == numTris_2 - 1) ? edgeMarks[i+2] : false);
+				_numFacesRead++;
+			}
+		}
 	}
-	
+
 	// We might have several times the same vertex. We want a clean 
-	// shape with no real-vertex. Here, we are making a cleaning 
-	// pass.
+	// shape with no real-vertex. Here, we are making a cleaning pass.
 	real *cleanVertices = NULL;
-	unsigned   cvSize;
-	unsigned   *cleanVIndices = NULL;
-	
-	GeomCleaner::CleanIndexedVertexArray(
-	  vertices, vSize, 
-	  VIndices, viSize,
-	  &cleanVertices, &cvSize, 
-	  &cleanVIndices);
-	
+	unsigned int cvSize;
+	unsigned int *cleanVIndices = NULL;
+
+	GeomCleaner::CleanIndexedVertexArray(vertices, vSize, VIndices, viSize, &cleanVertices, &cvSize, &cleanVIndices);
+
 	real *cleanNormals = NULL;
-	unsigned   cnSize;
-	unsigned   *cleanNIndices = NULL;
-	
-	GeomCleaner::CleanIndexedVertexArray(
-	  normals, nSize, 
-	  NIndices, niSize,
-	  &cleanNormals, &cnSize, 
-	  &cleanNIndices);
-	
+	unsigned int cnSize;
+	unsigned int *cleanNIndices = NULL;
+
+	GeomCleaner::CleanIndexedVertexArray(normals, nSize, NIndices, niSize, &cleanNormals, &cnSize, &cleanNIndices);
+
 	// format materials array
 	FrsMaterial** marray = new FrsMaterial*[meshFrsMaterials.size()];
-	unsigned mindex=0;
-	for(vector<FrsMaterial>::iterator m=meshFrsMaterials.begin(), mend=meshFrsMaterials.end();
-	    m!=mend;
-	    ++m){
-	  marray[mindex] = new FrsMaterial(*m);
-	  ++mindex;
+	unsigned int mindex = 0;
+	for (vector<FrsMaterial>::iterator m = meshFrsMaterials.begin(), mend = meshFrsMaterials.end();
+	     m!=mend;
+	     ++m)
+	{
+		marray[mindex] = new FrsMaterial(*m);
+		++mindex;
 	}
+
 	// deallocates memory:
 	delete [] vertices;
 	delete [] normals;
@@ -568,21 +633,28 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 		if (v0 == v1 || v0 == v2 || v1 == v2) {
 			continue; // do nothing for now
 		}
-		else if (GeomUtils::distPointSegment<Vec3r>(v0, v1, v2) < 1e-6) {
-			detri.viP = vi0; detri.viA = vi1; detri.viB = vi2;
+		else if (GeomUtils::distPointSegment<Vec3r>(v0, v1, v2) < 1.0e-6) {
+			detri.viP = vi0;
+			detri.viA = vi1;
+			detri.viB = vi2;
 		}
-		else if (GeomUtils::distPointSegment<Vec3r>(v1, v0, v2) < 1e-6) {
-			detri.viP = vi1; detri.viA = vi0; detri.viB = vi2;
+		else if (GeomUtils::distPointSegment<Vec3r>(v1, v0, v2) < 1.0e-6) {
+			detri.viP = vi1;
+			detri.viA = vi0;
+			detri.viB = vi2;
 		}
-		else if (GeomUtils::distPointSegment<Vec3r>(v2, v0, v1) < 1e-6) {
-			detri.viP = vi2; detri.viA = vi0; detri.viB = vi1;
+		else if (GeomUtils::distPointSegment<Vec3r>(v2, v0, v1) < 1.0e-6) {
+			detri.viP = vi2;
+			detri.viA = vi0;
+			detri.viB = vi1;
 		}
 		else {
 			continue;
 		}
+
 		detri.v = zero;
 		detri.n = 0;
-		for (unsigned j = 0; j < viSize; j += 3) {
+		for (unsigned int j = 0; j < viSize; j += 3) {
 			if (i == j)
 				continue;
 			vi0 = cleanVIndices[j];
@@ -594,19 +666,24 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 			if (detri.viP == vi0 && (detri.viA == vi1 || detri.viB == vi1)) {
 				detri.v += (v2 - v0);
 				detri.n++;
-			} else if (detri.viP == vi0 && (detri.viA == vi2 || detri.viB == vi2)) {
+			}
+			else if (detri.viP == vi0 && (detri.viA == vi2 || detri.viB == vi2)) {
 				detri.v += (v1 - v0);
 				detri.n++;
-			} else if (detri.viP == vi1 && (detri.viA == vi0 || detri.viB == vi0)) {
+			}
+			else if (detri.viP == vi1 && (detri.viA == vi0 || detri.viB == vi0)) {
 				detri.v += (v2 - v1);
 				detri.n++;
-			} else if (detri.viP == vi1 && (detri.viA == vi2 || detri.viB == vi2)) {
+			}
+			else if (detri.viP == vi1 && (detri.viA == vi2 || detri.viB == vi2)) {
 				detri.v += (v0 - v1);
 				detri.n++;
-			} else if (detri.viP == vi2 && (detri.viA == vi0 || detri.viB == vi0)) {
+			}
+			else if (detri.viP == vi2 && (detri.viA == vi0 || detri.viB == vi0)) {
 				detri.v += (v1 - v2);
 				detri.n++;
-			} else if (detri.viP == vi2 && (detri.viA == vi1 || detri.viB == vi1)) {
+			}
+			else if (detri.viP == vi2 && (detri.viA == vi1 || detri.viB == vi1)) {
 				detri.v += (v0 - v2);
 				detri.n++;
 			}
@@ -616,6 +693,7 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 		}
 		detriList.push_back(detri);
 	}
+
 	if (detriList.size() > 0) {
 		vector<detri_t>::iterator v;
 		for (v = detriList.begin(); v != detriList.end(); v++) {
@@ -624,43 +702,35 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 				cleanVertices[detri.viP]   = cleanVertices[detri.viA];
 				cleanVertices[detri.viP+1] = cleanVertices[detri.viA+1];
 				cleanVertices[detri.viP+2] = cleanVertices[detri.viA+2];
-			} else if (detri.v.norm() > 0.0) {
-				cleanVertices[detri.viP]   += 1e-5 * detri.v.x();
-				cleanVertices[detri.viP+1] += 1e-5 * detri.v.y();
-				cleanVertices[detri.viP+2] += 1e-5 * detri.v.z();
+			}
+			else if (detri.v.norm() > 0.0) {
+				cleanVertices[detri.viP]   += 1.0e-5 * detri.v.x();
+				cleanVertices[detri.viP+1] += 1.0e-5 * detri.v.y();
+				cleanVertices[detri.viP+2] += 1.0e-5 * detri.v.z();
 			}
 		}
 		printf("Warning: Object %s contains %lu degenerated triangle%s (strokes may be incorrect)\n",
-			name, detriList.size(), (detriList.size() > 1) ? "s" : "");
+		       name, detriList.size(), (detriList.size() > 1) ? "s" : "");
 	}
 
 	// Create the IndexedFaceSet with the retrieved attributes
 	IndexedFaceSet *rep;
-	rep = new IndexedFaceSet(cleanVertices, cvSize, 
-	                         cleanNormals, cnSize,
-	                         marray, meshFrsMaterials.size(),
-	                         0, 0,
-	                         numFaces, numVertexPerFaces, faceStyle,
-							 faceEdgeMarks,
-	                         cleanVIndices, viSize,
-	                         cleanNIndices, niSize,
-	                         MIndices, viSize,
-	                         0,0,
-	                         0);
+	rep = new IndexedFaceSet(cleanVertices, cvSize, cleanNormals, cnSize, marray, meshFrsMaterials.size(), 0, 0,
+	                         numFaces, numVertexPerFaces, faceStyle, faceEdgeMarks, cleanVIndices, viSize,
+	                         cleanNIndices, niSize, MIndices, viSize, 0, 0, 0);
 	// sets the id of the rep
 	rep->setId(Id(id, 0));
-	rep->setName(obi->ob->id.name+2);
-	
-	const BBox<Vec3r> bbox = BBox<Vec3r>(Vec3r(ls.minBBox[0], ls.minBBox[1], ls.minBBox[2]), 
+	rep->setName(obi->ob->id.name + 2);
+
+	const BBox<Vec3r> bbox = BBox<Vec3r>(Vec3r(ls.minBBox[0], ls.minBBox[1], ls.minBBox[2]),
 	                                     Vec3r(ls.maxBBox[0], ls.maxBBox[1], ls.maxBBox[2]));
 	rep->setBBox(bbox);
 	shape->AddRep(rep);
-	
+
 	Matrix44r meshMat = Matrix44r::identity();
 	currentMesh->setMatrix(meshMat);
-	currentMesh->Translate(0,0,0);
-	
+	currentMesh->Translate(0, 0, 0);
+
 	currentMesh->AddChild(shape);
 	_Scene->AddChild(currentMesh);
-	
 }

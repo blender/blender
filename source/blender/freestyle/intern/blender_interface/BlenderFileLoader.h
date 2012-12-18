@@ -1,34 +1,68 @@
-#ifndef  BLENDER_FILE_LOADER_H
-# define BLENDER_FILE_LOADER_H
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2010 Blender Foundation.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 
-# include <string.h>              
-# include <float.h>
+#ifndef __BLENDER_FILE_LOADER_H__
+#define __BLENDER_FILE_LOADER_H__
 
-# include "../system/FreestyleConfig.h"
-# include "../system/RenderMonitor.h"
-# include "../scene_graph/NodeGroup.h"
-# include "../scene_graph/NodeTransform.h"
-# include "../scene_graph/NodeShape.h"
-# include "../scene_graph/IndexedFaceSet.h"
-# include "../geometry/BBox.h"
-# include "../geometry/Geom.h"
-# include "../geometry/GeomCleaner.h"
-# include "../geometry/GeomUtils.h"
+/** \file blender/freestyle/intern/blender_interface/BlenderFileLoader.h
+ *  \ingroup freestyle
+ */
 
+#include <string.h>
+#include <float.h>
+
+#include "../geometry/BBox.h"
+#include "../geometry/Geom.h"
+#include "../geometry/GeomCleaner.h"
+#include "../geometry/GeomUtils.h"
+#include "../scene_graph/IndexedFaceSet.h"
+#include "../scene_graph/NodeGroup.h"
+#include "../scene_graph/NodeTransform.h"
+#include "../scene_graph/NodeShape.h"
+#include "../system/FreestyleConfig.h"
+#include "../system/RenderMonitor.h"
+
+// XXX Are those "ifdef __cplusplus" useful here?
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-	#include "DNA_material_types.h"
-	#include "DNA_meshdata_types.h"
-	#include "DNA_scene_types.h"
-	#include "render_types.h"
-	#include "renderdatabase.h"
-	
-	#include "BKE_mesh.h"
-	#include "BKE_scene.h"
-	#include "BLI_math.h"
-	
+#include "DNA_material_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_scene_types.h"
+
+#include "renderdatabase.h"
+#include "render_types.h"
+
+#include "BKE_mesh.h"
+#include "BKE_scene.h"
+
+#include "BLI_math.h"
+
 #ifdef __cplusplus
 }
 #endif
@@ -52,21 +86,21 @@ struct LoaderState {
 class LIB_SCENE_GRAPH_EXPORT BlenderFileLoader
 {
 public:
-  /*! Builds a MaxFileLoader */
+	/*! Builds a MaxFileLoader */
 	BlenderFileLoader(Render *re, SceneRenderLayer* srl);
-  virtual ~BlenderFileLoader();
+	virtual ~BlenderFileLoader();
 
-  /*! Loads the 3D scene and returns a pointer to the scene root node */
-  NodeGroup * Load();
+	/*! Loads the 3D scene and returns a pointer to the scene root node */
+	NodeGroup * Load();
 
-  /*! Gets the number of read faces */
-  inline unsigned int numFacesRead() {return _numFacesRead;}
+	/*! Gets the number of read faces */
+	inline unsigned int numFacesRead() {return _numFacesRead;}
 
-  /*! Gets the smallest edge size read */
-  inline real minEdgeSize() {return _minEdgeSize;}
+	/*! Gets the smallest edge size read */
+	inline real minEdgeSize() {return _minEdgeSize;}
 
-  /*! Modifiers */
-  inline void setRenderMonitor(RenderMonitor *iRenderMonitor) {_pRenderMonitor = iRenderMonitor;}
+	/*! Modifiers */
+	inline void setRenderMonitor(RenderMonitor *iRenderMonitor) {_pRenderMonitor = iRenderMonitor;}
 
 protected:
 	void insertShapeNode(ObjectInstanceRen *obi, int id);
@@ -75,10 +109,10 @@ protected:
 	int countClippedFaces(float v1[3], float v2[3], float v3[3], int clip[3]);
 	void clipLine(float v1[3], float v2[3], float c[3], float z);
 	void clipTriangle(int numTris, float triCoords[][3], float v1[3], float v2[3], float v3[3],
-		float triNormals[][3], float n1[3], float n2[3], float n3[3],
-		bool edgeMarks[5], bool em1, bool em2, bool em3, int clip[3]);
+	                  float triNormals[][3], float n1[3], float n2[3], float n3[3],
+	                  bool edgeMarks[5], bool em1, bool em2, bool em3, int clip[3]);
 	void addTriangle(struct LoaderState *ls, float v1[3], float v2[3], float v3[3],
-		float n1[3], float n2[3], float n3[3], bool fm, bool em1, bool em2, bool em3);
+	                 float n1[3], float n2[3], float n3[3], bool fm, bool em1, bool em2, bool em3);
 
 protected:
 	struct detri_t {
@@ -86,9 +120,9 @@ protected:
 		Vec3r v;
 		unsigned n;
 	};
-	Render* _re;
-	SceneRenderLayer* _srl;
-	NodeGroup* _Scene;
+	Render *_re;
+	SceneRenderLayer *_srl;
+	NodeGroup *_Scene;
 	unsigned _numFacesRead;
 	real _minEdgeSize;
 	bool _smooth; /* if true, face smoothness is taken into account */
@@ -101,4 +135,4 @@ protected:
 	RenderMonitor *_pRenderMonitor;
 };
 
-#endif // BLENDER_FILE_LOADER_H
+#endif // __BLENDER_FILE_LOADER_H__

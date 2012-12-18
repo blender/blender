@@ -1,23 +1,33 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2010 Blender Foundation.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 
-//
-//  Copyright (C) : Please refer to the COPYRIGHT file distributed 
-//   with this source distribution. 
-//
-//  This program is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU General Public License
-//  as published by the Free Software Foundation; either version 2
-//  of the License, or (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-//
-///////////////////////////////////////////////////////////////////////////////
+/** \file blender/freestyle/intern/application/AppCanvas.cpp
+ *  \ingroup freestyle
+ */
 
 #include "Controller.h"
 #include "AppView.h"
@@ -33,90 +43,89 @@
 AppCanvas::AppCanvas()
 :Canvas()
 {
-  _pViewer = 0;
-	_MapsPath = StringUtils::toAscii( Config::Path::getInstance()->getMapsDir() ).c_str();
+	_pViewer = 0;
+	_MapsPath = StringUtils::toAscii(Config::Path::getInstance()->getMapsDir()).c_str();
 }
 
 AppCanvas::AppCanvas(AppView* iViewer)
 :Canvas()
 {
-  _pViewer = iViewer;
+	_pViewer = iViewer;
 }
 
 AppCanvas::AppCanvas(const AppCanvas& iBrother)
 :Canvas(iBrother)
 {
-  _pViewer = iBrother._pViewer;
+	_pViewer = iBrother._pViewer;
 }
 
 AppCanvas::~AppCanvas()
 {
-  _pViewer = 0;
+	_pViewer = 0;
 }
 
 void AppCanvas::setViewer(AppView *iViewer)
 {
-  _pViewer = iViewer;
-}  
+	_pViewer = iViewer;
+}
 
 int AppCanvas::width() const 
 {
-  return _pViewer->width();
+	return _pViewer->width();
 }
 
 int AppCanvas::height() const
 {
-  return _pViewer->height();
+	return _pViewer->height();
 }
 
 BBox<Vec2i> AppCanvas::border() const
 {
-  return _pViewer->border();
+	return _pViewer->border();
 }
 
 float AppCanvas::thickness() const
 {
-  return _pViewer->thickness();
+	return _pViewer->thickness();
 }
 
 BBox<Vec3r> AppCanvas::scene3DBBox() const 
 {
-  return _pViewer->scene3DBBox();
+	return _pViewer->scene3DBBox();
 }
 
 void AppCanvas::preDraw()
 {
-  Canvas::preDraw();
+	Canvas::preDraw();
 }
 
-void AppCanvas::init() 
+void AppCanvas::init()
 {
-
-	//   static bool firsttime = true;
-	//   if (firsttime) {
-	// 
-	//   _Renderer = new BlenderStrokeRenderer;
-	//   if(!StrokeRenderer::loadTextures())
-	//     {
-	//       cerr << "unable to load stroke textures" << endl;
-	//       return;
-	//     }
-	// 	}
+#if 0
+	static bool firsttime = true;
+	if (firsttime) {
+		_Renderer = new BlenderStrokeRenderer;
+		if(!StrokeRenderer::loadTextures()) {
+			cerr << "unable to load stroke textures" << endl;
+			return;
+		}
+	}
+#endif
 }
 
 void AppCanvas::postDraw()
 {
-  for (unsigned i = 0; i < _StyleModules.size(); i++) {
-    if(!_StyleModules[i]->getDisplayed() || !_Layers[i])
-      continue;
-    _Layers[i]->ScaleThickness(thickness());
-  }
-  Canvas::postDraw();
+	for (unsigned int i = 0; i < _StyleModules.size(); i++) {
+		if(!_StyleModules[i]->getDisplayed() || !_Layers[i])
+			continue;
+		_Layers[i]->ScaleThickness(thickness());
+	}
+	Canvas::postDraw();
 }
 
 void AppCanvas::Erase()
 {
-  Canvas::Erase();
+	Canvas::Erase();
 }
 
 // Abstract
@@ -136,7 +145,8 @@ void AppCanvas::readColorPixels(int x,int y,int w, int h, RGBImage& oImage) cons
 		int recty = _pass_z.height;
 		float xfac = ((float)rectx) / ((float)(xmax - xmin));
 		float yfac = ((float)recty) / ((float)(ymax - ymin));
-		//printf("readColorPixels %d x %d @ (%d, %d) in %d x %d [%d x %d] -- %d x %d @ %d%%\n", w, h, x, y, xsch, ysch, xmax - xmin, ymax - ymin, rectx, recty, (int)(xfac * 100.0f));
+		//printf("readColorPixels %d x %d @ (%d, %d) in %d x %d [%d x %d] -- %d x %d @ %d%%\n", w, h, x, y, xsch, ysch,
+		//       xmax - xmin, ymax - ymin, rectx, recty, (int)(xfac * 100.0f));
 		int ii, jj;
 		for (int j = 0; j < h; j++) {
 			jj = (int)((y - ymin + j) * yfac);
@@ -168,7 +178,8 @@ void AppCanvas::readDepthPixels(int x,int y,int w, int h, GrayImage& oImage) con
 		int recty = _pass_z.height;
 		float xfac = ((float)rectx) / ((float)(xmax - xmin));
 		float yfac = ((float)recty) / ((float)(ymax - ymin));
-		//printf("readDepthPixels %d x %d @ (%d, %d) in %d x %d [%d x %d] -- %d x %d @ %d%%\n", w, h, x, y, xsch, ysch, xmax - xmin, ymax - ymin, rectx, recty, (int)(xfac * 100.0f));
+		//printf("readDepthPixels %d x %d @ (%d, %d) in %d x %d [%d x %d] -- %d x %d @ %d%%\n", w, h, x, y, xsch, ysch,
+		//       xmax - xmin, ymax - ymin, rectx, recty, (int)(xfac * 100.0f));
 		int ii, jj;
 		for (int j = 0; j < h; j++) {
 			jj = (int)((y - ymin + j) * yfac);
@@ -185,8 +196,8 @@ void AppCanvas::readDepthPixels(int x,int y,int w, int h, GrayImage& oImage) con
 	oImage.setArray(z, xsch, ysch, w, h, x, y, false);
 }
 
-void AppCanvas::RenderStroke(Stroke *iStroke) {
-
+void AppCanvas::RenderStroke(Stroke *iStroke)
+{
 	if(_basic)
 		iStroke->RenderBasic(_Renderer);
 	else
@@ -194,5 +205,6 @@ void AppCanvas::RenderStroke(Stroke *iStroke) {
 }
 
 
-void AppCanvas::update() {}
-
+void AppCanvas::update()
+{
+}
