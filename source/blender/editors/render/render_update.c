@@ -33,6 +33,7 @@
 
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -46,6 +47,7 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_derivedmesh.h"
 #include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
@@ -56,6 +58,7 @@
 #include "BKE_world.h"
 
 #include "GPU_material.h"
+#include "GPU_buffers.h"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
@@ -232,6 +235,9 @@ static int nodes_use_material(bNodeTree *ntree, Material *ma)
 static void material_changed(Main *bmain, Material *ma)
 {
 	Material *parent;
+	Object *ob;
+	Scene *scene;
+	int texture_draw = FALSE;
 
 	/* icons */
 	BKE_icon_changed(BKE_icon_getid(&ma->id));
@@ -254,6 +260,30 @@ static void material_changed(Main *bmain, Material *ma)
 		if (parent->gpumaterial.first)
 			GPU_material_free(parent);
 	}
+
+	/* find if we have a scene with textured display */
+	for (scene = bmain->scene.first; scene; scene = scene->id.next)
+		if (scene->customdata_mask & CD_MASK_MTFACE)
+			texture_draw = TRUE;
+
+	/* find textured objects */
+	if (texture_draw && !(U.gameflags & USER_DISABLE_VBO)) {
+		for (ob = bmain->object.first; ob; ob = ob->id.next) {
+			DerivedMesh *dm = ob->derivedFinal;
+			Material ***material = give_matarar(ob);
+			short a, *totmaterial = give_totcolp(ob);
+
+			if (dm && totmaterial && material) {
+				for (a = 0; a < *totmaterial; a++) {
+					if ((*material)[a] == ma) {
+						GPU_drawobject_free(dm);
+						break;
+					}
+				}
+			}
+		}
+	}
+
 }
 
 static void lamp_changed(Main *bmain, Lamp *la)
@@ -277,28 +307,33 @@ static void lamp_changed(Main *bmain, Lamp *la)
 		GPU_material_free(&defmaterial);
 }
 
+static int material_uses_texture(Material *ma, Tex *tex)
+{
+	if (mtex_use_tex(ma->mtex, MAX_MTEX, tex))
+		return TRUE;
+	else if (ma->use_nodes && ma->nodetree && nodes_use_tex(ma->nodetree, tex))
+		return TRUE;
+	
+	return FALSE;
+}
+
 static void texture_changed(Main *bmain, Tex *tex)
 {
 	Material *ma;
 	Lamp *la;
 	World *wo;
 	Scene *scene;
+	Object *ob;
 	bNode *node;
+	int texture_draw = FALSE;
 
 	/* icons */
 	BKE_icon_changed(BKE_icon_getid(&tex->id));
 
 	/* find materials */
 	for (ma = bmain->mat.first; ma; ma = ma->id.next) {
-		if (mtex_use_tex(ma->mtex, MAX_MTEX, tex)) {
-			/* pass */
-		}
-		else if (ma->use_nodes && ma->nodetree && nodes_use_tex(ma->nodetree, tex)) {
-			/* pass */
-		}
-		else {
+		if (!material_uses_texture(ma, tex))
 			continue;
-		}
 
 		BKE_icon_changed(BKE_icon_getid(&ma->id));
 
@@ -340,6 +375,27 @@ static void texture_changed(Main *bmain, Tex *tex)
 			for (node = scene->nodetree->nodes.first; node; node = node->next) {
 				if (node->id == &tex->id)
 					ED_node_changed_update(&scene->id, node);
+			}
+		}
+
+		if (scene->customdata_mask & CD_MASK_MTFACE)
+			texture_draw = TRUE;
+	}
+
+	/* find textured objects */
+	if (texture_draw && !(U.gameflags & USER_DISABLE_VBO)) {
+		for (ob = bmain->object.first; ob; ob = ob->id.next) {
+			DerivedMesh *dm = ob->derivedFinal;
+			Material ***material = give_matarar(ob);
+			short a, *totmaterial = give_totcolp(ob);
+
+			if (dm && totmaterial && material) {
+				for (a = 0; a < *totmaterial; a++) {
+					if (material_uses_texture((*material)[a], tex)) {
+						GPU_drawobject_free(dm);
+						break;
+					}
+				}
 			}
 		}
 	}
