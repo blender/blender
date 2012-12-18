@@ -81,9 +81,9 @@
 #define ICON_GRID_COLS      26
 #define ICON_GRID_ROWS      30
 
-#define ICON_GRID_MARGIN    5
-#define ICON_GRID_W         16
-#define ICON_GRID_H         16
+#define ICON_GRID_MARGIN    10
+#define ICON_GRID_W         32
+#define ICON_GRID_H         32
 
 typedef struct IconImage {
 	int w;
