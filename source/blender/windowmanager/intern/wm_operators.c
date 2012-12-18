@@ -584,6 +584,10 @@ static char *wm_prop_pystring_from_context(bContext *C, PointerRNA *ptr, Propert
 		const char *identifier = link->data;
 		PointerRNA ctx_ptr = CTX_data_pointer_get(C, identifier);
 
+		if (ctx_ptr.type == NULL) {
+			continue;
+		}
+
 		if (ptr->id.data == ctx_ptr.id.data) {
 			if ((ptr->data == ctx_ptr.data) &&
 			    (ptr->type == ctx_ptr.type))
