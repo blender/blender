@@ -43,10 +43,10 @@ struct SpaceClip;
 struct wmOperatorType;
 
 /* channel heights */
-#define CHANNEL_FIRST           -UI_UNIT_Y
-#define CHANNEL_HEIGHT          UI_UNIT_Y
-#define CHANNEL_HEIGHT_HALF     (UI_UNIT_Y / 2.0f)
-#define CHANNEL_SKIP            2
+#define CHANNEL_FIRST           (-0.8f * U.widget_unit)
+#define CHANNEL_HEIGHT          (0.8f * U.widget_unit)
+#define CHANNEL_HEIGHT_HALF     (0.4f * U.widget_unit)
+#define CHANNEL_SKIP            (0.1f * U.widget_unit)
 #define CHANNEL_STEP            (CHANNEL_HEIGHT + CHANNEL_SKIP)
 
 #define CHANNEL_PAD             4
@@ -54,7 +54,7 @@ struct wmOperatorType;
 /* extra padding for lengths (to go under scrollers) */
 #define EXTRA_SCROLL_PAD        100.0f
 
-#define STRIP_HEIGHT_HALF       5
+#define STRIP_HEIGHT_HALF       (0.25 * UI_UNIT_Y)
 
 /* internal exports only */
 
