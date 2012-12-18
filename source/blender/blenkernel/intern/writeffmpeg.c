@@ -497,8 +497,15 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	c->rc_max_rate = rd->ffcodecdata.rc_max_rate * 1000;
 	c->rc_min_rate = rd->ffcodecdata.rc_min_rate * 1000;
 	c->rc_buffer_size = rd->ffcodecdata.rc_buffer_size * 1024;
+
+#if 0
+	/* this options are not set in ffmpeg.c and leads to artifacts with MPEG-4
+	 * see #33586: Encoding to mpeg4 makes first frame(s) blocky
+	 */
 	c->rc_initial_buffer_occupancy = rd->ffcodecdata.rc_buffer_size * 3 / 4;
 	c->rc_buffer_aggressivity = 1.0;
+#endif
+
 	c->me_method = ME_EPZS;
 	
 	codec = avcodec_find_encoder(c->codec_id);
