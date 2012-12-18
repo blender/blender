@@ -148,10 +148,8 @@ static void stats_pose(Scene *scene, RegionView3D *rv3d, bPoseChannel *pchan)
 	Bone *bone = pchan->bone;
 
 	if (bone) {
-		if (bone->flag & BONE_TRANSFORM) {
-			calc_tw_center(scene, pchan->pose_head);
-			protectflag_to_drawflags(pchan->protectflag, &rv3d->twdrawflag);
-		}
+		calc_tw_center(scene, pchan->pose_head);
+		protectflag_to_drawflags(pchan->protectflag, &rv3d->twdrawflag);
 	}
 }
 
@@ -361,18 +359,35 @@ int calc_manipulator_stats(const bContext *C)
 		else if (obedit->type == OB_ARMATURE) {
 			bArmature *arm = obedit->data;
 			EditBone *ebo;
-			for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
-				if (EBONE_VISIBLE(arm, ebo)) {
-					if (ebo->flag & BONE_TIPSEL) {
-						calc_tw_center(scene, ebo->tail);
-						totsel++;
-					}
-					if (ebo->flag & BONE_ROOTSEL) {
-						calc_tw_center(scene, ebo->head);
-						totsel++;
-					}
-					if (ebo->flag & BONE_SELECTED) {
-						stats_editbone(rv3d, ebo);
+
+			if ((v3d->around == V3D_ACTIVE) && (ebo = arm->act_edbone)) {
+				/* doesn't check selection or visibility intentionally */
+				if (ebo->flag & BONE_TIPSEL) {
+					calc_tw_center(scene, ebo->tail);
+					totsel++;
+				}
+				if ((ebo->flag & BONE_ROOTSEL) ||
+				    ((ebo->flag & BONE_TIPSEL) == FALSE))  /* ensure we get at least one point */
+				{
+					calc_tw_center(scene, ebo->head);
+					totsel++;
+				}
+				stats_editbone(rv3d, ebo);
+			}
+			else {
+				for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
+					if (EBONE_VISIBLE(arm, ebo)) {
+						if (ebo->flag & BONE_TIPSEL) {
+							calc_tw_center(scene, ebo->tail);
+							totsel++;
+						}
+						if (ebo->flag & BONE_ROOTSEL) {
+							calc_tw_center(scene, ebo->head);
+							totsel++;
+						}
+						if (ebo->flag & BONE_SELECTED) {
+							stats_editbone(rv3d, ebo);
+						}
 					}
 				}
 			}
@@ -480,17 +495,35 @@ int calc_manipulator_stats(const bContext *C)
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		bPoseChannel *pchan;
 		int mode = TFM_ROTATION; // mislead counting bones... bah. We don't know the manipulator mode, could be mixed
+		int ok = FALSE;
 
 		if ((ob->lay & v3d->lay) == 0) return 0;
 
-		totsel = count_set_pose_transflags(&mode, 0, ob);
-
-		if (totsel) {
-			/* use channels to get stats */
-			for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+		if ((v3d->around == V3D_ACTIVE) && (pchan = BKE_pose_channel_active(ob))) {
+			/* doesn't check selection or visibility intentionally */
+			Bone *bone = pchan->bone;
+			if (bone) {
 				stats_pose(scene, rv3d, pchan);
+				totsel = 1;
+				ok = TRUE;
 			}
+		}
+		else {
+			totsel = count_set_pose_transflags(&mode, 0, ob);
 
+			if (totsel) {
+				/* use channels to get stats */
+				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+					Bone *bone = pchan->bone;
+					if (bone && (bone->flag & BONE_TRANSFORM)) {
+						stats_pose(scene, rv3d, pchan);
+					}
+				}
+				ok = TRUE;
+			}
+		}
+
+		if (ok) {
 			mul_v3_fl(scene->twcent, 1.0f / (float)totsel);   // centroid!
 			mul_m4_v3(ob->obmat, scene->twcent);
 			mul_m4_v3(ob->obmat, scene->twmin);
@@ -552,8 +585,9 @@ int calc_manipulator_stats(const bContext *C)
 		switch (v3d->twmode) {
 		
 			case V3D_MANIP_GLOBAL:
+			{
 				break; /* nothing to do */
-
+			}
 			case V3D_MANIP_GIMBAL:
 			{
 				float mat[3][3];
@@ -562,28 +596,43 @@ int calc_manipulator_stats(const bContext *C)
 					break;
 				}
 				/* if not gimbal, fall through to normal */
+				/* pass through */
 			}
 			case V3D_MANIP_NORMAL:
+			{
 				if (obedit || ob->mode & OB_MODE_POSE) {
 					float mat[3][3];
 					ED_getTransformOrientationMatrix(C, mat, (v3d->around == V3D_ACTIVE));
 					copy_m4_m3(rv3d->twmat, mat);
 					break;
 				}
-			/* no break we define 'normal' as 'local' in Object mode */
+				/* no break we define 'normal' as 'local' in Object mode */
+				/* pass through */
+			}
 			case V3D_MANIP_LOCAL:
+			{
+				if (ob->mode & OB_MODE_POSE) {
+					/* each bone moves on its own local axis, but  to avoid confusion,
+					 * use the active pones axis for display [#33575], this works as expected on a single bone
+					 * and users who select many bones will understand whats going on and what local means
+					 * when they start transforming */
+					float mat[3][3];
+					ED_getTransformOrientationMatrix(C, mat, (v3d->around == V3D_ACTIVE));
+					copy_m4_m3(rv3d->twmat, mat);
+					break;
+				}
 				copy_m4_m4(rv3d->twmat, ob->obmat);
 				normalize_m4(rv3d->twmat);
 				break;
-
+			}
 			case V3D_MANIP_VIEW:
 			{
 				float mat[3][3];
 				copy_m3_m4(mat, rv3d->viewinv);
 				normalize_m3(mat);
 				copy_m4_m3(rv3d->twmat, mat);
+				break;
 			}
-			break;
 			default: /* V3D_MANIP_CUSTOM */
 			{
 				float mat[3][3];
