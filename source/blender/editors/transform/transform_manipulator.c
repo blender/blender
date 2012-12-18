@@ -361,18 +361,35 @@ int calc_manipulator_stats(const bContext *C)
 		else if (obedit->type == OB_ARMATURE) {
 			bArmature *arm = obedit->data;
 			EditBone *ebo;
-			for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
-				if (EBONE_VISIBLE(arm, ebo)) {
-					if (ebo->flag & BONE_TIPSEL) {
-						calc_tw_center(scene, ebo->tail);
-						totsel++;
-					}
-					if (ebo->flag & BONE_ROOTSEL) {
-						calc_tw_center(scene, ebo->head);
-						totsel++;
-					}
-					if (ebo->flag & BONE_SELECTED) {
-						stats_editbone(rv3d, ebo);
+
+			if ((v3d->around == V3D_ACTIVE) && (ebo = arm->act_edbone)) {
+				/* doesn't check selection or visibility intentionally */
+				if (ebo->flag & BONE_TIPSEL) {
+					calc_tw_center(scene, ebo->tail);
+					totsel++;
+				}
+				if ((ebo->flag & BONE_ROOTSEL) ||
+				    ((ebo->flag & BONE_TIPSEL) == FALSE))  /* ensure we get at least one point */
+				{
+					calc_tw_center(scene, ebo->head);
+					totsel++;
+				}
+				stats_editbone(rv3d, ebo);
+			}
+			else {
+				for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
+					if (EBONE_VISIBLE(arm, ebo)) {
+						if (ebo->flag & BONE_TIPSEL) {
+							calc_tw_center(scene, ebo->tail);
+							totsel++;
+						}
+						if (ebo->flag & BONE_ROOTSEL) {
+							calc_tw_center(scene, ebo->head);
+							totsel++;
+						}
+						if (ebo->flag & BONE_SELECTED) {
+							stats_editbone(rv3d, ebo);
+						}
 					}
 				}
 			}
@@ -480,17 +497,29 @@ int calc_manipulator_stats(const bContext *C)
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		bPoseChannel *pchan;
 		int mode = TFM_ROTATION; // mislead counting bones... bah. We don't know the manipulator mode, could be mixed
+		int ok = FALSE;
 
 		if ((ob->lay & v3d->lay) == 0) return 0;
 
-		totsel = count_set_pose_transflags(&mode, 0, ob);
+		if ((v3d->around == V3D_ACTIVE) && (pchan = BKE_pose_channel_active(ob))) {
+			/* doesn't check selection or visibility intentionally */
+			stats_pose(scene, rv3d, pchan);
+			totsel = 1;
+			ok = TRUE;
+		}
+		else {
+			totsel = count_set_pose_transflags(&mode, 0, ob);
 
-		if (totsel) {
-			/* use channels to get stats */
-			for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-				stats_pose(scene, rv3d, pchan);
+			if (totsel) {
+				/* use channels to get stats */
+				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+					stats_pose(scene, rv3d, pchan);
+				}
+				ok = TRUE;
 			}
+		}
 
+		if (ok) {
 			mul_v3_fl(scene->twcent, 1.0f / (float)totsel);   // centroid!
 			mul_m4_v3(ob->obmat, scene->twcent);
 			mul_m4_v3(ob->obmat, scene->twmin);
