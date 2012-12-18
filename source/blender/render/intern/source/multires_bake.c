@@ -869,7 +869,7 @@ static void create_ao_raytree(MultiresBakeRender *bkr, MAOBakeData *ao_data)
 	face_side = (grid_size << 1) - 1;
 	num_faces = num_grids * (grid_size - 1) * (grid_size - 1);
 
-	raytree = ao_data->raytree = RE_rayobject_create(NULL, bkr->raytrace_structure, num_faces);
+	raytree = ao_data->raytree = RE_rayobject_create(bkr->raytrace_structure, num_faces, bkr->octree_resolution);
 	face = ao_data->rayfaces = (RayFace *) MEM_callocN(num_faces * sizeof(RayFace), "ObjectRen faces");
 
 	for (i = 0; i < num_grids; i++) {

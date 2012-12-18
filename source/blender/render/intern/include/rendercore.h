@@ -83,7 +83,7 @@ int get_sample_layers(struct RenderPart *pa, struct RenderLayer *rl, struct Rend
 
 /* -------- ray.c ------- */
 
-struct RayObject *RE_rayobject_create(struct Render *re, int type, int size);
+struct RayObject *RE_rayobject_create(int type, int size, int octree_resolution);
 
 extern void freeraytree(Render *re);
 extern void makeraytree(Render *re);

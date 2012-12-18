@@ -94,7 +94,7 @@ static void RE_rayobject_config_control(RayObject *r, Render *re)
 	}
 }
 
-RayObject* RE_rayobject_create(Render *re, int type, int size)
+RayObject *RE_rayobject_create(int type, int size, int octree_resolution)
 {
 	RayObject * res = NULL;
 
@@ -117,7 +117,7 @@ RayObject* RE_rayobject_create(Render *re, int type, int size)
 	
 		
 	if (type == R_RAYSTRUCTURE_OCTREE) //TODO dynamic ocres
-		res = RE_rayobject_octree_create(re ? re->r.ocres : 128, size);
+		res = RE_rayobject_octree_create(octree_resolution, size);
 	else if (type == R_RAYSTRUCTURE_BLIBVH)
 		res = RE_rayobject_blibvh_create(size);
 	else if (type == R_RAYSTRUCTURE_VBVH)
@@ -129,10 +129,18 @@ RayObject* RE_rayobject_create(Render *re, int type, int size)
 	else
 		res = RE_rayobject_vbvh_create(size);	//Fallback
 	
+	return res;
+}
+
+static RayObject* rayobject_create(Render *re, int type, int size)
+{
+	RayObject * res = NULL;
+
+	res = RE_rayobject_create(type, size, re->r.ocres);
 	
-	if (res && re)
+	if (res)
 		RE_rayobject_config_control(res, re);
-	
+
 	return res;
 }
 
@@ -240,7 +248,7 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 			return NULL;
 
 		//Create Ray cast accelaration structure
-		raytree = RE_rayobject_create( re,  re->r.raytrace_structure, faces );
+		raytree = rayobject_create( re,  re->r.raytrace_structure, faces );
 		if (  (re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS) )
 			vlakprimitive = obr->rayprimitives = (VlakPrimitive*)MEM_callocN(faces*sizeof(VlakPrimitive), "ObjectRen primitives");
 		else
@@ -334,7 +342,7 @@ static void makeraytree_single(Render *re)
 	}
 	
 	//Create raytree
-	raytree = re->raytree = RE_rayobject_create( re, re->r.raytrace_structure, faces+special );
+	raytree = re->raytree = rayobject_create( re, re->r.raytrace_structure, faces+special );
 
 	if ( (re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS) ) {
 		vlakprimitive = re->rayprimitives = (VlakPrimitive*)MEM_callocN(faces*sizeof(VlakPrimitive), "Raytrace vlak-primitives");

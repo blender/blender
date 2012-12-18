@@ -49,6 +49,7 @@ typedef struct MultiresBakeRender {
 	int baked_objects, baked_faces;
 
 	int raytrace_structure;
+	int octree_resolution;
 
 	short *stop;
 	short *do_update;
