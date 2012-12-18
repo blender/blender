@@ -567,7 +567,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			char *data_path = NULL;
 
 			/* never fails */
-			id_path = RNA_path_from_ID_python(id);
+			id_path = RNA_path_full_ID_py(id);
 
 			if (ptr->id.data && ptr->data && prop) {
 				data_path = RNA_path_from_ID_to_property(ptr, prop);

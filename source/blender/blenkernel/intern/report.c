@@ -52,6 +52,8 @@ static const char *report_type_str(int type)
 			return TIP_("Info");
 		case RPT_OPERATOR:
 			return TIP_("Operator");
+		case RPT_PROPERTY:
+			return TIP_("Property");
 		case RPT_WARNING:
 			return TIP_("Warning");
 		case RPT_ERROR:

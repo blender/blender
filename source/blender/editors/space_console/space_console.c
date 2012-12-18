@@ -174,7 +174,7 @@ static void id_drop_copy(wmDrag *drag, wmDropBox *drop)
 	ID *id = drag->poin;
 
 	/* copy drag path to properties */
-	text = RNA_path_from_ID_python(id);
+	text = RNA_path_full_ID_py(id);
 	RNA_string_set(drop->ptr, "text", text);
 	MEM_freeN(text);
 }

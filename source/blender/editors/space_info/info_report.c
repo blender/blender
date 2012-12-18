@@ -62,7 +62,7 @@ int info_report_mask(SpaceInfo *UNUSED(sinfo))
 	return report_mask;
 #endif
 
-	return RPT_DEBUG_ALL | RPT_INFO_ALL | RPT_OPERATOR_ALL | RPT_WARNING_ALL | RPT_ERROR_ALL;
+	return RPT_DEBUG_ALL | RPT_INFO_ALL | RPT_OPERATOR_ALL | RPT_PROPERTY_ALL | RPT_WARNING_ALL | RPT_ERROR_ALL;
 }
 
 // TODO, get this working again!
@@ -77,7 +77,10 @@ static int report_replay_exec(bContext *C, wmOperator *UNUSED(op))
 	sc->type = CONSOLE_TYPE_PYTHON;
 
 	for (report = reports->list.last; report; report = report->prev) {
-		if ((report->type & report_mask) && (report->type & RPT_OPERATOR_ALL) && (report->flag & SELECT)) {
+		if ((report->type & report_mask) &&
+		    (report->type & RPT_OPERATOR_ALL | RPT_PROPERTY_ALL) &&
+		    (report->flag & SELECT))
+		{
 			console_history_add_str(sc, report->message, 0);
 			WM_operator_name_call(C, "CONSOLE_OT_execute", WM_OP_EXEC_DEFAULT, NULL);
 

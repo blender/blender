@@ -397,6 +397,17 @@ static void ui_apply_autokey_undo(bContext *C, uiBut *but)
 
 	/* try autokey */
 	ui_but_anim_autokey(C, but, scene, scene->r.cfra);
+
+	/* make a little report about what we've done! */
+	if (but->rnaprop) {
+		char *buf = WM_prop_pystring_assign(C, &but->rnapoin, but->rnaprop, but->rnaindex);
+		if (buf) {
+			BKE_report(CTX_wm_reports(C), RPT_PROPERTY, buf);
+			MEM_freeN(buf);
+
+			WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO_REPORT, NULL);
+		}
+	}
 }
 
 static void ui_apply_but_funcs_after(bContext *C)

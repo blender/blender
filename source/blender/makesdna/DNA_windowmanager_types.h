@@ -65,19 +65,21 @@ struct uiLayout;
 
 /* keep in sync with 'wm_report_items' in wm_rna.c */
 typedef enum ReportType {
-	RPT_DEBUG					= 1<<0,
-	RPT_INFO					= 1<<1,
-	RPT_OPERATOR				= 1<<2,
-	RPT_WARNING					= 1<<3,
-	RPT_ERROR					= 1<<4,
-	RPT_ERROR_INVALID_INPUT		= 1<<5,
-	RPT_ERROR_INVALID_CONTEXT	= 1<<6,
-	RPT_ERROR_OUT_OF_MEMORY		= 1<<7
+	RPT_DEBUG					= 1 << 0,
+	RPT_INFO					= 1 << 1,
+	RPT_OPERATOR				= 1 << 2,
+	RPT_PROPERTY				= 1 << 3,
+	RPT_WARNING					= 1 << 4,
+	RPT_ERROR					= 1 << 5,
+	RPT_ERROR_INVALID_INPUT		= 1 << 6,
+	RPT_ERROR_INVALID_CONTEXT	= 1 << 7,
+	RPT_ERROR_OUT_OF_MEMORY		= 1 << 8
 } ReportType;
 
 #define RPT_DEBUG_ALL		(RPT_DEBUG)
 #define RPT_INFO_ALL		(RPT_INFO)
 #define RPT_OPERATOR_ALL	(RPT_OPERATOR)
+#define RPT_PROPERTY_ALL	(RPT_PROPERTY)
 #define RPT_WARNING_ALL		(RPT_WARNING)
 #define RPT_ERROR_ALL		(RPT_ERROR|RPT_ERROR_INVALID_INPUT|RPT_ERROR_INVALID_CONTEXT|RPT_ERROR_OUT_OF_MEMORY)
 

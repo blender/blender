@@ -416,6 +416,7 @@ EnumPropertyItem wm_report_items[] = {
 	{RPT_DEBUG, "DEBUG", 0, "Debug", ""},
 	{RPT_INFO, "INFO", 0, "Info", ""},
 	{RPT_OPERATOR, "OPERATOR", 0, "Operator", ""},
+	{RPT_PROPERTY, "PROPERTY", 0, "Property", ""},
 	{RPT_WARNING, "WARNING", 0, "Warning", ""},
 	{RPT_ERROR, "ERROR", 0, "Error", ""},
 	{RPT_ERROR_INVALID_INPUT, "ERROR_INVALID_INPUT", 0, "Invalid Input", ""},
