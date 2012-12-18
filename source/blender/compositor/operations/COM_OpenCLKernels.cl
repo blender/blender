@@ -66,7 +66,8 @@ __kernel void bokehBlurKernel(__read_only image2d_t boundingBox, __read_only ima
 		}
 		color /= multiplyer;
 		
-	} else {
+	}
+	else {
 		int2 imageCoordinates = realCoordinate - offsetInput;
 		color = read_imagef(inputImage, SAMPLER_NEAREST, imageCoordinates);
 	}

@@ -2413,7 +2413,8 @@ static void sph_evaluate_func(BVHTree *tree, ParticleSystem **psys, float co[3],
 		if (tree) {
 			BLI_bvhtree_range_query(tree, co, interaction_radius, callback, pfr);
 			break;
-		} else {
+		}
+		else {
 			BLI_bvhtree_range_query(psys[i]->bvhtree, co, interaction_radius, callback, pfr);
 		}
 	}
@@ -2815,7 +2816,8 @@ void psys_sph_init(ParticleSimulationData *sim, SPHData *sphdata)
 		sphdata->force_cb = sph_force_cb;
 		sphdata->density_cb = sph_density_accum_cb;
 		sphdata->hfac = 1.0f;
-	} else {
+	}
+	else {
 		/* SPH_SOLVER_CLASSICAL */
 		sphdata->force_cb = sphclassical_force_cb;
 		sphdata->density_cb = sphclassical_density_accum_cb;
@@ -4221,7 +4223,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 					/* actual fluids calculations */
 					sph_integrate(sim, pa, pa->state.time, &sphdata);
 
-					if(sim->colliders)
+					if (sim->colliders)
 						collision_check(sim, p, pa->state.time, cfra);
 
 					/* SPH particles are not physical particles, just interpolation
@@ -4235,7 +4237,8 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 
 				sph_springs_modify(psys, timestep);
 
-			} else {
+			}
+			else {
 				/* SPH_SOLVER_CLASSICAL */
 				/* Apply SPH forces using classical algorithm (due to Gingold
 				 * and Monaghan). Note that, unlike double-density relaxation,
@@ -4258,7 +4261,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 					/* actual fluids calculations */
 					sph_integrate(sim, pa, pa->state.time, &sphdata);
 
-					if(sim->colliders)
+					if (sim->colliders)
 						collision_check(sim, p, pa->state.time, cfra);
 				
 					/* SPH particles are not physical particles, just interpolation

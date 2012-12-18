@@ -1526,7 +1526,7 @@ GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
 		ntreeGPUMaterialNodes(ma->nodetree, mat);
 	}
 	else {
-		if(BKE_scene_use_new_shading_nodes(scene)) {
+		if (BKE_scene_use_new_shading_nodes(scene)) {
 			/* create simple diffuse material instead of nodes */
 			outlink = gpu_material_diffuse_bsdf(mat, ma);
 		}

@@ -1570,7 +1570,7 @@ void BKE_object_rot_to_mat3(Object *ob, float mat[3][3], short use_drot)
 	}
 	
 	/* combine these rotations */
-	if(use_drot)
+	if (use_drot)
 		mul_m3_m3m3(mat, dmat, rmat);
 	else
 		copy_m3_m3(mat, rmat);

@@ -3320,8 +3320,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 
 				case WT_REPLACE_ALL_VERTEX_GROUPS:
 					for (dg_src = ob_slc->defbase.first; dg_src; dg_src = dg_src->next) {
-						if (!ed_vgroup_transfer_weight(ob_act, ob_slc, dg_src, scene, method, replace_mode, op))
-						{
+						if (!ed_vgroup_transfer_weight(ob_act, ob_slc, dg_src, scene, method, replace_mode, op)) {
 							fail++;
 						}
 					}

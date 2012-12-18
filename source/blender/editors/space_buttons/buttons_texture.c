@@ -363,7 +363,7 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void *UNUS
 			Tex *tex = texptr.data;
 
 			if (tex)
-				BLI_snprintf(name, UI_MAX_NAME_STR, "  %s - %s", user->name, tex->id.name+2);
+				BLI_snprintf(name, UI_MAX_NAME_STR, "  %s - %s", user->name, tex->id.name + 2);
 			else
 				BLI_snprintf(name, UI_MAX_NAME_STR, "  %s", user->name);
 		}
