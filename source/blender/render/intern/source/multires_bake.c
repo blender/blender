@@ -55,6 +55,10 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
+#include "rayintersection.h"
+#include "rayobject.h"
+#include "rendercore.h"
+
 typedef void (*MPassKnownData)(DerivedMesh *lores_dm, DerivedMesh *hires_dm, const void *bake_data,
                                ImBuf *ibuf, const int face_index, const int lvl, const float st[2],
                                float tangmat[3][3], const int x, const int y);
@@ -101,6 +105,20 @@ typedef struct {
 	const int *orig_index_mf_to_mpoly;
 	const int *orig_index_mp_to_orig;
 } MNormalBakeData;
+
+typedef struct {
+	int number_of_rays;
+	float bias;
+
+	unsigned short *permutation_table_1;
+	unsigned short *permutation_table_2;
+
+	RayObject *raytree;
+	RayFace *rayfaces;
+
+	const int *orig_index_mf_to_mpoly;
+	const int *orig_index_mp_to_orig;
+} MAOBakeData;
 
 static void multiresbake_get_normal(const MResolvePixelData *data, float norm[], const int face_num, const int vert_index)
 {
@@ -169,10 +187,6 @@ static void flush_pixel(const MResolvePixelData *data, const int x, const int y)
 	st1 = data->mtface[data->face_index].uv[i1];
 	st2 = data->mtface[data->face_index].uv[i2];
 
-	tang0 = data->pvtangent + data->face_index * 16 + i0 * 4;
-	tang1 = data->pvtangent + data->face_index * 16 + i1 * 4;
-	tang2 = data->pvtangent + data->face_index * 16 + i2 * 4;
-
 	multiresbake_get_normal(data, no0, data->face_index, i0);   /* can optimize these 3 into one call */
 	multiresbake_get_normal(data, no1, data->face_index, i1);
 	multiresbake_get_normal(data, no2, data->face_index, i2);
@@ -183,21 +197,29 @@ static void flush_pixel(const MResolvePixelData *data, const int x, const int y)
 	v = fUV[1];
 	w = 1 - u - v;
 
-	/* the sign is the same at all face vertices for any non degenerate face.
-	 * Just in case we clamp the interpolated value though. */
-	sign = (tang0[3] * u + tang1[3] * v + tang2[3] * w) < 0 ? (-1.0f) : 1.0f;
+	if (data->pvtangent) {
+		tang0 = data->pvtangent + data->face_index * 16 + i0 * 4;
+		tang1 = data->pvtangent + data->face_index * 16 + i1 * 4;
+		tang2 = data->pvtangent + data->face_index * 16 + i2 * 4;
 
-	/* this sequence of math is designed specifically as is with great care
-	 * to be compatible with our shader. Please don't change without good reason. */
-	for (r = 0; r < 3; r++) {
-		from_tang[0][r] = tang0[r] * u + tang1[r] * v + tang2[r] * w;
-		from_tang[2][r] = no0[r] * u + no1[r] * v + no2[r] * w;
+		/* the sign is the same at all face vertices for any non degenerate face.
+		 * Just in case we clamp the interpolated value though. */
+		sign = (tang0[3] * u + tang1[3] * v + tang2[3] * w) < 0 ? (-1.0f) : 1.0f;
+
+		/* this sequence of math is designed specifically as is with great care
+		 * to be compatible with our shader. Please don't change without good reason. */
+		for (r = 0; r < 3; r++) {
+			from_tang[0][r] = tang0[r] * u + tang1[r] * v + tang2[r] * w;
+			from_tang[2][r] = no0[r] * u + no1[r] * v + no2[r] * w;
+		}
+
+		cross_v3_v3v3(from_tang[1], from_tang[2], from_tang[0]);  /* B = sign * cross(N, T)  */
+		mul_v3_fl(from_tang[1], sign);
+		invert_m3_m3(to_tang, from_tang);
 	}
-
-	cross_v3_v3v3(from_tang[1], from_tang[2], from_tang[0]);  /* B = sign * cross(N, T)  */
-	mul_v3_fl(from_tang[1], sign);
-	invert_m3_m3(to_tang, from_tang);
-	/* sequence end */
+	else {
+		zero_m3(to_tang);
+	}
 
 	data->pass_data(data->lores_dm, data->hires_dm, data->bake_data,
 	                data->ibuf, data->face_index, data->lvl, st, to_tang, x, y);
@@ -307,7 +329,7 @@ static int multiresbake_test_break(MultiresBakeRender *bkr)
 	return G.is_break;
 }
 
-static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, MPassKnownData passKnownData,
+static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, int require_tangent, MPassKnownData passKnownData,
                              MInitBakeData initBakeData, MApplyBakeData applyBakeData, MFreeBakeData freeBakeData)
 {
 	DerivedMesh *dm = bkr->lores_dm;
@@ -319,10 +341,12 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, MPassKnownData
 	MTFace *mtface = dm->getTessFaceDataArray(dm, CD_MTFACE);
 	float *pvtangent = NULL;
 
-	if (CustomData_get_layer_index(&dm->faceData, CD_TANGENT) == -1)
-		DM_add_tangent_layer(dm);
+	if (require_tangent) {
+		if (CustomData_get_layer_index(&dm->faceData, CD_TANGENT) == -1)
+			DM_add_tangent_layer(dm);
 
-	pvtangent = DM_get_tessface_data_layer(dm, CD_TANGENT);
+		pvtangent = DM_get_tessface_data_layer(dm, CD_TANGENT);
+	}
 
 	if (tot_face > 0) {  /* sanity check */
 		int f = 0;
@@ -769,6 +793,298 @@ static void apply_tangmat_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 	ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 }
 
+/* **************** Ambient Occlusion Baker **************** */
+
+#define MAX_NUMBER_OF_AO_RAYS 1024
+
+static unsigned short ao_random_table_1[MAX_NUMBER_OF_AO_RAYS];
+static unsigned short ao_random_table_2[MAX_NUMBER_OF_AO_RAYS];
+
+static void init_ao_random(void)
+{
+	int i;
+
+	for (i = 0; i < MAX_NUMBER_OF_AO_RAYS; i++) {
+		ao_random_table_1[i] = rand() & 0xffff;
+		ao_random_table_2[i] = rand() & 0xffff;
+	}
+}
+
+static unsigned short get_ao_random1(const int i)
+{
+	return ao_random_table_1[i & (MAX_NUMBER_OF_AO_RAYS - 1)];
+}
+
+static unsigned short get_ao_random2(const int i)
+{
+	return ao_random_table_2[i & (MAX_NUMBER_OF_AO_RAYS - 1)];
+}
+
+static void build_permutation_table(unsigned short permutation[], unsigned short temp_permutation[],
+                                    const int number_of_rays, const int is_first_perm_table)
+{
+	int i, k;
+
+	for (i = 0; i < number_of_rays; i++)
+		temp_permutation[i] = i;
+
+	for (i = 0; i < number_of_rays; i++) {
+		const unsigned int nr_entries_left = number_of_rays - i;
+		unsigned short rnd = is_first_perm_table != FALSE ? get_ao_random1(i) : get_ao_random2(i);
+		const unsigned short entry = rnd % nr_entries_left;
+
+		/* pull entry */
+		permutation[i] = temp_permutation[entry];
+
+		/* delete entry */
+		for(k = entry; k < nr_entries_left - 1; k++)
+			temp_permutation[k] = temp_permutation[k + 1];
+	}
+
+	/* verify permutation table
+	 * every entry must appear exactly once
+	 */
+#if 0
+	for(i = 0; i < number_of_rays; i++) temp_permutation[i] = 0;
+	for(i = 0; i < number_of_rays; i++) ++temp_permutation[permutation[i]];
+	for(i = 0; i < number_of_rays; i++) BLI_assert(temp_permutation[i] == 1);
+#endif
+}
+
+static void create_ao_raytree(MultiresBakeRender *bkr, MAOBakeData *ao_data)
+{
+	DerivedMesh *hidm = bkr->hires_dm;
+	RayObject *raytree;
+	RayFace *face;
+	CCGElem **grid_data;
+	CCGKey key;
+	int num_grids, grid_size, face_side, num_faces;
+	int i;
+
+	num_grids = hidm->getNumGrids(hidm);
+	grid_size = hidm->getGridSize(hidm);
+	grid_data = hidm->getGridData(hidm);
+	hidm->getGridKey(hidm, &key);
+
+	face_side = (grid_size << 1) - 1;
+	num_faces = num_grids * (grid_size - 1) * (grid_size - 1);
+
+	raytree = ao_data->raytree = RE_rayobject_create(NULL, bkr->raytrace_structure, num_faces);
+	face = ao_data->rayfaces = (RayFace *) MEM_callocN(num_faces * sizeof(RayFace), "ObjectRen faces");
+
+	for (i = 0; i < num_grids; i++) {
+		int x, y;
+		for (x = 0; x < grid_size - 1; x++) {
+			for (y = 0; y < grid_size - 1; y++) {
+				float co[4][3];
+
+				copy_v3_v3(co[0], CCG_grid_elem_co(&key, grid_data[i], x, y));
+				copy_v3_v3(co[1], CCG_grid_elem_co(&key, grid_data[i], x, y + 1));
+				copy_v3_v3(co[2], CCG_grid_elem_co(&key, grid_data[i], x + 1, y + 1));
+				copy_v3_v3(co[3], CCG_grid_elem_co(&key, grid_data[i], x + 1, y));
+
+				RE_rayface_from_coords(face, ao_data, face, co[0], co[1], co[2], co[3]);
+				RE_rayobject_add(raytree, RE_rayobject_unalignRayFace(face));
+
+				face++;
+			}
+		}
+	}
+
+	RE_rayobject_done(raytree);
+}
+
+static void *init_ao_data(MultiresBakeRender *bkr, Image *UNUSED(ima))
+{
+	MAOBakeData *ao_data;
+	DerivedMesh *lodm = bkr->lores_dm;
+	unsigned short *temp_permutation_table;
+	size_t permutation_size;
+
+	init_ao_random();
+
+	ao_data = MEM_callocN(sizeof(MAOBakeData), "MultiresBake aoData");
+
+	ao_data->number_of_rays = bkr->number_of_rays;
+	ao_data->bias = bkr->bias;
+
+	ao_data->orig_index_mf_to_mpoly = lodm->getTessFaceDataArray(lodm, CD_ORIGINDEX);
+	ao_data->orig_index_mp_to_orig = lodm->getPolyDataArray(lodm, CD_ORIGINDEX);
+
+	create_ao_raytree(bkr, ao_data);
+
+	/* initialize permutation tables */
+	permutation_size = sizeof(unsigned short) * bkr->number_of_rays;
+	ao_data->permutation_table_1 = MEM_callocN(permutation_size, "multires AO baker perm1");
+	ao_data->permutation_table_2 = MEM_callocN(permutation_size, "multires AO baker perm2");
+	temp_permutation_table = MEM_callocN(permutation_size, "multires AO baker temp perm");
+
+	build_permutation_table(ao_data->permutation_table_1, temp_permutation_table, bkr->number_of_rays, 1);
+	build_permutation_table(ao_data->permutation_table_2, temp_permutation_table, bkr->number_of_rays, 0);
+
+	MEM_freeN(temp_permutation_table);
+
+	return (void *)ao_data;
+}
+
+static void free_ao_data(void *bake_data)
+{
+	MAOBakeData *ao_data = (MAOBakeData *) bake_data;
+
+	RE_rayobject_free(ao_data->raytree);
+	MEM_freeN(ao_data->rayfaces);
+
+	MEM_freeN(ao_data->permutation_table_1);
+	MEM_freeN(ao_data->permutation_table_2);
+
+	MEM_freeN(ao_data);
+}
+
+/* builds an X and a Y axis from the given Z axis */
+static void build_coordinate_frame(float axisX[3], float axisY[3], const float axisZ[3])
+{
+	const float faX = fabsf(axisZ[0]);
+	const float faY = fabsf(axisZ[1]);
+	const float faZ = fabsf(axisZ[2]);
+
+	if (faX <= faY && faX <= faZ) {
+		const float len = sqrtf(axisZ[1] * axisZ[1] + axisZ[2] * axisZ[2]);
+		axisY[0] = 0; axisY[1] = axisZ[2] / len; axisY[2] = -axisZ[1] / len;
+		cross_v3_v3v3(axisX, axisY, axisZ);
+	}
+	else if (faY <= faZ) {
+		const float len = sqrtf(axisZ[0] * axisZ[0] + axisZ[2] * axisZ[2]);
+		axisX[0] = axisZ[2] / len; axisX[1] = 0; axisX[2] = -axisZ[0] / len;
+		cross_v3_v3v3(axisY, axisZ, axisX);
+	}
+	else {
+		const float len = sqrtf(axisZ[0] * axisZ[0] + axisZ[1] * axisZ[1]);
+		axisX[0] = axisZ[1] / len; axisX[1] = -axisZ[0] / len; axisX[2] = 0;
+		cross_v3_v3v3(axisY, axisZ, axisX);
+	}
+}
+
+/* return FALSE if nothing was hit and TRUE otherwise */
+static int trace_ao_ray(MAOBakeData *ao_data, float ray_start[3], float ray_direction[3])
+{
+	Isect isect = {{0}};
+
+	isect.dist = RE_RAYTRACE_MAXDIST;
+	copy_v3_v3(isect.start, ray_start);
+	copy_v3_v3(isect.dir, ray_direction);
+	isect.lay = -1;
+
+	normalize_v3(isect.dir);
+
+	return RE_rayobject_raycast(ao_data->raytree, &isect);
+}
+
+static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, const void *bake_data,
+                              ImBuf *ibuf, const int face_index, const int lvl, const float st[2],
+                              float UNUSED(tangmat[3][3]), const int x, const int y)
+{
+	MAOBakeData *ao_data = (MAOBakeData *) bake_data;
+	MTFace *mtface = CustomData_get_layer(&lores_dm->faceData, CD_MTFACE);
+	MFace mface;
+
+	int i, k, perm_offs;
+	float pos[3], nrm[3];
+	float cen[3];
+	float axisX[3], axisY[3], axisZ[3];
+	float shadow = 0;
+	float value;
+	int pixel = ibuf->x * y + x;
+	float uv[2], *st0, *st1, *st2, *st3;
+
+	lores_dm->getTessFace(lores_dm, face_index, &mface);
+
+	st0 = mtface[face_index].uv[0];
+	st1 = mtface[face_index].uv[1];
+	st2 = mtface[face_index].uv[2];
+
+	if (mface.v4) {
+		st3 = mtface[face_index].uv[3];
+		resolve_quad_uv(uv, st, st0, st1, st2, st3);
+	}
+	else
+		resolve_tri_uv(uv, st, st0, st1, st2);
+
+	CLAMP(uv[0], 0.0f, 1.0f);
+	CLAMP(uv[1], 0.0f, 1.0f);
+
+	get_ccgdm_data(lores_dm, hires_dm,
+	               ao_data->orig_index_mf_to_mpoly, ao_data->orig_index_mp_to_orig,
+	               lvl, face_index, uv[0], uv[1], pos, nrm);
+
+	/* offset ray origin by user bias along normal */
+	for (i = 0; i < 3; i++)
+		cen[i] = pos[i] + ao_data->bias * nrm[i];
+
+	/* build tangent frame */
+	for (i = 0; i < 3; i++)
+		axisZ[i] = nrm[i];
+
+	build_coordinate_frame(axisX, axisY, axisZ);
+
+	/* static noise */
+	perm_offs = (get_ao_random2(get_ao_random1(x) + y)) & (MAX_NUMBER_OF_AO_RAYS - 1);
+
+	/* importance sample shadow rays (cosine weighted) */
+	for (i = 0; i < ao_data->number_of_rays; i++) {
+		int hit_something;
+
+		/* use N-Rooks to distribute our N ray samples across
+		 * a multi-dimensional domain (2D)
+		 */
+		const unsigned short I = ao_random_table_1[(i + perm_offs) % ao_data->number_of_rays];
+		const unsigned short J = ao_random_table_2[i];
+
+		const float JitPh = (get_ao_random2(I + perm_offs) & (MAX_NUMBER_OF_AO_RAYS-1))/((float) MAX_NUMBER_OF_AO_RAYS);
+		const float JitTh = (get_ao_random1(J + perm_offs) & (MAX_NUMBER_OF_AO_RAYS-1))/((float) MAX_NUMBER_OF_AO_RAYS);
+		const float SiSqPhi = (I + JitPh) / ao_data->number_of_rays;
+		const float Theta = 2 * M_PI * ((J + JitTh) / ao_data->number_of_rays);
+
+		/* this gives results identical to the so-called cosine
+		 * weighted distribution relative to the north pole.
+		 */
+		float SiPhi = sqrt(SiSqPhi);
+		float CoPhi = SiSqPhi < 1.0f ? sqrt(1.0f - SiSqPhi) : 1.0f - SiSqPhi;
+		float CoThe = cos(Theta);
+		float SiThe = sin(Theta);
+
+		const float dx = CoThe * CoPhi;
+		const float dy = SiThe * CoPhi;
+		const float dz = SiPhi;
+
+		/* transform ray direction out of tangent frame */
+		float dv[3];
+		for (k = 0; k < 3; k++)
+			dv[k] = axisX[k] * dx + axisY[k] * dy + axisZ[k] * dz;
+
+		hit_something = trace_ao_ray(ao_data, cen, dv);
+
+		if (hit_something != 0)
+			shadow += 1;
+	}
+
+	value = 1.0f - (shadow / ao_data->number_of_rays);
+
+	if (ibuf->rect_float) {
+		float *rrgbf = ibuf->rect_float + pixel * 4;
+		rrgbf[0] = rrgbf[1] = rrgbf[2] = value;
+		rrgbf[3] = 1.0f;
+
+		ibuf->userflags = IB_RECT_INVALID;
+	}
+	else {
+		unsigned char *rrgb = (unsigned char *) ibuf->rect + pixel * 4;
+		rrgb[0] = rrgb[1] = rrgb[2] = FTOCHAR(value);
+		rrgb[3] = 255;
+	}
+
+	ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+}
+
 /* **************** Common functions public API relates on **************** */
 
 static void count_images(MultiresBakeRender *bkr)
@@ -812,11 +1128,14 @@ static void bake_images(MultiresBakeRender *bkr)
 
 			switch (bkr->mode) {
 				case RE_BAKE_NORMALS:
-					do_multires_bake(bkr, ima, apply_tangmat_callback, init_normal_data, NULL, free_normal_data);
+					do_multires_bake(bkr, ima, TRUE, apply_tangmat_callback, init_normal_data, NULL, free_normal_data);
 					break;
 				case RE_BAKE_DISPLACEMENT:
-					do_multires_bake(bkr, ima, apply_heights_callback, init_heights_data,
+					do_multires_bake(bkr, ima, FALSE, apply_heights_callback, init_heights_data,
 					                 apply_heights_data, free_heights_data);
+					break;
+				case RE_BAKE_AO:
+					do_multires_bake(bkr, ima, FALSE, apply_ao_callback, init_ao_data, NULL, free_ao_data);
 					break;
 			}
 		}

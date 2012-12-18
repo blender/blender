@@ -96,6 +96,9 @@ typedef struct {
 	ListBase data;
 	int bake_clear, bake_filter;
 	short mode, use_lores_mesh;
+	int number_of_rays;
+	float bias;
+	int raytrace_structure;
 } MultiresBakeJob;
 
 static int multiresbake_check(bContext *C, wmOperator *op)
@@ -203,12 +206,17 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
 
 	if (*lvl == 0) {
 		DerivedMesh *tmp_dm = CDDM_from_mesh(me, ob);
+
+		DM_set_only_copy(tmp_dm, CD_MASK_BAREMESH | CD_MASK_MTFACE);
+
 		dm = CDDM_copy(tmp_dm);
 		tmp_dm->release(tmp_dm);
 	}
 	else {
 		MultiresModifierData tmp_mmd = *mmd;
 		DerivedMesh *cddm = CDDM_from_mesh(me, ob);
+
+		DM_set_only_copy(cddm, CD_MASK_BAREMESH | CD_MASK_MTFACE);
 
 		tmp_mmd.lvl = *lvl;
 		tmp_mmd.sculptlvl = *lvl;
@@ -226,6 +234,14 @@ static DerivedMesh *multiresbake_create_hiresdm(Scene *scene, Object *ob, int *l
 	MultiresModifierData tmp_mmd = *mmd;
 	DerivedMesh *cddm = CDDM_from_mesh(me, ob);
 	DerivedMesh *dm;
+
+	DM_set_only_copy(cddm, CD_MASK_BAREMESH);
+
+	/* TODO: DM_set_only_copy wouldn't set mask for loop and poly data,
+	 *       but we really need BAREMESH only to save lots of memory
+	 */
+	CustomData_set_only_copy(&cddm->loopData, CD_MASK_BAREMESH);
+	CustomData_set_only_copy(&cddm->polyData, CD_MASK_BAREMESH);
 
 	*lvl = mmd->totlvl;
 	*simple = mmd->simple;
@@ -298,14 +314,13 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 		bkr.bake_filter = scene->r.bake_filter;
 		bkr.mode = scene->r.bake_mode;
 		bkr.use_lores_mesh = scene->r.bake_flag & R_BAKE_LORES_MESH;
+		bkr.bias = scene->r.bake_biasdist;
+		bkr.number_of_rays = scene->r.bake_rays_number;
+		bkr.raytrace_structure = scene->r.raytrace_structure;
 
 		/* create low-resolution DM (to bake to) and hi-resolution DM (to bake from) */
-		bkr.lores_dm = multiresbake_create_loresdm(scene, ob, &bkr.lvl);
-
-		if (!bkr.lores_dm)
-			continue;
-
 		bkr.hires_dm = multiresbake_create_hiresdm(scene, ob, &bkr.tot_lvl, &bkr.simple);
+		bkr.lores_dm = multiresbake_create_loresdm(scene, ob, &bkr.lvl);
 
 		RE_multires_bake_images(&bkr);
 
@@ -335,24 +350,25 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
 	bkj->mode = scene->r.bake_mode;
 	bkj->use_lores_mesh = scene->r.bake_flag & R_BAKE_LORES_MESH;
 	bkj->bake_clear = scene->r.bake_flag & R_BAKE_CLEAR;
+	bkj->bias = scene->r.bake_biasdist;
+	bkj->number_of_rays = scene->r.bake_rays_number;
+	bkj->raytrace_structure = scene->r.raytrace_structure;
 
 	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 	{
 		MultiresBakerJobData *data;
-		DerivedMesh *lores_dm;
 		int lvl;
+
 		ob = base->object;
 
 		multires_force_update(ob);
 
-		lores_dm = multiresbake_create_loresdm(scene, ob, &lvl);
-		if (!lores_dm)
-			continue;
-
 		data = MEM_callocN(sizeof(MultiresBakerJobData), "multiresBaker derivedMesh_data");
-		data->lores_dm = lores_dm;
-		data->lvl = lvl;
+
+		/* create low-resolution DM (to bake to) and hi-resolution DM (to bake from) */
 		data->hires_dm = multiresbake_create_hiresdm(scene, ob, &data->tot_lvl, &data->simple);
+		data->lores_dm = multiresbake_create_loresdm(scene, ob, &lvl);
+		data->lvl = lvl;
 
 		BLI_addtail(&bkj->data, data);
 	}
@@ -398,6 +414,10 @@ static void multiresbake_startjob(void *bkv, short *stop, short *do_update, floa
 		bkr.stop = stop;
 		bkr.do_update = do_update;
 		bkr.progress = progress;
+
+		bkr.bias = bkj->bias;
+		bkr.number_of_rays = bkj->number_of_rays;
+		bkr.raytrace_structure = bkj->raytrace_structure;
 
 		RE_multires_bake_images(&bkr);
 
@@ -652,7 +672,7 @@ static int objects_bake_render_modal(bContext *C, wmOperator *UNUSED(op), wmEven
 
 static int is_multires_bake(Scene *scene)
 {
-	if (ELEM(scene->r.bake_mode, RE_BAKE_NORMALS, RE_BAKE_DISPLACEMENT))
+	if (ELEM3(scene->r.bake_mode, RE_BAKE_NORMALS, RE_BAKE_DISPLACEMENT, RE_BAKE_AO))
 		return scene->r.bake_flag & R_BAKE_MULTIRES;
 
 	return 0;

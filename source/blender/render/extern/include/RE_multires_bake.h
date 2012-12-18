@@ -40,10 +40,15 @@ typedef struct MultiresBakeRender {
 	int simple, lvl, tot_lvl, bake_filter;
 	short mode, use_lores_mesh;
 
+	int number_of_rays;
+	float bias;
+
 	int tot_obj, tot_image;
 	ListBase image;
 
 	int baked_objects, baked_faces;
+
+	int raytrace_structure;
 
 	short *stop;
 	short *do_update;

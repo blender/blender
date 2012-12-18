@@ -561,6 +561,8 @@ void MEM_printmemlist_stats(void)
 	qsort(printblock, totpb, sizeof(MemPrintBlock), compare_len);
 	printf("\ntotal memory len: %.3f MB\n",
 	       (double)mem_in_use / (double)(1024 * 1024));
+	printf("peak memory len: %.3f MB\n",
+	       (double)peak_mem / (double)(1024 * 1024));
 	printf(" ITEMS TOTAL-MiB AVERAGE-KiB TYPE\n");
 	for (a = 0, pb = printblock; a < totpb; a++, pb++) {
 		printf("%6d (%8.3f  %8.3f) %s\n",

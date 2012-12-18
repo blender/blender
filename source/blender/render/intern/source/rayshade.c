@@ -94,7 +94,7 @@ static void RE_rayobject_config_control(RayObject *r, Render *re)
 	}
 }
 
-static RayObject*  RE_rayobject_create(Render *re, int type, int size)
+RayObject* RE_rayobject_create(Render *re, int type, int size)
 {
 	RayObject * res = NULL;
 
@@ -117,7 +117,7 @@ static RayObject*  RE_rayobject_create(Render *re, int type, int size)
 	
 		
 	if (type == R_RAYSTRUCTURE_OCTREE) //TODO dynamic ocres
-		res = RE_rayobject_octree_create(re->r.ocres, size);
+		res = RE_rayobject_octree_create(re ? re->r.ocres : 128, size);
 	else if (type == R_RAYSTRUCTURE_BLIBVH)
 		res = RE_rayobject_blibvh_create(size);
 	else if (type == R_RAYSTRUCTURE_VBVH)
@@ -130,7 +130,7 @@ static RayObject*  RE_rayobject_create(Render *re, int type, int size)
 		res = RE_rayobject_vbvh_create(size);	//Fallback
 	
 	
-	if (res)
+	if (res && re)
 		RE_rayobject_config_control(res, re);
 	
 	return res;

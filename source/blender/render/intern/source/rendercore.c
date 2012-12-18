@@ -2795,4 +2795,3 @@ struct Image *RE_bake_shade_get_image(void)
 {
 	return R.bakebuf;
 }
-
