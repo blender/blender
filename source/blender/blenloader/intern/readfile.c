@@ -5459,7 +5459,14 @@ static void *restore_pointer_by_name(Main *mainp, ID *id, int user)
 			for (; idn; idn = idn->next) {
 				if (idn->name[2] == name[0] && strcmp(idn->name+2, name) == 0) {
 					if (idn->lib == id->lib) {
-						if (user && idn->us == 0) idn->us++;
+						if (user == 1) {
+							if (idn->us == 0) {
+								idn->us++;
+							}
+						}
+						else if (user == 2) {
+							id_us_ensure_real(idn);
+						}
 						break;
 					}
 				}
@@ -5625,7 +5632,7 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 				else if (sl->spacetype == SPACE_IMAGE) {
 					SpaceImage *sima = (SpaceImage *)sl;
 					
-					sima->image = restore_pointer_by_name(newmain, (ID *)sima->image, 1);
+					sima->image = restore_pointer_by_name(newmain, (ID *)sima->image, 2);
 					
 					/* this will be freed, not worth attempting to find same scene,
 					 * since it gets initialized later */
@@ -5641,7 +5648,7 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 					 * so assume that here we're doing for undo only...
 					 */
 					sima->gpd = restore_pointer_by_name(newmain, (ID *)sima->gpd, 1);
-					sima->mask_info.mask = restore_pointer_by_name(newmain, (ID *)sima->mask_info.mask, 1);
+					sima->mask_info.mask = restore_pointer_by_name(newmain, (ID *)sima->mask_info.mask, 2);
 				}
 				else if (sl->spacetype == SPACE_SEQ) {
 					SpaceSeq *sseq = (SpaceSeq *)sl;
@@ -5716,8 +5723,8 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 				else if (sl->spacetype == SPACE_CLIP) {
 					SpaceClip *sclip = (SpaceClip *)sl;
 					
-					sclip->clip = restore_pointer_by_name(newmain, (ID *)sclip->clip, 1);
-					sclip->mask_info.mask = restore_pointer_by_name(newmain, (ID *)sclip->mask_info.mask, 1);
+					sclip->clip = restore_pointer_by_name(newmain, (ID *)sclip->clip, 2);
+					sclip->mask_info.mask = restore_pointer_by_name(newmain, (ID *)sclip->mask_info.mask, 2);
 					
 					sclip->scopes.ok = 0;
 				}

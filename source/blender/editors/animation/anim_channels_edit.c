@@ -1226,7 +1226,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 
 			case ANIMTYPE_MASKLAYER:
 			{
-				/* Grease Pencil layer */
+				/* Mask layer */
 				Mask *mask = (Mask *)ale->id;
 				MaskLayer *masklay = (MaskLayer *)ale->data;
 
