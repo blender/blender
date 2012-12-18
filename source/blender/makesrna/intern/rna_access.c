@@ -4233,6 +4233,54 @@ char *RNA_path_full_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
 	return ret;
 }
 
+/**
+ * Get the struct.property as a python representation, eg:
+ *   some_struct.some_prop[10]
+ */
+char *RNA_path_struct_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
+{
+	char *data_path;
+
+	char *ret;
+
+	if (!ptr->id.data) {
+		return NULL;
+	}
+
+	data_path = RNA_path_from_ID_to_property(ptr, prop);
+
+	if ((index == -1) || (RNA_property_array_check(prop) == FALSE)) {
+		ret = BLI_sprintfN("%s",
+		                   data_path);
+	}
+	else {
+		ret = BLI_sprintfN("%s[%d]",
+		                   data_path, index);
+	}
+
+	return ret;
+}
+
+/**
+ * Get the struct.property as a python representation, eg:
+ *   some_prop[10]
+ */
+char *RNA_path_property_py(PointerRNA *UNUSED(ptr), PropertyRNA *prop, int index)
+{
+	char *ret;
+
+	if ((index == -1) || (RNA_property_array_check(prop) == FALSE)) {
+		ret = BLI_sprintfN("%s",
+		                   RNA_property_identifier(prop));
+	}
+	else {
+		ret = BLI_sprintfN("%s[%d]",
+		                   RNA_property_identifier(prop), index);
+	}
+
+	return ret;
+}
+
 /* Quick name based property access */
 
 int RNA_boolean_get(PointerRNA *ptr, const char *name)

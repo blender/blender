@@ -560,11 +560,82 @@ char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, i
 	return cstring;
 }
 
+/* return NULL if no match is found */
+static char *wm_prop_pystring_from_context(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index)
+{
+
+	/* loop over all context items and do 2 checks
+	 *
+	 * - see if the pointer is in the context.
+	 * - see if the pointers ID is in the context.
+	 */
+
+	ListBase lb = CTX_data_dir_get(C);
+	LinkData *link;
+
+	const char *member_found = NULL;
+	const char *member_id = NULL;
+
+	char *prop_str = NULL;
+	char *ret = NULL;
+
+
+	for (link = lb.first; link; link = link->next) {
+		const char *identifier = link->data;
+		PointerRNA ctx_ptr = CTX_data_pointer_get(C, identifier);
+
+		if (ptr->id.data == ctx_ptr.id.data) {
+			if ((ptr->data == ctx_ptr.data) &&
+			    (ptr->type == ctx_ptr.type))
+			{
+				/* found! */
+				member_found = identifier;
+				break;
+			}
+			else if (RNA_struct_is_ID(ctx_ptr.type)) {
+				/* we found a reference to this ID,
+				 * so fallback to it if there is no direct reference */
+				member_id = identifier;
+			}
+		}
+	}
+
+	/* grr, CTX_data_dir_get skips scene */
+	if ((member_id == NULL) &&
+	    (ptr->id.data != NULL) &&
+	    (GS(((ID *)ptr->id.data)->name) == ID_SCE) &&
+	    (CTX_data_scene(C) == ptr->id.data))
+	{
+		member_id = "scene";
+	}
+
+	if (member_found) {
+		prop_str = RNA_path_property_py(ptr, prop, index);
+		ret = BLI_sprintfN("bpy.context.%s.%s", member_found, prop_str);
+		MEM_freeN(prop_str);
+	}
+	else if (member_id) {
+		prop_str = RNA_path_struct_property_py(ptr, prop, index);
+		ret = BLI_sprintfN("bpy.context.%s.%s", member_id, prop_str);
+		MEM_freeN(prop_str);
+	}
+
+	BLI_freelistN(&lb);
+
+	return ret;
+}
+
 char *WM_prop_pystring_assign(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index)
 {
 	char *lhs, *rhs, *ret;
 
-	lhs = RNA_path_full_property_py(ptr, prop, index);
+	lhs = C ? wm_prop_pystring_from_context(C, ptr, prop, index) : NULL;
+
+	if (lhs == NULL) {
+		/* fallback to bpy.data.foo[id] if we dont find in the context */
+		lhs = RNA_path_full_property_py(ptr, prop, index);
+	}
+
 	if (!lhs) {
 		return NULL;
 	}

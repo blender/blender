@@ -867,6 +867,8 @@ char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop);
 char *RNA_path_full_ID_py(struct ID *id);
 char *RNA_path_full_struct_py(struct PointerRNA *ptr);
 char *RNA_path_full_property_py(struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
+char *RNA_path_struct_property_py(struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
+char *RNA_path_property_py(struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
 
 /* Quick name based property access
  *
