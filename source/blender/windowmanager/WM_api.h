@@ -56,6 +56,7 @@ struct wmOperatorType;
 struct wmOperator;
 struct rcti;
 struct PointerRNA;
+struct PropertyRNA;
 struct EnumPropertyItem;
 struct MenuType;
 struct wmDropBox;
@@ -257,6 +258,8 @@ int         WM_operator_last_properties_store(struct wmOperator *op);
 
 		/* operator as a python command (resultuing string must be freed) */
 char		*WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args);
+char		*WM_prop_pystring(struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
+char		*WM_prop_pystring_assign(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
 void		WM_operator_bl_idname(char *to, const char *from);
 void		WM_operator_py_idname(char *to, const char *from);
 
