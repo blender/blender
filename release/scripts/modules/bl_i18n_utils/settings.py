@@ -80,6 +80,7 @@ LANGUAGES = (
     (34, "Estonian (Eestlane)", "et_EE"),
     (35, "Esperanto (Esperanto)", "eo"),
     (36, "Spanish from Spain (Español de España)", "es_ES"),
+    (37, "Amharic (አማርኛ)", "am_ET"),
 )
 
 # Name of language file used by Blender to generate translations' menu.
