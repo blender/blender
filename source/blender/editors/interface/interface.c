@@ -2787,6 +2787,10 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 	uiBut *but;
 	int freestr = 0, icon = 0;
 
+	if (ELEM3(type, COLOR, HSVCIRCLE, HSVCUBE)) {
+		BLI_assert(index == -1);
+	}
+
 	/* use rna values if parameters are not specified */
 	if (!str) {
 		if (type == MENU && proptype == PROP_ENUM) {

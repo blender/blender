@@ -2588,6 +2588,8 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	col[3] = 1.0f;
 
 	if (but->rnaprop) {
+		BLI_assert(but->rnaindex == -1);
+
 		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
 			color_profile = FALSE;
 

@@ -208,7 +208,7 @@ static void node_socket_button_color(const bContext *C, uiBlock *block,
 		
 		bt = uiDefButR(block, COLOR, B_NODE_EXEC, "",
 		               x, y + 2, (labelw > 0 ? 40 : width), NODE_DY - 2,
-		               &ptr, "default_value", 0, 0, 0, -1, -1, NULL);
+		               &ptr, "default_value", -1, 0, 0, -1, -1, NULL);
 		if (node)
 			uiButSetFunc(bt, node_sync_cb, CTX_wm_space_node(C), node);
 		
