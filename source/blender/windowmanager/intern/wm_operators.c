@@ -615,13 +615,17 @@ static char *wm_prop_pystring_from_context(bContext *C, PointerRNA *ptr, Propert
 
 	if (member_found) {
 		prop_str = RNA_path_property_py(ptr, prop, index);
-		ret = BLI_sprintfN("bpy.context.%s.%s", member_found, prop_str);
-		MEM_freeN(prop_str);
+		if (prop_str) {
+			ret = BLI_sprintfN("bpy.context.%s.%s", member_found, prop_str);
+			MEM_freeN(prop_str);
+		}
 	}
 	else if (member_id) {
 		prop_str = RNA_path_struct_property_py(ptr, prop, index);
-		ret = BLI_sprintfN("bpy.context.%s.%s", member_id, prop_str);
-		MEM_freeN(prop_str);
+		if (prop_str) {
+			ret = BLI_sprintfN("bpy.context.%s.%s", member_id, prop_str);
+			MEM_freeN(prop_str);
+		}
 	}
 
 	BLI_freelistN(&lb);
