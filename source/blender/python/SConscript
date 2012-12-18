@@ -71,16 +71,100 @@ if env['WITH_BF_PYTHON_SAFETY']:
 if env['BF_BUILDINFO']:
     defs.append('BUILD_DATE')
 
-if env['WITH_BF_INTERNATIONAL']:
-    defs.append('WITH_INTERNATIONAL')
 
-if env['WITH_BF_CYCLES']:
-    defs.append('WITH_CYCLES')
+# Audaspace is always on currently
+
+if env['WITH_BF_BULLET']:
+    defs.append('WITH_BULLET')
+
+# AVI is always on currently
 
 if env['WITH_BF_FFMPEG']:
     defs.append('WITH_FFMPEG')
     incs += ' ' + env['BF_FFMPEG_INC']
-    
+
+if env['WITH_BF_QUICKTIME']:
+    defs.append('WITH_QUICKTIME')
+
+if env['WITH_BF_SNDFILE']:
+    defs.append('WITH_SNDFILE')
+
+if env['WITH_BF_COMPOSITOR']:
+    defs.append('WITH_COMPOSITOR')
+
+if env['WITH_BF_CYCLES']:
+    defs.append('WITH_CYCLES')
+
+if env['WITH_BF_CYCLES']:
+    defs.append('WITH_CYCLES')
+
+if env['WITH_BF_CYCLES_OSL']:
+    defs.append('WITH_CYCLES_OSL')
+
+if env['WITH_BF_GAMEENGINE']:
+    defs.append('WITH_GAMEENGINE')
+
+if env['WITH_BF_CINEON']:
+    defs.append('WITH_CINEON')
+
+if env['WITH_BF_DDS']:
+    defs.append('WITH_DDS')
+
+if env['WITH_BF_FRAMESERVER']:
+    defs.append('WITH_FRAMESERVER')
+
+if env['WITH_BF_HDR']:
+    defs.append('WITH_HDR')
+
+if env['WITH_BF_OPENEXR']:
+    defs.append('WITH_OPENEXR')
+
+if env['WITH_BF_OPENJPEG']:
+    defs.append('WITH_OPENJPEG')
+
+if env['WITH_BF_REDCODE']:
+    defs.append('WITH_REDCODE')
+
+if env['WITH_BF_TIFF']:
+    defs.append('WITH_TIFF')
+
+# NDof is always on currently
+
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
+
+if env['WITH_BF_JACK']:
+    defs.append('WITH_JACK')
+
+if env['WITH_BF_LIBMV']:
+    defs.append('WITH_LIBMV')
+
+if env['WITH_BF_BOOLEAN']:
+    defs.append('WITH_MOD_BOOLEAN')
+
+if env['WITH_BF_FLUID']:
+    defs.append('WITH_MOD_FLUID')
+
+if env['WITH_BF_OCEANSIM']:
+    defs.append('WITH_OCEANSIM')
+
+if env['WITH_BF_REMESH']:
+    defs.append('WITH_MOD_REMESH')
+
+if env['WITH_BF_SMOKE']:
+    defs.append('WITH_SMOKE')
+
+if env['WITH_BF_OPENAL']:
+    defs.append('WITH_OPENAL')
+
+if env['WITH_BF_COLLADA']:
+    defs.append('WITH_COLLADA')
+
+if env['WITH_BF_PLAYER']:
+    defs.append('WITH_PLAYER')
+
+
+
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']
 
