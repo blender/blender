@@ -874,13 +874,9 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, const rcti
 	/* this icon doesn't need draw... */
 	if (icon == ICON_BLANK1 && (but->flag & UI_ICON_SUBMENU) == 0) return;
 	
-	/* XXX remove hack when new icons are made */
-	if ( icon == ICON_LAYER_ACTIVE || icon == ICON_LAYER_USED)
-		height = 1.2f * BLI_rcti_size_y(rect); else
-	/* icons are 80% of height of button (16 pixels inside 20 height) */
-	height = 0.8f * BLI_rcti_size_y(rect);
-	aspect = height / ICON_DEFAULT_HEIGHT;
-
+	aspect = but->block->aspect / UI_DPI_FAC;
+	height = ICON_DEFAULT_HEIGHT / aspect;
+	
 	/* calculate blend color */
 	if (ELEM4(but->type, TOG, ROW, TOGN, LISTROW)) {
 		if (but->flag & UI_SELECT) {}
@@ -894,10 +890,12 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, const rcti
 	glEnable(GL_BLEND);
 	
 	if (icon && icon != ICON_BLANK1) {
+		float ofs = 1.0f / aspect;
+		
 		if (but->flag & UI_ICON_LEFT) {
 			if (but->type == BUT_TOGDUAL) {
 				if (but->drawstr[0]) {
-					xs = rect->xmin - 1.0f * aspect;
+					xs = rect->xmin - ofs;
 				}
 				else {
 					xs = (rect->xmin + rect->xmax - height) / 2.0f;
@@ -905,15 +903,15 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, const rcti
 			}
 			else if (but->block->flag & UI_BLOCK_LOOP) {
 				if (but->type == SEARCH_MENU)
-					xs = rect->xmin + 4.0f * aspect;
+					xs = rect->xmin + 4.0f * ofs;
 				else
-					xs = rect->xmin + 1.0f * aspect;
+					xs = rect->xmin + ofs;
 			}
 			else if ((but->type == ICONROW) || (but->type == ICONTEXTROW)) {
-				xs = rect->xmin + 3.0f * aspect;
+				xs = rect->xmin + 3.0f * ofs;
 			}
 			else {
-				xs = rect->xmin + 4.0f * aspect;
+				xs = rect->xmin + 4.0f * ofs;
 			}
 			ys = (rect->ymin + rect->ymax - height) / 2.0f;
 		}
@@ -925,17 +923,17 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, const rcti
 		/* to indicate draggable */
 		if (but->dragpoin && (but->flag & UI_ACTIVE)) {
 			float rgb[3] = {1.25f, 1.25f, 1.25f};
-			UI_icon_draw_aspect_color(xs, ys, icon, 1.0f / aspect, rgb);
+			UI_icon_draw_aspect_color(xs, ys, icon, aspect, rgb);
 		}
 		else
-			UI_icon_draw_aspect(xs, ys, icon, 1.0f / aspect, alpha);
+			UI_icon_draw_aspect(xs, ys, icon, aspect, alpha);
 	}
 
 	if (ui_but_draw_menu_icon(but)) {
 		xs = rect->xmax - UI_DPI_ICON_SIZE - aspect;
 		ys = (rect->ymin + rect->ymax - height) / 2.0f;
 		
-		UI_icon_draw_aspect(xs, ys, ICON_RIGHTARROW_THIN, 1.0f / aspect, alpha);
+		UI_icon_draw_aspect(xs, ys, ICON_RIGHTARROW_THIN, aspect, alpha);
 	}
 	
 	glDisable(GL_BLEND);

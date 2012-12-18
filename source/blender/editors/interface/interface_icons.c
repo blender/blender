@@ -511,13 +511,15 @@ static void init_brush_icons(void)
 
 static void init_internal_icons(void)
 {
-	bTheme *btheme = UI_GetTheme();
-	ImBuf *bbuf = NULL;
+//	bTheme *btheme = UI_GetTheme();
+	ImBuf *b16buf = NULL, *b32buf = NULL;
 	int x, y, icontype;
-	char iconfilestr[FILE_MAX];
-	
+
+#if 0 // temp disabled
 	if ((btheme != NULL) && btheme->tui.iconfile[0]) {
 		char *icondir = BLI_get_folder(BLENDER_DATAFILES, "icons");
+		char iconfilestr[FILE_MAX];
+		
 		if (icondir) {
 			BLI_join_dirfile(iconfilestr, sizeof(iconfilestr), icondir, btheme->tui.iconfile);
 			bbuf = IMB_loadiffname(iconfilestr, IB_rect, NULL); /* if the image is missing bbuf will just be NULL */
@@ -531,11 +533,16 @@ static void init_internal_icons(void)
 			printf("%s: 'icons' data path not found, continuing\n", __func__);
 		}
 	}
-	if (bbuf == NULL)
-		bbuf = IMB_ibImageFromMemory((unsigned char *)datatoc_blender_icons_png,
-		                             datatoc_blender_icons_png_size, IB_rect, NULL, "<blender icons>");
+#endif
+	if (b16buf == NULL)
+		b16buf = IMB_ibImageFromMemory((unsigned char *)datatoc_blender_icons16_png,
+		                             datatoc_blender_icons16_png_size, IB_rect, NULL, "<blender icons>");
 
-	if (bbuf) {
+	if (b32buf == NULL)
+		b32buf = IMB_ibImageFromMemory((unsigned char *)datatoc_blender_icons32_png,
+		                             datatoc_blender_icons32_png_size, IB_rect, NULL, "<blender icons>");
+	
+	if (b16buf && b32buf) {
 		/* free existing texture if any */
 		if (icongltex.id) {
 			glDeleteTextures(1, &icongltex.id);
@@ -547,17 +554,29 @@ static void init_internal_icons(void)
 			glGenTextures(1, &icongltex.id);
 
 			if (icongltex.id) {
-				icongltex.w = bbuf->x;
-				icongltex.h = bbuf->y;
-				icongltex.invw = 1.0f / bbuf->x;
-				icongltex.invh = 1.0f / bbuf->y;
+				int level = 2;
+				
+				icongltex.w = b32buf->x;
+				icongltex.h = b32buf->y;
+				icongltex.invw = 1.0f / b32buf->x;
+				icongltex.invh = 1.0f / b32buf->y;
 
 				glBindTexture(GL_TEXTURE_2D, icongltex.id);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bbuf->x, bbuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, bbuf->rect);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, b32buf->x, b32buf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, b32buf->rect);
+				glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA, b16buf->x, b16buf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, b16buf->rect);
+				
+				while (b16buf->x > 1) {
+					b16buf = IMB_onehalf(b16buf);
+					glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA, b16buf->x, b16buf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, b16buf->rect);
+					level++;
+				}
+				
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				
 				glBindTexture(GL_TEXTURE_2D, 0);
-
+				
 				if (glGetError() == GL_OUT_OF_MEMORY) {
 					glDeleteTextures(1, &icongltex.id);
 					icongltex.id = 0;
@@ -571,10 +590,10 @@ static void init_internal_icons(void)
 	else
 		icontype = ICON_TYPE_BUFFER;
 	
-	if (bbuf) {
+	if (b16buf) {
 		for (y = 0; y < ICON_GRID_ROWS; y++) {
 			for (x = 0; x < ICON_GRID_COLS; x++) {
-				def_internal_icon(bbuf, BIFICONID_FIRST + y * ICON_GRID_COLS + x,
+				def_internal_icon(b32buf, BIFICONID_FIRST + y * ICON_GRID_COLS + x,
 				                  x * (ICON_GRID_W + ICON_GRID_MARGIN) + ICON_GRID_MARGIN,
 				                  y * (ICON_GRID_H + ICON_GRID_MARGIN) + ICON_GRID_MARGIN, ICON_GRID_W,
 				                  icontype);
@@ -593,7 +612,9 @@ static void init_internal_icons(void)
 	def_internal_vicon(VICO_X_VEC, vicon_x_draw);
 	def_internal_vicon(VICO_SMALL_TRI_RIGHT_VEC, vicon_small_tri_right_draw);
 
-	IMB_freeImBuf(bbuf);
+	IMB_freeImBuf(b16buf);
+	IMB_freeImBuf(b32buf);
+	
 }
 #endif  /* WITH_HEADLESS */
 
@@ -887,7 +908,7 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 		/* first allocate imbuf for scaling and copy preview into it */
 		ima = IMB_allocImBuf(rw, rh, 32, IB_rect);
 		memcpy(ima->rect, rect, rw * rh * sizeof(unsigned int));
-		IMB_scalefastImBuf(ima, w, h); /* scale it */
+		IMB_scaleImBuf(ima, w, h); /* scale it */
 		rect = ima->rect;
 	}
 

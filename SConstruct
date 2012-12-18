@@ -532,7 +532,8 @@ data_to_c_simple("release/datafiles/bfont.ttf")
 data_to_c_simple("release/datafiles/bmonofont.ttf")
 
 data_to_c_simple("release/datafiles/splash.png")
-data_to_c_simple("release/datafiles/blender_icons.png")
+data_to_c_simple("release/datafiles/blender_icons16.png")
+data_to_c_simple("release/datafiles/blender_icons32.png")
 data_to_c_simple("release/datafiles/prvicons.png")
 
 data_to_c_simple("release/datafiles/brushicons/add.png")
