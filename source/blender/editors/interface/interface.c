@@ -2831,15 +2831,11 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 			EnumPropertyItem *item;
 			int i, totitem, free;
 
-			/* get untranslated, then translate the single string we get */
+			/* get untranslated, then translate the single string we need */
 			RNA_property_enum_items(block->evil_C, ptr, prop, &item, &totitem, &free);
 			for (i = 0; i < totitem; i++) {
 				if (item[i].identifier[0] && item[i].value == (int)max) {
-#ifdef WITH_INTERNATIONAL
-					str = BLF_pgettext(RNA_property_translation_context(prop), item[i].name);
-#else
-					str = item[i].name;
-#endif
+					str = CTX_IFACE_(RNA_property_translation_context(prop), item[i].name);
 					icon = item[i].icon;
 					break;
 				}

@@ -85,8 +85,8 @@ const char *BLF_translate_do_tooltip(const char *msgctxt, const char *msgid);
 /*	#define _(msgid) msgid */
 	#define IFACE_(msgid) msgid
 	#define TIP_(msgid) msgid
-	#define CTX_IFACE_(context, msgid) ((void)context, msgid)
-	#define CTX_TIP_(context, msgid)   ((void)context, msgid)
+	#define CTX_IFACE_(context, msgid) msgid
+	#define CTX_TIP_(context, msgid)   msgid
 #endif
 
 /* Helper macro, when we want to define a same msgid for multiple msgctxt...

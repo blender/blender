@@ -347,6 +347,7 @@ static const char *template_id_browse_tip(StructRNA *type)
 /* Return a type-based i18n context, needed e.g. by "New" button.
  * In most languages, this adjective takes different form based on gender of type name...
  */
+#ifdef WITH_INTERNATIONAL
 static const char *template_id_context(StructRNA *type)
 {
 	if (type) {
@@ -377,6 +378,7 @@ static const char *template_id_context(StructRNA *type)
 	}
 	return BLF_I18NCONTEXT_DEFAULT;
 }
+#endif
 
 static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, StructRNA *type, short idcode, int flag,
                         const char *newop, const char *openop, const char *unlinkop)
@@ -387,7 +389,6 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	// ListBase *lb; // UNUSED
 	ID *id, *idfrom;
 	int editable = RNA_property_editable(&template->ptr, template->prop);
-	const char *i18n_ctxt = template_id_context(type);
 
 	idptr = RNA_property_pointer_get(&template->ptr, template->prop);
 	id = idptr.data;
@@ -518,11 +519,11 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 		
 		if (newop) {
 			but = uiDefIconTextButO(block, BUT, newop, WM_OP_INVOKE_DEFAULT, ICON_ZOOMIN,
-			                        (id) ? "" : CTX_IFACE_(i18n_ctxt, "New"), 0, 0, w, UI_UNIT_Y, NULL);
+			                        (id) ? "" : CTX_IFACE_(template_id_context(type), "New"), 0, 0, w, UI_UNIT_Y, NULL);
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
 		}
 		else {
-			but = uiDefIconTextBut(block, BUT, 0, ICON_ZOOMIN, (id) ? "" : CTX_IFACE_(i18n_ctxt, "New"),
+			but = uiDefIconTextBut(block, BUT, 0, ICON_ZOOMIN, (id) ? "" : CTX_IFACE_(template_id_context(type), "New"),
 			                       0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
 		}

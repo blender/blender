@@ -1197,10 +1197,15 @@ void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA
 	RNA_property_enum_items(C, ptr, prop, item, totitem, free);
 
 #ifdef WITH_INTERNATIONAL
-	/* Note: keep directly using BLF_gettext here, has we have already done tests like BLF_translate_iface... */
-	if (BLF_translate_iface()) {
+	{
 		int i;
+		/* Note: Only do those tests once, and then use BLF_pgettext. */
+		int do_iface = BLF_translate_iface();
+		int do_tooltip = BLF_translate_tooltips();
 		EnumPropertyItem *nitem;
+
+		if (!(do_iface || do_tooltip))
+			return;
 
 		if (*free) {
 			nitem = *item;
@@ -1217,16 +1222,17 @@ void RNA_property_enum_items_gettexted(bContext *C, PointerRNA *ptr, PropertyRNA
 			for (i = 0; (*item)[i].identifier; i++)
 				nitem[i] = (*item)[i];
 
-			*free = 1;
+			*free = TRUE;
 		}
 
 		for (i = 0; nitem[i].identifier; i++) {
-			if (nitem[i].name) {
-				/* note: prop->translation_context may be NULL, this just means we dont use a context */
+			if (nitem[i].name && do_iface) {
+				/* note: prop->translation_context may be NULL, this just means we use the default "" context */
 				nitem[i].name = BLF_pgettext(prop->translation_context, nitem[i].name);
 			}
-			if (nitem[i].description)
+			if (nitem[i].description && do_tooltip) {
 				nitem[i].description = BLF_pgettext(NULL, nitem[i].description);
+			}
 		}
 
 		*item = nitem;

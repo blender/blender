@@ -492,15 +492,15 @@ class USERPREF_PT_system(Panel):
         sub.active = system.use_weight_color_range
         sub.template_color_ramp(system, "weight_color_range", expand=True)
 
-        column.separator()
-
-        column.prop(system, "use_international_fonts")
-        if system.use_international_fonts:
-            column.prop(system, "language")
-            row = column.row()
-            row.label(text="Translate:")
-            row.prop(system, "use_translate_interface", text="Interface")
-            row.prop(system, "use_translate_tooltips", text="Tooltips")
+        if 'INTERNATIONAL' in bpy.app.build_options:
+            column.separator()
+            column.prop(system, "use_international_fonts")
+            if system.use_international_fonts:
+                column.prop(system, "language")
+                row = column.row()
+                row.label(text="Translate:")
+                row.prop(system, "use_translate_interface", text="Interface")
+                row.prop(system, "use_translate_tooltips", text="Tooltips")
 
 
 class USERPREF_MT_interface_theme_presets(Menu):

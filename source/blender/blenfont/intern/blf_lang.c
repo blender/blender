@@ -30,6 +30,8 @@
 
 #include "BLF_translation.h" /* own include */
 
+#include "BLI_utildefines.h"
+
 #ifdef WITH_INTERNATIONAL
 
 #include <stdio.h>
@@ -50,7 +52,6 @@
 #include "BLI_linklist.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 /* Locale options. */
 static const char **locales = NULL;
@@ -254,9 +255,8 @@ void BLF_lang_free(void)
 	return;
 }
 
-void BLF_lang_set(const char *str)
+void BLF_lang_set(const char *UNUSED(str))
 {
-	(void)str;
 	return;
 }
 

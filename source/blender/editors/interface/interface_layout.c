@@ -720,9 +720,7 @@ static const char *ui_menu_enumpropname(uiLayout *layout, PointerRNA *ptr, Prope
 
 	RNA_property_enum_items(layout->root->block->evil_C, ptr, prop, &item, &totitem, &free);
 	if (RNA_enum_name(item, retval, &name)) {
-#ifdef WITH_INTERNATIONAL
-		name = BLF_pgettext(RNA_property_translation_context(prop), name);
-#endif
+		name = CTX_IFACE_(RNA_property_translation_context(prop), name);
 	}
 	else {
 		name = "";
@@ -909,7 +907,7 @@ void uiItemEnumO_string(uiLayout *layout, const char *name, int icon, const char
 	UI_OPERATOR_ERROR_RET(ot, opname, return );
 
 	WM_operator_properties_create_ptr(&ptr, ot);
-	
+
 	/* enum lookup */
 	if ((prop = RNA_struct_find_property(&ptr, propname))) {
 		/* no need for translations here */
@@ -930,9 +928,9 @@ void uiItemEnumO_string(uiLayout *layout, const char *name, int icon, const char
 		RNA_warning("%s.%s not found", RNA_struct_identifier(ptr.type), propname);
 		return;
 	}
-	
+
 	RNA_property_enum_set(&ptr, prop, value);
-	
+
 	/* same as uiItemEnumO */
 	if (!name)
 		name = ui_menu_enumpropname(layout, &ptr, prop, value);
@@ -1191,11 +1189,8 @@ void uiItemEnumR_string(uiLayout *layout, struct PointerRNA *ptr, const char *pr
 
 	for (a = 0; item[a].identifier; a++) {
 		if (item[a].value == ivalue) {
-			const char *item_name = item[a].name;
+			const char *item_name = CTX_IFACE_(RNA_property_translation_context(prop), item[a].name);
 
-#ifdef WITH_INTERNATIONAL
-			item_name = BLF_pgettext(RNA_property_translation_context(prop), item_name);
-#endif
 			uiItemFullR(layout, ptr, prop, RNA_ENUM_VALUE, ivalue, 0, item_name ? item_name : name, icon ? icon : item[a].icon);
 			break;
 		}
