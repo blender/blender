@@ -566,18 +566,13 @@ static void widget_trias_draw(uiWidgetTrias *tria)
 
 static void widget_menu_trias(uiWidgetTrias *tria, const rcti *rect)
 {
-	float centx, centy, size, asp;
+	float centx, centy, size;
 	int a;
 		
 	/* center position and size */
-	centx = rect->xmax - 0.5f * BLI_rcti_size_y(rect);
-	centy = rect->ymin + 0.5f * BLI_rcti_size_y(rect);
+	centx = rect->xmax - 0.32f * BLI_rcti_size_y(rect);
+	centy = rect->ymin + 0.50f * BLI_rcti_size_y(rect);
 	size = 0.4f * (float)BLI_rcti_size_y(rect);
-	
-	/* XXX exception */
-	asp = ((float)BLI_rcti_size_x(rect)) / ((float)BLI_rcti_size_y(rect));
-	if (asp > 1.2f && asp < 2.6f)
-		centx = rect->xmax - 0.4f * (float)BLI_rcti_size_y(rect);
 	
 	for (a = 0; a < 6; a++) {
 		tria->vec[a][0] = size * menu_tria_vert[a][0] + centx;

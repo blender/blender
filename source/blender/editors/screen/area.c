@@ -1545,22 +1545,22 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	uiBut *but;
-	int xco = 8;
+	int xco = 0.4 * U.widget_unit;
 	
 	but = uiDefIconTextButC(block, ICONTEXTROW, 0, ICON_VIEW3D, 
-	                        editortype_pup(), xco, yco, UI_UNIT_X + 10, UI_UNIT_Y,
+	                        editortype_pup(), xco, yco, 1.5 * U.widget_unit, U.widget_unit,
 	                        &(sa->butspacetype), 1.0, SPACEICONMAX, 0, 0,
 	                        TIP_("Display current editor type (click for a menu of available types)"));
 	uiButSetFunc(but, spacefunc, NULL, NULL);
 	uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 	
-	return xco + UI_UNIT_X + 14;
+	return xco + 1.7 * U.widget_unit;
 }
 
 int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 {
 	ScrArea *sa = CTX_wm_area(C);
-	int xco = 8;
+	int xco = 0.4 * U.widget_unit;
 	uiBut *but;
 	
 	if (!sa->full)
@@ -1571,14 +1571,14 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 	if (sa->flag & HEADER_NO_PULLDOWN) {
 		but = uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0,
 		                       ICON_DISCLOSURE_TRI_RIGHT,
-		                       xco, yco, UI_UNIT_X, UI_UNIT_Y - 2,
+		                       xco, yco, U.widget_unit, U.widget_unit*0.9,
 		                       &(sa->flag), 0, 0, 0, 0,
 		                       "Show pulldown menus");
 	}
 	else {
 		but = uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0,
 		                       ICON_DISCLOSURE_TRI_DOWN,
-		                       xco, yco, UI_UNIT_X, UI_UNIT_Y - 2,
+		                       xco, yco, U.widget_unit, U.widget_unit*0.9,
 		                       &(sa->flag), 0, 0, 0, 0,
 		                       "Hide pulldown menus");
 	}
@@ -1587,7 +1587,7 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
-	return xco + UI_UNIT_X;
+	return xco + U.widget_unit;
 }
 
 /************************ standard UI regions ************************/
@@ -1638,7 +1638,7 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 			if (pt->draw_header && !(pt->flag & PNL_NO_HEADER) && (open || vertical)) {
 				/* for enabled buttons */
 				panel->layout = uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
-				                              triangle, UI_UNIT_Y + style->panelspace + 2, UI_UNIT_Y, 1, style);
+				                              triangle, (UI_UNIT_Y * 1.1f) + style->panelspace, UI_UNIT_Y, 1, style);
 
 				pt->draw_header(C, panel);
 
