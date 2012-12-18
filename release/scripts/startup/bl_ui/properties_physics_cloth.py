@@ -91,7 +91,7 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
         sub.prop(cloth, "pin_stiffness", text="Stiffness")
 
         col.label(text="Pre roll:")
-        col.prop(cloth, "pre_roll", text="Frame")
+        col.prop(cloth, "pre_roll", text="Frames")
 
         # Disabled for now
         """
