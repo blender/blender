@@ -592,17 +592,19 @@ static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 
 /* Draw a live substitute of the view icon, which is always shown
  * colors copied from transform_manipulator.c, we should keep these matching. */
-static void draw_view_axis(ARegion *ar, RegionView3D *rv3d)
+static void draw_view_axis(RegionView3D *rv3d, rcti *rect)
 {
 	const float k = U.rvisize;   /* axis size */
 	const float toll = 0.5;      /* used to see when view is quasi-orthogonal */
-	const float startx = k + 1.0f + ED_region_overlapping_offset(ar); /* axis center in screen coordinates, x=y */
-	const float starty = k + 1.0f;
+	float startx = k + 1.0f; /* axis center in screen coordinates, x=y */
+	float starty = k + 1.0f;
 	float ydisp = 0.0;          /* vertical displacement to allow obj info text */
 	int bright = 25 * (float)U.rvibright + 5; /* axis alpha (rvibright has range 0-10) */
-
 	float vec[3];
 	float dx, dy;
+	
+	startx += rect->xmin;
+	starty += rect->ymin;
 	
 	/* thickness of lines is proportional to k */
 	glLineWidth(2);
@@ -776,7 +778,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 	glDepthMask(1);
 }
 
-static void draw_view_icon(ARegion *ar, RegionView3D *rv3d)
+static void draw_view_icon(RegionView3D *rv3d, rcti *rect)
 {
 	BIFIconID icon;
 	
@@ -791,7 +793,7 @@ static void draw_view_icon(ARegion *ar, RegionView3D *rv3d)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 	
-	UI_icon_draw(5.0 + ED_region_overlapping_offset(ar), 5.0, icon);
+	UI_icon_draw(5.0 + rect->xmin, 5.0 + rect->ymin, icon);
 	
 	glDisable(GL_BLEND);
 }
@@ -846,7 +848,7 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 	return name;
 }
 
-static void draw_viewport_name(ARegion *ar, View3D *v3d)
+static void draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	const char *name = view3d_get_name(v3d, rv3d);
@@ -859,17 +861,17 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 
 	if (name) {
 		UI_ThemeColor(TH_TEXT_HI);
-		BLF_draw_default_ascii(U.widget_unit + ED_region_overlapping_offset(ar),  ar->winy - U.widget_unit, 0.0f, name, sizeof(tmpstr));
+		BLF_draw_default_ascii(U.widget_unit + rect->xmin,  rect->ymax - U.widget_unit, 0.0f, name, sizeof(tmpstr));
 	}
 }
 
 /* draw info beside axes in bottom left-corner: 
  * framenum, object name, bone name (if available), marker name (if available)
  */
-static void draw_selected_name(ARegion *ar, Scene *scene, Object *ob)
+static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 {
 	char info[256], *markern;
-	short offset = 30 + ED_region_overlapping_offset(ar);
+	short offset = 30 + rect->xmin;
 	
 	/* get name of marker on current frame (if available) */
 	markern = BKE_scene_find_marker_name(scene, CFRA);
@@ -952,7 +954,7 @@ static void draw_selected_name(ARegion *ar, Scene *scene, Object *ob)
 	}
 	
 	if (U.uiflag & USER_SHOW_ROTVIEWICON)
-		offset = U.widget_unit + (U.rvisize * 2) + ED_region_overlapping_offset(ar);
+		offset = U.widget_unit + (U.rvisize * 2) + rect->xmin;
 
 	BLF_draw_default(offset, 0.5f * U.widget_unit, 0.0f, info, sizeof(info));
 }
@@ -2812,7 +2814,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int w
 /* NOTE: the info that this uses is updated in ED_refresh_viewport_fps(), 
  * which currently gets called during SCREEN_OT_animation_step.
  */
-static void draw_viewport_fps(Scene *scene, ARegion *ar)
+static void draw_viewport_fps(Scene *scene, rcti *rect)
 {
 	ScreenFrameRateInfo *fpsi = scene->fps_info;
 	float fps;
@@ -2857,7 +2859,7 @@ static void draw_viewport_fps(Scene *scene, ARegion *ar)
 		BLI_snprintf(printable, sizeof(printable), "fps: %i", (int)(fps + 0.5f));
 	}
 	
-	BLF_draw_default_ascii(U.widget_unit,  ar->winy - U.widget_unit, 0.0f, printable, sizeof(printable));
+	BLF_draw_default_ascii(rect->xmin + U.widget_unit,  rect->ymax - U.widget_unit, 0.0f, printable, sizeof(printable));
 }
 
 static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const char **grid_unit);
@@ -3166,6 +3168,10 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	rcti rect;
+	
+	/* local coordinate visible rect inside region, to accomodate overlapping ui */
+	ED_region_visible_rect(ar, &rect);
 
 	if (rv3d->persp == RV3D_CAMOB) {
 		drawviewborder(scene, ar, v3d);
@@ -3193,13 +3199,13 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 		drawcursor(scene, ar, v3d);
 
 		if (U.uiflag & USER_SHOW_ROTVIEWICON)
-			draw_view_axis(ar, rv3d);
+			draw_view_axis(rv3d, &rect);
 		else
-			draw_view_icon(ar, rv3d);
+			draw_view_icon(rv3d, &rect);
 
 		ob = OBACT;
 		if (U.uiflag & USER_DRAWVIEWINFO)
-			draw_selected_name(ar, scene, ob);
+			draw_selected_name(scene, ob, &rect);
 	}
 
 	if (rv3d->render_engine) {
@@ -3209,10 +3215,10 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 		if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_playing(wm)) {
-			draw_viewport_fps(scene, ar);
+			draw_viewport_fps(scene, &rect);
 		}
 		else if (U.uiflag & USER_SHOW_VIEWPORTNAME) {
-			draw_viewport_name(ar, v3d);
+			draw_viewport_name(ar, v3d, &rect);
 		}
 
 		if (grid_unit) { /* draw below the viewport name */
@@ -3223,8 +3229,8 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 				BLI_snprintf(numstr, sizeof(numstr), "%s x %.4g", grid_unit, v3d->grid);
 			}
 
-			BLF_draw_default_ascii(ED_region_overlapping_offset(ar) + U.widget_unit,
-			                       ar->winy - (USER_SHOW_VIEWPORTNAME ? 2 * U.widget_unit : U.widget_unit), 0.0f,
+			BLF_draw_default_ascii(rect.xmin + U.widget_unit,
+			                       rect.ymax - (USER_SHOW_VIEWPORTNAME ? 2 * U.widget_unit : U.widget_unit), 0.0f,
 			                       numstr[0] ? numstr : grid_unit, sizeof(numstr));
 		}
 	}

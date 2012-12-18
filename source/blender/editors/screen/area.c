@@ -1835,7 +1835,7 @@ void ED_region_info_draw(ARegion *ar, const char *text, int block, float alpha)
 	rcti rect;
 
 	/* background box */
-	rect = ar->winrct;
+	ED_region_visible_rect(ar, &rect);
 	rect.xmin = 0;
 	rect.ymin = BLI_rcti_size_y(&ar->winrct) - header_height;
 
@@ -1856,7 +1856,7 @@ void ED_region_info_draw(ARegion *ar, const char *text, int block, float alpha)
 
 	/* text */
 	UI_ThemeColor(TH_TEXT_HI);
-	BLF_position(fontid, 12 + ED_region_overlapping_offset(ar), rect.ymin + 5, 0.0f);
+	BLF_position(fontid, 12, rect.ymin + 5, 0.0f);
 	BLF_draw(fontid, text, BLF_DRAW_STR_DUMMY_MAX);
 }
 
@@ -1920,22 +1920,31 @@ void ED_region_grid_draw(ARegion *ar, float zoomx, float zoomy)
 	glEnd();
 }
 
-/* checks overlapping region for labels, axes, icons */
-int ED_region_overlapping_offset(ARegion *ar)
+/* If the area has overlapping regions, it returns visible rect for Region *ar */
+/* rect gets returned in local region coordinates */
+void ED_region_visible_rect(ARegion *ar, rcti *rect)
 {
 	ARegion *arn = ar;
 	
-	/* too lazy to pass on area listbase */
+	/* allow function to be called without area */
 	while (arn->prev)
 		arn = arn->prev;
 	
+	*rect = ar->winrct;
+	
 	/* check if a region overlaps with the current one */
 	for (; arn; arn = arn->next) {
-		if (ar != arn)
-			if (ar->winrct.xmin == arn->winrct.xmin)
-				if (ar->winrct.ymin == arn->winrct.ymin)
-					return arn->winrct.xmax - arn->winrct.xmin;
+		if (ar != arn && arn->overlap) {
+			if (BLI_rcti_isect(rect, &arn->winrct, NULL)) {
+				/* overlap left */
+				if (rect->xmin == arn->winrct.xmin)
+					rect->xmin = arn->winrct.xmax;
+				/* overlap right */
+				if (rect->xmax == arn->winrct.xmax)
+					rect->xmax = arn->winrct.xmin;
+			}
+		}
 	}
-	return 0;
+	BLI_rcti_translate(rect, -ar->winrct.xmin, -ar->winrct.ymin);
 }
 
