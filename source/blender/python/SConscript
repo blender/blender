@@ -95,9 +95,6 @@ if env['WITH_BF_COMPOSITOR']:
 if env['WITH_BF_CYCLES']:
     defs.append('WITH_CYCLES')
 
-if env['WITH_BF_CYCLES']:
-    defs.append('WITH_CYCLES')
-
 if env['WITH_BF_CYCLES_OSL']:
     defs.append('WITH_CYCLES_OSL')
 
