@@ -72,6 +72,7 @@
 #endif
 
 #include "text_intern.h"
+#include "text_format.h"
 
 /************************ poll ***************************/
 

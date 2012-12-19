@@ -61,7 +61,8 @@
 #include "RNA_access.h"
 
 
-#include "text_intern.h"    // own include
+#include "text_format.h"
+#include "text_intern.h"  /* own include */
 
 /* ******************** default callbacks for text space ***************** */
 
@@ -556,5 +557,8 @@ void ED_spacetype_text(void)
 	BLI_addhead(&st->regiontypes, art);
 
 	BKE_spacetype_register(st);
+
+	/* register formatters */
+	ED_text_format_register_py();
 }
 
