@@ -1042,13 +1042,13 @@ static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, cons
 		const float JitPh = (get_ao_random2(I + perm_offs) & (MAX_NUMBER_OF_AO_RAYS-1))/((float) MAX_NUMBER_OF_AO_RAYS);
 		const float JitTh = (get_ao_random1(J + perm_offs) & (MAX_NUMBER_OF_AO_RAYS-1))/((float) MAX_NUMBER_OF_AO_RAYS);
 		const float SiSqPhi = (I + JitPh) / ao_data->number_of_rays;
-		const float Theta = 2 * M_PI * ((J + JitTh) / ao_data->number_of_rays);
+		const float Theta = (float)(2 * M_PI) * ((J + JitTh) / ao_data->number_of_rays);
 
 		/* this gives results identical to the so-called cosine
 		 * weighted distribution relative to the north pole.
 		 */
 		float SiPhi = sqrt(SiSqPhi);
-		float CoPhi = SiSqPhi < 1.0f ? sqrt(1.0f - SiSqPhi) : 1.0f - SiSqPhi;
+		float CoPhi = SiSqPhi < 1.0f ? sqrtf(1.0f - SiSqPhi) : 1.0f - SiSqPhi;
 		float CoThe = cos(Theta);
 		float SiThe = sin(Theta);
 

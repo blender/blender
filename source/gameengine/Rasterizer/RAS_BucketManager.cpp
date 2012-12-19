@@ -237,13 +237,13 @@ void RAS_BucketManager::Renderbuckets(
 	BucketList::iterator bit;
 	list<RAS_MeshSlot>::iterator mit;
 	for (bit = m_SolidBuckets.begin(); bit != m_SolidBuckets.end(); ++bit) {
-		RAS_MaterialBucket* bucket = *bit;
+		// RAS_MaterialBucket *bucket = *bit;  /* UNUSED */
 		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit) {
 			mit->m_mesh->SetMeshModified(false);
 		}
 	}
 	for (bit = m_AlphaBuckets.begin(); bit != m_AlphaBuckets.end(); ++bit) {
-		RAS_MaterialBucket* bucket = *bit;
+		// RAS_MaterialBucket* bucket = *bit;  /* UNUSED */
 		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit) {
 			mit->m_mesh->SetMeshModified(false);
 		}

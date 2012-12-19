@@ -31,11 +31,11 @@
 
 RAS_StorageVA::RAS_StorageVA(int *texco_num, RAS_IRasterizer::TexCoGen *texco, int *attrib_num, RAS_IRasterizer::TexCoGen *attrib) :
 	m_texco_num(texco_num),
-	m_texco(texco),
 	m_attrib_num(attrib_num),
-	m_attrib(attrib),
 	m_last_texco_num(0),
-	m_last_attrib_num(0)
+	m_last_attrib_num(0),
+	m_texco(texco),
+	m_attrib(attrib)
 {
 }
 

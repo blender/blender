@@ -532,8 +532,6 @@ static void GetUVs(BL_Material *material, MTF_localLayer *layers, MFace *mface, 
 
 			if (map.uvCoName.IsEmpty() || strcmp(map.uvCoName.ReadPtr(), layer.name)==0)
 			{
-				MT_Point2 uvSet[4];
-
 				uvs[0][unit].setValue(layer.face->uv[0]);
 				uvs[1][unit].setValue(layer.face->uv[1]);
 				uvs[2][unit].setValue(layer.face->uv[2]);
@@ -881,7 +879,7 @@ static bool ConvertMaterial(
 	return true;
 }
 
-RAS_MaterialBucket* material_from_mesh(Material *ma, MFace *mface, MTFace *tface, MCol *mcol, MTF_localLayer *layers, int lightlayer, unsigned int *rgb, MT_Point2 uvs[4][RAS_TexVert::MAX_UNIT], const char *tfaceName, KX_Scene* scene, KX_BlenderSceneConverter *converter)
+static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace *tface, MCol *mcol, MTF_localLayer *layers, int lightlayer, unsigned int *rgb, MT_Point2 uvs[4][RAS_TexVert::MAX_UNIT], const char *tfaceName, KX_Scene* scene, KX_BlenderSceneConverter *converter)
 {
 	RAS_IPolyMaterial* polymat = converter->FindCachedPolyMaterial(ma);
 	BL_Material* bl_mat = converter->FindCachedBlenderMaterial(ma);

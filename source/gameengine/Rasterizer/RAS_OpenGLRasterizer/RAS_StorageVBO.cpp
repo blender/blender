@@ -206,8 +206,8 @@ void VBO::Draw(int texco_num, RAS_IRasterizer::TexCoGen* texco, int attrib_num, 
 
 RAS_StorageVBO::RAS_StorageVBO(int *texco_num, RAS_IRasterizer::TexCoGen *texco, int *attrib_num, RAS_IRasterizer::TexCoGen *attrib):
 	m_texco_num(texco_num),
-	m_texco(texco),
 	m_attrib_num(attrib_num),
+	m_texco(texco),
 	m_attrib(attrib)
 {
 }
