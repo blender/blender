@@ -160,7 +160,6 @@ static void edgering_sel(RingSelOpData *lcd, int previewlines, int select)
 	BMWalker walker;
 	float (*edges)[2][3] = NULL;
 	BLI_array_declare(edges);
-	float co[2][3];
 	int i, tot = 0;
 	
 	memset(v, 0, sizeof(v));
@@ -218,16 +217,9 @@ static void edgering_sel(RingSelOpData *lcd, int previewlines, int select)
 			BLI_array_grow_items(edges, previewlines);
 
 			for (i = 1; i <= previewlines; i++) {
-				co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0]) * (i / ((float)previewlines + 1)) + v[0][0]->co[0];
-				co[0][1] = (v[0][1]->co[1] - v[0][0]->co[1]) * (i / ((float)previewlines + 1)) + v[0][0]->co[1];
-				co[0][2] = (v[0][1]->co[2] - v[0][0]->co[2]) * (i / ((float)previewlines + 1)) + v[0][0]->co[2];
-
-				co[1][0] = (v[1][1]->co[0] - v[1][0]->co[0]) * (i / ((float)previewlines + 1)) + v[1][0]->co[0];
-				co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1]) * (i / ((float)previewlines + 1)) + v[1][0]->co[1];
-				co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2]) * (i / ((float)previewlines + 1)) + v[1][0]->co[2];
-
-				copy_v3_v3(edges[tot][0], co[0]);
-				copy_v3_v3(edges[tot][1], co[1]);
+				const float fac = (i / ((float)previewlines + 1));
+				interp_v3_v3v3(edges[tot][0], v[0][0]->co, v[0][1]->co, fac);
+				interp_v3_v3v3(edges[tot][1], v[1][0]->co, v[1][1]->co, fac);
 				tot++;
 			}
 		}
@@ -247,19 +239,14 @@ static void edgering_sel(RingSelOpData *lcd, int previewlines, int select)
 		BLI_array_grow_items(edges, previewlines);
 
 		for (i = 1; i <= previewlines; i++) {
-			if (!v[0][0] || !v[0][1] || !v[1][0] || !v[1][1])
-				continue;
-			
-			co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0]) * (i / ((float)previewlines + 1)) + v[0][0]->co[0];
-			co[0][1] = (v[0][1]->co[1] - v[0][0]->co[1]) * (i / ((float)previewlines + 1)) + v[0][0]->co[1];
-			co[0][2] = (v[0][1]->co[2] - v[0][0]->co[2]) * (i / ((float)previewlines + 1)) + v[0][0]->co[2];
+			const float fac = (i / ((float)previewlines + 1));
 
-			co[1][0] = (v[1][1]->co[0] - v[1][0]->co[0]) * (i / ((float)previewlines + 1)) + v[1][0]->co[0];
-			co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1]) * (i / ((float)previewlines + 1)) + v[1][0]->co[1];
-			co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2]) * (i / ((float)previewlines + 1)) + v[1][0]->co[2];
-			
-			copy_v3_v3(edges[tot][0], co[0]);
-			copy_v3_v3(edges[tot][1], co[1]);
+			if (!v[0][0] || !v[0][1] || !v[1][0] || !v[1][1]) {
+				continue;
+			}
+
+			interp_v3_v3v3(edges[tot][0], v[0][0]->co, v[0][1]->co, fac);
+			interp_v3_v3v3(edges[tot][1], v[1][0]->co, v[1][1]->co, fac);
 			tot++;
 		}
 	}
