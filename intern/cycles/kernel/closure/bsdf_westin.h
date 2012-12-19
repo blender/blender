@@ -108,14 +108,6 @@ __device int bsdf_westin_backscatter_sample(const ShaderClosure *sc, float3 Ng, 
 				*pdf = 0.5f * M_1_PI_F * powf(cosTheta, m_invroughness);
 				*pdf = (m_invroughness + 1) * (*pdf);
 				*eval = make_float3(*pdf, *pdf, *pdf);
-#ifdef __RAY_DIFFERENTIALS__
-				// Since there is some blur to this reflection, make the
-				// derivatives a bit bigger. In theory this varies with the
-				// exponent but the exact relationship is complex and
-				// requires more ops than are practical.
-				*domega_in_dx *= 10.0f;
-				*domega_in_dy *= 10.0f;
-#endif
 			}
 		}
 	}
@@ -176,8 +168,6 @@ __device int bsdf_westin_sheen_sample(const ShaderClosure *sc, float3 Ng, float3
 		// TODO: find a better approximation for the diffuse bounce
 		*domega_in_dx = (2 * dot(N, dIdx)) * N - dIdx;
 		*domega_in_dy = (2 * dot(N, dIdy)) * N - dIdy;
-		*domega_in_dx *= 125.0f;
-		*domega_in_dy *= 125.0f;
 #endif
 	}
 	else {

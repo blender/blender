@@ -173,14 +173,16 @@ void BM_face_copy_shared(BMesh *bm, BMFace *f)
  */
 BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len, const int create_flag)
 {
-	BMEdge **edges2 = NULL;
-	BLI_array_staticdeclare(edges2, BM_DEFAULT_NGON_STACK_SIZE);
-	BMVert **verts = NULL;
-	BLI_array_staticdeclare(verts, BM_DEFAULT_NGON_STACK_SIZE);
+	BMEdge **edges2 = BLI_array_alloca_and_count(edges2, len);
+	BMVert **verts = BLI_array_alloca_and_count(verts, len + 1);
+	int e2_index = 0;
+	int v_index = 0;
+
 	BMFace *f = NULL;
 	BMEdge *e;
 	BMVert *v, *ev1, *ev2;
 	int i, /* j, */ v1found, reverse;
+
 
 	/* this code is hideous, yeek.  I'll have to think about ways of
 	 *  cleaning it up.  basically, it now combines the old BM_face_create_ngon
@@ -207,14 +209,14 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 		SWAP(BMVert *, ev1, ev2);
 	}
 
-	BLI_array_append(verts, ev1);
+	verts[v_index++] = ev1;
 	v = ev2;
 	e = edges[0];
 	do {
 		BMEdge *e2 = e;
 
-		BLI_array_append(verts, v);
-		BLI_array_append(edges2, e);
+		verts[v_index++] = v;
+		edges2[e2_index++] = e;
 
 		/* we only flag the verts to check if they are in the face more then once */
 		BM_ELEM_API_FLAG_ENABLE(v, _FLAG_MV);
@@ -289,9 +291,6 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 		BM_ELEM_API_FLAG_DISABLE(edges2[i], _FLAG_MF);
 	}
 
-	BLI_array_free(verts);
-	BLI_array_free(edges2);
-
 	return f;
 
 err:
@@ -302,9 +301,6 @@ err:
 			BM_ELEM_API_FLAG_DISABLE(verts[i], _FLAG_MV);
 		}
 	}
-
-	BLI_array_free(verts);
-	BLI_array_free(edges2);
 
 	return NULL;
 }

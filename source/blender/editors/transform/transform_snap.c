@@ -1141,7 +1141,7 @@ static void TargetSnapClosest(TransInfo *t)
 	}
 }
 
-static int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], short v2no[3], float obmat[][4], float timat[][3],
+static int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], short v2no[3], float obmat[4][4], float timat[3][3],
                     const float ray_start[3], const float ray_start_local[3], const float ray_normal_local[3], const float mval[2],
                     float r_loc[3], float r_no[3], int *r_dist, float *r_depth)
 {
@@ -1228,7 +1228,7 @@ static int snapEdge(ARegion *ar, float v1co[3], short v1no[3], float v2co[3], sh
 	return retval;
 }
 
-static int snapVertex(ARegion *ar, float vco[3], short vno[3], float obmat[][4], float timat[][3],
+static int snapVertex(ARegion *ar, float vco[3], short vno[3], float obmat[4][4], float timat[3][3],
                       const float ray_start[3], const float ray_start_local[3], const float ray_normal_local[3], const float mval[2],
                       float r_loc[3], float r_no[3], int *r_dist, float *r_depth)
 {
@@ -1276,7 +1276,7 @@ static int snapVertex(ARegion *ar, float vco[3], short vno[3], float obmat[][4],
 	return retval;
 }
 
-static int snapArmature(short snap_mode, ARegion *ar, Object *ob, bArmature *arm, float obmat[][4],
+static int snapArmature(short snap_mode, ARegion *ar, Object *ob, bArmature *arm, float obmat[4][4],
                         const float ray_start[3], const float ray_normal[3], const float mval[2],
                         float r_loc[3], float *UNUSED(r_no), int *r_dist, float *r_depth)
 {
@@ -1339,7 +1339,7 @@ static int snapArmature(short snap_mode, ARegion *ar, Object *ob, bArmature *arm
 	return retval;
 }
 
-static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, BMEditMesh *em, float obmat[][4],
+static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh *dm, BMEditMesh *em, float obmat[4][4],
                            const float ray_start[3], const float ray_normal[3], const float mval[2],
                            float r_loc[3], float r_no[3], int *r_dist, float *r_depth)
 {
@@ -1417,7 +1417,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 					
 					if (em != NULL) {
 						index_array = dm->getVertDataArray(dm, CD_ORIGINDEX);
-						EDBM_index_arrays_init(em, 1, 0, 0);
+						EDBM_index_arrays_ensure(em, BM_VERT);
 					}
 					
 					for (i = 0; i < totvert; i++) {
@@ -1452,9 +1452,6 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 						}
 					}
 
-					if (em != NULL) {
-						EDBM_index_arrays_free(em);
-					}
 					break;
 				}
 				case SCE_SNAP_MODE_EDGE:
@@ -1468,7 +1465,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 					
 					if (em != NULL) {
 						index_array = dm->getEdgeDataArray(dm, CD_ORIGINDEX);
-						EDBM_index_arrays_init(em, 0, 1, 0);
+						EDBM_index_arrays_ensure(em, BM_EDGE);
 					}
 					
 					for (i = 0; i < totedge; i++) {
@@ -1505,9 +1502,6 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 						}
 					}
 
-					if (em != NULL) {
-						EDBM_index_arrays_free(em);
-					}
 					break;
 				}
 			}
@@ -1517,7 +1511,7 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 	return retval;
 } 
 
-static int snapObject(Scene *scene, ARegion *ar, Object *ob, int editobject, float obmat[][4],
+static int snapObject(Scene *scene, ARegion *ar, Object *ob, int editobject, float obmat[4][4],
                       const float ray_start[3], const float ray_normal[3], const float mval[2],
                       float r_loc[3], float r_no[3], int *r_dist, float *r_depth)
 {
@@ -1670,7 +1664,7 @@ static void addDepthPeel(ListBase *depth_peels, float depth, float p[3], float n
 	peel->flag = 0;
 }
 
-static int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4],
+static int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[4][4],
                            const float ray_start[3], const float ray_normal[3], const float UNUSED(mval[2]),
                            ListBase *depth_peels)
 {

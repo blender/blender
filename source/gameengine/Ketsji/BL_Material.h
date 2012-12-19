@@ -87,13 +87,8 @@ public:
 	MTFace				tface; /* copy of the derived meshes tface */
 	Image*				img[MAXTEX];
 	EnvMap*				cubemap[MAXTEX];
-	unsigned int		m_mcol; /* for text color (only) */
 
-	STR_String uvName;
-	STR_String uv2Name;
-
-	void SetUVLayerName(const STR_String &name);
-	void SetUVLayerName2(const STR_String &name);
+	unsigned int rgb[4];
 
 	void SetSharedMaterial(bool v);
 	bool IsShared();
@@ -180,7 +175,6 @@ enum BL_MappingProj
 // ------------------------------------
 //extern void initBL_Material(BL_Material* mat);
 extern MTex* getImageFromMaterial(Material *mat, int index);
-extern int  getNumTexChannels( Material *mat );
 // ------------------------------------
 
 #endif

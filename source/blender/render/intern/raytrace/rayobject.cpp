@@ -90,6 +90,11 @@ RayObject *RE_rayface_from_vlak(RayFace *rayface, ObjectInstanceRen *obi, VlakRe
 	return rayface_from_coords(rayface, obi, vlr, vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4 ? vlr->v4->co : 0);
 }
 
+RayObject *RE_rayface_from_coords(RayFace *rayface, void *ob, void *face, float *v1, float *v2, float *v3, float *v4)
+{
+	return rayface_from_coords(rayface, ob, face, v1, v2, v3, v4);
+}
+
 /* VlakPrimitive */
 
 RayObject *RE_vlakprimitive_from_vlak(VlakPrimitive *face, struct ObjectInstanceRen *obi, struct VlakRen *vlr)

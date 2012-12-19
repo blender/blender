@@ -600,39 +600,31 @@ static void solidify_add_thickness(BMesh *bm, const float dist)
 	float *vert_accum = vert_angles + bm->totvert;
 	int i, index;
 
-	/* array for passing verts to angle_poly_v3 */
-	float **verts = NULL;
-	BLI_array_staticdeclare(verts, BM_DEFAULT_NGON_STACK_SIZE);
-	/* array for receiving angles from angle_poly_v3 */
-	float *face_angles = NULL;
-	BLI_array_staticdeclare(face_angles, BM_DEFAULT_NGON_STACK_SIZE);
-
 	BM_mesh_elem_index_ensure(bm, BM_VERT);
 
 	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-		if (!BMO_elem_flag_test(bm, f, FACE_MARK)) {
-			continue;
+		if (BMO_elem_flag_test(bm, f, FACE_MARK)) {
+
+			/* array for passing verts to angle_poly_v3 */
+			float  *face_angles = BLI_array_alloca(face_angles, f->len);
+			/* array for receiving angles from angle_poly_v3 */
+			float **verts = BLI_array_alloca(verts, f->len);
+
+			BM_ITER_ELEM_INDEX (l, &loopIter, f, BM_LOOPS_OF_FACE, i) {
+				verts[i] = l->v->co;
+			}
+
+			angle_poly_v3(face_angles, (const float **)verts, f->len);
+
+			i = 0;
+			BM_ITER_ELEM (l, &loopIter, f, BM_LOOPS_OF_FACE) {
+				v = l->v;
+				index = BM_elem_index_get(v);
+				vert_accum[index] += face_angles[i];
+				vert_angles[index] += shell_angle_to_dist(angle_normalized_v3v3(v->no, f->no)) * face_angles[i];
+				i++;
+			}
 		}
-
-		BLI_array_grow_items(verts, f->len);
-		BM_ITER_ELEM_INDEX (l, &loopIter, f, BM_LOOPS_OF_FACE, i) {
-			verts[i] = l->v->co;
-		}
-
-		BLI_array_grow_items(face_angles, f->len);
-		angle_poly_v3(face_angles, (const float **)verts, f->len);
-
-		i = 0;
-		BM_ITER_ELEM (l, &loopIter, f, BM_LOOPS_OF_FACE) {
-			v = l->v;
-			index = BM_elem_index_get(v);
-			vert_accum[index] += face_angles[i];
-			vert_angles[index] += shell_angle_to_dist(angle_normalized_v3v3(v->no, f->no)) * face_angles[i];
-			i++;
-		}
-
-		BLI_array_empty(verts);
-		BLI_array_empty(face_angles);
 	}
 
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -643,9 +635,6 @@ static void solidify_add_thickness(BMesh *bm, const float dist)
 	}
 
 	MEM_freeN(vert_angles);
-
-	BLI_array_free(verts);
-	BLI_array_free(face_angles);
 }
 
 void bmo_solidify_face_region_exec(BMesh *bm, BMOperator *op)

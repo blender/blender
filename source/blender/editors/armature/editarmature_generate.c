@@ -50,7 +50,7 @@
 #include "armature_intern.h"
 #include "BIF_generate.h"
 
-void setBoneRollFromNormal(EditBone *bone, const float no[3], float UNUSED(invmat[][4]), float tmat[][3])
+void setBoneRollFromNormal(EditBone *bone, const float no[3], float UNUSED(invmat[4][4]), float tmat[3][3])
 {
 	if (no != NULL && !is_zero_v3(no)) {
 		float normal[3];
@@ -257,7 +257,8 @@ int nextLengthSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int st
 	return -1;
 }
 
-EditBone *subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *UNUSED(editbones), BArcIterator *iter, float invmat[][4], float tmat[][3], NextSubdivisionFunc next_subdividion)
+EditBone *subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *UNUSED(editbones), BArcIterator *iter,
+                         float invmat[4][4], float tmat[3][3], NextSubdivisionFunc next_subdividion)
 {
 	EditBone *lastBone = NULL;
 	EditBone *child = NULL;

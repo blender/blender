@@ -93,7 +93,7 @@ int GPU_set_tpage(struct MTFace *tface, int mipmap, int transp);
 
 int GPU_default_lights(void);
 int GPU_scene_object_lights(struct Scene *scene, struct Object *ob,
-	int lay, float viewmat[][4], int ortho);
+	int lay, float viewmat[4][4], int ortho);
 
 /* Text render
  * - based on moving uv coordinates */

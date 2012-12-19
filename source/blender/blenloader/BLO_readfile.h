@@ -240,13 +240,32 @@ struct ID *BLO_library_append_named_part_ex(const struct bContext *C, struct Mai
 
 void BLO_library_append_end(const struct bContext *C, struct Main *mainl, BlendHandle **bh, int idcode, short flag);
 
+void BLO_library_append_all(struct Main *mainl, BlendHandle *bh);
+
 void *BLO_library_read_struct(struct FileData *fd, struct BHead *bh, const char *blockname);
 
 BlendFileData *blo_read_blendafterruntime(int file, const char *name, int actualsize, struct ReportList *reports);
-
+	
 /* internal function but we need to expose it */
 void blo_lib_link_screen_restore(struct Main *newmain, struct bScreen *curscreen, struct Scene *curscene);
 
+/**
+ * BLO_expand_main() loops over all ID data in Main to mark relations.
+ * Set (id->flag & LIB_NEED_EXPAND) to mark expanding. Flags get cleared after expanding.
+ *
+ * \param expand_doit_func() gets called for each ID block it finds
+ */
+void BLO_main_expander(void (*expand_doit_func)(void *, struct Main *, void *));
+
+/**
+ * BLO_expand_main() loops over all ID data in Main to mark relations.
+ * Set (id->flag & LIB_NEED_EXPAND) to mark expanding. Flags get cleared after expanding.
+ *
+ * \param fdhandle usually filedata, or own handle
+ * \param mainvar the Main database to expand
+ */
+void BLO_expand_main(void *fdhandle, struct Main *mainvar);
+	
 #ifdef __cplusplus
 } 
 #endif

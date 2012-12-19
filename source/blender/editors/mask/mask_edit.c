@@ -324,15 +324,13 @@ void ED_mask_pixelspace_factor(ScrArea *sa, ARegion *ar, float *scalex, float *s
 			case SPACE_CLIP:
 			{
 				SpaceClip *sc = sa->spacedata.first;
-				int width, height;
-				float zoomx, zoomy, aspx, aspy;
+				float aspx, aspy;
 
-				ED_space_clip_get_size(sc, &width, &height);
-				ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
+				UI_view2d_getscale(&ar->v2d, scalex, scaley);
 				ED_space_clip_get_aspect(sc, &aspx, &aspy);
 
-				*scalex = ((float)width * aspx) * zoomx;
-				*scaley = ((float)height * aspy) * zoomy;
+				*scalex *= aspx;
+				*scaley *= aspy;
 				break;
 			}
 			case SPACE_SEQ:
@@ -343,15 +341,13 @@ void ED_mask_pixelspace_factor(ScrArea *sa, ARegion *ar, float *scalex, float *s
 			case SPACE_IMAGE:
 			{
 				SpaceImage *sima = sa->spacedata.first;
-				int width, height;
-				float zoomx, zoomy, aspx, aspy;
+				float aspx, aspy;
 
-				ED_space_image_get_size(sima, &width, &height);
-				ED_space_image_get_zoom(sima, ar, &zoomx, &zoomy);
+				UI_view2d_getscale(&ar->v2d, scalex, scaley);
 				ED_space_image_get_aspect(sima, &aspx, &aspy);
 
-				*scalex = ((float)width * aspx) * zoomx;
-				*scaley = ((float)height * aspy) * zoomy;
+				*scalex *= aspx;
+				*scaley *= aspy;
 				break;
 			}
 			default:

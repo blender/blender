@@ -492,6 +492,8 @@ int main(int argc, char** argv)
 
 	// XXX this one too
 	U.anisotropic_filter = 2;
+	// enable fast mipmap generation
+	U.use_gpu_mipmap = 1;
 
 	sound_init_once();
 

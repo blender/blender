@@ -53,10 +53,9 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_DerivedMesh.h"
-#include "BKE_depsgraph.h"
-
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_mesh.h"
@@ -192,6 +191,16 @@ ParticleEditSettings *PE_settings(Scene *scene)
 {
 	return scene->toolsettings ? &scene->toolsettings->particle : NULL;
 }
+
+static float pe_brush_size_get(const Scene *UNUSED(scene), ParticleBrushData *brush)
+{
+	// here we can enable unified brush size, needs more work...
+	// UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+	// float size = (ups->flag & UNIFIED_PAINT_SIZE) ? ups->size : brush->size;
+	
+	return brush->size * U.pixelsize;
+}
+
 
 /* always gets at least the first particlesystem even if PSYS_CURRENT flag is not set
  *
@@ -516,7 +525,7 @@ static int point_is_selected(PTCacheEditPoint *point)
 
 typedef void (*ForPointFunc)(PEData *data, int point_index);
 typedef void (*ForKeyFunc)(PEData *data, int point_index, int key_index);
-typedef void (*ForKeyMatFunc)(PEData *data, float mat[][4], float imat[][4], int point_index, int key_index, PTCacheEditKey *key);
+typedef void (*ForKeyMatFunc)(PEData *data, float mat[4][4], float imat[4][4], int point_index, int key_index, PTCacheEditKey *key);
 
 static void for_mouse_hit_keys(PEData *data, ForKeyFunc func, int nearest)
 {
@@ -2500,7 +2509,8 @@ void PARTICLE_OT_weight_set(wmOperatorType *ot)
 
 static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata))
 {
-	ParticleEditSettings *pset= PE_settings(CTX_data_scene(C));
+	Scene *scene = CTX_data_scene(C);
+	ParticleEditSettings *pset= PE_settings(scene);
 	ParticleBrushData *brush;
 
 	if (pset->brushtype < 0)
@@ -2516,7 +2526,7 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 		glColor4ub(255, 255, 255, 128);
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
-		glutil_draw_lined_arc(0.0, M_PI*2.0, brush->size, 40);
+		glutil_draw_lined_arc(0.0, M_PI*2.0, pe_brush_size_get(scene, brush), 40);
 		glDisable(GL_BLEND);
 		glDisable(GL_LINE_SMOOTH);
 		
@@ -2766,7 +2776,7 @@ void PARTICLE_OT_mirror(wmOperatorType *ot)
 
 /************************* brush edit callbacks ********************/
 
-static void brush_comb(PEData *data, float UNUSED(mat[][4]), float imat[][4], int point_index, int key_index, PTCacheEditKey *key)
+static void brush_comb(PEData *data, float UNUSED(mat[4][4]), float imat[4][4], int point_index, int key_index, PTCacheEditKey *key)
 {
 	ParticleEditSettings *pset= PE_settings(data->scene);
 	float cvec[3], fac;
@@ -3038,7 +3048,7 @@ static void brush_puff(PEData *data, int point_index)
 }
 
 
-static void BKE_brush_weight_get(PEData *data, float UNUSED(mat[][4]), float UNUSED(imat[][4]), int point_index, int key_index, PTCacheEditKey *UNUSED(key))
+static void BKE_brush_weight_get(PEData *data, float UNUSED(mat[4][4]), float UNUSED(imat[4][4]), int point_index, int key_index, PTCacheEditKey *UNUSED(key))
 {
 	/* roots have full weight allways */
 	if (key_index) {
@@ -3052,7 +3062,7 @@ static void BKE_brush_weight_get(PEData *data, float UNUSED(mat[][4]), float UNU
 	}
 }
 
-static void brush_smooth_get(PEData *data, float mat[][4], float UNUSED(imat[][4]), int UNUSED(point_index), int key_index, PTCacheEditKey *key)
+static void brush_smooth_get(PEData *data, float mat[4][4], float UNUSED(imat[4][4]), int UNUSED(point_index), int key_index, PTCacheEditKey *key)
 {	
 	if (key_index) {
 		float dvec[3];
@@ -3064,7 +3074,7 @@ static void brush_smooth_get(PEData *data, float mat[][4], float UNUSED(imat[][4
 	}
 }
 
-static void brush_smooth_do(PEData *data, float UNUSED(mat[][4]), float imat[][4], int point_index, int key_index, PTCacheEditKey *key)
+static void brush_smooth_do(PEData *data, float UNUSED(mat[4][4]), float imat[4][4], int point_index, int key_index, PTCacheEditKey *key)
 {
 	float vec[3], dvec[3];
 	
@@ -3535,7 +3545,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 		selected= (short)count_selected_keys(scene, edit);
 
 		dmax = max_ff(fabsf(dx), fabsf(dy));
-		tot_steps = dmax/(0.2f * brush->size) + 1;
+		tot_steps = dmax/(0.2f * pe_brush_size_get(scene, brush)) + 1;
 
 		dx /= (float)tot_steps;
 		dy /= (float)tot_steps;
@@ -3549,7 +3559,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 				{
 					const float mval_f[2] = {dx, dy};
 					data.mval= mval;
-					data.rad= (float)brush->size;
+					data.rad= pe_brush_size_get(scene, brush);
 
 					data.combfac= (brush->strength - 0.5f) * 2.0f;
 					if (data.combfac < 0.0f)
@@ -3569,7 +3579,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 				{
 					if (edit->psys && edit->pathcache) {
 						data.mval= mval;
-						data.rad= (float)brush->size;
+						data.rad= pe_brush_size_get(scene, brush);
 						data.cutfac= brush->strength;
 
 						if (selected)
@@ -3590,7 +3600,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 				{
 					data.mval= mval;
 				
-					data.rad= (float)brush->size;
+					data.rad= pe_brush_size_get(scene, brush);
 					data.growfac= brush->strength / 50.0f;
 
 					if (brush->invert ^ flip)
@@ -3609,7 +3619,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 					if (edit->psys) {
 						data.dm= psmd->dm;
 						data.mval= mval;
-						data.rad= (float)brush->size;
+						data.rad= pe_brush_size_get(scene, brush);
 						data.select= selected;
 
 						data.pufffac= (brush->strength - 0.5f) * 2.0f;
@@ -3642,7 +3652,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 				case PE_BRUSH_SMOOTH:
 				{
 					data.mval= mval;
-					data.rad= (float)brush->size;
+					data.rad= pe_brush_size_get(scene, brush);
 
 					data.vec[0] = data.vec[1] = data.vec[2] = 0.0f;
 					data.tot= 0;
@@ -3665,7 +3675,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 					if (edit->psys) {
 						data.dm= psmd->dm;
 						data.mval= mval;
-						data.rad= (float)brush->size;
+						data.rad= pe_brush_size_get(scene, brush);
 
 						data.weightfac = brush->strength; /* note that this will never be zero */
 

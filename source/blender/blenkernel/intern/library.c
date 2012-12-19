@@ -71,7 +71,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
-#include "BLI_bpath.h"
+#include "BKE_bpath.h"
 
 #include "BKE_animsys.h"
 #include "BKE_camera.h"
@@ -137,9 +137,9 @@ void BKE_id_lib_local_paths(Main *bmain, Library *lib, ID *id)
 {
 	char *bpath_user_data[2] = {bmain->name, lib->filepath};
 
-	BLI_bpath_traverse_id(bmain, id,
-	                      BLI_bpath_relocate_visitor,
-	                      BLI_BPATH_TRAVERSE_SKIP_MULTIFILE,
+	BKE_bpath_traverse_id(bmain, id,
+	                      BKE_bpath_relocate_visitor,
+	                      BKE_BPATH_TRAVERSE_SKIP_MULTIFILE,
 	                      bpath_user_data);
 }
 
@@ -150,6 +150,14 @@ void id_lib_extern(ID *id)
 			id->flag -= LIB_INDIRECT;
 			id->flag |= LIB_EXTERN;
 		}
+	}
+}
+
+/* ensure we have a real user */
+void id_us_ensure_real(ID *id)
+{
+	if (ID_REAL_USERS(id) <= 0) {
+		id->us = MAX2(id->us, 0) + 1;
 	}
 }
 

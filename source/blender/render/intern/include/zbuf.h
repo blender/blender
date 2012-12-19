@@ -49,17 +49,17 @@ void fillrect(int *rect, int x, int y, int val);
  * Converts a world coordinate into a homogeneous coordinate in view
  * coordinates. 
  */
-void projectvert(const float v1[3], float winmat[][4], float adr[4]);
-void projectverto(const float v1[3], float winmat[][4], float adr[4]);
+void projectvert(const float v1[3], float winmat[4][4], float adr[4]);
+void projectverto(const float v1[3], float winmat[4][4], float adr[4]);
 int testclip(const float v[3]);
 
-void zbuffer_shadow(struct Render *re, float winmat[][4], struct LampRen *lar, int *rectz, int size, float jitx, float jity);
-void zbuffer_abuf_shadow(struct Render *re, struct LampRen *lar, float winmat[][4], struct APixstr *APixbuf, struct APixstrand *apixbuf, struct ListBase *apsmbase, int size, int samples, float (*jit)[2]);
+void zbuffer_shadow(struct Render *re, float winmat[4][4], struct LampRen *lar, int *rectz, int size, float jitx, float jity);
+void zbuffer_abuf_shadow(struct Render *re, struct LampRen *lar, float winmat[4][4], struct APixstr *APixbuf, struct APixstrand *apixbuf, struct ListBase *apsmbase, int size, int samples, float (*jit)[2]);
 void zbuffer_solid(struct RenderPart *pa, struct RenderLayer *rl, void (*fillfunc)(struct RenderPart *, struct ZSpan *, int, void*), void *data);
 
 unsigned short *zbuffer_transp_shade(struct RenderPart *pa, struct RenderLayer *rl, float *pass, struct ListBase *psmlist);
 void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(void*, int, int, int, int, int));
-int zbuffer_strands_abuf(struct Render *re, struct RenderPart *pa, struct APixstrand *apixbuf, struct ListBase *apsmbase, unsigned int lay, int negzmask, float winmat[][4], int winx, int winy, int sample, float (*jit)[2], float clipcrop, int shadow, struct StrandShadeCache *cache);
+int zbuffer_strands_abuf(struct Render *re, struct RenderPart *pa, struct APixstrand *apixbuf, struct ListBase *apsmbase, unsigned int lay, int negzmask, float winmat[4][4], int winx, int winy, int sample, float (*jit)[2], float clipcrop, int shadow, struct StrandShadeCache *cache);
 
 typedef struct APixstr {
 	unsigned short mask[4];		/* jitter mask */
@@ -136,8 +136,8 @@ void zbufclipwire(struct ZSpan *zspan, int obi, int zvlnr, int ec,
                   float *ho1, float *ho2, float *ho3, float *ho4, int c1, int c2, int c3, int c4);
 
 /* exported to shadeinput.c */
-void zbuf_make_winmat(Render *re, float winmat[][4]);
-void zbuf_render_project(float winmat[][4], const float co[3], float ho[4]);
+void zbuf_make_winmat(Render *re, float winmat[4][4]);
+void zbuf_render_project(float winmat[4][4], const float co[3], float ho[4]);
 
 /* sould not really be exposed, bad! */
 void hoco_to_zco(ZSpan *zspan, float zco[3], const float hoco[4]);

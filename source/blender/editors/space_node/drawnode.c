@@ -123,10 +123,10 @@ static void node_socket_button_string(const bContext *C, uiBlock *block,
 		float slen;
 
 		UI_ThemeColor(TH_TEXT);
-		slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X) * snode->aspect_sqrt;
+		slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X) * snode->aspect;	/* XXX, check for dpis */
 		while (slen > (width * 0.5f) && *ui_name) {
 			ui_name = BLI_str_find_next_char_utf8(ui_name, NULL);
-			slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X) * snode->aspect_sqrt;
+			slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X) * snode->aspect;
 		}
 
 		RNA_pointer_create(&ntree->id, &RNA_NodeSocket, sock, &ptr);
@@ -208,7 +208,7 @@ static void node_socket_button_color(const bContext *C, uiBlock *block,
 		
 		bt = uiDefButR(block, COLOR, B_NODE_EXEC, "",
 		               x, y + 2, (labelw > 0 ? 40 : width), NODE_DY - 2,
-		               &ptr, "default_value", 0, 0, 0, -1, -1, NULL);
+		               &ptr, "default_value", -1, 0, 0, -1, -1, NULL);
 		if (node)
 			uiButSetFunc(bt, node_sync_cb, CTX_wm_space_node(C), node);
 		
@@ -229,19 +229,18 @@ static void node_draw_input_default(const bContext *C, uiBlock *block,
 		node_socket_button_label(C, block, ntree, node, sock, IFACE_(name), x, y, width);
 }
 
-static void node_draw_output_default(const bContext *C, uiBlock *block,
+static void node_draw_output_default(const bContext *UNUSED(C), uiBlock *block,
                                      bNodeTree *UNUSED(ntree), bNode *node, bNodeSocket *sock,
                                      const char *name, int UNUSED(x), int UNUSED(y), int UNUSED(width))
 {
-	SpaceNode *snode = CTX_wm_space_node(C);
 	const char *ui_name = IFACE_(name);
 	float slen;
 
 	UI_ThemeColor(TH_TEXT);
-	slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X) * snode->aspect_sqrt;
-	while (slen > node->width && *ui_name) {
+	slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X) ;
+	while (slen > NODE_WIDTH(node) && *ui_name) {
 		ui_name = BLI_str_find_next_char_utf8(ui_name, NULL);
-		slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X) * snode->aspect_sqrt;
+		slen = (UI_GetStringWidth(ui_name) + NODE_MARGIN_X);
 	}
 	
 	if (*ui_name) {
@@ -509,14 +508,14 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 		bNodeSocket *sock, *gsock;
 		float locx, locy;
 		rctf *rect = &gnode->totr;
-		const float dpi_fac = UI_DPI_ICON_FAC;
+		const float dpi_fac = UI_DPI_FAC;
 		const float node_group_frame = NODE_GROUP_FRAME * dpi_fac;
 		const float group_header = 26 * dpi_fac;
 		int counter;
 		int dy;
 		
 		/* get "global" coords */
-		nodeToView(gnode, 0.0f, 0.0f, &locx, &locy);
+		node_to_view(gnode, 0.0f, 0.0f, &locx, &locy);
 		
 		/* center them, is a bit of abuse of locx and locy though */
 		node_update_nodetree(C, ngroup, locx, locy);
@@ -688,7 +687,7 @@ static void draw_group_socket_name(SpaceNode *snode, bNode *gnode, bNodeSocket *
 static void draw_group_socket(const bContext *C, SpaceNode *snode, bNodeTree *ntree, bNode *gnode,
                               bNodeSocket *sock, bNodeSocket *gsock, int index, int in_out)
 {
-	const float dpi_fac = UI_DPI_ICON_FAC;
+	const float dpi_fac = 1.0f;
 	bNodeTree *ngroup = (bNodeTree *)gnode->id;
 	bNodeSocketType *stype = ntreeGetSocketType(gsock ? gsock->type : sock->type);
 	uiBut *bt;
@@ -800,7 +799,7 @@ static void node_draw_group(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		uiLayout *layout;
 		PointerRNA ptr;
 		rctf rect = gnode->totr;
-		const float dpi_fac = UI_DPI_ICON_FAC;
+		const float dpi_fac = 1.0f;
 		const float node_group_frame = NODE_GROUP_FRAME * dpi_fac;
 		const float group_header = 26 * dpi_fac;
 		
@@ -925,7 +924,7 @@ static void node_uifunc_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
  */
 static void node_update_frame(const bContext *UNUSED(C), bNodeTree *ntree, bNode *node)
 {
-	const float margin = 30.0f;
+	const float margin = 1.5f * U.widget_unit;
 	NodeFrame *data = (NodeFrame *)node->storage;
 	int bbinit;
 	bNode *tnode;
@@ -933,8 +932,8 @@ static void node_update_frame(const bContext *UNUSED(C), bNodeTree *ntree, bNode
 	float xmax, ymax;
 	
 	/* init rect from current frame size */
-	nodeToView(node, node->offsetx, node->offsety, &rect.xmin, &rect.ymax);
-	nodeToView(node, node->offsetx + node->width, node->offsety - node->height, &rect.xmax, &rect.ymin);
+	node_to_view(node, node->offsetx, node->offsety, &rect.xmin, &rect.ymax);
+	node_to_view(node, node->offsetx + node->width, node->offsety - node->height, &rect.xmax, &rect.ymin);
 	
 	/* frame can be resized manually only if shrinking is disabled or no children are attached */
 	data->flag |= NODE_FRAME_RESIZEABLE;
@@ -963,8 +962,8 @@ static void node_update_frame(const bContext *UNUSED(C), bNodeTree *ntree, bNode
 	}
 	
 	/* now adjust the frame size from view-space bounding box */
-	nodeFromView(node, rect.xmin, rect.ymax, &node->offsetx, &node->offsety);
-	nodeFromView(node, rect.xmax, rect.ymin, &xmax, &ymax);
+	node_from_view(node, rect.xmin, rect.ymax, &node->offsetx, &node->offsety);
+	node_from_view(node, rect.xmax, rect.ymin, &xmax, &ymax);
 	node->width = xmax - node->offsetx;
 	node->height = -ymax + node->offsety;
 	
@@ -1101,7 +1100,7 @@ static void node_update_reroute(const bContext *UNUSED(C), bNodeTree *UNUSED(ntr
 	float size = NODE_REROUTE_SIZE;
 	
 	/* get "global" coords */
-	nodeToView(node, 0.0f, 0.0f, &locx, &locy);
+	node_to_view(node, 0.0f, 0.0f, &locx, &locy);
 	
 	/* reroute node has exactly one input and one output, both in the same place */
 	nsock = node->outputs.first;
@@ -1351,7 +1350,7 @@ static void node_shader_buts_tex_environment(uiLayout *layout, bContext *C, Poin
 	uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
 	uiItemR(layout, ptr, "projection", 0, "", ICON_NONE);
 
-	node_buts_image_user(layout, C, ptr, &imaptr, &iuserptr);
+	node_buts_image_user(layout, C, &iuserptr, &imaptr, &iuserptr);
 }
 
 static void node_shader_buts_tex_sky(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -3532,7 +3531,7 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link,
 		glDisable(GL_LINE_SMOOTH);
 		
 		/* restore previuos linewidth */
-		glLineWidth(linew);
+		glLineWidth(1.0f);
 	}
 }
 
@@ -3618,7 +3617,7 @@ void node_draw_link_straight(View2D *v2d, SpaceNode *snode, bNodeLink *link,
 	glDisable(GL_LINE_SMOOTH);
 	
 	/* restore previuos linewidth */
-	glLineWidth(linew);
+	glLineWidth(1.0f);
 }
 #endif
 

@@ -48,7 +48,8 @@
 
 static int verbose = 0;
 
-void dpxSetVerbose(int verbosity) {
+void dpxSetVerbose(int verbosity)
+{
 	verbose = verbosity;
 }
 

@@ -28,7 +28,7 @@
 
 #include <Cocoa/Cocoa.h>
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_5
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= 1050
 //Use of the SetSystemUIMode function (64bit compatible)
 #include <Carbon/Carbon.h>
 #endif
@@ -58,7 +58,7 @@ extern "C" {
 	extern void wm_draw_update(bContext *C);
 };*/
 @interface CocoaWindowDelegate : NSObject
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 <NSWindowDelegate>
 #endif
 {
@@ -115,12 +115,12 @@ extern "C" {
 
 - (void)windowDidResize:(NSNotification *)notification
 {
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 	//if (![[notification object] inLiveResize]) {
 		//Send event only once, at end of resize operation (when user has released mouse button)
 #endif
 		systemCocoa->handleWindowEvent(GHOST_kEventWindowSize, associatedWindow);
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 	//}
 #endif
 	/* Live resize ugly patch. Needed because live resize runs in a modal loop, not letting main loop run
@@ -287,7 +287,7 @@ extern "C" {
 	}
 }
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= 1040
 //Cmd+key are handled differently before 10.5
 - (BOOL)performKeyEquivalent:(NSEvent *)theEvent
 {
@@ -470,8 +470,8 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	[m_window setSystemAndWindowCocoa:systemCocoa windowCocoa:this];
 	
 	//Forbid to resize the window below the blender defined minimum one
-	minSize.width = 320;
-	minSize.height = 240;
+	minSize.width = 640;
+	minSize.height = 480;
 	[m_window setContentMinSize:minSize];
 	
 	setTitle(title);
@@ -578,6 +578,13 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	setDrawingContextType(type);
 	updateDrawingContext();
 	activateDrawingContext();
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070	// retina support started with 10.7.4 afaik
+	if (m_systemCocoa->m_nativePixel) {
+		[m_openGLView setWantsBestResolutionOpenGLSurface:YES];
+		NSRect backingBounds = [m_openGLView convertRectToBacking:[m_openGLView bounds]];
+		m_systemCocoa->m_nativePixelSize = (float)backingBounds.size.width / (float)rect.size.width;
+	}
+#endif
 	
 	m_tablet.Active = GHOST_kTabletModeNone;
 	
@@ -615,14 +622,19 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 		// back to YES right before closing
 		[m_window setReleasedWhenClosed:YES];
 		[m_window close];
-		m_window = nil;
 	}
 	
-	//Check for other blender opened windows and make the frontmost key
+	// Check for other blender opened windows and make the frontmost key
+	// Note: for some reason the closed window is still in the list
 	NSArray *windowsList = [NSApp orderedWindows];
-	if ([windowsList count]) {
-		[[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
+	for (int a = 0; a < [windowsList count]; a++) {
+		if (m_window != (CocoaWindow *)[windowsList objectAtIndex:a]) {
+			[[windowsList objectAtIndex:a] makeKeyWindow];
+			break;
+		}
 	}
+	m_window = nil;
+
 	[pool drain];
 }
 
@@ -916,7 +928,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				 * doesn't know view/window difference. */
 				m_fullScreen = true;
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 				//10.6 provides Cocoa functions to autoshow menu bar, and to change a window style
 				//Hide menu & dock if needed
 				if ([[m_window screen] isEqual:[[NSScreen screens] objectAtIndex:0]]) {
@@ -975,7 +987,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				m_fullScreen = false;
 
 				//Exit fullscreen
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 				//Show again menu & dock if needed
 				if ([[m_window screen] isEqual:[NSScreen mainScreen]]) {
 					[NSApp setPresentationOptions:NSApplicationPresentationDefault];
@@ -1008,7 +1020,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				[tmpWindow registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
 												   NSStringPboardType, NSTIFFPboardType, nil]];
 				//Forbid to resize the window below the blender defined minimum one
-				[tmpWindow setContentMinSize:NSMakeSize(320, 240)];
+				[tmpWindow setContentMinSize:NSMakeSize(640, 480)];
 				
 				//Assign the openGL view to the new window
 				[tmpWindow setContentView:m_openGLView];
@@ -1221,7 +1233,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setProgressBar(float progress)
 		[dockIcon lockFocus];
 		NSRect progressBox = {{4, 4}, {120, 16}};
 
-		[[NSImage imageNamed:@"NSApplicationIcon"] dissolveToPoint:NSZeroPoint fraction:1.0];
+		[[NSImage imageNamed:@"NSApplicationIcon"] drawAtPoint:NSZeroPoint fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1.0];
 
 		// Track & Outline
 		[[NSColor blackColor] setFill];
@@ -1260,7 +1272,7 @@ GHOST_TSuccess GHOST_WindowCocoa::endProgressBar()
 	
 	NSImage* dockIcon = [[NSImage alloc] initWithSize:NSMakeSize(128,128)];
 	[dockIcon lockFocus];
-	[[NSImage imageNamed:@"NSApplicationIcon"] dissolveToPoint:NSZeroPoint fraction:1.0];
+	[[NSImage imageNamed:@"NSApplicationIcon"] drawAtPoint:NSZeroPoint fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1.0];
 	[dockIcon unlockFocus];
 	[NSApp setApplicationIconImage:dockIcon];
 	[dockIcon release];

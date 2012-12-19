@@ -179,7 +179,7 @@ int RE_RenderInProgress(struct Render *re) {return 0;}
 struct Scene *RE_GetScene(struct Render *re) {return (struct Scene *) NULL;}
 void RE_Database_Free(struct Render *re) {}
 void RE_FreeRender(struct Render *re) {}
-void RE_DataBase_GetView(struct Render *re, float mat[][4]) {}
+void RE_DataBase_GetView(struct Render *re, float mat[4][4]) {}
 int externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta) {return 0;}
 float texture_value_blend(float tex, float out, float fact, float facg, int blendtype, int flip) {return 0.0f;}
 void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg, int blendtype) {}
@@ -302,13 +302,13 @@ void ED_node_tree_update(struct SpaceNode *snode, struct Scene *scene) {}
 void ED_view3d_scene_layers_update(struct Main *bmain, struct Scene *scene) {}
 int ED_view3d_scene_layer_set(int lay, const int *values) {return 0;}
 void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar) {}
-void ED_view3d_from_m4(float mat[][4], float ofs[3], float quat[4], float *dist) {}
+void ED_view3d_from_m4(float mat[4][4], float ofs[3], float quat[4], float *dist) {}
 struct BGpic *ED_view3D_background_image_new(struct View3D *v3d) {return (struct BGpic *) NULL;}
 void ED_view3D_background_image_remove(struct View3D *v3d, struct BGpic *bgpic) {}
 void ED_view3D_background_image_clear(struct View3D *v3d) {}
-void ED_view3d_update_viewmat(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, float viewmat[][4], float winmat[][4]) {}
+void ED_view3d_update_viewmat(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, float viewmat[4][4], float winmat[4][4]) {}
 float ED_view3d_grid_scale(struct Scene *scene, struct View3D *v3d, const char **grid_unit) {return 0.0f;}
-void view3d_apply_mat4(float mat[][4], float *ofs, float *quat, float *dist) {}
+void view3d_apply_mat4(float mat[4][4], float *ofs, float *quat, float *dist) {}
 int text_file_modified(struct Text *text) {return 0;}
 void ED_node_shader_default(struct Material *ma) {}
 void ED_screen_animation_timer_update(struct bContext *C, int redraws) {}

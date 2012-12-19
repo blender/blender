@@ -22,8 +22,6 @@ import bpy
 
 from bpy.types import Panel, Menu
 
-from . import enums, engine
-
 
 class CYCLES_MT_integrator_presets(Menu):
     bl_label = "Integrator Presets"
@@ -947,6 +945,37 @@ class CyclesTexture_PT_colors(CyclesButtonsPanel, Panel):
             layout.template_color_ramp(mapping, "color_ramp", expand=True)
 
 
+class CyclesParticle_PT_textures(CyclesButtonsPanel, Panel):
+    bl_label = "Textures"
+    bl_context = "particle"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        psys = context.particle_system
+        return psys and CyclesButtonsPanel.poll(context)
+
+    def draw(self, context):
+        layout = self.layout
+
+        psys = context.particle_system
+        part = psys.settings
+
+        row = layout.row()
+        row.template_list(part, "texture_slots", part, "active_texture_index", rows=2)
+
+        col = row.column(align=True)
+        col.operator("texture.slot_move", text="", icon='TRIA_UP').type = 'UP'
+        col.operator("texture.slot_move", text="", icon='TRIA_DOWN').type = 'DOWN'
+        col.menu("TEXTURE_MT_specials", icon='DOWNARROW_HLT', text="")
+
+        if not part.active_texture:
+            layout.template_ID(part, "active_texture", new="texture.new")
+        else:
+            slot = part.texture_slots[part.active_texture_index]
+            layout.template_ID(slot, "texture", new="texture.new")
+
+
 class CyclesScene_PT_simplify(CyclesButtonsPanel, Panel):
     bl_label = "Simplify"
     bl_context = "scene"
@@ -977,6 +1006,7 @@ def draw_device(self, context):
     layout = self.layout
 
     if scene.render.engine == 'CYCLES':
+        from . import engine
         cscene = scene.cycles
 
         layout.prop(cscene, "feature_set")
@@ -1058,6 +1088,7 @@ def get_panels():
         bpy.types.TEXTURE_PT_pointdensity_turbulence,
         bpy.types.TEXTURE_PT_mapping,
         bpy.types.TEXTURE_PT_influence,
+        bpy.types.TEXTURE_PT_colors,
         bpy.types.PARTICLE_PT_context_particles,
         bpy.types.PARTICLE_PT_emission,
         bpy.types.PARTICLE_PT_hair_dynamics,

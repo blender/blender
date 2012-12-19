@@ -35,7 +35,6 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_bpath.h"
 
 #include "BKE_animsys.h"
 #include "BKE_global.h"

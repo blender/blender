@@ -924,7 +924,8 @@ static void clampBoundsInDomain(SmokeDomainSettings *sds, int min[3], int max[3]
 	}
 }
 
-static void em_allocateData(EmissionMap *em, int use_velocity) {
+static void em_allocateData(EmissionMap *em, int use_velocity)
+{
 	int i, res[3];
 
 	for (i = 0; i < 3; i++) {
@@ -941,7 +942,8 @@ static void em_allocateData(EmissionMap *em, int use_velocity) {
 		em->velocity = MEM_callocN(sizeof(float) * em->total_cells * 3, "smoke_flow_velocity");
 }
 
-static void em_freeData(EmissionMap *em) {
+static void em_freeData(EmissionMap *em)
+{
 	if (em->influence)
 		MEM_freeN(em->influence);
 	if (em->velocity)
@@ -2509,7 +2511,8 @@ float smoke_get_velocity_at(struct Object *ob, float position[3], float velocity
 	return -1.0f;
 }
 
-int smoke_get_data_flags(SmokeDomainSettings *sds) {
+int smoke_get_data_flags(SmokeDomainSettings *sds)
+{
 	int flags = 0;
 	if (smoke_has_heat(sds->fluid)) flags |= SM_ACTIVE_HEAT;
 	if (smoke_has_fuel(sds->fluid)) flags |= SM_ACTIVE_FIRE;

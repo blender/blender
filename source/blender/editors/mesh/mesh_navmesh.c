@@ -375,7 +375,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 			BM_vert_create(em->bm, co, NULL, 0);
 		}
 
-		EDBM_index_arrays_init(em, 1, 0, 0);
+		EDBM_index_arrays_ensure(em, BM_VERT);
 
 		/* create faces */
 		for (j = 0; j < trinum; j++) {
@@ -399,8 +399,6 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 			polygonIdx = (int *)CustomData_bmesh_get(&em->bm->pdata, newFace->head.data, CD_RECAST);
 			*polygonIdx = i + 1; /* add 1 to avoid zero idx */
 		}
-		
-		EDBM_index_arrays_free(em);
 	}
 
 	recast_destroyPolyMesh(pmesh);

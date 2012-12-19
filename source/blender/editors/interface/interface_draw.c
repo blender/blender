@@ -429,17 +429,18 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 #else
 	ImBuf *ibuf = (ImBuf *)but->poin;
 	//GLint scissor[4];
-	//int w, h;
+	int w, h;
 
 	if (!ibuf) return;
+	
+	w = BLI_rcti_size_x(rect);
+	h = BLI_rcti_size_y(rect);
 	
 	/* scissor doesn't seem to be doing the right thing...? */
 #if 0
 	//glColor4f(1.0, 0.f, 0.f, 1.f);
 	//fdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax)
 
-	w = BLI_rcti_size_x(rect);
-	h = BLI_rcti_size_y(rect);
 	/* prevent drawing outside widget area */
 	glGetIntegerv(GL_SCISSOR_BOX, scissor);
 	glScissor(ar->winrct.xmin + rect->xmin, ar->winrct.ymin + rect->ymin, w, h);
@@ -448,8 +449,15 @@ void ui_draw_but_IMAGE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSED(w
 	glEnable(GL_BLEND);
 	glColor4f(0.0, 0.0, 0.0, 0.0);
 	
+	if (w != ibuf->x || h != ibuf->y) {
+		float facx = (float)w / (float)ibuf->x;
+		float facy = (float)h / (float)ibuf->y;
+		glPixelZoom(facx, facy);
+	}
 	glaDrawPixelsSafe((float)rect->xmin, (float)rect->ymin, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 	//glaDrawPixelsTex((float)rect->xmin, (float)rect->ymin, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
+	
+	glPixelZoom(1.0f, 1.0f);
 	
 	glDisable(GL_BLEND);
 	

@@ -398,6 +398,9 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 			case NODE_RGB_CURVES:
 				svm_node_rgb_curves(kg, sd, stack, node, &offset);
 				break;
+			case NODE_VECTOR_CURVES:
+				svm_node_vector_curves(kg, sd, stack, node, &offset);
+				break;
 			case NODE_LIGHT_FALLOFF:
 				svm_node_light_falloff(sd, stack, node);
 				break;

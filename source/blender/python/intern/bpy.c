@@ -45,7 +45,7 @@
 
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "BLI_bpath.h"
+#include "BKE_bpath.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_main.h"
@@ -129,13 +129,13 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 		return NULL;
 	}
 
-	if (absolute) flag |= BLI_BPATH_TRAVERSE_ABS;
-	if (!packed)  flag |= BLI_BPATH_TRAVERSE_SKIP_PACKED;
-	if (local)    flag |= BLI_BPATH_TRAVERSE_SKIP_LIBRARY;
+	if (absolute) flag |= BKE_BPATH_TRAVERSE_ABS;
+	if (!packed)  flag |= BKE_BPATH_TRAVERSE_SKIP_PACKED;
+	if (local)    flag |= BKE_BPATH_TRAVERSE_SKIP_LIBRARY;
 
 	list = PyList_New(0);
 
-	BLI_bpath_traverse_main(G.main, bpy_blend_paths_visit_cb, flag, (void *)list);
+	BKE_bpath_traverse_main(G.main, bpy_blend_paths_visit_cb, flag, (void *)list);
 
 	return list;
 }

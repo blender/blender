@@ -7,7 +7,7 @@
 #define __RAS_LISTRASTERIZER_H__
 
 #include "RAS_MaterialBucket.h"
-#include "RAS_VAOpenGLRasterizer.h"
+#include "RAS_OpenGLRasterizer.h"
 #include <vector>
 #include <map>
 
@@ -49,7 +49,7 @@ typedef std::map<RAS_DisplayArrayList, RAS_ListSlot*> RAS_ArrayLists;
 typedef std::vector<RAS_ListSlot*>					  RAS_ListSlots;	// indexed by material slot number
 typedef std::map<DerivedMesh*, RAS_ListSlots*>		  RAS_DerivedMeshLists;
 
-class RAS_ListRasterizer : public RAS_VAOpenGLRasterizer
+class RAS_ListRasterizer : public RAS_OpenGLRasterizer
 {
 	bool mUseVertexArrays;
 	bool mATI;
@@ -61,7 +61,7 @@ class RAS_ListRasterizer : public RAS_VAOpenGLRasterizer
 
 public:
 	void RemoveListSlot(RAS_ListSlot* list);
-	RAS_ListRasterizer(RAS_ICanvas* canvas, bool useVertexArrays=false, bool lock=false);
+	RAS_ListRasterizer(RAS_ICanvas* canvas, bool lock=false, int storage=RAS_AUTO_STORAGE);
 	virtual ~RAS_ListRasterizer();
 
 	virtual void	IndexPrimitives(class RAS_MeshSlot& ms);

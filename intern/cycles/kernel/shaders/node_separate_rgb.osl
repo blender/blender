@@ -19,7 +19,7 @@
 #include "stdosl.h"
 
 shader node_separate_rgb(
-	color Image = color(0.8, 0.8, 0.8),
+	color Image = 0.8,
 	output float R = 0.0,
 	output float G = 0.0,
 	output float B = 0.0)

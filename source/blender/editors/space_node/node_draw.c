@@ -278,6 +278,21 @@ static void node_uiblocks_init(const bContext *C, bNodeTree *ntree)
 	}
 }
 
+void node_to_view(struct bNode *node, float x, float y, float *rx, float *ry)
+{
+	nodeToView(node, x, y, rx, ry);
+	*rx *= UI_DPI_FAC;
+	*ry *= UI_DPI_FAC;
+}
+
+void node_from_view(struct bNode *node, float x, float y, float *rx, float *ry)
+{
+	x /= UI_DPI_FAC;
+	y /= UI_DPI_FAC;
+	nodeFromView(node, x, y, rx, ry);
+}
+
+
 /* based on settings in node, sets drawing rect info. each redraw! */
 static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 {
@@ -289,7 +304,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 	int buty;
 	
 	/* get "global" coords */
-	nodeToView(node, 0.0f, 0.0f, &locx, &locy);
+	node_to_view(node, 0.0f, 0.0f, &locx, &locy);
 	dy = locy;
 	
 	/* header */
@@ -302,14 +317,14 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 	/* output sockets */
 	for (nsock = node->outputs.first; nsock; nsock = nsock->next) {
 		if (!nodeSocketIsHidden(nsock)) {
-			nsock->locx = locx + node->width;
+			nsock->locx = locx + NODE_WIDTH(node);
 			nsock->locy = dy - NODE_DYS;
 			dy -= NODE_DY;
 		}
 	}
 
 	node->prvr.xmin = locx + NODE_DYS;
-	node->prvr.xmax = locx + node->width - NODE_DYS;
+	node->prvr.xmax = locx + NODE_WIDTH(node) - NODE_DYS;
 
 	/* preview rect? */
 	if (node->flag & NODE_PREVIEW) {
@@ -323,12 +338,13 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 			node->prvr.ymax = dy;
 			
 			if (aspect <= 1.0f)
-				node->prvr.ymin = dy - aspect * (node->width - NODE_DY);
+				node->prvr.ymin = dy - aspect * (NODE_WIDTH(node) - NODE_DY);
 			else {
 				/* width correction of image */
-				float dx = (node->width - NODE_DYS) - (node->width - NODE_DYS) / aspect;
+				/* XXX huh? (ton) */
+				float dx = (NODE_WIDTH(node) - NODE_DYS) - (NODE_WIDTH(node) - NODE_DYS) / aspect;
 				
-				node->prvr.ymin = dy - (node->width - NODE_DY);
+				node->prvr.ymin = dy - (NODE_WIDTH(node) - NODE_DY);
 				
 				node->prvr.xmin += 0.5f * dx;
 				node->prvr.xmax -= 0.5f * dx;
@@ -343,7 +359,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		else {
 			float oldh = BLI_rctf_size_y(&node->prvr);
 			if (oldh == 0.0f)
-				oldh = 0.6f * node->width - NODE_DY;
+				oldh = 0.6f * NODE_WIDTH(node) - NODE_DY;
 			dy -= NODE_DYS / 2;
 			node->prvr.ymax = dy;
 			node->prvr.ymin = dy - oldh;
@@ -357,21 +373,22 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 
 		/* set this for uifunc() that don't use layout engine yet */
 		node->butr.xmin = 0;
-		node->butr.xmax = node->width - 2 * NODE_DYS;
+		node->butr.xmax = NODE_WIDTH(node) - 2 * NODE_DYS;
 		node->butr.ymin = 0;
 		node->butr.ymax = 0;
 		
 		RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr);
 		
+			
 		layout = uiBlockLayout(node->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
-		                       locx + NODE_DYS, dy, node->butr.xmax, NODE_DY, UI_GetStyle());
+		                       locx + NODE_DYS, dy, node->butr.xmax, 0, UI_GetStyle());
 		uiLayoutSetContextPointer(layout, "node", &ptr);
 		
 		node->typeinfo->uifunc(layout, (bContext *)C, &ptr);
 		
 		uiBlockEndAlign(node->block);
 		uiBlockLayoutResolve(node->block, NULL, &buty);
-		
+			
 		dy = buty - NODE_DYS / 2;
 	}
 
@@ -389,7 +406,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		dy -= NODE_DYS / 2;
 
 	node->totr.xmin = locx;
-	node->totr.xmax = locx + node->width;
+	node->totr.xmax = locx + NODE_WIDTH(node);
 	node->totr.ymax = locy;
 	node->totr.ymin = min_ff(dy, locy - 2 * NODE_DY);
 	
@@ -412,7 +429,7 @@ static void node_update_hidden(bNode *node)
 	int totin = 0, totout = 0, tot;
 	
 	/* get "global" coords */
-	nodeToView(node, 0.0f, 0.0f, &locx, &locy);
+	node_to_view(node, 0.0f, 0.0f, &locx, &locy);
 
 	/* calculate minimal radius */
 	for (nsock = node->inputs.first; nsock; nsock = nsock->next)
@@ -700,7 +717,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	uiRoundBox(rct->xmin, rct->ymax - NODE_DY, rct->xmax, rct->ymax, BASIS_RAD);
 	
 	/* show/hide icons */
-	iconofs = rct->xmax - 7.0f;
+	iconofs = rct->xmax - 0.35f * U.widget_unit;
 	
 	/* preview */
 	if (node->typeinfo->flag & NODE_PREVIEW) {
@@ -742,13 +759,13 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		/* XXX button uses a custom triangle draw below, so make it invisible without icon */
 		uiBlockSetEmboss(node->block, UI_EMBOSSN);
 		but = uiDefBut(node->block, TOGBUT, B_REDR, "",
-		               rct->xmin + 10.0f - but_size / 2, rct->ymax - NODE_DY / 2.0f - but_size / 2,
+		               rct->xmin + 0.5f * U.widget_unit - but_size / 2, rct->ymax - NODE_DY / 2.0f - but_size / 2,
 		               but_size, but_size, NULL, 0, 0, 0, 0, "");
 		uiButSetFunc(but, node_toggle_button_cb, node, (void *)"NODE_OT_hide_toggle");
 		uiBlockSetEmboss(node->block, UI_EMBOSS);
 		
 		/* custom draw function for this button */
-		UI_DrawTriIcon(rct->xmin + 10.0f, rct->ymax - NODE_DY / 2.0f, 'v');
+		UI_DrawTriIcon(rct->xmin + 0.5f * U.widget_unit, rct->ymax - NODE_DY / 2.0f, 'v');
 	}
 	
 	/* this isn't doing anything for the label, so commenting out */
@@ -765,7 +782,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); /* XXX - don't print into self! */
 	
 	uiDefBut(node->block, LABEL, 0, showname,
-	         (int)(rct->xmin + (NODE_MARGIN_X / snode->aspect_sqrt)), (int)(rct->ymax - NODE_DY),
+	         (int)(rct->xmin + (NODE_MARGIN_X)), (int)(rct->ymax - NODE_DY),
 	         (short)(iconofs - rct->xmin - 18.0f), (short)NODE_DY,
 	         NULL, 0, 0, 0, 0, "");
 
@@ -808,8 +825,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		node_socket_circle_draw(ntree, sock, NODE_SOCKSIZE, sock->flag & SELECT);
 		
 		node->typeinfo->drawinputfunc(C, node->block, ntree, node, sock, IFACE_(sock->name),
-		                              sock->locx + (NODE_DYS / snode->aspect_sqrt), sock->locy - NODE_DYS,
-		                              node->width - NODE_DY);
+		                              sock->locx + (NODE_DYS), sock->locy - NODE_DYS,
+		                              NODE_WIDTH(node) - NODE_DY);
 	}
 	
 	/* socket outputs */
@@ -820,8 +837,8 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		node_socket_circle_draw(ntree, sock, NODE_SOCKSIZE, sock->flag & SELECT);
 		
 		node->typeinfo->drawoutputfunc(C, node->block, ntree, node, sock, IFACE_(sock->name),
-		                               sock->locx - node->width + (NODE_DYS / snode->aspect_sqrt), sock->locy - NODE_DYS,
-		                               node->width - NODE_DY);
+		                               sock->locx - NODE_WIDTH(node) + (NODE_DYS), sock->locy - NODE_DYS,
+		                               NODE_WIDTH(node) - NODE_DY);
 	}
 	
 	/* preview */
@@ -843,7 +860,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	rctf *rct = &node->totr;
 	float dx, centy = BLI_rctf_cent_y(rct);
 	float hiddenrad = BLI_rctf_size_y(rct) / 2.0f;
-	float socket_size = NODE_SOCKSIZE * UI_DPI_ICON_FAC;
+	float socket_size = NODE_SOCKSIZE;
 	int color_id = node_get_colorid(node);
 	char showname[128]; /* 128 is used below */
 	
@@ -920,7 +937,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		//	BLI_snprintf(showname, sizeof(showname), "[%s]", showname); /* XXX - don't print into self! */
 
 		uiDefBut(node->block, LABEL, 0, showname,
-		         (int)(rct->xmin + (NODE_MARGIN_X / snode->aspect_sqrt)), (int)(centy - 10),
+		         (int)(rct->xmin + (NODE_MARGIN_X)), (int)(centy - 10),
 		         (short)(BLI_rctf_size_x(rct) - 18.0f - 12.0f), (short)NODE_DY,
 		         NULL, 0, 0, 0, 0, "");
 	}
@@ -1011,7 +1028,7 @@ void node_update_nodetree(const bContext *C, bNodeTree *ntree, float offsetx, fl
 	
 	/* update nodes front to back, so children sizes get updated before parents */
 	for (node = ntree->nodes.last; node; node = node->prev) {
-		/* XXX little hack */
+		/* XXX little hack (not used anyore?) */
 		node->locx += offsetx;
 		node->locy += offsety;
 		
@@ -1082,7 +1099,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNodeLinkDrag *nldrag;
 	LinkData *linkdata;
-	
+
 	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -1098,11 +1115,10 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 
 	/* aspect+font, set each time */
 	snode->aspect = BLI_rctf_size_x(&v2d->cur) / (float)ar->winx;
-	snode->aspect_sqrt = sqrtf(snode->aspect);
 	// XXX snode->curfont = uiSetCurFont_ext(snode->aspect);
 
 	/* grid */
-	UI_view2d_multi_grid_draw(v2d, 25.0f, 5, 2);
+	UI_view2d_multi_grid_draw(v2d, U.widget_unit, 5, 2);
 
 	/* backdrop */
 	draw_nodespace_back_pix(C, ar, snode);
@@ -1156,16 +1172,22 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 	
-	/* draw grease-pencil ('canvas' strokes) */
-	if (snode->nodetree)
-		draw_gpencil_view2d(C, 1);
+	if (snode->flag & SNODE_SHOW_GPENCIL) {
+		/* draw grease-pencil ('canvas' strokes) */
+		if (snode->nodetree) {
+			draw_gpencil_view2d(C, TRUE);
+		}
+	}
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
 	
-	/* draw grease-pencil (screen strokes, and also paintbuffer) */
-	if (snode->nodetree)
-		draw_gpencil_view2d(C, 0);
+	if (snode->flag & SNODE_SHOW_GPENCIL) {
+		/* draw grease-pencil (screen strokes, and also paintbuffer) */
+		if (snode->nodetree) {
+			draw_gpencil_view2d(C, FALSE);
+		}
+	}
 	
 	/* scrollers */
 	scrollers = UI_view2d_scrollers_calc(C, v2d, 10, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);

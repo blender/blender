@@ -271,6 +271,24 @@ static char *rna_Node_path(PointerRNA *ptr)
 	return BLI_sprintfN("nodes[\"%s\"]", node->name);
 }
 
+/* define a get_type function for each node type */
+#define DEF_NODE_GET_NODE_TYPE(name, enum_name) \
+static const char *rna_##name##_get_node_type() \
+{ \
+	return enum_name; \
+}
+
+#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
+DEF_NODE_GET_NODE_TYPE(Category##StructName, EnumName)
+
+#include "rna_nodetree_types.h"
+
+/* some nodes not included in rna_nodetree_types.h */
+DEF_NODE_GET_NODE_TYPE(NodeGroup, "GROUP")
+DEF_NODE_GET_NODE_TYPE(NodeFrame, "FRAME")
+DEF_NODE_GET_NODE_TYPE(NodeReroute, "REROUTE")
+
+
 static StructRNA *rna_NodeSocket_refine(PointerRNA *ptr)
 {
 	bNodeSocket *sock = (bNodeSocket *)ptr->data;
@@ -497,6 +515,20 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
 	
 	/* fix all the animation data which may link to this */
 	BKE_all_animdata_fix_paths_rename(NULL, "nodes", oldname, node->name);
+}
+
+static void rna_Node_width_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
+{
+	bNode *node = ptr->data;
+	*min = *softmin = node->typeinfo->minwidth;
+	*max = *softmax = node->typeinfo->maxwidth;
+}
+
+static void rna_Node_height_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
+{
+	bNode *node = ptr->data;
+	*min = *softmin = node->typeinfo->minheight;
+	*max = *softmax = node->typeinfo->maxheight;
 }
 
 static void rna_NodeSocket_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -4609,6 +4641,24 @@ static void rna_def_node(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Location", "");
 	RNA_def_property_update(prop, NC_NODE, "rna_Node_update");
 	
+	prop = RNA_def_property(srna, "width", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "width");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_Node_width_range");
+	RNA_def_property_ui_text(prop, "Width", "Width of the node");
+	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
+	
+	prop = RNA_def_property(srna, "width_hidden", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "miniwidth");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_Node_width_range");
+	RNA_def_property_ui_text(prop, "Width Hidden", "Width of the node in hidden state");
+	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
+	
+	prop = RNA_def_property(srna, "height", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "height");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_Node_height_range");
+	RNA_def_property_ui_text(prop, "Height", "Height of the node");
+	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
+	
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Unique node identifier");
 	RNA_def_struct_name_property(srna, prop);
@@ -4874,12 +4924,20 @@ static void rna_def_texture_nodetree(BlenderRNA *brna)
 	rna_def_texture_nodetree_api(brna, prop);
 }
 
-static void define_specific_node(BlenderRNA *brna, int id, void (*func)(StructRNA *))
+static void define_specific_node(BlenderRNA *brna, int id, void (*def_func)(StructRNA *), const char *get_node_type_func)
 {
 	StructRNA *srna = def_node(brna, id);
-
-	if (func)
-		func(srna);
+	FunctionRNA *func;
+	PropertyRNA *parm;
+	
+	if (def_func)
+		def_func(srna);
+	
+	func = RNA_def_function(srna, "get_node_type", get_node_type_func);
+	RNA_def_function_ui_description(func, "Get the identifier of the node type");
+	RNA_def_function_flag(func, FUNC_NO_SELF);
+	parm = RNA_def_string(func, "result", "", 0, "Result", "");
+	RNA_def_function_return(func, parm);
 }
 
 void RNA_def_nodetree(BlenderRNA *brna)
@@ -4910,13 +4968,13 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	rna_def_shader_nodetree(brna);
 	rna_def_texture_nodetree(brna);
 	#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
-		define_specific_node(brna, ID, DefFunc);
+		define_specific_node(brna, ID, DefFunc, "rna_" STRINGIFY_ARG(Category##StructName) "_get_node_type");
 		
 	#include "rna_nodetree_types.h"
 	
-	define_specific_node(brna, NODE_GROUP, def_group);
-	define_specific_node(brna, NODE_FRAME, def_frame);
-	define_specific_node(brna, NODE_REROUTE, 0);
+	define_specific_node(brna, NODE_GROUP, def_group, "rna_NodeGroup_get_node_type");
+	define_specific_node(brna, NODE_FRAME, def_frame, "rna_NodeFrame_get_node_type");
+	define_specific_node(brna, NODE_REROUTE, 0, "rna_NodeReroute_get_node_type");
 	
 	/* special socket types */
 	rna_def_cmp_output_file_slot_file(brna);

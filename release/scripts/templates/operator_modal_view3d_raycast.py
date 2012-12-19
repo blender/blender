@@ -16,7 +16,6 @@ def main(context, event, ray_max=10000.0):
     ray_origin = view3d_utils.region_2d_to_origin_3d(region, rv3d, coord)
     ray_target = ray_origin + (view_vector * ray_max)
 
-    scene.cursor_location = ray_target
 
     def visible_objects_and_duplis():
         """Loop over (object, matrix) pairs (mesh only)"""
@@ -58,7 +57,9 @@ def main(context, event, ray_max=10000.0):
         if obj.type == 'MESH':
             hit, normal, face_index = obj_ray_cast(obj, matrix)
             if hit is not None:
-                length_squared = (hit - ray_origin).length_squared
+                hit_world = matrix * hit
+                scene.cursor_location = hit_world
+                length_squared = (hit_world - ray_origin).length_squared
                 if length_squared < best_length_squared:
                     best_length_squared = length_squared
                     best_obj = obj
@@ -67,6 +68,7 @@ def main(context, event, ray_max=10000.0):
     # we could do lots of stuff but for the example just select.
     if best_obj is not None:
         best_obj.select = True
+        context.scene.objects.active = best_obj
 
 
 class ViewOperatorRayCast(bpy.types.Operator):
@@ -105,3 +107,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+

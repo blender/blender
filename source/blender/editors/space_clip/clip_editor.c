@@ -38,6 +38,7 @@
 #include "BKE_movieclip.h"
 #include "BKE_context.h"
 #include "BKE_tracking.h"
+#include "BKE_library.h"
 
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h"	/* SELECT */
@@ -524,8 +525,7 @@ void ED_space_clip_set_clip(bContext *C, bScreen *screen, SpaceClip *sc, MovieCl
 	old_clip = sc->clip;
 	sc->clip = clip;
 
-	if (sc->clip && sc->clip->id.us == 0)
-		sc->clip->id.us = 1;
+	id_us_ensure_real((ID *)sc->clip);
 
 	if (screen && sc->view == SC_VIEW_CLIP) {
 		ScrArea *area;
@@ -561,9 +561,7 @@ void ED_space_clip_set_mask(bContext *C, SpaceClip *sc, Mask *mask)
 {
 	sc->mask_info.mask = mask;
 
-	if (sc->mask_info.mask && sc->mask_info.mask->id.us == 0) {
-		sc->mask_info.mask->id.us = 1;
-	}
+	id_us_ensure_real((ID *)sc->mask_info.mask);
 
 	if (C) {
 		WM_event_add_notifier(C, NC_MASK | NA_SELECTED, mask);

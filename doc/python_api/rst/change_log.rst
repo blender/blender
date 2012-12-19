@@ -3896,3 +3896,433 @@ Added
 ^^^^^
 
 * :class:`bpy.types.LatticePoint.select`
+
+
+2.64 to 2.65
+============
+
+bpy.types.SmokeDomainSettings
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SmokeDomainSettings.adapt_margin`
+* :class:`bpy.types.SmokeDomainSettings.adapt_threshold`
+* :class:`bpy.types.SmokeDomainSettings.additional_res`
+* :class:`bpy.types.SmokeDomainSettings.burning_rate`
+* :class:`bpy.types.SmokeDomainSettings.flame_ignition`
+* :class:`bpy.types.SmokeDomainSettings.flame_max_temp`
+* :class:`bpy.types.SmokeDomainSettings.flame_smoke`
+* :class:`bpy.types.SmokeDomainSettings.flame_smoke_color`
+* :class:`bpy.types.SmokeDomainSettings.flame_vorticity`
+* :class:`bpy.types.SmokeDomainSettings.use_adaptive_domain`
+
+Removed
+^^^^^^^
+
+* **scale**
+
+bpy.types.BezierSplinePoint
+---------------------------
+
+Renamed
+^^^^^^^
+
+* **weight** -> :class:`bpy.types.BezierSplinePoint.weight_softbody`
+
+bpy.types.Material
+------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Material.use_light_group_local`
+
+bpy.types.Curve
+---------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Curve.use_map_taper`
+
+bpy.types.EffectorWeights
+-------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.EffectorWeights.smokeflow`
+
+bpy.types.FieldSettings
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.FieldSettings.source_object`
+* :class:`bpy.types.FieldSettings.use_smoke_density`
+
+bpy.types.GPencilFrame
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.GPencilFrame.clear`
+
+bpy.types.UserPreferencesView
+-----------------------------
+
+Renamed
+^^^^^^^
+
+* **quit_dialog** -> :class:`bpy.types.UserPreferencesView.use_quit_dialog`
+
+bpy.types.GreasePencilLayers
+----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.GreasePencilLayers.new`
+* :class:`bpy.types.GreasePencilLayers.remove`
+
+bpy.types.PointCache
+--------------------
+
+Removed
+^^^^^^^
+
+* **use_quick_cache**
+
+bpy.types.KinematicConstraint
+-----------------------------
+
+Removed
+^^^^^^^
+
+* **use_target**
+
+bpy.types.DopeSheet
+-------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.DopeSheet.show_only_errors`
+
+bpy.types.UILayout
+------------------
+
+Renamed
+^^^^^^^
+
+* **template_color_wheel** -> :class:`bpy.types.UILayout.template_color_picker`
+
+bpy.types.GPencilStroke
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.GPencilStroke.draw_mode`
+
+bpy.types.UserPreferencesEdit
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UserPreferencesEdit.use_auto_keying_warning`
+
+bpy.types.MovieTrackingObject
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MovieTrackingObject.keyframe_a`
+* :class:`bpy.types.MovieTrackingObject.keyframe_b`
+
+bpy.types.ShrinkwrapModifier
+----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ShrinkwrapModifier.project_limit`
+
+bpy.types.FileSelectParams
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.FileSelectParams.use_filter_backup`
+
+bpy.types.RenderSettings
+------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.RenderSettings.tile_x`
+* :class:`bpy.types.RenderSettings.tile_y`
+* :class:`bpy.types.RenderSettings.use_persistent_data`
+
+Removed
+^^^^^^^
+
+* **parts_x**
+* **parts_y**
+* **use_sequencer_gl_render**
+
+bpy.types.Sculpt
+----------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.Sculpt.show_diffuse_color`
+
+bpy.types.SmokeFlowSettings
+---------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SmokeFlowSettings.density_vertex_group`
+* :class:`bpy.types.SmokeFlowSettings.fuel_amount`
+* :class:`bpy.types.SmokeFlowSettings.noise_texture`
+* :class:`bpy.types.SmokeFlowSettings.smoke_color`
+* :class:`bpy.types.SmokeFlowSettings.smoke_flow_source`
+* :class:`bpy.types.SmokeFlowSettings.smoke_flow_type`
+* :class:`bpy.types.SmokeFlowSettings.surface_distance`
+* :class:`bpy.types.SmokeFlowSettings.texture_map_type`
+* :class:`bpy.types.SmokeFlowSettings.texture_offset`
+* :class:`bpy.types.SmokeFlowSettings.texture_size`
+* :class:`bpy.types.SmokeFlowSettings.use_texture`
+* :class:`bpy.types.SmokeFlowSettings.uv_layer`
+* :class:`bpy.types.SmokeFlowSettings.velocity_normal`
+* :class:`bpy.types.SmokeFlowSettings.velocity_random`
+* :class:`bpy.types.SmokeFlowSettings.volume_density`
+
+Removed
+^^^^^^^
+
+* **use_outflow**
+
+bpy.types.GameObjectSettings
+----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.GameObjectSettings.collision_group`
+* :class:`bpy.types.GameObjectSettings.collision_mask`
+
+bpy.types.SpaceView3D
+---------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.SpaceView3D.grid_scale_unit`
+* :class:`bpy.types.SpaceView3D.render_border_max_x`
+* :class:`bpy.types.SpaceView3D.render_border_max_y`
+* :class:`bpy.types.SpaceView3D.render_border_min_x`
+* :class:`bpy.types.SpaceView3D.render_border_min_y`
+* :class:`bpy.types.SpaceView3D.use_render_border`
+
+bpy.types.DupliObject
+---------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.DupliObject.orco`
+* :class:`bpy.types.DupliObject.particle_system`
+* :class:`bpy.types.DupliObject.persistent_id`
+* :class:`bpy.types.DupliObject.type`
+* :class:`bpy.types.DupliObject.uv`
+
+Removed
+^^^^^^^
+
+* **particle_index**
+
+bpy.types.CyclesRenderSettings
+------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CyclesRenderSettings.use_progressive_refine`
+
+bpy.types.MaterialTextureSlot
+-----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MaterialTextureSlot.use_map_to_bounds`
+
+bpy.types.MovieSequence
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MovieSequence.colorspace_settings`
+
+bpy.types.GPencilLayer
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.GPencilLayer.clear`
+
+bpy.types.CYCLES
+----------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.CYCLES.update_script_node`
+
+bpy.types.ImageSequence
+-----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ImageSequence.colorspace_settings`
+
+bpy.types.LatticePoint
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.LatticePoint.weight_softbody`
+
+bpy.types.DecimateModifier
+--------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.DecimateModifier.angle_limit`
+* :class:`bpy.types.DecimateModifier.decimate_type`
+* :class:`bpy.types.DecimateModifier.invert_vertex_group`
+* :class:`bpy.types.DecimateModifier.iterations`
+* :class:`bpy.types.DecimateModifier.use_collapse_triangulate`
+* :class:`bpy.types.DecimateModifier.use_dissolve_boundaries`
+* :class:`bpy.types.DecimateModifier.vertex_group`
+
+bpy.types.UserPreferencesSystem
+-------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UserPreferencesSystem.multi_sample`
+
+Removed
+^^^^^^^
+
+* **use_antialiasing**
+
+bpy.types.Text
+--------------
+
+Removed
+^^^^^^^
+
+* **markers**
+
+bpy.types.GreasePencil
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.GreasePencil.clear`
+
+bpy.types.UserPreferencesFilePaths
+----------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.UserPreferencesFilePaths.hide_system_bookmarks`
+
+bpy.types.ToolSettings
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ToolSettings.snap_uv_element`
+
+bpy.types.ShaderNodeTexCoord
+----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ShaderNodeTexCoord.from_dupli`
+
+bpy.types.RenderEngine
+----------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.RenderEngine.update_memory_stats`
+* :class:`bpy.types.RenderEngine.update_script_node`
+
+bpy.types.MovieTrackingSettings
+-------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.MovieTrackingSettings.reconstruction_success_threshold`
+* :class:`bpy.types.MovieTrackingSettings.use_fallback_reconstruction`
+
+Removed
+^^^^^^^
+
+* **keyframe_a**
+* **keyframe_b**
+
+bpy.types.ThemeUserInterface
+----------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.ThemeUserInterface.axis_x`
+* :class:`bpy.types.ThemeUserInterface.axis_y`
+* :class:`bpy.types.ThemeUserInterface.axis_z`
+
+bpy.types.BlendDataGreasePencils
+--------------------------------
+
+Added
+^^^^^
+
+* :class:`bpy.types.BlendDataGreasePencils.new`
+* :class:`bpy.types.BlendDataGreasePencils.remove`
+
+bpy.types.Object
+----------------
+
+Function Arguments
+^^^^^^^^^^^^^^^^^^
+
+* :class:`bpy.types.Object.dupli_list_create` (scene, settings), *was (scene)*

@@ -58,7 +58,7 @@
 /* BMESH_TODO: 'state' is not a good name, should be flipped and called 'was_editmode',
  * or at least something more descriptive */
 static Object *make_prim_init(bContext *C, const char *idname,
-                              float *dia, float mat[][4],
+                              float *dia, float mat[4][4],
                               int *state, const float loc[3], const float rot[3], const unsigned int layer)
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -90,7 +90,7 @@ static void make_prim_finish(bContext *C, Object *obedit, int *state, int enter_
 	EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);
 
 	/* only recalc editmode tessface if we are staying in editmode */
-	EDBM_update_generic(C, em, !exit_editmode);
+	EDBM_update_generic(em, !exit_editmode, TRUE);
 
 	/* userdef */
 	if (exit_editmode) {

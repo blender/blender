@@ -515,7 +515,7 @@ void RE_SetPixelSize(Render *re, float pixsize)
 	re->viewdy = re->ycor * pixsize;
 }
 
-void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, float mat[][4])
+void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, float mat[4][4])
 {
 	re->r.cfra = frame;
 	RE_SetCamera(re, camera);

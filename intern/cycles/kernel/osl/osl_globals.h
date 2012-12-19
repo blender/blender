@@ -75,10 +75,21 @@ struct OSLGlobals {
 	vector<ustring> object_names;
 };
 
+/* trace() call result */
+struct OSLTraceData {
+	Ray ray;
+	Intersection isect;
+	ShaderData sd;
+	bool setup;
+	bool init;
+};
+
 /* thread key for thread specific data lookup */
 struct OSLThreadData {
 	OSL::ShaderGlobals globals;
 	OSL::PerThreadInfo *thread_info;
+	OSLTraceData tracedata;
+	OSL::ShadingContext *context[SHADER_CONTEXT_NUM];
 };
 
 CCL_NAMESPACE_END

@@ -168,7 +168,7 @@ Object *SkinInfo::set_armature(Object *ob_arm)
 	return ob_arm;
 }
 
-bool SkinInfo::get_joint_inv_bind_matrix(float inv_bind_mat[][4], COLLADAFW::Node *node)
+bool SkinInfo::get_joint_inv_bind_matrix(float inv_bind_mat[4][4], COLLADAFW::Node *node)
 {
 	const COLLADAFW::UniqueId& uid = node->getUniqueId();
 	std::vector<JointData>::iterator it;

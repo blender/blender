@@ -451,7 +451,7 @@ static void gp_strokepoint_convertcoords(bContext *C, bGPDstroke *gps, bGPDspoin
 		copy_v3_v3(p3d, &pt->x);
 	}
 	else {
-		float *fp = give_cursor(scene, v3d);
+		const float *fp = give_cursor(scene, v3d);
 		float mvalf[2];
 		
 		/* get screen coordinate */

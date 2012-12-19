@@ -180,7 +180,7 @@ float dist_to_line_v2(const float p[2], const float l1[2], const float l2[2])
 /* distance p to line-piece v1-v2 */
 float dist_squared_to_line_segment_v2(const float p[2], const float l1[2], const float l2[2])
 {
-	float labda, rc[2], pt[2], len;
+	float lambda, rc[2], pt[2], len;
 
 	rc[0] = l2[0] - l1[0];
 	rc[1] = l2[1] - l1[1];
@@ -191,18 +191,18 @@ float dist_squared_to_line_segment_v2(const float p[2], const float l1[2], const
 		return (rc[0] * rc[0] + rc[1] * rc[1]);
 	}
 
-	labda = (rc[0] * (p[0] - l1[0]) + rc[1] * (p[1] - l1[1])) / len;
-	if (labda <= 0.0f) {
+	lambda = (rc[0] * (p[0] - l1[0]) + rc[1] * (p[1] - l1[1])) / len;
+	if (lambda <= 0.0f) {
 		pt[0] = l1[0];
 		pt[1] = l1[1];
 	}
-	else if (labda >= 1.0f) {
+	else if (lambda >= 1.0f) {
 		pt[0] = l2[0];
 		pt[1] = l2[1];
 	}
 	else {
-		pt[0] = labda * rc[0] + l1[0];
-		pt[1] = labda * rc[1] + l1[1];
+		pt[0] = lambda * rc[0] + l1[0];
+		pt[1] = lambda * rc[1] + l1[1];
 	}
 
 	rc[0] = pt[0] - p[0];
@@ -301,17 +301,17 @@ float dist_to_line_segment_v3(const float v1[3], const float v2[3], const float 
 /* intersect Line-Line, shorts */
 int isect_line_line_v2_int(const int v1[2], const int v2[2], const int v3[2], const int v4[2])
 {
-	float div, labda, mu;
+	float div, lambda, mu;
 
 	div = (float)((v2[0] - v1[0]) * (v4[1] - v3[1]) - (v2[1] - v1[1]) * (v4[0] - v3[0]));
 	if (div == 0.0f) return ISECT_LINE_LINE_COLINEAR;
 
-	labda = ((float)(v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
+	lambda = ((float)(v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
 
 	mu = ((float)(v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
 
-	if (labda >= 0.0f && labda <= 1.0f && mu >= 0.0f && mu <= 1.0f) {
-		if (labda == 0.0f || labda == 1.0f || mu == 0.0f || mu == 1.0f) return ISECT_LINE_LINE_EXACT;
+	if (lambda >= 0.0f && lambda <= 1.0f && mu >= 0.0f && mu <= 1.0f) {
+		if (lambda == 0.0f || lambda == 1.0f || mu == 0.0f || mu == 1.0f) return ISECT_LINE_LINE_EXACT;
 		return ISECT_LINE_LINE_CROSS;
 	}
 	return ISECT_LINE_LINE_NONE;
@@ -335,17 +335,17 @@ int isect_line_line_v2_point(const float v1[2], const float v2[2], const float v
 /* intersect Line-Line, floats */
 int isect_line_line_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
 {
-	float div, labda, mu;
+	float div, lambda, mu;
 
 	div = (v2[0] - v1[0]) * (v4[1] - v3[1]) - (v2[1] - v1[1]) * (v4[0] - v3[0]);
 	if (div == 0.0f) return ISECT_LINE_LINE_COLINEAR;
 
-	labda = ((float)(v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
+	lambda = ((float)(v1[1] - v3[1]) * (v4[0] - v3[0]) - (v1[0] - v3[0]) * (v4[1] - v3[1])) / div;
 
 	mu = ((float)(v1[1] - v3[1]) * (v2[0] - v1[0]) - (v1[0] - v3[0]) * (v2[1] - v1[1])) / div;
 
-	if (labda >= 0.0f && labda <= 1.0f && mu >= 0.0f && mu <= 1.0f) {
-		if (labda == 0.0f || labda == 1.0f || mu == 0.0f || mu == 1.0f) return ISECT_LINE_LINE_EXACT;
+	if (lambda >= 0.0f && lambda <= 1.0f && mu >= 0.0f && mu <= 1.0f) {
+		if (lambda == 0.0f || lambda == 1.0f || mu == 0.0f || mu == 1.0f) return ISECT_LINE_LINE_EXACT;
 		return ISECT_LINE_LINE_CROSS;
 	}
 	return ISECT_LINE_LINE_NONE;
@@ -2435,7 +2435,7 @@ void interp_barycentric_tri_v3(float data[3][3], float u, float v, float res[3])
 
 /***************************** View & Projection *****************************/
 
-void orthographic_m4(float matrix[][4], const float left, const float right, const float bottom, const float top,
+void orthographic_m4(float matrix[4][4], const float left, const float right, const float bottom, const float top,
                      const float nearClip, const float farClip)
 {
 	float Xdelta, Ydelta, Zdelta;
@@ -2481,7 +2481,7 @@ void perspective_m4(float mat[4][4], const float left, const float right, const 
 }
 
 /* translate a matrix created by orthographic_m4 or perspective_m4 in XY coords (used to jitter the view) */
-void window_translate_m4(float winmat[][4], float perspmat[][4], const float x, const float y)
+void window_translate_m4(float winmat[4][4], float perspmat[4][4], const float x, const float y)
 {
 	if (winmat[2][3] == -1.0f) {
 		/* in the case of a win-matrix, this means perspective always */
@@ -2509,7 +2509,7 @@ void window_translate_m4(float winmat[][4], float perspmat[][4], const float x, 
 	}
 }
 
-static void i_multmatrix(float icand[][4], float Vm[][4])
+static void i_multmatrix(float icand[4][4], float Vm[4][4])
 {
 	int row, col;
 	float temp[4][4];
@@ -2523,7 +2523,7 @@ static void i_multmatrix(float icand[][4], float Vm[][4])
 	copy_m4_m4(Vm, temp);
 }
 
-void polarview_m4(float Vm[][4], float dist, float azimuth, float incidence, float twist)
+void polarview_m4(float Vm[4][4], float dist, float azimuth, float incidence, float twist)
 {
 
 	unit_m4(Vm);
@@ -2534,7 +2534,7 @@ void polarview_m4(float Vm[][4], float dist, float azimuth, float incidence, flo
 	rotate_m4(Vm, 'Z', -azimuth);
 }
 
-void lookat_m4(float mat[][4], float vx, float vy, float vz, float px, float py, float pz, float twist)
+void lookat_m4(float mat[4][4], float vx, float vy, float vz, float px, float py, float pz, float twist)
 {
 	float sine, cosine, hyp, hyp1, dx, dy, dz;
 	float mat1[4][4] = MAT4_UNITY;

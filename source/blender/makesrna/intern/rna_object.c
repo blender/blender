@@ -94,6 +94,7 @@ static EnumPropertyItem parent_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+#ifndef RNA_RUNTIME
 static EnumPropertyItem dupli_items[] = {
 	{0, "NONE", 0, "None", ""},
 	{OB_DUPLIFRAMES, "FRAMES", 0, "Frames", "Make copy of object for every frame"},
@@ -102,6 +103,7 @@ static EnumPropertyItem dupli_items[] = {
 	{OB_DUPLIGROUP, "GROUP", 0, "Group", "Enable group instancing"},
 	{0, NULL, 0, NULL, NULL}
 };
+#endif
 
 static EnumPropertyItem collision_bounds_items[] = {
 	{OB_BOUND_BOX, "BOX", 0, "Box", ""},
@@ -1961,7 +1963,7 @@ static void rna_def_object_vertex_groups(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_ui_text(prop, "Active Vertex Group", "Vertex groups of the object");
 	RNA_def_property_update(prop, NC_GEOM | ND_DATA, "rna_Object_internal_update_data");
 
-	prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "actdef");
 	RNA_def_property_int_funcs(prop, "rna_Object_active_vertex_group_index_get",
@@ -2080,6 +2082,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Object_layer_set");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_layer_update");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
 	prop = RNA_def_property(srna, "layers_local_view", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay", 0x01000000);

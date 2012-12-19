@@ -52,9 +52,9 @@ void RAS_CalcTexMatrix(RAS_TexVert p[3],MT_Point3& origin,MT_Vector3& udir,MT_Ve
 	MT_Scalar d = -p[0].xyz().dot(normal);
 	
 
-	MT_Matrix3x3 mat3(	p[0].getUV1()[0],p[0].getUV1()[1],	1,
-						p[1].getUV1()[0],p[1].getUV1()[1],	1,
-						p[2].getUV1()[0],p[2].getUV1()[1],	1);
+	MT_Matrix3x3 mat3(	p[0].getUV(0)[0],p[0].getUV(0)[1],	1,
+						p[1].getUV(0)[0],p[1].getUV(0)[1],	1,
+						p[2].getUV(0)[0],p[2].getUV(0)[1],	1);
 
 
 	MT_Matrix3x3 mat3inv = mat3.inverse();

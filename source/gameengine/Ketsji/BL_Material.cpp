@@ -20,15 +20,6 @@ MTex* getImageFromMaterial(Material *mat, int index)
 	return m?m:0;
 }
 
-int getNumTexChannels( Material *mat )
-{
-	int count = -1;
-	if (!mat) return -1;
-
-	for (count =0; (count < 10) && mat->mtex[count] != 0; count++) {}
-	return count;
-}
-
 BL_Material::BL_Material()
 {
 	Initialize();
@@ -36,7 +27,10 @@ BL_Material::BL_Material()
 
 void BL_Material::Initialize()
 {
-	m_mcol = 0xFFFFFFFFL;
+	rgb[0] = 0;
+	rgb[1] = 0;
+	rgb[2] = 0;
+	rgb[3] = 0;
 	IdMode = 0;
 	ras_mode = 0;
 	glslmat = 0;
@@ -64,7 +58,7 @@ void BL_Material::Initialize()
 
 	int i;
 
-	for (i=0; i<MAXTEX; i++) // :(
+	for (i = 0; i < MAXTEX; i++) // :(
 	{
 		mapping[i].mapping = 0;
 		mapping[i].offsets[0] = 0.f;
@@ -88,15 +82,6 @@ void BL_Material::Initialize()
 		img[i] = 0;
 		cubemap[i] = 0;
 	}
-}
-
-void BL_Material::SetUVLayerName(const STR_String& name)
-{
-	uvName = name;
-}
-void BL_Material::SetUVLayerName2(const STR_String& name)
-{
-	uv2Name = name;
 }
 
 void BL_Material::SetSharedMaterial(bool v)

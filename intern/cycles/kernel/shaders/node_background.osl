@@ -19,9 +19,9 @@
 #include "stdosl.h"
 
 shader node_background(
-	color Color = color(0.8, 0.8, 0.8),
+	color Color = 0.8,
 	float Strength = 1.0,
-	output closure color Background = background())
+	output closure color Background = 0)
 {
 	Background = Color * Strength * background();
 }

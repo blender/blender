@@ -56,7 +56,7 @@ int RE_rayobject_raycast(RayObject *r, struct Isect *i);
 /* Acceleration Structures */
 
 RayObject *RE_rayobject_octree_create(int ocres, int size);
-RayObject *RE_rayobject_instance_create(RayObject *target, float transform[][4], void *ob, void *target_ob);
+RayObject *RE_rayobject_instance_create(RayObject *target, float transform[4][4], void *ob, void *target_ob);
 RayObject *RE_rayobject_empty_create(void);
 
 RayObject *RE_rayobject_blibvh_create(int size);	/* BLI_kdopbvh.c   */
@@ -86,6 +86,8 @@ typedef struct RayFace {
 #define RE_rayface_isQuad(a) ((a)->quad)
 
 RayObject *RE_rayface_from_vlak(RayFace *face, struct ObjectInstanceRen *obi, struct VlakRen *vlr);
+
+RayObject *RE_rayface_from_coords(RayFace *rayface, void *ob, void *face, float *v1, float *v2, float *v3, float *v4);
 
 /* RayObject representing faces directly from a given VlakRen structure. Thus
  * allowing to save memory, but making code triangle intersection dependent on

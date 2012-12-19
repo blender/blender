@@ -97,28 +97,28 @@ void BKE_pose_where_is_bone(struct Scene *scene, struct Object *ob, struct bPose
 void BKE_pose_where_is_bone_tail(struct bPoseChannel *pchan);
 
 /* get_objectspace_bone_matrix has to be removed still */
-void get_objectspace_bone_matrix(struct Bone *bone, float M_accumulatedMatrix[][4], int root, int posed);
-void vec_roll_to_mat3(const float vec[3], const float roll, float mat[][3]);
-void mat3_to_vec_roll(float mat[][3], float r_vec[3], float *r_roll);
+void get_objectspace_bone_matrix(struct Bone *bone, float M_accumulatedMatrix[4][4], int root, int posed);
+void vec_roll_to_mat3(const float vec[3], const float roll, float mat[3][3]);
+void mat3_to_vec_roll(float mat[3][3], float r_vec[3], float *r_roll);
 
 /* Common Conversions Between Co-ordinate Spaces */
-void BKE_armature_mat_world_to_pose(struct Object *ob, float inmat[][4], float outmat[][4]);
+void BKE_armature_mat_world_to_pose(struct Object *ob, float inmat[4][4], float outmat[4][4]);
 void BKE_armature_loc_world_to_pose(struct Object *ob, const float inloc[3], float outloc[3]);
-void BKE_armature_mat_pose_to_bone(struct bPoseChannel *pchan, float inmat[][4], float outmat[][4]);
+void BKE_armature_mat_pose_to_bone(struct bPoseChannel *pchan, float inmat[4][4], float outmat[4][4]);
 void BKE_armature_loc_pose_to_bone(struct bPoseChannel *pchan, const float inloc[3], float outloc[3]);
-void BKE_armature_mat_bone_to_pose(struct bPoseChannel *pchan, float inmat[][4], float outmat[][4]);
-void BKE_armature_mat_pose_to_delta(float delta_mat[][4], float pose_mat[][4], float arm_mat[][4]);
+void BKE_armature_mat_bone_to_pose(struct bPoseChannel *pchan, float inmat[4][4], float outmat[4][4]);
+void BKE_armature_mat_pose_to_delta(float delta_mat[4][4], float pose_mat[4][4], float arm_mat[4][4]);
 
-void BKE_armature_mat_pose_to_bone_ex(struct Object *ob, struct bPoseChannel *pchan, float inmat[][4], float outmat[][4]);
+void BKE_armature_mat_pose_to_bone_ex(struct Object *ob, struct bPoseChannel *pchan, float inmat[4][4], float outmat[4][4]);
 
-void BKE_pchan_mat3_to_rot(struct bPoseChannel *pchan, float mat[][3], short use_compat);
-void BKE_pchan_apply_mat4(struct bPoseChannel *pchan, float mat[][4], short use_comat);
+void BKE_pchan_mat3_to_rot(struct bPoseChannel *pchan, float mat[3][3], short use_compat);
+void BKE_pchan_apply_mat4(struct bPoseChannel *pchan, float mat[4][4], short use_comat);
 void BKE_pchan_to_mat4(struct bPoseChannel *pchan, float chan_mat[4][4]);
 void BKE_pchan_calc_mat(struct bPoseChannel *pchan);
 
 /* Get the "pchan to pose" transform matrix. These matrices apply the effects of
  * HINGE/NO_SCALE/NO_LOCAL_LOCATION options over the pchan loc/rot/scale transformations. */
-void BKE_pchan_to_pose_mat(struct bPoseChannel *pchan, float rotscale_mat[][4], float loc_mat[][4]);
+void BKE_pchan_to_pose_mat(struct bPoseChannel *pchan, float rotscale_mat[4][4], float loc_mat[4][4]);
 
 /* Rotation Mode Conversions - Used for PoseChannels + Objects... */
 void BKE_rotMode_change_values(float quat[4], float eul[3], float axis[3], float *angle, short oldMode, short newMode);

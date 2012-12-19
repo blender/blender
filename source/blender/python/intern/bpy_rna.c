@@ -1478,7 +1478,7 @@ int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, int all_args, const cha
 }
 
 
-static PyObject *pyrna_func_to_py(PointerRNA *ptr, FunctionRNA *func)
+static PyObject *pyrna_func_to_py(const PointerRNA *ptr, FunctionRNA *func)
 {
 	BPy_FunctionRNA *pyfunc = (BPy_FunctionRNA *) PyObject_NEW(BPy_FunctionRNA, &pyrna_func_Type);
 	pyfunc->ptr = *ptr;
@@ -6028,6 +6028,27 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 	/* note, must set the class not the __dict__ else the internal slots are not updated correctly */
 	PyObject_SetAttr(newclass, bpy_intern_str_bl_rna, item);
 	Py_DECREF(item);
+
+	/* add classmethods */
+	{
+		const PointerRNA func_ptr = {{NULL}, srna, NULL};
+		const ListBase *lb;
+		Link *link;
+
+		lb = RNA_struct_type_functions(srna);
+		for (link = lb->first; link; link = link->next) {
+			FunctionRNA *func = (FunctionRNA *)link;
+			const int flag = RNA_function_flag(func);
+			if ((flag & FUNC_NO_SELF) &&          /* is classmethod */
+			    (flag & FUNC_REGISTER) == FALSE)  /* is not for registration */
+			{
+				/* we may went to set the type of this later */
+				PyObject *func_py = pyrna_func_to_py(&func_ptr, func);
+				PyObject_SetAttrString(newclass, RNA_function_identifier(func), func_py);
+				Py_DECREF(func_py);
+			}
+		}
+	}
 
 	/* done with rna instance */
 }

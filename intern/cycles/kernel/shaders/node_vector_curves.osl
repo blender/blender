@@ -1,0 +1,53 @@
+/*
+ * Copyright 2011, Blender Foundation.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
+#include "stdosl.h"
+#include "oslutil.h"
+
+float ramp_lookup(color ramp[RAMP_TABLE_SIZE], float at, int component)
+{
+	float f = clamp((at + 1.0)*0.5, 0.0, 1.0) * (RAMP_TABLE_SIZE - 1);
+
+	/* clamp int as well in case of NaN */
+	int i = (int)f;
+	if (i < 0) i = 0;
+	if (i >= RAMP_TABLE_SIZE) i = RAMP_TABLE_SIZE - 1;
+	float t = f - (float)i;
+
+	float result = ramp[i][component];
+
+	if (t > 0.0)
+		result = (1.0 - t) * result + t * ramp[i + 1][component];
+	
+	return result*2.0 - 1.0;
+}
+
+shader node_vector_curves(
+	color ramp[RAMP_TABLE_SIZE] = {0.0},
+
+	vector VectorIn = vector(0.0, 0.0, 0.0),
+	float Fac = 0.0,
+	output vector VectorOut = vector(0.0, 0.0, 0.0))
+{
+	VectorOut[0] = ramp_lookup(ramp, VectorIn[0], 0);
+	VectorOut[1] = ramp_lookup(ramp, VectorIn[1], 1);
+	VectorOut[2] = ramp_lookup(ramp, VectorIn[2], 2);
+
+	VectorOut = mix(VectorIn, VectorOut, Fac);
+}
+

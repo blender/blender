@@ -33,9 +33,12 @@
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
+
 #include "BLI_math.h"
 
 #include "BKE_context.h"
+#include "BKE_blender.h"
 #include "BKE_global.h"
 #include "BKE_nla.h"
 #include "BKE_object.h"
@@ -197,15 +200,15 @@ static void draw_cfra_number(Scene *scene, View2D *v2d, float cfra, short time)
 	
 	/* get starting coordinates for drawing */
 	x = cfra * xscale;
-	y = 18;
+	y = 0.9f * U.widget_unit;
 	
 	/* draw green box around/behind text */
 	UI_ThemeColorShade(TH_CFRAME, 0);
-	glRectf(x, y,  x + slen,  y + 15);
+	glRectf(x, y,  x + slen,  y + 0.75f * U.widget_unit);
 	
 	/* draw current frame number - black text */
 	UI_ThemeColor(TH_TEXT);
-	UI_DrawString(x - 5, y + 3, numstr);
+	UI_DrawString(x - 0.25f * U.widget_unit, y + 0.15f * U.widget_unit, numstr);
 	
 	/* restore view transform */
 	glScalef(xscale, 1.0, 1.0);

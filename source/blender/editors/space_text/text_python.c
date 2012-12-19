@@ -36,7 +36,9 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
+#include "DNA_userdef_types.h"
 
+#include "BKE_blender.h"
 #include "BKE_suggestions.h"
 #include "BKE_text.h"
 
@@ -78,10 +80,10 @@ int text_do_suggest_select(SpaceText *st, ARegion *ar)
 	else {
 		x = st->cwidth * (st->text->curc - st->left) + TXT_OFFSET - 4;
 	}
-	y = ar->winy - st->lheight * l - 2;
+	y = ar->winy - st->lheight_dpi * l - 2;
 
-	w = SUGG_LIST_WIDTH * st->cwidth + 20;
-	h = SUGG_LIST_SIZE * st->lheight + 8;
+	w = SUGG_LIST_WIDTH * st->cwidth + U.widget_unit;
+	h = SUGG_LIST_SIZE * st->lheight_dpi + 0.4f * U.widget_unit;
 
 	// XXX getmouseco_areawin(mval);
 
@@ -92,7 +94,7 @@ int text_do_suggest_select(SpaceText *st, ARegion *ar)
 	for (i = 0, item = first; i < *top && item->next; i++, item = item->next) ;
 
 	/* Work out the target item index in the visible list */
-	tgti = (y - mval[1] - 4) / st->lheight;
+	tgti = (y - mval[1] - 4) / st->lheight_dpi;
 	if (tgti < 0 || tgti > SUGG_LIST_SIZE)
 		return 1;
 

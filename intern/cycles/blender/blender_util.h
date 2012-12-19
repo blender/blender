@@ -52,6 +52,36 @@ static inline void colorramp_to_array(BL::ColorRamp ramp, float4 *data, int size
 	}
 }
 
+static inline void curvemapping_color_to_array(BL::CurveMapping cumap, float4 *data, int size, bool rgb_curve)
+{
+	cumap.update();
+
+	BL::CurveMap mapR = cumap.curves[0];
+	BL::CurveMap mapG = cumap.curves[1];
+	BL::CurveMap mapB = cumap.curves[2];
+
+	if(rgb_curve) {
+		BL::CurveMap mapI = cumap.curves[3];
+
+		for(int i = 0; i < size; i++) {
+			float t = i/(float)(size-1);
+
+			data[i][0] = mapR.evaluate(mapI.evaluate(t));
+			data[i][1] = mapG.evaluate(mapI.evaluate(t));
+			data[i][2] = mapB.evaluate(mapI.evaluate(t));
+		}
+	}
+	else {
+		for(int i = 0; i < size; i++) {
+			float t = i/(float)(size-1);
+
+			data[i][0] = mapR.evaluate(t);
+			data[i][1] = mapG.evaluate(t);
+			data[i][2] = mapB.evaluate(t);
+		}
+	}
+}
+
 static inline bool BKE_object_is_modified(BL::Object self, BL::Scene scene, bool preview)
 {
 	return self.is_modified(scene, (preview)? (1<<0): (1<<1))? true: false;

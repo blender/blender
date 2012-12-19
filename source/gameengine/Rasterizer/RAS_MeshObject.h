@@ -116,8 +116,7 @@ public:
 	virtual RAS_Polygon*	AddPolygon(RAS_MaterialBucket *bucket, int numverts);
 	virtual void			AddVertex(RAS_Polygon *poly, int i,
 							const MT_Point3& xyz,
-							const MT_Point2& uv,
-							const MT_Point2& uv2,
+							const MT_Point2 uvs[RAS_TexVert::MAX_UNIT],
 							const MT_Vector4& tangent,
 							const unsigned int rgbacolor,
 							const MT_Vector3& normal,

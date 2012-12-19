@@ -175,12 +175,11 @@ typedef struct uiLayout uiLayout;
 /* uiBut->drawflag */
 #define UI_BUT_DRAW_ENUM_ARROWS    (1 << 0) /* draw enum-like up/down arrows for button */
 
-/* scale fixed button widths by this to account for DPI
- * 8.4852 == sqrtf(72.0f)) */
-#define UI_DPI_FAC (sqrtf((float)U.dpi) / 8.48528137423857f)
-#define UI_DPI_ICON_FAC (((float)U.dpi) / 72.0f)
+/* scale fixed button widths by this to account for DPI */
+
+#define UI_DPI_FAC ((U.pixelsize * (float)U.dpi) / 72.0f)
 /* 16 to copy ICON_DEFAULT_HEIGHT */
-#define UI_DPI_ICON_SIZE ((float)16 * UI_DPI_ICON_FAC)
+#define UI_DPI_ICON_SIZE ((float)16 * UI_DPI_FAC)
 
 /* Button types, bits stored in 1 value... and a short even!
  * - bits 0-4:  bitnr (0-31)
@@ -287,7 +286,7 @@ void uiDrawBoxVerticalShade(int mode, float minx, float miny, float maxx, float 
 #define UI_SCROLL_PRESSED       1
 #define UI_SCROLL_ARROWS        2
 #define UI_SCROLL_NO_OUTLINE    4
-void uiWidgetScrollDraw(struct uiWidgetColors *wcol, struct rcti *rect, struct rcti *slider, int state);
+void uiWidgetScrollDraw(struct uiWidgetColors *wcol, const struct rcti *rect, const struct rcti *slider, int state);
 
 /* Callbacks
  *
@@ -885,7 +884,7 @@ void uiIDContextProperty(struct bContext *C, struct PointerRNA *ptr, struct Prop
 
 /* Styled text draw */
 void uiStyleFontSet(struct uiFontStyle *fs);
-void uiStyleFontDrawExt(struct uiFontStyle *fs, struct rcti *rect, const char *str,
+void uiStyleFontDrawExt(struct uiFontStyle *fs, const struct rcti *rect, const char *str,
                         float *r_xofs, float *r_yofs);
 void uiStyleFontDraw(struct uiFontStyle *fs, struct rcti *rect, const char *str);
 void uiStyleFontDrawRotated(struct uiFontStyle *fs, struct rcti *rect, const char *str);
@@ -893,7 +892,10 @@ void uiStyleFontDrawRotated(struct uiFontStyle *fs, struct rcti *rect, const cha
 int UI_GetStringWidth(const char *str); // XXX temp
 void UI_DrawString(float x, float y, const char *str); // XXX temp
 void UI_DrawTriIcon(float x, float y, char dir);
-uiStyle *UI_GetStyle(void);
+
+uiStyle *UI_GetStyle(void);		/* use for fonts etc */
+uiStyle *UI_GetStyleDraw(void);	/* DPI scaled settings for drawing */
+
 /* linker workaround ack! */
 void UI_template_fix_linking(void);
 

@@ -37,7 +37,6 @@
 #include "BLI_bitmap.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
-#include "BLI_pbvh.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_mesh_types.h"
@@ -45,6 +44,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_pbvh.h"
 #include "BKE_ccg.h"
 #include "BKE_context.h"
 #include "BKE_DerivedMesh.h"

@@ -490,11 +490,13 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
             col.prop(part, "integrator", text="")
             col.prop(part, "timestep")
             sub = col.row()
-            if part.adaptive_subframes:
-                sub.prop(part, "courant_target", text="Threshold")
-            else:
-                sub.prop(part, "subframes")
-            sub.prop(part, "adaptive_subframes", text="")
+            sub.prop(part, "subframes")
+            supports_courant = part.physics_type == 'FLUID'
+            subsub = sub.row()
+            subsub.enabled = supports_courant
+            subsub.prop(part, "adaptive_subframes", text="")
+            if supports_courant and part.adaptive_subframes:
+                col.prop(part, "courant_target", text="Threshold")
 
             row = layout.row()
             row.prop(part, "use_size_deflect")
@@ -502,6 +504,10 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
 
             if part.physics_type == 'FLUID':
                 fluid = part.fluid
+
+                split = layout.split()
+                sub = split.row()
+                sub.prop(fluid, "solver", expand=True)
 
                 split = layout.split()
 
@@ -514,13 +520,14 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
                 col = split.column()
                 col.label(text="Advanced:")
 
-                sub = col.row()
-                sub.prop(fluid, "repulsion", slider=fluid.factor_repulsion)
-                sub.prop(fluid, "factor_repulsion", text="")
+                if fluid.solver == 'DDR':
+                    sub = col.row()
+                    sub.prop(fluid, "repulsion", slider=fluid.factor_repulsion)
+                    sub.prop(fluid, "factor_repulsion", text="")
 
-                sub = col.row()
-                sub.prop(fluid, "stiff_viscosity", slider=fluid.factor_stiff_viscosity)
-                sub.prop(fluid, "factor_stiff_viscosity", text="")
+                    sub = col.row()
+                    sub.prop(fluid, "stiff_viscosity", slider=fluid.factor_stiff_viscosity)
+                    sub.prop(fluid, "factor_stiff_viscosity", text="")
 
                 sub = col.row()
                 sub.prop(fluid, "fluid_radius", slider=fluid.factor_radius)
@@ -530,27 +537,37 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
                 sub.prop(fluid, "rest_density", slider=fluid.factor_density)
                 sub.prop(fluid, "factor_density", text="")
 
-                split = layout.split()
+                if fluid.solver == 'CLASSICAL':
+                    # With the classical solver, it is possible to calculate the
+                    # spacing between particles when the fluid is at rest. This
+                    # makes it easier to set stable initial conditions.
+                    particle_volume = part.mass / fluid.rest_density
+                    spacing = pow(particle_volume, 1/3)
+                    sub = col.row()
+                    sub.label(text="Spacing: %g" % spacing)
 
-                col = split.column()
-                col.label(text="Springs:")
-                col.prop(fluid, "spring_force", text="Force")
-                col.prop(fluid, "use_viscoelastic_springs")
-                sub = col.column(align=True)
-                sub.active = fluid.use_viscoelastic_springs
-                sub.prop(fluid, "yield_ratio", slider=True)
-                sub.prop(fluid, "plasticity", slider=True)
+                elif fluid.solver == 'DDR':
+                    split = layout.split()
 
-                col = split.column()
-                col.label(text="Advanced:")
-                sub = col.row()
-                sub.prop(fluid, "rest_length", slider=fluid.factor_rest_length)
-                sub.prop(fluid, "factor_rest_length", text="")
-                col.label(text="")
-                sub = col.column()
-                sub.active = fluid.use_viscoelastic_springs
-                sub.prop(fluid, "use_initial_rest_length")
-                sub.prop(fluid, "spring_frames", text="Frames")
+                    col = split.column()
+                    col.label(text="Springs:")
+                    col.prop(fluid, "spring_force", text="Force")
+                    col.prop(fluid, "use_viscoelastic_springs")
+                    sub = col.column(align=True)
+                    sub.active = fluid.use_viscoelastic_springs
+                    sub.prop(fluid, "yield_ratio", slider=True)
+                    sub.prop(fluid, "plasticity", slider=True)
+
+                    col = split.column()
+                    col.label(text="Advanced:")
+                    sub = col.row()
+                    sub.prop(fluid, "rest_length", slider=fluid.factor_rest_length)
+                    sub.prop(fluid, "factor_rest_length", text="")
+                    col.label(text="")
+                    sub = col.column()
+                    sub.active = fluid.use_viscoelastic_springs
+                    sub.prop(fluid, "use_initial_rest_length")
+                    sub.prop(fluid, "spring_frames", text="Frames")
 
         elif part.physics_type == 'KEYED':
             split = layout.split()

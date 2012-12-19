@@ -1221,7 +1221,9 @@ static int panotestclip(Render *re, int do_pano, float v[4])
  * - shadow buffering (shadbuf.c)
  */
 
-void project_renderdata(Render *re, void (*projectfunc)(const float *, float mat[][4], float *),  int do_pano, float xoffs, int UNUSED(do_buckets))
+void project_renderdata(Render *re,
+                        void (*projectfunc)(const float *, float mat[4][4], float *),
+                        int do_pano, float xoffs, int UNUSED(do_buckets))
 {
 	ObjectRen *obr;
 	HaloRen *har = NULL;
@@ -1308,7 +1310,7 @@ void project_renderdata(Render *re, void (*projectfunc)(const float *, float mat
 
 /* ------------------------------------------------------------------------- */
 
-ObjectInstanceRen *RE_addRenderInstance(Render *re, ObjectRen *obr, Object *ob, Object *par, int index, int psysindex, float mat[][4], int lay)
+ObjectInstanceRen *RE_addRenderInstance(Render *re, ObjectRen *obr, Object *ob, Object *par, int index, int psysindex, float mat[4][4], int lay)
 {
 	ObjectInstanceRen *obi;
 	float mat3[3][3];
@@ -1363,7 +1365,7 @@ void RE_makeRenderInstances(Render *re)
 	re->instancetable= newlist;
 }
 
-int clip_render_object(float boundbox[][3], float bounds[4], float winmat[][4])
+int clip_render_object(float boundbox[2][3], float bounds[4], float winmat[4][4])
 {
 	float mat[4][4], vec[4];
 	int a, fl, flag = -1;

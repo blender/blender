@@ -516,7 +516,7 @@ static void draw_fcurve_curve(bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d
 	 */
 	/* grid->dx represents the number of 'frames' between gridlines, but we divide by U.v2d_min_gridsize to get pixels-steps */
 	/* TODO: perhaps we should have 1.0 frames as upper limit so that curves don't get too distorted? */
-	samplefreq = dx / U.v2d_min_gridsize;
+	samplefreq = dx / (U.v2d_min_gridsize * U.pixelsize);
 	if (samplefreq < 0.00001f) samplefreq = 0.00001f;
 	
 	

@@ -40,7 +40,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_bpath.h"
+#include "BKE_bpath.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -204,7 +204,7 @@ static int make_paths_relative_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	BLI_bpath_relative_convert(bmain, bmain->name, op->reports);
+	BKE_bpath_relative_convert(bmain, bmain->name, op->reports);
 
 	/* redraw everything so any changed paths register */
 	WM_main_add_notifier(NC_WINDOW, NULL);
@@ -237,7 +237,7 @@ static int make_paths_absolute_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	BLI_bpath_absolute_convert(bmain, bmain->name, op->reports);
+	BKE_bpath_absolute_convert(bmain, bmain->name, op->reports);
 
 	/* redraw everything so any changed paths register */
 	WM_main_add_notifier(NC_WINDOW, NULL);
@@ -266,7 +266,7 @@ static int report_missing_files_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 
 	/* run the missing file check */
-	BLI_bpath_missing_files_check(bmain, op->reports);
+	BKE_bpath_missing_files_check(bmain, op->reports);
 	
 	return OPERATOR_FINISHED;
 }
@@ -291,7 +291,7 @@ static int find_missing_files_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	const char *searchpath = RNA_string_get_alloc(op->ptr, "filepath", NULL, 0);
-	BLI_bpath_missing_files_find(bmain, searchpath, op->reports);
+	BKE_bpath_missing_files_find(bmain, searchpath, op->reports);
 	MEM_freeN((void *)searchpath);
 
 	return OPERATOR_FINISHED;

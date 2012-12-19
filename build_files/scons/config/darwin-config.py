@@ -165,7 +165,7 @@ BF_CXX_LIB_STATIC = '${BF_CXX}/lib/libstdc++.a'
 WITH_BF_JACK = True
 BF_JACK = '/Library/Frameworks/Jackmp.framework'
 BF_JACK_INC = '${BF_JACK}/headers'
-BF_JACK_LIB = 'jack'
+#BF_JACK_LIB = 'jack' # not used due framework
 BF_JACK_LIBPATH = '${BF_JACK}'
 
 WITH_BF_SNDFILE = True

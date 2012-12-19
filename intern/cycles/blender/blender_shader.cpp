@@ -173,7 +173,6 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 
 	switch(b_node.type()) {
 		/* not supported */
-		case BL::ShaderNode::type_CURVE_VEC: break;
 		case BL::ShaderNode::type_GEOMETRY: break;
 		case BL::ShaderNode::type_MATERIAL: break;
 		case BL::ShaderNode::type_MATERIAL_EXT: break;
@@ -193,9 +192,18 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			node = proxy;
 			break;
 		}
+		case BL::ShaderNode::type_CURVE_VEC: {
+			BL::ShaderNodeVectorCurve b_curve_node(b_node);
+			VectorCurvesNode *curves = new VectorCurvesNode();
+			curvemapping_color_to_array(b_curve_node.mapping(), curves->curves, RAMP_TABLE_SIZE, false);
+			node = curves;
+			break;
+		}
 		case BL::ShaderNode::type_CURVE_RGB: {
-			RGBCurvesNode *ramp = new RGBCurvesNode();
-			node = ramp;
+			BL::ShaderNodeRGBCurve b_curve_node(b_node);
+			RGBCurvesNode *curves = new RGBCurvesNode();
+			curvemapping_color_to_array(b_curve_node.mapping(), curves->curves, RAMP_TABLE_SIZE, true);
+			node = curves;
 			break;
 		}
 		case BL::ShaderNode::type_VALTORGB: {

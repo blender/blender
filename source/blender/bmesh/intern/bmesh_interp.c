@@ -172,11 +172,9 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 	BMLoop *l_iter;
 	BMLoop *l_first;
 
-	void **blocks = NULL;
-	float (*cos)[3] = NULL, *w = NULL;
-	BLI_array_fixedstack_declare(cos,     BM_DEFAULT_NGON_STACK_SIZE, source->len, __func__);
-	BLI_array_fixedstack_declare(w,       BM_DEFAULT_NGON_STACK_SIZE, source->len, __func__);
-	BLI_array_fixedstack_declare(blocks,  BM_DEFAULT_NGON_STACK_SIZE, source->len, __func__);
+	void **blocks   = BLI_array_alloca(blocks, source->len);
+	float (*cos)[3] = BLI_array_alloca(cos,    source->len);
+	float *w        = BLI_array_alloca(w,      source->len);
 	int i;
 	
 	BM_elem_attrs_copy(bm, bm, source, target);
@@ -196,10 +194,6 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 		CustomData_bmesh_interp(&bm->ldata, blocks, w, NULL, source->len, l_iter->head.data);
 		i++;
 	} while ((l_iter = l_iter->next) != l_first);
-
-	BLI_array_fixedstack_free(cos);
-	BLI_array_fixedstack_free(w);
-	BLI_array_fixedstack_free(blocks);
 }
 
 /**
@@ -609,14 +603,12 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
-	void **blocks = NULL;
-	void **vblocks = NULL;
-	float (*cos)[3] = NULL, co[3], *w = NULL;
+	void **vblocks  = BLI_array_alloca(vblocks, do_vertex ? source->len : 0);
+	void **blocks   = BLI_array_alloca(blocks,  source->len);
+	float (*cos)[3] = BLI_array_alloca(cos,     source->len);
+	float *w        = BLI_array_alloca(w,       source->len);
+	float co[3];
 	float cent[3] = {0.0f, 0.0f, 0.0f};
-	BLI_array_fixedstack_declare(cos,      BM_DEFAULT_NGON_STACK_SIZE, source->len, __func__);
-	BLI_array_fixedstack_declare(w,        BM_DEFAULT_NGON_STACK_SIZE, source->len, __func__);
-	BLI_array_fixedstack_declare(blocks,   BM_DEFAULT_NGON_STACK_SIZE, source->len, __func__);
-	BLI_array_fixedstack_declare(vblocks,  BM_DEFAULT_NGON_STACK_SIZE, do_vertex ? source->len : 0, __func__);
 	int i, ax, ay;
 
 	BM_elem_attrs_copy(bm, bm, source, target->f);
@@ -667,12 +659,7 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	CustomData_bmesh_interp(&bm->ldata, blocks, w, NULL, source->len, target->head.data);
 	if (do_vertex) {
 		CustomData_bmesh_interp(&bm->vdata, vblocks, w, NULL, source->len, target->v->head.data);
-		BLI_array_fixedstack_free(vblocks);
 	}
-
-	BLI_array_fixedstack_free(cos);
-	BLI_array_fixedstack_free(w);
-	BLI_array_fixedstack_free(blocks);
 
 	if (do_multires) {
 		if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
@@ -686,12 +673,10 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source)
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
-	void **blocks = NULL;
-	float (*cos)[3] = NULL, *w = NULL;
+	void **blocks   = BLI_array_alloca(blocks, source->len);
+	float (*cos)[3] = BLI_array_alloca(cos,    source->len);
+	float *w        = BLI_array_alloca(w,      source->len);
 	float cent[3] = {0.0f, 0.0f, 0.0f};
-	BLI_array_fixedstack_declare(cos,      BM_DEFAULT_NGON_STACK_SIZE, source->len, __func__);
-	BLI_array_fixedstack_declare(w,        BM_DEFAULT_NGON_STACK_SIZE, source->len, __func__);
-	BLI_array_fixedstack_declare(blocks,   BM_DEFAULT_NGON_STACK_SIZE, source->len, __func__);
 	int i;
 
 	i = 0;
@@ -718,10 +703,6 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source)
 	/* interpolate */
 	interp_weights_poly_v3(w, cos, source->len, v->co);
 	CustomData_bmesh_interp(&bm->vdata, blocks, w, NULL, source->len, v->head.data);
-
-	BLI_array_fixedstack_free(cos);
-	BLI_array_fixedstack_free(w);
-	BLI_array_fixedstack_free(blocks);
 }
 
 static void update_data_blocks(BMesh *bm, CustomData *olddata, CustomData *data)

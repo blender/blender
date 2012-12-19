@@ -35,10 +35,11 @@
 struct wmWindow;
 struct Scene;
 
-#define AZONESPOT       12
+#define AZONESPOT       (0.6f * U.widget_unit)
 
 /* area.c */
 void        area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space);
+void		region_toggle_hidden(bContext *C, ARegion *ar, int do_fade);
 
 /* screen_edit.c */
 ScrEdge    *screen_findedge(bScreen *sc, ScrVert *v1, ScrVert *v2);
@@ -57,12 +58,16 @@ ScrEdge    *screen_find_active_scredge(bScreen *sc, int mx, int my);
 struct AZone *is_in_area_actionzone(ScrArea *sa, const int xy[2]);
 
 /* screen_context.c */
-int ed_screen_context(const bContext *C, const char *member, bContextDataResult *result);
+int		ed_screen_context(const bContext *C, const char *member, bContextDataResult *result);
 
 extern const char *screen_context_dir[]; /* doc access */
 
 /* screendump.c */
-void SCREEN_OT_screenshot(struct wmOperatorType *ot);
-void SCREEN_OT_screencast(struct wmOperatorType *ot);
+void	SCREEN_OT_screenshot(struct wmOperatorType *ot);
+void	SCREEN_OT_screencast(struct wmOperatorType *ot);
+
+/* screen_ops.c */
+void	region_blend_start(struct bContext *C, struct ScrArea *sa, struct ARegion *ar);
+
 
 #endif /* __SCREEN_INTERN_H__ */

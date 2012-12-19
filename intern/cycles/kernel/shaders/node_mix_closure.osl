@@ -20,9 +20,9 @@
 
 shader node_mix_closure(
 	float Fac = 0.5,
-	closure color Closure1 = background(),
-	closure color Closure2 = background(),
-	output closure color Closure = background())
+	closure color Closure1 = 0,
+	closure color Closure2 = 0,
+	output closure color Closure = 0)
 {
 	float t = clamp(Fac, 0.0, 1.0);
 	Closure = (1.0 - t) * Closure1 + t * Closure2;

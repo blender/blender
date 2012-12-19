@@ -397,12 +397,13 @@ int handleMouseInput(TransInfo *t, MouseInput *mi, wmEvent *event)
 				 * store the mouse position where the normal movement ended */
 				copy_v2_v2_int(mi->precision_mval, event->mval);
 				mi->precision = 1;
+				redraw = TREDRAW_HARD;
 			}
-			else {
+			else if (event->val == KM_RELEASE) {
 				t->modifiers &= ~MOD_PRECISION;
 				mi->precision = 0;
+				redraw = TREDRAW_HARD;
 			}
-			redraw = TREDRAW_HARD;
 			break;
 	}
 

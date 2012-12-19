@@ -85,6 +85,30 @@ ARegion *node_has_buttons_region(ScrArea *sa)
 	return arnew;
 }
 
+ARegion *node_has_tools_region(ScrArea *sa)
+{
+	ARegion *ar, *arnew;
+	
+	ar = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
+	if (ar) return ar;
+	
+	/* add subdiv level; after header */
+	ar = BKE_area_find_region_type(sa, RGN_TYPE_HEADER);
+	
+	/* is error! */
+	if (ar == NULL) return NULL;
+	
+	arnew = MEM_callocN(sizeof(ARegion), "node tools");
+	
+	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
+	arnew->regiontype = RGN_TYPE_TOOLS;
+	arnew->alignment = RGN_ALIGN_LEFT;
+	
+	arnew->flag = RGN_FLAG_HIDDEN;
+	
+	return arnew;
+}
+
 /* ******************** default callbacks for node space ***************** */
 
 static SpaceLink *node_new(const bContext *UNUSED(C))
@@ -94,6 +118,8 @@ static SpaceLink *node_new(const bContext *UNUSED(C))
 
 	snode = MEM_callocN(sizeof(SpaceNode), "initnode");
 	snode->spacetype = SPACE_NODE;
+
+	snode->flag = SNODE_SHOW_GPENCIL;
 
 	/* backdrop */
 	snode->zoom = 1.0f;
@@ -118,15 +144,12 @@ static SpaceLink *node_new(const bContext *UNUSED(C))
 	BLI_addtail(&snode->regionbase, ar);
 	ar->regiontype = RGN_TYPE_WINDOW;
 
-	ar->v2d.tot.xmin =  -256.0f;
-	ar->v2d.tot.ymin =  -256.0f;
-	ar->v2d.tot.xmax = 768.0f;
-	ar->v2d.tot.ymax = 768.0f;
+	ar->v2d.tot.xmin =  -12.8f * U.widget_unit;
+	ar->v2d.tot.ymin =  -12.8f * U.widget_unit;
+	ar->v2d.tot.xmax = 38.4f * U.widget_unit;
+	ar->v2d.tot.ymax = 38.4f * U.widget_unit;
 
-	ar->v2d.cur.xmin =  -256.0f;
-	ar->v2d.cur.ymin =  -256.0f;
-	ar->v2d.cur.xmax = 768.0f;
-	ar->v2d.cur.ymax = 768.0f;
+	ar->v2d.cur =  ar->v2d.tot;
 
 	ar->v2d.min[0] = 1.0f;
 	ar->v2d.min[1] = 1.0f;
@@ -338,6 +361,22 @@ static void node_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 }
 
 static void node_buttons_area_draw(const bContext *C, ARegion *ar)
+{
+	ED_region_panels(C, ar, 1, NULL, -1);
+}
+
+/* add handlers, stuff you only do once or on area/region changes */
+static void node_toolbar_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	wmKeyMap *keymap;
+
+	ED_region_panels_init(wm, ar);
+
+	keymap = WM_keymap_find(wm->defaultconf, "Node Generic", SPACE_NODE, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+}
+
+static void node_toolbar_area_draw(const bContext *C, ARegion *ar)
 {
 	ED_region_panels(C, ar, 1, NULL, -1);
 }
@@ -569,6 +608,19 @@ void ED_spacetype_node(void)
 	BLI_addhead(&st->regiontypes, art);
 
 	node_buttons_register(art);
+
+	/* regions: toolbar */
+	art = MEM_callocN(sizeof(ARegionType), "spacetype view3d tools region");
+	art->regionid = RGN_TYPE_TOOLS;
+	art->prefsizex = 160; /* XXX */
+	art->prefsizey = 50; /* XXX */
+	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
+	art->listener = node_region_listener;
+	art->init = node_toolbar_area_init;
+	art->draw = node_toolbar_area_draw;
+	BLI_addhead(&st->regiontypes, art);
+	
+	node_toolbar_register(art);
 
 	BKE_spacetype_register(st);
 }

@@ -49,16 +49,11 @@ __device void emissive_sample(const float3 Ng, float randu, float randv,
 	/* todo: not implemented and used yet */
 }
 
-__device float3 emissive_eval(const float3 Ng, const float3 I)
+__device float3 emissive_simple_eval(const float3 Ng, const float3 I)
 {
 	float res = emissive_pdf(Ng, I);
 	
 	return make_float3(res, res, res);
-}
-
-__device float3 svm_emissive_eval(ShaderData *sd, ShaderClosure *sc)
-{
-	return emissive_eval(sd->Ng, sd->I);
 }
 
 CCL_NAMESPACE_END

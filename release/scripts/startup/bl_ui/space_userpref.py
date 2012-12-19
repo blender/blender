@@ -84,7 +84,7 @@ class USERPREF_HT_header(Header):
         userpref = context.user_preferences
 
         layout.operator_context = 'EXEC_AREA'
-        layout.operator("wm.save_homefile", text="Save As Default")
+        layout.operator("wm.save_userpref")
 
         layout.operator_context = 'INVOKE_DEFAULT'
 
@@ -445,6 +445,7 @@ class USERPREF_PT_system(Panel):
         col.label(text="Window Draw Method:")
         col.prop(system, "window_draw_method", text="")
         col.prop(system, "multi_sample", text="")
+        col.prop(system, "use_region_overlap")
         col.label(text="Text Draw Options:")
         col.prop(system, "use_text_antialiasing")
         col.label(text="Textures:")
@@ -491,15 +492,15 @@ class USERPREF_PT_system(Panel):
         sub.active = system.use_weight_color_range
         sub.template_color_ramp(system, "weight_color_range", expand=True)
 
-        column.separator()
-
-        column.prop(system, "use_international_fonts")
-        if system.use_international_fonts:
-            column.prop(system, "language")
-            row = column.row()
-            row.label(text="Translate:")
-            row.prop(system, "use_translate_interface", text="Interface")
-            row.prop(system, "use_translate_tooltips", text="Tooltips")
+        if 'INTERNATIONAL' in bpy.app.build_options:
+            column.separator()
+            column.prop(system, "use_international_fonts")
+            if system.use_international_fonts:
+                column.prop(system, "language")
+                row = column.row()
+                row.label(text="Translate:")
+                row.prop(system, "use_translate_interface", text="Interface")
+                row.prop(system, "use_translate_tooltips", text="Tooltips")
 
 
 class USERPREF_MT_interface_theme_presets(Menu):
@@ -706,30 +707,6 @@ class USERPREF_PT_theme(Panel):
             col.separator()
             col.separator()
 
-            ui = theme.user_interface.panel
-            col.label("Panels:")
-
-            row = col.row()
-
-            subsplit = row.split(percentage=0.95)
-
-            padding = subsplit.split(percentage=0.15)
-            colsub = padding.column()
-            colsub = padding.column()
-            rowsub = colsub.row()
-            rowsub.prop(ui, "show_header")
-            rowsub.label()
-
-            subsplit = row.split(percentage=0.85)
-
-            padding = subsplit.split(percentage=0.15)
-            colsub = padding.column()
-            colsub = padding.column()
-            colsub.row().prop(ui, "header")
-
-            col.separator()
-            col.separator()
-
             ui = theme.user_interface
             col.label("Axis Colors:")
 
@@ -855,6 +832,7 @@ class USERPREF_PT_file(Panel):
         col.prop(paths, "recent_files")
         col.prop(paths, "use_save_preview_images")
         col.label(text="Auto Save:")
+        col.prop(paths, "use_keep_session")
         col.prop(paths, "use_auto_save_temporary_files")
         sub = col.column()
         sub.active = paths.use_auto_save_temporary_files

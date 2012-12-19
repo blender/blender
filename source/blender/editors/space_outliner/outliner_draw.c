@@ -893,7 +893,7 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 struct DrawIconArg {
 	uiBlock *block;
 	ID *id;
-	int xmax, x, y;
+	float xmax, x, y, xb, yb;
 	float alpha;
 };
 
@@ -902,13 +902,11 @@ static void tselem_draw_icon_uibut(struct DrawIconArg *arg, int icon)
 	/* restrict column clip... it has been coded by simply overdrawing, doesnt work for buttons */
 	if (arg->x >= arg->xmax) {
 		glEnable(GL_BLEND);
-		UI_icon_draw_aspect(arg->x, arg->y, icon, 1.0f, arg->alpha);
+		UI_icon_draw_aspect(arg->x, arg->y, icon, 1.0f / UI_DPI_FAC, arg->alpha);
 		glDisable(GL_BLEND);
 	}
 	else {
-		/* XXX investigate: button placement of icons is way different than UI_icon_draw? */
-		float ufac = UI_UNIT_X / 20.0f;
-		uiBut *but = uiDefIconBut(arg->block, LABEL, 0, icon, arg->x - 3.0f * ufac, arg->y, UI_UNIT_X - 4.0f * ufac, UI_UNIT_Y - 4.0f * ufac, NULL, 0.0, 0.0, 1.0, arg->alpha, (arg->id && arg->id->lib) ? arg->id->lib->name : "");
+		uiBut *but = uiDefIconBut(arg->block, LABEL, 0, icon, arg->xb, arg->yb, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 1.0, arg->alpha, (arg->id && arg->id->lib) ? arg->id->lib->name : "");
 		
 		if (arg->id)
 			uiButSetDragID(but, arg->id);
@@ -919,15 +917,24 @@ static void tselem_draw_icon_uibut(struct DrawIconArg *arg, int icon)
 static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeStoreElem *tselem, TreeElement *te, float alpha)
 {
 	struct DrawIconArg arg;
+	float aspect;
+	
+	/* icons tiny bit away from text */
+	x -= 0.15f * UI_UNIT_Y;
 	
 	/* make function calls a bit compacter */
 	arg.block = block;
 	arg.id = tselem->id;
 	arg.xmax = xmax;
-	arg.x = x;
-	arg.y = y;
+	arg.xb = x;	/* for ui buttons */
+	arg.yb = y;
 	arg.alpha = alpha;
 	
+	/* placement of icons, copied from interface_widgets.c */
+	aspect = (0.8f * UI_UNIT_Y) / ICON_DEFAULT_HEIGHT;
+	arg.x = x = x + 4.0f * aspect;
+	arg.y = y = y + 0.1f * UI_UNIT_Y;
+
 	if (tselem->type) {
 		switch (tselem->type) {
 			case TSE_ANIM_DATA:
@@ -989,6 +996,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 					case eModifierType_Array:
 						UI_icon_draw(x, y, ICON_MOD_ARRAY); break;
 					case eModifierType_UVProject:
+					case eModifierType_UVWarp:  /* TODO, get own icon */
 						UI_icon_draw(x, y, ICON_MOD_UVPROJECT); break;
 					case eModifierType_Displace:
 						UI_icon_draw(x, y, ICON_MOD_DISPLACE); break;
@@ -1219,11 +1227,11 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Spa
 				float ufac = UI_UNIT_X / 20.0f;
 
 				uiSetRoundBox(UI_CNR_ALL);
-				glColor4ub(255, 255, 255, 100);
-				uiRoundBox((float) *offsx - 0.5f * ufac,
-				           (float)ys - 1.0f * ufac,
-				           (float)*offsx + UI_UNIT_Y - 3.0f * ufac,
-				           (float)ys + UI_UNIT_Y - 3.0f * ufac,
+				glColor4ub(255, 255, 255, 128);
+				uiRoundBox((float) *offsx - 1.0f * ufac,
+				           (float)ys + 1.0f * ufac,
+				           (float)*offsx + UI_UNIT_X - 1.0f * ufac,
+				           (float)ys + UI_UNIT_Y - 1.0f * ufac,
 				           (float)UI_UNIT_Y / 2.0f - 2.0f * ufac);
 				glEnable(GL_BLEND); /* roundbox disables */
 			}
@@ -1270,6 +1278,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 
 	if (*starty + 2 * UI_UNIT_Y >= ar->v2d.cur.ymin && *starty <= ar->v2d.cur.ymax) {
 		int xmax = ar->v2d.cur.xmax;
+		unsigned char alpha = 128;
 		
 		/* icons can be ui buts, we don't want it to overlap with restrict */
 		if ((soops->flag & SO_HIDE_RESTRICTCOLS) == 0)
@@ -1286,16 +1295,17 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 		{
 			char col[4];
 			UI_GetThemeColorType4ubv(TH_MATCH, SPACE_OUTLINER, col);
-			col[3] = 100;
+			col[3] = alpha;
 			glColor4ubv((GLubyte *)col);
 			glRecti(startx, *starty + 1, ar->v2d.cur.xmax, *starty + UI_UNIT_Y - 1);
 		}
 
 		/* colors for active/selected data */
 		if (tselem->type == 0) {
+			
 			if (te->idcode == ID_SCE) {
 				if (tselem->id == (ID *)scene) {
-					glColor4ub(255, 255, 255, 100);
+					glColor4ub(255, 255, 255, alpha);
 					active = 2;
 				}
 			}
@@ -1304,7 +1314,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 				if (group_select_flag(gr)) {
 					char col[4];
 					UI_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
-					col[3] = 100;
+					col[3] = alpha;
 					glColor4ubv((GLubyte *)col);
 					
 					active = 2;
@@ -1322,14 +1332,14 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 					if (ob == OBACT) {
 						if (ob->flag & SELECT) {
 							UI_GetThemeColorType4ubv(TH_ACTIVE, SPACE_VIEW3D, col);
-							col[3] = 100;
+							col[3] = alpha;
 						}
 						
 						active = 1; /* means it draws white text */
 					}
 					else if (ob->flag & SELECT) {
 						UI_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
-						col[3] = 100;
+						col[3] = alpha;
 					}
 					
 					glColor4ubv((GLubyte *)col);
@@ -1337,27 +1347,27 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 			
 			}
 			else if (scene->obedit && scene->obedit->data == tselem->id) {
-				glColor4ub(255, 255, 255, 100);
+				glColor4ub(255, 255, 255, alpha);
 				active = 2;
 			}
 			else {
 				if (tree_element_active(C, scene, soops, te, 0)) {
-					glColor4ub(220, 220, 255, 100);
+					glColor4ub(220, 220, 255, alpha);
 					active = 2;
 				}
 			}
 		}
 		else {
 			if (tree_element_type_active(NULL, scene, soops, te, tselem, 0) ) active = 2;
-			glColor4ub(220, 220, 255, 100);
+			glColor4ub(220, 220, 255, alpha);
 		}
 		
 		/* active circle */
 		if (active) {
 			uiSetRoundBox(UI_CNR_ALL);
-			uiRoundBox((float)startx + UI_UNIT_Y - 1.5f * ufac,
-			           (float)*starty + 2.0f * ufac,
-			           (float)startx + 2.0f * UI_UNIT_Y - 4.0f * ufac,
+			uiRoundBox((float)startx + UI_UNIT_X - 1.0f * ufac,
+			           (float)*starty + 1.0f * ufac,
+			           (float)startx + 2.0f * UI_UNIT_X - 1.0f * ufac,
 			           (float)*starty + UI_UNIT_Y - 1.0f * ufac,
 			           UI_UNIT_Y / 2.0f - 2.0f * ufac);
 			glEnable(GL_BLEND); /* roundbox disables it */
@@ -1384,8 +1394,8 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 		/* datatype icon */
 		
 		if (!(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM))) {
-			// icons a bit higher
-			tselem_draw_icon(block, xmax, (float)startx + offsx - 0.5f * ufac, (float)*starty + 2.0f * ufac, tselem, te, 1.0f);
+			
+			tselem_draw_icon(block, xmax, (float)startx + offsx, (float)*starty, tselem, te, 1.0f);
 			
 			offsx += UI_UNIT_X;
 		}
@@ -1425,12 +1435,15 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 					
 					/* divider */
 					UI_ThemeColorShade(TH_BACK, -40);
-					glRecti(tempx - 10, *starty + 4, tempx - 8, *starty + UI_UNIT_Y - 4);
+					glRecti(tempx   - 10.0f * ufac,
+					        *starty +  4.0f * ufac,
+					        tempx   -  8.0f * ufac,
+					        *starty + UI_UNIT_Y - 4.0f * ufac);
 					
 					glEnable(GL_BLEND);
 					glPixelTransferf(GL_ALPHA_SCALE, 0.5);
 					
-					outliner_draw_iconrow(C, block, scene, soops, &te->subtree, 0, xmax, &tempx, *starty + 2);
+					outliner_draw_iconrow(C, block, scene, soops, &te->subtree, 0, xmax, &tempx, *starty);
 					
 					glPixelTransferf(GL_ALPHA_SCALE, 1.0);
 					glDisable(GL_BLEND);
@@ -1625,7 +1638,7 @@ static void outliner_draw_restrictcols(ARegion *ar)
 
 /* ****************************************************** */
 /* Main Entrypoint - Draw contents of Outliner editor */
- 
+
 void draw_outliner(const bContext *C)
 {
 	Main *mainvar = CTX_data_main(C);
@@ -1635,8 +1648,8 @@ void draw_outliner(const bContext *C)
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	uiBlock *block;
 	int sizey = 0, sizex = 0, sizex_rna = 0;
-	
-	outliner_build_tree(mainvar, scene, soops); // always 
+
+	outliner_build_tree(mainvar, scene, soops); // always
 	
 	/* get extents of data */
 	outliner_height(soops, &soops->tree, &sizey);
@@ -1709,7 +1722,7 @@ void draw_outliner(const bContext *C)
 
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);
-	
+
 	/* clear flag that allows quick redraws */
 	soops->storeflag &= ~SO_TREESTORE_REDRAW;
 } 

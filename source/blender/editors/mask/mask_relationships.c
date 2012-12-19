@@ -31,6 +31,7 @@
 
 
 #include "BLI_math.h"
+#include "BLI_string.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -143,8 +144,8 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 				if (MASKPOINT_ISSEL_ANY(point)) {
 					point->parent.id_type = ID_MC;
 					point->parent.id = &clip->id;
-					strcpy(point->parent.parent, tracking_object->name);
-					strcpy(point->parent.sub_parent, track->name);
+					BLI_strncpy(point->parent.parent, tracking_object->name, sizeof(point->parent.parent));
+					BLI_strncpy(point->parent.sub_parent, track->name, sizeof(point->parent.sub_parent));
 
 					copy_v2_v2(point->parent.parent_orig, parmask_pos);
 				}

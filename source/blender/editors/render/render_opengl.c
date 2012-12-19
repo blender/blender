@@ -232,7 +232,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	else {
 		/* shouldnt suddenly give errors mid-render but possible */
 		char err_out[256] = "unknown";
-		ImBuf *ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(scene, scene->camera, oglrender->sizex, oglrender->sizey, IB_rectfloat, OB_SOLID, TRUE, FALSE, err_out);
+		ImBuf *ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(scene, scene->camera, oglrender->sizex, oglrender->sizey, IB_rectfloat, OB_SOLID, FALSE, TRUE, FALSE, err_out);
 		camera = scene->camera;
 
 		if (ibuf_view) {

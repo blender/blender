@@ -189,7 +189,7 @@ float paint_get_tex_pixel(Brush *br, float u, float v)
 
 /* 3D Paint */
 
-static void imapaint_project(Object *ob, float model[][4], float proj[][4], const float co[3], float pco[4])
+static void imapaint_project(Object *ob, float model[4][4], float proj[4][4], const float co[3], float pco[4])
 {
 	copy_v3_v3(pco, co);
 	pco[3] = 1.0f;

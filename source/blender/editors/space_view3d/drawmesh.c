@@ -415,14 +415,14 @@ static void draw_textured_end(void)
 static DMDrawOption draw_tface__set_draw_legacy(MTFace *tface, int has_mcol, int matnr)
 {
 	Material *ma = give_current_material(Gtexdraw.ob, matnr + 1);
-	int validtexture = 0;
+	int invalidtexture = 0;
 
 	if (ma && (ma->game.flag & GEMAT_INVISIBLE))
 		return DM_DRAW_OPTION_SKIP;
 
-	validtexture = set_draw_settings_cached(0, tface, ma, Gtexdraw);
+	invalidtexture = set_draw_settings_cached(0, tface, ma, Gtexdraw);
 
-	if (tface && validtexture) {
+	if (tface && invalidtexture) {
 		glColor3ub(0xFF, 0x00, 0xFF);
 		return DM_DRAW_OPTION_NO_MCOL; /* Don't set color */
 	}
@@ -457,25 +457,14 @@ static DMDrawOption draw_mcol__set_draw_legacy(MTFace *UNUSED(tface), int has_mc
 		return DM_DRAW_OPTION_NO_MCOL;
 }
 
-static DMDrawOption draw_tface__set_draw(MTFace *tface, int has_mcol, int matnr)
+static DMDrawOption draw_tface__set_draw(MTFace *UNUSED(tface), int UNUSED(has_mcol), int matnr)
 {
 	Material *ma = give_current_material(Gtexdraw.ob, matnr + 1);
 
 	if (ma && (ma->game.flag & GEMAT_INVISIBLE)) return 0;
 
-	if (tface && set_draw_settings_cached(0, tface, ma, Gtexdraw)) {
-		return DM_DRAW_OPTION_NO_MCOL; /* Don't set color */
-	}
-	else if (tface && (tface->mode & TF_OBCOL)) {
-		return DM_DRAW_OPTION_NO_MCOL; /* Don't set color */
-	}
-	else if (!has_mcol) {
-		/* XXX: this return value looks wrong (and doesn't match comment) */
-		return DM_DRAW_OPTION_NORMAL; /* Don't set color */
-	}
-	else {
-		return DM_DRAW_OPTION_NORMAL; /* Set color from mcol */
-	}
+	/* always use color from mcol, as set in update_tface_color_layer */
+	return DM_DRAW_OPTION_NORMAL;
 }
 
 static void update_tface_color_layer(DerivedMesh *dm)
@@ -517,11 +506,11 @@ static void update_tface_color_layer(DerivedMesh *dm)
 				finalCol[i * 4 + j].r = 255;
 			}
 		}
-		else if (tface && (tface->mode & TF_OBCOL)) {
+		else if (ma && (ma->shade_flag & MA_OBCOLOR)) {
 			for (j = 0; j < 4; j++) {
-				finalCol[i * 4 + j].b = FTOCHAR(Gtexdraw.obcol[0]);
-				finalCol[i * 4 + j].g = FTOCHAR(Gtexdraw.obcol[1]);
-				finalCol[i * 4 + j].r = FTOCHAR(Gtexdraw.obcol[2]);
+				finalCol[i * 4 + j].b = Gtexdraw.obcol[0];
+				finalCol[i * 4 + j].g = Gtexdraw.obcol[1];
+				finalCol[i * 4 + j].r = Gtexdraw.obcol[2];
 			}
 		}
 		else if (!mcol) {

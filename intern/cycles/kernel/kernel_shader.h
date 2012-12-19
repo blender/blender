@@ -26,11 +26,11 @@
  *
  */
 
+#include "closure/bsdf_util.h"
 #include "closure/bsdf.h"
 #include "closure/emissive.h"
 #include "closure/volume.h"
 
-#include "svm/svm_bsdf.h"
 #include "svm/svm.h"
 
 CCL_NAMESPACE_BEGIN
@@ -56,11 +56,6 @@ __device_noinline void shader_setup_object_transforms(KernelGlobals *kg, ShaderD
 __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	const Intersection *isect, const Ray *ray)
 {
-#ifdef __OSL__
-	if (kg->osl)
-		OSLShader::init(kg, sd);
-#endif
-
 	/* fetch triangle data */
 	int prim = kernel_tex_fetch(__prim_index, isect->prim);
 	float4 Ns = kernel_tex_fetch(__tri_normal, prim);
@@ -142,11 +137,6 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 	const float3 P, const float3 Ng, const float3 I,
 	int shader, int object, int prim, float u, float v, float t, float time)
 {
-#ifdef __OSL__
-	if (kg->osl)
-		OSLShader::init(kg, sd);
-#endif
-
 	/* vectors */
 	sd->P = P;
 	sd->N = Ng;
@@ -273,11 +263,6 @@ __device void shader_setup_from_displace(KernelGlobals *kg, ShaderData *sd,
 
 __device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderData *sd, const Ray *ray)
 {
-#ifdef __OSL__
-	if (kg->osl)
-		OSLShader::init(kg, sd);
-#endif
-
 	/* vectors */
 	sd->P = ray->D;
 	sd->N = -sd->P;
@@ -320,9 +305,8 @@ __device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderData 
 
 #ifdef __MULTI_CLOSURE__
 
-#ifdef __OSL__
-__device_inline void _shader_bsdf_multi_eval_osl(const ShaderData *sd, const float3 omega_in, float *pdf,
-	int skip_bsdf, BsdfEval *bsdf_eval, float sum_pdf, float sum_sample_weight)
+__device_inline void _shader_bsdf_multi_eval(KernelGlobals *kg, const ShaderData *sd, const float3 omega_in, float *pdf,
+	int skip_bsdf, BsdfEval *result_eval, float sum_pdf, float sum_sample_weight)
 {
 	for(int i = 0; i< sd->num_closure; i++) {
 		if(i == skip_bsdf)
@@ -332,38 +316,10 @@ __device_inline void _shader_bsdf_multi_eval_osl(const ShaderData *sd, const flo
 
 		if(CLOSURE_IS_BSDF(sc->type)) {
 			float bsdf_pdf = 0.0f;
-
-			float3 eval = OSLShader::bsdf_eval(sd, sc, omega_in, bsdf_pdf);
-
-			if(bsdf_pdf != 0.0f) {
-				bsdf_eval_accum(bsdf_eval, sc->type, eval*sc->weight);
-				sum_pdf += bsdf_pdf*sc->sample_weight;
-			}
-
-			sum_sample_weight += sc->sample_weight;
-		}
-	}
-
-	*pdf = (sum_sample_weight > 0.0f)? sum_pdf/sum_sample_weight: 0.0f;
-}
-#endif
-
-__device_inline void _shader_bsdf_multi_eval_svm(const ShaderData *sd, const float3 omega_in, float *pdf,
-	int skip_bsdf, BsdfEval *bsdf_eval, float sum_pdf, float sum_sample_weight)
-{
-	for(int i = 0; i< sd->num_closure; i++) {
-		if(i == skip_bsdf)
-			continue;
-
-		const ShaderClosure *sc = &sd->closure[i];
-
-		if(CLOSURE_IS_BSDF(sc->type)) {
-			float bsdf_pdf = 0.0f;
-
-			float3 eval = svm_bsdf_eval(sd, sc, omega_in, &bsdf_pdf);
+			float3 eval = bsdf_eval(kg, sd, sc, omega_in, &bsdf_pdf);
 
 			if(bsdf_pdf != 0.0f) {
-				bsdf_eval_accum(bsdf_eval, sc->type, eval*sc->weight);
+				bsdf_eval_accum(result_eval, sc->type, eval*sc->weight);
 				sum_pdf += bsdf_pdf*sc->sample_weight;
 			}
 
@@ -382,17 +338,12 @@ __device void shader_bsdf_eval(KernelGlobals *kg, const ShaderData *sd,
 #ifdef __MULTI_CLOSURE__
 	bsdf_eval_init(eval, NBUILTIN_CLOSURES, make_float3(0.0f, 0.0f, 0.0f), kernel_data.film.use_light_pass);
 
-#ifdef __OSL__
-	if (kg->osl)
-		return _shader_bsdf_multi_eval_osl(sd, omega_in, pdf, -1, eval, 0.0f, 0.0f);
-	else
-#endif
-		return _shader_bsdf_multi_eval_svm(sd, omega_in, pdf, -1, eval, 0.0f, 0.0f);
+	return _shader_bsdf_multi_eval(kg, sd, omega_in, pdf, -1, eval, 0.0f, 0.0f);
 #else
 	const ShaderClosure *sc = &sd->closure;
 
 	*pdf = 0.0f;
-	*eval = svm_bsdf_eval(sd, sc, omega_in, pdf)*sc->weight;
+	*eval = bsdf_eval(kg, sd, sc, omega_in, pdf)*sc->weight;
 #endif
 }
 
@@ -439,24 +390,14 @@ __device int shader_bsdf_sample(KernelGlobals *kg, const ShaderData *sd,
 	float3 eval;
 
 	*pdf = 0.0f;
-#ifdef __OSL__
-	if (kg->osl)
-		label = OSLShader::bsdf_sample(sd, sc, randu, randv, eval, *omega_in, *domega_in, *pdf);
-	else
-#endif
-		label = svm_bsdf_sample(sd, sc, randu, randv, &eval, omega_in, domega_in, pdf);
+	label = bsdf_sample(kg, sd, sc, randu, randv, &eval, omega_in, domega_in, pdf);
 
 	if(*pdf != 0.0f) {
 		bsdf_eval_init(bsdf_eval, sc->type, eval*sc->weight, kernel_data.film.use_light_pass);
 
 		if(sd->num_closure > 1) {
 			float sweight = sc->sample_weight;
-#ifdef __OSL__
-			if (kg->osl)
-				_shader_bsdf_multi_eval_osl(sd, *omega_in, pdf, sampled, bsdf_eval, *pdf*sweight, sweight);
-			else
-#endif
-				_shader_bsdf_multi_eval_svm(sd, *omega_in, pdf, sampled, bsdf_eval, *pdf*sweight, sweight);
+			_shader_bsdf_multi_eval(kg, sd, *omega_in, pdf, sampled, bsdf_eval, *pdf*sweight, sweight);
 		}
 	}
 
@@ -464,7 +405,7 @@ __device int shader_bsdf_sample(KernelGlobals *kg, const ShaderData *sd,
 #else
 	/* sample the single closure that we picked */
 	*pdf = 0.0f;
-	int label = svm_bsdf_sample(sd, &sd->closure, randu, randv, bsdf_eval, omega_in, domega_in, pdf);
+	int label = bsdf_sample(kg, sd, &sd->closure, randu, randv, bsdf_eval, omega_in, domega_in, pdf);
 	*bsdf_eval *= sd->closure.weight;
 	return label;
 #endif
@@ -478,12 +419,7 @@ __device int shader_bsdf_sample_closure(KernelGlobals *kg, const ShaderData *sd,
 	float3 eval;
 
 	*pdf = 0.0f;
-#ifdef __OSL__
-	if (kg->osl)
-		label = OSLShader::bsdf_sample(sd, sc, randu, randv, eval, *omega_in, *domega_in, *pdf);
-	else
-#endif
-		label = svm_bsdf_sample(sd, sc, randu, randv, &eval, omega_in, domega_in, pdf);
+	label = bsdf_sample(kg, sd, sc, randu, randv, &eval, omega_in, domega_in, pdf);
 
 	if(*pdf != 0.0f)
 		bsdf_eval_init(bsdf_eval, sc->type, eval*sc->weight, kernel_data.film.use_light_pass);
@@ -497,17 +433,11 @@ __device void shader_bsdf_blur(KernelGlobals *kg, ShaderData *sd, float roughnes
 	for(int i = 0; i< sd->num_closure; i++) {
 		ShaderClosure *sc = &sd->closure[i];
 
-		if(CLOSURE_IS_BSDF(sc->type)) {
-#ifdef __OSL__
-			if (kg->osl)
-				OSLShader::bsdf_blur(sc, roughness);
-			else
-#endif
-				svm_bsdf_blur(sc, roughness);
-		}
+		if(CLOSURE_IS_BSDF(sc->type))
+			bsdf_blur(kg, sc, roughness);
 	}
 #else
-	svm_bsdf_blur(&sd->closure, roughness);
+	bsdf_blur(kg, &sd->closure, roughness);
 #endif
 }
 
@@ -635,6 +565,16 @@ __device float3 shader_bsdf_ao(KernelGlobals *kg, ShaderData *sd, float ao_facto
 
 /* Emission */
 
+__device float3 emissive_eval(KernelGlobals *kg, ShaderData *sd, ShaderClosure *sc)
+{
+#ifdef __OSL__
+	if(kg->osl && sc->prim)
+		return OSLShader::emissive_eval(sd, sc);
+#endif
+
+	return emissive_simple_eval(sd->Ng, sd->I);
+}
+
 __device float3 shader_emissive_eval(KernelGlobals *kg, ShaderData *sd)
 {
 	float3 eval;
@@ -644,18 +584,11 @@ __device float3 shader_emissive_eval(KernelGlobals *kg, ShaderData *sd)
 	for(int i = 0; i < sd->num_closure; i++) {
 		ShaderClosure *sc = &sd->closure[i];
 
-		if(CLOSURE_IS_EMISSION(sc->type)) {
-#ifdef __OSL__
-			if (kg->osl)
-				eval += OSLShader::emissive_eval(sd, sc)*sc->weight;
-			else
-#endif
-				eval += svm_emissive_eval(sd, sc)*sc->weight;
-
-		}
+		if(CLOSURE_IS_EMISSION(sc->type))
+			eval += emissive_eval(kg, sd, sc)*sc->weight;
 	}
 #else
-	eval = svm_emissive_eval(sd, &sd->closure)*sd->closure.weight;
+	eval = emissive_eval(kg, sd, &sd->closure)*sd->closure.weight;
 #endif
 
 	return eval;
@@ -687,11 +620,11 @@ __device float3 shader_holdout_eval(KernelGlobals *kg, ShaderData *sd)
 /* Surface Evaluation */
 
 __device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,
-	float randb, int path_flag)
+	float randb, int path_flag, ShaderContext ctx)
 {
 #ifdef __OSL__
 	if (kg->osl)
-		OSLShader::eval_surface(kg, sd, randb, path_flag);
+		OSLShader::eval_surface(kg, sd, randb, path_flag, ctx);
 	else
 #endif
 	{
@@ -706,11 +639,11 @@ __device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,
 
 /* Background Evaluation */
 
-__device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd, int path_flag)
+__device float3 shader_eval_background(KernelGlobals *kg, ShaderData *sd, int path_flag, ShaderContext ctx)
 {
 #ifdef __OSL__
 	if (kg->osl)
-		return OSLShader::eval_background(kg, sd, path_flag);
+		return OSLShader::eval_background(kg, sd, path_flag, ctx);
 	else
 #endif
 
@@ -753,31 +686,25 @@ __device float3 shader_volume_eval_phase(KernelGlobals *kg, ShaderData *sd,
 	for(int i = 0; i< sd->num_closure; i++) {
 		const ShaderClosure *sc = &sd->closure[i];
 
-		if(CLOSURE_IS_VOLUME(sc->type)) {
-#ifdef __OSL__
-			if (kg->osl)
-				eval += OSLShader::volume_eval_phase(sc, omega_in, omega_out);
-			else
-#endif
-				eval += volume_eval_phase(sc, omega_in, omega_out);
-		}
+		if(CLOSURE_IS_VOLUME(sc->type))
+			eval += volume_eval_phase(kg, sc, omega_in, omega_out);
 	}
 
 	return eval;
 #else
-	return volume_eval_phase(&sd->closure, omega_in, omega_out);
+	return volume_eval_phase(kg, &sd->closure, omega_in, omega_out);
 #endif
 }
 
 /* Volume Evaluation */
 
 __device void shader_eval_volume(KernelGlobals *kg, ShaderData *sd,
-	float randb, int path_flag)
+	float randb, int path_flag, ShaderContext ctx)
 {
 #ifdef __SVM__
 #ifdef __OSL__
 	if (kg->osl)
-		OSLShader::eval_volume(kg, sd, randb, path_flag);
+		OSLShader::eval_volume(kg, sd, randb, path_flag, ctx);
 	else
 #endif
 		svm_eval_nodes(kg, sd, SHADER_TYPE_VOLUME, randb, path_flag);
@@ -786,13 +713,13 @@ __device void shader_eval_volume(KernelGlobals *kg, ShaderData *sd,
 
 /* Displacement Evaluation */
 
-__device void shader_eval_displacement(KernelGlobals *kg, ShaderData *sd)
+__device void shader_eval_displacement(KernelGlobals *kg, ShaderData *sd, ShaderContext ctx)
 {
 	/* this will modify sd->P */
 #ifdef __SVM__
 #ifdef __OSL__
 	if (kg->osl)
-		OSLShader::eval_displacement(kg, sd);
+		OSLShader::eval_displacement(kg, sd, ctx);
 	else
 #endif
 		svm_eval_nodes(kg, sd, SHADER_TYPE_DISPLACEMENT, 0.0f, 0);
@@ -818,7 +745,6 @@ __device bool shader_transparent_shadow(KernelGlobals *kg, Intersection *isect)
 #ifdef __NON_PROGRESSIVE__
 __device void shader_merge_closures(KernelGlobals *kg, ShaderData *sd)
 {
-#ifndef __OSL__
 	/* merge identical closures, better when we sample a single closure at a time */
 	for(int i = 0; i < sd->num_closure; i++) {
 		ShaderClosure *sci = &sd->closure[i];
@@ -826,7 +752,11 @@ __device void shader_merge_closures(KernelGlobals *kg, ShaderData *sd)
 		for(int j = i + 1; j < sd->num_closure; j++) {
 			ShaderClosure *scj = &sd->closure[j];
 
+#ifdef __OSL__
+			if(!sci->prim && sci->type == scj->type && sci->data0 == scj->data0 && sci->data1 == scj->data1) {
+#else
 			if(sci->type == scj->type && sci->data0 == scj->data0 && sci->data1 == scj->data1) {
+#endif
 				sci->weight += scj->weight;
 				sci->sample_weight += scj->sample_weight;
 
@@ -838,7 +768,6 @@ __device void shader_merge_closures(KernelGlobals *kg, ShaderData *sd)
 			}
 		}
 	}
-#endif
 }
 #endif
 
@@ -846,10 +775,7 @@ __device void shader_merge_closures(KernelGlobals *kg, ShaderData *sd)
 
 __device void shader_release(KernelGlobals *kg, ShaderData *sd)
 {
-#ifdef __OSL__
-	if (kg->osl)
-		OSLShader::release(kg, sd);
-#endif
+	/* nothing to do currently */
 }
 
 CCL_NAMESPACE_END

@@ -223,7 +223,7 @@ static Node *addnode(Octree *oc)
 	return oc->adrnode[index] + (oc->nodecount & 4095);
 }
 
-static int face_in_node(RayFace *face, short x, short y, short z, float rtf[][3])
+static int face_in_node(RayFace *face, short x, short y, short z, float rtf[4][3])
 {
 	static float nor[3], d;
 	float fx, fy, fz;
@@ -321,12 +321,12 @@ static void ocwrite(Octree *oc, RayFace *face, int quad, short x, short y, short
 		calc_ocval_face(rtf[0], rtf[1], rtf[2], NULL, x >> 2, y >> 1, z, &no->ov[a]);
 }
 
-static void d2dda(Octree *oc, short b1, short b2, short c1, short c2, char *ocface, short rts[][3], float rtf[][3])
+static void d2dda(Octree *oc, short b1, short b2, short c1, short c2, char *ocface, short rts[4][3], float rtf[4][3])
 {
 	int ocx1, ocx2, ocy1, ocy2;
 	int x, y, dx = 0, dy = 0;
 	float ox1, ox2, oy1, oy2;
-	float labda, labdao, labdax, labday, ldx, ldy;
+	float lambda, lambda_o, lambda_x, lambda_y, ldx, ldy;
 
 	ocx1 = rts[b1][c1];
 	ocy1 = rts[b1][c2];
@@ -345,40 +345,40 @@ static void d2dda(Octree *oc, short b1, short b2, short c1, short c2, char *ocfa
 
 	if (ox1 != ox2) {
 		if (ox2 - ox1 > 0.0f) {
-			labdax = (ox1 - ocx1 - 1.0f) / (ox1 - ox2);
+			lambda_x = (ox1 - ocx1 - 1.0f) / (ox1 - ox2);
 			ldx = -1.0f / (ox1 - ox2);
 			dx = 1;
 		}
 		else {
-			labdax = (ox1 - ocx1) / (ox1 - ox2);
+			lambda_x = (ox1 - ocx1) / (ox1 - ox2);
 			ldx = 1.0f / (ox1 - ox2);
 			dx = -1;
 		}
 	}
 	else {
-		labdax = 1.0f;
+		lambda_x = 1.0f;
 		ldx = 0;
 	}
 
 	if (oy1 != oy2) {
 		if (oy2 - oy1 > 0.0f) {
-			labday = (oy1 - ocy1 - 1.0f) / (oy1 - oy2);
+			lambda_y = (oy1 - ocy1 - 1.0f) / (oy1 - oy2);
 			ldy = -1.0f / (oy1 - oy2);
 			dy = 1;
 		}
 		else {
-			labday = (oy1 - ocy1) / (oy1 - oy2);
+			lambda_y = (oy1 - ocy1) / (oy1 - oy2);
 			ldy = 1.0f / (oy1 - oy2);
 			dy = -1;
 		}
 	}
 	else {
-		labday = 1.0f;
+		lambda_y = 1.0f;
 		ldy = 0;
 	}
 	
 	x = ocx1; y = ocy1;
-	labda = MIN2(labdax, labday);
+	lambda = MIN2(lambda_x, lambda_y);
 	
 	while (TRUE) {
 		
@@ -389,26 +389,26 @@ static void d2dda(Octree *oc, short b1, short b2, short c1, short c2, char *ocfa
 			ocface[oc->ocres * x + y] = 1;
 		}
 		
-		labdao = labda;
-		if (labdax == labday) {
-			labdax += ldx;
+		lambda_o = lambda;
+		if (lambda_x == lambda_y) {
+			lambda_x += ldx;
 			x += dx;
-			labday += ldy;
+			lambda_y += ldy;
 			y += dy;
 		}
 		else {
-			if (labdax < labday) {
-				labdax += ldx;
+			if (lambda_x < lambda_y) {
+				lambda_x += ldx;
 				x += dx;
 			}
 			else {
-				labday += ldy;
+				lambda_y += ldy;
 				y += dy;
 			}
 		}
-		labda = MIN2(labdax, labday);
-		if (labda == labdao) break;
-		if (labda >= 1.0f) break;
+		lambda = MIN2(lambda_x, lambda_y);
+		if (lambda == lambda_o) break;
+		if (lambda >= 1.0f) break;
 	}
 	ocface[oc->ocres * ocx2 + ocy2] = 1;
 }
@@ -851,8 +851,8 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 	OcVal ocval;
 	float vec1[3], vec2[3], start[3], end[3];
 	float u1, u2, ox1, ox2, oy1, oy2, oz1, oz2;
-	float labdao, labdax, ldx, labday, ldy, labdaz, ldz, ddalabda;
-	float olabda = 0;
+	float lambda_o, lambda_x, ldx, lambda_y, ldy, lambda_z, ldz, dda_lambda;
+	float o_lambda = 0;
 	int dx, dy, dz;
 	int xo, yo, zo, c1 = 0;
 	int ocx1, ocx2, ocy1, ocy2, ocz1, ocz2;
@@ -871,7 +871,7 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 	copy_v3_v3(start, is->start);
 	madd_v3_v3v3fl(end, is->start, is->dir, is->dist);
 	ldx = is->dir[0] * is->dist;
-	olabda = is->dist;
+	o_lambda = is->dist;
 	u1 = 0.0f;
 	u2 = 1.0f;
 	
@@ -939,68 +939,68 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 		float dox, doy, doz;
 		int eqval;
 		
-		/* calc labda en ld */
+		/* calc lambda en ld */
 		dox = ox1 - ox2;
 		doy = oy1 - oy2;
 		doz = oz1 - oz2;
 
 		if (dox < -FLT_EPSILON) {
 			ldx = -1.0f / dox;
-			labdax = (ocx1 - ox1 + 1.0f) * ldx;
+			lambda_x = (ocx1 - ox1 + 1.0f) * ldx;
 			dx = 1;
 		}
 		else if (dox > FLT_EPSILON) {
 			ldx = 1.0f / dox;
-			labdax = (ox1 - ocx1) * ldx;
+			lambda_x = (ox1 - ocx1) * ldx;
 			dx = -1;
 		}
 		else {
-			labdax = 1.0f;
+			lambda_x = 1.0f;
 			ldx = 0;
 			dx = 0;
 		}
 
 		if (doy < -FLT_EPSILON) {
 			ldy = -1.0f / doy;
-			labday = (ocy1 - oy1 + 1.0f) * ldy;
+			lambda_y = (ocy1 - oy1 + 1.0f) * ldy;
 			dy = 1;
 		}
 		else if (doy > FLT_EPSILON) {
 			ldy = 1.0f / doy;
-			labday = (oy1 - ocy1) * ldy;
+			lambda_y = (oy1 - ocy1) * ldy;
 			dy = -1;
 		}
 		else {
-			labday = 1.0f;
+			lambda_y = 1.0f;
 			ldy = 0;
 			dy = 0;
 		}
 
 		if (doz < -FLT_EPSILON) {
 			ldz = -1.0f / doz;
-			labdaz = (ocz1 - oz1 + 1.0f) * ldz;
+			lambda_z = (ocz1 - oz1 + 1.0f) * ldz;
 			dz = 1;
 		}
 		else if (doz > FLT_EPSILON) {
 			ldz = 1.0f / doz;
-			labdaz = (oz1 - ocz1) * ldz;
+			lambda_z = (oz1 - ocz1) * ldz;
 			dz = -1;
 		}
 		else {
-			labdaz = 1.0f;
+			lambda_z = 1.0f;
 			ldz = 0;
 			dz = 0;
 		}
 		
 		xo = ocx1; yo = ocy1; zo = ocz1;
-		ddalabda = MIN3(labdax, labday, labdaz);
+		dda_lambda = MIN3(lambda_x, lambda_y, lambda_z);
 		
 		vec2[0] = ox1;
 		vec2[1] = oy1;
 		vec2[2] = oz1;
 		
 		/* this loop has been constructed to make sure the first and last node of ray
-		 * are always included, even when ddalabda==1.0f or larger */
+		 * are always included, even when dda_lambda==1.0f or larger */
 
 		while (TRUE) {
 
@@ -1010,83 +1010,83 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 				/* calculate ray intersection with octree node */
 				copy_v3_v3(vec1, vec2);
 				// dox, y, z is negative
-				vec2[0] = ox1 - ddalabda * dox;
-				vec2[1] = oy1 - ddalabda * doy;
-				vec2[2] = oz1 - ddalabda * doz;
+				vec2[0] = ox1 - dda_lambda * dox;
+				vec2[1] = oy1 - dda_lambda * doy;
+				vec2[2] = oz1 - dda_lambda * doz;
 				calc_ocval_ray(&ocval, (float)xo, (float)yo, (float)zo, vec1, vec2);
 
-				//is->dist = (u1+ddalabda*(u2-u1))*olabda;
+				//is->dist = (u1+dda_lambda*(u2-u1))*o_lambda;
 				if (testnode(oc, is, no, ocval) )
 					found = 1;
 
-				if (is->dist < (u1 + ddalabda * (u2 - u1)) * olabda)
+				if (is->dist < (u1 + dda_lambda * (u2 - u1)) * o_lambda)
 					return found;
 			}
 
 
-			labdao = ddalabda;
+			lambda_o = dda_lambda;
 			
 			/* traversing octree nodes need careful detection of smallest values, with proper
-			 * exceptions for equal labdas */
-			eqval = (labdax == labday);
-			if (labday == labdaz) eqval += 2;
-			if (labdax == labdaz) eqval += 4;
+			 * exceptions for equal lambdas */
+			eqval = (lambda_x == lambda_y);
+			if (lambda_y == lambda_z) eqval += 2;
+			if (lambda_x == lambda_z) eqval += 4;
 
 			if (eqval) {    // only 4 cases exist!
 				if (eqval == 7) { // x=y=z
-					xo += dx; labdax += ldx;
-					yo += dy; labday += ldy;
-					zo += dz; labdaz += ldz;
+					xo += dx; lambda_x += ldx;
+					yo += dy; lambda_y += ldy;
+					zo += dz; lambda_z += ldz;
 				}
 				else if (eqval == 1) { // x=y
-					if (labday < labdaz) {
-						xo += dx; labdax += ldx;
-						yo += dy; labday += ldy;
+					if (lambda_y < lambda_z) {
+						xo += dx; lambda_x += ldx;
+						yo += dy; lambda_y += ldy;
 					}
 					else {
-						zo += dz; labdaz += ldz;
+						zo += dz; lambda_z += ldz;
 					}
 				}
 				else if (eqval == 2) { // y=z
-					if (labdax < labday) {
-						xo += dx; labdax += ldx;
+					if (lambda_x < lambda_y) {
+						xo += dx; lambda_x += ldx;
 					}
 					else {
-						yo += dy; labday += ldy;
-						zo += dz; labdaz += ldz;
+						yo += dy; lambda_y += ldy;
+						zo += dz; lambda_z += ldz;
 					}
 				}
 				else { // x=z
-					if (labday < labdax) {
-						yo += dy; labday += ldy;
+					if (lambda_y < lambda_x) {
+						yo += dy; lambda_y += ldy;
 					}
 					else {
-						xo += dx; labdax += ldx;
-						zo += dz; labdaz += ldz;
+						xo += dx; lambda_x += ldx;
+						zo += dz; lambda_z += ldz;
 					}
 				}
 			}
 			else {  // all three different, just three cases exist
-				eqval = (labdax < labday);
-				if (labday < labdaz) eqval += 2;
-				if (labdax < labdaz) eqval += 4;
+				eqval = (lambda_x < lambda_y);
+				if (lambda_y < lambda_z) eqval += 2;
+				if (lambda_x < lambda_z) eqval += 4;
 				
 				if (eqval == 7 || eqval == 5) { // x smallest
-					xo += dx; labdax += ldx;
+					xo += dx; lambda_x += ldx;
 				}
 				else if (eqval == 2 || eqval == 6) { // y smallest
-					yo += dy; labday += ldy;
+					yo += dy; lambda_y += ldy;
 				}
 				else { // z smallest
-					zo += dz; labdaz += ldz;
+					zo += dz; lambda_z += ldz;
 				}
 				
 			}
 
-			ddalabda = MIN3(labdax, labday, labdaz);
-			if (ddalabda == labdao) break;
+			dda_lambda = MIN3(lambda_x, lambda_y, lambda_z);
+			if (dda_lambda == lambda_o) break;
 			/* to make sure the last node is always checked */
-			if (labdao >= 1.0f) break;
+			if (lambda_o >= 1.0f) break;
 		}
 	}
 	

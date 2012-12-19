@@ -632,7 +632,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 	for (ale = anim_data->first; ale; ale = ale->next) {
 		const float yminc = (float)(y - NLACHANNEL_HEIGHT_HALF(snla));
 		const float ymaxc = (float)(y + NLACHANNEL_HEIGHT_HALF(snla));
-		const float ydatac = (float)(y - 7);
+		const float ydatac = (float)(y - 0.35f * U.widget_unit);
 		
 		/* check if visible */
 		if (IN_RANGE(yminc, v2d->cur.ymin, v2d->cur.ymax) ||
@@ -716,7 +716,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 				if (ale->id) {
 					/* special exception for textures */
 					if (GS(ale->id->name) == ID_TE) {
-						offset = 14;
+						offset = 0.7f * U.widget_unit;
 						indent = 1;
 					}
 					/* special exception for nodetrees */
@@ -727,7 +727,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 							case NTREE_SHADER:
 							{
 								/* same as for textures */
-								offset = 14;
+								offset = 0.7f * U.widget_unit;
 								indent = 1;
 							}
 							break;
@@ -735,19 +735,19 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 							case NTREE_TEXTURE:
 							{
 								/* even more */
-								offset = 21;
+								offset = U.widget_unit;
 								indent = 1;
 							}
 							break;
 								
 							default:
 								/* normal will do */
-								offset = 14;
+								offset = 0.7f * U.widget_unit;
 								break;
 						}
 					}
 					else {
-						offset = 14;
+						offset = 0.7f * U.widget_unit;
 					}
 				}
 				else {
@@ -779,7 +779,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 						glColor4f(color[0], color[1], color[2], alpha);
 					}
 					
-					offset += 7 * indent;
+					offset += 0.35f * U.widget_unit * indent;
 					
 					/* only on top two corners, to show that this channel sits on top of the preceding ones */
 					uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
@@ -797,7 +797,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 					UI_ThemeColorShade(TH_HEADER, ((nonSolo == 0) ? 20 : -20));
 					
 					indent += group;
-					offset += 7 * indent;
+					offset += 0.35f * U.widget_unit * indent;
 					glBegin(GL_QUADS);
 					glVertex2f(x + offset, yminc);
 					glVertex2f(x + offset, ymaxc);
@@ -809,14 +809,14 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 				/* draw expand/collapse triangle */
 				if (expand > 0) {
 					UI_icon_draw(x + offset, ydatac, expand);
-					offset += 17;
+					offset += 0.85f * U.widget_unit;
 				}
 				
 				/* draw special icon indicating certain data-types */
 				if (special > -1) {
 					/* for normal channels */
 					UI_icon_draw(x + offset, ydatac, special);
-					offset += 17;
+					offset += 0.85f * U.widget_unit;
 				}
 				glDisable(GL_BLEND);
 				
@@ -837,19 +837,19 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 				
 				/* draw protect 'lock' */
 				if (protect > -1) {
-					offset = 16;
+					offset =  0.8f * U.widget_unit;
 					UI_icon_draw((float)(v2d->cur.xmax - offset), ydatac, protect);
 				}
 				
 				/* draw mute 'eye' */
 				if (mute > -1) {
-					offset += 16;
+					offset += 0.8f * U.widget_unit;
 					UI_icon_draw((float)(v2d->cur.xmax - offset), ydatac, mute);
 				}
 				
 				/* draw NLA-action line 'status-icons' - only when there's an action */
 				if ((ale->type == ANIMTYPE_NLAACTION) && (ale->data)) {
-					offset += 16;
+					offset += 0.8f * U.widget_unit;
 					
 					/* now draw some indicator icons  */
 					if ((adt) && (adt->flag & ADT_NLA_EDIT_ON)) {
@@ -862,7 +862,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 						
 						fdrawline((float)(v2d->cur.xmax - offset), yminc,
 						          (float)(v2d->cur.xmax - offset), ymaxc);
-						offset += 16;
+						offset += 0.8f * U.widget_unit;
 						
 						/* 'tweaking action' indicator - not a button */
 						UI_icon_draw((float)(v2d->cur.xmax - offset), ydatac, ICON_EDIT);
@@ -870,10 +870,10 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 					else {
 						/* XXX firstly draw a little rect to help identify that it's different from the toggles */
 						glBegin(GL_LINE_LOOP);
-						glVertex2f((float)v2d->cur.xmax - offset - 1, y - 7);
-						glVertex2f((float)v2d->cur.xmax - offset - 1, y + 9);
-						glVertex2f((float)v2d->cur.xmax - 1, y + 9);
-						glVertex2f((float)v2d->cur.xmax - 1, y - 7);
+						glVertex2f((float)v2d->cur.xmax - offset - 1, y - 0.35f * U.widget_unit);
+						glVertex2f((float)v2d->cur.xmax - offset - 1, y + 0.45f * U.widget_unit);
+						glVertex2f((float)v2d->cur.xmax - 1, y + 0.45f * U.widget_unit);
+						glVertex2f((float)v2d->cur.xmax - 1, y - 0.35f * U.widget_unit);
 						glEnd(); // GL_LINES
 						
 						/* 'push down' icon for normal active-actions */

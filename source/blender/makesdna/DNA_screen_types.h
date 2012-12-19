@@ -82,7 +82,8 @@ typedef struct bScreen {
 typedef struct ScrVert {
 	struct ScrVert *next, *prev, *newv;
 	vec2s vec;
-	int flag;
+	/* first one used internally, second one for tools */
+	short flag, editflag;
 } ScrVert;
 
 typedef struct ScrEdge {
@@ -159,13 +160,16 @@ typedef struct ARegion {
 	short do_draw;				/* private, cached notifier events */
 	short do_draw_overlay;		/* private, cached notifier events */
 	short swap;					/* private, indicator to survive swap-exchange */
-	short pad[3];
+	short overlap;				/* private, set for indicate drawing overlapped */
+	short pad[2];
 	
 	struct ARegionType *type;	/* callbacks for this region type */
 	
 	ListBase uiblocks;			/* uiBlock */
 	ListBase panels;			/* Panel */
 	ListBase handlers;			/* wmEventHandler */
+	
+	struct wmTimer *regiontimer; /* blend in/out */
 	
 	char *headerstr;			/* use this string to draw info */
 	void *regiondata;			/* XXX 2.50, need spacedata equivalent? */
@@ -235,10 +239,6 @@ enum {
 #define RGN_ALIGN_VSPLIT	6
 #define RGN_ALIGN_FLOAT		7
 #define RGN_ALIGN_QSPLIT	8
-#define RGN_OVERLAP_TOP		9
-#define RGN_OVERLAP_BOTTOM	10
-#define RGN_OVERLAP_LEFT	11
-#define RGN_OVERLAP_RIGHT	12
 
 #define RGN_SPLIT_PREV		32
 

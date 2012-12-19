@@ -198,7 +198,7 @@ shader node_musgrave_texture(
 	float Scale = 5.0,
 	point Vector = P,
 	output float Fac = 0.0,
-	output color Color = color(0.0, 0.0, 0.0))
+	output color Color = 0.0)
 {
 	float dimension = max(Dimension, 1e-5);
 	float octaves = clamp(Detail, 0.0, 16.0);

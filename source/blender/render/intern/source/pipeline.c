@@ -585,7 +585,7 @@ void RE_SetOrtho(Render *re, rctf *viewplane, float clipsta, float clipend)
 	                re->viewplane.ymin, re->viewplane.ymax, re->clipsta, re->clipend);
 }
 
-void RE_SetView(Render *re, float mat[][4])
+void RE_SetView(Render *re, float mat[4][4])
 {
 	/* re->ok flag? */
 	copy_m4_m4(re->viewmat, mat);
@@ -947,6 +947,9 @@ static void add_freestyle(Render *re);
 
 static void do_render_3d(Render *re)
 {
+	float cfra;
+	int cfra_backup;
+
 	/* try external */
 	if (RE_engine_render(re, 0))
 		return;
@@ -954,9 +957,13 @@ static void do_render_3d(Render *re)
 	/* internal */
 	RE_parts_clamp(re);
 	
-//	re->cfra= cfra;	/* <- unused! */
-	re->scene->r.subframe = re->mblur_offs + re->field_offs;
-	
+	/* add motion blur and fields offset to frames */
+	cfra_backup = re->scene->r.cfra;
+
+	cfra = re->scene->r.cfra + re->mblur_offs + re->field_offs;
+	re->scene->r.cfra = floorf(cfra);
+	re->scene->r.subframe = cfra - floorf(cfra);
+
 	/* lock drawing in UI during data phase */
 	if (re->draw_lock)
 		re->draw_lock(re->dlh, 1);
@@ -986,6 +993,7 @@ static void do_render_3d(Render *re)
 	/* free all render verts etc */
 	RE_Database_Free(re);
 	
+	re->scene->r.cfra = cfra_backup;
 	re->scene->r.subframe = 0.f;
 }
 

@@ -232,6 +232,24 @@ void RAS_BucketManager::Renderbuckets(
 	RenderSolidBuckets(cameratrans, rasty, rendertools);
 	RenderAlphaBuckets(cameratrans, rasty, rendertools);
 
+	/* All meshes should be up to date now */
+	/* Don't do this while processing buckets because some meshes are split between buckets */
+	BucketList::iterator bit;
+	list<RAS_MeshSlot>::iterator mit;
+	for (bit = m_SolidBuckets.begin(); bit != m_SolidBuckets.end(); ++bit) {
+		RAS_MaterialBucket* bucket = *bit;
+		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit) {
+			mit->m_mesh->SetMeshModified(false);
+		}
+	}
+	for (bit = m_AlphaBuckets.begin(); bit != m_AlphaBuckets.end(); ++bit) {
+		RAS_MaterialBucket* bucket = *bit;
+		for (mit = (*bit)->msBegin(); mit != (*bit)->msEnd(); ++mit) {
+			mit->m_mesh->SetMeshModified(false);
+		}
+	}
+	
+
 	rendertools->SetClientObject(rasty, NULL);
 }
 

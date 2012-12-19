@@ -59,8 +59,7 @@ static EnumPropertyItem particle_edit_hair_brush_items[] = {
 #include "BKE_pointcache.h"
 #include "BKE_particle.h"
 #include "BKE_depsgraph.h"
-
-#include "BLI_pbvh.h"
+#include "BKE_pbvh.h"
 
 #include "ED_particle.h"
 

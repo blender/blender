@@ -852,7 +852,7 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 
 	if (em) {
 		if (skip_em_vert_array_init == FALSE) {
-			EDBM_index_arrays_init(em, 1, 0, 0);
+			EDBM_index_arrays_ensure(em, BM_VERT);
 		}
 	}
 
@@ -886,11 +886,6 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 				}
 			}
 			last = a;
-		}
-	}
-	if (em) {
-		if (skip_em_vert_array_init == FALSE) {
-			EDBM_index_arrays_free(em);
 		}
 	}
 

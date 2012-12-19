@@ -41,7 +41,7 @@ extern "C" {
 #endif
 
 void BLI_insertlink(struct ListBase *listbase, void *vprevlink, void *vnewlink);
-int BLI_findindex(const struct ListBase *listbase, void *vlink);
+int BLI_findindex(const struct ListBase *listbase, const void *vlink);
 int BLI_findstringindex(const struct ListBase *listbase, const char *id, const int offset);
 
 /* find forwards */
@@ -79,4 +79,4 @@ struct LinkData *BLI_genericNodeN(void *data);
 }
 #endif
 
-#endif
+#endif  /* __BLI_LISTBASE_H__ */

@@ -38,6 +38,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_smoke_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_property_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_blenlib.h"

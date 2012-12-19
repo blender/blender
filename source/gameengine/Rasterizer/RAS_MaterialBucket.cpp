@@ -605,7 +605,8 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 
 	if (ms.m_pDeformer)
 	{
-		ms.m_pDeformer->Apply(m_material);
+		if (ms.m_pDeformer->Apply(m_material));
+			ms.m_mesh->SetMeshModified(true);
 	//	KX_ReInstanceShapeFromMesh(ms.m_mesh); // Recompute the physics mesh. (Can't call KX_* from RAS_)
 	}
 	
@@ -647,10 +648,6 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 	// use normal IndexPrimitives
 	else
 		rasty->IndexPrimitives(ms);
-
-	if (rasty->QueryLists())
-		if (ms.m_DisplayList)
-			ms.m_mesh->SetMeshModified(false);
 
 	rendertools->PopMatrix();
 }

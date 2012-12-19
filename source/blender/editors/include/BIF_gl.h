@@ -35,6 +35,14 @@
 
 #include "GL/glew.h"
 
+#ifdef __APPLE__
+
+/* hacking pointsize and linewidth */
+#define glPointSize(f)	glPointSize(U.pixelsize*(f))
+#define glLineWidth(f)	glLineWidth(U.pixelsize*(f))
+
+#endif
+
 /*
  * these should be phased out. cpack should be replaced in
  * code with calls to glColor3ub. - zr

@@ -74,7 +74,7 @@ void UnitConverter::convertVector3(COLLADABU::Math::Vector3 &vec, float *v)
 
 // TODO need also for angle conversion, time conversion...
 
-void UnitConverter::dae_matrix_to_mat4_(float out[][4], const COLLADABU::Math::Matrix4& in)
+void UnitConverter::dae_matrix_to_mat4_(float out[4][4], const COLLADABU::Math::Matrix4& in)
 {
 	// in DAE, matrices use columns vectors, (see comments in COLLADABUMathMatrix4.h)
 	// so here, to make a blender matrix, we swap columns and rows
@@ -85,13 +85,13 @@ void UnitConverter::dae_matrix_to_mat4_(float out[][4], const COLLADABU::Math::M
 	}
 }
 
-void UnitConverter::mat4_to_dae(float out[][4], float in[][4])
+void UnitConverter::mat4_to_dae(float out[4][4], float in[4][4])
 {
 	copy_m4_m4(out, in);
 	transpose_m4(out);
 }
 
-void UnitConverter::mat4_to_dae_double(double out[][4], float in[][4])
+void UnitConverter::mat4_to_dae_double(double out[4][4], float in[4][4])
 {
 	float mat[4][4];
 
@@ -102,7 +102,7 @@ void UnitConverter::mat4_to_dae_double(double out[][4], float in[][4])
 			out[i][j] = mat[i][j];
 }
 
-void TransformBase::decompose(float mat[][4], float *loc, float eul[3], float quat[4], float *size)
+void TransformBase::decompose(float mat[4][4], float *loc, float eul[3], float quat[4], float *size)
 {
 	mat4_to_size(size, mat);
 	if (eul) {

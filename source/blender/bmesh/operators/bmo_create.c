@@ -578,7 +578,7 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 	//rotsys_fill_faces(bm, edata, vdata);
 
 #if 0
-	/* create visualizing geometr */
+	/* create visualizing geometry */
 	BMVert *lastv;
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		BMVert *v2;

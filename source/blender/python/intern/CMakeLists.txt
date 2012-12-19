@@ -48,6 +48,7 @@ set(SRC
 	bpy.c
 	bpy_app.c
 	bpy_app_ffmpeg.c
+	bpy_app_build_options.c
 	bpy_app_handlers.c
 	bpy_driver.c
 	bpy_interface.c
@@ -69,6 +70,7 @@ set(SRC
 	bpy.h
 	bpy_app.h
 	bpy_app_ffmpeg.h
+	bpy_app_build_options.h
 	bpy_app_handlers.h
 	bpy_driver.h
 	bpy_intern_string.h
@@ -97,24 +99,136 @@ if(WITH_PYTHON_SAFETY)
 	add_definitions(-DWITH_PYTHON_SAFETY)
 endif()
 
+
+
 if(WITH_AUDASPACE)
 	add_definitions(-DWITH_AUDASPACE)
 endif()
 
-if(WITH_CYCLES)
-	add_definitions(-DWITH_CYCLES)
+if(WITH_BULLET)
+	add_definitions(-DWITH_BULLET)
 endif()
 
-if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
+if(WITH_CODEC_AVI)
+	add_definitions(-DWITH_AVI)
 endif()
 
 if(WITH_CODEC_FFMPEG)
 	list(APPEND INC_SYS
 		${FFMPEG_INCLUDE_DIRS}
 	)
-
 	add_definitions(-DWITH_FFMPEG)
 endif()
+
+if(WITH_CODEC_QUICKTIME)
+	add_definitions(-DWITH_QUICKTIME)
+endif()
+
+if(WITH_CODEC_SNDFILE)
+	add_definitions(-DWITH_SNDFILE)
+endif()
+
+if(WITH_COMPOSITOR)
+	add_definitions(-DWITH_COMPOSITOR)
+endif()
+
+if(WITH_CYCLES)
+	add_definitions(-DWITH_CYCLES)
+endif()
+
+if(WITH_CYCLES_OSL)
+	add_definitions(-DWITH_CYCLES_OSL)
+endif()
+
+if(WITH_GAMEENGINE)
+	add_definitions(-DWITH_GAMEENGINE)
+endif()
+
+if(WITH_IMAGE_CINEON)
+	add_definitions(-DWITH_CINEON)
+endif()
+
+if(WITH_IMAGE_DDS)
+	add_definitions(-DWITH_DDS)
+endif()
+
+if(WITH_IMAGE_FRAMESERVER)
+	add_definitions(-DWITH_FRAMESERVER)
+endif()
+
+if(WITH_IMAGE_HDR)
+	add_definitions(-DWITH_HDR)
+endif()
+
+if(WITH_IMAGE_OPENEXR)
+	add_definitions(-DWITH_OPENEXR)
+endif()
+
+if(WITH_IMAGE_OPENJPEG)
+	add_definitions(-DWITH_OPENJPEG)
+endif()
+
+if(WITH_IMAGE_REDCODE)
+	add_definitions(-DWITH_REDCODE)
+endif()
+
+if(WITH_IMAGE_TIFF)
+	add_definitions(-DWITH_TIFF)
+endif()
+
+if(WITH_INPUT_NDOF)
+	add_definitions(-DWITH_INPUT_NDOF)
+endif()
+
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
+endif()
+
+if(WITH_JACK)
+	add_definitions(-DWITH_JACK)
+endif()
+
+if(WITH_LIBMV)
+	add_definitions(-DWITH_LIBMV)
+endif()
+
+if(WITH_LIBMV)
+	add_definitions(-DWITH_LIBMV)
+endif()
+
+if(WITH_MOD_BOOLEAN)
+	add_definitions(-DWITH_MOD_BOOLEAN)
+endif()
+
+if(WITH_MOD_FLUID)
+	add_definitions(-DWITH_MOD_FLUID)
+endif()
+
+if(WITH_MOD_OCEANSIM)
+	add_definitions(-DWITH_OCEANSIM)
+endif()
+
+if(WITH_MOD_REMESH)
+	add_definitions(-DWITH_MOD_REMESH)
+endif()
+
+if(WITH_MOD_SMOKE)
+	add_definitions(-DWITH_SMOKE)
+endif()
+
+if(WITH_OPENAL)
+	add_definitions(-DWITH_OPENAL)
+endif()
+
+if(WITH_OPENCOLLADA)
+	add_definitions(-DWITH_COLLADA)
+endif()
+
+if(WITH_PLAYER)
+	add_definitions(-DWITH_PLAYER)
+endif()
+
+
+
 
 blender_add_lib(bf_python "${SRC}" "${INC}" "${INC_SYS}")

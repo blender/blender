@@ -252,6 +252,25 @@ void GPU_set_gpu_mipmapping(int gpu_mipmap)
 	}
 }
 
+static void gpu_generate_mipmap(GLenum target)
+{
+	int is_ati = GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY);
+	int target_enabled = 0;
+
+	/* work around bug in ATI driver, need to have GL_TEXTURE_2D enabled
+	 * http://www.opengl.org/wiki/Common_Mistakes#Automatic_mipmap_generation */
+	if (is_ati) {
+		target_enabled = glIsEnabled(target);
+		if (!target_enabled)
+			glEnable(target);
+	}
+
+	glGenerateMipmapEXT(target);
+
+	if (is_ati && !target_enabled)
+		glDisable(target);
+}
+
 void GPU_set_mipmap(int mipmap)
 {
 	if (GTS.domipmap != (mipmap != 0)) {
@@ -691,7 +710,7 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float * frect, int
 			else
 				glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, pix);
 
-			glGenerateMipmapEXT(GL_TEXTURE_2D);
+			gpu_generate_mipmap(GL_TEXTURE_2D);
 		}
 		else {
 			if (use_high_bit_depth)
@@ -934,7 +953,7 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h)
 			/* we have already accounted for the case where GTS.gpu_mipmap is false
 			 * so we will be using GPU mipmap generation here */
 			if (GPU_get_mipmap()) {
-				glGenerateMipmapEXT(GL_TEXTURE_2D);
+				gpu_generate_mipmap(GL_TEXTURE_2D);
 			}
 			else {
 				ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
@@ -959,7 +978,7 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h)
 
 		/* see comment above as to why we are using gpu mipmap generation here */
 		if (GPU_get_mipmap()) {
-			glGenerateMipmapEXT(GL_TEXTURE_2D);
+			gpu_generate_mipmap(GL_TEXTURE_2D);
 		}
 		else {
 			ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
@@ -1593,7 +1612,7 @@ int GPU_default_lights(void)
 	return count;
 }
 
-int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4], int ortho)
+int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[4][4], int ortho)
 {
 	Base *base;
 	Lamp *la;

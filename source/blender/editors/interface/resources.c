@@ -86,7 +86,7 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 	static char error[4] = {240, 0, 240, 255};
 	static char alert[4] = {240, 60, 60, 255};
 	static char headerdesel[4] = {0, 0, 0, 255};
-	
+	static char setting = 0;
 	const char *cp = error;
 	
 	if (btheme) {
@@ -216,13 +216,19 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case TH_HEADER_TEXT_HI:
 					cp = ts->header_text_hi; break;
 
-				case TH_PANEL:
-					cp = ts->panel; break;
-				case TH_PANEL_TEXT:
-					cp = ts->panel_text; break;
-				case TH_PANEL_TEXT_HI:
-					cp = ts->panel_text_hi; break;
-
+				case TH_PANEL_HEADER:
+					cp = ts->panelcolors.header; break;
+				case TH_PANEL_BACK:
+					cp = ts->panelcolors.back; break;
+				case TH_PANEL_SHOW_HEADER:
+					cp = &setting;
+					setting = ts->panelcolors.show_header;
+					break;
+				case TH_PANEL_SHOW_BACK:
+					cp = &setting;
+					setting = ts->panelcolors.show_back;
+					break;
+					
 				case TH_BUTBACK:
 					cp = ts->button; break;
 				case TH_BUTBACK_TEXT:
@@ -607,9 +613,9 @@ static void ui_theme_init_new_do(ThemeSpace *ts)
 	rgba_char_args_test_set(ts->header_title,   0, 0, 0, 255);
 	rgba_char_args_test_set(ts->header_text_hi, 255, 255, 255, 255);
 
-	rgba_char_args_test_set(ts->panel_text,     0, 0, 0, 255);
-	rgba_char_args_test_set(ts->panel_title,        0, 0, 0, 255);
-	rgba_char_args_test_set(ts->panel_text_hi,  255, 255, 255, 255);
+//	rgba_char_args_test_set(ts->panel_text,     0, 0, 0, 255);
+//	rgba_char_args_test_set(ts->panel_title,        0, 0, 0, 255);
+//	rgba_char_args_test_set(ts->panel_text_hi,  255, 255, 255, 255);
 
 	rgba_char_args_test_set(ts->button,         145, 145, 145, 245);
 	rgba_char_args_test_set(ts->button_title,   0, 0, 0, 255);
@@ -687,8 +693,8 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tv3d.text_hi, 255, 255, 255, 255);
 	
 	rgba_char_args_set_fl(btheme->tv3d.header,  0.45, 0.45, 0.45, 1.0);
-	rgba_char_args_set_fl(btheme->tv3d.button,  0.45, 0.45, 0.45, 1.0);
-	rgba_char_args_set(btheme->tv3d.panel,      165, 165, 165, 127);
+	rgba_char_args_set_fl(btheme->tv3d.button,  0.45, 0.45, 0.45, 0.5);
+//	rgba_char_args_set(btheme->tv3d.panel,      165, 165, 165, 127);
 	
 	rgba_char_args_set(btheme->tv3d.shade1,  160, 160, 160, 100);
 	rgba_char_args_set(btheme->tv3d.shade2,  0x7f, 0x70, 0x70, 100);
@@ -769,14 +775,14 @@ void ui_theme_init_default(void)
 	btheme->tbuts = btheme->tv3d;
 
 	rgba_char_args_set_fl(btheme->tbuts.back,   0.45, 0.45, 0.45, 1.0);
-	rgba_char_args_set(btheme->tbuts.panel, 0x82, 0x82, 0x82, 255);
+//	rgba_char_args_set(btheme->tbuts.panel, 0x82, 0x82, 0x82, 255);
 
 	/* graph editor */
 	btheme->tipo = btheme->tv3d;
 	rgba_char_args_set_fl(btheme->tipo.back,    0.42, 0.42, 0.42, 1.0);
 	rgba_char_args_set_fl(btheme->tipo.list,    0.4, 0.4, 0.4, 1.0);
 	rgba_char_args_set(btheme->tipo.grid,   94, 94, 94, 255);
-	rgba_char_args_set(btheme->tipo.panel,  255, 255, 255, 150);
+//	rgba_char_args_set(btheme->tipo.panel,  255, 255, 255, 150);
 	rgba_char_args_set(btheme->tipo.shade1,     150, 150, 150, 100);    /* scrollbars */
 	rgba_char_args_set(btheme->tipo.shade2,     0x70, 0x70, 0x70, 100);
 	rgba_char_args_set(btheme->tipo.vertex,     0, 0, 0, 255);
@@ -822,11 +828,11 @@ void ui_theme_init_default(void)
 	/* to have something initialized */
 	btheme->tfile = btheme->tv3d;
 	rgba_char_args_set_fl(btheme->tfile.back, 0.3, 0.3, 0.3, 1);
-	rgba_char_args_set_fl(btheme->tfile.panel, 0.3, 0.3, 0.3, 1);
+//	rgba_char_args_set_fl(btheme->tfile.panel, 0.3, 0.3, 0.3, 1);
 	rgba_char_args_set_fl(btheme->tfile.list, 0.4, 0.4, 0.4, 1);
 	rgba_char_args_set(btheme->tfile.text,  250, 250, 250, 255);
 	rgba_char_args_set(btheme->tfile.text_hi, 15, 15, 15, 255);
-	rgba_char_args_set(btheme->tfile.panel, 145, 145, 145, 255);  /* bookmark/ui regions */
+//	rgba_char_args_set(btheme->tfile.panel, 145, 145, 145, 255);  /* bookmark/ui regions */
 	rgba_char_args_set(btheme->tfile.active, 130, 130, 130, 255); /* selected files */
 	rgba_char_args_set(btheme->tfile.hilite, 255, 140, 25, 255);  /* selected files */
 	
@@ -866,7 +872,8 @@ void ui_theme_init_default(void)
 	rgba_char_args_set_fl(btheme->tima.preview_stitch_vert, 0.0, 0.0, 1.0, 0.2);
 	rgba_char_args_set_fl(btheme->tima.preview_stitch_stitchable, 0.0, 1.0, 0.0, 1.0);
 	rgba_char_args_set_fl(btheme->tima.preview_stitch_unstitchable, 1.0, 0.0, 0.0, 1.0);
-
+    rgba_char_args_set_fl(btheme->tima.preview_stitch_active, 0.886, 0.824, 0.765, 0.140);
+    
 	/* space text */
 	btheme->text = btheme->tv3d;
 	rgba_char_args_set(btheme->text.back,   153, 153, 153, 255);
@@ -2009,7 +2016,7 @@ void init_userdef_do_versions(void)
 	if (U.dragthreshold == 0)
 		U.dragthreshold = 5;
 	if (U.widget_unit == 0)
-		U.widget_unit = (U.dpi * 20 + 36) / 72;
+		U.widget_unit = 20;
 	if (U.anisotropic_filter <= 0)
 		U.anisotropic_filter = 1;
 
@@ -2028,6 +2035,55 @@ void init_userdef_do_versions(void)
 	if (U.tweak_threshold == 0)
 		U.tweak_threshold = 10;
 
+	if (bmain->versionfile < 265 || (bmain->versionfile == 265 && bmain->subversionfile < 1)) {
+		bTheme *btheme;
+		
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			/* note: the toggle operator for transparent backdrops limits to these spacetypes */
+			if (btheme->tnode.button[3] == 255) {
+				btheme->tv3d.button[3] = 128;
+				btheme->tnode.button[3] = 128;
+				btheme->tima.button[3] = 128;
+				btheme->tseq.button[3] = 128;
+				btheme->tclip.button[3] = 128;
+			}
+		}
+	}
+	
+	/* panel header/backdrop supported locally per editor now */
+	if (bmain->versionfile < 265 || (bmain->versionfile == 265 && bmain->subversionfile < 2)) {
+		bTheme *btheme;
+		
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			
+			/* new color, panel backdrop. Not used anywhere yet, until you enable it */
+			copy_v3_v3_char(btheme->tui.panel.back, btheme->tbuts.button);
+			btheme->tui.panel.back[3] = 128;
+			
+			btheme->tbuts.panelcolors = btheme->tui.panel;
+			btheme->tv3d.panelcolors = btheme->tui.panel;
+			btheme->tfile.panelcolors = btheme->tui.panel;
+			btheme->tipo.panelcolors = btheme->tui.panel;
+			btheme->tinfo.panelcolors = btheme->tui.panel;
+			btheme->tact.panelcolors = btheme->tui.panel;
+			btheme->tnla.panelcolors = btheme->tui.panel;
+			btheme->tseq.panelcolors = btheme->tui.panel;
+			btheme->tima.panelcolors = btheme->tui.panel;
+			btheme->text.panelcolors = btheme->tui.panel;
+			btheme->toops.panelcolors = btheme->tui.panel;
+			btheme->ttime.panelcolors = btheme->tui.panel;
+			btheme->tnode.panelcolors = btheme->tui.panel;
+			btheme->tlogic.panelcolors = btheme->tui.panel;
+			btheme->tuserpref.panelcolors = btheme->tui.panel;
+			btheme->tconsole.panelcolors = btheme->tui.panel;
+			btheme->tclip.panelcolors = btheme->tui.panel;
+		}
+	}
+	
+	
+	if (U.pixelsize == 0.0f)
+		U.pixelsize = 1.0f;
+	
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */
 // XXX	space_set_commmandline_options();
 	/* this timer uses U */

@@ -77,6 +77,7 @@ extern ModifierTypeInfo modifierType_Remesh;
 extern ModifierTypeInfo modifierType_Skin;
 extern ModifierTypeInfo modifierType_LaplacianSmooth;
 extern ModifierTypeInfo modifierType_Triangulate;
+extern ModifierTypeInfo modifierType_UVWarp;
 
 /* MOD_util.c */
 void modifier_type_init(ModifierTypeInfo *types[]);

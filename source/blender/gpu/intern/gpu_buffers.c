@@ -45,6 +45,7 @@
 #include "BLI_threads.h"
 
 #include "DNA_meshdata_types.h"
+#include "DNA_material_types.h"
 
 #include "BKE_ccg.h"
 #include "BKE_DerivedMesh.h"
@@ -66,8 +67,8 @@ typedef enum {
 
 #define MAX_GPU_ATTRIB_DATA 32
 
-/* material number is an 16-bit short and the range of short is from -16383 to 16383 (assume material number is non-negative) */
-#define MAX_MATERIALS 16384
+/* material number is an 16-bit signed short and the range (assume material number is non-negative) */
+#define MAX_MATERIALS MAXMAT
 
 /* -1 - undefined, 0 - vertex arrays, 1 - VBOs */
 static int useVBOs = -1;

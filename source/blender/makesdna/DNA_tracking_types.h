@@ -373,7 +373,7 @@ enum {
 
 /* MovieTrackingStrabilization->filter */
 enum {
-	TRACKING_FILTER_NEAREAST = 0,
+	TRACKING_FILTER_NEAREST  = 0,
 	TRACKING_FILTER_BILINEAR = 1,
 	TRACKING_FILTER_BICUBIC  = 2
 };

@@ -621,16 +621,6 @@ int modifiers_isPreview(Object *ob)
 	return FALSE;
 }
 
-int modifiers_indexInObject(Object *ob, ModifierData *md_seek)
-{
-	int i = 0;
-	ModifierData *md;
-	
-	for (md = ob->modifiers.first; (md && md_seek != md); md = md->next, i++) ;
-	if (!md) return -1;  /* modifier isn't in the object */
-	return i;
-}
-
 void modifier_freeTemporaryData(ModifierData *md)
 {
 	if (md->type == eModifierType_Armature) {

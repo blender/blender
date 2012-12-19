@@ -867,6 +867,10 @@ class SEQUENCER_PT_preview(SequencerButtonsPanel_Output, Panel):
         #col.active = render.use_sequencer_gl_preview
         col.prop(render, "sequencer_gl_preview", text="")
 
+        row = col.row()
+        row.active = render.sequencer_gl_preview == 'SOLID'
+        row.prop(render, "use_sequencer_gl_textured_solid")
+
 
 class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
     bl_label = "View Settings"

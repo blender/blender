@@ -52,7 +52,6 @@
 #include "BLI_math.h"		
 #include "BLI_listbase.h"		
 #include "BLI_utildefines.h"
-#include "BLI_bpath.h"
 #include "BLI_string.h"
 
 #include "BKE_animsys.h"
@@ -1857,7 +1856,7 @@ static void convert_tfacematerial(Main *main, Material *ma)
 				mat_new = BKE_material_copy(ma);
 				if (mat_new) {
 					/* rename the material*/
-					strcpy(mat_new->id.name, idname);
+					BLI_strncpy(mat_new->id.name, idname, sizeof(mat_new->id.name));
 					id_us_min((ID *)mat_new);
 
 					mat_nr = mesh_addmaterial(me, mat_new);

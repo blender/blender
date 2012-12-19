@@ -33,6 +33,7 @@ set(INC_SYS
 
 set(SRC
 	FX/AUD_AccumulatorFactory.cpp
+	FX/AUD_BandpassCalculator.cpp
 	FX/AUD_BaseIIRFilterReader.cpp
 	FX/AUD_ButterworthCalculator.cpp
 	FX/AUD_ButterworthFactory.cpp
@@ -147,6 +148,7 @@ set(SRC
 	intern/AUD_StreamBufferFactory.h
 
 	FX/AUD_AccumulatorFactory.h
+	FX/AUD_BandpassCalculator.h
 	FX/AUD_BaseIIRFilterReader.h
 	FX/AUD_ButterworthCalculator.h
 	FX/AUD_ButterworthFactory.h

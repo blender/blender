@@ -34,8 +34,7 @@
 #include "MT_Matrix4x4.h"
 
 RAS_TexVert::RAS_TexVert(const MT_Point3& xyz,
-						 const MT_Point2& uv,
-						 const MT_Point2& uv2,
+						 const MT_Point2 uvs[MAX_UNIT],
 						 const MT_Vector4& tangent,
 						 const unsigned int rgba,
 						 const MT_Vector3& normal,
@@ -43,8 +42,6 @@ RAS_TexVert::RAS_TexVert(const MT_Point3& xyz,
 						 const unsigned int origindex)
 {
 	xyz.getValue(m_localxyz);
-	uv.getValue(m_uv1);
-	uv2.getValue(m_uv2);
 	SetRGBA(rgba);
 	SetNormal(normal);
 	tangent.getValue(m_tangent);
@@ -52,6 +49,11 @@ RAS_TexVert::RAS_TexVert(const MT_Point3& xyz,
 	m_origindex = origindex;
 	m_unit = 2;
 	m_softBodyIndex = -1;
+
+	for (int i = 0; i < MAX_UNIT; ++i)
+	{
+		uvs[i].getValue(m_uvs[i]);
+	}
 }
 
 const MT_Point3& RAS_TexVert::xyz()
@@ -80,26 +82,15 @@ void RAS_TexVert::SetXYZ(const float xyz[3])
 	m_localxyz[0] = xyz[0]; m_localxyz[1] = xyz[1]; m_localxyz[2] = xyz[2];
 }
 
-void RAS_TexVert::SetUV1(const MT_Point2& uv)
+void RAS_TexVert::SetUV(int index, const MT_Point2& uv)
 {
-	uv.getValue(m_uv1);
+	uv.getValue(m_uvs[index]);
 }
 
-void RAS_TexVert::SetUV1(const float uv[3])
+void RAS_TexVert::SetUV(int index, const float uv[2])
 {
-	m_uv1[0] = uv[0];
-	m_uv1[1] = uv[1];
-}
-
-void RAS_TexVert::SetUV2(const MT_Point2& uv)
-{
-	uv.getValue(m_uv2);
-}
-
-void RAS_TexVert::SetUV2(const float uv[3])
-{
-	m_uv2[0] = uv[0];
-	m_uv2[1] = uv[1];
+	m_uvs[index][0] = uv[0];
+	m_uvs[index][1] = uv[1];
 }
 
 void RAS_TexVert::SetRGBA(const unsigned int rgba)
@@ -132,14 +123,17 @@ void RAS_TexVert::SetTangent(const MT_Vector3& tangent)
 // compare two vertices, and return TRUE if both are almost identical (they can be shared)
 bool RAS_TexVert::closeTo(const RAS_TexVert* other)
 {
+	bool uv_match = true;
+	for (int i=0; i<MAX_UNIT; i++)
+		uv_match = uv_match && MT_fuzzyEqual(MT_Vector2(m_uvs[i]), MT_Vector2(other->m_uvs[i]));
+
 	return (
 		/* m_flag == other->m_flag && */
 		/* at the moment the face only stores the smooth/flat setting so don't bother comparing it */
 		m_rgba == other->m_rgba &&
 		MT_fuzzyEqual(MT_Vector3(m_normal), MT_Vector3(other->m_normal)) &&
 		MT_fuzzyEqual(MT_Vector3(m_tangent), MT_Vector3(other->m_tangent)) &&
-		MT_fuzzyEqual(MT_Vector2(m_uv1), MT_Vector2(other->m_uv1)) &&
-		MT_fuzzyEqual(MT_Vector2(m_uv2), MT_Vector2(other->m_uv2)) /* &&
+		uv_match /* &&
 		MT_fuzzyEqual(MT_Vector3(m_localxyz), MT_Vector3(other->m_localxyz))*/);
 	/* don't bother comparing m_localxyz since we know there from the same vert */
 }
@@ -162,12 +156,7 @@ void RAS_TexVert::Transform(const MT_Matrix4x4& mat, const MT_Matrix4x4& nmat)
 	SetTangent((nmat*MT_Vector4(m_tangent[0], m_tangent[1], m_tangent[2], 1.0)).getValue());
 }
 
-void RAS_TexVert::TransformUV1(const MT_Matrix4x4& mat)
+void RAS_TexVert::TransformUV(int index, const MT_Matrix4x4& mat)
 {
-	SetUV1((mat * MT_Vector4(m_uv1[0], m_uv1[1], 0.0, 1.0)).getValue());
-}
-
-void RAS_TexVert::TransformUV2(const MT_Matrix4x4& mat)
-{
-	SetUV2((mat * MT_Vector4(m_uv2[0], m_uv2[1], 0.0, 1.0)).getValue());
+	SetUV(index, (mat * MT_Vector4(m_uvs[index][0], m_uvs[index][1], 0.0, 1.0)).getValue());
 }

@@ -41,7 +41,7 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 
-#include "BKE_global.h"
+#include "../blenkernel/BKE_global.h"  /* G.background, bad level include (no function calls) */
 
 #define WIN32_SKIP_HKEY_PROTECTION      // need to use HKEY
 #include "BLI_winstuff.h"

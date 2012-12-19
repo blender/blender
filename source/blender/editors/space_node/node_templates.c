@@ -30,6 +30,7 @@
 
 #include "DNA_node_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
@@ -51,6 +52,8 @@
 #include "ED_node.h"  /* own include */
 
 #include "ED_util.h"
+
+#include "node_intern.h"
 
 /************************* Node Socket Manipulation **************************/
 

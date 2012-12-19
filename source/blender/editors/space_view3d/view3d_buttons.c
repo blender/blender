@@ -365,7 +365,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 	if (block) { /* buttons */
 		uiBut *but;
 		int yi = 200;
-		const int buth = 20 * UI_DPI_ICON_FAC;
+		const int buth = 20 * UI_DPI_FAC;
 		const int but_margin = 2;
 		const char *c;
 
@@ -439,7 +439,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			uiDefButR(block, NUM, 0, "Radius", 0, yi -= buth + but_margin, 200, buth,
 			          &data_ptr, "radius", 0, 0.0, 100.0, 1, 3, NULL);
 			uiDefButR(block, NUM, 0, "Tilt", 0, yi -= buth + but_margin, 200, buth,
-			          &data_ptr, "tilt", 0, -M_PI * 2.0, M_PI * 2.0, 1, 3, NULL);
+			          &data_ptr, "tilt", 0, -FLT_MAX, FLT_MAX, 1, 3, NULL);
 		}
 		else if (totcurvedata > 1) {
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Weight:"),
@@ -450,7 +450,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			          &(tfp->ve_median[C_RADIUS]), 0.0, 100.0, 1, 3, TIP_("Radius of curve control points"));
 			but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Mean Tilt:"),
 			                0, yi -= buth + but_margin, 200, buth,
-			                &(tfp->ve_median[C_TILT]), -M_PI * 2.0, M_PI * 2.0, 1, 3,
+			                &(tfp->ve_median[C_TILT]), -FLT_MAX, FLT_MAX, 1, 3,
 			                TIP_("Tilt of curve control points"));
 			uiButSetUnitType(but, PROP_UNIT_ROTATION);
 		}
@@ -1260,6 +1260,7 @@ void view3d_buttons_register(ARegionType *art)
 	pt = MEM_callocN(sizeof(PanelType), "spacetype view3d panel gpencil");
 	strcpy(pt->idname, "VIEW3D_PT_gpencil");
 	strcpy(pt->label, "Grease Pencil");
+	pt->draw_header = gpencil_panel_standard_header;
 	pt->draw = gpencil_panel_standard;
 	BLI_addtail(&art->paneltypes, pt);
 

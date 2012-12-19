@@ -28,9 +28,8 @@ shader node_mapping(
 {
 	point p = transform(Matrix, VectorIn);
 
-	if(use_minmax)
+	if (use_minmax)
 		p = min(max(mapping_min, p), mapping_max);
 	
 	VectorOut = p;
 }
-

@@ -334,6 +334,9 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 			                   SUBDIV_SELECT_LOOPCUT, SUBD_PATH, 0, TRUE,
 			                   use_only_quads, 0);
 
+			/* tessface is already re-recalculated */
+			EDBM_update_generic(em, FALSE, TRUE);
+
 			/* force edge slide to edge select mode in in face select mode */
 			if (em->selectmode & SCE_SELECT_FACE) {
 				if (em->selectmode == SCE_SELECT_FACE)
@@ -345,11 +348,9 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 
 				WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, CTX_data_scene(C));
 			}
-			else
+			else {
 				EDBM_selectmode_flush(lcd->em);
-
-			WM_event_add_notifier(C, NC_GEOM | ND_SELECT | ND_DATA, lcd->ob->data);
-			DAG_id_tag_update(lcd->ob->data, 0);
+			}
 		}
 		else {
 			/* XXX Is this piece of code ever used now? Simple loop select is now

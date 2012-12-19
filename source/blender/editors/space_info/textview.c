@@ -45,7 +45,8 @@
 
 static void console_font_begin(TextViewContext *sc)
 {
-	BLF_size(blf_mono_font, sc->lheight - 2, 72);
+	/* 0.875 is based on: 16 pixels lines get 14 pixel text */
+	BLF_size(blf_mono_font, 0.875 * sc->lheight, 72);
 }
 
 typedef struct ConsoleDrawContext {
@@ -61,7 +62,13 @@ typedef struct ConsoleDrawContext {
 	int draw;
 } ConsoleDrawContext;
 
-static void console_draw_sel(int sel[2], int xy[2], int str_len_draw, int cwidth, int lheight)
+BLI_INLINE void console_step_sel(ConsoleDrawContext *cdc, const int step)
+{
+	cdc->sel[0] += step;
+	cdc->sel[1] += step;
+}
+
+static void console_draw_sel(const int sel[2], const int xy[2], const int str_len_draw, int cwidth, int lheight)
 {
 	if (sel[0] <= str_len_draw && sel[1] >= 0) {
 		int sta = max_ii(sel[0], 0);
@@ -84,9 +91,9 @@ static void console_draw_sel(int sel[2], int xy[2], int str_len_draw, int cwidth
 /* return 0 if the last line is off the screen
  * should be able to use this for any string type */
 
-static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str_len, unsigned char *fg, unsigned char *bg)
+static int console_draw_string(ConsoleDrawContext *cdc, const char *str, const int str_len,
+                               const unsigned char *fg, const unsigned char *bg)
 {
-#define STEP_SEL(value) cdc->sel[0] += (value); cdc->sel[1] += (value)
 	int rct_ofs = cdc->lheight / 4;
 	int tot_lines = (str_len / cdc->console_width) + 1; /* total number of lines for wrapping */
 	int y_next = (str_len > cdc->console_width) ? cdc->xy[1] + cdc->lheight * tot_lines : cdc->xy[1] + cdc->lheight;
@@ -120,7 +127,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 
 		/* adjust selection even if not drawing */
 		if (cdc->sel[0] != cdc->sel[1]) {
-			STEP_SEL(-(str_len + 1));
+			console_step_sel(cdc, -(str_len + 1));
 		}
 
 		return 1;
@@ -149,10 +156,10 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 		BLF_draw(mono, line_stride, str_len - initial_offset);
 
 		if (cdc->sel[0] != cdc->sel[1]) {
-			STEP_SEL(-initial_offset);
+			console_step_sel(cdc, -initial_offset);
 			// glColor4ub(255, 0, 0, 96); // debug
 			console_draw_sel(cdc->sel, cdc->xy, str_len % cdc->console_width, cdc->cwidth, cdc->lheight);
-			STEP_SEL(cdc->console_width);
+			console_step_sel(cdc, cdc->console_width);
 			glColor3ubv(fg);
 		}
 
@@ -167,7 +174,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 			if (cdc->sel[0] != cdc->sel[1]) {
 				// glColor4ub(0, 255, 0, 96); // debug
 				console_draw_sel(cdc->sel, cdc->xy, cdc->console_width, cdc->cwidth, cdc->lheight);
-				STEP_SEL(cdc->console_width);
+				console_step_sel(cdc, cdc->console_width);
 				glColor3ubv(fg);
 			}
 
@@ -179,7 +186,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 		}
 
 		copy_v2_v2_int(cdc->sel, sel_orig);
-		STEP_SEL(-(str_len + 1));
+		console_step_sel(cdc, -(str_len + 1));
 	}
 	else { /* simple, no wrap */
 
@@ -201,7 +208,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 
 			// glColor4ub(255, 255, 0, 96); // debug
 			console_draw_sel(isel, cdc->xy, str_len, cdc->cwidth, cdc->lheight);
-			STEP_SEL(-(str_len + 1));
+			console_step_sel(cdc, -(str_len + 1));
 		}
 
 		cdc->xy[1] += cdc->lheight;
@@ -211,13 +218,11 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, int str
 	}
 
 	return 1;
-#undef STEP_SEL
 }
 
 #define CONSOLE_DRAW_MARGIN 4
-#define CONSOLE_DRAW_SCROLL 16
 
-int textview_draw(TextViewContext *tvc, int draw, int mval[2], void **mouse_pick, int *pos_pick)
+int textview_draw(TextViewContext *tvc, const int draw, int mval[2], void **mouse_pick, int *pos_pick)
 {
 	ConsoleDrawContext cdc = {0};
 
@@ -241,9 +246,10 @@ int textview_draw(TextViewContext *tvc, int draw, int mval[2], void **mouse_pick
 	cdc.cwidth = (int)BLF_fixed_width(mono);
 	assert(cdc.cwidth > 0);
 	cdc.lheight = tvc->lheight;
-	cdc.console_width = (tvc->winx - (CONSOLE_DRAW_SCROLL + CONSOLE_DRAW_MARGIN * 2) ) / cdc.cwidth;
+	/* note, scroll bar must be already subtracted () */
+	cdc.console_width = (tvc->winx - (CONSOLE_DRAW_MARGIN * 2) ) / cdc.cwidth;
 	CLAMP(cdc.console_width, 1, INT_MAX); /* avoid divide by zero on small windows */
-	cdc.winx = tvc->winx - (CONSOLE_DRAW_MARGIN + CONSOLE_DRAW_SCROLL);
+	cdc.winx = tvc->winx - CONSOLE_DRAW_MARGIN;
 	cdc.ymin = tvc->ymin;
 	cdc.ymax = tvc->ymax;
 	cdc.xy = xy;

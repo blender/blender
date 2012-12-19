@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # The Original Code is Copyright (C) 2006, Blender Foundation
 # All rights reserved.
@@ -294,7 +294,8 @@ if env['OURPLATFORM']=='darwin':
             print "3D_CONNEXION_CLIENT_LIBRARY not found, disabling WITH_BF_3DMOUSE" # avoid build errors !
             env['WITH_BF_3DMOUSE'] = 0
         else:
-            env.Append(LINKFLAGS=['-Xlinker','-weak_framework','-Xlinker','3DconnexionClient'])
+            env.Append(LINKFLAGS=['-F/Library/Frameworks','-Xlinker','-weak_framework','-Xlinker','3DconnexionClient'])
+            env['BF_3DMOUSE_INC'] = '/Library/Frameworks/3DconnexionClient.framework/Headers'
 
     # for now, Mac builders must download and install the JackOSX framework 
     # necessary header file lives here when installed:
@@ -304,7 +305,7 @@ if env['OURPLATFORM']=='darwin':
             print "JackOSX install not found, disabling WITH_BF_JACK" # avoid build errors !
             env['WITH_BF_JACK'] = 0
         else:
-            env.Append(LINKFLAGS=['-Xlinker','-weak_framework','-Xlinker','Jackmp'])
+            env.Append(LINKFLAGS=['-L/Library/Frameworks','-Xlinker','-weak_framework','-Xlinker','Jackmp'])
 
     if env['WITH_BF_CYCLES_OSL'] == 1:	
         OSX_OSL_LIBPATH = Dir(env.subst(env['BF_OSL_LIBPATH'])).abspath
@@ -531,7 +532,8 @@ data_to_c_simple("release/datafiles/bfont.ttf")
 data_to_c_simple("release/datafiles/bmonofont.ttf")
 
 data_to_c_simple("release/datafiles/splash.png")
-data_to_c_simple("release/datafiles/blender_icons.png")
+data_to_c_simple("release/datafiles/blender_icons16.png")
+data_to_c_simple("release/datafiles/blender_icons32.png")
 data_to_c_simple("release/datafiles/prvicons.png")
 
 data_to_c_simple("release/datafiles/brushicons/add.png")

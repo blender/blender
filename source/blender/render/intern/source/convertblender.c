@@ -760,7 +760,7 @@ static VertRen *as_findvertex(VlakRen *vlr, VertRen *UNUSED(ver), ASvert *asv, f
 
 /* note; autosmooth happens in object space still, after applying autosmooth we rotate */
 /* note2; actually, when original mesh and displist are equal sized, face normals are from original mesh */
-static void autosmooth(Render *UNUSED(re), ObjectRen *obr, float mat[][4], int degr)
+static void autosmooth(Render *UNUSED(re), ObjectRen *obr, float mat[4][4], int degr)
 {
 	ASvert *asv, *asverts;
 	ASface *asf;
@@ -2187,7 +2187,7 @@ static short test_for_displace(Render *re, Object *ob)
 	return 0;
 }
 
-static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, VertRen *vr, int vindex, float *scale, float mat[][4], float imat[][3])
+static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, VertRen *vr, int vindex, float *scale, float mat[4][4], float imat[3][3])
 {
 	MTFace *tface;
 	short texco= shi->mat->texco;
@@ -2286,7 +2286,7 @@ static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, Ve
 	return;
 }
 
-static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float *scale, float mat[][4], float imat[][3])
+static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float *scale, float mat[4][4], float imat[3][3])
 {
 	ShadeInput shi;
 
@@ -2341,7 +2341,7 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 	}
 }
 
-static void do_displacement(Render *re, ObjectRen *obr, float mat[][4], float imat[][3])
+static void do_displacement(Render *re, ObjectRen *obr, float mat[4][4], float imat[3][3])
 {
 	VertRen *vr;
 	VlakRen *vlr;
@@ -2821,7 +2821,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	ListBase disp={NULL, NULL};
 	Material **matar;
 	float *data, *fp, *orco=NULL;
-	float n[3], mat[4][4];
+	float n[3], mat[4][4], nmat[4][4];
 	int nr, startvert, a, b;
 	int need_orco=0, totmat;
 
@@ -2835,6 +2835,11 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	
 	mult_m4_m4m4(mat, re->viewmat, ob->obmat);
 	invert_m4_m4(ob->imat, mat);
+
+	/* local object -> world space transform for normals */
+	copy_m4_m4(nmat, mat);
+	transpose_m4(nmat);
+	invert_m4(nmat);
 
 	/* material array */
 	totmat= ob->totcol+1;
@@ -2892,13 +2897,20 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 					zero_v3(n);
 					index= dl->index;
 					for (a=0; a<dl->parts; a++, index+=3) {
+						int v1 = index[0], v2 = index[1], v3 = index[2];
+						float *co1 = &dl->verts[v1 * 3],
+						      *co2 = &dl->verts[v2 * 3],
+						      *co3 = &dl->verts[v3 * 3];
+
 						vlr= RE_findOrAddVlak(obr, obr->totvlak++);
-						vlr->v1= RE_findOrAddVert(obr, startvert+index[0]);
-						vlr->v2= RE_findOrAddVert(obr, startvert+index[1]);
-						vlr->v3= RE_findOrAddVert(obr, startvert+index[2]);
+						vlr->v1= RE_findOrAddVert(obr, startvert + v1);
+						vlr->v2= RE_findOrAddVert(obr, startvert + v2);
+						vlr->v3= RE_findOrAddVert(obr, startvert + v3);
 						vlr->v4= NULL;
-						if (area_tri_v3(vlr->v3->co, vlr->v2->co, vlr->v1->co)>FLT_EPSILON10) {
-							normal_tri_v3(tmp, vlr->v3->co, vlr->v2->co, vlr->v1->co);
+
+						/* to prevent float accuracy issues, we calculate normal in local object space (not world) */
+						if (area_tri_v3(co3, co2, co1)>FLT_EPSILON10) {
+							normal_tri_v3(tmp, co3, co2, co1);
 							add_v3_v3(n, tmp);
 						}
 
@@ -2907,6 +2919,8 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 						vlr->ec= 0;
 					}
 
+					/* transform normal to world space */
+					mul_m4_v3(nmat, n);
 					normalize_v3(n);
 
 					/* vertex normals */
@@ -3159,7 +3173,12 @@ static void init_camera_inside_volumes(Render *re)
 {
 	ObjectInstanceRen *obi;
 	VolumeOb *vo;
-	float co[3] = {0.f, 0.f, 0.f};
+	/* coordinates are all in camera space, so camera coordinate is zero. we also
+	 * add an offset for the clip start, however note that with clip start it's
+	 * actually impossible to do a single 'inside' test, since there will not be
+	 * a single point where all camera rays start from, though for small clip start
+	 * they will be close together. */
+	float co[3] = {0.f, 0.f, -re->clipsta};
 
 	for (vo= re->volumes.first; vo; vo= vo->next) {
 		for (obi= re->instancetable.first; obi; obi= obi->next) {
@@ -3563,7 +3582,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 /* Lamps and Shadowbuffers													 */
 /* ------------------------------------------------------------------------- */
 
-static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
+static void initshadowbuf(Render *re, LampRen *lar, float mat[4][4])
 {
 	struct ShadBuf *shb;
 	float viewinv[4][4];
@@ -5196,7 +5215,7 @@ void RE_DataBase_ApplyWindow(Render *re)
 	project_renderdata(re, projectverto, 0, 0, 0);
 }
 
-void RE_DataBase_GetView(Render *re, float mat[][4])
+void RE_DataBase_GetView(Render *re, float mat[4][4])
 {
 	copy_m4_m4(mat, re->viewmat);
 }

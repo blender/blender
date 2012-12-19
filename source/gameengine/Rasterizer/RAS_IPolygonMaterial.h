@@ -184,7 +184,7 @@ public:
 	/*
 	 * PreCalculate texture gen
 	 */
-	virtual void OnConstruction(int layer) {}
+	virtual void OnConstruction() {}
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

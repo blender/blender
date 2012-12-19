@@ -65,7 +65,7 @@ public:
 
 	Color3 eval(const Vec3 &Ng, const Vec3 &omega_out) const
 	{
-		float3 result = emissive_eval(TO_FLOAT3(Ng), TO_FLOAT3(omega_out));
+		float3 result = emissive_simple_eval(TO_FLOAT3(Ng), TO_FLOAT3(omega_out));
 		return TO_COLOR3(result);
 	}
 

@@ -63,7 +63,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "BLO_sys_types.h" // for intptr_t support
+#include "MEM_sys_types.h" // for intptr_t support
 
 
 /* gzip the file in from and write it to "to". 

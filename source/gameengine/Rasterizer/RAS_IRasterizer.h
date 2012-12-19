@@ -52,6 +52,7 @@ using namespace std;
 
 class RAS_ICanvas;
 class RAS_IPolyMaterial;
+class RAS_MeshSlot;
 
 typedef vector<unsigned short> KX_IndexArray;
 typedef vector<RAS_TexVert> KX_VertexArray;
@@ -129,7 +130,7 @@ public:
 		RAS_TEXCO_GEN,		//< GPU will generate texture coordinates
 		RAS_TEXCO_ORCO,		//< Vertex coordinates (object space)
 		RAS_TEXCO_GLOB,		//< Vertex coordinates (world space)
-		RAS_TEXCO_UV1,		//< UV coordinates
+		RAS_TEXCO_UV,		//< UV coordinates
 		RAS_TEXCO_OBJECT,	//< Use another object's position as coordinates
 		RAS_TEXCO_LAVECTOR,	//< Light vector as coordinates
 		RAS_TEXCO_VIEW,		//< View vector as coordinates
@@ -137,7 +138,6 @@ public:
 		RAS_TEXCO_WINDOW,	//< Window coordinates
 		RAS_TEXCO_NORM,		//< Normal coordinates 
 		RAS_TEXTANGENT,		//<
-		RAS_TEXCO_UV2,		//<
 		RAS_TEXCO_VCOL,		//< Vertex Color
 		RAS_TEXCO_DISABLE	//< Disable this texture unit (cached)
 	};

@@ -2782,7 +2782,8 @@ static PointCache *ptcache_copy(PointCache *cache, int copy_data)
 		ncache->mem_cache.last = NULL;
 		ncache->cached_frames = NULL;
 
-		ncache->flag= 0;
+		/* flag is a mix of user settings and simulator/baking state */
+		ncache->flag= ncache->flag & (PTCACHE_DISK_CACHE|PTCACHE_EXTERNAL|PTCACHE_IGNORE_LIBPATH);
 		ncache->simframe= 0;
 	}
 	else {

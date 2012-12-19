@@ -20,7 +20,9 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Adaptive time step
+ * Classical SPH
+ * Copyright 2011-2012 AutoCRC
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -58,6 +60,7 @@ struct RNG;
 struct SurfaceModifierData;
 struct BVHTreeRay;
 struct BVHTreeRayHit; 
+struct EdgeHash;
 
 #define PARTICLE_P              ParticleData * pa; int p
 #define LOOP_PARTICLES  for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++)
@@ -84,6 +87,24 @@ typedef struct ParticleSimulationData {
 	 * this at the moment. Other solvers could, too. */
 	float courant_num;
 } ParticleSimulationData;
+
+typedef struct SPHData {
+	ParticleSystem *psys[10];
+	ParticleData *pa;
+	float mass;
+	struct EdgeHash *eh;
+	float *gravity;
+	float hfac;
+	/* Average distance to neighbours (other particles in the support domain),
+	   for calculating the Courant number (adaptive time step). */
+	int pass;
+	float element_size;
+	float flow[3];
+
+	/* Integrator callbacks. This allows different SPH implementations. */
+	void (*force_cb) (void *sphdata_v, ParticleKey *state, float *force, float *impulse);
+	void (*density_cb) (void *rangedata_v, int index, float squared_dist);
+} SPHData;
 
 typedef struct ParticleTexture {
 	float ivel;                           /* used in reset */
@@ -247,7 +268,7 @@ void BKE_particlesettings_free(struct ParticleSettings *part);
 void psys_free_path_cache(struct ParticleSystem *psys, struct PTCacheEdit *edit);
 void psys_free(struct Object *ob, struct ParticleSystem *psys);
 
-void psys_render_set(struct Object *ob, struct ParticleSystem *psys, float viewmat[][4], float winmat[][4], int winx, int winy, int timeoffset);
+void psys_render_set(struct Object *ob, struct ParticleSystem *psys, float viewmat[4][4], float winmat[4][4], int winx, int winy, int timeoffset);
 void psys_render_restore(struct Object *ob, struct ParticleSystem *psys);
 int psys_render_simplify_distribution(struct ParticleThreadContext *ctx, int tot);
 int psys_render_simplify_params(struct ParticleSystem *psys, struct ChildParticle *cpa, float *params);
@@ -283,12 +304,16 @@ float psys_get_child_size(struct ParticleSystem *psys, struct ChildParticle *cpa
 void psys_get_particle_on_path(struct ParticleSimulationData *sim, int pa_num, struct ParticleKey *state, int vel);
 int psys_get_particle_state(struct ParticleSimulationData *sim, int p, struct ParticleKey *state, int always);
 
+void psys_sph_init(struct ParticleSimulationData *sim, struct SPHData *sphdata);
+void psys_sph_finalise(struct SPHData *sphdata);
+void psys_sph_density(struct BVHTree *tree, struct SPHData* data, float co[3], float vars[2]);
+
 /* for anim.c */
 void psys_get_dupli_texture(struct ParticleSystem *psys, struct ParticleSettings *part,
                             struct ParticleSystemModifierData *psmd, struct ParticleData *pa, struct ChildParticle *cpa,
                             float uv[2], float orco[3]);
 void psys_get_dupli_path_transform(struct ParticleSimulationData *sim, struct ParticleData *pa, struct ChildParticle *cpa,
-                                   struct ParticleCacheKey *cache, float mat[][4], float *scale);
+                                   struct ParticleCacheKey *cache, float mat[4][4], float *scale);
 
 ParticleThread *psys_threads_create(struct ParticleSimulationData *sim);
 void psys_threads_free(ParticleThread *threads);
@@ -322,9 +347,9 @@ void psys_free_children(struct ParticleSystem *psys);
 
 void psys_interpolate_particle(short type, struct ParticleKey keys[4], float dt, struct ParticleKey *result, int velocity);
 void psys_vec_rot_to_face(struct DerivedMesh *dm, struct ParticleData *pa, float vec[3]);
-void psys_mat_hair_to_object(struct Object *ob, struct DerivedMesh *dm, short from, struct ParticleData *pa, float hairmat[][4]);
-void psys_mat_hair_to_global(struct Object *ob, struct DerivedMesh *dm, short from, struct ParticleData *pa, float hairmat[][4]);
-void psys_mat_hair_to_orco(struct Object *ob, struct DerivedMesh *dm, short from, struct ParticleData *pa, float hairmat[][4]);
+void psys_mat_hair_to_object(struct Object *ob, struct DerivedMesh *dm, short from, struct ParticleData *pa, float hairmat[4][4]);
+void psys_mat_hair_to_global(struct Object *ob, struct DerivedMesh *dm, short from, struct ParticleData *pa, float hairmat[4][4]);
+void psys_mat_hair_to_orco(struct Object *ob, struct DerivedMesh *dm, short from, struct ParticleData *pa, float hairmat[4][4]);
 
 float psys_get_dietime_from_cache(struct PointCache *cache, int index);
 

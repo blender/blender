@@ -282,7 +282,7 @@ void GPU_material_bind(GPUMaterial *material, int oblay, int viewlay, double tim
 	}
 }
 
-void GPU_material_bind_uniforms(GPUMaterial *material, float obmat[][4], float viewmat[][4], float viewinv[][4], float obcol[4], float autobumpscale)
+void GPU_material_bind_uniforms(GPUMaterial *material, float obmat[4][4], float viewmat[4][4], float viewinv[4][4], float obcol[4], float autobumpscale)
 {
 	if (material->pass) {
 		GPUShader *shader = GPU_pass_shader(material->pass);
@@ -1526,7 +1526,7 @@ GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
 		ntreeGPUMaterialNodes(ma->nodetree, mat);
 	}
 	else {
-		if(BKE_scene_use_new_shading_nodes(scene)) {
+		if (BKE_scene_use_new_shading_nodes(scene)) {
 			/* create simple diffuse material instead of nodes */
 			outlink = gpu_material_diffuse_bsdf(mat, ma);
 		}
@@ -1572,7 +1572,7 @@ void GPU_materials_free(void)
 
 /* Lamps and shadow buffers */
 
-void GPU_lamp_update(GPULamp *lamp, int lay, int hide, float obmat[][4])
+void GPU_lamp_update(GPULamp *lamp, int lay, int hide, float obmat[4][4])
 {
 	float mat[4][4];
 
@@ -1854,7 +1854,7 @@ void GPU_lamp_update_buffer_mats(GPULamp *lamp)
 	mult_m4_m4m4(lamp->persmat, rangemat, persmat);
 }
 
-void GPU_lamp_shadow_buffer_bind(GPULamp *lamp, float viewmat[][4], int *winsize, float winmat[][4])
+void GPU_lamp_shadow_buffer_bind(GPULamp *lamp, float viewmat[4][4], int *winsize, float winmat[4][4])
 {
 	GPU_lamp_update_buffer_mats(lamp);
 

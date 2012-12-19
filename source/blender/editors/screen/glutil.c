@@ -33,11 +33,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_userdef_types.h"
 #include "DNA_vec_types.h"
 
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_blender.h"
 #include "BKE_colortools.h"
 
 #include "BLI_math.h"
@@ -292,7 +294,10 @@ void setlinestyle(int nr)
 	else {
 		
 		glEnable(GL_LINE_STIPPLE);
-		glLineStipple(nr, 0xAAAA);
+		if (U.pixelsize > 1.0f)
+			glLineStipple(nr, 0xCCCC);
+		else
+			glLineStipple(nr, 0xAAAA);
 	}
 }
 

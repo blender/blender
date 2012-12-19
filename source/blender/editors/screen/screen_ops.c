@@ -140,9 +140,11 @@ static int screen_active_editable(bContext *C)
 /* when mouse is over area-edge */
 int ED_operator_screen_mainwinactive(bContext *C)
 {
+	bScreen *screen;
 	if (CTX_wm_window(C) == NULL) return 0;
-	if (CTX_wm_screen(C) == NULL) return 0;
-	if (CTX_wm_screen(C)->subwinactive != CTX_wm_screen(C)->mainwin) return 0;
+	screen = CTX_wm_screen(C);
+	if (screen == NULL) return 0;
+	if (screen->subwinactive != screen->mainwin) return 0;
 	return 1;
 }
 
@@ -965,7 +967,7 @@ typedef struct sAreaMoveData {
 static void area_move_set_limits(bScreen *sc, int dir, int *bigger, int *smaller)
 {
 	ScrArea *sa;
-	int areaminy = ED_area_headersize() + 1;
+	int areaminy = ED_area_headersize() + U.pixelsize;	// pixelsize is used as area divider
 	
 	/* we check all areas and test for free space with MINSIZE */
 	*bigger = *smaller = 100000;
@@ -975,18 +977,18 @@ static void area_move_set_limits(bScreen *sc, int dir, int *bigger, int *smaller
 			int y1 = sa->v2->vec.y - sa->v1->vec.y - areaminy;
 			
 			/* if top or down edge selected, test height */
-			if (sa->v1->flag && sa->v4->flag)
+			if (sa->v1->editflag && sa->v4->editflag)
 				*bigger = min_ii(*bigger, y1);
-			else if (sa->v2->flag && sa->v3->flag)
+			else if (sa->v2->editflag && sa->v3->editflag)
 				*smaller = min_ii(*smaller, y1);
 		}
 		else {
 			int x1 = sa->v4->vec.x - sa->v1->vec.x - AREAMINX;
 			
 			/* if left or right edge selected, test width */
-			if (sa->v1->flag && sa->v2->flag)
+			if (sa->v1->editflag && sa->v2->editflag)
 				*bigger = min_ii(*bigger, x1);
-			else if (sa->v3->flag && sa->v4->flag)
+			else if (sa->v3->editflag && sa->v4->editflag)
 				*smaller = min_ii(*smaller, x1);
 		}
 	}
@@ -999,6 +1001,7 @@ static int area_move_init(bContext *C, wmOperator *op)
 	bScreen *sc = CTX_wm_screen(C);
 	ScrEdge *actedge;
 	sAreaMoveData *md;
+	ScrVert *v1;
 	int x, y;
 	
 	/* required properties */
@@ -1017,7 +1020,9 @@ static int area_move_init(bContext *C, wmOperator *op)
 	else md->origval = actedge->v1->vec.x;
 	
 	select_connected_scredge(sc, actedge);
-	/* now all vertices with 'flag==1' are the ones that can be moved. */
+	/* now all vertices with 'flag==1' are the ones that can be moved. Move this to editflag */
+	for (v1 = sc->vertbase.first; v1; v1 = v1->next)
+		v1->editflag = v1->flag;
 	
 	area_move_set_limits(sc, md->dir, &md->bigger, &md->smaller);
 	
@@ -1036,27 +1041,27 @@ static void area_move_apply_do(bContext *C, int origval, int delta, int dir, int
 	delta = CLAMPIS(delta, -smaller, bigger);
 	
 	for (v1 = sc->vertbase.first; v1; v1 = v1->next) {
-		if (v1->flag) {
+		if (v1->editflag) {
 			/* that way a nice AREAGRID  */
-			if ((dir == 'v') && v1->vec.x > 0 && v1->vec.x < win->sizex - 1) {
+			if ((dir == 'v') && v1->vec.x > 0 && v1->vec.x < WM_window_pixels_x(win) - 1) {
 				v1->vec.x = origval + delta;
 				if (delta != bigger && delta != -smaller) v1->vec.x -= (v1->vec.x % AREAGRID);
 			}
-			if ((dir == 'h') && v1->vec.y > 0 && v1->vec.y < win->sizey - 1) {
+			if ((dir == 'h') && v1->vec.y > 0 && v1->vec.y < WM_window_pixels_y(win) - 1) {
 				v1->vec.y = origval + delta;
 				
 				v1->vec.y += AREAGRID - 1;
 				v1->vec.y -= (v1->vec.y % AREAGRID);
 				
 				/* prevent too small top header */
-				if (v1->vec.y > win->sizey - areaminy)
-					v1->vec.y = win->sizey - areaminy;
+				if (v1->vec.y > WM_window_pixels_y(win) - areaminy)
+					v1->vec.y = WM_window_pixels_y(win) - areaminy;
 			}
 		}
 	}
 
 	for (sa = sc->areabase.first; sa; sa = sa->next) {
-		if (sa->v1->flag || sa->v2->flag || sa->v3->flag || sa->v4->flag)
+		if (sa->v1->editflag || sa->v2->editflag || sa->v3->editflag || sa->v4->editflag)
 			ED_area_tag_redraw(sa);
 	}
 
@@ -1334,10 +1339,10 @@ static int area_split_apply(bContext *C, wmOperator *op)
 		
 		/* select newly created edge, prepare for moving edge */
 		for (sv = sc->vertbase.first; sv; sv = sv->next)
-			sv->flag = 0;
+			sv->editflag = 0;
 		
-		sd->nedge->v1->flag = 1;
-		sd->nedge->v2->flag = 1;
+		sd->nedge->v1->editflag = 1;
+		sd->nedge->v2->editflag = 1;
 		
 		if (dir == 'h') sd->origval = sd->nedge->v1->vec.y;
 		else sd->origval = sd->nedge->v1->vec.x;
@@ -1720,9 +1725,9 @@ static int region_scale_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		/* if not set we do now, otherwise it uses type */
 		if (rmd->ar->sizex == 0)
-			rmd->ar->sizex = rmd->ar->type->prefsizex;
+			rmd->ar->sizex = rmd->ar->winx;
 		if (rmd->ar->sizey == 0)
-			rmd->ar->sizey = rmd->ar->type->prefsizey;
+			rmd->ar->sizey = rmd->ar->winy;
 		
 		/* now copy to regionmovedata */
 		if (rmd->edge == AE_LEFT_TO_TOPRIGHT || rmd->edge == AE_RIGHT_TO_TOPLEFT) {
@@ -1734,7 +1739,7 @@ static int region_scale_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		/* limit headers to standard height for now */
 		if (rmd->ar->regiontype == RGN_TYPE_HEADER)
-			maxsize = rmd->ar->type->prefsizey;
+			maxsize = ED_area_headersize();
 		else
 			maxsize = 1000;
 		
@@ -1786,7 +1791,7 @@ static void region_scale_validate_size(RegionMoveData *rmd)
 
 static void region_scale_toggle_hidden(bContext *C, RegionMoveData *rmd)
 {
-	ED_region_toggle_hidden(C, rmd->ar);
+	region_toggle_hidden(C, rmd->ar, 0);
 	region_scale_validate_size(rmd);
 }
 
@@ -2797,7 +2802,6 @@ static void SCREEN_OT_region_quadview(wmOperatorType *ot)
 }
 
 
-
 /* ************** region flip operator ***************************** */
 
 /* flip a region alignment */
@@ -3413,6 +3417,7 @@ static void SCREEN_OT_back_to_previous(struct wmOperatorType *ot)
 
 static int userpref_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 {
+	wmWindow *win = CTX_wm_window(C);
 	rcti rect;
 	int sizex, sizey;
 	
@@ -3420,8 +3425,9 @@ static int userpref_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *ev
 	sizey = 480;
 	
 	/* some magic to calculate postition */
-	rect.xmin = event->x + CTX_wm_window(C)->posx - sizex / 2;
-	rect.ymin = event->y + CTX_wm_window(C)->posy - sizey / 2;
+	/* pixelsize: mouse coords are in U.pixelsize units :/ */
+	rect.xmin = (event->x / U.pixelsize) + win->posx - sizex / 2;
+	rect.ymin = (event->y / U.pixelsize) + win->posy - sizey / 2;
 	rect.xmax = rect.xmin + sizex;
 	rect.ymax = rect.ymin + sizey;
 	
@@ -3506,7 +3512,7 @@ static int scene_new_exec(bContext *C, wmOperator *op)
 	int type = RNA_enum_get(op->ptr, "type");
 
 	if (type == SCE_COPY_NEW) {
-		newscene = BKE_scene_add("Scene");
+		newscene = BKE_scene_add(bmain, "Scene");
 	}
 	else { /* different kinds of copying */
 		newscene = BKE_scene_copy(scene, type);
@@ -3583,6 +3589,149 @@ static void SCENE_OT_delete(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/* ***************** region alpha blending ***************** */
+
+/* implementation note: a disapplearing region needs at least 1 last draw with 100% backbuffer
+    texture over it- then triple buffer will clear it entirely. 
+    This because flag RGN_HIDDEN is set in end - region doesnt draw at all then */
+
+typedef struct RegionAlphaInfo {
+	ScrArea *sa;
+	ARegion *ar, *child_ar;	/* other region */
+	int hidden;
+} RegionAlphaInfo;
+
+#define TIMEOUT		0.2f
+#define TIMESTEP	0.04f
+
+float ED_region_blend_factor(ARegion *ar)
+{
+	/* check parent too */
+	if (ar->regiontimer == NULL && (ar->alignment & RGN_SPLIT_PREV) && ar->prev) {
+		ar = ar->prev;
+	}
+
+	if (ar->regiontimer) {
+		RegionAlphaInfo *rgi = ar->regiontimer->customdata;
+		float alpha;
+
+		alpha = (float)ar->regiontimer->duration / TIMEOUT;
+		/* makes sure the blend out works 100% - without area redraws */
+		if (rgi->hidden) alpha = 0.9f - TIMESTEP - alpha;
+		
+		CLAMP(alpha, 0.0f, 1.0f);
+		return alpha;
+	}
+	return 1.0f;
+}
+
+/* assumes region has running region-blend timer */
+static void region_blend_end(bContext *C, ARegion *ar, int is_running)
+{
+	RegionAlphaInfo *rgi = ar->regiontimer->customdata;
+	
+	/* always send redraw */
+	ED_region_tag_redraw(ar);
+	if (rgi->child_ar)
+		ED_region_tag_redraw(rgi->child_ar);
+	
+	/* if running timer was hiding, the flag toggle went wrong */
+	if (is_running) {
+		if (rgi->hidden)
+			rgi->ar->flag &= ~RGN_FLAG_HIDDEN;
+	}
+	else {
+		if (rgi->hidden) {
+			rgi->ar->flag |= rgi->hidden;
+			ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), rgi->sa);
+		}
+		/* area decoration needs redraw in end */
+		ED_area_tag_redraw(rgi->sa);
+	}
+	WM_event_remove_timer(CTX_wm_manager(C), NULL, ar->regiontimer); /* frees rgi */
+	ar->regiontimer = NULL;
+
+}
+/* assumes that *ar itself is not a splitted version from previous region */
+void region_blend_start(bContext *C, ScrArea *sa, ARegion *ar)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmWindow *win = CTX_wm_window(C);
+	RegionAlphaInfo *rgi;
+	
+	/* end running timer */
+	if (ar->regiontimer) {
+
+		region_blend_end(C, ar, 1);
+	}
+	rgi = MEM_callocN(sizeof(RegionAlphaInfo), "RegionAlphaInfo");
+	
+	rgi->hidden = ar->flag & RGN_FLAG_HIDDEN;
+	rgi->sa = sa;
+	rgi->ar = ar;
+	ar->flag &= ~RGN_FLAG_HIDDEN;
+
+	/* blend in, reinitialize regions because it got unhidden */
+	if (rgi->hidden == 0)
+		ED_area_initialize(wm, win, sa);
+	else
+		WM_event_remove_handlers(C, &ar->handlers);
+
+	if (ar->next) {
+		if (ar->next->alignment & RGN_SPLIT_PREV) {
+			rgi->child_ar = ar->next;
+		}
+	}
+
+	/* new timer */
+	ar->regiontimer = WM_event_add_timer(wm, win, TIMERREGION, TIMESTEP);
+	ar->regiontimer->customdata = rgi;
+
+}
+
+/* timer runs in win->handlers, so it cannot use context to find area/region */
+static int region_blend_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+{
+	RegionAlphaInfo *rgi;
+	wmTimer *timer = event->customdata;
+	
+	/* event type is TIMERREGION, but we better check */
+	if (event->type != TIMERREGION || timer == NULL)
+		return OPERATOR_PASS_THROUGH;
+	
+	rgi = timer->customdata;
+	
+	/* always send redraws */
+	ED_region_tag_redraw(rgi->ar);
+	if (rgi->child_ar)
+		ED_region_tag_redraw(rgi->child_ar);
+	
+	/* end timer? */
+	if (rgi->ar->regiontimer->duration > (double)TIMEOUT) {
+		region_blend_end(C, rgi->ar, 0);
+		return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
+	}
+
+	return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
+}
+
+static void SCREEN_OT_region_blend(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Region Alpha";
+	ot->idname = "SCREEN_OT_region_blend";
+	ot->description = "Blend in and out overlapping region";
+	
+	/* api callbacks */
+	ot->invoke = region_blend_invoke;
+	
+	/* flags */
+	ot->flag = 0;
+	
+	/* properties */
+}
+
+
 /* ****************  Assigning operatortypes to global list, adding handlers **************** */
 
 
@@ -3615,6 +3764,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_screenshot);
 	WM_operatortype_append(SCREEN_OT_screencast);
 	WM_operatortype_append(SCREEN_OT_userpref_show);
+	WM_operatortype_append(SCREEN_OT_region_blend);
 	
 	/*frame changes*/
 	WM_operatortype_append(SCREEN_OT_frame_offset);
@@ -3717,6 +3867,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	
 	/* standard timers */
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_step", TIMER0, KM_ANY, KM_ANY, 0);
+	WM_keymap_add_item(keymap, "SCREEN_OT_region_blend", TIMERREGION, KM_ANY, KM_ANY, 0);
 	
 	
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_screen_set", RIGHTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", 1);

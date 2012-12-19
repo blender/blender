@@ -83,7 +83,7 @@
 #define EXTRA_SCROLL_PAD    100.0f
 
 /* size of indent steps */
-#define INDENT_STEP_SIZE    7
+#define INDENT_STEP_SIZE    (0.35f * U.widget_unit)
 
 /* size of string buffers used for animation channel displayed names */
 #define ANIM_CHAN_NAME_SIZE 256
@@ -306,15 +306,15 @@ static short acf_generic_group_offset(bAnimContext *ac, bAnimListElem *ale)
 	if (ale->id) {
 		/* texture animdata */
 		if (GS(ale->id->name) == ID_TE) {
-			offset += 21;
+			offset += U.widget_unit;
 		}
 		/* materials and particles animdata */
 		else if (ELEM(GS(ale->id->name), ID_MA, ID_PA))
-			offset += 14;
+			offset += (short)(0.7f * U.widget_unit);
 			
 		/* if not in Action Editor mode, action-groups (and their children) must carry some offset too... */
 		else if (ac->datatype != ANIMCONT_ACTION)
-			offset += 14;
+			offset += (short)(0.7f * U.widget_unit);
 			
 		/* nodetree animdata */
 		if (GS(ale->id->name) == ID_NT) {
@@ -2990,12 +2990,12 @@ void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, int setting,
 
 /* --------------------------- */
 
-// XXX hardcoded size of icons
-#define ICON_WIDTH      17
-// XXX hardcoded width of sliders
-#define SLIDER_WIDTH    80
-// XXX hardcoded width of rename textboxes
-#define RENAME_TEXT_WIDTH 100
+// size of icons
+#define ICON_WIDTH      (0.85f * U.widget_unit)
+// width of sliders
+#define SLIDER_WIDTH    (4 * U.widget_unit)
+// width of rename textboxes
+#define RENAME_TEXT_WIDTH (5 * U.widget_unit)
 
 /* Draw the given channel */
 void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
@@ -3016,12 +3016,11 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 		offset = 0;
 		
 	/* calculate appropriate y-coordinates for icon buttons 
-	 *	7 is hardcoded factor for half-height of icons
 	 */
 	y = (ymaxc - yminc) / 2 + yminc;
-	ymid = y - 7;
+	ymid = y - 0.5f * ICON_WIDTH;
 	/* y-coordinates for text is only 4 down from middle */
-	ytext = y - 4;
+	ytext = y - 0.2f * U.widget_unit;
 	
 	/* check if channel is selected */
 	if (acf->has_setting(ac, ale, ACHANNEL_SETTING_SELECT))
@@ -3068,10 +3067,8 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 				glColor3fv(fcu->color);
 				
 				/* just a solid color rect
-				 *  hardcoded 17 pixels width is slightly wider than icon width, so that
-				 *	there's a slight border around it 
 				 */
-				glRectf(offset, yminc, offset + 17, ymaxc);
+				glRectf(offset, yminc, offset + ICON_WIDTH, ymaxc);
 			}
 			
 			/* icon is drawn as widget now... */
@@ -3165,7 +3162,7 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 		}
 		
 		
-		/* finally draw a backdrop rect behind these 
+		/* finally draw a backdrop rect behind these
 		 *	- starts from the point where the first toggle/slider starts, 
 		 *	- ends past the space that might be reserved for a scroller
 		 */
@@ -3444,12 +3441,9 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 		offset = 0;
 		
 	/* calculate appropriate y-coordinates for icon buttons 
-	 *	7 is hardcoded factor for half-height of icons
 	 */
 	y = (ymaxc - yminc) / 2 + yminc;
-	ymid = y - 7;
-	/* y-coordinates for text is only 4 down from middle */
-	/* ytext = y - 4; */
+	ymid = y - 0.5f * ICON_WIDTH;
 	
 	/* no button backdrop behind icons */
 	uiBlockSetEmboss(block, UI_EMBOSSN);

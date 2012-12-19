@@ -35,6 +35,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_context.h"
@@ -151,9 +152,10 @@ void render_view_open(bContext *C, int mx, int my)
 		if (sizex < 320) sizex = 320;
 		if (sizey < 256) sizey = 256;
 
-		/* XXX some magic to calculate postition */
-		rect.xmin = mx + win->posx - sizex / 2;
-		rect.ymin = my + win->posy - sizey / 2;
+		/* some magic to calculate postition */
+		/* pixelsize: mouse coords are in U.pixelsize units :/ */
+		rect.xmin = (mx / U.pixelsize) + win->posx - sizex / 2;
+		rect.ymin = (my / U.pixelsize) + win->posy - sizey / 2;
 		rect.xmax = rect.xmin + sizex;
 		rect.ymax = rect.ymin + sizey;
 

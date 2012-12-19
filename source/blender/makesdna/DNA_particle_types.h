@@ -116,6 +116,9 @@ typedef struct ParticleData {
 
 	float size;				/* size and multiplier so that we can update size when ever */
 
+	float sphdensity;		/* density of sph particle */
+	int pad;
+
 	int hair_index;
 	short flag;
 	short alive;			/* the life state of a particle */
@@ -130,6 +133,8 @@ typedef struct SPHFluidSettings {
 	float stiffness_k, stiffness_knear, rest_density;
 	float buoyancy;
 	int flag, spring_frames;
+	short solver;
+	short pad[3];
 } SPHFluidSettings;
 
 /* fluid->flag */
@@ -140,6 +145,10 @@ typedef struct SPHFluidSettings {
 #define SPH_FAC_RADIUS				16
 #define SPH_FAC_VISCOSITY			32
 #define SPH_FAC_REST_LENGTH			64
+
+/* fluid->solver (numerical ID field, not bitfield) */
+#define SPH_SOLVER_DDR					0
+#define SPH_SOLVER_CLASSICAL			1
 
 typedef struct ParticleSettings {
 	ID id;

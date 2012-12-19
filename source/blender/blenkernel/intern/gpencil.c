@@ -183,7 +183,7 @@ bGPDlayer *gpencil_layer_addnew(bGPdata *gpd, const char *name, int setactive)
 	gpl->thickness = 3;
 	
 	/* auto-name */
-	strcpy(gpl->info, name);
+	BLI_strncpy(gpl->info, name, sizeof(gpl->info));
 	BLI_uniquename(&gpd->layers, gpl, "GP_Layer", '.', offsetof(bGPDlayer, info), sizeof(gpl->info));
 	
 	/* make this one the active one */

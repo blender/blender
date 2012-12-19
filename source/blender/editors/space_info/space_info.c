@@ -272,7 +272,7 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 static void recent_files_menu_draw(const bContext *UNUSED(C), Menu *menu)
 {
 	struct RecentFile *recent;
-	char file [FILE_MAX];
+	char file[FILE_MAX];
 	uiLayout *layout = menu->layout;
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
 	if (G.recent_files.first) {

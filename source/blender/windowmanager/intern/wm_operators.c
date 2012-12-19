@@ -103,6 +103,7 @@
 #include "wm_draw.h"
 #include "wm_event_system.h"
 #include "wm_event_types.h"
+#include "wm_files.h"
 #include "wm_subwindow.h"
 #include "wm_window.h"
 
@@ -557,6 +558,106 @@ char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, i
 	cstring = BLI_dynstr_get_cstring(dynstr);
 	BLI_dynstr_free(dynstr);
 	return cstring;
+}
+
+/* return NULL if no match is found */
+static char *wm_prop_pystring_from_context(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index)
+{
+
+	/* loop over all context items and do 2 checks
+	 *
+	 * - see if the pointer is in the context.
+	 * - see if the pointers ID is in the context.
+	 */
+
+	ListBase lb = CTX_data_dir_get(C);
+	LinkData *link;
+
+	const char *member_found = NULL;
+	const char *member_id = NULL;
+
+	char *prop_str = NULL;
+	char *ret = NULL;
+
+
+	for (link = lb.first; link; link = link->next) {
+		const char *identifier = link->data;
+		PointerRNA ctx_ptr = CTX_data_pointer_get(C, identifier);
+
+		if (ctx_ptr.type == NULL) {
+			continue;
+		}
+
+		if (ptr->id.data == ctx_ptr.id.data) {
+			if ((ptr->data == ctx_ptr.data) &&
+			    (ptr->type == ctx_ptr.type))
+			{
+				/* found! */
+				member_found = identifier;
+				break;
+			}
+			else if (RNA_struct_is_ID(ctx_ptr.type)) {
+				/* we found a reference to this ID,
+				 * so fallback to it if there is no direct reference */
+				member_id = identifier;
+			}
+		}
+	}
+
+	/* grr, CTX_data_dir_get skips scene */
+	if ((member_id == NULL) &&
+	    (ptr->id.data != NULL) &&
+	    (GS(((ID *)ptr->id.data)->name) == ID_SCE) &&
+	    (CTX_data_scene(C) == ptr->id.data))
+	{
+		member_id = "scene";
+	}
+
+	if (member_found) {
+		prop_str = RNA_path_property_py(ptr, prop, index);
+		if (prop_str) {
+			ret = BLI_sprintfN("bpy.context.%s.%s", member_found, prop_str);
+			MEM_freeN(prop_str);
+		}
+	}
+	else if (member_id) {
+		prop_str = RNA_path_struct_property_py(ptr, prop, index);
+		if (prop_str) {
+			ret = BLI_sprintfN("bpy.context.%s.%s", member_id, prop_str);
+			MEM_freeN(prop_str);
+		}
+	}
+
+	BLI_freelistN(&lb);
+
+	return ret;
+}
+
+char *WM_prop_pystring_assign(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index)
+{
+	char *lhs, *rhs, *ret;
+
+	lhs = C ? wm_prop_pystring_from_context(C, ptr, prop, index) : NULL;
+
+	if (lhs == NULL) {
+		/* fallback to bpy.data.foo[id] if we dont find in the context */
+		lhs = RNA_path_full_property_py(ptr, prop, index);
+	}
+
+	if (!lhs) {
+		return NULL;
+	}
+
+	rhs = RNA_property_as_string(C, ptr, prop, index);
+	if (!rhs) {
+		MEM_freeN(lhs);
+		return NULL;
+	}
+
+	ret = BLI_sprintfN("%s = %s", lhs, rhs);
+	MEM_freeN(lhs);
+	MEM_freeN(rhs);
+	return ret;
 }
 
 void WM_operator_properties_create_ptr(PointerRNA *ptr, wmOperatorType *ot)
@@ -1078,7 +1179,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	uiBlock *block;
 	uiLayout *layout;
 	uiStyle *style = UI_GetStyle();
-	int width = 300;
+	int width = 15 * UI_UNIT_X;
 
 	block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
@@ -1262,7 +1363,7 @@ static int wm_operator_props_popup_ex(bContext *C, wmOperator *op, const int do_
 	/* if we don't have global undo, we can't do undo push for automatic redo,
 	 * so we require manual OK clicking in this popup */
 	if (!(U.uiflag & USER_GLOBALUNDO))
-		return WM_operator_props_dialog_popup(C, op, 300, UI_UNIT_Y);
+		return WM_operator_props_dialog_popup(C, op, 15 * UI_UNIT_X, UI_UNIT_Y);
 
 	uiPupBlock(C, wm_block_create_redo, op);
 
@@ -1429,7 +1530,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	int i;
 	MenuType *mt = WM_menutype_find("USERPREF_MT_splash", TRUE);
 	char url[96];
-	char file [FILE_MAX];
+	char file[FILE_MAX];
 
 #ifndef WITH_HEADLESS
 	extern char datatoc_splash_png[];
@@ -1452,9 +1553,9 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	             "%d.%02d.%d", BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION);
 	BLI_snprintf(revision_buf, sizeof(revision_buf), "r%s", build_rev);
 	
-	BLF_size(style->widgetlabel.uifont_id, style->widgetlabel.points, U.dpi);
-	ver_width = (int)BLF_width(style->widgetlabel.uifont_id, version_buf) + 5;
-	rev_width = (int)BLF_width(style->widgetlabel.uifont_id, revision_buf) + 5;
+	BLF_size(style->widgetlabel.uifont_id, style->widgetlabel.points, U.pixelsize * U.dpi);
+	ver_width = (int)BLF_width(style->widgetlabel.uifont_id, version_buf) + 0.5f * U.widget_unit;
+	rev_width = (int)BLF_width(style->widgetlabel.uifont_id, revision_buf) + 0.5f * U.widget_unit;
 #endif  /* WITH_BUILDINFO */
 
 	block = uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
@@ -1464,16 +1565,17 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	 * ugly results and clipping the splash isn't useful anyway, just disable it [#32938] */
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP);
 	
-	but = uiDefBut(block, BUT_IMAGE, 0, "", 0, 10, 501, 282, ibuf, 0.0, 0.0, 0, 0, ""); /* button owns the imbuf now */
+	/* XXX splash scales with pixelsize, should become widget-units */
+	but = uiDefBut(block, BUT_IMAGE, 0, "", 0, 0.5f * U.widget_unit, U.pixelsize * 501, U.pixelsize  *282, ibuf, 0.0, 0.0, 0, 0, ""); /* button owns the imbuf now */
 	uiButSetFunc(but, wm_block_splash_close, block, NULL);
 	uiBlockSetFunc(block, wm_block_splash_refreshmenu, block, NULL);
 	
 #ifdef WITH_BUILDINFO	
-	uiDefBut(block, LABEL, 0, version_buf, 494 - ver_width, 282 - 24, ver_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
-	uiDefBut(block, LABEL, 0, revision_buf, 494 - rev_width, 282 - 36, rev_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, version_buf, U.pixelsize * 494 - ver_width, U.pixelsize * 258, ver_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, revision_buf, U.pixelsize * 494 - rev_width, U.pixelsize * 246, rev_width, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
 #endif  /* WITH_BUILDINFO */
 	
-	layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 10, 2, 480, 110, style);
+	layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 10, 2, U.pixelsize * 480, U.pixelsize * 110, style);
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	/* show the splash menu (containing interaction presets), using python */
@@ -1675,12 +1777,23 @@ static void WM_OT_window_duplicate(wmOperatorType *ot)
 
 static void WM_OT_save_homefile(wmOperatorType *ot)
 {
-	ot->name = "Save User Settings";
+	ot->name = "Save Startup File";
 	ot->idname = "WM_OT_save_homefile";
-	ot->description = "Make the current file the default .blend file";
+	ot->description = "Make the current file the default .blend file, includes preferences";
 		
 	ot->invoke = WM_operator_confirm;
-	ot->exec = WM_homefile_write_exec;
+	ot->exec = wm_homefile_write_exec;
+	ot->poll = WM_operator_winactive;
+}
+
+static void WM_OT_save_userpref(wmOperatorType *ot)
+{
+	ot->name = "Save User Settings";
+	ot->idname = "WM_OT_save_userpref";
+	ot->description = "Save user preferences separately, overrides startup file preferences";
+	
+	ot->invoke = WM_operator_confirm;
+	ot->exec = wm_userpref_write_exec;
 	ot->poll = WM_operator_winactive;
 }
 
@@ -1691,7 +1804,7 @@ static void WM_OT_read_homefile(wmOperatorType *ot)
 	ot->description = "Open the default file (doesn't save the current file)";
 	
 	ot->invoke = WM_operator_confirm;
-	ot->exec = WM_homefile_read_exec;
+	ot->exec = wm_homefile_read_exec;
 	/* ommit poll to run in background mode */
 }
 
@@ -1702,7 +1815,7 @@ static void WM_OT_read_factory_settings(wmOperatorType *ot)
 	ot->description = "Load default file and user preferences";
 	
 	ot->invoke = WM_operator_confirm;
-	ot->exec = WM_homefile_read_exec;
+	ot->exec = wm_homefile_read_exec;
 	/* ommit poll to run in background mode */
 }
 
@@ -2003,21 +2116,35 @@ static void WM_OT_link_append(wmOperatorType *ot)
 
 /* *************** recover last session **************** */
 
-static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
+void wm_recover_last_session(bContext *C, ReportList *reports)
 {
 	char filename[FILE_MAX];
+	
+	BLI_make_file_string("/", filename, BLI_temporary_dir(), BLENDER_QUIT_FILE);
+	/* if reports==NULL, it's called directly without operator, we add a quick check here */
+	if (reports || BLI_exists(filename)) {
+		G.fileflags |= G_FILE_RECOVER;
+		
+		/* XXX wm in context is not set correctly after WM_file_read -> crash */
+		/* do it before for now, but is this correct with multiple windows? */
+		WM_event_add_notifier(C, NC_WINDOW, NULL);
+		
+		/* load file */
+		WM_file_read(C, filename, reports);
+	
+		G.fileflags &= ~G_FILE_RECOVER;
+		
+		/* XXX bad global... fixme */
+		if (G.main->name[0])
+			G.file_loaded = 1;	/* prevents splash to show */
+		else
+			G.relbase_valid = 0;
+	}
+}
 
-	G.fileflags |= G_FILE_RECOVER;
-
-	/* XXX wm in context is not set correctly after WM_file_read -> crash */
-	/* do it before for now, but is this correct with multiple windows? */
-	WM_event_add_notifier(C, NC_WINDOW, NULL);
-
-	/* load file */
-	BLI_make_file_string("/", filename, BLI_temporary_dir(), "quit.blend");
-	WM_file_read(C, filename, op->reports);
-
-	G.fileflags &= ~G_FILE_RECOVER;
+static int wm_recover_last_session_exec(bContext *C, wmOperator *op)
+{
+	wm_recover_last_session(C, op->reports);
 	return OPERATOR_FINISHED;
 }
 
@@ -2025,7 +2152,7 @@ static void WM_OT_recover_last_session(wmOperatorType *ot)
 {
 	ot->name = "Recover Last Session";
 	ot->idname = "WM_OT_recover_last_session";
-	ot->description = "Open the last closed file (\"quit.blend\")";
+	ot->description = "Open the last closed file (\"" BLENDER_QUIT_FILE "\")";
 	
 	ot->exec = wm_recover_last_session_exec;
 	ot->poll = WM_operator_winactive;
@@ -2139,7 +2266,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 		untitled(path);
 	}
 	
-	fileflags = G.fileflags;
+	fileflags = G.fileflags & ~G_FILE_USERPREFS;
 
 	/* set compression flag */
 	BKE_BIT_TEST_SET(fileflags, RNA_boolean_get(op->ptr, "compress"),
@@ -2158,7 +2285,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 	                 G_FILE_MESH_COMPAT);
 #endif
 
-	if (WM_file_write(C, path, fileflags, op->reports) != 0)
+	if (wm_file_write(C, path, fileflags, op->reports) != 0)
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_WM | ND_FILESAVE, NULL);
@@ -3787,6 +3914,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_read_homefile);
 	WM_operatortype_append(WM_OT_read_factory_settings);
 	WM_operatortype_append(WM_OT_save_homefile);
+	WM_operatortype_append(WM_OT_save_userpref);
 	WM_operatortype_append(WM_OT_window_fullscreen_toggle);
 	WM_operatortype_append(WM_OT_quit_blender);
 	WM_operatortype_append(WM_OT_open_mainfile);

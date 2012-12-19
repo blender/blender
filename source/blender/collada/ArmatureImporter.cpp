@@ -79,7 +79,7 @@ JointData *ArmatureImporter::get_joint_data(COLLADAFW::Node *node);
 }
 #endif
 void ArmatureImporter::create_unskinned_bone(COLLADAFW::Node *node, EditBone *parent, int totchild,
-                                             float parent_mat[][4], Object *ob_arm)
+                                             float parent_mat[4][4], Object *ob_arm)
 {
 	std::vector<COLLADAFW::Node *>::iterator it;
 	it = std::find(finished_joints.begin(), finished_joints.end(), node);
@@ -156,7 +156,7 @@ void ArmatureImporter::create_unskinned_bone(COLLADAFW::Node *node, EditBone *pa
 }
 
 void ArmatureImporter::create_bone(SkinInfo& skin, COLLADAFW::Node *node, EditBone *parent, int totchild,
-                                   float parent_mat[][4], bArmature *arm)
+                                   float parent_mat[4][4], bArmature *arm)
 {
 	//Checking if bone is already made.
 	std::vector<COLLADAFW::Node *>::iterator it;
@@ -268,7 +268,7 @@ void ArmatureImporter::create_bone(SkinInfo& skin, COLLADAFW::Node *node, EditBo
 	finished_joints.push_back(node);
 }
 
-void ArmatureImporter::add_leaf_bone(float mat[][4], EditBone *bone,  COLLADAFW::Node *node)
+void ArmatureImporter::add_leaf_bone(float mat[4][4], EditBone *bone,  COLLADAFW::Node *node)
 {
 	LeafBone leaf;
 
@@ -572,7 +572,7 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 // is a child of a node (not joint), root should be true since
 // this is where we build armature bones from
 
-void ArmatureImporter::set_pose(Object *ob_arm,  COLLADAFW::Node *root_node, const char *parentname, float parent_mat[][4])
+void ArmatureImporter::set_pose(Object *ob_arm,  COLLADAFW::Node *root_node, const char *parentname, float parent_mat[4][4])
 { 
 	char *bone_name = (char *) bc_get_joint_name(root_node);
 	float mat[4][4];
@@ -792,7 +792,7 @@ void ArmatureImporter::get_rna_path_for_joint(COLLADAFW::Node *node, char *joint
 }
 
 // gives a world-space mat
-bool ArmatureImporter::get_joint_bind_mat(float m[][4], COLLADAFW::Node *joint)
+bool ArmatureImporter::get_joint_bind_mat(float m[4][4], COLLADAFW::Node *joint)
 {
 	std::map<COLLADAFW::UniqueId, SkinInfo>::iterator it;
 	bool found = false;

@@ -119,9 +119,9 @@ static void rna_Main_cameras_remove(Main *bmain, ReportList *reports, PointerRNA
 	}
 }
 
-static Scene *rna_Main_scenes_new(Main *UNUSED(bmain), const char *name)
+static Scene *rna_Main_scenes_new(Main *bmain, const char *name)
 {
-	return BKE_scene_add(name);
+	return BKE_scene_add(bmain, name);
 }
 static void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports, PointerRNA *scene_ptr)
 {

@@ -19,13 +19,13 @@
 #include "stdosl.h"
 
 shader node_ward_bsdf(
-	color Color = color(0.8, 0.8, 0.8),
+	color Color = 0.0,
 	float Roughness = 0.0,
 	float Anisotropy = 0.0,
 	float Rotation = 0.0,
 	normal Normal = N,
 	normal Tangent = normalize(dPdu),
-	output closure color BSDF = diffuse(Normal))
+	output closure color BSDF = 0)
 {
 	/* rotate tangent around normal */
 	vector T = Tangent;

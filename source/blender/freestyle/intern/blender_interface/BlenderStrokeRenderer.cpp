@@ -80,7 +80,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count) : Str
 
 	char name[22];
 	BLI_snprintf(name, sizeof(name), "FRS%d_%s", render_count, re->scene->id.name + 2);
-	freestyle_scene = BKE_scene_add(name);
+	freestyle_scene = BKE_scene_add(G.main, name);
 	freestyle_scene->r.cfra = old_scene->r.cfra;
 	freestyle_scene->r.mode = old_scene->r.mode &
 	                          ~(R_EDGE_FRS | R_SHADOW | R_SSS | R_PANORAMA | R_ENVMAP | R_MBLUR | R_BORDER);

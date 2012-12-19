@@ -43,6 +43,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_curve.h"
 #include "BKE_context.h"
@@ -437,7 +438,7 @@ int BIF_countTransformOrientation(const bContext *C)
 	return count;
 }
 
-void applyTransformOrientation(const bContext *C, float mat[3][3], char *name)
+void applyTransformOrientation(const bContext *C, float mat[3][3], char name[MAX_NAME])
 {
 	TransformOrientation *ts;
 	View3D *v3d = CTX_wm_view3d(C);
@@ -448,8 +449,9 @@ void applyTransformOrientation(const bContext *C, float mat[3][3], char *name)
 		for (i = 0, ts = CTX_data_scene(C)->transform_spaces.first; ts; ts = ts->next, i++) {
 			if (selected_index == i) {
 				
-				if (name)
-					strcpy(name, ts->name);
+				if (name) {
+					BLI_strncpy(name, ts->name, MAX_NAME);
+				}
 				
 				copy_m3_m3(mat, ts->mat);
 				break;
@@ -737,7 +739,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 				}
 			}
 			
-			if (normal[0] != 0 || normal[1] != 0 || normal[2] != 0) {
+			if (!is_zero_v3(normal)) {
 				result = ORIENTATION_NORMAL;
 			}
 		}
@@ -760,29 +762,45 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 		else if (obedit->type == OB_ARMATURE) {
 			bArmature *arm = obedit->data;
 			EditBone *ebone;
+			int ok = FALSE;
 			
-			for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-				if (arm->layer & ebone->layer) {
-					if (ebone->flag & BONE_SELECTED) {
-						float tmat[3][3];
-						float vec[3];
-						sub_v3_v3v3(vec, ebone->tail, ebone->head);
-						normalize_v3(vec);
-						add_v3_v3(normal, vec);
-						
-						vec_roll_to_mat3(vec, ebone->roll, tmat);
-						add_v3_v3(plane, tmat[2]);
+			/* grr,.but better then duplicate code */
+#define EBONE_CALC_NORMAL_PLANE  { \
+			float tmat[3][3]; \
+			float vec[3]; \
+			sub_v3_v3v3(vec, ebone->tail, ebone->head); \
+			normalize_v3(vec); \
+			add_v3_v3(normal, vec); \
+			\
+			vec_roll_to_mat3(vec, ebone->roll, tmat); \
+			add_v3_v3(plane, tmat[2]); \
+		} (void)0
+
+
+			if (activeOnly && (ebone = arm->act_edbone)) {
+				EBONE_CALC_NORMAL_PLANE;
+				ok = TRUE;
+			}
+			else {
+				for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+					if (arm->layer & ebone->layer) {
+						if (ebone->flag & BONE_SELECTED) {
+							EBONE_CALC_NORMAL_PLANE;
+							ok = TRUE;
+						}
 					}
 				}
 			}
 			
-			normalize_v3(normal);
-			normalize_v3(plane);
+			if (ok) {
+				normalize_v3(normal);
+				normalize_v3(plane);
 
-			if (plane[0] != 0 || plane[1] != 0 || plane[2] != 0) {
-				result = ORIENTATION_EDGE;
+				if (!is_zero_v3(plane)) {
+					result = ORIENTATION_EDGE;
+				}
 			}
-
+#undef EBONE_CALC_NORMAL_PLANE
 		}
 
 		/* Vectors from edges don't need the special transpose inverse multiplication */
@@ -798,19 +816,32 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		bArmature *arm = ob->data;
 		bPoseChannel *pchan;
-		int totsel;
-		
-		totsel = count_bone_select(arm, &arm->bonebase, 1);
-		if (totsel) {
-			float imat[3][3], mat[3][3];
+		float imat[3][3], mat[3][3];
+		int ok = FALSE;
 
-			/* use channels to get stats */
-			for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-				if (pchan->bone && pchan->bone->flag & BONE_TRANSFORM) {
-					add_v3_v3(normal, pchan->pose_mat[2]);
-					add_v3_v3(plane, pchan->pose_mat[1]);
+		if (activeOnly && (pchan = BKE_pose_channel_active(ob))) {
+			add_v3_v3(normal, pchan->pose_mat[2]);
+			add_v3_v3(plane, pchan->pose_mat[1]);
+			ok = TRUE;
+		}
+		else {
+			int totsel;
+
+			totsel = count_bone_select(arm, &arm->bonebase, 1);
+			if (totsel) {
+				/* use channels to get stats */
+				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+					if (pchan->bone && pchan->bone->flag & BONE_TRANSFORM) {
+						add_v3_v3(normal, pchan->pose_mat[2]);
+						add_v3_v3(plane, pchan->pose_mat[1]);
+					}
 				}
+				ok = TRUE;
 			}
+		}
+
+		/* use for both active & all */
+		if (ok) {
 			negate_v3(plane);
 			
 			/* we need the transpose of the inverse for a normal... */
@@ -851,7 +882,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 	return result;
 }
 
-void ED_getTransformOrientationMatrix(const bContext *C, float orientation_mat[][3], int activeOnly)
+void ED_getTransformOrientationMatrix(const bContext *C, float orientation_mat[3][3], int activeOnly)
 {
 	float normal[3] = {0.0, 0.0, 0.0};
 	float plane[3] = {0.0, 0.0, 0.0};

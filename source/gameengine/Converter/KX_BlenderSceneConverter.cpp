@@ -151,6 +151,7 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 
 	vector<pair<KX_Scene*,RAS_IPolyMaterial*> >::iterator itp = m_polymaterials.begin();
 	while (itp != m_polymaterials.end()) {
+		m_polymat_cache.erase((*itp).second->GetBlenderMaterial());
 		delete (*itp).second;
 		itp++;
 	}
@@ -158,6 +159,7 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 	// delete after RAS_IPolyMaterial
 	vector<pair<KX_Scene*,BL_Material *> >::iterator itmat = m_materials.begin();
 	while (itmat != m_materials.end()) {
+		m_mat_cache.erase((*itmat).second->material);
 		delete (*itmat).second;
 		itmat++;
 	}
@@ -286,7 +288,8 @@ struct	BlenderDebugDraw : public btIDebugDraw
 
 void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
 											class RAS_IRenderTools* rendertools,
-											class RAS_ICanvas* canvas)
+											class RAS_ICanvas* canvas,
+											bool libloading)
 {
 	//find out which physics engine
 	Scene *blenderscene = destinationscene->GetBlenderScene();
@@ -355,7 +358,8 @@ void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
 		rendertools,
 		canvas,
 		this,
-		m_alwaysUseExpandFraming
+		m_alwaysUseExpandFraming,
+		libloading
 		);
 
 	//These lookup are not needed during game
@@ -406,6 +410,7 @@ void KX_BlenderSceneConverter::RemoveScene(KX_Scene *scene)
 	size = m_polymaterials.size();
 	for (i=0, polymit=m_polymaterials.begin(); i<size; ) {
 		if ((*polymit).first == scene) {
+			m_polymat_cache.erase((*polymit).second->GetBlenderMaterial());
 			delete (*polymit).second;
 			*polymit = m_polymaterials.back();
 			m_polymaterials.pop_back();
@@ -420,6 +425,7 @@ void KX_BlenderSceneConverter::RemoveScene(KX_Scene *scene)
 	size = m_materials.size();
 	for (i=0, matit=m_materials.begin(); i<size; ) {
 		if ((*matit).first == scene) {
+			m_mat_cache.erase((*matit).second->material);
 			delete (*matit).second;
 			*matit = m_materials.back();
 			m_materials.pop_back();
@@ -470,6 +476,12 @@ bool KX_BlenderSceneConverter::GetGLSLMaterials()
 
 void KX_BlenderSceneConverter::RegisterBlenderMaterial(BL_Material *mat)
 {
+	// First make sure we don't register the material twice
+	vector<pair<KX_Scene*,BL_Material*> >::iterator it;
+	for (it = m_materials.begin(); it != m_materials.end(); ++it)
+		if (it->second == mat)
+			return;
+
 	m_materials.push_back(pair<KX_Scene*,BL_Material *>(m_currentScene,mat));
 }
 
@@ -540,19 +552,37 @@ RAS_MeshObject *KX_BlenderSceneConverter::FindGameMesh(
 	} else {
 		return NULL;
 	}
-}
-
-	
-
-
-	
+}	
 
 void KX_BlenderSceneConverter::RegisterPolyMaterial(RAS_IPolyMaterial *polymat)
 {
+	// First make sure we don't register the material twice
+	vector<pair<KX_Scene*,RAS_IPolyMaterial*> >::iterator it;
+	for (it = m_polymaterials.begin(); it != m_polymaterials.end(); ++it)
+		if (it->second == polymat)
+			return;
 	m_polymaterials.push_back(pair<KX_Scene*,RAS_IPolyMaterial*>(m_currentScene,polymat));
 }
 
+void KX_BlenderSceneConverter::CachePolyMaterial(struct Material *mat, RAS_IPolyMaterial *polymat)
+{
+	m_polymat_cache[mat] = polymat;
+}
 
+RAS_IPolyMaterial *KX_BlenderSceneConverter::FindCachedPolyMaterial(struct Material *mat)
+{
+	return m_polymat_cache[mat];
+}
+
+void KX_BlenderSceneConverter::CacheBlenderMaterial(struct Material *mat, BL_Material *blmat)
+{
+	m_mat_cache[mat] = blmat;
+}
+
+BL_Material *KX_BlenderSceneConverter::FindCachedBlenderMaterial(struct Material *mat)
+{
+	return m_mat_cache[mat];
+}
 
 void KX_BlenderSceneConverter::RegisterInterpolatorList(
 									BL_InterpolatorList *actList,
@@ -1016,7 +1046,7 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 		for (mesh= (ID *)main_newlib->mesh.first; mesh; mesh= (ID *)mesh->next ) {
 			if (options & LIB_LOAD_VERBOSE)
 				printf("MeshName: %s\n", mesh->name+2);
-			RAS_MeshObject *meshobj = BL_ConvertMesh((Mesh *)mesh, NULL, scene_merge, this);
+			RAS_MeshObject *meshobj = BL_ConvertMesh((Mesh *)mesh, NULL, scene_merge, this, false); // For now only use the libloading option for scenes, which need to handle materials/shaders
 			scene_merge->GetLogicManager()->RegisterMeshName(meshobj->GetName(),meshobj);
 		}
 	}
@@ -1038,7 +1068,7 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 				printf("SceneName: %s\n", scene->name+2);
 			
 			/* merge into the base  scene */
-			KX_Scene* other= m_ketsjiEngine->CreateScene((Scene *)scene);
+			KX_Scene* other= m_ketsjiEngine->CreateScene((Scene *)scene, true);
 			scene_merge->MergeScene(other);
 			
 			// RemoveScene(other); // Don't run this, it frees the entire scene converter data, just delete the scene
@@ -1302,7 +1332,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 		}
 
 		if (IS_TAGGED(bmat)) {
-
+			m_polymat_cache.erase((*polymit).second->GetBlenderMaterial());
 			delete (*polymit).second;
 			*polymit = m_polymaterials.back();
 			m_polymaterials.pop_back();
@@ -1320,6 +1350,7 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 	for (i=0, matit=m_materials.begin(); i<size; ) {
 		BL_Material *mat= (*matit).second;
 		if (IS_TAGGED(mat->material)) {
+			m_mat_cache.erase((*matit).second->material);
 			delete (*matit).second;
 			*matit = m_materials.back();
 			m_materials.pop_back();
@@ -1469,7 +1500,7 @@ RAS_MeshObject *KX_BlenderSceneConverter::ConvertMeshSpecial(KX_Scene* kx_scene,
 		}
 	}
 	
-	RAS_MeshObject *meshobj = BL_ConvertMesh((Mesh *)me, NULL, kx_scene, this);
+	RAS_MeshObject *meshobj = BL_ConvertMesh((Mesh *)me, NULL, kx_scene, this, false);
 	kx_scene->GetLogicManager()->RegisterMeshName(meshobj->GetName(),meshobj);
 	m_map_mesh_to_gamemesh.clear(); /* This is at runtime so no need to keep this, BL_ConvertMesh adds */
 	return meshobj;

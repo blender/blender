@@ -217,7 +217,7 @@ void ED_view3d_clipping_enable(void)
 	}
 }
 
-static int view3d_clipping_test(const float vec[3], float clip[][4])
+static int view3d_clipping_test(const float vec[3], float clip[6][4])
 {
 	float view[3];
 	copy_v3_v3(view, vec);
@@ -563,40 +563,48 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 	if (v3d->zbuf && scene->obedit) glDepthMask(1);
 }
 
+
 static void drawcursor(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	int co[2];
 
 	/* we don't want the clipping for cursor */
 	if (ED_view3d_project_int_global(ar, give_cursor(scene, v3d), co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+		const float f5 = 0.25f * U.widget_unit;
+		const float f10 = 0.5f * U.widget_unit;
+		const float f20 = U.widget_unit;
+		
 		setlinestyle(0); 
 		cpack(0xFF);
-		circ((float)co[0], (float)co[1], 10.0);
-		setlinestyle(4); 
+		circ((float)co[0], (float)co[1], f10);
+		setlinestyle(4);
 		cpack(0xFFFFFF);
-		circ((float)co[0], (float)co[1], 10.0);
+		circ((float)co[0], (float)co[1], f10);
 		setlinestyle(0);
 		cpack(0x0);
 		
-		sdrawline(co[0] - 20, co[1], co[0] - 5, co[1]);
-		sdrawline(co[0] + 5, co[1], co[0] + 20, co[1]);
-		sdrawline(co[0], co[1] - 20, co[0], co[1] - 5);
-		sdrawline(co[0], co[1] + 5, co[0], co[1] + 20);
+		sdrawline(co[0] - f20, co[1], co[0] - f5, co[1]);
+		sdrawline(co[0] + f5, co[1], co[0] + f20, co[1]);
+		sdrawline(co[0], co[1] - f20, co[0], co[1] - f5);
+		sdrawline(co[0], co[1] + f5, co[0], co[1] + f20);
 	}
 }
 
 /* Draw a live substitute of the view icon, which is always shown
  * colors copied from transform_manipulator.c, we should keep these matching. */
-static void draw_view_axis(RegionView3D *rv3d)
+static void draw_view_axis(RegionView3D *rv3d, rcti *rect)
 {
 	const float k = U.rvisize;   /* axis size */
 	const float toll = 0.5;      /* used to see when view is quasi-orthogonal */
-	const float start = k + 1.0f; /* axis center in screen coordinates, x=y */
+	float startx = k + 1.0f; /* axis center in screen coordinates, x=y */
+	float starty = k + 1.0f;
 	float ydisp = 0.0;          /* vertical displacement to allow obj info text */
 	int bright = 25 * (float)U.rvibright + 5; /* axis alpha (rvibright has range 0-10) */
-
 	float vec[3];
 	float dx, dy;
+	
+	startx += rect->xmin;
+	starty += rect->ymin;
 	
 	/* thickness of lines is proportional to k */
 	glLineWidth(2);
@@ -613,12 +621,12 @@ static void draw_view_axis(RegionView3D *rv3d)
 	
 	UI_ThemeColorShadeAlpha(TH_AXIS_X, 0, bright);
 	glBegin(GL_LINES);
-	glVertex2f(start, start + ydisp);
-	glVertex2f(start + dx, start + dy + ydisp);
+	glVertex2f(startx, starty + ydisp);
+	glVertex2f(startx + dx, starty + dy + ydisp);
 	glEnd();
 
 	if (fabsf(dx) > toll || fabsf(dy) > toll) {
-		BLF_draw_default_ascii(start + dx + 2, start + dy + ydisp + 2, 0.0f, "x", 1);
+		BLF_draw_default_ascii(startx + dx + 2, starty + dy + ydisp + 2, 0.0f, "x", 1);
 	}
 	
 	/* BLF_draw_default disables blending */
@@ -633,12 +641,12 @@ static void draw_view_axis(RegionView3D *rv3d)
 	
 	UI_ThemeColorShadeAlpha(TH_AXIS_Y, 0, bright);
 	glBegin(GL_LINES);
-	glVertex2f(start, start + ydisp);
-	glVertex2f(start + dx, start + dy + ydisp);
+	glVertex2f(startx, starty + ydisp);
+	glVertex2f(startx + dx, starty + dy + ydisp);
 	glEnd();
 
 	if (fabsf(dx) > toll || fabsf(dy) > toll) {
-		BLF_draw_default_ascii(start + dx + 2, start + dy + ydisp + 2, 0.0f, "y", 1);
+		BLF_draw_default_ascii(startx + dx + 2, starty + dy + ydisp + 2, 0.0f, "y", 1);
 	}
 
 	glEnable(GL_BLEND);
@@ -652,12 +660,12 @@ static void draw_view_axis(RegionView3D *rv3d)
 
 	UI_ThemeColorShadeAlpha(TH_AXIS_Z, 0, bright);
 	glBegin(GL_LINES);
-	glVertex2f(start, start + ydisp);
-	glVertex2f(start + dx, start + dy + ydisp);
+	glVertex2f(startx, starty + ydisp);
+	glVertex2f(startx + dx, starty + dy + ydisp);
 	glEnd();
 
 	if (fabsf(dx) > toll || fabsf(dy) > toll) {
-		BLF_draw_default_ascii(start + dx + 2, start + dy + ydisp + 2, 0.0f, "z", 1);
+		BLF_draw_default_ascii(startx + dx + 2, starty + dy + ydisp + 2, 0.0f, "z", 1);
 	}
 
 	/* restore line-width */
@@ -770,7 +778,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 	glDepthMask(1);
 }
 
-static void draw_view_icon(RegionView3D *rv3d)
+static void draw_view_icon(RegionView3D *rv3d, rcti *rect)
 {
 	BIFIconID icon;
 	
@@ -785,7 +793,7 @@ static void draw_view_icon(RegionView3D *rv3d)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 	
-	UI_icon_draw(5.0, 5.0, icon);
+	UI_icon_draw(5.0 + rect->xmin, 5.0 + rect->ymin, icon);
 	
 	glDisable(GL_BLEND);
 }
@@ -840,7 +848,7 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 	return name;
 }
 
-static void draw_viewport_name(ARegion *ar, View3D *v3d)
+static void draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	const char *name = view3d_get_name(v3d, rv3d);
@@ -853,17 +861,17 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 
 	if (name) {
 		UI_ThemeColor(TH_TEXT_HI);
-		BLF_draw_default_ascii(22,  ar->winy - 17, 0.0f, name, sizeof(tmpstr));
+		BLF_draw_default_ascii(U.widget_unit + rect->xmin,  rect->ymax - U.widget_unit, 0.0f, name, sizeof(tmpstr));
 	}
 }
 
 /* draw info beside axes in bottom left-corner: 
  * framenum, object name, bone name (if available), marker name (if available)
  */
-static void draw_selected_name(Scene *scene, Object *ob)
+static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 {
 	char info[256], *markern;
-	short offset = 30;
+	short offset = 30 + rect->xmin;
 	
 	/* get name of marker on current frame (if available) */
 	markern = BKE_scene_find_marker_name(scene, CFRA);
@@ -946,9 +954,9 @@ static void draw_selected_name(Scene *scene, Object *ob)
 	}
 	
 	if (U.uiflag & USER_SHOW_ROTVIEWICON)
-		offset = 14 + (U.rvisize * 2);
+		offset = U.widget_unit + (U.rvisize * 2) + rect->xmin;
 
-	BLF_draw_default(offset,  10, 0.0f, info, sizeof(info));
+	BLF_draw_default(offset, 0.5f * U.widget_unit, 0.0f, info, sizeof(info));
 }
 
 static void view3d_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d,
@@ -1289,7 +1297,6 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	RegionView3D *rv3d = ar->regiondata;
 	struct Base *base = scene->basact;
 	int multisample_enabled;
-	rcti winrct;
 
 	BLI_assert(ar->regiontype == RGN_TYPE_WINDOW);
 
@@ -1338,8 +1345,7 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	if (multisample_enabled)
 		glDisable(GL_MULTISAMPLE_ARB);
 
-	region_scissor_winrct(ar, &winrct);
-	glScissor(winrct.xmin, winrct.ymin, BLI_rcti_size_x(&winrct), BLI_rcti_size_y(&winrct));
+	glScissor(ar->winrct.xmin, ar->winrct.ymin, BLI_rcti_size_x(&ar->winrct), BLI_rcti_size_y(&ar->winrct));
 
 	glClearColor(0.0, 0.0, 0.0, 0.0); 
 	if (v3d->zbuf) {
@@ -2165,7 +2171,9 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 	v3d->zbuf = TRUE;
 	glEnable(GL_DEPTH_TEST);
 
-	draw_gpencil_view3d(scene, v3d, ar, 1);
+	if (v3d->flag2 & V3D_SHOW_GPENCIL) {
+		draw_gpencil_view3d(scene, v3d, ar, TRUE);
+	}
 	
 	v3d->zbuf = zbuf;
 
@@ -2307,7 +2315,7 @@ typedef struct View3DShadow {
 } View3DShadow;
 
 static void gpu_render_lamp_update(Scene *scene, View3D *v3d, Object *ob, Object *par,
-                                   float obmat[][4], ListBase *shadows)
+                                   float obmat[4][4], ListBase *shadows)
 {
 	GPULamp *lamp;
 	Lamp *la = (Lamp *)ob->data;
@@ -2466,7 +2474,7 @@ CustomDataMask ED_view3d_screen_datamask(bScreen *screen)
 	return mask;
 }
 
-void ED_view3d_update_viewmat(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[][4], float winmat[][4])
+void ED_view3d_update_viewmat(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[4][4], float winmat[4][4])
 {
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -2509,7 +2517,7 @@ void ED_view3d_update_viewmat(Scene *scene, View3D *v3d, ARegion *ar, float view
 	}
 }
 
-static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[][4], float winmat[][4])
+static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, float viewmat[4][4], float winmat[4][4])
 {
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -2533,7 +2541,7 @@ void ED_view3d_draw_offscreen_init(Scene *scene, View3D *v3d)
  * stuff like shadow buffers
  */
 void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
-                              int winx, int winy, float viewmat[][4], float winmat[][4],
+                              int winx, int winy, float viewmat[4][4], float winmat[4][4],
                               int do_bgpic, int colormanage_background)
 {
 	RegionView3D *rv3d = ar->regiondata;
@@ -2645,9 +2653,11 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	}
 
 	/* must be before xray draw which clears the depth buffer */
-	if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
-	draw_gpencil_view3d(scene, v3d, ar, 1);
-	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
+	if (v3d->flag2 & V3D_SHOW_GPENCIL) {
+		if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
+		draw_gpencil_view3d(scene, v3d, ar, TRUE);
+		if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
+	}
 
 	/* transp and X-ray afterdraw stuff */
 	if (v3d->afterdraw_transp.first)     view3d_draw_transp(scene, ar, v3d);
@@ -2671,8 +2681,11 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	/* draw grease-pencil stuff */
 	ED_region_pixelspace(ar);
 
-	/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
-	draw_gpencil_view3d(scene, v3d, ar, 0);
+
+	if (v3d->flag2 & V3D_SHOW_GPENCIL) {
+		/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
+		draw_gpencil_view3d(scene, v3d, ar, FALSE);
+	}
 
 	/* freeing the images again here could be done after the operator runs, leaving for now */
 	GPU_free_images_anim();
@@ -2748,7 +2761,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
 
 /* creates own 3d views, used by the sequencer */
 ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int width, int height,
-                                             unsigned int flag, int drawtype, int draw_background,
+                                             unsigned int flag, int drawtype, int use_solid_tex, int draw_background,
                                              int colormanage_background, char err_out[256])
 {
 	View3D v3d = {NULL};
@@ -2764,6 +2777,9 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int w
 	v3d.lay = scene->lay;
 	v3d.drawtype = drawtype;
 	v3d.flag2 = V3D_RENDER_OVERRIDE;
+
+	if (use_solid_tex)
+		v3d.flag2 |= V3D_SOLID_TEX;
 
 	rv3d.persp = RV3D_CAMOB;
 
@@ -2798,7 +2814,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int w
 /* NOTE: the info that this uses is updated in ED_refresh_viewport_fps(), 
  * which currently gets called during SCREEN_OT_animation_step.
  */
-static void draw_viewport_fps(Scene *scene, ARegion *ar)
+static void draw_viewport_fps(Scene *scene, rcti *rect)
 {
 	ScreenFrameRateInfo *fpsi = scene->fps_info;
 	float fps;
@@ -2843,7 +2859,7 @@ static void draw_viewport_fps(Scene *scene, ARegion *ar)
 		BLI_snprintf(printable, sizeof(printable), "fps: %i", (int)(fps + 0.5f));
 	}
 	
-	BLF_draw_default_ascii(22,  ar->winy - 17, 0.0f, printable, sizeof(printable));
+	BLF_draw_default_ascii(rect->xmin + U.widget_unit,  rect->ymax - U.widget_unit, 0.0f, printable, sizeof(printable));
 }
 
 static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const char **grid_unit);
@@ -3102,10 +3118,10 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 
 //	REEB_draw();
 
-	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
+	if (v3d->flag2 & V3D_SHOW_GPENCIL) {
 		/* must be before xray draw which clears the depth buffer */
 		if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
-		draw_gpencil_view3d(scene, v3d, ar, 1);
+		draw_gpencil_view3d(scene, v3d, ar, TRUE);
 		if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 	}
 
@@ -3152,6 +3168,10 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	rcti rect;
+	
+	/* local coordinate visible rect inside region, to accomodate overlapping ui */
+	ED_region_visible_rect(ar, &rect);
 
 	if (rv3d->persp == RV3D_CAMOB) {
 		drawviewborder(scene, ar, v3d);
@@ -3168,23 +3188,24 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
+	if (v3d->flag2 & V3D_SHOW_GPENCIL) {
+		/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
+		draw_gpencil_view3d(scene, v3d, ar, FALSE);
+	}
+
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 		Object *ob;
-
-		/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
-		//	if (v3d->flag2 & V3D_DISPGP)
-		draw_gpencil_view3d(scene, v3d, ar, 0);
 
 		drawcursor(scene, ar, v3d);
 
 		if (U.uiflag & USER_SHOW_ROTVIEWICON)
-			draw_view_axis(rv3d);
+			draw_view_axis(rv3d, &rect);
 		else
-			draw_view_icon(rv3d);
+			draw_view_icon(rv3d, &rect);
 
 		ob = OBACT;
 		if (U.uiflag & USER_DRAWVIEWINFO)
-			draw_selected_name(scene, ob);
+			draw_selected_name(scene, ob, &rect);
 	}
 
 	if (rv3d->render_engine) {
@@ -3194,10 +3215,10 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 		if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_playing(wm)) {
-			draw_viewport_fps(scene, ar);
+			draw_viewport_fps(scene, &rect);
 		}
 		else if (U.uiflag & USER_SHOW_VIEWPORTNAME) {
-			draw_viewport_name(ar, v3d);
+			draw_viewport_name(ar, v3d, &rect);
 		}
 
 		if (grid_unit) { /* draw below the viewport name */
@@ -3208,7 +3229,8 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 				BLI_snprintf(numstr, sizeof(numstr), "%s x %.4g", grid_unit, v3d->grid);
 			}
 
-			BLF_draw_default_ascii(22,  ar->winy - (USER_SHOW_VIEWPORTNAME ? 40 : 20), 0.0f,
+			BLF_draw_default_ascii(rect.xmin + U.widget_unit,
+			                       rect.ymax - (USER_SHOW_VIEWPORTNAME ? 2 * U.widget_unit : U.widget_unit), 0.0f,
 			                       numstr[0] ? numstr : grid_unit, sizeof(numstr));
 		}
 	}

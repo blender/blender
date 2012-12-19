@@ -199,12 +199,6 @@ __device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, floa
 #ifdef __RAY_DIFFERENTIALS__
 					*domega_in_dx = (2 * dot(m, dIdx)) * m - dIdx;
 					*domega_in_dy = (2 * dot(m, dIdy)) * m - dIdy;
-					// Since there is some blur to this reflection, make the
-					// derivatives a bit bigger. In theory this varies with the
-					// roughness but the exact relationship is complex and
-					// requires more ops than are practical.
-					*domega_in_dx *= 10.0f;
-					*domega_in_dy *= 10.0f;
 #endif
 				}
 			}
@@ -251,14 +245,6 @@ __device int bsdf_microfacet_ggx_sample(const ShaderClosure *sc, float3 Ng, floa
 				// eq. 38 and eq. 17
 				*pdf = pm * (m_eta * m_eta) * fabsf(cosHI) / Ht2;
 				*eval = make_float3(out, out, out);
-#ifdef __RAY_DIFFERENTIALS__
-				// Since there is some blur to this refraction, make the
-				// derivatives a bit bigger. In theory this varies with the
-				// roughness but the exact relationship is complex and
-				// requires more ops than are practical.
-				*domega_in_dx *= 10.0f;
-				*domega_in_dy *= 10.0f;
-#endif
 			}
 		}
 	}
@@ -430,12 +416,6 @@ __device int bsdf_microfacet_beckmann_sample(const ShaderClosure *sc, float3 Ng,
 #ifdef __RAY_DIFFERENTIALS__
 					*domega_in_dx = (2 * dot(m, dIdx)) * m - dIdx;
 					*domega_in_dy = (2 * dot(m, dIdy)) * m - dIdy;
-					// Since there is some blur to this reflection, make the
-					// derivatives a bit bigger. In theory this varies with the
-					// roughness but the exact relationship is complex and
-					// requires more ops than are practical.
-					*domega_in_dx *= 10.0f;
-					*domega_in_dy *= 10.0f;
 #endif
 				}
 			}
@@ -486,14 +466,6 @@ __device int bsdf_microfacet_beckmann_sample(const ShaderClosure *sc, float3 Ng,
 				// eq. 38 and eq. 17
 				*pdf = pm * (m_eta * m_eta) * fabsf(cosHI) / Ht2;
 				*eval = make_float3(out, out, out);
-#ifdef __RAY_DIFFERENTIALS__
-				// Since there is some blur to this refraction, make the
-				// derivatives a bit bigger. In theory this varies with the
-				// roughness but the exact relationship is complex and
-				// requires more ops than are practical.
-				*domega_in_dx *= 10.0f;
-				*domega_in_dy *= 10.0f;
-#endif
 			}
 		}
 	}

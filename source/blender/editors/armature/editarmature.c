@@ -2062,7 +2062,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 		Scene *scene = CTX_data_scene(C);
 		View3D *v3d = CTX_wm_view3d(C); /* can be NULL */
 		float cursor_local[3];
-		float   *cursor = give_cursor(scene, v3d);
+		const float   *cursor = give_cursor(scene, v3d);
 	
 
 		copy_v3_v3(cursor_local, cursor);
@@ -2323,7 +2323,8 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 	View3D *v3d;
 	bArmature *arm;
 	EditBone *ebone, *newbone, *flipbone;
-	float *curs, mat[3][3], imat[3][3];
+	float mat[3][3], imat[3][3];
+	const float *curs;
 	int a, to_root = 0;
 	Object *obedit;
 	Scene *scene;
@@ -2418,7 +2419,7 @@ static int armature_click_extrude_invoke(bContext *C, wmOperator *op, wmEvent *e
 	Scene *scene;
 	ARegion *ar;
 	View3D *v3d;
-	float *fp = NULL, tvec[3], oldcurs[3], mval_f[2];
+	float *fp, tvec[3], oldcurs[3], mval_f[2];
 	int retv;
 
 	scene = CTX_data_scene(C);

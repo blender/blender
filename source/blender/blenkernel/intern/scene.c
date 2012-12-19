@@ -145,7 +145,8 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 	
 	if (type == SCE_COPY_EMPTY) {
 		ListBase lb;
-		scen = BKE_scene_add(sce->id.name + 2);
+		/* XXX. main should become an arg */
+		scen = BKE_scene_add(G.main, sce->id.name + 2);
 		
 		lb = scen->r.layers;
 		scen->r = sce->r;
@@ -379,9 +380,8 @@ void BKE_scene_free(Scene *sce)
 	BKE_color_managed_view_settings_free(&sce->view_settings);
 }
 
-Scene *BKE_scene_add(const char *name)
+static Scene *scene_add(Main *bmain, const char *name)
 {
-	Main *bmain = G.main;
 	Scene *sce;
 	ParticleEditSettings *pset;
 	int a;
@@ -439,6 +439,7 @@ Scene *BKE_scene_add(const char *name)
 	sce->r.bake_osa = 5;
 	sce->r.bake_flag = R_BAKE_CLEAR;
 	sce->r.bake_normal_space = R_BAKE_SPACE_TANGENT;
+	sce->r.bake_rays_number = 256;
 	sce->r.scemode = R_DOCOMP | R_DOSEQ | R_EXTENSION;
 	sce->r.stamp = R_STAMP_TIME | R_STAMP_FRAME | R_STAMP_DATE | R_STAMP_CAMERA | R_STAMP_SCENE | R_STAMP_FILENAME | R_STAMP_RENDERTIME;
 	sce->r.stamp_font_id = 12;
@@ -610,6 +611,11 @@ Scene *BKE_scene_add(const char *name)
 	            sizeof(sce->sequencer_colorspace_settings.name));
 
 	return sce;
+}
+
+Scene *BKE_scene_add(Main *bmain, const char *name)
+{
+	return scene_add(bmain, name);
 }
 
 Base *BKE_scene_base_find(Scene *scene, Object *ob)

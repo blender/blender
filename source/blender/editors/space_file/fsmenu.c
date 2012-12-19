@@ -350,7 +350,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 #else
 #ifdef __APPLE__
 	{
-#if (MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4)
+#if (MAC_OS_X_VERSION_MIN_REQUIRED <= 1040)
 		OSErr err = noErr;
 		int i;
 		const char *home;

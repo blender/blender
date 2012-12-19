@@ -567,7 +567,9 @@ Object **get_collisionobjects(Scene *scene, Object *self, Group *group, unsigned
 		Scene *sce_iter;
 		/* add objects in same layer in scene */
 		for (SETLOOPER(scene, sce_iter, base)) {
-			if (base->lay & self->lay)
+			/* Need to check for active layers, too.
+			Otherwise this check fails if the objects are not on the same layer - DG */
+			if ((base->lay & self->lay) || (base->lay & scene->lay))
 				add_collision_object(&objs, &numobj, &maxobj, base->object, self, 0, modifier_type);
 
 		}

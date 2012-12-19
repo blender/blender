@@ -246,7 +246,7 @@ static SpaceLink *clip_new(const bContext *C)
 	sc = MEM_callocN(sizeof(SpaceClip), "initclip");
 	sc->spacetype = SPACE_CLIP;
 	sc->flag = SC_SHOW_MARKER_PATTERN | SC_SHOW_TRACK_PATH | SC_MANUAL_CALIBRATION |
-	           SC_SHOW_GRAPH_TRACKS | SC_SHOW_GRAPH_FRAMES;
+	           SC_SHOW_GRAPH_TRACKS | SC_SHOW_GRAPH_FRAMES | SC_SHOW_GPENCIL;
 	sc->zoom = 1.0f;
 	sc->path_length = 20;
 	sc->scopes.track_preview_height = 120;
@@ -592,9 +592,14 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CLIP_OT_view_zoom_in", PADPLUSKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CLIP_OT_view_zoom_out", PADMINUS, KM_PRESS, 0, 0);
 
+	/* ctrl now works as well, shift + numpad works as arrow keys on Windows */
+	RNA_float_set(WM_keymap_add_item(keymap, "CLIP_OT_view_zoom_ratio", PAD8, KM_PRESS, KM_CTRL, 0)->ptr, "ratio", 8.0f);
+	RNA_float_set(WM_keymap_add_item(keymap, "CLIP_OT_view_zoom_ratio", PAD4, KM_PRESS, KM_CTRL, 0)->ptr, "ratio", 4.0f);
+	RNA_float_set(WM_keymap_add_item(keymap, "CLIP_OT_view_zoom_ratio", PAD2, KM_PRESS, KM_CTRL, 0)->ptr, "ratio", 2.0f);
 	RNA_float_set(WM_keymap_add_item(keymap, "CLIP_OT_view_zoom_ratio", PAD8, KM_PRESS, KM_SHIFT, 0)->ptr, "ratio", 8.0f);
 	RNA_float_set(WM_keymap_add_item(keymap, "CLIP_OT_view_zoom_ratio", PAD4, KM_PRESS, KM_SHIFT, 0)->ptr, "ratio", 4.0f);
 	RNA_float_set(WM_keymap_add_item(keymap, "CLIP_OT_view_zoom_ratio", PAD2, KM_PRESS, KM_SHIFT, 0)->ptr, "ratio", 2.0f);
+
 	RNA_float_set(WM_keymap_add_item(keymap, "CLIP_OT_view_zoom_ratio", PAD1, KM_PRESS, 0, 0)->ptr, "ratio", 1.0f);
 	RNA_float_set(WM_keymap_add_item(keymap, "CLIP_OT_view_zoom_ratio", PAD2, KM_PRESS, 0, 0)->ptr, "ratio", 0.5f);
 	RNA_float_set(WM_keymap_add_item(keymap, "CLIP_OT_view_zoom_ratio", PAD4, KM_PRESS, 0, 0)->ptr, "ratio", 0.25f);
@@ -1146,14 +1151,18 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 
 	}
 
-	/* Grease Pencil */
-	clip_draw_grease_pencil((bContext *)C, 1);
+	if (sc->flag & SC_SHOW_GPENCIL) {
+		/* Grease Pencil */
+		clip_draw_grease_pencil((bContext *)C, TRUE);
+	}
 
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
 
-	/* draw Grease Pencil - screen space only */
-	clip_draw_grease_pencil((bContext *)C, 0);
+	if (sc->flag & SC_SHOW_GPENCIL) {
+		/* draw Grease Pencil - screen space only */
+		clip_draw_grease_pencil((bContext *)C, FALSE);
+	}
 }
 
 static void clip_main_area_listener(ARegion *ar, wmNotifier *wmn)

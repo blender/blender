@@ -145,7 +145,7 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		/* make alpha output give results even if transparency is only enabled on
 		 * the material linked in this not and not on the parent material */
 		mode = shi->mode;
-		if(shi->mat->mode & MA_TRANSP)
+		if (shi->mat->mode & MA_TRANSP)
 			shi->mode |= MA_TRANSP;
 
 		shi->nodes= 1; /* temp hack to prevent trashadow recursion */

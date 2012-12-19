@@ -324,15 +324,14 @@ void RAS_MeshObject::SetVertexColor(RAS_IPolyMaterial* mat,MT_Vector4 rgba)
 
 void RAS_MeshObject::AddVertex(RAS_Polygon *poly, int i,
 								const MT_Point3& xyz,
-								const MT_Point2& uv,
-								const MT_Point2& uv2,
+								const MT_Point2 uvs[RAS_TexVert::MAX_UNIT],
 								const MT_Vector4& tangent,
 								const unsigned int rgba,
 								const MT_Vector3& normal,
 								bool flat,
 								int origindex)
 {
-	RAS_TexVert texvert(xyz, uv, uv2, tangent, rgba, normal, flat, origindex);
+	RAS_TexVert texvert(xyz, uvs, tangent, rgba, normal, flat, origindex);
 	RAS_MeshMaterial *mmat;
 	RAS_DisplayArray *darray;
 	RAS_MeshSlot *slot;

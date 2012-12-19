@@ -187,8 +187,9 @@ typedef struct BMesh {
 	/*element pools*/
 	struct BLI_mempool *vpool, *epool, *lpool, *fpool;
 
-	/*operator api stuff*/
-	struct BLI_mempool *toolflagpool;
+	/*operator api stuff (must be all NULL or all alloc'd)*/
+	struct BLI_mempool *vtoolflagpool, *etoolflagpool, *ftoolflagpool;
+
 	int stackdepth;
 	struct BMOperator *currentop;
 	
@@ -277,5 +278,6 @@ enum {
  * but should not error on valid cases */
 #define BM_LOOP_RADIAL_MAX 10000
 #define BM_NGON_MAX 100000
+#define BM_OMP_LIMIT 10000
 
 #endif /* __BMESH_CLASS_H__ */

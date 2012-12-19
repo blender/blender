@@ -146,7 +146,7 @@ void ED_object_location_from_view(bContext *C, float loc[3])
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
-	float *cursor;
+	const float *cursor;
 
 	cursor = give_cursor(scene, v3d);
 
@@ -186,7 +186,7 @@ void ED_object_base_init_transform(bContext *C, Base *base, const float loc[3], 
 /* Uses context to figure out transform for primitive.
  * Returns standard diameter. */
 float ED_object_new_primitive_matrix(bContext *C, Object *obedit,
-                                     const float loc[3], const float rot[3], float primmat[][4],
+                                     const float loc[3], const float rot[3], float primmat[4][4],
                                      int apply_diameter)
 {
 	Scene *scene = CTX_data_scene(C);
@@ -936,6 +936,8 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmWindow *win;
 	const short use_global = RNA_boolean_get(op->ptr, "use_global");
 
 	if (CTX_data_edit_object(C)) 
@@ -967,11 +969,21 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	DAG_scene_sort(bmain, scene);
-	DAG_ids_flush_update(bmain, 0);
+	/* delete has to handle all open scenes */
+	flag_listbase_ids(&bmain->scene, LIB_DOIT, 1);
+	for (win = wm->windows.first; win; win = win->next) {
+		scene = win->screen->scene;
+		
+		if (scene->id.flag & LIB_DOIT) {
+			scene->id.flag &= ~LIB_DOIT;
+			
+			DAG_scene_sort(bmain, scene);
 
-	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
-	WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
+			WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+			WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
+		}
+	}
+	DAG_ids_flush_update(bmain, 0);
 
 	return OPERATOR_FINISHED;
 }

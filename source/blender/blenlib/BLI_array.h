@@ -196,3 +196,31 @@
 	if (_##arr##_is_static) {                                                 \
 		MEM_freeN(arr);                                                       \
 	} (void)0
+
+
+/* alloca */
+#ifdef _MSC_VER
+#  define alloca _alloca
+#endif
+
+#if defined(__MINGW32__)
+#  include <malloc.h>  /* mingw needs for alloca() */
+#endif
+
+#if defined(__GNUC__) || defined(__clang__)
+#define BLI_array_alloca(arr, realsize) \
+	(typeof(arr))alloca(sizeof(*arr) * (realsize))
+
+#define BLI_array_alloca_and_count(arr, realsize) \
+	(typeof(arr))alloca(sizeof(*arr) * (realsize));  \
+	const int _##arr##_count = (realsize)
+
+#else
+#define BLI_array_alloca(arr, realsize) \
+	alloca(sizeof(*arr) * (realsize))
+
+#define BLI_array_alloca_and_count(arr, realsize) \
+	alloca(sizeof(*arr) * (realsize));  \
+	const int _##arr##_count = (realsize)
+#endif
+

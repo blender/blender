@@ -91,7 +91,9 @@ static struct WMInitStruct {
 
 	int windowstate;
 	WinOverrideFlag override_flag;
-} wm_init_state = {0, 0, 0, 0, GHOST_kWindowStateNormal, 0};
+	
+	int native_pixels;
+} wm_init_state = {0, 0, 0, 0, GHOST_kWindowStateNormal, 0, 1};
 
 /* ******** win open & close ************ */
 
@@ -241,7 +243,7 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 	win->screen->do_refresh = TRUE;
 	win->screen->do_draw = TRUE;
 
-	win->drawmethod = -1;
+	win->drawmethod = U.wmdrawmethod;
 	win->drawdata = NULL;
 	
 	return win;
@@ -251,51 +253,50 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 {
 	wmWindow *tmpwin;
-	bScreen *screen = win->screen;
+	int do_exit = 0;
 	
-	/* first check if we have any non-temp remaining windows */
+	/* first check if we have to quit (there are non-temp remaining windows) */
+	for (tmpwin = wm->windows.first; tmpwin; tmpwin = tmpwin->next) {
+		if (tmpwin == win)
+			continue;
+		if (tmpwin->screen->temp == 0)
+			break;
+	}
+
+	if (tmpwin == NULL)
+		do_exit = 1;
+	
 	if ((U.uiflag & USER_QUIT_PROMPT) && !wm->file_saved) {
-		if (wm->windows.first) {
-			for (tmpwin = wm->windows.first; tmpwin; tmpwin = tmpwin->next) {
-				if (tmpwin == win)
-					continue;
-				if (tmpwin->screen->temp == 0)
-					break;
-			}
-			if (tmpwin == NULL) {
-				if (!GHOST_confirmQuit(win->ghostwin))
-					return;
-			}
+		if (do_exit) {
+			if (!GHOST_confirmQuit(win->ghostwin))
+				return;
 		}
 	}
 
-	BLI_remlink(&wm->windows, win);
-	
-	wm_draw_window_clear(win);
-	CTX_wm_window_set(C, win);  /* needed by handlers */
-	WM_event_remove_handlers(C, &win->handlers);
-	WM_event_remove_handlers(C, &win->modalhandlers);
-	ED_screen_exit(C, win, win->screen); 
-	
-	wm_window_free(C, wm, win);
-	
-	/* if temp screen, delete it after window free (it stops jobs that can access it) */
-	if (screen->temp) {
-		Main *bmain = CTX_data_main(C);
-		BKE_libblock_free(&bmain->screen, screen);
-	}
-	
-	/* check remaining windows */
-	if (wm->windows.first) {
-		for (win = wm->windows.first; win; win = win->next)
-			if (win->screen->temp == 0)
-				break;
-		/* in this case we close all */
-		if (win == NULL)
-			WM_exit(C);
-	}
-	else
+	/* let WM_exit do all freeing, for correct quit.blend save */
+	if (do_exit) {
 		WM_exit(C);
+	}
+	else {
+		bScreen *screen = win->screen;
+		
+		BLI_remlink(&wm->windows, win);
+		
+		wm_draw_window_clear(win);
+		
+		CTX_wm_window_set(C, win);  /* needed by handlers */
+		WM_event_remove_handlers(C, &win->handlers);
+		WM_event_remove_handlers(C, &win->modalhandlers);
+		ED_screen_exit(C, win, win->screen); 
+		
+		wm_window_free(C, wm, win);
+	
+		/* if temp screen, delete it after window free (it stops jobs that can access it) */
+		if (screen->temp) {
+			Main *bmain = CTX_data_main(C);
+			BKE_libblock_free(&bmain->screen, screen);
+		}
+	}		
 }
 
 void wm_window_title(wmWindowManager *wm, wmWindow *win)
@@ -308,8 +309,9 @@ void wm_window_title(wmWindowManager *wm, wmWindow *win)
 		
 		/* this is set to 1 if you don't have startup.blend open */
 		if (G.save_over && G.main->name[0]) {
-			char str[sizeof(G.main->name) + 12];
-			BLI_snprintf(str, sizeof(str), "Blender%s [%s]", wm->file_saved ? "" : "*", G.main->name);
+			char str[sizeof(G.main->name) + 24];
+			BLI_snprintf(str, sizeof(str), "Blender%s [%s%s]", wm->file_saved ? "" : "*", G.main->name,
+			             G.main->recovered ? " (Recovered)" : "");
 			GHOST_SetTitle(win->ghostwin, str);
 		}
 		else
@@ -344,8 +346,6 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 	wm_get_screensize(&scr_w, &scr_h);
 	posy = (scr_h - win->posy - win->sizey);
 	
-	/* Disable AA for now, as GL_SELECT (used for border, lasso, ... select)
-	 * doesn't work well when AA is initialized, even if not used. */
 	ghostwin = GHOST_CreateWindow(g_system, title,
 	                              win->posx, posy, win->sizex, win->sizey,
 	                              (GHOST_TWindowState)win->windowstate,
@@ -354,6 +354,8 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 	                              multisamples /* AA */);
 	
 	if (ghostwin) {
+		GHOST_RectangleHandle bounds;
+		
 		/* needed so we can detect the graphics card below */
 		GPU_extensions_init();
 		
@@ -372,7 +374,19 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 		if (!GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE)) {
 			glClear(GL_COLOR_BUFFER_BIT);
 		}
+		
+		/* displays with larger native pixels, like Macbook. Used to scale dpi with */
+		/* needed here, because it's used before it reads userdef */
+		U.pixelsize = GHOST_GetNativePixelSize();
+		BKE_userdef_state();
+		
+		/* store actual window size in blender window */
+		bounds = GHOST_GetClientBounds(win->ghostwin);
+		win->sizex = GHOST_GetWidthRectangle(bounds);
+		win->sizey = GHOST_GetHeightRectangle(bounds);
+		GHOST_DisposeRectangle(bounds);
 
+		
 		wm_window_swap_buffers(win);
 		
 		//GHOST_SetWindowState(ghostwin, GHOST_kWindowStateModified);
@@ -468,7 +482,7 @@ wmWindow *WM_window_open(bContext *C, rcti *rect)
 	win->sizex = BLI_rcti_size_x(rect);
 	win->sizey = BLI_rcti_size_y(rect);
 
-	win->drawmethod = -1;
+	win->drawmethod = U.wmdrawmethod;
 	win->drawdata = NULL;
 	
 	WM_check(C);
@@ -578,6 +592,23 @@ int wm_window_fullscreen_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 /* ************ events *************** */
 
+static void wm_convert_cursor_position(wmWindow *win, int *x, int *y)
+{
+
+	GHOST_ScreenToClient(win->ghostwin, *x, *y, x, y);
+	*x *= GHOST_GetNativePixelSize();
+	
+	*y = (win->sizey - 1) - *y;
+	*y *= GHOST_GetNativePixelSize();
+}
+
+
+void wm_get_cursor_position(wmWindow *win, int *x, int *y)
+{
+	GHOST_GetCursorPosition(g_system, x, y);
+	wm_convert_cursor_position(win, x, y);
+}
+
 typedef enum {
 	SHIFT    = 's',
 	CONTROL  = 'c',
@@ -633,6 +664,7 @@ void wm_window_make_drawable(bContext *C, wmWindow *win)
 }
 
 /* called by ghost, here we handle events for windows themselves or send to event system */
+/* mouse coordinate converversion happens here */
 static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr)
 {
 	bContext *C = C_void_ptr;
@@ -673,7 +705,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 			{
 				GHOST_TEventKeyData kdata;
 				wmEvent event;
-				int cx, cy, wx, wy;
+				int wx, wy;
 				
 				wm->winactive = win; /* no context change! c->wm->windrawable is drawable, or for area queues */
 				
@@ -703,11 +735,10 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 				win->eventstate->keymodifier = 0;
 				
 				/* entering window, update mouse pos. but no event */
-				GHOST_GetCursorPosition(g_system, &wx, &wy);
-				
-				GHOST_ScreenToClient(win->ghostwin, wx, wy, &cx, &cy);
-				win->eventstate->x = cx;
-				win->eventstate->y = (win->sizey - 1) - cy;
+				wm_get_cursor_position(win,  &wx, &wy);
+
+				win->eventstate->x = wx;
+				win->eventstate->y = wy;
 				
 				win->addmousemove = 1;   /* enables highlighted buttons */
 				
@@ -857,14 +888,12 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 			{
 				wmEvent event;
 				GHOST_TEventDragnDropData *ddd = GHOST_GetEventData(evt);
-				int cx, cy, wx, wy;
+				int wx, wy;
 				
 				/* entering window, update mouse pos */
-				GHOST_GetCursorPosition(g_system, &wx, &wy);
-				
-				GHOST_ScreenToClient(win->ghostwin, wx, wy, &cx, &cy);
-				win->eventstate->x = cx;
-				win->eventstate->y = (win->sizey - 1) - cy;
+				wm_get_cursor_position(win, &wx, &wy);
+				win->eventstate->x = wx;
+				win->eventstate->y = wy;
 				
 				event = *(win->eventstate);  /* copy last state, like mouse coords */
 				
@@ -907,11 +936,24 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 					}
 				}
 				
-				
-				
 				break;
 			}
-			
+			case GHOST_kEventTrackpad:
+			{
+				GHOST_TEventTrackpadData *pd = data;
+				
+				wm_convert_cursor_position(win, &pd->x, &pd->y);
+				wm_event_add_ghostevent(wm, win, type, time, data);
+				break;
+			}
+			case GHOST_kEventCursorMove:
+			{
+				GHOST_TEventCursorData *cd = data;
+				
+				wm_convert_cursor_position(win, &cd->x, &cd->y);
+				wm_event_add_ghostevent(wm, win, type, time, data);
+				break;
+			}
 			default:
 				wm_event_add_ghostevent(wm, win, type, time, data);
 				break;
@@ -1017,6 +1059,10 @@ void wm_ghost_init(bContext *C)
 		
 		g_system = GHOST_CreateSystem();
 		GHOST_AddEventConsumer(g_system, consumer);
+		
+		if (wm_init_state.native_pixels) {
+			GHOST_UseNativePixels();
+		}
 	}
 }
 
@@ -1068,6 +1114,8 @@ void WM_event_remove_timer(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *
 		if (wt == timer)
 			break;
 	if (wt) {
+		wmWindow *win;
+		
 		if (wm->reports.reporttimer == wt)
 			wm->reports.reporttimer = NULL;
 		
@@ -1075,6 +1123,17 @@ void WM_event_remove_timer(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *
 		if (wt->customdata)
 			MEM_freeN(wt->customdata);
 		MEM_freeN(wt);
+		
+		/* there might be events in queue with this timer as customdata */
+		for (win = wm->windows.first; win; win = win->next) {
+			wmEvent *event;
+			for (event = win->queue.first; event; event = event->next) {
+				if (event->customdata == wt) {
+					event->customdata = NULL;
+					event->type = EVENT_NONE;	/* timer users customdata, dont want NULL == NULL */
+				}
+			}
+		}
 	}
 }
 
@@ -1158,23 +1217,6 @@ void wm_window_get_position(wmWindow *win, int *posx_r, int *posy_r)
 	*posy_r = win->posy;
 }
 
-void wm_window_get_size(wmWindow *win, int *width_r, int *height_r) 
-{
-	*width_r = win->sizex;
-	*height_r = win->sizey;
-}
-
-/* exceptional case: - splash is called before events are processed
- * this means we don't actually know the window size so get this from GHOST */
-void wm_window_get_size_ghost(wmWindow *win, int *width_r, int *height_r)
-{
-	GHOST_RectangleHandle bounds = GHOST_GetClientBounds(win->ghostwin);
-	*width_r = GHOST_GetWidthRectangle(bounds);
-	*height_r = GHOST_GetHeightRectangle(bounds);
-	
-	GHOST_DisposeRectangle(bounds);
-}
-
 void wm_window_set_size(wmWindow *win, int width, int height) 
 {
 	GHOST_SetClientSize(win->ghostwin, width, height);
@@ -1202,12 +1244,6 @@ void wm_window_swap_buffers(wmWindow *win)
 #endif
 }
 
-void wm_get_cursor_position(wmWindow *win, int *x, int *y)
-{
-	GHOST_GetCursorPosition(g_system, x, y);
-	GHOST_ScreenToClient(win->ghostwin, *x, *y, x, y);
-	*y = (win->sizey - 1) - *y;
-}
 
 /* ******************* exported api ***************** */
 
@@ -1217,8 +1253,8 @@ void WM_init_state_size_set(int stax, int stay, int sizx, int sizy)
 {
 	wm_init_state.start_x = stax; /* left hand pos */
 	wm_init_state.start_y = stay; /* bottom pos */
-	wm_init_state.size_x = sizx;
-	wm_init_state.size_y = sizy;
+	wm_init_state.size_x = sizx < 640 ? 640 : sizx;
+	wm_init_state.size_y = sizy < 480 ? 480 : sizy;
 	wm_init_state.override_flag |= WIN_OVERRIDE_GEOM;
 }
 
@@ -1235,12 +1271,20 @@ void WM_init_state_normal_set(void)
 	wm_init_state.override_flag |= WIN_OVERRIDE_WINSTATE;
 }
 
+void WM_init_native_pixels(int do_it)
+{
+	wm_init_state.native_pixels = do_it;
+}
+
 /* This function requires access to the GHOST_SystemHandle (g_system) */
 void WM_cursor_warp(wmWindow *win, int x, int y)
 {
 	if (win && win->ghostwin) {
+		float f = GHOST_GetNativePixelSize();
 		int oldx = x, oldy = y;
 
+		x = x / f;
+		y = y / f;
 		y = win->sizey - y - 1;
 
 		GHOST_ClientToScreen(win->ghostwin, x, y, &x, &y);
@@ -1251,3 +1295,19 @@ void WM_cursor_warp(wmWindow *win, int x, int y)
 	}
 }
 
+/* support for native pixel size */
+/* mac retina opens window in size X, but it has up to 2 x more pixels */
+int WM_window_pixels_x(wmWindow *win)
+{
+	float f = GHOST_GetNativePixelSize();
+	
+	return (int)(f * (float)win->sizex);
+}
+
+int WM_window_pixels_y(wmWindow *win)
+{
+	float f = GHOST_GetNativePixelSize();
+	
+	return (int)(f * (float)win->sizey);
+	
+}

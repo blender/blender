@@ -207,7 +207,7 @@ __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ra
 
 				ShaderData sd;
 				shader_setup_from_ray(kg, &sd, &isect, ray);
-				shader_eval_surface(kg, &sd, 0.0f, PATH_RAY_SHADOW);
+				shader_eval_surface(kg, &sd, 0.0f, PATH_RAY_SHADOW, SHADER_CONTEXT_SHADOW);
 
 				throughput *= shader_bsdf_transparency(kg, &sd);
 
@@ -272,7 +272,7 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 		ShaderData sd;
 		shader_setup_from_ray(kg, &sd, &isect, &ray);
 		float rbsdf = path_rng(kg, rng, sample, rng_offset + PRNG_BSDF);
-		shader_eval_surface(kg, &sd, rbsdf, state.flag);
+		shader_eval_surface(kg, &sd, rbsdf, state.flag, SHADER_CONTEXT_MAIN);
 
 		kernel_write_data_passes(kg, buffer, &L, &sd, sample, state.flag, throughput);
 
@@ -478,7 +478,7 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 		ShaderData sd;
 		shader_setup_from_ray(kg, &sd, &isect, &ray);
 		float rbsdf = path_rng(kg, rng, sample, rng_offset + PRNG_BSDF);
-		shader_eval_surface(kg, &sd, rbsdf, state.flag);
+		shader_eval_surface(kg, &sd, rbsdf, state.flag, SHADER_CONTEXT_INDIRECT);
 		shader_merge_closures(kg, &sd);
 
 		/* blurring of bsdf after bounces, for rays that have a small likelihood
@@ -666,7 +666,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 		ShaderData sd;
 		shader_setup_from_ray(kg, &sd, &isect, &ray);
 		float rbsdf = path_rng(kg, rng, sample, rng_offset + PRNG_BSDF);
-		shader_eval_surface(kg, &sd, rbsdf, state.flag);
+		shader_eval_surface(kg, &sd, rbsdf, state.flag, SHADER_CONTEXT_MAIN);
 		shader_merge_closures(kg, &sd);
 
 		kernel_write_data_passes(kg, buffer, &L, &sd, sample, state.flag, throughput);

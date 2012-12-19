@@ -22,7 +22,7 @@ shader node_combine_rgb(
 	float R = 0.0,
 	float G = 0.0,
 	float B = 0.0,
-	output color Image = color(0.8, 0.8, 0.8))
+	output color Image = 0.8)
 {
 	Image = color(R, G, B);
 }

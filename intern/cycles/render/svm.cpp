@@ -478,9 +478,9 @@ void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*>& done)
 		stack_clear_users(node, done);
 		stack_clear_temporary(node);
 
-		if(node->name == ustring("emission"))
+		if(node->has_surface_emission())
 			current_shader->has_surface_emission = true;
-		if(node->name == ustring("transparent"))
+		if(node->has_surface_transparent())
 			current_shader->has_surface_transparent = true;
 
 		/* end node is added outside of this */
@@ -538,9 +538,9 @@ void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& don
 
 		mix_weight_offset = SVM_STACK_INVALID;
 
-		if(node->name == ustring("emission"))
+		if(node->has_surface_emission())
 			current_shader->has_surface_emission = true;
-		if(node->name == ustring("transparent"))
+		if(node->has_surface_transparent())
 			current_shader->has_surface_transparent = true;
 	}
 

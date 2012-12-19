@@ -151,6 +151,7 @@ static SpaceLink *image_new(const bContext *UNUSED(C))
 	simage->spacetype = SPACE_IMAGE;
 	simage->zoom = 1.0f;
 	simage->lock = TRUE;
+	simage->flag = SI_SHOW_GPENCIL;
 
 	simage->iuser.ok = TRUE;
 	simage->iuser.fie_ima = 2;
@@ -292,9 +293,14 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom", MOUSEZOOM, 0, 0, 0);
 
+	/* ctrl now works as well, shift + numpad works as arrow keys on Windows */
+	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD8, KM_PRESS, KM_CTRL, 0)->ptr, "ratio", 8.0f);
+	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD4, KM_PRESS, KM_CTRL, 0)->ptr, "ratio", 4.0f);
+	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD2, KM_PRESS, KM_CTRL, 0)->ptr, "ratio", 2.0f);
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD8, KM_PRESS, KM_SHIFT, 0)->ptr, "ratio", 8.0f);
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD4, KM_PRESS, KM_SHIFT, 0)->ptr, "ratio", 4.0f);
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD2, KM_PRESS, KM_SHIFT, 0)->ptr, "ratio", 2.0f);
+
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD1, KM_PRESS, 0, 0)->ptr, "ratio", 1.0f);
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD2, KM_PRESS, 0, 0)->ptr, "ratio", 0.5f);
 	RNA_float_set(WM_keymap_add_item(keymap, "IMAGE_OT_view_zoom_ratio", PAD4, KM_PRESS, 0, 0)->ptr, "ratio", 0.25f);
@@ -669,16 +675,20 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 
-	/* Grease Pencil too (in addition to UV's) */
-	draw_image_grease_pencil((bContext *)C, 1); 
+	if (sima->flag & SI_SHOW_GPENCIL) {
+		/* Grease Pencil too (in addition to UV's) */
+		draw_image_grease_pencil((bContext *)C, TRUE);
+	}
 
 	/* sample line */
 	draw_image_sample_line(sima);
 
 	UI_view2d_view_restore(C);
 
-	/* draw Grease Pencil - screen space only */
-	draw_image_grease_pencil((bContext *)C, 0);
+	if (sima->flag & SI_SHOW_GPENCIL) {
+		/* draw Grease Pencil - screen space only */
+		draw_image_grease_pencil((bContext *)C, FALSE);
+	}
 
 	if (mask) {
 		int width, height;

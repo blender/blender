@@ -59,6 +59,7 @@
 EnumPropertyItem modifier_type_items[] = {
 	{0, "", 0, N_("Modify"), ""},
 	{eModifierType_UVProject, "UV_PROJECT", ICON_MOD_UVPROJECT, "UV Project", ""},
+	{eModifierType_UVWarp, "UV_WARP", ICON_MOD_UVPROJECT, "UV Warp", ""},
 	{eModifierType_WeightVGEdit, "VERTEX_WEIGHT_EDIT", ICON_MOD_VERTEX_WEIGHT, "Vertex Weight Edit", ""},
 	{eModifierType_WeightVGMix, "VERTEX_WEIGHT_MIX", ICON_MOD_VERTEX_WEIGHT, "Vertex Weight Mix", ""},
 	{eModifierType_WeightVGProximity, "VERTEX_WEIGHT_PROXIMITY", ICON_MOD_VERTEX_WEIGHT,
@@ -129,7 +130,7 @@ static StructRNA *rna_Modifier_refine(struct PointerRNA *ptr)
 {
 	ModifierData *md = (ModifierData *)ptr->data;
 
-	switch (md->type) {
+	switch ((ModifierType)md->type) {
 		case eModifierType_Subsurf:
 			return &RNA_SubsurfModifier;
 		case eModifierType_Lattice:
@@ -216,9 +217,16 @@ static StructRNA *rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_LaplacianSmoothModifier;
 		case eModifierType_Triangulate:
 			return &RNA_TriangulateModifier;
-		default:
+		case eModifierType_UVWarp:
+			return &RNA_UVWarpModifier;
+		/* Default */
+		case eModifierType_None:
+		case eModifierType_ShapeKey:
+		case NUM_MODIFIER_TYPES:
 			return &RNA_Modifier;
 	}
+
+	return &RNA_Modifier;
 }
 
 static void rna_Modifier_name_set(PointerRNA *ptr, const char *value)
@@ -736,6 +744,18 @@ static void rna_BevelModifier_angle_limit_set(PointerRNA *ptr, float value)
 	value = RAD2DEGF(value);
 	CLAMP(value, 0.0f, 180.0f);
 	md->bevel_angle = (int)value;
+}
+
+static void rna_UVWarpModifier_vgroup_set(PointerRNA *ptr, const char *value)
+{
+	UVWarpModifierData *umd = (UVWarpModifierData*)ptr->data;
+	rna_object_vgroup_name_set(ptr, value, umd->vgroup_name, sizeof(umd->vgroup_name));
+}
+
+static void rna_UVWarpModifier_uvlayer_set(PointerRNA *ptr, const char *value)
+{
+	UVWarpModifierData *umd = (UVWarpModifierData*)ptr->data;
+	rna_object_uvlayer_name_set(ptr, value, umd->uvlayer_name, sizeof(umd->uvlayer_name));
 }
 
 #else
@@ -2773,6 +2793,75 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 #endif
 }
 
+static void rna_def_modifier_uvwarp(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem uvwarp_axis[] = {
+		{0, "X", 0, "X", ""},
+		{1, "Y", 0, "Y", ""},
+		{2, "Z", 0, "Z", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	srna = RNA_def_struct(brna, "UVWarpModifier", "Modifier");
+	RNA_def_struct_ui_text(srna, "UVWarp Modifier", "Add target position to uv coordinates");
+	RNA_def_struct_sdna(srna, "UVWarpModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_UVPROJECT);
+
+	prop = RNA_def_property(srna, "axis_u", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "axis_u");
+	RNA_def_property_enum_items(prop, uvwarp_axis);
+	RNA_def_property_ui_text(prop, "U-Axis", "Pole axis for rotation");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "axis_v", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "axis_v");
+	RNA_def_property_enum_items(prop, uvwarp_axis);
+	RNA_def_property_ui_text(prop, "V-Axis", "Pole axis for rotation");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "center", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "center");
+	RNA_def_property_ui_text(prop, "UV Center", "Center point for rotate/scale");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "object_from", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "object_src");
+	RNA_def_property_ui_text(prop, "Target", "Object defining offset");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+	prop = RNA_def_property(srna, "bone_from", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "bone_src");
+	RNA_def_property_ui_text(prop, "Sub-Target", "Bone defining offset");
+	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+	prop = RNA_def_property(srna, "object_to", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "object_dst");
+	RNA_def_property_ui_text(prop, "Target", "Object defining offset");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+	prop = RNA_def_property(srna, "bone_to", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "bone_dst");
+	RNA_def_property_ui_text(prop, "Sub-Target", "Bone defining offset");
+	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+	prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "vgroup_name");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_UVWarpModifier_vgroup_set");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "uvlayer_name");
+	RNA_def_property_ui_text(prop, "UV Layer", "UV Layer name");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_UVWarpModifier_uvlayer_set");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+}
+
 static void rna_def_modifier_weightvg_mask(BlenderRNA *UNUSED(brna), StructRNA *srna)
 {
 	static EnumPropertyItem weightvg_mask_tex_map_items[] = {
@@ -3480,6 +3569,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_smoke(brna);
 	rna_def_modifier_solidify(brna);
 	rna_def_modifier_screw(brna);
+	rna_def_modifier_uvwarp(brna);
 	rna_def_modifier_weightvgedit(brna);
 	rna_def_modifier_weightvgmix(brna);
 	rna_def_modifier_weightvgproximity(brna);

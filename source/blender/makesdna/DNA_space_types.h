@@ -495,7 +495,7 @@ typedef enum eSpaceSeq_Flag {
 	SEQ_MARKER_TRANS            = (1 << 1),
 	SEQ_DRAW_COLOR_SEPARATED    = (1 << 2),
 	SEQ_DRAW_SAFE_MARGINS       = (1 << 3),
-/*  SEQ_DRAW_GPENCIL            = (1 << 4), */ /* DEPRECATED */
+	SEQ_SHOW_GPENCIL            = (1 << 4),
 	SEQ_NO_DRAW_CFRANUM         = (1 << 5),
 } eSpaceSeq_Flag;
 
@@ -777,7 +777,7 @@ typedef enum eSpaceImage_Flag {
 	SI_DRAW_TILE          = (1 << 19),
 	SI_SMOOTH_UV          = (1 << 20),
 	SI_DRAW_STRETCH       = (1 << 21),
-/*  SI_DISPGP             = (1 << 22), */  /* deprecated */
+	SI_SHOW_GPENCIL       = (1 << 22),
 	SI_DRAW_OTHER         = (1 << 23),
 
 	SI_COLOR_CORRECTION   = (1 << 24),
@@ -798,7 +798,7 @@ typedef struct SpaceText {
 	int top, viewlines;
 	short flags, menunr;
 
-	short lheight;      /* user preference */
+	short lheight;      /* user preference, is font_size! */
 	char cwidth, linenrs_tot;       /* runtime computed, character width and the number of chars to use when showing line numbers */
 	int left;
 	int showlinenrs;
@@ -817,8 +817,9 @@ typedef struct SpaceText {
 	char findstr[256];      /* ST_MAX_FIND_STR */
 	char replacestr[256];   /* ST_MAX_FIND_STR */
 
-	short margin_column; /* column number to show right margin at */
-	char pad[6];
+	short margin_column;	/* column number to show right margin at */
+	short lheight_dpi;		/* actual lineheight, dpi controlled */
+	char pad[4];
 
 	void *drawcache; /* cache for faster drawing */
 } SpaceText;
@@ -887,7 +888,7 @@ typedef struct SpaceNode {
 	
 	struct ID *id, *from;       /* context, no need to save in file? well... pinning... */
 	short flag, pad1;           /* menunr: browse id block in header */
-	float aspect, aspect_sqrt;
+	float aspect, pad2;	/* internal state variables */
 	
 	float xof, yof;     /* offset for drawing the backdrop */
 	float zoom;   /* zoom for backdrop */
@@ -907,7 +908,7 @@ typedef struct SpaceNode {
 /* snode->flag */
 typedef enum eSpaceNode_Flag {
 	SNODE_BACKDRAW       = (1 << 1),
-/*  SNODE_DISPGP         = (1 << 2), */ /* XXX: Grease Pencil - deprecated? */
+	SNODE_SHOW_GPENCIL   = (1 << 2),
 	SNODE_USE_ALPHA      = (1 << 3),
 	SNODE_SHOW_ALPHA     = (1 << 4),
 	SNODE_SHOW_R         = (1 << 7),
@@ -1061,7 +1062,7 @@ typedef enum eSpaceClip_Flag {
 	SC_SHOW_GRID           = (1 << 9),
 	SC_SHOW_STABLE         = (1 << 10),
 	SC_MANUAL_CALIBRATION  = (1 << 11),
-/*	SC_SHOW_GPENCIL        = (1 << 12),*/	/* UNUSED */
+	SC_SHOW_GPENCIL        = (1 << 12),
 	SC_SHOW_FILTERS        = (1 << 13),
 	SC_SHOW_GRAPH_FRAMES   = (1 << 14),
 	SC_SHOW_GRAPH_TRACKS   = (1 << 15),

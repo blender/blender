@@ -1302,7 +1302,7 @@ float shadow_halo(LampRen *lar, const float p1[3], const float p2[3])
 	ShadBuf *shb= lar->shb;
 	ShadSampleBuf *shsample;
 	float co[4], siz;
-	float labda, labdao, labdax, labday, ldx, ldy;
+	float lambda, lambda_o, lambda_x, lambda_y, ldx, ldy;
 	float zf, xf1, yf1, zf1, xf2, yf2, zf2;
 	float count, lightcount;
 	int x, y, z, xs1, ys1;
@@ -1336,68 +1336,68 @@ float shadow_halo(LampRen *lar, const float p1[3], const float p2[3])
 
 	if (xf1 != xf2) {
 		if (xf2-xf1 > 0.0f) {
-			labdax= (xf1-xs1-1.0f)/(xf1-xf2);
+			lambda_x= (xf1-xs1-1.0f)/(xf1-xf2);
 			ldx= -shb->shadhalostep/(xf1-xf2);
 			dx= shb->shadhalostep;
 		}
 		else {
-			labdax= (xf1-xs1)/(xf1-xf2);
+			lambda_x= (xf1-xs1)/(xf1-xf2);
 			ldx= shb->shadhalostep/(xf1-xf2);
 			dx= -shb->shadhalostep;
 		}
 	}
 	else {
-		labdax= 1.0;
+		lambda_x= 1.0;
 		ldx= 0.0;
 	}
 
 	if (yf1 != yf2) {
 		if (yf2-yf1 > 0.0f) {
-			labday= (yf1-ys1-1.0f)/(yf1-yf2);
+			lambda_y= (yf1-ys1-1.0f)/(yf1-yf2);
 			ldy= -shb->shadhalostep/(yf1-yf2);
 			dy= shb->shadhalostep;
 		}
 		else {
-			labday= (yf1-ys1)/(yf1-yf2);
+			lambda_y= (yf1-ys1)/(yf1-yf2);
 			ldy= shb->shadhalostep/(yf1-yf2);
 			dy= -shb->shadhalostep;
 		}
 	}
 	else {
-		labday= 1.0;
+		lambda_y= 1.0;
 		ldy= 0.0;
 	}
 	
 	x= xs1;
 	y= ys1;
-	labda= count= lightcount= 0.0;
+	lambda= count= lightcount= 0.0;
 
 /* printf("start %x %x	\n", (int)(0x7FFFFFFF*zf1), (int)(0x7FFFFFFF*zf2)); */
 
 	while (1) {
-		labdao= labda;
+		lambda_o= lambda;
 		
-		if (labdax==labday) {
-			labdax+= ldx;
+		if (lambda_x==lambda_y) {
+			lambda_x+= ldx;
 			x+= dx;
-			labday+= ldy;
+			lambda_y+= ldy;
 			y+= dy;
 		}
 		else {
-			if (labdax<labday) {
-				labdax+= ldx;
+			if (lambda_x<lambda_y) {
+				lambda_x+= ldx;
 				x+= dx;
 			}
 			else {
-				labday+= ldy;
+				lambda_y+= ldy;
 				y+= dy;
 			}
 		}
 		
-		labda = min_ff(labdax, labday);
-		if (labda==labdao || labda>=1.0f) break;
+		lambda = min_ff(lambda_x, lambda_y);
+		if (lambda==lambda_o || lambda>=1.0f) break;
 		
-		zf= zf1 + labda*(zf2-zf1);
+		zf= zf1 + lambda*(zf2-zf1);
 		count+= (float)shb->totbuf;
 
 		if (zf<= -1.0f) lightcount += 1.0f;	/* close to the spot */
@@ -1686,21 +1686,21 @@ static int point_behind_strand(const float p[3], BSPFace *face)
 			return 1;
 	}
 	else {
-		float labda= ( face->rc[0]*(p[0]-face->vec1[0]) + face->rc[1]*(p[1]-face->vec1[1]) )*face->len;
+		float lambda= ( face->rc[0]*(p[0]-face->vec1[0]) + face->rc[1]*(p[1]-face->vec1[1]) )*face->len;
 		
-		if (labda > -face->radline_end && labda < 1.0f+face->radline_end) {
+		if (lambda > -face->radline_end && lambda < 1.0f+face->radline_end) {
 			/* hesse for dist: */
 			//dist= (float)(fabs( (p[0]-vec2[0])*rc[1] + (p[1]-vec2[1])*rc[0])/len);
 			
-			pt[0]= labda*face->rc[0]+face->vec1[0];
-			pt[1]= labda*face->rc[1]+face->vec1[1];
+			pt[0]= lambda*face->rc[0]+face->vec1[0];
+			pt[1]= lambda*face->rc[1]+face->vec1[1];
 			
 			rc[0]= pt[0]-p[0];
 			rc[1]= pt[1]-p[1];
 			dist= (float)sqrt(rc[0]*rc[0]+ rc[1]*rc[1]);
 			
 			if (dist < face->radline) {
-				float zval= face->vec1[2] + labda*face->rc[2];
+				float zval= face->vec1[2] + lambda*face->rc[2];
 				if (p[2] > zval)
 					return 1;
 			}

@@ -622,6 +622,7 @@ extern StructRNA RNA_TransformConstraint;
 extern StructRNA RNA_TransformSequence;
 extern StructRNA RNA_UILayout;
 extern StructRNA RNA_UIListItem;
+extern StructRNA RNA_UVWarpModifier;
 extern StructRNA RNA_UVProjectModifier;
 extern StructRNA RNA_UVProjector;
 extern StructRNA RNA_UnitSettings;
@@ -897,7 +898,12 @@ int RNA_path_resolve_full(PointerRNA *ptr, const char *path,
 
 char *RNA_path_from_ID_to_struct(PointerRNA *ptr);
 char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop);
-char *RNA_path_from_ID_python(struct ID *id);
+
+char *RNA_path_full_ID_py(struct ID *id);
+char *RNA_path_full_struct_py(struct PointerRNA *ptr);
+char *RNA_path_full_property_py(struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
+char *RNA_path_struct_property_py(struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
+char *RNA_path_property_py(struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
 
 /* Quick name based property access
  *
@@ -1005,8 +1011,8 @@ int RNA_struct_property_is_set(PointerRNA *ptr, const char *identifier);
 int RNA_property_is_idprop(PropertyRNA *prop);
 
 /* python compatible string representation of this property, (must be freed!) */
-char *RNA_property_as_string(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop);
-char *RNA_pointer_as_string(struct bContext *C, PointerRNA *ptr);
+char *RNA_property_as_string(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index);
+char *RNA_pointer_as_string(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop_ptr, PointerRNA *ptr_prop);
 char *RNA_pointer_as_string_keywords_ex(struct bContext *C, PointerRNA *ptr, PointerRNA *ptr_default,
                                         const short skip_optional_value, const short all_args,
                                         PropertyRNA *iterprop);

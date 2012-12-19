@@ -301,7 +301,7 @@ static DerivedMesh *fluidsim_read_obj(const char *filename, const MPoly *mp_exam
 }
 
 
-void fluid_get_bb(MVert *mvert, int totvert, float obmat[][4],
+void fluid_get_bb(MVert *mvert, int totvert, float obmat[4][4],
                   /*RET*/ float start[3], /*RET*/ float size[3])
 {
 	float bbsx = 0.0, bbsy = 0.0, bbsz = 0.0;

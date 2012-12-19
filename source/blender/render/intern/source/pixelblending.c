@@ -206,7 +206,7 @@ void add_filt_fmask(unsigned int mask, const float col[4], float *rowbuf, int ro
 }
 
 
-void mask_array(unsigned int mask, float filt[][3])
+void mask_array(unsigned int mask, float filt[3][3])
 {
 	float **fmask1 = R.samples->fmask1, **fmask2 = R.samples->fmask2;
 	unsigned int maskand = (mask & 255);
@@ -244,7 +244,7 @@ void mask_array(unsigned int mask, float filt[][3])
  * </pre>
  */
 
-void add_filt_fmask_coord(float filt[][3], const float col[4], float *rowbuf, int row_w, int col_h, int x, int y)
+void add_filt_fmask_coord(float filt[3][3], const float col[4], float *rowbuf, int row_w, int col_h, int x, int y)
 {
 	float *fpoin[3][3];
 	float val, r, g, b, al, lfilt[3][3];

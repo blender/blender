@@ -142,7 +142,7 @@ static int fluid_is_animated_mesh(FluidsimSettings *fss)
 
 #if 0
 /* helper function */
-void fluidsimGetGeometryObjFilename(Object *ob, char *dst) { //, char *srcname)
+void fluidsimGetGeometryObjFilename(Object *ob, char *dst)  //, char *srcname)
 {
 	//BLI_snprintf(dst, FILE_MAXFILE, "%s_cfgdata_%s.bobj.gz", srcname, ob->id.name);
 	BLI_snprintf(dst, FILE_MAXFILE, "fluidcfgdata_%s.bobj.gz", ob->id.name);
@@ -267,7 +267,7 @@ static void set_vertex_channel(float *channel, float time, struct Scene *scene, 
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 	float *verts;
 	int *tris=NULL, numVerts=0, numTris=0;
-	int modifierIndex = modifiers_indexInObject(ob, (ModifierData *)fluidmd);
+	int modifierIndex = BLI_findindex(&ob->modifiers, fluidmd);
 	int framesize = (3*fobj->numVerts) + 1;
 	int j;
 	
@@ -388,7 +388,7 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 			
 			if (fluid_is_animated_mesh(fluidmd->fss)) {
 				float *verts=NULL;
-				int *tris=NULL, modifierIndex = modifiers_indexInObject(ob, (ModifierData *)fluidmd);
+				int *tris=NULL, modifierIndex = BLI_findindex(&ob->modifiers, (ModifierData *)fluidmd);
 
 				initElbeemMesh(scene, ob, &fobj->numVerts, &verts, &fobj->numTris, &tris, 0, modifierIndex);
 				fobj->VertexCache = MEM_callocN(length *((fobj->numVerts*CHANNEL_VEC)+1) * sizeof(float), "fluidobject VertexCache");
@@ -491,7 +491,7 @@ static void export_fluid_objects(ListBase *fobjects, Scene *scene, int length)
 	for (fobj=fobjects->first; fobj; fobj=fobj->next) {
 		Object *ob = fobj->object;
 		FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
-		int modifierIndex = modifiers_indexInObject(ob, (ModifierData *)fluidmd);
+		int modifierIndex = BLI_findindex(&ob->modifiers, fluidmd);
 		
 		float *verts=NULL;
 		int *tris=NULL;

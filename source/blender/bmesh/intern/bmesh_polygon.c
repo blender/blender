@@ -157,12 +157,10 @@ float BM_face_calc_area(BMFace *f)
 {
 	BMLoop *l;
 	BMIter iter;
-	float (*verts)[3];
+	float (*verts)[3] = BLI_array_alloca(verts, f->len);
 	float normal[3];
 	float area;
 	int i;
-
-	BLI_array_fixedstack_declare(verts, BM_DEFAULT_NGON_STACK_SIZE, f->len, __func__);
 
 	BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, i) {
 		copy_v3_v3(verts[i], l->v->co);
@@ -178,8 +176,6 @@ float BM_face_calc_area(BMFace *f)
 		calc_poly_normal(normal, verts, f->len);
 		area = area_poly_v3(f->len, verts, normal);
 	}
-
-	BLI_array_fixedstack_free(verts);
 
 	return area;
 }
@@ -855,8 +851,8 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3], const s
 	BMLoop *newl;
 	BMLoop *l_iter;
 	BMLoop *l_first;
-	float *abscoss = NULL;
-	BLI_array_fixedstack_declare(abscoss, 16, f->len, "BM_face_triangulate: temp absolute cosines of face corners");
+	/* BM_face_triangulate: temp absolute cosines of face corners */
+	float *abscoss = BLI_array_alloca(abscoss, f->len);
 
 	/* copy vertex coordinates to vertspace area */
 	i = 0;
@@ -940,11 +936,10 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3], const s
 	}
 #endif
 
-	BLI_array_fixedstack_free(abscoss);
-
 	/* NULL-terminate */
-	if (newfaces)
+	if (newfaces) {
 		newfaces[nf_i] = NULL;
+	}
 }
 
 /**
@@ -961,13 +956,10 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 	BMLoop *l;
 	float v1[3], v2[3], v3[3] /*, v4[3 */, no[3], mid[3], *p1, *p2, *p3, *p4;
 	float out[3] = {-FLT_MAX, -FLT_MAX, 0.0f};
-	float (*projverts)[3];
-	float (*edgeverts)[3];
+	float (*projverts)[3] = BLI_array_alloca(projverts, f->len);
+	float (*edgeverts)[3] = BLI_array_alloca(edgeverts, len * 2);
 	float fac1 = 1.0000001f, fac2 = 0.9f; //9999f; //0.999f;
 	int i, j, a = 0, clen;
-
-	BLI_array_fixedstack_declare(projverts, BM_DEFAULT_NGON_STACK_SIZE, f->len,      "projvertsb");
-	BLI_array_fixedstack_declare(edgeverts, BM_DEFAULT_NGON_STACK_SIZE * 2, len * 2, "edgevertsb");
 	
 	i = 0;
 	l = BM_iter_new(&iter, bm, BM_LOOPS_OF_FACE, f);
@@ -1042,7 +1034,7 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		}
 	}
 
-	/* do line crossing test */
+	/* do line crossing tests */
 	for (i = 0; i < f->len; i++) {
 		p1 = projverts[i];
 		p2 = projverts[(i + 1) % f->len];
@@ -1085,7 +1077,4 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 			}
 		}
 	}
-
-	BLI_array_fixedstack_free(projverts);
-	BLI_array_fixedstack_free(edgeverts);
 }

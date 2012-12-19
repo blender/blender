@@ -19,9 +19,9 @@
 #include "stdosl.h"
 
 shader node_gamma(
-	color ColorIn = color(0.8, 0.8, 0.8),
+	color ColorIn = 0.8,
 	float Gamma = 1.0,
-	output color ColorOut = color(0.0, 0.0, 0.0))
+	output color ColorOut = 0.0)
 {
 	ColorOut = pow(ColorIn, Gamma);
 }

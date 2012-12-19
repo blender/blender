@@ -39,6 +39,10 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_blender.h"
+#include "BKE_context.h"
+#include "BKE_main.h"
+
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -48,10 +52,75 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_screen.h"
 #include "ED_transform.h"
 
 #include "view3d_intern.h"
 
+/* ************************** copy paste ***************************** */
+
+static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
+{
+	char str[FILE_MAX];
+	
+	BKE_copybuffer_begin();
+	
+	/* context, selection, could be generalized */
+	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
+	{
+		BKE_copybuffer_tag_ID(&ob->id);
+		
+	}
+	CTX_DATA_END;
+	
+	BLI_make_file_string("/", str, BLI_temporary_dir(), "copybuffer.blend");
+	BKE_copybuffer_save(str, op->reports);
+	
+	return OPERATOR_FINISHED;
+}
+
+static void VIEW3D_OT_copybuffer(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name = "Copy Selection to Buffer";
+	ot->idname = "VIEW3D_OT_copybuffer";
+	ot->description = "Selected objects are saved in a temp file";
+	
+	/* api callbacks */
+	ot->invoke = WM_operator_confirm;
+	ot->exec = view3d_copybuffer_exec;
+	ot->poll = ED_operator_view3d_active;
+}
+
+static int view3d_pastebuffer_exec(bContext *C, wmOperator *op)
+{
+	char str[FILE_MAX];
+	
+	BLI_make_file_string("/", str, BLI_temporary_dir(), "copybuffer.blend");
+	BKE_copybuffer_paste(C, str, op->reports);
+
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+static void VIEW3D_OT_pastebuffer(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name = "Paste Selection from Buffer";
+	ot->idname = "VIEW3D_OT_pastebuffer";
+	ot->description = "Contents of copy buffer gets pasted";
+	
+	/* api callbacks */
+	ot->invoke = WM_operator_confirm;
+	ot->exec = view3d_pastebuffer_exec;
+	ot->poll = ED_operator_view3d_active;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
 
 /* ************************** registration **********************************/
 
@@ -97,6 +166,8 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_game_start);
 	WM_operatortype_append(VIEW3D_OT_fly);
 	WM_operatortype_append(VIEW3D_OT_layers);
+	WM_operatortype_append(VIEW3D_OT_copybuffer);
+	WM_operatortype_append(VIEW3D_OT_pastebuffer);
 	
 	WM_operatortype_append(VIEW3D_OT_properties);
 	WM_operatortype_append(VIEW3D_OT_toolshelf);
@@ -117,13 +188,41 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	wmKeyMapItem *kmi;
 	
 	keymap = WM_keymap_find(keyconf, "3D View Generic", SPACE_VIEW3D, 0);
-	
+
 	WM_keymap_add_item(keymap, "VIEW3D_OT_properties", NKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_toolshelf", TKEY, KM_PRESS, 0, 0);
 	
 	/* only for region 3D window */
 	keymap = WM_keymap_find(keyconf, "3D View", SPACE_VIEW3D, 0);
-	
+
+
+	/* NDOF: begin */
+	/* note: positioned here so keymaps show keyboard keys if assigned */
+	/* 3D mouse */
+	WM_keymap_add_item(keymap, "VIEW3D_OT_ndof_orbit", NDOF_MOTION, 0, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_ndof_pan", NDOF_MOTION, 0, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_ndof_all", NDOF_MOTION, 0, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_view_selected", NDOF_BUTTON_FIT, KM_PRESS, 0, 0);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_FRONT, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_FRONT);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_BACK, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_BACK);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_LEFT, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_LEFT);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_RIGHT, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_RIGHT);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_TOP, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_TOP);
+	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_BOTTOM, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_BOTTOM);
+
+	/* 3D mouse align */
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_FRONT, KM_PRESS, KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_FRONT);
+	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_RIGHT, KM_PRESS, KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_RIGHT);
+	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_TOP, KM_PRESS, KM_SHIFT, 0);
+	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_TOP);
+	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
+	/* NDOF: end */
+
+
 	kmi = WM_keymap_verify_item(keymap, "VIEW3D_OT_manipulator", LEFTMOUSE, KM_PRESS, KM_ANY, 0);
 	RNA_boolean_set(kmi->ptr, "release_confirm", TRUE);
 	/*
@@ -153,6 +252,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_rotate", MOUSEROTATE, 0, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_move", MOUSEPAN, 0, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", MOUSEZOOM, 0, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", MOUSEPAN, 0, KM_CTRL, 0);
 	
 	/*numpad +/-*/
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", PADPLUSKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
@@ -169,6 +269,8 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_zoom_camera_1_to_1", PADENTER, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "VIEW3D_OT_view_center_camera", HOMEKEY, KM_PRESS, 0, 0); /* only with camera view */
+
+	WM_keymap_add_item(keymap, "VIEW3D_OT_view_center_cursor", HOMEKEY, KM_PRESS, KM_ALT, 0);
 
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "center", FALSE); /* only without camera view */
@@ -225,29 +327,6 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", PAD7, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_BOTTOM);
-	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
-	
-	/* 3D mouse */
-	WM_keymap_add_item(keymap, "VIEW3D_OT_ndof_orbit", NDOF_MOTION, 0, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "VIEW3D_OT_ndof_pan", NDOF_MOTION, 0, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "VIEW3D_OT_ndof_all", NDOF_MOTION, 0, 0, 0);
-	WM_keymap_add_item(keymap, "VIEW3D_OT_view_selected", NDOF_BUTTON_FIT, KM_PRESS, 0, 0);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_FRONT, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_FRONT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_BACK, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_BACK);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_LEFT, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_LEFT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_RIGHT, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_RIGHT);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_TOP, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_TOP);
-	RNA_enum_set(WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_BOTTOM, KM_PRESS, 0, 0)->ptr, "type", RV3D_VIEW_BOTTOM);
-
-	/* 3D mouse align */
-	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_FRONT, KM_PRESS, KM_SHIFT, 0);
-	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_FRONT);
-	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
-	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_RIGHT, KM_PRESS, KM_SHIFT, 0);
-	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_RIGHT);
-	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
-	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_viewnumpad", NDOF_BUTTON_TOP, KM_PRESS, KM_SHIFT, 0);
-	RNA_enum_set(kmi->ptr, "type", RV3D_VIEW_TOP);
 	RNA_boolean_set(kmi->ptr, "align_active", TRUE);
 
 	WM_keymap_add_item(keymap, "VIEW3D_OT_localview", PADSLASHKEY, KM_PRESS, 0, 0);
@@ -358,6 +437,13 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_object_as_camera", PAD0, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
+	
+#ifdef __APPLE__
+	WM_keymap_add_item(keymap, "VIEW3D_OT_copybuffer", CKEY, KM_PRESS, KM_OSKEY, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_pastebuffer", VKEY, KM_PRESS, KM_OSKEY, 0);
+#endif
+	WM_keymap_add_item(keymap, "VIEW3D_OT_copybuffer", CKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_pastebuffer", VKEY, KM_PRESS, KM_CTRL, 0);
 	
 	/* context ops */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, 0, 0);

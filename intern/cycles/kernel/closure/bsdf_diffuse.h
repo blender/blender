@@ -74,8 +74,6 @@ __device int bsdf_diffuse_sample(const ShaderClosure *sc, float3 Ng, float3 I, f
 		// TODO: find a better approximation for the diffuse bounce
 		*domega_in_dx = (2 * dot(N, dIdx)) * N - dIdx;
 		*domega_in_dy = (2 * dot(N, dIdy)) * N - dIdy;
-		*domega_in_dx *= 125.0f;
-		*domega_in_dy *= 125.0f;
 #endif
 	}
 	else
@@ -126,10 +124,8 @@ __device int bsdf_translucent_sample(const ShaderClosure *sc, float3 Ng, float3 
 		*eval = make_float3(*pdf, *pdf, *pdf);
 #ifdef __RAY_DIFFERENTIALS__
 		// TODO: find a better approximation for the diffuse bounce
-		*domega_in_dx = (2 * dot(N, dIdx)) * N - dIdx;
-		*domega_in_dy = (2 * dot(N, dIdy)) * N - dIdy;
-		*domega_in_dx *= -125.0f;
-		*domega_in_dy *= -125.0f;
+		*domega_in_dx = -((2 * dot(N, dIdx)) * N - dIdx);
+		*domega_in_dy = -((2 * dot(N, dIdy)) * N - dIdy);
 #endif
 	}
 	else {

@@ -416,6 +416,7 @@ EnumPropertyItem wm_report_items[] = {
 	{RPT_DEBUG, "DEBUG", 0, "Debug", ""},
 	{RPT_INFO, "INFO", 0, "Info", ""},
 	{RPT_OPERATOR, "OPERATOR", 0, "Operator", ""},
+	{RPT_PROPERTY, "PROPERTY", 0, "Property", ""},
 	{RPT_WARNING, "WARNING", 0, "Warning", ""},
 	{RPT_ERROR, "ERROR", 0, "Error", ""},
 	{RPT_ERROR_INVALID_INPUT, "ERROR_INVALID_INPUT", 0, "Invalid Input", ""},
@@ -1617,6 +1618,26 @@ static void rna_def_window(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Window_screen_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_Window_screen_update");
+
+	prop = RNA_def_property(srna, "x", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "posx");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "X Position", "Vertical location of the window");
+
+	prop = RNA_def_property(srna, "y", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "posy");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Y Position", "Horizontal location of the window");
+
+	prop = RNA_def_property(srna, "width", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "sizex");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Width", "Window width");
+
+	prop = RNA_def_property(srna, "height", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "sizey");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Height", "Window height");
 }
 
 /* curve.splines */

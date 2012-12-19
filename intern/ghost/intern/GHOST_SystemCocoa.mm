@@ -56,7 +56,7 @@
 #include "AssertMacros.h"
 
 #pragma mark KeyMap, mouse converters
-#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= 1040
 /* Keycodes not defined in Tiger */
 /*  
  *  Summary:
@@ -360,7 +360,7 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 				return (GHOST_TKey) (recvChar - 'a' + GHOST_kKeyA);
 			}
 			else {
-#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= 1040
 				KeyboardLayoutRef keyLayout;
 				UCKeyboardLayout *uchrData;
 				
@@ -423,7 +423,7 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 
 
 #pragma mark defines for 10.6 api not documented in 10.5
-#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= 1040
 enum {
 	/* The following event types are available on some hardware on 10.5.2 and later */
 	NSEventTypeGesture          = 29,
@@ -1058,7 +1058,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowSize, window) );
 					//Mouse up event is trapped by the resizing event loop, so send it anyway to the window manager
 					pushEvent(new GHOST_EventButton(getMilliSeconds(), GHOST_kEventButtonUp, window, convertButton(0)));
-					m_ignoreWindowSizedMessages = true;
+					//m_ignoreWindowSizedMessages = true;
 				}
 				break;
 			default:
@@ -1450,13 +1450,22 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 {
 	NSEvent *event = (NSEvent *)eventPtr;
 	GHOST_WindowCocoa* window;
+	CocoaWindow *cocoawindow;
 	
+	/* [event window] returns other windows if mouse-over, that's OSX input standard
+	   however, if mouse exits window(s), the windows become inactive, until you click.
+	   We then fall back to the active window from ghost */
 	window = (GHOST_WindowCocoa*)m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
 	if (!window) {
-		//printf("\nW failure for event 0x%x",[event type]);
-		return GHOST_kFailure;
+		window = (GHOST_WindowCocoa*)m_windowManager->getActiveWindow();
+		if (!window) {
+			//printf("\nW failure for event 0x%x",[event type]);
+			return GHOST_kFailure;
+		}
 	}
 
+	cocoawindow = (CocoaWindow *)window->getOSWindow();
+	
 	switch ([event type]) {
 		case NSLeftMouseDown:
 		case NSRightMouseDown:
@@ -1509,7 +1518,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 						break;
 					case GHOST_kGrabWrap: //Wrap cursor at area/window boundaries
 					{
-						NSPoint mousePos = [event locationInWindow];
+						NSPoint mousePos = [cocoawindow mouseLocationOutsideOfEventStream];
 						GHOST_TInt32 x_mouse= mousePos.x;
 						GHOST_TInt32 y_mouse= mousePos.y;
 						GHOST_TInt32 x_accum, y_accum, x_cur, y_cur, x, y;
@@ -1555,9 +1564,9 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 					default:
 					{
 						//Normal cursor operation: send mouse position in window
-						NSPoint mousePos = [event locationInWindow];
+						NSPoint mousePos = [cocoawindow mouseLocationOutsideOfEventStream];
 						GHOST_TInt32 x, y;
-
+						
 						window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
 						pushEvent(new GHOST_EventCursor([event timestamp] * 1000, GHOST_kEventCursorMove, window, x, y));
 
@@ -1584,7 +1593,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 					pushEvent(new GHOST_EventWheel([event timestamp] * 1000, window, delta));
 				}
 				else {
-					NSPoint mousePos = [event locationInWindow];
+					NSPoint mousePos = [cocoawindow mouseLocationOutsideOfEventStream];
 					GHOST_TInt32 x, y;
 					double dx = [event deltaX];
 					double dy = -[event deltaY];
@@ -1616,7 +1625,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 			
 		case NSEventTypeMagnify:
 			{
-				NSPoint mousePos = [event locationInWindow];
+				NSPoint mousePos = [cocoawindow mouseLocationOutsideOfEventStream];
 				GHOST_TInt32 x, y;
 				window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
 				pushEvent(new GHOST_EventTrackpad([event timestamp] * 1000, window, GHOST_kTrackpadEventMagnify, x, y,
@@ -1626,7 +1635,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 
 		case NSEventTypeRotate:
 			{
-				NSPoint mousePos = [event locationInWindow];
+				NSPoint mousePos = [cocoawindow mouseLocationOutsideOfEventStream];
 				GHOST_TInt32 x, y;
 				window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
 				pushEvent(new GHOST_EventTrackpad([event timestamp] * 1000, window, GHOST_kTrackpadEventRotate, x, y,

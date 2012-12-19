@@ -188,7 +188,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	/* update for display only */
 	dmd->face_count = bm->totface;
 	result = CDDM_from_bmesh(bm, FALSE);
-	BLI_assert(bm->toolflagpool == NULL);  /* make sure we never alloc'd this */
+	BLI_assert(bm->vtoolflagpool == NULL);  /* make sure we never alloc'd this */
+	BLI_assert(bm->etoolflagpool == NULL);
+	BLI_assert(bm->ftoolflagpool == NULL);
 	BM_mesh_free(bm);
 
 #ifdef USE_TIMEIT

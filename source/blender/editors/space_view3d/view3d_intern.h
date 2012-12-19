@@ -125,7 +125,7 @@ void drawaxes(float size, char drawtype);
 
 void view3d_cached_text_draw_begin(void);
 void view3d_cached_text_draw_add(const float co[3], const char *str, short xoffs, short flag, const unsigned char col[4]);
-void view3d_cached_text_draw_end(View3D * v3d, ARegion * ar, int depth_write, float mat[][4]);
+void view3d_cached_text_draw_end(View3D * v3d, ARegion * ar, int depth_write, float mat[4][4]);
 
 enum {
 	V3D_CACHE_TEXT_ZBUF         = (1 << 0),
@@ -172,7 +172,7 @@ void VIEW3D_OT_localview(struct wmOperatorType *ot);
 void VIEW3D_OT_game_start(struct wmOperatorType *ot);
 
 
-int ED_view3d_boundbox_clip(RegionView3D * rv3d, float obmat[][4], struct BoundBox *bb);
+int ED_view3d_boundbox_clip(RegionView3D * rv3d, float obmat[4][4], struct BoundBox *bb);
 
 void view3d_smooth_view(struct bContext *C, struct View3D *v3d, struct ARegion *ar, struct Object *, struct Object *,
                         float *ofs, float *quat, float *dist, float *lens);

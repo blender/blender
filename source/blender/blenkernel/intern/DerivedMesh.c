@@ -47,10 +47,10 @@
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_array.h"
-#include "BLI_pbvh.h"
 #include "BLI_utildefines.h"
 #include "BLI_linklist.h"
 
+#include "BKE_pbvh.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_key.h"
@@ -1421,7 +1421,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			}
 			
 			/* grab modifiers until index i */
-			if ((index >= 0) && (modifiers_indexInObject(ob, md) >= index))
+			if ((index >= 0) && (BLI_findindex(&ob->modifiers, md) >= index))
 				break;
 		}
 
@@ -1666,7 +1666,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		isPrevDeform = (mti->type == eModifierTypeType_OnlyDeform);
 
 		/* grab modifiers until index i */
-		if ((index >= 0) && (modifiers_indexInObject(ob, md) >= index))
+		if ((index >= 0) && (BLI_findindex(&ob->modifiers, md) >= index))
 			break;
 
 		if (sculpt_mode && md->type == eModifierType_Multires)
@@ -2334,29 +2334,29 @@ static void make_vertexcosnos__mapFunc(void *userData, int index, const float co
 /* it stores the normals as floats, but they can still be scaled as shorts (32767 = unit) */
 /* in use now by vertex/weight paint and particle generating */
 
-float *mesh_get_mapped_verts_nors(Scene *scene, Object *ob)
+DMCoNo *mesh_get_mapped_verts_nors(Scene *scene, Object *ob)
 {
 	Mesh *me = ob->data;
 	DerivedMesh *dm;
-	float *vertexcosnos;
+	DMCoNo *vertexcosnos;
 	
 	/* lets prevent crashing... */
 	if (ob->type != OB_MESH || me->totvert == 0)
 		return NULL;
 	
 	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
-	vertexcosnos = MEM_callocN(6 * sizeof(float) * me->totvert, "vertexcosnos map");
+	vertexcosnos = MEM_callocN(sizeof(DMCoNo) * me->totvert, "vertexcosnos map");
 	
 	if (dm->foreachMappedVert) {
 		dm->foreachMappedVert(dm, make_vertexcosnos__mapFunc, vertexcosnos);
 	}
 	else {
-		float *fp = vertexcosnos;
+		DMCoNo *v_co_no = vertexcosnos;
 		int a;
 		
-		for (a = 0; a < me->totvert; a++, fp += 6) {
-			dm->getVertCo(dm, a, fp);
-			dm->getVertNo(dm, a, fp + 3);
+		for (a = 0; a < me->totvert; a++, v_co_no++) {
+			dm->getVertCo(dm, a, v_co_no->co);
+			dm->getVertNo(dm, a, v_co_no->no);
 		}
 	}
 	

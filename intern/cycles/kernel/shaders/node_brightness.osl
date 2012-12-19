@@ -19,10 +19,10 @@
 #include "stdosl.h"
 
 shader node_brightness(
-	color ColorIn = color(0.8, 0.8, 0.8),
+	color ColorIn = 0.8,
 	float Bright = 0.0,
 	float Contrast = 0.0,
-	output color ColorOut = color(0.8, 0.8, 0.8))
+	output color ColorOut = 0.8)
 {
 	float a = 1.0 + Contrast;
 	float b = Bright - Contrast*0.5;

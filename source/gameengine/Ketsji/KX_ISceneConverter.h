@@ -57,7 +57,8 @@ public:
 	virtual void ConvertScene(
 		class KX_Scene* destinationscene,
 		class RAS_IRenderTools* rendertools, 
-		class RAS_ICanvas*  canvas)=0;
+		class RAS_ICanvas*  canvas,
+		bool libloading=false)=0;
 	
 	virtual void RemoveScene(class KX_Scene *scene)=0;
 

@@ -651,8 +651,8 @@ static void rna_def_panel(BlenderRNA *brna)
 	static EnumPropertyItem panel_flag_items[] = {
 		{PNL_DEFAULT_CLOSED, "DEFAULT_CLOSED", 0, "Default Closed",
 		                     "Defines if the panel has to be open or collapsed at the time of its creation"},
-		{PNL_NO_HEADER, "HIDE_HEADER", 0, "Show Header",
-		                "If set to True, the panel shows a header, which contains a clickable "
+		{PNL_NO_HEADER, "HIDE_HEADER", 0, "Hide Header",
+		                "If set to False, the panel shows a header, which contains a clickable "
 		                "arrow to collapse the panel and the label (see bl_label)"},
 		{0, NULL, 0, NULL, NULL}
 	};

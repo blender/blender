@@ -191,7 +191,9 @@ static void BKE_sequence_free_ex(Scene *scene, Sequence *seq, const int do_cache
 		((ID *)seq->sound)->us--; 
 	}
 
-	/* clipboard has no scene and will never have a sound handle or be active */
+	/* clipboard has no scene and will never have a sound handle or be active
+	 * same goes to sequences copy for proxy rebuild job
+	 */
 	if (scene) {
 		Editing *ed = scene->ed;
 
@@ -1451,7 +1453,7 @@ void BKE_sequencer_proxy_rebuild_finish(SeqIndexBuildContext *context, short sto
 		IMB_anim_index_rebuild_finish(context->index_context, stop);
 	}
 
-	seq_free_sequence_recurse(context->scene, context->seq);
+	seq_free_sequence_recurse(NULL, context->seq);
 
 	MEM_freeN(context);
 }
@@ -2409,8 +2411,9 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 
 		/* opengl offscreen render */
 		BKE_scene_update_for_newframe(context.bmain, scene, scene->lay);
-		ibuf = sequencer_view3d_cb(scene, camera, context.rectx, context.recty,
-		                           IB_rect, context.scene->r.seq_prev_type, TRUE, FALSE, err_out);
+		ibuf = sequencer_view3d_cb(scene, camera, context.rectx, context.recty, IB_rect,
+		                           context.scene->r.seq_prev_type, context.scene->r.seq_flag & R_SEQ_SOLID_TEX,
+		                           TRUE, FALSE, err_out);
 		if (ibuf == NULL) {
 			fprintf(stderr, "seq_render_scene_strip failed to get opengl buffer: %s\n", err_out);
 		}

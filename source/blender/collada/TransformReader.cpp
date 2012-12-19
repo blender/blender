@@ -34,7 +34,7 @@ TransformReader::TransformReader(UnitConverter *conv) : unit_converter(conv)
 	/* pass */
 }
 
-void TransformReader::get_node_mat(float mat[][4], COLLADAFW::Node *node, std::map<COLLADAFW::UniqueId, Animation> *animation_map, Object *ob)
+void TransformReader::get_node_mat(float mat[4][4], COLLADAFW::Node *node, std::map<COLLADAFW::UniqueId, Animation> *animation_map, Object *ob)
 {
 	float cur[4][4];
 	float copy[4][4];
@@ -79,7 +79,7 @@ void TransformReader::get_node_mat(float mat[][4], COLLADAFW::Node *node, std::m
 	}
 }
 
-void TransformReader::dae_rotate_to_mat4(COLLADAFW::Transformation *tm, float m[][4])
+void TransformReader::dae_rotate_to_mat4(COLLADAFW::Transformation *tm, float m[4][4])
 {
 	COLLADAFW::Rotate *ro = (COLLADAFW::Rotate *)tm;
 	COLLADABU::Math::Vector3& axis = ro->getRotationAxis();
@@ -91,7 +91,7 @@ void TransformReader::dae_rotate_to_mat4(COLLADAFW::Transformation *tm, float m[
 	axis_angle_to_mat4(m, ax, angle);
 }
 
-void TransformReader::dae_translate_to_mat4(COLLADAFW::Transformation *tm, float m[][4])
+void TransformReader::dae_translate_to_mat4(COLLADAFW::Transformation *tm, float m[4][4])
 {
 	COLLADAFW::Translate *tra = (COLLADAFW::Translate *)tm;
 	COLLADABU::Math::Vector3& t = tra->getTranslation();
@@ -103,14 +103,14 @@ void TransformReader::dae_translate_to_mat4(COLLADAFW::Transformation *tm, float
 	m[3][2] = (float)t[2];
 }
 
-void TransformReader::dae_scale_to_mat4(COLLADAFW::Transformation *tm, float m[][4])
+void TransformReader::dae_scale_to_mat4(COLLADAFW::Transformation *tm, float m[4][4])
 {
 	COLLADABU::Math::Vector3& s = ((COLLADAFW::Scale *)tm)->getScale();
 	float size[3] = {(float)s[0], (float)s[1], (float)s[2]};
 	size_to_mat4(m, size);
 }
 
-void TransformReader::dae_matrix_to_mat4(COLLADAFW::Transformation *tm, float m[][4])
+void TransformReader::dae_matrix_to_mat4(COLLADAFW::Transformation *tm, float m[4][4])
 {
 	unit_converter->dae_matrix_to_mat4_(m, ((COLLADAFW::Matrix *)tm)->getMatrix());
 }

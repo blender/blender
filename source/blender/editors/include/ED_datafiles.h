@@ -36,8 +36,11 @@
 extern int datatoc_startup_blend_size;
 extern char datatoc_startup_blend[];
 
-extern int datatoc_blender_icons_png_size;
-extern char datatoc_blender_icons_png[];
+extern int datatoc_blender_icons16_png_size;
+extern char datatoc_blender_icons16_png[];
+
+extern int datatoc_blender_icons32_png_size;
+extern char datatoc_blender_icons32_png[];
 
 extern int datatoc_prvicons_png_size;
 extern char datatoc_prvicons_png[];

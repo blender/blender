@@ -1112,12 +1112,25 @@ static void rna_def_fluid_settings(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
+	static EnumPropertyItem sph_solver_items[] = {
+		{SPH_SOLVER_DDR, "DDR", 0, "Double-Density", "An artistic solver with strong surface tension effects (original)"},
+		{SPH_SOLVER_CLASSICAL, "CLASSICAL", 0, "Classical", "A more physically-accurate solver"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "SPHFluidSettings", NULL);
 	RNA_def_struct_path_func(srna, "rna_SPHFluidSettings_path");
 	RNA_def_struct_ui_text(srna, "SPH Fluid Settings", "Settings for particle fluids physics");
-	
+
 	/* Fluid settings */
+	prop = RNA_def_property(srna, "solver", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "solver");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_enum_items(prop, sph_solver_items);
+	RNA_def_property_ui_text(prop, "SPH Solver", "The code used to calculate internal forces on particles");
+	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+
 	prop = RNA_def_property(srna, "spring_force", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spring_k");
 	RNA_def_property_range(prop, 0.0f, 100.0f);
@@ -1186,7 +1199,7 @@ static void rna_def_fluid_settings(BlenderRNA *brna)
 	/* Double density relaxation */
 	prop = RNA_def_property(srna, "stiffness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "stiffness_k");
-	RNA_def_property_range(prop, 0.0f, 100.0f);
+	RNA_def_property_range(prop, 0.0f, 100000.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 1, 3);
 	RNA_def_property_ui_text(prop, "Stiffness", "How incompressible the fluid is");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
@@ -1201,7 +1214,7 @@ static void rna_def_fluid_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "rest_density", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rest_density");
-	RNA_def_property_range(prop, 0.0f, 100.0f);
+	RNA_def_property_range(prop, 0.0f, 10000.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 2.0f, 1, 3);
 	RNA_def_property_ui_text(prop, "Rest Density", "Fluid rest density");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
@@ -2129,11 +2142,11 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop = RNA_def_property(srna, "courant_target", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.01, 10);
-	RNA_def_property_float_default(prop, 0.2);
+	RNA_def_property_range(prop, 0.0001, 10);
+	RNA_def_property_float_default(prop, 0.1);
 	RNA_def_property_ui_text(prop, "Adaptive Subframe Threshold",
 	                         "The relative distance a particle can move before requiring more subframes "
-	                         "(target Courant number); 0.1-0.3 is the recommended range");
+	                         "(target Courant number); 0.01-0.3 is the recommended range");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop = RNA_def_property(srna, "jitter_factor", PROP_FLOAT, PROP_NONE);
@@ -2281,7 +2294,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	/* physical properties */
 	prop = RNA_def_property(srna, "mass", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.001f, 100000.0f);
+	RNA_def_property_range(prop, 0.00000001f, 100000.0f);
 	RNA_def_property_ui_range(prop, 0.01, 100, 1, 3);
 	RNA_def_property_ui_text(prop, "Mass", "Mass of the particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");

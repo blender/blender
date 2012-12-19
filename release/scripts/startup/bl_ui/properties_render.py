@@ -492,7 +492,7 @@ class RENDER_PT_bake(RenderButtonsPanel, Panel):
         layout.prop(rd, "bake_type")
 
         multires_bake = False
-        if rd.bake_type in ['NORMALS', 'DISPLACEMENT']:
+        if rd.bake_type in ['NORMALS', 'DISPLACEMENT', 'AO']:
             layout.prop(rd, "use_bake_multires")
             multires_bake = rd.use_bake_multires
 
@@ -521,11 +521,19 @@ class RENDER_PT_bake(RenderButtonsPanel, Panel):
             sub.prop(rd, "bake_distance")
             sub.prop(rd, "bake_bias")
         else:
-            if rd.bake_type == 'DISPLACEMENT':
-                layout.prop(rd, "use_bake_lores_mesh")
+            split = layout.split()
 
-            layout.prop(rd, "use_bake_clear")
-            layout.prop(rd, "bake_margin")
+            col = split.column()
+            col.prop(rd, "use_bake_clear")
+            col.prop(rd, "bake_margin")
+
+            if rd.bake_type == 'DISPLACEMENT':
+                col = split.column()
+                col.prop(rd, "use_bake_lores_mesh")
+            if rd.bake_type == 'AO':
+                col = split.column()
+                col.prop(rd, "bake_bias")
+                col.prop(rd, "bake_rays_number")
 
 
 if __name__ == "__main__":  # only for live edit.

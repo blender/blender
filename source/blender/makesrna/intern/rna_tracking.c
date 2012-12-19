@@ -1161,7 +1161,7 @@ static void rna_def_trackingStabilization(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem filter_items[] = {
-		{TRACKING_FILTER_NEAREAST, "NEAREST",   0, "Nearest",   ""},
+		{TRACKING_FILTER_NEAREST, "NEAREST",   0, "Nearest",   ""},
 		{TRACKING_FILTER_BILINEAR, "BILINEAR",   0, "Bilinear",   ""},
 		{TRACKING_FILTER_BICUBIC, "BICUBIC", 0, "Bicubic", ""},
 		{0, NULL, 0, NULL, NULL}

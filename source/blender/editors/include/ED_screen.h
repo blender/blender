@@ -64,9 +64,11 @@ void    ED_region_panels(const struct bContext *C, struct ARegion *ar, int verti
 void    ED_region_header_init(struct ARegion *ar);
 void    ED_region_header(const struct bContext *C, struct ARegion *ar);
 void    ED_region_toggle_hidden(struct bContext *C, struct ARegion *ar);
-void    region_scissor_winrct(struct ARegion *ar, struct rcti *winrct);
 void    ED_region_info_draw(struct ARegion *ar, const char *text, int block, float alpha);
 void    ED_region_grid_draw(struct ARegion *ar, float zoomx, float zoomy);
+float	ED_region_blend_factor(struct ARegion *ar);
+void	ED_region_visible_rect(struct ARegion *ar, struct rcti *rect);
+
 
 /* spaces */
 void    ED_spacetypes_init(void);

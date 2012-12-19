@@ -852,6 +852,16 @@ extern int GHOST_toggleConsole(int action);
  */
 extern int GHOST_confirmQuit(GHOST_WindowHandle windowhandle);
 
+/**
+ * Use native pixel size (MacBook pro 'retina'), if supported.
+ */
+extern int GHOST_UseNativePixels(void);
+
+/**
+ * If window was opened using native pixel size, it returns scaling factor.
+ */
+extern float GHOST_GetNativePixelSize(void);
+
 
 #ifdef __cplusplus
 }

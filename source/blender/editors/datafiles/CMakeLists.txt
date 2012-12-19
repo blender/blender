@@ -46,7 +46,8 @@ if(WITH_BLENDER)
 
 		# images
 		data_to_c_simple(../../../../release/datafiles/splash.png SRC)
-		data_to_c_simple(../../../../release/datafiles/blender_icons.png SRC)
+		data_to_c_simple(../../../../release/datafiles/blender_icons16.png SRC)
+		data_to_c_simple(../../../../release/datafiles/blender_icons32.png SRC)
 		data_to_c_simple(../../../../release/datafiles/prvicons.png SRC)
 
 		# brushes

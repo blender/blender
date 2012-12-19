@@ -164,15 +164,20 @@ static int panels_re_align(ScrArea *sa, ARegion *ar, Panel **r_pa)
 
 /****************************** panels ******************************/
 
-static void panels_collapse_all(ScrArea *sa, ARegion *ar)
+static void panels_collapse_all(ScrArea *sa, ARegion *ar, Panel *from_pa)
 {
 	Panel *pa;
+	PanelType *pt, *from_pt;
 	int flag = ((panel_aligned(sa, ar) == BUT_HORIZONTAL) ? PNL_CLOSEDX : PNL_CLOSEDY);
 
 	for (pa = ar->panels.first; pa; pa = pa->next) {
-		if (pa->type && !(pa->type->flag & PNL_NO_HEADER)) {
-			pa->flag = flag;
-		}
+		pt = pa->type;
+		from_pt = from_pa->type;
+
+		/* close panels with headers in the same context */
+		if (pt && from_pt && !(pt->flag & PNL_NO_HEADER))
+			if (!pt->context[0] || strcmp(pt->context, from_pt->context) == 0)
+				pa->flag = flag;
 	}
 }
 
@@ -305,7 +310,7 @@ void uiEndPanel(uiBlock *block, int width, int height)
 
 static void ui_offset_panel_block(uiBlock *block)
 {
-	uiStyle *style = UI_GetStyle();
+	uiStyle *style = UI_GetStyleDraw();
 	uiBut *but;
 	int ofsy;
 
@@ -345,14 +350,18 @@ static void uiPanelPop(uiBlock *UNUSED(block))
 /* triangle 'icon' for panel header */
 void UI_DrawTriIcon(float x, float y, char dir)
 {
+	float f3 = 0.15 * U.widget_unit;
+	float f5 = 0.25 * U.widget_unit;
+	float f7 = 0.35 * U.widget_unit;
+	
 	if (dir == 'h') {
-		ui_draw_anti_tria(x - 3, y - 5, x - 3, y + 5, x + 7, y);
+		ui_draw_anti_tria(x - f3, y - f5, x - f3, y + f5, x + f7, y);
 	}
 	else if (dir == 't') {
-		ui_draw_anti_tria(x - 5, y - 7, x + 5, y - 7, x, y + 3);
+		ui_draw_anti_tria(x - f5, y - f7, x + f5, y - f7, x, y + f3);
 	}
 	else { /* 'v' = vertical, down */
-		ui_draw_anti_tria(x - 5, y + 3, x + 5, y + 3, x, y - 7);
+		ui_draw_anti_tria(x - f5, y + f3, x + f5, y + f3, x, y - f7);
 	}
 }
 
@@ -495,7 +504,6 @@ static void rectf_scale(rctf *rect, const float scale)
 /* panel integrated in buttonswindow, tool/property lists etc */
 void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 {
-	bTheme *btheme = UI_GetTheme();
 	Panel *panel = block->panel;
 	rcti headrect;
 	rctf itemrect;
@@ -517,10 +525,11 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 
 		glEnable(GL_BLEND);
 
-		if (btheme->tui.panel.show_header) {
+		
+		if (UI_GetThemeValue(TH_PANEL_SHOW_HEADER)) {
 			/* draw with background color */
 			glEnable(GL_BLEND);
-			glColor4ubv((unsigned char *)btheme->tui.panel.header);
+			UI_ThemeColor4(TH_PANEL_HEADER);
 			glRectf(minx, headrect.ymin + 1, maxx, y);
 
 			fdrawline(minx, y, maxx, y);
@@ -575,6 +584,14 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 			
 			UI_ThemeColorShade(TH_BACK, -120);
 			uiRoundRect(0.5f + rect->xmin, 0.5f + rect->ymin, 0.5f + rect->xmax, 0.5f + headrect.ymax + 1, 8);
+		}
+		
+		/* panel backdrop */
+		if (UI_GetThemeValue(TH_PANEL_SHOW_BACK)) {
+			/* draw with background color */
+			glEnable(GL_BLEND);
+			UI_ThemeColor4(TH_PANEL_BACK);
+			glRecti(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 		}
 		
 		if (panel->control & UI_PNL_SCALE)
@@ -1016,7 +1033,7 @@ static void ui_do_drag(const bContext *C, wmEvent *event, Panel *panel)
 
 /* this function is supposed to call general window drawing too */
 /* also it supposes a block has panel, and isn't a menu */
-static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, int my, int event)
+static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, int my, int event, int ctrl)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -1049,6 +1066,9 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 			ED_region_tag_redraw(ar);
 		}
 		else {  /* collapse */
+			if(ctrl)
+				panels_collapse_all(sa, ar, block->panel);
+
 			if (block->panel->flag & PNL_CLOSED) {
 				block->panel->flag &= ~PNL_CLOSED;
 				/* snap back up so full panel aligns with screen edge */
@@ -1088,40 +1108,57 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 
 int ui_handler_panel_region(bContext *C, wmEvent *event)
 {
-	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	uiBlock *block;
 	Panel *pa;
-	int retval, mx, my, inside_header = 0, inside_scale = 0, inside;
+	int retval, mx, my;
 
 	retval = WM_UI_HANDLER_CONTINUE;
 	for (block = ar->uiblocks.last; block; block = block->prev) {
+		int inside = 0, inside_header = 0, inside_scale = 0;
+		
 		mx = event->x;
 		my = event->y;
 		ui_window_to_block(ar, block, &mx, &my);
 
-		/* check if inside boundbox */
-		inside = 0;
+		/* checks for mouse position inside */
 		pa = block->panel;
 
 		if (!pa || pa->paneltab != NULL)
 			continue;
 		if (pa->type && pa->type->flag & PNL_NO_HEADER)  /* XXX - accessed freed panels when scripts reload, need to fix. */
 			continue;
-
-		if (block->rect.xmin <= mx && block->rect.xmax >= mx)
-			if (block->rect.ymin <= my && block->rect.ymax + PNL_HEADER >= my)
-				inside = 1;
 		
+		/* clicked at panel header? */
+		if (pa->flag & PNL_CLOSEDX) {
+			if (block->rect.xmin <= mx && block->rect.xmin + PNL_HEADER >= mx)
+				inside_header = 1;
+		}
+		else if ((block->rect.ymax <= my) && (block->rect.ymax + PNL_HEADER >= my)) {
+			inside_header = 1;
+		}
+		else if (!(pa->flag & PNL_CLOSEDY)) {
+			/* open panel */
+			if (pa->control & UI_PNL_SCALE) {
+				if (block->rect.xmax - PNL_HEADER <= mx)
+					if (block->rect.ymin + PNL_HEADER >= my)
+						inside_scale = 1;
+			}
+			if (block->rect.xmin <= mx && block->rect.xmax >= mx)
+				if (block->rect.ymin <= my && block->rect.ymax + PNL_HEADER >= my)
+					inside = 1;
+		}
+		
+		/* XXX hardcoded key warning */
 		if (inside && event->val == KM_PRESS) {
 			if (event->type == AKEY && !ELEM4(KM_MOD_FIRST, event->ctrl, event->oskey, event->shift, event->alt)) {
 				
 				if (pa->flag & PNL_CLOSEDY) {
 					if ((block->rect.ymax <= my) && (block->rect.ymax + PNL_HEADER >= my))
-						ui_handle_panel_header(C, block, mx, my, event->type);
+						ui_handle_panel_header(C, block, mx, my, event->type, event->ctrl);
 				}
 				else
-					ui_handle_panel_header(C, block, mx, my, event->type);
+					ui_handle_panel_header(C, block, mx, my, event->type, event->ctrl);
 				
 				continue;
 			}
@@ -1131,40 +1168,33 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 		if (ui_button_is_active(ar))
 			continue;
 		
-		if (inside) {
-			/* clicked at panel header? */
-			if (pa->flag & PNL_CLOSEDX) {
-				if (block->rect.xmin <= mx && block->rect.xmin + PNL_HEADER >= mx)
-					inside_header = 1;
-			}
-			else if ((block->rect.ymax <= my) && (block->rect.ymax + PNL_HEADER >= my)) {
-				inside_header = 1;
-			}
-			else if (pa->control & UI_PNL_SCALE) {
-				if (block->rect.xmax - PNL_HEADER <= mx)
-					if (block->rect.ymin + PNL_HEADER >= my)
-						inside_scale = 1;
-			}
+		if (inside || inside_header) {
 
 			if (event->val == KM_PRESS) {
+				
 				/* open close on header */
 				if (ELEM(event->type, RETKEY, PADENTER)) {
 					if (inside_header) {
-						ui_handle_panel_header(C, block, mx, my, RETKEY);
+						ui_handle_panel_header(C, block, mx, my, RETKEY, event->ctrl);
+						retval = WM_UI_HANDLER_BREAK;
 						break;
 					}
 				}
 				else if (event->type == LEFTMOUSE) {
+					/* all inside clicks should return in break - overlapping/float panels */
+					retval = WM_UI_HANDLER_BREAK;
+					
 					if (inside_header) {
-						if (event->ctrl)
-							panels_collapse_all(sa, ar);
-						ui_handle_panel_header(C, block, mx, my, 0);
+						ui_handle_panel_header(C, block, mx, my, 0, event->ctrl);
+						retval = WM_UI_HANDLER_BREAK;
 						break;
 					}
 					else if (inside_scale && !(pa->flag & PNL_CLOSED)) {
 						panel_activate_state(C, pa, PANEL_STATE_DRAG_SCALE);
+						retval = WM_UI_HANDLER_BREAK;
 						break;
 					}
+
 				}
 				else if (event->type == ESCKEY) {
 					/*XXX 2.50*/

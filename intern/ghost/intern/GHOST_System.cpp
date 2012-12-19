@@ -45,7 +45,9 @@
 
 
 GHOST_System::GHOST_System()
-	: m_displayManager(0),
+	: m_nativePixel(false),
+	m_nativePixelSize(1),
+	m_displayManager(0),
 	m_timerManager(0),
 	m_windowManager(0),
 	m_eventManager(0)
@@ -372,4 +374,17 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window, const
 int GHOST_System::confirmQuit(GHOST_IWindow *window) const
 {
 	return 1;
+}
+
+bool GHOST_System::useNativePixel(void)
+{
+	m_nativePixel = true;
+	return 1;
+}
+
+float GHOST_System::getNativePixelSize(void)
+{
+	if (m_nativePixel)
+		return m_nativePixelSize;
+	return 1.0f;
 }

@@ -110,6 +110,18 @@ typedef struct MemHead {
 #endif
 } MemHead;
 
+/* for openmp threading asserts, saves time troubleshooting
+ * we may need to extend this if blender code starts using MEM_
+ * functions inside OpenMP correctly with omp_set_lock() */
+
+#if 0  /* disable for now, only use to debug openmp code which doesn lock threads for malloc */
+#if defined(_OPENMP) && defined(DEBUG)
+#  include <assert.h>
+#  include <omp.h>
+#  define DEBUG_OMP_MALLOC
+#endif
+#endif
+
 typedef struct MemTail {
 	int tag3, pad;
 } MemTail;
@@ -194,6 +206,10 @@ static void print_error(const char *str, ...)
 
 static void mem_lock_thread(void)
 {
+#ifdef DEBUG_OMP_MALLOC
+	assert(omp_in_parallel() == 0);
+#endif
+
 	if (thread_lock_callback)
 		thread_lock_callback();
 }
@@ -214,8 +230,7 @@ int MEM_check_memory_integrity(void)
 	
 	err_val = check_memlist(listend);
 
-	if (err_val == NULL) return 0;
-	return 1;
+	return (err_val != NULL);
 }
 
 
@@ -546,6 +561,8 @@ void MEM_printmemlist_stats(void)
 	qsort(printblock, totpb, sizeof(MemPrintBlock), compare_len);
 	printf("\ntotal memory len: %.3f MB\n",
 	       (double)mem_in_use / (double)(1024 * 1024));
+	printf("peak memory len: %.3f MB\n",
+	       (double)peak_mem / (double)(1024 * 1024));
 	printf(" ITEMS TOTAL-MiB AVERAGE-KiB TYPE\n");
 	for (a = 0, pb = printblock; a < totpb; a++, pb++) {
 		printf("%6d (%8.3f  %8.3f) %s\n",

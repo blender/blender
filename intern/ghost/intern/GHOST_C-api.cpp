@@ -878,3 +878,16 @@ int GHOST_confirmQuit(GHOST_WindowHandle windowhandle)
 	GHOST_ISystem *system = GHOST_ISystem::getSystem();
 	return system->confirmQuit((GHOST_IWindow *) windowhandle);
 }
+
+int GHOST_UseNativePixels(void)
+{
+	GHOST_ISystem *system = GHOST_ISystem::getSystem();
+	return system->useNativePixel();
+}
+
+float GHOST_GetNativePixelSize(void)
+{
+	GHOST_ISystem *system = GHOST_ISystem::getSystem();
+	return system->getNativePixelSize();
+}
+

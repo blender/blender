@@ -397,6 +397,17 @@ static void ui_apply_autokey_undo(bContext *C, uiBut *but)
 
 	/* try autokey */
 	ui_but_anim_autokey(C, but, scene, scene->r.cfra);
+
+	/* make a little report about what we've done! */
+	if (but->rnaprop) {
+		char *buf = WM_prop_pystring_assign(C, &but->rnapoin, but->rnaprop, but->rnaindex);
+		if (buf) {
+			BKE_report(CTX_wm_reports(C), RPT_PROPERTY, buf);
+			MEM_freeN(buf);
+
+			WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO_REPORT, NULL);
+		}
+	}
 }
 
 static void ui_apply_but_funcs_after(bContext *C)
@@ -1674,10 +1685,11 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 {
 	char buf[UI_MAX_DRAW_STR] = {0};
 	char *str, *p, *pbuf;
-	int len, x, i, changed = 0;
+	int x, changed = 0;
+	int str_len, buf_len;
 
 	str = data->str;
-	len = strlen(str);
+	str_len = strlen(str);
 	
 	/* paste */
 	if (paste) {
@@ -1687,28 +1699,28 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 
 		if (p && p[0]) {
 			unsigned int y;
-			i = 0;
-			while (*p && *p != '\r' && *p != '\n' && i < UI_MAX_DRAW_STR - 1) {
-				buf[i++] = *p;
+			buf_len = 0;
+			while (*p && *p != '\r' && *p != '\n' && buf_len < UI_MAX_DRAW_STR - 1) {
+				buf[buf_len++] = *p;
 				p++;
 			}
-			buf[i] = 0;
+			buf[buf_len] = 0;
 
 			/* paste over the current selection */
 			if ((but->selend - but->selsta) > 0) {
 				ui_textedit_delete_selection(but, data);
-				len = strlen(str);
+				str_len = strlen(str);
 			}
 			
-			for (y = 0; y < strlen(buf); y++) {
+			for (y = 0; y < buf_len; y++) {
 				/* add contents of buffer */
-				if (len + 1 < data->maxlen) {
+				if (str_len + 1 < data->maxlen) {
 					for (x = data->maxlen; x > but->pos; x--)
 						str[x] = str[x - 1];
 					str[but->pos] = buf[y];
 					but->pos++; 
-					len++;
-					str[len] = '\0';
+					str_len++;
+					str[str_len] = '\0';
 				}
 			}
 
@@ -4530,7 +4542,7 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *ar, void *arg)
 	wmKeyMapItem *kmi;
 	PointerRNA ptr;
 	uiLayout *layout;
-	uiStyle *style = UI_GetStyle();
+	uiStyle *style = UI_GetStyleDraw();
 	IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
 	int kmi_id = WM_key_event_operator_id(C, but->optype->idname, but->opcontext, prop, 1, &km);
 
@@ -4562,7 +4574,7 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
 	wmKeyMapItem *kmi;
 	PointerRNA ptr;
 	uiLayout *layout;
-	uiStyle *style = UI_GetStyle();
+	uiStyle *style = UI_GetStyleDraw();
 	IDProperty *prop = (but->opptr) ? but->opptr->data : NULL;
 	int kmi_id;
 	
@@ -4629,7 +4641,6 @@ static void popup_add_shortcut_func(bContext *C, void *arg1, void *UNUSED(arg2))
 
 static int ui_but_menu(bContext *C, uiBut *but)
 {
-	ARegion *ar = CTX_wm_region(C);
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	int length;
@@ -4845,9 +4856,13 @@ static int ui_but_menu(bContext *C, uiBut *but)
 	}
 
 	/* Show header tools for header buttons. */
-	if (ar->regiontype == RGN_TYPE_HEADER) {
-		uiItemMenuF(layout, IFACE_("Header"), ICON_NONE, ED_screens_header_tools_menu_create, NULL);
-		uiItemS(layout);
+	if (CTX_wm_region(C)) {
+		ARegion *ar = CTX_wm_region(C);
+			if (ar->regiontype == RGN_TYPE_HEADER) {
+			
+				uiItemMenuF(layout, IFACE_("Header"), ICON_NONE, ED_screens_header_tools_menu_create, NULL);
+				uiItemS(layout);
+			}
 	}
 
 	{   /* Docs */
@@ -6924,11 +6939,12 @@ static int ui_handler_region_menu(bContext *C, wmEvent *event, void *UNUSED(user
 		if (data->state == BUTTON_STATE_MENU_OPEN) {
 			/* handle events for menus and their buttons recursively,
 			 * this will handle events from the top to the bottom menu */
-			retval = ui_handle_menus_recursive(C, event, data->menu, 0);
+			if (data->menu)
+				retval = ui_handle_menus_recursive(C, event, data->menu, 0);
 
 			/* handle events for the activated button */
 			if (retval == WM_UI_HANDLER_CONTINUE || event->type == TIMER) {
-				if (data->menu->menuretval)
+				if (data->menu && data->menu->menuretval)
 					ui_handle_button_return_submenu(C, event, but);
 				else
 					ui_handle_button_event(C, event, but);

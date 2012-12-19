@@ -321,7 +321,7 @@ static void rna_View3D_CursorLocation_get(PointerRNA *ptr, float *values)
 	View3D *v3d = (View3D *)(ptr->data);
 	bScreen *sc = (bScreen *)ptr->id.data;
 	Scene *scene = (Scene *)sc->scene;
-	float *loc = give_cursor(scene, v3d);
+	const float *loc = give_cursor(scene, v3d);
 	
 	copy_v3_v3(values, loc);
 }
@@ -775,7 +775,7 @@ static void rna_SpaceProperties_align_set(PointerRNA *ptr, int value)
 static void rna_ConsoleLine_body_get(PointerRNA *ptr, char *value)
 {
 	ConsoleLine *ci = (ConsoleLine *)ptr->data;
-	strcpy(value, ci->line);
+	memcpy(value, ci->line, ci->len + 1);
 }
 
 static int rna_ConsoleLine_body_length(PointerRNA *ptr)
@@ -1659,6 +1659,12 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	                         "Show dashed lines indicating parent or constraint relationships");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 	
+	prop = RNA_def_property(srna, "show_grease_pencil", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_GPENCIL);
+	RNA_def_property_ui_text(prop, "Show Grease Pencil",
+	                         "Show grease pencil for this view");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
 	prop = RNA_def_property(srna, "show_textured_solid", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SOLID_TEX);
 	RNA_def_property_ui_text(prop, "Textured Solid", "Display face-assigned textures in solid view");
@@ -2045,6 +2051,12 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Repeated", "Draw the image repeated outside of the main view");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
+	prop = RNA_def_property(srna, "show_grease_pencil", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_SHOW_GPENCIL);
+	RNA_def_property_ui_text(prop, "Show Grease Pencil",
+	                         "Show grease pencil for this view");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
+
 	prop = RNA_def_property(srna, "draw_channels", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, draw_channels_items);
@@ -2210,6 +2222,12 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Seconds", "Show timing in seconds not frames");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 	
+	prop = RNA_def_property(srna, "show_grease_pencil", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_SHOW_GPENCIL);
+	RNA_def_property_ui_text(prop, "Show Grease Pencil",
+	                         "Show grease pencil for this view");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
+
 	prop = RNA_def_property(srna, "display_channel", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "chanshown");
 	RNA_def_property_ui_text(prop, "Display Channel",
@@ -3031,6 +3049,12 @@ static void rna_def_space_node(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Backdrop", "Use active Viewer Node output as backdrop for compositing nodes");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
 
+	prop = RNA_def_property(srna, "show_grease_pencil", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_SHOW_GPENCIL);
+	RNA_def_property_ui_text(prop, "Show Grease Pencil",
+	                         "Show grease pencil for this view");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
+
 	prop = RNA_def_property(srna, "use_auto_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_AUTO_RENDER);
 	RNA_def_property_ui_text(prop, "Auto Render", "Re-render and composite changed layers on 3D edits");
@@ -3301,6 +3325,13 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_manual_calibration", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_MANUAL_CALIBRATION);
 	RNA_def_property_ui_text(prop, "Manual Calibration", "Use manual calibration helpers");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
+
+	/* show grease pencil */
+	prop = RNA_def_property(srna, "show_grease_pencil", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_GPENCIL);
+	RNA_def_property_ui_text(prop, "Show Grease Pencil",
+	                         "Show grease pencil for this view");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
 
 	/* show filters */

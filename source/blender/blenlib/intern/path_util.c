@@ -47,7 +47,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_blender.h"  /* BLENDER_VERSION */
+#include "../blenkernel/BKE_blender.h"  /* BLENDER_VERSION, bad level include (no function call) */
 
 #include "GHOST_Path-api.h"
 

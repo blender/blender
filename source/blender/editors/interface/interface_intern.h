@@ -267,7 +267,7 @@ struct uiBut {
 	void *dragpoin;
 	struct ImBuf *imb;
 	float imb_scale;
-
+	
 	/* active button data */
 	struct uiHandleButtonData *active;
 
@@ -358,7 +358,7 @@ struct uiBlock {
 
 	char color_profile;         /* color profile for correcting linear colors for display */
 
-	char *display_device;       /* display device name used to display this block,
+	const char *display_device; /* display device name used to display this block,
 	                             * used by color widgets to transform colors from/to scene linear
 	                             */
 };
@@ -492,7 +492,7 @@ extern void ui_draw_aligned_panel(struct uiStyle *style, uiBlock *block, rcti *r
 /* interface_draw.c */
 extern void ui_dropshadow(const rctf *rct, float radius, float aspect, float alpha, int select);
 
-void ui_draw_gradient(rcti *rect, const float hsv[3], const int type, const float alpha);
+void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, const float alpha);
 
 void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
@@ -517,8 +517,8 @@ void ui_draw_menu_back(struct uiStyle *style, uiBlock *block, rcti *rect);
 uiWidgetColors *ui_tooltip_get_theme(void);
 void ui_draw_tooltip_background(uiStyle *UNUSED(style), uiBlock * block, rcti * rect);
 void ui_draw_search_back(struct uiStyle *style, uiBlock *block, rcti *rect);
-int ui_link_bezier_points(rcti * rect, float coord_array[][2], int resol);
-void ui_draw_link_bezier(rcti *rect);
+int ui_link_bezier_points(const rcti * rect, float coord_array[][2], int resol);
+void ui_draw_link_bezier(const rcti *rect);
 
 extern void ui_draw_but(const struct bContext *C, ARegion *ar, struct uiStyle *style, uiBut *but, rcti *rect);
 /* theme color init */

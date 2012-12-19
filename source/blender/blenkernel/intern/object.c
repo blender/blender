@@ -57,14 +57,14 @@
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 #include "DNA_object_types.h"
+#include "DNA_property_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_bpath.h"
 #include "BLI_math.h"
-#include "BLI_pbvh.h"
 #include "BLI_utildefines.h"
 #include "BLI_linklist.h"
 
+#include "BKE_pbvh.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
@@ -737,6 +737,50 @@ void BKE_object_unlink(Object *ob)
 		}
 		camera = camera->id.next;
 	}
+}
+
+/* actual check for internal data, not context or flags */
+int BKE_object_is_in_editmode(Object *ob)
+{
+	if (ob->data == NULL)
+		return 0;
+	
+	if (ob->type == OB_MESH) {
+		Mesh *me = ob->data;
+		if (me->edit_btmesh)
+			return 1;
+	}
+	else if (ob->type == OB_ARMATURE) {
+		bArmature *arm = ob->data;
+		
+		if (arm->edbo)
+			return 1;
+	}
+	else if (ob->type == OB_FONT) {
+		Curve *cu = ob->data;
+		
+		if (cu->editfont)
+			return 1;
+	}
+	else if (ob->type == OB_MBALL) {
+		MetaBall *mb = ob->data;
+		
+		if (mb->editelems)
+			return 1;
+	}
+	else if (ob->type == OB_LATTICE) {
+		Lattice *lt = ob->data;
+		
+		if (lt->editlatt)
+			return 1;
+	}
+	else if (ob->type == OB_SURF || ob->type == OB_CURVE) {
+		Curve *cu = ob->data;
+
+		if (cu->editnurb)
+			return 1;
+	}
+	return 0;
 }
 
 int BKE_object_exists_check(Object *obtest)
@@ -1498,14 +1542,14 @@ void BKE_object_make_proxy(Object *ob, Object *target, Object *gob)
 
 /* *************** CALC ****************** */
 
-void BKE_object_scale_to_mat3(Object *ob, float mat[][3])
+void BKE_object_scale_to_mat3(Object *ob, float mat[3][3])
 {
 	float vec[3];
 	mul_v3_v3v3(vec, ob->size, ob->dscale);
 	size_to_mat3(mat, vec);
 }
 
-void BKE_object_rot_to_mat3(Object *ob, float mat[][3])
+void BKE_object_rot_to_mat3(Object *ob, float mat[3][3], short use_drot)
 {
 	float rmat[3][3], dmat[3][3];
 	
@@ -1536,10 +1580,13 @@ void BKE_object_rot_to_mat3(Object *ob, float mat[][3])
 	}
 	
 	/* combine these rotations */
-	mul_m3_m3m3(mat, dmat, rmat);
+	if (use_drot)
+		mul_m3_m3m3(mat, dmat, rmat);
+	else
+		copy_m3_m3(mat, rmat);
 }
 
-void BKE_object_mat3_to_rot(Object *ob, float mat[][3], short use_compat)
+void BKE_object_mat3_to_rot(Object *ob, float mat[3][3], short use_compat)
 {
 	switch (ob->rotmode) {
 		case ROT_MODE_QUAT:
@@ -1642,7 +1689,7 @@ void BKE_object_tfm_protected_restore(Object *ob,
 }
 
 /* see BKE_pchan_apply_mat4() for the equivalent 'pchan' function */
-void BKE_object_apply_mat4(Object *ob, float mat[][4], const short use_compat, const short use_parent)
+void BKE_object_apply_mat4(Object *ob, float mat[4][4], const short use_compat, const short use_parent)
 {
 	float rot[3][3];
 
@@ -1671,7 +1718,7 @@ void BKE_object_apply_mat4(Object *ob, float mat[][4], const short use_compat, c
 	/* BKE_object_mat3_to_rot handles delta rotations */
 }
 
-void BKE_object_to_mat3(Object *ob, float mat[][3]) /* no parent */
+void BKE_object_to_mat3(Object *ob, float mat[3][3]) /* no parent */
 {
 	float smat[3][3];
 	float rmat[3][3];
@@ -1681,11 +1728,11 @@ void BKE_object_to_mat3(Object *ob, float mat[][3]) /* no parent */
 	BKE_object_scale_to_mat3(ob, smat);
 
 	/* rot */
-	BKE_object_rot_to_mat3(ob, rmat);
+	BKE_object_rot_to_mat3(ob, rmat, TRUE);
 	mul_m3_m3m3(mat, rmat, smat);
 }
 
-void BKE_object_to_mat4(Object *ob, float mat[][4])
+void BKE_object_to_mat4(Object *ob, float mat[4][4])
 {
 	float tmat[3][3];
 	
@@ -1699,7 +1746,7 @@ void BKE_object_to_mat4(Object *ob, float mat[][4])
 /* extern */
 int enable_cu_speed = 1;
 
-static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
+static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[4][4])
 {
 	Curve *cu;
 	float vec[4], dir[3], quat[4], radius, ctime;
@@ -1783,7 +1830,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 	}
 }
 
-static void ob_parbone(Object *ob, Object *par, float mat[][4])
+static void ob_parbone(Object *ob, Object *par, float mat[4][4])
 {	
 	bPoseChannel *pchan;
 	float vec[3];
@@ -1913,7 +1960,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
 	}
 }
 
-static void ob_parvert3(Object *ob, Object *par, float mat[][4])
+static void ob_parvert3(Object *ob, Object *par, float mat[4][4])
 {
 	float cmat[3][3], v1[3], v2[3], v3[3], q[4];
 
@@ -1941,7 +1988,7 @@ static void ob_parvert3(Object *ob, Object *par, float mat[][4])
 	}
 }
 
-static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul)
+static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[4][4], float slowmat[4][4], int simul)
 {
 	float totmat[4][4];
 	float tmat[4][4];

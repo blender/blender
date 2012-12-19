@@ -60,7 +60,7 @@ class KX_PolygonMaterial : public PyObjectPlus, public RAS_IPolyMaterial
 private:
 	/** Blender texture face structure. */
 	mutable MTFace       m_tface;
-	mutable unsigned int m_mcol; /* for text color (only) */
+	mutable unsigned int m_mcol;
 	Material*            m_material;
 
 #ifdef WITH_PYTHON

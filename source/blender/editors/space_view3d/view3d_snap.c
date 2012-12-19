@@ -340,9 +340,8 @@ static void make_trans_verts(Object *obedit, float min[3], float max[3], int mod
 		}
 		
 		if (transvmain && em->derivedCage) {
-			EDBM_index_arrays_init(em, 1, 0, 0);
+			EDBM_index_arrays_ensure(em, BM_VERT);
 			em->derivedCage->foreachMappedVert(em->derivedCage, set_mapped_co, userdata);
-			EDBM_index_arrays_free(em);
 		}
 	}
 	else if (obedit->type == OB_ARMATURE) {

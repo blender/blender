@@ -105,6 +105,11 @@ struct PBVH;
  *       Also, the mface origindex layer indexes mpolys, not mfaces.
  */
 
+typedef struct DMCoNo {
+	float co[3];
+	float no[3];
+} DMCoNo;
+
 typedef struct DMGridAdjacency {
 	int index[4];
 	int rotation[4];
@@ -603,7 +608,7 @@ void vDM_ColorBand_store(struct ColorBand *coba);
 /** Simple function to get me->totvert amount of vertices/normals,
  * correctly deformed and subsurfered. Needed especially when vertexgroups are involved.
  * In use now by vertex/weight paint and particles */
-float *mesh_get_mapped_verts_nors(struct Scene *scene, struct Object *ob);
+DMCoNo *mesh_get_mapped_verts_nors(struct Scene *scene, struct Object *ob);
 
 /* */
 DerivedMesh *mesh_get_derived_final(struct Scene *scene, struct Object *ob,

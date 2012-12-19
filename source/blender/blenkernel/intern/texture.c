@@ -42,7 +42,6 @@
 #include "BLI_math.h"
 #include "BLI_kdopbvh.h"
 #include "BLI_utildefines.h"
-#include "BLI_bpath.h"
 
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"

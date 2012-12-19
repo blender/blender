@@ -56,6 +56,7 @@ struct wmOperatorType;
 struct wmOperator;
 struct rcti;
 struct PointerRNA;
+struct PropertyRNA;
 struct EnumPropertyItem;
 struct MenuType;
 struct wmDropBox;
@@ -68,6 +69,7 @@ typedef struct wmJob wmJob;
 void		WM_init_state_size_set		(int stax, int stay, int sizx, int sizy);
 void		WM_init_state_fullscreen_set(void);
 void		WM_init_state_normal_set(void);
+void		WM_init_native_pixels(int do_it);
 
 void		WM_init				(struct bContext *C, int argc, const char **argv);
 void		WM_exit_ext			(struct bContext *C, const short do_python);
@@ -92,21 +94,23 @@ void		WM_check			(struct bContext *C);
 
 struct wmWindow	*WM_window_open	(struct bContext *C, struct rcti *rect);
 
+int			WM_window_pixels_x		(struct wmWindow *win);
+int			WM_window_pixels_y		(struct wmWindow *win);
+
 		/* defines for 'type' WM_window_open_temp */
 #define WM_WINDOW_RENDER		0
 #define WM_WINDOW_USERPREFS		1
 #define WM_WINDOW_FILESEL		2
 
 void		WM_window_open_temp	(struct bContext *C, struct rcti *position, int type);
+			
+			/* returns true if draw method is triple buffer */
+int			WM_is_draw_triple(struct wmWindow *win);
 
 
 
 			/* files */
-int			WM_homefile_read_exec(struct bContext *C, struct wmOperator *op);
-int			WM_homefile_read(struct bContext *C, struct ReportList *reports, short from_memory);
-int			WM_homefile_write_exec(struct bContext *C, struct wmOperator *op);
 void		WM_file_read(struct bContext *C, const char *filepath, struct ReportList *reports);
-int			WM_file_write(struct bContext *C, const char *target, int fileflags, struct ReportList *reports);
 void		WM_autosave_init(struct wmWindowManager *wm);
 
 			/* mouse cursors */
@@ -144,8 +148,9 @@ struct wmEventHandler *WM_event_add_ui_handler(const struct bContext *C, ListBas
 			int (*func)(struct bContext *C, struct wmEvent *event, void *userdata),
 			void (*remove)(struct bContext *C, void *userdata), void *userdata);
 void		WM_event_remove_ui_handler(ListBase *handlers,
-			int (*func)(struct bContext *C, struct wmEvent *event, void *userdata),
-			void (*remove)(struct bContext *C, void *userdata), void *userdata, int postpone);
+                                       int (*func)(struct bContext *C, struct wmEvent *event, void *userdata),
+                                       void (*remove)(struct bContext *C, void *userdata),
+                                       void *userdata, int postpone);
 void		WM_event_remove_area_handler(struct ListBase *handlers, void *area);
 
 struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op);
@@ -253,6 +258,7 @@ int         WM_operator_last_properties_store(struct wmOperator *op);
 
 		/* operator as a python command (resultuing string must be freed) */
 char		*WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args);
+char		*WM_prop_pystring_assign(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
 void		WM_operator_bl_idname(char *to, const char *from);
 void		WM_operator_py_idname(char *to, const char *from);
 
@@ -298,7 +304,7 @@ struct wmDrag		*WM_event_start_drag(struct bContext *C, int icon, int type, void
 void				WM_event_drag_image(struct wmDrag *, struct ImBuf *, float scale, int sx, int sy);
 
 struct wmDropBox	*WM_dropbox_add(ListBase *lb, const char *idname, int (*poll)(struct bContext *, struct wmDrag *, struct wmEvent *event),
-						  void (*copy)(struct wmDrag *, struct wmDropBox *));
+                                    void (*copy)(struct wmDrag *, struct wmDropBox *));
 ListBase	*WM_dropboxmap_find(const char *idname, int spaceid, int regionid);
 
 			/* Set a subwindow active in pixelspace view, with optional scissor subset */

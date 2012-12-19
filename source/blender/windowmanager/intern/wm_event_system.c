@@ -1640,9 +1640,9 @@ static int wm_action_not_handled(int action)
 static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers)
 {
 #ifndef NDEBUG
-	const int do_debug_handler = (G.debug & G_DEBUG_HANDLERS)
+	const int do_debug_handler = (G.debug & G_DEBUG_HANDLERS) &&
 	        /* comment this out to flood the console! (if you really want to test) */
-	        && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)
+	        !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)
 	        ;
 #endif
 	wmWindowManager *wm = CTX_wm_manager(C);
@@ -2738,11 +2738,9 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		{
 			GHOST_TEventCursorData *cd = customdata;
 			wmEvent *lastevent = win->queue.last;
-			int cx, cy;
 			
-			GHOST_ScreenToClient(win->ghostwin, cd->x, cd->y, &cx, &cy);
-			evt->x = cx;
-			evt->y = (win->sizey - 1) - cy;
+			evt->x = cd->x;
+			evt->y = cd->y;
 			
 			event.x = evt->x;
 			event.y = evt->y;
@@ -2790,13 +2788,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 					break;
 			}
 
-			{
-				int cx, cy;
-				GHOST_ScreenToClient(win->ghostwin, pd->x, pd->y, &cx, &cy);
-				event.x = evt->x = cx;
-				event.y = evt->y = (win->sizey - 1) - cy;
-			}
-			
+			event.x = evt->x = pd->x;
+			event.y = evt->y = pd->y;
 			event.val = 0;
 			
 			/* Use prevx/prevy so we can calculate the delta later */

@@ -76,10 +76,14 @@ bNode *node_add_node(SpaceNode *snode, Main *bmain, Scene *scene,
 	if (node) {
 		node_select(node);
 
+		/* node location is mapped */
+		locx /= UI_DPI_FAC;
+		locy /= UI_DPI_FAC;
+		
 		gnode = node_tree_get_editgroup(snode->nodetree);
 		// arbitrary y offset of 60 so its visible
 		if (gnode) {
-			nodeFromView(gnode, locx, locy + 60.0f, &node->locx, &node->locy);
+			node_from_view(gnode, locx, locy + 60.0f, &node->locx, &node->locy);
 		}
 		else {
 			node->locx = locx;
@@ -203,7 +207,7 @@ static bNodeSocketLink *add_reroute_do_socket_section(bContext *C, bNodeSocketLi
 			}
 			
 			add_v2_v2(insert_point, socklink->point);
-			++num_links;
+			num_links++;
 		}
 		socklink = socklink->next;
 	}
@@ -215,7 +219,7 @@ static bNodeSocketLink *add_reroute_do_socket_section(bContext *C, bNodeSocketLi
 		mul_v2_fl(insert_point, 1.0f / num_links);
 		
 		if (gnode) {
-			nodeFromView(gnode, insert_point[0], insert_point[1], &reroute_node->locx, &reroute_node->locy);
+			node_from_view(gnode, insert_point[0], insert_point[1], &reroute_node->locx, &reroute_node->locy);
 		}
 		else {
 			reroute_node->locx = insert_point[0];

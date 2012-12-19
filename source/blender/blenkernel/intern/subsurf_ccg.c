@@ -50,8 +50,8 @@
 #include "BLI_edgehash.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
-#include "BLI_pbvh.h"
 
+#include "BKE_pbvh.h"
 #include "BKE_ccg.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_global.h"

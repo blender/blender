@@ -53,8 +53,13 @@ __device float3 volume_transparent_eval_phase(const ShaderClosure *sc, const flo
 
 /* VOLUME CLOSURE */
 
-__device float3 volume_eval_phase(const ShaderClosure *sc, const float3 omega_in, const float3 omega_out)
+__device float3 volume_eval_phase(KernelGlobals *kg, const ShaderClosure *sc, const float3 omega_in, const float3 omega_out)
 {
+#ifdef __OSL__
+	if(kg->osl && sc->prim)
+		return OSLShader::volume_eval_phase(sc, omega_in, omega_out);
+#endif
+
 	float3 eval;
 
 	switch(sc->type) {

@@ -58,12 +58,12 @@ public:
 
 	TransformReader(UnitConverter *conv);
 
-	void get_node_mat(float mat[][4], COLLADAFW::Node *node, std::map<COLLADAFW::UniqueId, Animation> *animation_map, Object *ob);
+	void get_node_mat(float mat[4][4], COLLADAFW::Node *node, std::map<COLLADAFW::UniqueId, Animation> *animation_map, Object *ob);
 	
-	void dae_rotate_to_mat4(COLLADAFW::Transformation *tm, float m[][4]);
-	void dae_translate_to_mat4(COLLADAFW::Transformation *tm, float m[][4]);
-	void dae_scale_to_mat4(COLLADAFW::Transformation *tm, float m[][4]);
-	void dae_matrix_to_mat4(COLLADAFW::Transformation *tm, float m[][4]);
+	void dae_rotate_to_mat4(COLLADAFW::Transformation *tm, float m[4][4]);
+	void dae_translate_to_mat4(COLLADAFW::Transformation *tm, float m[4][4]);
+	void dae_scale_to_mat4(COLLADAFW::Transformation *tm, float m[4][4]);
+	void dae_matrix_to_mat4(COLLADAFW::Transformation *tm, float m[4][4]);
 	void dae_translate_to_v3(COLLADAFW::Transformation *tm, float v[3]);
 	void dae_scale_to_v3(COLLADAFW::Transformation *tm, float v[3]);
 	void dae_vector3_to_v3(const COLLADABU::Math::Vector3 &v3, float v[3]);

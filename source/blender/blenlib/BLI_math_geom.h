@@ -202,7 +202,7 @@ void perspective_m4(float mat[4][4], const float left, const float right,
                     const float bottom, const float top, const float nearClip, const float farClip);
 void orthographic_m4(float mat[4][4], const float left, const float right,
                      const float bottom, const float top, const float nearClip, const float farClip);
-void window_translate_m4(float winmat[][4], float perspmat[][4],
+void window_translate_m4(float winmat[4][4], float perspmat[4][4],
                          const float x, const float y);
 
 int box_clip_bounds_m4(float boundbox[2][3],

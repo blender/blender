@@ -107,21 +107,23 @@ void EDBM_select_mirrored(Object *UNUSED(obedit), BMEditMesh *em, int extend)
 
 void EDBM_automerge(Scene *scene, Object *obedit, int update)
 {
-	BMEditMesh *em;
 	
 	if ((scene->toolsettings->automerge) &&
 	    (obedit && obedit->type == OB_MESH))
 	{
-		em = BMEdit_FromObject(obedit);
-		if (!em)
-			return;
+		int ok;
+		BMEditMesh *em = BMEdit_FromObject(obedit);
 
-		BMO_op_callf(em->bm, BMO_FLAG_DEFAULTS,
-		             "automerge verts=%hv dist=%f",
-		             BM_ELEM_SELECT, scene->toolsettings->doublimit);
-		if (update) {
-			DAG_id_tag_update(obedit->data, OB_RECALC_DATA);
-			BMEdit_RecalcTessellation(em);
+		if (!em) {
+			return;
+		}
+
+		ok = BMO_op_callf(em->bm, BMO_FLAG_DEFAULTS,
+		                  "automerge verts=%hv dist=%f",
+		                  BM_ELEM_SELECT, scene->toolsettings->doublimit);
+
+		if (LIKELY(ok) && update) {
+			EDBM_update_generic(em, TRUE, TRUE);
 		}
 	}
 }
@@ -464,12 +466,12 @@ static void findnearestedge__doClosest(void *userData, BMEdge *eed, const float 
 
 	if (distance < data->dist) {
 		if (data->vc.rv3d->rflag & RV3D_CLIPPING) {
-			float labda = line_point_factor_v2(data->mval_fl, screen_co_a, screen_co_b);
+			float lambda = line_point_factor_v2(data->mval_fl, screen_co_a, screen_co_b);
 			float vec[3];
 
-			vec[0] = eed->v1->co[0] + labda * (eed->v2->co[0] - eed->v1->co[0]);
-			vec[1] = eed->v1->co[1] + labda * (eed->v2->co[1] - eed->v1->co[1]);
-			vec[2] = eed->v1->co[2] + labda * (eed->v2->co[2] - eed->v1->co[2]);
+			vec[0] = eed->v1->co[0] + lambda * (eed->v2->co[0] - eed->v1->co[0]);
+			vec[1] = eed->v1->co[1] + lambda * (eed->v2->co[1] - eed->v1->co[1]);
+			vec[2] = eed->v1->co[2] + lambda * (eed->v2->co[2] - eed->v1->co[2]);
 
 			if (ED_view3d_clipping_test(data->vc.rv3d, vec, TRUE) == 0) {
 				data->dist = distance;
@@ -573,7 +575,7 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
 
 			data.mval_fl[0] = vc->mval[0];
 			data.mval_fl[1] = vc->mval[1];
-			data.dist = 0x7FFF;     /* largest short */
+			data.dist = FLT_MAX;
 			data.toFace = efa;
 
 			mesh_foreachScreenFace(vc, findnearestface__getDistance, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
@@ -727,7 +729,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, FALSE);
+	EDBM_update_generic(em, FALSE, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -769,7 +771,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, FALSE);
+	EDBM_update_generic(em, FALSE, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -814,7 +816,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 
 	EDBM_selectmode_flush(em);
 
-	EDBM_update_generic(C, em, FALSE);
+	EDBM_update_generic(em, FALSE, FALSE);
 
 	/* we succeeded */
 	return OPERATOR_FINISHED;
@@ -1438,7 +1440,7 @@ static int edgetag_shortest_path(Scene *scene, BMesh *bm, BMEdge *e_src, BMEdge 
 /* ******************* mesh shortest path select, uses prev-selected edge ****************** */
 
 /* since you want to create paths with multiple selects, it doesn't have extend option */
-static int mouse_mesh_shortest_path_edge(bContext *C, ViewContext *vc)
+static int mouse_mesh_shortest_path_edge(ViewContext *vc)
 {
 	BMEditMesh *em = vc->em;
 	BMEdge *e_dst;
@@ -1477,7 +1479,7 @@ static int mouse_mesh_shortest_path_edge(bContext *C, ViewContext *vc)
 			BM_select_history_store(em->bm, e_dst);
 	
 		/* force drawmode for mesh */
-		switch (CTX_data_tool_settings(C)->edge_mode) {
+		switch (vc->scene->toolsettings->edge_mode) {
 			
 			case EDGE_MODE_TAG_SEAM:
 				me->drawflag |= ME_DRAWSEAMS;
@@ -1497,7 +1499,7 @@ static int mouse_mesh_shortest_path_edge(bContext *C, ViewContext *vc)
 				break;
 		}
 		
-		EDBM_update_generic(C, em, FALSE);
+		EDBM_update_generic(em, FALSE, FALSE);
 
 		return TRUE;
 	}
@@ -1654,7 +1656,7 @@ static int facetag_shortest_path(Scene *scene, BMesh *bm, BMFace *f_src, BMFace 
 	return 1;
 }
 
-static int mouse_mesh_shortest_path_face(bContext *C, ViewContext *vc)
+static int mouse_mesh_shortest_path_face(ViewContext *vc)
 {
 	BMEditMesh *em = vc->em;
 	BMFace *f_dst;
@@ -1688,7 +1690,7 @@ static int mouse_mesh_shortest_path_face(bContext *C, ViewContext *vc)
 
 		BM_active_face_set(em->bm, f_dst);
 
-		EDBM_update_generic(C, em, FALSE);
+		EDBM_update_generic(em, FALSE, FALSE);
 
 		return TRUE;
 	}
@@ -1713,7 +1715,7 @@ static int edbm_shortest_path_select_invoke(bContext *C, wmOperator *UNUSED(op),
 	em = vc.em;
 
 	if (em->selectmode & SCE_SELECT_EDGE) {
-		if (mouse_mesh_shortest_path_edge(C, &vc)) {
+		if (mouse_mesh_shortest_path_edge(&vc)) {
 			return OPERATOR_FINISHED;
 		}
 		else {
@@ -1721,7 +1723,7 @@ static int edbm_shortest_path_select_invoke(bContext *C, wmOperator *UNUSED(op),
 		}
 	}
 	else if (em->selectmode & SCE_SELECT_FACE) {
-		if (mouse_mesh_shortest_path_face(C, &vc)) {
+		if (mouse_mesh_shortest_path_face(&vc)) {
 			return OPERATOR_FINISHED;
 		}
 		else {
@@ -2638,14 +2640,15 @@ static int edbm_select_nth_exec(bContext *C, wmOperator *op)
 	int nth = RNA_int_get(op->ptr, "nth");
 	int offset = RNA_int_get(op->ptr, "offset");
 
-	offset = MIN2(nth, offset);
+	/* so input of offset zero ends up being (nth - 1) */
+	offset = (offset + (nth - 1)) % nth;
 
 	if (edbm_deselect_nth(em, nth, offset) == 0) {
 		BKE_report(op->reports, RPT_ERROR, "Mesh has no active vert/edge/face");
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(C, em, FALSE);
+	EDBM_update_generic(em, FALSE, FALSE);
 
 	return OPERATOR_FINISHED;
 }

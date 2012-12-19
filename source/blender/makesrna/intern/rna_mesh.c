@@ -2368,7 +2368,7 @@ static void rna_def_tessface_vertex_colors(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_RNAPTR);
 	RNA_def_function_return(func, parm);
 
-	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_UNSIGNED);
+	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MeshColorLayer");
 	RNA_def_property_pointer_funcs(prop, "rna_Mesh_tessface_vertex_color_active_get",
 	                               "rna_Mesh_tessface_vertex_color_active_set", NULL, NULL);
@@ -2412,7 +2412,7 @@ static void rna_def_loop_colors(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 #endif
 
-	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_UNSIGNED);
+	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MeshLoopColorLayer");
 	RNA_def_property_pointer_funcs(prop, "rna_Mesh_vertex_color_active_get",
 	                               "rna_Mesh_vertex_color_active_set", NULL, NULL);
@@ -2440,7 +2440,7 @@ static void rna_def_uv_layers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_sdna(srna, "Mesh");
 	RNA_def_struct_ui_text(srna, "UV Loop Layers", "Collection of uv loop layers");
 
-	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_UNSIGNED);
+	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MeshUVLoopLayer");
 	RNA_def_property_pointer_funcs(prop, "rna_Mesh_uv_layer_active_get",
 	                               "rna_Mesh_uv_layer_active_set", NULL, NULL);
@@ -2545,7 +2545,7 @@ static void rna_def_tessface_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_return(func, parm);
 
 
-	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_UNSIGNED);
+	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MeshTextureFaceLayer");
 	RNA_def_property_pointer_funcs(prop, "rna_Mesh_tessface_uv_texture_active_get",
 	                               "rna_Mesh_tessface_uv_texture_active_set", NULL, NULL);
@@ -2590,7 +2590,7 @@ static void rna_def_uv_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 #endif
 
-	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_UNSIGNED);
+	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MeshTexturePolyLayer");
 	RNA_def_property_pointer_funcs(prop, "rna_Mesh_uv_texture_active_get",
 	                               "rna_Mesh_uv_texture_active_set", NULL, NULL);
@@ -2708,7 +2708,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "UV Loop Layers", "All UV loop layers");
 	rna_def_uv_layers(brna, prop);
 
-	prop = RNA_def_property(srna, "uv_layer_clone", PROP_POINTER, PROP_UNSIGNED);
+	prop = RNA_def_property(srna, "uv_layer_clone", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MeshUVLoopLayer");
 	RNA_def_property_pointer_funcs(prop, "rna_Mesh_uv_layer_clone_get",
 	                               "rna_Mesh_uv_layer_clone_set", NULL, NULL);
@@ -2720,7 +2720,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	                           "rna_Mesh_uv_layer_clone_index_set", "rna_Mesh_uv_layer_index_range");
 	RNA_def_property_ui_text(prop, "Clone UV loop layer Index", "Clone UV loop layer index");
 
-	prop = RNA_def_property(srna, "uv_layer_stencil", PROP_POINTER, PROP_UNSIGNED);
+	prop = RNA_def_property(srna, "uv_layer_stencil", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MeshUVLoopLayer");
 	RNA_def_property_pointer_funcs(prop, "rna_Mesh_uv_layer_stencil_get",
 	                               "rna_Mesh_uv_layer_stencil_set", NULL, NULL);
@@ -2751,7 +2751,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "UV Maps", "All UV maps");
 	rna_def_uv_textures(brna, prop);
 
-	prop = RNA_def_property(srna, "uv_texture_clone", PROP_POINTER, PROP_UNSIGNED);
+	prop = RNA_def_property(srna, "uv_texture_clone", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MeshTexturePolyLayer");
 	RNA_def_property_pointer_funcs(prop, "rna_Mesh_uv_texture_clone_get",
 	                               "rna_Mesh_uv_texture_clone_set", NULL, NULL);
@@ -2763,7 +2763,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	                           "rna_Mesh_uv_texture_clone_index_set", "rna_Mesh_uv_texture_index_range");
 	RNA_def_property_ui_text(prop, "Clone UV Map Index", "Clone UV map index");
 
-	prop = RNA_def_property(srna, "uv_texture_stencil", PROP_POINTER, PROP_UNSIGNED);
+	prop = RNA_def_property(srna, "uv_texture_stencil", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MeshTexturePolyLayer");
 	RNA_def_property_pointer_funcs(prop, "rna_Mesh_uv_texture_stencil_get",
 	                               "rna_Mesh_uv_texture_stencil_set", NULL, NULL);

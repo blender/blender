@@ -265,7 +265,15 @@ def xml2rna(root_xml,
                     tp_name = 'ARRAY'
 
 #                print("  %s.%s (%s) --- %s" % (type(value).__name__, attr, tp_name, subvalue_type))
-                setattr(value, attr, value_xml_coerce)
+                try:
+                    setattr(value, attr, value_xml_coerce)
+                except ValueError:
+                    # size mismatch
+                    val = getattr(value, attr)
+                    if len(val) < len(value_xml_coerce):
+                        setattr(value, attr, value_xml_coerce[:len(val)])
+                    else:
+                        setattr(value, attr, list(value_xml_coerce) + list(val)[len(value_xml_coerce):])
 
         # ---------------------------------------------------------------------
         # Complex attributes

@@ -76,7 +76,7 @@
 /* --------------------- */
 /* forward declarations */
 
-static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBase *duplilist, float par_space_mat[][4],
+static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBase *duplilist, float par_space_mat[4][4],
                                        int persistent_id[MAX_DUPLI_RECUR], int level, int index, short flag);
 
 /* ******************************************************************** */
@@ -706,7 +706,7 @@ int where_on_path(Object *ob, float ctime, float vec[4], float dir[3], float qua
 #define DUPLILIST_FOR_RENDER	2
 #define DUPLILIST_ANIMATED		4
 
-static DupliObject *new_dupli_object(ListBase *lb, Object *ob, float mat[][4], int lay,
+static DupliObject *new_dupli_object(ListBase *lb, Object *ob, float mat[4][4], int lay,
                                      int persistent_id[MAX_DUPLI_RECUR], int level, int index, int type, short flag)
 {
 	DupliObject *dob = MEM_callocN(sizeof(DupliObject), "dupliobject");
@@ -930,7 +930,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, const float co[3],
 	}
 }
 
-static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[][4], int persistent_id[MAX_DUPLI_RECUR],
+static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[4][4], int persistent_id[MAX_DUPLI_RECUR],
                              int level, short flag)
 {
 	Object *ob, *ob_iter;
@@ -1054,7 +1054,7 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 	dm->release(dm);
 }
 
-static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[][4], int persistent_id[MAX_DUPLI_RECUR],
+static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[4][4], int persistent_id[MAX_DUPLI_RECUR],
                            int level, short flag)
 {
 	Object *ob, *ob_iter;
@@ -1240,7 +1240,8 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 	dm->release(dm);
 }
 
-static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[][4], int persistent_id[MAX_DUPLI_RECUR], ParticleSystem *psys,
+static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, float par_space_mat[4][4],
+                                   int persistent_id[MAX_DUPLI_RECUR], ParticleSystem *psys,
                                    int level, short flag)
 {
 	GroupObject *go;
@@ -1479,7 +1480,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 
 				/* blender internal needs this to be set to dupligroup to render
 				 * groups correctly, but we don't want this hack for cycles */
-				if(dupli_type_hack && GS(id->name) == ID_GR)
+				if (dupli_type_hack && GS(id->name) == ID_GR)
 					dupli_type = OB_DUPLIGROUP;
 
 				/* to give ipos in object correct offset */
@@ -1635,7 +1636,7 @@ static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int persiste
 
 /* ------------- */
 
-static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBase *duplilist, float par_space_mat[][4],
+static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBase *duplilist, float par_space_mat[4][4],
                                        int persistent_id[MAX_DUPLI_RECUR], int level, int index, short flag)
 {	
 	if ((ob->transflag & OB_DUPLI) == 0)

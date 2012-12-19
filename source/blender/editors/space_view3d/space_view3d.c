@@ -117,7 +117,7 @@ ARegion *view3d_has_tools_region(ScrArea *sa)
 		
 		BLI_insertlinkafter(&sa->regionbase, arhead, artool);
 		artool->regiontype = RGN_TYPE_TOOLS;
-		artool->alignment = RGN_ALIGN_LEFT; //RGN_OVERLAP_LEFT;
+		artool->alignment = RGN_ALIGN_LEFT;
 		artool->flag = RGN_FLAG_HIDDEN;
 	}
 
@@ -261,14 +261,11 @@ static SpaceLink *view3d_new(const bContext *C)
 	v3d->gridlines = 16;
 	v3d->gridsubdiv = 10;
 	v3d->drawtype = OB_SOLID;
+
+	v3d->gridflag = V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_FLOOR;
 	
-	v3d->gridflag |= V3D_SHOW_X;
-	v3d->gridflag |= V3D_SHOW_Y;
-	v3d->gridflag |= V3D_SHOW_FLOOR;
-	v3d->gridflag &= ~V3D_SHOW_Z;
-	
-	v3d->flag |= V3D_SELECT_OUTLINE;
-	v3d->flag2 |= V3D_SHOW_RECONSTRUCTION;
+	v3d->flag = V3D_SELECT_OUTLINE;
+	v3d->flag2 = V3D_SHOW_RECONSTRUCTION | V3D_SHOW_GPENCIL;
 	
 	v3d->lens = 35.0f;
 	v3d->near = 0.01f;
@@ -635,8 +632,7 @@ static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn, Scene *scene
 
 static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 {
-	bScreen *sc;
-
+	
 	/* context changes */
 	switch (wmn->category) {
 		case NC_ANIMATION:
@@ -659,7 +655,8 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_SCENE:
 			switch (wmn->data) {
 				case ND_LAYER_CONTENT:
-					view3d_recalc_used_layers(ar, wmn, wmn->reference);
+					if (wmn->reference)
+						view3d_recalc_used_layers(ar, wmn, wmn->reference);
 					ED_region_tag_redraw(ar);
 					break;
 				case ND_FRAME:
@@ -787,8 +784,10 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_SCREENSET:
 					/* screen was changed, need to update used layers due to NC_SCENE|ND_LAYER_CONTENT */
 					/* updates used layers only for View3D in active screen */
-					sc = wmn->reference;
-					view3d_recalc_used_layers(ar, wmn, sc->scene);
+					if (wmn->reference) {
+						bScreen *sc = wmn->reference;
+						view3d_recalc_used_layers(ar, wmn, sc->scene);
+					}
 					ED_region_tag_redraw(ar);
 					break;
 			}

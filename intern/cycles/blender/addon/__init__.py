@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Cycles Render Engine",
     "author": "",
-    "blender": (2, 6, 3),
+    "blender": (2, 6, 5),
     "location": "Info header, render engine menu",
     "description": "Cycles Render Engine integration",
     "warning": "",
@@ -31,8 +31,8 @@ bl_info = {
     "category": "Render"}
 
 import bpy
-from . import ui, properties, engine, presets
 
+from . import engine
 
 class CyclesRender(bpy.types.RenderEngine):
     bl_idname = 'CYCLES'
@@ -84,6 +84,10 @@ class CyclesRender(bpy.types.RenderEngine):
 
 
 def register():
+    from . import ui
+    from . import properties
+    from . import presets
+
     properties.register()
     ui.register()
     presets.register()
@@ -91,6 +95,10 @@ def register():
 
 
 def unregister():
+    from . import ui
+    from . import properties
+    from . import presets
+
     ui.unregister()
     properties.unregister()
     presets.unregister()

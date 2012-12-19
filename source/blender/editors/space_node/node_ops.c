@@ -49,6 +49,7 @@
 void node_operatortypes(void)
 {
 	WM_operatortype_append(NODE_OT_properties);
+	WM_operatortype_append(NODE_OT_toolbar);
 	
 	WM_operatortype_append(NODE_OT_select);
 	WM_operatortype_append(NODE_OT_select_all);
@@ -204,6 +205,7 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	keymap = WM_keymap_find(keyconf, "Node Generic", SPACE_NODE, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_properties", NKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_toolbar", TKEY, KM_PRESS, 0, 0);
 	
 	/* Main Area only ----------------- */
 	keymap = WM_keymap_find(keyconf, "Node Editor", SPACE_NODE, 0);

@@ -113,6 +113,7 @@
 #include "WM_types.h"
 
 #include "UI_view2d.h"
+#include "UI_interface.h"
 
 #include "RNA_access.h"
 
@@ -271,7 +272,7 @@ static void createTransTexspace(TransInfo *t)
 	copy_m3_m4(td->mtx, ob->obmat);
 	copy_m3_m4(td->axismtx, ob->obmat);
 	normalize_m3(td->axismtx);
-	invert_m3_m3(td->smtx, td->mtx);
+	pseudoinverse_m3_m3(td->smtx, td->mtx, PSEUDOINVERSE_EPSILON);
 
 	if (BKE_object_obdata_texspace_get(ob, &texflag, &td->loc, &td->ext->size, &td->ext->rot)) {
 		ob->dtx |= OB_TEXSPACE;
@@ -315,7 +316,7 @@ static void createTransEdge(TransInfo *t)
 	td = t->data = MEM_callocN(t->total * sizeof(TransData), "TransCrease");
 
 	copy_m3_m4(mtx, t->obedit->obmat);
-	invert_m3_m3(smtx, mtx);
+	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
 	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 		if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && (BM_elem_flag_test(eed, BM_ELEM_SELECT) || propmode)) {
@@ -552,7 +553,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		invert_m3_m3(td->ext->r_smtx, td->ext->r_mtx);
 	}
 
-	invert_m3_m3(td->smtx, td->mtx);
+	pseudoinverse_m3_m3(td->smtx, td->mtx, PSEUDOINVERSE_EPSILON);
 
 	/* exceptional case: rotate the pose bone which also applies transformation
 	 * when a parentless bone has BONE_NO_LOCAL_LOCATION [] */
@@ -604,7 +605,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 
 			/* only object matrix correction */
 			copy_m3_m3(td->mtx, omat);
-			invert_m3_m3(td->smtx, td->mtx);
+			pseudoinverse_m3_m3(td->smtx, td->mtx, PSEUDOINVERSE_EPSILON);
 		}
 	}
 
@@ -1053,7 +1054,7 @@ static void createTransArmatureVerts(TransInfo *t)
 	if (!t->total) return;
 
 	copy_m3_m4(mtx, t->obedit->obmat);
-	invert_m3_m3(smtx, mtx);
+	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
 	td = t->data = MEM_callocN(t->total * sizeof(TransData), "TransEditBone");
 
@@ -1221,7 +1222,7 @@ static void createTransMBallVerts(TransInfo *t)
 	tx = t->ext = MEM_callocN(t->total * sizeof(TransDataExtension), "MetaElement_TransExtension");
 
 	copy_m3_m4(mtx, t->obedit->obmat);
-	invert_m3_m3(smtx, mtx);
+	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
 	for (ml = mb->editelems->first; ml; ml = ml->next) {
 		if (propmode || (ml->flag & SELECT)) {
@@ -1378,7 +1379,7 @@ static void createTransCurveVerts(TransInfo *t)
 	t->data = MEM_callocN(t->total * sizeof(TransData), "TransObData(Curve EditMode)");
 
 	copy_m3_m4(mtx, t->obedit->obmat);
-	invert_m3_m3(smtx, mtx);
+	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
 	td = t->data;
 	for (nu = nurbs->first; nu; nu = nu->next) {
@@ -1569,7 +1570,7 @@ static void createTransLatticeVerts(TransInfo *t)
 	t->data = MEM_callocN(t->total * sizeof(TransData), "TransObData(Lattice EditMode)");
 
 	copy_m3_m4(mtx, t->obedit->obmat);
-	invert_m3_m3(smtx, mtx);
+	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
 	td = t->data;
 	bp = latt->def;
@@ -1769,7 +1770,7 @@ void flushTransParticles(TransInfo *t)
  * but instead it's a depth-first search, fudged
  * to report shortest distances.  I have no idea how fast
  * or slow this is. */
-static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[][3], float *dists)
+static void editmesh_set_connectivity_distance(BMEditMesh *em, float mtx[3][3], float *dists)
 {
 	BMVert **queue = NULL;
 	float *dqueue = NULL;
@@ -1927,7 +1928,7 @@ static void VertsToTransData(TransInfo *t, TransData *td, TransDataExtension *tx
 	}
 	else if (t->mode == TFM_SHRINKFATTEN) {
 		td->ext = tx;
-		tx->isize[0] = BM_vert_calc_shell_factor(eve);
+		tx->isize[0] = BM_vert_calc_shell_factor_ex(eve, BM_ELEM_SELECT);
 	}
 }
 
@@ -2051,7 +2052,9 @@ static void createTransEditVerts(TransInfo *t)
 	}
 
 	copy_m3_m4(mtx, t->obedit->obmat);
-	invert_m3_m3(smtx, mtx);
+	/* we use a pseudoinverse so that when one of the axes is scaled to 0,
+	 * matrix inversion still works and we can still moving along the other */
+	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
 	if (propmode & T_PROP_CONNECTED) {
 		editmesh_set_connectivity_distance(em, mtx, dists);
@@ -2195,7 +2198,12 @@ void flushTransNodes(TransInfo *t)
 	/* flush to 2d vector from internally used 3d vector */
 	for (a = 0, td = t->data, td2d = t->data2d; a < t->total; a++, td++, td2d++) {
 		bNode *node = td->extra;
-		add_v2_v2v2(&node->locx, td2d->loc, td2d->ih1);
+		float vec[2];
+		
+		/* weirdo - but the node system is a mix of free 2d elements and dpi sensitive UI */
+		add_v2_v2v2(vec, td2d->loc, td2d->ih1);
+		node->locx = vec[0] / UI_DPI_FAC;
+		node->locy = vec[1] / UI_DPI_FAC;
 	}
 	
 	/* handle intersection with noodles */
@@ -5091,7 +5099,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 					 * during cleanup - psy-fi */
 					freeSlideTempFaces(sld);
 				}
-				EDBM_automerge(t->scene, t->obedit, 1);
+				EDBM_automerge(t->scene, t->obedit, TRUE);
 			}
 			else {
 				if (t->mode == TFM_EDGE_SLIDE) {
@@ -5592,7 +5600,8 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 	/* hold original location */
 	float locxy[2] = {BLI_rctf_cent_x(&node->totr),
 	                  BLI_rctf_cent_y(&node->totr)};
-
+	float nodeloc[2];
+	
 	copy_v2_v2(td2d->loc, locxy);
 	td2d->loc[2] = 0.0f;
 	td2d->loc2d = td2d->loc; /* current location */
@@ -5617,7 +5626,10 @@ static void NodeToTransData(TransData *td, TransData2D *td2d, bNode *node)
 	unit_m3(td->mtx);
 	unit_m3(td->smtx);
 
-	sub_v2_v2v2(td2d->ih1, &node->locx, locxy);
+	/* weirdo - but the node system is a mix of free 2d elements and dpi sensitive UI */
+	nodeloc[0] = UI_DPI_FAC * node->locx;
+	nodeloc[1] = UI_DPI_FAC * node->locy;
+	sub_v2_v2v2(td2d->ih1, nodeloc, locxy);
 
 	td->extra = node;
 }
