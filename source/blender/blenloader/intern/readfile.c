@@ -6615,9 +6615,16 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	bfd->globalf = fg->globalf;
 	BLI_strncpy(bfd->filename, fg->filename, sizeof(bfd->filename));
 	
-	/* early 2.50 version patch - filename not in FileGlobal struct */
-	if (fd->fileversion <= 250)
-		BLI_strncpy(bfd->filename, bfd->main->name, sizeof(bfd->main->name));
+	/* error in 2.65 and older: main->name was not set if you save from startup (not after loading file) */
+	if (bfd->filename[0] == 0) {
+		if (fd->fileversion < 265 || (fd->fileversion == 265 && fg->subversion < 1))
+			if ((G.fileflags & G_FILE_RECOVER)==0)
+				BLI_strncpy(bfd->filename, bfd->main->name, sizeof(bfd->filename));
+		
+		/* early 2.50 version patch - filename not in FileGlobal struct at all */
+		if (fd->fileversion <= 250)
+			BLI_strncpy(bfd->filename, bfd->main->name, sizeof(bfd->filename));
+	}
 	
 	if (G.fileflags & G_FILE_RECOVER)
 		BLI_strncpy(fd->relabase, fg->filename, sizeof(fd->relabase));

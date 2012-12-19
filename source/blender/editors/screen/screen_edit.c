@@ -672,7 +672,7 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 
 			CLAMP(sv->vec.y, 0, winsizey);
 		}
-}
+	}
 	
 	/* test for collapsed areas. This could happen in some blender version... */
 	/* ton: removed option now, it needs Context... */
