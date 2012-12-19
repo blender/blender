@@ -57,6 +57,7 @@ import sys as _sys
 
 import addon_utils as _addon_utils
 
+_user_preferences = _bpy.context.user_preferences
 _script_module_dirs = "startup", "modules"
 
 
@@ -132,8 +133,6 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     """
     use_time = _bpy.app.debug_python
 
-    prefs = _bpy.context.user_preferences
-
     if use_time:
         import time
         t_main = time.time()
@@ -150,7 +149,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         # to reload. note that they will only actually reload of the
         # modification time changes. This `won't` work for packages so...
         # its not perfect.
-        for module_name in [ext.module for ext in prefs.addons]:
+        for module_name in [ext.module for ext in _user_preferences.addons]:
             _addon_utils.disable(module_name, default_set=False)
 
     def register_module_call(mod):
@@ -235,7 +234,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     _addon_utils.reset_all(reload_scripts)
 
     # run the active integration preset
-    filepath = preset_find(prefs.inputs.active_keyconfig, "keyconfig")
+    filepath = preset_find(_user_preferences.inputs.active_keyconfig, "keyconfig")
 
     if filepath:
         keyconfig_set(filepath)
@@ -264,7 +263,7 @@ def script_path_user():
 
 def script_path_pref():
     """returns the user preference or None"""
-    path = _bpy.context.user_preferences.filepaths.script_directory
+    path = _user_preferences.filepaths.script_directory
     return _os.path.normpath(path) if path else None
 
 
