@@ -605,7 +605,7 @@ void RAS_MaterialBucket::RenderMeshSlot(const MT_Transform& cameratrans, RAS_IRa
 
 	if (ms.m_pDeformer)
 	{
-		if (ms.m_pDeformer->Apply(m_material));
+		if (ms.m_pDeformer->Apply(m_material))
 			ms.m_mesh->SetMeshModified(true);
 	//	KX_ReInstanceShapeFromMesh(ms.m_mesh); // Recompute the physics mesh. (Can't call KX_* from RAS_)
 	}
