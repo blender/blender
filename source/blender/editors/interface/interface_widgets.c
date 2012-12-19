@@ -871,7 +871,7 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, const rcti
 	
 	aspect = but->block->aspect / UI_DPI_FAC;
 	height = ICON_DEFAULT_HEIGHT / aspect;
-	
+
 	/* calculate blend color */
 	if (ELEM4(but->type, TOG, ROW, TOGN, LISTROW)) {
 		if (but->flag & UI_SELECT) {}
@@ -915,6 +915,12 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, const rcti
 			ys = (rect->ymin + rect->ymax - height) / 2.0f;
 		}
 
+		/* force positions to integers, for zoom levels near 1. draws icons crisp. */
+		if (aspect > 0.95f && aspect < 1.05f) {
+			xs = (int)(xs + 0.1f);
+			ys = (int)(ys + 0.1f);
+		}
+		
 		/* to indicate draggable */
 		if (but->dragpoin && (but->flag & UI_ACTIVE)) {
 			float rgb[3] = {1.25f, 1.25f, 1.25f};
