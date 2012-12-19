@@ -173,8 +173,8 @@ void BM_face_copy_shared(BMesh *bm, BMFace *f)
  */
 BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len, const int create_flag)
 {
-	BMEdge **edges2 = BLI_array_alloca_and_count(edges2, len);
-	BMVert **verts = BLI_array_alloca_and_count(verts, len + 1);
+	BMEdge **edges2 = BLI_array_alloca(edges2, len);
+	BMVert **verts = BLI_array_alloca(verts, len + 1);
 	int e2_index = 0;
 	int v_index = 0;
 
@@ -235,7 +235,7 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 		e = e2;
 	} while (e != edges[0]);
 
-	if (BLI_array_count(edges2) != len) {
+	if (e2_index != len) {
 		goto err; /* we didn't use all edges in forming the boundary loop */
 	}
 
@@ -296,10 +296,9 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 err:
 	for (i = 0; i < len; i++) {
 		BM_ELEM_API_FLAG_DISABLE(edges[i], _FLAG_MF);
-		/* vert count may != len */
-		if (i < BLI_array_count(verts)) {
-			BM_ELEM_API_FLAG_DISABLE(verts[i], _FLAG_MV);
-		}
+	}
+	for (i = 0; i < v_index; i++) {
+		BM_ELEM_API_FLAG_DISABLE(verts[i], _FLAG_MV);
 	}
 
 	return NULL;
