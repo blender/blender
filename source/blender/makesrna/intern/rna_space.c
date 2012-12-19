@@ -871,6 +871,9 @@ static void rna_SpaceDopeSheetEditor_action_update(Main *UNUSED(bmain), Scene *s
 			/* show new id-count of action we're replacing */
 			adt->action = saction->action;
 			id_us_plus(&adt->action->id);
+			
+			/* force update of animdata */
+			adt->recalc |= ADT_RECALC_ANIM;
 		}
 		
 		/* force depsgraph flush too */
