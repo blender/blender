@@ -8424,8 +8424,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Scene *scene;
 
 		for (scene = main->scene.first; scene; scene = scene->id.next) {
-			if (scene->r.bake_rays_number == 0)
-				scene->r.bake_rays_number = 256;
+			if (scene->r.bake_samples == 0)
+				scene->r.bake_samples = 256;
 		}
 	}
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

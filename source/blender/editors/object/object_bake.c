@@ -317,7 +317,7 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 		bkr.mode = scene->r.bake_mode;
 		bkr.use_lores_mesh = scene->r.bake_flag & R_BAKE_LORES_MESH;
 		bkr.bias = scene->r.bake_biasdist;
-		bkr.number_of_rays = scene->r.bake_rays_number;
+		bkr.number_of_rays = scene->r.bake_samples;
 		bkr.raytrace_structure = scene->r.raytrace_structure;
 		bkr.octree_resolution = scene->r.ocres;
 		bkr.threads = scene->r.mode & R_FIXED_THREADS ? scene->r.threads : 0;
@@ -355,7 +355,7 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
 	bkj->use_lores_mesh = scene->r.bake_flag & R_BAKE_LORES_MESH;
 	bkj->bake_clear = scene->r.bake_flag & R_BAKE_CLEAR;
 	bkj->bias = scene->r.bake_biasdist;
-	bkj->number_of_rays = scene->r.bake_rays_number;
+	bkj->number_of_rays = scene->r.bake_samples;
 	bkj->raytrace_structure = scene->r.raytrace_structure;
 	bkj->octree_resolution = scene->r.ocres;
 	bkj->threads = scene->r.mode & R_FIXED_THREADS ? scene->r.threads : 0;

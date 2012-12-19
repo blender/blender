@@ -1,4 +1,5 @@
 # ##### BEGIN GPL LICENSE BLOCK #####
+
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -614,7 +615,7 @@ class RENDER_PT_bake(RenderButtonsPanel, Panel):
             if rd.bake_type == 'AO':
                 col = split.column()
                 col.prop(rd, "bake_bias")
-                col.prop(rd, "bake_rays_number")
+                col.prop(rd, "bake_samples")
 
 
 if __name__ == "__main__":  # only for live edit.
