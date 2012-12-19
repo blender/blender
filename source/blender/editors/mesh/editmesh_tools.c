@@ -41,7 +41,6 @@
 #include "RNA_define.h"
 #include "RNA_access.h"
 
-#include "BLI_array.h"
 #include "BLI_blenlib.h"
 #include "BLI_noise.h"
 #include "BLI_math.h"
@@ -49,9 +48,7 @@
 
 #include "BKE_material.h"
 #include "BKE_context.h"
-#include "BKE_cdderivedmesh.h"
 #include "BKE_depsgraph.h"
-#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_texture.h"

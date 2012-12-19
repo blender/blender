@@ -40,7 +40,6 @@
 
 #include "BKE_context.h"
 #include "BKE_displist.h"
-#include "BKE_depsgraph.h"
 #include "BKE_report.h"
 #include "BKE_paint.h"
 #include "BKE_tessmesh.h"
@@ -56,9 +55,7 @@
 
 #include "ED_mesh.h"
 #include "ED_screen.h"
-#include "ED_util.h"
 #include "ED_uvedit.h"
-#include "ED_object.h"
 #include "ED_view3d.h"
 
 #include "BIF_gl.h"

@@ -27,35 +27,22 @@
 
 /** \file blender/editors/mesh/meshtools.c
  *  \ingroup edmesh
+ *
+ * meshtools.c: no editmode (violated already :), mirror & join),
+ * tools operating on meshes
  */
-
-
-/*
- * meshtools.c: no editmode (violated already :), tools operating on meshes
- */
-
-#include <stddef.h>
-#include <stdlib.h>
-#include <math.h>
-#include <float.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
-#include "BLI_ghash.h"
-#include "BLI_rand.h" /* for randome face sorting */
-#include "BLI_threads.h"
 
 
 #include "BKE_context.h"
@@ -71,7 +58,6 @@
 #include "BKE_tessmesh.h"
 #include "BKE_multires.h"
 
-#include "BLO_sys_types.h" // for intptr_t support
 
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -79,10 +65,6 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
-
-/* own include */
-#include "mesh_intern.h"
-#include "uvedit_intern.h"
 
 /* * ********************** no editmode!!! *********** */
 

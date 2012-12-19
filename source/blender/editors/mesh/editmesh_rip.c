@@ -31,7 +31,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
 #include "RNA_define.h"
@@ -41,11 +40,9 @@
 #include "BLI_array.h"
 
 #include "BKE_context.h"
-#include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_tessmesh.h"
 
-#include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_mesh.h"

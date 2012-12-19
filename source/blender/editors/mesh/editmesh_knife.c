@@ -38,14 +38,11 @@
 #include "BLI_blenlib.h"
 #include "BLI_array.h"
 #include "BLI_math.h"
-#include "BLI_rand.h"
 #include "BLI_smallhash.h"
-#include "BLI_scanfill.h"
 #include "BLI_memarena.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h" /* for paint cursor */
@@ -59,7 +56,6 @@
 #include "WM_types.h"
 
 #include "DNA_scene_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "BKE_tessmesh.h"
 #include "UI_resources.h"

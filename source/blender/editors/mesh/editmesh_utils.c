@@ -35,15 +35,12 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 
 #include "BKE_DerivedMesh.h"
-#include "BKE_bmesh.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_key.h"
-#include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_report.h"
 #include "BKE_tessmesh.h"
@@ -56,7 +53,6 @@
 #include "ED_mesh.h"
 #include "ED_util.h"
 
-#include "bmesh.h"
 
 #include "mesh_intern.h"
 

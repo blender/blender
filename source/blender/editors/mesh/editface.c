@@ -27,12 +27,9 @@
  *  \ingroup edmesh
  */
 
-#include <math.h>
-#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
@@ -41,9 +38,7 @@
 #include "IMB_imbuf.h"
 
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
@@ -61,7 +56,6 @@
 #include "WM_types.h"
 
 /* own include */
-#include "mesh_intern.h"
 
 /* copy the face flags, most importantly selection from the mesh to the final derived mesh,
  * use in object mode when selecting faces (while painting) */

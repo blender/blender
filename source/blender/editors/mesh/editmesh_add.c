@@ -29,7 +29,6 @@
  *  \ingroup edmesh
  */
 
-#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -39,7 +38,6 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 #include "BKE_library.h"
 #include "BKE_tessmesh.h"
 
