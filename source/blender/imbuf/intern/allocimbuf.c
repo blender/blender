@@ -355,7 +355,7 @@ ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y, uchar planes, unsigned int
 		ibuf->x = x;
 		ibuf->y = y;
 		ibuf->planes = planes;
-		ibuf->ftype = TGA;
+		ibuf->ftype = PNG | 90; /* the 90 means, set compression to nearly the maximum */
 		ibuf->channels = 4;  /* float option, is set to other values when buffers get assigned */
 		ibuf->ppm[0] = ibuf->ppm[1] = IMB_DPI_DEFAULT / 0.0254f; /* IMB_DPI_DEFAULT -> pixels-per-meter */
 
