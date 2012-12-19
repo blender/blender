@@ -986,7 +986,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	Icon *icon = NULL;
 	DrawInfo *di = NULL;
 	IconImage *iimg;
-	float fdraw_size = draw_size;
+	const float fdraw_size = (float)draw_size;
 	int w, h;
 	
 	icon = BKE_icon_get(icon_id);

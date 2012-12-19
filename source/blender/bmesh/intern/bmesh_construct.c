@@ -816,6 +816,8 @@ void BM_elem_attrs_copy(BMesh *source_mesh, BMesh *target_mesh, const void *sour
 
 BMesh *BM_mesh_copy(BMesh *bm_old)
 {
+#define USE_FAST_FACE_COPY
+
 	BMesh *bm_new;
 	BMVert *v, *v2, **vtable = NULL;
 	BMEdge *e, *e2, **edges = NULL, **etable = NULL;
@@ -823,6 +825,10 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 	BLI_array_declare(edges);
 	BMLoop *l, /* *l2, */ **loops = NULL;
 	BLI_array_declare(loops);
+#ifdef USE_FAST_FACE_COPY
+	BMVert **verts = NULL;
+	BLI_array_declare(verts);
+#endif
 	BMFace *f, *f2, **ftable = NULL;
 	BMEditSelection *ese;
 	BMIter iter, liter;
@@ -890,12 +896,24 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 		BLI_array_grow_items(loops, f->len);
 		BLI_array_grow_items(edges, f->len);
 
+#ifdef USE_FAST_FACE_COPY
+		BLI_array_empty(verts);
+		BLI_array_grow_items(verts, f->len);
+#endif
+
 		l = BM_iter_new(&liter, bm_old, BM_LOOPS_OF_FACE, f);
 		for (j = 0; j < f->len; j++, l = BM_iter_step(&liter)) {
 			loops[j] = l;
 			edges[j] = etable[BM_elem_index_get(l->e)];
+
+#ifdef USE_FAST_FACE_COPY
+			verts[j] = vtable[BM_elem_index_get(l->v)];
+#endif
 		}
 
+#ifdef USE_FAST_FACE_COPY
+		f2 = BM_face_create(bm_new, verts, edges, f->len, BM_CREATE_SKIP_CD);
+#else
 		v = vtable[BM_elem_index_get(loops[0]->v)];
 		v2 = vtable[BM_elem_index_get(loops[1]->v)];
 
@@ -905,6 +923,8 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 		}
 
 		f2 = BM_face_create_ngon(bm_new, v, v2, edges, f->len, BM_CREATE_SKIP_CD);
+#endif
+
 		if (UNLIKELY(f2 == NULL)) {
 			continue;
 		}
