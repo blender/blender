@@ -570,7 +570,8 @@ static char *wm_prop_pystring_from_context(bContext *C, PointerRNA *ptr, Propert
 	 * - see if the pointers ID is in the context.
 	 */
 
-	ListBase lb = CTX_data_dir_get(C);
+	/* don't get from the context store since this is normally set only for the UI and not usable elsewhere */
+	ListBase lb = CTX_data_dir_get_ex(C, FALSE, TRUE, TRUE);
 	LinkData *link;
 
 	const char *member_found = NULL;
@@ -582,35 +583,26 @@ static char *wm_prop_pystring_from_context(bContext *C, PointerRNA *ptr, Propert
 
 	for (link = lb.first; link; link = link->next) {
 		const char *identifier = link->data;
-		PointerRNA ctx_ptr = CTX_data_pointer_get(C, identifier);
+		PointerRNA ctx_item_ptr = CTX_data_pointer_get(C, identifier);
 
-		if (ctx_ptr.type == NULL) {
+		if (ctx_item_ptr.type == NULL) {
 			continue;
 		}
 
-		if (ptr->id.data == ctx_ptr.id.data) {
-			if ((ptr->data == ctx_ptr.data) &&
-			    (ptr->type == ctx_ptr.type))
+		if (ptr->id.data == ctx_item_ptr.id.data) {
+			if ((ptr->data == ctx_item_ptr.data) &&
+			    (ptr->type == ctx_item_ptr.type))
 			{
 				/* found! */
 				member_found = identifier;
 				break;
 			}
-			else if (RNA_struct_is_ID(ctx_ptr.type)) {
+			else if (RNA_struct_is_ID(ctx_item_ptr.type)) {
 				/* we found a reference to this ID,
 				 * so fallback to it if there is no direct reference */
 				member_id = identifier;
 			}
 		}
-	}
-
-	/* grr, CTX_data_dir_get skips scene */
-	if ((member_id == NULL) &&
-	    (ptr->id.data != NULL) &&
-	    (GS(((ID *)ptr->id.data)->name) == ID_SCE) &&
-	    (CTX_data_scene(C) == ptr->id.data))
-	{
-		member_id = "scene";
 	}
 
 	if (member_found) {
