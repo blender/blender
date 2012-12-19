@@ -2448,8 +2448,8 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 		{RAS_STORE_AUTO, "AUTO", 0, "Auto Select", "Chooses the best supported mode"},
 		{RAS_STORE_IMMEDIATE, "IMMEDIATE", 0, "Immediate Mode", "Slowest performance, requires OpenGL (any version)"},
 		{RAS_STORE_VA, "VERTEX_ARRAY", 0, "Vertex Arrays", "Better performance, requires at least OpenGL 1.1"},
-		/* VBOS are currently disabled since they cannot beat vertex array with display lists in performance. 8? */
-		// {RAS_STORE_VBO, "VERTEX_BUFFER_OBJECT", 0, "Vertex Buffer Objects", "Best performance, requires at least OpenGL 1.4"},
+		/* VBOS are currently disabled since they cannot beat vertex array with display lists in performance. */
+		/* {RAS_STORE_VBO, "VERTEX_BUFFER_OBJECT", 0, "Vertex Buffer Objects", "Best performance, requires at least OpenGL 1.4"}, */
 		{0, NULL, 0, NULL, NULL}};
 
 	srna = RNA_def_struct(brna, "SceneGameData", NULL);
