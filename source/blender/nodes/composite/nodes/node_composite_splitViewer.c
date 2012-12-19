@@ -157,7 +157,7 @@ void register_node_type_cmp_splitviewer(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_SPLITVIEWER, "SplitViewer", NODE_CLASS_OUTPUT, NODE_PREVIEW|NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_SPLITVIEWER, "Split Viewer", NODE_CLASS_OUTPUT, NODE_PREVIEW|NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_splitviewer_in, NULL);
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_init(&ntype, node_composit_init_splitviewer);

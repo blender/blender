@@ -149,7 +149,7 @@ void register_node_type_cmp_alphaover(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_ALPHAOVER, "AlphaOver", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
+	node_type_base(ttype, &ntype, CMP_NODE_ALPHAOVER, "Alpha Over", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_alphaover_in, cmp_node_alphaover_out);
 	node_type_size(&ntype, 80, 40, 120);
 	node_type_init(&ntype, node_alphaover_init);
