@@ -28,22 +28,17 @@
  *  \ingroup sptext
  */
 
-
 #include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_blender.h"
 #include "BKE_suggestions.h"
 #include "BKE_text.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 
 #include "WM_types.h"
 

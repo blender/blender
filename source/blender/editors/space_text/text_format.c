@@ -24,40 +24,19 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/space_text/text_draw.c
+/** \file blender/editors/space_text/text_format.c
  *  \ingroup sptext
  */
 
-
-#include <math.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLF_api.h"
-
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
 
 #include "DNA_text_types.h"
 #include "DNA_space_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 
-#include "BKE_context.h"
-#include "BKE_suggestions.h"
-#include "BKE_text.h"
-
-#include "BIF_gl.h"
-
-#include "ED_datafiles.h"
-#include "UI_interface.h"
-#include "UI_resources.h"
-
-#include "text_intern.h"
 #include "text_format.h"
 
 
@@ -136,8 +115,6 @@ void flatten_string_free(FlattenString *fs)
 
 /* Ensures the format string for the given line is long enough, reallocating
  * as needed. Allocation is done here, alone, to ensure consistency. */
-
-/*TODO: rename! flatten_string_len_ensure() */
 int text_check_format_len(TextLine *line, unsigned int len)
 {
 	if (line->format) {

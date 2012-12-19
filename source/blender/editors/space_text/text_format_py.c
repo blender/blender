@@ -28,35 +28,15 @@
  *  \ingroup sptext
  */
 
-#include <math.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
-
-#include "MEM_guardedalloc.h"
-
-#include "BLF_api.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
 
 #include "DNA_text_types.h"
 #include "DNA_space_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 
-#include "BKE_context.h"
-#include "BKE_suggestions.h"
 #include "BKE_text.h"
 
-#include "BIF_gl.h"
-
-#include "ED_datafiles.h"
-#include "UI_interface.h"
-#include "UI_resources.h"
-
-#include "text_intern.h"
 #include "text_format.h"
 
 /* *** Local Functions (for format_line) *** */
@@ -73,7 +53,7 @@
  * http://docs.python.org/py3k/reference/lexical_analysis.html#keywords
  */
 
-static int find_builtinfunc(char *string)
+static int txtfmt_py_find_builtinfunc(char *string)
 {
 	int a, i;
 	const char *builtinfuncs[] = {
@@ -115,7 +95,7 @@ static int find_builtinfunc(char *string)
  * If a special name is found, the length of the matching name is returned.
  * Otherwise, -1 is returned. */
 
-static int find_specialvar(char *string)
+static int txtfmt_py_find_specialvar(char *string)
 {
 	int i = 0;
 	/* Check for "def" */
@@ -130,7 +110,7 @@ static int find_specialvar(char *string)
 	return i;
 }
 
-static int find_decorator(char *string)
+static int txtfmt_py_find_decorator(char *string)
 {
 	if (string[0] == '@') {
 		int i = 1;
@@ -142,7 +122,7 @@ static int find_decorator(char *string)
 	return -1;
 }
 
-static int find_bool(char *string)
+static int txtfmt_py_find_bool(char *string)
 {
 	int i = 0;
 	/* Check for "False" */
@@ -160,7 +140,7 @@ static int find_bool(char *string)
 	return i;
 }
 
-static void txt_format_line(SpaceText *st, TextLine *line, int do_next)
+static void txtfmt_py_format_line(SpaceText *st, TextLine *line, int do_next)
 {
 	FlattenString fs;
 	char *str, *fmt, orig, cont, find, prev = ' ';
@@ -171,14 +151,18 @@ static void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 		fmt = line->prev->format;
 		cont = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
 	}
-	else cont = 0;
+	else {
+		cont = 0;
+	}
 
 	/* Get original continuation from this line */
 	if (line->format != NULL) {
 		fmt = line->format;
 		orig = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
 	}
-	else orig = 0xFF;
+	else {
+		orig = 0xFF;
+	}
 
 	len = flatten_string(st, &fs, line->line);
 	str = fs.buf;
@@ -241,7 +225,7 @@ static void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 			else if ((prev != 'q' && text_check_digit(*str)) || (*str == '.' && text_check_digit(*(str + 1))))
 				*fmt = 'n';
 			/* Booleans */
-			else if (prev != 'q' && (i = find_bool(str)) != -1)
+			else if (prev != 'q' && (i = txtfmt_py_find_bool(str)) != -1)
 				if (i > 0) {
 					while (i > 1) {
 						*fmt = 'n'; fmt++; str++;
@@ -264,11 +248,11 @@ static void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 			/* Not ws, a digit, punct, or continuing text. Must be new, check for special words */
 			else {
 				/* Special vars(v) or built-in keywords(b) */
-				if ((i = find_specialvar(str)) != -1)
+				if ((i = txtfmt_py_find_specialvar(str)) != -1)
 					prev = 'v';
-				else if ((i = find_builtinfunc(str)) != -1)
+				else if ((i = txtfmt_py_find_builtinfunc(str)) != -1)
 					prev = 'b';
-				else if ((i = find_decorator(str)) != -1)
+				else if ((i = txtfmt_py_find_decorator(str)) != -1)
 					prev = 'v';  /* could have a new color for this */
 				if (i > 0) {
 					while (i > 1) {
@@ -294,7 +278,7 @@ static void txt_format_line(SpaceText *st, TextLine *line, int do_next)
 
 	/* If continuation has changed and we're allowed, process the next line */
 	if (cont != orig && do_next && line->next) {
-		txt_format_line(st, line->next, do_next);
+		txtfmt_py_format_line(st, line->next, do_next);
 	}
 
 	flatten_string_free(&fs);
@@ -305,7 +289,7 @@ void ED_text_format_register_py(void)
 	static TextFormatType tft = {0};
 	static const char *ext[] = {"py", NULL};
 
-	tft.format_line = txt_format_line;
+	tft.format_line = txtfmt_py_format_line;
 	tft.ext = ext;
 
 	ED_text_format_register(&tft);

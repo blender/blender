@@ -30,19 +30,14 @@
  */
 
 
-#include <stdlib.h>
 #include <string.h>
-#include <ctype.h> /* ispunct */
-#include <sys/stat.h>
 #include <errno.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_text_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
 

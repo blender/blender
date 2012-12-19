@@ -29,20 +29,11 @@
  */
 
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
 
 /* file time checking */
-#include <ctype.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 
 #ifndef _WIN32
-#  include <unistd.h>
 #else
-#  include <io.h>
-#  include "BLI_winstuff.h"
 #endif
 
 #include "DNA_windowmanager_types.h"
@@ -50,7 +41,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"

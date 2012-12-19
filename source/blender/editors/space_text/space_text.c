@@ -30,17 +30,12 @@
 
 
 #include <string.h>
-#include <stdio.h>
 
 #include "DNA_text_types.h"
-#include "DNA_object_types.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
-#include "BLI_rand.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
