@@ -672,30 +672,7 @@ static void screen_test_scale(bScreen *sc, int winsizex, int winsizey)
 
 			CLAMP(sv->vec.y, 0, winsizey);
 		}
-		
-		/* scale prefsizes of regions */
-		for (sa = sc->areabase.first; sa; sa = sa->next) {
-			ARegion *ar;
-			
-			for (ar = sa->regionbase.first; ar; ar = ar->next) {
-				ar->sizex = (int)((float)ar->sizex * facx);
-				ar->sizey = (int)((float)ar->sizey * facy);
-				ar->winx = (int)((float)ar->winx * facx);
-				ar->winy = (int)((float)ar->winy * facy);
-			}
-			if (sa->spacedata.first) {
-				SpaceLink *sl = sa->spacedata.first;
-				for (sl = sl->next; sl; sl = sl->next) {
-					for (ar = sl->regionbase.first; ar; ar = ar->next) {
-						ar->sizex = (int)((float)ar->sizex * facx);
-						ar->sizey = (int)((float)ar->sizey * facy);
-						ar->winx = (int)((float)ar->winx * facx);
-						ar->winy = (int)((float)ar->winy * facy);
-					}
-				}
-			}
-		}
-	}
+}
 	
 	/* test for collapsed areas. This could happen in some blender version... */
 	/* ton: removed option now, it needs Context... */

@@ -943,8 +943,9 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 	if (ar->next == NULL && alignment != RGN_ALIGN_QSPLIT)
 		alignment = RGN_ALIGN_NONE;
 	
-	/* prefsize, for header we stick to exception */
-	prefsizex = ar->sizex > 1 ? ar->sizex : UI_DPI_FAC * ar->type->prefsizex;
+	/* prefsize, for header we stick to exception (prevent dpi rounding error) */
+	prefsizex = UI_DPI_FAC * (ar->sizex > 1 ? ar->sizex + 0.5f : ar->type->prefsizex);
+	
 	if (ar->regiontype == RGN_TYPE_HEADER) {
 		prefsizey = ED_area_headersize();
 	}
@@ -952,7 +953,7 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 		prefsizey = UI_UNIT_Y * 2 + (UI_UNIT_Y / 2);
 	}
 	else {
-		prefsizey = ar->sizey > 1 ? ar->sizey : UI_DPI_FAC * ar->type->prefsizey;
+		prefsizey = UI_DPI_FAC * (ar->sizey > 1 ? ar->sizey + 0.5f : ar->type->prefsizey);
 	}
 
 
@@ -1092,8 +1093,9 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 	ar->winy = BLI_rcti_size_y(&ar->winrct) + 1;
 	
 	/* if region opened normally, we store this for hide/reveal usage */
-	if (ar->winx > 1) ar->sizex = ar->winx;
-	if (ar->winy > 1) ar->sizey = ar->winy;
+	/* prevent rounding errors for UI_DPI_FAC mult and divide */
+	if (ar->winx > 1) ar->sizex = (ar->winx + 0.5f) /  UI_DPI_FAC;
+	if (ar->winy > 1) ar->sizey = (ar->winy + 0.5f) /  UI_DPI_FAC;
 		
 	/* exception for multiple aligned overlapping regions on same spot */
 	if (ar->overlap)

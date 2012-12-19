@@ -1759,7 +1759,7 @@ static int region_scale_get_maxsize(RegionMoveData *rmd)
 	int maxsize = 0;
 
 	if (rmd->edge == AE_LEFT_TO_TOPRIGHT || rmd->edge == AE_RIGHT_TO_TOPLEFT) {
-		return rmd->sa->winx - UI_UNIT_X;
+		return  (int) ( (rmd->sa->winx / UI_DPI_FAC) - UI_UNIT_X);
 	}
 
 	if (rmd->ar->regiontype == RGN_TYPE_TOOL_PROPS) {
@@ -1808,6 +1808,9 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				delta = event->x - rmd->origx;
 				if (rmd->edge == AE_LEFT_TO_TOPRIGHT) delta = -delta;
 				
+				/* region sizes now get multiplied */
+				delta /= UI_DPI_FAC;
+				
 				rmd->ar->sizex = rmd->origval + delta;
 				CLAMP(rmd->ar->sizex, 0, rmd->maxsize);
 				
@@ -1824,6 +1827,9 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				delta = event->y - rmd->origy;
 				if (rmd->edge == AE_BOTTOM_TO_TOPLEFT) delta = -delta;
 				
+				/* region sizes now get multiplied */
+				delta /= UI_DPI_FAC;
+
 				rmd->ar->sizey = rmd->origval + delta;
 				CLAMP(rmd->ar->sizey, 0, rmd->maxsize);
 
