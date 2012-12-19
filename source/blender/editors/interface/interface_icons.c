@@ -958,6 +958,9 @@ static void icon_draw_texture(float x, float y, float w, float h, int ix, int iy
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, icongltex.id);
 
+	/* sharper downscaling, has no effect when scale matches with a mip level */
+	glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, -0.5f);
+
 	glBegin(GL_QUADS);
 	glTexCoord2f(x1, y1);
 	glVertex2f(x, y);
@@ -971,6 +974,8 @@ static void icon_draw_texture(float x, float y, float w, float h, int ix, int iy
 	glTexCoord2f(x1, y2);
 	glVertex2f(x, y + h);
 	glEnd();
+
+	glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, 0.0f);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glDisable(GL_TEXTURE_2D);
