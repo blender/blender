@@ -2187,26 +2187,37 @@ static void bl_ConvertBlenderObject_Single(
 		blenderobject->loc[1]+blenderobject->dloc[1],
 		blenderobject->loc[2]+blenderobject->dloc[2]
 	);
-	MT_Vector3 eulxyz(blenderobject->rot);
+
+	MT_Matrix3x3 rotation;
+	float rotmat[3][3];
+	BKE_object_rot_to_mat3(blenderobject, rotmat, FALSE);
+	rotation.setValue3x3((float*)rotmat);
+
 	MT_Vector3 scale(blenderobject->size);
+
 	if (converter->addInitFromFrame) {//rcruiz
-		float eulxyzPrev[3];
 		blenderscene->r.cfra=blenderscene->r.sfra-1;
 		//XXX update_for_newframe();
 		MT_Vector3 tmp=pos-MT_Point3(blenderobject->loc[0]+blenderobject->dloc[0],
 		                             blenderobject->loc[1]+blenderobject->dloc[1],
 		                             blenderobject->loc[2]+blenderobject->dloc[2]
 		                             );
-		eulxyzPrev[0]=blenderobject->rot[0];
-		eulxyzPrev[1]=blenderobject->rot[1];
-		eulxyzPrev[2]=blenderobject->rot[2];
+
+		float rotmatPrev[3][3];
+		BKE_object_rot_to_mat3(blenderobject, rotmatPrev, FALSE);
+
+		float eulxyz[3], eulxyzPrev[3];
+		mat3_to_eul(eulxyz, rotmat);
+		mat3_to_eul(eulxyzPrev, rotmatPrev);
 
 		double fps = (double) blenderscene->r.frs_sec/
 		        (double) blenderscene->r.frs_sec_base;
 
 		tmp.scale(fps, fps, fps);
 		inivel.push_back(tmp);
-		tmp=eulxyz-eulxyzPrev;
+		tmp[0]=eulxyz[0]-eulxyzPrev[0];
+		tmp[1]=eulxyz[1]-eulxyzPrev[1];
+		tmp[2]=eulxyz[2]-eulxyzPrev[2];
 		tmp.scale(fps, fps, fps);
 		iniang.push_back(tmp);
 		blenderscene->r.cfra=blenderscene->r.sfra;
@@ -2214,7 +2225,7 @@ static void bl_ConvertBlenderObject_Single(
 	}
 
 	gameobj->NodeSetLocalPosition(pos);
-	gameobj->NodeSetLocalOrientation(MT_Matrix3x3(eulxyz));
+	gameobj->NodeSetLocalOrientation(rotation);
 	gameobj->NodeSetLocalScale(scale);
 	gameobj->NodeUpdateGS(0);
 

@@ -88,7 +88,7 @@ int  BKE_object_is_libdata(struct Object *ob);
 int  BKE_object_obdata_is_libdata(struct Object *ob);
 
 void BKE_object_scale_to_mat3(struct Object *ob, float mat[][3]);
-void BKE_object_rot_to_mat3(struct Object *ob, float mat[][3]);
+void BKE_object_rot_to_mat3(struct Object *ob, float mat[][3], short use_drot);
 void BKE_object_mat3_to_rot(struct Object *ob, float mat[][3], short use_compat);
 void BKE_object_to_mat3(struct Object *ob, float mat[][3]);
 void BKE_object_to_mat4(struct Object *ob, float mat[][4]);

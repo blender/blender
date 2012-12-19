@@ -447,7 +447,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			float tmat[3][3], timat[3][3];
 
 			/* simple rotation matrix */
-			BKE_object_rot_to_mat3(ob, rsmat);
+			BKE_object_rot_to_mat3(ob, rsmat, TRUE);
 
 			/* correct for scale, note mul_m3_m3m3 has swapped args! */
 			BKE_object_scale_to_mat3(ob, tmat);
