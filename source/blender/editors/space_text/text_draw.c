@@ -49,6 +49,7 @@
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+#include "UI_view2d.h"
 
 #include "text_intern.h"
 #include "text_format.h"
@@ -735,12 +736,12 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll, rcti *back)
 	blank_lines = st->viewlines / 2;
 	
 	/* nicer code: use scroll rect for entire bar */
-	back->xmin = ar->winx - 18;
+	back->xmin = ar->winx - (V2D_SCROLL_WIDTH + 1);
 	back->xmax = ar->winx;
 	back->ymin = 0;
 	back->ymax = ar->winy;
 	
-	scroll->xmin = ar->winx - 17;
+	scroll->xmin = ar->winx - V2D_SCROLL_WIDTH;
 	scroll->xmax = ar->winx - 5;
 	scroll->ymin = 4;
 	scroll->ymax = 4 + pix_available;
