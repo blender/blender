@@ -980,9 +980,12 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 	MEM_freeN(vtable);
 	MEM_freeN(ftable);
 
+#ifdef USE_FAST_FACE_COPY
+	BLI_array_free(verts);
+#endif
+
 	BLI_array_free(loops);
 	BLI_array_free(edges);
-
 	return bm_new;
 }
 

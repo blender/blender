@@ -51,28 +51,35 @@ enum {
 
 void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 {
+	BMVert **verts = NULL;
+	BLI_array_declare(verts);
+	BMEdge **edges = NULL;
+	BLI_array_declare(edges);
+
 	BMOIter siter;
 	BMIter liter, liter2;
 	BMFace *f, *f2, *f3;
 	BMLoop *l, *l2, *l3, *l4, *l_tmp;
-	BMEdge **edges = NULL, *e, *laste;
+	BMEdge *e, *laste;
 	BMVert *v, *lastv, *firstv;
-	BLI_array_declare(edges);
 	int i;
 
 	BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
+		BLI_array_empty(verts);
 		BLI_array_empty(edges);
+		BLI_array_grow_items(verts, f->len);
 		BLI_array_grow_items(edges, f->len);
 
 		i = 0;
 		firstv = lastv = NULL;
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 			v = BM_vert_create(bm, l->v->co, l->v, 0);
-
 			/* skip on the first iteration */
 			if (lastv) {
 				e = BM_edge_create(bm, lastv, v, l->e, 0);
-				edges[i++] = e;
+				edges[i] = e;
+				verts[i] = lastv;
+				i++;
 			}
 
 			lastv = v;
@@ -82,11 +89,13 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 
 		/* this fits in the array because we skip one in the loop above */
 		e = BM_edge_create(bm, v, firstv, laste, 0);
-		edges[i++] = e;
+		edges[i] = e;
+		verts[i] = lastv;
+		i++;
 
 		BMO_elem_flag_enable(bm, f, EXT_DEL);
 
-		f2 = BM_face_create_ngon(bm, firstv, BM_edge_other_vert(edges[0], firstv), edges, f->len, 0);
+		f2 = BM_face_create(bm, verts, edges, f->len, 0);
 		if (UNLIKELY(f2 == NULL)) {
 			BMO_error_raise(bm, op, BMERR_MESH_ERROR, "Extrude failed: could not create face");
 			BLI_array_free(edges);
@@ -117,6 +126,7 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
+	BLI_array_free(verts);
 	BLI_array_free(edges);
 
 	BMO_op_callf(bm, op->flag,
