@@ -106,7 +106,7 @@ static PyObject *bpy_bm_utils_vert_collapse_edge(PyObject *UNUSED(self), PyObjec
 PyDoc_STRVAR(bpy_bm_utils_vert_collapse_faces_doc,
 ".. method:: vert_collapse_faces(vert, edge, fac, join_faces)\n"
 "\n"
-"   Split an edge, return the newly created data.\n"
+"   Collapses a vertex that has only two manifold edges onto a vertex it shares an edge with.\n"
 "\n"
 "   :arg vert: The vert that will be collapsed.\n"
 "   :type vert: :class:`bmesh.types.BMVert`\n"
@@ -163,7 +163,7 @@ static PyObject *bpy_bm_utils_vert_collapse_faces(PyObject *UNUSED(self), PyObje
 	}
 	else {
 		PyErr_SetString(PyExc_ValueError,
-		                "vert_collapse_edge(vert, edge): no new edge created, internal error");
+		                "vert_collapse_faces(vert, edge): no new edge created, internal error");
 		return NULL;
 	}
 }
