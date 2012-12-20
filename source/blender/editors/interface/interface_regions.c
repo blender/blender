@@ -73,8 +73,6 @@
 #include "interface_intern.h"
 
 #define B_NOP               -1
-#define MENU_SHADOW_SIDE    8
-#define MENU_SHADOW_BOTTOM  10
 #define MENU_TOP            8
 
 /*********************** Menu Data Parsing ********************* */
@@ -693,16 +691,20 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	}
 
 	/* widget rect, in region coords */
-	data->bbox.xmin = MENU_SHADOW_SIDE;
-	data->bbox.xmax = BLI_rcti_size_x(&rect_i) + MENU_SHADOW_SIDE;
-	data->bbox.ymin = MENU_SHADOW_BOTTOM;
-	data->bbox.ymax = BLI_rcti_size_y(&rect_i) + MENU_SHADOW_BOTTOM;
-	
-	/* region bigger for shadow */
-	ar->winrct.xmin = rect_i.xmin - MENU_SHADOW_SIDE;
-	ar->winrct.xmax = rect_i.xmax + MENU_SHADOW_SIDE;
-	ar->winrct.ymin = rect_i.ymin - MENU_SHADOW_BOTTOM;
-	ar->winrct.ymax = rect_i.ymax + MENU_TOP;
+	{
+		int width = UI_ThemeMenuShadowWidth();
+		
+		data->bbox.xmin = width;
+		data->bbox.xmax = BLI_rcti_size_x(&rect_i) + width;
+		data->bbox.ymin = width;
+		data->bbox.ymax = BLI_rcti_size_y(&rect_i) + width;
+		
+		/* region bigger for shadow */
+		ar->winrct.xmin = rect_i.xmin - width;
+		ar->winrct.xmax = rect_i.xmax + width;
+		ar->winrct.ymin = rect_i.ymin - width;
+		ar->winrct.ymax = rect_i.ymax + MENU_TOP;
+	}
 
 	/* adds subwindow */
 	ED_region_init(C, ar);
@@ -1140,16 +1142,17 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	
 	/* compute position */
 	if (but->block->flag & UI_BLOCK_SEARCH_MENU) {
+		int width = UI_ThemeMenuShadowWidth();
 		/* this case is search menu inside other menu */
 		/* we copy region size */
 
 		ar->winrct = butregion->winrct;
 		
 		/* widget rect, in region coords */
-		data->bbox.xmin = MENU_SHADOW_SIDE;
-		data->bbox.xmax = BLI_rcti_size_x(&ar->winrct) - MENU_SHADOW_SIDE;
-		data->bbox.ymin = MENU_SHADOW_BOTTOM;
-		data->bbox.ymax = BLI_rcti_size_y(&ar->winrct) - MENU_SHADOW_BOTTOM;
+		data->bbox.xmin = width;
+		data->bbox.xmax = BLI_rcti_size_x(&ar->winrct) - width;
+		data->bbox.ymin = width;
+		data->bbox.ymax = BLI_rcti_size_y(&ar->winrct) - width;
 		
 		/* check if button is lower half */
 		if (but->rect.ymax < BLI_rctf_cent_y(&but->block->rect)) {
@@ -1161,6 +1164,8 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 	}
 	else {
 		const int searchbox_width = uiSearchBoxWidth();
+		const int shadow_width = UI_ThemeMenuShadowWidth();
+
 		rect_fl.xmin = but->rect.xmin - 5;   /* align text with button */
 		rect_fl.xmax = but->rect.xmax + 5;   /* symmetrical */
 		rect_fl.ymax = but->rect.ymin;
@@ -1212,15 +1217,15 @@ ARegion *ui_searchbox_create(bContext *C, ARegion *butregion, uiBut *but)
 		}
 
 		/* widget rect, in region coords */
-		data->bbox.xmin = MENU_SHADOW_SIDE;
-		data->bbox.xmax = BLI_rcti_size_x(&rect_i) + MENU_SHADOW_SIDE;
-		data->bbox.ymin = MENU_SHADOW_BOTTOM;
-		data->bbox.ymax = BLI_rcti_size_y(&rect_i) + MENU_SHADOW_BOTTOM;
+		data->bbox.xmin = shadow_width;
+		data->bbox.xmax = BLI_rcti_size_x(&rect_i) + shadow_width;
+		data->bbox.ymin = shadow_width;
+		data->bbox.ymax = BLI_rcti_size_y(&rect_i) + shadow_width;
 		
 		/* region bigger for shadow */
-		ar->winrct.xmin = rect_i.xmin - MENU_SHADOW_SIDE;
-		ar->winrct.xmax = rect_i.xmax + MENU_SHADOW_SIDE;
-		ar->winrct.ymin = rect_i.ymin - MENU_SHADOW_BOTTOM;
+		ar->winrct.xmin = rect_i.xmin - shadow_width;
+		ar->winrct.xmax = rect_i.xmax + shadow_width;
+		ar->winrct.ymin = rect_i.ymin - shadow_width;
 		ar->winrct.ymax = rect_i.ymax;
 	}
 	
@@ -1522,6 +1527,7 @@ static void ui_block_region_draw(const bContext *C, ARegion *ar)
 
 static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 {
+	int width = UI_ThemeMenuShadowWidth();
 	int winx, winy;
 
 	if (block->flag & UI_BLOCK_NO_WIN_CLIP) {
@@ -1532,13 +1538,13 @@ static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 	winy = WM_window_pixels_y(window);
 	// wm_window_get_size(window, &winx, &winy);
 	
-	if (block->rect.xmin < MENU_SHADOW_SIDE)
-		block->rect.xmin = MENU_SHADOW_SIDE;
-	if (block->rect.xmax > winx - MENU_SHADOW_SIDE)
-		block->rect.xmax = winx - MENU_SHADOW_SIDE;
+	if (block->rect.xmin < width)
+		block->rect.xmin = width;
+	if (block->rect.xmax > winx - width)
+		block->rect.xmax = winx - width;
 	
-	if (block->rect.ymin < MENU_SHADOW_BOTTOM)
-		block->rect.ymin = MENU_SHADOW_BOTTOM;
+	if (block->rect.ymin < width)
+		block->rect.ymin = width;
 	if (block->rect.ymax > winy - MENU_TOP)
 		block->rect.ymax = winy - MENU_TOP;
 }
@@ -1590,6 +1596,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 	uiBlock *block;
 	uiPopupBlockHandle *handle;
 	uiSafetyRct *saferct;
+	int width = UI_ThemeMenuShadowWidth();
 
 	/* create handle */
 	handle = MEM_callocN(sizeof(uiPopupBlockHandle), "uiPopupBlockHandle");
@@ -1658,9 +1665,9 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 	/* the block and buttons were positioned in window space as in 2.4x, now
 	 * these menu blocks are regions so we bring it back to region space.
 	 * additionally we add some padding for the menu shadow or rounded menus */
-	ar->winrct.xmin = block->rect.xmin - MENU_SHADOW_SIDE;
-	ar->winrct.xmax = block->rect.xmax + MENU_SHADOW_SIDE;
-	ar->winrct.ymin = block->rect.ymin - MENU_SHADOW_BOTTOM;
+	ar->winrct.xmin = block->rect.xmin - width;
+	ar->winrct.xmax = block->rect.xmax + width;
+	ar->winrct.ymin = block->rect.ymin - width;
 	ar->winrct.ymax = block->rect.ymax + MENU_TOP;
 	
 	ui_block_translate(block, -ar->winrct.xmin, -ar->winrct.ymin);

@@ -287,6 +287,9 @@ void    UI_SetTheme(int spacetype, int regionid);
 // get current theme
 struct bTheme *UI_GetTheme(void);
 
+// return shadow width outside menus and popups */
+int UI_ThemeMenuShadowWidth(void);
+
 /* only for buttons in theme editor! */
 const unsigned char *UI_ThemeGetColorPtr(struct bTheme *btheme, int spacetype, int colorid);
 

@@ -677,6 +677,9 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tui.yaxis,   0, 220,   0, 255);
 	rgba_char_args_set(btheme->tui.zaxis,   0,   0, 220, 255);
 
+	btheme->tui.menu_shadow_fac = 0.5f;
+	btheme->tui.menu_shadow_width = 12;
+	
 	/* Bone Color Sets */
 	ui_theme_init_boneColorSets(btheme);
 	
@@ -1257,6 +1260,12 @@ void UI_ThemeClearColor(int colorid)
 	
 	UI_GetThemeColor3fv(colorid, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
+}
+
+int UI_ThemeMenuShadowWidth(void)
+{
+	bTheme *btheme = UI_GetTheme();
+	return (int)(btheme->tui.menu_shadow_width * UI_DPI_FAC);
 }
 
 void UI_make_axis_color(const unsigned char src_col[3], unsigned char dst_col[3], const char axis)
@@ -2061,6 +2070,17 @@ void init_userdef_do_versions(void)
 		}
 	}
 	
+	if (bmain->versionfile < 266) {
+		bTheme *btheme;
+		
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			/* rna definition limits fac to 0.01 */
+			if (btheme->tui.menu_shadow_fac == 0.0f) {
+				btheme->tui.menu_shadow_fac = 0.5f;
+				btheme->tui.menu_shadow_width = 12;
+			}
+		}
+	}
 	
 	if (U.pixelsize == 0.0f)
 		U.pixelsize = 1.0f;
