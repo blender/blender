@@ -74,6 +74,7 @@ public:
 
 	/* objects */
 	device_vector<float4> objects;
+	device_vector<float4> objects_vector;
 
 	/* attributes */
 	device_vector<uint4> attributes_map;

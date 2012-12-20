@@ -20,11 +20,16 @@ CCL_NAMESPACE_BEGIN
 
 enum ObjectTransform {
 	OBJECT_TRANSFORM = 0,
-	OBJECT_INVERSE_TRANSFORM = 3,
-	OBJECT_PROPERTIES = 6,
-	OBJECT_TRANSFORM_MOTION_PRE = 8,
-	OBJECT_TRANSFORM_MOTION_POST = 12,
-	OBJECT_DUPLI = 16
+	OBJECT_TRANSFORM_MOTION_PRE = 0,
+	OBJECT_INVERSE_TRANSFORM = 4,
+	OBJECT_TRANSFORM_MOTION_POST = 4,
+	OBJECT_PROPERTIES = 8,
+	OBJECT_DUPLI = 9
+};
+
+enum ObjectVectorTransform {
+	OBJECT_VECTOR_MOTION_PRE = 0,
+	OBJECT_VECTOR_MOTION_POST = 3
 };
 
 __device_inline Transform object_fetch_transform(KernelGlobals *kg, int object, enum ObjectTransform type)
@@ -35,6 +40,19 @@ __device_inline Transform object_fetch_transform(KernelGlobals *kg, int object, 
 	tfm.x = kernel_tex_fetch(__objects, offset + 0);
 	tfm.y = kernel_tex_fetch(__objects, offset + 1);
 	tfm.z = kernel_tex_fetch(__objects, offset + 2);
+	tfm.w = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
+
+	return tfm;
+}
+
+__device_inline Transform object_fetch_vector_transform(KernelGlobals *kg, int object, enum ObjectVectorTransform type)
+{
+	int offset = object*OBJECT_VECTOR_SIZE + (int)type;
+
+	Transform tfm;
+	tfm.x = kernel_tex_fetch(__objects_vector, offset + 0);
+	tfm.y = kernel_tex_fetch(__objects_vector, offset + 1);
+	tfm.z = kernel_tex_fetch(__objects_vector, offset + 2);
 	tfm.w = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
 
 	return tfm;
