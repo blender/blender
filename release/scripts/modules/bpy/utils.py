@@ -217,18 +217,21 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
         del _global_loaded_modules[:]
 
-    for base_path in script_paths():
-        for path_subdir in _script_module_dirs:
-            path = _os.path.join(base_path, path_subdir)
-            if _os.path.isdir(path):
-                _sys_path_ensure(path)
+    from bpy_restrict_state import RestrictBlend
 
-                # only add this to sys.modules, don't run
-                if path_subdir == "modules":
-                    continue
+    with RestrictBlend():
+        for base_path in script_paths():
+            for path_subdir in _script_module_dirs:
+                path = _os.path.join(base_path, path_subdir)
+                if _os.path.isdir(path):
+                    _sys_path_ensure(path)
 
-                for mod in modules_from_path(path, loaded_modules):
-                    test_register(mod)
+                    # only add this to sys.modules, don't run
+                    if path_subdir == "modules":
+                        continue
+
+                    for mod in modules_from_path(path, loaded_modules):
+                        test_register(mod)
 
     # deal with addons separately
     _addon_utils.reset_all(reload_scripts)

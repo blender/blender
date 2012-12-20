@@ -31,14 +31,6 @@ __all__ = (
 import bpy as _bpy
 _user_preferences = _bpy.context.user_preferences
 
-class _RestrictedContext():
-    __slots__ = ()
-    @property
-    def window_manager(self):
-        return _bpy.data.window_managers[0]
-_ctx_restricted = _RestrictedContext()
-
-
 error_duplicates = False
 error_encoding = False
 addons_fake_modules = {}
@@ -240,6 +232,7 @@ def enable(module_name, default_set=True, persistent=False):
 
     import os
     import sys
+    from bpy_restrict_state import RestrictBlend
 
     def handle_error():
         import traceback
@@ -267,37 +260,31 @@ def enable(module_name, default_set=True, persistent=False):
     # Split registering up into 3 steps so we can undo
     # if it fails par way through.
 
-    # first disable the context, using the context at all is
+    # disable the context, using the context at all is
     # really bad while loading an addon, don't do it!
-    ctx = _bpy.context
-    _bpy.context = _ctx_restricted
+    with RestrictBlend():
 
-    # 1) try import
-    try:
-        mod = __import__(module_name)
-        mod.__time__ = os.path.getmtime(mod.__file__)
-        mod.__addon_enabled__ = False
-    except:
-        handle_error()
-        _bpy.context = ctx
-        return None
+        # 1) try import
+        try:
+            mod = __import__(module_name)
+            mod.__time__ = os.path.getmtime(mod.__file__)
+            mod.__addon_enabled__ = False
+        except:
+            handle_error()
+            return None
 
-    # 2) try register collected modules
-    # removed, addons need to handle own registration now.
+        # 2) try register collected modules
+        # removed, addons need to handle own registration now.
 
-    # 3) try run the modules register function
-    try:
-        mod.register()
-    except:
-        print("Exception in module register(): %r" %
-              getattr(mod, "__file__", module_name))
-        handle_error()
-        del sys.modules[module_name]
-        _bpy.context = ctx
-        return None
-
-    # finally restore the context
-    _bpy.context = ctx
+        # 3) try run the modules register function
+        try:
+            mod.register()
+        except:
+            print("Exception in module register(): %r" %
+                  getattr(mod, "__file__", module_name))
+            handle_error()
+            del sys.modules[module_name]
+            return None
 
     # * OK loaded successfully! *
     if default_set:
