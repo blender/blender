@@ -2689,8 +2689,10 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 	if (wm->windows.first == wm->windows.last)
 		return NULL;
 	
-	/* top window bar... */
-	if (mx < 0 || my < 0 || mx > win->sizex || my > win->sizey + 30) {
+	/* in order to use window size and mouse position (pixels), we have to use a WM function */
+	
+	/* check if outside, include top window bar... */
+	if (mx < 0 || my < 0 || mx > WM_window_pixels_x(win) || my > WM_window_pixels_y(win) + 30) {
 		wmWindow *owin;
 		wmEventHandler *handler;
 		
@@ -2701,18 +2703,21 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 				return NULL;
 		
 		/* to desktop space */
-		mx += (int)win->posx;
-		my += (int)win->posy;
+		mx += (int) (U.pixelsize * win->posx);
+		my += (int) (U.pixelsize * win->posy);
 		
 		/* check other windows to see if it has mouse inside */
 		for (owin = wm->windows.first; owin; owin = owin->next) {
 			
 			if (owin != win) {
-				if (mx - owin->posx >= 0 && my - owin->posy >= 0 &&
-				    mx - owin->posx <= owin->sizex && my - owin->posy <= owin->sizey)
+				int posx = (int) (U.pixelsize * owin->posx);
+				int posy = (int) (U.pixelsize * owin->posy);
+				
+				if (mx - posx >= 0 && owin->posy >= 0 &&
+				    mx - posx <= WM_window_pixels_x(owin) && my - posy <= WM_window_pixels_y(owin))
 				{
-					evt->x = mx - (int)owin->posx;
-					evt->y = my - (int)owin->posy;
+					evt->x = mx - (int)(U.pixelsize * owin->posx);
+					evt->y = my - (int)(U.pixelsize * owin->posy);
 					
 					return owin;
 				}
