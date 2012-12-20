@@ -1129,8 +1129,8 @@ static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, cons
 		/* use N-Rooks to distribute our N ray samples across
 		 * a multi-dimensional domain (2D)
 		 */
-		const unsigned short I = ao_random_table_1[(i + perm_offs) % ao_data->number_of_rays];
-		const unsigned short J = ao_random_table_2[i];
+		const unsigned short I = ao_data->permutation_table_1[(i + perm_offs) % ao_data->number_of_rays];
+		const unsigned short J = ao_data->permutation_table_2[i];
 
 		const float JitPh = (get_ao_random2(I + perm_offs) & (MAX_NUMBER_OF_AO_RAYS-1))/((float) MAX_NUMBER_OF_AO_RAYS);
 		const float JitTh = (get_ao_random1(J + perm_offs) & (MAX_NUMBER_OF_AO_RAYS-1))/((float) MAX_NUMBER_OF_AO_RAYS);
@@ -1141,7 +1141,7 @@ static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, cons
 		 * weighted distribution relative to the north pole.
 		 */
 		float SiPhi = sqrt(SiSqPhi);
-		float CoPhi = SiSqPhi < 1.0f ? sqrtf(1.0f - SiSqPhi) : 1.0f - SiSqPhi;
+		float CoPhi = SiSqPhi < 1.0f ? sqrtf(1.0f - SiSqPhi) : 0;
 		float CoThe = cos(Theta);
 		float SiThe = sin(Theta);
 
