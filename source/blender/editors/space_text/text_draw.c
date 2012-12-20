@@ -1045,7 +1045,7 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 		
 		UI_ThemeColor(TH_SHADE2);
 		x = st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
-		y = ar->winy - 2;
+		y = ar->winy;
 
 		if (vcurl == vsell) {
 			y -= vcurl * lheight;
@@ -1120,7 +1120,7 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 		/* Draw the cursor itself (we draw the sel. cursor as this is the leading edge) */
 		x = st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
 		x += vselc * st->cwidth;
-		y = ar->winy - 2 - vsell * lheight;
+		y = ar->winy - vsell * lheight;
 		
 		if (st->overwrite) {
 			char ch = text->sell->line[text->selc];
