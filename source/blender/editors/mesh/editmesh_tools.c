@@ -5764,6 +5764,7 @@ void MESH_OT_symmetrize(struct wmOperatorType *ot)
 	                        "Direction", "Which sides to copy from and to");
 }
 
+#ifdef WITH_FREESTYLE
 static int edbm_mark_freestyle_edge(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -5867,3 +5868,4 @@ void MESH_OT_mark_freestyle_face(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "clear", 0, "Clear", "");
 }
+#endif

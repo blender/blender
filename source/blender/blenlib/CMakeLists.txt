@@ -162,6 +162,10 @@ if(WITH_OPENMP)
 	add_definitions(-DPARALLEL=1)
 endif()
 
+if(WITH_FREESTYLE)
+	add_definitions(-DWITH_FREESTYLE)
+endif()
+
 if(WIN32)
 	list(APPEND INC
 		../../../intern/utfconv

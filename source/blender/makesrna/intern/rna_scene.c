@@ -38,7 +38,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_world_types.h"
-#include "DNA_linestyle_types.h"
+#ifdef WITH_FREESTYLE
+#  include "DNA_linestyle_types.h"
+#endif
 
 #include "BLI_math.h"
 
@@ -330,7 +332,9 @@ EnumPropertyItem image_color_depth_items[] = {
 
 #include "RE_engine.h"
 
-#include "FRS_freestyle.h"
+#ifdef WITH_FREESTYLE
+#  include "FRS_freestyle.h"
+#endif
 
 static void rna_SpaceImageEditor_uv_sculpt_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
 {
@@ -1448,6 +1452,7 @@ static void rna_SceneSequencer_update(Main *UNUSED(bmain), Scene *UNUSED(scene),
 	BKE_sequencer_preprocessed_cache_cleanup();
 }
 
+#ifdef WITH_FREESTYLE
 static PointerRNA rna_FreestyleLineSet_linestyle_get(PointerRNA *ptr)
 {
 	FreestyleLineSet *lineset = (FreestyleLineSet *)ptr->data;
@@ -1491,6 +1496,7 @@ static void rna_FreestyleSettings_active_lineset_index_set(PointerRNA *ptr, int 
 	FreestyleConfig *config = (FreestyleConfig *)ptr->data;
 	FRS_set_active_lineset_index(config, value);
 }
+#endif
 
 #else
 
@@ -1559,7 +1565,9 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{EDGE_MODE_TAG_SHARP, "SHARP", 0, "Tag Sharp", ""},
 		{EDGE_MODE_TAG_CREASE, "CREASE", 0, "Tag Crease", ""},
 		{EDGE_MODE_TAG_BEVEL, "BEVEL", 0, "Tag Bevel", ""},
+#ifdef WITH_FREESTYLE
 		{EDGE_MODE_TAG_FREESTYLE, "FREESTYLE", 0, "Tag Freestyle Edge Mark", ""},
+#endif
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -2108,6 +2116,7 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
+#ifdef WITH_FREESTYLE
 	prop = RNA_def_property(srna, "use_freestyle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_FRS);
 	RNA_def_property_ui_text(prop, "Freestyle", "Render stylized strokes in this Layer");
@@ -2115,6 +2124,7 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 		RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 	else
 		RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+#endif
 
 	/* passes */
 	prop = RNA_def_property(srna, "use_pass_combined", PROP_BOOLEAN, PROP_NONE);
@@ -2336,6 +2346,7 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 
+#ifdef WITH_FREESTYLE
 static void rna_def_freestyle_linesets(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
@@ -2743,6 +2754,7 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Line Sets", "");
 	rna_def_freestyle_linesets(brna, prop);
 }
+#endif
 
 static void rna_def_scene_game_recast_data(BlenderRNA *brna)
 {
@@ -3281,6 +3293,7 @@ static void rna_def_scene_render_layer(BlenderRNA *brna)
 
 	rna_def_render_layer_common(srna, 1);
 
+#ifdef WITH_FREESTYLE
 	/* Freestyle */
 
 	rna_def_freestyle_settings(brna);
@@ -3290,6 +3303,7 @@ static void rna_def_scene_render_layer(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "freestyleConfig");
 	RNA_def_property_struct_type(prop, "FreestyleSettings");
 	RNA_def_property_ui_text(prop, "Freestyle Settings", "");
+#endif
 }
 
 /* curve.splines */
@@ -3870,12 +3884,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+#ifdef WITH_FREESTYLE
 	static EnumPropertyItem freestyle_thickness_items[] = {
 		{R_LINE_THICKNESS_ABSOLUTE, "ABSOLUTE", 0, "Absolute", "Specify unit line thickness in pixels"},
 		{R_LINE_THICKNESS_RELATIVE, "RELATIVE", 0, "Relative",
 		                            "Unit line thickness is scaled by the proportion of the present vertical image "
                                     "resolution to 480 pixels"},
 		{0, NULL, 0, NULL, NULL}};
+#endif
 
 	rna_def_scene_ffmpeg_settings(brna);
 #ifdef WITH_QUICKTIME
@@ -4121,10 +4137,12 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Edge Color", "Edge color");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 	
+#ifdef WITH_FREESTYLE
 	prop = RNA_def_property(srna, "use_freestyle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_EDGE_FRS);
 	RNA_def_property_ui_text(prop, "Edge", "Draw stylized strokes using Freestyle");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+#endif
 
 	/* threads */
 	prop = RNA_def_property(srna, "threads", PROP_INT, PROP_NONE);
@@ -4583,6 +4601,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Persistent Data", "Keep render data around for faster re-renders");
 	RNA_def_property_update(prop, 0, "rna_Scene_use_persistent_data_update");
 
+#ifdef WITH_FREESTYLE
 	/* Freestyle line thickness options */
 	prop = RNA_def_property(srna, "line_thickness_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "line_thickness_mode");
@@ -4593,6 +4612,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "unit_line_thickness");
 	RNA_def_property_range(prop, 0.f, 10000.f);
 	RNA_def_property_ui_text(prop, "Unit Line Thickness", "Unit line thickness in pixels");
+#endif
 
 	/* Scene API */
 	RNA_api_scene_render(srna);

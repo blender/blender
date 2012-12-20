@@ -72,7 +72,9 @@
 #include "BKE_movieclip.h"
 #include "BKE_mask.h"
 #include "BKE_gpencil.h"
-#include "BKE_linestyle.h"
+#ifdef WITH_FREESTYLE
+#  include "BKE_linestyle.h"
+#endif
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
@@ -634,6 +636,7 @@ static void rna_Main_grease_pencil_remove(Main *bmain, ReportList *reports, Poin
 		            gpd->id.name + 2, ID_REAL_USERS(gpd));
 }
 
+#ifdef WITH_FREESTYLE
 FreestyleLineStyle *rna_Main_linestyles_new(Main *bmain, const char* name)
 {
 	FreestyleLineStyle *linestyle = FRS_new_linestyle(name, bmain);
@@ -650,6 +653,7 @@ void rna_Main_linestyles_remove(Main *bmain, ReportList *reports, FreestyleLineS
 
 	/* XXX python now has invalid pointer? */
 }
+#endif
 
 /* tag functions, all the same */
 static void rna_Main_cameras_tag(Main *bmain, int value) { tag_main_lb(&bmain->camera, value); }
@@ -682,7 +686,9 @@ static void rna_Main_particles_tag(Main *bmain, int value) { tag_main_lb(&bmain-
 static void rna_Main_gpencil_tag(Main *bmain, int value) { tag_main_lb(&bmain->gpencil, value); }
 static void rna_Main_movieclips_tag(Main *bmain, int value) { tag_main_lb(&bmain->movieclip, value); }
 static void rna_Main_masks_tag(Main *bmain, int value) { tag_main_lb(&bmain->mask, value); }
+#ifdef WITH_FREESTYLE
 void rna_Main_linestyle_tag(Main *bmain, int value) { tag_main_lb(&bmain->linestyle, value); }
+#endif
 
 static int rna_Main_cameras_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_CA); }
 static int rna_Main_scenes_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_SCE); }
@@ -1704,6 +1710,7 @@ void RNA_def_main_masks(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
 }
 
+#ifdef WITH_FREESTYLE
 void RNA_def_main_linestyles(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
@@ -1729,5 +1736,6 @@ void RNA_def_main_linestyles(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_pointer(func, "linestyle", "FreestyleLineStyle", "", "Line style to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
+#endif
 
 #endif

@@ -178,7 +178,9 @@ static int mouse_nla_channels(bAnimContext *ac, float x, int channel_index, shor
 		case ANIMTYPE_DSMESH:
 		case ANIMTYPE_DSTEX:
 		case ANIMTYPE_DSLAT:
+#ifdef WITH_FREESTYLE
 		case ANIMTYPE_DSLINESTYLE:
+#endif
 		case ANIMTYPE_DSSPK:
 		{
 			/* sanity checking... */

@@ -55,7 +55,6 @@
 #include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
-#include "BKE_linestyle.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
@@ -70,7 +69,10 @@
 
 #include "GPU_material.h"
 
-#include "FRS_freestyle.h"
+#ifdef WITH_FREESTYLE
+#  include "BKE_linestyle.h"
+#  include "FRS_freestyle.h"
+#endif
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
@@ -574,6 +576,7 @@ void SCENE_OT_render_layer_remove(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+#ifdef WITH_FREESTYLE
 static int freestyle_module_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
@@ -1187,6 +1190,7 @@ void SCENE_OT_freestyle_modifier_move(wmOperatorType *ot)
 	/* props */
 	RNA_def_enum(ot->srna, "direction", direction_items, 0, "Direction", "Direction to move, UP or DOWN");
 }
+#endif
 
 static int texture_slot_move(bContext *C, wmOperator *op)
 {

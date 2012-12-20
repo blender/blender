@@ -62,7 +62,9 @@ static IDType idtypes[] = {
 	{ ID_KE,     "Key",              "shape_keys",      0                       },
 	{ ID_LA,     "Lamp",             "lamps",           IDTYPE_FLAGS_ISLINKABLE },
 	{ ID_LI,     "Library",          "libraries",       0                       },
+#ifdef WITH_FREESTYLE
 	{ ID_LS,     "FreestyleLineStyle", "linestyles",    IDTYPE_FLAGS_ISLINKABLE },
+#endif
 	{ ID_LT,     "Lattice",          "lattices",        IDTYPE_FLAGS_ISLINKABLE },
 	{ ID_MA,     "Material",         "materials",       IDTYPE_FLAGS_ISLINKABLE },
 	{ ID_MB,     "Metaball",         "metaballs",       IDTYPE_FLAGS_ISLINKABLE },

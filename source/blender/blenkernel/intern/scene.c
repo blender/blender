@@ -85,7 +85,9 @@
 //XXX #include "BIF_previewrender.h"
 //XXX #include "BIF_editseq.h"
 
-#include "FRS_freestyle_config.h"
+#ifdef WITH_FREESTYLE
+#  include "FRS_freestyle_config.h"
+#endif
 
 #ifdef WIN32
 #else
@@ -288,7 +290,6 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 void BKE_scene_free(Scene *sce)
 {
 	Base *base;
-	SceneRenderLayer *srl;
 
 	base = sce->base.first;
 	while (base) {
@@ -329,9 +330,15 @@ void BKE_scene_free(Scene *sce)
 		sce->r.ffcodecdata.properties = NULL;
 	}
 	
-	for(srl= sce->r.layers.first; srl; srl= srl->next) {
-		FRS_free_freestyle_config(srl);
+#ifdef WITH_FREESTYLE
+	{
+		SceneRenderLayer *srl;
+
+		for (srl = sce->r.layers.first; srl; srl = srl->next) {
+			FRS_free_freestyle_config(srl);
+		}
 	}
+#endif
 	
 	BLI_freelistN(&sce->markers);
 	BLI_freelistN(&sce->transform_spaces);
@@ -1190,7 +1197,9 @@ SceneRenderLayer *BKE_scene_add_render_layer(Scene *sce, const char *name)
 	srl->lay = (1 << 20) - 1;
 	srl->layflag = 0x7FFF;   /* solid ztra halo edge strand */
 	srl->passflag = SCE_PASS_COMBINED | SCE_PASS_Z;
-	FRS_add_freestyle_config( srl );
+#ifdef WITH_FREESTYLE
+	FRS_add_freestyle_config(srl);
+#endif
 
 	return srl;
 }

@@ -31,7 +31,7 @@ sources = env.Glob('*.c')
 
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
-incs += ' ../../gpu ../../freestyle'
+incs += ' ../../gpu'
 incs += ' ../../makesrna ../../render/extern/include  #/intern/elbeem/extern'
 incs += ' ../../blenloader ../../bmesh'
 
@@ -42,6 +42,9 @@ if env['OURPLATFORM'] == 'linux':
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
     incs += ' ' + env['BF_PTHREADS_INC']
 
+if env['WITH_BF_FREESTYLE']:
+    incs += ' ../../freestyle'
+    env.Append(CFLAGS=['-DWITH_FREESTYLE'])
 
 if env['WITH_BF_QUICKTIME']:
     incs += ' ../../quicktime'

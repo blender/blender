@@ -290,7 +290,9 @@ typedef struct MVertSkin {
 #define ME_LOOSEEDGE		(1<<7)
 /* #define ME_SEAM_LAST		(1<<8) */ /* UNUSED */
 #define ME_SHARP			(1<<9)    /* only reason this flag remains a 'short' */
+/* #ifdef WITH_FREESTYLE */
 #define ME_FREESTYLE_EDGE	(1<<10)
+/* #endif */
 
 /* puno = vertexnormal (mface) */
 #define ME_PROJXY		16
@@ -307,7 +309,9 @@ typedef struct MVertSkin {
 /* flag (mface) */
 #define ME_SMOOTH			1
 #define ME_FACE_SEL			2
+/* #ifdef WITH_FREESTYLE */
 #define ME_FREESTYLE_FACE	4
+/* #endif */
 /* flag ME_HIDE==16 is used here too */ 
 
 #define ME_POLY_LOOP_PREV(mloop, mp, i)  (&(mloop)[(mp)->loopstart + (((i) + (mp)->totloop - 1) % (mp)->totloop)])

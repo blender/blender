@@ -1713,12 +1713,14 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			if (ma->mode & (MA_FACETEXTURE_ALPHA))
 				shi->alpha= shi->vcol[3];
 		}
+#ifdef WITH_FREESTYLE
 		else if (ma->vcol_alpha) {
 			shi->r= shi->vcol[0];
 			shi->g= shi->vcol[1];
 			shi->b= shi->vcol[2];
 			shi->alpha= shi->vcol[3];
 		}
+#endif
 		else if (ma->mode & (MA_VERTEXCOLP)) {
 			float neg_alpha = 1.0f - shi->vcol[3];
 			shi->r= shi->r*neg_alpha + shi->vcol[0]*shi->vcol[3];

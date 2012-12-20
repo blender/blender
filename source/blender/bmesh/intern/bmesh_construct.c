@@ -981,7 +981,11 @@ char BM_edge_flag_from_mflag(const short meflag)
 	         ((meflag & ME_EDGEDRAW)       ? BM_ELEM_DRAW      : 0) |
 	         ((meflag & ME_SHARP) == 0     ? BM_ELEM_SMOOTH    : 0) | /* invert */
 	         ((meflag & ME_HIDE)           ? BM_ELEM_HIDDEN    : 0) |
+#ifdef WITH_FREESTYLE
 	         ((meflag & ME_FREESTYLE_EDGE) ? BM_ELEM_FREESTYLE : 0)
+#else
+	         0
+#endif
 	         );
 }
 char BM_face_flag_from_mflag(const char  meflag)
@@ -989,7 +993,11 @@ char BM_face_flag_from_mflag(const char  meflag)
 	return ( ((meflag & ME_FACE_SEL)       ? BM_ELEM_SELECT    : 0) |
 	         ((meflag & ME_SMOOTH)         ? BM_ELEM_SMOOTH    : 0) |
 	         ((meflag & ME_HIDE)           ? BM_ELEM_HIDDEN    : 0) |
+#ifdef WITH_FREESTYLE
 	         ((meflag & ME_FREESTYLE_FACE) ? BM_ELEM_FREESTYLE : 0)
+#else
+	         0
+#endif
 	         );
 }
 
@@ -1012,7 +1020,9 @@ short BM_edge_flag_to_mflag(BMEdge *eed)
 	         ((hflag & BM_ELEM_DRAW)         ? ME_EDGEDRAW       : 0) |
 	         ((hflag & BM_ELEM_SMOOTH) == 0  ? ME_SHARP          : 0) |
 	         ((hflag & BM_ELEM_HIDDEN)       ? ME_HIDE           : 0) |
+#ifdef WITH_FREESTYLE
 	         ((hflag & BM_ELEM_FREESTYLE)    ? ME_FREESTYLE_EDGE : 0) |
+#endif
 	         ((BM_edge_is_wire(eed))         ? ME_LOOSEEDGE      : 0) | /* not typical */
 	         ME_EDGERENDER
 	         );
@@ -1024,6 +1034,10 @@ char  BM_face_flag_to_mflag(BMFace *efa)
 	return ( ((hflag & BM_ELEM_SELECT)    ? ME_FACE_SEL       : 0) |
 	         ((hflag & BM_ELEM_SMOOTH)    ? ME_SMOOTH         : 0) |
 	         ((hflag & BM_ELEM_HIDDEN)    ? ME_HIDE           : 0) |
+#ifdef WITH_FREESTYLE
 	         ((hflag & BM_ELEM_FREESTYLE) ? ME_FREESTYLE_FACE : 0)
+#else
+	         0
+#endif
 	         );
 }

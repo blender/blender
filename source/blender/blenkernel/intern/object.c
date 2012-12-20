@@ -115,7 +115,9 @@
 
 #include "GPU_material.h"
 
-#include "FRS_freestyle.h"
+#ifdef WITH_FREESTYLE
+#  include "FRS_freestyle.h"
+#endif
 
 /* Local function protos */
 float originmat[3][3];  /* after BKE_object_where_is_calc(), can be used in other functions (bad!) */
@@ -635,6 +637,7 @@ void BKE_object_unlink(Object *ob)
 				SEQ_END
 			}
 
+#ifdef WITH_FREESTYLE
 			{
 				SceneRenderLayer *srl;
 
@@ -642,6 +645,7 @@ void BKE_object_unlink(Object *ob)
 					FRS_unlink_target_object(&srl->freestyleConfig, ob);
 				}
 			}
+#endif
 		}
 
 		sce = sce->id.next;

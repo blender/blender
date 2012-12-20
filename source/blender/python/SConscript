@@ -31,7 +31,6 @@ Import ('env')
 
 incs = '. ../editors/include ../makesdna ../makesrna ../blenfont ../blenlib ../blenkernel ../nodes'
 incs += ' ../imbuf ../blenloader ../bmesh ../gpu ../render/extern/include ../windowmanager'
-incs += ' ../freestyle/intern/python'
 incs += ' #intern/guardedalloc #intern/memutil #extern/glew/include #intern/cycles/blender'
 incs += ' #intern/audaspace/intern ' + env['BF_PYTHON_INC']
 
@@ -101,6 +100,10 @@ if env['WITH_BF_CYCLES']:
 
 if env['WITH_BF_CYCLES_OSL']:
     defs.append('WITH_CYCLES_OSL')
+
+if env['WITH_BF_FREESTYLE']:
+    incs += ' ../freestyle/intern/python'
+    defs.append('WITH_FREESTYLE')
 
 if env['WITH_BF_GAMEENGINE']:
     defs.append('WITH_GAMEENGINE')

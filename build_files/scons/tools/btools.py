@@ -116,6 +116,7 @@ def validate_arguments(args, bc):
             'WITH_BF_TIFF', 'BF_TIFF', 'BF_TIFF_INC', 'BF_TIFF_LIB', 'BF_TIFF_LIBPATH', 'WITH_BF_STATICTIFF', 'BF_TIFF_LIB_STATIC',
             'WITH_BF_ZLIB', 'BF_ZLIB', 'BF_ZLIB_INC', 'BF_ZLIB_LIB', 'BF_ZLIB_LIBPATH', 'WITH_BF_STATICZLIB', 'BF_ZLIB_LIB_STATIC',
             'WITH_BF_INTERNATIONAL',
+            'WITH_BF_FREESTYLE',
             'WITH_BF_ICONV', 'BF_ICONV', 'BF_ICONV_INC', 'BF_ICONV_LIB', 'BF_ICONV_LIBPATH',
             'WITH_BF_GAMEENGINE',
             'WITH_BF_BULLET', 'BF_BULLET', 'BF_BULLET_INC', 'BF_BULLET_LIB',
@@ -384,6 +385,8 @@ def read_opts(env, cfg, args):
         ('BF_ZLIB_LIB_STATIC', 'ZLib static library', ''),
 
         (BoolVariable('WITH_BF_INTERNATIONAL', 'Use Boost::locale if true', True)),
+
+        (BoolVariable('WITH_BF_FREESTYLE', 'Build advanced edge renderer', True)),
 
         (BoolVariable('WITH_BF_ICONV', 'Use iconv if true', True)),
         ('BF_ICONV', 'iconv base path', ''),

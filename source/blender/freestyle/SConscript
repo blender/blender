@@ -3,7 +3,7 @@ import sys
 Import ('env')
 
 sources = []
-defs = []
+defs = ['WITH_FREESTYLE']
 incs = ''
 
 incs += '../blenkernel ../blenloader ../blenlib ../imbuf ../makesdna ../makesrna'

@@ -176,6 +176,9 @@ WITH_BF_CYCLES_CUDA_BINARIES = False
 #BF_CYCLES_CUDA_NVCC = "" # Path to the nvidia compiler
 BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_13', 'sm_20', 'sm_21', 'sm_30']
 
+#Freestyle
+WITH_BF_FREESTYLE = True
+
 ##
 CC = 'gcc'
 CXX = 'g++'

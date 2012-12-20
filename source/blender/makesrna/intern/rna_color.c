@@ -56,7 +56,9 @@
 #include "BKE_node.h"
 #include "BKE_sequencer.h"
 #include "BKE_texture.h"
-#include "BKE_linestyle.h"
+#ifdef WITH_FREESTYLE
+#  include "BKE_linestyle.h"
+#endif
 
 #include "ED_node.h"
 
@@ -190,6 +192,7 @@ static char *rna_ColorRamp_path(PointerRNA *ptr)
 				path = BLI_strdup("color_ramp");
 				break;
 
+#ifdef WITH_FREESTYLE
 			case ID_LS:
 			{
 				char *path = FRS_path_from_ID_to_color_ramp((FreestyleLineStyle *)id, (ColorBand *)ptr->data);
@@ -197,6 +200,7 @@ static char *rna_ColorRamp_path(PointerRNA *ptr)
 					return path;
 				break;
 			}
+#endif
 		}
 	}
 	else {
@@ -268,6 +272,7 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 			}
 			break;
 				
+#ifdef WITH_FREESTYLE
 			case ID_LS:
 			{
 				ListBase listbase;
@@ -281,6 +286,7 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 				BLI_freelistN(&listbase);
 				break;
 			}
+#endif
 
 			default: /* everything else should have a "color_ramp" property */
 			{
@@ -333,6 +339,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 				WM_main_add_notifier(NC_TEXTURE, tex);
 			}
 			break;
+#ifdef WITH_FREESTYLE
 			case ID_LS:
 			{
 				FreestyleLineStyle *linestyle= ptr->id.data;
@@ -340,6 +347,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 				WM_main_add_notifier(NC_LINESTYLE, linestyle);
 				break;
 			}
+#endif
 			default:
 				break;
 		}

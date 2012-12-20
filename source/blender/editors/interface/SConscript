@@ -42,6 +42,9 @@ defs = []
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
+if env['WITH_BF_FREESTYLE']:
+    defs.append('WITH_FREESTYLE')
+
 if env['WITH_BF_PYTHON']:
     defs.append('WITH_PYTHON')
     

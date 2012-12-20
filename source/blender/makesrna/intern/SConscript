@@ -38,6 +38,8 @@ root_build_dir=normpath(env['BF_BUILDDIR'])
 
 source_files = env.Glob('*.c')
 source_files.remove('rna_access.c')
+if not env['WITH_BF_FREESTYLE']:
+    source_files.remove('rna_linestyle.c')
 
 generated_files = source_files[:]
 generated_files.remove('rna_define.c')
@@ -131,6 +133,10 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', '
 
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
+
+if env['WITH_BF_FREESTYLE']:
+    defs.append('WITH_FREESTYLE')
+    incs += ' ../../freestyle'
 
 if not env['BF_DEBUG']:
     defs.append('NDEBUG')

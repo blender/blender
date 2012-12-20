@@ -33,7 +33,6 @@ set(INC
 	../editors/include
 	../editors/io
 	../gpu
-	../freestyle
 	../imbuf
 	../makesdna
 	../makesrna
@@ -86,6 +85,13 @@ add_definitions(-DGLEW_STATIC)
 
 if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
+endif()
+
+if(WITH_FREESTYLE)
+	list(APPEND INC
+		../freestyle
+	)
+	add_definitions(-DWITH_FREESTYLE)
 endif()
 
 if(WITH_OPENCOLLADA)

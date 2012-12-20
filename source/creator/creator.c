@@ -102,7 +102,9 @@
 
 #include "BLI_scanfill.h" /* for BLI_setErrorCallBack, TODO, move elsewhere */
 
-#include "FRS_freestyle.h"
+#ifdef WITH_FREESTYLE
+#  include "FRS_freestyle.h"
+#endif
 
 #ifdef WITH_BUILDINFO_HEADER
 #  define BUILD_DATE
@@ -1369,9 +1371,11 @@ int main(int argc, const char **argv)
 	CTX_py_init_set(C, 1);
 	WM_keymap_init(C);
 
+#ifdef WITH_FREESTYLE
 	/* initialize Freestyle */
 	FRS_initialize();
 	FRS_set_context(C);
+#endif
 
 	/* OK we are ready for it */
 #ifndef WITH_PYTHON_MODULE

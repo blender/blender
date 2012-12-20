@@ -240,10 +240,12 @@ extern StructRNA RNA_FluidFluidSettings;
 extern StructRNA RNA_FluidSettings;
 extern StructRNA RNA_FluidSimulationModifier;
 extern StructRNA RNA_FollowPathConstraint;
+#ifdef WITH_FREESTYLE
 extern StructRNA RNA_FreestyleLineStyle;
 extern StructRNA RNA_FreestyleLineSet;
 extern StructRNA RNA_FreestyleModuleSettings;
 extern StructRNA RNA_FreestyleSettings;
+#endif
 extern StructRNA RNA_Function;
 extern StructRNA RNA_GPencilFrame;
 extern StructRNA RNA_GPencilLayer;
@@ -300,6 +302,7 @@ extern StructRNA RNA_LimitDistanceConstraint;
 extern StructRNA RNA_LimitLocationConstraint;
 extern StructRNA RNA_LimitRotationConstraint;
 extern StructRNA RNA_LimitScaleConstraint;
+#ifdef WITH_FREESTYLE
 extern StructRNA RNA_LineStyleAlphaModifier;
 extern StructRNA RNA_LineStyleAlphaModifier_AlongStroke;
 extern StructRNA RNA_LineStyleAlphaModifier_DistanceFromCamera;
@@ -331,6 +334,7 @@ extern StructRNA RNA_LineStyleThicknessModifier_Calligraphy;
 extern StructRNA RNA_LineStyleThicknessModifier_DistanceFromCamera;
 extern StructRNA RNA_LineStyleThicknessModifier_DistanceFromObject;
 extern StructRNA RNA_LineStyleThicknessModifier_Material;
+#endif
 extern StructRNA RNA_LockedTrackConstraint;
 extern StructRNA RNA_Macro;
 extern StructRNA RNA_MagicTexture;

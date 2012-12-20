@@ -51,4 +51,7 @@ if env['WITH_BF_BULLET']:
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
+if env['WITH_BF_FREESTYLE']:
+    defs.append('WITH_FREESTYLE')
+
 env.BlenderLib ( libname = 'bf_bmesh', sources = sources, includes = Split(incs), libtype = ['core','player'], defines=defs, priority=[100, 100], compileflags=cflags )

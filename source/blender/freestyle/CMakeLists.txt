@@ -36,6 +36,8 @@ set(INC_SYS
   ${PNG_INC}
 )
 
+add_definitions(-DWITH_FREESTYLE)
+
 if(WIN32)
   set(INC_SYS ${INC_SYS} ${PTHREADS_INC})
 endif(WIN32)

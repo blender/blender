@@ -49,7 +49,6 @@
 #include "BKE_camera.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_pointcache.h"
@@ -76,7 +75,10 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
-#include "FRS_freestyle.h"
+#ifdef WITH_FREESTYLE
+#  include "BKE_library.h"
+#  include "FRS_freestyle.h"
+#endif
 
 /* internal */
 #include "render_result.h"
@@ -743,7 +745,7 @@ static RenderPart *find_next_pano_slice(Render *re, int *minx, rctf *viewplane)
 
 		R.panodxp = (re->winx - (best->disprect.xmin + best->disprect.xmax) ) / 2;
 		R.panodxv = (BLI_rctf_size_x(viewplane) * R.panodxp) / (float)(re->winx);
-		
+
 		/* shift viewplane */
 		R.viewplane.xmin = viewplane->xmin + R.panodxv;
 		R.viewplane.xmax = viewplane->xmax + R.panodxv;
@@ -943,7 +945,9 @@ void RE_TileProcessor(Render *re)
 
 /* ************  This part uses API, for rendering Blender scenes ********** */
 
+#ifdef WITH_FREESTYLE
 static void add_freestyle(Render *re);
+#endif
 
 static void do_render_3d(Render *re)
 {
@@ -985,10 +989,12 @@ static void do_render_3d(Render *re)
 		if (!re->test_break(re->tbh))
 			add_halo_flare(re);
 	
+#ifdef WITH_FREESTYLE
 	/* Freestyle  */
 	if( re->r.mode & R_EDGE_FRS)
 		if(!re->test_break(re->tbh))
 			add_freestyle(re);
+#endif
 		
 	/* free all render verts etc */
 	RE_Database_Free(re);
@@ -1429,6 +1435,7 @@ static void render_composit_stats(void *UNUSED(arg), char *str)
 	R.i.infostr = NULL;
 }
 
+#ifdef WITH_FREESTYLE
 /* invokes Freestyle stroke rendering */
 static void add_freestyle(Render *re)
 {
@@ -1495,7 +1502,7 @@ static void free_all_freestyle_renders(Scene *scene)
 		BLI_freelistN( &re1->freestyle_renders );
 	}
 }
-
+#endif
 
 /* reads all buffers, calls optional composite, merges in first result->rectf */
 static void do_merge_fullsample(Render *re, bNodeTree *ntree)
@@ -1537,8 +1544,10 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 					if (sample) {
 						BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 						render_result_exr_file_read(re1, sample);
+#ifdef WITH_FREESTYLE
 						if( re1->r.mode & R_EDGE_FRS)
 							composite_freestyle_renders(re1, sample);
+#endif
 						BLI_rw_mutex_unlock(&re->resultmutex);
 					}
 					ntreeCompositTagRender(re1->scene); /* ensure node gets exec to put buffers on stack */
@@ -1741,7 +1750,9 @@ static void do_render_composite_fields_blur_3d(Render *re)
 			do_merge_fullsample(re, NULL);
 	}
 
+#ifdef WITH_FREESTYLE
 	free_all_freestyle_renders(re->scene);
+#endif
 
 	/* weak... the display callback wants an active renderlayer pointer... */
 	re->result->renlay = render_get_active_layer(re, re->result);
@@ -2190,7 +2201,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 		BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_PRE);
 
 		do_render_all_options(re);
-		
+
 		if (write_still && !G.is_break) {
 			if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
 				/* operator checks this but in case its called from elsewhere */
@@ -2214,6 +2225,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 	G.is_rendering = FALSE;
 }
 
+#ifdef WITH_FREESTYLE
 void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene)
 {
 	re->result_ok= 0;
@@ -2222,6 +2234,7 @@ void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene)
 	}
 	re->result_ok= 1;
 }
+#endif
 
 static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovieHandle *mh, const char *name_override)
 {

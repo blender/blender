@@ -177,8 +177,10 @@ typedef struct Material {
 	short shadowonly_flag;  /* "shadowsonly" type */
 	short index;            /* custom index for render passes */
 
+/* #ifdef WITH_FREESTYLE */
 	short vcol_alpha;
 	short pad4[3];
+/* #endif */
 
 	ListBase gpumaterial;		/* runtime */
 } Material;

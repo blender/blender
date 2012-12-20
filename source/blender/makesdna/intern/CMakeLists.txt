@@ -34,6 +34,9 @@ blender_include_dirs(
 	..
 )
 
+if(WITH_FREESTYLE)
+	add_definitions(-DWITH_FREESTYLE)
+endif()
 
 # -----------------------------------------------------------------------------
 # Build makesdna executable

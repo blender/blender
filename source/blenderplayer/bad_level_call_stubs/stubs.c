@@ -55,8 +55,10 @@ struct FCurve;
 struct Heap;
 struct HeapNode;
 struct ID;
+#ifdef WITH_FREESTYLE
 struct FreestyleConfig;
 struct FreestyleLineSet;
+#endif
 struct ImBuf;
 struct Image;
 struct ImageUser;
@@ -85,7 +87,9 @@ struct RenderLayer;
 struct RenderResult;
 struct Scene;
 struct Scene;
+#ifdef WITH_FREESTYLE
 struct SceneRenderLayer;
+#endif
 struct ScrArea;
 struct SculptSession;
 struct ShadeInput;
@@ -520,6 +524,7 @@ int pyrna_id_FromPyObject(struct PyObject *obj, struct ID **id) { return 0; }
 struct PyObject *pyrna_id_CreatePyObject(struct ID *id) {return NULL; }
 void BPY_context_update(struct bContext *C) {};
 
+#ifdef WITH_FREESTYLE
 /* Freestyle */
 void FRS_add_freestyle_config(struct SceneRenderLayer* srl) {}
 void FRS_free_freestyle_config(struct SceneRenderLayer* srl) {}
@@ -527,6 +532,7 @@ struct FreestyleLineSet *FRS_get_active_lineset(struct FreestyleConfig *config) 
 short FRS_get_active_lineset_index(struct FreestyleConfig *config) { return 0; }
 void FRS_set_active_lineset_index(struct FreestyleConfig *config, short index) {}
 void FRS_unlink_target_object(struct FreestyleConfig *config, struct Object *ob) {}
+#endif
 /* intern/dualcon */
 struct DualConMesh;
 struct DualConMesh *dualcon(const struct DualConMesh *input_mesh,

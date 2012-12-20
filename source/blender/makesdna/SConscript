@@ -28,10 +28,14 @@
 Import ('env')
 
 objs = []
+defs = []
 
 o = SConscript('intern/SConscript')
 objs += o
 
 incs = '#/intern/guardedalloc .'
 
-env.BlenderLib ( 'bf_dna', objs, Split(incs), [], libtype=['core','player'], priority = [215,200] )
+if env['WITH_BF_FREESTYLE']:
+    defs.append('WITH_FREESTYLE')
+
+env.BlenderLib ( 'bf_dna', objs, Split(incs), defs, libtype=['core','player'], priority = [215,200] )

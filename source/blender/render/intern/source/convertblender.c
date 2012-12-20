@@ -42,7 +42,9 @@
 #include "BLI_memarena.h"
 #include "BLI_ghash.h"
 #include "BLI_linklist.h"
-#include "BLI_edgehash.h"
+#ifdef WITH_FREESTYLE
+#  include "BLI_edgehash.h"
+#endif
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
@@ -2694,7 +2696,11 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 					v2= mface->v2;
 					v3= mface->v3;
 					v4= mface->v4;
-					flag= mface->flag & (ME_SMOOTH | ME_FREESTYLE_FACE);
+#ifdef WITH_FREESTYLE
+					flag = mface->flag & (ME_SMOOTH | ME_FREESTYLE_FACE);
+#else
+					flag = mface->flag & ME_SMOOTH;
+#endif
 
 					vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 					vlr->v1= RE_findOrAddVert(obr, vertofs+v1);
@@ -3219,6 +3225,7 @@ static void add_volume(Render *re, ObjectRen *obr, Material *ma)
 	BLI_addtail(&re->volumes, vo);
 }
 
+#ifdef WITH_FREESTYLE
 static EdgeHash *make_freestyle_edge_mark_hash(MEdge *medge, int totedge)
 {
 	EdgeHash *edge_hash= BLI_edgehash_new();
@@ -3236,6 +3243,7 @@ static int has_freestyle_edge_mark(EdgeHash *edge_hash, int v1, int v2)
 	MEdge *medge= BLI_edgehash_lookup(edge_hash, v1, v2);
 	return (!medge) ? 0 : 1;
 }
+#endif
 
 static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 {
@@ -3356,14 +3364,16 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 		}
 		
 		if (!timeoffset) {
+#ifdef WITH_FREESTYLE
 			EdgeHash *edge_hash;
 			MEdge *medge;
 			int totedge;
 
 			/* create a hash table of Freestyle edge marks */
-			medge= dm->getEdgeArray(dm);
-			totedge= dm->getNumEdges(dm);
-			edge_hash= make_freestyle_edge_mark_hash(medge, totedge);
+			medge = dm->getEdgeArray(dm);
+			totedge = dm->getNumEdges(dm);
+			edge_hash = make_freestyle_edge_mark_hash(medge, totedge);
+#endif
 
 			/* store customdata names, because DerivedMesh is freed */
 			RE_set_customdata_names(obr, &dm->faceData);
@@ -3407,14 +3417,17 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 						
 						if ( mface->mat_nr==a1 ) {
 							float len;
-							int edge_mark= 0;
 							int reverse_verts = (negative_scale != 0 && do_autosmooth == FALSE);
 							int rev_tab[] = {reverse_verts==0 ? 0 : 2, 1, reverse_verts==0 ? 2 : 0, 3};
 							v1= reverse_verts==0 ? mface->v1 : mface->v3;
 							v2= mface->v2;
 							v3= reverse_verts==0 ? mface->v3 : mface->v1;
 							v4= mface->v4;
-							flag= mface->flag & (ME_SMOOTH | ME_FREESTYLE_FACE);
+#ifdef WITH_FREESTYLE
+							flag = mface->flag & (ME_SMOOTH | ME_FREESTYLE_FACE);
+#else
+							flag = mface->flag & ME_SMOOTH;
+#endif
 
 							vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 							vlr->v1= RE_findOrAddVert(obr, vertofs+v1);
@@ -3423,16 +3436,22 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 							if (v4) vlr->v4= RE_findOrAddVert(obr, vertofs+v4);
 							else vlr->v4= 0;
 
+#ifdef WITH_FREESTYLE
 							/* Freestyle edge marks */
-							if(has_freestyle_edge_mark(edge_hash, v1, v2)) edge_mark |= R_EDGE_V1V2;
-							if(has_freestyle_edge_mark(edge_hash, v2, v3)) edge_mark |= R_EDGE_V2V3;
-							if (!v4) {
-								if(has_freestyle_edge_mark(edge_hash, v3, v1)) edge_mark |= R_EDGE_V3V1;
-							} else {
-								if(has_freestyle_edge_mark(edge_hash, v3, v4)) edge_mark |= R_EDGE_V3V4;
-								if(has_freestyle_edge_mark(edge_hash, v4, v1)) edge_mark |= R_EDGE_V4V1;
+							{
+								int edge_mark = 0;
+
+								if(has_freestyle_edge_mark(edge_hash, v1, v2)) edge_mark |= R_EDGE_V1V2;
+								if(has_freestyle_edge_mark(edge_hash, v2, v3)) edge_mark |= R_EDGE_V2V3;
+								if (!v4) {
+									if(has_freestyle_edge_mark(edge_hash, v3, v1)) edge_mark |= R_EDGE_V3V1;
+								} else {
+									if(has_freestyle_edge_mark(edge_hash, v3, v4)) edge_mark |= R_EDGE_V3V4;
+									if(has_freestyle_edge_mark(edge_hash, v4, v1)) edge_mark |= R_EDGE_V4V1;
+								}
+								vlr->freestyle_edge_mark= edge_mark;
 							}
-							vlr->freestyle_edge_mark= edge_mark;
+#endif
 
 							/* render normals are inverted in render */
 							if (use_original_normals) {
@@ -3501,8 +3520,10 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 				}
 			}
 
+#ifdef WITH_FREESTYLE
 			/* release the hash table of Freestyle edge marks */
 			BLI_edgehash_free(edge_hash, NULL);
+#endif
 			
 			/* exception... we do edges for wire mode. potential conflict when faces exist... */
 			end= dm->getNumEdges(dm);
@@ -4303,6 +4324,7 @@ static void check_non_flat_quads(ObjectRen *obr)
 					normal_tri_v3(vlr->n, vlr->v3->co, vlr->v2->co, vlr->v1->co);
 					normal_tri_v3(vlr1->n, vlr1->v3->co, vlr1->v2->co, vlr1->v1->co);
 
+#ifdef WITH_FREESTYLE
 					/* Freestyle edge marks */
 					if (vlr->flag & R_DIVIDE_24) {
 						vlr1->freestyle_edge_mark=
@@ -4311,7 +4333,8 @@ static void check_non_flat_quads(ObjectRen *obr)
 						vlr->freestyle_edge_mark=
 							((vlr->freestyle_edge_mark & R_EDGE_V1V2) ? R_EDGE_V1V2 : 0) |
 							((vlr->freestyle_edge_mark & R_EDGE_V4V1) ? R_EDGE_V3V1 : 0);
-					} else {
+					}
+					else {
 						vlr1->freestyle_edge_mark=
 							((vlr->freestyle_edge_mark & R_EDGE_V3V4) ? R_EDGE_V2V3 : 0) |
 							((vlr->freestyle_edge_mark & R_EDGE_V4V1) ? R_EDGE_V3V1 : 0);
@@ -4319,6 +4342,7 @@ static void check_non_flat_quads(ObjectRen *obr)
 							((vlr->freestyle_edge_mark & R_EDGE_V1V2) ? R_EDGE_V1V2 : 0) |
 							((vlr->freestyle_edge_mark & R_EDGE_V2V3) ? R_EDGE_V2V3 : 0);
 					}
+#endif
 				}
 				/* clear the flag when not divided */
 				else vlr->flag &= ~R_DIVIDE_24;

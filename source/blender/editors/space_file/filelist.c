@@ -1162,7 +1162,11 @@ void filelist_from_main(struct FileList *filelist)
 	if (filelist->dir[0] == 0) {
 		
 		/* make directories */
+#ifdef WITH_FREESTYLE
 		filelist->numfiles = 25;
+#else
+		filelist->numfiles = 24;
+#endif
 		filelist->filelist = (struct direntry *)malloc(filelist->numfiles * sizeof(struct direntry));
 		
 		for (a = 0; a < filelist->numfiles; a++) {
@@ -1193,7 +1197,9 @@ void filelist_from_main(struct FileList *filelist)
 		filelist->filelist[21].relname = BLI_strdup("Action");
 		filelist->filelist[22].relname = BLI_strdup("NodeTree");
 		filelist->filelist[23].relname = BLI_strdup("Speaker");
+#ifdef WITH_FREESTYLE
 		filelist->filelist[24].relname = BLI_strdup("FreestyleLineStyle");
+#endif
 		filelist_sort(filelist, FILE_SORT_ALPHA);
 	}
 	else {

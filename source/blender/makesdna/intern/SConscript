@@ -39,6 +39,9 @@ root_build_dir=normpath(env['BF_BUILDDIR'])
 source_files = ['makesdna.c']
 header_files = env.Glob('../*.h')
 
+if env['WITH_BF_FREESTYLE']:
+    defines.append('WITH_FREESTYLE')
+
 makesdna_tool = env.Clone()
 dna = env.Clone()
 makesdna_tool.Append(CCFLAGS = '-DBASE_HEADER="\\"source/blender/makesdna/\\"" ')

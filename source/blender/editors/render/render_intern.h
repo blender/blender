@@ -53,6 +53,8 @@ void MATERIAL_OT_paste(struct wmOperatorType *ot);
 
 void SCENE_OT_render_layer_add(struct wmOperatorType *ot);
 void SCENE_OT_render_layer_remove(struct wmOperatorType *ot);
+
+#ifdef WITH_FREESTYLE
 void SCENE_OT_freestyle_module_add(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_module_remove(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_module_move(struct wmOperatorType *ot);
@@ -69,6 +71,7 @@ void SCENE_OT_freestyle_geometry_modifier_add(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_modifier_remove(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_modifier_move(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_modifier_copy(struct wmOperatorType *ot);
+#endif
 
 
 void TEXTURE_OT_slot_copy(struct wmOperatorType *ot);

@@ -82,7 +82,9 @@ PyC_FlagSet bpy_bm_hflag_all_flags[] = {
 	{BM_ELEM_SEAM,       "SEAM"},
 	{BM_ELEM_SMOOTH,     "SMOOTH"},
 	{BM_ELEM_TAG,        "TAG"},
+#ifdef WITH_FREESTYLE
 	{BM_ELEM_FREESTYLE,  "FREESTYLE"},
+#endif
 	{0, NULL}
 };
 
@@ -102,8 +104,10 @@ PyDoc_STRVAR(bpy_bm_elem_tag_doc,     "Generic attribute scripts can use for own
 PyDoc_STRVAR(bpy_bm_elem_smooth_doc,  "Smooth state of this element.\n\n:type: boolean");
 PyDoc_STRVAR(bpy_bm_elem_seam_doc,    "Seam for UV unwrapping.\n\n:type: boolean");
 
+#ifdef WITH_FREESTYLE
 PyDoc_STRVAR(bpy_bm_freestyle_edge_mark_doc,  "Freestyle edge mark.\n\n:type: boolean");
 PyDoc_STRVAR(bpy_bm_freestyle_face_mark_doc,  "Freestyle face mark.\n\n:type: boolean");
+#endif
 
 static PyObject *bpy_bm_elem_hflag_get(BPy_BMElem *self, void *flag)
 {
@@ -665,7 +669,9 @@ static PyGetSetDef bpy_bmedge_getseters[] = {
 	{(char *)"smooth", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_smooth_doc, (void *)BM_ELEM_SMOOTH},
 	{(char *)"seam",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_seam_doc, (void *)BM_ELEM_SEAM},
 
+#ifdef WITH_FREESTYLE
 	{(char *)"freestyle_edge_mark", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_freestyle_edge_mark_doc, (void *)BM_ELEM_FREESTYLE},
+#endif
 
 	/* connectivity data */
 	{(char *)"verts", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmedge_verts_doc, (void *)BM_VERTS_OF_EDGE},
@@ -691,7 +697,9 @@ static PyGetSetDef bpy_bmface_getseters[] = {
 
 	{(char *)"smooth", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_smooth_doc, (void *)BM_ELEM_SMOOTH},
 
+#ifdef WITH_FREESTYLE
 	{(char *)"freestyle_face_mark", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_freestyle_face_mark_doc, (void *)BM_ELEM_FREESTYLE},
+#endif
 
 	{(char *)"normal", (getter)bpy_bmface_normal_get, (setter)bpy_bmface_normal_set, (char *)bpy_bmface_normal_doc, NULL},
 

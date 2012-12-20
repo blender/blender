@@ -37,4 +37,7 @@ defs = []
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
+if env['WITH_BF_FREESTYLE']:
+    defs.append('WITH_FREESTYLE')
+
 env.BlenderLib ( 'bf_editors_space_nla', sources, Split(incs), defs, libtype=['core'], priority=[85] )

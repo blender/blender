@@ -317,6 +317,9 @@ WITH_BF_CYCLES_CUDA_BINARIES = False
 BF_CYCLES_CUDA_NVCC = '/usr/local/cuda/bin/nvcc'
 BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_13', 'sm_20', 'sm_21']
 
+#Freestyle
+WITH_BF_FREESTYLE = True
+
 #Ray trace optimization
 if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'i386':
     WITH_BF_RAYOPTIMIZATION = True

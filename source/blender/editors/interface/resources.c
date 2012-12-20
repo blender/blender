@@ -349,10 +349,12 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->handle_sel_vect; break;
 				case TH_HANDLE_SEL_ALIGN:
 					cp = ts->handle_sel_align; break;
+#ifdef WITH_FREESTYLE
 				case TH_FREESTYLE_EDGE_MARK:
 					cp = ts->freestyle_edge_mark; break;
 				case TH_FREESTYLE_FACE_MARK:
 					cp = ts->freestyle_face_mark; break;
+#endif
 
 				case TH_SYNTAX_B:
 					cp = ts->syntaxb; break;
@@ -732,8 +734,10 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tv3d.button_text_hi, 255, 255, 255, 255);
 	rgba_char_args_set(btheme->tv3d.button_title, 0, 0, 0, 255);
 	rgba_char_args_set(btheme->tv3d.title, 0, 0, 0, 255);
+#ifdef WITH_FREESTYLE
 	rgba_char_args_set(btheme->tv3d.freestyle_edge_mark, 0x7f, 0xff, 0x7f, 255);
 	rgba_char_args_set(btheme->tv3d.freestyle_face_mark, 0x7f, 0xff, 0x7f, 51);
+#endif
 
 	btheme->tv3d.facedot_size = 4;
 
@@ -1979,6 +1983,7 @@ void init_userdef_do_versions(void)
 		}
 	}
 
+#ifdef WITH_FREESTYLE
 	/* Freestyle color settings */
 	{
 		bTheme *btheme;
@@ -1991,6 +1996,7 @@ void init_userdef_do_versions(void)
 			}
 		}
 	}
+#endif
 
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {

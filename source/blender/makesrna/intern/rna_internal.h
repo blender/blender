@@ -151,7 +151,9 @@ void RNA_def_image(struct BlenderRNA *brna);
 void RNA_def_key(struct BlenderRNA *brna);
 void RNA_def_lamp(struct BlenderRNA *brna);
 void RNA_def_lattice(struct BlenderRNA *brna);
+#ifdef WITH_FREESTYLE
 void RNA_def_linestyle(struct BlenderRNA *brna);
+#endif
 void RNA_def_main(struct BlenderRNA *brna);
 void RNA_def_material(struct BlenderRNA *brna);
 void RNA_def_mesh(struct BlenderRNA *brna);
@@ -311,7 +313,9 @@ void RNA_def_main_particles(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_gpencil(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_movieclips(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_masks(BlenderRNA *brna, PropertyRNA *cprop);
+#ifdef WITH_FREESTYLE
 void RNA_def_main_linestyles(BlenderRNA *brna, PropertyRNA *cprop);
+#endif
 
 /* ID Properties */
 

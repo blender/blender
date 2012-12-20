@@ -35,7 +35,6 @@ set(INC
 	../../makesrna
 	../../windowmanager
 	../../../../intern/cycles/blender
-	../../freestyle/intern/python
 	../../../../intern/guardedalloc
 )
 
@@ -138,6 +137,13 @@ endif()
 
 if(WITH_CYCLES_OSL)
 	add_definitions(-DWITH_CYCLES_OSL)
+endif()
+
+if(WITH_FREESTYLE)
+	list(APPEND INC
+		../../freestyle/intern/python
+	)
+	add_definitions(-DWITH_FREESTYLE)
 endif()
 
 if(WITH_GAMEENGINE)

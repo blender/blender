@@ -3202,7 +3202,9 @@ static RNAProcessItem PROCESS_ITEMS[] = {
 	{"rna_key.c", NULL, RNA_def_key},
 	{"rna_lamp.c", NULL, RNA_def_lamp},
 	{"rna_lattice.c", NULL, RNA_def_lattice},
+#ifdef WITH_FREESTYLE
 	{"rna_linestyle.c", NULL, RNA_def_linestyle},
+#endif
 	{"rna_main.c", "rna_main_api.c", RNA_def_main},
 	{"rna_material.c", "rna_material_api.c", RNA_def_material},
 	{"rna_mesh.c", "rna_mesh_api.c", RNA_def_mesh},

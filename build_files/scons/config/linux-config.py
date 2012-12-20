@@ -225,6 +225,9 @@ BF_3DMOUSE_LIBPATH = '${BF_3DMOUSE}/lib'
 BF_3DMOUSE_LIB = 'spnav'
 BF_3DMOUSE_LIB_STATIC = '${BF_3DMOUSE_LIBPATH}/libspnav.a'
 
+#Freestyle
+WITH_BF_FREESTYLE = True
+
 ##
 CC = 'gcc'
 CXX = 'g++'

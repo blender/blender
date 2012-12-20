@@ -556,7 +556,9 @@ typedef enum eDopeSheet_FilterFlag {
 	ADS_FILTER_NONTREE          = (1 << 19),
 	ADS_FILTER_NOTEX            = (1 << 20),
 	ADS_FILTER_NOSPK            = (1 << 21),
+/* #ifdef WITH_FREESTYLE */
 	ADS_FILTER_NOLINESTYLE      = (1 << 22),
+/* #endif */
 
 	/* NLA-specific filters */
 	ADS_FILTER_NLA_NOACT        = (1 << 25),  /* if the AnimData block has no NLA data, don't include to just show Action-line */

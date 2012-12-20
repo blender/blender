@@ -36,7 +36,6 @@ set(INC
 
 set(INC_SYS
 	${GLEW_INCLUDE_PATH}
-	../../freestyle
 )
 
 set(SRC
@@ -67,6 +66,13 @@ endif()
 
 if(WITH_HEADLESS)
 	add_definitions(-DWITH_HEADLESS)
+endif()
+
+if(WITH_FREESTYLE)
+	list(APPEND INC
+		../../freestyle
+	)
+	add_definitions(-DWITH_FREESTYLE)
 endif()
 
 blender_add_lib(bf_editor_render "${SRC}" "${INC}" "${INC_SYS}")

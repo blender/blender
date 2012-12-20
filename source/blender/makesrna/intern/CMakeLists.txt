@@ -54,7 +54,6 @@ set(DEFSRC
 	rna_key.c
 	rna_lamp.c
 	rna_lattice.c
-	rna_linestyle.c
 	rna_main.c
 	rna_mask.c
 	rna_material.c
@@ -92,6 +91,12 @@ set(DEFSRC
 	rna_wm.c
 	rna_world.c
 )
+
+if(WITH_FREESTYLE)
+	list(APPEND DEFSRC
+		rna_linestyle.c
+	)
+endif()
 
 set(APISRC
 	rna_action_api.c
@@ -254,13 +259,19 @@ blender_include_dirs(
 	../../windowmanager
 	../../editors/include
 	../../render/extern/include
-	../../freestyle
 	../../../../intern/audaspace/intern
 	../../../../intern/cycles/blender
 	../../../../intern/guardedalloc
 	../../../../intern/memutil
 	../../../../intern/smoke/extern
 )
+
+if(WITH_FREESTYLE)
+	blender_include_dirs(
+		../../freestyle
+	)
+	add_definitions(-DWITH_FREESTYLE)
+endif()
 
 blender_include_dirs_sys(
 	${GLEW_INCLUDE_PATH}

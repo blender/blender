@@ -37,6 +37,9 @@ incs += ' ' + env['BF_FREETYPE_INC']
 incs += ' ' + env['BF_ZLIB_INC']
 defs = []
 
+if env['WITH_BF_FREESTYLE']:
+    defs.append('WITH_FREESTYLE')
+
 if env['WITH_BF_BINRELOC']:
     cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'

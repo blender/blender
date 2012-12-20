@@ -131,7 +131,9 @@ void MESH_OT_select_random(struct wmOperatorType *ot);
 void MESH_OT_loop_multi_select(struct wmOperatorType *ot);
 void MESH_OT_mark_seam(struct wmOperatorType *ot);
 void MESH_OT_mark_sharp(struct wmOperatorType *ot);
+#ifdef WITH_FREESTYLE
 void MESH_OT_mark_freestyle_edge(struct wmOperatorType *ot);
+#endif
 void MESH_OT_vertices_smooth(struct wmOperatorType *ot);
 void MESH_OT_vertices_smooth_laplacian(struct wmOperatorType *ot);
 void MESH_OT_noise(struct wmOperatorType *ot);
@@ -181,7 +183,9 @@ void MESH_OT_rip(struct wmOperatorType *ot);
 void MESH_OT_shape_propagate_to_all(struct wmOperatorType *ot);
 void MESH_OT_blend_from_shape(struct wmOperatorType *ot);
 void MESH_OT_sort_elements(struct wmOperatorType *ot);
+#ifdef WITH_FREESTYLE
 void MESH_OT_mark_freestyle_face(struct wmOperatorType *ot);
+#endif
 
 /* ******************* mesh_data.c */
 

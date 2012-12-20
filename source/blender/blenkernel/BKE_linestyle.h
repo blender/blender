@@ -27,10 +27,13 @@
 
 #ifndef __BKE_LINESTYLE_H__
 #define __BKE_LINESTYLE_H__
+
 /** \file BKE_linestyle.h
  *  \ingroup bke
  *  \brief Blender kernel freestyle line style functionality.
  */
+
+#ifdef WITH_FREESTYLE
 
 #include "DNA_linestyle_types.h"
 
@@ -71,4 +74,6 @@ char *FRS_path_from_ID_to_color_ramp(FreestyleLineStyle *linestyle, ColorBand *c
 
 void FRS_unlink_linestyle_target_object(FreestyleLineStyle *linestyle, struct Object *ob);
 
-#endif
+#endif  /* WITH_FREESTYLE */
+
+#endif  /* __BKE_LINESTYLE_H__ */

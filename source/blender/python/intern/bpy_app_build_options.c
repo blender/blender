@@ -72,6 +72,10 @@ static PyObject *make_build_options(void)
 	SetStrItem("CYCLES_OSL");
 #endif
 
+#ifdef WITH_FREESTYLE
+	SetStrItem("FREESTYLE");
+#endif
+
 #ifdef WITH_GAMEENGINE
 	SetStrItem("GAMEENGINE");
 #endif

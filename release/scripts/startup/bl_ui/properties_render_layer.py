@@ -33,6 +33,28 @@ class RenderLayerButtonsPanel():
         return scene and (scene.render.engine in cls.COMPAT_ENGINES)
 
 
+class RenderLayerFreestyleButtonsPanel(RenderLayerButtonsPanel):
+    # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
+
+    @classmethod
+    def poll(cls, context):
+        if not super().poll(context):
+            return False
+        rd = context.scene.render
+        return 'FREESTYLE' in bpy.app.build_options and rd.use_freestyle and rd.layers.active
+
+
+class RenderLayerFreestyleEditorButtonsPanel(RenderLayerFreestyleButtonsPanel):
+    # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
+
+    @classmethod
+    def poll(cls, context):
+        if not super().poll(context):
+            return False
+        rl = context.scene.render.layers.active
+        return rl and rl.freestyle_settings.mode == 'EDITOR'
+
+
 class RENDERLAYER_PT_layers(RenderLayerButtonsPanel, Panel):
     bl_label = "Layers"
     bl_options = {'HIDE_HEADER'}
@@ -89,24 +111,26 @@ class RENDERLAYER_PT_layer_options(RenderLayerButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        col.prop(rl, "use_zmask")
-        row = col.row()
-        row.prop(rl, "invert_zmask", text="Negate")
-        row.active = rl.use_zmask
+        row = col.row(align=True)
+        row.prop(rl, "use_zmask")
+        sub = row.row(align=True)
+        sub.prop(rl, "invert_zmask", text="", icon='ZOOMOUT')
+        sub.active = rl.use_zmask
         col.prop(rl, "use_all_z")
+        col.prop(rl, "use_ztransp")
 
         col = split.column()
         col.prop(rl, "use_solid")
         col.prop(rl, "use_halo")
-        col.prop(rl, "use_ztransp")
-        col.prop(rl, "use_sky")
+        col.prop(rl, "use_strand")
 
         col = split.column()
+        col.prop(rl, "use_sky")
         col.prop(rl, "use_edge_enhance")
-        col.prop(rl, "use_strand")
-        row = col.row()
-        row.prop(rl, "use_freestyle")
-        row.active = rd.use_freestyle
+        if 'FREESTYLE' in bpy.app.build_options:
+            row = col.row()
+            row.prop(rl, "use_freestyle")
+            row.active = rd.use_freestyle
 
 
 class RENDERLAYER_PT_layer_passes(RenderLayerButtonsPanel, Panel):
@@ -164,18 +188,9 @@ class RENDER_MT_lineset_specials(Menu):
         layout.operator("scene.freestyle_lineset_paste", icon='PASTEDOWN')
 
 
-class RENDERLAYER_PT_freestyle(RenderLayerButtonsPanel, Panel):
+class RENDERLAYER_PT_freestyle(RenderLayerFreestyleButtonsPanel, Panel):
     bl_label = "Freestyle"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    @classmethod
-    def poll(cls, context):
-        scene = context.scene
-        if not (scene and (scene.render.engine in cls.COMPAT_ENGINES)):
-            return False
-        rd = scene.render
-        rl = rd.layers.active
-        return rd.use_freestyle and rl
 
     def draw(self, context):
         rd = context.scene.render
@@ -225,18 +240,9 @@ class RENDERLAYER_PT_freestyle(RenderLayerButtonsPanel, Panel):
                 row.operator("scene.freestyle_module_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
 
-class RENDERLAYER_PT_freestyle_lineset(RenderLayerButtonsPanel, Panel):
+class RENDERLAYER_PT_freestyle_lineset(RenderLayerFreestyleEditorButtonsPanel, Panel):
     bl_label = "Freestyle Line Set"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    @classmethod
-    def poll(cls, context):
-        scene = context.scene
-        if not (scene and (scene.render.engine in cls.COMPAT_ENGINES)):
-            return False
-        rd = scene.render
-        rl = rd.layers.active
-        return rd.use_freestyle and rl and rl.freestyle_settings.mode == 'EDITOR'
 
     def draw_edge_type_buttons(self, box, lineset, edge_type):
         # property names
@@ -326,19 +332,10 @@ class RENDERLAYER_PT_freestyle_lineset(RenderLayerButtonsPanel, Panel):
                 row.prop(lineset, "group_negation", expand=True)
 
 
-class RENDERLAYER_PT_freestyle_linestyle(RenderLayerButtonsPanel, Panel):
+class RENDERLAYER_PT_freestyle_linestyle(RenderLayerFreestyleEditorButtonsPanel, Panel):
     bl_label = "Freestyle Line Style"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    @classmethod
-    def poll(cls, context):
-        scene = context.scene
-        if not (scene and (scene.render.engine in cls.COMPAT_ENGINES)):
-            return False
-        rd = scene.render
-        rl = rd.layers.active
-        return rd.use_freestyle and rl and rl.freestyle_settings.mode == 'EDITOR'
 
     def draw_modifier_box_header(self, box, modifier):
         row = box.row()

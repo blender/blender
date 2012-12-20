@@ -155,7 +155,9 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_DSMESH,
 	ANIMTYPE_DSTEX,
 	ANIMTYPE_DSLAT,
+#ifdef WITH_FREESTYLE
 	ANIMTYPE_DSLINESTYLE,
+#endif
 	ANIMTYPE_DSSPK,
 	
 	ANIMTYPE_SHAPEKEY,
@@ -237,7 +239,9 @@ typedef enum eAnimFilter_Flags {
 #define EXPANDED_SCEC(sce) (CHECK_TYPE_INLINE(sce, Scene), ((sce->flag & SCE_DS_COLLAPSED) == 0))
 /* 'Sub-Scene' channels (flags stored in Data block) */
 #define FILTER_WOR_SCED(wo) (CHECK_TYPE_INLINE(wo, World), (wo->flag & WO_DS_EXPAND))
-#define FILTER_LS_SCED(linestyle) ((linestyle->flag & LS_DS_EXPAND))
+#ifdef WITH_FREESTYLE
+#  define FILTER_LS_SCED(linestyle) ((linestyle->flag & LS_DS_EXPAND))
+#endif
 /* 'Object' channels */
 #define SEL_OBJC(base)          (CHECK_TYPE_INLINE(base, Base), ((base->flag & SELECT)))
 #define EXPANDED_OBJC(ob)       (CHECK_TYPE_INLINE(ob, Object), ((ob->nlaflag & OB_ADS_COLLAPSED) == 0))

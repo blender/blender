@@ -109,7 +109,9 @@
 #include "BKE_speaker.h"
 #include "BKE_movieclip.h"
 #include "BKE_mask.h"
-#include "BKE_linestyle.h"
+#ifdef WITH_FREESTYLE
+#  include "BKE_linestyle.h"
+#endif
 
 #include "RNA_access.h"
 
@@ -277,8 +279,10 @@ int id_make_local(ID *id, int test)
 			return 0; /* can't be linked */
 		case ID_GD:
 			return 0; /* not implemented */
+#ifdef WITH_FREESTYLE
 		case ID_LS:
 			return 0; /* not implemented */
+#endif
 	}
 
 	return 0;
@@ -373,9 +377,11 @@ int id_copy(ID *id, ID **newid, int test)
 		case ID_MSK:
 			if (!test) *newid = (ID *)BKE_mask_copy((Mask *)id);
 			return 1;
+#ifdef WITH_FREESTYLE
 		case ID_LS:
 			if(!test) *newid= (ID*)FRS_copy_linestyle((FreestyleLineStyle*)id);
 			return 1;
+#endif
 	}
 	
 	return 0;
@@ -506,8 +512,10 @@ ListBase *which_libbase(Main *mainlib, short type)
 			return &(mainlib->movieclip);
 		case ID_MSK:
 			return &(mainlib->mask);
+#ifdef WITH_FREESTYLE
 		case ID_LS:
 			return &(mainlib->linestyle);
+#endif
 	}
 	return NULL;
 }
@@ -592,7 +600,9 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++] = &(main->wm);
 	lb[a++] = &(main->movieclip);
 	lb[a++] = &(main->mask);
+#ifdef WITH_FREESTYLE
 	lb[a++] = &(main->linestyle);
+#endif
 	
 	lb[a] = NULL;
 
@@ -707,9 +717,11 @@ static ID *alloc_libblock_notest(short type)
 		case ID_MSK:
 			id = MEM_callocN(sizeof(Mask), "Mask");
 			break;
+#ifdef WITH_FREESTYLE
 		case ID_LS:
 			id = MEM_callocN(sizeof(FreestyleLineStyle), "Freestyle Line Style");
 			break;
+#endif
 	}
 	return id;
 }
@@ -934,9 +946,11 @@ void BKE_libblock_free(ListBase *lb, void *idv)
 		case ID_MSK:
 			BKE_mask_free(bmain, (Mask *)id);
 			break;
+#ifdef WITH_FREESTYLE
 		case ID_LS:
 			FRS_free_linestyle((FreestyleLineStyle *)id);
 			break;
+#endif
 	}
 
 	BLI_remlink(lb, id);

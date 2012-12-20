@@ -38,8 +38,6 @@ incs += ' ../render/extern/include #/intern/cycles/blender'
 incs += ' ../nodes'
 incs += ' #/extern/glew/include'
 incs += ' #/intern/smoke/extern'
-incs += ' ../freestyle'
-
 incs += ' ../bmesh'
 
 defs = []
@@ -103,6 +101,10 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', '
 
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
+
+if env['WITH_BF_FREESTYLE']:
+    incs += ' ../freestyle'
+    defs.append('WITH_FREESTYLE')
 
 rnalib = env.BlenderLib ( 'bf_rna', objs, Split(incs), defines=defs, libtype=['core','player'], priority = [165,20] )
 

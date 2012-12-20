@@ -35,7 +35,6 @@ SConscript(['avi/SConscript',
             'blenloader/SConscript',
             'gpu/SConscript',
             'editors/SConscript',
-            'freestyle/SConscript',
             'imbuf/SConscript',
             'makesdna/SConscript',
             'render/SConscript',
@@ -68,3 +67,6 @@ if env['WITH_BF_COLLADA']:
 if env['WITH_BF_COMPOSITOR']:
     SConscript (['compositor/SConscript',
                  'opencl/SConscript'])
+
+if env['WITH_BF_FREESTYLE']:
+    SConscript (['freestyle/SConscript'])

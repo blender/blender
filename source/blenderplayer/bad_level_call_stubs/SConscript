@@ -41,4 +41,7 @@ if env['WITH_BF_INTERNATIONAL']:
 if env['WITH_BF_GAMEENGINE']:
     defs += ' WITH_GAMEENGINE'
 
+if env['WITH_BF_FREESTYLE']:
+    defs += ' WITH_FREESTYLE'
+
 env.BlenderLib ('blenkernel_blc', sources = Split(sources), includes=Split(incs), defines=Split(defs), libtype=['player'],priority=[220] )

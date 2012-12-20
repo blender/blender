@@ -967,10 +967,12 @@ static void rna_def_userdef_theme_spaces_edge(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Edge UV Face Select", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
+#ifdef WITH_FREESTYLE
 	prop = RNA_def_property(srna, "freestyle_edge_mark", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Freestyle Edge Mark", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+#endif
 }
 
 static void rna_def_userdef_theme_spaces_face(StructRNA *srna)
@@ -997,10 +999,12 @@ static void rna_def_userdef_theme_spaces_face(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Face Dot Size", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
+#ifdef WITH_FREESTYLE
 	prop = RNA_def_property(srna, "freestyle_face_mark", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_ui_text(prop, "Freestyle Face Mark", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+#endif
 }
 
 static void rna_def_userdef_theme_spaces_curves(StructRNA *srna, short incl_nurbs)

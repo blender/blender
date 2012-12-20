@@ -229,6 +229,9 @@ option(WITH_LZMA          "Enable best LZMA compression, (used for pointcache)" 
 # Camera/motion tracking
 option(WITH_LIBMV         "Enable libmv structure from motion library" ON)
 
+# Freestyle
+option(WITH_FREESTYLE     "Enable Freestyle (advanced edges rendering)" ON)
+
 # Misc
 option(WITH_INPUT_NDOF "Enable NDOF input devices (SpaceNavigator and friends)" ON)
 option(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" ON)

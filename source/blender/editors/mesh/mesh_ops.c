@@ -118,7 +118,9 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_faces_shade_smooth);
 	WM_operatortype_append(MESH_OT_faces_shade_flat);
 	WM_operatortype_append(MESH_OT_sort_elements);
+#ifdef WITH_FREESTYLE
 	WM_operatortype_append(MESH_OT_mark_freestyle_face);
+#endif
 
 	WM_operatortype_append(MESH_OT_delete);
 	WM_operatortype_append(MESH_OT_edge_collapse);
@@ -134,7 +136,9 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_loop_multi_select);
 	WM_operatortype_append(MESH_OT_mark_seam);
 	WM_operatortype_append(MESH_OT_mark_sharp);
+#ifdef WITH_FREESTYLE
 	WM_operatortype_append(MESH_OT_mark_freestyle_edge);
+#endif
 	WM_operatortype_append(MESH_OT_vertices_smooth);
 	WM_operatortype_append(MESH_OT_vertices_smooth_laplacian);
 	WM_operatortype_append(MESH_OT_noise);

@@ -55,7 +55,9 @@
 #include "DNA_camera_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_linestyle_types.h"
+#ifdef WITH_FREESTYLE
+#  include "DNA_linestyle_types.h"
+#endif
 #include "DNA_key_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_material_types.h"
@@ -737,6 +739,7 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 				ale->adt = BKE_animdata_from_id(data);
 			}
 			break;
+#ifdef WITH_FREESTYLE
 			case ANIMTYPE_DSLINESTYLE:
 			{
 				FreestyleLineStyle *linestyle = (FreestyleLineStyle *)data;
@@ -750,6 +753,7 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 				ale->adt = BKE_animdata_from_id(data);
 			}
 				break;
+#endif
 			case ANIMTYPE_DSPART:
 			{
 				ParticleSettings *part = (ParticleSettings *)ale->data;
@@ -1527,6 +1531,7 @@ static size_t animdata_filter_ds_nodetree(bAnimContext *ac, ListBase *anim_data,
 	return items;
 }
 
+#ifdef WITH_FREESTYLE
 static size_t animdata_filter_ds_linestyle (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Scene *sce, int filter_mode)
 {
 	SceneRenderLayer *srl;
@@ -1574,6 +1579,7 @@ static size_t animdata_filter_ds_linestyle (bAnimContext *ac, ListBase *anim_dat
 	/* return the number of items added to the list */
 	return items;
 }
+#endif
 
 /* NOTE: owner_id is either material, lamp, or world block, which is the direct owner of the texture stack in question */
 static size_t animdata_filter_ds_textures(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, ID *owner_id, int filter_mode)
@@ -2209,10 +2215,12 @@ static size_t animdata_filter_dopesheet_scene(bAnimContext *ac, ListBase *anim_d
 			tmp_items += animdata_filter_ds_nodetree(ac, &tmp_data, ads, (ID *)sce, ntree, filter_mode);
 		}
 
+#ifdef WITH_FREESTYLE
 		/* line styles */
 		if ((ads->filterflag & ADS_FILTER_NOLINESTYLE) == 0) {
 			tmp_items += animdata_filter_ds_linestyle(ac, &tmp_data, ads, sce, filter_mode);
 		}
+#endif
 		
 		/* TODO: one day, when sequencer becomes its own datatype, perhaps it should be included here */
 	}

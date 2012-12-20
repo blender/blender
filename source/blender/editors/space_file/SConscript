@@ -48,6 +48,9 @@ if env['WITH_BF_TIFF']:
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
+if env['WITH_BF_FREESTYLE']:
+    defs.append('WITH_FREESTYLE')
+
 if env['OURPLATFORM'] == 'linux':
     cflags='-pthread'
     incs += ' ../../../extern/binreloc/include'

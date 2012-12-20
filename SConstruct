@@ -269,6 +269,7 @@ if 'blenderlite' in B.targets:
     target_env_defs['WITH_BF_PYTHON'] = False
     target_env_defs['WITH_BF_3DMOUSE'] = False
     target_env_defs['WITH_BF_LIBMV'] = False
+    target_env_defs['WITH_BF_FREESTYLE'] = False
 
     # Merge blenderlite, let command line to override
     for k,v in target_env_defs.iteritems():
@@ -674,6 +675,10 @@ if env['OURPLATFORM']!='darwin':
                 # only for testing builds
                 if VERSION_RELEASE_CYCLE == "release" and "addons_contrib" in dn:
                     dn.remove('addons_contrib')
+
+                # do not install freestyle if disabled
+                if not env['WITH_BF_FREESTYLE'] and "freestyle" in dn:
+                    dn.remove("freestyle")
 
                 dir = os.path.join(env['BF_INSTALLDIR'], VERSION)
                 dir += os.sep + os.path.basename(scriptpath) + dp[len(scriptpath):]

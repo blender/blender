@@ -60,7 +60,9 @@
 #include "../generic/blf_py_api.h"
 #include "../mathutils/mathutils.h"
 
-#include "BPy_Freestyle.h"
+#ifdef WITH_FREESTYLE
+#  include "BPy_Freestyle.h"
+#endif
 
 PyObject *bpy_package_py = NULL;
 
@@ -259,7 +261,9 @@ void BPy_init_modules(void)
 	}
 	/* stand alone utility modules not related to blender directly */
 	IDProp_Init_Types(); /* not actually a submodule, just types */
+#ifdef WITH_FREESTYLE
 	Freestyle_Init();
+#endif
 
 	mod = PyModule_New("_bpy");
 

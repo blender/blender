@@ -58,6 +58,10 @@ if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
+if(WITH_FREESTYLE)
+	add_definitions(-DWITH_FREESTYLE)
+endif()
+
 add_definitions(-DGLEW_STATIC)
 
 blender_add_lib(bf_blenfont "${SRC}" "${INC}" "${INC_SYS}")

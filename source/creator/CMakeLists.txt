@@ -36,7 +36,6 @@ blender_include_dirs(
 	../blender/render/extern/include
 	../blender/makesdna
 	../blender/gpu
-	../blender/freestyle
 	../blender/windowmanager
 )
 
@@ -79,6 +78,11 @@ endif()
 if(WITH_BINRELOC)
 	add_definitions(-DWITH_BINRELOC)
 	blender_include_dirs(${BINRELOC_INCLUDE_DIRS})
+endif()
+
+if(WITH_FREESTYLE)
+	add_definitions(-DWITH_FREESTYLE)
+	blender_include_dirs(../blender/freestyle)
 endif()
 
 # Setup the exe sources and buildinfo
@@ -280,15 +284,24 @@ if(WITH_PYTHON)
 		set(ADDON_EXCLUDE_CONDITIONAL "_addons_contrib/*")  # dummy, wont do anything
 	endif()
 
+	# do not install freestyle dir if disabled
+	if(NOT WITH_FREESTYLE)
+		set(FREESTYLE_EXCLUDE_CONDITIONAL "freestyle/*")
+	else()
+		set(FREESTYLE_EXCLUDE_CONDITIONAL "_freestyle/*")  # dummy, wont do anything
+	endif()
+
 	install(
 		DIRECTORY ${CMAKE_SOURCE_DIR}/release/scripts
 		DESTINATION ${TARGETDIR_VER}
 		PATTERN ".svn" EXCLUDE
 		PATTERN "__pycache__" EXCLUDE
 		PATTERN "${ADDON_EXCLUDE_CONDITIONAL}" EXCLUDE
+		PATTERN "${FREESTYLE_EXCLUDE_CONDITIONAL}" EXCLUDE
 	)
 	
 	unset(ADDON_EXCLUDE_CONDITIONAL)
+	unset(FREESTYLE_EXCLUDE_CONDITIONAL)
 endif()
 
 # localization

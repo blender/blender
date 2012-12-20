@@ -683,7 +683,9 @@ static EnumPropertyItem prop_similar_types[] = {
 	{SIMEDGE_BEVEL, "BEVEL", 0, "Bevel", ""},
 	{SIMEDGE_SEAM, "SEAM", 0, "Seam", ""},
 	{SIMEDGE_SHARP, "SHARP", 0, "Sharpness", ""},
+#ifdef WITH_FREESTYLE
 	{SIMEDGE_FREESTYLE, "FREESTYLE_EDGE", 0, "Freestyle Edge Marks", ""},
+#endif
 
 	{SIMFACE_MATERIAL, "MATERIAL", 0, "Material", ""},
 	{SIMFACE_IMAGE, "IMAGE", 0, "Image", ""},
@@ -692,7 +694,9 @@ static EnumPropertyItem prop_similar_types[] = {
 	{SIMFACE_PERIMETER, "PERIMETER", 0, "Perimeter", ""},
 	{SIMFACE_NORMAL, "NORMAL", 0, "Normal", ""},
 	{SIMFACE_COPLANAR, "COPLANAR", 0, "Co-planar", ""},
+#ifdef WITH_FREESTYLE
 	{SIMFACE_FREESTYLE, "FREESTYLE_FACE", 0, "Freestyle Face Marks", ""},
+#endif
 
 	{0, NULL, 0, NULL, NULL}
 };
@@ -867,7 +871,11 @@ static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUS
 			}
 		}
 		else if (em->selectmode & SCE_SELECT_FACE) {
+#ifdef WITH_FREESTYLE
 			for (a = SIMFACE_MATERIAL; a <= SIMFACE_FREESTYLE; a++) {
+#else
+			for (a = SIMFACE_MATERIAL; a <= SIMFACE_COPLANAR; a++) {
+#endif
 				RNA_enum_items_add_value(&item, &totitem, prop_similar_types, a);
 			}
 		}
@@ -1317,9 +1325,11 @@ static void edgetag_context_set(BMesh *bm, Scene *scene, BMEdge *e, int val)
 		case EDGE_MODE_TAG_SHARP:
 			BM_elem_flag_set(e, BM_ELEM_SMOOTH, !val);
 			break;
+#ifdef WITH_FREESTYLE
 		case EDGE_MODE_TAG_FREESTYLE:
 			BM_elem_flag_set(e, BM_ELEM_FREESTYLE, val);
 			break;
+#endif
 		case EDGE_MODE_TAG_CREASE:
 			BM_elem_float_data_set(&bm->edata, e, CD_CREASE, (val) ? 1.0f : 0.0f);
 			break;
@@ -1338,8 +1348,10 @@ static int edgetag_context_check(Scene *scene, BMesh *bm, BMEdge *e)
 			return BM_elem_flag_test(e, BM_ELEM_SEAM);
 		case EDGE_MODE_TAG_SHARP:
 			return !BM_elem_flag_test(e, BM_ELEM_SMOOTH);
+#ifdef WITH_FREESTYLE
 		case EDGE_MODE_TAG_FREESTYLE:
 			return !BM_elem_flag_test(e, BM_ELEM_FREESTYLE);
+#endif
 		case EDGE_MODE_TAG_CREASE:
 			return BM_elem_float_data_get(&bm->edata, e, CD_CREASE) ? TRUE : FALSE;
 		case EDGE_MODE_TAG_BEVEL:
@@ -1494,9 +1506,11 @@ static int mouse_mesh_shortest_path_edge(ViewContext *vc)
 			case EDGE_MODE_TAG_BEVEL:
 				me->drawflag |= ME_DRAWBWEIGHTS;
 				break;
+#ifdef WITH_FREESTYLE
 			case EDGE_MODE_TAG_FREESTYLE:
 				me->drawflag |= ME_DRAW_FREESTYLE_EDGE;
 				break;
+#endif
 		}
 		
 		EDBM_update_generic(em, FALSE, FALSE);

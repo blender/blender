@@ -192,6 +192,9 @@ WITH_BF_RAYOPTIMIZATION = True
 # No need to manually specify SSE/SSE2 on x64 systems.
 BF_RAYOPTIMIZATION_SSE_FLAGS = ['']
 
+#Freestyle
+WITH_BF_FREESTYLE = True
+
 WITH_BF_STATICOPENGL = False
 BF_OPENGL_INC = '${BF_OPENGL}/include'
 BF_OPENGL_LIBINC = '${BF_OPENGL}/lib'

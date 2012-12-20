@@ -28,7 +28,6 @@ set(INC
 	../blenfont
 	../blenlib
 	../blenloader
-	../freestyle
 	../gpu
 	../ikplugin
 	../imbuf
@@ -103,7 +102,6 @@ set(SRC
 	intern/lamp.c
 	intern/lattice.c
 	intern/library.c
-	intern/linestyle.c
 	intern/mask.c
 	intern/mask_evaluate.c
 	intern/mask_rasterize.c
@@ -198,7 +196,6 @@ set(SRC
 	BKE_lamp.h
 	BKE_lattice.h
 	BKE_library.h
-	BKE_linestyle.h
 	BKE_main.h
 	BKE_mask.h
 	BKE_material.h
@@ -416,6 +413,17 @@ endif()
 
 if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
+endif()
+
+if(WITH_FREESTYLE)
+	list(APPEND SRC
+		intern/linestyle.c
+		BKE_linestyle.h
+	)
+	list(APPEND INC
+		../freestyle
+	)
+	add_definitions(-DWITH_FREESTYLE)
 endif()
 
 ## Warnings as errors, this is too strict!

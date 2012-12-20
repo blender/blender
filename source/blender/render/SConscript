@@ -33,7 +33,6 @@ raysources = env.Glob('intern/raytrace/*.cpp')
 incs = 'intern/include #/intern/guardedalloc ../blenlib ../makesdna ../makesrna'
 incs += ' extern/include ../blenkernel ../imbuf ../blenfont'
 incs += ' ../include ../blenloader ../../../intern/smoke/extern ../../../intern/mikktspace ../bmesh'
-incs += ' ../freestyle'
 
 cflags_raytrace = env['CCFLAGS']
 cxxflags_raytrace = env['CXXFLAGS']
@@ -83,6 +82,10 @@ if env['WITH_BF_QUICKTIME']:
 
 if env['WITH_BF_OPENEXR']:
     defs.append('WITH_OPENEXR')
+
+if env['WITH_BF_FREESTYLE']:
+    incs += ' ../freestyle'
+    defs.append('WITH_FREESTYLE')
 
 if env['WITH_BF_GAMEENGINE']:
     defs.append('WITH_GAMEENGINE')

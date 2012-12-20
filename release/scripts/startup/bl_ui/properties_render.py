@@ -50,8 +50,19 @@ class RenderButtonsPanel():
 
     @classmethod
     def poll(cls, context):
+        scene = context.scene
+        return scene and (scene.render.engine in cls.COMPAT_ENGINES)
+
+
+class RenderFreestyleButtonsPanel(RenderButtonsPanel):
+    # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
+
+    @classmethod
+    def poll(cls, context):
+        if not super().poll(context):
+            return False
         rd = context.scene.render
-        return context.scene and (rd.engine in cls.COMPAT_ENGINES)
+        return 'FREESTYLE' in bpy.app.build_options
 
 
 class RENDER_PT_render(RenderButtonsPanel, Panel):
@@ -297,7 +308,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel, Panel):
         sub.prop(rd, "edge_color", text="")
 
 
-class RENDER_PT_freestyle(RenderButtonsPanel, Panel):
+class RENDER_PT_freestyle(RenderFreestyleButtonsPanel, Panel):
     bl_label = "Freestyle"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER'}

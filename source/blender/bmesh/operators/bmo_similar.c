@@ -245,12 +245,14 @@ void bmo_similar_faces_exec(BMesh *bm, BMOperator *op)
 							cont = FALSE;
 						}
 						break;
+#ifdef WITH_FREESTYLE
 					case SIMFACE_FREESTYLE:
 						if (BM_elem_flag_test(fm, BM_ELEM_FREESTYLE) == BM_elem_flag_test(fs, BM_ELEM_FREESTYLE)) {
 							BMO_elem_flag_enable(bm, fm, FACE_MARK);
 							cont = FALSE;
 						}
 						break;
+#endif
 					default:
 						BLI_assert(0);
 				}
@@ -469,12 +471,14 @@ void bmo_similar_edges_exec(BMesh *bm, BMOperator *op)
 							cont = FALSE;
 						}
 						break;
+#ifdef WITH_FREESTYLE
 					case SIMEDGE_FREESTYLE:
 						if (BM_elem_flag_test(e, BM_ELEM_FREESTYLE) == BM_elem_flag_test(es, BM_ELEM_FREESTYLE)) {
 							BMO_elem_flag_enable(bm, e, EDGE_MARK);
 							cont = FALSE;
 						}
 						break;
+#endif
 					default:
 						BLI_assert(0);
 				}
