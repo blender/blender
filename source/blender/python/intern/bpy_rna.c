@@ -1510,12 +1510,18 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 				/* prefer not to have an exception here
 				 * however so many poll functions return None or a valid Object.
 				 * its a hassle to convert these into a bool before returning, */
-				if (RNA_property_flag(prop) & PROP_OUTPUT)
+				if (RNA_property_flag(prop) & PROP_OUTPUT) {
 					param = PyObject_IsTrue(value);
-				else
+				}
+				else {
 					param = PyLong_AsLong(value);
 
-				if (param < 0) {
+					if (UNLIKELY(param & ~1)) {  /* only accept 0/1 */
+						param = -1;              /* error out below */
+					}
+				}
+
+				if (param == -1) {
 					PyErr_Format(PyExc_TypeError,
 					             "%.200s %.200s.%.200s expected True/False or 0/1, not %.200s",
 					             error_prefix, RNA_struct_identifier(ptr->type),
