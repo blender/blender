@@ -2864,7 +2864,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	}
 	else {
 		if (need_orco) {
-		  orco= get_object_orco(re, ob);
+			orco = get_object_orco(re, ob);
 		}
 
 		while (dl) {

@@ -1004,7 +1004,7 @@ int main(int argc, char** argv)
 						
 						// Enter main loop
 						bool run = true;
-                        char *python_main = NULL;
+						char *python_main = NULL;
 						pynextframestate.state = NULL;
 						pynextframestate.func = NULL;
 #ifdef WITH_PYTHON
@@ -1015,24 +1015,24 @@ int main(int argc, char** argv)
 							char *python_code = KX_GetPythonCode(maggie, python_main);
 							if (python_code)
 							{
-#ifdef WITH_PYTHON			    
+#ifdef WITH_PYTHON
 								gpg_nextframestate.system = system;
 								gpg_nextframestate.app = &app;
 								gpg_nextframestate.gs = &gs;
 								pynextframestate.state = &gpg_nextframestate;
 								pynextframestate.func = &GPG_PyNextFrame;
 
-                                printf("Yielding control to Python script '%s'...\n", python_main);
-                                PyRun_SimpleString(python_code);
-                                printf("Exit Python script '%s'\n", python_main);
+								printf("Yielding control to Python script '%s'...\n", python_main);
+								PyRun_SimpleString(python_code);
+								printf("Exit Python script '%s'\n", python_main);
 #endif // WITH_PYTHON
-                                MEM_freeN(python_code);
-                            }
-                            else {
-                                fprintf(stderr, "ERROR: cannot yield control to Python: no Python text data block named '%s'\n", python_main);
-                            }
-                        }
-                        else
+								MEM_freeN(python_code);
+							}
+							else {
+								fprintf(stderr, "ERROR: cannot yield control to Python: no Python text data block named '%s'\n", python_main);
+							}
+						}
+						else
 						{
 							while (run)
 							{

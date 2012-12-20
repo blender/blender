@@ -1041,8 +1041,8 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 	const int flag = U.ndof_flag;
 
 #if 0
-	int shouldRotate = (flag & NDOF_SHOULD_ROTATE) && (fly->pan_view == FALSE),
-	    shouldTranslate = (flag & (NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM));
+	int shouldRotate = (flag & NDOF_SHOULD_ROTATE) && (fly->pan_view == FALSE);
+	int shouldTranslate = (flag & (NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM));
 #endif
 
 	int shouldRotate = (fly->pan_view == FALSE);

@@ -2,7 +2,7 @@ bl_info = {
     "name": "New Object",
     "author": "Your Name Here",
     "version": (1, 0),
-    "blender": (2, 5, 5),
+    "blender": (2, 65, 0),
     "location": "View3D > Add > Mesh > New Object",
     "description": "Adds a new Mesh Object",
     "warning": "",

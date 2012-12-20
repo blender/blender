@@ -1066,7 +1066,7 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 			ED_region_tag_redraw(ar);
 		}
 		else {  /* collapse */
-			if(ctrl)
+			if (ctrl)
 				panels_collapse_all(sa, ar, block->panel);
 
 			if (block->panel->flag & PNL_CLOSED) {
