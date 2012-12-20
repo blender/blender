@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenlib/intern/bpath.c
+/** \file blender/blenkernel/intern/bpath.c
  *  \ingroup bli
  */
 

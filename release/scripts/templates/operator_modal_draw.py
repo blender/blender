@@ -42,20 +42,22 @@ class ModalDrawOperator(bpy.types.Operator):
             self.mouse_path.append((event.mouse_region_x, event.mouse_region_y))
 
         elif event.type == 'LEFTMOUSE':
-            context.region.callback_remove(self._handle)
+            bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             return {'FINISHED'}
 
         elif event.type in {'RIGHTMOUSE', 'ESC'}:
-            context.region.callback_remove(self._handle)
+            bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             return {'CANCELLED'}
 
         return {'RUNNING_MODAL'}
 
     def invoke(self, context, event):
         if context.area.type == 'VIEW_3D':
+            # the arguments we pass the the callback
+            args = (self, context)
             # Add the region OpenGL drawing callback
             # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
-            self._handle = context.region.callback_add(draw_callback_px, (self, context), 'POST_PIXEL')
+            self._handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, args, 'WINDOW', 'POST_PIXEL')
 
             self.mouse_path = []
 

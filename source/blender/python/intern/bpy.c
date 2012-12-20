@@ -234,6 +234,7 @@ static PyObject *bpy_import_test(const char *modname)
 	return mod;
 }
 
+
 /******************************************************************************
  * Description: Creates the bpy module and adds it to sys.modules for importing
  ******************************************************************************/
@@ -292,6 +293,9 @@ void BPy_init_modules(void)
 	Py_INCREF(bpy_context_module);
 
 	PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
+
+	/* register bpy/rna classmethod callbacks */
+	BPY_rna_register_cb();
 
 	/* utility func's that have nowhere else to go */
 	PyModule_AddObject(mod, meth_bpy_script_paths.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_script_paths, NULL));

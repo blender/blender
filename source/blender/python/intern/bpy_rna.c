@@ -4624,8 +4624,14 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 	{"__dir__", (PyCFunction)pyrna_struct_dir, METH_NOARGS, NULL},
 
 	/* experimental */
+	/* unused for now */
+#if 0
 	{"callback_add", (PyCFunction)pyrna_callback_add, METH_VARARGS, NULL},
 	{"callback_remove", (PyCFunction)pyrna_callback_remove, METH_VARARGS, NULL},
+
+	{"callback_add", (PyCFunction)pyrna_callback_classmethod_add, METH_VARARGS | METH_CLASS, NULL},
+	{"callback_remove", (PyCFunction)pyrna_callback_classmethod_remove, METH_VARARGS | METH_CLASS, NULL},
+#endif
 	{NULL, NULL, 0, NULL}
 };
 
@@ -7626,4 +7632,40 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
 		PyErr_Clear();  //return NULL;
 
 	Py_RETURN_NONE;
+}
+
+/* currently this is fairly limited, we would need to make some way to split up
+ * pyrna_callback_classmethod_... if we want more then one callback per type */
+typedef struct BPyRNA_CallBack {
+	PyMethodDef  py_method;
+	StructRNA   *bpy_srna;
+} PyRNA_CallBack;
+
+static struct BPyRNA_CallBack pyrna_cb_methods[] = {
+	{{"draw_handler_add",    (PyCFunction)pyrna_callback_classmethod_add,   METH_VARARGS | METH_STATIC, ""}, &RNA_Space},
+	{{"draw_handler_remove", (PyCFunction)pyrna_callback_classmethod_remove, METH_VARARGS | METH_STATIC, ""}, &RNA_Space},
+	{{NULL, NULL, 0, NULL}, NULL}
+};
+
+void BPY_rna_register_cb(void)
+{
+	int i;
+
+	for (i = 0; pyrna_cb_methods[i].bpy_srna; i++) {
+		PyObject *cls;
+		PyObject *func;
+		PyObject *classmethod;
+		PyObject *args = PyTuple_New(1);
+
+		cls = pyrna_srna_Subtype(pyrna_cb_methods[i].bpy_srna);
+		func = PyCFunction_New(&pyrna_cb_methods[i].py_method, NULL);
+		PyTuple_SET_ITEM(args, 0, func);
+		classmethod = PyObject_CallObject((PyObject *)&PyClassMethod_Type, args);
+
+		PyObject_SetAttrString(cls, pyrna_cb_methods[i].py_method.ml_name, classmethod);
+
+		Py_DECREF(classmethod);
+		Py_DECREF(args);  /* clears 'func' too */
+		Py_DECREF(cls);
+	}
 }
