@@ -1,3 +1,487 @@
+commit cfabdfe48df2add3d1f30cf4370efd0b31990ab0
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Dec 20 05:46:53 2012 +0600
+
+    Assorted fixes for keyframe selection:
+    
+    - Biggest error was in cost functors used for F and H refirement,
+      they were just wrong.
+    
+    - Use natural logarithms, since it's actually makes sense from
+      math papers point of view and error is somewhere else.
+    
+    - Disabled rho for GRIC, for now use non-clamped error for tests.
+    
+    - Made SymmetricEpipolarDistance returning non-squared distance
+      Keyframe selection is currently the only used of this function
+      and it seems using non-squared distance makes much more sense.
+    
+      Also would think to append suffix "Squared" to functions which
+      returns squared distances.
+    
+    - Removed templated version of SymmetricEpipolarDistance, since
+      it's not needed actually.
+    
+    This is actually even worse working than previous implementation,
+    but commit it needed for further review.
+
+commit 35d8c57626ad74818f155e6e5960c663ea84e032
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Dec 20 03:00:40 2012 +0600
+
+    Euclidean resection cost function didn't use correct constructor
+    
+    It was storing a reference to initial rotation passed by value,
+    leading to pointer being pointing to a stack variable, leading to
+    wrong memory access in residuals computing.
+    
+    Apparently was visible in optimized builds only with inline
+    substitution allowed.
+
+commit 0798d3162bb49cee7e1c423ceccbca1326ad5650
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Dec 20 02:50:52 2012 +0600
+
+    Automatic keyframe selection based on Pollefeys's criteria
+    
+    This commit implements automatic keyframe selection algorithm
+    based on Pollefeys's criteria (F-GRIC is smaller than H-GRIC
+    and correspondence ratio is more then 90%).
+    
+    It is implemented as a part of simple pipeline and returns
+    vector of keyframe images for a given Tracks structure.
+    
+    For simple pipeline reconstruction two best keyframes are
+    expected to be selected from all detected candidates.
+    Criteria for this selection could be reprojection error of
+    solution from two candidate keyfames.
+    
+    Unfortunately, it's not fully workable yet, hopefully would
+    be fixed soon.
+
+commit e943985552f0598ae122252876f305d72c25c2f9
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Dec 6 17:47:11 2012 +0600
+
+    Camera Tracking: allow fallback to reprojection resection
+    by user demand
+    
+    This fixes some "regressions" introduced in previous commit
+    which lead to much worse solution in some cases. Now it's
+    possible to bring old behavior back.
+    
+    Perhaps it's more like temporal solution for time being smarter
+    solution is found. But finding such a solution isn't so fast,
+    so let's bring manual control over reprojection usage.
+    
+    But anyway, imo it's now nice to have a structure which could
+    be used to pass different settings to the solver.
+
+commit 5a23d01dd531d1e0798298d17ba42a3397effb82
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Sep 20 18:55:44 2012 +0000
+
+    Make Euclidean resection "always" succeed.
+    
+    The Euclidean resection code had a magical constant, 1e-3, used to
+    compare the results of solving an equation. This failure detection
+    was well-intended, trying to prevent poor solutions from getting
+    made without notifying the caller. Unfortunately in practice, this
+    threshold is too conservative. Furthermore, it is not clear the
+    threshold should exist at all; the purpose of the Euclidean
+    resection is to come up with the best solution it can; other
+    methods (e.g. reprojection error) should be used to compare
+    whether the method succeeded.
+    
+    This commit changes the Euclidean EPnP code to always succeed,
+    causing the previous fallback to projective resection to never
+    run. In most cases, this will result in better reconstructions.
+    
+    This should, in most cases, fix the dreaded "flipping" problem.
+
+commit 57dad861d2a7f9d058c6d8edde1a2d51d7225a51
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Sep 20 02:27:34 2012 +0000
+
+    Fix variable naming in the planar tracker.
+
+commit e9392fd3b46f5668662935696e7d9afac3390ca4
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu Sep 20 02:10:33 2012 +0000
+
+    Add smarter tolerance checking in the planar tracker.
+    
+    The planar tracker uses Ceres for the refinement stage. During
+    refinement, Ceres iteratively updates the parameters with the
+    latest best guess. If the change in the parameters falls below a
+    threshold, Ceres will abort successfully ("converged").
+    
+    For the case of pure translation tracking, the parameters are
+    exactly the two pixel shifts (dx, dy), and measuring the change in
+    these parameters gives a meaningful termination criterion.
+    However, for all the other parameterizations like affine, where
+    the parameterization involves affine parameters that have no
+    physical interpretation, Ceres is left with no way to terminate
+    the solver early. With the existing code, often many iterations
+    are run long after Ceres has found a solution sufficiently
+    accurate for all tracking needs. No one needs tracking with
+    a quadrillionth of a pixel accuracy; that time is wasted.
+    
+    This patch extends the existing iteration callback that is passed
+    in to Ceres to check if the pattern has fallen out of the search
+    window, to also check if the optimizer has made a tiny step. In
+    particular, if the maximum shift of any patch corner between two
+    successful optimizer steps is less than a threshold (currently
+    0.005 pixels), the track is declared successful and tracking
+    is terminated.
+    
+    This leads to dramatic speed increases in some cases, with little
+    to no loss in track quality. This is especially apparent when
+    tracking patches with affine or perspective motion models. For
+    example, on some tracking cases I tried, the iterations Ceres took
+    went from 50 to 3.
+
+commit 36729c19bf90cb767e9adb96ba7dd48a5ace2be1
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Wed Sep 19 22:25:02 2012 +0000
+
+    Detect too-small planar tracking patches.
+    
+    The planar tracker did not detect very skinny patches which have
+    effectively zero area and are untrackable. This adds detection and
+    rejection of patterns with zero area. This fixes a crash found by
+    during Mango production.
+
+commit 5cf2bae255a5a0f2e36ea0516670782cb88b589d
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Dec 6 17:33:53 2012 +0600
+
+    Real fix for previous commit from Keir. He's comment;
+    
+    Cleanup for when trackers fall out of the search window.
+    
+    Sergey originally left a TODO() here, but his fix is the correct
+    one. I removed the TODO and fixed some comment issues.
+
+commit a11533918720e5b43dc1e95895db0eb36c8c06aa
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Dec 6 17:31:16 2012 +0600
+
+    Fix crash when tracking in planar motion model (and maybe some other)
+    
+    It was an Abort() caused by check for solver result not equal to USER_ABORT.
+    
+    In some cases solver returns USER_ABORT due to BoundaryCheckingCallback
+    detects coordinates does not belong to image.
+    
+    Somehow this callback wasn't called in previous version of Ceres and
+    in the same case marker was jumping. Now when the callback is called
+    it seems we could simply return failure of tracking without aborting
+    Blender.
+    
+    Probably this is in fact some issue somewhere else, would double
+    check with Keir about this.
+
+commit 4be2306bcc664b259aaf7068b9f32ab60124a509
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Dec 6 17:29:39 2012 +0600
+
+    Resolved some compilation warnings (missed prototypes)
+    
+    In some cases it was missed include of header file, in some other
+    cases symbol could be static.
+
+commit bef729ba5c12683d13584d2a728b8b6506b7ca90
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Dec 6 17:27:17 2012 +0600
+
+    Code cleanup: silence some -Wnarrowing warnings from C++11
+
+commit add1415d896818367087c784a3013dd8f1bb2095
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Dec 6 17:25:18 2012 +0600
+
+    Changes to SamplePlanarPatch to support mask input and
+    added output for pattern center.
+
+commit daa354c0735b954b0cd7725626e9a3d67416d46b
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Sat Jun 9 19:22:39 2012 +0000
+
+    Change libmv's bilinear sampling to assume the same
+    pixel conventions as Blender. This fixes the preview
+    widget in Blender, and should make tracking slightly
+    more accurate.
+
+commit 99b6222873fbfbe248316316956720376a58f438
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Sat Jun 9 18:58:51 2012 +0000
+
+    Add new warp regularization scheme for planar tracking.
+    
+    This adds a new term to the tracking cost function that
+    restricts how much the optimizer can warp the patch (as
+    opposed to merely adjusting the translation). This should
+    reduce the "jumpiness" that is sometimes seen when doing
+    non-"Loc" tracks.
+    
+    It is disabled in this commit; a subsequent commit will add
+    controls to the tracking dialog for this.
+
+commit a1c5a70badd11cba0470700bad2eac2b2bd30c86
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Sat Jun 9 06:55:21 2012 +0000
+
+    Planar tracker polish.
+    
+    - Fixes the correlation checking code that was broken in the
+      previous commit. The bug was a transpose error.
+    - Fixes a memory leak of the warp functor, found by Sameer.
+    - Various cleanups done at Sameer's suggestion.
+    
+    Thanks to Sameer Agarwal for a code review.
+
+commit 2cb784caa854a77cdd43620ab133f26b87ed0d83
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Fri Jun 8 17:42:17 2012 +0000
+
+    Make planar tracking much faster.
+    
+    - This makes planar tracking around 2-3x or more faster than
+      before, by rearranging how the sampling is done.
+      Previously, the source patch was sampled repeatedly on
+      every optimizer iteration; this was done for
+      implementation speed, but was wasteful in computation.
+    
+    - This also contains some additions to Ceres to help
+      deailing with mixed numeric / automatic differentation. In
+      particular, there is now a "Chain::Rule" operator that
+      facilitates calling a function that takes Jet arguments,
+      yet does numeric derivatives internally. This is used to
+      mix the numeric differentation of the images with the warp
+      parameters, passed as jets by Ceres to the warp functor.
+    
+      There is also a new "JetOps" object for doing operations
+      on types which may or may not be jets, such as scaling
+      the derivative part only, or extracting the scalar part
+      of a jet.
+    
+      This patche is aimed at Ceres upstream.
+    
+    - A new function for sampling a patch is now part of the
+      track_region.h API; this will get used to make the preview
+      widget properly show what is getting tracked. Currently
+      the preview widget does not handle perspective tracks.
+    
+    Known issues:
+    
+      This patch introduces a bug such that the "Minimum
+      Correlation" flag does not work; if it is enabled, tracking
+      aborts immediately. The workaround for now is to disable the
+      correlation checking, and examine your tracks carefully. A
+      fix will get added shortly.
+
+commit 81d028f13738ebe2304287dfce90e91bc782e2cf
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Fri May 18 20:04:43 2012 +0000
+
+    Remove an unnecessary template<> line in libmv. Convert debug logs to LG.
+
+commit 238aaba241ef99995d254aadc974db719da04b96
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Fri May 18 12:05:10 2012 +0000
+
+    Support normalization in the tracking prepass
+    
+    The last tracker commit added normalized tracking. This makes
+    tracking patches undergoing uniform illumination change easier.
+    However, the prepass which computes a quick translation-only
+    estimate of the warp did not take this into account. This commit
+    fixes that.
+    
+    This works reasonably well but in some examples the brute
+    initialization fails. I suspect this is due to the warped template
+    estimate in the current  frame being too different from the
+    original, so there are multiple peaks in the normalized-SAD
+    correlation function.
+    
+    The solution is to use the previous frame for the brute
+    initialization and the keyframe for refinement, but that requires
+    architecture changes.
+
+commit 981ca4f6a679cd9ac3d086eae3cd946ce72ca8a5
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Fri May 18 02:12:47 2012 +0000
+
+    Add light-normalized tracking to the planar tracker
+    
+    This commit adds the ability to normalize patterns by their
+    average value while tracking, to make them invariant to global
+    illumination changes.
+    
+    To see this in action, check out the "Lobby" scene from Hollywood
+    VFX. If you track the markers that are shadowed by the actress,
+    previously they would not track. With the scale adaption on, the
+    tracker would shrink the area to compensate for the changed
+    illumination, losing the track. With "Normalize" turned on, the
+    patch is correctly tracked and scale is maintained.
+    
+    A remaining problem is that only the Ceres cost function is
+    updated to handle the normalization. The brute translation search
+    does not take this into account. Perhaps "Prepass" (see below)
+    should get disabled if normalization is enabled until I fix the
+    prepass to normalize as well.
+    
+    There are a few other changes:
+    
+    - Bail out of the sampling loop early if the mask is zero; this
+      saves expensive samples of the image derivatives.
+    
+    - Fix a bug where the mask was ignored when sampling in the cost
+      functor.
+
+commit e9384b15fb2a6a5b81346d5758fa136f0911e945
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu May 17 23:53:32 2012 +0000
+
+    Implement support for affine tracking in the planar tracker; cleanups.
+
+commit 021d41eed8b4ce6a4e37786ccd357ed5dc83a13f
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu May 17 21:26:06 2012 +0000
+
+    For the planar tracker, initialize the warp from the four correspondences
+    after brute force translation search.
+
+commit 003d1bf6145cfd30938b35f6e10d43708dbf916c
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Dec 6 16:56:01 2012 +0600
+
+    Correction to region tracker options initialization.
+    
+    Based on patch from Keir to Blender:
+    https://svn.blender.org/svnroot/bf-blender/branches/soc-2011-tomato@46743
+
+commit 6af47b218cfdf5219f0ebb3cb95459817cf9abf2
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu May 17 02:31:52 2012 +0000
+
+    Add new planar tracker features and use the new planar API
+    
+    This commit removes the use of the legacy RegionTracker API from
+    Blender, and replaces it with the new TrackRegion API. This also
+    adds several features to the planar tracker in libmv:
+    
+    - Do a brute-force initialization of tracking similar to "Hybrid"
+      mode in the stable release, but using all floats. This is slower
+      but more accurate. It is still necessary to evaluate if the
+      performance loss is worth it. In particular, this change is
+      necessary to support high bit depth imagery.
+    
+    - Add support for masks over the search window. This is a step
+      towards supporting user-defined tracker masks. The tracker masks
+      will make it easy for users to make a mask for e.g. a ball.
+    
+    - Add Pearson product moment correlation coefficient checking (aka
+      "Correlation" in the UI. This causes tracking failure if the
+      tracked patch is not linearly related to the template.
+    
+    - Add support for warping a few points in addition to the supplied
+      points. This is useful because the tracking code deliberately
+      does not expose the underlying warp representation. Instead,
+      warps are specified in an aparametric way via the correspondences.
+    
+    - Remove the "num_samples_xy" concept and replace it with
+      automatic determination of the number of samples. This makes the
+      API easier for users.
+    
+    - Fix various bugs in the parameterizations.
+    
+    There remains a bug with subpixel precision tracking when in
+    "keyframe" mode; this will get fixed shortly.
+
+commit 16a46db104468cec80bd31ca9d5f8bffbe3e003e
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Mon May 14 12:15:38 2012 +0000
+
+    "Efficient Second-order Minimization" for the planar tracker
+    
+    This implements the "Efficient Second-order Minimization"
+    scheme, as supported by the existing translation tracker.
+    This increases the amount of per-iteration work, but
+    decreases the number of iterations required to converge and
+    also increases the size of the basin of attraction for the
+    optimization.
+
+commit 23243b1b1f3e1ab3ef862b47bca06ee876ac2cf4
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Sun May 13 23:08:56 2012 +0000
+
+    Add a planar tracking implementation to libmv
+    
+    This adds a new planar tracking implementation to libmv. The
+    tracker is based on Ceres[1], the new nonlinear minimizer that
+    myself and Sameer released from Google as open source. Since
+    the motion model is more involved, the interface is
+    different than the RegionTracker interface used previously
+    in Blender.
+    
+    The ESM tracker, also known as the KLT tracker in the UI, is
+    temporarily changed to use the new Ceres-based planar
+    tracker in translation-only mode. Currently it is a bit
+    slower than ESM and also doesn't have all the bells and
+    whistles implemented. Those will come soon. Longer term,
+    both trackers will remain since Ceres is unlikely to be as
+    fast as ESM for pure translation solving, due to its
+    generality.
+    
+    The next step is to implement a new tracking UI. The current
+    UI assumes a translational motion model; the new one must
+    support arbitrary perspective transforms of the pattern
+    regions.
+    
+    [1] http://code.google.com/p/ceres-solver
+
+commit 52be92b53eb4decb1a316690b162196f227cc441
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Dec 6 16:06:08 2012 +0600
+
+    Initial Ceres integration
+    
+    Currently only put sources to src/third_party/ceres and made sure they're
+    not giving compilation issues.
+    
+    Used Ceres upstream version 1.3.0.
+    
+    Needed to make some modifications to it's CMakeLists.txt also to glog and
+    fglags. They're described in README.libmv of this libraries.
+    
+    Basically:
+    
+    - Added -fPIC to glog/gflags, so shared ceres library could be linked
+      statically against this libraries.
+    
+    - Tweaked Ceres's build rules to use needed libraries from libmv's
+      third_party folder.
+
+commit b13f9d13122e091cb85855c2094386ccdef6e5a4
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed Dec 5 19:05:34 2012 +0600
+
+    Update Eigen to version 3.1.2
+    
+    Mainly because of lots of warnings generating by gcc-4.7 which are
+    resolved in newer eigen version.
+
+commit 1f0dd94e8e37d3fe2df89282ec16a6a685fdde0b
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri May 25 16:36:44 2012 +0600
+
+    - Added avutil to qt-tracker linking when building with FFmpeg support.
+      On some platforms it seems to be required
+    - Synchronized QT Creator project for qt-tracker with changes in sources,
+      so no it might be compiled from QT Creator.
+
 commit b813dbe3f46bbbc7e73ac791d4665622e4fc7ba5
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Wed May 9 19:01:10 2012 +0600
@@ -238,319 +722,3 @@ Date:   Fri Feb 17 20:08:01 2012 +0600
     SAD tracker now can deal with pattern size any size,
     Very quick implementation came from Blender before Hybrid tracker was added.
     Better to be replaced with brute tracker.
-
-commit d547c9cfe37d5d3397d33c8b0e58471e1e1c1634
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 20:03:52 2012 +0600
-
-    Just convert end of lines to unix style.
-
-commit eb73ddbaec5b9e1ad30331bbf858a6ebc266c4aa
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 20:02:20 2012 +0600
-
-    Made some function static. Resolves possible linking issues when building with MinGW.
-
-commit 2930681fafd86e4f4a958054b1db8bfff29623d1
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 19:59:45 2012 +0600
-
-    Missed this in commit with improvements in camera intrinsics.
-
-commit 8d31bc767019b05c5bf8c9f309f9545b3428afa1
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 19:57:51 2012 +0600
-
-    Another step of syncing codebase with Blender.
-    Mainly fixes for freebsd/osx compilation and aligned memory allocation.
-
-commit 3214a2df5bfd98021f25d0f1a626a86318bb245f
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 19:48:02 2012 +0600
-
-    Support compilation on FreeBSD platform
-
-commit 0e5abe96f543687ccfb3a923ec639cb8f45d54f8
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 19:44:18 2012 +0600
-
-    Implementation of basic system for progress reporting into callee stuff
-    
-    Implemented by using simple callbacks classes which are getting invoked from
-    places where lots of calculation happens, so applications which are using
-    libmv may display nice progress bar.
-
-commit c5e18fe35464618055e0e9761be8d22fae56db49
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Fri Feb 17 19:25:45 2012 +0600
-
-    Add support for detecting tracking failure in the ESM tracker component of
-    libmv. Since both KLT and Hybrid rely on ESM underneath, KLT and Hybrid now
-    have a minimum correlation setting to match. With this fix, track failures
-    should get detected quicker, with the issue that sometimes the tracker will
-    give up too easily. That is fixable by reducing the required correlation (in
-    the track properties).
-
-commit ea0fed736ecdcc8c020227aeef8ef4cd3be5e63d
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Fri Feb 17 19:23:50 2012 +0600
-
-    Add a new hybrid region tracker for motion tracking to libmv, and
-    add it as an option (under "Hybrid") in the tracking settings. The
-    region tracker is a combination of brute force tracking for coarse
-    alignment, then refinement with the ESM/KLT algorithm already in
-    libmv that gives excellent subpixel precision (typically 1/50'th
-    of a pixel)
-    
-    This also adds a new "brute force" region tracker which does a
-    brute force search through every pixel position in the destination
-    for the pattern in the first frame. It leverages SSE if available,
-    similar to the SAD tracker, to do this quickly. Currently it does
-    some unnecessary conversions to/from floating point that will get
-    fixed later.
-    
-    The hybrid tracker glues the two trackers (brute & ESM) together
-    to get an overall better tracker. The algorithm is simple:
-    
-    1. Track from frame 1 to frame 2 with the brute force tracker.
-        This tries every possible pixel position for the pattern from
-        frame 1 in frame 2. The position with the smallest
-        sum-of-absolute-differences is chosen. By definition, this
-        position is only accurate up to 1 pixel or so.
-    2. Using the result from 1, initialize a track with ESM. This does
-        a least-squares fit with subpixel precision.
-    3. If the ESM shift was more than 2 pixels, report failure.
-    4. If the ESM track shifted less than 2 pixels, then the track is
-        good and we're done. The rationale here is that if the
-        refinement stage shifts more than 1 pixel, then the brute force
-        result likely found some random position that's not a good fit.
-
-commit a07fff8431621c01d81ae52595d8dd91a295a776
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Fri Feb 17 19:19:58 2012 +0600
-
-    Assorted camera tracker improvements
-    
-    - Add support for refining the camera's intrinsic parameters
-      during a solve. Currently, refining supports only the following
-      combinations of intrinsic parameters:
-    
-        f
-        f, cx, cy
-        f, cx, cy, k1, k2
-        f, k1
-        f, k1, k2
-    
-      This is not the same as autocalibration, since the user must
-      still make a reasonable initial guess about the focal length and
-      other parameters, whereas true autocalibration would eliminate
-      the need for the user specify intrinsic parameters at all.
-    
-      However, the solver works well with only rough guesses for the
-      focal length, so perhaps full autocalibation is not that
-      important.
-    
-      Adding support for the last two combinations, (f, k1) and (f,
-      k1, k2) required changes to the library libmv depends on for
-      bundle adjustment, SSBA. These changes should get ported
-      upstream not just to libmv but to SSBA as well.
-    
-    - Improved the region of convergence for bundle adjustment by
-      increasing the number of Levenberg-Marquardt iterations from 50
-      to 500. This way, the solver is able to crawl out of the bad
-      local minima it gets stuck in when changing from, for example,
-      bundling k1 and k2 to just k1 and resetting k2 to 0.
-    
-    - Add several new region tracker implementations. A region tracker
-      is a libmv concept, which refers to tracking a template image
-      pattern through frames. The impact to end users is that tracking
-      should "just work better". I am reserving a more detailed
-      writeup, and maybe a paper, for later.
-    
-    - Other libmv tweaks, such as detecting that a tracker is headed
-      outside of the image bounds.
-    
-    This includes several changes made directly to the libmv extern
-    code rather expecting to get those changes through normal libmv
-    channels, because I, the libmv BDFL, decided it was faster to work
-    on libmv directly in Blender, then later reverse-port the libmv
-    changes from Blender back into libmv trunk. The interesting part
-    is that I added a full Levenberg-Marquardt loop to the region
-    tracking code, which should lead to a more stable solutions. I
-    also added a hacky implementation of "Efficient Second-Order
-    Minimization" for tracking, which works nicely. A more detailed
-    quantitative evaluation will follow.
-
-commit 0bf66c009d5022eacfc473d247884a73ffeefa8f
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 19:13:49 2012 +0600
-
-    Rest of compilation fix with FAST library.
-
-commit 71b578ca2ba34c528363c514cd1fcc85791d01f3
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Fri Feb 17 19:00:28 2012 +0600
-
-    Improve the KLT tracking behaviour and UI
-    
-    - Remove the overly-conservative use of libmv's re-track tracker. The re-track
-      tracker would take a normal tracker such as TRKLT or KLT or pyramid KLT, and
-      track from frame 1 to 2, then back from the position found in 2 back to 1.
-      Then, when the reverse-track doesn't match the original track with high
-      precision, the track is considered "failed". This is a good approach for
-      fully automatic reconstruction, but is too conservative for supervised
-      tracking.
-    
-      The retrack-tracker will return when fully automatic tracking is added.
-    
-    - Always solve for (dx, dy) in the TRKLT loop even if the linear system is
-      ill-conditioned. The client (Blender in this case) can still use the solved
-      position, even though it is less reliable.
-
-commit 7d8a8762f2bc2e36f95b0b6f4fb4ca996f9f0db7
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 18:46:24 2012 +0600
-
-    Changes in camera intrinsics distortion/undistortion:
-    
-    - Distortion/undistortion of scaled images wasn't happening right,
-      because camera intrinsics are calibrated on an original frame which
-      has got some particular resolution and trying to apply this model on
-      an image with another resolution gives totally wrong result.
-      This is needed to be able to do post-prccessing of render, running
-      distortion on a scene which might be rendered with higher resolution
-      than footage itself and then be scaled down.
-    - Fixed incorrect calculation/applying of precomputed grid when
-      distortion is high high enough and produces pixel offset higher
-      than 127 pixels. This might be still not very distorted image,
-      but if it's a 4K footage "normal" camera will easily give such
-      a distortion.
-    - Added support of overscan distortion/undistortion.
-
-commit ed080785d63bb8e3a13dde51a2dc94fe59b059bb
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 18:38:51 2012 +0600
-
-    Fast headers now can be included from C++ sources.
-    Was needed to make it working fine when bundling in Blender but might also
-    be needed to bundle into another applications.
-
-commit 5f5a7aa46a2d87b96c8098dfc8682f4d01b5cd40
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 18:36:16 2012 +0600
-
-    Bring back FAST detector which seems to be working much nicer than Morravec.
-    Both of them are available in API.
-
-commit 2cab13c18216fb684b270cec077f7300262584af
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 18:27:36 2012 +0600
-
-    Revert "Make CameraIntrinsics (and thus Qt tracker) compilable without linking libmv."
-    
-    This reverts commit 81613ee0cc94b315f333c9632b18b95d426aad05.
-    
-    That commit made inverting intrinsics totally unworkable, so reverted this and
-    made needed tweaks to qt-tracker project file to make it compilable (was needed
-    to make it linking together with glog).
-    
-    Conflicts:
-    
-    	src/ui/tracker/tracker.cc
-    	src/ui/tracker/tracker.pro
-
-commit ec46cae041401b17afb4fe4d9c9343d10797090f
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 17:59:55 2012 +0600
-
-    Fix compilation error using official MinGW
-
-commit 6fbc370e922c47cfa35381662b6c439f4891ed74
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 17:38:20 2012 +0600
-
-    Fix compilation error with MSVC 2010 which is more picky for "missed" STL headers
-
-commit be9e6b63691d83b551a085f0766878bd84220767
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 17:36:18 2012 +0600
-
-    Fix compilation with MSVC where snprintf function is declared as unsafe and _snprintf should be used instead.
-    
-    Better to switch to own implementation will ensure string is correctly NULL-terminated.
-
-commit 1847d9e414ed763cd80668775d7d9f79575fc8ca
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 17:34:45 2012 +0600
-
-    Fix compilation error on OSX caused by incorrect access to ucontext
-
-commit 90579b6ffad07672172a1c240499615b30b25549
-Merge: b9aac30 531c79b
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 18:32:52 2012 +0600
-
-    Merge remote-tracking branch 'Matthias-Fauconneau/master' into devel
-    
-    Conflicts:
-    	src/libmv/tracking/CMakeLists.txt
-
-commit b9aac30a9ca6bc8362c09a0e191040964f7c6de2
-Merge: 198894e 6969e1a
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sat Nov 5 17:38:30 2011 -0700
-
-    Merge pull request #3 from nathanwiegand/master
-    
-    Just a few tiny cleanups
-
-commit 6969e1a9534291a982749baa5a3672c97bfa506d
-Author: Nathan Wiegand <nathanwiegand@gmail.com>
-Date:   Sat Nov 5 14:26:54 2011 -0700
-
-    I've added cleaned up a few style issues here an there. Also, I've updated the CMakeLists.txt file so that it can build the image_io library. Note, it's only been tested on OSX 10.6
-
-commit 4763f851299050140757bfaa069107a0cf639e56
-Author: Nathan Wiegand <nathanwiegand@gmail.com>
-Date:   Fri Nov 4 23:59:08 2011 -0700
-
-    Removed a superfulous comment
-
-commit a44577c0162e273681e4a9a3cc5f5b37d4315b67
-Author: Nathan Wiegand <nathanwiegand@gmail.com>
-Date:   Fri Nov 4 23:55:52 2011 -0700
-
-    Removed a duplicate entry for an author.
-
-commit 198894e4c4f51c2c1784ad7c02eb45d2d1ada9bc
-Merge: c4c67db 6e797d6
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Fri Nov 4 21:47:05 2011 -0700
-
-    Merge pull request #2 from nathanwiegand/master
-    
-    CMake changes for OSX
-
-commit 6e797d678c4c19f6a9e21657d66183f412cc995b
-Author: Nathan Wiegand <nathanwiegand@gmail.com>
-Date:   Fri Nov 4 21:43:28 2011 -0700
-
-    Uncomment the GUI part of the CMake file
-
-commit 33ef88a33860345d8906f3c9dd22d8dbce3df53e
-Author: Nathan Wiegand <nathanwiegand@gmail.com>
-Date:   Fri Nov 4 21:31:22 2011 -0700
-
-    Fixed build error on OSX by adding 'glog' to the dependencies in the tracker CMake
-
-commit 531c79bf95fddaaa70707d1abcd4fdafda16bbf0
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Sat Aug 20 00:00:42 2011 +0200
-
-    Display warped pattern in marker preview.
-
-commit bb5c27e671b6f8eb56ddf490f0795d59bede591b
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Fri Aug 19 18:37:48 2011 +0200
-
-    Fix CMake build.

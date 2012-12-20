@@ -254,8 +254,8 @@ double SymmetricEpipolarDistance(const Mat &F, const Vec2 &x1, const Vec2 &x2) {
   Vec3 Ft_y = F.transpose() * y;
   double y_F_x = y.dot(F_x);
 
-  return Square(y_F_x) * (  1 / F_x.head<2>().squaredNorm()
-                          + 1 / Ft_y.head<2>().squaredNorm());
+  return y_F_x * (  1 / F_x.head<2>().norm()
+                  + 1 / Ft_y.head<2>().norm());
 }
 
 // HZ 9.6 pag 257 (formula 9.12)

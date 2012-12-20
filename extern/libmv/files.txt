@@ -17,6 +17,9 @@ libmv/multiview/euclidean_resection.cc
 libmv/multiview/euclidean_resection.h
 libmv/multiview/fundamental.cc
 libmv/multiview/fundamental.h
+libmv/multiview/homography.cc
+libmv/multiview/homography.h
+libmv/multiview/homography_parameterization.h
 libmv/multiview/nviewtriangulation.h
 libmv/multiview/projection.cc
 libmv/multiview/projection.h
@@ -69,6 +72,8 @@ libmv/tracking/pyramid_region_tracker.h
 libmv/tracking/region_tracker.h
 libmv/tracking/retrack_region_tracker.cc
 libmv/tracking/retrack_region_tracker.h
+libmv/tracking/track_region.cc
+libmv/tracking/track_region.h
 libmv/tracking/trklt_region_tracker.cc
 libmv/tracking/trklt_region_tracker.h
 third_party/fast/fast_10.c

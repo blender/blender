@@ -11,4 +11,6 @@ Local modifications:
 - Added a poor-man's version of upstream's port.cc/h to make gflags compile on
   windows. This isn't sufficient but is a stopgap for now.
 
+- Added -fPIC flag, so shared libraries from Ceres could be linked against static glog
+
   TODO(keir): Import and use gflags for Windows from upstream.

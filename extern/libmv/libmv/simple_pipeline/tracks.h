@@ -22,6 +22,7 @@
 #define LIBMV_SIMPLE_PIPELINE_TRACKS_H_
 
 #include "libmv/base/vector.h"
+#include "libmv/numeric/numeric.h"
 
 namespace libmv {
 
@@ -84,6 +85,9 @@ class Tracks {
   /// Returns all the markers visible in \a image.
   vector<Marker> MarkersInImage(int image) const;
 
+  /// Returns all the markers visible in \a image1 and \a image2.
+  vector<Marker> MarkersInBothImages(int image1, int image2) const;
+
   /*!
       Returns the markers in \a image1 and \a image2 which have a common track.
 
@@ -113,6 +117,10 @@ class Tracks {
  private:
   vector<Marker> markers_;
 };
+
+void CoordinatesForMarkersInImage(const vector<Marker> &markers,
+                                  int image,
+                                  Mat *coordinates);
 
 }  // namespace libmv
 

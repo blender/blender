@@ -22,3 +22,4 @@ Upgrading Notes
 * Do not define va_copy for MinGW platforms (it's already defined there).
 * Patch localtime_r to be working fine with MinGW, disable strerror_r for MinGW because
   of lack of needed functions.
+* Added -fPIC flag, so shared libraries from Ceres could be linked against static glog
