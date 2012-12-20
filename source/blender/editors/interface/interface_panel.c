@@ -1150,7 +1150,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 		}
 		
 		/* XXX hardcoded key warning */
-		if (inside && event->val == KM_PRESS) {
+		if ((inside || inside_header) && event->val == KM_PRESS) {
 			if (event->type == AKEY && !ELEM4(KM_MOD_FIRST, event->ctrl, event->oskey, event->shift, event->alt)) {
 				
 				if (pa->flag & PNL_CLOSEDY) {
