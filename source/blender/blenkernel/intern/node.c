@@ -2162,6 +2162,24 @@ void nodeRegisterType(bNodeTreeType *ttype, bNodeType *ntype)
 	
 	if (found == NULL)
 		BLI_addtail(typelist, ntype);
+	
+	/* Associate the RNA struct type with the bNodeType.
+	 * Dynamically registered nodes will create an RNA type at runtime
+	 * and call RNA_struct_blender_type_set, so this only needs to be done for old RNA types
+	 * created in makesrna, which can not be associated to a bNodeType immediately,
+	 * since bNodeTypes are registered afterward ...
+	 */
+	#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
+	if (ID == ntype->type) { \
+		StructRNA *srna = RNA_struct_find(STRINGIFY_ARG(Category##StructName)); \
+		BLI_assert(srna != NULL); \
+		RNA_struct_blender_type_set(srna, ntype); \
+	}
+	
+	/* XXX hack, this file will be moved to the nodes folder in customnodes branch,
+	 * then this stupid include path is not needed any more.
+	 */
+	#include "intern/rna_nodetree_types.h"
 }
 
 static void registerCompositNodes(bNodeTreeType *ttype)
