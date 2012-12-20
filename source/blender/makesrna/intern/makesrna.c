@@ -1989,6 +1989,10 @@ static void rna_def_struct_function_call_impl_cpp(FILE *f, StructRNA *srna, Func
 		if (dsrna->dnaname) fprintf(f, "(::%s *) this->ptr.data", dsrna->dnaname);
 		else fprintf(f, "(::%s *) this->ptr.data", srna->identifier);
 	}
+	else if (func->flag & FUNC_USE_SELF_TYPE) {
+		WRITE_COMMA;
+		fprintf(f, "this->ptr.type");
+	}
 
 	if (func->flag & FUNC_USE_MAIN)
 		WRITE_PARAM("(::Main *) main");
@@ -2112,8 +2116,12 @@ static void rna_def_function_wrapper_funcs(FILE *f, StructDefRNA *dsrna, Functio
 	if (func->flag & FUNC_USE_SELF_ID)
 		WRITE_PARAM("_selfid");
 
-	if ((func->flag & FUNC_NO_SELF) == 0)
+	if ((func->flag & FUNC_NO_SELF) == 0) {
 		WRITE_PARAM("_self");
+	}
+	else if (func->flag & FUNC_USE_SELF_TYPE) {
+		WRITE_PARAM("_type");
+	}
 
 	if (func->flag & FUNC_USE_MAIN)
 		WRITE_PARAM("bmain");
@@ -2174,6 +2182,9 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 		if (dsrna->dnaname) fprintf(f, "\tstruct %s *_self;\n", dsrna->dnaname);
 		else fprintf(f, "\tstruct %s *_self;\n", srna->identifier);
 	}
+	else if (func->flag & FUNC_USE_SELF_TYPE) {
+		fprintf(f, "\tstruct StructRNA *_type;\n");
+	}
 
 	dparm = dfunc->cont.properties.first;
 	for (; dparm; dparm = dparm->next) {
@@ -2222,6 +2233,9 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 	if ((func->flag & FUNC_NO_SELF) == 0) {
 		if (dsrna->dnaname) fprintf(f, "\t_self= (struct %s *)_ptr->data;\n", dsrna->dnaname);
 		else fprintf(f, "\t_self= (struct %s *)_ptr->data;\n", srna->identifier);
+	}
+	else if (func->flag & FUNC_USE_SELF_TYPE) {
+		fprintf(f, "\t_type= _ptr->type;\n");
 	}
 
 	if (has_data) {
@@ -2298,6 +2312,11 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 		if ((func->flag & FUNC_NO_SELF) == 0) {
 			if (!first) fprintf(f, ", ");
 			fprintf(f, "_self");
+			first = 0;
+		}
+		else if (func->flag & FUNC_USE_SELF_TYPE) {
+			if (!first) fprintf(f, ", ");
+			fprintf(f, "_type");
 			first = 0;
 		}
 
@@ -2611,6 +2630,11 @@ static void rna_generate_static_parameter_prototypes(FILE *f, StructRNA *srna, F
 		if (!first) fprintf(f, ", ");
 		if (dsrna->dnaname) fprintf(f, "struct %s *_self", dsrna->dnaname);
 		else fprintf(f, "struct %s *_self", srna->identifier);
+		first = 0;
+	}
+	else if (func->flag & FUNC_USE_SELF_TYPE) {
+		if (!first) fprintf(f, ", ");
+		fprintf(f, "struct StructRNA *_type");
 		first = 0;
 	}
 

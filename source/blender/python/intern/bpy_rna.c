@@ -6035,7 +6035,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 	PyObject_SetAttr(newclass, bpy_intern_str_bl_rna, item);
 	Py_DECREF(item);
 
-	/* add classmethods */
+	/* add staticmethods and classmethods */
 	{
 		const PointerRNA func_ptr = {{NULL}, srna, NULL};
 		const ListBase *lb;
@@ -6045,10 +6045,10 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 		for (link = lb->first; link; link = link->next) {
 			FunctionRNA *func = (FunctionRNA *)link;
 			const int flag = RNA_function_flag(func);
-			if ((flag & FUNC_NO_SELF) &&          /* is classmethod */
+			if ((flag & FUNC_NO_SELF) &&          /* is staticmethod or classmethod */
 			    (flag & FUNC_REGISTER) == FALSE)  /* is not for registration */
 			{
-				/* we may went to set the type of this later */
+				/* we may want to set the type of this later */
 				PyObject *func_py = pyrna_func_to_py(&func_ptr, func);
 				PyObject_SetAttrString(newclass, RNA_function_identifier(func), func_py);
 				Py_DECREF(func_py);
@@ -6786,7 +6786,9 @@ static int rna_function_arg_count(FunctionRNA *func)
 	const ListBase *lb = RNA_function_defined_parameters(func);
 	PropertyRNA *parm;
 	Link *link;
-	int count = (RNA_function_flag(func) & FUNC_NO_SELF) ? 0 : 1;
+	int flag = RNA_function_flag(func);
+	int is_staticmethod = (flag & FUNC_NO_SELF) && !(flag & FUNC_USE_SELF_TYPE);
+	int count = is_staticmethod ? 0 : 1;
 
 	for (link = lb->first; link; link = link->next) {
 		parm = (PropertyRNA *)link;
@@ -6808,7 +6810,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 	PyObject *py_class = (PyObject *)py_data;
 	PyObject *base_class = RNA_struct_py_type_get(srna);
 	PyObject *item;
-	int i, flag, arg_count, func_arg_count;
+	int i, flag, is_staticmethod, arg_count, func_arg_count;
 	const char *py_class_name = ((PyTypeObject *)py_class)->tp_name;  /* __name__ */
 
 	if (srna_base) {
@@ -6831,6 +6833,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 	for (link = lb->first; link; link = link->next) {
 		func = (FunctionRNA *)link;
 		flag = RNA_function_flag(func);
+		is_staticmethod = (flag & FUNC_NO_SELF) && !(flag & FUNC_USE_SELF_TYPE);
 
 		if (!(flag & FUNC_REGISTER))
 			continue;
@@ -6853,7 +6856,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 		}
 		else {
 			Py_DECREF(item); /* no need to keep a ref, the class owns it (technically we should keep a ref but...) */
-			if (flag & FUNC_NO_SELF) {
+			if (is_staticmethod) {
 				if (PyMethod_Check(item) == 0) {
 					PyErr_Format(PyExc_TypeError,
 					             "expected %.200s, %.200s class \"%.200s\" attribute to be a method, not a %.200s",
@@ -6877,9 +6880,9 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 				arg_count = ((PyCodeObject *)PyFunction_GET_CODE(item))->co_argcount;
 
 				/* note, the number of args we check for and the number of args we give to
-				 * @classmethods are different (quirk of python),
+				 * @staticmethods are different (quirk of python),
 				 * this is why rna_function_arg_count() doesn't return the value -1*/
-				if (flag & FUNC_NO_SELF)
+				if (is_staticmethod)
 					func_arg_count++;
 
 				if (arg_count != func_arg_count) {
@@ -6964,8 +6967,10 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 	PropertyRNA *parm;
 	ParameterIterator iter;
 	PointerRNA funcptr;
-	int err = 0, i, flag, ret_len = 0;
-	const char is_static = (RNA_function_flag(func) & FUNC_NO_SELF) != 0;
+	int err = 0, i, ret_len = 0;
+	int flag = RNA_function_flag(func);
+	const char is_staticmethod = (flag & FUNC_NO_SELF) && !(flag & FUNC_USE_SELF_TYPE);
+	const char is_classmethod = (flag & FUNC_NO_SELF) && (flag & FUNC_USE_SELF_TYPE);
 
 	/* annoying!, need to check if the screen gets set to NULL which is a
 	 * hint that the file was actually re-loaded. */
@@ -7000,7 +7005,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 
 	bpy_context_set(C, &gilstate);
 
-	if (!is_static) {
+	if (!(is_staticmethod || is_classmethod)) {
 		/* some datatypes (operator, render engine) can store PyObjects for re-use */
 		if (ptr->data) {
 			void **instance = RNA_struct_instance(ptr);
@@ -7091,17 +7096,20 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 		}
 	}
 
-	if (err != -1 && (is_static || py_class_instance)) { /* Initializing the class worked, now run its invoke function */
+	if (err != -1 && (is_staticmethod || is_classmethod || py_class_instance)) { /* Initializing the class worked, now run its invoke function */
 		PyObject *item = PyObject_GetAttrString((PyObject *)py_class, RNA_function_identifier(func));
-//		flag = RNA_function_flag(func);
 
 		if (item) {
 			RNA_pointer_create(NULL, &RNA_Function, func, &funcptr);
 
 			args = PyTuple_New(rna_function_arg_count(func)); /* first arg is included in 'item' */
 
-			if (is_static) {
+			if (is_staticmethod) {
 				i = 0;
+			}
+			else if (is_classmethod) {
+				PyTuple_SET_ITEM(args, 0, (PyObject *)py_class);
+				i = 1;
 			}
 			else {
 				PyTuple_SET_ITEM(args, 0, py_class_instance);
@@ -7236,7 +7244,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 	if (err != 0) {
 		ReportList *reports;
 		/* alert the user, else they wont know unless they see the console. */
-		if ((!is_static) &&
+		if ((!is_staticmethod) && (!is_classmethod) &&
 		    (ptr->data) &&
 		    (RNA_struct_is_a(ptr->type, &RNA_Operator)) &&
 		    (is_valid_wm == (CTX_wm_manager(C) != NULL)))
