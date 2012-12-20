@@ -296,8 +296,6 @@ protected:
 	/** Multitouch trackpad availability */
 	bool m_hasMultiTouchTrackpad;
 	
-	/** Multitouch gesture in progress, useful to distinguish trackpad from mouse scroll events */
-	bool m_isGestureInProgress;
 };
 
 #endif // __GHOST_SYSTEMCOCOA_H__

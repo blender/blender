@@ -551,7 +551,6 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	char *rstring = NULL;
 	
 	m_modifierMask =0;
-	m_isGestureInProgress = false;
 	m_cursorDelta_x=0;
 	m_cursorDelta_y=0;
 	m_outsideLoopEventProcessed = false;
@@ -1580,8 +1579,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 			
 		case NSScrollWheel:
 			{
-				/* Send trackpad event if inside a trackpad gesture, send wheel event otherwise */
-				if (!m_hasMultiTouchTrackpad || !m_isGestureInProgress) {
+				if (!m_hasMultiTouchTrackpad) {
 					GHOST_TInt32 delta;
 					
 					double deltaF = [event deltaY];
@@ -1641,12 +1639,6 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 				pushEvent(new GHOST_EventTrackpad([event timestamp] * 1000, window, GHOST_kTrackpadEventRotate, x, y,
 				                                  -[event rotation] * 5.0, 0));
 			}
-		case NSEventTypeBeginGesture:
-			m_isGestureInProgress = true;
-			break;
-		case NSEventTypeEndGesture:
-			m_isGestureInProgress = false;
-			break;
 		default:
 			return GHOST_kFailure;
 			break;
