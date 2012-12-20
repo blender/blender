@@ -133,8 +133,6 @@ static int panels_re_align(ScrArea *sa, ARegion *ar, Panel **r_pa)
 			if (sbuts->re_align || sbuts->mainbo != sbuts->mainb)
 				return 1;
 	}
-	else if (ar->regiontype == RGN_TYPE_UI)
-		return 1;
 	else if (sa->spacetype == SPACE_IMAGE && ar->regiontype == RGN_TYPE_PREVIEW)
 		return 1;
 	else if (sa->spacetype == SPACE_FILE && ar->regiontype == RGN_TYPE_CHANNELS)
@@ -917,6 +915,7 @@ void uiEndPanels(const bContext *C, ARegion *ar, int *x, int *y)
 
 	/* re-align, possibly with animation */
 	if (panels_re_align(sa, ar, &pa)) {
+		/* XXX code never gets here... PNL_ANIM_ALIGN flag is never set */
 		if (pa)
 			panel_activate_state(C, pa, PANEL_STATE_ANIMATION);
 		else
@@ -1160,6 +1159,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 				else
 					ui_handle_panel_header(C, block, mx, my, event->type, event->ctrl);
 				
+				retval = WM_UI_HANDLER_BREAK;
 				continue;
 			}
 		}
