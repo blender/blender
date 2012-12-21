@@ -1015,12 +1015,12 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			/* x-axis transform */
 			dist = BLI_rcti_size_x(&v2d->mask) / 2.0f;
-			dx = 1.0f - (fabsf(vzd->lastx - dist) + 2.0f) / (fabsf(event->x - dist) + 2.0f);
+			dx = 1.0f - (fabsf(vzd->lastx - vzd->ar->winrct.xmin - dist) + 2.0f) / (fabsf(event->mval[0] - dist) + 2.0f);
 			dx *= 0.5f * BLI_rctf_size_x(&v2d->cur);
 			
 			/* y-axis transform */
 			dist = BLI_rcti_size_y(&v2d->mask) / 2.0f;
-			dy = 1.0f - (fabsf(vzd->lasty - dist) + 2.0f) / (fabsf(event->y - dist) + 2.0f);
+			dy = 1.0f - (fabsf(vzd->lasty - vzd->ar->winrct.ymin- dist) + 2.0f) / (fabsf(event->mval[1] - dist) + 2.0f);
 			dy *= 0.5f * BLI_rctf_size_y(&v2d->cur);
 		}
 		else {
@@ -1034,18 +1034,7 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 			/* y-axis transform */
 			fac = 0.01f * (event->y - vzd->lasty);
 			dy = fac * BLI_rctf_size_y(&v2d->cur);
-#if 0
-			/* continuous zoom shouldn't move that fast... */
-			if (U.viewzoom == USER_ZOOM_CONT) { // XXX store this setting as RNA prop?
-				double time = PIL_check_seconds_timer();
-				float time_step = (float)(time - vzd->timer_lastdraw);
-
-				dx /= (0.1f / time_step);
-				dy /= (0.1f / time_step);
-				
-				vzd->timer_lastdraw = time;
-			}
-#endif
+			
 		}
 		
 		/* set transform amount, and add current deltas to stored total delta (for redo) */
