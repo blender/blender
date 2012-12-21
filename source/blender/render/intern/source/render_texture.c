@@ -1339,7 +1339,7 @@ void texture_rgb_blend(float in[3], const float tex[3], const float out[3], floa
 		
 	case MTEX_MUL:
 		fact*= facg;
-		facm= 1.0f-facg;
+		facm= 1.0f-fact;
 		in[0]= (facm+fact*tex[0])*out[0];
 		in[1]= (facm+fact*tex[1])*out[1];
 		in[2]= (facm+fact*tex[2])*out[2];
@@ -1347,7 +1347,7 @@ void texture_rgb_blend(float in[3], const float tex[3], const float out[3], floa
 
 	case MTEX_SCREEN:
 		fact*= facg;
-		facm= 1.0f-facg;
+		facm= 1.0f-fact;
 		in[0]= 1.0f - (facm+fact*(1.0f-tex[0])) * (1.0f-out[0]);
 		in[1]= 1.0f - (facm+fact*(1.0f-tex[1])) * (1.0f-out[1]);
 		in[2]= 1.0f - (facm+fact*(1.0f-tex[2])) * (1.0f-out[2]);
@@ -1355,7 +1355,7 @@ void texture_rgb_blend(float in[3], const float tex[3], const float out[3], floa
 
 	case MTEX_OVERLAY:
 		fact*= facg;
-		facm= 1.0f-facg;
+		facm= 1.0f-fact;
 		
 		if (out[0] < 0.5f)
 			in[0] = out[0] * (facm + 2.0f*fact*tex[0]);
