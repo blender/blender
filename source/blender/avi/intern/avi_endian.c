@@ -49,7 +49,7 @@
 #ifdef __BIG_ENDIAN__
 
 /* copied from BLI_endian_switch_inline.h */
-static void invert(int *num)
+static void invert(int *val)
 {
 	int tval = *val;
 	*val = ((tval >> 24))             |
