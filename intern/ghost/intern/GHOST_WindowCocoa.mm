@@ -67,13 +67,13 @@ extern "C" {
 }
 
 - (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa;
-- (void)windowWillClose:(NSNotification *)notification;
 - (void)windowDidBecomeKey:(NSNotification *)notification;
 - (void)windowDidResignKey:(NSNotification *)notification;
 - (void)windowDidExpose:(NSNotification *)notification;
 - (void)windowDidResize:(NSNotification *)notification;
 - (void)windowDidMove:(NSNotification *)notification;
 - (void)windowWillMove:(NSNotification *)notification;
+- (BOOL)windowShouldClose:(id)sender;	
 @end
 
 @implementation CocoaWindowDelegate : NSObject
@@ -81,11 +81,6 @@ extern "C" {
 {
 	systemCocoa = sysCocoa;
 	associatedWindow = winCocoa;
-}
-
-- (void)windowWillClose:(NSNotification *)notification
-{
-	systemCocoa->handleWindowEvent(GHOST_kEventWindowClose, associatedWindow);
 }
 
 - (void)windowDidBecomeKey:(NSNotification *)notification
@@ -132,6 +127,14 @@ extern "C" {
 		wm_draw_update(ghostC);
 	}*/
 }
+
+- (BOOL)windowShouldClose:(id)sender;
+{
+	//Let Blender close the window rather than closing immediately
+	systemCocoa->handleWindowEvent(GHOST_kEventWindowClose, associatedWindow);
+	return false;
+}
+
 @end
 
 #pragma mark NSWindow subclass
@@ -571,8 +574,6 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	[m_window setContentView:m_openGLView];
 	[m_window setInitialFirstResponder:m_openGLView];
 	
-	[m_window setReleasedWhenClosed:NO]; //To avoid bad pointer exception in case of user closing the window
-	
 	[m_window makeKeyAndOrderFront:nil];
 	
 	setDrawingContextType(type);
@@ -616,11 +617,6 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 	[m_openGLView release];
 	
 	if (m_window) {
-		// previously we called [m_window release], but on 10.8 this does not
-		// remove the window from [NSApp orderedWindows] and perhaps other
-		// places, leading to crashes. so instead we set setReleasedWhenClosed
-		// back to YES right before closing
-		[m_window setReleasedWhenClosed:YES];
 		[m_window close];
 	}
 	
@@ -955,7 +951,6 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				//Copy current window parameters
 				[tmpWindow setTitle:[m_window title]];
 				[tmpWindow setRepresentedFilename:[m_window representedFilename]];
-				[tmpWindow setReleasedWhenClosed:NO];
 				[tmpWindow setAcceptsMouseMovedEvents:YES];
 				[tmpWindow setDelegate:[m_window delegate]];
 				[tmpWindow setSystemAndWindowCocoa:[m_window systemCocoa] windowCocoa:this];
@@ -1013,7 +1008,6 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				//Copy current window parameters
 				[tmpWindow setTitle:[m_window title]];
 				[tmpWindow setRepresentedFilename:[m_window representedFilename]];
-				[tmpWindow setReleasedWhenClosed:NO];
 				[tmpWindow setAcceptsMouseMovedEvents:YES];
 				[tmpWindow setDelegate:[m_window delegate]];
 				[tmpWindow setSystemAndWindowCocoa:[m_window systemCocoa] windowCocoa:this];
