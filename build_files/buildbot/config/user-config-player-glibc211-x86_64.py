@@ -103,7 +103,7 @@ BF_BOOST_LIB_STATIC = '${BF_BOOST_LIBPATH}/libboost_filesystem.a ${BF_BOOST_LIBP
 BF_BOOST_LIBPATH = '${BF_BOOST}/lib'
 
 # JACK
-WITH_BF_JACK = True
+WITH_BF_JACK = False
 WITH_BF_STATICJACK = True
 BF_JACK_LIB_STATIC = '${BF_ZLIB}/lib/libjack.a'
 

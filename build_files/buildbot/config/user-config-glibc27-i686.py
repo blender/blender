@@ -92,7 +92,7 @@ WITH_BF_FFTW3 = True
 WITH_BF_STATICFFTW3 = True
 
 # JACK
-WITH_BF_JACK = True
+WITH_BF_JACK = False
 
 # Cycles
 WITH_BF_CYCLES = True
