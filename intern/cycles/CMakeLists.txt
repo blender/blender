@@ -68,7 +68,7 @@ if(WITH_CYCLES_BLENDER)
 	add_subdirectory(blender)
 endif()
 
-if(WITH_CYCLES_TEST)
+if(WITH_CYCLES_TEST OR WITH_CYCLES_NETWORK)
 	add_subdirectory(app)
 endif()
 

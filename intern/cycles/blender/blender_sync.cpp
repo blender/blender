@@ -331,7 +331,13 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::Use
 	/* device default CPU */
 	params.device = devices[0];
 
-	if(RNA_enum_get(&cscene, "device") != 0) {
+	if(RNA_enum_get(&cscene, "device") == 2) {
+		/* find network device */
+		foreach(DeviceInfo& info, devices)
+			if(info.type == DEVICE_NETWORK)
+				params.device = info;
+	}
+	else if(RNA_enum_get(&cscene, "device") == 1) {
 		/* find GPU device with given id */
 		PointerRNA systemptr = b_userpref.system().ptr;
 		PropertyRNA *deviceprop = RNA_struct_find_property(&systemptr, "compute_device");

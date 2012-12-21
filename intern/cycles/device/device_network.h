@@ -31,15 +31,17 @@
 
 #include <iostream>
 
+#include "buffers.h"
+
 #include "util_foreach.h"
 #include "util_list.h"
+#include "util_map.h"
 #include "util_string.h"
 
 CCL_NAMESPACE_BEGIN
 
 using std::cout;
 using std::cerr;
-using std::endl;
 using std::hex;
 using std::setw;
 using std::exception;
@@ -51,11 +53,61 @@ static const int DISCOVER_PORT = 5121;
 static const string DISCOVER_REQUEST_MSG = "REQUEST_RENDER_SERVER_IP";
 static const string DISCOVER_REPLY_MSG = "REPLY_RENDER_SERVER_IP";
 
-typedef struct RPCSend {
+/* Serialization of device memory */
+
+class network_device_memory : public device_memory
+{
+public:
+	network_device_memory() {}
+	~network_device_memory() { device_pointer = 0; };
+
+	vector<char> local_data;
+};
+
+/* Remote procedure call Send */
+
+class RPCSend {
+public:
 	RPCSend(tcp::socket& socket_, const string& name_ = "")
-	: name(name_), socket(socket_), archive(archive_stream)
+	: name(name_), socket(socket_), archive(archive_stream), sent(false)
 	{
 		archive & name_;
+	}
+
+	~RPCSend()
+	{
+		if(!sent)
+			fprintf(stderr, "Error: RPC %s not sent\n", name.c_str());
+	}
+
+	void add(const device_memory& mem)
+	{
+		archive & mem.data_type & mem.data_elements & mem.data_size;
+		archive & mem.data_width & mem.data_height & mem.device_pointer;
+	}
+
+	template<typename T> void add(const T& data)
+	{
+		archive & data;
+	}
+
+	void add(const DeviceTask& task)
+	{
+		int type = (int)task.type;
+
+		archive & type & task.x & task.y & task.w & task.h;
+		archive & task.rgba & task.buffer & task.sample & task.num_samples;
+		archive & task.resolution & task.offset & task.stride;
+		archive & task.shader_input & task.shader_output & task.shader_eval_type;
+		archive & task.shader_x & task.shader_w;
+	}
+
+	void add(const RenderTile& tile)
+	{
+		archive & tile.x & tile.y & tile.w & tile.h;
+		archive & tile.start_sample & tile.num_samples & tile.sample;
+		archive & tile.resolution & tile.offset & tile.stride;
+		archive & tile.buffer & tile.rng_state & tile.rgba;
 	}
 
 	void write()
@@ -84,6 +136,8 @@ typedef struct RPCSend {
 		
 		if(error.value())
 			cout << "Network send error: " << error.message() << "\n";
+
+		sent = true;
 	}
 
 	void write_buffer(void *buffer, size_t size)
@@ -98,13 +152,18 @@ typedef struct RPCSend {
 			cout << "Network send error: " << error.message() << "\n";
 	}
 
+protected:
 	string name;
 	tcp::socket& socket;
 	ostringstream archive_stream;
 	boost::archive::text_oarchive archive;
-} RPCSend;
+	bool sent;
+};
 
-typedef struct RPCReceive {
+/* Remote procedure call Receive */
+
+class RPCReceive {
+public:
 	RPCReceive(tcp::socket& socket_)
 	: socket(socket_), archive_stream(NULL), archive(NULL)
 	{
@@ -151,6 +210,19 @@ typedef struct RPCReceive {
 		delete archive_stream;
 	}
 
+	void read(network_device_memory& mem)
+	{
+		*archive & mem.data_type & mem.data_elements & mem.data_size;
+		*archive & mem.data_width & mem.data_height & mem.device_pointer;
+
+		mem.data_pointer = 0;
+	}
+
+	template<typename T> void read(T& data)
+	{
+		*archive & data;
+	}
+
 	void read_buffer(void *buffer, size_t size)
 	{
 		size_t len = boost::asio::read(socket, boost::asio::buffer(buffer, size));
@@ -159,12 +231,39 @@ typedef struct RPCReceive {
 			cout << "Network receive error: buffer size doesn't match expected size\n";
 	}
 
+	void read(DeviceTask& task)
+	{
+		int type;
+
+		*archive & type & task.x & task.y & task.w & task.h;
+		*archive & task.rgba & task.buffer & task.sample & task.num_samples;
+		*archive & task.resolution & task.offset & task.stride;
+		*archive & task.shader_input & task.shader_output & task.shader_eval_type;
+		*archive & task.shader_x & task.shader_w;
+
+		task.type = (DeviceTask::Type)type;
+	}
+
+	void read(RenderTile& tile)
+	{
+		*archive & tile.x & tile.y & tile.w & tile.h;
+		*archive & tile.start_sample & tile.num_samples & tile.sample;
+		*archive & tile.resolution & tile.offset & tile.stride;
+		*archive & tile.buffer & tile.rng_state & tile.rgba;
+
+		tile.buffers = NULL;
+	}
+
 	string name;
+
+protected:
 	tcp::socket& socket;
 	string archive_str;
 	istringstream *archive_stream;
 	boost::archive::text_iarchive *archive;
-} RPCReceive;
+};
+
+/* Server auto discovery */
 
 class ServerDiscovery {
 public:
