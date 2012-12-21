@@ -421,7 +421,7 @@ static int key_test_depth(PEData *data, const float co[3], const int screen_co[2
 	/* used to calculate here but all callers have  the screen_co already, so pass as arg */
 #if 0
 	if (ED_view3d_project_int_global(data->vc.ar, co, screen_co,
-	                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) != V3D_PROJ_RET_OK)
+	                                 V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR) != V3D_PROJ_RET_OK)
 	{
 		return 0;
 	}
@@ -2812,7 +2812,7 @@ static void brush_cut(PEData *data, int pa_index)
 	if (edit->points[pa_index].flag & PEP_HIDE)
 		return;
 
-	if (ED_view3d_project_int_global(ar, key->co, screen_co, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK)
+	if (ED_view3d_project_int_global(ar, key->co, screen_co, V3D_PROJ_TEST_CLIP_NEAR) != V3D_PROJ_RET_OK)
 		return;
 
 	rad2= data->rad * data->rad;
@@ -2837,7 +2837,7 @@ static void brush_cut(PEData *data, int pa_index)
 		/* calculate path time closest to root that was inside the circle */
 		for (k=1, key++; k<=keys; k++, key++) {
 
-			if ((ED_view3d_project_int_global(ar, key->co, screen_co, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK) ||
+			if ((ED_view3d_project_int_global(ar, key->co, screen_co, V3D_PROJ_TEST_CLIP_NEAR) != V3D_PROJ_RET_OK) ||
 			    key_test_depth(data, key->co, screen_co) == 0)
 			{
 				x0 = (float)screen_co[0];

@@ -908,7 +908,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		BMOIter oiter;
 		
 		copy_v3_v3(min, curs);
-		view3d_get_view_aligned_coordinate(&vc, min, event->mval, 0);
+		view3d_get_view_aligned_coordinate(&vc, min, event->mval, FALSE);
 
 		invert_m4_m4(vc.obedit->imat, vc.obedit->obmat);
 		mul_m4_v3(vc.obedit->imat, min); // back in object space
@@ -2928,7 +2928,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	screen_vert_coords = sco = MEM_mallocN(bm->totvert * sizeof(float) * 2, __func__);
 
 	BM_ITER_MESH_INDEX (bv, &iter, bm, BM_VERTS_OF_MESH, i) {
-		if (ED_view3d_project_float_object(ar, bv->co, *sco, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK) {
+		if (ED_view3d_project_float_object(ar, bv->co, *sco, V3D_PROJ_TEST_CLIP_NEAR) != V3D_PROJ_RET_OK) {
 			copy_v2_fl(*sco, FLT_MAX);  /* set error value */
 		}
 		BM_elem_index_set(bv, i); /* set_ok */

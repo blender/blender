@@ -352,6 +352,7 @@ void projectFloatView(TransInfo *t, const float vec[3], float adr[2])
 		case SPACE_VIEW3D:
 		{
 			if (t->ar->regiontype == RGN_TYPE_WINDOW) {
+				/* allow points behind the view [#33643] */
 				if (ED_view3d_project_float_global(t->ar, vec, adr, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK) {
 					/* XXX, 2.64 and prior did this, weak! */
 					adr[0] = t->ar->winx / 2.0f;
@@ -4885,6 +4886,7 @@ static void calcNonProportionalEdgeSlide(TransInfo *t, SlideData *sld, const flo
 			sv->edge_len = len_v3v3(sv->upvec, sv->downvec);
 
 			mul_v3_m4v3(v_proj, t->obedit->obmat, sv->v->co);
+			/* allow points behind the view [#33643] */
 			if (ED_view3d_project_float_global(t->ar, v_proj, v_proj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 				dist = len_squared_v2v2(mval, v_proj);
 				if (dist < min_dist) {

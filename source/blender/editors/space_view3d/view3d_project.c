@@ -134,13 +134,19 @@ static eV3DProjStatus ed_view3d_project__internal(ARegion *ar,
 	vec4[3] = 1.0;
 	mul_m4_v4(perspmat, vec4);
 
-	if (vec4[3] > (float)BL_NEAR_CLIP) {
-		const float fx = ((float)ar->winx / 2.0f) * (1.0f + vec4[0] / vec4[3]);
-		if (((flag & V3D_PROJ_TEST_CLIP_WIN) == 0) || (fx > 0 && fx < ar->winx)) {
-			const float fy = ((float)ar->winy / 2.0f) * (1.0f + vec4[1] / vec4[3]);
+	if (((flag & V3D_PROJ_TEST_CLIP_NEAR) == 0)  || (vec4[3] > (float)BL_NEAR_CLIP)) {
+		const float scalar = (vec4[3] != 0.0f) ? (1.0f / vec4[3]): 0.0f;
+		const float fx = ((float)ar->winx / 2.0f) * (1.0f + (vec4[0] * scalar));
+		if (((flag & V3D_PROJ_TEST_CLIP_WIN) == 0) || (fx > 0.0f && fx < (float)ar->winx)) {
+			const float fy = ((float)ar->winy / 2.0f) * (1.0f + (vec4[1] * scalar));
 			if (((flag & V3D_PROJ_TEST_CLIP_WIN) == 0) || (fy > 0.0f && fy < (float)ar->winy)) {
 				r_co[0] = floorf(fx);
 				r_co[1] = floorf(fy);
+
+				/* check if the point is behind the view, we need to flip in this case */
+				if (UNLIKELY((flag & V3D_PROJ_TEST_CLIP_NEAR) == 0) && (vec4[3] < 0.0f)) {
+					negate_v2(r_co);
+				}
 			}
 			else {
 				return V3D_PROJ_RET_CLIP_WIN;
