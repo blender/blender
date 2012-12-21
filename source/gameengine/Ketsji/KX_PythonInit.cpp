@@ -92,6 +92,8 @@ extern "C" {
 #include "SCA_PropertySensor.h"
 #include "SCA_RandomActuator.h"
 #include "SCA_KeyboardSensor.h" /* IsPrintable, ToCharacter */
+#include "SCA_JoystickManager.h" /* JOYINDEX_MAX */
+#include "SCA_PythonJoystick.h"
 #include "SCA_PythonKeyboard.h"
 #include "SCA_PythonMouse.h"
 #include "KX_ConstraintActuator.h"
@@ -151,6 +153,7 @@ static char gp_GamePythonPathOrig[FILE_MAX] = ""; // not super happy about this,
 
 static SCA_PythonKeyboard* gp_PythonKeyboard = NULL;
 static SCA_PythonMouse* gp_PythonMouse = NULL;
+static SCA_PythonJoystick* gp_PythonJoysticks[JOYINDEX_MAX] = {NULL};
 #endif // WITH_PYTHON
 
 static KX_Scene*	gp_KetsjiScene = NULL;
@@ -1420,6 +1423,22 @@ PyObject *initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	gp_PythonMouse = new SCA_PythonMouse(gp_KetsjiEngine->GetMouseDevice(), gp_Canvas);
 	PyDict_SetItemString(d, "mouse", gp_PythonMouse->NewProxy(true));
 
+	PyObject* joylist = PyList_New(JOYINDEX_MAX);
+	SCA_JoystickManager* joyevent = (SCA_JoystickManager*)gp_KetsjiScene->GetLogicManager()->FindEventManager(SCA_EventManager::JOY_EVENTMGR);
+	for (int i=0; i<JOYINDEX_MAX; ++i) {
+		SCA_Joystick* joy = joyevent->GetJoystickDevice(i);
+		if (joy && joy->Connected()) {
+			gp_PythonJoysticks[i] = new SCA_PythonJoystick(joy);
+			PyObject* tmp = gp_PythonJoysticks[i]->NewProxy(true);
+			Py_INCREF(tmp);
+			PyList_SET_ITEM(joylist, i, tmp);
+		} else 	{
+			Py_INCREF(Py_None);
+			PyList_SET_ITEM(joylist, i, Py_None);
+		}
+	}
+	PyDict_SetItemString(d, "joysticks", joylist);
+
 	ErrorObject = PyUnicode_FromString("GameLogic.error");
 	PyDict_SetItemString(d, "error", ErrorObject);
 	Py_DECREF(ErrorObject);
@@ -1937,6 +1956,13 @@ void exitGamePlayerPythonScripting()
 	delete gp_PythonMouse;
 	gp_PythonMouse = NULL;
 
+	for (int i=0; i<JOYINDEX_MAX; ++i) {
+		if (gp_PythonJoysticks[i]) {
+			delete gp_PythonJoysticks[i];
+			gp_PythonJoysticks[i] = NULL;
+		}
+	}
+
 	/* since python restarts we cant let the python backup of the sys.path hang around in a global pointer */
 	restorePySysObjects(); /* get back the original sys.path and clear the backup */
 	
@@ -1984,6 +2010,13 @@ void exitGamePythonScripting()
 
 	delete gp_PythonMouse;
 	gp_PythonMouse = NULL;
+
+	for (int i=0; i<JOYINDEX_MAX; ++i) {
+		if (gp_PythonJoysticks[i]) {
+			delete gp_PythonJoysticks[i];
+			gp_PythonJoysticks[i] = NULL;
+		}
+	}
 
 	restorePySysObjects(); /* get back the original sys.path and clear the backup */
 	bpy_import_main_set(NULL);

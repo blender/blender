@@ -192,6 +192,11 @@ public:
 	 * Test if the joystick is connected
 	 */
 	int Connected(void);
+
+	/**
+	 * Name of the joytsick
+	 */
+	const char *GetName();
 };
 
 #endif

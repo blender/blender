@@ -125,6 +125,10 @@ Variables
 
    The current mouse wrapped in an :class:`~bge.types.SCA_PythonMouse` object.
 
+.. data:: joysticks
+
+   A list of attached joysticks. The list size it he maximum number of supported joysticks. If no joystick is available for a given slot, the slot is set to None.
+
 *****************
 General functions
 *****************
