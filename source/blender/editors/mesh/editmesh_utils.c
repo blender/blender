@@ -1298,15 +1298,15 @@ void EDBM_mesh_reveal(BMEditMesh *em)
 	int sels[3] = {(em->selectmode & SCE_SELECT_VERTEX),
 	               (em->selectmode & SCE_SELECT_EDGE),
 	               (em->selectmode & SCE_SELECT_FACE), };
-
-	BMIter iter;
-	BMElem *ele;
 	int i;
 
 	/* Use tag flag to remember what was hidden before all is revealed.
 	 * BM_ELEM_HIDDEN --> BM_ELEM_TAG */
 #pragma omp parallel for schedule(dynamic) if (em->bm->totvert + em->bm->totedge + em->bm->totface >= BM_OMP_LIMIT)
 	for (i = 0; i < 3; i++) {
+		BMIter iter;
+		BMElem *ele;
+
 		BM_ITER_MESH (ele, &iter, em->bm, iter_types[i]) {
 			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_HIDDEN));
 		}
@@ -1317,6 +1317,9 @@ void EDBM_mesh_reveal(BMEditMesh *em)
 
 	/* Select relevant just-revealed elements */
 	for (i = 0; i < 3; i++) {
+		BMIter iter;
+		BMElem *ele;
+
 		if (!sels[i]) {
 			continue;
 		}
