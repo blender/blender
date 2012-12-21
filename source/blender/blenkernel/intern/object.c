@@ -1925,7 +1925,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
 	}
 	else if (ELEM(par->type, OB_CURVE, OB_SURF)) {
 		Curve *cu       = par->data;
-		ListBase *nurb  = BKE_curve_nurbs_get(cu);;
+		ListBase *nurb  = BKE_curve_nurbs_get(cu);
 
 		BKE_nurbList_index_get_co(nurb, nr, vec);
 	}
