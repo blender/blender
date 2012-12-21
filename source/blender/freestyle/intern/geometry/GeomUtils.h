@@ -111,14 +111,14 @@ namespace GeomUtils {
 			  const Vec2r& A,
 			  const Vec2r& B);
 
-  /*! Box-triangle overlap test, adapted from Tomas Akenine-Möller code */
+  /*! Box-triangle overlap test, adapted from Tomas Akenine-MÃ¶ller code */
   LIB_GEOMETRY_EXPORT
   bool overlapTriangleBox(Vec3r& boxcenter,
 			  Vec3r& boxhalfsize,
 			  Vec3r triverts[3]);
 
   /*! Fast, Minimum Storage Ray-Triangle Intersection,
-   * adapted from Tomas Möller and Ben Trumbore code.
+   * adapted from Tomas MÃ¶ller and Ben Trumbore code.
    */
   LIB_GEOMETRY_EXPORT
   bool intersectRayTriangle(const Vec3r& orig, const Vec3r& dir,

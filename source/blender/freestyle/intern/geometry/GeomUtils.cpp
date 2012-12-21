@@ -209,7 +209,7 @@ namespace GeomUtils {
   }
 
   // AABB-triangle overlap test code
-  // by Tomas Akenine-Möller
+  // by Tomas Akenine-MÃ¶ller
   // Function: int triBoxOverlap(real boxcenter[3],
   //          real boxhalfsize[3],real triverts[3][3]);
   // History:
@@ -360,7 +360,7 @@ namespace GeomUtils {
 
   // Fast, Minimum Storage Ray-Triangle Intersection
   //
-  // Tomas Möller
+  // Tomas MÃ¶ller
   // Prosolvia Clarus AB
   // Sweden
   // tompa@clarus.se
