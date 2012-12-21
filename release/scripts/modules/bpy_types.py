@@ -717,3 +717,12 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         self.path_menu(bpy.utils.preset_paths(self.preset_subdir),
                        self.preset_operator,
                        filter_ext=lambda ext: ext.lower() in {".py", ".xml"})
+
+
+class NodeSocket(StructRNA, metaclass=RNAMeta):
+    __slots__ = ()
+
+    @property
+    def links(self):
+        """List of node links from or to this socket"""
+        return [link for link in self.id_data.links if link.from_socket == self or link.to_socket == self]
