@@ -3476,11 +3476,16 @@ static int brush_edit_init(bContext *C, wmOperator *op)
 	PTCacheEdit *edit= PE_get_current(scene, ob);
 	ARegion *ar= CTX_wm_region(C);
 	BrushEdit *bedit;
-
+	float min[3], max[3];
+	
 	if (pset->brushtype < 0)
 		return 0;
 
-	initgrabz(ar->regiondata, ob->obmat[3][0], ob->obmat[3][1], ob->obmat[3][2]);
+	/* set the 'distance factor' for grabbing (used in comb etc) */
+	INIT_MINMAX(min, max);
+	PE_minmax(scene, min, max);
+	mid_v3_v3v3(min, min, max);
+	initgrabz(ar->regiondata, min[0], min[1], min[2]);
 
 	bedit= MEM_callocN(sizeof(BrushEdit), "BrushEdit");
 	bedit->first= 1;
