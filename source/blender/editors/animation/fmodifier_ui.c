@@ -233,7 +233,7 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 				
 				/* closing bracket and multiplication sign */
 				if ( (i != (data->poly_order - 1)) || ((i == 0) && data->poly_order == 2) ) {
-					uiDefBut(block, LABEL, 1, ") ×", 0, 0, 40, 20, NULL, 0.0, 0.0, 0, 0, "");
+					uiDefBut(block, LABEL, 1, ") Ã—", 0, 0, 40, 20, NULL, 0.0, 0.0, 0, 0, "");
 					
 					/* set up new row for the next pair of coefficients */
 					row = uiLayoutRow(layout, TRUE);
