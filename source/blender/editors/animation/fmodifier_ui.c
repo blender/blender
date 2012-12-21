@@ -231,16 +231,16 @@ static void draw_modifier__generator(uiLayout *layout, ID *id, FModifier *fcm, s
 				uiDefButF(block, NUM, B_FMODIFIER_REDRAW, "", 0, 0, 100, 20, cp + 1, -UI_FLT_MAX, UI_FLT_MAX,
 				          10, 3, TIP_("Second coefficient"));
 				
-				/* closing bracket and '+' sign */
+				/* closing bracket and multiplication sign */
 				if ( (i != (data->poly_order - 1)) || ((i == 0) && data->poly_order == 2) ) {
-					uiDefBut(block, LABEL, 1, ") +", 0, 0, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
+					uiDefBut(block, LABEL, 1, ") ×", 0, 0, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
 					
 					/* set up new row for the next pair of coefficients */
 					row = uiLayoutRow(layout, TRUE);
 					block = uiLayoutGetBlock(row);
 				}
 				else 
-					uiDefBut(block, LABEL, 1, ")", 0, 0, 20, 20, NULL, 0.0, 0.0, 0, 0, "");
+					uiDefBut(block, LABEL, 1, ")  ", 0, 0, 30, 20, NULL, 0.0, 0.0, 0, 0, "");
 			}
 		}
 		break;
