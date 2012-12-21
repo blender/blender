@@ -4644,7 +4644,7 @@ static void rna_def_node(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "locx");
 	RNA_def_property_array(prop, 2);
-	RNA_def_property_range(prop, -10000.0f, 10000.0f);
+	RNA_def_property_range(prop, -100000.0f, 100000.0f);
 	RNA_def_property_ui_text(prop, "Location", "");
 	RNA_def_property_update(prop, NC_NODE, "rna_Node_update");
 	
