@@ -115,10 +115,10 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *em)
 	BMesh *bm = em->bm;
 	BMLoop *(*looptris)[3] = NULL;
 	BLI_array_declare(looptris);
-	BMIter iter, liter;
+	BMIter iter;
 	BMFace *efa;
 	BMLoop *l;
-	int i = 0, j;
+	int i = 0;
 
 	ScanFillContext sf_ctx;
 
@@ -161,16 +161,29 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *em)
 		/* no need to ensure the loop order, we know its ok */
 
 		else if (efa->len == 3) {
+#if 0
+			int j;
 			BLI_array_grow_one(looptris);
 			BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, j) {
 				looptris[i][j] = l;
 			}
 			i += 1;
+#else
+			/* more cryptic but faster */
+			BLI_array_grow_one(looptris);
+			{
+				BMLoop **l_ptr = looptris[i++];
+				l_ptr[0] = l = BM_FACE_FIRST_LOOP(efa);
+				l_ptr[1] = l = l->next;
+				l_ptr[2] = l->next;
+			}
+#endif
 		}
 		else if (efa->len == 4) {
+#if 0
 			BMLoop *ltmp[4];
+			int j;
 			BLI_array_grow_items(looptris, 2);
-
 			BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, j) {
 				ltmp[j] = l;
 			}
@@ -184,11 +197,27 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *em)
 			looptris[i][1] = ltmp[2];
 			looptris[i][2] = ltmp[3];
 			i += 1;
+#else
+			/* more cryptic but faster */
+			BLI_array_grow_items(looptris, 2);
+			{
+				BMLoop **l_ptr_a = looptris[i++];
+				BMLoop **l_ptr_b = looptris[i++];
+				(l_ptr_a[0] = l_ptr_b[0] = l = BM_FACE_FIRST_LOOP(efa));
+				(l_ptr_a[1]              = l = l->next);
+				(l_ptr_a[2] = l_ptr_b[1] = l = l->next);
+				(             l_ptr_b[2] = l->next);
+			}
+#endif
 		}
 
 #endif /* USE_TESSFACE_SPEEDUP */
 
 		else {
+			int j;
+			BMLoop *l_iter;
+			BMLoop *l_first;
+
 			ScanFillVert *sf_vert, *sf_vert_last = NULL, *sf_vert_first = NULL;
 			/* ScanFillEdge *e; */ /* UNUSED */
 			ScanFillFace *sf_tri;
@@ -197,20 +226,25 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *em)
 			BLI_scanfill_begin(&sf_ctx);
 
 			/* scanfill time */
-			BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, j) {
-				/*mark order */
-				BM_elem_index_set(l, j); /* set_loop */
-
-				sf_vert = BLI_scanfill_vert_add(&sf_ctx, l->v->co);
-				sf_vert->tmp.p = l;
+			j = 0;
+			l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
+			do {
+				sf_vert = BLI_scanfill_vert_add(&sf_ctx, l_iter->v->co);
+				sf_vert->tmp.p = l_iter;
 
 				if (sf_vert_last) {
 					/* e = */ BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert);
 				}
 
 				sf_vert_last = sf_vert;
-				if (sf_vert_first == NULL) sf_vert_first = sf_vert;
-			}
+				if (sf_vert_first == NULL) {
+					sf_vert_first = sf_vert;
+				}
+
+				/*mark order */
+				BM_elem_index_set(l_iter, j++); /* set_loop */
+
+			} while ((l_iter = l_iter->next) != l_first);
 
 			/* complete the loop */
 			BLI_scanfill_edge_add(&sf_ctx, sf_vert_first, sf_vert);

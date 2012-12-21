@@ -172,8 +172,8 @@ eV3DProjStatus ED_view3d_project_short_ex(ARegion *ar, float perspmat[4][4], con
 		if ((tvec[0] > -32700.0f && tvec[0] < 32700.0f) &&
 		    (tvec[1] > -32700.0f && tvec[1] < 32700.0f))
 		{
-			r_co[0] = (short)floor(tvec[0]);
-			r_co[1] = (short)floor(tvec[1]);
+			r_co[0] = (short)floorf(tvec[0]);
+			r_co[1] = (short)floorf(tvec[1]);
 		}
 		else {
 			ret = V3D_PROJ_RET_OVERFLOW;
@@ -191,8 +191,8 @@ eV3DProjStatus ED_view3d_project_int_ex(ARegion *ar, float perspmat[4][4], const
 		if ((tvec[0] > -2140000000.0f && tvec[0] < 2140000000.0f) &&
 		    (tvec[1] > -2140000000.0f && tvec[1] < 2140000000.0f))
 		{
-			r_co[0] = (int)floor(tvec[0]);
-			r_co[1] = (int)floor(tvec[1]);
+			r_co[0] = (int)floorf(tvec[0]);
+			r_co[1] = (int)floorf(tvec[1]);
 		}
 		else {
 			ret = V3D_PROJ_RET_OVERFLOW;
