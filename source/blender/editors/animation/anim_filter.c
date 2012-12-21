@@ -290,7 +290,7 @@ static short nlaedit_get_context(bAnimContext *ac, SpaceNla *snla)
 short ANIM_animdata_context_getdata(bAnimContext *ac)
 {
 	SpaceLink *sl = ac->sl;
-	short ok = 0;
+	short ok = FALSE;
 	
 	/* context depends on editor we are currently in */
 	if (sl) {
@@ -319,10 +319,7 @@ short ANIM_animdata_context_getdata(bAnimContext *ac)
 	}
 	
 	/* check if there's any valid data */
-	if (ok && ac->data)
-		return 1;
-	else
-		return 0;
+	return (ok && ac->data);
 }
 
 /* Obtain current anim-data context from Blender Context info 
@@ -354,6 +351,7 @@ short ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 	ac->regiontype = (ar) ? ar->regiontype : 0;
 	
 	/* get data context info */
+	// XXX: if the below fails, try to grab this info from context instead... (to allow for scripting)
 	return ANIM_animdata_context_getdata(ac);
 }
 
@@ -913,14 +911,14 @@ static short skip_fcurve_selected_data(bDopeSheet *ads, FCurve *fcu, ID *owner_i
 			Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 			Sequence *seq = NULL;
 			char *seq_name;
-
+			
 			if (ed) {
 				/* get strip name, and check if this strip is selected */
 				seq_name = BLI_str_quoted_substrN(fcu->rna_path, "sequences_all[");
 				seq = BKE_sequence_get_by_name(ed->seqbasep, seq_name, FALSE);
 				if (seq_name) MEM_freeN(seq_name);
 			}
-
+			
 			/* can only add this F-Curve if it is selected */
 			if (ads->filterflag & ADS_FILTER_ONLYSEL) {
 				if ((seq == NULL) || (seq->flag & SELECT) == 0)
@@ -2146,7 +2144,7 @@ static size_t animdata_filter_dopesheet_scene(bAnimContext *ac, ListBase *anim_d
 		if ((ntree) && !(ads->filterflag & ADS_FILTER_NONTREE)) {
 			tmp_items += animdata_filter_ds_nodetree(ac, &tmp_data, ads, (ID *)sce, ntree, filter_mode);
 		}
-
+		
 		/* TODO: one day, when sequencer becomes its own datatype, perhaps it should be included here */
 	}
 	END_ANIMFILTER_SUBCHANNELS;
