@@ -2233,7 +2233,7 @@ static void view3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
 	float new_dist;
 
 	sub_v3_v3v3(afm, max, min);
-	size = MAX3(afm[0], afm[1], afm[2]);
+	size = max_fff(afm[0], afm[1], afm[2]);
 
 	if (ok_dist) {
 		/* fix up zoom distance if needed */

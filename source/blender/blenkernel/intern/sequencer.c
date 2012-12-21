@@ -593,8 +593,8 @@ void BKE_sequence_calc(Scene *scene, Sequence *seq)
 			/* XXX These resets should not be necessary, but users used to be able to
 			 *     edit effect's length, leading to strange results. See [#29190] */
 			seq->startofs = seq->endofs = seq->startstill = seq->endstill = 0;
-			seq->start = seq->startdisp = MAX3(seq->seq1->startdisp, seq->seq2->startdisp, seq->seq3->startdisp);
-			seq->enddisp = MIN3(seq->seq1->enddisp, seq->seq2->enddisp, seq->seq3->enddisp);
+			seq->start = seq->startdisp = max_iii(seq->seq1->startdisp, seq->seq2->startdisp, seq->seq3->startdisp);
+			seq->enddisp                = min_iii(seq->seq1->enddisp,   seq->seq2->enddisp,   seq->seq3->enddisp);
 			/* we cant help if strips don't overlap, it wont give useful results.
 			 * but at least ensure 'len' is never negative which causes bad bugs elsewhere. */
 			if (seq->enddisp < seq->startdisp) {

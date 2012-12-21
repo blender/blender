@@ -123,10 +123,10 @@ static int track_mouse_area(const bContext *C, float co[2], MovieTrackingTrack *
 
 	BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
 
-	epsx = MIN4(pat_min[0] - marker->search_min[0], marker->search_max[0] - pat_max[0],
-	            fabsf(pat_min[0]), fabsf(pat_max[0])) / 2;
-	epsy = MIN4(pat_min[1] - marker->search_min[1], marker->search_max[1] - pat_max[1],
-	            fabsf(pat_min[1]), fabsf(pat_max[1])) / 2;
+	epsx = min_ffff(pat_min[0] - marker->search_min[0], marker->search_max[0] - pat_max[0],
+	                fabsf(pat_min[0]), fabsf(pat_max[0])) / 2;
+	epsy = min_ffff(pat_min[1] - marker->search_min[1], marker->search_max[1] - pat_max[1],
+	                fabsf(pat_min[1]), fabsf(pat_max[1])) / 2;
 
 	epsx = max_ff(epsx, 2.0f / width);
 	epsy = max_ff(epsy, 2.0f / height);
@@ -166,7 +166,7 @@ static float dist_to_rect(float co[2], float pos[2], float min[2], float max[2])
 	d3 = dist_squared_to_line_segment_v2(p, v3, v4);
 	d4 = dist_squared_to_line_segment_v2(p, v4, v1);
 
-	return sqrtf(MIN4(d1, d2, d3, d4));
+	return sqrtf(min_ffff(d1, d2, d3, d4));
 }
 
 static float dist_to_crns(float co[2], float pos[2], float crns[4][2])
@@ -181,7 +181,7 @@ static float dist_to_crns(float co[2], float pos[2], float crns[4][2])
 	d3 = dist_squared_to_line_segment_v2(p, v3, v4);
 	d4 = dist_squared_to_line_segment_v2(p, v4, v1);
 
-	return sqrtf(MIN4(d1, d2, d3, d4));
+	return sqrtf(min_ffff(d1, d2, d3, d4));
 }
 
 static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, ListBase *tracksbase, float co[2])
@@ -210,7 +210,7 @@ static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, ListBase *tracksbas
 				d3 = dist_to_rect(co, marker->pos, marker->search_min, marker->search_max);
 
 			/* choose minimal distance. useful for cases of overlapped markers. */
-			dist = MIN3(d1, d2, d3);
+			dist = min_fff(d1, d2, d3);
 
 			if (track == NULL || dist < mindist) {
 				track = cur;

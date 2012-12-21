@@ -101,9 +101,9 @@ void GPU_render_text(MTFace *tface, int mode,
 		float line_start= 0.0f, line_height;
 		
 		if (v4)
-			line_height= MAX4(v1[1], v2[1], v3[1], v4[2]) - MIN4(v1[1], v2[1], v3[1], v4[2]);
+			line_height = max_ffff(v1[1], v2[1], v3[1], v4[2]) - min_ffff(v1[1], v2[1], v3[1], v4[2]);
 		else
-			line_height= MAX3(v1[1], v2[1], v3[1]) - MIN3(v1[1], v2[1], v3[1]);
+			line_height = max_fff(v1[1], v2[1], v3[1]) - min_fff(v1[1], v2[1], v3[1]);
 		line_height *= 1.2f; /* could be an option? */
 		/* end multiline */
 

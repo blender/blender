@@ -1062,7 +1062,7 @@ static float *editmesh_get_mirror_uv(BMEditMesh *em, int axis, float *uv, float 
 static unsigned int mirror_facehash(const void *ptr)
 {
 	const MFace *mf = ptr;
-	int v0, v1;
+	unsigned int v0, v1;
 
 	if (mf->v4) {
 		v0 = MIN4(mf->v1, mf->v2, mf->v3, mf->v4);

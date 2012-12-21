@@ -3109,7 +3109,7 @@ static PBool p_chart_lscm_solve(PHandle *handle, PChart *chart)
 		sina2 = sin(a2);
 		sina3 = sin(a3);
 
-		sinmax = MAX3(sina1, sina2, sina3);
+		sinmax = max_fff(sina1, sina2, sina3);
 
 		/* shift vertices to find most stable order */
 		if (sina3 != sinmax) {

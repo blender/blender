@@ -859,9 +859,9 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 	 * the other strips. */
 	if (!RNA_struct_property_is_set(op->ptr, "channel")) {
 		if (seq->seq1) {
-			int chan = MAX3(seq->seq1 ? seq->seq1->machine : 0,
-			                seq->seq2 ? seq->seq2->machine : 0,
-			                seq->seq3 ? seq->seq3->machine : 0);
+			int chan = max_iii(seq->seq1 ? seq->seq1->machine : 0,
+			                   seq->seq2 ? seq->seq2->machine : 0,
+			                   seq->seq3 ? seq->seq3->machine : 0);
 			if (chan < MAXSEQ)
 				seq->machine = chan;
 		}

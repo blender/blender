@@ -500,8 +500,8 @@ short calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 					BLI_assert(bezt_last != NULL);
 					
 					if (include_handles) {
-						xminv = MIN3(xminv, bezt_first->vec[0][0], bezt_first->vec[1][0]);
-						xmaxv = MAX3(xmaxv, bezt_last->vec[1][0],  bezt_last->vec[2][0]);
+						xminv = min_fff(xminv, bezt_first->vec[0][0], bezt_first->vec[1][0]);
+						xmaxv = max_fff(xmaxv, bezt_last->vec[1][0],  bezt_last->vec[2][0]);
 					}
 					else {
 						xminv = min_ff(xminv, bezt_first->vec[1][0]);
@@ -517,8 +517,8 @@ short calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, flo
 				for (bezt = fcu->bezt, i = 0; i < fcu->totvert; bezt++, i++) {
 					if ((do_sel_only == FALSE) || BEZSELECTED(bezt)) {
 						if (include_handles) {
-							yminv = MIN4(yminv, bezt->vec[1][1], bezt->vec[0][1], bezt->vec[2][1]);
-							ymaxv = MAX4(ymaxv, bezt->vec[1][1], bezt->vec[0][1], bezt->vec[2][1]);
+							yminv = min_ffff(yminv, bezt->vec[1][1], bezt->vec[0][1], bezt->vec[2][1]);
+							ymaxv = max_ffff(ymaxv, bezt->vec[1][1], bezt->vec[0][1], bezt->vec[2][1]);
 						}
 						else {
 							yminv = min_ff(yminv, bezt->vec[1][1]);

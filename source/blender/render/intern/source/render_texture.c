@@ -1745,8 +1745,8 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 		else {  /* 3d procedural, estimate from all dx/dy elems */
 			const float adx[3] = {fabsf(dx[0]), fabsf(dx[1]), fabsf(dx[2])};
 			const float ady[3] = {fabsf(dy[0]), fabsf(dy[1]), fabsf(dy[2])};
-			du = MAX3(adx[0], adx[1], adx[2]);
-			dv = MAX3(ady[0], ady[1], ady[2]);
+			du = max_fff(adx[0], adx[1], adx[2]);
+			dv = max_fff(ady[0], ady[1], ady[2]);
 		}
 	}
 

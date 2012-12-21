@@ -1884,7 +1884,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		/* note: shi->mode! */
 		if (shi->mode & MA_TRANSP && (shi->mode & (MA_ZTRANSP|MA_RAYTRANSP))) {
 			if (shi->spectra!=0.0f) {
-				float t = MAX3(shr->spec[0], shr->spec[1], shr->spec[2]);
+				float t = max_fff(shr->spec[0], shr->spec[1], shr->spec[2]);
 				t *= shi->spectra;
 				if (t>1.0f) t= 1.0f;
 				shi->alpha= (1.0f-t)*shi->alpha+t;

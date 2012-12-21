@@ -170,7 +170,7 @@ void smoke_reallocate_fluid(SmokeDomainSettings *sds, float dx, int res[3], int 
 
 	if (free_old && sds->fluid)
 		smoke_free(sds->fluid);
-	if (!MIN3(res[0], res[1], res[2])) {
+	if (!min_iii(res[0], res[1], res[2])) {
 		sds->fluid = NULL;
 		return;
 	}
@@ -191,7 +191,7 @@ void smoke_reallocate_highres_fluid(SmokeDomainSettings *sds, float dx, int res[
 
 	if (free_old && sds->wt)
 		smoke_turbulence_free(sds->wt);
-	if (!MIN3(res[0], res[1], res[2])) {
+	if (!min_iii(res[0], res[1], res[2])) {
 		sds->wt = NULL;
 		return;
 	}

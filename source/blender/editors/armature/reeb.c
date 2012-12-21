@@ -634,7 +634,7 @@ static void mergeArcBuckets(ReebArc *aDst, ReebArc *aSrc, float start, float end
 	if (aDst->bcount > 0 && aSrc->bcount > 0) {
 		int indexDst = 0, indexSrc = 0;
 		
-		start = MAX3(start, aDst->buckets[0].val, aSrc->buckets[0].val);
+		start = max_fff(start, aDst->buckets[0].val, aSrc->buckets[0].val);
 		
 		while (indexDst < aDst->bcount && aDst->buckets[indexDst].val < start) {
 			indexDst++;

@@ -286,7 +286,7 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 
 	if (texres->talpha) texres->tin= texres->ta;
 	else if (tex->imaflag & TEX_CALCALPHA) {
-		texres->ta= texres->tin= MAX3(texres->tr, texres->tg, texres->tb);
+		texres->ta = texres->tin = max_fff(texres->tr, texres->tg, texres->tb);
 	}
 	else texres->ta= texres->tin= 1.0;
 	
@@ -1112,10 +1112,10 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 	}
 
 	/* pixel coordinates */
-	minx = MIN3(dxt[0], dyt[0], dxt[0] + dyt[0]);
-	maxx = MAX3(dxt[0], dyt[0], dxt[0] + dyt[0]);
-	miny = MIN3(dxt[1], dyt[1], dxt[1] + dyt[1]);
-	maxy = MAX3(dxt[1], dyt[1], dxt[1] + dyt[1]);
+	minx = min_fff(dxt[0], dyt[0], dxt[0] + dyt[0]);
+	maxx = max_fff(dxt[0], dyt[0], dxt[0] + dyt[0]);
+	miny = min_fff(dxt[1], dyt[1], dxt[1] + dyt[1]);
+	maxy = max_fff(dxt[1], dyt[1], dxt[1] + dyt[1]);
 
 	/* tex_sharper has been removed */
 	minx = (maxx - minx)*0.5f;
@@ -1416,7 +1416,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 	}
 
 	if (tex->imaflag & TEX_CALCALPHA)
-		texres->ta = texres->tin = texres->ta * MAX3(texres->tr, texres->tg, texres->tb);
+		texres->ta = texres->tin = texres->ta * max_fff(texres->tr, texres->tg, texres->tb);
 	else
 		texres->tin = texres->ta;
 	if (tex->flag & TEX_NEGALPHA) texres->ta = 1.f - texres->ta;
@@ -1535,10 +1535,10 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	
 	/* pixel coordinates */
 
-	minx = MIN3(dxt[0], dyt[0], dxt[0] + dyt[0]);
-	maxx = MAX3(dxt[0], dyt[0], dxt[0] + dyt[0]);
-	miny = MIN3(dxt[1], dyt[1], dxt[1] + dyt[1]);
-	maxy = MAX3(dxt[1], dyt[1], dxt[1] + dyt[1]);
+	minx = min_fff(dxt[0], dyt[0], dxt[0] + dyt[0]);
+	maxx = max_fff(dxt[0], dyt[0], dxt[0] + dyt[0]);
+	miny = min_fff(dxt[1], dyt[1], dxt[1] + dyt[1]);
+	maxy = max_fff(dxt[1], dyt[1], dxt[1] + dyt[1]);
 
 	/* tex_sharper has been removed */
 	minx= (maxx-minx)/2.0f;
@@ -1826,7 +1826,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	}
 	
 	if (tex->imaflag & TEX_CALCALPHA) {
-		texres->ta= texres->tin= texres->ta*MAX3(texres->tr, texres->tg, texres->tb);
+		texres->ta = texres->tin = texres->ta * max_fff(texres->tr, texres->tg, texres->tb);
 	}
 	else texres->tin= texres->ta;
 
