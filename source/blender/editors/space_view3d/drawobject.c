@@ -1286,6 +1286,13 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 			glVertex3fv(vvec_clip);
 			glEnd();
 		}
+		/* Else, draw spot direction (using distance as end limit, same as for Area lamp). */
+		else {
+			glBegin(GL_LINE_STRIP);
+			glVertex3f(0.0, 0.0, -circrad);
+			glVertex3f(0.0, 0.0, -la->dist);
+			glEnd();
+		}
 	}
 	else if (ELEM(la->type, LA_HEMI, LA_SUN)) {
 		
