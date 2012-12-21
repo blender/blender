@@ -40,6 +40,7 @@
 #define __device
 #define __device_inline __device
 #define __device_noinline  __device __noinline
+#define __may_alias
 
 /* no assert in opencl */
 #define kernel_assert(cond)
