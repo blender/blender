@@ -1839,7 +1839,10 @@ static void ob_parbone(Object *ob, Object *par, float mat[4][4])
 	}
 
 	/* get bone transform */
-	copy_m4_m4(mat, pchan->pose_mat);
+	if (pchan->bone->flag & BONE_RELATIVE_PARENTING)
+		copy_m4_m4(mat, pchan->chan_mat);
+	else
+		copy_m4_m4(mat, pchan->pose_mat);
 
 	/* but for backwards compatibility, the child has to move to the tail */
 	copy_v3_v3(vec, mat[1]);
