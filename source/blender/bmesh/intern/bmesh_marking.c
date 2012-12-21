@@ -86,41 +86,50 @@ void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode)
 	BMIter eiter;
 	BMIter fiter;
 
-	int ok;
-
 	if (selectmode & SCE_SELECT_VERTEX) {
-		BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
-			if (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
-			    BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
-			    !BM_elem_flag_test(e, BM_ELEM_HIDDEN))
+		/* both loops only set edge/face flags and read off verts */
+#pragma omp parallel sections if (bm->totedge + bm->totface >= BM_OMP_LIMIT)
+		{
+#pragma omp section
 			{
-				BM_elem_flag_enable(e, BM_ELEM_SELECT);
-			}
-			else {
-				BM_elem_flag_disable(e, BM_ELEM_SELECT);
-			}
-		}
-		BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-			ok = TRUE;
-			if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-				l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-				do {
-					if (!BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
-						ok = FALSE;
-						break;
+				BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
+					if (BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
+						BM_elem_flag_test(e->v2, BM_ELEM_SELECT) &&
+						!BM_elem_flag_test(e, BM_ELEM_HIDDEN))
+					{
+						BM_elem_flag_enable(e, BM_ELEM_SELECT);
 					}
-				} while ((l_iter = l_iter->next) != l_first);
+					else {
+						BM_elem_flag_disable(e, BM_ELEM_SELECT);
+					}
+				}
 			}
-			else {
-				ok = FALSE;
-			}
+#pragma omp section
+			{
+				BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+					int ok = TRUE;
+					if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+						l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+						do {
+							if (!BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
+								ok = FALSE;
+								break;
+							}
+						} while ((l_iter = l_iter->next) != l_first);
+					}
+					else {
+						ok = FALSE;
+					}
 
-			BM_elem_flag_set(f, BM_ELEM_SELECT, ok);
+					BM_elem_flag_set(f, BM_ELEM_SELECT, ok);
+				}
+			}
 		}
+		/* end sections */
 	}
 	else if (selectmode & SCE_SELECT_EDGE) {
 		BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-			ok = TRUE;
+			int ok = TRUE;
 			if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
 				l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 				do {

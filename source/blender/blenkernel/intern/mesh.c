@@ -731,7 +731,7 @@ void BKE_mesh_texspace_get(Mesh *me, float r_loc[3], float r_rot[3], float r_siz
 	if (r_size) copy_v3_v3(r_size, me->size);
 }
 
-float *BKE_mesh_orco_verts_get(Object *ob)
+float (*BKE_mesh_orco_verts_get(Object *ob))[3]
 {
 	Mesh *me = ob->data;
 	MVert *mvert = NULL;
@@ -748,7 +748,7 @@ float *BKE_mesh_orco_verts_get(Object *ob)
 		copy_v3_v3(vcos[a], mvert->co);
 	}
 
-	return (float *)vcos;
+	return vcos;
 }
 
 void BKE_mesh_orco_verts_transform(Mesh *me, float (*orco)[3], int totvert, int invert)

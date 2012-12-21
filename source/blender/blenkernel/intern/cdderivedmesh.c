@@ -1875,7 +1875,7 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, int use_mdisps,
 	                           bm->totface);
 
 	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-	BMIter iter, liter;
+	BMIter iter;
 	BMVert *eve;
 	BMEdge *eed;
 	BMFace *efa;
@@ -1913,7 +1913,7 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, int use_mdisps,
 	                 CD_CALLOC, dm->numLoopData);
 	CustomData_merge(&bm->pdata, &dm->polyData, mask,
 	                 CD_CALLOC, dm->numPolyData);
-	
+
 	/* add tessellation mface layers */
 	if (use_tessface) {
 		CustomData_from_bmeshpoly(&dm->faceData, &dm->polyData, &dm->loopData, em_tottri);
@@ -2002,7 +2002,8 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, int use_mdisps,
 	j = 0;
 	efa = BM_iter_new(&iter, bm, BM_FACES_OF_MESH, NULL);
 	for (i = 0; efa; i++, efa = BM_iter_step(&iter), index++) {
-		BMLoop *l;
+		BMLoop *l_iter;
+		BMLoop *l_first;
 		MPoly *mp = &mpoly[i];
 
 		BM_elem_index_set(efa, i); /* set_inline */
@@ -2011,15 +2012,16 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, int use_mdisps,
 		mp->flag = BM_face_flag_to_mflag(efa);
 		mp->loopstart = j;
 		mp->mat_nr = efa->mat_nr;
-		
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			mloop->v = BM_elem_index_get(l->v);
-			mloop->e = BM_elem_index_get(l->e);
-			CustomData_from_bmesh_block(&bm->ldata, &dm->loopData, l->head.data, j);
+
+		l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
+		do {
+			mloop->v = BM_elem_index_get(l_iter->v);
+			mloop->e = BM_elem_index_get(l_iter->e);
+			CustomData_from_bmesh_block(&bm->ldata, &dm->loopData, l_iter->head.data, j);
 
 			j++;
 			mloop++;
-		}
+		} while ((l_iter = l_iter->next) != l_first);
 
 		CustomData_from_bmesh_block(&bm->pdata, &dm->polyData, efa->head.data, i);
 
