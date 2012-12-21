@@ -116,7 +116,7 @@ static eV3DProjStatus ed_view3d_project__internal(ARegion *ar,
                                                   float perspmat[4][4], const int is_local,  /* normally hidden */
                                                   const float co[3], float r_co[2], const eV3DProjTest flag)
 {
-	float fx, fy, vec4[4];
+	float vec4[4];
 
 	/* check for bad flags */
 	BLI_assert((flag & V3D_PROJ_TEST_ALL) == flag);
@@ -135,12 +135,12 @@ static eV3DProjStatus ed_view3d_project__internal(ARegion *ar,
 	mul_m4_v4(perspmat, vec4);
 
 	if (vec4[3] > (float)BL_NEAR_CLIP) {
-		fx = ((float)ar->winx / 2.0f) * (1.0f + vec4[0] / vec4[3]);
+		const float fx = ((float)ar->winx / 2.0f) * (1.0f + vec4[0] / vec4[3]);
 		if (((flag & V3D_PROJ_TEST_CLIP_WIN) == 0) || (fx > 0 && fx < ar->winx)) {
-			fy = ((float)ar->winy / 2.0f) * (1.0f + vec4[1] / vec4[3]);
+			const float fy = ((float)ar->winy / 2.0f) * (1.0f + vec4[1] / vec4[3]);
 			if (((flag & V3D_PROJ_TEST_CLIP_WIN) == 0) || (fy > 0.0f && fy < (float)ar->winy)) {
-				r_co[0] = (short)floor(fx);
-				r_co[1] = (short)floor(fy);
+				r_co[0] = floorf(fx);
+				r_co[1] = floorf(fy);
 			}
 			else {
 				return V3D_PROJ_RET_CLIP_WIN;
