@@ -529,7 +529,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_NO_LOCAL_LOCATION);
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
-	prop = RNA_def_property(srna, "use_relative_parenting", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_relative_parent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Relative Parenting", "Object children will use relative transform, like deform");
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_RELATIVE_PARENTING);
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");

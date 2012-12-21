@@ -171,7 +171,7 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
             col.label(text="Bone Group:")
             col.prop_search(pchan, "bone_group", ob.pose, "bone_groups", text="")
             col.label(text="Object Children:")
-            col.prop(bone, "use_relative_parenting")
+            col.prop(bone, "use_relative_parent")
 
         col = split.column()
         col.label(text="Parent:")
