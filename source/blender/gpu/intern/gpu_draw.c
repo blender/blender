@@ -773,6 +773,9 @@ int GPU_upload_dxt_texture(ImBuf *ibuf)
 
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
+	if (GLEW_EXT_texture_filter_anisotropic)
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, GPU_get_anisotropic());
+
 	blocksize = (ibuf->dds_data.fourcc == FOURCC_DXT1) ? 8 : 16;
 	for (i=0; i<ibuf->dds_data.nummipmaps && (width||height); ++i) {
 		if (width == 0)
