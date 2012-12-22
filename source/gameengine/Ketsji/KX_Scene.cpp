@@ -227,13 +227,9 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	}
 	
 #ifdef WITH_PYTHON
-	// We might be running in a separate thread (async libload) so
-	// try and grab the GIL to avoid issues
-	PyGILState_STATE gstate = PyGILState_Ensure();
 	m_attr_dict = PyDict_New(); /* new ref */
 	m_draw_call_pre = NULL;
 	m_draw_call_post = NULL;
-	PyGILState_Release(gstate);
 #endif
 }
 
