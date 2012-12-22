@@ -103,6 +103,7 @@ typedef struct TreeElement {
 #define TSE_NLA_TRACK       33
 #define TSE_KEYMAP          34
 #define TSE_KEYMAP_ITEM     35
+#define TSE_ID_BASE			36
 
 /* button events */
 #define OL_NAMEBUTTON       1

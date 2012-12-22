@@ -1255,7 +1255,8 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 		{SO_GROUPS, "GROUPS", 0, "Groups", "Display groups and their datablocks"},
 		{SO_LIBRARIES, "LIBRARIES", 0, "Libraries", "Display libraries"},
 		{SO_SEQUENCE, "SEQUENCE", 0, "Sequence", "Display sequence datablocks"},
-		{SO_DATABLOCKS, "DATABLOCKS", 0, "Datablocks", "Display raw datablocks"},
+		{SO_DATAMAIN, "DATAMAIN", 0, "Main Data", "Displays all Main (relinkable) datablocks"},
+		{SO_DATABLOCKS, "DATABLOCKS", 0, "Datablocks", "Display all raw datablocks"},
 		{SO_USERDEF, "USER_PREFERENCES", 0, "User Preferences", "Display the user preference datablocks"},
 		{SO_KEYMAP, "KEYMAPS", 0, "Key Maps", "Display keymap datablocks"},
 		{0, NULL, 0, NULL, NULL}

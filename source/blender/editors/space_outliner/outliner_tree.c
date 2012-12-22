@@ -66,6 +66,7 @@
 
 #include "BKE_fcurve.h"
 #include "BKE_main.h"
+#include "BKE_library.h"
 #include "BKE_modifier.h"
 #include "BKE_sequencer.h"
 
@@ -785,6 +786,7 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 }
 
 // TODO: this function needs to be split up! It's getting a bit too large...
+// Note: "ID" is not always a real ID
 static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv, 
                                          TreeElement *parent, short type, short index)
 {
@@ -822,14 +824,20 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	else if (type == TSE_ANIM_DATA) {
 		/* pass */
 	}
+	else if (type == TSE_ID_BASE) {
+		/* pass */
+	}
 	else {
 		te->name = id->name + 2; // default, can be overridden by Library or non-ID data
 		te->idcode = GS(id->name);
 	}
 	
 	if (type == 0) {
+		TreeStoreElem *tsepar = parent ? TREESTORE(parent) : NULL;
+		
 		/* ID datablock */
-		outliner_add_id_contents(soops, te, tselem, id);
+		if (tsepar==NULL || tsepar->type != TSE_ID_BASE)
+			outliner_add_id_contents(soops, te, tselem, id);
 	}
 	else if (type == TSE_ANIM_DATA) {
 		IdAdtTemplate *iat = (IdAdtTemplate *)idv;
@@ -1194,8 +1202,8 @@ typedef struct tTreeSort {
 	short idcode;
 } tTreeSort;
 
-/* alphabetical comparator */
-static int treesort_alpha(const void *v1, const void *v2)
+/* alphabetical comparator, tryping to put objects first */
+static int treesort_alpha_ob(const void *v1, const void *v2)
 {
 	const tTreeSort *x1 = v1, *x2 = v2;
 	int comp;
@@ -1215,6 +1223,20 @@ static int treesort_alpha(const void *v1, const void *v2)
 	}
 	return 0;
 }
+
+/* alphabetical comparator */
+static int treesort_alpha(const void *v1, const void *v2)
+{
+	const tTreeSort *x1 = v1, *x2 = v2;
+	int comp;
+	
+	comp = strcmp(x1->name, x2->name);
+	
+	if (comp > 0) return 1;
+	else if (comp < 0) return -1;
+	return 0;
+}
+
 
 /* this is nice option for later? doesnt look too useful... */
 #if 0
@@ -1254,8 +1276,8 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 	if (te == NULL) return;
 	tselem = TREESTORE(te);
 	
-	/* sorting rules; only object lists or deformgroups */
-	if ((tselem->type == TSE_DEFGROUP) || (tselem->type == 0 && te->idcode == ID_OB)) {
+	/* sorting rules; only object lists, ID lists, or deformgroups */
+	if ( ELEM(tselem->type, TSE_DEFGROUP, TSE_ID_BASE) || (tselem->type == 0 && te->idcode == ID_OB)) {
 		
 		/* count first */
 		for (te = lb->first; te; te = te->next) totelem++;
@@ -1270,15 +1292,27 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 				tp->te = te;
 				tp->name = te->name;
 				tp->idcode = te->idcode;
-				if (tselem->type && tselem->type != TSE_DEFGROUP) tp->idcode = 0;  // don't sort this
+				
+				if (tselem->type && tselem->type != TSE_DEFGROUP)
+					tp->idcode = 0;  // don't sort this
+				if (tselem->type == TSE_ID_BASE)
+					tp->idcode = 1; // do sort this
+				
 				tp->id = tselem->id;
 			}
-			/* keep beginning of list */
-			for (tp = tear, skip = 0; skip < totelem; skip++, tp++)
-				if (tp->idcode) break;
 			
-			if (skip < totelem)
-				qsort(tear + skip, totelem - skip, sizeof(tTreeSort), treesort_alpha);
+			/* just sort alphabetically */
+			if (tear->idcode == 1) {
+				qsort(tear, totelem, sizeof(tTreeSort), treesort_alpha);
+			}
+			else {
+				/* keep beginning of list */
+				for (tp = tear, skip = 0; skip < totelem; skip++, tp++)
+					if (tp->idcode) break;
+				
+				if (skip < totelem)
+					qsort(tear + skip, totelem - skip, sizeof(tTreeSort), treesort_alpha_ob);
+			}
 			
 			lb->first = lb->last = NULL;
 			tp = tear;
@@ -1551,6 +1585,27 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 			tselem = TREESTORE(ten);
 			tselem->flag &= ~TSE_CLOSED;
 		}
+	}
+	else if (soops->outlinevis == SO_DATAMAIN) {
+		ListBase *lbarray[MAX_LIBARRAY];
+		int a, tot;
+		
+		tot = set_listbasepointers(mainvar, lbarray);
+		for (a = 0; a < tot; a++) {
+			if (lbarray[a]->first) {
+				ID *id = lbarray[a]->first;
+				
+				ten = outliner_add_element(soops, &soops->tree, (void *)lbarray[a], NULL, TSE_ID_BASE, 0);
+				ten->directdata = lbarray[a];
+				
+				ten->name = (char *)RNA_ID_type_name(GS(id->name));
+				
+				for (; id; id = id->next) {
+					outliner_add_element(soops, &ten->subtree, id, ten, 0, 0);
+				}
+			}
+		}
+		
 	}
 	else if (soops->outlinevis == SO_USERDEF) {
 		PointerRNA userdefptr;
