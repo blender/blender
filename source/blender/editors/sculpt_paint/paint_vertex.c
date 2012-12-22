@@ -2991,7 +2991,11 @@ static void gradientVert__mapFunc(void *userData, int index, const float co[3],
 				dw = defvert_find_index(dv, grad_data->def_nr);
 				if (dw) {
 					vs->weight_orig = dw->weight;
-					vs->flag |= VGRAD_STORE_DW_EXIST;
+					vs->flag = VGRAD_STORE_DW_EXIST;
+				}
+				else {
+					vs->weight_orig = 0.0f;
+					vs->flag = VGRAD_STORE_NOP;
 				}
 			}
 			else {
