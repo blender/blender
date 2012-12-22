@@ -3146,6 +3146,53 @@ void BKE_mesh_flush_select_from_polys(MVert *mvert,       const int totvert,
 	}
 }
 
+void BKE_mesh_flush_select_from_verts(const MVert *mvert, const int UNUSED(totvert),
+                                      MLoop *mloop,
+                                      MEdge *medge,       const int totedge,
+                                      MPoly *mpoly,       const int totpoly)
+{
+	MEdge *med;
+	MPoly *mp;
+	int i;
+
+	/* edges */
+	i = totedge;
+	for (med = medge; i--; med++) {
+		if ((med->flag & ME_HIDE) == 0) {
+			if ((mvert[med->v1].flag & SELECT) && (mvert[med->v2].flag & SELECT)) {
+				med->flag |= SELECT;
+			}
+			else {
+				med->flag &= ~SELECT;
+			}
+		}
+	}
+
+	/* polys */
+	i = totpoly;
+	for (mp = mpoly; i--; mp++) {
+		if ((mp->flag & ME_HIDE) == 0) {
+			int ok = TRUE;
+			MLoop *ml;
+			int j;
+			j = mp->totloop;
+			for (ml = &mloop[mp->loopstart]; j--; ml++) {
+				if ((mvert[ml->v].flag & SELECT) == 0) {
+					ok = FALSE;
+					break;
+				}
+			}
+
+			if (ok) {
+				mp->flag |= ME_FACE_SEL;
+			}
+			else {
+				mp->flag &= ~ME_FACE_SEL;
+			}
+		}
+	}
+}
+
 /* basic vertex data functions */
 int BKE_mesh_minmax(Mesh *me, float r_min[3], float r_max[3])
 {
