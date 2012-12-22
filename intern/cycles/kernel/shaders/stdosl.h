@@ -161,7 +161,6 @@ vector cross (vector a, vector b) BUILTIN;
 float dot (vector a, vector b) BUILTIN;
 float length (vector v) BUILTIN;
 float distance (point a, point b) BUILTIN;
-float distance (point a, point b, point q) BUILTIN;
 normal normalize (normal v) BUILTIN;
 vector normalize (vector v) BUILTIN;
 vector faceforward (vector N, vector I, vector Nref) BUILTIN;

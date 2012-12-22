@@ -634,11 +634,10 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 {
 	KernelGlobals *kg = kernel_globals;
 	ShaderData *sd = (ShaderData *)renderstate;
-	int object = sd->object;
-	int tri = sd->prim;
+	int object, tri;
 
 	/* lookup of attribute on another object */
-	if (object_name != u_empty) {
+	if (object_name != u_empty || sd == NULL) {
 		OSLGlobals::ObjectNameMap::iterator it = kg->osl->object_name_map.find(object_name);
 
 		if (it == kg->osl->object_name_map.end())
@@ -647,8 +646,12 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 		object = it->second;
 		tri = ~0;
 	}
-	else if (object == ~0) {
-		return get_background_attribute(kg, sd, name, type, derivatives, val);
+	else {
+		object = sd->object;
+		tri = sd->prim;
+
+		if (object == ~0)
+			return get_background_attribute(kg, sd, name, type, derivatives, val);
 	}
 
 	/* find attribute on object */
