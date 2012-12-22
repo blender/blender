@@ -606,6 +606,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
 			if (ar->swinid && ar->do_draw) {
+				
 				if (ar->overlap == 0) {
 					CTX_wm_region_set(C, ar);
 					ED_region_do_draw(C, ar);
@@ -635,7 +636,6 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 			if (ar->swinid && ar->overlap) {
 				CTX_wm_region_set(C, ar);
 				ED_region_do_draw(C, ar);
-				ED_area_overdraw_flush(sa, ar);
 				CTX_wm_region_set(C, NULL);
 				
 				wm_draw_region_blend(win, ar);

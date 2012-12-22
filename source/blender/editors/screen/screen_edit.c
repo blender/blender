@@ -1302,6 +1302,7 @@ void ED_screen_set_subwinactive(bContext *C, wmEvent *event)
 			screen_cursor_set(win, event);
 		}
 		else {
+			/* notifier invokes freeing the buttons... causing a bit too much redraws */
 			if (oldswin != scr->subwinactive) {
 				region_cursor_set(win, scr->subwinactive, TRUE);
 				WM_event_add_notifier(C, NC_SCREEN | ND_SUBWINACTIVE, scr);
