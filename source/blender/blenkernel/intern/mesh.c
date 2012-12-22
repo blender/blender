@@ -3107,6 +3107,45 @@ void BKE_mesh_flush_hidden_from_verts(const MVert *mvert,
 	}
 }
 
+/**
+ * simple poly -> vert/edge selection.
+ */
+void BKE_mesh_flush_select_from_polys(MVert *mvert,       const int totvert,
+                                      MLoop *mloop,
+                                      MEdge *medge,       const int totedge,
+                                      const MPoly *mpoly, const int totpoly)
+{
+	MVert *mv;
+	MEdge *med;
+	const MPoly *mp;
+	int i;
+
+	i = totvert;
+	for (mv = mvert; i--; mv++) {
+		mv->flag &= ~SELECT;
+	}
+
+	i = totedge;
+	for (med = medge; i--; med++) {
+		med->flag &= ~SELECT;
+	}
+
+	i = totpoly;
+	for (mp = mpoly; i--; mp++) {
+		/* assume if its selected its not hidden and none of its verts/edges are hidden
+		 * (a common assumption)*/
+		if (mp->flag & ME_FACE_SEL) {
+			MLoop *ml;
+			int j;
+			j = mp->totloop;
+			for (ml = &mloop[mp->loopstart]; j--; ml++) {
+				mvert[ml->v].flag |= SELECT;
+				medge[ml->e].flag |= SELECT;
+			}
+		}
+	}
+}
+
 /* basic vertex data functions */
 int BKE_mesh_minmax(Mesh *me, float r_min[3], float r_max[3])
 {
