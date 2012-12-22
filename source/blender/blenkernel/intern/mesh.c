@@ -3110,10 +3110,10 @@ void BKE_mesh_flush_hidden_from_verts(const MVert *mvert,
 /**
  * simple poly -> vert/edge selection.
  */
-void BKE_mesh_flush_select_from_polys(MVert *mvert,       const int totvert,
-                                      MLoop *mloop,
-                                      MEdge *medge,       const int totedge,
-                                      const MPoly *mpoly, const int totpoly)
+void BKE_mesh_flush_select_from_polys_ex(MVert *mvert,       const int totvert,
+                                         MLoop *mloop,
+                                         MEdge *medge,       const int totedge,
+                                         const MPoly *mpoly, const int totpoly)
 {
 	MVert *mv;
 	MEdge *med;
@@ -3145,11 +3145,18 @@ void BKE_mesh_flush_select_from_polys(MVert *mvert,       const int totvert,
 		}
 	}
 }
+void BKE_mesh_flush_select_from_polys(Mesh *me)
+{
+	BKE_mesh_flush_select_from_polys_ex(me->mvert, me->totvert,
+	                                 me->mloop,
+	                                 me->medge, me->totedge,
+	                                 me->mpoly, me->totpoly);
+}
 
-void BKE_mesh_flush_select_from_verts(const MVert *mvert, const int UNUSED(totvert),
-                                      MLoop *mloop,
-                                      MEdge *medge,       const int totedge,
-                                      MPoly *mpoly,       const int totpoly)
+void BKE_mesh_flush_select_from_verts_ex(const MVert *mvert, const int UNUSED(totvert),
+                                         MLoop *mloop,
+                                         MEdge *medge,       const int totedge,
+                                         MPoly *mpoly,       const int totpoly)
 {
 	MEdge *med;
 	MPoly *mp;
@@ -3192,6 +3199,14 @@ void BKE_mesh_flush_select_from_verts(const MVert *mvert, const int UNUSED(totve
 		}
 	}
 }
+void BKE_mesh_flush_select_from_verts(Mesh *me)
+{
+	BKE_mesh_flush_select_from_verts_ex(me->mvert, me->totvert,
+	                                    me->mloop,
+	                                    me->medge, me->totedge,
+	                                    me->mpoly, me->totpoly);
+}
+
 
 /* basic vertex data functions */
 int BKE_mesh_minmax(Mesh *me, float r_min[3], float r_max[3])

@@ -2005,6 +2005,13 @@ static int set_wpaint(bContext *C, wmOperator *UNUSED(op))  /* toggle */
 	else {
 		mesh_octree_table(NULL, NULL, NULL, 'e');
 		mesh_mirrtopo_table(NULL, 'e');
+
+		if (me->editflag & ME_EDIT_VERT_SEL) {
+			BKE_mesh_flush_select_from_verts(me);
+		}
+		else if (me->editflag & ME_EDIT_PAINT_MASK) {
+			BKE_mesh_flush_select_from_polys(me);
+		}
 	}
 	
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
@@ -2488,6 +2495,10 @@ static int set_vpaint(bContext *C, wmOperator *op)  /* toggle */
 	if (ob->mode & OB_MODE_VERTEX_PAINT) {
 		
 		ob->mode &= ~OB_MODE_VERTEX_PAINT;
+
+		if (me->editflag & ME_EDIT_PAINT_MASK) {
+			BKE_mesh_flush_select_from_polys(me);
+		}
 	}
 	else {
 		ob->mode |= OB_MODE_VERTEX_PAINT;
@@ -3114,10 +3125,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 
 		/* on init only, convert face -> vert sel  */
 		if (me->editflag & ME_EDIT_PAINT_MASK) {
-			BKE_mesh_flush_select_from_polys(me->mvert, me->totvert,
-			                                 me->mloop,
-			                                 me->medge, me->totedge,
-			                                 me->mpoly, me->totpoly);
+			BKE_mesh_flush_select_from_polys(me);
 		}
 
 	}
