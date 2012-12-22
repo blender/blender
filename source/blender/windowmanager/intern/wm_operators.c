@@ -4011,6 +4011,7 @@ static void gesture_straightline_modal_keymap(wmKeyConfig *keyconf)
 	
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "IMAGE_OT_sample_line");
+	WM_modalkeymap_assign(keymap, "PAINT_OT_weight_gradient");
 }
 
 
