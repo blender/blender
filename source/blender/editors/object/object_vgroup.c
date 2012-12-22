@@ -88,7 +88,7 @@ static int vertex_group_use_vert_sel(Object *ob)
 	if (ob->mode == OB_MODE_EDIT) {
 		return TRUE;
 	}
-	else if (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_VERT_SEL) {
+	else if (ob->type == OB_MESH && ((Mesh *)ob->data)->editflag & ME_EDIT_PAINT_VERT_SEL) {
 		return TRUE;
 	}
 	else {
@@ -1410,7 +1410,7 @@ static void vgroup_fix(Scene *scene, Object *ob, float distToBe, float strength,
 	Mesh *me = ob->data;
 	MVert *mvert = me->mvert;
 	int *verts = NULL;
-	if (!(me->editflag & ME_EDIT_VERT_SEL))
+	if (!(me->editflag & ME_EDIT_PAINT_VERT_SEL))
 		return;
 	for (i = 0; i < me->totvert && mvert; i++, mvert++) {
 		if (mvert->flag & SELECT) {
@@ -2071,7 +2071,7 @@ void ED_vgroup_mirror(Object *ob, const short mirror_weights, const short flip_v
 			/* object mode / weight paint */
 			MVert *mv, *mv_mirr;
 			int vidx, vidx_mirr;
-			const int use_vert_sel = (me->editflag & ME_EDIT_VERT_SEL) != 0;
+			const int use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 
 			if (me->dvert == NULL) {
 				goto cleanup;

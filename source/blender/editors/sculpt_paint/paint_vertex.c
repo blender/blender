@@ -224,7 +224,7 @@ static void do_shared_vertex_tesscol(Mesh *me)
 {
 	/* if no mcol: do not do */
 	/* if tface: only the involved faces, otherwise all */
-	const int use_face_sel = (me->editflag & ME_EDIT_PAINT_MASK);
+	const int use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL);
 	MFace *mface;
 	int a;
 	short *scolmain, *scol;
@@ -284,7 +284,7 @@ static void do_shared_vertex_tesscol(Mesh *me)
 
 static void do_shared_vertexcol(Mesh *me, int do_tessface)
 {
-	const int use_face_sel = (me->editflag & ME_EDIT_PAINT_MASK);
+	const int use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL);
 	MPoly *mp;
 	float (*scol)[4];
 	int i, j, has_shared = 0;
@@ -459,7 +459,7 @@ void vpaint_fill(Object *ob, unsigned int paintcol)
 	if (!me->mloopcol) return;  /* possible we can't make mcol's */
 
 
-	selected = (me->editflag & ME_EDIT_PAINT_MASK);
+	selected = (me->editflag & ME_EDIT_PAINT_FACE_SEL);
 
 	mp = me->mpoly;
 	for (i = 0; i < me->totpoly; i++, mp++) {
@@ -1030,7 +1030,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	me = BKE_mesh_from_object(vc.obact);
 
 	if (me && me->dvert && vc.v3d && vc.rv3d) {
-		const int use_vert_sel = (me->editflag & ME_EDIT_VERT_SEL) != 0;
+		const int use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 		int v_idx_best = -1;
 		unsigned int index;
 
@@ -1115,7 +1115,7 @@ static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA 
 
 			if (me && me->dvert && vc.v3d && vc.rv3d && vc.obact->defbase.first) {
 				const int defbase_tot = BLI_countlist(&vc.obact->defbase);
-				const int use_vert_sel = (me->editflag & ME_EDIT_VERT_SEL) != 0;
+				const int use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 				int *groups = MEM_callocN(defbase_tot * sizeof(int), "groups");
 				int found = FALSE;
 				unsigned int index;
@@ -2006,10 +2006,10 @@ static int set_wpaint(bContext *C, wmOperator *UNUSED(op))  /* toggle */
 		mesh_octree_table(NULL, NULL, NULL, 'e');
 		mesh_mirrtopo_table(NULL, 'e');
 
-		if (me->editflag & ME_EDIT_VERT_SEL) {
+		if (me->editflag & ME_EDIT_PAINT_VERT_SEL) {
 			BKE_mesh_flush_select_from_verts(me);
 		}
-		else if (me->editflag & ME_EDIT_PAINT_MASK) {
+		else if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
 			BKE_mesh_flush_select_from_polys(me);
 		}
 	}
@@ -2241,14 +2241,14 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 	swap_m4m4(wpd->vc.rv3d->persmat, mat);
 
-	use_vert_sel = (me->editflag & ME_EDIT_VERT_SEL) != 0;
+	use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
 
 	/* which faces are involved */
 	if (wp->flag & VP_AREA) {
 		/* Ugly hack, to avoid drawing vertex index when getting the face index buffer - campbell */
-		me->editflag &= ~ME_EDIT_VERT_SEL;
+		me->editflag &= ~ME_EDIT_PAINT_VERT_SEL;
 		totindex = sample_backbuf_area(vc, indexar, me->totpoly, mval[0], mval[1], brush_size_pressure);
-		me->editflag |= use_vert_sel ? ME_EDIT_VERT_SEL : 0;
+		me->editflag |= use_vert_sel ? ME_EDIT_PAINT_VERT_SEL : 0;
 	}
 	else {
 		indexar[0] = view3d_sample_backbuf(vc, mval[0], mval[1]);
@@ -2256,7 +2256,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		else totindex = 0;
 	}
 
-	if ((me->editflag & ME_EDIT_PAINT_MASK) && me->mpoly) {
+	if ((me->editflag & ME_EDIT_PAINT_FACE_SEL) && me->mpoly) {
 		for (index = 0; index < totindex; index++) {
 			if (indexar[index] && indexar[index] <= me->totpoly) {
 				MPoly *mpoly = ((MPoly *)me->mpoly) + (indexar[index] - 1);
@@ -2496,7 +2496,7 @@ static int set_vpaint(bContext *C, wmOperator *op)  /* toggle */
 		
 		ob->mode &= ~OB_MODE_VERTEX_PAINT;
 
-		if (me->editflag & ME_EDIT_PAINT_MASK) {
+		if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
 			BKE_mesh_flush_select_from_polys(me);
 		}
 	}
@@ -2793,7 +2793,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		else totindex = 0;
 	}
 
-	if ((me->editflag & ME_EDIT_PAINT_MASK) && me->mpoly) {
+	if ((me->editflag & ME_EDIT_PAINT_FACE_SEL) && me->mpoly) {
 		for (index = 0; index < totindex; index++) {
 			if (indexar[index] && indexar[index] <= me->totpoly) {
 				MPoly *mpoly = ((MPoly *)me->mpoly) + (indexar[index] - 1);
@@ -3124,7 +3124,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 		copy_wpaint_prev(wp, me->dvert, me->totvert);
 
 		/* on init only, convert face -> vert sel  */
-		if (me->editflag & ME_EDIT_PAINT_MASK) {
+		if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
 			BKE_mesh_flush_select_from_polys(me);
 		}
 
@@ -3137,7 +3137,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 	data.sco_end   = sco_end;
 	data.sco_line_div = 1.0f / len_v2v2(sco_start, sco_end);
 	data.def_nr = ob->actdef - 1;
-	data.use_select = (me->editflag & (ME_EDIT_PAINT_MASK | ME_EDIT_VERT_SEL));
+	data.use_select = (me->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL));
 	data.vert_cache = gesture->userdata;
 	data.type = RNA_enum_get(op->ptr, "type");
 

@@ -152,12 +152,9 @@ void rna_Mesh_update_draw(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_Mesh_update_vertmask(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Mesh *me = ptr->data;
-	if ((me->editflag & ME_EDIT_VERT_SEL) && (me->editflag & ME_EDIT_PAINT_MASK)) {
-		me->editflag &= ~ME_EDIT_PAINT_MASK;
-		BKE_mesh_flush_select_from_polys_ex(me->mvert, me->totvert,
-		                                 me->mloop,
-		                                 me->medge, me->totedge,
-		                                 me->mpoly, me->totpoly);
+	if ((me->editflag & ME_EDIT_PAINT_VERT_SEL) && (me->editflag & ME_EDIT_PAINT_FACE_SEL)) {
+		me->editflag &= ~ME_EDIT_PAINT_FACE_SEL;
+		BKE_mesh_flush_select_from_polys(me);
 	}
 	rna_Mesh_update_draw(bmain, scene, ptr);
 }
@@ -165,8 +162,8 @@ static void rna_Mesh_update_vertmask(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_Mesh_update_facemask(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Mesh *me = ptr->data;
-	if ((me->editflag & ME_EDIT_VERT_SEL) && (me->editflag & ME_EDIT_PAINT_MASK)) {
-		me->editflag &= ~ME_EDIT_VERT_SEL;
+	if ((me->editflag & ME_EDIT_PAINT_VERT_SEL) && (me->editflag & ME_EDIT_PAINT_FACE_SEL)) {
+		me->editflag &= ~ME_EDIT_PAINT_VERT_SEL;
 		BKE_mesh_flush_select_from_verts(me);
 	}
 	rna_Mesh_update_draw(bmain, scene, ptr);
@@ -2971,13 +2968,13 @@ static void rna_def_mesh(BlenderRNA *brna)
 	                         "(for when both sides of mesh have matching, unique topology)");
 
 	prop = RNA_def_property(srna, "use_paint_mask", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_PAINT_MASK);
+	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_PAINT_FACE_SEL);
 	RNA_def_property_ui_text(prop, "Paint Mask", "Face selection masking for painting");
 	RNA_def_property_ui_icon(prop, ICON_FACESEL_HLT, 0);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_Mesh_update_facemask");
 
 	prop = RNA_def_property(srna, "use_paint_mask_vertex", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_VERT_SEL);
+	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_PAINT_VERT_SEL);
 	RNA_def_property_ui_text(prop, "Vertex Selection", "Vertex selection masking for painting (weight paint only)");
 	RNA_def_property_ui_icon(prop, ICON_VERTEXSEL, 0);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_Mesh_update_vertmask");

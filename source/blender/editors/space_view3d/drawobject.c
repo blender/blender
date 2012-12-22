@@ -7106,7 +7106,7 @@ static void bbs_mesh_solid(Scene *scene, Object *ob)
 	
 	glColor3ub(0, 0, 0);
 
-	if ((me->editflag & ME_EDIT_PAINT_MASK))
+	if ((me->editflag & ME_EDIT_PAINT_FACE_SEL))
 		dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts, GPU_enable_material, NULL, me, 0);
 	else
 		dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, GPU_enable_material, NULL, me, 0);
@@ -7160,7 +7160,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 			}
 			else {
 				Mesh *me = ob->data;
-				if ((me->editflag & ME_EDIT_VERT_SEL) &&
+				if ((me->editflag & ME_EDIT_PAINT_VERT_SEL) &&
 				    /* currently vertex select only supports weight paint */
 				    (ob->mode & OB_MODE_WEIGHT_PAINT))
 				{
