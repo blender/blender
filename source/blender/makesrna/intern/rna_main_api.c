@@ -198,15 +198,6 @@ static Object *rna_Main_objects_new(Main *UNUSED(bmain), ReportList *reports, co
 	return ob;
 }
 
-/* exported for non-rna use cases */
-const char *RNA_ID_type_name(short type)
-{
-	const char *idname;
-	if (RNA_enum_id_from_value(id_type_items, type, &idname) == 0)
-		idname = "UNKNOWN";
-	return idname;
-}
-
 static void rna_Main_objects_remove(Main *bmain, ReportList *reports, PointerRNA *object_ptr)
 {
 	Object *object = object_ptr->data;

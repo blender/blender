@@ -1039,8 +1039,6 @@ int RNA_function_call_direct_va_lookup(struct bContext *C, struct ReportList *re
 short RNA_type_to_ID_code(StructRNA *type);
 StructRNA *ID_code_to_RNA_type(short idcode);
 
-const char *RNA_ID_type_name(short type);
-
 
 #define RNA_POINTER_INVALIDATE(ptr) {                                         \
 	/* this is checked for validity */                                        \

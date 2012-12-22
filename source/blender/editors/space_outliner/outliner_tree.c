@@ -69,6 +69,7 @@
 #include "BKE_library.h"
 #include "BKE_modifier.h"
 #include "BKE_sequencer.h"
+#include "BKE_idcode.h"
 
 #include "ED_armature.h"
 #include "ED_screen.h"
@@ -1598,7 +1599,10 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 				ten = outliner_add_element(soops, &soops->tree, (void *)lbarray[a], NULL, TSE_ID_BASE, 0);
 				ten->directdata = lbarray[a];
 				
-				ten->name = (char *)RNA_ID_type_name(GS(id->name));
+				ten->name = (char *)BKE_idcode_to_name_plural(GS(id->name));
+				if (UNLIKELY(ten->name == NULL)) {
+					ten->name = "UNKNOWN";
+				}
 				
 				for (; id; id = id->next) {
 					outliner_add_element(soops, &ten->subtree, id, ten, 0, 0);
