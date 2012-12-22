@@ -407,6 +407,9 @@ typedef struct wmGesture {
 	/* customdata for circle is recti, (xmin, ymin) is center, xmax radius */
 	/* customdata for lasso is short array */
 	/* customdata for straight line is a recti: (xmin,ymin) is start, (xmax, ymax) is end */
+
+	/* free pointer to use for operator allocs (if set, its freed on exit)*/
+	void *userdata;
 } wmGesture;
 
 /* ************** wmEvent ************************ */

@@ -687,9 +687,6 @@ static int poselib_rename_exec(bContext *C, wmOperator *op)
 void POSELIB_OT_pose_rename(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-	static EnumPropertyItem prop_poses_dummy_types[] = {
-		{0, NULL, 0, NULL, NULL}
-	};
 	
 	/* identifiers */
 	ot->name = "PoseLib Rename Pose";
@@ -707,7 +704,7 @@ void POSELIB_OT_pose_rename(wmOperatorType *ot)
 	/* properties */
 	/* NOTE: name not pose is the operator's "main" property, so that it will get activated in the popup for easy renaming */
 	ot->prop = RNA_def_string(ot->srna, "name", "RenamedPose", 64, "New Pose Name", "New name for pose");
-	prop = RNA_def_enum(ot->srna, "pose", prop_poses_dummy_types, 0, "Pose", "The pose to rename");
+	prop = RNA_def_enum(ot->srna, "pose", DummyRNA_NULL_items, 0, "Pose", "The pose to rename");
 	RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
 }
 

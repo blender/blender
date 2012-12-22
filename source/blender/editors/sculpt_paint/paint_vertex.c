@@ -402,12 +402,28 @@ static int wpaint_mirror_vgroup_ensure(Object *ob, const int vgroup_active)
 	return -1;
 }
 
-static void copy_vpaint_prev(VPaint *vp, unsigned int *lcol, int tot)
+static void free_vpaint_prev(VPaint *vp)
 {
 	if (vp->vpaint_prev) {
 		MEM_freeN(vp->vpaint_prev);
 		vp->vpaint_prev = NULL;
+		vp->tot = 0;
 	}
+}
+
+static void free_wpaint_prev(VPaint *vp)
+{
+	if (vp->wpaint_prev) {
+		MEM_freeN(vp->wpaint_prev);
+		vp->wpaint_prev = NULL;
+		vp->tot = 0;
+	}
+}
+
+static void copy_vpaint_prev(VPaint *vp, unsigned int *lcol, int tot)
+{
+	free_vpaint_prev(vp);
+
 	vp->tot = tot;
 	
 	if (lcol == NULL || tot == 0) return;
@@ -419,10 +435,7 @@ static void copy_vpaint_prev(VPaint *vp, unsigned int *lcol, int tot)
 
 static void copy_wpaint_prev(VPaint *wp, MDeformVert *dverts, int dcount)
 {
-	if (wp->wpaint_prev) {
-		free_dverts(wp->wpaint_prev, wp->tot);
-		wp->wpaint_prev = NULL;
-	}
+	free_wpaint_prev(wp);
 	
 	if (dverts && dcount) {
 		
@@ -431,7 +444,6 @@ static void copy_wpaint_prev(VPaint *wp, MDeformVert *dverts, int dcount)
 		copy_dverts(wp->wpaint_prev, dverts, dcount);
 	}
 }
-
 
 void vpaint_fill(Object *ob, unsigned int paintcol)
 {

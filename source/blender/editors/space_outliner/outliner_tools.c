@@ -764,7 +764,7 @@ static EnumPropertyItem prop_id_op_types[] = {
 	{OUTLINER_IDOP_LOCAL, "LOCAL", 0, "Make Local", ""},
 	{OUTLINER_IDOP_SINGLE, "SINGLE", 0, "Make Single User", ""},
 	{OUTLINER_IDOP_FAKE_ADD, "ADD_FAKE", 0, "Add Fake User",
-     "Ensure datablock gets saved even if it isn't in use (e.g. for motion and material libraries)"},
+	 "Ensure datablock gets saved even if it isn't in use (e.g. for motion and material libraries)"},
 	{OUTLINER_IDOP_FAKE_CLEAR, "CLEAR_FAKE", 0, "Clear Fake User", ""},
 	{OUTLINER_IDOP_RENAME, "RENAME", 0, "Rename", ""},
 	{OUTLINER_IDOP_SELECT_LINKED, "SELECT_LINKED", 0, "Select Linked", ""},

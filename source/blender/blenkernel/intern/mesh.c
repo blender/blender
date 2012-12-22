@@ -430,7 +430,7 @@ void BKE_mesh_free(Mesh *me, int unlink)
 	if (me->edit_btmesh) MEM_freeN(me->edit_btmesh);
 }
 
-void copy_dverts(MDeformVert *dst, MDeformVert *src, int copycount)
+void copy_dverts(MDeformVert *dst, const MDeformVert *src, int copycount)
 {
 	/* Assumes dst is already set up */
 	int i;
@@ -442,7 +442,7 @@ void copy_dverts(MDeformVert *dst, MDeformVert *src, int copycount)
 	
 	for (i = 0; i < copycount; i++) {
 		if (src[i].dw) {
-			dst[i].dw = MEM_callocN(sizeof(MDeformWeight) * src[i].totweight, "copy_deformWeight");
+			dst[i].dw = MEM_mallocN(sizeof(MDeformWeight) * src[i].totweight, "copy_deformWeight");
 			memcpy(dst[i].dw, src[i].dw, sizeof(MDeformWeight) * src[i].totweight);
 		}
 	}

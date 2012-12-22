@@ -152,7 +152,7 @@ void BKE_mesh_from_nurbs_displist(struct Object *ob, struct ListBase *dispbase,
                                   int **orco_index_ptr);
 void BKE_mesh_from_curve(struct Scene *scene, struct Object *ob);
 void free_dverts(struct MDeformVert *dvert, int totvert);
-void copy_dverts(struct MDeformVert *dst, struct MDeformVert *src, int totvert); /* __NLA */
+void copy_dverts(struct MDeformVert *dst, const struct MDeformVert *src, int totvert);
 void BKE_mesh_delete_material_index(struct Mesh *me, short index);
 void BKE_mesh_smooth_flag_set(struct Object *meshOb, int enableSmooth);
 void BKE_mesh_convert_mfaces_to_mpolys(struct Mesh *mesh);

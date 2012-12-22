@@ -1020,7 +1020,7 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			/* y-axis transform */
 			dist = BLI_rcti_size_y(&v2d->mask) / 2.0f;
-			dy = 1.0f - (fabsf(vzd->lasty - vzd->ar->winrct.ymin- dist) + 2.0f) / (fabsf(event->mval[1] - dist) + 2.0f);
+			dy = 1.0f - (fabsf(vzd->lasty - vzd->ar->winrct.ymin - dist) + 2.0f) / (fabsf(event->mval[1] - dist) + 2.0f);
 			dy *= 0.5f * BLI_rctf_size_y(&v2d->cur);
 		}
 		else {

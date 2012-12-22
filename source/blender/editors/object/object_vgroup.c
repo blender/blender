@@ -65,6 +65,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -3369,10 +3370,6 @@ void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
 	ot->prop = RNA_def_enum(ot->srna, "WT_replace_mode", WT_replace_mode_item, 1, "Replace", "");
 }
 
-static EnumPropertyItem vgroup_items[] = {
-	{0, NULL, 0, NULL, NULL}
-};
-
 static int set_active_group_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
@@ -3396,7 +3393,7 @@ static EnumPropertyItem *vgroup_itemf(bContext *C, PointerRNA *UNUSED(ptr), Prop
 	int a, totitem = 0;
 	
 	if (!ob)
-		return vgroup_items;
+		return DummyRNA_NULL_items;
 	
 	for (a = 0, def = ob->defbase.first; def; def = def->next, a++) {
 		tmp.value = a;
@@ -3430,7 +3427,7 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	prop = RNA_def_enum(ot->srna, "group", vgroup_items, 0, "Group", "Vertex group to set as active");
+	prop = RNA_def_enum(ot->srna, "group", DummyRNA_NULL_items, 0, "Group", "Vertex group to set as active");
 	RNA_def_enum_funcs(prop, vgroup_itemf);
 	ot->prop = prop;
 }
