@@ -1492,8 +1492,8 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	if (soops->outlinevis == SO_LIBRARIES) {
 		Library *lib;
 		
-		/* current file first */
-		ten = outliner_add_element(soops, &soops->tree, NULL, NULL, TSE_ID_BASE, 0);
+		/* current file first - mainvar provides tselem with unique pointer - not used */
+		ten = outliner_add_element(soops, &soops->tree, mainvar, NULL, TSE_ID_BASE, 0);
 		ten->name = "Current File";
 
 		tselem = TREESTORE(ten);
@@ -1511,6 +1511,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 		}
 		/* make hierarchy */
 		ten = soops->tree.first;
+		ten= ten->next; /* first one is main */
 		while (ten) {
 			TreeElement *nten = ten->next, *par;
 			tselem = TREESTORE(ten);
