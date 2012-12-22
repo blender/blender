@@ -595,6 +595,7 @@ static void outliner_add_object_contents(SpaceOops *soops, TreeElement *te, Tree
 		outliner_add_element(soops, &te->subtree, ob->dup_group, te, 0, 0);
 }
 
+
 // can be inlined if necessary
 static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, ID *id)
 {
@@ -801,7 +802,9 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		if (!id) id = ((PointerRNA *)idv)->data;
 	}
 
-	if (id == NULL) return NULL;
+	/* One exception */
+	if (type == TSE_ID_BASE);
+	else if (id == NULL) return NULL;
 
 	te = MEM_callocN(sizeof(TreeElement), "tree elem");
 	/* add to the visual tree */
@@ -1419,6 +1422,42 @@ static int outliner_filter_tree(SpaceOops *soops, ListBase *lb)
 	return (lb->first != NULL);
 }
 
+static void outliner_add_library_contents(Main *mainvar, SpaceOops *soops, TreeElement *te, Library *lib)
+{
+	TreeElement *ten;
+	ListBase *lbarray[MAX_LIBARRAY];
+	int a, tot;
+	
+	tot = set_listbasepointers(mainvar, lbarray);
+	for (a = 0; a < tot; a++) {
+		if (lbarray[a]->first) {
+			ID *id = lbarray[a]->first;
+			
+			/* check if there's data in current lib */
+			for (; id; id = id->next)
+				if (id->lib == lib)
+					break;
+			
+			if (id) {
+				
+				ten = outliner_add_element(soops, &te->subtree, (void *)lbarray[a], NULL, TSE_ID_BASE, 0);
+				ten->directdata = lbarray[a];
+				
+				ten->name = (char *)BKE_idcode_to_name_plural(GS(id->name));
+				if (ten->name == NULL)
+					ten->name = "UNKNOWN";
+				
+				for (id = lbarray[a]->first; id; id = id->next) {
+					if (id->lib == lib)
+						outliner_add_element(soops, &ten->subtree, id, ten, 0, 0);
+				}
+			}
+		}
+	}
+	
+}
+
+
 /* ======================================================= */
 /* Main Tree Building API */
 
@@ -1453,9 +1492,22 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	if (soops->outlinevis == SO_LIBRARIES) {
 		Library *lib;
 		
+		/* current file first */
+		ten = outliner_add_element(soops, &soops->tree, NULL, NULL, TSE_ID_BASE, 0);
+		ten->name = "Current File";
+
+		tselem = TREESTORE(ten);
+		if (!tselem->used)
+			tselem->flag &= ~TSE_CLOSED;
+		
+		outliner_add_library_contents(mainvar, soops, ten, NULL);
+		
 		for (lib = mainvar->library.first; lib; lib = lib->id.next) {
 			ten = outliner_add_element(soops, &soops->tree, lib, NULL, 0, 0);
 			lib->id.newid = (ID *)ten;
+			
+			outliner_add_library_contents(mainvar, soops, ten, lib);
+
 		}
 		/* make hierarchy */
 		ten = soops->tree.first;
@@ -1463,7 +1515,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 			TreeElement *nten = ten->next, *par;
 			tselem = TREESTORE(ten);
 			lib = (Library *)tselem->id;
-			if (lib->parent) {
+			if (lib && lib->parent) {
 				BLI_remlink(&soops->tree, ten);
 				par = (TreeElement *)lib->parent->id.newid;
 				BLI_addtail(&par->subtree, ten);
@@ -1586,30 +1638,6 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 			tselem = TREESTORE(ten);
 			tselem->flag &= ~TSE_CLOSED;
 		}
-	}
-	else if (soops->outlinevis == SO_DATAMAIN) {
-		ListBase *lbarray[MAX_LIBARRAY];
-		int a, tot;
-		
-		tot = set_listbasepointers(mainvar, lbarray);
-		for (a = 0; a < tot; a++) {
-			if (lbarray[a]->first) {
-				ID *id = lbarray[a]->first;
-				
-				ten = outliner_add_element(soops, &soops->tree, (void *)lbarray[a], NULL, TSE_ID_BASE, 0);
-				ten->directdata = lbarray[a];
-				
-				ten->name = (char *)BKE_idcode_to_name_plural(GS(id->name));
-				if (UNLIKELY(ten->name == NULL)) {
-					ten->name = "UNKNOWN";
-				}
-				
-				for (; id; id = id->next) {
-					outliner_add_element(soops, &ten->subtree, id, ten, 0, 0);
-				}
-			}
-		}
-		
 	}
 	else if (soops->outlinevis == SO_USERDEF) {
 		PointerRNA userdefptr;

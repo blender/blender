@@ -270,7 +270,6 @@ typedef enum eSpaceOutliner_Mode {
 	SO_DATABLOCKS = 11,
 	SO_USERDEF = 12,
 	SO_KEYMAP = 13,
-	SO_DATAMAIN = 9,
 } eSpaceOutliner_Mode;
 
 /* SpaceOops->storeflag */
