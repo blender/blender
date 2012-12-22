@@ -136,6 +136,7 @@ extern "C" {
 
 /* for converting new scenes */
 #include "KX_BlenderSceneConverter.h"
+#include "KX_LibLoadStatus.h"
 #include "KX_MeshProxy.h" /* for creating a new library of mesh objects */
 extern "C" {
 	#include "BKE_idcode.h"
@@ -670,14 +671,15 @@ static PyObject *gLibLoad(PyObject *, PyObject *args, PyObject *kwds)
 	Py_buffer py_buffer;
 	py_buffer.buf = NULL;
 	char *err_str= NULL;
+	KX_LibLoadStatus *status = NULL;
 
 	short options=0;
-	int load_actions=0, verbose=0, load_scripts=1;
+	int load_actions=0, verbose=0, load_scripts=1, async=0;
 
-	static const char *kwlist[] = {"path", "group", "buffer", "load_actions", "verbose", "load_scripts", NULL};
+	static const char *kwlist[] = {"path", "group", "buffer", "load_actions", "verbose", "load_scripts", "async", NULL};
 	
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "ss|y*iii:LibLoad", const_cast<char**>(kwlist),
-									&path, &group, &py_buffer, &load_actions, &verbose, &load_scripts))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "ss|y*iiIi:LibLoad", const_cast<char**>(kwlist),
+									&path, &group, &py_buffer, &load_actions, &verbose, &load_scripts, &async))
 		return NULL;
 
 	/* setup options */
@@ -687,6 +689,8 @@ static PyObject *gLibLoad(PyObject *, PyObject *args, PyObject *kwds)
 		options |= KX_BlenderSceneConverter::LIB_LOAD_VERBOSE;
 	if (load_scripts != 0)
 		options |= KX_BlenderSceneConverter::LIB_LOAD_LOAD_SCRIPTS;
+	if (async != 0)
+		options |= KX_BlenderSceneConverter::LIB_LOAD_ASYNC;
 
 	if (!py_buffer.buf)
 	{
@@ -695,16 +699,16 @@ static PyObject *gLibLoad(PyObject *, PyObject *args, PyObject *kwds)
 		BLI_strncpy(abs_path, path, sizeof(abs_path));
 		BLI_path_abs(abs_path, gp_GamePythonPath);
 
-		if (kx_scene->GetSceneConverter()->LinkBlendFilePath(abs_path, group, kx_scene, &err_str, options)) {
-			Py_RETURN_TRUE;
+		if ((status=kx_scene->GetSceneConverter()->LinkBlendFilePath(abs_path, group, kx_scene, &err_str, options))) {
+			return status->GetProxy();
 		}
 	}
 	else
 	{
 
-		if (kx_scene->GetSceneConverter()->LinkBlendFileMemory(py_buffer.buf, py_buffer.len, path, group, kx_scene, &err_str, options))	{
+		if ((status=kx_scene->GetSceneConverter()->LinkBlendFileMemory(py_buffer.buf, py_buffer.len, path, group, kx_scene, &err_str, options)))	{
 			PyBuffer_Release(&py_buffer);
-			Py_RETURN_TRUE;
+			return status->GetProxy();
 		}
 
 		PyBuffer_Release(&py_buffer);

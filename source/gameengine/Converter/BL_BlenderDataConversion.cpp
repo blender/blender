@@ -192,6 +192,8 @@ extern "C" {
 }
 #endif
 
+#include "BLI_threads.h"
+
 static bool default_light_mode = 0;
 
 static std::map<int, SCA_IInputDevice::KX_EnumInputs> create_translate_table()
@@ -1342,7 +1344,13 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	float radius=0.0f, vert_radius, *co;
 	int a;
 	
-	if (me->bb==0) me->bb= (struct BoundBox *)MEM_callocN(sizeof(BoundBox), "boundbox");
+	if (me->bb==0) {
+		// This can be called in a seperate (not main) thread when doing async libload,
+		// so lets try to be safe...
+		BLI_begin_threaded_malloc();
+		me->bb= (struct BoundBox *)MEM_callocN(sizeof(BoundBox), "boundbox");
+		BLI_end_threaded_malloc();
+	}
 	bb= me->bb;
 	
 	INIT_MINMAX(min, max);

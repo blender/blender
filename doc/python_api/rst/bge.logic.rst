@@ -176,7 +176,7 @@ General functions
 
    Restarts the current game by reloading the .blend file (the last saved version, not what is currently running).
    
-.. function:: LibLoad(blend, type, data, load_actions=False, verbose=False, load_scripts=True)
+.. function:: LibLoad(blend, type, data, load_actions=False, verbose=False, load_scripts=True, async=False)
    
    Converts the all of the datablocks of the given type from the given blend.
    
@@ -191,7 +191,13 @@ General functions
    :arg verbose: Whether or not to print debugging information (e.g., "SceneName: Scene")
    :type verbose: bool
    :arg load_scripts: Whether or not to load text datablocks as well (can be disabled for some extra security)
-   :type load_scripts: bool
+   :type load_scripts: bool   
+   :arg async: Whether or not to do the loading asynchronously (in another thread). Only the "Scene" type is currently supported for this feature.
+   :type async: bool
+   
+   :rtype: :class:`bge.types.KX_LibLoadStatus`
+
+   .. note:: Asynchronously loaded libraries will not be available immediately after LibLoad() returns. Use the returned KX_LibLoadStatus to figure out when the libraries are ready.
    
 .. function:: LibNew(name, type, data)
 
