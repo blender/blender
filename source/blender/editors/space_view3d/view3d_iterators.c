@@ -27,6 +27,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 
@@ -47,6 +48,12 @@
 #include "ED_object.h"
 #include "ED_view3d.h"
 
+typedef struct foreachScreenObjectVert_userData {
+	void (*func)(void *userData, MVert *mv, const float screen_co_b[2], int index);
+	void *userData;
+	ViewContext vc;
+	eV3DProjTest clip_flag;
+} foreachScreenObjectVert_userData;
 
 typedef struct foreachScreenVert_userData {
 	void (*func)(void *userData, BMVert *eve, const float screen_co_b[2], int index);
@@ -78,6 +85,46 @@ typedef struct foreachScreenFace_userData {
  * use the object matrix in the usual way */
 
 /* ------------------------------------------------------------------------ */
+
+
+static void meshobject_foreachScreenVert__mapFunc(void *userData, int index, const float co[3],
+                                            const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
+{
+	foreachScreenObjectVert_userData *data = userData;
+	struct MVert *mv = &((Mesh *)(data->vc.obact->data))->mvert[index];
+
+	if (!(mv->flag & ME_HIDE)) {
+		float screen_co[2];
+
+		if (ED_view3d_project_float_object(data->vc.ar, co, screen_co, data->clip_flag) != V3D_PROJ_RET_OK) {
+			return;
+		}
+
+		data->func(data->userData, mv, screen_co, index);
+	}
+}
+
+void meshobject_foreachScreenVert(
+        ViewContext *vc,
+        void (*func)(void *userData, MVert *eve, const float screen_co[2], int index),
+        void *userData, eV3DProjTest clip_flag)
+{
+	foreachScreenObjectVert_userData data;
+	DerivedMesh *dm = mesh_get_derived_deform(vc->scene, vc->obact, CD_MASK_BAREMESH);
+
+	data.vc = *vc;
+	data.func = func;
+	data.userData = userData;
+	data.clip_flag = clip_flag;
+
+	if (clip_flag & V3D_PROJ_TEST_CLIP_BB) {
+		ED_view3d_clipping_local(vc->rv3d, vc->obedit->obmat);  /* for local clipping lookups */
+	}
+
+	dm->foreachMappedVert(dm, meshobject_foreachScreenVert__mapFunc, &data);
+
+	dm->release(dm);
+}
 
 static void mesh_foreachScreenVert__mapFunc(void *userData, int index, const float co[3],
                                             const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))

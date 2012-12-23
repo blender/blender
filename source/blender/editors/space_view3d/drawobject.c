@@ -101,7 +101,7 @@ typedef enum eWireDrawMode {
 } eWireDrawMode;
 
 typedef struct drawDMVerts_userData {
-	BMEditMesh *em; /* BMESH BRANCH ONLY */
+	BMEditMesh *em;
 
 	int sel;
 	BMVert *eve_act;
@@ -119,7 +119,7 @@ typedef struct drawDMVerts_userData {
 } drawDMVerts_userData;
 
 typedef struct drawDMEdgesSel_userData {
-	BMEditMesh *em; /* BMESH BRANCH ONLY */
+	BMEditMesh *em;
 
 	unsigned char *baseCol, *selCol, *actCol;
 	BMEdge *eed_act;
@@ -128,8 +128,8 @@ typedef struct drawDMEdgesSel_userData {
 typedef struct drawDMFacesSel_userData {
 	unsigned char *cols[3];
 
-	DerivedMesh *dm; /* BMESH BRANCH ONLY */
-	BMEditMesh *em;  /* BMESH BRANCH ONLY */
+	DerivedMesh *dm;
+	BMEditMesh *em;
 
 	BMFace *efa_act;
 	int *orig_index_mf_to_mpoly;

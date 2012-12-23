@@ -70,6 +70,7 @@
 #include "BKE_paint.h"
 #include "BKE_tessmesh.h"
 #include "BKE_tracking.h"
+#include "BKE_utildefines.h"
 
 
 #include "BIF_gl.h"
@@ -800,8 +801,19 @@ static int do_paintvert_box_select(ViewContext *vc, rcti *rect, int select, int 
 	return OPERATOR_FINISHED;
 }
 
+static void do_lasso_select_meshobject__doSelectVert(void *userData, MVert *mv, const float screen_co[2], int UNUSED(index))
+{
+	LassoSelectUserData *data = userData;
+
+	if (BLI_rctf_isect_pt_v(data->rect_fl, screen_co) &&
+	    BLI_lasso_is_point_inside(data->mcords, data->moves, screen_co[0], screen_co[1], IS_CLIPPED))
+	{
+		BKE_BIT_TEST_SET(mv->flag, data->select, SELECT);
+	}
+}
 static void do_lasso_select_paintvert(ViewContext *vc, const int mcords[][2], short moves, short extend, short select)
 {
+	const int use_zbuf = (vc->v3d->flag & V3D_ZBUF_SELECT);
 	Object *ob = vc->obact;
 	Mesh *me = ob ? ob->data : NULL;
 	rcti rect;
@@ -811,14 +823,31 @@ static void do_lasso_select_paintvert(ViewContext *vc, const int mcords[][2], sh
 
 	if (extend == 0 && select)
 		paintvert_deselect_all_visible(ob, SEL_DESELECT, FALSE);  /* flush selection at the end */
-	bm_vertoffs = me->totvert + 1; /* max index array */
 
 	BLI_lasso_boundbox(&rect, mcords, moves);
-	EDBM_backbuf_border_mask_init(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 
-	edbm_backbuf_check_and_select_verts_obmode(me, select);
+	if (use_zbuf) {
+		bm_vertoffs = me->totvert + 1; /* max index array */
 
-	EDBM_backbuf_free();
+		EDBM_backbuf_border_mask_init(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+
+		edbm_backbuf_check_and_select_verts_obmode(me, select);
+
+		EDBM_backbuf_free();
+	}
+	else {
+		LassoSelectUserData data;
+		rcti rect;
+
+		BLI_lasso_boundbox(&rect, mcords, moves);
+
+		view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, select);
+
+		ED_view3d_init_mats_rv3d(vc->obact, vc->rv3d);
+
+		meshobject_foreachScreenVert(vc, do_lasso_select_meshobject__doSelectVert, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
+
+	}
 
 	paintvert_flush_flags(ob);
 }

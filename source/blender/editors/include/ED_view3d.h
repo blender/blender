@@ -124,6 +124,10 @@ typedef enum {
 /* view3d_iterators.c */
 
 /* foreach iterators */
+void meshobject_foreachScreenVert(
+        struct ViewContext *vc,
+        void (*func)(void *userData, struct MVert *eve, const float screen_co[2], int index),
+        void *userData, const eV3DProjTest clip_flag);
 void mesh_foreachScreenVert(
         struct ViewContext *vc,
         void (*func)(void *userData, struct BMVert *eve, const float screen_co[2], int index),
