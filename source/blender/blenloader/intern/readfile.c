@@ -8747,7 +8747,15 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
 				Library *lib = read_struct(fd, bheadlib, "Library");
 				Main *ptr = blo_find_main(fd, lib->name, fd->relabase);
 				
-				id = is_yet_read(fd, ptr, bhead);
+				if (ptr->curlib == NULL) {
+					const char *idname= bhead_id_name(fd, bhead);
+					
+					BKE_reportf_wrap(fd->reports, RPT_WARNING, TIP_("LIB ERROR: Data refers to main .blend file: '%s' from %s"),
+					                 idname, mainvar->curlib->filepath);
+					return;
+				}
+				else
+					id = is_yet_read(fd, ptr, bhead);
 				
 				if (id == NULL) {
 					read_libblock(fd, ptr, bhead, LIB_READ+LIB_INDIRECT, NULL);
