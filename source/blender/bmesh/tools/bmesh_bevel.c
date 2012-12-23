@@ -1276,7 +1276,7 @@ static void bevel_build_trifan(BMesh *bm, BevVert *bv)
 				else { BLI_assert(0); }
 			}
 			else {
-				if      (l_fan->v       == v_fan) { l_fan = l_fan; }
+				if      (l_fan->v       == v_fan) { /* l_fan = l_fan; */ }
 				else if (l_fan->next->v == v_fan) { l_fan = l_fan->next; }
 				else if (l_fan->prev->v == v_fan) { l_fan = l_fan->prev; }
 				else { BLI_assert(0); }

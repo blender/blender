@@ -268,7 +268,7 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const int 
 			BMW_end(&walker);
 #else
 
-			BM_elem_index_set(v_first, (offset + depth) % nth ? VERT_INDEX_IGNORE : VERT_INDEX_DO_COLLAPSE);  /* set_dirty! */
+			BM_elem_index_set(v_first, ((offset + depth) % nth) ? VERT_INDEX_IGNORE : VERT_INDEX_DO_COLLAPSE);  /* set_dirty! */
 
 			vert_seek_b_tot = 0;
 			vert_seek_b[vert_seek_b_tot++] = v_first;

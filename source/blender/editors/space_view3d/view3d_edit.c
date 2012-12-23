@@ -1261,8 +1261,9 @@ void VIEW3D_OT_ndof_pan(struct wmOperatorType *ot)
  */
 static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if (event->type != NDOF_MOTION)
+	if (event->type != NDOF_MOTION) {
 		return OPERATOR_CANCELLED;
+	}
 	else {
 	
 		ViewOpsData *vod;
@@ -1389,7 +1390,7 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			}
 			
 			/* rotate around custom center */
-			if (vod && vod->use_dyn_ofs) {
+			if (vod->use_dyn_ofs) {
 				float q1[4];
 				
 				/* compute the post multiplication quat, to rotate the offset correctly */

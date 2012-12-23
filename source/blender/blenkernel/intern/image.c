@@ -1168,6 +1168,7 @@ char BKE_imtype_from_arg(const char *imtype_arg)
 static int do_add_image_extension(char *string, const char imtype, const ImageFormatData *im_format)
 {
 	const char *extension = NULL;
+	(void)im_format;  /* may be unused, depends on build options */
 
 	if (imtype == R_IMF_IMTYPE_IRIS) {
 		if (!BLI_testextensie(string, ".rgb"))

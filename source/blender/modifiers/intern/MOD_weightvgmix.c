@@ -361,7 +361,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 
 	/* Mix weights. */
 	for (i = 0; i < numIdx; i++) {
-		float weight2 = 0.0;
+		float weight2;
 		org_w[i] = dw1[i] ? dw1[i]->weight : wmd->default_weight_a;
 		weight2  = dw2[i] ? dw2[i]->weight : wmd->default_weight_b;
 

@@ -1554,7 +1554,7 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float co[3], const float dir[3], f
 float BLI_bvhtree_bb_raycast(const float bv[6], const float light_start[3], const float light_end[3], float pos[3])
 {
 	BVHRayCastData data;
-	float dist = 0.0;
+	float dist;
 
 	data.hit.dist = FLT_MAX;
 	
