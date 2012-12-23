@@ -124,7 +124,7 @@ public:
 			if(error_msg == "") \
 				error_msg = message; \
 			fprintf(stderr, "%s\n", message.c_str()); \
-			cuda_abort(); \
+			/*cuda_abort();*/ \
 		} \
 	}
 
@@ -326,7 +326,8 @@ public:
 	void mem_copy_to(device_memory& mem)
 	{
 		cuda_push_context();
-		cuda_assert(cuMemcpyHtoD(cuda_device_ptr(mem.device_pointer), (void*)mem.data_pointer, mem.memory_size()))
+		if(mem.device_pointer)
+			cuda_assert(cuMemcpyHtoD(cuda_device_ptr(mem.device_pointer), (void*)mem.data_pointer, mem.memory_size()))
 		cuda_pop_context();
 	}
 
@@ -336,8 +337,13 @@ public:
 		size_t size = elem*w*h;
 
 		cuda_push_context();
-		cuda_assert(cuMemcpyDtoH((uchar*)mem.data_pointer + offset,
-			(CUdeviceptr)((uchar*)mem.device_pointer + offset), size))
+		if(mem.device_pointer) {
+			cuda_assert(cuMemcpyDtoH((uchar*)mem.data_pointer + offset,
+				(CUdeviceptr)((uchar*)mem.device_pointer + offset), size))
+		}
+		else {
+			memset((char*)mem.data_pointer + offset, 0, size);
+		}
 		cuda_pop_context();
 	}
 
@@ -346,7 +352,8 @@ public:
 		memset((void*)mem.data_pointer, 0, mem.memory_size());
 
 		cuda_push_context();
-		cuda_assert(cuMemsetD8(cuda_device_ptr(mem.device_pointer), 0, mem.memory_size()))
+		if(mem.device_pointer)
+			cuda_assert(cuMemsetD8(cuda_device_ptr(mem.device_pointer), 0, mem.memory_size()))
 		cuda_pop_context();
 	}
 
@@ -390,13 +397,18 @@ public:
 			default: assert(0); return;
 		}
 
-		CUtexref texref;
+		CUtexref texref = NULL;
 
 		cuda_push_context();
 		cuda_assert(cuModuleGetTexRef(&texref, cuModule, name))
 
+		if(!texref) {
+			cuda_pop_context();
+			return;
+		}
+
 		if(interpolation) {
-			CUarray handle;
+			CUarray handle = NULL;
 			CUDA_ARRAY_DESCRIPTOR desc;
 
 			desc.Width = mem.data_width;
@@ -405,6 +417,11 @@ public:
 			desc.NumChannels = mem.data_elements;
 
 			cuda_assert(cuArrayCreate(&handle, &desc))
+
+			if(!handle) {
+				cuda_pop_context();
+				return;
+			}
 
 			if(mem.data_height > 1) {
 				CUDA_MEMCPY2D param;
@@ -481,6 +498,9 @@ public:
 
 	void path_trace(RenderTile& rtile, int sample)
 	{
+		if(have_error())
+			return;
+
 		cuda_push_context();
 
 		CUfunction cuPathTrace;
@@ -546,6 +566,9 @@ public:
 
 	void tonemap(DeviceTask& task, device_ptr buffer, device_ptr rgba)
 	{
+		if(have_error())
+			return;
+
 		cuda_push_context();
 
 		CUfunction cuFilmConvert;
@@ -615,6 +638,9 @@ public:
 
 	void shader(DeviceTask& task)
 	{
+		if(have_error())
+			return;
+
 		cuda_push_context();
 
 		CUfunction cuDisplace;

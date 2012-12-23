@@ -84,6 +84,7 @@ public:
 	/* info */
 	DeviceInfo info;
 	virtual const string& error_message() { return error_msg; }
+	bool have_error() { return !error_message().empty(); }
 
 	/* statistics */
 	Stats &stats;
