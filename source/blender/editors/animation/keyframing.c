@@ -716,7 +716,7 @@ static float visualkey_get_value(PointerRNA *ptr, PropertyRNA *prop, int array_i
 		 * will be what owns the pose-channel that is getting this anyway.
 		 */
 		copy_m4_m4(tmat, pchan->pose_mat);
-		constraint_mat_convertspace(ob, pchan, tmat, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
+		BKE_constraint_mat_convertspace(ob, pchan, tmat, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
 		rotmode = pchan->rotmode;
 		
 		/* Loc code is specific... */

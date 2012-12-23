@@ -214,7 +214,7 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
 		
 		/* if we have the list, check for unique name, otherwise give up */
 		if (list)
-			unique_constraint_name(con, list);
+			BKE_unique_constraint_name(con, list);
 	}
 	
 	/* fix all the animation data which may link to this */
@@ -293,7 +293,7 @@ static EnumPropertyItem *rna_Constraint_target_space_itemf(bContext *UNUSED(C), 
                                                            PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	bConstraint *con = (bConstraint *)ptr->data;
-	bConstraintTypeInfo *cti = constraint_get_typeinfo(con);
+	bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
 	ListBase targets = {NULL, NULL};
 	bConstraintTarget *ct;
 	

@@ -954,7 +954,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 				}
 				else if (event == 22) {
 					/* Copy the constraint channels over */
-					copy_constraints(&base->object->constraints, &ob->constraints, TRUE);
+					BKE_copy_constraints(&base->object->constraints, &ob->constraints, TRUE);
 					
 					do_scene_sort = TRUE;
 				}

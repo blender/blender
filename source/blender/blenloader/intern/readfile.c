@@ -2535,7 +2535,7 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 	cld.fd = fd;
 	cld.id = id;
 	
-	id_loop_constraints(conlist, lib_link_constraint_cb, &cld);
+	BKE_id_loop_constraints(conlist, lib_link_constraint_cb, &cld);
 }
 
 static void direct_link_constraints(FileData *fd, ListBase *lb)
@@ -7504,7 +7504,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for (ob = main->object.first; ob; ob = ob->id.next) {
 				bConstraint *con;
 				for (con = ob->constraints.first; con; con = con->next) {
-					bConstraintTypeInfo *cti = constraint_get_typeinfo(con);
+					bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
 					
 					if (!cti)
 						continue;
@@ -9186,7 +9186,7 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 	ced.fd = fd;
 	ced.mainvar = mainvar;
 	
-	id_loop_constraints(lb, expand_constraint_cb, &ced);
+	BKE_id_loop_constraints(lb, expand_constraint_cb, &ced);
 	
 	/* deprecated manual expansion stuff */
 	for (curcon = lb->first; curcon; curcon = curcon->next) {

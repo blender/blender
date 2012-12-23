@@ -835,7 +835,7 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 		}
 	}
 
-	con = add_pose_constraint(NULL, pchan, "TempConstraint", CONSTRAINT_TYPE_KINEMATIC);
+	con = BKE_add_pose_constraint(NULL, pchan, "TempConstraint", CONSTRAINT_TYPE_KINEMATIC);
 	pchan->constflag |= (PCHAN_HAS_IK | PCHAN_HAS_TARGET);    /* for draw, but also for detecting while pose solving */
 	data = con->data;
 	if (targetless) {

@@ -1080,7 +1080,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	// int rb_col; // UNUSED
 
 	/* get constraint typeinfo */
-	cti = constraint_get_typeinfo(con);
+	cti = BKE_constraint_get_typeinfo(con);
 	if (cti == NULL) {
 		/* exception for 'Null' constraint - it doesn't have constraint typeinfo! */
 		BLI_strncpy(typestr, (con->type == CONSTRAINT_TYPE_NULL) ? "Null" : "Unknown", sizeof(typestr));
@@ -1089,7 +1089,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 		BLI_strncpy(typestr, cti->name, sizeof(typestr));
 		
 	/* determine whether constraint is proxy protected or not */
-	if (proxylocked_constraints_owner(ob, pchan))
+	if (BKE_proxylocked_constraints_owner(ob, pchan))
 		proxy_protected = (con->flag & CONSTRAINT_PROXY_LOCAL) == 0;
 	else
 		proxy_protected = 0;
@@ -1151,7 +1151,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 		 *
 		 *  Up/Down buttons should only be shown (or not grayed - todo) if they serve some purpose.
 		 */
-		if (proxylocked_constraints_owner(ob, pchan)) {
+		if (BKE_proxylocked_constraints_owner(ob, pchan)) {
 			if (con->prev) {
 				prev_proxylock = (con->prev->flag & CONSTRAINT_PROXY_LOCAL) ? 0 : 1;
 			}

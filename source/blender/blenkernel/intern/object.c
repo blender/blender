@@ -349,7 +349,7 @@ void BKE_object_free(Object *ob)
 	free_controllers(&ob->controllers);
 	free_actuators(&ob->actuators);
 	
-	free_constraints(&ob->constraints);
+	BKE_free_constraints(&ob->constraints);
 	
 	free_partdeflect(ob->pd);
 
@@ -434,7 +434,7 @@ void BKE_object_unlink(Object *ob)
 			bPoseChannel *pchan;
 			for (pchan = obt->pose->chanbase.first; pchan; pchan = pchan->next) {
 				for (con = pchan->constraints.first; con; con = con->next) {
-					bConstraintTypeInfo *cti = constraint_get_typeinfo(con);
+					bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
 					ListBase targets = {NULL, NULL};
 					bConstraintTarget *ct;
 					
@@ -465,7 +465,7 @@ void BKE_object_unlink(Object *ob)
 		sca_remove_ob_poin(obt, ob);
 		
 		for (con = obt->constraints.first; con; con = con->next) {
-			bConstraintTypeInfo *cti = constraint_get_typeinfo(con);
+			bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
 			ListBase targets = {NULL, NULL};
 			bConstraintTarget *ct;
 			
@@ -1129,7 +1129,7 @@ static void copy_object_pose(Object *obn, Object *ob)
 		}
 		
 		for (con = chan->constraints.first; con; con = con->next) {
-			bConstraintTypeInfo *cti = constraint_get_typeinfo(con);
+			bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
 			ListBase targets = {NULL, NULL};
 			bConstraintTarget *ct;
 			
@@ -1229,7 +1229,7 @@ static Object *object_copy_do(Object *ob, int copy_caches)
 			BKE_pose_rebuild(obn, obn->data);
 	}
 	defgroup_copy_list(&obn->defbase, &ob->defbase);
-	copy_constraints(&obn->constraints, &ob->constraints, TRUE);
+	BKE_copy_constraints(&obn->constraints, &ob->constraints, TRUE);
 
 	obn->mode = 0;
 	obn->sculpt = NULL;
@@ -2113,9 +2113,9 @@ void BKE_object_where_is_calc_time(Scene *scene, Object *ob, float ctime)
 	if (ob->constraints.first && !(ob->transflag & OB_NO_CONSTRAINTS)) {
 		bConstraintOb *cob;
 		
-		cob = constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
-		solve_constraints(&ob->constraints, cob, ctime);
-		constraints_clear_evalob(cob);
+		cob = BKE_constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
+		BKE_solve_constraints(&ob->constraints, cob, ctime);
+		BKE_constraints_clear_evalob(cob);
 	}
 	
 	/* set negative scale flag in object */
@@ -2184,9 +2184,9 @@ void BKE_object_where_is_calc_simul(Scene *scene, Object *ob)
 	if (ob->constraints.first) {
 		bConstraintOb *cob;
 		
-		cob = constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
-		solve_constraints(&ob->constraints, cob, (float)scene->r.cfra);
-		constraints_clear_evalob(cob);
+		cob = BKE_constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
+		BKE_solve_constraints(&ob->constraints, cob, (float)scene->r.cfra);
+		BKE_constraints_clear_evalob(cob);
 	}
 }
 
@@ -3134,11 +3134,11 @@ void BKE_object_relink(Object *ob)
 	if (ob->id.lib)
 		return;
 
-	relink_constraints(&ob->constraints);
+	BKE_relink_constraints(&ob->constraints);
 	if (ob->pose) {
 		bPoseChannel *chan;
 		for (chan = ob->pose->chanbase.first; chan; chan = chan->next) {
-			relink_constraints(&chan->constraints);
+			BKE_relink_constraints(&chan->constraints);
 		}
 	}
 	modifiers_foreachIDLink(ob, copy_object__forwardModifierLinks, NULL);

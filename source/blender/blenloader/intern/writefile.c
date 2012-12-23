@@ -1228,7 +1228,7 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 	bConstraint *con;
 
 	for (con=conlist->first; con; con=con->next) {
-		bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+		bConstraintTypeInfo *cti= BKE_constraint_get_typeinfo(con);
 		
 		/* Write the specific data */
 		if (cti && con->data) {

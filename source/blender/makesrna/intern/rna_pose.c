@@ -472,14 +472,14 @@ static void rna_pose_pgroup_name_set(PointerRNA *ptr, const char *value, char *r
 static PointerRNA rna_PoseChannel_active_constraint_get(PointerRNA *ptr)
 {
 	bPoseChannel *pchan = (bPoseChannel *)ptr->data;
-	bConstraint *con = constraints_get_active(&pchan->constraints);
+	bConstraint *con = BKE_constraints_get_active(&pchan->constraints);
 	return rna_pointer_inherit_refine(ptr, &RNA_Constraint, con);
 }
 
 static void rna_PoseChannel_active_constraint_set(PointerRNA *ptr, PointerRNA value)
 {
 	bPoseChannel *pchan = (bPoseChannel *)ptr->data;
-	constraints_set_active(&pchan->constraints, (bConstraint *)value.data);
+	BKE_constraints_set_active(&pchan->constraints, (bConstraint *)value.data);
 }
 
 static bConstraint *rna_PoseChannel_constraints_new(bPoseChannel *pchan, int type)
@@ -487,7 +487,7 @@ static bConstraint *rna_PoseChannel_constraints_new(bPoseChannel *pchan, int typ
 	/*WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT|NA_ADDED, object); */
 	/* TODO, pass object also */
 	/* TODO, new pose bones don't have updated draw flags */
-	return add_pose_constraint(NULL, pchan, NULL, type);
+	return BKE_add_pose_constraint(NULL, pchan, NULL, type);
 }
 
 static void rna_PoseChannel_constraints_remove(ID *id, bPoseChannel *pchan, ReportList *reports, PointerRNA *con_ptr)
@@ -501,12 +501,12 @@ static void rna_PoseChannel_constraints_remove(ID *id, bPoseChannel *pchan, Repo
 		return;
 	}
 
-	remove_constraint(&pchan->constraints, con);
+	BKE_remove_constraint(&pchan->constraints, con);
 	RNA_POINTER_INVALIDATE(con_ptr);
 
 	ED_object_constraint_update(ob);
 
-	constraints_set_active(&pchan->constraints, NULL);  /* XXX, is this really needed? - Campbell */
+	BKE_constraints_set_active(&pchan->constraints, NULL);  /* XXX, is this really needed? - Campbell */
 
 	WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, id);
 

@@ -1252,20 +1252,20 @@ static PointerRNA rna_Object_collision_get(PointerRNA *ptr)
 static PointerRNA rna_Object_active_constraint_get(PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
-	bConstraint *con = constraints_get_active(&ob->constraints);
+	bConstraint *con = BKE_constraints_get_active(&ob->constraints);
 	return rna_pointer_inherit_refine(ptr, &RNA_Constraint, con);
 }
 
 static void rna_Object_active_constraint_set(PointerRNA *ptr, PointerRNA value)
 {
 	Object *ob = (Object *)ptr->id.data;
-	constraints_set_active(&ob->constraints, (bConstraint *)value.data);
+	BKE_constraints_set_active(&ob->constraints, (bConstraint *)value.data);
 }
 
 static bConstraint *rna_Object_constraints_new(Object *object, int type)
 {
 	WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_ADDED, object);
-	return add_ob_constraint(object, NULL, type);
+	return BKE_add_ob_constraint(object, NULL, type);
 }
 
 static void rna_Object_constraints_remove(Object *object, ReportList *reports, PointerRNA *con_ptr)
@@ -1276,7 +1276,7 @@ static void rna_Object_constraints_remove(Object *object, ReportList *reports, P
 		return;
 	}
 
-	remove_constraint(&object->constraints, con);
+	BKE_remove_constraint(&object->constraints, con);
 	RNA_POINTER_INVALIDATE(con_ptr);
 
 	ED_object_constraint_update(object);
@@ -1286,7 +1286,7 @@ static void rna_Object_constraints_remove(Object *object, ReportList *reports, P
 
 static void rna_Object_constraints_clear(Object *object)
 {
-	free_constraints(&object->constraints);
+	BKE_free_constraints(&object->constraints);
 
 	ED_object_constraint_update(object);
 	ED_object_constraint_set_active(object, NULL);

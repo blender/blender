@@ -725,7 +725,7 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 		/* DO SOME MAGIC HERE */
 		for (pchan = rg->ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 			for (con = pchan->constraints.first; con; con = con->next) {
-				bConstraintTypeInfo *cti = constraint_get_typeinfo(con);
+				bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
 				ListBase targets = {NULL, NULL};
 				bConstraintTarget *ct;
 				
@@ -850,7 +850,7 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 				/* DO SOME MAGIC HERE */
 				for (pchan = rg->ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 					for (con = pchan->constraints.first; con; con = con->next) {
-						bConstraintTypeInfo *cti = constraint_get_typeinfo(con);
+						bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
 						ListBase targets = {NULL, NULL};
 						bConstraintTarget *ct;
 						

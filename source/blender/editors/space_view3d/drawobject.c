@@ -6885,10 +6885,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			UI_make_axis_color(col1, col2, 'Z');
 			glColor3ubv(col2);
 			
-			cob = constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
+			cob = BKE_constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
 			
 			for (curcon = list->first; curcon; curcon = curcon->next) {
-				bConstraintTypeInfo *cti = constraint_get_typeinfo(curcon);
+				bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(curcon);
 				ListBase targets = {NULL, NULL};
 				bConstraintTarget *ct;
 				
@@ -6942,7 +6942,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 				}
 			}
 			
-			constraints_clear_evalob(cob);
+			BKE_constraints_clear_evalob(cob);
 		}
 	}
 
