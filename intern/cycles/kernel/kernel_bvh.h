@@ -457,12 +457,15 @@ __device_inline float3 ray_offset(float3 P, float3 Ng)
 {
 #ifdef __INTERSECTION_REFINE__
 	const float epsilon_f = 1e-5f;
+	/* ideally this should match epsilon_f, but instancing/mblur
+	 * precision makes it problematic */
+	const float epsilon_test = 1e-1f;
 	const int epsilon_i = 32;
 
 	float3 res;
 
 	/* x component */
-	if(fabsf(P.x) < epsilon_f) {
+	if(fabsf(P.x) < epsilon_test) {
 		res.x = P.x + Ng.x*epsilon_f;
 	}
 	else {
@@ -472,7 +475,7 @@ __device_inline float3 ray_offset(float3 P, float3 Ng)
 	}
 
 	/* y component */
-	if(fabsf(P.y) < epsilon_f) {
+	if(fabsf(P.y) < epsilon_test) {
 		res.y = P.y + Ng.y*epsilon_f;
 	}
 	else {
@@ -482,7 +485,7 @@ __device_inline float3 ray_offset(float3 P, float3 Ng)
 	}
 
 	/* z component */
-	if(fabsf(P.z) < epsilon_f) {
+	if(fabsf(P.z) < epsilon_test) {
 		res.z = P.z + Ng.z*epsilon_f;
 	}
 	else {
