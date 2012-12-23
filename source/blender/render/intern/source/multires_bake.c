@@ -233,8 +233,8 @@ static void set_rast_triangle(const MBakeRast *bake_rast, const int x, const int
 
 	if (x >= 0 && x < w && y >= 0 && y < h) {
 		if ((bake_rast->texels[y * w + x]) == 0) {
-			flush_pixel(bake_rast->data, x, y);
 			bake_rast->texels[y * w + x] = FILTER_MASK_USED;
+			flush_pixel(bake_rast->data, x, y);
 		}
 	}
 }
