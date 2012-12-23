@@ -40,6 +40,8 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -1216,6 +1218,8 @@ int ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned 
 		int v_idx_best = -1;
 
 		if (dm->getVertCo) {
+			RegionView3D *rv3d = ar->regiondata;
+
 			/* find the vert closest to 'mval' */
 			const float mval_f[2] = {(float)mval[0],
 			                         (float)mval[1]};
@@ -1223,14 +1227,15 @@ int ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned 
 			int fidx;
 			float len_best = FLT_MAX;
 
+			ED_view3d_init_mats_rv3d(ob, rv3d);
+
 			fidx = mp->totloop - 1;
 			do {
 				float co[3], sco[2], len;
 				const int v_idx = me->mloop[mp->loopstart + fidx].v;
 				dm->getVertCo(dm, v_idx, co);
-				mul_m4_v3(ob->obmat, co);
-				if (ED_view3d_project_float_global(ar, co, sco, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
-					len = len_squared_v2v2(mval_f, sco);
+				if (ED_view3d_project_float_object(ar, co, sco, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+					len = len_manhattan_v2v2(mval_f, sco);
 					if (len < len_best) {
 						len_best = len;
 						v_idx_best = v_idx;
@@ -1300,18 +1305,21 @@ int ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int *
 		}
 
 		if (dm->getVertCo) {
+			RegionView3D *rv3d = ar->regiondata;
+
 			/* find the vert closest to 'mval' */
 			const float mval_f[2] = {(float)mval[0],
 			                         (float)mval[1]};
 			float len_best = FLT_MAX;
 
+			ED_view3d_init_mats_rv3d(ob, rv3d);
+
 			v_idx = me->totvert - 1;
 			do {
 				float co[3], sco[2], len;
 				dm->getVertCo(dm, v_idx, co);
-				mul_m4_v3(ob->obmat, co);
-				if (ED_view3d_project_float_global(ar, co, sco, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
-					len = len_squared_v2v2(mval_f, sco);
+				if (ED_view3d_project_float_object(ar, co, sco, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+					len = len_manhattan_v2v2(mval_f, sco);
 					if (len < len_best) {
 						len_best = len;
 						v_idx_best = v_idx;
