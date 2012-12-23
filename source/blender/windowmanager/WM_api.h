@@ -62,6 +62,7 @@ struct MenuType;
 struct wmDropBox;
 struct wmDrag;
 struct ImBuf;
+struct ImageFormatData;
 
 typedef struct wmJob wmJob;
 
@@ -185,7 +186,7 @@ int			WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, struct wm
 int			WM_operator_confirm		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 		/* invoke callback, file selector "filepath" unset + exec */
 int			WM_operator_filesel		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-int         WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const char imtype);
+int         WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const struct ImageFormatData *im_format);
 			/* poll callback, context checks */
 int			WM_operator_winactive	(struct bContext *C);
 			/* invoke callback, exec + redo popup */

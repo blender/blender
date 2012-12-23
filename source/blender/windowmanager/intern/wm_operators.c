@@ -976,14 +976,14 @@ int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	}
 }
 
-int WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const char imtype)
+int WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const struct ImageFormatData *im_format)
 {
 	PropertyRNA *prop;
 	char filepath[FILE_MAX];
 	/* dont NULL check prop, this can only run on ops with a 'filepath' */
 	prop = RNA_struct_find_property(op->ptr, "filepath");
 	RNA_property_string_get(op->ptr, prop, filepath);
-	if (BKE_add_image_extension(filepath, imtype)) {
+	if (BKE_add_image_extension(filepath, im_format)) {
 		RNA_property_string_set(op->ptr, prop, filepath);
 		/* note, we could check for and update 'filename' here,
 		 * but so far nothing needs this. */

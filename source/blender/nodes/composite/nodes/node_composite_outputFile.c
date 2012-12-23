@@ -269,7 +269,7 @@ static void exec_output_file_singlelayer(RenderData *rd, bNode *node, bNodeStack
 			
 			/* get full path */
 			BLI_join_dirfile(path, FILE_MAX, nimf->base_path, sockdata->path);
-			BKE_makepicstring(filename, path, bmain->name, rd->cfra, format->imtype, (rd->scemode & R_EXTENSION), TRUE);
+			BKE_makepicstring(filename, path, bmain->name, rd->cfra, format, (rd->scemode & R_EXTENSION), TRUE);
 			
 			if (0 == BKE_imbuf_write(ibuf, filename, format))
 				printf("Cannot save Node File Output to %s\n", filename);
@@ -304,7 +304,7 @@ static void exec_output_file_multilayer(RenderData *rd, bNode *node, bNodeStack 
 	int recty = -1;
 	int has_preview = 0;
 	
-	BKE_makepicstring(filename, nimf->base_path, bmain->name, rd->cfra, R_IMF_IMTYPE_MULTILAYER, (rd->scemode & R_EXTENSION), TRUE);
+	BKE_makepicstring_from_type(filename, nimf->base_path, bmain->name, rd->cfra, R_IMF_IMTYPE_MULTILAYER, (rd->scemode & R_EXTENSION), TRUE);
 	BLI_make_existing_file(filename);
 	
 	for (sock=node->inputs.first, i=0; sock; sock=sock->next, ++i) {

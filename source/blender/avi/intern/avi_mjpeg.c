@@ -206,7 +206,7 @@ static int Decode_JPEG(unsigned char *inBuffer, unsigned char *outBuffer, unsign
 	return 1;
 }
 
-static void Compress_JPEG(int quality, unsigned char *outbuffer, unsigned char *inBuffer, int width, int height, int bufsize)
+static void Compress_JPEG(int quality, unsigned char *outbuffer, const unsigned char *inBuffer, int width, int height, int bufsize)
 {
 	int i, rowstride;
 	unsigned int y;

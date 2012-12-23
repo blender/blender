@@ -1217,7 +1217,7 @@ static int save_image_options_init(SaveImageOptions *simopts, SpaceImage *sima, 
 			simopts->im_format.imtype = R_IMF_IMTYPE_PNG;
 		}
 		else {
-			simopts->im_format.imtype = BKE_ftype_to_imtype(ibuf->ftype);
+			BKE_imbuf_to_image_format(&simopts->im_format, ibuf);
 		}
 		//simopts->subimtype = scene->r.subimtype; /* XXX - this is lame, we need to make these available too! */
 		simopts->im_format.quality = ibuf->ftype & 0xff;
@@ -1434,7 +1434,7 @@ static int image_save_as_exec(bContext *C, wmOperator *op)
 static int image_save_as_check(bContext *UNUSED(C), wmOperator *op)
 {
 	ImageFormatData *imf = op->customdata;
-	return WM_operator_filesel_ensure_ext_imtype(op, imf->imtype);
+	return WM_operator_filesel_ensure_ext_imtype(op, imf);
 }
 
 static int image_save_as_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
@@ -1559,6 +1559,7 @@ static int image_save_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	SaveImageOptions simopts;
 
+	save_image_options_defaults(&simopts);
 	if (save_image_options_init(&simopts, sima, scene, FALSE) == 0)
 		return OPERATOR_CANCELLED;
 	save_image_options_from_op(&simopts, op);

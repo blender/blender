@@ -217,6 +217,8 @@ typedef struct ImBuf {
 #define JP2_YCC			(1 << 15)
 #define JP2_CINE		(1 << 14)
 #define JP2_CINE_48FPS	(1 << 13) 
+#define JP2_JP2	(1 << 12)
+#define JP2_J2K	(1 << 11)
 #endif
 
 #define RAWTGA	        (TGA | 1)

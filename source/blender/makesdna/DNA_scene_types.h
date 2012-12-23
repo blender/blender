@@ -271,8 +271,9 @@ typedef struct ImageFormatData {
 
 	/* Jpeg2000 */
 	char  jp2_flag;
+	char jp2_codec;
 
-	char pad[7];
+	char pad[6];
 
 	/* color management */
 	ColorManagedViewSettings view_settings;
@@ -340,6 +341,10 @@ typedef struct ImageFormatData {
 #define R_IMF_JP2_FLAG_YCC          (1<<0)  /* when disabled use RGB */ /* was R_JPEG2K_YCC */
 #define R_IMF_JP2_FLAG_CINE_PRESET  (1<<1)  /* was R_JPEG2K_CINE_PRESET */
 #define R_IMF_JP2_FLAG_CINE_48      (1<<2)  /* was R_JPEG2K_CINE_48FPS */
+
+/* ImageFormatData.jp2_codec */
+#define R_IMF_JP2_CODEC_JP2  0
+#define R_IMF_JP2_CODEC_J2K  1
 
 /* ImageFormatData.cineon_flag */
 #define R_IMF_CINEON_FLAG_LOG (1<<0)  /* was R_CINEON_LOG */

@@ -796,6 +796,8 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_man
 	}
 
 	if (imf->imtype == R_IMF_IMTYPE_JP2) {
+		uiItemR(col, imfptr, "jpeg2k_codec", 0, NULL, ICON_NONE);
+
 		row = uiLayoutRow(col, FALSE);
 		uiItemR(row, imfptr, "use_jpeg2k_cinema_preset", 0, NULL, ICON_NONE);
 		uiItemR(row, imfptr, "use_jpeg2k_cinema_48", 0, NULL, ICON_NONE);

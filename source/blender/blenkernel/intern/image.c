@@ -1165,7 +1165,7 @@ char BKE_imtype_from_arg(const char *imtype_arg)
 	else return R_IMF_IMTYPE_INVALID;
 }
 
-int BKE_add_image_extension(char *string, const char imtype)
+static int do_add_image_extension(char *string, const char imtype, const ImageFormatData *im_format)
 {
 	const char *extension = NULL;
 
@@ -1232,8 +1232,22 @@ int BKE_add_image_extension(char *string, const char imtype)
 	}
 #ifdef WITH_OPENJPEG
 	else if (imtype == R_IMF_IMTYPE_JP2) {
-		if (!BLI_testextensie(string, ".jp2"))
-			extension = ".jp2";
+		if (im_format) {
+			if (im_format->jp2_codec == R_IMF_JP2_CODEC_JP2) {
+				if (!BLI_testextensie(string, ".jp2"))
+					extension = ".jp2";
+			}
+			else if (im_format->jp2_codec == R_IMF_JP2_CODEC_J2K) {
+				if (!BLI_testextensie(string, ".j2c"))
+					extension = ".j2c";
+			}
+			else
+				BLI_assert(!"Unsupported jp2 codec was specified in im_format->jp2_codec");
+		}
+		else {
+			if (!BLI_testextensie(string, ".jp2"))
+				extension = ".jp2";
+		}
 	}
 #endif
 	else { //   R_IMF_IMTYPE_AVIRAW, R_IMF_IMTYPE_AVIJPEG, R_IMF_IMTYPE_JPEG90, R_IMF_IMTYPE_QUICKTIME etc
@@ -1257,6 +1271,16 @@ int BKE_add_image_extension(char *string, const char imtype)
 	else {
 		return FALSE;
 	}
+}
+
+int BKE_add_image_extension(char *string, const ImageFormatData *im_format)
+{
+	return do_add_image_extension(string, im_format->imtype, im_format);
+}
+
+int BKE_add_image_extension_from_type(char *string, const char imtype)
+{
+	return do_add_image_extension(string, imtype, NULL);
 }
 
 void BKE_imformat_defaults(ImageFormatData *im_format)
@@ -1351,6 +1375,13 @@ void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *i
 			if (ftype & JP2_CINE_48FPS)
 				im_format->jp2_flag |= R_IMF_JP2_FLAG_CINE_48;
 		}
+
+		if (ftype & JP2_JP2)
+			im_format->jp2_codec = R_IMF_JP2_CODEC_JP2;
+		else if (ftype & JP2_J2K)
+			im_format->jp2_codec = R_IMF_JP2_CODEC_J2K;
+		else
+			BLI_assert(!"Unsupported jp2 codec was specified in file type");
 	}
 #endif
 
@@ -1906,6 +1937,13 @@ int BKE_imbuf_write(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 			if (imf->jp2_flag & R_IMF_JP2_FLAG_CINE_48)
 				ibuf->ftype |= JP2_CINE_48FPS;
 		}
+
+		if (imf->jp2_codec == R_IMF_JP2_CODEC_JP2)
+			ibuf->ftype |= JP2_JP2;
+		else if (imf->jp2_codec == R_IMF_JP2_CODEC_J2K)
+			ibuf->ftype |= JP2_J2K;
+		else
+			BLI_assert(!"Unsupported jp2 codec was specified in im_format->jp2_codec");
 	}
 #endif
 	else {
@@ -1956,7 +1994,8 @@ int BKE_imbuf_write_stamp(Scene *scene, struct Object *camera, ImBuf *ibuf, cons
 }
 
 
-void BKE_makepicstring(char *string, const char *base, const char *relbase, int frame, const char imtype, const short use_ext, const short use_frames)
+static void do_makepicstring(char *string, const char *base, const char *relbase, int frame, const char imtype,
+							 const ImageFormatData *im_format, const short use_ext, const short use_frames)
 {
 	if (string == NULL) return;
 	BLI_strncpy(string, base, FILE_MAX - 10);   /* weak assumption */
@@ -1966,8 +2005,17 @@ void BKE_makepicstring(char *string, const char *base, const char *relbase, int 
 		BLI_path_frame(string, frame, 4);
 
 	if (use_ext)
-		BKE_add_image_extension(string, imtype);
+		do_add_image_extension(string, imtype, im_format);
+}
 
+void BKE_makepicstring(char *string, const char *base, const char *relbase, int frame, const ImageFormatData *im_format, const short use_ext, const short use_frames)
+{
+	do_makepicstring(string, base, relbase, frame, im_format->imtype, im_format, use_ext, use_frames);
+}
+
+void BKE_makepicstring_from_type(char *string, const char *base, const char *relbase, int frame, const char imtype, const short use_ext, const short use_frames)
+{
+	do_makepicstring(string, base, relbase, frame, imtype, NULL, use_ext, use_frames);
 }
 
 /* used by sequencer too */

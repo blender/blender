@@ -873,7 +873,7 @@ static int rna_SceneRender_file_ext_length(PointerRNA *ptr)
 	RenderData *rd = (RenderData *)ptr->data;
 	char ext[8];
 	ext[0] = '\0';
-	BKE_add_image_extension(ext, rd->im_format.imtype);
+	BKE_add_image_extension(ext, &rd->im_format);
 	return strlen(ext);
 }
 
@@ -881,7 +881,7 @@ static void rna_SceneRender_file_ext_get(PointerRNA *ptr, char *str)
 {
 	RenderData *rd = (RenderData *)ptr->data;
 	str[0] = '\0';
-	BKE_add_image_extension(str, rd->im_format.imtype);
+	BKE_add_image_extension(str, &rd->im_format);
 }
 
 #ifdef WITH_QUICKTIME
@@ -2881,6 +2881,14 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 	};
 #endif
 
+#ifdef WITH_OPENJPEG
+	static EnumPropertyItem jp2_codec_items[] = {
+		{R_IMF_JP2_CODEC_JP2, "JP2", 0, "JP2", ""},
+		{R_IMF_JP2_CODEC_J2K, "J2K", 0, "J2K", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+#endif
+
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -2967,6 +2975,12 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_jpeg2k_cinema_48", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "jp2_flag", R_IMF_JP2_FLAG_CINE_48);
 	RNA_def_property_ui_text(prop, "Cinema (48)", "Use Openjpeg Cinema Preset (48fps)");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
+	prop = RNA_def_property(srna, "jpeg2k_codec", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "jp2_codec");
+	RNA_def_property_enum_items(prop, jp2_codec_items);
+	RNA_def_property_ui_text(prop, "Codec", "Codec settings for Jpek2000");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 #endif
 

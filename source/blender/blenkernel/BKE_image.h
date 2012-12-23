@@ -60,8 +60,10 @@ int     BKE_imbuf_alpha_test(struct ImBuf *ibuf);
 int     BKE_imbuf_write_stamp(struct Scene *scene, struct Object *camera, struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf);
 int     BKE_imbuf_write(struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf);
 int     BKE_imbuf_write_as(struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf, const short is_copy);
-void    BKE_makepicstring(char *string, const char *base, const char *relbase, int frame, const char imtype, const short use_ext, const short use_frames);
-int     BKE_add_image_extension(char *string, const char imtype);
+void    BKE_makepicstring(char *string, const char *base, const char *relbase, int frame, const struct ImageFormatData *im_format, const short use_ext, const short use_frames);
+void    BKE_makepicstring_from_type(char *string, const char *base, const char *relbase, int frame, const char imtype, const short use_ext, const short use_frames);
+int     BKE_add_image_extension(char *string, const struct ImageFormatData *im_format);
+int     BKE_add_image_extension_from_type(char *string, const char imtype);
 char    BKE_ftype_to_imtype(const int ftype);
 int     BKE_imtype_to_ftype(const char imtype);
 
