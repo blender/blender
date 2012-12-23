@@ -6928,8 +6928,6 @@ static int ui_handler_region_menu(bContext *C, wmEvent *event, void *UNUSED(user
 {
 	ARegion *ar;
 	uiBut *but;
-	uiHandleButtonData *data;
-	int retval;
 
 	/* here we handle buttons at the window level, modal, for example
 	 * while number sliding, text editing, or when a menu block is open */
@@ -6940,17 +6938,23 @@ static int ui_handler_region_menu(bContext *C, wmEvent *event, void *UNUSED(user
 	but = ui_but_find_activated(ar);
 
 	if (but) {
+		uiHandleButtonData *data;
+
 		/* handle activated button events */
 		data = but->active;
 
 		if (data->state == BUTTON_STATE_MENU_OPEN) {
+			int retval;
+
 			/* handle events for menus and their buttons recursively,
 			 * this will handle events from the top to the bottom menu */
 			if (data->menu)
 				retval = ui_handle_menus_recursive(C, event, data->menu, 0);
 
 			/* handle events for the activated button */
-			if (retval == WM_UI_HANDLER_CONTINUE || event->type == TIMER) {
+			if ((data->menu && (retval == WM_UI_HANDLER_CONTINUE)) ||
+			    (event->type == TIMER))
+			{
 				if (data->menu && data->menu->menuretval)
 					ui_handle_button_return_submenu(C, event, but);
 				else
