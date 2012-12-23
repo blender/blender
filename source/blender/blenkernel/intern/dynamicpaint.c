@@ -2839,7 +2839,9 @@ static void dynamicPaint_freeBrushMaterials(BrushMaterials *bMats)
 /*
  *	Get material diffuse color and alpha (including linked textures) in given coordinates
  */
-static void dynamicPaint_doMaterialTex(BrushMaterials *bMats, float color[3], float *alpha, Object *brushOb, const float volume_co[3], const float surface_co[3], int faceIndex, short isQuad, DerivedMesh *orcoDm)
+static void dynamicPaint_doMaterialTex(BrushMaterials *bMats, float color[3], float *alpha, Object *brushOb,
+                                       const float volume_co[3], const float surface_co[3],
+                                       int faceIndex, short isQuad, DerivedMesh *orcoDm)
 {
 	Material *mat = bMats->mat;
 	MFace *mface = orcoDm->getTessFaceArray(orcoDm);

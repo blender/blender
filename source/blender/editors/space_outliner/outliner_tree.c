@@ -803,8 +803,12 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	}
 
 	/* One exception */
-	if (type == TSE_ID_BASE);
-	else if (id == NULL) return NULL;
+	if (type == TSE_ID_BASE) {
+		/* pass */
+	}
+	else if (id == NULL) {
+		return NULL;
+	}
 
 	te = MEM_callocN(sizeof(TreeElement), "tree elem");
 	/* add to the visual tree */
@@ -840,7 +844,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		TreeStoreElem *tsepar = parent ? TREESTORE(parent) : NULL;
 		
 		/* ID datablock */
-		if (tsepar==NULL || tsepar->type != TSE_ID_BASE)
+		if (tsepar == NULL || tsepar->type != TSE_ID_BASE)
 			outliner_add_id_contents(soops, te, tselem, id);
 	}
 	else if (type == TSE_ANIM_DATA) {
@@ -1511,7 +1515,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 		}
 		/* make hierarchy */
 		ten = soops->tree.first;
-		ten= ten->next; /* first one is main */
+		ten = ten->next;  /* first one is main */
 		while (ten) {
 			TreeElement *nten = ten->next, *par;
 			tselem = TREESTORE(ten);

@@ -1830,7 +1830,9 @@ static float calcCostLengthDistance(BArcIterator *iter, float **vec_cache, RigEd
 }
 #endif
 
-static float calcCostAngleLengthDistance(BArcIterator *iter, float **UNUSED(vec_cache), RigEdge *edge, float *vec0, float *vec1, float *vec2, int i1, int i2, float angle_weight, float length_weight, float distance_weight)
+static float calcCostAngleLengthDistance(BArcIterator *iter, float **UNUSED(vec_cache), RigEdge *edge,
+                                         float *vec0, float *vec1, float *vec2, int i1, int i2,
+                                         float angle_weight, float length_weight, float distance_weight)
 {
 	float vec_second[3], vec_first[3];
 	float length2;
@@ -1878,7 +1880,9 @@ static void copyMemoPositions(int *positions, MemoNode *table, int nb_positions,
 	}
 }
 
-static MemoNode *solveJoints(MemoNode *table, BArcIterator *iter, float **vec_cache, int nb_joints, int nb_positions, int previous, int current, RigEdge *edge, int joints_left, float angle_weight, float length_weight, float distance_weight)
+static MemoNode *solveJoints(MemoNode *table, BArcIterator *iter, float **vec_cache,
+                             int nb_joints, int nb_positions, int previous, int current, RigEdge *edge,
+                             int joints_left, float angle_weight, float length_weight, float distance_weight)
 {
 	MemoNode *node;
 	int index = indexMemoNode(nb_positions, previous, current, joints_left);

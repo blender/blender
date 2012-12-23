@@ -316,7 +316,8 @@ static int check_and_decode_jpeg(unsigned char *inbuf, unsigned char *outbuf, in
 	}
 }
 
-static void check_and_compress_jpeg(int quality, unsigned char *outbuf, unsigned char *inbuf, int width, int height, int bufsize)
+static void check_and_compress_jpeg(int quality, unsigned char *outbuf, const unsigned char *inbuf,
+                                    int width, int height, int bufsize)
 {
 	/* JPEG's are always multiples of 16, extra is ignored in AVI's */
 	if ((width & 0xF) || (height & 0xF)) {
@@ -379,7 +380,11 @@ void *avi_converter_to_mjpeg(AviMovie *movie, int stream, unsigned char *buffer,
 
 	buf = MEM_mallocN(movie->header->Height * movie->header->Width * 3, "avi.avi_converter_to_mjpeg 1");
 	if (!movie->interlace) {
-		check_and_compress_jpeg(movie->streams[stream].sh.Quality / 100, buf, buffer,  movie->header->Width, movie->header->Height, bufsize);
+		check_and_compress_jpeg(movie->streams[stream].sh.Quality / 100,
+		                        buf, buffer,
+		                        movie->header->Width,
+		                        movie->header->Height,
+		                        bufsize);
 	}
 	else {
 		deinterlace(movie->odd_fields, buf, buffer, movie->header->Width, movie->header->Height);
@@ -388,10 +393,18 @@ void *avi_converter_to_mjpeg(AviMovie *movie, int stream, unsigned char *buffer,
 		buffer = buf;
 		buf = MEM_mallocN(movie->header->Height * movie->header->Width * 3, "avi.avi_converter_to_mjpeg 2");
 	
-		check_and_compress_jpeg(movie->streams[stream].sh.Quality / 100, buf, buffer,  movie->header->Width, movie->header->Height / 2, bufsize / 2);
+		check_and_compress_jpeg(movie->streams[stream].sh.Quality / 100,
+		                        buf, buffer,
+		                        movie->header->Width,
+		                        movie->header->Height / 2,
+		                        bufsize / 2);
 		*size += numbytes;
 		numbytes = 0;
-		check_and_compress_jpeg(movie->streams[stream].sh.Quality / 100, buf + *size, buffer + (movie->header->Height / 2) * movie->header->Width * 3,  movie->header->Width, movie->header->Height / 2, bufsize / 2);
+		check_and_compress_jpeg(movie->streams[stream].sh.Quality / 100,
+		                        buf + *size, buffer + (movie->header->Height / 2) * movie->header->Width * 3,
+		                        movie->header->Width,
+		                        movie->header->Height / 2,
+		                        bufsize / 2);
 	}
 	*size += numbytes;
 

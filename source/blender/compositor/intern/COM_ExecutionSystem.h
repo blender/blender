@@ -41,7 +41,8 @@ using namespace std;
  * In order to get to an efficient model for execution, several steps are being done. these steps are explained below.
  *
  * @section EM_Step1 Step 1: translating blender node system to the new compsitor system
- * Blenders node structure is based on C structs (DNA). These structs are not efficient in the new architecture. We want to use classes in order to simplify the system.
+ * Blenders node structure is based on C structs (DNA). These structs are not efficient in the new architecture.
+ * We want to use classes in order to simplify the system.
  * during this step the blender node_tree is evaluated and converted to a CPP node system.
  *
  * @see ExecutionSystem
@@ -49,13 +50,17 @@ using namespace std;
  * @see Node
  *
  * @section EM_Step2 Step2: translating nodes to operations
- * Ungrouping the GroupNodes. Group nodes are node_tree's in node_tree's. The new system only supports a single level of node_tree. We will 'flatten' the system in a single level.
+ * Ungrouping the GroupNodes. Group nodes are node_tree's in node_tree's.
+ * The new system only supports a single level of node_tree. We will 'flatten' the system in a single level.
  * @see GroupNode
  * @see ExecutionSystemHelper.ungroup
  *
- * Every node has the ability to convert itself to operations. The node itself is responsible to create a correct NodeOperation setup based on its internal settings.
- * Most Node only need to convert it to its NodeOperation. Like a ColorToBWNode doesn't check anything, but replaces itself with a ConvertColorToBWOperation.
- * More complex nodes can use different NodeOperation based on settings; like MixNode. based on the selected Mixtype a different operation will be used.
+ * Every node has the ability to convert itself to operations. The node itself is responsible to create a correct
+ * NodeOperation setup based on its internal settings.
+ * Most Node only need to convert it to its NodeOperation. Like a ColorToBWNode doesn't check anything,
+ * but replaces itself with a ConvertColorToBWOperation.
+ * More complex nodes can use different NodeOperation based on settings; like MixNode.
+ * based on the selected Mixtype a different operation will be used.
  * for more information see the page about creating new Nodes. [@subpage newnode]
  *
  * @see ExecutionSystem.convertToOperations
@@ -63,9 +68,12 @@ using namespace std;
  * @see NodeOperation base class for all operations in the system
  *
  * @section EM_Step3 Step3: add additional conversions to the operation system
- *   - Data type conversions: the system has 3 data types COM_DT_VALUE, COM_DT_VECTOR, COM_DT_COLOR. The user can connect a Value socket to a color socket. As values are ordered differently than colors a conversion happens.
+ *   - Data type conversions: the system has 3 data types COM_DT_VALUE, COM_DT_VECTOR, COM_DT_COLOR.
+ *     The user can connect a Value socket to a color socket.
+ *     As values are ordered differently than colors a conversion happens.
  *
- *   - Image size conversions: the system can automatically convert when resolutions do not match. An InputSocket has a resize mode. This can be any of the following settings.
+ *   - Image size conversions: the system can automatically convert when resolutions do not match.
+ *     An InputSocket has a resize mode. This can be any of the following settings.
  *     - [@ref InputSocketResizeMode.COM_SC_CENTER]: The center of both images are aligned
  *     - [@ref InputSocketResizeMode.COM_SC_FIT_WIDTH]: The width of both images are aligned
  *     - [@ref InputSocketResizeMode.COM_SC_FIT_HEIGHT]: the height of both images are aligned
@@ -77,8 +85,10 @@ using namespace std;
  * @see Converter.convertResolution Image size conversions
  *
  * @section EM_Step4 Step4: group operations in executions groups
- * ExecutionGroup are groups of operations that are calculated as being one bigger operation. All operations will be part of an ExecutionGroup.
- * Complex nodes will be added to separate groups. Between ExecutionGroup's the data will be stored in MemoryBuffers. ReadBufferOperations and WriteBufferOperations are added where needed.
+ * ExecutionGroup are groups of operations that are calculated as being one bigger operation.
+ * All operations will be part of an ExecutionGroup.
+ * Complex nodes will be added to separate groups. Between ExecutionGroup's the data will be stored in MemoryBuffers.
+ * ReadBufferOperations and WriteBufferOperations are added where needed.
  *
  * <pre>
  *
