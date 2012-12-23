@@ -7103,7 +7103,21 @@ static DMDrawOption bbs_mesh_solid_hide2__setDrawOpts(void *userData, int index)
 		return DM_DRAW_OPTION_SKIP;
 	}
 }
-static void bbs_mesh_solid(Scene *scene, Object *ob)
+
+static void bbs_mesh_solid_verts(Scene *scene, Object *ob)
+{
+	Mesh *me = ob->data;
+	DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
+	glColor3ub(0, 0, 0);
+
+	dm->drawMappedFaces(dm, bbs_mesh_solid_hide2__setDrawOpts, GPU_enable_material, NULL, me, 0);
+
+	bbs_obmode_mesh_verts(ob, dm, 1);
+	bm_vertoffs = me->totvert + 1;
+	dm->release(dm);
+}
+
+static void bbs_mesh_solid_faces(Scene *scene, Object *ob)
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
 	Mesh *me = (Mesh *)ob->data;
@@ -7168,18 +7182,10 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 				    /* currently vertex select only supports weight paint */
 				    (ob->mode & OB_MODE_WEIGHT_PAINT))
 				{
-					DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
-					glColor3ub(0, 0, 0);
-
-					dm->drawMappedFaces(dm, bbs_mesh_solid_hide2__setDrawOpts, GPU_enable_material, NULL, me, 0);
-
-
-					bbs_obmode_mesh_verts(ob, dm, 1);
-					bm_vertoffs = me->totvert + 1;
-					dm->release(dm);
+					bbs_mesh_solid_verts(scene, ob);
 				}
 				else {
-					bbs_mesh_solid(scene, ob);
+					bbs_mesh_solid_faces(scene, ob);
 				}
 			}
 			break;

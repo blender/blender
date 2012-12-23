@@ -1018,7 +1018,7 @@ void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d,
 	const short do_light = (v3d->drawtype >= OB_SOLID);
 
 	/* hide faces in face select mode */
-	if (draw_flags & DRAW_FACE_SELECT)
+	if (me->editflag & (ME_EDIT_PAINT_VERT_SEL | ME_EDIT_PAINT_FACE_SEL))
 		facemask = wpaint__setSolidDrawOptions_facemask;
 
 	if (ob->mode & OB_MODE_WEIGHT_PAINT) {
