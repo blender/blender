@@ -1261,6 +1261,32 @@ int ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned 
  *
  * \return boolean TRUE == Found
  */
+typedef struct VertPickData {
+	const MVert *mvert;
+	const float *mval_f;  /* [2] */
+	ARegion *ar;
+
+	/* runtime */
+	float len_best;
+	int v_idx_best;
+} VertPickData;
+
+static void ed_mesh_pick_vert__mapFunc(void *userData, int index, const float co[3],
+                                       const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
+{
+	VertPickData *data = userData;
+	if ((data->mvert[index].flag & ME_HIDE) == 0) {
+		float sco[2];
+
+		if (ED_view3d_project_float_object(data->ar, co, sco, V3D_PROJ_TEST_CLIP_DEFAULT) == V3D_PROJ_RET_OK) {
+			const float len = len_manhattan_v2v2(data->mval_f, sco);
+			if (len < data->len_best) {
+				data->len_best = len;
+				data->v_idx_best = index;
+			}
+		}
+	}
+}
 int ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int *index, int size, int use_zbuf)
 {
 	ViewContext vc;
@@ -1294,46 +1320,37 @@ int ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int *
 	else {
 		/* derived mesh to find deformed locations */
 		DerivedMesh *dm = mesh_get_derived_final(vc.scene, ob, CD_MASK_BAREMESH);
-		struct ARegion *ar = vc.ar;
+		ARegion *ar = vc.ar;
+		RegionView3D *rv3d = ar->regiondata;
 
-		int v_idx_best = -1;
-		int v_idx;
+		/* find the vert closest to 'mval' */
+		const float mval_f[2] = {(float)mval[0],
+		                         (float)mval[1]};
 
+		VertPickData data = {0};
+
+		ED_view3d_init_mats_rv3d(ob, rv3d);
 
 		if (dm == NULL) {
 			return 0;
 		}
 
-		if (dm->getVertCo) {
-			RegionView3D *rv3d = ar->regiondata;
+		/* setup data */
+		data.mvert = me->mvert;
+		data.ar = ar;
+		data.mval_f = mval_f;
+		data.len_best = FLT_MAX;
+		data.v_idx_best = -1;
 
-			/* find the vert closest to 'mval' */
-			const float mval_f[2] = {(float)mval[0],
-			                         (float)mval[1]};
-			float len_best = FLT_MAX;
-
-			ED_view3d_init_mats_rv3d(ob, rv3d);
-
-			v_idx = me->totvert - 1;
-			do {
-				float co[3], sco[2], len;
-				dm->getVertCo(dm, v_idx, co);
-				if (ED_view3d_project_float_object(ar, co, sco, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
-					len = len_manhattan_v2v2(mval_f, sco);
-					if (len < len_best) {
-						len_best = len;
-						v_idx_best = v_idx;
-					}
-				}
-			} while (v_idx--);
-		}
+		dm->foreachMappedVert(dm, ed_mesh_pick_vert__mapFunc, &data);
 
 		dm->release(dm);
 
-		if (v_idx_best != -1) {
-			*index = v_idx_best;
-			return 1;
+		if (data.v_idx_best == -1) {
+			return 0;
 		}
+
+		*index = data.v_idx_best;
 	}
 
 	return 1;

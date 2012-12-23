@@ -2310,20 +2310,19 @@ DerivedMesh *editbmesh_get_derived_base(Object *obedit, BMEditMesh *em)
 static void make_vertexcosnos__mapFunc(void *userData, int index, const float co[3],
                                        const float no_f[3], const short no_s[3])
 {
-	float *vec = userData;
-	
-	vec += 6 * index;
+	DMCoNo *co_no = &((DMCoNo *)userData)[index];
 
 	/* check if we've been here before (normal should not be 0) */
-	if (vec[3] || vec[4] || vec[5]) return;
+	if (!is_zero_v3(co_no->no)) {
+		return;
+	}
 
-	copy_v3_v3(vec, co);
-	vec += 3;
+	copy_v3_v3(co_no->co, co);
 	if (no_f) {
-		copy_v3_v3(vec, no_f);
+		copy_v3_v3(co_no->no, no_f);
 	}
 	else {
-		normal_short_to_float_v3(vec, no_s);
+		normal_short_to_float_v3(co_no->no, no_s);
 	}
 }
 
