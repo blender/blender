@@ -1097,12 +1097,12 @@ static int sb_detect_face_pointCached(float face_v1[3], float face_v2[3], float 
 	float facedist, outerfacethickness, tune = 10.f;
 	int a, deflected=0;
 
-	aabbmin[0] = MIN3(face_v1[0], face_v2[0], face_v3[0]);
-	aabbmin[1] = MIN3(face_v1[1], face_v2[1], face_v3[1]);
-	aabbmin[2] = MIN3(face_v1[2], face_v2[2], face_v3[2]);
-	aabbmax[0] = MAX3(face_v1[0], face_v2[0], face_v3[0]);
-	aabbmax[1] = MAX3(face_v1[1], face_v2[1], face_v3[1]);
-	aabbmax[2] = MAX3(face_v1[2], face_v2[2], face_v3[2]);
+	aabbmin[0] = min_fff(face_v1[0], face_v2[0], face_v3[0]);
+	aabbmin[1] = min_fff(face_v1[1], face_v2[1], face_v3[1]);
+	aabbmin[2] = min_fff(face_v1[2], face_v2[2], face_v3[2]);
+	aabbmax[0] = max_fff(face_v1[0], face_v2[0], face_v3[0]);
+	aabbmax[1] = max_fff(face_v1[1], face_v2[1], face_v3[1]);
+	aabbmax[2] = max_fff(face_v1[2], face_v2[2], face_v3[2]);
 
 	/* calculate face normal once again SIGH */
 	sub_v3_v3v3(edge1, face_v1, face_v2);
@@ -1196,12 +1196,12 @@ static int sb_detect_face_collisionCached(float face_v1[3], float face_v2[3], fl
 	float t, tune = 10.0f;
 	int a, deflected=0;
 
-	aabbmin[0] = MIN3(face_v1[0], face_v2[0], face_v3[0]);
-	aabbmin[1] = MIN3(face_v1[1], face_v2[1], face_v3[1]);
-	aabbmin[2] = MIN3(face_v1[2], face_v2[2], face_v3[2]);
-	aabbmax[0] = MAX3(face_v1[0], face_v2[0], face_v3[0]);
-	aabbmax[1] = MAX3(face_v1[1], face_v2[1], face_v3[1]);
-	aabbmax[2] = MAX3(face_v1[2], face_v2[2], face_v3[2]);
+	aabbmin[0] = min_fff(face_v1[0], face_v2[0], face_v3[0]);
+	aabbmin[1] = min_fff(face_v1[1], face_v2[1], face_v3[1]);
+	aabbmin[2] = min_fff(face_v1[2], face_v2[2], face_v3[2]);
+	aabbmax[0] = max_fff(face_v1[0], face_v2[0], face_v3[0]);
+	aabbmax[1] = max_fff(face_v1[1], face_v2[1], face_v3[1]);
+	aabbmax[2] = max_fff(face_v1[2], face_v2[2], face_v3[2]);
 
 	hash  = vertexowner->soft->scratch->colliderhash;
 	ihash =	BLI_ghashIterator_new(hash);
@@ -1957,7 +1957,7 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 							}
 
 							closest_to_line_segment_v3(ve, opco, nv2, nv3);
-							 sub_v3_v3v3(ve, opco, ve);
+							sub_v3_v3v3(ve, opco, ve);
 							dist = normalize_v3(ve);
 							if ((dist < outerfacethickness)&&(dist < mindistedge )) {
 								copy_v3_v3(coledge, ve);
@@ -1966,7 +1966,7 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 							}
 
 							closest_to_line_segment_v3(ve, opco, nv3, nv1);
-							 sub_v3_v3v3(ve, opco, ve);
+							sub_v3_v3v3(ve, opco, ve);
 							dist = normalize_v3(ve);
 							if ((dist < outerfacethickness)&&(dist < mindistedge )) {
 								copy_v3_v3(coledge, ve);

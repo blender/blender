@@ -141,6 +141,74 @@ Types
       
       :type: boolean
 
+.. class:: SCA_PythonJoystick(PyObjectPlus)
+
+   A Python interface to a joystick.
+
+   .. attribute:: name
+
+      The name assigned to the joystick by the operating system. (read-only)
+	  
+      :type: string
+
+   .. attribute:: activeButtons
+
+      A list of active button values. (read-only)
+	  
+      :type: list
+
+   .. attribute:: axisValues
+
+      The state of the joysticks axis as a list of values :data:`numAxis` long. (read-only).
+
+      :type: list of ints.
+
+      Each specifying the value of an axis between -1.0 and 1.0 depending on how far the axis is pushed, 0 for nothing.
+      The first 2 values are used by most joysticks and gamepads for directional control. 3rd and 4th values are only on some joysticks and can be used for arbitary controls.
+
+      * left:[-1.0, 0.0, ...]
+      * right:[1.0, 0.0, ...]
+      * up:[0.0, -1.0, ...]
+      * down:[0.0, 1.0, ...]
+
+   .. attribute:: hatValues
+
+      The state of the joysticks hats as a list of values :data:`numHats` long. (read-only).
+
+      :type: list of ints
+
+      Each specifying the direction of the hat from 1 to 12, 0 when inactive.
+
+      Hat directions are as follows...
+
+      * 0:None
+      * 1:Up
+      * 2:Right
+      * 4:Down
+      * 8:Left
+      * 3:Up - Right
+      * 6:Down - Right
+      * 12:Down - Left
+      * 9:Up - Left
+
+   .. attribute:: numAxis
+
+      The number of axes for the joystick at this index. (read-only).
+
+      :type: integer
+
+   .. attribute:: numButtons
+
+      The number of buttons for the joystick at this index. (read-only).
+
+      :type: integer
+
+   .. attribute:: numHats
+
+      The number of hats for the joystick at this index. (read-only).
+
+      :type: integer
+
 .. class:: SCA_IObject(CValue)
 
    This class has no python functions
@@ -1860,6 +1928,44 @@ Types
       Update IPO on all children Objects as well.
 
       :type: boolean
+
+.. class:: KX_LibLoadStatus(PyObjectPlus)
+
+   An object providing information about a LibLoad() operation.
+
+   .. code-block:: python
+
+      # Print a message when an async LibLoad is done
+      import bge
+
+      def finished_cb(status):
+          print("Library (%s) loaded in %.2fms." % (status.libraryName, status.timeTaken))
+
+      bge.logic.LibLoad('myblend.blend', 'Scene', async=True).onFinish = finished_cb
+
+   .. attribute:: onFinish
+
+      A callback that gets called when the lib load is done.
+
+      :type: callable
+
+   .. attribute:: progress
+
+      The current progress of the lib load as a normalized value from 0.0 to 1.0.
+
+      :type: float
+
+   .. attribute:: libraryName
+
+      The name of the library being loaded (the first argument to LibLoad).
+
+      :type: string
+
+   .. attribute:: timeTaken
+
+      The amount of time, in seconds, the lib load took (0 until the operation is complete).
+
+      :type: float
 
 .. class:: KX_LightObject(KX_GameObject)
 
@@ -3977,7 +4083,7 @@ Types
 
       :type: list of ints.
 
-      Each spesifying the value of an axis between -32767 and 32767 depending on how far the axis is pushed, 0 for nothing.
+      Each specifying the value of an axis between -32767 and 32767 depending on how far the axis is pushed, 0 for nothing.
       The first 2 values are used by most joysticks and gamepads for directional control. 3rd and 4th values are only on some joysticks and can be used for arbitary controls.
 
       * left:[-32767, 0, ...]
@@ -4001,7 +4107,7 @@ Types
 
       :type: list of ints
 
-      Each spesifying the direction of the hat from 1 to 12, 0 when inactive.
+      Each specifying the direction of the hat from 1 to 12, 0 when inactive.
 
       Hat directions are as follows...
 

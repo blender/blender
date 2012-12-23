@@ -271,23 +271,22 @@ static char *rna_Node_path(PointerRNA *ptr)
 	return BLI_sprintfN("nodes[\"%s\"]", node->name);
 }
 
-/* define a get_type function for each node type */
-#define DEF_NODE_GET_NODE_TYPE(name, enum_name) \
-static const char *rna_##name##_get_node_type() \
-{ \
-	return enum_name; \
+static const char *rna_Node_get_node_type(StructRNA *type)
+{
+	bNodeType *nodetype = RNA_struct_blender_type_get(type);
+	if (nodetype) {
+		/* XXX hack: with customnodes branch, nodes will use an identifier string instead of integer ID.
+		 * Then this can be returned directly instead of doing this ugly include thingy ...
+		 */
+		#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
+		if (ID == nodetype->type) { \
+			return EnumName; \
+		}
+		
+		#include "rna_nodetree_types.h"
+	}
+	return "";
 }
-
-#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
-DEF_NODE_GET_NODE_TYPE(Category##StructName, EnumName)
-
-#include "rna_nodetree_types.h"
-
-/* some nodes not included in rna_nodetree_types.h */
-DEF_NODE_GET_NODE_TYPE(NodeGroup, "GROUP")
-DEF_NODE_GET_NODE_TYPE(NodeFrame, "FRAME")
-DEF_NODE_GET_NODE_TYPE(NodeReroute, "REROUTE")
-
 
 static StructRNA *rna_NodeSocket_refine(PointerRNA *ptr)
 {
@@ -1283,11 +1282,19 @@ static void init(void)
 static StructRNA *def_node(BlenderRNA *brna, int node_id)
 {
 	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
 	NodeInfo *node = nodes + node_id;
 	
 	srna = RNA_def_struct(brna, node->struct_name, node->base_name);
 	RNA_def_struct_ui_text(srna, node->ui_name, node->ui_desc);
 	RNA_def_struct_sdna(srna, "bNode");
+	
+	func = RNA_def_function(srna, "get_node_type", "rna_Node_get_node_type");
+	RNA_def_function_ui_description(func, "Get the identifier of the node type");
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_SELF_TYPE);
+	parm = RNA_def_string(func, "result", "", 0, "Result", "");
+	RNA_def_function_return(func, parm);
 	
 	return srna;
 }
@@ -4637,7 +4644,7 @@ static void rna_def_node(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "locx");
 	RNA_def_property_array(prop, 2);
-	RNA_def_property_range(prop, -10000.0f, 10000.0f);
+	RNA_def_property_range(prop, -100000.0f, 100000.0f);
 	RNA_def_property_ui_text(prop, "Location", "");
 	RNA_def_property_update(prop, NC_NODE, "rna_Node_update");
 	
@@ -4924,20 +4931,12 @@ static void rna_def_texture_nodetree(BlenderRNA *brna)
 	rna_def_texture_nodetree_api(brna, prop);
 }
 
-static void define_specific_node(BlenderRNA *brna, int id, void (*def_func)(StructRNA *), const char *get_node_type_func)
+static void define_specific_node(BlenderRNA *brna, int id, void (*def_func)(StructRNA *))
 {
 	StructRNA *srna = def_node(brna, id);
-	FunctionRNA *func;
-	PropertyRNA *parm;
 	
 	if (def_func)
 		def_func(srna);
-	
-	func = RNA_def_function(srna, "get_node_type", get_node_type_func);
-	RNA_def_function_ui_description(func, "Get the identifier of the node type");
-	RNA_def_function_flag(func, FUNC_NO_SELF);
-	parm = RNA_def_string(func, "result", "", 0, "Result", "");
-	RNA_def_function_return(func, parm);
 }
 
 void RNA_def_nodetree(BlenderRNA *brna)
@@ -4968,13 +4967,13 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	rna_def_shader_nodetree(brna);
 	rna_def_texture_nodetree(brna);
 	#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
-		define_specific_node(brna, ID, DefFunc, "rna_" STRINGIFY_ARG(Category##StructName) "_get_node_type");
+		define_specific_node(brna, ID, DefFunc);
 		
 	#include "rna_nodetree_types.h"
 	
-	define_specific_node(brna, NODE_GROUP, def_group, "rna_NodeGroup_get_node_type");
-	define_specific_node(brna, NODE_FRAME, def_frame, "rna_NodeFrame_get_node_type");
-	define_specific_node(brna, NODE_REROUTE, 0, "rna_NodeReroute_get_node_type");
+	define_specific_node(brna, NODE_GROUP, def_group);
+	define_specific_node(brna, NODE_FRAME, def_frame);
+	define_specific_node(brna, NODE_REROUTE, 0);
 	
 	/* special socket types */
 	rna_def_cmp_output_file_slot_file(brna);

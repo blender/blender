@@ -502,7 +502,7 @@ typedef struct RenderData {
 	short bake_osa, bake_filter, bake_mode, bake_flag;
 	short bake_normal_space, bake_quad_split;
 	float bake_maxdist, bake_biasdist;
-	int bake_rays_number;
+	short bake_samples, bake_pad;
 
 	/* path to render output */
 	char pic[1024]; /* 1024 = FILE_MAX */

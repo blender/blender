@@ -461,9 +461,6 @@ void bmesh_edit_end(BMesh *bm, int UNUSED(flag))
 
 void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag)
 {
-	BMIter iter;
-	BMElem *ele;
-
 #ifdef DEBUG
 	BM_ELEM_INDEX_VALIDATE(bm, "Should Never Fail!", __func__);
 #endif
@@ -474,6 +471,9 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag)
 		{
 			if (hflag & BM_VERT) {
 				if (bm->elem_index_dirty & BM_VERT) {
+					BMIter iter;
+					BMElem *ele;
+
 					int index;
 					BM_ITER_MESH_INDEX (ele, &iter, bm, BM_VERTS_OF_MESH, index) {
 						BM_elem_index_set(ele, index); /* set_ok */
@@ -490,6 +490,9 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag)
 		{
 			if (hflag & BM_EDGE) {
 				if (bm->elem_index_dirty & BM_EDGE) {
+					BMIter iter;
+					BMElem *ele;
+
 					int index;
 					BM_ITER_MESH_INDEX (ele, &iter, bm, BM_EDGES_OF_MESH, index) {
 						BM_elem_index_set(ele, index); /* set_ok */
@@ -506,6 +509,9 @@ void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag)
 		{
 			if (hflag & BM_FACE) {
 				if (bm->elem_index_dirty & BM_FACE) {
+					BMIter iter;
+					BMElem *ele;
+
 					int index;
 					BM_ITER_MESH_INDEX (ele, &iter, bm, BM_FACES_OF_MESH, index) {
 						BM_elem_index_set(ele, index); /* set_ok */

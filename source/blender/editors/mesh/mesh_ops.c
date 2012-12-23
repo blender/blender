@@ -29,17 +29,11 @@
  */
 
 
-#include <stdlib.h>
-#include <math.h>
 
 
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
 
-#include "BKE_context.h"
 
 #include "RNA_access.h"
 
@@ -49,7 +43,6 @@
 #include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
-#include "ED_view3d.h"
 
 
 #include "mesh_intern.h"

@@ -686,6 +686,28 @@ class USERPREF_PT_theme(Panel):
             col.separator()
 
             ui = theme.user_interface
+
+            col.label("Menu Shadow:")
+
+            row = col.row()
+
+            subsplit = row.split(percentage=0.95)
+
+            padding = subsplit.split(percentage=0.15)
+            colsub = padding.column()
+            colsub = padding.column()
+            colsub.row().prop(ui, "menu_shadow_fac")
+
+            subsplit = row.split(percentage=0.85)
+
+            padding = subsplit.split(percentage=0.15)
+            colsub = padding.column()
+            colsub = padding.column()
+            colsub.row().prop(ui, "menu_shadow_width")
+
+            col.separator()
+            col.separator()
+
             col.label("Icons:")
 
             row = col.row()

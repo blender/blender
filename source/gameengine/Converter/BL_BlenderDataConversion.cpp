@@ -192,6 +192,8 @@ extern "C" {
 }
 #endif
 
+#include "BLI_threads.h"
+
 static bool default_light_mode = 0;
 
 static std::map<int, SCA_IInputDevice::KX_EnumInputs> create_translate_table()
@@ -532,8 +534,6 @@ static void GetUVs(BL_Material *material, MTF_localLayer *layers, MFace *mface, 
 
 			if (map.uvCoName.IsEmpty() || strcmp(map.uvCoName.ReadPtr(), layer.name)==0)
 			{
-				MT_Point2 uvSet[4];
-
 				uvs[0][unit].setValue(layer.face->uv[0]);
 				uvs[1][unit].setValue(layer.face->uv[1]);
 				uvs[2][unit].setValue(layer.face->uv[2]);
@@ -881,7 +881,7 @@ static bool ConvertMaterial(
 	return true;
 }
 
-RAS_MaterialBucket* material_from_mesh(Material *ma, MFace *mface, MTFace *tface, MCol *mcol, MTF_localLayer *layers, int lightlayer, unsigned int *rgb, MT_Point2 uvs[4][RAS_TexVert::MAX_UNIT], const char *tfaceName, KX_Scene* scene, KX_BlenderSceneConverter *converter)
+static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace *tface, MCol *mcol, MTF_localLayer *layers, int lightlayer, unsigned int *rgb, MT_Point2 uvs[4][RAS_TexVert::MAX_UNIT], const char *tfaceName, KX_Scene* scene, KX_BlenderSceneConverter *converter)
 {
 	RAS_IPolyMaterial* polymat = converter->FindCachedPolyMaterial(ma);
 	BL_Material* bl_mat = converter->FindCachedBlenderMaterial(ma);
@@ -1344,7 +1344,13 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	float radius=0.0f, vert_radius, *co;
 	int a;
 	
-	if (me->bb==0) me->bb= (struct BoundBox *)MEM_callocN(sizeof(BoundBox), "boundbox");
+	if (me->bb==0) {
+		// This can be called in a seperate (not main) thread when doing async libload,
+		// so lets try to be safe...
+		BLI_begin_threaded_malloc();
+		me->bb= (struct BoundBox *)MEM_callocN(sizeof(BoundBox), "boundbox");
+		BLI_end_threaded_malloc();
+	}
 	bb= me->bb;
 	
 	INIT_MINMAX(min, max);

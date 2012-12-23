@@ -430,7 +430,7 @@ void BKE_mesh_free(Mesh *me, int unlink)
 	if (me->edit_btmesh) MEM_freeN(me->edit_btmesh);
 }
 
-void copy_dverts(MDeformVert *dst, MDeformVert *src, int copycount)
+void copy_dverts(MDeformVert *dst, const MDeformVert *src, int copycount)
 {
 	/* Assumes dst is already set up */
 	int i;
@@ -442,7 +442,7 @@ void copy_dverts(MDeformVert *dst, MDeformVert *src, int copycount)
 	
 	for (i = 0; i < copycount; i++) {
 		if (src[i].dw) {
-			dst[i].dw = MEM_callocN(sizeof(MDeformWeight) * src[i].totweight, "copy_deformWeight");
+			dst[i].dw = MEM_mallocN(sizeof(MDeformWeight) * src[i].totweight, "copy_deformWeight");
 			memcpy(dst[i].dw, src[i].dw, sizeof(MDeformWeight) * src[i].totweight);
 		}
 	}
@@ -731,7 +731,7 @@ void BKE_mesh_texspace_get(Mesh *me, float r_loc[3], float r_rot[3], float r_siz
 	if (r_size) copy_v3_v3(r_size, me->size);
 }
 
-float *BKE_mesh_orco_verts_get(Object *ob)
+float (*BKE_mesh_orco_verts_get(Object *ob))[3]
 {
 	Mesh *me = ob->data;
 	MVert *mvert = NULL;
@@ -748,7 +748,7 @@ float *BKE_mesh_orco_verts_get(Object *ob)
 		copy_v3_v3(vcos[a], mvert->co);
 	}
 
-	return (float *)vcos;
+	return vcos;
 }
 
 void BKE_mesh_orco_verts_transform(Mesh *me, float (*orco)[3], int totvert, int invert)
@@ -3106,6 +3106,107 @@ void BKE_mesh_flush_hidden_from_verts(const MVert *mvert,
 		}
 	}
 }
+
+/**
+ * simple poly -> vert/edge selection.
+ */
+void BKE_mesh_flush_select_from_polys_ex(MVert *mvert,       const int totvert,
+                                         MLoop *mloop,
+                                         MEdge *medge,       const int totedge,
+                                         const MPoly *mpoly, const int totpoly)
+{
+	MVert *mv;
+	MEdge *med;
+	const MPoly *mp;
+	int i;
+
+	i = totvert;
+	for (mv = mvert; i--; mv++) {
+		mv->flag &= ~SELECT;
+	}
+
+	i = totedge;
+	for (med = medge; i--; med++) {
+		med->flag &= ~SELECT;
+	}
+
+	i = totpoly;
+	for (mp = mpoly; i--; mp++) {
+		/* assume if its selected its not hidden and none of its verts/edges are hidden
+		 * (a common assumption)*/
+		if (mp->flag & ME_FACE_SEL) {
+			MLoop *ml;
+			int j;
+			j = mp->totloop;
+			for (ml = &mloop[mp->loopstart]; j--; ml++) {
+				mvert[ml->v].flag |= SELECT;
+				medge[ml->e].flag |= SELECT;
+			}
+		}
+	}
+}
+void BKE_mesh_flush_select_from_polys(Mesh *me)
+{
+	BKE_mesh_flush_select_from_polys_ex(me->mvert, me->totvert,
+	                                 me->mloop,
+	                                 me->medge, me->totedge,
+	                                 me->mpoly, me->totpoly);
+}
+
+void BKE_mesh_flush_select_from_verts_ex(const MVert *mvert, const int UNUSED(totvert),
+                                         MLoop *mloop,
+                                         MEdge *medge,       const int totedge,
+                                         MPoly *mpoly,       const int totpoly)
+{
+	MEdge *med;
+	MPoly *mp;
+	int i;
+
+	/* edges */
+	i = totedge;
+	for (med = medge; i--; med++) {
+		if ((med->flag & ME_HIDE) == 0) {
+			if ((mvert[med->v1].flag & SELECT) && (mvert[med->v2].flag & SELECT)) {
+				med->flag |= SELECT;
+			}
+			else {
+				med->flag &= ~SELECT;
+			}
+		}
+	}
+
+	/* polys */
+	i = totpoly;
+	for (mp = mpoly; i--; mp++) {
+		if ((mp->flag & ME_HIDE) == 0) {
+			int ok = TRUE;
+			MLoop *ml;
+			int j;
+			j = mp->totloop;
+			for (ml = &mloop[mp->loopstart]; j--; ml++) {
+				if ((mvert[ml->v].flag & SELECT) == 0) {
+					ok = FALSE;
+					break;
+				}
+			}
+
+			if (ok) {
+				mp->flag |= ME_FACE_SEL;
+			}
+			else {
+				mp->flag &= ~ME_FACE_SEL;
+			}
+		}
+	}
+}
+void BKE_mesh_flush_select_from_verts(Mesh *me)
+{
+	BKE_mesh_flush_select_from_verts_ex(me->mvert, me->totvert,
+	                                    me->mloop,
+	                                    me->medge, me->totedge,
+	                                    me->mpoly, me->totpoly);
+}
+
 
 /* basic vertex data functions */
 int BKE_mesh_minmax(Mesh *me, float r_min[3], float r_max[3])

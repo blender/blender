@@ -209,10 +209,10 @@ __device float4 triangle_motion_vector(KernelGlobals *kg, ShaderData *sd)
 	 * transformation was set match the world/object space of motion_pre/post */
 	Transform tfm;
 	
-	tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM_MOTION_PRE);
+	tfm = object_fetch_vector_transform(kg, sd->object, OBJECT_VECTOR_MOTION_PRE);
 	motion_pre = transform_point(&tfm, motion_pre);
 
-	tfm = object_fetch_transform(kg, sd->object, OBJECT_TRANSFORM_MOTION_POST);
+	tfm = object_fetch_vector_transform(kg, sd->object, OBJECT_VECTOR_MOTION_POST);
 	motion_post = transform_point(&tfm, motion_post);
 
 	float3 P;

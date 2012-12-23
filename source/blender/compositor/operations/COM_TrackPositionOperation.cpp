@@ -42,7 +42,7 @@ TrackPositionOperation::TrackPositionOperation() : NodeOperation()
 	this->m_trackingObjectName[0] = 0;
 	this->m_trackName[0] = 0;
 	this->m_axis = 0;
-	this->m_position = POSITION_ABSOLUTE;;
+	this->m_position = POSITION_ABSOLUTE;
 	this->m_relativeFrame = 0;
 }
 

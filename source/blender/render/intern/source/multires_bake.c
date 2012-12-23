@@ -39,6 +39,7 @@
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_threads.h"
 
 #include "BKE_ccg.h"
 #include "BKE_context.h"
@@ -326,104 +327,196 @@ static int multiresbake_test_break(MultiresBakeRender *bkr)
 		return 0;
 	}
 
-	return G.is_break;
+	return *bkr->stop || G.is_break;
+}
+
+/* **** Threading routines **** */
+
+typedef struct MultiresBakeQueue {
+	int cur_face;
+	int tot_face;
+	SpinLock spin;
+} MultiresBakeQueue;
+
+typedef struct MultiresBakeThread {
+	/* this data is actually shared between all the threads */
+	MultiresBakeQueue *queue;
+	MultiresBakeRender *bkr;
+	Image *image;
+	void *bake_data;
+
+	/* thread-specific data */
+	MBakeRast bake_rast;
+	MResolvePixelData data;
+} MultiresBakeThread;
+
+static int multires_bake_queue_next_face(MultiresBakeQueue *queue)
+{
+	int face = -1;
+
+	/* TODO: it could worth making it so thread will handle neighbor faces
+	 *       for better memory cache utilization
+	 */
+
+	BLI_spin_lock(&queue->spin);
+	if (queue->cur_face < queue->tot_face) {
+		face = queue->cur_face;
+		queue->cur_face++;
+	}
+	BLI_spin_unlock(&queue->spin);
+
+	return face;
+}
+
+static void *do_multires_bake_thread(void *data_v)
+{
+	MultiresBakeThread *handle = (MultiresBakeThread *) data_v;
+	MResolvePixelData *data = &handle->data;
+	MBakeRast *bake_rast = &handle->bake_rast;
+	MultiresBakeRender *bkr = handle->bkr;
+	int f;
+
+	while ((f = multires_bake_queue_next_face(handle->queue)) >= 0) {
+		MTFace *mtfate = &data->mtface[f];
+		int verts[3][2], nr_tris, t;
+
+		if (multiresbake_test_break(bkr))
+			break;
+
+		if (mtfate->tpage != handle->image)
+			continue;
+
+		data->face_index = f;
+
+		/* might support other forms of diagonal splits later on such as
+		 * split by shortest diagonal.*/
+		verts[0][0] = 0;
+		verts[1][0] = 1;
+		verts[2][0] = 2;
+
+		verts[0][1] = 0;
+		verts[1][1] = 2;
+		verts[2][1] = 3;
+
+		nr_tris = data->mface[f].v4 != 0 ? 2 : 1;
+		for (t = 0; t < nr_tris; t++) {
+			data->i0 = verts[0][t];
+			data->i1 = verts[1][t];
+			data->i2 = verts[2][t];
+
+			bake_rasterize(bake_rast, mtfate->uv[data->i0], mtfate->uv[data->i1], mtfate->uv[data->i2]);
+
+			/* tag image buffer for refresh */
+			if (data->ibuf->rect_float)
+				data->ibuf->userflags |= IB_RECT_INVALID;
+
+			data->ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+		}
+
+		/* update progress */
+		BLI_spin_lock(&handle->queue->spin);
+		bkr->baked_faces++;
+
+		if (bkr->do_update)
+			*bkr->do_update = TRUE;
+
+		if (bkr->progress)
+			*bkr->progress = ((float)bkr->baked_objects + (float)bkr->baked_faces / handle->queue->tot_face) / bkr->tot_obj;
+		BLI_spin_unlock(&handle->queue->spin);
+	}
+
+	return NULL;
 }
 
 static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, int require_tangent, MPassKnownData passKnownData,
                              MInitBakeData initBakeData, MApplyBakeData applyBakeData, MFreeBakeData freeBakeData)
 {
 	DerivedMesh *dm = bkr->lores_dm;
-	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 	const int lvl = bkr->lvl;
 	const int tot_face = dm->getNumTessFaces(dm);
-	MVert *mvert = dm->getVertArray(dm);
-	MFace *mface = dm->getTessFaceArray(dm);
-	MTFace *mtface = dm->getTessFaceDataArray(dm, CD_MTFACE);
-	float *pvtangent = NULL;
 
-	if (require_tangent) {
-		if (CustomData_get_layer_index(&dm->faceData, CD_TANGENT) == -1)
-			DM_add_tangent_layer(dm);
+	if (tot_face > 0) {
+		MultiresBakeThread *handles;
+		MultiresBakeQueue queue;
 
-		pvtangent = DM_get_tessface_data_layer(dm, CD_TANGENT);
-	}
+		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+		MVert *mvert = dm->getVertArray(dm);
+		MFace *mface = dm->getTessFaceArray(dm);
+		MTFace *mtface = dm->getTessFaceDataArray(dm, CD_MTFACE);
+		float *precomputed_normals = dm->getTessFaceDataArray(dm, CD_NORMAL);
+		float *pvtangent = NULL;
 
-	if (tot_face > 0) {  /* sanity check */
-		int f = 0;
-		MBakeRast bake_rast;
-		MResolvePixelData data = {NULL};
+		ListBase threads;
+		int i, tot_thread = bkr->threads > 0 ? bkr->threads : BLI_system_thread_count();
 
-		data.mface = mface;
-		data.mvert = mvert;
-		data.mtface = mtface;
-		data.pvtangent = pvtangent;
-		data.precomputed_normals = dm->getTessFaceDataArray(dm, CD_NORMAL);  /* don't strictly need this */
-		data.w = ibuf->x;
-		data.h = ibuf->y;
-		data.lores_dm = dm;
-		data.hires_dm = bkr->hires_dm;
-		data.lvl = lvl;
-		data.pass_data = passKnownData;
+		void *bake_data = NULL;
 
-		if (initBakeData)
-			data.bake_data = initBakeData(bkr, ima);
+		if (require_tangent) {
+			if (CustomData_get_layer_index(&dm->faceData, CD_TANGENT) == -1)
+				DM_add_tangent_layer(dm);
 
-		init_bake_rast(&bake_rast, ibuf, &data, flush_pixel);
-
-		for (f = 0; f < tot_face; f++) {
-			MTFace *mtfate = &mtface[f];
-			int verts[3][2], nr_tris, t;
-
-			if (multiresbake_test_break(bkr))
-				break;
-
-			if (mtfate->tpage != ima)
-				continue;
-
-			data.face_index = f;
-			data.ibuf = ibuf;
-
-			/* might support other forms of diagonal splits later on such as
-			 * split by shortest diagonal.*/
-			verts[0][0] = 0;
-			verts[1][0] = 1;
-			verts[2][0] = 2;
-
-			verts[0][1] = 0;
-			verts[1][1] = 2;
-			verts[2][1] = 3;
-
-			nr_tris = mface[f].v4 != 0 ? 2 : 1;
-			for (t = 0; t < nr_tris; t++) {
-				data.i0 = verts[0][t];
-				data.i1 = verts[1][t];
-				data.i2 = verts[2][t];
-
-				bake_rasterize(&bake_rast, mtfate->uv[data.i0], mtfate->uv[data.i1], mtfate->uv[data.i2]);
-
-				if (ibuf->rect_float)
-					ibuf->userflags |= IB_RECT_INVALID;
-
-				ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-			}
-
-			bkr->baked_faces++;
-
-			if (bkr->do_update)
-				*bkr->do_update = TRUE;
-
-			if (bkr->progress)
-				*bkr->progress = ((float)bkr->baked_objects + (float)bkr->baked_faces / tot_face) / bkr->tot_obj;
+			pvtangent = DM_get_tessface_data_layer(dm, CD_TANGENT);
 		}
 
+		/* all threads shares the same custom bake data */
+		if (initBakeData)
+			bake_data = initBakeData(bkr, ima);
+
+		if (tot_thread > 1)
+			BLI_init_threads(&threads, do_multires_bake_thread, tot_thread);
+
+		handles = MEM_callocN(tot_thread * sizeof(MultiresBakeThread), "do_multires_bake handles");
+
+		/* faces queue */
+		queue.cur_face = 0;
+		queue.tot_face = tot_face;
+		BLI_spin_init(&queue.spin);
+
+		/* fill in threads handles */
+		for (i = 0; i < tot_thread; i++) {
+			MultiresBakeThread *handle = &handles[i];
+
+			handle->bkr = bkr;
+			handle->image = ima;
+			handle->queue = &queue;
+
+			handle->data.mface = mface;
+			handle->data.mvert = mvert;
+			handle->data.mtface = mtface;
+			handle->data.pvtangent = pvtangent;
+			handle->data.precomputed_normals = precomputed_normals;  /* don't strictly need this */
+			handle->data.w = ibuf->x;
+			handle->data.h = ibuf->y;
+			handle->data.lores_dm = dm;
+			handle->data.hires_dm = bkr->hires_dm;
+			handle->data.lvl = lvl;
+			handle->data.pass_data = passKnownData;
+			handle->data.bake_data = bake_data;
+			handle->data.ibuf = ibuf;
+
+			init_bake_rast(&handle->bake_rast, ibuf, &handle->data, flush_pixel);
+
+			if (tot_thread > 1)
+				BLI_insert_thread(&threads, handle);
+		}
+
+		/* run threads */
+		if (tot_thread > 1)
+			BLI_end_threads(&threads);
+		else
+			do_multires_bake_thread(&handles[0]);
+
+		BLI_spin_end(&queue.spin);
+
+		/* finalize baking */
 		if (applyBakeData)
-			applyBakeData(data.bake_data);
+			applyBakeData(bake_data);
 
 		if (freeBakeData)
-			freeBakeData(data.bake_data);
-	}
+			freeBakeData(bake_data);
 
-	BKE_image_release_ibuf(ima, ibuf, NULL);
+		BKE_image_release_ibuf(ima, ibuf, NULL);
+	}
 }
 
 /* mode = 0: interpolate normals,
@@ -795,6 +888,7 @@ static void apply_tangmat_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 
 /* **************** Ambient Occlusion Baker **************** */
 
+// must be a power of two
 #define MAX_NUMBER_OF_AO_RAYS 1024
 
 static unsigned short ao_random_table_1[MAX_NUMBER_OF_AO_RAYS];
@@ -1036,19 +1130,19 @@ static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, cons
 		/* use N-Rooks to distribute our N ray samples across
 		 * a multi-dimensional domain (2D)
 		 */
-		const unsigned short I = ao_random_table_1[(i + perm_offs) % ao_data->number_of_rays];
-		const unsigned short J = ao_random_table_2[i];
+		const unsigned short I = ao_data->permutation_table_1[(i + perm_offs) % ao_data->number_of_rays];
+		const unsigned short J = ao_data->permutation_table_2[i];
 
 		const float JitPh = (get_ao_random2(I + perm_offs) & (MAX_NUMBER_OF_AO_RAYS-1))/((float) MAX_NUMBER_OF_AO_RAYS);
 		const float JitTh = (get_ao_random1(J + perm_offs) & (MAX_NUMBER_OF_AO_RAYS-1))/((float) MAX_NUMBER_OF_AO_RAYS);
 		const float SiSqPhi = (I + JitPh) / ao_data->number_of_rays;
-		const float Theta = 2 * M_PI * ((J + JitTh) / ao_data->number_of_rays);
+		const float Theta = (float)(2 * M_PI) * ((J + JitTh) / ao_data->number_of_rays);
 
 		/* this gives results identical to the so-called cosine
 		 * weighted distribution relative to the north pole.
 		 */
 		float SiPhi = sqrt(SiSqPhi);
-		float CoPhi = SiSqPhi < 1.0f ? sqrt(1.0f - SiSqPhi) : 1.0f - SiSqPhi;
+		float CoPhi = SiSqPhi < 1.0f ? sqrtf(1.0f - SiSqPhi) : 0;
 		float CoThe = cos(Theta);
 		float SiThe = sin(Theta);
 

@@ -113,6 +113,9 @@ void WM_gesture_end(bContext *C, wmGesture *gesture)
 		win->tweak = NULL;
 	BLI_remlink(&win->gesture, gesture);
 	MEM_freeN(gesture->customdata);
+	if (gesture->userdata) {
+		MEM_freeN(gesture->userdata);
+	}
 	MEM_freeN(gesture);
 }
 

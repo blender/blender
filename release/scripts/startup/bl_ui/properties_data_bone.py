@@ -170,6 +170,8 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
         if ob and pchan:
             col.label(text="Bone Group:")
             col.prop_search(pchan, "bone_group", ob.pose, "bone_groups", text="")
+            col.label(text="Object Children:")
+            col.prop(bone, "use_relative_parent")
 
         col = split.column()
         col.label(text="Parent:")
@@ -181,11 +183,11 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
         sub = col.column()
         sub.active = (bone.parent is not None)
         sub.prop(bone, "use_connect")
-        sub.prop(bone, "use_inherit_rotation", text="Inherit Rotation")
-        sub.prop(bone, "use_inherit_scale", text="Inherit Scale")
+        sub.prop(bone, "use_inherit_rotation")
+        sub.prop(bone, "use_inherit_scale")
         sub = col.column()
         sub.active = (not bone.parent or not bone.use_connect)
-        sub.prop(bone, "use_local_location", text="Local Location")
+        sub.prop(bone, "use_local_location")
 
 
 class BONE_PT_display(BoneButtonsPanel, Panel):

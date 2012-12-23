@@ -147,10 +147,10 @@ static void FlipDXT5BlockFull(uint8_t *block)
 
 	block[2] = line_3_2 & 0xff;
 	block[3] = (line_3_2 & 0xff00) >> 8;
-	block[4] = (line_3_2 & 0xff0000) >> 8;
+	block[4] = (line_3_2 & 0xff0000) >> 16;
 	block[5] = line_1_0 & 0xff;
 	block[6] = (line_1_0 & 0xff00) >> 8;
-	block[7] = (line_1_0 & 0xff0000) >> 8;
+	block[7] = (line_1_0 & 0xff0000) >> 16;
 
 	// And flip the DXT1 block using the above function.
 	FlipDXT1BlockFull(block + 8);
@@ -165,7 +165,7 @@ static void FlipDXT5BlockHalf(uint8_t *block)
 	                        ((line_0_1 & 0xfff000) >> 12);
 	block[2] = line_1_0 & 0xff;
 	block[3] = (line_1_0 & 0xff00) >> 8;
-	block[4] = (line_1_0 & 0xff0000) >> 8;
+	block[4] = (line_1_0 & 0xff0000) >> 16;
 	FlipDXT1BlockHalf(block + 8);
 }
 

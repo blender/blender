@@ -68,18 +68,6 @@ void text_update_cursor_moved(struct bContext *C);
 #define TOOL_SUGG_LIST	0x01
 #define TOOL_DOCUMENT	0x02
 
-typedef struct FlattenString {
-	char fixedbuf[256];
-	int fixedaccum[256];
-
-	char *buf;
-	int *accum;
-	int pos, len;
-} FlattenString;
-
-int flatten_string(struct SpaceText *st, FlattenString *fs, const char *in);
-void flatten_string_free(FlattenString *fs);
-
 int wrap_width(struct SpaceText *st, struct ARegion *ar);
 void wrap_offset(struct SpaceText *st, struct ARegion *ar, struct TextLine *linein, int cursin, int *offl, int *offc);
 void wrap_offset_in_line(struct SpaceText *st, struct ARegion *ar, struct TextLine *linep, int cursin, int *offl, int *offc);

@@ -394,10 +394,10 @@ bool cuLibraryInit()
 string cuCompilerPath()
 {
 #ifdef _WIN32
-	const char *defaultpath = "C:/CUDA/bin";
+	const char *defaultpaths[] = {"C:/CUDA/bin", NULL};
 	const char *executable = "nvcc.exe";
 #else
-	const char *defaultpath = "/usr/local/cuda/bin";
+	const char *defaultpaths[] = {"/Developer/NVIDIA/CUDA-4.2/bin", "/usr/local/cuda-4.2/bin", "/usr/local/cuda/bin", NULL};
 	const char *executable = "nvcc";
 #endif
 
@@ -405,13 +405,17 @@ string cuCompilerPath()
 
 	string nvcc;
 
-	if(binpath)
+	if(binpath) {
 		nvcc = path_join(binpath, executable);
-	else
-		nvcc = path_join(defaultpath, executable);
+		if(path_exists(nvcc))
+			return nvcc;
+	}
 
-	if(path_exists(nvcc))
-		return nvcc;
+	for(int i = 0; defaultpaths[i]; i++) {
+		nvcc = path_join(defaultpaths[i], executable);
+		if(path_exists(nvcc))
+			return nvcc;
+	}
 
 #ifndef _WIN32
 	{

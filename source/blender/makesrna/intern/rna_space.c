@@ -871,6 +871,9 @@ static void rna_SpaceDopeSheetEditor_action_update(Main *UNUSED(bmain), Scene *s
 			/* show new id-count of action we're replacing */
 			adt->action = saction->action;
 			id_us_plus(&adt->action->id);
+			
+			/* force update of animdata */
+			adt->recalc |= ADT_RECALC_ANIM;
 		}
 		
 		/* force depsgraph flush too */
@@ -1250,9 +1253,9 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 		{SO_SAME_TYPE, "SAME_TYPES", 0, "Same Types",
 		               "Display datablocks of all objects of same type as selected object"},
 		{SO_GROUPS, "GROUPS", 0, "Groups", "Display groups and their datablocks"},
-		{SO_LIBRARIES, "LIBRARIES", 0, "Libraries", "Display libraries"},
 		{SO_SEQUENCE, "SEQUENCE", 0, "Sequence", "Display sequence datablocks"},
-		{SO_DATABLOCKS, "DATABLOCKS", 0, "Datablocks", "Display raw datablocks"},
+		{SO_LIBRARIES, "LIBRARIES", 0, "Blender File", "Display data of current file and linked libraries"},
+		{SO_DATABLOCKS, "DATABLOCKS", 0, "Datablocks", "Display all raw datablocks"},
 		{SO_USERDEF, "USER_PREFERENCES", 0, "User Preferences", "Display the user preference datablocks"},
 		{SO_KEYMAP, "KEYMAPS", 0, "Key Maps", "Display keymap datablocks"},
 		{0, NULL, 0, NULL, NULL}

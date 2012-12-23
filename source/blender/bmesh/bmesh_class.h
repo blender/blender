@@ -280,6 +280,6 @@ enum {
  * but should not error on valid cases */
 #define BM_LOOP_RADIAL_MAX 10000
 #define BM_NGON_MAX 100000
-#define BM_OMP_LIMIT 10000
+#define BM_OMP_LIMIT 0  /* setting zero so we can catch bugs in OpenMP/BMesh */
 
 #endif /* __BMESH_CLASS_H__ */

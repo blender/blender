@@ -40,7 +40,6 @@
 
 #include "BKE_context.h"
 #include "BKE_displist.h"
-#include "BKE_depsgraph.h"
 #include "BKE_report.h"
 #include "BKE_paint.h"
 #include "BKE_tessmesh.h"
@@ -56,9 +55,7 @@
 
 #include "ED_mesh.h"
 #include "ED_screen.h"
-#include "ED_util.h"
 #include "ED_uvedit.h"
-#include "ED_object.h"
 #include "ED_view3d.h"
 
 #include "BIF_gl.h"
@@ -1148,11 +1145,11 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short desele
 				/* We can't be sure this has already been set... */
 				ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 
-				if (ED_view3d_project_float_object(vc.ar, eed->v1->co, v1_co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+				if (ED_view3d_project_float_object(vc.ar, eed->v1->co, v1_co, V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK) {
 					length_1 = len_squared_v2v2(mvalf, v1_co);
 				}
 
-				if (ED_view3d_project_float_object(vc.ar, eed->v2->co, v2_co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+				if (ED_view3d_project_float_object(vc.ar, eed->v2->co, v2_co, V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK) {
 					length_2 = len_squared_v2v2(mvalf, v2_co);
 				}
 #if 0
@@ -1179,7 +1176,7 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short desele
 						float co[2], tdist;
 
 						BM_face_calc_center_mean(f, cent);
-						if (ED_view3d_project_float_object(vc.ar, cent, co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+						if (ED_view3d_project_float_object(vc.ar, cent, co, V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK) {
 							tdist = len_squared_v2v2(mvalf, co);
 							if (tdist < best_dist) {
 /*								printf("Best face: %p (%f)\n", f, tdist);*/

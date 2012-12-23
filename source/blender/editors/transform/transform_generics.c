@@ -1529,13 +1529,6 @@ void calculateCenterMedian(TransInfo *t)
 				total++;
 			}
 		}
-		else {
-			/*
-			 * All the selected elements are at the head of the array
-			 * which means we can stop when it finds unselected data
-			 */
-			break;
-		}
 	}
 	if (i)
 		mul_v3_fl(partial, 1.0f / total);
@@ -1554,13 +1547,6 @@ void calculateCenterBound(TransInfo *t)
 			if (t->data[i].flag & TD_SELECTED) {
 				if (!(t->data[i].flag & TD_NOCENTER))
 					minmax_v3v3_v3(min, max, t->data[i].center);
-			}
-			else {
-				/*
-				 * All the selected elements are at the head of the array
-				 * which means we can stop when it finds unselected data
-				 */
-				break;
 			}
 		}
 		else {

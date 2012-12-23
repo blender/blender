@@ -89,6 +89,12 @@ void PAINT_OT_weight_from_bones(struct wmOperatorType *ot);
 void PAINT_OT_weight_sample(struct wmOperatorType *ot);
 void PAINT_OT_weight_sample_group(struct wmOperatorType *ot);
 
+enum {
+	WPAINT_GRADIENT_TYPE_LINEAR,
+	WPAINT_GRADIENT_TYPE_RADIAL
+};
+void PAINT_OT_weight_gradient(struct wmOperatorType *ot);
+
 void PAINT_OT_vertex_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_vertex_paint(struct wmOperatorType *ot);
 

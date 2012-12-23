@@ -34,6 +34,7 @@ KERNEL_TEX(uint, texture_uint, __object_node)
 
 /* objects */
 KERNEL_TEX(float4, texture_float4, __objects)
+KERNEL_TEX(float4, texture_float4, __objects_vector)
 
 /* triangles */
 KERNEL_TEX(float4, texture_float4, __tri_normal)

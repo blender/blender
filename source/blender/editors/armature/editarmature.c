@@ -2256,6 +2256,7 @@ void undo_push_armature(bContext *C, const char *name)
 /* *************** Adding stuff in editmode *************** */
 
 /* default bone add, returns it selected, but without tail set */
+/* XXX should be used everywhere, now it mallocs bones still locally in functions */
 EditBone *ED_armature_edit_bone_add(bArmature *arm, const char *name)
 {
 	EditBone *bone = MEM_callocN(sizeof(EditBone), "eBone");
@@ -2265,7 +2266,7 @@ EditBone *ED_armature_edit_bone_add(bArmature *arm, const char *name)
 	
 	BLI_addtail(arm->edbo, bone);
 	
-	bone->flag |= BONE_TIPSEL;
+	bone->flag |= BONE_TIPSEL | BONE_RELATIVE_PARENTING;
 	bone->weight = 1.0f;
 	bone->dist = 0.25f;
 	bone->xwidth = 0.1f;
@@ -3410,7 +3411,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 						copy_v3_v3(newbone->tail, newbone->head);
 						newbone->parent = ebone;
 						
-						newbone->flag = ebone->flag & BONE_TIPSEL;  // copies it, in case mirrored bone
+						newbone->flag = ebone->flag & (BONE_TIPSEL | BONE_RELATIVE_PARENTING);  // copies it, in case mirrored bone
 						
 						if (newbone->parent) newbone->flag |= BONE_CONNECTED;
 					}
@@ -3419,7 +3420,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 						copy_v3_v3(newbone->tail, ebone->head);
 						newbone->parent = ebone->parent;
 						
-						newbone->flag = BONE_TIPSEL;
+						newbone->flag = BONE_TIPSEL | BONE_RELATIVE_PARENTING;
 						
 						if (newbone->parent && (ebone->flag & BONE_CONNECTED)) {
 							newbone->flag |= BONE_CONNECTED;

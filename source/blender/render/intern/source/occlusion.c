@@ -1520,8 +1520,8 @@ static int sample_occ_cache(OcclusionTree *tree, float *co, float *n, int x, int
 			return 0;
 
 	/* require intensities not being too different */
-	mino = MIN4(samples[0]->intensity, samples[1]->intensity, samples[2]->intensity, samples[3]->intensity);
-	maxo = MAX4(samples[0]->intensity, samples[1]->intensity, samples[2]->intensity, samples[3]->intensity);
+	mino = min_ffff(samples[0]->intensity, samples[1]->intensity, samples[2]->intensity, samples[3]->intensity);
+	maxo = max_ffff(samples[0]->intensity, samples[1]->intensity, samples[2]->intensity, samples[3]->intensity);
 
 	if (maxo - mino > 0.05f)
 		return 0;
@@ -1793,9 +1793,9 @@ void sample_occ(Render *re, ShadeInput *shi)
 					copy_v3_v3(sample->ao, shi->ao);
 					copy_v3_v3(sample->env, shi->env);
 					copy_v3_v3(sample->indirect, shi->indirect);
-					sample->intensity = MAX3(sample->ao[0], sample->ao[1], sample->ao[2]);
-					sample->intensity = MAX2(sample->intensity, MAX3(sample->env[0], sample->env[1], sample->env[2]));
-					sample->intensity = MAX2(sample->intensity, MAX3(sample->indirect[0], sample->indirect[1], sample->indirect[2]));
+					sample->intensity = max_fff(sample->ao[0], sample->ao[1], sample->ao[2]);
+					sample->intensity = max_ff(sample->intensity, max_fff(sample->env[0], sample->env[1], sample->env[2]));
+					sample->intensity = max_ff(sample->intensity, max_fff(sample->indirect[0], sample->indirect[1], sample->indirect[2]));
 					sample->dist2 = dot_v3v3(shi->dxco, shi->dxco) + dot_v3v3(shi->dyco, shi->dyco);
 					sample->filled = 1;
 				}
@@ -1888,9 +1888,9 @@ void cache_occ_samples(Render *re, RenderPart *pa, ShadeSample *ssamp)
 				copy_v3_v3(sample->ao, shi->ao);
 				copy_v3_v3(sample->env, shi->env);
 				copy_v3_v3(sample->indirect, shi->indirect);
-				sample->intensity = MAX3(sample->ao[0], sample->ao[1], sample->ao[2]);
-				sample->intensity = MAX2(sample->intensity, MAX3(sample->env[0], sample->env[1], sample->env[2]));
-				sample->intensity = MAX2(sample->intensity, MAX3(sample->indirect[0], sample->indirect[1], sample->indirect[2]));
+				sample->intensity = max_fff(sample->ao[0], sample->ao[1], sample->ao[2]);
+				sample->intensity = max_ff(sample->intensity, max_fff(sample->env[0], sample->env[1], sample->env[2]));
+				sample->intensity = max_ff(sample->intensity, max_fff(sample->indirect[0], sample->indirect[1], sample->indirect[2]));
 				sample->dist2 = dot_v3v3(shi->dxco, shi->dxco) + dot_v3v3(shi->dyco, shi->dyco);
 				sample->x = shi->xs;
 				sample->y = shi->ys;

@@ -1551,7 +1551,8 @@ static int viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	vod = op->customdata;
 
 	if (event->type == MOUSEPAN) {
-		viewmove_apply(vod, event->prevx, event->prevy);
+		/* invert it, trackpad scroll follows same principle as 2d windows this way */
+		viewmove_apply(vod, 2 * event->x - event->prevx, 2 * event->y - event->prevy);
 		ED_view3d_depth_tag_update(vod->rv3d);
 		
 		viewops_data_free(C, op);
@@ -2232,7 +2233,7 @@ static void view3d_from_minmax(bContext *C, View3D *v3d, ARegion *ar,
 	float new_dist;
 
 	sub_v3_v3v3(afm, max, min);
-	size = MAX3(afm[0], afm[1], afm[2]);
+	size = max_fff(afm[0], afm[1], afm[2]);
 
 	if (ok_dist) {
 		/* fix up zoom distance if needed */

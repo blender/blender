@@ -467,7 +467,10 @@ static void init_brush_icons(void)
 		bbuf = IMB_ibImageFromMemory((unsigned char *)datatoc_ ##name## _png, \
 		                             datatoc_ ##name## _png_size,             \
 		                             IB_rect, NULL, "<brush icon>");          \
-		def_internal_icon(bbuf, icon_id, 0, 0, w, ICON_TYPE_BUFFER);          \
+		if (bbuf) {                                                           \
+			IMB_premultiply_alpha(bbuf);                                      \
+			def_internal_icon(bbuf, icon_id, 0, 0, w, ICON_TYPE_BUFFER);      \
+		}                                                                     \
 		IMB_freeImBuf(bbuf);                                                  \
 	} (void)0
 	/* end INIT_BRUSH_ICON */
@@ -537,10 +540,14 @@ static void init_internal_icons(void)
 	if (b16buf == NULL)
 		b16buf = IMB_ibImageFromMemory((unsigned char *)datatoc_blender_icons16_png,
 		                             datatoc_blender_icons16_png_size, IB_rect, NULL, "<blender icons>");
+	if (b16buf)
+		IMB_premultiply_alpha(b16buf);
 
 	if (b32buf == NULL)
 		b32buf = IMB_ibImageFromMemory((unsigned char *)datatoc_blender_icons32_png,
 		                             datatoc_blender_icons32_png_size, IB_rect, NULL, "<blender icons>");
+	if (b32buf)
+		IMB_premultiply_alpha(b32buf);
 	
 	if (b16buf && b32buf) {
 		/* free existing texture if any */
@@ -940,8 +947,8 @@ static void icon_draw_texture(float x, float y, float w, float h, int ix, int iy
 {
 	float x1, x2, y1, y2;
 
-	if (rgb) glColor4f(rgb[0], rgb[1], rgb[2], alpha);
-	else glColor4f(1.0f, 1.0f, 1.0f, alpha);
+	if (rgb) glColor4f(alpha*rgb[0], rgb[1], rgb[2], alpha);
+	else glColor4f(alpha, alpha, alpha, alpha);
 
 	x1 = ix * icongltex.invw;
 	x2 = (ix + ih) * icongltex.invw;
@@ -950,6 +957,9 @@ static void icon_draw_texture(float x, float y, float w, float h, int ix, int iy
 
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, icongltex.id);
+
+	/* sharper downscaling, has no effect when scale matches with a mip level */
+	glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, -0.5f);
 
 	glBegin(GL_QUADS);
 	glTexCoord2f(x1, y1);
@@ -964,6 +974,8 @@ static void icon_draw_texture(float x, float y, float w, float h, int ix, int iy
 	glTexCoord2f(x1, y2);
 	glVertex2f(x, y + h);
 	glEnd();
+
+	glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, 0.0f);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glDisable(GL_TEXTURE_2D);
@@ -986,7 +998,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	Icon *icon = NULL;
 	DrawInfo *di = NULL;
 	IconImage *iimg;
-	float fdraw_size = draw_size;
+	const float fdraw_size = (float)draw_size;
 	int w, h;
 	
 	icon = BKE_icon_get(icon_id);
@@ -1017,8 +1029,11 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 		di->data.vector.func((int)x, (int)y, ICON_DEFAULT_HEIGHT, ICON_DEFAULT_HEIGHT, 1.0f); 
 	}
 	else if (di->type == ICON_TYPE_TEXTURE) {
+		/* texture image use premul alpha for correct scaling */
+		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 		icon_draw_texture(x, y, (float)w, (float)h, di->data.texture.x, di->data.texture.y,
 		                  di->data.texture.w, di->data.texture.h, alpha, rgb);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 	else if (di->type == ICON_TYPE_BUFFER) {
 		/* it is a builtin icon */
@@ -1026,7 +1041,9 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 
 		if (!iimg->rect) return;  /* something has gone wrong! */
 
+		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 		icon_draw_rect(x, y, w, h, aspect, iimg->w, iimg->h, iimg->rect, alpha, rgb, is_preview);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 	else if (di->type == ICON_TYPE_PREVIEW) {
 		PreviewImage *pi = BKE_previewimg_get((ID *)icon->obj);

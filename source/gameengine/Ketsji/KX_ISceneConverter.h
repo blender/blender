@@ -62,6 +62,9 @@ public:
 	
 	virtual void RemoveScene(class KX_Scene *scene)=0;
 
+	// handle any pending merges from asynchronous loads
+	virtual void MergeAsyncLoads()=0;
+
 	virtual void	SetAlwaysUseExpandFraming(bool to_what) = 0;
 
 	virtual void	SetNewFileName(const STR_String& filename) = 0;

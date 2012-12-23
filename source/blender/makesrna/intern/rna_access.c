@@ -4753,7 +4753,10 @@ static char *rna_pointer_as_string__idprop(bContext *C, PointerRNA *ptr)
 
 static char *rna_pointer_as_string__bldata(PointerRNA *ptr)
 {
-	if (RNA_struct_is_ID(ptr->type)) {
+	if (ptr->type == NULL) {
+		return BLI_strdup("None");
+	}
+	else if (RNA_struct_is_ID(ptr->type)) {
 		return RNA_path_full_ID_py(ptr->id.data);
 	}
 	else {

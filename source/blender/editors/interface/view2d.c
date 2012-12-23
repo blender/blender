@@ -1151,7 +1151,7 @@ View2DGrid *UI_view2d_grid_calc(Scene *scene, View2D *v2d,
 		pixels = (float)BLI_rcti_size_x(&v2d->mask);
 		
 		if (pixels != 0.0f) {
-			grid->dx = (U.v2d_min_gridsize * U.pixelsize * space) / (seconddiv * pixels);
+			grid->dx = (U.v2d_min_gridsize * UI_DPI_FAC * space) / (seconddiv * pixels);
 			step_to_grid(&grid->dx, &grid->powerx, xunits);
 			grid->dx *= seconddiv;
 		}
@@ -1168,7 +1168,7 @@ View2DGrid *UI_view2d_grid_calc(Scene *scene, View2D *v2d,
 		space = BLI_rctf_size_y(&v2d->cur);
 		pixels = (float)winy;
 		
-		grid->dy = U.v2d_min_gridsize * U.pixelsize * space / pixels;
+		grid->dy = U.v2d_min_gridsize * UI_DPI_FAC * space / pixels;
 		step_to_grid(&grid->dy, &grid->powery, yunits);
 		
 		if (yclamp == V2D_GRID_CLAMP) {
@@ -1213,7 +1213,7 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		vec2[1] = v2d->cur.ymax;
 		
 		/* minor gridlines */
-		step = (BLI_rcti_size_x(&v2d->mask) + 1) / (U.v2d_min_gridsize * U.pixelsize);
+		step = (BLI_rcti_size_x(&v2d->mask) + 1) / (U.v2d_min_gridsize * UI_DPI_FAC);
 		UI_ThemeColor(TH_GRID);
 		
 		for (a = 0; a < step; a++) {
@@ -1247,7 +1247,7 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		vec1[0] = grid->startx;
 		vec2[0] = v2d->cur.xmax;
 		
-		step = (BLI_rcti_size_y(&v2d->mask) + 1) / (U.v2d_min_gridsize * U.pixelsize);
+		step = (BLI_rcti_size_y(&v2d->mask) + 1) / (U.v2d_min_gridsize * UI_DPI_FAC);
 		
 		UI_ThemeColor(TH_GRID);
 		for (a = 0; a <= step; a++) {

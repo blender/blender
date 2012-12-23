@@ -1339,7 +1339,7 @@ void texture_rgb_blend(float in[3], const float tex[3], const float out[3], floa
 		
 	case MTEX_MUL:
 		fact*= facg;
-		facm= 1.0f-facg;
+		facm= 1.0f-fact;
 		in[0]= (facm+fact*tex[0])*out[0];
 		in[1]= (facm+fact*tex[1])*out[1];
 		in[2]= (facm+fact*tex[2])*out[2];
@@ -1347,7 +1347,7 @@ void texture_rgb_blend(float in[3], const float tex[3], const float out[3], floa
 
 	case MTEX_SCREEN:
 		fact*= facg;
-		facm= 1.0f-facg;
+		facm= 1.0f-fact;
 		in[0]= 1.0f - (facm+fact*(1.0f-tex[0])) * (1.0f-out[0]);
 		in[1]= 1.0f - (facm+fact*(1.0f-tex[1])) * (1.0f-out[1]);
 		in[2]= 1.0f - (facm+fact*(1.0f-tex[2])) * (1.0f-out[2]);
@@ -1355,7 +1355,7 @@ void texture_rgb_blend(float in[3], const float tex[3], const float out[3], floa
 
 	case MTEX_OVERLAY:
 		fact*= facg;
-		facm= 1.0f-facg;
+		facm= 1.0f-fact;
 		
 		if (out[0] < 0.5f)
 			in[0] = out[0] * (facm + 2.0f*fact*tex[0]);
@@ -1745,8 +1745,8 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 		else {  /* 3d procedural, estimate from all dx/dy elems */
 			const float adx[3] = {fabsf(dx[0]), fabsf(dx[1]), fabsf(dx[2])};
 			const float ady[3] = {fabsf(dy[0]), fabsf(dy[1]), fabsf(dy[2])};
-			du = MAX3(adx[0], adx[1], adx[2]);
-			dv = MAX3(ady[0], ady[1], ady[2]);
+			du = max_fff(adx[0], adx[1], adx[2]);
+			dv = max_fff(ady[0], ady[1], ady[2]);
 		}
 	}
 

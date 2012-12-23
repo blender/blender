@@ -47,6 +47,7 @@
 #include "KX_ConstraintActuator.h"
 #include "KX_ConstraintWrapper.h"
 #include "KX_GameActuator.h"
+#include "KX_LibLoadStatus.h"
 #include "KX_Light.h"
 #include "KX_FontObject.h"
 #include "KX_MeshProxy.h"
@@ -81,6 +82,7 @@
 #include "SCA_RandomSensor.h"
 #include "SCA_XNORController.h"
 #include "SCA_XORController.h"
+#include "SCA_PythonJoystick.h"
 #include "SCA_PythonKeyboard.h"
 #include "SCA_PythonMouse.h"
 #include "KX_IpoActuator.h"
@@ -198,6 +200,7 @@ void initPyTypes(void)
 		PyType_Ready_Attr(dict, KX_GameActuator, init_getset);
 		PyType_Ready_Attr(dict, KX_GameObject, init_getset);
 		PyType_Ready_Attr(dict, KX_IpoActuator, init_getset);
+		PyType_Ready_Attr(dict, KX_LibLoadStatus, init_getset);
 		PyType_Ready_Attr(dict, KX_LightObject, init_getset);
 		PyType_Ready_Attr(dict, KX_FontObject, init_getset);
 		PyType_Ready_Attr(dict, KX_MeshProxy, init_getset);
@@ -250,6 +253,7 @@ void initPyTypes(void)
 		PyType_Ready_Attr(dict, SCA_XNORController, init_getset);
 		PyType_Ready_Attr(dict, SCA_XORController, init_getset);
 		PyType_Ready_Attr(dict, SCA_IController, init_getset);
+		PyType_Ready_Attr(dict, SCA_PythonJoystick, init_getset);
 		PyType_Ready_Attr(dict, SCA_PythonKeyboard, init_getset);
 		PyType_Ready_Attr(dict, SCA_PythonMouse, init_getset);
 	}

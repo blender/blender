@@ -114,7 +114,7 @@ typedef struct Global {
 #define G_BACKBUFSEL    (1 <<  4)
 #define G_PICKSEL       (1 <<  5)
 
-/* #define G_FACESELECT	(1 <<  8) use (mesh->editflag & ME_EDIT_PAINT_MASK) */
+/* #define G_FACESELECT	(1 <<  8) use (mesh->editflag & ME_EDIT_PAINT_FACE_SEL) */
 
 #define G_SCRIPT_AUTOEXEC (1 << 13)
 #define G_SCRIPT_OVERRIDE_PREF (1 << 14) /* when this flag is set ignore the userprefs */

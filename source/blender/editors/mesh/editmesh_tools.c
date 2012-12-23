@@ -40,8 +40,8 @@
 
 #include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_enum_types.h"
 
-#include "BLI_array.h"
 #include "BLI_blenlib.h"
 #include "BLI_noise.h"
 #include "BLI_math.h"
@@ -49,9 +49,7 @@
 
 #include "BKE_material.h"
 #include "BKE_context.h"
-#include "BKE_cdderivedmesh.h"
 #include "BKE_depsgraph.h"
-#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_texture.h"
@@ -616,7 +614,7 @@ static int edbm_extrude_verts_exec(bContext *C, wmOperator *op)
 
 	edbm_extrude_verts_indiv(em, op, BM_ELEM_SELECT, nor);
 	
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
+	EDBM_update_generic(em, TRUE, TRUE);
 	
 	return OPERATOR_FINISHED;
 }
@@ -647,7 +645,7 @@ static int edbm_extrude_edges_exec(bContext *C, wmOperator *op)
 
 	edbm_extrude_edges_indiv(em, op, BM_ELEM_SELECT, nor);
 	
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
+	EDBM_update_generic(em, TRUE, TRUE);
 	
 	return OPERATOR_FINISHED;
 }
@@ -911,7 +909,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		BMOIter oiter;
 		
 		copy_v3_v3(min, curs);
-		view3d_get_view_aligned_coordinate(&vc, min, event->mval, 0);
+		view3d_get_view_aligned_coordinate(&vc, min, event->mval, FALSE);
 
 		invert_m4_m4(vc.obedit->imat, vc.obedit->obmat);
 		mul_m4_v3(vc.obedit->imat, min); // back in object space
@@ -2531,7 +2529,6 @@ static void edbm_blend_from_shape_ui(bContext *C, wmOperator *op)
 void MESH_OT_blend_from_shape(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-	static EnumPropertyItem shape_items[] = {{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name = "Blend From Shape";
@@ -2548,7 +2545,7 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	prop = RNA_def_enum(ot->srna, "shape", shape_items, 0, "Shape", "Shape key to use for blending");
+	prop = RNA_def_enum(ot->srna, "shape", DummyRNA_NULL_items, 0, "Shape", "Shape key to use for blending");
 	RNA_def_enum_funcs(prop, shape_itemf);
 	RNA_def_float(ot->srna, "blend", 1.0f, -FLT_MAX, FLT_MAX, "Blend", "Blending factor", -2.0f, 2.0f);
 	RNA_def_boolean(ot->srna, "add", 1, "Add", "Add rather than blend between shapes");
@@ -2931,7 +2928,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	screen_vert_coords = sco = MEM_mallocN(bm->totvert * sizeof(float) * 2, __func__);
 
 	BM_ITER_MESH_INDEX (bv, &iter, bm, BM_VERTS_OF_MESH, i) {
-		if (ED_view3d_project_float_object(ar, bv->co, *sco, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK) {
+		if (ED_view3d_project_float_object(ar, bv->co, *sco, V3D_PROJ_TEST_CLIP_NEAR) != V3D_PROJ_RET_OK) {
 			copy_v2_fl(*sco, FLT_MAX);  /* set error value */
 		}
 		BM_elem_index_set(bv, i); /* set_ok */

@@ -71,6 +71,7 @@ set(SRC
 	SCA_PropertyEventManager.cpp
 	SCA_PropertySensor.cpp
 	SCA_PythonController.cpp
+	SCA_PythonJoystick.cpp
 	SCA_PythonKeyboard.cpp
 	SCA_PythonMouse.cpp
 	SCA_RandomActuator.cpp
@@ -114,6 +115,7 @@ set(SRC
 	SCA_PropertyEventManager.h
 	SCA_PropertySensor.h
 	SCA_PythonController.h
+	SCA_PythonJoystick.h
 	SCA_PythonKeyboard.h
 	SCA_PythonMouse.h
 	SCA_RandomActuator.h

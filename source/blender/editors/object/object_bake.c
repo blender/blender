@@ -100,6 +100,7 @@ typedef struct {
 	float bias;
 	int raytrace_structure;
 	int octree_resolution;
+	int threads;
 } MultiresBakeJob;
 
 static int multiresbake_check(bContext *C, wmOperator *op)
@@ -316,9 +317,10 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 		bkr.mode = scene->r.bake_mode;
 		bkr.use_lores_mesh = scene->r.bake_flag & R_BAKE_LORES_MESH;
 		bkr.bias = scene->r.bake_biasdist;
-		bkr.number_of_rays = scene->r.bake_rays_number;
+		bkr.number_of_rays = scene->r.bake_samples;
 		bkr.raytrace_structure = scene->r.raytrace_structure;
 		bkr.octree_resolution = scene->r.ocres;
+		bkr.threads = scene->r.mode & R_FIXED_THREADS ? scene->r.threads : 0;
 
 		/* create low-resolution DM (to bake to) and hi-resolution DM (to bake from) */
 		bkr.hires_dm = multiresbake_create_hiresdm(scene, ob, &bkr.tot_lvl, &bkr.simple);
@@ -353,9 +355,10 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
 	bkj->use_lores_mesh = scene->r.bake_flag & R_BAKE_LORES_MESH;
 	bkj->bake_clear = scene->r.bake_flag & R_BAKE_CLEAR;
 	bkj->bias = scene->r.bake_biasdist;
-	bkj->number_of_rays = scene->r.bake_rays_number;
+	bkj->number_of_rays = scene->r.bake_samples;
 	bkj->raytrace_structure = scene->r.raytrace_structure;
 	bkj->octree_resolution = scene->r.ocres;
+	bkj->threads = scene->r.mode & R_FIXED_THREADS ? scene->r.threads : 0;
 
 	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 	{
@@ -422,6 +425,7 @@ static void multiresbake_startjob(void *bkv, short *stop, short *do_update, floa
 		bkr.number_of_rays = bkj->number_of_rays;
 		bkr.raytrace_structure = bkj->raytrace_structure;
 		bkr.octree_resolution = bkj->octree_resolution;
+		bkr.threads = bkj->threads;
 
 		RE_multires_bake_images(&bkr);
 

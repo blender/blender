@@ -45,7 +45,7 @@ typedef struct Transform {
  *
  * For the DecompMotionTransform we drop scale from pre/post. */
 
-typedef struct MotionTransform {
+typedef struct __may_alias MotionTransform {
 	Transform pre;
 	Transform mid;
 	Transform post;

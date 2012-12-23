@@ -6824,9 +6824,16 @@ static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	bfd->globalf = fg->globalf;
 	BLI_strncpy(bfd->filename, fg->filename, sizeof(bfd->filename));
 	
-	/* early 2.50 version patch - filename not in FileGlobal struct */
-	if (fd->fileversion <= 250)
-		BLI_strncpy(bfd->filename, bfd->main->name, sizeof(bfd->main->name));
+	/* error in 2.65 and older: main->name was not set if you save from startup (not after loading file) */
+	if (bfd->filename[0] == 0) {
+		if (fd->fileversion < 265 || (fd->fileversion == 265 && fg->subversion < 1))
+			if ((G.fileflags & G_FILE_RECOVER)==0)
+				BLI_strncpy(bfd->filename, bfd->main->name, sizeof(bfd->filename));
+		
+		/* early 2.50 version patch - filename not in FileGlobal struct at all */
+		if (fd->fileversion <= 250)
+			BLI_strncpy(bfd->filename, bfd->main->name, sizeof(bfd->filename));
+	}
 	
 	if (G.fileflags & G_FILE_RECOVER)
 		BLI_strncpy(fd->relabase, fg->filename, sizeof(fd->relabase));
@@ -8087,7 +8094,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				if (md->type == eModifierType_Smoke) {
 					SmokeModifierData *smd = (SmokeModifierData *)md;
 					if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
-						int maxres = MAX3(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2]);
+						int maxres = max_iii(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2]);
 						smd->domain->scale = smd->domain->dx * maxres;
 						smd->domain->dx = 1.0f / smd->domain->scale;
 					}
@@ -8633,8 +8640,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Scene *scene;
 
 		for (scene = main->scene.first; scene; scene = scene->id.next) {
-			if (scene->r.bake_rays_number == 0)
-				scene->r.bake_rays_number = 256;
+			if (scene->r.bake_samples == 0)
+				scene->r.bake_samples = 256;
 		}
 	}
 

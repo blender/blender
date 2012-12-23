@@ -759,7 +759,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 		                               (vos->flag & V3D_CACHE_TEXT_GLOBALSPACE) ? rv3d->persmat : rv3d->persmatob,
 		                               (vos->flag & V3D_CACHE_TEXT_LOCALCLIP) != 0,
 		                               vos->vec, vos->sco,
-		                               V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
+		                               V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
 		{
 			tot++;
 		}
@@ -1288,6 +1288,13 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 			glBegin(GL_LINE_STRIP);
 			glVertex3fv(lvec_clip);
 			glVertex3fv(vvec_clip);
+			glEnd();
+		}
+		/* Else, draw spot direction (using distance as end limit, same as for Area lamp). */
+		else {
+			glBegin(GL_LINE_STRIP);
+			glVertex3f(0.0, 0.0, -circrad);
+			glVertex3f(0.0, 0.0, -la->dist);
 			glEnd();
 		}
 	}
@@ -7167,7 +7174,7 @@ static void bbs_mesh_solid(Scene *scene, Object *ob)
 	
 	glColor3ub(0, 0, 0);
 
-	if ((me->editflag & ME_EDIT_PAINT_MASK))
+	if ((me->editflag & ME_EDIT_PAINT_FACE_SEL))
 		dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts, GPU_enable_material, NULL, me, 0);
 	else
 		dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, GPU_enable_material, NULL, me, 0);
@@ -7221,7 +7228,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 			}
 			else {
 				Mesh *me = ob->data;
-				if ((me->editflag & ME_EDIT_VERT_SEL) &&
+				if ((me->editflag & ME_EDIT_PAINT_VERT_SEL) &&
 				    /* currently vertex select only supports weight paint */
 				    (ob->mode & OB_MODE_WEIGHT_PAINT))
 				{

@@ -204,10 +204,10 @@ bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input
 	}
 
 #define UPDATE_INPUT  { \
-		newInput.xmin = MIN4(newInput.xmin, coords[0], coords[2], coords[4]); \
-		newInput.ymin = MIN4(newInput.ymin, coords[1], coords[3], coords[5]); \
-		newInput.xmax = MAX4(newInput.xmax, coords[0], coords[2], coords[4]); \
-		newInput.ymax = MAX4(newInput.ymax, coords[1], coords[3], coords[5]); \
+		newInput.xmin = min_ffff(newInput.xmin, coords[0], coords[2], coords[4]); \
+		newInput.ymin = min_ffff(newInput.ymin, coords[1], coords[3], coords[5]); \
+		newInput.xmax = max_ffff(newInput.xmax, coords[0], coords[2], coords[4]); \
+		newInput.ymax = max_ffff(newInput.ymax, coords[1], coords[3], coords[5]); \
 	} (void)0
 	
 	rcti newInput;
@@ -273,7 +273,7 @@ void ScreenLensDistortionOperation::updateVariables(float distortion, float disp
 	const float d = 0.25f * max_ff(min_ff(dispersion, 1.0f), 0.0f);
 	this->m_kr = max_ff(min_ff((this->m_kg + d), 1.0f), -0.999f);
 	this->m_kb = max_ff(min_ff((this->m_kg - d), 1.0f), -0.999f);
-	this->m_maxk = MAX3(this->m_kr, this->m_kg, this->m_kb);
+	this->m_maxk = max_fff(this->m_kr, this->m_kg, this->m_kb);
 	this->m_sc = (this->m_data->fit && (this->m_maxk > 0.0f)) ? (1.0f / (1.0f + 2.0f * this->m_maxk)) :
 	                                                            (1.0f / (1.0f +        this->m_maxk));
 	this->m_drg = 4.0f * (this->m_kg - this->m_kr);

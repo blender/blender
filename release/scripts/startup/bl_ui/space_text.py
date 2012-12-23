@@ -66,6 +66,7 @@ class TEXT_HT_header(Header):
                 row.operator("text.run_script")
 
                 row = layout.row()
+                row.active = text.name.endswith(".py")
                 row.prop(text, "use_module")
 
             row = layout.row()

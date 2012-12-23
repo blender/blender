@@ -760,6 +760,16 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "State Colors", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
+	prop = RNA_def_property(srna, "menu_shadow_fac", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_ui_text(prop, "Menu Shadow Strength", "Blending factor for menu shadows");
+	RNA_def_property_range(prop, 0.01f, 1.0f);
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop = RNA_def_property(srna, "menu_shadow_width", PROP_INT, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Menu Shadow Width", "Width of menu shadows in standard pixels, set to zero to disable it");
+	RNA_def_property_range(prop, 0.0f, 24.0f);
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
 	prop = RNA_def_property(srna, "icon_file", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "iconfile");
 	RNA_def_property_ui_text(prop, "Icon File", "");

@@ -269,7 +269,11 @@ static BMFace *bev_create_ngon(BMesh *bm, BMVert **vert_arr, const int totv, BMF
 		for (i = 0; i < totv; i++) {
 			ee[i] = BM_edge_create(bm, vert_arr[i], vert_arr[(i + 1) % totv], NULL, BM_CREATE_NO_DOUBLE);
 		}
+#if 0
 		f = BM_face_create_ngon(bm, vert_arr[0], vert_arr[1], ee, totv, 0);
+#else
+		f = BM_face_create(bm, vert_arr, ee, totv, 0);
+#endif
 	}
 	if (facerep && f) {
 		int has_mdisps = CustomData_has_layer(&bm->ldata, CD_MDISPS);

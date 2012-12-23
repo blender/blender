@@ -123,6 +123,17 @@ void BKE_mesh_flush_hidden_from_verts(const struct MVert *mvert,
                                       struct MEdge *medge, int totedge,
                                       struct MPoly *mpoly, int totpoly);
 
+void BKE_mesh_flush_select_from_polys_ex(struct MVert *mvert,       const int totvert,
+                                         struct MLoop *mloop,
+                                         struct MEdge *medge,       const int totedge,
+                                         const struct MPoly *mpoly, const int totpoly);
+void BKE_mesh_flush_select_from_polys(struct Mesh *me);
+void BKE_mesh_flush_select_from_verts_ex(const struct MVert *mvert, const int totvert,
+                                         struct MLoop *mloop,
+                                         struct MEdge *medge,       const int totedge,
+                                         struct MPoly *mpoly,       const int totpoly);
+void BKE_mesh_flush_select_from_verts(struct Mesh *me);
+
 void BKE_mesh_unlink(struct Mesh *me);
 void BKE_mesh_free(struct Mesh *me, int unlink);
 struct Mesh *BKE_mesh_add(const char *name);
@@ -132,7 +143,7 @@ void mesh_update_customdata_pointers(struct Mesh *me, const short do_ensure_tess
 void BKE_mesh_make_local(struct Mesh *me);
 void BKE_mesh_boundbox_calc(struct Mesh *me, float r_loc[3], float r_size[3]);
 void BKE_mesh_texspace_calc(struct Mesh *me);
-float *BKE_mesh_orco_verts_get(struct Object *ob);
+float (*BKE_mesh_orco_verts_get(struct Object *ob))[3];
 void   BKE_mesh_orco_verts_transform(struct Mesh *me, float (*orco)[3], int totvert, int invert);
 int test_index_face(struct MFace *mface, struct CustomData *mfdata, int mfindex, int nr);
 struct Mesh *BKE_mesh_from_object(struct Object *ob);
@@ -152,7 +163,7 @@ void BKE_mesh_from_nurbs_displist(struct Object *ob, struct ListBase *dispbase,
                                   int **orco_index_ptr);
 void BKE_mesh_from_curve(struct Scene *scene, struct Object *ob);
 void free_dverts(struct MDeformVert *dvert, int totvert);
-void copy_dverts(struct MDeformVert *dst, struct MDeformVert *src, int totvert); /* __NLA */
+void copy_dverts(struct MDeformVert *dst, const struct MDeformVert *src, int totvert);
 void BKE_mesh_delete_material_index(struct Mesh *me, short index);
 void BKE_mesh_smooth_flag_set(struct Object *meshOb, int enableSmooth);
 void BKE_mesh_convert_mfaces_to_mpolys(struct Mesh *mesh);

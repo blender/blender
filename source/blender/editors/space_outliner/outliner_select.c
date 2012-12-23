@@ -336,7 +336,8 @@ static int tree_element_active_world(bContext *C, Scene *scene, SpaceOops *soops
 	tep = te->parent;
 	if (tep) {
 		tselem = TREESTORE(tep);
-		sce = (Scene *)tselem->id;
+		if (tselem->type == 0)
+			sce = (Scene *)tselem->id;
 	}
 	
 	if (set) {  // make new scene active

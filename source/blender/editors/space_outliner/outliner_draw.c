@@ -421,17 +421,17 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt = uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_VIEW_OFF,
-				                   (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1,
+				                   (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX, (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
 				                   &ptr, "hide", -1, 0, 0, -1, -1, NULL);
 				uiButSetFunc(bt, restrictbutton_view_cb, scene, ob);
 				
 				bt = uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_SELECT_OFF,
-				                   (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1,
+				                   (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX, (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
 				                   &ptr, "hide_select", -1, 0, 0, -1, -1, NULL);
 				uiButSetFunc(bt, restrictbutton_sel_cb, scene, ob);
 				
 				bt = uiDefIconButR(block, ICONTOG, 0, ICON_RESTRICT_RENDER_OFF,
-				                   (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1,
+				                   (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX, (int)te->ys, UI_UNIT_X, UI_UNIT_Y,
 				                   &ptr, "hide_render", -1, 0, 0, -1, -1, NULL);
 				uiButSetFunc(bt, restrictbutton_rend_cb, scene, ob);
 				
@@ -445,15 +445,15 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 
 				restrict_bool = group_restrict_flag(gr, OB_RESTRICT_VIEW);
-				bt = uiDefIconBut(block, ICONTOG, 0, restrict_bool ? ICON_RESTRICT_VIEW_ON : ICON_RESTRICT_VIEW_OFF, (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1, NULL, 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+				bt = uiDefIconBut(block, ICONTOG, 0, restrict_bool ? ICON_RESTRICT_VIEW_ON : ICON_RESTRICT_VIEW_OFF, (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX, (int)te->ys, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_gr_restrict_view, scene, gr);
 
 				restrict_bool = group_restrict_flag(gr, OB_RESTRICT_SELECT);
-				bt = uiDefIconBut(block, ICONTOG, 0, restrict_bool ? ICON_RESTRICT_SELECT_ON : ICON_RESTRICT_SELECT_OFF, (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1, NULL, 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
+				bt = uiDefIconBut(block, ICONTOG, 0, restrict_bool ? ICON_RESTRICT_SELECT_ON : ICON_RESTRICT_SELECT_OFF, (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX, (int)te->ys, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
 				uiButSetFunc(bt, restrictbutton_gr_restrict_select, scene, gr);
 
 				restrict_bool = group_restrict_flag(gr, OB_RESTRICT_RENDER);
-				bt = uiDefIconBut(block, ICONTOG, 0, restrict_bool ? ICON_RESTRICT_RENDER_ON : ICON_RESTRICT_RENDER_OFF, (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1, NULL, 0, 0, 0, 0, "Restrict/Allow renderability");
+				bt = uiDefIconBut(block, ICONTOG, 0, restrict_bool ? ICON_RESTRICT_RENDER_ON : ICON_RESTRICT_RENDER_OFF, (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX, (int)te->ys, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Restrict/Allow renderability");
 				uiButSetFunc(bt, restrictbutton_gr_restrict_render, scene, gr);
 
 				uiBlockSetEmboss(block, UI_EMBOSS);
@@ -463,7 +463,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				
 				bt = uiDefIconButBitI(block, ICONTOGN, SCE_LAY_DISABLE, 0, ICON_CHECKBOX_HLT - 1,
-				                      (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1, te->directdata, 0, 0, 0, 0, "Render this RenderLayer");
+				                      (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX, (int)te->ys, UI_UNIT_X, UI_UNIT_Y, te->directdata, 0, 0, 0, 0, "Render this RenderLayer");
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, tselem->id, NULL);
 				
 				uiBlockSetEmboss(block, UI_EMBOSS);
@@ -476,13 +476,13 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				
 				
 				bt = uiDefIconButBitI(block, ICONTOG, passflag, 0, ICON_CHECKBOX_HLT - 1,
-				                      (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1, layflag, 0, 0, 0, 0, "Render this Pass");
+				                      (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX, (int)te->ys, UI_UNIT_X, UI_UNIT_Y, layflag, 0, 0, 0, 0, "Render this Pass");
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, tselem->id, NULL);
 				
 				layflag++;  /* is lay_xor */
 				if (ELEM8(passflag, SCE_PASS_SPEC, SCE_PASS_SHADOW, SCE_PASS_AO, SCE_PASS_REFLECT, SCE_PASS_REFRACT, SCE_PASS_INDIRECT, SCE_PASS_EMIT, SCE_PASS_ENVIRONMENT))
 					bt = uiDefIconButBitI(block, TOG, passflag, 0, (*layflag & passflag) ? ICON_DOT : ICON_BLANK1,
-					                      (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1, layflag, 0, 0, 0, 0, "Exclude this Pass from Combined");
+					                      (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX, (int)te->ys, UI_UNIT_X, UI_UNIT_Y, layflag, 0, 0, 0, 0, "Exclude this Pass from Combined");
 				uiButSetFunc(bt, restrictbutton_r_lay_cb, tselem->id, NULL);
 				
 				uiBlockSetEmboss(block, UI_EMBOSS);
@@ -493,11 +493,11 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt = uiDefIconButBitI(block, ICONTOGN, eModifierMode_Realtime, 0, ICON_RESTRICT_VIEW_OFF,
-				                      (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+				                      (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX, (int)te->ys, UI_UNIT_X, UI_UNIT_Y, &(md->mode), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_modifier_cb, scene, ob);
 				
 				bt = uiDefIconButBitI(block, ICONTOGN, eModifierMode_Render, 0, ICON_RESTRICT_RENDER_OFF,
-				                      (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1, &(md->mode), 0, 0, 0, 0, "Restrict/Allow renderability");
+				                      (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX, (int)te->ys, UI_UNIT_X, UI_UNIT_Y, &(md->mode), 0, 0, 0, 0, "Restrict/Allow renderability");
 				uiButSetFunc(bt, restrictbutton_modifier_cb, scene, ob);
 			}
 			else if (tselem->type == TSE_POSE_CHANNEL) {
@@ -506,11 +506,11 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt = uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_P, 0, ICON_RESTRICT_VIEW_OFF,
-				                      (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+				                      (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX, (int)te->ys, UI_UNIT_X, UI_UNIT_Y, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, bone);
 				
 				bt = uiDefIconButBitI(block, ICONTOG, BONE_UNSELECTABLE, 0, ICON_RESTRICT_SELECT_OFF,
-				                      (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
+				                      (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX, (int)te->ys, UI_UNIT_X, UI_UNIT_Y, &(bone->flag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
 				uiButSetFunc(bt, restrictbutton_bone_cb, NULL, NULL);
 			}
 			else if (tselem->type == TSE_EBONE) {
@@ -518,11 +518,11 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
 				bt = uiDefIconButBitI(block, ICONTOG, BONE_HIDDEN_A, 0, ICON_RESTRICT_VIEW_OFF,
-				                      (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+				                      (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX, (int)te->ys, UI_UNIT_X, UI_UNIT_Y, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_ebone_cb, NULL, ebone);
 				
 				bt = uiDefIconButBitI(block, ICONTOG, BONE_UNSELECTABLE, 0, ICON_RESTRICT_SELECT_OFF,
-				                      (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
+				                      (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX, (int)te->ys, UI_UNIT_X, UI_UNIT_Y, &(ebone->flag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
 				uiButSetFunc(bt, restrictbutton_ebone_cb, NULL, NULL);
 			}
 		}
@@ -1227,12 +1227,12 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Spa
 				float ufac = UI_UNIT_X / 20.0f;
 
 				uiSetRoundBox(UI_CNR_ALL);
-				glColor4ub(255, 255, 255, 128);
+				glColor4ub(255, 255, 255, 100);
 				uiRoundBox((float) *offsx - 1.0f * ufac,
 				           (float)ys + 1.0f * ufac,
-				           (float)*offsx + UI_UNIT_X - 1.0f * ufac,
-				           (float)ys + UI_UNIT_Y - 1.0f * ufac,
-				           (float)UI_UNIT_Y / 2.0f - 2.0f * ufac);
+				           (float)*offsx + UI_UNIT_X - 2.0f * ufac,
+				           (float)ys + UI_UNIT_Y - ufac,
+				           (float)UI_UNIT_Y / 2.0f - ufac);
 				glEnable(GL_BLEND); /* roundbox disables */
 			}
 			
@@ -1365,11 +1365,11 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 		/* active circle */
 		if (active) {
 			uiSetRoundBox(UI_CNR_ALL);
-			uiRoundBox((float)startx + UI_UNIT_X - 1.0f * ufac,
+			uiRoundBox((float)startx + UI_UNIT_X,
 			           (float)*starty + 1.0f * ufac,
-			           (float)startx + 2.0f * UI_UNIT_X - 1.0f * ufac,
+			           (float)startx + 2.0f * UI_UNIT_X - 2.0f * ufac,
 			           (float)*starty + UI_UNIT_Y - 1.0f * ufac,
-			           UI_UNIT_Y / 2.0f - 2.0f * ufac);
+			           UI_UNIT_Y / 2.0f - 1.0f * ufac);
 			glEnable(GL_BLEND); /* roundbox disables it */
 			
 			te->flag |= TE_ACTIVE; // for lookup in display hierarchies
@@ -1641,7 +1641,7 @@ static void outliner_draw_restrictcols(ARegion *ar)
 
 void draw_outliner(const bContext *C)
 {
-	Main *mainvar = CTX_data_main(C);
+	Main *mainvar = CTX_data_main(C); 
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	View2D *v2d = &ar->v2d;

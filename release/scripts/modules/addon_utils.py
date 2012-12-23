@@ -29,7 +29,7 @@ __all__ = (
     )
 
 import bpy as _bpy
-
+_user_preferences = _bpy.context.user_preferences
 
 error_duplicates = False
 error_encoding = False
@@ -201,7 +201,7 @@ def check(module_name):
     :rtype: tuple of booleans
     """
     import sys
-    loaded_default = module_name in _bpy.context.user_preferences.addons
+    loaded_default = module_name in _user_preferences.addons
 
     mod = sys.modules.get(module_name)
     loaded_state = mod and getattr(mod, "__addon_enabled__", Ellipsis)
@@ -232,6 +232,7 @@ def enable(module_name, default_set=True, persistent=False):
 
     import os
     import sys
+    from bpy_restrict_state import RestrictBlend
 
     def handle_error():
         import traceback
@@ -259,34 +260,38 @@ def enable(module_name, default_set=True, persistent=False):
     # Split registering up into 3 steps so we can undo
     # if it fails par way through.
 
-    # 1) try import
-    try:
-        mod = __import__(module_name)
-        mod.__time__ = os.path.getmtime(mod.__file__)
-        mod.__addon_enabled__ = False
-    except:
-        handle_error()
-        return None
+    # disable the context, using the context at all is
+    # really bad while loading an addon, don't do it!
+    with RestrictBlend():
 
-    # 2) try register collected modules
-    # removed, addons need to handle own registration now.
+        # 1) try import
+        try:
+            mod = __import__(module_name)
+            mod.__time__ = os.path.getmtime(mod.__file__)
+            mod.__addon_enabled__ = False
+        except:
+            handle_error()
+            return None
 
-    # 3) try run the modules register function
-    try:
-        mod.register()
-    except:
-        print("Exception in module register(): %r" %
-              getattr(mod, "__file__", module_name))
-        handle_error()
-        del sys.modules[module_name]
-        return None
+        # 2) try register collected modules
+        # removed, addons need to handle own registration now.
+
+        # 3) try run the modules register function
+        try:
+            mod.register()
+        except:
+            print("Exception in module register(): %r" %
+                  getattr(mod, "__file__", module_name))
+            handle_error()
+            del sys.modules[module_name]
+            return None
 
     # * OK loaded successfully! *
     if default_set:
         # just in case its enabled already
-        ext = _bpy.context.user_preferences.addons.get(module_name)
+        ext = _user_preferences.addons.get(module_name)
         if not ext:
-            ext = _bpy.context.user_preferences.addons.new()
+            ext = _user_preferences.addons.new()
             ext.module = module_name
 
     mod.__addon_enabled__ = True
@@ -327,7 +332,7 @@ def disable(module_name, default_set=True):
               (module_name, "disabled" if mod is None else "loaded"))
 
     # could be in more then once, unlikely but better do this just in case.
-    addons = _bpy.context.user_preferences.addons
+    addons = _user_preferences.addons
 
     if default_set:
         while module_name in addons:

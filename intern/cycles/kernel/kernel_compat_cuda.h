@@ -37,6 +37,7 @@
 #define __global
 #define __shared __shared__
 #define __constant
+#define __may_alias
 
 /* No assert supported for CUDA */
 

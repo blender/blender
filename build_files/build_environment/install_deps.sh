@@ -1787,32 +1787,56 @@ print_info() {
   INFO ""
   INFO "If you're using CMake add this to your configuration flags:"
 
+  _buildargs=""
+
   if $ALL_STATIC; then
-    INFO "  -D WITH_STATIC_LIBS=ON"
+    _1="-D WITH_STATIC_LIBS=ON"
+    INFO "  $_1"
+    _buildargs="$_buildargs $_1"
   fi
 
   if [ -d $INST/boost ]; then
-    INFO "  -D BOOST_ROOT=$INST/boost"
-    INFO "  -D Boost_NO_SYSTEM_PATHS=ON"
+    _1="-D BOOST_ROOT=$INST/boost"
+    _2="-D Boost_NO_SYSTEM_PATHS=ON"
+    INFO "  $_1"
+    INFO "  $_2"
+    _buildargs="$_buildargs $_1 $_2"
   elif $ALL_STATIC; then
-    INFO "  -D Boost_USE_ICU=ON"
+    _1="-D Boost_USE_ICU=ON"
+    INFO "  $_1"
+    _buildargs="$_buildargs $_1"
   fi
 
   if [ -d $INST/osl -a $WITH_OSL == true ]; then
-    INFO "  -D CYCLES_OSL=$INST/osl"
-    INFO "  -D WITH_CYCLES_OSL=ON"
-    INFO "  -D LLVM_VERSION=$LLVM_VERSION_FOUND"
+    _1="-D CYCLES_OSL=$INST/osl"
+    _2="-D WITH_CYCLES_OSL=ON"
+    _3="-D LLVM_VERSION=$LLVM_VERSION_FOUND"
+    INFO "  $_1"
+    INFO "  $_2"
+    INFO "  $_3"
+    _buildargs="$_buildargs $_1 $_2 $_3"
     if [ -d $INST/llvm ]; then
-      INFO "  -D LLVM_DIRECTORY=$INST/llvm"
-      INFO "  -D LLVM_STATIC=ON"
+      _1="-D LLVM_DIRECTORY=$INST/llvm"
+      _2="-D LLVM_STATIC=ON"
+      INFO "  $_1"
+      INFO "  $_2"
+      _buildargs="$_buildargs $_1 $_2"
     fi
   fi
 
   if [ -d $INST/ffmpeg ]; then
-    INFO "  -D WITH_CODEC_FFMPEG=ON"
-    INFO "  -D FFMPEG=$INST/ffmpeg"
-    INFO "  -D FFMPEG_LIBRARIES='avformat;avcodec;avutil;avdevice;swscale;rt;`print_info_ffmpeglink`'"
+    _1="-D WITH_CODEC_FFMPEG=ON"
+    _2="-D FFMPEG=$INST/ffmpeg"
+    _3="-D FFMPEG_LIBRARIES='avformat;avcodec;avutil;avdevice;swscale;rt;`print_info_ffmpeglink`'"
+    INFO "  $_1"
+    INFO "  $_2"
+    INFO "  $_3"
+    _buildargs="$_buildargs $_1 $_2 $_3"
   fi
+
+  INFO ""
+  INFO "Or even simpler, just run (in your build dir):"
+  INFO "  make -j$THREADS BUILD_CMAKE_ARGS=\"$_buildargs\""
 
   INFO ""
   INFO "If you're using SCons add this to your user-config:"
@@ -1832,6 +1856,7 @@ print_info() {
 
   if [ -d $INST/boost ]; then
     INFO "BF_BOOST = '$INST/boost'"
+    INFO "WITH_BF_BOOST = True"
   fi
 
   if [ -d $INST/ffmpeg ]; then

@@ -49,6 +49,7 @@
 #include "BKE_main.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
+#include "BKE_report.h"
 
 
 #include "RNA_access.h"
@@ -625,7 +626,7 @@ void PARTICLE_OT_disconnect_hair(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "all", 0, "All hair", "Disconnect all hair systems from the emitter mesh");
 }
 
-static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
+static int connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 {
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
 	ParticleData *pa;
@@ -642,8 +643,8 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	float hairmat[4][4], imat[4][4];
 	float v[4][3], vec[3];
 
-	if (!psys || !psys->part || psys->part->type != PART_HAIR)
-		return;
+	if (!psys || !psys->part || psys->part->type != PART_HAIR || !psmd->dm)
+		return FALSE;
 	
 	edit= psys->edit;
 	point=  edit ? edit->points : NULL;
@@ -724,6 +725,8 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 	psys->flag &= ~PSYS_GLOBAL_HAIR;
 
 	PE_update_object(scene, ob, 0);
+
+	return TRUE;
 }
 
 static int connect_hair_exec(bContext *C, wmOperator *op)
@@ -733,18 +736,24 @@ static int connect_hair_exec(bContext *C, wmOperator *op)
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= NULL;
 	int all = RNA_boolean_get(op->ptr, "all");
+	int any_connected = FALSE;
 
 	if (!ob)
 		return OPERATOR_CANCELLED;
 
 	if (all) {
 		for (psys=ob->particlesystem.first; psys; psys=psys->next) {
-			connect_hair(scene, ob, psys);
+			any_connected |= connect_hair(scene, ob, psys);
 		}
 	}
 	else {
 		psys = ptr.data;
-		connect_hair(scene, ob, psys);
+		any_connected |= connect_hair(scene, ob, psys);
+	}
+
+	if (!any_connected) {
+		BKE_report(op->reports, RPT_ERROR, "Can't disconnect hair if particle system modifier is disabled");
+		return OPERATOR_CANCELLED;
 	}
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);

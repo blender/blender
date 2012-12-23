@@ -101,9 +101,9 @@ void GPU_render_text(MTFace *tface, int mode,
 		float line_start= 0.0f, line_height;
 		
 		if (v4)
-			line_height= MAX4(v1[1], v2[1], v3[1], v4[2]) - MIN4(v1[1], v2[1], v3[1], v4[2]);
+			line_height = max_ffff(v1[1], v2[1], v3[1], v4[2]) - min_ffff(v1[1], v2[1], v3[1], v4[2]);
 		else
-			line_height= MAX3(v1[1], v2[1], v3[1]) - MIN3(v1[1], v2[1], v3[1]);
+			line_height = max_fff(v1[1], v2[1], v3[1]) - min_fff(v1[1], v2[1], v3[1]);
 		line_height *= 1.2f; /* could be an option? */
 		/* end multiline */
 
@@ -768,10 +768,13 @@ int GPU_upload_dxt_texture(ImBuf *ibuf)
 		return FALSE;
 	}
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+	if (GLEW_EXT_texture_filter_anisotropic)
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, GPU_get_anisotropic());
 
 	blocksize = (ibuf->dds_data.fourcc == FOURCC_DXT1) ? 8 : 16;
 	for (i=0; i<ibuf->dds_data.nummipmaps && (width||height); ++i) {

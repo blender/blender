@@ -85,7 +85,7 @@ static void lensDistort(CompBuf *dst, CompBuf *src, float kr, float kg, float kb
 		// so in the case of pincushion (kn < 0), corners will be outside window.
 		// Now also optionally scales image such that black areas are not visible when distort factor is positive
 		// (makes distorted corners match window corners, but really only valid if mk<=0.5)
-		const float mk = MAX3(kr, kg, kb);
+		const float mk = max_fff(kr, kg, kb);
 		const float sc = (fit && (mk > 0.f)) ? (1.f/(1.f + 2.f*mk)) : (1.f/(1.f + mk));
 		const float drg = 4.f*(kg - kr), dgb = 4.f*(kb - kg);
 		

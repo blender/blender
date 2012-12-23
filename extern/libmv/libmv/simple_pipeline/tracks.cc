@@ -72,6 +72,16 @@ vector<Marker> Tracks::MarkersForTrack(int track) const {
   return markers;
 }
 
+vector<Marker> Tracks::MarkersInBothImages(int image1, int image2) const {
+  vector<Marker> markers;
+  for (int i = 0; i < markers_.size(); ++i) {
+    int image = markers_[i].image;
+    if (image == image1 || image == image2)
+      markers.push_back(markers_[i]);
+  }
+  return markers;
+}
+
 vector<Marker> Tracks::MarkersForTracksInBothImages(int image1, int image2) const {
   std::vector<int> image1_tracks;
   std::vector<int> image2_tracks;
@@ -154,6 +164,22 @@ int Tracks::MaxTrack() const {
 
 int Tracks::NumMarkers() const {
   return markers_.size();
+}
+
+void CoordinatesForMarkersInImage(const vector<Marker> &markers,
+                                  int image,
+                                  Mat *coordinates) {
+  vector<Vec2> coords;
+  for (int i = 0; i < markers.size(); ++i) {
+    const Marker &marker = markers[i];
+    if (markers[i].image == image) {
+      coords.push_back(Vec2(marker.x, marker.y));
+    }
+  }
+  coordinates->resize(2, coords.size());
+  for (int i = 0; i < coords.size(); i++) {
+    coordinates->col(i) = coords[i];
+  }
 }
 
 }  // namespace libmv

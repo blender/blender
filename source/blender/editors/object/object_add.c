@@ -802,10 +802,18 @@ void OBJECT_OT_lamp_add(wmOperatorType *ot)
 
 static int group_instance_add_exec(bContext *C, wmOperator *op)
 {
-	Group *group = BLI_findlink(&CTX_data_main(C)->group, RNA_enum_get(op->ptr, "group"));
-
+	Group *group;
 	unsigned int layer;
 	float loc[3], rot[3];
+	
+	if (RNA_struct_property_is_set(op->ptr, "name")) {
+		char name[MAX_ID_NAME - 2];
+
+		RNA_string_get(op->ptr, "name", name);
+		group = (Group *)BKE_libblock_find_name(ID_GR, name);
+	}
+	else
+		group = BLI_findlink(&CTX_data_main(C)->group, RNA_enum_get(op->ptr, "group"));
 
 	if (!ED_object_add_generic_get_opts(C, op, loc, rot, NULL, &layer, NULL))
 		return OPERATOR_CANCELLED;
@@ -847,6 +855,7 @@ void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
+	RNA_def_string(ot->srna, "name", "Group", MAX_ID_NAME - 2, "Name", "Group name to add");
 	ot->prop = RNA_def_enum(ot->srna, "group", DummyRNA_NULL_items, 0, "Group", "");
 	RNA_def_enum_funcs(ot->prop, RNA_group_itemf);
 	ED_object_add_generic_props(ot, FALSE);

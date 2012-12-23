@@ -18,7 +18,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenlib/intern/pbvh.c
+/** \file blender/blenkernel/intern/pbvh.c
  *  \ingroup bli
  */
 

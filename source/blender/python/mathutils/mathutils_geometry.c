@@ -1102,7 +1102,7 @@ static PyObject *M_Geometry_interpolate_bezier(PyObject *UNUSED(self), PyObject 
 		return NULL;
 	}
 
-	dims = MAX4(vec_k1->size, vec_h1->size, vec_h2->size, vec_k2->size);
+	dims = max_iiii(vec_k1->size, vec_h1->size, vec_h2->size, vec_k2->size);
 
 	for (i = 0; i < vec_k1->size; i++) k1[i] = vec_k1->vec[i];
 	for (i = 0; i < vec_h1->size; i++) h1[i] = vec_h1->vec[i];

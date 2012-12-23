@@ -321,3 +321,12 @@ int SCA_Joystick::pAxisTest(int axisnum)
 	return 0;
 #endif /* WITH_SDL */
 }
+
+const char *SCA_Joystick::GetName()
+{
+#ifdef WITH_SDL
+	return SDL_JoystickName(m_joyindex);
+#else /* WITH_SDL */
+	return "";
+#endif /* WITH_SDL */
+}

@@ -541,11 +541,11 @@ static void do_lasso_select_mesh(ViewContext *vc, const int mcords[][2], short m
 	if (ts->selectmode & SCE_SELECT_EDGE) {
 		/* Does both bbsel and non-bbsel versions (need screen cos for both) */
 		data.pass = 0;
-		mesh_foreachScreenEdge(vc, do_lasso_select_mesh__doSelectEdge, &data, V3D_PROJ_TEST_NOP);
+		mesh_foreachScreenEdge(vc, do_lasso_select_mesh__doSelectEdge, &data, V3D_PROJ_TEST_CLIP_NEAR);
 
 		if (data.is_done == 0) {
 			data.pass = 1;
-			mesh_foreachScreenEdge(vc, do_lasso_select_mesh__doSelectEdge, &data, V3D_PROJ_TEST_NOP);
+			mesh_foreachScreenEdge(vc, do_lasso_select_mesh__doSelectEdge, &data, V3D_PROJ_TEST_CLIP_NEAR);
 		}
 	}
 	
@@ -1448,7 +1448,7 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short dese
 				if (BASE_SELECTABLE(v3d, base)) {
 					float screen_co[2];
 					if (ED_view3d_project_float_global(ar, base->object->obmat[3], screen_co,
-					                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
+					                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
 					{
 						float dist_temp = len_manhattan_v2v2(mval_fl, screen_co);
 						if (base == BASACT) dist_temp += 10.0f;
@@ -1803,11 +1803,11 @@ static int do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exten
 		/* Does both bbsel and non-bbsel versions (need screen cos for both) */
 
 		data.pass = 0;
-		mesh_foreachScreenEdge(vc, do_mesh_box_select__doSelectEdge, &data, V3D_PROJ_TEST_NOP);
+		mesh_foreachScreenEdge(vc, do_mesh_box_select__doSelectEdge, &data, V3D_PROJ_TEST_CLIP_NEAR);
 
 		if (data.is_done == 0) {
 			data.pass = 1;
-			mesh_foreachScreenEdge(vc, do_mesh_box_select__doSelectEdge, &data, V3D_PROJ_TEST_NOP);
+			mesh_foreachScreenEdge(vc, do_mesh_box_select__doSelectEdge, &data, V3D_PROJ_TEST_CLIP_NEAR);
 		}
 	}
 	
@@ -2333,7 +2333,7 @@ static void mesh_circle_select(ViewContext *vc, int select, const int mval[2], f
 			edbm_backbuf_check_and_select_edges(vc->em, select == LEFTMOUSE);
 		}
 		else {
-			mesh_foreachScreenEdge(vc, mesh_circle_doSelectEdge, &data, V3D_PROJ_TEST_NOP);
+			mesh_foreachScreenEdge(vc, mesh_circle_doSelectEdge, &data, V3D_PROJ_TEST_CLIP_NEAR);
 		}
 	}
 	
@@ -2670,7 +2670,7 @@ static int object_circle_select(ViewContext *vc, int select, const int mval[2], 
 		if (BASE_SELECTABLE(vc->v3d, base) && ((base->flag & SELECT) != select_flag)) {
 			float screen_co[2];
 			if (ED_view3d_project_float_global(vc->ar, base->object->obmat[3], screen_co,
-			                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK)
+			                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
 			{
 				if (len_squared_v2v2(mval_fl, screen_co) <= radius_squared) {
 					ED_base_object_select(base, select);

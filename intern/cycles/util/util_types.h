@@ -39,12 +39,14 @@
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
 #define __device_inline static __forceinline
 #define __align(...) __declspec(align(__VA_ARGS__))
+#define __may_alias
 #else
 #define __device_inline static inline __attribute__((always_inline))
 #ifndef FREE_WINDOWS64
 #define __forceinline inline __attribute__((always_inline))
 #endif
 #define __align(...) __attribute__((aligned(__VA_ARGS__)))
+#define __may_alias __attribute__((__may_alias__))
 #endif
 
 #endif

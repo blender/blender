@@ -105,6 +105,22 @@ __device_inline void sample_uniform_hemisphere(const float3 N,
 	*pdf = 0.5f * M_1_PI_F;
 }
 
+__device_inline void sample_uniform_cone(const float3 N, float angle,
+                                         float randu, float randv,
+                                         float3 *omega_in, float *pdf)
+{
+	float z = cosf(angle*randu);
+	float r = sqrtf(max(0.0f, 1.0f - z*z));
+	float phi = 2.0f * M_PI_F * randv;
+	float x = r * cosf(phi);
+	float y = r * sinf(phi);
+
+	float3 T, B;
+	make_orthonormals (N, &T, &B);
+	*omega_in = x * T + y * B + z * N;
+	*pdf = 0.5f * M_1_PI_F / (1.0f - cosf(angle));
+}
+
 __device float3 sample_uniform_sphere(float u1, float u2)
 {
 	float z = 1.0f - 2.0f*u1;

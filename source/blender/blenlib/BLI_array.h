@@ -106,8 +106,8 @@
 	((arr = (void *)_##arr##_static), (_##arr##_count += (num)))              \
 	    :                                                                     \
 	/* use existing static array or allocate */                               \
-	((BLI_array_totalsize(arr) >= _##arr##_count + num) ?                     \
-	    (_##arr##_count += num) :                                             \
+	(LIKELY(BLI_array_totalsize(arr) >= _##arr##_count + num) ?               \
+	    (_##arr##_count += num) :  /* UNLIKELY --> realloc */                 \
 	    (                                                                     \
 	        (void) (_##arr##_tmp = MEM_callocN(                               \
 	                sizeof(*arr) * (num < _##arr##_count ?                    \

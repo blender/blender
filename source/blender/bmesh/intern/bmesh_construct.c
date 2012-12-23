@@ -173,8 +173,8 @@ void BM_face_copy_shared(BMesh *bm, BMFace *f)
  */
 BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len, const int create_flag)
 {
-	BMEdge **edges2 = BLI_array_alloca_and_count(edges2, len);
-	BMVert **verts = BLI_array_alloca_and_count(verts, len + 1);
+	BMEdge **edges2 = BLI_array_alloca(edges2, len);
+	BMVert **verts = BLI_array_alloca(verts, len + 1);
 	int e2_index = 0;
 	int v_index = 0;
 
@@ -235,7 +235,7 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 		e = e2;
 	} while (e != edges[0]);
 
-	if (BLI_array_count(edges2) != len) {
+	if (e2_index != len) {
 		goto err; /* we didn't use all edges in forming the boundary loop */
 	}
 
@@ -296,10 +296,9 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 err:
 	for (i = 0; i < len; i++) {
 		BM_ELEM_API_FLAG_DISABLE(edges[i], _FLAG_MF);
-		/* vert count may != len */
-		if (i < BLI_array_count(verts)) {
-			BM_ELEM_API_FLAG_DISABLE(verts[i], _FLAG_MV);
-		}
+	}
+	for (i = 0; i < v_index; i++) {
+		BM_ELEM_API_FLAG_DISABLE(verts[i], _FLAG_MV);
 	}
 
 	return NULL;
@@ -817,6 +816,8 @@ void BM_elem_attrs_copy(BMesh *source_mesh, BMesh *target_mesh, const void *sour
 
 BMesh *BM_mesh_copy(BMesh *bm_old)
 {
+#define USE_FAST_FACE_COPY
+
 	BMesh *bm_new;
 	BMVert *v, *v2, **vtable = NULL;
 	BMEdge *e, *e2, **edges = NULL, **etable = NULL;
@@ -824,6 +825,10 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 	BLI_array_declare(edges);
 	BMLoop *l, /* *l2, */ **loops = NULL;
 	BLI_array_declare(loops);
+#ifdef USE_FAST_FACE_COPY
+	BMVert **verts = NULL;
+	BLI_array_declare(verts);
+#endif
 	BMFace *f, *f2, **ftable = NULL;
 	BMEditSelection *ese;
 	BMIter iter, liter;
@@ -891,12 +896,24 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 		BLI_array_grow_items(loops, f->len);
 		BLI_array_grow_items(edges, f->len);
 
+#ifdef USE_FAST_FACE_COPY
+		BLI_array_empty(verts);
+		BLI_array_grow_items(verts, f->len);
+#endif
+
 		l = BM_iter_new(&liter, bm_old, BM_LOOPS_OF_FACE, f);
 		for (j = 0; j < f->len; j++, l = BM_iter_step(&liter)) {
 			loops[j] = l;
 			edges[j] = etable[BM_elem_index_get(l->e)];
+
+#ifdef USE_FAST_FACE_COPY
+			verts[j] = vtable[BM_elem_index_get(l->v)];
+#endif
 		}
 
+#ifdef USE_FAST_FACE_COPY
+		f2 = BM_face_create(bm_new, verts, edges, f->len, BM_CREATE_SKIP_CD);
+#else
 		v = vtable[BM_elem_index_get(loops[0]->v)];
 		v2 = vtable[BM_elem_index_get(loops[1]->v)];
 
@@ -906,6 +923,8 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 		}
 
 		f2 = BM_face_create_ngon(bm_new, v, v2, edges, f->len, BM_CREATE_SKIP_CD);
+#endif
+
 		if (UNLIKELY(f2 == NULL)) {
 			continue;
 		}
@@ -961,9 +980,12 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 	MEM_freeN(vtable);
 	MEM_freeN(ftable);
 
+#ifdef USE_FAST_FACE_COPY
+	BLI_array_free(verts);
+#endif
+
 	BLI_array_free(loops);
 	BLI_array_free(edges);
-
 	return bm_new;
 }
 

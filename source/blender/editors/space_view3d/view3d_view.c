@@ -1070,11 +1070,9 @@ static int view3d_localview_init(Main *bmain, Scene *scene, ScrArea *sa, ReportL
 				}
 			}
 		}
-		
-		box[0] = (max[0] - min[0]);
-		box[1] = (max[1] - min[1]);
-		box[2] = (max[2] - min[2]);
-		size = MAX3(box[0], box[1], box[2]);
+
+		sub_v3_v3v3(box, max, min);
+		size = max_fff(box[0], box[1], box[2]);
 
 		/* do not zoom closer than the near clipping plane */
 		size = max_ff(size, v3d->near * 1.5f);

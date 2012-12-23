@@ -3344,7 +3344,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		
 		tpage = project_paint_face_image(ps, ps->dm_mtface, face_index);
 
-		if (tpage && ((((Mesh *)ps->ob->data)->editflag & ME_EDIT_PAINT_MASK) == 0 || mf->flag & ME_FACE_SEL)) {
+		if (tpage && ((((Mesh *)ps->ob->data)->editflag & ME_EDIT_PAINT_FACE_SEL) == 0 || mf->flag & ME_FACE_SEL)) {
 			
 			float *v1coSS, *v2coSS, *v3coSS, *v4coSS = NULL;
 			
@@ -5104,7 +5104,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 		}
 
 		pop->s.ob = ob;
-		pop->s.do_facesel = (me->editflag & ME_EDIT_PAINT_MASK) != 0;
+		pop->s.do_facesel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
 		/* for non prohect paint we need */
 		/* fill in derived mesh */
@@ -5705,7 +5705,7 @@ static int image_paint_sample_color_poll(bContext *C)
 			if (obact && obact->mode & OB_MODE_TEXTURE_PAINT) {
 				Mesh *me = BKE_mesh_from_object(obact);
 				if (me) {
-					return !(me->editflag & ME_EDIT_PAINT_MASK);
+					return !(me->editflag & ME_EDIT_PAINT_FACE_SEL);
 				}
 			}
 		}

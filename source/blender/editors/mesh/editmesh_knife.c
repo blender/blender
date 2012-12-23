@@ -38,14 +38,11 @@
 #include "BLI_blenlib.h"
 #include "BLI_array.h"
 #include "BLI_math.h"
-#include "BLI_rand.h"
 #include "BLI_smallhash.h"
-#include "BLI_scanfill.h"
 #include "BLI_memarena.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h" /* for paint cursor */
@@ -59,7 +56,6 @@
 #include "WM_types.h"
 
 #include "DNA_scene_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "BKE_tessmesh.h"
 #include "UI_resources.h"
@@ -1150,7 +1146,7 @@ static float len_v3_tri_side_max(const float v1[3], const float v2[3], const flo
 	const float s2 = len_squared_v3v3(v2, v3);
 	const float s3 = len_squared_v3v3(v3, v1);
 
-	return sqrtf(MAX3(s1, s2, s3));
+	return sqrtf(max_fff(s1, s2, s3));
 }
 
 static BMEdgeHit *knife_edge_tri_isect(KnifeTool_OpData *kcd, BMBVHTree *bmtree,

@@ -475,6 +475,7 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(PAINT_OT_weight_paint);
 	WM_operatortype_append(PAINT_OT_weight_set);
 	WM_operatortype_append(PAINT_OT_weight_from_bones);
+	WM_operatortype_append(PAINT_OT_weight_gradient);
 	WM_operatortype_append(PAINT_OT_weight_sample);
 	WM_operatortype_append(PAINT_OT_weight_sample_group);
 
@@ -709,6 +710,9 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	/* these keys are from 2.4x but could be changed */
 	WM_keymap_verify_item(keymap, "PAINT_OT_weight_sample", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "PAINT_OT_weight_sample_group", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
+
+	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_weight_gradient", LEFTMOUSE, KM_PRESS, KM_ALT, 0)->ptr,           "type", WPAINT_GRADIENT_TYPE_LINEAR);
+	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_weight_gradient", LEFTMOUSE, KM_PRESS, KM_ALT | KM_CTRL, 0)->ptr, "type", WPAINT_GRADIENT_TYPE_RADIAL);
 
 	WM_keymap_add_item(keymap,
 	                   "PAINT_OT_weight_set", KKEY, KM_PRESS, KM_SHIFT, 0);

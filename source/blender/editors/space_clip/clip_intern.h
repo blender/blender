@@ -54,7 +54,7 @@ struct wmOperatorType;
 /* extra padding for lengths (to go under scrollers) */
 #define EXTRA_SCROLL_PAD        100.0f
 
-#define STRIP_HEIGHT_HALF       (0.25 * UI_UNIT_Y)
+#define STRIP_HEIGHT_HALF       (0.25f * UI_UNIT_Y)
 
 /* internal exports only */
 

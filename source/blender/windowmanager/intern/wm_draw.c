@@ -606,6 +606,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
 			if (ar->swinid && ar->do_draw) {
+				
 				if (ar->overlap == 0) {
 					CTX_wm_region_set(C, ar);
 					ED_region_do_draw(C, ar);
@@ -635,7 +636,6 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 			if (ar->swinid && ar->overlap) {
 				CTX_wm_region_set(C, ar);
 				ED_region_do_draw(C, ar);
-				ED_area_overdraw_flush(sa, ar);
 				CTX_wm_region_set(C, NULL);
 				
 				wm_draw_region_blend(win, ar);
@@ -796,7 +796,7 @@ void wm_draw_update(bContext *C)
 	GPU_free_unused_buffers();
 	
 	for (win = wm->windows.first; win; win = win->next) {
-		int state = GHOST_GetWindowState(win->ghostwin);;
+		int state = GHOST_GetWindowState(win->ghostwin);
 
 		if (state == GHOST_kWindowStateMinimized) {
 			/* do not update minimized windows, it gives issues on intel drivers (see [#33223])

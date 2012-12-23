@@ -161,7 +161,6 @@ vector cross (vector a, vector b) BUILTIN;
 float dot (vector a, vector b) BUILTIN;
 float length (vector v) BUILTIN;
 float distance (point a, point b) BUILTIN;
-float distance (point a, point b, point q) BUILTIN;
 normal normalize (normal v) BUILTIN;
 vector normalize (vector v) BUILTIN;
 vector faceforward (vector N, vector I, vector Nref) BUILTIN;
@@ -433,8 +432,10 @@ string concat (string a, string b, string c, string d, string e, string f) {
 
 closure color diffuse(normal N) BUILTIN;
 closure color oren_nayar(normal N, float sigma) BUILTIN;
-closure color phong_ramp(normal N, float exponent, color colors[8]) BUILTIN;
 closure color diffuse_ramp(normal N, color colors[8]) BUILTIN;
+closure color phong_ramp(normal N, float exponent, color colors[8]) BUILTIN;
+closure color diffuse_toon(normal N, float size, float smooth) BUILTIN;
+closure color specular_toon(normal N, float size, float smooth) BUILTIN;
 closure color translucent(normal N) BUILTIN;
 closure color reflection(normal N) BUILTIN;
 closure color refraction(normal N, float eta) BUILTIN;

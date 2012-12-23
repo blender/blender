@@ -1676,10 +1676,6 @@ static EnumPropertyItem game_properties_copy_operations[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem gameprops_items[] = {
-	{0, NULL, 0, NULL, NULL}
-};
-
 static EnumPropertyItem *gameprops_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {	
 	Object *ob = ED_object_active_context(C);
@@ -1689,7 +1685,7 @@ static EnumPropertyItem *gameprops_itemf(bContext *C, PointerRNA *UNUSED(ptr), P
 	int a, totitem = 0;
 	
 	if (!ob)
-		return gameprops_items;
+		return DummyRNA_NULL_items;
 
 	for (a = 1, prop = ob->prop.first; prop; prop = prop->next, a++) {
 		tmp.value = a;
@@ -1760,7 +1756,7 @@ void OBJECT_OT_game_property_copy(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_enum(ot->srna, "operation", game_properties_copy_operations, 3, "Operation", "");
-	prop = RNA_def_enum(ot->srna, "property", gameprops_items, 0, "Property", "Properties to copy");
+	prop = RNA_def_enum(ot->srna, "property", DummyRNA_NULL_items, 0, "Property", "Properties to copy");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	RNA_def_enum_funcs(prop, gameprops_itemf);
 	ot->prop = prop;

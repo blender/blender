@@ -449,8 +449,8 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 	 * inserting previously found vertex into the plane equation */
 
 	/* d0 = (viewnormal[0]*cv[i][0] + viewnormal[1]*cv[i][1] + viewnormal[2]*cv[i][2]); */ /* UNUSED */
-	ds = (ABS(viewnormal[0]) * size[0] + ABS(viewnormal[1]) * size[1] + ABS(viewnormal[2]) * size[2]);
-	dd = MAX3(sds->global_size[0], sds->global_size[1], sds->global_size[2]) / 128.f;
+	ds = (fabsf(viewnormal[0]) * size[0] + fabsf(viewnormal[1]) * size[1] + fabsf(viewnormal[2]) * size[2]);
+	dd = max_fff(sds->global_size[0], sds->global_size[1], sds->global_size[2]) / 128.f;
 	n = 0;
 	good_index = i;
 
@@ -570,7 +570,7 @@ void draw_smoke_velocity(SmokeDomainSettings *domain, Object *ob)
 
 	float min[3];
 	float *cell_size = domain->cell_size;
-	float step_size = ((float)MAX3(base_res[0], base_res[1], base_res[2])) / 16.f;
+	float step_size = ((float)max_iii(base_res[0], base_res[1], base_res[2])) / 16.f;
 	float vf = domain->scale / 16.f * 2.f; /* velocity factor */
 
 	glLineWidth(1.0f);
@@ -624,7 +624,7 @@ void draw_smoke_heat(SmokeDomainSettings *domain, Object *ob)
 
 	float min[3];
 	float *cell_size = domain->cell_size;
-	float step_size = ((float)MAX3(base_res[0], base_res[1], base_res[2])) / 16.f;
+	float step_size = ((float)max_iii(base_res[0], base_res[1], base_res[2])) / 16.f;
 	float vf = domain->scale / 16.f * 2.f; /* velocity factor */
 
 	/* set first position so that it doesn't jump when domain moves */

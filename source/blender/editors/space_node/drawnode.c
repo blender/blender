@@ -3416,10 +3416,10 @@ int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, floa
 		vec[2][0] = vec[3][0] - dist;
 		vec[2][1] = vec[3][1];
 	}
-	if (v2d && MIN4(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) > v2d->cur.xmax) {
+	if (v2d && min_ffff(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) > v2d->cur.xmax) {
 		/* clipped */
 	}
-	else if (v2d && MAX4(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) < v2d->cur.xmin) {
+	else if (v2d && max_ffff(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) < v2d->cur.xmin) {
 		/* clipped */
 	}
 	else {

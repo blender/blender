@@ -35,15 +35,12 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 
 #include "BKE_DerivedMesh.h"
-#include "BKE_bmesh.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_key.h"
-#include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_report.h"
 #include "BKE_tessmesh.h"
@@ -56,7 +53,6 @@
 #include "ED_mesh.h"
 #include "ED_util.h"
 
-#include "bmesh.h"
 
 #include "mesh_intern.h"
 
@@ -1302,15 +1298,15 @@ void EDBM_mesh_reveal(BMEditMesh *em)
 	int sels[3] = {(em->selectmode & SCE_SELECT_VERTEX),
 	               (em->selectmode & SCE_SELECT_EDGE),
 	               (em->selectmode & SCE_SELECT_FACE), };
-
-	BMIter iter;
-	BMElem *ele;
 	int i;
 
 	/* Use tag flag to remember what was hidden before all is revealed.
 	 * BM_ELEM_HIDDEN --> BM_ELEM_TAG */
 #pragma omp parallel for schedule(dynamic) if (em->bm->totvert + em->bm->totedge + em->bm->totface >= BM_OMP_LIMIT)
 	for (i = 0; i < 3; i++) {
+		BMIter iter;
+		BMElem *ele;
+
 		BM_ITER_MESH (ele, &iter, em->bm, iter_types[i]) {
 			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_HIDDEN));
 		}
@@ -1321,6 +1317,9 @@ void EDBM_mesh_reveal(BMEditMesh *em)
 
 	/* Select relevant just-revealed elements */
 	for (i = 0; i < 3; i++) {
+		BMIter iter;
+		BMElem *ele;
+
 		if (!sels[i]) {
 			continue;
 		}

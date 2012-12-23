@@ -47,10 +47,10 @@ def get_version():
 
         if (ver_base is not None) and (ver_char is not None) and (ver_cycle is not None):
             # eg '2.56a-beta'
-            if ver_cycle:
+            if ver_cycle != "release":
                 ver_display = "%s%s-%s" % (ver_base, ver_char, ver_cycle)
             else:
-                ver_display = "%s%s" % (ver_base, ver_char)  # assume release
+                ver_display = "%s%s" % (ver_base, ver_char)
 
             return ver_base, ver_display, ver_cycle
 

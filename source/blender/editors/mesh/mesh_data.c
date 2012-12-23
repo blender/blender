@@ -28,35 +28,23 @@
  *  \ingroup edmesh
  */
 
-
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "MEM_guardedalloc.h"
 
-#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 #include "BLI_array.h"
 #include "BLI_math.h"
-#include "BLI_edgehash.h"
-#include "BLI_linklist.h"
-#include "BLI_listbase.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_displist.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_report.h"
 #include "BKE_tessmesh.h"
@@ -72,9 +60,8 @@
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
 
-#include "RE_render_ext.h"
-
 #include "mesh_intern.h"
+
 
 static CustomData *mesh_customdata_get_type(Mesh *me, const char htype, int *r_tot)
 {

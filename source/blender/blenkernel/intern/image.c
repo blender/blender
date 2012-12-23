@@ -937,7 +937,7 @@ int BKE_imtype_to_ftype(const char imtype)
 		return RADHDR;
 #endif
 	else if (imtype == R_IMF_IMTYPE_PNG)
-		return PNG;
+		return PNG | 90;
 #ifdef WITH_DDS
 	else if (imtype == R_IMF_IMTYPE_DDS)
 		return DDS;

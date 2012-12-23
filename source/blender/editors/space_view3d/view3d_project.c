@@ -116,7 +116,7 @@ static eV3DProjStatus ed_view3d_project__internal(ARegion *ar,
                                                   float perspmat[4][4], const int is_local,  /* normally hidden */
                                                   const float co[3], float r_co[2], const eV3DProjTest flag)
 {
-	float fx, fy, vec4[4];
+	float vec4[4];
 
 	/* check for bad flags */
 	BLI_assert((flag & V3D_PROJ_TEST_ALL) == flag);
@@ -134,13 +134,19 @@ static eV3DProjStatus ed_view3d_project__internal(ARegion *ar,
 	vec4[3] = 1.0;
 	mul_m4_v4(perspmat, vec4);
 
-	if (vec4[3] > (float)BL_NEAR_CLIP) {
-		fx = ((float)ar->winx / 2.0f) * (1.0f + vec4[0] / vec4[3]);
-		if (((flag & V3D_PROJ_TEST_CLIP_WIN) == 0) || (fx > 0 && fx < ar->winx)) {
-			fy = ((float)ar->winy / 2.0f) * (1.0f + vec4[1] / vec4[3]);
+	if (((flag & V3D_PROJ_TEST_CLIP_NEAR) == 0)  || (vec4[3] > (float)BL_NEAR_CLIP)) {
+		const float scalar = (vec4[3] != 0.0f) ? (1.0f / vec4[3]): 0.0f;
+		const float fx = ((float)ar->winx / 2.0f) * (1.0f + (vec4[0] * scalar));
+		if (((flag & V3D_PROJ_TEST_CLIP_WIN) == 0) || (fx > 0.0f && fx < (float)ar->winx)) {
+			const float fy = ((float)ar->winy / 2.0f) * (1.0f + (vec4[1] * scalar));
 			if (((flag & V3D_PROJ_TEST_CLIP_WIN) == 0) || (fy > 0.0f && fy < (float)ar->winy)) {
-				r_co[0] = (short)floor(fx);
-				r_co[1] = (short)floor(fy);
+				r_co[0] = floorf(fx);
+				r_co[1] = floorf(fy);
+
+				/* check if the point is behind the view, we need to flip in this case */
+				if (UNLIKELY((flag & V3D_PROJ_TEST_CLIP_NEAR) == 0) && (vec4[3] < 0.0f)) {
+					negate_v2(r_co);
+				}
 			}
 			else {
 				return V3D_PROJ_RET_CLIP_WIN;
@@ -166,8 +172,8 @@ eV3DProjStatus ED_view3d_project_short_ex(ARegion *ar, float perspmat[4][4], con
 		if ((tvec[0] > -32700.0f && tvec[0] < 32700.0f) &&
 		    (tvec[1] > -32700.0f && tvec[1] < 32700.0f))
 		{
-			r_co[0] = (short)floor(tvec[0]);
-			r_co[1] = (short)floor(tvec[1]);
+			r_co[0] = (short)floorf(tvec[0]);
+			r_co[1] = (short)floorf(tvec[1]);
 		}
 		else {
 			ret = V3D_PROJ_RET_OVERFLOW;
@@ -185,8 +191,8 @@ eV3DProjStatus ED_view3d_project_int_ex(ARegion *ar, float perspmat[4][4], const
 		if ((tvec[0] > -2140000000.0f && tvec[0] < 2140000000.0f) &&
 		    (tvec[1] > -2140000000.0f && tvec[1] < 2140000000.0f))
 		{
-			r_co[0] = (int)floor(tvec[0]);
-			r_co[1] = (int)floor(tvec[1]);
+			r_co[0] = (int)floorf(tvec[0]);
+			r_co[1] = (int)floorf(tvec[1]);
 		}
 		else {
 			ret = V3D_PROJ_RET_OVERFLOW;

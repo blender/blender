@@ -2920,12 +2920,12 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem storage_items[] ={
+	static EnumPropertyItem storage_items[] = {
 		{RAS_STORE_AUTO, "AUTO", 0, "Auto Select", "Chooses the best supported mode"},
 		{RAS_STORE_IMMEDIATE, "IMMEDIATE", 0, "Immediate Mode", "Slowest performance, requires OpenGL (any version)"},
 		{RAS_STORE_VA, "VERTEX_ARRAY", 0, "Vertex Arrays", "Better performance, requires at least OpenGL 1.1"},
-		/* VBOS are currently disabled since they cannot beat vertex array with display lists in performance. 8?
-		/*{RAS_STORE_VBO, "VERTEX_BUFFER_OBJECT", 0, "Vertex Buffer Objects", "Best performance, requires at least OpenGL 1.4"},*/
+		/* VBOS are currently disabled since they cannot beat vertex array with display lists in performance. */
+		/* {RAS_STORE_VBO, "VERTEX_BUFFER_OBJECT", 0, "Vertex Buffer Objects", "Best performance, requires at least OpenGL 1.4"}, */
 		{0, NULL, 0, NULL, NULL}};
 
 	srna = RNA_def_struct(brna, "SceneGameData", NULL);
@@ -2963,7 +2963,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Exit Key",  "The key that exits the Game Engine");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
-	prop= RNA_def_property(srna, "raster_storage", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "raster_storage", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "raster_storage");
 	RNA_def_property_enum_items(prop, storage_items);
 	RNA_def_property_ui_text(prop, "Storage",  "Sets the storage mode used by the rasterizer");
@@ -4400,11 +4400,11 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	                         "Calculate heights against unsubdivided low resolution mesh");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
-	prop = RNA_def_property(srna, "bake_rays_number", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "bake_rays_number");
+	prop = RNA_def_property(srna, "bake_samples", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "bake_samples");
 	RNA_def_property_range(prop, 64, 1024);
 	RNA_def_property_int_default(prop, 256);
-	RNA_def_property_ui_text(prop, "Number of Rays", "Number of rays used for ambient occlusion baking from multires");
+	RNA_def_property_ui_text(prop, "Samples", "Number of samples used for ambient occlusion baking from multires");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	/* stamp */

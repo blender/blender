@@ -971,6 +971,7 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel, Panel):
         col.operator("object.vertex_group_transfer_weight", text="Transfer Weights")
         col.operator("object.vertex_group_limit_total", text="Limit Total")
         col.operator("object.vertex_group_fix", text="Fix Deforms")
+        col.operator("paint.weight_gradient")
 
 
 class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):

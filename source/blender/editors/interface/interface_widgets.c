@@ -261,7 +261,7 @@ static int round_box_shadow_edges(float (*vert)[2], const rcti *rect, float rad,
 	
 	if (2.0f * rad > BLI_rcti_size_y(rect))
 		rad = 0.5f * BLI_rcti_size_y(rect);
-	
+
 	minx = rect->xmin - step;
 	miny = rect->ymin - step;
 	maxx = rect->xmax + step;
@@ -871,7 +871,7 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, const rcti
 	
 	aspect = but->block->aspect / UI_DPI_FAC;
 	height = ICON_DEFAULT_HEIGHT / aspect;
-	
+
 	/* calculate blend color */
 	if (ELEM4(but->type, TOG, ROW, TOGN, LISTROW)) {
 		if (but->flag & UI_SELECT) {}
@@ -915,6 +915,12 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, const rcti
 			ys = (rect->ymin + rect->ymax - height) / 2.0f;
 		}
 
+		/* force positions to integers, for zoom levels near 1. draws icons crisp. */
+		if (aspect > 0.95f && aspect < 1.05f) {
+			xs = (int)(xs + 0.1f);
+			ys = (int)(ys + 0.1f);
+		}
+		
 		/* to indicate draggable */
 		if (but->dragpoin && (but->flag & UI_ACTIVE)) {
 			float rgb[3] = {1.25f, 1.25f, 1.25f};
@@ -1793,13 +1799,19 @@ static void widget_state_menu_item(uiWidgetType *wt, int state)
 /* ************ menu backdrop ************************* */
 
 /* outside of rect, rad to left/bottom/right */
-static void widget_softshadow(const rcti *rect, int roundboxalign, const float radin, const float radout)
+static void widget_softshadow(const rcti *rect, int roundboxalign, const float radin)
 {
+	bTheme *btheme = UI_GetTheme();
 	uiWidgetBase wtb;
 	rcti rect1 = *rect;
-	float alpha, alphastep;
+	float alphastep;
 	int step, totvert;
-	float quad_strip[WIDGET_SIZE_MAX * 2][2];
+	float quad_strip[WIDGET_SIZE_MAX * 2 + 2][2];
+	const float radout = UI_ThemeMenuShadowWidth();
+	
+	/* disabled shadow */
+	if (radout == 0.0f)
+		return;
 	
 	/* prevent tooltips to not show round shadow */
 	if (radout > 0.2f * BLI_rcti_size_y(&rect1))
@@ -1810,24 +1822,22 @@ static void widget_softshadow(const rcti *rect, int roundboxalign, const float r
 	/* inner part */
 	totvert = round_box_shadow_edges(wtb.inner_v, &rect1, radin, roundboxalign & (UI_CNR_BOTTOM_RIGHT | UI_CNR_BOTTOM_LEFT), 0.0f);
 
-	/* inverse linear shadow alpha */
-	alpha = 0.15f;
-	if (U.pixelsize > 1.0f)
-		alphastep = 0.78f;
-	else
-		alphastep = 0.67f;
+	/* we draw a number of increasing size alpha quad strips */
+	alphastep = 3.0f * btheme->tui.menu_shadow_fac / radout;
 	
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-	for (step = 1; step <= radout; step++, alpha *= alphastep) {
+	for (step = 1; step <= (int)radout; step++) {
+		float expfac = sqrt(step / radout);
+		
 		round_box_shadow_edges(wtb.outer_v, &rect1, radin, UI_CNR_ALL, (float)step);
 		
-		glColor4f(0.0f, 0.0f, 0.0f, alpha);
+		glColor4f(0.0f, 0.0f, 0.0f, alphastep * (1.0f - expfac));
 
-		widget_verts_to_quad_strip_open(&wtb, totvert, quad_strip);
+		widget_verts_to_quad_strip(&wtb, totvert, quad_strip);
 
 		glVertexPointer(2, GL_FLOAT, 0, quad_strip);
-		glDrawArrays(GL_QUAD_STRIP, 0, totvert * 2);
+		glDrawArrays(GL_QUAD_STRIP, 0, totvert * 2 + 2);
 	}
 
 	glDisableClientState(GL_VERTEX_ARRAY);
@@ -1855,7 +1865,7 @@ static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int dir
 	}
 	
 	glEnable(GL_BLEND);
-	widget_softshadow(rect, roundboxalign, 0.25f * U.widget_unit, 0.4f * U.widget_unit);
+	widget_softshadow(rect, roundboxalign, 0.25f * U.widget_unit);
 	
 	round_box_edges(&wtb, roundboxalign, rect, 0.25f * U.widget_unit);
 	wtb.emboss = 0;
@@ -3403,7 +3413,7 @@ void ui_draw_search_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 	uiWidgetType *wt = widget_type(UI_WTYPE_BOX);
 	
 	glEnable(GL_BLEND);
-	widget_softshadow(rect, UI_CNR_ALL, 0.25f * U.widget_unit, 0.4f * U.widget_unit);
+	widget_softshadow(rect, UI_CNR_ALL, 0.25f * U.widget_unit);
 	glDisable(GL_BLEND);
 
 	wt->state(wt, 0);

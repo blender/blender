@@ -30,17 +30,12 @@
 
 
 #include <string.h>
-#include <stdio.h>
 
 #include "DNA_text_types.h"
-#include "DNA_object_types.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
-#include "BLI_rand.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -61,7 +56,8 @@
 #include "RNA_access.h"
 
 
-#include "text_intern.h"    // own include
+#include "text_format.h"
+#include "text_intern.h"  /* own include */
 
 /* ******************** default callbacks for text space ***************** */
 
@@ -556,5 +552,8 @@ void ED_spacetype_text(void)
 	BLI_addhead(&st->regiontypes, art);
 
 	BKE_spacetype_register(st);
+
+	/* register formatters */
+	ED_text_format_register_py();
 }
 

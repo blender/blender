@@ -133,8 +133,6 @@ static int panels_re_align(ScrArea *sa, ARegion *ar, Panel **r_pa)
 			if (sbuts->re_align || sbuts->mainbo != sbuts->mainb)
 				return 1;
 	}
-	else if (ar->regiontype == RGN_TYPE_UI)
-		return 1;
 	else if (sa->spacetype == SPACE_IMAGE && ar->regiontype == RGN_TYPE_PREVIEW)
 		return 1;
 	else if (sa->spacetype == SPACE_FILE && ar->regiontype == RGN_TYPE_CHANNELS)
@@ -917,6 +915,7 @@ void uiEndPanels(const bContext *C, ARegion *ar, int *x, int *y)
 
 	/* re-align, possibly with animation */
 	if (panels_re_align(sa, ar, &pa)) {
+		/* XXX code never gets here... PNL_ANIM_ALIGN flag is never set */
 		if (pa)
 			panel_activate_state(C, pa, PANEL_STATE_ANIMATION);
 		else
@@ -1066,7 +1065,7 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 			ED_region_tag_redraw(ar);
 		}
 		else {  /* collapse */
-			if(ctrl)
+			if (ctrl)
 				panels_collapse_all(sa, ar, block->panel);
 
 			if (block->panel->flag & PNL_CLOSED) {
@@ -1150,7 +1149,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 		}
 		
 		/* XXX hardcoded key warning */
-		if (inside && event->val == KM_PRESS) {
+		if ((inside || inside_header) && event->val == KM_PRESS) {
 			if (event->type == AKEY && !ELEM4(KM_MOD_FIRST, event->ctrl, event->oskey, event->shift, event->alt)) {
 				
 				if (pa->flag & PNL_CLOSEDY) {
@@ -1160,6 +1159,7 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 				else
 					ui_handle_panel_header(C, block, mx, my, event->type, event->ctrl);
 				
+				retval = WM_UI_HANDLER_BREAK;
 				continue;
 			}
 		}

@@ -55,6 +55,7 @@ set(SRC_CLOSURE_HEADERS
 	closure/bsdf_phong_ramp.h
 	closure/bsdf_reflection.h
 	closure/bsdf_refraction.h
+	closure/bsdf_toon.h
 	closure/bsdf_transparent.h
 	closure/bsdf_util.h
 	closure/bsdf_ward.h

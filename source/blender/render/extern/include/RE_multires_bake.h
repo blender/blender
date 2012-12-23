@@ -50,7 +50,8 @@ typedef struct MultiresBakeRender {
 
 	int raytrace_structure;
 	int octree_resolution;
-
+	int threads;
+	
 	short *stop;
 	short *do_update;
 	float *progress;

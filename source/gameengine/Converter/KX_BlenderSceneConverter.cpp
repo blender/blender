@@ -60,6 +60,7 @@
 #endif
 
 #include "KX_BlenderSceneConverter.h"
+#include "KX_LibLoadStatus.h"
 #include "KX_BlenderScalarInterpolator.h"
 #include "BL_BlenderDataConversion.h"
 #include "BlenderWorldInfo.h"
@@ -113,6 +114,14 @@ extern "C" {
 	#include "../../blender/blenlib/BLI_linklist.h"
 }
 
+#include <pthread.h>
+
+/* This is used to avoid including pthread.h in KX_BlenderSceneConverter.h */
+typedef struct ThreadInfo {
+	vector<pthread_t>	threads;
+	pthread_mutex_t		merge_lock;
+} ThreadInfo;
+
 KX_BlenderSceneConverter::KX_BlenderSceneConverter(
 							struct Main* maggie,
 							class KX_KetsjiEngine* engine
@@ -126,6 +135,8 @@ KX_BlenderSceneConverter::KX_BlenderSceneConverter(
 {
 	tag_main(maggie, 0); /* avoid re-tagging later on */
 	m_newfilename = "";
+	m_threadinfo = new ThreadInfo();
+	pthread_mutex_init(&m_threadinfo->merge_lock, NULL);
 }
 
 
@@ -135,6 +146,16 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 	int i;
 	// delete sumoshapes
 	
+	if (m_threadinfo) {
+		vector<pthread_t>::iterator pit = m_threadinfo->threads.begin();
+		while (pit != m_threadinfo->threads.end()) {
+			pthread_join((*pit), NULL);
+			pit++;
+		}
+
+		pthread_mutex_destroy(&m_threadinfo->merge_lock);
+		delete m_threadinfo;
+	}
 
 	int numAdtLists = m_map_blender_to_gameAdtList.size();
 	for (i=0; i<numAdtLists; i++) {
@@ -299,7 +320,10 @@ void KX_BlenderSceneConverter::ConvertScene(class KX_Scene* destinationscene,
 	// hook for registration function during conversion.
 	m_currentScene = destinationscene;
 	destinationscene->SetSceneConverter(this);
-	SG_SetActiveStage(SG_STAGE_CONVERTER);
+
+	// This doesn't really seem to do anything except cause potential issues
+	// when doing threaded conversion, so it's disabled for now.
+	// SG_SetActiveStage(SG_STAGE_CONVERTER);
 
 	if (blenderscene)
 	{
@@ -945,7 +969,67 @@ Main* KX_BlenderSceneConverter::GetMainDynamicPath(const char *path)
 	return NULL;
 }
 
-bool KX_BlenderSceneConverter::LinkBlendFileMemory(void *data, int length, const char *path, char *group, KX_Scene *scene_merge, char **err_str, short options)
+void KX_BlenderSceneConverter::MergeAsyncLoads()
+{
+	vector<KX_Scene*> *merge_scenes;
+
+	vector<KX_LibLoadStatus*>::iterator mit;
+	vector<KX_Scene*>::iterator sit;
+
+	pthread_mutex_lock(&m_threadinfo->merge_lock);
+
+	for (mit=m_mergequeue.begin(); mit!=m_mergequeue.end(); ++mit) {
+		merge_scenes = (vector<KX_Scene*>*)(*mit)->GetData();
+
+		for (sit=merge_scenes->begin(); sit!=merge_scenes->end(); ++sit) {
+			(*mit)->GetMergeScene()->MergeScene(*sit);
+			delete (*sit);
+		}
+
+
+		delete merge_scenes;
+		(*mit)->SetData(NULL);
+
+		(*mit)->Finish();
+	}
+
+	m_mergequeue.clear();
+
+	pthread_mutex_unlock(&m_threadinfo->merge_lock);
+}
+
+void KX_BlenderSceneConverter::AddScenesToMergeQueue(KX_LibLoadStatus *status)
+{
+	pthread_mutex_lock(&m_threadinfo->merge_lock);
+	m_mergequeue.push_back(status);
+	pthread_mutex_unlock(&m_threadinfo->merge_lock);
+}
+
+static void *async_convert(void *ptr)
+{
+	KX_Scene *new_scene = NULL;
+	KX_LibLoadStatus *status = (KX_LibLoadStatus*)ptr;
+	vector<Scene*> *scenes = (vector<Scene*>*)status->GetData();
+	vector<KX_Scene*> *merge_scenes = new vector<KX_Scene*>(); // Deleted in MergeAsyncLoads
+
+	for (unsigned int i=0; i<scenes->size(); ++i) {
+		new_scene = status->GetEngine()->CreateScene((*scenes)[i], true);
+
+		if (new_scene)
+			merge_scenes->push_back(new_scene);
+
+		status->AddProgress((1.f/scenes->size())*0.9f); // We'll call conversion 90% and merging 10% for now
+	}
+
+	delete scenes;
+	status->SetData(merge_scenes);
+
+	status->GetConverter()->AddScenesToMergeQueue(status);
+
+	return NULL;
+}
+
+KX_LibLoadStatus *KX_BlenderSceneConverter::LinkBlendFileMemory(void *data, int length, const char *path, char *group, KX_Scene *scene_merge, char **err_str, short options)
 {
 	BlendHandle *bpy_openlib = BLO_blendhandle_from_memory(data, length);
 
@@ -953,7 +1037,7 @@ bool KX_BlenderSceneConverter::LinkBlendFileMemory(void *data, int length, const
 	return LinkBlendFile(bpy_openlib, path, group, scene_merge, err_str, options);
 }
 
-bool KX_BlenderSceneConverter::LinkBlendFilePath(const char *path, char *group, KX_Scene *scene_merge, char **err_str, short options)
+KX_LibLoadStatus *KX_BlenderSceneConverter::LinkBlendFilePath(const char *path, char *group, KX_Scene *scene_merge, char **err_str, short options)
 {
 	BlendHandle *bpy_openlib = BLO_blendhandle_from_file((char *)path, NULL);
 
@@ -985,7 +1069,7 @@ static void load_datablocks(Main *main_newlib, BlendHandle *bpy_openlib, const c
 	BLO_library_append_end(NULL, main_tmp, &bpy_openlib, idcode, flag);
 }
 
-bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const char *path, char *group, KX_Scene *scene_merge, char **err_str, short options)
+KX_LibLoadStatus *KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const char *path, char *group, KX_Scene *scene_merge, char **err_str, short options)
 {
 	Main *main_newlib; /* stored as a dynamic 'main' until we free it */
 	const int idcode = BKE_idcode_from_name(group);
@@ -994,25 +1078,27 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 
 //	TIMEIT_START(bge_link_blend_file);
 
+	KX_LibLoadStatus *status;
+	
 	/* only scene and mesh supported right now */
 	if (idcode!=ID_SCE && idcode!=ID_ME &&idcode!=ID_AC) {
 		snprintf(err_local, sizeof(err_local), "invalid ID type given \"%s\"\n", group);
 		*err_str= err_local;
 		BLO_blendhandle_close(bpy_openlib);
-		return false;
+		return NULL;
 	}
 	
 	if (GetMainDynamicPath(path)) {
 		snprintf(err_local, sizeof(err_local), "blend file already open \"%s\"\n", path);
 		*err_str= err_local;
 		BLO_blendhandle_close(bpy_openlib);
-		return false;
+		return NULL;
 	}
 
 	if (bpy_openlib==NULL) {
 		snprintf(err_local, sizeof(err_local), "could not open blendfile \"%s\"\n", path);
 		*err_str= err_local;
-		return false;
+		return NULL;
 	}
 	
 	main_newlib= (Main *)MEM_callocN( sizeof(Main), "BgeMain");
@@ -1039,6 +1125,8 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 	strncpy(main_newlib->name, path, sizeof(main_newlib->name));
 	
 	
+	status = new KX_LibLoadStatus(this, m_ketsjiEngine, scene_merge, path);
+
 	if (idcode==ID_ME) {
 		/* Convert all new meshes into BGE meshes */
 		ID* mesh;
@@ -1063,16 +1151,30 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 	else if (idcode==ID_SCE) {
 		/* Merge all new linked in scene into the existing one */
 		ID *scene;
+		// scenes gets deleted by the thread when it's done using it (look in async_convert())
+		vector<Scene*> *scenes =  (options & LIB_LOAD_ASYNC) ? new vector<Scene*>() : NULL;
+
 		for (scene= (ID *)main_newlib->scene.first; scene; scene= (ID *)scene->next ) {
 			if (options & LIB_LOAD_VERBOSE)
 				printf("SceneName: %s\n", scene->name+2);
 			
-			/* merge into the base  scene */
-			KX_Scene* other= m_ketsjiEngine->CreateScene((Scene *)scene, true);
-			scene_merge->MergeScene(other);
+			if (options & LIB_LOAD_ASYNC) {
+				scenes->push_back((Scene*)scene);
+			} else {
+				/* merge into the base  scene */
+				KX_Scene* other= m_ketsjiEngine->CreateScene((Scene *)scene, true);
+				scene_merge->MergeScene(other);
 			
-			// RemoveScene(other); // Don't run this, it frees the entire scene converter data, just delete the scene
-			delete other;
+				// RemoveScene(other); // Don't run this, it frees the entire scene converter data, just delete the scene
+				delete other;
+			}
+		}
+
+		if (options & LIB_LOAD_ASYNC) {
+			pthread_t id;
+			status->SetData(scenes);
+			pthread_create(&id, NULL, &async_convert, (void*)status);
+			m_threadinfo->threads.push_back(id);
 		}
 
 #ifdef WITH_PYTHON
@@ -1093,9 +1195,14 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 		}
 	}
 
+	if (!(options & LIB_LOAD_ASYNC))
+		status->Finish();
+	
+
 //	TIMEIT_END(bge_link_blend_file);
 
-	return true;
+	m_status_map[main_newlib->name] = status;
+	return status;
 }
 
 /* Note m_map_*** are all ok and don't need to be freed
@@ -1381,6 +1488,9 @@ bool KX_BlenderSceneConverter::FreeBlendFile(struct Main *maggie)
 	 * (this operation is safe if it isn't in the list) */
 	removeImportMain(maggie);
 #endif
+
+	delete m_status_map[maggie->name];
+	m_status_map.erase(maggie->name);
 
 	free_main(maggie);
 

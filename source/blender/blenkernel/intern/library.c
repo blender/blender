@@ -158,8 +158,10 @@ void id_lib_extern(ID *id)
 /* ensure we have a real user */
 void id_us_ensure_real(ID *id)
 {
-	if (ID_REAL_USERS(id) <= 0) {
-		id->us = MAX2(id->us, 0) + 1;
+	if (id) {
+		if (ID_REAL_USERS(id) <= 0) {
+			id->us = MAX2(id->us, 0) + 1;
+		}
 	}
 }
 

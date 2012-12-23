@@ -23,7 +23,9 @@
 #include "util_args.h"
 #include "util_foreach.h"
 #include "util_path.h"
+#include "util_stats.h"
 #include "util_string.h"
+#include "util_task.h"
 
 using namespace ccl;
 
@@ -32,29 +34,29 @@ int main(int argc, const char **argv)
 	path_init();
 
 	/* device types */
-	string devices = "";
+	string devicelist = "";
 	string devicename = "cpu";
 	bool list = false;
 
 	vector<DeviceType>& types = Device::available_types();
 
 	foreach(DeviceType type, types) {
-		if(devices != "")
-			devices += ", ";
+		if(devicelist != "")
+			devicelist += ", ";
 
-		devices += Device::string_from_type(type);
+		devicelist += Device::string_from_type(type);
 	}
 
 	/* parse options */
 	ArgParse ap;
 
 	ap.options ("Usage: cycles_server [options]",
-		"--device %s", &devicename, ("Devices to use: " + devices).c_str(),
+		"--device %s", &devicename, ("Devices to use: " + devicelist).c_str(),
 		"--list-devices", &list, "List information about all available devices",
 		NULL);
 
 	if(ap.parse(argc, argv) < 0) {
-		fprintf(stderr, "%s\n", ap.error_message().c_str());
+		fprintf(stderr, "%s\n", ap.geterror().c_str());
 		ap.usage();
 		exit(EXIT_FAILURE);
 	}
@@ -84,12 +86,17 @@ int main(int argc, const char **argv)
 		}
 	}
 
+	TaskScheduler::init();
+
 	while(1) {
-		Device *device = Device::create(device_info);
-		printf("Cycles Server with device: %s\n", device->description().c_str());
+		Stats stats;
+		Device *device = Device::create(device_info, stats);
+		printf("Cycles Server with device: %s\n", device->info.description.c_str());
 		device->server_run();
 		delete device;
 	}
+
+	TaskScheduler::exit();
 
 	return 0;
 }

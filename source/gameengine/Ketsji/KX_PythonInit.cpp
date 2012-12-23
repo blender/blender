@@ -92,6 +92,8 @@ extern "C" {
 #include "SCA_PropertySensor.h"
 #include "SCA_RandomActuator.h"
 #include "SCA_KeyboardSensor.h" /* IsPrintable, ToCharacter */
+#include "SCA_JoystickManager.h" /* JOYINDEX_MAX */
+#include "SCA_PythonJoystick.h"
 #include "SCA_PythonKeyboard.h"
 #include "SCA_PythonMouse.h"
 #include "KX_ConstraintActuator.h"
@@ -134,6 +136,7 @@ extern "C" {
 
 /* for converting new scenes */
 #include "KX_BlenderSceneConverter.h"
+#include "KX_LibLoadStatus.h"
 #include "KX_MeshProxy.h" /* for creating a new library of mesh objects */
 extern "C" {
 	#include "BKE_idcode.h"
@@ -151,6 +154,7 @@ static char gp_GamePythonPathOrig[FILE_MAX] = ""; // not super happy about this,
 
 static SCA_PythonKeyboard* gp_PythonKeyboard = NULL;
 static SCA_PythonMouse* gp_PythonMouse = NULL;
+static SCA_PythonJoystick* gp_PythonJoysticks[JOYINDEX_MAX] = {NULL};
 #endif // WITH_PYTHON
 
 static KX_Scene*	gp_KetsjiScene = NULL;
@@ -667,14 +671,15 @@ static PyObject *gLibLoad(PyObject *, PyObject *args, PyObject *kwds)
 	Py_buffer py_buffer;
 	py_buffer.buf = NULL;
 	char *err_str= NULL;
+	KX_LibLoadStatus *status = NULL;
 
 	short options=0;
-	int load_actions=0, verbose=0, load_scripts=1;
+	int load_actions=0, verbose=0, load_scripts=1, async=0;
 
-	static const char *kwlist[] = {"path", "group", "buffer", "load_actions", "verbose", "load_scripts", NULL};
+	static const char *kwlist[] = {"path", "group", "buffer", "load_actions", "verbose", "load_scripts", "async", NULL};
 	
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "ss|y*iii:LibLoad", const_cast<char**>(kwlist),
-									&path, &group, &py_buffer, &load_actions, &verbose, &load_scripts))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "ss|y*iiIi:LibLoad", const_cast<char**>(kwlist),
+									&path, &group, &py_buffer, &load_actions, &verbose, &load_scripts, &async))
 		return NULL;
 
 	/* setup options */
@@ -684,6 +689,8 @@ static PyObject *gLibLoad(PyObject *, PyObject *args, PyObject *kwds)
 		options |= KX_BlenderSceneConverter::LIB_LOAD_VERBOSE;
 	if (load_scripts != 0)
 		options |= KX_BlenderSceneConverter::LIB_LOAD_LOAD_SCRIPTS;
+	if (async != 0)
+		options |= KX_BlenderSceneConverter::LIB_LOAD_ASYNC;
 
 	if (!py_buffer.buf)
 	{
@@ -692,16 +699,16 @@ static PyObject *gLibLoad(PyObject *, PyObject *args, PyObject *kwds)
 		BLI_strncpy(abs_path, path, sizeof(abs_path));
 		BLI_path_abs(abs_path, gp_GamePythonPath);
 
-		if (kx_scene->GetSceneConverter()->LinkBlendFilePath(abs_path, group, kx_scene, &err_str, options)) {
-			Py_RETURN_TRUE;
+		if ((status=kx_scene->GetSceneConverter()->LinkBlendFilePath(abs_path, group, kx_scene, &err_str, options))) {
+			return status->GetProxy();
 		}
 	}
 	else
 	{
 
-		if (kx_scene->GetSceneConverter()->LinkBlendFileMemory(py_buffer.buf, py_buffer.len, path, group, kx_scene, &err_str, options))	{
+		if ((status=kx_scene->GetSceneConverter()->LinkBlendFileMemory(py_buffer.buf, py_buffer.len, path, group, kx_scene, &err_str, options)))	{
 			PyBuffer_Release(&py_buffer);
-			Py_RETURN_TRUE;
+			return status->GetProxy();
 		}
 
 		PyBuffer_Release(&py_buffer);
@@ -1420,6 +1427,22 @@ PyObject *initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	gp_PythonMouse = new SCA_PythonMouse(gp_KetsjiEngine->GetMouseDevice(), gp_Canvas);
 	PyDict_SetItemString(d, "mouse", gp_PythonMouse->NewProxy(true));
 
+	PyObject* joylist = PyList_New(JOYINDEX_MAX);
+	SCA_JoystickManager* joyevent = (SCA_JoystickManager*)gp_KetsjiScene->GetLogicManager()->FindEventManager(SCA_EventManager::JOY_EVENTMGR);
+	for (int i=0; i<JOYINDEX_MAX; ++i) {
+		SCA_Joystick* joy = joyevent->GetJoystickDevice(i);
+		if (joy && joy->Connected()) {
+			gp_PythonJoysticks[i] = new SCA_PythonJoystick(joy);
+			PyObject* tmp = gp_PythonJoysticks[i]->NewProxy(true);
+			Py_INCREF(tmp);
+			PyList_SET_ITEM(joylist, i, tmp);
+		} else 	{
+			Py_INCREF(Py_None);
+			PyList_SET_ITEM(joylist, i, Py_None);
+		}
+	}
+	PyDict_SetItemString(d, "joysticks", joylist);
+
 	ErrorObject = PyUnicode_FromString("GameLogic.error");
 	PyDict_SetItemString(d, "error", ErrorObject);
 	Py_DECREF(ErrorObject);
@@ -1937,6 +1960,13 @@ void exitGamePlayerPythonScripting()
 	delete gp_PythonMouse;
 	gp_PythonMouse = NULL;
 
+	for (int i=0; i<JOYINDEX_MAX; ++i) {
+		if (gp_PythonJoysticks[i]) {
+			delete gp_PythonJoysticks[i];
+			gp_PythonJoysticks[i] = NULL;
+		}
+	}
+
 	/* since python restarts we cant let the python backup of the sys.path hang around in a global pointer */
 	restorePySysObjects(); /* get back the original sys.path and clear the backup */
 	
@@ -1984,6 +2014,13 @@ void exitGamePythonScripting()
 
 	delete gp_PythonMouse;
 	gp_PythonMouse = NULL;
+
+	for (int i=0; i<JOYINDEX_MAX; ++i) {
+		if (gp_PythonJoysticks[i]) {
+			delete gp_PythonJoysticks[i];
+			gp_PythonJoysticks[i] = NULL;
+		}
+	}
 
 	restorePySysObjects(); /* get back the original sys.path and clear the backup */
 	bpy_import_main_set(NULL);

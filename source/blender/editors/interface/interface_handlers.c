@@ -1208,30 +1208,37 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 
 	/* RGB triple */
 	else if (but->type == COLOR) {
-		float rgb[3];
+		float rgba[4];
 		
 		if (but->poin == NULL && but->rnapoin.data == NULL) {
 			/* pass */
 		}
 		else if (mode == 'c') {
-
-			ui_get_but_vectorf(but, rgb);
+			if (RNA_property_array_length(&but->rnapoin, but->rnaprop) == 4)
+				rgba[3] = RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);
+			else
+				rgba[3] = 1.0f;
+			
+			ui_get_but_vectorf(but, rgba);
 			/* convert to linear color to do compatible copy between gamma and non-gamma */
 			if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-				srgb_to_linearrgb_v3_v3(rgb, rgb);
+				srgb_to_linearrgb_v3_v3(rgba, rgba);
 
-			BLI_snprintf(buf, sizeof(buf), "[%f, %f, %f]", rgb[0], rgb[1], rgb[2]);
+			BLI_snprintf(buf, sizeof(buf), "[%f, %f, %f, %f]", rgba[0], rgba[1], rgba[2], rgba[3]);
 			WM_clipboard_text_set(buf, 0);
 			
 		}
 		else {
-			if (sscanf(buf, "[%f, %f, %f]", &rgb[0], &rgb[1], &rgb[2]) == 3) {
+			if (sscanf(buf, "[%f, %f, %f, %f]", &rgba[0], &rgba[1], &rgba[2], &rgba[3]) == 4) {
 				/* assume linear colors in buffer */
 				if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-					linearrgb_to_srgb_v3_v3(rgb, rgb);
+					linearrgb_to_srgb_v3_v3(rgba, rgba);
 
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-				ui_set_but_vectorf(but, rgb);
+				ui_set_but_vectorf(but, rgba);
+				if (RNA_property_array_length(&but->rnapoin, but->rnaprop) == 4)
+					RNA_property_float_set_index(&but->rnapoin, but->rnaprop, 3, rgba[3]);
+
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			}
 		}

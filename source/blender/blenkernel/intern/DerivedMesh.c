@@ -857,30 +857,27 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob,
 	return dm;
 }
 
-static float *get_editbmesh_orco_verts(BMEditMesh *em)
+static float (*get_editbmesh_orco_verts(BMEditMesh *em))[3]
 {
 	BMIter iter;
 	BMVert *eve;
-	float *orco;
-	int a, totvert;
+	float (*orco)[3];
+	int i;
 
 	/* these may not really be the orco's, but it's only for preview.
 	 * could be solver better once, but isn't simple */
-
-	totvert = em->bm->totvert;
 	
-	orco = MEM_mallocN(sizeof(float) * 3 * totvert, "BMEditMesh Orco");
+	orco = MEM_mallocN(sizeof(float) * 3 * em->bm->totvert, "BMEditMesh Orco");
 
-	eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-	for (a = 0; eve; eve = BM_iter_step(&iter), a += 3) {
-		copy_v3_v3(orco + a, eve->co);
+	BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+		copy_v3_v3(orco[i], eve->co);
 	}
 	
 	return orco;
 }
 
 /* orco custom data layer */
-static void *get_orco_coords_dm(Object *ob, BMEditMesh *em, int layer, int *free)
+static float (*get_orco_coords_dm(Object *ob, BMEditMesh *em, int layer, int *free))[3]
 {
 	*free = 0;
 
@@ -889,9 +886,9 @@ static void *get_orco_coords_dm(Object *ob, BMEditMesh *em, int layer, int *free
 		*free = 1;
 
 		if (em)
-			return (float(*)[3])get_editbmesh_orco_verts(em);
+			return get_editbmesh_orco_verts(em);
 		else
-			return (float(*)[3])BKE_mesh_orco_verts_get(ob);
+			return BKE_mesh_orco_verts_get(ob);
 	}
 	else if (layer == CD_CLOTH_ORCO) {
 		/* apply shape key for cloth, this should really be solved
@@ -1815,17 +1812,18 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	BLI_linklist_free((LinkNode *)datamasks, NULL);
 }
 
-float (*editbmesh_get_vertex_cos(BMEditMesh * em, int *numVerts_r))[3]
+float (*editbmesh_get_vertex_cos(BMEditMesh *em, int *numVerts_r))[3]
 {
-	int i, numVerts = *numVerts_r = em->bm->totvert;
-	float (*cos)[3];
 	BMIter iter;
 	BMVert *eve;
+	float (*cos)[3];
+	int i;
 
-	cos = MEM_mallocN(sizeof(float) * 3 * numVerts, "vertexcos");
+	*numVerts_r = em->bm->totvert;
 
-	eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-	for (i = 0; eve; eve = BM_iter_step(&iter), i++) {
+	cos = MEM_mallocN(sizeof(float) * 3 * em->bm->totvert, "vertexcos");
+
+	BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
 		copy_v3_v3(cos[i], eve->co);
 	}
 

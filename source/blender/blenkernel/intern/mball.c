@@ -1514,7 +1514,7 @@ static void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 		float in_v /*, out_v*/;
 		float workp[3];
 		float dvec[3];
-		float tmp_v, workp_v, max_len, len, nx, ny, nz, MAXN;
+		float tmp_v, workp_v, max_len, nx, ny, nz, max_dim;
 
 		calc_mballco(ml, in);
 		in_v = mbproc->function(in[0], in[1], in[2]);
@@ -1573,17 +1573,17 @@ static void find_first_points(PROCESS *mbproc, MetaBall *mb, int a)
 					ny = abs((out[1] - in[1]) / mbproc->size);
 					nz = abs((out[2] - in[2]) / mbproc->size);
 					
-					MAXN = MAX3(nx, ny, nz);
-					if (MAXN != 0.0f) {
-						dvec[0] = (out[0] - in[0]) / MAXN;
-						dvec[1] = (out[1] - in[1]) / MAXN;
-						dvec[2] = (out[2] - in[2]) / MAXN;
+					max_dim = max_fff(nx, ny, nz);
+					if (max_dim != 0.0f) {
+						float len = 0.0f;
 
-						len = 0.0;
+						dvec[0] = (out[0] - in[0]) / max_dim;
+						dvec[1] = (out[1] - in[1]) / max_dim;
+						dvec[2] = (out[2] - in[2]) / max_dim;
+
 						while (len <= max_len) {
-							workp[0] += dvec[0];
-							workp[1] += dvec[1];
-							workp[2] += dvec[2];
+							add_v3_v3(workp, dvec);
+
 							/* compute value of implicite function */
 							tmp_v = mbproc->function(workp[0], workp[1], workp[2]);
 							/* add cube to the stack, when value of implicite function crosses zero value */

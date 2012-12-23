@@ -175,6 +175,42 @@ MINLINE int max_ii(int a, int b)
 	return (b < a) ? a : b;
 }
 
+MINLINE float min_fff(float a, float b, float c)
+{
+	return min_ff(min_ff(a, b), c);
+}
+MINLINE float max_fff(float a, float b, float c)
+{
+	return max_ff(max_ff(a, b), c);
+}
+
+MINLINE int min_iii(int a, int b, int c)
+{
+	return min_ii(min_ii(a, b), c);
+}
+MINLINE int max_iii(int a, int b, int c)
+{
+	return max_ii(max_ii(a, b), c);
+}
+
+MINLINE float min_ffff(float a, float b, float c, float d)
+{
+	return min_ff(min_fff(a, b, c), d);
+}
+MINLINE float max_ffff(float a, float b, float c, float d)
+{
+	return max_ff(max_fff(a, b, c), d);
+}
+
+MINLINE int min_iiii(int a, int b, int c, int d)
+{
+	return min_ii(min_iii(a, b, c), d);
+}
+MINLINE int max_iiii(int a, int b, int c, int d)
+{
+	return max_ii(max_iii(a, b, c), d);
+}
+
 MINLINE float signf(float f)
 {
 	return (f < 0.f) ? -1.f : 1.f;

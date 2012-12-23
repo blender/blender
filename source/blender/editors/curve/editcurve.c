@@ -1022,13 +1022,12 @@ static int curve_is_animated(Curve *cu)
 	return ad && (ad->action || ad->drivers.first);
 }
 
-static void fcurve_path_rename(AnimData *ad, char *orig_rna_path, char *rna_path, ListBase *orig_curves, ListBase *curves)
+static void fcurve_path_rename(AnimData *adt, char *orig_rna_path, char *rna_path, ListBase *orig_curves, ListBase *curves)
 {
 	FCurve *fcu, *nfcu, *nextfcu;
 	int len = strlen(orig_rna_path);
 
-	fcu = orig_curves->first;
-	while (fcu) {
+	for (fcu = orig_curves->first; fcu; fcu = nextfcu) {
 		nextfcu = fcu->next;
 		if (!strncmp(fcu->rna_path, orig_rna_path, len)) {
 			char *spath, *suffix = fcu->rna_path + len;
@@ -1038,26 +1037,25 @@ static void fcurve_path_rename(AnimData *ad, char *orig_rna_path, char *rna_path
 			BLI_addtail(curves, nfcu);
 
 			if (fcu->grp) {
-				action_groups_remove_channel(ad->action, fcu);
-				action_groups_add_channel(ad->action, fcu->grp, nfcu);
+				action_groups_remove_channel(adt->action, fcu);
+				action_groups_add_channel(adt->action, fcu->grp, nfcu);
 			}
-			else if (ad->action && &ad->action->curves == orig_curves)
-				BLI_remlink(&ad->action->curves, fcu);
+			else if ((adt->action) && (&adt->action->curves == orig_curves))
+				BLI_remlink(&adt->action->curves, fcu);
 			else
-				BLI_remlink(&ad->drivers, fcu);
+				BLI_remlink(&adt->drivers, fcu);
 
 			free_fcurve(fcu);
 
 			MEM_freeN(spath);
 		}
-		fcu = nextfcu;
 	}
 }
 
-static void fcurve_remove(AnimData *ad, ListBase *orig_curves, FCurve *fcu)
+static void fcurve_remove(AnimData *adt, ListBase *orig_curves, FCurve *fcu)
 {
-	if (orig_curves == &ad->drivers) BLI_remlink(&ad->drivers, fcu);
-	else action_groups_remove_channel(ad->action, fcu);
+	if (orig_curves == &adt->drivers) BLI_remlink(&adt->drivers, fcu);
+	else action_groups_remove_channel(adt->action, fcu);
 
 	free_fcurve(fcu);
 }
@@ -1073,7 +1071,7 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
 	ListBase curves = {NULL, NULL};
 	FCurve *fcu, *next;
 
-	while (nu) {
+	for (nu = editnurb->nurbs.first, nu_index = 0;  nu != NULL;  nu = nu->next, nu_index++) {
 		if (nu->bezt) {
 			BezTriple *bezt = nu->bezt;
 			a = nu->pntsu;
@@ -1126,8 +1124,6 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
 				pt_index++;
 			}
 		}
-		nu = nu->next;
-		nu_index++;
 	}
 
 	/* remove paths for removed control points
@@ -1144,9 +1140,7 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
 		}
 	}
 
-	nu_index = 0;
-	nu = editnurb->nurbs.first;
-	while (nu) {
+	for (nu = editnurb->nurbs.first, nu_index = 0;  nu != NULL;  nu = nu->next, nu_index++) {
 		keyIndex = NULL;
 		if (nu->pntsu) {
 			if (nu->bezt) keyIndex = getCVKeyIndex(editnurb, &nu->bezt[0]);
@@ -1158,9 +1152,6 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
 			BLI_snprintf(orig_rna_path, sizeof(orig_rna_path), "splines[%d]", keyIndex->nu_index);
 			fcurve_path_rename(adt, orig_rna_path, rna_path, orig_curves, &curves);
 		}
-
-		nu_index++;
-		nu = nu->next;
 	}
 
 	/* the remainders in orig_curves can be copied back (like follow path) */

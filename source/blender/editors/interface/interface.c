@@ -1291,7 +1291,7 @@ void ui_delete_linkline(uiLinkLine *line, uiBut *but)
 void ui_get_but_vectorf(uiBut *but, float vec[3])
 {
 	PropertyRNA *prop;
-	int a, tot;
+	int a;
 
 	if (but->editvec) {
 		copy_v3_v3(vec, but->editvec);
@@ -1300,18 +1300,25 @@ void ui_get_but_vectorf(uiBut *but, float vec[3])
 	if (but->rnaprop) {
 		prop = but->rnaprop;
 
-		vec[0] = vec[1] = vec[2] = 0.0f;
+		zero_v3(vec);
 
 		if (RNA_property_type(prop) == PROP_FLOAT) {
-			tot = RNA_property_array_length(&but->rnapoin, prop);
-			tot = min_ii(tot, 3);
-
-			for (a = 0; a < tot; a++)
-				vec[a] = RNA_property_float_get_index(&but->rnapoin, prop, a);
+			int tot = RNA_property_array_length(&but->rnapoin, prop);
+			BLI_assert(tot > 0);
+			if (tot == 3) {
+				RNA_property_float_get_array(&but->rnapoin, prop, vec);
+			}
+			else {
+				tot = min_ii(tot, 3);
+				for (a = 0; a < tot; a++) {
+					vec[a] = RNA_property_float_get_index(&but->rnapoin, prop, a);
+				}
+			}
 		}
 	}
 	else if (but->pointype == UI_BUT_POIN_CHAR) {
 		char *cp = (char *)but->poin;
+
 		vec[0] = ((float)cp[0]) / 255.0f;
 		vec[1] = ((float)cp[1]) / 255.0f;
 		vec[2] = ((float)cp[2]) / 255.0f;
@@ -1322,8 +1329,8 @@ void ui_get_but_vectorf(uiBut *but, float vec[3])
 	}
 	else {
 		if (but->editvec == NULL) {
-			fprintf(stderr, "ui_get_but_vectorf: can't get color, should never happen\n");
-			vec[0] = vec[1] = vec[2] = 0.0f;
+			fprintf(stderr, "%s: can't get color, should never happen\n", __func__);
+			zero_v3(vec);
 		}
 	}
 
@@ -1349,10 +1356,15 @@ void ui_set_but_vectorf(uiBut *but, const float vec[3])
 			int a;
 
 			tot = RNA_property_array_length(&but->rnapoin, prop);
-			tot = min_ii(tot, 3);
-
-			for (a = 0; a < tot; a++) {
-				RNA_property_float_set_index(&but->rnapoin, prop, a, vec[a]);
+			BLI_assert(tot > 0);
+			if (tot == 3) {
+				RNA_property_float_set_array(&but->rnapoin, prop, vec);
+			}
+			else {
+				tot = min_ii(tot, 3);
+				for (a = 0; a < tot; a++) {
+					RNA_property_float_set_index(&but->rnapoin, prop, a, vec[a]);
+				}
 			}
 		}
 	}

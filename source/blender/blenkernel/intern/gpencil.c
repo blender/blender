@@ -188,7 +188,7 @@ bGPDlayer *gpencil_layer_addnew(bGPdata *gpd, const char *name, int setactive)
 	
 	/* make this one the active one */
 	if (setactive)
-	    gpencil_layer_setactive(gpd, gpl);
+		gpencil_layer_setactive(gpd, gpl);
 	
 	/* return layer */
 	return gpl;

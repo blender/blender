@@ -354,7 +354,7 @@ static void ms_diffuse(Render *re, int do_test_break, float *x0, float *x, float
 static void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Material *ma)
 {
 	const float diff = ma->vol.ms_diff * 0.001f; 	/* compensate for scaling for a nicer UI range */
-	const int simframes = (int)(ma->vol.ms_spread * (float)MAX3(vp->res[0], vp->res[1], vp->res[2]));
+	const int simframes = (int)(ma->vol.ms_spread * (float)max_iii(vp->res[0], vp->res[1], vp->res[2]));
 	const int shade_type = ma->vol.shade_type;
 	float fac = ma->vol.ms_intensity;
 	
@@ -652,7 +652,7 @@ static int precache_resolution(Render *re, VolumePrecache *vp, ObjectInstanceRen
 	global_bounds_obi(re, obi, bbmin, bbmax);
 	sub_v3_v3v3(dim, bbmax, bbmin);
 	
-	div = MAX3(dim[0], dim[1], dim[2]);
+	div = max_fff(dim[0], dim[1], dim[2]);
 	dim[0] /= div;
 	dim[1] /= div;
 	dim[2] /= div;

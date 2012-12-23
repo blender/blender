@@ -811,7 +811,7 @@ void mtex_rgb_mul(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 inc
 	float facm;
 
 	fact *= facg;
-	facm = 1.0-facg;
+	facm = 1.0-fact;
 
 	incol = (facm + fact*texcol)*outcol;
 }
@@ -821,7 +821,7 @@ void mtex_rgb_screen(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 
 	float facm;
 
 	fact *= facg;
-	facm = 1.0-facg;
+	facm = 1.0-fact;
 
 	incol = vec3(1.0) - (vec3(facm) + fact*(vec3(1.0) - texcol))*(vec3(1.0) - outcol);
 }
@@ -831,7 +831,7 @@ void mtex_rgb_overlay(vec3 outcol, vec3 texcol, float fact, float facg, out vec3
 	float facm;
 
 	fact *= facg;
-	facm = 1.0-facg;
+	facm = 1.0-fact;
 
 	if(outcol.r < 0.5)
 		incol.r = outcol.r*(facm + 2.0*fact*texcol.r);
@@ -888,11 +888,11 @@ void mtex_rgb_dark(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 in
 	fact *= facg;
 	facm = 1.0-fact;
 
-	col = fact*texcol.r;
+	col= texcol.r + ((1.0 -texcol.r)*facm);
 	if(col < outcol.r) incol.r = col; else incol.r = outcol.r;
-	col = fact*texcol.g;
+	col= texcol.g + ((1.0 -texcol.g)*facm);
 	if(col < outcol.g) incol.g = col; else incol.g = outcol.g;
-	col = fact*texcol.b;
+	col= texcol.b + ((1.0 -texcol.b)*facm);
 	if(col < outcol.b) incol.b = col; else incol.b = outcol.b;
 }
 
@@ -901,7 +901,6 @@ void mtex_rgb_light(vec3 outcol, vec3 texcol, float fact, float facg, out vec3 i
 	float facm, col;
 
 	fact *= facg;
-	facm = 1.0-fact;
 
 	col = fact*texcol.r;
 	if(col > outcol.r) incol.r = col; else incol.r = outcol.r;

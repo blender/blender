@@ -31,22 +31,6 @@
 namespace libmv {
 namespace {
 
-void CoordinatesForMarkersInImage(const vector<Marker> &markers,
-                                  int image,
-                                  Mat *coordinates) {
-  vector<Vec2> coords;
-  for (int i = 0; i < markers.size(); ++i) {
-    const Marker &marker = markers[i];
-    if (markers[i].image == image) {
-      coords.push_back(Vec2(marker.x, marker.y));
-    }
-  }
-  coordinates->resize(2, coords.size());
-  for (int i = 0; i < coords.size(); i++) {
-    coordinates->col(i) = coords[i];
-  }
-}
-
 void GetImagesInMarkers(const vector<Marker> &markers,
                         int *image1, int *image2) {
   if (markers.size() < 2) {

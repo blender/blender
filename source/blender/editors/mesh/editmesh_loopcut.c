@@ -28,46 +28,21 @@
  *  \ingroup edmesh
  */
 
-#include <float.h>
-#ifdef _MSC_VER
-#  define _USE_MATH_DEFINES
-#endif
-#include <math.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdio.h>
-
-#include "DNA_ID.h"
 #include "DNA_object_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
 
 #include "MEM_guardedalloc.h"
-
-#include "PIL_time.h"
 
 #include "BLI_array.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_dynstr.h" /*for WM_operator_pystring */
-#include "BLI_utildefines.h"
 
-#include "BKE_blender.h"
 #include "BKE_context.h"
-#include "BKE_depsgraph.h"
-#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_report.h"
-#include "BKE_scene.h"
 #include "BKE_tessmesh.h"
-#include "BKE_depsgraph.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h" /* for paint cursor */
-
-#include "IMB_imbuf_types.h"
 
 #include "ED_screen.h"
 #include "ED_space_api.h"
@@ -77,8 +52,6 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-
-#include "UI_interface.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -187,7 +160,6 @@ static void edgering_sel(RingSelOpData *lcd, int previewlines, int select)
 	BMWalker walker;
 	float (*edges)[2][3] = NULL;
 	BLI_array_declare(edges);
-	float co[2][3];
 	int i, tot = 0;
 	
 	memset(v, 0, sizeof(v));
@@ -245,16 +217,9 @@ static void edgering_sel(RingSelOpData *lcd, int previewlines, int select)
 			BLI_array_grow_items(edges, previewlines);
 
 			for (i = 1; i <= previewlines; i++) {
-				co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0]) * (i / ((float)previewlines + 1)) + v[0][0]->co[0];
-				co[0][1] = (v[0][1]->co[1] - v[0][0]->co[1]) * (i / ((float)previewlines + 1)) + v[0][0]->co[1];
-				co[0][2] = (v[0][1]->co[2] - v[0][0]->co[2]) * (i / ((float)previewlines + 1)) + v[0][0]->co[2];
-
-				co[1][0] = (v[1][1]->co[0] - v[1][0]->co[0]) * (i / ((float)previewlines + 1)) + v[1][0]->co[0];
-				co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1]) * (i / ((float)previewlines + 1)) + v[1][0]->co[1];
-				co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2]) * (i / ((float)previewlines + 1)) + v[1][0]->co[2];
-
-				copy_v3_v3(edges[tot][0], co[0]);
-				copy_v3_v3(edges[tot][1], co[1]);
+				const float fac = (i / ((float)previewlines + 1));
+				interp_v3_v3v3(edges[tot][0], v[0][0]->co, v[0][1]->co, fac);
+				interp_v3_v3v3(edges[tot][1], v[1][0]->co, v[1][1]->co, fac);
 				tot++;
 			}
 		}
@@ -274,19 +239,14 @@ static void edgering_sel(RingSelOpData *lcd, int previewlines, int select)
 		BLI_array_grow_items(edges, previewlines);
 
 		for (i = 1; i <= previewlines; i++) {
-			if (!v[0][0] || !v[0][1] || !v[1][0] || !v[1][1])
-				continue;
-			
-			co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0]) * (i / ((float)previewlines + 1)) + v[0][0]->co[0];
-			co[0][1] = (v[0][1]->co[1] - v[0][0]->co[1]) * (i / ((float)previewlines + 1)) + v[0][0]->co[1];
-			co[0][2] = (v[0][1]->co[2] - v[0][0]->co[2]) * (i / ((float)previewlines + 1)) + v[0][0]->co[2];
+			const float fac = (i / ((float)previewlines + 1));
 
-			co[1][0] = (v[1][1]->co[0] - v[1][0]->co[0]) * (i / ((float)previewlines + 1)) + v[1][0]->co[0];
-			co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1]) * (i / ((float)previewlines + 1)) + v[1][0]->co[1];
-			co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2]) * (i / ((float)previewlines + 1)) + v[1][0]->co[2];
-			
-			copy_v3_v3(edges[tot][0], co[0]);
-			copy_v3_v3(edges[tot][1], co[1]);
+			if (!v[0][0] || !v[0][1] || !v[1][0] || !v[1][1]) {
+				continue;
+			}
+
+			interp_v3_v3v3(edges[tot][0], v[0][0]->co, v[0][1]->co, fac);
+			interp_v3_v3v3(edges[tot][1], v[1][0]->co, v[1][1]->co, fac);
 			tot++;
 		}
 	}
