@@ -3244,11 +3244,15 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	}
 	
 	if (is_obact && paint_vertsel_test(ob)) {
-		
+		const int use_depth = (v3d->flag & V3D_ZBUF_SELECT);
 		glColor3f(0.0f, 0.0f, 0.0f);
 		glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
-		
+
+		if (!use_depth) glDisable(GL_DEPTH_TEST);
+		else            bglPolygonOffset(rv3d->dist, 1.0);
 		drawSelectedVertices(dm, ob->data);
+		if (!use_depth) glEnable(GL_DEPTH_TEST);
+		else            bglPolygonOffset(rv3d->dist, 0.0);
 		
 		glPointSize(1.0f);
 	}

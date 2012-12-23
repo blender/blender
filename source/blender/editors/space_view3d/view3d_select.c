@@ -2142,11 +2142,14 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 /* gets called via generic mouse select operator */
 static int mouse_weight_paint_vertex_select(bContext *C, const int mval[2], short extend, short deselect, short toggle, Object *obact)
 {
+	View3D *v3d = CTX_wm_view3d(C);
+	const int use_zbuf = (v3d->flag & V3D_ZBUF_SELECT);
+
 	Mesh *me = obact->data; /* already checked for NULL */
 	unsigned int index = 0;
 	MVert *mv;
 
-	if (ED_mesh_pick_vert(C, me, mval, &index, ED_MESH_PICK_DEFAULT_VERT_SIZE)) {
+	if (ED_mesh_pick_vert(C, obact, mval, &index, ED_MESH_PICK_DEFAULT_VERT_SIZE, use_zbuf)) {
 		mv = &me->mvert[index];
 		if (extend) {
 			mv->flag |= SELECT;
