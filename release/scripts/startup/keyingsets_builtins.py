@@ -181,7 +181,7 @@ class BUILTIN_KSI_RotScale(KeyingSetInfo):
 # ------------
 
 
-# Location
+# VisualLocation
 class BUILTIN_KSI_VisualLoc(KeyingSetInfo):
     """
     Insert a keyframe on each of the location channels, taking into account
@@ -201,7 +201,7 @@ class BUILTIN_KSI_VisualLoc(KeyingSetInfo):
     generate = keyingsets_utils.RKS_GEN_location
 
 
-# Rotation
+# VisualRotation
 class BUILTIN_KSI_VisualRot(KeyingSetInfo):
     """
     Insert a keyframe on each of the rotation channels, taking into account
@@ -219,6 +219,26 @@ class BUILTIN_KSI_VisualRot(KeyingSetInfo):
 
     # generator - use callback for rotation
     generate = keyingsets_utils.RKS_GEN_rotation
+
+
+# VisualScaling
+class BUILTIN_KSI_VisualScaling(KeyingSetInfo):
+    """
+    Insert a keyframe on each of the scale channels, taking into account
+    effects of constraints and relationships
+    """
+    bl_label = "Visual Scaling"
+
+    bl_options = {'INSERTKEY_VISUAL'}
+
+    # poll - use predefined callback for selected bones/objects
+    poll = keyingsets_utils.RKS_POLL_selected_items
+
+    # iterator - use callback for selected bones/objects
+    iterator = keyingsets_utils.RKS_ITER_selected_item
+
+    # generator - use callback for location
+    generate = keyingsets_utils.RKS_GEN_scaling
 
 
 # VisualLocRot
@@ -243,6 +263,80 @@ class BUILTIN_KSI_VisualLocRot(KeyingSetInfo):
         keyingsets_utils.RKS_GEN_location(self, context, ks, data)
         # rotation
         keyingsets_utils.RKS_GEN_rotation(self, context, ks, data)
+
+
+# VisualLocScale
+class BUILTIN_KSI_VisualLocScale(KeyingSetInfo):
+    """
+    Insert a keyframe on each of the location and scaling channels,
+    taking into account effects of constraints and relationships
+    """
+    bl_label = "Visual LocScale"
+
+    bl_options = {'INSERTKEY_VISUAL'}
+
+    # poll - use predefined callback for selected bones/objects
+    poll = keyingsets_utils.RKS_POLL_selected_items
+
+    # iterator - use callback for selected bones/objects
+    iterator = keyingsets_utils.RKS_ITER_selected_item
+
+    # generator
+    def generate(self, context, ks, data):
+        # location
+        keyingsets_utils.RKS_GEN_location(self, context, ks, data)
+        # scaling
+        keyingsets_utils.RKS_GEN_scaling(self, context, ks, data)
+
+
+# VisualLocRotScale
+class BUILTIN_KSI_VisualLocRotScale(KeyingSetInfo):
+    """
+    Insert a keyframe on each of the location, rotation and scaling channels,
+    taking into account effects of constraints and relationships
+    """
+    bl_label = "Visual LocRotScale"
+
+    bl_options = {'INSERTKEY_VISUAL'}
+
+    # poll - use predefined callback for selected bones/objects
+    poll = keyingsets_utils.RKS_POLL_selected_items
+
+    # iterator - use callback for selected bones/objects
+    iterator = keyingsets_utils.RKS_ITER_selected_item
+
+    # generator
+    def generate(self, context, ks, data):
+        # location
+        keyingsets_utils.RKS_GEN_location(self, context, ks, data)
+        # rotation
+        keyingsets_utils.RKS_GEN_rotation(self, context, ks, data)
+        # scaling
+        keyingsets_utils.RKS_GEN_scaling(self, context, ks, data)
+
+
+# VisualRotScale
+class BUILTIN_KSI_VisualRotScale(KeyingSetInfo):
+    """
+    Insert a keyframe on each of the rotation and scaling channels,
+    taking into account effects of constraints and relationships
+    """
+    bl_label = "Visual RotScale"
+
+    bl_options = {'INSERTKEY_VISUAL'}
+
+    # poll - use predefined callback for selected bones/objects
+    poll = keyingsets_utils.RKS_POLL_selected_items
+
+    # iterator - use callback for selected bones/objects
+    iterator = keyingsets_utils.RKS_ITER_selected_item
+
+    # generator
+    def generate(self, context, ks, data):
+        # rotation
+        keyingsets_utils.RKS_GEN_rotation(self, context, ks, data)
+        # scaling
+        keyingsets_utils.RKS_GEN_scaling(self, context, ks, data)
 
 # ------------
 
