@@ -742,65 +742,6 @@ static void do_lasso_select_meta(ViewContext *vc, const int mcords[][2], short m
 	mball_foreachScreenElem(vc, do_lasso_select_mball__doSelectElem, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 }
 
-static int do_paintvert_box_select(ViewContext *vc, rcti *rect, int select, int extend)
-{
-	Mesh *me;
-	MVert *mvert;
-	struct ImBuf *ibuf;
-	unsigned int *rt;
-	int a, index;
-	char *selar;
-	int sx = BLI_rcti_size_x(rect) + 1;
-	int sy = BLI_rcti_size_y(rect) + 1;
-
-	me = vc->obact->data;
-
-	if (me == NULL || me->totvert == 0 || sx * sy <= 0)
-		return OPERATOR_CANCELLED;
-
-	selar = MEM_callocN(me->totvert + 1, "selar");
-
-	if (extend == 0 && select)
-		paintvert_deselect_all_visible(vc->obact, SEL_DESELECT, FALSE);
-
-	view3d_validate_backbuf(vc);
-
-	ibuf = IMB_allocImBuf(sx, sy, 32, IB_rect);
-	rt = ibuf->rect;
-	glReadPixels(rect->xmin + vc->ar->winrct.xmin,  rect->ymin + vc->ar->winrct.ymin, sx, sy, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
-	if (ENDIAN_ORDER == B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
-
-	a = sx * sy;
-	while (a--) {
-		if (*rt) {
-			index = WM_framebuffer_to_index(*rt);
-			if (index <= me->totvert) selar[index] = 1;
-		}
-		rt++;
-	}
-
-	mvert = me->mvert;
-	for (a = 1; a <= me->totvert; a++, mvert++) {
-		if (selar[a]) {
-			if ((mvert->flag & ME_HIDE) == 0) {
-				if (select) mvert->flag |=  SELECT;
-				else        mvert->flag &= ~SELECT;
-			}
-		}
-	}
-
-	IMB_freeImBuf(ibuf);
-	MEM_freeN(selar);
-
-#ifdef __APPLE__	
-	glReadBuffer(GL_BACK);
-#endif
-
-	paintvert_flush_flags(vc->obact);
-
-	return OPERATOR_FINISHED;
-}
-
 static void do_lasso_select_meshobject__doSelectVert(void *userData, MVert *mv, const float screen_co[2], int UNUSED(index))
 {
 	LassoSelectUserData *data = userData;
@@ -1699,6 +1640,85 @@ int edge_inside_circle(const float cent[2], float radius, const float screen_co_
 	return FALSE;
 }
 
+static void do_paintvert_box_select__doSelectVert(void *userData, MVert *mv, const float screen_co[2], int UNUSED(index))
+{
+	BoxSelectUserData *data = userData;
+
+	if (BLI_rctf_isect_pt_v(data->rect_fl, screen_co)) {
+		BKE_BIT_TEST_SET(mv->flag, data->select, SELECT);
+	}
+}
+static int do_paintvert_box_select(ViewContext *vc, rcti *rect, int select, int extend)
+{
+	const int use_zbuf = (vc->v3d->flag & V3D_ZBUF_SELECT);
+	Mesh *me;
+	MVert *mvert;
+	struct ImBuf *ibuf;
+	unsigned int *rt;
+	int a, index;
+	char *selar;
+	int sx = BLI_rcti_size_x(rect) + 1;
+	int sy = BLI_rcti_size_y(rect) + 1;
+
+	me = vc->obact->data;
+
+	if (me == NULL || me->totvert == 0 || sx * sy <= 0)
+		return OPERATOR_CANCELLED;
+
+
+	if (extend == 0 && select)
+		paintvert_deselect_all_visible(vc->obact, SEL_DESELECT, FALSE);
+
+	if (use_zbuf) {
+		selar = MEM_callocN(me->totvert + 1, "selar");
+		view3d_validate_backbuf(vc);
+
+		ibuf = IMB_allocImBuf(sx, sy, 32, IB_rect);
+		rt = ibuf->rect;
+		glReadPixels(rect->xmin + vc->ar->winrct.xmin,  rect->ymin + vc->ar->winrct.ymin, sx, sy, GL_RGBA, GL_UNSIGNED_BYTE,  ibuf->rect);
+		if (ENDIAN_ORDER == B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf);
+
+		a = sx * sy;
+		while (a--) {
+			if (*rt) {
+				index = WM_framebuffer_to_index(*rt);
+				if (index <= me->totvert) selar[index] = 1;
+			}
+			rt++;
+		}
+
+		mvert = me->mvert;
+		for (a = 1; a <= me->totvert; a++, mvert++) {
+			if (selar[a]) {
+				if ((mvert->flag & ME_HIDE) == 0) {
+					if (select) mvert->flag |=  SELECT;
+					else        mvert->flag &= ~SELECT;
+				}
+			}
+		}
+
+		IMB_freeImBuf(ibuf);
+		MEM_freeN(selar);
+
+#ifdef __APPLE__
+		glReadBuffer(GL_BACK);
+#endif
+	}
+	else {
+		BoxSelectUserData data;
+
+		view3d_userdata_boxselect_init(&data, vc, rect, select);
+
+		ED_view3d_init_mats_rv3d(vc->obact, vc->rv3d);
+
+		meshobject_foreachScreenVert(vc, do_paintvert_box_select__doSelectVert, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
+	}
+
+	paintvert_flush_flags(vc->obact);
+
+	return OPERATOR_FINISHED;
+}
+
 static void do_nurbs_box_select__doSelect(void *userData, Nurb *UNUSED(nu), BPoint *bp, BezTriple *bezt, int beztindex, const float screen_co[2])
 {
 	BoxSelectUserData *data = userData;
@@ -2398,22 +2418,39 @@ static void paint_facesel_circle_select(ViewContext *vc, int select, const int m
 	}
 }
 
+static void paint_vertsel_circle_select_doSelectVert(void *userData, MVert *mv, const float screen_co[2], int UNUSED(index))
+{
+	CircleSelectUserData *data = userData;
 
+	if (len_squared_v2v2(data->mval_fl, screen_co) <= data->radius_squared) {
+		BKE_BIT_TEST_SET(mv->flag, data->select, SELECT);
+	}
+}
 static void paint_vertsel_circle_select(ViewContext *vc, int select, const int mval[2], float rad)
 {
+	const int use_zbuf = (vc->v3d->flag & V3D_ZBUF_SELECT);
 	Object *ob = vc->obact;
-	Mesh *me = ob ? ob->data : NULL;
+	Mesh *me = ob->data;
 	/* int bbsel; */ /* UNUSED */
 	/* CircleSelectUserData data = {NULL}; */ /* UNUSED */
-	if (me) {
+
+	if (use_zbuf) {
 		bm_vertoffs = me->totvert + 1; /* max index array */
 
 		/* bbsel = */ /* UNUSED */ EDBM_backbuf_circle_init(vc, mval[0], mval[1], (short)(rad + 1.0f));
 		edbm_backbuf_check_and_select_verts_obmode(me, select == LEFTMOUSE);
 		EDBM_backbuf_free();
-
-		paintvert_flush_flags(ob);
 	}
+	else {
+		CircleSelectUserData data;
+
+		ED_view3d_init_mats_rv3d(vc->obact, vc->rv3d); /* for foreach's screen/vert projection */
+
+		view3d_userdata_circleselect_init(&data, vc, select, mval, rad);
+		meshobject_foreachScreenVert(vc, paint_vertsel_circle_select_doSelectVert, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
+	}
+
+	paintvert_flush_flags(ob);
 }
 
 
