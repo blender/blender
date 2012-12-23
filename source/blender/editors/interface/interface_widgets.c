@@ -3467,14 +3467,14 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 	if (iconid) {
 		float height, aspect;
 		int xs = rect->xmin + 0.2f * UI_UNIT_X;
-		int ys = 1 + (rect->ymin + rect->ymax - UI_DPI_ICON_SIZE) / 2;
+		int ys = rect->ymin + 0.1f * BLI_rcti_size_y(rect);
 		
 		/* icons are 80% of height of button (16 pixels inside 20 height) */
 		height = 0.8f * BLI_rcti_size_y(rect);
 		aspect = ICON_DEFAULT_HEIGHT / height;
-
+		
 		glEnable(GL_BLEND);
-		UI_icon_draw_aspect(xs, ys, iconid, aspect, 0.5f); /* XXX scale weak get from fstyle? */
+		UI_icon_draw_aspect(xs, ys, iconid, aspect, 1.0f); /* XXX scale weak get from fstyle? */
 		glDisable(GL_BLEND);
 	}
 }
