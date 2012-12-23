@@ -70,6 +70,7 @@ extern EnumPropertyItem keyframe_handle_type_items[];
 extern EnumPropertyItem keyblock_type_items[];
 
 extern EnumPropertyItem keyingset_path_grouping_items[];
+extern EnumPropertyItem keying_flag_items[];
 
 extern EnumPropertyItem keyframe_paste_offset_items[];
 extern EnumPropertyItem keyframe_paste_merge_items[];

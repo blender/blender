@@ -52,6 +52,20 @@ EnumPropertyItem keyingset_path_grouping_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+/* It would be cool to get rid of this 'INSERTKEY_' prefix in 'py strings' values, but it would break existing
+ * exported keyingset... :/
+ */
+EnumPropertyItem keying_flag_items[] = {
+	{INSERTKEY_NEEDED, "INSERTKEY_NEEDED", 0, "Only Needed",
+	                   "Only insert keyframes where they're needed in the relevant F-Curves"},
+	{INSERTKEY_MATRIX, "INSERTKEY_VISUAL", 0, "Visual Keying",
+	                   "Insert keyframes based on 'visual transforms'"},
+	{INSERTKEY_XYZ2RGB, "INSERTKEY_XYZ_TO_RGB", 0, "XYZ=RGB Colors",
+	                    "Color for newly added transformation F-Curves (Location, Rotation, Scale) "
+	                    "and also Color is based on the transform axis"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 #ifdef RNA_RUNTIME
 
 #include "BLI_math_base.h"
@@ -517,17 +531,6 @@ static FCurve *rna_Driver_from_existing(AnimData *adt, bContext *C, FCurve *src_
 static void rna_def_common_keying_flags(StructRNA *srna, short UNUSED(reg))
 {
 	PropertyRNA *prop;
-
-	static EnumPropertyItem keying_flag_items[] = {
-		{INSERTKEY_NEEDED, "INSERTKEY_NEEDED", 0, "Only Needed",
-		                   "Only insert keyframes where they're needed in the relevant F-Curves"},
-		{INSERTKEY_MATRIX, "INSERTKEY_VISUAL", 0, "Visual Keying",
-		                   "Insert keyframes based on 'visual transforms'"},
-		{INSERTKEY_XYZ2RGB, "INSERTKEY_XYZ_TO_RGB", 0, "XYZ=RGB Colors",
-		                    "Color for newly added transformation F-Curves (Location, Rotation, Scale) "
-		                    "and also Color is based on the transform axis"},
-		{0, NULL, 0, NULL, NULL}
-	};
 
 	prop = RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "keyingflag");
