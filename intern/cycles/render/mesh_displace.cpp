@@ -19,6 +19,7 @@
 #include "device.h"
 
 #include "mesh.h"
+#include "object.h"
 #include "scene.h"
 #include "shader.h"
 
@@ -41,6 +42,19 @@ bool MeshManager::displace(Device *device, Scene *scene, Mesh *mesh, Progress& p
 	if(!has_displacement)
 		return false;
 
+	string msg = string_printf("Computing Displacement %s", mesh->name.c_str());
+	progress.set_status("Updating Mesh", msg);
+
+	/* find object index. todo: is arbitrary */
+	size_t object_index = ~0;
+
+	for(size_t i = 0; i < scene->objects.size(); i++) {
+		if(scene->objects[i]->mesh == mesh) {
+			object_index = i;
+			break;
+		}
+	}
+
 	/* setup input for device task */
 	vector<bool> done(mesh->verts.size(), false);
 	device_vector<uint4> d_input;
@@ -61,8 +75,8 @@ bool MeshManager::displace(Device *device, Scene *scene, Mesh *mesh, Progress& p
 			done[t.v[j]] = true;
 
 			/* set up object, primitive and barycentric coordinates */
-			/* when used, non-instanced convention: object = -object-1; */
-			int object = ~0; /* todo */
+			/* when used, non-instanced convention: object = ~object */
+			int object = ~object_index;
 			int prim = mesh->tri_offset + i;
 			float u, v;
 
