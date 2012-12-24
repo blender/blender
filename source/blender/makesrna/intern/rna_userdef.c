@@ -437,7 +437,7 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
 	
 	static EnumPropertyItem font_kerning_style[] = {
 		{0, "UNFITTED", 0, "Unfitted", "Use scaled but un-grid-fitted kerning distances"},
-		{1, "DEFAULT", 0, "Default", "Use scaled and grid-fitted kerning distances"},
+		{1, "FITTED", 0, "Fitted", "Use scaled and grid-fitted kerning distances"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -2214,6 +2214,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	
 	static EnumPropertyItem active_theme_area[] = {
 		{0, "USER_INTERFACE", ICON_UI, "User Interface", ""},
+		{19, "STYLE", ICON_FONTPREVIEW, "Text Style", ""},
 		{18, "BONE_COLOR_SETS", ICON_COLOR, "Bone Color Sets", ""},
 		{1, "VIEW_3D", ICON_VIEW3D, "3D View", ""},
 		{2, "TIMELINE", ICON_TIME, "Timeline", ""},

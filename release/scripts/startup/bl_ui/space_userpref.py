@@ -22,6 +22,27 @@ from bpy.types import Header, Menu, Panel
 import os
 
 
+def ui_style_items(col, context):
+    """ UI Style settings """
+    
+    split = col.split()
+    
+    col = split.column()
+    col.label(text="Kerning Style:")
+    col.row().prop(context, "font_kerning_style", expand=True)
+    col.prop(context, "points")
+    
+    col = split.column()
+    col.label(text="Shadow Offset:")
+    col.prop(context, "shadow_offset_x", text="X")
+    col.prop(context, "shadow_offset_y", text="Y")
+    
+    col = split.column()
+    col.prop(context, "shadow")
+    col.prop(context, "shadowalpha")
+    col.prop(context, "shadowcolor")
+
+    
 def ui_items_general(col, context):
     """ General UI Theme Settings (User Interface)
     """
@@ -774,6 +795,21 @@ class USERPREF_PT_theme(Panel):
                 colsub = padding.column()
                 colsub = padding.column()
                 colsub.row().prop(ui, "show_colored_constraints")
+        elif theme.theme_area == 'STYLE':
+            col = split.column()
+            
+            style = context.user_preferences.ui_styles[0]
+            
+            ui = style.widget
+            col.label(text="Widget:")
+            ui_style_items(col, ui)
+            
+            col.separator()
+            col.separator()
+            
+            ui = style.widget_label
+            col.label(text="Widget Label:")
+            ui_style_items(col, ui)
         else:
             self._theme_generic(split, getattr(theme, theme.theme_area.lower()))
 
