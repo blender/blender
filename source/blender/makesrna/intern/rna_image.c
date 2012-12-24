@@ -674,7 +674,7 @@ static void rna_def_image(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "colorspace_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "colorspace_settings");
-	RNA_def_property_struct_type(prop, "ColorManagedColorspaceSettings");
+	RNA_def_property_struct_type(prop, "ColorManagedInputColorspaceSettings");
 	RNA_def_property_ui_text(prop, "Color Space Settings", "Input color space settings");
 
 	RNA_api_image(srna);

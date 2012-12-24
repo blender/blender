@@ -973,15 +973,26 @@ static void rna_def_colormanage(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagement_update");
 
 	/* ** Colorspace **  */
-	srna = RNA_def_struct(brna, "ColorManagedColorspaceSettings", NULL);
-	RNA_def_struct_ui_text(srna, "ColorManagedColorspaceSettings", "Input color space settings");
+	srna = RNA_def_struct(brna, "ColorManagedInputColorspaceSettings", NULL);
+	RNA_def_struct_ui_text(srna, "ColorManagedInputColorspaceSettings", "Input color space settings");
 
 	prop = RNA_def_property(srna, "name", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, color_space_items);
 	RNA_def_property_enum_funcs(prop, "rna_ColorManagedColorspaceSettings_colorspace_get",
 	                                  "rna_ColorManagedColorspaceSettings_colorspace_set",
 	                                  "rna_ColorManagedColorspaceSettings_colorspace_itemf");
-	RNA_def_property_ui_text(prop, "Color Space", "Input color space name");
+	RNA_def_property_ui_text(prop, "Input Color Space", "Color space of the image or movie on disk");
+	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagedColorspaceSettings_reload_update");
+
+	srna = RNA_def_struct(brna, "ColorManagedSequencerColorspaceSettings", NULL);
+	RNA_def_struct_ui_text(srna, "ColorManagedSequencerColorspaceSettings", "Input color space settings");
+
+	prop = RNA_def_property(srna, "name", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, color_space_items);
+	RNA_def_property_enum_funcs(prop, "rna_ColorManagedColorspaceSettings_colorspace_get",
+	                                  "rna_ColorManagedColorspaceSettings_colorspace_set",
+	                                  "rna_ColorManagedColorspaceSettings_colorspace_itemf");
+	RNA_def_property_ui_text(prop, "Color Space", "Color space that the sequencer operates in");
 	RNA_def_property_update(prop, NC_WINDOW, "rna_ColorManagedColorspaceSettings_reload_update");
 }
 
