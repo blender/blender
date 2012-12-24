@@ -188,6 +188,7 @@ dict_uimsgs = {
     "occluder",
     "passepartout",
     "perspectively",
+    "pixelate",
     "polygonization",
     "selectability",
     "slurph",
@@ -195,7 +196,7 @@ dict_uimsgs = {
     "symmetrize",
     "trackability",
     "transmissivity",
-    "rasterized", "rasterization",
+    "rasterized", "rasterization",, "rasterizer"
     "renderer", "renderable", "renderability",
 
     # Abbreviations

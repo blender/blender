@@ -116,7 +116,8 @@ EnumPropertyItem proportional_falloff_curve_only_items[] = {
 EnumPropertyItem proportional_editing_items[] = {
 	{PROP_EDIT_OFF, "DISABLED", ICON_PROP_OFF, "Disable", "Proportional Editing disabled"},
 	{PROP_EDIT_ON, "ENABLED", ICON_PROP_ON, "Enable", "Proportional Editing enabled"},
-	{PROP_EDIT_CONNECTED, "CONNECTED", ICON_PROP_CON, "Connected", "Proportional Editing using connected geometry only"},
+	{PROP_EDIT_CONNECTED, "CONNECTED", ICON_PROP_CON, "Connected",
+	                      "Proportional Editing using connected geometry only"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -1361,7 +1362,8 @@ static void rna_TimeLine_remove(Scene *scene, ReportList *reports, PointerRNA *m
 {
 	TimeMarker *marker = marker_ptr->data;
 	if (BLI_remlink_safe(&scene->markers, marker) == FALSE) {
-		BKE_reportf(reports, RPT_ERROR, "Timeline marker '%s' not found in scene '%s'", marker->name, scene->id.name + 2);
+		BKE_reportf(reports, RPT_ERROR, "Timeline marker '%s' not found in scene '%s'",
+		            marker->name, scene->id.name + 2);
 		return;
 	}
 
@@ -1994,7 +1996,8 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 
 	if (scene) {
 		prop = RNA_def_property(srna, "samples", PROP_INT, PROP_UNSIGNED);
-		RNA_def_property_ui_text(prop, "Samples", "Override number of render samples for this render layer, 0 will use the scene setting");
+		RNA_def_property_ui_text(prop, "Samples", "Override number of render samples for this render layer, "
+		                                          "0 will use the scene setting");
 		RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 	}
 
@@ -2448,8 +2451,10 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 		{RAS_STORE_AUTO, "AUTO", 0, "Auto Select", "Chooses the best supported mode"},
 		{RAS_STORE_IMMEDIATE, "IMMEDIATE", 0, "Immediate Mode", "Slowest performance, requires OpenGL (any version)"},
 		{RAS_STORE_VA, "VERTEX_ARRAY", 0, "Vertex Arrays", "Better performance, requires at least OpenGL 1.1"},
-		/* VBOS are currently disabled since they cannot beat vertex array with display lists in performance. */
-		/* {RAS_STORE_VBO, "VERTEX_BUFFER_OBJECT", 0, "Vertex Buffer Objects", "Best performance, requires at least OpenGL 1.4"}, */
+#if 0  /* XXX VBOS are currently disabled since they cannot beat vertex array with display lists in performance. */
+		{RAS_STORE_VBO, "VERTEX_BUFFER_OBJECT", 0, "Vertex Buffer Objects",
+		                "Best performance, requires at least OpenGL 1.4"}, 
+#endif
 		{0, NULL, 0, NULL, NULL}};
 
 	srna = RNA_def_struct(brna, "SceneGameData", NULL);
@@ -2484,13 +2489,13 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "exitkey");
 	RNA_def_property_enum_items(prop, event_type_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_GameSettings_exit_key_set", NULL);
-	RNA_def_property_ui_text(prop, "Exit Key",  "The key that exits the Game Engine");
+	RNA_def_property_ui_text(prop, "Exit Key", "The key that exits the Game Engine");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
 	prop = RNA_def_property(srna, "raster_storage", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "raster_storage");
 	RNA_def_property_enum_items(prop, storage_items);
-	RNA_def_property_ui_text(prop, "Storage",  "Sets the storage mode used by the rasterizer");
+	RNA_def_property_ui_text(prop, "Storage", "Set the storage mode used by the rasterizer");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
 	/* Do we need it here ? (since we already have it in World */
@@ -2779,7 +2784,8 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_material_caching", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_NO_MATERIAL_CACHING);
 	RNA_def_property_ui_text(prop, "Use Material Caching",
-							 "Cache materials in the converter. This is faster, but can cause propblems with older Singletexture and Multitexture games");
+	                         "Cache materials in the converter (this is faster, but can cause problems with older "
+	                         "Singletexture and Multitexture games");
 
 	/* obstacle simulation */
 	prop = RNA_def_property(srna, "obstacle_simulation", PROP_ENUM, PROP_NONE);
