@@ -922,6 +922,9 @@ static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace
 		/* do Texture Face materials */
 		Image* bima = (tface)? (Image*)tface->tpage: NULL;
 		STR_String imastr =  (tface)? (bima? (bima)->id.name : "" ) : "";
+
+		if (!converter->GetCacheMaterials())
+			polymat = NULL;
 		
 		char alpha_blend=0;
 		short tile=0;
@@ -1044,7 +1047,8 @@ static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace
 				polymat->m_shininess = 35.0;
 			}
 			
-			converter->CachePolyMaterial(ma, polymat);
+			if (converter->GetCacheMaterials())
+				converter->CachePolyMaterial(ma, polymat);
 		}
 	}
 	

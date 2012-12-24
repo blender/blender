@@ -693,6 +693,7 @@ typedef struct GameData {
 #define GAME_SHOW_MOUSE						(1 << 14)
 #define GAME_GLSL_NO_COLOR_MANAGEMENT		(1 << 15)
 #define GAME_SHOW_OBSTACLE_SIMULATION		(1 << 16)
+#define GAME_NO_MATERIAL_CACHING			(1 << 17)
 /* Note: GameData.flag is now an int (max 32 flags). A short could only take 16 flags */
 
 /* GameData.playerflag */
