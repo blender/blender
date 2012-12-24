@@ -186,13 +186,13 @@ static const char *ui_item_name_add_colon(const char *name, char namestr[UI_MAX_
 
 static int ui_item_fit(int item, int pos, int all, int available, int last, int alignment, int *offset)
 {
+	if (offset)
+		*offset = 0;
+
 	/* available == 0 is unlimited */
 	if (available == 0)
 		return item;
-	
-	if (offset)
-		*offset = 0;
-	
+
 	if (all > available) {
 		/* contents is bigger than available space */
 		if (last)
