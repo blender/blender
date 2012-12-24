@@ -120,7 +120,11 @@ int BLI_split_name_num(char *left, int *nr, const char *name, const char delim);
 void BLI_splitdirstring(char *di, char *fi);
 
 /* make sure path separators conform to system one */
-void BLI_clean(char *path);
+void BLI_clean(char *path)
+#ifdef __GNUC__
+__attribute__((nonnull(1)))
+#endif
+;
 
 /**
  * dir can be any input, like from buttons, and this function
@@ -173,7 +177,11 @@ int BLI_path_is_rel(const char *path);
  * \a from The character to replace
  * \a to The character to replace with
  */
-void BLI_char_switch(char *string, char from, char to);
+void BLI_char_switch(char *string, char from, char to)
+#ifdef __GNUC__
+__attribute__((nonnull(1)))
+#endif
+;
 
 /* Initialize path to program executable */
 void BLI_init_program_path(const char *argv0);

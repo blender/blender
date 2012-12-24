@@ -1212,8 +1212,6 @@ void BLI_setenv_if_new(const char *env, const char *val)
 
 void BLI_clean(char *path)
 {
-	if (path == NULL) return;
-
 #ifdef WIN32
 	if (path && BLI_strnlen(path, 3) > 2) {
 		BLI_char_switch(path + 2, '/', '\\');
@@ -1225,7 +1223,6 @@ void BLI_clean(char *path)
 
 void BLI_char_switch(char *string, char from, char to) 
 {
-	if (string == NULL) return;
 	while (*string != 0) {
 		if (*string == from) *string = to;
 		string++;
