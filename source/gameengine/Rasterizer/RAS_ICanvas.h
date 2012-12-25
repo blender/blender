@@ -178,7 +178,19 @@ public:
 	SetViewPort(
 		int x1, int y1,
 		int x2, int y2
-	) = 0; 
+	) = 0;
+
+	/**
+	 * Update the Canvas' viewport (used when the viewport changes without using SetViewPort()
+	 * eg: Shadow buffers and FBOs
+	 */
+
+	virtual
+		void
+	UpdateViewPort(
+		int x1, int y1,
+		int x2, int y2
+	) = 0;
 
 	/**
 	 * Get the visible viewport

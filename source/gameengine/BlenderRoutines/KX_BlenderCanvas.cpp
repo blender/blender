@@ -178,6 +178,18 @@ SetViewPort(
 	glScissor(minx + x1, miny + y1, vp_width, vp_height);
 }
 
+	void
+KX_BlenderCanvas::
+UpdateViewPort(
+	int x1, int y1,
+	int x2, int y2
+) {
+	m_viewport[0] = x1;
+	m_viewport[1] = y1;
+	m_viewport[2] = x2;
+	m_viewport[3] = y2;
+}
+
 	const int*
 KX_BlenderCanvas::
 GetViewPort() {

@@ -131,7 +131,15 @@ void GPC_Canvas::SetViewPort(int x1, int y1, int x2, int y2)
 
 	glViewport(x1,y1,x2-x1 + 1,y2-y1 + 1);
 	glScissor(x1,y1,x2-x1 + 1,y2-y1 + 1);
-};
+}
+
+void GPC_Canvas::UpdateViewPort(int x1, int y1, int x2, int y2)
+{
+	m_viewport[0] = x1;
+	m_viewport[1] = y1;
+	m_viewport[2] = x2;
+	m_viewport[3] = y2;
+}
 
 const int *GPC_Canvas::GetViewPort()
 {
