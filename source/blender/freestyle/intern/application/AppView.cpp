@@ -29,6 +29,12 @@
  *  \ingroup freestyle
  */
 
+/* This header file needs to be included first, in order to avoid a
+   compilation with MinGW (see the commit log of revision 28253) */
+extern "C" {
+#include "BLI_jitter.h"
+}
+
 #include <iostream>
 
 #include "Controller.h"
@@ -45,7 +51,6 @@
 
 extern "C" {
 #include "BLI_blenlib.h"
-#include "BLI_jitter.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
