@@ -1349,11 +1349,7 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	int a;
 	
 	if (me->bb==0) {
-		// This can be called in a seperate (not main) thread when doing async libload,
-		// so lets try to be safe...
-		BLI_begin_threaded_malloc();
-		me->bb= (struct BoundBox *)MEM_callocN(sizeof(BoundBox), "boundbox");
-		BLI_end_threaded_malloc();
+		me->bb = BKE_boundbox_alloc_unit();
 	}
 	bb= me->bb;
 	
@@ -2363,6 +2359,10 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	set<Group*> grouplist;	// list of groups to be converted
 	set<Object*> allblobj;	// all objects converted
 	set<Object*> groupobj;	// objects from groups (never in active layer)
+
+	// This is bad, but we use this to make sure the first time this is called
+	// is not in a separate thread.
+	BL_Texture::GetMaxUnits();
 
 	if (alwaysUseExpandFraming) {
 		frame_type = RAS_FrameSettings::e_frame_extend;

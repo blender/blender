@@ -157,7 +157,7 @@ void BL_ConvertControllers(
 				SCA_PythonController* pyctrl = new SCA_PythonController(gameobj, pycont->mode);
 				gamecontroller = pyctrl;
 #ifdef WITH_PYTHON
-
+				PyGILState_STATE gstate = PyGILState_Ensure();
 				pyctrl->SetNamespace(converter->GetPyNamespace());
 				
 				if (pycont->mode==SCA_PythonController::SCA_PYEXEC_SCRIPT) {
@@ -186,6 +186,7 @@ void BL_ConvertControllers(
 					}
 				}
 				
+				PyGILState_Release(gstate);
 #endif // WITH_PYTHON
 
 				break;
@@ -218,6 +219,7 @@ void BL_ConvertControllers(
 			converter->RegisterGameController(gamecontroller, bcontr);
 
 #ifdef WITH_PYTHON
+			PyGILState_STATE gstate = PyGILState_Ensure();
 			if (bcontr->type==CONT_PYTHON) {
 				SCA_PythonController *pyctrl= static_cast<SCA_PythonController*>(gamecontroller);
 				/* not strictly needed but gives syntax errors early on and
@@ -232,6 +234,8 @@ void BL_ConvertControllers(
 					// pyctrl->Import();
 				}
 			}
+
+			PyGILState_Release(gstate);
 #endif // WITH_PYTHON
 
 			//done with gamecontroller
