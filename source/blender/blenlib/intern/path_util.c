@@ -1619,7 +1619,7 @@ int BLI_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const 
 	rel_dir[0] = 0;
 
 	/* if image is "below" current .blend file directory */
-	if (!strncmp(path, blend_dir, len)) {
+	if (!BLI_path_ncmp(path, blend_dir, len)) {
 
 		/* if image is _in_ current .blend file directory */
 		if (BLI_path_cmp(dir, blend_dir) == 0) {
