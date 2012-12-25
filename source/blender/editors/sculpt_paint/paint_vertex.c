@@ -2185,6 +2185,13 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	float alpha;
 	float mval[2];
 	int use_vert_sel;
+	int use_zbuf;
+
+	MDeformWeight *(*dw_func)(MDeformVert *, const int) =
+	        (brush->vertexpaint_tool == PAINT_BLEND_BLUR) ?
+	        ((wp->flag & VP_ONLYVGROUP) ?
+	             (MDeformWeight *(*)(MDeformVert *, const int))defvert_find_index :
+	              defvert_verify_index) : NULL;
 
 	const float pressure = RNA_float_get(itemptr, "pressure");
 	const float brush_size_pressure = BKE_brush_size_get(scene, brush) * (BKE_brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
@@ -2242,30 +2249,36 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	swap_m4m4(wpd->vc.rv3d->persmat, mat);
 
 	use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
+	use_zbuf = use_vert_sel && (vc->v3d->flag & V3D_ZBUF_SELECT);
 
 	/* which faces are involved */
-	if (wp->flag & VP_AREA) {
-		/* Ugly hack, to avoid drawing vertex index when getting the face index buffer - campbell */
-		me->editflag &= ~ME_EDIT_PAINT_VERT_SEL;
-		totindex = sample_backbuf_area(vc, indexar, me->totpoly, mval[0], mval[1], brush_size_pressure);
-		me->editflag |= use_vert_sel ? ME_EDIT_PAINT_VERT_SEL : 0;
-	}
-	else {
-		indexar[0] = view3d_sample_backbuf(vc, mval[0], mval[1]);
-		if (indexar[0]) totindex = 1;
-		else totindex = 0;
-	}
+	if (use_zbuf) {
+		if (wp->flag & VP_AREA) {
+			/* Ugly hack, to avoid drawing vertex index when getting the face index buffer - campbell */
+			me->editflag &= ~ME_EDIT_PAINT_VERT_SEL;
+			totindex = sample_backbuf_area(vc, indexar, me->totpoly, mval[0], mval[1], brush_size_pressure);
+			me->editflag |= use_vert_sel ? ME_EDIT_PAINT_VERT_SEL : 0;
+		}
+		else {
+			indexar[0] = view3d_sample_backbuf(vc, mval[0], mval[1]);
+			if (indexar[0]) totindex = 1;
+			else totindex = 0;
+		}
 
-	if ((me->editflag & ME_EDIT_PAINT_FACE_SEL) && me->mpoly) {
-		for (index = 0; index < totindex; index++) {
-			if (indexar[index] && indexar[index] <= me->totpoly) {
-				MPoly *mpoly = ((MPoly *)me->mpoly) + (indexar[index] - 1);
-						
-				if ((mpoly->flag & ME_FACE_SEL) == 0) {
-					indexar[index] = 0;
+		if ((me->editflag & ME_EDIT_PAINT_FACE_SEL) && me->mpoly) {
+			for (index = 0; index < totindex; index++) {
+				if (indexar[index] && indexar[index] <= me->totpoly) {
+					MPoly *mpoly = ((MPoly *)me->mpoly) + (indexar[index] - 1);
+
+					if ((mpoly->flag & ME_FACE_SEL) == 0) {
+						indexar[index] = 0;
+					}
 				}
 			}
 		}
+	}
+	else {
+		indexar = NULL;
 	}
 
 	/* make sure each vertex gets treated only once */
@@ -2275,80 +2288,113 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		paintweight = 0.0f;
 	else
 		paintweight = BKE_brush_weight_get(scene, brush);
-			
-	for (index = 0; index < totindex; index++) {
-		if (indexar[index] && indexar[index] <= me->totpoly) {
-			MPoly *mpoly = me->mpoly + (indexar[index] - 1);
-			MLoop *ml = me->mloop + mpoly->loopstart;
-			int i;
 
-			if (use_vert_sel) {
-				for (i = 0; i < mpoly->totloop; i++, ml++) {
-					me->dvert[ml->v].flag = (me->mvert[ml->v].flag & SELECT);
+#define WP_BLUR_ACCUM(v_idx_var)  \
+	{ \
+		const unsigned int vidx = v_idx_var; \
+		const float fac = calc_vp_strength_dl(wp, vc, wpd->vertexcosnos[vidx].co, mval, brush_size_pressure); \
+		if (fac > 0.0f) { \
+			MDeformWeight *dw = dw_func(&me->dvert[vidx], wpi.vgroup_active); \
+			paintweight += dw ? (dw->weight * fac) : 0.0f; \
+			totw += fac; \
+		} \
+	} (void)0
+
+
+	if (use_zbuf) {
+		for (index = 0; index < totindex; index++) {
+			if (indexar[index] && indexar[index] <= me->totpoly) {
+				MPoly *mpoly = me->mpoly + (indexar[index] - 1);
+				MLoop *ml = me->mloop + mpoly->loopstart;
+				int i;
+
+				if (use_vert_sel) {
+					for (i = 0; i < mpoly->totloop; i++, ml++) {
+						me->dvert[ml->v].flag = (me->mvert[ml->v].flag & SELECT);
+					}
 				}
-			}
-			else {
-				for (i = 0; i < mpoly->totloop; i++, ml++) {
-					me->dvert[ml->v].flag = 1;
+				else {
+					for (i = 0; i < mpoly->totloop; i++, ml++) {
+						me->dvert[ml->v].flag = 1;
+					}
 				}
-			}
-					
-			if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
-				MDeformWeight *dw, *(*dw_func)(MDeformVert *, const int);
-						
-				if (wp->flag & VP_ONLYVGROUP)
-					dw_func = (MDeformWeight *(*)(MDeformVert *, const int))defvert_find_index;
-				else
-					dw_func = defvert_verify_index;
-						
-				ml = me->mloop + mpoly->loopstart;
-				for (i = 0; i < mpoly->totloop; i++, ml++) {
-					unsigned int vidx = ml->v;
-					const float fac = calc_vp_strength_dl(wp, vc, wpd->vertexcosnos[vidx].co, mval, brush_size_pressure);
-					if (fac > 0.0f) {
-						dw = dw_func(&me->dvert[vidx], wpi.vgroup_active);
-						paintweight += dw ? (dw->weight * fac) : 0.0f;
-						totw += fac;
+
+				if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
+					ml = me->mloop + mpoly->loopstart;
+					for (i = 0; i < mpoly->totloop; i++, ml++) {
+						WP_BLUR_ACCUM(ml->v);
 					}
 				}
 			}
 		}
 	}
-			
+	else {
+		const unsigned int totvert = me->totvert;
+		unsigned int       i;
+
+		for (i = 0; i < totvert; i++) {
+			me->dvert[i].flag = (me->mvert[i].flag & SELECT);
+		}
+
+		if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
+			for (i = 0; i < totvert; i++) {
+				WP_BLUR_ACCUM(i);
+			}
+		}
+	}
+
+#undef WP_BLUR_ACCUM
+
+
 	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
 		paintweight /= totw;
 	}
 
-	for (index = 0; index < totindex; index++) {
+#define WP_PAINT(v_idx_var)  \
+	{ \
+		unsigned int vidx = v_idx_var; \
+		if (me->dvert[vidx].flag) { \
+			alpha = calc_vp_alpha_dl(wp, vc, wpd->wpimat, &wpd->vertexcosnos[vidx], \
+			                         mval, brush_size_pressure, brush_alpha_pressure); \
+			if (alpha) { \
+				do_weight_paint_vertex(wp, ob, &wpi, vidx, alpha, paintweight); \
+			} \
+			me->dvert[vidx].flag = 0; \
+		} \
+	} (void)0
 
-		if (indexar[index] && indexar[index] <= me->totpoly) {
-			MPoly *mpoly = me->mpoly + (indexar[index] - 1);
-			MLoop *ml = me->mloop + mpoly->loopstart;
-			int i;
+	if (use_zbuf) {
+		for (index = 0; index < totindex; index++) {
 
-			for (i = 0; i < mpoly->totloop; i++, ml++) {
-				unsigned int vidx = ml->v;
+			if (indexar[index] && indexar[index] <= me->totpoly) {
+				MPoly *mpoly = me->mpoly + (indexar[index] - 1);
+				MLoop *ml = me->mloop + mpoly->loopstart;
+				int i;
 
-				if (me->dvert[vidx].flag) {
-					alpha = calc_vp_alpha_dl(wp, vc, wpd->wpimat, &wpd->vertexcosnos[vidx],
-					                         mval, brush_size_pressure, brush_alpha_pressure);
-					if (alpha) {
-						do_weight_paint_vertex(wp, ob, &wpi, vidx, alpha, paintweight);
-					}
-					me->dvert[vidx].flag = 0;
+				for (i = 0; i < mpoly->totloop; i++, ml++) {
+					WP_PAINT(ml->v);
 				}
 			}
 		}
 	}
+	else {
+		const unsigned int totvert = me->totvert;
+		unsigned int       i;
+
+		for (i = 0; i < totvert; i++) {
+			WP_PAINT(i);
+		}
+	}
+#undef WP_PAINT
 
 
 	/* *** free wpi members */
 	MEM_freeN((void *)wpi.defbase_sel);
-	/* *** don't freeing wpi members */
+	/* *** done freeing wpi members */
 
 
 	swap_m4m4(vc->rv3d->persmat, mat);
-			
+
 	DAG_id_tag_update(ob->data, 0);
 	ED_region_tag_redraw(vc->ar);
 }
