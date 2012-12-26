@@ -3749,6 +3749,12 @@ Types
 
       :type: float
 
+   .. attribute:: maxJumps
+
+      The maximum number of jumps a character can perform before having to touch the ground. By default this is set to 1. 2 allows for a double jump, etc.
+
+      :type: int
+
    .. method:: jump()
 
       The character jumps based on it's jump speed.

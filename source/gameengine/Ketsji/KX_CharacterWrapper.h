@@ -26,6 +26,8 @@ public:
 	
 	static PyObject*	pyattr_get_gravity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_gravity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_max_jumps(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_max_jumps(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 #endif // WITH_PYTHON
 
 private:

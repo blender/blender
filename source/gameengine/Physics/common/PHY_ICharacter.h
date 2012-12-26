@@ -21,6 +21,9 @@ public:
 
 	virtual float GetGravity()= 0;
 	virtual void SetGravity(float gravity)= 0;
+	
+	virtual int GetMaxJumps()= 0;
+	virtual void SetMaxJumps(int maxJumps)= 0;
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:PHY_ICharacter")
