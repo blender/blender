@@ -96,7 +96,7 @@ namespace StrokeInternal {
       ++_it;
       return *(this);
     }
-    inline Self operator++(int)  // opérateur correspondant à i++ 
+    inline Self operator++(int)  // opÃ©rateur correspondant Ã  i++ 
     {
       Self tmp = *this;        // C'est pour cela qu'on stocke la valeur
       ++_it;                    // dans un temporaire. 
@@ -107,8 +107,8 @@ namespace StrokeInternal {
       --_it;
       return *(this);
     }
-    inline Self operator--(int)  // opérateur correspondant à i++ 
-    {                                  // c.a.d qui renvoie la valeur *puis* incrémente.
+    inline Self operator--(int)  // opÃ©rateur correspondant Ã  i++ 
+    {                                  // c.a.d qui renvoie la valeur *puis* incrÃ©mente.
       Self tmp = *this;        // C'est pour cela qu'on stocke la valeur
       --_it;                    // dans un temporaire. 
       return tmp;
