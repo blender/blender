@@ -486,9 +486,6 @@ bool CcdPhysicsController::CreateCharacterController()
 
 	m_characterController = new BlenderBulletCharacterController(m_bulletMotionState,(btPairCachingGhostObject*)m_object,(btConvexShape*)m_collisionShape,m_cci.m_stepHeight);
 
-	PHY__Vector3 gravity;
-	m_cci.m_physicsEnv->getGravity(gravity);
-	m_characterController->setGravity(-gravity.m_vec[2]); // need positive gravity
 	m_characterController->setJumpSpeed(m_cci.m_jumpSpeed);
 	m_characterController->setFallSpeed(m_cci.m_fallSpeed);
 
