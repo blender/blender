@@ -252,15 +252,6 @@ void ED_operatormacros_object(void)
 		RNA_enum_set(otmacro->ptr, "proportional", PROP_EDIT_OFF);
 	}
 	
-	/* XXX */
-	ot = WM_operatortype_append_macro("OBJECT_OT_add_named_cursor", "Add Named At Cursor",
-	                                  "Add named object at cursor", OPTYPE_UNDO | OPTYPE_REGISTER);
-	if (ot) {
-		RNA_def_string(ot->srna, "name", "Cube", MAX_ID_NAME - 2, "Name", "Object name to add");
-
-		WM_operatortype_macro_define(ot, "VIEW3D_OT_cursor3d");
-		WM_operatortype_macro_define(ot, "OBJECT_OT_add_named");
-	}
 }
 
 static int object_mode_poll(bContext *C)

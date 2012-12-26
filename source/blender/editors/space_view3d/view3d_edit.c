@@ -3678,17 +3678,21 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 
 /* ***************** 3d cursor cursor op ******************* */
 
-/* mx my in region coords */
-static int view3d_cursor3d_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+/* cursor position in vec, result in vec, mval in region coords */
+/* note: cannot use event->mval here (called by object_add() */
+void ED_view3d_cursor3d_position(bContext *C, float *fp, int mx, int my)
 {
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-	float *fp = give_cursor(scene, v3d);
 	float mval_fl[2];
+	int mval[2];
 	int flip;
 
+	mval[0] = mx - ar->winrct.xmin;
+	mval[1] = my - ar->winrct.ymin;
+	
 	flip = initgrabz(rv3d, fp[0], fp[1], fp[2]);
 	
 	/* reset the depth based on the view offset (we _know_ the offset is infront of us) */
@@ -3703,20 +3707,20 @@ static int view3d_cursor3d_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *
 
 		if (U.uiflag & USER_ZBUF_CURSOR) {  /* maybe this should be accessed some other way */
 			view3d_operator_needs_opengl(C);
-			if (ED_view3d_autodist(scene, ar, v3d, event->mval, fp))
+			if (ED_view3d_autodist(scene, ar, v3d, mval, fp))
 				depth_used = TRUE;
 		}
 
 		if (depth_used == FALSE) {
 			float dvec[3];
-			VECSUB2D(mval_fl, mval_fl, event->mval);
+			VECSUB2D(mval_fl, mval_fl, mval);
 			ED_view3d_win_to_delta(ar, mval_fl, dvec);
 			sub_v3_v3(fp, dvec);
 		}
 	}
 	else {
-		const float dx = ((float)(event->mval[0] - (ar->winx / 2))) * rv3d->zfac / (ar->winx / 2);
-		const float dy = ((float)(event->mval[1] - (ar->winy / 2))) * rv3d->zfac / (ar->winy / 2);
+		const float dx = ((float)(mval[0] - (ar->winx / 2))) * rv3d->zfac / (ar->winx / 2);
+		const float dy = ((float)(mval[1] - (ar->winy / 2))) * rv3d->zfac / (ar->winy / 2);
 		const float fz = (rv3d->persmat[0][3] * fp[0] +
 		                  rv3d->persmat[1][3] * fp[1] +
 		                  rv3d->persmat[2][3] * fp[2] +
@@ -3727,11 +3731,21 @@ static int view3d_cursor3d_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *
 		fp[2] = (rv3d->persinv[0][2] * dx + rv3d->persinv[1][2] * dy + rv3d->persinv[2][2] * fz) - rv3d->ofs[2];
 	}
 
+}
+
+static int view3d_cursor3d_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
+{
+	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	float *fp = give_cursor(scene, v3d);
+
+	ED_view3d_cursor3d_position(C, fp, event->x, event->y);
+	
 	if (v3d && v3d->localvd)
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 	else
 		WM_event_add_notifier(C, NC_SCENE | NA_EDITED, scene);
-
+	
 	return OPERATOR_FINISHED;
 }
 
