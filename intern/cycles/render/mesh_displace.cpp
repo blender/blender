@@ -59,7 +59,7 @@ bool MeshManager::displace(Device *device, Scene *scene, Mesh *mesh, Progress& p
 	vector<bool> done(mesh->verts.size(), false);
 	device_vector<uint4> d_input;
 	uint4 *d_input_data = d_input.resize(mesh->verts.size());
-	size_t d_input_offset = 0;
+	size_t d_input_size = 0;
 
 	for(size_t i = 0; i < mesh->triangles.size(); i++) {
 		Mesh::Triangle t = mesh->triangles[i];
@@ -95,16 +95,16 @@ bool MeshManager::displace(Device *device, Scene *scene, Mesh *mesh, Progress& p
 
 			/* back */
 			uint4 in = make_uint4(object, prim, __float_as_int(u), __float_as_int(v));
-			d_input_data[d_input_offset++] = in;
+			d_input_data[d_input_size++] = in;
 		}
 	}
 
-	if(d_input_offset == 0)
+	if(d_input_size == 0)
 		return false;
 	
 	/* run device task */
 	device_vector<float4> d_output;
-	d_output.resize(d_input.size());
+	d_output.resize(d_input_size);
 
 	device->mem_alloc(d_input, MEM_READ_ONLY);
 	device->mem_copy_to(d_input);
@@ -115,7 +115,7 @@ bool MeshManager::displace(Device *device, Scene *scene, Mesh *mesh, Progress& p
 	task.shader_output = d_output.device_pointer;
 	task.shader_eval_type = SHADER_EVAL_DISPLACE;
 	task.shader_x = 0;
-	task.shader_w = d_input.size();
+	task.shader_w = d_output.size();
 
 	device->task_add(task);
 	device->task_wait();
