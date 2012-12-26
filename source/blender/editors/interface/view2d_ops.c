@@ -1744,8 +1744,8 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		}
 		
 		/* zone is also inappropriate if scroller is not visible... */
-		if (((vsm->scroller == 'h') && (v2d->scroll & (V2D_SCROLL_HORIZONTAL_HIDE | V2D_SCROLL_HORIZONTAL_FULLR))) ||
-		    ((vsm->scroller == 'v') && (v2d->scroll & (V2D_SCROLL_VERTICAL_HIDE | V2D_SCROLL_VERTICAL_FULLR))) )
+		if (((vsm->scroller == 'h') && (v2d->scroll & (V2D_SCROLL_HORIZONTAL_FULLR))) ||
+		    ((vsm->scroller == 'v') && (v2d->scroll & (V2D_SCROLL_VERTICAL_FULLR))) )
 		{
 			/* free customdata initialized */
 			scroller_activate_exit(C, op);

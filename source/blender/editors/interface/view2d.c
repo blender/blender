@@ -60,6 +60,8 @@
 
 #include "interface_intern.h"
 
+static void ui_view2d_curRect_validate_resize(View2D *v2d, int resize, int mask_scrollers);
+
 /* *********************************************************************** */
 
 /* XXX still unresolved: scrolls hide/unhide vs region mask handling */
@@ -73,15 +75,15 @@
  */
 static int view2d_scroll_mapped(int scroll)
 {
-	if (scroll & V2D_SCROLL_HORIZONTAL_HIDE)
+	if (scroll & V2D_SCROLL_HORIZONTAL_FULLR)
 		scroll &= ~(V2D_SCROLL_HORIZONTAL);
-	if (scroll & V2D_SCROLL_VERTICAL_HIDE)
+	if (scroll & V2D_SCROLL_VERTICAL_FULLR)
 		scroll &= ~(V2D_SCROLL_VERTICAL);
 	return scroll;
 }
 
 /* called each time cur changes, to dynamically update masks */
-static void view2d_masks(View2D *v2d)
+static void view2d_masks(View2D *v2d, int check_scrollers)
 {
 	int scroll;
 	
@@ -90,19 +92,26 @@ static void view2d_masks(View2D *v2d)
 	v2d->mask.xmax = v2d->winx - 1; /* -1 yes! masks are pixels */
 	v2d->mask.ymax = v2d->winy - 1;
 
-#if 0
-	/* XXX see above */
-	v2d->scroll &= ~(V2D_SCROLL_HORIZONTAL_HIDE | V2D_SCROLL_VERTICAL_HIDE);
-	/* check size if: */
-	if (v2d->scroll & V2D_SCROLL_HORIZONTAL)
-		if (!(v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL))
-			if (BLI_rctf_size_x(&v2d->tot) <= BLI_rcti_size_x(&v2d->cur))
-				v2d->scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
-	if (v2d->scroll & V2D_SCROLL_VERTICAL)
-		if (!(v2d->scroll & V2D_SCROLL_SCALE_VERTICAL))
-			if (BLI_rctf_size_y(&v2d->tot) <= BLI_rctf_size_y(&v2d->cur))
-				v2d->scroll |= V2D_SCROLL_VERTICAL_HIDE;
-#endif
+	if (check_scrollers) {
+		/* check size if hiding flag is set: */
+		if (v2d->scroll & V2D_SCROLL_HORIZONTAL_HIDE) {
+			if (!(v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL)) {
+				if (BLI_rctf_size_x(&v2d->tot) > BLI_rctf_size_x(&v2d->cur))
+					v2d->scroll &= ~V2D_SCROLL_HORIZONTAL_FULLR;
+				else
+					v2d->scroll |= V2D_SCROLL_HORIZONTAL_FULLR;
+			}
+		}
+		if (v2d->scroll & V2D_SCROLL_VERTICAL_HIDE) {
+			if (!(v2d->scroll & V2D_SCROLL_SCALE_VERTICAL)) {
+				if (BLI_rctf_size_y(&v2d->tot) + 0.01f > BLI_rctf_size_y(&v2d->cur))
+					v2d->scroll &= ~V2D_SCROLL_VERTICAL_FULLR;
+				else
+					v2d->scroll |= V2D_SCROLL_VERTICAL_FULLR;
+			}
+		}
+	}
+	
 	scroll = view2d_scroll_mapped(v2d->scroll);
 	
 	/* scrollers shrink mask area, but should be based off regionsize 
@@ -126,8 +135,8 @@ static void view2d_masks(View2D *v2d)
 		}
 		
 		/* horizontal scroller */
-		if (scroll & (V2D_SCROLL_BOTTOM | V2D_SCROLL_BOTTOM_O)) {
-			/* on bottom edge of region (V2D_SCROLL_BOTTOM_O is outliner, the other is for standard) */
+		if (scroll & (V2D_SCROLL_BOTTOM)) {
+			/* on bottom edge of region */
 			v2d->hor = v2d->mask;
 			v2d->hor.ymax = V2D_SCROLL_HEIGHT;
 			v2d->mask.ymin = v2d->hor.ymax + 1;
@@ -142,8 +151,8 @@ static void view2d_masks(View2D *v2d)
 		/* adjust vertical scroller if there's a horizontal scroller, to leave corner free */
 		if (scroll & V2D_SCROLL_VERTICAL) {
 			/* just set y min/max for vertical scroller to y min/max of mask as appropriate */
-			if (scroll & (V2D_SCROLL_BOTTOM | V2D_SCROLL_BOTTOM_O)) {
-				/* on bottom edge of region (V2D_SCROLL_BOTTOM_O is outliner, the other is for standard) */
+			if (scroll & (V2D_SCROLL_BOTTOM)) {
+				/* on bottom edge of region */
 				v2d->vert.ymin = v2d->mask.ymin;
 			}
 			else if (scroll & V2D_SCROLL_TOP) {
@@ -152,7 +161,6 @@ static void view2d_masks(View2D *v2d)
 			}
 		}
 	}
-	
 }
 
 /* Refresh and Validation */
@@ -165,163 +173,173 @@ static void view2d_masks(View2D *v2d)
  */
 void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 {
-	short tot_changed = 0, init = 0;
+	short tot_changed = 0, do_init;
 	uiStyle *style = UI_GetStyle();
 
-	/* initialize data if there is a need for such */
-	if ((v2d->flag & V2D_IS_INITIALISED) == 0) {
-		/* set initialized flag so that View2D doesn't get reinitialised next time again */
-		v2d->flag |= V2D_IS_INITIALISED;
-
-		init = 1;
+	do_init = (v2d->flag & V2D_IS_INITIALISED) == 0;
 		
-		/* see eView2D_CommonViewTypes in UI_view2d.h for available view presets */
-		switch (type) {
-			/* 'standard view' - optimum setup for 'standard' view behavior,
-			 *  that should be used new views as basis for their
-			 *  own unique View2D settings, which should be used instead of this in most cases...
+	/* see eView2D_CommonViewTypes in UI_view2d.h for available view presets */
+	switch (type) {
+		/* 'standard view' - optimum setup for 'standard' view behavior,
+		 *  that should be used new views as basis for their
+		 *  own unique View2D settings, which should be used instead of this in most cases...
+		 */
+		case V2D_COMMONVIEW_STANDARD:
+		{
+			/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
+			v2d->keepzoom = (V2D_KEEPASPECT | V2D_LIMITZOOM);
+			v2d->minzoom = 0.01f;
+			v2d->maxzoom = 1000.0f;
+			
+			/* tot rect and cur should be same size, and aligned using 'standard' OpenGL coordinates for now 
+			 *	- region can resize 'tot' later to fit other data
+			 *	- keeptot is only within bounds, as strict locking is not that critical
+			 *	- view is aligned for (0,0) -> (winx-1, winy-1) setup
 			 */
-			case V2D_COMMONVIEW_STANDARD:
-			{
-				/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
-				v2d->keepzoom = (V2D_KEEPASPECT | V2D_LIMITZOOM);
-				v2d->minzoom = 0.01f;
-				v2d->maxzoom = 1000.0f;
-				
-				/* tot rect and cur should be same size, and aligned using 'standard' OpenGL coordinates for now 
-				 *	- region can resize 'tot' later to fit other data
-				 *	- keeptot is only within bounds, as strict locking is not that critical
-				 *	- view is aligned for (0,0) -> (winx-1, winy-1) setup
-				 */
-				v2d->align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_NEG_Y);
-				v2d->keeptot = V2D_KEEPTOT_BOUNDS;
-				
+			v2d->align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_NEG_Y);
+			v2d->keeptot = V2D_KEEPTOT_BOUNDS;
+			
+			if (do_init) {
 				v2d->tot.xmin = v2d->tot.ymin = 0.0f;
 				v2d->tot.xmax = (float)(winx - 1);
 				v2d->tot.ymax = (float)(winy - 1);
 				
 				v2d->cur = v2d->tot;
-				
-				/* scrollers - should we have these by default? */
-				/* XXX for now, we don't override this, or set it either! */
 			}
-			break;
+			/* scrollers - should we have these by default? */
+			/* XXX for now, we don't override this, or set it either! */
+		}
+		break;
+		
+		/* 'list/channel view' - zoom, aspect ratio, and alignment restrictions are set here */
+		case V2D_COMMONVIEW_LIST:
+		{
+			/* zoom + aspect ratio are locked */
+			v2d->keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
+			v2d->minzoom = v2d->maxzoom = 1.0f;
 			
-			/* 'list/channel view' - zoom, aspect ratio, and alignment restrictions are set here */
-			case V2D_COMMONVIEW_LIST:
-			{
-				/* zoom + aspect ratio are locked */
-				v2d->keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
-				v2d->minzoom = v2d->maxzoom = 1.0f;
-				
-				/* tot rect has strictly regulated placement, and must only occur in +/- quadrant */
-				v2d->align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_POS_Y);
-				v2d->keeptot = V2D_KEEPTOT_STRICT;
-				tot_changed = 1;
-				
-				/* scroller settings are currently not set here... that is left for regions... */
-			}
-			break;
-				
-			/* 'stack view' - practically the same as list/channel view, except is located in the pos y half instead. 
-			 *  zoom, aspect ratio, and alignment restrictions are set here */
-			case V2D_COMMONVIEW_STACK:
-			{
-				/* zoom + aspect ratio are locked */
-				v2d->keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
-				v2d->minzoom = v2d->maxzoom = 1.0f;
-				
-				/* tot rect has strictly regulated placement, and must only occur in +/+ quadrant */
-				v2d->align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_NEG_Y);
-				v2d->keeptot = V2D_KEEPTOT_STRICT;
-				tot_changed = 1;
-				
-				/* scroller settings are currently not set here... that is left for regions... */
-			}
-			break;
-				
-			/* 'header' regions - zoom, aspect ratio, alignment, and panning restrictions are set here */
-			case V2D_COMMONVIEW_HEADER:
-			{
-				/* zoom + aspect ratio are locked */
-				v2d->keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
-				v2d->minzoom = v2d->maxzoom = 1.0f;
-				v2d->min[0] = v2d->max[0] = (float)(winx - 1);
-				v2d->min[1] = v2d->max[1] = (float)(winy - 1);
-				
-				/* tot rect has strictly regulated placement, and must only occur in +/+ quadrant */
-				v2d->align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_NEG_Y);
-				v2d->keeptot = V2D_KEEPTOT_STRICT;
-				tot_changed = 1;
-				
-				/* panning in y-axis is prohibited */
-				v2d->keepofs = V2D_LOCKOFS_Y;
-				
-				/* absolutely no scrollers allowed */
-				v2d->scroll = 0;
-				
-			}
-			break;
+			/* tot rect has strictly regulated placement, and must only occur in +/- quadrant */
+			v2d->align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_POS_Y);
+			v2d->keeptot = V2D_KEEPTOT_STRICT;
+			tot_changed = do_init;
 			
-			/* panels view, with horizontal/vertical align */
-			case V2D_COMMONVIEW_PANELS_UI:
-			{
-				float panelzoom = (style) ? style->panelzoom : 1.0f;
-				
-				/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
-				v2d->keepzoom = (V2D_KEEPASPECT | V2D_LIMITZOOM | V2D_KEEPZOOM);
-				v2d->minzoom = 0.5f;
-				v2d->maxzoom = 2.0f;
-				//tot_changed = 1;
-				
-				v2d->align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_POS_Y);
-				v2d->keeptot = V2D_KEEPTOT_BOUNDS;
-				
-				v2d->scroll |= (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
-				v2d->scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
-				v2d->scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
-
+			/* scroller settings are currently not set here... that is left for regions... */
+		}
+		break;
+			
+		/* 'stack view' - practically the same as list/channel view, except is located in the pos y half instead. 
+		 *  zoom, aspect ratio, and alignment restrictions are set here */
+		case V2D_COMMONVIEW_STACK:
+		{
+			/* zoom + aspect ratio are locked */
+			v2d->keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
+			v2d->minzoom = v2d->maxzoom = 1.0f;
+			
+			/* tot rect has strictly regulated placement, and must only occur in +/+ quadrant */
+			v2d->align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_NEG_Y);
+			v2d->keeptot = V2D_KEEPTOT_STRICT;
+			tot_changed = do_init;
+			
+			/* scroller settings are currently not set here... that is left for regions... */
+		}
+		break;
+			
+		/* 'header' regions - zoom, aspect ratio, alignment, and panning restrictions are set here */
+		case V2D_COMMONVIEW_HEADER:
+		{
+			/* zoom + aspect ratio are locked */
+			v2d->keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
+			v2d->minzoom = v2d->maxzoom = 1.0f;
+			
+			if (do_init) {
 				v2d->tot.xmin = 0.0f;
 				v2d->tot.xmax = winx;
+				v2d->tot.ymin = 0.0f;
+				v2d->tot.ymax = winy;
+				v2d->cur = v2d->tot;
+				
+				v2d->min[0] = v2d->max[0] = (float)(winx - 1);
+				v2d->min[1] = v2d->max[1] = (float)(winy - 1);
+			}
+			/* tot rect has strictly regulated placement, and must only occur in +/+ quadrant */
+			v2d->align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_NEG_Y);
+			v2d->keeptot = V2D_KEEPTOT_STRICT;
+			tot_changed = do_init;
+			
+			/* panning in y-axis is prohibited */
+			v2d->keepofs = V2D_LOCKOFS_Y;
+			
+			/* absolutely no scrollers allowed */
+			v2d->scroll = 0;
+			
+		}
+		break;
+		
+		/* panels view, with horizontal/vertical align */
+		case V2D_COMMONVIEW_PANELS_UI:
+		{
+			
+			/* for now, aspect ratio should be maintained, and zoom is clamped within sane default limits */
+			v2d->keepzoom = (V2D_KEEPASPECT | V2D_LIMITZOOM | V2D_KEEPZOOM);
+			v2d->minzoom = 0.5f;
+			v2d->maxzoom = 2.0f;
+			
+			v2d->align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_POS_Y);
+			v2d->keeptot = V2D_KEEPTOT_BOUNDS;
+			
+			/* note, scroll is being flipped in ED_region_panels() drawing */
+			v2d->scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
+			v2d->scroll |= V2D_SCROLL_VERTICAL_HIDE;
+
+			if (do_init) {
+				float panelzoom = (style) ? style->panelzoom : 1.0f;
+				float scrolw = v2d->scroll & V2D_SCROLL_RIGHT ? V2D_SCROLL_WIDTH : 0.0f;
+				
+				v2d->tot.xmin = 0.0f;
+				v2d->tot.xmax = winx - scrolw;
 				
 				v2d->tot.ymax = 0.0f;
 				v2d->tot.ymin = -winy;
 				
 				v2d->cur.xmin = 0.0f;
-				/* bad workaround for keeping zoom level with scrollers */
-				v2d->cur.xmax = (winx - V2D_SCROLL_WIDTH) * panelzoom;
+				v2d->cur.xmax = (winx) * panelzoom - scrolw;
 				
 				v2d->cur.ymax = 0.0f;
 				v2d->cur.ymin = (-winy) * panelzoom;
 			}
-			break;
-				
-			/* other view types are completely defined using their own settings already */
-			default:
-				/* we don't do anything here, as settings should be fine, but just make sure that rect */
-				break;
 		}
+		break;
+			
+		/* other view types are completely defined using their own settings already */
+		default:
+			/* we don't do anything here, as settings should be fine, but just make sure that rect */
+			break;
 	}
 	
+	/* set initialized flag so that View2D doesn't get reinitialised next time again */
+	v2d->flag |= V2D_IS_INITIALISED;
+
 	/* store view size */
 	v2d->winx = winx;
 	v2d->winy = winy;
 	
-	/* set masks */
-	view2d_masks(v2d);
+	/* set masks (always do), but leave scroller scheck to totrect_set */
+	view2d_masks(v2d, 0);
 	
 	/* set 'tot' rect before setting cur? */
-	if (tot_changed) 
-		UI_view2d_totRect_set_resize(v2d, winx, winy, !init);
+	/* XXX confusing stuff here still - I made this function not check scroller hide - that happens in totrect_set */
+	if (tot_changed)
+		UI_view2d_totRect_set_resize(v2d, winx, winy, !do_init);
 	else
-		UI_view2d_curRect_validate_resize(v2d, !init);
+		ui_view2d_curRect_validate_resize(v2d, !do_init, 0);
+	
 }
 
 /* Ensure View2D rects remain in a viable configuration 
  *	- cur is not allowed to be: larger than max, smaller than min, or outside of tot
  */
 // XXX pre2.5 -> this used to be called  test_view2d()
-void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
+static void ui_view2d_curRect_validate_resize(View2D *v2d, int resize, int mask_scrollers)
 {
 	float totwidth, totheight, curwidth, curheight, width, height;
 	float winx, winy;
@@ -715,12 +733,12 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 	}
 	
 	/* set masks */
-	view2d_masks(v2d);
+	view2d_masks(v2d, mask_scrollers);
 }
 
 void UI_view2d_curRect_validate(View2D *v2d)
 {
-	UI_view2d_curRect_validate_resize(v2d, 0);
+	ui_view2d_curRect_validate_resize(v2d, 0, 1);
 }
 
 /* ------------------ */
@@ -844,7 +862,7 @@ void UI_view2d_curRect_reset(View2D *v2d)
 /* Change the size of the maximum viewable area (i.e. 'tot' rect) */
 void UI_view2d_totRect_set_resize(View2D *v2d, int width, int height, int resize)
 {
-	int scroll = view2d_scroll_mapped(v2d->scroll);
+//	int scroll = view2d_scroll_mapped(v2d->scroll);
 	
 	/* don't do anything if either value is 0 */
 	width = abs(width);
@@ -853,10 +871,10 @@ void UI_view2d_totRect_set_resize(View2D *v2d, int width, int height, int resize
 	/* hrumf! */
 	/* XXX: there are work arounds for this in the panel and file browse code. */
 	/* round to int, because this is called with width + V2D_SCROLL_WIDTH */
-	if (scroll & V2D_SCROLL_HORIZONTAL) 
-		width -= (int)V2D_SCROLL_WIDTH;
-	if (scroll & V2D_SCROLL_VERTICAL) 
-		height -= (int)V2D_SCROLL_HEIGHT;
+//	if (scroll & V2D_SCROLL_HORIZONTAL)
+//		width -= (int)V2D_SCROLL_WIDTH;
+//	if (scroll & V2D_SCROLL_VERTICAL)
+//		height -= (int)V2D_SCROLL_HEIGHT;
 	
 	if (ELEM(0, width, height)) {
 		if (G.debug & G_DEBUG)
@@ -903,12 +921,21 @@ void UI_view2d_totRect_set_resize(View2D *v2d, int width, int height, int resize
 	}
 	
 	/* make sure that 'cur' rect is in a valid state as a result of these changes */
-	UI_view2d_curRect_validate_resize(v2d, resize);
+	ui_view2d_curRect_validate_resize(v2d, resize, 1);
+	
 }
 
 void UI_view2d_totRect_set(View2D *v2d, int width, int height)
 {
+	int scroll = view2d_scroll_mapped(v2d->scroll);
+
 	UI_view2d_totRect_set_resize(v2d, width, height, 0);
+	
+	/* solve bad recursion... if scroller state changed, mask is different, so you get different rects */
+	if (scroll != view2d_scroll_mapped(v2d->scroll)) {
+		UI_view2d_totRect_set_resize(v2d, width, height, 0);
+	}
+	
 }
 
 int UI_view2d_tab_set(View2D *v2d, int tab)
@@ -1494,15 +1521,6 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d,
 			CLAMP(scrollers->hor_min, hor.xmin, hor.xmax - V2D_SCROLLER_HANDLE_SIZE);
 		}
 		
-		/* check whether sliders can disappear due to the full-range being used */
-		if (v2d->keeptot) {
-			if ((fac1 <= 0.0f) && (fac2 >= 1.0f)) {
-				v2d->scroll |= V2D_SCROLL_HORIZONTAL_FULLR;
-				scrollers->horfull = 1;
-			}
-			else
-				v2d->scroll &= ~V2D_SCROLL_HORIZONTAL_FULLR;
-		}
 	}
 	
 	/* vertical scrollers */
@@ -1536,15 +1554,6 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d,
 			CLAMP(scrollers->vert_min, vert.ymin, vert.ymax - V2D_SCROLLER_HANDLE_SIZE);
 		}
 
-		/* check whether sliders can disappear due to the full-range being used */
-		if (v2d->keeptot) {
-			if ((fac1 <= 0.0f) && (fac2 >= 1.0f)) {
-				v2d->scroll |= V2D_SCROLL_VERTICAL_FULLR;
-				scrollers->vertfull = 1;
-			}
-			else
-				v2d->scroll &= ~V2D_SCROLL_VERTICAL_FULLR;
-		}
 	}
 	
 	/* grid markings on scrollbars */
@@ -1618,44 +1627,41 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 	
 	/* horizontal scrollbar */
 	if (scroll & V2D_SCROLL_HORIZONTAL) {
-		/* only draw scrollbar when it doesn't fill the entire space */
-		if (vs->horfull == 0) {
-			bTheme *btheme = UI_GetTheme();
-			uiWidgetColors wcol = btheme->tui.wcol_scroll;
-			rcti slider;
-			int state;
-			unsigned char col[4];
-			
-			slider.xmin = vs->hor_min;
-			slider.xmax = vs->hor_max;
-			slider.ymin = hor.ymin;
-			slider.ymax = hor.ymax;
-			
-			state = (v2d->scroll_ui & V2D_SCROLL_H_ACTIVE) ? UI_SCROLL_PRESSED : 0;
-			
-			/* show zoom handles if:
-			 *	- zooming on x-axis is allowed (no scroll otherwise)
-			 *	- slider bubble is large enough (no overdraw confusion)
-			 *	- scale is shown on the scroller 
-			 *	  (workaround to make sure that button windows don't show these, 
-			 *		and only the time-grids with their zoomability can do so)
-			 */
-			if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0 &&
-			    (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) &&
-			    (BLI_rcti_size_x(&slider) > V2D_SCROLLER_HANDLE_SIZE))
-			{
-				state |= UI_SCROLL_ARROWS;
-			}
-			
-			/* clean rect behind slider, but not with transparent background */
-			UI_GetThemeColor4ubv(TH_BACK, col);
-			if (col[3] == 255) {
-				glColor3ub(col[0], col[1], col[2]);
-				glRecti(v2d->hor.xmin, v2d->hor.ymin, v2d->hor.xmax, v2d->hor.ymax);
-			}
-			
-			uiWidgetScrollDraw(&wcol, &hor, &slider, state);
+		bTheme *btheme = UI_GetTheme();
+		uiWidgetColors wcol = btheme->tui.wcol_scroll;
+		rcti slider;
+		int state;
+		unsigned char col[4];
+		
+		slider.xmin = vs->hor_min;
+		slider.xmax = vs->hor_max;
+		slider.ymin = hor.ymin;
+		slider.ymax = hor.ymax;
+		
+		state = (v2d->scroll_ui & V2D_SCROLL_H_ACTIVE) ? UI_SCROLL_PRESSED : 0;
+		
+		/* show zoom handles if:
+		 *	- zooming on x-axis is allowed (no scroll otherwise)
+		 *	- slider bubble is large enough (no overdraw confusion)
+		 *	- scale is shown on the scroller 
+		 *	  (workaround to make sure that button windows don't show these, 
+		 *		and only the time-grids with their zoomability can do so)
+		 */
+		if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0 &&
+			(v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) &&
+			(BLI_rcti_size_x(&slider) > V2D_SCROLLER_HANDLE_SIZE))
+		{
+			state |= UI_SCROLL_ARROWS;
 		}
+		
+		/* clean rect behind slider, but not with transparent background */
+		UI_GetThemeColor4ubv(TH_BACK, col);
+		if (col[3] == 255) {
+			glColor3ub(col[0], col[1], col[2]);
+			glRecti(v2d->hor.xmin, v2d->hor.ymin, v2d->hor.xmax, v2d->hor.ymax);
+		}
+		
+		uiWidgetScrollDraw(&wcol, &hor, &slider, state);
 		
 		/* scale indicators */
 		if ((scroll & V2D_SCROLL_SCALE_HORIZONTAL) && (vs->grid)) {
@@ -1734,44 +1740,41 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 	
 	/* vertical scrollbar */
 	if (scroll & V2D_SCROLL_VERTICAL) {
-		/* only draw scrollbar when it doesn't fill the entire space */
-		if (vs->vertfull == 0) {
-			bTheme *btheme = UI_GetTheme();
-			uiWidgetColors wcol = btheme->tui.wcol_scroll;
-			rcti slider;
-			int state;
-			unsigned char col[4];
-			
-			slider.xmin = vert.xmin;
-			slider.xmax = vert.xmax;
-			slider.ymin = vs->vert_min;
-			slider.ymax = vs->vert_max;
-			
-			state = (v2d->scroll_ui & V2D_SCROLL_V_ACTIVE) ? UI_SCROLL_PRESSED : 0;
-			
-			/* show zoom handles if:
-			 *	- zooming on y-axis is allowed (no scroll otherwise)
-			 *	- slider bubble is large enough (no overdraw confusion)
-			 *	- scale is shown on the scroller 
-			 *	  (workaround to make sure that button windows don't show these, 
-			 *		and only the time-grids with their zoomability can do so)
-			 */
-			if ((v2d->keepzoom & V2D_LOCKZOOM_Y) == 0 &&
-			    (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) &&
-			    (BLI_rcti_size_y(&slider) > V2D_SCROLLER_HANDLE_SIZE))
-			{
-				state |= UI_SCROLL_ARROWS;
-			}
-			
-			/* clean rect behind slider, but not with transparent background */
-			UI_GetThemeColor4ubv(TH_BACK, col);
-			if (col[3] == 255) {
-				glColor3ub(col[0], col[1], col[2]);
-				glRecti(v2d->vert.xmin, v2d->vert.ymin, v2d->vert.xmax, v2d->vert.ymax);
-			}
-			
-			uiWidgetScrollDraw(&wcol, &vert, &slider, state);
+		bTheme *btheme = UI_GetTheme();
+		uiWidgetColors wcol = btheme->tui.wcol_scroll;
+		rcti slider;
+		int state;
+		unsigned char col[4];
+		
+		slider.xmin = vert.xmin;
+		slider.xmax = vert.xmax;
+		slider.ymin = vs->vert_min;
+		slider.ymax = vs->vert_max;
+		
+		state = (v2d->scroll_ui & V2D_SCROLL_V_ACTIVE) ? UI_SCROLL_PRESSED : 0;
+		
+		/* show zoom handles if:
+		 *	- zooming on y-axis is allowed (no scroll otherwise)
+		 *	- slider bubble is large enough (no overdraw confusion)
+		 *	- scale is shown on the scroller 
+		 *	  (workaround to make sure that button windows don't show these, 
+		 *		and only the time-grids with their zoomability can do so)
+		 */
+		if ((v2d->keepzoom & V2D_LOCKZOOM_Y) == 0 &&
+			(v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) &&
+			(BLI_rcti_size_y(&slider) > V2D_SCROLLER_HANDLE_SIZE))
+		{
+			state |= UI_SCROLL_ARROWS;
 		}
+		
+		/* clean rect behind slider, but not with transparent background */
+		UI_GetThemeColor4ubv(TH_BACK, col);
+		if (col[3] == 255) {
+			glColor3ub(col[0], col[1], col[2]);
+			glRecti(v2d->vert.xmin, v2d->vert.ymin, v2d->vert.xmax, v2d->vert.ymax);
+		}
+		
+		uiWidgetScrollDraw(&wcol, &vert, &slider, state);
 		
 		
 		/* scale indiators */

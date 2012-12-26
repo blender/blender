@@ -574,8 +574,8 @@ static void area_azone_initialize(bScreen *screen, ScrArea *sa)
 	az = (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 	BLI_addtail(&(sa->actionzones), az);
 	az->type = AZONE_AREA;
-	az->x1 = sa->totrct.xmin - 1;
-	az->y1 = sa->totrct.ymin - 1;
+	az->x1 = sa->totrct.xmin;
+	az->y1 = sa->totrct.ymin;
 	az->x2 = sa->totrct.xmin + (AZONESPOT - 1);
 	az->y2 = sa->totrct.ymin + (AZONESPOT - 1);
 	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
@@ -1300,6 +1300,9 @@ void ED_region_init(bContext *C, ARegion *ar)
 	ar->winx = BLI_rcti_size_x(&ar->winrct) + 1;
 	ar->winy = BLI_rcti_size_y(&ar->winrct) + 1;
 	
+	/* v2d mask is used to subtract scrollbars from a 2d view. Needs initialize here. */
+	BLI_rcti_init(&ar->v2d.mask, 0, ar->winx - 1, 0, ar->winy -1);
+
 	/* UI convention */
 	wmOrtho2(-0.01f, ar->winx - 0.01f, -0.01f, ar->winy - 0.01f);
 	glLoadIdentity();
@@ -1612,86 +1615,141 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 	View2D *v2d = &ar->v2d;
 	View2DScrollers *scrollers;
 	int x, y, xco, yco, w, em, triangle, open, newcontext = 0;
-	
+	int redo;
+	int scroll;
+
 	if (contextnr >= 0)
 		newcontext = UI_view2d_tab_set(v2d, contextnr);
-
+	
+	/* before setting the view */
 	if (vertical) {
-		w = BLI_rctf_size_x(&v2d->cur);
-		em = (ar->type->prefsizex) ? UI_UNIT_Y / 2 : UI_UNIT_Y;
+		/* only allow scrolling in vertical direction */
+		v2d->keepofs |= V2D_LOCKOFS_X | V2D_KEEPOFS_Y;
+		v2d->keepofs &= ~(V2D_LOCKOFS_Y | V2D_KEEPOFS_X);
+		v2d->scroll &= ~(V2D_SCROLL_BOTTOM);
+		v2d->scroll |= (V2D_SCROLL_RIGHT);
 	}
 	else {
-		w = UI_PANEL_WIDTH;
-		em = (ar->type->prefsizex) ? UI_UNIT_Y / 2 : UI_UNIT_Y;
+		/* for now, allow scrolling in both directions (since layouts are optimized for vertical,
+		 * they often don't fit in horizontal layout)
+		 */
+		v2d->keepofs &= ~(V2D_LOCKOFS_X | V2D_LOCKOFS_Y | V2D_KEEPOFS_X | V2D_KEEPOFS_Y);
+		v2d->scroll |= (V2D_SCROLL_BOTTOM);
+		v2d->scroll &= ~(V2D_SCROLL_RIGHT);
 	}
 
-	/* create panels */
-	uiBeginPanels(C, ar);
-
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(v2d);
-
-	for (pt = ar->type->paneltypes.first; pt; pt = pt->next) {
-		/* verify context */
-		if (context)
-			if (pt->context[0] && strcmp(context, pt->context) != 0)
-				continue;
-
-		/* draw panel */
-		if (pt->draw && (!pt->poll || pt->poll(C, pt))) {
-			block = uiBeginBlock(C, ar, pt->idname, UI_EMBOSS);
-			panel = uiBeginPanel(sa, ar, block, pt, &open);
-
-			/* bad fixed values */
-			triangle = (int)(UI_UNIT_Y * 1.1f);
-
-			if (pt->draw_header && !(pt->flag & PNL_NO_HEADER) && (open || vertical)) {
-				/* for enabled buttons */
-				panel->layout = uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
-				                              triangle, (UI_UNIT_Y * 1.1f) + style->panelspace, UI_UNIT_Y, 1, style);
-
-				pt->draw_header(C, panel);
-
-				uiBlockLayoutResolve(block, &xco, &yco);
-				panel->labelofs = xco - triangle;
-				panel->layout = NULL;
-			}
-			else {
-				panel->labelofs = 0;
-			}
-
-			if (open) {
-				short panelContext;
-				
-				/* panel context can either be toolbar region or normal panels region */
-				if (ar->regiontype == RGN_TYPE_TOOLS)
-					panelContext = UI_LAYOUT_TOOLBAR;
-				else
-					panelContext = UI_LAYOUT_PANEL;
-				
-				panel->layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, panelContext,
-				                              style->panelspace, 0, w - 2 * style->panelspace, em, style);
-
-				pt->draw(C, panel);
-
-				uiBlockLayoutResolve(block, &xco, &yco);
-				panel->layout = NULL;
-
-				yco -= 2 * style->panelspace;
-				uiEndPanel(block, w, -yco);
-			}
-			else {
-				yco = 0;
-				uiEndPanel(block, w, 0);
-			}
-
-			uiEndBlock(C, block);
+	scroll = v2d->scroll;
+	
+	/* sortof hack - but we cannot predict the height of panels, until it's being generated */
+	/* the layout engine works with fixed width (from v2d->cur), which is being set at end of the loop */
+	/* in case scroller settings (hide flags) differ from previous, the whole loop gets done again */
+	for (redo = 2; redo > 0; redo--) {
+		
+		if (vertical) {
+			w = BLI_rctf_size_x(&v2d->cur);
+			em = (ar->type->prefsizex) ? UI_UNIT_Y / 2 : UI_UNIT_Y;
 		}
+		else {
+			w = UI_PANEL_WIDTH;
+			em = (ar->type->prefsizex) ? UI_UNIT_Y / 2 : UI_UNIT_Y;
+		}
+		
+		/* create panels */
+		uiBeginPanels(C, ar);
+
+		/* set view2d view matrix  - uiBeginBlock() stores it */
+		UI_view2d_view_ortho(v2d);
+
+		for (pt = ar->type->paneltypes.first; pt; pt = pt->next) {
+			/* verify context */
+			if (context)
+				if (pt->context[0] && strcmp(context, pt->context) != 0)
+					continue;
+
+			/* draw panel */
+			if (pt->draw && (!pt->poll || pt->poll(C, pt))) {
+				block = uiBeginBlock(C, ar, pt->idname, UI_EMBOSS);
+				panel = uiBeginPanel(sa, ar, block, pt, &open);
+
+				/* bad fixed values */
+				triangle = (int)(UI_UNIT_Y * 1.1f);
+
+				if (pt->draw_header && !(pt->flag & PNL_NO_HEADER) && (open || vertical)) {
+					/* for enabled buttons */
+					panel->layout = uiBlockLayout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
+												  triangle, (UI_UNIT_Y * 1.1f) + style->panelspace, UI_UNIT_Y, 1, style);
+
+					pt->draw_header(C, panel);
+
+					uiBlockLayoutResolve(block, &xco, &yco);
+					panel->labelofs = xco - triangle;
+					panel->layout = NULL;
+				}
+				else {
+					panel->labelofs = 0;
+				}
+
+				if (open) {
+					short panelContext;
+					
+					/* panel context can either be toolbar region or normal panels region */
+					if (ar->regiontype == RGN_TYPE_TOOLS)
+						panelContext = UI_LAYOUT_TOOLBAR;
+					else
+						panelContext = UI_LAYOUT_PANEL;
+					
+					panel->layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, panelContext,
+												  style->panelspace, 0, w - 2 * style->panelspace, em, style);
+
+					pt->draw(C, panel);
+
+					uiBlockLayoutResolve(block, &xco, &yco);
+					panel->layout = NULL;
+
+					yco -= 2 * style->panelspace;
+					uiEndPanel(block, w, -yco);
+				}
+				else {
+					yco = 0;
+					uiEndPanel(block, w, 0);
+				}
+
+				uiEndBlock(C, block);
+			}
+		}
+
+		/* align panels and return size */
+		uiEndPanels(C, ar, &x, &y);
+		
+		/* before setting the view */
+		if (vertical) {
+			/* we always keep the scroll offset - so the total view gets increased with the scrolled away part */
+			if (v2d->cur.ymax < - 0.001f)
+				y = min_ii(y, v2d->cur.ymin);
+			
+			y = -y;
+		}
+		else {
+			/* don't jump back when panels close or hide */
+			if (!newcontext)
+				x = max_ii(x, v2d->cur.xmax);
+			y = -y;
+		}
+		
+		/* this also changes the 'cur' */
+		UI_view2d_totRect_set(v2d, x, y);
+		
+		if (scroll != v2d->scroll) {
+			/* Note: this code scales fine, but because of rounding differences, positions of elements
+			 * flip +1 or -1 pixel compared to redoing the entire layout again.
+			 * Leaving in commented code for future tests */
+			/* uiScalePanels(ar, BLI_rctf_size_x(&v2d->cur));
+			   break; */
+		}
+		else break;
 	}
-
-	/* align panels and return size */
-	uiEndPanels(C, ar, &x, &y);
-
+	
+	
 	/* clear */
 	if (ar->overlap) {
 		/* view should be in pixelspace */
@@ -1706,36 +1764,6 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 	
-	/* before setting the view */
-	if (vertical) {
-		/* only allow scrolling in vertical direction */
-		v2d->keepofs |= V2D_LOCKOFS_X | V2D_KEEPOFS_Y;
-		v2d->keepofs &= ~(V2D_LOCKOFS_Y | V2D_KEEPOFS_X);
-		v2d->scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
-		v2d->scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
-
-		/* ensure tot is set correctly, to keep views on bottons, with sliders */
-		y = min_ii(y, v2d->cur.ymin);
-		y = -y;
-	}
-	else {
-		/* for now, allow scrolling in both directions (since layouts are optimized for vertical,
-		 * they often don't fit in horizontal layout)
-		 */
-		v2d->keepofs &= ~(V2D_LOCKOFS_X | V2D_LOCKOFS_Y | V2D_KEEPOFS_X | V2D_KEEPOFS_Y);
-		//v2d->keepofs |= V2D_LOCKOFS_Y|V2D_KEEPOFS_X;
-		//v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_KEEPOFS_Y);
-		v2d->scroll |= V2D_SCROLL_VERTICAL_HIDE;
-		v2d->scroll &= ~V2D_SCROLL_HORIZONTAL_HIDE;
-
-		/* don't jump back when panels close or hide */
-		if (!newcontext)
-			x = max_ii(x, v2d->cur.xmax);
-		y = -y;
-	}
-
-	/* +V2D_SCROLL_HEIGHT is workaround to set the actual height (needs to be int) */
-	UI_view2d_totRect_set(v2d, x + (int)V2D_SCROLL_WIDTH, y + (int)V2D_SCROLL_HEIGHT);
 
 	/* set the view */
 	UI_view2d_view_ortho(v2d);
@@ -1756,16 +1784,9 @@ void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 	
-	/* XXX quick hacks for files saved with 2.5 already (i.e. the builtin defaults file)
-	 * scrollbars for button regions */
-	ar->v2d.scroll |= (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
-	ar->v2d.scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
-	ar->v2d.scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
-	ar->v2d.keepzoom |= V2D_KEEPZOOM;
-
-	/* correctly initialized User-Prefs? */
-	if (!(ar->v2d.align & V2D_ALIGN_NO_POS_Y))
-		ar->v2d.flag &= ~V2D_IS_INITIALISED;
+	/* used for correctly initialized User-Prefs only?  */
+//	if (!(ar->v2d.align & V2D_ALIGN_NO_POS_Y))
+//		ar->v2d.flag &= ~V2D_IS_INITIALISED;
 
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
 
@@ -1828,6 +1849,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 
 void ED_region_header_init(ARegion *ar)
 {
+	ar->v2d.flag &= ~V2D_IS_INITIALISED;
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
 }
 

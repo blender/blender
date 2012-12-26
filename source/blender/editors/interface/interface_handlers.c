@@ -5248,32 +5248,15 @@ static int ui_mouse_inside_region(ARegion *ar, int x, int y)
 	 */
 	if (ar->v2d.mask.xmin != ar->v2d.mask.xmax) {
 		View2D *v2d = &ar->v2d;
-		rcti mask_rct;
 		int mx, my;
 		
 		/* convert window coordinates to region coordinates */
 		mx = x;
 		my = y;
 		ui_window_to_region(ar, &mx, &my);
-		
-		/* make a copy of the mask rect, and tweak accordingly for hidden scrollbars */
-		mask_rct = v2d->mask;
-		
-		if (v2d->scroll & (V2D_SCROLL_VERTICAL_HIDE | V2D_SCROLL_VERTICAL_FULLR)) {
-			if (v2d->scroll & V2D_SCROLL_LEFT)
-				mask_rct.xmin = v2d->vert.xmin;
-			else if (v2d->scroll & V2D_SCROLL_RIGHT)
-				mask_rct.xmax = v2d->vert.xmax;
-		}
-		if (v2d->scroll & (V2D_SCROLL_HORIZONTAL_HIDE | V2D_SCROLL_HORIZONTAL_FULLR)) {
-			if (v2d->scroll & (V2D_SCROLL_BOTTOM | V2D_SCROLL_BOTTOM_O))
-				mask_rct.ymin = v2d->hor.ymin;
-			else if (v2d->scroll & V2D_SCROLL_TOP)
-				mask_rct.ymax = v2d->hor.ymax;
-		}
-		
+
 		/* check if in the rect */
-		if (!BLI_rcti_isect_pt(&mask_rct, mx, my)) 
+		if (!BLI_rcti_isect_pt(&v2d->mask, mx, my))
 			return 0;
 	}
 	
