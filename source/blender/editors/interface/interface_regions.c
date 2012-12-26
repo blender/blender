@@ -1527,6 +1527,7 @@ static void ui_block_region_draw(const bContext *C, ARegion *ar)
 
 static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 {
+	uiBut *bt;
 	int width = UI_ThemeMenuShadowWidth();
 	int winx, winy;
 
@@ -1536,7 +1537,6 @@ static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 
 	winx = WM_window_pixels_x(window);
 	winy = WM_window_pixels_y(window);
-	// wm_window_get_size(window, &winx, &winy);
 	
 	if (block->rect.xmin < width)
 		block->rect.xmin = width;
@@ -1547,6 +1547,15 @@ static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 		block->rect.ymin = width;
 	if (block->rect.ymax > winy - MENU_TOP)
 		block->rect.ymax = winy - MENU_TOP;
+	
+	/* ensure menu items draw inside left/right boundary */
+	for (bt = block->buttons.first; bt; bt = bt->next) {
+		if (bt->rect.xmin < block->rect.xmin)
+			bt->rect.xmin = block->rect.xmin;
+		if (bt->rect.xmax > block->rect.xmax)
+			bt->rect.xmax = block->rect.xmax;
+	}
+
 }
 
 void ui_popup_block_scrolltest(uiBlock *block)
