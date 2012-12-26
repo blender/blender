@@ -2591,10 +2591,10 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 
 	/* make the precision of the display value proportionate to the gridsize */
 
-	if (grid < 0.01f) conv_float = "%.6g";
-	else if (grid < 0.1f) conv_float = "%.5g";
-	else if (grid < 1.0f) conv_float = "%.4g";
-	else if (grid < 10.0f) conv_float = "%.3g";
+	if (grid <= 0.01f) conv_float = "%.6g";
+	else if (grid <= 0.1f) conv_float = "%.5g";
+	else if (grid <= 1.0f) conv_float = "%.4g";
+	else if (grid <= 10.0f) conv_float = "%.3g";
 	else conv_float = "%.2g";
 	
 	if (me->drawflag & ME_DRAWEXTRA_EDGELEN) {
