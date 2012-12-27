@@ -113,8 +113,13 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *em)
 #define USE_TESSFACE_SPEEDUP
 
 	BMesh *bm = em->bm;
-	BMLoop *(*looptris)[3] = NULL;
-	BLI_array_declare(looptris);
+
+	/* this assumes all faces can be scan-filled, which isn't always true,
+	 * worst case we over alloc a little which is acceptable */
+	const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
+	const int looptris_tot_prev_alloc = em->looptris ? (MEM_allocN_len(em->looptris) / sizeof(*em->looptris)) : 0;
+
+	BMLoop *(*looptris)[3];
 	BMIter iter;
 	BMFace *efa;
 	BMLoop *l;
@@ -135,17 +140,16 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *em)
 #else
 
 	/* this means no reallocs for quad dominant models, for */
-	if ( (em->looptris != NULL) &&
-	     (em->tottri != 0) &&
-	     /* (totrti <= bm->totface * 2) would be fine for all quads,
-	      * but in case there are some ngons, still re-use the array */
-	     (em->tottri <= bm->totface * 3))
+	if ((em->looptris != NULL) &&
+	    /* (em->tottri >= looptris_tot)) */
+	    /* check against alloc'd size incase we over alloc'd a little */
+	    ((looptris_tot_prev_alloc >= looptris_tot) && (looptris_tot_prev_alloc <= looptris_tot * 2)))
 	{
 		looptris = em->looptris;
 	}
 	else {
 		if (em->looptris) MEM_freeN(em->looptris);
-		BLI_array_reserve(looptris, bm->totface);
+		looptris = MEM_mallocN(sizeof(*looptris) * looptris_tot, __func__);
 	}
 
 #endif
@@ -163,14 +167,12 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *em)
 		else if (efa->len == 3) {
 #if 0
 			int j;
-			BLI_array_grow_one(looptris);
 			BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, j) {
 				looptris[i][j] = l;
 			}
 			i += 1;
 #else
 			/* more cryptic but faster */
-			BLI_array_grow_one(looptris);
 			{
 				BMLoop **l_ptr = looptris[i++];
 				l_ptr[0] = l = BM_FACE_FIRST_LOOP(efa);
@@ -199,7 +201,6 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *em)
 			i += 1;
 #else
 			/* more cryptic but faster */
-			BLI_array_grow_items(looptris, 2);
 			{
 				BMLoop **l_ptr_a = looptris[i++];
 				BMLoop **l_ptr_b = looptris[i++];
@@ -221,7 +222,7 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *em)
 			ScanFillVert *sf_vert, *sf_vert_last = NULL, *sf_vert_first = NULL;
 			/* ScanFillEdge *e; */ /* UNUSED */
 			ScanFillFace *sf_tri;
-			int totfilltri;
+			/* int totfilltri; */  /* UNUSED */
 
 			BLI_scanfill_begin(&sf_ctx);
 
@@ -249,8 +250,7 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *em)
 			/* complete the loop */
 			BLI_scanfill_edge_add(&sf_ctx, sf_vert_first, sf_vert);
 
-			totfilltri = BLI_scanfill_calc_ex(&sf_ctx, 0, efa->no);
-			BLI_array_grow_items(looptris, totfilltri);
+			/* totfilltri = */ BLI_scanfill_calc_ex(&sf_ctx, 0, efa->no);
 
 			for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
 				BMLoop *l1 = sf_tri->v1->tmp.p;
@@ -273,6 +273,8 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *em)
 
 	em->tottri = i;
 	em->looptris = looptris;
+
+	BLI_assert(em->tottri <= looptris_tot);
 
 #undef USE_TESSFACE_SPEEDUP
 
