@@ -315,27 +315,29 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 
 	/* calculate verts to delete */
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-		found = FALSE;
+		if (v->e) {  /* only deal with verts attached to geometry [#33651] */
+			found = FALSE;
 
-		BM_ITER_ELEM (e, &viter, v, BM_EDGES_OF_VERT) {
-			if (!BMO_elem_flag_test(bm, e, EXT_INPUT) || !BMO_elem_flag_test(bm, e, EXT_DEL)) {
-				found = TRUE;
-				break;
-			}
-		}
-
-		/* avoid an extra loop */
-		if (found == TRUE) {
-			BM_ITER_ELEM (f, &viter, v, BM_FACES_OF_VERT) {
-				if (!BMO_elem_flag_test(bm, f, EXT_INPUT)) {
+			BM_ITER_ELEM (e, &viter, v, BM_EDGES_OF_VERT) {
+				if (!BMO_elem_flag_test(bm, e, EXT_INPUT) || !BMO_elem_flag_test(bm, e, EXT_DEL)) {
 					found = TRUE;
 					break;
 				}
 			}
-		}
 
-		if (found == FALSE) {
-			BMO_elem_flag_enable(bm, v, EXT_DEL);
+			/* avoid an extra loop */
+			if (found == TRUE) {
+				BM_ITER_ELEM (f, &viter, v, BM_FACES_OF_VERT) {
+					if (!BMO_elem_flag_test(bm, f, EXT_INPUT)) {
+						found = TRUE;
+						break;
+					}
+				}
+			}
+
+			if (found == FALSE) {
+				BMO_elem_flag_enable(bm, v, EXT_DEL);
+			}
 		}
 	}
 	
