@@ -173,9 +173,16 @@ MINLINE int min_axis_v3(const float vec[3])
  */
 MINLINE int poly_to_tri_count(const int poly_count, const int corner_count)
 {
-	const double poly_count_d   = (double)poly_count;
-	const double corner_count_d = (double)corner_count;
-	return (int)((((corner_count_d / poly_count_d) - 2.0) * poly_count_d) + 0.5);
+	if (poly_count != 0) {
+		const double poly_count_d   = (double)poly_count;
+		const double corner_count_d = (double)corner_count;
+		BLI_assert(poly_count   > 0);
+		BLI_assert(corner_count > 0);
+		return (int)((((corner_count_d / poly_count_d) - 2.0) * poly_count_d) + 0.5);
+	}
+	else {
+		return 0;
+	}
 }
 
 #endif /* __MATH_GEOM_INLINE_C__ */
