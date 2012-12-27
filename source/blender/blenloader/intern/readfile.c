@@ -1149,6 +1149,8 @@ void blo_freefiledata(FileData *fd)
 			oldnewmap_free(fd->imamap);
 		if (fd->movieclipmap)
 			oldnewmap_free(fd->movieclipmap);
+		if (fd->packedmap)
+			oldnewmap_free(fd->packedmap);
 		if (fd->libmap && !(fd->flags & FD_FLAGS_NOT_MY_LIBMAP))
 			oldnewmap_free(fd->libmap);
 		if (fd->bheadmap)
