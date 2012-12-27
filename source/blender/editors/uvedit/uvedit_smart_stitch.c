@@ -1164,6 +1164,14 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 		}
 	}
 
+	/* take mean position here. For edge case, this can't be done inside the loop for shared uvverts */
+	if (state->mode == STITCH_EDGE && stitch_midpoints) {
+		for (i = 0; i < state->total_separate_uvs; i++) {
+			final_position[i].uv[0] /= final_position[i].count;
+			final_position[i].uv[1] /= final_position[i].count;
+		}
+	}
+
 	/* second pass, calculate island rotation and translation before modifying any uvs */
 	if (state->snap_islands) {
 		if (state->mode == STITCH_VERT) {
@@ -1217,11 +1225,6 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 		else {
 			for (i = 0; i < state->total_separate_uvs; i++) {
 				UvElement *element = state->uvs[i];
-
-				if (stitch_midpoints) {
-					final_position[i].uv[0] /= final_position[i].count;
-					final_position[i].uv[1] /= final_position[i].count;
-				}
 
 				if (element->flag & STITCH_STITCHABLE) {
 					BMLoop *l;
