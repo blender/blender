@@ -2488,7 +2488,7 @@ void BKE_mesh_loops_to_mface_corners(CustomData *fdata, CustomData *ldata,
  */
 int BKE_mesh_recalc_tessellation(CustomData *fdata,
                                  CustomData *ldata, CustomData *pdata,
-                                 MVert *mvert, int totface, int UNUSED(totloop),
+                                 MVert *mvert, int totface, int totloop,
                                  int totpoly,
                                  /* when tessellating to recalculate normals after
                                   * we can skip copying here */
@@ -2503,15 +2503,15 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 #define TESSFACE_SCANFILL (1 << 0)
 #define TESSFACE_IS_QUAD  (1 << 1)
 
+	const int looptris_tot = poly_to_tri_count(totpoly, totloop);
+
 	MPoly *mp, *mpoly;
 	MLoop *ml, *mloop;
-	MFace *mface = NULL, *mf;
-	BLI_array_declare(mface);
+	MFace *mface, *mf;
 	ScanFillContext sf_ctx;
 	ScanFillVert *sf_vert, *sf_vert_last, *sf_vert_first;
 	ScanFillFace *sf_tri;
-	int *mface_to_poly_map = NULL;
-	BLI_array_declare(mface_to_poly_map);
+	int *mface_to_poly_map;
 	int lindex[4]; /* only ever use 3 in this case */
 	int poly_index, j, mface_index;
 
@@ -2525,8 +2525,9 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 
 	/* allocate the length of totfaces, avoid many small reallocs,
 	 * if all faces are tri's it will be correct, quads == 2x allocs */
-	BLI_array_reserve(mface_to_poly_map, totpoly);
-	BLI_array_reserve(mface, totpoly);
+	/* take care. we are _not_ calloc'ing so be sure to initialize each field */
+	mface_to_poly_map = MEM_mallocN(sizeof(*mface_to_poly_map) * looptris_tot, __func__);
+	mface             = MEM_mallocN(sizeof(*mface) *             looptris_tot, __func__);
 
 	mface_index = 0;
 	mp = mpoly;
@@ -2538,8 +2539,6 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 #ifdef USE_TESSFACE_SPEEDUP
 
 #define ML_TO_MF(i1, i2, i3)                                                  \
-		BLI_array_grow_one(mface_to_poly_map);                                \
-		BLI_array_grow_one(mface);                                            \
 		mface_to_poly_map[mface_index] = poly_index;                          \
 		mf = &mface[mface_index];                                             \
 		/* set loop indices, transformed to vert indices later */             \
@@ -2549,12 +2548,11 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 		mf->v4 = 0;                                                           \
 		mf->mat_nr = mp->mat_nr;                                              \
 		mf->flag = mp->flag;                                                  \
+		mf->edcode = 0;                                                       \
 		(void)0
 
 /* ALMOST IDENTICAL TO DEFINE ABOVE (see EXCEPTION) */
 #define ML_TO_MF_QUAD()                                                       \
-		BLI_array_grow_one(mface_to_poly_map);                                \
-		BLI_array_grow_one(mface);                                            \
 		mface_to_poly_map[mface_index] = poly_index;                          \
 		mf = &mface[mface_index];                                             \
 		/* set loop indices, transformed to vert indices later */             \
@@ -2564,7 +2562,7 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 		mf->v4 = mp->loopstart + 3; /* EXCEPTION */                           \
 		mf->mat_nr = mp->mat_nr;                                              \
 		mf->flag = mp->flag;                                                  \
-		mf->edcode |= TESSFACE_IS_QUAD; /* EXCEPTION */                       \
+		mf->edcode = TESSFACE_IS_QUAD; /* EXCEPTION */                        \
 		(void)0
 
 
@@ -2607,29 +2605,26 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 			BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert_first);
 			
 			totfilltri = BLI_scanfill_calc(&sf_ctx, 0);
-			if (totfilltri) {
-				BLI_array_grow_items(mface_to_poly_map, totfilltri);
-				BLI_array_grow_items(mface, totfilltri);
+			BLI_assert(totfilltri <= mp->totloop - 2);
 
-				for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next, mf++) {
-					mface_to_poly_map[mface_index] = poly_index;
-					mf = &mface[mface_index];
+			for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next, mf++) {
+				mface_to_poly_map[mface_index] = poly_index;
+				mf = &mface[mface_index];
 
-					/* set loop indices, transformed to vert indices later */
-					mf->v1 = sf_tri->v1->keyindex;
-					mf->v2 = sf_tri->v2->keyindex;
-					mf->v3 = sf_tri->v3->keyindex;
-					mf->v4 = 0;
+				/* set loop indices, transformed to vert indices later */
+				mf->v1 = sf_tri->v1->keyindex;
+				mf->v2 = sf_tri->v2->keyindex;
+				mf->v3 = sf_tri->v3->keyindex;
+				mf->v4 = 0;
 
-					mf->mat_nr = mp->mat_nr;
-					mf->flag = mp->flag;
+				mf->mat_nr = mp->mat_nr;
+				mf->flag = mp->flag;
 
 #ifdef USE_TESSFACE_SPEEDUP
-					mf->edcode |= TESSFACE_SCANFILL; /* tag for sorting loop indices */
+				mf->edcode = TESSFACE_SCANFILL; /* tag for sorting loop indices */
 #endif
 
-					mface_index++;
-				}
+				mface_index++;
 			}
 	
 			BLI_scanfill_end(&sf_ctx);
@@ -2639,9 +2634,10 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 	CustomData_free(fdata, totface);
 	totface = mface_index;
 
+	BLI_assert(totface <= looptris_tot);
 
 	/* not essential but without this we store over-alloc'd memory in the CustomData layers */
-	if (LIKELY((MEM_allocN_len(mface) / sizeof(*mface)) != totface)) {
+	if (LIKELY(looptris_tot != totface)) {
 		mface = MEM_reallocN(mface, sizeof(*mface) * totface);
 		mface_to_poly_map = MEM_reallocN(mface_to_poly_map, sizeof(*mface_to_poly_map) * totface);
 	}

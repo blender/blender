@@ -506,7 +506,7 @@ void BKE_displist_fill(ListBase *dispbase, ListBase *to, int flipnormal)
 		}
 
 		/* XXX (obedit && obedit->actcol)?(obedit->actcol-1):0)) { */
-		if (totvert && (tot = BLI_scanfill_calc(&sf_ctx, BLI_SCANFILL_CALC_REMOVE_DOUBLES))) {
+		if (totvert && (tot = BLI_scanfill_calc(&sf_ctx, BLI_SCANFILL_CALC_REMOVE_DOUBLES | BLI_SCANFILL_CALC_HOLES))) {
 			if (tot) {
 				dlnew = MEM_callocN(sizeof(DispList), "filldisplist");
 				dlnew->type = DL_INDEX3;

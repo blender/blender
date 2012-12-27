@@ -258,7 +258,7 @@ static void draw_filled_lasso(wmGesture *gt)
 	if (sf_vert_first) {
 		const float zvec[3] = {0.0f, 0.0f, 1.0f};
 		BLI_scanfill_edge_add(&sf_ctx, sf_vert_first, sf_vert);
-		BLI_scanfill_calc_ex(&sf_ctx, BLI_SCANFILL_CALC_REMOVE_DOUBLES, zvec);
+		BLI_scanfill_calc_ex(&sf_ctx, BLI_SCANFILL_CALC_REMOVE_DOUBLES | BLI_SCANFILL_CALC_HOLES, zvec);
 	
 		glEnable(GL_BLEND);
 		glColor4f(1.0, 1.0, 1.0, 0.05);

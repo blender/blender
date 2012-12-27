@@ -933,7 +933,7 @@ void BKE_maskrasterize_handle_init(MaskRasterHandle *mr_handle, struct Mask *mas
 			}
 
 			/* main scan-fill */
-			sf_tri_tot = BLI_scanfill_calc_ex(&sf_ctx, 0, zvec);
+			sf_tri_tot = BLI_scanfill_calc_ex(&sf_ctx, BLI_SCANFILL_CALC_HOLES, zvec);
 
 			face_array = MEM_mallocN(sizeof(*face_array) * (sf_tri_tot + tot_feather_quads), "maskrast_face_index");
 			face_index = 0;

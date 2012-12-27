@@ -630,7 +630,12 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 
 	/* (temporal) security: never much more faces than vertices */
 	totface = 0;
-	maxface = 2 * verts;       /* 2*verts: based at a filled circle within a triangle */
+	if (flag & BLI_SCANFILL_CALC_HOLES) {
+		maxface = 2 * verts;       /* 2*verts: based at a filled circle within a triangle */
+	}
+	else {
+		maxface = verts - 2;       /* when we don't calc any holes, we assume face is a non overlapping loop */
+	}
 
 	sc = sf_ctx->_scdata;
 	for (a = 0; a < verts; a++) {
@@ -654,7 +659,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 			
 			/* commented out... the ESC here delivers corrupted memory (and doesnt work during grab) */
 			/* if (callLocalInterruptCallBack()) break; */
-			if (totface > maxface) {
+			if (totface >= maxface) {
 				/* printf("Fill error: endless loop. Escaped at vert %d,  tot: %d.\n", a, verts); */
 				a = verts;
 				break;
@@ -684,15 +689,16 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 				for (b = a + 1; b < verts; b++) {
 					if (sc1->vert->f == 0) {
 						if (sc1->vert->xy[1] <= miny) break;
-
-						if (testedgeside(v1->xy, v2->xy, sc1->vert->xy))
-							if (testedgeside(v2->xy, v3->xy, sc1->vert->xy))
+						if (testedgeside(v1->xy, v2->xy, sc1->vert->xy)) {
+							if (testedgeside(v2->xy, v3->xy, sc1->vert->xy)) {
 								if (testedgeside(v3->xy, v1->xy, sc1->vert->xy)) {
 									/* point in triangle */
-								
+
 									test = 1;
 									break;
 								}
+							}
+						}
 					}
 					sc1++;
 				}
@@ -773,11 +779,14 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 				ed1 = nexted;
 			}
 		}
+
 		sc++;
 	}
 
 	MEM_freeN(sf_ctx->_scdata);
 	sf_ctx->_scdata = NULL;
+
+	BLI_assert(totface <= maxface);
 
 	return totface;
 }
@@ -910,50 +919,68 @@ int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float no
 
 
 	/* STEP 1: COUNT POLYS */
-	eve = sf_ctx->fillvertbase.first;
-	while (eve) {
-		eve->xy[0] = eve->co[co_x];
-		eve->xy[1] = eve->co[co_y];
+	if (flag & BLI_SCANFILL_CALC_HOLES) {
+		eve = sf_ctx->fillvertbase.first;
+		while (eve) {
+			eve->xy[0] = eve->co[co_x];
+			eve->xy[1] = eve->co[co_y];
 
-		/* get first vertex with no poly number */
-		if (eve->poly_nr == 0) {
-			poly++;
-			/* now a sort of select connected */
-			ok = 1;
-			eve->poly_nr = poly;
-			
-			while (ok) {
-				
-				ok = 0;
-				toggle++;
-				if (toggle & 1) eed = sf_ctx->filledgebase.first;
-				else eed = sf_ctx->filledgebase.last;
+			/* get first vertex with no poly number */
+			if (eve->poly_nr == 0) {
+				poly++;
+				/* now a sort of select connected */
+				ok = 1;
+				eve->poly_nr = poly;
 
-				while (eed) {
-					if (eed->v1->poly_nr == 0 && eed->v2->poly_nr == poly) {
-						eed->v1->poly_nr = poly;
-						eed->poly_nr = poly;
-						ok = 1;
-					}
-					else if (eed->v2->poly_nr == 0 && eed->v1->poly_nr == poly) {
-						eed->v2->poly_nr = poly;
-						eed->poly_nr = poly;
-						ok = 1;
-					}
-					else if (eed->poly_nr == 0) {
-						if (eed->v1->poly_nr == poly && eed->v2->poly_nr == poly) {
+				while (ok) {
+
+					ok = 0;
+					toggle++;
+					if (toggle & 1) eed = sf_ctx->filledgebase.first;
+					else eed = sf_ctx->filledgebase.last;
+
+					while (eed) {
+						if (eed->v1->poly_nr == 0 && eed->v2->poly_nr == poly) {
+							eed->v1->poly_nr = poly;
 							eed->poly_nr = poly;
 							ok = 1;
 						}
+						else if (eed->v2->poly_nr == 0 && eed->v1->poly_nr == poly) {
+							eed->v2->poly_nr = poly;
+							eed->poly_nr = poly;
+							ok = 1;
+						}
+						else if (eed->poly_nr == 0) {
+							if (eed->v1->poly_nr == poly && eed->v2->poly_nr == poly) {
+								eed->poly_nr = poly;
+								ok = 1;
+							}
+						}
+						if (toggle & 1) eed = eed->next;
+						else eed = eed->prev;
 					}
-					if (toggle & 1) eed = eed->next;
-					else eed = eed->prev;
 				}
 			}
+			eve = eve->next;
 		}
-		eve = eve->next;
+		/* printf("amount of poly's: %d\n",poly); */
 	}
-	/* printf("amount of poly's: %d\n",poly); */
+	else {
+		poly = 1;
+
+		eve = sf_ctx->fillvertbase.first;
+		while (eve) {
+			eve->xy[0] = eve->co[co_x];
+			eve->xy[1] = eve->co[co_y];
+			eve->poly_nr = poly;
+			eve = eve->next;
+		}
+		eed = sf_ctx->filledgebase.first;
+		while (eed) {
+			eed->poly_nr = poly;
+			eed = eed->next;
+		}
+	}
 
 	/* STEP 2: remove loose edges and strings of edges */
 	eed = sf_ctx->filledgebase.first;

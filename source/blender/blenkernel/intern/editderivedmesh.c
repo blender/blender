@@ -173,12 +173,10 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *em)
 			i += 1;
 #else
 			/* more cryptic but faster */
-			{
-				BMLoop **l_ptr = looptris[i++];
-				l_ptr[0] = l = BM_FACE_FIRST_LOOP(efa);
-				l_ptr[1] = l = l->next;
-				l_ptr[2] = l->next;
-			}
+			BMLoop **l_ptr = looptris[i++];
+			l_ptr[0] = l = BM_FACE_FIRST_LOOP(efa);
+			l_ptr[1] = l = l->next;
+			l_ptr[2] = l->next;
 #endif
 		}
 		else if (efa->len == 4) {
@@ -201,14 +199,12 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *em)
 			i += 1;
 #else
 			/* more cryptic but faster */
-			{
-				BMLoop **l_ptr_a = looptris[i++];
-				BMLoop **l_ptr_b = looptris[i++];
-				(l_ptr_a[0] = l_ptr_b[0] = l = BM_FACE_FIRST_LOOP(efa));
-				(l_ptr_a[1]              = l = l->next);
-				(l_ptr_a[2] = l_ptr_b[1] = l = l->next);
-				(             l_ptr_b[2] = l->next);
-			}
+			BMLoop **l_ptr_a = looptris[i++];
+			BMLoop **l_ptr_b = looptris[i++];
+			(l_ptr_a[0] = l_ptr_b[0] = l = BM_FACE_FIRST_LOOP(efa));
+			(l_ptr_a[1]              = l = l->next);
+			(l_ptr_a[2] = l_ptr_b[1] = l = l->next);
+			(             l_ptr_b[2] = l->next);
 #endif
 		}
 
@@ -222,7 +218,7 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *em)
 			ScanFillVert *sf_vert, *sf_vert_last = NULL, *sf_vert_first = NULL;
 			/* ScanFillEdge *e; */ /* UNUSED */
 			ScanFillFace *sf_tri;
-			/* int totfilltri; */  /* UNUSED */
+			int totfilltri;
 
 			BLI_scanfill_begin(&sf_ctx);
 
@@ -250,9 +246,11 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *em)
 			/* complete the loop */
 			BLI_scanfill_edge_add(&sf_ctx, sf_vert_first, sf_vert);
 
-			/* totfilltri = */ BLI_scanfill_calc_ex(&sf_ctx, 0, efa->no);
+			totfilltri = BLI_scanfill_calc_ex(&sf_ctx, 0, efa->no);
+			BLI_assert(totfilltri <= efa->len - 2);
 
 			for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
+				BMLoop **l_ptr = looptris[i++];
 				BMLoop *l1 = sf_tri->v1->tmp.p;
 				BMLoop *l2 = sf_tri->v2->tmp.p;
 				BMLoop *l3 = sf_tri->v3->tmp.p;
@@ -261,10 +259,9 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *em)
 				if (BM_elem_index_get(l2) > BM_elem_index_get(l3)) { SWAP(BMLoop *, l2, l3); }
 				if (BM_elem_index_get(l1) > BM_elem_index_get(l2)) { SWAP(BMLoop *, l1, l2); }
 
-				looptris[i][0] = l1;
-				looptris[i][1] = l2;
-				looptris[i][2] = l3;
-				i += 1;
+				l_ptr[0] = l1;
+				l_ptr[1] = l2;
+				l_ptr[2] = l3;
 			}
 
 			BLI_scanfill_end(&sf_ctx);
