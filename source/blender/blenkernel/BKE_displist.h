@@ -83,7 +83,7 @@ void BKE_displist_elem_free(DispList *dl);
 DispList *BKE_displist_find_or_create(struct ListBase *lb, int type);
 DispList *BKE_displist_find(struct ListBase *lb, int type);
 void BKE_displist_normals_add(struct ListBase *lb);
-void BKE_displist_count(struct ListBase *lb, int *totvert, int *totface);
+void BKE_displist_count(struct ListBase *lb, int *totvert, int *totface, int *tottri);
 void BKE_displist_free(struct ListBase *lb);
 int BKE_displist_has_faces(struct ListBase *lb);
 

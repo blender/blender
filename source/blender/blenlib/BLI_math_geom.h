@@ -262,6 +262,8 @@ void axis_dominant_v3(int *axis_a, int *axis_b, const float axis[3]);
 MINLINE int max_axis_v3(const float vec[3]);
 MINLINE int min_axis_v3(const float vec[3]);
 
+MINLINE int poly_to_tri_count(const int poly_count, const int corner_count);
+
 #ifdef __cplusplus
 }
 #endif

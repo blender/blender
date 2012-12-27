@@ -158,4 +158,24 @@ MINLINE int min_axis_v3(const float vec[3])
 	       ((y < z) ? 1 : 2));
 }
 
+/**
+ * Simple method to find how many tri's we need when we already know the corner+poly count.
+ *
+ * Formula is:
+ *
+ *   tri = ((corner_count / poly_count) - 2) * poly_count;
+ *
+ * Use doubles since this is used for allocating and we
+ * don't want float precision to give incorrect results.
+ *
+ * \param poly_count The number of ngon's/tris (1-2 sided faces will give incorrect results)
+ * \param corner_count - also known as loops in BMesh/DNA
+ */
+MINLINE int poly_to_tri_count(const int poly_count, const int corner_count)
+{
+	const double poly_count_d   = (double)poly_count;
+	const double corner_count_d = (double)corner_count;
+	return (int)((((corner_count_d / poly_count_d) - 2.0) * poly_count_d) + 0.5);
+}
+
 #endif /* __MATH_GEOM_INLINE_C__ */
