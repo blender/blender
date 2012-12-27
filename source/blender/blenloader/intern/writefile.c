@@ -1508,7 +1508,7 @@ static void write_vfonts(WriteData *wd, ListBase *idbase)
 
 			/* direct data */
 
-			if (vf->packedfile) {
+			if (vf->packedfile && !wd->current) {
 				pf = vf->packedfile;
 				writestruct(wd, DATA, "PackedFile", 1, pf);
 				writedata(wd, DATA, pf->size, pf->data);
@@ -1958,7 +1958,7 @@ static void write_images(WriteData *wd, ListBase *idbase)
 			writestruct(wd, ID_IM, "Image", 1, ima);
 			if (ima->id.properties) IDP_WriteProperty(ima->id.properties, wd);
 
-			if (ima->packedfile) {
+			if (ima->packedfile && !wd->current) {
 				pf = ima->packedfile;
 				writestruct(wd, DATA, "PackedFile", 1, pf);
 				writedata(wd, DATA, pf->size, pf->data);
@@ -2531,20 +2531,31 @@ static void write_libraries(WriteData *wd, Main *main)
 		a=tot= set_listbasepointers(main, lbarray);
 
 		/* test: is lib being used */
-		foundone = FALSE;
-		while (tot--) {
-			for (id= lbarray[tot]->first; id; id= id->next) {
-				if (id->us>0 && (id->flag & LIB_EXTERN)) {
-					foundone = TRUE;
-					break;
+		if (main->curlib && main->curlib->packedfile)
+			foundone = TRUE;
+		else {
+			foundone = FALSE;
+			while (tot--) {
+				for (id= lbarray[tot]->first; id; id= id->next) {
+					if (id->us>0 && (id->flag & LIB_EXTERN)) {
+						foundone = TRUE;
+						break;
+					}
 				}
+				if (foundone) break;
 			}
-			if (foundone) break;
 		}
-
+		
 		if (foundone) {
 			writestruct(wd, ID_LI, "Library", 1, main->curlib);
 
+			if (main->curlib->packedfile && !wd->current) {
+				PackedFile *pf = main->curlib->packedfile;
+				writestruct(wd, DATA, "PackedFile", 1, pf);
+				writedata(wd, DATA, pf->size, pf->data);
+				printf("write packed .blend: %s\n", main->curlib->name);
+			}
+			
 			while (a--) {
 				for (id= lbarray[a]->first; id; id= id->next) {
 					if (id->us>0 && (id->flag & LIB_EXTERN)) {
@@ -2673,7 +2684,7 @@ static void write_sounds(WriteData *wd, ListBase *idbase)
 			writestruct(wd, ID_SO, "bSound", 1, sound);
 			if (sound->id.properties) IDP_WriteProperty(sound->id.properties, wd);
 
-			if (sound->packedfile) {
+			if (sound->packedfile && !wd->current) {
 				pf = sound->packedfile;
 				writestruct(wd, DATA, "PackedFile", 1, pf);
 				writedata(wd, DATA, pf->size, pf->data);

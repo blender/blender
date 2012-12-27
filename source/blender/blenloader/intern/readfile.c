@@ -543,7 +543,9 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
 	
 	BLI_strncpy(name1, filepath, sizeof(name1));
 	cleanup_path(relabase, name1);
-//	printf("blo_find_main: original in  %s\n", name);
+	
+//	printf("blo_find_main: relabase  %s\n", relabase);
+//	printf("blo_find_main: original in  %s\n", filepath);
 //	printf("blo_find_main: converted to %s\n", name1);
 	
 	for (m = mainlist->first; m; m = m->next) {
@@ -1020,6 +1022,46 @@ FileData *blo_openblenderfile(const char *filepath, ReportList *reports)
 	}
 }
 
+static int fd_read_gzip_from_memory(FileData *filedata, void *buffer, unsigned int size)
+{
+	int err;
+	
+	filedata->strm.next_out = (Bytef *) buffer;
+    filedata->strm.avail_out = size;
+	
+    // Inflate another chunk.
+    err = inflate (&filedata->strm, Z_SYNC_FLUSH);
+	
+    if (err == Z_STREAM_END) {
+		return 0;
+	}
+    else if (err != Z_OK)  {
+		printf("fd_read_gzip_from_memory: zlib error\n");
+		return 0;
+    }
+	
+	filedata->seek += size;
+	
+	return (size);
+}
+
+static int fd_read_gzip_from_memory_init(FileData *fd)
+{
+
+	fd->strm.next_in = (Bytef *) fd->buffer;
+	fd->strm.avail_in = fd->buffersize;
+	fd->strm.total_out = 0;
+	fd->strm.zalloc = Z_NULL;
+	fd->strm.zfree = Z_NULL;
+	
+	if (inflateInit2(&fd->strm, (16+MAX_WBITS)) != Z_OK)
+		return 0;
+
+	fd->read = fd_read_gzip_from_memory;
+	
+	return 1;
+}
+
 FileData *blo_openblendermemory(void *mem, int memsize, ReportList *reports)
 {
 	if (!mem || memsize<SIZEOFBLENDERHEADER) {
@@ -1028,11 +1070,23 @@ FileData *blo_openblendermemory(void *mem, int memsize, ReportList *reports)
 	}
 	else {
 		FileData *fd = filedata_new();
+		char *cp = mem;
+		
 		fd->buffer = mem;
 		fd->buffersize = memsize;
-		fd->read = fd_read_from_memory;
-		fd->flags |= FD_FLAGS_NOT_MY_BUFFER;
 		
+		/* test if gzip */
+		if (cp[0] == 0x1f && cp[1] == 0x8b) {
+			if (0 == fd_read_gzip_from_memory_init(fd)) {
+				blo_freefiledata(fd);
+				return NULL;
+			}
+		}
+		else
+			fd->read = fd_read_from_memory;
+			
+		fd->flags |= FD_FLAGS_NOT_MY_BUFFER;
+
 		return blo_decode_and_check(fd, reports);
 	}
 }
@@ -1064,6 +1118,12 @@ void blo_freefiledata(FileData *fd)
 		
 		if (fd->gzfiledes != NULL) {
 			gzclose(fd->gzfiledes);
+		}
+		
+		if (fd->strm.next_in) {
+			if (inflateEnd (&fd->strm) != Z_OK) {
+				printf("close gzip stream error\n");
+			}
 		}
 		
 		if (fd->buffer && !(fd->flags & FD_FLAGS_NOT_MY_BUFFER)) {
@@ -1154,23 +1214,31 @@ static void *newdataadr(FileData *fd, void *adr)		/* only direct databocks */
 	return oldnewmap_lookup_and_inc(fd->datamap, adr);
 }
 
-static void *newglobadr(FileData *fd, void *adr)		/* direct datablocks with global linking */
+static void *newglobadr(FileData *fd, void *adr)	    /* direct datablocks with global linking */
 {
 	return oldnewmap_lookup_and_inc(fd->globmap, adr);
 }
 
-static void *newimaadr(FileData *fd, void *adr)		/* used to restore image data after undo */
+static void *newimaadr(FileData *fd, void *adr)		    /* used to restore image data after undo */
 {
 	if (fd->imamap && adr)
 		return oldnewmap_lookup_and_inc(fd->imamap, adr);
 	return NULL;
 }
 
-static void *newmclipadr(FileData *fd, void *adr)              /* used to restore movie clip data after undo */
+static void *newmclipadr(FileData *fd, void *adr)      /* used to restore movie clip data after undo */
 {
 	if (fd->movieclipmap && adr)
 		return oldnewmap_lookup_and_inc(fd->movieclipmap, adr);
 	return NULL;
+}
+
+static void *newpackedadr(FileData *fd, void *adr)      /* used to restore packed data after undo */
+{
+	if (fd->packedmap && adr)
+		return oldnewmap_lookup_and_inc(fd->packedmap, adr);
+	
+	return oldnewmap_lookup_and_inc(fd->datamap, adr);
 }
 
 
@@ -1367,6 +1435,69 @@ void blo_end_movieclip_pointer_map(FileData *fd, Main *oldmain)
 					node->storage = newmclipadr(fd, node->storage);
 		}
 	}
+}
+
+static void insert_packedmap(FileData *fd, PackedFile *pf)
+{
+	oldnewmap_insert(fd->packedmap, pf, pf, 0);
+	oldnewmap_insert(fd->packedmap, pf->data, pf->data, 0);
+}
+
+void blo_make_packed_pointer_map(FileData *fd, Main *oldmain)
+{
+	Image *ima;
+	VFont *vfont;
+	bSound *sound;
+	Library *lib;
+	
+	fd->packedmap = oldnewmap_new();
+	
+	for (ima = oldmain->image.first; ima; ima = ima->id.next)
+		if (ima->packedfile)
+			insert_packedmap(fd, ima->packedfile);
+			
+	for (vfont = oldmain->vfont.first; vfont; vfont = vfont->id.next)
+		if (vfont->packedfile)
+			insert_packedmap(fd, vfont->packedfile);
+	
+	for (sound = oldmain->sound.first; sound; sound = sound->id.next)
+		if (sound->packedfile)
+			insert_packedmap(fd, sound->packedfile);
+	
+	for (lib = oldmain->library.first; lib; lib = lib->id.next)
+		if (lib->packedfile)
+			insert_packedmap(fd, lib->packedfile);
+
+}
+
+/* set old main packed data to zero if it has been restored */
+/* this works because freeing old main only happens after this call */
+void blo_end_packed_pointer_map(FileData *fd, Main *oldmain)
+{
+	Image *ima;
+	VFont *vfont;
+	bSound *sound;
+	Library *lib;
+	OldNew *entry = fd->packedmap->entries;
+	int i;
+	
+	/* used entries were restored, so we put them to zero */
+	for (i=0; i < fd->packedmap->nentries; i++, entry++) {
+		if (entry->nr > 0)
+			entry->newp = NULL;
+	}
+	
+	for (ima = oldmain->image.first; ima; ima = ima->id.next)
+		ima->packedfile = newpackedadr(fd, ima->packedfile);
+	
+	for (vfont = oldmain->vfont.first; vfont; vfont = vfont->id.next)
+		vfont->packedfile = newpackedadr(fd, vfont->packedfile);
+
+	for (sound = oldmain->sound.first; sound; sound = sound->id.next)
+		sound->packedfile = newpackedadr(fd, sound->packedfile);
+		
+	for (lib = oldmain->library.first; lib; lib = lib->id.next)
+		lib->packedfile = newpackedadr(fd, lib->packedfile);
 }
 
 
@@ -1708,10 +1839,10 @@ static void direct_link_script(FileData *UNUSED(fd), Script *script)
 
 static PackedFile *direct_link_packedfile(FileData *fd, PackedFile *oldpf)
 {
-	PackedFile *pf = newdataadr(fd, oldpf);
+	PackedFile *pf = newpackedadr(fd, oldpf);
 	
 	if (pf) {
-		pf->data = newdataadr(fd, pf->data);
+		pf->data = newpackedadr(fd, pf->data);
 	}
 	
 	return pf;
@@ -6031,6 +6162,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 {
 	Main *newmain;
 	
+	/* check if the library was already read */
 	for (newmain = fd->mainlist->first; newmain; newmain = newmain->next) {
 		if (newmain->curlib) {
 			if (BLI_path_cmp(newmain->curlib->filepath, lib->filepath) == 0) {
@@ -6049,14 +6181,14 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
-	/* make sure we have full path in lib->filename */
+	/* make sure we have full path in lib->filepath */
 	BLI_strncpy(lib->filepath, lib->name, sizeof(lib->name));
 	cleanup_path(fd->relabase, lib->filepath);
 	
-#if 0
-	printf("direct_link_library: name %s\n", lib->name);
-	printf("direct_link_library: filename %s\n", lib->filename);
-#endif
+//	printf("direct_link_library: name %s\n", lib->name);
+//	printf("direct_link_library: filepath %s\n", lib->filepath);
+	
+	lib->packedfile = direct_link_packedfile(fd, lib->packedfile);
 	
 	/* new main */
 	newmain= MEM_callocN(sizeof(Main), "directlink");
@@ -10014,12 +10146,26 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				FileData *fd = mainptr->curlib->filedata;
 				
 				if (fd == NULL) {
-					/* printf and reports for now... its important users know this */
-					BKE_reportf_wrap(basefd->reports, RPT_INFO, TIP_("Read library:  '%s', '%s'"),
-					                 mainptr->curlib->filepath, mainptr->curlib->name);
 					
-					fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
-
+					/* printf and reports for now... its important users know this */
+					
+					/* if packed file... */
+					if (mainptr->curlib->packedfile) {
+						PackedFile *pf = mainptr->curlib->packedfile;
+						
+						BKE_reportf_wrap(basefd->reports, RPT_INFO, TIP_("Read packed library:  '%s'"),
+										 mainptr->curlib->name);
+						fd = blo_openblendermemory(pf->data, pf->size, basefd->reports);
+						
+						
+						/* needed for library_append and read_libraries */
+						BLI_strncpy(fd->relabase, mainptr->curlib->filepath, sizeof(fd->relabase));
+					}
+					else {
+						BKE_reportf_wrap(basefd->reports, RPT_INFO, TIP_("Read library:  '%s', '%s'"),
+										 mainptr->curlib->filepath, mainptr->curlib->name);
+						fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
+					}
 					/* allow typing in a new lib path */
 					if (G.debug_value == -666) {
 						while (fd == NULL) {
