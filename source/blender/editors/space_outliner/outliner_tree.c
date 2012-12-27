@@ -836,7 +836,11 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		/* pass */
 	}
 	else {
-		te->name = id->name + 2; // default, can be overridden by Library or non-ID data
+		/* do here too, for blend file viewer, own ID_LI then shows file name */
+		if (GS(id->name) == ID_LI)
+			te->name = ((Library *)id)->name;
+		else
+			te->name = id->name + 2; // default, can be overridden by Library or non-ID data
 		te->idcode = GS(id->name);
 	}
 	
