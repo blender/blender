@@ -631,7 +631,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 	if (DefRNA.preprocess) {
 		char error[512];
 
-		if (rna_validate_identifier(identifier, error, 0) == 0) {
+		if (rna_validate_identifier(identifier, error, FALSE) == 0) {
 			fprintf(stderr, "%s: struct identifier \"%s\" error - %s\n", __func__, identifier, error);
 			DefRNA.error = 1;
 		}
@@ -909,7 +909,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 	if (DefRNA.preprocess) {
 		char error[512];
 		
-		if (rna_validate_identifier(identifier, error, 1) == 0) {
+		if (rna_validate_identifier(identifier, error, TRUE) == 0) {
 			fprintf(stderr, "%s: property identifier \"%s.%s\" - %s\n", __func__,
 			        CONTAINER_RNA_ID(cont), identifier, error);
 			DefRNA.error = 1;
@@ -925,6 +925,16 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 
 		dprop = MEM_callocN(sizeof(PropertyDefRNA), "PropertyDefRNA");
 		rna_addtail(&dcont->properties, dprop);
+	}
+	else {
+#ifdef DEBUG
+		char error[512];
+		if (rna_validate_identifier(identifier, error, TRUE) == 0) {
+			fprintf(stderr, "%s: runtime property identifier \"%s.%s\" - %s\n", __func__,
+			        CONTAINER_RNA_ID(cont), identifier, error);
+			DefRNA.error = 1;
+		}
+#endif
 	}
 
 	prop = MEM_callocN(rna_property_type_sizeof(type), "PropertyRNA");
@@ -2674,7 +2684,7 @@ static FunctionRNA *rna_def_function(StructRNA *srna, const char *identifier)
 	if (DefRNA.preprocess) {
 		char error[512];
 
-		if (rna_validate_identifier(identifier, error, 0) == 0) {
+		if (rna_validate_identifier(identifier, error, FALSE) == 0) {
 			fprintf(stderr, "%s: function identifier \"%s\" - %s\n", __func__, identifier, error);
 			DefRNA.error = 1;
 		}
