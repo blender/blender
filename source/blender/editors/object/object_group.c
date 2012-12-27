@@ -313,7 +313,7 @@ static int group_create_exec(bContext *C, wmOperator *op)
 	
 	group = add_group(name);
 		
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	CTX_DATA_BEGIN (C, Base *, base, selected_bases)
 	{
 		add_to_group(group, base->object, scene, base);
 	}
