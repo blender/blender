@@ -136,6 +136,7 @@ typedef struct UvEdge {
 
 /* stitch state object */
 typedef struct StitchState {
+	float aspect;
 	/* use limit flag */
 	char use_limit;
 	/* limit to operator, same as original operator */
@@ -285,9 +286,11 @@ static int getNumOfIslandUvs(UvElementMap *elementMap, int island)
 	}
 }
 
-static void stitch_uv_rotate(float rotation, float medianPoint[2], float uv[2])
+static void stitch_uv_rotate(float rotation, float medianPoint[2], float uv[2], float aspect)
 {
 	float uv_rotation_result[2];
+
+	uv[1] /= aspect;
 
 	uv[0] -= medianPoint[0];
 	uv[1] -= medianPoint[1];
@@ -297,6 +300,8 @@ static void stitch_uv_rotate(float rotation, float medianPoint[2], float uv[2])
 
 	uv[0] = uv_rotation_result[0] + medianPoint[0];
 	uv[1] = uv_rotation_result[1] + medianPoint[1];
+
+	uv[1] *= aspect;
 }
 
 /* check if two uvelements are stitchable. This should only operate on -different- separate UvElements */
@@ -413,9 +418,11 @@ static void stitch_calculate_island_snapping(StitchState *state, PreviewPosition
 				island_stitch_data[i].rotation /= island_stitch_data[i].num_rot_elements;
 				island_stitch_data[i].medianPoint[0] /= island_stitch_data[i].numOfElements;
 				island_stitch_data[i].medianPoint[1] /= island_stitch_data[i].numOfElements;
+				island_stitch_data[i].medianPoint[1] /= state->aspect;
 			}
 			island_stitch_data[i].translation[0] /= island_stitch_data[i].numOfElements;
 			island_stitch_data[i].translation[1] /= island_stitch_data[i].numOfElements;
+
 			numOfIslandUVs = getNumOfIslandUvs(state->element_map, i);
 			element = &state->element_map->buf[state->element_map->islandIndices[i]];
 			for (j = 0; j < numOfIslandUVs; j++, element++) {
@@ -429,7 +436,7 @@ static void stitch_calculate_island_snapping(StitchState *state, PreviewPosition
 
 					if (final) {
 
-						stitch_uv_rotate(island_stitch_data[i].rotation, island_stitch_data[i].medianPoint, luv->uv);
+						stitch_uv_rotate(island_stitch_data[i].rotation, island_stitch_data[i].medianPoint, luv->uv, state->aspect);
 
 						add_v2_v2(luv->uv, island_stitch_data[i].translation);
 					}
@@ -438,7 +445,7 @@ static void stitch_calculate_island_snapping(StitchState *state, PreviewPosition
 						int face_preview_pos = preview_position[BM_elem_index_get(element->l->f)].data_position;
 
 						stitch_uv_rotate(island_stitch_data[i].rotation, island_stitch_data[i].medianPoint,
-						                 preview->preview_polys + face_preview_pos + 2 * element->tfindex);
+						                 preview->preview_polys + face_preview_pos + 2 * element->tfindex, state->aspect);
 
 						add_v2_v2(preview->preview_polys + face_preview_pos + 2 * element->tfindex,
 						          island_stitch_data[i].translation);
@@ -1541,7 +1548,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = scene->toolsettings;
 	ARegion *ar = CTX_wm_region(C);
-
+	float aspx, aspy;
 	Object *obedit = CTX_data_edit_object(C);
 
 	if (!ar)
@@ -1594,6 +1601,9 @@ static int stitch_init(bContext *C, wmOperator *op)
 		state_delete(state);
 		return 0;
 	}
+
+	uvedit_get_aspect(scene, obedit, em, &aspx, &aspy);
+	state->aspect = aspx/aspy;
 
 	/* Entirely possible if redoing last operator that static island is bigger than total number of islands.
 	 * This ensures we get no hang in the island checking code in stitch_stitch_process_data. */
