@@ -4768,6 +4768,7 @@ static int edbm_bevel_calc(wmOperator *op)
 #ifdef NEW_BEVEL
 	float offset = RNA_float_get(op->ptr, "offset");
 	int segments = RNA_int_get(op->ptr, "segments");
+	int vertex_only = RNA_boolean_get(op->ptr, "vertex_only");
 
 	/* revert to original mesh */
 	if (opdata->is_modal) {
@@ -4775,8 +4776,8 @@ static int edbm_bevel_calc(wmOperator *op)
 	}
 
 	if (!EDBM_op_init(em, &bmop, op,
-		              "bevel geom=%hev offset=%f segments=%i",
-		              BM_ELEM_SELECT, offset, segments))
+		              "bevel geom=%hev offset=%f segments=%i vertex_only=%b",
+		              BM_ELEM_SELECT, offset, segments, vertex_only))
 	{
 		return 0;
 	}
@@ -5101,6 +5102,7 @@ void MESH_OT_bevel(wmOperatorType *ot)
 #ifdef NEW_BEVEL
 	RNA_def_float(ot->srna, "offset", 0.0f, -FLT_MAX, FLT_MAX, "Offset", "", 0.0f, 1.0f);
 	RNA_def_int(ot->srna, "segments", 1, 1, 50, "Segments", "Segments for curved edge", 1, 8);
+	RNA_def_boolean(ot->srna, "vertex_only", FALSE, "Vertex only", "Bevel only vertices");
 #else
 	/* take note, used as a factor _and_ a distance depending on 'use_dist' */
 	RNA_def_float(ot->srna, "percent", 0.0f, -FLT_MAX, FLT_MAX, "Percentage", "", 0.0f, 1.0f);
