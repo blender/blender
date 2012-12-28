@@ -1,43 +1,50 @@
-//
-//  Filename         : NodeShape.h
-//  Author(s)        : Stephane Grabli
-//  Purpose          : Class to build a shape node. It contains a Rep, 
-//                     which is the shape geometry
-//  Date of creation : 25/01/2002
-//
-///////////////////////////////////////////////////////////////////////////////
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2010 Blender Foundation.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 
+#ifndef __FREESTYLE_NODE_SHAPE_H__
+#define __FREESTYLE_NODE_SHAPE_H__
 
-//
-//  Copyright (C) : Please refer to the COPYRIGHT file distributed 
-//   with this source distribution. 
-//
-//  This program is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU General Public License
-//  as published by the Free Software Foundation; either version 2
-//  of the License, or (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-//
-///////////////////////////////////////////////////////////////////////////////
+/** \file blender/freestyle/intern/scene_graph/NodeShape.h
+ *  \ingroup freestyle
+ *  \brief Class to build a shape node. It contains a Rep, which is the shape geometry
+ *  \author Stephane Grabli
+ *  \date 25/01/2002
+ */
 
-#ifndef  NODESHAPE_H
-# define NODESHAPE_H
+#include <vector>
 
-# include <vector>
-# include "../system/FreestyleConfig.h"
-# include "Node.h"
-# include "Rep.h"
-# include "../geometry/BBox.h"
-# include "../geometry/Geom.h"
-# include "FrsMaterial.h"
+#include "../geometry/BBox.h"
+#include "../geometry/Geom.h"
+
+#include "../system/FreestyleConfig.h"
+
+#include "FrsMaterial.h"
+#include "Node.h"
+#include "Rep.h"
 
 using namespace std;
 using namespace Geometry;
@@ -45,45 +52,52 @@ using namespace Geometry;
 class LIB_SCENE_GRAPH_EXPORT NodeShape : public Node
 {
 public:
-  
-  inline NodeShape() : Node() {}
-  
-  virtual ~NodeShape();
+	inline NodeShape() : Node() {}
 
-  /*! Adds a Rep to the _Shapes list
-   *  The delete of the rep is done 
-   *  when it is not used any more by 
-   *  the Scene Manager. So, it must not 
-   *  be deleted by the caller
-   */
-  virtual void AddRep(Rep *iRep)
-  {
-    if(NULL == iRep)
-      return;
-    _Shapes.push_back(iRep);
-    iRep->addRef();
-    
-    // updates bbox:
-    AddBBox(iRep->bbox());
-  }
+	virtual ~NodeShape();
 
-  /*! Accept the corresponding visitor */
-  virtual void accept(SceneVisitor& v);
+	/*! Adds a Rep to the _Shapes list
+	 *  The delete of the rep is done when it is not used any more by the Scene Manager.
+	 *  So, it must not be deleted by the caller
+	 */
+	virtual void AddRep(Rep *iRep)
+	{
+		if (NULL == iRep)
+			return;
+		_Shapes.push_back(iRep);
+		iRep->addRef();
 
-  /*! Sets the shape material */
-  inline void setFrsMaterial(const FrsMaterial& iMaterial) { _FrsMaterial = iMaterial; }
+		// updates bbox:
+		AddBBox(iRep->bbox());
+	}
 
-  /*! accessors */
-  /*! returns the shape's material */
-  inline FrsMaterial& frs_material() { return _FrsMaterial; }
-  inline const vector<Rep*>& shapes() {return _Shapes;}
+	/*! Accept the corresponding visitor */
+	virtual void accept(SceneVisitor& v);
+
+	/*! Sets the shape material */
+	inline void setFrsMaterial(const FrsMaterial& iMaterial)
+	{
+		_FrsMaterial = iMaterial;
+	}
+
+	/*! accessors */
+	/*! returns the shape's material */
+	inline FrsMaterial& frs_material()
+	{
+		return _FrsMaterial;
+	}
+
+	inline const vector<Rep*>& shapes()
+	{
+		return _Shapes;
+	}
 
 private:
-  /*! list of shapes */
-  vector<Rep*> _Shapes;
+	/*! list of shapes */
+	vector<Rep*> _Shapes;
 
-  /*! Shape Material */
-  FrsMaterial _FrsMaterial;
+	/*! Shape Material */
+	FrsMaterial _FrsMaterial;
 };
 
-#endif // NODESHAPE_H
+#endif // __FREESTYLE_NODE_SHAPE_H__

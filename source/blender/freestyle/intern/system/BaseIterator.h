@@ -1,90 +1,97 @@
-//
-//  Filename         : BaseIterator.h
-//  Author(s)        : Stephane Grabli
-//  Purpose          : Classes defining the basic "Iterator" design pattern
-//  Date of creation : 18/03/2003
-//
-///////////////////////////////////////////////////////////////////////////////
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2010 Blender Foundation.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 
+#ifndef __FREESTYLE_BASE_ITERATOR_H__
+#define __FREESTYLE_BASE_ITERATOR_H__
 
-//
-//  Copyright (C) : Please refer to the COPYRIGHT file distributed 
-//   with this source distribution. 
-//
-//  This program is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU General Public License
-//  as published by the Free Software Foundation; either version 2
-//  of the License, or (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-//
-///////////////////////////////////////////////////////////////////////////////
+/** \file blender/freestyle/intern/system/BaseIterator.h
+ *  \ingroup freestyle
+ *  \brief Classes defining the basic "Iterator" design pattern
+ *  \author Stephane Grabli
+ *  \date 18/03/2003
+ */
 
-#ifndef  BASEITERATOR_H
-# define BASEITERATOR_H
-
-# include <iterator>
+#include <iterator>
 
 // use for iterators defintions
 template <class Element>
 class Nonconst_traits;
 
 template <class Element>
-class Const_traits {
+class Const_traits
+{
 public:
-  typedef Element value_type;
-  typedef const Element&  reference;
-  typedef const Element*  pointer;
-  typedef ptrdiff_t       difference_type;
-  typedef Nonconst_traits<Element> Non_const_traits;
+	typedef Element value_type;
+	typedef const Element& reference;
+	typedef const Element *pointer;
+	typedef ptrdiff_t difference_type;
+	typedef Nonconst_traits<Element> Non_const_traits;
 };
 
 template <class Element>
-class Nonconst_traits {
+class Nonconst_traits
+{
 public:
-  typedef Element value_type;
-  typedef Element& reference;
-  typedef Element* pointer;
-  typedef ptrdiff_t       difference_type;
-  typedef Nonconst_traits<Element> Non_const_traits;
+	typedef Element value_type;
+	typedef Element& reference;
+	typedef Element *pointer;
+	typedef ptrdiff_t difference_type;
+	typedef Nonconst_traits<Element> Non_const_traits;
 };
 
-class InputIteratorTag_Traits {
+class InputIteratorTag_Traits
+{
 public:
-  typedef std::input_iterator_tag iterator_category;
+	typedef std::input_iterator_tag iterator_category;
 };
 
-class BidirectionalIteratorTag_Traits {
+class BidirectionalIteratorTag_Traits
+{
 public:
-  typedef std::bidirectional_iterator_tag iterator_category;
+	typedef std::bidirectional_iterator_tag iterator_category;
 };
 
 template<class Traits, class IteratorTagTraits>
 class IteratorBase
 {
 public:
+	virtual ~IteratorBase() {}
 
-  virtual ~IteratorBase() {}
+	virtual bool begin() const = 0;
+	virtual bool end() const = 0;
 
-  virtual bool begin() const = 0;
-  virtual bool end() const = 0;
-
-  typedef typename IteratorTagTraits::iterator_category     iterator_category;
-  typedef typename Traits::value_type                       value_type;
-  typedef typename Traits::difference_type                  difference_type;
-  typedef typename Traits::pointer                          pointer;
-  typedef typename Traits::reference                        reference;
+	typedef typename IteratorTagTraits::iterator_category iterator_category;
+	typedef typename Traits::value_type                   value_type;
+	typedef typename Traits::difference_type              difference_type;
+	typedef typename Traits::pointer                      pointer;
+	typedef typename Traits::reference                    reference;
 
 protected:
-
-  IteratorBase() {}
+	IteratorBase() {}
 };
 
 #endif // BASEITERATOR_H
