@@ -575,9 +575,11 @@ static void init_internal_icons(void)
 				glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA, b16buf->x, b16buf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, b16buf->rect);
 				
 				while (b16buf->x > 1) {
-					b16buf = IMB_onehalf(b16buf);
-					glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA, b16buf->x, b16buf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, b16buf->rect);
+					ImBuf *nbuf = IMB_onehalf(b16buf);
+					glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA, nbuf->x, nbuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nbuf->rect);
 					level++;
+					IMB_freeImBuf(b16buf);
+					b16buf = nbuf;
 				}
 				
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -598,7 +600,7 @@ static void init_internal_icons(void)
 	else
 		icontype = ICON_TYPE_BUFFER;
 	
-	if (b16buf) {
+	if (b32buf) {
 		for (y = 0; y < ICON_GRID_ROWS; y++) {
 			for (x = 0; x < ICON_GRID_COLS; x++) {
 				def_internal_icon(b32buf, BIFICONID_FIRST + y * ICON_GRID_COLS + x,

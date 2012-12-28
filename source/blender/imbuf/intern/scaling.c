@@ -360,8 +360,6 @@ ImBuf *IMB_onehalf(struct ImBuf *ibuf1)
 	
 	imb_onehalf_no_alloc(ibuf2, ibuf1);
 	
-	IMB_freeImBuf(ibuf1);
-	
 	return (ibuf2);
 }
 
