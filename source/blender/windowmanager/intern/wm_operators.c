@@ -583,7 +583,7 @@ static char *wm_prop_pystring_from_context(bContext *C, PointerRNA *ptr, Propert
 
 	for (link = lb.first; link; link = link->next) {
 		const char *identifier = link->data;
-		PointerRNA ctx_item_ptr = CTX_data_pointer_get(C, identifier);
+		PointerRNA ctx_item_ptr = {{0}}; // CTX_data_pointer_get(C, identifier);
 
 		if (ctx_item_ptr.type == NULL) {
 			continue;

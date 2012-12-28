@@ -29,6 +29,7 @@
 
 
 #include <string.h>
+#include <stdlib.h>
 #include <stddef.h>
 
 #include "MEM_guardedalloc.h"
@@ -327,10 +328,13 @@ static void *ctx_data_pointer_get(const bContext *C, const char *member)
 {
 	bContextDataResult result;
 
-	if (C && ctx_data_get((bContext *)C, member, &result) == 1)
+	if (C && ctx_data_get((bContext *)C, member, &result) == 1) {
+		BLI_assert(result.type == CTX_DATA_TYPE_POINTER);
 		return result.ptr.data;
-
-	return NULL;
+	}
+	else {
+		return NULL;
+	}
 }
 
 static int ctx_data_pointer_verify(const bContext *C, const char *member, void **pointer)
@@ -343,6 +347,7 @@ static int ctx_data_pointer_verify(const bContext *C, const char *member, void *
 		return 1;
 	}
 	else if (ctx_data_get((bContext *)C, member, &result) == 1) {
+		BLI_assert(result.type == CTX_DATA_TYPE_POINTER);
 		*pointer = result.ptr.data;
 		return 1;
 	}
@@ -357,6 +362,7 @@ static int ctx_data_collection_get(const bContext *C, const char *member, ListBa
 	bContextDataResult result;
 
 	if (ctx_data_get((bContext *)C, member, &result) == 1) {
+		BLI_assert(result.type == CTX_DATA_TYPE_COLLECTION);
 		*list = result.list;
 		return 1;
 	}
@@ -372,11 +378,12 @@ PointerRNA CTX_data_pointer_get(const bContext *C, const char *member)
 	bContextDataResult result;
 
 	if (ctx_data_get((bContext *)C, member, &result) == 1) {
-		BLI_freelistN(&result.list);
+		BLI_assert(result.type == CTX_DATA_TYPE_POINTER);
 		return result.ptr;
 	}
-	else
+	else {
 		return PointerRNA_NULL;
+	}
 }
 
 PointerRNA CTX_data_pointer_get_type(const bContext *C, const char *member, StructRNA *type)
@@ -401,6 +408,7 @@ ListBase CTX_data_collection_get(const bContext *C, const char *member)
 	bContextDataResult result;
 
 	if (ctx_data_get((bContext *)C, member, &result) == 1) {
+		BLI_assert(result.type == CTX_DATA_TYPE_COLLECTION);
 		return result.list;
 	}
 	else {
