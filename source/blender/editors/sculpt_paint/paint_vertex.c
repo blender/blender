@@ -405,7 +405,7 @@ static void free_vpaint_prev(VPaint *vp)
 static void free_wpaint_prev(VPaint *vp)
 {
 	if (vp->wpaint_prev) {
-		MEM_freeN(vp->wpaint_prev);
+		free_dverts(vp->wpaint_prev, vp->tot);
 		vp->wpaint_prev = NULL;
 		vp->tot = 0;
 	}
@@ -2498,13 +2498,17 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }
 
-static int weight_paint_set_exec(bContext *C, wmOperator *UNUSED(op))
+static int weight_paint_set_exec(bContext *C, wmOperator *op)
 {
 	struct Scene *scene = CTX_data_scene(C);
 	Object *obact = CTX_data_active_object(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Brush *brush = paint_brush(&ts->wpaint->paint);
 	float vgroup_weight = BKE_brush_weight_get(scene, brush);
+
+	if (wpaint_ensure_data(C, op) == FALSE) {
+		return OPERATOR_CANCELLED;
+	}
 
 	wpaint_fill(scene->toolsettings->wpaint, obact, vgroup_weight);
 	ED_region_tag_redraw(CTX_wm_region(C)); /* XXX - should redraw all 3D views */
@@ -3216,6 +3220,10 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 static int paint_weight_gradient_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	int ret;
+
+	if (wpaint_ensure_data(C, op) == FALSE) {
+		return OPERATOR_CANCELLED;
+	}
 
 	ret = WM_gesture_straightline_invoke(C, op, event);
 	if (ret & OPERATOR_RUNNING_MODAL) {
