@@ -416,6 +416,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 	if (!stroke->stroke_started) {
 		copy_v2_v2(stroke->last_mouse_position, sample_average.mouse);
 		stroke->stroke_started = stroke->test_start(C, op, sample_average.mouse);
+		BLI_assert((stroke->stroke_started & ~1) == 0);  /* 0/1 */
 
 		if (stroke->stroke_started) {
 			stroke->smooth_stroke_cursor =

@@ -34,6 +34,7 @@
 #include <math.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <stddef.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -337,37 +338,12 @@ void defvert_flip_merged(MDeformVert *dvert, const int *flip_map, const int flip
 
 bDeformGroup *defgroup_find_name(Object *ob, const char *name)
 {
-	/* return a pointer to the deform group with this name
-	 * or return NULL otherwise.
-	 */
-	bDeformGroup *curdef;
-
-	for (curdef = ob->defbase.first; curdef; curdef = curdef->next) {
-		if (!strcmp(curdef->name, name)) {
-			return curdef;
-		}
-	}
-	return NULL;
+	return BLI_findstring(&ob->defbase, name, offsetof(bDeformGroup, name));
 }
 
 int defgroup_name_index(Object *ob, const char *name)
 {
-	/* Return the location of the named deform group within the list of
-	 * deform groups. This function is a combination of BLI_findlink and
-	 * defgroup_find_name. The other two could be called instead, but that
-	 * require looping over the vertexgroups twice.
-	 */
-	bDeformGroup *curdef;
-	int def_nr;
-
-	if (name && name[0] != '\0') {
-		for (curdef = ob->defbase.first, def_nr = 0; curdef; curdef = curdef->next, def_nr++) {
-			if (!strcmp(curdef->name, name))
-				return def_nr;
-		}
-	}
-
-	return -1;
+	return BLI_findstringindex(&ob->defbase, name, offsetof(bDeformGroup, name));
 }
 
 /* note, must be freed */

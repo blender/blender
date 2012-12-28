@@ -372,31 +372,22 @@ static int wpaint_mirror_vgroup_ensure(Object *ob, const int vgroup_active)
 	bDeformGroup *defgroup = BLI_findlink(&ob->defbase, vgroup_active);
 
 	if (defgroup) {
-		bDeformGroup *curdef;
 		int mirrdef;
 		char name[MAXBONENAME];
 
 		flip_side_name(name, defgroup->name, FALSE);
-
-		if (strcmp(name, defgroup->name) != 0) {
-			for (curdef = ob->defbase.first, mirrdef = 0; curdef; curdef = curdef->next, mirrdef++) {
-				if (!strcmp(curdef->name, name)) {
-					break;
-				}
+		mirrdef = defgroup_name_index(ob, name);
+		if (mirrdef == -1) {
+			int olddef = ob->actdef;  /* tsk, ED_vgroup_add sets the active defgroup */
+			if (ED_vgroup_add_name(ob, name)) {
+				mirrdef = BLI_countlist(&ob->defbase) - 1;
 			}
-
-			if (curdef == NULL) {
-				int olddef = ob->actdef;  /* tsk, ED_vgroup_add sets the active defgroup */
-				curdef = ED_vgroup_add_name(ob, name);
-				ob->actdef = olddef;
-			}
-
-			/* curdef should never be NULL unless this is
-			 * a  lamp and ED_vgroup_add_name fails */
-			if (curdef) {
-				return mirrdef;
-			}
+			ob->actdef = olddef;
 		}
+
+		/* curdef should never be NULL unless this is
+		 * a  lamp and ED_vgroup_add_name fails */
+		return mirrdef;
 	}
 
 	return -1;
@@ -2061,32 +2052,29 @@ struct WPaintData {
 	int vgroup_mirror;
 	DMCoNo *vertexcosnos;
 	float wpimat[3][3];
-	
+
 	/* variables for auto normalize */
 	const char *vgroup_validmap; /* stores if vgroups tie to deforming bones or not */
 	const char *lock_flags;
 	int defbase_tot;
 };
 
-static int wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UNUSED(mouse[2]))
+/* ensure we have data on wpaint start, add if needed */
+static int wpaint_ensure_data(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	struct PaintStroke *stroke = op->customdata;
-	ToolSettings *ts = scene->toolsettings;
-	VPaint *wp = ts->wpaint;
 	Object *ob = CTX_data_active_object(C);
-	struct WPaintData *wpd;
-	Mesh *me;
+	Mesh *me = BKE_mesh_from_object(ob);
 
-	float mat[4][4], imat[4][4];
-	
 	if (scene->obedit) {
 		return FALSE;
 	}
-	
+
 	me = BKE_mesh_from_object(ob);
-	if (me == NULL || me->totpoly == 0) return OPERATOR_PASS_THROUGH;
-	
+	if (me == NULL || me->totpoly == 0) {
+		return FALSE;
+	}
+
 	/* if nothing was added yet, we make dverts and a vertex deform group */
 	if (!me->dvert) {
 		ED_vgroup_data_create(&me->id);
@@ -2122,6 +2110,25 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UNU
 	/* ensure we don't try paint onto an invalid group */
 	if (ob->actdef <= 0) {
 		BKE_report(op->reports, RPT_WARNING, "No active vertex group for painting, aborting");
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+static int wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UNUSED(mouse[2]))
+{
+	Scene *scene = CTX_data_scene(C);
+	struct PaintStroke *stroke = op->customdata;
+	ToolSettings *ts = scene->toolsettings;
+	VPaint *wp = ts->wpaint;
+	Object *ob = CTX_data_active_object(C);
+	Mesh *me = BKE_mesh_from_object(ob);
+	struct WPaintData *wpd;
+
+	float mat[4][4], imat[4][4];
+
+	if (wpaint_ensure_data(C, op) == FALSE) {
 		return FALSE;
 	}
 
@@ -3208,7 +3215,9 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 
 static int paint_weight_gradient_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	int ret = WM_gesture_straightline_invoke(C, op, event);
+	int ret;
+
+	ret = WM_gesture_straightline_invoke(C, op, event);
 	if (ret & OPERATOR_RUNNING_MODAL) {
 		struct ARegion *ar = CTX_wm_region(C);
 		if (ar->regiontype == RGN_TYPE_WINDOW) {
