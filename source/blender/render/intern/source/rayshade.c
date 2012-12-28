@@ -81,7 +81,7 @@ extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 static int test_break(void *data)
 {
-	Render *re = (Render*)data;
+	Render *re = (Render *)data;
 	return re->test_break(re->tbh);
 }
 
@@ -250,9 +250,9 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 		//Create Ray cast accelaration structure
 		raytree = rayobject_create( re,  re->r.raytrace_structure, faces );
 		if (  (re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS) )
-			vlakprimitive = obr->rayprimitives = (VlakPrimitive*)MEM_callocN(faces*sizeof(VlakPrimitive), "ObjectRen primitives");
+			vlakprimitive = obr->rayprimitives = (VlakPrimitive *)MEM_callocN(faces * sizeof(VlakPrimitive), "ObjectRen primitives");
 		else
-			face = obr->rayfaces = (RayFace*)MEM_callocN(faces*sizeof(RayFace), "ObjectRen faces");
+			face = obr->rayfaces = (RayFace *)MEM_callocN(faces * sizeof(RayFace), "ObjectRen faces");
 
 		obr->rayobi = obi;
 		
@@ -345,10 +345,10 @@ static void makeraytree_single(Render *re)
 	raytree = re->raytree = rayobject_create( re, re->r.raytrace_structure, faces+special );
 
 	if ( (re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS) ) {
-		vlakprimitive = re->rayprimitives = (VlakPrimitive*)MEM_callocN(faces*sizeof(VlakPrimitive), "Raytrace vlak-primitives");
+		vlakprimitive = re->rayprimitives = (VlakPrimitive *)MEM_callocN(faces * sizeof(VlakPrimitive), "Raytrace vlak-primitives");
 	}
 	else {
-		face = re->rayfaces	= (RayFace*)MEM_callocN(faces*sizeof(RayFace), "Render ray faces");
+		face = re->rayfaces	= (RayFace *)MEM_callocN(faces * sizeof(RayFace), "Render ray faces");
 	}
 	
 	for (obi=re->instancetable.first; obi; obi=obi->next)
@@ -496,8 +496,8 @@ static void shade_ray_set_derivative(ShadeInput *shi)
 
 void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 {
-	ObjectInstanceRen *obi= (ObjectInstanceRen*)is->hit.ob;
-	VlakRen *vlr= (VlakRen*)is->hit.face;
+	ObjectInstanceRen *obi = (ObjectInstanceRen *)is->hit.ob;
+	VlakRen *vlr = (VlakRen *)is->hit.face;
 	
 	/* set up view vector */
 	copy_v3_v3(shi->view, is->dir);

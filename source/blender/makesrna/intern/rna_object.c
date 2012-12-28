@@ -1123,7 +1123,7 @@ static void rna_GameObjectSettings_used_state_get(PointerRNA *ptr, int *values)
 
 static void rna_GameObjectSettings_col_group_get(PointerRNA *ptr, int *values)
 {
-	Object *ob = (Object*)ptr->data;
+	Object *ob = (Object *)ptr->data;
 	int i;
 
 	for (i = 0; i < OB_MAX_COL_MASKS; i++) {
@@ -1133,7 +1133,7 @@ static void rna_GameObjectSettings_col_group_get(PointerRNA *ptr, int *values)
 
 static void rna_GameObjectSettings_col_group_set(PointerRNA *ptr, const int *values)
 {
-	Object *ob = (Object*)ptr->data;
+	Object *ob = (Object *)ptr->data;
 	int i, tot = 0;
 
 	/* ensure we always have some group selected */
@@ -1152,7 +1152,7 @@ static void rna_GameObjectSettings_col_group_set(PointerRNA *ptr, const int *val
 
 static void rna_GameObjectSettings_col_mask_get(PointerRNA *ptr, int *values)
 {
-	Object *ob = (Object*)ptr->data;
+	Object *ob = (Object *)ptr->data;
 	int i;
 
 	for (i = 0; i < OB_MAX_COL_MASKS; i++) {
@@ -1162,7 +1162,7 @@ static void rna_GameObjectSettings_col_mask_get(PointerRNA *ptr, int *values)
 
 static void rna_GameObjectSettings_col_mask_set(PointerRNA *ptr, const int *values)
 {
-	Object *ob = (Object*)ptr->data;
+	Object *ob = (Object *)ptr->data;
 	int i, tot = 0;
 
 	/* ensure we always have some mask selected */

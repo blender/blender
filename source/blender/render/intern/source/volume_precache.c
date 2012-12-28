@@ -493,7 +493,7 @@ typedef struct VolPrecacheQueue {
  */
 static void *vol_precache_part(void *data)
 {
-	VolPrecacheQueue *queue = (VolPrecacheQueue*)data;
+	VolPrecacheQueue *queue = (VolPrecacheQueue *)data;
 	VolPrecachePart *pa;
 
 	while ((pa = BLI_thread_queue_pop(queue->work))) {

@@ -1996,7 +1996,7 @@ int BKE_imbuf_write_stamp(Scene *scene, struct Object *camera, ImBuf *ibuf, cons
 
 
 static void do_makepicstring(char *string, const char *base, const char *relbase, int frame, const char imtype,
-							 const ImageFormatData *im_format, const short use_ext, const short use_frames)
+                             const ImageFormatData *im_format, const short use_ext, const short use_frames)
 {
 	if (string == NULL) return;
 	BLI_strncpy(string, base, FILE_MAX - 10);   /* weak assumption */

@@ -70,7 +70,7 @@ static void move_stack(bNodeStack *to, bNodeStack *from)
 
 static void *group_initexec(bNode *node)
 {
-	bNodeTree *ngroup= (bNodeTree*)node->id;
+	bNodeTree *ngroup = (bNodeTree *)node->id;
 	bNodeTreeExec *exec;
 	
 	if (!ngroup)
@@ -84,7 +84,7 @@ static void *group_initexec(bNode *node)
 
 static void group_freeexec(bNode *UNUSED(node), void *nodedata)
 {
-	bNodeTreeExec*gexec= (bNodeTreeExec*)nodedata;
+	bNodeTreeExec*gexec = (bNodeTreeExec *)nodedata;
 	
 	ntreeShaderEndExecTree(gexec, 0);
 }
@@ -121,7 +121,7 @@ static void group_move_outputs(bNode *node, bNodeStack **out, bNodeStack *gstack
 
 static void group_execute(void *data, int thread, struct bNode *node, void *nodedata, struct bNodeStack **in, struct bNodeStack **out)
 {
-	bNodeTreeExec *exec= (bNodeTreeExec*)nodedata;
+	bNodeTreeExec *exec = (bNodeTreeExec *)nodedata;
 	bNodeThreadStack *nts;
 	
 	if (!exec)
@@ -177,7 +177,7 @@ static void group_gpu_move_outputs(bNode *node, GPUNodeStack *out, bNodeStack *g
 
 static int gpu_group_execute(GPUMaterial *mat, bNode *node, void *nodedata, GPUNodeStack *in, GPUNodeStack *out)
 {
-	bNodeTreeExec *exec= (bNodeTreeExec*)nodedata;
+	bNodeTreeExec *exec = (bNodeTreeExec *)nodedata;
 	
 	group_gpu_copy_inputs(node, in, exec->stack);
 	ntreeExecGPUNodes(exec, mat, (node->flag & NODE_GROUP_EDIT));

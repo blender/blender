@@ -92,7 +92,7 @@ void GPU_render_text(MTFace *tface, int mode,
 	float *v1, float *v2, float *v3, float *v4, int glattrib)
 {
 	if ((mode & GEMAT_TEXT) && (textlen>0) && tface->tpage) {
-		Image* ima = (Image*)tface->tpage;
+		Image* ima = (Image *)tface->tpage;
 		int index, character;
 		float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
 		float advance_tab;
@@ -813,7 +813,7 @@ void GPU_create_gl_tex_compressed(unsigned int *bind, unsigned int *pix, int x, 
 	glBindTexture(GL_TEXTURE_2D, *bind);
 
 	if (GPU_upload_dxt_texture(ibuf) == 0) {
-		glDeleteTextures(1, (GLuint*)bind);
+		glDeleteTextures(1, (GLuint *)bind);
 		GPU_create_gl_tex(bind, pix, NULL, x, y, mipmap, 0, ima);
 	}
 #endif

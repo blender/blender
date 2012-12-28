@@ -1172,7 +1172,7 @@ typedef struct ZbufSolidData {
 
 static void make_pixelstructs(RenderPart *pa, ZSpan *zspan, int sample, void *data)
 {
-	ZbufSolidData *sdata= (ZbufSolidData*)data;
+	ZbufSolidData *sdata = (ZbufSolidData *)data;
 	ListBase *lb= sdata->psmlist;
 	intptr_t *rd= pa->rectdaps;
 	int *ro= zspan->recto;
@@ -1740,7 +1740,7 @@ void zbufshade_sss_tile(RenderPart *pa)
 #if 0
 			if (rs) {
 				/* for each sample in this pixel, shade it */
-				for (ps=(PixStr*)*rs; ps; ps=ps->next) {
+				for (ps = (PixStr *)(*rs); ps; ps=ps->next) {
 					ObjectInstanceRen *obi= &re->objectinstance[ps->obi];
 					ObjectRen *obr= obi->obr;
 					vlr= RE_findOrAddVlak(obr, (ps->facenr-1) & RE_QUAD_MASK);
@@ -2461,8 +2461,8 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 
 		/* if hit, we shade from the new point, otherwise from point one starting face */
 		if (hit) {
-			obi= (ObjectInstanceRen*)minisec.hit.ob;
-			vlr= (VlakRen*)minisec.hit.face;
+			obi = (ObjectInstanceRen *)minisec.hit.ob;
+			vlr = (VlakRen *)minisec.hit.face;
 			quad= (minisec.isect == 2);
 			copy_v3_v3(shi->co, minco);
 			

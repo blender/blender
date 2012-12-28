@@ -148,7 +148,7 @@ static SpaceLink *logic_new(const bContext *C)
 /* not spacelink itself */
 static void logic_free(SpaceLink *UNUSED(sl))
 {	
-//	Spacelogic *slogic= (SpaceLogic*) sl;
+//	Spacelogic *slogic= (SpaceLogic *) sl;
 	
 //	if (slogic->gpd)
 // XXX		BKE_gpencil_free(slogic->gpd);

@@ -370,7 +370,7 @@ RadFace **RE_vlakren_get_radface(ObjectRen *obr, VlakRen *vlak, int verify)
 	radface= obr->vlaknodes[nr].radface;
 	if (radface==NULL) {
 		if (verify) 
-			radface= obr->vlaknodes[nr].radface= MEM_callocN(256*RE_RADFACE_ELEMS*sizeof(void*), "radface table");
+			radface = obr->vlaknodes[nr].radface= MEM_callocN(256 * RE_RADFACE_ELEMS * sizeof(void *), "radface table");
 		else
 			return NULL;
 	}
@@ -888,9 +888,9 @@ HaloRen *RE_findOrAddHalo(ObjectRen *obr, int nr)
 		//	TABLEINITSIZE, obr->blohalen+TABLEINITSIZE );
 		temp=obr->bloha;
 		
-		obr->bloha=(HaloRen**)MEM_callocN(sizeof(void*)*(obr->blohalen+TABLEINITSIZE), "Bloha");
-		if (temp) memcpy(obr->bloha, temp, obr->blohalen*sizeof(void*));
-		memset(&(obr->bloha[obr->blohalen]), 0, TABLEINITSIZE*sizeof(void*));
+		obr->bloha = (HaloRen**)MEM_callocN(sizeof(void *) * (obr->blohalen + TABLEINITSIZE), "Bloha");
+		if (temp) memcpy(obr->bloha, temp, obr->blohalen*sizeof(void *));
+		memset(&(obr->bloha[obr->blohalen]), 0, TABLEINITSIZE * sizeof(void *));
 		obr->blohalen+=TABLEINITSIZE;  /*Does this really need to be power of 2?*/
 		if (temp) MEM_freeN(temp);
 	}

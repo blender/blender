@@ -399,8 +399,8 @@ static void node_buts_curvecol(uiLayout *layout, bContext *UNUSED(C), PointerRNA
 
 static void node_buts_normal(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-	bNodeTree *ntree = (bNodeTree*)ptr->id.data;
-	bNode *node = (bNode*)ptr->data;
+	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
+	bNode *node = (bNode *)ptr->data;
 	bNodeSocket *sock = node->outputs.first;     /* first socket stores normal */
 	PointerRNA sockptr;
 

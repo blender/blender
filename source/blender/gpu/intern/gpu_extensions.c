@@ -134,8 +134,8 @@ void GPU_extensions_init(void)
 	glGetIntegerv(GL_BLUE_BITS, &b);
 	GG.colordepth = r+g+b; /* assumes same depth for RGB */
 
-	vendor = (const char*)glGetString(GL_VENDOR);
-	renderer = (const char*)glGetString(GL_RENDERER);
+	vendor = (const char *)glGetString(GL_VENDOR);
+	renderer = (const char *)glGetString(GL_RENDERER);
 
 	if (strstr(vendor, "ATI")) {
 		GG.device = GPU_DEVICE_ATI;
@@ -916,7 +916,7 @@ void GPU_framebuffer_blur(GPUFrameBuffer *fb, GPUTexture *tex, GPUFrameBuffer *b
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, blurfb->object);
 
 	GPU_shader_bind(blur_shader);
-	GPU_shader_uniform_vector(blur_shader, scale_uniform, 2, 1, (float*)scaleh);
+	GPU_shader_uniform_vector(blur_shader, scale_uniform, 2, 1, (float *)scaleh);
 	GPU_shader_uniform_texture(blur_shader, texture_source_uniform, tex);
 	glViewport(0, 0, GPU_texture_opengl_width(blurtex), GPU_texture_opengl_height(blurtex));
 
@@ -942,7 +942,7 @@ void GPU_framebuffer_blur(GPUFrameBuffer *fb, GPUTexture *tex, GPUFrameBuffer *b
 
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb->object);
 	glViewport(0, 0, GPU_texture_opengl_width(tex), GPU_texture_opengl_height(tex));
-	GPU_shader_uniform_vector(blur_shader, scale_uniform, 2, 1, (float*)scalev);
+	GPU_shader_uniform_vector(blur_shader, scale_uniform, 2, 1, (float *)scalev);
 	GPU_shader_uniform_texture(blur_shader, texture_source_uniform, blurtex);
 	GPU_texture_bind(blurtex, 0);
 

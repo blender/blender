@@ -370,7 +370,7 @@ static int initialize_chain(Object *ob, bPoseChannel *pchan_tip, bConstraint *co
 
 static bool is_cartesian_constraint(bConstraint *con)
 {
-	//bKinematicConstraint* data=(bKinematicConstraint*)con->data;
+	//bKinematicConstraint* data=(bKinematicConstraint *)con->data;
 
 	return true;
 }

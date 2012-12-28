@@ -1101,7 +1101,7 @@ static void rna_ShaderNodeScript_mode_set(PointerRNA *ptr, int value)
 
 		/* replace text datablock by filepath */
 		if (node->id) {
-			Text *text = (Text*)node->id;
+			Text *text = (Text *)node->id;
 
 			if (value == NODE_SCRIPT_EXTERNAL && text->name) {
 				BLI_strncpy(nss->filepath, text->name, sizeof(nss->filepath));

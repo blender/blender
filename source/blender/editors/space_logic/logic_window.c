@@ -1006,7 +1006,7 @@ static void draw_sensor_actuator(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_sensor_armature(uiLayout *layout, PointerRNA *ptr)
 {
-	bSensor *sens = (bSensor*)ptr->data;
+	bSensor *sens = (bSensor *)ptr->data;
 	bArmatureSensor *as = (bArmatureSensor *) sens->data;
 	Object *ob = (Object *)ptr->id.data;
 	PointerRNA pose_ptr, pchan_ptr;
@@ -1476,7 +1476,7 @@ static void draw_actuator_action(uiLayout *layout, PointerRNA *ptr)
 
 static void draw_actuator_armature(uiLayout *layout, PointerRNA *ptr)
 {
-	bActuator *act = (bActuator*)ptr->data;
+	bActuator *act = (bActuator *)ptr->data;
 	bArmatureActuator *aa = (bArmatureActuator *) act->data;
 	Object *ob = (Object *)ptr->id.data;
 	bConstraint *constraint = NULL;

@@ -2070,7 +2070,6 @@ static int wpaint_ensure_data(bContext *C, wmOperator *op)
 		return FALSE;
 	}
 
-	me = BKE_mesh_from_object(ob);
 	if (me == NULL || me->totpoly == 0) {
 		return FALSE;
 	}

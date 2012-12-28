@@ -748,13 +748,13 @@ static void rna_BevelModifier_angle_limit_set(PointerRNA *ptr, float value)
 
 static void rna_UVWarpModifier_vgroup_set(PointerRNA *ptr, const char *value)
 {
-	UVWarpModifierData *umd = (UVWarpModifierData*)ptr->data;
+	UVWarpModifierData *umd = (UVWarpModifierData *)ptr->data;
 	rna_object_vgroup_name_set(ptr, value, umd->vgroup_name, sizeof(umd->vgroup_name));
 }
 
 static void rna_UVWarpModifier_uvlayer_set(PointerRNA *ptr, const char *value)
 {
-	UVWarpModifierData *umd = (UVWarpModifierData*)ptr->data;
+	UVWarpModifierData *umd = (UVWarpModifierData *)ptr->data;
 	rna_object_uvlayer_name_set(ptr, value, umd->uvlayer_name, sizeof(umd->uvlayer_name));
 }
 

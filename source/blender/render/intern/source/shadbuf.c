@@ -812,7 +812,7 @@ void makeshadowbuf(Render *re, LampRen *lar)
 
 static void *do_shadow_thread(void *re_v)
 {
-	Render *re= (Render*)re_v;
+	Render *re = (Render *)re_v;
 	LampRen *lar;
 
 	do {

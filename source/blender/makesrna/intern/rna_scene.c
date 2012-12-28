@@ -1131,7 +1131,7 @@ static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
 
 static char *rna_SceneRenderLayer_path(PointerRNA *ptr)
 {
-	SceneRenderLayer *srl = (SceneRenderLayer*)ptr->data;
+	SceneRenderLayer *srl = (SceneRenderLayer *)ptr->data;
 	return BLI_sprintfN("render.layers[\"%s\"]", srl->name);
 }
 

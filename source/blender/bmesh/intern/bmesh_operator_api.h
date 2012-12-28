@@ -435,7 +435,7 @@ void BMO_slot_buffer_from_all(BMesh *bm, BMOperator *op, BMOpSlot slot_args[BMO_
  *        //whether it's a float, pointer, whatever.
  *        //
  *        // so to get a pointer, for example, use:
- *        //  *((void**)BMO_iter_map_value(&oiter));
+ *        //  *((void **)BMO_iter_map_value(&oiter));
  *        //or something like that.
  *    }
  * \endcode

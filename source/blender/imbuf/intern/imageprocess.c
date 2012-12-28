@@ -104,7 +104,7 @@ void bicubic_interpolation_color(struct ImBuf *in, unsigned char outI[4], float 
 		BLI_bicubic_interpolation_fl(in->rect_float, outF, in->x, in->y, 4, u, v);
 	}
 	else {
-		BLI_bicubic_interpolation_char((unsigned char*) in->rect, outI, in->x, in->y, 4, u, v);
+		BLI_bicubic_interpolation_char((unsigned char *) in->rect, outI, in->x, in->y, 4, u, v);
 	}
 }
 
@@ -130,7 +130,7 @@ void bilinear_interpolation_color(struct ImBuf *in, unsigned char outI[4], float
 		BLI_bilinear_interpolation_fl(in->rect_float, outF, in->x, in->y, 4, u, v);
 	}
 	else {
-		BLI_bilinear_interpolation_char((unsigned char*) in->rect, outI, in->x, in->y, 4, u, v);
+		BLI_bilinear_interpolation_char((unsigned char *) in->rect, outI, in->x, in->y, 4, u, v);
 	}
 }
 

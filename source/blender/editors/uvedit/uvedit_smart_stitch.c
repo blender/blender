@@ -1606,7 +1606,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 	}
 
 	uvedit_get_aspect(scene, obedit, em, &aspx, &aspy);
-	state->aspect = aspx/aspy;
+	state->aspect = aspx / aspy;
 
 	/* Entirely possible if redoing last operator that static island is bigger than total number of islands.
 	 * This ensures we get no hang in the island checking code in stitch_stitch_process_data. */

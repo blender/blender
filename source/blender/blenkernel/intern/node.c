@@ -1161,11 +1161,11 @@ void ntreeSetOutput(bNodeTree *ntree)
 bNodeTree *ntreeFromID(ID *id)
 {
 	switch (GS(id->name)) {
-		case ID_MA: return ((Material*)id)->nodetree;
-		case ID_LA: return ((Lamp*)id)->nodetree;
-		case ID_WO: return ((World*)id)->nodetree;
-		case ID_TE: return ((Tex*)id)->nodetree;
-		case ID_SCE: return ((Scene*)id)->nodetree;
+		case ID_MA:  return ((Material *)id)->nodetree;
+		case ID_LA:  return ((Lamp *)id)->nodetree;
+		case ID_WO:  return ((World *)id)->nodetree;
+		case ID_TE:  return ((Tex *)id)->nodetree;
+		case ID_SCE: return ((Scene *)id)->nodetree;
 		default: return NULL;
 	}
 }
