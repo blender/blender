@@ -231,7 +231,7 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
         rd = scene.render
 
         row = layout.row()
-        row.template_list(rd, "layers", rd.layers, "active_index", rows=2)
+        row.template_list("RENDER_UL_renderlayers", "", rd, "layers", rd.layers, "active_index", rows=2)
 
         col = row.column(align=True)
         col.operator("scene.render_layer_add", icon='ZOOMIN', text="")
@@ -377,7 +377,7 @@ class Cycles_PT_context_material(CyclesButtonsPanel, Panel):
         if ob:
             row = layout.row()
 
-            row.template_list(ob, "material_slots", ob, "active_material_index", rows=2)
+            row.template_list("MATERIAL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=2)
 
             col = row.column(align=True)
             col.operator("object.material_slot_add", icon='ZOOMIN', text="")
@@ -932,7 +932,7 @@ class CyclesParticle_PT_textures(CyclesButtonsPanel, Panel):
         part = psys.settings
 
         row = layout.row()
-        row.template_list(part, "texture_slots", part, "active_texture_index", rows=2)
+        row.template_list("TEXTURE_UL_texslots", "", part, "texture_slots", part, "active_texture_index", rows=2)
 
         col = row.column(align=True)
         col.operator("texture.slot_move", text="", icon='TRIA_UP').type = 'UP'
