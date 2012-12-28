@@ -371,8 +371,10 @@ PointerRNA CTX_data_pointer_get(const bContext *C, const char *member)
 {
 	bContextDataResult result;
 
-	if (ctx_data_get((bContext *)C, member, &result) == 1)
+	if (ctx_data_get((bContext *)C, member, &result) == 1) {
+		BLI_freelistN(&result.list);
 		return result.ptr;
+	}
 	else
 		return PointerRNA_NULL;
 }
