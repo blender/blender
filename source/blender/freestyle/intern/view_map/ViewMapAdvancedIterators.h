@@ -219,8 +219,8 @@ template<class Traits>
       increment();
       return *this;
     }
-    virtual Self operator++(int)  // opérateur correspondant à i++ 
-    {                                  // c.a.d qui renvoie la valeur *puis* incrémente.
+    virtual Self operator++(int)  // opÃ©rateur correspondant Ã  i++ 
+    {                                  // c.a.d qui renvoie la valeur *puis* incrÃ©mente.
       Self tmp = *this;        // C'est pour cela qu'on stocke la valeur
       increment();                    // dans un temporaire. 
       return tmp;
@@ -412,8 +412,8 @@ namespace ViewEdgeInternal {
       increment();
       return *this;
     }
-    inline Self operator++(int)  // opérateur correspondant à i++ 
-    {                                  // c.a.d qui renvoie la valeur *puis* incrémente.
+    inline Self operator++(int)  // opÃ©rateur correspondant Ã  i++ 
+    {                                  // c.a.d qui renvoie la valeur *puis* incrÃ©mente.
       //++_ViewEdge->getTimeStamp();
       Self tmp = *this;        // C'est pour cela qu'on stocke la valeur
       increment();                    // dans un temporaire. 
@@ -425,8 +425,8 @@ namespace ViewEdgeInternal {
       decrement();
       return *this;
     }
-    inline Self operator--(int)  // opérateur correspondant à i++ 
-    {                                  // c.a.d qui renvoie la valeur *puis* incrémente.
+    inline Self operator--(int)  // opÃ©rateur correspondant Ã  i++ 
+    {                                  // c.a.d qui renvoie la valeur *puis* incrÃ©mente.
       //++_ViewEdge->getTimeStamp();
       Self tmp = *this;        // C'est pour cela qu'on stocke la valeur
       decrement();                    // dans un temporaire. 
@@ -509,8 +509,8 @@ namespace ViewEdgeInternal {
       increment();
       return *this;
     }
-    inline Self operator++(int)  // opérateur correspondant à i++ 
-    {                                  // c.a.d qui renvoie la valeur *puis* incrémente.
+    inline Self operator++(int)  // opÃ©rateur correspondant Ã  i++ 
+    {                                  // c.a.d qui renvoie la valeur *puis* incrÃ©mente.
       Self tmp = *this;        // C'est pour cela qu'on stocke la valeur
       increment();                    // dans un temporaire. 
       return tmp;
@@ -520,8 +520,8 @@ namespace ViewEdgeInternal {
       decrement();
       return *this;
     }
-    inline Self operator--(int)  // opérateur correspondant à i++ 
-    {                                  // c.a.d qui renvoie la valeur *puis* incrémente.
+    inline Self operator--(int)  // opÃ©rateur correspondant Ã  i++ 
+    {                                  // c.a.d qui renvoie la valeur *puis* incrÃ©mente.
       Self tmp = *this;        // C'est pour cela qu'on stocke la valeur
       decrement();                    // dans un temporaire. 
       return tmp;
@@ -621,8 +621,8 @@ namespace ViewEdgeInternal {
       increment();
       return *this;
     }
-    inline Self operator++(int)  // opérateur correspondant à i++ 
-    {                                  // c.a.d qui renvoie la valeur *puis* incrémente.
+    inline Self operator++(int)  // opÃ©rateur correspondant Ã  i++ 
+    {                                  // c.a.d qui renvoie la valeur *puis* incrÃ©mente.
       Self tmp = *this;        // C'est pour cela qu'on stocke la valeur
       increment();                    // dans un temporaire. 
       return tmp;
@@ -632,8 +632,8 @@ namespace ViewEdgeInternal {
       decrement();
       return *this;
     }
-    inline Self operator--(int)  // opérateur correspondant à i++ 
-    {                                  // c.a.d qui renvoie la valeur *puis* incrémente.
+    inline Self operator--(int)  // opÃ©rateur correspondant Ã  i++ 
+    {                                  // c.a.d qui renvoie la valeur *puis* incrÃ©mente.
       Self tmp = *this;        // C'est pour cela qu'on stocke la valeur
       decrement();                    // dans un temporaire. 
       return tmp;

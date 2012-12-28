@@ -165,8 +165,8 @@ namespace ViewVertexInternal{
     /*! Increments.In the scripting language, call
      *  "increment()".
      */
-    virtual orientedViewEdgeIterator operator++(int)  // opérateur correspondant à i++ 
-    {                                  // c.a.d qui renvoie la valeur *puis* incrémente.
+    virtual orientedViewEdgeIterator operator++(int)  // opÃ©rateur correspondant Ã  i++ 
+    {                                  // c.a.d qui renvoie la valeur *puis* incrÃ©mente.
       orientedViewEdgeIterator tmp = *this;        // C'est pour cela qu'on stocke la valeur
       increment();                    // dans un temporaire. 
       return tmp;
