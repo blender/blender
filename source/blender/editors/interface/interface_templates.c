@@ -2328,7 +2328,7 @@ void uiTemplateGameStates(uiLayout *layout, PointerRNA *ptr, const char *propnam
 
 
 /************************* List Template **************************/
-static void uilist_draw_item_default(struct uiList *uilst, struct bContext *UNUSED(C), struct uiLayout *layout,
+static void uilist_draw_item_default(struct uiList *ui_list, struct bContext *UNUSED(C), struct uiLayout *layout,
                                      struct PointerRNA *UNUSED(dataptr), struct PointerRNA *itemptr, int icon,
                                      struct PointerRNA *UNUSED(active_dataptr), const char *UNUSED(active_propname),
                                      int UNUSED(index))
@@ -2340,7 +2340,7 @@ static void uilist_draw_item_default(struct uiList *uilst, struct bContext *UNUS
 	name = (namebuf) ? namebuf : "";
 
 	/* Simplest one! */
-	switch (uilst->layout_type) {
+	switch (ui_list->layout_type) {
 	case UILST_LAYOUT_GRID:
 		uiItemL(layout, "", icon);
 		break;
@@ -2361,8 +2361,8 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
                     PointerRNA *dataptr, const char *propname, PointerRNA *active_dataptr,
                     const char *active_propname, int rows, int maxrows, int layout_type)
 {
-	uiListType *ult;
-	uiList *uilst = NULL;
+	uiListType *ui_list_type;
+	uiList *ui_list = NULL;
 	ARegion *ar;
 	uiListDrawItemFunc draw_item;
 
@@ -2373,7 +2373,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 	uiBlock *block, *subblock;
 	uiBut *but;
 
-	char uilst_id[UI_MAX_NAME_STR];
+	char ui_list_id[UI_MAX_NAME_STR];
 	char numstr[32];
 	int rnaicon = ICON_NONE, icon = ICON_NONE;
 	int i = 0, activei = 0;
@@ -2428,31 +2428,31 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 	activei = RNA_property_int_get(active_dataptr, activeprop);
 
 	/* Find the uiList type. */
-	ult = WM_uilisttype_find(listtype_name, FALSE);
+	ui_list_type = WM_uilisttype_find(listtype_name, FALSE);
 
-	if (ult == NULL) {
+	if (ui_list_type == NULL) {
 		RNA_warning("List type %s not found", listtype_name);
 		return;
 	}
 
-	draw_item = ult->draw_item ? ult->draw_item : uilist_draw_item_default;
+	draw_item = ui_list_type->draw_item ? ui_list_type->draw_item : uilist_draw_item_default;
 
 	/* Find or add the uiList to the current Region. */
 	/* We tag the list id with the list type... */
-	BLI_snprintf(uilst_id, sizeof(uilst_id), "%s_%s", ult->idname, list_id ? list_id : "");
+	BLI_snprintf(ui_list_id, sizeof(ui_list_id), "%s_%s", ui_list_type->idname, list_id ? list_id : "");
 
 	ar = CTX_wm_region(C);
-	uilst = BLI_findstring(&ar->uiLists, uilst_id, offsetof(uiList, list_id));
+	ui_list = BLI_findstring(&ar->ui_lists, ui_list_id, offsetof(uiList, list_id));
 
-	if (!uilst) {
-		uilst = MEM_callocN(sizeof(uiList), __func__);
-		BLI_strncpy(uilst->list_id, uilst_id, sizeof(uilst->list_id));
-		BLI_addtail(&ar->uiLists, uilst);
+	if (!ui_list) {
+		ui_list = MEM_callocN(sizeof(uiList), __func__);
+		BLI_strncpy(ui_list->list_id, ui_list_id, sizeof(ui_list->list_id));
+		BLI_addtail(&ar->ui_lists, ui_list);
 	}
 
 	/* Because we can't actually pass type across save&load... */
-	uilst->type = ult;
-	uilst->layout_type = layout_type;
+	ui_list->type = ui_list_type;
+	ui_list->layout_type = layout_type;
 
 	switch (layout_type) {
 	case UILST_LAYOUT_DEFAULT:
@@ -2461,11 +2461,11 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 			rows = 5;
 		if (maxrows == 0)
 			maxrows = 5;
-		if (uilst->list_grip_size != 0)
-			rows = uilst->list_grip_size;
+		if (ui_list->list_grip_size != 0)
+			rows = ui_list->list_grip_size;
 
 		/* layout */
-		box = uiLayoutListBox(layout, uilst, dataptr, prop, active_dataptr, activeprop);
+		box = uiLayoutListBox(layout, ui_list, dataptr, prop, active_dataptr, activeprop);
 		row = uiLayoutRow(box, FALSE);
 		col = uiLayoutColumn(row, TRUE);
 
@@ -2477,21 +2477,21 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 		items = CLAMPIS(len, rows, MAX2(rows, maxrows));
 
 		/* if list length changes and active is out of view, scroll to it */
-		if ((uilst->list_last_len != len) &&
-		    (activei < uilst->list_scroll || activei >= uilst->list_scroll + items)) {
-			uilst->list_scroll = activei;
+		if ((ui_list->list_last_len != len) &&
+		    (activei < ui_list->list_scroll || activei >= ui_list->list_scroll + items)) {
+			ui_list->list_scroll = activei;
 		}
 
-		uilst->list_scroll = MIN2(uilst->list_scroll, len - items);
-		uilst->list_scroll = MAX2(uilst->list_scroll, 0);
-		uilst->list_size = items;
-		uilst->list_last_len = len;
+		ui_list->list_scroll = min_ii(ui_list->list_scroll, len - items);
+		ui_list->list_scroll = max_ii(ui_list->list_scroll, 0);
+		ui_list->list_size = items;
+		ui_list->list_last_len = len;
 
 		if (dataptr->data && prop) {
 			/* create list items */
 			RNA_PROP_BEGIN (dataptr, itemptr, prop)
 			{
-				if (i >= uilst->list_scroll && i < uilst->list_scroll + items) {
+				if (i >= ui_list->list_scroll && i < ui_list->list_scroll + items) {
 					subblock = uiLayoutGetBlock(col);
 					overlap = uiLayoutOverlap(col);
 
@@ -2507,7 +2507,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 					icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, FALSE);
 					if (icon == ICON_DOT)
 						icon = ICON_NONE;
-					draw_item(uilst, C, sub, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
+					draw_item(ui_list, C, sub, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
 				}
 				i++;
 			}
@@ -2515,8 +2515,8 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 		}
 
 		/* add dummy buttons to fill space */
-		while (i < uilst->list_scroll + items) {
-			if (i >= uilst->list_scroll)
+		while (i < ui_list->list_scroll + items) {
+			if (i >= ui_list->list_scroll)
 				uiItemL(col, "", ICON_NONE);
 			i++;
 		}
@@ -2524,7 +2524,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 		/* add scrollbar */
 		if (len > items) {
 			col = uiLayoutColumn(row, FALSE);
-			uiDefButI(block, SCROLL, 0, "", 0, 0, UI_UNIT_X * 0.75, UI_UNIT_Y * items, &uilst->list_scroll,
+			uiDefButI(block, SCROLL, 0, "", 0, 0, UI_UNIT_X * 0.75, UI_UNIT_Y * items, &ui_list->list_scroll,
 			          0, len - items, items, 0, "");
 		}
 		break;
@@ -2541,7 +2541,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 					icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, FALSE);
 					if (icon == ICON_DOT)
 						icon = ICON_NONE;
-					draw_item(uilst, C, row, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
+					draw_item(ui_list, C, row, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
 				}
 
 				i++;
@@ -2561,7 +2561,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 			uiButSetFlag(but, UI_BUT_DISABLED);
 		break;
 	case UILST_LAYOUT_GRID:
-		box = uiLayoutListBox(layout, uilst, dataptr, prop, active_dataptr, activeprop);
+		box = uiLayoutListBox(layout, ui_list, dataptr, prop, active_dataptr, activeprop);
 		col = uiLayoutColumn(box, TRUE);
 		row = uiLayoutRow(col, FALSE);
 
@@ -2586,7 +2586,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 				sub = uiLayoutRow(overlap, FALSE);
 
 				icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, FALSE);
-				draw_item(uilst, C, sub, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
+				draw_item(ui_list, C, sub, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
 
 				i++;
 			}

@@ -6095,9 +6095,9 @@ static int ui_handle_list_event(bContext *C, wmEvent *event, ARegion *ar)
 	int value, min, max;
 
 	if (but && (event->val == KM_PRESS)) {
-		uiList *uilst = but->custom_data;
+		uiList *ui_list = but->custom_data;
 
-		if (uilst) {
+		if (ui_list) {
 			if (ELEM(event->type, UPARROWKEY, DOWNARROWKEY) ||
 				((ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->alt)))
 			{
@@ -6109,12 +6109,12 @@ static int ui_handle_list_event(bContext *C, wmEvent *event, ARegion *ar)
 				else
 					value++;
 
-				CLAMP(value, 0, uilst->list_last_len - 1);
+				CLAMP(value, 0, ui_list->list_last_len - 1);
 
-				if (value < uilst->list_scroll)
-					uilst->list_scroll = value;
-				else if (value >= uilst->list_scroll + uilst->list_size)
-					uilst->list_scroll = value - uilst->list_size + 1;
+				if (value < ui_list->list_scroll)
+					ui_list->list_scroll = value;
+				else if (value >= ui_list->list_scroll + ui_list->list_size)
+					ui_list->list_scroll = value - ui_list->list_size + 1;
 
 				RNA_property_int_range(&but->rnapoin, but->rnaprop, &min, &max);
 				value = CLAMPIS(value, min, max);
@@ -6127,27 +6127,27 @@ static int ui_handle_list_event(bContext *C, wmEvent *event, ARegion *ar)
 			}
 			else if (ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->shift) {
 				/* silly replacement for proper grip */
-				if (uilst->list_grip_size == 0)
-					uilst->list_grip_size = uilst->list_size;
+				if (ui_list->list_grip_size == 0)
+					ui_list->list_grip_size = ui_list->list_size;
 
 				if (event->type == WHEELUPMOUSE)
-					uilst->list_grip_size--;
+					ui_list->list_grip_size--;
 				else
-					uilst->list_grip_size++;
+					ui_list->list_grip_size++;
 
-				uilst->list_grip_size = MAX2(uilst->list_grip_size, 1);
+				ui_list->list_grip_size = MAX2(ui_list->list_grip_size, 1);
 
 				ED_region_tag_redraw(ar);
 
 				retval = WM_UI_HANDLER_BREAK;
 			}
 			else if (ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
-				if (uilst->list_last_len > uilst->list_size) {
+				if (ui_list->list_last_len > ui_list->list_size) {
 					/* list template will clamp */
 					if (event->type == WHEELUPMOUSE)
-						uilst->list_scroll--;
+						ui_list->list_scroll--;
 					else
-						uilst->list_scroll++;
+						ui_list->list_scroll++;
 
 					ED_region_tag_redraw(ar);
 

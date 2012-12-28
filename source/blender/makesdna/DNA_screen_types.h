@@ -181,7 +181,7 @@ typedef struct ARegion {
 	
 	ListBase uiblocks;			/* uiBlock */
 	ListBase panels;			/* Panel */
-	ListBase uiLists;			/* uiList */
+	ListBase ui_lists;			/* uiList */
 	ListBase handlers;			/* wmEventHandler */
 	
 	struct wmTimer *regiontimer; /* blend in/out */

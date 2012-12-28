@@ -2395,7 +2395,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 		for (sa= sc->areabase.first; sa; sa= sa->next) {
 			SpaceLink *sl;
 			Panel *pa;
-			uiList *uilst;
+			uiList *ui_list;
 			ARegion *ar;
 			
 			writestruct(wd, DATA, "ScrArea", 1, sa);
@@ -2406,8 +2406,8 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				for (pa= ar->panels.first; pa; pa= pa->next)
 					writestruct(wd, DATA, "Panel", 1, pa);
 				
-				for (uilst = ar->uiLists.first; uilst; uilst = uilst->next)
-					writestruct(wd, DATA, "uiList", 1, uilst);
+				for (ui_list = ar->ui_lists.first; ui_list; ui_list = ui_list->next)
+					writestruct(wd, DATA, "uiList", 1, ui_list);
 			}
 			
 			sl= sa->spacedata.first;

@@ -263,19 +263,19 @@ static StructRNA *rna_Panel_refine(PointerRNA *ptr)
 }
 
 /* UIList */
-static void uilist_draw_item(uiList *uilst, bContext *C, uiLayout *layout, PointerRNA *dataptr, PointerRNA *itemptr,
+static void uilist_draw_item(uiList *ui_list, bContext *C, uiLayout *layout, PointerRNA *dataptr, PointerRNA *itemptr,
                              int icon, PointerRNA *active_dataptr, const char *active_propname, int index)
 {
 	extern FunctionRNA rna_UIList_draw_item_func;
 
-	PointerRNA ultr;
+	PointerRNA ul_ptr;
 	ParameterList list;
 	FunctionRNA *func;
 
-	RNA_pointer_create(&CTX_wm_screen(C)->id, uilst->type->ext.srna, uilst, &ultr);
-	func = &rna_UIList_draw_item_func; /* RNA_struct_find_function(&ultr, "draw_item"); */
+	RNA_pointer_create(&CTX_wm_screen(C)->id, ui_list->type->ext.srna, ui_list, &ul_ptr);
+	func = &rna_UIList_draw_item_func; /* RNA_struct_find_function(&ul_ptr, "draw_item"); */
 
-	RNA_parameter_list_create(&list, &ultr, func);
+	RNA_parameter_list_create(&list, &ul_ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
 	RNA_parameter_set_lookup(&list, "layout", &layout);
 	RNA_parameter_set_lookup(&list, "data", dataptr);
@@ -284,7 +284,7 @@ static void uilist_draw_item(uiList *uilst, bContext *C, uiLayout *layout, Point
 	RNA_parameter_set_lookup(&list, "active_data", active_dataptr);
 	RNA_parameter_set_lookup(&list, "active_property", &active_propname);
 	RNA_parameter_set_lookup(&list, "index", &index);
-	uilst->type->ext.call((bContext *)C, &ultr, func, &list);
+	ui_list->type->ext.call((bContext *)C, &ul_ptr, func, &list);
 
 	RNA_parameter_list_free(&list);
 }
@@ -311,16 +311,16 @@ static StructRNA *rna_UIList_register(Main *bmain, ReportList *reports, void *da
 {
 	uiListType *ult, dummyult = {NULL};
 	uiList dummyuilist = {NULL};
-	PointerRNA dummyultr;
+	PointerRNA dummyul_ptr;
 	int have_function[1];
 	size_t over_alloc = 0; /* warning, if this becomes a bess, we better do another alloc */
 
 	/* setup dummy menu & menu type to store static properties in */
 	dummyuilist.type = &dummyult;
-	RNA_pointer_create(NULL, &RNA_UIList, &dummyuilist, &dummyultr);
+	RNA_pointer_create(NULL, &RNA_UIList, &dummyuilist, &dummyul_ptr);
 
 	/* validate the python class */
-	if (validate(&dummyultr, data, have_function) != 0)
+	if (validate(&dummyul_ptr, data, have_function) != 0)
 		return NULL;
 
 	if (strlen(identifier) >= sizeof(dummyult.idname)) {
@@ -357,8 +357,8 @@ static StructRNA *rna_UIList_register(Main *bmain, ReportList *reports, void *da
 
 static StructRNA *rna_UIList_refine(PointerRNA *ptr)
 {
-	uiList *uilst = (uiList *)ptr->data;
-	return (uilst->type && uilst->type->ext.srna) ? uilst->type->ext.srna : &RNA_UIList;
+	uiList *ui_list = (uiList *)ptr->data;
+	return (ui_list->type && ui_list->type->ext.srna) ? ui_list->type->ext.srna : &RNA_UIList;
 }
 
 /* Header */

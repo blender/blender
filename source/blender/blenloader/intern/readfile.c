@@ -5832,7 +5832,7 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 {
 	Panel *pa;
-	uiList *uilst;
+	uiList *ui_list;
 
 	link_list(fd, &ar->panels);
 
@@ -5843,10 +5843,10 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 		pa->type = NULL;
 	}
 
-	link_list(fd, &ar->uiLists);
+	link_list(fd, &ar->ui_lists);
 
-	for (uilst = ar->uiLists.first; uilst; uilst = uilst->next) {
-		uilst->type = NULL;
+	for (ui_list = ar->ui_lists.first; ui_list; ui_list = ui_list->next) {
+		ui_list->type = NULL;
 	}
 
 	ar->regiondata = newdataadr(fd, ar->regiondata);
