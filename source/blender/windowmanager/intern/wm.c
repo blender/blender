@@ -149,7 +149,63 @@ void WM_operator_stack_clear(wmWindowManager *wm)
 	WM_main_add_notifier(NC_WM | ND_HISTORY, NULL);
 }
 
-/* ****************************************** */
+
+/* ************ uiListType handling ************** */
+
+static GHash *uilisttypes_hash = NULL;
+
+uiListType *WM_uilisttype_find(const char *idname, int quiet)
+{
+	uiListType *ult;
+
+	if (idname[0]) {
+		ult = BLI_ghash_lookup(uilisttypes_hash, idname);
+		if (ult) {
+			return ult;
+		}
+	}
+
+	if (!quiet) {
+		printf("search for unknown uilisttype %s\n", idname);
+	}
+
+	return NULL;
+}
+
+int WM_uilisttype_add(uiListType *ult)
+{
+	BLI_ghash_insert(uilisttypes_hash, (void *)ult->idname, ult);
+	return 1;
+}
+
+void WM_uilisttype_freelink(uiListType *ult)
+{
+	BLI_ghash_remove(uilisttypes_hash, ult->idname, NULL, (GHashValFreeFP)MEM_freeN);
+}
+
+/* called on initialize WM_init() */
+void WM_uilisttype_init(void)
+{
+	uilisttypes_hash = BLI_ghash_str_new("uilisttypes_hash gh");
+}
+
+void WM_uilisttype_free(void)
+{
+	GHashIterator *iter = BLI_ghashIterator_new(uilisttypes_hash);
+
+	for (; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
+		uiListType *ult = BLI_ghashIterator_getValue(iter);
+		if (ult->ext.free) {
+			ult->ext.free(ult->ext.data);
+		}
+	}
+	BLI_ghashIterator_free(iter);
+
+	BLI_ghash_free(uilisttypes_hash, NULL, (GHashValFreeFP)MEM_freeN);
+	uilisttypes_hash = NULL;
+}
+
+/* ************ MenuType handling ************** */
 
 static GHash *menutypes_hash = NULL;
 

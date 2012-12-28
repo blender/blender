@@ -110,11 +110,25 @@ typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	int sortorder;			/* panels are aligned according to increasing sortorder */
 	struct Panel *paneltab;		/* this panel is tabbed in *paneltab */
 	void *activedata;			/* runtime for panel manipulation */
-
-	int list_scroll, list_size;
-	int list_last_len, list_grip_size;
-	char list_search[64];
 } Panel;
+
+typedef struct uiList {				/* some list UI data need to be saved in file */
+	struct uiList *next, *prev;
+
+	struct uiListType *type;		/* runtime */
+	void *padp;
+
+	char list_id[64];				/* defined as UI_MAX_NAME_STR */
+
+	int layout_type;				/* How items are layedout in the list */
+	int padi;
+
+	int list_scroll;
+	int list_size;
+	int list_last_len;
+	int list_grip_size;
+/*	char list_search[64]; */
+} uiList;
 
 typedef struct ScrArea {
 	struct ScrArea *next, *prev;
@@ -167,6 +181,7 @@ typedef struct ARegion {
 	
 	ListBase uiblocks;			/* uiBlock */
 	ListBase panels;			/* Panel */
+	ListBase uiLists;			/* uiList */
 	ListBase handlers;			/* wmEventHandler */
 	
 	struct wmTimer *regiontimer; /* blend in/out */
@@ -215,6 +230,13 @@ typedef struct ARegion {
 /* paneltype flag */
 #define PNL_DEFAULT_CLOSED		1
 #define PNL_NO_HEADER			2
+
+/* uilist layout_type */
+enum {
+	UILST_LAYOUT_DEFAULT          = 0,
+	UILST_LAYOUT_COMPACT          = 1,
+	UILST_LAYOUT_GRID             = 2,
+};
 
 /* regiontype, first two are the default set */
 /* Do NOT change order, append on end. Types are hardcoded needed */

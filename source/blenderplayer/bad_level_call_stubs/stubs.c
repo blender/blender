@@ -414,7 +414,9 @@ void uiTemplateCurveMapping(struct uiLayout *layout, struct CurveMapping *cumap,
 void uiTemplateColorRamp(struct uiLayout *layout, struct ColorBand *coba, int expand) {}
 void uiTemplateLayers(struct uiLayout *layout, struct PointerRNA *ptr, char *propname) {}
 void uiTemplateImageLayers(struct uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser) {}
-ListBase uiTemplateList(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *activeptr, char *activepropname, int rows, int listtype) {struct ListBase b = {0,0}; return b;}
+void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, const char *list_id,
+                    PointerRNA *dataptr, const char *propname, PointerRNA *active_dataptr,
+                    const char *active_propname, int rows, int maxrows, int layout_type) {}
 void uiTemplateRunningJobs(struct uiLayout *layout, struct bContext *C) {}
 void uiTemplateOperatorSearch(struct uiLayout *layout) {}
 void uiTemplateHeader3D(struct uiLayout *layout, struct bContext *C) {}

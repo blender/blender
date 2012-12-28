@@ -133,6 +133,9 @@ extern EnumPropertyItem prop_dynamicpaint_type_items[];
 
 extern EnumPropertyItem clip_editor_mode_items[];
 
+extern EnumPropertyItem icon_items[];
+extern EnumPropertyItem uilist_layout_type_items[];
+
 struct bContext;
 struct PointerRNA;
 struct PropertyRNA;

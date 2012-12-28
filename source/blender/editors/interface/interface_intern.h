@@ -271,6 +271,9 @@ struct uiBut {
 	/* active button data */
 	struct uiHandleButtonData *active;
 
+	/* Custom button data. */
+	void *custom_data;
+
 	char *editstr;
 	double *editval;
 	float *editvec;

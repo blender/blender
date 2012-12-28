@@ -132,3 +132,9 @@ def register():
 
 def unregister():
     bpy.utils.unregister_module(__name__)
+
+# Define a default UIList, when a list does not need any custom drawing...
+class UI_UL_list(bpy.types.UIList):
+    pass
+
+bpy.utils.register_class(UI_UL_list)

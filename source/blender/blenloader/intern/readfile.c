@@ -5832,6 +5832,7 @@ void blo_lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *cursc
 static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 {
 	Panel *pa;
+	uiList *uilst;
 
 	link_list(fd, &ar->panels);
 
@@ -5841,7 +5842,13 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 		pa->activedata = NULL;
 		pa->type = NULL;
 	}
-	
+
+	link_list(fd, &ar->uiLists);
+
+	for (uilst = ar->uiLists.first; uilst; uilst = uilst->next) {
+		uilst->type = NULL;
+	}
+
 	ar->regiondata = newdataadr(fd, ar->regiondata);
 	if (ar->regiondata) {
 		if (spacetype == SPACE_VIEW3D) {

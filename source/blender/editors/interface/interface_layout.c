@@ -2308,10 +2308,13 @@ uiLayout *uiLayoutBox(uiLayout *layout)
 	return (uiLayout *)ui_layout_box(layout, ROUNDBOX);
 }
 
-uiLayout *uiLayoutListBox(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *actptr, PropertyRNA *actprop)
+uiLayout *uiLayoutListBox(uiLayout *layout, uiList *uilist, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *actptr,
+                          PropertyRNA *actprop)
 {
 	uiLayoutItemBx *box = ui_layout_box(layout, LISTBOX);
 	uiBut *but = box->roundbox;
+
+	but->custom_data = uilist;
 
 	but->rnasearchpoin = *ptr;
 	but->rnasearchprop = prop;

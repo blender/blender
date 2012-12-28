@@ -32,12 +32,14 @@
 #ifndef __UI_INTERFACE_ICONS_H__
 #define __UI_INTERFACE_ICONS_H__
 
+struct bContext;
 struct Image;
 struct ImBuf;
 struct World;
 struct Tex;
 struct Lamp;
 struct Material;
+struct PointerRNA;
 
 typedef struct IconFile {
 	struct IconFile *next, *prev;
@@ -74,5 +76,6 @@ void UI_icons_free_drawinfo(void *drawinfo);
 struct ListBase *UI_iconfile_list(void);
 int UI_iconfile_get_index(const char *filename);
 
+int UI_rnaptr_icon_get(struct bContext *C, struct PointerRNA *ptr, int rnaicon, int big);
 
 #endif /*  __UI_INTERFACE_ICONS_H__ */

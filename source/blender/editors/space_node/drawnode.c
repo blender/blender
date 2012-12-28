@@ -2152,12 +2152,12 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 	active_index = RNA_int_get(ptr, "active_input_index");
 	/* using different collection properties if multilayer format is enabled */
 	if (multilayer) {
-		uiTemplateList(col, C, ptr, "layer_slots", ptr, "active_input_index", NULL, 0, 0, 0);
+		uiTemplateList(col, C, "UI_UL_list", "", ptr, "layer_slots", ptr, "active_input_index", 0, 0, 0);
 		RNA_property_collection_lookup_int(ptr, RNA_struct_find_property(ptr, "layer_slots"),
 		                                   active_index, &active_input_ptr);
 	}
 	else {
-		uiTemplateList(col, C, ptr, "file_slots", ptr, "active_input_index", NULL, 0, 0, 0);
+		uiTemplateList(col, C, "UI_UL_list", "", ptr, "file_slots", ptr, "active_input_index", 0, 0, 0);
 		RNA_property_collection_lookup_int(ptr, RNA_struct_find_property(ptr, "file_slots"),
 		                                   active_index, &active_input_ptr);
 	}

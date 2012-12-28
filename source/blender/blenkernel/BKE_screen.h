@@ -46,6 +46,7 @@ struct bContext;
 struct bContextDataResult;
 struct bScreen;
 struct uiLayout;
+struct uiList;
 struct uiMenuItem;
 struct wmKeyConfig;
 struct wmNotifier;
@@ -180,6 +181,23 @@ typedef struct PanelType {
 	/* RNA integration */
 	ExtensionRNA ext;
 } PanelType;
+
+/* uilist types */
+
+/* draw an item in the uiList */
+typedef void (*uiListDrawItemFunc)(struct uiList *, struct bContext *, struct uiLayout *, struct PointerRNA *,
+                                   struct PointerRNA *, int, struct PointerRNA *, const char *, int);
+
+typedef struct uiListType {
+	struct uiListType *next, *prev;
+
+	char idname[BKE_ST_MAXNAME];            /* unique name */
+
+	uiListDrawItemFunc draw_item;
+
+	/* RNA integration */
+	ExtensionRNA ext;
+} uiListType;
 
 /* header types */
 

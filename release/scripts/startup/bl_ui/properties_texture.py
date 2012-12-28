@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Menu, Panel
+from bpy.types import Menu, Panel, UIList
 
 from bpy.types import (Brush,
                        Lamp,
@@ -54,6 +54,23 @@ class TEXTURE_MT_envmap_specials(Menu):
         layout.operator("texture.envmap_save", icon='IMAGEFILE')
         layout.operator("texture.envmap_clear", icon='FILE_REFRESH')
         layout.operator("texture.envmap_clear_all", icon='FILE_REFRESH')
+
+
+class TEXTURE_UL_texslots(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        if not (item is None or isinstance(item, bpy.types.MaterialTextureSlot)):
+            return
+        ma = data
+        slot = item
+        tex = slot.texture if slot else None
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.label(tex.name if tex else "", icon_value=icon)
+            if tex:
+                layout.prop(ma, "use_textures", text="", index=index)
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label("", icon_value=icon)
+
 
 from bl_ui.properties_material import active_node_mat
 
@@ -142,7 +159,7 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, Panel):
         if tex_collection:
             row = layout.row()
 
-            row.template_list(idblock, "texture_slots", idblock, "active_texture_index", rows=2)
+            row.template_list("TEXTURE_UL_texslots", "", idblock, "texture_slots", idblock, "active_texture_index", rows=2)
 
             col = row.column(align=True)
             col.operator("texture.slot_move", text="", icon='TRIA_UP').type = 'UP'

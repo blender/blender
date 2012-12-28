@@ -18,8 +18,21 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Panel
+from bpy.types import Panel, UIList
 from rna_prop_ui import PropertyPanel
+
+
+class SCENE_UL_keying_set_paths(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        if not isinstance(item, bpy.types.KeyingSetPath):
+            return
+        kspath = item
+        icon = layout.enum_item_icon(kspath, "id_type", kspath.id_type)
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.label(kspath.data_path, icon_value=icon)
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label("", icon_value=icon)
 
 
 class SceneButtonsPanel():
@@ -107,7 +120,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, Panel):
         row = layout.row()
 
         col = row.column()
-        col.template_list(scene, "keying_sets", scene.keying_sets, "active_index", rows=2)
+        col.template_list("UI_UL_list", "", scene, "keying_sets", scene.keying_sets, "active_index", rows=2)
 
         col = row.column(align=True)
         col.operator("anim.keying_set_add", icon='ZOOMIN', text="")
@@ -151,7 +164,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, Panel):
         row = layout.row()
 
         col = row.column()
-        col.template_list(ks, "paths", ks.paths, "active_index", rows=2)
+        col.template_list("SCENE_UL_keying_set_paths", "", ks, "paths", ks.paths, "active_index", rows=2)
 
         col = row.column(align=True)
         col.operator("anim.keying_set_path_add", icon='ZOOMIN', text="")

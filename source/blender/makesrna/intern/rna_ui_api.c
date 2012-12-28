@@ -33,8 +33,12 @@
 #include <stdio.h>
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
+
+#include "DNA_screen_types.h"
 
 #include "UI_resources.h"
+#include "UI_interface_icons.h"
 
 #include "rna_internal.h"
 
@@ -70,12 +74,117 @@ static PointerRNA rna_uiItemO(uiLayout *layout, const char *opname, const char *
 	return uiItemFullO(layout, opname, name, icon, NULL, uiLayoutGetOperatorContext(layout), flag);
 }
 
+static void rna_uiItemL(uiLayout *layout, const char *name, int icon, int icon_value)
+{
+	if (icon_value && !icon) {
+		icon = icon_value;
+	}
+
+	uiItemL(layout, name, icon);
+}
+
+static int rna_ui_get_rnaptr_icon(bContext *C, PointerRNA *ptr_icon)
+{
+	return UI_rnaptr_icon_get(C, ptr_icon, RNA_struct_ui_icon(ptr_icon->type), FALSE);
+}
+
+static const char *rna_ui_get_enum_name(bContext *C, PointerRNA *ptr, const char *propname, const char *identifier)
+{
+	PropertyRNA *prop = NULL;
+	EnumPropertyItem *items = NULL, *item;
+	int free;
+	const char *name = "";
+
+	prop = RNA_struct_find_property(ptr, propname);
+	if (!prop || (RNA_property_type(prop) != PROP_ENUM)) {
+		RNA_warning("Property not found or not an enum: %s.%s", RNA_struct_identifier(ptr->type), propname);
+		return name;
+	}
+
+	RNA_property_enum_items_gettexted(C, ptr, prop, &items, NULL, &free);
+
+	if (items) {
+		for (item = items; item->identifier; item++) {
+			if (item->identifier[0] && strcmp(item->identifier, identifier) == 0) {
+				name = item->name;
+				break;
+			}
+		}
+		if (free) {
+			MEM_freeN(items);
+		}
+	}
+
+	return name;
+}
+
+static const char *rna_ui_get_enum_description(bContext *C, PointerRNA *ptr, const char *propname,
+                                               const char *identifier)
+{
+	PropertyRNA *prop = NULL;
+	EnumPropertyItem *items = NULL, *item;
+	int free;
+	const char *desc = "";
+
+	prop = RNA_struct_find_property(ptr, propname);
+	if (!prop || (RNA_property_type(prop) != PROP_ENUM)) {
+		RNA_warning("Property not found or not an enum: %s.%s", RNA_struct_identifier(ptr->type), propname);
+		return desc;
+	}
+
+	RNA_property_enum_items_gettexted(C, ptr, prop, &items, NULL, &free);
+
+	if (items) {
+		for (item = items; item->identifier; item++) {
+			if (item->identifier[0] && strcmp(item->identifier, identifier) == 0) {
+				desc = item->description;
+				break;
+			}
+		}
+		if (free) {
+			MEM_freeN(items);
+		}
+	}
+
+	return desc;
+}
+
+static int rna_ui_get_enum_icon(bContext *C, PointerRNA *ptr, const char *propname, const char *identifier)
+{
+	PropertyRNA *prop = NULL;
+	EnumPropertyItem *items = NULL, *item;
+	int free;
+	int icon = ICON_NONE;
+
+	prop = RNA_struct_find_property(ptr, propname);
+	if (!prop || (RNA_property_type(prop) != PROP_ENUM)) {
+		RNA_warning("Property not found or not an enum: %s.%s", RNA_struct_identifier(ptr->type), propname);
+		return icon;
+	}
+
+	RNA_property_enum_items(C, ptr, prop, &items, NULL, &free);
+
+	if (items) {
+		for (item = items; item->identifier; item++) {
+			if (item->identifier[0] && strcmp(item->identifier, identifier) == 0) {
+				icon = item->icon;
+				break;
+			}
+		}
+		if (free) {
+			MEM_freeN(items);
+		}
+	}
+
+	return icon;
+}
+
 #else
 
 #define DEF_ICON_BLANK_SKIP
 #define DEF_ICON(name) {ICON_##name, (#name), 0, (#name), ""},
 #define DEF_VICO(name) {VICO_##name, (#name), 0, (#name), ""},
-static EnumPropertyItem icon_items[] = {
+EnumPropertyItem icon_items[] = {
 #include "UI_icons.h"
 	{0, NULL, 0, NULL, NULL}
 };
@@ -92,7 +201,6 @@ static void api_ui_item_common(FunctionRNA *func)
 	prop = RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, icon_items);
 	RNA_def_property_ui_text(prop, "Icon", "Override automatic icon of the item");
-
 }
 
 static void api_ui_item_op(FunctionRNA *func)
@@ -128,13 +236,6 @@ void RNA_api_ui_layout(StructRNA *srna)
 		{'v', "VECTOR", 0, "Vector", ""},
 		{'c', "COLOR", 0, "Color", ""},
 		{'h', "HUE", 0, "Hue", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-	
-	static EnumPropertyItem list_type_items[] = {
-		{0, "DEFAULT", 0, "None", ""},
-		{'c', "COMPACT", 0, "Compact", ""},
-		{'i', "ICONS", 0, "Icons", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -174,6 +275,44 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_return(func, parm);
 	RNA_def_float(func, "percentage", 0.0f, 0.0f, 1.0f, "Percentage", "Percentage of width to split at", 0.0f, 1.0f);
 	RNA_def_boolean(func, "align", 0, "", "Align buttons to each other");
+
+	/* Icon of a rna pointer */
+	func = RNA_def_function(srna, "icon", "rna_ui_get_rnaptr_icon");
+	parm = RNA_def_int(func, "icon_value", ICON_NONE, 0, INT_MAX, "", "Icon identifier", 0, INT_MAX);
+	RNA_def_function_return(func, parm);
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+	parm = RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take the icon");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
+	RNA_def_function_ui_description(func, "Return the custom icon for this data, "
+	                                      "use it e.g. to get materials or texture icons");
+
+	/* UI name, description and icon of an enum item */
+	func = RNA_def_function(srna, "enum_item_name", "rna_ui_get_enum_name");
+	parm = RNA_def_string(func, "name", "", 0, "", "UI name of the enum item");
+	RNA_def_function_return(func, parm);
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+	api_ui_item_rna_common(func);
+	parm = RNA_def_string(func, "identifier", "", 0, "", "Identifier of the enum item");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_function_ui_description(func, "Return the UI name for this enum item");
+
+	func = RNA_def_function(srna, "enum_item_description", "rna_ui_get_enum_description");
+	parm = RNA_def_string(func, "description", "", 0, "", "UI description of the enum item");
+	RNA_def_function_return(func, parm);
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+	api_ui_item_rna_common(func);
+	parm = RNA_def_string(func, "identifier", "", 0, "", "Identifier of the enum item");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_function_ui_description(func, "Return the UI description for this enum item");
+
+	func = RNA_def_function(srna, "enum_item_icon", "rna_ui_get_enum_icon");
+	parm = RNA_def_int(func, "icon_value", ICON_NONE, 0, INT_MAX, "", "Icon identifier", 0, INT_MAX);
+	RNA_def_function_return(func, parm);
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+	api_ui_item_rna_common(func);
+	parm = RNA_def_string(func, "identifier", "", 0, "", "Identifier of the enum item");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_function_ui_description(func, "Return the icon for this enum item");
 
 	/* items */
 	func = RNA_def_function(srna, "prop", "rna_uiItemR");
@@ -274,9 +413,13 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 #endif
 
-	func = RNA_def_function(srna, "label", "uiItemL");
-	RNA_def_function_ui_description(func, "Item. Display text in the layout");
+	func = RNA_def_function(srna, "label", "rna_uiItemL");
+	RNA_def_function_ui_description(func, "Item. Display text and/or icon in the layout");
 	api_ui_item_common(func);
+	parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_ui_text(parm, "Icon Value",
+	                         "Override automatic icon of the item "
+	                         "(use it e.g. with custom material icons returned by icon()...)");
 
 	func = RNA_def_function(srna, "menu", "uiItemM");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
@@ -439,26 +582,29 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_boolean(func, "compact", 0, "", "Use more compact layout");
 
 	func = RNA_def_function(srna, "template_list", "uiTemplateList");
-	RNA_def_function_ui_description(func, "Item. A list widget to display data, e.g. vertexgroups "
-	                                      "(WARNING: only one per panel allowed!).");
+	RNA_def_function_ui_description(func, "Item. A list widget to display data, e.g. vertexgroups.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	parm = RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property");
+	parm = RNA_def_string(func, "listtype_name", "", 0, "", "Identifier of the list type to use");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_string(func, "list_id", "", 0, "",
+	                      "Identifier of this list widget. "
+	                      "If this is set, the uilist gets a custom ID, otherwise it takes the "
+	                      "name of the class used to define the uilist (for example, if the "
+	                      "class name is \"OBJECT_UL_vgroups\", and list_id is not set by the "
+	                      "script, then bl_idname = \"OBJECT_UL_vgroups\")");
+	parm = RNA_def_pointer(func, "dataptr", "AnyType", "", "Data from which to take the Collection property");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR);
-	parm = RNA_def_string(func, "property", "", 0, "", "Identifier of property in data");
+	parm = RNA_def_string(func, "propname", "", 0, "", "Identifier of the Collection property in data");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_pointer(func, "active_data", "AnyType", "",
-	                       "Data from which to take property for the active element");
+	parm = RNA_def_pointer(func, "active_dataptr", "AnyType", "",
+	                       "Data from which to take the integer property, index of the active item");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
-	parm = RNA_def_string(func, "active_property", "", 0, "",
-	                      "Identifier of property in data, for the active element");
+	parm = RNA_def_string(func, "active_propname", "", 0, "",
+	                      "Identifier of the integer property in active_data, index of the active item");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_string(func, "prop_list", "", 0, "",
-	               "Identifier of a string property in each data member, specifying which "
-	               "of its properties should have a widget displayed in its row "
-	               "(format: \"propname1:propname2:propname3:...\")");
 	RNA_def_int(func, "rows", 5, 0, INT_MAX, "", "Number of rows to display", 0, INT_MAX);
 	RNA_def_int(func, "maxrows", 5, 0, INT_MAX, "", "Maximum number of rows to display", 0, INT_MAX);
-	RNA_def_enum(func, "type", list_type_items, 0, "Type", "Type of list to use");
+	RNA_def_enum(func, "type", uilist_layout_type_items, UILST_LAYOUT_DEFAULT, "Type", "Type of layout to use");
 
 	func = RNA_def_function(srna, "template_running_jobs", "uiTemplateRunningJobs");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);

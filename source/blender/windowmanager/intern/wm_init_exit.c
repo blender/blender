@@ -137,6 +137,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	GHOST_CreateSystemPaths();
 	wm_operatortype_init();
 	WM_menutype_init();
+	WM_uilisttype_init();
 
 	set_free_windowmanager_cb(wm_close_and_free);   /* library.c */
 	set_blender_test_break_cb(wm_window_testbreak); /* blender.c */
@@ -403,6 +404,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 	wm_operatortype_free();
 	wm_dropbox_free();
 	WM_menutype_free();
+	WM_uilisttype_free();
 	
 	/* all non-screen and non-space stuff editors did, like editmode */
 	if (C)

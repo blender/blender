@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Menu, Panel
+from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
 
 
@@ -69,6 +69,26 @@ class MATERIAL_MT_specials(Menu):
         layout.operator("material.paste", icon='PASTEDOWN')
 
 
+class MATERIAL_UL_matslots(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        if not isinstance(item, bpy.types.MaterialSlot):
+            return
+        ob = data
+        slot = item
+        ma = slot.material
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.label(ma.name if ma else "", icon_value=icon)
+            if ma and not context.scene.render.use_shading_nodes:
+                manode = ma.active_node_material
+                if manode:
+                    layout.label("Node %s" % manode.name, icon_value=layout.icon(manode))
+                elif ma.use_nodes:
+                    layout.label("Node <none>")
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label("", icon_value=icon)
+
+
 class MaterialButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -104,7 +124,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
         if ob:
             row = layout.row()
 
-            row.template_list(ob, "material_slots", ob, "active_material_index", rows=2)
+            row.template_list("MATERIAL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=2)
 
             col = row.column(align=True)
             col.operator("object.material_slot_add", icon='ZOOMIN', text="")

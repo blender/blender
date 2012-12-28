@@ -31,18 +31,16 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_anim_types.h"
 #include "DNA_dynamicpaint_types.h"
-#include "DNA_key_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
-#include "DNA_userdef_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_ghash.h"
 #include "BLI_rect.h"
 
+#include "BLF_api.h"
 #include "BLF_translation.h"
 
 #include "BKE_animsys.h"
@@ -59,6 +57,7 @@
 #include "BKE_displist.h"
 #include "BKE_sca.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 
 #include "ED_screen.h"
 #include "ED_object.h"
@@ -71,10 +70,8 @@
 #include "WM_types.h"
 
 #include "UI_interface.h"
+#include "UI_interface_icons.h"
 #include "interface_intern.h"
-
-#include "BLF_api.h"
-#include "BLF_translation.h"
 
 void UI_template_fix_linking(void)
 {
@@ -2331,254 +2328,28 @@ void uiTemplateGameStates(uiLayout *layout, PointerRNA *ptr, const char *propnam
 
 
 /************************* List Template **************************/
-
-static int list_item_icon_get(bContext *C, PointerRNA *itemptr, int rnaicon, int big)
+static void uilist_draw_item_default(struct uiList *uilst, struct bContext *UNUSED(C), struct uiLayout *layout,
+                                     struct PointerRNA *UNUSED(dataptr), struct PointerRNA *itemptr, int icon,
+                                     struct PointerRNA *UNUSED(active_dataptr), const char *UNUSED(active_propname),
+                                     int UNUSED(index))
 {
-	ID *id = NULL;
-	int icon;
-
-	if (!itemptr->data)
-		return rnaicon;
-
-	/* try ID, material or texture slot */
-	if (RNA_struct_is_ID(itemptr->type)) {
-		id = itemptr->id.data;
-	}
-	else if (RNA_struct_is_a(itemptr->type, &RNA_MaterialSlot)) {
-		id = RNA_pointer_get(itemptr, "material").data;
-	}
-	else if (RNA_struct_is_a(itemptr->type, &RNA_TextureSlot)) {
-		id = RNA_pointer_get(itemptr, "texture").data;
-	}
-	else if (RNA_struct_is_a(itemptr->type, &RNA_DynamicPaintSurface)) {
-		DynamicPaintSurface *surface = (DynamicPaintSurface *)itemptr->data;
-
-		if (surface->format == MOD_DPAINT_SURFACE_F_PTEX) return ICON_TEXTURE_SHADED;
-		else if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) return ICON_OUTLINER_DATA_MESH;
-		else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) return ICON_FILE_IMAGE;
-	}
-
-	/* get icon from ID */
-	if (id) {
-		icon = ui_id_icon_get(C, id, big);
-
-		if (icon)
-			return icon;
-	}
-
-	return rnaicon;
-}
-
-static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *itemptr, int i,
-                          int rnaicon, PointerRNA *activeptr, PropertyRNA *activeprop, const char *prop_list_id)
-{
-	uiBlock *block = uiLayoutGetBlock(layout);
-	uiBut *but;
-	uiLayout *split, *overlap, *sub, *row;
 	char *namebuf;
 	const char *name;
-	int icon;
-
-	overlap = uiLayoutOverlap(layout);
-
-	/* list item behind label & other buttons */
-	sub = uiLayoutRow(overlap, FALSE);
-
-	but = uiDefButR_prop(block, LISTROW, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y, activeptr, activeprop,
-	                     0, 0, i, 0, 0, "");
-	uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
-
-	sub = uiLayoutRow(overlap, FALSE);
-
-	/* retrieve icon and name */
-	icon = list_item_icon_get(C, itemptr, rnaicon, 0);
-	if (icon == ICON_NONE || icon == ICON_DOT)
-		icon = 0;
 
 	namebuf = RNA_struct_name_get_alloc(itemptr, NULL, 0, NULL);
 	name = (namebuf) ? namebuf : "";
 
-	/* hardcoded types */
-	if (itemptr->type == &RNA_MeshTexturePolyLayer || itemptr->type == &RNA_MeshLoopColorLayer) {
-		uiItemL(sub, name, icon);
-		uiBlockSetEmboss(block, UI_EMBOSSN);
-		uiDefIconButR(block, TOG, 0, ICON_SCENE, 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "active_render",
-		              0, 0, 0, 0, 0, NULL);
-		uiBlockSetEmboss(block, UI_EMBOSS);
+	/* Simplest one! */
+	switch (uilst->layout_type) {
+	case UILST_LAYOUT_GRID:
+		uiItemL(layout, "", icon);
+		break;
+	case UILST_LAYOUT_DEFAULT:
+	case UILST_LAYOUT_COMPACT:
+	default:
+		uiItemL(layout, name, icon);
+		break;
 	}
-	else if (RNA_struct_is_a(itemptr->type, &RNA_MaterialTextureSlot)) {
-		uiItemL(sub, name, icon);
-		uiBlockSetEmboss(block, UI_EMBOSS);
-		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, ptr, "use_textures", i, 0, 0, 0, 0,  NULL);
-	}
-	else if (RNA_struct_is_a(itemptr->type, &RNA_SceneRenderLayer)) {
-		uiItemL(sub, name, icon);
-		uiBlockSetEmboss(block, UI_EMBOSS);
-		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "use", 0, 0, 0, 0, 0,  NULL);
-	}
-	else if (RNA_struct_is_a(itemptr->type, &RNA_MaterialSlot)) {
-		/* provision to draw active node name */
-		Material *ma, *manode;
-		Scene *scene = CTX_data_scene(C);
-		Object *ob = (Object *)ptr->id.data;
-		int index = (Material **)itemptr->data - ob->mat;
-		
-		/* default item with material base name */
-		uiItemL(sub, name, icon);
-		
-		ma = give_current_material(ob, index + 1);
-		if (ma && !BKE_scene_use_new_shading_nodes(scene)) {
-			manode = give_node_material(ma);
-			if (manode) {
-				char str[MAX_ID_NAME + 12];
-				BLI_snprintf(str, sizeof(str), IFACE_("Node %s"), manode->id.name + 2);
-				uiItemL(sub, str, ui_id_icon_get(C, &manode->id, 1));
-			}
-			else if (ma->use_nodes) {
-				uiItemL(sub, IFACE_("Node <none>"), ICON_NONE);
-			}
-		}
-	}
-	else if (itemptr->type == &RNA_ShapeKey) {
-		Object *ob = (Object *)activeptr->data;
-		Key *key = (Key *)itemptr->id.data;
-		KeyBlock *kb = (KeyBlock *)itemptr->data;
-
-		split = uiLayoutSplit(sub, 0.66f, FALSE);
-
-		uiItemL(split, name, icon);
-
-		uiBlockSetEmboss(block, UI_EMBOSSN);
-		row = uiLayoutRow(split, TRUE);
-		if (i == 0 || (key->type != KEY_RELATIVE)) uiItemL(row, "", ICON_NONE);
-		else uiItemR(row, itemptr, "value", 0, "", ICON_NONE);
-		uiItemR(row, itemptr, "mute", 0, "", ICON_NONE);
-
-		if ((kb->flag & KEYBLOCK_MUTE) ||
-		    (ob->mode == OB_MODE_EDIT && !((ob->shapeflag & OB_SHAPE_EDIT_MODE) && ob->type == OB_MESH)))
-		{
-			uiLayoutSetActive(row, FALSE);
-		}
-		uiBlockSetEmboss(block, UI_EMBOSS);
-	}
-	else if (itemptr->type == &RNA_VertexGroup) {
-		bDeformGroup *dg = (bDeformGroup *)itemptr->data;
-		uiItemL(sub, name, icon);
-		/* RNA does not allow nice lock icons, use lower level buttons */
-#if 0
-		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "lock_weight", 0, 0, 0, 0, 0,  NULL);
-#else
-		uiBlockSetEmboss(block, UI_EMBOSSN);
-		uiDefIconButBitC(block, TOG, DG_LOCK_WEIGHT, 0, (dg->flag & DG_LOCK_WEIGHT) ? ICON_LOCKED : ICON_UNLOCKED,
-		                 0, 0, UI_UNIT_X, UI_UNIT_Y, &dg->flag, 0, 0, 0, 0,
-		                 TIP_("Maintain relative weights while painting"));
-		uiBlockSetEmboss(block, UI_EMBOSS);
-#endif
-	}
-	else if (itemptr->type == &RNA_KeyingSetPath) {
-		KS_Path *ksp = (KS_Path *)itemptr->data;
-		
-		/* icon needs to be the type of ID which is currently active */
-		RNA_enum_icon_from_value(id_type_items, ksp->idtype, &icon);
-		
-		/* nothing else special to do... */
-		uiItemL(sub, name, icon); /* fails, backdrop LISTROW... */
-	}
-	else if (itemptr->type == &RNA_DynamicPaintSurface) {
-		char name_final[96];
-		const char *enum_name;
-		PropertyRNA *prop = RNA_struct_find_property(itemptr, "surface_type");
-		DynamicPaintSurface *surface = (DynamicPaintSurface *)itemptr->data;
-
-		RNA_property_enum_name(C, itemptr, prop, RNA_property_enum_get(itemptr, prop), &enum_name);
-
-		BLI_snprintf(name_final, sizeof(name_final), "%s (%s)", name, enum_name);
-		uiItemL(sub, name_final, icon);
-		if (dynamicPaint_surfaceHasColorPreview(surface)) {
-			uiBlockSetEmboss(block, UI_EMBOSSN);
-			uiDefIconButR(block, OPTION, 0,
-			              (surface->flags & MOD_DPAINT_PREVIEW) ? ICON_RESTRICT_VIEW_OFF : ICON_RESTRICT_VIEW_ON,
-			              0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "show_preview", 0, 0, 0, 0, 0, NULL);
-			uiBlockSetEmboss(block, UI_EMBOSS);
-		}
-		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "is_active", i, 0, 0, 0, 0,  NULL);
-	}
-	else if (itemptr->type == &RNA_MovieTrackingObject) {
-		MovieTrackingObject *tracking_object = (MovieTrackingObject *)itemptr->data;
-
-		split = uiLayoutSplit(sub, 0.75f, FALSE);
-		if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
-			uiItemL(split, name, ICON_CAMERA_DATA);
-		}
-		else {
-			uiItemL(split, name, ICON_OBJECT_DATA);
-		}
-	}
-	else if (itemptr->type == &RNA_MaskLayer) {
-		split = uiLayoutRow(sub, FALSE);
-
-		uiItemL(split, name, icon);
-
-		uiBlockSetEmboss(block, UI_EMBOSSN);
-		row = uiLayoutRow(split, TRUE);
-		uiItemR(row, itemptr, "alpha", 0, "", ICON_NONE);
-		uiItemR(row, itemptr, "hide", 0, "", ICON_NONE);
-		uiItemR(row, itemptr, "hide_select", 0, "", ICON_NONE);
-		uiItemR(row, itemptr, "hide_render", 0, "", ICON_NONE);
-
-		uiBlockSetEmboss(block, UI_EMBOSS);
-	}
-
-	/* There is a last chance to display custom controls (in addition to the name/label):
-	 * If the given item property group features a string property named as prop_list,
-	 * this tries to add controls for all properties of the item listed in that string property.
-	 * (colon-separated names).
-	 *
-	 * This is especially useful for python. E.g., if you list a collection of this property
-	 * group:
-	 *
-	 * class TestPropertyGroup(bpy.types.PropertyGroup):
-	 *     bool    = BoolProperty(default=False)
-	 *     integer = IntProperty()
-	 *     string  = StringProperty()
-	 * 
-	 *     # A string of all identifiers (colon-separated) which property's controls should be
-	 *     # displayed in a template_list.
-	 *     template_list_controls = StringProperty(default="integer:bool:string", options={"HIDDEN"})
-	 *
-	 * ... you'll get a numfield for the integer prop, a check box for the bool prop, and a textfield
-	 * for the string prop, after the name of each item of the collection.
-	 */
-	else if (prop_list_id) {
-		row = uiLayoutRow(sub, TRUE);
-		uiItemL(row, name, icon);
-
-		/* XXX: Check, as sometimes we get an itemptr looking like
-		 *      {id = {data = 0x0}, type = 0x0, data = 0x0}
-		 *      which would obviously produce a sigsev... */
-		if (itemptr->type) {
-			/* If the special property is set for the item, and it is a collection... */
-			PropertyRNA *prop_list = RNA_struct_find_property(itemptr, prop_list_id);
-
-			if (prop_list && RNA_property_type(prop_list) == PROP_STRING) {
-				int prop_names_len;
-				char *prop_names = RNA_property_string_get_alloc(itemptr, prop_list, NULL, 0, &prop_names_len);
-				char *prop_names_end = prop_names + prop_names_len;
-				char *id = prop_names;
-				char *id_next;
-				while (id < prop_names_end) {
-					if ((id_next = strchr(id, ':'))) *id_next++ = '\0';
-					else id_next = prop_names_end;
-					uiItemR(row, itemptr, id, 0, NULL, ICON_NONE);
-					id = id_next;
-				}
-				MEM_freeN(prop_names);
-			}
-		}
-	}
-
-	else
-		uiItemL(sub, name, icon);  /* fails, backdrop LISTROW... */
 
 	/* free name */
 	if (namebuf) {
@@ -2586,177 +2357,166 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 	}
 }
 
-void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, PointerRNA *activeptr,
-                    const char *activepropname, const char *prop_list, int rows, int maxrows, int listtype)
+void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, const char *list_id,
+                    PointerRNA *dataptr, const char *propname, PointerRNA *active_dataptr,
+                    const char *active_propname, int rows, int maxrows, int layout_type)
 {
+	uiListType *ult;
+	uiList *uilst = NULL;
+	ARegion *ar;
+	uiListDrawItemFunc draw_item;
+
 	PropertyRNA *prop = NULL, *activeprop;
 	PropertyType type, activetype;
 	StructRNA *ptype;
-	uiLayout *box, *row, *col;
-	uiBlock *block;
+	uiLayout *box, *row, *col, *sub, *overlap;
+	uiBlock *block, *subblock;
 	uiBut *but;
-	Panel *pa;
-	const char *name;
+
+	char uilst_id[UI_MAX_NAME_STR];
 	char numstr[32];
-	int rnaicon = 0, icon = 0, i = 0, activei = 0, len = 0, items, found, min, max;
+	int rnaicon = ICON_NONE, icon = ICON_NONE;
+	int i = 0, activei = 0;
+	int len = 0;
+	int items;
+	int found;
+	int min, max;
 
 	/* validate arguments */
 	block = uiLayoutGetBlock(layout);
-	pa = block->panel;
 
-	if (!pa) {
-		RNA_warning("Only works inside a panel");
+	if (!active_dataptr->data) {
+		RNA_warning("No active data");
 		return;
 	}
 
-	if (!activeptr->data)
-		return;
-	
-	if (ptr->data) {
-		prop = RNA_struct_find_property(ptr, propname);
+	if (dataptr->data) {
+		prop = RNA_struct_find_property(dataptr, propname);
 		if (!prop) {
-			RNA_warning("Property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
+			RNA_warning("Property not found: %s.%s", RNA_struct_identifier(dataptr->type), propname);
 			return;
 		}
 	}
 
-	activeprop = RNA_struct_find_property(activeptr, activepropname);
+	activeprop = RNA_struct_find_property(active_dataptr, active_propname);
 	if (!activeprop) {
-		RNA_warning("Property not found: %s.%s", RNA_struct_identifier(ptr->type), activepropname);
+		RNA_warning("Property not found: %s.%s", RNA_struct_identifier(active_dataptr->type), active_propname);
 		return;
 	}
 
 	if (prop) {
 		type = RNA_property_type(prop);
 		if (type != PROP_COLLECTION) {
-			RNA_warning("uiExpected collection property");
+			RNA_warning("Expected a collection data property");
 			return;
 		}
 	}
 
 	activetype = RNA_property_type(activeprop);
 	if (activetype != PROP_INT) {
-		RNA_warning("Expected integer property");
+		RNA_warning("Expected an integer active data property");
 		return;
 	}
 
 	/* get icon */
-	if (ptr->data && prop) {
-		ptype = RNA_property_pointer_type(ptr, prop);
+	if (dataptr->data && prop) {
+		ptype = RNA_property_pointer_type(dataptr, prop);
 		rnaicon = RNA_struct_ui_icon(ptype);
 	}
 
 	/* get active data */
-	activei = RNA_property_int_get(activeptr, activeprop);
+	activei = RNA_property_int_get(active_dataptr, activeprop);
 
-	if (listtype == 'i') {
-		box = uiLayoutListBox(layout, ptr, prop, activeptr, activeprop);
-		col = uiLayoutColumn(box, TRUE);
-		row = uiLayoutRow(col, FALSE);
+	/* Find the uiList type. */
+	ult = WM_uilisttype_find(listtype_name, FALSE);
 
-		if (ptr->data && prop) {
-			/* create list items */
-			RNA_PROP_BEGIN (ptr, itemptr, prop)
-			{
-				/* create button */
-				if (!(i % 9))
-					row = uiLayoutRow(col, FALSE);
-
-				icon = list_item_icon_get(C, &itemptr, rnaicon, 1);
-				but = uiDefIconButR_prop(block, LISTROW, 0, icon, 0, 0, UI_UNIT_X * 10, UI_UNIT_Y, activeptr,
-				                         activeprop, 0, 0, i, 0, 0, "");
-				uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
-				
-
-				i++;
-			}
-			RNA_PROP_END;
-		}
+	if (ult == NULL) {
+		RNA_warning("List type %s not found", listtype_name);
+		return;
 	}
-	else if (listtype == 'c') {
-		/* compact layout */
 
-		row = uiLayoutRow(layout, TRUE);
+	draw_item = ult->draw_item ? ult->draw_item : uilist_draw_item_default;
 
-		if (ptr->data && prop) {
-			/* create list items */
-			RNA_PROP_BEGIN (ptr, itemptr, prop)
-			{
-				found = (activei == i);
+	/* Find or add the uiList to the current Region. */
+	/* We tag the list id with the list type... */
+	BLI_snprintf(uilst_id, sizeof(uilst_id), "%s_%s", ult->idname, list_id ? list_id : "");
 
-				if (found) {
-					/* create button */
-					name = RNA_struct_name_get_alloc(&itemptr, NULL, 0, NULL);
-					icon = list_item_icon_get(C, &itemptr, rnaicon, 0);
-					uiItemL(row, (name) ? name : "", icon);
+	ar = CTX_wm_region(C);
+	uilst = BLI_findstring(&ar->uiLists, uilst_id, offsetof(uiList, list_id));
 
-					if (name) {
-						MEM_freeN((void *)name);
-					}
-				}
-
-				i++;
-			}
-			RNA_PROP_END;
-		}
-
-		/* if not found, add in dummy button */
-		if (i == 0)
-			uiItemL(row, "", ICON_NONE);
-
-		/* next/prev button */
-		BLI_snprintf(numstr, sizeof(numstr), "%d :", i);
-		but = uiDefIconTextButR_prop(block, NUM, 0, 0, numstr, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y, activeptr,
-		                             activeprop, 0, 0, 0, 0, 0, "");
-		if (i == 0)
-			uiButSetFlag(but, UI_BUT_DISABLED);
+	if (!uilst) {
+		uilst = MEM_callocN(sizeof(uiList), __func__);
+		BLI_strncpy(uilst->list_id, uilst_id, sizeof(uilst->list_id));
+		BLI_addtail(&ar->uiLists, uilst);
 	}
-	else {
+
+	/* Because we can't actually pass type across save&load... */
+	uilst->type = ult;
+	uilst->layout_type = layout_type;
+
+	switch (layout_type) {
+	case UILST_LAYOUT_DEFAULT:
 		/* default rows */
 		if (rows == 0)
 			rows = 5;
 		if (maxrows == 0)
 			maxrows = 5;
-		if (pa->list_grip_size != 0)
-			rows = pa->list_grip_size;
+		if (uilst->list_grip_size != 0)
+			rows = uilst->list_grip_size;
 
 		/* layout */
-		box = uiLayoutListBox(layout, ptr, prop, activeptr, activeprop);
+		box = uiLayoutListBox(layout, uilst, dataptr, prop, active_dataptr, activeprop);
 		row = uiLayoutRow(box, FALSE);
 		col = uiLayoutColumn(row, TRUE);
 
 		/* init numbers */
-		RNA_property_int_range(activeptr, activeprop, &min, &max);
+		RNA_property_int_range(active_dataptr, activeprop, &min, &max);
 
 		if (prop)
-			len = RNA_property_collection_length(ptr, prop);
+			len = RNA_property_collection_length(dataptr, prop);
 		items = CLAMPIS(len, rows, MAX2(rows, maxrows));
 
 		/* if list length changes and active is out of view, scroll to it */
-		if (pa->list_last_len != len)
-			if ((activei < pa->list_scroll || activei >= pa->list_scroll + items))
-				pa->list_scroll = activei;
+		if ((uilst->list_last_len != len) &&
+		    (activei < uilst->list_scroll || activei >= uilst->list_scroll + items)) {
+			uilst->list_scroll = activei;
+		}
 
-		pa->list_scroll = MIN2(pa->list_scroll, len - items);
-		pa->list_scroll = MAX2(pa->list_scroll, 0);
-		pa->list_size = items;
-		pa->list_last_len = len;
+		uilst->list_scroll = MIN2(uilst->list_scroll, len - items);
+		uilst->list_scroll = MAX2(uilst->list_scroll, 0);
+		uilst->list_size = items;
+		uilst->list_last_len = len;
 
-		if (ptr->data && prop) {
+		if (dataptr->data && prop) {
 			/* create list items */
-			RNA_PROP_BEGIN (ptr, itemptr, prop)
+			RNA_PROP_BEGIN (dataptr, itemptr, prop)
 			{
-				if (i >= pa->list_scroll && i < pa->list_scroll + items)
-					list_item_row(C, col, ptr, &itemptr, i, rnaicon, activeptr, activeprop, prop_list);
+				if (i >= uilst->list_scroll && i < uilst->list_scroll + items) {
+					subblock = uiLayoutGetBlock(col);
+					overlap = uiLayoutOverlap(col);
 
+					/* list item behind label & other buttons */
+					sub = uiLayoutRow(overlap, FALSE);
+
+					but = uiDefButR_prop(subblock, LISTROW, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y,
+					                     active_dataptr, activeprop, 0, 0, i, 0, 0, "");
+					uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
+
+					sub = uiLayoutRow(overlap, FALSE);
+
+					icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, FALSE);
+					if (icon == ICON_DOT)
+						icon = ICON_NONE;
+					draw_item(uilst, C, sub, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
+				}
 				i++;
 			}
 			RNA_PROP_END;
 		}
 
 		/* add dummy buttons to fill space */
-		while (i < pa->list_scroll + items) {
-			if (i >= pa->list_scroll)
+		while (i < uilst->list_scroll + items) {
+			if (i >= uilst->list_scroll)
 				uiItemL(col, "", ICON_NONE);
 			i++;
 		}
@@ -2764,9 +2524,75 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *
 		/* add scrollbar */
 		if (len > items) {
 			col = uiLayoutColumn(row, FALSE);
-			uiDefButI(block, SCROLL, 0, "", 0, 0, UI_UNIT_X * 0.75, UI_UNIT_Y * items, &pa->list_scroll,
+			uiDefButI(block, SCROLL, 0, "", 0, 0, UI_UNIT_X * 0.75, UI_UNIT_Y * items, &uilst->list_scroll,
 			          0, len - items, items, 0, "");
 		}
+		break;
+	case UILST_LAYOUT_COMPACT:
+		row = uiLayoutRow(layout, TRUE);
+
+		if (dataptr->data && prop) {
+			/* create list items */
+			RNA_PROP_BEGIN (dataptr, itemptr, prop)
+			{
+				found = (activei == i);
+
+				if (found) {
+					icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, FALSE);
+					if (icon == ICON_DOT)
+						icon = ICON_NONE;
+					draw_item(uilst, C, row, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
+				}
+
+				i++;
+			}
+			RNA_PROP_END;
+		}
+
+		/* if list is empty, add in dummy button */
+		if (i == 0)
+			uiItemL(row, "", ICON_NONE);
+
+		/* next/prev button */
+		BLI_snprintf(numstr, sizeof(numstr), "%d :", i);
+		but = uiDefIconTextButR_prop(block, NUM, 0, 0, numstr, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y,
+		                             active_dataptr, activeprop, 0, 0, 0, 0, 0, "");
+		if (i == 0)
+			uiButSetFlag(but, UI_BUT_DISABLED);
+		break;
+	case UILST_LAYOUT_GRID:
+		box = uiLayoutListBox(layout, uilst, dataptr, prop, active_dataptr, activeprop);
+		col = uiLayoutColumn(box, TRUE);
+		row = uiLayoutRow(col, FALSE);
+
+		if (dataptr->data && prop) {
+			/* create list items */
+			RNA_PROP_BEGIN (dataptr, itemptr, prop)
+			{
+				/* create button */
+				if (!(i % 9))
+					row = uiLayoutRow(col, FALSE);
+
+				subblock = uiLayoutGetBlock(row);
+				overlap = uiLayoutOverlap(row);
+
+				/* list item behind label & other buttons */
+				sub = uiLayoutRow(overlap, FALSE);
+
+				but = uiDefButR_prop(subblock, LISTROW, 0, "", 0, 0, UI_UNIT_X * 10, UI_UNIT_Y,
+				                     active_dataptr, activeprop, 0, 0, i, 0, 0, "");
+				uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
+
+				sub = uiLayoutRow(overlap, FALSE);
+
+				icon = UI_rnaptr_icon_get(C, &itemptr, rnaicon, FALSE);
+				draw_item(uilst, C, sub, dataptr, &itemptr, icon, active_dataptr, active_propname, i);
+
+				i++;
+			}
+			RNA_PROP_END;
+		}
+		break;
 	}
 }
 

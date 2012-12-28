@@ -265,6 +265,13 @@ char		*WM_prop_pystring_assign(struct bContext *C, struct PointerRNA *ptr, struc
 void		WM_operator_bl_idname(char *to, const char *from);
 void		WM_operator_py_idname(char *to, const char *from);
 
+/* *************** uilist types ******************** */
+void                WM_uilisttype_init(void);
+struct uiListType  *WM_uilisttype_find(const char *idname, int quiet);
+int                 WM_uilisttype_add(struct uiListType *ult);
+void                WM_uilisttype_freelink(struct uiListType *ult);
+void                WM_uilisttype_free(void);
+
 /* *************** menu types ******************** */
 void                WM_menutype_init(void);
 struct MenuType    *WM_menutype_find(const char *idname, int quiet);

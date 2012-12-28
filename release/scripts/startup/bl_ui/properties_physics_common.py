@@ -85,7 +85,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
     layout.context_pointer_set("point_cache", cache)
 
     row = layout.row()
-    row.template_list(cache, "point_caches", cache.point_caches, "active_index", rows=2)
+    row.template_list("UI_UL_list", "", cache, "point_caches", cache.point_caches, "active_index", rows=2)
     col = row.column(align=True)
     col.operator("ptcache.add", icon='ZOOMIN', text="")
     col.operator("ptcache.remove", icon='ZOOMOUT', text="")
