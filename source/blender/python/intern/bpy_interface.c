@@ -269,7 +269,8 @@ void BPY_python_start(int argc, const char **argv)
 	Py_Initialize();
 
 	/* THIS IS BAD: see http://bugs.python.org/issue16129 */
-#if 1
+	/* this clobbers the stdout on exit (no 'MEM_printmemlist_stats') */
+#if 0
 	/* until python provides a reliable way to set the env var */
 	PyRun_SimpleString("import sys, io\n"
 	                   "sys.__backup_stdio__ = sys.__stdout__, sys.__stderr__\n"  /* else we loose the FD's [#32720] */
