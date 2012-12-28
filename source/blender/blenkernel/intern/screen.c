@@ -279,6 +279,7 @@ void BKE_area_region_free(SpaceType *st, ARegion *ar)
 	}
 
 	BLI_freelistN(&ar->panels);
+	BLI_freelistN(&ar->ui_lists);
 }
 
 /* not area itself */
