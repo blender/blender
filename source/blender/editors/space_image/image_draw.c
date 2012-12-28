@@ -146,7 +146,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 	if (channels >= 3) {
 		glColor3ubv(red);
 		if (fp)
-			BLI_snprintf(str, sizeof(str), "  R:%-.4f", fp[0]);
+			BLI_snprintf(str, sizeof(str), "  R:%-.5f", fp[0]);
 		else if (cp)
 			BLI_snprintf(str, sizeof(str), "  R:%-3d", cp[0]);
 		else
@@ -157,7 +157,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 		
 		glColor3ubv(green);
 		if (fp)
-			BLI_snprintf(str, sizeof(str), "  G:%-.4f", fp[1]);
+			BLI_snprintf(str, sizeof(str), "  G:%-.5f", fp[1]);
 		else if (cp)
 			BLI_snprintf(str, sizeof(str), "  G:%-3d", cp[1]);
 		else
@@ -168,7 +168,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 		
 		glColor3ubv(blue);
 		if (fp)
-			BLI_snprintf(str, sizeof(str), "  B:%-.4f", fp[2]);
+			BLI_snprintf(str, sizeof(str), "  B:%-.5f", fp[2]);
 		else if (cp)
 			BLI_snprintf(str, sizeof(str), "  B:%-3d", cp[2]);
 		else
