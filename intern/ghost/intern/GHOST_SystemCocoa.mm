@@ -548,7 +548,6 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	int mib[2];
 	struct timeval boottime;
 	size_t len;
-	char *rstring = NULL;
 	
 	m_modifierMask =0;
 	m_cursorDelta_x=0;
@@ -566,25 +565,7 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	
 	sysctl(mib, 2, &boottime, &len, NULL, 0);
 	m_start_time = ((boottime.tv_sec*1000)+(boottime.tv_usec/1000));
-	
-	//Detect multitouch trackpad
-	mib[0] = CTL_HW;
-	mib[1] = HW_MODEL;
-	sysctl( mib, 2, NULL, &len, NULL, 0 );
-	rstring = (char*)malloc( len );
-	sysctl( mib, 2, rstring, &len, NULL, 0 );
-	
-	//Hack on MacBook revision, as multitouch avail. function missing
-	//MacbookAir or MacBook version >= 5 (retina is MacBookPro10,1)
-	if (strstr(rstring,"MacBookAir") ||
-		(strstr(rstring,"MacBook") && (rstring[strlen(rstring)-3]>='5') && (rstring[strlen(rstring)-3]<='9')) ||
-		(strstr(rstring,"MacBook") && (rstring[strlen(rstring)-4]>='1') && (rstring[strlen(rstring)-4]<='9')))
-		m_hasMultiTouchTrackpad = true;
-	else m_hasMultiTouchTrackpad = false;
-	
-	free( rstring );
-	rstring = NULL;
-	
+		
 	m_ignoreWindowSizedMessages = false;
 }
 
@@ -1579,7 +1560,9 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 			
 		case NSScrollWheel:
 			{
-				if (!m_hasMultiTouchTrackpad) {
+				
+				/* proper detection of trackpad or mouse scrollwheel */
+				if ([event momentumPhase] == NSEventPhaseNone && [event phase] == NSEventPhaseNone) {
 					GHOST_TInt32 delta;
 					
 					double deltaF = [event deltaY];
