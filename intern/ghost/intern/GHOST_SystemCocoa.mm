@@ -1577,9 +1577,21 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 			}
 			break;
 			
+		case NSEventTypeBeginGesture:
+			m_hasMultiTouchTrackpad = true;
+			break;
+		case NSEventTypeEndGesture:
+			m_hasMultiTouchTrackpad = false;
+			break;
+			
 		case NSScrollWheel:
 			{
-				if (!m_hasMultiTouchTrackpad) {
+				int momentum = 0;
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
+				momentum = [event momentumPhase];
+#endif
+				
+				if (!m_hasMultiTouchTrackpad && momentum==0) {
 					GHOST_TInt32 delta;
 					
 					double deltaF = [event deltaY];
