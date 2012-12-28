@@ -128,7 +128,7 @@ static BMOpDefine bmo_smooth_laplacian_vert_def = {
 	"smooth_laplacian_vert",
 	/* slots_in */
 	{{"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},    /* input vertices */
-	 {"lambda", BMO_OP_SLOT_FLT},           /* lambda param */
+	 {"lambda_factor", BMO_OP_SLOT_FLT},           /* lambda param */
 	 {"lambda_border", BMO_OP_SLOT_FLT},    /* lambda param in border */
 	 {"use_x", BMO_OP_SLOT_BOOL},           /* Smooth object along X axis */
 	 {"use_y", BMO_OP_SLOT_BOOL},           /* Smooth object along Y axis */

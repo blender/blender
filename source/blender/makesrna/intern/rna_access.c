@@ -4238,7 +4238,9 @@ char *RNA_path_full_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
 		                   id_path, data_path, index);
 	}
 	MEM_freeN(id_path);
-	MEM_freeN(data_path);
+	if (data_path) {
+		MEM_freeN(data_path);
+	}
 
 	return ret;
 }
@@ -4268,7 +4270,9 @@ char *RNA_path_struct_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
 		                   data_path, index);
 	}
 
-	MEM_freeN(data_path);
+	if (data_path) {
+		MEM_freeN(data_path);
+	}
 
 	return ret;
 }
