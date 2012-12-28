@@ -19,26 +19,31 @@
  *		Dalai Felinto
  */
 
-#include "COM_ConvertAlphaNode.h"
-#include "COM_ConvertPremulToStraightOperation.h"
-#include "COM_ConvertStraightToPremulOperation.h"
-#include "COM_ExecutionSystem.h"
+#ifndef _COM_ConvertStraightToPremulOperation_h
+#define _COM_ConvertStraightToPremulOperation_h
+#include "COM_NodeOperation.h"
 
-void ConvertAlphaNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
-{
-	NodeOperation *operation = NULL;
-	bNode *node = this->getbNode();
 
-	/* value hardcoded in rna_nodetree.c */
-	if (node->custom1 == 1) {
-		operation = new ConvertPremulToStraightOperation();
-	}
-	else {
-		operation = new ConvertStraightToPremulOperation();
-	}
+/**
+ * this program converts an input color to an output value.
+ * it assumes we are in sRGB color space.
+ */
+class ConvertStraightToPremulOperation : public NodeOperation {
+private:
+	SocketReader *m_inputColor;
+public:
+	/**
+	 * Default constructor
+	 */
+	ConvertStraightToPremulOperation();
 
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
+	/**
+	 * the inner loop of this program
+	 */
+	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 
-	graph->addOperation(operation);
-}
+	void initExecution();
+	void deinitExecution();
+
+};
+#endif

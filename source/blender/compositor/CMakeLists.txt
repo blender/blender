@@ -491,10 +491,10 @@ set(SRC
 	operations/COM_ColorMatteOperation.h
 	operations/COM_ChannelMatteOperation.cpp
 	operations/COM_ChannelMatteOperation.h
-	operations/COM_ConvertPremulToKeyOperation.cpp
-	operations/COM_ConvertPremulToKeyOperation.h
-	operations/COM_ConvertKeyToPremulOperation.cpp
-	operations/COM_ConvertKeyToPremulOperation.h
+	operations/COM_ConvertPremulToStraightOperation.cpp
+	operations/COM_ConvertPremulToStraightOperation.h
+	operations/COM_ConvertStraightToPremulOperation.cpp
+	operations/COM_ConvertStraightToPremulOperation.h
 
 	operations/COM_ReadBufferOperation.cpp
 	operations/COM_ReadBufferOperation.h

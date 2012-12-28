@@ -3217,8 +3217,8 @@ static void def_cmp_premul_key(StructRNA *srna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem type_items[] = {
-		{0, "KEY_TO_PREMUL", 0, "Key to Premul", ""},
-		{1, "PREMUL_TO_KEY", 0, "Premul to Key", ""},
+		{0, "STRAIGHT_TO_PREMUL", 0, "Straight to Premul", ""},
+		{1, "PREMUL_TO_STRAIGHT", 0, "Premul to Straight", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
