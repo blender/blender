@@ -1187,31 +1187,42 @@ static Base *object_mouse_select_menu(bContext *C, ViewContext *vc, unsigned int
 	}
 }
 
+static int selectbuffer_has_bones(const unsigned int *buffer, const unsigned int hits)
+{
+	unsigned int i;
+	for (i = 0; i < hits; i++) {
+		if (buffer[(4 * i) + 3] & 0xFFFF0000) {
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
 /* we want a select buffer with bones, if there are... */
 /* so check three selection levels and compare */
 static short mixed_bones_object_selectbuffer(ViewContext *vc, unsigned int *buffer, const int mval[2])
 {
 	rcti rect;
 	int offs;
-	short a, hits15, hits9 = 0, hits5 = 0;
-	short has_bones15 = 0, has_bones9 = 0, has_bones5 = 0;
+	short hits15, hits9 = 0, hits5 = 0;
+	short has_bones15 = FALSE, has_bones9 = FALSE, has_bones5 = FALSE;
 	
 	BLI_rcti_init(&rect, mval[0] - 14, mval[0] + 14, mval[1] - 14, mval[1] + 14);
 	hits15 = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect);
 	if (hits15 > 0) {
-		for (a = 0; a < hits15; a++) if (buffer[4 * a + 3] & 0xFFFF0000) has_bones15 = 1;
+		has_bones15 = selectbuffer_has_bones(buffer, hits15);
 
 		offs = 4 * hits15;
 		BLI_rcti_init(&rect, mval[0] - 9, mval[0] + 9, mval[1] - 9, mval[1] + 9);
 		hits9 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect);
 		if (hits9 > 0) {
-			for (a = 0; a < hits9; a++) if (buffer[offs + 4 * a + 3] & 0xFFFF0000) has_bones9 = 1;
+			has_bones9 = selectbuffer_has_bones(buffer + offs, hits9);
 
 			offs += 4 * hits9;
 			BLI_rcti_init(&rect, mval[0] - 5, mval[0] + 5, mval[1] - 5, mval[1] + 5);
 			hits5 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect);
 			if (hits5 > 0) {
-				for (a = 0; a < hits5; a++) if (buffer[offs + 4 * a + 3] & 0xFFFF0000) has_bones5 = 1;
+				has_bones5 = selectbuffer_has_bones(buffer + offs, hits5);
 			}
 		}
 		
@@ -1353,10 +1364,7 @@ Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
 	hits = mixed_bones_object_selectbuffer(&vc, buffer, mval);
 	
 	if (hits > 0) {
-		int a, has_bones = 0;
-		
-		for (a = 0; a < hits; a++) if (buffer[4 * a + 3] & 0xFFFF0000) has_bones = 1;
-		
+		const int has_bones = selectbuffer_has_bones(buffer, hits);
 		basact = mouse_select_eval_buffer(&vc, buffer, hits, mval, vc.scene->base.first, has_bones);
 	}
 	
@@ -1390,7 +1398,6 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short dese
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
 	Base *base, *startbase = NULL, *basact = NULL, *oldbasact = NULL;
-	int  a;
 	float dist = 100.0f;
 	int retval = 0;
 	short hits;
@@ -1443,10 +1450,8 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short dese
 		hits = mixed_bones_object_selectbuffer(&vc, buffer, mval);
 		
 		if (hits > 0) {
-			int has_bones = 0;
-			
 			/* note: bundles are handling in the same way as bones */
-			for (a = 0; a < hits; a++) if (buffer[4 * a + 3] & 0xFFFF0000) has_bones = 1;
+			const int has_bones = selectbuffer_has_bones(buffer, hits);
 
 			/* note; shift+alt goes to group-flush-selecting */
 			if (has_bones == 0 && enumerate) {
