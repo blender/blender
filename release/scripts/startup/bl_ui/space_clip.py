@@ -24,8 +24,7 @@ from bpy.types import Panel, Header, Menu, UIList
 
 class CLIP_UL_tracking_objects(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        if not (item is None or isinstance(item, bpy.types.MovieTrackingObject)):
-            return
+        # assert(isinstance(item, bpy.types.MovieTrackingObject)
         tobj = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.label(tobj.name, icon='CAMERA_DATA' if tobj.is_camera else 'OBJECT_DATA')

@@ -24,8 +24,7 @@ from rna_prop_ui import PropertyPanel
 
 class SCENE_UL_keying_set_paths(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        if not isinstance(item, bpy.types.KeyingSetPath):
-            return
+        # assert(isinstance(item, bpy.types.KeyingSetPath)
         kspath = item
         icon = layout.enum_item_icon(kspath, "id_type", kspath.id_type)
         if self.layout_type in {'DEFAULT', 'COMPACT'}:

@@ -27,8 +27,7 @@ from bl_ui.properties_physics_common import (point_cache_ui,
 
 class PHYSICS_UL_dynapaint_surfaces(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        if not isinstance(item, bpy.types.DynamicPaintSurface):
-            return
+        # assert(isinstance(item, bpy.types.DynamicPaintSurface)
         surf = item
         sticon = layout.enum_item_icon(surf, "surface_type", surf.surface_type)
         if self.layout_type in {'DEFAULT', 'COMPACT'}:

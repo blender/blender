@@ -56,8 +56,7 @@ class MESH_MT_shape_key_specials(Menu):
 
 class MESH_UL_vgroups(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        if not isinstance(item, bpy.types.VertexGroup):
-            return
+        # assert(isinstance(item, bpy.types.VertexGroup)
         vgroup = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.label(vgroup.name, icon_value=icon)
@@ -70,8 +69,7 @@ class MESH_UL_vgroups(UIList):
 
 class MESH_UL_shape_keys(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        if not isinstance(item, bpy.types.ShapeKey):
-            return
+        # assert(isinstance(item, bpy.types.ShapeKey)
         obj = active_data
         key = data
         key_block = item
@@ -93,9 +91,7 @@ class MESH_UL_shape_keys(UIList):
 
 class MESH_UL_uvmaps_vcols(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        if not isinstance(item, (bpy.types.MeshTexturePolyLayer, bpy.types.MeshLoopColorLayer)):
-            print(item.__class__)
-            return
+        # assert(isinstance(item, (bpy.types.MeshTexturePolyLayer, bpy.types.MeshLoopColorLayer))
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.label(item.name, icon_value=icon)
             icon = 'RESTRICT_RENDER_OFF' if item.active_render else 'RESTRICT_RENDER_ON'

@@ -58,8 +58,7 @@ class TEXTURE_MT_envmap_specials(Menu):
 
 class TEXTURE_UL_texslots(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        if not (item is None or isinstance(item, bpy.types.MaterialTextureSlot)):
-            return
+        # assert(isinstance(item, bpy.types.MaterialTextureSlot)
         ma = data
         slot = item
         tex = slot.texture if slot else None

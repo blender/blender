@@ -71,8 +71,7 @@ class MATERIAL_MT_specials(Menu):
 
 class MATERIAL_UL_matslots(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        if not isinstance(item, bpy.types.MaterialSlot):
-            return
+        # assert(isinstance(item, bpy.types.MaterialSlot)
         ob = data
         slot = item
         ma = slot.material

@@ -45,8 +45,7 @@ class RENDER_MT_framerate_presets(Menu):
 
 class RENDER_UL_renderlayers(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        if not isinstance(item, bpy.types.SceneRenderLayer):
-            return
+        # assert(isinstance(item, bpy.types.SceneRenderLayer)
         layer = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.label(layer.name, icon_value=icon)

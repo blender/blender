@@ -27,8 +27,7 @@ from bpy.types import Menu, UIList
 
 class MASK_UL_layers(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        if not isinstance(item, bpy.types.MaskLayer):
-            return
+        # assert(isinstance(item, bpy.types.MaskLayer)
         mask = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             split = layout.split()
