@@ -203,6 +203,12 @@ void WM_jobs_kill_all_except(struct wmWindowManager *wm) {}
 char *WM_clipboard_text_get(int selection) {return (char*)0;}
 void WM_clipboard_text_set(char *buf, int selection) {}
 
+void                WM_uilisttype_init(void) {}
+struct uiListType  *WM_uilisttype_find(const char *idname, int quiet) {return (struct uiListType *)NULL;}
+int                 WM_uilisttype_add(struct uiListType *ult) {return 0;}
+void                WM_uilisttype_freelink(struct uiListType *ult) {}
+void                WM_uilisttype_free(void) {}
+
 struct wmKeyMapItem *WM_keymap_item_find_id(struct wmKeyMap *keymap, int id) {return (struct wmKeyMapItem *) NULL;}
 int WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event) {return 0;}
 void WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference) {}
@@ -400,6 +406,7 @@ void uiItemFullR(struct uiLayout *layout, struct PointerRNA *ptr, struct Propert
 void uiLayoutSetContextPointer(struct uiLayout *layout, char *name, struct PointerRNA *ptr) {}
 char *uiLayoutIntrospect(struct uiLayout *layout) {return (char *)NULL;}
 void UI_reinit_font(void) {}
+int UI_rnaptr_icon_get(struct bContext *C, struct PointerRNA *ptr, int rnaicon, int big) {return 0;}
 
 /* rna template */
 void uiTemplateAnyID(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, char *text) {}
@@ -414,7 +421,7 @@ void uiTemplateCurveMapping(struct uiLayout *layout, struct CurveMapping *cumap,
 void uiTemplateColorRamp(struct uiLayout *layout, struct ColorBand *coba, int expand) {}
 void uiTemplateLayers(struct uiLayout *layout, struct PointerRNA *ptr, char *propname) {}
 void uiTemplateImageLayers(struct uiLayout *layout, struct bContext *C, struct Image *ima, struct ImageUser *iuser) {}
-void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, const char *list_id,
+void uiTemplateList(struct uiLayout *layout, struct bContext *C, const char *listtype_name, const char *list_id,
                     PointerRNA *dataptr, const char *propname, PointerRNA *active_dataptr,
                     const char *active_propname, int rows, int maxrows, int layout_type) {}
 void uiTemplateRunningJobs(struct uiLayout *layout, struct bContext *C) {}
