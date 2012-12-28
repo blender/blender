@@ -196,7 +196,7 @@ dict_uimsgs = {
     "symmetrize",
     "trackability",
     "transmissivity",
-    "rasterized", "rasterization",, "rasterizer"
+    "rasterized", "rasterization", "rasterizer",
     "renderer", "renderable", "renderability",
 
     # Abbreviations
