@@ -595,7 +595,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	
 	[m_window setAcceptsMouseMovedEvents:YES];
 	
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1060
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 	NSView *view = [m_window contentView];
 	[view setAcceptsTouchEvents:YES];
 #endif

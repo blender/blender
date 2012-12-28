@@ -1587,7 +1587,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 		case NSScrollWheel:
 			{
 				int momentum = 0;
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
 				momentum = [event momentumPhase];
 #endif
 				
