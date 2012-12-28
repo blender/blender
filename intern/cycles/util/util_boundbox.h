@@ -65,6 +65,13 @@ public:
 		max = ccl::max(max, pt);
 	}
 
+	__forceinline void grow(const float3& pt, float border)  
+	{
+		float3 shift = {border, border, border, 0.0f};
+		min = ccl::min(min, pt - shift);
+		max = ccl::max(max, pt + shift);
+	}
+
 	__forceinline void grow(const BoundBox& bbox)
 	{
 		grow(bbox.min);

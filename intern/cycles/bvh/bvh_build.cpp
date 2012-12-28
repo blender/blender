@@ -48,9 +48,10 @@ public:
 /* Constructor / Destructor */
 
 BVHBuild::BVHBuild(const vector<Object*>& objects_,
-	vector<int>& prim_index_, vector<int>& prim_object_,
+	vector<int>& prim_type_, vector<int>& prim_index_, vector<int>& prim_object_,
 	const BVHParams& params_, Progress& progress_)
 : objects(objects_),
+  prim_type(prim_type_),
   prim_index(prim_index_),
   prim_object(prim_object_),
   params(params_),
@@ -78,7 +79,23 @@ void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, 
 		}
 
 		if(bounds.valid()) {
-			references.push_back(BVHReference(bounds, j, i));
+			references.push_back(BVHReference(bounds, j, i, false));
+			root.grow(bounds);
+			center.grow(bounds.center2());
+		}
+	}
+
+	for(uint j = 0; j < mesh->curve_segs.size(); j++) {
+		Mesh::CurveSeg s = mesh->curve_segs[j];
+		BoundBox bounds = BoundBox::empty;
+
+		for(int k = 0; k < 2; k++) {
+			float3 pt = mesh->curve_keys[s.v[k]].loc;
+			bounds.grow(pt, mesh->curve_keys[s.v[k]].radius);
+		}
+
+		if(bounds.valid()) {
+			references.push_back(BVHReference(bounds, j, i, true));
 			root.grow(bounds);
 			center.grow(bounds.center2());
 		}
@@ -87,7 +104,7 @@ void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, 
 
 void BVHBuild::add_reference_object(BoundBox& root, BoundBox& center, Object *ob, int i)
 {
-	references.push_back(BVHReference(ob->bounds, -1, i));
+	references.push_back(BVHReference(ob->bounds, -1, i, false));
 	root.grow(ob->bounds);
 	center.grow(ob->bounds.center2());
 }
@@ -99,13 +116,17 @@ void BVHBuild::add_references(BVHRange& root)
 
 	foreach(Object *ob, objects) {
 		if(params.top_level) {
-			if(ob->mesh->transform_applied)
+			if(ob->mesh->transform_applied) {
 				num_alloc_references += ob->mesh->triangles.size();
+				num_alloc_references += ob->mesh->curve_segs.size();
+			}
 			else
 				num_alloc_references++;
 		}
-		else
+		else {
 			num_alloc_references += ob->mesh->triangles.size();
+			num_alloc_references += ob->mesh->curve_segs.size();
+		}
 	}
 
 	references.reserve(num_alloc_references);
@@ -162,6 +183,7 @@ BVHNode* BVHBuild::run()
 	progress_total = references.size();
 	progress_original_total = progress_total;
 
+	prim_type.resize(references.size());
 	prim_index.resize(references.size());
 	prim_object.resize(references.size());
 
@@ -319,10 +341,12 @@ BVHNode *BVHBuild::create_object_leaf_nodes(const BVHReference *ref, int start, 
 		if(start == prim_index.size()) {
 			assert(params.use_spatial_split);
 
+			prim_type.push_back(ref->prim_type());
 			prim_index.push_back(ref->prim_index());
 			prim_object.push_back(ref->prim_object());
 		}
 		else {
+			prim_type[start] = ref->prim_type();
 			prim_index[start] = ref->prim_index();
 			prim_object[start] = ref->prim_object();
 		}
@@ -345,6 +369,7 @@ BVHNode *BVHBuild::create_object_leaf_nodes(const BVHReference *ref, int start, 
 
 BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
 {
+	vector<int>& p_type = prim_type;
 	vector<int>& p_index = prim_index;
 	vector<int>& p_object = prim_object;
 	BoundBox bounds = BoundBox::empty;
@@ -358,10 +383,12 @@ BVHNode* BVHBuild::create_leaf_node(const BVHRange& range)
 			if(range.start() + num == prim_index.size()) {
 				assert(params.use_spatial_split);
 
+				p_type.push_back(ref.prim_type());
 				p_index.push_back(ref.prim_index());
 				p_object.push_back(ref.prim_object());
 			}
 			else {
+				p_type[range.start() + num] = ref.prim_type();
 				p_index[range.start() + num] = ref.prim_index();
 				p_object[range.start() + num] = ref.prim_object();
 			}

@@ -51,6 +51,9 @@ Mesh::Mesh()
 	tri_offset = 0;
 	vert_offset = 0;
 
+	curveseg_offset = 0;
+	curvekey_offset = 0;
+
 	attributes.mesh = this;
 }
 
@@ -66,6 +69,7 @@ void Mesh::reserve(int numverts, int numtris)
 	triangles.resize(numtris);
 	shader.resize(numtris);
 	smooth.resize(numtris);
+	/*currently no need in hair segment resize and curve data needs including*/
 	attributes.reserve(numverts, numtris);
 }
 
@@ -76,6 +80,11 @@ void Mesh::clear()
 	triangles.clear();
 	shader.clear();
 	smooth.clear();
+
+	curve_keys.clear();
+	curve_keysCD.clear();
+	curve_segs.clear();
+	curve_attrib.clear();
 
 	attributes.clear();
 	used_shaders.clear();
@@ -96,13 +105,47 @@ void Mesh::add_triangle(int v0, int v1, int v2, int shader_, bool smooth_)
 	smooth.push_back(smooth_);
 }
 
+void Mesh::add_curvekey(float3 loc, float radius, float time)
+{
+	CurveKey ck;
+	ck.loc = loc;
+	ck.radius = radius;
+	ck.time = time;
+
+	curve_keys.push_back(ck);
+}
+
+void Mesh::add_curve(int v0, int v1, int shader, int curveid)
+{
+	CurveSeg s;
+	s.v[0] = v0;
+	s.v[1] = v1;
+	s.curveshader = shader;
+	s.curve = curveid;
+
+	curve_segs.push_back(s);
+}
+
+void Mesh::add_curveattrib(float u, float v)
+{
+	Curve_Attribute s;
+	s.uv[0] = u;
+	s.uv[1] = v;
+
+	curve_attrib.push_back(s);
+}
+
 void Mesh::compute_bounds()
 {
 	BoundBox bnds = BoundBox::empty;
 	size_t verts_size = verts.size();
+	size_t curve_keys_size = curve_keys.size();
 
 	for(size_t i = 0; i < verts_size; i++)
 		bnds.grow(verts[i]);
+
+	for(size_t i = 0; i < curve_keys_size; i++)
+		bnds.grow(curve_keys[i].loc, curve_keys[i].radius);
 
 	/* happens mostly on empty meshes */
 	if(!bnds.valid())
@@ -239,6 +282,45 @@ void Mesh::pack_verts(float4 *tri_verts, float4 *tri_vindex, size_t vert_offset)
 				__int_as_float(t.v[1] + vert_offset),
 				__int_as_float(t.v[2] + vert_offset),
 				0);
+		}
+	}
+}
+
+void Mesh::pack_curves(Scene *scene, float4 *curve_key_co, float4 *curve_seg_keys, size_t curvekey_offset)
+{
+	size_t curve_keys_size = curve_keys.size();
+	CurveKey *keys_ptr = NULL;
+
+	if(curve_keys_size) {
+
+		keys_ptr = &curve_keys[0];
+
+		for(size_t i = 0; i < curve_keys_size; i++) {
+			float3 p = keys_ptr[i].loc;
+			curve_key_co[i] = make_float4(p.x, p.y, p.z, keys_ptr[i].radius);
+		}
+	}
+
+	size_t curve_seg_num = curve_segs.size();
+
+	if(curve_seg_num) {
+		CurveSeg *curve_ptr = &curve_segs[0];
+
+		int shader_id = 0;
+		
+		for(size_t i = 0; i < curve_seg_num; i++) {
+			CurveSeg s = curve_ptr[i];
+			shader_id = scene->shader_manager->get_shader_id(s.curveshader, this, false);
+
+			float3 p1 = keys_ptr[s.v[0]].loc;
+			float3 p2 = keys_ptr[s.v[1]].loc;
+			float length = len(p2 - p1);
+
+			curve_seg_keys[i] = make_float4(
+				__int_as_float(s.v[0] + curvekey_offset),
+				__int_as_float(s.v[1] + curvekey_offset),
+				__int_as_float(shader_id),
+				length);
 		}
 	}
 }
@@ -573,39 +655,62 @@ void MeshManager::device_update_mesh(Device *device, DeviceScene *dscene, Scene 
 	size_t vert_size = 0;
 	size_t tri_size = 0;
 
+	size_t CurveKey_size = 0;
+	size_t curve_seg_keys = 0;
+
 	foreach(Mesh *mesh, scene->meshes) {
 		mesh->vert_offset = vert_size;
 		mesh->tri_offset = tri_size;
 
+		mesh->curvekey_offset = CurveKey_size;
+		mesh->curveseg_offset = curve_seg_keys;
+
 		vert_size += mesh->verts.size();
 		tri_size += mesh->triangles.size();
+
+		CurveKey_size += mesh->curve_keys.size();
+		curve_seg_keys += mesh->curve_segs.size();
 	}
 
-	if(tri_size == 0)
-		return;
+	if(tri_size != 0) {
+		/* normals */
+		progress.set_status("Updating Mesh", "Computing normals");
 
-	/* normals */
-	progress.set_status("Updating Mesh", "Computing normals");
+		float4 *normal = dscene->tri_normal.resize(tri_size);
+		float4 *vnormal = dscene->tri_vnormal.resize(vert_size);
+		float4 *tri_verts = dscene->tri_verts.resize(vert_size);
+		float4 *tri_vindex = dscene->tri_vindex.resize(tri_size);
 
-	float4 *normal = dscene->tri_normal.resize(tri_size);
-	float4 *vnormal = dscene->tri_vnormal.resize(vert_size);
-	float4 *tri_verts = dscene->tri_verts.resize(vert_size);
-	float4 *tri_vindex = dscene->tri_vindex.resize(tri_size);
+		foreach(Mesh *mesh, scene->meshes) {
+			mesh->pack_normals(scene, &normal[mesh->tri_offset], &vnormal[mesh->vert_offset]);
+			mesh->pack_verts(&tri_verts[mesh->vert_offset], &tri_vindex[mesh->tri_offset], mesh->vert_offset);
 
-	foreach(Mesh *mesh, scene->meshes) {
-		mesh->pack_normals(scene, &normal[mesh->tri_offset], &vnormal[mesh->vert_offset]);
-		mesh->pack_verts(&tri_verts[mesh->vert_offset], &tri_vindex[mesh->tri_offset], mesh->vert_offset);
+			if(progress.get_cancel()) return;
+		}
 
-		if(progress.get_cancel()) return;
+		/* vertex coordinates */
+		progress.set_status("Updating Mesh", "Copying Mesh to device");
+
+		device->tex_alloc("__tri_normal", dscene->tri_normal);
+		device->tex_alloc("__tri_vnormal", dscene->tri_vnormal);
+		device->tex_alloc("__tri_verts", dscene->tri_verts);
+		device->tex_alloc("__tri_vindex", dscene->tri_vindex);
 	}
 
-	/* vertex coordinates */
-	progress.set_status("Updating Mesh", "Copying Mesh to device");
+	if(curve_seg_keys != 0) {
+		progress.set_status("Updating Mesh", "Copying Strands to device");
 
-	device->tex_alloc("__tri_normal", dscene->tri_normal);
-	device->tex_alloc("__tri_vnormal", dscene->tri_vnormal);
-	device->tex_alloc("__tri_verts", dscene->tri_verts);
-	device->tex_alloc("__tri_vindex", dscene->tri_vindex);
+		float4 *cur_keys = dscene->cur_keys.resize(CurveKey_size);
+		float4 *cur_segs = dscene->cur_segs.resize(curve_seg_keys);
+
+		foreach(Mesh *mesh, scene->meshes) {
+			mesh->pack_curves(scene, &cur_keys[mesh->curvekey_offset], &cur_segs[mesh->curveseg_offset], mesh->curvekey_offset);
+			if(progress.get_cancel()) return;
+		}
+
+		device->tex_alloc("__cur_keys", dscene->cur_keys);
+		device->tex_alloc("__cur_segs", dscene->cur_segs);
+	}
 }
 
 void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
@@ -641,6 +746,10 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 	if(pack.tri_woop.size()) {
 		dscene->tri_woop.reference(&pack.tri_woop[0], pack.tri_woop.size());
 		device->tex_alloc("__tri_woop", dscene->tri_woop);
+	}
+	if(pack.prim_type.size()) {
+		dscene->prim_type.reference((uint*)&pack.prim_type[0], pack.prim_type.size());
+		device->tex_alloc("__prim_type", dscene->prim_type);
 	}
 	if(pack.prim_visibility.size()) {
 		dscene->prim_visibility.reference((uint*)&pack.prim_visibility[0], pack.prim_visibility.size());
@@ -751,6 +860,7 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	device->tex_free(dscene->bvh_nodes);
 	device->tex_free(dscene->object_node);
 	device->tex_free(dscene->tri_woop);
+	device->tex_free(dscene->prim_type);
 	device->tex_free(dscene->prim_visibility);
 	device->tex_free(dscene->prim_index);
 	device->tex_free(dscene->prim_object);
@@ -758,6 +868,8 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	device->tex_free(dscene->tri_vnormal);
 	device->tex_free(dscene->tri_vindex);
 	device->tex_free(dscene->tri_verts);
+	device->tex_free(dscene->cur_segs);
+	device->tex_free(dscene->cur_keys);
 	device->tex_free(dscene->attributes_map);
 	device->tex_free(dscene->attributes_float);
 	device->tex_free(dscene->attributes_float3);
@@ -765,6 +877,7 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	dscene->bvh_nodes.clear();
 	dscene->object_node.clear();
 	dscene->tri_woop.clear();
+	dscene->prim_type.clear();
 	dscene->prim_visibility.clear();
 	dscene->prim_index.clear();
 	dscene->prim_object.clear();
@@ -772,6 +885,8 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	dscene->tri_vnormal.clear();
 	dscene->tri_vindex.clear();
 	dscene->tri_verts.clear();
+	dscene->cur_segs.clear();
+	dscene->cur_keys.clear();
 	dscene->attributes_map.clear();
 	dscene->attributes_float.clear();
 	dscene->attributes_float3.clear();

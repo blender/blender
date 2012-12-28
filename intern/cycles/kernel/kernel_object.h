@@ -288,5 +288,55 @@ __device float3 particle_angular_velocity(KernelGlobals *kg, int particle)
 	return make_float3(f3.z, f3.w, f4.x);
 }
 
+#ifdef __HAIR__
+/* Hair Info Node fns */
+
+__device float hair_radius(KernelGlobals *kg, int prim, float u)
+{	
+	float r = 0.0f;
+
+	if (prim != -1) {
+		float4 v00 = kernel_tex_fetch(__cur_segs, prim);
+
+		int v1 = __float_as_int(v00.x);
+		int v2 = __float_as_int(v00.y);
+
+		float4 P1 = kernel_tex_fetch(__cur_keys, v1);
+		float4 P2 = kernel_tex_fetch(__cur_keys, v2);
+		r = (P2.w - P1.w) * u + P1.w;
+	}
+
+	return r;
+}
+
+__device float3 hair_tangent_normal(KernelGlobals *kg, ShaderData *sd)
+{	
+	float3 tgN = make_float3(0.0f,0.0f,0.0f);
+
+	if (sd->curve_seg != ~0) {
+		tgN = -(-sd->I - sd->dPdu * (dot(sd->dPdu,-sd->I) * kernel_data.curve_kernel_data.normalmix / len_squared(sd->dPdu)));
+		tgN = normalize(tgN);
+		/*if (kernel_data.curve_kernel_data.use_tangent_normal_correction) need to find suitable scaled gd for corrected normal
+		{
+			tgN = normalize(tgN - gd * sd->dPdu);
+		}*/
+	}
+
+	return tgN;
+}
+
+__device float intercept(KernelGlobals *kg, int prim, int triAddr, float u)
+{	
+	float t = 0.0f;
+
+	if (prim != -1) {
+		float4 sd2 = kernel_tex_fetch(__tri_woop, triAddr*3+2);
+		t = (sd2.y - sd2.x) * u + sd2.x;
+	}
+
+	return t;
+}
+#endif
+
 CCL_NAMESPACE_END
 

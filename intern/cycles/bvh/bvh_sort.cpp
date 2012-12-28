@@ -43,6 +43,8 @@ public:
 		else if(ra.prim_object() > rb.prim_object()) return false;
 		else if(ra.prim_index() < rb.prim_index()) return true;
 		else if(ra.prim_index() > rb.prim_index()) return false;
+		else if(ra.prim_type() < rb.prim_type()) return true;
+		else if(ra.prim_type() > rb.prim_type()) return false;
 
 		return false;
 	}

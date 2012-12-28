@@ -168,6 +168,7 @@ set(SRC
 	shader/nodes/node_shader_mix_shader.c
 	shader/nodes/node_shader_normal_map.c
 	shader/nodes/node_shader_object_info.c
+	shader/nodes/node_shader_hair_info.c
 	shader/nodes/node_shader_output_lamp.c
 	shader/nodes/node_shader_output_material.c
 	shader/nodes/node_shader_output_world.c

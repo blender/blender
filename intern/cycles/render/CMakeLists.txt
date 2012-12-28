@@ -31,6 +31,7 @@ set(SRC
 	object.cpp
 	osl.cpp
 	particles.cpp
+	curves.cpp
 	scene.cpp
 	session.cpp
 	shader.cpp
@@ -56,6 +57,7 @@ set(SRC_HEADERS
 	object.h
 	osl.h
 	particles.h
+	curves.h
 	scene.h
 	session.h
 	shader.h

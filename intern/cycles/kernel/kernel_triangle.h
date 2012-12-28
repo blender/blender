@@ -106,88 +106,107 @@ __device_inline void triangle_dPdudv(KernelGlobals *kg, float3 *dPdu, float3 *dP
 
 __device float triangle_attribute_float(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float *dx, float *dy)
 {
-	if(elem == ATTR_ELEMENT_FACE) {
-		if(dx) *dx = 0.0f;
-		if(dy) *dy = 0.0f;
-
-		return kernel_tex_fetch(__attributes_float, offset + sd->prim);
-	}
-	else if(elem == ATTR_ELEMENT_VERTEX) {
-		float3 tri_vindex = float4_to_float3(kernel_tex_fetch(__tri_vindex, sd->prim));
-
-		float f0 = kernel_tex_fetch(__attributes_float, offset + __float_as_int(tri_vindex.x));
-		float f1 = kernel_tex_fetch(__attributes_float, offset + __float_as_int(tri_vindex.y));
-		float f2 = kernel_tex_fetch(__attributes_float, offset + __float_as_int(tri_vindex.z));
-
-#ifdef __RAY_DIFFERENTIALS__
-		if(dx) *dx = sd->du.dx*f0 + sd->dv.dx*f1 - (sd->du.dx + sd->dv.dx)*f2;
-		if(dy) *dy = sd->du.dy*f0 + sd->dv.dy*f1 - (sd->du.dy + sd->dv.dy)*f2;
+#ifdef __HAIR__
+	if(sd->curve_seg == ~0) {
 #endif
+		if(elem == ATTR_ELEMENT_FACE) {
+			if(dx) *dx = 0.0f;
+			if(dy) *dy = 0.0f;
 
-		return sd->u*f0 + sd->v*f1 + (1.0f - sd->u - sd->v)*f2;
-	}
-	else if(elem == ATTR_ELEMENT_CORNER) {
-		int tri = offset + sd->prim*3;
-		float f0 = kernel_tex_fetch(__attributes_float, tri + 0);
-		float f1 = kernel_tex_fetch(__attributes_float, tri + 1);
-		float f2 = kernel_tex_fetch(__attributes_float, tri + 2);
+			return kernel_tex_fetch(__attributes_float, offset + sd->prim);
+		}
+		else if(elem == ATTR_ELEMENT_VERTEX) {
+			float3 tri_vindex = float4_to_float3(kernel_tex_fetch(__tri_vindex, sd->prim));
 
-#ifdef __RAY_DIFFERENTIALS__
-		if(dx) *dx = sd->du.dx*f0 + sd->dv.dx*f1 - (sd->du.dx + sd->dv.dx)*f2;
-		if(dy) *dy = sd->du.dy*f0 + sd->dv.dy*f1 - (sd->du.dy + sd->dv.dy)*f2;
-#endif
+			float f0 = kernel_tex_fetch(__attributes_float, offset + __float_as_int(tri_vindex.x));
+			float f1 = kernel_tex_fetch(__attributes_float, offset + __float_as_int(tri_vindex.y));
+			float f2 = kernel_tex_fetch(__attributes_float, offset + __float_as_int(tri_vindex.z));
 
-		return sd->u*f0 + sd->v*f1 + (1.0f - sd->u - sd->v)*f2;
+	#ifdef __RAY_DIFFERENTIALS__
+			if(dx) *dx = sd->du.dx*f0 + sd->dv.dx*f1 - (sd->du.dx + sd->dv.dx)*f2;
+			if(dy) *dy = sd->du.dy*f0 + sd->dv.dy*f1 - (sd->du.dy + sd->dv.dy)*f2;
+	#endif
+
+			return sd->u*f0 + sd->v*f1 + (1.0f - sd->u - sd->v)*f2;
+		}
+		else if(elem == ATTR_ELEMENT_CORNER) {
+			int tri = offset + sd->prim*3;
+			float f0 = kernel_tex_fetch(__attributes_float, tri + 0);
+			float f1 = kernel_tex_fetch(__attributes_float, tri + 1);
+			float f2 = kernel_tex_fetch(__attributes_float, tri + 2);
+
+	#ifdef __RAY_DIFFERENTIALS__
+			if(dx) *dx = sd->du.dx*f0 + sd->dv.dx*f1 - (sd->du.dx + sd->dv.dx)*f2;
+			if(dy) *dy = sd->du.dy*f0 + sd->dv.dy*f1 - (sd->du.dy + sd->dv.dy)*f2;
+	#endif
+
+			return sd->u*f0 + sd->v*f1 + (1.0f - sd->u - sd->v)*f2;
+		}
+		else {
+			if(dx) *dx = 0.0f;
+			if(dy) *dy = 0.0f;
+
+			return 0.0f;
+		}
+#ifdef __HAIR__
 	}
 	else {
-		if(dx) *dx = 0.0f;
-		if(dy) *dy = 0.0f;
-
 		return 0.0f;
 	}
+#endif
 }
 
 __device float3 triangle_attribute_float3(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float3 *dx, float3 *dy)
 {
-	if(elem == ATTR_ELEMENT_FACE) {
-		if(dx) *dx = make_float3(0.0f, 0.0f, 0.0f);
-		if(dy) *dy = make_float3(0.0f, 0.0f, 0.0f);
-
-		return float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + sd->prim));
-	}
-	else if(elem == ATTR_ELEMENT_VERTEX) {
-		float3 tri_vindex = float4_to_float3(kernel_tex_fetch(__tri_vindex, sd->prim));
-
-		float3 f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.x)));
-		float3 f1 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.y)));
-		float3 f2 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.z)));
-
-#ifdef __RAY_DIFFERENTIALS__
-		if(dx) *dx = sd->du.dx*f0 + sd->dv.dx*f1 - (sd->du.dx + sd->dv.dx)*f2;
-		if(dy) *dy = sd->du.dy*f0 + sd->dv.dy*f1 - (sd->du.dy + sd->dv.dy)*f2;
+#ifdef __HAIR__
+	if(sd->curve_seg == ~0) {
 #endif
+		if(elem == ATTR_ELEMENT_FACE) {
+			if(dx) *dx = make_float3(0.0f, 0.0f, 0.0f);
+			if(dy) *dy = make_float3(0.0f, 0.0f, 0.0f);
 
-		return sd->u*f0 + sd->v*f1 + (1.0f - sd->u - sd->v)*f2;
+			return float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + sd->prim));
+		}
+		else if(elem == ATTR_ELEMENT_VERTEX) {
+			float3 tri_vindex = float4_to_float3(kernel_tex_fetch(__tri_vindex, sd->prim));
+
+			float3 f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.x)));
+			float3 f1 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.y)));
+			float3 f2 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.z)));
+
+	#ifdef __RAY_DIFFERENTIALS__
+			if(dx) *dx = sd->du.dx*f0 + sd->dv.dx*f1 - (sd->du.dx + sd->dv.dx)*f2;
+			if(dy) *dy = sd->du.dy*f0 + sd->dv.dy*f1 - (sd->du.dy + sd->dv.dy)*f2;
+	#endif
+
+			return sd->u*f0 + sd->v*f1 + (1.0f - sd->u - sd->v)*f2;
+		}
+		else if(elem == ATTR_ELEMENT_CORNER) {
+			int tri = offset + sd->prim*3;
+			float3 f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 0));
+			float3 f1 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 1));
+			float3 f2 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 2));
+
+	#ifdef __RAY_DIFFERENTIALS__
+			if(dx) *dx = sd->du.dx*f0 + sd->dv.dx*f1 - (sd->du.dx + sd->dv.dx)*f2;
+			if(dy) *dy = sd->du.dy*f0 + sd->dv.dy*f1 - (sd->du.dy + sd->dv.dy)*f2;
+	#endif
+
+			return sd->u*f0 + sd->v*f1 + (1.0f - sd->u - sd->v)*f2;
+		}
+		else {
+			if(dx) *dx = make_float3(0.0f, 0.0f, 0.0f);
+			if(dy) *dy = make_float3(0.0f, 0.0f, 0.0f);
+
+			return make_float3(0.0f, 0.0f, 0.0f);
+		}
+#ifdef __HAIR__
 	}
-	else if(elem == ATTR_ELEMENT_CORNER) {
-		int tri = offset + sd->prim*3;
-		float3 f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 0));
-		float3 f1 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 1));
-		float3 f2 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 2));
-
-#ifdef __RAY_DIFFERENTIALS__
-		if(dx) *dx = sd->du.dx*f0 + sd->dv.dx*f1 - (sd->du.dx + sd->dv.dx)*f2;
-		if(dy) *dy = sd->du.dy*f0 + sd->dv.dy*f1 - (sd->du.dy + sd->dv.dy)*f2;
-#endif
-
-		return sd->u*f0 + sd->v*f1 + (1.0f - sd->u - sd->v)*f2;
-	}
-	else {
-		if(dx) *dx = make_float3(0.0f, 0.0f, 0.0f);
-		if(dy) *dy = make_float3(0.0f, 0.0f, 0.0f);
-
+	else
+	{
 		return make_float3(0.0f, 0.0f, 0.0f);
 	}
+#endif
 }
 
 /* motion */
@@ -200,10 +219,16 @@ __device float4 triangle_motion_vector(KernelGlobals *kg, ShaderData *sd)
 	int offset_pre = find_attribute(kg, sd, ATTR_STD_MOTION_PRE);
 	int offset_post = find_attribute(kg, sd, ATTR_STD_MOTION_POST);
 
-	if(offset_pre != ATTR_STD_NOT_FOUND)
-		motion_pre = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, offset_pre, NULL, NULL);
-	if(offset_post != ATTR_STD_NOT_FOUND)
-		motion_post = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, offset_post, NULL, NULL);
+#ifdef __HAIR__
+	if(sd->curve_seg == ~0) {
+#endif
+		if(offset_pre != ATTR_STD_NOT_FOUND)
+			motion_pre = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, offset_pre, NULL, NULL);
+		if(offset_post != ATTR_STD_NOT_FOUND)
+			motion_post = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, offset_post, NULL, NULL);
+#ifdef __HAIR__
+	}
+#endif
 
 	/* object motion. note that depending on the mesh having motion vectors, this
 	 * transformation was set match the world/object space of motion_pre/post */
@@ -259,8 +284,13 @@ __device float3 triangle_uv(KernelGlobals *kg, ShaderData *sd)
 {
 	int offset_uv = find_attribute(kg, sd, ATTR_STD_UV);
 
+#ifdef __HAIR__
+	if(offset_uv == ATTR_STD_NOT_FOUND || sd->curve_seg != ~0)
+		return make_float3(0.0f, 0.0f, 0.0f);
+#else
 	if(offset_uv == ATTR_STD_NOT_FOUND)
 		return make_float3(0.0f, 0.0f, 0.0f);
+#endif
 
 	float3 uv = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_CORNER, offset_uv, NULL, NULL);
 	uv.z = 1.0f;

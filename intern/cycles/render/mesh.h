@@ -50,6 +50,28 @@ public:
 		int v[3];
 	};
 
+	/* Mesh Strand Data*/
+	struct CurveSeg {
+		int v[2];
+		uint curveshader;
+		int curve;
+	};
+
+	struct Curve_Attribute {
+		float uv[2];
+	};
+
+	struct CurveKey {
+		float3 loc;
+		float radius;
+		float time;
+	};
+
+	/*curve data for hair - currently only contains key tangent instead*/
+	struct CurveData {
+		float3 tg;
+	};
+
 	/* Displacement */
 	enum DisplacementMethod {
 		DISPLACE_BUMP,
@@ -64,6 +86,11 @@ public:
 	vector<Triangle> triangles;
 	vector<uint> shader;
 	vector<bool> smooth;
+
+	vector<CurveKey> curve_keys;
+	vector<CurveData> curve_keysCD;
+	vector<CurveSeg> curve_segs;
+	vector<Curve_Attribute> curve_attrib;
 
 	vector<uint> used_shaders;
 	AttributeSet attributes;
@@ -82,6 +109,9 @@ public:
 	size_t tri_offset;
 	size_t vert_offset;
 
+	size_t curveseg_offset;
+	size_t curvekey_offset;
+
 	/* Functions */
 	Mesh();
 	~Mesh();
@@ -89,6 +119,9 @@ public:
 	void reserve(int numverts, int numfaces);
 	void clear();
 	void add_triangle(int v0, int v1, int v2, int shader, bool smooth);
+	void add_curvekey(float3 loc, float radius, float time);
+	void add_curve(int v0, int v1, int shader, int curveid);
+	void add_curveattrib(float u, float v);
 
 	void compute_bounds();
 	void add_face_normals();
@@ -96,6 +129,7 @@ public:
 
 	void pack_normals(Scene *scene, float4 *normal, float4 *vnormal);
 	void pack_verts(float4 *tri_verts, float4 *tri_vindex, size_t vert_offset);
+	void pack_curves(Scene *scene, float4 *curve_key_co, float4 *curve_seg_keys, size_t curvekey_offset);
 	void compute_bvh(SceneParams *params, Progress *progress, int n, int total);
 
 	bool need_attribute(Scene *scene, AttributeStandard std);

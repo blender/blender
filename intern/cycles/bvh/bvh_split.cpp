@@ -252,14 +252,41 @@ void BVHSpatialSplit::split_reference(BVHBuild *builder, BVHReference& left, BVH
 	/* loop over vertices/edges. */
 	Object *ob = builder->objects[ref.prim_object()];
 	const Mesh *mesh = ob->mesh;
-	const int *inds = mesh->triangles[ref.prim_index()].v;
-	const float3 *verts = &mesh->verts[0];
-	const float3* v1 = &verts[inds[2]];
 
-	for(int i = 0; i < 3; i++) {
-		const float3* v0 = v1;
-		int vindex = inds[i];
-		v1 = &verts[vindex];
+	if (!ref.prim_type()) {
+		const int *inds = mesh->triangles[ref.prim_index()].v;
+		const float3 *verts = &mesh->verts[0];
+		const float3* v1 = &verts[inds[2]];
+
+		for(int i = 0; i < 3; i++) {
+			const float3* v0 = v1;
+			int vindex = inds[i];
+			v1 = &verts[vindex];
+			float v0p = (*v0)[dim];
+			float v1p = (*v1)[dim];
+
+			/* insert vertex to the boxes it belongs to. */
+			if(v0p <= pos)
+				left_bounds.grow(*v0);
+
+			if(v0p >= pos)
+				right_bounds.grow(*v0);
+
+			/* edge intersects the plane => insert intersection to both boxes. */
+			if((v0p < pos && v1p > pos) || (v0p > pos && v1p < pos)) {
+				float3 t = lerp(*v0, *v1, clamp((pos - v0p) / (v1p - v0p), 0.0f, 1.0f));
+				left_bounds.grow(t);
+				right_bounds.grow(t);
+			}
+		}
+	}
+	else {
+		/* Strand split: NOTE - Currently ignores strand width and needs to be fixed.*/
+
+		const int *inds = mesh->curve_segs[ref.prim_index()].v;
+		const float3* v0 = &mesh->curve_keys[inds[0]].loc;
+		const float3* v1 = &mesh->curve_keys[inds[1]].loc;
+
 		float v0p = (*v0)[dim];
 		float v1p = (*v1)[dim];
 
@@ -269,6 +296,12 @@ void BVHSpatialSplit::split_reference(BVHBuild *builder, BVHReference& left, BVH
 
 		if(v0p >= pos)
 			right_bounds.grow(*v0);
+
+		if(v1p <= pos)
+			left_bounds.grow(*v1);
+
+		if(v1p >= pos)
+			right_bounds.grow(*v1);
 
 		/* edge intersects the plane => insert intersection to both boxes. */
 		if((v0p < pos && v1p > pos) || (v0p > pos && v1p < pos)) {
@@ -284,9 +317,9 @@ void BVHSpatialSplit::split_reference(BVHBuild *builder, BVHReference& left, BVH
 	left_bounds.intersect(ref.bounds());
 	right_bounds.intersect(ref.bounds());
 
-	/* set referecnes */
-	left = BVHReference(left_bounds, ref.prim_index(), ref.prim_object());
-	right = BVHReference(right_bounds, ref.prim_index(), ref.prim_object());
+	/* set references */
+	left = BVHReference(left_bounds, ref.prim_index(), ref.prim_object(), ref.prim_type());
+	right = BVHReference(right_bounds, ref.prim_index(), ref.prim_object(), ref.prim_type());
 }
 
 CCL_NAMESPACE_END

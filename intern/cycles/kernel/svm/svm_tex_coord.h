@@ -242,7 +242,11 @@ __device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *stac
 
 	if(space == NODE_NORMAL_MAP_TANGENT) {
 		/* tangent space */
-		if(sd->object == ~0) {
+#ifdef __HAIR__
+			if(sd->object == ~0 || sd->curve_seg != ~0) {
+#else
+			if(sd->object == ~0) {
+#endif
 			stack_store_float3(stack, normal_offset, make_float3(0.0f, 0.0f, 0.0f));
 			return;
 		}
@@ -297,7 +301,11 @@ __device void svm_node_tangent(KernelGlobals *kg, ShaderData *sd, float *stack, 
 		/* UV map */
 		int attr_offset = find_attribute(kg, sd, node.z);
 
+#ifdef __HAIR__
+		if(attr_offset == ATTR_STD_NOT_FOUND || sd->curve_seg != ~0)
+#else
 		if(attr_offset == ATTR_STD_NOT_FOUND)
+#endif
 			tangent = make_float3(0.0f, 0.0f, 0.0f);
 		else
 			tangent = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_CORNER, attr_offset, NULL, NULL);
@@ -307,7 +315,11 @@ __device void svm_node_tangent(KernelGlobals *kg, ShaderData *sd, float *stack, 
 		int attr_offset = find_attribute(kg, sd, node.z);
 		float3 generated;
 
+#ifdef __HAIR__
+		if(attr_offset == ATTR_STD_NOT_FOUND || sd->curve_seg != ~0)
+#else
 		if(attr_offset == ATTR_STD_NOT_FOUND)
+#endif
 			generated = sd->P;
 		else
 			generated = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, attr_offset, NULL, NULL);

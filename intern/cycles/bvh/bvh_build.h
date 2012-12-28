@@ -44,6 +44,7 @@ public:
 	/* Constructor/Destructor */
 	BVHBuild(
 		const vector<Object*>& objects,
+		vector<int>& prim_type,
 		vector<int>& prim_index,
 		vector<int>& prim_object,
 		const BVHParams& params,
@@ -87,6 +88,7 @@ protected:
 	int num_original_references;
 
 	/* output primitive indexes and objects */
+	vector<int>& prim_type;
 	vector<int>& prim_index;
 	vector<int>& prim_object;
 

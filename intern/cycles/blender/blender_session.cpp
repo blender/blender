@@ -96,7 +96,7 @@ void BlenderSession::create_session()
 	session->set_pause(BlenderSync::get_session_pause(b_scene, background));
 
 	/* create sync */
-	sync = new BlenderSync(b_engine, b_data, b_scene, scene, !background, session->progress);
+	sync = new BlenderSync(b_engine, b_data, b_scene, scene, !background, session->progress, session_params.device.type == DEVICE_CPU);
 	sync->sync_data(b_v3d, b_engine.camera_override());
 
 	if(b_rv3d)
@@ -143,7 +143,7 @@ void BlenderSession::reset_session(BL::BlendData b_data_, BL::Scene b_scene_)
 	session->stats.mem_peak = session->stats.mem_used;
 
 	/* sync object should be re-created */
-	sync = new BlenderSync(b_engine, b_data, b_scene, scene, !background, session->progress);
+	sync = new BlenderSync(b_engine, b_data, b_scene, scene, !background, session->progress, session_params.device.type == DEVICE_CPU);
 	sync->sync_data(b_v3d, b_engine.camera_override());
 	sync->sync_camera(b_engine.camera_override(), width, height);
 

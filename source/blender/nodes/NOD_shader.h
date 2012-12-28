@@ -78,6 +78,7 @@ void register_node_type_sh_fresnel(struct bNodeTreeType *ttype);
 void register_node_type_sh_layer_weight(struct bNodeTreeType *ttype);
 void register_node_type_sh_tex_coord(struct bNodeTreeType *ttype);
 void register_node_type_sh_particle_info(struct bNodeTreeType *ttype);
+void register_node_type_sh_hair_info(struct bNodeTreeType *ttype);
 void register_node_type_sh_script(struct bNodeTreeType *ttype);
 void register_node_type_sh_normal_map(struct bNodeTreeType *ttype);
 void register_node_type_sh_tangent(struct bNodeTreeType *ttype);

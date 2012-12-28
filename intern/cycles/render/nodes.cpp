@@ -2240,6 +2240,52 @@ void ParticleInfoNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_particle_info");
 }
 
+/* Hair Info */
+
+HairInfoNode::HairInfoNode()
+: ShaderNode("hair_info")
+{
+	add_output("Is Strand", SHADER_SOCKET_FLOAT);
+	add_output("Intercept", SHADER_SOCKET_FLOAT);
+	add_output("Thickness", SHADER_SOCKET_FLOAT);
+	add_output("Tangent Normal", SHADER_SOCKET_NORMAL);
+}
+
+void HairInfoNode::compile(SVMCompiler& compiler)
+{
+	ShaderOutput *out;
+	
+	out = output("Is Strand");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_HAIR_INFO, NODE_INFO_CURVE_IS_STRAND, out->stack_offset);
+	}
+
+	out = output("Intercept");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_HAIR_INFO, NODE_INFO_CURVE_INTERCEPT, out->stack_offset);
+	}
+
+	out = output("Thickness");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_HAIR_INFO, NODE_INFO_CURVE_THICKNESS, out->stack_offset);
+	}
+
+	out = output("Tangent Normal");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_HAIR_INFO, NODE_INFO_CURVE_TANGENT_NORMAL, out->stack_offset);
+	}
+
+}
+
+void HairInfoNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "NODE_HAIR_INFO");
+}
+
 /* Value */
 
 ValueNode::ValueNode()

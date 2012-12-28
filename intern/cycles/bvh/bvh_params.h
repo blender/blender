@@ -98,19 +98,22 @@ class BVHReference
 public:
 	__forceinline BVHReference() {}
 
-	__forceinline BVHReference(const BoundBox& bounds_, int prim_index_, int prim_object_)
+	__forceinline BVHReference(const BoundBox& bounds_, int prim_index_, int prim_object_, int prim_type)
 	: rbounds(bounds_)
 	{
 		rbounds.min.w = __int_as_float(prim_index_);
 		rbounds.max.w = __int_as_float(prim_object_);
+		type = prim_type;
 	}
 
 	__forceinline const BoundBox& bounds() const { return rbounds; }
 	__forceinline int prim_index() const { return __float_as_int(rbounds.min.w); }
 	__forceinline int prim_object() const { return __float_as_int(rbounds.max.w); }
+	__forceinline int prim_type() const { return type; }
 
 protected:
 	BoundBox rbounds;
+	uint type;
 };
 
 /* BVH Range

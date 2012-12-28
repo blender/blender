@@ -376,7 +376,7 @@ static void create_subd_mesh(Mesh *mesh, BL::Mesh b_mesh, PointerRNA *cmesh, con
 
 /* Sync */
 
-Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
+Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tris)
 {
 	/* test if we can instance or if the object is modified */
 	BL::ID b_ob_data = b_ob.data();
@@ -435,16 +435,24 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 	PointerRNA cmesh = RNA_pointer_get(&b_ob_data.ptr, "cycles");
 
 	vector<Mesh::Triangle> oldtriangle = mesh->triangles;
+	
+	/* compares curve_keys rather than strands in order to handle quick hair adjustsments in dynamic BVH - other methods could probably do this better*/
+	vector<Mesh::CurveKey> oldcurve_keys = mesh->curve_keys;
 
 	mesh->clear();
 	mesh->used_shaders = used_shaders;
 	mesh->name = ustring(b_ob_data.name().c_str());
 
 	if(b_mesh) {
-		if(cmesh.data && experimental && RNA_boolean_get(&cmesh, "use_subdivision"))
-			create_subd_mesh(mesh, b_mesh, &cmesh, used_shaders);
-		else
-			create_mesh(scene, mesh, b_mesh, used_shaders);
+		if(!(hide_tris && experimental && is_cpu)) {
+			if(cmesh.data && experimental && RNA_boolean_get(&cmesh, "use_subdivision"))
+				create_subd_mesh(mesh, b_mesh, &cmesh, used_shaders);
+			else
+				create_mesh(scene, mesh, b_mesh, used_shaders);
+		}
+
+		if(experimental && is_cpu)
+			sync_curves(mesh, b_mesh, b_ob, object_updated);
 
 		/* free derived mesh */
 		b_data.meshes.remove(b_mesh);
@@ -469,6 +477,13 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 		rebuild = true;
 	else if(oldtriangle.size()) {
 		if(memcmp(&oldtriangle[0], &mesh->triangles[0], sizeof(Mesh::Triangle)*oldtriangle.size()) != 0)
+			rebuild = true;
+	}
+
+	if(oldcurve_keys.size() != mesh->curve_keys.size())
+		rebuild = true;
+	else if(oldcurve_keys.size()) {
+		if(memcmp(&oldcurve_keys[0], &mesh->curve_keys[0], sizeof(Mesh::CurveKey)*oldcurve_keys.size()) != 0)
 			rebuild = true;
 	}
 	

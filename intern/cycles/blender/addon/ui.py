@@ -944,7 +944,95 @@ class CyclesParticle_PT_textures(CyclesButtonsPanel, Panel):
         else:
             slot = part.texture_slots[part.active_texture_index]
             layout.template_ID(slot, "texture", new="texture.new")
+            
+class CyclesParticle_PT_CurveSettings(CyclesButtonsPanel, Panel):
+    bl_label = "Cycles Hair Settings"
+    bl_context = "particle"
+    
+    @classmethod
+    def poll(cls, context):
+        psys = context.particle_system
+        device_type = context.user_preferences.system.compute_device_type
+        if context.scene.cycles.feature_set == 'EXPERIMENTAL' and (context.scene.cycles.device == 'CPU' or device_type == 'NONE'):
+            if CyclesButtonsPanel.poll(context) and psys:
+                return True
 
+        return False
+
+    def draw(self, context):
+        layout = self.layout
+        
+        psys = context.particle_settings
+        
+        cpsys = psys.cycles
+        
+        row = layout.row()
+        row.prop(cpsys, "shape", text="Shape")
+        row.prop(cpsys, "use_closetip", text="Close tip")
+        row = layout.row()
+        row.prop(cpsys, "root_width", text="Root Width multiplier")
+        row = layout.row()
+        row.prop(cpsys, "tip_width", text="Tip Width multiplier")
+
+class CyclesRender_PT_CurveRendering(CyclesButtonsPanel, Panel):
+    bl_label = "Cycles Hair Rendering"
+    bl_context = "particle"
+    
+    @classmethod
+    def poll(cls, context):
+        device_type = context.user_preferences.system.compute_device_type
+        if CyclesButtonsPanel.poll(context):
+            if context.scene.cycles.feature_set == 'EXPERIMENTAL' and (context.scene.cycles.device == 'CPU' or device_type == 'NONE'):
+                return True
+
+        return False
+    
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        csscene = scene.cycles_curves
+        
+        row = layout.row()
+        row.prop(csscene, "use_curves", text="Enable Cycles Hair")
+        row = layout.row()
+        row.prop(csscene, "preset", text="Mode")
+        
+        if csscene.preset == 'CUSTOM':
+            row = layout.row()
+            row.prop(csscene, "primitive", text="Primitive")
+            row = layout.row()
+        
+            if csscene.primitive == 'TRIANGLES':
+                row.prop(csscene, "triangle_method", text="Method")
+                if csscene.triangle_method == 'TESSELATED':
+                    row = layout.row()
+                    row.prop(csscene, "resolution", text="Resolution")
+                row = layout.row()
+                row.prop(csscene, "use_smooth", text="Smooth")
+            elif csscene.primitive == 'LINE_SEGMENTS':
+                row.prop(csscene, "use_backfacing", text="Check back-faces")
+                row = layout.row()
+                row.prop(csscene, "use_encasing", text="Exclude encasing")
+                if csscene.use_encasing:
+                    row.prop(csscene, "encasing_ratio", text="Ratio for encasing")
+                row = layout.row()
+                row.prop(csscene, "line_method", text="Method")
+                row = layout.row()
+                row.prop(csscene, "use_tangent_normal", text="Use tangent normal as default")
+                row = layout.row()
+                row.prop(csscene, "use_tangent_normal_geometry", text="Use tangent normal geometry")
+                row = layout.row()
+                row.prop(csscene, "use_tangent_normal_correction", text="Correct tangent normal for slope")
+                row = layout.row()
+                row.prop(csscene, "interpolation", text="Interpolation")
+                row = layout.row()
+                row.prop(csscene, "segments", text="Segments")
+                row = layout.row()
+                row.prop(csscene, "normalmix", text="Ray Mix")
+            row = layout.row()
+            row.prop(csscene, "use_cache", text="Export cache with children")
+            if csscene.use_cache:
+                row.prop(csscene, "use_parents", text="Include parents")  
 
 class CyclesScene_PT_simplify(CyclesButtonsPanel, Panel):
     bl_label = "Simplify"

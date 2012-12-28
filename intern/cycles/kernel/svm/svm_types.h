@@ -97,7 +97,8 @@ typedef enum NodeType {
 	NODE_CLOSURE_SET_NORMAL,
 	NODE_CLOSURE_AMBIENT_OCCLUSION,
 	NODE_TANGENT,
-	NODE_NORMAL_MAP
+	NODE_NORMAL_MAP,
+	NODE_HAIR_INFO
 } NodeType;
 
 typedef enum NodeAttributeType {
@@ -131,6 +132,13 @@ typedef enum NodeParticleInfo {
 	NODE_INFO_PAR_VELOCITY,
 	NODE_INFO_PAR_ANGULAR_VELOCITY
 } NodeParticleInfo;
+
+typedef enum NodeHairInfo {
+	NODE_INFO_CURVE_IS_STRAND,
+	NODE_INFO_CURVE_INTERCEPT,
+	NODE_INFO_CURVE_THICKNESS,
+	NODE_INFO_CURVE_TANGENT_NORMAL
+} NodeHairInfo;
 
 typedef enum NodeLightPath {
 	NODE_LP_camera = 0,

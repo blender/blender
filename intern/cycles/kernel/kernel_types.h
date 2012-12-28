@@ -47,6 +47,7 @@ CCL_NAMESPACE_BEGIN
 #define __OSL__
 #endif
 #define __NON_PROGRESSIVE__
+#define __HAIR__
 #endif
 
 #ifdef __KERNEL_CUDA__
@@ -116,7 +117,6 @@ CCL_NAMESPACE_BEGIN
 #define __ANISOTROPIC__
 #define __OBJECT_MOTION__
 #endif
-
 //#define __SOBOL_FULL_SCREEN__
 
 /* Shader Evaluation */
@@ -292,7 +292,8 @@ typedef enum LightType {
 	LIGHT_BACKGROUND,
 	LIGHT_AREA,
 	LIGHT_AO,
-	LIGHT_SPOT
+	LIGHT_SPOT,
+	LIGHT_STRAND
 } LightType;
 
 /* Camera Type */
@@ -436,6 +437,11 @@ typedef struct ShaderData {
 
 	/* primitive id if there is one, ~0 otherwise */
 	int prim;
+
+#ifdef __HAIR__
+	/* strand id if there is one, -1 otherwise */
+	int curve_seg;
+#endif
 	/* parametric coordinates
 	 * - barycentric weights for triangles */
 	float u, v;
@@ -650,6 +656,29 @@ typedef struct KernelBVH {
 	int pad2;
 } KernelBVH;
 
+typedef enum CurveFlag {
+	/* runtime flags */
+	CURVE_KN_BACKFACING = 1,				/* backside of cylinder? */
+	CURVE_KN_ENCLOSEFILTER = 2,				/* don't consider strands surrounding start point? */
+	CURVE_KN_CURVEDATA = 4,				/* curve data available? */
+	CURVE_KN_INTERPOLATE = 8,				/* render as a curve? - not supported yet */
+	CURVE_KN_ACCURATE = 16,				/* use accurate intersections test? */
+	CURVE_KN_INTERSECTCORRECTION = 32,		/* correct for width after determing closest midpoint? */
+	CURVE_KN_POSTINTERSECTCORRECTION = 64,	/* correct for width after intersect? */
+	CURVE_KN_NORMALCORRECTION = 128,		/* correct tangent normal for slope? */
+	CURVE_KN_TRUETANGENTGNORMAL = 256,		/* use tangent normal for geometry? */
+	CURVE_KN_TANGENTGNORMAL = 512,			/* use tangent normal for shader? */
+} CurveFlag;
+
+typedef struct KernelCurves {
+	/* strand intersect and normal parameters - many can be changed to flags*/
+	float normalmix;
+	float encasing_ratio;
+	int curveflags;
+	int pad;
+
+} KernelCurves;
+
 typedef struct KernelData {
 	KernelCamera cam;
 	KernelFilm film;
@@ -657,6 +686,7 @@ typedef struct KernelData {
 	KernelSunSky sunsky;
 	KernelIntegrator integrator;
 	KernelBVH bvh;
+	KernelCurves curve_kernel_data;
 } KernelData;
 
 CCL_NAMESPACE_END

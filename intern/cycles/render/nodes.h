@@ -331,6 +331,11 @@ public:
 	void attributes(AttributeRequestSet *attributes);
 };
 
+class HairInfoNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(HairInfoNode)
+};
+
 class ValueNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(ValueNode)
