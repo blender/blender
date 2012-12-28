@@ -430,42 +430,6 @@ void BKE_mesh_free(Mesh *me, int unlink)
 	if (me->edit_btmesh) MEM_freeN(me->edit_btmesh);
 }
 
-void copy_dverts(MDeformVert *dst, const MDeformVert *src, int copycount)
-{
-	/* Assumes dst is already set up */
-	int i;
-
-	if (!src || !dst)
-		return;
-
-	memcpy(dst, src, copycount * sizeof(MDeformVert));
-	
-	for (i = 0; i < copycount; i++) {
-		if (src[i].dw) {
-			dst[i].dw = MEM_mallocN(sizeof(MDeformWeight) * src[i].totweight, "copy_deformWeight");
-			memcpy(dst[i].dw, src[i].dw, sizeof(MDeformWeight) * src[i].totweight);
-		}
-	}
-
-}
-
-void free_dverts(MDeformVert *dvert, int totvert)
-{
-	/* Instead of freeing the verts directly,
-	 * call this function to delete any special
-	 * vert data */
-	int i;
-
-	if (!dvert)
-		return;
-
-	/* Free any special data from the verts */
-	for (i = 0; i < totvert; i++) {
-		if (dvert[i].dw) MEM_freeN(dvert[i].dw);
-	}
-	MEM_freeN(dvert);
-}
-
 static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)
 {
 	if (free_customdata) {

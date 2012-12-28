@@ -405,7 +405,7 @@ static void free_vpaint_prev(VPaint *vp)
 static void free_wpaint_prev(VPaint *vp)
 {
 	if (vp->wpaint_prev) {
-		free_dverts(vp->wpaint_prev, vp->tot);
+		BKE_defvert_array_free(vp->wpaint_prev, vp->tot);
 		vp->wpaint_prev = NULL;
 		vp->tot = 0;
 	}
@@ -432,7 +432,7 @@ static void copy_wpaint_prev(VPaint *wp, MDeformVert *dverts, int dcount)
 		
 		wp->wpaint_prev = MEM_mallocN(sizeof(MDeformVert) * dcount, "wpaint prev");
 		wp->tot = dcount;
-		copy_dverts(wp->wpaint_prev, dverts, dcount);
+		BKE_defvert_array_copy(wp->wpaint_prev, dverts, dcount);
 	}
 }
 
@@ -3142,7 +3142,7 @@ static int paint_weight_gradient_modal(bContext *C, wmOperator *op, wmEvent *eve
 		VPaint *wp = ts->wpaint;
 		Object *ob = CTX_data_active_object(C);
 		Mesh *me = ob->data;
-		copy_dverts(me->dvert, wp->wpaint_prev, me->totvert);
+		BKE_defvert_array_copy(me->dvert, wp->wpaint_prev, me->totvert);
 		free_wpaint_prev(wp);
 
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);

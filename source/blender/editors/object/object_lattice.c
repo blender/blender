@@ -52,7 +52,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
-#include "BKE_mesh.h"
+#include "BKE_deform.h"
 
 #include "ED_lattice.h"
 #include "ED_object.h"
@@ -77,7 +77,7 @@ void free_editLatt(Object *ob)
 		if (editlt->def)
 			MEM_freeN(editlt->def);
 		if (editlt->dvert)
-			free_dverts(editlt->dvert, editlt->pntsu * editlt->pntsv * editlt->pntsw);
+			BKE_defvert_array_free(editlt->dvert, editlt->pntsu * editlt->pntsv * editlt->pntsw);
 
 		MEM_freeN(editlt);
 		MEM_freeN(lt->editlatt);
@@ -104,7 +104,7 @@ void make_editLatt(Object *obedit)
 	if (lt->dvert) {
 		int tot = lt->pntsu * lt->pntsv * lt->pntsw;
 		lt->editlatt->latt->dvert = MEM_mallocN(sizeof(MDeformVert) * tot, "Lattice MDeformVert");
-		copy_dverts(lt->editlatt->latt->dvert, lt->dvert, tot);
+		BKE_defvert_array_copy(lt->editlatt->latt->dvert, lt->dvert, tot);
 	}
 
 	if (lt->key) lt->editlatt->shapenr = obedit->shapenr;
@@ -156,7 +156,7 @@ void load_editLatt(Object *obedit)
 	}
 
 	if (lt->dvert) {
-		free_dverts(lt->dvert, lt->pntsu * lt->pntsv * lt->pntsw);
+		BKE_defvert_array_free(lt->dvert, lt->pntsu * lt->pntsv * lt->pntsw);
 		lt->dvert = NULL;
 	}
 
@@ -164,7 +164,7 @@ void load_editLatt(Object *obedit)
 		tot = lt->pntsu * lt->pntsv * lt->pntsw;
 
 		lt->dvert = MEM_mallocN(sizeof(MDeformVert) * tot, "Lattice MDeformVert");
-		copy_dverts(lt->dvert, editlt->dvert, tot);
+		BKE_defvert_array_copy(lt->dvert, editlt->dvert, tot);
 	}
 }
 

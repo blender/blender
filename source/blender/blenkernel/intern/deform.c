@@ -786,3 +786,43 @@ int defvert_find_shared(const MDeformVert *dvert_a, const MDeformVert *dvert_b)
 
 	return -1;
 }
+
+/* -------------------------------------------------------------------- */
+/* Defvert Array functions */
+
+void BKE_defvert_array_copy(MDeformVert *dst, const MDeformVert *src, int copycount)
+{
+	/* Assumes dst is already set up */
+	int i;
+
+	if (!src || !dst)
+		return;
+
+	memcpy(dst, src, copycount * sizeof(MDeformVert));
+
+	for (i = 0; i < copycount; i++) {
+		if (src[i].dw) {
+			dst[i].dw = MEM_mallocN(sizeof(MDeformWeight) * src[i].totweight, "copy_deformWeight");
+			memcpy(dst[i].dw, src[i].dw, sizeof(MDeformWeight) * src[i].totweight);
+		}
+	}
+
+}
+
+void BKE_defvert_array_free(MDeformVert *dvert, int totvert)
+{
+	/* Instead of freeing the verts directly,
+	 * call this function to delete any special
+	 * vert data */
+	int i;
+
+	if (!dvert)
+		return;
+
+	/* Free any special data from the verts */
+	for (i = 0; i < totvert; i++) {
+		if (dvert[i].dw) MEM_freeN(dvert[i].dw);
+	}
+	MEM_freeN(dvert);
+}
+
