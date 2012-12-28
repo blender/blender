@@ -77,6 +77,7 @@ fi || :
 %{_bindir}/%{name}
 %{_datadir}/%{name}/%{blender_api}/datafiles/fonts
 %{_datadir}/%{name}/%{blender_api}/datafiles/colormanagement
+%{_datadir}/%{name}/%{blender_api}/datafiles/locale/languages
 %{_datadir}/%{name}/%{blender_api}/scripts
 %{_datadir}/icons/hicolor/*/apps/%{name}.*
 %{_datadir}/applications/%{name}.desktop
