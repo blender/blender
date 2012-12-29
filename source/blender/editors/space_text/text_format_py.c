@@ -53,7 +53,7 @@
  * http://docs.python.org/py3k/reference/lexical_analysis.html#keywords
  */
 
-static int txtfmt_py_find_builtinfunc(char *string)
+static int txtfmt_py_find_builtinfunc(const char *string)
 {
 	int a, i;
 	/* list is from...
@@ -98,22 +98,20 @@ static int txtfmt_py_find_builtinfunc(char *string)
  * If a special name is found, the length of the matching name is returned.
  * Otherwise, -1 is returned. */
 
-static int txtfmt_py_find_specialvar(char *string)
+static int txtfmt_py_find_specialvar(const char *string)
 {
-	int i = 0;
-	/* Check for "def" */
-	if (string[0] == 'd' && string[1] == 'e' && string[2] == 'f')
-		i = 3;
-	/* Check for "class" */
-	else if (string[0] == 'c' && string[1] == 'l' && string[2] == 'a' && string[3] == 's' && string[4] == 's')
-		i = 5;
+	int i;
+	if      (strncmp(string, "def",   3) == 0) i = 3;
+	else if (strncmp(string, "class", 5) == 0) i = 5;
+	else                                       i = 0;
+
 	/* If next source char is an identifier (eg. 'i' in "definate") no match */
 	if (i == 0 || text_check_identifier(string[i]))
 		return -1;
 	return i;
 }
 
-static int txtfmt_py_find_decorator(char *string)
+static int txtfmt_py_find_decorator(const char *string)
 {
 	if (string[0] == '@') {
 		int i = 1;
@@ -125,28 +123,26 @@ static int txtfmt_py_find_decorator(char *string)
 	return -1;
 }
 
-static int txtfmt_py_find_bool(char *string)
+static int txtfmt_py_find_bool(const char *string)
 {
-	int i = 0;
-	/* Check for "False" */
-	if (string[0] == 'F' && string[1] == 'a' && string[2] == 'l' && string[3] == 's' && string[4] == 'e')
-		i = 5;
-	/* Check for "True" */
-	else if (string[0] == 'T' && string[1] == 'r' && string[2] == 'u' && string[3] == 'e')
-		i = 4;
-	/* Check for "None" */
-	else if (string[0] == 'N' && string[1] == 'o' && string[2] == 'n' && string[3] == 'e')
-		i = 4;
-	/* If next source char is an identifier (eg. 'i' in "definate") no match */
+	int i;
+	if      (strncmp(string, "None",  4) == 0) i = 4;
+	else if (strncmp(string, "True",  4) == 0) i = 4;
+	else if (strncmp(string, "False", 5) == 0) i = 5;
+	else                                       i = 0;
+
+	/* If next source char is an identifier (eg. 'i' in "Nonetheless") no match */
 	if (i == 0 || text_check_identifier(string[i]))
 		return -1;
 	return i;
 }
 
-static void txtfmt_py_format_line(SpaceText *st, TextLine *line, int do_next)
+static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_next)
 {
 	FlattenString fs;
-	char *str, *fmt, orig, cont, find, prev = ' ';
+	const char *str;
+	char *fmt;
+	char orig, cont, find, prev = ' ';
 	int len, i;
 
 	/* Get continuation from previous line */
@@ -270,9 +266,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, int do_next)
 				}
 			}
 		}
-		prev = *fmt;
-		fmt++;
-		str++;
+		prev = *fmt; fmt++; str++;
 	}
 
 	/* Terminate and add continuation char */

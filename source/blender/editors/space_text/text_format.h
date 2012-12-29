@@ -43,6 +43,8 @@ typedef struct FlattenString {
 
 int  flatten_string(struct SpaceText *st, FlattenString *fs, const char *in);
 void flatten_string_free(FlattenString *fs);
+int  flatten_string_strlen(FlattenString *fs, const char *str);
+
 int  text_check_format_len(TextLine *line, unsigned int len);
 
 

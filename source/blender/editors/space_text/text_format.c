@@ -113,6 +113,14 @@ void flatten_string_free(FlattenString *fs)
 		MEM_freeN(fs->accum);
 }
 
+/* takes a string within fs->buf and returns its length */
+int flatten_string_strlen(FlattenString *fs, const char *str)
+{
+	const int len = (fs->pos - (int)(str - fs->buf)) - 1;
+	BLI_assert(strlen(str) == len);
+	return len;
+}
+
 /* Ensures the format string for the given line is long enough, reallocating
  * as needed. Allocation is done here, alone, to ensure consistency. */
 int text_check_format_len(TextLine *line, unsigned int len)
