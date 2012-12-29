@@ -2283,7 +2283,7 @@ void HairInfoNode::compile(SVMCompiler& compiler)
 
 void HairInfoNode::compile(OSLCompiler& compiler)
 {
-	compiler.add(this, "NODE_HAIR_INFO");
+	compiler.add(this, "node_hair_info");
 }
 
 /* Value */

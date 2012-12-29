@@ -74,6 +74,12 @@ ustring OSLRenderServices::u_geom_numpolyvertices("geom:numpolyvertices");
 ustring OSLRenderServices::u_geom_trianglevertices("geom:trianglevertices");
 ustring OSLRenderServices::u_geom_polyvertices("geom:polyvertices");
 ustring OSLRenderServices::u_geom_name("geom:name");
+#ifdef __HAIR__
+ustring OSLRenderServices::u_curve_is_strand("curve:is_strand");
+ustring OSLRenderServices::u_curve_intercept("curve:intercept");
+ustring OSLRenderServices::u_curve_thickness("curve:thickness");
+ustring OSLRenderServices::u_curve_tangent_normal("curve:tangent_normal");
+#endif
 ustring OSLRenderServices::u_path_ray_length("path:ray_length");
 ustring OSLRenderServices::u_trace("trace");
 ustring OSLRenderServices::u_hit("hit");
@@ -593,6 +599,8 @@ bool OSLRenderServices::get_object_standard_attribute(KernelGlobals *kg, ShaderD
 		float3 f = particle_angular_velocity(kg, particle_id);
 		return set_attribute_float3(f, type, derivatives, val);
 	}
+	
+	/* Geometry Attributes */
 	else if (name == u_geom_numpolyvertices) {
 		return set_attribute_int(3, type, derivatives, val);
 	}
@@ -612,6 +620,26 @@ bool OSLRenderServices::get_object_standard_attribute(KernelGlobals *kg, ShaderD
 		ustring object_name = kg->osl->object_names[sd->object];
 		return set_attribute_string(object_name, type, derivatives, val);
 	}
+	
+#ifdef __HAIR__
+	/* Hair Attributes */
+	else if (name == u_curve_is_strand) {
+		float f = !(sd->curve_seg == ~0);
+		return set_attribute_float(f, type, derivatives, val);
+	}
+	else if (name == u_curve_intercept) {
+		float f = intercept(kg, sd->curve_seg, sd->prim, sd->u);
+		return set_attribute_float(f, type, derivatives, val);
+	}
+	else if (name == u_curve_thickness) {
+		float f = 2 * hair_radius(kg, sd->curve_seg, sd->u);
+		return set_attribute_float(f, type, derivatives, val);
+	}
+	else if (name == u_curve_tangent_normal) {
+		float3 f = hair_tangent_normal(kg, sd);
+		return set_attribute_float3(f, type, derivatives, val);
+	}
+#endif
 	else
 		return false;
 }
