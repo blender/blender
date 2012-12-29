@@ -412,6 +412,8 @@ public:
 
 	void setMaxJumps(int maxJumps);
 
+	int getJumpCount() const;
+
 	virtual bool canJump() const;
 
 	virtual void jump();

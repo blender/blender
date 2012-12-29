@@ -25,6 +25,8 @@ public:
 	virtual int GetMaxJumps()= 0;
 	virtual void SetMaxJumps(int maxJumps)= 0;
 
+	virtual int GetJumpCount()= 0;
+
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:PHY_ICharacter")
 #endif

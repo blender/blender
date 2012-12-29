@@ -3755,6 +3755,12 @@ Types
 
       :type: int
 
+   .. attribute:: jumpCount
+
+      The current jump count. This can be used to have different logic for a single jump versus a double jump. For example, a different animation for the second jump.
+
+      :type: int
+
    .. method:: jump()
 
       The character jumps based on it's jump speed.

@@ -92,6 +92,11 @@ void BlenderBulletCharacterController::setMaxJumps(int maxJumps)
 	m_maxJumps = maxJumps;
 }
 
+int BlenderBulletCharacterController::getJumpCount() const
+{
+	return m_jumps;
+}
+
 bool BlenderBulletCharacterController::canJump() const
 {
 	return onGround() || m_jumps < m_maxJumps;

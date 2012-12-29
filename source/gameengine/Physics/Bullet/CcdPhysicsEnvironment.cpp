@@ -305,6 +305,11 @@ public:
 	{
 		m_controller->setMaxJumps(maxJumps);
 	}
+
+	virtual int GetJumpCount()
+	{
+		return m_controller->getJumpCount();
+	}
 };
 
 class CcdOverlapFilterCallBack : public btOverlapFilterCallback
