@@ -66,6 +66,7 @@
 #include "BKE_node.h"
 #include "BKE_report.h"
 
+#include "BKE_addon.h"
 #include "BKE_packedFile.h"
 #include "BKE_sequencer.h" /* free seq clipboard */
 #include "BKE_material.h" /* clear_matcopybuf */
@@ -135,6 +136,9 @@ void WM_init(bContext *C, int argc, const char **argv)
 		wm_init_cursor_data();
 	}
 	GHOST_CreateSystemPaths();
+
+	BKE_addon_pref_type_init();
+
 	wm_operatortype_init();
 	WM_menutype_init();
 	WM_uilisttype_init();
@@ -401,6 +405,8 @@ void WM_exit_ext(bContext *C, const short do_python)
 			ED_screen_exit(C, win, win->screen);
 		}
 	}
+
+	BKE_addon_pref_type_free();
 	wm_operatortype_free();
 	wm_dropbox_free();
 	WM_menutype_free();

@@ -387,6 +387,7 @@ void BKE_userdef_free(void)
 	wmKeyMap *km;
 	wmKeyMapItem *kmi;
 	wmKeyMapDiffItem *kmdi;
+	bAddon *addon, *addon_next;
 
 	for (km = U.user_keymaps.first; km; km = km->next) {
 		for (kmdi = km->diff_items.first; kmdi; kmdi = kmdi->next) {
@@ -407,11 +408,19 @@ void BKE_userdef_free(void)
 		BLI_freelistN(&km->items);
 	}
 	
+	for (addon = U.addons.first; addon; addon = addon_next) {
+		addon_next = addon->next;
+		if (addon->prop) {
+			IDP_FreeProperty(addon->prop);
+			MEM_freeN(addon->prop);
+		}
+		MEM_freeN(addon);
+	}
+
 	BLI_freelistN(&U.uistyles);
 	BLI_freelistN(&U.uifonts);
 	BLI_freelistN(&U.themes);
 	BLI_freelistN(&U.user_keymaps);
-	BLI_freelistN(&U.addons);
 }
 
 /* handle changes in settings that need recalc */

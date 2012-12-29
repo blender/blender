@@ -1162,7 +1162,8 @@ class USERPREF_PT_addons(Panel):
                         continue
 
                 # Addon UI Code
-                box = col.column().box()
+                col_box = col.column()
+                box = col_box.box()
                 colsub = box.column()
                 row = colsub.row()
 
@@ -1224,6 +1225,25 @@ class USERPREF_PT_addons(Panel):
 
                         for i in range(4 - tot_row):
                             split.separator()
+
+                    # Show addon user preferences
+                    if is_enabled:
+                        addon_preferences = userpref.addons[module_name].preferences
+                        if addon_preferences is not None:
+                            draw = getattr(addon_preferences, "draw", None)
+                            if draw is not None:
+                                addon_preferences_class = type(addon_preferences)
+                                box_prefs = col_box.box()
+                                box_prefs.label("Preferences:")
+                                addon_preferences_class.layout = box_prefs
+                                try:
+                                    draw(context)
+                                except:
+                                    import traceback
+                                    traceback.print_exc()
+                                    box_prefs.label(text="Error (see console)", icon='ERROR')
+                                del addon_preferences_class.layout
+
 
         # Append missing scripts
         # First collect scripts that are used but have no script file.

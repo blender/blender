@@ -8646,6 +8646,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
 	wmKeyMapDiffItem *kmdi;
+	bAddon *addon;
 	
 	bfd->user = user= read_struct(fd, bhead, "user def");
 	
@@ -8683,7 +8684,14 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 		for (kmi=keymap->items.first; kmi; kmi=kmi->next)
 			direct_link_keymapitem(fd, kmi);
 	}
-	
+
+	for (addon = user->addons.first; addon; addon = addon->next) {
+		addon->prop = newdataadr(fd, addon->prop);
+		if (addon->prop) {
+			IDP_DirectLinkProperty(addon->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+		}
+	}
+
 	// XXX
 	user->uifonts.first = user->uifonts.last= NULL;
 	

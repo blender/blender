@@ -850,8 +850,12 @@ static void write_userdef(WriteData *wd)
 			write_keymapitem(wd, kmi);
 	}
 
-	for (bext= U.addons.first; bext; bext=bext->next)
+	for (bext= U.addons.first; bext; bext=bext->next) {
 		writestruct(wd, DATA, "bAddon", 1, bext);
+		if (bext->prop) {
+			IDP_WriteProperty(bext->prop, wd);
+		}
+	}
 	
 	for (style= U.uistyles.first; style; style= style->next) {
 		writestruct(wd, DATA, "uiStyle", 1, style);

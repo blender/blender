@@ -47,6 +47,7 @@
 #include "BLF_translation.h"
 
 #include "BKE_sound.h"
+#include "BKE_addon.h"
 
 #ifdef WITH_CYCLES
 static EnumPropertyItem compute_device_type_items[] = {
@@ -67,6 +68,7 @@ static EnumPropertyItem compute_device_type_items[] = {
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_idprop.h"
 
 #include "GPU_draw.h"
 
@@ -78,6 +80,8 @@ static EnumPropertyItem compute_device_type_items[] = {
 #include "UI_interface.h"
 
 #include "CCL_api.h"
+
+#include "BKE_addon.h"
 
 static void rna_userdef_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
@@ -427,6 +431,103 @@ static EnumPropertyItem *rna_lang_enum_properties_itemf(bContext *UNUSED(C), Poi
 	return BLF_RNA_lang_enum_properties();
 }
 #endif
+
+static IDProperty *rna_AddonPref_idprops(PointerRNA *ptr, int create)
+{
+	if (create && !ptr->data) {
+		IDPropertyTemplate val = {0};
+		ptr->data = IDP_New(IDP_GROUP, &val, "RNA_AddonPreferences group");
+	}
+
+	return ptr->data;
+}
+
+static PointerRNA rna_Addon_preferences_get(PointerRNA *ptr)
+{
+	bAddon *addon = (bAddon *)ptr->data;
+	bAddonPrefType *apt = BKE_addon_pref_type_find(addon->module, TRUE);
+	if (apt) {
+		if (addon->prop == NULL) {
+			IDPropertyTemplate val = {0};
+			addon->prop = IDP_New(IDP_GROUP, &val, addon->module); /* name is unimportant  */
+		}
+		return rna_pointer_inherit_refine(ptr, apt->ext.srna, addon->prop);
+	}
+	else {
+		return PointerRNA_NULL;
+	}
+}
+
+static void rna_AddonPref_unregister(Main *UNUSED(bmain), StructRNA *type)
+{
+	bAddonPrefType *apt = RNA_struct_blender_type_get(type);
+
+	if (!apt)
+		return;
+
+	RNA_struct_free_extension(type, &apt->ext);
+
+	BKE_addon_pref_type_remove(apt);
+	RNA_struct_free(&BLENDER_RNA, type);
+
+	/* update while blender is running */
+	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
+}
+
+static StructRNA *rna_AddonPref_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
+                                         StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+{
+	bAddonPrefType *apt, dummyapt = {{'\0'}};
+	bAddon dummyaddon = {NULL};
+	PointerRNA dummyhtr;
+	// int have_function[1];
+
+	/* setup dummy header & header type to store static properties in */
+	RNA_pointer_create(NULL, &RNA_AddonPreferences, &dummyaddon, &dummyhtr);
+
+	/* validate the python class */
+	if (validate(&dummyhtr, data, NULL /* have_function */ ) != 0)
+		return NULL;
+
+	BLI_strncpy(dummyapt.idname, dummyaddon.module, sizeof(dummyapt.idname));
+	if (strlen(identifier) >= sizeof(dummyapt.idname)) {
+		BKE_reportf(reports, RPT_ERROR, "Registering addon-prefs class: '%s' is too long, maximum length is %d",
+		            identifier, (int)sizeof(dummyapt.idname));
+		return NULL;
+	}
+
+	/* check if we have registered this header type before, and remove it */
+	apt = BKE_addon_pref_type_find(dummyaddon.module, TRUE);
+	if (apt) {
+		if (apt->ext.srna) {
+			rna_AddonPref_unregister(bmain, apt->ext.srna);
+		}
+	}
+
+	/* create a new header type */
+	apt = MEM_mallocN(sizeof(bAddonPrefType), "addonpreftype");
+	memcpy(apt, &dummyapt, sizeof(dummyapt));
+	BKE_addon_pref_type_add(apt);
+
+	apt->ext.srna = RNA_def_struct(&BLENDER_RNA, identifier, "AddonPreferences");
+	apt->ext.data = data;
+	apt->ext.call = call;
+	apt->ext.free = free;
+	RNA_struct_blender_type_set(apt->ext.srna, apt);
+
+//	apt->draw = (have_function[0]) ? header_draw : NULL;
+
+	/* update while blender is running */
+	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
+
+	return apt->ext.srna;
+}
+
+/* placeholder, doesn't do anything useful yet */
+static StructRNA *rna_AddonPref_refine(PointerRNA *ptr)
+{
+	return (ptr->type) ? ptr->type : &RNA_AddonPreferences;
+}
 
 #else
 
@@ -2381,6 +2482,32 @@ static void rna_def_userdef_addon(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "module", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Module", "Module name");
 	RNA_def_struct_name_property(srna, prop);
+
+	/* Collection active property */
+	prop = RNA_def_property(srna, "preferences", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "AddonPreferences");
+	RNA_def_property_pointer_funcs(prop, "rna_Addon_preferences_get", NULL, NULL, NULL);
+}
+
+static void rna_def_userdef_addon_pref(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "AddonPreferences", NULL);
+	RNA_def_struct_ui_text(srna, "Addon Preferences", "");
+	RNA_def_struct_sdna(srna, "bAddon");  /* WARNING: only a bAddon during registration */
+
+	RNA_def_struct_refine_func(srna, "rna_AddonPref_refine");
+	RNA_def_struct_register_funcs(srna, "rna_AddonPref_register", "rna_AddonPref_unregister", NULL);
+	RNA_def_struct_idprops_func(srna, "rna_AddonPref_idprops");
+
+	/* registration */
+	RNA_define_verify_sdna(0);
+	prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "module");
+	RNA_def_property_flag(prop, PROP_REGISTER | PROP_NEVER_CLAMP);
+	RNA_define_verify_sdna(1);
 }
 
 
@@ -3736,6 +3863,7 @@ void RNA_def_userdef(BlenderRNA *brna)
 	rna_def_userdef_filepaths(brna);
 	rna_def_userdef_system(brna);
 	rna_def_userdef_addon(brna);
+	rna_def_userdef_addon_pref(brna);
 	
 }
 

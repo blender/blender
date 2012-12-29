@@ -58,6 +58,7 @@ set(SRC
 	intern/CCGSubSurf.c
 	intern/DerivedMesh.c
 	intern/action.c
+	intern/addon.c
 	intern/anim.c
 	intern/anim_sys.c
 	intern/armature.c
@@ -152,6 +153,7 @@ set(SRC
 
 	BKE_DerivedMesh.h
 	BKE_action.h
+	BKE_addon.h
 	BKE_anim.h
 	BKE_animsys.h
 	BKE_armature.h

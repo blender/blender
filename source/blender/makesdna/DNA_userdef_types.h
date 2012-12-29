@@ -343,6 +343,7 @@ typedef struct bTheme {
 typedef struct bAddon {
 	struct bAddon *next, *prev;
 	char module[64];
+	IDProperty *prop;  /* User-Defined Properties on this  Addon (for storing preferences) */
 } bAddon;
 
 typedef struct SolidLight {
