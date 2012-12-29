@@ -61,6 +61,8 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "BIK_api.h"
+
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -847,6 +849,8 @@ static void recalcData_view3d(TransInfo *t)
 		/* old optimize trick... this enforces to bypass the depgraph */
 		if (!(arm->flag & ARM_DELAYDEFORM)) {
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
+			/* transformation of pose may affect IK tree, make sure it is rebuilt */
+			BIK_clear_data(ob->pose);
 		}
 		else
 			BKE_pose_where_is(t->scene, ob);
