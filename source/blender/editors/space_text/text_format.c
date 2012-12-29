@@ -147,10 +147,16 @@ void ED_text_format_register(TextFormatType *tft)
 	BLI_addtail(&tft_lb, tft);
 }
 
-TextFormatType *ED_text_format_get(Text *UNUSED(text))
+TextFormatType *ED_text_format_get(Text *text)
 {
 	/* NOTE: once more types are added we'll need to return some type based on 'text'
 	 * for now this function is more of a placeholder */
 
-	return tft_lb.first;
+	/* XXX, wrong, but OK for testing */
+	if (BLI_testextensie(text->id.name + 2, ".osl")) {
+		return tft_lb.last;
+	}
+	else {
+		return tft_lb.first;
+	}
 }

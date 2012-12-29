@@ -82,5 +82,7 @@ typedef struct Text {
 #define TXT_TRISTR				0x04 /* triplets of quotes: """ or ''' */
 #define TXT_SNGTRISTR			0x05 /*(TXT_TRISTR | TXT_SNGQUOTSTR)*/
 #define TXT_DBLTRISTR			0x06 /*(TXT_TRISTR | TXT_DBLQUOTSTR)*/
+#define TXT_CONT_COMMENT_C		0x08 /* multi-line comments, OSL only (C style) */
+#define TXT_CONT_COMMENT_CXX	0x10 /* single-line comments, OSL only (C++ style) */
 
 #endif

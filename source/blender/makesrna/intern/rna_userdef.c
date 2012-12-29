@@ -1639,7 +1639,19 @@ static void rna_def_userdef_theme_space_text(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "syntax_special", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "syntaxv");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Decorator", "");
+	RNA_def_property_ui_text(prop, "Syntax Special", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop = RNA_def_property(srna, "syntax_preprocessor", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "syntaxd");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Syntax PreProcessor", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop = RNA_def_property(srna, "syntax_reserved", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "syntaxr");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Syntax Reserved", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "syntax_comment", PROP_FLOAT, PROP_COLOR_GAMMA);

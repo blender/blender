@@ -60,7 +60,9 @@ typedef struct TextFormatType {
 	 *  '!'  Punctuation and other symbols
 	 *  'n'  Numerals
 	 *  'l'  String letters
+	 *  'd'  Decorator / Preprocessor directive
 	 *  'v'  Special variables (class, def)
+	 *  'r'  Reserved keywords currently not in use, but still prohibited (OSL -> switch e.g.)
 	 *  'b'  Built-in names (print, for, etc.)
 	 *  'q'  Other text (identifiers, etc.)
 	 * It is terminated with a null-terminator '\0' followed by a continuation
@@ -75,6 +77,7 @@ void            ED_text_format_register(TextFormatType *tft);
 
 /* formatters */
 void ED_text_format_register_py(void);
+void ED_text_format_register_osl(void);
 
 #define STR_LITERAL_STARTSWITH(str, str_literal, len_var) \
 	(strncmp(str, str_literal, len_var = (sizeof(str_literal) - 1)) == 0)

@@ -38,6 +38,7 @@ set(SRC
 	space_text.c
 	text_draw.c
 	text_format.c
+	text_format_osl.c
 	text_format_py.c
 	text_header.c
 	text_ops.c

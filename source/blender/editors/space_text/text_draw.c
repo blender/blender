@@ -131,8 +131,14 @@ static void format_draw_color(char formatchar)
 		case 'l': /* Strings */
 			UI_ThemeColor(TH_SYNTAX_L);
 			break;
+		case 'd': /* Preprocessor directive */
+			UI_ThemeColor(TH_SYNTAX_D);
+			break;
 		case 'v': /* Specials: class, def */
 			UI_ThemeColor(TH_SYNTAX_V);
+			break;
+		case 'r': /* Reserved keywords */
+			UI_ThemeColor(TH_SYNTAX_R);
 			break;
 		case 'b': /* Keywords: for, print, etc. */
 			UI_ThemeColor(TH_SYNTAX_B);
