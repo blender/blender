@@ -1377,8 +1377,7 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 
 			mul_v3_fl(pan_vec, pan_sensitivity * rv3d->dist * dt);
 #else /* ------------------------------------------------------- dolly with Z */
-			float speed = 10.f; /* blender units per second */
-			/* ^^ this is ok for default cube scene, but should scale with.. something */
+			float speed = rv3d->dist; /* uses distance from pivot to define dolly */
 
 			/* tune these until everything feels right */
 			const float forward_sensitivity = 1.f;
@@ -1463,8 +1462,7 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			const float dt = ndof->dt;
 			float view_inv[4];
 
-			float speed = 10.f; /* blender units per second */
-			/* ^^ this is ok for default cube scene, but should scale with.. something */
+			float speed = rv3d->dist; /* uses distance from pivot to define dolly */
 
 			/* tune these until everything feels right */
 			const float forward_sensitivity = 1.f;
