@@ -81,7 +81,7 @@ static int txtfmt_osl_find_builtinfunc(const char *string)
 
 static int txtfmt_osl_find_reserved(const char *string)
 {
-	int i, len;
+	int i = 0, len;
 	/* list is from...
 	 * XXX - link to docs!
 	 */
