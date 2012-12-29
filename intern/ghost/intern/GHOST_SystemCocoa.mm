@@ -1590,8 +1590,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
 				momentum = [event momentumPhase];
 #endif
-				/* standard scrollwheel case */
-				if (!m_hasMultiTouchTrackpad && momentum==0) {
+				/* standard scrollwheel case, NULL check address !!! of momentum */
+				if (!m_hasMultiTouchTrackpad && &momentum == NULL) {
 					GHOST_TInt32 delta;
 					
 					double deltaF = [event deltaY];
