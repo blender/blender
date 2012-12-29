@@ -127,6 +127,10 @@ static int txtfmt_py_find_decorator(const char *string)
 {
 	if (string[0] == '@') {
 		int i = 1;
+		/* whitespace is ok '@  foo' */
+		while (string[i] == '\t' || string[i] == ' ') {
+			i++;
+		}
 		while (text_check_identifier(string[i])) {
 			i++;
 		}
@@ -250,7 +254,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_ne
 				}
 			}
 			/* Punctuation */
-			else if (text_check_delim(*str)) {
+			else if ((*str != '@') && text_check_delim(*str)) {
 				*fmt = '!';
 			}
 			/* Identifiers and other text (no previous ws. or delims. so text continues) */
