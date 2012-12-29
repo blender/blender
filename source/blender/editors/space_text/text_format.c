@@ -153,7 +153,7 @@ TextFormatType *ED_text_format_get(Text *text)
 	 * for now this function is more of a placeholder */
 
 	/* XXX, wrong, but OK for testing */
-	if (BLI_testextensie(text->id.name + 2, ".osl")) {
+	if (text && BLI_testextensie(text->id.name + 2, ".osl")) {
 		return tft_lb.last;
 	}
 	else {
