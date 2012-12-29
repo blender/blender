@@ -1008,7 +1008,7 @@ class CyclesParticle_PT_CurveSettings(CyclesButtonsPanel, Panel):
     
     @classmethod
     def poll(cls, context):
-        use_curves = context.scene.cycles_curves.use_curves
+        use_curves = context.scene.cycles_curves.use_curves and context.particle_system
         device_type = context.user_preferences.system.compute_device_type
         experimental = context.scene.cycles.feature_set == 'EXPERIMENTAL' and (context.scene.cycles.device == 'CPU' or device_type == 'NONE')
         return CyclesButtonsPanel.poll(context) and experimental and use_curves
