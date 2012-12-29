@@ -41,7 +41,6 @@
 
 /* *** Local Functions (for format_line) *** */
 
-
 /* Checks the specified source string for a Python built-in function name. This
  * name must start at the beginning of the source string and must be followed by
  * a non-identifier (see text_check_identifier(char)) or null character.
@@ -55,39 +54,51 @@
 
 static int txtfmt_py_find_builtinfunc(const char *string)
 {
-	int a, i;
+	int i, len;
 	/* list is from...
-	 * ", ".join(['"%s"' % kw for kw in  __import__("keyword").kwlist if kw not in {"False", "None", "True"}])
+	 * ", ".join(['"%s"' % kw
+	 *            for kw in  __import__("keyword").kwlist
+	 *            if kw not in {"False", "None", "True", "def", "class"}])
+	 *
+	 * ... and for this code:
+	 * print("\n".join(['else if (STR_LITERAL_STARTSWITH(string, "%s", len)) i = len;' % kw
+	 *                  for kw in  __import__("keyword").kwlist
+	 *                  if kw not in {"False", "None", "True", "def", "class"}]))
 	 */
-	const char *builtinfuncs[] = {
-		/* "False", "None", "True", */ /* see find_bool() */
-		"and", "as", "assert", "break",
-		"class", "continue", "def", "del", "elif", "else", "except",
-		"finally", "for", "from", "global", "if", "import", "in",
-		"is", "lambda", "nonlocal", "not", "or", "pass", "raise",
-		"return", "try", "while", "with", "yield",
-	};
 
-	for (a = 0; a < sizeof(builtinfuncs) / sizeof(builtinfuncs[0]); a++) {
-		i = 0;
-		while (1) {
-			/* If we hit the end of a keyword... (eg. "def") */
-			if (builtinfuncs[a][i] == '\0') {
-				/* If we still have identifier chars in the source (eg. "definate") */
-				if (text_check_identifier(string[i]))
-					i = -1;  /* No match */
-				break; /* Next keyword if no match, otherwise we're done */
+	if      (STR_LITERAL_STARTSWITH(string, "and",      len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "as",       len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "assert",   len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "break",    len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "continue", len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "del",      len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "elif",     len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "else",     len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "except",   len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "finally",  len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "for",      len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "from",     len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "global",   len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "if",       len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "import",   len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "in",       len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "is",       len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "lambda",   len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "nonlocal", len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "not",      len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "or",       len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "pass",     len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "raise",    len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "return",   len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "try",      len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "while",    len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "with",     len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "yield",    len)) i = len;
+	else                                                      i = 0;
 
-				/* If chars mismatch, move on to next keyword */
-			}
-			else if (string[i] != builtinfuncs[a][i]) {
-				i = -1;
-				break; /* Break inner loop, start next keyword */
-			}
-			i++;
-		}
-		if (i > 0) break;  /* If we have a match, we're done */
-	}
+	/* If next source char is an identifier (eg. 'i' in "definate") no match */
+	if (i == 0 || text_check_identifier(string[i]))
+		return -1;
 	return i;
 }
 
@@ -100,10 +111,11 @@ static int txtfmt_py_find_builtinfunc(const char *string)
 
 static int txtfmt_py_find_specialvar(const char *string)
 {
-	int i;
-	if      (strncmp(string, "def",   3) == 0) i = 3;
-	else if (strncmp(string, "class", 5) == 0) i = 5;
-	else                                       i = 0;
+	int i, len;
+
+	if      (STR_LITERAL_STARTSWITH(string, "def", len))   i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "class", len)) i = len;
+	else                                                   i = 0;
 
 	/* If next source char is an identifier (eg. 'i' in "definate") no match */
 	if (i == 0 || text_check_identifier(string[i]))
@@ -125,11 +137,12 @@ static int txtfmt_py_find_decorator(const char *string)
 
 static int txtfmt_py_find_bool(const char *string)
 {
-	int i;
-	if      (strncmp(string, "None",  4) == 0) i = 4;
-	else if (strncmp(string, "True",  4) == 0) i = 4;
-	else if (strncmp(string, "False", 5) == 0) i = 5;
-	else                                       i = 0;
+	int i, len;
+
+	if      (STR_LITERAL_STARTSWITH(string, "None",  len))  i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "True",  len))  i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "False", len))  i = len;
+	else                                                    i = 0;
 
 	/* If next source char is an identifier (eg. 'i' in "Nonetheless") no match */
 	if (i == 0 || text_check_identifier(string[i]))
