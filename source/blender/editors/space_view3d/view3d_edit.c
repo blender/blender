@@ -1008,16 +1008,19 @@ void ndof_to_quat(struct wmNDOFMotionData *ndof, float q[4])
  */
 static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ViewOpsData *vod = op->customdata;
 	
 	if (event->type != NDOF_MOTION)
 		return OPERATOR_CANCELLED;
 	else {
 		View3D *v3d = CTX_wm_view3d(C);
+		ViewOpsData *vod;
 		RegionView3D *rv3d = CTX_wm_region_view3d(C);
 		wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
 
 		ED_view3d_camera_lock_init(v3d, rv3d);
+
+		viewops_data_create(C, op, event);
+		vod = op->customdata;
 
 		rv3d->rot_angle = 0.f; /* off by default, until changed later this function */
 
@@ -1138,8 +1141,10 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			}
 		}
 
+		viewops_data_free(C, op);
+		
 		ED_view3d_camera_lock_sync(v3d, rv3d);
-
+		
 		ED_region_tag_redraw(CTX_wm_region(C));
 
 		return OPERATOR_FINISHED;
@@ -1164,11 +1169,11 @@ void VIEW3D_OT_ndof_orbit(struct wmOperatorType *ot)
 
 static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ViewOpsData *vod = op->customdata;
 	
 	if (event->type != NDOF_MOTION)
 		return OPERATOR_CANCELLED;
 	else {
+		ViewOpsData *vod;
 		View3D *v3d = CTX_wm_view3d(C);
 		RegionView3D *rv3d = CTX_wm_region_view3d(C);
 		wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
@@ -1176,6 +1181,9 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		ED_view3d_camera_lock_init(v3d, rv3d);
 
 		rv3d->rot_angle = 0.f; /* off by default, until changed later this function */
+
+		viewops_data_create(C, op, event);
+		vod = op->customdata;
 
 		if (ndof->progress != P_FINISHING) {
 			const float dt = ndof->dt;
@@ -1308,6 +1316,8 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			}
 		}
 
+		viewops_data_free(C, op);
+		
 		ED_view3d_camera_lock_sync(v3d, rv3d);
 
 		ED_region_tag_redraw(CTX_wm_region(C));
@@ -1460,16 +1470,8 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			const float forward_sensitivity = 1.f;
 			const float vertical_sensitivity = 0.4f;
 			const float lateral_sensitivity = 0.6f;
-
 			float pan_vec[3];
 			const float rot_sensitivity = 1.f;
-#if 0
-			const float zoom_sensitivity = 1.f;
-			const float pan_sensitivity = 1.f;
-			float rot[4];
-			float angle = rot_sensitivity * ndof_to_axis_angle(ndof, axis);
-			float axis[3];
-#endif
 
 			/* inverse view */
 			invert_qt_qt(view_inv, rv3d->viewquat);
@@ -1575,10 +1577,13 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			}
 
 		}
+		
+		viewops_data_free(C, op);
+		
 		ED_view3d_camera_lock_sync(v3d, rv3d);
 
 		ED_region_tag_redraw(CTX_wm_region(C));
-		viewops_data_free(C, op);
+		
 		return OPERATOR_FINISHED;
 	}
 }
