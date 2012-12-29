@@ -21,6 +21,7 @@
  */
 
 #include <stddef.h>
+#include <stdlib.h>
 
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
@@ -49,12 +50,12 @@ bAddonPrefType *BKE_addon_pref_type_find(const char *idname, int quiet)
 		}
 
 		if (!quiet) {
-			printf("search for unknown addon-ref '%s'\n", idname);
+			printf("search for unknown addon-pref '%s'\n", idname);
 		}
 	}
 	else {
 		if (!quiet) {
-			printf("search for empty addon");
+			printf("search for empty addon-pref");
 		}
 	}
 
