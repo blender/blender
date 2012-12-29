@@ -56,6 +56,9 @@
 static int txtfmt_py_find_builtinfunc(char *string)
 {
 	int a, i;
+	/* list is from...
+	 * ", ".join(['"%s"' % kw for kw in  __import__("keyword").kwlist if kw not in {"False", "None", "True"}])
+	 */
 	const char *builtinfuncs[] = {
 		/* "False", "None", "True", */ /* see find_bool() */
 		"and", "as", "assert", "break",

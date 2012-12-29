@@ -4176,7 +4176,7 @@ static Sequence *seq_dupli(Scene *scene, Scene *scene_to, Sequence *seq, int dup
 
 		seqn->seqbase.first = seqn->seqbase.last = NULL;
 		/* WATCH OUT!!! - This metastrip is not recursively duplicated here - do this after!!! */
-		/* - seq_dupli_recursive(&seq->seqbase,&seqn->seqbase);*/
+		/* - seq_dupli_recursive(&seq->seqbase, &seqn->seqbase);*/
 	}
 	else if (seq->type == SEQ_TYPE_SCENE) {
 		seqn->strip->stripdata = NULL;

@@ -1037,7 +1037,7 @@ int isect_sweeping_sphere_tri_v3(const float p1[3], const float p2[3], const flo
 
 		if (t0 > 1.0f || t1 < 0.0f) return 0;
 
-		/* clamp to [0,1] */
+		/* clamp to [0, 1] */
 		CLAMP(t0, 0.0f, 1.0f);
 		CLAMP(t1, 0.0f, 1.0f);
 
@@ -1157,10 +1157,10 @@ int isect_sweeping_sphere_tri_v3(const float p1[3], const float p2[3], const flo
 	}
 
 	/*e3*/
-	/* sub_v3_v3v3(bv,v0,p1); */ /* UNUSED */
-	/* elen2 = dot_v3v3(e1,e1); */ /* UNUSED */
-	/* edotv = dot_v3v3(e1,vel); */ /* UNUSED */
-	/* edotbv = dot_v3v3(e1,bv); */ /* UNUSED */
+	/* sub_v3_v3v3(bv, v0, p1); */ /* UNUSED */
+	/* elen2 = dot_v3v3(e1, e1); */ /* UNUSED */
+	/* edotv = dot_v3v3(e1, vel); */ /* UNUSED */
+	/* edotbv = dot_v3v3(e1, bv); */ /* UNUSED */
 
 	sub_v3_v3v3(bv, v1, p1);
 	elen2 = dot_v3v3(e3, e3);
@@ -1195,7 +1195,7 @@ int isect_axial_line_tri_v3(const int axis, const float p1[3], const float p2[3]
 	int a0 = axis, a1 = (axis + 1) % 3, a2 = (axis + 2) % 3;
 
 #if 0
-	return isect_line_tri_v3(p1,p2,v0,v1,v2,lambda);
+	return isect_line_tri_v3(p1, p2, v0, v1, v2, lambda);
 
 	/* first a simple bounding box test */
 	if (min_fff(v0[a1], v1[a1], v2[a1]) > p1[a1]) return 0;
@@ -1415,8 +1415,8 @@ int isect_ray_aabb(const IsectRayAABBData *data, const float bb_min[3],
 	return TRUE;
 }
 
-/* find closest point to p on line through l1,l2 and return lambda,
- * where (0 <= lambda <= 1) when cp is in the line segment l1,l2
+/* find closest point to p on line through (l1, l2) and return lambda,
+ * where (0 <= lambda <= 1) when cp is in the line segment (l1, l2)
  */
 float closest_to_line_v3(float cp[3], const float p[3], const float l1[3], const float l2[3])
 {
@@ -1702,9 +1702,9 @@ static int point_in_slice(const float p[3], const float v1[3], const float l1[3]
 	/*
 	 * what is a slice ?
 	 * some maths:
-	 * a line including l1,l2 and a point not on the line
+	 * a line including (l1, l2) and a point not on the line
 	 * define a subset of R3 delimited by planes parallel to the line and orthogonal
-	 * to the (point --> line) distance vector,one plane on the line one on the point,
+	 * to the (point --> line) distance vector, one plane on the line one on the point,
 	 * the room inside usually is rather small compared to R3 though still infinite
 	 * useful for restricting (speeding up) searches
 	 * e.g. all points of triangular prism are within the intersection of 3 'slices'
@@ -2304,7 +2304,7 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
 	}
 }
 
-/* (x1,v1)(t1=0)------(x2,v2)(t2=1), 0<t<1 --> (x,v)(t) */
+/* (x1, v1)(t1=0)------(x2, v2)(t2=1), 0<t<1 --> (x, v)(t) */
 void interp_cubic_v3(float x[3], float v[3], const float x1[3], const float v1[3], const float x2[3], const float v2[3], const float t)
 {
 	float a[3], b[3];
@@ -2791,8 +2791,8 @@ void tangent_from_uv(float uv1[2], float uv2[2], float uv3[3], float co1[3], flo
 /****************************** Vector Clouds ********************************/
 
 /* vector clouds */
-/* void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,float (*rpos)[3], float *rweight,
- *                                float lloc[3],float rloc[3],float lrot[3][3],float lscale[3][3])
+/* void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight, float (*rpos)[3], float *rweight,
+ *                                float lloc[3], float rloc[3], float lrot[3][3], float lscale[3][3])
  *
  * input
  * (
@@ -2881,9 +2881,9 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight, fl
 			/* build 'projection' matrix */
 			for (a = 0; a < list_size; a++) {
 				sub_v3_v3v3(va, rpos[a], accu_rcom);
-				/* mul_v3_fl(va,bp->mass);  mass needs renormalzation here ?? */
+				/* mul_v3_fl(va, bp->mass);  mass needs renormalzation here ?? */
 				sub_v3_v3v3(vb, pos[a], accu_com);
-				/* mul_v3_fl(va,rp->mass); */
+				/* mul_v3_fl(va, rp->mass); */
 				m[0][0] += va[0] * vb[0];
 				m[0][1] += va[0] * vb[1];
 				m[0][2] += va[0] * vb[2];

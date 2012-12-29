@@ -225,7 +225,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		/* angle */
 
-#if 0   // cant incluide this, not predictable enough, though quite fun,.
+#if 0   /* cant incluide this, not predictable enough, though quite fun. */
 		if (ltmd->flag & MOD_SCREW_OBJECT_ANGLE) {
 			float mtx3_tx[3][3];
 			copy_m3_m4(mtx3_tx, mtx_tx);

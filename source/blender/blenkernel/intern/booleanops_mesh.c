@@ -56,7 +56,7 @@ CSG_DestroyBlenderMeshInternals(
 	CSG_MeshDescriptor *mesh
 ) {
 	/* Free face and vertex iterators. */
-	FreeMeshDescriptors(&(mesh->m_face_iterator),&(mesh->m_vertex_iterator));
+	FreeMeshDescriptors(&(mesh->m_face_iterator), &(mesh->m_vertex_iterator));
 }
 
 
@@ -138,7 +138,7 @@ CSG_AddMeshToBlender(
 	if (mesh == NULL) return 0;
 	if (mesh->base == NULL) return 0;
 
-	invert_m4_m4(inv_mat,mesh->base->object->obmat);
+	invert_m4_m4(inv_mat, mesh->base->object->obmat);
 
 	/* Create a new blender mesh object - using 'base' as
 	 * a template for the new object. */
@@ -191,7 +191,7 @@ CSG_PerformOp(
 		default : op_type = e_csg_intersection;
 	}
 	
-	output->m_descriptor = CSG_DescibeOperands(bool_op,mesh1->m_descriptor,mesh2->m_descriptor);
+	output->m_descriptor = CSG_DescibeOperands(bool_op, mesh1->m_descriptor, mesh2->m_descriptor);
 	output->base = mesh1->base;
 
 	if (output->m_descriptor.user_face_vertex_data_size) {
@@ -228,8 +228,8 @@ CSG_PerformOp(
 
 	/* get the ouput mesh descriptors. */
 
-	CSG_OutputFaceDescriptor(bool_op,&(output->m_face_iterator));
-	CSG_OutputVertexDescriptor(bool_op,&(output->m_vertex_iterator));
+	CSG_OutputFaceDescriptor(bool_op, &(output->m_face_iterator));
+	CSG_OutputVertexDescriptor(bool_op, &(output->m_vertex_iterator));
 	output->m_destroy_func = CSG_DestroyCSGMeshInternals;
 
 	return 1;
@@ -242,20 +242,20 @@ NewBooleanMeshTest(
 	int op_type
 ) {
 
-	CSG_MeshDescriptor m1,m2,output;
-	CSG_MeshDescriptor output2,output3;
+	CSG_MeshDescriptor m1, m2, output;
+	CSG_MeshDescriptor output2, output3;
 	
-	if (!MakeCSGMeshFromBlenderBase(base,&m1)) {
+	if (!MakeCSGMeshFromBlenderBase(base, &m1)) {
 		return 0;
 	}
 	
-	if (!MakeCSGMeshFromBlenderBase(base_select,&m2)) {
+	if (!MakeCSGMeshFromBlenderBase(base_select, &m2)) {
 		return 0;
 	}
 	
-	CSG_PerformOp(&m1,&m2,1,&output);
-	CSG_PerformOp(&m1,&m2,2,&output2);
-	CSG_PerformOp(&m1,&m2,3,&output3);
+	CSG_PerformOp(&m1, &m2, 1, &output);
+	CSG_PerformOp(&m1, &m2, 2, &output2);
+	CSG_PerformOp(&m1, &m2, 3, &output3);
 
 	if (!CSG_AddMeshToBlender(&output)) {
 		return 0;

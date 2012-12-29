@@ -107,9 +107,9 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
 	/*nearest_v.dist  = nearest_e.dist  = nearest_f.dist  = FLT_MAX;*/
 	/* Find the nearest vert/edge/face. */
 #ifndef __APPLE__
-#pragma omp parallel for default(none) private(i) firstprivate(nearest_v,nearest_e,nearest_f) \
-                         shared(treeData_v,treeData_e,treeData_f,numVerts,v_cos,dist_v,dist_e, \
-                                dist_f,loc2trgt) \
+#pragma omp parallel for default(none) private(i) firstprivate(nearest_v, nearest_e, nearest_f) \
+                         shared(treeData_v, treeData_e, treeData_f, numVerts, v_cos, dist_v, dist_e, \
+                                dist_f, loc2trgt) \
                          schedule(static)
 #endif
 	for (i = 0; i < numVerts; i++) {

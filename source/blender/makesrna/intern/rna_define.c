@@ -391,7 +391,9 @@ static int rna_validate_identifier(const char *identifier, char *error, int prop
 {
 	int a = 0;
 	
-	/*  list from http://docs.python.org/py3k/reference/lexical_analysis.html#keywords */
+	/* list is from...
+	 * ", ".join(['"%s"' % kw for kw in  __import__("keyword").kwlist if kw not in {"False", "None", "True"}])
+	 */
 	static const char *kwlist[] = {
 		/* "False", "None", "True", */
 		"and", "as", "assert", "break",

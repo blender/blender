@@ -1025,23 +1025,23 @@ FileData *blo_openblenderfile(const char *filepath, ReportList *reports)
 static int fd_read_gzip_from_memory(FileData *filedata, void *buffer, unsigned int size)
 {
 	int err;
-	
+
 	filedata->strm.next_out = (Bytef *) buffer;
-    filedata->strm.avail_out = size;
-	
-    // Inflate another chunk.
-    err = inflate (&filedata->strm, Z_SYNC_FLUSH);
-	
-    if (err == Z_STREAM_END) {
+	filedata->strm.avail_out = size;
+
+	// Inflate another chunk.
+	err = inflate (&filedata->strm, Z_SYNC_FLUSH);
+
+	if (err == Z_STREAM_END) {
 		return 0;
 	}
-    else if (err != Z_OK)  {
+	else if (err != Z_OK)  {
 		printf("fd_read_gzip_from_memory: zlib error\n");
 		return 0;
-    }
-	
+	}
+
 	filedata->seek += size;
-	
+
 	return (size);
 }
 

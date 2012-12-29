@@ -219,7 +219,7 @@ static void preview_cb(ScrArea *sa, struct uiBlock *block)
 	BLI_rcti_translate(disprect, -curarea->winrct.xmin, -curarea->winrct.ymin);
 	
 	calc_image_view(sima, 'p');
-//	printf("winrct %d %d %d %d\n", disprect->xmin, disprect->ymin,disprect->xmax, disprect->ymax);
+//	printf("winrct %d %d %d %d\n", disprect->xmin, disprect->ymin, disprect->xmax, disprect->ymax);
 	/* map to image space coordinates */
 	mval[0] = disprect->xmin; mval[1] = disprect->ymin;
 	areamouseco_to_ipoco(v2d, mval, &dispf.xmin, &dispf.ymin);
@@ -236,7 +236,7 @@ static void preview_cb(ScrArea *sa, struct uiBlock *block)
 	CLAMP(disprect->xmax, 0, winx);
 	CLAMP(disprect->ymin, 0, winy);
 	CLAMP(disprect->ymax, 0, winy);
-//	printf("drawrct %d %d %d %d\n", disprect->xmin, disprect->ymin,disprect->xmax, disprect->ymax);
+//	printf("drawrct %d %d %d %d\n", disprect->xmin, disprect->ymin, disprect->xmax, disprect->ymax);
 
 }
 

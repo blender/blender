@@ -1083,8 +1083,8 @@ void MeshImporter::optimize_material_assignments()
 		Object *ob = (*it);
 		Mesh *me = (Mesh *) ob->data;
 		if (me->id.us==1) {
-			bc_copy_materials_to_data(ob,me);
-			bc_remove_materials_from_object(ob,me);
+			bc_copy_materials_to_data(ob, me);
+			bc_remove_materials_from_object(ob, me);
 			bc_remove_mark(ob);
 		}
 		else if (me->id.us > 1)
@@ -1101,10 +1101,10 @@ void MeshImporter::optimize_material_assignments()
 					}
 				}
 				if (can_move) {
-					bc_copy_materials_to_data(ref_ob,me);
+					bc_copy_materials_to_data(ref_ob, me);
 					for (int index = 0; index < mesh_users.size(); index++) {
 						Object *object = mesh_users[index];
-						bc_remove_materials_from_object(object,me);
+						bc_remove_materials_from_object(object, me);
 						bc_remove_mark(object);
 					}
 				}

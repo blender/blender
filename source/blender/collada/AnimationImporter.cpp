@@ -1194,7 +1194,7 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob, std::vector<FCurv
 		calc_joint_parent_mat_rest(par, NULL, root, node);
 		mult_m4_m4m4(temp, par, matfra);
 
-		// evaluate_joint_world_transform_at_frame(temp, NULL,, node, fra);
+		// evaluate_joint_world_transform_at_frame(temp, NULL, node, fra);
 
 		// calc special matrix
 		mul_serie_m4(mat, irest, temp, irest_dae, rest, NULL, NULL, NULL, NULL);
@@ -1529,7 +1529,7 @@ Object *AnimationImporter::translate_animation_OLD(COLLADAFW::Node *node,
 			calc_joint_parent_mat_rest(par, NULL, root, node);
 			mult_m4_m4m4(temp, par, matfra);
 
-			// evaluate_joint_world_transform_at_frame(temp, NULL,, node, fra);
+			// evaluate_joint_world_transform_at_frame(temp, NULL, node, fra);
 
 			// calc special matrix
 			mul_serie_m4(mat, irest, temp, irest_dae, rest, NULL, NULL, NULL, NULL);

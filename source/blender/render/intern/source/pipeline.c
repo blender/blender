@@ -1237,7 +1237,7 @@ static void do_render_fields_blur_3d(Render *re)
 	Object *camera = RE_GetCamera(re);
 	/* also check for camera here */
 	if (camera == NULL) {
-        BKE_report(re->reports, RPT_ERROR, "Cannot render, no camera");
+		BKE_report(re->reports, RPT_ERROR, "Cannot render, no camera");
 		G.is_break = TRUE;
 		return;
 	}

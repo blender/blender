@@ -459,7 +459,7 @@ static void testvertexnearedge(ScanFillContext *sf_ctx)
 								/* new edge */
 								ed1 = BLI_scanfill_edge_add(sf_ctx, eed->v1, eve);
 								
-								/* printf("fill: vertex near edge %x\n",eve); */
+								/* printf("fill: vertex near edge %x\n", eve); */
 								ed1->f = 0;
 								ed1->poly_nr = eed->poly_nr;
 								eed->v1 = eve;
@@ -639,7 +639,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 
 	sc = sf_ctx->_scdata;
 	for (a = 0; a < verts; a++) {
-		/* printf("VERTEX %d %x\n",a,sc->v1); */
+		/* printf("VERTEX %d %x\n", a, sc->v1); */
 		ed1 = sc->edge_first;
 		while (ed1) {   /* set connectflags  */
 			nexted = ed1->next;
@@ -680,9 +680,9 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 				v3 = ed2->v2;
 				/* this happens with a serial of overlapping edges */
 				if (v1 == v2 || v2 == v3) break;
-				/* printf("test verts %x %x %x\n",v1,v2,v3); */
+				/* printf("test verts %x %x %x\n", v1, v2, v3); */
 				miny = min_ff(v1->xy[1], v3->xy[1]);
-				/*  miny = min_ff(v1->xy[1],v3->xy[1]); */
+				/*  miny = min_ff(v1->xy[1], v3->xy[1]); */
 				sc1 = sc + 1;
 				test = 0;
 
@@ -704,7 +704,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 				}
 				if (test) {
 					/* make new edge, and start over */
-					/* printf("add new edge %x %x and start again\n",v2,sc1->vert); */
+					/* printf("add new edge %x %x and start again\n", v2, sc1->vert); */
 
 					ed3 = BLI_scanfill_edge_add(sf_ctx, v2, sc1->vert);
 					BLI_remlink(&sf_ctx->filledgebase, ed3);
@@ -716,7 +716,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 				}
 				else {
 					/* new triangle */
-					/* printf("add face %x %x %x\n",v1,v2,v3); */
+					/* printf("add face %x %x %x\n", v1, v2, v3); */
 					addfillface(sf_ctx, v1, v2, v3);
 					totface++;
 					BLI_remlink((ListBase *)&(sc->edge_first), ed1);
@@ -740,7 +740,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 					ed3->v1->h++; 
 					ed3->v2->h++;
 					
-					/* printf("add new edge %x %x\n",v1,v3); */
+					/* printf("add new edge %x %x\n", v1, v3); */
 					sc1 = addedgetoscanlist(sf_ctx, ed3, verts);
 					
 					if (sc1) {  /* ed3 already exists: remove if a boundary */
@@ -963,7 +963,7 @@ int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float no
 			}
 			eve = eve->next;
 		}
-		/* printf("amount of poly's: %d\n",poly); */
+		/* printf("amount of poly's: %d\n", poly); */
 	}
 	else {
 		poly = 1;

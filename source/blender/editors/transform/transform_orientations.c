@@ -764,7 +764,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			EditBone *ebone;
 			int ok = FALSE;
 			
-			/* grr,.but better then duplicate code */
+			/* grr. but better then duplicate code */
 #define EBONE_CALC_NORMAL_PLANE  { \
 			float tmat[3][3]; \
 			float vec[3]; \

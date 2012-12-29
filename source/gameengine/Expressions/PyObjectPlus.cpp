@@ -118,16 +118,16 @@ PyTypeObject PyObjectPlus::Type = {
 	0,								/* setattrfunc tp_setattr; */
 	0,								/* tp_compare */ /* DEPRECATED in python 3.0! */
 	py_base_repr,					/* tp_repr */
-	0,0,0,0,0,0,0,0,0,				/* Method suites for standard classes */
-	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,/* long tp_flags; */
-	0,0,0,0,
+	0, 0, 0, 0, 0, 0, 0, 0, 0,		/* Method suites for standard classes */
+	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* long tp_flags; */
+	0, 0, 0, 0,
 	/* weak reference enabler */
 #ifdef USE_WEAKREFS
 	offsetof(PyObjectPlus_Proxy, in_weakreflist),	/* long tp_weaklistoffset; */
 #else
 	0,
 #endif
-	0,0,
+	0, 0,
 	Methods,
 	0,
 	0,
@@ -311,14 +311,14 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 				{
 					bool *val = reinterpret_cast<bool*>(ptr);
 					ptr += sizeof(bool);
-					PyList_SET_ITEM(resultlist,i,PyBool_FromLong(*val));
+					PyList_SET_ITEM(resultlist, i, PyBool_FromLong(*val));
 					break;
 				}
 			case KX_PYATTRIBUTE_TYPE_SHORT:
 				{
 					short int *val = reinterpret_cast<short int*>(ptr);
 					ptr += sizeof(short int);
-					PyList_SET_ITEM(resultlist,i,PyLong_FromLong(*val));
+					PyList_SET_ITEM(resultlist, i, PyLong_FromLong(*val));
 					break;
 				}
 			case KX_PYATTRIBUTE_TYPE_ENUM:
@@ -333,14 +333,14 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 				{
 					int *val = reinterpret_cast<int*>(ptr);
 					ptr += sizeof(int);
-					PyList_SET_ITEM(resultlist,i,PyLong_FromLong(*val));
+					PyList_SET_ITEM(resultlist, i, PyLong_FromLong(*val));
 					break;
 				}
 			case KX_PYATTRIBUTE_TYPE_FLOAT:
 				{
 					float *val = reinterpret_cast<float*>(ptr);
 					ptr += sizeof(float);
-					PyList_SET_ITEM(resultlist,i,PyFloat_FromDouble(*val));
+					PyList_SET_ITEM(resultlist, i, PyFloat_FromDouble(*val));
 					break;
 				}
 			default:
@@ -423,7 +423,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 						PyObject *resultlist = PyList_New(attrdef->m_imax);
 						for (unsigned int i=0; i<attrdef->m_imax; i++)
 						{
-							PyList_SET_ITEM(resultlist,i,PyFloat_FromDouble(val[i]));
+							PyList_SET_ITEM(resultlist, i, PyFloat_FromDouble(val[i]));
 						}
 						return resultlist;
 #endif
@@ -443,9 +443,9 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 						PyObject *col = PyList_New(attrdef->m_imax);
 						for (unsigned int j=0; j<attrdef->m_imax; j++)
 						{
-							PyList_SET_ITEM(col,j,PyFloat_FromDouble(val[j]));
+							PyList_SET_ITEM(col, j, PyFloat_FromDouble(val[j]));
 						}
-						PyList_SET_ITEM(collist,i,col);
+						PyList_SET_ITEM(collist, i, col);
 						val += attrdef->m_imax;
 					}
 					return collist;
@@ -463,7 +463,7 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 				PyObject *resultlist = PyList_New(3);
 				for (unsigned int i=0; i<3; i++)
 				{
-					PyList_SET_ITEM(resultlist,i,PyFloat_FromDouble((*val)[i]));
+					PyList_SET_ITEM(resultlist, i, PyFloat_FromDouble((*val)[i]));
 				}
 				return resultlist;
 #endif
@@ -1110,7 +1110,7 @@ int PyObjectPlus::py_set_attrdef(PyObject *self_py, PyObject *value, const PyAtt
 ------------------------------*/
 PyObject *PyObjectPlus::py_repr(void)
 {
-	PyErr_SetString(PyExc_SystemError, "Representation not overridden by object.");  
+	PyErr_SetString(PyExc_SystemError, "Representation not overridden by object.");
 	return NULL;
 }
 
@@ -1187,7 +1187,7 @@ void PyObjectPlus::SetDeprecationWarnings(bool ignoreDeprecationWarnings)
 	m_ignore_deprecation_warnings = ignoreDeprecationWarnings;
 }
 
-void PyObjectPlus::ShowDeprecationWarning_func(const char* old_way,const char* new_way)
+void PyObjectPlus::ShowDeprecationWarning_func(const char *old_way, const char *new_way)
 {
 	printf("Method %s is deprecated, please use %s instead.\n", old_way, new_way);
 	PyC_LineSpit();

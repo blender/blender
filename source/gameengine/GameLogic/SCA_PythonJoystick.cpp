@@ -122,14 +122,14 @@ PyObject* SCA_PythonJoystick::pyattr_get_active_buttons(void *self_v, const KX_P
 {
 	SCA_PythonJoystick* self = static_cast<SCA_PythonJoystick*>(self_v);
 	
-	int button_index = self->m_joystick->GetNumberOfButtons();
+	const int button_number = self->m_joystick->GetNumberOfButtons();
 
 	PyObject *list = PyList_New(0);
 	PyObject *value;
 
-	for (int i=0; i < self->m_joystick->GetNumberOfButtons(); i++) {
+	for (int i=0; i < button_number; i++) {
 		if (self->m_joystick->aButtonPressIsPositive(i)) {
-			value = PyLong_FromSsize_t(i);
+			value = PyLong_FromLong(i);
 			PyList_Append(list, value);
 			Py_DECREF(value);
 		}
