@@ -1590,7 +1590,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
 				momentum = [event momentumPhase];
 #endif
-				
+				/* standard scrollwheel case */
 				if (!m_hasMultiTouchTrackpad && momentum==0) {
 					GHOST_TInt32 delta;
 					
@@ -1605,9 +1605,18 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 				else {
 					NSPoint mousePos = [cocoawindow mouseLocationOutsideOfEventStream];
 					GHOST_TInt32 x, y;
-					double dx = [event deltaX];
-					double dy = -[event deltaY];
+					double dx;
+					double dy;
 					
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
+					/* with 10.7 nice scrolling deltas are supported */
+					dx = [event scrollingDeltaX];
+					dy = [event scrollingDeltaY];
+
+#else
+					/* trying to pretend you have nice scrolls... */
+					dx = [event deltaX];
+					dy = -[event deltaY];
 					const double deltaMax = 50.0;
 					
 					if ((dx == 0) && (dy == 0)) break;
@@ -1624,9 +1633,10 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 					else          dy += 0.5;
 					if      (dy < -deltaMax) dy= -deltaMax;
 					else if (dy >  deltaMax) dy=  deltaMax;
-
-					window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
+					
 					dy = -dy;
+#endif
+					window->clientToScreenIntern(mousePos.x, mousePos.y, x, y);
 
 					pushEvent(new GHOST_EventTrackpad([event timestamp] * 1000, window, GHOST_kTrackpadEventScroll, x, y, dx, dy));
 				}
