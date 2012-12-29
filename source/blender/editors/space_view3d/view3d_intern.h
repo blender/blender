@@ -77,6 +77,7 @@ void VIEW3D_OT_zoom_camera_1_to_1(struct wmOperatorType *ot);
 void VIEW3D_OT_move(struct wmOperatorType *ot);
 void VIEW3D_OT_rotate(struct wmOperatorType *ot);
 void VIEW3D_OT_ndof_orbit(struct wmOperatorType *ot);
+void VIEW3D_OT_ndof_orbit_zoom(struct wmOperatorType *ot);
 void VIEW3D_OT_ndof_pan(struct wmOperatorType *ot);
 void VIEW3D_OT_ndof_all(struct wmOperatorType *ot);
 void VIEW3D_OT_view_all(struct wmOperatorType *ot);
