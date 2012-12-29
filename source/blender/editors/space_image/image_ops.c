@@ -457,7 +457,7 @@ enum {
 
 static int image_view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if (event->type == MOUSEZOOM) {
+	if (event->type == MOUSEZOOM || event->type == MOUSEPAN) {
 		SpaceImage *sima = CTX_wm_space_image(C);
 		ARegion *ar = CTX_wm_region(C);
 		float delta, factor, location[2];

@@ -937,7 +937,7 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	vzd = op->customdata;
 	v2d = vzd->v2d;
 	
-	if (event->type == MOUSEZOOM) {
+	if (event->type == MOUSEZOOM || event->type == MOUSEPAN) {
 		float dx, dy, fac;
 		
 		vzd->lastx = event->prevx;
@@ -948,6 +948,8 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		 */
 		fac = 0.01f * (event->x - event->prevx);
 		dx = fac * BLI_rctf_size_x(&v2d->cur) / 10.0f;
+		if (event->type == MOUSEPAN)
+			fac = 0.01f * (event->y - event->prevy);
 		dy = fac * BLI_rctf_size_y(&v2d->cur) / 10.0f;
 
 		RNA_float_set(op->ptr, "deltax", dx);
@@ -1903,6 +1905,7 @@ void UI_view2d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_in", WHEELINMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_out", PADMINUS, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_in", PADPLUSKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MOUSEPAN, 0, KM_CTRL, 0);
 	
 	WM_keymap_verify_item(keymap, "VIEW2D_OT_smoothview", TIMER1, KM_ANY, KM_ANY, 0);
 
@@ -1951,6 +1954,7 @@ void UI_view2d_keymap(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MOUSEZOOM, 0, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MOUSEPAN, 0, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_out", PADMINUS, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_in", PADPLUSKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_reset", HOMEKEY, KM_PRESS, 0, 0);
