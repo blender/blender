@@ -2319,7 +2319,7 @@ void ui_draw_link_bezier(const rcti *rect)
 
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(2, GL_FLOAT, 0, coord_array);
-		glDrawArrays(GL_LINE_STRIP, 0, LINK_RESOL+1);
+		glDrawArrays(GL_LINE_STRIP, 0, LINK_RESOL + 1);
 		glDisableClientState(GL_VERTEX_ARRAY);
 
 		glDisable(GL_BLEND);

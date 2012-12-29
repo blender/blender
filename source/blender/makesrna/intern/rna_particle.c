@@ -295,8 +295,8 @@ static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *o
 	ParticleSettings *part = 0;
 	ParticleData *pars = 0;
 	ParticleCacheKey *cache = 0;
-	int totchild=0;
-	int path_nbr=0;
+	int totchild = 0;
+	int path_nbr = 0;
 	int totpart;
 	int max_k = 0;
 
@@ -309,7 +309,7 @@ static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *o
 	if (part == NULL || pars == NULL || !psys_check_enabled(object, particlesystem))
 		return;
 	
-	if (part->ren_as==PART_DRAW_OB || part->ren_as==PART_DRAW_GR || part->ren_as==PART_DRAW_NOT)
+	if (part->ren_as == PART_DRAW_OB || part->ren_as == PART_DRAW_GR || part->ren_as == PART_DRAW_NOT)
 		return;
 
 	totchild = particlesystem->totchild * part->disp / 100;
@@ -324,9 +324,9 @@ static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *o
 		return;
 
 	if (part->ren_as == PART_DRAW_PATH && particlesystem->pathcache)
-		path_nbr=(int)pow(2.0, part->draw_step);
+		path_nbr = (int)pow(2.0, part->draw_step);
 
-	if (particle_no<totpart) {
+	if (particle_no < totpart) {
 
 		if (path_nbr) {
 			cache = particlesystem->pathcache[particle_no];
@@ -337,7 +337,7 @@ static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *o
 	else {
 
 		if (path_nbr) {
-			cache = particlesystem->childcache[particle_no-totpart];
+			cache = particlesystem->childcache[particle_no - totpart];
 
 			if (cache->steps < 0)
 				max_k = 0;
@@ -348,16 +348,16 @@ static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *o
 
 	/*strands key loop data stored in cache + step->co*/
 	if (path_nbr) {
-		if (step>=0 && step<=path_nbr) {
-			if (step<=max_k)
-				copy_v3_v3(n_co, (cache+step)->co);
+		if (step >= 0 && step <= path_nbr) {
+			if (step <= max_k)
+				copy_v3_v3(n_co, (cache + step)->co);
 		}
 	}
 
 }
 
 static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, ParticleSystemModifierData *modifier, ParticleData *particle, int particle_no,
-                                              float n_uv[2])
+                                             float n_uv[2])
 {
 	ParticleSettings *part = 0;
 	int totpart;
@@ -368,7 +368,7 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Par
 	if (particlesystem == NULL)
 		return;
 
-	part=particlesystem->part;
+	part = particlesystem->part;
 
 		totchild = particlesystem->totchild;
 
@@ -383,7 +383,7 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Par
 
 /* 3. start creating renderable things */
 	/* setup per particle individual stuff */
-	if (particle_no<totpart) {
+	if (particle_no < totpart) {
 
 		/* get uvco & mcol */
 		num = particle->num_dmcache;
@@ -407,7 +407,7 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Par
 		}
 	}
 	else {
-		ChildParticle *cpa = particlesystem->child + particle_no-totpart;
+		ChildParticle *cpa = particlesystem->child + particle_no - totpart;
 
 		num = cpa->num;
 
