@@ -127,8 +127,8 @@ static int txtfmt_py_find_decorator(const char *string)
 {
 	if (string[0] == '@') {
 		int i = 1;
-		/* whitespace is ok '@  foo' */
-		while (string[i] == '\t' || string[i] == ' ') {
+		/* Whitespace is ok '@  foo' */
+		while (text_check_whitespace(string[i])) {
 			i++;
 		}
 		while (text_check_identifier(string[i])) {

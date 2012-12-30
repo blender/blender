@@ -120,7 +120,7 @@ static void format_draw_color(char formatchar)
 		case FMT_TYPE_WHITESPACE:
 			break;
 		case FMT_TYPE_SYMBOL:
-			UI_ThemeColorBlend(TH_TEXT, TH_BACK, 0.5f);
+			UI_ThemeColor(TH_SYNTAX_S);
 			break;
 		case FMT_TYPE_COMMENT:
 			UI_ThemeColor(TH_SYNTAX_C);

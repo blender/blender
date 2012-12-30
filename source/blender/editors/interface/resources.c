@@ -364,6 +364,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->syntaxr; break;
 				case TH_SYNTAX_N:
 					cp = ts->syntaxn; break;
+				case TH_SYNTAX_S:
+					cp = ts->syntaxs; break;
 
 				case TH_NODE:
 					cp = ts->syntaxl; break;
@@ -890,6 +892,7 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->text.syntaxd,    50, 0, 140, 255);   /* Decorator/Preprocessor Dir.  Blue-purple */
 	rgba_char_args_set(btheme->text.syntaxr,    140, 60, 0, 255);   /* Reserved  Orange*/
 	rgba_char_args_set(btheme->text.syntaxb,    128, 0, 80, 255);   /* Builtin  Red-purple */
+	rgba_char_args_set(btheme->text.syntaxs,    76, 76, 76, 255);   /* Grey (mix between fg/bg) */
 	
 	/* space oops */
 	btheme->toops = btheme->tv3d;
@@ -2093,6 +2096,7 @@ void init_userdef_do_versions(void)
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			rgba_char_args_set(btheme->text.syntaxd,    50, 0, 140, 255);   /* Decorator/Preprocessor Dir.  Blue-purple */
 			rgba_char_args_set(btheme->text.syntaxr,    140, 60, 0, 255);   /* Reserved  Orange */
+			rgba_char_args_set(btheme->text.syntaxs,    76, 76, 76, 255);   /* Grey (mix between fg/bg) */
 		}
 	}
 	

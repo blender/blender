@@ -154,8 +154,8 @@ static int txtfmt_osl_find_preprocessor(const char *string)
 {
 	if (string[0] == '#') {
 		int i = 1;
-		/* whitespace is ok '#  foo' */
-		while (string[i] == '\t' || string[i] == ' ') {
+		/* Whitespace is ok '#  foo' */
+		while (text_check_whitespace(string[i])) {
 			i++;
 		}
 		while (text_check_identifier(string[i])) {
@@ -165,24 +165,6 @@ static int txtfmt_osl_find_preprocessor(const char *string)
 	}
 	return -1;
 }
-
-/* not in OSL, keep for now though */
-#if 0
-static int txtfmt_osl_find_bool(const char *string)
-{
-	int i, len;
-
-	if      (STR_LITERAL_STARTSWITH(string, "None",  len))  i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "True",  len))  i = len;
-	else if (STR_LITERAL_STARTSWITH(string, "False", len))  i = len;
-	else                                                    i = 0;
-
-	/* If next source char is an identifier (eg. 'i' in "Nonetheless") no match */
-	if (i == 0 || text_check_identifier(string[i]))
-		return -1;
-	return i;
-}
-#endif
 
 static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const int do_next)
 {

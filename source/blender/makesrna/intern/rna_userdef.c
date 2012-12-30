@@ -1636,6 +1636,12 @@ static void rna_def_userdef_theme_space_text(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Syntax Built-in", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
+	prop = RNA_def_property(srna, "syntax_symbols", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "syntaxs");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Syntax Symbols", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
 	prop = RNA_def_property(srna, "syntax_special", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "syntaxv");
 	RNA_def_property_array(prop, 3);
