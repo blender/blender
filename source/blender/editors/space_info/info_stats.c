@@ -48,6 +48,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_key.h"
 #include "BKE_mesh.h"
+#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_tessmesh.h"
 
@@ -246,6 +247,12 @@ static void stats_object_pose(Object *ob, SceneStats *stats)
 	}
 }
 
+static void stats_object_sculpt_dynamic_topology(Object *ob, SceneStats *stats)
+{
+	stats->totvert = ob->sculpt->bm->totvert;
+	stats->tottri = ob->sculpt->bm->totface;
+}
+
 static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 {
 	if (base->flag & SELECT) stats->totobjsel++;
@@ -305,6 +312,12 @@ static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 	}
 }
 
+static int stats_is_object_dynamic_topology_sculpt(Object *ob)
+{
+	return (ob && (ob->mode & OB_MODE_SCULPT) &&
+			ob->sculpt && ob->sculpt->bm);
+}
+
 /* Statistics displayed in info header. Called regularly on scene changes. */
 static void stats_update(Scene *scene)
 {
@@ -319,6 +332,10 @@ static void stats_update(Scene *scene)
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		/* Pose Mode */
 		stats_object_pose(ob, &stats);
+	}
+	else if (stats_is_object_dynamic_topology_sculpt(ob)) {
+		/* Dynamic-topology sculpt mode */
+		stats_object_sculpt_dynamic_topology(ob, &stats);
 	}
 	else {
 		/* Objects */
@@ -373,6 +390,9 @@ static void stats_string(Scene *scene)
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		s += sprintf(s, "Bones:%d/%d %s",
 		             stats->totbonesel, stats->totbone, memstr);
+	}
+	else if (stats_is_object_dynamic_topology_sculpt(ob)) {
+		s += sprintf(s, "Verts:%d | Tris:%d", stats->totvert, stats->tottri);
 	}
 	else {
 		s += sprintf(s, "Verts:%d | Faces:%d| Tris:%d | Objects:%d/%d | Lamps:%d/%d%s",
