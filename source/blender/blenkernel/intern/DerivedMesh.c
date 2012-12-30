@@ -1340,6 +1340,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	MultiresModifierData *mmd = get_multires_modifier(scene, ob, 0);
 	int has_multires = mmd != NULL, multires_applied = 0;
 	int sculpt_mode = ob->mode & OB_MODE_SCULPT && ob->sculpt;
+	int sculpt_dyntopo = (sculpt_mode && ob->sculpt->bm);
 
 	const int draw_flag = ((scene->toolsettings->multipaint ? CALC_WP_MULTIPAINT : 0) |
 	                       (scene->toolsettings->auto_normalize ? CALC_WP_AUTO_NORMALIZE : 0));
@@ -1407,7 +1408,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			if (!modifier_isEnabled(scene, md, required_mode)) continue;
 			if (useDeform < 0 && mti->dependsOnTime && mti->dependsOnTime(md)) continue;
 
-			if (mti->type == eModifierTypeType_OnlyDeform) {
+			if (mti->type == eModifierTypeType_OnlyDeform && !sculpt_dyntopo) {
 				if (!deformedVerts)
 					deformedVerts = mesh_getVertexCos(me, &numVerts);
 
@@ -1465,8 +1466,13 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			modifier_setError(md, "Modifier requires original data, bad stack position");
 			continue;
 		}
-		if (sculpt_mode && (!has_multires || multires_applied)) {
+		if (sculpt_mode &&
+			(!has_multires || multires_applied || ob->sculpt->bm))
+		{
 			int unsupported = 0;
+
+			if (sculpt_dyntopo)
+				unsupported = TRUE;
 
 			if (scene->toolsettings->sculpt->flags & SCULPT_ONLY_DEFORM)
 				unsupported |= mti->type != eModifierTypeType_OnlyDeform;
