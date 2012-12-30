@@ -69,22 +69,29 @@ typedef struct TextFormatType {
 	/* Formats the specified line. If do_next is set, the process will move on to
 	 * the succeeding line if it is affected (eg. multiline strings). Format strings
 	 * may contain any of the following characters:
-	 *  '_'  Whitespace
-	 *  '#'  Comment text
-	 *  '!'  Punctuation and other symbols
-	 *  'n'  Numerals
-	 *  'l'  String letters
-	 *  'd'  Decorator / Preprocessor directive
-	 *  'v'  Special variables (class, def)
-	 *  'r'  Reserved keywords currently not in use, but still prohibited (OSL -> switch e.g.)
-	 *  'b'  Built-in names (print, for, etc.)
-	 *  'q'  Other text (identifiers, etc.)
+	 *
 	 * It is terminated with a null-terminator '\0' followed by a continuation
-	 * flag indicating whether the line is part of a multi-line string. */
+	 * flag indicating whether the line is part of a multi-line string.
+	 *
+	 * See: FMT_TYPE_ enums below
+	 */
 	void (*format_line)(SpaceText *st, TextLine *line, int do_next);
 
 	const char **ext;  /* NULL terminated extensions */
 } TextFormatType;
+
+enum {
+	FMT_TYPE_WHITESPACE = '_',  /* Whitespace */
+	FMT_TYPE_COMMENT    = '#',  /* Comment text */
+	FMT_TYPE_SYMBOL     = '!',  /* Punctuation and other symbols */
+	FMT_TYPE_NUMERAL    = 'n',  /* Numerals */
+	FMT_TYPE_STRING     = 'l',  /* String letters */
+	FMT_TYPE_DIRECTIVE  = 'd',  /* Decorator / Preprocessor directive */
+	FMT_TYPE_SPECIAL    = 'v',  /* Special variables (class, def) */
+	FMT_TYPE_RESERVED   = 'r',  /* Reserved keywords currently not in use, but still prohibited (OSL -> switch e.g.) */
+	FMT_TYPE_KEYWORD    = 'b',  /* Built-in names (return, for, etc.) */
+	FMT_TYPE_DEFAULT    = 'q',  /* Regular text (identifiers, etc.) */
+};
 
 TextFormatType *ED_text_format_get(Text *text);
 void            ED_text_format_register(TextFormatType *tft);

@@ -232,23 +232,23 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const int do_n
 		else if (cont) {
 			/* C-Style comments */
 			if (cont & FMT_CONT_COMMENT_CXX) {
-				*fmt = '#';
+				*fmt = FMT_TYPE_COMMENT;
 			}
 			else if (cont & FMT_CONT_COMMENT_C) {
 				if (*str == '*' && *(str + 1) == '/') {
-					*fmt = '#'; fmt++; str++;
-					*fmt = '#';
+					*fmt = FMT_TYPE_COMMENT; fmt++; str++;
+					*fmt = FMT_TYPE_COMMENT;
 					cont = FMT_CONT_NOP;
 				}
 				else {
-					*fmt = '#';
+					*fmt = FMT_TYPE_COMMENT;
 				}
 				/* Handle other comments */
 			}
 			else {
 				find = (cont & FMT_CONT_QUOTEDOUBLE) ? '"' : '\'';
 				if (*str == find) cont = 0;
-				*fmt = 'l';
+				*fmt = FMT_TYPE_STRING;
 			}
 
 			str += BLI_str_utf8_size_safe(str) - 1;
@@ -258,44 +258,46 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const int do_n
 			/* Deal with comments first */
 			if (*str == '/' && *(str + 1) == '/') {
 				cont = FMT_CONT_COMMENT_CXX;
-				*fmt = '#';
+				*fmt = FMT_TYPE_COMMENT;
 			}
 			/* C-Style (multi-line) comments */
 			else if (*str == '/' && *(str + 1) == '*') {
 				cont = FMT_CONT_COMMENT_C;
-				*fmt = '#'; fmt++; str++;
-				*fmt = '#';
+				*fmt = FMT_TYPE_COMMENT; fmt++; str++;
+				*fmt = FMT_TYPE_COMMENT;
 			}
 			else if (*str == '"' || *str == '\'') {
 				/* Strings */
 				find = *str;
 				cont = (*str == '"') ? FMT_CONT_QUOTEDOUBLE : FMT_CONT_QUOTESINGLE;
-				*fmt = 'l';
+				*fmt = FMT_TYPE_STRING;
 			}
 			/* Whitespace (all ws. has been converted to spaces) */
 			else if (*str == ' ') {
-				*fmt = '_';
+				*fmt = FMT_TYPE_WHITESPACE;
 			}
 			/* Numbers (digits not part of an identifier and periods followed by digits) */
-			else if ((prev != 'q' && text_check_digit(*str)) || (*str == '.' && text_check_digit(*(str + 1)))) {
-				*fmt = 'n';
+			else if ((prev != FMT_TYPE_DEFAULT && text_check_digit(*str)) ||
+			         (*str == '.' && text_check_digit(*(str + 1))))
+			{
+				*fmt = FMT_TYPE_NUMERAL;
 			}
 			/* Punctuation */
 			else if ((*str != '#') && text_check_delim(*str)) {
-				*fmt = '!';
+				*fmt = FMT_TYPE_SYMBOL;
 			}
 			/* Identifiers and other text (no previous ws. or delims. so text continues) */
-			else if (prev == 'q') {
+			else if (prev == FMT_TYPE_DEFAULT) {
 				str += BLI_str_utf8_size_safe(str) - 1;
-				*fmt = 'q';
+				*fmt = FMT_TYPE_DEFAULT;
 			}
 			/* Not ws, a digit, punct, or continuing text. Must be new, check for special words */
 			else {
 				/* Special vars(v) or built-in keywords(b) */
-				if      ((i = txtfmt_osl_find_specialvar(str))   != -1) prev = 'v';
-				else if ((i = txtfmt_osl_find_builtinfunc(str))  != -1) prev = 'b';
-				else if ((i = txtfmt_osl_find_reserved(str))     != -1) prev = 'r';
-				else if ((i = txtfmt_osl_find_preprocessor(str)) != -1) prev = 'd';
+				if      ((i = txtfmt_osl_find_specialvar(str))   != -1) prev = FMT_TYPE_SPECIAL;
+				else if ((i = txtfmt_osl_find_builtinfunc(str))  != -1) prev = FMT_TYPE_KEYWORD;
+				else if ((i = txtfmt_osl_find_reserved(str))     != -1) prev = FMT_TYPE_RESERVED;
+				else if ((i = txtfmt_osl_find_preprocessor(str)) != -1) prev = FMT_TYPE_DIRECTIVE;
 
 				if (i > 0) {
 					memset(fmt, prev, i);
@@ -303,7 +305,7 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const int do_n
 				}
 				else {
 					str += BLI_str_utf8_size_safe(str) - 1;
-					*fmt = 'q';
+					*fmt = FMT_TYPE_DEFAULT;
 				}
 			}
 		}

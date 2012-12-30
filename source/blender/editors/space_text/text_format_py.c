@@ -204,8 +204,8 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_ne
 			if (cont & FMT_CONT_TRIPLE) {
 				find = (cont & FMT_CONT_QUOTEDOUBLE) ? '"' : '\'';
 				if (*str == find && *(str + 1) == find && *(str + 2) == find) {
-					*fmt = 'l'; fmt++; str++;
-					*fmt = 'l'; fmt++; str++;
+					*fmt = FMT_TYPE_STRING; fmt++; str++;
+					*fmt = FMT_TYPE_STRING; fmt++; str++;
 					cont = FMT_CONT_NOP;
 				}
 				/* Handle other strings */
@@ -215,14 +215,14 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_ne
 				if (*str == find) cont = FMT_CONT_NOP;
 			}
 
-			*fmt = 'l';
+			*fmt = FMT_TYPE_STRING;
 			str += BLI_str_utf8_size_safe(str) - 1;
 		}
 		/* Not in a string... */
 		else {
 			/* Deal with comments first */
-			if (prev == '#' || *str == '#') {
-				*fmt = '#';
+			if (prev == FMT_TYPE_COMMENT || *str == '#') {
+				*fmt = FMT_TYPE_COMMENT;
 				str += BLI_str_utf8_size_safe(str) - 1;
 			}
 			else if (*str == '"' || *str == '\'') {
@@ -230,46 +230,48 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_ne
 				find = *str;
 				cont = (*str == '"') ? FMT_CONT_QUOTEDOUBLE : FMT_CONT_QUOTESINGLE;
 				if (*(str + 1) == find && *(str + 2) == find) {
-					*fmt = 'l'; fmt++; str++;
-					*fmt = 'l'; fmt++; str++;
+					*fmt = FMT_TYPE_STRING; fmt++; str++;
+					*fmt = FMT_TYPE_STRING; fmt++; str++;
 					cont |= FMT_CONT_TRIPLE;
 				}
-				*fmt = 'l';
+				*fmt = FMT_TYPE_STRING;
 			}
 			/* Whitespace (all ws. has been converted to spaces) */
 			else if (*str == ' ') {
-				*fmt = '_';
+				*fmt = FMT_TYPE_WHITESPACE;
 			}
 			/* Numbers (digits not part of an identifier and periods followed by digits) */
-			else if ((prev != 'q' && text_check_digit(*str)) || (*str == '.' && text_check_digit(*(str + 1)))) {
-				*fmt = 'n';
+			else if ((prev != FMT_TYPE_DEFAULT && text_check_digit(*str)) ||
+			         (*str == '.' && text_check_digit(*(str + 1))))
+			{
+				*fmt = FMT_TYPE_NUMERAL;
 			}
 			/* Booleans */
-			else if (prev != 'q' && (i = txtfmt_py_find_bool(str)) != -1) {
+			else if (prev != FMT_TYPE_DEFAULT && (i = txtfmt_py_find_bool(str)) != -1) {
 				if (i > 0) {
-					memset(fmt, 'n', i);
+					memset(fmt, FMT_TYPE_NUMERAL, i);
 					i--; fmt += i; str += i;
 				}
 				else {
 					str += BLI_str_utf8_size_safe(str) - 1;
-					*fmt = 'q';
+					*fmt = FMT_TYPE_DEFAULT;
 				}
 			}
 			/* Punctuation */
 			else if ((*str != '@') && text_check_delim(*str)) {
-				*fmt = '!';
+				*fmt = FMT_TYPE_SYMBOL;
 			}
 			/* Identifiers and other text (no previous ws. or delims. so text continues) */
-			else if (prev == 'q') {
+			else if (prev == FMT_TYPE_DEFAULT) {
 				str += BLI_str_utf8_size_safe(str) - 1;
-				*fmt = 'q';
+				*fmt = FMT_TYPE_DEFAULT;
 			}
 			/* Not ws, a digit, punct, or continuing text. Must be new, check for special words */
 			else {
 				/* Special vars(v) or built-in keywords(b) */
-				if      ((i = txtfmt_py_find_specialvar(str))   != -1) prev = 'v';
-				else if ((i = txtfmt_py_find_builtinfunc(str))  != -1) prev = 'b';
-				else if ((i = txtfmt_py_find_decorator(str))    != -1) prev = 'v';  /* could have a new color for this */
+				if      ((i = txtfmt_py_find_specialvar(str))   != -1) prev = FMT_TYPE_SPECIAL;
+				else if ((i = txtfmt_py_find_builtinfunc(str))  != -1) prev = FMT_TYPE_KEYWORD;
+				else if ((i = txtfmt_py_find_decorator(str))    != -1) prev = FMT_TYPE_SPECIAL;  /* could have a new color for this */
 
 				if (i > 0) {
 					memset(fmt, prev, i);
@@ -277,7 +279,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_ne
 				}
 				else {
 					str += BLI_str_utf8_size_safe(str) - 1;
-					*fmt = 'q';
+					*fmt = FMT_TYPE_DEFAULT;
 				}
 			}
 		}

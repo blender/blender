@@ -117,33 +117,33 @@ static void txt_format_text(SpaceText *st)
 static void format_draw_color(char formatchar)
 {
 	switch (formatchar) {
-		case '_': /* Whitespace */
+		case FMT_TYPE_WHITESPACE:
 			break;
-		case '!': /* Symbols */
+		case FMT_TYPE_SYMBOL:
 			UI_ThemeColorBlend(TH_TEXT, TH_BACK, 0.5f);
 			break;
-		case '#': /* Comments */
+		case FMT_TYPE_COMMENT:
 			UI_ThemeColor(TH_SYNTAX_C);
 			break;
-		case 'n': /* Numerals */
+		case FMT_TYPE_NUMERAL:
 			UI_ThemeColor(TH_SYNTAX_N);
 			break;
-		case 'l': /* Strings */
+		case FMT_TYPE_STRING:
 			UI_ThemeColor(TH_SYNTAX_L);
 			break;
-		case 'd': /* Preprocessor directive */
+		case FMT_TYPE_DIRECTIVE:
 			UI_ThemeColor(TH_SYNTAX_D);
 			break;
-		case 'v': /* Specials: class, def */
+		case FMT_TYPE_SPECIAL:
 			UI_ThemeColor(TH_SYNTAX_V);
 			break;
-		case 'r': /* Reserved keywords */
+		case FMT_TYPE_RESERVED:
 			UI_ThemeColor(TH_SYNTAX_R);
 			break;
-		case 'b': /* Keywords: for, print, etc. */
+		case FMT_TYPE_KEYWORD:
 			UI_ThemeColor(TH_SYNTAX_B);
 			break;
-		case 'q': /* Other text (identifiers) */
+		case FMT_TYPE_DEFAULT:
 		default:
 			UI_ThemeColor(TH_TEXT);
 			break;
@@ -1174,7 +1174,7 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 	stack = 0;
 	
 	/* Don't highlight backets if syntax HL is off or bracket in string or comment. */
-	if (!linep->format || linep->format[fc] == 'l' || linep->format[fc] == '#')
+	if (!linep->format || linep->format[fc] == FMT_TYPE_STRING || linep->format[fc] == FMT_TYPE_COMMENT)
 		return;
 
 	if (b > 0) {
@@ -1183,7 +1183,7 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 		c += BLI_str_utf8_size_safe(linep->line + c);
 		while (linep) {
 			while (c < linep->len) {
-				if (linep->format && linep->format[fc] != 'l' && linep->format[fc] != '#') {
+				if (linep->format && linep->format[fc] != FMT_TYPE_STRING && linep->format[fc] != FMT_TYPE_COMMENT) {
 					b = text_check_bracket(linep->line[c]);
 					if (b == find) {
 						if (stack == 0) {
@@ -1212,7 +1212,7 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 		if (c > 0) c -= linep->line + c - BLI_str_prev_char_utf8(linep->line + c);
 		while (linep) {
 			while (fc >= 0) {
-				if (linep->format && linep->format[fc] != 'l' && linep->format[fc] != '#') {
+				if (linep->format && linep->format[fc] != FMT_TYPE_STRING && linep->format[fc] != FMT_TYPE_COMMENT) {
 					b = text_check_bracket(linep->line[c]);
 					if (b == find) {
 						if (stack == 0) {
