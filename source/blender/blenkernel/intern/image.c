@@ -1119,6 +1119,8 @@ char BKE_imtype_valid_depths(const char imtype)
 			return R_IMF_CHAN_DEPTH_10;
 		case R_IMF_IMTYPE_JP2:
 			return R_IMF_CHAN_DEPTH_8 | R_IMF_CHAN_DEPTH_12 | R_IMF_CHAN_DEPTH_16;
+		case R_IMF_IMTYPE_PNG:
+			return R_IMF_CHAN_DEPTH_8 | R_IMF_CHAN_DEPTH_16;
 		/* most formats are 8bit only */
 		default:
 			return R_IMF_CHAN_DEPTH_8;
@@ -1313,8 +1315,12 @@ void BKE_imbuf_to_image_format(struct ImageFormatData *im_format, const ImBuf *i
 		im_format->imtype = R_IMF_IMTYPE_RADHDR;
 #endif
 
-	else if (ftype == PNG)
+	else if (ftype == PNG) {
 		im_format->imtype = R_IMF_IMTYPE_PNG;
+
+		if (custom_flags & PNG_16BIT)
+			im_format->depth = R_IMF_CHAN_DEPTH_16;
+	}
 
 #ifdef WITH_DDS
 	else if (ftype == DDS)
@@ -1847,8 +1853,12 @@ int BKE_imbuf_write(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 	else if (ELEM5(imtype, R_IMF_IMTYPE_PNG, R_IMF_IMTYPE_FFMPEG, R_IMF_IMTYPE_H264, R_IMF_IMTYPE_THEORA, R_IMF_IMTYPE_XVID)) {
 		ibuf->ftype = PNG;
 
-		if (imtype == R_IMF_IMTYPE_PNG)
+		if (imtype == R_IMF_IMTYPE_PNG) {
+			if (imf->depth == R_IMF_CHAN_DEPTH_16)
+				ibuf->ftype |= PNG_16BIT;
+
 			ibuf->ftype |= compress;
+		}
 
 	}
 #ifdef WITH_DDS
