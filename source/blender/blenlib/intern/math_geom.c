@@ -296,6 +296,88 @@ float dist_to_line_segment_v3(const float v1[3], const float v2[3], const float 
 	return len_v3v3(closest, v1);
 }
 
+/* Adapted from "Real-Time Collision Detection" by Christer Ericson,
+ * published by Morgan Kaufmann Publishers, copyright 2005 Elsevier Inc.
+ * 
+ * Set 'r' to the point in triangle (a, b, c) closest to point 'p' */
+void closest_on_tri_to_point_v3(float r[3], const float p[3],
+					   const float a[3], const float b[3], const float c[3])
+{
+	float ab[3], ac[3], ap[3], d1, d2;
+	float bp[3], d3, d4, vc, cp[3], d5, d6, vb, va;
+	float denom, v, w;
+
+	/* Check if P in vertex region outside A */
+	sub_v3_v3v3(ab, b, a);
+	sub_v3_v3v3(ac, c, a);
+	sub_v3_v3v3(ap, p, a);
+	d1 = dot_v3v3(ab, ap);
+	d2 = dot_v3v3(ac, ap);
+	if (d1 <= 0.0f && d2 <= 0.0f) {
+		/* barycentric coordinates (1,0,0) */
+		copy_v3_v3(r, a);
+		return;
+	}
+
+	/* Check if P in vertex region outside B */
+	sub_v3_v3v3(bp, p, b);
+	d3 = dot_v3v3(ab, bp);
+	d4 = dot_v3v3(ac, bp);
+	if (d3 >= 0.0f && d4 <= d3) {
+		/* barycentric coordinates (0,1,0) */
+		copy_v3_v3(r, b);
+		return;
+	}
+	/* Check if P in edge region of AB, if so return projection of P onto AB */
+	vc = d1*d4 - d3*d2;
+	if (vc <= 0.0f && d1 >= 0.0f && d3 <= 0.0f) {
+		float v = d1 / (d1 - d3);
+		/* barycentric coordinates (1-v,v,0) */
+		madd_v3_v3v3fl(r, a, ab, v);
+		return;
+	}
+	/* Check if P in vertex region outside C */
+	sub_v3_v3v3(cp, p, c);
+	d5 = dot_v3v3(ab, cp);
+	d6 = dot_v3v3(ac, cp);
+	if (d6 >= 0.0f && d5 <= d6) {
+		/* barycentric coordinates (0,0,1) */
+		copy_v3_v3(r, c);
+		return;
+	}
+	/* Check if P in edge region of AC, if so return projection of P onto AC */
+	vb = d5*d2 - d1*d6;
+	if (vb <= 0.0f && d2 >= 0.0f && d6 <= 0.0f) {
+		float w = d2 / (d2 - d6);
+		/* barycentric coordinates (1-w,0,w) */
+		madd_v3_v3v3fl(r, a, ac, w);
+		return;
+	}
+	/* Check if P in edge region of BC, if so return projection of P onto BC */
+	va = d3*d6 - d5*d4;
+	if (va <= 0.0f && (d4 - d3) >= 0.0f && (d5 - d6) >= 0.0f) {
+		float w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+		/* barycentric coordinates (0,1-w,w) */
+		sub_v3_v3v3(r, c, b);
+		mul_v3_fl(r, w);
+		add_v3_v3(r, b);
+		return;
+	}
+
+	/* P inside face region. Compute Q through its barycentric coordinates (u,v,w) */
+	denom = 1.0f / (va + vb + vc);
+	v = vb * denom;
+	w = vc * denom;
+
+	/* = u*a + v*b + w*c, u = va * denom = 1.0f - v - w */
+	/* ac * w */
+	mul_v3_fl(ac, w);
+	/* a + ab * v */
+	madd_v3_v3v3fl(r, a, ab, v);
+	/* a + ab * v + ac * w */
+	add_v3_v3(r, ac);
+}
+
 /******************************* Intersection ********************************/
 
 /* intersect Line-Line, shorts */
