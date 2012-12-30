@@ -75,14 +75,4 @@ typedef struct Text {
 #define TXT_FOLLOW              0x0200 /* always follow cursor (console) */
 #define TXT_TABSTOSPACES        0x0400 /* use space instead of tabs */
 
-/* format continuation flags */
-#define TXT_NOCONT				0x00 /* no continuation */
-#define TXT_SNGQUOTSTR			0x01 /* single quotes */
-#define TXT_DBLQUOTSTR			0x02 /* double quotes */
-#define TXT_TRISTR				0x04 /* triplets of quotes: """ or ''' */
-#define TXT_SNGTRISTR			0x05 /*(TXT_TRISTR | TXT_SNGQUOTSTR)*/
-#define TXT_DBLTRISTR			0x06 /*(TXT_TRISTR | TXT_DBLQUOTSTR)*/
-#define TXT_CONT_COMMENT_C		0x08 /* multi-line comments, OSL only (C style) */
-#define TXT_CONT_COMMENT_CXX	0x10 /* single-line comments, OSL only (C++ style) */
-
 #endif

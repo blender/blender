@@ -81,7 +81,7 @@ static int txtfmt_osl_find_builtinfunc(const char *string)
 
 static int txtfmt_osl_find_reserved(const char *string)
 {
-	int i = 0, len;
+	int i, len;
 	/* list is from...
 	 * XXX - link to docs!
 	 */
@@ -121,6 +121,7 @@ static int txtfmt_osl_find_reserved(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "varying",      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "virtual",      len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "volatile",     len)) i = len;
+	else                                                          i = 0;
 
 	/* If next source char is an identifier (eg. 'i' in "definate") no match */
 	if (i == 0 || text_check_identifier(string[i]))
@@ -188,25 +189,27 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const int do_n
 	FlattenString fs;
 	const char *str;
 	char *fmt;
-	char orig, cont, find, prev = ' ';
+	char cont_orig, cont, find, prev = ' ';
 	int len, i;
 
 	/* Get continuation from previous line */
 	if (line->prev && line->prev->format != NULL) {
 		fmt = line->prev->format;
 		cont = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
+		BLI_assert((FMT_CONT_ALL & cont) == cont);
 	}
 	else {
-		cont = 0;
+		cont = FMT_CONT_NOP;
 	}
 
 	/* Get original continuation from this line */
 	if (line->format != NULL) {
 		fmt = line->format;
-		orig = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
+		cont_orig = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
+		BLI_assert((FMT_CONT_ALL & cont_orig) == cont_orig);
 	}
 	else {
-		orig = 0xFF;
+		cont_orig = 0xFF;
 	}
 
 	len = flatten_string(st, &fs, line->line);
@@ -228,14 +231,14 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const int do_n
 		/* Handle continuations */
 		else if (cont) {
 			/* C-Style comments */
-			if (cont & TXT_CONT_COMMENT_CXX) {
+			if (cont & FMT_CONT_COMMENT_CXX) {
 				*fmt = '#';
 			}
-			else if (cont & TXT_CONT_COMMENT_C) {
+			else if (cont & FMT_CONT_COMMENT_C) {
 				if (*str == '*' && *(str + 1) == '/') {
 					*fmt = '#'; fmt++; str++;
 					*fmt = '#';
-					cont = 0;
+					cont = FMT_CONT_NOP;
 				}
 				else {
 					*fmt = '#';
@@ -243,7 +246,7 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const int do_n
 				/* Handle other comments */
 			}
 			else {
-				find = (cont & TXT_DBLQUOTSTR) ? '"' : '\'';
+				find = (cont & FMT_CONT_QUOTEDOUBLE) ? '"' : '\'';
 				if (*str == find) cont = 0;
 				*fmt = 'l';
 			}
@@ -254,19 +257,19 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const int do_n
 		else {
 			/* Deal with comments first */
 			if (*str == '/' && *(str + 1) == '/') {
-				cont = TXT_CONT_COMMENT_CXX;
+				cont = FMT_CONT_COMMENT_CXX;
 				*fmt = '#';
 			}
 			/* C-Style (multi-line) comments */
 			else if (*str == '/' && *(str + 1) == '*') {
-				cont = TXT_CONT_COMMENT_C;
+				cont = FMT_CONT_COMMENT_C;
 				*fmt = '#'; fmt++; str++;
 				*fmt = '#';
 			}
 			else if (*str == '"' || *str == '\'') {
 				/* Strings */
 				find = *str;
-				cont = (*str == '"') ? TXT_DBLQUOTSTR : TXT_SNGQUOTSTR;
+				cont = (*str == '"') ? FMT_CONT_QUOTEDOUBLE : FMT_CONT_QUOTESINGLE;
 				*fmt = 'l';
 			}
 			/* Whitespace (all ws. has been converted to spaces) */
@@ -312,7 +315,7 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const int do_n
 	*fmt = cont;
 
 	/* If continuation has changed and we're allowed, process the next line */
-	if (cont != orig && do_next && line->next) {
+	if (cont != cont_orig && do_next && line->next) {
 		txtfmt_osl_format_line(st, line->next, do_next);
 	}
 

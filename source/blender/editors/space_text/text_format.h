@@ -41,6 +41,20 @@ typedef struct FlattenString {
 	int pos, len;
 } FlattenString;
 
+/* format continuation flags (stored just after the NULL terminator) */
+enum {
+	FMT_CONT_NOP                = 0,  /* no continuation */
+	FMT_CONT_QUOTESINGLE        = (1 << 0),  /* single quotes */
+	FMT_CONT_QUOTEDOUBLE        = (1 << 1),  /* double quotes */
+	FMT_CONT_TRIPLE             = (1 << 2),  /* triplets of quotes: """ or ''' */
+	FMT_CONT_QUOTESINGLE_TRIPLE = (FMT_CONT_TRIPLE | FMT_CONT_QUOTESINGLE),
+	FMT_CONT_QUOTEDOUBLE_TRIPLE = (FMT_CONT_TRIPLE | FMT_CONT_QUOTEDOUBLE),
+	FMT_CONT_COMMENT_C          = (1 << 3),  /* multi-line comments, OSL only (C style) */
+	FMT_CONT_COMMENT_CXX        = (1 << 4),  /* single-line comments, OSL only (C++ style) */
+};
+#define FMT_CONT_ALL \
+	(FMT_CONT_QUOTESINGLE | FMT_CONT_QUOTEDOUBLE | FMT_CONT_TRIPLE | FMT_CONT_COMMENT_C | FMT_CONT_COMMENT_CXX)
+
 int  flatten_string(struct SpaceText *st, FlattenString *fs, const char *in);
 void flatten_string_free(FlattenString *fs);
 int  flatten_string_strlen(FlattenString *fs, const char *str);

@@ -159,25 +159,27 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_ne
 	FlattenString fs;
 	const char *str;
 	char *fmt;
-	char orig, cont, find, prev = ' ';
+	char cont_orig, cont, find, prev = ' ';
 	int len, i;
 
 	/* Get continuation from previous line */
 	if (line->prev && line->prev->format != NULL) {
 		fmt = line->prev->format;
 		cont = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
+		BLI_assert((FMT_CONT_ALL & cont) == cont);
 	}
 	else {
-		cont = 0;
+		cont = FMT_CONT_NOP;
 	}
 
 	/* Get original continuation from this line */
 	if (line->format != NULL) {
 		fmt = line->format;
-		orig = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
+		cont_orig = fmt[strlen(fmt) + 1]; /* Just after the null-terminator */
+		BLI_assert((FMT_CONT_ALL & cont_orig) == cont_orig);
 	}
 	else {
-		orig = 0xFF;
+		cont_orig = 0xFF;
 	}
 
 	len = flatten_string(st, &fs, line->line);
@@ -199,18 +201,18 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_ne
 		/* Handle continuations */
 		else if (cont) {
 			/* Triple strings ("""...""" or '''...''') */
-			if (cont & TXT_TRISTR) {
-				find = (cont & TXT_DBLQUOTSTR) ? '"' : '\'';
+			if (cont & FMT_CONT_TRIPLE) {
+				find = (cont & FMT_CONT_QUOTEDOUBLE) ? '"' : '\'';
 				if (*str == find && *(str + 1) == find && *(str + 2) == find) {
 					*fmt = 'l'; fmt++; str++;
 					*fmt = 'l'; fmt++; str++;
-					cont = 0;
+					cont = FMT_CONT_NOP;
 				}
 				/* Handle other strings */
 			}
 			else {
-				find = (cont & TXT_DBLQUOTSTR) ? '"' : '\'';
-				if (*str == find) cont = 0;
+				find = (cont & FMT_CONT_QUOTEDOUBLE) ? '"' : '\'';
+				if (*str == find) cont = FMT_CONT_NOP;
 			}
 
 			*fmt = 'l';
@@ -226,11 +228,11 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_ne
 			else if (*str == '"' || *str == '\'') {
 				/* Strings */
 				find = *str;
-				cont = (*str == '"') ? TXT_DBLQUOTSTR : TXT_SNGQUOTSTR;
+				cont = (*str == '"') ? FMT_CONT_QUOTEDOUBLE : FMT_CONT_QUOTESINGLE;
 				if (*(str + 1) == find && *(str + 2) == find) {
 					*fmt = 'l'; fmt++; str++;
 					*fmt = 'l'; fmt++; str++;
-					cont |= TXT_TRISTR;
+					cont |= FMT_CONT_TRIPLE;
 				}
 				*fmt = 'l';
 			}
@@ -287,7 +289,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_ne
 	*fmt = cont;
 
 	/* If continuation has changed and we're allowed, process the next line */
-	if (cont != orig && do_next && line->next) {
+	if (cont != cont_orig && do_next && line->next) {
 		txtfmt_py_format_line(st, line->next, do_next);
 	}
 
