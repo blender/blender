@@ -271,7 +271,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_ne
 				/* Special vars(v) or built-in keywords(b) */
 				if      ((i = txtfmt_py_find_specialvar(str))   != -1) prev = FMT_TYPE_SPECIAL;
 				else if ((i = txtfmt_py_find_builtinfunc(str))  != -1) prev = FMT_TYPE_KEYWORD;
-				else if ((i = txtfmt_py_find_decorator(str))    != -1) prev = FMT_TYPE_SPECIAL;  /* could have a new color for this */
+				else if ((i = txtfmt_py_find_decorator(str))    != -1) prev = FMT_TYPE_DIRECTIVE;
 
 				if (i > 0) {
 					memset(fmt, prev, i);
