@@ -65,6 +65,7 @@
 #include "GPU_buffers.h"
 
 #include "ED_sculpt.h"
+#include "bmesh.h"
 #include "paint_intern.h"
 #include "sculpt_intern.h"
 
@@ -261,6 +262,111 @@ static int sculpt_undo_restore_mask(bContext *C, DerivedMesh *dm, SculptUndoNode
 	return 1;
 }
 
+static void sculpt_undo_bmesh_restore_generic(SculptUndoNode *unode,
+											  Object *ob,
+											  SculptSession *ss)
+{
+	if (unode->applied) {
+		BM_log_undo(ss->bm, ss->bm_log);
+		unode->applied = FALSE;
+	}
+	else {
+		BM_log_redo(ss->bm, ss->bm_log);
+		unode->applied = TRUE;
+	}
+
+	/* A bit lame, but for now just recreate the PBVH. The alternative
+	 * is to store changes to the PBVH in the undo stack. */
+	sculpt_pbvh_clear(ob);
+}
+
+/* Create empty sculpt BMesh and enable logging */
+static void sculpt_undo_bmesh_enable(Object *ob,
+									 SculptUndoNode *unode)
+{
+	SculptSession *ss = ob->sculpt;
+	Mesh *me = ob->data;
+
+	sculpt_pbvh_clear(ob);
+
+	/* Create empty BMesh and enable logging */
+	ss->bm = BM_mesh_create(&bm_mesh_allocsize_default);
+	BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
+	me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
+
+	/* Restore the BMLog using saved entries */
+	ss->bm_log = BM_log_from_existing_entries_create(ss->bm,
+													 unode->bm_entry);
+}
+
+static void sculpt_undo_bmesh_restore_begin(bContext *C,
+											SculptUndoNode *unode,
+											Object *ob,
+											SculptSession *ss)
+{
+	if (unode->applied) {
+		sculpt_dynamic_topology_disable(C, unode);
+		unode->applied = FALSE;
+	}
+	else {
+		sculpt_undo_bmesh_enable(ob, unode);
+
+		/* Restore the mesh from the first log entry */
+		BM_log_redo(ss->bm, ss->bm_log);
+
+		unode->applied = TRUE;
+	}
+}
+
+static void sculpt_undo_bmesh_restore_end(bContext *C,
+										  SculptUndoNode *unode,
+										  Object *ob,
+										  SculptSession *ss)
+{
+	if (unode->applied) {
+		sculpt_undo_bmesh_enable(ob, unode);
+
+		/* Restore the mesh from the last log entry */
+		BM_log_undo(ss->bm, ss->bm_log);
+
+		unode->applied = FALSE;
+	}
+	else {
+		/* Disable dynamic topology sculpting */
+		sculpt_dynamic_topology_disable(C, NULL);
+		unode->applied = TRUE;
+	}
+}
+
+/* Handle all dynamic-topology updates
+ *
+ * Returns TRUE if this was a dynamic-topology undo step, otherwise
+ * returns FALSE to indicate the non-dyntopo code should run. */
+static int sculpt_undo_bmesh_restore(bContext *C,
+									 SculptUndoNode *unode,
+									 Object *ob,
+									 SculptSession *ss)
+{
+	switch (unode->type) {
+		case SCULPT_UNDO_DYNTOPO_BEGIN:
+			sculpt_undo_bmesh_restore_begin(C, unode, ob, ss);
+			return TRUE;
+
+		case SCULPT_UNDO_DYNTOPO_END:
+			sculpt_undo_bmesh_restore_end(C, unode, ob, ss);
+			return TRUE;
+
+		default:
+			if (ss->bm_log) {
+				sculpt_undo_bmesh_restore_generic(unode, ob, ss);
+				return TRUE;
+			}
+			break;
+	}
+
+	return FALSE;
+}
+
 static void sculpt_undo_restore(bContext *C, ListBase *lb)
 {
 	Scene *scene = CTX_data_scene(C);
@@ -289,6 +395,9 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 	/* call _after_ sculpt_update_mesh_elements() which may update 'ob->derivedFinal' */
 	dm = mesh_get_derived_final(scene, ob, 0);
 
+	if (lb->first && sculpt_undo_bmesh_restore(C, lb->first, ob, ss))
+		return;
+
 	for (unode = lb->first; unode; unode = unode->next) {
 		if (!(strcmp(unode->idname, ob->id.name) == 0))
 			continue;
@@ -306,9 +415,6 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 				continue;
 			}
 		}
-		else {
-			continue;
-		}
 
 		switch (unode->type) {
 			case SCULPT_UNDO_COORDS:
@@ -322,6 +428,12 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 			case SCULPT_UNDO_MASK:
 				if (sculpt_undo_restore_mask(C, dm, unode))
 					update = TRUE;
+				break;
+
+			case SCULPT_UNDO_DYNTOPO_BEGIN:
+			case SCULPT_UNDO_DYNTOPO_END:
+			case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
+				BLI_assert(!"Dynamic topology should've already been handled");
 				break;
 		}
 	}
@@ -387,6 +499,17 @@ static void sculpt_undo_free(ListBase *lb)
 		}
 		if (unode->mask)
 			MEM_freeN(unode->mask);
+		if (unode->bm_entry) {
+			BM_log_entry_drop(unode->bm_entry);
+		}
+		if (unode->bm_enter_totvert)
+			CustomData_free(&unode->bm_enter_vdata, unode->bm_enter_totvert);
+		if (unode->bm_enter_totedge)
+			CustomData_free(&unode->bm_enter_edata, unode->bm_enter_totedge);
+		if (unode->bm_enter_totloop)
+			CustomData_free(&unode->bm_enter_ldata, unode->bm_enter_totloop);
+		if (unode->bm_enter_totpoly)
+			CustomData_free(&unode->bm_enter_pdata, unode->bm_enter_totpoly);
 	}
 }
 
@@ -437,11 +560,13 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node,
 	unode->type = type;
 	unode->node = node;
 
-	BLI_pbvh_node_num_verts(ss->pbvh, node, &totvert, &allvert);
-	BLI_pbvh_node_get_grids(ss->pbvh, node, &grids, &totgrid,
-	                        &maxgrid, &gridsize, NULL, NULL);
+	if (node) {
+		BLI_pbvh_node_num_verts(ss->pbvh, node, &totvert, &allvert);
+		BLI_pbvh_node_get_grids(ss->pbvh, node, &grids, &totgrid,
+								&maxgrid, &gridsize, NULL, NULL);
 
-	unode->totvert = totvert;
+		unode->totvert = totvert;
+	}
 	
 	/* we will use this while sculpting, is mapalloc slow to access then? */
 
@@ -465,6 +590,11 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node,
 		case SCULPT_UNDO_MASK:
 			unode->mask = MEM_mapallocN(sizeof(float) * allvert, "SculptUndoNode.mask");
 			undo_paint_push_count_alloc(UNDO_PAINT_MESH, (sizeof(float) * sizeof(int)) * allvert);
+			break;
+		case SCULPT_UNDO_DYNTOPO_BEGIN:
+		case SCULPT_UNDO_DYNTOPO_END:
+		case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
+			BLI_assert(!"Dynamic topology should've already been handled");
 			break;
 	}
 	
@@ -540,6 +670,80 @@ static void sculpt_undo_store_mask(Object *ob, SculptUndoNode *unode)
 	BLI_pbvh_vertex_iter_end;
 }
 
+static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob,
+											  PBVHNode *node,
+											  SculptUndoType type)
+{
+	ListBase *lb = undo_paint_push_get_list(UNDO_PAINT_MESH);
+	SculptUndoNode *unode = lb->first;
+	SculptSession *ss = ob->sculpt;
+	PBVHVertexIter vd;
+
+	if (!lb->first) {
+		unode = MEM_callocN(sizeof(*unode), AT);
+
+		BLI_strncpy(unode->idname, ob->id.name, sizeof(unode->idname));
+		unode->type = type;
+		unode->applied = TRUE;
+
+		if (type == SCULPT_UNDO_DYNTOPO_END) {
+			unode->bm_entry = BM_log_entry_add(ss->bm_log);
+			BM_log_before_all_removed(ss->bm, ss->bm_log);
+		}
+		else if (type == SCULPT_UNDO_DYNTOPO_BEGIN) {
+			Mesh *me = ob->data;
+
+			/* Store a copy of the mesh's current vertices, loops, and
+			 * polys. A full copy like this is needed because entering
+			 * dynamic-topology immediately does topological edits
+			 * (converting polys to triangles) that the BMLog can't
+			 * fully restore from */
+			CustomData_copy(&me->vdata, &unode->bm_enter_vdata, CD_MASK_MESH,
+							CD_DUPLICATE, me->totvert);
+			CustomData_copy(&me->edata, &unode->bm_enter_edata, CD_MASK_MESH,
+							CD_DUPLICATE, me->totedge);
+			CustomData_copy(&me->ldata, &unode->bm_enter_ldata, CD_MASK_MESH,
+							CD_DUPLICATE, me->totloop);
+			CustomData_copy(&me->pdata, &unode->bm_enter_pdata, CD_MASK_MESH,
+							CD_DUPLICATE, me->totpoly);
+			unode->bm_enter_totvert = me->totvert;
+			unode->bm_enter_totedge = me->totedge;
+			unode->bm_enter_totloop = me->totloop;
+			unode->bm_enter_totpoly = me->totpoly;
+
+			unode->bm_entry = BM_log_entry_add(ss->bm_log);
+			BM_log_all_added(ss->bm, ss->bm_log);
+		}
+		else {
+			unode->bm_entry = BM_log_entry_add(ss->bm_log);
+		}
+
+		BLI_addtail(lb, unode);
+	}
+
+	if (node) {
+		switch (type) {
+			case SCULPT_UNDO_COORDS:
+			case SCULPT_UNDO_HIDDEN:
+			case SCULPT_UNDO_MASK:
+				/* Before any vertex values get modified, ensure their
+				 * original positions are logged */
+				BLI_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_ALL) {
+					BM_log_vert_before_modified(ss->bm, ss->bm_log, vd.bm_vert);
+				}
+				BLI_pbvh_vertex_iter_end;
+				break;
+
+			case SCULPT_UNDO_DYNTOPO_BEGIN:
+			case SCULPT_UNDO_DYNTOPO_END:
+			case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
+				break;
+		}
+	}
+
+	return unode;
+}
+
 SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node,
                                       SculptUndoType type)
 {
@@ -549,7 +753,18 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node,
 	/* list is manipulated by multiple threads, so we lock */
 	BLI_lock_thread(LOCK_CUSTOM1);
 
-	if ((unode = sculpt_undo_get_node(node))) {
+	if (ss->bm ||
+		ELEM(type,
+			 SCULPT_UNDO_DYNTOPO_BEGIN,
+			 SCULPT_UNDO_DYNTOPO_END))
+	{
+		/* Dynamic topology stores only one undo node per stroke,
+		 * regardless of the number of PBVH nodes modified */
+		unode = sculpt_undo_bmesh_push(ob, node, type);
+		BLI_unlock_thread(LOCK_CUSTOM1);
+		return unode;
+	}
+	else if ((unode = sculpt_undo_get_node(node))) {
 		BLI_unlock_thread(LOCK_CUSTOM1);
 		return unode;
 	}
@@ -582,6 +797,11 @@ SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node,
 			break;
 		case SCULPT_UNDO_MASK:
 			sculpt_undo_store_mask(ob, unode);
+			break;
+		case SCULPT_UNDO_DYNTOPO_BEGIN:
+		case SCULPT_UNDO_DYNTOPO_END:
+		case SCULPT_UNDO_DYNTOPO_SYMMETRIZE:
+			BLI_assert(!"Dynamic topology should've already been handled");
 			break;
 	}
 

@@ -49,6 +49,7 @@ struct Object;
 struct Scene;
 struct Sculpt;
 struct SculptStroke;
+struct SculptUndoNode;
 
 /* Interface */
 struct MultiresModifierData *sculpt_multires_active(struct Scene *scene, struct Object *ob);
@@ -67,12 +68,22 @@ void free_sculptsession_deformMats(struct SculptSession *ss);
 /* Stroke */
 int sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2]);
 
+/* Dynamic topology */
+void sculpt_pbvh_clear(Object *ob);
+void sculpt_update_after_dynamic_topology_toggle(bContext *C);
+void sculpt_dynamic_topology_enable(struct bContext *C);
+void sculpt_dynamic_topology_disable(struct bContext *C,
+									 struct SculptUndoNode *unode);
+
 /* Undo */
 
 typedef enum {
 	SCULPT_UNDO_COORDS,
 	SCULPT_UNDO_HIDDEN,
-	SCULPT_UNDO_MASK
+	SCULPT_UNDO_MASK,
+	SCULPT_UNDO_DYNTOPO_BEGIN,
+	SCULPT_UNDO_DYNTOPO_END,
+	SCULPT_UNDO_DYNTOPO_SYMMETRIZE,
 } SculptUndoType;
 
 typedef struct SculptUndoNode {
@@ -100,6 +111,18 @@ typedef struct SculptUndoNode {
 	int totgrid;                /* to restore into right location */
 	int *grids;                 /* to restore into right location */
 	BLI_bitmap *grid_hidden;
+
+	/* bmesh */
+	struct BMLogEntry *bm_entry;
+	int applied;
+	CustomData bm_enter_vdata;
+	CustomData bm_enter_edata;
+	CustomData bm_enter_ldata;
+	CustomData bm_enter_pdata;
+	int bm_enter_totvert;
+	int bm_enter_totedge;
+	int bm_enter_totloop;
+	int bm_enter_totpoly;
 
 	/* shape keys */
 	char shapeName[sizeof(((KeyBlock *)0))->name];
