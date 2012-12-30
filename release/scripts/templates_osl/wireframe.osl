@@ -1,4 +1,4 @@
-#include "stdosl.h"
+
 #include "oslutil.h"
 
 shader wireframe(
@@ -8,3 +8,4 @@ shader wireframe(
 {
     Wire = wireframe("triangles", Line_Width, Raster);
 }
+
