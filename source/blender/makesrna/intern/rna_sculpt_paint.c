@@ -204,6 +204,11 @@ static void rna_Sculpt_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNU
 	if (ob) {
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
+
+		if (ob->sculpt) {
+			ob->sculpt->bm_smooth_shading = (scene->toolsettings->sculpt->flags &
+											 SCULPT_DYNTOPO_SMOOTH_SHADING);
+		}
 	}
 }
 
@@ -319,6 +324,23 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Show Diffuse Color",
 	                         "Show diffuse color of object and overlay sculpt mask on top of it");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_ShowDiffuseColor_update");
+
+	prop = RNA_def_property(srna, "detail_size", PROP_INT, PROP_DISTANCE);
+	RNA_def_property_ui_range(prop, 2, 100, 0, 0);
+	RNA_def_property_ui_text(prop, "Detail Size", "Maximum edge length for dynamic topology sculpting (in pixels)");
+
+	prop = RNA_def_property(srna, "use_smooth_shading", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_SMOOTH_SHADING);
+	RNA_def_property_ui_text(prop, "Smooth Shading",
+							 "Show faces in dynamic-topology mode with smooth "
+							 "shading rather than flat shaded");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
+
+	prop = RNA_def_property(srna, "use_edge_collapse", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_COLLAPSE);
+	RNA_def_property_ui_text(prop, "Collapse Short Edges",
+							 "In dynamic-topology mode, collapse short edges "
+							 "in addition to subdividing long ones");
 }
 
 

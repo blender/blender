@@ -264,14 +264,44 @@ void free_sculptsession_deformMats(SculptSession *ss)
 	ss->deform_imats = NULL;
 }
 
+/* Write out the sculpt dynamic-topology BMesh to the Mesh */
+void sculptsession_bm_to_me(struct Object *ob, int reorder)
+{
+	if (ob && ob->sculpt) {
+		SculptSession *ss = ob->sculpt;
+
+		if (ss->bm) {
+			if (ob->data) {
+				BMIter iter;
+				BMFace *efa;
+				BM_ITER_MESH (efa, &iter, ss->bm, BM_FACES_OF_MESH) {
+					BM_elem_flag_set(efa, BM_ELEM_SMOOTH,
+									 ss->bm_smooth_shading);
+				}
+				if (reorder)
+					BM_log_mesh_elems_reorder(ss->bm, ss->bm_log);
+				BM_mesh_bm_to_me(ss->bm, ob->data, FALSE);
+			}
+		}
+	}
+}
+
 void free_sculptsession(Object *ob)
 {
 	if (ob && ob->sculpt) {
 		SculptSession *ss = ob->sculpt;
 		DerivedMesh *dm = ob->derivedFinal;
 
+		if (ss->bm) {
+			sculptsession_bm_to_me(ob, TRUE);
+			BM_mesh_free(ss->bm);
+		}
+
 		if (ss->pbvh)
 			BLI_pbvh_free(ss->pbvh);
+		if (ss->bm_log)
+ 			BM_log_free(ss->bm_log);
+
 		if (dm && dm->getPBVH)
 			dm->getPBVH(NULL, dm);  /* signal to clear */
 

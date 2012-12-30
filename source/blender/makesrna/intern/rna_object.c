@@ -48,6 +48,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "BKE_paint.h"
 #include "BKE_tessmesh.h"
 #include "BKE_group.h" /* needed for object_in_group() */
 
@@ -1436,6 +1437,12 @@ int rna_DupliObject_index_get(PointerRNA *ptr)
 	return dob->persistent_id[0];
 }
 
+int rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)
+{
+	SculptSession *ss = ((Object*)ptr->id.data)->sculpt;
+	return (ss && ss->bm);
+}
+
 #else
 
 static int rna_matrix_dimsize_4x4[] = {4, 4};
@@ -2628,6 +2635,12 @@ static void rna_def_object(BlenderRNA *brna)
 	                           "rna_Object_active_shape_key_index_range");
 	RNA_def_property_ui_text(prop, "Active Shape Key Index", "Current shape key index");
 	RNA_def_property_update(prop, 0, "rna_Object_active_shape_update");
+
+	/* sculpt */
+	prop = RNA_def_property(srna, "use_dynamic_topology_sculpting", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_Object_use_dynamic_topology_sculpting_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Dynamic Topology Sculpting", NULL);
 
 	RNA_api_object(srna);
 }
