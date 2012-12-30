@@ -63,37 +63,37 @@ enum_panorama_types = (
     ('FISHEYE_EQUISOLID', "Fisheye Equisolid",
                           "Similar to most fisheye modern lens, takes sensor dimensions into consideration"),
     )
-    
+
 enum_curve_presets = (
     ('CUSTOM', "Custom", "Set general parameters"),
     ('TANGENT_SHADING', "Tangent Normal", "Use planar geometry and tangent normals"),
     ('TRUE_NORMAL', "True Normal", "Use true normals (good for thin strands)"),
     ('ACCURATE_PRESET', "Accurate", "Use best settings (suitable for glass materials)"),
     )
-    
+
 enum_curve_primitives = (
-    ('TRIANGLES', "Triangles", "create triangle geometry around strands"),
-    ('LINE_SEGMENTS', "Line Segments", "use line segment primitives"),
-    ('CURVE_SEGMENTS', "?Curve Segments?", "use curve segment primitives (not implemented)"),
+    ('TRIANGLES', "Triangles", "Create triangle geometry around strands"),
+    ('LINE_SEGMENTS', "Line Segments", "Use line segment primitives"),
+    ('CURVE_SEGMENTS', "?Curve Segments?", "Use curve segment primitives (not implemented)"),
     )
-        
+
 enum_triangle_curves = (
-	('CAMERA', "Planes", "create individual triangles forming planes that face camera"),
-    ('RIBBONS', "Ribbons", "create individual triangles forming ribbon"),
-    ('TESSELATED', "Tesselated", "create mesh surrounding each strand"),
+    ('CAMERA', "Planes", "Create individual triangles forming planes that face camera"),
+    ('RIBBONS', "Ribbons", "Create individual triangles forming ribbon"),
+    ('TESSELLATED', "Tessellated", "Create mesh surrounding each strand"),
     )
-    
+
 enum_line_curves = (
-    ('ACCURATE', "Accurate", "always take into consideration strand width for intersections"),
-    ('QT_CORRECTED', "corrected", "ignores width for initial intersection and corrects later"),
-    ('ENDCORRECTED', "correct found", "ignores width for all intersections and only corrects closest"),
-    ('QT_UNCORRECTED', "uncorrected", "calculates intersection without considering width"),
+    ('ACCURATE', "Accurate", "Always take into consideration strand width for intersections"),
+    ('QT_CORRECTED', "Corrected", "Ignore width for initial intersection and correct later"),
+    ('ENDCORRECTED', "Correct found", "Ignore width for all intersections and only correct closest"),
+    ('QT_UNCORRECTED', "Uncorrected", "Calculate intersections without considering width"),
     )
-    
+
 enum_curves_interpolation = (
-    ('LINEAR', "Linear interpolation", "uses Linear interpolation between segments"),
-    ('CARDINAL', "Cardinal interpolation", "uses CARDINAL interpolation between segments"),
-    ('BSPLINE', "b-spline interpolation", "uses b-spline interpolation between segments"),
+    ('LINEAR', "Linear interpolation", "Use Linear interpolation between segments"),
+    ('CARDINAL', "Cardinal interpolation", "Use cardinal interpolation between segments"),
+    ('BSPLINE', "B-spline interpolation", "Use b-spline interpolation between segments"),
     )
 
 class CyclesRenderSettings(bpy.types.PropertyGroup):
@@ -645,32 +645,31 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
                 )
         cls.use_backfacing = BoolProperty(
                 name="Check back-faces",
-                description="Tests back-faces of strands",
+                description="Test back-faces of strands",
                 default=False,
                 )
         cls.use_encasing = BoolProperty(
                 name="Exclude encasing",
-                description="Ignores strands encasing a ray's initial location",
+                description="Ignore strands encasing a ray's initial location",
                 default=True,
                 )
         cls.use_tangent_normal_geometry = BoolProperty(
                 name="Tangent normal geometry",
-                description="Uses the tangent normal for actual normal",
+                description="Use the tangent normal for actual normal",
                 default=False,
                 )
         cls.use_tangent_normal = BoolProperty(
                 name="Tangent normal default",
-                description="Uses the tangent normal for all normals",
+                description="Use the tangent normal for all normals",
                 default=False,
                 )
         cls.use_tangent_normal_correction = BoolProperty(
-                name="strand slope correction",
-                description="Corrects the tangent normal for the strands slope",
+                name="Strand slope correction",
+                description="Correct the tangent normal for the strand's slope",
                 default=False,
                 )
         cls.use_cache = BoolProperty(
                 name="Export Cached data",
-                description="Export cached data with child strands (uses 'draw step' for subdivisions)",
                 default=True,
                 )
         cls.use_parents = BoolProperty(
@@ -685,17 +684,17 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
                 )
         cls.use_joined = BoolProperty(
                 name="Join",
-                description="Fills gaps between segments (requires more memory)",
+                description="Fill gaps between segments (requires more memory)",
                 default=False,
                 )
         cls.use_curves = BoolProperty(
                 name="Use Cycles Hair Rendering",
-                description="Activate cycles hair rendering for particle system",
+                description="Activate Cycles hair rendering for particle system",
                 default=True,
                 )        
         cls.segments = IntProperty(
                 name="Segments",
-                description="Number of segments between path keys (Note that this combines with the `draw step' value)",
+                description="Number of segments between path keys (note that this combines with the 'draw step' value)",
                 min=1, max=64,
                 default=1,
                 )
@@ -750,9 +749,9 @@ class CyclesCurveSettings(bpy.types.PropertyGroup):
                 )
         cls.use_closetip = BoolProperty(
                 name="Close tip",
-                description="Sets tip radius to zero",
+                description="Set tip radius to zero",
                 default=True,
-                )                
+                )
 
     @classmethod
     def unregister(cls):

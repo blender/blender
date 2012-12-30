@@ -381,6 +381,7 @@ dict_uimsgs = {
     "texface",
     "timeline", "timelines",
     "tosphere",
+    "uilist",
     "vcol", "vcols",
     "vgroup", "vgroups",
     "vinterlace",

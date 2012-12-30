@@ -724,7 +724,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_define_verify_sdna(FALSE);
 	prop = RNA_def_property(srna, "use_color_preview", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_DynamicPaint_use_color_preview_get", NULL);
-	RNA_def_property_ui_text(prop, "Use Corlor Preview", "Whether this surface has some color preview for 3D view");
+	RNA_def_property_ui_text(prop, "Use Color Preview", "Whether this surface has some color preview for 3D view");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_define_verify_sdna(TRUE);
 }
