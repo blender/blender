@@ -162,15 +162,18 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 		}
 	}
 	else {
-		int do_glob_undo = FALSE;
-		
+		/* Note: we used to do a fall-through here where if the
+		 * mode-specific undo system had no more steps to undo (or
+		 * redo), the global undo would run.
+		 *
+		 * That was inconsistent with editmode, and also makes for
+		 * unecessarily tricky interaction with the other undo
+		 * systems. */
 		if (obact && obact->mode & OB_MODE_TEXTURE_PAINT) {
-			if (!ED_undo_paint_step(C, UNDO_PAINT_IMAGE, step, undoname))
-				do_glob_undo = TRUE;
+			ED_undo_paint_step(C, UNDO_PAINT_IMAGE, step, undoname);
 		}
 		else if (obact && obact->mode & OB_MODE_SCULPT) {
-			if (!ED_undo_paint_step(C, UNDO_PAINT_MESH, step, undoname))
-				do_glob_undo = TRUE;
+			ED_undo_paint_step(C, UNDO_PAINT_MESH, step, undoname);
 		}
 		else if (obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
 			if (step == 1)
@@ -178,24 +181,17 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 			else
 				PE_redo(CTX_data_scene(C));
 		}
-		else {
-			do_glob_undo = TRUE;
-		}
-		
-		if (do_glob_undo) {
-			if (U.uiflag & USER_GLOBALUNDO) {
-				// note python defines not valid here anymore.
-				//#ifdef WITH_PYTHON
-				// XXX		BPY_scripts_clear_pyobjects();
-				//#endif
-				if (undoname)
-					BKE_undo_name(C, undoname);
-				else
-					BKE_undo_step(C, step);
+		else if (U.uiflag & USER_GLOBALUNDO) {
+			// note python defines not valid here anymore.
+			//#ifdef WITH_PYTHON
+			// XXX		BPY_scripts_clear_pyobjects();
+			//#endif
+			if (undoname)
+				BKE_undo_name(C, undoname);
+			else
+				BKE_undo_step(C, step);
 				
-				WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, CTX_data_scene(C));
-			}
-			
+			WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, CTX_data_scene(C));
 		}
 	}
 	
