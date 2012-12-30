@@ -77,26 +77,17 @@ static int text_font_draw(SpaceText *UNUSED(st), int x, int y, const char *str)
 
 static int text_font_draw_character(SpaceText *st, int x, int y, char c)
 {
-	char str[2];
-	str[0] = c;
-	str[1] = '\0';
-
 	BLF_position(mono, x, y, 0);
-	BLF_draw(mono, str, 1);
+	BLF_draw(mono, &c, 1);
 
 	return st->cwidth;
 }
 
 static int text_font_draw_character_utf8(SpaceText *st, int x, int y, const char *c)
 {
-	char str[BLI_UTF8_MAX + 1];
-	size_t len = BLI_str_utf8_size_safe(c);
-	memcpy(str, c, len);
-	str[len] = '\0';
-
+	const size_t len = BLI_str_utf8_size_safe(c);
 	BLF_position(mono, x, y, 0);
-	BLF_draw(mono, str, len);
-
+	BLF_draw(mono, c, len);
 	return st->cwidth;
 }
 
@@ -365,6 +356,7 @@ static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w
 	FlattenString fs;
 	int basex, i, a, start, end, max, lines; /* view */
 	int mi, ma, mstart, mend;                /* mem */
+	char fmt_prev = 0xff;
 	
 	flatten_string(st, &fs, str);
 	str = fs.buf;
@@ -388,7 +380,9 @@ static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w
 
 			/* Draw the visible portion of text on the overshot line */
 			for (a = start, ma = mstart; a < end; a++, ma += BLI_str_utf8_size_safe(str + ma)) {
-				if (st->showsyntax && format) format_draw_color(format[a]);
+				if (st->showsyntax && format) {
+					if (fmt_prev != format[a]) format_draw_color(fmt_prev = format[a]);
+				}
 				x += text_font_draw_character_utf8(st, x, y, str + ma);
 			}
 			y -= st->lheight_dpi + TXT_LINE_SPACING;
@@ -406,8 +400,9 @@ static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w
 
 	/* Draw the remaining text */
 	for (a = start, ma = mstart; str[ma] && y > 0; a++, ma += BLI_str_utf8_size_safe(str + ma)) {
-		if (st->showsyntax && format)
-			format_draw_color(format[a]);
+		if (st->showsyntax && format) {
+			if (fmt_prev != format[a]) format_draw_color(fmt_prev = format[a]);
+		}
 
 		x += text_font_draw_character_utf8(st, x, y, str + ma);
 	}
@@ -438,15 +433,18 @@ static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int dra
 		
 		if (st->showsyntax && format) {
 			int a, str_shift = 0;
+			char fmt_prev = 0xff;
 			format = format + cshift;
 
 			for (a = 0; a < amount; a++) {
-				format_draw_color(format[a]);
+				if (format[a] != fmt_prev) format_draw_color(fmt_prev = format[a]);
 				x += text_font_draw_character_utf8(st, x, y, in + str_shift);
 				str_shift += BLI_str_utf8_size_safe(in + str_shift);
 			}
 		}
-		else text_font_draw(st, x, y, in);
+		else {
+			text_font_draw(st, x, y, in);
+		}
 	}
 	else {
 		while (w-- && *acc++ < maxwidth)
