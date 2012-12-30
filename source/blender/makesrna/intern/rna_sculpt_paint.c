@@ -40,6 +40,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "BLI_utildefines.h"
+#include "bmesh.h"
+
 static EnumPropertyItem particle_edit_hair_brush_items[] = {
 	{PE_BRUSH_NONE, "NONE", 0, "None", "Don't use any brush"},
 	{PE_BRUSH_COMB, "COMB", 0, "Comb", "Comb hairs"},
@@ -50,6 +53,18 @@ static EnumPropertyItem particle_edit_hair_brush_items[] = {
 	{PE_BRUSH_CUT, "CUT", 0, "Cut", "Cut hairs"},
 	{PE_BRUSH_WEIGHT, "WEIGHT", 0, "Weight", "Weight hair particles"},
 	{0, NULL, 0, NULL, NULL}
+};
+
+EnumPropertyItem symmetrize_direction_items[] = {
+	{BMO_SYMMETRIZE_NEGATIVE_X, "NEGATIVE_X", 0, "-X to +X", ""},
+	{BMO_SYMMETRIZE_POSITIVE_X, "POSITIVE_X", 0, "+X to -X", ""},
+
+	{BMO_SYMMETRIZE_NEGATIVE_Y, "NEGATIVE_Y", 0, "-Y to +Y", ""},
+	{BMO_SYMMETRIZE_POSITIVE_Y, "POSITIVE_Y", 0, "+Y to -Y", ""},
+
+	{BMO_SYMMETRIZE_NEGATIVE_Z, "NEGATIVE_Z", 0, "-Z to +Z", ""},
+	{BMO_SYMMETRIZE_POSITIVE_Z, "POSITIVE_Z", 0, "+Z to -Z", ""},
+	{0, NULL, 0, NULL, NULL},
 };
 
 #ifdef RNA_RUNTIME
@@ -341,6 +356,10 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Collapse Short Edges",
 							 "In dynamic-topology mode, collapse short edges "
 							 "in addition to subdividing long ones");
+
+	prop = RNA_def_property(srna, "symmetrize_direction", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, symmetrize_direction_items);
+	RNA_def_property_ui_text(prop, "Direction", "Source and destination for symmetrize operator");
 }
 
 

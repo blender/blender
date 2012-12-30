@@ -90,6 +90,8 @@ extern EnumPropertyItem brush_sculpt_tool_items[];
 extern EnumPropertyItem brush_vertex_tool_items[];
 extern EnumPropertyItem brush_image_tool_items[];
 
+extern EnumPropertyItem symmetrize_direction_items[];
+
 extern EnumPropertyItem texture_type_items[];
 
 extern EnumPropertyItem lamp_type_items[];

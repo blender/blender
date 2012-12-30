@@ -4712,6 +4712,50 @@ static void SCULPT_OT_optimize(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/********************* Dynamic topology symmetrize ********************/
+
+static int sculpt_symmetrize_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob = CTX_data_active_object(C);
+	const Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+	SculptSession *ss = ob->sculpt;
+
+	/* To simplify undo for symmetrize, all BMesh elements are logged
+	 * as deleted, then after symmetrize operation all BMesh elements
+	 * are logged as added (as opposed to attempting to store just the
+	 * parts that symmetrize modifies) */
+	sculpt_undo_push_begin("Dynamic topology symmetrize");
+	sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_SYMMETRIZE);
+	BM_log_before_all_removed(ss->bm, ss->bm_log);
+
+	/* Symmetrize and re-triangulate */
+	BMO_op_callf(ss->bm, BMO_FLAG_DEFAULTS,
+				 "symmetrize input=%avef direction=%i",
+				 sd->symmetrize_direction);
+	sculpt_dynamic_topology_triangulate(ss->bm);
+
+	/* Finish undo */
+	BM_log_all_added(ss->bm, ss->bm_log);
+	sculpt_undo_push_end();
+
+	/* Redraw */
+	sculpt_pbvh_clear(ob);
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+static void SCULPT_OT_symmetrize(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Symmetrize";
+	ot->idname = "SCULPT_OT_symmetrize";
+	
+	/* api callbacks */
+	ot->exec = sculpt_symmetrize_exec;
+	ot->poll = sculpt_and_dynamic_topology_poll;
+}
+
 /**** Toggle operator for turning sculpt mode on or off ****/
 
 static void sculpt_init_session(Scene *scene, Object *ob)
@@ -4887,4 +4931,5 @@ void ED_operatortypes_sculpt(void)
 	WM_operatortype_append(SCULPT_OT_set_persistent_base);
 	WM_operatortype_append(SCULPT_OT_dynamic_topology_toggle);
 	WM_operatortype_append(SCULPT_OT_optimize);
+	WM_operatortype_append(SCULPT_OT_symmetrize);
 }

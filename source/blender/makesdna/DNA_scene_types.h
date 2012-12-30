@@ -832,6 +832,11 @@ typedef struct Sculpt {
 
 	/* Maximum edge length for dynamic topology sculpting (in pixels) */
 	int detail_size;
+
+	/* Direction used for SCULPT_OT_symmetrize operator */
+	int symmetrize_direction;
+
+	int pad;
 } Sculpt;
 
 typedef struct UvSculpt {
