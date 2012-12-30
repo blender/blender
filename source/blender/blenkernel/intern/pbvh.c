@@ -1523,8 +1523,15 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3], int use
 
 //#include <GL/glew.h>
 
-void BLI_pbvh_node_draw(PBVHNode *node, void *setMaterial)
+typedef struct {
+	DMSetMaterial setMaterial;
+	int wireframe;
+} PBVHNodeDrawData;
+
+void BLI_pbvh_node_draw(PBVHNode *node, void *data_v)
 {
+	PBVHNodeDrawData *data = data_v;
+
 #if 0
 	/* XXX: Just some quick code to show leaf nodes in different colors */
 	float col[3]; int i;
@@ -1543,7 +1550,9 @@ void BLI_pbvh_node_draw(PBVHNode *node, void *setMaterial)
 #endif
 
 	if (!(node->flag & PBVH_FullyHidden))
-		GPU_draw_buffers(node->draw_buffers, setMaterial);
+		GPU_draw_buffers(node->draw_buffers,
+						 data->setMaterial,
+						 data->wireframe);
 }
 
 typedef enum {
@@ -1612,8 +1621,9 @@ static void pbvh_node_check_diffuse_changed(PBVH *bvh, PBVHNode *node)
 }
 
 void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
-                   DMSetMaterial setMaterial)
+                   DMSetMaterial setMaterial, int wireframe)
 {
+	PBVHNodeDrawData draw_data = {setMaterial, wireframe};
 	PBVHNode **nodes;
 	int a, totnode;
 
@@ -1630,10 +1640,10 @@ void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
 
 	if (planes) {
 		BLI_pbvh_search_callback(bvh, BLI_pbvh_node_planes_contain_AABB,
-		                         planes, BLI_pbvh_node_draw, setMaterial);
+		                         planes, BLI_pbvh_node_draw, &draw_data);
 	}
 	else {
-		BLI_pbvh_search_callback(bvh, NULL, NULL, BLI_pbvh_node_draw, setMaterial);
+		BLI_pbvh_search_callback(bvh, NULL, NULL, BLI_pbvh_node_draw, &draw_data);
 	}
 }
 

@@ -102,7 +102,7 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3], int use
 
 void BLI_pbvh_node_draw(PBVHNode *node, void *data);
 void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
-                   int (*setMaterial)(int, void *attribs));
+                   int (*setMaterial)(int, void *attribs), int wireframe);
 
 /* PBVH Access */
 typedef enum {

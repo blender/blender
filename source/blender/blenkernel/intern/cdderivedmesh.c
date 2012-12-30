@@ -425,6 +425,14 @@ static void cdDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges
 	MVert *mvert = cddm->mvert;
 	MEdge *medge = cddm->medge;
 	int i;
+
+	if (cddm->pbvh && cddm->pbvh_draw &&
+		BLI_pbvh_type(cddm->pbvh) == PBVH_BMESH)
+	{
+		BLI_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, TRUE);
+
+		return;
+	}
 	
 	if (GPU_buffer_legacy(dm)) {
 		DEBUG_VBO("Using legacy code. cdDM_drawEdges\n");
@@ -541,7 +549,8 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 		if (dm->numTessFaceData) {
 			float (*face_nors)[3] = CustomData_get_layer(&dm->faceData, CD_NORMAL);
 
-			BLI_pbvh_draw(cddm->pbvh, partial_redraw_planes, face_nors, setMaterial);
+			BLI_pbvh_draw(cddm->pbvh, partial_redraw_planes, face_nors,
+						  setMaterial, FALSE);
 			glShadeModel(GL_FLAT);
 		}
 

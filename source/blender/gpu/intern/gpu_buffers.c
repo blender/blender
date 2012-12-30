@@ -2312,7 +2312,8 @@ static void gpu_draw_buffers_legacy_grids(GPU_Buffers *buffers)
 	}
 }
 
-void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial)
+void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial,
+					  int wireframe)
 {
 	if (buffers->totface) {
 		const MFace *f = &buffers->mface[buffers->face_indices[0]];
@@ -2329,13 +2330,18 @@ void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial)
 
 	if (buffers->vert_buf) {
 		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_NORMAL_ARRAY);
-		gpu_colors_enable(VBO_ENABLED);
+		if (!wireframe) {
+			glEnableClientState(GL_NORMAL_ARRAY);
+			gpu_colors_enable(VBO_ENABLED);
+		}
 
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffers->vert_buf);
 
 		if (buffers->index_buf)
 			glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, buffers->index_buf);
+
+		if (wireframe)
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 		if (buffers->tot_quad) {
 			char *offset = 0;
@@ -2369,13 +2375,18 @@ void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial)
 				glDrawArrays(GL_TRIANGLES, 0, totelem);
 		}
 
+		if (wireframe)
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, 0);
 		if (buffers->index_buf)
 			glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 
 		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_NORMAL_ARRAY);
-		gpu_colors_disable(VBO_ENABLED);
+		if (!wireframe) {
+			glDisableClientState(GL_NORMAL_ARRAY);
+			gpu_colors_disable(VBO_ENABLED);
+		}
 	}
 	/* fallbacks if we are out of memory or VBO is disabled */
 	else if (buffers->totface) {

@@ -184,7 +184,8 @@ void GPU_update_grid_buffers(GPU_Buffers *buffers, struct CCGElem **grids,
                              int *grid_indices, int totgrid, const struct CCGKey *key,
                              int show_diffuse_color);
 
-void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial);
+void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial,
+					  int wireframe);
 
 int GPU_buffers_diffuse_changed(GPU_Buffers *buffers, int show_diffuse_color);
 
