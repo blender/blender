@@ -298,7 +298,7 @@ void free_sculptsession(Object *ob)
 		}
 
 		if (ss->pbvh)
-			BLI_pbvh_free(ss->pbvh);
+			BKE_pbvh_free(ss->pbvh);
 		if (ss->bm_log)
  			BM_log_free(ss->bm_log);
 
@@ -2815,7 +2815,7 @@ void BKE_object_sculpt_modifiers_changed(Object *ob)
 		 * changing PVBH node organization, we hope topology does not change in
 		 * the meantime .. weak */
 		if (ss->pbvh) {
-			BLI_pbvh_free(ss->pbvh);
+			BKE_pbvh_free(ss->pbvh);
 			ss->pbvh = NULL;
 		}
 
@@ -2825,10 +2825,10 @@ void BKE_object_sculpt_modifiers_changed(Object *ob)
 		PBVHNode **nodes;
 		int n, totnode;
 
-		BLI_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
+		BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
 		for (n = 0; n < totnode; n++)
-			BLI_pbvh_node_mark_update(nodes[n]);
+			BKE_pbvh_node_mark_update(nodes[n]);
 
 		MEM_freeN(nodes);
 	}

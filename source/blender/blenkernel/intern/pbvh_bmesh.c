@@ -999,7 +999,7 @@ void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode)
 /***************************** Public API *****************************/
 
 /* Build a PBVH from a BMesh */
-void BLI_pbvh_build_bmesh(PBVH *bvh, BMesh *bm, int smooth_shading,
+void BKE_pbvh_build_bmesh(PBVH *bvh, BMesh *bm, int smooth_shading,
 						  BMLog *log)
 {
 	BMIter iter;
@@ -1009,7 +1009,7 @@ void BLI_pbvh_build_bmesh(PBVH *bvh, BMesh *bm, int smooth_shading,
 
 	bvh->bm = bm;
 
-	BLI_pbvh_bmesh_detail_size_set(bvh, 0.75);
+	BKE_pbvh_bmesh_detail_size_set(bvh, 0.75);
 
 	bvh->type = PBVH_BMESH;
 	bvh->bm_face_to_node = BLI_ghash_ptr_new("bm_face_to_node");
@@ -1038,7 +1038,7 @@ void BLI_pbvh_build_bmesh(PBVH *bvh, BMesh *bm, int smooth_shading,
 }
 
 /* Collapse short edges, subdivide long edges */
-int BLI_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
+int BKE_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
 								   const float center[3], float radius)
 {
 	BLI_buffer_declare(BMFace*, edge_faces, 8);
@@ -1085,7 +1085,7 @@ int BLI_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
 
 /* In order to perform operations on the original node coordinates
  * (such as raycast), store the node's triangles and vertices.*/
-void BLI_pbvh_bmesh_node_save_orig(PBVHNode *node)
+void BKE_pbvh_bmesh_node_save_orig(PBVHNode *node)
 {
 	GHashIterator gh_iter;
 	int i, totvert, tottri;
@@ -1134,7 +1134,7 @@ void BLI_pbvh_bmesh_node_save_orig(PBVHNode *node)
 	node->bm_tot_ortri = i;
 }
 
-void BLI_pbvh_bmesh_after_stroke(PBVH *bvh)
+void BKE_pbvh_bmesh_after_stroke(PBVH *bvh)
 {
 	int i;
 	for (i = 0; i < bvh->totnode; i++) {
@@ -1150,23 +1150,23 @@ void BLI_pbvh_bmesh_after_stroke(PBVH *bvh)
 	}
 }
 
-void BLI_pbvh_bmesh_detail_size_set(PBVH *bvh, float detail_size)
+void BKE_pbvh_bmesh_detail_size_set(PBVH *bvh, float detail_size)
 {
 	bvh->bm_max_edge_len = detail_size;
 	bvh->bm_min_edge_len = bvh->bm_max_edge_len * 0.4;
 }
 
-void BLI_pbvh_node_mark_topology_update(PBVHNode *node)
+void BKE_pbvh_node_mark_topology_update(PBVHNode *node)
 {
 	node->flag |= PBVH_UpdateTopology;
 }
 
-GHash *BLI_pbvh_bmesh_node_unique_verts(PBVHNode *node)
+GHash *BKE_pbvh_bmesh_node_unique_verts(PBVHNode *node)
 {
 	return node->bm_unique_verts;
 }
 
-GHash *BLI_pbvh_bmesh_node_other_verts(PBVHNode *node)
+GHash *BKE_pbvh_bmesh_node_other_verts(PBVHNode *node)
 {
 	return node->bm_other_verts;
 }

@@ -112,8 +112,8 @@ static void partialvis_update_mesh(Object *ob,
 	int *vert_indices;
 	int any_changed = 0, any_visible = 0, totvert, i;
 			
-	BLI_pbvh_node_num_verts(pbvh, node, NULL, &totvert);
-	BLI_pbvh_node_get_verts(pbvh, node, &vert_indices, &mvert);
+	BKE_pbvh_node_num_verts(pbvh, node, NULL, &totvert);
+	BKE_pbvh_node_get_verts(pbvh, node, &vert_indices, &mvert);
 	paint_mask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
 
 	sculpt_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
@@ -136,8 +136,8 @@ static void partialvis_update_mesh(Object *ob,
 	}
 
 	if (any_changed) {
-		BLI_pbvh_node_mark_rebuild_draw(node);
-		BLI_pbvh_node_fully_hidden_set(node, !any_visible);
+		BKE_pbvh_node_mark_rebuild_draw(node);
+		BKE_pbvh_node_fully_hidden_set(node, !any_visible);
 	}
 }
 
@@ -157,11 +157,11 @@ static void partialvis_update_grids(Object *ob,
 	int *grid_indices, totgrid, any_changed, i;
 
 	/* get PBVH data */
-	BLI_pbvh_node_get_grids(pbvh, node,
+	BKE_pbvh_node_get_grids(pbvh, node,
 	                        &grid_indices, &totgrid, NULL, NULL,
 	                        &grids, NULL);
-	grid_hidden = BLI_pbvh_grid_hidden(pbvh);
-	BLI_pbvh_get_grid_key(pbvh, &key);
+	grid_hidden = BKE_pbvh_grid_hidden(pbvh);
+	BKE_pbvh_get_grid_key(pbvh, &key);
 	
 	sculpt_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 	
@@ -226,8 +226,8 @@ static void partialvis_update_grids(Object *ob,
 
 	/* mark updates if anything was hidden/shown */
 	if (any_changed) {
-		BLI_pbvh_node_mark_rebuild_draw(node);
-		BLI_pbvh_node_fully_hidden_set(node, !any_visible);
+		BKE_pbvh_node_mark_rebuild_draw(node);
+		BKE_pbvh_node_fully_hidden_set(node, !any_visible);
 		multires_mark_as_modified(ob, MULTIRES_HIDDEN_MODIFIED);
 	}
 }
@@ -273,9 +273,9 @@ static void partialvis_update_bmesh(Object *ob,
 	GHash *unique, *other;
 	int any_changed = 0, any_visible = 0;
 
-	bm = BLI_pbvh_get_bmesh(pbvh);
-	unique = BLI_pbvh_bmesh_node_unique_verts(node);
-	other = BLI_pbvh_bmesh_node_other_verts(node);
+	bm = BKE_pbvh_get_bmesh(pbvh);
+	unique = BKE_pbvh_bmesh_node_unique_verts(node);
+	other = BKE_pbvh_bmesh_node_other_verts(node);
 
 	sculpt_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
@@ -296,8 +296,8 @@ static void partialvis_update_bmesh(Object *ob,
 								  &any_visible);
 
 	if (any_changed) {
-		BLI_pbvh_node_mark_rebuild_draw(node);
-		BLI_pbvh_node_fully_hidden_set(node, !any_visible);
+		BKE_pbvh_node_mark_rebuild_draw(node);
+		BKE_pbvh_node_fully_hidden_set(node, !any_visible);
 	}
 }
 
@@ -334,22 +334,22 @@ static void get_pbvh_nodes(PBVH *pbvh,
                            float clip_planes[4][4],
                            PartialVisArea mode)
 {
-	BLI_pbvh_SearchCallback cb = NULL;
+	BKE_pbvh_SearchCallback cb = NULL;
 
 	/* select search callback */
 	switch (mode) {
 		case PARTIALVIS_INSIDE:
-			cb = BLI_pbvh_node_planes_contain_AABB;
+			cb = BKE_pbvh_node_planes_contain_AABB;
 			break;
 		case PARTIALVIS_OUTSIDE:
-			cb = BLI_pbvh_node_planes_exclude_AABB;
+			cb = BKE_pbvh_node_planes_exclude_AABB;
 			break;
 		case PARTIALVIS_ALL:
 		case PARTIALVIS_MASKED:
 			break;
 	}
 	
-	BLI_pbvh_search_gather(pbvh, cb, clip_planes, nodes, totnode);
+	BKE_pbvh_search_gather(pbvh, cb, clip_planes, nodes, totnode);
 }
 
 static int hide_show_exec(bContext *C, wmOperator *op)
@@ -379,7 +379,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 	ob->sculpt->pbvh = pbvh;
 
 	get_pbvh_nodes(pbvh, &nodes, &totnode, clip_planes, area);
-	pbvh_type = BLI_pbvh_type(pbvh);
+	pbvh_type = BKE_pbvh_type(pbvh);
 
 	/* start undo */
 	switch (action) {
