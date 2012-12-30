@@ -57,6 +57,8 @@
 #include "GPU_buffers.h"
 #include "GPU_draw.h"
 
+#include "bmesh.h"
+
 typedef enum {
 	GPU_BUFFER_VERTEX_STATE = 1,
 	GPU_BUFFER_NORMAL_STATE = 2,
@@ -1269,6 +1271,8 @@ struct GPU_Buffers {
 	int totgrid;
 	int has_hidden;
 
+	int use_bmesh;
+
 	unsigned int tot_tri, tot_quad;
 
 	/* The PBVH ensures that either all faces in the node are
@@ -1861,6 +1865,254 @@ GPU_Buffers *GPU_build_grid_buffers(int *grid_indices, int totgrid,
 }
 
 #undef FILL_QUAD_BUFFER
+
+/* Output a BMVert into a VertexBufferFormat array
+ *
+ * The vertex is skipped if hidden, otherwise the output goes into
+ * index '*v_index' in the 'vert_data' array and '*v_index' is
+ * incremented.
+ */
+static void gpu_bmesh_vert_to_buffer_copy(BMVert *v, BMesh *bm,
+										  VertexBufferFormat *vert_data,
+										  int *v_index,
+										  const float fno[3],
+										  const float *fmask)
+{
+	VertexBufferFormat *vd = &vert_data[*v_index];
+	float *mask;
+
+	if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
+		/* TODO: should use material color */
+		float diffuse_color[4] = {0.8f, 0.8f, 0.8f, 1.0f};
+
+		/* Set coord, normal, and mask */
+		copy_v3_v3(vd->co, v->co);
+		normal_float_to_short_v3(vd->no, fno ? fno : v->no);
+		mask = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_PAINT_MASK);
+		gpu_color_from_mask_copy(fmask ? *fmask : *mask,
+								 diffuse_color,
+								 vd->color);
+		
+
+		/* Assign index for use in the triangle index buffer */
+		BM_elem_index_set(v, (*v_index)); /* set_dirty! */
+
+		(*v_index)++;
+	}
+}
+
+/* Return the total number of vertices that don't have BM_ELEM_HIDDEN set */
+static int gpu_bmesh_vert_visible_count(GHash *bm_unique_verts,
+										GHash *bm_other_verts)
+{
+	GHashIterator gh_iter;
+	int totvert = 0;
+
+	GHASH_ITER (gh_iter, bm_unique_verts) {
+		BMVert *v = BLI_ghashIterator_getKey(&gh_iter);
+		if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN))
+			totvert++;
+	}
+	GHASH_ITER (gh_iter, bm_other_verts) {
+		BMVert *v = BLI_ghashIterator_getKey(&gh_iter);
+		if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN))
+			totvert++;
+	}
+
+	return totvert;
+}
+
+/* Return TRUE if all vertices in the face are visible, FALSE otherwise */
+static int gpu_bmesh_face_visible(BMFace *f)
+{
+	BMIter bm_iter;
+	BMVert *v;
+
+	BM_ITER_ELEM (v, &bm_iter, f, BM_VERTS_OF_FACE) {
+		if (BM_elem_flag_test(v, BM_ELEM_HIDDEN))
+			return FALSE;
+	}
+
+	return TRUE;
+}
+
+/* Return the total number of visible faces */
+static int gpu_bmesh_face_visible_count(GHash *bm_faces)
+{
+	GHashIterator gh_iter;
+	int totface = 0;
+
+	GHASH_ITER (gh_iter, bm_faces) {
+		BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
+
+		if (gpu_bmesh_face_visible(f))
+			totface++;
+	}
+
+	return totface;
+}
+
+/* Creates a vertex buffer (coordinate, normal, color) and, if smooth
+   shading, an element index buffer. */
+void GPU_update_bmesh_buffers(GPU_Buffers *buffers,
+							  BMesh *bm,
+							  GHash *bm_faces,
+							  GHash *bm_unique_verts,
+							  GHash *bm_other_verts)
+{
+	VertexBufferFormat *vert_data;
+	void *tri_data;
+	int tottri, totvert, maxvert = 0;
+
+	if (!buffers->vert_buf || (buffers->smooth && !buffers->index_buf))
+		return;
+
+	/* Count visible triangles */
+	tottri = gpu_bmesh_face_visible_count(bm_faces);
+
+	if (buffers->smooth) {
+		/* Count visible vertices */
+		totvert = gpu_bmesh_vert_visible_count(bm_unique_verts, bm_other_verts);
+	}
+	else
+		totvert = tottri * 3;
+
+	/* Initialize vertex buffer */
+	glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffers->vert_buf);
+	glBufferDataARB(GL_ARRAY_BUFFER_ARB,
+					sizeof(VertexBufferFormat) * totvert,
+					NULL, GL_STATIC_DRAW_ARB);
+
+	/* Fill vertex buffer */
+	vert_data = glMapBufferARB(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
+	if (vert_data) {
+		GHashIterator gh_iter;
+		int v_index = 0;
+
+		if (buffers->smooth) {
+			/* Vertices get an index assigned for use in the triangle
+			   index buffer */
+			bm->elem_index_dirty |= BM_VERT;
+
+			GHASH_ITER (gh_iter, bm_unique_verts) {
+				gpu_bmesh_vert_to_buffer_copy(BLI_ghashIterator_getKey(&gh_iter),
+											  bm, vert_data, &v_index, NULL, NULL);
+			}
+
+			GHASH_ITER (gh_iter, bm_other_verts) {
+				gpu_bmesh_vert_to_buffer_copy(BLI_ghashIterator_getKey(&gh_iter),
+											  bm, vert_data, &v_index, NULL, NULL);
+			}
+
+			maxvert = v_index;
+		}
+		else {
+			GHASH_ITER (gh_iter, bm_faces) {
+				BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
+
+				BLI_assert(f->len == 3);
+
+				if (gpu_bmesh_face_visible(f)) {
+					BMVert *v[3];
+					float fmask = 0;
+					int i;
+
+					BM_iter_as_array(bm, BM_VERTS_OF_FACE, f, (void**)v, 3);
+
+					/* Average mask value */
+					for (i = 0; i < 3; i++) {
+						fmask += *((float*)CustomData_bmesh_get(&bm->vdata,
+																v[i]->head.data,
+																CD_PAINT_MASK));
+					}
+					fmask /= 3.0f;
+					
+					for (i = 0; i < 3; i++) {
+						gpu_bmesh_vert_to_buffer_copy(v[i], bm, vert_data,
+													  &v_index, f->no, &fmask);
+					}
+				}
+			}
+
+			buffers->tot_tri = tottri;
+		}
+
+		glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
+	}
+	else {
+		/* Memory map failed */
+		glDeleteBuffersARB(1, &buffers->vert_buf);
+		buffers->vert_buf = 0;
+		return;
+	}
+
+	if (buffers->smooth) {
+		const int use_short = (maxvert < USHRT_MAX);
+
+		/* Initialize triangle index buffer */
+		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, buffers->index_buf);
+		glBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB,
+						(use_short ?
+						 sizeof(unsigned short) :
+						 sizeof(unsigned int)) * 3 * tottri,
+						NULL, GL_STATIC_DRAW_ARB);
+
+		/* Fill triangle index buffer */
+		tri_data = glMapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
+		if (tri_data) {
+			GHashIterator gh_iter;
+
+			GHASH_ITER (gh_iter, bm_faces) {
+				BMIter bm_iter;
+				BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
+				BMVert *v;
+
+				if (gpu_bmesh_face_visible(f)) {
+					BM_ITER_ELEM (v, &bm_iter, f, BM_VERTS_OF_FACE) {
+						if (use_short) {
+							unsigned short *elem = tri_data;
+							(*elem) = BM_elem_index_get(v);
+							elem++;
+							tri_data = elem;
+						}
+						else {
+							unsigned int *elem = tri_data;
+							(*elem) = BM_elem_index_get(v);
+							elem++;
+							tri_data = elem;
+						}
+					}
+				}
+			}
+
+			glUnmapBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB);
+
+			buffers->tot_tri = tottri;
+			buffers->index_type = (use_short ?
+								   GL_UNSIGNED_SHORT :
+								   GL_UNSIGNED_INT);
+		}
+		else {
+			/* Memory map failed */
+			glDeleteBuffersARB(1, &buffers->index_buf);
+			buffers->index_buf = 0;
+		}
+	}
+}
+
+GPU_Buffers *GPU_build_bmesh_buffers(int smooth_shading)
+{
+	GPU_Buffers *buffers;
+
+	buffers = MEM_callocN(sizeof(GPU_Buffers), "GPU_Buffers");
+	if (smooth_shading)
+		glGenBuffersARB(1, &buffers->index_buf);
+	glGenBuffersARB(1, &buffers->vert_buf);
+	buffers->use_bmesh = TRUE;
+	buffers->smooth = smooth_shading;
+
+	return buffers;
+}
 
 static void gpu_draw_buffers_legacy_mesh(GPU_Buffers *buffers)
 {
