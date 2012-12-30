@@ -468,11 +468,19 @@ BMEdge *BM_vert_other_disk_edge(BMVert *v, BMEdge *e_first)
 }
 
 /**
- * Returms edge length
+ * Returns edge length
  */
 float BM_edge_calc_length(BMEdge *e)
 {
 	return len_v3v3(e->v1->co, e->v2->co);
+}
+
+/**
+ * Returns edge length squared (for comparisons)
+ */
+float BM_edge_calc_squared_length(BMEdge *e)
+{
+	return len_squared_v3v3(e->v1->co, e->v2->co);
 }
 
 /**
