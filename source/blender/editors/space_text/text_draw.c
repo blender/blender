@@ -1275,7 +1275,7 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 void draw_text_main(SpaceText *st, ARegion *ar)
 {
 	Text *text = st->text;
-	TextFormatType *tft = ED_text_format_get(text);
+	TextFormatType *tft;
 	TextLine *tmp;
 	rcti scroll, back;
 	char linenr[12];
@@ -1303,6 +1303,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	calc_text_rcts(st, ar, &scroll, &back); /* scroll will hold the entire bar size */
 
 	/* update syntax formatting if needed */
+	tft = ED_text_format_get(text);
 	tmp = text->lines.first;
 	lineno = 0;
 	for (i = 0; i < st->top && tmp; i++) {
