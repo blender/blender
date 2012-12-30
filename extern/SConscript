@@ -4,6 +4,7 @@ Import('env')
 
 SConscript(['glew/SConscript'])
 SConscript(['colamd/SConscript'])
+SConscript(['rangetree/SConscript'])
 
 if env['WITH_BF_GAMEENGINE']:
     SConscript(['recastnavigation/SConscript'])
