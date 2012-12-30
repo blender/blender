@@ -651,10 +651,10 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	ofsx = 0; //(but->block->panel) ? but->block->panel->ofsx : 0;
 	ofsy = 0; //(but->block->panel) ? but->block->panel->ofsy : 0;
 
-	rect_fl.xmin = (but->rect.xmin + but->rect.xmax) * 0.5f + ofsx - (TIP_BORDER_X );
-	rect_fl.xmax = rect_fl.xmin + fontw + (TIP_BORDER_X );
-	rect_fl.ymax = but->rect.ymin + ofsy - (TIP_BORDER_Y );
-	rect_fl.ymin = rect_fl.ymax - fonth  - (TIP_BORDER_Y );
+	rect_fl.xmin = (but->rect.xmin + but->rect.xmax) * 0.5f + ofsx - TIP_BORDER_X;
+	rect_fl.xmax = rect_fl.xmin + fontw + TIP_BORDER_X;
+	rect_fl.ymax = but->rect.ymin + ofsy - TIP_BORDER_Y;
+	rect_fl.ymin = rect_fl.ymax - fonth  - TIP_BORDER_Y;
 
 #undef TIP_MARGIN_Y
 #undef TIP_BORDER_X

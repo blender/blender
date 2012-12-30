@@ -277,7 +277,7 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle, ParticleSystemMod
 		
 		if (num != DMCACHE_NOTFOUND) {
 			MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
-			MTFace *mtface = (MTFace*)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, 0);
+			MTFace *mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, 0);
 			mtface += num;
 			
 			psys_interpolate_uvs(mtface, mface->v4, particle->fuv, n_uv);
@@ -290,7 +290,7 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle, ParticleSystemMod
 }
 
 static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *object, ParticleSystemModifierData *modifier, int particle_no, int step,
-                                             float n_co[3])
+                                       float n_co[3])
 {
 	ParticleSettings *part = 0;
 	ParticleData *pars = 0;
@@ -395,7 +395,7 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Par
 		if (n_uv && ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
 			if (num != DMCACHE_NOTFOUND) {
 				MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
-				MTFace *mtface = (MTFace*)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, 0);
+				MTFace *mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, 0);
 				mtface += num;
 				
 				psys_interpolate_uvs(mtface, mface->v4, particle->fuv, n_uv);
@@ -416,7 +416,7 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Par
 			if (n_uv && ELEM(PART_FROM_FACE, PART_FROM_FACE, PART_FROM_VOLUME)) {
 				if (cpa->num != DMCACHE_NOTFOUND) {
 					MFace *mface = modifier->dm->getTessFaceData(modifier->dm, cpa->num, CD_MFACE);
-					MTFace *mtface = (MTFace*)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, 0);
+					MTFace *mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, 0);
 					mtface += cpa->num;
 					
 					psys_interpolate_uvs(mtface, mface->v4, cpa->fuv, n_uv);
@@ -438,7 +438,7 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Par
 			if (n_uv && ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
 				if (num != DMCACHE_NOTFOUND) {
 					MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
-					MTFace *mtface = (MTFace*)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, 0);
+					MTFace *mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, 0);
 					mtface += num;
 					
 					psys_interpolate_uvs(mtface, mface->v4, parent->fuv, n_uv);

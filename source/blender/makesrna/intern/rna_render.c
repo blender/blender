@@ -137,7 +137,7 @@ static void engine_update_script_node(RenderEngine *engine, struct bNodeTree *nt
 	FunctionRNA *func;
 
 	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
-	RNA_pointer_create((ID*)ntree, &RNA_Node, node, &nodeptr);
+	RNA_pointer_create((ID *)ntree, &RNA_Node, node, &nodeptr);
 	func = &rna_RenderEngine_update_script_node_func;
 
 	RNA_parameter_list_create(&list, &ptr, func);
