@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/space_text/text_format_py.c
+/** \file blender/editors/space_text/text_format_osl.c
  *  \ingroup sptext
  */
 
@@ -44,8 +44,8 @@
 static int txtfmt_osl_find_builtinfunc(const char *string)
 {
 	int i, len;
-	/* list is from...
-	 * XXX - link to docs!
+	/* list is from
+	 * https://github.com/imageworks/OpenShadingLanguage/raw/master/src/doc/osl-languagespec.pdf
 	 */
 	if      (STR_LITERAL_STARTSWITH(string, "break",        len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "closure",      len)) i = len;
@@ -83,7 +83,7 @@ static int txtfmt_osl_find_reserved(const char *string)
 {
 	int i, len;
 	/* list is from...
-	 * XXX - link to docs!
+	 * https://github.com/imageworks/OpenShadingLanguage/raw/master/src/doc/osl-languagespec.pdf
 	 */
 	if      (STR_LITERAL_STARTSWITH(string, "bool",         len)) i = len;
 	else if (STR_LITERAL_STARTSWITH(string, "case",         len)) i = len;
@@ -129,7 +129,7 @@ static int txtfmt_osl_find_reserved(const char *string)
 	return i;
 }
 
-/* Checks the specified source string for a Python special name. This name must
+/* Checks the specified source string for a OSL special name. This name must
  * start at the beginning of the source string and must be followed by a non-
  * identifier (see text_check_identifier(char)) or null character.
  *
@@ -139,8 +139,12 @@ static int txtfmt_osl_find_reserved(const char *string)
 static int txtfmt_osl_find_specialvar(const char *string)
 {
 	int i, len;
-
-	if      (STR_LITERAL_STARTSWITH(string, "shader", len)) i = len;
+	
+	/* OSL shader types */
+	if      (STR_LITERAL_STARTSWITH(string, "shader", 		len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "surface", 		len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "volume", 		len)) i = len;
+	else if (STR_LITERAL_STARTSWITH(string, "displacement", len)) i = len;
 	else                                                    i = 0;
 
 	/* If next source char is an identifier (eg. 'i' in "definate") no match */
