@@ -600,6 +600,7 @@ void BLI_pbvh_free(PBVH *bvh)
 				MEM_freeN(node->vert_indices);
 			if (node->face_vert_indices)
 				MEM_freeN(node->face_vert_indices);
+			BLI_pbvh_node_layer_disp_free(node);
 		}
 	}
 
@@ -1608,6 +1609,26 @@ void BLI_pbvh_grids_update(PBVH *bvh, CCGElem **grids, DMGridAdjacency *gridadj,
 
 		for (a = 0; a < bvh->totnode; ++a)
 			BLI_pbvh_node_mark_rebuild_draw(&bvh->nodes[a]);
+	}
+}
+
+/* Get the node's displacement layer, creating it if necessary */
+float *BLI_pbvh_node_layer_disp_get(PBVH *bvh, PBVHNode *node)
+{
+	if (!node->layer_disp) {
+		int totvert = 0;
+		BLI_pbvh_node_num_verts(bvh, node, &totvert, NULL);
+		node->layer_disp = MEM_callocN(sizeof(float) * totvert, "layer disp");
+	}
+	return node->layer_disp;
+}
+
+/* If the node has a displacement layer, free it and set to null */
+void BLI_pbvh_node_layer_disp_free(PBVHNode *node)
+{
+	if (node->layer_disp) {
+		MEM_freeN(node->layer_disp);
+		node->layer_disp = NULL;
 	}
 }
 

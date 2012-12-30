@@ -101,9 +101,6 @@ typedef struct SculptUndoNode {
 	int *grids;                 /* to restore into right location */
 	BLI_bitmap *grid_hidden;
 
-	/* layer brush */
-	float *layer_disp;
-
 	/* shape keys */
 	char shapeName[sizeof(((KeyBlock *)0))->name];
 } SculptUndoNode;

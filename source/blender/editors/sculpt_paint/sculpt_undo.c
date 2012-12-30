@@ -374,8 +374,6 @@ static void sculpt_undo_free(ListBase *lb)
 			MEM_freeN(unode->index);
 		if (unode->grids)
 			MEM_freeN(unode->grids);
-		if (unode->layer_disp)
-			MEM_freeN(unode->layer_disp);
 		if (unode->orig_co)
 			MEM_freeN(unode->orig_co);
 		if (unode->vert_hidden)
@@ -612,10 +610,8 @@ void sculpt_undo_push_end(void)
 			unode->no = NULL;
 		}
 
-		if (unode->layer_disp) {
-			MEM_freeN(unode->layer_disp);
-			unode->layer_disp = NULL;
-		}
+		if (unode->node)
+			BLI_pbvh_node_layer_disp_free(unode->node);
 	}
 
 	undo_paint_push_end(UNDO_PAINT_MESH);

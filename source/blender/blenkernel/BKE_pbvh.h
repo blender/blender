@@ -156,6 +156,14 @@ void BLI_pbvh_grids_update(PBVH *bvh, struct CCGElem **grid_elems,
                            struct DMGridAdjacency *gridadj, void **gridfaces,
                            struct DMFlagMat *flagmats, unsigned int **grid_hidden);
 
+/* Layer displacement */
+
+/* Get the node's displacement layer, creating it if necessary */
+float *BLI_pbvh_node_layer_disp_get(PBVH *pbvh, PBVHNode *node);
+
+/* If the node has a displacement layer, free it and set to null */
+void BLI_pbvh_node_layer_disp_free(PBVHNode *node);
+
 /* vertex deformer */
 float (*BLI_pbvh_get_vertCos(struct PBVH *pbvh))[3];
 void BLI_pbvh_apply_vertCos(struct PBVH *pbvh, float (*vertCos)[3]);

@@ -91,6 +91,9 @@ struct PBVHNode {
 	/* Used for raycasting: how close bb is to the ray point. */
 	float tmin;
 
+	/* Scalar displacements for sculpt mode's layer brush. */
+	float *layer_disp;
+
 	int proxy_count;
 	PBVHProxyNode *proxies;
 };

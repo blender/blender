@@ -1908,13 +1908,12 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 		
 		unode = sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
 		origco = unode->co;
-		if (!unode->layer_disp) {
-			#pragma omp critical 
-			unode->layer_disp = MEM_callocN(sizeof(float) * unode->totvert, "layer disp");
+
+		#pragma omp critical
+		{
+			layer_disp = BLI_pbvh_node_layer_disp_get(ss->pbvh, nodes[n]);
 		}
-
-		layer_disp = unode->layer_disp;
-
+		
 		sculpt_brush_test_init(ss, &test);
 
 		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
