@@ -244,6 +244,7 @@ set(SRC
 	depsgraph_private.h
 	nla_private.h
 	intern/CCGSubSurf.h
+	intern/pbvh_intern.h
 )
 
 add_definitions(-DGLEW_STATIC)
