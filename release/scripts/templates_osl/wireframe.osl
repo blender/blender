@@ -1,0 +1,10 @@
+#include "stdosl.h"
+#include "oslutil.h"
+
+shader wireframe(
+    float Line_Width = 2.0,
+    int Raster = 1,
+    output float Wire = 0.0)
+{
+    Wire = wireframe("triangles", Line_Width, Raster);
+}
