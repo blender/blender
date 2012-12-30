@@ -921,7 +921,8 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	
 	if (event->type == MOUSEPAN) {
-		viewrotate_apply(vod, event->prevx, event->prevy);
+		/* invert it, trackpad scroll then follows how you mapped it globally */
+		viewrotate_apply(vod, 2 * event->x - event->prevx, 2 * event->y - event->prevy);
 		ED_view3d_depth_tag_update(rv3d);
 		
 		viewops_data_free(C, op);
