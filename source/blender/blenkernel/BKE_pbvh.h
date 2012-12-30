@@ -27,13 +27,18 @@
  */
 
 #include "BLI_bitmap.h"
+#include "BLI_ghash.h"
+#include "BLI_utildefines.h"
+
+/* Needed for BMesh functions used in the PBVH iterator macro */
+#include "bmesh.h"
 
 struct CCGElem;
 struct CCGKey;
 struct CustomData;
 struct DMFlagMat;
 struct DMGridAdjacency;
-struct ListBase;
+struct GHash;
 struct MFace;
 struct MVert;
 struct PBVH;
@@ -63,6 +68,9 @@ void BLI_pbvh_build_grids(PBVH *bvh, struct CCGElem **grid_elems,
                           struct DMGridAdjacency *gridadj, int totgrid,
                           struct CCGKey *key, void **gridfaces, struct DMFlagMat *flagmats,
                           unsigned int **grid_hidden);
+void BLI_pbvh_build_bmesh(PBVH *bvh, struct BMesh *bm, int smooth_shading,
+						  struct BMLog *log);
+
 void BLI_pbvh_free(PBVH *bvh);
 
 /* Hierarchical Search in the BVH, two methods:
@@ -86,7 +94,7 @@ void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitOccludedCallback cb, void *data,
                       const float ray_start[3], const float ray_normal[3],
                       int original);
 
-int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
+int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3], int use_origco,
                           const float ray_start[3], const float ray_normal[3],
                           float *dist);
 
@@ -100,6 +108,7 @@ void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
 typedef enum {
 	PBVH_FACES,
 	PBVH_GRIDS,
+	PBVH_BMESH
 } PBVHType;
 
 PBVHType BLI_pbvh_type(const PBVH *bvh);
@@ -109,6 +118,17 @@ unsigned int **BLI_pbvh_grid_hidden(const PBVH *bvh);
 
 /* multires level, only valid for type == PBVH_GRIDS */
 void BLI_pbvh_get_grid_key(const PBVH *pbvh, struct CCGKey *key);
+
+/* Only valid for type == PBVH_BMESH */
+BMesh *BLI_pbvh_get_bmesh(PBVH *pbvh);
+void BLI_pbvh_bmesh_detail_size_set(PBVH *pbvh, float detail_size);
+
+typedef enum {
+	PBVH_Subdivide = 1,
+	PBVH_Collapse = 2,
+} PBVHTopologyUpdateMode;
+int BLI_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
+								   const float center[3], float radius);
 
 /* Node Access */
 
@@ -122,12 +142,15 @@ typedef enum {
 	PBVH_UpdateRedraw = 32,
 
 	PBVH_RebuildDrawBuffers = 64,
-	PBVH_FullyHidden = 128
+	PBVH_FullyHidden = 128,
+
+	PBVH_UpdateTopology = 256,
 } PBVHNodeFlags;
 
 void BLI_pbvh_node_mark_update(PBVHNode *node);
 void BLI_pbvh_node_mark_rebuild_draw(PBVHNode *node);
 void BLI_pbvh_node_fully_hidden_set(PBVHNode *node, int fully_hidden);
+void BLI_pbvh_node_mark_topology_update(PBVHNode *node);
 
 void BLI_pbvh_node_get_grids(PBVH *bvh, PBVHNode *node,
                              int **grid_indices, int *totgrid, int *maxgrid, int *gridsize,
@@ -146,6 +169,11 @@ float BLI_pbvh_node_get_tmin(PBVHNode *node);
 int BLI_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data);
 /* test if AABB is at least partially outside the planes' volume */
 int BLI_pbvh_node_planes_exclude_AABB(PBVHNode *node, void *data);
+
+struct GHash *BLI_pbvh_bmesh_node_unique_verts(PBVHNode *node);
+struct GHash *BLI_pbvh_bmesh_node_other_verts(PBVHNode *node); 
+void BLI_pbvh_bmesh_node_save_orig(PBVHNode *node);
+void BLI_pbvh_bmesh_after_stroke(PBVH *bvh);
 
 /* Update Normals/Bounding Box/Draw Buffers/Redraw and clear flags */
 
@@ -168,7 +196,6 @@ void BLI_pbvh_node_layer_disp_free(PBVHNode *node);
 float (*BLI_pbvh_get_vertCos(struct PBVH *pbvh))[3];
 void BLI_pbvh_apply_vertCos(struct PBVH *pbvh, float (*vertCos)[3]);
 int BLI_pbvh_isDeformed(struct PBVH *pbvh);
-
 
 /* Vertex Iterator */
 
@@ -205,9 +232,15 @@ typedef struct PBVHVertexIter {
 	int *vert_indices;
 	float *vmask;
 
+	/* bmesh */
+	struct GHashIterator bm_unique_verts;
+	struct GHashIterator bm_other_verts;
+	struct CustomData *bm_vdata;
+
 	/* result: these are all computed in the macro, but we assume
 	 * that compiler optimization's will skip the ones we don't use */
 	struct MVert *mvert;
+	struct BMVert *bm_vert;
 	float *co;
 	short *no;
 	float *fno;
@@ -249,7 +282,7 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 							continue; \
 					} \
 				} \
-				else { \
+				else if (vi.mverts) { \
 					vi.mvert = &vi.mverts[vi.vert_indices[vi.gx]]; \
 					if (mode == PBVH_ITER_UNIQUE && vi.mvert->flag & ME_HIDE) \
 						continue; \
@@ -258,6 +291,24 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 					if (vi.vmask) \
 						vi.mask = &vi.vmask[vi.vert_indices[vi.gx]]; \
 				} \
+				else { \
+					if (!BLI_ghashIterator_isDone(&vi.bm_unique_verts)) {\
+						vi.bm_vert = BLI_ghashIterator_getKey(&vi.bm_unique_verts); \
+						BLI_ghashIterator_step(&vi.bm_unique_verts); \
+					} \
+					else { \
+						vi.bm_vert = BLI_ghashIterator_getKey(&vi.bm_other_verts); \
+						BLI_ghashIterator_step(&vi.bm_other_verts); \
+					} \
+					if (mode == PBVH_ITER_UNIQUE && \
+						BM_elem_flag_test(vi.bm_vert, BM_ELEM_HIDDEN)) \
+						continue; \
+					vi.co = vi.bm_vert->co; \
+					vi.fno = vi.bm_vert->no; \
+					vi.mask = CustomData_bmesh_get(vi.bm_vdata, \
+												   vi.bm_vert->head.data, \
+												   CD_PAINT_MASK); \
+				}
 
 #define BLI_pbvh_vertex_iter_end \
 			} \

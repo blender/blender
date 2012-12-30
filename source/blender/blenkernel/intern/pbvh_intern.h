@@ -31,6 +31,8 @@ typedef struct {
 	float bmin[3], bmax[3], bcentroid[3];
 } BBC;
 
+/* Note: this structure is getting large, might want to split it into
+ * union'd structs */
 struct PBVHNode {
 	/* Opaque handle for drawing code */
 	GPU_Buffers *draw_buffers;
@@ -86,7 +88,7 @@ struct PBVHNode {
 
 	/* Indicates whether this node is a leaf or not; also used for
 	 * marking various updates that need to be applied. */
-	PBVHNodeFlags flag : 8;
+	PBVHNodeFlags flag : 16;
 
 	/* Used for raycasting: how close bb is to the ray point. */
 	float tmin;
@@ -96,10 +98,25 @@ struct PBVHNode {
 
 	int proxy_count;
 	PBVHProxyNode *proxies;
+
+	/* Dyntopo */
+	GHash *bm_faces;
+	GHash *bm_unique_verts;
+	GHash *bm_other_verts;
+	float (*bm_orco)[3];
+	int (*bm_ortri)[3];
+	int bm_tot_ortri;
 };
+
+typedef enum {
+	PBVH_DYNTOPO_SMOOTH_SHADING = 1
+} PBVHFlags;
+
+typedef struct PBVHBMeshLog PBVHBMeshLog;
 
 struct PBVH {
 	PBVHType type;
+	PBVHFlags flags;
 
 	PBVHNode *nodes;
 	int node_mem_count, totnode;
@@ -136,6 +153,34 @@ struct PBVH {
 	int deformed;
 
 	int show_diffuse_color;
+
+	/* Dynamic topology */
+	BMesh *bm;
+	GHash *bm_face_to_node;
+	GHash *bm_vert_to_node;
+	float bm_max_edge_len;
+	float bm_min_edge_len;
+
+	struct BMLog *bm_log;
 };
+
+/* pbvh.c */
+void BB_reset(BB *bb);
+void BB_expand(BB *bb, const float co[3]);
+void BB_expand_with_bb(BB *bb, BB *bb2);
+void BBC_update_centroid(BBC *bbc);
+int BB_widest_axis(const BB *bb);
+void pbvh_grow_nodes(PBVH *bvh, int totnode);
+int ray_face_intersection(const float ray_start[3], const float ray_normal[3],
+						  const float *t0, const float *t1, const float *t2,
+						  const float *t3, float *fdist);
+void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag);
+
+/* pbvh_bmesh.c */
+int pbvh_bmesh_node_raycast(PBVHNode *node, const float ray_start[3],
+							const float ray_normal[3], float *dist,
+							int use_original);
+
+void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode);
 
 #endif
