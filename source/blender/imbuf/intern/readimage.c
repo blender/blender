@@ -91,16 +91,20 @@ ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags, char co
 				}
 				else {
 					if (flags & IB_alphamode_premul) {
-						if (ibuf->rect)
+						if (ibuf->rect) {
 							IMB_unpremultiply_alpha(ibuf);
-						else
-							/* pass, floats are expected to be premul */ ;
+						}
+						else {
+							/* pass, floats are expected to be premul */
+						}
 					}
 					else {
-						if (ibuf->rect_float)
+						if (ibuf->rect_float) {
 							IMB_premultiply_alpha(ibuf);
-						else
-							/* pass, bytes are expected to be straight */ ;
+						}
+						else {
+							/* pass, bytes are expected to be straight */
+						}
 					}
 				}
 
