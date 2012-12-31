@@ -340,7 +340,7 @@ typedef struct ColorMapping {
 
 /* imaflag */
 #define TEX_INTERPOL	1
-#define TEX_USEALPHA	2
+#define TEX_USEALPHA	2 /* deprecated, used for versioning only */
 #define TEX_MIPMAP		4
 #define TEX_IMAROT		16
 #define TEX_CALCALPHA	32

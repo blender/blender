@@ -189,7 +189,6 @@ typedef struct ColormnaageCacheData {
 	int flag;        /* view flags of cached buffer */
 	float exposure;  /* exposure value cached buffer is calculated with */
 	float gamma;     /* gamma value cached buffer is calculated with */
-	int predivide;   /* predivide flag of cached buffer */
 	CurveMapping *curve_mapping;  /* curve mapping used for cached buffer */
 	int curve_mapping_timestamp;  /* time stamp of curve mapping used for cached buffer */
 } ColormnaageCacheData;
@@ -323,7 +322,6 @@ static unsigned char *colormanage_cache_get(ImBuf *ibuf, const ColormanageCacheV
 	ColormanageCacheKey key;
 	ImBuf *cache_ibuf;
 	int view_flag = 1 << (view_settings->view - 1);
-	int predivide = ibuf->flags & IB_cm_predivide;
 	CurveMapping *curve_mapping = view_settings->curve_mapping;
 	int curve_mapping_timestamp = curve_mapping ? curve_mapping->changed_timestamp : 0;
 
@@ -353,7 +351,6 @@ static unsigned char *colormanage_cache_get(ImBuf *ibuf, const ColormanageCacheV
 
 		if (cache_data->exposure != view_settings->exposure ||
 		    cache_data->gamma != view_settings->gamma ||
-			cache_data->predivide != predivide ||
 			cache_data->flag != view_settings->flag ||
 			cache_data->curve_mapping != curve_mapping ||
 			cache_data->curve_mapping_timestamp != curve_mapping_timestamp)
@@ -379,7 +376,6 @@ static void colormanage_cache_put(ImBuf *ibuf, const ColormanageCacheViewSetting
 	ImBuf *cache_ibuf;
 	ColormnaageCacheData *cache_data;
 	int view_flag = 1 << (view_settings->view - 1);
-	int predivide = ibuf->flags & IB_cm_predivide;
 	struct MovieCache *moviecache = colormanage_moviecache_ensure(ibuf);
 	CurveMapping *curve_mapping = view_settings->curve_mapping;
 	int curve_mapping_timestamp = curve_mapping ? curve_mapping->changed_timestamp : 0;
@@ -400,7 +396,6 @@ static void colormanage_cache_put(ImBuf *ibuf, const ColormanageCacheViewSetting
 	cache_data = MEM_callocN(sizeof(ColormnaageCacheData), "color manage cache imbuf data");
 	cache_data->exposure = view_settings->exposure;
 	cache_data->gamma = view_settings->gamma;
-	cache_data->predivide = predivide;
 	cache_data->flag = view_settings->flag;
 	cache_data->curve_mapping = curve_mapping;
 	cache_data->curve_mapping_timestamp = curve_mapping_timestamp;
@@ -897,13 +892,12 @@ void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace)
 
 	if (ibuf->rect_float) {
 		const char *to_colorspace = global_role_scene_linear;
-		int predivide = ibuf->flags & IB_cm_predivide;
 
 		if (ibuf->rect)
 			imb_freerectImBuf(ibuf);
 
 		IMB_colormanagement_transform(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
-		                              from_colorspace, to_colorspace, predivide);
+		                              from_colorspace, to_colorspace, TRUE);
 	}
 }
 
@@ -1130,7 +1124,6 @@ typedef struct DisplayBufferThread {
 
 	int channels;
 	float dither;
-	int predivide;
 	int is_data;
 
 	const char *byte_colorspace;
@@ -1158,7 +1151,6 @@ static void display_buffer_init_handle(void *handle_v, int start_line, int tot_l
 	DisplayBufferInitData *init_data = (DisplayBufferInitData *) init_data_v;
 	ImBuf *ibuf = init_data->ibuf;
 
-	int predivide = ibuf->flags & IB_cm_predivide;
 	int channels = ibuf->channels;
 	float dither = ibuf->dither;
 	int is_data = ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA;
@@ -1189,7 +1181,6 @@ static void display_buffer_init_handle(void *handle_v, int start_line, int tot_l
 
 	handle->channels = channels;
 	handle->dither = dither;
-	handle->predivide = predivide;
 	handle->is_data = is_data;
 
 	handle->byte_colorspace = init_data->byte_colorspace;
@@ -1206,7 +1197,6 @@ static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
 
 	int buffer_size = channels * width * height;
 
-	int predivide = handle->predivide;
 	int is_data = handle->is_data;
 	int is_data_display = handle->cm_processor->is_data_result;
 
@@ -1224,16 +1214,25 @@ static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
 
 		/* first convert byte buffer to float, keep in image space */
 		for (i = 0, fp = linear_buffer, cp = byte_buffer;
-		     i < channels * width * height;
-		     i++, fp++, cp++)
+		     i < width * height;
+		     i++, fp += channels, cp += channels)
 		{
-			*fp = (float)(*cp) / 255.0f;
+			if (channels == 3) {
+				rgb_uchar_to_float(fp, cp);
+			}
+			else if (channels == 4) {
+				rgba_uchar_to_float(fp, cp);
+				straight_to_premul_v4(fp, fp);
+			}
+			else {
+				BLI_assert(!"Buffers of 3 or 4 channels are only supported here");
+			}
 		}
 
 		if (!is_data && !is_data_display) {
 			/* convert float buffer to scene linear space */
 			IMB_colormanagement_transform(linear_buffer, width, height, channels,
-			                              from_colorspace, to_colorspace, predivide);
+			                              from_colorspace, to_colorspace, TRUE);
 		}
 	}
 	else if (handle->float_colorspace) {
@@ -1249,7 +1248,7 @@ static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
 		memcpy(linear_buffer, handle->buffer, buffer_size * sizeof(float));
 
 		IMB_colormanagement_transform(linear_buffer, width, height, channels,
-		                              from_colorspace, to_colorspace, predivide);
+		                              from_colorspace, to_colorspace, TRUE);
 	}
 	else {
 		/* some processors would want to modify float original buffer
@@ -1277,13 +1276,12 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 	int width = handle->width;
 	int height = handle->tot_line;
 	float dither = handle->dither;
-	int predivide = handle->predivide;
 	int is_data = handle->is_data;
 
 	if (cm_processor == NULL) {
 		if (display_buffer_byte) {
 			IMB_buffer_byte_from_byte(display_buffer_byte, handle->byte_buffer, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
-			                         FALSE, width, height, width, width);
+			                          FALSE, width, height, width, width);
 		}
 
 		if (display_buffer) {
@@ -1301,7 +1299,7 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 		}
 		else {
 			/* apply processor */
-			IMB_colormanagement_processor_apply(cm_processor, linear_buffer, width, height, channels, predivide);
+			IMB_colormanagement_processor_apply(cm_processor, linear_buffer, width, height, channels, TRUE);
 		}
 
 		/* copy result to output buffers */
@@ -1309,7 +1307,7 @@ static void *do_display_buffer_apply_thread(void *handle_v)
 			/* do conversion */
 			IMB_buffer_byte_from_float(display_buffer_byte, linear_buffer,
 			                           channels, dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB,
-			                           predivide, width, height, width, width);
+			                           TRUE, width, height, width, width);
 		}
 
 		if (display_buffer)
@@ -1663,7 +1661,7 @@ static void colormanagement_imbuf_make_display_space(ImBuf *ibuf, const ColorMan
 
 	if (global_tot_display == 0 || global_tot_view == 0) {
 		IMB_buffer_float_from_float(ibuf->rect_float, ibuf->rect_float, ibuf->channels, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB,
-		                            ibuf->flags & IB_cm_predivide, ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+		                            TRUE, ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 	}
 	else {
 		colormanage_display_buffer_process_ex(ibuf, ibuf->rect_float, (unsigned char *)ibuf->rect,
@@ -2326,7 +2324,6 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 {
 	int x, y;
 	int channels = ibuf->channels;
-	int predivide = ibuf->flags & IB_cm_predivide;
 	float dither = ibuf->dither;
 	ColorSpace *rect_colorspace = ibuf->rect_colorspace;
 	float *display_buffer_float = NULL;
@@ -2350,13 +2347,11 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 			else if (byte_buffer) {
 				rgba_uchar_to_float(pixel, byte_buffer + linear_index);
 				IMB_colormanagement_colorspace_to_scene_linear_v3(pixel, rect_colorspace);
+				straight_to_premul_v4(pixel, pixel);
 			}
 
 			if (!is_data) {
-				if (predivide)
-					IMB_colormanagement_processor_apply_v4(cm_processor, pixel);
-				else
-					IMB_colormanagement_processor_apply_v4(cm_processor, pixel);
+				IMB_colormanagement_processor_apply_v4_predivide(cm_processor, pixel);
 			}
 
 			if (display_buffer_float) {
@@ -2365,7 +2360,9 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 				copy_v4_v4(display_buffer_float + index, pixel);
 			}
 			else {
-				rgba_float_to_uchar(display_buffer + display_index, pixel);
+				float pixel_straight[4];
+				premul_to_straight_v4(pixel_straight, pixel);
+				rgba_float_to_uchar(display_buffer + display_index, pixel_straight);
 			}
 		}
 	}
@@ -2389,7 +2386,6 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
 		/* update byte buffer created by legacy color management */
 
 		unsigned char *rect = (unsigned char *) ibuf->rect;
-		int predivide = ibuf->flags & IB_cm_predivide;
 		int channels = ibuf->channels;
 		int width = xmax - xmin;
 		int height = ymax - ymin;
@@ -2397,7 +2393,7 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
 		int linear_index = ((ymin - offset_y) * stride + (xmin - offset_x)) * channels;
 
 		IMB_buffer_byte_from_float(rect + rect_index, linear_buffer + linear_index, channels, ibuf->dither,
-		                           IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, predivide, width, height, ibuf->x, stride);
+		                           IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, TRUE, width, height, ibuf->x, stride);
 	}
 
 	if (ibuf->display_buffer_flags) {
@@ -2501,6 +2497,15 @@ void IMB_colormanagement_processor_apply_v4(ColormanageProcessor *cm_processor, 
 
 	if (cm_processor->processor)
 		OCIO_processorApplyRGBA(cm_processor->processor, pixel);
+}
+
+void IMB_colormanagement_processor_apply_v4_predivide(ColormanageProcessor *cm_processor, float pixel[4])
+{
+	if (cm_processor->curve_mapping)
+		curvemapping_evaluate_premulRGBF(cm_processor->curve_mapping, pixel, pixel);
+
+	if (cm_processor->processor)
+		OCIO_processorApplyRGBA_predivide(cm_processor->processor, pixel);
 }
 
 void IMB_colormanagement_processor_apply_v3(ColormanageProcessor *cm_processor, float pixel[3])

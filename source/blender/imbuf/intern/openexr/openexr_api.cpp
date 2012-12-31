@@ -1197,6 +1197,9 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags, char 
 					delete file;
 				}
 			}
+
+			if (flags & IB_alphamode_detect)
+				ibuf->flags |= IB_alphamode_premul;
 		}
 		return(ibuf);
 	}

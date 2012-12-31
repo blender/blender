@@ -269,7 +269,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 )
         cls.film_transparent = BoolProperty(
                 name="Transparent",
-                description="World background is transparent",
+                description="World background is transparent with premultiplied alpha",
                 default=False,
                 )
 

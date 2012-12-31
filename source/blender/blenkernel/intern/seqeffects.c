@@ -156,42 +156,43 @@ static void init_alpha_over_or_under(Sequence *seq)
 	seq->seq1 = seq2;
 }
 
-static void do_alphaover_effect_byte(float facf0, float facf1, int x, int y,  char *rect1, char *rect2, char *out)
+static void do_alphaover_effect_byte(float facf0, float facf1, int x, int y,  unsigned char *rect1, unsigned char *rect2, unsigned char *out)
 {
-	int fac2, mfac, fac, fac4;
-	int xo, tempc;
-	char *rt1, *rt2, *rt;
+	float fac2, mfac, fac, fac4;
+	int xo;
+	unsigned char *cp1, *cp2, *rt;
+	float tempc[4], rt1[4], rt2[4];
 
 	xo = x;
-	rt1 = (char *) rect1;
-	rt2 = (char *) rect2;
-	rt = (char *) out;
+	cp1 = rect1;
+	cp2 = rect2;
+	rt = out;
 
-	fac2 = (int) (256.0f * facf0);
-	fac4 = (int) (256.0f * facf1);
+	fac2 = facf0;
+	fac4 = facf1;
 
 	while (y--) {
 		x = xo;
 		while (x--) {
-
 			/* rt = rt1 over rt2  (alpha from rt1) */
 
-			fac = fac2;
-			mfac = 256 - ( (fac2 * rt1[3]) >> 8);
+			straight_uchar_to_premul_float(rt1, cp1);
+			straight_uchar_to_premul_float(rt2, cp2);
 
-			if (fac == 0) *( (unsigned int *) rt) = *( (unsigned int *) rt2);
-			else if (mfac == 0) *( (unsigned int *) rt) = *( (unsigned int *) rt1);
+			fac = fac2;
+			mfac = 1.0f - fac2 * rt1[3];
+
+			if (fac <= 0.0f) *( (unsigned int *) rt) = *( (unsigned int *) cp2);
+			else if (mfac <= 0.0f) *( (unsigned int *) rt) = *( (unsigned int *) cp1);
 			else {
-				tempc = (fac * rt1[0] + mfac * rt2[0]) >> 8;
-				if (tempc > 255) rt[0] = 255; else rt[0] = tempc;
-				tempc = (fac * rt1[1] + mfac * rt2[1]) >> 8;
-				if (tempc > 255) rt[1] = 255; else rt[1] = tempc;
-				tempc = (fac * rt1[2] + mfac * rt2[2]) >> 8;
-				if (tempc > 255) rt[2] = 255; else rt[2] = tempc;
-				tempc = (fac * rt1[3] + mfac * rt2[3]) >> 8;
-				if (tempc > 255) rt[3] = 255; else rt[3] = tempc;
+				tempc[0] = fac * rt1[0] + mfac * rt2[0];
+				tempc[1] = fac * rt1[1] + mfac * rt2[1];
+				tempc[2] = fac * rt1[2] + mfac * rt2[2];
+				tempc[3] = fac * rt1[3] + mfac * rt2[3];
+
+				premul_float_to_straight_uchar(rt, tempc);
 			}
-			rt1 += 4; rt2 += 4; rt += 4;
+			cp1 += 4; cp2 += 4; rt += 4;
 		}
 
 		if (y == 0) break;
@@ -199,22 +200,23 @@ static void do_alphaover_effect_byte(float facf0, float facf1, int x, int y,  ch
 
 		x = xo;
 		while (x--) {
-			fac = fac4;
-			mfac = 256 - ( (fac4 * rt1[3]) >> 8);
+			straight_uchar_to_premul_float(rt1, cp1);
+			straight_uchar_to_premul_float(rt2, cp2);
 
-			if (fac == 0) *( (unsigned int *) rt) = *( (unsigned int *) rt2);
-			else if (mfac == 0) *( (unsigned int *) rt) = *( (unsigned int *) rt1);
+			fac = fac4;
+			mfac = 1.0f - (fac4 * rt1[3]);
+
+			if (fac <= 0.0f) *( (unsigned int *) rt) = *( (unsigned int *) cp2);
+			else if (mfac <= 0.0f) *( (unsigned int *) rt) = *( (unsigned int *) cp1);
 			else {
-				tempc = (fac * rt1[0] + mfac * rt2[0]) >> 8;
-				if (tempc > 255) rt[0] = 255; else rt[0] = tempc;
-				tempc = (fac * rt1[1] + mfac * rt2[1]) >> 8;
-				if (tempc > 255) rt[1] = 255; else rt[1] = tempc;
-				tempc = (fac * rt1[2] + mfac * rt2[2]) >> 8;
-				if (tempc > 255) rt[2] = 255; else rt[2] = tempc;
-				tempc = (fac * rt1[3] + mfac * rt2[3]) >> 8;
-				if (tempc > 255) rt[3] = 255; else rt[3] = tempc;
+				tempc[0] = fac * rt1[0] + mfac * rt2[0];
+				tempc[1] = fac * rt1[1] + mfac * rt2[1];
+				tempc[2] = fac * rt1[2] + mfac * rt2[2];
+				tempc[3] = fac * rt1[3] + mfac * rt2[3];
+
+				premul_float_to_straight_uchar(rt, tempc);
 			}
-			rt1 += 4; rt2 += 4; rt += 4;
+			cp1 += 4; cp2 += 4; rt += 4;
 		}
 	}
 }
@@ -298,17 +300,17 @@ static void do_alphaover_effect(SeqRenderData context, Sequence *UNUSED(seq), fl
 
 		slice_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-		do_alphaover_effect_byte(facf0, facf1, context.rectx, total_lines, (char *) rect1, (char *) rect2, (char *) rect_out);
+		do_alphaover_effect_byte(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
 	}
 }
 
 /*********************** Alpha Under *************************/
 
-static void do_alphaunder_effect_byte(float facf0, float facf1, int x, int y, char *rect1, char *rect2, char *out)
+static void do_alphaunder_effect_byte(float facf0, float facf1, int x, int y, unsigned char *rect1, unsigned char *rect2, unsigned char *out)
 {
 	int fac2, mfac, fac, fac4;
 	int xo;
-	char *rt1, *rt2, *rt;
+	unsigned char *rt1, *rt2, *rt;
 
 	xo = x;
 	rt1 = rect1;
@@ -460,17 +462,17 @@ static void do_alphaunder_effect(SeqRenderData context, Sequence *UNUSED(seq), f
 
 		slice_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-		do_alphaunder_effect_byte(facf0, facf1, context.rectx, total_lines, (char *) rect1, (char *) rect2, (char *) rect_out);
+		do_alphaunder_effect_byte(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
 	}
 }
 
 /*********************** Cross *************************/
 
-static void do_cross_effect_byte(float facf0, float facf1, int x, int y, char *rect1, char *rect2, char *out)
+static void do_cross_effect_byte(float facf0, float facf1, int x, int y, unsigned char *rect1, unsigned char *rect2, unsigned char *out)
 {
 	int fac1, fac2, fac3, fac4;
 	int xo;
-	char *rt1, *rt2, *rt;
+	unsigned char *rt1, *rt2, *rt;
 
 	xo = x;
 	rt1 = rect1;
@@ -570,7 +572,7 @@ static void do_cross_effect(SeqRenderData context, Sequence *UNUSED(seq), float 
 
 		slice_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-		do_cross_effect_byte(facf0, facf1, context.rectx, total_lines, (char *) rect1, (char *) rect2, (char *) rect_out);
+		do_cross_effect_byte(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
 	}
 }
 
@@ -713,31 +715,32 @@ static void free_gammacross(Sequence *UNUSED(seq))
 static void do_gammacross_effect_byte(float facf0, float UNUSED(facf1),  int x, int y, unsigned char *rect1,
                                       unsigned char *rect2, unsigned char *out)
 {
-	int fac1, fac2, col;
+	float fac1, fac2;
 	int xo;
-	unsigned char *rt1, *rt2, *rt;
-	
-	xo = x;
-	rt1 = (unsigned char *) rect1;
-	rt2 = (unsigned char *) rect2;
-	rt = (unsigned char *) out;
+	unsigned char *cp1, *cp2, *rt;
+	float rt1[4], rt2[4], tempc[4];
 
-	fac2 = (int)(256.0f * facf0);
-	fac1 = 256 - fac2;
+	xo = x;
+	cp1 = rect1;
+	cp2 = rect2;
+	rt = out;
+
+	fac2 = facf0;
+	fac1 = 1.0f - fac2;
 
 	while (y--) {
 		x = xo;
 		while (x--) {
-			col = (fac1 * igamtab1[rt1[0]] + fac2 * igamtab1[rt2[0]]) >> 8;
-			if (col > 65535) rt[0] = 255; else rt[0] = ( (char *)(gamtab + col))[MOST_SIG_BYTE];
-			col = (fac1 * igamtab1[rt1[1]] + fac2 * igamtab1[rt2[1]]) >> 8;
-			if (col > 65535) rt[1] = 255; else rt[1] = ( (char *)(gamtab + col))[MOST_SIG_BYTE];
-			col = (fac1 * igamtab1[rt1[2]] + fac2 * igamtab1[rt2[2]]) >> 8;
-			if (col > 65535) rt[2] = 255; else rt[2] = ( (char *)(gamtab + col))[MOST_SIG_BYTE];
-			col = (fac1 * igamtab1[rt1[3]] + fac2 * igamtab1[rt2[3]]) >> 8;
-			if (col > 65535) rt[3] = 255; else rt[3] = ( (char *)(gamtab + col))[MOST_SIG_BYTE];
+			straight_uchar_to_premul_float(rt1, cp1);
+			straight_uchar_to_premul_float(rt2, cp2);
 
-			rt1 += 4; rt2 += 4; rt += 4;
+			tempc[0] = gammaCorrect(fac1 * invGammaCorrect(rt1[0]) + fac2 * invGammaCorrect(rt2[0]));
+			tempc[1] = gammaCorrect(fac1 * invGammaCorrect(rt1[1]) + fac2 * invGammaCorrect(rt2[1]));
+			tempc[2] = gammaCorrect(fac1 * invGammaCorrect(rt1[2]) + fac2 * invGammaCorrect(rt2[2]));
+			tempc[3] = gammaCorrect(fac1 * invGammaCorrect(rt1[3]) + fac2 * invGammaCorrect(rt2[3]));
+
+			premul_float_to_straight_uchar(rt, tempc);
+			cp1 += 4; cp2 += 4; rt += 4;
 		}
 
 		if (y == 0)
@@ -746,16 +749,16 @@ static void do_gammacross_effect_byte(float facf0, float UNUSED(facf1),  int x, 
 
 		x = xo;
 		while (x--) {
-			col = (fac1 * igamtab1[rt1[0]] + fac2 * igamtab1[rt2[0]]) >> 8;
-			if (col > 65535) rt[0] = 255; else rt[0] = ( (char *)(gamtab + col))[MOST_SIG_BYTE];
-			col = (fac1 * igamtab1[rt1[1]] + fac2 * igamtab1[rt2[1]]) >> 8;
-			if (col > 65535) rt[1] = 255; else rt[1] = ( (char *)(gamtab + col))[MOST_SIG_BYTE];
-			col = (fac1 * igamtab1[rt1[2]] + fac2 * igamtab1[rt2[2]]) >> 8;
-			if (col > 65535) rt[2] = 255; else rt[2] = ( (char *)(gamtab + col))[MOST_SIG_BYTE];
-			col = (fac1 * igamtab1[rt1[3]] + fac2 * igamtab1[rt2[3]]) >> 8;
-			if (col > 65535) rt[3] = 255; else rt[3] = ( (char *)(gamtab + col))[MOST_SIG_BYTE];
+			straight_uchar_to_premul_float(rt1, cp1);
+			straight_uchar_to_premul_float(rt2, cp2);
 
-			rt1 += 4; rt2 += 4; rt += 4;
+			tempc[0] = gammaCorrect(fac1 * invGammaCorrect(rt1[0]) + fac2 * invGammaCorrect(rt2[0]));
+			tempc[1] = gammaCorrect(fac1 * invGammaCorrect(rt1[1]) + fac2 * invGammaCorrect(rt2[1]));
+			tempc[2] = gammaCorrect(fac1 * invGammaCorrect(rt1[2]) + fac2 * invGammaCorrect(rt2[2]));
+			tempc[3] = gammaCorrect(fac1 * invGammaCorrect(rt1[3]) + fac2 * invGammaCorrect(rt2[3]));
+
+			premul_float_to_straight_uchar(rt, tempc);
+			cp1 += 4; cp2 += 4; rt += 4;
 		}
 	}
 }
@@ -828,31 +831,34 @@ static void do_gammacross_effect(SeqRenderData context, Sequence *UNUSED(seq), f
 static void do_add_effect_byte(float facf0, float facf1, int x, int y, unsigned char *rect1, unsigned char *rect2,
                                unsigned char *out)
 {
-	int col, xo, fac1, fac3;
-	char *rt1, *rt2, *rt;
+	int xo;
+	unsigned char *cp1, *cp2, *rt;
+	float fac1, fac3;
+	float tempc[4], rt1[4], rt2[4];
 
 	xo = x;
-	rt1 = (char *)rect1;
-	rt2 = (char *)rect2;
-	rt = (char *)out;
+	cp1 = rect1;
+	cp2 = rect2;
+	rt = out;
 
-	fac1 = (int)(256.0f * facf0);
-	fac3 = (int)(256.0f * facf1);
+	fac1 = facf0;
+	fac3 = facf1;
 
 	while (y--) {
 		x = xo;
 
 		while (x--) {
-			col = rt1[0] + ((fac1 * rt2[0]) >> 8);
-			if (col > 255) rt[0] = 255; else rt[0] = col;
-			col = rt1[1] + ((fac1 * rt2[1]) >> 8);
-			if (col > 255) rt[1] = 255; else rt[1] = col;
-			col = rt1[2] + ((fac1 * rt2[2]) >> 8);
-			if (col > 255) rt[2] = 255; else rt[2] = col;
-			col = rt1[3] + ((fac1 * rt2[3]) >> 8);
-			if (col > 255) rt[3] = 255; else rt[3] = col;
+			straight_uchar_to_premul_float(rt1, cp1);
+			straight_uchar_to_premul_float(rt2, cp2);
 
-			rt1 += 4; rt2 += 4; rt += 4;
+			tempc[0] = rt1[0] + fac1 * rt2[0];
+			tempc[1] = rt1[1] + fac1 * rt2[1];
+			tempc[2] = rt1[2] + fac1 * rt2[2];
+			tempc[3] = min_ff(1.0f, rt1[3] + fac1 * rt2[3]);
+
+			premul_float_to_straight_uchar(rt, tempc);
+
+			cp1 += 4; cp2 += 4; rt += 4;
 		}
 
 		if (y == 0)
@@ -861,16 +867,17 @@ static void do_add_effect_byte(float facf0, float facf1, int x, int y, unsigned 
 
 		x = xo;
 		while (x--) {
-			col = rt1[0] + ((fac3 * rt2[0]) >> 8);
-			if (col > 255) rt[0] = 255; else rt[0] = col;
-			col = rt1[1] + ((fac3 * rt2[1]) >> 8);
-			if (col > 255) rt[1] = 255; else rt[1] = col;
-			col = rt1[2] + ((fac3 * rt2[2]) >> 8);
-			if (col > 255) rt[2] = 255; else rt[2] = col;
-			col = rt1[3] + ((fac3 * rt2[3]) >> 8);
-			if (col > 255) rt[3] = 255; else rt[3] = col;
+			straight_uchar_to_premul_float(rt1, cp1);
+			straight_uchar_to_premul_float(rt2, cp2);
 
-			rt1 += 4; rt2 += 4; rt += 4;
+			tempc[0] = rt1[0] + fac3 * rt2[0];
+			tempc[1] = rt1[1] + fac3 * rt2[1];
+			tempc[2] = rt1[2] + fac3 * rt2[2];
+			tempc[3] = min_ff(1.0f, rt1[3] + fac3 * rt2[3]);
+
+			premul_float_to_straight_uchar(rt, tempc);
+
+			cp1 += 4; cp2 += 4; rt += 4;
 		}
 	}
 }
@@ -890,22 +897,28 @@ static void do_add_effect_float(float facf0, float facf1, int x, int y, float *r
 	fac3 = facf1;
 
 	while (y--) {
-		x = xo * 4;
+		x = xo;
 		while (x--) {
-			*rt = *rt1 + fac1 * (*rt2);
+			rt[0] = rt1[0] + fac1 * rt2[0];
+			rt[1] = rt1[1] + fac1 * rt2[1];
+			rt[2] = rt1[2] + fac1 * rt2[2];
+			rt[3] = min_ff(1.0f, rt1[3] + fac1 * rt2[3]);
 
-			rt1++; rt2++; rt++;
+			rt1 += 4; rt2 += 4; rt += 4;
 		}
 
 		if (y == 0)
 			break;
 		y--;
 
-		x = xo * 4;
+		x = xo;
 		while (x--) {
-			*rt = *rt1 + fac3 * (*rt2);
+			rt[0] = rt1[0] + fac1 * rt2[0];
+			rt[1] = rt1[1] + fac1 * rt2[1];
+			rt[2] = rt1[2] + fac1 * rt2[2];
+			rt[3] = min_ff(1.0f, rt1[3] + fac3 * rt2[3]);
 
-			rt1++; rt2++; rt++;
+			rt1 += 4; rt2 += 4; rt += 4;
 		}
 	}
 }
@@ -931,32 +944,35 @@ static void do_add_effect(SeqRenderData context, Sequence *UNUSED(seq), float UN
 
 /*********************** Sub *************************/
 
-static void do_sub_effect_byte(float facf0, float facf1, int x, int y, char *rect1, char *rect2, char *out)
+static void do_sub_effect_byte(float facf0, float facf1, int x, int y, unsigned char *rect1, unsigned char *rect2, unsigned char *out)
 {
-	int col, xo, fac1, fac3;
-	char *rt1, *rt2, *rt;
+	int xo;
+	unsigned char *cp1, *cp2, *rt;
+	float fac1, fac3;
+	float tempc[4], rt1[4], rt2[4];
 
 	xo = x;
-	rt1 = (char *) rect1;
-	rt2 = (char *) rect2;
-	rt = (char *) out;
+	cp1 = rect1;
+	cp2 = rect2;
+	rt = out;
 
-	fac1 = (int) (256.0f * facf0);
-	fac3 = (int) (256.0f * facf1);
+	fac1 = facf0;
+	fac3 = facf1;
 
 	while (y--) {
 		x = xo;
 		while (x--) {
-			col = rt1[0] - ((fac1 * rt2[0]) >> 8);
-			if (col < 0) rt[0] = 0; else rt[0] = col;
-			col = rt1[1] - ((fac1 * rt2[1]) >> 8);
-			if (col < 0) rt[1] = 0; else rt[1] = col;
-			col = rt1[2] - ((fac1 * rt2[2]) >> 8);
-			if (col < 0) rt[2] = 0; else rt[2] = col;
-			col = rt1[3] - ((fac1 * rt2[3]) >> 8);
-			if (col < 0) rt[3] = 0; else rt[3] = col;
+			straight_uchar_to_premul_float(rt1, cp1);
+			straight_uchar_to_premul_float(rt2, cp2);
 
-			rt1 += 4; rt2 += 4; rt += 4;
+			tempc[0] = rt1[0] - fac1 * rt2[0];
+			tempc[1] = rt1[1] - fac1 * rt2[1];
+			tempc[2] = rt1[2] - fac1 * rt2[2];
+			tempc[3] = rt1[3] - fac1 * rt2[3];
+
+			premul_float_to_straight_uchar(rt, tempc);
+
+			cp1 += 4; cp2 += 4; rt += 4;
 		}
 
 		if (y == 0)
@@ -965,16 +981,17 @@ static void do_sub_effect_byte(float facf0, float facf1, int x, int y, char *rec
 
 		x = xo;
 		while (x--) {
-			col = rt1[0] - ((fac3 * rt2[0]) >> 8);
-			if (col < 0) rt[0] = 0; else rt[0] = col;
-			col = rt1[1] - ((fac3 * rt2[1]) >> 8);
-			if (col < 0) rt[1] = 0; else rt[1] = col;
-			col = rt1[2] - ((fac3 * rt2[2]) >> 8);
-			if (col < 0) rt[2] = 0; else rt[2] = col;
-			col = rt1[3] - ((fac3 * rt2[3]) >> 8);
-			if (col < 0) rt[3] = 0; else rt[3] = col;
+			straight_uchar_to_premul_float(rt1, cp1);
+			straight_uchar_to_premul_float(rt2, cp2);
 
-			rt1 += 4; rt2 += 4; rt += 4;
+			tempc[0] = rt1[0] - fac3 * rt2[0];
+			tempc[1] = rt1[1] - fac3 * rt2[1];
+			tempc[2] = rt1[2] - fac3 * rt2[2];
+			tempc[3] = rt1[3] - fac3 * rt2[3];
+
+			premul_float_to_straight_uchar(rt, tempc);
+
+			cp1 += 4; cp2 += 4; rt += 4;
 		}
 	}
 }
@@ -1029,7 +1046,7 @@ static void do_sub_effect(SeqRenderData context, Sequence *UNUSED(seq), float UN
 
 		slice_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-		do_sub_effect_byte(facf0, facf1, context.rectx, total_lines, (char *) rect1, (char *) rect2, (char *) rect_out);
+		do_sub_effect_byte(facf0, facf1, context.rectx, total_lines, rect1, rect2, rect_out);
 	}
 }
 
@@ -1039,10 +1056,10 @@ static void do_sub_effect(SeqRenderData context, Sequence *UNUSED(seq), float UN
 #define XOFF    8
 #define YOFF    8
 
-static void do_drop_effect_byte(float facf0, float facf1, int x, int y, char *rect2i, char *rect1i, char *outi)
+static void do_drop_effect_byte(float facf0, float facf1, int x, int y, unsigned char *rect2i, unsigned char *rect1i, unsigned char *outi)
 {
 	int height, width, temp, fac, fac1, fac2;
-	char *rt1, *rt2, *out;
+	unsigned char *rt1, *rt2, *out;
 	int field = 1;
 
 	width = x;
@@ -1051,9 +1068,9 @@ static void do_drop_effect_byte(float facf0, float facf1, int x, int y, char *re
 	fac1 = (int) (70.0f * facf0);
 	fac2 = (int) (70.0f * facf1);
 
-	rt2 = (char *) (rect2i + YOFF * width);
-	rt1 = (char *) rect1i;
-	out = (char *) outi;
+	rt2 = (unsigned char *) (rect2i + YOFF * width);
+	rt1 = (unsigned char *) rect1i;
+	out = (unsigned char *) outi;
 	for (y = 0; y < height - YOFF; y++) {
 		if (field) fac = fac1;
 		else fac = fac2;
@@ -1122,12 +1139,12 @@ static void do_mul_effect_byte(float facf0, float facf1, int x, int y, unsigned 
                                unsigned char *out)
 {
 	int xo, fac1, fac3;
-	char *rt1, *rt2, *rt;
+	unsigned char *rt1, *rt2, *rt;
 
 	xo = x;
-	rt1 = (char *)rect1;
-	rt2 = (char *)rect2;
-	rt = (char *)out;
+	rt1 = rect1;
+	rt2 = rect2;
+	rt = out;
 
 	fac1 = (int)(256.0f * facf0);
 	fac3 = (int)(256.0f * facf1);
@@ -1539,13 +1556,13 @@ static void do_wipe_effect_byte(Sequence *seq, float facf0, float UNUSED(facf1),
 	WipeZone wipezone;
 	WipeVars *wipe = (WipeVars *)seq->effectdata;
 	int xo, yo;
-	char *rt1, *rt2, *rt;
+	unsigned char *cp1, *cp2, *rt;
 
 	precalc_wipe_zone(&wipezone, wipe, x, y);
 
-	rt1 = (char *)rect1;
-	rt2 = (char *)rect2;
-	rt = (char *)out;
+	cp1 = rect1;
+	cp2 = rect2;
+	rt = out;
 
 	xo = x;
 	yo = y;
@@ -1553,11 +1570,18 @@ static void do_wipe_effect_byte(Sequence *seq, float facf0, float UNUSED(facf1),
 		for (x = 0; x < xo; x++) {
 			float check = check_zone(&wipezone, x, y, seq, facf0);
 			if (check) {
-				if (rt1) {
-					rt[0] = (int)(rt1[0] * check) + (int)(rt2[0] * (1 - check));
-					rt[1] = (int)(rt1[1] * check) + (int)(rt2[1] * (1 - check));
-					rt[2] = (int)(rt1[2] * check) + (int)(rt2[2] * (1 - check));
-					rt[3] = (int)(rt1[3] * check) + (int)(rt2[3] * (1 - check));
+				if (cp1) {
+					float rt1[4], rt2[4], tempc[4];
+
+					straight_uchar_to_premul_float(rt1, cp1);
+					straight_uchar_to_premul_float(rt2, cp2);
+
+					tempc[0] = rt1[0] * check + rt2[0] * (1 - check);
+					tempc[1] = rt1[1] * check + rt2[1] * (1 - check);
+					tempc[2] = rt1[2] * check + rt2[2] * (1 - check);
+					tempc[3] = rt1[3] * check + rt2[3] * (1 - check);
+
+					premul_float_to_straight_uchar(rt, tempc);
 				}
 				else {
 					rt[0] = 0;
@@ -1567,11 +1591,11 @@ static void do_wipe_effect_byte(Sequence *seq, float facf0, float UNUSED(facf1),
 				}
 			}
 			else {
-				if (rt2) {
-					rt[0] = rt2[0];
-					rt[1] = rt2[1];
-					rt[2] = rt2[2];
-					rt[3] = rt2[3];
+				if (cp2) {
+					rt[0] = cp2[0];
+					rt[1] = cp2[1];
+					rt[2] = cp2[2];
+					rt[3] = cp2[3];
 				}
 				else {
 					rt[0] = 0;
@@ -1582,11 +1606,11 @@ static void do_wipe_effect_byte(Sequence *seq, float facf0, float UNUSED(facf1),
 			}
 
 			rt += 4;
-			if (rt1 != NULL) {
-				rt1 += 4;
+			if (cp1 != NULL) {
+				cp1 += 4;
 			}
-			if (rt2 != NULL) {
-				rt2 += 4;
+			if (cp2 != NULL) {
+				cp2 += 4;
 			}
 		}
 	}
@@ -2254,16 +2278,42 @@ static void copy_glow_effect(Sequence *dst, Sequence *src)
 }
 
 static void do_glow_effect_byte(Sequence *seq, int render_size, float facf0, float UNUSED(facf1),  int x, int y,
-                                char *rect1, char *UNUSED(rect2), char *out)
+                                unsigned char *rect1, unsigned char *UNUSED(rect2), unsigned char *out)
 {
-	unsigned char *outbuf = (unsigned char *)out;
-	unsigned char *inbuf = (unsigned char *)rect1;
+#if 0
+	/* XXX: not sure what's better here, on the one hand conversion to floats
+	 *      here is not so much trouble, but on the other hand who're using
+	 *      glow on buffers with alpha?
+	 */
+	unsigned char *outbuf = out;
+	unsigned char *inbuf = rect1;
 	GlowVars *glow = (GlowVars *)seq->effectdata;
-	
+
 	RVIsolateHighlights_byte(inbuf, outbuf, x, y, glow->fMini * 765, glow->fBoost * facf0, glow->fClamp);
 	RVBlurBitmap2_byte(outbuf, x, y, glow->dDist * (render_size / 100.0f), glow->dQuality);
 	if (!glow->bNoComp)
 		RVAddBitmaps_byte(inbuf, outbuf, outbuf, x, y);
+#else
+	float *outbuf, *inbuf;
+	GlowVars *glow = (GlowVars *)seq->effectdata;
+
+	inbuf = MEM_mallocN(4 * sizeof(float) * x * y, "glow effect input");
+	outbuf = MEM_mallocN(4 * sizeof(float) * x * y, "glow effect output");
+
+	IMB_buffer_float_from_byte(inbuf, rect1, IB_PROFILE_SRGB, IB_PROFILE_SRGB, FALSE, x, y, x, x);
+	IMB_buffer_float_premultiply(inbuf, x, y);
+
+	RVIsolateHighlights_float(inbuf, outbuf, x, y, glow->fMini * 3.0f, glow->fBoost * facf0, glow->fClamp);
+	RVBlurBitmap2_float(outbuf, x, y, glow->dDist * (render_size / 100.0f), glow->dQuality);
+	if (!glow->bNoComp)
+		RVAddBitmaps_float(inbuf, outbuf, outbuf, x, y);
+
+	IMB_buffer_float_unpremultiply(outbuf, x, y);
+	IMB_buffer_byte_from_float(out, outbuf, 4, 0.0f, IB_PROFILE_SRGB, IB_PROFILE_SRGB, FALSE, x, y, x, x);
+
+	MEM_freeN(inbuf);
+	MEM_freeN(outbuf);
+#endif
 }
 
 static void do_glow_effect_float(Sequence *seq, int render_size, float facf0, float UNUSED(facf1),  int x, int y,
@@ -2292,7 +2342,7 @@ static ImBuf *do_glow_effect(SeqRenderData context, Sequence *seq, float UNUSED(
 	}
 	else {
 		do_glow_effect_byte(seq, render_size, facf0, facf1, context.rectx, context.recty,
-		                    (char *) ibuf1->rect, (char *) ibuf2->rect, (char *) out->rect);
+		                    (unsigned char *) ibuf1->rect, (unsigned char *) ibuf2->rect, (unsigned char *) out->rect);
 	}
 
 	return out;
@@ -2735,7 +2785,7 @@ static ImBuf *do_speed_effect(SeqRenderData context, Sequence *UNUSED(seq), floa
 	}
 	else {
 		do_cross_effect_byte(facf0, facf1, context.rectx, context.recty,
-		                     (char *) ibuf1->rect, (char *) ibuf2->rect, (char *) out->rect);
+		                     (unsigned char *) ibuf1->rect, (unsigned char *) ibuf2->rect, (unsigned char *) out->rect);
 	}
 	return out;
 }
@@ -2761,8 +2811,8 @@ static void do_overdrop_effect(SeqRenderData context, Sequence *UNUSED(seq), flo
 
 		slice_get_byte_buffers(&context, ibuf1, ibuf2, NULL, out, start_line, &rect1, &rect2, NULL, &rect_out);
 
-		do_drop_effect_byte(facf0, facf1, x, y, (char *) rect1, (char *) rect2, (char *) rect_out);
-		do_alphaover_effect_byte(facf0, facf1, x, y, (char *) rect1, (char *) rect2, (char *) rect_out);
+		do_drop_effect_byte(facf0, facf1, x, y, rect1, rect2, rect_out);
+		do_alphaover_effect_byte(facf0, facf1, x, y, rect1, rect2, rect_out);
 	}
 }
 

@@ -602,6 +602,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
                 split.prop(elem, "filename", text="")  # strip.elements[0] could be a fallback
 
             layout.prop(strip.colorspace_settings, "name")
+            layout.prop(strip, "alpha_mode")
 
             layout.operator("sequencer.change_path")
 
@@ -797,7 +798,6 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
         col.label(text="Colors:")
         col.prop(strip, "color_saturation", text="Saturation")
         col.prop(strip, "color_multiply", text="Multiply")
-        col.prop(strip, "use_premultiply")
         col.prop(strip, "use_float")
 
 

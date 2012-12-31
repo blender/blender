@@ -95,6 +95,9 @@ static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, size_t size, int us
 	if (flags & IB_rect)
 		IMB_rect_from_float(ibuf);
 
+	if (flags & IB_alphamode_detect)
+		ibuf->flags |= IB_alphamode_premul;
+
 	return ibuf;
 }
 

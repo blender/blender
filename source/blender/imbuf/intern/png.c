@@ -110,7 +110,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 	unsigned char *pixels = NULL;
 	unsigned char *from, *to;
 	unsigned short *pixels16 = NULL, *to16;
-	float *from_float;
+	float *from_float, from_straight[4];
 	png_bytepp row_pointers = NULL;
 	int i, bytesperpixel, color_type = PNG_COLOR_TYPE_GRAY;
 	FILE *fp = NULL;
@@ -175,10 +175,11 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 			color_type = PNG_COLOR_TYPE_RGBA;
 			if (is_16bit) {
 				for (i = ibuf->x * ibuf->y; i > 0; i--) {
-					to16[0] = FTOUSHORT(from_float[0]);
-					to16[1] = FTOUSHORT(from_float[1]);
-					to16[2] = FTOUSHORT(from_float[2]);
-					to16[3] = FTOUSHORT(from_float[3]);
+					premul_to_straight_v4(from_straight, from_float);
+					to16[0] = FTOUSHORT(from_straight[0]);
+					to16[1] = FTOUSHORT(from_straight[1]);
+					to16[2] = FTOUSHORT(from_straight[2]);
+					to16[3] = FTOUSHORT(from_straight[3]);
 					to16 += 4; from_float += 4;
 				}
 			}
@@ -196,9 +197,10 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 			color_type = PNG_COLOR_TYPE_RGB;
 			if (is_16bit) {
 				for (i = ibuf->x * ibuf->y; i > 0; i--) {
-					to16[0] = FTOUSHORT(from_float[0]);
-					to16[1] = FTOUSHORT(from_float[1]);
-					to16[2] = FTOUSHORT(from_float[2]);
+					premul_to_straight_v4(from_straight, from_float);
+					to16[0] = FTOUSHORT(from_straight[0]);
+					to16[1] = FTOUSHORT(from_straight[1]);
+					to16[2] = FTOUSHORT(from_straight[2]);
 					to16 += 3; from_float += 4;
 				}
 			}
@@ -215,7 +217,8 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 			color_type = PNG_COLOR_TYPE_GRAY;
 			if (is_16bit) {
 				for (i = ibuf->x * ibuf->y; i > 0; i--) {
-					to16[0] = FTOUSHORT(from_float[0]);
+					premul_to_straight_v4(from_straight, from_float);
+					to16[0] = FTOUSHORT(from_straight[0]);
 					to16++; from_float += 4;
 				}
 			}

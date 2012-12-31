@@ -8568,14 +8568,40 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	{
+	if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 5)) {
 		Scene *scene;
+		Image *image;
+		Tex *tex;
 
 		for (scene = main->scene.first; scene; scene = scene->id.next) {
+			Sequence *seq;
+
+			SEQ_BEGIN (scene->ed, seq)
+			{
+				if (seq->flag & SEQ_MAKE_PREMUL)
+					seq->alpha_mode = SEQ_ALPHA_STRAIGHT;
+			}
+			SEQ_END
+
 			if (scene->r.bake_samples == 0)
-				scene->r.bake_samples = 256;
+			scene->r.bake_samples = 256;
+		}
+
+		for (image = main->image.first; image; image = image->id.next) {
+			if (image->flag & IMA_DO_PREMUL)
+				image->alpha_mode = IMA_ALPHA_STRAIGHT;
+		}
+
+		for (tex = main->tex.first; tex; tex = tex->id.next) {
+			if (tex->type == TEX_IMAGE && (tex->imaflag & TEX_USEALPHA) == 0) {
+				if (tex->ima) {
+					image = blo_do_versions_newlibadr(fd, lib, tex->ima);
+					image->flag |= IMA_IGNORE_ALPHA;
+				}
+			}
 		}
 	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 

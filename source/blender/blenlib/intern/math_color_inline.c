@@ -149,31 +149,6 @@ MINLINE void linearrgb_to_srgb_ushort4(unsigned short srgb[4], const float linea
 	srgb[3] = FTOUSHORT(linear[3]);
 }
 
-MINLINE void linearrgb_to_srgb_ushort4_predivide(unsigned short srgb[4], const float linear[4])
-{
-	float alpha, inv_alpha, t;
-	int i;
-
-	if (linear[3] == 1.0f || linear[3] == 0.0f) {
-		linearrgb_to_srgb_ushort4(srgb, linear);
-		return;
-	}
-
-	alpha = linear[3];
-	inv_alpha = 1.0f / alpha;
-
-	for (i = 0; i < 3; ++i) {
-		t = linear[i] * inv_alpha;
-		srgb[i] = (t <= 1.0f) ?
-		          /* warning - converts: float -> short -> float -> short */
-		          (unsigned short) (to_srgb_table_lookup(t) * alpha) :
-		          /* if FTOUSHORT was an inline function this could be done less confusingly */
-		          ((t = linearrgb_to_srgb(t) * alpha), FTOUSHORT(t));
-	}
-
-	srgb[3] = FTOUSHORT(linear[3]);
-}
-
 MINLINE void srgb_to_linearrgb_uchar4(float linear[4], const unsigned char srgb[4])
 {
 	linear[0] = BLI_color_from_srgb_table[srgb[0]];
@@ -291,6 +266,64 @@ MINLINE int compare_rgb_uchar(const unsigned char col_a[3], const unsigned char 
 	}
 
 	return 0;
+}
+
+/**************** Alpha Transformations *****************/
+
+MINLINE void premul_to_straight_v4(float straight[4], const float premul[4])
+{
+	if (premul[3] == 0.0f || premul[3] == 1.0f) {
+		straight[0] = premul[0];
+		straight[1] = premul[1];
+		straight[2] = premul[2];
+		straight[3] = premul[3];
+	}
+	else {
+		float alpha_inv = 1.0f / premul[3];
+		straight[0] = premul[0] * alpha_inv;
+		straight[1] = premul[1] * alpha_inv;
+		straight[2] = premul[2] * alpha_inv;
+		straight[3] = premul[3];
+	}
+}
+
+MINLINE void straight_to_premul_v4(float premul[4], const float straight[4])
+{
+	float alpha = straight[3];
+	premul[0] = straight[0] * alpha;
+	premul[1] = straight[1] * alpha;
+	premul[2] = straight[2] * alpha;
+	premul[3] = straight[3];
+}
+
+MINLINE void straight_uchar_to_premul_float(float result[4], const unsigned char color[4])
+{
+	float alpha = color[3] / 255.0f;
+	float fac = alpha / 255.0f;
+
+	result[0] = color[0] * fac;
+	result[1] = color[1] * fac;
+	result[2] = color[2] * fac;
+	result[3] = alpha;
+}
+
+MINLINE void premul_float_to_straight_uchar(unsigned char *result, const float color[4])
+{
+	if (color[3] == 0.0f || color[3] == 1.0f) {
+		result[0] = FTOCHAR(color[0]);
+		result[1] = FTOCHAR(color[1]);
+		result[2] = FTOCHAR(color[2]);
+		result[3] = FTOCHAR(color[3]);
+	}
+	else {
+		float alpha_inv = 1.0f / color[3];
+
+		/* hopefully this would be optimized */
+		result[0] = FTOCHAR(color[0] * alpha_inv);
+		result[1] = FTOCHAR(color[1] * alpha_inv);
+		result[2] = FTOCHAR(color[2] * alpha_inv);
+		result[3] = FTOCHAR(color[3]);
+	}
 }
 
 #endif /* __MATH_COLOR_INLINE_C__ */

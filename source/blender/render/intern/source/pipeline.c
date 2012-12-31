@@ -336,7 +336,7 @@ void RE_ResultGet32(Render *re, unsigned int *rect)
 	RenderResult rres;
 	
 	RE_AcquireResultImage(re, &rres);
-	render_result_rect_get_pixels(&rres, &re->r, rect, re->rectx, re->recty, &re->scene->view_settings, &re->scene->display_settings);
+	render_result_rect_get_pixels(&rres, rect, re->rectx, re->recty, &re->scene->view_settings, &re->scene->display_settings);
 	RE_ReleaseResultImage(re);
 }
 
@@ -833,7 +833,7 @@ static void threaded_tile_processor(Render *re)
 	
 	if (re->result == NULL)
 		return;
-	
+
 	/* warning; no return here without closing exr file */
 	
 	RE_parts_init(re, TRUE);
@@ -1092,7 +1092,7 @@ static void do_render_blur_3d(Render *re)
 		
 		blurfac = 1.0f / (float)(re->r.mblur_samples - blur);
 		
-		merge_renderresult_blur(rres, re->result, blurfac, re->r.alphamode & R_ALPHAKEY);
+		merge_renderresult_blur(rres, re->result, blurfac, FALSE);
 		if (re->test_break(re->tbh)) break;
 	}
 	

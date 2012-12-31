@@ -1541,14 +1541,20 @@ static void rna_def_filter_video(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
+	static const EnumPropertyItem alpha_mode_items[] = {
+		{SEQ_ALPHA_STRAIGHT, "STRAIGHT", 0, "Straight", "RGB channels in transparent pixels are unaffected by the alpha channel"},
+		{SEQ_ALPHA_PREMUL, "PREMUL", 0, "Premultiplied", "RGB channels in transparent pixels are multiplied by the alpha channel"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	prop = RNA_def_property(srna, "use_deinterlace", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_FILTERY);
 	RNA_def_property_ui_text(prop, "De-Interlace", "For video movies to remove fields");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update_reopen_files");
 
-	prop = RNA_def_property(srna, "use_premultiply", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_MAKE_PREMUL);
-	RNA_def_property_ui_text(prop, "Premultiply", "Convert RGB from key alpha to premultiplied alpha");
+	prop = RNA_def_property(srna, "alpha_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, alpha_mode_items);
+	RNA_def_property_ui_text(prop, "Alpha Mode", "Representation of alpha information in the RGBA pixels");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 
 	prop = RNA_def_property(srna, "use_flip_x", PROP_BOOLEAN, PROP_NONE);

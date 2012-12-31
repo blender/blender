@@ -1194,11 +1194,6 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Flip Axis", "Flip the texture's X and Y axis");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
-	prop = RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_USEALPHA);
-	RNA_def_property_ui_text(prop, "Use Alpha", "Use the alpha channel information in the image");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
-
 	prop = RNA_def_property(srna, "use_calculate_alpha", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_CALCALPHA);
 	RNA_def_property_ui_text(prop, "Calculate Alpha", "Calculate an alpha channel based on RGB values in the image");

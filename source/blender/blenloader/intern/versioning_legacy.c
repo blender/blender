@@ -289,11 +289,10 @@ static void ntree_version_245(FileData *fd, Library *lib, bNodeTree *ntree)
 				iuser = node->storage;
 				if (iuser->flag & IMA_OLD_PREMUL) {
 					iuser->flag &= ~IMA_OLD_PREMUL;
-					iuser->flag |= IMA_DO_PREMUL;
 				}
 				if (iuser->flag & IMA_DO_PREMUL) {
 					image->flag &= ~IMA_OLD_PREMUL;
-					image->flag |= IMA_DO_PREMUL;
+					image->alpha_mode = IMA_ALPHA_STRAIGHT;
 				}
 			}
 		}
@@ -1840,7 +1839,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				SEQ_BEGIN (sce->ed, seq)
 				{
 					if (seq->type == SEQ_TYPE_IMAGE || seq->type == SEQ_TYPE_MOVIE)
-						seq->flag |= SEQ_MAKE_PREMUL;
+						seq->alpha_mode = SEQ_ALPHA_STRAIGHT;
 				}
 				SEQ_END
 			}
@@ -2901,20 +2900,19 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		for (ima = main->image.first; ima; ima = ima->id.next) {
 			if (ima->flag & IMA_OLD_PREMUL) {
 				ima->flag &= ~IMA_OLD_PREMUL;
-				ima->flag |= IMA_DO_PREMUL;
+				ima->alpha_mode = IMA_ALPHA_STRAIGHT;
 			}
 		}
 
 		for (tex = main->tex.first; tex; tex = tex->id.next) {
 			if (tex->iuser.flag & IMA_OLD_PREMUL) {
 				tex->iuser.flag &= ~IMA_OLD_PREMUL;
-				tex->iuser.flag |= IMA_DO_PREMUL;
 			}
 
 			ima = blo_do_versions_newlibadr(fd, lib, tex->ima);
 			if (ima && (tex->iuser.flag & IMA_DO_PREMUL)) {
 				ima->flag &= ~IMA_OLD_PREMUL;
-				ima->flag |= IMA_DO_PREMUL;
+				ima->alpha_mode = IMA_ALPHA_STRAIGHT;
 			}
 		}
 	}

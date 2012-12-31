@@ -212,6 +212,9 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, size_t size, int flags, char color
 			if (ibuf == NULL) return NULL;
 			ibuf->ftype = RADHDR;
 
+			if (flags & IB_alphamode_detect)
+				ibuf->flags |= IB_alphamode_premul;
+
 			if (flags & IB_test) return ibuf;
 
 			/* read in and decode the actual data */

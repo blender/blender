@@ -263,7 +263,6 @@ class SCENE_PT_color_management(Panel):
         col.separator()
         col.label(text="Render:")
         col.template_colormanaged_view_settings(scene, "view_settings")
-        col.prop(rd, "use_color_unpremultiply")
 
         col = layout.column()
         col.separator()

@@ -167,8 +167,9 @@ typedef struct ImBuf {
 #define IB_animdeinterlace	(1 << 9)
 #define IB_tiles			(1 << 10)
 #define IB_tilecache		(1 << 11)
-#define IB_premul			(1 << 12)
-#define IB_cm_predivide		(1 << 13)
+#define IB_alphamode_premul	(1 << 12)  /* indicates whether image on disk have premul alpha */
+#define IB_alphamode_detect	(1 << 13)  /* if this flag is set, alpha mode would be guessed from file */
+#define IB_ignore_alpha		(1 << 14)  /* ignore alpha on load and substitude it with 1.0f */
 
 /*
  * The bit flag is stored in the ImBuf.ftype variable.

@@ -502,7 +502,7 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 		/* exception: don't color manage texture previews - show the raw values */
 		if (sce) {
 			do_gamma_correct = TRUE;
-			do_predivide = sce->r.color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE;
+			do_predivide = TRUE;
 		}
 	}
 

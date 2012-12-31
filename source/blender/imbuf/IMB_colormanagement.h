@@ -138,6 +138,7 @@ struct ColormanageProcessor *IMB_colormanagement_display_processor_new(const str
                                                                        const struct ColorManagedDisplaySettings *display_settings);
 struct ColormanageProcessor *IMB_colormanagement_colorspace_processor_new(const char *from_colorspace, const char *to_colorspace);
 void IMB_colormanagement_processor_apply_v4(struct ColormanageProcessor *cm_processor, float pixel[4]);
+void IMB_colormanagement_processor_apply_v4_predivide(struct ColormanageProcessor *cm_processor, float pixel[4]);
 void IMB_colormanagement_processor_apply_v3(struct ColormanageProcessor *cm_processor, float pixel[3]);
 void IMB_colormanagement_processor_apply(struct ColormanageProcessor *cm_processor, float *buffer, int width, int height,
                                          int channels, int predivide);

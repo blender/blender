@@ -33,6 +33,7 @@
 
 
 #include "BLI_utildefines.h"
+#include "BLI_math_color.h"
 #include "MEM_guardedalloc.h"
 
 #include "imbuf.h"
@@ -303,23 +304,33 @@ void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 	}
 
 	if (do_rect) {
-		char *p1, *p2, *dest;
+		unsigned char *cp1, *cp2, *dest;
 		
-		p1 = (char *) ibuf1->rect;
-		dest = (char *) ibuf2->rect;
+		cp1 = (unsigned char *) ibuf1->rect;
+		dest = (unsigned char *) ibuf2->rect;
 		for (y = ibuf2->y; y > 0; y--) {
-			p2 = p1 + (ibuf1->x << 2);
+			cp2 = cp1 + (ibuf1->x << 2);
 			for (x = ibuf2->x; x > 0; x--) {
-				dest[0] = (p1[0] + p2[0] + p1[4] + p2[4]) >> 2;
-				dest[1] = (p1[1] + p2[1] + p1[5] + p2[5]) >> 2;
-				dest[2] = (p1[2] + p2[2] + p1[6] + p2[6]) >> 2;
-				dest[3] = (p1[3] + p2[3] + p1[7] + p2[7]) >> 2;
-				p1 += 8; 
-				p2 += 8; 
+				float p1f[8], p2f[8], destf[4];
+
+				straight_uchar_to_premul_float(p1f, cp1);
+				straight_uchar_to_premul_float(p2f, cp2);
+				straight_uchar_to_premul_float(p1f + 4, cp1 + 4);
+				straight_uchar_to_premul_float(p2f + 4, cp2 + 4);
+
+				destf[0] = 0.25f * (p1f[0] + p2f[0] + p1f[4] + p2f[4]);
+				destf[1] = 0.25f * (p1f[1] + p2f[1] + p1f[5] + p2f[5]);
+				destf[2] = 0.25f * (p1f[2] + p2f[2] + p1f[6] + p2f[6]);
+				destf[3] = 0.25f * (p1f[3] + p2f[3] + p1f[7] + p2f[7]);
+
+				premul_float_to_straight_uchar(dest, destf);
+
+				cp1 += 8;
+				cp2 += 8;
 				dest += 4;
 			}
-			p1 = p2;
-			if (ibuf1->x & 1) p1 += 4;
+			cp1 = cp2;
+			if (ibuf1->x & 1) cp1 += 4;
 		}
 	}
 	

@@ -710,9 +710,11 @@ static void sky_tile(RenderPart *pa, RenderLayer *rl)
 					
 					if (pass[3]==0.0f) {
 						copy_v4_v4(pass, col);
+						pass[3] = 1.0f;
 					}
 					else {
 						addAlphaUnderFloat(pass, col);
+						pass[3] = 1.0f;
 					}
 				}
 			}
@@ -977,29 +979,6 @@ static void edge_enhance_add(RenderPart *pa, float *rectf, float *arect)
 			addcol[2]= *arect * R.r.edgeB;
 			addcol[3]= *arect;
 			addAlphaOverFloat(rectf, addcol);
-		}
-	}
-}
-
-static void convert_to_key_alpha(RenderPart *pa, RenderLayer *rl)
-{
-	RenderLayer *rlpp[RE_MAX_OSA];
-	int y, sample, totsample;
-	
-	totsample= get_sample_layers(pa, rl, rlpp);
-	
-	for (sample= 0; sample<totsample; sample++) {
-		float *rectf= rlpp[sample]->rectf;
-		
-		for (y= pa->rectx*pa->recty; y>0; y--, rectf+=4) {
-			if (rectf[3] >= 1.0f) {
-				/* pass */
-			}
-			else if (rectf[3] > 0.0f) {
-				rectf[0] /= rectf[3];
-				rectf[1] /= rectf[3];
-				rectf[2] /= rectf[3];
-			}
 		}
 	}
 }
@@ -1312,10 +1291,6 @@ void zbufshadeDA_tile(RenderPart *pa)
 		/* clamp alpha to 0..1 range, can go outside due to filter */
 		clamp_alpha_rgb_range(pa, rl);
 		
-		/* de-premul alpha */
-		if (R.r.alphamode & R_ALPHAKEY)
-			convert_to_key_alpha(pa, rl);
-		
 		/* free stuff within loop! */
 		MEM_freeN(pa->rectdaps); pa->rectdaps= NULL;
 		freeps(&psmlist);
@@ -1475,10 +1450,6 @@ void zbufshade_tile(RenderPart *pa)
 		
 		if (rl->passflag & SCE_PASS_VECTOR)
 			reset_sky_speed(pa, rl);
-		
-		/* de-premul alpha */
-		if (R.r.alphamode & R_ALPHAKEY)
-			convert_to_key_alpha(pa, rl);
 		
 		if (edgerect) MEM_freeN(edgerect);
 		edgerect= NULL;

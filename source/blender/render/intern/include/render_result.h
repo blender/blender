@@ -91,7 +91,7 @@ void render_result_rect_from_ibuf(struct RenderResult *rr, struct RenderData *rd
 	struct ImBuf *ibuf);
 
 void render_result_rect_fill_zero(struct RenderResult *rr);
-void render_result_rect_get_pixels(struct RenderResult *rr, struct RenderData *rd,
+void render_result_rect_get_pixels(struct RenderResult *rr,
 	unsigned int *rect, int rectx, int recty,
 	const struct ColorManagedViewSettings *view_settings,
 	const struct ColorManagedDisplaySettings *display_settings);

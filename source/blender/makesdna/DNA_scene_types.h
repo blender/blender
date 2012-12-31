@@ -1292,11 +1292,11 @@ typedef struct Scene {
 /* alphamode */
 #define R_ADDSKY		0
 #define R_ALPHAPREMUL	1
-#define R_ALPHAKEY		2
+/*#define R_ALPHAKEY		2*/ /* deprecated, shouldn't be used */
 
 /* color_mgt_flag */
 #define R_COLOR_MANAGEMENT              (1 << 0)  /* deprecated, should only be used in versioning code only */
-#define R_COLOR_MANAGEMENT_PREDIVIDE    (1 << 1)
+/*#define R_COLOR_MANAGEMENT_PREDIVIDE    (1 << 1)*/  /* deprecated, shouldn't be used */
 
 /* subimtype, flag options for imtype */
 #define R_OPENEXR_HALF    1                                      /*deprecated*/

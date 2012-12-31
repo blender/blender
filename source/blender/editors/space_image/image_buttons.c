@@ -674,6 +674,24 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 
 			if (ima->source != IMA_SRC_GENERATED) {
 				if (compact == 0) { /* background image view doesnt need these */
+					ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
+					int has_alpha = TRUE;
+
+					if (ibuf) {
+						int imtype = BKE_ftype_to_imtype(ibuf->ftype);
+						char valid_channels = BKE_imtype_valid_channels(imtype);
+
+						has_alpha = valid_channels & IMA_CHAN_FLAG_ALPHA;
+
+						BKE_image_release_ibuf(ima, ibuf, NULL);
+					}
+
+					if (has_alpha) {
+						col = uiLayoutColumn(layout, FALSE);
+						uiItemR(col, &imaptr, "use_alpha", 0, NULL, ICON_NONE);
+						uiItemR(col, &imaptr, "alpha_mode", 0, "Alpha", ICON_NONE);
+					}
+
 					uiItemS(layout);
 
 					split = uiLayoutSplit(layout, 0.0f, FALSE);
@@ -694,10 +712,6 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 					row = uiLayoutRow(col, FALSE);
 					uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "use_fields"));
 					uiItemR(row, &imaptr, "field_order", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-					
-					row = uiLayoutRow(layout, FALSE);
-					uiItemR(row, &imaptr, "use_premultiply", 0, NULL, ICON_NONE);
-					uiItemR(row, &imaptr, "use_color_unpremultiply", 0, NULL, ICON_NONE);
 				}
 			}
 

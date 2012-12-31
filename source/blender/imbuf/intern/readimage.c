@@ -86,14 +86,27 @@ ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags, char co
 					BLI_strncpy(colorspace, effective_colorspace, IM_MAX_SPACE);
 				}
 
+				if (flags & IB_ignore_alpha) {
+					IMB_rectfill_alpha(ibuf, 1.0f);
+				}
+				else {
+					if (flags & IB_alphamode_premul) {
+						if (ibuf->rect)
+							IMB_unpremultiply_alpha(ibuf);
+						else
+							/* pass, floats are expected to be premul */ ;
+					}
+					else {
+						if (ibuf->rect_float)
+							IMB_premultiply_alpha(ibuf);
+						else
+							/* pass, bytes are expected to be straight */ ;
+					}
+				}
+
 				/* OCIO_TODO: in some cases it's faster to do threaded conversion,
 				 *            but how to distinguish such cases */
 				colormanage_imbuf_make_linear(ibuf, effective_colorspace);
-
-				if (flags & IB_premul) {
-					IMB_premultiply_alpha(ibuf);
-					ibuf->flags |= IB_premul;
-				}
 
 				return ibuf;
 			}
@@ -230,4 +243,3 @@ void imb_loadtile(ImBuf *ibuf, int tx, int ty, unsigned int *rect)
 
 	close(file);
 }
-

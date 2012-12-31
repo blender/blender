@@ -291,7 +291,6 @@ static void cmp_node_image_update(bNodeTree *ntree, bNode *node)
 float *node_composit_get_float_buffer(RenderData *rd, ImBuf *ibuf, int *alloc)
 {
 	float *rect;
-	int predivide= (ibuf->flags & IB_cm_predivide);
 
 	*alloc= FALSE;
 
@@ -305,7 +304,7 @@ float *node_composit_get_float_buffer(RenderData *rd, ImBuf *ibuf, int *alloc)
 		rect= MEM_mapallocN(sizeof(float) * 4 * ibuf->x * ibuf->y, "node_composit_get_image");
 
 		IMB_buffer_float_from_float(rect, ibuf->rect_float,
-			4, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, predivide,
+			4, IB_PROFILE_SRGB, IB_PROFILE_LINEAR_RGB, TRUE,
 			ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 
 			*alloc= TRUE;
