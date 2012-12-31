@@ -1783,10 +1783,6 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, const char *
 void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
-	
-	/* used for correctly initialized User-Prefs only?  */
-//	if (!(ar->v2d.align & V2D_ALIGN_NO_POS_Y))
-//		ar->v2d.flag &= ~V2D_IS_INITIALISED;
 
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
 

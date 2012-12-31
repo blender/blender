@@ -105,7 +105,9 @@ static SpaceLink *userpref_duplicate(SpaceLink *sl)
 /* add handlers, stuff you only do once or on area/region changes */
 static void userpref_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ar->v2d.flag &= ~V2D_IS_INITIALISED;
+	/* do not use here, the properties changed in userprefs do a system-wide refresh, then scroller jumps back */
+	/*	ar->v2d.flag &= ~V2D_IS_INITIALISED; */
+	
 	ar->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
 
 	ED_region_panels_init(wm, ar);
