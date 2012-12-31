@@ -122,7 +122,7 @@ void text_pop_suggest_list(void)
 static void get_suggest_prefix(Text *text, int offset)
 {
 	int i, len;
-	char *line, tmp[256];
+	char *line;
 
 	if (!text) return;
 	if (!texttool_text_is_active(text)) return;
@@ -133,13 +133,7 @@ static void get_suggest_prefix(Text *text, int offset)
 			break;
 	i++;
 	len = text->curc - i + offset;
-	if (len > 255) {
-		printf("Suggestion prefix too long\n");
-		len = 255;
-	}
-	BLI_strncpy(tmp, line + i, len);
-	tmp[len] = '\0';
-	texttool_suggest_prefix(tmp);
+	texttool_suggest_prefix(line + i, len);
 }
 
 static void confirm_suggestion(Text *text, int skipleft)

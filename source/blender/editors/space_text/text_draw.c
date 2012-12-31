@@ -894,7 +894,7 @@ static void draw_documentation(SpaceText *st, ARegion *ar)
 
 	/* top = */ /* UNUSED */ y = ar->winy - st->lheight_dpi * l - 2;
 	boxw = DOC_WIDTH * st->cwidth + 20;
-	boxh = (DOC_HEIGHT + 1) * st->lheight_dpi;
+	boxh = (DOC_HEIGHT + 1) * (st->lheight_dpi + TXT_LINE_SPACING);
 
 	/* Draw panel */
 	UI_ThemeColor(TH_BACK);
@@ -981,7 +981,7 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 	else {
 		x = st->cwidth * (st->text->curc - st->left) + TXT_OFFSET - 4;
 	}
-	y = ar->winy - st->lheight_dpi * l - 2;
+	y = ar->winy - (st->lheight_dpi + TXT_LINE_SPACING) * l - 2;
 
 	boxw = SUGG_LIST_WIDTH * st->cwidth + 20;
 	boxh = SUGG_LIST_SIZE * st->lheight_dpi + 8;
