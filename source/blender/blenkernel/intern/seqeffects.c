@@ -1827,166 +1827,6 @@ static ImBuf *do_transform_effect(SeqRenderData context, Sequence *seq, float UN
 
 /*********************** Glow *************************/
 
-static void RVBlurBitmap2_byte(unsigned char *map, int width, int height, float blur, int quality)
-/*	MUUUCCH better than the previous blur. */
-/*	We do the blurring in two passes which is a whole lot faster. */
-/*	I changed the math arount to implement an actual Gaussian */
-/*	distribution. */
-/* */
-/*	Watch out though, it tends to misbehaven with large blur values on */
-/*	a small bitmap.  Avoid avoid avoid. */
-/*=============================== */
-{
-	unsigned char *temp = NULL, *swap;
-	float   *filter = NULL;
-	int x, y, i, fx, fy;
-	int index, ix, halfWidth;
-	float fval, k, curColor[3], curColor2[3], weight = 0;
-
-	/* If we're not really blurring, bail out */
-	if (blur <= 0)
-		return;
-
-	/*Allocate memory for the tempmap and the blur filter matrix */
-	temp = MEM_mallocN((width * height * 4), "blurbitmaptemp");
-	if (!temp)
-		return;
-
-	/*Allocate memory for the filter elements */
-	halfWidth = ((quality + 1) * blur);
-	filter = (float *)MEM_mallocN(sizeof(float) * halfWidth * 2, "blurbitmapfilter");
-	if (!filter) {
-		MEM_freeN(temp);
-		return;
-	}
-
-	/* Apparently we're calculating a bell curve based on the standard deviation (or radius)
-	 * This code is based on an example posted to comp.graphics.algorithms by
-	 * Blancmange (bmange@airdmhor.gen.nz)
-	 */
-
-	k = -1.0f / (2.0f * (float)M_PI * blur * blur);
-	for (ix = 0; ix < halfWidth; ix++) {
-		weight = (float)exp(k * (ix * ix));
-		filter[halfWidth - ix] = weight;
-		filter[halfWidth + ix] = weight;
-	}
-	filter[0] = weight;
-
-	/* Normalize the array */
-	fval = 0;
-	for (ix = 0; ix < halfWidth * 2; ix++)
-		fval += filter[ix];
-
-	for (ix = 0; ix < halfWidth * 2; ix++)
-		filter[ix] /= fval;
-
-	/* Blur the rows */
-	for (y = 0; y < height; y++) {
-		/* Do the left & right strips */
-		for (x = 0; x < halfWidth; x++) {
-			index = (x + y * width) * 4;
-			fx = 0;
-			zero_v3(curColor);
-			zero_v3(curColor2);
-
-			for (i = x - halfWidth; i < x + halfWidth; i++) {
-				if ((i >= 0) && (i < width)) {
-					curColor[0] += map[(i + y * width) * 4 + GlowR] * filter[fx];
-					curColor[1] += map[(i + y * width) * 4 + GlowG] * filter[fx];
-					curColor[2] += map[(i + y * width) * 4 + GlowB] * filter[fx];
-
-					curColor2[0] += map[(width - 1 - i + y * width) * 4 + GlowR] * filter[fx];
-					curColor2[1] += map[(width - 1 - i + y * width) * 4 + GlowG] * filter[fx];
-					curColor2[2] += map[(width - 1 - i + y * width) * 4 + GlowB] * filter[fx];
-				}
-				fx++;
-			}
-			temp[index + GlowR] = curColor[0];
-			temp[index + GlowG] = curColor[1];
-			temp[index + GlowB] = curColor[2];
-
-			temp[((width - 1 - x + y * width) * 4) + GlowR] = curColor2[0];
-			temp[((width - 1 - x + y * width) * 4) + GlowG] = curColor2[1];
-			temp[((width - 1 - x + y * width) * 4) + GlowB] = curColor2[2];
-
-		}
-
-		/* Do the main body */
-		for (x = halfWidth; x < width - halfWidth; x++) {
-			index = (x + y * width) * 4;
-			fx = 0;
-			zero_v3(curColor);
-			for (i = x - halfWidth; i < x + halfWidth; i++) {
-				curColor[0] += map[(i + y * width) * 4 + GlowR] * filter[fx];
-				curColor[1] += map[(i + y * width) * 4 + GlowG] * filter[fx];
-				curColor[2] += map[(i + y * width) * 4 + GlowB] * filter[fx];
-				fx++;
-			}
-			temp[index + GlowR] = curColor[0];
-			temp[index + GlowG] = curColor[1];
-			temp[index + GlowB] = curColor[2];
-		}
-	}
-
-	/* Swap buffers */
-	swap = temp; temp = map; map = swap;
-
-	/* Blur the columns */
-	for (x = 0; x < width; x++) {
-		/* Do the top & bottom strips */
-		for (y = 0; y < halfWidth; y++) {
-			index = (x + y * width) * 4;
-			fy = 0;
-			zero_v3(curColor);
-			zero_v3(curColor2);
-			for (i = y - halfWidth; i < y + halfWidth; i++) {
-				if ((i >= 0) && (i < height)) {
-					/* Bottom */
-					curColor[0] += map[(x + i * width) * 4 + GlowR] * filter[fy];
-					curColor[1] += map[(x + i * width) * 4 + GlowG] * filter[fy];
-					curColor[2] += map[(x + i * width) * 4 + GlowB] * filter[fy];
-
-					/* Top */
-					curColor2[0] += map[(x + (height - 1 - i) * width) * 4 + GlowR] * filter[fy];
-					curColor2[1] += map[(x + (height - 1 - i) * width) * 4 + GlowG] * filter[fy];
-					curColor2[2] += map[(x + (height - 1 - i) * width) * 4 + GlowB] * filter[fy];
-				}
-				fy++;
-			}
-			temp[index + GlowR] = curColor[0];
-			temp[index + GlowG] = curColor[1];
-			temp[index + GlowB] = curColor[2];
-			temp[((x + (height - 1 - y) * width) * 4) + GlowR] = curColor2[0];
-			temp[((x + (height - 1 - y) * width) * 4) + GlowG] = curColor2[1];
-			temp[((x + (height - 1 - y) * width) * 4) + GlowB] = curColor2[2];
-		}
-
-		/* Do the main body */
-		for (y = halfWidth; y < height - halfWidth; y++) {
-			index = (x + y * width) * 4;
-			fy = 0;
-			zero_v3(curColor);
-			for (i = y - halfWidth; i < y + halfWidth; i++) {
-				curColor[0] += map[(x + i * width) * 4 + GlowR] * filter[fy];
-				curColor[1] += map[(x + i * width) * 4 + GlowG] * filter[fy];
-				curColor[2] += map[(x + i * width) * 4 + GlowB] * filter[fy];
-				fy++;
-			}
-			temp[index + GlowR] = curColor[0];
-			temp[index + GlowG] = curColor[1];
-			temp[index + GlowB] = curColor[2];
-		}
-	}
-
-	/* Swap buffers */
-	swap = temp; temp = map; /* map = swap; */ /* UNUSED */
-
-	/* Tidy up */
-	MEM_freeN(filter);
-	MEM_freeN(temp);
-}
-
 static void RVBlurBitmap2_float(float *map, int width, int height, float blur, int quality)
 /*	MUUUCCH better than the previous blur. */
 /*	We do the blurring in two passes which is a whole lot faster. */
@@ -2148,26 +1988,6 @@ static void RVBlurBitmap2_float(float *map, int width, int height, float blur, i
 	MEM_freeN(temp);
 }
 
-
-/*	Adds two bitmaps and puts the results into a third map. */
-/*	C must have been previously allocated but it may be A or B. */
-/*	We clamp values to 255 to prevent weirdness */
-/*=============================== */
-static void RVAddBitmaps_byte(unsigned char *a, unsigned char *b, unsigned char *c, int width, int height)
-{
-	int x, y, index;
-
-	for (y = 0; y < height; y++) {
-		for (x = 0; x < width; x++) {
-			index = (x + y * width) * 4;
-			c[index + GlowR] = MIN2(255, a[index + GlowR] + b[index + GlowR]);
-			c[index + GlowG] = MIN2(255, a[index + GlowG] + b[index + GlowG]);
-			c[index + GlowB] = MIN2(255, a[index + GlowB] + b[index + GlowB]);
-			c[index + GlowA] = MIN2(255, a[index + GlowA] + b[index + GlowA]);
-		}
-	}
-}
-
 static void RVAddBitmaps_float(float *a, float *b, float *c, int width, int height)
 {
 	int x, y, index;
@@ -2179,37 +1999,6 @@ static void RVAddBitmaps_float(float *a, float *b, float *c, int width, int heig
 			c[index + GlowG] = MIN2(1.0f, a[index + GlowG] + b[index + GlowG]);
 			c[index + GlowB] = MIN2(1.0f, a[index + GlowB] + b[index + GlowB]);
 			c[index + GlowA] = MIN2(1.0f, a[index + GlowA] + b[index + GlowA]);
-		}
-	}
-}
-
-/* For each pixel whose total luminance exceeds the threshold,
- * Multiply it's value by BOOST and add it to the output map
- */
-static void RVIsolateHighlights_byte(unsigned char *in, unsigned char *out, int width, int height, int threshold,
-                                     float boost, float clamp)
-{
-	int x, y, index;
-	int intensity;
-
-	for (y = 0; y < height; y++) {
-		for (x = 0; x < width; x++) {
-			index = (x + y * width) * 4;
-
-			/* Isolate the intensity */
-			intensity = (in[index + GlowR] + in[index + GlowG] + in[index + GlowB] - threshold);
-			if (intensity > 0) {
-				out[index + GlowR] = MIN2(255 * clamp, (in[index + GlowR] * boost * intensity) / 255);
-				out[index + GlowG] = MIN2(255 * clamp, (in[index + GlowG] * boost * intensity) / 255);
-				out[index + GlowB] = MIN2(255 * clamp, (in[index + GlowB] * boost * intensity) / 255);
-				out[index + GlowA] = MIN2(255 * clamp, (in[index + GlowA] * boost * intensity) / 255);
-			}
-			else {
-				out[index + GlowR] = 0;
-				out[index + GlowG] = 0;
-				out[index + GlowB] = 0;
-				out[index + GlowA] = 0;
-			}
 		}
 	}
 }
@@ -2280,20 +2069,6 @@ static void copy_glow_effect(Sequence *dst, Sequence *src)
 static void do_glow_effect_byte(Sequence *seq, int render_size, float facf0, float UNUSED(facf1),  int x, int y,
                                 unsigned char *rect1, unsigned char *UNUSED(rect2), unsigned char *out)
 {
-#if 0
-	/* XXX: not sure what's better here, on the one hand conversion to floats
-	 *      here is not so much trouble, but on the other hand who're using
-	 *      glow on buffers with alpha?
-	 */
-	unsigned char *outbuf = out;
-	unsigned char *inbuf = rect1;
-	GlowVars *glow = (GlowVars *)seq->effectdata;
-
-	RVIsolateHighlights_byte(inbuf, outbuf, x, y, glow->fMini * 765, glow->fBoost * facf0, glow->fClamp);
-	RVBlurBitmap2_byte(outbuf, x, y, glow->dDist * (render_size / 100.0f), glow->dQuality);
-	if (!glow->bNoComp)
-		RVAddBitmaps_byte(inbuf, outbuf, outbuf, x, y);
-#else
 	float *outbuf, *inbuf;
 	GlowVars *glow = (GlowVars *)seq->effectdata;
 
@@ -2313,7 +2088,6 @@ static void do_glow_effect_byte(Sequence *seq, int render_size, float facf0, flo
 
 	MEM_freeN(inbuf);
 	MEM_freeN(outbuf);
-#endif
 }
 
 static void do_glow_effect_float(Sequence *seq, int render_size, float facf0, float UNUSED(facf1),  int x, int y,
