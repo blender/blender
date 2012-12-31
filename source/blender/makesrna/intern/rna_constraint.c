@@ -1392,19 +1392,19 @@ static void rna_def_constraint_rigid_body_joint(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "axis_x", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "axX");
 	RNA_def_property_range(prop, -M_PI * 2, M_PI * 2);
-	RNA_def_property_ui_text(prop, "Axis X", "Rotate pivot on X axis in degrees");
+	RNA_def_property_ui_text(prop, "Axis X", "Rotate pivot on X axis");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "axis_y", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "axY");
 	RNA_def_property_range(prop, -M_PI * 2, M_PI * 2);
-	RNA_def_property_ui_text(prop, "Axis Y", "Rotate pivot on Y axis in degrees");
+	RNA_def_property_ui_text(prop, "Axis Y", "Rotate pivot on Y axis");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "axis_z", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "axZ");
 	RNA_def_property_range(prop, -M_PI * 2, M_PI * 2);
-	RNA_def_property_ui_text(prop, "Axis Z", "Rotate pivot on Z axis in degrees");
+	RNA_def_property_ui_text(prop, "Axis Z", "Rotate pivot on Z axis");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "use_linked_collision", PROP_BOOLEAN, PROP_NONE);

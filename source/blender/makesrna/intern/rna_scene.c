@@ -2326,7 +2326,7 @@ static void rna_def_scene_game_recast_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "slope_max", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "agentmaxslope");
 	RNA_def_property_range(prop, 0, M_PI / 2);
-	RNA_def_property_ui_text(prop, "Max Slope", "Maximum walkable slope angle in degrees");
+	RNA_def_property_ui_text(prop, "Max Slope", "Maximum walkable slope angle");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 
