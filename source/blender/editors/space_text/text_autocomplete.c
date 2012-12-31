@@ -223,32 +223,22 @@ static GHash *text_autocomplete_build(Text *text)
 static void get_suggest_prefix(Text *text, int offset)
 {
 	int i, len;
-	char *line, tmp[256];
+	char *line;
 
 	if (!text) return;
 	if (!texttool_text_is_active(text)) return;
 
 	line = text->curl->line;
-	for (i = text->curc - 1 + offset; i >= 0; i--)
-		if (!text_check_identifier(line[i]))
-			break;
-	i++;
+	i = text_find_identifier_start(line, text->curc + offset);
 	len = text->curc - i + offset;
-	if (len > 255) {
-		printf("Suggestion prefix too long\n");
-		len = 255;
-	}
-	if (len != 0)
-		BLI_strncpy(tmp, line + i, len);
-	tmp[len] = '\0';
-	texttool_suggest_prefix(tmp, len);
+	texttool_suggest_prefix(line + i, len);
 }
 
-static void confirm_suggestion(Text *text, int skipleft)
+static void confirm_suggestion(Text *text)
 {
 	SuggItem *sel;
 	int i, over = 0;
-	char *line;
+	const char *line;
 
 	if (!text) return;
 	if (!texttool_text_is_active(text)) return;
@@ -257,23 +247,18 @@ static void confirm_suggestion(Text *text, int skipleft)
 	if (!sel) return;
 
 	line = text->curl->line;
-	i = text->curc - skipleft - 1;
-	while (i >= 0) {
-		if (!text_check_identifier(line[i]))
-			break;
-		over++;
-		i--;
-	}
+	i = text_find_identifier_start(line, text->curc /* - skipleft */);
+	over = text->curc - i;
 
-	for (i = 0; i < skipleft; i++)
-		txt_move_left(text, 0);
+//	for (i = 0; i < skipleft; i++)
+//		txt_move_left(text, 0);
 	for (i = 0; i < over; i++)
 		txt_move_left(text, 1);
 
 	txt_insert_buf(text, sel->name);
 
-	for (i = 0; i < skipleft; i++)
-		txt_move_right(text, 0);
+//	for (i = 0; i < skipleft; i++)
+//		txt_move_right(text, 0);
 
 	texttool_text_clear();
 }
@@ -294,7 +279,7 @@ static int text_autocomplete_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 		ED_area_tag_redraw(CTX_wm_area(C));
 
 		if (texttool_suggest_first() == texttool_suggest_last()) {
-			confirm_suggestion(st->text, 0);
+			confirm_suggestion(st->text);
 			text_update_line_edited(st->text->curl);
 			text_autocomplete_free(C, op);
 			return OPERATOR_FINISHED;
@@ -345,7 +330,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MIDDLEMOUSE:
 			if (event->val == KM_PRESS) {
 				if (text_do_suggest_select(st, ar)) {
-					confirm_suggestion(st->text, 0);
+					confirm_suggestion(st->text);
 					text_update_line_edited(st->text->curl);
 					swallow = 1;
 				}
@@ -369,7 +354,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case RETKEY:
 			if (event->val == KM_PRESS) {
 				if (tools & TOOL_SUGG_LIST) {
-					confirm_suggestion(st->text, 0);
+					confirm_suggestion(st->text);
 					text_update_line_edited(st->text->curl);
 					swallow = 1;
 					draw = 1;

@@ -2939,6 +2939,10 @@ int text_check_whitespace(const char ch)
 
 int text_find_identifier_start(const char *str, int i)
 {
+	if (UNLIKELY(i <= 0)) {
+		return 0;
+	}
+
 	while (i--) {
 		if (!text_check_identifier(str[i])) {
 			break;
