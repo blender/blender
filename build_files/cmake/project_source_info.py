@@ -43,7 +43,7 @@ SOURCE_DIR = abspath(SOURCE_DIR)
 
 def is_c_header(filename):
     ext = os.path.splitext(filename)[1]
-    return (ext in (".h", ".hpp", ".hxx"))
+    return (ext in {".h", ".hpp", ".hxx", ".hh"})
 
 
 def is_c(filename):

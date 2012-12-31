@@ -20,9 +20,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_object_types.h"
-
-#include "BLI_array.h"
 #include "BLI_buffer.h"
 #include "BLI_ghash.h"
 #include "BLI_heap.h"
