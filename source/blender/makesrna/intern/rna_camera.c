@@ -112,8 +112,8 @@ void RNA_def_camera(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 	static EnumPropertyItem prop_lens_unit_items[] = {
-		{0, "MILLIMETERS", 0, "Millimeters", ""},
-		{CAM_ANGLETOGGLE, "DEGREES", 0, "Degrees", ""},
+		{0, "MILLIMETERS", 0, "Millimeters", "Specify the lens in millimeters"},
+		{CAM_ANGLETOGGLE, "FOV", 0, "Field of View", "Specify the lens as the field of view's angle"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	static EnumPropertyItem sensor_fit_items[] = {
@@ -154,23 +154,23 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	prop = RNA_def_property(srna, "angle_x", PROP_FLOAT, PROP_ANGLE);
-	RNA_def_property_range(prop, M_PI * (0.367 / 180.0), M_PI * (172.847 / 180.0));
+	RNA_def_property_range(prop, DEG2RAD(0.367), DEG2RAD(172.847));
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Horizontal FOV", "Camera lens horizontal field of view in degrees");
+	RNA_def_property_ui_text(prop, "Horizontal FOV", "Camera lens horizontal field of view");
 	RNA_def_property_float_funcs(prop, "rna_Camera_angle_x_get", "rna_Camera_angle_x_set", NULL);
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_update");
 
 	prop = RNA_def_property(srna, "angle_y", PROP_FLOAT, PROP_ANGLE);
-	RNA_def_property_range(prop, M_PI * (0.367 / 180.0), M_PI * (172.847 / 180.0));
+	RNA_def_property_range(prop, DEG2RAD(0.367), DEG2RAD(172.847));
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Vertical FOV", "Camera lens vertical field of view in degrees");
+	RNA_def_property_ui_text(prop, "Vertical FOV", "Camera lens vertical field of view");
 	RNA_def_property_float_funcs(prop, "rna_Camera_angle_y_get", "rna_Camera_angle_y_set", NULL);
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_update");
 
 	prop = RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
-	RNA_def_property_range(prop, M_PI * (0.367 / 180.0), M_PI * (172.847 / 180.0));
+	RNA_def_property_range(prop, DEG2RAD(0.367), DEG2RAD(172.847));
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Field of View", "Camera lens field of view in degrees");
+	RNA_def_property_ui_text(prop, "Field of View", "Camera lens field of view");
 	RNA_def_property_float_funcs(prop, "rna_Camera_angle_get", "rna_Camera_angle_set", NULL);
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Camera_update");
 
