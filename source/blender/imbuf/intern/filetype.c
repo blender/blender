@@ -69,7 +69,7 @@ void quicktime_exit(void);
 
 ImFileType IMB_FILE_TYPES[] = {
 	{NULL, NULL, imb_is_a_jpeg, imb_ftype_default, imb_load_jpeg, imb_savejpeg, NULL, 0, JPG, COLOR_ROLE_DEFAULT_BYTE},
-	{NULL, NULL, imb_is_a_png, imb_ftype_default, imb_loadpng, imb_savepng, NULL, IM_FTYPE_FLOAT, PNG, COLOR_ROLE_DEFAULT_BYTE},
+	{NULL, NULL, imb_is_a_png, imb_ftype_default, imb_loadpng, imb_savepng, NULL, 0, PNG, COLOR_ROLE_DEFAULT_BYTE},
 	{NULL, NULL, imb_is_a_bmp, imb_ftype_default, imb_bmp_decode, imb_savebmp, NULL, 0, BMP, COLOR_ROLE_DEFAULT_BYTE},
 	{NULL, NULL, imb_is_a_targa, imb_ftype_default, imb_loadtarga, imb_savetarga, NULL, 0, TGA, COLOR_ROLE_DEFAULT_BYTE},
 	{NULL, NULL, imb_is_a_iris, imb_ftype_iris, imb_loadiris, imb_saveiris, NULL, 0, IMAGIC, COLOR_ROLE_DEFAULT_BYTE},
