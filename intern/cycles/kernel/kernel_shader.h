@@ -60,6 +60,8 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	sd->object = (isect->object == ~0)? kernel_tex_fetch(__prim_object, isect->prim): isect->object;
 #endif
 
+	sd->flag = kernel_tex_fetch(__object_flag, sd->object);
+
 	/* matrices and time */
 #ifdef __OBJECT_MOTION__
 	shader_setup_object_transforms(kg, sd, ray->time);
@@ -121,8 +123,7 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 
 	sd->I = -ray->D;
 
-	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
-	sd->flag |= kernel_tex_fetch(__object_flag, sd->object);
+	sd->flag |= kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
 
 #ifdef __INSTANCING__
 	if(isect->object != ~0) {
