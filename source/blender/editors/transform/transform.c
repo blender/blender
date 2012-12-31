@@ -2721,6 +2721,18 @@ int handleEventShear(TransInfo *t, wmEvent *event)
 
 		status = 1;
 	}
+	else if (event->type == XKEY && event->val == KM_PRESS) {
+		initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_ABSOLUTE);
+		t->customData = NULL;
+		
+		status = 1;
+	}
+	else if (event->type == YKEY && event->val == KM_PRESS) {
+		initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
+		t->customData = (void *)1;
+		
+		status = 1;
+	}
 	
 	return status;
 }
@@ -2754,7 +2766,7 @@ int Shear(TransInfo *t, const int UNUSED(mval[2]))
 	}
 	else {
 		/* default header print */
-		sprintf(str, "Shear: %.3f %s", value, t->proptext);
+		sprintf(str, "Shear: %.3f %s (Press X or Y to set shear axis)", value, t->proptext);
 	}
 	
 	t->values[0] = value;
