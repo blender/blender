@@ -66,6 +66,8 @@ int  text_check_format_len(TextLine *line, unsigned int len);
 typedef struct TextFormatType {
 	struct TextFormatType *next, *prev;
 
+	char (*format_identifier)(const char *string);
+
 	/* Formats the specified line. If do_next is set, the process will move on to
 	 * the succeeding line if it is affected (eg. multiline strings). Format strings
 	 * may contain any of the following characters:

@@ -170,6 +170,17 @@ static int txtfmt_osl_find_preprocessor(const char *string)
 	return -1;
 }
 
+static char txtfmt_osl_format_identifier(const char *str)
+{
+	char fmt;
+	if      ((txtfmt_osl_find_specialvar(str))   != -1) fmt = FMT_TYPE_SPECIAL;
+	else if ((txtfmt_osl_find_builtinfunc(str))  != -1) fmt = FMT_TYPE_KEYWORD;
+	else if ((txtfmt_osl_find_reserved(str))     != -1) fmt = FMT_TYPE_RESERVED;
+	else if ((txtfmt_osl_find_preprocessor(str)) != -1) fmt = FMT_TYPE_DIRECTIVE;
+	else                                                fmt = FMT_TYPE_DEFAULT;
+	return fmt;
+}
+
 static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const int do_next)
 {
 	FlattenString fs;
@@ -280,6 +291,7 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const int do_n
 			/* Not ws, a digit, punct, or continuing text. Must be new, check for special words */
 			else {
 				/* Special vars(v) or built-in keywords(b) */
+				/* keep in sync with 'txtfmt_osl_format_identifier()' */
 				if      ((i = txtfmt_osl_find_specialvar(str))   != -1) prev = FMT_TYPE_SPECIAL;
 				else if ((i = txtfmt_osl_find_builtinfunc(str))  != -1) prev = FMT_TYPE_KEYWORD;
 				else if ((i = txtfmt_osl_find_reserved(str))     != -1) prev = FMT_TYPE_RESERVED;
@@ -315,7 +327,8 @@ void ED_text_format_register_osl(void)
 	static TextFormatType tft = {0};
 	static const char *ext[] = {"osl", NULL};
 
-	tft.format_line = txtfmt_osl_format_line;
+	tft.format_identifier = txtfmt_osl_format_identifier;
+	tft.format_line       = txtfmt_osl_format_line;
 	tft.ext = ext;
 
 	ED_text_format_register(&tft);

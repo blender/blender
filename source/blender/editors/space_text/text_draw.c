@@ -957,7 +957,7 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 	SuggItem *item, *first, *last, *sel;
 	TextLine *tmp;
 	char str[SUGG_LIST_WIDTH + 1];
-	int w, boxw = 0, boxh, i, l, x, y, b, *top;
+	int w, boxw = 0, boxh, i, l, x, y, *top;
 	const int lheight = st->lheight_dpi + TXT_LINE_SPACING;
 	const int margin_x = 2;
 	
@@ -1014,18 +1014,8 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 			UI_ThemeColor(TH_SHADE2);
 			glRecti(x + margin_x, y - 3, x + margin_x + w, y + lheight - 3);
 		}
-		b = 1; /* b=1 color block, text is default. b=0 no block, color text */
-		switch (item->type) {
-			case 'k': UI_ThemeColor(TH_SYNTAX_B); b = 0; break;
-			case 'm': UI_ThemeColor(TH_TEXT); break;
-			case 'f': UI_ThemeColor(TH_SYNTAX_L); break;
-			case 'v': UI_ThemeColor(TH_SYNTAX_N); break;
-			case '?': UI_ThemeColor(TH_TEXT); b = 0; break;
-		}
-		if (b) {
-			glRecti(x + 8, y + 2, x + 11, y + 5);
-			UI_ThemeColor(TH_TEXT);
-		}
+
+		format_draw_color(item->type);
 		text_draw(st, str, 0, 0, 1, x + margin_x, y - 1, NULL);
 
 		if (item == last) break;

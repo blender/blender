@@ -154,6 +154,16 @@ static int txtfmt_py_find_bool(const char *string)
 	return i;
 }
 
+static char txtfmt_py_format_identifier(const char *str)
+{
+	char fmt;
+	if      ((txtfmt_py_find_specialvar(str))   != -1) fmt = FMT_TYPE_SPECIAL;
+	else if ((txtfmt_py_find_builtinfunc(str))  != -1) fmt = FMT_TYPE_KEYWORD;
+	else if ((txtfmt_py_find_decorator(str))    != -1) fmt = FMT_TYPE_RESERVED;
+	else                                               fmt = FMT_TYPE_DEFAULT;
+	return fmt;
+}
+
 static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_next)
 {
 	FlattenString fs;
@@ -269,6 +279,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_ne
 			/* Not ws, a digit, punct, or continuing text. Must be new, check for special words */
 			else {
 				/* Special vars(v) or built-in keywords(b) */
+				/* keep in sync with 'txtfmt_py_format_identifier()' */
 				if      ((i = txtfmt_py_find_specialvar(str))   != -1) prev = FMT_TYPE_SPECIAL;
 				else if ((i = txtfmt_py_find_builtinfunc(str))  != -1) prev = FMT_TYPE_KEYWORD;
 				else if ((i = txtfmt_py_find_decorator(str))    != -1) prev = FMT_TYPE_DIRECTIVE;
@@ -303,7 +314,8 @@ void ED_text_format_register_py(void)
 	static TextFormatType tft = {0};
 	static const char *ext[] = {"py", NULL};
 
-	tft.format_line = txtfmt_py_format_line;
+	tft.format_identifier = txtfmt_py_format_identifier;
+	tft.format_line       = txtfmt_py_format_line;
 	tft.ext = ext;
 
 	ED_text_format_register(&tft);
