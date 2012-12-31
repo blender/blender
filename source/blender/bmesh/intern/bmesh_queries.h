@@ -37,7 +37,7 @@ int     BM_vert_in_edge(BMEdge *e, BMVert *v);
 int     BM_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e);
 
 float   BM_edge_calc_length(BMEdge *e);
-float   BM_edge_calc_squared_length(BMEdge *e);
+float   BM_edge_calc_length_squared(BMEdge *e);
 int     BM_edge_face_pair(BMEdge *e, BMFace **r_fa, BMFace **r_fb);
 int     BM_edge_loop_pair(BMEdge *e, BMLoop **r_la, BMLoop **r_lb);
 BMVert *BM_edge_other_vert(BMEdge *e, BMVert *v);

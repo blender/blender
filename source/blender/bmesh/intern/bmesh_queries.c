@@ -478,7 +478,7 @@ float BM_edge_calc_length(BMEdge *e)
 /**
  * Returns edge length squared (for comparisons)
  */
-float BM_edge_calc_squared_length(BMEdge *e)
+float BM_edge_calc_length_squared(BMEdge *e)
 {
 	return len_squared_v3v3(e->v1->co, e->v2->co);
 }

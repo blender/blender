@@ -532,7 +532,7 @@ static void edge_queue_insert(EdgeQueue *q, BLI_mempool *pool, BMEdge *e,
 static void long_edge_queue_edge_add(EdgeQueue *q, BLI_mempool *pool,
 									 BMEdge *e)
 {
-	const float len_sq = BM_edge_calc_squared_length(e);
+	const float len_sq = BM_edge_calc_length_squared(e);
 	if (len_sq > q->limit_len_squared)
 		edge_queue_insert(q, pool, e, 1.0f / len_sq);
 }
@@ -540,7 +540,7 @@ static void long_edge_queue_edge_add(EdgeQueue *q, BLI_mempool *pool,
 static void short_edge_queue_edge_add(EdgeQueue *q, BLI_mempool *pool,
 									  BMEdge *e)
 {
-	const float len_sq = BM_edge_calc_squared_length(e);
+	const float len_sq = BM_edge_calc_length_squared(e);
 	if (len_sq < q->limit_len_squared)
 		edge_queue_insert(q, pool, e, len_sq);
 }
@@ -762,7 +762,7 @@ static int pbvh_bmesh_subdivide_long_edges(PBVH *bvh, EdgeQueue *q,
 			continue;
 		}
 
-		if (BM_edge_calc_squared_length(e) <= q->limit_len_squared)
+		if (BM_edge_calc_length_squared(e) <= q->limit_len_squared)
 			continue;
 
 		any_subdivided = TRUE;
@@ -925,7 +925,7 @@ static int pbvh_bmesh_collapse_short_edges(PBVH *bvh, EdgeQueue *q,
 			continue;
 		}
 
-		if (BM_edge_calc_squared_length(e) >= min_len_squared)
+		if (BM_edge_calc_length_squared(e) >= min_len_squared)
 			continue;
 
 		any_collapsed = TRUE;
