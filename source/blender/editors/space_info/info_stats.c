@@ -315,7 +315,7 @@ static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 static int stats_is_object_dynamic_topology_sculpt(Object *ob)
 {
 	return (ob && (ob->mode & OB_MODE_SCULPT) &&
-			ob->sculpt && ob->sculpt->bm);
+	        ob->sculpt && ob->sculpt->bm);
 }
 
 /* Statistics displayed in info header. Called regularly on scene changes. */

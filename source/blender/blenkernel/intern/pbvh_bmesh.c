@@ -252,7 +252,7 @@ static int pbvh_bmesh_node_limit_ensure(PBVH *bvh, int node_index)
 
 	pbvh_bmesh_node_split(bvh, prim_bbc, node_index);
 
-	BLI_ghash_free(prim_bbc, NULL, (void*)MEM_freeN);
+	BLI_ghash_free(prim_bbc, NULL, (void *)MEM_freeN);
 
 	return TRUE;
 }
@@ -909,9 +909,11 @@ static int pbvh_bmesh_collapse_short_edges(PBVH *bvh, EdgeQueue *q,
 
 		/* Check that the vertices/edge still exist */
 		if (BLI_ghash_haskey(deleted_verts, v1) ||
-			BLI_ghash_haskey(deleted_verts, v2) ||
-			!(e = BM_edge_exists(v1, v2)))
+		    BLI_ghash_haskey(deleted_verts, v2) ||
+		    !(e = BM_edge_exists(v1, v2)))
+		{
 			continue;
+		}
 
 		/* Check that the edge's vertices are still in the PBVH. It's
 		 * possible that an edge collapse has deleted adjacent faces
@@ -1153,7 +1155,7 @@ void BKE_pbvh_bmesh_after_stroke(PBVH *bvh)
 void BKE_pbvh_bmesh_detail_size_set(PBVH *bvh, float detail_size)
 {
 	bvh->bm_max_edge_len = detail_size;
-	bvh->bm_min_edge_len = bvh->bm_max_edge_len * 0.4;
+	bvh->bm_min_edge_len = bvh->bm_max_edge_len * 0.4f;
 }
 
 void BKE_pbvh_node_mark_topology_update(PBVHNode *node)

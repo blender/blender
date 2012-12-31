@@ -1487,11 +1487,11 @@ typedef enum SculptFlags {
 	SCULPT_SHOW_DIFFUSE = (1<<9),
 
 	/* If set, the mesh will be drawn with smooth-shading in
-	   dynamic-topology mode */
+	 * dynamic-topology mode */
 	SCULPT_DYNTOPO_SMOOTH_SHADING = (1<<10),
 
 	/* If set, dynamic-topology brushes will collapse short edges in
-	   addition to subdividing long ones */
+	 * addition to subdividing long ones */
 	SCULPT_DYNTOPO_COLLAPSE = (1<<11)
 } SculptFlags;
 

@@ -2966,7 +2966,7 @@ static void sculpt_topology_update(Sculpt *sd, Object *ob, Brush *brush)
 	data.ss = ss;
 	data.sd = sd;
 
-	radius = ss->cache->radius * 1.25;
+	radius = ss->cache->radius * 1.25f;
 
 	data.radius_squared = radius * radius;
 	data.original = ELEM4(brush->sculpt_tool,

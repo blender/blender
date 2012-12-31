@@ -540,7 +540,7 @@ void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log)
 		const unsigned id = bm_log_vert_id_get(log, v);
 		const void *key = SET_INT_IN_POINTER(id);
 		const void *val = BLI_ghash_lookup(id_to_idx, key);
-		((int*)varr)[i++] = GET_INT_FROM_POINTER(val);
+		((int *)varr)[i++] = GET_INT_FROM_POINTER(val);
 	}
 	BLI_ghash_free(id_to_idx, NULL, NULL);
 
@@ -551,7 +551,7 @@ void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log)
 		const unsigned id = bm_log_face_id_get(log, f);
 		const void *key = SET_INT_IN_POINTER(id);
 		const void *val = BLI_ghash_lookup(id_to_idx, key);
-		((int*)farr)[i++] = GET_INT_FROM_POINTER(val);
+		((int *)farr)[i++] = GET_INT_FROM_POINTER(val);
 	}
 	BLI_ghash_free(id_to_idx, NULL, NULL);
 

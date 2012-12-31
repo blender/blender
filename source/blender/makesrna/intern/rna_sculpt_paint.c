@@ -347,15 +347,15 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	prop = RNA_def_property(srna, "use_smooth_shading", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_SMOOTH_SHADING);
 	RNA_def_property_ui_text(prop, "Smooth Shading",
-							 "Show faces in dynamic-topology mode with smooth "
-							 "shading rather than flat shaded");
+	                         "Show faces in dynamic-topology mode with smooth "
+	                         "shading rather than flat shaded");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
 
 	prop = RNA_def_property(srna, "use_edge_collapse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", SCULPT_DYNTOPO_COLLAPSE);
 	RNA_def_property_ui_text(prop, "Collapse Short Edges",
-							 "In dynamic-topology mode, collapse short edges "
-							 "in addition to subdividing long ones");
+	                         "In dynamic-topology mode, collapse short edges "
+	                         "in addition to subdividing long ones");
 
 	prop = RNA_def_property(srna, "symmetrize_direction", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, symmetrize_direction_items);
