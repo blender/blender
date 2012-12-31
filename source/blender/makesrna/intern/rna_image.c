@@ -116,15 +116,6 @@ static void rna_Image_fields_update(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 	BKE_image_release_ibuf(ima, ibuf, lock);
 }
 
-static void rna_Image_free_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
-{
-	Image *ima = ptr->id.data;
-	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
-	WM_main_add_notifier(NC_IMAGE | NA_EDITED, &ima->id);
-	DAG_id_tag_update(&ima->id, 0);
-}
-
-
 static void rna_Image_reload_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Image *ima = ptr->id.data;
@@ -136,16 +127,16 @@ static void rna_Image_reload_update(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 static void rna_Image_generated_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Image *ima = ptr->id.data;
-	BKE_image_signal(ima, NULL, IMA_SIGNAL_COLORMANAGE);
-	DAG_id_tag_update(&ima->id, 0);
-	WM_main_add_notifier(NC_IMAGE | ND_DISPLAY, &ima->id);
-	WM_main_add_notifier(NC_IMAGE | NA_EDITED, &ima->id);
+	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
 }
 
 static void rna_Image_colormanage_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Image *ima = ptr->id.data;
-	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
+	BKE_image_signal(ima, NULL, IMA_SIGNAL_COLORMANAGE);
+	DAG_id_tag_update(&ima->id, 0);
+	WM_main_add_notifier(NC_IMAGE | ND_DISPLAY, &ima->id);
+	WM_main_add_notifier(NC_IMAGE | NA_EDITED, &ima->id);
 }
 
 static void rna_ImageUser_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
@@ -535,7 +526,7 @@ static void rna_def_image(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", IMA_IGNORE_ALPHA);
 	RNA_def_property_ui_text(prop, "Use Alpha", "Use the alpha channel information from the image or make image fully opaque");
-	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_generated_update");
+	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_colormanage_update");
 
 	prop = RNA_def_property(srna, "is_dirty", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_Image_dirty_get", NULL);
@@ -688,7 +679,7 @@ static void rna_def_image(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "alpha_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, alpha_mode_items);
 	RNA_def_property_ui_text(prop, "Alpha Mode", "Representation of alpha information in the RGBA pixels");
-	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_generated_update");
+	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_colormanage_update");
 
 	RNA_api_image(srna);
 }
