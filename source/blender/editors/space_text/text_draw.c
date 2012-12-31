@@ -958,8 +958,10 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 	TextLine *tmp;
 	char str[SUGG_LIST_WIDTH + 1];
 	int w, boxw = 0, boxh, i, l, x, y, b, *top;
+	const int lheight = st->lheight_dpi + TXT_LINE_SPACING;
+	const int margin_x = 2;
 	
-	if (!st || !st->text) return;
+	if (!st->text) return;
 	if (!texttool_text_is_active(st->text)) return;
 
 	first = texttool_suggest_first();
@@ -981,14 +983,20 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 	else {
 		x = st->cwidth * (st->text->curc - st->left) + TXT_OFFSET - 4;
 	}
-	y = ar->winy - (st->lheight_dpi + TXT_LINE_SPACING) * l - 2;
+	/* offset back so the start of the text lines up with the suggestions,
+	 * not essential but makes suggestions easier to follow */
+	x -= st->cwidth * (st->text->curc - text_find_identifier_start(st->text->curl->line, st->text->curc));
+	y = ar->winy - lheight * l - 2;
 
 	boxw = SUGG_LIST_WIDTH * st->cwidth + 20;
-	boxh = SUGG_LIST_SIZE * st->lheight_dpi + 8;
+	boxh = SUGG_LIST_SIZE * lheight + 8;
 	
+	/* not needed but stands out nicer */
+	uiDrawBoxShadow(220, x, y - boxh, x + boxw, y);
+
 	UI_ThemeColor(TH_SHADE1);
 	glRecti(x - 1, y + 1, x + boxw + 1, y - boxh - 1);
-	UI_ThemeColor(TH_BACK);
+	UI_ThemeColorShade(TH_BACK, 16);
 	glRecti(x, y, x + boxw, y - boxh);
 
 	/* Set the top 'item' of the visible list */
@@ -996,7 +1004,7 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 
 	for (i = 0; i < SUGG_LIST_SIZE && item; i++, item = item->next) {
 
-		y -= st->lheight_dpi;
+		y -= lheight;
 
 		BLI_strncpy(str, item->name, SUGG_LIST_WIDTH);
 
@@ -1004,7 +1012,7 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 		
 		if (item == sel) {
 			UI_ThemeColor(TH_SHADE2);
-			glRecti(x + 16, y - 3, x + 16 + w, y + st->lheight_dpi - 3);
+			glRecti(x + margin_x, y - 3, x + margin_x + w, y + lheight - 3);
 		}
 		b = 1; /* b=1 color block, text is default. b=0 no block, color text */
 		switch (item->type) {
@@ -1018,7 +1026,7 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 			glRecti(x + 8, y + 2, x + 11, y + 5);
 			UI_ThemeColor(TH_TEXT);
 		}
-		text_draw(st, str, 0, 0, 1, x + 16, y - 1, NULL);
+		text_draw(st, str, 0, 0, 1, x + margin_x, y - 1, NULL);
 
 		if (item == last) break;
 	}
@@ -1031,7 +1039,7 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 	Text *text = st->text;
 	int vcurl, vcurc, vsell, vselc, hidden = 0;
 	int x, y, w, i;
-	int lheight = st->lheight_dpi + TXT_LINE_SPACING;
+	const int lheight = st->lheight_dpi + TXT_LINE_SPACING;
 
 	/* Draw the selection */
 	if (text->curl != text->sell || text->curc != text->selc) {

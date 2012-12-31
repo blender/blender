@@ -98,7 +98,7 @@ static int text_edit_poll(bContext *C)
 	return 1;
 }
 
-static int text_space_edit_poll(bContext *C)
+int text_space_edit_poll(bContext *C)
 {
 	SpaceText *st = CTX_wm_space_text(C);
 	Text *text = CTX_data_edit_text(C);

@@ -147,13 +147,7 @@ static GHash *text_autocomplete_build(Text *text)
 
 	/* first get the word we're at */
 	{
-		int i = text->curc;
-		while (i--) {
-			if (!text_check_identifier(text->curl->line[i])) {
-				break;
-			}
-		}
-		i++;
+		const int i = text_find_identifier_start(text->curl->line, text->curc);
 		seek_len = text->curc - i;
 		seek = text->curl->line + i;
 
@@ -550,7 +544,7 @@ void TEXT_OT_autocomplete(wmOperatorType *ot)
 	ot->invoke = text_autocomplete_invoke;
 	ot->cancel = text_autocomplete_cancel;
 	ot->modal = text_autocomplete_modal;
-	//ot->poll = ED_operator_view3d_active;
+	ot->poll = text_space_edit_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING;

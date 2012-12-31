@@ -143,6 +143,9 @@ void TEXT_OT_to_3d_object(struct wmOperatorType *ot);
 
 void TEXT_OT_resolve_conflict(struct wmOperatorType *ot);
 
+int text_space_edit_poll(struct bContext *C);
+
+/* text_autocomplete.c */
 void TEXT_OT_autocomplete(struct wmOperatorType *ot);
 
 /* space_text.c */
