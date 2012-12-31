@@ -47,6 +47,7 @@
 //#include "SCA_AlwaysEventManager.h"
 //#include "SCA_RandomEventManager.h"
 //#include "KX_RayEventManager.h"
+#include "SCA_2DFilterActuator.h"
 #include "KX_TouchEventManager.h"
 #include "SCA_KeyboardManager.h"
 #include "SCA_MouseManager.h"
@@ -1780,6 +1781,11 @@ static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *to)
 	SCA_ISensor *sensor=  dynamic_cast<class SCA_ISensor *>(brick);
 	if (sensor) {
 		sensor->Replace_EventManager(logicmgr);
+	}
+
+	SCA_2DFilterActuator *filter_actuator = dynamic_cast<class SCA_2DFilterActuator*>(brick);
+	if (filter_actuator) {
+		filter_actuator->SetScene(to);
 	}
 }
 
