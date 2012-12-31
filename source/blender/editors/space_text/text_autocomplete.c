@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,34 +15,46 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
+ * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * 
- * Contributor(s): Blender Foundation
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/space_text/text_python.c
+/** \file blender/editors/space_text/text_autocomplete.c
  *  \ingroup sptext
  */
 
 #include <ctype.h>
+#include <string.h>
 
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
+#include "MEM_guardedalloc.h"
+
 #include "DNA_text_types.h"
-#include "DNA_userdef_types.h"
-
-#include "BKE_suggestions.h"
-#include "BKE_text.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
 
+#include "BKE_context.h"
+#include "BKE_text.h"
+#include "BKE_screen.h"
+#include "BKE_suggestions.h"
+
+#include "WM_api.h"
 #include "WM_types.h"
 
-#include "text_intern.h"
+#include "ED_screen.h"
+#include "UI_interface.h"
+
+#include "text_intern.h"  /* own include */
+
+
+/* -------------------------------------------------------------------- */
+/* Public API */
 
 int text_do_suggest_select(SpaceText *st, ARegion *ar)
 {
@@ -51,7 +63,7 @@ int text_do_suggest_select(SpaceText *st, ARegion *ar)
 	int l, x, y, w, h, i;
 	int tgti, *top;
 	int mval[2] = {0, 0};
-	
+
 	if (!st || !st->text) return 0;
 	if (!texttool_text_is_active(st->text)) return 0;
 
@@ -68,7 +80,7 @@ int text_do_suggest_select(SpaceText *st, ARegion *ar)
 	if (l < 0) return 0;
 
 	text_update_character_width(st);
-	
+
 	if (st->showlinenrs) {
 		x = st->cwidth * (st->text->curc - st->left) + TXT_OFFSET + TEXTXLOC - 4;
 	}
@@ -119,10 +131,100 @@ void text_pop_suggest_list(void)
 		*top = i;
 }
 
+/* -------------------------------------------------------------------- */
+/* Private API */
+
+static void text_autocomplete_free(bContext *C, wmOperator *op);
+
+static GHash *text_autocomplete_build(Text *text)
+{
+	GHash *gh;
+	int seek_len = 0;
+	const char *seek;
+	texttool_text_clear();
+
+	texttool_text_set_active(text);
+
+	/* first get the word we're at */
+	{
+		int i = text->curc;
+		while (i--) {
+			if (!text_check_identifier(text->curl->line[i])) {
+				break;
+			}
+		}
+		i++;
+		seek_len = text->curc - i;
+		seek = text->curl->line + i;
+
+		// BLI_strncpy(seek, seek_ptr, seek_len);
+	}
+
+	/* now walk over entire doc and suggest words */
+	{
+		TextLine *linep;
+
+		gh = BLI_ghash_str_new(__func__);
+
+		for (linep = text->lines.first; linep; linep = linep->next) {
+			int i_start = 0;
+			int i_end = 0;
+
+			while (i_start < linep->len) {
+				/* seek identifier beginning */
+				while (i_start < linep->len && !text_check_identifier(linep->line[i_start])) {
+					i_start++;
+				}
+				i_end = i_start;
+				while (i_end < linep->len && text_check_identifier(linep->line[i_end])) {
+					i_end++;
+				}
+
+				if (i_start != i_end) {
+					char *str_sub = &linep->line[i_start];
+					const int choice_len = i_end - i_start;
+
+					if ((choice_len > seek_len) &&
+					    (seek_len == 0 || strncmp(seek, str_sub, seek_len) == 0) &&
+					    (seek != str_sub))
+					{
+						// printf("Adding: %s\n", s);
+						char str_sub_last = str_sub[choice_len];
+						str_sub[choice_len] = '\0';
+						if (!BLI_ghash_lookup(gh, str_sub)) {
+							char *str_dup = BLI_strdupn(str_sub, choice_len);
+							BLI_ghash_insert(gh, str_dup, str_dup);  /* A 'set' would make more sense here */
+						}
+						str_sub[choice_len] = str_sub_last;
+					}
+				}
+				i_start = i_end;
+			}
+		}
+
+		{
+			GHashIterator *iter = BLI_ghashIterator_new(gh);
+
+			for (; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
+				const char *s = BLI_ghashIterator_getValue(iter);
+				texttool_suggest_add(s, 'k');
+			}
+			BLI_ghashIterator_free(iter);
+
+		}
+	}
+
+	texttool_suggest_prefix(seek, seek_len);
+
+	return gh;
+}
+
+/* -- */
+
 static void get_suggest_prefix(Text *text, int offset)
 {
 	int i, len;
-	char *line;
+	char *line, tmp[256];
 
 	if (!text) return;
 	if (!texttool_text_is_active(text)) return;
@@ -133,7 +235,14 @@ static void get_suggest_prefix(Text *text, int offset)
 			break;
 	i++;
 	len = text->curc - i + offset;
-	texttool_suggest_prefix(line + i, len);
+	if (len > 255) {
+		printf("Suggestion prefix too long\n");
+		len = 255;
+	}
+	if (len != 0)
+		BLI_strncpy(tmp, line + i, len);
+	tmp[len] = '\0';
+	texttool_suggest_prefix(tmp, len);
 }
 
 static void confirm_suggestion(Text *text, int skipleft)
@@ -163,62 +272,79 @@ static void confirm_suggestion(Text *text, int skipleft)
 		txt_move_left(text, 1);
 
 	txt_insert_buf(text, sel->name);
-	
+
 	for (i = 0; i < skipleft; i++)
 		txt_move_right(text, 0);
 
 	texttool_text_clear();
 }
 
-// XXX
-#define LR_SHIFTKEY 0
-#define LR_ALTKEY 0
-#define LR_CTRLKEY 0
+/* -- */
 
-// XXX
+
+static int text_autocomplete_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	SpaceText *st = CTX_wm_space_text(C);
+	Text *text = CTX_data_edit_text(C);
+
+	st->doplugins = TRUE;
+	op->customdata = text_autocomplete_build(text);
+
+	if (texttool_suggest_first()) {
+
+		ED_area_tag_redraw(CTX_wm_area(C));
+
+		if (texttool_suggest_first() == texttool_suggest_last()) {
+			confirm_suggestion(st->text, 0);
+			text_update_line_edited(st->text->curl);
+			text_autocomplete_free(C, op);
+			return OPERATOR_FINISHED;
+		}
+		else {
+			WM_event_add_modal_handler(C, op);
+			return OPERATOR_RUNNING_MODAL;
+		}
+	}
+	else {
+		text_autocomplete_free(C, op);
+		return OPERATOR_CANCELLED;
+	}
+}
+
 static int doc_scroll = 0;
 
-static short UNUSED_FUNCTION(do_texttools) (SpaceText * st, char ascii, unsigned short evnt, short val)
+static int text_autocomplete_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	ARegion *ar = NULL; // XXX
-	int qual = 0; // XXX
+	SpaceText *st = CTX_wm_space_text(C);
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+
 	int draw = 0, tools = 0, swallow = 0, scroll = 1;
-	if (!texttool_text_is_active(st->text)) return 0;
-	if (!st->text || st->text->id.lib) return 0;
+	Text *text = CTX_data_edit_text(C);
+	int retval = OPERATOR_RUNNING_MODAL;
+
+	(void)text;
 
 	if (st->doplugins && texttool_text_is_active(st->text)) {
 		if (texttool_suggest_first()) tools |= TOOL_SUGG_LIST;
 		if (texttool_docs_get()) tools |= TOOL_DOCUMENT;
 	}
 
-	if (ascii) {
-		if (tools & TOOL_SUGG_LIST) {
-			if ((ascii != '_' && ascii != '*' && ispunct(ascii)) || text_check_whitespace(ascii)) {
-				confirm_suggestion(st->text, 0);
-				text_update_line_edited(st->text->curl);
-			}
-			else if ((st->overwrite && txt_replace_char(st->text, ascii)) || txt_add_char(st->text, ascii)) {
-				get_suggest_prefix(st->text, 0);
-				text_pop_suggest_list();
-				swallow = 1;
-				draw = 1;
-			}
-		}
-		if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll = 0, draw = 1;
-
-	}
-	else if (val == 1 && evnt) {
-		switch (evnt) {
-			case LEFTMOUSE:
+	switch (event->type) {
+		case LEFTMOUSE:
+			if (event->val == KM_PRESS) {
 				if (text_do_suggest_select(st, ar))
 					swallow = 1;
 				else {
 					if (tools & TOOL_SUGG_LIST) texttool_suggest_clear();
 					if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll = 0;
+					retval = OPERATOR_FINISHED;
 				}
 				draw = 1;
-				break;
-			case MIDDLEMOUSE:
+			}
+			break;
+		case MIDDLEMOUSE:
+			if (event->val == KM_PRESS) {
 				if (text_do_suggest_select(st, ar)) {
 					confirm_suggestion(st->text, 0);
 					text_update_line_edited(st->text->curl);
@@ -227,16 +353,22 @@ static short UNUSED_FUNCTION(do_texttools) (SpaceText * st, char ascii, unsigned
 				else {
 					if (tools & TOOL_SUGG_LIST) texttool_suggest_clear();
 					if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll = 0;
+					retval = OPERATOR_FINISHED;
 				}
 				draw = 1;
-				break;
-			case ESCKEY:
+			}
+			break;
+		case ESCKEY:
+			if (event->val == KM_PRESS) {
 				draw = swallow = 1;
 				if (tools & TOOL_SUGG_LIST) texttool_suggest_clear();
 				else if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll = 0;
 				else draw = swallow = 0;
-				break;
-			case RETKEY:
+				retval = OPERATOR_CANCELLED;
+			}
+			break;
+		case RETKEY:
+			if (event->val == KM_PRESS) {
 				if (tools & TOOL_SUGG_LIST) {
 					confirm_suggestion(st->text, 0);
 					text_update_line_edited(st->text->curl);
@@ -244,12 +376,17 @@ static short UNUSED_FUNCTION(do_texttools) (SpaceText * st, char ascii, unsigned
 					draw = 1;
 				}
 				if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll = 0, draw = 1;
-				break;
-			case LEFTARROWKEY:
-			case BACKSPACEKEY:
+				retval = OPERATOR_FINISHED;
+			}
+			break;
+		case LEFTARROWKEY:
+		case BACKSPACEKEY:
+			if (event->val == KM_PRESS) {
 				if (tools & TOOL_SUGG_LIST) {
-					if (qual)
+					if (event->ctrl) {
 						texttool_suggest_clear();
+						retval = OPERATOR_CANCELLED;
+					}
 					else {
 						/* Work out which char we are about to delete/pass */
 						if (st->text->curl && st->text->curc > 0) {
@@ -258,19 +395,27 @@ static short UNUSED_FUNCTION(do_texttools) (SpaceText * st, char ascii, unsigned
 								get_suggest_prefix(st->text, -1);
 								text_pop_suggest_list();
 							}
-							else
+							else {
 								texttool_suggest_clear();
+								retval = OPERATOR_CANCELLED;
+							}
 						}
-						else
+						else {
 							texttool_suggest_clear();
+							retval = OPERATOR_CANCELLED;
+						}
 					}
 				}
 				if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll = 0;
-				break;
-			case RIGHTARROWKEY:
+			}
+			break;
+		case RIGHTARROWKEY:
+			if (event->val == KM_PRESS) {
 				if (tools & TOOL_SUGG_LIST) {
-					if (qual)
+					if (event->ctrl) {
 						texttool_suggest_clear();
+						retval = OPERATOR_CANCELLED;
+					}
 					else {
 						/* Work out which char we are about to pass */
 						if (st->text->curl && st->text->curc < st->text->curl->len) {
@@ -279,24 +424,29 @@ static short UNUSED_FUNCTION(do_texttools) (SpaceText * st, char ascii, unsigned
 								get_suggest_prefix(st->text, 1);
 								text_pop_suggest_list();
 							}
-							else
+							else {
 								texttool_suggest_clear();
+								retval = OPERATOR_CANCELLED;
+							}
 						}
-						else
+						else {
 							texttool_suggest_clear();
+							retval = OPERATOR_CANCELLED;
+						}
 					}
 				}
 				if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll = 0;
-				break;
-			case PAGEDOWNKEY:
-				scroll = SUGG_LIST_SIZE - 1;
-			case WHEELDOWNMOUSE:
-			case DOWNARROWKEY:
+			}
+			break;
+		case PAGEDOWNKEY:
+			scroll = SUGG_LIST_SIZE - 1;
+		case WHEELDOWNMOUSE:
+		case DOWNARROWKEY:
+			if (event->val == KM_PRESS) {
 				if (tools & TOOL_DOCUMENT) {
 					doc_scroll++;
 					swallow = 1;
 					draw = 1;
-					break;
 				}
 				else if (tools & TOOL_SUGG_LIST) {
 					SuggItem *sel = texttool_suggest_selected();
@@ -312,17 +462,18 @@ static short UNUSED_FUNCTION(do_texttools) (SpaceText * st, char ascii, unsigned
 					text_pop_suggest_list();
 					swallow = 1;
 					draw = 1;
-					break;
 				}
-			case PAGEUPKEY:
-				scroll = SUGG_LIST_SIZE - 1;
-			case WHEELUPMOUSE:
-			case UPARROWKEY:
+			}
+			break;
+		case PAGEUPKEY:
+			scroll = SUGG_LIST_SIZE - 1;
+		case WHEELUPMOUSE:
+		case UPARROWKEY:
+			if (event->val == KM_PRESS) {
 				if (tools & TOOL_DOCUMENT) {
 					if (doc_scroll > 0) doc_scroll--;
 					swallow = 1;
 					draw = 1;
-					break;
 				}
 				else if (tools & TOOL_SUGG_LIST) {
 					SuggItem *sel = texttool_suggest_selected();
@@ -333,20 +484,74 @@ static short UNUSED_FUNCTION(do_texttools) (SpaceText * st, char ascii, unsigned
 					text_pop_suggest_list();
 					swallow = 1;
 					draw = 1;
-					break;
 				}
-			case RIGHTSHIFTKEY:
-			case LEFTSHIFTKEY:
-				break;
-			default:
-				if (tools & TOOL_SUGG_LIST) texttool_suggest_clear(), draw = 1;
-				if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll = 0, draw = 1;
-		}
+			}
+			break;
+		case RIGHTSHIFTKEY:
+		case LEFTSHIFTKEY:
+			break;
+#if 0
+		default:
+			if (tools & TOOL_SUGG_LIST) texttool_suggest_clear(), draw = 1;
+			if (tools & TOOL_DOCUMENT) texttool_docs_clear(), doc_scroll = 0, draw = 1;
+#endif
 	}
 
 	if (draw) {
-		// XXX redraw_alltext();
+		ED_area_tag_redraw(CTX_wm_area(C));
 	}
 
-	return swallow;
+//	if (swallow) {
+//		retval = OPERATOR_RUNNING_MODAL;
+//	}
+
+	if (texttool_suggest_first()) {
+		if (retval != OPERATOR_RUNNING_MODAL) {
+			text_autocomplete_free(C, op);
+		}
+		return retval;
+	}
+	else {
+		text_autocomplete_free(C, op);
+		return OPERATOR_FINISHED;
+	}
+}
+
+static void text_autocomplete_free(bContext *C, wmOperator *op)
+{
+	GHash *gh = op->customdata;
+	if (gh) {
+		BLI_ghash_free(gh, NULL, (GHashValFreeFP)MEM_freeN);
+		op->customdata = NULL;
+	}
+
+	/* other stuff */
+	{
+		SpaceText *st = CTX_wm_space_text(C);
+		st->doplugins = FALSE;
+		texttool_text_clear();
+	}
+}
+
+static int text_autocomplete_cancel(bContext *C, wmOperator *op)
+{
+	text_autocomplete_free(C, op);
+	return OPERATOR_CANCELLED;
+}
+
+void TEXT_OT_autocomplete(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Text Auto Complete";
+	ot->description = "Show a list of used text in the open document";
+	ot->idname = "TEXT_OT_autocomplete";
+
+	/* api callbacks */
+	ot->invoke = text_autocomplete_invoke;
+	ot->cancel = text_autocomplete_cancel;
+	ot->modal = text_autocomplete_modal;
+	//ot->poll = ED_operator_view3d_active;
+
+	/* flags */
+	ot->flag = OPTYPE_BLOCKING;
 }

@@ -301,6 +301,7 @@ class TEXT_MT_edit(Menu):
 
         layout.operator("text.jump")
         layout.operator("text.properties", text="Find...")
+        layout.operator("text.autocomplete")
 
         layout.separator()
 
