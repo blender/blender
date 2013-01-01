@@ -61,6 +61,7 @@ struct Scene;
 #define RE_ENGINE_DO_DRAW		4
 #define RE_ENGINE_DO_UPDATE		8
 #define RE_ENGINE_RENDERING		16
+#define RE_ENGINE_HIGHLIGHT_TILES	32
 
 extern ListBase R_engines;
 
@@ -129,6 +130,8 @@ void RE_engines_init(void);
 void RE_engines_exit(void);
 
 RenderEngineType *RE_engines_find(const char *idname);
+
+void RE_engine_get_current_tiles(struct Render *re, int *total_tiles_r, rcti **tiles_r);
 
 #endif /* __RE_ENGINE_H__ */
 

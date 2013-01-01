@@ -104,12 +104,18 @@ typedef struct RenderPart {
 
 	rcti disprect;					/* part coordinates within total picture */
 	int rectx, recty;				/* the size */
-	short crop, ready;				/* crop is amount of pixels we crop, for filter */
+	short crop, status;				/* crop is amount of pixels we crop, for filter */
 	short sample, nr;				/* sample can be used by zbuffers, nr is partnr */
 	short thread;					/* thread id */
 	
 	char *clipflag;					/* clipflags for part zbuffering */
 } RenderPart;
+
+enum {
+	PART_STATUS_NONE        = 0,
+	PART_STATUS_IN_PROGRESS = 1,
+	PART_STATUS_READY       = 2
+};
 
 /* controls state of render, everything that's read-only during render stage */
 struct Render

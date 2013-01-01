@@ -406,6 +406,9 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "resolution_y");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
+	prop = RNA_def_property(srna, "use_highlight_tiles", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", RE_ENGINE_HIGHLIGHT_TILES);
+
 	/* registration */
 
 	prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);

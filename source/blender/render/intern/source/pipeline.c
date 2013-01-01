@@ -655,7 +655,9 @@ static int render_display_draw_enabled(Render *re)
 static void *do_part_thread(void *pa_v)
 {
 	RenderPart *pa = pa_v;
-	
+
+	pa->status = PART_STATUS_IN_PROGRESS;
+
 	/* need to return nicely all parts on esc */
 	if (R.test_break(R.tbh) == 0) {
 		
@@ -686,7 +688,7 @@ static void *do_part_thread(void *pa_v)
 		}
 	}
 	
-	pa->ready = 1;
+	pa->status = PART_STATUS_READY;
 	
 	return NULL;
 }
@@ -727,7 +729,7 @@ static RenderPart *find_next_pano_slice(Render *re, int *minx, rctf *viewplane)
 	
 	/* most left part of the non-rendering parts */
 	for (pa = re->parts.first; pa; pa = pa->next) {
-		if (pa->ready == 0 && pa->nr == 0) {
+		if (pa->status == PART_STATUS_NONE && pa->nr == 0) {
 			if (pa->disprect.xmin < *minx) {
 				best = pa;
 				*minx = pa->disprect.xmin;
@@ -765,7 +767,7 @@ static RenderPart *find_next_part(Render *re, int minx)
 	
 	/* find center of rendered parts, image center counts for 1 too */
 	for (pa = re->parts.first; pa; pa = pa->next) {
-		if (pa->ready) {
+		if (pa->status == PART_STATUS_READY) {
 			centx += BLI_rcti_cent_x(&pa->disprect);
 			centy += BLI_rcti_cent_y(&pa->disprect);
 			tot++;
@@ -776,7 +778,7 @@ static RenderPart *find_next_part(Render *re, int minx)
 	
 	/* closest of the non-rendering parts */
 	for (pa = re->parts.first; pa; pa = pa->next) {
-		if (pa->ready == 0 && pa->nr == 0) {
+		if (pa->status == PART_STATUS_NONE && pa->nr == 0) {
 			long long int distx = centx - BLI_rcti_cent_x(&pa->disprect);
 			long long int disty = centy - BLI_rcti_cent_y(&pa->disprect);
 			distx = (long long int)sqrt(distx * distx + disty * disty);
@@ -884,7 +886,7 @@ static void threaded_tile_processor(Render *re)
 		rendering = 0;
 		hasdrawn = 0;
 		for (pa = re->parts.first; pa; pa = pa->next) {
-			if (pa->ready) {
+			if (pa->status == PART_STATUS_READY) {
 				
 				BLI_remove_thread(&threads, pa);
 				

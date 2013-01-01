@@ -357,7 +357,7 @@ bool Session::acquire_tile(Device *tile_device, RenderTile& rtile)
 
 	tile_lock.unlock();
 
-	/* in case of a permant buffer, return it, otherwise we will allocate
+	/* in case of a permanent buffer, return it, otherwise we will allocate
 	 * a new temporary buffer */
 	if(!params.background) {
 		tile_manager.state.buffer.get_offset_stride(rtile.offset, rtile.stride);
@@ -410,6 +410,12 @@ bool Session::acquire_tile(Device *tile_device, RenderTile& rtile)
 	rtile.rng_state = tilebuffers->rng_state.device_pointer;
 	rtile.rgba = 0;
 	rtile.buffers = tilebuffers;
+
+	/* this will tag tile as IN PROGRESS in blender-side render pipeline,
+	 * which is needed to highlight currently rendering tile before first
+	 * sample was processed for it
+	 */
+	update_tile_sample(rtile);
 
 	return true;
 }
