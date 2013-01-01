@@ -2193,8 +2193,9 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	unsigned int index, totindex;
 	float alpha;
 	float mval[2];
-	int use_vert_sel;
-	int use_depth;
+	bool use_vert_sel;
+	bool use_face_sel;
+	bool use_depth;
 
 	MDeformWeight *(*dw_func)(MDeformVert *, const int) =
 	        (brush->vertexpaint_tool == PAINT_BLEND_BLUR) ?
@@ -2258,6 +2259,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	swap_m4m4(wpd->vc.rv3d->persmat, mat);
 
 	use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
+	use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 	use_depth = (vc->v3d->flag & V3D_ZBUF_SELECT);
 
 	/* which faces are involved */
@@ -2274,7 +2276,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			else totindex = 0;
 		}
 
-		if ((me->editflag & ME_EDIT_PAINT_FACE_SEL) && me->mpoly) {
+		if (use_face_sel && me->mpoly) {
 			for (index = 0; index < totindex; index++) {
 				if (indexar[index] && indexar[index] <= me->totpoly) {
 					MPoly *mpoly = ((MPoly *)me->mpoly) + (indexar[index] - 1);
@@ -2341,8 +2343,16 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		const unsigned int totvert = me->totvert;
 		unsigned int       i;
 
-		for (i = 0; i < totvert; i++) {
-			me->dvert[i].flag = use_vert_sel ? (me->mvert[i].flag & SELECT) : SELECT;
+		/* in the case of face selection we need to flush */
+		if (use_vert_sel || use_face_sel) {
+			for (i = 0; i < totvert; i++) {
+				me->dvert[i].flag = me->mvert[i].flag & SELECT;
+			}
+		}
+		else {
+			for (i = 0; i < totvert; i++) {
+				me->dvert[i].flag = SELECT;
+			}
 		}
 
 		if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
