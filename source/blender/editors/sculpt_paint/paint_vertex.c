@@ -2342,7 +2342,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		unsigned int       i;
 
 		for (i = 0; i < totvert; i++) {
-			me->dvert[i].flag = (me->mvert[i].flag & SELECT);
+			me->dvert[i].flag = use_vert_sel ? (me->mvert[i].flag & SELECT) : SELECT;
 		}
 
 		if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
