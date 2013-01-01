@@ -99,6 +99,7 @@ float BKE_brush_unprojected_radius_get(const struct Scene *scene, struct Brush *
 void  BKE_brush_unprojected_radius_set(struct Scene *scene, struct Brush *brush, float value);
 
 float BKE_brush_alpha_get(const struct Scene *scene, struct Brush *brush);
+void BKE_brush_alpha_set(Scene *scene, struct Brush *brush, float alpha);
 float BKE_brush_weight_get(const Scene *scene, struct Brush *brush);
 void BKE_brush_weight_set(const Scene *scene, struct Brush *brush, float value);
 
