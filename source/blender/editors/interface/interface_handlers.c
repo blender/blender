@@ -220,6 +220,29 @@ static void button_timers_tooltip_remove(bContext *C, uiBut *but);
 
 /* ******************** menu navigation helpers ************** */
 
+/* assumes event type is MOUSEPAN */
+void ui_pan_to_scroll(wmEvent *event, int *type, int *val)
+{
+	static int lastdy = 0;
+	int dy = event->prevy - event->y;
+	
+	/* sign differs, reset */
+	if ((dy > 0 && lastdy < 0) || (dy < 0 && lastdy > 0))
+		lastdy = dy;
+	else {
+		lastdy += dy;
+		
+		if (ABS(lastdy) > (int)UI_UNIT_Y) {
+			*val = KM_PRESS;
+			if (event->prevy - event->y > 0)
+				*type = WHEELUPMOUSE;
+			else
+				*type = WHEELDOWNMOUSE;
+			lastdy = 0;
+		}
+	}
+}
+
 static int ui_but_editable(uiBut *but)
 {
 	return ELEM5(but->type, LABEL, SEPR, ROUNDBOX, LISTBOX, PROGRESSBAR);
@@ -1894,6 +1917,7 @@ static void ui_do_but_textedit(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		case WHEELUPMOUSE:
 		case WHEELDOWNMOUSE:
 		case MOUSEMOVE:
+		case MOUSEPAN:
 			if (data->searchbox)
 				ui_searchbox_event(C, data->searchbox, but, event);
 			
@@ -2688,12 +2712,16 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 	ui_window_to_block(data->region, block, &mx, &my);
 
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
+		int type = event->type, val = event->val;
+		
+		ui_pan_to_scroll(event, &type, &val);
+		
 		/* XXX hardcoded keymap check.... */
-		if (event->type == WHEELDOWNMOUSE && event->alt) {
+		if (type == WHEELDOWNMOUSE && event->alt) {
 			mx = but->rect.xmin;
 			click = 1;
 		}
-		else if (event->type == WHEELUPMOUSE && event->alt) {
+		else if (type == WHEELUPMOUSE && event->alt) {
 			mx = but->rect.xmax;
 			click = 1;
 		}
@@ -2912,12 +2940,16 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 	ui_window_to_block(data->region, block, &mx, &my);
 
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
+		int type = event->type, val = event->val;
+		
+		ui_pan_to_scroll(event, &type, &val);
+
 		/* XXX hardcoded keymap check.... */
-		if (event->type == WHEELDOWNMOUSE && event->alt) {
+		if (type == WHEELDOWNMOUSE && event->alt) {
 			mx = but->rect.xmin;
 			click = 2;
 		}
-		else if (event->type == WHEELUPMOUSE && event->alt) {
+		else if (type == WHEELUPMOUSE && event->alt) {
 			mx = but->rect.xmax;
 			click = 2;
 		}
@@ -3143,7 +3175,7 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, wm
 			}
 		}
 		else if (but->type == COLOR) {
-			if (ELEM(event->type, WHEELDOWNMOUSE, WHEELUPMOUSE) && event->alt) {
+			if (ELEM3(event->type, MOUSEPAN, WHEELDOWNMOUSE, WHEELUPMOUSE) && event->alt) {
 				float *hsv = ui_block_hsv_get(but->block);
 				float col[3];
 				
@@ -3152,8 +3184,12 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, wm
 
 				if (event->type == WHEELDOWNMOUSE)
 					hsv[2] = CLAMPIS(hsv[2] - 0.05f, 0.0f, 1.0f);
-				else
+				else if (event->type == WHEELUPMOUSE)
 					hsv[2] = CLAMPIS(hsv[2] + 0.05f, 0.0f, 1.0f);
+				else {
+					float fac = 0.005 * (event->y - event->prevy);
+					hsv[2] = CLAMPIS(hsv[2] + fac, 0.0f, 1.0f);
+				}
 				
 				hsv_to_rgb_v(hsv, data->vec);
 				ui_set_but_vectorf(but, data->vec);
@@ -6093,18 +6129,24 @@ static int ui_handle_list_event(bContext *C, wmEvent *event, ARegion *ar)
 	uiBut *but = ui_list_find_mouse_over(ar, event->x, event->y);
 	int retval = WM_UI_HANDLER_CONTINUE;
 	int value, min, max;
+	int type = event->type, val = event->val;
 
-	if (but && (event->val == KM_PRESS)) {
+	/* convert pan to scrollwheel */
+	if (type == MOUSEPAN)
+		ui_pan_to_scroll(event, &type, &val);
+	
+	if (but && (val == KM_PRESS)) {
 		uiList *ui_list = but->custom_data;
 
 		if (ui_list) {
-			if (ELEM(event->type, UPARROWKEY, DOWNARROWKEY) ||
-				((ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->alt)))
+
+			if (ELEM(type, UPARROWKEY, DOWNARROWKEY) ||
+				((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->alt)))
 			{
 				/* activate up/down the list */
 				value = RNA_property_int_get(&but->rnapoin, but->rnaprop);
 
-				if (ELEM(event->type, UPARROWKEY, WHEELUPMOUSE))
+				if (ELEM(type, UPARROWKEY, WHEELUPMOUSE))
 					value--;
 				else
 					value++;
@@ -6125,12 +6167,12 @@ static int ui_handle_list_event(bContext *C, wmEvent *event, ARegion *ar)
 
 				retval = WM_UI_HANDLER_BREAK;
 			}
-			else if (ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->shift) {
+			else if (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->shift) {
 				/* silly replacement for proper grip */
 				if (ui_list->list_grip_size == 0)
 					ui_list->list_grip_size = ui_list->list_size;
 
-				if (event->type == WHEELUPMOUSE)
+				if (type == WHEELUPMOUSE)
 					ui_list->list_grip_size--;
 				else
 					ui_list->list_grip_size++;
@@ -6141,10 +6183,10 @@ static int ui_handle_list_event(bContext *C, wmEvent *event, ARegion *ar)
 
 				retval = WM_UI_HANDLER_BREAK;
 			}
-			else if (ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
+			else if (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
 				if (ui_list->list_last_len > ui_list->list_size) {
 					/* list template will clamp */
-					if (event->type == WHEELUPMOUSE)
+					if (type == WHEELUPMOUSE)
 						ui_list->list_scroll--;
 					else
 						ui_list->list_scroll++;
@@ -6458,21 +6500,29 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 				case DOWNARROWKEY:
 				case WHEELUPMOUSE:
 				case WHEELDOWNMOUSE:
+				case MOUSEPAN:
 					/* arrowkeys: only handle for block_loop blocks */
 					if (event->alt || event->shift || event->ctrl || event->oskey) {
 						/* pass */
 					}
 					else if (inside || (block->flag & UI_BLOCK_LOOP)) {
-						if (event->val == KM_PRESS) {
+						int type = event->type;
+						int val = event->val;
+						
+						/* convert pan to scrollwheel */
+						if (type == MOUSEPAN)
+							ui_pan_to_scroll(event, &type, &val);
+						
+						if (val == KM_PRESS) {
 
 							PASS_EVENT_TO_PARENT_IF_NONACTIVE;
 
 							but = ui_but_find_activated(ar);
 							if (but) {
 								/* is there a situation where UI_LEFT or UI_RIGHT would also change navigation direction? */
-								if (((ELEM(event->type, DOWNARROWKEY, WHEELDOWNMOUSE)) && (block->direction & UI_DOWN)) ||
-								    ((ELEM(event->type, DOWNARROWKEY, WHEELDOWNMOUSE)) && (block->direction & UI_RIGHT)) ||
-								    ((ELEM(event->type, UPARROWKEY, WHEELUPMOUSE)) && (block->direction & UI_TOP)))
+								if (((ELEM(type, DOWNARROWKEY, WHEELDOWNMOUSE)) && (block->direction & UI_DOWN)) ||
+								    ((ELEM(type, DOWNARROWKEY, WHEELDOWNMOUSE)) && (block->direction & UI_RIGHT)) ||
+								    ((ELEM(type, UPARROWKEY, WHEELUPMOUSE)) && (block->direction & UI_TOP)))
 								{
 									/* the following is just a hack - uiBut->type set to BUT and BUTM have there menus built 
 									 * opposite ways - this should be changed so that all popup-menus use the same uiBlock->direction */
@@ -6495,9 +6545,9 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 							}
 
 							if (!but) {
-								if (((ELEM(event->type, UPARROWKEY, WHEELUPMOUSE)) && (block->direction & UI_DOWN)) ||
-								    ((ELEM(event->type, UPARROWKEY, WHEELUPMOUSE)) && (block->direction & UI_RIGHT)) ||
-								    ((ELEM(event->type, DOWNARROWKEY, WHEELDOWNMOUSE)) && (block->direction & UI_TOP)))
+								if (((ELEM(type, UPARROWKEY, WHEELUPMOUSE)) && (block->direction & UI_DOWN)) ||
+								    ((ELEM(type, UPARROWKEY, WHEELUPMOUSE)) && (block->direction & UI_RIGHT)) ||
+								    ((ELEM(type, DOWNARROWKEY, WHEELDOWNMOUSE)) && (block->direction & UI_TOP)))
 								{
 									if ((bt = ui_but_first(block)) && (bt->type & BUT)) {
 										bt = ui_but_last(block);

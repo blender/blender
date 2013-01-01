@@ -896,8 +896,12 @@ void ui_searchbox_apply(uiBut *but, ARegion *ar)
 void ui_searchbox_event(bContext *C, ARegion *ar, uiBut *but, wmEvent *event)
 {
 	uiSearchboxData *data = ar->regiondata;
+	int type = event->type, val = event->val;
 	
-	switch (event->type) {
+	if (type == MOUSEPAN)
+		ui_pan_to_scroll(event, &type, &val);
+	
+	switch (type) {
 		case WHEELUPMOUSE:
 		case UPARROWKEY:
 			ui_searchbox_select(C, ar, but, -1);
