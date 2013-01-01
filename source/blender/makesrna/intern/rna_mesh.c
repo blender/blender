@@ -154,7 +154,6 @@ static void rna_Mesh_update_vertmask(Main *bmain, Scene *scene, PointerRNA *ptr)
 	Mesh *me = ptr->data;
 	if ((me->editflag & ME_EDIT_PAINT_VERT_SEL) && (me->editflag & ME_EDIT_PAINT_FACE_SEL)) {
 		me->editflag &= ~ME_EDIT_PAINT_FACE_SEL;
-		BKE_mesh_flush_select_from_polys(me);
 	}
 	rna_Mesh_update_draw(bmain, scene, ptr);
 }
@@ -164,7 +163,6 @@ static void rna_Mesh_update_facemask(Main *bmain, Scene *scene, PointerRNA *ptr)
 	Mesh *me = ptr->data;
 	if ((me->editflag & ME_EDIT_PAINT_VERT_SEL) && (me->editflag & ME_EDIT_PAINT_FACE_SEL)) {
 		me->editflag &= ~ME_EDIT_PAINT_VERT_SEL;
-		BKE_mesh_flush_select_from_verts(me);
 	}
 	rna_Mesh_update_draw(bmain, scene, ptr);
 }

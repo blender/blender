@@ -69,7 +69,14 @@ void paintface_flush_flags(Object *ob)
 	int totface, totpoly;
 	int i;
 	
-	if (me == NULL || dm == NULL)
+	if (me == NULL)
+		return;
+
+	/* we could call this directly in all areas that change selection,
+	 * since this could become slow for realtime updates (circle-select for eg) */
+	BKE_mesh_flush_select_from_polys(me);
+
+	if (dm == NULL)
 		return;
 
 	/*
@@ -603,7 +610,14 @@ void paintvert_flush_flags(Object *ob)
 	int totvert;
 	int i;
 
-	if (me == NULL || dm == NULL)
+	if (me == NULL)
+		return;
+
+	/* we could call this directly in all areas that change selection,
+	 * since this could become slow for realtime updates (circle-select for eg) */
+	BKE_mesh_flush_select_from_verts(me);
+
+	if (dm == NULL)
 		return;
 
 	index_array = dm->getVertDataArray(dm, CD_ORIGINDEX);
