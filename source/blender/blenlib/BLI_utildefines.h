@@ -39,12 +39,14 @@
 #else
 # ifndef HAVE__BOOL
 #  ifdef __cplusplus
-typedef bool _Bool;
+typedef bool _BLI_Bool;
 #  else
-#   define _Bool signed char
+#   define _BLI_Bool signed char
 #  endif
+# else
+#  define _BLI_Bool _Bool
 # endif
-# define bool _Bool
+# define bool _BLI_Bool
 # define false 0
 # define true 1
 # define __bool_true_false_are_defined 1
@@ -53,6 +55,7 @@ typedef bool _Bool;
 /* remove this when we're ready to remove TRUE/FALSE completely */
 #ifdef WITH_BOOL_COMPAT
 /* interim until all occurrences of these can be updated to stdbool */
+/* XXX Why not use the true/false velues here? */
 # ifndef FALSE
 #   define FALSE 0
 # endif
