@@ -373,9 +373,10 @@ if btools.ENDIAN == "big":
 else:
     env['CPPFLAGS'].append('-D__LITTLE_ENDIAN__')
 
-# TODO, make optional
+# TODO, make optional (as with CMake)
 env['CPPFLAGS'].append('-DWITH_AUDASPACE')
 env['CPPFLAGS'].append('-DWITH_AVI')
+env['CPPFLAGS'].append('-DWITH_BOOL_COMPAT')
 
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 B.root_build_dir = env['BF_BUILDDIR']

@@ -441,6 +441,15 @@ macro(TEST_SSE_SUPPORT
 	unset(CMAKE_REQUIRED_FLAGS)
 endmacro()
 
+macro(TEST_STDBOOL_SUPPORT)
+	# This program will compile correctly if and only if
+	# this C compiler supports C99 stdbool.
+	check_c_source_runs("
+		#include <stdbool.h>
+		int main(void) { return (int)false; }"
+	HAVE_STDBOOL_H)
+endmacro()
+
 # when we have warnings as errors applied globally this
 # needs to be removed for some external libs which we dont maintain.
 

@@ -32,12 +32,34 @@
  *  \ingroup bli
  */
 
-#ifndef FALSE
-#  define FALSE 0
+/* note: use of (int, TRUE / FALSE) is deprecated,
+ * use (bool, true / false) instead */
+#ifdef HAVE_STDBOOL_H
+# include <stdbool.h>
+#else
+# ifndef HAVE__BOOL
+#  ifdef __cplusplus
+typedef bool _Bool;
+#  else
+#   define _Bool signed char
+#  endif
+# endif
+# define bool _Bool
+# define false 0
+# define true 1
+# define __bool_true_false_are_defined 1
 #endif
 
-#ifndef TRUE
-#  define TRUE 1
+/* remove this when we're ready to remove TRUE/FALSE completely */
+#ifdef WITH_BOOL_COMPAT
+/* interim until all occurrences of these can be updated to stdbool */
+# ifndef FALSE
+#   define FALSE 0
+# endif
+
+# ifndef TRUE
+#   define TRUE 1
+# endif
 #endif
 
 /* useful for finding bad use of min/max */
