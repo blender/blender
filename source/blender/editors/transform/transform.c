@@ -686,6 +686,9 @@ static void view_editmove(unsigned short UNUSED(event))
 #define TFM_MODAL_EDGESLIDE_UP 24
 #define TFM_MODAL_EDGESLIDE_DOWN 25
 
+/* for analog input, like trackpad */
+#define TFM_MODAL_PROPSIZE		26
+
 /* called in transform_ops.c, on each regeneration of keymaps */
 wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
 {
@@ -715,6 +718,7 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
 		{TFM_MODAL_AUTOIK_LEN_DEC, "AUTOIK_CHAIN_LEN_DOWN", 0, "Decrease Max AutoIK Chain Length", ""},
 		{TFM_MODAL_EDGESLIDE_UP, "EDGESLIDE_EDGE_NEXT", 0, "Select next Edge Slide Edge", ""},
 		{TFM_MODAL_EDGESLIDE_DOWN, "EDGESLIDE_PREV_NEXT", 0, "Select previous Edge Slide Edge", ""},
+		{TFM_MODAL_PROPSIZE, "PROPORTIONAL_SIZE", 0, "Adjust Proportional Influence", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
@@ -750,6 +754,7 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, PAGEDOWNKEY, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_DOWN);
 	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_UP);
 	WM_modalkeymap_add_item(keymap, WHEELUPMOUSE, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_DOWN);
+	WM_modalkeymap_add_item(keymap, MOUSEPAN, 0, 0, 0, TFM_MODAL_PROPSIZE);
 
 	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, KM_ALT, 0, TFM_MODAL_EDGESLIDE_UP);
 	WM_modalkeymap_add_item(keymap, WHEELUPMOUSE, KM_PRESS, KM_ALT, 0, TFM_MODAL_EDGESLIDE_DOWN);
@@ -1024,6 +1029,19 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				removeSnapPoint(t);
 				t->redraw |= TREDRAW_HARD;
 				break;
+				
+			case TFM_MODAL_PROPSIZE:
+				/* MOUSEPAN usage... */
+				if (t->flag & T_PROP_EDIT) {
+					float fac = 1.0f + 0.005f *(event->y - event->prevy);
+					t->prop_size *= fac;
+					if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO)
+						t->prop_size = min_ff(t->prop_size, ((View3D *)t->view)->far);
+					calculatePropRatio(t);
+				}
+				t->redraw |= TREDRAW_HARD;
+				break;
+				
 			case TFM_MODAL_PROPSIZE_UP:
 				if (t->flag & T_PROP_EDIT) {
 					t->prop_size *= 1.1f;
