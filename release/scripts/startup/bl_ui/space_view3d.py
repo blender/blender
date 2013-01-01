@@ -71,7 +71,7 @@ class VIEW3D_HT_header(Header):
 
             # Occlude geometry
             if ((view.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'} and (mode == 'PARTICLE_EDIT' or (mode == 'EDIT' and obj.type == 'MESH'))) or
-                    (mode == 'WEIGHT_PAINT' and obj.data.use_paint_mask_vertex)):
+                    (mode == 'WEIGHT_PAINT')):
                 row.prop(view, "use_occlude_geometry", text="")
 
             # Proportional editing

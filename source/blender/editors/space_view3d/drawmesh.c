@@ -1066,12 +1066,18 @@ void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d,
 		draw_mesh_face_select(rv3d, me, dm);
 	}
 	else if ((do_light == FALSE) || (ob->dtx & OB_DRAWWIRE)) {
+		const int use_depth = (v3d->flag & V3D_ZBUF_SELECT);
 
 		/* weight paint in solid mode, special case. focus on making the weights clear
 		 * rather than the shading, this is also forced in wire view */
 
-		bglPolygonOffset(rv3d->dist, 1.0);
-		glDepthMask(0);  /* disable write in zbuffer, selected edge wires show better */
+		if (use_depth) {
+			bglPolygonOffset(rv3d->dist, 1.0);
+			glDepthMask(0);  /* disable write in zbuffer, selected edge wires show better */
+		}
+		else {
+			glDisable(GL_DEPTH_TEST);
+		}
 
 		glEnable(GL_BLEND);
 		glColor4ub(255, 255, 255, 96);
@@ -1080,8 +1086,14 @@ void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d,
 
 		dm->drawEdges(dm, 1, 1);
 
-		bglPolygonOffset(rv3d->dist, 0.0);
-		glDepthMask(1);
+		if (use_depth) {
+			bglPolygonOffset(rv3d->dist, 0.0);
+			glDepthMask(1);
+		}
+		else {
+			glEnable(GL_DEPTH_TEST);
+		}
+
 		glDisable(GL_LINE_STIPPLE);
 		glDisable(GL_BLEND);
 	}

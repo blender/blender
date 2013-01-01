@@ -2194,7 +2194,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	float alpha;
 	float mval[2];
 	int use_vert_sel;
-	int use_zbuf;
+	int use_depth;
 
 	MDeformWeight *(*dw_func)(MDeformVert *, const int) =
 	        (brush->vertexpaint_tool == PAINT_BLEND_BLUR) ?
@@ -2258,10 +2258,10 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	swap_m4m4(wpd->vc.rv3d->persmat, mat);
 
 	use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
-	use_zbuf = use_vert_sel && (vc->v3d->flag & V3D_ZBUF_SELECT);
+	use_depth = (vc->v3d->flag & V3D_ZBUF_SELECT);
 
 	/* which faces are involved */
-	if (use_zbuf) {
+	if (use_depth) {
 		if (wp->flag & VP_AREA) {
 			/* Ugly hack, to avoid drawing vertex index when getting the face index buffer - campbell */
 			me->editflag &= ~ME_EDIT_PAINT_VERT_SEL;
@@ -2310,7 +2310,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	} (void)0
 
 
-	if (use_zbuf) {
+	if (use_depth) {
 		for (index = 0; index < totindex; index++) {
 			if (indexar[index] && indexar[index] <= me->totpoly) {
 				MPoly *mpoly = me->mpoly + (indexar[index] - 1);
@@ -2372,7 +2372,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		} \
 	} (void)0
 
-	if (use_zbuf) {
+	if (use_depth) {
 		for (index = 0; index < totindex; index++) {
 
 			if (indexar[index] && indexar[index] <= me->totpoly) {
