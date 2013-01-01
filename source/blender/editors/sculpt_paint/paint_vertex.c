@@ -859,7 +859,7 @@ static float calc_vp_strength_dl(VPaint *vp, ViewContext *vc, const float co[3],
 {
 	float vertco[2];
 
-	if (ED_view3d_project_float_global(vc->ar,
+	if (ED_view3d_project_float_object(vc->ar,
 	                                   co, vertco,
 	                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
 	{
@@ -2218,7 +2218,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		ED_region_tag_redraw(CTX_wm_region(C));
 		return;
 	}
-		
+
 	vc = &wpd->vc;
 	ob = vc->obact;
 	me = ob->data;
@@ -3061,9 +3061,9 @@ static void gradientVert__mapFunc(void *userData, int index, const float co[3],
 		 * the screen coords of the verts need to be cached because
 		 * updating the mesh may move them about (entering feedback loop) */
 		if (grad_data->is_init) {
-			if (ED_view3d_project_float_global(grad_data->ar,
+			if (ED_view3d_project_float_object(grad_data->ar,
 			                                   co, vs->sco,
-			                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
+			                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
 			{
 				/* ok */
 				MDeformVert *dv = &me->dvert[index];
