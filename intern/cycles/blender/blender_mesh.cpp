@@ -223,10 +223,19 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 		int shader = used_shaders[mi];
 		bool smooth = f->use_smooth();
 
-		mesh->add_triangle(vi[0], vi[1], vi[2], shader, smooth);
-
-		if(n == 4)
-			mesh->add_triangle(vi[0], vi[2], vi[3], shader, smooth);
+		if(n == 4) {
+			if(len_squared(cross(mesh->verts[vi[1]] - mesh->verts[vi[0]], mesh->verts[vi[2]] - mesh->verts[vi[0]])) == 0.0f ||
+				len_squared(cross(mesh->verts[vi[2]] - mesh->verts[vi[0]], mesh->verts[vi[3]] - mesh->verts[vi[0]])) == 0.0f) {
+				mesh->add_triangle(vi[0], vi[1], vi[3], shader, smooth);
+				mesh->add_triangle(vi[2], vi[3], vi[1], shader, smooth);
+			}
+			else {
+				mesh->add_triangle(vi[0], vi[1], vi[2], shader, smooth);
+				mesh->add_triangle(vi[0], vi[2], vi[3], shader, smooth);
+			}
+		}
+		else
+			mesh->add_triangle(vi[0], vi[1], vi[2], shader, smooth);
 
 		nverts.push_back(n);
 	}
