@@ -35,11 +35,6 @@ static bNodeSocketTemplate outputs[] = {
 	{	-1, 0, ""	}
 };
 
-static int node_shader_gpu_curve_attrib(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
-{
-	return GPU_stack_link(mat, "NODE_HAIR_INFO", in, out);
-}
-
 /* node type definition */
 void register_node_type_sh_hair_info(bNodeTreeType *ttype)
 {
@@ -52,7 +47,7 @@ void register_node_type_sh_hair_info(bNodeTreeType *ttype)
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);
 	node_type_exec(&ntype, NULL);
-	node_type_gpu(&ntype, node_shader_gpu_curve_attrib);
+	node_type_gpu(&ntype, NULL);
 
 	nodeRegisterType(ttype, &ntype);
 }

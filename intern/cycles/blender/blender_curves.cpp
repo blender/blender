@@ -380,7 +380,7 @@ void ExportCurveTrianglePlanes(Mesh *mesh, ParticleCurveData *CData, int interpo
 					float3 ickey_loc = make_float3(0.0f,0.0f,0.0f);
 					float time = 0.0f;
 
-					if ((interpolation == 2) && (curvekey == CData->curve_firstkey[curve]) && (subv == 0))
+					if ((interpolation == CURVE_BSPLINE) && (curvekey == CData->curve_firstkey[curve]) && (subv == 0))
 						ickey_loc = CData->curvekey_co[curvekey];
 					else
 						InterpolateKeySegments(subv, segments, curvekey, curve, &ickey_loc, &time, CData , interpolation);
@@ -413,6 +413,7 @@ void ExportCurveTrianglePlanes(Mesh *mesh, ParticleCurveData *CData, int interpo
 	mesh->attributes.remove(ATTR_STD_FACE_NORMAL);
 	mesh->add_face_normals();
 	mesh->add_vertex_normals();
+	mesh->attributes.remove(ATTR_STD_FACE_NORMAL);
 
 	/* texture coords still needed */
 
@@ -494,7 +495,7 @@ void ExportCurveTriangleRibbons(Mesh *mesh, ParticleCurveData *CData, int interp
 					float3 ickey_loc = make_float3(0.0f,0.0f,0.0f);
 					float time = 0.0f;
 
-					if ((interpolation == 2) && (curvekey == CData->curve_firstkey[curve]) && (subv == 0))
+					if ((interpolation == CURVE_BSPLINE) && (curvekey == CData->curve_firstkey[curve]) && (subv == 0))
 						ickey_loc = CData->curvekey_co[curvekey];
 					else
 						InterpolateKeySegments(subv, segments, curvekey, curve, &ickey_loc, &time, CData , interpolation);
@@ -526,7 +527,7 @@ void ExportCurveTriangleRibbons(Mesh *mesh, ParticleCurveData *CData, int interp
 	mesh->attributes.remove(ATTR_STD_FACE_NORMAL);
 	mesh->add_face_normals();
 	mesh->add_vertex_normals();
-
+	mesh->attributes.remove(ATTR_STD_FACE_NORMAL);
 	/* texture coords still needed */
 
 }
@@ -611,7 +612,7 @@ void ExportCurveTriangleGeometry(Mesh *mesh, ParticleCurveData *CData, int inter
 					float3 ickey_loc = make_float3(0.0f,0.0f,0.0f);
 					float time = 0.0f;
 
-					if ((interpolation == 2) && (curvekey == CData->curve_firstkey[curve]) && (subv == 0))
+					if ((interpolation == CURVE_BSPLINE) && (curvekey == CData->curve_firstkey[curve]) && (subv == 0))
 						ickey_loc = CData->curvekey_co[curvekey];
 					else
 						InterpolateKeySegments(subv, segments, curvekey, curve, &ickey_loc, &time, CData , interpolation);
@@ -649,6 +650,7 @@ void ExportCurveTriangleGeometry(Mesh *mesh, ParticleCurveData *CData, int inter
 	mesh->attributes.remove(ATTR_STD_FACE_NORMAL);
 	mesh->add_face_normals();
 	mesh->add_vertex_normals();
+	mesh->attributes.remove(ATTR_STD_FACE_NORMAL);
 
 	/* texture coords still needed */
 }
