@@ -720,8 +720,6 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
         col = layout.column()
 
         col.template_ID_preview(brush, "texture", new="texture.new", rows=3, cols=8)
-        if brush.use_paint_image:
-            col.prop(brush, "use_fixed_texture")
 
         if context.sculpt_object:
             sculpt_brush_texture_settings(col, brush)
