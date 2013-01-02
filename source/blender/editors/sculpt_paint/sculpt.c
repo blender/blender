@@ -1353,24 +1353,19 @@ static float neighbor_average_mask(SculptSession *ss, unsigned vert)
 /* Same logic as neighbor_average(), but for bmesh rather than mesh */
 static void bmesh_neighbor_average(float avg[3], BMVert *v)
 {
-	int vfcount = BM_vert_face_count(v);
+	const int vfcount = BM_vert_face_count(v);
 
 	zero_v3(avg);
 		
 	/* Don't modify corner vertices */
 	if (vfcount > 1) {
-		BMIter iter;
-		BMFace *f;
+		BMIter liter;
+		BMLoop *l;
 		int i, total = 0;
 
-		BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
-			BMLoop *l1 = BM_face_vert_share_loop(f, v);
-			BMLoop *l2 = BM_loop_other_vert_loop(l1, v);
-			BMVert *adj_v[3] = {
-				BM_edge_other_vert(l1->e, v),
-				v,
-				BM_edge_other_vert(l2->e, v)};
-			
+		BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
+			BMVert *adj_v[3] = {l->prev->v, v, l->next->v};
+
 			for (i = 0; i < 3; i++) {
 				if (vfcount != 2 || BM_vert_face_count(adj_v[i]) <= 2) {
 					add_v3_v3(avg, adj_v[i]->co);
@@ -1391,19 +1386,14 @@ static void bmesh_neighbor_average(float avg[3], BMVert *v)
 /* Same logic as neighbor_average_mask(), but for bmesh rather than mesh */
 static float bmesh_neighbor_average_mask(BMesh *bm, BMVert *v)
 {
-	BMIter iter;
-	BMFace *f;
+	BMIter liter;
+	BMLoop *l;
 	float avg = 0;
 	int i, total = 0;
 
-	BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
-		BMLoop *l1 = BM_face_vert_share_loop(f, v);
-		BMLoop *l2 = BM_loop_other_vert_loop(l1, v);
-		BMVert *adj_v[3] = {
-			BM_edge_other_vert(l1->e, v),
-			v,
-			BM_edge_other_vert(l2->e, v)};
-			
+	BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
+		BMVert *adj_v[3] = {l->prev->v, v, l->next->v};
+
 		for (i = 0; i < 3; i++) {
 			BMVert *v2 = adj_v[i];
 			float *vmask = CustomData_bmesh_get(&bm->vdata,
