@@ -105,6 +105,8 @@
 #define RE_MTFACE_ELEMS		1
 #define RE_MCOL_ELEMS		4
 #define RE_UV_ELEMS			2
+#define RE_VLAK_ORIGINDEX_ELEMS	1
+#define RE_VERT_ORIGINDEX_ELEMS	1
 #define RE_SURFNOR_ELEMS	3
 #define RE_RADFACE_ELEMS	1
 #define RE_SIMPLIFY_ELEMS	2
@@ -192,10 +194,26 @@ float *RE_vertren_get_winspeed(ObjectInstanceRen *obi, VertRen *ver, int verify)
 	return winspeed + ver->index*RE_WINSPEED_ELEMS;
 }
 
+int *RE_vertren_get_origindex(ObjectRen *obr, VertRen *ver, int verify)
+{
+	int *origindex;
+	int nr= ver->index>>8;
+
+	origindex= obr->vertnodes[nr].origindex;
+	if (origindex==NULL) {
+		if (verify)
+			origindex= obr->vertnodes[nr].origindex= MEM_mallocN(256*RE_VERT_ORIGINDEX_ELEMS*sizeof(int), "origindex table");
+		else
+			return NULL;
+	}
+	return origindex + (ver->index & 255)*RE_VERT_ORIGINDEX_ELEMS;
+}
+
 VertRen *RE_vertren_copy(ObjectRen *obr, VertRen *ver)
 {
 	VertRen *v1= RE_findOrAddVert(obr, obr->totvert++);
 	float *fp1, *fp2;
+	int *int1, *int2;
 	int index= v1->index;
 	
 	*v1= *ver;
@@ -220,6 +238,11 @@ VertRen *RE_vertren_copy(ObjectRen *obr, VertRen *ver)
 	if (fp1) {
 		fp2= RE_vertren_get_tangent(obr, v1, 1);
 		memcpy(fp2, fp1, RE_TANGENT_ELEMS*sizeof(float));
+	}
+	int1= RE_vertren_get_origindex(obr, ver, 0);
+	if (int1) {
+		int2= RE_vertren_get_origindex(obr, v1, 1);
+		memcpy(int2, int1, RE_VERT_ORIGINDEX_ELEMS*sizeof(int));
 	}
 	return v1;
 }
@@ -332,6 +355,21 @@ MCol *RE_vlakren_get_mcol(ObjectRen *obr, VlakRen *vlr, int n, char **name, int 
 	return node->mcol + index*RE_MCOL_ELEMS;
 }
 
+int *RE_vlakren_get_origindex(ObjectRen *obr, VlakRen *vlak, int verify)
+{
+	int *origindex;
+	int nr= vlak->index>>8;
+
+	origindex= obr->vlaknodes[nr].origindex;
+	if(origindex==NULL) {
+		if(verify)
+			origindex= obr->vlaknodes[nr].origindex= MEM_callocN(256*RE_VLAK_ORIGINDEX_ELEMS*sizeof(int), "origindex table");
+		else
+			return NULL;
+	}
+	return origindex + (vlak->index & 255)*RE_VLAK_ORIGINDEX_ELEMS;
+}
+
 float *RE_vlakren_get_surfnor(ObjectRen *obr, VlakRen *vlak, int verify)
 {
 	float *surfnor;
@@ -383,6 +421,7 @@ VlakRen *RE_vlakren_copy(ObjectRen *obr, VlakRen *vlr)
 	MTFace *mtface, *mtface1;
 	MCol *mcol, *mcol1;
 	float *surfnor, *surfnor1, *tangent, *tangent1;
+	int *origindex, *origindex1;
 	RadFace **radface, **radface1;
 	int i, index = vlr1->index;
 	char *name;
@@ -398,6 +437,13 @@ VlakRen *RE_vlakren_copy(ObjectRen *obr, VlakRen *vlr)
 	for (i=0; (mcol=RE_vlakren_get_mcol(obr, vlr, i, &name, 0)) != NULL; i++) {
 		mcol1= RE_vlakren_get_mcol(obr, vlr1, i, &name, 1);
 		memcpy(mcol1, mcol, sizeof(MCol)*RE_MCOL_ELEMS);
+	}
+
+	origindex= RE_vlakren_get_origindex(obr, vlr, 0);
+	if(origindex) {
+		origindex1= RE_vlakren_get_origindex(obr, vlr1, 1);
+		/* Just an int, but memcpy for consistency. */
+		memcpy(origindex1, origindex, sizeof(int)*RE_VLAK_ORIGINDEX_ELEMS);
 	}
 
 	surfnor= RE_vlakren_get_surfnor(obr, vlr, 0);
@@ -725,6 +771,8 @@ void free_renderdata_vertnodes(VertTableNode *vertnodes)
 			MEM_freeN(vertnodes[a].stress);
 		if (vertnodes[a].winspeed)
 			MEM_freeN(vertnodes[a].winspeed);
+		if (vertnodes[a].origindex)
+			MEM_freeN(vertnodes[a].origindex);
 	}
 	
 	MEM_freeN(vertnodes);
@@ -743,6 +791,8 @@ void free_renderdata_vlaknodes(VlakTableNode *vlaknodes)
 			MEM_freeN(vlaknodes[a].mtface);
 		if (vlaknodes[a].mcol)
 			MEM_freeN(vlaknodes[a].mcol);
+		if(vlaknodes[a].origindex)
+			MEM_freeN(vlaknodes[a].origindex);
 		if (vlaknodes[a].surfnor)
 			MEM_freeN(vlaknodes[a].surfnor);
 		if (vlaknodes[a].tangent)

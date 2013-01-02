@@ -3918,6 +3918,12 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Samples", "Number of samples used for ambient occlusion baking from multires");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
+	prop= RNA_def_property(srna, "use_bake_to_vertex_color", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "bake_flag", R_BAKE_VCOL);
+	RNA_def_property_ui_text(prop, "Bake to Vertex Colour",
+	                         "Bake to vertex colors instead of to a UV-mapped image.");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
 	/* stamp */
 	
 	prop = RNA_def_property(srna, "use_stamp_time", PROP_BOOLEAN, PROP_NONE);

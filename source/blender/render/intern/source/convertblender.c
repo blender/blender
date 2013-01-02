@@ -3231,7 +3231,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	CustomDataMask mask;
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
 	float *orco=0;
-	int need_orco=0, need_stress=0, need_nmap_tangent=0, need_tangent=0;
+	int need_orco=0, need_stress=0, need_nmap_tangent=0, need_tangent=0, need_origindex=0;
 	int a, a1, ok, vertofs;
 	int end, do_autosmooth = FALSE, totvert = 0;
 	int use_original_normals = FALSE;
@@ -3281,6 +3281,10 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 		need_nmap_tangent= 1;
 	}
 	
+	/* origindex currently only used when baking to vertex colors */
+	if(re->flag & R_BAKING && re->r.bake_flag & R_BAKE_VCOL)
+		need_origindex= 1;
+
 	/* check autosmooth and displacement, we then have to skip only-verts optimize */
 	do_autosmooth |= (me->flag & ME_AUTOSMOOTH);
 	if (do_autosmooth)
@@ -3318,6 +3322,15 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 		make_render_halos(re, obr, me, totvert, mvert, ma, orco);
 	}
 	else {
+		const int *index_vert_orig = NULL;
+		const int *index_mf_to_mpoly = NULL;
+		const int *index_mp_to_orig = NULL;
+		if (need_origindex) {
+			index_vert_orig = dm->getVertDataArray(dm, CD_ORIGINDEX);
+			/* double lookup for faces -> polys */
+			index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+			index_mp_to_orig = dm->getPolyDataArray(dm, CD_ORIGINDEX);
+		}
 
 		for (a=0; a<totvert; a++, mvert++) {
 			ver= RE_findOrAddVert(obr, obr->totvert++);
@@ -3333,6 +3346,18 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 			if (orco) {
 				ver->orco= orco;
 				orco+=3;
+			}
+
+			if (need_origindex) {
+				int *origindex;
+				origindex = RE_vertren_get_origindex(obr, ver, 1);
+
+				/* Use orig index array if it's available (e.g. in the presence
+				 * of modifiers). */
+				if (index_vert_orig)
+					*origindex = index_vert_orig[a];
+				else
+					*origindex = a;
 			}
 		}
 		
@@ -3454,6 +3479,21 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 											}
 										}
 									}
+								}
+
+								if (need_origindex) {
+									/* Find original index of mpoly for this tessface. Options:
+									   - Modified mesh; two-step look up from tessface -> modified mpoly -> original mpoly
+									   - OR Tesselated mesh; look up from tessface -> mpoly
+									   - OR Failsafe; tessface == mpoly. Could probably assert(false) in this case? */
+									int *origindex;
+									origindex = RE_vlakren_get_origindex(obr, vlr, 1);
+									if (index_mf_to_mpoly && index_mp_to_orig)
+										*origindex = DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, a);
+									else if (index_mf_to_mpoly)
+										*origindex = index_mf_to_mpoly[a];
+									else
+										*origindex = a;
 								}
 							}
 						}

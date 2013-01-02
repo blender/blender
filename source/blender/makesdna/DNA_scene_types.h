@@ -1319,6 +1319,7 @@ typedef struct Scene {
 #define R_BAKE_NORMALIZE	8
 #define R_BAKE_MULTIRES		16
 #define R_BAKE_LORES_MESH	32
+#define R_BAKE_VCOL			64
 
 /* bake_normal_space */
 #define R_BAKE_SPACE_CAMERA	 0

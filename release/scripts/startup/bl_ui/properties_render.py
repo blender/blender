@@ -609,9 +609,12 @@ class RENDER_PT_bake(RenderButtonsPanel, Panel):
             split = layout.split()
 
             col = split.column()
-            col.prop(rd, "use_bake_clear")
-            col.prop(rd, "bake_margin")
-            col.prop(rd, "bake_quad_split", text="Split")
+            col.prop(rd, "use_bake_to_vertex_color")
+            sub = col.column()
+            sub.active = not rd.use_bake_to_vertex_color
+            sub.prop(rd, "use_bake_clear")
+            sub.prop(rd, "bake_margin")
+            sub.prop(rd, "bake_quad_split", text="Split")
 
             col = split.column()
             col.prop(rd, "use_bake_selected_to_active")
