@@ -511,6 +511,7 @@ float sculpt_get_brush_alpha(struct Brush *brush) {return 0.0f;}
 void sculpt_set_brush_alpha(struct Brush *brush, float alpha) {}
 void ED_sculpt_modifiers_changed(struct Object *ob) {}
 void ED_mesh_calc_tessface(struct Mesh *mesh) {}
+void BKE_brush_gen_texture_cache(struct Brush *br, int half_side) {}
 
 /* bpy/python internal api */
 void operator_wrapper(struct wmOperatorType *ot, void *userdata) {}
