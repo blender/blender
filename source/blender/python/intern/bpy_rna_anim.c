@@ -167,9 +167,6 @@ static int pyrna_struct_keyframe_parse(
 		*cfra = CTX_data_scene(BPy_GetContext())->r.cfra;
 
 	/* flag may be null (no option currently for remove keyframes e.g.). */
-	if (pyrna_struct_anim_args_parse(ptr, error_prefix, path, path_full, index) < 0)
-		return -1;
-
 	if (pyoptions && options && (pyrna_set_to_enum_bitfield(keying_flag_items, pyoptions, options, error_prefix) < 0))
 		return -1;
 
