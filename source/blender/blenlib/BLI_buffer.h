@@ -28,7 +28,7 @@
 /* Usage examples:
  *
  * { 
- *     BLI_buffer_declare(int, my_int_array, 32);
+ *     BLI_buffer_declare_static(int, my_int_array, BLI_BUFFER_NOP, 32);
  *
  *     BLI_buffer_append(my_int_array, int, 42);
  *     assert(my_int_array.count == 1);
@@ -42,23 +42,43 @@ typedef struct {
 	void *data;
 	const int elem_size;
 	int count, alloc_count;
-	int using_static;
+	int flag;
 } BLI_Buffer;
 
-#define BLI_buffer_declare(type_, name_, static_count_) \
+enum {
+	BLI_BUFFER_NOP        = 0,
+	BLI_BUFFER_USE_STATIC = (1 << 0),
+	BLI_BUFFER_USE_CALLOC = (1 << 1),  /* ensure the array is always calloc'd */
+};
+
+#define BLI_buffer_declare_static(type_, name_, flag_, static_count_) \
 	type_ *name_ ## _static_[static_count_]; \
-	BLI_Buffer name_ = {name_ ## _static_, \
-						sizeof(type_), \
-						0, \
-						static_count_, \
-						TRUE}
+	BLI_Buffer name_ = { \
+	/* clear the static memory if this is a calloc'd array */ \
+	((void)((flag_ & BLI_BUFFER_USE_CALLOC) ? \
+	          memset(name_ ## _static_, 0, sizeof(name_ ## _static_)) : 0\
+	), /* memset-end */ \
+	                    name_ ## _static_), \
+	                    sizeof(type_), \
+	                    0, \
+	                    static_count_, \
+	                    BLI_BUFFER_USE_STATIC | flag_}
+
+/* never use static*/
+#define BLI_buffer_declare(type_, name_, flag_) \
+	BLI_Buffer name_ = {NULL, \
+	                    sizeof(type_), \
+	                    0, \
+	                    0, \
+	                    flag_}
 
 #define BLI_buffer_at(buffer_, type_, index_) \
 	(((type_*)(buffer_)->data)[index_])
 
-#define BLI_buffer_append(buffer_, type_, val_) \
+#define BLI_buffer_append(buffer_, type_, val_)  { \
 	BLI_buffer_resize(buffer_, (buffer_)->count + 1); \
-	BLI_buffer_at(buffer_, type_, (buffer_)->count - 1) = val_
+	BLI_buffer_at(buffer_, type_, (buffer_)->count - 1) = val_; \
+} (void)0
 
 /* Never decreases the amount of memory allocated */
 void BLI_buffer_resize(BLI_Buffer *buffer, int new_count);
@@ -66,4 +86,4 @@ void BLI_buffer_resize(BLI_Buffer *buffer, int new_count);
 /* Does not free the buffer structure itself */
 void BLI_buffer_free(BLI_Buffer *buffer);
 
-#endif
+#endif  /* __BLI_BUFFER_H__ */

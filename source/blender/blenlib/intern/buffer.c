@@ -25,25 +25,45 @@
 
 #include <string.h>
 
+static void *buffer_alloc(BLI_Buffer *buffer, int len)
+{
+	return ((buffer->flag & BLI_BUFFER_USE_CALLOC) ?
+	        MEM_callocN : MEM_mallocN)
+	        (buffer->elem_size * len, "BLI_Buffer.data");
+}
+
+static void *buffer_realloc(BLI_Buffer *buffer, int len)
+{
+	return ((buffer->flag & BLI_BUFFER_USE_CALLOC) ?
+	        MEM_recallocN : MEM_reallocN)
+	        (buffer->data, (buffer->elem_size * len));
+}
+
 void BLI_buffer_resize(BLI_Buffer *buffer, int new_count)
 {
 	if (new_count > buffer->alloc_count) {
-		if (buffer->using_static) {
+		if (buffer->flag & BLI_BUFFER_USE_STATIC) {
 			void *orig = buffer->data;
-			buffer->data = MEM_callocN(buffer->elem_size * new_count,
-									   "BLI_Buffer.data");
+
+			buffer->data = buffer_alloc(buffer, new_count);
 			memcpy(buffer->data, orig, buffer->elem_size * buffer->count);
 			buffer->alloc_count = new_count;
-			buffer->using_static = FALSE;
+			buffer->flag &= ~BLI_BUFFER_USE_STATIC;
 		}
 		else {
-			if (new_count < buffer->alloc_count * 2)
+			if (buffer->alloc_count && (new_count < buffer->alloc_count * 2)) {
 				buffer->alloc_count *= 2;
-			else
+			}
+			else {
 				buffer->alloc_count = new_count;
-			buffer->data = MEM_reallocN(buffer->data,
-										(buffer->elem_size *
-										 buffer->alloc_count));
+			}
+
+			if (buffer->data) {
+				buffer->data = buffer_realloc(buffer, buffer->alloc_count);
+			}
+			else {
+				buffer->data = buffer_alloc(buffer, buffer->alloc_count);
+			}
 		}
 	}
 
@@ -52,7 +72,10 @@ void BLI_buffer_resize(BLI_Buffer *buffer, int new_count)
 
 void BLI_buffer_free(BLI_Buffer *buffer)
 {
-	if (!buffer->using_static)
-		MEM_freeN(buffer->data);
+	if ((buffer->flag & BLI_BUFFER_USE_STATIC) == 0) {
+		if (buffer->data) {
+			MEM_freeN(buffer->data);
+		}
+	}
 	memset(buffer, 0, sizeof(*buffer));
 }

@@ -1040,8 +1040,9 @@ void BKE_pbvh_build_bmesh(PBVH *bvh, BMesh *bm, int smooth_shading,
 int BKE_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
 								   const float center[3], float radius)
 {
-	BLI_buffer_declare(BMFace*, edge_faces, 8);
-	BLI_buffer_declare(BMFace*, deleted_faces, 32);
+	BLI_buffer_declare_static(BMFace *, edge_faces, BLI_BUFFER_NOP, 8);
+	BLI_buffer_declare_static(BMFace *, deleted_faces, BLI_BUFFER_NOP, 32);
+
 	int modified = FALSE;
 	int n;
 
