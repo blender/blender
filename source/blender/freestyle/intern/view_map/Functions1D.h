@@ -1,41 +1,48 @@
-//
-//  Filename         : Functions1D.h
-//  Author(s)        : Stephane Grabli, Emmanuel Turquin
-//  Purpose          : Functions taking 1D input
-//  Date of creation : 01/07/2003
-//
-///////////////////////////////////////////////////////////////////////////////
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2010 Blender Foundation.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 
+#ifndef __FREESTYLE_FUNCTIONS_1D_H__
+#define __FREESTYLE_FUNCTIONS_1D_H__
 
-//
-//  Copyright (C) : Please refer to the COPYRIGHT file distributed 
-//   with this source distribution. 
-//
-//  This program is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU General Public License
-//  as published by the Free Software Foundation; either version 2
-//  of the License, or (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-//
-///////////////////////////////////////////////////////////////////////////////
+/** \file blender/freestyle/intern/view_map/Functions1D.h
+ *  \ingroup freestyle
+ *  \brief Functions taking 1D input
+ *  \author Stephane Grabli
+ *  \author Emmanuel Turquin
+ *  \date 01/07/2003
+ */
 
-#ifndef  FUNCTIONS1D_HPP
-# define FUNCTIONS1D_HPP
+#include "Functions0D.h"
+#include "Interface1D.h"
+#include "ViewMap.h"
 
-# include "ViewMap.h"
-# include "Functions0D.h"
-# include "Interface1D.h"
-# include "../system/Precision.h"
-# include "../system/TimeStamp.h"
-# include "../system/FreestyleConfig.h"
+#include "../system/FreestyleConfig.h"
+#include "../system/Precision.h"
+#include "../system/TimeStamp.h"
 
 #include "../python/Director.h"
 
@@ -44,14 +51,10 @@
 //
 ///////////////////////////////////////////////////////////
 
-/*! Base class for Unary Functions (functors) working
- *  on Interface1D.
- *  A unary function will be used by calling
- *  its operator() on an Interface1D.
- *  \attention In the scripting language, there exists
- *  several prototypes depending on the returned value type.
- *  For example, you would inherit from a UnaryFunction1DDouble
- *  if you wish to define a function that returns a double.
+/*! Base class for Unary Functions (functors) working on Interface1D.
+ *  A unary function will be used by calling its operator() on an Interface1D.
+ *  \attention In the scripting language, there exists several prototypes depending on the returned value type.
+ *  For example, you would inherit from a UnaryFunction1DDouble if you wish to define a function that returns a double.
  *  The different existing prototypes are:
  *    - UnaryFunction1DVoid
  *    - UnaryFunction1DUnsigned
@@ -65,81 +68,104 @@ template <class T>
 class /*LIB_VIEW_MAP_EXPORT*/ UnaryFunction1D
 {
 public:
-
 	T result;
 	PyObject *py_uf1D;
 
-  /*! The type of the value
-   *  returned by the functor.
-   */
-  typedef T ReturnedValueType;
-  
-  /*! Default constructor */
-  UnaryFunction1D(){_integration = MEAN;}
-  /*! Builds a UnaryFunction1D from an integration type.
-   *  \param iType
-   *    In case the result for the Interface1D would be
-   *    obtained by evaluating a 0D function over the different
-   *    Interface0D of the Interface1D, \a iType tells which
-   *    integration method to use.
-   *    The default integration method is the MEAN.
-   */
-  UnaryFunction1D(IntegrationType iType){_integration = iType;}
-  /*! destructor. */
-  virtual ~UnaryFunction1D() {}
+	/*! The type of the value returned by the functor. */
+	typedef T ReturnedValueType;
 
-  /*! returns the string "UnaryFunction1D". */
-  virtual string getName() const {
-    return "UnaryFunction1D";
-  }
-  /*! The operator ().
-   *  \param inter 
-   *    The Interface1D on which we wish to evaluate
-   *    the function.
-   *  \return the result of the function of type T.
-   */
-  virtual int operator()(Interface1D& inter) {
-	return Director_BPy_UnaryFunction1D___call__( this, py_uf1D, inter );
-  }
-	
-  /*! Sets the integration method */
-  void setIntegrationType(IntegrationType integration) {
-    _integration = integration;
-  }
-  /*! Returns the integration method. */
-  IntegrationType getIntegrationType() const {
-    return _integration;
-  }
+	/*! Default constructor */
+	UnaryFunction1D()
+	{
+		_integration = MEAN;
+	}
+
+	/*! Builds a UnaryFunction1D from an integration type.
+	 *  \param iType
+	 *    In case the result for the Interface1D would be obtained by evaluating a 0D function over the different
+	 *    Interface0D of the Interface1D, \a iType tells which integration method to use.
+	 *    The default integration method is the MEAN.
+	 */
+	UnaryFunction1D(IntegrationType iType)
+	{
+		_integration = iType;
+	}
+
+	/*! destructor. */
+	virtual ~UnaryFunction1D() {}
+
+	/*! returns the string "UnaryFunction1D". */
+	virtual string getName() const
+	{
+		return "UnaryFunction1D";
+	}
+
+	/*! The operator ().
+	 *  \param inter 
+	 *    The Interface1D on which we wish to evaluate the function.
+	 *  \return the result of the function of type T.
+	 */
+	virtual int operator()(Interface1D& inter)
+	{
+		return Director_BPy_UnaryFunction1D___call__(this, py_uf1D, inter);
+	}
+
+	/*! Sets the integration method */
+	void setIntegrationType(IntegrationType integration)
+	{
+		_integration = integration;
+	}
+
+	/*! Returns the integration method. */
+	IntegrationType getIntegrationType() const
+	{
+		return _integration;
+	}
 
 protected:
-
-  IntegrationType _integration;
+	IntegrationType _integration;
 };
 
 
 class  UnaryFunction1D_void
 {
 public:
-
 	PyObject *py_uf1D;
 
-	UnaryFunction1D_void(){_integration = MEAN;}
-	UnaryFunction1D_void(IntegrationType iType){_integration = iType;}
+	UnaryFunction1D_void()
+	{
+		_integration = MEAN;
+	}
+
+	UnaryFunction1D_void(IntegrationType iType)
+	{
+		_integration = iType;
+	}
+
 	virtual ~UnaryFunction1D_void() {}
-	
-	virtual string getName() const {
+
+	virtual string getName() const
+	{
 		return "UnaryFunction1D_void";
 	}
-	
-	int operator()(Interface1D& inter) {
-		return Director_BPy_UnaryFunction1D___call__( this, py_uf1D, inter );
+
+	int operator()(Interface1D& inter)
+	{
+		return Director_BPy_UnaryFunction1D___call__(this, py_uf1D, inter);
 	}
-	
-	void setIntegrationType(IntegrationType integration) { _integration = integration; }
-	IntegrationType getIntegrationType() const { return _integration; }
-	
-	protected:
-		IntegrationType _integration;
+
+	void setIntegrationType(IntegrationType integration)
+	{
+		_integration = integration;
+	}
+
+	IntegrationType getIntegrationType() const
+	{
+		return _integration;
+	}
+
+protected:
+	IntegrationType _integration;
 };
 
 
@@ -150,406 +176,452 @@ public:
 
 namespace Functions1D {
 
-  // GetXF1D
-  /*! Returns the X 3D coordinate of an Interface1D. */
-  class LIB_VIEW_MAP_EXPORT GetXF1D : public UnaryFunction1D<real>
-  {
-  private:
-    Functions0D::GetXF0D _func;
-  public:
-    /*! Builds the functor.
-     *  \param iType
-     *    The integration method used to compute
-     *    a single value from a set of values.
-     */
-    GetXF1D(IntegrationType iType) : UnaryFunction1D<real>(iType){}
-    /*! Returns the string "GetXF1D"*/
-    string getName() const {
-      return "GetXF1D";
-    }
-    /*! the () operator.*/
-    int operator()(Interface1D& inter) ;
-  };
+// GetXF1D
+/*! Returns the X 3D coordinate of an Interface1D. */
+class LIB_VIEW_MAP_EXPORT GetXF1D : public UnaryFunction1D<real>
+{
+private:
+	Functions0D::GetXF0D _func;
 
-  // GetYF1D
-  /*! Returns the Y 3D coordinate of an Interface1D. */
-  class LIB_VIEW_MAP_EXPORT GetYF1D : public UnaryFunction1D<real>
-  {
-  private:
-    Functions0D::GetYF0D _func;
-  public:
-    /*! Builds the functor.
-     *  \param iType
-     *    The integration method used to compute
-     *    a single value from a set of values.
-     */
-    GetYF1D(IntegrationType iType = MEAN) : UnaryFunction1D<real>(iType){}
-    /*! Returns the string "GetYF1D"*/
-    string getName() const {
-      return "GetYF1D";
-    }
-    /*! the () operator.*/
-    int operator()(Interface1D& inter) ;
-  };
+public:
+	/*! Builds the functor.
+	 *  \param iType
+	 *    The integration method used to compute a single value from a set of values.
+	 */
+	GetXF1D(IntegrationType iType) : UnaryFunction1D<real>(iType) {}
 
-  // GetZF1D
-  /*! Returns the Z 3D coordinate of an Interface1D. */
-  class LIB_VIEW_MAP_EXPORT GetZF1D : public UnaryFunction1D<real>
-  {
-  private:
-    Functions0D::GetZF0D _func;
-  public:
-    /*! Builds the functor.
-     *  \param iType
-     *    The integration method used to compute
-     *    a single value from a set of values.
-     */
-    GetZF1D(IntegrationType iType = MEAN) : UnaryFunction1D<real>(iType){}
-    /*! Returns the string "GetZF1D"*/
-    string getName() const {
-      return "GetZF1D";
-    }
-    /*! the () operator.*/
-    int operator()(Interface1D& inter) ;
-  };
+	/*! Returns the string "GetXF1D" */
+	string getName() const
+	{
+		return "GetXF1D";
+	}
 
-  // GetProjectedXF1D
-  /*! Returns the projected X 3D coordinate of an Interface1D. */
-  class LIB_VIEW_MAP_EXPORT GetProjectedXF1D : public UnaryFunction1D<real>
-  {
-  private:
-    Functions0D::GetProjectedXF0D _func;
-  public:
-    /*! Builds the functor.
-     *  \param iType
-     *    The integration method used to compute
-     *    a single value from a set of values.
-     */
-    GetProjectedXF1D(IntegrationType iType = MEAN) : UnaryFunction1D<real>(iType){}
-  public:
-    /*! Returns the string "GetProjectedXF1D"*/
-    string getName() const {
-      return "GetProjectedXF1D";
-    }
-    /*! the () operator.*/
-    int operator()(Interface1D& inter);
-  };
-  
-  // GetProjectedYF1D
-  /*! Returns the projected Y 3D coordinate of an Interface1D. */
-  class LIB_VIEW_MAP_EXPORT GetProjectedYF1D : public UnaryFunction1D<real>
-  {
-  private:
-    Functions0D::GetProjectedYF0D _func;
-  public:
-    /*! Builds the functor.
-     *  \param iType
-     *    The integration method used to compute
-     *    a single value from a set of values.
-     */
-    GetProjectedYF1D(IntegrationType iType = MEAN) : UnaryFunction1D<real>(iType){}
-  public:
-    /*! Returns the string "GetProjectedYF1D"*/
-    string getName() const {
-      return "GetProjectedYF1D";
-    }
-    /*! the () operator.*/
-    int operator()(Interface1D& inter);
-  };
+	/*! the () operator. */
+	int operator()(Interface1D& inter);
+};
 
-  // GetProjectedZF1D
-  /*! Returns the projected Z 3D coordinate of an Interface1D. */
-  class LIB_VIEW_MAP_EXPORT GetProjectedZF1D : public UnaryFunction1D<real>
-  {
-  private:
-    Functions0D::GetProjectedZF0D _func;
-  public:
-    /*! Builds the functor.
-     *  \param iType
-     *    The integration method used to compute
-     *    a single value from a set of values.
-     */
-    GetProjectedZF1D(IntegrationType iType = MEAN) : UnaryFunction1D<real>(iType){}
-  public:
-    /*! Returns the string "GetProjectedZF1D"*/
-    string getName() const {
-      return "GetProjectedZF1D";
-    }
-    /*! the () operator.*/
-    int operator()(Interface1D& inter);
-  };
-  
-  // Orientation2DF1D
-  /*! Returns the 2D orientation as a Vec2f*/
-  class LIB_VIEW_MAP_EXPORT Orientation2DF1D : public UnaryFunction1D<Vec2f>
-  {
-  private:
-    Functions0D::VertexOrientation2DF0D _func;
-  public:
-    /*! Builds the functor.
-     *  \param iType
-     *    The integration method used to compute
-     *    a single value from a set of values.
-     */
-    Orientation2DF1D(IntegrationType iType = MEAN) : UnaryFunction1D<Vec2f>(iType){}
-    /*! Returns the string "Orientation2DF1D"*/
-    string getName() const {
-      return "Orientation2DF1D";
-    }
-    /*! the () operator.*/
-    int operator()(Interface1D& inter);
-  };
+// GetYF1D
+/*! Returns the Y 3D coordinate of an Interface1D. */
+class LIB_VIEW_MAP_EXPORT GetYF1D : public UnaryFunction1D<real>
+{
+private:
+Functions0D::GetYF0D _func;
 
-  // Orientation3DF1D
-  /*! Returns the 3D orientation as a Vec3f. */
-  class LIB_VIEW_MAP_EXPORT Orientation3DF1D : public UnaryFunction1D<Vec3f>
-  {
-  private:
-    Functions0D::VertexOrientation3DF0D _func;
-  public:
-    /*! Builds the functor.
-     *  \param iType
-     *    The integration method used to compute
-     *    a single value from a set of values.
-     */
-    Orientation3DF1D(IntegrationType iType = MEAN) : UnaryFunction1D<Vec3f>(iType){}
-    /*! Returns the string "Orientation3DF1D"*/
-    string getName() const {
-      return "Orientation3DF1D";
-    }
-    /*! the () operator.*/    
-    int operator()(Interface1D& inter);
-  };
+public:
+	/*! Builds the functor.
+	 *  \param iType
+	 *    The integration method used to compute a single value from a set of values.
+	 */
+	GetYF1D(IntegrationType iType = MEAN) : UnaryFunction1D<real>(iType) {}
 
-  // ZDiscontinuityF1D
-  /*! Returns a real giving the distance between
-   *  and Interface1D and the shape that lies behind (occludee).
-   *  This distance is evaluated in the camera space and normalized
-   *  between 0 and 1. Therefore, if no oject is occluded by the
-   *  shape to which the Interface1D belongs to, 1 is returned.
-   */
-  class LIB_VIEW_MAP_EXPORT ZDiscontinuityF1D : public UnaryFunction1D<real>
-  {
-  private:
-    Functions0D::ZDiscontinuityF0D _func;
-  public:
-    /*! Builds the functor.
-     *  \param iType
-     *    The integration method used to compute
-     *    a single value from a set of values.
-     */
-    ZDiscontinuityF1D(IntegrationType iType = MEAN) : UnaryFunction1D<real>(iType){}
-    /*! Returns the string "ZDiscontinuityF1D"*/
-    string getName() const {
-      return "ZDiscontinuityF1D";
-    }
-    /*! the () operator.*/        
-    int operator()(Interface1D& inter);
-  };
-  
-  // QuantitativeInvisibilityF1D
-  /*! Returns the Quantitative Invisibility of an Interface1D element.
-   *  If the Interface1D is a ViewEdge, then there is no ambiguity
-   *  concerning the result. But, if the Interface1D results of a chaining
-   *  (chain, stroke), then it might be made of several 1D elements
-   *  of different Quantitative Invisibilities.
-   */
-  class LIB_VIEW_MAP_EXPORT QuantitativeInvisibilityF1D : public UnaryFunction1D<unsigned>
-  {
-  private:
-    Functions0D::QuantitativeInvisibilityF0D _func;
-  public:
-  /*! Builds the functor.
-     *  \param iType
-     *    The integration method used to compute
-     *    a single value from a set of values.
-     */
-    QuantitativeInvisibilityF1D(IntegrationType iType = MEAN) : UnaryFunction1D<unsigned int>(iType) {}
-   /*! Returns the string "QuantitativeInvisibilityF1D"*/
-    string getName() const {
-      return "QuantitativeInvisibilityF1D";
-    }
-  /*! the () operator.*/        
-    int operator()(Interface1D& inter);
-  };
+	/*! Returns the string "GetYF1D" */
+	string getName() const
+	{
+		return "GetYF1D";
+	}
 
-  // CurveNatureF1D
+	/*! the () operator. */
+	int operator()(Interface1D& inter);
+};
+
+// GetZF1D
+/*! Returns the Z 3D coordinate of an Interface1D. */
+class LIB_VIEW_MAP_EXPORT GetZF1D : public UnaryFunction1D<real>
+{
+private:
+	Functions0D::GetZF0D _func;
+
+public:
+	/*! Builds the functor.
+	 *  \param iType
+	 *    The integration method used to compute a single value from a set of values.
+	 */
+	GetZF1D(IntegrationType iType = MEAN) : UnaryFunction1D<real>(iType) {}
+
+	/*! Returns the string "GetZF1D" */
+	string getName() const
+	{
+		return "GetZF1D";
+	}
+
+	/*! the () operator. */
+	int operator()(Interface1D& inter);
+};
+
+// GetProjectedXF1D
+/*! Returns the projected X 3D coordinate of an Interface1D. */
+class LIB_VIEW_MAP_EXPORT GetProjectedXF1D : public UnaryFunction1D<real>
+{
+private:
+	Functions0D::GetProjectedXF0D _func;
+
+public:
+	/*! Builds the functor.
+	 *  \param iType
+	 *    The integration method used to compute a single value from a set of values.
+	 */
+	GetProjectedXF1D(IntegrationType iType = MEAN) : UnaryFunction1D<real>(iType) {}
+
+	/*! Returns the string "GetProjectedXF1D" */
+	string getName() const
+	{
+		return "GetProjectedXF1D";
+	}
+
+	/*! the () operator. */
+	int operator()(Interface1D& inter);
+};
+
+// GetProjectedYF1D
+/*! Returns the projected Y 3D coordinate of an Interface1D. */
+class LIB_VIEW_MAP_EXPORT GetProjectedYF1D : public UnaryFunction1D<real>
+{
+private:
+	Functions0D::GetProjectedYF0D _func;
+
+public:
+	/*! Builds the functor.
+	 *  \param iType
+	 *    The integration method used to compute a single value from a set of values.
+	 */
+	GetProjectedYF1D(IntegrationType iType = MEAN) : UnaryFunction1D<real>(iType) {}
+
+	/*! Returns the string "GetProjectedYF1D" */
+	string getName() const
+	{
+		return "GetProjectedYF1D";
+	}
+
+	/*! the () operator. */
+	int operator()(Interface1D& inter);
+};
+
+// GetProjectedZF1D
+/*! Returns the projected Z 3D coordinate of an Interface1D. */
+class LIB_VIEW_MAP_EXPORT GetProjectedZF1D : public UnaryFunction1D<real>
+{
+private:
+	Functions0D::GetProjectedZF0D _func;
+
+public:
+	/*! Builds the functor.
+	 *  \param iType
+	 *    The integration method used to compute a single value from a set of values.
+	 */
+	GetProjectedZF1D(IntegrationType iType = MEAN) : UnaryFunction1D<real>(iType) {}
+
+	/*! Returns the string "GetProjectedZF1D" */
+	string getName() const
+	{
+		return "GetProjectedZF1D";
+	}
+
+	/*! the () operator. */
+	int operator()(Interface1D& inter);
+};
+
+// Orientation2DF1D
+/*! Returns the 2D orientation as a Vec2f*/
+class LIB_VIEW_MAP_EXPORT Orientation2DF1D : public UnaryFunction1D<Vec2f>
+{
+private:
+	Functions0D::VertexOrientation2DF0D _func;
+
+public:
+	/*! Builds the functor.
+	 *  \param iType
+	 *    The integration method used to compute a single value from a set of values.
+	 */
+	Orientation2DF1D(IntegrationType iType = MEAN) : UnaryFunction1D<Vec2f>(iType) {}
+
+	/*! Returns the string "Orientation2DF1D" */
+	string getName() const
+	{
+		return "Orientation2DF1D";
+	}
+
+	/*! the () operator. */
+	int operator()(Interface1D& inter);
+};
+
+// Orientation3DF1D
+/*! Returns the 3D orientation as a Vec3f. */
+class LIB_VIEW_MAP_EXPORT Orientation3DF1D : public UnaryFunction1D<Vec3f>
+{
+private:
+	Functions0D::VertexOrientation3DF0D _func;
+
+public:
+	/*! Builds the functor.
+	 *  \param iType
+	 *    The integration method used to compute a single value from a set of values.
+	 */
+	Orientation3DF1D(IntegrationType iType = MEAN) : UnaryFunction1D<Vec3f>(iType) {}
+
+	/*! Returns the string "Orientation3DF1D" */
+	string getName() const
+	{
+		return "Orientation3DF1D";
+	}
+
+	/*! the () operator. */
+	int operator()(Interface1D& inter);
+};
+
+// ZDiscontinuityF1D
+/*! Returns a real giving the distance between and Interface1D and the shape that lies behind (occludee).
+ *  This distance is evaluated in the camera space and normalized between 0 and 1. Therefore, if no oject is occluded
+ *  by the shape to which the Interface1D belongs to, 1 is returned.
+ */
+class LIB_VIEW_MAP_EXPORT ZDiscontinuityF1D : public UnaryFunction1D<real>
+{
+private:
+	Functions0D::ZDiscontinuityF0D _func;
+
+public:
+	/*! Builds the functor.
+	 *  \param iType
+	 *    The integration method used to compute a single value from a set of values.
+	 */
+	ZDiscontinuityF1D(IntegrationType iType = MEAN) : UnaryFunction1D<real>(iType) {}
+
+	/*! Returns the string "ZDiscontinuityF1D" */
+	string getName() const
+	{
+		return "ZDiscontinuityF1D";
+	}
+
+	/*! the () operator. */
+	int operator()(Interface1D& inter);
+};
+
+// QuantitativeInvisibilityF1D
+/*! Returns the Quantitative Invisibility of an Interface1D element.
+ *  If the Interface1D is a ViewEdge, then there is no ambiguity concerning the result. But, if the Interface1D
+ *  results of a chaining (chain, stroke), then it might be made of several 1D elements of different
+ *  Quantitative Invisibilities.
+ */
+class LIB_VIEW_MAP_EXPORT QuantitativeInvisibilityF1D : public UnaryFunction1D<unsigned>
+{
+private:
+	Functions0D::QuantitativeInvisibilityF0D _func;
+
+public:
+	/*! Builds the functor.
+	 *  \param iType
+	 *    The integration method used to compute a single value from a set of values.
+	 */
+	QuantitativeInvisibilityF1D(IntegrationType iType = MEAN) : UnaryFunction1D<unsigned int>(iType) {}
+
+	/*! Returns the string "QuantitativeInvisibilityF1D" */
+	string getName() const
+	{
+		return "QuantitativeInvisibilityF1D";
+	}
+
+	/*! the () operator. */
+	int operator()(Interface1D& inter);
+};
+
+// CurveNatureF1D
 /*! Returns the nature of the Interface1D (silhouette, ridge, crease...).
  *  Except if the Interface1D is a ViewEdge, this result might be ambiguous.
- *  Indeed, the Interface1D might result from the gathering of several 1D elements,
- *  each one being of a different nature. An integration method, such as
- *  the MEAN, might give, in this case, irrelevant results.
+ *  Indeed, the Interface1D might result from the gathering of several 1D elements, each one being of a different
+ *  nature. An integration method, such as the MEAN, might give, in this case, irrelevant results.
  */
-  class LIB_VIEW_MAP_EXPORT CurveNatureF1D : public UnaryFunction1D<Nature::EdgeNature>
-  {
-  private:
-    Functions0D::CurveNatureF0D _func;
-  public:
-    /*! Builds the functor.
-     *  \param iType
-     *    The integration method used to compute
-     *    a single value from a set of values.
-     */
-    CurveNatureF1D(IntegrationType iType = MEAN) : UnaryFunction1D<Nature::EdgeNature>(iType) {}
-    /*! Returns the string "CurveNatureF1D"*/
-    string getName() const {
-      return "CurveNatureF1D";
-    }
-    /*! the () operator.*/        
-    int operator()(Interface1D& inter);
-  };
+class LIB_VIEW_MAP_EXPORT CurveNatureF1D : public UnaryFunction1D<Nature::EdgeNature>
+{
+private:
+	Functions0D::CurveNatureF0D _func;
 
-  // TimeStampF1D
+public:
+	/*! Builds the functor.
+	 *  \param iType
+	 *    The integration method used to compute a single value from a set of values.
+	 */
+	CurveNatureF1D(IntegrationType iType = MEAN) : UnaryFunction1D<Nature::EdgeNature>(iType) {}
+
+	/*! Returns the string "CurveNatureF1D" */
+	string getName() const
+	{
+		return "CurveNatureF1D";
+	}
+
+	/*! the () operator. */
+	int operator()(Interface1D& inter);
+};
+
+// TimeStampF1D
 /*! Returns the time stamp of the Interface1D. */
-  class LIB_VIEW_MAP_EXPORT TimeStampF1D : public UnaryFunction1D_void
-  {
-  public:
-    /*! Returns the string "TimeStampF1D"*/
-    string getName() const {
-      return "TimeStampF1D";
-    }
-    /*! the () operator.*/        
-    int operator()(Interface1D& inter);
-  };
+class LIB_VIEW_MAP_EXPORT TimeStampF1D : public UnaryFunction1D_void
+{
+public:
+	/*! Returns the string "TimeStampF1D" */
+	string getName() const
+	{
+		return "TimeStampF1D";
+	}
 
-  // IncrementChainingTimeStampF1D
+	/*! the () operator. */
+	int operator()(Interface1D& inter);
+};
+
+// IncrementChainingTimeStampF1D
 /*! Increments the chaining time stamp of the Interface1D. */
-  class LIB_VIEW_MAP_EXPORT IncrementChainingTimeStampF1D : public UnaryFunction1D_void
-  {
-  public:
-    /*! Returns the string "IncrementChainingTimeStampF1D"*/
-    string getName() const {
-      return "IncrementChainingTimeStampF1D";
-    }
-    /*! the () operator.*/        
-    int operator()(Interface1D& inter);
-  };
+class LIB_VIEW_MAP_EXPORT IncrementChainingTimeStampF1D : public UnaryFunction1D_void
+{
+public:
+	/*! Returns the string "IncrementChainingTimeStampF1D" */
+	string getName() const
+	{
+		return "IncrementChainingTimeStampF1D";
+	}
 
-  // ChainingTimeStampF1D
+	/*! the () operator. */
+	int operator()(Interface1D& inter);
+};
+
+// ChainingTimeStampF1D
 /*! Sets the chaining time stamp of the Interface1D. */
-  class LIB_VIEW_MAP_EXPORT ChainingTimeStampF1D : public UnaryFunction1D_void
-  {
-  public:
-    /*! Returns the string "ChainingTimeStampF1D"*/
-    string getName() const {
-      return "ChainingTimeStampF1D";
-    }
-    /*! the () operator.*/        
-    int operator()(Interface1D& inter);
-  };
-  
+class LIB_VIEW_MAP_EXPORT ChainingTimeStampF1D : public UnaryFunction1D_void
+{
+public:
+	/*! Returns the string "ChainingTimeStampF1D" */
+	string getName() const
+	{
+		return "ChainingTimeStampF1D";
+	}
 
-  // Curvature2DAngleF1D
+	/*! the () operator. */
+	int operator()(Interface1D& inter);
+};
+
+
+// Curvature2DAngleF1D
 /*! Returns the 2D curvature as an angle for an Interface1D. */
-  class LIB_VIEW_MAP_EXPORT Curvature2DAngleF1D : public UnaryFunction1D<real>
-  {
-  public:
-    /*! Builds the functor.
-     *  \param iType
-     *    The integration method used to compute
-     *    a single value from a set of values.
-     */
-    Curvature2DAngleF1D(IntegrationType iType = MEAN) : UnaryFunction1D<real>(iType) {}
-    /*! Returns the string "Curvature2DAngleF1D"*/
-    string getName() const {
-      return "Curvature2DAngleF1D";
-    }
-    /*! the () operator.*/        
-    int operator()(Interface1D& inter) {
-      result = integrate(_fun, inter.verticesBegin(), inter.verticesEnd(), _integration);
-	  return 0;
-    }
-  private:
-    Functions0D::Curvature2DAngleF0D	_fun;
-  };
+class LIB_VIEW_MAP_EXPORT Curvature2DAngleF1D : public UnaryFunction1D<real>
+{
+public:
+	/*! Builds the functor.
+	 *  \param iType
+	 *    The integration method used to compute a single value from a set of values.
+	 */
+	Curvature2DAngleF1D(IntegrationType iType = MEAN) : UnaryFunction1D<real>(iType) {}
 
-  // Normal2DF1D
-  /*! Returns the 2D normal for an interface 1D. */
-  class LIB_VIEW_MAP_EXPORT Normal2DF1D : public UnaryFunction1D<Vec2f>
-  {
-  public:
-    /*! Builds the functor.
-     *  \param iType
-     *    The integration method used to compute
-     *    a single value from a set of values.
-     */
-    Normal2DF1D(IntegrationType iType = MEAN) : UnaryFunction1D<Vec2f>(iType) {}
-    /*! Returns the string "Normal2DF1D"*/
-    string getName() const {
-      return "Normal2DF1D";
-    }
-    /*! the () operator.*/        
-    int operator()(Interface1D& inter) {
-      result = integrate(_fun, inter.verticesBegin(), inter.verticesEnd(), _integration);
-	  return 0;
-    }
-  private:
-    Functions0D::Normal2DF0D	_fun;
-  };
+	/*! Returns the string "Curvature2DAngleF1D" */
+	string getName() const
+	{
+		return "Curvature2DAngleF1D";
+	}
 
-  // GetShapeF1D
-  /*! Returns list of shapes covered by this Interface1D. */
-  class LIB_VIEW_MAP_EXPORT GetShapeF1D : public UnaryFunction1D<std::vector<ViewShape*> >
-  {
-  public:
-    /*! Builds the functor.
-     */
-    GetShapeF1D() : UnaryFunction1D<std::vector<ViewShape*> >() {}
-    /*! Returns the string "GetShapeF1D"*/
-    string getName() const {
-      return "GetShapeF1D";
-    }
-    /*! the () operator.*/        
-    int operator()(Interface1D& inter);
-  };
+	/*! the () operator.*/
+	int operator()(Interface1D& inter)
+	{
+		result = integrate(_fun, inter.verticesBegin(), inter.verticesEnd(), _integration);
+		return 0;
+	}
 
-  // GetOccludersF1D
-  /*! Returns list of occluding shapes covered by this Interface1D. */
-  class LIB_VIEW_MAP_EXPORT GetOccludersF1D : public UnaryFunction1D<std::vector<ViewShape*> >
-  {
-  public:
-    /*! Builds the functor.
-     */
-    GetOccludersF1D() : UnaryFunction1D<std::vector<ViewShape*> >() {}
-    /*! Returns the string "GetOccludersF1D"*/
-    string getName() const {
-      return "GetOccludersF1D";
-    }
-    /*! the () operator.*/        
-    int operator()(Interface1D& inter);
-  };
+private:
+	Functions0D::Curvature2DAngleF0D _fun;
+};
 
-  // GetOccludeeF1D
-  /*! Returns list of occluded shapes covered by this Interface1D. */
-  class LIB_VIEW_MAP_EXPORT GetOccludeeF1D : public UnaryFunction1D<std::vector<ViewShape*> >
-  {
-  public:
-    /*! Builds the functor.
-     */
-    GetOccludeeF1D() : UnaryFunction1D<std::vector<ViewShape*> >() {}
-    /*! Returns the string "GetOccludeeF1D"*/
-    string getName() const {
-      return "GetOccludeeF1D";
-    }
-    /*! the () operator.*/        
-    int operator()(Interface1D& inter);
-  };
+// Normal2DF1D
+/*! Returns the 2D normal for an interface 1D. */
+class LIB_VIEW_MAP_EXPORT Normal2DF1D : public UnaryFunction1D<Vec2f>
+{
+public:
+	/*! Builds the functor.
+	 *  \param iType
+	 *    The integration method used to compute a single value from a set of values.
+	 */
+	Normal2DF1D(IntegrationType iType = MEAN) : UnaryFunction1D<Vec2f>(iType) {}
 
-  // internal
-  ////////////
+	/*! Returns the string "Normal2DF1D" */
+	string getName() const
+	{
+		return "Normal2DF1D";
+	}
 
-  // getOccludeeF1D
-  LIB_VIEW_MAP_EXPORT
-  void getOccludeeF1D(Interface1D& inter, set<ViewShape*>& oShapes);
+	/*! the () operator.*/
+	int operator()(Interface1D& inter)
+	{
+		result = integrate(_fun, inter.verticesBegin(), inter.verticesEnd(), _integration);
+		return 0;
+	}
 
-  // getOccludersF1D
-  LIB_VIEW_MAP_EXPORT
-  void getOccludersF1D(Interface1D& inter, set<ViewShape*>& oShapes);
+private:
+	Functions0D::Normal2DF0D _fun;
+};
 
-  // getShapeF1D
-  LIB_VIEW_MAP_EXPORT
-  void getShapeF1D(Interface1D& inter, set<ViewShape*>& oShapes);
-  
+// GetShapeF1D
+/*! Returns list of shapes covered by this Interface1D. */
+class LIB_VIEW_MAP_EXPORT GetShapeF1D : public UnaryFunction1D<std::vector<ViewShape*> >
+{
+public:
+	/*! Builds the functor. */
+	GetShapeF1D() : UnaryFunction1D<std::vector<ViewShape*> >() {}
+
+	/*! Returns the string "GetShapeF1D" */
+	string getName() const
+	{
+		return "GetShapeF1D";
+	}
+
+	/*! the () operator. */
+	int operator()(Interface1D& inter);
+};
+
+// GetOccludersF1D
+/*! Returns list of occluding shapes covered by this Interface1D. */
+class LIB_VIEW_MAP_EXPORT GetOccludersF1D : public UnaryFunction1D<std::vector<ViewShape*> >
+{
+public:
+	/*! Builds the functor. */
+	GetOccludersF1D() : UnaryFunction1D<std::vector<ViewShape*> >() {}
+
+	/*! Returns the string "GetOccludersF1D" */
+	string getName() const
+	{
+		return "GetOccludersF1D";
+	}
+
+	/*! the () operator. */
+	int operator()(Interface1D& inter);
+};
+
+// GetOccludeeF1D
+/*! Returns list of occluded shapes covered by this Interface1D. */
+class LIB_VIEW_MAP_EXPORT GetOccludeeF1D : public UnaryFunction1D<std::vector<ViewShape*> >
+{
+public:
+	/*! Builds the functor. */
+	GetOccludeeF1D() : UnaryFunction1D<std::vector<ViewShape*> >() {}
+
+	/*! Returns the string "GetOccludeeF1D" */
+	string getName() const
+	{
+		return "GetOccludeeF1D";
+	}
+
+	/*! the () operator. */
+	int operator()(Interface1D& inter);
+};
+
+// internal
+////////////
+
+// getOccludeeF1D
+LIB_VIEW_MAP_EXPORT
+void getOccludeeF1D(Interface1D& inter, set<ViewShape*>& oShapes);
+
+// getOccludersF1D
+LIB_VIEW_MAP_EXPORT
+void getOccludersF1D(Interface1D& inter, set<ViewShape*>& oShapes);
+
+// getShapeF1D
+LIB_VIEW_MAP_EXPORT
+void getShapeF1D(Interface1D& inter, set<ViewShape*>& oShapes);
+
 } // end of namespace Functions1D
 
-#endif // FUNCTIONS1D_HPP
+#endif // __FREESTYLE_FUNCTIONS_1D_H__

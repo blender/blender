@@ -1,52 +1,58 @@
-//
-//  Filename         : ArbitraryGridDensityProvider.cpp
-//  Author(s)        : Alexander Beels
-//  Purpose          : Class to define a cell grid surrounding
-//                     the projected image of a scene
-//  Date of creation : 2011-2-5
-//
-///////////////////////////////////////////////////////////////////////////////
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2010 Blender Foundation.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 
-
-//
-//  Copyright (C) : Please refer to the COPYRIGHT file distributed 
-//   with this source distribution. 
-//
-//  This program is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU General Public License
-//  as published by the Free Software Foundation; either version 2
-//  of the License, or (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-//
-///////////////////////////////////////////////////////////////////////////////
+/** \file blender/freestyle/intern/view_map/ArbitraryGridDensityProvider.cpp
+ *  \ingroup freestyle
+ *  \brief Class to define a cell grid surrounding the projected image of a scene
+ *  \author Alexander Beels
+ *  \date 2011-2-5
+ */
 
 #include "ArbitraryGridDensityProvider.h"
 
-ArbitraryGridDensityProvider::ArbitraryGridDensityProvider(OccluderSource& source, const real proscenium[4], unsigned numCells) 
-	: GridDensityProvider(source), numCells(numCells)
+ArbitraryGridDensityProvider::ArbitraryGridDensityProvider(OccluderSource& source, const real proscenium[4],
+                                                           unsigned numCells)
+: GridDensityProvider(source), numCells(numCells)
 {
 	initialize (proscenium);
 }
 
-ArbitraryGridDensityProvider::ArbitraryGridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox, const GridHelpers::Transform& transform, unsigned numCells) 
-	: GridDensityProvider(source), numCells(numCells)
+ArbitraryGridDensityProvider::ArbitraryGridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox,
+                                                           const GridHelpers::Transform& transform, unsigned numCells)
+: GridDensityProvider(source), numCells(numCells)
 {
 	real proscenium[4];
 	calculateQuickProscenium(transform, bbox, proscenium);
-	
+
 	initialize (proscenium);
 }
 
-ArbitraryGridDensityProvider::ArbitraryGridDensityProvider(OccluderSource& source, unsigned numCells) 
-	: GridDensityProvider(source), numCells(numCells) 
+ArbitraryGridDensityProvider::ArbitraryGridDensityProvider(OccluderSource& source, unsigned numCells)
+: GridDensityProvider(source), numCells(numCells) 
 {
 	real proscenium[4];
 	calculateOptimalProscenium(source, proscenium);
@@ -54,9 +60,9 @@ ArbitraryGridDensityProvider::ArbitraryGridDensityProvider(OccluderSource& sourc
 	initialize (proscenium);
 }
 
-ArbitraryGridDensityProvider::~ArbitraryGridDensityProvider () {}
+ArbitraryGridDensityProvider::~ArbitraryGridDensityProvider() {}
 
-void ArbitraryGridDensityProvider::initialize (const real proscenium[4]) 
+void ArbitraryGridDensityProvider::initialize(const real proscenium[4])
 {
 	float prosceniumWidth = (proscenium[1] - proscenium[0]);
 	float prosceniumHeight = (proscenium[3] - proscenium[2]);
@@ -70,11 +76,11 @@ void ArbitraryGridDensityProvider::initialize (const real proscenium[4])
 	cout << _cellsX << "x" << _cellsY << " cells of size " << _cellSize << " square." << endl;
 
 	// Make sure the grid exceeds the proscenium by a small amount
-	float safetyZone = 0.1;
-	if ( _cellsX * _cellSize < prosceniumWidth * (1.0 + safetyZone) ) {
+	float safetyZone = 0.1f;
+	if (_cellsX * _cellSize < prosceniumWidth * (1.0 + safetyZone)) {
 		_cellsX = prosceniumWidth * (1.0 + safetyZone) / _cellSize;
 	}
-	if ( _cellsY * _cellSize < prosceniumHeight * (1.0 + safetyZone) ) {
+	if (_cellsY * _cellSize < prosceniumHeight * (1.0 + safetyZone)) {
 		_cellsY = prosceniumHeight * (1.0 + safetyZone) / _cellSize;
 	}
 	cout << _cellsX << "x" << _cellsY << " cells of size " << _cellSize << " square." << endl;
@@ -85,24 +91,26 @@ void ArbitraryGridDensityProvider::initialize (const real proscenium[4])
 }
 
 ArbitraryGridDensityProviderFactory::ArbitraryGridDensityProviderFactory(unsigned numCells)
-	: numCells(numCells)
+: numCells(numCells)
 {
 }
 
-ArbitraryGridDensityProviderFactory::~ArbitraryGridDensityProviderFactory () {}
+ArbitraryGridDensityProviderFactory::~ArbitraryGridDensityProviderFactory() {}
 
-auto_ptr<GridDensityProvider> ArbitraryGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source, const real proscenium[4]) 
+auto_ptr<GridDensityProvider> ArbitraryGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source,
+                                                                                          const real proscenium[4])
 {
 	return auto_ptr<GridDensityProvider>(new ArbitraryGridDensityProvider(source, proscenium, numCells));
 }
 
-auto_ptr<GridDensityProvider> ArbitraryGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox, const GridHelpers::Transform& transform) 
+auto_ptr<GridDensityProvider>
+ArbitraryGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox,
+                                                            const GridHelpers::Transform& transform)
 {
 	return auto_ptr<GridDensityProvider>(new ArbitraryGridDensityProvider(source, bbox, transform, numCells));
 }
 
-auto_ptr<GridDensityProvider> ArbitraryGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source) 
+auto_ptr<GridDensityProvider> ArbitraryGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source)
 {
 	return auto_ptr<GridDensityProvider>(new ArbitraryGridDensityProvider(source, numCells));
 }
-

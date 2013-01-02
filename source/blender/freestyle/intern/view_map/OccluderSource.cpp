@@ -1,65 +1,73 @@
-//
-//  Filename         : OccluderSource.h
-//  Author(s)        : Alexander Beels
-//  Purpose          : Class to define a cell grid surrounding
-//                     the projected image of a scene
-//  Date of creation : 2010-12-21
-//
-///////////////////////////////////////////////////////////////////////////////
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2010 Blender Foundation.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 
+/** \file blender/freestyle/intern/view_map/OccluderSource.cpp
+ *  \ingroup freestyle
+ *  \brief Class to define a cell grid surrounding the projected image of a scene
+ *  \author Alexander Beels
+ *  \date 2010-12-21
+ */
 
-//
-//  Copyright (C) : Please refer to the COPYRIGHT file distributed 
-//   with this source distribution. 
-//
-//  This program is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU General Public License
-//  as published by the Free Software Foundation; either version 2
-//  of the License, or (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-//
-///////////////////////////////////////////////////////////////////////////////
-
-#include "OccluderSource.h"
 #include <algorithm>
 
-OccluderSource::OccluderSource (const GridHelpers::Transform& t, WingedEdge& we) : wingedEdge(we), valid(false), transform(t) {
+#include "OccluderSource.h"
+
+OccluderSource::OccluderSource(const GridHelpers::Transform& t, WingedEdge& we)
+: wingedEdge(we), valid(false), transform(t)
+{
 	begin();
 }
 
-OccluderSource::~OccluderSource() {
-}
+OccluderSource::~OccluderSource() {}
 
-void OccluderSource::buildCachedPolygon() {
+void OccluderSource::buildCachedPolygon()
+{
 	vector<Vec3r> vertices(GridHelpers::enumerateVertices((*currentFace)->getEdgeList()));
 	// This doesn't work, because our functor's polymorphism won't survive the copy:
 	// std::transform(vertices.begin(), vertices.end(), vertices.begin(), transform);
 	// so we have to do:
-	for ( vector<Vec3r>::iterator i = vertices.begin(); i != vertices.end(); ++i ) {
+	for (vector<Vec3r>::iterator i = vertices.begin(); i != vertices.end(); ++i) {
 		(*i) = transform(*i);
 	}
 	cachedPolygon = Polygon3r(vertices, transform((*currentFace)->GetNormal()));
 }
 
-void OccluderSource::begin() {
- 	vector<WShape*>& wshapes = wingedEdge.getWShapes();
+void OccluderSource::begin()
+{
+	vector<WShape*>& wshapes = wingedEdge.getWShapes();
 	currentShape = wshapes.begin();
 	shapesEnd = wshapes.end();
 	valid = false;
-	if ( currentShape != shapesEnd ) {
+	if (currentShape != shapesEnd) {
 		vector<WFace*>& wFaces = (*currentShape)->GetFaceList();
 		currentFace = wFaces.begin();
 		facesEnd = wFaces.end();
 
-		if ( currentFace != facesEnd ) {
+		if (currentFace != facesEnd) {
 			buildCachedPolygon();
 			valid = true;
 		}
@@ -67,14 +75,15 @@ void OccluderSource::begin() {
 }
 
 bool OccluderSource::next() {
-	if ( valid ) {
+	if (valid) {
 		++currentFace;
-		while ( currentFace == facesEnd ) {
+		while (currentFace == facesEnd) {
 			++currentShape;
-			if ( currentShape == shapesEnd ) {
+			if (currentShape == shapesEnd) {
 				valid = false;
 				return false;
-			} else {
+			}
+			else {
 				vector<WFace*>& wFaces = (*currentShape)->GetFaceList();
 				currentFace = wFaces.begin();
 				facesEnd = wFaces.end();
@@ -86,40 +95,47 @@ bool OccluderSource::next() {
 	return false;
 }
 
-bool OccluderSource::isValid() {
+bool OccluderSource::isValid()
+{
 	// Or:
 	// return currentShapes != shapesEnd && currentFace != facesEnd;
 	return valid;
 }
 
-WFace* OccluderSource::getWFace() {
+WFace *OccluderSource::getWFace()
+{
 	return valid ? *currentFace : NULL;
 }
 
-Polygon3r OccluderSource::getCameraSpacePolygon() {
+Polygon3r OccluderSource::getCameraSpacePolygon()
+{
 	return Polygon3r(GridHelpers::enumerateVertices((*currentFace)->getEdgeList()), (*currentFace)->GetNormal());
 }
 
-Polygon3r& OccluderSource::getGridSpacePolygon() {
+Polygon3r& OccluderSource::getGridSpacePolygon()
+{
 	return cachedPolygon;
 }
 
-void OccluderSource::getOccluderProscenium(real proscenium[4]) {
+void OccluderSource::getOccluderProscenium(real proscenium[4])
+{
 	begin();
 	const Vec3r& initialPoint = cachedPolygon.getVertices()[0];
 	proscenium[0] = proscenium[1] = initialPoint[0];
 	proscenium[2] = proscenium[3] = initialPoint[1];
-	while ( isValid() ) {
+	while (isValid()) {
 		GridHelpers::expandProscenium (proscenium, cachedPolygon);
 		next();
 	}
-	cout << "Proscenium: (" << proscenium[0] << ", " << proscenium[1] << ", " << proscenium[2] << ", " << proscenium[3] << ")" << endl;
+	cout << "Proscenium: (" << proscenium[0] << ", " << proscenium[1] << ", " << proscenium[2] << ", "
+	     << proscenium[3] << ")" << endl;
 }
 
-real OccluderSource::averageOccluderArea() {
+real OccluderSource::averageOccluderArea()
+{
 	real area = 0.0;
 	unsigned numFaces = 0;
-	for ( begin(); isValid(); next() ) {
+	for (begin(); isValid(); next()) {
 		Vec3r min, max;
 		cachedPolygon.getBBox(min, max);
 		area += (max[0] - min[0]) * (max[1] - min[1]);
@@ -128,5 +144,3 @@ real OccluderSource::averageOccluderArea() {
 	area /= numFaces;
 	return area;
 }
-
-

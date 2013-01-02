@@ -1,582 +1,809 @@
-//
-//  Filename         : WXEdge.h
-//  Author(s)        : Stephane Grabli
-//  Purpose          : Classes to define an Extended Winged Edge data structure.
-//  Date of creation : 26/10/2003
-//
-///////////////////////////////////////////////////////////////////////////////
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2010 Blender Foundation.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 
+#ifndef __FREESTYLE_WX_EDGE_H__
+#define __FREESTYLE_WX_EDGE_H__
 
-//
-//  Copyright (C) : Please refer to the COPYRIGHT file distributed 
-//   with this source distribution. 
-//
-//  This program is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU General Public License
-//  as published by the Free Software Foundation; either version 2
-//  of the License, or (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-//
-///////////////////////////////////////////////////////////////////////////////
+/** \file blender/freestyle/intern/winged_edge/WXEdge.h
+ *  \ingroup freestyle
+ *  \brief Classes to define an Extended Winged Edge data structure.
+ *  \author Stephane Grabli
+ *  \date 26/10/2003
+ */
 
-#ifndef  WXEDGE_H
-# define WXEDGE_H
-
-# include "WEdge.h"
-# include "Nature.h"
-# include "Curvature.h"
+#include "Curvature.h"
+#include "Nature.h"
+#include "WEdge.h"
 
 typedef Nature::EdgeNature WXNature;
 
-                  /**********************************/
-                  /*                                */
-                  /*                                */
-                  /*             WXVertex           */
-                  /*                                */
-                  /*                                */
-                  /**********************************/
+/**********************************
+ *                                *
+ *                                *
+ *             WXVertex           *
+ *                                *
+ *                                *
+ **********************************/
 
 class WXVertex : public WVertex
-{  
+{
 private:
-  // Curvature info
-  CurvatureInfo *_curvatures;
+	// Curvature info
+	CurvatureInfo *_curvatures;
 
 public:
-  inline WXVertex(const Vec3r &v)
-    : WVertex(v)
-  {_curvatures = 0;}
-  /*! Copy constructor */
-  WXVertex(WXVertex& iBrother)
-    : WVertex(iBrother)
-  {_curvatures = new CurvatureInfo(*iBrother._curvatures);}
-  virtual WVertex * duplicate()
-  {
-    WXVertex *clone = new WXVertex(*this);
-    return clone;
-  }
-  virtual ~WXVertex() {if(_curvatures) delete _curvatures;}
-  virtual void Reset() {if(_curvatures) _curvatures->Kr = 0.0;}
-  inline void setCurvatures(CurvatureInfo *ci) {_curvatures = ci;}
-  
-  inline bool isFeature();
-  inline CurvatureInfo* curvatures() {return _curvatures;}
+	inline WXVertex(const Vec3r &v) : WVertex(v)
+	{
+		_curvatures = NULL;
+	}
 
+	/*! Copy constructor */
+	WXVertex(WXVertex& iBrother) : WVertex(iBrother)
+	{
+		_curvatures = new CurvatureInfo(*iBrother._curvatures);
+	}
+
+	virtual WVertex *duplicate()
+	{
+		WXVertex *clone = new WXVertex(*this);
+		return clone;
+	}
+
+	virtual ~WXVertex()
+	{
+		if (_curvatures)
+			delete _curvatures;
+	}
+
+	virtual void Reset()
+	{
+		if (_curvatures)
+			_curvatures->Kr = 0.0;
+	}
+
+	inline void setCurvatures(CurvatureInfo *ci)
+	{
+		_curvatures = ci;
+	}
+
+	inline bool isFeature();
+
+	inline CurvatureInfo *curvatures()
+	{
+		return _curvatures;
+	}
 };
 
 
+/**********************************
+ *                                *
+ *                                *
+ *             WXEdge             *
+ *                                *
+ *                                *
+ **********************************/
 
-                  /**********************************/
-                  /*                                */
-                  /*                                */
-                  /*             WXEdge             */
-                  /*                                */
-                  /*                                */
-                  /**********************************/
 class WXEdge : public WEdge
 {
 private:
-  WXNature _nature; // flag to indicate whether the edge is a silhouette edge or not
-  int _order; // 0: the order doesn't matter. 1: the order is the orginal one. -1: the order is not good
-  bool _front;  // a front facing edge is an edge for which the bording face which is the nearest 
-                // from the viewpoint is front. A back facing edge is the opposite.
-   
+	// flag to indicate whether the edge is a silhouette edge or not
+	WXNature _nature;
+	// 0: the order doesn't matter. 1: the order is the orginal one. -1: the order is not good
+	int _order;
+	// A front facing edge is an edge for which the bording face which is the nearest from the viewpoint is front.
+	// A back facing edge is the opposite.
+	bool _front;
+
 public:
-  inline WXEdge()
-    : WEdge(){
-    _nature = Nature::NO_FEATURE;
-    _front = false;
-    _order=0;
-  }
+	inline WXEdge() : WEdge()
+	{
+		_nature = Nature::NO_FEATURE;
+		_front = false;
+		_order = 0;
+	}
 
-  inline WXEdge(WOEdge *iOEdge)
-    : WEdge(iOEdge)
-  { _nature = Nature::NO_FEATURE;_front = false;_order=0;}
+	inline WXEdge(WOEdge *iOEdge) : WEdge(iOEdge)
+	{
+		_nature = Nature::NO_FEATURE;
+		_front = false;
+		_order = 0;
+	}
 
-  inline WXEdge(WOEdge *iaOEdge, WOEdge *ibOEdge)
-    : WEdge(iaOEdge, ibOEdge)
-  { _nature = Nature::NO_FEATURE;_front = false;_order=0;}
+	inline WXEdge(WOEdge *iaOEdge, WOEdge *ibOEdge) : WEdge(iaOEdge, ibOEdge)
+	{
+		_nature = Nature::NO_FEATURE;
+		_front = false;
+		_order = 0;
+	}
 
-  /*! Copy constructor */
-  inline WXEdge(WXEdge& iBrother)
-    : WEdge(iBrother)
-  {_nature = iBrother.nature();_front = iBrother._front;_order = iBrother._order;}
-  virtual WEdge * duplicate()
-  {
-    WXEdge *clone = new WXEdge(*this);
-    return clone;
-  }
+	/*! Copy constructor */
+	inline WXEdge(WXEdge& iBrother) : WEdge(iBrother)
+	{
+		_nature = iBrother.nature();
+		_front = iBrother._front;
+		_order = iBrother._order;
+	}
 
-  virtual ~WXEdge()
-  {}
+	virtual WEdge *duplicate()
+	{
+		WXEdge *clone = new WXEdge(*this);
+		return clone;
+	}
 
-  virtual void Reset(){
-    _nature  = _nature & ~Nature::SILHOUETTE;
-    _nature  = _nature & ~Nature::SUGGESTIVE_CONTOUR;
-  }
+	virtual ~WXEdge() {}
 
-  /*! accessors */
-  inline WXNature nature() {return _nature;}
-  inline bool front() {return _front;}
-  inline int order() const {return _order;}
-  
-  /*! modifiers */
-  inline void setFront(bool iFront) {_front = iFront;}
-  inline void setNature(WXNature iNature) {_nature = iNature;}
-  inline void AddNature(WXNature iNature) {_nature = _nature|iNature;}
-  inline void setOrder(int i) {_order = i;}
-  
+	virtual void Reset()
+	{
+		_nature  = _nature & ~Nature::SILHOUETTE;
+		_nature  = _nature & ~Nature::SUGGESTIVE_CONTOUR;
+	}
+
+	/*! accessors */
+	inline WXNature nature()
+	{
+		return _nature;
+	}
+
+	inline bool front()
+	{
+		return _front;
+	}
+
+	inline int order() const
+	{
+		return _order;
+	}
+
+	/*! modifiers */
+	inline void setFront(bool iFront)
+	{
+		_front = iFront;
+	}
+
+	inline void setNature(WXNature iNature)
+	{
+		_nature = iNature;
+	}
+
+	inline void AddNature(WXNature iNature)
+	{
+		_nature = _nature | iNature;
+	}
+
+	inline void setOrder(int i)
+	{
+		_order = i;
+	}
 };
 
-                  /**********************************/
-                  /*                                */
-                  /*                                */
-                  /*             WXFace             */
-                  /*                                */
-                  /*                                */
-                  /**********************************/
+/**********************************
+ *                                *
+ *                                *
+ *             WXFace             *
+ *                                *
+ *                                *
+ **********************************/
 
 /*! Class to store a smooth edge (i.e Hertzman & Zorin smooth silhouette edges) */
-class WXSmoothEdge{
+class WXSmoothEdge
+{
 public:
-  typedef enum{
-    EDGE_EDGE,
-    VERTEX_EDGE,
-    EDGE_VERTEX
-  } Configuration;
+	typedef enum {
+		EDGE_EDGE,
+		VERTEX_EDGE,
+		EDGE_VERTEX,
+	} Configuration;
 
-  WOEdge *_woea; // Oriented edge from which the silhouette edge starts
-  WOEdge *_woeb; // Oriented edge where the silhouette edge ends
-  real _ta;    // The silhouette starting point's coordinates are : _woea[0]+ta*(_woea[1]-_woea[0])
-  real _tb;    // The silhouette ending point's coordinates are : _woeb[0]+ta*(_woeb[1]-_woeb[0])
-  bool _front;
-  Configuration _config;
+	WOEdge *_woea; // Oriented edge from which the silhouette edge starts
+	WOEdge *_woeb; // Oriented edge where the silhouette edge ends
+	real _ta;      // The silhouette starting point's coordinates are : _woea[0]+ta*(_woea[1]-_woea[0])
+	real _tb;      // The silhouette ending point's coordinates are : _woeb[0]+ta*(_woeb[1]-_woeb[0])
+	bool _front;
+	Configuration _config;
 
-  WXSmoothEdge(){
-    _woea = 0;
-    _woeb = 0;
-    _ta = 0;
-    _tb = 0;
-    _front = false;
-    _config = EDGE_EDGE;
-  }
-  WXSmoothEdge(const WXSmoothEdge& iBrother){
-    _woea = iBrother._woea;
-    _woeb = iBrother._woeb;
-    _ta = iBrother._ta;
-    _tb = iBrother._tb;
-    _config = iBrother._config;
-    _front = iBrother._front;
-  }
-  ~WXSmoothEdge() {}
+	WXSmoothEdge()
+	{
+		_woea = NULL;
+		_woeb = NULL;
+		_ta = 0;
+		_tb = 0;
+		_front = false;
+		_config = EDGE_EDGE;
+	}
 
-  inline WOEdge * woea() {return _woea;}
-  inline WOEdge * woeb() {return _woeb;}
-  inline real ta() const {return _ta;}
-  inline real tb() const {return _tb;}
-  inline bool front() const {return _front;}
-  inline Configuration configuration() const {return _config;} 
-  
-  /*! modifiers */
-  inline void setWOeA(WOEdge *iwoea) {_woea = iwoea;}
-  inline void setWOeB(WOEdge *iwoeb) {_woeb = iwoeb;}
-  inline void setTa(real ta) {_ta = ta;}
-  inline void setTb(real tb) {_tb = tb;}
-  inline void setFront(bool iFront) {_front = iFront;}
-  inline void setConfiguration(Configuration iConf) {_config = iConf;}
-  
+	WXSmoothEdge(const WXSmoothEdge& iBrother)
+	{
+		_woea = iBrother._woea;
+		_woeb = iBrother._woeb;
+		_ta = iBrother._ta;
+		_tb = iBrother._tb;
+		_config = iBrother._config;
+		_front = iBrother._front;
+	}
+
+	~WXSmoothEdge() {}
+
+	inline WOEdge *woea()
+	{
+		return _woea;
+	}
+
+	inline WOEdge *woeb()
+	{
+		return _woeb;
+	}
+
+	inline real ta() const
+	{
+		return _ta;
+	}
+
+	inline real tb() const
+	{
+		return _tb;
+	}
+
+	inline bool front() const
+	{
+		return _front;
+	}
+
+	inline Configuration configuration() const
+	{
+		return _config;
+	}
+
+	/*! modifiers */
+	inline void setWOeA(WOEdge *iwoea)
+	{
+		_woea = iwoea;
+	}
+
+	inline void setWOeB(WOEdge *iwoeb)
+	{
+		_woeb = iwoeb;
+	}
+
+	inline void setTa(real ta)
+	{
+		_ta = ta;
+	}
+
+	inline void setTb(real tb)
+	{
+		_tb = tb;
+	}
+
+	inline void setFront(bool iFront)
+	{
+		_front = iFront;
+	}
+
+	inline void setConfiguration(Configuration iConf)
+	{
+		_config = iConf;
+	}
 };
-/* Class to store a value per vertex and a smooth edge. 
- * The WXFace stores a list of these 
+
+/* Class to store a value per vertex and a smooth edge.
+ * The WXFace stores a list of these
  */
 class WXFace;
-class LIB_WINGED_EDGE_EXPORT WXFaceLayer{
+
+class LIB_WINGED_EDGE_EXPORT WXFaceLayer
+{
 public:
-  void * userdata;
-  WXFace * _pWXFace;
-  vector<real> _DotP;// in case of silhouette: the values obtained when computing the normal-view direction 
-                         // dot product. _DotP[i] is this value for the vertex i for that 
-                          // face.
-  WXSmoothEdge * _pSmoothEdge;
-  WXNature _Nature;
+	void *userdata;
+	WXFace *_pWXFace;
+	// in case of silhouette: the values obtained when computing the normal-view direction dot product. _DotP[i] is
+	// this value for the vertex i for that face.
+	vector<real> _DotP;
+	WXSmoothEdge *_pSmoothEdge;
+	WXNature _Nature;
 
-  //oldtmp values
-  unsigned _nPosDotP; // count the number of positive dot products for vertices.
-                      // if this number is != 0 and !=_DotP.size() -> it is a silhouette fac
+	//oldtmp values
+	// count the number of positive dot products for vertices.
+	// if this number is != 0 and !=_DotP.size() -> it is a silhouette fac
+	unsigned _nPosDotP;
 
-  unsigned _nNullDotP; // count the number of null dot products for vertices.
-  unsigned _ClosestPointIndex;
-  bool _viewDependant;
+	unsigned _nNullDotP; // count the number of null dot products for vertices.
+	unsigned _ClosestPointIndex;
+	bool _viewDependant;
 
-  WXFaceLayer(WXFace *iFace, WXNature iNature, bool viewDependant){
-    _pWXFace = iFace;
-    _pSmoothEdge = 0;
-    _nPosDotP = 0;
-    _nNullDotP=0;
-    _Nature = iNature;
-    _viewDependant = viewDependant;
-    userdata = 0;
-  }
-  WXFaceLayer(const WXFaceLayer& iBrother){
-    _pWXFace = iBrother._pWXFace;
-    _pSmoothEdge = 0;
-    _DotP = iBrother._DotP;
-    _nPosDotP = iBrother._nPosDotP;
-    _nNullDotP = iBrother._nNullDotP;
-    _Nature = iBrother._Nature;
-    if(0 != iBrother._pSmoothEdge)
-    {
-      _pSmoothEdge = new WXSmoothEdge(*(iBrother._pSmoothEdge));
-    }
-    _viewDependant = iBrother._viewDependant;
-    userdata = 0;
-  }
-  virtual ~WXFaceLayer() {
-    if(!_DotP.empty())
-      _DotP.clear();
-    if(0 != _pSmoothEdge){
-      delete _pSmoothEdge;
-      _pSmoothEdge = 0;
-    }
-  }
-  inline const real dotP(int i) const {return _DotP[i];}
-  inline unsigned nPosDotP() const {return _nPosDotP;}
-  inline unsigned nNullDotP() const {return _nNullDotP;}
-  inline int closestPointIndex() const {return _ClosestPointIndex;}
-  inline Nature::EdgeNature nature() const {return _Nature;}
-  inline bool hasSmoothEdge() const {if(_pSmoothEdge) return true; return false;}
-  inline WXFace * getFace() {return _pWXFace;}
-  inline WXSmoothEdge * getSmoothEdge() {return _pSmoothEdge;}
-  inline bool isViewDependant() const {return _viewDependant;}
-  inline void setClosestPointIndex(int iIndex) {_ClosestPointIndex = iIndex;}
+	WXFaceLayer(WXFace *iFace, WXNature iNature, bool viewDependant)
+	{
+		_pWXFace = iFace;
+		_pSmoothEdge = NULL;
+		_nPosDotP = 0;
+		_nNullDotP = 0;
+		_Nature = iNature;
+		_viewDependant = viewDependant;
+		userdata = NULL;
+	}
 
-  inline void removeSmoothEdge() {
-    if(!_DotP.empty())
-      _DotP.clear();
-    if (_pSmoothEdge) {
-      delete _pSmoothEdge;
-      _pSmoothEdge = 0;
-    }
-  }
+	WXFaceLayer(const WXFaceLayer& iBrother)
+	{
+		_pWXFace = iBrother._pWXFace;
+		_pSmoothEdge = NULL;
+		_DotP = iBrother._DotP;
+		_nPosDotP = iBrother._nPosDotP;
+		_nNullDotP = iBrother._nNullDotP;
+		_Nature = iBrother._Nature;
+		if (iBrother._pSmoothEdge) {  // XXX ? It's set to null a few lines above!
+			_pSmoothEdge = new WXSmoothEdge(*(iBrother._pSmoothEdge));
+		}
+		_viewDependant = iBrother._viewDependant;
+		userdata = NULL;
+	}
 
-  /*! If one of the face layer vertex has a DotP equal
-   *  to 0, this method returns the vertex where it happens
-   */
-  unsigned int Get0VertexIndex() const ;
+	virtual ~WXFaceLayer()
+	{
+		if (!_DotP.empty())
+			_DotP.clear();
+		if (_pSmoothEdge) {
+			delete _pSmoothEdge;
+			_pSmoothEdge = NULL;
+		}
+	}
 
-  /*! In case one of the edge of the triangle 
-   *  is a smooth edge, this method 
-   *  allows to retrieve the concerned edge
-   */
-  unsigned int GetSmoothEdgeIndex() const;
-  /*! retrieves the edges of the triangle for which 
-   *  the signs are different (a null value is not considered) for the dotp 
-   *  values at each edge extrimity
-   */
-  void RetrieveCuspEdgesIndices(vector<int>& oCuspEdges);
-  WXSmoothEdge * BuildSmoothEdge();
-  inline void setDotP(const vector<real>& iDotP) {_DotP = iDotP;}
-  inline void PushDotP(real iDotP) {
-    _DotP.push_back(iDotP);
-    if(iDotP > 0)
-      ++_nPosDotP;
-    if(iDotP == 0)
-      ++_nNullDotP;
-  }
-  inline void ReplaceDotP(unsigned int index, real newDotP){
-    _DotP[index] = newDotP;
-    updateDotPInfos();
-  }
-  inline void updateDotPInfos() {
-    _nPosDotP = 0;
-    _nNullDotP = 0;
-    for(vector<real>::iterator d=_DotP.begin(), dend=_DotP.end();
-    d!=dend;
-    ++d){
-      if((*d) > 0)
-        ++_nPosDotP;
-      if((*d) == 0)
-        ++_nNullDotP;
-    }
-  }
+	inline const real dotP(int i) const
+	{
+		return _DotP[i];
+	}
+
+	inline unsigned nPosDotP() const
+	{
+		return _nPosDotP;
+	}
+
+	inline unsigned nNullDotP() const
+	{
+		return _nNullDotP;
+	}
+
+	inline int closestPointIndex() const
+	{
+		return _ClosestPointIndex;
+	}
+
+	inline Nature::EdgeNature nature() const
+	{
+		return _Nature;
+	}
+
+	inline bool hasSmoothEdge() const
+	{
+		if (_pSmoothEdge)
+			return true;
+		return false;
+	}
+
+	inline WXFace *getFace()
+	{
+		return _pWXFace;
+	}
+
+	inline WXSmoothEdge *getSmoothEdge()
+	{
+		return _pSmoothEdge;
+	}
+
+	inline bool isViewDependant() const
+	{
+		return _viewDependant;
+	}
+
+	inline void setClosestPointIndex(int iIndex)
+	{
+		_ClosestPointIndex = iIndex;
+	}
+
+	inline void removeSmoothEdge()
+	{
+		if (!_DotP.empty())
+			_DotP.clear();
+		if (_pSmoothEdge) {
+			delete _pSmoothEdge;
+			_pSmoothEdge = NULL;
+		}
+	}
+
+	/*! If one of the face layer vertex has a DotP equal to 0, this method returns the vertex where it happens */
+	unsigned int Get0VertexIndex() const;
+
+	/*! In case one of the edge of the triangle is a smooth edge, this method allows to retrieve the concerned edge */
+	unsigned int GetSmoothEdgeIndex() const;
+
+	/*! retrieves the edges of the triangle for which the signs are different (a null value is not considered) for
+	 *  the dotp values at each edge extrimity
+	 */
+	void RetrieveCuspEdgesIndices(vector<int>& oCuspEdges);
+
+	WXSmoothEdge *BuildSmoothEdge();
+
+	inline void setDotP(const vector<real>& iDotP)
+	{
+		_DotP = iDotP;
+	}
+
+	inline void PushDotP(real iDotP)
+	{
+		_DotP.push_back(iDotP);
+		if (iDotP > 0)
+			++_nPosDotP;
+		if (iDotP == 0)
+			++_nNullDotP;
+	}
+
+	inline void ReplaceDotP(unsigned int index, real newDotP)
+	{
+		_DotP[index] = newDotP;
+		updateDotPInfos();
+	}
+
+	inline void updateDotPInfos()
+	{
+		_nPosDotP = 0;
+		_nNullDotP = 0;
+		for (vector<real>::iterator d = _DotP.begin(), dend = _DotP.end(); d != dend; ++d) {
+			if ((*d) > 0)
+				++_nPosDotP;
+			if ((*d) == 0)
+				++_nNullDotP;
+		}
+	}
 };
-
 
 class WXFace : public WFace
 {
 protected:
-  Vec3r _center; // center of the face
-  real _Z; // distance from viewpoint to the center of the face
-  bool _front; // flag to tell whether the face is front facing or back facing
-  real _dotp;  // value obtained when computing the normal-viewpoint dot product
- 
-  vector<WXFaceLayer*> _SmoothLayers; // The data needed to store one or several smooth edges that traverse the face
+	Vec3r _center; // center of the face
+	real _Z; // distance from viewpoint to the center of the face
+	bool _front; // flag to tell whether the face is front facing or back facing
+	real _dotp;  // value obtained when computing the normal-viewpoint dot product
+
+	vector<WXFaceLayer *> _SmoothLayers; // The data needed to store one or several smooth edges that traverse the face
+
 public:
-  inline WXFace() : WFace() {_Z=0.0;_front = false;}
-  /*! Copy constructor */
-  WXFace(WXFace& iBrother)
-    : WFace(iBrother)
-  {
-    _center = iBrother.center();
-    _Z = iBrother.Z();
-    _front = iBrother.front();
-    for(vector<WXFaceLayer*>::iterator wxf = iBrother._SmoothLayers.begin(), wxfend = iBrother._SmoothLayers.end();
-    wxf != wxfend;
-    ++wxf){
-      _SmoothLayers.push_back(new WXFaceLayer(**wxf));
-    }
-  }
-  virtual WFace * duplicate()
-  {
-    WXFace * clone = new WXFace(*this);
-    return clone;
-  }
+	inline WXFace() : WFace()
+	{
+		_Z = 0.0;
+		_front = false;
+	}
 
-  virtual ~WXFace() {
-    if(!_SmoothLayers.empty()){
-      for(vector<WXFaceLayer*>::iterator wxf = _SmoothLayers.begin(), wxfend = _SmoothLayers.end();
-      wxf != wxfend;
-      ++wxf){
-        delete (*wxf);
-      }
-      _SmoothLayers.clear();
-    } 
-  }
+	/*! Copy constructor */
+	WXFace(WXFace& iBrother) : WFace(iBrother)
+	{
+		_center = iBrother.center();
+		_Z = iBrother.Z();
+		_front = iBrother.front();
+		for (vector<WXFaceLayer*>::iterator wxf = iBrother._SmoothLayers.begin(), wxfend = iBrother._SmoothLayers.end();
+		     wxf != wxfend;
+		     ++wxf)
+		{
+			_SmoothLayers.push_back(new WXFaceLayer(**wxf));
+		}
+	}
 
-  /*! designed to build a specialized WEdge 
-   *  for use in MakeEdge
-   */
-  virtual WEdge * instanciateEdge() const {return new WXEdge;}
-  
-  /*! accessors */
-  inline Vec3r& center() {return _center;}
-  inline real Z() {return _Z;}
-  inline bool front() {return _front;}
-  inline real dotp() {return _dotp;}
-  inline bool hasSmoothEdges() const {
-    for(vector<WXFaceLayer*>::const_iterator wxf = _SmoothLayers.begin(), wxfend = _SmoothLayers.end();
-    wxf != wxfend;
-    ++wxf){
-      if( ((*wxf)->hasSmoothEdge())){
-        return true;
-      }
-    }
-    return false;
-  }
-  vector<WXFaceLayer*>& getSmoothLayers() {return _SmoothLayers;}
-  /*! retrieve the smooth edges that match the Nature given as argument */
-  void retrieveSmoothEdges(WXNature iNature, vector<WXSmoothEdge*>& oSmoothEdges){
-    for(vector<WXFaceLayer*>::iterator wxf = _SmoothLayers.begin(), wxfend = _SmoothLayers.end();
-    wxf != wxfend;
-    ++wxf){
-      if( ((*wxf)->hasSmoothEdge()) && ((*wxf)->_Nature & iNature) ){
-        oSmoothEdges.push_back((*wxf)->_pSmoothEdge);
-      }
-    }
-  }
-  void retrieveSmoothEdgesLayers(WXNature iNature, vector<WXFaceLayer*>& oSmoothEdgesLayers){
-    for(vector<WXFaceLayer*>::iterator wxf = _SmoothLayers.begin(), wxfend = _SmoothLayers.end();
-    wxf != wxfend;
-    ++wxf){
-      if( ((*wxf)->hasSmoothEdge()) && ((*wxf)->_Nature & iNature) ){
-        oSmoothEdgesLayers.push_back((*wxf));
-      }
-    }
-  }
-  void retrieveSmoothLayers(WXNature iNature, vector<WXFaceLayer*>& oSmoothLayers){
-    for(vector<WXFaceLayer*>::iterator wxf = _SmoothLayers.begin(), wxfend = _SmoothLayers.end();
-    wxf != wxfend;
-    ++wxf){
-      if((*wxf)->_Nature & iNature){
-        oSmoothLayers.push_back(*wxf);
-      }
-    }
-  }
-  /*! modifiers */
-  inline void setCenter(const Vec3r& iCenter) {_center = iCenter;}
-  void ComputeCenter();
-  inline void setZ(real z) {_Z = z;}
-  inline void setFront(bool iFront) {_front = iFront;}
-  inline void setDotP(real iDotP) 
-  {
-    _dotp = iDotP;
-    if(_dotp > 0)
-      _front = true;
-    else
-      _front = false;
-  }
-  inline void AddSmoothLayer(WXFaceLayer * iLayer){
-    _SmoothLayers.push_back(iLayer);
-  }
-  inline void Reset() {
-    vector<WXFaceLayer*> layersToKeep;
-    for(vector<WXFaceLayer*>::iterator wxf = _SmoothLayers.begin(), wxfend = _SmoothLayers.end();
-    wxf != wxfend;
-    ++wxf){
-      if((*wxf)->isViewDependant())
-        delete (*wxf);
-      else
-        layersToKeep.push_back(*wxf);
-    }
-    _SmoothLayers = layersToKeep;
-  }
-  /*! Clears everything */
-  inline void Clear() {
-    for(vector<WXFaceLayer*>::iterator wxf = _SmoothLayers.begin(), wxfend = _SmoothLayers.end();
-    wxf != wxfend;
-    ++wxf){
-      delete (*wxf);
-    }
-    _SmoothLayers.clear();
-  }
-  virtual void ResetUserData() {
-    WFace::ResetUserData();
-    for(vector<WXFaceLayer*>::iterator wxf = _SmoothLayers.begin(), wxfend = _SmoothLayers.end();
-    wxf != wxfend;
-    ++wxf){
-      (*wxf)->userdata = 0;
-    }
-  }
+	virtual WFace *duplicate()
+	{
+		WXFace *clone = new WXFace(*this);
+		return clone;
+	}
+
+	virtual ~WXFace()
+	{
+		if (!_SmoothLayers.empty()) {
+			for (vector<WXFaceLayer*>::iterator wxf = _SmoothLayers.begin(), wxfend = _SmoothLayers.end();
+			     wxf != wxfend;
+			     ++wxf)
+			{
+				delete (*wxf);
+			}
+			_SmoothLayers.clear();
+		}
+	}
+
+	/*! designed to build a specialized WEdge for use in MakeEdge */
+	virtual WEdge *instanciateEdge() const
+	{
+		return new WXEdge;
+	}
+
+	/*! accessors */
+	inline Vec3r& center()
+	{
+		return _center;
+	}
+
+	inline real Z()
+	{
+		return _Z;
+	}
+
+	inline bool front()
+	{
+		return _front;
+	}
+
+	inline real dotp()
+	{
+		return _dotp;
+	}
+
+	inline bool hasSmoothEdges() const
+	{
+		for (vector<WXFaceLayer*>::const_iterator wxf = _SmoothLayers.begin(), wxfend = _SmoothLayers.end();
+		     wxf != wxfend;
+		     ++wxf)
+		{
+			if ((*wxf)->hasSmoothEdge()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	vector<WXFaceLayer*>& getSmoothLayers()
+	{
+		return _SmoothLayers;
+	}
+
+	/*! retrieve the smooth edges that match the Nature given as argument */
+	void retrieveSmoothEdges(WXNature iNature, vector<WXSmoothEdge *>& oSmoothEdges)
+	{
+		for (vector<WXFaceLayer *>::iterator wxf = _SmoothLayers.begin(), wxfend = _SmoothLayers.end();
+		     wxf != wxfend;
+		     ++wxf)
+		{
+			if ((*wxf)->hasSmoothEdge() && ((*wxf)->_Nature & iNature)) {
+				oSmoothEdges.push_back((*wxf)->_pSmoothEdge);
+			}
+		}
+	}
+
+	void retrieveSmoothEdgesLayers(WXNature iNature, vector<WXFaceLayer *>& oSmoothEdgesLayers)
+	{
+		for (vector<WXFaceLayer *>::iterator wxf = _SmoothLayers.begin(), wxfend = _SmoothLayers.end();
+		     wxf != wxfend;
+		     ++wxf)
+		{
+			if ((*wxf)->hasSmoothEdge() && ((*wxf)->_Nature & iNature)) {
+				oSmoothEdgesLayers.push_back((*wxf));
+			}
+		}
+	}
+
+	void retrieveSmoothLayers(WXNature iNature, vector<WXFaceLayer *>& oSmoothLayers)
+	{
+		for (vector<WXFaceLayer *>::iterator wxf = _SmoothLayers.begin(), wxfend = _SmoothLayers.end();
+		     wxf != wxfend;
+		     ++wxf)
+		{
+			if ((*wxf)->_Nature & iNature) {
+				oSmoothLayers.push_back(*wxf);
+			}
+		}
+	}
+
+	/*! modifiers */
+	inline void setCenter(const Vec3r& iCenter)
+	{
+		_center = iCenter;
+	}
+
+	void ComputeCenter();
+
+	inline void setZ(real z)
+	{
+		_Z = z;
+	}
+
+	inline void setFront(bool iFront)
+	{
+		_front = iFront;
+	}
+
+	inline void setDotP(real iDotP)
+	{
+		_dotp = iDotP;
+		if (_dotp > 0)
+			_front = true;
+		else
+			_front = false;
+	}
+
+	inline void AddSmoothLayer(WXFaceLayer *iLayer)
+	{
+		_SmoothLayers.push_back(iLayer);
+	}
+
+	inline void Reset()
+	{
+		vector<WXFaceLayer *> layersToKeep;
+		for (vector<WXFaceLayer *>::iterator wxf = _SmoothLayers.begin(), wxfend = _SmoothLayers.end();
+		     wxf != wxfend;
+		     ++wxf)
+		{
+			if ((*wxf)->isViewDependant())
+				delete (*wxf);
+			else
+				layersToKeep.push_back(*wxf);
+		}
+		_SmoothLayers = layersToKeep;
+	}
+
+	/*! Clears everything */
+	inline void Clear()
+	{
+		for (vector<WXFaceLayer *>::iterator wxf = _SmoothLayers.begin(), wxfend = _SmoothLayers.end();
+		     wxf != wxfend;
+		     ++wxf)
+		{
+			delete (*wxf);
+		}
+		_SmoothLayers.clear();
+	}
+
+	virtual void ResetUserData()
+	{
+		WFace::ResetUserData();
+		for (vector<WXFaceLayer *>::iterator wxf = _SmoothLayers.begin(), wxfend = _SmoothLayers.end();
+		     wxf != wxfend;
+		     ++wxf)
+		{
+			(*wxf)->userdata = NULL;
+		}
+	}
 };
 
 
-                  /**********************************/
-                  /*                                */
-                  /*                                */
-                  /*             WXShape            */
-                  /*                                */
-                  /*                                */
-                  /**********************************/
-
+/**********************************
+ *                                *
+ *                                *
+ *             WXShape            *
+ *                                *
+ *                                *
+ **********************************/
 
 class WXShape : public WShape
 {
 public:
-  typedef WXShape type_name;
+	typedef WXShape type_name;
+
 protected:
-  bool _computeViewIndependant; // flag to indicate whether the view independant stuff must be computed or not
+	bool _computeViewIndependant; // flag to indicate whether the view independant stuff must be computed or not
+
 public:
-  inline WXShape() : WShape() {_computeViewIndependant = true;}
-  /*! copy constructor */
-  inline WXShape(WXShape& iBrother)
-    :WShape(iBrother)
-  {
-    _computeViewIndependant = iBrother._computeViewIndependant;
-  }
-  virtual WShape * duplicate()
-  {
-    WXShape *clone = new WXShape(*this);
-    return clone;
-  }
-  
-  virtual ~WXShape()
-  {
-  }
- 
-  inline bool getComputeViewIndependantFlag() const {return _computeViewIndependant;}
-  inline void setComputeViewIndependantFlag(bool iFlag) {_computeViewIndependant = iFlag;}
+	inline WXShape() : WShape()
+	{
+		_computeViewIndependant = true;
+	}
 
-  /*! designed to build a specialized WFace 
-   *  for use in MakeFace
-   */
-  virtual WFace * instanciateFace() const {return new WXFace;}
+	/*! copy constructor */
+	inline WXShape(WXShape& iBrother) : WShape(iBrother)
+	{
+		_computeViewIndependant = iBrother._computeViewIndependant;
+	}
 
- /*! adds a new face to the shape 
-  *  returns the built face.
-  *   iVertexList 
-  *      List of face's vertices. These vertices are 
-  *      not added to the WShape vertex list; they are 
-  *      supposed to be already stored when calling MakeFace.
-  *      The order in which the vertices are stored in the list 
-  *      determines the face's edges orientation and (so) the 
-  *      face orientation.
-  */
-  virtual WFace * MakeFace(vector<WVertex*>& iVertexList, vector<bool>& iFaceEdgeMarksList, unsigned iMaterialIndex);
+	virtual WShape *duplicate()
+	{
+		WXShape *clone = new WXShape(*this);
+		return clone;
+	}
 
-  /*! adds a new face to the shape. The difference with 
-   *  the previous method is that this one is designed 
-   *  to build a WingedEdge structure for which there are 
-   *  per vertex normals, opposed to per face normals.
-   *  returns the built face.
-   *   iVertexList 
-   *      List of face's vertices. These vertices are 
-   *      not added to the WShape vertex list; they are 
-   *      supposed to be already stored when calling MakeFace.
-   *      The order in which the vertices are stored in the list 
-   *      determines the face's edges orientation and (so) the 
-   *      face orientation.
-   *   iNormalsList
-   *     The list of normals, iNormalsList[i] corresponding to the 
-   *     normal of the vertex iVertexList[i] for that face.
-   *   iTexCoordsList
-   *     The list of tex coords, iTexCoordsList[i] corresponding to the 
-   *     normal of the vertex iVertexList[i] for that face.
-   */
-  virtual WFace * MakeFace(vector<WVertex*>& iVertexList, vector<Vec3r>& iNormalsList, vector<Vec2r>& iTexCoordsList, vector<bool>& iFaceEdgeMarksList, unsigned iMaterialIndex);
+	virtual ~WXShape() {}
 
-  /*! Reset all edges and vertices flags (which might
-   *  have been set up on a previous pass)
-   */
-  virtual void Reset(){
-    // Reset Edges
-    vector<WEdge*>& wedges = getEdgeList();
-    for(vector<WEdge*>::iterator we=wedges.begin(),weend=wedges.end();
-    we!=weend;
-    we++){
-      ((WXEdge*)(*we))->Reset();
-    }
+	inline bool getComputeViewIndependantFlag() const
+	{
+		return _computeViewIndependant;
+	}
 
-    //Reset faces:
-    vector<WFace*>& wfaces = GetFaceList();
-    for(vector<WFace*>::iterator wf=wfaces.begin(),wfend=wfaces.end();
-    wf!=wfend;
-    wf++){
-      ((WXFace*)(*wf))->Reset();
-    }
-  }
-  /*! accessors */
+	inline void setComputeViewIndependantFlag(bool iFlag)
+	{
+		_computeViewIndependant = iFlag;
+	}
+
+	/*! designed to build a specialized WFace for use in MakeFace */
+	virtual WFace *instanciateFace() const
+	{
+		return new WXFace;
+	}
+
+	/*! adds a new face to the shape returns the built face.
+	 *   iVertexList
+	 *      List of face's vertices. These vertices are not added to the WShape vertex list; they are supposed
+	 *      to be already stored when calling MakeFace. The order in which the vertices are stored in the list
+	 *      determines the face's edges orientation and (so) the face orientation.
+	 */
+	virtual WFace *MakeFace(vector<WVertex *>& iVertexList, vector<bool>& iFaceEdgeMarksList, unsigned iMaterialIndex);
+
+	/*! adds a new face to the shape. The difference with the previous method is that this one is designed to build
+	 *  a WingedEdge structure for which there are per vertex normals, opposed to per face normals.
+	 *  returns the built face.
+	 *   iVertexList
+	 *      List of face's vertices. These vertices are not added to the WShape vertex list; they are supposed to be
+	 *      already stored when calling MakeFace.
+	 *      The order in which the vertices are stored in the list determines the face's edges orientation and (so) the
+	 *      face orientation.
+	 *   iNormalsList
+	 *     The list of normals, iNormalsList[i] corresponding to the normal of the vertex iVertexList[i] for that face.
+	 *   iTexCoordsList
+	 *     The list of tex coords, iTexCoordsList[i] corresponding to the normal of the vertex iVertexList[i] for
+	 *     that face.
+	 */
+	virtual WFace *MakeFace(vector<WVertex *>& iVertexList, vector<Vec3r>& iNormalsList, vector<Vec2r>& iTexCoordsList,
+	                        vector<bool>& iFaceEdgeMarksList, unsigned iMaterialIndex);
+
+	/*! Reset all edges and vertices flags (which might have been set up on a previous pass) */
+	virtual void Reset()
+	{
+		// Reset Edges
+		vector<WEdge *>& wedges = getEdgeList();
+		for (vector<WEdge *>::iterator we = wedges.begin(), weend = wedges.end(); we != weend; ++we) {
+			((WXEdge*)(*we))->Reset();
+		}
+
+		//Reset faces:
+		vector<WFace *>& wfaces = GetFaceList();
+		for (vector<WFace *>::iterator wf = wfaces.begin(), wfend = wfaces.end(); wf != wfend; ++wf) {
+			((WXFace*)(*wf))->Reset();
+		}
+	}
+	/*! accessors */
 };
 
 /*
-  
-  #############################################
-  #############################################
-  #############################################
-  ######                                 ######
-  ######   I M P L E M E N T A T I O N   ######
-  ######                                 ######
-  #############################################
-  #############################################
-  #############################################
-  
+
+#############################################
+#############################################
+#############################################
+######                                 ######
+######   I M P L E M E N T A T I O N   ######
+######                                 ######
+#############################################
+#############################################
+#############################################
+
 */
 /* for inline functions */
 
-bool WXVertex::isFeature() 
-{ 
-  int counter = 0;
-  vector<WEdge*>& vedges = GetEdges();
-  for(vector<WEdge*>::iterator ve=vedges.begin(), vend=vedges.end();
-  ve!=vend;
-  ve++)
-  {
-    if(((WXEdge*)(*ve))->nature() != Nature::NO_FEATURE)
-      counter++;
-  }
-  
-  if((counter == 1) || (counter > 2))
-    return true;
-  
-  return false;
+bool WXVertex::isFeature()
+{
+	int counter = 0;
+	vector<WEdge *>& vedges = GetEdges();
+	for (vector<WEdge *>::iterator ve = vedges.begin(), vend = vedges.end(); ve != vend; ++ve) {
+		if (((WXEdge *)(*ve))->nature() != Nature::NO_FEATURE)
+			counter++;
+	}
+
+	if ((counter == 1) || (counter > 2))
+		return true;
+	return false;
 }
 
-
-#endif
+#endif  // __FREESTYLE_WX_EDGE_H__

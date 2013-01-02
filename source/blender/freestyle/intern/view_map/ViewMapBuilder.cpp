@@ -1,828 +1,827 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2010 Blender Foundation.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 
-//
-//  Copyright (C) : Please refer to the COPYRIGHT file distributed 
-//   with this source distribution. 
-//
-//  This program is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU General Public License
-//  as published by the Free Software Foundation; either version 2
-//  of the License, or (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-//
-///////////////////////////////////////////////////////////////////////////////
+/** \file blender/freestyle/intern/view_map/ViewMapBuilder.cpp
+ *  \ingroup freestyle
+ *  \brief Class to build silhouette edges from a Winged-Edge structure
+ *  \author Stephane Grabli
+ *  \date 25/03/2002
+ */
 
-#include "ViewMapBuilder.h"
 #include <algorithm>
-#include <stdexcept>
 #include <memory>
-#include "../winged_edge/WFillGrid.h"
-#include "../../FRS_freestyle.h"
-#include "../geometry/GeomUtils.h"
-#include "../geometry/GridHelpers.h"
+#include <stdexcept>
+
+#include "FRS_freestyle.h"
+
 #include "BoxGrid.h"
-#include "SphericalGrid.h"
-#include "OccluderSource.h"
 #include "CulledOccluderSource.h"
 #include "HeuristicGridDensityProviderFactory.h"
+#include "OccluderSource.h"
+#include "SphericalGrid.h"
+#include "ViewMapBuilder.h"
 
-#define logging 0
+#include "../geometry/GridHelpers.h"
+#include "../geometry/GeomUtils.h"
+
+#include "../winged_edge/WFillGrid.h"
+
+#define LOGGING FALSE
 
 using namespace std;
 
 template <typename G, typename I>
-static void findOccludee(FEdge *fe, G& grid, I& occluders, real epsilon, WFace** oaWFace, 
-    Vec3r& u, Vec3r& A, Vec3r& origin, Vec3r& edge, vector<WVertex*>& faceVertices)
+static void findOccludee(FEdge *fe, G& grid, I& occluders, real epsilon, WFace **oaWFace,
+                         Vec3r& u, Vec3r& A, Vec3r& origin, Vec3r& edge, vector<WVertex*>& faceVertices)
 {
-  WFace *face = 0;
-  if(fe->isSmooth()){
-    FEdgeSmooth * fes = dynamic_cast<FEdgeSmooth*>(fe);
-    face = (WFace*)fes->face();
-  }
-  WFace * oface;
-  bool skipFace;
-  
-  WVertex::incoming_edge_iterator ie;
-  
-  *oaWFace = 0;
-  if(((fe)->getNature() & Nature::SILHOUETTE) || ((fe)->getNature() & Nature::BORDER))
-  {
-    // we cast a ray from A in the same direction but looking behind
-    Vec3r v(-u[0],-u[1],-u[2]);
-    bool noIntersection = true;
-    real mint=FLT_MAX;
+	WFace *face = NULL;
+	if (fe->isSmooth()) {
+		FEdgeSmooth *fes = dynamic_cast<FEdgeSmooth*>(fe);
+		face = (WFace*)fes->face();
+	}
+	WFace *oface;
+	bool skipFace;
 
-    for( occluders.initAfterTarget(); occluders.validAfterTarget(); occluders.nextOccludee() )
-    { 
-#if logging > 0
-	cout << "\t\tEvaluating intersection for occludee " << occluders.getWFace() << " and ray " << A << " * " << u << endl;
-#endif
-      oface = occluders.getWFace();
-      Polygon3r* p = occluders.getCameraSpacePolygon();
-      real d = -((p->getVertices())[0] * p->getNormal());
-      real t,t_u,t_v;
-      
-      if(0 != face)
-      { 
-        skipFace = false;
-        
-        if(face == oface)
-          continue;
-        
-        if(faceVertices.empty())
-          continue;
-        
-        for(vector<WVertex*>::iterator fv=faceVertices.begin(), fvend=faceVertices.end();
-        fv!=fvend;
-        ++fv)
-        { 
-          if((*fv)->isBoundary())
-            continue;
-          WVertex::incoming_edge_iterator iebegin=(*fv)->incoming_edges_begin();
-          WVertex::incoming_edge_iterator ieend=(*fv)->incoming_edges_end();
-          for(ie=iebegin;ie!=ieend; ++ie)
-          {  
-            if((*ie) == 0)
-              continue;
-            
-            WFace * sface = (*ie)->GetbFace();
-            if(sface == oface)
-            { 
-              skipFace = true;
-              break;
-            } 
-          }  
-          if(skipFace)
-            break;
-        } 
-        if(skipFace)
-          continue;
-      }  
-      else
-      {
-        // check whether the edge and the polygon plane are coincident:
-        //-------------------------------------------------------------
-        //first let us compute the plane equation.
-        if(GeomUtils::COINCIDENT == GeomUtils::intersectRayPlane(origin, edge, p->getNormal(), d, t, epsilon)) {
-#if logging > 0
-cout << "\t\tRejecting occluder for target coincidence." << endl;
-#endif
-          continue;
-        }
-      }
+	WVertex::incoming_edge_iterator ie;
 
-      if(p->rayIntersect(A, v, t, t_u, t_v))
-      {
-#if logging > 0
-cout << "\t\tRay " << A << " * " << v << " intersects at time " << t << endl;
-#endif
-#if logging > 0
-cout << "\t\t(v * normal) == " << (v * p->getNormal()) << " for normal " << p->getNormal() << endl;
-#endif
-        if (fabs(v * p->getNormal()) > 0.0001)
-          if ((t>0.0)) // && (t<1.0))
-          {
-            if (t<mint)
-            {
-              *oaWFace = oface;
-              mint = t;
-              noIntersection = false;
-              fe->setOccludeeIntersection(Vec3r(A+t*v));
-#if logging > 0
-cout << "\t\tIs occludee" << endl;
-#endif
-            }
-          }
+	*oaWFace = NULL;
+	if (((fe)->getNature() & Nature::SILHOUETTE) || ((fe)->getNature() & Nature::BORDER)) {
+		// we cast a ray from A in the same direction but looking behind
+		Vec3r v(-u[0], -u[1], -u[2]);
+		bool noIntersection = true;
+		real mint = FLT_MAX;
 
-        occluders.reportDepth(A, v, t);
-      }
+		for (occluders.initAfterTarget(); occluders.validAfterTarget(); occluders.nextOccludee()) {
+			#if LOGGING
+				cout << "\t\tEvaluating intersection for occludee " << occluders.getWFace() << " and ray " << A
+				     << " * " << u << endl;
+			#endif
+			oface = occluders.getWFace();
+			Polygon3r *p = occluders.getCameraSpacePolygon();
+			real d = -((p->getVertices())[0] * p->getNormal());
+			real t, t_u, t_v;
 
-    }
-    
-    if(noIntersection)
-      *oaWFace = 0;
-  }
+			if (0 != face) {
+				skipFace = false;
+
+				if (face == oface)
+					continue;
+
+				if (faceVertices.empty())
+					continue;
+
+				for (vector<WVertex*>::iterator fv = faceVertices.begin(), fvend = faceVertices.end();
+				     fv != fvend;
+				     ++fv)
+				{
+					if ((*fv)->isBoundary())
+						continue;
+					WVertex::incoming_edge_iterator iebegin = (*fv)->incoming_edges_begin();
+					WVertex::incoming_edge_iterator ieend = (*fv)->incoming_edges_end();
+					for (ie = iebegin; ie != ieend; ++ie) {
+						if ((*ie) == 0)
+							continue;
+
+						WFace *sface = (*ie)->GetbFace();
+						if (sface == oface) {
+							skipFace = true;
+							break;
+						}
+					}
+					if (skipFace)
+						break;
+				}
+				if (skipFace)
+					continue;
+			}
+			else {
+				// check whether the edge and the polygon plane are coincident:
+				//-------------------------------------------------------------
+				//first let us compute the plane equation.
+				if (GeomUtils::COINCIDENT == GeomUtils::intersectRayPlane(origin, edge, p->getNormal(), d, t, epsilon))
+				{
+					#if LOGGING
+						cout << "\t\tRejecting occluder for target coincidence." << endl;
+					#endif
+					continue;
+				}
+			}
+
+			if (p->rayIntersect(A, v, t, t_u, t_v)) {
+			#if LOGGING
+				cout << "\t\tRay " << A << " * " << v << " intersects at time " << t << endl;
+				cout << "\t\t(v * normal) == " << (v * p->getNormal()) << " for normal " << p->getNormal() << endl;
+			#endif
+			if (fabs(v * p->getNormal()) > 0.0001) {
+				if ((t > 0.0)) { // && (t<1.0))
+					if (t < mint) {
+						*oaWFace = oface;
+						mint = t;
+						noIntersection = false;
+						fe->setOccludeeIntersection(Vec3r(A + t * v));
+						#if LOGGING
+							cout << "\t\tIs occludee" << endl;
+						#endif
+					}
+				}
+			}
+
+			occluders.reportDepth(A, v, t);
+			}
+		}
+
+		if (noIntersection)
+			*oaWFace = NULL;
+	}
 }
 
 template <typename G, typename I>
-static void findOccludee(FEdge *fe, G& grid, real epsilon, ViewEdge* ve, WFace** oaFace)
+static void findOccludee(FEdge *fe, G& grid, real epsilon, ViewEdge *ve, WFace **oaFace)
 {
-  Vec3r A;
-  Vec3r edge;
-  Vec3r origin;
-  A = Vec3r(((fe)->vertexA()->point3D() + (fe)->vertexB()->point3D()) / 2.0);
-  edge = Vec3r((fe)->vertexB()->point3D()-(fe)->vertexA()->point3D());
-  origin = Vec3r((fe)->vertexA()->point3D());
-  Vec3r u;
-  if (grid.orthographicProjection()) {
-    u = Vec3r(0.0, 0.0, grid.viewpoint().z()-A.z());
-  } else {
-    u = Vec3r(grid.viewpoint()-A);
-  }
-  u.normalize();
+	Vec3r A;
+	Vec3r edge;
+	Vec3r origin;
+	A = Vec3r(((fe)->vertexA()->point3D() + (fe)->vertexB()->point3D()) / 2.0);
+	edge = Vec3r((fe)->vertexB()->point3D() - (fe)->vertexA()->point3D());
+	origin = Vec3r((fe)->vertexA()->point3D());
+	Vec3r u;
+	if (grid.orthographicProjection()) {
+		u = Vec3r(0.0, 0.0, grid.viewpoint().z() - A.z());
+	}
+	else {
+		u = Vec3r(grid.viewpoint() - A);
+	}
+	u.normalize();
 
-  vector<WVertex*> faceVertices;
-     
-  WFace *face = 0;
-  if(fe->isSmooth()) {
-    FEdgeSmooth * fes = dynamic_cast<FEdgeSmooth*>(fe);
-    face = (WFace*)fes->face();
-  }
+	vector<WVertex*> faceVertices;
 
-  if(0 != face) {
-    face->RetrieveVertexList(faceVertices);
-  }
-  
-  I occluders(grid, A, epsilon);
-  findOccludee<G, I>(fe, grid, occluders, epsilon, oaFace, u, A, origin, edge, faceVertices);
+	WFace *face = NULL;
+	if (fe->isSmooth()) {
+		FEdgeSmooth *fes = dynamic_cast<FEdgeSmooth*>(fe);
+		face = (WFace*)fes->face();
+	}
+
+	if (face) {
+		face->RetrieveVertexList(faceVertices);
+	}
+
+	I occluders(grid, A, epsilon);
+	findOccludee<G, I>(fe, grid, occluders, epsilon, oaFace, u, A, origin, edge, faceVertices);
 }
 
 // computeVisibility takes a pointer to foundOccluders, instead of using a reference,
 // so that computeVeryFastVisibility can skip the AddOccluders step with minimal overhead.
 template <typename G, typename I>
-static int computeVisibility(ViewMap* viewMap, FEdge *fe, G& grid, real epsilon, ViewEdge* ve, WFace** oaWFace, set<ViewShape*>* foundOccluders)
+static int computeVisibility(ViewMap *viewMap, FEdge *fe, G& grid, real epsilon, ViewEdge *ve, WFace **oaWFace,
+                             set<ViewShape*> *foundOccluders)
 {
-  int qi = 0;
+	int qi = 0;
 
-  Vec3r center;
-  Vec3r edge;
-  Vec3r origin;
+	Vec3r center;
+	Vec3r edge;
+	Vec3r origin;
 
-  center = fe->center3d();
-  edge = Vec3r(fe->vertexB()->point3D() - fe->vertexA()->point3D());
-  origin = Vec3r(fe->vertexA()->point3D());
+	center = fe->center3d();
+	edge = Vec3r(fe->vertexB()->point3D() - fe->vertexA()->point3D());
+	origin = Vec3r(fe->vertexA()->point3D());
 
-  Vec3r vp;
-  if (grid.orthographicProjection()) {
-    vp = Vec3r(center.x(), center.y(), grid.viewpoint().z());
-  } else {
-    vp = Vec3r(grid.viewpoint());
-  }
-  Vec3r u(vp - center);
-  real raylength = u.norm();
-  u.normalize();
-  
-  WFace *face = 0;
-  if(fe->isSmooth()){
-    FEdgeSmooth * fes = dynamic_cast<FEdgeSmooth*>(fe);
-    face = (WFace*)fes->face();
-  }
-  vector<WVertex*> faceVertices;
-  WVertex::incoming_edge_iterator ie;
-            
-  WFace * oface;
-  bool skipFace;
-
-  if(face)
-    face->RetrieveVertexList(faceVertices);
-
-  I occluders(grid, center, epsilon);
-
-  for(occluders.initBeforeTarget(); occluders.validBeforeTarget(); occluders.nextOccluder())
-    { 
-      // If we're dealing with an exact silhouette, check whether 
-      // we must take care of this occluder of not.
-      // (Indeed, we don't consider the occluders that 
-      // share at least one vertex with the face containing 
-      // this edge).
-      //-----------
-      oface = occluders.getWFace();
-      Polygon3r* p = occluders.getCameraSpacePolygon();
-      real t, t_u, t_v;
-#if logging > 0
-	cout << "\t\tEvaluating intersection for occluder " << (p->getVertices())[0] << (p->getVertices())[1] << (p->getVertices())[2] << endl << "\t\t\tand ray " << vp << " * " << u << " (center " << center << ")" << endl;
-#endif
-
-#if logging > 0
-	Vec3r v(vp - center);
-	real rl = v.norm();
-	v.normalize();
-	vector<Vec3r> points;
-	// Iterate over vertices, storing projections in points
-	for(vector<WOEdge*>::const_iterator woe=oface->getEdgeList().begin(), woend=oface->getEdgeList().end(); woe!=woend; woe++) {
-		points.push_back(Vec3r((*woe)->GetaVertex()->GetVertex()));
+	Vec3r vp;
+	if (grid.orthographicProjection()) {
+		vp = Vec3r(center.x(), center.y(), grid.viewpoint().z());
 	}
-	Polygon3r p1(points, oface->GetNormal());
-	Vec3r v1((p1.getVertices())[0]);
-	real d = -(v1 * p->getNormal());
-	cout << "\t\tp:  " << (p->getVertices())[0] << (p->getVertices())[1] << (p->getVertices())[2] << ", norm: " << p->getNormal() << endl;
-	cout << "\t\tp1: " << (p1.getVertices())[0] << (p1.getVertices())[1] << (p1.getVertices())[2] << ", norm: " << p1.getNormal() << endl;
-#else
-      real d = -((p->getVertices())[0] * p->getNormal());
-#endif
-            
-      if(0 != face)
+	else {
+		vp = Vec3r(grid.viewpoint());
+	}
+	Vec3r u(vp - center);
+	real raylength = u.norm();
+	u.normalize();
+
+	WFace *face = NULL;
+	if (fe->isSmooth()) {
+		FEdgeSmooth *fes = dynamic_cast<FEdgeSmooth*>(fe);
+		face = (WFace*)fes->face();
+	}
+	vector<WVertex*> faceVertices;
+	WVertex::incoming_edge_iterator ie;
+
+	WFace *oface;
+	bool skipFace;
+
+	if (face)
+		face->RetrieveVertexList(faceVertices);
+
+	I occluders(grid, center, epsilon);
+
+	for (occluders.initBeforeTarget(); occluders.validBeforeTarget(); occluders.nextOccluder()) {
+	// If we're dealing with an exact silhouette, check whether we must take care of this occluder of not.
+	// (Indeed, we don't consider the occluders that share at least one vertex with the face containing this edge).
+	//-----------
+	oface = occluders.getWFace();
+	Polygon3r *p = occluders.getCameraSpacePolygon();
+	real t, t_u, t_v;
+	#if LOGGING
+		cout << "\t\tEvaluating intersection for occluder " << (p->getVertices())[0] << (p->getVertices())[1]
+		     << (p->getVertices())[2] << endl << "\t\t\tand ray " << vp << " * " << u << " (center " << center << ")"
+		     << endl;
+	#endif
+
+	#if LOGGING
+		Vec3r v(vp - center);
+		real rl = v.norm();
+		v.normalize();
+		vector<Vec3r> points;
+		// Iterate over vertices, storing projections in points
+		for (vector<WOEdge*>::const_iterator woe = oface->getEdgeList().begin(), woend = oface->getEdgeList().end();
+		     woe != woend;
+		     woe++)
+		{
+			points.push_back(Vec3r((*woe)->GetaVertex()->GetVertex()));
+		}
+		Polygon3r p1(points, oface->GetNormal());
+		Vec3r v1((p1.getVertices())[0]);
+		real d = -(v1 * p->getNormal());
+		cout << "\t\tp:  " << (p->getVertices())[0] << (p->getVertices())[1] << (p->getVertices())[2] << ", norm: "
+		     << p->getNormal() << endl;
+		cout << "\t\tp1: " << (p1.getVertices())[0] << (p1.getVertices())[1] << (p1.getVertices())[2] << ", norm: "
+		     << p1.getNormal() << endl;
+	#else
+		real d = -((p->getVertices())[0] * p->getNormal());
+	#endif
+
+	if (face)
 	{
-#if logging > 0
-cout << "\t\tDetermining face adjacency...";
-#endif
-	  skipFace = false;
-              
-	  if(face == oface) {
-#if logging > 0
-cout << "  Rejecting occluder for face concurrency." << endl;
-#endif
-	    continue;
-          }
-              
-              
-	  for(vector<WVertex*>::iterator fv=faceVertices.begin(), fvend=faceVertices.end();
-              fv!=fvend;
-              ++fv)
-	    {
-                if((*fv)->isBoundary())
-                  continue;
+		#if LOGGING
+			cout << "\t\tDetermining face adjacency...";
+		#endif
+		skipFace = false;
 
-	      WVertex::incoming_edge_iterator iebegin=(*fv)->incoming_edges_begin();
-	      WVertex::incoming_edge_iterator ieend=(*fv)->incoming_edges_end();
-	      for(ie=iebegin;ie!=ieend; ++ie)
-                { 
-                  if((*ie) == 0)
-                    continue;
-                  
-                  WFace * sface = (*ie)->GetbFace();
-                  //WFace * sfacea = (*ie)->GetaFace();
-                  //if((sface == oface) || (sfacea == oface))
-                  if(sface == oface)
-		    {
-		      skipFace = true;
-		      break;
-		    }
-                }
-	      if(skipFace)
-		break;
-	    }
-	  if(skipFace) {
-#if logging > 0
-cout << "  Rejecting occluder for face adjacency." << endl;
-#endif
-	    continue;
-          }
+		if (face == oface) {
+			#if LOGGING
+				cout << "  Rejecting occluder for face concurrency." << endl;
+			#endif
+			continue;
+		}
+
+
+		for (vector<WVertex*>::iterator fv = faceVertices.begin(), fvend = faceVertices.end(); fv != fvend; ++fv) {
+			if ((*fv)->isBoundary())
+				continue;
+
+			WVertex::incoming_edge_iterator iebegin = (*fv)->incoming_edges_begin();
+			WVertex::incoming_edge_iterator ieend = (*fv)->incoming_edges_end();
+			for (ie = iebegin; ie != ieend; ++ie) {
+				if ((*ie) == 0)
+					continue;
+
+				WFace *sface = (*ie)->GetbFace();
+				//WFace *sfacea = (*ie)->GetaFace();
+				//if ((sface == oface) || (sfacea == oface))
+				if (sface == oface) {
+					skipFace = true;
+					break;
+				}
+			}
+			if (skipFace)
+			break;
+		}
+		if (skipFace) {
+			#if LOGGING
+				cout << "  Rejecting occluder for face adjacency." << endl;
+			#endif
+			continue;
+		}
 	}
-      else
-	{
-	  // check whether the edge and the polygon plane are coincident:
-	  //-------------------------------------------------------------
-	  //first let us compute the plane equation.
-           
-	  if(GeomUtils::COINCIDENT == GeomUtils::intersectRayPlane(origin, edge, p->getNormal(), d, t, epsilon)) {
-#if logging > 0
-cout << "\t\tRejecting occluder for target coincidence." << endl;
-#endif
-	    continue;
-          }
+	else {
+		// check whether the edge and the polygon plane are coincident:
+		//-------------------------------------------------------------
+		//first let us compute the plane equation.
+		if (GeomUtils::COINCIDENT == GeomUtils::intersectRayPlane(origin, edge, p->getNormal(), d, t, epsilon)) {
+			#if LOGGING
+				cout << "\t\tRejecting occluder for target coincidence." << endl;
+			#endif
+			continue;
+		}
 	}
 
-#if logging > 0
+	#if LOGGING
+		real x;
+		if (p1.rayIntersect(center, v, x, t_u, t_v)) {
+			cout << "\t\tRay should intersect at time " << (rl - x) << ". Center: " << center << ", V: " << v
+			     <<  ", RL: " << rl << ", T:" << x << endl;
+		}
+		else {
+			cout << "\t\tRay should not intersect. Center: " << center << ", V: " << v <<  ", RL: " << rl << endl;
+		}
+	#endif
 
-	real x;
-	if ( p1.rayIntersect(center, v, x, t_u, t_v) ) {
-		cout << "\t\tRay should intersect at time " << (rl - x) << ". Center: " << center << ", V: " << v <<  ", RL: " << rl << ", T:" << x << endl;
-	} else {
-		cout << "\t\tRay should not intersect. Center: " << center << ", V: " << v <<  ", RL: " << rl << endl;
+	if (p->rayIntersect(center, u, t, t_u, t_v)) {
+		#if LOGGING
+			cout << "\t\tRay " << center << " * " << u << " intersects at time " << t << " (raylength is "
+			     << raylength << ")" << endl;
+			cout << "\t\t(u * normal) == " << (u * p->getNormal()) << " for normal " << p->getNormal() << endl;
+		#endif
+		if (fabs(u * p->getNormal()) > 0.0001) {
+			if ((t > 0.0) && (t < raylength)) {
+				#if LOGGING
+					cout << "\t\tIs occluder" << endl;
+				#endif
+				if ( foundOccluders != NULL ) {
+					ViewShape *vshape = viewMap->viewShape(oface->GetVertex(0)->shape()->GetId());
+					foundOccluders->insert(vshape);
+				}
+				++qi;
+
+				if (! grid.enableQI())
+					break;
+			}
+
+			occluders.reportDepth(center, u, t);
+			}
+		}
 	}
 
-#endif
+	// Find occludee
+	findOccludee<G, I>(fe, grid, occluders, epsilon, oaWFace, u, center, origin, edge, faceVertices);
 
-      if(p->rayIntersect(center, u, t, t_u, t_v))
-	{
-#if logging > 0
-cout << "\t\tRay " << center << " * " << u << " intersects at time " << t << " (raylength is " << raylength << ")" << endl;
-#endif
-#if logging > 0
-cout << "\t\t(u * normal) == " << (u * p->getNormal()) << " for normal " << p->getNormal() << endl;
-#endif
-          if (fabs(u * p->getNormal()) > 0.0001)
-            if ((t>0.0) && (t<raylength))
-              {
-#if logging > 0
-cout << "\t\tIs occluder" << endl;
-#endif
-                if ( foundOccluders != NULL ) {
-                  ViewShape *vshape = viewMap->viewShape(oface->GetVertex(0)->shape()->GetId());
-                  foundOccluders->insert(vshape);
-                }
-
-                ++qi;
-
-                if(! grid.enableQI())
-                  break;
-              }
-
-          occluders.reportDepth(center, u, t);
-	}
-    }
-
-  // Find occludee
-  findOccludee<G, I>(fe, grid, occluders, epsilon, oaWFace, u, center, origin, edge, faceVertices);
-
-  return qi;
+	return qi;
 }
 
-// computeCumulativeVisibility returns the lowest x such that the majority
-// of FEdges have QI <= x
+// computeCumulativeVisibility returns the lowest x such that the majority of FEdges have QI <= x
 //
-// This was probably the original intention of the "normal" algorithm
-// on which computeDetailedVisibility is based.  But because the "normal"
-// algorithm chooses the most popular QI, without considering any other
-// values, a ViewEdge with FEdges having QIs of 0, 21, 22, 23, 24 and 25
-// will end up having a total QI of 0, even though most of the FEdges are
-// heavily occluded.  computeCumulativeVisibility will treat this case as
-// a QI of 22 because 3 out of 6 occluders have QI <= 22.
+// This was probably the original intention of the "normal" algorithm on which computeDetailedVisibility is based.
+// But because the "normal" algorithm chooses the most popular QI, without considering any other values, a ViewEdge
+// with FEdges having QIs of 0, 21, 22, 23, 24 and 25 will end up having a total QI of 0, even though most of the
+// FEdges are heavily occluded. computeCumulativeVisibility will treat this case as a QI of 22 because 3 out of
+// 6 occluders have QI <= 22.
 
 template <typename G, typename I>
 static void computeCumulativeVisibility(ViewMap *ioViewMap, G& grid, real epsilon, RenderMonitor *iRenderMonitor)
 {
-  vector<ViewEdge*>& vedges = ioViewMap->ViewEdges();
+	vector<ViewEdge*>& vedges = ioViewMap->ViewEdges();
 
-  FEdge * fe, *festart;
-  int nSamples = 0;
-  vector<WFace*> wFaces;
-  WFace *wFace = 0;
-  unsigned tmpQI = 0;
-  unsigned qiClasses[256];
-  unsigned maxIndex, maxCard;
-  unsigned qiMajority;
-  for(vector<ViewEdge*>::iterator ve=vedges.begin(), veend=vedges.end(); ve!=veend; ve++) {
-    if (iRenderMonitor && iRenderMonitor->testBreak())
-      break;
-#if logging > 0
-cout << "Processing ViewEdge " << (*ve)->getId() << endl;
-#endif
-    // Find an edge to test
-    if ( ! (*ve)->isInImage() ) {
-      // This view edge has been proscenium culled
-      (*ve)->setQI(255);
-      (*ve)->setaShape(0);
-#if logging > 0
-cout << "\tCulled." << endl;
-#endif
-      continue;
-    }
+	FEdge *fe, *festart;
+	int nSamples = 0;
+	vector<WFace*> wFaces;
+	WFace *wFace = NULL;
+	unsigned tmpQI = 0;
+	unsigned qiClasses[256];
+	unsigned maxIndex, maxCard;
+	unsigned qiMajority;
+	for (vector<ViewEdge*>::iterator ve = vedges.begin(), veend = vedges.end(); ve != veend; ve++) {
+		if (iRenderMonitor && iRenderMonitor->testBreak())
+			break;
+		#if LOGGING
+			cout << "Processing ViewEdge " << (*ve)->getId() << endl;
+		#endif
+		// Find an edge to test
+		if (!(*ve)->isInImage()) {
+			// This view edge has been proscenium culled
+			(*ve)->setQI(255);
+			(*ve)->setaShape(0);
+			#if LOGGING
+				cout << "\tCulled." << endl;
+			#endif
+			continue;
+		}
 
-    // Test edge
-    festart = (*ve)->fedgeA();
-    fe = (*ve)->fedgeA();
-    qiMajority = 0;
-    do {
-      if ( fe != NULL && fe->isInImage() ) {
-        qiMajority++;
-      }
-      fe = fe->nextEdge();
-    } while (fe && fe != festart);
+		// Test edge
+		festart = (*ve)->fedgeA();
+		fe = (*ve)->fedgeA();
+		qiMajority = 0;
+		do {
+			if (fe != NULL && fe->isInImage()) {
+				qiMajority++;
+			}
+			fe = fe->nextEdge();
+		} while (fe && fe != festart);
 
-    if ( qiMajority == 0 ) {
-      // There are no occludable FEdges on this ViewEdge
-      // This should be impossible.
-      cout << "View Edge in viewport without occludable FEdges: " << (*ve)->getId() << endl;
-      // We can recover from this error:
-      // Treat this edge as fully visible with no occludee
-      (*ve)->setQI(0);
-      (*ve)->setaShape(0);
-      continue;
-    } else {
-      ++qiMajority;
-      qiMajority >>= 1;
-    }
-#if logging > 0
-cout << "\tqiMajority: " << qiMajority << endl;
-#endif
+		if (qiMajority == 0) {
+			// There are no occludable FEdges on this ViewEdge
+			// This should be impossible.
+			cout << "View Edge in viewport without occludable FEdges: " << (*ve)->getId() << endl;
+			// We can recover from this error:
+			// Treat this edge as fully visible with no occludee
+			(*ve)->setQI(0);
+			(*ve)->setaShape(0);
+			continue;
+		}
+		else {
+			++qiMajority;
+			qiMajority >>= 1;
+		}
+		#if LOGGING
+			cout << "\tqiMajority: " << qiMajority << endl;
+		#endif
 
-    tmpQI = 0;
-    maxIndex = 0;
-    maxCard = 0;
-    nSamples = 0;
-    memset(qiClasses, 0, 256 * sizeof(*qiClasses));
-	set<ViewShape*> foundOccluders;
+		tmpQI = 0;
+		maxIndex = 0;
+		maxCard = 0;
+		nSamples = 0;
+		memset(qiClasses, 0, 256 * sizeof(*qiClasses));
+		set<ViewShape*> foundOccluders;
 
-    fe = (*ve)->fedgeA();
-    do
-    {
-      if ( fe == NULL || ! fe->isInImage() ) {
-        fe = fe->nextEdge();
-        continue;
-      }
-      if((maxCard < qiMajority)) {
-        tmpQI = computeVisibility<G, I>(ioViewMap, fe, grid, epsilon, *ve, &wFace, &foundOccluders); //ARB: change &wFace to wFace and use reference in called function
-#if logging > 0
-cout << "\tFEdge: visibility " << tmpQI << endl;
-#endif
-	
-        //ARB: This is an error condition, not an alert condition.
-        // Some sort of recovery or abort is necessary.
-        if(tmpQI >= 256) {
-          cerr << "Warning: too many occluding levels" << endl;
-          //ARB: Wild guess: instead of aborting or corrupting memory, treat as tmpQI == 255
-          tmpQI = 255;
-        }
+		fe = (*ve)->fedgeA();
+		do {
+			if (!fe || !fe->isInImage()) {
+				fe = fe->nextEdge();
+				continue;
+			}
+			if ((maxCard < qiMajority)) {
+				//ARB: change &wFace to wFace and use reference in called function
+				tmpQI = computeVisibility<G, I>(ioViewMap, fe, grid, epsilon, *ve, &wFace, &foundOccluders);
+				#if LOGGING
+					cout << "\tFEdge: visibility " << tmpQI << endl;
+				#endif
 
-        if (++qiClasses[tmpQI] > maxCard) {
-          maxCard = qiClasses[tmpQI];
-          maxIndex = tmpQI;
-        }
-      } else {
-        //ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
-        findOccludee<G, I>(fe, grid, epsilon, *ve, &wFace); //ARB: change &wFace to wFace and use reference in called function
-#if logging > 0
-cout << "\tFEdge: occludee only (" << (wFace != NULL ? "found" : "not found") << ")" << endl;
-#endif
-      }
+				//ARB: This is an error condition, not an alert condition.
+				// Some sort of recovery or abort is necessary.
+				if (tmpQI >= 256) {
+					cerr << "Warning: too many occluding levels" << endl;
+					//ARB: Wild guess: instead of aborting or corrupting memory, treat as tmpQI == 255
+					tmpQI = 255;
+				}
 
-      // Store test results
-      if(wFace) { 
-        vector<Vec3r> vertices;
-        for ( int i = 0, numEdges = wFace->numberOfEdges(); i < numEdges; ++i ) {
-          vertices.push_back(Vec3r(wFace->GetVertex(i)->GetVertex()));
-        }
-        Polygon3r poly(vertices, wFace->GetNormal());
-        poly.userdata = (void *) wFace;
-        fe->setaFace(poly);
-        wFaces.push_back(wFace);
-        fe->setOccludeeEmpty(false);
-#if logging > 0
-cout << "\tFound occludee" << endl;
-#endif
-      } else {
-        fe->setOccludeeEmpty(true);
-      }
+				if (++qiClasses[tmpQI] > maxCard) {
+					maxCard = qiClasses[tmpQI];
+					maxIndex = tmpQI;
+				}
+			}
+			else {
+				//ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
+				//ARB: change &wFace to wFace and use reference in called function
+				findOccludee<G, I>(fe, grid, epsilon, *ve, &wFace);
+				#if LOGGING
+					cout << "\tFEdge: occludee only (" << (wFace != NULL ? "found" : "not found") << ")" << endl;
+				#endif
+			}
 
-      ++nSamples;
-      fe = fe->nextEdge();
-    }
-    while((maxCard < qiMajority) && (0!=fe) && (fe!=festart));
-#if logging > 0
-cout << "\tFinished with " << nSamples << " samples, maxCard = " << maxCard << endl;
-#endif
+			// Store test results
+			if (wFace) {
+				vector<Vec3r> vertices;
+				for (int i = 0, numEdges = wFace->numberOfEdges(); i < numEdges; ++i) {
+					vertices.push_back(Vec3r(wFace->GetVertex(i)->GetVertex()));
+				}
+				Polygon3r poly(vertices, wFace->GetNormal());
+				poly.userdata = (void *)wFace;
+				fe->setaFace(poly);
+				wFaces.push_back(wFace);
+				fe->setOccludeeEmpty(false);
+				#if LOGGING
+					cout << "\tFound occludee" << endl;
+				#endif
+			}
+			else {
+				fe->setOccludeeEmpty(true);
+			}
 
-    // ViewEdge
-    // qi --
-    // Find the minimum value that is >= the majority of the QI
-    for ( unsigned count = 0, i = 0; i < 256; ++i ) {
-        count += qiClasses[i];
-        if ( count >= qiMajority ) {
-            (*ve)->setQI(i);
-            break;
-        }
-    }
-    // occluders --
-    // I would rather not have to go through the effort of creating this
-    // this set and then copying out its contents.  Is there a reason why
-    // ViewEdge::_Occluders cannot be converted to a set<>?
-    for(set<ViewShape*>::iterator o=foundOccluders.begin(), oend=foundOccluders.end(); o!=oend; ++o) {
-      (*ve)->AddOccluder((*o));
-    }
-#if logging > 0
-cout << "\tConclusion: QI = " << maxIndex << ", " << (*ve)->occluders_size() << " occluders." << endl;
-#endif
-    // occludee --
-    if(!wFaces.empty())
-    {
-      if(wFaces.size() <= (float)nSamples/2.f)
-      {
-        (*ve)->setaShape(0);
-      }
-      else
-      {
-        ViewShape *vshape = ioViewMap->viewShape((*wFaces.begin())->GetVertex(0)->shape()->GetId());
-        (*ve)->setaShape(vshape);
-      }
-    }
-    
-    wFaces.clear();
-  }    
+			++nSamples;
+			fe = fe->nextEdge();
+		} while ((maxCard < qiMajority) && (fe) && (fe != festart));
+
+		#if LOGGING
+			cout << "\tFinished with " << nSamples << " samples, maxCard = " << maxCard << endl;
+		#endif
+
+		// ViewEdge
+		// qi --
+		// Find the minimum value that is >= the majority of the QI
+		for (unsigned count = 0, i = 0; i < 256; ++i) {
+			count += qiClasses[i];
+			if (count >= qiMajority) {
+				(*ve)->setQI(i);
+				break;
+			}
+		}
+		// occluders --
+		// I would rather not have to go through the effort of creating this set and then copying out its contents.
+		// Is there a reason why ViewEdge::_Occluders cannot be converted to a set<>?
+		for (set<ViewShape*>::iterator o = foundOccluders.begin(), oend = foundOccluders.end(); o != oend; ++o) {
+			(*ve)->AddOccluder((*o));
+		}
+		#if LOGGING
+			cout << "\tConclusion: QI = " << maxIndex << ", " << (*ve)->occluders_size() << " occluders." << endl;
+		#endif
+		// occludee --
+		if (!wFaces.empty()) {
+			if (wFaces.size() <= (float)nSamples / 2.0f) {
+				(*ve)->setaShape(0);
+			}
+			else {
+				ViewShape *vshape = ioViewMap->viewShape((*wFaces.begin())->GetVertex(0)->shape()->GetId());
+				(*ve)->setaShape(vshape);
+			}
+		}
+
+		wFaces.clear();
+	}
 }
 
 template <typename G, typename I>
 static void computeDetailedVisibility(ViewMap *ioViewMap, G& grid, real epsilon, RenderMonitor *iRenderMonitor)
 {
-  vector<ViewEdge*>& vedges = ioViewMap->ViewEdges();
+	vector<ViewEdge*>& vedges = ioViewMap->ViewEdges();
 
-  FEdge * fe, *festart;
-  int nSamples = 0;
-  vector<WFace*> wFaces;
-  WFace *wFace = 0;
-  unsigned tmpQI = 0;
-  unsigned qiClasses[256];
-  unsigned maxIndex, maxCard;
-  unsigned qiMajority;
-  for(vector<ViewEdge*>::iterator ve=vedges.begin(), veend=vedges.end(); ve!=veend; ve++) {
-    if (iRenderMonitor && iRenderMonitor->testBreak())
-      break;
-#if logging > 0
-cout << "Processing ViewEdge " << (*ve)->getId() << endl;
-#endif
-    // Find an edge to test
-    if ( ! (*ve)->isInImage() ) {
-      // This view edge has been proscenium culled
-      (*ve)->setQI(255);
-      (*ve)->setaShape(0);
-#if logging > 0
-cout << "\tCulled." << endl;
-#endif
-      continue;
-    }
+	FEdge *fe, *festart;
+	int nSamples = 0;
+	vector<WFace*> wFaces;
+	WFace *wFace = NULL;
+	unsigned tmpQI = 0;
+	unsigned qiClasses[256];
+	unsigned maxIndex, maxCard;
+	unsigned qiMajority;
+	for (vector<ViewEdge*>::iterator ve = vedges.begin(), veend = vedges.end(); ve != veend; ve++) {
+		if (iRenderMonitor && iRenderMonitor->testBreak())
+			break;
+		#if LOGGING
+			cout << "Processing ViewEdge " << (*ve)->getId() << endl;
+		#endif
+		// Find an edge to test
+		if (!(*ve)->isInImage()) {
+			// This view edge has been proscenium culled
+			(*ve)->setQI(255);
+			(*ve)->setaShape(0);
+			#if LOGGING
+				cout << "\tCulled." << endl;
+			#endif
+			continue;
+		}
 
-    // Test edge
-    festart = (*ve)->fedgeA();
-    fe = (*ve)->fedgeA();
-    qiMajority = 0;
-    do {
-      if ( fe != NULL && fe->isInImage() ) {
-        qiMajority++;
-      }
-      fe = fe->nextEdge();
-    } while (fe && fe != festart);
+		// Test edge
+		festart = (*ve)->fedgeA();
+		fe = (*ve)->fedgeA();
+		qiMajority = 0;
+		do {
+			if (fe != NULL && fe->isInImage()) {
+				qiMajority++;
+			}
+			fe = fe->nextEdge();
+		} while (fe && fe != festart);
 
-    if ( qiMajority == 0 ) {
-      // There are no occludable FEdges on this ViewEdge
-      // This should be impossible.
-      cout << "View Edge in viewport without occludable FEdges: " << (*ve)->getId() << endl;
-      // We can recover from this error:
-      // Treat this edge as fully visible with no occludee
-      (*ve)->setQI(0);
-      (*ve)->setaShape(0);
-      continue;
-    } else {
-      ++qiMajority;
-      qiMajority >>= 1;
-    }
-#if logging > 0
-cout << "\tqiMajority: " << qiMajority << endl;
-#endif
+		if (qiMajority == 0) {
+			// There are no occludable FEdges on this ViewEdge
+			// This should be impossible.
+			cout << "View Edge in viewport without occludable FEdges: " << (*ve)->getId() << endl;
+			// We can recover from this error:
+			// Treat this edge as fully visible with no occludee
+			(*ve)->setQI(0);
+			(*ve)->setaShape(0);
+			continue;
+		}
+		else {
+			++qiMajority;
+			qiMajority >>= 1;
+		}
+		#if LOGGING
+			cout << "\tqiMajority: " << qiMajority << endl;
+		#endif
 
-    tmpQI = 0;
-    maxIndex = 0;
-    maxCard = 0;
-    nSamples = 0;
-    memset(qiClasses, 0, 256 * sizeof(*qiClasses));
-	set<ViewShape*> foundOccluders;
+		tmpQI = 0;
+		maxIndex = 0;
+		maxCard = 0;
+		nSamples = 0;
+		memset(qiClasses, 0, 256 * sizeof(*qiClasses));
+		set<ViewShape*> foundOccluders;
 
-    fe = (*ve)->fedgeA();
-    do
-    {
-      if ( fe == NULL || ! fe->isInImage() ) {
-        fe = fe->nextEdge();
-        continue;
-      }
-      if((maxCard < qiMajority)) {
-        tmpQI = computeVisibility<G, I>(ioViewMap, fe, grid, epsilon, *ve, &wFace, &foundOccluders); //ARB: change &wFace to wFace and use reference in called function
-#if logging > 0
-cout << "\tFEdge: visibility " << tmpQI << endl;
-#endif
-	
-        //ARB: This is an error condition, not an alert condition.
-        // Some sort of recovery or abort is necessary.
-        if(tmpQI >= 256) {
-          cerr << "Warning: too many occluding levels" << endl;
-          //ARB: Wild guess: instead of aborting or corrupting memory, treat as tmpQI == 255
-          tmpQI = 255;
-        }
+		fe = (*ve)->fedgeA();
+		do {
+			if (fe == NULL || ! fe->isInImage()) {
+				fe = fe->nextEdge();
+				continue;
+			}
+			if ((maxCard < qiMajority)) {
+				//ARB: change &wFace to wFace and use reference in called function
+				tmpQI = computeVisibility<G, I>(ioViewMap, fe, grid, epsilon, *ve, &wFace, &foundOccluders);
+				#if LOGGING
+					cout << "\tFEdge: visibility " << tmpQI << endl;
+				#endif
 
-        if (++qiClasses[tmpQI] > maxCard) {
-          maxCard = qiClasses[tmpQI];
-          maxIndex = tmpQI;
-        }
-      } else {
-        //ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
-        findOccludee<G, I>(fe, grid, epsilon, *ve, &wFace); //ARB: change &wFace to wFace and use reference in called function
-#if logging > 0
-cout << "\tFEdge: occludee only (" << (wFace != NULL ? "found" : "not found") << ")" << endl;
-#endif
-      }
+				//ARB: This is an error condition, not an alert condition.
+				// Some sort of recovery or abort is necessary.
+				if (tmpQI >= 256) {
+					cerr << "Warning: too many occluding levels" << endl;
+					//ARB: Wild guess: instead of aborting or corrupting memory, treat as tmpQI == 255
+					tmpQI = 255;
+				}
 
-      // Store test results
-      if(wFace) { 
-        vector<Vec3r> vertices;
-        for ( int i = 0, numEdges = wFace->numberOfEdges(); i < numEdges; ++i ) {
-          vertices.push_back(Vec3r(wFace->GetVertex(i)->GetVertex()));
-        }
-        Polygon3r poly(vertices, wFace->GetNormal());
-        poly.userdata = (void *) wFace;
-        fe->setaFace(poly);
-        wFaces.push_back(wFace);
-        fe->setOccludeeEmpty(false);
-#if logging > 0
-cout << "\tFound occludee" << endl;
-#endif
-      } else {
-        fe->setOccludeeEmpty(true);
-      }
+				if (++qiClasses[tmpQI] > maxCard) {
+					maxCard = qiClasses[tmpQI];
+					maxIndex = tmpQI;
+				}
+			}
+			else {
+				//ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
+				//ARB: change &wFace to wFace and use reference in called function
+				findOccludee<G, I>(fe, grid, epsilon, *ve, &wFace);
+				#if LOGGING
+					cout << "\tFEdge: occludee only (" << (wFace != NULL ? "found" : "not found") << ")" << endl;
+				#endif
+			}
 
-      ++nSamples;
-      fe = fe->nextEdge();
-    }
-    while((maxCard < qiMajority) && (0!=fe) && (fe!=festart));
-#if logging > 0
-cout << "\tFinished with " << nSamples << " samples, maxCard = " << maxCard << endl;
-#endif
+			// Store test results
+			if (wFace) {
+				vector<Vec3r> vertices;
+				for (int i = 0, numEdges = wFace->numberOfEdges(); i < numEdges; ++i) {
+					vertices.push_back(Vec3r(wFace->GetVertex(i)->GetVertex()));
+				}
+				Polygon3r poly(vertices, wFace->GetNormal());
+				poly.userdata = (void *)wFace;
+				fe->setaFace(poly);
+				wFaces.push_back(wFace);
+				fe->setOccludeeEmpty(false);
+				#if LOGGING
+					cout << "\tFound occludee" << endl;
+				#endif
+			}
+			else {
+				fe->setOccludeeEmpty(true);
+			}
 
-    // ViewEdge
-    // qi --
-    (*ve)->setQI(maxIndex);
-    // occluders --
-    // I would rather not have to go through the effort of creating this
-    // this set and then copying out its contents.  Is there a reason why
-    // ViewEdge::_Occluders cannot be converted to a set<>?
-    for(set<ViewShape*>::iterator o=foundOccluders.begin(), oend=foundOccluders.end(); o!=oend; ++o) {
-      (*ve)->AddOccluder((*o));
-    }
-#if logging > 0
-cout << "\tConclusion: QI = " << maxIndex << ", " << (*ve)->occluders_size() << " occluders." << endl;
-#endif
-    // occludee --
-    if(!wFaces.empty())
-    {
-      if(wFaces.size() <= (float)nSamples/2.f)
-      {
-        (*ve)->setaShape(0);
-      }
-      else
-      {
-        ViewShape *vshape = ioViewMap->viewShape((*wFaces.begin())->GetVertex(0)->shape()->GetId());
-        (*ve)->setaShape(vshape);
-      }
-    }
-    
-    wFaces.clear();
-  }    
+			++nSamples;
+			fe = fe->nextEdge();
+		} while ((maxCard < qiMajority) && (fe) && (fe != festart));
+
+		#if LOGGING
+			cout << "\tFinished with " << nSamples << " samples, maxCard = " << maxCard << endl;
+		#endif
+
+		// ViewEdge
+		// qi --
+		(*ve)->setQI(maxIndex);
+		// occluders --
+		// I would rather not have to go through the effort of creating this this set and then copying out its contents.
+		// Is there a reason why ViewEdge::_Occluders cannot be converted to a set<>?
+		for (set<ViewShape*>::iterator o = foundOccluders.begin(), oend = foundOccluders.end(); o != oend; ++o) {
+			(*ve)->AddOccluder((*o));
+		}
+		#if LOGGING
+			cout << "\tConclusion: QI = " << maxIndex << ", " << (*ve)->occluders_size() << " occluders." << endl;
+		#endif
+		// occludee --
+		if (!wFaces.empty()) {
+			if (wFaces.size() <= (float)nSamples / 2.0f) {
+				(*ve)->setaShape(0);
+			}
+			else {
+				ViewShape *vshape = ioViewMap->viewShape((*wFaces.begin())->GetVertex(0)->shape()->GetId());
+				(*ve)->setaShape(vshape);
+			}
+		}
+
+		wFaces.clear();
+	}
 }
 
 template <typename G, typename I>
 static void computeFastVisibility(ViewMap *ioViewMap, G& grid, real epsilon)
 {
-  vector<ViewEdge*>& vedges = ioViewMap->ViewEdges();
+	vector<ViewEdge*>& vedges = ioViewMap->ViewEdges();
 
-  FEdge * fe, *festart;
-  unsigned nSamples = 0;
-  vector<WFace*> wFaces;
-  WFace *wFace = 0;
-  unsigned tmpQI = 0;
-  unsigned qiClasses[256];
-  unsigned maxIndex, maxCard;
-  unsigned qiMajority;
-  bool even_test;
-  for(vector<ViewEdge*>::iterator ve=vedges.begin(), veend=vedges.end(); ve!=veend; ve++) {
-    // Find an edge to test
-    if ( ! (*ve)->isInImage() ) {
-      // This view edge has been proscenium culled
-      (*ve)->setQI(255);
-      (*ve)->setaShape(0);
-      continue;
-    }
+	FEdge *fe, *festart;
+	unsigned nSamples = 0;
+	vector<WFace*> wFaces;
+	WFace *wFace = NULL;
+	unsigned tmpQI = 0;
+	unsigned qiClasses[256];
+	unsigned maxIndex, maxCard;
+	unsigned qiMajority;
+	bool even_test;
+	for (vector<ViewEdge*>::iterator ve = vedges.begin(), veend = vedges.end(); ve != veend; ve++) {
+		// Find an edge to test
+		if (!(*ve)->isInImage()) {
+			// This view edge has been proscenium culled
+			(*ve)->setQI(255);
+			(*ve)->setaShape(0);
+			continue;
+		}
 
-    // Test edge
-    festart = (*ve)->fedgeA();
-    fe = (*ve)->fedgeA();
+		// Test edge
+		festart = (*ve)->fedgeA();
+		fe = (*ve)->fedgeA();
 
-    even_test = true;
-    qiMajority = 0;
-    do {
-      if ( even_test && fe != NULL && fe->isInImage() ) {
-        qiMajority++;
-        even_test = ! even_test;
-      }
-      fe = fe->nextEdge();
-    } while (fe && fe != festart);
+		even_test = true;
+		qiMajority = 0;
+		do {
+			if (even_test && fe && fe->isInImage()) {
+				qiMajority++;
+				even_test = !even_test;
+			}
+			fe = fe->nextEdge();
+		} while (fe && fe != festart);
 
-    if (qiMajority == 0 ) {
-      // There are no occludable FEdges on this ViewEdge
-      // This should be impossible.
-      cout << "View Edge in viewport without occludable FEdges: " << (*ve)->getId() << endl;
-      // We can recover from this error:
-      // Treat this edge as fully visible with no occludee
-      (*ve)->setQI(0);
-      (*ve)->setaShape(0);
-      continue;
-    } else {
-      ++qiMajority;
-      qiMajority >>= 1;
-    }
+		if (qiMajority == 0 ) {
+			// There are no occludable FEdges on this ViewEdge
+			// This should be impossible.
+			cout << "View Edge in viewport without occludable FEdges: " << (*ve)->getId() << endl;
+			// We can recover from this error:
+			// Treat this edge as fully visible with no occludee
+			(*ve)->setQI(0);
+			(*ve)->setaShape(0);
+			continue;
+		}
+		else {
+			++qiMajority;
+			qiMajority >>= 1;
+		}
 
-    even_test = true;
-    maxIndex = 0;
-    maxCard = 0;
-    nSamples = 0;
-    memset(qiClasses, 0, 256 * sizeof(*qiClasses));
-	set<ViewShape*> foundOccluders;
+		even_test = true;
+		maxIndex = 0;
+		maxCard = 0;
+		nSamples = 0;
+		memset(qiClasses, 0, 256 * sizeof(*qiClasses));
+		set<ViewShape*> foundOccluders;
 
-    fe = (*ve)->fedgeA();
-    do
-    {
-      if ( fe == NULL || ! fe->isInImage() ) {
-        fe = fe->nextEdge();
-        continue;
-      }
-      if (even_test)
-      {
-        if((maxCard < qiMajority)) {
-          tmpQI = computeVisibility<G, I>(ioViewMap, fe, grid, epsilon, *ve, &wFace, &foundOccluders); //ARB: change &wFace to wFace and use reference in called function
+		fe = (*ve)->fedgeA();
+		do {
+			if (!fe || !fe->isInImage()) {
+				fe = fe->nextEdge();
+				continue;
+			}
+			if (even_test) {
+				if ((maxCard < qiMajority)) {
+					//ARB: change &wFace to wFace and use reference in called function
+					tmpQI = computeVisibility<G, I>(ioViewMap, fe, grid, epsilon, *ve, &wFace, &foundOccluders);
 
-          //ARB: This is an error condition, not an alert condition.
-          // Some sort of recovery or abort is necessary.
-          if(tmpQI >= 256) {
-            cerr << "Warning: too many occluding levels" << endl;
-            //ARB: Wild guess: instead of aborting or corrupting memory, treat as tmpQI == 255
-            tmpQI = 255;
-          }
+					//ARB: This is an error condition, not an alert condition.
+					// Some sort of recovery or abort is necessary.
+					if (tmpQI >= 256) {
+						cerr << "Warning: too many occluding levels" << endl;
+						//ARB: Wild guess: instead of aborting or corrupting memory, treat as tmpQI == 255
+						tmpQI = 255;
+					}
 
-          if (++qiClasses[tmpQI] > maxCard) {
-            maxCard = qiClasses[tmpQI];
-            maxIndex = tmpQI;
-          }
-        }  else {
-          //ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
-          findOccludee<G, I>(fe, grid, epsilon, *ve, &wFace); //ARB: change &wFace to wFace and use reference in called function
-        }
+					if (++qiClasses[tmpQI] > maxCard) {
+						maxCard = qiClasses[tmpQI];
+						maxIndex = tmpQI;
+					}
+				}
+				else {
+					//ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
+					//ARB: change &wFace to wFace and use reference in called function
+					findOccludee<G, I>(fe, grid, epsilon, *ve, &wFace);
+				}
 
-        if(wFace)
-        { 
-          vector<Vec3r> vertices;
-          for ( int i = 0, numEdges = wFace->numberOfEdges(); i < numEdges; ++i ) {
-            vertices.push_back(Vec3r(wFace->GetVertex(i)->GetVertex()));
-          }
-          Polygon3r poly(vertices, wFace->GetNormal());
-          poly.userdata = (void *) wFace;
-          fe->setaFace(poly);
-          wFaces.push_back(wFace);
-        } 
-        ++nSamples;
-      }
+				if (wFace) {
+					vector<Vec3r> vertices;
+					for (int i = 0, numEdges = wFace->numberOfEdges(); i < numEdges; ++i) {
+						vertices.push_back(Vec3r(wFace->GetVertex(i)->GetVertex()));
+					}
+					Polygon3r poly(vertices, wFace->GetNormal());
+					poly.userdata = (void *)wFace;
+					fe->setaFace(poly);
+					wFaces.push_back(wFace);
+				}
+				++nSamples;
+			}
 
-      even_test = ! even_test;
-      fe = fe->nextEdge();
-    } while ((maxCard < qiMajority) && (0!=fe) && (fe!=festart));
+			even_test = ! even_test;
+			fe = fe->nextEdge();
+		} while ((maxCard < qiMajority) && (fe) && (fe != festart));
 
-	// qi --
-    (*ve)->setQI(maxIndex);
+		// qi --
+		(*ve)->setQI(maxIndex);
 
-    // occluders --
-    for(set<ViewShape*>::iterator o=foundOccluders.begin(), oend=foundOccluders.end(); o!=oend; ++o) {
-      (*ve)->AddOccluder((*o));
-    }
+		// occluders --
+		for (set<ViewShape*>::iterator o = foundOccluders.begin(), oend = foundOccluders.end(); o != oend; ++o) {
+			(*ve)->AddOccluder((*o));
+		}
 
-    // occludee --
-    if(!wFaces.empty())
-    {
-      if(wFaces.size() < nSamples / 2)
-      {
-        (*ve)->setaShape(0);
-      }
-      else
-      {
-        ViewShape *vshape = ioViewMap->viewShape((*wFaces.begin())->GetVertex(0)->shape()->GetId());
-        (*ve)->setaShape(vshape);
-      }
-    }
-    
-    wFaces.clear();
-  }
+		// occludee --
+		if (!wFaces.empty()) {
+			if (wFaces.size() < nSamples / 2) {
+				(*ve)->setaShape(0);
+			}
+			else {
+				ViewShape *vshape = ioViewMap->viewShape((*wFaces.begin())->GetVertex(0)->shape()->GetId());
+				(*ve)->setaShape(vshape);
+			}
+		}
+
+		wFaces.clear();
+	}
 }
 
 template <typename G, typename I>
@@ -830,14 +829,13 @@ static void computeVeryFastVisibility(ViewMap *ioViewMap, G& grid, real epsilon)
 {
 	vector<ViewEdge*>& vedges = ioViewMap->ViewEdges();
 
-	FEdge* fe;
+	FEdge *fe;
 	unsigned qi = 0;
-	WFace* wFace = 0;
+	WFace *wFace = 0;
 
-	for(vector<ViewEdge*>::iterator ve=vedges.begin(), veend=vedges.end(); ve!=veend; ve++)
-	{
+	for (vector<ViewEdge*>::iterator ve = vedges.begin(), veend = vedges.end(); ve != veend; ve++) {
 		// Find an edge to test
-		if ( ! (*ve)->isInImage() ) {
+		if (!(*ve)->isInImage()) {
 			// This view edge has been proscenium culled
 			(*ve)->setQI(255);
 			(*ve)->setaShape(0);
@@ -845,16 +843,13 @@ static void computeVeryFastVisibility(ViewMap *ioViewMap, G& grid, real epsilon)
 		}
 		fe = (*ve)->fedgeA();
 		// Find a FEdge inside the occluder proscenium to test for visibility
-		FEdge* festart = fe;
-		while ( fe != NULL && ! fe->isInImage() ) {
+		FEdge *festart = fe;
+		while (fe && !fe->isInImage() && fe != festart) {
 			fe = fe->nextEdge();
-			if ( fe == festart ) {
-				break;
-			}
 		}
 
 		// Test edge
-		if ( fe == NULL || ! fe->isInImage() ) {
+		if (!fe || !fe->isInImage()) {
 			// There are no occludable FEdges on this ViewEdge
 			// This should be impossible.
 			cout << "View Edge in viewport without occludable FEdges: " << (*ve)->getId() << endl;
@@ -862,80 +857,81 @@ static void computeVeryFastVisibility(ViewMap *ioViewMap, G& grid, real epsilon)
 			// Treat this edge as fully visible with no occludee
 			qi = 0;
 			wFace = NULL;
-		} else {
+		}
+		else {
 			qi = computeVisibility<G, I>(ioViewMap, fe, grid, epsilon, *ve, &wFace, NULL);
 		}
 
 		// Store test results
-		if(wFace)
-		{ 
+		if (wFace) {
 			vector<Vec3r> vertices;
-			for ( int i = 0, numEdges = wFace->numberOfEdges(); i < numEdges; ++i ) {
+			for (int i = 0, numEdges = wFace->numberOfEdges(); i < numEdges; ++i) {
 				vertices.push_back(Vec3r(wFace->GetVertex(i)->GetVertex()));
 			}
 			Polygon3r poly(vertices, wFace->GetNormal());
-			poly.userdata = (void *) wFace;
+			poly.userdata = (void *)wFace;
 			fe->setaFace(poly);  // This works because setaFace *copies* the polygon
 			ViewShape *vshape = ioViewMap->viewShape(wFace->GetVertex(0)->shape()->GetId());
 			(*ve)->setaShape(vshape);
-		} 
-		else
-		{
+		}
+		else {
 			(*ve)->setaShape(0);
 		}
 		(*ve)->setQI(qi);
-	}  
-
+	}
 }
 
-void ViewMapBuilder::BuildGrid(WingedEdge& we, const BBox<Vec3r>& bbox, unsigned int sceneNumFaces) {
-  _Grid->clear();
-  Vec3r size;
-  for(unsigned int i=0; i<3; i++)
-    {
-      size[i] = fabs(bbox.getMax()[i] - bbox.getMin()[i]);
-      size[i] += size[i]/10.0; // let make the grid 1/10 bigger to avoid numerical errors while computing triangles/cells intersections
-      if(size[i]==0){
-          cout << "Warning: the bbox size is 0 in dimension "<<i<<endl;
-      }
-    }
-  _Grid->configure(Vec3r(bbox.getMin() - size / 20.0), size, sceneNumFaces);
+void ViewMapBuilder::BuildGrid(WingedEdge& we, const BBox<Vec3r>& bbox, unsigned int sceneNumFaces)
+{
+	_Grid->clear();
+	Vec3r size;
+	for (unsigned int i = 0; i < 3; i++) {
+		size[i] = fabs(bbox.getMax()[i] - bbox.getMin()[i]);
+		size[i] += size[i]/10.0; // let make the grid 1/10 bigger to avoid numerical errors while computing triangles/cells intersections
+		if (size[i] == 0) {
+			cout << "Warning: the bbox size is 0 in dimension " << i << endl;
+		}
+	}
+	_Grid->configure(Vec3r(bbox.getMin() - size / 20.0), size, sceneNumFaces);
 
-  // Fill in the grid:
-  WFillGrid fillGridRenderer(_Grid, &we);
-  fillGridRenderer.fillGrid();
-  
-  // DEBUG
-  _Grid->displayDebug();
+	// Fill in the grid:
+	WFillGrid fillGridRenderer(_Grid, &we);
+	fillGridRenderer.fillGrid();
+
+	// DEBUG
+	_Grid->displayDebug();
 }
 
-ViewMap* ViewMapBuilder::BuildViewMap(WingedEdge& we, visibility_algo iAlgo, real epsilon, 
-      const BBox<Vec3r>& bbox, unsigned int sceneNumFaces) {
-  _ViewMap = new ViewMap;
-  _currentId = 1;
-  _currentFId = 0;
-  _currentSVertexId = 0;
+ViewMap *ViewMapBuilder::BuildViewMap(WingedEdge& we, visibility_algo iAlgo, real epsilon,
+                                      const BBox<Vec3r>& bbox, unsigned int sceneNumFaces)
+{
+	_ViewMap = new ViewMap;
+	_currentId = 1;
+	_currentFId = 0;
+	_currentSVertexId = 0;
 
-  // Builds initial view edges
-  computeInitialViewEdges(we);
-  
-  // Detects cusps
-  computeCusps(_ViewMap); 
-  
-  // Compute intersections
-  ComputeIntersections(_ViewMap, sweep_line, epsilon);
-  
-  // Compute visibility
-  ComputeEdgesVisibility(_ViewMap, we, bbox, sceneNumFaces, iAlgo, epsilon);
+	// Builds initial view edges
+	computeInitialViewEdges(we);
 
-  return _ViewMap;
+	// Detects cusps
+	computeCusps(_ViewMap); 
+
+	// Compute intersections
+	ComputeIntersections(_ViewMap, sweep_line, epsilon);
+
+	// Compute visibility
+	ComputeEdgesVisibility(_ViewMap, we, bbox, sceneNumFaces, iAlgo, epsilon);
+
+	return _ViewMap;
 }
 
-static inline real distance2D(const Vec3r & point, const real origin[2]) {
+static inline real distance2D(const Vec3r & point, const real origin[2])
+{
 	return ::hypot((point[0] - origin[0]), (point[1] - origin[1]));
 }
 
-static inline bool crossesProscenium(real proscenium[4], FEdge *fe) {
+static inline bool crossesProscenium(real proscenium[4], FEdge *fe)
+{
 	Vec2r min(proscenium[0], proscenium[2]);
 	Vec2r max(proscenium[1], proscenium[3]);
 	Vec2r A(fe->vertexA()->getProjectedX(), fe->vertexA()->getProjectedY());
@@ -944,20 +940,21 @@ static inline bool crossesProscenium(real proscenium[4], FEdge *fe) {
 	return GeomUtils::intersect2dSeg2dArea (min, max, A, B);
 }
 
-static inline bool insideProscenium(real proscenium[4], const Vec3r& point) {
-	return ! ( point[0] < proscenium[0] || point[0] > proscenium[1] || point[1] < proscenium[2] || point[1] > proscenium[3] );
+static inline bool insideProscenium(real proscenium[4], const Vec3r& point)
+{
+	return !(point[0] < proscenium[0] || point[0] > proscenium[1] ||
+	         point[1] < proscenium[2] || point[1] > proscenium[3]);
 }
 
-void ViewMapBuilder::CullViewEdges(ViewMap *ioViewMap, real viewProscenium[4], real occluderProscenium[4], bool extensiveFEdgeSearch) {
+void ViewMapBuilder::CullViewEdges(ViewMap *ioViewMap, real viewProscenium[4], real occluderProscenium[4],
+                                   bool extensiveFEdgeSearch)
+{
 	// Cull view edges by marking them as non-displayable.
-	// This avoids the complications of trying to delete
-	// edges from the ViewMap.
+	// This avoids the complications of trying to delete edges from the ViewMap.
 
-	// Non-displayable view edges will be skipped over during
-	// visibility calculation.
+	// Non-displayable view edges will be skipped over during visibility calculation.
 
-	// View edges will be culled according to their position
-	// w.r.t. the viewport proscenium (viewport + 5% border,
+	// View edges will be culled according to their position w.r.t. the viewport proscenium (viewport + 5% border,
 	// or some such).
 
 	// Get proscenium boundary for culling
@@ -966,34 +963,30 @@ void ViewMapBuilder::CullViewEdges(ViewMap *ioViewMap, real viewProscenium[4], r
 	prosceniumOrigin[0] = (viewProscenium[1] - viewProscenium[0]) / 2.0;
 	prosceniumOrigin[1] = (viewProscenium[3] - viewProscenium[2]) / 2.0;
 	cout << "Proscenium culling:" << endl;
-	cout << "Proscenium: [" << viewProscenium[0] << ", " << viewProscenium[1] << ", " << viewProscenium[2] << ", " << viewProscenium[3] << "]"<< endl;
+	cout << "Proscenium: [" << viewProscenium[0] << ", " << viewProscenium[1] << ", " << viewProscenium[2]
+	     << ", " << viewProscenium[3] << "]"<< endl;
 	cout << "Origin: [" << prosceniumOrigin[0] << ", " << prosceniumOrigin[1] << "]"<< endl;
-	
-	// A separate occluder proscenium will also be maintained,
-	// starting out the same as the viewport proscenium, and 
-	// expanding as necessary so that it encompasses the center 
-	// point of at least one feature edge in each retained view
+
+	// A separate occluder proscenium will also be maintained, starting out the same as the viewport proscenium, and 
+	// expanding as necessary so that it encompasses the center point of at least one feature edge in each retained view
 	// edge.
-	// The occluder proscenium will be used later to cull occluding
-	// triangles before they are inserted into the Grid.
-	// The occluder proscenium starts out the same size as the view
-	// proscenium
+	// The occluder proscenium will be used later to cull occluding triangles before they are inserted into the Grid.
+	// The occluder proscenium starts out the same size as the view proscenium
 	GridHelpers::getDefaultViewProscenium(occluderProscenium);
 
-	// N.B. Freestyle is inconsistent in its use of ViewMap::viewedges_container
-	// and vector<ViewEdge*>::iterator.  Probably all occurences of vector<ViewEdge*>::iterator
-	// should be replaced ViewMap::viewedges_container throughout the code.
+	// N.B. Freestyle is inconsistent in its use of ViewMap::viewedges_container and vector<ViewEdge*>::iterator.
+	// Probably all occurences of vector<ViewEdge*>::iterator should be replaced ViewMap::viewedges_container
+	// throughout the code.
 	// For each view edge
 	ViewMap::viewedges_container::iterator ve, veend;
 
-	for(ve=ioViewMap->ViewEdges().begin(), veend=ioViewMap->ViewEdges().end(); ve!=veend; ve++) {
+	for (ve = ioViewMap->ViewEdges().begin(), veend = ioViewMap->ViewEdges().end(); ve != veend; ve++) {
 		// Overview:
 		//    Search for a visible feature edge
 		//    If none: mark view edge as non-displayable
 		//    Otherwise:
 		//        Find a feature edge with center point inside occluder proscenium.
-		//        If none exists, find the feature edge with center point
-		//            closest to viewport origin.
+		//        If none exists, find the feature edge with center point closest to viewport origin.
 		//            Expand occluder proscenium to enclose center point.
 
 		// For each feature edge, while bestOccluderTarget not found and view edge not visibile
@@ -1005,27 +998,26 @@ void ViewMapBuilder::CullViewEdges(ViewMap *ioViewMap, real viewProscenium[4], r
 		// All ViewEdges start culled
 		(*ve)->setIsInImage(false);
 
-		// For simple visibility calculation: mark a feature edge
-		// that is known to have a center point inside the occluder proscenium.  
-		// Cull all other feature edges.
+		// For simple visibility calculation: mark a feature edge that is known to have a center point inside the
+		// occluder proscenium. Cull all other feature edges.
 		do {
 			// All FEdges start culled
 			fe->setIsInImage(false);
 
-			// Look for the visible edge that can most easily be included
-			// in the occluder proscenium.
-			if ( ! bestOccluderTargetFound ) {
-				// If center point is inside occluder proscenium, 
-				if ( insideProscenium(occluderProscenium, fe->center2d()) ) {
+			// Look for the visible edge that can most easily be included in the occluder proscenium.
+			if (!bestOccluderTargetFound) {
+				// If center point is inside occluder proscenium,
+				if (insideProscenium(occluderProscenium, fe->center2d())) {
 					// Use this feature edge for visibility deterimination
 					fe->setIsInImage(true);
 					// Mark bestOccluderTarget as found
 					bestOccluderTargetFound = true;
 					bestOccluderTarget = fe;
-				} else {
+				}
+				else {
 					real d = distance2D(fe->center2d(), prosceniumOrigin);
 					// If center point is closer to viewport origin than current target
-					if ( bestOccluderTarget == NULL || d < bestOccluderDistance ) {
+					if (bestOccluderTarget == NULL || d < bestOccluderDistance) {
 						// Then store as bestOccluderTarget
 						bestOccluderDistance = d;
 						bestOccluderTarget = fe;
@@ -1034,33 +1026,35 @@ void ViewMapBuilder::CullViewEdges(ViewMap *ioViewMap, real viewProscenium[4], r
 			}
 
 			// If feature edge crosses the view proscenium
-			if ( ! (*ve)->isInImage() && crossesProscenium(viewProscenium, fe) ) {
+			if (!(*ve)->isInImage() && crossesProscenium(viewProscenium, fe)) {
 				// Then the view edge will be included in the image
 				(*ve)->setIsInImage(true);
 			}
 			fe = fe->nextEdge();
-		} while ( fe != NULL && fe != festart && ! ( bestOccluderTargetFound && (*ve)->isInImage() ) );
+		} while (fe && fe != festart && !(bestOccluderTargetFound && (*ve)->isInImage()));
 
 		// Either we have run out of FEdges, or we already have the one edge we need to determine visibility
 		// Cull all remaining edges.
-		while ( fe != NULL && fe != festart ) {
+		while (fe && fe != festart) {
 			fe->setIsInImage(false);
 			fe = fe->nextEdge();
 		}
 
-		// If bestOccluderTarget was not found inside the occluder proscenium, 
-		// we need to expand the occluder proscenium to include it.
-		if ( (*ve)->isInImage() && bestOccluderTarget != NULL && ! bestOccluderTargetFound ) {
+		// If bestOccluderTarget was not found inside the occluder proscenium, we need to expand the occluder
+		// proscenium to include it.
+		if ((*ve)->isInImage() && bestOccluderTarget != NULL && !bestOccluderTargetFound) {
 			// Expand occluder proscenium to enclose bestOccluderTarget
 			Vec3r point = bestOccluderTarget->center2d();
-			if ( point[0] < occluderProscenium[0] ) {
+			if (point[0] < occluderProscenium[0]) {
 				occluderProscenium[0] = point[0];
-			} else if ( point[0] > occluderProscenium[1] ) {
+			}
+			else if (point[0] > occluderProscenium[1]) {
 				occluderProscenium[1] = point[0];
 			}
-			if ( point[1] < occluderProscenium[2] ) {
+			if (point[1] < occluderProscenium[2]) {
 				occluderProscenium[2] = point[1];
-			} else if ( point[1] > occluderProscenium[3] ) {
+			}
+			else if (point[1] > occluderProscenium[3]) {
 				occluderProscenium[3] = point[1];
 			}
 			// Use bestOccluderTarget for visibility determination
@@ -1078,22 +1072,18 @@ void ViewMapBuilder::CullViewEdges(ViewMap *ioViewMap, real viewProscenium[4], r
 
 	// For "Normal" or "Fast" style visibility computation only:
 
-	// For more detailed visibility calculation, make a second pass through
-	// the view map, marking all feature edges with center points inside
-	// the final occluder proscenium.  All of these feature edges can be
-	// considered during visibility calculation.
+	// For more detailed visibility calculation, make a second pass through the view map, marking all feature edges
+	// with center points inside the final occluder proscenium. All of these feature edges can be considered during
+	// visibility calculation.
 
-	// So far we have only found one FEdge per ViewEdge.  The "Normal" and
-	// "Fast" styles of visibility computation want to consider many
-	// FEdges for each ViewEdge.
-	// Here we re-scan the view map to find any usable FEdges that we
-	// skipped on the first pass, or that have become usable because the
-	// occluder proscenium has been expanded since the edge was visited
-	// on the first pass.
-	if ( extensiveFEdgeSearch ) {
+	// So far we have only found one FEdge per ViewEdge.  The "Normal" and "Fast" styles of visibility computation
+	// want to consider many FEdges for each ViewEdge.
+	// Here we re-scan the view map to find any usable FEdges that we skipped on the first pass, or that have become
+	// usable because the occluder proscenium has been expanded since the edge was visited on the first pass.
+	if (extensiveFEdgeSearch) {
 		// For each view edge,
-		for(ve=ioViewMap->ViewEdges().begin(), veend=ioViewMap->ViewEdges().end(); ve!=veend; ve++) {
-			if ( ! (*ve)->isInImage() ) {
+		for (ve = ioViewMap->ViewEdges().begin(), veend = ioViewMap->ViewEdges().end(); ve != veend; ve++) {
+			if (!(*ve)->isInImage()) {
 				continue;
 			}
 			// For each feature edge,
@@ -1101,255 +1091,257 @@ void ViewMapBuilder::CullViewEdges(ViewMap *ioViewMap, real viewProscenium[4], r
 			FEdge *fe = festart;
 			do {
 				// If not (already) visible and center point inside occluder proscenium, 
-				if ( ! fe->isInImage() && insideProscenium(occluderProscenium, fe->center2d()) ) {
+				if (!fe->isInImage() && insideProscenium(occluderProscenium, fe->center2d())) {
 					// Use the feature edge for visibility determination
 					fe->setIsInImage(true);
 				}
 				fe = fe->nextEdge();
-			} while ( fe != NULL && fe != festart );
+			} while (fe && fe != festart);
 		}
 	}
 }
 
 void ViewMapBuilder::computeInitialViewEdges(WingedEdge& we)
 {
-  vector<WShape*> wshapes = we.getWShapes();
-  SShape* psShape;
+	vector<WShape*> wshapes = we.getWShapes();
+	SShape *psShape;
 
-  for (vector<WShape*>::const_iterator it = wshapes.begin();
-       it != wshapes.end();
-       it++) {
-    if (_pRenderMonitor && _pRenderMonitor->testBreak())
-      break;
+	for (vector<WShape*>::const_iterator it = wshapes.begin(); it != wshapes.end(); it++) {
+		if (_pRenderMonitor && _pRenderMonitor->testBreak())
+			break;
 
-    // create the embedding
-    psShape = new SShape;
-    psShape->setId((*it)->GetId());
-    psShape->setName((*it)->getName());
-    psShape->setFrsMaterials((*it)->frs_materials()); // FIXME
+		// create the embedding
+		psShape = new SShape;
+		psShape->setId((*it)->GetId());
+		psShape->setName((*it)->getName());
+		psShape->setFrsMaterials((*it)->frs_materials()); // FIXME
 
-    // create the view shape
-    ViewShape * vshape = new ViewShape(psShape);
-    // add this view shape to the view map:
-    _ViewMap->AddViewShape(vshape);
-  
-    _pViewEdgeBuilder->setCurrentViewId(_currentId); // we want to number the view edges in a unique way for the while scene.
-    _pViewEdgeBuilder->setCurrentFId(_currentFId); // we want to number the feature edges in a unique way for the while scene.
-    _pViewEdgeBuilder->setCurrentSVertexId(_currentFId); // we want to number the SVertex in a unique way for the while scene.
-    _pViewEdgeBuilder->BuildViewEdges(dynamic_cast<WXShape*>(*it), vshape, 
-				      _ViewMap->ViewEdges(), 
-				      _ViewMap->ViewVertices(), 
-				      _ViewMap->FEdges(), 
-				      _ViewMap->SVertices());
-  
-    _currentId = _pViewEdgeBuilder->currentViewId()+1;
-    _currentFId = _pViewEdgeBuilder->currentFId()+1;
-    _currentSVertexId = _pViewEdgeBuilder->currentSVertexId()+1;
+		// create the view shape
+		ViewShape *vshape = new ViewShape(psShape);
+		// add this view shape to the view map:
+		_ViewMap->AddViewShape(vshape);
 
-    psShape->ComputeBBox();
-  }
+		// we want to number the view edges in a unique way for the while scene.
+		_pViewEdgeBuilder->setCurrentViewId(_currentId);
+		// we want to number the feature edges in a unique way for the while scene.
+		_pViewEdgeBuilder->setCurrentFId(_currentFId);
+		// we want to number the SVertex in a unique way for the while scene.
+		_pViewEdgeBuilder->setCurrentSVertexId(_currentFId);
+		_pViewEdgeBuilder->BuildViewEdges(dynamic_cast<WXShape*>(*it), vshape, _ViewMap->ViewEdges(),
+		                                  _ViewMap->ViewVertices(), _ViewMap->FEdges(), _ViewMap->SVertices());
+
+		_currentId = _pViewEdgeBuilder->currentViewId() + 1;
+		_currentFId = _pViewEdgeBuilder->currentFId() + 1;
+		_currentSVertexId = _pViewEdgeBuilder->currentSVertexId() + 1;
+
+		psShape->ComputeBBox();
+	}
 }
 
-void ViewMapBuilder::computeCusps(ViewMap *ioViewMap){
-  vector<ViewVertex*> newVVertices;
-  vector<ViewEdge*> newVEdges;
-  ViewMap::viewedges_container& vedges = ioViewMap->ViewEdges();
-  ViewMap::viewedges_container::iterator ve=vedges.begin(), veend=vedges.end();
-  for(;
-  ve!=veend;
-  ++ve){
-    if (_pRenderMonitor && _pRenderMonitor->testBreak())
-      break;
-    if((!((*ve)->getNature() & Nature::SILHOUETTE)) || (!((*ve)->fedgeA()->isSmooth())))
-      continue;
-    FEdge *fe = (*ve)->fedgeA();
-    FEdge * fefirst = fe;
-    bool first = true;
-    bool positive = true;
-    do{
-      FEdgeSmooth * fes = dynamic_cast<FEdgeSmooth*>(fe);
-      Vec3r A((fes)->vertexA()->point3d());
-      Vec3r B((fes)->vertexB()->point3d());
-      Vec3r AB(B-A);
-      AB.normalize();
-      Vec3r m((A+B)/2.0);
-      Vec3r crossP(AB^(fes)->normal()); 
-      crossP.normalize();
-      Vec3r viewvector;
-      if (_orthographicProjection) {
-        viewvector = Vec3r(0.0, 0.0, m.z()-_viewpoint.z());
-      } else {
-        viewvector = Vec3r(m-_viewpoint);
-      }
-      viewvector.normalize();
-      if(first){
-        if(((crossP)*(viewvector)) > 0)
-          positive = true;
-        else
-          positive = false;
-        first = false;
-      }
-      // If we're in a positive part, we need 
-      // a stronger negative value to change
-      NonTVertex *cusp = 0;
-      if(positive){
-        if(((crossP)*(viewvector)) < -0.1){
-          // state changes
-          positive = false;
-          // creates and insert cusp
-          cusp = dynamic_cast<NonTVertex*>(ioViewMap->InsertViewVertex(fes->vertexA(), newVEdges));
-          if(cusp!=0)
-            cusp->setNature(cusp->getNature()|Nature::CUSP);
-        }
-          
-      }else{
-        // If we're in a negative part, we need 
-        // a stronger negative value to change
-        if(((crossP)*(viewvector)) > 0.1){
-          positive = true;
-          cusp = dynamic_cast<NonTVertex*>(ioViewMap->InsertViewVertex(fes->vertexA(), newVEdges));
-          if(cusp!=0)
-            cusp->setNature(cusp->getNature()|Nature::CUSP);
-        }
-      }
-      fe = fe->nextEdge();
-    }while((fe!=0) && (fe!=fefirst));
-  }
-  for(ve=newVEdges.begin(), veend=newVEdges.end();
-  ve!=veend;
-  ++ve){
-    (*ve)->viewShape()->AddEdge(*ve);
-    vedges.push_back(*ve);
-  }
+void ViewMapBuilder::computeCusps(ViewMap *ioViewMap)
+{
+	vector<ViewVertex*> newVVertices;
+	vector<ViewEdge*> newVEdges;
+	ViewMap::viewedges_container& vedges = ioViewMap->ViewEdges();
+	ViewMap::viewedges_container::iterator ve = vedges.begin(), veend = vedges.end();
+	for (; ve != veend; ++ve) {
+		if (_pRenderMonitor && _pRenderMonitor->testBreak())
+			break;
+		if ((!((*ve)->getNature() & Nature::SILHOUETTE)) || (!((*ve)->fedgeA()->isSmooth())))
+			continue;
+		FEdge *fe = (*ve)->fedgeA();
+		FEdge *fefirst = fe;
+		bool first = true;
+		bool positive = true;
+		do {
+			FEdgeSmooth *fes = dynamic_cast<FEdgeSmooth*>(fe);
+			Vec3r A((fes)->vertexA()->point3d());
+			Vec3r B((fes)->vertexB()->point3d());
+			Vec3r AB(B - A);
+			AB.normalize();
+			Vec3r m((A + B) / 2.0);
+			Vec3r crossP(AB ^ (fes)->normal());
+			crossP.normalize();
+			Vec3r viewvector;
+			if (_orthographicProjection) {
+				viewvector = Vec3r(0.0, 0.0, m.z() - _viewpoint.z());
+			}
+			else {
+				viewvector = Vec3r(m - _viewpoint);
+			}
+			viewvector.normalize();
+			if (first) {
+				if (((crossP) * (viewvector)) > 0)
+					positive = true;
+				else
+					positive = false;
+				first = false;
+			}
+			// If we're in a positive part, we need a stronger negative value to change
+			NonTVertex *cusp = NULL;
+			if (positive) {
+				if (((crossP) * (viewvector)) < -0.1) {
+					// state changes
+					positive = false;
+					// creates and insert cusp
+					cusp = dynamic_cast<NonTVertex*>(ioViewMap->InsertViewVertex(fes->vertexA(), newVEdges));
+					if (cusp)
+						cusp->setNature(cusp->getNature()|Nature::CUSP);
+				}
+			}
+			else {
+				// If we're in a negative part, we need a stronger negative value to change
+				if (((crossP) * (viewvector)) > 0.1) {
+					positive = true;
+					cusp = dynamic_cast<NonTVertex*>(ioViewMap->InsertViewVertex(fes->vertexA(), newVEdges));
+					if (cusp)
+						cusp->setNature(cusp->getNature()|Nature::CUSP);
+				}
+			}
+			fe = fe->nextEdge();
+		} while (fe && fe != fefirst);
+	}
+	for (ve = newVEdges.begin(), veend = newVEdges.end(); ve != veend; ++ve) {
+		(*ve)->viewShape()->AddEdge(*ve);
+		vedges.push_back(*ve);
+	}
 }
 
-void ViewMapBuilder::ComputeCumulativeVisibility(ViewMap *ioViewMap, 
-      WingedEdge& we, const BBox<Vec3r>& bbox, real epsilon, bool cull, GridDensityProviderFactory& factory)
+void ViewMapBuilder::ComputeCumulativeVisibility(ViewMap *ioViewMap, WingedEdge& we, const BBox<Vec3r>& bbox,
+                                                 real epsilon, bool cull, GridDensityProviderFactory& factory)
 {
 	auto_ptr<GridHelpers::Transform> transform;
 	auto_ptr<OccluderSource> source;
 
-	if ( _orthographicProjection ) {
+	if (_orthographicProjection) {
 		transform.reset(new BoxGrid::Transform);
-	} else {
+	}
+	else {
 		transform.reset(new SphericalGrid::Transform);
 	}
 
-	if ( cull ) {
+	if (cull) {
 		source.reset(new CulledOccluderSource(*transform, we, *ioViewMap, true));
-	} else {
+	}
+	else {
 		source.reset(new OccluderSource(*transform, we));
 	}
 
 	auto_ptr<GridDensityProvider> density(factory.newGridDensityProvider(*source, bbox, *transform));
 
-	if ( _orthographicProjection ) {
+	if (_orthographicProjection) {
 		BoxGrid grid(*source, *density, ioViewMap, _viewpoint, _EnableQI);
 		computeCumulativeVisibility<BoxGrid, BoxGrid::Iterator>(ioViewMap, grid, epsilon, _pRenderMonitor);
-	} else {
+	}
+	else {
 		SphericalGrid grid(*source, *density, ioViewMap, _viewpoint, _EnableQI);
 		computeCumulativeVisibility<SphericalGrid, SphericalGrid::Iterator>(ioViewMap, grid, epsilon, _pRenderMonitor);
 	}
 }
 
-void ViewMapBuilder::ComputeDetailedVisibility(ViewMap *ioViewMap, 
-      WingedEdge& we, const BBox<Vec3r>& bbox, real epsilon, bool cull, GridDensityProviderFactory& factory)
+void ViewMapBuilder::ComputeDetailedVisibility(ViewMap *ioViewMap, WingedEdge& we, const BBox<Vec3r>& bbox,
+                                               real epsilon, bool cull, GridDensityProviderFactory& factory)
 {
 	auto_ptr<GridHelpers::Transform> transform;
 	auto_ptr<OccluderSource> source;
 
-	if ( _orthographicProjection ) {
+	if (_orthographicProjection) {
 		transform.reset(new BoxGrid::Transform);
-	} else {
+	}
+	else {
 		transform.reset(new SphericalGrid::Transform);
 	}
 
-	if ( cull ) {
+	if (cull) {
 		source.reset(new CulledOccluderSource(*transform, we, *ioViewMap, true));
-	} else {
+	}
+	else {
 		source.reset(new OccluderSource(*transform, we));
 	}
 
 	auto_ptr<GridDensityProvider> density(factory.newGridDensityProvider(*source, bbox, *transform));
 
-	if ( _orthographicProjection ) {
+	if (_orthographicProjection) {
 		BoxGrid grid(*source, *density, ioViewMap, _viewpoint, _EnableQI);
 		computeDetailedVisibility<BoxGrid, BoxGrid::Iterator>(ioViewMap, grid, epsilon, _pRenderMonitor);
-	} else {
+	}
+	else {
 		SphericalGrid grid(*source, *density, ioViewMap, _viewpoint, _EnableQI);
 		computeDetailedVisibility<SphericalGrid, SphericalGrid::Iterator>(ioViewMap, grid, epsilon, _pRenderMonitor);
 	}
 }
 
-void ViewMapBuilder::ComputeEdgesVisibility(ViewMap *ioViewMap, 
-      WingedEdge& we, const BBox<Vec3r>& bbox, unsigned int sceneNumFaces, visibility_algo iAlgo, real epsilon)
+void ViewMapBuilder::ComputeEdgesVisibility(ViewMap *ioViewMap, WingedEdge& we, const BBox<Vec3r>& bbox,
+                                            unsigned int sceneNumFaces, visibility_algo iAlgo, real epsilon)
 {
-  switch(iAlgo)
-  {
-  case ray_casting:
-    cout << "Using ordinary ray casting" << endl;
-    BuildGrid(we, bbox, sceneNumFaces);
-    ComputeRayCastingVisibility(ioViewMap, epsilon);
-    break;
-  case ray_casting_fast:
-    cout << "Using fast ray casting" << endl;
-    BuildGrid(we, bbox, sceneNumFaces);
-    ComputeFastRayCastingVisibility(ioViewMap, epsilon);
-    break;
-  case ray_casting_very_fast:
-    cout << "Using very fast ray casting" << endl;
-    BuildGrid(we, bbox, sceneNumFaces);
-    ComputeVeryFastRayCastingVisibility(ioViewMap, epsilon);
-    break;
-  case ray_casting_culled_adaptive_traditional:
-	cout << "Using culled adaptive grid with heuristic density and traditional QI calculation" << endl;
-	try {
-		HeuristicGridDensityProviderFactory factory(0.5f, sceneNumFaces);
-		ComputeDetailedVisibility(ioViewMap, we, bbox, epsilon, true, factory);
-	} catch (...) {
-		// Last resort catch to make sure RAII semantics hold for OptimizedGrid
-		// Can be replaced with try...catch block around main() if the program
-		// as a whole is converted to RAII
+	switch(iAlgo) {
+		case ray_casting:
+			cout << "Using ordinary ray casting" << endl;
+			BuildGrid(we, bbox, sceneNumFaces);
+			ComputeRayCastingVisibility(ioViewMap, epsilon);
+			break;
+		case ray_casting_fast:
+			cout << "Using fast ray casting" << endl;
+			BuildGrid(we, bbox, sceneNumFaces);
+			ComputeFastRayCastingVisibility(ioViewMap, epsilon);
+			break;
+		case ray_casting_very_fast:
+			cout << "Using very fast ray casting" << endl;
+			BuildGrid(we, bbox, sceneNumFaces);
+			ComputeVeryFastRayCastingVisibility(ioViewMap, epsilon);
+			break;
+		case ray_casting_culled_adaptive_traditional:
+			cout << "Using culled adaptive grid with heuristic density and traditional QI calculation" << endl;
+			try {
+				HeuristicGridDensityProviderFactory factory(0.5f, sceneNumFaces);
+				ComputeDetailedVisibility(ioViewMap, we, bbox, epsilon, true, factory);
+			}
+			catch (...) {
+				// Last resort catch to make sure RAII semantics hold for OptimizedGrid. Can be replaced with
+				// try...catch block around main() if the program as a whole is converted to RAII
 
-		// This is the little-mentioned caveat of RAII: RAII does not work unless
-		// destructors are always called, but destructors are only called if all
-		// exceptions are caught (or std::terminate() is replaced).
+				// This is the little-mentioned caveat of RAII: RAII does not work unless destructors are always
+				// called, but destructors are only called if all exceptions are caught (or std::terminate() is
+				// replaced).
 
-		// We don't actually handle the exception here, so re-throw it
-		// now that our destructors have had a chance to run.
-		throw;
+				// We don't actually handle the exception here, so re-throw it now that our destructors have had a
+				// chance to run.
+				throw;
+			}
+			break;
+		case ray_casting_adaptive_traditional:
+			cout << "Using unculled adaptive grid with heuristic density and traditional QI calculation" << endl;
+			try {
+				HeuristicGridDensityProviderFactory factory(0.5f, sceneNumFaces);
+				ComputeDetailedVisibility(ioViewMap, we, bbox, epsilon, false, factory);
+			}
+			catch (...) {
+				throw;
+			}
+			break;
+		case ray_casting_culled_adaptive_cumulative:
+			cout << "Using culled adaptive grid with heuristic density and cumulative QI calculation" << endl;
+			try {
+				HeuristicGridDensityProviderFactory factory(0.5f, sceneNumFaces);
+				ComputeCumulativeVisibility(ioViewMap, we, bbox, epsilon, true, factory);
+			}
+			catch (...) {
+				throw;
+			}
+			break;
+		case ray_casting_adaptive_cumulative:
+			cout << "Using unculled adaptive grid with heuristic density and cumulative QI calculation" << endl;
+			try {
+				HeuristicGridDensityProviderFactory factory(0.5f, sceneNumFaces);
+				ComputeCumulativeVisibility(ioViewMap, we, bbox, epsilon, false, factory);
+			}
+			catch (...) {
+				throw;
+			}
+			break;
+		default:
+			break;
 	}
-    break;
-  case ray_casting_adaptive_traditional:
-	cout << "Using unculled adaptive grid with heuristic density and traditional QI calculation" << endl;
-	try {
-		HeuristicGridDensityProviderFactory factory(0.5f, sceneNumFaces);
-		ComputeDetailedVisibility(ioViewMap, we, bbox, epsilon, false, factory);
-	} catch (...) {
-		throw;
-	}
-    break;
-  case ray_casting_culled_adaptive_cumulative:
-	cout << "Using culled adaptive grid with heuristic density and cumulative QI calculation" << endl;
-	try {
-		HeuristicGridDensityProviderFactory factory(0.5f, sceneNumFaces);
-		ComputeCumulativeVisibility(ioViewMap, we, bbox, epsilon, true, factory);
-	} catch (...) {
-		throw;
-	}
-    break;
-  case ray_casting_adaptive_cumulative:
-	cout << "Using unculled adaptive grid with heuristic density and cumulative QI calculation" << endl;
-	try {
-		HeuristicGridDensityProviderFactory factory(0.5f, sceneNumFaces);
-		ComputeCumulativeVisibility(ioViewMap, we, bbox, epsilon, false, factory);
-	} catch (...) {
-		throw;
-	}
-    break;
-  default:
-    break;
-  }
 }
 
 static const unsigned gProgressBarMaxSteps = 10;
@@ -1357,977 +1349,913 @@ static const unsigned gProgressBarMinSize = 2000;
 
 void ViewMapBuilder::ComputeRayCastingVisibility(ViewMap *ioViewMap, real epsilon)
 {
-  vector<ViewEdge*>& vedges = ioViewMap->ViewEdges();
-  bool progressBarDisplay = false;
-  unsigned progressBarStep = 0;
-  unsigned vEdgesSize = vedges.size();
-  unsigned fEdgesSize = ioViewMap->FEdges().size();
+	vector<ViewEdge*>& vedges = ioViewMap->ViewEdges();
+	bool progressBarDisplay = false;
+	unsigned progressBarStep = 0;
+	unsigned vEdgesSize = vedges.size();
+	unsigned fEdgesSize = ioViewMap->FEdges().size();
 
-  if(_pProgressBar != NULL && fEdgesSize > gProgressBarMinSize) {
-    unsigned progressBarSteps = min(gProgressBarMaxSteps, vEdgesSize);
-    progressBarStep = vEdgesSize / progressBarSteps;
-    _pProgressBar->reset();
-    _pProgressBar->setLabelText("Computing Ray casting Visibility");
-    _pProgressBar->setTotalSteps(progressBarSteps);
-    _pProgressBar->setProgress(0);
-    progressBarDisplay = true;
-  }
-  
-  unsigned counter = progressBarStep;
-  FEdge * fe, *festart;
-  int nSamples = 0;
-  vector<Polygon3r*> aFaces;
-  Polygon3r *aFace = 0;
-  unsigned tmpQI = 0;
-  unsigned qiClasses[256];
-  unsigned maxIndex, maxCard;
-  unsigned qiMajority;
-  static unsigned timestamp = 1;
-  for(vector<ViewEdge*>::iterator ve=vedges.begin(), veend=vedges.end();
-  ve!=veend;
-  ve++)
-  {
-    if (_pRenderMonitor && _pRenderMonitor->testBreak())
-      break;
-#if logging > 0
-cout << "Processing ViewEdge " << (*ve)->getId() << endl;
-#endif
-    festart = (*ve)->fedgeA();
-    fe = (*ve)->fedgeA();
-    qiMajority = 1;
-    do {
-       qiMajority++;
-       fe = fe->nextEdge();
-    } while (fe && fe != festart);
-    qiMajority >>= 1;
-#if logging > 0
-cout << "\tqiMajority: " << qiMajority << endl;
-#endif
-
-    tmpQI = 0;
-    maxIndex = 0;
-    maxCard = 0;
-    nSamples = 0;
-    fe = (*ve)->fedgeA();
-    memset(qiClasses, 0, 256 * sizeof(*qiClasses));
-    set<ViewShape*> occluders;
-    do
-    {
-      if((maxCard < qiMajority)) {
-	tmpQI = ComputeRayCastingVisibility(fe, _Grid, epsilon, occluders, &aFace, timestamp++);
-	
-#if logging > 0
-cout << "\tFEdge: visibility " << tmpQI << endl;
-#endif
-	//ARB: This is an error condition, not an alert condition.
-	// Some sort of recovery or abort is necessary.
-	if(tmpQI >= 256) {
-	  cerr << "Warning: too many occluding levels" << endl;
-	  //ARB: Wild guess: instead of aborting or corrupting memory, treat as tmpQI == 255
-	  tmpQI = 255;
+	if (_pProgressBar != NULL && fEdgesSize > gProgressBarMinSize) {
+		unsigned progressBarSteps = min(gProgressBarMaxSteps, vEdgesSize);
+		progressBarStep = vEdgesSize / progressBarSteps;
+		_pProgressBar->reset();
+		_pProgressBar->setLabelText("Computing Ray casting Visibility");
+		_pProgressBar->setTotalSteps(progressBarSteps);
+		_pProgressBar->setProgress(0);
+		progressBarDisplay = true;
 	}
 
-	if (++qiClasses[tmpQI] > maxCard) {
-	  maxCard = qiClasses[tmpQI];
-	  maxIndex = tmpQI;
+	unsigned counter = progressBarStep;
+	FEdge *fe, *festart;
+	int nSamples = 0;
+	vector<Polygon3r*> aFaces;
+	Polygon3r *aFace = NULL;
+	unsigned tmpQI = 0;
+	unsigned qiClasses[256];
+	unsigned maxIndex, maxCard;
+	unsigned qiMajority;
+	static unsigned timestamp = 1;
+	for (vector<ViewEdge*>::iterator ve = vedges.begin(), veend = vedges.end(); ve != veend; ve++) {
+		if (_pRenderMonitor && _pRenderMonitor->testBreak())
+			break;
+		#if LOGGING
+			cout << "Processing ViewEdge " << (*ve)->getId() << endl;
+		#endif
+		festart = (*ve)->fedgeA();
+		fe = (*ve)->fedgeA();
+		qiMajority = 1;
+		do {
+			qiMajority++;
+			fe = fe->nextEdge();
+		} while (fe && fe != festart);
+		qiMajority >>= 1;
+		#if LOGGING
+			cout << "\tqiMajority: " << qiMajority << endl;
+		#endif
+
+		tmpQI = 0;
+		maxIndex = 0;
+		maxCard = 0;
+		nSamples = 0;
+		fe = (*ve)->fedgeA();
+		memset(qiClasses, 0, 256 * sizeof(*qiClasses));
+		set<ViewShape*> occluders;
+		do {
+			if ((maxCard < qiMajority)) {
+				tmpQI = ComputeRayCastingVisibility(fe, _Grid, epsilon, occluders, &aFace, timestamp++);
+
+				#if LOGGING
+					cout << "\tFEdge: visibility " << tmpQI << endl;
+				#endif
+				//ARB: This is an error condition, not an alert condition.
+				// Some sort of recovery or abort is necessary.
+				if (tmpQI >= 256) {
+					cerr << "Warning: too many occluding levels" << endl;
+					//ARB: Wild guess: instead of aborting or corrupting memory, treat as tmpQI == 255
+					tmpQI = 255;
+				}
+
+				if (++qiClasses[tmpQI] > maxCard) {
+					maxCard = qiClasses[tmpQI];
+					maxIndex = tmpQI;
+				}
+			}
+			else {
+				//ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
+				FindOccludee(fe, _Grid, epsilon, &aFace, timestamp++);
+				#if LOGGING
+					cout << "\tFEdge: occludee only (" << (aFace != NULL ? "found" : "not found") << ")" << endl;
+				#endif
+			}
+
+			if (aFace) {
+				fe->setaFace(*aFace);
+				aFaces.push_back(aFace);
+				fe->setOccludeeEmpty(false);
+				#if LOGGING
+					cout << "\tFound occludee" << endl;
+				#endif
+			}
+			else {
+				//ARB: We are arbitrarily using the last observed value for occludee (almost always the value observed
+				//     for the edge before festart). Is that meaningful?
+				// ...in fact, _occludeeEmpty seems to be unused.
+				fe->setOccludeeEmpty(true);
+			}
+
+			++nSamples;
+			fe = fe->nextEdge();
+		} while ((maxCard < qiMajority) && (fe) && (fe != festart));
+		#if LOGGING
+			cout << "\tFinished with " << nSamples << " samples, maxCard = " << maxCard << endl;
+		#endif
+
+		// ViewEdge
+		// qi --
+		(*ve)->setQI(maxIndex);
+		// occluders --
+		for (set<ViewShape*>::iterator o = occluders.begin(), oend = occluders.end(); o != oend; ++o)
+			(*ve)->AddOccluder((*o));
+		#if LOGGING
+			cout << "\tConclusion: QI = " << maxIndex << ", " << (*ve)->occluders_size() << " occluders." << endl;
+		#endif
+		// occludee --
+		if (!aFaces.empty()) {
+			if (aFaces.size() <= (float)nSamples / 2.0f) {
+				(*ve)->setaShape(0);
+			}
+			else {
+				vector<Polygon3r*>::iterator p = aFaces.begin();
+				WFace *wface = (WFace*)((*p)->userdata);
+				ViewShape *vshape = ioViewMap->viewShape(wface->GetVertex(0)->shape()->GetId());
+				++p;
+				(*ve)->setaShape(vshape);
+			}
+		}
+
+		if (progressBarDisplay) {
+			counter--;
+			if (counter <= 0) {
+				counter = progressBarStep;
+				_pProgressBar->setProgress(_pProgressBar->getProgress() + 1);
+			}
+		}
+		aFaces.clear();
 	}
-      } else {
-	//ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
-	FindOccludee(fe, _Grid, epsilon, &aFace, timestamp++);
-#if logging > 0
-cout << "\tFEdge: occludee only (" << (aFace != NULL ? "found" : "not found") << ")" << endl;
-#endif
-      }
-
-      if(aFace) { 
-	fe->setaFace(*aFace);
-	aFaces.push_back(aFace);
-	fe->setOccludeeEmpty(false);
-#if logging > 0
-cout << "\tFound occludee" << endl;
-#endif
-      }
-      else
-      {
-	//ARB: We are arbitrarily using the last observed value for occludee 
-	// (almost always the value observed for the edge before festart).
-	// Is that meaningful?
-	// ...in fact, _occludeeEmpty seems to be unused.
-	fe->setOccludeeEmpty(true);
-      }
-
-      ++nSamples;
-      fe = fe->nextEdge();
-    }
-    while((maxCard < qiMajority) && (0!=fe) && (fe!=festart));
-#if logging > 0
-cout << "\tFinished with " << nSamples << " samples, maxCard = " << maxCard << endl;
-#endif
-
-    // ViewEdge
-    // qi --
-    (*ve)->setQI(maxIndex);
-    // occluders --
-    for(set<ViewShape*>::iterator o=occluders.begin(), oend=occluders.end();
-    o!=oend;
-    ++o)
-      (*ve)->AddOccluder((*o));
-#if logging > 0
-cout << "\tConclusion: QI = " << maxIndex << ", " << (*ve)->occluders_size() << " occluders." << endl;
-#endif
-    // occludee --
-    if(!aFaces.empty())
-    {
-      if(aFaces.size() <= (float)nSamples/2.f)
-      {
-        (*ve)->setaShape(0);
-      }
-      else
-      {
-        vector<Polygon3r*>::iterator p = aFaces.begin();
-        WFace * wface = (WFace*)((*p)->userdata);
-        ViewShape *vshape = ioViewMap->viewShape(wface->GetVertex(0)->shape()->GetId());
-        ++p;
-        (*ve)->setaShape(vshape);
-      }
-    }
-    
-    if(progressBarDisplay) {  
-      counter--;
-      if (counter <= 0) {
-	counter = progressBarStep;
-	_pProgressBar->setProgress(_pProgressBar->getProgress() + 1);
-      }
-    }   
-    aFaces.clear();
-  }    
 }
 
 void ViewMapBuilder::ComputeFastRayCastingVisibility(ViewMap *ioViewMap, real epsilon)
 {
-  vector<ViewEdge*>& vedges = ioViewMap->ViewEdges();
-  bool progressBarDisplay = false;
-  unsigned progressBarStep = 0;
-  unsigned vEdgesSize = vedges.size();
-  unsigned fEdgesSize = ioViewMap->FEdges().size();
+	vector<ViewEdge*>& vedges = ioViewMap->ViewEdges();
+	bool progressBarDisplay = false;
+	unsigned progressBarStep = 0;
+	unsigned vEdgesSize = vedges.size();
+	unsigned fEdgesSize = ioViewMap->FEdges().size();
 
-  if(_pProgressBar != NULL && fEdgesSize > gProgressBarMinSize) {
-    unsigned progressBarSteps = min(gProgressBarMaxSteps, vEdgesSize);
-    progressBarStep = vEdgesSize / progressBarSteps;
-    _pProgressBar->reset();
-    _pProgressBar->setLabelText("Computing Ray casting Visibility");
-    _pProgressBar->setTotalSteps(progressBarSteps);
-    _pProgressBar->setProgress(0);
-    progressBarDisplay = true;
-  }
-
-  unsigned counter = progressBarStep;  
-  FEdge * fe, *festart;
-  unsigned nSamples = 0;
-  vector<Polygon3r*> aFaces;
-  Polygon3r *aFace = 0;
-  unsigned tmpQI = 0;
-  unsigned qiClasses[256];
-  unsigned maxIndex, maxCard;
-  unsigned qiMajority;
-  static unsigned timestamp = 1;
-  bool even_test;
-  for(vector<ViewEdge*>::iterator ve=vedges.begin(), veend=vedges.end();
-  ve!=veend;
-  ve++)
-  {
-    if (_pRenderMonitor && _pRenderMonitor->testBreak())
-      break;
-
-    festart = (*ve)->fedgeA();
-    fe = (*ve)->fedgeA();
-    qiMajority = 1;
-    do {
-       qiMajority++;
-       fe = fe->nextEdge();
-    } while (fe && fe != festart);
-    if (qiMajority >= 4)
-      qiMajority >>= 2;
-    else
-      qiMajority = 1;
-
-    set<ViewShape*> occluders;
-
-    even_test = true;
-    maxIndex = 0;
-    maxCard = 0;
-    nSamples = 0;
-    memset(qiClasses, 0, 256 * sizeof(*qiClasses));
-    fe = (*ve)->fedgeA();
-    do
-    {
-      if (even_test)
-      {
-	if((maxCard < qiMajority)) {
-	  tmpQI = ComputeRayCastingVisibility(fe, _Grid, epsilon, occluders, &aFace, timestamp++);
-	  
-	//ARB: This is an error condition, not an alert condition.
-	// Some sort of recovery or abort is necessary.
-	if(tmpQI >= 256) {
-	  cerr << "Warning: too many occluding levels" << endl;
-	  //ARB: Wild guess: instead of aborting or corrupting memory, treat as tmpQI == 255
-	  tmpQI = 255;
+	if (_pProgressBar != NULL && fEdgesSize > gProgressBarMinSize) {
+		unsigned progressBarSteps = min(gProgressBarMaxSteps, vEdgesSize);
+		progressBarStep = vEdgesSize / progressBarSteps;
+		_pProgressBar->reset();
+		_pProgressBar->setLabelText("Computing Ray casting Visibility");
+		_pProgressBar->setTotalSteps(progressBarSteps);
+		_pProgressBar->setProgress(0);
+		progressBarDisplay = true;
 	}
 
-	  if (++qiClasses[tmpQI] > maxCard) {
-	    maxCard = qiClasses[tmpQI];
-	    maxIndex = tmpQI;
-	  }
-      }  else {
-		//ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
-	       	FindOccludee(fe, _Grid, epsilon, &aFace, timestamp++);
-      }
+	unsigned counter = progressBarStep;
+	FEdge *fe, *festart;
+	unsigned nSamples = 0;
+	vector<Polygon3r*> aFaces;
+	Polygon3r *aFace = NULL;
+	unsigned tmpQI = 0;
+	unsigned qiClasses[256];
+	unsigned maxIndex, maxCard;
+	unsigned qiMajority;
+	static unsigned timestamp = 1;
+	bool even_test;
+	for (vector<ViewEdge*>::iterator ve = vedges.begin(), veend = vedges.end(); ve != veend; ve++) {
+		if (_pRenderMonitor && _pRenderMonitor->testBreak())
+			break;
 
-        if(aFace)
-        { 
-          fe->setaFace(*aFace);
-          aFaces.push_back(aFace);
-        } 
-        ++nSamples;
-	even_test = false;
-      }
-      else
-	even_test = true;
-      fe = fe->nextEdge();
-    } while ((maxCard < qiMajority) && (0!=fe) && (fe!=festart));
+		festart = (*ve)->fedgeA();
+		fe = (*ve)->fedgeA();
+		qiMajority = 1;
+		do {
+			qiMajority++;
+			fe = fe->nextEdge();
+		} while (fe && fe != festart);
+		if (qiMajority >= 4)
+			qiMajority >>= 2;
+		else
+			qiMajority = 1;
 
-    (*ve)->setQI(maxIndex);
+		set<ViewShape*> occluders;
 
-    if(!aFaces.empty())
-    {
-      if(aFaces.size() < nSamples / 2)
-      {
-        (*ve)->setaShape(0);
-      }
-      else
-      {
-        vector<Polygon3r*>::iterator p = aFaces.begin();
-        WFace * wface = (WFace*)((*p)->userdata);
-        ViewShape *vshape = ioViewMap->viewShape(wface->GetVertex(0)->shape()->GetId());
-        ++p;
-        //        for(;
-        //        p!=pend;
-        //        ++p)
-        //        { 
-        //          WFace *f = (WFace*)((*p)->userdata);
-        //          ViewShape *vs = ioViewMap->viewShape(f->GetVertex(0)->shape()->GetId());
-        //          if(vs != vshape)
-        //          { 
-        //            sameShape = false;
-        //            break;
-        //          } 
-        //        } 
-        //        if(sameShape)
-        (*ve)->setaShape(vshape);
-      }
-    }
-    
-    //(*ve)->setaFace(aFace);
-    
-    if(progressBarDisplay) {  
-      counter--;
-      if (counter <= 0) {
-	counter = progressBarStep;
-	_pProgressBar->setProgress(_pProgressBar->getProgress() + 1);
-      }
-    }
-    aFaces.clear();
-  }
+		even_test = true;
+		maxIndex = 0;
+		maxCard = 0;
+		nSamples = 0;
+		memset(qiClasses, 0, 256 * sizeof(*qiClasses));
+		fe = (*ve)->fedgeA();
+		do {
+			if (even_test) {
+				if ((maxCard < qiMajority)) {
+					tmpQI = ComputeRayCastingVisibility(fe, _Grid, epsilon, occluders, &aFace, timestamp++);
+
+					//ARB: This is an error condition, not an alert condition.
+					// Some sort of recovery or abort is necessary.
+					if (tmpQI >= 256) {
+						cerr << "Warning: too many occluding levels" << endl;
+						//ARB: Wild guess: instead of aborting or corrupting memory, treat as tmpQI == 255
+						tmpQI = 255;
+					}
+
+					if (++qiClasses[tmpQI] > maxCard) {
+						maxCard = qiClasses[tmpQI];
+						maxIndex = tmpQI;
+					}
+				}
+				else {
+					//ARB: FindOccludee is redundant if ComputeRayCastingVisibility has been called
+					FindOccludee(fe, _Grid, epsilon, &aFace, timestamp++);
+				}
+
+				if (aFace) {
+					fe->setaFace(*aFace);
+					aFaces.push_back(aFace);
+				}
+				++nSamples;
+				even_test = false;
+			}
+			else {
+				even_test = true;
+			}
+			fe = fe->nextEdge();
+		} while ((maxCard < qiMajority) && (fe) && (fe != festart));
+
+		(*ve)->setQI(maxIndex);
+
+		if (!aFaces.empty()) {
+			if (aFaces.size() < nSamples / 2) {
+				(*ve)->setaShape(0);
+			}
+			else {
+				vector<Polygon3r*>::iterator p = aFaces.begin();
+				WFace *wface = (WFace*)((*p)->userdata);
+				ViewShape *vshape = ioViewMap->viewShape(wface->GetVertex(0)->shape()->GetId());
+				++p;
+#if 0
+				for (; p != pend; ++p) {
+					WFace *f = (WFace*)((*p)->userdata);
+					ViewShape *vs = ioViewMap->viewShape(f->GetVertex(0)->shape()->GetId());
+					if (vs != vshape) {
+						sameShape = false;
+						break;
+					}
+				}
+				if (sameShape)
+#endif
+				(*ve)->setaShape(vshape);
+			}
+		}
+
+		//(*ve)->setaFace(aFace);
+
+		if (progressBarDisplay) {
+			counter--;
+			if (counter <= 0) {
+				counter = progressBarStep;
+				_pProgressBar->setProgress(_pProgressBar->getProgress() + 1);
+			}
+		}
+		aFaces.clear();
+	}
 }
 
 void ViewMapBuilder::ComputeVeryFastRayCastingVisibility(ViewMap *ioViewMap, real epsilon)
 {
-  vector<ViewEdge*>& vedges = ioViewMap->ViewEdges();
-  bool progressBarDisplay = false;
-  unsigned progressBarStep = 0;
-  unsigned vEdgesSize = vedges.size();
-  unsigned fEdgesSize = ioViewMap->FEdges().size();
+	vector<ViewEdge*>& vedges = ioViewMap->ViewEdges();
+	bool progressBarDisplay = false;
+	unsigned progressBarStep = 0;
+	unsigned vEdgesSize = vedges.size();
+	unsigned fEdgesSize = ioViewMap->FEdges().size();
 
-  if(_pProgressBar != NULL && fEdgesSize > gProgressBarMinSize) {
-    unsigned progressBarSteps = min(gProgressBarMaxSteps, vEdgesSize);
-    progressBarStep = vEdgesSize / progressBarSteps;
-    _pProgressBar->reset();
-    _pProgressBar->setLabelText("Computing Ray casting Visibility");
-    _pProgressBar->setTotalSteps(progressBarSteps);
-    _pProgressBar->setProgress(0);
-    progressBarDisplay = true;
-  }
-
-  unsigned counter = progressBarStep;
-  FEdge* fe;
-  unsigned qi = 0;
-  Polygon3r *aFace = 0;
-  static unsigned timestamp = 1;
-  for(vector<ViewEdge*>::iterator ve=vedges.begin(), veend=vedges.end();
-  ve!=veend;
-  ve++)
-  {
-    if (_pRenderMonitor && _pRenderMonitor->testBreak())
-      break;
-
-    set<ViewShape*> occluders;
-
-    fe = (*ve)->fedgeA();
-    qi = ComputeRayCastingVisibility(fe, _Grid, epsilon, occluders, &aFace, timestamp++);
-    if(aFace)
-    { 
-      fe->setaFace(*aFace);
-      WFace * wface = (WFace*)(aFace->userdata);
-      ViewShape *vshape = ioViewMap->viewShape(wface->GetVertex(0)->shape()->GetId());
-      (*ve)->setaShape(vshape);
-    } 
-    else
-    {
-      (*ve)->setaShape(0);
-    }
-
-    (*ve)->setQI(qi);
-    
-    if(progressBarDisplay) {  
-      counter--;
-      if (counter <= 0) {
-	counter = progressBarStep;
-	_pProgressBar->setProgress(_pProgressBar->getProgress() + 1);
-      }
-    }
-  }  
-}
-
-void ViewMapBuilder::FindOccludee(FEdge *fe, Grid* iGrid, real epsilon, Polygon3r** oaPolygon, unsigned timestamp, 
-				  Vec3r& u, Vec3r& A, Vec3r& origin, Vec3r& edge, vector<WVertex*>& faceVertices)
-{
-  WFace *face = 0;
-  if(fe->isSmooth()){
-    FEdgeSmooth * fes = dynamic_cast<FEdgeSmooth*>(fe);
-    face = (WFace*)fes->face();
-  }
-  OccludersSet occluders;
-  WFace * oface;
-  bool skipFace;
-  
-  WVertex::incoming_edge_iterator ie;
-  OccludersSet::iterator p, pend;
-  
-  *oaPolygon = 0;
-  if(((fe)->getNature() & Nature::SILHOUETTE) || ((fe)->getNature() & Nature::BORDER))
-  {
-    occluders.clear();
-    // we cast a ray from A in the same direction but looking behind
-    Vec3r v(-u[0],-u[1],-u[2]);
-    iGrid->castInfiniteRay(A, v, occluders, timestamp);
-    
-    bool noIntersection = true;
-    real mint=FLT_MAX;
-    // we met some occluders, let us fill the aShape field 
-    // with the first intersected occluder
-    for(p=occluders.begin(),pend=occluders.end();
-    p!=pend;
-    p++)
-    { 
-      // check whether the edge and the polygon plane are coincident:
-      //-------------------------------------------------------------
-      //first let us compute the plane equation.
-      oface = (WFace*)(*p)->userdata;
-      Vec3r v1(((*p)->getVertices())[0]);
-      Vec3r normal((*p)->getNormal());
-      real d = -(v1 * normal);
-      real t,t_u,t_v;
-      
-      if(0 != face)
-      { 
-        skipFace = false;
-        
-        if(face == oface)
-          continue;
-        
-        if(faceVertices.empty())
-          continue;
-        
-        for(vector<WVertex*>::iterator fv=faceVertices.begin(), fvend=faceVertices.end();
-        fv!=fvend;
-        ++fv)
-        { 
-          if((*fv)->isBoundary())
-            continue;
-          WVertex::incoming_edge_iterator iebegin=(*fv)->incoming_edges_begin();
-          WVertex::incoming_edge_iterator ieend=(*fv)->incoming_edges_end();
-          for(ie=iebegin;ie!=ieend; ++ie)
-          {  
-            if((*ie) == 0)
-              continue;
-            
-            WFace * sface = (*ie)->GetbFace();
-            if(sface == oface)
-            { 
-              skipFace = true;
-              break;
-            } 
-          }  
-          if(skipFace)
-            break;
-        } 
-        if(skipFace)
-          continue;
-      }  
-      else
-      {
-        if(GeomUtils::COINCIDENT == GeomUtils::intersectRayPlane(origin, edge, normal, d, t, epsilon))
-          continue;
-      }
-      if((*p)->rayIntersect(A, v, t,t_u,t_v))
-      {
-        if (fabs(v * normal) > 0.0001)
-          if ((t>0.0)) // && (t<1.0))
-          {
-            if (t<mint)
-            {
-              *oaPolygon = (*p);
-              mint = t;
-              noIntersection = false;
-              fe->setOccludeeIntersection(Vec3r(A+t*v));
-            }
-          }
-      }  
-    }
-    
-    if(noIntersection)
-      *oaPolygon = 0;
-  }
-}
-
-void ViewMapBuilder::FindOccludee(FEdge *fe, Grid* iGrid, real epsilon, Polygon3r** oaPolygon, unsigned timestamp)
-{
-  OccludersSet occluders;
-
-  Vec3r A;
-  Vec3r edge;
-  Vec3r origin;
-  A = Vec3r(((fe)->vertexA()->point3D() + (fe)->vertexB()->point3D())/2.0);
-  edge = Vec3r((fe)->vertexB()->point3D()-(fe)->vertexA()->point3D());
-  origin = Vec3r((fe)->vertexA()->point3D());
-  Vec3r u;
-  if (_orthographicProjection) {
-    u = Vec3r(0.0, 0.0, _viewpoint.z()-A.z());
-  } else {
-    u = Vec3r(_viewpoint-A);
-  }
-  u.normalize();
-  if(A < iGrid->getOrigin())
-    cerr << "Warning: point is out of the grid for fedge " << fe->getId().getFirst() << "-" << fe->getId().getSecond() << endl;
-
-  vector<WVertex*> faceVertices;
-     
-  WFace *face = 0;
-  if(fe->isSmooth()){
-    FEdgeSmooth * fes = dynamic_cast<FEdgeSmooth*>(fe);
-    face = (WFace*)fes->face();
-  }
-  if(0 != face)
-    face->RetrieveVertexList(faceVertices);
-  
-  return FindOccludee(fe,iGrid, epsilon, oaPolygon, timestamp, 
-		      u, A, origin, edge, faceVertices);
-}
-
-int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe, Grid* iGrid, real epsilon, set<ViewShape*>& oOccluders,
-						Polygon3r** oaPolygon, unsigned timestamp)
-{
-  OccludersSet occluders;
-  int qi = 0;
-
-  Vec3r center;
-  Vec3r edge;
-  Vec3r origin;
-
-  center = fe->center3d();
-  edge = Vec3r(fe->vertexB()->point3D() - fe->vertexA()->point3D());
-  origin = Vec3r(fe->vertexA()->point3D());
-  //
-  //   // Is the edge outside the view frustum ?
-  Vec3r gridOrigin(iGrid->getOrigin());
-  Vec3r gridExtremity(iGrid->getOrigin()+iGrid->gridSize());
-  
-  if( (center.x() < gridOrigin.x()) || (center.y() < gridOrigin.y()) || (center.z() < gridOrigin.z())
-    ||(center.x() > gridExtremity.x()) || (center.y() > gridExtremity.y()) || (center.z() > gridExtremity.z())){
-     cerr << "Warning: point is out of the grid for fedge " << fe->getId() << endl;
-    //return 0;
-  }
-
- 
-  //  Vec3r A(fe->vertexA()->point2d());
-  //  Vec3r B(fe->vertexB()->point2d());
-  //  int viewport[4];
-  //  SilhouetteGeomEngine::retrieveViewport(viewport);
-  //  if( (A.x() < viewport[0]) || (A.x() > viewport[2]) || (A.y() < viewport[1]) || (A.y() > viewport[3])
-  //    ||(B.x() < viewport[0]) || (B.x() > viewport[2]) || (B.y() < viewport[1]) || (B.y() > viewport[3])){
-  //    cerr << "Warning: point is out of the grid for fedge " << fe->getId() << endl;
-  //    //return 0;
-  //  }
-
-  Vec3r vp;
-  if (_orthographicProjection) {
-    vp = Vec3r(center.x(), center.y(), _viewpoint.z());
-  } else {
-    vp = Vec3r(_viewpoint);
-  }
-  Vec3r u(vp - center);
-  real raylength = u.norm();
-  u.normalize();
-  //cout << "grid origin " << iGrid->getOrigin().x() << "," << iGrid->getOrigin().y() << "," << iGrid->getOrigin().z() << endl;
-  //cout << "center " << center.x() << "," << center.y() << "," << center.z() << endl;
-  
-  iGrid->castRay(center, vp, occluders, timestamp);
-
-  WFace *face = 0;
-  if(fe->isSmooth()){
-    FEdgeSmooth * fes = dynamic_cast<FEdgeSmooth*>(fe);
-    face = (WFace*)fes->face();
-  }
-  vector<WVertex*> faceVertices;
-  WVertex::incoming_edge_iterator ie;
-            
-  WFace * oface;
-  bool skipFace;
-  OccludersSet::iterator p, pend;
-  if(face)
-    face->RetrieveVertexList(faceVertices);
-
-  for(p=occluders.begin(),pend=occluders.end();
-      p!=pend;
-      p++)
-    { 
-      // If we're dealing with an exact silhouette, check whether 
-      // we must take care of this occluder of not.
-      // (Indeed, we don't consider the occluders that 
-      // share at least one vertex with the face containing 
-      // this edge).
-      //-----------
-      oface = (WFace*)(*p)->userdata;
-#if logging > 1
-cout << "\t\tEvaluating intersection for occluder " << ((*p)->getVertices())[0] << ((*p)->getVertices())[1] << ((*p)->getVertices())[2] << endl << "\t\t\tand ray " << vp << " * " << u << " (center " << center << ")" << endl;
-#endif
-      Vec3r v1(((*p)->getVertices())[0]);
-      Vec3r normal((*p)->getNormal());
-      real d = -(v1 * normal);
-      real t, t_u, t_v;
-            
-#if logging > 1
-cout << "\t\tp:  " << ((*p)->getVertices())[0] << ((*p)->getVertices())[1] << ((*p)->getVertices())[2] << ", norm: " << (*p)->getNormal() << endl;
-#endif
-
-      if(0 != face)
-	{
-#if logging > 1
-cout << "\t\tDetermining face adjacency...";
-#endif
-	  skipFace = false;
-              
-	  if(face == oface) {
-#if logging > 1
-cout << "  Rejecting occluder for face concurrency." << endl;
-#endif
-	    continue;
-      }
-              
-              
-	  for(vector<WVertex*>::iterator fv=faceVertices.begin(), fvend=faceVertices.end();
-              fv!=fvend;
-              ++fv)
-	    {
-                if((*fv)->isBoundary())
-                  continue;
-
-	      WVertex::incoming_edge_iterator iebegin=(*fv)->incoming_edges_begin();
-	      WVertex::incoming_edge_iterator ieend=(*fv)->incoming_edges_end();
-	      for(ie=iebegin;ie!=ieend; ++ie)
-                { 
-                  if((*ie) == 0)
-                    continue;
-                  
-                  WFace * sface = (*ie)->GetbFace();
-                  //WFace * sfacea = (*ie)->GetaFace();
-                  //if((sface == oface) || (sfacea == oface))
-                  if(sface == oface)
-		    {
-		      skipFace = true;
-		      break;
-		    }
-                }
-	      if(skipFace)
-		break;
-	    }
-	  if(skipFace) {
-#if logging > 1
-cout << "  Rejecting occluder for face adjacency." << endl;
-#endif
-	    continue;
-      }
-	}
-      else
-	{
-	  // check whether the edge and the polygon plane are coincident:
-	  //-------------------------------------------------------------
-	  //first let us compute the plane equation.
-           
-	  if(GeomUtils::COINCIDENT == GeomUtils::intersectRayPlane(origin, edge, normal, d, t, epsilon)) {
-#if logging > 1
-cout << "\t\tRejecting occluder for target coincidence." << endl;
-#endif
-	    continue;
-      }
+	if (_pProgressBar != NULL && fEdgesSize > gProgressBarMinSize) {
+		unsigned progressBarSteps = min(gProgressBarMaxSteps, vEdgesSize);
+		progressBarStep = vEdgesSize / progressBarSteps;
+		_pProgressBar->reset();
+		_pProgressBar->setLabelText("Computing Ray casting Visibility");
+		_pProgressBar->setTotalSteps(progressBarSteps);
+		_pProgressBar->setProgress(0);
+		progressBarDisplay = true;
 	}
 
-      if((*p)->rayIntersect(center, u, t, t_u, t_v))
-	{
-#if logging > 1
-cout << "\t\tRay " << vp << " * " << u << " intersects at time " << t << " (raylength is " << raylength << ")" << endl;
-#endif
-#if logging > 1
-cout << "\t\t(u * normal) == " << (u * normal) << " for normal " << normal << endl;
-#endif
-	  if (fabs(u * normal) > 0.0001)
-	    if ((t>0.0) && (t<raylength))
-	      {
-#if logging > 1
-cout << "\t\tIs occluder" << endl;
-#endif
-		WFace *f = (WFace*)((*p)->userdata);
-		ViewShape *vshape = _ViewMap->viewShape(f->GetVertex(0)->shape()->GetId());
-		oOccluders.insert(vshape);
-		++qi;
-    if(!_EnableQI)
-      break;
-	      }
+	unsigned counter = progressBarStep;
+	FEdge *fe;
+	unsigned qi = 0;
+	Polygon3r *aFace = NULL;
+	static unsigned timestamp = 1;
+	for (vector<ViewEdge*>::iterator ve = vedges.begin(), veend = vedges.end(); ve != veend; ve++) {
+		if (_pRenderMonitor && _pRenderMonitor->testBreak())
+			break;
+
+		set<ViewShape*> occluders;
+
+		fe = (*ve)->fedgeA();
+		qi = ComputeRayCastingVisibility(fe, _Grid, epsilon, occluders, &aFace, timestamp++);
+		if (aFace) {
+			fe->setaFace(*aFace);
+			WFace *wface = (WFace*)(aFace->userdata);
+			ViewShape *vshape = ioViewMap->viewShape(wface->GetVertex(0)->shape()->GetId());
+			(*ve)->setaShape(vshape);
+		}
+		else {
+			(*ve)->setaShape(0);
+		}
+
+		(*ve)->setQI(qi);
+
+		if (progressBarDisplay) {
+			counter--;
+			if (counter <= 0) {
+				counter = progressBarStep;
+				_pProgressBar->setProgress(_pProgressBar->getProgress() + 1);
+			}
+		}
 	}
-    }
+}
 
-  // Find occludee
-  FindOccludee(fe,iGrid, epsilon, oaPolygon, timestamp, 
-	       u, center, edge, origin, faceVertices);
+void ViewMapBuilder::FindOccludee(FEdge *fe, Grid *iGrid, real epsilon, Polygon3r **oaPolygon, unsigned timestamp,
+                                  Vec3r& u, Vec3r& A, Vec3r& origin, Vec3r& edge, vector<WVertex*>& faceVertices)
+{
+	WFace *face = NULL;
+	if (fe->isSmooth()) {
+		FEdgeSmooth *fes = dynamic_cast<FEdgeSmooth*>(fe);
+		face = (WFace*)fes->face();
+	}
+	OccludersSet occluders;
+	WFace *oface;
+	bool skipFace;
 
-  return qi;
+	WVertex::incoming_edge_iterator ie;
+	OccludersSet::iterator p, pend;
+
+	*oaPolygon = NULL;
+	if (((fe)->getNature() & Nature::SILHOUETTE) || ((fe)->getNature() & Nature::BORDER)) {
+		occluders.clear();
+		// we cast a ray from A in the same direction but looking behind
+		Vec3r v(-u[0], -u[1], -u[2]);
+		iGrid->castInfiniteRay(A, v, occluders, timestamp);
+
+		bool noIntersection = true;
+		real mint = FLT_MAX;
+		// we met some occluders, let us fill the aShape field with the first intersected occluder
+		for (p = occluders.begin(), pend = occluders.end(); p != pend; p++) {
+			// check whether the edge and the polygon plane are coincident:
+			//-------------------------------------------------------------
+			//first let us compute the plane equation.
+			oface = (WFace*)(*p)->userdata;
+			Vec3r v1(((*p)->getVertices())[0]);
+			Vec3r normal((*p)->getNormal());
+			real d = -(v1 * normal);
+			real t, t_u, t_v;
+
+			if (face) {
+				skipFace = false;
+
+				if (face == oface)
+					continue;
+
+				if (faceVertices.empty())
+					continue;
+
+				for (vector<WVertex*>::iterator fv = faceVertices.begin(), fvend = faceVertices.end();
+				     fv != fvend;
+				     ++fv)
+				{
+					if ((*fv)->isBoundary())
+						continue;
+					WVertex::incoming_edge_iterator iebegin = (*fv)->incoming_edges_begin();
+					WVertex::incoming_edge_iterator ieend = (*fv)->incoming_edges_end();
+					for (ie = iebegin; ie != ieend; ++ie) {
+						if ((*ie) == 0)
+							continue;
+
+						WFace *sface = (*ie)->GetbFace();
+						if (sface == oface) {
+							skipFace = true;
+							break;
+						}
+					}
+					if (skipFace)
+						break;
+				}
+				if (skipFace)
+					continue;
+			}
+			else {
+				if (GeomUtils::COINCIDENT == GeomUtils::intersectRayPlane(origin, edge, normal, d, t, epsilon))
+					continue;
+			}
+			if ((*p)->rayIntersect(A, v, t, t_u, t_v)) {
+				if (fabs(v * normal) > 0.0001) {
+					if (t > 0.0) { // && t < 1.0) {
+						if (t < mint) {
+							*oaPolygon = (*p);
+							mint = t;
+							noIntersection = false;
+							fe->setOccludeeIntersection(Vec3r(A + t * v));
+						}
+					}
+				}
+			}
+		}
+
+		if (noIntersection)
+			*oaPolygon = NULL;
+	}
+}
+
+void ViewMapBuilder::FindOccludee(FEdge *fe, Grid *iGrid, real epsilon, Polygon3r **oaPolygon, unsigned timestamp)
+{
+	OccludersSet occluders;
+
+	Vec3r A;
+	Vec3r edge;
+	Vec3r origin;
+	A = Vec3r(((fe)->vertexA()->point3D() + (fe)->vertexB()->point3D()) / 2.0);
+	edge = Vec3r((fe)->vertexB()->point3D() - (fe)->vertexA()->point3D());
+	origin = Vec3r((fe)->vertexA()->point3D());
+	Vec3r u;
+	if (_orthographicProjection) {
+		u = Vec3r(0.0, 0.0, _viewpoint.z() - A.z());
+	}
+	else {
+		u = Vec3r(_viewpoint - A);
+	}
+	u.normalize();
+	if (A < iGrid->getOrigin())
+		cerr << "Warning: point is out of the grid for fedge " << fe->getId().getFirst() << "-"
+		     << fe->getId().getSecond() << endl;
+
+	vector<WVertex*> faceVertices;
+
+	WFace *face = NULL;
+	if (fe->isSmooth()) {
+		FEdgeSmooth *fes = dynamic_cast<FEdgeSmooth*>(fe);
+		face = (WFace*)fes->face();
+	}
+	if (face)
+		face->RetrieveVertexList(faceVertices);
+
+	return FindOccludee(fe, iGrid, epsilon, oaPolygon, timestamp, u, A, origin, edge, faceVertices);
+}
+
+int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe, Grid *iGrid, real epsilon, set<ViewShape*>& oOccluders,
+                                                Polygon3r **oaPolygon, unsigned timestamp)
+{
+	OccludersSet occluders;
+	int qi = 0;
+
+	Vec3r center;
+	Vec3r edge;
+	Vec3r origin;
+
+	center = fe->center3d();
+	edge = Vec3r(fe->vertexB()->point3D() - fe->vertexA()->point3D());
+	origin = Vec3r(fe->vertexA()->point3D());
+	// Is the edge outside the view frustum ?
+	Vec3r gridOrigin(iGrid->getOrigin());
+	Vec3r gridExtremity(iGrid->getOrigin() + iGrid->gridSize());
+
+	if ((center.x() < gridOrigin.x()) || (center.y() < gridOrigin.y()) || (center.z() < gridOrigin.z()) ||
+	    (center.x() > gridExtremity.x()) || (center.y() > gridExtremity.y()) || (center.z() > gridExtremity.z())) {
+		cerr << "Warning: point is out of the grid for fedge " << fe->getId() << endl;
+		//return 0;
+	}
+
+#if 0
+	Vec3r A(fe->vertexA()->point2d());
+	Vec3r B(fe->vertexB()->point2d());
+	int viewport[4];
+	SilhouetteGeomEngine::retrieveViewport(viewport);
+	if ((A.x() < viewport[0]) || (A.x() > viewport[2]) || (A.y() < viewport[1]) || (A.y() > viewport[3]) ||
+	    (B.x() < viewport[0]) || (B.x() > viewport[2]) || (B.y() < viewport[1]) || (B.y() > viewport[3])) {
+		cerr << "Warning: point is out of the grid for fedge " << fe->getId() << endl;
+		//return 0;
+	}
+#endif
+
+	Vec3r vp;
+	if (_orthographicProjection) {
+		vp = Vec3r(center.x(), center.y(), _viewpoint.z());
+	}
+	else {
+		vp = Vec3r(_viewpoint);
+	}
+	Vec3r u(vp - center);
+	real raylength = u.norm();
+	u.normalize();
+#if 0
+	cout << "grid origin " << iGrid->getOrigin().x() << "," << iGrid->getOrigin().y() << ","
+	     << iGrid->getOrigin().z() << endl;
+	cout << "center " << center.x() << "," << center.y() << "," << center.z() << endl;
+#endif
+
+	iGrid->castRay(center, vp, occluders, timestamp);
+
+	WFace *face = NULL;
+	if (fe->isSmooth()) {
+		FEdgeSmooth *fes = dynamic_cast<FEdgeSmooth*>(fe);
+		face = (WFace*)fes->face();
+	}
+	vector<WVertex*> faceVertices;
+	WVertex::incoming_edge_iterator ie;
+
+	WFace *oface;
+	bool skipFace;
+	OccludersSet::iterator p, pend;
+	if (face)
+		face->RetrieveVertexList(faceVertices);
+
+	for (p = occluders.begin(), pend = occluders.end(); p != pend; p++) {
+		// If we're dealing with an exact silhouette, check whether we must take care of this occluder of not.
+		// (Indeed, we don't consider the occluders that share at least one vertex with the face containing this edge).
+		//-----------
+		oface = (WFace*)(*p)->userdata;
+		#if LOGGING
+			cout << "\t\tEvaluating intersection for occluder " << ((*p)->getVertices())[0] << ((*p)->getVertices())[1]
+			     << ((*p)->getVertices())[2] << endl << "\t\t\tand ray " << vp << " * " << u << " (center " << center
+			     << ")" << endl;
+		#endif
+		Vec3r v1(((*p)->getVertices())[0]);
+		Vec3r normal((*p)->getNormal());
+		real d = -(v1 * normal);
+		real t, t_u, t_v;
+
+		#if LOGGING
+			cout << "\t\tp:  " << ((*p)->getVertices())[0] << ((*p)->getVertices())[1] << ((*p)->getVertices())[2]
+			     << ", norm: " << (*p)->getNormal() << endl;
+		#endif
+
+		if (face) {
+			#if LOGGING
+				cout << "\t\tDetermining face adjacency...";
+			#endif
+			skipFace = false;
+
+			if (face == oface) {
+				#if LOGGING
+					cout << "  Rejecting occluder for face concurrency." << endl;
+				#endif
+				continue;
+			}
+
+			for (vector<WVertex*>::iterator fv = faceVertices.begin(), fvend = faceVertices.end();
+			     fv != fvend;
+			     ++fv)
+			{
+				if ((*fv)->isBoundary())
+					continue;
+
+				WVertex::incoming_edge_iterator iebegin = (*fv)->incoming_edges_begin();
+				WVertex::incoming_edge_iterator ieend = (*fv)->incoming_edges_end();
+				for (ie = iebegin; ie != ieend; ++ie) {
+					if ((*ie) == 0)
+						continue;
+
+					WFace *sface = (*ie)->GetbFace();
+					//WFace *sfacea = (*ie)->GetaFace();
+					//if ((sface == oface) || (sfacea == oface)) {
+					if (sface == oface) {
+						skipFace = true;
+						break;
+					}
+				}
+				if (skipFace)
+					break;
+			}
+			if (skipFace) {
+				#if LOGGING
+					cout << "  Rejecting occluder for face adjacency." << endl;
+				#endif
+				continue;
+			}
+		}
+		else {
+			// check whether the edge and the polygon plane are coincident:
+			//-------------------------------------------------------------
+			//first let us compute the plane equation.
+
+			if (GeomUtils::COINCIDENT == GeomUtils::intersectRayPlane(origin, edge, normal, d, t, epsilon)) {
+				#if LOGGING
+					cout << "\t\tRejecting occluder for target coincidence." << endl;
+				#endif
+				continue;
+			}
+		}
+
+		if ((*p)->rayIntersect(center, u, t, t_u, t_v)) {
+			#if LOGGING
+				cout << "\t\tRay " << vp << " * " << u << " intersects at time " << t << " (raylength is "
+				     << raylength << ")" << endl;
+				cout << "\t\t(u * normal) == " << (u * normal) << " for normal " << normal << endl;
+			#endif
+			if (fabs(u * normal) > 0.0001) {
+				if ((t>0.0) && (t<raylength)) {
+					#if LOGGING
+						cout << "\t\tIs occluder" << endl;
+					#endif
+					WFace *f = (WFace*)((*p)->userdata);
+					ViewShape *vshape = _ViewMap->viewShape(f->GetVertex(0)->shape()->GetId());
+					oOccluders.insert(vshape);
+					++qi;
+					if (!_EnableQI)
+						break;
+				}
+			}
+		}
+	}
+
+	// Find occludee
+	FindOccludee(fe, iGrid, epsilon, oaPolygon, timestamp, u, center, edge, origin, faceVertices);
+
+	return qi;
 }
 
 void ViewMapBuilder::ComputeIntersections(ViewMap *ioViewMap, intersection_algo iAlgo, real epsilon)
 {
-  switch(iAlgo)
-  {
-  case sweep_line:
-    ComputeSweepLineIntersections(ioViewMap, epsilon);
-    break;
-  default:
-    break;
-  }
-  ViewMap::viewvertices_container& vvertices = ioViewMap->ViewVertices();
-  for(ViewMap::viewvertices_container::iterator vv=vvertices.begin(), vvend=vvertices.end();
-  vv!=vvend;
-  ++vv)
-  {
-    if((*vv)->getNature() == Nature::T_VERTEX)
-    {
-      TVertex *tvertex = (TVertex*)(*vv);
-      cout << "TVertex " << tvertex->getId() << " has :" << endl;
-      cout << "FrontEdgeA: " << tvertex->frontEdgeA().first << endl;
-      cout << "FrontEdgeB: " << tvertex->frontEdgeB().first << endl;
-      cout << "BackEdgeA: " << tvertex->backEdgeA().first << endl;
-      cout << "BackEdgeB: " << tvertex->backEdgeB().first << endl << endl;
-    }
-  }
+	switch (iAlgo) {
+		case sweep_line:
+			ComputeSweepLineIntersections(ioViewMap, epsilon);
+			break;
+		default:
+			break;
+	}
+	ViewMap::viewvertices_container& vvertices = ioViewMap->ViewVertices();
+	for (ViewMap::viewvertices_container::iterator vv = vvertices.begin(), vvend = vvertices.end();
+	     vv != vvend;
+	     ++vv)
+	{
+		if ((*vv)->getNature() == Nature::T_VERTEX) {
+			TVertex *tvertex = (TVertex*)(*vv);
+			cout << "TVertex " << tvertex->getId() << " has :" << endl;
+			cout << "FrontEdgeA: " << tvertex->frontEdgeA().first << endl;
+			cout << "FrontEdgeB: " << tvertex->frontEdgeB().first << endl;
+			cout << "BackEdgeA: " << tvertex->backEdgeA().first << endl;
+			cout << "BackEdgeB: " << tvertex->backEdgeB().first << endl << endl;
+		}
+	}
 }
 
-struct less_SVertex2D : public binary_function<SVertex*, SVertex*, bool> 
+struct less_SVertex2D : public binary_function<SVertex*, SVertex*, bool>
 {
-  real epsilon;
-  less_SVertex2D(real eps)
-    : binary_function<SVertex*,SVertex*,bool>()
-  {
-    epsilon = eps;
-  }
-	bool operator()(SVertex* x, SVertex* y) 
-  {
-    Vec3r A = x->point2D();
-    Vec3r B = y->point2D();
-    for(unsigned int i=0; i<3; i++)
-    {
-      if((fabs(A[i] - B[i])) < epsilon)
-        continue;
-      if(A[i] < B[i])
-        return true;
-      if(A[i] > B[i])
-        return false;
-    }
-    
-    return false;
-  }
+	real epsilon;
+
+	less_SVertex2D(real eps) : binary_function<SVertex*, SVertex*, bool>()
+	{
+		epsilon = eps;
+	}
+
+	bool operator()(SVertex *x, SVertex *y)
+	{
+		Vec3r A = x->point2D();
+		Vec3r B = y->point2D();
+		for (unsigned int i = 0; i < 3; i++) {
+			if ((fabs(A[i] - B[i])) < epsilon)
+				continue;
+			if (A[i] < B[i])
+				return true;
+			if (A[i] > B[i])
+				return false;
+		}
+		return false;
+	}
 };
 
-typedef Segment<FEdge*,Vec3r > segment;
+typedef Segment<FEdge*, Vec3r> segment;
 typedef Intersection<segment> intersection;
 
-struct less_Intersection : public binary_function<intersection*, intersection*, bool> 
+struct less_Intersection : public binary_function<intersection*, intersection*, bool>
 {
-  segment *edge;
-  less_Intersection(segment *iEdge)
-    : binary_function<intersection*,intersection*,bool>()
-  {
-    edge = iEdge;
-  }
-	bool operator()(intersection* x, intersection* y) 
-  {
-    real tx = x->getParameter(edge);
-    real ty = y->getParameter(edge);
-    if(tx > ty)
-      return true;
-    return false;
-  }
+	segment *edge;
+
+	less_Intersection(segment *iEdge) : binary_function<intersection*, intersection*, bool>()
+	{
+		edge = iEdge;
+	}
+
+	bool operator()(intersection *x, intersection *y)
+	{
+		real tx = x->getParameter(edge);
+		real ty = y->getParameter(edge);
+		if (tx > ty)
+			return true;
+		return false;
+	}
 };
 
-struct silhouette_binary_rule : public binary_rule<segment,segment>
+struct silhouette_binary_rule : public binary_rule<segment, segment>
 {
-  silhouette_binary_rule() : binary_rule<segment,segment>() {}
-  virtual bool operator() (segment& s1, segment& s2)
-  {
-    FEdge * f1 = s1.edge();
-    FEdge * f2 = s2.edge();
+	silhouette_binary_rule() : binary_rule<segment,segment>() {}
 
-    if((!(((f1)->getNature() & Nature::SILHOUETTE) || ((f1)->getNature() & Nature::BORDER))) && (!(((f2)->getNature() & Nature::SILHOUETTE) || ((f2)->getNature() & Nature::BORDER))))
-      return false;
-      
-    return true;
-  }
+	virtual bool operator()(segment& s1, segment& s2)
+	{
+		FEdge *f1 = s1.edge();
+		FEdge *f2 = s2.edge();
+
+		if ((!(((f1)->getNature() & Nature::SILHOUETTE) || ((f1)->getNature() & Nature::BORDER))) &&
+		    (!(((f2)->getNature() & Nature::SILHOUETTE) || ((f2)->getNature() & Nature::BORDER))))
+		{
+			return false;
+		}
+
+		return true;
+	}
 };
 
 void ViewMapBuilder::ComputeSweepLineIntersections(ViewMap *ioViewMap, real epsilon)
 {
-  vector<SVertex*>& svertices = ioViewMap->SVertices();
-  bool progressBarDisplay = false;
-  unsigned sVerticesSize = svertices.size();
-  unsigned fEdgesSize = ioViewMap->FEdges().size();
-  //  ViewMap::fedges_container& fedges = ioViewMap->FEdges();
-  //  for(ViewMap::fedges_container::const_iterator f=fedges.begin(), end=fedges.end();
-  //  f!=end;
-  //  ++f){
-  //    cout << (*f)->aMaterialIndex() << "-" << (*f)->bMaterialIndex() << endl;
-  //  }
-    
-  unsigned progressBarStep = 0;
-  
-  if(_pProgressBar != NULL && fEdgesSize > gProgressBarMinSize) {
-    unsigned progressBarSteps = min(gProgressBarMaxSteps, sVerticesSize);
-    progressBarStep = sVerticesSize / progressBarSteps;
-    _pProgressBar->reset();
-    _pProgressBar->setLabelText("Computing Sweep Line Intersections");
-    _pProgressBar->setTotalSteps(progressBarSteps);
-    _pProgressBar->setProgress(0);
-    progressBarDisplay = true;
-  }
-  
-  unsigned counter = progressBarStep;
+	vector<SVertex*>& svertices = ioViewMap->SVertices();
+	bool progressBarDisplay = false;
+	unsigned sVerticesSize = svertices.size();
+	unsigned fEdgesSize = ioViewMap->FEdges().size();
+#if 0
+	ViewMap::fedges_container& fedges = ioViewMap->FEdges();
+	for (ViewMap::fedges_container::const_iterator f = fedges.begin(), end = fedges.end(); f != end; ++f) {
+		cout << (*f)->aMaterialIndex() << "-" << (*f)->bMaterialIndex() << endl;
+	}
+#endif
+	unsigned progressBarStep = 0;
 
-  sort(svertices.begin(), svertices.end(), less_SVertex2D(epsilon));
+	if (_pProgressBar != NULL && fEdgesSize > gProgressBarMinSize) {
+		unsigned progressBarSteps = min(gProgressBarMaxSteps, sVerticesSize);
+		progressBarStep = sVerticesSize / progressBarSteps;
+		_pProgressBar->reset();
+		_pProgressBar->setLabelText("Computing Sweep Line Intersections");
+		_pProgressBar->setTotalSteps(progressBarSteps);
+		_pProgressBar->setProgress(0);
+		progressBarDisplay = true;
+	}
 
-  SweepLine<FEdge*,Vec3r> SL;
+	unsigned counter = progressBarStep;
 
-  vector<FEdge*>& ioEdges = ioViewMap->FEdges();
+	sort(svertices.begin(), svertices.end(), less_SVertex2D(epsilon));
 
-  vector<segment* > segments;
+	SweepLine<FEdge*, Vec3r> SL;
 
-  vector<FEdge*>::iterator fe,fend;
+	vector<FEdge*>& ioEdges = ioViewMap->FEdges();
 
-  for(fe=ioEdges.begin(), fend=ioEdges.end();
-  fe!=fend;
-  fe++)
-  {
-    segment * s = new segment((*fe), (*fe)->vertexA()->point2D(), (*fe)->vertexB()->point2D());
-    (*fe)->userdata = s;    
-    segments.push_back(s);
-  }
+	vector<segment*> segments;
 
-  vector<segment*> vsegments;
-  for(vector<SVertex*>::iterator sv=svertices.begin(),svend=svertices.end();
-  sv!=svend;
-  sv++)
-  {
-    if (_pRenderMonitor && _pRenderMonitor->testBreak())
-      break;
+	vector<FEdge*>::iterator fe, fend;
 
-    const vector<FEdge*>& vedges = (*sv)->fedges();
-    
-    for(vector<FEdge*>::const_iterator sve=vedges.begin(), sveend=vedges.end();
-    sve!=sveend;
-    sve++)
-    {
-      vsegments.push_back((segment*)((*sve)->userdata));
-    }
+	for (fe = ioEdges.begin(), fend = ioEdges.end(); fe != fend; fe++) {
+		segment *s = new segment((*fe), (*fe)->vertexA()->point2D(), (*fe)->vertexB()->point2D());
+		(*fe)->userdata = s;
+		segments.push_back(s);
+	}
 
-    Vec3r evt((*sv)->point2D());
-    silhouette_binary_rule sbr;
-    SL.process(evt, vsegments, sbr, epsilon);
+	vector<segment*> vsegments;
+	for (vector<SVertex*>::iterator sv = svertices.begin(), svend = svertices.end(); sv != svend; sv++) {
+		if (_pRenderMonitor && _pRenderMonitor->testBreak())
+			break;
 
-    if(progressBarDisplay) {  
-      counter--;
-      if (counter <= 0) {
-	counter = progressBarStep;
-	_pProgressBar->setProgress(_pProgressBar->getProgress() + 1);
-      }
-    }
-    vsegments.clear();
-  }
+		const vector<FEdge*>& vedges = (*sv)->fedges();
 
-  if (_pRenderMonitor && _pRenderMonitor->testBreak()) {
-    // delete segments
-    if(!segments.empty()){
-      vector<segment* >::iterator s, send;
-      for(s=segments.begin(),send=segments.end();
-      s!=send;
-      s++){
-        delete *s;
-      }
-    }
-    return;
-  }
+		for (vector<FEdge*>::const_iterator sve = vedges.begin(), sveend = vedges.end(); sve != sveend; sve++) {
+			vsegments.push_back((segment*)((*sve)->userdata));
+		}
 
-  // reset userdata:
-  for(fe=ioEdges.begin(), fend=ioEdges.end();
-  fe!=fend;
-  fe++)
-    (*fe)->userdata = NULL;
- 
-  // list containing the new edges resulting from splitting operations. 
-  vector<FEdge*> newEdges;
-  
-  // retrieve the intersected edges:
-  vector<segment* >& iedges = SL.intersectedEdges();
-  // retrieve the intersections:
-  vector<intersection*>& intersections = SL.intersections();
-  
-  int id=0;
-  // create a view vertex for each intersection and linked this one 
-  // with the intersection object
-  vector<intersection*>::iterator i, iend;
-  for(i=intersections.begin(),iend=intersections.end();
-  i!=iend;
-  i++)
-  {
-    FEdge *fA = (*i)->EdgeA->edge();
-    FEdge *fB = (*i)->EdgeB->edge();
-    
-    Vec3r A1 = fA->vertexA()->point3D();
-    Vec3r A2 = fA->vertexB()->point3D();
-    Vec3r B1 = fB->vertexA()->point3D();
-    Vec3r B2 = fB->vertexB()->point3D();
+		Vec3r evt((*sv)->point2D());
+		silhouette_binary_rule sbr;
+		SL.process(evt, vsegments, sbr, epsilon);
 
-    Vec3r a1 = fA->vertexA()->point2D();
-    Vec3r a2 = fA->vertexB()->point2D();
-    Vec3r b1 = fB->vertexA()->point2D();
-    Vec3r b2 = fB->vertexB()->point2D();
+		if (progressBarDisplay) {
+			counter--;
+			if (counter <= 0) {
+				counter = progressBarStep;
+				_pProgressBar->setProgress(_pProgressBar->getProgress() + 1);
+			}
+		}
+		vsegments.clear();
+	}
 
-    real ta = (*i)->tA;
-    real tb = (*i)->tB;
+	if (_pRenderMonitor && _pRenderMonitor->testBreak()) {
+		// delete segments
+		if (!segments.empty()) {
+			vector<segment*>::iterator s, send;
+			for (s = segments.begin(), send = segments.end(); s != send; s++) {
+				delete *s;
+			}
+		}
+		return;
+	}
 
-    if((ta < -epsilon) || (ta > 1+epsilon))
-        cerr << "Warning: 2D intersection out of range for edge " << fA->vertexA()->getId() << " - " << fA->vertexB()->getId() << endl;
-    
-    if((tb < -epsilon) || (tb > 1+epsilon))
-        cerr << "Warning: 2D intersection out of range for edge " << fB->vertexA()->getId() << " - " << fB->vertexB()->getId() << endl;
-    
-    real Ta = SilhouetteGeomEngine::ImageToWorldParameter(fA, ta);
-    real Tb = SilhouetteGeomEngine::ImageToWorldParameter(fB, tb);
+	// reset userdata:
+	for (fe = ioEdges.begin(), fend = ioEdges.end(); fe != fend; fe++)
+		(*fe)->userdata = NULL;
 
-    if((Ta < -epsilon) || (Ta > 1+epsilon))
-        cerr << "Warning: 3D intersection out of range for edge " << fA->vertexA()->getId() << " - " << fA->vertexB()->getId() << endl;
-    
-    if((Tb < -epsilon) || (Tb > 1+epsilon))
-        cerr << "Warning: 3D intersection out of range for edge " << fB->vertexA()->getId() << " - " << fB->vertexB()->getId() << endl;
+	// list containing the new edges resulting from splitting operations. 
+	vector<FEdge*> newEdges;
+
+	// retrieve the intersected edges:
+	vector<segment*>& iedges = SL.intersectedEdges();
+	// retrieve the intersections:
+	vector<intersection*>& intersections = SL.intersections();
+
+	int id = 0;
+	// create a view vertex for each intersection and linked this one with the intersection object
+	vector<intersection*>::iterator i, iend;
+	for (i = intersections.begin(), iend = intersections.end(); i != iend; i++) {
+		FEdge *fA = (*i)->EdgeA->edge();
+		FEdge *fB = (*i)->EdgeB->edge();
+
+		Vec3r A1 = fA->vertexA()->point3D();
+		Vec3r A2 = fA->vertexB()->point3D();
+		Vec3r B1 = fB->vertexA()->point3D();
+		Vec3r B2 = fB->vertexB()->point3D();
+
+		Vec3r a1 = fA->vertexA()->point2D();
+		Vec3r a2 = fA->vertexB()->point2D();
+		Vec3r b1 = fB->vertexA()->point2D();
+		Vec3r b2 = fB->vertexB()->point2D();
+
+		real ta = (*i)->tA;
+		real tb = (*i)->tB;
+
+		if ((ta < -epsilon) || (ta > 1+epsilon))
+			cerr << "Warning: 2D intersection out of range for edge " << fA->vertexA()->getId() << " - "
+			     << fA->vertexB()->getId() << endl;
+
+		if ((tb < -epsilon) || (tb > 1+epsilon))
+			cerr << "Warning: 2D intersection out of range for edge " << fB->vertexA()->getId() << " - "
+			     << fB->vertexB()->getId() << endl;
+
+		real Ta = SilhouetteGeomEngine::ImageToWorldParameter(fA, ta);
+		real Tb = SilhouetteGeomEngine::ImageToWorldParameter(fB, tb);
+
+		if ((Ta < -epsilon) || (Ta > 1 + epsilon))
+			cerr << "Warning: 3D intersection out of range for edge " << fA->vertexA()->getId() << " - "
+			     << fA->vertexB()->getId() << endl;
+
+		if ((Tb < -epsilon) || (Tb > 1 + epsilon))
+			cerr << "Warning: 3D intersection out of range for edge " << fB->vertexA()->getId() << " - "
+			     << fB->vertexB()->getId() << endl;
 
 #if 0
-    if((Ta < -epsilon) || (Ta > 1+epsilon) || (Tb < -epsilon) || (Tb > 1+epsilon)) {
-        printf("ta %.12e\n", ta);
-        printf("tb %.12e\n", tb);
-        printf("a1 %e, %e -- b1 %e, %e\n", a1[0], a1[1], b1[0], b1[1]);
-        printf("a2 %e, %e -- b2 %e, %e\n", a2[0], a2[1], b2[0], b2[1]);
-        if((Ta < -epsilon) || (Ta > 1+epsilon))
-            printf("Ta %.12e\n", Ta);
-        if((Tb < -epsilon) || (Tb > 1+epsilon))
-            printf("Tb %.12e\n", Tb);
-        printf("A1 %e, %e, %e -- B1 %e, %e, %e\n", A1[0], A1[1], A1[2], B1[0], B1[1], B1[2]);
-        printf("A2 %e, %e, %e -- B2 %e, %e, %e\n", A2[0], A2[1], A2[2], B2[0], B2[1], B2[2]);
-    }
+		if ((Ta < -epsilon) || (Ta > 1 + epsilon) || (Tb < -epsilon) || (Tb > 1 + epsilon)) {
+			printf("ta %.12e\n", ta);
+			printf("tb %.12e\n", tb);
+			printf("a1 %e, %e -- b1 %e, %e\n", a1[0], a1[1], b1[0], b1[1]);
+			printf("a2 %e, %e -- b2 %e, %e\n", a2[0], a2[1], b2[0], b2[1]);
+			if ((Ta < -epsilon) || (Ta > 1 + epsilon))
+			printf("Ta %.12e\n", Ta);
+			if ((Tb < -epsilon) || (Tb > 1 + epsilon))
+			printf("Tb %.12e\n", Tb);
+			printf("A1 %e, %e, %e -- B1 %e, %e, %e\n", A1[0], A1[1], A1[2], B1[0], B1[1], B1[2]);
+			printf("A2 %e, %e, %e -- B2 %e, %e, %e\n", A2[0], A2[1], A2[2], B2[0], B2[1], B2[2]);
+		}
 #endif
 
-    TVertex * tvertex = ioViewMap->CreateTVertex(Vec3r(A1 + Ta*(A2-A1)), Vec3r(a1 + ta*(a2-a1)), fA, 
-                                                 Vec3r(B1 + Tb*(B2-B1)), Vec3r(b1 + tb*(b2-b1)), fB, id);
-     
-    (*i)->userdata = tvertex;
-    ++id;
-  }
+		TVertex *tvertex = ioViewMap->CreateTVertex(Vec3r(A1 + Ta * (A2 - A1)), Vec3r(a1 + ta * (a2 - a1)), fA,
+		                                            Vec3r(B1 + Tb * (B2 - B1)), Vec3r(b1 + tb * (b2 - b1)), fB, id);
 
-  progressBarStep = 0;
+		(*i)->userdata = tvertex;
+		++id;
+	}
 
-  if(progressBarDisplay) {
-    unsigned iEdgesSize = iedges.size();
-    unsigned progressBarSteps = min(gProgressBarMaxSteps, iEdgesSize);
-    progressBarStep = iEdgesSize / progressBarSteps;
-    _pProgressBar->reset();
-    _pProgressBar->setLabelText("Splitting intersected edges");
-    _pProgressBar->setTotalSteps(progressBarSteps);
-    _pProgressBar->setProgress(0);
-  }
-  
-  counter = progressBarStep;
+	progressBarStep = 0;
 
-  vector<TVertex*> edgeVVertices;
-  vector<ViewEdge*> newVEdges;
-  vector<segment* >::iterator s, send;
-  for(s=iedges.begin(),send=iedges.end();
-  s!=send;
-  s++)
-  {
-    edgeVVertices.clear();
-    newEdges.clear();
-    newVEdges.clear();
-    
-    FEdge* fedge = (*s)->edge();
-    ViewEdge *vEdge = fedge->viewedge();
-    ViewShape *shape = vEdge->viewShape();
-    
-    vector<intersection*>& eIntersections = (*s)->intersections();
-    // we first need to sort these intersections from farther to closer to A
-    sort(eIntersections.begin(), eIntersections.end(), less_Intersection(*s));
-    for(i=eIntersections.begin(),iend=eIntersections.end();
-    i!=iend;
-    i++)
-      edgeVVertices.push_back((TVertex*)(*i)->userdata);
+	if (progressBarDisplay) {
+		unsigned iEdgesSize = iedges.size();
+		unsigned progressBarSteps = min(gProgressBarMaxSteps, iEdgesSize);
+		progressBarStep = iEdgesSize / progressBarSteps;
+		_pProgressBar->reset();
+		_pProgressBar->setLabelText("Splitting intersected edges");
+		_pProgressBar->setTotalSteps(progressBarSteps);
+		_pProgressBar->setProgress(0);
+	}
 
-    shape->SplitEdge(fedge, edgeVVertices, ioViewMap->FEdges(), ioViewMap->ViewEdges()); 
-
-    if(progressBarDisplay) {  
-      counter--;
-      if (counter <= 0) {
 	counter = progressBarStep;
-	_pProgressBar->setProgress(_pProgressBar->getProgress() + 1);
-      }
-    }
-  }
 
-  // reset userdata:
-  for(fe=ioEdges.begin(), fend=ioEdges.end();
-  fe!=fend;
-  fe++)
-    (*fe)->userdata = NULL;
+	vector<TVertex*> edgeVVertices;
+	vector<ViewEdge*> newVEdges;
+	vector<segment*>::iterator s, send;
+	for (s = iedges.begin(), send = iedges.end(); s != send; s++) {
+		edgeVVertices.clear();
+		newEdges.clear();
+		newVEdges.clear();
 
-   // delete segments
-   if(!segments.empty()){
-     for(s=segments.begin(),send=segments.end();
-     s!=send;
-     s++){
-       delete *s;
-     }
-   }
+		FEdge *fedge = (*s)->edge();
+		ViewEdge *vEdge = fedge->viewedge();
+		ViewShape *shape = vEdge->viewShape();
+
+		vector<intersection*>& eIntersections = (*s)->intersections();
+		// we first need to sort these intersections from farther to closer to A
+		sort(eIntersections.begin(), eIntersections.end(), less_Intersection(*s));
+		for (i = eIntersections.begin(), iend = eIntersections.end(); i != iend; i++)
+			edgeVVertices.push_back((TVertex*)(*i)->userdata);
+
+		shape->SplitEdge(fedge, edgeVVertices, ioViewMap->FEdges(), ioViewMap->ViewEdges());
+
+		if (progressBarDisplay) {
+			counter--;
+			if (counter <= 0) {
+				counter = progressBarStep;
+				_pProgressBar->setProgress(_pProgressBar->getProgress() + 1);
+			}
+		}
+	}
+
+	// reset userdata:
+	for (fe = ioEdges.begin(), fend = ioEdges.end(); fe != fend; fe++)
+		(*fe)->userdata = NULL;
+
+	// delete segments
+	if (!segments.empty()) {
+		for (s = segments.begin(), send = segments.end(); s != send; s++) {
+			delete *s;
+		}
+	}
 }
-

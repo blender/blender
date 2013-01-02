@@ -1,69 +1,75 @@
-//
-//  Filename         : AverageAreaGridDensityProvider.cpp
-//  Author(s)        : Alexander Beels
-//  Purpose          : Class to define a cell grid surrounding
-//                     the projected image of a scene
-//  Date of creation : 2011-2-9
-//
-///////////////////////////////////////////////////////////////////////////////
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2010 Blender Foundation.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 
-
-//
-//  Copyright (C) : Please refer to the COPYRIGHT file distributed 
-//   with this source distribution. 
-//
-//  This program is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU General Public License
-//  as published by the Free Software Foundation; either version 2
-//  of the License, or (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-//
-///////////////////////////////////////////////////////////////////////////////
+/** \file blender/freestyle/intern/view_map/AverageAreaGridDensityProvider.cpp
+ *  \ingroup freestyle
+ *  \brief Class to define a cell grid surrounding the projected image of a scene
+ *  \author Alexander Beels
+ *  \date 2011-2-9
+ */
 
 #include "AverageAreaGridDensityProvider.h"
 
-AverageAreaGridDensityProvider::AverageAreaGridDensityProvider(OccluderSource& source, const real proscenium[4], real sizeFactor) 
-	: GridDensityProvider(source)
+AverageAreaGridDensityProvider::AverageAreaGridDensityProvider(OccluderSource& source, const real proscenium[4],
+                                                               real sizeFactor)
+: GridDensityProvider(source)
 {
 	initialize (proscenium, sizeFactor);
 }
 
-AverageAreaGridDensityProvider::AverageAreaGridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox, const GridHelpers::Transform& transform, real sizeFactor) 
-	: GridDensityProvider(source)
+AverageAreaGridDensityProvider::AverageAreaGridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox,
+                                                               const GridHelpers::Transform& transform, real sizeFactor)
+: GridDensityProvider(source)
 {
 	real proscenium[4];
 	calculateQuickProscenium(transform, bbox, proscenium);
-	
-	initialize (proscenium, sizeFactor);
+
+	initialize(proscenium, sizeFactor);
 }
 
-AverageAreaGridDensityProvider::AverageAreaGridDensityProvider(OccluderSource& source, real sizeFactor) 
-	: GridDensityProvider(source)
+AverageAreaGridDensityProvider::AverageAreaGridDensityProvider(OccluderSource& source, real sizeFactor)
+: GridDensityProvider(source)
 {
 	real proscenium[4];
 	calculateOptimalProscenium(source, proscenium);
 
-	initialize (proscenium, sizeFactor);
+	initialize(proscenium, sizeFactor);
 }
 
-AverageAreaGridDensityProvider::~AverageAreaGridDensityProvider () {}
+AverageAreaGridDensityProvider::~AverageAreaGridDensityProvider() {}
 
-void AverageAreaGridDensityProvider::initialize (const real proscenium[4], real sizeFactor) 
+void AverageAreaGridDensityProvider::initialize(const real proscenium[4], real sizeFactor)
 {
 	float prosceniumWidth = (proscenium[1] - proscenium[0]);
 	float prosceniumHeight = (proscenium[3] - proscenium[2]);
 
 	real cellArea = 0.0;
 	unsigned numFaces = 0;
-	for ( source.begin(); source.isValid(); source.next() ) {
+	for (source.begin(); source.isValid(); source.next()) {
 		Polygon3r& poly(source.getGridSpacePolygon());
 		Vec3r min, max;
 		poly.getBBox(min, max);
@@ -82,11 +88,11 @@ void AverageAreaGridDensityProvider::initialize (const real proscenium[4], real 
 	cout << _cellsX << "x" << _cellsY << " cells of size " << _cellSize << " square." << endl;
 
 	// Make sure the grid exceeds the proscenium by a small amount
-	float safetyZone = 0.1;
-	if ( _cellsX * _cellSize < prosceniumWidth * (1.0 + safetyZone) ) {
+	float safetyZone = 0.1f;
+	if (_cellsX * _cellSize < prosceniumWidth * (1.0 + safetyZone)) {
 		_cellsX = prosceniumWidth * (1.0 + safetyZone) / _cellSize;
 	}
-	if ( _cellsY * _cellSize < prosceniumHeight * (1.0 + safetyZone) ) {
+	if (_cellsY * _cellSize < prosceniumHeight * (1.0 + safetyZone)) {
 		_cellsY = prosceniumHeight * (1.0 + safetyZone) / _cellSize;
 	}
 	cout << _cellsX << "x" << _cellsY << " cells of size " << _cellSize << " square." << endl;
@@ -97,24 +103,26 @@ void AverageAreaGridDensityProvider::initialize (const real proscenium[4], real 
 }
 
 AverageAreaGridDensityProviderFactory::AverageAreaGridDensityProviderFactory(real sizeFactor)
-	: sizeFactor(sizeFactor)
+: sizeFactor(sizeFactor)
 {
 }
 
-AverageAreaGridDensityProviderFactory::~AverageAreaGridDensityProviderFactory () {}
+AverageAreaGridDensityProviderFactory::~AverageAreaGridDensityProviderFactory() {}
 
-auto_ptr<GridDensityProvider> AverageAreaGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source, const real proscenium[4]) 
+auto_ptr<GridDensityProvider>
+AverageAreaGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source, const real proscenium[4])
 {
 	return auto_ptr<GridDensityProvider>(new AverageAreaGridDensityProvider(source, proscenium, sizeFactor));
 }
 
-auto_ptr<GridDensityProvider> AverageAreaGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox, const GridHelpers::Transform& transform) 
+auto_ptr<GridDensityProvider>
+AverageAreaGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox,
+                                                              const GridHelpers::Transform& transform)
 {
 	return auto_ptr<GridDensityProvider>(new AverageAreaGridDensityProvider(source, bbox, transform, sizeFactor));
 }
 
-auto_ptr<GridDensityProvider> AverageAreaGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source) 
+auto_ptr<GridDensityProvider> AverageAreaGridDensityProviderFactory::newGridDensityProvider(OccluderSource& source)
 {
 	return auto_ptr<GridDensityProvider>(new AverageAreaGridDensityProvider(source, sizeFactor));
 }
-

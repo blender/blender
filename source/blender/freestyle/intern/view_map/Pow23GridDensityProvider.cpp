@@ -1,52 +1,57 @@
-//
-//  Filename         : Pow23GridDensityProvider.cpp
-//  Author(s)        : Alexander Beels
-//  Purpose          : Class to define a cell grid surrounding
-//                     the projected image of a scene
-//  Date of creation : 2011-2-8
-//
-///////////////////////////////////////////////////////////////////////////////
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2010 Blender Foundation.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 
-
-//
-//  Copyright (C) : Please refer to the COPYRIGHT file distributed 
-//   with this source distribution. 
-//
-//  This program is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU General Public License
-//  as published by the Free Software Foundation; either version 2
-//  of the License, or (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with this program; if not, write to the Free Software
-//  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-//
-///////////////////////////////////////////////////////////////////////////////
+/** \file blender/freestyle/intern/view_map/Pow23GridDensityProvider.cpp
+ *  \ingroup freestyle
+ *  \brief Class to define a cell grid surrounding the projected image of a scene
+ *  \author Alexander Beels
+ *  \date 2011-2-8
+ */
 
 #include "Pow23GridDensityProvider.h"
 
-Pow23GridDensityProvider::Pow23GridDensityProvider(OccluderSource& source, const real proscenium[4], unsigned numFaces) 
-	: GridDensityProvider(source), numFaces(numFaces)
+Pow23GridDensityProvider::Pow23GridDensityProvider(OccluderSource& source, const real proscenium[4], unsigned numFaces)
+: GridDensityProvider(source), numFaces(numFaces)
 {
 	initialize (proscenium);
 }
 
-Pow23GridDensityProvider::Pow23GridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox, const GridHelpers::Transform& transform, unsigned numFaces) 
-	: GridDensityProvider(source), numFaces(numFaces)
+Pow23GridDensityProvider::Pow23GridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox,
+                                                   const GridHelpers::Transform& transform, unsigned numFaces)
+: GridDensityProvider(source), numFaces(numFaces)
 {
 	real proscenium[4];
 	calculateQuickProscenium(transform, bbox, proscenium);
-	
+
 	initialize (proscenium);
 }
 
-Pow23GridDensityProvider::Pow23GridDensityProvider(OccluderSource& source, unsigned numFaces) 
-	: GridDensityProvider(source), numFaces(numFaces) 
+Pow23GridDensityProvider::Pow23GridDensityProvider(OccluderSource& source, unsigned numFaces)
+: GridDensityProvider(source), numFaces(numFaces)
 {
 	real proscenium[4];
 	calculateOptimalProscenium(source, proscenium);
@@ -56,7 +61,7 @@ Pow23GridDensityProvider::Pow23GridDensityProvider(OccluderSource& source, unsig
 
 Pow23GridDensityProvider::~Pow23GridDensityProvider () {}
 
-void Pow23GridDensityProvider::initialize (const real proscenium[4]) 
+void Pow23GridDensityProvider::initialize(const real proscenium[4])
 {
 	float prosceniumWidth = (proscenium[1] - proscenium[0]);
 	float prosceniumHeight = (proscenium[3] - proscenium[2]);
@@ -71,10 +76,10 @@ void Pow23GridDensityProvider::initialize (const real proscenium[4])
 
 	// Make sure the grid exceeds the proscenium by a small amount
 	float safetyZone = 0.1;
-	if ( _cellsX * _cellSize < prosceniumWidth * (1.0 + safetyZone) ) {
+	if (_cellsX * _cellSize < prosceniumWidth * (1.0 + safetyZone)) {
 		_cellsX = prosceniumWidth * (1.0 + safetyZone) / _cellSize;
 	}
-	if ( _cellsY * _cellSize < prosceniumHeight * (1.0 + safetyZone) ) {
+	if (_cellsY * _cellSize < prosceniumHeight * (1.0 + safetyZone)) {
 		_cellsY = prosceniumHeight * (1.0 + safetyZone) / _cellSize;
 	}
 	cout << _cellsX << "x" << _cellsY << " cells of size " << _cellSize << " square." << endl;
@@ -85,25 +90,26 @@ void Pow23GridDensityProvider::initialize (const real proscenium[4])
 }
 
 Pow23GridDensityProviderFactory::Pow23GridDensityProviderFactory(unsigned numFaces)
-	: numFaces(numFaces)
+: numFaces(numFaces)
 {
 }
 
 Pow23GridDensityProviderFactory::~Pow23GridDensityProviderFactory () {}
 
-auto_ptr<GridDensityProvider> Pow23GridDensityProviderFactory::newGridDensityProvider(OccluderSource& source, const real proscenium[4]) 
+auto_ptr<GridDensityProvider>
+Pow23GridDensityProviderFactory::newGridDensityProvider(OccluderSource& source, const real proscenium[4])
 {
 	return auto_ptr<GridDensityProvider>(new Pow23GridDensityProvider(source, proscenium, numFaces));
 }
 
-auto_ptr<GridDensityProvider> Pow23GridDensityProviderFactory::newGridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox, const GridHelpers::Transform& transform) 
+auto_ptr<GridDensityProvider>
+Pow23GridDensityProviderFactory::newGridDensityProvider(OccluderSource& source, const BBox<Vec3r>& bbox,
+                                                        const GridHelpers::Transform& transform)
 {
 	return auto_ptr<GridDensityProvider>(new Pow23GridDensityProvider(source, bbox, transform, numFaces));
 }
 
-auto_ptr<GridDensityProvider> Pow23GridDensityProviderFactory::newGridDensityProvider(OccluderSource& source) 
+auto_ptr<GridDensityProvider> Pow23GridDensityProviderFactory::newGridDensityProvider(OccluderSource& source)
 {
 	return auto_ptr<GridDensityProvider>(new Pow23GridDensityProvider(source, numFaces));
 }
-
-
