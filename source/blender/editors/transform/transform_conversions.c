@@ -4268,8 +4268,8 @@ static void freeSeqData(TransInfo *t)
 			{
 				int overlap = 0;
 
+				seq_prev = NULL;
 				for (a = 0; a < t->total; a++, td++) {
-					seq_prev = NULL;
 					seq = ((TransDataSeq *)td->extra)->seq;
 					if ((seq != seq_prev) && (seq->depth == 0) && (seq->flag & SEQ_OVERLAP)) {
 						overlap = 1;
