@@ -4610,7 +4610,7 @@ short BKE_proxylocked_constraints_owner(Object *ob, bPoseChannel *pchan)
  * None of the actual calculations of the matrices should be done here! Also, this function is
  * not to be used by any new constraints, particularly any that have multiple targets.
  */
-void BKE_get_constraint_target_matrix(struct Scene *scene, bConstraint *con, int n, short ownertype, void *ownerdata, float mat[4][4], float ctime)
+void BKE_get_constraint_target_matrix(Scene *scene, bConstraint *con, int index, short ownertype, void *ownerdata, float mat[4][4], float ctime)
 {
 	bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
 	ListBase targets = {NULL, NULL};
@@ -4657,10 +4657,8 @@ void BKE_get_constraint_target_matrix(struct Scene *scene, bConstraint *con, int
 		cti->get_constraint_targets(con, &targets);
 		
 		/* only calculate the target matrix on the first target */
-		ct = (bConstraintTarget *)targets.first;
-		while (ct && n-- > 0)
-			ct = ct->next;
-
+		ct = (bConstraintTarget *)BLI_findlink(&targets, index);
+		
 		if (ct) {
 			if (cti->get_target_matrix)
 				cti->get_target_matrix(con, cob, ct, ctime);
