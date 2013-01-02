@@ -2129,8 +2129,11 @@ void wm_recover_last_session(bContext *C, ReportList *reports)
 		/* XXX bad global... fixme */
 		if (G.main->name[0])
 			G.file_loaded = 1;	/* prevents splash to show */
-		else
+		else {
 			G.relbase_valid = 0;
+			G.save_over = 0;    /* start with save preference untitled.blend */
+		}
+
 	}
 }
 
@@ -2168,7 +2171,7 @@ static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
 	WM_file_read(C, path, op->reports);
 
 	G.fileflags &= ~G_FILE_RECOVER;
-
+	
 	return OPERATOR_FINISHED;
 }
 
