@@ -343,7 +343,7 @@ bDeformGroup *defgroup_find_name(Object *ob, const char *name)
 
 int defgroup_name_index(Object *ob, const char *name)
 {
-	return BLI_findstringindex(&ob->defbase, name, offsetof(bDeformGroup, name));
+	return (name) ? BLI_findstringindex(&ob->defbase, name, offsetof(bDeformGroup, name)) : -1;
 }
 
 /* note, must be freed */
