@@ -489,11 +489,13 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         col = split.column()
         col.prop(md, "time")
-        col.prop(md, "resolution")
+        col.prop(md, "depth")
+        col.prop(md, "random_seed")
 
         col = split.column()
+        col.prop(md, "resolution")
+        col.prop(md, "size")
         col.prop(md, "spatial_size")
-        col.prop(md, "depth")
 
         layout.label("Waves:")
 
@@ -534,7 +536,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         if md.is_cached:
             layout.operator("object.ocean_bake", text="Free Bake").free = True
         else:
-            layout.operator("object.ocean_bake")
+            layout.operator("object.ocean_bake").free = False
 
         split = layout.split()
         split.enabled = not md.is_cached
@@ -547,7 +549,15 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.label(text="Cache path:")
         col.prop(md, "filepath", text="")
 
-        #col.prop(md, "bake_foam_fade")
+        split = layout.split()
+        split.enabled = not md.is_cached
+
+        col = split.column()
+        col.active = md.use_foam
+        col.prop(md, "bake_foam_fade")
+
+        col = split.column()
+
 
     def PARTICLE_INSTANCE(self, layout, ob, md):
         layout.prop(md, "object")
