@@ -301,7 +301,7 @@ float dist_to_line_segment_v3(const float v1[3], const float v2[3], const float 
  * 
  * Set 'r' to the point in triangle (a, b, c) closest to point 'p' */
 void closest_on_tri_to_point_v3(float r[3], const float p[3],
-					   const float a[3], const float b[3], const float c[3])
+                                const float a[3], const float b[3], const float c[3])
 {
 	float ab[3], ac[3], ap[3], d1, d2;
 	float bp[3], d3, d4, vc, cp[3], d5, d6, vb, va;

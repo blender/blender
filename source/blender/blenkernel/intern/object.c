@@ -276,7 +276,7 @@ void sculptsession_bm_to_me(struct Object *ob, int reorder)
 				BMFace *efa;
 				BM_ITER_MESH (efa, &iter, ss->bm, BM_FACES_OF_MESH) {
 					BM_elem_flag_set(efa, BM_ELEM_SMOOTH,
-									 ss->bm_smooth_shading);
+					                 ss->bm_smooth_shading);
 				}
 				if (reorder)
 					BM_log_mesh_elems_reorder(ss->bm, ss->bm_log);
@@ -300,7 +300,7 @@ void free_sculptsession(Object *ob)
 		if (ss->pbvh)
 			BKE_pbvh_free(ss->pbvh);
 		if (ss->bm_log)
- 			BM_log_free(ss->bm_log);
+			BM_log_free(ss->bm_log);
 
 		if (dm && dm->getPBVH)
 			dm->getPBVH(NULL, dm);  /* signal to clear */

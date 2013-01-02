@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/sculpt_paint/paint_2D.c
+/** \file blender/editors/sculpt_paint/paint_image_2d.c
  *  \ingroup bke
  */
 //#include <math.h>

@@ -5747,6 +5747,6 @@ void MESH_OT_symmetrize(struct wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	ot->prop = RNA_def_enum(ot->srna, "direction", symmetrize_direction_items,
-							BMO_SYMMETRIZE_NEGATIVE_X,
-							"Direction", "Which sides to copy from and to");
+	                        BMO_SYMMETRIZE_NEGATIVE_X,
+	                        "Direction", "Which sides to copy from and to");
 }

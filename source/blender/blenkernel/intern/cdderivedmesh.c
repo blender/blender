@@ -268,8 +268,8 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 		cddm->pbvh_draw = TRUE;
 
 		BKE_pbvh_build_bmesh(cddm->pbvh, ob->sculpt->bm,
-							 ob->sculpt->bm_smooth_shading,
-							 ob->sculpt->bm_log);
+		                     ob->sculpt->bm_smooth_shading,
+		                     ob->sculpt->bm_log);
 	}
 		
 
@@ -550,7 +550,7 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 			float (*face_nors)[3] = CustomData_get_layer(&dm->faceData, CD_NORMAL);
 
 			BKE_pbvh_draw(cddm->pbvh, partial_redraw_planes, face_nors,
-						  setMaterial, FALSE);
+			              setMaterial, FALSE);
 			glShadeModel(GL_FLAT);
 		}
 
