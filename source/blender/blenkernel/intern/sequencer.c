@@ -633,7 +633,7 @@ void BKE_sequence_calc(Scene *scene, Sequence *seq)
 	}
 }
 
-/* note: caller should run calc_sequence(scene, seq) after */
+/* note: caller should run BKE_sequence_calc(scene, seq) after */
 void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, int lock_range)
 {
 	char str[FILE_MAX];

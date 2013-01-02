@@ -871,7 +871,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 		if (BKE_sequence_test_overlap(ed->seqbasep, seq)) BKE_sequence_base_shuffle(ed->seqbasep, seq, scene);
 	}
 
-	BKE_sequencer_update_changed_seq_and_deps(scene, seq, 1, 1); /* runs calc_sequence */
+	BKE_sequencer_update_changed_seq_and_deps(scene, seq, 1, 1); /* runs BKE_sequence_calc */
 
 
 	/* not sure if this is needed with update_changed_seq_and_deps.

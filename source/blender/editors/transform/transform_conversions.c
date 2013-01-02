@@ -4090,7 +4090,7 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 				/* Meta's can only directly be moved between channels since they
 				 * don't have their start and length set directly (children affect that)
 				 * since this Meta is nested we don't need any of its data in fact.
-				 * calc_sequence() will update its settings when run on the toplevel meta */
+				 * BKE_sequence_calc() will update its settings when run on the toplevel meta */
 				*flag = 0;
 				*count = 0;
 				*recursive = TRUE;

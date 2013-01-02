@@ -818,7 +818,7 @@ typedef struct {
 } dealloc_obj;
 
 /* call once __file__ is set */
-void bpy_module_delay_init(PyObject *bpy_proxy)
+static void bpy_module_delay_init(PyObject *bpy_proxy)
 {
 	const int argc = 1;
 	const char *argv[2];
@@ -855,6 +855,9 @@ static void dealloc_obj_dealloc(PyObject *self)
 	/* Note, for subclassed PyObjects we cant just call PyObject_DEL() directly or it will crash */
 	dealloc_obj_Type.tp_free(self);
 }
+
+PyMODINIT_FUNC
+PyInit_bpy(void);
 
 PyMODINIT_FUNC
 PyInit_bpy(void)

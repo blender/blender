@@ -26,7 +26,6 @@ __all__ = (
 
 
 import bpy
-import mathutils
 
 from bpy.props import BoolProperty, FloatVectorProperty
 
@@ -80,7 +79,7 @@ def add_object_align_init(context, operator):
             rotation = space_data.region_3d.view_matrix.to_3x3().inverted()
             rotation.resize_4x4()
         else:
-            rotation = mathutils.Matrix()
+            rotation = Matrix()
 
         # set the operator properties
         if operator:

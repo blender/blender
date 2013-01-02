@@ -433,7 +433,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
         elem = False
 
         if strip.type == 'IMAGE':
-            elem = strip.getStripElem(frame_current)
+            elem = strip.strip_elem_from_frame(frame_current)
         elif strip.type == 'MOVIE':
             elem = strip.elements[0]
 
@@ -595,7 +595,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
 
             # Current element for the filename
 
-            elem = strip.getStripElem(context.scene.frame_current)
+            elem = strip.strip_elem_from_frame(context.scene.frame_current)
             if elem:
                 split = layout.split(percentage=0.2)
                 split.label(text="File:")
