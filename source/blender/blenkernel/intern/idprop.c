@@ -815,6 +815,13 @@ void IDP_FreeProperty(IDProperty *prop)
 	}
 }
 
+void IDP_ClearProperty(IDProperty *prop)
+{
+	IDP_FreeProperty(prop);
+	prop->data.pointer = NULL;
+	prop->len = prop->totallen = 0;
+}
+
 /* Unlinks any IDProperty<->ID linkage that might be going on.
  * note: currently unused.*/
 void IDP_UnlinkProperty(IDProperty *prop)

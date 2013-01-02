@@ -315,6 +315,8 @@ __attribute__((nonnull))
  * the actual struct IDProperty struct either.*/
 void IDP_FreeProperty(struct IDProperty *prop);
 
+void IDP_ClearProperty(IDProperty *prop);
+
 /** Unlinks any struct IDProperty<->ID linkage that might be going on.*/
 void IDP_UnlinkProperty(struct IDProperty *prop);
 

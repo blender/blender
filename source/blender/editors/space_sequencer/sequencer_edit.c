@@ -925,7 +925,7 @@ static void set_filter_seq(Scene *scene)
 			if (seq->type == SEQ_TYPE_MOVIE) {
 				seq->flag |= SEQ_FILTERY;
 				reload_sequence_new_file(scene, seq, FALSE);
-				calc_sequence(scene, seq);
+				BKE_sequence_calc(scene, seq);
 			}
 
 		}
