@@ -1098,14 +1098,16 @@ elseif(WIN32)
 		if(WITH_PYTHON)
 			# normally cached but not since we include them with blender
 			if(MSVC10)
-				set(PYTHON_VERSION 3.2) # CACHE STRING)
+				set(PYTHON_VERSION 3.3) # CACHE STRING)
 			else()
 				set(PYTHON_VERSION 3.3) # CACHE STRING)
 			endif()
 
 			set_lib_path(PYTHON "python")
 			STRING(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
-			set(PYTHON_LIBRARY ${PYTHON}/lib/python${_PYTHON_VERSION_NO_DOTS}.lib) #CACHE FILEPATH
+			# Use shared libs for vc2008 and vc2010 until we actually have vc2010 libs
+			set(PYTHON_LIBRARY ${LIBDIR}/python/lib/python${_PYTHON_VERSION_NO_DOTS}.lib)
+			# set(PYTHON_LIBRARY ${PYTHON}/lib/python${_PYTHON_VERSION_NO_DOTS}.lib) #CACHE FILEPATH
 			unset(_PYTHON_VERSION_NO_DOTS)
 
 			#Shared includes for both vc2008 and vc2010
