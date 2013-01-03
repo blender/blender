@@ -37,7 +37,9 @@ __device_inline int find_attribute(KernelGlobals *kg, ShaderData *sd, uint id, A
 	{
 		/* for SVM, find attribute by unique id */
 		uint attr_offset = sd->object*kernel_data.bvh.attributes_map_stride;
+#ifdef __HAIR__
 		attr_offset = (sd->segment == ~0)? attr_offset: attr_offset + ATTR_PRIM_CURVE;
+#endif
 		uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
 		
 		while(attr_map.x != id) {

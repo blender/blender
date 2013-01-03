@@ -222,7 +222,7 @@ __device_inline void bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
 	float4 P1 = kernel_tex_fetch(__curve_keys, k0);
 	float4 P2 = kernel_tex_fetch(__curve_keys, k1);
 
-	float l = len(P2 - P1); // XXX slower
+	float l = len(P2 - P1);
 	float r1 = P1.w;
 	float r2 = P2.w;
 	float mr = max(r1,r2);
@@ -730,7 +730,7 @@ __device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, const
 
 	float4 P1 = kernel_tex_fetch(__curve_keys, k0);
 	float4 P2 = kernel_tex_fetch(__curve_keys, k1);
-	float l = len(P2 - P1); // XXX slower
+	float l = len(P2 - P1);
 	float r1 = P1.w;
 	float r2 = P2.w;
 	float3 tg = float4_to_float3(P2 - P1) / l;

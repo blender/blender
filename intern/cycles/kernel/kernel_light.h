@@ -341,7 +341,7 @@ __device void curve_segment_light_sample(KernelGlobals *kg, int prim, int object
 	float4 P1 = kernel_tex_fetch(__curve_keys, k0);
 	float4 P2 = kernel_tex_fetch(__curve_keys, k1);
 
-	float l = len(P2 - P1); // XXX slower
+	float l = len(P2 - P1);
 
 	float r1 = P1.w;
 	float r2 = P2.w;
