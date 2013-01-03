@@ -1865,7 +1865,7 @@ endif()
 
 if(WITH_PYTHON_MODULE)
 	add_definitions(-DPy_ENABLE_SHARED)
-endif().
+endif()
 
 #-----------------------------------------------------------------------------
 # Extra compile flags
