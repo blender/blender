@@ -30,7 +30,9 @@ add_subdirectory(colamd)
 add_subdirectory(rangetree)
 
 if(WITH_BULLET)
-	add_subdirectory(bullet2)
+	if(NOT WITH_SYSTEM_BULLET)
+		add_subdirectory(bullet2)
+	endif()
 endif()
 
 # now only available in a branch

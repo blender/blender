@@ -282,7 +282,9 @@ macro(setup_liblinks
 	if(WITH_SYSTEM_GLEW)
 		target_link_libraries(${target} ${GLEW_LIBRARY})
 	endif()
-
+	if(WITH_BULLET AND WITH_SYSTEM_BULLET)
+		target_link_libraries(${target} ${BULLET_LIBRARIES})
+	endif()
 	if(WITH_OPENAL)
 		target_link_libraries(${target} ${OPENAL_LIBRARY})
 	endif()

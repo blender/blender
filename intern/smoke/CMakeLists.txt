@@ -29,7 +29,7 @@ set(INC
 )
 
 set(INC_SYS
-	../../extern/bullet2/src
+	${BULLET_INCLUDE_DIRS}
 	${PNG_INCLUDE_DIR}
 	${ZLIB_INCLUDE_DIRS}
 )

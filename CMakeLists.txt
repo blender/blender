@@ -129,6 +129,8 @@ option(WITH_IK_ITASC      "Enable ITASC IK solver (only disable for development 
 option(WITH_IK_SOLVER     "Enable Legacy IK solver (only disable for development)" ON)
 option(WITH_FFTW3         "Enable FFTW3 support (Used for smoke and audio effects)" ON)
 option(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
+option(WITH_SYSTEM_BULLET "Use the systems bullet library (currently unsupported due to missing features in upstream!)" )
+mark_as_advanced(WITH_SYSTEM_BULLET)
 option(WITH_GAMEENGINE    "Enable Game Engine" ON)
 option(WITH_PLAYER        "Build Player" OFF)
 option(WITH_OPENCOLORIO   "Enable OpenColorIO color management" ON)
@@ -1842,12 +1844,26 @@ else()
 	set(GLEW_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/extern/glew/include")
 endif()
 
+
+#-----------------------------------------------------------------------------
+# Configure Bullet
+
+if(WITH_BULLET AND WITH_SYSTEM_BULLET)
+	find_package(Bullet)
+	if(NOT BULLET_FOUND)
+		set(WITH_BULLET OFF)
+	endif()
+else()
+	set(BULLET_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/extern/bullet2/src")
+	# set(BULLET_LIBRARIES "")
+endif()
+
 #-----------------------------------------------------------------------------
 # Configure Python.
 
 if(WITH_PYTHON_MODULE)
 	add_definitions(-DPy_ENABLE_SHARED)
-endif()
+endif().
 
 #-----------------------------------------------------------------------------
 # Extra compile flags

@@ -30,7 +30,6 @@ set(INC
 	../blenlib
 	../makesdna
 	../../../intern/guardedalloc
-	../../../extern/bullet2/src
 	../../../extern/rangetree
 	../../../intern/opennl/extern
 )
@@ -127,6 +126,9 @@ endif()
 
 if(WITH_BULLET)
 	add_definitions(-DWITH_BULLET)
+	list(APPEND INC_SYS
+		${BULLET_INCLUDE_DIRS}
+	)
 endif()
 
 if(WITH_INTERNATIONAL)

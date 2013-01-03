@@ -112,7 +112,7 @@ set(SRC
 
 if(WITH_BULLET)
 	list(APPEND INC_SYS
-		../../../extern/bullet2/src
+		${BULLET_INCLUDE_DIRS}
 	)
 	add_definitions(-DUSE_BULLET)
 endif()

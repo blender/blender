@@ -30,7 +30,6 @@ set(INC
 )
 
 set(INC_SYS
-	../../../extern/bullet2/src
 	${PTHREADS_INCLUDE_DIRS}
 	${GLEW_INCLUDE_PATH}
 	${BOOST_INCLUDE_DIR}
@@ -69,5 +68,13 @@ endif()
 if(WITH_CODEC_FFMPEG)
 	add_definitions(-DWITH_FFMPEG)
 endif()
+
+if(WITH_BULLET)
+	list(APPEND INC_SYS
+		${BULLET_INCLUDE_DIRS}
+	)
+	add_definitions(-DUSE_BULLET)
+endif()
+
 
 blender_add_lib(ge_blen_routines "${SRC}" "${INC}" "${INC_SYS}")
