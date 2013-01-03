@@ -1563,7 +1563,6 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
 	uv_map_transform(C, op, center, rotmat);
 
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 		if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
 			continue;
 		
@@ -1573,6 +1572,7 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
 			uv_cylinder_project(luv->uv, l->v->co, center, rotmat);
 		}
 
+		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 		uv_map_mirror(em, efa, tf);
 	}
 
