@@ -2981,12 +2981,13 @@ static KeyBlock *insert_meshkey(Scene *scene, Object *ob, const char *name, int 
 	}
 	else {
 		/* copy from current values */
-		float *data = do_ob_key(scene, ob);
+		int totelem;
+		float *data = BKE_key_evaluate_object(scene, ob, &totelem);
 
 		/* create new block with prepared data */
 		kb = BKE_keyblock_add_ctime(key, name, FALSE);
 		kb->data = data;
-		kb->totelem = me->totvert;
+		kb->totelem = totelem;
 	}
 
 	return kb;
@@ -3018,11 +3019,12 @@ static KeyBlock *insert_lattkey(Scene *scene, Object *ob, const char *name, int 
 	}
 	else {
 		/* copy from current values */
-		float *data = do_ob_key(scene, ob);
+		int totelem;
+		float *data = BKE_key_evaluate_object(scene, ob, &totelem);
 
 		/* create new block with prepared data */
 		kb = BKE_keyblock_add_ctime(key, name, FALSE);
-		kb->totelem = lt->pntsu * lt->pntsv * lt->pntsw;
+		kb->totelem = totelem;
 		kb->data = data;
 	}
 
@@ -3057,11 +3059,12 @@ static KeyBlock *insert_curvekey(Scene *scene, Object *ob, const char *name, int
 	}
 	else {
 		/* copy from current values */
-		float *data = do_ob_key(scene, ob);
+		int totelem;
+		float *data = BKE_key_evaluate_object(scene, ob, &totelem);
 
 		/* create new block with prepared data */
 		kb = BKE_keyblock_add_ctime(key, name, FALSE);
-		kb->totelem = BKE_nurbList_verts_count(lb);
+		kb->totelem = totelem;
 		kb->data = data;
 	}
 

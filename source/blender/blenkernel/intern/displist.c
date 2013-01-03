@@ -799,7 +799,7 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 		required_mode |= eModifierMode_Editmode;
 
 	if (cu->editnurb == NULL) {
-		keyVerts = do_ob_key(scene, ob);
+		keyVerts = BKE_key_evaluate_object(scene, ob, &numVerts);
 
 		if (keyVerts) {
 			/* split coords from key data, the latter also includes
@@ -808,7 +808,7 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 			 * shape key modifier yet. */
 			deformedVerts = BKE_curve_keyVertexCos_get(cu, nurb, keyVerts);
 			originalVerts = MEM_dupallocN(deformedVerts);
-			numVerts = BKE_nurbList_verts_count(nurb);
+			BLI_assert(BKE_nurbList_verts_count(nurb) == numVerts);
 		}
 	}
 
