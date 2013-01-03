@@ -877,7 +877,9 @@ static void rna_def_linestyle(BlenderRNA *brna)
 		{LS_PANEL_ALPHA, "ALPHA", 0, "Alpha", "Show the panel for alpha transparency options"},
 		{LS_PANEL_THICKNESS, "THICKNESS", 0, "Thickness", "Show the panel for line thickness options"},
 		{LS_PANEL_GEOMETRY, "GEOMETRY", 0, "Geometry", "Show the panel for stroke geometry options"},
+#if 0 /* hidden for now */
 		{LS_PANEL_MISC, "MISC", 0, "Misc", "Show the panel for miscellaneous options"},
+#endif
 		{0, NULL, 0, NULL, NULL}
 	};
 	static EnumPropertyItem chaining_items[] = {

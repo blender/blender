@@ -8668,6 +8668,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 		for(linestyle = main->linestyle.first; linestyle; linestyle = linestyle->id.next) {
+#if 1
+			/* disable the Misc panel for now */
+			if (linestyle->panel == LS_PANEL_MISC) {
+				linestyle->panel = LS_PANEL_STROKES;
+			}
+#endif
 			if (linestyle->thickness_position == 0) {
 				linestyle->thickness_position = LS_THICKNESS_CENTER;
 				linestyle->thickness_ratio = 0.5f;
