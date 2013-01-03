@@ -203,14 +203,18 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 					surface_area += triangle_area(p1, p2, p3);
 				}
 
-				foreach(Mesh::CurveSegment& t, mesh->curve_segments) {
-					float3 p1 = mesh->curve_keys[t.v[0]].co;
-					float r1 = mesh->curve_keys[t.v[0]].radius;
-					float3 p2 = mesh->curve_keys[t.v[1]].co;
-					float r2 = mesh->curve_keys[t.v[1]].radius;
+				foreach(Mesh::Curve& curve, mesh->curves) {
+					int first_key = curve.first_key;
 
-					/* currently ignores segment overlaps*/
-					surface_area += M_PI_F *(r1 + r2) * len(p1 - p2);
+					for(int i = 0; i < curve.num_segments(); i++) {
+						float3 p1 = mesh->curve_keys[first_key + i].co;
+						float r1 = mesh->curve_keys[first_key + i].radius;
+						float3 p2 = mesh->curve_keys[first_key + i + 1].co;
+						float r2 = mesh->curve_keys[first_key + i + 1].radius;
+
+						/* currently ignores segment overlaps*/
+						surface_area += M_PI_F *(r1 + r2) * len(p1 - p2);
+					}
 				}
 
 				surface_area_map[mesh] = surface_area;
@@ -229,14 +233,21 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 				surface_area += triangle_area(p1, p2, p3);
 			}
 
-			foreach(Mesh::CurveSegment& t, mesh->curve_segments) {
-				float3 p1 = mesh->curve_keys[t.v[0]].co;
-				float r1 = mesh->curve_keys[t.v[0]].radius;
-				float3 p2 = mesh->curve_keys[t.v[1]].co;
-				float r2 = mesh->curve_keys[t.v[1]].radius;
+			foreach(Mesh::Curve& curve, mesh->curves) {
+				int first_key = curve.first_key;
 
-				/* currently ignores segment overlaps*/
-				surface_area += M_PI_F *(r1 + r2) * len(p1 - p2);
+				for(int i = 0; i < curve.num_segments(); i++) {
+					float3 p1 = mesh->curve_keys[first_key + i].co;
+					float r1 = mesh->curve_keys[first_key + i].radius;
+					float3 p2 = mesh->curve_keys[first_key + i + 1].co;
+					float r2 = mesh->curve_keys[first_key + i + 1].radius;
+
+					p1 = transform_point(&tfm, p1);
+					p2 = transform_point(&tfm, p2);
+
+					/* currently ignores segment overlaps*/
+					surface_area += M_PI_F *(r1 + r2) * len(p1 - p2);
+				}
 			}
 		}
 

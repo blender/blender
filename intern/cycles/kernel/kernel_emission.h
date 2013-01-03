@@ -157,7 +157,7 @@ __device float3 indirect_emission(KernelGlobals *kg, ShaderData *sd, float t, in
 	float3 L = shader_emissive_eval(kg, sd);
 
 #ifdef __HAIR__
-	if(!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_SAMPLE_AS_LIGHT) && (sd->curve_seg == ~0)) {
+	if(!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_SAMPLE_AS_LIGHT) && (sd->segment == ~0)) {
 #else
 	if(!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_SAMPLE_AS_LIGHT)) {
 #endif

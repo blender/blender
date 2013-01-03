@@ -80,7 +80,7 @@ size_t Attribute::element_size(int numverts, int numtris, int numcurves, int num
 		return numtris;
 	else if(element == ATTR_ELEMENT_CORNER)
 		return numtris*3;
-	else if(element == ATTR_ELEMENT_CURVE_SEGMENT)
+	else if(element == ATTR_ELEMENT_CURVE)
 		return numcurves;
 	else if(element == ATTR_ELEMENT_CURVE_KEY)
 		return numkeys;
@@ -176,7 +176,7 @@ Attribute *AttributeSet::add(ustring name, TypeDesc type, AttributeElement eleme
 	if(triangle_mesh)
 		attr->reserve(triangle_mesh->verts.size(), triangle_mesh->triangles.size(), 0, 0);
 	if(curve_mesh)
-		attr->reserve(0, 0, curve_mesh->curve_segments.size(), curve_mesh->curve_keys.size());
+		attr->reserve(0, 0, curve_mesh->curves.size(), curve_mesh->curve_keys.size());
 	
 	return attr;
 }
@@ -239,9 +239,9 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 	}
 	else if(curve_mesh) {
 		if(std == ATTR_STD_UV)
-			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE_SEGMENT);
+			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE);
 		else if(std == ATTR_STD_GENERATED)
-			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE_SEGMENT);
+			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE);
 		else if(std == ATTR_STD_MOTION_PRE)
 			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE_KEY);
 		else if(std == ATTR_STD_MOTION_POST)
@@ -298,7 +298,7 @@ void AttributeSet::reserve()
 		if(triangle_mesh)
 			attr.reserve(triangle_mesh->verts.size(), triangle_mesh->triangles.size(), 0, 0);
 		if(curve_mesh)
-			attr.reserve(0, 0, curve_mesh->curve_segments.size(), curve_mesh->curve_keys.size());
+			attr.reserve(0, 0, curve_mesh->curves.size(), curve_mesh->curve_keys.size());
 	}
 }
 

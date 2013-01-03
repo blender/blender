@@ -69,25 +69,22 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 #endif
 
 	sd->prim = kernel_tex_fetch(__prim_index, isect->prim);
-#ifdef __HAIR__
-	sd->curve_seg = ~0;
-#endif
 	sd->ray_length = isect->t;
 
 #ifdef __HAIR__
-	if(kernel_tex_fetch(__prim_type, isect->prim)) {
+	if(kernel_tex_fetch(__prim_segment, isect->prim) != ~0) {
 		/* Strand Shader setting*/
-		float4 CurSeg = kernel_tex_fetch(__curve_segments, sd->prim);
-		sd->shader = __float_as_int(CurSeg.z);
+		float4 curvedata = kernel_tex_fetch(__curves, sd->prim);
 
-		sd->curve_seg = sd->prim;
-		sd->prim = isect->prim;
+		sd->shader = __float_as_int(curvedata.z);
+		sd->segment = isect->segment;
 
 		float tcorr = isect->t;
 		if(kernel_data.curve_kernel_data.curveflags & CURVE_KN_POSTINTERSECTCORRECTION) {
 			tcorr = (isect->u < 0)? tcorr + sqrtf(isect->v) : tcorr - sqrtf(isect->v);
 			sd->ray_length = tcorr;
 		}
+
 		sd->P = bvh_curve_refine(kg, sd, isect, ray, tcorr);
 	}
 	else {
@@ -96,6 +93,10 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 		float4 Ns = kernel_tex_fetch(__tri_normal, sd->prim);
 		float3 Ng = make_float3(Ns.x, Ns.y, Ns.z);
 		sd->shader = __float_as_int(Ns.w);
+
+#ifdef __HAIR__
+		sd->segment = ~0;
+#endif
 
 #ifdef __UV__
 		sd->u = isect->u;
@@ -107,7 +108,6 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 		sd->Ng = Ng;
 		sd->N = Ng;
 		
-
 		/* smooth normal */
 		if(sd->shader & SHADER_SMOOTH_NORMAL)
 			sd->N = triangle_smooth_normal(kg, sd->prim, sd->u, sd->v);
@@ -162,7 +162,7 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 
 __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 	const float3 P, const float3 Ng, const float3 I,
-	int shader, int object, int prim, float u, float v, float t, float time, int curve = ~0)
+	int shader, int object, int prim, float u, float v, float t, float time, int segment = ~0)
 {
 	/* vectors */
 	sd->P = P;
@@ -171,7 +171,7 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 	sd->I = I;
 	sd->shader = shader;
 #ifdef __HAIR__
-	sd->curve_seg = curve;
+	sd->segment = segment;
 #endif
 
 	/* primitive */
@@ -215,7 +215,7 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 
 	/* smooth normal */
 #ifdef __HAIR__
-	if(sd->shader & SHADER_SMOOTH_NORMAL && sd->curve_seg == ~0) {
+	if(sd->shader & SHADER_SMOOTH_NORMAL && sd->segment == ~0) {
 		sd->N = triangle_smooth_normal(kg, sd->prim, sd->u, sd->v);
 #else
 	if(sd->shader & SHADER_SMOOTH_NORMAL) {
@@ -231,7 +231,7 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 #ifdef __DPDU__
 	/* dPdu/dPdv */
 #ifdef __HAIR__
-	if(sd->prim == ~0 || sd->curve_seg != ~0) {
+	if(sd->prim == ~0 || sd->segment != ~0) {
 		sd->dPdu = make_float3(0.0f, 0.0f, 0.0f);
 		sd->dPdv = make_float3(0.0f, 0.0f, 0.0f);
 	}
@@ -323,7 +323,7 @@ __device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderData 
 #endif
 	sd->prim = ~0;
 #ifdef __HAIR__
-	sd->curve_seg = ~0;
+	sd->segment = ~0;
 #endif
 #ifdef __UV__
 	sd->u = 0.0f;
@@ -781,14 +781,14 @@ __device bool shader_transparent_shadow(KernelGlobals *kg, Intersection *isect)
 	int shader = 0;
 
 #ifdef __HAIR__
-	if(!kernel_tex_fetch(__prim_type, isect->prim)) {
+	if(kernel_tex_fetch(__prim_segment, isect->prim) == ~0) {
 #endif
 		float4 Ns = kernel_tex_fetch(__tri_normal, prim);
 		shader = __float_as_int(Ns.w);
 #ifdef __HAIR__
 	}
 	else {
-		float4 str = kernel_tex_fetch(__curve_segments, prim);
+		float4 str = kernel_tex_fetch(__curves, prim);
 		shader = __float_as_int(str.z);
 	}
 #endif

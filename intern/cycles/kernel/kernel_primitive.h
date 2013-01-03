@@ -37,7 +37,7 @@ __device_inline int find_attribute(KernelGlobals *kg, ShaderData *sd, uint id, A
 	{
 		/* for SVM, find attribute by unique id */
 		uint attr_offset = sd->object*kernel_data.bvh.attributes_map_stride;
-		attr_offset = (sd->curve_seg == ~0)? attr_offset: attr_offset + ATTR_PRIM_CURVE;
+		attr_offset = (sd->segment == ~0)? attr_offset: attr_offset + ATTR_PRIM_CURVE;
 		uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
 		
 		while(attr_map.x != id) {
@@ -55,7 +55,7 @@ __device_inline int find_attribute(KernelGlobals *kg, ShaderData *sd, uint id, A
 __device float primitive_attribute_float(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float *dx, float *dy)
 {
 #ifdef __HAIR__
-	if(sd->curve_seg == ~0)
+	if(sd->segment == ~0)
 #endif
 		return triangle_attribute_float(kg, sd, elem, offset, dx, dy);
 #ifdef __HAIR__
@@ -67,7 +67,7 @@ __device float primitive_attribute_float(KernelGlobals *kg, const ShaderData *sd
 __device float3 primitive_attribute_float3(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float3 *dx, float3 *dy)
 {
 #ifdef __HAIR__
-	if(sd->curve_seg == ~0)
+	if(sd->segment == ~0)
 #endif
 		return triangle_attribute_float3(kg, sd, elem, offset, dx, dy);
 #ifdef __HAIR__
@@ -92,7 +92,7 @@ __device float3 primitive_uv(KernelGlobals *kg, ShaderData *sd)
 __device float3 primitive_tangent(KernelGlobals *kg, ShaderData *sd)
 {
 #ifdef __HAIR__
-	if(sd->curve_seg != ~0)
+	if(sd->segment != ~0)
 		return normalize(sd->dPdu);
 #endif
 

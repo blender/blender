@@ -51,10 +51,13 @@ public:
 	};
 
 	/* Mesh Curve */
-	struct CurveSegment {
-		int v[2];
+	struct Curve {
+		int first_key;
+		int num_keys;
 		uint shader;
-		int curve;
+		uint pad;
+
+		int num_segments() { return num_keys - 1; }
 	};
 
 	struct CurveKey {
@@ -78,7 +81,7 @@ public:
 	vector<bool> smooth;
 
 	vector<CurveKey> curve_keys;
-	vector<CurveSegment> curve_segments;
+	vector<Curve> curves;
 
 	vector<uint> used_shaders;
 	AttributeSet attributes;
@@ -98,7 +101,7 @@ public:
 	size_t tri_offset;
 	size_t vert_offset;
 
-	size_t curveseg_offset;
+	size_t curve_offset;
 	size_t curvekey_offset;
 
 	/* Functions */
@@ -109,7 +112,7 @@ public:
 	void clear();
 	void add_triangle(int v0, int v1, int v2, int shader, bool smooth);
 	void add_curve_key(float3 loc, float radius);
-	void add_curve_segment(int v0, int v1, int shader, int curveid);
+	void add_curve(int first_key, int num_keys, int shader);
 
 	void compute_bounds();
 	void add_face_normals();
@@ -117,7 +120,7 @@ public:
 
 	void pack_normals(Scene *scene, float4 *normal, float4 *vnormal);
 	void pack_verts(float4 *tri_verts, float4 *tri_vindex, size_t vert_offset);
-	void pack_curves(Scene *scene, float4 *curve_key_co, float4 *curve_seg_keys, size_t curvekey_offset);
+	void pack_curves(Scene *scene, float4 *curve_key_co, float4 *curve_data, size_t curvekey_offset);
 	void compute_bvh(SceneParams *params, Progress *progress, int n, int total);
 
 	bool need_attribute(Scene *scene, AttributeStandard std);

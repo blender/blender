@@ -171,13 +171,14 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 					num_triangles++;
 			}
 
-			/* disabled for strands*/
-			/*for(size_t i = 0; i < mesh->curve_segments.size(); i++) {
-			*	Shader *shader = scene->shaders[mesh->curve_segments[i].shader];
-			*
-			*	if(shader->sample_as_light && shader->has_surface_emission)
-			*		num_curve_segments++;
-			}*/
+			/* disabled for curves */
+#if 0
+			foreach(Mesh::Curve& curve, mesh->curves) {
+				Shader *shader = scene->shaders[curve.shader];
+
+				if(shader->sample_as_light && shader->has_surface_emission)
+					num_curve_segments += curve.num_segments();
+#endif
 		}
 	}
 
@@ -225,7 +226,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 				if(shader->sample_as_light && shader->has_surface_emission) {
 					distribution[offset].x = totarea;
 					distribution[offset].y = __int_as_float(i + mesh->tri_offset);
-					distribution[offset].z = 1.0f;
+					distribution[offset].z = __int_as_float(~0);
 					distribution[offset].w = __int_as_float(object_id);
 					offset++;
 
@@ -245,30 +246,38 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 			}
 
 			/*sample as light disabled for strands*/
-			/*for(size_t i = 0; i < mesh->curve_segments.size(); i++) {
-			*	Shader *shader = scene->shaders[mesh->curve_segments[i].shader];
-			*
-			*	if(shader->sample_as_light && shader->has_surface_emission) {
-			*		distribution[offset].x = totarea;
-			*		distribution[offset].y = __int_as_float(i + mesh->curveseg_offset);
-			*		distribution[offset].z = 0.0f;
-			*		distribution[offset].w = __int_as_float(object_id);
-			*		offset++;
-			*
-			*		Mesh::CurveSeg s = mesh->curve_segments[i];
-			*		float3 p1 = mesh->curve_keys[s.v[0]].loc;
-			*		float r1 = mesh->curve_keys[s.v[0]].radius;
-			*		float3 p2 = mesh->curve_keys[s.v[1]].loc;
-			*		float r2 = mesh->curve_keys[s.v[1]].radius;
-			*
-			*		if(!transform_applied) {
-			*			p1 = transform_point(&tfm, p1);
-			*			p2 = transform_point(&tfm, p2);
-			*		}
-			*
-			*		totarea += M_PI_F * (r1 + r2) * len(p1 - p2);
-			*	}
-			}*/
+#if 0
+			size_t i = 0;
+
+			foreach(Mesh::Curve& curve, mesh->curves) {
+				Shader *shader = scene->shaders[curve.shader];
+				int first_key = curve.first_key;
+
+				if(shader->sample_as_light && shader->has_surface_emission) {
+					for(int j = 0; j < curve.num_segments(); j++) {
+						distribution[offset].x = totarea;
+						distribution[offset].y = __int_as_float(i + mesh->curve_offset); // XXX fix kernel code
+						distribution[offset].z = __int_as_float(j);
+						distribution[offset].w = __int_as_float(object_id);
+						offset++;
+				
+						float3 p1 = mesh->curve_keys[first_key + j].loc;
+						float r1 = mesh->curve_keys[first_key + j].radius;
+						float3 p2 = mesh->curve_keys[first_key + j + 1].loc;
+						float r2 = mesh->curve_keys[first_key + j + 1].radius;
+				
+						if(!transform_applied) {
+							p1 = transform_point(&tfm, p1);
+							p2 = transform_point(&tfm, p2);
+						}
+				
+						totarea += M_PI_F * (r1 + r2) * len(p1 - p2);
+					}
+				}
+
+				i++;
+			}
+#endif
 		}
 
 		if(progress.get_cancel()) return;

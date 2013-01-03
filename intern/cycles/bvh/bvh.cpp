@@ -76,7 +76,7 @@ bool BVH::cache_read(CacheData& key)
 		key.add(ob->mesh->verts);
 		key.add(ob->mesh->triangles);
 		key.add(ob->mesh->curve_keys);
-		key.add(ob->mesh->curve_segments);
+		key.add(ob->mesh->curves);
 		key.add(&ob->bounds, sizeof(ob->bounds));
 		key.add(&ob->visibility, sizeof(ob->visibility));
 		key.add(&ob->mesh->transform_applied, sizeof(bool));
@@ -93,7 +93,7 @@ bool BVH::cache_read(CacheData& key)
 		value.read(pack.nodes);
 		value.read(pack.object_node);
 		value.read(pack.tri_woop);
-		value.read(pack.prim_type);
+		value.read(pack.prim_segment);
 		value.read(pack.prim_visibility);
 		value.read(pack.prim_index);
 		value.read(pack.prim_object);
@@ -115,7 +115,7 @@ void BVH::cache_write(CacheData& key)
 	value.add(pack.nodes);
 	value.add(pack.object_node);
 	value.add(pack.tri_woop);
-	value.add(pack.prim_type);
+	value.add(pack.prim_segment);
 	value.add(pack.prim_visibility);
 	value.add(pack.prim_index);
 	value.add(pack.prim_object);
@@ -161,11 +161,11 @@ void BVH::build(Progress& progress)
 	}
 
 	/* build nodes */
-	vector<int> prim_type;
+	vector<int> prim_segment;
 	vector<int> prim_index;
 	vector<int> prim_object;
 
-	BVHBuild bvh_build(objects, prim_type, prim_index, prim_object, params, progress);
+	BVHBuild bvh_build(objects, prim_segment, prim_index, prim_object, params, progress);
 	BVHNode *root = bvh_build.run();
 
 	if(progress.get_cancel()) {
@@ -174,7 +174,7 @@ void BVH::build(Progress& progress)
 	}
 
 	/* todo: get rid of this copy */
-	pack.prim_type = prim_type;
+	pack.prim_segment = prim_segment;
 	pack.prim_index = prim_index;
 	pack.prim_object = prim_object;
 
@@ -271,13 +271,16 @@ void BVH::pack_triangle(int idx, float4 woop[3])
 
 /* Curves*/
 
-void BVH::pack_curve_seg(int idx, float4 woop[3])
+void BVH::pack_curve_segment(int idx, float4 woop[3])
 {
 	int tob = pack.prim_object[idx];
 	const Mesh *mesh = objects[tob]->mesh;
 	int tidx = pack.prim_index[idx];
-	float3 v0 = mesh->curve_keys[mesh->curve_segments[tidx].v[0]].co;
-	float3 v1 = mesh->curve_keys[mesh->curve_segments[tidx].v[1]].co;
+	int segment = pack.prim_segment[idx];
+	int k0 = mesh->curves[tidx].first_key + segment;
+	int k1 = mesh->curves[tidx].first_key + segment + 1;
+	float3 v0 = mesh->curve_keys[k0].co;
+	float3 v1 = mesh->curve_keys[k1].co;
 
 	float3 d0 = v1 - v0;
 	float l =  len(d0);
@@ -289,19 +292,19 @@ void BVH::pack_curve_seg(int idx, float4 woop[3])
 	*	nextkey, flags/tip?,    0, 0);
 	*/
 	Attribute *attr_tangent = mesh->curve_attributes.find(ATTR_STD_CURVE_TANGENT);
+	float3 tg0 = make_float3(1.0f, 0.0f, 0.0f);
 	float3 tg1 = make_float3(1.0f, 0.0f, 0.0f);
-	float3 tg2 = make_float3(1.0f, 0.0f, 0.0f);
 
 	if(attr_tangent) {
 		const float3 *data_tangent = attr_tangent->data_float3();
 
-		tg1 = data_tangent[mesh->curve_segments[tidx].v[0]];
-		tg2 = data_tangent[mesh->curve_segments[tidx].v[1]];
+		tg0 = data_tangent[k0];
+		tg1 = data_tangent[k1];
 	}
 	
 	Transform tfm = make_transform(
-		tg1.x, tg1.y, tg1.z, l,
-		tg2.x, tg2.y, tg2.z, 0,
+		tg0.x, tg0.y, tg0.z, l,
+		tg1.x, tg1.y, tg1.z, 0,
 		0, 0, 0, 0,
 		0, 0, 0, 1);
 
@@ -325,8 +328,8 @@ void BVH::pack_primitives()
 		if(pack.prim_index[i] != -1) {
 			float4 woop[3];
 
-			if(pack.prim_type[i])
-				pack_curve_seg(i, woop);
+			if(pack.prim_segment[i] != ~0)
+				pack_curve_segment(i, woop);
 			else
 				pack_triangle(i, woop);
 			
@@ -353,8 +356,8 @@ void BVH::pack_instances(size_t nodes_size)
 	 * meshes with transform applied and already in the top level BVH */
 	for(size_t i = 0; i < pack.prim_index.size(); i++)
 		if(pack.prim_index[i] != -1) {
-			if(pack.prim_type[i])
-				pack.prim_index[i] += objects[pack.prim_object[i]]->mesh->curveseg_offset;
+			if(pack.prim_segment[i] != ~0)
+				pack.prim_index[i] += objects[pack.prim_object[i]]->mesh->curve_offset;
 			else
 				pack.prim_index[i] += objects[pack.prim_object[i]]->mesh->tri_offset;
 		}
@@ -395,7 +398,7 @@ void BVH::pack_instances(size_t nodes_size)
 	mesh_map.clear();
 
 	pack.prim_index.resize(prim_index_size);
-	pack.prim_type.resize(prim_index_size);
+	pack.prim_segment.resize(prim_index_size);
 	pack.prim_object.resize(prim_index_size);
 	pack.prim_visibility.resize(prim_index_size);
 	pack.tri_woop.resize(tri_woop_size);
@@ -403,7 +406,7 @@ void BVH::pack_instances(size_t nodes_size)
 	pack.object_node.resize(objects.size());
 
 	int *pack_prim_index = (pack.prim_index.size())? &pack.prim_index[0]: NULL;
-	int *pack_prim_type = (pack.prim_type.size())? &pack.prim_type[0]: NULL;
+	int *pack_prim_segment = (pack.prim_segment.size())? &pack.prim_segment[0]: NULL;
 	int *pack_prim_object = (pack.prim_object.size())? &pack.prim_object[0]: NULL;
 	uint *pack_prim_visibility = (pack.prim_visibility.size())? &pack.prim_visibility[0]: NULL;
 	float4 *pack_tri_woop = (pack.tri_woop.size())? &pack.tri_woop[0]: NULL;
@@ -434,7 +437,7 @@ void BVH::pack_instances(size_t nodes_size)
 
 		int noffset = nodes_offset/nsize;
 		int mesh_tri_offset = mesh->tri_offset;
-		int mesh_curve_offset = mesh->curveseg_offset;
+		int mesh_curve_offset = mesh->curve_offset;
 
 		/* fill in node indexes for instances */
 		if((bvh->pack.is_leaf.size() != 0) && bvh->pack.is_leaf[0])
@@ -448,16 +451,16 @@ void BVH::pack_instances(size_t nodes_size)
 		if(bvh->pack.prim_index.size()) {
 			size_t bvh_prim_index_size = bvh->pack.prim_index.size();
 			int *bvh_prim_index = &bvh->pack.prim_index[0];
-			int *bvh_prim_type = &bvh->pack.prim_type[0];
+			int *bvh_prim_segment = &bvh->pack.prim_segment[0];
 			uint *bvh_prim_visibility = &bvh->pack.prim_visibility[0];
 
 			for(size_t i = 0; i < bvh_prim_index_size; i++) {
-				if(bvh->pack.prim_type[i])
+				if(bvh->pack.prim_segment[i] != ~0)
 					pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + mesh_curve_offset;
 				else
 					pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + mesh_tri_offset;
 
-				pack_prim_type[pack_prim_index_offset] = bvh_prim_type[i];
+				pack_prim_segment[pack_prim_index_offset] = bvh_prim_segment[i];
 				pack_prim_visibility[pack_prim_index_offset] = bvh_prim_visibility[i];
 				pack_prim_object[pack_prim_index_offset] = 0;  // unused for instances
 				pack_prim_index_offset++;
@@ -622,13 +625,14 @@ void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility
 				/* primitives */
 				const Mesh *mesh = ob->mesh;
 
-				if(pack.prim_type[prim]) {
-					/* strands */
-					int str_offset = (params.top_level)? mesh->curveseg_offset: 0;
-					const int *hidx = mesh->curve_segments[pidx - str_offset].v;
+				if(pack.prim_segment[prim] != ~0) {
+					/* curves */
+					int str_offset = (params.top_level)? mesh->curve_offset: 0;
+					int k0 = mesh->curves[pidx - str_offset].first_key + pack.prim_segment[prim]; // XXX!
+					int k1 = k0 + 1;
 
-					bbox.grow(mesh->curve_keys[hidx[0]].co, mesh->curve_keys[hidx[0]].radius);
-					bbox.grow(mesh->curve_keys[hidx[1]].co, mesh->curve_keys[hidx[1]].radius);
+					bbox.grow(mesh->curve_keys[k0].co, mesh->curve_keys[k0].radius);
+					bbox.grow(mesh->curve_keys[k1].co, mesh->curve_keys[k1].radius);
 				}
 				else {
 					/* triangles */

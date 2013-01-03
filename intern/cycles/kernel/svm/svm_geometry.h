@@ -155,7 +155,7 @@ __device void svm_node_hair_info(KernelGlobals *kg, ShaderData *sd, float *stack
 
 	switch(type) {
 		case NODE_INFO_CURVE_IS_STRAND: {
-			data = !(sd->curve_seg == ~0);
+			data = (sd->segment != ~0);
 			stack_store_float(stack, out_offset, data);
 			break;
 		}

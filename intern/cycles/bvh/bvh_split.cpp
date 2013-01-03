@@ -253,7 +253,7 @@ void BVHSpatialSplit::split_reference(BVHBuild *builder, BVHReference& left, BVH
 	Object *ob = builder->objects[ref.prim_object()];
 	const Mesh *mesh = ob->mesh;
 
-	if (!ref.prim_type()) {
+	if (ref.prim_segment() == ~0) {
 		const int *inds = mesh->triangles[ref.prim_index()].v;
 		const float3 *verts = &mesh->verts[0];
 		const float3* v1 = &verts[inds[2]];
@@ -281,11 +281,11 @@ void BVHSpatialSplit::split_reference(BVHBuild *builder, BVHReference& left, BVH
 		}
 	}
 	else {
-		/* Strand split: NOTE - Currently ignores strand width and needs to be fixed.*/
-
-		const int *inds = mesh->curve_segments[ref.prim_index()].v;
-		const float3* v0 = &mesh->curve_keys[inds[0]].co;
-		const float3* v1 = &mesh->curve_keys[inds[1]].co;
+		/* curve split: NOTE - Currently ignores curve width and needs to be fixed.*/
+		const int k0 = mesh->curves[ref.prim_index()].first_key + ref.prim_segment();
+		const int k1 = k0 + 1;
+		const float3* v0 = &mesh->curve_keys[k0].co;
+		const float3* v1 = &mesh->curve_keys[k1].co;
 
 		float v0p = (*v0)[dim];
 		float v1p = (*v1)[dim];
@@ -318,8 +318,8 @@ void BVHSpatialSplit::split_reference(BVHBuild *builder, BVHReference& left, BVH
 	right_bounds.intersect(ref.bounds());
 
 	/* set references */
-	left = BVHReference(left_bounds, ref.prim_index(), ref.prim_object(), ref.prim_type());
-	right = BVHReference(right_bounds, ref.prim_index(), ref.prim_object(), ref.prim_type());
+	left = BVHReference(left_bounds, ref.prim_index(), ref.prim_object(), ref.prim_segment());
+	right = BVHReference(right_bounds, ref.prim_index(), ref.prim_object(), ref.prim_segment());
 }
 
 CCL_NAMESPACE_END

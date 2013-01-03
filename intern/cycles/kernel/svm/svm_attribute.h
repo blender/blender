@@ -28,7 +28,7 @@ __device void svm_node_attr_init(KernelGlobals *kg, ShaderData *sd,
 		/* find attribute by unique id */
 		uint id = node.y;
 		uint attr_offset = sd->object*kernel_data.bvh.attributes_map_stride;
-		attr_offset = (sd->curve_seg == ~0)? attr_offset: attr_offset + ATTR_PRIM_CURVE;
+		attr_offset = (sd->segment == ~0)? attr_offset: attr_offset + ATTR_PRIM_CURVE;
 		uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
 		
 		while(attr_map.x != id) {

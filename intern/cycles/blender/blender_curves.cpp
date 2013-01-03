@@ -652,11 +652,10 @@ void ExportCurveTriangleGeometry(Mesh *mesh, ParticleCurveData *CData, int inter
 
 void ExportCurveSegments(Mesh *mesh, ParticleCurveData *CData, int interpolation, int segments)
 {
-	int cks = 0;
-	int curs = 0;
-	int segs = 0;
+	int num_keys = 0;
+	int num_curves = 0;
 
-	if(!(mesh->curve_segments.empty() && mesh->curve_keys.empty()))
+	if(!(mesh->curves.empty() && mesh->curve_keys.empty()))
 		return;
 
 	Attribute *attr_uv = mesh->curve_attributes.add(ATTR_STD_UV);
@@ -671,6 +670,8 @@ void ExportCurveSegments(Mesh *mesh, ParticleCurveData *CData, int interpolation
 
 			if(CData->curve_keynum[curve] <= 1)
 				continue;
+
+			size_t num_curve_keys = 0;
 
 			for( int curvekey = CData->curve_firstkey[curve]; curvekey < CData->curve_firstkey[curve] + CData->curve_keynum[curve] - 1; curvekey++) {
 
@@ -696,26 +697,23 @@ void ExportCurveSegments(Mesh *mesh, ParticleCurveData *CData, int interpolation
 					mesh->add_curve_key(ickey_loc, radius);
 					attr_intercept->add(time);
 
-					if(subv != 0) {
-						attr_uv->add(CData->curve_uv[curve]);
-						mesh->add_curve_segment(cks - 1, cks, CData->psys_shader[sys], curs);
-						segs++;
-					}
-
-					cks++;
+					num_curve_keys++;
 				}
 			}
 
-			curs++;
+			mesh->add_curve(num_keys, num_curve_keys, CData->psys_shader[sys]);
+			attr_uv->add(CData->curve_uv[curve]);
 
+			num_keys += num_curve_keys;
+			num_curves++;
 		}
 	}
 
 	/* check allocation*/
-	if((mesh->curve_keys.size() !=  cks) || (mesh->curve_segments.size() !=  segs)) {
+	if((mesh->curve_keys.size() !=  num_keys) || (mesh->curves.size() !=  num_curves)) {
 		/* allocation failed -> clear data */
 		mesh->curve_keys.clear();
-		mesh->curve_segments.clear();
+		mesh->curves.clear();
 		mesh->curve_attributes.clear();
 	}
 }
@@ -824,7 +822,7 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 {
 	/* Clear stored curve data */
 	mesh->curve_keys.clear();
-	mesh->curve_segments.clear();
+	mesh->curves.clear();
 	mesh->curve_attributes.clear();
 
 	/* obtain general settings */

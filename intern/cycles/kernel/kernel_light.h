@@ -329,18 +329,20 @@ __device float triangle_light_pdf(KernelGlobals *kg,
 #ifdef __HAIR__
 /* Strand Light */
 
-__device void curve_seg_light_sample(KernelGlobals *kg, int prim, int object,
-	float randu, float randv, float time, LightSample *ls)
+__device void curve_segment_light_sample(KernelGlobals *kg, int prim, int object,
+	int segment, float randu, float randv, float time, LightSample *ls)
 {
 	/* this strand code needs completion */
-	float4 v00 = kernel_tex_fetch(__curve_segments, prim);
+	float4 v00 = kernel_tex_fetch(__curves, prim);
 
-	int v1 = __float_as_int(v00.x);
-	int v2 = __float_as_int(v00.y);
-	float l = v00.w;
+	int k0 = __float_as_int(v00.x) + segment;
+	int k1 = k0 + 1;
 
-	float4 P1 = kernel_tex_fetch(__curve_keys, v1);
-	float4 P2 = kernel_tex_fetch(__curve_keys, v2);
+	float4 P1 = kernel_tex_fetch(__curve_keys, k0);
+	float4 P2 = kernel_tex_fetch(__curve_keys, k1);
+
+	float l = len(P2 - P1); // XXX slower
+
 	float r1 = P1.w;
 	float r2 = P2.w;
 	float3 tg = float4_to_float3(P2 - P1) / l;
@@ -419,15 +421,15 @@ __device void light_sample(KernelGlobals *kg, float randt, float randu, float ra
 	float4 l = kernel_tex_fetch(__light_distribution, index);
 	int prim = __float_as_int(l.y);
 #ifdef __HAIR__
-/* currently use l.z to indicate is strand sample which isn't ideal */
-	bool is_curve = __float_as_int(l.z) == 0.0f;
+	int segment = __float_as_int(l.z);
 #endif
 
 	if(prim >= 0) {
 		int object = __float_as_int(l.w);
+
 #ifdef __HAIR__
-		if (is_curve)
-			curve_seg_light_sample(kg, prim, object, randu, randv, time, ls);
+		if (segment != ~0)
+			curve_segment_light_sample(kg, prim, object, segment, randu, randv, time, ls);
 		else
 #endif
 			triangle_light_sample(kg, prim, object, randu, randv, time, ls);
