@@ -63,7 +63,7 @@ static void initData(ModifierData *md)
 	DecimateModifierData *dmd = (DecimateModifierData *) md;
 
 	dmd->percent = 1.0;
-	dmd->angle   = DEG2RADF(15.0f);
+	dmd->angle   = DEG2RADF(5.0f);
 }
 
 static void copyData(ModifierData *md, ModifierData *target)
