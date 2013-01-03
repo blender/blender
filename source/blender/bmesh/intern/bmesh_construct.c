@@ -215,6 +215,11 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 	do {
 		BMEdge *e2 = e;
 
+		/* vertex array is (len + 1) */
+		if (UNLIKELY(v_index > len)) {
+			goto err; /* vertex in loop twice */
+		}
+
 		verts[v_index++] = v;
 		edges2[e2_index++] = e;
 
