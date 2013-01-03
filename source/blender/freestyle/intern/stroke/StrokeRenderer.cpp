@@ -109,7 +109,7 @@ unsigned TextureManager::getBrushTextureIndex(string name, Stroke::MediumType lo
 		_brushesMap[bt] = texId;
 		return texId;
 		// XXX!
-		cout << "brush file " << name << " not found" << endl;
+		cerr << "brush file " << name << " not found" << endl;
 		return 0;
 	}
 	else {

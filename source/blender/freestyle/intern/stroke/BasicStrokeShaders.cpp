@@ -48,6 +48,8 @@
 #include "../view_map/Functions0D.h"
 #include "../view_map/Functions1D.h"
 
+#include "BKE_global.h"
+
 //soc #include <qimage.h>
 //soc #include <QString>
 
@@ -764,14 +766,16 @@ int BezierCurveShader::shade(Stroke& stroke) const
 	if (equal) {
 		if (data.back() == data.front()) {
 			vector<Vec2d>::iterator d = data.begin(), dend;
-			cout << "ending point = starting point" << endl;
-			cout << "---------------DATA----------" << endl;
-			for (dend = data.end(); d != dend; ++d) {
-				cout << d->x() << "-" << d->y() << endl;
-			}
-			cout << "--------------BEZIER RESULT----------" << endl;
-			for (d = CurveVertices.begin(), dend = CurveVertices.end(); d != dend; ++d) {
-				cout << d->x() << "-" << d->y() << endl;
+			if (G.debug & G_DEBUG_FREESTYLE) {
+				cout << "ending point = starting point" << endl;
+				cout << "---------------DATA----------" << endl;
+				for (dend = data.end(); d != dend; ++d) {
+					cout << d->x() << "-" << d->y() << endl;
+				}
+				cout << "--------------BEZIER RESULT----------" << endl;
+				for (d = CurveVertices.begin(), dend = CurveVertices.end(); d != dend; ++d) {
+					cout << d->x() << "-" << d->y() << endl;
+				}
 			}
 		}
 	}
@@ -790,10 +794,17 @@ int BezierCurveShader::shade(Stroke& stroke) const
 		cerr << "Warning: unsufficient resampling" << endl;
 	}
 	else {
-		//cout << "Oversampling" << endl;
+#if 0
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "Oversampling" << endl;
+		}
+#endif
 		nExtraVertex = newsize - originalSize;
-		if (nExtraVertex != 0)
-			cout << "Bezier Shader : Stroke " << stroke.getId() << " have not been resampled" << endl;
+		if (nExtraVertex != 0) {
+			if (G.debug & G_DEBUG_FREESTYLE) {
+				cout << "Bezier Shader : Stroke " << stroke.getId() << " have not been resampled" << endl;
+			}
+		}
 	}
 
 	// assigns the new coordinates:
@@ -813,7 +824,9 @@ int BezierCurveShader::shade(Stroke& stroke) const
 #if 0
 		double x = p->x();
 		double y = p->y();
-		cout << "x = " << x << "-" << "y = " << y << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "x = " << x << "-" << "y = " << y << endl;
+		}
 #endif
 		last = p;
 	}
@@ -830,7 +843,9 @@ int BezierCurveShader::shade(Stroke& stroke) const
 		verticesToRemove.push_back(&(*it));
 		if (it.isEnd()) {
 			// XXX Shocking! :P Shouldn't we break in this case???
-			cout << "fucked up" << endl;
+			if (G.debug & G_DEBUG_FREESTYLE) {
+				cout << "fucked up" << endl;
+			}
 		}
 	}
 	for (it = stroke.strokeVerticesBegin(); it != itend; ++it) {
@@ -1081,13 +1096,21 @@ int TipRemoverShader::shade(Stroke& stroke) const
 
 	// assign old attributes to new stroke vertices:
 	vector<StrokeAttribute>::iterator a = oldAttributes.begin(), aend = oldAttributes.end();
-	//cout << "-----------------------------------------------" << endl;
+#if 0
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "-----------------------------------------------" << endl;
+	}
+#endif
 	for (v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd();
 	     (v != vend) && (a != aend);
 	     ++v, ++a)
 	{
 		v->setAttribute(*a);
-		//cout << "thickness = " << (*a).getThickness()[0] << "-" << (*a).getThickness()[1] << endl;
+#if 0
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "thickness = " << (*a).getThickness()[0] << "-" << (*a).getThickness()[1] << endl;
+		}
+#endif
 	}
 	// we're done!
 	return 0;
@@ -1095,7 +1118,9 @@ int TipRemoverShader::shade(Stroke& stroke) const
 
 int streamShader::shade(Stroke& stroke) const
 {
-	cout << stroke << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << stroke << endl;
+	}
 	return 0;
 }
 

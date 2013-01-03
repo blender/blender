@@ -36,6 +36,8 @@
 #include "Functions0D.h"
 #include "ViewMap.h"
 
+#include "BKE_global.h"
+
 using namespace std;
 
 namespace Functions0D {
@@ -325,8 +327,11 @@ int QuantitativeInvisibilityF0D::operator()(Interface0DIterator& iter)
 	qi1 = ve1->qi();
 	if (ve2 != NULL) {
 		qi2 = ve2->qi();
-		if (qi2 != qi1)
-			cout << "QuantitativeInvisibilityF0D: ambiguous evaluation for point " << iter->getId() << endl;
+		if (qi2 != qi1) {
+			if (G.debug & G_DEBUG_FREESTYLE) {
+				cout << "QuantitativeInvisibilityF0D: ambiguous evaluation for point " << iter->getId() << endl;
+			}
+		}
 	}
 	result = qi1;
 	return 0;

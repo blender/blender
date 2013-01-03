@@ -36,6 +36,8 @@
 
 #include "OccluderSource.h"
 
+#include "BKE_global.h"
+
 OccluderSource::OccluderSource(const GridHelpers::Transform& t, WingedEdge& we)
 : wingedEdge(we), valid(false), transform(t)
 {
@@ -127,8 +129,10 @@ void OccluderSource::getOccluderProscenium(real proscenium[4])
 		GridHelpers::expandProscenium (proscenium, cachedPolygon);
 		next();
 	}
-	cout << "Proscenium: (" << proscenium[0] << ", " << proscenium[1] << ", " << proscenium[2] << ", "
-	     << proscenium[3] << ")" << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Proscenium: (" << proscenium[0] << ", " << proscenium[1] << ", " << proscenium[2] << ", "
+		     << proscenium[3] << ")" << endl;
+	}
 }
 
 real OccluderSource::averageOccluderArea()

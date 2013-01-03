@@ -38,6 +38,8 @@
 #include "../application/AppView.h"
 #include "../application/Controller.h"
 
+#include "BKE_global.h"
+
 using namespace std;
 
 // XXX Are those "ifdef __cplusplus" useful here?
@@ -118,7 +120,9 @@ void FRS_initialize()
 
 void FRS_set_context(bContext *C)
 {
-	cout << "FRS_set_context: context 0x" << C << " scene 0x" << CTX_data_scene(C) << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "FRS_set_context: context 0x" << C << " scene 0x" << CTX_data_scene(C) << endl;
+	}
 	controller->setContext(C);
 }
 
@@ -166,12 +170,14 @@ static void init_view(Render *re)
 	view->setBorder(xmin, ymin, xmax, ymax);
 	view->setThickness(thickness);
 
-	cout << "\n===  Dimensions of the 2D image coordinate system  ===" << endl;
-	cout << "Width  : " << width << endl;
-	cout << "Height : " << height << endl;
-	if (re->r.mode & R_BORDER)
-		cout << "Border : (" << xmin << ", " << ymin << ") - (" << xmax << ", " << ymax << ")" << endl;
-	cout << "Unit line thickness : " << thickness << " pixel(s)" << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "\n===  Dimensions of the 2D image coordinate system  ===" << endl;
+		cout << "Width  : " << width << endl;
+		cout << "Height : " << height << endl;
+		if (re->r.mode & R_BORDER)
+			cout << "Border : (" << xmin << ", " << ymin << ") - (" << xmax << ", " << ymax << ")" << endl;
+		cout << "Unit line thickness : " << thickness << " pixel(s)" << endl;
+	}
 }
 
 static void init_camera(Render *re)
@@ -309,24 +315,32 @@ static void prepare(Render *re, SceneRenderLayer *srl)
 	// add style modules
 	FreestyleConfig *config = &srl->freestyleConfig;
 
-	cout << "\n===  Rendering options  ===" << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "\n===  Rendering options  ===" << endl;
+	}
 	int layer_count = 0;
 
 	switch (config->mode) {
 	case FREESTYLE_CONTROL_SCRIPT_MODE:
-		cout << "Modules :" << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "Modules :" << endl;
+		}
 		for (FreestyleModuleConfig *module_conf = (FreestyleModuleConfig*)config->modules.first;
 		     module_conf;
 		     module_conf = module_conf->next)
 		{
 			if(module_conf->is_displayed) {
-				cout << "  " << layer_count+1 << ": " << module_conf->module_path << endl;
+				if (G.debug & G_DEBUG_FREESTYLE) {
+					cout << "  " << layer_count+1 << ": " << module_conf->module_path << endl;
+				}
 				controller->InsertStyleModule(layer_count, module_conf->module_path);
 				controller->toggleLayer(layer_count, true);
 				layer_count++;
 			}
 		}
-		cout << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << endl;
+		}
 		controller->setComputeRidgesAndValleysFlag((config->flags & FREESTYLE_RIDGES_AND_VALLEYS_FLAG) ? true : false);
 		controller->setComputeSuggestiveContoursFlag((config->flags & FREESTYLE_SUGGESTIVE_CONTOURS_FLAG) ? true : false);
 		controller->setComputeMaterialBoundariesFlag((config->flags & FREESTYLE_MATERIAL_BOUNDARIES_FLAG) ? true : false);
@@ -347,14 +361,18 @@ static void prepare(Render *re, SceneRenderLayer *srl)
 			{FREESTYLE_FE_EDGE_MARK, 0}
 		};
 		int num_edge_types = sizeof(conditions) / sizeof(struct edge_type_condition);
-		cout << "Linesets:" << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "Linesets:" << endl;
+		}
 		for (FreestyleLineSet *lineset = (FreestyleLineSet*)config->linesets.first;
 		     lineset;
 		     lineset = lineset->next)
 		{
 			if (lineset->flags & FREESTYLE_LINESET_ENABLED) {
-				cout << "  " << layer_count+1 << ": " << lineset->name << " - "
-				     << lineset->linestyle->id.name+2 << endl;
+				if (G.debug & G_DEBUG_FREESTYLE) {
+					cout << "  " << layer_count+1 << ": " << lineset->name << " - "
+					     << lineset->linestyle->id.name+2 << endl;
+				}
 				Text *text = create_lineset_handler(srl->name, lineset->name);
 				controller->InsertStyleModule(layer_count, lineset->name, text);
 				controller->toggleLayer(layer_count, true);
@@ -424,17 +442,20 @@ static void prepare(Render *re, SceneRenderLayer *srl)
 	                              FREESTYLE_ALGO_CULLED_ADAPTIVE_CUMULATIVE :
 	                              FREESTYLE_ALGO_ADAPTIVE_CUMULATIVE);
 
-	cout << "Crease angle : " << controller->getCreaseAngle() << endl;
-	cout << "Sphere radius : " << controller->getSphereRadius() << endl;
-	cout << "Face smoothness : " << (controller->getFaceSmoothness() ? "enabled" : "disabled") << endl;
-	cout << "Redges and valleys : " << (controller->getComputeRidgesAndValleysFlag() ? "enabled" : "disabled") << endl;
-	cout << "Suggestive contours : " << (controller->getComputeSuggestiveContoursFlag() ? "enabled" : "disabled")
-	     << endl;
-	cout << "Suggestive contour Kr derivative epsilon : " << controller->getSuggestiveContourKrDerivativeEpsilon()
-	     << endl;
-	cout << "Material boundaries : " << (controller->getComputeMaterialBoundariesFlag() ? "enabled" : "disabled")
-	     << endl;
-	cout << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Crease angle : " << controller->getCreaseAngle() << endl;
+		cout << "Sphere radius : " << controller->getSphereRadius() << endl;
+		cout << "Face smoothness : " << (controller->getFaceSmoothness() ? "enabled" : "disabled") << endl;
+		cout << "Redges and valleys : " << (controller->getComputeRidgesAndValleysFlag() ? "enabled" : "disabled")
+		     << endl;
+		cout << "Suggestive contours : " << (controller->getComputeSuggestiveContoursFlag() ? "enabled" : "disabled")
+		     << endl;
+		cout << "Suggestive contour Kr derivative epsilon : " << controller->getSuggestiveContourKrDerivativeEpsilon()
+		     << endl;
+		cout << "Material boundaries : " << (controller->getComputeMaterialBoundariesFlag() ? "enabled" : "disabled")
+		     << endl;
+		cout << endl;
+	}
 
 	// set diffuse and z depth passes
 	RenderLayer *rl = RE_GetRenderLayer(re->result, srl->name);
@@ -451,9 +472,11 @@ static void prepare(Render *re, SceneRenderLayer *srl)
 			break;
 		}
 	}
-	cout << "Passes :" << endl;
-	cout << "  Diffuse = " << (diffuse ? "enabled" : "disabled") << endl;
-	cout << "  Z = " << (z ? "enabled" : "disabled") << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Passes :" << endl;
+		cout << "  Diffuse = " << (diffuse ? "enabled" : "disabled") << endl;
+		cout << "  Z = " << (z ? "enabled" : "disabled") << endl;
+	}
 
 	// compute view map
 	re->i.infostr = "Freestyle: View map creation";
@@ -473,19 +496,31 @@ void FRS_composite_result(Render* re, SceneRenderLayer* srl, Render* freestyle_r
 
 	rl = render_get_active_layer( freestyle_render, freestyle_render->result );
 	if (!rl || rl->rectf == NULL) {
-		cout << "Cannot find Freestyle result image" << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "Cannot find Freestyle result image" << endl;
+		}
 		return;
 	}
 	src  = rl->rectf;
-	//cout << "src: " << rl->rectx << " x " << rl->recty << endl;
+#if 0
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "src: " << rl->rectx << " x " << rl->recty << endl;
+	}
+#endif
 
 	rl = RE_GetRenderLayer(re->result, srl->name);
 	if (!rl || rl->rectf == NULL) {
-		cout << "No layer to composite to" << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "No layer to composite to" << endl;
+		}
 		return;
 	}
 	dest = rl->rectf;
-	//cout << "dest: " << rl->rectx << " x " << rl->recty << endl;
+#if 0
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "dest: " << rl->rectx << " x " << rl->recty << endl;
+	}
+#endif
 
 	rectx = re->rectx;
 	recty = re->recty;
@@ -534,10 +569,12 @@ int FRS_is_freestyle_enabled(SceneRenderLayer *srl)
 
 void FRS_init_stroke_rendering(Render *re)
 {
-	cout << endl;
-	cout << "#===============================================================" << endl;
-	cout << "#  Freestyle" << endl;
-	cout << "#===============================================================" << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << endl;
+		cout << "#===============================================================" << endl;
+		cout << "#  Freestyle" << endl;
+		cout << "#===============================================================" << endl;
+	}
 
 	init_view(re);
 	init_camera(re);
@@ -552,10 +589,12 @@ Render *FRS_do_stroke_rendering(Render *re, SceneRenderLayer *srl)
 	RenderMonitor monitor(re);
 	controller->setRenderMonitor(&monitor);
 
-	cout << endl;
-	cout << "----------------------------------------------------------" << endl;
-	cout << "|  " << (re->scene->id.name + 2) << "|" << srl->name << endl;
-	cout << "----------------------------------------------------------" << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << endl;
+		cout << "----------------------------------------------------------" << endl;
+		cout << "|  " << (re->scene->id.name + 2) << "|" << srl->name << endl;
+		cout << "----------------------------------------------------------" << endl;
+	}
 
 	// prepare Freestyle:
 	//   - load mesh
@@ -566,7 +605,9 @@ Render *FRS_do_stroke_rendering(Render *re, SceneRenderLayer *srl)
 
 	if (re->test_break(re->tbh)) {
 		controller->CloseFile();
-		cout << "Break" << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "Break" << endl;
+		}
 		return NULL;
 	}
 

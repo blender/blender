@@ -42,6 +42,8 @@
 
 #include "../geometry/BBox.h"
 
+#include "BKE_global.h"
+
 class GridDensityProvider
 {
 	// Disallow copying and assignment
@@ -90,8 +92,10 @@ public:
 				source.next();
 			}
 		}
-		cout << "Proscenium: (" << proscenium[0] << ", " << proscenium[1] << ", " << proscenium[2]
-		     << ", " << proscenium[3] << ")" << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "Proscenium: (" << proscenium[0] << ", " << proscenium[1] << ", " << proscenium[2]
+			     << ", " << proscenium[3] << ")" << endl;
+		}
 	}
 
 	static void calculateQuickProscenium(const GridHelpers::Transform& transform, const BBox<Vec3r>& bbox,
@@ -108,13 +112,15 @@ public:
 		// Now calculate the proscenium according to the min and max values of the x and y coordinates
 		Vec3r minPoint = transform(Vec3r(bbox.getMin()[0], bbox.getMin()[1], z));
 		Vec3r maxPoint = transform(Vec3r(bbox.getMax()[0], bbox.getMax()[1], z));
-		cout << "Bounding box: " << minPoint << " to " << maxPoint << endl;
 		proscenium[0] = std::min(minPoint[0], maxPoint[0]);
 		proscenium[1] = std::max(minPoint[0], maxPoint[0]);
 		proscenium[2] = std::min(minPoint[1], maxPoint[1]);
 		proscenium[3] = std::max(minPoint[1], maxPoint[1]);
-		cout << "Proscenium  : " << proscenium[0] << ", " << proscenium[1] << ", " << proscenium[2] << ", "
-		     << proscenium[3] << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "Bounding box: " << minPoint << " to " << maxPoint << endl;
+			cout << "Proscenium  : " << proscenium[0] << ", " << proscenium[1] << ", " << proscenium[2] << ", "
+			     << proscenium[3] << endl;
+		}
 	}
 
 protected:

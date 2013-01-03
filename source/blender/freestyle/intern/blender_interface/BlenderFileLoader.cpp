@@ -33,6 +33,8 @@
 
 #include "BlenderFileLoader.h"
 
+#include "BKE_global.h"
+
 BlenderFileLoader::BlenderFileLoader(Render *re, SceneRenderLayer* srl)
 {
 	_re = re;
@@ -52,7 +54,9 @@ NodeGroup* BlenderFileLoader::Load()
 {
 	ObjectInstanceRen *obi;
 
-	cout << "\n===  Importing triangular meshes into Blender  ===" << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "\n===  Importing triangular meshes into Blender  ===" << endl;
+	}
 
 	// creation of the scene root node
 	_Scene = new NodeGroup;
@@ -64,9 +68,11 @@ NodeGroup* BlenderFileLoader::Load()
 	_z_near = -_re->clipsta;
 	_z_far =  -_re->clipend;
 #if 0
-	cout << "Frustum: l " << _viewplane_left << " r " << _viewplane_right
-	     << " b " << _viewplane_bottom << " t " << _viewplane_top
-	     << " n " << _z_near << " f " << _z_far << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Frustum: l " << _viewplane_left << " r " << _viewplane_right
+		     << " b " << _viewplane_bottom << " t " << _viewplane_top
+		     << " n " << _z_near << " f " << _z_far << endl;
+	}
 #endif
 
 	int id = 0;
@@ -79,10 +85,12 @@ NodeGroup* BlenderFileLoader::Load()
 		//cout << name[0] << name[1] << ":" << (name+2) <<;
 		//print_m4("obi->mat", obi->mat);
 
-		if (obi->obr->totvlak > 0)
+		if (obi->obr->totvlak > 0) {
 			insertShapeNode(obi, ++id);
-		else
-			cout << "Warning: " << (name+2) << " is not a vlak-based object (ignored)" << endl;
+		}
+		else if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "Warning: " << (name + 2) << " is not a vlak-based object (ignored)" << endl;
+		}
 	}
 
 	// Return the built scene.
@@ -116,7 +124,11 @@ int BlenderFileLoader::countClippedFaces(float v1[3], float v2[3], float v3[3], 
 		else {
 			clip[i] = NOT_CLIPPED;
 		}
-		//printf("%d %s\n", i, (clip[i] == NOT_CLIPPED) ? "not" : (clip[i] == CLIPPED_BY_NEAR) ? "near" : "far");
+#if 0
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			printf("%d %s\n", i, (clip[i] == NOT_CLIPPED) ? "not" : (clip[i] == CLIPPED_BY_NEAR) ? "near" : "far");
+		}
+#endif
 		sum += clip[i];
 	}
 	switch (numClipped) {
@@ -293,8 +305,9 @@ int BlenderFileLoader::testDegenerateTriangle(float v1[3], float v2[3], float v3
 
 	if (equals_v3v3(v1, v2) || equals_v3v3(v2, v3) || equals_v3v3(v1, v3)) {
 #if 0
-		if (verbose)
+		if (verbose && G.debug & G_DEBUG_FREESTYLE) {
 			printf("BlenderFileLoader::testDegenerateTriangle = 1\n");
+		}
 #endif
 		return 1;
 	}
@@ -303,14 +316,16 @@ int BlenderFileLoader::testDegenerateTriangle(float v1[3], float v2[3], float v3
 	    dist_to_line_segment_v3(v3, v1, v2) < 1.0e-6)
 	{
 #if 0
-		if (verbose)
+		if (verbose && G.debug & G_DEBUG_FREESTYLE) {
 			printf("BlenderFileLoader::testDegenerateTriangle = 2\n");
+		}
 #endif
 		return 2;
 	}
 #if 0
-	if (verbose)
+	if (verbose && G.debug & G_DEBUG_FREESTYLE) {
 		printf("BlenderFileLoader::testDegenerateTriangle = 0\n");
+	}
 #endif
 	return 0;
 }
@@ -321,7 +336,11 @@ bool BlenderFileLoader::testEdgeRotation(float v1[3], float v2[3], float v3[3], 
 {
 	if (testDegenerateTriangle(v1, v2, v3) == 2 || testDegenerateTriangle(v1, v3, v4) == 2) {
 		if (testDegenerateTriangle(v1, v2, v4) == 2 || testDegenerateTriangle(v2, v3, v4) == 2) {
-			//printf("BlenderFileLoader::testEdgeRotation: edge rotation is unsuccessful.\n");
+#if 0
+			if (G.debug & G_DEBUG_FREESTYLE) {
+				printf("BlenderFileLoader::testEdgeRotation: edge rotation is unsuccessful.\n");
+			}
+#endif
 			return false;
 		}
 		return true;
@@ -381,9 +400,16 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 			numFaces += countClippedFaces(v2, v3, v4, clip_2);
 		}
 	}
-	if (wire_material)
-		printf("Warning: Object %s has wire materials (ignored)\n", name);
-//	cout << "numFaces " << numFaces << endl;
+	if (wire_material) {
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "Warning: Object " << name << " has wire materials (ignored)" << endl;
+		}
+	}
+#if 0
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "numFaces " << numFaces << endl;
+	}
+#endif
 	if (numFaces == 0)
 		return;
 
@@ -488,7 +514,9 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 			numTris_1 = countClippedFaces(v1, v2, v4, clip_1);
 			numTris_2 = countClippedFaces(v2, v3, v4, clip_2);
 			edge_rotation = true;
-			printf("BlenderFileLoader::insertShapeNode: edge rotation is performed.\n");
+			if (G.debug & G_DEBUG_FREESTYLE) {
+				printf("BlenderFileLoader::insertShapeNode: edge rotation is performed.\n");
+			}
 		}
 		if (numTris_1 == 0 && numTris_2 == 0)
 			continue;
@@ -709,8 +737,10 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 				cleanVertices[detri.viP+2] += 1.0e-5 * detri.v.z();
 			}
 		}
-		printf("Warning: Object %s contains %lu degenerated triangle%s (strokes may be incorrect)\n",
-		       name, detriList.size(), (detriList.size() > 1) ? "s" : "");
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			printf("Warning: Object %s contains %lu degenerated triangle%s (strokes may be incorrect)\n",
+			       name, detriList.size(), (detriList.size() > 1) ? "s" : "");
+		}
 	}
 
 	// Create the IndexedFaceSet with the retrieved attributes

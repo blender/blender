@@ -103,9 +103,9 @@ public:
 #endif
 
 		if (status != 1) {
-			cout << "\nError executing Python script from PythonInterpreter::interpretFile" << endl;
-			cout << "File: " << fn << endl;
-			cout << "Errors: " << endl;
+			cerr << "\nError executing Python script from PythonInterpreter::interpretFile" << endl;
+			cerr << "File: " << fn << endl;
+			cerr << "Errors: " << endl;
 			BKE_reports_print(reports, RPT_ERROR);
 			return 1;
 		}
@@ -124,9 +124,9 @@ public:
 		BKE_reports_clear(reports);
 
 		if (!BPY_text_exec(_context, text, reports, false)) {
-			cout << "\nError executing Python script from PythonInterpreter::interpretText" << endl;
-			cout << "Name: " << name << endl;
-			cout << "Errors: " << endl;
+			cerr << "\nError executing Python script from PythonInterpreter::interpretText" << endl;
+			cerr << "Name: " << name << endl;
+			cerr << "Errors: " << endl;
 			BKE_reports_print(reports, RPT_ERROR);
 			return 1;
 		}
@@ -173,9 +173,11 @@ private:
 
 		for (vector<string>::const_iterator it = pathnames.begin(); it != pathnames.end(); ++it) {
 			if (!it->empty()) {
-				cout << "Adding Python path: " << *it << endl;
+				if (G.debug & G_DEBUG_FREESTYLE) {
+					cout << "Adding Python path: " << *it << endl;
+				}
 				cmd = "sys.path.append(r\"" + *it + "\")\n";
-				txt_insert_buf(text, const_cast<char*>(cmd.c_str()));
+				txt_insert_buf(text, const_cast<char *>(cmd.c_str()));
 			}
 		}
 

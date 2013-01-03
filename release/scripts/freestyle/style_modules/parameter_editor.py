@@ -1225,8 +1225,10 @@ def process(layer_name, lineset_name):
         thickness_position = linestyle.thickness_position
     else:
         thickness_position = "CENTER"
-        print("Warning: Thickness poisition options are applied when chaining is disabled")
-        print("    or the Plain chaining is used with the Same Object option enabled.")
+        import bpy
+        if bpy.app.debug_freestyle:
+            print("Warning: Thickness position options are applied when chaining is disabled")
+            print("         or the Plain chaining is used with the Same Object option enabled.")
     shaders_list.append(BaseColorShader(color.r, color.g, color.b, linestyle.alpha))
     shaders_list.append(BaseThicknessShader(linestyle.thickness, thickness_position,
                                             linestyle.thickness_ratio))

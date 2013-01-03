@@ -33,6 +33,7 @@
  */
 
 #include "WXEdge.h"
+#include "BKE_global.h"
 
 /**********************************
  *                                *
@@ -132,7 +133,9 @@ WXSmoothEdge *WXFaceLayer::BuildSmoothEdge()
 		RetrieveCuspEdgesIndices(cuspEdgesIndices);
 		// We should have only one EdgeCusp:
 		if (cuspEdgesIndices.size() != 1) {
-			cout << "Warning in BuildSmoothEdge: weird WXFace configuration" << endl;
+			if (G.debug & G_DEBUG_FREESTYLE) {
+				cout << "Warning in BuildSmoothEdge: weird WXFace configuration" << endl;
+			}
 			_pSmoothEdge = NULL;
 			return NULL;
 		}

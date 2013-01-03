@@ -35,6 +35,8 @@
 #include "../application/AppConfig.h"
 #include "../stroke/Canvas.h"
 
+#include "BKE_global.h"
+
 // XXX Are those "ifdef __cplusplus" useful here?
 #ifdef __cplusplus
 extern "C" {
@@ -164,7 +166,11 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 		void *data = ob->data;
 		char name[24];
 		strcpy(name, ob->id.name);
-		//cout << "removing " << name[0] << name[1] << ":" << (name+2) << endl;
+#if 0
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "removing " << name[0] << name[1] << ":" << (name+2) << endl;
+		}
+#endif
 		switch (ob->type) {
 		case OB_MESH:
 			BKE_libblock_free(&G.main->object, ob);
@@ -484,7 +490,11 @@ Render* BlenderStrokeRenderer::RenderScene(Render *re)
 	Camera *camera = (Camera*)freestyle_scene->camera->data;
 	if (camera->clipend < _z)
 		camera->clipend = _z + _z_delta * 100.0f;
-	//cout << "clipsta " << camera->clipsta << ", clipend " << camera->clipend << endl;
+#if 0
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "clipsta " << camera->clipsta << ", clipend " << camera->clipend << endl;
+	}
+#endif
 
 	Render *freestyle_render = RE_NewRender(freestyle_scene->id.name);
 

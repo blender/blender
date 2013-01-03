@@ -34,6 +34,8 @@
 
 #include "FastGrid.h"
 
+#include "BKE_global.h"
+
 void FastGrid::clear()
 {
 	if (!_cells)
@@ -61,8 +63,10 @@ void FastGrid::configure(const Vec3r& orig, const Vec3r& size, unsigned nb)
 Cell *FastGrid::getCell(const Vec3u& p)
 {
 #if 0
-	cout << _cells << " " << p << " " << _cells_nb[0] << "-" << _cells_nb[1] << "-" << _cells_nb[2]
-	     << " " << _cells_size << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << _cells << " " << p << " " << _cells_nb[0] << "-" << _cells_nb[1] << "-" << _cells_nb[2]
+		     << " " << _cells_size << endl;
+	}
 #endif
 	assert(_cells || ("_cells is a null pointer"));
 	assert((_cells_nb[0] * (p[2] * _cells_nb[1] + p[1]) + p[0]) < _cells_size);

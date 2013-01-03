@@ -37,6 +37,8 @@
 #include "StrokeIterators.h"
 #include "StrokeRenderer.h"
 
+#include "BKE_global.h"
+
 /**********************************/
 /*                                */
 /*                                */
@@ -208,12 +210,16 @@ StrokeAttribute& StrokeAttribute::operator=(const StrokeAttribute& iBrother)
 float StrokeAttribute::getAttributeReal(const char *iName) const
 {
 	if (!_userAttributesReal) {
-		cout << "StrokeAttribute warning: no real attribute was defined" << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "StrokeAttribute warning: no real attribute was defined" << endl;
+		}
 		return 0.0f;
 	}
 	realMap::iterator a = _userAttributesReal->find(iName);
 	if (a == _userAttributesReal->end()) {
-		cout << "StrokeAttribute warning: no real attribute was added with the name " << iName << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "StrokeAttribute warning: no real attribute was added with the name " << iName << endl;
+		}
 		return 0.0f;
 	}
 	return (*a).second;
@@ -222,12 +228,16 @@ float StrokeAttribute::getAttributeReal(const char *iName) const
 Vec2f StrokeAttribute::getAttributeVec2f(const char *iName) const
 {
 	if (!_userAttributesVec2f) {
-		cout << "StrokeAttribute warning: no Vec2f attribute was defined" << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "StrokeAttribute warning: no Vec2f attribute was defined" << endl;
+		}
 		return 0;
 	}
 	Vec2fMap::iterator a = _userAttributesVec2f->find(iName);
 	if (a == _userAttributesVec2f->end()) {
-		cout << "StrokeAttribute warning: no Vec2f attribute was added with the name " << iName << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "StrokeAttribute warning: no Vec2f attribute was added with the name " << iName << endl;
+		}
 		return 0;
 	}
 	return (*a).second;
@@ -236,12 +246,16 @@ Vec2f StrokeAttribute::getAttributeVec2f(const char *iName) const
 Vec3f StrokeAttribute::getAttributeVec3f(const char *iName) const
 {
 	if (!_userAttributesVec3f) {
-		cout << "StrokeAttribute warning: no Vec3f attribute was defined" << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "StrokeAttribute warning: no Vec3f attribute was defined" << endl;
+		}
 		return 0;
 	}
 	Vec3fMap::iterator a = _userAttributesVec3f->find(iName);
 	if (a == _userAttributesVec3f->end()) {
-		cout << "StrokeAttribute warning: no Vec3f attribute was added with the name " << iName << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "StrokeAttribute warning: no Vec3f attribute was added with the name " << iName << endl;
+		}
 		return 0;
 	}
 	return (*a).second;

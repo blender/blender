@@ -50,6 +50,8 @@
 
 #include "../system/TimeUtils.h"
 
+#include "BKE_global.h"
+
 using namespace std;
 
 
@@ -157,12 +159,17 @@ void GeomCleaner::SortAndCompressIndexedVertexArray(const float *iVertices, unsi
 	// Sort data
 	chrono.start();
 	GeomCleaner::SortIndexedVertexArray(iVertices, iVSize, iIndices, iISize, &tmpVertices, &tmpIndices);
-	printf("Sorting: %lf\n", chrono.stop());
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		printf("Sorting: %lf\n", chrono.stop());
+	}
 
 	// compress data
 	chrono.start();
 	GeomCleaner::CompressIndexedVertexArray(tmpVertices, iVSize, tmpIndices, iISize, oVertices, oVSize, oIndices);
-	printf("Merging: %lf\n", chrono.stop());
+	real duration = chrono.stop();
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		printf("Merging: %lf\n", duration);
+	}
 
 	// deallocates memory:
 	delete [] tmpVertices;

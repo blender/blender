@@ -36,6 +36,8 @@
 #include "CurveAdvancedIterators.h"
 #include "CurveIterators.h"
 
+#include "BKE_global.h"
+
 /**********************************/
 /*                                */
 /*                                */
@@ -151,12 +153,14 @@ iA_B_eq_iB_A:
 	}
 
 	if (!__A || !__B) {
-		printf("iA A 0x%p p (%f, %f)\n", iA->A(), iA->A()->getPoint2D().x(), iA->A()->getPoint2D().y());
-		printf("iA B 0x%p p (%f, %f)\n", iA->B(), iA->B()->getPoint2D().x(), iA->B()->getPoint2D().y());
-		printf("iB A 0x%p p (%f, %f)\n", iB->A(), iB->A()->getPoint2D().x(), iB->A()->getPoint2D().y());
-		printf("iB B 0x%p p (%f, %f)\n", iB->B(), iB->B()->getPoint2D().x(), iB->B()->getPoint2D().y());
-		printf("iA t2d %f p (%f, %f)\n", iA->t2d(), iA->getPoint2D().x(), iA->getPoint2D().y());
-		printf("iB t2d %f p (%f, %f)\n", iB->t2d(), iB->getPoint2D().x(), iB->getPoint2D().y());
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			printf("iA A 0x%p p (%f, %f)\n", iA->A(), iA->A()->getPoint2D().x(), iA->A()->getPoint2D().y());
+			printf("iA B 0x%p p (%f, %f)\n", iA->B(), iA->B()->getPoint2D().x(), iA->B()->getPoint2D().y());
+			printf("iB A 0x%p p (%f, %f)\n", iB->A(), iB->A()->getPoint2D().x(), iB->A()->getPoint2D().y());
+			printf("iB B 0x%p p (%f, %f)\n", iB->B(), iB->B()->getPoint2D().x(), iB->B()->getPoint2D().y());
+			printf("iA t2d %f p (%f, %f)\n", iA->t2d(), iA->getPoint2D().x(), iA->getPoint2D().y());
+			printf("iB t2d %f p (%f, %f)\n", iB->t2d(), iB->getPoint2D().x(), iB->getPoint2D().y());
+		}
 		cerr << "Fatal error in CurvePoint::CurvePoint(CurvePoint *iA, CurvePoint *iB, float t3)" << endl;
 	}
 	assert(__A != 0 && __B != 0);
@@ -249,18 +253,20 @@ FEdge *CurvePoint::getFEdge(Interface0D& inter)
 			return __A->getFEdge(*__B);
 	}
 #if 0
-	printf("__A           0x%p p (%f, %f)\n", __A, __A->getPoint2D().x(), __A->getPoint2D().y());
-	printf("__B           0x%p p (%f, %f)\n", __B, __B->getPoint2D().x(), __B->getPoint2D().y());
-	printf("iVertexB->A() 0x%p p (%f, %f)\n", iVertexB->A(), iVertexB->A()->getPoint2D().x(),
-	                                          iVertexB->A()->getPoint2D().y());
-	printf("iVertexB->B() 0x%p p (%f, %f)\n", iVertexB->B(), iVertexB->B()->getPoint2D().x(),
-	                                          iVertexB->B()->getPoint2D().y());
-	printf("_t2d            %f p (%f, %f)\n", _t2d, getPoint2D().x(), getPoint2D().y());
-	printf("iVertexB->t2d() %f p (%f, %f)\n", iVertexB->t2d(), iVertexB->getPoint2D().x(), iVertexB->getPoint2D().y());
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		printf("__A           0x%p p (%f, %f)\n", __A, __A->getPoint2D().x(), __A->getPoint2D().y());
+		printf("__B           0x%p p (%f, %f)\n", __B, __B->getPoint2D().x(), __B->getPoint2D().y());
+		printf("iVertexB->A() 0x%p p (%f, %f)\n", iVertexB->A(), iVertexB->A()->getPoint2D().x(),
+		                                          iVertexB->A()->getPoint2D().y());
+		printf("iVertexB->B() 0x%p p (%f, %f)\n", iVertexB->B(), iVertexB->B()->getPoint2D().x(),
+		                                          iVertexB->B()->getPoint2D().y());
+		printf("_t2d            %f p (%f, %f)\n", _t2d, getPoint2D().x(), getPoint2D().y());
+		printf("iVertexB->t2d() %f p (%f, %f)\n", iVertexB->t2d(), iVertexB->getPoint2D().x(), iVertexB->getPoint2D().y());
+	}
 #endif
 	cerr << "Warning: CurvePoint::getFEdge() failed." << endl;
 
-	return 0;
+	return NULL;
 }
 
 

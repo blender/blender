@@ -45,6 +45,8 @@
 #include "../image/ImagePyramid.h"
 #include "../image/Image.h"
 
+#include "BKE_global.h"
+
 extern "C" {
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -206,9 +208,11 @@ void SteerableViewMap::buildImagesPyramids(GrayImage **steerableBases, bool copy
 float SteerableViewMap::readSteerableViewMapPixel(unsigned iOrientation, int iLevel, int x, int y)
 {
 	ImagePyramid *pyramid = _imagesPyramids[iOrientation];
-	if (pyramid == 0) {
-		cout << "Warning: this steerable ViewMap level doesn't exist" << endl;
-		return 0;
+	if (!pyramid) {
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "Warning: this steerable ViewMap level doesn't exist" << endl;
+		}
+		return 0.0f;
 	}
 	if ((x < 0) || (x >= pyramid->width()) || (y < 0) || (y >= pyramid->height()))
 		return 0;

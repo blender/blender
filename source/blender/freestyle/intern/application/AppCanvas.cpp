@@ -145,8 +145,12 @@ void AppCanvas::readColorPixels(int x,int y,int w, int h, RGBImage& oImage) cons
 		int recty = _pass_z.height;
 		float xfac = ((float)rectx) / ((float)(xmax - xmin));
 		float yfac = ((float)recty) / ((float)(ymax - ymin));
-		//printf("readColorPixels %d x %d @ (%d, %d) in %d x %d [%d x %d] -- %d x %d @ %d%%\n", w, h, x, y, xsch, ysch,
-		//       xmax - xmin, ymax - ymin, rectx, recty, (int)(xfac * 100.0f));
+#if 0
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			printf("readColorPixels %d x %d @ (%d, %d) in %d x %d [%d x %d] -- %d x %d @ %d%%\n", w, h, x, y, xsch, ysch,
+			       xmax - xmin, ymax - ymin, rectx, recty, (int)(xfac * 100.0f));
+		}
+#endif
 		int ii, jj;
 		for (int j = 0; j < h; j++) {
 			jj = (int)((y - ymin + j) * yfac);
@@ -178,8 +182,12 @@ void AppCanvas::readDepthPixels(int x,int y,int w, int h, GrayImage& oImage) con
 		int recty = _pass_z.height;
 		float xfac = ((float)rectx) / ((float)(xmax - xmin));
 		float yfac = ((float)recty) / ((float)(ymax - ymin));
-		//printf("readDepthPixels %d x %d @ (%d, %d) in %d x %d [%d x %d] -- %d x %d @ %d%%\n", w, h, x, y, xsch, ysch,
-		//       xmax - xmin, ymax - ymin, rectx, recty, (int)(xfac * 100.0f));
+#if 0
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			printf("readDepthPixels %d x %d @ (%d, %d) in %d x %d [%d x %d] -- %d x %d @ %d%%\n", w, h, x, y, xsch, ysch,
+			       xmax - xmin, ymax - ymin, rectx, recty, (int)(xfac * 100.0f));
+		}
+#endif
 		int ii, jj;
 		for (int j = 0; j < h; j++) {
 			jj = (int)((y - ymin + j) * yfac);

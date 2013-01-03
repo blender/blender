@@ -68,6 +68,8 @@
 #include "../blender_interface/BlenderStrokeRenderer.h"
 #include "../blender_interface/BlenderStyleModule.h"
 
+#include "BKE_global.h"
+
 // XXX Not inside an "extern C" block???
 #include "DNA_freestyle_types.h"
 
@@ -227,19 +229,26 @@ int Controller::LoadMesh(Render *re, SceneRenderLayer* srl)
 	NodeGroup *blenderScene = loader.Load();
 
 	if (blenderScene == NULL) {
-		cout << "Cannot load scene" << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "Cannot load scene" << endl;
+		}
 		return 1;
 	}
 
 	if (blenderScene->numberOfChildren() < 1) {
-		cout << "Empty scene" << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "Empty scene" << endl;
+		}
 		blenderScene->destroy();
 		delete blenderScene;
 		return 1;
 	}
 
-	cout << "Scene loaded" << endl;
-	printf("Mesh cleaning    : %lf\n", _Chrono.stop());
+	real duration = _Chrono.stop();
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Scene loaded" << endl;
+		printf("Mesh cleaning    : %lf\n", duration);
+	}
 	_SceneNumFaces += loader.numFacesRead();
 
 	if (loader.minEdgeSize() < _minEdgeSize) {
@@ -267,7 +276,10 @@ int Controller::LoadMesh(Render *re, SceneRenderLayer* srl)
 	blenderScene->accept(wx_builder);
 	_winged_edge = wx_builder.getWingedEdge();
 
-	printf("WEdge building   : %lf\n", _Chrono.stop());
+	duration = _Chrono.stop();
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		printf("WEdge building   : %lf\n", duration);
+	}
 
 #if 0
 	_pView->setDebug(_DebugNode);
@@ -288,9 +300,11 @@ int Controller::LoadMesh(Render *re, SceneRenderLayer* srl)
 
 	_ListOfModels.push_back("Blender_models");
 
-	cout << "Triangles nb     : " << _SceneNumFaces << endl;
 	_bboxDiag = (_RootNode->bbox().getMax()-_RootNode->bbox().getMin()).norm();
-	cout << "Bounding Box     : " << _bboxDiag << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Triangles nb     : " << _SceneNumFaces << endl;
+		cout << "Bounding Box     : " << _bboxDiag << endl;
+	}
 
 	ClearRootNode();
 
@@ -430,37 +444,66 @@ void Controller::ComputeViewMap()
 	// 3D context is on.
 	Vec3r vp(freestyle_viewpoint[0], freestyle_viewpoint[1], freestyle_viewpoint[2]);
 
-	//cout << "mv" << endl;
+#if 0
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "mv" << endl;
+	}
+#endif
 	real mv[4][4];
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
 			mv[i][j] = freestyle_mv[i][j];
-			//cout << mv[i][j] << " ";
+#if 0
+			if (G.debug & G_DEBUG_FREESTYLE) {
+				cout << mv[i][j] << " ";
+			}
+#endif
 		}
-		//cout << endl;
+#if 0
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << endl;
+		}
+#endif
 	}
 
-	//cout << "\nproj" << endl;
+#if 0
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "\nproj" << endl;
+	}
+#endif
 	real proj[4][4];
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 4; j++) {
 			proj[i][j] = freestyle_proj[i][j];
-			//cout << proj[i][j] << " ";
+#if 0
+			if (G.debug & G_DEBUG_FREESTYLE) {
+				cout << proj[i][j] << " ";
+			}
+#endif
 		}
-		//cout << endl;
+#if 0
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << endl;
+		}
+#endif
 	}
 
 	int viewport[4];
 	for (int i = 0; i < 4; i++)
 		viewport[i] = freestyle_viewport[i];
 
-	//cout << "\nfocal:" << _pView->GetFocalLength() << endl << endl;
-
+#if 0
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "\nfocal:" << _pView->GetFocalLength() << endl << endl;
+	}
+#endif
 
 	// Flag the WXEdge structure for silhouette edge detection:
 	//----------------------------------------------------------
 
-	cout << "\n===  Detecting silhouette edges  ===" << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "\n===  Detecting silhouette edges  ===" << endl;
+	}
 	_Chrono.start();
 
 	edgeDetector.setViewpoint(Vec3r(vp));
@@ -476,7 +519,9 @@ void Controller::ComputeViewMap()
 	edgeDetector.processShapes(*_winged_edge);
 
 	real duration = _Chrono.stop();
-	printf("Feature lines    : %lf\n", duration);
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		printf("Feature lines    : %lf\n", duration);
+	}
 
 	if (_pRenderMonitor->testBreak())
 		return;
@@ -500,13 +545,17 @@ void Controller::ComputeViewMap()
 #endif
 	sTesselator3d.setNature(_edgeTesselationNature);
 
-	cout << "\n===  Building the view map  ===" << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "\n===  Building the view map  ===" << endl;
+	}
 	_Chrono.start();
 	// Build View Map
 	_ViewMap = vmBuilder.BuildViewMap(*_winged_edge, _VisibilityAlgo, _EPSILON, _RootNode->bbox(), _SceneNumFaces);
 	_ViewMap->setScene3dBBox(_RootNode->bbox());
 
-	printf("ViewMap edge count : %i\n", _ViewMap->viewedges_size());
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		printf("ViewMap edge count : %i\n", _ViewMap->viewedges_size());
+	}
 
 	// Tesselate the 3D edges:
 	_SilhouetteNode = sTesselator3d.Tesselate(_ViewMap);
@@ -519,7 +568,9 @@ void Controller::ComputeViewMap()
 #endif
 
 	duration = _Chrono.stop();
-	printf("ViewMap building : %lf\n", duration);
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		printf("ViewMap building : %lf\n", duration);
+	}
 
 	_pView->AddSilhouette(_SilhouetteNode);
 #if 0
@@ -595,8 +646,11 @@ void Controller::ComputeSteerableViewMap()
 #endif
 		pm = offscreenBuffer.renderPixmap(_pView->width(), _pView->height());
 
-		if (pm.isNull())
-			cout << "BuildViewMap Warning: couldn't render the steerable ViewMap" << endl;
+		if (pm.isNull()) {
+			if (G.debug & G_DEBUG_FREESTYLE) {
+				cout << "BuildViewMap Warning: couldn't render the steerable ViewMap" << endl;
+			}
+		}
 		//pm.save(QString("steerable") + QString::number(i) + QString(".bmp"), "BMP");
 		// FIXME!! Lost of time !
 		qimg = pm.toImage();
@@ -770,12 +824,16 @@ void Controller::DrawStrokes()
 	if (_ViewMap == 0)
 		return;
 
-	cout << "\n===  Stroke drawing  ===" << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "\n===  Stroke drawing  ===" << endl;
+	}
 	_Chrono.start();
 	_Canvas->Draw();
 	real d = _Chrono.stop();
-	cout << "Strokes generation  : " << d << endl;
-	cout << "Stroke count  : " << _Canvas->stroke_count << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Strokes generation  : " << d << endl;
+		cout << "Stroke count  : " << _Canvas->stroke_count << endl;
+	}
 	resetModified();
 	DeleteViewMap();
 }
@@ -791,11 +849,15 @@ Render* Controller::RenderStrokes(Render *re)
 	BlenderStrokeRenderer* blenderRenderer = new BlenderStrokeRenderer(re, ++_render_count);
 	_Canvas->Render(blenderRenderer);
 	real d = _Chrono.stop();
-	cout << "Temporary scene generation: " << d << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Temporary scene generation: " << d << endl;
+	}
 	_Chrono.start();
 	Render* freestyle_render = blenderRenderer->RenderScene(re);
 	d = _Chrono.stop();
-	cout << "Stroke rendering  : " << d << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Stroke rendering  : " << d << endl;
+	}
 	delete blenderRenderer;
 
 	return freestyle_render;

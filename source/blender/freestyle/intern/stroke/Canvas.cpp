@@ -49,6 +49,8 @@
 
 #include "../view_map/SteerableViewMap.h"
 
+#include "BKE_global.h"
+
 //soc #include <qimage.h>
 //soc #include <QString>
 
@@ -334,7 +336,7 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, unsigned int i
 	QImage *qimg;
 	QImage newMap(filePath.c_str());
 	if (newMap.isNull()) {
-		cout << "Could not load image file " << filePath << endl;
+		cerr << "Could not load image file " << filePath << endl;
 		return;
 	}
 	qimg = &newMap;
@@ -342,7 +344,7 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, unsigned int i
 	/* OCIO_TODO: support different input color space */
 	ImBuf *qimg = IMB_loadiffname(filePath.c_str(), 0, NULL);
 	if (qimg == 0) {
-		cout << "Could not load image file " << filePath << endl;
+		cerr << "Could not load image file " << filePath << endl;
 		return;
 	}
 
@@ -455,12 +457,16 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, unsigned int i
 float Canvas::readMapPixel(const char *iMapName, int level, int x, int y)
 {
 	if (_maps.empty()) {
-		cout << "readMapPixel warning: no map was loaded "<< endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "readMapPixel warning: no map was loaded "<< endl;
+		}
 		return -1;
 	}
 	mapsMap::iterator m = _maps.find(iMapName);
 	if (m == _maps.end()) {
-		cout << "readMapPixel warning: no map was loaded with the name " << iMapName << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "readMapPixel warning: no map was loaded with the name " << iMapName << endl;
+		}
 		return -1;
 	}
 	ImagePyramid *pyramid = (*m).second;

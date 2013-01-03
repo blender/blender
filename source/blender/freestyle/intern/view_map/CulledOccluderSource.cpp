@@ -38,6 +38,8 @@
 
 #include "../geometry/GridHelpers.h"
 
+#include "BKE_global.h"
+
 CulledOccluderSource::CulledOccluderSource(const GridHelpers::Transform& t, WingedEdge& we, ViewMap& viewMap,
                                            bool extensiveFEdgeSearch)
 : OccluderSource(t, we), rejected(0), gridSpaceOccluderProsceniumInitialized(false)
@@ -73,7 +75,9 @@ bool CulledOccluderSource::next()
 			return true;
 		}
 	}
-	std::cout << "Finished generating occluders.  Rejected " << rejected << " faces." << std::endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		std::cout << "Finished generating occluders.  Rejected " << rejected << " faces." << std::endl;
+	}
 	return false;
 }
 
@@ -121,11 +125,13 @@ void CulledOccluderSource::cullViewEdges(ViewMap& viewMap, bool extensiveFEdgeSe
 	real prosceniumOrigin[2];
 	prosceniumOrigin[0] = (viewProscenium[1] - viewProscenium[0]) / 2.0;
 	prosceniumOrigin[1] = (viewProscenium[3] - viewProscenium[2]) / 2.0;
-	cout << "Proscenium culling:" << endl;
-	cout << "Proscenium: [" << viewProscenium[0] << ", " << viewProscenium[1] << ", " << viewProscenium[2]
-	     << ", " << viewProscenium[3] << "]"<< endl;
-	cout << "Origin: [" << prosceniumOrigin[0] << ", " << prosceniumOrigin[1] << "]"<< endl;
-	
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Proscenium culling:" << endl;
+		cout << "Proscenium: [" << viewProscenium[0] << ", " << viewProscenium[1] << ", " << viewProscenium[2]
+		     << ", " << viewProscenium[3] << "]"<< endl;
+		cout << "Origin: [" << prosceniumOrigin[0] << ", " << prosceniumOrigin[1] << "]"<< endl;
+	}
+
 	// A separate occluder proscenium will also be maintained, starting out the same as the viewport proscenium, and
 	// expanding as necessary so that it encompasses the center point of at least one feature edge in each
 	// retained view edge.

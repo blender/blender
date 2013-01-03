@@ -37,6 +37,8 @@
 
 #include "BoxGrid.h"
 
+#include "BKE_global.h"
+
 using namespace std;
 
 // Helper Classes
@@ -80,9 +82,11 @@ BoxGrid::Iterator::Iterator (BoxGrid& grid, Vec3r& center, real epsilon)
 	// Find target cell
 	_cell = grid.findCell(_target);
 	#if BOX_GRID_LOGGING
-		cout << "Searching for occluders of edge centered at " << _target << " in cell ["
-		     << _cell->boundary[0] << ", " << _cell->boundary[1] << ", " << _cell->boundary[2]
-		     << ", " << _cell->boundary[3] << "] (" << _cell->faces.size() << " occluders)" << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "Searching for occluders of edge centered at " << _target << " in cell ["
+			     << _cell->boundary[0] << ", " << _cell->boundary[1] << ", " << _cell->boundary[2]
+			     << ", " << _cell->boundary[3] << "] (" << _cell->faces.size() << " occluders)" << endl;
+		}
 	#endif
 
 	// Set iterator
@@ -99,18 +103,26 @@ BoxGrid::BoxGrid(OccluderSource& source, GridDensityProvider& density, ViewMap *
 : _viewpoint(viewpoint), _enableQI(enableQI)
 {
 	// Generate Cell structure
-	cout << "Generate Cell structure" << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Generate Cell structure" << endl;
+	}
 	assignCells(source, density, viewMap);
 
 	// Fill Cells
-	cout << "Distribute occluders" << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Distribute occluders" << endl;
+	}
 	distributePolygons(source);
 
 	// Reorganize Cells
-	cout << "Reorganize cells" << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Reorganize cells" << endl;
+	}
 	reorganizeCells();
 
-	cout << "Ready to use BoxGrid" << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Ready to use BoxGrid" << endl;
+	}
 }
 
 BoxGrid::~BoxGrid() {}
@@ -178,7 +190,9 @@ void BoxGrid::distributePolygons(OccluderSource& source)
 		}
 		++nFaces;
 	}
-	cout << "Distributed " << nFaces << " occluders.  Retained " << nKeptFaces << "." << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Distributed " << nFaces << " occluders.  Retained " << nKeptFaces << "." << endl;
+	}
 }
 
 void BoxGrid::reorganizeCells()

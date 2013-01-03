@@ -877,7 +877,7 @@ public:
 	{
 		_stream .open(iFileName);
 		if (!_stream.is_open()) {
-			cout << "couldn't open file " << iFileName << endl;
+			cerr << "couldn't open file " << iFileName << endl;
 		}
 	}
 

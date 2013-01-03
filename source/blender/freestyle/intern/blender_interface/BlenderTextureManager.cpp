@@ -31,6 +31,8 @@
 
 #include "BlenderTextureManager.h"
 
+#include "BKE_global.h"
+
 BlenderTextureManager::BlenderTextureManager()
 : TextureManager()
 {
@@ -76,7 +78,9 @@ unsigned int BlenderTextureManager::loadBrush(string sname, Stroke::MediumType m
 	if (!found)
 		return 0;
 	// Brush texture
-	cout << "Loading brush texture..." << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Loading brush texture..." << endl;
+	}
 	switch (mediumType) {
 	case Stroke::DRY_MEDIUM:
 		//soc prepareTextureLuminance((const char*)path.toAscii(), texId);
@@ -89,7 +93,9 @@ unsigned int BlenderTextureManager::loadBrush(string sname, Stroke::MediumType m
 		prepareTextureAlpha(StringUtils::toAscii(path), texId);
 		break;
 	}
-	cout << "Done." << endl << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Done." << endl << endl;
+	}
 
 	return texId;
 #else

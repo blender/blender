@@ -38,6 +38,8 @@
 
 #include "../geometry/GeomUtils.h"
 
+#include "BKE_global.h"
+
 using namespace std;
 
 Vec3r SilhouetteGeomEngine::_Viewpoint = Vec3r(0, 0, 0);
@@ -196,9 +198,11 @@ real SilhouetteGeomEngine::ImageToWorldParameter(FEdge *fe, real t)
 	GeomUtils::fromWorldToCamera(Bw, Bc, _modelViewMatrix);
 	Vec3r ABc = Bc - Ac;
 #if 0
-	cout << "Ac " << Ac << endl;
-	cout << "Bc " << Bc << endl;
-	cout << "ABc " << ABc << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Ac " << Ac << endl;
+		cout << "Bc " << Bc << endl;
+		cout << "ABc " << ABc << endl;
+	}
 #endif
 	Vec3r Ai = (fe)->vertexA()->point2D();
 	Vec3r Bi = (fe)->vertexB()->point2D();
@@ -295,10 +299,13 @@ iter:
 			}
 		}
 #if 0
-		printf("SilhouetteGeomEngine::ImageToWorldParameter(): #iters = %d, dist = %e\n", i, dist);
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			printf("SilhouetteGeomEngine::ImageToWorldParameter(): #iters = %d, dist = %e\n", i, dist);
+		}
 #endif
-		if (i == max_iters)
+		if (i == max_iters && G.debug & G_DEBUG_FREESTYLE) {
 			printf("SilhouetteGeomEngine::ImageToWorldParameter(): reached to max_iters (dist = %e)\n", dist);
+		}
 	}
 
 	return T;

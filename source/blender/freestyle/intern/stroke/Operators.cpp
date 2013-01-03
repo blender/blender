@@ -40,6 +40,8 @@
 #include "Canvas.h"
 #include "Stroke.h"
 
+#include "BKE_global.h"
+
 LIB_STROKE_EXPORT Operators::I1DContainer Operators::_current_view_edges_set;
 LIB_STROKE_EXPORT Operators::I1DContainer Operators::_current_chains_set;
 LIB_STROKE_EXPORT Operators::I1DContainer *Operators::_current_set = NULL;
@@ -728,7 +730,9 @@ static int __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryP
 		new_curve_a->push_vertex_back(&(*vit));
 	}
 	if ((vit == vitend) || (vnext == vitend)) {
-		cout << "The split takes place in bad location" << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "The split takes place in bad location" << endl;
+		}
 		newChains.push_back(_curve);
 		delete new_curve_a;
 		delete new_curve_b;
@@ -897,7 +901,9 @@ static int __recursiveSplit(Chain *_curve, UnaryFunction0D<double>& func, UnaryP
 		new_curve_a->push_vertex_back(&(*vit));
 	}
 	if ((vit == vitend) || (vnext == vitend)) {
-		cout << "The split takes place in bad location" << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "The split takes place in bad location" << endl;
+		}
 		newChains.push_back(_curve);
 		delete new_curve_a;
 		delete new_curve_b;
@@ -1143,8 +1149,11 @@ static Stroke *createStroke(Interface1D& inter)
 				}
 				dir.normalize();
 				Vec2r offset(dir * len);
-				//cout << "#vert " << nvert << " len " << len << " reverse? " << reverse << endl;
-
+#if 0
+				if (G.debug & G_DEBUG_FREESTYLE) {
+					cout << "#vert " << nvert << " len " << len << " reverse? " << reverse << endl;
+				}
+#endif
 				// add the offset to the overlapping vertices
 				StrokeVertex *sv;
 				std::vector<Interface0D *>::iterator it = overlapping_vertices.begin(),
@@ -1190,7 +1199,7 @@ static Stroke *createStroke(Interface1D& inter)
 			++v;
 			++vnext;
 		}
-		if (warning) {
+		if (warning && G.debug & G_DEBUG_FREESTYLE) {
 			printf("Warning: stroke contains singular points.\n");
 		}
 	}

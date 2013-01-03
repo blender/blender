@@ -37,6 +37,8 @@
 
 #include "SphericalGrid.h"
 
+#include "BKE_global.h"
+
 using namespace std;
 
 // Helper Classes
@@ -81,9 +83,11 @@ SphericalGrid::Iterator::Iterator(SphericalGrid& grid, Vec3r& center, real epsil
 	// Find target cell
 	_cell = grid.findCell(_target);
 	#if SPHERICAL_GRID_LOGGING
-		cout << "Searching for occluders of edge centered at " << _target << " in cell ["
-		     << _cell->boundary[0] << ", " << _cell->boundary[1] << ", " << _cell->boundary[2]
-		     << ", " << _cell->boundary[3] << "] (" << _cell->faces.size() << " occluders)" << endl;
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			cout << "Searching for occluders of edge centered at " << _target << " in cell ["
+			     << _cell->boundary[0] << ", " << _cell->boundary[1] << ", " << _cell->boundary[2]
+			     << ", " << _cell->boundary[3] << "] (" << _cell->faces.size() << " occluders)" << endl;
+		}
 	#endif
 
 	// Set iterator
@@ -99,16 +103,24 @@ SphericalGrid::SphericalGrid(OccluderSource& source, GridDensityProvider& densit
                              Vec3r& viewpoint, bool enableQI)
 : _viewpoint(viewpoint), _enableQI(enableQI)
 {
-	cout << "Generate Cell structure" << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Generate Cell structure" << endl;
+	}
 	// Generate Cell structure
 	assignCells(source, density, viewMap);
-	cout << "Distribute occluders" << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Distribute occluders" << endl;
+	}
 	// Fill Cells
 	distributePolygons(source);
-	cout << "Reorganize cells" << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Reorganize cells" << endl;
+	}
 	// Reorganize Cells
 	reorganizeCells();
-	cout << "Ready to use SphericalGrid" << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Ready to use SphericalGrid" << endl;
+	}
 }
 
 SphericalGrid::~SphericalGrid() {}
@@ -175,7 +187,9 @@ void SphericalGrid::distributePolygons(OccluderSource& source)
 		}
 		++nFaces;
 	}
-	cout << "Distributed " << nFaces << " occluders.  Retained " << nKeptFaces << "." << endl;
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		cout << "Distributed " << nFaces << " occluders.  Retained " << nKeptFaces << "." << endl;
+	}
 }
 
 void SphericalGrid::reorganizeCells()
