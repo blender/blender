@@ -167,6 +167,7 @@ static void create_mesh_bmvert(BMesh *bm, VMesh *vm, int i, int j, int k, BMVert
 {
 	NewVert *nv = mesh_vert(vm, i, j, k);
 	nv->v = BM_vert_create(bm, nv->co, eg, 0);
+	BM_elem_flag_disable(nv->v, BM_ELEM_TAG);
 }
 
 static void copy_mesh_vert(VMesh *vm, int ito, int jto, int kto,
