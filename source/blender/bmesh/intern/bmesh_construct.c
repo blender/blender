@@ -173,15 +173,16 @@ void BM_face_copy_shared(BMesh *bm, BMFace *f)
  */
 BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, int len, const int create_flag)
 {
-	BMEdge **edges2 = BLI_array_alloca(edges2, len);
-	BMVert **verts = BLI_array_alloca(verts, len + 1);
-	int e2_index = 0;
-	int v_index = 0;
+	BMEdge **edges_sort = BLI_array_alloca(edges_sort, len);
+	BMVert **verts_sort = BLI_array_alloca(verts_sort, len + 1);
+	int esort_index = 0;
+	int vsort_index = 0;
 
 	BMFace *f = NULL;
 	BMEdge *e;
 	BMVert *v, *ev1, *ev2;
-	int i, /* j, */ v1found, reverse;
+	int i;
+	bool is_v1_found, is_reverse;
 
 
 	/* this code is hideous, yeek.  I'll have to think about ways of
@@ -189,10 +190,7 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 	 *  _and_ the old bmesh_mf functions, so its kindof smashed together
 	 * - joeedh */
 
-	if (!len || !v1 || !v2 || !edges || !bm) {
-		BLI_assert(0);
-		return NULL;
-	}
+	BLI_assert(len && v1 && v2 && edges && bm);
 
 	/* put edges in correct order */
 	for (i = 0; i < len; i++) {
@@ -209,19 +207,19 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 		SWAP(BMVert *, ev1, ev2);
 	}
 
-	verts[v_index++] = ev1;
+	verts_sort[vsort_index++] = ev1;
 	v = ev2;
 	e = edges[0];
 	do {
 		BMEdge *e2 = e;
 
 		/* vertex array is (len + 1) */
-		if (UNLIKELY(v_index > len)) {
+		if (UNLIKELY(vsort_index > len)) {
 			goto err; /* vertex in loop twice */
 		}
 
-		verts[v_index++] = v;
-		edges2[e2_index++] = e;
+		verts_sort[vsort_index++] = v;
+		edges_sort[esort_index++] = e;
 
 		/* we only flag the verts to check if they are in the face more then once */
 		BM_ELEM_API_FLAG_ENABLE(v, _FLAG_MV);
@@ -234,66 +232,67 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 			}
 		} while (e2 != e);
 
-		if (e2 == e)
+		if (UNLIKELY(e2 == e)) {
 			goto err; /* the edges do not form a closed loop */
+		}
 
 		e = e2;
 	} while (e != edges[0]);
 
-	if (e2_index != len) {
+	if (UNLIKELY(esort_index != len)) {
 		goto err; /* we didn't use all edges in forming the boundary loop */
 	}
 
 	/* ok, edges are in correct order, now ensure they are going
 	 * in the correct direction */
-	v1found = reverse = FALSE;
+	is_v1_found = is_reverse = false;
 	for (i = 0; i < len; i++) {
-		if (BM_vert_in_edge(edges2[i], v1)) {
+		if (BM_vert_in_edge(edges_sort[i], v1)) {
 			/* see if v1 and v2 are in the same edge */
-			if (BM_vert_in_edge(edges2[i], v2)) {
+			if (BM_vert_in_edge(edges_sort[i], v2)) {
 				/* if v1 is shared by the *next* edge, then the winding
 				 * is incorrect */
-				if (BM_vert_in_edge(edges2[(i + 1) % len], v1)) {
-					reverse = TRUE;
+				if (BM_vert_in_edge(edges_sort[(i + 1) % len], v1)) {
+					is_reverse = true;
 					break;
 				}
 			}
 
-			v1found = TRUE;
+			is_v1_found = true;
 		}
 
-		if ((v1found == FALSE) && BM_vert_in_edge(edges2[i], v2)) {
-			reverse = TRUE;
+		if ((is_v1_found == false) && BM_vert_in_edge(edges_sort[i], v2)) {
+			is_reverse = true;
 			break;
 		}
 	}
 
-	if (reverse) {
+	if (is_reverse) {
 		for (i = 0; i < len / 2; i++) {
-			v = verts[i];
-			verts[i] = verts[len - i - 1];
-			verts[len - i - 1] = v;
+			v = verts_sort[i];
+			verts_sort[i] = verts_sort[len - i - 1];
+			verts_sort[len - i - 1] = v;
 		}
 	}
 
 	for (i = 0; i < len; i++) {
-		edges2[i] = BM_edge_exists(verts[i], verts[(i + 1) % len]);
-		if (!edges2[i]) {
+		edges_sort[i] = BM_edge_exists(verts_sort[i], verts_sort[(i + 1) % len]);
+		if (UNLIKELY(edges_sort[i] == NULL)) {
 			goto err;
 		}
 
 		/* check if vert is in face more then once. if the flag is disabled. we've already visited */
-		if (!BM_ELEM_API_FLAG_TEST(verts[i], _FLAG_MV)) {
+		if (UNLIKELY(!BM_ELEM_API_FLAG_TEST(verts_sort[i], _FLAG_MV))) {
 			goto err;
 		}
-		BM_ELEM_API_FLAG_DISABLE(verts[i], _FLAG_MV);
+		BM_ELEM_API_FLAG_DISABLE(verts_sort[i], _FLAG_MV);
 	}
 
-	f = BM_face_create(bm, verts, edges2, len, create_flag);
+	f = BM_face_create(bm, verts_sort, edges_sort, len, create_flag);
 
 	/* clean up flags */
 	for (i = 0; i < len; i++) {
-		BM_ELEM_API_FLAG_DISABLE(edges2[i], _FLAG_MF);
+		BM_ELEM_API_FLAG_DISABLE(edges_sort[i], _FLAG_MF);
 	}
 
 	return f;
@@ -302,8 +301,8 @@ err:
 	for (i = 0; i < len; i++) {
 		BM_ELEM_API_FLAG_DISABLE(edges[i], _FLAG_MF);
 	}
-	for (i = 0; i < v_index; i++) {
-		BM_ELEM_API_FLAG_DISABLE(verts[i], _FLAG_MV);
+	for (i = 0; i < vsort_index; i++) {
+		BM_ELEM_API_FLAG_DISABLE(verts_sort[i], _FLAG_MV);
 	}
 
 	return NULL;
