@@ -66,6 +66,7 @@ SET(_opencollada_SEARCH_DIRS
   /sw # Fink
   /opt/local # DarwinPorts
   /opt/csw # Blastwave
+  /opt/lib/opencollada
 )
 
 SET(_opencollada_INCLUDES)

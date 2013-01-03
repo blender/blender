@@ -1,16 +1,37 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+# A shell script installing/building all needed dependencies to build Blender, for some Linux distributions.
 
 # Parse command line!
 ARGS=$( \
 getopt \
 -o s:i:t:h \
---long source:,install:,threads:,help,with-all,with-osl,all-static,force-all,force-python,\
-force-boost,force-ocio,force-oiio,force-llvm,force-osl,force-ffmpeg,\
-skip-python,skip-boost,skip-ocio,skip-oiio,skip-llvm,skip-osl,skip-ffmpeg \
+--long source:,install:,threads:,help,with-all,with-osl,with-opencollada,all-static,force-all,\
+force-python,force-numpy,force-boost,force-ocio,force-oiio,force-llvm,force-osl,force-opencollada,\
+force-ffmpeg,skip-python,skip-numpy,skip-boost,skip-ocio,skip-oiio,skip-llvm,skip-osl,skip-ffmpeg,\
+skip-opencollada \
 -- "$@" \
 )
 
 DISTRO=""
+RPM=""
 SRC="$HOME/src/blender-deps"
 INST="/opt/lib"
 CWD=$PWD
@@ -20,6 +41,9 @@ WITH_ALL=false
 
 # Do not yet enable osl, use --with-osl (or --with-all) option to try it.
 WITH_OSL=false
+
+# Do not yet enable opencollada, use --with-opencollada (or --with-all) option to try it.
+WITH_OPENCOLLADA=false
 
 # Try to link everything statically. Use this to produce portable versions of blender.
 ALL_STATIC=false
@@ -37,7 +61,11 @@ or use --source/--install options, if you want to use other paths!
 Number of threads for building: \$THREADS (automatically detected, use --threads=<nbr> to override it).
 Full install: \$WITH_ALL (use --with-all option to enable it).
 Building OSL: \$WITH_OSL (use --with-osl option to enable it).
+Building OpenCOLLADA: \$WITH_OPENCOLLADA (use --with-opencollada option to enable it).
 All static linking: \$ALL_STATIC (use --all-static option to enable it).
+
+Example:
+Full install without OpenCOLLADA: --with-all --skip-opencollada
 
 Use --help to show all available options!\""
 
@@ -64,6 +92,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
         Try to install or build the OpenShadingLanguage libraries (and their dependencies).
         Still experimental!
 
+    --with-opencollada
+        Build and install the OpenCOLLADA libraries.
+
     --all-static
         Build libraries as statically as possible, to create static builds of Blender.
 
@@ -72,6 +103,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     --force-python
         Force the rebuild of Python.
+
+    --force-numpy
+        Force the rebuild of NumPy.
 
     --force-boost
         Force the rebuild of Boost.
@@ -88,6 +122,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     --force-osl
         Force the rebuild of OpenShadingLanguage.
 
+    --force-opencollada
+        Force the rebuild of OpenCOLLADA.
+
     --force-ffmpeg
         Force the rebuild of FFMpeg.
 
@@ -100,6 +137,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
 
     --skip-python
         Unconditionally skip Python installation/building.
+
+    --skip-numpy
+        Unconditionally skip NumPy installation/building.
 
     --skip-boost
         Unconditionally skip Boost installation/building.
@@ -116,6 +156,9 @@ ARGUMENTS_INFO="\"COMMAND LINE ARGUMENTS:
     --skip-osl
         Unconditionally skip OpenShadingLanguage installation/building.
 
+    --skip-opencollada
+        Unconditionally skip OpenCOLLADA installation/building.
+
     --skip-ffmpeg
         Unconditionally skip FFMpeg installation/building.\""
 
@@ -124,6 +167,13 @@ PYTHON_VERSION_MIN="3.3"
 PYTHON_SOURCE="http://python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tar.bz2"
 PYTHON_FORCE_REBUILD=false
 PYTHON_SKIP=false
+
+#Could not get numpy-1.6.2 to compile with python-3.3
+NUMPY_VERSION="1.7.0rc1"
+NUMPY_VERSION_MIN="1.7"
+NUMPY_SOURCE="http://sourceforge.net/projects/numpy/files/NumPy/$NUMPY_VERSION/numpy-$NUMPY_VERSION.tar.gz"
+NUMPY_FORCE_REBUILD=false
+NUMPY_SKIP=false
 
 BOOST_VERSION="1.51.0"
 _boost_version_nodots=`echo "$BOOST_VERSION" | sed -r 's/\./_/g'`
@@ -157,6 +207,12 @@ OSL_VERSION="1.2.0"
 OSL_SOURCE="https://github.com/mont29/OpenShadingLanguage/archive/blender-fixes.tar.gz"
 OSL_FORCE_REBUILD=false
 OSL_SKIP=false
+
+# Version??
+OPENCOLLADA_VERSION="1.3"
+OPENCOLLADA_SOURCE="https://github.com/KhronosGroup/OpenCOLLADA.git"
+OPENCOLLADA_FORCE_REBUILD=false
+OPENCOLLADA_SKIP=false
 
 FFMPEG_VERSION="1.0"
 FFMPEG_SOURCE="http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2"
@@ -236,21 +292,29 @@ while true; do
     --with-osl)
       WITH_OSL=true; shift; continue
     ;;
+    --with-opencollada)
+      WITH_OPENCOLLADA=true; shift; continue
+    ;;
     --all-static)
       ALL_STATIC=true; shift; continue
     ;;
     --force-all)
       PYTHON_FORCE_REBUILD=true
+      NUMPY_FORCE_REBUILD=true
       BOOST_FORCE_REBUILD=true
       OCIO_FORCE_REBUILD=true
       OIIO_FORCE_REBUILD=true
       LLVM_FORCE_REBUILD=true
       OSL_FORCE_REBUILD=true
+      OPENCOLLADA_FORCE_REBUILD=true
       FFMPEG_FORCE_REBUILD=true
       shift; continue
     ;;
     --force-python)
       PYTHON_FORCE_REBUILD=true; shift; continue
+    ;;
+    --force-numpy)
+      NUMPY_FORCE_REBUILD=true; shift; continue
     ;;
     --force-boost)
       BOOST_FORCE_REBUILD=true; shift; continue
@@ -267,11 +331,17 @@ while true; do
     --force-osl)
       OSL_FORCE_REBUILD=true; shift; continue
     ;;
+    --force-opencollada)
+      OPENCOLLADA_FORCE_REBUILD=true; shift; continue
+    ;;
     --force-ffmpeg)
       FFMPEG_FORCE_REBUILD=true; shift; continue
     ;;
     --skip-python)
       PYTHON_SKIP=true; shift; continue
+    ;;
+    --skip-numpy)
+      NUMPY_SKIP=true; shift; continue
     ;;
     --skip-boost)
       BOOST_SKIP=true; shift; continue
@@ -287,6 +357,9 @@ while true; do
     ;;
     --skip-osl)
       OSL_SKIP=true; shift; continue
+    ;;
+    --skip-opencollada)
+      OPENCOLLADA_SKIP=true; shift; continue
     ;;
     --skip-ffmpeg)
       FFMPEG_SKIP=true; shift; continue
@@ -308,6 +381,7 @@ done
 
 if $WITH_ALL; then
   WITH_OSL=true
+  WITH_OPENCOLLADA=true
 fi
 
 # Return 0 if $1 = $2 (i.e. 1.01.0 = 1.1, but 1.1.1 != 1.1), else 1.
@@ -397,10 +471,22 @@ version_match() {
 detect_distro() {
   if [ -f /etc/debian_version ]; then
     DISTRO="DEB"
-  elif [ -f /etc/redhat-release ]; then
+  elif [ -f /etc/redhat-release -o /etc/SuSE-release ]; then
     DISTRO="RPM"
+  elif [ -f /etc/arch-release ]; then
+    DISTRO="ARCH"
+  fi
+}
+
+rpm_flavour() {
+  if [ -f /etc/redhat-release ]; then
+    if [ "`grep '6\.' /etc/redhat-release`" ]; then
+      RPM="RHEL"
+    else
+      RPM="FEDORA"
+    fi
   elif [ -f /etc/SuSE-release ]; then
-    DISTRO="SUSE"
+    RPM="SUSE"
   fi
 }
 
@@ -480,6 +566,56 @@ compile_Python() {
   else
     INFO "Own Python-$PYTHON_VERSION is up to date, nothing to do!"
     INFO "If you want to force rebuild of this lib, use the --force-python option."
+  fi
+}
+
+compile_Numpy() {
+  # To be changed each time we make edits that would modify the compiled result!
+  py_magic=0
+
+  _src=$SRC/numpy-$NUMPY_VERSION
+  _inst=$INST/numpy-$NUMPY_VERSION
+  _python=$INST/python-$PYTHON_VERSION
+  _site=lib/python3.3/site-packages
+
+  # Clean install if needed!
+  magic_compile_check numpy-$NUMPY_VERSION $py_magic
+  if [ $? -eq 1 -o $NUMPY_FORCE_REBUILD == true ]; then
+    rm -rf $_inst
+  fi
+
+  if [ ! -d $_inst ]; then
+    INFO "Building Numpy-$NUMPY_VERSION"
+
+    prepare_opt
+
+    if [ ! -d $_src ]; then
+      mkdir -p $SRC
+      wget -c $NUMPY_SOURCE -O $_src.tar.gz
+
+      INFO "Unpacking Numpy-$NUMPY_VERSION"
+      tar -C $SRC -xf $_src.tar.gz
+    fi
+
+    cd $_src
+
+    $_python/bin/python3 setup.py install --prefix=$_inst
+
+    if [ -d $_inst ]; then
+      rm -f $_python/$_site/numpy
+      ln -s $_inst/$_site/numpy $_python/$_site/numpy
+    else
+      ERROR "Numpy-$NUMPY_VERSION failed to compile, exiting"
+      exit 1
+    fi
+
+    magic_compile_set numpy-$NUMPY_VERSION $py_magic
+
+    cd $CWD
+    INFO "Done compiling Numpy-$NUMPY_VERSION!"
+  else
+    INFO "Own Numpy-$NUMPY_VERSION is up to date, nothing to do!"
+    INFO "If you want to force rebuild of this lib, use the --force-numpy option."
   fi
 }
 
@@ -620,7 +756,7 @@ compile_OCIO() {
 
 compile_OIIO() {
   # To be changed each time we make edits that would modify the compiled result!
-  oiio_magic=6
+  oiio_magic=7
 
   _src=$SRC/OpenImageIO-$OIIO_VERSION
   _inst=$INST/oiio-$OIIO_VERSION
@@ -797,6 +933,7 @@ EOF
     cmake_d="-D CMAKE_BUILD_TYPE=Release"
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D LLVM_ENABLE_FFI=ON"
+    cmake_d="$cmake_d -D LLVM_TARGETS_TO_BUILD=X86"
 
     if [ -d $_FFI_INCLUDE_DIR ]; then
       cmake_d="$cmake_d -D FFI_INCLUDE_DIR=$_FFI_INCLUDE_DIR"
@@ -920,6 +1057,70 @@ compile_OSL() {
   fi
 }
 
+compile_OpenCOLLADA() {
+  # To be changed each time we make edits that would modify the compiled results!
+  opencollada_magic=5
+
+  _src=$SRC/OpenCOLLADA-$OPENCOLLADA_VERSION
+  _inst=$INST/opencollada-$OPENCOLLADA_VERSION
+
+  # Clean install if needed!
+  magic_compile_check opencollada-$OPENCOLLADA_VERSION $opencollada_magic
+  if [ $? -eq 1 -o $OPENCOLLADA_FORCE_REBUILD == true ]; then
+    rm -rf $_inst
+  fi
+
+  if [ ! -d $_inst ]; then
+    INFO "Building OpenCOLLADA-$OPENCOLLADA_VERSION"
+
+    prepare_opt
+
+    if [ ! -d $_src ]; then
+      mkdir -p $SRC
+      git clone $OPENCOLLADA_SOURCE $_src
+    fi
+
+    cd $_src
+
+    # XXX For now, always update from latest repo...
+    git pull origin
+
+    # Always refresh the whole build!
+    if [ -d build ]; then
+      rm -rf build
+    fi
+    mkdir build
+    cd build
+
+    cmake_d="-D CMAKE_BUILD_TYPE=Release"
+    cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
+    cmake_d="$cmake_d -D USE_EXPAT=OFF"
+    cmake_d="$cmake_d -D USE_LIBXML=ON"
+    cmake_d="$cmake_d -D USE_STATIC=ON"
+
+    cmake $cmake_d ../
+
+    make -j$THREADS && make install
+    make clean
+
+    if [ -d $_inst ]; then
+      rm -f $INST/opencollada
+      ln -s opencollada-$OPENCOLLADA_VERSION $INST/opencollada
+    else
+      ERROR "OpenCOLLADA-$OPENCOLLADA_VERSION failed to compile, exiting"
+      exit 1
+    fi
+
+    magic_compile_set opencollada-$OPENCOLLADA_VERSION $opencollada_magic
+
+    cd $CWD
+    INFO "Done compiling OpenCOLLADA-$OPENCOLLADA_VERSION!"
+  else
+    INFO "Own OpenCOLLADA-$OPENCOLLADA_VERSION is up to date, nothing to do!"
+    INFO "If you want to force rebuild of this lib, use the --force-opencollada option."
+  fi
+}
+
 compile_FFmpeg() {
   # To be changed each time we make edits that would modify the compiled result!
   ffmpeg_magic=3
@@ -992,9 +1193,9 @@ compile_FFmpeg() {
         --enable-avfilter --disable-vdpau \
         --disable-bzlib --disable-libgsm --disable-libspeex \
         --enable-pthreads --enable-zlib --enable-stripping --enable-runtime-cpudetect \
-        --disable-vaapi  --disable-libfaac --disable-nonfree --enable-gpl \
-        --disable-postproc --disable-x11grab  --disable-librtmp  --disable-libopencore-amrnb \
-        --disable-libopencore-amrwb --disable-libdc1394 --disable-version3  --disable-outdev=sdl \
+        --disable-vaapi --disable-libfaac --disable-nonfree --enable-gpl \
+        --disable-postproc --disable-x11grab --disable-librtmp --disable-libopencore-amrnb \
+        --disable-libopencore-amrwb --disable-libdc1394 --disable-version3 --disable-outdev=sdl \
         --disable-outdev=alsa --disable-indev=sdl --disable-indev=alsa --disable-indev=jack \
         --disable-indev=lavfi $extra
 
@@ -1018,6 +1219,8 @@ compile_FFmpeg() {
     INFO "If you want to force rebuild of this lib, use the --force-ffmpeg option."
   fi
 }
+
+
 
 get_package_version_DEB() {
     dpkg-query -W -f '${Version}' $1 | sed -r 's/.*:\s*([0-9]+:)(([0-9]+\.?)+).*/\2/'
@@ -1056,7 +1259,7 @@ check_package_version_ge_DEB() {
 }
 
 install_packages_DEB() {
-  sudo apt-get install -y $@
+  sudo apt-get install -y --force-yes $@
   if [ $? -ge 1 ]; then
     ERROR "apt-get failed to install requested packages, exiting."
     exit 1
@@ -1069,6 +1272,9 @@ install_DEB() {
   INFO ""
   INFO "`eval _echo "$COMMON_INFO"`"
   INFO ""
+
+  read -p "Do you want to continue (Y/n)?"
+  [ "$(echo ${REPLY:=Y} | tr [:upper:] [:lower:])" != "y" ] && exit
 
   if [ ! -z "`cat /etc/debian_version | grep ^6`"  ]; then
     if [ -z "`cat /etc/apt/sources.list | grep backports.debian.org`"  ]; then
@@ -1095,27 +1301,37 @@ install_DEB() {
   fi
 
   sudo apt-get update
-# XXX Why in hell? Let's let this stuff to the user's responsability!!!
-#  sudo apt-get -y upgrade
 
   # These libs should always be available in debian/ubuntu official repository...
   OPENJPEG_DEV="libopenjpeg-dev"
-  SCHRO_DEV="libschroedinger-dev"
   VORBIS_DEV="libvorbis-dev"
   THEORA_DEV="libtheora-dev"
 
-  _packages="gawk cmake scons build-essential libjpeg-dev libpng-dev libtiff-dev \
+  _packages="gawk cmake cmake-curses-gui scons build-essential libjpeg-dev libpng-dev \
              libfreetype6-dev libx11-dev libxi-dev wget libsqlite3-dev libbz2-dev \
              libncurses5-dev libssl-dev liblzma-dev libreadline-dev $OPENJPEG_DEV \
-             libopenexr-dev libopenal-dev libglew-dev yasm $THEORA_DEV \
-             $VORBIS_DEV libsdl1.2-dev libfftw3-dev python-dev patch bzip2"
+             libopenexr-dev libopenal-dev libglew-dev yasm $THEORA_DEV $VORBIS_DEV \
+             libsdl1.2-dev libfftw3-dev patch bzip2"
+
   OPENJPEG_USE=true
   VORBIS_USE=true
   THEORA_USE=true
 
+  # Install newest libtiff-dev in debian/ubuntu.
+  TIFF="libtiff5"
+  check_package_DEB $TIFF
+  if [ $? -eq 0 ]; then
+    _packages="$_packages $TIFF-dev"
+  else
+    TIFF="libtiff"
+    check_package_DEB $TIFF
+    if [ $? -eq 0 ]; then
+      _packages="$_packages $TIFF-dev"
+    fi
+  fi
+
   if $WITH_ALL; then
-    _packages="$_packages $SCHRO_DEV libjack0 libjack-dev"
-    SCHRO_USE=true
+    _packages="$_packages libspnav-dev libjack-dev"
   fi
 
   INFO ""
@@ -1132,6 +1348,7 @@ install_DEB() {
   if $WITH_ALL; then
     INFO ""
     # Grmpf, debian is libxvidcore-dev and ubuntu libxvidcore4-dev!
+    # Note: not since ubuntu 10.04
     XVID_DEV="libxvidcore-dev"
     check_package_DEB $XVID_DEV
     if [ $? -eq 0 ]; then
@@ -1163,9 +1380,11 @@ install_DEB() {
     fi
 
     INFO ""
-    check_package_DEB libspnav-dev
+    SCHRO_DEV="libschroedinger-dev"
+    check_package_DEB $SCHRO_DEV
     if [ $? -eq 0 ]; then
-      install_packages_DEB libspnav-dev
+      install_packages_DEB $SCHRO_DEV
+      SCHRO_USE=true
     fi
   fi
 
@@ -1173,11 +1392,28 @@ install_DEB() {
   if $PYTHON_SKIP; then
     INFO "WARNING! Skipping Python installation, as requested..."
   else
-    check_package_DEB python3.3-dev
+    check_package_DEB python$PYTHON_VERSION_MIN-dev
     if [ $? -eq 0 ]; then
-      install_packages_DEB python3.3-dev
+      install_packages_DEB python$PYTHON_VERSION_MIN-dev
+      INFO ""
+      if $NUMPY_SKIP; then
+        INFO "WARNING! Skipping NumPy installation, as requested..."
+      else
+        check_package_DEB python$PYTHON_VERSION_MIN-numpy
+        if [ $? -eq 0 ]; then
+          install_packages_DEB python$PYTHON_VERSION_MIN-numpy
+        else
+          INFO "WARNING! Sorry, using python package but no numpy package available!"
+        fi
+      fi
     else
       compile_Python
+      INFO ""
+      if $NUMPY_SKIP; then
+        INFO "WARNING! Skipping NumPy installation, as requested..."
+      else
+        compile_Numpy
+      fi
     fi
   fi
 
@@ -1237,17 +1473,19 @@ install_DEB() {
       INFO ""
       check_package_DEB llvm-$LLVM_VERSION-dev
       if [ $? -eq 0 ]; then
-        install_packages_DEB llvm-$LLVM_VERSION-dev
+        install_packages_DEB llvm-$LLVM_VERSION-dev clang
         have_llvm=true
         LLVM_VERSION_FOUND=$LLVM_VERSION
       else
         check_package_DEB llvm-$LLVM_VERSION_MIN-dev
         if [ $? -eq 0 ]; then
-          install_packages_DEB llvm-$LLVM_VERSION_MIN-dev
+          install_packages_DEB llvm-$LLVM_VERSION_MIN-dev clang
           have_llvm=true
           LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
         else
           install_packages_DEB libffi-dev
+          # LLVM can't find the debian ffi header dir
+          _FFI_INCLUDE_DIR=`dpkg -L libffi-dev | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
           INFO ""
           compile_LLVM
           have_llvm=true
@@ -1257,12 +1495,11 @@ install_DEB() {
     fi
 
     if $OSL_SKIP; then
-      INFO ""
       INFO "WARNING! Skipping OpenShadingLanguage installation, as requested..."
     else
       if $have_llvm; then
         INFO ""
-        install_packages_DEB clang flex bison libtbb-dev git
+        install_packages_DEB flex bison libtbb-dev git
         # No package currently!
         INFO ""
         compile_OSL
@@ -1270,6 +1507,19 @@ install_DEB() {
     fi
   fi
 
+  if $WITH_OPENCOLLADA; then
+    if $OPENCOLLADA_SKIP; then
+      INFO "WARNING! Skipping OpenCOLLADA installation, as requested..."
+    else
+      INFO ""
+      install_packages_DEB git libpcre3-dev libxml2-dev
+      # Find path to libxml shared lib...
+      _XML2_LIB=`dpkg -L libxml2-dev | grep -e ".*/libxml2.so"`
+      # No package
+      INFO ""
+      compile_OpenCOLLADA
+    fi
+  fi
 
   INFO ""
   if $FFMPEG_SKIP; then
@@ -1294,12 +1544,24 @@ install_DEB() {
   fi
 }
 
+
+
 get_package_version_RPM() {
-  yum info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'
+  rpm_flavour
+  if [ $RPM = "FEDORA" -o $RPM = "RHEL" ]; then
+    yum info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'
+  elif [ $RPM = "SUSE" ]; then
+    zypper info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'
+  fi  
 }
 
 check_package_RPM() {
-  r=`yum info $1 | grep -c 'Summary'`
+  rpm_flavour
+  if [ $RPM = "FEDORA" -o $RPM = "RHEL" ]; then
+    r=`yum info $1 | grep -c 'Summary'`
+  elif [ $RPM = "SUSE" ]; then
+    r=`zypper info $1 | grep -c 'Summary'`
+  fi
 
   if [ $r -ge 1 ]; then
     return 0
@@ -1331,10 +1593,20 @@ check_package_version_ge_RPM() {
 }
 
 install_packages_RPM() {
-  sudo yum install -y $@
-  if [ $? -ge 1 ]; then
-    ERROR "yum failed to install requested packages, exiting."
-    exit 1
+  rpm_flavour
+  if [ $RPM = "FEDORA" -o $RPM = "RHEL" ]; then
+    sudo yum install -y $@
+    if [ $? -ge 1 ]; then
+      ERROR "yum failed to install requested packages, exiting."
+      exit 1
+    fi
+
+  elif [ $RPM = "SUSE" ]; then
+    sudo zypper --non-interactive install --auto-agree-with-licenses $@
+    if [ $? -ge 1 ]; then
+      ERROR "zypper failed to install requested packages, exiting."
+      exit 1
+    fi
   fi
 }
 
@@ -1345,48 +1617,138 @@ install_RPM() {
   INFO "`eval _echo "$COMMON_INFO"`"
   INFO ""
 
-  sudo yum -y update
+  read -p "Do you want to continue (Y/n)?"
+  [ "$(echo ${REPLY:=Y} | tr [:upper:] [:lower:])" != "y" ] && exit
 
-  # These libs should always be available in debian/ubuntu official repository...
+  # Enable non-free repositories for all flavours
+  rpm_flavour
+  if [ $RPM = "FEDORA" ]; then
+    sudo yum -y localinstall --nogpgcheck \
+    http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-stable.noarch.rpm \
+    http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-stable.noarch.rpm
+
+    sudo yum -y update
+
+    # Install cmake now because of difference with RHEL
+    sudo yum -y install cmake
+
+  elif [ $RPM = "RHEL" ]; then
+    sudo yum -y localinstall --nogpgcheck \
+    http://download.fedoraproject.org/pub/epel/6/$(uname -i)/epel-release-6-8.noarch.rpm \
+    http://download1.rpmfusion.org/free/el/updates/6/$(uname -i)/rpmfusion-free-release-6-1.noarch.rpm \
+    http://download1.rpmfusion.org/nonfree/el/updates/6/$(uname -i)/rpmfusion-nonfree-release-6-1.noarch.rpm
+
+    sudo yum -y update
+
+    # Install cmake 2.8 from other repo
+    mkdir -p $SRC
+    if [ -f $SRC/cmake-2.8.8-4.el6.$(uname -m).rpm ]; then
+      INFO ""
+      INFO "Special cmake already installed"
+    else
+      curl -O ftp://ftp.pbone.net/mirror/atrpms.net/el6-$(uname -i)/atrpms/testing/cmake-2.8.8-4.el6.$(uname -m).rpm
+      mv cmake-2.8.8-4.el6.$(uname -m).rpm $SRC/
+      sudo rpm -ihv $SRC/cmake-2.8.8-4.el6.$(uname -m).rpm
+    fi
+
+  elif [ $RPM = "SUSE" ]; then
+    _suse_rel="`grep VERSION /etc/SuSE-release | gawk '{print $3}'`"
+    sudo zypper ar -f http://packman.inode.at/suse/openSUSE_$_suse_rel/ packman
+
+    sudo zypper --non-interactive --gpg-auto-import-keys update --auto-agree-with-licenses
+  fi
+
+  # These libs should always be available in fedora/suse official repository...
   OPENJPEG_DEV="openjpeg-devel"
-  SCHRO_DEV="schroedinger-devel"
   VORBIS_DEV="libvorbis-devel"
   THEORA_DEV="libtheora-devel"
 
-  _packages="gawk gcc gcc-c++ cmake scons libpng-devel libtiff-devel freetype-devel \
-             libX11-devel libXi-devel wget libsqlite3x-devel ncurses-devel \
-             readline-devel $OPENJPEG_DEV openexr-devel openal-soft-devel \
+  _packages="gcc gcc-c++ make scons libpng-devel libtiff-devel \
+             freetype-devel libX11-devel libXi-devel wget ncurses-devel \
+             readline-devel $OPENJPEG_DEV openal-soft-devel \
              glew-devel yasm $THEORA_DEV $VORBIS_DEV SDL-devel fftw-devel \
-             lame-libs libjpeg-devel patch python-devel"
+             libjpeg-devel patch"
+
   OPENJPEG_USE=true
   VORBIS_USE=true
   THEORA_USE=true
 
-  if $WITH_ALL; then
-    _packages="$_packages $SCHRO_DEV jack-audio-connection-kit-devel libspnav-devel"
-    SCHRO_USE=true
-  fi
+  if [ $RPM = "FEDORA" -o $RPM = "RHEL" ]; then
 
-  INFO ""
-  install_packages_RPM $_packages
+    _packages="$_packages libsqlite3-devel openexr-devel"
 
-  INFO ""
-  X264_DEV="x264-devel"
-  check_package_version_ge_RPM $X264_DEV $X264_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    install_packages_RPM $X264_DEV
-    X264_USE=true
-  fi
-
-  if $WITH_ALL; then
-    INFO ""
-    XVID_DEV="xvidcore-devel"
-    check_package_RPM $XVID_DEV
-    if [ $? -eq 0 ]; then
-      install_packages_RPM $XVID_DEV
-      XVID_USE=true
+    if $WITH_ALL; then
+      _packages="$_packages jack-audio-connection-kit-devel libspnav-devel"
     fi
 
+    INFO ""
+    install_packages_RPM $_packages
+
+    INFO ""
+    X264_DEV="x264-devel"
+    check_package_version_ge_RPM $X264_DEV $X264_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_RPM $X264_DEV
+      X264_USE=true
+    fi
+
+    if $WITH_ALL; then
+      INFO ""
+      XVID_DEV="xvidcore-devel"
+      check_package_RPM $XVID_DEV
+      if [ $? -eq 0 ]; then
+        install_packages_RPM $XVID_DEV
+        XVID_USE=true
+      fi
+
+      INFO ""
+      MP3LAME_DEV="lame-devel"
+      check_package_RPM $MP3LAME_DEV
+      if [ $? -eq 0 ]; then
+        install_packages_RPM $MP3LAME_DEV
+        MP3LAME_USE=true
+      fi
+    fi
+
+  elif [ $RPM = "SUSE" ]; then
+
+    _packages="$_packages cmake sqlite3-devel libopenexr-devel"
+
+    if $WITH_ALL; then
+      _packages="$_packages libjack-devel libspnav-devel"
+    fi
+
+    INFO ""
+    install_packages_RPM $_packages
+
+    INFO ""
+    X264_DEV="libx264-devel"
+    check_package_version_ge_RPM $X264_DEV $X264_VERSION_MIN
+    if [ $? -eq 0 ]; then
+      install_packages_RPM $X264_DEV
+      X264_USE=true
+    fi
+
+    if $WITH_ALL; then
+      INFO ""
+      XVID_DEV="libxvidcore-devel"
+      check_package_RPM $XVID_DEV
+      if [ $? -eq 0 ]; then
+        install_packages_RPM $XVID_DEV
+        XVID_USE=true
+      fi
+
+      INFO ""
+      MP3LAME_DEV="libmp3lame-devel"
+      check_package_RPM $MP3LAME_DEV
+      if [ $? -eq 0 ]; then
+        install_packages_RPM $MP3LAME_DEV
+        MP3LAME_USE=true
+      fi
+    fi
+  fi
+
+  if $WITH_ALL; then
     INFO ""
     VPX_DEV="libvpx-devel"
     check_package_version_ge_RPM $VPX_DEV $VPX_VERSION_MIN
@@ -1396,14 +1758,14 @@ install_RPM() {
     fi
 
     INFO ""
-    MP3LAME_DEV="lame-devel"
-    check_package_RPM $MP3LAME_DEV
+    SCHRO_DEV="schroedinger-devel"
+    check_package_RPM $SCHRO_DEV
     if [ $? -eq 0 ]; then
-      install_packages_RPM $MP3LAME_DEV
-      MP3LAME_USE=true
+      install_packages_RPM $SCHRO_DEV
+      SCHRO_USE=true
     fi
   fi
-
+ 
   INFO ""
   if $PYTHON_SKIP; then
     INFO "WARNING! Skipping Python installation, as requested..."
@@ -1411,8 +1773,25 @@ install_RPM() {
     check_package_version_match_RPM python3-devel $PYTHON_VERSION_MIN
     if [ $? -eq 0 ]; then
       install_packages_RPM python3-devel
+      INFO ""
+      if $NUMPY_SKIP; then
+        INFO "WARNING! Skipping NumPy installation, as requested..."
+      else
+        check_package_version_match_RPM python3-numpy $NUMPY_VERSION_MIN
+        if [ $? -eq 0 ]; then
+          install_packages_RPM python3-numpy
+        else
+          INFO "WARNING! Sorry, using python package but no numpy package available!"
+        fi
+      fi
     else
       compile_Python
+      INFO ""
+      if $NUMPY_SKIP; then
+        INFO "WARNING! Skipping NumPy installation, as requested..."
+      else
+        compile_Numpy
+      fi
     fi
   fi
 
@@ -1420,7 +1799,7 @@ install_RPM() {
   if $BOOST_SKIP; then
     INFO "WARNING! Skipping Boost installation, as requested..."
   else
-    check_package_version_ge_RPM boost-devel $BOOST_VERSION_MIN
+    check_package_version_ge_RPM boost-devel $BOOST_VERSION
     if [ $? -eq 0 ]; then
       install_packages_RPM boost-devel
     else
@@ -1461,25 +1840,15 @@ install_RPM() {
     else
       check_package_RPM llvm-$LLVM_VERSION-devel
       if [ $? -eq 0 ]; then
-        install_packages_RPM llvm-$LLVM_VERSION-devel
+        install_packages_RPM llvm-$LLVM_VERSION-devel clang
         have_llvm=true
         LLVM_VERSION_FOUND=$LLVM_VERSION
       else
-#        check_package_RPM llvm-$LLVM_VERSION_MIN-devel
-#        if [ $? -eq 0 ]; then
-#          install_packages_RPM llvm-$LLVM_VERSION_MIN-devel
-#          have_llvm=true
-#          LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
-#        else
-#          check_package_version_ge_RPM llvm-devel $LLVM_VERSION_MIN
-#          if [ $? -eq 0 ]; then
-#            install_packages_RPM llvm-devel
-#            have_llvm=true
-#            LLVM_VERSION_FOUND=`get_package_version_RPM llvm-devel`
-#          fi
-#        fi
+        #
+        # Better to compile it than use minimum version from repo...
+        #
       install_packages_RPM libffi-devel
-      # XXX Stupid fedora puts ffi header into a darn stupid dir!
+      # LLVM can't find the fedora ffi header dir...
       _FFI_INCLUDE_DIR=`rpm -ql libffi-devel | grep -e ".*/ffi.h" | sed -r 's/(.*)\/ffi.h/\1/'`
       INFO ""
       compile_LLVM
@@ -1493,12 +1862,29 @@ install_RPM() {
       INFO "WARNING! Skipping OpenShadingLanguage installation, as requested..."
     else
       if $have_llvm; then
-        INFO ""
-        install_packages_RPM flex bison clang tbb-devel git
         # No package currently!
+        INFO ""
+        install_packages_RPM flex bison git
+        if [ $RPM = "FEDORA" -o $RPM = "RHEL" ]; then
+          install_packages_RPM tbb-devel
+        fi
         INFO ""
         compile_OSL
       fi
+    fi
+  fi
+
+  if $WITH_OPENCOLLADA; then
+    if $OPENCOLLADA_SKIP; then
+      INFO "WARNING! Skipping OpenCOLLADA installation, as requested..."
+    else
+      INFO ""
+      install_packages_RPM pcre-devel libxml2-devel git
+      # Find path to libxml shared lib...
+      _XML2_LIB=`rpm -ql libxml2-devel | grep -e ".*/libxml2.so"`
+      # No package...
+      INFO ""
+      compile_OpenCOLLADA
     fi
   fi
 
@@ -1511,199 +1897,7 @@ install_RPM() {
   fi
 }
 
-get_package_version_SUSE() {
-  zypper info $1 | grep Version | tail -n 1 | sed -r 's/.*:\s+(([0-9]+\.?)+).*/\1/'
-}
 
-check_package_SUSE() {
-  r=`zypper info $1 | grep -c 'Summary'`
-
-  if [ $r -ge 1 ]; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-check_package_version_match_SUSE() {
-  v=`get_package_version_SUSE $1`
-
-  if [ -z "$v" ]; then
-    return 1
-  fi
-
-  version_match $v $2
-  return $?
-}
-
-check_package_version_ge_SUSE() {
-  v=`get_package_version_SUSE $1`
-
-  if [ -z "$v" ]; then
-    return 1
-  fi
-
-  version_ge $v $2
-  return $?
-}
-
-install_packages_SUSE() {
-  sudo zypper --non-interactive install --auto-agree-with-licenses $@
-  if [ $? -ge 1 ]; then
-    ERROR "zypper failed to install requested packages, exiting."
-    exit 1
-  fi
-}
-
-
-install_SUSE() {
-  INFO ""
-  INFO "Installing dependencies for SuSE-based distribution"
-  INFO ""
-  INFO "`eval _echo "$COMMON_INFO"`"
-  INFO ""
-
-  sudo zypper --non-interactive update --auto-agree-with-licenses
-
-  # These libs should always be available in debian/ubuntu official repository...
-  OPENJPEG_DEV="openjpeg-devel"
-  SCHRO_DEV="schroedinger-devel"
-  VORBIS_DEV="libvorbis-devel"
-  THEORA_DEV="libtheora-devel"
-
-  _packages="gawk gcc gcc-c++ cmake scons libpng12-devel libtiff-devel freetype-devel \
-             libX11-devel libXi-devel wget sqlite3-devel ncurses-devel \
-             readline-devel $OPENJPEG_DEV libopenexr-devel openal-soft-devel \
-             glew-devel yasm $THEORA_DEV $VORBIS_DEV libSDL-devel fftw3-devel \
-             libjpeg62-devel patch python-devel"
-  OPENJPEG_USE=true
-  VORBIS_USE=true
-  THEORA_USE=true
-
-  if $WITH_ALL; then
-    _packages="$_packages $SCHRO_DEV libjack-devel libspnav-devel"
-    SCHRO_USE=true
-  fi
-
-  INFO ""
-  install_packages_SUSE $_packages
-
-  INFO ""
-  X264_DEV="x264-devel"
-  check_package_version_ge_SUSE $X264_DEV $X264_VERSION_MIN
-  if [ $? -eq 0 ]; then
-    install_packages_SUSE $X264_DEV
-    X264_USE=true
-  fi
-
-  if $WITH_ALL; then
-    INFO ""
-    XVID_DEV="xvidcore-devel"
-    check_package_SUSE $XVID_DEV
-    if [ $? -eq 0 ]; then
-      install_packages_SUSE $XVID_DEV
-      XVID_USE=true
-    fi
-
-    INFO ""
-    VPX_DEV="libvpx-devel"
-    check_package_version_ge_SUSE $VPX_DEV $VPX_VERSION_MIN
-    if [ $? -eq 0 ]; then
-      install_packages_SUSE $VPX_DEV
-      VPX_USE=true
-    fi
-
-    INFO ""
-    # No mp3 in suse, it seems.
-    MP3LAME_DEV="lame-devel"
-    check_package_SUSE $MP3LAME_DEV
-    if [ $? -eq 0 ]; then
-      install_packages_SUSE $MP3LAME_DEV
-      MP3LAME_USE=true
-    fi
-  fi
-
-  INFO ""
-  if $PYTHON_SKIP; then
-    INFO "WARNING! Skipping Python installation, as requested..."
-  else
-    check_package_version_match_SUSE python3-devel 3.3.
-    if [ $? -eq 0 ]; then
-      install_packages_SUSE python3-devel
-    else
-      compile_Python
-    fi
-  fi
-
-  INFO ""
-  if $BOOST_SKIP; then
-    INFO "WARNING! Skipping Boost installation, as requested..."
-  else
-    # No boost_locale currently available, so let's build own boost.
-    compile_Boost
-  fi
-
-  INFO ""
-  if $OCIO_SKIP; then
-    INFO "WARNING! Skipping OpenColorIO installation, as requested..."
-  else
-    # No ocio currently available, so let's build own boost.
-    compile_OCIO
-  fi
-
-  INFO ""
-  if $OIIO_SKIP; then
-    INFO "WARNING! Skipping OpenImageIO installation, as requested..."
-  else
-    # No oiio currently available, so let's build own boost.
-    compile_OIIO
-  fi
-
-  if $WITH_OSL; then
-    have_llvm=false
-
-    INFO ""
-    if $LLVM_SKIP; then
-      INFO "WARNING! Skipping LLVM installation, as requested (this also implies skipping OSL!)..."
-    else
-      # Suse llvm package *_$SUCKS$_* (tm) !!!
-#      check_package_version_ge_SUSE llvm-devel $LLVM_VERSION_MIN
-#      if [ $? -eq 0 ]; then
-#        install_packages_SUSE llvm-devel
-#        have_llvm=true
-#        LLVM_VERSION_FOUND=`get_package_version_SUSE llvm-devel`
-#      fi
-
-      install_packages_SUSE libffi47-devel
-      INFO ""
-      compile_LLVM
-      have_llvm=true
-      LLVM_VERSION_FOUND=$LLVM_VERSION
-    fi
-
-    if $OSL_SKIP; then
-      INFO ""
-      INFO "WARNING! Skipping OpenShaderLanguage installation, as requested..."
-    else
-      if $have_llvm; then
-        INFO ""
-        # XXX No tbb lib!
-        install_packages_SUSE flex bison git
-        # No package currently!
-        INFO ""
-        compile_OSL
-      fi
-    fi
-  fi
-
-  INFO ""
-  if $FFMPEG_SKIP; then
-    INFO "WARNING! Skipping FFMpeg installation, as requested..."
-  else
-    # No ffmpeg currently available, so let's build own boost.
-    compile_FFmpeg
-  fi
-}
 
 print_info_ffmpeglink_DEB() {
   if $ALL_STATIC; then
@@ -1714,19 +1908,12 @@ print_info_ffmpeglink_DEB() {
 }
 
 print_info_ffmpeglink_RPM() {
-  if $ALL_STATIC; then
-    rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.a" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", $0); nlines++ }'
-  else
-    rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.so" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
-  fi
-}
-
-print_info_ffmpeglink_SUSE() {
-  if $ALL_STATIC; then
-    rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.a" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", $0); nlines++ }'
-  else
-    rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.so" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
-  fi
+#  # XXX No static libs...
+#  if $ALL_STATIC; then
+#    rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.a" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", $0); nlines++ }'
+#  else
+  rpm -ql $_packages | grep -e ".*\/lib[^\/]\+\.so" | gawk '{ printf(nlines ? "'"$_ffmpeg_list_sep"'%s" : "%s", gensub(/.*lib([^\/]+)\.so/, "\\1", "g", $0)); nlines++ }'
+#  fi
 }
 
 print_info_ffmpeglink() {
@@ -1767,8 +1954,7 @@ print_info_ffmpeglink() {
     _packages="$_packages $OPENJPEG_DEV"
   fi
 
-  # XXX At least under Debian, static schro gives problem at blender linking time... :/
-  if $SCHRO_USE && ! $ALL_STATIC; then
+  if $SCHRO_USE; then
     _packages="$_packages $SCHRO_DEV"
   fi
 
@@ -1776,8 +1962,8 @@ print_info_ffmpeglink() {
     print_info_ffmpeglink_DEB
   elif [ "$DISTRO" = "RPM" ]; then
     print_info_ffmpeglink_RPM
-  elif [ "$DISTRO" = "SUSE" ]; then
-    print_info_ffmpeglink_SUSE
+#  elif [ "$DISTRO" = "ARCH" ]; then
+#    print_info_ffmpeglink_ARCH
   # XXX TODO!
   else INFO "<Could not determine additional link libraries needed for ffmpeg, replace this by valid list of libs...>"
   fi
@@ -1791,8 +1977,11 @@ print_info() {
 
   if $ALL_STATIC; then
     _1="-D WITH_STATIC_LIBS=ON"
+    # XXX Force linking with shared SDL lib!
+    _2="-D SDL_LIBRARY='libSDL.so;-lpthread'"
     INFO "  $_1"
-    _buildargs="$_buildargs $_1"
+    INFO "  $_2"
+    _buildargs="$_buildargs $_1 $_2"
   fi
 
   if [ -d $INST/boost ]; then
@@ -1824,6 +2013,17 @@ print_info() {
     fi
   fi
 
+  if [ -d $INST/opencollada -a $WITH_OPENCOLLADA == true ]; then
+    _1="-D WITH_OPENCOLLADA=ON"
+    INFO "  $_1"
+    _buildargs="$_buildargs $_1"
+    if $ALL_STATIC; then
+      _1="-D XML2_LIBRARY=$_XML2_LIB"
+      INFO "  $_1"
+      _buildargs="$_buildargs $_1"
+    fi
+  fi
+
   if [ -d $INST/ffmpeg ]; then
     _1="-D WITH_CODEC_FFMPEG=ON"
     _2="-D FFMPEG=$INST/ffmpeg"
@@ -1835,14 +2035,14 @@ print_info() {
   fi
 
   INFO ""
-  INFO "Or even simpler, just run (in your build dir):"
+  INFO "Or even simpler, just run (in your blender-source dir):"
   INFO "  make -j$THREADS BUILD_CMAKE_ARGS=\"$_buildargs\""
 
   INFO ""
   INFO "If you're using SCons add this to your user-config:"
 
-  if [ -d $INST/python-3.3 ]; then
-    INFO "BF_PYTHON = '$INST/python-3.3'"
+  if [ -d $INST/python-$PYTHON_VERSION_MIN ]; then
+    INFO "BF_PYTHON = '$INST/python-$PYTHON_VERSION_MIN'"
     INFO "BF_PYTHON_ABI_FLAGS = 'm'"
   fi
 
@@ -1885,11 +2085,14 @@ elif [ "$DISTRO" = "DEB" ]; then
   install_DEB
 elif [ "$DISTRO" = "RPM" ]; then
   install_RPM
-elif [ "$DISTRO" = "SUSE" ]; then
-  install_SUSE
+#elif [ "$DISTRO" = "ARCH" ]; then
+#  install_ARCH
 fi
 
-print_info
+print_info | tee BUILD_NOTES.txt
+INFO ""
+INFO "This information has been written to BUILD_NOTES.txt"
+INFO ""
 
 # Switch back to user language.
 LANG=LANG_BACK
