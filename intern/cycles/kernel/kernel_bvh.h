@@ -214,13 +214,13 @@ __device_inline void bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
 	int flags = kernel_data.curve_kernel_data.curveflags;
 
 	int prim = kernel_tex_fetch(__prim_index, triAddr);
-	float4 v00 = kernel_tex_fetch(__cur_segs, prim);
+	float4 v00 = kernel_tex_fetch(__curve_segments, prim);
 
 	int v1 = __float_as_int(v00.x);
 	int v2 = __float_as_int(v00.y);
 
-	float4 P1 = kernel_tex_fetch(__cur_keys, v1);
-	float4 P2 = kernel_tex_fetch(__cur_keys, v2);
+	float4 P1 = kernel_tex_fetch(__curve_keys, v1);
+	float4 P2 = kernel_tex_fetch(__curve_keys, v2);
 
 	float l = v00.w;
 	float r1 = P1.w;
@@ -720,13 +720,13 @@ __device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, const
 	}
 
 	int prim = kernel_tex_fetch(__prim_index, isect->prim);
-	float4 v00 = kernel_tex_fetch(__cur_segs, prim);
+	float4 v00 = kernel_tex_fetch(__curve_segments, prim);
 
 	int v1 = __float_as_int(v00.x);
 	int v2 = __float_as_int(v00.y);
 
-	float4 P1 = kernel_tex_fetch(__cur_keys, v1);
-	float4 P2 = kernel_tex_fetch(__cur_keys, v2);
+	float4 P1 = kernel_tex_fetch(__curve_keys, v1);
+	float4 P2 = kernel_tex_fetch(__curve_keys, v2);
 	float l = v00.w;
 	float r1 = P1.w;
 	float r2 = P2.w;

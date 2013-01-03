@@ -85,12 +85,12 @@ void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, 
 		}
 	}
 
-	for(uint j = 0; j < mesh->curve_segs.size(); j++) {
-		Mesh::CurveSeg s = mesh->curve_segs[j];
+	for(uint j = 0; j < mesh->curve_segments.size(); j++) {
+		Mesh::CurveSegment s = mesh->curve_segments[j];
 		BoundBox bounds = BoundBox::empty;
 
 		for(int k = 0; k < 2; k++) {
-			float3 pt = mesh->curve_keys[s.v[k]].loc;
+			float3 pt = mesh->curve_keys[s.v[k]].co;
 			bounds.grow(pt, mesh->curve_keys[s.v[k]].radius);
 		}
 
@@ -118,14 +118,14 @@ void BVHBuild::add_references(BVHRange& root)
 		if(params.top_level) {
 			if(ob->mesh->transform_applied) {
 				num_alloc_references += ob->mesh->triangles.size();
-				num_alloc_references += ob->mesh->curve_segs.size();
+				num_alloc_references += ob->mesh->curve_segments.size();
 			}
 			else
 				num_alloc_references++;
 		}
 		else {
 			num_alloc_references += ob->mesh->triangles.size();
-			num_alloc_references += ob->mesh->curve_segs.size();
+			num_alloc_references += ob->mesh->curve_segments.size();
 		}
 	}
 

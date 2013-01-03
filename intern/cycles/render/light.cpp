@@ -142,7 +142,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 	/* count */
 	size_t num_lights = scene->lights.size();
 	size_t num_triangles = 0;
-	size_t num_curve_segs = 0;
+	size_t num_curve_segments = 0;
 
 	foreach(Object *object, scene->objects) {
 		Mesh *mesh = object->mesh;
@@ -172,16 +172,16 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 			}
 
 			/* disabled for strands*/
-			/*for(size_t i = 0; i < mesh->curve_segs.size(); i++) {
-			*	Shader *shader = scene->shaders[mesh->curve_segs[i].curveshader];
+			/*for(size_t i = 0; i < mesh->curve_segments.size(); i++) {
+			*	Shader *shader = scene->shaders[mesh->curve_segments[i].shader];
 			*
 			*	if(shader->sample_as_light && shader->has_surface_emission)
-			*		num_curve_segs++;
+			*		num_curve_segments++;
 			}*/
 		}
 	}
 
-	size_t num_distribution = num_triangles + num_curve_segs;
+	size_t num_distribution = num_triangles + num_curve_segments;
 	num_distribution += num_lights;
 
 	/* emission area */
@@ -245,8 +245,8 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 			}
 
 			/*sample as light disabled for strands*/
-			/*for(size_t i = 0; i < mesh->curve_segs.size(); i++) {
-			*	Shader *shader = scene->shaders[mesh->curve_segs[i].curveshader];
+			/*for(size_t i = 0; i < mesh->curve_segments.size(); i++) {
+			*	Shader *shader = scene->shaders[mesh->curve_segments[i].shader];
 			*
 			*	if(shader->sample_as_light && shader->has_surface_emission) {
 			*		distribution[offset].x = totarea;
@@ -255,7 +255,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 			*		distribution[offset].w = __int_as_float(object_id);
 			*		offset++;
 			*
-			*		Mesh::CurveSeg s = mesh->curve_segs[i];
+			*		Mesh::CurveSeg s = mesh->curve_segments[i];
 			*		float3 p1 = mesh->curve_keys[s.v[0]].loc;
 			*		float r1 = mesh->curve_keys[s.v[0]].radius;
 			*		float3 p2 = mesh->curve_keys[s.v[1]].loc;

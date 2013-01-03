@@ -74,7 +74,7 @@ public:
 	                                const float3 omega_in, const float3 omega_out);
 
 	/* attributes */
-	static int find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id);
+	static int find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id, AttributeElement *elem);
 };
 
 CCL_NAMESPACE_END

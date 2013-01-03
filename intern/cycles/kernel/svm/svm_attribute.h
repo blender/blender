@@ -28,10 +28,13 @@ __device void svm_node_attr_init(KernelGlobals *kg, ShaderData *sd,
 		/* find attribute by unique id */
 		uint id = node.y;
 		uint attr_offset = sd->object*kernel_data.bvh.attributes_map_stride;
+		attr_offset = (sd->curve_seg == ~0)? attr_offset: attr_offset + ATTR_PRIM_CURVE;
 		uint4 attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
-
-		while(attr_map.x != id)
-			attr_map = kernel_tex_fetch(__attributes_map, ++attr_offset);
+		
+		while(attr_map.x != id) {
+			attr_offset += ATTR_PRIM_TYPES;
+			attr_map = kernel_tex_fetch(__attributes_map, attr_offset);
+		}
 
 		/* return result */
 		*elem = (AttributeElement)attr_map.y;
@@ -58,45 +61,27 @@ __device void svm_node_attr(KernelGlobals *kg, ShaderData *sd, float *stack, uin
 
 	svm_node_attr_init(kg, sd, node, &type, &mesh_type, &elem, &offset, &out_offset);
 
-#ifdef __HAIR__
-	if (sd->curve_seg != ~0) {
-		/*currently strand attributes aren't enabled - only exports stored uvs*/
-		if(type == NODE_ATTR_FLOAT)
-			stack_store_float(stack, out_offset, 0.0f);
-		else {
-			float4 sd2 = kernel_tex_fetch(__tri_woop, sd->prim*3+2);
-			float3 uv =  make_float3(sd2.z,sd2.w,0.0f);
-			stack_store_float3(stack, out_offset, uv);
-		}
-	}
-	else
-	{
-#endif
-
-		/* fetch and store attribute */
-		if(type == NODE_ATTR_FLOAT) {
-			if(mesh_type == NODE_ATTR_FLOAT) {
-				float f = triangle_attribute_float(kg, sd, elem, offset, NULL, NULL);
-				stack_store_float(stack, out_offset, f);
-			}
-			else {
-				float3 f = triangle_attribute_float3(kg, sd, elem, offset, NULL, NULL);
-				stack_store_float(stack, out_offset, average(f));
-			}
+	/* fetch and store attribute */
+	if(type == NODE_ATTR_FLOAT) {
+		if(mesh_type == NODE_ATTR_FLOAT) {
+			float f = primitive_attribute_float(kg, sd, elem, offset, NULL, NULL);
+			stack_store_float(stack, out_offset, f);
 		}
 		else {
-			if(mesh_type == NODE_ATTR_FLOAT3) {
-				float3 f = triangle_attribute_float3(kg, sd, elem, offset, NULL, NULL);
-				stack_store_float3(stack, out_offset, f);
-			}
-			else {
-				float f = triangle_attribute_float(kg, sd, elem, offset, NULL, NULL);
-				stack_store_float3(stack, out_offset, make_float3(f, f, f));
-			}
+			float3 f = primitive_attribute_float3(kg, sd, elem, offset, NULL, NULL);
+			stack_store_float(stack, out_offset, average(f));
 		}
-#ifdef __HAIR__
 	}
-#endif
+	else {
+		if(mesh_type == NODE_ATTR_FLOAT3) {
+			float3 f = primitive_attribute_float3(kg, sd, elem, offset, NULL, NULL);
+			stack_store_float3(stack, out_offset, f);
+		}
+		else {
+			float f = primitive_attribute_float(kg, sd, elem, offset, NULL, NULL);
+			stack_store_float3(stack, out_offset, make_float3(f, f, f));
+		}
+	}
 }
 
 __device void svm_node_attr_bump_dx(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
@@ -109,43 +94,30 @@ __device void svm_node_attr_bump_dx(KernelGlobals *kg, ShaderData *sd, float *st
 	svm_node_attr_init(kg, sd, node, &type, &mesh_type, &elem, &offset, &out_offset);
 
 	/* fetch and store attribute */
-#ifdef __HAIR__
-	if (sd->curve_seg != ~0) {
-		/*currently strand attributes aren't enabled*/
-		if(type == NODE_ATTR_FLOAT)
-			stack_store_float(stack, out_offset, 0.0f);
-		else
-			stack_store_float3(stack, out_offset,  make_float3(0.0f, 0.0f, 0.0f));
-	}
-	else {
-#endif
-		if(type == NODE_ATTR_FLOAT) {
-			if(mesh_type == NODE_ATTR_FLOAT) {
-				float dx;
-				float f = triangle_attribute_float(kg, sd, elem, offset, &dx, NULL);
-				stack_store_float(stack, out_offset, f+dx);
-			}
-			else {
-				float3 dx;
-				float3 f = triangle_attribute_float3(kg, sd, elem, offset, &dx, NULL);
-				stack_store_float(stack, out_offset, average(f+dx));
-			}
+	if(type == NODE_ATTR_FLOAT) {
+		if(mesh_type == NODE_ATTR_FLOAT) {
+			float dx;
+			float f = primitive_attribute_float(kg, sd, elem, offset, &dx, NULL);
+			stack_store_float(stack, out_offset, f+dx);
 		}
 		else {
-			if(mesh_type == NODE_ATTR_FLOAT3) {
-				float3 dx;
-				float3 f = triangle_attribute_float3(kg, sd, elem, offset, &dx, NULL);
-				stack_store_float3(stack, out_offset, f+dx);
-			}
-			else {
-				float dx;
-				float f = triangle_attribute_float(kg, sd, elem, offset, &dx, NULL);
-				stack_store_float3(stack, out_offset, make_float3(f+dx, f+dx, f+dx));
-			}
+			float3 dx;
+			float3 f = primitive_attribute_float3(kg, sd, elem, offset, &dx, NULL);
+			stack_store_float(stack, out_offset, average(f+dx));
 		}
-#ifdef __HAIR__
 	}
-#endif
+	else {
+		if(mesh_type == NODE_ATTR_FLOAT3) {
+			float3 dx;
+			float3 f = primitive_attribute_float3(kg, sd, elem, offset, &dx, NULL);
+			stack_store_float3(stack, out_offset, f+dx);
+		}
+		else {
+			float dx;
+			float f = primitive_attribute_float(kg, sd, elem, offset, &dx, NULL);
+			stack_store_float3(stack, out_offset, make_float3(f+dx, f+dx, f+dx));
+		}
+	}
 }
 
 __device void svm_node_attr_bump_dy(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
@@ -158,43 +130,30 @@ __device void svm_node_attr_bump_dy(KernelGlobals *kg, ShaderData *sd, float *st
 	svm_node_attr_init(kg, sd, node, &type, &mesh_type, &elem, &offset, &out_offset);
 
 	/* fetch and store attribute */
-#ifdef __HAIR__
-	if (sd->curve_seg != ~0) {
-		/*currently strand attributes aren't enabled*/
-		if(type == NODE_ATTR_FLOAT)
-			stack_store_float(stack, out_offset, 0.0f);
-		else 
-			stack_store_float3(stack, out_offset,  make_float3(0.0f, 0.0f, 0.0f));
-	}
-	else {
-#endif
-		if(type == NODE_ATTR_FLOAT) {
-			if(mesh_type == NODE_ATTR_FLOAT) {
-				float dy;
-				float f = triangle_attribute_float(kg, sd, elem, offset, NULL, &dy);
-				stack_store_float(stack, out_offset, f+dy);
-			}
-			else {
-				float3 dy;
-				float3 f = triangle_attribute_float3(kg, sd, elem, offset, NULL, &dy);
-				stack_store_float(stack, out_offset, average(f+dy));
-			}
+	if(type == NODE_ATTR_FLOAT) {
+		if(mesh_type == NODE_ATTR_FLOAT) {
+			float dy;
+			float f = primitive_attribute_float(kg, sd, elem, offset, NULL, &dy);
+			stack_store_float(stack, out_offset, f+dy);
 		}
 		else {
-			if(mesh_type == NODE_ATTR_FLOAT3) {
-				float3 dy;
-				float3 f = triangle_attribute_float3(kg, sd, elem, offset, NULL, &dy);
-				stack_store_float3(stack, out_offset, f+dy);
-			}
-			else {
-				float dy;
-				float f = triangle_attribute_float(kg, sd, elem, offset, NULL, &dy);
-				stack_store_float3(stack, out_offset, make_float3(f+dy, f+dy, f+dy));
-			}
+			float3 dy;
+			float3 f = primitive_attribute_float3(kg, sd, elem, offset, NULL, &dy);
+			stack_store_float(stack, out_offset, average(f+dy));
 		}
-#ifdef __HAIR__
 	}
-#endif
+	else {
+		if(mesh_type == NODE_ATTR_FLOAT3) {
+			float3 dy;
+			float3 f = primitive_attribute_float3(kg, sd, elem, offset, NULL, &dy);
+			stack_store_float3(stack, out_offset, f+dy);
+		}
+		else {
+			float dy;
+			float f = primitive_attribute_float(kg, sd, elem, offset, NULL, &dy);
+			stack_store_float3(stack, out_offset, make_float3(f+dy, f+dy, f+dy));
+		}
+	}
 }
 
 CCL_NAMESPACE_END

@@ -89,12 +89,9 @@ void Object::apply_transform()
 		mesh->verts[i] = transform_point(&tfm, mesh->verts[i]);
 
 	for(size_t i = 0; i < mesh->curve_keys.size(); i++)
-		mesh->curve_keys[i].loc = transform_point(&tfm, mesh->curve_keys[i].loc);
+		mesh->curve_keys[i].co = transform_point(&tfm, mesh->curve_keys[i].co);
 
-	for(size_t i = 0; i < mesh->curve_keysCD.size(); i++)
-		mesh->curve_keysCD[i].tg = transform_direction(&tfm, mesh->curve_keysCD[i].tg);
-
-
+	Attribute *attr_tangent = mesh->curve_attributes.find(ATTR_STD_CURVE_TANGENT);
 	Attribute *attr_fN = mesh->attributes.find(ATTR_STD_FACE_NORMAL);
 	Attribute *attr_vN = mesh->attributes.find(ATTR_STD_VERTEX_NORMAL);
 
@@ -117,6 +114,13 @@ void Object::apply_transform()
 
 		for(size_t i = 0; i < mesh->verts.size(); i++)
 			vN[i] = transform_direction(&ntfm, vN[i]);
+	}
+
+	if(attr_tangent) {
+		float3 *tangent = attr_tangent->data_float3();
+
+		for(size_t i = 0; i < mesh->curve_keys.size(); i++)
+			tangent[i] = transform_direction(&tfm, tangent[i]);
 	}
 
 	if(bounds.valid()) {
@@ -199,10 +203,10 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 					surface_area += triangle_area(p1, p2, p3);
 				}
 
-				foreach(Mesh::CurveSeg& t, mesh->curve_segs) {
-					float3 p1 = mesh->curve_keys[t.v[0]].loc;
+				foreach(Mesh::CurveSegment& t, mesh->curve_segments) {
+					float3 p1 = mesh->curve_keys[t.v[0]].co;
 					float r1 = mesh->curve_keys[t.v[0]].radius;
-					float3 p2 = mesh->curve_keys[t.v[1]].loc;
+					float3 p2 = mesh->curve_keys[t.v[1]].co;
 					float r2 = mesh->curve_keys[t.v[1]].radius;
 
 					/* currently ignores segment overlaps*/
@@ -225,10 +229,10 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 				surface_area += triangle_area(p1, p2, p3);
 			}
 
-			foreach(Mesh::CurveSeg& t, mesh->curve_segs) {
-				float3 p1 = mesh->curve_keys[t.v[0]].loc;
+			foreach(Mesh::CurveSegment& t, mesh->curve_segments) {
+				float3 p1 = mesh->curve_keys[t.v[0]].co;
 				float r1 = mesh->curve_keys[t.v[0]].radius;
-				float3 p2 = mesh->curve_keys[t.v[1]].loc;
+				float3 p2 = mesh->curve_keys[t.v[1]].co;
 				float r2 = mesh->curve_keys[t.v[1]].radius;
 
 				/* currently ignores segment overlaps*/

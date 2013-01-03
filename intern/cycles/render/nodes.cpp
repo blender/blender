@@ -2251,6 +2251,16 @@ HairInfoNode::HairInfoNode()
 	add_output("Tangent Normal", SHADER_SOCKET_NORMAL);
 }
 
+void HairInfoNode::attributes(AttributeRequestSet *attributes)
+{
+	ShaderOutput *intercept_out = output("Intercept");
+
+	if(!intercept_out->links.empty())
+		attributes->add(ATTR_STD_CURVE_INTERCEPT);
+	
+	ShaderNode::attributes(attributes);
+}
+
 void HairInfoNode::compile(SVMCompiler& compiler)
 {
 	ShaderOutput *out;
@@ -2263,8 +2273,9 @@ void HairInfoNode::compile(SVMCompiler& compiler)
 
 	out = output("Intercept");
 	if(!out->links.empty()) {
+		int attr = compiler.attribute(ATTR_STD_CURVE_INTERCEPT);
 		compiler.stack_assign(out);
-		compiler.add_node(NODE_HAIR_INFO, NODE_INFO_CURVE_INTERCEPT, out->stack_offset);
+		compiler.add_node(NODE_ATTR, attr, out->stack_offset, NODE_ATTR_FLOAT);
 	}
 
 	out = output("Thickness");

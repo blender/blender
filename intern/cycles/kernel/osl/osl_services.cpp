@@ -37,9 +37,10 @@
 #include "kernel_differential.h"
 #include "kernel_object.h"
 #include "kernel_bvh.h"
-#include "kernel_attribute.h"
-#include "kernel_projection.h"
 #include "kernel_triangle.h"
+#include "kernel_curve.h"
+#include "kernel_primitive.h"
+#include "kernel_projection.h"
 #include "kernel_accumulate.h"
 #include "kernel_shader.h"
 
@@ -75,10 +76,9 @@ ustring OSLRenderServices::u_geom_trianglevertices("geom:trianglevertices");
 ustring OSLRenderServices::u_geom_polyvertices("geom:polyvertices");
 ustring OSLRenderServices::u_geom_name("geom:name");
 #ifdef __HAIR__
-ustring OSLRenderServices::u_curve_is_strand("curve:is_strand");
-ustring OSLRenderServices::u_curve_intercept("curve:intercept");
-ustring OSLRenderServices::u_curve_thickness("curve:thickness");
-ustring OSLRenderServices::u_curve_tangent_normal("curve:tangent_normal");
+ustring OSLRenderServices::u_is_curve("geom:is_curve");
+ustring OSLRenderServices::u_curve_thickness("geom:curve_thickness");
+ustring OSLRenderServices::u_curve_tangent_normal("geom:curve_tangent_normal");
 #endif
 ustring OSLRenderServices::u_path_ray_length("path:ray_length");
 ustring OSLRenderServices::u_trace("trace");
@@ -501,14 +501,14 @@ static bool get_mesh_attribute(KernelGlobals *kg, const ShaderData *sd, const OS
 	    attr.type == TypeDesc::TypeNormal || attr.type == TypeDesc::TypeColor)
 	{
 		float3 fval[3];
-		fval[0] = triangle_attribute_float3(kg, sd, attr.elem, attr.offset,
-		                                    (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+		fval[0] = primitive_attribute_float3(kg, sd, attr.elem, attr.offset,
+		                                     (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
 		return set_attribute_float3(fval, type, derivatives, val);
 	}
 	else if (attr.type == TypeDesc::TypeFloat) {
 		float fval[3];
-		fval[0] = triangle_attribute_float(kg, sd, attr.elem, attr.offset,
-		                                   (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+		fval[0] = primitive_attribute_float(kg, sd, attr.elem, attr.offset,
+		                                    (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
 		return set_attribute_float(fval, type, derivatives, val);
 	}
 	else {
@@ -604,7 +604,8 @@ bool OSLRenderServices::get_object_standard_attribute(KernelGlobals *kg, ShaderD
 	else if (name == u_geom_numpolyvertices) {
 		return set_attribute_int(3, type, derivatives, val);
 	}
-	else if (name == u_geom_trianglevertices || name == u_geom_polyvertices) {
+	else if ((name == u_geom_trianglevertices || name == u_geom_polyvertices)
+		     && sd->curve_seg == ~0) {
 		float3 P[3];
 		triangle_vertices(kg, sd->prim, P);
 
@@ -623,20 +624,16 @@ bool OSLRenderServices::get_object_standard_attribute(KernelGlobals *kg, ShaderD
 	
 #ifdef __HAIR__
 	/* Hair Attributes */
-	else if (name == u_curve_is_strand) {
+	else if (name == u_is_curve) {
 		float f = !(sd->curve_seg == ~0);
 		return set_attribute_float(f, type, derivatives, val);
 	}
-	else if (name == u_curve_intercept) {
-		float f = intercept(kg, sd->curve_seg, sd->prim, sd->u);
-		return set_attribute_float(f, type, derivatives, val);
-	}
 	else if (name == u_curve_thickness) {
-		float f = 2 * hair_radius(kg, sd->curve_seg, sd->u);
+		float f = curve_thickness(kg, sd);
 		return set_attribute_float(f, type, derivatives, val);
 	}
 	else if (name == u_curve_tangent_normal) {
-		float3 f = hair_tangent_normal(kg, sd);
+		float3 f = curve_tangent_normal(kg, sd);
 		return set_attribute_float3(f, type, derivatives, val);
 	}
 #endif
@@ -662,7 +659,7 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 {
 	KernelGlobals *kg = kernel_globals;
 	ShaderData *sd = (ShaderData *)renderstate;
-	int object, tri;
+	int object, prim, curve_seg;
 
 	/* lookup of attribute on another object */
 	if (object_name != u_empty || sd == NULL) {
@@ -672,17 +669,20 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 			return false;
 
 		object = it->second;
-		tri = ~0;
+		prim = ~0;
+		curve_seg = ~0;
 	}
 	else {
 		object = sd->object;
-		tri = sd->prim;
+		prim = sd->prim;
+		curve_seg = sd->curve_seg;
 
 		if (object == ~0)
 			return get_background_attribute(kg, sd, name, type, derivatives, val);
 	}
 
 	/* find attribute on object */
+	object = object*ATTR_PRIM_TYPES + (curve_seg != ~0);
 	OSLGlobals::AttributeMap& attribute_map = kg->osl->attribute_map[object];
 	OSLGlobals::AttributeMap::iterator it = attribute_map.find(name);
 
@@ -691,7 +691,7 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 
 		if (attr.elem != ATTR_ELEMENT_VALUE) {
 			/* triangle and vertex attributes */
-			if (tri != ~0)
+			if (prim != ~0)
 				return get_mesh_attribute(kg, sd, attr, type, derivatives, val);
 		}
 		else {

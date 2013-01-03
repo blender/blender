@@ -21,7 +21,6 @@
 
 #include "kernel_types.h"
 
-#include "util_attribute.h"
 #include "util_list.h"
 #include "util_param.h"
 #include "util_types.h"
@@ -42,36 +41,34 @@ class Mesh;
 
 class Attribute {
 public:
-	enum Element {
-		VERTEX,
-		FACE,
-		CORNER
-	};
-
 	ustring name;
 	AttributeStandard std;
 
 	TypeDesc type;
 	vector<char> buffer;
-	Element element;
+	AttributeElement element;
 
 	Attribute() {}
-	void set(ustring name, TypeDesc type, Element element);
-	void reserve(int numverts, int numfaces);
+	void set(ustring name, TypeDesc type, AttributeElement element);
+	void reserve(int numverts, int numfaces, int numcurves, int numkeys);
 
-	size_t data_sizeof();
-	size_t element_size(int numverts, int numfaces);
-	size_t buffer_size(int numverts, int numfaces);
+	size_t data_sizeof() const;
+	size_t element_size(int numverts, int numfaces, int numcurves, int numkeys) const;
+	size_t buffer_size(int numverts, int numfaces, int numcurves, int numkeys) const;
 
 	char *data() { return (buffer.size())? &buffer[0]: NULL; };
 	float3 *data_float3() { return (float3*)data(); }
 	float *data_float() { return (float*)data(); }
 
 	const char *data() const { return (buffer.size())? &buffer[0]: NULL; }
-	const float3 *data_float3() const { return (float3*)data(); }
-	const float *data_float() const { return (float*)data(); }
+	const float3 *data_float3() const { return (const float3*)data(); }
+	const float *data_float() const { return (const float*)data(); }
+
+	void add(const float& f);
+	void add(const float3& f);
 
 	static bool same_storage(TypeDesc a, TypeDesc b);
+	static const char *standard_name(AttributeStandard std);
 };
 
 /* Attribute Set
@@ -80,23 +77,24 @@ public:
 
 class AttributeSet {
 public:
-	Mesh *mesh;
+	Mesh *triangle_mesh;
+	Mesh *curve_mesh;
 	list<Attribute> attributes;
 
 	AttributeSet();
 	~AttributeSet();
 
-	Attribute *add(ustring name, TypeDesc type, Attribute::Element element);
-	Attribute *find(ustring name);
+	Attribute *add(ustring name, TypeDesc type, AttributeElement element);
+	Attribute *find(ustring name) const;
 	void remove(ustring name);
 
 	Attribute *add(AttributeStandard std, ustring name = ustring());
-	Attribute *find(AttributeStandard std);
+	Attribute *find(AttributeStandard std) const;
 	void remove(AttributeStandard std);
 
 	Attribute *find(AttributeRequest& req);
 
-	void reserve(int numverts, int numfaces);
+	void reserve();
 	void clear();
 };
 
@@ -104,7 +102,7 @@ public:
  *
  * Request from a shader to use a certain attribute, so we can figure out
  * which ones we need to export from the host app end store for the kernel.
- * The attribute is found either by name or by standard. */
+ * The attribute is found either by name or by standard attribute type. */
 
 class AttributeRequest {
 public:
@@ -112,9 +110,9 @@ public:
 	AttributeStandard std;
 
 	/* temporary variables used by MeshManager */
-	TypeDesc type;
-	AttributeElement element;
-	int offset;
+	TypeDesc triangle_type, curve_type;
+	AttributeElement triangle_element, curve_element;
+	int triangle_offset, curve_offset;
 
 	AttributeRequest(ustring name_);
 	AttributeRequest(AttributeStandard std);

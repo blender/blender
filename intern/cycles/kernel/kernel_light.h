@@ -333,14 +333,14 @@ __device void curve_seg_light_sample(KernelGlobals *kg, int prim, int object,
 	float randu, float randv, float time, LightSample *ls)
 {
 	/* this strand code needs completion */
-	float4 v00 = kernel_tex_fetch(__cur_segs, prim);
+	float4 v00 = kernel_tex_fetch(__curve_segments, prim);
 
 	int v1 = __float_as_int(v00.x);
 	int v2 = __float_as_int(v00.y);
 	float l = v00.w;
 
-	float4 P1 = kernel_tex_fetch(__cur_keys, v1);
-	float4 P2 = kernel_tex_fetch(__cur_keys, v2);
+	float4 P1 = kernel_tex_fetch(__curve_keys, v1);
+	float4 P2 = kernel_tex_fetch(__curve_keys, v2);
 	float r1 = P1.w;
 	float r2 = P2.w;
 	float3 tg = float4_to_float3(P2 - P1) / l;

@@ -106,195 +106,88 @@ __device_inline void triangle_dPdudv(KernelGlobals *kg, float3 *dPdu, float3 *dP
 
 __device float triangle_attribute_float(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float *dx, float *dy)
 {
-#ifdef __HAIR__
-	if(sd->curve_seg == ~0) {
+	if(elem == ATTR_ELEMENT_FACE) {
+		if(dx) *dx = 0.0f;
+		if(dy) *dy = 0.0f;
+
+		return kernel_tex_fetch(__attributes_float, offset + sd->prim);
+	}
+	else if(elem == ATTR_ELEMENT_VERTEX) {
+		float3 tri_vindex = float4_to_float3(kernel_tex_fetch(__tri_vindex, sd->prim));
+
+		float f0 = kernel_tex_fetch(__attributes_float, offset + __float_as_int(tri_vindex.x));
+		float f1 = kernel_tex_fetch(__attributes_float, offset + __float_as_int(tri_vindex.y));
+		float f2 = kernel_tex_fetch(__attributes_float, offset + __float_as_int(tri_vindex.z));
+
+#ifdef __RAY_DIFFERENTIALS__
+		if(dx) *dx = sd->du.dx*f0 + sd->dv.dx*f1 - (sd->du.dx + sd->dv.dx)*f2;
+		if(dy) *dy = sd->du.dy*f0 + sd->dv.dy*f1 - (sd->du.dy + sd->dv.dy)*f2;
 #endif
-		if(elem == ATTR_ELEMENT_FACE) {
-			if(dx) *dx = 0.0f;
-			if(dy) *dy = 0.0f;
 
-			return kernel_tex_fetch(__attributes_float, offset + sd->prim);
-		}
-		else if(elem == ATTR_ELEMENT_VERTEX) {
-			float3 tri_vindex = float4_to_float3(kernel_tex_fetch(__tri_vindex, sd->prim));
+		return sd->u*f0 + sd->v*f1 + (1.0f - sd->u - sd->v)*f2;
+	}
+	else if(elem == ATTR_ELEMENT_CORNER) {
+		int tri = offset + sd->prim*3;
+		float f0 = kernel_tex_fetch(__attributes_float, tri + 0);
+		float f1 = kernel_tex_fetch(__attributes_float, tri + 1);
+		float f2 = kernel_tex_fetch(__attributes_float, tri + 2);
 
-			float f0 = kernel_tex_fetch(__attributes_float, offset + __float_as_int(tri_vindex.x));
-			float f1 = kernel_tex_fetch(__attributes_float, offset + __float_as_int(tri_vindex.y));
-			float f2 = kernel_tex_fetch(__attributes_float, offset + __float_as_int(tri_vindex.z));
+#ifdef __RAY_DIFFERENTIALS__
+		if(dx) *dx = sd->du.dx*f0 + sd->dv.dx*f1 - (sd->du.dx + sd->dv.dx)*f2;
+		if(dy) *dy = sd->du.dy*f0 + sd->dv.dy*f1 - (sd->du.dy + sd->dv.dy)*f2;
+#endif
 
-	#ifdef __RAY_DIFFERENTIALS__
-			if(dx) *dx = sd->du.dx*f0 + sd->dv.dx*f1 - (sd->du.dx + sd->dv.dx)*f2;
-			if(dy) *dy = sd->du.dy*f0 + sd->dv.dy*f1 - (sd->du.dy + sd->dv.dy)*f2;
-	#endif
-
-			return sd->u*f0 + sd->v*f1 + (1.0f - sd->u - sd->v)*f2;
-		}
-		else if(elem == ATTR_ELEMENT_CORNER) {
-			int tri = offset + sd->prim*3;
-			float f0 = kernel_tex_fetch(__attributes_float, tri + 0);
-			float f1 = kernel_tex_fetch(__attributes_float, tri + 1);
-			float f2 = kernel_tex_fetch(__attributes_float, tri + 2);
-
-	#ifdef __RAY_DIFFERENTIALS__
-			if(dx) *dx = sd->du.dx*f0 + sd->dv.dx*f1 - (sd->du.dx + sd->dv.dx)*f2;
-			if(dy) *dy = sd->du.dy*f0 + sd->dv.dy*f1 - (sd->du.dy + sd->dv.dy)*f2;
-	#endif
-
-			return sd->u*f0 + sd->v*f1 + (1.0f - sd->u - sd->v)*f2;
-		}
-		else {
-			if(dx) *dx = 0.0f;
-			if(dy) *dy = 0.0f;
-
-			return 0.0f;
-		}
-#ifdef __HAIR__
+		return sd->u*f0 + sd->v*f1 + (1.0f - sd->u - sd->v)*f2;
 	}
 	else {
+		if(dx) *dx = 0.0f;
+		if(dy) *dy = 0.0f;
+
 		return 0.0f;
 	}
-#endif
 }
 
 __device float3 triangle_attribute_float3(KernelGlobals *kg, const ShaderData *sd, AttributeElement elem, int offset, float3 *dx, float3 *dy)
 {
-#ifdef __HAIR__
-	if(sd->curve_seg == ~0) {
-#endif
-		if(elem == ATTR_ELEMENT_FACE) {
-			if(dx) *dx = make_float3(0.0f, 0.0f, 0.0f);
-			if(dy) *dy = make_float3(0.0f, 0.0f, 0.0f);
+	if(elem == ATTR_ELEMENT_FACE) {
+		if(dx) *dx = make_float3(0.0f, 0.0f, 0.0f);
+		if(dy) *dy = make_float3(0.0f, 0.0f, 0.0f);
 
-			return float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + sd->prim));
-		}
-		else if(elem == ATTR_ELEMENT_VERTEX) {
-			float3 tri_vindex = float4_to_float3(kernel_tex_fetch(__tri_vindex, sd->prim));
-
-			float3 f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.x)));
-			float3 f1 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.y)));
-			float3 f2 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.z)));
-
-	#ifdef __RAY_DIFFERENTIALS__
-			if(dx) *dx = sd->du.dx*f0 + sd->dv.dx*f1 - (sd->du.dx + sd->dv.dx)*f2;
-			if(dy) *dy = sd->du.dy*f0 + sd->dv.dy*f1 - (sd->du.dy + sd->dv.dy)*f2;
-	#endif
-
-			return sd->u*f0 + sd->v*f1 + (1.0f - sd->u - sd->v)*f2;
-		}
-		else if(elem == ATTR_ELEMENT_CORNER) {
-			int tri = offset + sd->prim*3;
-			float3 f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 0));
-			float3 f1 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 1));
-			float3 f2 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 2));
-
-	#ifdef __RAY_DIFFERENTIALS__
-			if(dx) *dx = sd->du.dx*f0 + sd->dv.dx*f1 - (sd->du.dx + sd->dv.dx)*f2;
-			if(dy) *dy = sd->du.dy*f0 + sd->dv.dy*f1 - (sd->du.dy + sd->dv.dy)*f2;
-	#endif
-
-			return sd->u*f0 + sd->v*f1 + (1.0f - sd->u - sd->v)*f2;
-		}
-		else {
-			if(dx) *dx = make_float3(0.0f, 0.0f, 0.0f);
-			if(dy) *dy = make_float3(0.0f, 0.0f, 0.0f);
-
-			return make_float3(0.0f, 0.0f, 0.0f);
-		}
-#ifdef __HAIR__
+		return float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + sd->prim));
 	}
-	else
-	{
-		return make_float3(0.0f, 0.0f, 0.0f);
+	else if(elem == ATTR_ELEMENT_VERTEX) {
+		float3 tri_vindex = float4_to_float3(kernel_tex_fetch(__tri_vindex, sd->prim));
+
+		float3 f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.x)));
+		float3 f1 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.y)));
+		float3 f2 = float4_to_float3(kernel_tex_fetch(__attributes_float3, offset + __float_as_int(tri_vindex.z)));
+
+#ifdef __RAY_DIFFERENTIALS__
+		if(dx) *dx = sd->du.dx*f0 + sd->dv.dx*f1 - (sd->du.dx + sd->dv.dx)*f2;
+		if(dy) *dy = sd->du.dy*f0 + sd->dv.dy*f1 - (sd->du.dy + sd->dv.dy)*f2;
+#endif
+
+		return sd->u*f0 + sd->v*f1 + (1.0f - sd->u - sd->v)*f2;
 	}
-#endif
-}
+	else if(elem == ATTR_ELEMENT_CORNER) {
+		int tri = offset + sd->prim*3;
+		float3 f0 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 0));
+		float3 f1 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 1));
+		float3 f2 = float4_to_float3(kernel_tex_fetch(__attributes_float3, tri + 2));
 
-/* motion */
-
-__device float4 triangle_motion_vector(KernelGlobals *kg, ShaderData *sd)
-{
-	float3 motion_pre = sd->P, motion_post = sd->P;
-
-	/* deformation motion */
-	int offset_pre = find_attribute(kg, sd, ATTR_STD_MOTION_PRE);
-	int offset_post = find_attribute(kg, sd, ATTR_STD_MOTION_POST);
-
-#ifdef __HAIR__
-	if(sd->curve_seg == ~0) {
-#endif
-		if(offset_pre != ATTR_STD_NOT_FOUND)
-			motion_pre = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, offset_pre, NULL, NULL);
-		if(offset_post != ATTR_STD_NOT_FOUND)
-			motion_post = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, offset_post, NULL, NULL);
-#ifdef __HAIR__
-	}
+#ifdef __RAY_DIFFERENTIALS__
+		if(dx) *dx = sd->du.dx*f0 + sd->dv.dx*f1 - (sd->du.dx + sd->dv.dx)*f2;
+		if(dy) *dy = sd->du.dy*f0 + sd->dv.dy*f1 - (sd->du.dy + sd->dv.dy)*f2;
 #endif
 
-	/* object motion. note that depending on the mesh having motion vectors, this
-	 * transformation was set match the world/object space of motion_pre/post */
-	Transform tfm;
-	
-	tfm = object_fetch_vector_transform(kg, sd->object, OBJECT_VECTOR_MOTION_PRE);
-	motion_pre = transform_point(&tfm, motion_pre);
-
-	tfm = object_fetch_vector_transform(kg, sd->object, OBJECT_VECTOR_MOTION_POST);
-	motion_post = transform_point(&tfm, motion_post);
-
-	float3 P;
-
-	/* camera motion, for perspective/orthographic motion.pre/post will be a
-	 * world-to-raster matrix, for panorama it's world-to-camera */
-	if (kernel_data.cam.type != CAMERA_PANORAMA) {
-		tfm = kernel_data.cam.worldtoraster;
-		P = transform_perspective(&tfm, sd->P);
-
-		tfm = kernel_data.cam.motion.pre;
-		motion_pre = transform_perspective(&tfm, motion_pre);
-
-		tfm = kernel_data.cam.motion.post;
-		motion_post = transform_perspective(&tfm, motion_post);
+		return sd->u*f0 + sd->v*f1 + (1.0f - sd->u - sd->v)*f2;
 	}
 	else {
-		tfm = kernel_data.cam.worldtocamera;
-		P = normalize(transform_point(&tfm, sd->P));
-		P = float2_to_float3(direction_to_panorama(kg, P));
-		P.x *= kernel_data.cam.width;
-		P.y *= kernel_data.cam.height;
+		if(dx) *dx = make_float3(0.0f, 0.0f, 0.0f);
+		if(dy) *dy = make_float3(0.0f, 0.0f, 0.0f);
 
-		tfm = kernel_data.cam.motion.pre;
-		motion_pre = normalize(transform_point(&tfm, motion_pre));
-		motion_pre = float2_to_float3(direction_to_panorama(kg, motion_pre));
-		motion_pre.x *= kernel_data.cam.width;
-		motion_pre.y *= kernel_data.cam.height;
-
-		tfm = kernel_data.cam.motion.post;
-		motion_post = normalize(transform_point(&tfm, motion_post));
-		motion_post = float2_to_float3(direction_to_panorama(kg, motion_post));
-		motion_post.x *= kernel_data.cam.width;
-		motion_post.y *= kernel_data.cam.height;
+		return make_float3(0.0f, 0.0f, 0.0f);
 	}
-
-	motion_pre = motion_pre - P;
-	motion_post = P - motion_post;
-
-	return make_float4(motion_pre.x, motion_pre.y, motion_post.x, motion_post.y);
-}
-
-__device float3 triangle_uv(KernelGlobals *kg, ShaderData *sd)
-{
-	int offset_uv = find_attribute(kg, sd, ATTR_STD_UV);
-
-#ifdef __HAIR__
-	if(offset_uv == ATTR_STD_NOT_FOUND || sd->curve_seg != ~0)
-		return make_float3(0.0f, 0.0f, 0.0f);
-#else
-	if(offset_uv == ATTR_STD_NOT_FOUND)
-		return make_float3(0.0f, 0.0f, 0.0f);
-#endif
-
-	float3 uv = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_CORNER, offset_uv, NULL, NULL);
-	uv.z = 1.0f;
-	return uv;
 }
 
 CCL_NAMESPACE_END

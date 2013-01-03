@@ -70,11 +70,11 @@ __device_inline void kernel_write_data_passes(KernelGlobals *kg, __global float 
 			kernel_write_pass_float3(buffer + kernel_data.film.pass_normal, sample, normal);
 		}
 		if(flag & PASS_UV) {
-			float3 uv = triangle_uv(kg, sd);
+			float3 uv = primitive_uv(kg, sd);
 			kernel_write_pass_float3(buffer + kernel_data.film.pass_uv, sample, uv);
 		}
 		if(flag & PASS_MOTION) {
-			float4 speed = triangle_motion_vector(kg, sd);
+			float4 speed = primitive_motion_vector(kg, sd);
 			kernel_write_pass_float4(buffer + kernel_data.film.pass_motion, sample, speed);
 			kernel_write_pass_float(buffer + kernel_data.film.pass_motion_weight, sample, 1.0f);
 		}

@@ -24,9 +24,10 @@
 #include "kernel_montecarlo.h"
 #include "kernel_projection.h"
 #include "kernel_object.h"
-#include "kernel_attribute.h"
-#include "kernel_projection.h"
 #include "kernel_triangle.h"
+#include "kernel_curve.h"
+#include "kernel_primitive.h"
+#include "kernel_projection.h"
 #ifdef __QBVH__
 #include "kernel_qbvh.h"
 #else

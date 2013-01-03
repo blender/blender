@@ -50,26 +50,16 @@ public:
 		int v[3];
 	};
 
-	/* Mesh Strand Data*/
-	struct CurveSeg {
+	/* Mesh Curve */
+	struct CurveSegment {
 		int v[2];
-		uint curveshader;
+		uint shader;
 		int curve;
 	};
 
-	struct Curve_Attribute {
-		float uv[2];
-	};
-
 	struct CurveKey {
-		float3 loc;
+		float3 co;
 		float radius;
-		float time;
-	};
-
-	/*curve data for hair - currently only contains key tangent instead*/
-	struct CurveData {
-		float3 tg;
 	};
 
 	/* Displacement */
@@ -88,12 +78,11 @@ public:
 	vector<bool> smooth;
 
 	vector<CurveKey> curve_keys;
-	vector<CurveData> curve_keysCD;
-	vector<CurveSeg> curve_segs;
-	vector<Curve_Attribute> curve_attrib;
+	vector<CurveSegment> curve_segments;
 
 	vector<uint> used_shaders;
 	AttributeSet attributes;
+	AttributeSet curve_attributes;
 
 	BoundBox bounds;
 	bool transform_applied;
@@ -116,12 +105,11 @@ public:
 	Mesh();
 	~Mesh();
 
-	void reserve(int numverts, int numfaces);
+	void reserve(int numverts, int numfaces, int numcurves, int numcurvekeys);
 	void clear();
 	void add_triangle(int v0, int v1, int v2, int shader, bool smooth);
-	void add_curvekey(float3 loc, float radius, float time);
-	void add_curve(int v0, int v1, int shader, int curveid);
-	void add_curveattrib(float u, float v);
+	void add_curve_key(float3 loc, float radius);
+	void add_curve_segment(int v0, int v1, int shader, int curveid);
 
 	void compute_bounds();
 	void add_face_normals();

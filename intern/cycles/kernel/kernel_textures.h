@@ -44,8 +44,8 @@ KERNEL_TEX(float4, texture_float4, __tri_vindex)
 KERNEL_TEX(float4, texture_float4, __tri_verts)
 
 /* curves */
-KERNEL_TEX(float4, texture_float4, __cur_segs)
-KERNEL_TEX(float4, texture_float4, __cur_keys)
+KERNEL_TEX(float4, texture_float4, __curve_segments)
+KERNEL_TEX(float4, texture_float4, __curve_keys)
 
 /* attributes */
 KERNEL_TEX(uint4, texture_uint4, __attributes_map)

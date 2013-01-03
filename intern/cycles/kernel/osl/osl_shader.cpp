@@ -26,8 +26,9 @@
 #include "osl_services.h"
 #include "osl_shader.h"
 
-#include "util_attribute.h"
 #include "util_foreach.h"
+
+#include "attribute.h"
 
 #include <OSL/oslexec.h>
 
@@ -453,15 +454,17 @@ float3 OSLShader::volume_eval_phase(const ShaderClosure *sc, const float3 omega_
 
 /* Attributes */
 
-int OSLShader::find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id)
+int OSLShader::find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id, AttributeElement *elem)
 {
 	/* for OSL, a hash map is used to lookup the attribute by name. */
-	OSLGlobals::AttributeMap &attr_map = kg->osl->attribute_map[sd->object];
-	ustring stdname(std::string("std::") + std::string(attribute_standard_name((AttributeStandard)id)));
+	int object = sd->object*ATTR_PRIM_TYPES + (sd->curve_seg != ~0);
+	OSLGlobals::AttributeMap &attr_map = kg->osl->attribute_map[object];
+	ustring stdname(std::string("geom:") + std::string(Attribute::standard_name((AttributeStandard)id)));
 	OSLGlobals::AttributeMap::const_iterator it = attr_map.find(stdname);
 
 	if (it != attr_map.end()) {
 		const OSLGlobals::Attribute &osl_attr = it->second;
+		*elem = osl_attr.elem;
 		/* return result */
 		return (osl_attr.elem == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : osl_attr.offset;
 	}

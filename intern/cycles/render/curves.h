@@ -80,8 +80,7 @@ public:
 	vector<int> curve_firstkey;
 	vector<int> curve_keynum;
 	vector<float> curve_length;
-	vector<float> curve_u;
-	vector<float> curve_v;
+	vector<float3> curve_uv;
 
 	vector<float3> curvekey_co;
 	vector<float> curvekey_time;

@@ -76,9 +76,7 @@ bool BVH::cache_read(CacheData& key)
 		key.add(ob->mesh->verts);
 		key.add(ob->mesh->triangles);
 		key.add(ob->mesh->curve_keys);
-		key.add(ob->mesh->curve_keysCD);
-		key.add(ob->mesh->curve_segs);
-		key.add(ob->mesh->curve_attrib);
+		key.add(ob->mesh->curve_segments);
 		key.add(&ob->bounds, sizeof(ob->bounds));
 		key.add(&ob->visibility, sizeof(ob->visibility));
 		key.add(&ob->mesh->transform_applied, sizeof(bool));
@@ -278,34 +276,33 @@ void BVH::pack_curve_seg(int idx, float4 woop[3])
 	int tob = pack.prim_object[idx];
 	const Mesh *mesh = objects[tob]->mesh;
 	int tidx = pack.prim_index[idx];
-	float3 v0 = mesh->curve_keys[mesh->curve_segs[tidx].v[0]].loc;
-	float3 v1 = mesh->curve_keys[mesh->curve_segs[tidx].v[1]].loc;
-	float t0 = mesh->curve_keys[mesh->curve_segs[tidx].v[0]].time;
-	float t1 = mesh->curve_keys[mesh->curve_segs[tidx].v[1]].time;
+	float3 v0 = mesh->curve_keys[mesh->curve_segments[tidx].v[0]].co;
+	float3 v1 = mesh->curve_keys[mesh->curve_segments[tidx].v[1]].co;
 
 	float3 d0 = v1 - v0;
 	float l =  len(d0);
 	
-	float u = mesh->curve_attrib[mesh->curve_segs[tidx].curve].uv[0];
-	float v = mesh->curve_attrib[mesh->curve_segs[tidx].curve].uv[1];
-
 	/*Plan
 	*Transform tfm = make_transform(
 	*	location <3>    , l,
 	*	extra curve data <3>    , StrID,
-	*	nextkey, flags/tip?,    r, t);
+	*	nextkey, flags/tip?,    0, 0);
 	*/
-	float3 tg1 = make_float3(1.0f,0.0f,0.0f);
-	float3 tg2 = make_float3(1.0f,0.0f,0.0f);
-	if(mesh->curve_keysCD.size()) {
-		tg1 = mesh->curve_keysCD[mesh->curve_segs[tidx].v[0]].tg;
-		tg2 = mesh->curve_keysCD[mesh->curve_segs[tidx].v[1]].tg;
+	Attribute *attr_tangent = mesh->curve_attributes.find(ATTR_STD_CURVE_TANGENT);
+	float3 tg1 = make_float3(1.0f, 0.0f, 0.0f);
+	float3 tg2 = make_float3(1.0f, 0.0f, 0.0f);
+
+	if(attr_tangent) {
+		const float3 *data_tangent = attr_tangent->data_float3();
+
+		tg1 = data_tangent[mesh->curve_segments[tidx].v[0]];
+		tg2 = data_tangent[mesh->curve_segments[tidx].v[1]];
 	}
 	
 	Transform tfm = make_transform(
 		tg1.x, tg1.y, tg1.z, l,
 		tg2.x, tg2.y, tg2.z, 0,
-		t0, t1, u, v,
+		0, 0, 0, 0,
 		0, 0, 0, 1);
 
 	woop[0] = tfm.x;
@@ -628,10 +625,10 @@ void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility
 				if(pack.prim_type[prim]) {
 					/* strands */
 					int str_offset = (params.top_level)? mesh->curveseg_offset: 0;
-					const int *hidx = mesh->curve_segs[pidx - str_offset].v;
+					const int *hidx = mesh->curve_segments[pidx - str_offset].v;
 
-					bbox.grow(mesh->curve_keys[hidx[0]].loc, mesh->curve_keys[hidx[0]].radius);
-					bbox.grow(mesh->curve_keys[hidx[1]].loc, mesh->curve_keys[hidx[1]].radius);
+					bbox.grow(mesh->curve_keys[hidx[0]].co, mesh->curve_keys[hidx[0]].radius);
+					bbox.grow(mesh->curve_keys[hidx[1]].co, mesh->curve_keys[hidx[1]].radius);
 				}
 				else {
 					/* triangles */

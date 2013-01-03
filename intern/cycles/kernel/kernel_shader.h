@@ -77,7 +77,7 @@ __device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 #ifdef __HAIR__
 	if(kernel_tex_fetch(__prim_type, isect->prim)) {
 		/* Strand Shader setting*/
-		float4 CurSeg = kernel_tex_fetch(__cur_segs, sd->prim);
+		float4 CurSeg = kernel_tex_fetch(__curve_segments, sd->prim);
 		sd->shader = __float_as_int(CurSeg.z);
 
 		sd->curve_seg = sd->prim;
@@ -788,7 +788,7 @@ __device bool shader_transparent_shadow(KernelGlobals *kg, Intersection *isect)
 #ifdef __HAIR__
 	}
 	else {
-		float4 str = kernel_tex_fetch(__cur_segs, prim);
+		float4 str = kernel_tex_fetch(__curve_segments, prim);
 		shader = __float_as_int(str.z);
 	}
 #endif

@@ -147,7 +147,7 @@ static void mikk_compute_tangents(BL::Mesh b_mesh, BL::MeshTextureFaceLayer b_la
 	if(active_render)
 		attr = mesh->attributes.add(ATTR_STD_UV_TANGENT, name);
 	else
-		attr = mesh->attributes.add(name, TypeDesc::TypeVector, Attribute::CORNER);
+		attr = mesh->attributes.add(name, TypeDesc::TypeVector, ATTR_ELEMENT_CORNER);
 
 	float3 *tangent = attr->data_float3();
 
@@ -161,7 +161,7 @@ static void mikk_compute_tangents(BL::Mesh b_mesh, BL::MeshTextureFaceLayer b_la
 		if(active_render)
 			attr_sign = mesh->attributes.add(ATTR_STD_UV_TANGENT_SIGN, name_sign);
 		else
-			attr_sign = mesh->attributes.add(name_sign, TypeDesc::TypeFloat, Attribute::CORNER);
+			attr_sign = mesh->attributes.add(name_sign, TypeDesc::TypeFloat, ATTR_ELEMENT_CORNER);
 
 		tangent_sign = attr_sign->data_float();
 	}
@@ -249,7 +249,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 				continue;
 
 			Attribute *attr = mesh->attributes.add(
-				ustring(l->name().c_str()), TypeDesc::TypeColor, Attribute::CORNER);
+				ustring(l->name().c_str()), TypeDesc::TypeColor, ATTR_ELEMENT_CORNER);
 
 			BL::MeshColorLayer::data_iterator c;
 			float3 *fdata = attr->data_float3();
@@ -288,7 +288,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 				if(active_render)
 					attr = mesh->attributes.add(std, name);
 				else
-					attr = mesh->attributes.add(name, TypeDesc::TypePoint, Attribute::CORNER);
+					attr = mesh->attributes.add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CORNER);
 
 				BL::MeshTextureFaceLayer::data_iterator t;
 				float3 *fdata = attr->data_float3();

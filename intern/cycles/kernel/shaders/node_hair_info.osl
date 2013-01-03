@@ -24,9 +24,9 @@ shader node_hair_info(
 	output float Thickness = 0.0,
 	output normal TangentNormal = N)
 {
-	getattribute("curve:is_strand", IsStrand);
-	getattribute("curve:intercept", Intercept);
-	getattribute("curve:thickness", Thickness);
-	getattribute("curve:tangent_normal", TangentNormal);
+	getattribute("geom:is_curve", IsStrand);
+	getattribute("geom:curve_intercept", Intercept);
+	getattribute("geom:curve_thickness", Thickness);
+	getattribute("geom:curve_tangent_normal", TangentNormal);
 }
 

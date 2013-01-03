@@ -283,9 +283,9 @@ void BVHSpatialSplit::split_reference(BVHBuild *builder, BVHReference& left, BVH
 	else {
 		/* Strand split: NOTE - Currently ignores strand width and needs to be fixed.*/
 
-		const int *inds = mesh->curve_segs[ref.prim_index()].v;
-		const float3* v0 = &mesh->curve_keys[inds[0]].loc;
-		const float3* v1 = &mesh->curve_keys[inds[1]].loc;
+		const int *inds = mesh->curve_segments[ref.prim_index()].v;
+		const float3* v0 = &mesh->curve_keys[inds[0]].co;
+		const float3* v1 = &mesh->curve_keys[inds[1]].co;
 
 		float v0p = (*v0)[dim];
 		float v1p = (*v1)[dim];
