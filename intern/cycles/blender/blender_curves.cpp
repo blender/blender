@@ -16,6 +16,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include "attribute.h"
 #include "mesh.h"
 #include "object.h"
 #include "scene.h"
@@ -24,15 +25,7 @@
 #include "blender_sync.h"
 #include "blender_util.h"
 
-#include "subd_mesh.h"
-#include "subd_patch.h"
-#include "subd_split.h"
-
 #include "util_foreach.h"
-
-#include "DNA_modifier_types.h"
-#include "DNA_particle_types.h"
-#include "DNA_meshdata_types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -650,7 +643,7 @@ void ExportCurveTriangleGeometry(Mesh *mesh, ParticleCurveData *CData, int inter
 	/* texture coords still needed */
 }
 
-void ExportCurveSegments(Mesh *mesh, ParticleCurveData *CData, int interpolation, int segments)
+void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CData, int interpolation, int segments)
 {
 	int num_keys = 0;
 	int num_curves = 0;
@@ -658,8 +651,12 @@ void ExportCurveSegments(Mesh *mesh, ParticleCurveData *CData, int interpolation
 	if(!(mesh->curves.empty() && mesh->curve_keys.empty()))
 		return;
 
-	Attribute *attr_uv = mesh->curve_attributes.add(ATTR_STD_UV);
-	Attribute *attr_intercept = mesh->curve_attributes.add(ATTR_STD_CURVE_INTERCEPT);
+	Attribute *attr_uv = NULL, *attr_intercept = NULL;
+	
+	if(mesh->need_attribute(scene, ATTR_STD_UV))
+		attr_uv = mesh->curve_attributes.add(ATTR_STD_UV);
+	if(mesh->need_attribute(scene, ATTR_STD_CURVE_INTERCEPT))
+		attr_intercept = mesh->curve_attributes.add(ATTR_STD_CURVE_INTERCEPT);
 
 	for( int sys = 0; sys < CData->psys_firstcurve.size() ; sys++) {
 
@@ -695,14 +692,16 @@ void ExportCurveSegments(Mesh *mesh, ParticleCurveData *CData, int interpolation
 						radius =0.0f;
 
 					mesh->add_curve_key(ickey_loc, radius);
-					attr_intercept->add(time);
+					if(attr_intercept)
+						attr_intercept->add(time);
 
 					num_curve_keys++;
 				}
 			}
 
 			mesh->add_curve(num_keys, num_curve_keys, CData->psys_shader[sys]);
-			attr_uv->add(CData->curve_uv[curve]);
+			if(attr_uv)
+				attr_uv->add(CData->curve_uv[curve]);
 
 			num_keys += num_curve_keys;
 			num_curves++;
@@ -871,7 +870,7 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 			ExportCurveTriangleGeometry(mesh, &CData, interpolation, use_smooth, resolution, segments);
 	}
 	else {
-		ExportCurveSegments(mesh, &CData, interpolation, segments);
+		ExportCurveSegments(scene, mesh, &CData, interpolation, segments);
 		int ckey_num = mesh->curve_keys.size();
 
 		/*export tangents or curve data? - not functional yet*/
@@ -884,6 +883,22 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 					normalize(mesh->curve_keys[max(ck - 1, 0)].co - mesh->curve_keys[ck].co));
 				
 				data_tangent[ck] = tg;
+			}
+		}
+
+		/* generated coordinates from first key. we should ideally get this from
+		 * blender to handle deforming objects */
+		if(mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
+			float3 loc, size;
+			mesh_texture_space(b_mesh, loc, size);
+
+			Attribute *attr_generated = mesh->curve_attributes.add(ATTR_STD_GENERATED);
+			float3 *generated = attr_generated->data_float3();
+			size_t i = 0;
+
+			foreach(Mesh::Curve& curve, mesh->curves) {
+				float3 co = mesh->curve_keys[curve.first_key].co;
+				generated[i++] = co*size - loc;
 			}
 		}
 	}

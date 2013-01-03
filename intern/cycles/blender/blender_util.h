@@ -242,6 +242,20 @@ static inline string blender_absolute_path(BL::BlendData b_data, BL::ID b_id, co
 	return path;
 }
 
+/* Texture Space */
+
+static inline void mesh_texture_space(BL::Mesh b_mesh, float3& loc, float3& size)
+{
+	loc = get_float3(b_mesh.texspace_location());
+	size = get_float3(b_mesh.texspace_size());
+
+	if(size.x != 0.0f) size.x = 0.5f/size.x;
+	if(size.y != 0.0f) size.y = 0.5f/size.y;
+	if(size.z != 0.0f) size.z = 0.5f/size.z;
+
+	loc = loc*size - make_float3(0.5f, 0.5f, 0.5f);
+}
+
 /* ID Map
  *
  * Utility class to keep in sync with blender data.

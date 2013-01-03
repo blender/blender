@@ -328,14 +328,9 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 	 * is available in the api. */
 	if(mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
 		Attribute *attr = mesh->attributes.add(ATTR_STD_GENERATED);
-		float3 loc = get_float3(b_mesh.texspace_location());
-		float3 size = get_float3(b_mesh.texspace_size());
 
-		if(size.x != 0.0f) size.x = 0.5f/size.x;
-		if(size.y != 0.0f) size.y = 0.5f/size.y;
-		if(size.z != 0.0f) size.z = 0.5f/size.z;
-
-		loc = loc*size - make_float3(0.5f, 0.5f, 0.5f);
+		float3 loc, size;
+		mesh_texture_space(b_mesh, loc, size);
 
 		float3 *generated = attr->data_float3();
 		size_t i = 0;
