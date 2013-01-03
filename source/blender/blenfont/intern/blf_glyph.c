@@ -383,7 +383,7 @@ int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 		if (gc->cur_tex == -1) {
 			blf_glyph_cache_texture(font, gc);
 			gc->x_offs = gc->pad;
-			gc->y_offs = gc->pad;
+			gc->y_offs = 0;
 		}
 
 		if (gc->x_offs > (gc->p2_width - gc->max_glyph_width)) {
@@ -391,7 +391,7 @@ int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 			gc->y_offs += gc->max_glyph_height;
 
 			if (gc->y_offs > (gc->p2_height - gc->max_glyph_height)) {
-				gc->y_offs = gc->pad;
+				gc->y_offs = 0;
 				blf_glyph_cache_texture(font, gc);
 			}
 		}
@@ -400,6 +400,19 @@ int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 		g->xoff = gc->x_offs;
 		g->yoff = gc->y_offs;
 
+		/* prevent glTexSubImage2D from failing if the character
+		 * asks for pixels out of bounds, this tends only to happen
+		 * with very small sizes (5px high or less) */
+		if (UNLIKELY((g->xoff + g->width)  > gc->p2_width)) {
+			g->width  -= (g->xoff + g->width)  - gc->p2_width;
+			BLI_assert(g->width > 0);
+		}
+		if (UNLIKELY((g->yoff + g->height) > gc->p2_height)) {
+			g->height -= (g->yoff + g->height) - gc->p2_height;
+			BLI_assert(g->height > 0);
+		}
+
+
 		glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
 		glPixelStorei(GL_UNPACK_LSB_FIRST, GL_FALSE);
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
@@ -407,6 +420,7 @@ int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 
 		glBindTexture(GL_TEXTURE_2D, g->tex);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, g->xoff, g->yoff, g->width, g->height, GL_ALPHA, GL_UNSIGNED_BYTE, g->bitmap);
+		BLI_assert(glGetError() == GL_NO_ERROR);
 		glPopClientAttrib();
 
 		g->uv[0][0] = ((float)g->xoff) / ((float)gc->p2_width);
