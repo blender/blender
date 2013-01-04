@@ -5142,15 +5142,13 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 			return 0;
 		}
 	}
-	
-	paint_brush_init_tex(pop->s.brush);
-	
+
 	/* note, if we have no UVs on the derived mesh, then we must return here */
 	if (pop->mode == PAINT_MODE_3D_PROJECT) {
 
 		/* initialize all data from the context */
 		project_state_init(C, OBACT, &pop->ps);
-		
+
 		paint_brush_init_tex(pop->ps.brush);
 
 		pop->ps.source = PROJ_SRC_VIEW;
@@ -5167,6 +5165,9 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 		
 		if (pop->ps.dm == NULL)
 			return 0;
+	}
+	else {
+		paint_brush_init_tex(pop->s.brush);
 	}
 	
 	settings->imapaint.flag |= IMAGEPAINT_DRAWING;
@@ -5237,8 +5238,6 @@ static void paint_exit(bContext *C, wmOperator *op)
 	if (pop->restore_projection)
 		settings->imapaint.flag &= ~IMAGEPAINT_PROJECT_DISABLE;
 
-	paint_brush_exit_tex(pop->s.brush);
-	
 	settings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
 	imapaint_canvas_free(&pop->s);
 	BKE_brush_painter_free(pop->painter);
@@ -5250,6 +5249,8 @@ static void paint_exit(bContext *C, wmOperator *op)
 		project_paint_end(&pop->ps);
 	}
 	else {
+		paint_brush_exit_tex(pop->s.brush);
+
 		/* non projection 3d paint, could move into own function of more needs adding */
 		if (pop->s.dm_release)
 			pop->s.dm->release(pop->s.dm);
