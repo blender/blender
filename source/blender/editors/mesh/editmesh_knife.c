@@ -1333,7 +1333,8 @@ static void calc_ortho_extent(KnifeTool_OpData *kcd)
 
 /* Clip the line (v1, v2) to planes perpendicular to it and distances d from
  * the closest point on the line to the origin */
-static void clip_to_ortho_planes(float v1[3], float v2[3], float d) {
+static void clip_to_ortho_planes(float v1[3], float v2[3], float d)
+{
 	float closest[3];
 	const float origin[3] = {0.0f, 0.0f, 0.0f};
 

@@ -420,7 +420,6 @@ int blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 
 		glBindTexture(GL_TEXTURE_2D, g->tex);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, g->xoff, g->yoff, g->width, g->height, GL_ALPHA, GL_UNSIGNED_BYTE, g->bitmap);
-		BLI_assert(glGetError() == GL_NO_ERROR);
 		glPopClientAttrib();
 
 		g->uv[0][0] = ((float)g->xoff) / ((float)gc->p2_width);

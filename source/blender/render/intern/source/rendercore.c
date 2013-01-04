@@ -2613,7 +2613,8 @@ static int get_next_bake_face(BakeShade *bs)
 	return 0;
 }
 
-static void bake_single_vertex(BakeShade *bs, VertRen *vert, float u, float v) {
+static void bake_single_vertex(BakeShade *bs, VertRen *vert, float u, float v)
+{
 	int *origindex, i;
 	MLoopCol *basevcol;
 	MLoop *mloop;
