@@ -106,6 +106,8 @@ MINLINE void premul_to_straight_v4(float straight[4], const float premul[4]);
 MINLINE void straight_to_premul_v4(float straight[4], const float premul[4]);
 MINLINE void straight_uchar_to_premul_float(float result[4], const unsigned char color[4]);
 MINLINE void premul_float_to_straight_uchar(unsigned char *result, const float color[4]);
+MINLINE void straight_uchar_to_premul_int(int result[4], const unsigned char color[4]);
+MINLINE void premul_int_to_straight_uchar(unsigned char *result, const int color[4]);
 
 /************************** Other *************************/
 

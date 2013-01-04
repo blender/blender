@@ -311,19 +311,19 @@ void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 		for (y = ibuf2->y; y > 0; y--) {
 			cp2 = cp1 + (ibuf1->x << 2);
 			for (x = ibuf2->x; x > 0; x--) {
-				float p1f[8], p2f[8], destf[4];
+				int p1i[8], p2i[8], desti[4];
 
-				straight_uchar_to_premul_float(p1f, cp1);
-				straight_uchar_to_premul_float(p2f, cp2);
-				straight_uchar_to_premul_float(p1f + 4, cp1 + 4);
-				straight_uchar_to_premul_float(p2f + 4, cp2 + 4);
+				straight_uchar_to_premul_int(p1i, cp1);
+				straight_uchar_to_premul_int(p2i, cp2);
+				straight_uchar_to_premul_int(p1i + 4, cp1 + 4);
+				straight_uchar_to_premul_int(p2i + 4, cp2 + 4);
 
-				destf[0] = 0.25f * (p1f[0] + p2f[0] + p1f[4] + p2f[4]);
-				destf[1] = 0.25f * (p1f[1] + p2f[1] + p1f[5] + p2f[5]);
-				destf[2] = 0.25f * (p1f[2] + p2f[2] + p1f[6] + p2f[6]);
-				destf[3] = 0.25f * (p1f[3] + p2f[3] + p1f[7] + p2f[7]);
+				desti[0] = (p1i[0] + p2i[0] + p1i[4] + p2i[4]) >> 2;
+				desti[1] = (p1i[1] + p2i[1] + p1i[5] + p2i[5]) >> 2;
+				desti[2] = (p1i[2] + p2i[2] + p1i[6] + p2i[6]) >> 2;
+				desti[3] = (p1i[3] + p2i[3] + p1i[7] + p2i[7]) >> 2;
 
-				premul_float_to_straight_uchar(dest, destf);
+				premul_int_to_straight_uchar(dest, desti);
 
 				cp1 += 8;
 				cp2 += 8;
