@@ -6131,69 +6131,78 @@ static int ui_handle_list_event(bContext *C, wmEvent *event, ARegion *ar)
 	int value, min, max;
 	int type = event->type, val = event->val;
 
-	/* convert pan to scrollwheel */
-	if (type == MOUSEPAN)
-		ui_pan_to_scroll(event, &type, &val);
-	
-	if (but && (val == KM_PRESS)) {
+	if (but) {
 		uiList *ui_list = but->custom_data;
 
 		if (ui_list) {
-
-			if (ELEM(type, UPARROWKEY, DOWNARROWKEY) ||
-				((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->alt)))
-			{
-				/* activate up/down the list */
-				value = RNA_property_int_get(&but->rnapoin, but->rnaprop);
-
-				if (ELEM(type, UPARROWKEY, WHEELUPMOUSE))
-					value--;
-				else
-					value++;
-
-				CLAMP(value, 0, ui_list->list_last_len - 1);
-
-				if (value < ui_list->list_scroll)
-					ui_list->list_scroll = value;
-				else if (value >= ui_list->list_scroll + ui_list->list_size)
-					ui_list->list_scroll = value - ui_list->list_size + 1;
-
-				RNA_property_int_range(&but->rnapoin, but->rnaprop, &min, &max);
-				value = CLAMPIS(value, min, max);
-
-				RNA_property_int_set(&but->rnapoin, but->rnaprop, value);
-				RNA_property_update(C, &but->rnapoin, but->rnaprop);
-				ED_region_tag_redraw(ar);
-
-				retval = WM_UI_HANDLER_BREAK;
+			
+			/* convert pan to scrollwheel */
+			if (type == MOUSEPAN) {
+				ui_pan_to_scroll(event, &type, &val);
+				
+				/* if type still is mousepan, we call it handled, since delta-y accumulate */
+				/* also see wm_event_system.c do_wheel_ui hack */
+				if (type == MOUSEPAN)
+					retval = WM_UI_HANDLER_BREAK;
 			}
-			else if (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->shift) {
-				/* silly replacement for proper grip */
-				if (ui_list->list_grip_size == 0)
-					ui_list->list_grip_size = ui_list->list_size;
+			
+			if (val == KM_PRESS) {
+				
+				if (ELEM(type, UPARROWKEY, DOWNARROWKEY) ||
+					((ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->alt)))
+				{
+					/* activate up/down the list */
+					value = RNA_property_int_get(&but->rnapoin, but->rnaprop);
 
-				if (type == WHEELUPMOUSE)
-					ui_list->list_grip_size--;
-				else
-					ui_list->list_grip_size++;
-
-				ui_list->list_grip_size = MAX2(ui_list->list_grip_size, 1);
-
-				ED_region_tag_redraw(ar);
-
-				retval = WM_UI_HANDLER_BREAK;
-			}
-			else if (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
-				if (ui_list->list_last_len > ui_list->list_size) {
-					/* list template will clamp */
-					if (type == WHEELUPMOUSE)
-						ui_list->list_scroll--;
+					if (ELEM(type, UPARROWKEY, WHEELUPMOUSE))
+						value--;
 					else
-						ui_list->list_scroll++;
+						value++;
+
+					CLAMP(value, 0, ui_list->list_last_len - 1);
+
+					if (value < ui_list->list_scroll)
+						ui_list->list_scroll = value;
+					else if (value >= ui_list->list_scroll + ui_list->list_size)
+						ui_list->list_scroll = value - ui_list->list_size + 1;
+
+					RNA_property_int_range(&but->rnapoin, but->rnaprop, &min, &max);
+					value = CLAMPIS(value, min, max);
+
+					RNA_property_int_set(&but->rnapoin, but->rnaprop, value);
+					RNA_property_update(C, &but->rnapoin, but->rnaprop);
+					ED_region_tag_redraw(ar);
+
+					retval = WM_UI_HANDLER_BREAK;
+				}
+				else if (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->shift) {
+					/* silly replacement for proper grip */
+					if (ui_list->list_grip_size == 0)
+						ui_list->list_grip_size = ui_list->list_size;
+
+					if (type == WHEELUPMOUSE)
+						ui_list->list_grip_size--;
+					else
+						ui_list->list_grip_size++;
+
+					ui_list->list_grip_size = MAX2(ui_list->list_grip_size, 1);
 
 					ED_region_tag_redraw(ar);
 
 					retval = WM_UI_HANDLER_BREAK;
+				}
+				else if (ELEM(type, WHEELUPMOUSE, WHEELDOWNMOUSE)) {
+					if (ui_list->list_last_len > ui_list->list_size) {
+						/* list template will clamp */
+						if (type == WHEELUPMOUSE)
+							ui_list->list_scroll--;
+						else
+							ui_list->list_scroll++;
+
+						ED_region_tag_redraw(ar);
+
+						retval = WM_UI_HANDLER_BREAK;
+					}
 				}
 			}
 		}

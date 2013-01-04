@@ -66,6 +66,8 @@
 
 #include "RNA_access.h"
 
+#include "BIF_gl.h"
+
 #include "UI_interface.h"
 
 #include "PIL_time.h"
@@ -338,7 +340,7 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	ARegion *region = CTX_wm_region(C);
 	ARegion *menu = CTX_wm_menu(C);
 	static int do_wheel_ui = TRUE;
-	int is_wheel = ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE);
+	int is_wheel = ELEM3(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE, MOUSEPAN);
 	int retval;
 	
 	/* UI code doesn't handle return values - it just always returns break. 
@@ -2180,6 +2182,12 @@ void wm_event_do_handlers(bContext *C)
 
 	/* update key configuration after handling events */
 	WM_keyconfig_update(wm);
+	
+	if(G.debug) {
+		GLenum error = glGetError();
+		if (error)
+			printf("GL error: %s\n", gluErrorString(error));
+	}
 }
 
 /* ********** filesector handling ************ */
