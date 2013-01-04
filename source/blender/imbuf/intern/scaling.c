@@ -292,6 +292,37 @@ struct ImBuf *IMB_double_y(struct ImBuf *ibuf1)
 	return (ibuf2);
 }
 
+/* pretty much specific functions which converts uchar <-> ushort but assumes
+ * ushort range of 255*255 which is more convenient here
+ */
+MINLINE void straight_uchar_to_premul_ushort(unsigned short result[4], const unsigned char color[4])
+{
+	unsigned short alpha = color[3];
+
+	result[0] = color[0] * alpha;
+	result[1] = color[1] * alpha;
+	result[2] = color[2] * alpha;
+	result[3] = alpha * 255;
+}
+
+MINLINE void premul_ushort_to_straight_uchar(unsigned char *result, const unsigned short color[4])
+{
+	if (color[3] <= 255) {
+		result[0] = color[0] / 255;
+		result[1] = color[1] / 255;
+		result[2] = color[2] / 255;
+		result[3] = color[3] / 255;
+	}
+	else {
+		unsigned short alpha = color[3] / 255;
+
+		result[0] = color[0] / alpha;
+		result[1] = color[1] / alpha;
+		result[2] = color[2] / alpha;
+		result[3] = alpha;
+	}
+}
+
 /* result in ibuf2, scaling should be done correctly */
 void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 {
@@ -311,19 +342,19 @@ void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 		for (y = ibuf2->y; y > 0; y--) {
 			cp2 = cp1 + (ibuf1->x << 2);
 			for (x = ibuf2->x; x > 0; x--) {
-				int p1i[8], p2i[8], desti[4];
+				unsigned short p1i[8], p2i[8], desti[4];
 
-				straight_uchar_to_premul_int(p1i, cp1);
-				straight_uchar_to_premul_int(p2i, cp2);
-				straight_uchar_to_premul_int(p1i + 4, cp1 + 4);
-				straight_uchar_to_premul_int(p2i + 4, cp2 + 4);
+				straight_uchar_to_premul_ushort(p1i, cp1);
+				straight_uchar_to_premul_ushort(p2i, cp2);
+				straight_uchar_to_premul_ushort(p1i + 4, cp1 + 4);
+				straight_uchar_to_premul_ushort(p2i + 4, cp2 + 4);
 
-				desti[0] = (p1i[0] + p2i[0] + p1i[4] + p2i[4]) >> 2;
-				desti[1] = (p1i[1] + p2i[1] + p1i[5] + p2i[5]) >> 2;
-				desti[2] = (p1i[2] + p2i[2] + p1i[6] + p2i[6]) >> 2;
-				desti[3] = (p1i[3] + p2i[3] + p1i[7] + p2i[7]) >> 2;
+				desti[0] = ((unsigned int) p1i[0] + p2i[0] + p1i[4] + p2i[4]) >> 2;
+				desti[1] = ((unsigned int) p1i[1] + p2i[1] + p1i[5] + p2i[5]) >> 2;
+				desti[2] = ((unsigned int) p1i[2] + p2i[2] + p1i[6] + p2i[6]) >> 2;
+				desti[3] = ((unsigned int) p1i[3] + p2i[3] + p1i[7] + p2i[7]) >> 2;
 
-				premul_int_to_straight_uchar(dest, desti);
+				premul_ushort_to_straight_uchar(dest, desti);
 
 				cp1 += 8;
 				cp2 += 8;

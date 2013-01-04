@@ -326,32 +326,4 @@ MINLINE void premul_float_to_straight_uchar(unsigned char *result, const float c
 	}
 }
 
-MINLINE void straight_uchar_to_premul_int(int result[4], const unsigned char color[4])
-{
-	int alpha = color[3];
-
-	result[0] = (color[0] * alpha) / 255;
-	result[1] = (color[1] * alpha) / 255;
-	result[2] = (color[2] * alpha) / 255;
-	result[3] = alpha;
-}
-
-MINLINE void premul_int_to_straight_uchar(unsigned char *result, const int color[4])
-{
-	if (color[3] == 0 || color[3] == 255) {
-		result[0] = color[0];
-		result[1] = color[1];
-		result[2] = color[2];
-		result[3] = color[3];
-	}
-	else {
-		int alpha = color[3];
-
-		result[0] = color[0] * 255 / alpha;
-		result[0] = color[1] * 255 / alpha;
-		result[0] = color[2] * 255 / alpha;
-		result[3] = alpha;
-	}
-}
-
 #endif /* __MATH_COLOR_INLINE_C__ */
