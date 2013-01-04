@@ -513,7 +513,7 @@ class USERPREF_PT_system(Panel):
         sub.active = system.use_weight_color_range
         sub.template_color_ramp(system, "weight_color_range", expand=True)
 
-        if 'INTERNATIONAL' in bpy.app.build_options:
+        if bpy.app.build_options.international:
             column.separator()
             column.prop(system, "use_international_fonts")
             if system.use_international_fonts:
