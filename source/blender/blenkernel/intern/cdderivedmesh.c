@@ -684,8 +684,9 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 					}
 					else {
 						if (nors) {
-							nors += 3; continue;
+							nors += 3;
 						}
+						continue;
 					}
 				}
 				else if (drawParamsMapped) {
@@ -693,8 +694,9 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 				}
 				else {
 					if (nors) {
-						nors += 3; continue;
+						nors += 3;
 					}
+					continue;
 				}
 			}
 			
