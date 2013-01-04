@@ -975,7 +975,7 @@ class CyclesRender_PT_CurveRendering(CyclesButtonsPanel, Panel):
         
             if cscene.primitive == 'TRIANGLES':
                 layout.prop(cscene, "triangle_method", text="Method")
-                if cscene.triangle_method == 'TESSELATED':
+                if cscene.triangle_method == 'TESSELLATED':
                     layout.prop(cscene, "resolution", text="Resolution")
                 layout.prop(cscene, "use_smooth", text="Smooth")
             elif cscene.primitive == 'LINE_SEGMENTS':

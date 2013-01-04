@@ -452,6 +452,115 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Par
 	}
 }
 
+static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, ParticleSystemModifierData *modifier, ParticleData *particle, int particle_no, int vcol_no,
+                                             float n_mcol[3])
+{
+	ParticleSettings *part = 0;
+	int totpart;
+	int totchild = 0;
+	int num;
+	MCol mcol = {255, 255, 255, 255};
+
+	/* 1. check that everything is ok & updated */
+	if (particlesystem == NULL)
+		return;
+
+	part = particlesystem->part;
+
+		totchild = particlesystem->totchild;
+
+	/* can happen for disconnected/global hair */
+	if (part->type == PART_HAIR && !particlesystem->childcache)
+		totchild = 0;
+
+	totpart = particlesystem->totpart;
+
+	if (particle_no >= totpart + totchild)
+		return;
+
+/* 3. start creating renderable things */
+	/* setup per particle individual stuff */
+	if (particle_no < totpart) {
+
+		/* get uvco & mcol */
+		num = particle->num_dmcache;
+
+		if (num == DMCACHE_NOTFOUND)
+			if (particle->num < modifier->dm->getNumTessFaces(modifier->dm))
+				num = particle->num;
+
+		if (n_mcol && ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
+			if (num != DMCACHE_NOTFOUND) {
+				MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
+				MCol *mc = (MCol*)CustomData_get_layer_n(&modifier->dm->faceData, CD_MCOL, vcol_no);
+				mc += num * 4;
+
+				psys_interpolate_mcol(mc, mface->v4, particle->fuv, &mcol);
+				n_mcol[0] = (float)mcol.b / 255.0f;
+				n_mcol[1] = (float)mcol.g / 255.0f;
+				n_mcol[2] = (float)mcol.r / 255.0f;
+			}
+			else {
+				n_mcol[0] = 0.0f;
+				n_mcol[1] = 0.0f;
+				n_mcol[2] = 0.0f;
+			}
+		}
+	}
+	else {
+		ChildParticle *cpa = particlesystem->child + particle_no - totpart;
+
+		num = cpa->num;
+
+		/* get uvco & mcol */
+		if (part->childtype == PART_CHILD_FACES) {
+			if (n_mcol && ELEM(PART_FROM_FACE, PART_FROM_FACE, PART_FROM_VOLUME)) {
+				if (cpa->num != DMCACHE_NOTFOUND) {
+					MFace *mface = modifier->dm->getTessFaceData(modifier->dm, cpa->num, CD_MFACE);
+					MCol *mc = (MCol*)CustomData_get_layer_n(&modifier->dm->faceData, CD_MCOL, 0);
+					mc += cpa->num * 4;
+
+					psys_interpolate_mcol(mc, mface->v4, cpa->fuv, &mcol);
+					n_mcol[0] = (float)mcol.b / 255.0f;
+					n_mcol[1] = (float)mcol.g / 255.0f;
+					n_mcol[2] = (float)mcol.r / 255.0f;
+				}
+				else {
+					n_mcol[0] = 0.0f;
+					n_mcol[1] = 0.0f;
+					n_mcol[2] = 0.0f;
+				}
+			}
+		}
+		else {
+			ParticleData *parent = particlesystem->particles + cpa->parent;
+			num = parent->num_dmcache;
+
+			if (num == DMCACHE_NOTFOUND)
+				if (parent->num < modifier->dm->getNumTessFaces(modifier->dm))
+					num = parent->num;
+
+			if (n_mcol && ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
+				if (num != DMCACHE_NOTFOUND) {
+					MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
+					MCol *mc = (MCol*)CustomData_get_layer_n(&modifier->dm->faceData, CD_MCOL, 0);
+					mc += num * 4;
+
+					psys_interpolate_mcol(mc, mface->v4, parent->fuv, &mcol);
+					n_mcol[0] = (float)mcol.b / 255.0f;
+					n_mcol[1] = (float)mcol.g / 255.0f;
+					n_mcol[2] = (float)mcol.r / 255.0f;
+				}
+				else {
+					n_mcol[0] = 0.0f;
+					n_mcol[1] = 0.0f;
+					n_mcol[2] = 0.0f;
+				}
+			}
+		}
+	}
+}
+
 static void particle_recalc(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr, short flag)
 {
 	if (ptr->type == &RNA_ParticleSystem) {
@@ -3255,6 +3364,18 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	prop = RNA_def_int(func, "particle_no", 0, INT_MIN, INT_MAX, "Particle no", "", INT_MIN, INT_MAX);
 	prop = RNA_def_property(func, "uv", PROP_FLOAT, PROP_COORDS);
 	RNA_def_property_array(prop, 2);
+	RNA_def_property_flag(prop, PROP_THICK_WRAP);
+	RNA_def_function_output(func, prop);
+
+	/* extract hair mcols */
+	func = RNA_def_function(srna, "mcol_on_emitter", "rna_ParticleSystem_mcol_on_emitter");
+	RNA_def_function_ui_description(func, "Obtain mcol for all particles");
+	prop = RNA_def_pointer(func, "modifier", "ParticleSystemModifier", "", "Particle modifier");
+	prop = RNA_def_pointer(func, "particle", "Particle", "", "Particle");
+	prop = RNA_def_int(func, "particle_no", 0, INT_MIN, INT_MAX, "Particle no", "", INT_MIN, INT_MAX);
+	prop = RNA_def_int(func, "vcol_no", 0, INT_MIN, INT_MAX, "vcol no", "", INT_MIN, INT_MAX);
+	prop = RNA_def_property(func, "mcol", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
 	RNA_def_property_flag(prop, PROP_THICK_WRAP);
 	RNA_def_function_output(func, prop);
 

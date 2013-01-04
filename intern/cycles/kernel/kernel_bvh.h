@@ -231,13 +231,14 @@ __device_inline void bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
 	float3 dif = P - p1;
 	float3 dir = 1.0f/idir;
 
-	/* test bounding sphere intersection (introduce circular artifacts)*/
-	/*float3 bvector = 0.5f * (p1 + p2) - P;
-	float bvectorl_sq = len_squared(bvector);
-	float dot_bv_dir = dot(bvector,dir);
-	float maxdist = l * 0.5f + mr;
-	if(bvectorl_sq - dot_bv_dir * dot_bv_dir > maxdist * maxdist)
-		return;*/
+	float sp_r = mr + 0.5f * l;
+	float3 sphere_dif = P - ((p1 + p2) * 0.5f);
+	float sphere_b = dot(dir,sphere_dif);
+	sphere_dif = sphere_dif - sphere_b * dir;
+	sphere_b = dot(dir,sphere_dif);
+	float sdisc = sphere_b * sphere_b - len_squared(sphere_dif) + sp_r * sp_r;
+	if(sdisc < 0.0f)
+		return;
 
 	/* obtain parameters and test midpoint distance for suitable modes*/
 	float3 tg = (p2 - p1) / l;
@@ -278,7 +279,7 @@ __device_inline void bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
 	float tc = dot(tdif,tdif) - tdifz * tdifz * (1 + gd*gd) - r1*r1 - 2*r1*tdifz*gd;
 	float td = tb*tb - 4*a*tc;
 
-	if (td<0)
+	if (td < 0.0f)
 		return;
 
 	float rootd = 0.0f;
@@ -320,14 +321,6 @@ __device_inline void bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
 						return;
 				}
 			}
-
-			/*remove overlap - not functional yet*/
-			/*if (flags & CURVE_KN_CURVEDATA) {
-				float3 tg1 = float4_to_float3(kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+0));
-				float3 tg2 = float4_to_float3(kernel_tex_fetch(__tri_woop, triAddr*TRI_NODE_SIZE+1));
-				if((dot(P + t * dir - p1, tg1) < 0.0f) || (dot(P + t * dir - p2, tg2) > 0.0f))
-					return;
-			}*/
 
 #ifdef __VISIBILITY_FLAG__
 			/* visibility flag test. we do it here under the assumption

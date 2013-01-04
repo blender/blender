@@ -81,6 +81,7 @@ public:
 	vector<int> curve_keynum;
 	vector<float> curve_length;
 	vector<float3> curve_uv;
+	vector<float3> curve_vcol;
 
 	vector<float3> curvekey_co;
 	vector<float> curvekey_time;
