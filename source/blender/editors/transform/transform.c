@@ -1518,7 +1518,6 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 				glTranslatef(mval[0], mval[1], 0);
 
 				glLineWidth(3.0);
-				glBegin(GL_LINES);
 				drawArrow(UP, 5, 10, 5);
 				drawArrow(DOWN, 5, 10, 5);
 				glLineWidth(1.0);
