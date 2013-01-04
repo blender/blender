@@ -185,6 +185,8 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tsmd->crease_outer = smd->crease_outer;
 	tsmd->crease_rim = smd->crease_rim;
 	tsmd->flag = smd->flag;
+	tsmd->mat_ofs = smd->mat_ofs;
+	tsmd->mat_ofs_rim = smd->mat_ofs_rim;
 	BLI_strncpy(tsmd->defgrp_name, smd->defgrp_name, sizeof(tsmd->defgrp_name));
 }
 
