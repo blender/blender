@@ -42,7 +42,6 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_dynstr.h"
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
 #include "BLI_threads.h"
@@ -54,13 +53,9 @@
 #include "IMB_imbuf_types.h"
 
 #include "DNA_brush_types.h"
-#include "DNA_camera_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_texture_types.h"
 
 #include "BKE_camera.h"
 #include "BKE_context.h"
@@ -77,8 +72,7 @@
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
-#include "BKE_global.h"
-#include "BKE_deform.h"
+#include "BKE_colortools.h"
 
 #include "BKE_tessmesh.h"
 
@@ -102,7 +96,6 @@
 #include "RNA_enum_types.h"
 
 #include "GPU_draw.h"
-#include "GPU_extensions.h"
 
 #include "IMB_colormanagement.h"
 
@@ -5148,6 +5141,9 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 
 		/* initialize all data from the context */
 		project_state_init(C, OBACT, &pop->ps);
+
+		/* needed so multiple threads don't try to initialize the brush at once (can leak memory) */
+		curvemapping_initialize(pop->ps.brush->curve);
 
 		paint_brush_init_tex(pop->ps.brush);
 

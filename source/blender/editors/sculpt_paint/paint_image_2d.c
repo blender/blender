@@ -37,7 +37,6 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_brush.h"
-#include "BKE_texture.h"
 
 #include "BLI_math.h"
 
