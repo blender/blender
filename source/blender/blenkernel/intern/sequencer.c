@@ -3967,13 +3967,13 @@ void BKE_sequence_init_colorspace(Sequence *seq)
 			/* byte images are default to straight alpha, however sequencer
 			 * works in premul space, so mark strip to be premultiplied first
 			 */
-			if (!ibuf->rect_float)
-				seq->alpha_mode = SEQ_ALPHA_STRAIGHT;
-			else
-				seq->alpha_mode = SEQ_ALPHA_PREMUL;
-
-			if (ibuf)
+			seq->alpha_mode = SEQ_ALPHA_PREMUL;
+			if (ibuf) {
+				if (ibuf->rect_float) {
+					seq->alpha_mode = SEQ_ALPHA_PREMUL;
+				}
 				IMB_freeImBuf(ibuf);
+			}
 		}
 	}
 }
