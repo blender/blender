@@ -188,7 +188,7 @@ static bool buildNavMesh(const RecastData *recastParams, int nverts, float *vert
 
 	/* zero dimensions cause zero alloc later on [#33758] */
 	if (width <= 0 || height <= 0) {
-		BKE_report(reports, RPT_ERROR, "Object has no volume");
+		BKE_report(reports, RPT_ERROR, "Object has a width or height of zero");
 		return false;
 	}
 
