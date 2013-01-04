@@ -3091,11 +3091,9 @@ static void gradientVert__mapFunc(void *userData, int index, const float co[3],
 			if (grad_data->type == WPAINT_GRADIENT_TYPE_LINEAR) {
 				alpha = line_point_factor_v2(vs->sco, grad_data->sco_start, grad_data->sco_end);
 			}
-			else if (grad_data->type == WPAINT_GRADIENT_TYPE_RADIAL) {
-				alpha = len_v2v2(grad_data->sco_start, vs->sco) * grad_data->sco_line_div;
-			}
 			else {
-				BLI_assert(0);
+				BLI_assert(grad_data->type == WPAINT_GRADIENT_TYPE_RADIAL);
+				alpha = len_v2v2(grad_data->sco_start, vs->sco) * grad_data->sco_line_div;
 			}
 			/* no need to clamp 'alpha' yet */
 

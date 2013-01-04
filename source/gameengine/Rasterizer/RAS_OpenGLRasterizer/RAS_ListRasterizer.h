@@ -51,7 +51,6 @@ typedef std::map<DerivedMesh*, RAS_ListSlots*>		  RAS_DerivedMeshLists;
 
 class RAS_ListRasterizer : public RAS_OpenGLRasterizer
 {
-	bool mUseVertexArrays;
 	bool mATI;
 	RAS_ArrayLists mArrayLists;
 	RAS_DerivedMeshLists mDerivedMeshLists;

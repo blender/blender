@@ -76,8 +76,8 @@
 #include "interface_intern.h"
 
 
-#define ICON_IMAGE_W        600
-#define ICON_IMAGE_H        640
+// #define ICON_IMAGE_W        600
+// #define ICON_IMAGE_H        640
 
 #define ICON_GRID_COLS      26
 #define ICON_GRID_ROWS      30
