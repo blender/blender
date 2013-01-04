@@ -56,6 +56,7 @@ set(SRC
 	bpy_library.c
 	bpy_operator.c
 	bpy_operator_wrap.c
+	bpy_path.c
 	bpy_props.c
 	bpy_rna.c
 	bpy_rna_anim.c
@@ -76,6 +77,7 @@ set(SRC
 	bpy_library.h
 	bpy_operator.h
 	bpy_operator_wrap.h
+	bpy_path.h
 	bpy_props.h
 	bpy_rna.h
 	bpy_rna_anim.h

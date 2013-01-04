@@ -30,6 +30,9 @@ __all__ = (
     "display_name",
     "display_name_from_filepath",
     "ensure_ext",
+    "extensions_image",
+    "extensions_movie",
+    "extensions_audio",
     "is_subdir",
     "module_names",
     "relpath",
@@ -39,6 +42,10 @@ __all__ = (
 import bpy as _bpy
 import os as _os
 
+from _bpy_path import (extensions_audio,
+                       extensions_movie,
+                       extensions_image,
+                       )
 
 def abspath(path, start=None, library=None):
     """
