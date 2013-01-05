@@ -2722,6 +2722,7 @@ static void rna_def_console_line(BlenderRNA *brna)
 	                              "rna_ConsoleLine_body_set");
 	RNA_def_property_ui_text(prop, "Line", "Text in the line");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CONSOLE, NULL);
+	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_TEXT);
 	
 	prop = RNA_def_property(srna, "current_character", PROP_INT, PROP_NONE); /* copied from text editor */
 	RNA_def_property_int_sdna(prop, NULL, "cursor");

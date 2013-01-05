@@ -62,6 +62,7 @@ static void rna_def_speaker(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SPK_MUTED);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Mute", "Mute the speaker");
+	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_SOUND);
 	/* RNA_def_property_update(prop, 0, "rna_Speaker_update"); */
 
 #if 0 /* This shouldn't be changed actually, hiding it! */

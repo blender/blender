@@ -49,6 +49,8 @@
 #include "DNA_mask_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -400,6 +402,7 @@ void SEQUENCER_OT_movieclip_strip_add(struct wmOperatorType *ot)
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
 	prop = RNA_def_enum(ot->srna, "clip", DummyRNA_NULL_items, 0, "Clip", "");
 	RNA_def_enum_funcs(prop, RNA_movieclip_itemf);
+	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_MOVIECLIP);
 	ot->prop = prop;
 }
 
