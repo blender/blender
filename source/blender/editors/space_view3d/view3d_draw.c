@@ -2596,11 +2596,10 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 			linearrgb_to_srgb_v3_v3(backcol, &scene->world->horr);
 		}
 
-		glClearColor(backcol[0], backcol[1], backcol[2], 1.0f);
+		glClearColor(backcol[0], backcol[1], backcol[2], 0.0f);
 	}
 	else {
-		UI_GetThemeColor3fv(TH_BACK, backcol);
-		glClearColor(backcol[0], backcol[1], backcol[2], 1.0f);
+		 UI_ThemeClearColor(TH_BACK);
 	}
 
 
