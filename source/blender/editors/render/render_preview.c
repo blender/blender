@@ -1016,12 +1016,12 @@ static void icon_preview_endjob(void *customdata)
 
 		if (GS(ip->id->name) == ID_BR)
 			WM_main_add_notifier(NC_BRUSH | NA_EDITED, ip->id);
-		
+#if 0		
 		if (GS(ip->id->name) == ID_MA) {
 			Material *ma = (Material *)ip->id;
 			PreviewImage *prv_img = ma->preview;
 			int i;
-			
+
 			/* signal to gpu texture */
 			for (i = 0; i < NUM_ICON_SIZES; ++i) {
 				if (prv_img->gputexture[i]) {
@@ -1031,6 +1031,7 @@ static void icon_preview_endjob(void *customdata)
 				}
 			}
 		}
+#endif
 	}
 }
 
