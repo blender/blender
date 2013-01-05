@@ -657,8 +657,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	 * grid rather than brush alpha */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", DKEY, KM_PRESS, KM_SHIFT, 0);
 	set_brush_rc_props(kmi->ptr, "sculpt", "detail_size", NULL, 0);
-	RNA_string_set(kmi->ptr, "data_path_primary",
-				   "tool_settings.sculpt.detail_size");
+	RNA_string_set(kmi->ptr, "data_path_primary", "tool_settings.sculpt.detail_size");
 
 	/* multires switch */
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", PAGEUPKEY, KM_PRESS, 0, 0);

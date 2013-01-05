@@ -492,7 +492,7 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, P
 		if (n_mcol && ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
 			if (num != DMCACHE_NOTFOUND) {
 				MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
-				MCol *mc = (MCol*)CustomData_get_layer_n(&modifier->dm->faceData, CD_MCOL, vcol_no);
+				MCol *mc = (MCol *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MCOL, vcol_no);
 				mc += num * 4;
 
 				psys_interpolate_mcol(mc, mface->v4, particle->fuv, &mcol);
@@ -517,7 +517,7 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, P
 			if (n_mcol && ELEM(PART_FROM_FACE, PART_FROM_FACE, PART_FROM_VOLUME)) {
 				if (cpa->num != DMCACHE_NOTFOUND) {
 					MFace *mface = modifier->dm->getTessFaceData(modifier->dm, cpa->num, CD_MFACE);
-					MCol *mc = (MCol*)CustomData_get_layer_n(&modifier->dm->faceData, CD_MCOL, 0);
+					MCol *mc = (MCol *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MCOL, 0);
 					mc += cpa->num * 4;
 
 					psys_interpolate_mcol(mc, mface->v4, cpa->fuv, &mcol);
@@ -543,7 +543,7 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, P
 			if (n_mcol && ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
 				if (num != DMCACHE_NOTFOUND) {
 					MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
-					MCol *mc = (MCol*)CustomData_get_layer_n(&modifier->dm->faceData, CD_MCOL, 0);
+					MCol *mc = (MCol *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MCOL, 0);
 					mc += num * 4;
 
 					psys_interpolate_mcol(mc, mface->v4, parent->fuv, &mcol);
