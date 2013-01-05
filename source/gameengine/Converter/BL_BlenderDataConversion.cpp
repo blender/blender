@@ -650,11 +650,10 @@ static bool ConvertMaterial(
 							material->texname[i] = material->img[i]->id.name;
 							material->flag[i] |= ( mttmp->tex->imaflag &TEX_MIPMAP )?MIPMAP:0;
 							// -----------------------
-							if ( mttmp->tex->imaflag &TEX_USEALPHA ) {
+							if (material->img[i] && (material->img[i]->flag & IMA_IGNORE_ALPHA) == 0)
 								material->flag[i]	|= USEALPHA;
-							}
 							// -----------------------
-							else if ( mttmp->tex->imaflag &TEX_CALCALPHA ) {
+							if ( mttmp->tex->imaflag &TEX_CALCALPHA ) {
 								material->flag[i]	|= CALCALPHA;
 							}
 							else if (mttmp->tex->flag &TEX_NEGALPHA) {
