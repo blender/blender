@@ -1576,14 +1576,17 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 				}
 			}
 			break;
+		case NSEventTypeBeginGesture:
+			m_hasMultiTouchTrackpad = 1;
+			break;
+		case NSEventTypeEndGesture:
+			m_hasMultiTouchTrackpad = 0;
+			break;
 			
 		case NSScrollWheel:
 			{
-				int momentum = 0;
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
-				m_hasMultiTouchTrackpad = 0;
-				momentum = [event momentumPhase] || [event phase];
-#endif
+				int momentum = [event momentumPhase];
+
 				/* standard scrollwheel case */
 				if (!m_hasMultiTouchTrackpad && momentum == 0) {
 					GHOST_TInt32 delta;
