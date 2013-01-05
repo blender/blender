@@ -416,6 +416,9 @@ void nearest_interpolation_color(struct ImBuf *in, unsigned char col[4], float c
 void bilinear_interpolation_color(struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
 void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
 
+void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[3]);
+void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, float backcol[3]);
+
 /**
  *
  * \attention defined in readimage.c

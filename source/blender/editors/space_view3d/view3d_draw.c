@@ -2393,7 +2393,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 		invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
 		/* no need to call ED_view3d_draw_offscreen_init since shadow buffers were already updated */
-		ED_view3d_draw_offscreen(scene, v3d, &ar, winsize, winsize, viewmat, winmat, FALSE, FALSE);
+		ED_view3d_draw_offscreen(scene, v3d, &ar, winsize, winsize, viewmat, winmat, FALSE);
 		GPU_lamp_shadow_buffer_unbind(shadow->lamp);
 		
 		v3d->drawtype = drawtype;
@@ -2540,13 +2540,11 @@ void ED_view3d_draw_offscreen_init(Scene *scene, View3D *v3d)
 /* ED_view3d_draw_offscreen_init should be called before this to initialize
  * stuff like shadow buffers
  */
-void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
-                              int winx, int winy, float viewmat[4][4], float winmat[4][4],
-                              int do_bgpic, int colormanage_background)
+void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, int winy,
+                              float viewmat[4][4], float winmat[4][4], int do_bgpic)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
-	float backcol[3];
 	int bwinx, bwiny;
 	rcti brect;
 
@@ -2574,34 +2572,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	 * warning! can be slow so only free animated images - campbell */
 	GPU_free_images_anim();
 
-	/* set background color, fallback on the view background color
-	 * (if active clip is set but frame is failed to load fallback to horizon color as background) */
-	if (scene->world) {
-		/* NOTE: currently OpenGL is supposed to always work in sRGB space and do not
-		 *       apply any tonemaps since it's really tricky to support for all features (GLSL, textures, etc)
-		 *       but due to compatibility issues background is being affected display transform, so we can
-		 *       emulate behavior of disabled color management
-		 *       but this function is also used for sequencer's scene strips which shouldn't be affected by
-		 *       tonemaps now and should be purely sRGB, that's why we've got this colormanage_background
-		 *       we can drop this flag in cost of some compatibility loss -- background wouldn't be
-		 *       color managed in 3d viewport
-		 *       same goes to opengl rendering, where color profile should be applied as very final step
-		 */
-
-		if (colormanage_background) {
-			IMB_colormanagement_pixel_to_display_space_v3(backcol, &scene->world->horr, &scene->view_settings,
-			                                              &scene->display_settings);
-		}
-		else {
-			linearrgb_to_srgb_v3_v3(backcol, &scene->world->horr);
-		}
-
-		glClearColor(backcol[0], backcol[1], backcol[2], 0.0f);
-	}
-	else {
-		 UI_ThemeClearColor(TH_BACK);
-	}
-
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -2703,10 +2674,30 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	G.f &= ~G_RENDER_OGL;
 }
 
+/* get a color used for offscreen sky, returns color in sRGB space */
+void ED_view3d_offscreen_sky_color_get(Scene *scene, float sky_color[3])
+{
+	if (scene->world)
+		linearrgb_to_srgb_v3_v3(sky_color, &scene->world->horr);
+	else
+		UI_GetThemeColor3fv(TH_BACK, sky_color);
+}
+
+static void offscreen_imbuf_add_sky(ImBuf *ibuf, Scene *scene)
+{
+	float sky_color[3];
+
+	ED_view3d_offscreen_sky_color_get(scene, sky_color);
+
+	if (ibuf->rect_float)
+		IMB_alpha_under_color_float(ibuf->rect_float, ibuf->x, ibuf->y, sky_color);
+	else
+		IMB_alpha_under_color_byte((unsigned char *) ibuf->rect, ibuf->x, ibuf->y, sky_color);
+}
+
 /* utility func for ED_view3d_draw_offscreen */
-ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
-                                      int sizex, int sizey, unsigned int flag, int draw_background,
-                                      int colormanage_background, char err_out[256])
+ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, int sizex, int sizey, unsigned int flag,
+                                      int draw_background, int alpha_mode, char err_out[256])
 {
 	RegionView3D *rv3d = ar->regiondata;
 	ImBuf *ibuf;
@@ -2733,10 +2724,10 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
 		BKE_camera_params_compute_viewplane(&params, sizex, sizey, scene->r.xasp, scene->r.yasp);
 		BKE_camera_params_compute_matrix(&params);
 
-		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, params.winmat, draw_background, colormanage_background);
+		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, params.winmat, draw_background);
 	}
 	else {
-		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, NULL, draw_background, colormanage_background);
+		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, NULL, draw_background);
 	}
 
 	/* read in pixels & stamp */
@@ -2746,6 +2737,9 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
 		GPU_offscreen_read_pixels(ofs, GL_FLOAT, ibuf->rect_float);
 	else if (ibuf->rect)
 		GPU_offscreen_read_pixels(ofs, GL_UNSIGNED_BYTE, ibuf->rect);
+
+	if (alpha_mode == R_ADDSKY)
+		offscreen_imbuf_add_sky(ibuf, scene);
 
 	/* unbind */
 	GPU_offscreen_unbind(ofs);
@@ -2760,9 +2754,8 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
 }
 
 /* creates own 3d views, used by the sequencer */
-ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int width, int height,
-                                             unsigned int flag, int drawtype, int use_solid_tex, int draw_background,
-                                             int colormanage_background, char err_out[256])
+ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int width, int height, unsigned int flag, int drawtype,
+                                             int use_solid_tex, int draw_background, int alpha_mode, char err_out[256])
 {
 	View3D v3d = {NULL};
 	ARegion ar = {NULL};
@@ -2805,7 +2798,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int w
 	invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
 	return ED_view3d_draw_offscreen_imbuf(scene, &v3d, &ar, width, height, flag,
-	                                      draw_background, colormanage_background, err_out);
+	                                      draw_background, alpha_mode, err_out);
 
 	// seq_view3d_cb(scene, cfra, render_size, seqrectx, seqrecty);
 }

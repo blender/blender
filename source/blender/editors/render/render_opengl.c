@@ -43,6 +43,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_world_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -192,7 +193,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		}
 
 		if ((scene->r.mode & R_OSA) == 0) {
-			ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat, TRUE, FALSE);
+			ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat, TRUE);
 			GPU_offscreen_read_pixels(oglrender->ofs, GL_FLOAT, rr->rectf);
 		}
 		else {
@@ -206,7 +207,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			BLI_jitter_init(jit_ofs[0], scene->r.osa);
 
 			/* first sample buffer, also initializes 'rv3d->persmat' */
-			ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat, TRUE, FALSE);
+			ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat, TRUE);
 			GPU_offscreen_read_pixels(oglrender->ofs, GL_FLOAT, accum_buffer);
 
 			/* skip the first sample */
@@ -216,7 +217,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 				                    (jit_ofs[j][0] * 2.0f) / sizex,
 				                    (jit_ofs[j][1] * 2.0f) / sizey);
 
-				ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat_jitter, TRUE, FALSE);
+				ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat_jitter, TRUE);
 				GPU_offscreen_read_pixels(oglrender->ofs, GL_FLOAT, accum_tmp);
 				add_vn_vn(accum_buffer, accum_tmp, sizex * sizey * sizeof(float));
 			}
@@ -232,7 +233,8 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	else {
 		/* shouldnt suddenly give errors mid-render but possible */
 		char err_out[256] = "unknown";
-		ImBuf *ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(scene, scene->camera, oglrender->sizex, oglrender->sizey, IB_rectfloat, OB_SOLID, FALSE, TRUE, FALSE, err_out);
+		ImBuf *ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(scene, scene->camera, oglrender->sizex, oglrender->sizey,
+		                                                         IB_rectfloat, OB_SOLID, FALSE, TRUE, R_ALPHAPREMUL, err_out);
 		camera = scene->camera;
 
 		if (ibuf_view) {
@@ -243,7 +245,13 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			fprintf(stderr, "%s: failed to get buffer, %s\n", __func__, err_out);
 		}
 	}
-	
+
+	if (scene->r.alphamode == R_ADDSKY) {
+		float sky_color[3];
+		ED_view3d_offscreen_sky_color_get(scene, sky_color);
+		IMB_alpha_under_color_float(rr->rectf, sizex, sizey, sky_color);
+	}
+
 	/* note on color management:
 	 *
 	 * OpenGL renders into sRGB colors, but render buffers are expected to be
