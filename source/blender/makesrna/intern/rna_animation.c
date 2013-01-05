@@ -577,7 +577,7 @@ static void rna_def_keyingset_info(BlenderRNA *brna)
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 	
-	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_TRANSLATE);
+	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "description");
 	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
@@ -777,7 +777,7 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_update(prop, NC_SCENE | ND_KEYINGSET | NA_RENAME, NULL);
 	
-	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_TRANSLATE);
+	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "description");
 	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
