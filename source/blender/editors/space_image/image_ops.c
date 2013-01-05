@@ -299,8 +299,8 @@ static int image_view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		SpaceImage *sima = CTX_wm_space_image(C);
 		float offset[2];
 		
-		offset[0] = (event->x - event->prevx) / sima->zoom;
-		offset[1] = (event->y - event->prevy) / sima->zoom;
+		offset[0] = (event->prevx - event->x) / sima->zoom;
+		offset[1] = (event->prevy - event->y) / sima->zoom;
 		RNA_float_set_array(op->ptr, "offset", offset);
 
 		image_view_pan_exec(C, op);

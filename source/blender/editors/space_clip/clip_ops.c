@@ -382,8 +382,8 @@ static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		SpaceClip *sc = CTX_wm_space_clip(C);
 		float offset[2];
 
-		offset[0] = (event->x - event->prevx) / sc->zoom;
-		offset[1] = (event->y - event->prevy) / sc->zoom;
+		offset[0] = (event->prevx - event->x) / sc->zoom;
+		offset[1] = (event->prevy - event->y) / sc->zoom;
 
 		RNA_float_set_array(op->ptr, "offset", offset);
 
