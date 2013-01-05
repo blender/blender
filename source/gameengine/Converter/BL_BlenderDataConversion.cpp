@@ -1264,7 +1264,7 @@ static PHY_MaterialProps *CreateMaterialFromBlenderObject(struct Object* blender
 	
 	MT_assert(materialProps && "Create physics material properties failed");
 		
-	Material* blendermat = give_current_material(blenderobject, 0);
+	Material* blendermat = give_current_material(blenderobject, 1);
 		
 	if (blendermat)
 	{
