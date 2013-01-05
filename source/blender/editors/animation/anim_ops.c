@@ -62,16 +62,28 @@
 /* Check if the operator can be run from the current context */
 static int change_frame_poll(bContext *C)
 {
-	ScrArea *curarea = CTX_wm_area(C);
+	ScrArea *sa = CTX_wm_area(C);
 	
 	/* XXX temp? prevent changes during render */
-	if (G.is_rendering) return 0;
+	if (G.is_rendering) return FALSE;
 	
-	/* as long as there is an active area, and it isn't a Graph Editor 
-	 * (since the Graph Editor has its own version which does extra stuff),
-	 * we're fine
+	/* although it's only included in keymaps for regions using ED_KEYMAP_ANIMATION,
+	 * this shouldn't show up in 3D editor (or others without 2D timeline view) via search
 	 */
-	return ((curarea) && (curarea->spacetype != SPACE_IPO));
+	if (sa) {
+		if (ELEM5(sa->spacetype, SPACE_TIME, SPACE_ACTION, SPACE_NLA, SPACE_SEQ, SPACE_CLIP)) {
+			return TRUE;
+		}
+		else if (sa->spacetype == SPACE_IPO) {
+			/* NOTE: Graph Editor has special version which does some extra stuff.
+			 * No need to show the generic error message for that case though!
+			 */
+			return FALSE;
+		}
+	}
+	
+	CTX_wm_operator_poll_msg_set(C, "Expected an timeline/animation area to be active");
+	return FALSE;
 }
 
 /* Set the new frame number */
@@ -83,7 +95,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 	/* set the new frame number */
 	CFRA = RNA_int_get(op->ptr, "frame");
 	FRAMENUMBER_MIN_CLAMP(CFRA);
-	SUBFRA = 0.f;
+	SUBFRA = 0.0f;
 	
 	/* do updates */
 	sound_seek_scene(bmain, scene);
@@ -161,7 +173,7 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 static void ANIM_OT_change_frame(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Change frame";
+	ot->name = "Change Frame";
 	ot->idname = "ANIM_OT_change_frame";
 	ot->description = "Interactively change the current frame number";
 	
@@ -175,7 +187,7 @@ static void ANIM_OT_change_frame(wmOperatorType *ot)
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_UNDO | OPTYPE_GRAB_POINTER;
 
 	/* rna */
-	RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
+	ot->prop = RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
 }
 
 /* ****************** set preview range operator ****************************/
