@@ -1921,6 +1921,9 @@ PyObject *initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 		PySys_SetObject("argv", py_argv);
 		Py_DECREF(py_argv);
 	}
+	
+	/* Initialize thread support (also acquires lock) */
+	PyEval_InitThreads();
 
 	bpy_import_init(PyEval_GetBuiltins());
 
