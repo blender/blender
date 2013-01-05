@@ -8594,10 +8594,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for (tex = main->tex.first; tex; tex = tex->id.next) {
 			if (tex->type == TEX_IMAGE && (tex->imaflag & TEX_USEALPHA) == 0) {
-				if (tex->ima) {
-					image = blo_do_versions_newlibadr(fd, lib, tex->ima);
+				image = blo_do_versions_newlibadr(fd, tex->id.lib, tex->ima);
+
+				if (image)
 					image->flag |= IMA_IGNORE_ALPHA;
-				}
 			}
 		}
 	}
