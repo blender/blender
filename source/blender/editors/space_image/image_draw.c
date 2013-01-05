@@ -587,8 +587,8 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene,
 		sima->curtile = ima->xrep * ima->yrep - 1;
 	
 	/* retrieve part of image buffer */
-	dx = ibuf->x / ima->xrep;
-	dy = ibuf->y / ima->yrep;
+	dx = max_ii(ibuf->x / ima->xrep, 1);
+	dy = max_ii(ibuf->y / ima->yrep, 1);
 	sx = (sima->curtile % ima->xrep) * dx;
 	sy = (sima->curtile / ima->xrep) * dy;
 	rect = get_part_from_buffer((unsigned int *)display_buffer, ibuf->x, sx, sy, sx + dx, sy + dy);
