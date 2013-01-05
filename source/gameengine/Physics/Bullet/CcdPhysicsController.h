@@ -391,10 +391,33 @@ struct CcdConstructionInfo
 
 };
 
-
 class btRigidBody;
 class btCollisionObject;
 class btSoftBody;
+class btPairCachingGhostObject;
+
+class BlenderBulletCharacterController : public btKinematicCharacterController
+{
+private:
+	btMotionState* m_motionState;
+	int m_jumps;
+	int m_maxJumps;
+
+public:
+	BlenderBulletCharacterController(btMotionState *motionState, btPairCachingGhostObject *ghost, btConvexShape* shape, float stepHeight);
+
+	virtual void updateAction(btCollisionWorld *collisionWorld, btScalar dt);
+
+	int getMaxJumps() const;
+
+	void setMaxJumps(int maxJumps);
+
+	int getJumpCount() const;
+
+	virtual bool canJump() const;
+
+	virtual void jump();
+};
 
 ///CcdPhysicsController is a physics object that supports continuous collision detection and time of impact based physics resolution.
 class CcdPhysicsController : public PHY_IPhysicsController

@@ -673,6 +673,10 @@ class Panel(StructRNA, _GenericUI, metaclass=RNAMeta):
     __slots__ = ()
 
 
+class UIList(StructRNA, _GenericUI, metaclass=RNAMeta):
+    __slots__ = ()
+
+
 class Header(StructRNA, _GenericUI, metaclass=RNAMeta):
     __slots__ = ()
 

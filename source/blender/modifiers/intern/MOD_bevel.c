@@ -140,7 +140,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
 		}
 	}
 
-	BM_mesh_bevel(bm, bmd->value, segments);
+	BM_mesh_bevel(bm, bmd->value, segments, bmd->flags & BME_BEVEL_VERT);
 
 	result = CDDM_from_bmesh(bm, TRUE);
 

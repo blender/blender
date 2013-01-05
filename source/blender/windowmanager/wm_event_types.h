@@ -53,6 +53,9 @@
 #define MOUSEX		4
 #define MOUSEY		5
 
+
+/* *** wmEvent.type *** */
+
 /* non-event, for example disabled timer */
 #define EVENT_NONE		0
 /* MOUSE : 0x00x */
@@ -154,8 +157,7 @@ enum {
 #define TIMERF			0x011F	/* last timer */
 
 /* test whether the event is timer event */
-#define ISTIMER(event)	(event >= TIMER && event <= TIMERF)
-
+#define ISTIMER(event_type)	(event_type >= TIMER && event_type <= TIMERF)
 
 /* standard keyboard */
 #define AKEY		'a'
@@ -289,29 +291,30 @@ enum {
 /* for event checks */
 	/* only used for KM_TEXTINPUT, so assume that we want all user-inputtable ascii codes included */
 	/* UNUSED - see wm_eventmatch - BUG [#30479] */
-// #define ISTEXTINPUT(event)  (event >= ' ' && event <= 255)
+// #define ISTEXTINPUT(event_type)  (event_type >= ' ' && event_type <= 255)
+/* note, an alternative could be to check 'event->utf8_buf' */
 
 	/* test whether the event is a key on the keyboard */
-#define ISKEYBOARD(event)  (event >= ' ' && event <= 320)
+#define ISKEYBOARD(event_type)  (event_type >= ' ' && event_type <= 320)
 
 	/* test whether the event is a modifier key */
-#define ISKEYMODIFIER(event)  ((event >= LEFTCTRLKEY && event <= LEFTSHIFTKEY) || event == OSKEY)
+#define ISKEYMODIFIER(event_type)  ((event_type >= LEFTCTRLKEY && event_type <= LEFTSHIFTKEY) || event_type == OSKEY)
 
 	/* test whether the event is a mouse button */
-#define ISMOUSE(event)  (event >= LEFTMOUSE && event <= MOUSEROTATE)
+#define ISMOUSE(event_type)  (event_type >= LEFTMOUSE && event_type <= MOUSEROTATE)
 
 	/* test whether the event is tweak event */
-#define ISTWEAK(event)  (event >= EVT_TWEAK_L && event <= EVT_GESTURE)
+#define ISTWEAK(event_type)  (event_type >= EVT_TWEAK_L && event_type <= EVT_GESTURE)
 
 	/* test whether the event is a NDOF event */
-#define ISNDOF(event)  (event >= NDOF_MOTION && event < NDOF_LAST)
+#define ISNDOF(event_type)  (event_type >= NDOF_MOTION && event_type < NDOF_LAST)
 
 /* test whether event type is acceptable as hotkey, excluding modifiers */
-#define ISHOTKEY(event)                                           \
-	((ISKEYBOARD(event) || ISMOUSE(event) || ISNDOF(event)) &&    \
-	 (event != ESCKEY) &&                                         \
-	 (event >= LEFTCTRLKEY && event <= LEFTSHIFTKEY) == FALSE &&  \
-	 (event >= UNKNOWNKEY  && event <= GRLESSKEY) == FALSE)
+#define ISHOTKEY(event_type)                                                  \
+	((ISKEYBOARD(event_type) || ISMOUSE(event_type) || ISNDOF(event_type)) && \
+	 (event_type != ESCKEY) &&                                                \
+	 (event_type >= LEFTCTRLKEY && event_type <= LEFTSHIFTKEY) == FALSE &&    \
+	 (event_type >= UNKNOWNKEY  && event_type <= GRLESSKEY) == FALSE)
 
 /* **************** BLENDER GESTURE EVENTS (0x5000) **************** */
 

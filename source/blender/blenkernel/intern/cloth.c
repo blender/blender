@@ -1153,7 +1153,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		if ( !mface[i].v4 )
 			continue;
 
-		spring = ( ClothSpring *) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
+		spring = (ClothSpring *)MEM_callocN(sizeof(ClothSpring), "cloth spring");
 		
 		if (!spring) {
 			cloth_free_errorsprings(cloth, edgehash, edgelist);

@@ -808,9 +808,16 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 	
 	if (RNA_struct_property_is_set(op->ptr, "name")) {
 		char name[MAX_ID_NAME - 2];
-
+		
 		RNA_string_get(op->ptr, "name", name);
 		group = (Group *)BKE_libblock_find_name(ID_GR, name);
+		
+		if (0 == RNA_struct_property_is_set(op->ptr, "location")) {
+			wmEvent *event = CTX_wm_window(C)->eventstate;
+			ED_object_location_from_view(C, loc);
+			ED_view3d_cursor3d_position(C, loc, event->x, event->y);
+			RNA_float_set_array(op->ptr, "location", loc);
+		}
 	}
 	else
 		group = BLI_findlink(&CTX_data_main(C)->group, RNA_enum_get(op->ptr, "group"));
@@ -1994,6 +2001,7 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 
 static int add_named_exec(bContext *C, wmOperator *op)
 {
+	wmEvent *event = CTX_wm_window(C)->eventstate;
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Base *basen, *base;
@@ -2026,6 +2034,8 @@ static int add_named_exec(bContext *C, wmOperator *op)
 	basen->lay = basen->object->lay = scene->lay;
 
 	ED_object_location_from_view(C, basen->object->loc);
+	ED_view3d_cursor3d_position(C, basen->object->loc, event->x, event->y);
+	
 	ED_base_object_activate(C, basen);
 
 	copy_object_set_idnew(C, dupflag);

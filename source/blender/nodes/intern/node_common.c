@@ -305,7 +305,7 @@ void node_group_verify(struct bNodeTree *ntree, struct bNode *node, struct ID *i
 {
 	/* check inputs and outputs, and remove or insert them */
 	if (node->id==id) {
-		bNodeTree *ngroup= (bNodeTree*)node->id;
+		bNodeTree *ngroup= (bNodeTree *)node->id;
 		group_verify_socket_list(ntree, node, &node->inputs, SOCK_IN, &ngroup->inputs);
 		group_verify_socket_list(ntree, node, &node->outputs, SOCK_OUT, &ngroup->outputs);
 	}
@@ -314,7 +314,7 @@ void node_group_verify(struct bNodeTree *ntree, struct bNode *node, struct ID *i
 struct bNodeTree *node_group_edit_get(bNode *node)
 {
 	if (node->flag & NODE_GROUP_EDIT)
-		return (bNodeTree*)node->id;
+		return (bNodeTree *)node->id;
 	else
 		return NULL;
 }
@@ -322,7 +322,7 @@ struct bNodeTree *node_group_edit_get(bNode *node)
 struct bNodeTree *node_group_edit_set(bNode *node, int edit)
 {
 	if (edit) {
-		bNodeTree *ngroup= (bNodeTree*)node->id;
+		bNodeTree *ngroup= (bNodeTree *)node->id;
 		if (ngroup) {
 			if (ngroup->id.lib)
 				ntreeMakeLocal(ngroup);
@@ -339,7 +339,7 @@ struct bNodeTree *node_group_edit_set(bNode *node, int edit)
 
 void node_group_edit_clear(bNode *node)
 {
-	bNodeTree *ngroup= (bNodeTree*)node->id;
+	bNodeTree *ngroup= (bNodeTree *)node->id;
 	bNode *inode;
 	
 	node->flag &= ~NODE_GROUP_EDIT;

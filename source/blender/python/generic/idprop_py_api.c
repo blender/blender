@@ -836,6 +836,11 @@ static PyObject *BPy_IDGroup_to_dict(BPy_IDProperty *self)
 	return BPy_IDGroup_MapDataToPy(self->prop);
 }
 
+static PyObject *BPy_IDGroup_clear(BPy_IDProperty *self)
+{
+	IDP_ClearProperty(self->prop);
+	Py_RETURN_NONE;
+}
 
 /* Matches python dict.get(key, [default]) */
 static PyObject *BPy_IDGroup_Get(BPy_IDProperty *self, PyObject *args)
@@ -875,6 +880,8 @@ static struct PyMethodDef BPy_IDGroup_methods[] = {
 	 "idprop.get(k[,d]) -> idprop[k] if k in idprop, else d.  d defaults to None"},
 	{"to_dict", (PyCFunction)BPy_IDGroup_to_dict, METH_NOARGS,
 	 "return a purely python version of the group"},
+	{"clear", (PyCFunction)BPy_IDGroup_clear, METH_NOARGS,
+	 "clear all members from this group"},
 	{NULL, NULL, 0, NULL}
 };
 

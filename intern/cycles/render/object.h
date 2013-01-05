@@ -48,6 +48,7 @@ public:
 	MotionTransform motion;
 	bool use_motion;
 	bool use_holdout;
+	bool curverender;
 
 	float3 dupli_generated;
 	float2 dupli_uv;

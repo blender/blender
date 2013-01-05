@@ -19,10 +19,10 @@
  *		Dalai Felinto
  */
 
-#include "COM_ConvertKeyToPremulOperation.h"
+#include "COM_ConvertPremulToStraightOperation.h"
 #include "BLI_math.h"
 
-ConvertKeyToPremulOperation::ConvertKeyToPremulOperation() : NodeOperation()
+ConvertPremulToStraightOperation::ConvertPremulToStraightOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
@@ -30,12 +30,12 @@ ConvertKeyToPremulOperation::ConvertKeyToPremulOperation() : NodeOperation()
 	this->m_inputColor = NULL;
 }
 
-void ConvertKeyToPremulOperation::initExecution()
+void ConvertPremulToStraightOperation::initExecution()
 {
 	this->m_inputColor = getInputSocketReader(0);
 }
 
-void ConvertKeyToPremulOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+void ConvertPremulToStraightOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	float inputValue[4];
 	float alpha;
@@ -43,13 +43,18 @@ void ConvertKeyToPremulOperation::executePixel(float output[4], float x, float y
 	this->m_inputColor->read(inputValue, x, y, sampler);
 	alpha = inputValue[3];
 
-	mul_v3_v3fl(output, inputValue, alpha);
+	if (fabsf(alpha) < 1e-5f) {
+		zero_v3(output);
+	}
+	else {
+		mul_v3_v3fl(output, inputValue, 1.0f / alpha);
+	}
 
 	/* never touches the alpha */
 	output[3] = alpha;
 }
 
-void ConvertKeyToPremulOperation::deinitExecution()
+void ConvertPremulToStraightOperation::deinitExecution()
 {
 	this->m_inputColor = NULL;
 }

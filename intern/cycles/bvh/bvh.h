@@ -51,7 +51,9 @@ struct PackedBVH {
 	/* object index to BVH node index mapping for instances */
 	array<int> object_node; 
 	/* precomputed triangle intersection data, one triangle is 4x float4 */
-	array<float4> tri_woop; 
+	array<float4> tri_woop;
+	/* primitive type - triangle or strand (should be moved to flag?) */
+	array<int> prim_segment;
 	/* visibility visibilitys for primitives */
 	array<uint> prim_visibility;
 	/* mapping from BVH primitive index to true primitive index, as primitives
@@ -101,9 +103,10 @@ protected:
 	bool cache_read(CacheData& key);
 	void cache_write(CacheData& key);
 
-	/* triangles */
-	void pack_triangles();
+	/* triangles and strands*/
+	void pack_primitives();
 	void pack_triangle(int idx, float4 woop[3]);
+	void pack_curve_segment(int idx, float4 woop[3]);
 
 	/* merge instance BVH's */
 	void pack_instances(size_t nodes_size);

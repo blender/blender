@@ -62,8 +62,7 @@ class RenderFreestyleButtonsPanel(RenderButtonsPanel):
     def poll(cls, context):
         if not super().poll(context):
             return False
-        rd = context.scene.render
-        return 'FREESTYLE' in bpy.app.build_options
+        return bpy.app.build_options.freestyle
 
 
 class RENDER_PT_render(RenderButtonsPanel, Panel):
@@ -522,9 +521,12 @@ class RENDER_PT_bake(RenderButtonsPanel, Panel):
             split = layout.split()
 
             col = split.column()
-            col.prop(rd, "use_bake_clear")
-            col.prop(rd, "bake_margin")
-            col.prop(rd, "bake_quad_split", text="Split")
+            col.prop(rd, "use_bake_to_vertex_color")
+            sub = col.column()
+            sub.active = not rd.use_bake_to_vertex_color
+            sub.prop(rd, "use_bake_clear")
+            sub.prop(rd, "bake_margin")
+            sub.prop(rd, "bake_quad_split", text="Split")
 
             col = split.column()
             col.prop(rd, "use_bake_selected_to_active")

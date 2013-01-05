@@ -47,7 +47,7 @@ void EdgeDice::reserve(int num_verts, int num_tris)
 	vert_offset = mesh->verts.size();
 	tri_offset = mesh->triangles.size();
 
-	mesh->reserve(vert_offset + num_verts, tri_offset + num_tris);
+	mesh->reserve(vert_offset + num_verts, tri_offset + num_tris, 0, 0);
 
 	Attribute *attr_vN = mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
 

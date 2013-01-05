@@ -703,6 +703,8 @@ bool GPG_Application::startEngine(void)
 			m_sceneconverter->SetMaterials(true);
 		if (m_blenderglslmat && (m_globalSettings->matmode == GAME_MAT_GLSL))
 			m_sceneconverter->SetGLSLMaterials(true);
+		if (m_startScene->gm.flag & GAME_NO_MATERIAL_CACHING)
+			m_sceneconverter->SetCacheMaterials(false);
 
 		KX_Scene* startscene = new KX_Scene(m_keyboard,
 			m_mouse,

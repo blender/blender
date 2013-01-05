@@ -59,12 +59,16 @@ typedef struct VertTableNode {
 	float *tangent;
 	float *stress;
 	float *winspeed;
+	/* Index of vertex in source mesh (before modifiers). */
+	int *origindex;
 } VertTableNode;
 
 typedef struct VlakTableNode {
 	struct VlakRen *vlak;
 	struct MTFace *mtface;
 	struct MCol *mcol;
+	/* Index of mpoly in source mesh (before tessellation). */
+	int *origindex;
 	int totmtface, totmcol;
 	float *surfnor;
 	float *tangent;
@@ -114,9 +118,11 @@ float *RE_vertren_get_rad(struct ObjectRen *obr, struct VertRen *ver, int verify
 float *RE_vertren_get_strand(struct ObjectRen *obr, struct VertRen *ver, int verify);
 float *RE_vertren_get_tangent(struct ObjectRen *obr, struct VertRen *ver, int verify);
 float *RE_vertren_get_winspeed(struct ObjectInstanceRen *obi, struct VertRen *ver, int verify);
+int *RE_vertren_get_origindex(struct ObjectRen *obr, VertRen *ver, int verify);
 
 struct MTFace *RE_vlakren_get_tface(struct ObjectRen *obr, VlakRen *ren, int n, char **name, int verify);
 struct MCol *RE_vlakren_get_mcol(struct ObjectRen *obr, VlakRen *ren, int n, char **name, int verify);
+int *RE_vlakren_get_origindex(struct ObjectRen *obr, VlakRen *vlak, int verify);
 float *RE_vlakren_get_surfnor(struct ObjectRen *obr, VlakRen *ren, int verify);
 float *RE_vlakren_get_nmap_tangent(struct ObjectRen *obr, VlakRen *ren, int verify);
 RadFace **RE_vlakren_get_radface(struct ObjectRen *obr, VlakRen *ren, int verify);

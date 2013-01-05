@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Menu, Panel
+from bpy.types import Menu, Panel, UIList
 
 
 class RenderLayerButtonsPanel():
@@ -41,7 +41,7 @@ class RenderLayerFreestyleButtonsPanel(RenderLayerButtonsPanel):
         if not super().poll(context):
             return False
         rd = context.scene.render
-        return 'FREESTYLE' in bpy.app.build_options and rd.use_freestyle and rd.layers.active
+        return bpy.app.build_options.freestyle and rd.use_freestyle and rd.layers.active
 
 
 class RenderLayerFreestyleEditorButtonsPanel(RenderLayerFreestyleButtonsPanel):
@@ -53,6 +53,46 @@ class RenderLayerFreestyleEditorButtonsPanel(RenderLayerFreestyleButtonsPanel):
             return False
         rl = context.scene.render.layers.active
         return rl and rl.freestyle_settings.mode == 'EDITOR'
+
+
+class RENDERLAYER_UL_renderlayers(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        # assert(isinstance(item, bpy.types.SceneRenderLayer)
+        layer = item
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.label(layer.name, icon_value=icon)
+            layout.prop(layer, "use", text="", index=index)
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label("", icon_value=icon)
+
+#	else if (RNA_struct_is_a(itemptr->type, &RNA_SceneRenderLayer)) {
+#		uiItemL(sub, name, icon);
+#		uiBlockSetEmboss(block, UI_EMBOSS);
+#		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "use", 0, 0, 0, 0, 0,  NULL);
+#	}
+
+
+class RENDERLAYER_UL_linesets(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        lineset = item
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.label(lineset.name, icon_value=icon)
+            layout.prop(lineset, "use", text="", index=index)
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label("", icon_value=icon)
+
+##ifdef WITH_FREESTYLE
+#	else if (RNA_struct_is_a(itemptr->type, &RNA_SceneRenderLayer) || 
+#	         RNA_struct_is_a(itemptr->type, &RNA_FreestyleLineSet)) {
+##else
+#	else if (RNA_struct_is_a(itemptr->type, &RNA_SceneRenderLayer)) {
+##endif
+#		uiItemL(sub, name, icon);
+#		uiBlockSetEmboss(block, UI_EMBOSS);
+#		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "use", 0, 0, 0, 0, 0,  NULL);
+#	}
 
 
 class RENDERLAYER_PT_layers(RenderLayerButtonsPanel, Panel):
@@ -67,7 +107,7 @@ class RENDERLAYER_PT_layers(RenderLayerButtonsPanel, Panel):
         rd = scene.render
 
         row = layout.row()
-        row.template_list(rd, "layers", rd.layers, "active_index", rows=2)
+        row.template_list("RENDERLAYER_UL_renderlayers", "", rd, "layers", rd.layers, "active_index", rows=2)
 
         col = row.column(align=True)
         col.operator("scene.render_layer_add", icon='ZOOMIN', text="")
@@ -96,7 +136,7 @@ class RENDERLAYER_PT_layer_options(RenderLayerButtonsPanel, Panel):
 
         col = split.column()
         col.prop(scene, "layers", text="Scene")
-#        col.label(text="")
+        col.label(text="")
         col.prop(rl, "light_override", text="Light")
         col.prop(rl, "material_override", text="Material")
 
@@ -111,23 +151,22 @@ class RENDERLAYER_PT_layer_options(RenderLayerButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        row = col.row(align=True)
-        row.prop(rl, "use_zmask")
-        sub = row.row(align=True)
-        sub.prop(rl, "invert_zmask", text="", icon='ZOOMOUT')
-        sub.active = rl.use_zmask
+        col.prop(rl, "use_zmask")
+        row = col.row()
+        row.prop(rl, "invert_zmask", text="Negate")
+        row.active = rl.use_zmask
         col.prop(rl, "use_all_z")
-        col.prop(rl, "use_ztransp")
 
         col = split.column()
         col.prop(rl, "use_solid")
         col.prop(rl, "use_halo")
-        col.prop(rl, "use_strand")
+        col.prop(rl, "use_ztransp")
 
         col = split.column()
         col.prop(rl, "use_sky")
         col.prop(rl, "use_edge_enhance")
-        if 'FREESTYLE' in bpy.app.build_options:
+        col.prop(rl, "use_strand")
+        if bpy.app.build_options.freestyle:
             row = col.row()
             row.prop(rl, "use_freestyle")
             row.active = rd.use_freestyle
@@ -267,7 +306,7 @@ class RENDERLAYER_PT_freestyle_lineset(RenderLayerFreestyleEditorButtonsPanel, P
         col = layout.column()
         row = col.row()
         rows = 5 if lineset else 2
-        row.template_list(freestyle, "linesets", freestyle.linesets, "active_index", rows=rows)
+        row.template_list("RENDERLAYER_UL_linesets", "", freestyle, "linesets", freestyle.linesets, "active_index", rows=rows)
 
         sub = row.column()
         subsub = sub.column(align=True)

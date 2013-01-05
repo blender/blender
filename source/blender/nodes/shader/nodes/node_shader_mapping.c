@@ -77,7 +77,7 @@ static int gpu_shader_mapping(GPUMaterial *mat, bNode *node, GPUNodeStack *in, G
 	TexMapping *texmap= node->storage;
 	float domin= (texmap->flag & TEXMAP_CLIP_MIN) != 0;
 	float domax= (texmap->flag & TEXMAP_CLIP_MAX) != 0;
-	GPUNodeLink *tmat = GPU_uniform((float*)texmap->mat);
+	GPUNodeLink *tmat = GPU_uniform((float *)texmap->mat);
 	GPUNodeLink *tmin = GPU_uniform(texmap->min);
 	GPUNodeLink *tmax = GPU_uniform(texmap->max);
 	GPUNodeLink *tdomin = GPU_uniform(&domin);

@@ -1577,7 +1577,7 @@ static void ccgdm_pbvh_update(CCGDerivedMesh *ccgdm)
 		CCGFace **faces;
 		int totface;
 
-		BLI_pbvh_get_grid_updates(ccgdm->pbvh, 1, (void ***)&faces, &totface);
+		BKE_pbvh_get_grid_updates(ccgdm->pbvh, 1, (void ***)&faces, &totface);
 		if (totface) {
 			ccgSubSurf_updateFromFaces(ccgdm->ss, 0, faces, totface);
 			ccgSubSurf_updateNormals(ccgdm->ss, faces, totface);
@@ -1715,7 +1715,8 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 
 	if (ccgdm->pbvh && ccgdm->multires.mmd && !fast) {
 		if (dm->numTessFaceData) {
-			BLI_pbvh_draw(ccgdm->pbvh, partial_redraw_planes, NULL, setMaterial);
+			BKE_pbvh_draw(ccgdm->pbvh, partial_redraw_planes, NULL,
+						  setMaterial, FALSE);
 			glShadeModel(GL_FLAT);
 		}
 
@@ -3033,7 +3034,7 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 			 * when the ccgdm gets remade, the assumption is that the topology
 			 * does not change. */
 			ccgdm_create_grids(dm);
-			BLI_pbvh_grids_update(ob->sculpt->pbvh, ccgdm->gridData, ccgdm->gridAdjacency, (void **)ccgdm->gridFaces,
+			BKE_pbvh_grids_update(ob->sculpt->pbvh, ccgdm->gridData, ccgdm->gridAdjacency, (void **)ccgdm->gridFaces,
 			                      ccgdm->gridFlagMats, ccgdm->gridHidden);
 		}
 
@@ -3051,15 +3052,15 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 
 		numGrids = ccgDM_getNumGrids(dm);
 
-		ob->sculpt->pbvh = ccgdm->pbvh = BLI_pbvh_new();
-		BLI_pbvh_build_grids(ccgdm->pbvh, ccgdm->gridData, ccgdm->gridAdjacency,
+		ob->sculpt->pbvh = ccgdm->pbvh = BKE_pbvh_new();
+		BKE_pbvh_build_grids(ccgdm->pbvh, ccgdm->gridData, ccgdm->gridAdjacency,
 		                     numGrids, &key, (void **) ccgdm->gridFaces, ccgdm->gridFlagMats, ccgdm->gridHidden);
 	}
 	else if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
-		ob->sculpt->pbvh = ccgdm->pbvh = BLI_pbvh_new();
+		ob->sculpt->pbvh = ccgdm->pbvh = BKE_pbvh_new();
 		BLI_assert(!(me->mface == NULL && me->mpoly != NULL)); /* BMESH ONLY complain if mpoly is valid but not mface */
-		BLI_pbvh_build_mesh(ccgdm->pbvh, me->mface, me->mvert,
+		BKE_pbvh_build_mesh(ccgdm->pbvh, me->mface, me->mvert,
 		                    me->totface, me->totvert, &me->vdata);
 	}
 

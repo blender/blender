@@ -2407,7 +2407,7 @@ static void smoke_calc_transparency(SmokeDomainSettings *sds, Scene *scene)
 	bv[3] = (float)sds->res[1]; // y
 	bv[5] = (float)sds->res[2]; // z
 
-// #pragma omp parallel for schedule(static,1)
+// #pragma omp parallel for schedule(static, 1)
 	for (z = 0; z < sds->res[2]; z++)
 	{
 		size_t index = z * slabsize;

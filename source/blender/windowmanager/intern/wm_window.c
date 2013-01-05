@@ -544,6 +544,7 @@ void WM_window_open_temp(bContext *C, rcti *position, int type)
 	}
 	
 	ED_screen_set(C, win->screen);
+	ED_screen_refresh(CTX_wm_manager(C), win); /* test scale */
 	
 	if (sa->spacetype == SPACE_IMAGE)
 		GHOST_SetTitle(win->ghostwin, IFACE_("Blender Render"));

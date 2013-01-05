@@ -4204,6 +4204,8 @@ char *RNA_path_full_struct_py(struct PointerRNA *ptr)
 	ret = BLI_sprintfN("%s.%s",
 	                   id_path, data_path);
 
+	MEM_freeN(data_path);
+
 	return ret;
 }
 
@@ -4235,6 +4237,10 @@ char *RNA_path_full_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
 		ret = BLI_sprintfN("%s.%s[%d]",
 		                   id_path, data_path, index);
 	}
+	MEM_freeN(id_path);
+	if (data_path) {
+		MEM_freeN(data_path);
+	}
 
 	return ret;
 }
@@ -4262,6 +4268,10 @@ char *RNA_path_struct_property_py(PointerRNA *ptr, PropertyRNA *prop, int index)
 	else {
 		ret = BLI_sprintfN("%s[%d]",
 		                   data_path, index);
+	}
+
+	if (data_path) {
+		MEM_freeN(data_path);
 	}
 
 	return ret;

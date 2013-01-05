@@ -89,7 +89,7 @@ void ImagesExporter::export_UV_Image(Image *image, bool use_copies)
 			// make absolute destination path
 
 			BLI_strncpy(export_file, name.c_str(), sizeof(export_file));
-			BKE_add_image_extension(export_file, imageFormat.imtype);
+			BKE_add_image_extension(export_file, &imageFormat);
 
 			BLI_join_dirfile(export_path, sizeof(export_path), export_dir, export_file);
 

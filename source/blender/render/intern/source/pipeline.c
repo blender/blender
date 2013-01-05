@@ -341,7 +341,7 @@ void RE_ResultGet32(Render *re, unsigned int *rect)
 	RenderResult rres;
 	
 	RE_AcquireResultImage(re, &rres);
-	render_result_rect_get_pixels(&rres, &re->r, rect, re->rectx, re->recty, &re->scene->view_settings, &re->scene->display_settings);
+	render_result_rect_get_pixels(&rres, rect, re->rectx, re->recty, &re->scene->view_settings, &re->scene->display_settings);
 	RE_ReleaseResultImage(re);
 }
 
@@ -660,7 +660,9 @@ static int render_display_draw_enabled(Render *re)
 static void *do_part_thread(void *pa_v)
 {
 	RenderPart *pa = pa_v;
-	
+
+	pa->status = PART_STATUS_IN_PROGRESS;
+
 	/* need to return nicely all parts on esc */
 	if (R.test_break(R.tbh) == 0) {
 		
@@ -691,7 +693,7 @@ static void *do_part_thread(void *pa_v)
 		}
 	}
 	
-	pa->ready = 1;
+	pa->status = PART_STATUS_READY;
 	
 	return NULL;
 }
@@ -732,7 +734,7 @@ static RenderPart *find_next_pano_slice(Render *re, int *minx, rctf *viewplane)
 	
 	/* most left part of the non-rendering parts */
 	for (pa = re->parts.first; pa; pa = pa->next) {
-		if (pa->ready == 0 && pa->nr == 0) {
+		if (pa->status == PART_STATUS_NONE && pa->nr == 0) {
 			if (pa->disprect.xmin < *minx) {
 				best = pa;
 				*minx = pa->disprect.xmin;
@@ -770,7 +772,7 @@ static RenderPart *find_next_part(Render *re, int minx)
 	
 	/* find center of rendered parts, image center counts for 1 too */
 	for (pa = re->parts.first; pa; pa = pa->next) {
-		if (pa->ready) {
+		if (pa->status == PART_STATUS_READY) {
 			centx += BLI_rcti_cent_x(&pa->disprect);
 			centy += BLI_rcti_cent_y(&pa->disprect);
 			tot++;
@@ -781,7 +783,7 @@ static RenderPart *find_next_part(Render *re, int minx)
 	
 	/* closest of the non-rendering parts */
 	for (pa = re->parts.first; pa; pa = pa->next) {
-		if (pa->ready == 0 && pa->nr == 0) {
+		if (pa->status == PART_STATUS_NONE && pa->nr == 0) {
 			long long int distx = centx - BLI_rcti_cent_x(&pa->disprect);
 			long long int disty = centy - BLI_rcti_cent_y(&pa->disprect);
 			distx = (long long int)sqrt(distx * distx + disty * disty);
@@ -838,7 +840,7 @@ static void threaded_tile_processor(Render *re)
 	
 	if (re->result == NULL)
 		return;
-	
+
 	/* warning; no return here without closing exr file */
 	
 	RE_parts_init(re, TRUE);
@@ -889,7 +891,7 @@ static void threaded_tile_processor(Render *re)
 		rendering = 0;
 		hasdrawn = 0;
 		for (pa = re->parts.first; pa; pa = pa->next) {
-			if (pa->ready) {
+			if (pa->status == PART_STATUS_READY) {
 				
 				BLI_remove_thread(&threads, pa);
 				
@@ -1108,7 +1110,7 @@ static void do_render_blur_3d(Render *re)
 		
 		blurfac = 1.0f / (float)(re->r.mblur_samples - blur);
 		
-		merge_renderresult_blur(rres, re->result, blurfac, re->r.alphamode & R_ALPHAKEY);
+		merge_renderresult_blur(rres, re->result, blurfac, FALSE);
 		if (re->test_break(re->tbh)) break;
 	}
 	
@@ -1253,7 +1255,7 @@ static void do_render_fields_blur_3d(Render *re)
 	Object *camera = RE_GetCamera(re);
 	/* also check for camera here */
 	if (camera == NULL) {
-		printf("ERROR: Cannot render, no camera\n");
+		BKE_report(re->reports, RPT_ERROR, "Cannot render, no camera");
 		G.is_break = TRUE;
 		return;
 	}
@@ -2209,7 +2211,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, SceneRenderLayer *sr
 			}
 			else {
 				char name[FILE_MAX];
-				BKE_makepicstring(name, scene->r.pic, bmain->name, scene->r.cfra, scene->r.im_format.imtype, scene->r.scemode & R_EXTENSION, FALSE);
+				BKE_makepicstring(name, scene->r.pic, bmain->name, scene->r.cfra, &scene->r.im_format, scene->r.scemode & R_EXTENSION, FALSE);
 
 				/* reports only used for Movie */
 				do_write_image_or_movie(re, bmain, scene, NULL, name);
@@ -2279,7 +2281,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 		if (name_override)
 			BLI_strncpy(name, name_override, sizeof(name));
 		else
-			BKE_makepicstring(name, scene->r.pic, bmain->name, scene->r.cfra, scene->r.im_format.imtype, scene->r.scemode & R_EXTENSION, TRUE);
+			BKE_makepicstring(name, scene->r.pic, bmain->name, scene->r.cfra, &scene->r.im_format, scene->r.scemode & R_EXTENSION, TRUE);
 		
 		if (re->r.im_format.imtype == R_IMF_IMTYPE_MULTILAYER) {
 			if (re->result) {
@@ -2307,7 +2309,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 
 				if (BLI_testextensie(name, ".exr"))
 					name[strlen(name) - 4] = 0;
-				BKE_add_image_extension(name, R_IMF_IMTYPE_JPEG90);
+				BKE_add_image_extension(name, &imf);
 				ibuf->planes = 24;
 
 				IMB_colormanagement_imbuf_for_write(ibuf, TRUE, FALSE, &scene->view_settings,
@@ -2412,7 +2414,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			/* Touch/NoOverwrite options are only valid for image's */
 			if (BKE_imtype_is_movie(scene->r.im_format.imtype) == 0) {
 				if (scene->r.mode & (R_NO_OVERWRITE | R_TOUCH))
-					BKE_makepicstring(name, scene->r.pic, bmain->name, scene->r.cfra, scene->r.im_format.imtype, scene->r.scemode & R_EXTENSION, TRUE);
+					BKE_makepicstring(name, scene->r.pic, bmain->name, scene->r.cfra, &scene->r.im_format, scene->r.scemode & R_EXTENSION, TRUE);
 
 				if (scene->r.mode & R_NO_OVERWRITE && BLI_exists(name)) {
 					printf("skipping existing frame \"%s\"\n", name);

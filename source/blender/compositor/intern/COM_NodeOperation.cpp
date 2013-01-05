@@ -34,6 +34,7 @@ NodeOperation::NodeOperation() : NodeBase()
 	this->m_complex = false;
 	this->m_width = 0;
 	this->m_height = 0;
+	this->m_isResolutionSet = false;
 	this->m_openCL = false;
 	this->m_btree = NULL;
 }

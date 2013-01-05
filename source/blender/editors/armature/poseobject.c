@@ -417,7 +417,7 @@ static int pose_select_constraint_target_exec(bContext *C, wmOperator *UNUSED(op
 	{
 		if (pchan->bone->flag & BONE_SELECTED) {
 			for (con = pchan->constraints.first; con; con = con->next) {
-				bConstraintTypeInfo *cti = constraint_get_typeinfo(con);
+				bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
 				ListBase targets = {NULL, NULL};
 				bConstraintTarget *ct;
 				
@@ -925,7 +925,7 @@ static void pose_copy_menu(Scene *scene)
 						/* copy constraints to tmpbase and apply 'local' tags before 
 						 * appending to list of constraints for this channel
 						 */
-						copy_constraints(&tmp_constraints, &pchanact->constraints, TRUE);
+						BKE_copy_constraints(&tmp_constraints, &pchanact->constraints, TRUE);
 						if ((ob->proxy) && (pchan->bone->layer & arm->layer_protected)) {
 							bConstraint *con;
 							
@@ -1034,7 +1034,7 @@ static void pose_copy_menu(Scene *scene)
 				/* copy constraints to tmpbase and apply 'local' tags before 
 				 * appending to list of constraints for this channel
 				 */
-				copy_constraints(&tmp_constraints, &const_copy, TRUE);
+				BKE_copy_constraints(&tmp_constraints, &const_copy, TRUE);
 				if ((ob->proxy) && (pchan->bone->layer & arm->layer_protected)) {
 					/* add proxy-local tags */
 					for (con = tmp_constraints.first; con; con = con->next)

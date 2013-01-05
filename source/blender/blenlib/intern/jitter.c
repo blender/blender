@@ -165,7 +165,7 @@ void BLI_jitter_init(float *jitarr, int num)
 
 	MEM_freeN(jit2);
 	
-	/* finally, move jittertab to be centered around (0,0) */
+	/* finally, move jittertab to be centered around (0, 0) */
 	for (i = 0; i < 2 * num; i += 2) {
 		jitarr[i] -= 0.5f;
 		jitarr[i + 1] -= 0.5f;

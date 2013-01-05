@@ -1620,15 +1620,16 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			 *     2. copy proxy-pchan's constraints on-to new
 			 *     3. add extracted local constraints back on top
 			 *
-			 * Note for copy_constraints: when copying constraints, disable 'do_extern' otherwise
-			 *                            we get the libs direct linked in this blend. */
-			extract_proxylocal_constraints(&proxylocal_constraints, &pchan->constraints);
-			copy_constraints(&pchanw.constraints, &pchanp->constraints, FALSE);
+			 * Note for BKE_copy_constraints: when copying constraints, disable 'do_extern' otherwise
+			 *                                we get the libs direct linked in this blend.
+			 */
+			BKE_extract_proxylocal_constraints(&proxylocal_constraints, &pchan->constraints);
+			BKE_copy_constraints(&pchanw.constraints, &pchanp->constraints, FALSE);
 			BLI_movelisttolist(&pchanw.constraints, &proxylocal_constraints);
 			
 			/* constraints - set target ob pointer to own object */
 			for (con = pchanw.constraints.first; con; con = con->next) {
-				bConstraintTypeInfo *cti = constraint_get_typeinfo(con);
+				bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
 				ListBase targets = {NULL, NULL};
 				bConstraintTarget *ct;
 				
@@ -2426,15 +2427,15 @@ void BKE_pose_where_is_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float
 			/* prepare PoseChannel for Constraint solving
 			 * - makes a copy of matrix, and creates temporary struct to use
 			 */
-			cob = constraints_make_evalob(scene, ob, pchan, CONSTRAINT_OBTYPE_BONE);
+			cob = BKE_constraints_make_evalob(scene, ob, pchan, CONSTRAINT_OBTYPE_BONE);
 
 			/* Solve PoseChannel's Constraints */
-			solve_constraints(&pchan->constraints, cob, ctime); /* ctime doesnt alter objects */
+			BKE_solve_constraints(&pchan->constraints, cob, ctime); /* ctime doesnt alter objects */
 
 			/* cleanup after Constraint Solving
 			 * - applies matrix back to pchan, and frees temporary struct used
 			 */
-			constraints_clear_evalob(cob);
+			BKE_constraints_clear_evalob(cob);
 
 			/* prevent constraints breaking a chain */
 			if (pchan->bone->flag & BONE_CONNECTED) {

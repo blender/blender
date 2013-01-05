@@ -170,6 +170,7 @@ typedef struct TFace {
 #define ME_SUBSURF		128
 #define ME_OPT_EDGES	256
 #define ME_DS_EXPAND	512
+#define ME_SCULPT_DYNAMIC_TOPOLOGY 1024
 
 /* me->drawflag, short */
 #define ME_DRAWEDGES	(1 << 0)

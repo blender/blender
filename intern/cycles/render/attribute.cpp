@@ -26,7 +26,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Attribute */
 
-void Attribute::set(ustring name_, TypeDesc type_, Element element_)
+void Attribute::set(ustring name_, TypeDesc type_, AttributeElement element_)
 {
 	name = name_;
 	type = type_;
@@ -39,12 +39,30 @@ void Attribute::set(ustring name_, TypeDesc type_, Element element_)
 		type == TypeDesc::TypeNormal);
 }
 
-void Attribute::reserve(int numverts, int numtris)
+void Attribute::reserve(int numverts, int numtris, int numcurves, int numkeys)
 {
-	buffer.resize(buffer_size(numverts, numtris), 0);
+	buffer.resize(buffer_size(numverts, numtris, numcurves, numkeys), 0);
 }
 
-size_t Attribute::data_sizeof()
+void Attribute::add(const float& f)
+{
+	char *data = (char*)&f;
+	size_t size = sizeof(f);
+
+	for(size_t i = 0; i < size; i++)
+		buffer.push_back(data[i]);
+}
+
+void Attribute::add(const float3& f)
+{
+	char *data = (char*)&f;
+	size_t size = sizeof(f);
+
+	for(size_t i = 0; i < size; i++)
+		buffer.push_back(data[i]);
+}
+
+size_t Attribute::data_sizeof() const
 {
 	if(type == TypeDesc::TypeFloat)
 		return sizeof(float);
@@ -52,19 +70,27 @@ size_t Attribute::data_sizeof()
 		return sizeof(float3);
 }
 
-size_t Attribute::element_size(int numverts, int numtris)
+size_t Attribute::element_size(int numverts, int numtris, int numcurves, int numkeys) const
 {
-	if(element == VERTEX)
+	if(element == ATTR_ELEMENT_VALUE)
+		return 1;
+	if(element == ATTR_ELEMENT_VERTEX)
 		return numverts;
-	else if(element == FACE)
+	else if(element == ATTR_ELEMENT_FACE)
 		return numtris;
-	else
+	else if(element == ATTR_ELEMENT_CORNER)
 		return numtris*3;
+	else if(element == ATTR_ELEMENT_CURVE)
+		return numcurves;
+	else if(element == ATTR_ELEMENT_CURVE_KEY)
+		return numkeys;
+	
+	return 0;
 }
 
-size_t Attribute::buffer_size(int numverts, int numtris)
+size_t Attribute::buffer_size(int numverts, int numtris, int numcurves, int numkeys) const
 {
-	return element_size(numverts, numtris)*data_sizeof();
+	return element_size(numverts, numtris, numcurves, numkeys)*data_sizeof();
 }
 
 bool Attribute::same_storage(TypeDesc a, TypeDesc b)
@@ -84,18 +110,51 @@ bool Attribute::same_storage(TypeDesc a, TypeDesc b)
 	return false;
 }
 
+const char *Attribute::standard_name(AttributeStandard std)
+{
+	if(std == ATTR_STD_VERTEX_NORMAL)
+		return "N";
+	else if(std == ATTR_STD_FACE_NORMAL)
+		return "Ng";
+	else if(std == ATTR_STD_UV)
+		return "uv";
+	else if(std == ATTR_STD_GENERATED)
+		return "generated";
+	else if(std == ATTR_STD_UV_TANGENT)
+		return "tangent";
+	else if(std == ATTR_STD_UV_TANGENT_SIGN)
+		return "tangent_sign";
+	else if(std == ATTR_STD_POSITION_UNDEFORMED)
+		return "undeformed";
+	else if(std == ATTR_STD_POSITION_UNDISPLACED)
+		return "undisplaced";
+	else if(std == ATTR_STD_MOTION_PRE)
+		return "motion_pre";
+	else if(std == ATTR_STD_MOTION_POST)
+		return "motion_post";
+	else if(std == ATTR_STD_PARTICLE)
+		return "particle";
+	else if(std == ATTR_STD_CURVE_TANGENT)
+		return "curve_tangent";
+	else if(std == ATTR_STD_CURVE_INTERCEPT)
+		return "curve_intercept";
+	
+	return "";
+}
+
 /* Attribute Set */
 
 AttributeSet::AttributeSet()
 {
-	mesh = NULL;
+	triangle_mesh = NULL;
+	curve_mesh = NULL;
 }
 
 AttributeSet::~AttributeSet()
 {
 }
 
-Attribute *AttributeSet::add(ustring name, TypeDesc type, Attribute::Element element)
+Attribute *AttributeSet::add(ustring name, TypeDesc type, AttributeElement element)
 {
 	Attribute *attr = find(name);
 
@@ -111,24 +170,22 @@ Attribute *AttributeSet::add(ustring name, TypeDesc type, Attribute::Element ele
 	attributes.push_back(Attribute());
 	attr = &attributes.back();
 
-	if(element == Attribute::VERTEX)
-		attr->set(name, type, element);
-	else if(element == Attribute::FACE)
-		attr->set(name, type, element);
-	else if(element == Attribute::CORNER)
-		attr->set(name, type, element);
+	attr->set(name, type, element);
 	
-	if(mesh)
-		attr->reserve(mesh->verts.size(), mesh->triangles.size());
+	/* this is weak .. */
+	if(triangle_mesh)
+		attr->reserve(triangle_mesh->verts.size(), triangle_mesh->triangles.size(), 0, 0);
+	if(curve_mesh)
+		attr->reserve(0, 0, curve_mesh->curves.size(), curve_mesh->curve_keys.size());
 	
 	return attr;
 }
 
-Attribute *AttributeSet::find(ustring name)
+Attribute *AttributeSet::find(ustring name) const
 {
-	foreach(Attribute& attr, attributes)
+	foreach(const Attribute& attr, attributes)
 		if(attr.name == name)
-			return &attr;
+			return (Attribute*)&attr;
 
 	return NULL;
 }
@@ -154,41 +211,59 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 	Attribute *attr = NULL;
 
 	if(name == ustring())
-		name = attribute_standard_name(std);
+		name = Attribute::standard_name(std);
 
-	if(std == ATTR_STD_VERTEX_NORMAL)
-		attr = add(name, TypeDesc::TypeNormal, Attribute::VERTEX);
-	else if(std == ATTR_STD_FACE_NORMAL)
-		attr = add(name, TypeDesc::TypeNormal, Attribute::FACE);
-	else if(std == ATTR_STD_UV)
-		attr = add(name, TypeDesc::TypePoint, Attribute::CORNER);
-	else if(std == ATTR_STD_UV_TANGENT)
-		attr = add(name, TypeDesc::TypeVector, Attribute::CORNER);
-	else if(std == ATTR_STD_UV_TANGENT_SIGN)
-		attr = add(name, TypeDesc::TypeFloat, Attribute::CORNER);
-	else if(std == ATTR_STD_GENERATED)
-		attr = add(name, TypeDesc::TypePoint, Attribute::VERTEX);
-	else if(std == ATTR_STD_POSITION_UNDEFORMED)
-		attr = add(name, TypeDesc::TypePoint, Attribute::VERTEX);
-	else if(std == ATTR_STD_POSITION_UNDISPLACED)
-		attr = add(name, TypeDesc::TypePoint, Attribute::VERTEX);
-	else if(std == ATTR_STD_MOTION_PRE)
-		attr = add(name, TypeDesc::TypePoint, Attribute::VERTEX);
-	else if(std == ATTR_STD_MOTION_POST)
-		attr = add(name, TypeDesc::TypePoint, Attribute::VERTEX);
-	else
-		assert(0);
+	if(triangle_mesh) {
+		if(std == ATTR_STD_VERTEX_NORMAL)
+			attr = add(name, TypeDesc::TypeNormal, ATTR_ELEMENT_VERTEX);
+		else if(std == ATTR_STD_FACE_NORMAL)
+			attr = add(name, TypeDesc::TypeNormal, ATTR_ELEMENT_FACE);
+		else if(std == ATTR_STD_UV)
+			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CORNER);
+		else if(std == ATTR_STD_UV_TANGENT)
+			attr = add(name, TypeDesc::TypeVector, ATTR_ELEMENT_CORNER);
+		else if(std == ATTR_STD_UV_TANGENT_SIGN)
+			attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CORNER);
+		else if(std == ATTR_STD_GENERATED)
+			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
+		else if(std == ATTR_STD_POSITION_UNDEFORMED)
+			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
+		else if(std == ATTR_STD_POSITION_UNDISPLACED)
+			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
+		else if(std == ATTR_STD_MOTION_PRE)
+			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
+		else if(std == ATTR_STD_MOTION_POST)
+			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_VERTEX);
+		else
+			assert(0);
+	}
+	else if(curve_mesh) {
+		if(std == ATTR_STD_UV)
+			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE);
+		else if(std == ATTR_STD_GENERATED)
+			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE);
+		else if(std == ATTR_STD_MOTION_PRE)
+			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE_KEY);
+		else if(std == ATTR_STD_MOTION_POST)
+			attr = add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CURVE_KEY);
+		else if(std == ATTR_STD_CURVE_TANGENT)
+			attr = add(name, TypeDesc::TypeVector, ATTR_ELEMENT_CURVE_KEY);
+		else if(std == ATTR_STD_CURVE_INTERCEPT)
+			attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CURVE_KEY);
+		else
+			assert(0);
+	}
 
 	attr->std = std;
 	
 	return attr;
 }
 
-Attribute *AttributeSet::find(AttributeStandard std)
+Attribute *AttributeSet::find(AttributeStandard std) const
 {
-	foreach(Attribute& attr, attributes)
+	foreach(const Attribute& attr, attributes)
 		if(attr.std == std)
-			return &attr;
+			return (Attribute*)&attr;
 
 	return NULL;
 }
@@ -217,10 +292,14 @@ Attribute *AttributeSet::find(AttributeRequest& req)
 		return find(req.std);
 }
 
-void AttributeSet::reserve(int numverts, int numtris)
+void AttributeSet::reserve()
 {
-	foreach(Attribute& attr, attributes)
-		attr.reserve(numverts, numtris);
+	foreach(Attribute& attr, attributes) {
+		if(triangle_mesh)
+			attr.reserve(triangle_mesh->verts.size(), triangle_mesh->triangles.size(), 0, 0);
+		if(curve_mesh)
+			attr.reserve(0, 0, curve_mesh->curves.size(), curve_mesh->curve_keys.size());
+	}
 }
 
 void AttributeSet::clear()
@@ -235,9 +314,13 @@ AttributeRequest::AttributeRequest(ustring name_)
 	name = name_;
 	std = ATTR_STD_NONE;
 
-	type = TypeDesc::TypeFloat;
-	element = ATTR_ELEMENT_NONE;
-	offset = 0;
+	triangle_type = TypeDesc::TypeFloat;
+	triangle_element = ATTR_ELEMENT_NONE;
+	triangle_offset = 0;
+
+	curve_type = TypeDesc::TypeFloat;
+	curve_element = ATTR_ELEMENT_NONE;
+	curve_offset = 0;
 }
 
 AttributeRequest::AttributeRequest(AttributeStandard std_)
@@ -245,9 +328,13 @@ AttributeRequest::AttributeRequest(AttributeStandard std_)
 	name = ustring();
 	std = std_;
 
-	type = TypeDesc::TypeFloat;
-	element = ATTR_ELEMENT_NONE;
-	offset = 0;
+	triangle_type = TypeDesc::TypeFloat;
+	triangle_element = ATTR_ELEMENT_NONE;
+	triangle_offset = 0;
+
+	curve_type = TypeDesc::TypeFloat;
+	curve_element = ATTR_ELEMENT_NONE;
+	curve_offset = 0;
 }
 
 /* AttributeRequestSet */

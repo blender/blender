@@ -70,7 +70,8 @@ class VIEW3D_HT_header(Header):
                 row.prop(toolsettings.particle_edit, "select_mode", text="", expand=True)
 
             # Occlude geometry
-            if view.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'} and (mode == 'PARTICLE_EDIT' or (mode == 'EDIT' and obj.type == 'MESH')):
+            if ((view.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'} and (mode == 'PARTICLE_EDIT' or (mode == 'EDIT' and obj.type == 'MESH'))) or
+                    (mode == 'WEIGHT_PAINT')):
                 row.prop(view, "use_occlude_geometry", text="")
 
             # Proportional editing
@@ -1838,7 +1839,7 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
         layout.separator()
 
-        if context.scene and 'FREESTYLE' in bpy.app.build_options:
+        if context.scene and bpy.app.build_options.freestyle:
             layout.operator("mesh.mark_freestyle_edge").clear = False
             layout.operator("mesh.mark_freestyle_edge", text="Clear Freestyle Edge").clear = True
 
@@ -1884,7 +1885,7 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
 
         layout.separator()
 
-        if context.scene and 'FREESTYLE' in bpy.app.build_options:
+        if context.scene and bpy.app.build_options.freestyle:
             layout.operator("mesh.mark_freestyle_face").clear = False
             layout.operator("mesh.mark_freestyle_face", text="Clear Freestyle Face").clear = True
 
@@ -2493,7 +2494,7 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
         col.prop(mesh, "show_edge_bevel_weight", text="Bevel Weights")
         col.prop(mesh, "show_edge_seams", text="Seams")
         col.prop(mesh, "show_edge_sharp", text="Sharp")
-        if context.scene and 'FREESTYLE' in bpy.app.build_options:
+        if context.scene and bpy.app.build_options.freestyle:
             col.prop(mesh, "show_freestyle_edge_marks", text="Freestyle Edge Marks")
             col.prop(mesh, "show_freestyle_face_marks", text="Freestyle Face Marks")
 

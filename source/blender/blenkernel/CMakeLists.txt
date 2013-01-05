@@ -58,6 +58,7 @@ set(SRC
 	intern/CCGSubSurf.c
 	intern/DerivedMesh.c
 	intern/action.c
+	intern/addon.c
 	intern/anim.c
 	intern/anim_sys.c
 	intern/armature.c
@@ -123,6 +124,7 @@ set(SRC
 	intern/particle.c
 	intern/particle_system.c
 	intern/pbvh.c
+	intern/pbvh_bmesh.c
 	intern/pointcache.c
 	intern/property.c
 	intern/report.c
@@ -152,6 +154,7 @@ set(SRC
 	
 	BKE_DerivedMesh.h
 	BKE_action.h
+	BKE_addon.h
 	BKE_anim.h
 	BKE_animsys.h
 	BKE_armature.h
@@ -242,6 +245,7 @@ set(SRC
 	depsgraph_private.h
 	nla_private.h
 	intern/CCGSubSurf.h
+	intern/pbvh_intern.h
 )
 
 add_definitions(-DGLEW_STATIC)
@@ -255,7 +259,7 @@ endif()
 
 if(WITH_BULLET)
 	list(APPEND INC_SYS
-		../../../extern/bullet2/src
+		${BULLET_INCLUDE_DIRS}
 	)
 	add_definitions(-DUSE_BULLET)
 endif()

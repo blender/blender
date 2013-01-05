@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8-80 compliant>
+# <pep8 compliant>
 
 __all__ = (
     "bake_action",
@@ -52,7 +52,7 @@ def bake_action(frame_start,
     :type do_pose: bool
     :arg do_object: Bake objects.
     :type do_object: bool
-    :arg do_constraint_clear: Remove constraints.
+    :arg do_constraint_clear: Remove constraints (and do 'visual keying').
     :type do_constraint_clear: bool
     :arg do_clean: Remove redundant keyframes after baking.
     :type do_clean: bool
@@ -65,61 +65,20 @@ def bake_action(frame_start,
     """
 
     # -------------------------------------------------------------------------
-    # Helper Functions
+    # Helper Functions and vars
 
-    def pose_frame_info(obj):
-        from mathutils import Matrix
+    def pose_frame_info(obj, do_visual_keying):
+        matrix = {}
+        for name, pbone in obj.pose.bones.items():
+            if do_visual_keying:
+                # Get the final transform of the bone in its own local space...
+                matrix[name] = obj.convert_space(pbone, pbone.matrix, 'POSE', 'LOCAL')
+            else:
+                matrix[name] = pbone.matrix_basis.copy()
+        return matrix
 
-        info = {}
-
-        pose = obj.pose
-
-        pose_items = pose.bones.items()
-
-        for name, pbone in pose_items:
-            binfo = {}
-            bone = pbone.bone
-
-            binfo["parent"] = getattr(bone.parent, "name", None)
-            binfo["bone"] = bone
-            binfo["pbone"] = pbone
-            binfo["matrix_local"] = bone.matrix_local.copy()
-            try:
-                binfo["matrix_local_inv"] = binfo["matrix_local"].inverted()
-            except:
-                binfo["matrix_local_inv"] = Matrix()
-
-            binfo["matrix"] = bone.matrix.copy()
-            binfo["matrix_pose"] = pbone.matrix.copy()
-            try:
-                binfo["matrix_pose_inv"] = binfo["matrix_pose"].inverted()
-            except:
-                binfo["matrix_pose_inv"] = Matrix()
-
-            info[name] = binfo
-
-        for name, pbone in pose_items:
-            binfo = info[name]
-            binfo_parent = binfo.get("parent", None)
-            if binfo_parent:
-                binfo_parent = info[binfo_parent]
-
-            matrix = binfo["matrix_pose"]
-            rest_matrix = binfo["matrix_local"]
-
-            if binfo_parent:
-                matrix = binfo_parent["matrix_pose_inv"] * matrix
-                rest_matrix = binfo_parent["matrix_local_inv"] * rest_matrix
-
-            binfo["matrix_key"] = rest_matrix.inverted() * matrix
-
-        return info
-
-    def obj_frame_info(obj):
-        info = {}
-        # parent = obj.parent
-        info["matrix_key"] = obj.matrix_local.copy()
-        return info
+    def obj_frame_info(obj, do_visual_keying):
+        return obj.matrix_local.copy() if do_visual_keying else obj.matrix_basis.copy()
 
     # -------------------------------------------------------------------------
     # Setup the Context
@@ -127,33 +86,30 @@ def bake_action(frame_start,
     # TODO, pass data rather then grabbing from the context!
     scene = bpy.context.scene
     obj = bpy.context.object
-    pose = obj.pose
     frame_back = scene.frame_current
 
-    if pose is None:
+    if obj.pose is None:
         do_pose = False
 
-    if do_pose is None and do_object is None:
+    if not (do_pose or do_object):
         return None
 
     pose_info = []
     obj_info = []
+
+    options = {'INSERTKEY_NEEDED'}
 
     frame_range = range(frame_start, frame_end + 1, frame_step)
 
     # -------------------------------------------------------------------------
     # Collect transformations
 
-    # could speed this up by applying steps here too...
     for f in frame_range:
         scene.frame_set(f)
-
         if do_pose:
-            pose_info.append(pose_frame_info(obj))
+            pose_info.append(pose_frame_info(obj, do_constraint_clear))
         if do_object:
-            obj_info.append(obj_frame_info(obj))
-
-        f += 1
+            obj_info.append(obj_frame_info(obj, do_constraint_clear))
 
     # -------------------------------------------------------------------------
     # Create action
@@ -164,57 +120,44 @@ def bake_action(frame_start,
         action = bpy.data.actions.new("Action")
     atd.action = action
 
-    if do_pose:
-        pose_items = pose.bones.items()
-    else:
-        pose_items = []  # skip
-
     # -------------------------------------------------------------------------
     # Apply transformations to action
 
     # pose
-    for name, pbone in (pose_items if do_pose else ()):
-        if only_selected and not pbone.bone.select:
-            continue
+    if do_pose:
+        for name, pbone in obj.pose.bones.items():
+            if only_selected and not pbone.bone.select:
+                continue
 
-        if do_constraint_clear:
-            while pbone.constraints:
-                pbone.constraints.remove(pbone.constraints[0])
+            if do_constraint_clear:
+                while pbone.constraints:
+                    pbone.constraints.remove(pbone.constraints[0])
 
-        # create compatible eulers
-        euler_prev = None
+            # create compatible eulers
+            euler_prev = None
 
-        for f in frame_range:
-            f_step = (f - frame_start) // frame_step
-            matrix = pose_info[f_step][name]["matrix_key"]
+            for (f, matrix) in zip(frame_range, pose_info):
+                pbone.matrix_basis = matrix[name].copy()
 
-            # pbone.location = matrix.to_translation()
-            # pbone.rotation_quaternion = matrix.to_quaternion()
-            pbone.matrix_basis = matrix
+                pbone.keyframe_insert("location", -1, f, name, options)
 
-            pbone.keyframe_insert("location", -1, f, name)
+                rotation_mode = pbone.rotation_mode
+                if rotation_mode == 'QUATERNION':
+                    pbone.keyframe_insert("rotation_quaternion", -1, f, name, options)
+                elif rotation_mode == 'AXIS_ANGLE':
+                    pbone.keyframe_insert("rotation_axis_angle", -1, f, name, options)
+                else:  # euler, XYZ, ZXY etc
+                    if euler_prev is not None:
+                        euler = pbone.rotation_euler.copy()
+                        euler.make_compatible(euler_prev)
+                        pbone.rotation_euler = euler
+                        euler_prev = euler
+                        del euler
+                    else:
+                        euler_prev = pbone.rotation_euler.copy()
+                    pbone.keyframe_insert("rotation_euler", -1, f, name, options)
 
-            rotation_mode = pbone.rotation_mode
-
-            if rotation_mode == 'QUATERNION':
-                pbone.keyframe_insert("rotation_quaternion", -1, f, name)
-            elif rotation_mode == 'AXIS_ANGLE':
-                pbone.keyframe_insert("rotation_axis_angle", -1, f, name)
-            else:  # euler, XYZ, ZXY etc
-
-                if euler_prev is not None:
-                    euler = pbone.rotation_euler.copy()
-                    euler.make_compatible(euler_prev)
-                    pbone.rotation_euler = euler
-                    euler_prev = euler
-                    del euler
-
-                pbone.keyframe_insert("rotation_euler", -1, f, name)
-
-                if euler_prev is None:
-                    euler_prev = pbone.rotation_euler.copy()
-
-            pbone.keyframe_insert("scale", -1, f, name)
+                pbone.keyframe_insert("scale", -1, f, name, options)
 
     # object. TODO. multiple objects
     if do_object:
@@ -225,18 +168,16 @@ def bake_action(frame_start,
         # create compatible eulers
         euler_prev = None
 
-        for f in frame_range:
-            matrix = obj_info[(f - frame_start) // frame_step]["matrix_key"]
-            obj.matrix_local = matrix
+        for (f, matrix) in zip(frame_range, obj_info):
+            obj.matrix_basis = matrix[name]
 
-            obj.keyframe_insert("location", -1, f)
+            obj.keyframe_insert("location", -1, f, options)
 
             rotation_mode = obj.rotation_mode
-
             if rotation_mode == 'QUATERNION':
-                obj.keyframe_insert("rotation_quaternion", -1, f)
+                obj.keyframe_insert("rotation_quaternion", -1, f, options)
             elif rotation_mode == 'AXIS_ANGLE':
-                obj.keyframe_insert("rotation_axis_angle", -1, f)
+                obj.keyframe_insert("rotation_axis_angle", -1, f, options)
             else:  # euler, XYZ, ZXY etc
                 if euler_prev is not None:
                     euler = obj.rotation_euler.copy()
@@ -244,15 +185,11 @@ def bake_action(frame_start,
                     obj.rotation_euler = euler
                     euler_prev = euler
                     del euler
-
-                obj.keyframe_insert("rotation_euler", -1, f)
-
-                if euler_prev is None:
+                else:
                     euler_prev = obj.rotation_euler.copy()
+                obj.keyframe_insert("rotation_euler", -1, f, options)
 
-            obj.keyframe_insert("scale", -1, f)
-
-    scene.frame_set(frame_back)
+            obj.keyframe_insert("scale", -1, f, options)
 
     # -------------------------------------------------------------------------
     # Clean
@@ -270,5 +207,7 @@ def bake_action(frame_start,
                     keyframe_points.remove(keyframe_points[i])
                 else:
                     i += 1
+
+    scene.frame_set(frame_back)
 
     return action

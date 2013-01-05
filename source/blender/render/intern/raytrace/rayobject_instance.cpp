@@ -173,13 +173,13 @@ static int  RE_rayobject_instance_intersect(RayObject *o, Isect *isec)
 
 static void RE_rayobject_instance_free(RayObject *o)
 {
-	InstanceRayObject *obj = (InstanceRayObject*)o;
+	InstanceRayObject *obj = (InstanceRayObject *)o;
 	MEM_freeN(obj);
 }
 
 static float RE_rayobject_instance_cost(RayObject *o)
 {
-	InstanceRayObject *obj = (InstanceRayObject*)o;
+	InstanceRayObject *obj = (InstanceRayObject *)o;
 	return RE_rayobject_cost(obj->target) + RE_COST_INSTANCE;
 }
 

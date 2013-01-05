@@ -19,8 +19,8 @@
  *		Dalai Felinto
  */
 
-#ifndef _COM_ConvertPremulToKeyOperation_h
-#define _COM_ConvertPremulToKeyOperation_h
+#ifndef _COM_ConvertPremulToStraightOperation_h
+#define _COM_ConvertPremulToStraightOperation_h
 #include "COM_NodeOperation.h"
 
 
@@ -28,14 +28,14 @@
  * this program converts an input color to an output value.
  * it assumes we are in sRGB color space.
  */
-class ConvertPremulToKeyOperation : public NodeOperation {
+class ConvertPremulToStraightOperation : public NodeOperation {
 private:
 	SocketReader *m_inputColor;
 public:
 	/**
 	 * Default constructor
 	 */
-	ConvertPremulToKeyOperation();
+	ConvertPremulToStraightOperation();
 
 	/**
 	 * the inner loop of this program

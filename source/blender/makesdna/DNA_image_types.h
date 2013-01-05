@@ -111,6 +111,9 @@ typedef struct Image {
 
 	/* color management */
 	ColorManagedColorspaceSettings colorspace_settings;
+	char alpha_mode;
+
+	char pad[7];
 } Image;
 
 
@@ -119,15 +122,16 @@ typedef struct Image {
 /* Image.flag */
 #define IMA_FIELDS			1
 #define IMA_STD_FIELD		2
-#define IMA_DO_PREMUL		4
+#define IMA_DO_PREMUL		4    /* deprecated, should not be used */
 #define IMA_REFLECT			16
 #define IMA_NOCOLLECT   	32
 #define IMA_DEPRECATED		64
 #define IMA_OLD_PREMUL		128
-#define IMA_CM_PREDIVIDE	256
+/*#define IMA_CM_PREDIVIDE	256*/  /* deprecated, should not be used */
 #define IMA_USED_FOR_RENDER	512
 #define IMA_USER_FRAME_IN_RANGE	1024 /* for image user, but these flags are mixed */
 #define IMA_VIEW_AS_RENDER	2048
+#define IMA_IGNORE_ALPHA	4096
 
 /* Image.tpageflag */
 #define IMA_TILES			1
@@ -147,5 +151,11 @@ typedef struct Image {
 
 /* gen_flag */
 #define IMA_GEN_FLOAT		1
+
+/* alpha_mode */
+enum {
+	IMA_ALPHA_STRAIGHT = 0,
+	IMA_ALPHA_PREMUL = 1,
+};
 
 #endif

@@ -49,6 +49,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_brush_types.h"
+#include "DNA_dynamicpaint_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -75,8 +76,8 @@
 #include "interface_intern.h"
 
 
-#define ICON_IMAGE_W        600
-#define ICON_IMAGE_H        640
+// #define ICON_IMAGE_W        600
+// #define ICON_IMAGE_H        640
 
 #define ICON_GRID_COLS      26
 #define ICON_GRID_ROWS      30
@@ -574,13 +575,15 @@ static void init_internal_icons(void)
 				glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA, b16buf->x, b16buf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, b16buf->rect);
 				
 				while (b16buf->x > 1) {
-					b16buf = IMB_onehalf(b16buf);
-					glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA, b16buf->x, b16buf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, b16buf->rect);
+					ImBuf *nbuf = IMB_onehalf(b16buf);
+					glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA, nbuf->x, nbuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nbuf->rect);
 					level++;
+					IMB_freeImBuf(b16buf);
+					b16buf = nbuf;
 				}
 				
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				
 				glBindTexture(GL_TEXTURE_2D, 0);
 				
@@ -597,7 +600,7 @@ static void init_internal_icons(void)
 	else
 		icontype = ICON_TYPE_BUFFER;
 	
-	if (b16buf) {
+	if (b32buf) {
 		for (y = 0; y < ICON_GRID_ROWS; y++) {
 			for (x = 0; x < ICON_GRID_COLS; x++) {
 				def_internal_icon(b32buf, BIFICONID_FIRST + y * ICON_GRID_COLS + x,
@@ -1177,6 +1180,44 @@ int ui_id_icon_get(bContext *C, ID *id, int big)
 	}
 
 	return iconid;
+}
+
+int UI_rnaptr_icon_get(bContext *C, PointerRNA *ptr, int rnaicon, int big)
+{
+	ID *id = NULL;
+
+	if (!ptr->data)
+		return rnaicon;
+
+	/* try ID, material, texture or dynapaint slot */
+	if (RNA_struct_is_ID(ptr->type)) {
+		id = ptr->id.data;
+	}
+	else if (RNA_struct_is_a(ptr->type, &RNA_MaterialSlot)) {
+		id = RNA_pointer_get(ptr, "material").data;
+	}
+	else if (RNA_struct_is_a(ptr->type, &RNA_TextureSlot)) {
+		id = RNA_pointer_get(ptr, "texture").data;
+	}
+	else if (RNA_struct_is_a(ptr->type, &RNA_DynamicPaintSurface)) {
+		DynamicPaintSurface *surface = (DynamicPaintSurface *)ptr->data;
+
+		if (surface->format == MOD_DPAINT_SURFACE_F_PTEX)
+			return ICON_TEXTURE_SHADED;
+		else if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX)
+			return ICON_OUTLINER_DATA_MESH;
+		else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ)
+			return ICON_FILE_IMAGE;
+	}
+
+	/* get icon from ID */
+	if (id) {
+		int icon = ui_id_icon_get(C, id, big);
+
+		return icon ? icon : rnaicon;
+	}
+
+	return rnaicon;
 }
 
 static void icon_draw_at_size(float x, float y, int icon_id, float aspect, float alpha, enum eIconSizes size, int nocreate)

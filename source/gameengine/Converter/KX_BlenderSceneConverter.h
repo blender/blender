@@ -91,6 +91,7 @@ class KX_BlenderSceneConverter : public KX_ISceneConverter
 	bool					m_alwaysUseExpandFraming;
 	bool					m_usemat;
 	bool					m_useglslmat;
+	bool					m_use_mat_cache;
 
 public:
 	KX_BlenderSceneConverter(
@@ -159,6 +160,10 @@ public:
 	// use blender glsl materials
 	virtual void SetGLSLMaterials(bool val);
 	virtual bool GetGLSLMaterials();
+
+	// cache materials during conversion
+	virtual void SetCacheMaterials(bool val);
+	virtual bool GetCacheMaterials();
 
 	struct Scene* GetBlenderSceneForName(const STR_String& name);
 

@@ -28,23 +28,7 @@ __device void svm_node_geometry(KernelGlobals *kg, ShaderData *sd, float *stack,
 		case NODE_GEOM_P: data = sd->P; break;
 		case NODE_GEOM_N: data = sd->N; break;
 #ifdef __DPDU__
-		case NODE_GEOM_T: {
-			/* try to create spherical tangent from generated coordinates */
-			int attr_offset = (sd->object != ~0)? find_attribute(kg, sd, ATTR_STD_GENERATED): ATTR_STD_NOT_FOUND;
-
-			if(attr_offset != ATTR_STD_NOT_FOUND) {
-				data = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, attr_offset, NULL, NULL);
-				data = make_float3(-(data.y - 0.5f), (data.x - 0.5f), 0.0f);
-				object_normal_transform(kg, sd, &data);
-				data = cross(sd->N, normalize(cross(data, sd->N)));;
-			}
-			else {
-				/* otherwise use surface derivatives */
-				data = normalize(sd->dPdu);
-			}
-
-			break;
-		}
+		case NODE_GEOM_T: data = primitive_tangent(kg, sd); break;
 #endif
 		case NODE_GEOM_I: data = sd->I; break;
 		case NODE_GEOM_Ng: data = sd->Ng; break;
@@ -159,6 +143,37 @@ __device void svm_node_particle_info(KernelGlobals *kg, ShaderData *sd, float *s
 		}
 	}
 }
+
+#ifdef __HAIR__
+
+/* Hair Info */
+
+__device void svm_node_hair_info(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
+{
+	float data;
+	float3 data3;
+
+	switch(type) {
+		case NODE_INFO_CURVE_IS_STRAND: {
+			data = (sd->segment != ~0);
+			stack_store_float(stack, out_offset, data);
+			break;
+		}
+		case NODE_INFO_CURVE_INTERCEPT:
+			break; /* handled as attribute */
+		case NODE_INFO_CURVE_THICKNESS: {
+			data = curve_thickness(kg, sd);
+			stack_store_float(stack, out_offset, data);
+			break;
+		}
+		case NODE_INFO_CURVE_TANGENT_NORMAL: {
+			data3 = curve_tangent_normal(kg, sd);
+			stack_store_float3(stack, out_offset, data3);
+			break;
+		}
+	}
+}
+#endif
 
 CCL_NAMESPACE_END
 

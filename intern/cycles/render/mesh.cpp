@@ -51,7 +51,11 @@ Mesh::Mesh()
 	tri_offset = 0;
 	vert_offset = 0;
 
-	attributes.mesh = this;
+	curve_offset = 0;
+	curvekey_offset = 0;
+
+	attributes.triangle_mesh = this;
+	curve_attributes.curve_mesh = this;
 }
 
 Mesh::~Mesh()
@@ -59,14 +63,18 @@ Mesh::~Mesh()
 	delete bvh;
 }
 
-void Mesh::reserve(int numverts, int numtris)
+void Mesh::reserve(int numverts, int numtris, int numcurves, int numcurvekeys)
 {
 	/* reserve space to add verts and triangles later */
 	verts.resize(numverts);
 	triangles.resize(numtris);
 	shader.resize(numtris);
 	smooth.resize(numtris);
-	attributes.reserve(numverts, numtris);
+	curve_keys.resize(numcurvekeys);
+	curves.resize(numcurves);
+
+	attributes.reserve();
+	curve_attributes.reserve();
 }
 
 void Mesh::clear()
@@ -77,7 +85,11 @@ void Mesh::clear()
 	shader.clear();
 	smooth.clear();
 
+	curve_keys.clear();
+	curves.clear();
+
 	attributes.clear();
+	curve_attributes.clear();
 	used_shaders.clear();
 
 	transform_applied = false;
@@ -86,23 +98,46 @@ void Mesh::clear()
 
 void Mesh::add_triangle(int v0, int v1, int v2, int shader_, bool smooth_)
 {
-	Triangle t;
-	t.v[0] = v0;
-	t.v[1] = v1;
-	t.v[2] = v2;
+	Triangle tri;
+	tri.v[0] = v0;
+	tri.v[1] = v1;
+	tri.v[2] = v2;
 
-	triangles.push_back(t);
+	triangles.push_back(tri);
 	shader.push_back(shader_);
 	smooth.push_back(smooth_);
+}
+
+void Mesh::add_curve_key(float3 co, float radius)
+{
+	CurveKey key;
+	key.co = co;
+	key.radius = radius;
+
+	curve_keys.push_back(key);
+}
+
+void Mesh::add_curve(int first_key, int num_keys, int shader)
+{
+	Curve curve;
+	curve.first_key = first_key;
+	curve.num_keys = num_keys;
+	curve.shader = shader;
+
+	curves.push_back(curve);
 }
 
 void Mesh::compute_bounds()
 {
 	BoundBox bnds = BoundBox::empty;
 	size_t verts_size = verts.size();
+	size_t curve_keys_size = curve_keys.size();
 
 	for(size_t i = 0; i < verts_size; i++)
 		bnds.grow(verts[i]);
+
+	for(size_t i = 0; i < curve_keys_size; i++)
+		bnds.grow(curve_keys[i].co, curve_keys[i].radius);
 
 	/* happens mostly on empty meshes */
 	if(!bnds.valid())
@@ -135,7 +170,12 @@ void Mesh::add_face_normals()
 			float3 v1 = verts_ptr[t.v[1]];
 			float3 v2 = verts_ptr[t.v[2]];
 
-			fN[i] = normalize(cross(v1 - v0, v2 - v0));
+			float3 norm = cross(v1 - v0, v2 - v0);
+			float normlen = len(norm);
+			if(normlen == 0.0f)
+				fN[i] = make_float3(0.0f, 0.0f, 0.0f);
+			else
+				fN[i] = norm / normlen;
 
 			if(flip)
 				fN[i] = -fN[i];
@@ -243,6 +283,43 @@ void Mesh::pack_verts(float4 *tri_verts, float4 *tri_vindex, size_t vert_offset)
 	}
 }
 
+void Mesh::pack_curves(Scene *scene, float4 *curve_key_co, float4 *curve_data, size_t curvekey_offset)
+{
+	size_t curve_keys_size = curve_keys.size();
+	CurveKey *keys_ptr = NULL;
+
+	/* pack curve keys */
+	if(curve_keys_size) {
+		keys_ptr = &curve_keys[0];
+
+		for(size_t i = 0; i < curve_keys_size; i++) {
+			float3 p = keys_ptr[i].co;
+			float radius = keys_ptr[i].radius;
+
+			curve_key_co[i] = make_float4(p.x, p.y, p.z, radius);
+		}
+	}
+
+	/* pack curve segments */
+	size_t curve_num = curves.size();
+
+	if(curve_num) {
+		Curve *curve_ptr = &curves[0];
+		int shader_id = 0;
+		
+		for(size_t i = 0; i < curve_num; i++) {
+			Curve curve = curve_ptr[i];
+			shader_id = scene->shader_manager->get_shader_id(curve.shader, this, false);
+
+			curve_data[i] = make_float4(
+				__int_as_float(curve.first_key + curvekey_offset),
+				__int_as_float(curve.num_keys),
+				__int_as_float(shader_id),
+				0.0f);
+		}
+	}
+}
+
 void Mesh::compute_bvh(SceneParams *params, Progress *progress, int n, int total)
 {
 	if(progress->get_cancel())
@@ -327,7 +404,7 @@ void MeshManager::update_osl_attributes(Device *device, Scene *scene, vector<Att
 	og->attribute_map.clear();
 	og->object_names.clear();
 
-	og->attribute_map.resize(scene->objects.size());
+	og->attribute_map.resize(scene->objects.size()*ATTR_PRIM_TYPES);
 
 	for(size_t i = 0; i < scene->objects.size(); i++) {
 		/* set object name to object index map */
@@ -343,7 +420,8 @@ void MeshManager::update_osl_attributes(Device *device, Scene *scene, vector<Att
 			osl_attr.elem = ATTR_ELEMENT_VALUE;
 			osl_attr.value = attr;
 
-			og->attribute_map[i][attr.name()] = osl_attr;
+			og->attribute_map[i*ATTR_PRIM_TYPES][attr.name()] = osl_attr;
+			og->attribute_map[i*ATTR_PRIM_TYPES + ATTR_PRIM_CURVE][attr.name()] = osl_attr;
 		}
 
 		/* find mesh attributes */
@@ -357,27 +435,46 @@ void MeshManager::update_osl_attributes(Device *device, Scene *scene, vector<Att
 
 		/* set object attributes */
 		foreach(AttributeRequest& req, attributes.requests) {
-			if(req.element == ATTR_ELEMENT_NONE)
-				continue;
-
 			OSLGlobals::Attribute osl_attr;
 
-			osl_attr.elem = req.element;
-			osl_attr.offset = req.offset;
+			if(req.triangle_element != ATTR_ELEMENT_NONE) {
+				osl_attr.elem = req.triangle_element;
+				osl_attr.offset = req.triangle_offset;
 
-			if(req.type == TypeDesc::TypeFloat)
-				osl_attr.type = TypeDesc::TypeFloat;
-			else
-				osl_attr.type = TypeDesc::TypeColor;
+				if(req.triangle_type == TypeDesc::TypeFloat)
+					osl_attr.type = TypeDesc::TypeFloat;
+				else
+					osl_attr.type = TypeDesc::TypeColor;
 
-			if(req.std != ATTR_STD_NONE) {
-				/* if standard attribute, add lookup by geom: name convention */
-				ustring stdname(string("geom:") + string(attribute_standard_name(req.std)));
-				og->attribute_map[i][stdname] = osl_attr;
+				if(req.std != ATTR_STD_NONE) {
+					/* if standard attribute, add lookup by geom: name convention */
+					ustring stdname(string("geom:") + string(Attribute::standard_name(req.std)));
+					og->attribute_map[i*ATTR_PRIM_TYPES][stdname] = osl_attr;
+				}
+				else if(req.name != ustring()) {
+					/* add lookup by mesh attribute name */
+					og->attribute_map[i*ATTR_PRIM_TYPES][req.name] = osl_attr;
+				}
 			}
-			else if(req.name != ustring()) {
-				/* add lookup by mesh attribute name */
-				og->attribute_map[i][req.name] = osl_attr;
+
+			if(req.curve_element != ATTR_ELEMENT_NONE) {
+				osl_attr.elem = req.curve_element;
+				osl_attr.offset = req.curve_offset;
+
+				if(req.curve_type == TypeDesc::TypeFloat)
+					osl_attr.type = TypeDesc::TypeFloat;
+				else
+					osl_attr.type = TypeDesc::TypeColor;
+
+				if(req.std != ATTR_STD_NONE) {
+					/* if standard attribute, add lookup by geom: name convention */
+					ustring stdname(string("geom:") + string(Attribute::standard_name(req.std)));
+					og->attribute_map[i*ATTR_PRIM_TYPES + ATTR_PRIM_CURVE][stdname] = osl_attr;
+				}
+				else if(req.name != ustring()) {
+					/* add lookup by mesh attribute name */
+					og->attribute_map[i*ATTR_PRIM_TYPES + ATTR_PRIM_CURVE][req.name] = osl_attr;
+				}
 			}
 		}
 	}
@@ -393,7 +490,7 @@ void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Sce
 	int attr_map_stride = 0;
 
 	for(size_t i = 0; i < scene->meshes.size(); i++)
-		attr_map_stride = max(attr_map_stride, mesh_attributes[i].size()+1);
+		attr_map_stride = max(attr_map_stride, (mesh_attributes[i].size() + 1)*ATTR_PRIM_TYPES);
 
 	if(attr_map_stride == 0)
 		return;
@@ -404,12 +501,13 @@ void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Sce
 
 	for(size_t i = 0; i < scene->objects.size(); i++) {
 		Object *object = scene->objects[i];
+		Mesh *mesh = object->mesh;
 
 		/* find mesh attributes */
 		size_t j;
 
 		for(j = 0; j < scene->meshes.size(); j++)
-			if(scene->meshes[j] == object->mesh)
+			if(scene->meshes[j] == mesh)
 				break;
 
 		AttributeRequestSet& attributes = mesh_attributes[j];
@@ -425,14 +523,29 @@ void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Sce
 			else
 				id = scene->shader_manager->get_attribute_id(req.std);
 
-			attr_map[index].x = id;
-			attr_map[index].y = req.element;
-			attr_map[index].z = as_uint(req.offset);
+			if(mesh->triangles.size()) {
+				attr_map[index].x = id;
+				attr_map[index].y = req.triangle_element;
+				attr_map[index].z = as_uint(req.triangle_offset);
 
-			if(req.type == TypeDesc::TypeFloat)
-				attr_map[index].w = NODE_ATTR_FLOAT;
-			else
-				attr_map[index].w = NODE_ATTR_FLOAT3;
+				if(req.triangle_type == TypeDesc::TypeFloat)
+					attr_map[index].w = NODE_ATTR_FLOAT;
+				else
+					attr_map[index].w = NODE_ATTR_FLOAT3;
+			}
+
+			index++;
+
+			if(mesh->curves.size()) {
+				attr_map[index].x = id;
+				attr_map[index].y = req.curve_element;
+				attr_map[index].z = as_uint(req.curve_offset);
+
+				if(req.curve_type == TypeDesc::TypeFloat)
+					attr_map[index].w = NODE_ATTR_FLOAT;
+				else
+					attr_map[index].w = NODE_ATTR_FLOAT3;
+			}
 
 			index++;
 		}
@@ -442,11 +555,74 @@ void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Sce
 		attr_map[index].y = 0;
 		attr_map[index].z = 0;
 		attr_map[index].w = 0;
+
+		index++;
+
+		attr_map[index].x = ATTR_STD_NONE;
+		attr_map[index].y = 0;
+		attr_map[index].z = 0;
+		attr_map[index].w = 0;
+
+		index++;
 	}
 
 	/* copy to device */
 	dscene->data.bvh.attributes_map_stride = attr_map_stride;
 	device->tex_alloc("__attributes_map", dscene->attributes_map);
+}
+
+static void update_attribute_element_offset(Mesh *mesh, vector<float>& attr_float, vector<float4>& attr_float3,
+	Attribute *mattr, TypeDesc& type, int& offset, AttributeElement& element)
+{
+	if(mattr) {
+		/* store element and type */
+		element = mattr->element;
+		type = mattr->type;
+
+		/* store attribute data in arrays */
+		size_t size = mattr->element_size(
+			mesh->verts.size(),
+			mesh->triangles.size(),
+			mesh->curves.size(),
+			mesh->curve_keys.size());
+
+		if(mattr->type == TypeDesc::TypeFloat) {
+			float *data = mattr->data_float();
+			offset = attr_float.size();
+
+			attr_float.resize(attr_float.size() + size);
+
+			for(size_t k = 0; k < size; k++)
+				attr_float[offset+k] = data[k];
+		}
+		else {
+			float3 *data = mattr->data_float3();
+			offset = attr_float3.size();
+
+			attr_float3.resize(attr_float3.size() + size);
+
+			for(size_t k = 0; k < size; k++)
+				attr_float3[offset+k] = float3_to_float4(data[k]);
+		}
+
+		/* mesh vertex/curve index is global, not per object, so we sneak
+		 * a correction for that in here */
+		if(element == ATTR_ELEMENT_VERTEX)
+			offset -= mesh->vert_offset;
+		else if(element == ATTR_ELEMENT_FACE)
+			offset -= mesh->tri_offset;
+		else if(element == ATTR_ELEMENT_CORNER)
+			offset -= 3*mesh->tri_offset;
+		else if(element == ATTR_ELEMENT_CURVE)
+			offset -= mesh->curve_offset;
+		else if(element == ATTR_ELEMENT_CURVE_KEY)
+			offset -= mesh->curvekey_offset;
+	}
+	else {
+		/* attribute not found */
+		element = ATTR_ELEMENT_NONE;
+		offset = 0;
+	}
 }
 
 void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
@@ -482,66 +658,24 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 		/* todo: we now store std and name attributes from requests even if
 		 * they actually refer to the same mesh attributes, optimize */
 		foreach(AttributeRequest& req, attributes.requests) {
-			Attribute *mattr = mesh->attributes.find(req);
+			Attribute *triangle_mattr = mesh->attributes.find(req);
+			Attribute *curve_mattr = mesh->curve_attributes.find(req);
 
-			/* todo: get rid of this exception */
-			if(!mattr && req.std == ATTR_STD_GENERATED) {
-				mattr = mesh->attributes.add(ATTR_STD_GENERATED);
+			/* todo: get rid of this exception, it's only here for giving some
+			 * working texture coordinate for subdivision as we can't preserve
+			 * any attributes yet */
+			if(!triangle_mattr && req.std == ATTR_STD_GENERATED) {
+				triangle_mattr = mesh->attributes.add(ATTR_STD_GENERATED);
 				if(mesh->verts.size())
-					memcpy(mattr->data_float3(), &mesh->verts[0], sizeof(float3)*mesh->verts.size());
+					memcpy(triangle_mattr->data_float3(), &mesh->verts[0], sizeof(float3)*mesh->verts.size());
 			}
 
-			/* attribute not found */
-			if(!mattr) {
-				req.element = ATTR_ELEMENT_NONE;
-				req.offset = 0;
-				continue;
-			}
+			update_attribute_element_offset(mesh, attr_float, attr_float3, triangle_mattr,
+				req.triangle_type, req.triangle_offset, req.triangle_element);
 
-			/* we abuse AttributeRequest to pass on info like element and
-			 * offset, it doesn't really make sense but is convenient */
-
-			/* store element and type */
-			if(mattr->element == Attribute::VERTEX)
-				req.element = ATTR_ELEMENT_VERTEX;
-			else if(mattr->element == Attribute::FACE)
-				req.element = ATTR_ELEMENT_FACE;
-			else if(mattr->element == Attribute::CORNER)
-				req.element = ATTR_ELEMENT_CORNER;
-
-			req.type = mattr->type;
-
-			/* store attribute data in arrays */
-			size_t size = mattr->element_size(mesh->verts.size(), mesh->triangles.size());
-
-			if(mattr->type == TypeDesc::TypeFloat) {
-				float *data = mattr->data_float();
-				req.offset = attr_float.size();
-
-				attr_float.resize(attr_float.size() + size);
-
-				for(size_t k = 0; k < size; k++)
-					attr_float[req.offset+k] = data[k];
-			}
-			else {
-				float3 *data = mattr->data_float3();
-				req.offset = attr_float3.size();
-
-				attr_float3.resize(attr_float3.size() + size);
-
-				for(size_t k = 0; k < size; k++)
-					attr_float3[req.offset+k] = float3_to_float4(data[k]);
-			}
-
-			/* mesh vertex/triangle index is global, not per object, so we sneak
-			 * a correction for that in here */
-			if(req.element == ATTR_ELEMENT_VERTEX)
-				req.offset -= mesh->vert_offset;
-			else if(mattr->element == Attribute::FACE)
-				req.offset -= mesh->tri_offset;
-			else if(mattr->element == Attribute::CORNER)
-				req.offset -= 3*mesh->tri_offset;
-
+			update_attribute_element_offset(mesh, attr_float, attr_float3, curve_mattr,
+				req.curve_type, req.curve_offset, req.curve_element);
+	
 			if(progress.get_cancel()) return;
 		}
 	}
@@ -573,39 +707,62 @@ void MeshManager::device_update_mesh(Device *device, DeviceScene *dscene, Scene 
 	size_t vert_size = 0;
 	size_t tri_size = 0;
 
+	size_t curve_key_size = 0;
+	size_t curve_size = 0;
+
 	foreach(Mesh *mesh, scene->meshes) {
 		mesh->vert_offset = vert_size;
 		mesh->tri_offset = tri_size;
 
+		mesh->curvekey_offset = curve_key_size;
+		mesh->curve_offset = curve_size;
+
 		vert_size += mesh->verts.size();
 		tri_size += mesh->triangles.size();
+
+		curve_key_size += mesh->curve_keys.size();
+		curve_size += mesh->curves.size();
 	}
 
-	if(tri_size == 0)
-		return;
+	if(tri_size != 0) {
+		/* normals */
+		progress.set_status("Updating Mesh", "Computing normals");
 
-	/* normals */
-	progress.set_status("Updating Mesh", "Computing normals");
+		float4 *normal = dscene->tri_normal.resize(tri_size);
+		float4 *vnormal = dscene->tri_vnormal.resize(vert_size);
+		float4 *tri_verts = dscene->tri_verts.resize(vert_size);
+		float4 *tri_vindex = dscene->tri_vindex.resize(tri_size);
 
-	float4 *normal = dscene->tri_normal.resize(tri_size);
-	float4 *vnormal = dscene->tri_vnormal.resize(vert_size);
-	float4 *tri_verts = dscene->tri_verts.resize(vert_size);
-	float4 *tri_vindex = dscene->tri_vindex.resize(tri_size);
+		foreach(Mesh *mesh, scene->meshes) {
+			mesh->pack_normals(scene, &normal[mesh->tri_offset], &vnormal[mesh->vert_offset]);
+			mesh->pack_verts(&tri_verts[mesh->vert_offset], &tri_vindex[mesh->tri_offset], mesh->vert_offset);
 
-	foreach(Mesh *mesh, scene->meshes) {
-		mesh->pack_normals(scene, &normal[mesh->tri_offset], &vnormal[mesh->vert_offset]);
-		mesh->pack_verts(&tri_verts[mesh->vert_offset], &tri_vindex[mesh->tri_offset], mesh->vert_offset);
+			if(progress.get_cancel()) return;
+		}
 
-		if(progress.get_cancel()) return;
+		/* vertex coordinates */
+		progress.set_status("Updating Mesh", "Copying Mesh to device");
+
+		device->tex_alloc("__tri_normal", dscene->tri_normal);
+		device->tex_alloc("__tri_vnormal", dscene->tri_vnormal);
+		device->tex_alloc("__tri_verts", dscene->tri_verts);
+		device->tex_alloc("__tri_vindex", dscene->tri_vindex);
 	}
 
-	/* vertex coordinates */
-	progress.set_status("Updating Mesh", "Copying Mesh to device");
+	if(curve_size != 0) {
+		progress.set_status("Updating Mesh", "Copying Strands to device");
 
-	device->tex_alloc("__tri_normal", dscene->tri_normal);
-	device->tex_alloc("__tri_vnormal", dscene->tri_vnormal);
-	device->tex_alloc("__tri_verts", dscene->tri_verts);
-	device->tex_alloc("__tri_vindex", dscene->tri_vindex);
+		float4 *curve_keys = dscene->curve_keys.resize(curve_key_size);
+		float4 *curves = dscene->curves.resize(curve_size);
+
+		foreach(Mesh *mesh, scene->meshes) {
+			mesh->pack_curves(scene, &curve_keys[mesh->curvekey_offset], &curves[mesh->curve_offset], mesh->curvekey_offset);
+			if(progress.get_cancel()) return;
+		}
+
+		device->tex_alloc("__curve_keys", dscene->curve_keys);
+		device->tex_alloc("__curves", dscene->curves);
+	}
 }
 
 void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
@@ -641,6 +798,10 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 	if(pack.tri_woop.size()) {
 		dscene->tri_woop.reference(&pack.tri_woop[0], pack.tri_woop.size());
 		device->tex_alloc("__tri_woop", dscene->tri_woop);
+	}
+	if(pack.prim_segment.size()) {
+		dscene->prim_segment.reference((uint*)&pack.prim_segment[0], pack.prim_segment.size());
+		device->tex_alloc("__prim_segment", dscene->prim_segment);
 	}
 	if(pack.prim_visibility.size()) {
 		dscene->prim_visibility.reference((uint*)&pack.prim_visibility[0], pack.prim_visibility.size());
@@ -751,6 +912,7 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	device->tex_free(dscene->bvh_nodes);
 	device->tex_free(dscene->object_node);
 	device->tex_free(dscene->tri_woop);
+	device->tex_free(dscene->prim_segment);
 	device->tex_free(dscene->prim_visibility);
 	device->tex_free(dscene->prim_index);
 	device->tex_free(dscene->prim_object);
@@ -758,6 +920,8 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	device->tex_free(dscene->tri_vnormal);
 	device->tex_free(dscene->tri_vindex);
 	device->tex_free(dscene->tri_verts);
+	device->tex_free(dscene->curves);
+	device->tex_free(dscene->curve_keys);
 	device->tex_free(dscene->attributes_map);
 	device->tex_free(dscene->attributes_float);
 	device->tex_free(dscene->attributes_float3);
@@ -765,6 +929,7 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	dscene->bvh_nodes.clear();
 	dscene->object_node.clear();
 	dscene->tri_woop.clear();
+	dscene->prim_segment.clear();
 	dscene->prim_visibility.clear();
 	dscene->prim_index.clear();
 	dscene->prim_object.clear();
@@ -772,6 +937,8 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	dscene->tri_vnormal.clear();
 	dscene->tri_vindex.clear();
 	dscene->tri_verts.clear();
+	dscene->curves.clear();
+	dscene->curve_keys.clear();
 	dscene->attributes_map.clear();
 	dscene->attributes_float.clear();
 	dscene->attributes_float3.clear();

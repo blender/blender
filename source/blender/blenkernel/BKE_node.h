@@ -557,6 +557,7 @@ struct ShadeResult;
 #define SH_NODE_BSDF_REFRACTION			173
 #define SH_NODE_TANGENT					174
 #define SH_NODE_NORMAL_MAP				175
+#define SH_NODE_HAIR_INFO				176
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1

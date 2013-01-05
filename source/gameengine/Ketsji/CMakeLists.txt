@@ -252,7 +252,7 @@ if(WITH_BULLET)
 		../Physics/Bullet
 	)
 	list(APPEND INC
-		../../../extern/bullet2/src
+		${BULLET_INCLUDE_DIRS}
 	)
 	add_definitions(-DUSE_BULLET)
 endif()

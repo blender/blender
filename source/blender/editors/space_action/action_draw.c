@@ -82,13 +82,7 @@ void draw_channel_names(bContext *C, bAnimContext *ac, ARegion *ar)
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
-	/* Update max-extent of channels here (taking into account scrollers):
-	 *  - this is done to allow the channel list to be scrollable, but must be done here
-	 *    to avoid regenerating the list again and/or also because channels list is drawn first
-	 *	- offset of ACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for 
-	 *	  start of list offset, and the second is as a correction for the scrollers.
-	 */
-	height = ((items * ACHANNEL_STEP) + (ACHANNEL_HEIGHT * 2));
+	height = ((items * ACHANNEL_STEP) + (ACHANNEL_HEIGHT));
 	if (height > BLI_rcti_size_y(&v2d->mask)) {
 		/* don't use totrect set, as the width stays the same 
 		 * (NOTE: this is ok here, the configuration is pretty straightforward) 
@@ -199,13 +193,7 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
-	/* Update max-extent of channels here (taking into account scrollers):
-	 *  - this is done to allow the channel list to be scrollable, but must be done here
-	 *    to avoid regenerating the list again and/or also because channels list is drawn first
-	 *	- offset of ACHANNEL_HEIGHT*2 is added to the height of the channels, as first is for 
-	 *	  start of list offset, and the second is as a correction for the scrollers.
-	 */
-	height = ((items * ACHANNEL_STEP) + (ACHANNEL_HEIGHT * 2));
+	height = ((items * ACHANNEL_STEP) + (ACHANNEL_HEIGHT));
 	/* don't use totrect set, as the width stays the same 
 	 * (NOTE: this is ok here, the configuration is pretty straightforward) 
 	 */

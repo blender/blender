@@ -41,7 +41,9 @@ incs = [
 	'../blenkernel',
 	'#/intern/guardedalloc',
 	'#/extern/bullet2/src',
-	'#/intern/opennl/extern',	]
+        '#/extern/rangetree',
+	'#/intern/opennl/extern'
+	]
 
 defs = []
 

@@ -20,6 +20,7 @@
  *
  * Contributors: Hos, Robert Wenzlaff.
  * Contributors: 2004/2005/2006 Blender Foundation, full recode
+ * Contributors: Vertex color baking, Copyright 2011 AutoCRC
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -51,9 +52,12 @@
 #include "DNA_image_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_group_types.h"
 
+#include "BKE_customdata.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
@@ -710,9 +714,11 @@ static void sky_tile(RenderPart *pa, RenderLayer *rl)
 					
 					if (pass[3]==0.0f) {
 						copy_v4_v4(pass, col);
+						pass[3] = 1.0f;
 					}
 					else {
 						addAlphaUnderFloat(pass, col);
+						pass[3] = 1.0f;
 					}
 				}
 			}
@@ -981,29 +987,6 @@ static void edge_enhance_add(RenderPart *pa, float *rectf, float *arect)
 	}
 }
 
-static void convert_to_key_alpha(RenderPart *pa, RenderLayer *rl)
-{
-	RenderLayer *rlpp[RE_MAX_OSA];
-	int y, sample, totsample;
-	
-	totsample= get_sample_layers(pa, rl, rlpp);
-	
-	for (sample= 0; sample<totsample; sample++) {
-		float *rectf= rlpp[sample]->rectf;
-		
-		for (y= pa->rectx*pa->recty; y>0; y--, rectf+=4) {
-			if (rectf[3] >= 1.0f) {
-				/* pass */
-			}
-			else if (rectf[3] > 0.0f) {
-				rectf[0] /= rectf[3];
-				rectf[1] /= rectf[3];
-				rectf[2] /= rectf[3];
-			}
-		}
-	}
-}
-
 /* clamp alpha and RGB to 0..1 and 0..inf, can go outside due to filter */
 static void clamp_alpha_rgb_range(RenderPart *pa, RenderLayer *rl)
 {
@@ -1172,7 +1155,7 @@ typedef struct ZbufSolidData {
 
 static void make_pixelstructs(RenderPart *pa, ZSpan *zspan, int sample, void *data)
 {
-	ZbufSolidData *sdata= (ZbufSolidData*)data;
+	ZbufSolidData *sdata = (ZbufSolidData *)data;
 	ListBase *lb= sdata->psmlist;
 	intptr_t *rd= pa->rectdaps;
 	int *ro= zspan->recto;
@@ -1311,10 +1294,6 @@ void zbufshadeDA_tile(RenderPart *pa)
 
 		/* clamp alpha to 0..1 range, can go outside due to filter */
 		clamp_alpha_rgb_range(pa, rl);
-		
-		/* de-premul alpha */
-		if (R.r.alphamode & R_ALPHAKEY)
-			convert_to_key_alpha(pa, rl);
 		
 		/* free stuff within loop! */
 		MEM_freeN(pa->rectdaps); pa->rectdaps= NULL;
@@ -1475,10 +1454,6 @@ void zbufshade_tile(RenderPart *pa)
 		
 		if (rl->passflag & SCE_PASS_VECTOR)
 			reset_sky_speed(pa, rl);
-		
-		/* de-premul alpha */
-		if (R.r.alphamode & R_ALPHAKEY)
-			convert_to_key_alpha(pa, rl);
 		
 		if (edgerect) MEM_freeN(edgerect);
 		edgerect= NULL;
@@ -1740,7 +1715,7 @@ void zbufshade_sss_tile(RenderPart *pa)
 #if 0
 			if (rs) {
 				/* for each sample in this pixel, shade it */
-				for (ps=(PixStr*)*rs; ps; ps=ps->next) {
+				for (ps = (PixStr *)(*rs); ps; ps=ps->next) {
 					ObjectInstanceRen *obi= &re->objectinstance[ps->obi];
 					ObjectRen *obr= obi->obr;
 					vlr= RE_findOrAddVlak(obr, (ps->facenr-1) & RE_QUAD_MASK);
@@ -2032,6 +2007,12 @@ typedef struct BakeShade {
 
 	float dir[3];
 	Object *actob;
+
+	/* Output: vertex color or image data. If vcol is not NULL, rect and
+	 * rect_float should be NULL. */
+	MPoly *mpoly;
+	MLoop *mloop;
+	MLoopCol *vcol;
 	
 	unsigned int *rect;
 	float *rect_float;
@@ -2208,7 +2189,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 		}
 	}
 	
-	if (bs->rect_float) {
+	if (bs->rect_float && !bs->vcol) {
 		float *col= bs->rect_float + 4*(bs->rectx*y + x);
 		copy_v3_v3(col, shr.combined);
 		if (bs->type==RE_BAKE_ALL || bs->type==RE_BAKE_TEXTURE) {
@@ -2219,7 +2200,8 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 		}
 	}
 	else {
-		unsigned char *col= (unsigned char *)(bs->rect + bs->rectx*y + x);
+		/* Target is char (LDR). */
+		unsigned char col[4];
 
 		if (ELEM(bs->type, RE_BAKE_ALL, RE_BAKE_TEXTURE)) {
 			float rgb[3];
@@ -2239,6 +2221,19 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 		else {
 			col[3]= 255;
 		}
+
+		if (bs->vcol) {
+			/* Vertex colour baking. Vcol has no useful alpha channel (it exists
+			 * but is used only for vertex painting). */
+			bs->vcol->r = col[0];
+			bs->vcol->g = col[1];
+			bs->vcol->b = col[2];
+		}
+		else {
+			unsigned char *imcol= (unsigned char *)(bs->rect + bs->rectx*y + x);
+			copy_v4_v4_char((char *)imcol, (char *)col);
+		}
+
 	}
 	
 	if (bs->rect_mask) {
@@ -2258,15 +2253,28 @@ static void bake_displacement(void *handle, ShadeInput *UNUSED(shi), float dist,
 		disp = 0.5f + dist; /* alter the range from [-0.5,0.5] to [0,1]*/
 	}
 	
-	if (bs->rect_float) {
+	if (bs->rect_float && !bs->vcol) {
 		float *col= bs->rect_float + 4*(bs->rectx*y + x);
 		col[0] = col[1] = col[2] = disp;
 		col[3]= 1.0f;
 	}
 	else {
-		char *col= (char *)(bs->rect + bs->rectx*y + x);
+		/* Target is char (LDR). */
+		unsigned char col[4];
 		col[0] = col[1] = col[2] = FTOCHAR(disp);
-		col[3]= 255;
+		col[3] = 255;
+
+		if(bs->vcol) {
+			/* Vertex colour baking. Vcol has no useful alpha channel (it exists
+			 * but is used only for vertex painting). */
+			bs->vcol->r = col[0];
+			bs->vcol->g = col[1];
+			bs->vcol->b = col[2];
+		}
+		else {
+			char *imcol= (char *)(bs->rect + bs->rectx*y + x);
+			copy_v4_v4_char((char *)imcol, (char *)col);
+		}
 	}
 	if (bs->rect_mask) {
 		bs->rect_mask[bs->rectx*y + x] = FILTER_MASK_USED;
@@ -2461,8 +2469,8 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 
 		/* if hit, we shade from the new point, otherwise from point one starting face */
 		if (hit) {
-			obi= (ObjectInstanceRen*)minisec.hit.ob;
-			vlr= (VlakRen*)minisec.hit.face;
+			obi = (ObjectInstanceRen *)minisec.hit.ob;
+			vlr = (VlakRen *)minisec.hit.face;
 			quad= (minisec.isect == 2);
 			copy_v3_v3(shi->co, minco);
 			
@@ -2502,13 +2510,55 @@ static int get_next_bake_face(BakeShade *bs)
 			vlr= RE_findOrAddVlak(obr, v);
 
 			if ((bs->actob && bs->actob == obr->ob) || (!bs->actob && (obr->ob->flag & SELECT))) {
-				tface= RE_vlakren_get_tface(obr, vlr, obr->bakemtface, NULL, 0);
+				if(R.r.bake_flag & R_BAKE_VCOL) {
+					/* Gather face data for vertex colour bake */
+					Mesh *me;
+					int *origindex, vcollayer;
+					CustomDataLayer *cdl;
 
-				if (tface && tface->tpage) {
-					Image *ima= tface->tpage;
-					ImBuf *ibuf= BKE_image_acquire_ibuf(ima, NULL, NULL);
+					if(obr->ob->type != OB_MESH)
+						continue;
+					me = obr->ob->data;
+
+					origindex = RE_vlakren_get_origindex(obr, vlr, 0);
+					if(origindex == NULL)
+						continue;
+					if (*origindex >= me->totpoly) {
+						/* Small hack for Array modifier, which gives false
+						   original indices - z0r */
+						continue;
+					}
+#if 0
+					/* Only shade selected faces. */
+					if((me->mface[*origindex].flag & ME_FACE_SEL) == 0)
+						continue;
+#endif
+
+					vcollayer = CustomData_get_render_layer_index(&me->ldata, CD_MLOOPCOL);
+					if(vcollayer == -1)
+						continue;
+
+					cdl = &me->ldata.layers[vcollayer];
+					bs->mpoly = me->mpoly + *origindex;
+					bs->vcol = ((MLoopCol*)cdl->data) + bs->mpoly->loopstart;
+					bs->mloop = me->mloop + bs->mpoly->loopstart;
+
+					/* Tag mesh for reevaluation. */
+					DAG_id_tag_update(&me->id, 0);
+				}
+				else {
+					Image *ima = NULL;
+					ImBuf *ibuf = NULL;
 					const float vec_alpha[4]= {0.0f, 0.0f, 0.0f, 0.0f};
 					const float vec_solid[4]= {0.0f, 0.0f, 0.0f, 1.0f};
+
+					tface= RE_vlakren_get_tface(obr, vlr, obr->bakemtface, NULL, 0);
+
+					if (!tface || !tface->tpage)
+						continue;
+
+					ima = tface->tpage;
+					ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 					
 					if (ibuf==NULL)
 						continue;
@@ -2544,26 +2594,90 @@ static int get_next_bake_face(BakeShade *bs)
 						R.bakebuf= ima;
 					}
 
+					/* Tag image for redraw. */
 					ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-
-					bs->obi= obi;
-					bs->vlr= vlr;
-					
-					bs->vdone++;	/* only for error message if nothing was rendered */
-					v++;
-					
-					BLI_unlock_thread(LOCK_CUSTOM1);
-
 					BKE_image_release_ibuf(ima, ibuf, NULL);
-
-					return 1;
 				}
+
+				bs->obi = obi;
+				bs->vlr = vlr;
+				bs->vdone++;	/* only for error message if nothing was rendered */
+				v++;
+				BLI_unlock_thread(LOCK_CUSTOM1);
+				return 1;
 			}
 		}
 	}
 	
 	BLI_unlock_thread(LOCK_CUSTOM1);
 	return 0;
+}
+
+static void bake_single_vertex(BakeShade *bs, VertRen *vert, float u, float v)
+{
+	int *origindex, i;
+	MLoopCol *basevcol;
+	MLoop *mloop;
+
+	origindex = RE_vertren_get_origindex(bs->obi->obr, vert, 0);
+	if (!origindex || *origindex == ORIGINDEX_NONE)
+		return;
+
+	/* Search for matching vertex index and apply shading. */
+	for (i = 0; i < bs->mpoly->totloop; i++) {
+		mloop = bs->mloop + i;
+		if (mloop->v != *origindex)
+			continue;
+		basevcol = bs->vcol;
+		bs->vcol = basevcol + i;
+		do_bake_shade(bs, 0, 0, u, v);
+		bs->vcol = basevcol;
+		break;
+	}
+}
+
+/* Bake all vertices of a face. Actually, this still works on a face-by-face
+   basis, and each vertex on each face is shaded. Vertex colors are a property
+   of loops, not vertices. */
+static void shade_verts(BakeShade *bs)
+{
+	VlakRen *vlr = bs->vlr;
+
+	/* Disable baking to image; write to vcol instead. vcol pointer is set in
+	 * bake_single_vertex. */
+	bs->ima = NULL;
+	bs->rect = NULL;
+	bs->rect_float = NULL;
+
+	bs->quad = 0;
+
+	/* No anti-aliasing for vertices. */
+	zero_v3(bs->dxco);
+	zero_v3(bs->dyco);
+
+	/* Shade each vertex of the face. u and v are barycentric coordinates; since
+	   we're only interested in vertices, these will be 0 or 1. */
+	if ((vlr->flag & R_FACE_SPLIT) == 0) {
+		/* Processing triangle face, whole quad, or first half of split quad. */
+
+		bake_single_vertex(bs, bs->vlr->v1, 1.0f, 0.0f);
+		bake_single_vertex(bs, bs->vlr->v2, 0.0f, 1.0f);
+		bake_single_vertex(bs, bs->vlr->v3, 0.0f, 0.0f);
+
+		if (vlr->v4) {
+			bs->quad = 1;
+			bake_single_vertex(bs, bs->vlr->v4, 0.0f, 0.0f);
+		}
+	}
+	else {
+		/* Processing second half of split quad. Only one vertex to go. */
+		if (vlr->flag & R_DIVIDE_24) {
+			bake_single_vertex(bs, bs->vlr->v2, 0.0f, 1.0f);
+		}
+		else {
+			bake_single_vertex(bs, bs->vlr->v3, 0.0f, 0.0f);
+		}
+	}
 }
 
 /* already have tested for tface and ima and zspan */
@@ -2593,6 +2707,7 @@ static void shade_tface(BakeShade *bs)
 	bs->rect= bs->ibuf->rect;
 	bs->rect_colorspace= bs->ibuf->rect_colorspace;
 	bs->rect_float= bs->ibuf->rect_float;
+	bs->vcol = NULL;
 	bs->quad= 0;
 	
 	if (bs->use_mask) {
@@ -2636,7 +2751,10 @@ static void *do_bake_thread(void *bs_v)
 	BakeShade *bs= bs_v;
 	
 	while (get_next_bake_face(bs)) {
-		shade_tface(bs);
+		if (R.r.bake_flag & R_BAKE_VCOL)
+			shade_verts(bs);
+		else
+			shade_tface(bs);
 		
 		/* fast threadsafe break test */
 		if (R.test_break(R.tbh))
@@ -2700,14 +2818,16 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 		use_mask = TRUE;
 	
 	/* baker uses this flag to detect if image was initialized */
-	for (ima= G.main->image.first; ima; ima= ima->id.next) {
-		ImBuf *ibuf= BKE_image_acquire_ibuf(ima, NULL, NULL);
-		ima->id.flag |= LIB_DOIT;
-		ima->flag&= ~IMA_USED_FOR_RENDER;
-		if (ibuf) {
-			ibuf->userdata = NULL; /* use for masking if needed */
+	if ((R.r.bake_flag & R_BAKE_VCOL) == 0) {
+		for (ima = G.main->image.first; ima; ima = ima->id.next) {
+			ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+			ima->id.flag |= LIB_DOIT;
+			ima->flag &= ~IMA_USED_FOR_RENDER;
+			if (ibuf) {
+				ibuf->userdata = NULL; /* use for masking if needed */
+			}
+			BKE_image_release_ibuf(ima, ibuf, NULL);
 		}
-		BKE_image_release_ibuf(ima, ibuf, NULL);
 	}
 	
 	BLI_init_threads(&threads, do_bake_thread, re->r.threads);
@@ -2731,7 +2851,10 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 		
 		handles[a].type= type;
 		handles[a].actob= actob;
-		handles[a].zspan= MEM_callocN(sizeof(ZSpan), "zspan for bake");
+		if (R.r.bake_flag & R_BAKE_VCOL)
+			handles[a].zspan = NULL;
+		else
+			handles[a].zspan = MEM_callocN(sizeof(ZSpan), "zspan for bake");
 		
 		handles[a].use_mask = use_mask;
 
@@ -2758,27 +2881,29 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	}
 	
 	/* filter and refresh images */
-	for (ima= G.main->image.first; ima; ima= ima->id.next) {
-		if ((ima->id.flag & LIB_DOIT)==0) {
-			ImBuf *ibuf= BKE_image_acquire_ibuf(ima, NULL, NULL);
+	if ((R.r.bake_flag & R_BAKE_VCOL) == 0) {
+		for (ima = G.main->image.first; ima; ima = ima->id.next) {
+			if ((ima->id.flag & LIB_DOIT)==0) {
+				ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 
-			if (ima->flag & IMA_USED_FOR_RENDER)
-				result= BAKE_RESULT_FEEDBACK_LOOP;
+				if (ima->flag & IMA_USED_FOR_RENDER)
+					result = BAKE_RESULT_FEEDBACK_LOOP;
 
-			if (!ibuf)
-				continue;
+				if (!ibuf)
+					continue;
 
-			RE_bake_ibuf_filter(ibuf, (char *)ibuf->userdata, re->r.bake_filter);
+				RE_bake_ibuf_filter(ibuf, (char *)ibuf->userdata, re->r.bake_filter);
 
-			ibuf->userflags |= IB_BITMAPDIRTY;
-			BKE_image_release_ibuf(ima, ibuf, NULL);
+				ibuf->userflags |= IB_BITMAPDIRTY;
+				BKE_image_release_ibuf(ima, ibuf, NULL);
+			}
 		}
-	}
-	
-	/* calculate return value */
-	for (a=0; a<re->r.threads; a++) {
-		zbuf_free_span(handles[a].zspan);
-		MEM_freeN(handles[a].zspan);
+
+		/* calculate return value */
+		for (a = 0; a < re->r.threads; a++) {
+			zbuf_free_span(handles[a].zspan);
+			MEM_freeN(handles[a].zspan);
+		}
 	}
 
 	MEM_freeN(handles);

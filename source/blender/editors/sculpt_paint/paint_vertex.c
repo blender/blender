@@ -372,31 +372,22 @@ static int wpaint_mirror_vgroup_ensure(Object *ob, const int vgroup_active)
 	bDeformGroup *defgroup = BLI_findlink(&ob->defbase, vgroup_active);
 
 	if (defgroup) {
-		bDeformGroup *curdef;
 		int mirrdef;
 		char name[MAXBONENAME];
 
 		flip_side_name(name, defgroup->name, FALSE);
-
-		if (strcmp(name, defgroup->name) != 0) {
-			for (curdef = ob->defbase.first, mirrdef = 0; curdef; curdef = curdef->next, mirrdef++) {
-				if (!strcmp(curdef->name, name)) {
-					break;
-				}
+		mirrdef = defgroup_name_index(ob, name);
+		if (mirrdef == -1) {
+			int olddef = ob->actdef;  /* tsk, ED_vgroup_add sets the active defgroup */
+			if (ED_vgroup_add_name(ob, name)) {
+				mirrdef = BLI_countlist(&ob->defbase) - 1;
 			}
-
-			if (curdef == NULL) {
-				int olddef = ob->actdef;  /* tsk, ED_vgroup_add sets the active defgroup */
-				curdef = ED_vgroup_add_name(ob, name);
-				ob->actdef = olddef;
-			}
-
-			/* curdef should never be NULL unless this is
-			 * a  lamp and ED_vgroup_add_name fails */
-			if (curdef) {
-				return mirrdef;
-			}
+			ob->actdef = olddef;
 		}
+
+		/* curdef should never be NULL unless this is
+		 * a  lamp and ED_vgroup_add_name fails */
+		return mirrdef;
 	}
 
 	return -1;
@@ -414,7 +405,7 @@ static void free_vpaint_prev(VPaint *vp)
 static void free_wpaint_prev(VPaint *vp)
 {
 	if (vp->wpaint_prev) {
-		MEM_freeN(vp->wpaint_prev);
+		BKE_defvert_array_free(vp->wpaint_prev, vp->tot);
 		vp->wpaint_prev = NULL;
 		vp->tot = 0;
 	}
@@ -441,7 +432,7 @@ static void copy_wpaint_prev(VPaint *wp, MDeformVert *dverts, int dcount)
 		
 		wp->wpaint_prev = MEM_mallocN(sizeof(MDeformVert) * dcount, "wpaint prev");
 		wp->tot = dcount;
-		copy_dverts(wp->wpaint_prev, dverts, dcount);
+		BKE_defvert_array_copy(wp->wpaint_prev, dverts, dcount);
 	}
 }
 
@@ -868,7 +859,10 @@ static float calc_vp_strength_dl(VPaint *vp, ViewContext *vc, const float co[3],
 {
 	float vertco[2];
 
-	if (ED_view3d_project_float_global(vc->ar, co, vertco, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+	if (ED_view3d_project_float_object(vc->ar,
+	                                   co, vertco,
+	                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
+	{
 		float delta[2];
 		float dist_squared;
 
@@ -1037,15 +1031,15 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		view3d_operator_needs_opengl(C);
 
 		if (use_vert_sel) {
-			if (ED_mesh_pick_vert(C, me, event->mval, &index, ED_MESH_PICK_DEFAULT_VERT_SIZE)) {
+			if (ED_mesh_pick_vert(C, vc.obact, event->mval, &index, ED_MESH_PICK_DEFAULT_VERT_SIZE, TRUE)) {
 				v_idx_best = index;
 			}
 		}
 		else {
-			if (ED_mesh_pick_face_vert(C, me, vc.obact, event->mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE)) {
+			if (ED_mesh_pick_face_vert(C, vc.obact, event->mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE)) {
 				v_idx_best = index;
 			}
-			else if (ED_mesh_pick_face(C, me, event->mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE)) {
+			else if (ED_mesh_pick_face(C, vc.obact, event->mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE)) {
 				/* this relies on knowning the internal worksings of ED_mesh_pick_face_vert() */
 				BKE_report(op->reports, RPT_WARNING, "The modifier used does not support deformed locations");
 			}
@@ -1126,13 +1120,13 @@ static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA 
 				view3d_operator_needs_opengl(C);
 
 				if (use_vert_sel) {
-					if (ED_mesh_pick_vert(C, me, mval, &index, ED_MESH_PICK_DEFAULT_VERT_SIZE)) {
+					if (ED_mesh_pick_vert(C, vc.obact, mval, &index, ED_MESH_PICK_DEFAULT_VERT_SIZE, TRUE)) {
 						MDeformVert *dvert = &me->dvert[index];
 						found |= weight_paint_sample_enum_itemf__helper(dvert, defbase_tot, groups);
 					}
 				}
 				else {
-					if (ED_mesh_pick_face(C, me, mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE)) {
+					if (ED_mesh_pick_face(C, vc.obact, mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE)) {
 						MPoly *mp = &me->mpoly[index];
 						unsigned int fidx = mp->totloop - 1;
 
@@ -2058,32 +2052,28 @@ struct WPaintData {
 	int vgroup_mirror;
 	DMCoNo *vertexcosnos;
 	float wpimat[3][3];
-	
+
 	/* variables for auto normalize */
 	const char *vgroup_validmap; /* stores if vgroups tie to deforming bones or not */
 	const char *lock_flags;
 	int defbase_tot;
 };
 
-static int wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UNUSED(mouse[2]))
+/* ensure we have data on wpaint start, add if needed */
+static int wpaint_ensure_data(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	struct PaintStroke *stroke = op->customdata;
-	ToolSettings *ts = scene->toolsettings;
-	VPaint *wp = ts->wpaint;
 	Object *ob = CTX_data_active_object(C);
-	struct WPaintData *wpd;
-	Mesh *me;
+	Mesh *me = BKE_mesh_from_object(ob);
 
-	float mat[4][4], imat[4][4];
-	
 	if (scene->obedit) {
 		return FALSE;
 	}
-	
-	me = BKE_mesh_from_object(ob);
-	if (me == NULL || me->totpoly == 0) return OPERATOR_PASS_THROUGH;
-	
+
+	if (me == NULL || me->totpoly == 0) {
+		return FALSE;
+	}
+
 	/* if nothing was added yet, we make dverts and a vertex deform group */
 	if (!me->dvert) {
 		ED_vgroup_data_create(&me->id);
@@ -2119,6 +2109,25 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UNU
 	/* ensure we don't try paint onto an invalid group */
 	if (ob->actdef <= 0) {
 		BKE_report(op->reports, RPT_WARNING, "No active vertex group for painting, aborting");
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+static int wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UNUSED(mouse[2]))
+{
+	Scene *scene = CTX_data_scene(C);
+	struct PaintStroke *stroke = op->customdata;
+	ToolSettings *ts = scene->toolsettings;
+	VPaint *wp = ts->wpaint;
+	Object *ob = CTX_data_active_object(C);
+	Mesh *me = BKE_mesh_from_object(ob);
+	struct WPaintData *wpd;
+
+	float mat[4][4], imat[4][4];
+
+	if (wpaint_ensure_data(C, op) == FALSE) {
 		return FALSE;
 	}
 
@@ -2184,7 +2193,15 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	unsigned int index, totindex;
 	float alpha;
 	float mval[2];
-	int use_vert_sel;
+	bool use_vert_sel;
+	bool use_face_sel;
+	bool use_depth;
+
+	MDeformWeight *(*dw_func)(MDeformVert *, const int) =
+	        (brush->vertexpaint_tool == PAINT_BLEND_BLUR) ?
+	        ((wp->flag & VP_ONLYVGROUP) ?
+	             (MDeformWeight *(*)(MDeformVert *, const int))defvert_find_index :
+	              defvert_verify_index) : NULL;
 
 	const float pressure = RNA_float_get(itemptr, "pressure");
 	const float brush_size_pressure = BKE_brush_size_get(scene, brush) * (BKE_brush_use_size_pressure(scene, brush) ? pressure : 1.0f);
@@ -2201,7 +2218,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		ED_region_tag_redraw(CTX_wm_region(C));
 		return;
 	}
-		
+
 	vc = &wpd->vc;
 	ob = vc->obact;
 	me = ob->data;
@@ -2242,30 +2259,37 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	swap_m4m4(wpd->vc.rv3d->persmat, mat);
 
 	use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
+	use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
+	use_depth = (vc->v3d->flag & V3D_ZBUF_SELECT);
 
 	/* which faces are involved */
-	if (wp->flag & VP_AREA) {
-		/* Ugly hack, to avoid drawing vertex index when getting the face index buffer - campbell */
-		me->editflag &= ~ME_EDIT_PAINT_VERT_SEL;
-		totindex = sample_backbuf_area(vc, indexar, me->totpoly, mval[0], mval[1], brush_size_pressure);
-		me->editflag |= use_vert_sel ? ME_EDIT_PAINT_VERT_SEL : 0;
-	}
-	else {
-		indexar[0] = view3d_sample_backbuf(vc, mval[0], mval[1]);
-		if (indexar[0]) totindex = 1;
-		else totindex = 0;
-	}
+	if (use_depth) {
+		if (wp->flag & VP_AREA) {
+			/* Ugly hack, to avoid drawing vertex index when getting the face index buffer - campbell */
+			me->editflag &= ~ME_EDIT_PAINT_VERT_SEL;
+			totindex = sample_backbuf_area(vc, indexar, me->totpoly, mval[0], mval[1], brush_size_pressure);
+			me->editflag |= use_vert_sel ? ME_EDIT_PAINT_VERT_SEL : 0;
+		}
+		else {
+			indexar[0] = view3d_sample_backbuf(vc, mval[0], mval[1]);
+			if (indexar[0]) totindex = 1;
+			else totindex = 0;
+		}
 
-	if ((me->editflag & ME_EDIT_PAINT_FACE_SEL) && me->mpoly) {
-		for (index = 0; index < totindex; index++) {
-			if (indexar[index] && indexar[index] <= me->totpoly) {
-				MPoly *mpoly = ((MPoly *)me->mpoly) + (indexar[index] - 1);
-						
-				if ((mpoly->flag & ME_FACE_SEL) == 0) {
-					indexar[index] = 0;
+		if (use_face_sel && me->mpoly) {
+			for (index = 0; index < totindex; index++) {
+				if (indexar[index] && indexar[index] <= me->totpoly) {
+					MPoly *mpoly = ((MPoly *)me->mpoly) + (indexar[index] - 1);
+
+					if ((mpoly->flag & ME_FACE_SEL) == 0) {
+						indexar[index] = 0;
+					}
 				}
 			}
 		}
+	}
+	else {
+		indexar = NULL;
 	}
 
 	/* make sure each vertex gets treated only once */
@@ -2275,80 +2299,121 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		paintweight = 0.0f;
 	else
 		paintweight = BKE_brush_weight_get(scene, brush);
-			
-	for (index = 0; index < totindex; index++) {
-		if (indexar[index] && indexar[index] <= me->totpoly) {
-			MPoly *mpoly = me->mpoly + (indexar[index] - 1);
-			MLoop *ml = me->mloop + mpoly->loopstart;
-			int i;
 
-			if (use_vert_sel) {
-				for (i = 0; i < mpoly->totloop; i++, ml++) {
-					me->dvert[ml->v].flag = (me->mvert[ml->v].flag & SELECT);
+#define WP_BLUR_ACCUM(v_idx_var)  \
+	{ \
+		const unsigned int vidx = v_idx_var; \
+		const float fac = calc_vp_strength_dl(wp, vc, wpd->vertexcosnos[vidx].co, mval, brush_size_pressure); \
+		if (fac > 0.0f) { \
+			MDeformWeight *dw = dw_func(&me->dvert[vidx], wpi.vgroup_active); \
+			paintweight += dw ? (dw->weight * fac) : 0.0f; \
+			totw += fac; \
+		} \
+	} (void)0
+
+
+	if (use_depth) {
+		for (index = 0; index < totindex; index++) {
+			if (indexar[index] && indexar[index] <= me->totpoly) {
+				MPoly *mpoly = me->mpoly + (indexar[index] - 1);
+				MLoop *ml = me->mloop + mpoly->loopstart;
+				int i;
+
+				if (use_vert_sel) {
+					for (i = 0; i < mpoly->totloop; i++, ml++) {
+						me->dvert[ml->v].flag = (me->mvert[ml->v].flag & SELECT);
+					}
 				}
-			}
-			else {
-				for (i = 0; i < mpoly->totloop; i++, ml++) {
-					me->dvert[ml->v].flag = 1;
+				else {
+					for (i = 0; i < mpoly->totloop; i++, ml++) {
+						me->dvert[ml->v].flag = 1;
+					}
 				}
-			}
-					
-			if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
-				MDeformWeight *dw, *(*dw_func)(MDeformVert *, const int);
-						
-				if (wp->flag & VP_ONLYVGROUP)
-					dw_func = (MDeformWeight *(*)(MDeformVert *, const int))defvert_find_index;
-				else
-					dw_func = defvert_verify_index;
-						
-				ml = me->mloop + mpoly->loopstart;
-				for (i = 0; i < mpoly->totloop; i++, ml++) {
-					unsigned int vidx = ml->v;
-					const float fac = calc_vp_strength_dl(wp, vc, wpd->vertexcosnos[vidx].co, mval, brush_size_pressure);
-					if (fac > 0.0f) {
-						dw = dw_func(&me->dvert[vidx], wpi.vgroup_active);
-						paintweight += dw ? (dw->weight * fac) : 0.0f;
-						totw += fac;
+
+				if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
+					ml = me->mloop + mpoly->loopstart;
+					for (i = 0; i < mpoly->totloop; i++, ml++) {
+						WP_BLUR_ACCUM(ml->v);
 					}
 				}
 			}
 		}
 	}
-			
+	else {
+		const unsigned int totvert = me->totvert;
+		unsigned int       i;
+
+		/* in the case of face selection we need to flush */
+		if (use_vert_sel || use_face_sel) {
+			for (i = 0; i < totvert; i++) {
+				me->dvert[i].flag = me->mvert[i].flag & SELECT;
+			}
+		}
+		else {
+			for (i = 0; i < totvert; i++) {
+				me->dvert[i].flag = SELECT;
+			}
+		}
+
+		if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
+			for (i = 0; i < totvert; i++) {
+				WP_BLUR_ACCUM(i);
+			}
+		}
+	}
+
+#undef WP_BLUR_ACCUM
+
+
 	if (brush->vertexpaint_tool == PAINT_BLEND_BLUR) {
 		paintweight /= totw;
 	}
 
-	for (index = 0; index < totindex; index++) {
+#define WP_PAINT(v_idx_var)  \
+	{ \
+		unsigned int vidx = v_idx_var; \
+		if (me->dvert[vidx].flag) { \
+			alpha = calc_vp_alpha_dl(wp, vc, wpd->wpimat, &wpd->vertexcosnos[vidx], \
+			                         mval, brush_size_pressure, brush_alpha_pressure); \
+			if (alpha) { \
+				do_weight_paint_vertex(wp, ob, &wpi, vidx, alpha, paintweight); \
+			} \
+			me->dvert[vidx].flag = 0; \
+		} \
+	} (void)0
 
-		if (indexar[index] && indexar[index] <= me->totpoly) {
-			MPoly *mpoly = me->mpoly + (indexar[index] - 1);
-			MLoop *ml = me->mloop + mpoly->loopstart;
-			int i;
+	if (use_depth) {
+		for (index = 0; index < totindex; index++) {
 
-			for (i = 0; i < mpoly->totloop; i++, ml++) {
-				unsigned int vidx = ml->v;
+			if (indexar[index] && indexar[index] <= me->totpoly) {
+				MPoly *mpoly = me->mpoly + (indexar[index] - 1);
+				MLoop *ml = me->mloop + mpoly->loopstart;
+				int i;
 
-				if (me->dvert[vidx].flag) {
-					alpha = calc_vp_alpha_dl(wp, vc, wpd->wpimat, &wpd->vertexcosnos[vidx],
-					                         mval, brush_size_pressure, brush_alpha_pressure);
-					if (alpha) {
-						do_weight_paint_vertex(wp, ob, &wpi, vidx, alpha, paintweight);
-					}
-					me->dvert[vidx].flag = 0;
+				for (i = 0; i < mpoly->totloop; i++, ml++) {
+					WP_PAINT(ml->v);
 				}
 			}
 		}
 	}
+	else {
+		const unsigned int totvert = me->totvert;
+		unsigned int       i;
+
+		for (i = 0; i < totvert; i++) {
+			WP_PAINT(i);
+		}
+	}
+#undef WP_PAINT
 
 
 	/* *** free wpi members */
 	MEM_freeN((void *)wpi.defbase_sel);
-	/* *** don't freeing wpi members */
+	/* *** done freeing wpi members */
 
 
 	swap_m4m4(vc->rv3d->persmat, mat);
-			
+
 	DAG_id_tag_update(ob->data, 0);
 	ED_region_tag_redraw(vc->ar);
 }
@@ -2442,13 +2507,17 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 }
 
-static int weight_paint_set_exec(bContext *C, wmOperator *UNUSED(op))
+static int weight_paint_set_exec(bContext *C, wmOperator *op)
 {
 	struct Scene *scene = CTX_data_scene(C);
 	Object *obact = CTX_data_active_object(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Brush *brush = paint_brush(&ts->wpaint->paint);
 	float vgroup_weight = BKE_brush_weight_get(scene, brush);
+
+	if (wpaint_ensure_data(C, op) == FALSE) {
+		return OPERATOR_CANCELLED;
+	}
 
 	wpaint_fill(scene->toolsettings->wpaint, obact, vgroup_weight);
 	ED_region_tag_redraw(CTX_wm_region(C)); /* XXX - should redraw all 3D views */
@@ -2992,9 +3061,9 @@ static void gradientVert__mapFunc(void *userData, int index, const float co[3],
 		 * the screen coords of the verts need to be cached because
 		 * updating the mesh may move them about (entering feedback loop) */
 		if (grad_data->is_init) {
-			if (ED_view3d_project_float_global(grad_data->ar,
+			if (ED_view3d_project_float_object(grad_data->ar,
 			                                   co, vs->sco,
-			                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
+			                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
 			{
 				/* ok */
 				MDeformVert *dv = &me->dvert[index];
@@ -3022,11 +3091,9 @@ static void gradientVert__mapFunc(void *userData, int index, const float co[3],
 			if (grad_data->type == WPAINT_GRADIENT_TYPE_LINEAR) {
 				alpha = line_point_factor_v2(vs->sco, grad_data->sco_start, grad_data->sco_end);
 			}
-			else if (grad_data->type == WPAINT_GRADIENT_TYPE_RADIAL) {
-				alpha = len_v2v2(grad_data->sco_start, vs->sco) * grad_data->sco_line_div;
-			}
 			else {
-				BLI_assert(0);
+				BLI_assert(grad_data->type == WPAINT_GRADIENT_TYPE_RADIAL);
+				alpha = len_v2v2(grad_data->sco_start, vs->sco) * grad_data->sco_line_div;
 			}
 			/* no need to clamp 'alpha' yet */
 
@@ -3082,7 +3149,7 @@ static int paint_weight_gradient_modal(bContext *C, wmOperator *op, wmEvent *eve
 		VPaint *wp = ts->wpaint;
 		Object *ob = CTX_data_active_object(C);
 		Mesh *me = ob->data;
-		copy_dverts(me->dvert, wp->wpaint_prev, me->totvert);
+		BKE_defvert_array_copy(me->dvert, wp->wpaint_prev, me->totvert);
 		free_wpaint_prev(wp);
 
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -3159,7 +3226,13 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 
 static int paint_weight_gradient_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	int ret = WM_gesture_straightline_invoke(C, op, event);
+	int ret;
+
+	if (wpaint_ensure_data(C, op) == FALSE) {
+		return OPERATOR_CANCELLED;
+	}
+
+	ret = WM_gesture_straightline_invoke(C, op, event);
 	if (ret & OPERATOR_RUNNING_MODAL) {
 		struct ARegion *ar = CTX_wm_region(C);
 		if (ar->regiontype == RGN_TYPE_WINDOW) {

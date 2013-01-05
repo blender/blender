@@ -241,6 +241,23 @@ PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...)
 	return item;
 }
 
+PyObject *PyC_FrozenSetFromStrings(const char **strings)
+{
+	const char **str;
+	PyObject *ret;
+
+	ret = PyFrozenSet_New(NULL);
+
+	for (str = strings; *str; str++) {
+		PyObject *py_str = PyUnicode_FromString(*str);
+		PySet_Add(ret, py_str);
+		Py_DECREF(py_str);
+	}
+
+	return ret;
+}
+
+
 /* similar to PyErr_Format(),
  *
  * implementation - we cant actually preprend the existing exception,

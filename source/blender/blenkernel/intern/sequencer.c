@@ -324,7 +324,6 @@ void BKE_sequencer_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, int make_
 {
 	const char *from_colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_SCENE_LINEAR);
 	const char *to_colorspace = scene->sequencer_colorspace_settings.name;
-	int predivide = ibuf->flags & IB_cm_predivide;
 
 	if (!ibuf->rect_float) {
 		if (make_float && ibuf->rect) {
@@ -354,7 +353,7 @@ void BKE_sequencer_imbuf_to_sequencer_space(Scene *scene, ImBuf *ibuf, int make_
 			imb_freerectImBuf(ibuf);
 
 		IMB_colormanagement_transform_threaded(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
-		                                       from_colorspace, to_colorspace, predivide);
+		                                       from_colorspace, to_colorspace, TRUE);
 	}
 }
 
@@ -367,10 +366,8 @@ void BKE_sequencer_imbuf_from_sequencer_space(Scene *scene, ImBuf *ibuf)
 		return;
 
 	if (to_colorspace && to_colorspace[0] != '\0') {
-		int predivide = ibuf->flags & IB_cm_predivide;
-
 		IMB_colormanagement_transform_threaded(ibuf->rect_float, ibuf->x, ibuf->y, ibuf->channels,
-		                                       from_colorspace, to_colorspace, predivide);
+		                                       from_colorspace, to_colorspace, TRUE);
 	}
 }
 
@@ -636,7 +633,7 @@ void BKE_sequence_calc(Scene *scene, Sequence *seq)
 	}
 }
 
-/* note: caller should run calc_sequence(scene, seq) after */
+/* note: caller should run BKE_sequence_calc(scene, seq) after */
 void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, int lock_range)
 {
 	char str[FILE_MAX];
@@ -1517,18 +1514,6 @@ MINLINE float color_balance_fl(float in, const float lift, const float gain, con
 	return powf(x, gamma) * mul;
 }
 
-static void make_cb_table_byte(float lift, float gain, float gamma,
-                               unsigned char *table, float mul)
-{
-	int y;
-
-	for (y = 0; y < 256; y++) {
-		float v = color_balance_fl((float)y * (1.0f / 255.0f), lift, gain, gamma, mul);
-
-		table[y] = FTOCHAR(v);
-	}
-}
-
 static void make_cb_table_float(float lift, float gain, float gamma,
                                 float *table, float mul)
 {
@@ -1543,35 +1528,33 @@ static void make_cb_table_float(float lift, float gain, float gamma,
 
 static void color_balance_byte_byte(StripColorBalance *cb_, unsigned char *rect, unsigned char *mask_rect, int width, int height, float mul)
 {
-	unsigned char cb_tab[3][256];
-	int c;
-	unsigned char *p = rect;
-	unsigned char *e = p + width * 4 * height;
+	//unsigned char cb_tab[3][256];
+	unsigned char *cp = rect;
+	unsigned char *e = cp + width * 4 * height;
 	unsigned char *m = mask_rect;
 
 	StripColorBalance cb = calc_cb(cb_);
 
-	for (c = 0; c < 3; c++) {
-		make_cb_table_byte(cb.lift[c], cb.gain[c], cb.gamma[c], cb_tab[c], mul);
-	}
+	while (cp < e) {
+		float p[4];
+		int c;
 
-	while (p < e) {
-		if (m) {
-			float t[3] = {m[0] / 255.0f, m[1] / 255.0f, m[2] / 255.0f};
+		straight_uchar_to_premul_float(p, cp);
 
-			p[0] = p[0] * (1.0f - t[0]) + t[0] * cb_tab[0][p[0]];
-			p[1] = p[1] * (1.0f - t[1]) + t[1] * cb_tab[1][p[1]];
-			p[2] = p[2] * (1.0f - t[2]) + t[2] * cb_tab[2][p[2]];
+		for (c = 0; c < 3; c++) {
+			float t = color_balance_fl(p[c], cb.lift[c], cb.gain[c], cb.gamma[c], mul);
 
-			m += 4;
-		}
-		else {
-			p[0] = cb_tab[0][p[0]];
-			p[1] = cb_tab[1][p[1]];
-			p[2] = cb_tab[2][p[2]];
+			if (m)
+				p[c] = p[c] * (1.0f - (float)m[c] / 255.0f) + t * m[c];
+			else
+				p[c] = t;
 		}
 		
-		p += 4;
+		premul_float_to_straight_uchar(cp, p);
+
+		cp += 4;
+		if (m)
+			m += 4;
 	}
 }
 
@@ -1795,7 +1778,7 @@ int BKE_sequencer_input_have_to_preprocess(SeqRenderData UNUSED(context), Sequen
 {
 	float mul;
 
-	if (seq->flag & (SEQ_FILTERY | SEQ_USE_CROP | SEQ_USE_TRANSFORM | SEQ_FLIPX | SEQ_FLIPY | SEQ_MAKE_PREMUL | SEQ_MAKE_FLOAT)) {
+	if (seq->flag & (SEQ_FILTERY | SEQ_USE_CROP | SEQ_USE_TRANSFORM | SEQ_FLIPX | SEQ_FLIPY | SEQ_MAKE_FLOAT)) {
 		return TRUE;
 	}
 
@@ -1892,7 +1875,8 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float cfra,
 			ImBuf *i = IMB_allocImBuf(dx, dy, 32, ibuf->rect_float ? IB_rectfloat : IB_rect);
 
 			IMB_rectcpy(i, ibuf, t.xofs, t.yofs, c.left, c.bottom, sx, sy);
-			
+			sequencer_imbuf_assign_spaces(context.scene, i);
+
 			IMB_freeImBuf(ibuf);
 
 			ibuf = i;
@@ -1929,12 +1913,6 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float cfra,
 
 	if (mul != 1.0f) {
 		multibuf(ibuf, mul);
-	}
-
-	if (seq->flag & SEQ_MAKE_PREMUL) {
-		if (ibuf->planes == 32 && ibuf->zbuf == NULL) {
-			IMB_premultiply_alpha(ibuf);
-		}
 	}
 
 	if (ibuf->x != context.rectx || ibuf->y != context.recty) {
@@ -2546,13 +2524,18 @@ static ImBuf *do_render_strip_uncached(SeqRenderData context, Sequence *seq, flo
 		case SEQ_TYPE_IMAGE:
 		{
 			StripElem *s_elem = BKE_sequencer_give_stripelem(seq, cfra);
+			int flag;
 
 			if (s_elem) {
 				BLI_join_dirfile(name, sizeof(name), seq->strip->dir, s_elem->name);
 				BLI_path_abs(name, G.main->name);
 			}
 
-			if (s_elem && (ibuf = IMB_loadiffname(name, IB_rect, seq->strip->colorspace_settings.name))) {
+			flag = IB_rect;
+			if (seq->alpha_mode == SEQ_ALPHA_PREMUL)
+				flag |= IB_alphamode_premul;
+
+			if (s_elem && (ibuf = IMB_loadiffname(name, flag, seq->strip->colorspace_settings.name))) {
 				/* we don't need both (speed reasons)! */
 				if (ibuf->rect_float && ibuf->rect)
 					imb_freerectImBuf(ibuf);
@@ -2641,7 +2624,7 @@ static ImBuf *do_render_strip_uncached(SeqRenderData context, Sequence *seq, flo
 static ImBuf *seq_render_strip(SeqRenderData context, Sequence *seq, float cfra)
 {
 	ImBuf *ibuf = NULL;
-	int use_preprocess = BKE_sequencer_input_have_to_preprocess(context, seq, cfra);
+	int use_preprocess = FALSE;
 	int is_proxy_image = FALSE;
 	float nr = give_stripelem_index(seq, cfra);
 	/* all effects are handled similarly with the exception of speed effect */
@@ -2650,30 +2633,36 @@ static ImBuf *seq_render_strip(SeqRenderData context, Sequence *seq, float cfra)
 
 	ibuf = BKE_sequencer_cache_get(context, seq, cfra, SEQ_STRIPELEM_IBUF);
 
-	/* currently, we cache preprocessed images in SEQ_STRIPELEM_IBUF,
-	 * but not(!) on SEQ_STRIPELEM_IBUF_ENDSTILL and ..._STARTSTILL */
-	if (ibuf)
-		use_preprocess = FALSE;
-
-	if (ibuf == NULL)
-		ibuf = copy_from_ibuf_still(context, seq, nr);
-
 	if (ibuf == NULL) {
-		ibuf = BKE_sequencer_preprocessed_cache_get(context, seq, cfra, SEQ_STRIPELEM_IBUF);
+		if (ibuf == NULL)
+			ibuf = copy_from_ibuf_still(context, seq, nr);
 
 		if (ibuf == NULL) {
-			/* MOVIECLIPs have their own proxy management */
-			if (ibuf == NULL && seq->type != SEQ_TYPE_MOVIECLIP) {
-				ibuf = seq_proxy_fetch(context, seq, cfra);
-				is_proxy_image = (ibuf != NULL);
+			ibuf = BKE_sequencer_preprocessed_cache_get(context, seq, cfra, SEQ_STRIPELEM_IBUF);
+
+			if (ibuf == NULL) {
+				/* MOVIECLIPs have their own proxy management */
+				if (ibuf == NULL && seq->type != SEQ_TYPE_MOVIECLIP) {
+					ibuf = seq_proxy_fetch(context, seq, cfra);
+					is_proxy_image = (ibuf != NULL);
+				}
+
+				if (ibuf == NULL)
+					ibuf = do_render_strip_uncached(context, seq, cfra);
+
+				if (ibuf)
+					BKE_sequencer_preprocessed_cache_put(context, seq, cfra, SEQ_STRIPELEM_IBUF, ibuf);
 			}
-
-			if (ibuf == NULL)
-				ibuf = do_render_strip_uncached(context, seq, cfra);
-
-			if (ibuf)
-				BKE_sequencer_preprocessed_cache_put(context, seq, cfra, SEQ_STRIPELEM_IBUF, ibuf);
 		}
+
+		if (ibuf)
+			use_preprocess = BKE_sequencer_input_have_to_preprocess(context, seq, cfra);
+	}
+	else {
+		/* currently, we cache preprocessed images in SEQ_STRIPELEM_IBUF,
+		 * but not(!) on SEQ_STRIPELEM_IBUF_ENDSTILL and ..._STARTSTILL
+		 * so, no need in check for preprocess here
+		 */
 	}
 
 	if (ibuf == NULL) {
@@ -3973,10 +3962,18 @@ void BKE_sequence_init_colorspace(Sequence *seq)
 
 		/* initialize input color space */
 		if (seq->type == SEQ_TYPE_IMAGE) {
-			ibuf = IMB_loadiffname(name, IB_rect, seq->strip->colorspace_settings.name);
+			ibuf = IMB_loadiffname(name, IB_test | IB_alphamode_detect, seq->strip->colorspace_settings.name);
 
-			if (ibuf)
+			/* byte images are default to straight alpha, however sequencer
+			 * works in premul space, so mark strip to be premultiplied first
+			 */
+			seq->alpha_mode = SEQ_ALPHA_STRAIGHT;
+			if (ibuf) {
+				if (ibuf->flags & IB_alphamode_premul)
+					seq->alpha_mode = IMA_ALPHA_PREMUL;
+
 				IMB_freeImBuf(ibuf);
+			}
 		}
 	}
 }
@@ -4176,7 +4173,7 @@ static Sequence *seq_dupli(Scene *scene, Scene *scene_to, Sequence *seq, int dup
 
 		seqn->seqbase.first = seqn->seqbase.last = NULL;
 		/* WATCH OUT!!! - This metastrip is not recursively duplicated here - do this after!!! */
-		/* - seq_dupli_recursive(&seq->seqbase,&seqn->seqbase);*/
+		/* - seq_dupli_recursive(&seq->seqbase, &seqn->seqbase);*/
 	}
 	else if (seq->type == SEQ_TYPE_SCENE) {
 		seqn->strip->stripdata = NULL;

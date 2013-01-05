@@ -223,7 +223,7 @@ static int screenshot_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 static int screenshot_check(bContext *UNUSED(C), wmOperator *op)
 {
 	ScreenshotData *scd = op->customdata;
-	return WM_operator_filesel_ensure_ext_imtype(op, scd->im_format.imtype);
+	return WM_operator_filesel_ensure_ext_imtype(op, &scd->im_format);
 }
 
 static int screenshot_cancel(bContext *UNUSED(C), wmOperator *op)
@@ -361,7 +361,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 				char name[FILE_MAX];
 				int ok;
 				
-				BKE_makepicstring(name, rd.pic, sj->bmain->name, rd.cfra, rd.im_format.imtype, rd.scemode & R_EXTENSION, TRUE);
+				BKE_makepicstring(name, rd.pic, sj->bmain->name, rd.cfra, &rd.im_format, rd.scemode & R_EXTENSION, TRUE);
 				
 				ibuf->rect = sj->dumprect;
 				ok = BKE_imbuf_write(ibuf, name, &rd.im_format);

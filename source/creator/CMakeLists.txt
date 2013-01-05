@@ -793,8 +793,7 @@ add_dependencies(blender makesdna)
 
 get_property(BLENDER_LINK_LIBS GLOBAL PROPERTY BLENDER_LINK_LIBS)
 
-set(BLENDER_LINK_LIBS
-	${BLENDER_LINK_LIBS}
+list(APPEND BLENDER_LINK_LIBS
 	bf_windowmanager
 	bf_render
 )
@@ -908,7 +907,6 @@ endif()
 		ge_scenegraph
 		ge_logic_network
 		ge_logic_ngnetwork
-		extern_bullet
 		ge_logic_loopbacknetwork
 		bf_intern_moto
 		extern_openjpeg
@@ -929,6 +927,7 @@ endif()
 		cycles_subd
 		bf_intern_raskter
 		bf_intern_opencolorio
+		extern_rangetree
 	)
 
 	if(WITH_COMPOSITOR)
@@ -984,6 +983,10 @@ endif()
 
 	if(WITH_INTERNATIONAL)
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_locale)
+	endif()
+
+	if(WITH_BULLET AND NOT WITH_BULLET_SYSTEM)
+		list_insert_after(BLENDER_SORTED_LIBS "ge_logic_ngnetwork" "extern_bullet")
 	endif()
 
 	foreach(SORTLIB ${BLENDER_SORTED_LIBS})

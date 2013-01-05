@@ -614,6 +614,10 @@ def pyfunc2sphinx(ident, fw, identifier, py_func, is_class=True):
     '''
     function or class method to sphinx
     '''
+    
+    if type(py_func) == type(bpy.types.Space.draw_handler_add):
+        return
+    
     arg_str = inspect.formatargspec(*inspect.getargspec(py_func))
 
     if not is_class:

@@ -214,7 +214,7 @@ static void rna_Constraint_name_set(PointerRNA *ptr, const char *value)
 		
 		/* if we have the list, check for unique name, otherwise give up */
 		if (list)
-			unique_constraint_name(con, list);
+			BKE_unique_constraint_name(con, list);
 	}
 	
 	/* fix all the animation data which may link to this */
@@ -293,7 +293,7 @@ static EnumPropertyItem *rna_Constraint_target_space_itemf(bContext *UNUSED(C), 
                                                            PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	bConstraint *con = (bConstraint *)ptr->data;
-	bConstraintTypeInfo *cti = constraint_get_typeinfo(con);
+	bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
 	ListBase targets = {NULL, NULL};
 	bConstraintTarget *ct;
 	
@@ -1392,19 +1392,19 @@ static void rna_def_constraint_rigid_body_joint(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "axis_x", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "axX");
 	RNA_def_property_range(prop, -M_PI * 2, M_PI * 2);
-	RNA_def_property_ui_text(prop, "Axis X", "Rotate pivot on X axis in degrees");
+	RNA_def_property_ui_text(prop, "Axis X", "Rotate pivot on X axis");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "axis_y", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "axY");
 	RNA_def_property_range(prop, -M_PI * 2, M_PI * 2);
-	RNA_def_property_ui_text(prop, "Axis Y", "Rotate pivot on Y axis in degrees");
+	RNA_def_property_ui_text(prop, "Axis Y", "Rotate pivot on Y axis");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "axis_z", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "axZ");
 	RNA_def_property_range(prop, -M_PI * 2, M_PI * 2);
-	RNA_def_property_ui_text(prop, "Axis Z", "Rotate pivot on Z axis in degrees");
+	RNA_def_property_ui_text(prop, "Axis Z", "Rotate pivot on Z axis");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "use_linked_collision", PROP_BOOLEAN, PROP_NONE);
@@ -1528,7 +1528,7 @@ static void rna_def_constraint_clamp_to(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "tar");
 	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Curve_object_poll");
-	RNA_def_property_ui_text(prop, "Target", "Target Object");
+	RNA_def_property_ui_text(prop, "Target", "Target Object (Curves only)");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 

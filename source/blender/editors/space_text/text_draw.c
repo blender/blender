@@ -77,26 +77,17 @@ static int text_font_draw(SpaceText *UNUSED(st), int x, int y, const char *str)
 
 static int text_font_draw_character(SpaceText *st, int x, int y, char c)
 {
-	char str[2];
-	str[0] = c;
-	str[1] = '\0';
-
 	BLF_position(mono, x, y, 0);
-	BLF_draw(mono, str, 1);
+	BLF_draw(mono, &c, 1);
 
 	return st->cwidth;
 }
 
 static int text_font_draw_character_utf8(SpaceText *st, int x, int y, const char *c)
 {
-	char str[BLI_UTF8_MAX + 1];
-	size_t len = BLI_str_utf8_size_safe(c);
-	memcpy(str, c, len);
-	str[len] = '\0';
-
+	const size_t len = BLI_str_utf8_size_safe(c);
 	BLF_position(mono, x, y, 0);
-	BLF_draw(mono, str, len);
-
+	BLF_draw(mono, c, len);
 	return st->cwidth;
 }
 
@@ -117,27 +108,33 @@ static void txt_format_text(SpaceText *st)
 static void format_draw_color(char formatchar)
 {
 	switch (formatchar) {
-		case '_': /* Whitespace */
+		case FMT_TYPE_WHITESPACE:
 			break;
-		case '!': /* Symbols */
-			UI_ThemeColorBlend(TH_TEXT, TH_BACK, 0.5f);
+		case FMT_TYPE_SYMBOL:
+			UI_ThemeColor(TH_SYNTAX_S);
 			break;
-		case '#': /* Comments */
+		case FMT_TYPE_COMMENT:
 			UI_ThemeColor(TH_SYNTAX_C);
 			break;
-		case 'n': /* Numerals */
+		case FMT_TYPE_NUMERAL:
 			UI_ThemeColor(TH_SYNTAX_N);
 			break;
-		case 'l': /* Strings */
+		case FMT_TYPE_STRING:
 			UI_ThemeColor(TH_SYNTAX_L);
 			break;
-		case 'v': /* Specials: class, def */
+		case FMT_TYPE_DIRECTIVE:
+			UI_ThemeColor(TH_SYNTAX_D);
+			break;
+		case FMT_TYPE_SPECIAL:
 			UI_ThemeColor(TH_SYNTAX_V);
 			break;
-		case 'b': /* Keywords: for, print, etc. */
+		case FMT_TYPE_RESERVED:
+			UI_ThemeColor(TH_SYNTAX_R);
+			break;
+		case FMT_TYPE_KEYWORD:
 			UI_ThemeColor(TH_SYNTAX_B);
 			break;
-		case 'q': /* Other text (identifiers) */
+		case FMT_TYPE_DEFAULT:
 		default:
 			UI_ThemeColor(TH_TEXT);
 			break;
@@ -359,6 +356,7 @@ static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w
 	FlattenString fs;
 	int basex, i, a, start, end, max, lines; /* view */
 	int mi, ma, mstart, mend;                /* mem */
+	char fmt_prev = 0xff;
 	
 	flatten_string(st, &fs, str);
 	str = fs.buf;
@@ -382,7 +380,9 @@ static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w
 
 			/* Draw the visible portion of text on the overshot line */
 			for (a = start, ma = mstart; a < end; a++, ma += BLI_str_utf8_size_safe(str + ma)) {
-				if (st->showsyntax && format) format_draw_color(format[a]);
+				if (st->showsyntax && format) {
+					if (fmt_prev != format[a]) format_draw_color(fmt_prev = format[a]);
+				}
 				x += text_font_draw_character_utf8(st, x, y, str + ma);
 			}
 			y -= st->lheight_dpi + TXT_LINE_SPACING;
@@ -400,8 +400,9 @@ static int text_draw_wrapped(SpaceText *st, const char *str, int x, int y, int w
 
 	/* Draw the remaining text */
 	for (a = start, ma = mstart; str[ma] && y > 0; a++, ma += BLI_str_utf8_size_safe(str + ma)) {
-		if (st->showsyntax && format)
-			format_draw_color(format[a]);
+		if (st->showsyntax && format) {
+			if (fmt_prev != format[a]) format_draw_color(fmt_prev = format[a]);
+		}
 
 		x += text_font_draw_character_utf8(st, x, y, str + ma);
 	}
@@ -432,15 +433,18 @@ static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int dra
 		
 		if (st->showsyntax && format) {
 			int a, str_shift = 0;
+			char fmt_prev = 0xff;
 			format = format + cshift;
 
 			for (a = 0; a < amount; a++) {
-				format_draw_color(format[a]);
+				if (format[a] != fmt_prev) format_draw_color(fmt_prev = format[a]);
 				x += text_font_draw_character_utf8(st, x, y, in + str_shift);
 				str_shift += BLI_str_utf8_size_safe(in + str_shift);
 			}
 		}
-		else text_font_draw(st, x, y, in);
+		else {
+			text_font_draw(st, x, y, in);
+		}
 	}
 	else {
 		while (w-- && *acc++ < maxwidth)
@@ -890,7 +894,7 @@ static void draw_documentation(SpaceText *st, ARegion *ar)
 
 	/* top = */ /* UNUSED */ y = ar->winy - st->lheight_dpi * l - 2;
 	boxw = DOC_WIDTH * st->cwidth + 20;
-	boxh = (DOC_HEIGHT + 1) * st->lheight_dpi;
+	boxh = (DOC_HEIGHT + 1) * (st->lheight_dpi + TXT_LINE_SPACING);
 
 	/* Draw panel */
 	UI_ThemeColor(TH_BACK);
@@ -953,9 +957,11 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 	SuggItem *item, *first, *last, *sel;
 	TextLine *tmp;
 	char str[SUGG_LIST_WIDTH + 1];
-	int w, boxw = 0, boxh, i, l, x, y, b, *top;
+	int w, boxw = 0, boxh, i, l, x, y, *top;
+	const int lheight = st->lheight_dpi + TXT_LINE_SPACING;
+	const int margin_x = 2;
 	
-	if (!st || !st->text) return;
+	if (!st->text) return;
 	if (!texttool_text_is_active(st->text)) return;
 
 	first = texttool_suggest_first();
@@ -977,14 +983,20 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 	else {
 		x = st->cwidth * (st->text->curc - st->left) + TXT_OFFSET - 4;
 	}
-	y = ar->winy - st->lheight_dpi * l - 2;
+	/* offset back so the start of the text lines up with the suggestions,
+	 * not essential but makes suggestions easier to follow */
+	x -= st->cwidth * (st->text->curc - text_find_identifier_start(st->text->curl->line, st->text->curc));
+	y = ar->winy - lheight * l - 2;
 
 	boxw = SUGG_LIST_WIDTH * st->cwidth + 20;
-	boxh = SUGG_LIST_SIZE * st->lheight_dpi + 8;
+	boxh = SUGG_LIST_SIZE * lheight + 8;
 	
+	/* not needed but stands out nicer */
+	uiDrawBoxShadow(220, x, y - boxh, x + boxw, y);
+
 	UI_ThemeColor(TH_SHADE1);
 	glRecti(x - 1, y + 1, x + boxw + 1, y - boxh - 1);
-	UI_ThemeColor(TH_BACK);
+	UI_ThemeColorShade(TH_BACK, 16);
 	glRecti(x, y, x + boxw, y - boxh);
 
 	/* Set the top 'item' of the visible list */
@@ -992,7 +1004,7 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 
 	for (i = 0; i < SUGG_LIST_SIZE && item; i++, item = item->next) {
 
-		y -= st->lheight_dpi;
+		y -= lheight;
 
 		BLI_strncpy(str, item->name, SUGG_LIST_WIDTH);
 
@@ -1000,21 +1012,11 @@ static void draw_suggestion_list(SpaceText *st, ARegion *ar)
 		
 		if (item == sel) {
 			UI_ThemeColor(TH_SHADE2);
-			glRecti(x + 16, y - 3, x + 16 + w, y + st->lheight_dpi - 3);
+			glRecti(x + margin_x, y - 3, x + margin_x + w, y + lheight - 3);
 		}
-		b = 1; /* b=1 color block, text is default. b=0 no block, color text */
-		switch (item->type) {
-			case 'k': UI_ThemeColor(TH_SYNTAX_B); b = 0; break;
-			case 'm': UI_ThemeColor(TH_TEXT); break;
-			case 'f': UI_ThemeColor(TH_SYNTAX_L); break;
-			case 'v': UI_ThemeColor(TH_SYNTAX_N); break;
-			case '?': UI_ThemeColor(TH_TEXT); b = 0; break;
-		}
-		if (b) {
-			glRecti(x + 8, y + 2, x + 11, y + 5);
-			UI_ThemeColor(TH_TEXT);
-		}
-		text_draw(st, str, 0, 0, 1, x + 16, y - 1, NULL);
+
+		format_draw_color(item->type);
+		text_draw(st, str, 0, 0, 1, x + margin_x, y - 1, NULL);
 
 		if (item == last) break;
 	}
@@ -1027,7 +1029,7 @@ static void draw_cursor(SpaceText *st, ARegion *ar)
 	Text *text = st->text;
 	int vcurl, vcurc, vsell, vselc, hidden = 0;
 	int x, y, w, i;
-	int lheight = st->lheight_dpi + TXT_LINE_SPACING;
+	const int lheight = st->lheight_dpi + TXT_LINE_SPACING;
 
 	/* Draw the selection */
 	if (text->curl != text->sell || text->curc != text->selc) {
@@ -1168,7 +1170,7 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 	stack = 0;
 	
 	/* Don't highlight backets if syntax HL is off or bracket in string or comment. */
-	if (!linep->format || linep->format[fc] == 'l' || linep->format[fc] == '#')
+	if (!linep->format || linep->format[fc] == FMT_TYPE_STRING || linep->format[fc] == FMT_TYPE_COMMENT)
 		return;
 
 	if (b > 0) {
@@ -1177,7 +1179,7 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 		c += BLI_str_utf8_size_safe(linep->line + c);
 		while (linep) {
 			while (c < linep->len) {
-				if (linep->format && linep->format[fc] != 'l' && linep->format[fc] != '#') {
+				if (linep->format && linep->format[fc] != FMT_TYPE_STRING && linep->format[fc] != FMT_TYPE_COMMENT) {
 					b = text_check_bracket(linep->line[c]);
 					if (b == find) {
 						if (stack == 0) {
@@ -1206,7 +1208,7 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 		if (c > 0) c -= linep->line + c - BLI_str_prev_char_utf8(linep->line + c);
 		while (linep) {
 			while (fc >= 0) {
-				if (linep->format && linep->format[fc] != 'l' && linep->format[fc] != '#') {
+				if (linep->format && linep->format[fc] != FMT_TYPE_STRING && linep->format[fc] != FMT_TYPE_COMMENT) {
 					b = text_check_bracket(linep->line[c]);
 					if (b == find) {
 						if (stack == 0) {
@@ -1271,7 +1273,7 @@ static void draw_brackets(SpaceText *st, ARegion *ar)
 void draw_text_main(SpaceText *st, ARegion *ar)
 {
 	Text *text = st->text;
-	TextFormatType *tft = ED_text_format_get(text);
+	TextFormatType *tft;
 	TextLine *tmp;
 	rcti scroll, back;
 	char linenr[12];
@@ -1299,6 +1301,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	calc_text_rcts(st, ar, &scroll, &back); /* scroll will hold the entire bar size */
 
 	/* update syntax formatting if needed */
+	tft = ED_text_format_get(text);
 	tmp = text->lines.first;
 	lineno = 0;
 	for (i = 0; i < st->top && tmp; i++) {

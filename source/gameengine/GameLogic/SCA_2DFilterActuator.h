@@ -64,6 +64,8 @@ public:
 	virtual ~SCA_2DFilterActuator();
 	virtual bool Update();
 
+	void	SetScene(SCA_IScene *scene);
+
 	virtual CValue* GetReplica();
 };
 #endif

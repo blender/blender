@@ -68,6 +68,53 @@ float gAngularSleepingTreshold;
 
 btVector3 startVel(0,0,0);//-10000);
 
+BlenderBulletCharacterController::BlenderBulletCharacterController(btMotionState *motionState, btPairCachingGhostObject *ghost, btConvexShape* shape, float stepHeight)
+	: btKinematicCharacterController(ghost,shape,stepHeight,2),
+		m_motionState(motionState),
+		m_jumps(0),
+		m_maxJumps(1)
+{
+}
+
+void BlenderBulletCharacterController::updateAction(btCollisionWorld *collisionWorld, btScalar dt)
+{
+	btKinematicCharacterController::updateAction(collisionWorld,dt);
+	m_motionState->setWorldTransform(getGhostObject()->getWorldTransform());
+}
+
+int BlenderBulletCharacterController::getMaxJumps() const
+{
+	return m_maxJumps;
+}
+
+void BlenderBulletCharacterController::setMaxJumps(int maxJumps)
+{
+	m_maxJumps = maxJumps;
+}
+
+int BlenderBulletCharacterController::getJumpCount() const
+{
+	return m_jumps;
+}
+
+bool BlenderBulletCharacterController::canJump() const
+{
+	return onGround() || m_jumps < m_maxJumps;
+}
+
+void BlenderBulletCharacterController::jump()
+{
+	if (onGround())
+		m_jumps = 0;
+
+	if (!canJump())
+		return;
+		
+	m_verticalVelocity = m_jumpSpeed;
+	m_wasJumping = true;
+	m_jumps++;
+}
+
 CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 :m_cci(ci)
 {
@@ -152,25 +199,6 @@ public:
 		m_blenderMotionState->calculateWorldTransformations();
 	}
 
-};
-
-class BlenderBulletCharacterController : public btKinematicCharacterController
-{
-private:
-	btMotionState* m_motionState;
-
-public:
-	BlenderBulletCharacterController(btMotionState *motionState, btPairCachingGhostObject *ghost, btConvexShape* shape, float stepHeight)
-		: btKinematicCharacterController(ghost,shape,stepHeight,2),
-		  m_motionState(motionState)
-	{
-	}
-
-	virtual void updateAction(btCollisionWorld *collisionWorld, btScalar dt)
-	{
-		btKinematicCharacterController::updateAction(collisionWorld,dt);
-		m_motionState->setWorldTransform(getGhostObject()->getWorldTransform());
-	}
 };
 
 btRigidBody* CcdPhysicsController::GetRigidBody()
@@ -463,9 +491,6 @@ bool CcdPhysicsController::CreateCharacterController()
 
 	m_characterController = new BlenderBulletCharacterController(m_bulletMotionState,(btPairCachingGhostObject*)m_object,(btConvexShape*)m_collisionShape,m_cci.m_stepHeight);
 
-	PHY__Vector3 gravity;
-	m_cci.m_physicsEnv->getGravity(gravity);
-	m_characterController->setGravity(-gravity.m_vec[2]); // need positive gravity
 	m_characterController->setJumpSpeed(m_cci.m_jumpSpeed);
 	m_characterController->setFallSpeed(m_cci.m_fallSpeed);
 

@@ -599,3 +599,67 @@ void IMB_premultiply_alpha(ImBuf *ibuf)
 		IMB_premultiply_rect_float(ibuf->rect_float, ibuf->planes, ibuf->x, ibuf->y);
 }
 
+void IMB_unpremultiply_rect(unsigned int *rect, char planes, int w, int h)
+{
+	char *cp;
+	int x, y;
+	float val;
+
+	if (planes == 24) { /* put alpha at 255 */
+		cp = (char *)(rect);
+
+		for (y = 0; y < h; y++)
+			for (x = 0; x < w; x++, cp += 4)
+				cp[3] = 255;
+	}
+	else {
+		cp = (char *)(rect);
+
+		for (y = 0; y < h; y++) {
+			for (x = 0; x < w; x++, cp += 4) {
+				val = cp[3] != 0 ? 1.0f / (float)cp[3] : 1.0f;
+				cp[0] = FTOCHAR(cp[0] * val);
+				cp[1] = FTOCHAR(cp[1] * val);
+				cp[2] = FTOCHAR(cp[2] * val);
+			}
+		}
+	}
+}
+
+void IMB_unpremultiply_rect_float(float *rect_float, char planes, int w, int h)
+{
+	float val, *fp;
+	int x, y;
+
+	if (planes == 24) {   /* put alpha at 1.0 */
+		fp = rect_float;
+
+		for (y = 0; y < h; y++)
+			for (x = 0; x < w; x++, fp += 4)
+				fp[3] = 1.0;
+	}
+	else {
+		fp = rect_float;
+		for (y = 0; y < h; y++) {
+			for (x = 0; x < w; x++, fp += 4) {
+				val = fp[3] != 0.0f ? 1.0f / fp[3] : 1.0f;
+				fp[0] = fp[0] * val;
+				fp[1] = fp[1] * val;
+				fp[2] = fp[2] * val;
+			}
+		}
+	}
+
+}
+
+void IMB_unpremultiply_alpha(ImBuf *ibuf)
+{
+	if (ibuf == NULL)
+		return;
+
+	if (ibuf->rect)
+		IMB_unpremultiply_rect(ibuf->rect, ibuf->planes, ibuf->x, ibuf->y);
+
+	if (ibuf->rect_float)
+		IMB_unpremultiply_rect_float(ibuf->rect_float, ibuf->planes, ibuf->x, ibuf->y);
+}

@@ -321,8 +321,7 @@ void file_calc_previews(const bContext *C, ARegion *ar)
 	View2D *v2d = &ar->v2d;
 	
 	ED_fileselect_init_layout(sfile, ar);
-	/* +SCROLL_HEIGHT is bad hack to work around issue in UI_view2d_totRect_set */
-	UI_view2d_totRect_set(v2d, sfile->layout->width, sfile->layout->height + V2D_SCROLL_HEIGHT);
+	UI_view2d_totRect_set(v2d, sfile->layout->width, sfile->layout->height);
 }
 
 static void file_draw_preview(uiBlock *block, struct direntry *file, int sx, int sy, ImBuf *imb, FileLayout *layout, short dropshadow)

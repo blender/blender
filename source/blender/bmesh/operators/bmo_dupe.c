@@ -483,7 +483,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 {
 	BMOperator dupop, extop;
 	float cent[3], dvec[3];
-	float axis[3] = {0.0f, 0.0f, 1.0f};
+	float axis[3];
 	float rmat[3][3];
 	float phi;
 	int steps, do_dupli, a, usedvec;

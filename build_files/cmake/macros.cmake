@@ -282,7 +282,9 @@ macro(setup_liblinks
 	if(WITH_SYSTEM_GLEW)
 		target_link_libraries(${target} ${GLEW_LIBRARY})
 	endif()
-
+	if(WITH_BULLET AND WITH_SYSTEM_BULLET)
+		target_link_libraries(${target} ${BULLET_LIBRARIES})
+	endif()
 	if(WITH_OPENAL)
 		target_link_libraries(${target} ${OPENAL_LIBRARY})
 	endif()
@@ -439,6 +441,15 @@ macro(TEST_SSE_SUPPORT
 	endif()
 
 	unset(CMAKE_REQUIRED_FLAGS)
+endmacro()
+
+macro(TEST_STDBOOL_SUPPORT)
+	# This program will compile correctly if and only if
+	# this C compiler supports C99 stdbool.
+	check_c_source_runs("
+		#include <stdbool.h>
+		int main(void) { return (int)false; }"
+	HAVE_STDBOOL_H)
 endmacro()
 
 # when we have warnings as errors applied globally this

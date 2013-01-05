@@ -69,6 +69,9 @@ typedef struct FileData {
 	char headerdone;
 	int inbuffer;
 	
+	// gzip stream for memory decompression
+	z_stream strm;
+	
 	// general reading variables
 	struct SDNA *filesdna;
 	struct SDNA *memsdna;
@@ -83,6 +86,7 @@ typedef struct FileData {
 	struct OldNewMap *libmap;
 	struct OldNewMap *imamap;
 	struct OldNewMap *movieclipmap;
+	struct OldNewMap *packedmap;
 	
 	struct BHeadSort *bheadmap;
 	int tot_bheadmap;
@@ -127,6 +131,8 @@ void blo_make_image_pointer_map(FileData *fd, Main *oldmain);
 void blo_end_image_pointer_map(FileData *fd, Main *oldmain);
 void blo_make_movieclip_pointer_map(FileData *fd, Main *oldmain);
 void blo_end_movieclip_pointer_map(FileData *fd, Main *oldmain);
+void blo_make_packed_pointer_map(FileData *fd, Main *oldmain);
+void blo_end_packed_pointer_map(FileData *fd, Main *oldmain);
 void blo_add_library_pointer_map(ListBase *mainlist, FileData *fd);
 
 void blo_freefiledata(FileData *fd);

@@ -48,6 +48,7 @@ set(SRC
 	intern/BLI_mempool.c
 	intern/DLRB_tree.c
 	intern/boxpack2d.c
+	intern/buffer.c
 	intern/callbacks.c
 	intern/cpu.c
 	intern/dynlib.c
@@ -96,6 +97,7 @@ set(SRC
 	BLI_array.h
 	BLI_bitmap.h
 	BLI_blenlib.h
+	BLI_buffer.h
 	BLI_boxpack2d.h
 	BLI_callbacks.h
 	BLI_cpu.h

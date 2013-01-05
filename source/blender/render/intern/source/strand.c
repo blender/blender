@@ -522,7 +522,7 @@ static APixstrand *addpsAstrand(ZSpan *zspan)
 
 static void do_strand_fillac(void *handle, int x, int y, float u, float v, float z)
 {
-	StrandPart *spart= (StrandPart*)handle;
+	StrandPart *spart= (StrandPart *)handle;
 	StrandShadeCache *cache= spart->cache;
 	StrandSegment *sseg= spart->segment;
 	APixstrand *apn, *apnew;

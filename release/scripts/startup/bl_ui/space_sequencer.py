@@ -433,7 +433,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
         elem = False
 
         if strip.type == 'IMAGE':
-            elem = strip.getStripElem(frame_current)
+            elem = strip.strip_elem_from_frame(frame_current)
         elif strip.type == 'MOVIE':
             elem = strip.elements[0]
 
@@ -595,13 +595,14 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
 
             # Current element for the filename
 
-            elem = strip.getStripElem(context.scene.frame_current)
+            elem = strip.strip_elem_from_frame(context.scene.frame_current)
             if elem:
                 split = layout.split(percentage=0.2)
                 split.label(text="File:")
                 split.prop(elem, "filename", text="")  # strip.elements[0] could be a fallback
 
             layout.prop(strip.colorspace_settings, "name")
+            layout.prop(strip, "alpha_mode")
 
             layout.operator("sequencer.change_path")
 
@@ -797,7 +798,6 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
         col.label(text="Colors:")
         col.prop(strip, "color_saturation", text="Saturation")
         col.prop(strip, "color_multiply", text="Multiply")
-        col.prop(strip, "use_premultiply")
         col.prop(strip, "use_float")
 
 

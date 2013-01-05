@@ -44,6 +44,7 @@
 #include "bpy.h"
 #include "gpu.h"
 #include "bpy_rna.h"
+#include "bpy_path.h"
 #include "bpy_util.h"
 #include "bpy_traceback.h"
 #include "bpy_intern_string.h"
@@ -212,6 +213,7 @@ static struct _inittab bpy_internal_modules[] = {
 	{(char *)"mathutils", PyInit_mathutils},
 //	{(char *)"mathutils.geometry", PyInit_mathutils_geometry},
 //	{(char *)"mathutils.noise", PyInit_mathutils_noise},
+	{(char *)"_bpy_path", BPyInit__bpy_path},
 	{(char *)"bgl", BPyInit_bgl},
 	{(char *)"blf", BPyInit_blf},
 	{(char *)"bmesh", BPyInit_bmesh},
@@ -269,7 +271,8 @@ void BPY_python_start(int argc, const char **argv)
 	Py_Initialize();
 
 	/* THIS IS BAD: see http://bugs.python.org/issue16129 */
-#if 1
+	/* this clobbers the stdout on exit (no 'MEM_printmemlist_stats') */
+#if 0
 	/* until python provides a reliable way to set the env var */
 	PyRun_SimpleString("import sys, io\n"
 	                   "sys.__backup_stdio__ = sys.__stdout__, sys.__stderr__\n"  /* else we loose the FD's [#32720] */
@@ -817,7 +820,7 @@ typedef struct {
 } dealloc_obj;
 
 /* call once __file__ is set */
-void bpy_module_delay_init(PyObject *bpy_proxy)
+static void bpy_module_delay_init(PyObject *bpy_proxy)
 {
 	const int argc = 1;
 	const char *argv[2];
@@ -854,6 +857,9 @@ static void dealloc_obj_dealloc(PyObject *self)
 	/* Note, for subclassed PyObjects we cant just call PyObject_DEL() directly or it will crash */
 	dealloc_obj_Type.tp_free(self);
 }
+
+PyMODINIT_FUNC
+PyInit_bpy(void);
 
 PyMODINIT_FUNC
 PyInit_bpy(void)

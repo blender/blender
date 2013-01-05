@@ -212,7 +212,7 @@ int paint_is_face_hidden(const MFace *f, const MVert *mvert)
 }
 
 /* returns non-zero if any of the corners of the grid
- * face whose inner corner is at (x,y) are hidden,
+ * face whose inner corner is at (x, y) are hidden,
  * zero otherwise */
 int paint_is_grid_face_hidden(const unsigned int *grid_hidden,
                               int gridsize, int x, int y)

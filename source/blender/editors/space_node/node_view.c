@@ -69,11 +69,14 @@ static int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar, cons
 	bNode *node;
 	rctf cur_new;
 	float oldwidth, oldheight, width, height;
+	float oldasp, asp;
 	int tot = 0;
 	int has_frame = FALSE;
 	
 	oldwidth  = BLI_rctf_size_x(&ar->v2d.cur);
 	oldheight = BLI_rctf_size_y(&ar->v2d.cur);
+
+	oldasp = oldwidth / oldheight;
 
 	BLI_rctf_init_minmax(&cur_new);
 
@@ -93,6 +96,7 @@ static int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar, cons
 	if (tot) {
 		width  = BLI_rctf_size_x(&cur_new);
 		height = BLI_rctf_size_y(&cur_new);
+		asp = width / height;
 
 		/* for single non-frame nodes, don't zoom in, just pan view,
 		 * but do allow zooming out, this allows for big nodes to be zoomed out */
@@ -104,17 +108,15 @@ static int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar, cons
 			BLI_rctf_resize(&cur_new, oldwidth, oldheight);
 		}
 		else {
-			if (width > height) {
-				float newheight;
-				newheight = oldheight * width / oldwidth;
-				cur_new.ymin = cur_new.ymin - newheight / 4;
-				cur_new.ymax = cur_new.ymax + newheight / 4;
+			if (oldasp < asp) {
+				const float height_new = width / oldasp;
+				cur_new.ymin = cur_new.ymin - height_new / 2.0f;
+				cur_new.ymax = cur_new.ymax + height_new / 2.0f;
 			}
 			else {
-				float newwidth;
-				newwidth = oldwidth * height / oldheight;
-				cur_new.xmin = cur_new.xmin - newwidth / 4;
-				cur_new.xmax = cur_new.xmax + newwidth / 4;
+				const float width_new = height * oldasp;
+				cur_new.xmin = cur_new.xmin - width_new / 2.0f;
+				cur_new.xmax = cur_new.xmax + width_new / 2.0f;
 			}
 		}
 

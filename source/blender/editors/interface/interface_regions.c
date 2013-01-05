@@ -651,10 +651,10 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	ofsx = 0; //(but->block->panel) ? but->block->panel->ofsx : 0;
 	ofsy = 0; //(but->block->panel) ? but->block->panel->ofsy : 0;
 
-	rect_fl.xmin = (but->rect.xmin + but->rect.xmax) * 0.5f + ofsx - (TIP_BORDER_X );
-	rect_fl.xmax = rect_fl.xmin + fontw + (TIP_BORDER_X );
-	rect_fl.ymax = but->rect.ymin + ofsy - (TIP_BORDER_Y );
-	rect_fl.ymin = rect_fl.ymax - fonth  - (TIP_BORDER_Y );
+	rect_fl.xmin = (but->rect.xmin + but->rect.xmax) * 0.5f + ofsx - TIP_BORDER_X;
+	rect_fl.xmax = rect_fl.xmin + fontw + TIP_BORDER_X;
+	rect_fl.ymax = but->rect.ymin + ofsy - TIP_BORDER_Y;
+	rect_fl.ymin = rect_fl.ymax - fonth  - TIP_BORDER_Y;
 
 #undef TIP_MARGIN_Y
 #undef TIP_BORDER_X
@@ -896,8 +896,12 @@ void ui_searchbox_apply(uiBut *but, ARegion *ar)
 void ui_searchbox_event(bContext *C, ARegion *ar, uiBut *but, wmEvent *event)
 {
 	uiSearchboxData *data = ar->regiondata;
+	int type = event->type, val = event->val;
 	
-	switch (event->type) {
+	if (type == MOUSEPAN)
+		ui_pan_to_scroll(event, &type, &val);
+	
+	switch (type) {
 		case WHEELUPMOUSE:
 		case UPARROWKEY:
 			ui_searchbox_select(C, ar, but, -1);
@@ -1527,6 +1531,7 @@ static void ui_block_region_draw(const bContext *C, ARegion *ar)
 
 static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 {
+	uiBut *bt;
 	int width = UI_ThemeMenuShadowWidth();
 	int winx, winy;
 
@@ -1536,7 +1541,6 @@ static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 
 	winx = WM_window_pixels_x(window);
 	winy = WM_window_pixels_y(window);
-	// wm_window_get_size(window, &winx, &winy);
 	
 	if (block->rect.xmin < width)
 		block->rect.xmin = width;
@@ -1547,6 +1551,15 @@ static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 		block->rect.ymin = width;
 	if (block->rect.ymax > winy - MENU_TOP)
 		block->rect.ymax = winy - MENU_TOP;
+	
+	/* ensure menu items draw inside left/right boundary */
+	for (bt = block->buttons.first; bt; bt = bt->next) {
+		if (bt->rect.xmin < block->rect.xmin)
+			bt->rect.xmin = block->rect.xmin;
+		if (bt->rect.xmax > block->rect.xmax)
+			bt->rect.xmax = block->rect.xmax;
+	}
+
 }
 
 void ui_popup_block_scrolltest(uiBlock *block)

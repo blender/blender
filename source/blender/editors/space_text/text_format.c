@@ -113,6 +113,14 @@ void flatten_string_free(FlattenString *fs)
 		MEM_freeN(fs->accum);
 }
 
+/* takes a string within fs->buf and returns its length */
+int flatten_string_strlen(FlattenString *fs, const char *str)
+{
+	const int len = (fs->pos - (int)(str - fs->buf)) - 1;
+	BLI_assert(strlen(str) == len);
+	return len;
+}
+
 /* Ensures the format string for the given line is long enough, reallocating
  * as needed. Allocation is done here, alone, to ensure consistency. */
 int text_check_format_len(TextLine *line, unsigned int len)
@@ -139,10 +147,16 @@ void ED_text_format_register(TextFormatType *tft)
 	BLI_addtail(&tft_lb, tft);
 }
 
-TextFormatType *ED_text_format_get(Text *UNUSED(text))
+TextFormatType *ED_text_format_get(Text *text)
 {
 	/* NOTE: once more types are added we'll need to return some type based on 'text'
 	 * for now this function is more of a placeholder */
 
-	return tft_lb.first;
+	/* XXX, wrong, but OK for testing */
+	if (text && BLI_testextensie(text->id.name + 2, ".osl")) {
+		return tft_lb.last;
+	}
+	else {
+		return tft_lb.first;
+	}
 }

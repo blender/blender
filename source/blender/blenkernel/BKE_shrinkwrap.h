@@ -121,7 +121,8 @@ typedef struct ShrinkwrapCalcData {
 
 } ShrinkwrapCalcData;
 
-void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3], int numVerts);
+void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Object *ob, struct DerivedMesh *dm,
+                               float (*vertexCos)[3], int numVerts);
 
 /*
  * This function casts a ray in the given BVHTree.. but it takes into consideration the space_transform, that is:
@@ -130,9 +131,12 @@ void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Object
  * then the input (vert, dir, BVHTreeRayHit) must be defined in ob1 coordinates space
  * and the BVHTree must be built in ob2 coordinate space.
  *
- * Thus it provides an easy way to cast the same ray across several trees (where each tree was built on its own coords space)
+ * Thus it provides an easy way to cast the same ray across several trees
+ * (where each tree was built on its own coords space)
  */
-int normal_projection_project_vertex(char options, const float *vert, const float *dir, const SpaceTransform *transf, BVHTree *tree, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata);
+int normal_projection_project_vertex(char options, const float vert[3], const float dir[3],
+                                     const SpaceTransform *transf, BVHTree *tree, BVHTreeRayHit *hit,
+                                     BVHTree_RayCastCallback callback, void *userdata);
 
 /*
  * NULL initializers to local data
@@ -142,6 +146,4 @@ int normal_projection_project_vertex(char options, const float *vert, const floa
 #define NULL_BVHTreeRayHit      {NULL, }
 #define NULL_BVHTreeNearest     {0, }
 
-
-#endif
-
+#endif  /* __BKE_SHRINKWRAP_H__ */

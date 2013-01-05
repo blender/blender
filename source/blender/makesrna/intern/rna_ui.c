@@ -55,6 +55,16 @@ EnumPropertyItem operator_context_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+EnumPropertyItem uilist_layout_type_items[] = {
+	{UILST_LAYOUT_DEFAULT, "DEFAULT", 0, "Default Layout",
+	                       "Use the default, multi-rows layout"},
+	{UILST_LAYOUT_COMPACT, "COMPACT", 0, "Compact Layout",
+	                       "Use the compact, single-row layout"},
+	{UILST_LAYOUT_GRID, "GRID", 0, "Grid Layout",
+	                    "Use the grid-based layout"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 #ifdef RNA_RUNTIME
 
 #include <assert.h>
@@ -250,6 +260,105 @@ static StructRNA *rna_Panel_refine(PointerRNA *ptr)
 {
 	Panel *hdr = (Panel *)ptr->data;
 	return (hdr->type && hdr->type->ext.srna) ? hdr->type->ext.srna : &RNA_Panel;
+}
+
+/* UIList */
+static void uilist_draw_item(uiList *ui_list, bContext *C, uiLayout *layout, PointerRNA *dataptr, PointerRNA *itemptr,
+                             int icon, PointerRNA *active_dataptr, const char *active_propname, int index)
+{
+	extern FunctionRNA rna_UIList_draw_item_func;
+
+	PointerRNA ul_ptr;
+	ParameterList list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(&CTX_wm_screen(C)->id, ui_list->type->ext.srna, ui_list, &ul_ptr);
+	func = &rna_UIList_draw_item_func; /* RNA_struct_find_function(&ul_ptr, "draw_item"); */
+
+	RNA_parameter_list_create(&list, &ul_ptr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	RNA_parameter_set_lookup(&list, "layout", &layout);
+	RNA_parameter_set_lookup(&list, "data", dataptr);
+	RNA_parameter_set_lookup(&list, "item", itemptr);
+	RNA_parameter_set_lookup(&list, "icon", &icon);
+	RNA_parameter_set_lookup(&list, "active_data", active_dataptr);
+	RNA_parameter_set_lookup(&list, "active_property", &active_propname);
+	RNA_parameter_set_lookup(&list, "index", &index);
+	ui_list->type->ext.call((bContext *)C, &ul_ptr, func, &list);
+
+	RNA_parameter_list_free(&list);
+}
+
+static void rna_UIList_unregister(Main *UNUSED(bmain), StructRNA *type)
+{
+	uiListType *ult = RNA_struct_blender_type_get(type);
+
+	if (!ult)
+		return;
+
+	RNA_struct_free_extension(type, &ult->ext);
+
+	WM_uilisttype_freelink(ult);
+
+	RNA_struct_free(&BLENDER_RNA, type);
+
+	/* update while blender is running */
+	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
+}
+
+static StructRNA *rna_UIList_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
+                                      StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+{
+	uiListType *ult, dummyult = {NULL};
+	uiList dummyuilist = {NULL};
+	PointerRNA dummyul_ptr;
+	int have_function[1];
+	size_t over_alloc = 0; /* warning, if this becomes a bess, we better do another alloc */
+
+	/* setup dummy menu & menu type to store static properties in */
+	dummyuilist.type = &dummyult;
+	RNA_pointer_create(NULL, &RNA_UIList, &dummyuilist, &dummyul_ptr);
+
+	/* validate the python class */
+	if (validate(&dummyul_ptr, data, have_function) != 0)
+		return NULL;
+
+	if (strlen(identifier) >= sizeof(dummyult.idname)) {
+		BKE_reportf(reports, RPT_ERROR, "Registering uilist class: '%s' is too long, maximum length is %d",
+		            identifier, (int)sizeof(dummyult.idname));
+		return NULL;
+	}
+
+	/* check if we have registered this uilist type before, and remove it */
+	ult = WM_uilisttype_find(dummyult.idname, TRUE);
+	if (ult && ult->ext.srna)
+		rna_UIList_unregister(bmain, ult->ext.srna);
+
+	/* create a new menu type */
+	ult = MEM_callocN(sizeof(uiListType) + over_alloc, "python uilist");
+	memcpy(ult, &dummyult, sizeof(dummyult));
+
+	ult->ext.srna = RNA_def_struct(&BLENDER_RNA, ult->idname, "UIList");
+	ult->ext.data = data;
+	ult->ext.call = call;
+	ult->ext.free = free;
+	RNA_struct_blender_type_set(ult->ext.srna, ult);
+	RNA_def_struct_flag(ult->ext.srna, STRUCT_NO_IDPROPERTIES);
+
+	ult->draw_item = (have_function[0]) ? uilist_draw_item : NULL;
+
+	WM_uilisttype_add(ult);
+
+	/* update while blender is running */
+	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
+
+	return ult->ext.srna;
+}
+
+static StructRNA *rna_UIList_refine(PointerRNA *ptr)
+{
+	uiList *ui_list = (uiList *)ptr->data;
+	return (ui_list->type && ui_list->type->ext.srna) ? ui_list->type->ext.srna : &RNA_UIList;
 }
 
 /* Header */
@@ -495,6 +604,8 @@ static void rna_Menu_bl_description_set(PointerRNA *ptr, const char *value)
 	else assert(!"setting the bl_description on a non-builtin menu");
 }
 
+/* UILayout */
+
 static int rna_UILayout_active_get(PointerRNA *ptr)
 {
 	return uiLayoutGetActive(ptr->data);
@@ -738,6 +849,58 @@ static void rna_def_panel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Options",  "Options for this panel type");
 }
 
+static void rna_def_uilist(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	PropertyRNA *parm;
+	FunctionRNA *func;
+
+	srna = RNA_def_struct(brna, "UIList", NULL);
+	RNA_def_struct_ui_text(srna, "UIList", "UI list containing the elements of a collection");
+	RNA_def_struct_sdna(srna, "uiList");
+	RNA_def_struct_refine_func(srna, "rna_UIList_refine");
+	RNA_def_struct_register_funcs(srna, "rna_UIList_register", "rna_UIList_unregister", NULL);
+
+	/* draw */
+	func = RNA_def_function(srna, "draw_item", NULL);
+	RNA_def_function_ui_description(func, "Draw an item in the list (NOTE: when you define your own draw_item "
+	                                      "function, you may want to check given 'item' is of the right type...)");
+	RNA_def_function_flag(func, FUNC_REGISTER);
+	parm = RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_pointer(func, "layout", "UILayout", "", "Layout to draw the item");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	parm = RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take Collection property");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR);
+	parm = RNA_def_pointer(func, "item", "AnyType", "", "Item of the collection property");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR);
+	parm = RNA_def_int(func, "icon", 0, 0, INT_MAX, "", "Icon of the item in the collection", 0, INT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_pointer(func, "active_data", "AnyType", "",
+	                       "Data from which to take property for the active element");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
+	parm = RNA_def_string(func, "active_property", "", 0, "",
+	                      "Identifier of property in active_data, for the active element");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_int(func, "index", 0, 0, INT_MAX, "", "Index of the item in the collection", 0, INT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	prop = RNA_def_property(srna, "layout_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, uilist_layout_type_items);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	/* registration */
+	prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->idname");
+	RNA_def_property_flag(prop, PROP_REGISTER | PROP_NEVER_CLAMP);
+	RNA_def_property_ui_text(prop, "ID Name",
+	                         "If this is set, the uilist gets a custom ID, otherwise it takes the "
+	                         "name of the class used to define the uilist (for example, if the "
+	                         "class name is \"OBJECT_UL_vgroups\", and bl_idname is not set by the "
+	                         "script, then bl_idname = \"OBJECT_UL_vgroups\")");
+}
+
 static void rna_def_header(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -852,6 +1015,7 @@ void RNA_def_ui(BlenderRNA *brna)
 {
 	rna_def_ui_layout(brna);
 	rna_def_panel(brna);
+	rna_def_uilist(brna);
 	rna_def_header(brna);
 	rna_def_menu(brna);
 }

@@ -228,6 +228,10 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags, char co
 	}
 	
 	ibuf->ftype = JP2;
+	if (is_jp2)
+		ibuf->ftype |= JP2_JP2;
+	else
+		ibuf->ftype |= JP2_J2K;
 	
 	if (use_float) {
 		float *rect_float = ibuf->rect_float;
@@ -852,9 +856,15 @@ int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags)
 		int codestream_length;
 		opj_cio_t *cio = NULL;
 		FILE *f = NULL;
+		opj_cinfo_t *cinfo = NULL;
 
 		/* get a JP2 compressor handle */
-		opj_cinfo_t *cinfo = opj_create_compress(CODEC_JP2);
+		if (ibuf->ftype & JP2_JP2)
+			cinfo = opj_create_compress(CODEC_JP2);
+		else if (ibuf->ftype & JP2_J2K)
+			cinfo = opj_create_compress(CODEC_J2K);
+		else
+			BLI_assert(!"Unsupported codec was specified in save settings");
 
 		/* catch events using our callbacks and give a local context */
 		opj_set_event_mgr((opj_common_ptr)cinfo, &event_mgr, stderr);

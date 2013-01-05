@@ -205,6 +205,145 @@ __device_inline void bvh_triangle_intersect(KernelGlobals *kg, Intersection *ise
 	}
 }
 
+#ifdef __HAIR__
+__device_inline void bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
+	float3 P, float3 idir, uint visibility, int object, int curveAddr, int segment)
+{
+	/* curve Intersection check */
+	
+	int flags = kernel_data.curve_kernel_data.curveflags;
+
+	int prim = kernel_tex_fetch(__prim_index, curveAddr);
+	float4 v00 = kernel_tex_fetch(__curves, prim);
+
+	int k0 = __float_as_int(v00.x) + segment;
+	int k1 = k0 + 1;
+
+	float4 P1 = kernel_tex_fetch(__curve_keys, k0);
+	float4 P2 = kernel_tex_fetch(__curve_keys, k1);
+
+	float l = len(P2 - P1);
+	float r1 = P1.w;
+	float r2 = P2.w;
+	float mr = max(r1,r2);
+	float3 p1 = float4_to_float3(P1);
+	float3 p2 = float4_to_float3(P2);
+	float3 dif = P - p1;
+	float3 dir = 1.0f/idir;
+
+	float sp_r = mr + 0.5f * l;
+	float3 sphere_dif = P - ((p1 + p2) * 0.5f);
+	float sphere_b = dot(dir,sphere_dif);
+	sphere_dif = sphere_dif - sphere_b * dir;
+	sphere_b = dot(dir,sphere_dif);
+	float sdisc = sphere_b * sphere_b - len_squared(sphere_dif) + sp_r * sp_r;
+	if(sdisc < 0.0f)
+		return;
+
+	/* obtain parameters and test midpoint distance for suitable modes*/
+	float3 tg = (p2 - p1) / l;
+	float gd = (r2 - r1) / l;
+	float dirz = dot(dir,tg);
+	float difz = dot(dif,tg);
+
+	float a = 1.0f - (dirz*dirz*(1 + gd*gd));
+	float halfb = (dot(dir,dif) - dirz*(difz + gd*(difz*gd + r1)));
+
+	float tcentre = -halfb/a;
+	float zcentre = difz + (dirz * tcentre);
+
+	if((tcentre > isect->t) && !(flags & CURVE_KN_ACCURATE))
+		return;
+	if((zcentre < 0 || zcentre > l) && !(flags & CURVE_KN_ACCURATE) && !(flags & CURVE_KN_INTERSECTCORRECTION))
+		return;
+
+	/* test minimum separation*/
+	float3 cprod = cross(tg, dir);
+	float3 cprod2 = cross(tg, dif);
+	float cprodsq = len_squared(cprod);
+	float cprod2sq = len_squared(cprod2);
+	float distscaled = dot(cprod,dif);
+
+	if(cprodsq == 0)
+		distscaled = cprod2sq;
+	else
+		distscaled = (distscaled*distscaled)/cprodsq;
+
+	if(distscaled > mr*mr)
+		return;
+
+	/* calculate true intersection*/
+	float3 tdif = P - p1 + tcentre * dir;
+	float tdifz = dot(tdif,tg);
+	float tb = 2*(dot(dir,tdif) - dirz*(tdifz + gd*(tdifz*gd + r1)));
+	float tc = dot(tdif,tdif) - tdifz * tdifz * (1 + gd*gd) - r1*r1 - 2*r1*tdifz*gd;
+	float td = tb*tb - 4*a*tc;
+
+	if (td < 0.0f)
+		return;
+
+	float rootd = 0.0f;
+	float correction = 0.0f;
+	if(flags & CURVE_KN_ACCURATE) {
+		rootd = sqrtf(td);
+		correction = ((-tb - rootd)/(2*a));
+	}
+
+	float t = tcentre + correction;
+
+	if(t < isect->t) {
+
+		if(flags & CURVE_KN_INTERSECTCORRECTION) {
+			rootd = sqrtf(td);
+			correction = ((-tb - rootd)/(2*a));
+			t = tcentre + correction;
+		}
+
+		float z = zcentre + (dirz * correction);
+		bool backface = false;
+
+		if(flags & CURVE_KN_BACKFACING && (t < 0.0f || z < 0 || z > l)) {
+			backface = true;
+			correction = ((-tb + rootd)/(2*a));
+			t = tcentre + correction;
+			z = zcentre + (dirz * correction);
+		}
+
+		if(t > 0.0f && t < isect->t && z >= 0 && z <= l) {
+
+			if (flags & CURVE_KN_ENCLOSEFILTER) {
+
+				float enc_ratio = kernel_data.curve_kernel_data.encasing_ratio;
+				if((dot(P - p1, tg) > -r1 * enc_ratio) && (dot(P - p2, tg) < r2 * enc_ratio)) {
+					float a2 = 1.0f - (dirz*dirz*(1 + gd*gd*enc_ratio*enc_ratio));
+					float c2 = dot(dif,dif) - difz * difz * (1 + gd*gd*enc_ratio*enc_ratio) - r1*r1*enc_ratio*enc_ratio - 2*r1*difz*gd*enc_ratio;
+					if(a2*c2 < 0.0f)
+						return;
+				}
+			}
+
+#ifdef __VISIBILITY_FLAG__
+			/* visibility flag test. we do it here under the assumption
+			 * that most triangles are culled by node flags */
+			if(kernel_tex_fetch(__prim_visibility, curveAddr) & visibility)
+#endif
+			{
+				/* record intersection */
+				isect->prim = curveAddr;
+				isect->segment = segment;
+				isect->object = object;
+				isect->u = z/l;
+				isect->v = td/(4*a*a);
+				isect->t = t;
+
+				if(backface) 
+					isect->u = -isect->u;
+			}
+		}
+	}
+}
+#endif
+
 __device_inline bool bvh_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect)
 {
 	/* traversal stack in CUDA thread-local memory */
@@ -281,10 +420,16 @@ __device_inline bool bvh_intersect(KernelGlobals *kg, const Ray *ray, const uint
 					nodeAddr = traversalStack[stackPtr];
 					--stackPtr;
 
-					/* triangle intersection */
+					/* primitive intersection */
 					while(primAddr < primAddr2) {
-						/* intersect ray against triangle */
-						bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr);
+						/* intersect ray against primitive */
+#ifdef __HAIR__
+						uint segment = kernel_tex_fetch(__prim_segment, primAddr);
+						if(segment != ~0)
+							bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment);
+						else
+#endif
+							bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr);
 
 						/* shadow ray early termination */
 						if(visibility == PATH_RAY_SHADOW_OPAQUE && isect->prim != ~0)
@@ -401,10 +546,16 @@ __device_inline bool bvh_intersect_motion(KernelGlobals *kg, const Ray *ray, con
 					nodeAddr = traversalStack[stackPtr];
 					--stackPtr;
 
-					/* triangle intersection */
+					/* primitive intersection */
 					while(primAddr < primAddr2) {
-						/* intersect ray against triangle */
-						bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr);
+						/* intersect ray against primitive */
+#ifdef __HAIR__
+						uint segment = kernel_tex_fetch(__prim_segment, primAddr);
+						if(segment != ~0)
+							bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment);
+						else
+#endif
+							bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr);
 
 						/* shadow ray early termination */
 						if(visibility == PATH_RAY_SHADOW_OPAQUE && isect->prim != ~0)
@@ -457,12 +608,15 @@ __device_inline float3 ray_offset(float3 P, float3 Ng)
 {
 #ifdef __INTERSECTION_REFINE__
 	const float epsilon_f = 1e-5f;
+	/* ideally this should match epsilon_f, but instancing/mblur
+	 * precision makes it problematic */
+	const float epsilon_test = 1e-1f;
 	const int epsilon_i = 32;
 
 	float3 res;
 
 	/* x component */
-	if(fabsf(P.x) < epsilon_f) {
+	if(fabsf(P.x) < epsilon_test) {
 		res.x = P.x + Ng.x*epsilon_f;
 	}
 	else {
@@ -472,7 +626,7 @@ __device_inline float3 ray_offset(float3 P, float3 Ng)
 	}
 
 	/* y component */
-	if(fabsf(P.y) < epsilon_f) {
+	if(fabsf(P.y) < epsilon_test) {
 		res.y = P.y + Ng.y*epsilon_f;
 	}
 	else {
@@ -482,7 +636,7 @@ __device_inline float3 ray_offset(float3 P, float3 Ng)
 	}
 
 	/* z component */
-	if(fabsf(P.z) < epsilon_f) {
+	if(fabsf(P.z) < epsilon_test) {
 		res.z = P.z + Ng.z*epsilon_f;
 	}
 	else {
@@ -541,6 +695,106 @@ __device_inline float3 bvh_triangle_refine(KernelGlobals *kg, ShaderData *sd, co
 	return P + D*t;
 #endif
 }
+
+#ifdef __HAIR__
+__device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, const Intersection *isect, const Ray *ray, float t)
+{
+	int flag = kernel_data.curve_kernel_data.curveflags;
+	float3 P = ray->P;
+	float3 D = ray->D;
+
+	if(isect->object != ~0) {
+#ifdef __OBJECT_MOTION__
+		Transform tfm = sd->ob_itfm;
+#else
+		Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_INVERSE_TRANSFORM);
+#endif
+
+		P = transform_point(&tfm, P);
+		D = transform_direction(&tfm, D*t);
+		D = normalize_len(D, &t);
+	}
+
+	int prim = kernel_tex_fetch(__prim_index, isect->prim);
+	float4 v00 = kernel_tex_fetch(__curves, prim);
+
+	int k0 = __float_as_int(v00.x) + isect->segment;
+	int k1 = k0 + 1;
+
+	float4 P1 = kernel_tex_fetch(__curve_keys, k0);
+	float4 P2 = kernel_tex_fetch(__curve_keys, k1);
+	float l = len(P2 - P1);
+	float r1 = P1.w;
+	float r2 = P2.w;
+	float3 tg = float4_to_float3(P2 - P1) / l;
+	float3 dif = P - float4_to_float3(P1) + t * D;
+	float gd = ((r2 - r1)/l);
+
+	P = P + D*t;
+
+	dif = P - float4_to_float3(P1);
+
+	#ifdef __UV__
+	sd->u = dot(dif,tg)/l;
+	sd->v = 0.0f;
+	#endif
+
+	if (flag & CURVE_KN_TRUETANGENTGNORMAL) {
+		sd->Ng = -(D - tg * (dot(tg,D) * kernel_data.curve_kernel_data.normalmix));
+		sd->Ng = normalize(sd->Ng);
+		if (flag & CURVE_KN_NORMALCORRECTION)
+		{
+			//sd->Ng = normalize(sd->Ng);
+			sd->Ng = sd->Ng - gd * tg;
+			sd->Ng = normalize(sd->Ng);
+		}
+	}
+	else {
+		sd->Ng = (dif - tg * sd->u * l) / (P1.w + sd->u * l * gd);
+		if (gd != 0.0f) {
+			sd->Ng = sd->Ng - gd * tg ;
+			sd->Ng = normalize(sd->Ng);
+		}
+	}
+
+	sd->N = sd->Ng;
+
+	if (flag & CURVE_KN_TANGENTGNORMAL && !(flag & CURVE_KN_TRUETANGENTGNORMAL)) {
+		sd->N = -(D - tg * (dot(tg,D) * kernel_data.curve_kernel_data.normalmix));
+		sd->N = normalize(sd->N);
+		if (flag & CURVE_KN_NORMALCORRECTION) {
+			//sd->N = normalize(sd->N);
+			sd->N = sd->N - gd * tg;
+			sd->N = normalize(sd->N);
+		}
+	}
+	if (!(flag & CURVE_KN_TANGENTGNORMAL) && flag & CURVE_KN_TRUETANGENTGNORMAL) {
+		sd->N = (dif - tg * sd->u * l) / (P1.w + sd->u * l * gd);
+		if (gd != 0.0f) {
+			sd->N = sd->N - gd * tg ;
+			sd->N = normalize(sd->N);
+		}
+	}
+
+	#ifdef __DPDU__
+	/* dPdu/dPdv */
+	sd->dPdu = tg;
+	sd->dPdv = cross(tg,sd->Ng);
+	#endif
+
+	if(isect->object != ~0) {
+#ifdef __OBJECT_MOTION__
+		Transform tfm = sd->ob_tfm;
+#else
+		Transform tfm = object_fetch_transform(kg, isect->object, OBJECT_TRANSFORM);
+#endif
+
+		P = transform_point(&tfm, P);
+	}
+
+	return P;
+}
+#endif
 
 CCL_NAMESPACE_END
 

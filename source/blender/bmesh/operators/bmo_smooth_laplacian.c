@@ -538,7 +538,7 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 	int i;
 	int m_vertex_id;
 	int usex, usey, usez, preserve_volume;
-	float lambda, lambda_border;
+	float lambda_factor, lambda_border;
 	float w;
 	BMOIter siter;
 	BMVert *v;
@@ -553,7 +553,7 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 	memset_laplacian_system(sys, 0);
 
 	BM_mesh_elem_index_ensure(bm, BM_VERT);
-	lambda = BMO_slot_float_get(op->slots_in, "lambda");
+	lambda_factor = BMO_slot_float_get(op->slots_in, "lambda_factor");
 	lambda_border = BMO_slot_float_get(op->slots_in, "lambda_border");
 	sys->min_area = 0.00001f;
 	usex = BMO_slot_bool_get(op->slots_in, "use_x");
@@ -592,12 +592,12 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 		i = m_vertex_id;
 		if (sys->zerola[i] == 0) {
 			w = sys->vweights[i] * sys->ring_areas[i];
-			sys->vweights[i] = (w == 0.0f) ? 0.0f : -lambda  / (4.0f * w);
+			sys->vweights[i] = (w == 0.0f) ? 0.0f : -lambda_factor  / (4.0f * w);
 			w = sys->vlengths[i];
 			sys->vlengths[i] = (w == 0.0f) ? 0.0f : -lambda_border  * 2.0f / w;
 
 			if (!vert_is_boundary(v)) {
-				nlMatrixAdd(i, i,  1.0f + lambda / (4.0f * sys->ring_areas[i]));
+				nlMatrixAdd(i, i,  1.0f + lambda_factor / (4.0f * sys->ring_areas[i]));
 			}
 			else {
 				nlMatrixAdd(i, i,  1.0f + lambda_border * 2.0f);

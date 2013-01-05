@@ -110,14 +110,17 @@ PyDoc_STRVAR(bpy_bm_update_edit_mesh_doc,
 "   :arg destructive: Use when grometry has been added or removed.\n"
 "   :type destructive: boolean\n"
 );
-static PyObject *bpy_bm_update_edit_mesh(PyObject *UNUSED(self), PyObject *args)
+static PyObject *bpy_bm_update_edit_mesh(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
+	static const char *kwlist[] = {"mesh", "tessface", "destructive", NULL};
 	PyObject *py_me;
 	Mesh *me;
 	int do_tessface = TRUE;
 	int is_destructive = TRUE;
 
-	if (!PyArg_ParseTuple(args, "O|ii:update_edit_mesh", &py_me, &do_tessface, &is_destructive)) {
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "O|ii:update_edit_mesh", (char **)kwlist,
+	                                 &py_me, &do_tessface, &is_destructive))
+	{
 		return NULL;
 	}
 
@@ -144,7 +147,7 @@ static PyObject *bpy_bm_update_edit_mesh(PyObject *UNUSED(self), PyObject *args)
 static struct PyMethodDef BPy_BM_methods[] = {
 	{"new",            (PyCFunction)bpy_bm_new,            METH_NOARGS,  bpy_bm_new_doc},
 	{"from_edit_mesh", (PyCFunction)bpy_bm_from_edit_mesh, METH_O,       bpy_bm_from_edit_mesh_doc},
-	{"update_edit_mesh", (PyCFunction)bpy_bm_update_edit_mesh, METH_VARARGS, bpy_bm_update_edit_mesh_doc},
+	{"update_edit_mesh", (PyCFunction)bpy_bm_update_edit_mesh, METH_VARARGS | METH_KEYWORDS, bpy_bm_update_edit_mesh_doc},
 	{NULL, NULL, 0, NULL}
 };
 

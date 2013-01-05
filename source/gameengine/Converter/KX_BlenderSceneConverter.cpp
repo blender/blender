@@ -131,7 +131,8 @@ KX_BlenderSceneConverter::KX_BlenderSceneConverter(
 							m_ketsjiEngine(engine),
 							m_alwaysUseExpandFraming(false),
 							m_usemat(false),
-							m_useglslmat(false)
+							m_useglslmat(false),
+							m_use_mat_cache(true)
 {
 	tag_main(maggie, 0); /* avoid re-tagging later on */
 	m_newfilename = "";
@@ -488,6 +489,11 @@ void KX_BlenderSceneConverter::SetGLSLMaterials(bool val)
 	m_useglslmat = val;
 }
 
+void KX_BlenderSceneConverter::SetCacheMaterials(bool val)
+{
+	m_use_mat_cache = val;
+}
+
 bool KX_BlenderSceneConverter::GetMaterials()
 {
 	return m_usemat;
@@ -496,6 +502,11 @@ bool KX_BlenderSceneConverter::GetMaterials()
 bool KX_BlenderSceneConverter::GetGLSLMaterials()
 {
 	return m_useglslmat;
+}
+
+bool KX_BlenderSceneConverter::GetCacheMaterials()
+{
+	return m_use_mat_cache;
 }
 
 void KX_BlenderSceneConverter::RegisterBlenderMaterial(BL_Material *mat)

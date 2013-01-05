@@ -69,7 +69,14 @@ void paintface_flush_flags(Object *ob)
 	int totface, totpoly;
 	int i;
 	
-	if (me == NULL || dm == NULL)
+	if (me == NULL)
+		return;
+
+	/* we could call this directly in all areas that change selection,
+	 * since this could become slow for realtime updates (circle-select for eg) */
+	BKE_mesh_flush_select_from_polys(me);
+
+	if (dm == NULL)
 		return;
 
 	/*
@@ -477,7 +484,7 @@ int paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], in
 	/* Get the face under the cursor */
 	me = BKE_mesh_from_object(ob);
 
-	if (!ED_mesh_pick_face(C, me, mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE))
+	if (!ED_mesh_pick_face(C, ob, mval, &index, ED_MESH_PICK_DEFAULT_FACE_SIZE))
 		return 0;
 	
 	if (index >= me->totpoly)
@@ -603,7 +610,14 @@ void paintvert_flush_flags(Object *ob)
 	int totvert;
 	int i;
 
-	if (me == NULL || dm == NULL)
+	if (me == NULL)
+		return;
+
+	/* we could call this directly in all areas that change selection,
+	 * since this could become slow for realtime updates (circle-select for eg) */
+	BKE_mesh_flush_select_from_verts(me);
+
+	if (dm == NULL)
 		return;
 
 	index_array = dm->getVertDataArray(dm, CD_ORIGINDEX);

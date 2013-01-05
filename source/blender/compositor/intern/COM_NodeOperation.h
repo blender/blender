@@ -81,6 +81,7 @@ private:
 	 */
 	const bNodeTree *m_btree;
 
+	bool m_isResolutionSet;
 public:
 	/**
 	 * @brief is this node an operation?
@@ -170,7 +171,7 @@ public:
 	virtual void deinitExecution();
 
 	bool isResolutionSet() {
-		return this->m_width != 0 && this->m_height != 0;
+		return this->m_isResolutionSet;
 	}
 
 	/**
@@ -181,6 +182,7 @@ public:
 		if (!isResolutionSet()) {
 			this->m_width = resolution[0];
 			this->m_height = resolution[1];
+			this->m_isResolutionSet = true;
 		}
 	}
 	
@@ -254,8 +256,8 @@ public:
 protected:
 	NodeOperation();
 
-	void setWidth(unsigned int width) { this->m_width = width; }
-	void setHeight(unsigned int height) { this->m_height = height; }
+	void setWidth(unsigned int width) { this->m_width = width; this->m_isResolutionSet = true; }
+	void setHeight(unsigned int height) { this->m_height = height; this->m_isResolutionSet = true; }
 	SocketReader *getInputSocketReader(unsigned int inputSocketindex);
 	NodeOperation *getInputOperation(unsigned int inputSocketindex);
 

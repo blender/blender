@@ -196,7 +196,7 @@ static int uvedit_have_selection(Scene *scene, BMEditMesh *em, short implicit)
 	return 0;
 }
 
-static void ED_uvedit_get_aspect(Scene *scene, Object *ob, BMEditMesh *em, float *aspx, float *aspy)
+void uvedit_get_aspect(Scene *scene, Object *ob, BMEditMesh *em, float *aspx, float *aspy)
 {
 	int sloppy = TRUE;
 	int selected = FALSE;
@@ -238,7 +238,7 @@ static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh 
 	if (correct_aspect) {
 		float aspx, aspy;
 
-		ED_uvedit_get_aspect(scene, ob, em, &aspx, &aspy);
+		uvedit_get_aspect(scene, ob, em, &aspx, &aspy);
 
 		if (aspx != aspy)
 			param_aspect_ratio(handle, aspx, aspy);
@@ -423,7 +423,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, Object *ob, B
 	if (correct_aspect) {
 		float aspx, aspy;
 
-		ED_uvedit_get_aspect(scene, ob, em, &aspx, &aspy);
+		uvedit_get_aspect(scene, ob, em, &aspx, &aspy);
 
 		if (aspx != aspy)
 			param_aspect_ratio(handle, aspx, aspy);
@@ -1047,7 +1047,7 @@ static void correct_uv_aspect(Scene *scene, Object *ob, BMEditMesh *em)
 	BMFace *efa;
 	float scale, aspx, aspy;
 	
-	ED_uvedit_get_aspect(scene, ob, em, &aspx, &aspy);
+	uvedit_get_aspect(scene, ob, em, &aspx, &aspy);
 	
 	if (aspx == aspy)
 		return;
@@ -1563,7 +1563,6 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
 	uv_map_transform(C, op, center, rotmat);
 
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 		if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
 			continue;
 		
@@ -1573,6 +1572,7 @@ static int cylinder_project_exec(bContext *C, wmOperator *op)
 			uv_cylinder_project(luv->uv, l->v->co, center, rotmat);
 		}
 
+		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 		uv_map_mirror(em, efa, tf);
 	}
 

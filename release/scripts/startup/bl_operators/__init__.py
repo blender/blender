@@ -47,7 +47,7 @@ _modules = [
 
 import bpy
 
-if 'FREESTYLE' in bpy.app.build_options:
+if bpy.app.build_options.freestyle:
     _modules.append("freestyle")
 __import__(name=__name__, fromlist=_modules)
 _namespace = globals()

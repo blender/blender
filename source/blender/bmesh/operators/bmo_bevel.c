@@ -34,6 +34,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 {
 	const float offset = BMO_slot_float_get(op->slots_in, "offset");
 	const int   seg    = BMO_slot_int_get(op->slots_in,   "segments");
+	const int   vonly  = BMO_slot_bool_get(op->slots_in,  "vertex_only");
 
 	if (offset > 0) {
 		BMOIter siter;
@@ -54,7 +55,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 
-		BM_mesh_bevel(bm, offset, seg);
+		BM_mesh_bevel(bm, offset, seg, vonly);
 
 		BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faces.out", BM_FACE, BM_ELEM_TAG);
 	}

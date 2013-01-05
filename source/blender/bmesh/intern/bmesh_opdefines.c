@@ -128,7 +128,7 @@ static BMOpDefine bmo_smooth_laplacian_vert_def = {
 	"smooth_laplacian_vert",
 	/* slots_in */
 	{{"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},    /* input vertices */
-	 {"lambda", BMO_OP_SLOT_FLT},           /* lambda param */
+	 {"lambda_factor", BMO_OP_SLOT_FLT},           /* lambda param */
 	 {"lambda_border", BMO_OP_SLOT_FLT},    /* lambda param in border */
 	 {"use_x", BMO_OP_SLOT_BOOL},           /* Smooth object along X axis */
 	 {"use_y", BMO_OP_SLOT_BOOL},           /* Smooth object along Y axis */
@@ -1403,6 +1403,7 @@ static BMOpDefine bmo_bevel_def = {
 	{{"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},     /* input edges and vertices */
 	 {"offset", BMO_OP_SLOT_FLT},           /* amount to offset beveled edge */
 	 {"segments", BMO_OP_SLOT_INT},         /* number of segments in bevel */
+	 {"vertex_only", BMO_OP_SLOT_BOOL},	/* only bevel vertices, not edges */
 	 {{'\0'}},
 	},
 	/* slots_out */

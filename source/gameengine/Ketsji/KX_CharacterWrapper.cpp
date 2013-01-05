@@ -45,6 +45,8 @@ PyTypeObject KX_CharacterWrapper::Type = {
 PyAttributeDef KX_CharacterWrapper::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("onGround", KX_CharacterWrapper, pyattr_get_onground),
 	KX_PYATTRIBUTE_RW_FUNCTION("gravity", KX_CharacterWrapper, pyattr_get_gravity, pyattr_set_gravity),
+	KX_PYATTRIBUTE_RW_FUNCTION("maxJumps", KX_CharacterWrapper, pyattr_get_max_jumps, pyattr_set_max_jumps),
+	KX_PYATTRIBUTE_RO_FUNCTION("jumpCount", KX_CharacterWrapper, pyattr_get_jump_count),
 	{ NULL }	//Sentinel
 };
 
@@ -75,6 +77,35 @@ int KX_CharacterWrapper::pyattr_set_gravity(void *self_v, const KX_PYATTRIBUTE_D
 
 	self->m_character->SetGravity((float)param);
 	return PY_SET_ATTR_SUCCESS;
+}
+
+PyObject *KX_CharacterWrapper::pyattr_get_max_jumps(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_CharacterWrapper* self = static_cast<KX_CharacterWrapper*>(self_v);
+
+	return PyLong_FromLong(self->m_character->GetMaxJumps());
+}
+
+int KX_CharacterWrapper::pyattr_set_max_jumps(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_CharacterWrapper* self = static_cast<KX_CharacterWrapper*>(self_v);
+	long param = PyLong_AsLong(value);
+
+	if (param == -1)
+	{
+		PyErr_SetString(PyExc_ValueError, "KX_CharacterWrapper.maxJumps: expected an integer");
+		return PY_SET_ATTR_FAIL;
+	}
+
+	self->m_character->SetMaxJumps((int)param);
+	return PY_SET_ATTR_SUCCESS;
+}
+
+PyObject *KX_CharacterWrapper::pyattr_get_jump_count(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_CharacterWrapper* self = static_cast<KX_CharacterWrapper*>(self_v);
+
+	return PyLong_FromLong(self->m_character->GetJumpCount());
 }
 
 PyMethodDef KX_CharacterWrapper::Methods[] = {

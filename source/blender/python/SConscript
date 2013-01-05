@@ -134,6 +134,12 @@ if env['WITH_BF_TIFF']:
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
+if env['WITH_BF_OPENAL']:
+    defs.append('WITH_OPENAL')
+
+if env['WITH_BF_SDL']:
+    defs.append('WITH_SDL')
+
 if env['WITH_BF_JACK']:
     defs.append('WITH_JACK')
 
@@ -155,11 +161,11 @@ if env['WITH_BF_REMESH']:
 if env['WITH_BF_SMOKE']:
     defs.append('WITH_SMOKE')
 
-if env['WITH_BF_OPENAL']:
-    defs.append('WITH_OPENAL')
-
 if env['WITH_BF_COLLADA']:
     defs.append('WITH_COLLADA')
+
+if env['WITH_BF_OIIO']:
+    defs.append('WITH_OCIO')
 
 if env['WITH_BF_PLAYER']:
     defs.append('WITH_PLAYER')

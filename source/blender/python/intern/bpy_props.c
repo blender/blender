@@ -1233,6 +1233,8 @@ BPY_PROPDEF_DESC_DOC
 "      For dynamic values a callback can be passed which returns a list in\n"
 "      the same format as the static list.\n"
 "      This function must take 2 arguments (self, context)\n"
+"      WARNING: Do not use generators here (they will work the first time, but will lead to empty values\n"
+"               in some unload/reload scenarii)!\n"
 "   :type items: sequence of string triplets or a function\n"
 BPY_PROPDEF_UPDATE_DOC
 );

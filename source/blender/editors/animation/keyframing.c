@@ -540,8 +540,8 @@ static float setting_get_rna_value(PointerRNA *ptr, PropertyRNA *prop, int index
 enum {
 	VISUALKEY_NONE = 0,
 	VISUALKEY_LOC,
-	VISUALKEY_ROT
-	/* VISUALKEY_SCA */ /* TODO - looks like support can be added now */
+	VISUALKEY_ROT,
+	VISUALKEY_SCA,
 };
 
 /* This helper function determines if visual-keyframing should be used when  
@@ -560,7 +560,7 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 	/* validate data */
 	if (ELEM3(NULL, ptr, ptr->data, prop))
 		return 0;
-		
+	
 	/* get first constraint and determine type of keyframe constraints to check for 
 	 *  - constraints can be on either Objects or PoseChannels, so we only check if the
 	 *    ptr->type is RNA_Object or RNA_PoseBone, which are the RNA wrapping-info for
@@ -586,7 +586,7 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 	/* check if any data to search using */
 	if (ELEM(NULL, con, identifier) && (has_parent == FALSE))
 		return 0;
-		
+	
 	/* location or rotation identifiers only... */
 	if (identifier == NULL) {
 		printf("%s failed: NULL identifier\n", __func__);
@@ -597,6 +597,9 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 	}
 	else if (strstr(identifier, "rotation")) {
 		searchtype = VISUALKEY_ROT;
+	}
+	else if (strstr(identifier, "scale")) {
+		searchtype = VISUALKEY_SCA;
 	}
 	else {
 		printf("%s failed: identifier - '%s'\n", __func__, identifier);
@@ -628,7 +631,7 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 					return 1;
 				case CONSTRAINT_TYPE_KINEMATIC:
 					return 1;
-					
+				
 				/* single-transform constraits  */
 				case CONSTRAINT_TYPE_TRACKTO:
 					if (searchtype == VISUALKEY_ROT) return 1;
@@ -642,14 +645,20 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 				case CONSTRAINT_TYPE_LOCLIMIT:
 					if (searchtype == VISUALKEY_LOC) return 1;
 					break;
-				case CONSTRAINT_TYPE_ROTLIKE:
-					if (searchtype == VISUALKEY_ROT) return 1;
+				case CONSTRAINT_TYPE_SIZELIMIT:
+					if (searchtype == VISUALKEY_SCA) return 1;
 					break;
 				case CONSTRAINT_TYPE_DISTLIMIT:
 					if (searchtype == VISUALKEY_LOC) return 1;
 					break;
+				case CONSTRAINT_TYPE_ROTLIKE:
+					if (searchtype == VISUALKEY_ROT) return 1;
+					break;
 				case CONSTRAINT_TYPE_LOCLIKE:
 					if (searchtype == VISUALKEY_LOC) return 1;
+					break;
+				case CONSTRAINT_TYPE_SIZELIKE:
+					if (searchtype == VISUALKEY_SCA) return 1;
 					break;
 				case CONSTRAINT_TYPE_LOCKTRACK:
 					if (searchtype == VISUALKEY_ROT) return 1;
@@ -675,45 +684,26 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 static float visualkey_get_value(PointerRNA *ptr, PropertyRNA *prop, int array_index)
 {
 	const char *identifier = RNA_property_identifier(prop);
+	float tmat[4][4];
+	int rotmode;
 	
 	/* handle for Objects or PoseChannels only 
+	 *  - only Location, Rotation or Scale keyframes are supported curently
 	 *  - constraints can be on either Objects or PoseChannels, so we only check if the
-	 *	  ptr->type is RNA_Object or RNA_PoseBone, which are the RNA wrapping-info for
+	 *    ptr->type is RNA_Object or RNA_PoseBone, which are the RNA wrapping-info for
 	 *        those structs, allowing us to identify the owner of the data
-	 *	- assume that array_index will be sane
+	 *  - assume that array_index will be sane
 	 */
 	if (ptr->type == &RNA_Object) {
 		Object *ob = (Object *)ptr->data;
-		
-		/* only Location or Rotation keyframes are supported now */
+
+		/* Loc code is specific... */
 		if (strstr(identifier, "location")) {
 			return ob->obmat[3][array_index];
 		}
-		else if (strstr(identifier, "rotation_euler")) {
-			float eul[3];
-			
-			mat4_to_eulO(eul, ob->rotmode, ob->obmat);
-			return eul[array_index];
-		}
-		else if (strstr(identifier, "rotation_quaternion")) {
-			float trimat[3][3], quat[4];
-			
-			copy_m3_m4(trimat, ob->obmat);
-			mat3_to_quat_is_ok(quat, trimat);
-			
-			return quat[array_index];
-		}
-		else if (strstr(identifier, "rotation_axis_angle")) {
-			float axis[3], angle;
-			
-			mat4_to_axis_angle(axis, &angle, ob->obmat);
-			
-			/* w = 0, x,y,z = 1,2,3 */
-			if (array_index == 0)
-				return angle;
-			else
-				return axis[array_index - 1];
-		}
+
+		copy_m4_m4(tmat, ob->obmat);
+		rotmode = ob->rotmode;
 	}
 	else if (ptr->type == &RNA_PoseBone) {
 		Object *ob = (Object *)ptr->id.data; /* we assume that this is always set, and is an object */
@@ -726,41 +716,52 @@ static float visualkey_get_value(PointerRNA *ptr, PropertyRNA *prop, int array_i
 		 * will be what owns the pose-channel that is getting this anyway.
 		 */
 		copy_m4_m4(tmat, pchan->pose_mat);
-		constraint_mat_convertspace(ob, pchan, tmat, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
+		BKE_constraint_mat_convertspace(ob, pchan, tmat, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
+		rotmode = pchan->rotmode;
 		
-		/* Loc, Rot/Quat keyframes are supported... */
+		/* Loc code is specific... */
 		if (strstr(identifier, "location")) {
 			/* only use for non-connected bones */
-			if ((pchan->bone->parent) && !(pchan->bone->flag & BONE_CONNECTED))
-				return tmat[3][array_index];
-			else if (pchan->bone->parent == NULL)
+			if ((pchan->bone->parent == NULL) || !(pchan->bone->flag & BONE_CONNECTED))
 				return tmat[3][array_index];
 		}
-		else if (strstr(identifier, "rotation_euler")) {
-			float eul[3];
-			
-			mat4_to_eulO(eul, pchan->rotmode, tmat);
-			return eul[array_index];
-		}
-		else if (strstr(identifier, "rotation_quaternion")) {
-			float trimat[3][3], quat[4];
-			
-			copy_m3_m4(trimat, tmat);
-			mat3_to_quat_is_ok(quat, trimat);
-			
-			return quat[array_index];
-		}
-		else if (strstr(identifier, "rotation_axis_angle")) {
-			float axis[3], angle;
-			
-			mat4_to_axis_angle(axis, &angle, tmat);
-			
-			/* w = 0, x,y,z = 1,2,3 */
-			if (array_index == 0)
-				return angle;
-			else
-				return axis[array_index - 1];
-		}
+	}
+	else {
+		return setting_get_rna_value(ptr, prop, array_index);
+	}
+	
+	/* Rot/Scale code are common! */
+	if (strstr(identifier, "rotation_euler")) {
+		float eul[3];
+		
+		mat4_to_eulO(eul, rotmode, tmat);
+		return eul[array_index];
+	}
+	else if (strstr(identifier, "rotation_quaternion")) {
+		float mat3[3][3], quat[4];
+		
+		copy_m3_m4(mat3, tmat);
+		mat3_to_quat_is_ok(quat, mat3);
+		
+		return quat[array_index];
+	}
+	else if (strstr(identifier, "rotation_axis_angle")) {
+		float axis[3], angle;
+		
+		mat4_to_axis_angle(axis, &angle, tmat);
+		
+		/* w = 0, x,y,z = 1,2,3 */
+		if (array_index == 0)
+			return angle;
+		else
+			return axis[array_index - 1];
+	}
+	else if (strstr(identifier, "scale")) {
+		float scale[3];
+		
+		mat4_to_size(scale, tmat);
+		
+		return scale[array_index];
 	}
 	
 	/* as the function hasn't returned yet, read value from system in the default way */

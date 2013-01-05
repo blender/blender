@@ -39,6 +39,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_math.h"
 
 #include "BKE_anim.h"
 #include "BKE_blender.h"
@@ -47,6 +48,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_key.h"
 #include "BKE_mesh.h"
+#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_tessmesh.h"
 
@@ -62,7 +64,7 @@ typedef struct SceneStats {
 	int totbone, totbonesel;
 	int totobj,  totobjsel;
 	int totlamp, totlampsel; 
-	int tottri, totmesh, totcurve;
+	int tottri, totmesh;
 
 	char infostr[512];
 } SceneStats;
@@ -74,7 +76,7 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 		{
 			/* we assume derivedmesh is already built, this strictly does stats now. */
 			DerivedMesh *dm = ob->derivedFinal;
-			int totvert, totedge, totface;
+			int totvert, totedge, totface, totloop;
 
 			stats->totmesh += totob;
 
@@ -82,10 +84,12 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 				totvert = dm->getNumVerts(dm);
 				totedge = dm->getNumEdges(dm);
 				totface = dm->getNumPolys(dm);
+				totloop = dm->getNumLoops(dm);
 
 				stats->totvert += totvert * totob;
 				stats->totedge += totedge * totob;
 				stats->totface += totface * totob;
+				stats->tottri  += poly_to_tri_count(totface, totloop) * totob;
 
 				if (sel) {
 					stats->totvertsel += totvert;
@@ -103,40 +107,23 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 		case OB_SURF:
 		case OB_CURVE:
 		case OB_FONT:
-		{
-			int tot = 0, totf = 0;
-
-			stats->totcurve += totob;
-
-			if (ob->disp.first)
-				BKE_displist_count(&ob->disp, &tot, &totf);
-
-			tot *= totob;
-			totf *= totob;
-
-			stats->totvert += tot;
-			stats->totface += totf;
-
-			if (sel) {
-				stats->totvertsel += tot;
-				stats->totfacesel += totf;
-			}
-			break;
-		}
 		case OB_MBALL:
 		{
-			int tot = 0, totf = 0;
+			int totv = 0, totf = 0, tottri = 0;
 
-			BKE_displist_count(&ob->disp, &tot, &totf);
+			if (ob->disp.first)
+				BKE_displist_count(&ob->disp, &totv, &totf, &tottri);
 
-			tot *= totob;
-			totf *= totob;
+			totv   *= totob;
+			totf   *= totob;
+			tottri *= totob;
 
-			stats->totvert += tot;
+			stats->totvert += totv;
 			stats->totface += totf;
+			stats->tottri  += tottri;
 
 			if (sel) {
-				stats->totvertsel += tot;
+				stats->totvertsel += totv;
 				stats->totfacesel += totf;
 			}
 			break;
@@ -260,6 +247,12 @@ static void stats_object_pose(Object *ob, SceneStats *stats)
 	}
 }
 
+static void stats_object_sculpt_dynamic_topology(Object *ob, SceneStats *stats)
+{
+	stats->totvert = ob->sculpt->bm->totvert;
+	stats->tottri = ob->sculpt->bm->totface;
+}
+
 static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 {
 	if (base->flag & SELECT) stats->totobjsel++;
@@ -319,6 +312,12 @@ static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 	}
 }
 
+static int stats_is_object_dynamic_topology_sculpt(Object *ob)
+{
+	return (ob && (ob->mode & OB_MODE_SCULPT) &&
+	        ob->sculpt && ob->sculpt->bm);
+}
+
 /* Statistics displayed in info header. Called regularly on scene changes. */
 static void stats_update(Scene *scene)
 {
@@ -333,6 +332,10 @@ static void stats_update(Scene *scene)
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		/* Pose Mode */
 		stats_object_pose(ob, &stats);
+	}
+	else if (stats_is_object_dynamic_topology_sculpt(ob)) {
+		/* Dynamic-topology sculpt mode */
+		stats_object_sculpt_dynamic_topology(ob, &stats);
 	}
 	else {
 		/* Objects */
@@ -388,9 +391,12 @@ static void stats_string(Scene *scene)
 		s += sprintf(s, "Bones:%d/%d %s",
 		             stats->totbonesel, stats->totbone, memstr);
 	}
+	else if (stats_is_object_dynamic_topology_sculpt(ob)) {
+		s += sprintf(s, "Verts:%d | Tris:%d", stats->totvert, stats->tottri);
+	}
 	else {
-		s += sprintf(s, "Verts:%d | Faces:%d | Objects:%d/%d | Lamps:%d/%d%s",
-		             stats->totvert, stats->totface, stats->totobjsel, stats->totobj, stats->totlampsel, stats->totlamp, memstr);
+		s += sprintf(s, "Verts:%d | Faces:%d| Tris:%d | Objects:%d/%d | Lamps:%d/%d%s",
+		             stats->totvert, stats->totface, stats->tottri, stats->totobjsel, stats->totobj, stats->totlampsel, stats->totlamp, memstr);
 	}
 
 	if (ob)

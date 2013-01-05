@@ -130,6 +130,9 @@ public:
 	static ustring u_geom_trianglevertices;
 	static ustring u_geom_polyvertices;
 	static ustring u_geom_name;
+	static ustring u_is_curve;
+	static ustring u_curve_thickness;
+	static ustring u_curve_tangent_normal;
 	static ustring u_path_ray_length;
 	static ustring u_trace;
 	static ustring u_hit;

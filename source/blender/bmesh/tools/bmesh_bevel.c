@@ -119,6 +119,7 @@ typedef struct BevelParams {
 
 	float offset;           /* blender units to offset each side of a beveled edge */
 	int seg;                /* number of segments in beveled edge profile */
+	int vertex_only;	/* bevel vertices only */
 } BevelParams;
 
 // #pragma GCC diagnostic ignored "-Wpadded"
@@ -166,6 +167,7 @@ static void create_mesh_bmvert(BMesh *bm, VMesh *vm, int i, int j, int k, BMVert
 {
 	NewVert *nv = mesh_vert(vm, i, j, k);
 	nv->v = BM_vert_create(bm, nv->co, eg, 0);
+	BM_elem_flag_disable(nv->v, BM_ELEM_TAG);
 }
 
 static void copy_mesh_vert(VMesh *vm, int ito, int jto, int kto,
@@ -698,8 +700,9 @@ static void snap_to_edge_profile(EdgeHalf *e, const float va[3], const float vb[
  * of a vertex on the the boundary of the beveled vertex bv->v.
  * Also decide on the mesh pattern that will be used inside the boundary.
  * Doesn't make the actual BMVerts */
-static void build_boundary(MemArena *mem_arena, BevVert *bv)
+static void build_boundary(BevelParams *bp, BevVert *bv)
 {
+	MemArena *mem_arena = bp->mem_arena;
 	EdgeHalf *efirst, *e;
 	BoundVert *v;
 	VMesh *vm;
@@ -707,8 +710,12 @@ static void build_boundary(MemArena *mem_arena, BevVert *bv)
 	const float  *no;
 	float lastd;
 
-	e = efirst = next_bev(bv, NULL);
 	vm = bv->vmesh;
+
+	if (bp->vertex_only)
+		e = efirst = &bv->edges[0];
+	else
+		e = efirst = next_bev(bv, NULL);
 
 	BLI_assert(bv->edgecount >= 2);  /* since bevel edges incident to 2 faces */
 
@@ -734,7 +741,7 @@ static void build_boundary(MemArena *mem_arena, BevVert *bv)
 		return;
 	}
 
-	lastd = e->offset;
+	lastd = bp->vertex_only ? bp->offset : e->offset;
 	vm->boundstart = NULL;
 	do {
 		if (e->is_bev) {
@@ -1276,7 +1283,7 @@ static void bevel_build_trifan(BMesh *bm, BevVert *bv)
 				else { BLI_assert(0); }
 			}
 			else {
-				if      (l_fan->v       == v_fan) { l_fan = l_fan; }
+				if      (l_fan->v       == v_fan) { /* l_fan = l_fan; */ }
 				else if (l_fan->next->v == v_fan) { l_fan = l_fan->next; }
 				else if (l_fan->prev->v == v_fan) { l_fan = l_fan->prev; }
 				else { BLI_assert(0); }
@@ -1325,8 +1332,9 @@ static void bevel_build_quadstrip(BMesh *bm, BevVert *bv)
 
 /* Given that the boundary is built, now make the actual BMVerts
  * for the boundary and the interior of the vertex mesh. */
-static void build_vmesh(MemArena *mem_arena, BMesh *bm, BevVert *bv)
+static void build_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv)
 {
+	MemArena *mem_arena = bp->mem_arena;
 	VMesh *vm = bv->vmesh;
 	BoundVert *v, *weld1, *weld2;
 	int n, ns, ns2, i, k, weld;
@@ -1504,7 +1512,7 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 	 */
 
 	BM_ITER_ELEM (bme, &iter, v, BM_EDGES_OF_VERT) {
-		if (BM_elem_flag_test(bme, BM_ELEM_TAG)) {
+		if (BM_elem_flag_test(bme, BM_ELEM_TAG) && !bp->vertex_only) {
 			BLI_assert(BM_edge_is_manifold(bme));
 			nsel++;
 		}
@@ -1513,7 +1521,7 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 		BM_BEVEL_EDGE_TAG_DISABLE(bme);
 	}
 
-	if (nsel == 0) {
+	if ((nsel == 0 && !bp->vertex_only) || (ntot < 3 && bp->vertex_only)) {
 		/* signal this vert isn't being beveled */
 		BM_elem_flag_disable(v, BM_ELEM_TAG);
 		return;
@@ -1570,7 +1578,7 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 		}
 		bme = e->e;
 		BM_BEVEL_EDGE_TAG_ENABLE(bme);
-		if (BM_elem_flag_test(bme, BM_ELEM_TAG)) {
+		if (BM_elem_flag_test(bme, BM_ELEM_TAG) && !bp->vertex_only) {
 			e->is_bev = TRUE;
 			e->seg = bp->seg;
 		}
@@ -1626,8 +1634,8 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 		BM_BEVEL_EDGE_TAG_DISABLE(e->e);
 	}
 
-	build_boundary(bp->mem_arena, bv);
-	build_vmesh(bp->mem_arena, bm, bv);
+	build_boundary(bp, bv);
+	build_vmesh(bp, bm, bv);
 }
 
 /* Face f has at least one beveled vertex.  Rebuild f */
@@ -1790,7 +1798,7 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
  *
  * \warning all tagged edges _must_ be manifold.
  */
-void BM_mesh_bevel(BMesh *bm, const float offset, const float segments)
+void BM_mesh_bevel(BMesh *bm, const float offset, const float segments, const int vertex_only)
 {
 	BMIter iter;
 	BMVert *v;
@@ -1799,6 +1807,7 @@ void BM_mesh_bevel(BMesh *bm, const float offset, const float segments)
 
 	bp.offset = offset;
 	bp.seg    = segments;
+	bp.vertex_only = vertex_only;
 
 	if (bp.offset > 0) {
 		/* primary alloc */
@@ -1814,9 +1823,11 @@ void BM_mesh_bevel(BMesh *bm, const float offset, const float segments)
 		}
 
 		/* Build polygons for edges */
-		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-			if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
-				bevel_build_edge_polygons(bm, &bp, e);
+		if (!bp.vertex_only) {
+			BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+				if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+					bevel_build_edge_polygons(bm, &bp, e);
+				}
 			}
 		}
 

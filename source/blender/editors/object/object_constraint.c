@@ -141,7 +141,7 @@ ListBase *get_constraint_lb(Object *ob, bConstraint *con, bPoseChannel **pchan_r
 /* single constraint */
 bConstraint *get_active_constraint(Object *ob)
 {
-	return constraints_get_active(get_active_constraints(ob));
+	return BKE_constraints_get_active(get_active_constraints(ob));
 }
 
 /* -------------- Constraint Management (Add New, Remove, Rename) -------------------- */
@@ -225,7 +225,7 @@ static void update_pyconstraint_cb(void *arg1, void *arg2)
 /* helper function for add_constriant - sets the last target for the active constraint */
 static void set_constraint_nth_target(bConstraint *con, Object *target, const char subtarget[], int index)
 {
-	bConstraintTypeInfo *cti = constraint_get_typeinfo(con);
+	bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
 	ListBase targets = {NULL, NULL};
 	bConstraintTarget *ct;
 	int num_targets, i;
@@ -297,7 +297,7 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 	/* Check all constraints - is constraint valid? */
 	if (conlist) {
 		for (curcon = conlist->first; curcon; curcon = curcon->next) {
-			bConstraintTypeInfo *cti = constraint_get_typeinfo(curcon);
+			bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(curcon);
 			ListBase targets = {NULL, NULL};
 			bConstraintTarget *ct;
 			
@@ -610,7 +610,7 @@ static bConstraint *edit_constraint_property_get(wmOperator *op, Object *ob, int
 		list = get_active_constraints(ob);
 	}
 	
-	con = constraints_findByName(list, constraint_name);
+	con = BKE_constraints_findByName(list, constraint_name);
 	//if (G.debug & G_DEBUG)
 	//printf("constraint found = %p, %s\n", (void *)con, (con)?con->name:"<Not found>");
 
@@ -1123,7 +1123,7 @@ void ED_object_constraint_set_active(Object *ob, bConstraint *con)
 	if ((lb && con) && (con->flag & CONSTRAINT_ACTIVE))
 		return;
 	
-	constraints_set_active(lb, con);
+	BKE_constraints_set_active(lb, con);
 }
 
 void ED_object_constraint_update(Object *ob)
@@ -1162,9 +1162,9 @@ static int constraint_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	const short is_ik = ELEM(con->type, CONSTRAINT_TYPE_KINEMATIC, CONSTRAINT_TYPE_SPLINEIK);
 
 	/* free the constraint */
-	if (remove_constraint(lb, con)) {
+	if (BKE_remove_constraint(lb, con)) {
 		/* there's no active constraint now, so make sure this is the case */
-		constraints_set_active(lb, NULL);
+		BKE_constraints_set_active(lb, NULL);
 		
 		ED_object_constraint_update(ob); /* needed to set the flags on posebones correctly */
 		
@@ -1308,7 +1308,7 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	/* free constraints for all selected bones */
 	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
 	{
-		free_constraints(&pchan->constraints);
+		BKE_free_constraints(&pchan->constraints);
 		pchan->constflag &= ~(PCHAN_HAS_IK | PCHAN_HAS_SPLINEIK | PCHAN_HAS_CONST);
 	}
 	CTX_DATA_END;
@@ -1346,7 +1346,7 @@ static int object_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	/* do freeing */
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
-		free_constraints(&ob->constraints);
+		BKE_free_constraints(&ob->constraints);
 		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 	}
 	CTX_DATA_END;
@@ -1391,7 +1391,7 @@ static int pose_constraint_copy_exec(bContext *C, wmOperator *op)
 	{
 		/* if we're not handling the object we're copying from, copy all constraints over */
 		if (pchan != chan) {
-			copy_constraints(&chan->constraints, &pchan->constraints, TRUE);
+			BKE_copy_constraints(&chan->constraints, &pchan->constraints, TRUE);
 			/* update flags (need to add here, not just copy) */
 			chan->constflag |= pchan->constflag;
 		}
@@ -1432,7 +1432,7 @@ static int object_constraint_copy_exec(bContext *C, wmOperator *UNUSED(op))
 	{
 		/* if we're not handling the object we're copying from, copy all constraints over */
 		if (obact != ob) {
-			copy_constraints(&ob->constraints, &obact->constraints, TRUE);
+			BKE_copy_constraints(&ob->constraints, &obact->constraints, TRUE);
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 	}
@@ -1642,9 +1642,9 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 	
 	/* create a new constraint of the type requried, and add it to the active/given constraints list */
 	if (pchan)
-		con = add_pose_constraint(ob, pchan, NULL, type);
+		con = BKE_add_pose_constraint(ob, pchan, NULL, type);
 	else
-		con = add_ob_constraint(ob, NULL, type);
+		con = BKE_add_ob_constraint(ob, NULL, type);
 	
 	/* get the first selected object/bone, and make that the target
 	 *	- apart from the buttons-window add buttons, we shouldn't add in this way
@@ -1940,7 +1940,7 @@ static int pose_ik_clear_exec(bContext *C, wmOperator *UNUSED(op))
 		for (con = pchan->constraints.first; con; con = next) {
 			next = con->next;
 			if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
-				remove_constraint(&pchan->constraints, con);
+				BKE_remove_constraint(&pchan->constraints, con);
 			}
 		}
 		pchan->constflag &= ~(PCHAN_HAS_IK | PCHAN_HAS_TARGET);

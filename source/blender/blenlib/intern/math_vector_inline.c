@@ -461,7 +461,7 @@ MINLINE void mul_v3_v3v3(float r[3], const float v1[3], const float v2[3])
 	r[2] = v1[2] * v2[2];
 }
 
-MINLINE void negate_v2(float r[3])
+MINLINE void negate_v2(float r[2])
 {
 	r[0] = -r[0];
 	r[1] = -r[1];

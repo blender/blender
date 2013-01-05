@@ -374,9 +374,10 @@ if btools.ENDIAN == "big":
 else:
     env['CPPFLAGS'].append('-D__LITTLE_ENDIAN__')
 
-# TODO, make optional
+# TODO, make optional (as with CMake)
 env['CPPFLAGS'].append('-DWITH_AUDASPACE')
 env['CPPFLAGS'].append('-DWITH_AVI')
+env['CPPFLAGS'].append('-DWITH_BOOL_COMPAT')
 
 # lastly we check for root_build_dir ( we should not do before, otherwise we might do wrong builddir
 B.root_build_dir = env['BF_BUILDDIR']
@@ -443,11 +444,12 @@ if env['WITH_BF_PYTHON']:
             found_pyconfig_h = True
 
     if not (found_python_h and found_pyconfig_h):
-        print("\nMissing: Python.h and/or pyconfig.h in\"" + env.subst('${BF_PYTHON_INC}') + "\",\n"
-              "  Set 'BF_PYTHON_INC' to point "
-              "to valid python include path(s).\n Containing "
-              "Python.h and pyconfig.h for python version \"" + env.subst('${BF_PYTHON_VERSION}') + "\"")
+        print("""\nMissing: Python.h and/or pyconfig.h in "%s"
+         Set 'BF_PYTHON_INC' to point to valid include path(s),
+         containing Python.h and pyconfig.h for Python version "%s".
 
+         Example: python scons/scons.py BF_PYTHON_INC=../Python/include
+              """ % (env.subst('${BF_PYTHON_INC}'), env.subst('${BF_PYTHON_VERSION}')))
         Exit()
 
 

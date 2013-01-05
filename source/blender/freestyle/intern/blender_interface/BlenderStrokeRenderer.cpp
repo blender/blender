@@ -117,6 +117,10 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count) : Str
 	freestyle_scene->r.im_format.imtype = R_IMF_IMTYPE_PNG;
 	BKE_scene_disable_color_management(freestyle_scene);
 
+	// Render layer
+	SceneRenderLayer *srl = (SceneRenderLayer *)freestyle_scene->r.layers.first;
+	srl->layflag = SCE_LAY_SOLID | SCE_LAY_ZTRA;
+
 	BKE_scene_set_background(G.main, freestyle_scene);
 
 	// Camera

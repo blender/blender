@@ -64,7 +64,7 @@ public:
 	struct GPULamp *GetGPULamp();
 	bool HasShadowBuffer();
 	int GetShadowLayer();
-	void BindShadowBuffer(class RAS_IRasterizer *ras, class KX_Camera *cam, class MT_Transform& camtrans);
+	void BindShadowBuffer(class RAS_IRasterizer *ras, class RAS_ICanvas *canvas, class KX_Camera *cam, class MT_Transform& camtrans);
 	void UnbindShadowBuffer(class RAS_IRasterizer *ras);
 	struct Image *GetTextureImage(short texslot);
 	void Update();

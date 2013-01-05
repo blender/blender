@@ -186,13 +186,13 @@ static const char *ui_item_name_add_colon(const char *name, char namestr[UI_MAX_
 
 static int ui_item_fit(int item, int pos, int all, int available, int last, int alignment, int *offset)
 {
+	if (offset)
+		*offset = 0;
+
 	/* available == 0 is unlimited */
 	if (available == 0)
 		return item;
-	
-	if (offset)
-		*offset = 0;
-	
+
 	if (all > available) {
 		/* contents is bigger than available space */
 		if (last)
@@ -346,7 +346,9 @@ static void ui_layer_but_cb(bContext *C, void *arg_but, void *arg_index)
 }
 
 /* create buttons for an item with an RNA array */
-static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, int icon, PointerRNA *ptr, PropertyRNA *prop, int len, int x, int y, int w, int UNUSED(h), int expand, int slider, int toggle, int icon_only)
+static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, int icon,
+                          PointerRNA *ptr, PropertyRNA *prop, int len, int x, int y, int w, int UNUSED(h),
+                          int expand, int slider, int toggle, int icon_only)
 {
 	uiStyle *style = layout->root->style;
 	uiBut *but;
@@ -2306,10 +2308,13 @@ uiLayout *uiLayoutBox(uiLayout *layout)
 	return (uiLayout *)ui_layout_box(layout, ROUNDBOX);
 }
 
-uiLayout *uiLayoutListBox(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *actptr, PropertyRNA *actprop)
+uiLayout *uiLayoutListBox(uiLayout *layout, uiList *ui_list, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *actptr,
+                          PropertyRNA *actprop)
 {
 	uiLayoutItemBx *box = ui_layout_box(layout, LISTBOX);
 	uiBut *but = box->roundbox;
+
+	but->custom_data = ui_list;
 
 	but->rnasearchpoin = *ptr;
 	but->rnasearchprop = prop;

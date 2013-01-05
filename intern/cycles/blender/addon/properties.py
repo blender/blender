@@ -64,6 +64,38 @@ enum_panorama_types = (
                           "Similar to most fisheye modern lens, takes sensor dimensions into consideration"),
     )
 
+enum_curve_presets = (
+    ('CUSTOM', "Custom", "Set general parameters"),
+    ('TANGENT_SHADING', "Tangent Normal", "Use planar geometry and tangent normals"),
+    ('TRUE_NORMAL', "True Normal", "Use true normals (good for thin strands)"),
+    ('ACCURATE_PRESET', "Accurate", "Use best settings (suitable for glass materials)"),
+    )
+
+enum_curve_primitives = (
+    ('TRIANGLES', "Triangles", "Create triangle geometry around strands"),
+    ('LINE_SEGMENTS', "Line Segments", "Use line segment primitives"),
+    ('CURVE_SEGMENTS', "?Curve Segments?", "Use curve segment primitives (not implemented)"),
+    )
+
+enum_triangle_curves = (
+    ('CAMERA', "Planes", "Create individual triangles forming planes that face camera"),
+    ('RIBBONS', "Ribbons", "Create individual triangles forming ribbon"),
+    ('TESSELLATED', "Tessellated", "Create mesh surrounding each strand"),
+    )
+
+enum_line_curves = (
+    ('ACCURATE', "Accurate", "Always take into consideration strand width for intersections"),
+    ('QT_CORRECTED', "Corrected", "Ignore width for initial intersection and correct later"),
+    ('ENDCORRECTED', "Correct found", "Ignore width for all intersections and only correct closest"),
+    ('QT_UNCORRECTED', "Uncorrected", "Calculate intersections without considering width"),
+    )
+
+enum_curves_interpolation = (
+    ('LINEAR', "Linear interpolation", "Use Linear interpolation between segments"),
+    ('CARDINAL', "Cardinal interpolation", "Use cardinal interpolation between segments"),
+    ('BSPLINE', "B-spline interpolation", "Use b-spline interpolation between segments"),
+    )
+
 class CyclesRenderSettings(bpy.types.PropertyGroup):
     @classmethod
     def register(cls):
@@ -237,7 +269,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 )
         cls.film_transparent = BoolProperty(
                 name="Transparent",
-                description="World background is transparent",
+                description="World background is transparent with premultiplied alpha",
                 default=False,
                 )
 
@@ -573,6 +605,157 @@ class CyclesMeshSettings(bpy.types.PropertyGroup):
         del bpy.types.Curve.cycles
         del bpy.types.MetaBall.cycles
 
+class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
+    @classmethod
+    def register(cls):
+        bpy.types.Scene.cycles_curves = PointerProperty(
+                name="Cycles Hair Rendering Settings",
+                description="Cycles hair rendering settings",
+                type=cls,
+                )
+        cls.preset = EnumProperty(
+                name="Mode",
+                description="Hair rendering mode",
+                items=enum_curve_presets,
+                default='TRUE_NORMAL',
+                )
+        cls.primitive = EnumProperty(
+                name="Primitive",
+                description="Type of primitive used for hair rendering",
+                items=enum_curve_primitives,
+                default='LINE_SEGMENTS',
+                )
+        cls.triangle_method = EnumProperty(
+                name="Mesh Geometry",
+                description="Method for creating triangle geometry",
+                items=enum_triangle_curves,
+                default='CAMERA',
+                )
+        cls.line_method = EnumProperty(
+                name="Intersection Method",
+                description="Method for line segment intersection",
+                items=enum_line_curves,
+                default='ACCURATE',
+                )
+        cls.interpolation = EnumProperty(
+                name="Interpolation",
+                description="Interpolation method",
+                items=enum_curves_interpolation,
+                default='BSPLINE',
+                )
+        cls.use_backfacing = BoolProperty(
+                name="Check back-faces",
+                description="Test back-faces of strands",
+                default=False,
+                )
+        cls.use_encasing = BoolProperty(
+                name="Exclude encasing",
+                description="Ignore strands encasing a ray's initial location",
+                default=True,
+                )
+        cls.use_tangent_normal_geometry = BoolProperty(
+                name="Tangent normal geometry",
+                description="Use the tangent normal for actual normal",
+                default=False,
+                )
+        cls.use_tangent_normal = BoolProperty(
+                name="Tangent normal default",
+                description="Use the tangent normal for all normals",
+                default=False,
+                )
+        cls.use_tangent_normal_correction = BoolProperty(
+                name="Strand slope correction",
+                description="Correct the tangent normal for the strand's slope",
+                default=False,
+                )
+        cls.use_cache = BoolProperty(
+                name="Export Cached data",
+                default=True,
+                )
+        cls.use_parents = BoolProperty(
+                name="Use parent strands",
+                description="Use parents with children",
+                default=False,
+                )
+        cls.use_smooth = BoolProperty(
+                name="Smooth Strands",
+                description="Use vertex normals",
+                default=True,
+                )
+        cls.use_joined = BoolProperty(
+                name="Join",
+                description="Fill gaps between segments (requires more memory)",
+                default=False,
+                )
+        cls.use_curves = BoolProperty(
+                name="Use Cycles Hair Rendering",
+                description="Activate Cycles hair rendering for particle system",
+                default=True,
+                )        
+        cls.segments = IntProperty(
+                name="Segments",
+                description="Number of segments between path keys (note that this combines with the 'draw step' value)",
+                min=1, max=64,
+                default=1,
+                )
+        cls.resolution = IntProperty(
+                name="Resolution",
+                description="Resolution of generated mesh",
+                min=3, max=64,
+                default=3,
+                )
+        cls.normalmix = FloatProperty(
+                name="Normal mix",
+                description="Scale factor for tangent normal removal (zero gives ray normal)",
+                min=0, max=2.0,
+                default=1,
+                )
+        cls.encasing_ratio = FloatProperty(
+                name="Encasing ratio",
+                description="Scale factor for encasing strand width",
+                min=0, max=100.0,
+                default=1.01,
+                )
+
+    @classmethod
+    def unregister(cls):
+        del bpy.types.Scene.cycles_curves
+
+class CyclesCurveSettings(bpy.types.PropertyGroup):
+    @classmethod
+    def register(cls):
+        bpy.types.ParticleSettings.cycles = PointerProperty(
+                name="Cycles Hair Settings",
+                description="Cycles hair settings",
+                type=cls,
+                )
+        cls.root_width = FloatProperty(
+                name="Root Size Multiplier",
+                description="Multiplier of particle size for the strand's width at root",
+                min=0.0, max=1000.0,
+                default=1.0,
+                )
+        cls.tip_width = FloatProperty(
+                name="Tip Size Multiplier",
+                description="Multiplier of particle size for the strand's width at tip",
+                min=0.0, max=1000.0,
+                default=0.0,
+                )
+        cls.shape = FloatProperty(
+                name="Strand Shape",
+                description="Strand shape parameter",
+                min=-1.0, max=1.0,
+                default=0.0,
+                )
+        cls.use_closetip = BoolProperty(
+                name="Close tip",
+                description="Set tip radius to zero",
+                default=True,
+                )
+
+    @classmethod
+    def unregister(cls):
+        del bpy.types.ParticleSettings.cycles
 
 def register():
     bpy.utils.register_class(CyclesRenderSettings)
@@ -582,6 +765,8 @@ def register():
     bpy.utils.register_class(CyclesWorldSettings)
     bpy.utils.register_class(CyclesVisibilitySettings)
     bpy.utils.register_class(CyclesMeshSettings)
+    bpy.utils.register_class(CyclesCurveRenderSettings)
+    bpy.utils.register_class(CyclesCurveSettings)
 
 
 def unregister():
@@ -592,3 +777,5 @@ def unregister():
     bpy.utils.unregister_class(CyclesWorldSettings)
     bpy.utils.unregister_class(CyclesMeshSettings)
     bpy.utils.unregister_class(CyclesVisibilitySettings)
+    bpy.utils.unregister_class(CyclesCurveRenderSettings)
+    bpy.utils.unregister_class(CyclesCurveSettings)

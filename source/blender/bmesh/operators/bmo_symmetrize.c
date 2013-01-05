@@ -361,6 +361,12 @@ static BMFace *symm_face_create_v(BMesh *bm, BMFace *example,
 	BMFace *f_new;
 	int i;
 
+	/* TODO: calling symmetrize in dynamic-topology sculpt mode
+	 * frequently tries to create faces of length less than two,
+	 * should investigate further */
+	if (len < 3)
+		return NULL;
+
 	for (i = 0; i < len; i++) {
 		int j = (i + 1) % len;
 		fe[i] = BM_edge_exists(fv[i], fv[j]);
@@ -374,6 +380,7 @@ static BMFace *symm_face_create_v(BMesh *bm, BMFace *example,
 		BM_elem_attrs_copy(bm, bm, example, f_new);
 	BM_face_select_set(bm, f_new, TRUE);
 	BMO_elem_flag_enable(bm, f_new, SYMM_OUTPUT_GEOM);
+
 	return f_new;
 }
 

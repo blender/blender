@@ -85,6 +85,7 @@ typedef struct ViewDepths {
 } ViewDepths;
 
 float *give_cursor(struct Scene *scene, struct View3D *v3d);
+void ED_view3d_cursor3d_position(struct bContext *C, float *fp, int mx, int my);
 
 void ED_view3d_to_m4(float mat[4][4], const float ofs[3], const float quat[4], const float dist);
 void ED_view3d_from_m4(float mat[4][4], float ofs[3], float quat[4], float *dist);
@@ -124,6 +125,10 @@ typedef enum {
 /* view3d_iterators.c */
 
 /* foreach iterators */
+void meshobject_foreachScreenVert(
+        struct ViewContext *vc,
+        void (*func)(void *userData, struct MVert *eve, const float screen_co[2], int index),
+        void *userData, const eV3DProjTest clip_flag);
 void mesh_foreachScreenVert(
         struct ViewContext *vc,
         void (*func)(void *userData, struct BMVert *eve, const float screen_co[2], int index),

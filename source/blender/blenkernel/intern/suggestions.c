@@ -163,13 +163,13 @@ void texttool_suggest_add(const char *name, char type)
 	suggestions.top = 0;
 }
 
-void texttool_suggest_prefix(const char *prefix)
+void texttool_suggest_prefix(const char *prefix, const int prefix_len)
 {
 	SuggItem *match, *first, *last;
-	int cmp, len = strlen(prefix), top = 0;
+	int cmp, top = 0;
 
 	if (!suggestions.first) return;
-	if (len == 0) {
+	if (prefix_len == 0) {
 		suggestions.selected = suggestions.firstmatch = suggestions.first;
 		suggestions.lastmatch = suggestions.last;
 		return;
@@ -177,7 +177,7 @@ void texttool_suggest_prefix(const char *prefix)
 	
 	first = last = NULL;
 	for (match = suggestions.first; match; match = match->next) {
-		cmp = txttl_cmp(prefix, match->name, len);
+		cmp = txttl_cmp(prefix, match->name, prefix_len);
 		if (cmp == 0) {
 			if (!first) {
 				first = match;

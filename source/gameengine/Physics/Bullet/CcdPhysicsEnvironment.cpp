@@ -270,10 +270,10 @@ public:
 class CharacterWrapper : public PHY_ICharacter
 {
 private:
-	btKinematicCharacterController* m_controller;
+	BlenderBulletCharacterController* m_controller;
 
 public:
-	CharacterWrapper(btKinematicCharacterController* cont)
+	CharacterWrapper(BlenderBulletCharacterController* cont)
 		: m_controller(cont)
 	{}
 
@@ -294,6 +294,21 @@ public:
 	virtual void SetGravity(float gravity)
 	{
 		m_controller->setGravity(gravity);
+	}
+
+	virtual int GetMaxJumps()
+	{
+		return m_controller->getMaxJumps();
+	}
+
+	virtual void SetMaxJumps(int maxJumps)
+	{
+		m_controller->setMaxJumps(maxJumps);
+	}
+
+	virtual int GetJumpCount()
+	{
+		return m_controller->getJumpCount();
 	}
 };
 
@@ -2320,7 +2335,7 @@ PHY_ICharacter* CcdPhysicsEnvironment::getCharacterController(KX_GameObject *ob)
 {
 	CcdPhysicsController* controller = (CcdPhysicsController*)ob->GetPhysicsController()->GetUserData();
 	if (controller->GetCharacterController())
-		return new CharacterWrapper(controller->GetCharacterController());
+		return new CharacterWrapper((BlenderBulletCharacterController*)controller->GetCharacterController());
 
 	return NULL;
 }

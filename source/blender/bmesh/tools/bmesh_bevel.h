@@ -27,6 +27,6 @@
  *  \ingroup bmesh
  */
 
-void BM_mesh_bevel(BMesh *bm, const float offset, const float segments);
+void BM_mesh_bevel(BMesh *bm, const float offset, const float segments, const int vertex_only);
 
 #endif /* __BMESH_BEVEL_H__ */

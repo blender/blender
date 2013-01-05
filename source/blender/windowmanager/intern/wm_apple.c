@@ -77,7 +77,7 @@ static int checkAppleVideoCard(void)
 					if ((theErr == 0) && (value != 0)) {
 						theErr = CGLDescribeRenderer(rend, j, kCGLRPCompliant, &value);
 						if ((theErr == 0) && (value != 0)) {
-							/*fprintf(stderr,"make it big\n");*/
+							/*fprintf(stderr, "make it big\n");*/
 							CGLDestroyRendererInfo(rend);
 							macPrefState = 8;
 							return 1;

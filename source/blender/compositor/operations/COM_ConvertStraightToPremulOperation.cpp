@@ -19,31 +19,37 @@
  *		Dalai Felinto
  */
 
-#ifndef _COM_ConvertKeyToPremulOperation_h
-#define _COM_ConvertKeyToPremulOperation_h
-#include "COM_NodeOperation.h"
+#include "COM_ConvertStraightToPremulOperation.h"
+#include "BLI_math.h"
 
+ConvertStraightToPremulOperation::ConvertStraightToPremulOperation() : NodeOperation()
+{
+	this->addInputSocket(COM_DT_COLOR);
+	this->addOutputSocket(COM_DT_COLOR);
 
-/**
- * this program converts an input color to an output value.
- * it assumes we are in sRGB color space.
- */
-class ConvertKeyToPremulOperation : public NodeOperation {
-private:
-	SocketReader *m_inputColor;
-public:
-	/**
-	 * Default constructor
-	 */
-	ConvertKeyToPremulOperation();
+	this->m_inputColor = NULL;
+}
 
-	/**
-	 * the inner loop of this program
-	 */
-	void executePixel(float output[4], float x, float y, PixelSampler sampler);
+void ConvertStraightToPremulOperation::initExecution()
+{
+	this->m_inputColor = getInputSocketReader(0);
+}
 
-	void initExecution();
-	void deinitExecution();
+void ConvertStraightToPremulOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
+{
+	float inputValue[4];
+	float alpha;
 
-};
-#endif
+	this->m_inputColor->read(inputValue, x, y, sampler);
+	alpha = inputValue[3];
+
+	mul_v3_v3fl(output, inputValue, alpha);
+
+	/* never touches the alpha */
+	output[3] = alpha;
+}
+
+void ConvertStraightToPremulOperation::deinitExecution()
+{
+	this->m_inputColor = NULL;
+}

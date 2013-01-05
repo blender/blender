@@ -583,7 +583,7 @@ static char *wm_prop_pystring_from_context(bContext *C, PointerRNA *ptr, Propert
 
 	for (link = lb.first; link; link = link->next) {
 		const char *identifier = link->data;
-		PointerRNA ctx_item_ptr = CTX_data_pointer_get(C, identifier);
+		PointerRNA ctx_item_ptr = {{0}}; // CTX_data_pointer_get(C, identifier);
 
 		if (ctx_item_ptr.type == NULL) {
 			continue;
@@ -976,14 +976,14 @@ int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	}
 }
 
-int WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const char imtype)
+int WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const struct ImageFormatData *im_format)
 {
 	PropertyRNA *prop;
 	char filepath[FILE_MAX];
 	/* dont NULL check prop, this can only run on ops with a 'filepath' */
 	prop = RNA_struct_find_property(op->ptr, "filepath");
 	RNA_property_string_get(op->ptr, prop, filepath);
-	if (BKE_add_image_extension(filepath, imtype)) {
+	if (BKE_add_image_extension(filepath, im_format)) {
 		RNA_property_string_set(op->ptr, prop, filepath);
 		/* note, we could check for and update 'filename' here,
 		 * but so far nothing needs this. */
@@ -2129,8 +2129,11 @@ void wm_recover_last_session(bContext *C, ReportList *reports)
 		/* XXX bad global... fixme */
 		if (G.main->name[0])
 			G.file_loaded = 1;	/* prevents splash to show */
-		else
+		else {
 			G.relbase_valid = 0;
+			G.save_over = 0;    /* start with save preference untitled.blend */
+		}
+
 	}
 }
 
@@ -2168,7 +2171,7 @@ static int wm_recover_auto_save_exec(bContext *C, wmOperator *op)
 	WM_file_read(C, path, op->reports);
 
 	G.fileflags &= ~G_FILE_RECOVER;
-
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -2426,9 +2429,8 @@ static int wm_console_toggle_op(bContext *UNUSED(C), wmOperator *UNUSED(op))
 
 static void WM_OT_console_toggle(wmOperatorType *ot)
 {
-	/* XXX Have to mark these for xgettext, as under linux they do not exists...
-	 *     And even worth, have to give the context as text, as xgettext doesn't expand macros. :( */
-	ot->name = CTX_N_("Operator" /* BLF_I18NCONTEXT_OPERATOR_DEFAULT */, "Toggle System Console");
+	/* XXX Have to mark these for xgettext, as under linux they do not exists... */
+	ot->name = CTX_N_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Toggle System Console");
 	ot->idname = "WM_OT_console_toggle";
 	ot->description = N_("Toggle System Console");
 	

@@ -373,7 +373,6 @@ void IMB_rect_from_float(struct ImBuf *ibuf);
  * Changed part will be stored in buffer. This is expected to be used for texture painting updates */
 void IMB_partial_rect_from_float(struct ImBuf *ibuf, float *buffer, int x, int y, int w, int h, int is_data);
 void IMB_float_from_rect(struct ImBuf *ibuf);
-void IMB_float_from_rect_simple(struct ImBuf *ibuf); /* no profile conversion */
 /* note, check that the conversion exists, only some are supported */
 float *IMB_float_profile_ensure(struct ImBuf *ibuf, int profile, int *alloc);
 void IMB_color_to_bw(struct ImBuf *ibuf);
@@ -393,6 +392,8 @@ void IMB_buffer_byte_from_byte(unsigned char *rect_to, const unsigned char *rect
 	int profile_to, int profile_from, int predivide,
 	int width, int height, int stride_to, int stride_from);
 void IMB_buffer_float_clamp(float *buf, int width, int height);
+void IMB_buffer_float_unpremultiply(float *buf, int width, int height);
+void IMB_buffer_float_premultiply(float *buf, int width, int height);
 
 /**
  * Change the ordering of the color bytes pointed to by rect from
@@ -467,6 +468,7 @@ void IMB_flipy(struct ImBuf *ibuf);
 /* Premultiply alpha */
 
 void IMB_premultiply_alpha(struct ImBuf *ibuf);
+void IMB_unpremultiply_alpha(struct ImBuf *ibuf);
 
 /**
  *

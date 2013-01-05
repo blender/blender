@@ -96,7 +96,7 @@ void BlenderSession::create_session()
 	session->set_pause(BlenderSync::get_session_pause(b_scene, background));
 
 	/* create sync */
-	sync = new BlenderSync(b_engine, b_data, b_scene, scene, !background, session->progress);
+	sync = new BlenderSync(b_engine, b_data, b_scene, scene, !background, session->progress, session_params.device.type == DEVICE_CPU);
 	sync->sync_data(b_v3d, b_engine.camera_override());
 
 	if(b_rv3d)
@@ -107,6 +107,8 @@ void BlenderSession::create_session()
 	/* set buffer parameters */
 	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_v3d, b_rv3d, scene->camera, width, height);
 	session->reset(buffer_params, session_params.samples);
+
+	b_engine.use_highlight_tiles(session_params.progressive_refine == false);
 }
 
 void BlenderSession::reset_session(BL::BlendData b_data_, BL::Scene b_scene_)
@@ -143,12 +145,14 @@ void BlenderSession::reset_session(BL::BlendData b_data_, BL::Scene b_scene_)
 	session->stats.mem_peak = session->stats.mem_used;
 
 	/* sync object should be re-created */
-	sync = new BlenderSync(b_engine, b_data, b_scene, scene, !background, session->progress);
+	sync = new BlenderSync(b_engine, b_data, b_scene, scene, !background, session->progress, session_params.device.type == DEVICE_CPU);
 	sync->sync_data(b_v3d, b_engine.camera_override());
 	sync->sync_camera(b_engine.camera_override(), width, height);
 
 	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, PointerRNA_NULL, PointerRNA_NULL, scene->camera, width, height);
 	session->reset(buffer_params, session_params.samples);
+
+	b_engine.use_highlight_tiles(session_params.progressive_refine == false);
 }
 
 void BlenderSession::free_session()
@@ -252,7 +256,15 @@ void BlenderSession::do_write_update_render_tile(RenderTile& rtile, bool do_upda
 
 	if (do_update_only) {
 		/* update only needed */
-		update_render_result(b_rr, b_rlay, rtile);
+
+		if (rtile.sample != 0) {
+			/* sample would be zero at initial tile update, which is only needed
+			 * to tag tile form blender side as IN PROGRESS for proper highlight
+			 * no buffers should be sent to blender yet
+			 */
+			update_render_result(b_rr, b_rlay, rtile);
+		}
+
 		end_render_result(b_engine, b_rr, true);
 	}
 	else {

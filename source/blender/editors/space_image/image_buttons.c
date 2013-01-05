@@ -219,7 +219,7 @@ static void preview_cb(ScrArea *sa, struct uiBlock *block)
 	BLI_rcti_translate(disprect, -curarea->winrct.xmin, -curarea->winrct.ymin);
 	
 	calc_image_view(sima, 'p');
-//	printf("winrct %d %d %d %d\n", disprect->xmin, disprect->ymin,disprect->xmax, disprect->ymax);
+//	printf("winrct %d %d %d %d\n", disprect->xmin, disprect->ymin, disprect->xmax, disprect->ymax);
 	/* map to image space coordinates */
 	mval[0] = disprect->xmin; mval[1] = disprect->ymin;
 	areamouseco_to_ipoco(v2d, mval, &dispf.xmin, &dispf.ymin);
@@ -236,7 +236,7 @@ static void preview_cb(ScrArea *sa, struct uiBlock *block)
 	CLAMP(disprect->xmax, 0, winx);
 	CLAMP(disprect->ymin, 0, winy);
 	CLAMP(disprect->ymax, 0, winy);
-//	printf("drawrct %d %d %d %d\n", disprect->xmin, disprect->ymin,disprect->xmax, disprect->ymax);
+//	printf("drawrct %d %d %d %d\n", disprect->xmin, disprect->ymin, disprect->xmax, disprect->ymax);
 
 }
 
@@ -674,6 +674,24 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 
 			if (ima->source != IMA_SRC_GENERATED) {
 				if (compact == 0) { /* background image view doesnt need these */
+					ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
+					int has_alpha = TRUE;
+
+					if (ibuf) {
+						int imtype = BKE_ftype_to_imtype(ibuf->ftype);
+						char valid_channels = BKE_imtype_valid_channels(imtype);
+
+						has_alpha = valid_channels & IMA_CHAN_FLAG_ALPHA;
+
+						BKE_image_release_ibuf(ima, ibuf, NULL);
+					}
+
+					if (has_alpha) {
+						col = uiLayoutColumn(layout, FALSE);
+						uiItemR(col, &imaptr, "use_alpha", 0, NULL, ICON_NONE);
+						uiItemR(col, &imaptr, "alpha_mode", 0, "Alpha", ICON_NONE);
+					}
+
 					uiItemS(layout);
 
 					split = uiLayoutSplit(layout, 0.0f, FALSE);
@@ -694,10 +712,6 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 					row = uiLayoutRow(col, FALSE);
 					uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "use_fields"));
 					uiItemR(row, &imaptr, "field_order", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-					
-					row = uiLayoutRow(layout, FALSE);
-					uiItemR(row, &imaptr, "use_premultiply", 0, NULL, ICON_NONE);
-					uiItemR(row, &imaptr, "use_color_unpremultiply", 0, NULL, ICON_NONE);
 				}
 			}
 
@@ -796,6 +810,8 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_man
 	}
 
 	if (imf->imtype == R_IMF_IMTYPE_JP2) {
+		uiItemR(col, imfptr, "jpeg2k_codec", 0, NULL, ICON_NONE);
+
 		row = uiLayoutRow(col, FALSE);
 		uiItemR(row, imfptr, "use_jpeg2k_cinema_preset", 0, NULL, ICON_NONE);
 		uiItemR(row, imfptr, "use_jpeg2k_cinema_48", 0, NULL, ICON_NONE);

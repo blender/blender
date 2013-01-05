@@ -1,0 +1,13 @@
+* Overview
+  Basic class for storing non-overlapping scalar ranges. Underlying
+  representation is a C++ STL set for fast lookups.
+
+* License
+  GPL version 2 or later (see COPYING)
+
+* Author Note
+  This implementation is intended for storing free unique IDs in a new
+  undo system for BMesh in Blender, but could be useful elsewhere.
+
+* Website
+  https://github.com/nicholasbishop/RangeTree

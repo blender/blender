@@ -859,7 +859,7 @@ void testhandles_fcurve(FCurve *fcu, const short use_handle)
 		short flag = 0;
 		
 		/* flag is initialized as selection status
-		 * of beztriple control-points (labelled 0,1,2)
+		 * of beztriple control-points (labelled 0, 1, 2)
 		 */
 		if (bezt->f2 & SELECT) flag |= (1 << 1);  // == 2
 		if (use_handle == FALSE) {
@@ -1192,7 +1192,7 @@ static float dvar_eval_locDiff(ChannelDriver *driver, DriverVar *dvar)
 					
 					/* extract transform just like how the constraints do it! */
 					copy_m4_m4(mat, pchan->pose_mat);
-					constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
+					BKE_constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
 					
 					/* ... and from that, we get our transform */
 					copy_v3_v3(tmp_loc, mat[3]);
@@ -1217,7 +1217,7 @@ static float dvar_eval_locDiff(ChannelDriver *driver, DriverVar *dvar)
 					
 					/* extract transform just like how the constraints do it! */
 					copy_m4_m4(mat, ob->obmat);
-					constraint_mat_convertspace(ob, NULL, mat, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL);
+					BKE_constraint_mat_convertspace(ob, NULL, mat, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL);
 					
 					/* ... and from that, we get our transform */
 					copy_v3_v3(tmp_loc, mat[3]);
@@ -1288,7 +1288,7 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
 			if (dtar->flag & DTAR_FLAG_LOCAL_CONSTS) {
 				/* just like how the constraints do it! */
 				copy_m4_m4(mat, pchan->pose_mat);
-				constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
+				BKE_constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
 			}
 			else {
 				/* specially calculate local matrix, since chan_mat is not valid 
@@ -1315,7 +1315,7 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
 			if (dtar->flag & DTAR_FLAG_LOCAL_CONSTS) {
 				/* just like how the constraints do it! */
 				copy_m4_m4(mat, ob->obmat);
-				constraint_mat_convertspace(ob, NULL, mat, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL);
+				BKE_constraint_mat_convertspace(ob, NULL, mat, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL);
 			}
 			else {
 				/* transforms to matrix */
@@ -2022,12 +2022,12 @@ static float fcurve_eval_keyframes(FCurve *fcu, BezTriple *bezts, float evaltime
 				}
 				else {
 					/* bezier interpolation */
-					/* v1,v2 are the first keyframe and its 2nd handle */
+					/* (v1, v2) are the first keyframe and its 2nd handle */
 					v1[0] = prevbezt->vec[1][0];
 					v1[1] = prevbezt->vec[1][1];
 					v2[0] = prevbezt->vec[2][0];
 					v2[1] = prevbezt->vec[2][1];
-					/* v3,v4 are the last keyframe's 1st handle + the last keyframe */
+					/* (v3, v4) are the last keyframe's 1st handle + the last keyframe */
 					v3[0] = bezt->vec[0][0];
 					v3[1] = bezt->vec[0][1];
 					v4[0] = bezt->vec[1][0];

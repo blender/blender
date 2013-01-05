@@ -990,7 +990,7 @@ void normalize_m4_m4(float rmat[4][4], float mat[4][4])
 	if (len != 0.0f) rmat[2][3] = mat[2][3] / len;
 }
 
-void adjoint_m2_m2(float m1[][2], float m[][2])
+void adjoint_m2_m2(float m1[2][2], float m[2][2])
 {
 	BLI_assert(m1 != m);
 	m1[0][0] =  m[1][1];

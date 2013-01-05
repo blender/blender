@@ -281,8 +281,9 @@ typedef struct ImageFormatData {
 
 	/* Jpeg2000 */
 	char  jp2_flag;
+	char jp2_codec;
 
-	char pad[7];
+	char pad[6];
 
 	/* color management */
 	ColorManagedViewSettings view_settings;
@@ -350,6 +351,10 @@ typedef struct ImageFormatData {
 #define R_IMF_JP2_FLAG_YCC          (1<<0)  /* when disabled use RGB */ /* was R_JPEG2K_YCC */
 #define R_IMF_JP2_FLAG_CINE_PRESET  (1<<1)  /* was R_JPEG2K_CINE_PRESET */
 #define R_IMF_JP2_FLAG_CINE_48      (1<<2)  /* was R_JPEG2K_CINE_48FPS */
+
+/* ImageFormatData.jp2_codec */
+#define R_IMF_JP2_CODEC_JP2  0
+#define R_IMF_JP2_CODEC_J2K  1
 
 /* ImageFormatData.cineon_flag */
 #define R_IMF_CINEON_FLAG_LOG (1<<0)  /* was R_CINEON_LOG */
@@ -704,6 +709,7 @@ typedef struct GameData {
 #define GAME_SHOW_MOUSE						(1 << 14)
 #define GAME_GLSL_NO_COLOR_MANAGEMENT		(1 << 15)
 #define GAME_SHOW_OBSTACLE_SIMULATION		(1 << 16)
+#define GAME_NO_MATERIAL_CACHING			(1 << 17)
 /* Note: GameData.flag is now an int (max 32 flags). A short could only take 16 flags */
 
 /* GameData.playerflag */
@@ -839,6 +845,12 @@ typedef struct Sculpt {
 	float pressure_value;
 
 	float special_rotation;
+
+	/* Maximum edge length for dynamic topology sculpting (in pixels) */
+	int detail_size;
+
+	/* Direction used for SCULPT_OT_symmetrize operator */
+	int symmetrize_direction;
 
 	int pad;
 } Sculpt;
@@ -1296,11 +1308,11 @@ typedef struct Scene {
 /* alphamode */
 #define R_ADDSKY		0
 #define R_ALPHAPREMUL	1
-#define R_ALPHAKEY		2
+/*#define R_ALPHAKEY		2*/ /* deprecated, shouldn't be used */
 
 /* color_mgt_flag */
 #define R_COLOR_MANAGEMENT              (1 << 0)  /* deprecated, should only be used in versioning code only */
-#define R_COLOR_MANAGEMENT_PREDIVIDE    (1 << 1)
+/*#define R_COLOR_MANAGEMENT_PREDIVIDE    (1 << 1)*/  /* deprecated, shouldn't be used */
 
 /* subimtype, flag options for imtype */
 #define R_OPENEXR_HALF    1                                      /*deprecated*/
@@ -1323,6 +1335,7 @@ typedef struct Scene {
 #define R_BAKE_NORMALIZE	8
 #define R_BAKE_MULTIRES		16
 #define R_BAKE_LORES_MESH	32
+#define R_BAKE_VCOL			64
 
 /* bake_normal_space */
 #define R_BAKE_SPACE_CAMERA	 0
@@ -1495,6 +1508,14 @@ typedef enum SculptFlags {
 	SCULPT_USE_OPENMP = (1<<7),
 	SCULPT_ONLY_DEFORM = (1<<8),
 	SCULPT_SHOW_DIFFUSE = (1<<9),
+
+	/* If set, the mesh will be drawn with smooth-shading in
+	 * dynamic-topology mode */
+	SCULPT_DYNTOPO_SMOOTH_SHADING = (1<<10),
+
+	/* If set, dynamic-topology brushes will collapse short edges in
+	 * addition to subdividing long ones */
+	SCULPT_DYNTOPO_COLLAPSE = (1<<11)
 } SculptFlags;
 
 /* ImagePaintSettings.flag */

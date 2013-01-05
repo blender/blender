@@ -62,6 +62,7 @@ struct MenuType;
 struct wmDropBox;
 struct wmDrag;
 struct ImBuf;
+struct ImageFormatData;
 
 typedef struct wmJob wmJob;
 
@@ -185,7 +186,7 @@ int			WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, struct wm
 int			WM_operator_confirm		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 		/* invoke callback, file selector "filepath" unset + exec */
 int			WM_operator_filesel		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-int         WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const char imtype);
+int         WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const struct ImageFormatData *im_format);
 			/* poll callback, context checks */
 int			WM_operator_winactive	(struct bContext *C);
 			/* invoke callback, exec + redo popup */
@@ -263,6 +264,13 @@ char		*WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struc
 char		*WM_prop_pystring_assign(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, int index);
 void		WM_operator_bl_idname(char *to, const char *from);
 void		WM_operator_py_idname(char *to, const char *from);
+
+/* *************** uilist types ******************** */
+void                WM_uilisttype_init(void);
+struct uiListType  *WM_uilisttype_find(const char *idname, int quiet);
+int                 WM_uilisttype_add(struct uiListType *ult);
+void                WM_uilisttype_freelink(struct uiListType *ult);
+void                WM_uilisttype_free(void);
 
 /* *************** menu types ******************** */
 void                WM_menutype_init(void);

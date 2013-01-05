@@ -24,6 +24,7 @@ set(SRC
 	blender_mesh.cpp
 	blender_object.cpp
 	blender_particles.cpp
+	blender_curves.cpp
 	blender_python.cpp
 	blender_session.cpp
 	blender_shader.cpp

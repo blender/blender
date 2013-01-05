@@ -42,6 +42,7 @@ extern "C" {
 struct Library;
 struct FileData;
 struct ID;
+struct PackedFile;
 
 typedef struct IDPropertyData {
 	void *pointer;
@@ -136,6 +137,8 @@ typedef struct Library {
 							 * setting 'name' directly and it will be kept in
 							 * sync - campbell */
 	struct Library *parent;	/* set for indirectly linked libs, used in the outliner and while reading */
+	
+	struct PackedFile *packedfile;
 } Library;
 
 enum eIconSizes {

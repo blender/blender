@@ -43,6 +43,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_image_types.h"
+#include "DNA_ID.h"
 #include "DNA_sound_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_packedFile_types.h"
@@ -226,6 +227,7 @@ PackedFile *newPackedFile(ReportList *reports, const char *filename, const char 
 	return (pf);
 }
 
+/* no libraries for now */
 void packAll(Main *bmain, ReportList *reports)
 {
 	Image *ima;
@@ -536,6 +538,41 @@ int unpackImage(ReportList *reports, Image *ima, int how)
 	}
 	
 	return(ret_value);
+}
+
+int unpackLibraries(Main *bmain, ReportList *reports)
+{
+	Library *lib;
+	char *newname;
+	int ret_value = RET_ERROR;
+	
+	for (lib = bmain->library.first; lib; lib = lib->id.next) {
+		if (lib->packedfile && lib->name[0]) {
+			
+			newname = unpackFile(reports, lib->filepath, lib->filepath, lib->packedfile, PF_WRITE_ORIGINAL);
+			if (newname != NULL) {
+				ret_value = RET_OK;
+				
+				printf("Saved .blend library: %s\n", newname);
+				
+				freePackedFile(lib->packedfile);
+				lib->packedfile = NULL;
+
+				MEM_freeN(newname);
+			}
+		}
+	}
+	
+	return(ret_value);
+}
+
+void packLibraries(Main *bmain, ReportList *reports)
+{
+	Library *lib;
+	
+	for (lib = bmain->library.first; lib; lib = lib->id.next)
+		if (lib->packedfile == NULL)
+			lib->packedfile = newPackedFile(reports, lib->name, bmain->name);
 }
 
 void unpackAll(Main *bmain, ReportList *reports, int how)

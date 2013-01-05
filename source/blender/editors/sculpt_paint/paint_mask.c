@@ -96,7 +96,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 	pbvh = dm->getPBVH(ob, dm);
 	ob->sculpt->pbvh = pbvh;
 
-	BLI_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
+	BKE_pbvh_search_gather(pbvh, NULL, NULL, &nodes, &totnode);
 
 	sculpt_undo_push_begin("Mask flood fill");
 
@@ -105,12 +105,12 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 
 		sculpt_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
 
-		BLI_pbvh_vertex_iter_begin(pbvh, nodes[i], vi, PBVH_ITER_UNIQUE) {
+		BKE_pbvh_vertex_iter_begin(pbvh, nodes[i], vi, PBVH_ITER_UNIQUE) {
 			mask_flood_fill_set_elem(vi.mask, mode, value);
-		} BLI_pbvh_vertex_iter_end;
+		} BKE_pbvh_vertex_iter_end;
 		
-		BLI_pbvh_node_mark_update(nodes[i]);
-		if (BLI_pbvh_type(pbvh) == PBVH_GRIDS)
+		BKE_pbvh_node_mark_update(nodes[i]);
+		if (BKE_pbvh_type(pbvh) == PBVH_GRIDS)
 			multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
 	}
 	

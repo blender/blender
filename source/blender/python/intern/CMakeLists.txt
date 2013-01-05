@@ -56,6 +56,7 @@ set(SRC
 	bpy_library.c
 	bpy_operator.c
 	bpy_operator_wrap.c
+	bpy_path.c
 	bpy_props.c
 	bpy_rna.c
 	bpy_rna_anim.c
@@ -76,6 +77,7 @@ set(SRC
 	bpy_library.h
 	bpy_operator.h
 	bpy_operator_wrap.h
+	bpy_path.h
 	bpy_props.h
 	bpy_rna.h
 	bpy_rna_anim.h
@@ -190,12 +192,16 @@ if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
-if(WITH_JACK)
-	add_definitions(-DWITH_JACK)
+if(WITH_OPENAL)
+	add_definitions(-DWITH_OPENAL)
 endif()
 
-if(WITH_LIBMV)
-	add_definitions(-DWITH_LIBMV)
+if(WITH_SDL)
+	add_definitions(-DWITH_SDL)
+endif()
+
+if(WITH_JACK)
+	add_definitions(-DWITH_JACK)
 endif()
 
 if(WITH_LIBMV)
@@ -222,12 +228,12 @@ if(WITH_MOD_SMOKE)
 	add_definitions(-DWITH_SMOKE)
 endif()
 
-if(WITH_OPENAL)
-	add_definitions(-DWITH_OPENAL)
-endif()
-
 if(WITH_OPENCOLLADA)
 	add_definitions(-DWITH_COLLADA)
+endif()
+
+if(WITH_OPENCOLORIO)
+	add_definitions(-DWITH_OCIO)
 endif()
 
 if(WITH_PLAYER)

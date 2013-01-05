@@ -33,6 +33,7 @@ void			PyC_LineSpit(void);
 void			PyC_StackSpit(void);
 PyObject *		PyC_ExceptionBuffer(void);
 PyObject *		PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
+PyObject *		PyC_FrozenSetFromStrings(const char **strings);
 PyObject *		PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *format, ...);
 void			PyC_FileAndNum(const char **filename, int *lineno);
 void			PyC_FileAndNum_Safe(const char **filename, int *lineno); /* checks python is running */
@@ -53,7 +54,7 @@ void PyC_MainModule_Restore(PyObject *main_mod);
 
 void PyC_SetHomePath(const char *py_path_bundle);
 
-#define PYC_INTERPRETER_ACTIVE (((PyThreadState*)_Py_atomic_load_relaxed(&_PyThreadState_Current)) != NULL)
+#define PYC_INTERPRETER_ACTIVE (((PyThreadState *)_Py_atomic_load_relaxed(&_PyThreadState_Current)) != NULL)
 
 void *PyC_RNA_AsPointer(PyObject *value, const char *type_name);
 

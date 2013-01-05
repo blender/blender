@@ -33,6 +33,7 @@
  */
 
 struct bContext;
+struct BMesh;
 struct Brush;
 struct MDisps;
 struct MeshElemMap;
@@ -92,6 +93,12 @@ typedef struct SculptSession {
 	/* Mesh connectivity */
 	const struct MeshElemMap *pmap;
 
+	/* BMesh for dynamic topology sculpting */
+	struct BMesh *bm;
+	int bm_smooth_shading;
+	/* Undo/redo log for dynamic topology sculpting */
+	struct BMLog *bm_log;
+
 	/* PBVH acceleration structure */
 	struct PBVH *pbvh;
 	int show_diffuse_color;
@@ -121,5 +128,6 @@ typedef struct SculptSession {
 
 void free_sculptsession(struct Object *ob);
 void free_sculptsession_deformMats(struct SculptSession *ss);
+void sculptsession_bm_to_me(struct Object *ob, int reorder);
 
 #endif

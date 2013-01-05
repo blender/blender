@@ -922,6 +922,9 @@ static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace
 		/* do Texture Face materials */
 		Image* bima = (tface)? (Image*)tface->tpage: NULL;
 		STR_String imastr =  (tface)? (bima? (bima)->id.name : "" ) : "";
+
+		if (!converter->GetCacheMaterials())
+			polymat = NULL;
 		
 		char alpha_blend=0;
 		short tile=0;
@@ -1044,7 +1047,8 @@ static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace
 				polymat->m_shininess = 35.0;
 			}
 			
-			converter->CachePolyMaterial(ma, polymat);
+			if (converter->GetCacheMaterials())
+				converter->CachePolyMaterial(ma, polymat);
 		}
 	}
 	
@@ -1260,7 +1264,7 @@ static PHY_MaterialProps *CreateMaterialFromBlenderObject(struct Object* blender
 	
 	MT_assert(materialProps && "Create physics material properties failed");
 		
-	Material* blendermat = give_current_material(blenderobject, 0);
+	Material* blendermat = give_current_material(blenderobject, 1);
 		
 	if (blendermat)
 	{
@@ -1345,11 +1349,7 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	int a;
 	
 	if (me->bb==0) {
-		// This can be called in a seperate (not main) thread when doing async libload,
-		// so lets try to be safe...
-		BLI_begin_threaded_malloc();
-		me->bb= (struct BoundBox *)MEM_callocN(sizeof(BoundBox), "boundbox");
-		BLI_end_threaded_malloc();
+		me->bb = BKE_boundbox_alloc_unit();
 	}
 	bb= me->bb;
 	
@@ -2359,6 +2359,10 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	set<Group*> grouplist;	// list of groups to be converted
 	set<Object*> allblobj;	// all objects converted
 	set<Object*> groupobj;	// objects from groups (never in active layer)
+
+	// This is bad, but we use this to make sure the first time this is called
+	// is not in a separate thread.
+	BL_Texture::GetMaxUnits();
 
 	if (alwaysUseExpandFraming) {
 		frame_type = RAS_FrameSettings::e_frame_extend;

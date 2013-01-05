@@ -447,6 +447,10 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			node = new ParticleInfoNode();
 			break;
 		}
+		case BL::ShaderNode::type_HAIR_INFO: {
+			node = new HairInfoNode();
+			break;
+		}
 		case BL::ShaderNode::type_BUMP: {
 			node = new BumpNode();
 			break;

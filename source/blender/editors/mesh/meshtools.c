@@ -40,6 +40,8 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -1165,9 +1167,12 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em)
  *
  * \return boolean TRUE == Found
  */
-int ED_mesh_pick_face(bContext *C, Mesh *me, const int mval[2], unsigned int *index, int size)
+int ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int *index, int size)
 {
 	ViewContext vc;
+	Mesh *me = ob->data;
+
+	BLI_assert(me && GS(me->id.name) == ID_ME);
 
 	if (!me || me->totpoly == 0)
 		return 0;
@@ -1197,11 +1202,14 @@ int ED_mesh_pick_face(bContext *C, Mesh *me, const int mval[2], unsigned int *in
  * Use when the back buffer stores face index values. but we want a vert.
  * This gets the face then finds the closest vertex to mval.
  */
-int ED_mesh_pick_face_vert(bContext *C, Mesh *me, Object *ob, const int mval[2], unsigned int *index, int size)
+int ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned int *index, int size)
 {
 	unsigned int poly_index;
+	Mesh *me = ob->data;
 
-	if (ED_mesh_pick_face(C, me, mval, &poly_index, size)) {
+	BLI_assert(me && GS(me->id.name) == ID_ME);
+
+	if (ED_mesh_pick_face(C, ob, mval, &poly_index, size)) {
 		Scene *scene = CTX_data_scene(C);
 		struct ARegion *ar = CTX_wm_region(C);
 
@@ -1210,6 +1218,8 @@ int ED_mesh_pick_face_vert(bContext *C, Mesh *me, Object *ob, const int mval[2],
 		int v_idx_best = -1;
 
 		if (dm->getVertCo) {
+			RegionView3D *rv3d = ar->regiondata;
+
 			/* find the vert closest to 'mval' */
 			const float mval_f[2] = {(float)mval[0],
 			                         (float)mval[1]};
@@ -1217,14 +1227,15 @@ int ED_mesh_pick_face_vert(bContext *C, Mesh *me, Object *ob, const int mval[2],
 			int fidx;
 			float len_best = FLT_MAX;
 
+			ED_view3d_init_mats_rv3d(ob, rv3d);
+
 			fidx = mp->totloop - 1;
 			do {
 				float co[3], sco[2], len;
 				const int v_idx = me->mloop[mp->loopstart + fidx].v;
 				dm->getVertCo(dm, v_idx, co);
-				mul_m4_v3(ob->obmat, co);
-				if (ED_view3d_project_float_global(ar, co, sco, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
-					len = len_squared_v2v2(mval_f, sco);
+				if (ED_view3d_project_float_object(ar, co, sco, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+					len = len_manhattan_v2v2(mval_f, sco);
 					if (len < len_best) {
 						len_best = len;
 						v_idx_best = v_idx;
@@ -1250,31 +1261,97 @@ int ED_mesh_pick_face_vert(bContext *C, Mesh *me, Object *ob, const int mval[2],
  *
  * \return boolean TRUE == Found
  */
-int ED_mesh_pick_vert(bContext *C, Mesh *me, const int mval[2], unsigned int *index, int size)
+typedef struct VertPickData {
+	const MVert *mvert;
+	const float *mval_f;  /* [2] */
+	ARegion *ar;
+
+	/* runtime */
+	float len_best;
+	int v_idx_best;
+} VertPickData;
+
+static void ed_mesh_pick_vert__mapFunc(void *userData, int index, const float co[3],
+                                       const float UNUSED(no_f[3]), const short UNUSED(no_s[3]))
+{
+	VertPickData *data = userData;
+	if ((data->mvert[index].flag & ME_HIDE) == 0) {
+		float sco[2];
+
+		if (ED_view3d_project_float_object(data->ar, co, sco, V3D_PROJ_TEST_CLIP_DEFAULT) == V3D_PROJ_RET_OK) {
+			const float len = len_manhattan_v2v2(data->mval_f, sco);
+			if (len < data->len_best) {
+				data->len_best = len;
+				data->v_idx_best = index;
+			}
+		}
+	}
+}
+int ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int *index, int size, int use_zbuf)
 {
 	ViewContext vc;
+	Mesh *me = ob->data;
+
+	BLI_assert(me && GS(me->id.name) == ID_ME);
 
 	if (!me || me->totvert == 0)
 		return 0;
 
 	view3d_set_viewcontext(C, &vc);
 
-	if (size > 0) {
-		/* sample rect to increase chances of selecting, so that when clicking
-		 * on an face in the backbuf, we can still select a vert */
+	if (use_zbuf) {
+		if (size > 0) {
+			/* sample rect to increase chances of selecting, so that when clicking
+			 * on an face in the backbuf, we can still select a vert */
 
-		float dummy_dist;
-		*index = view3d_sample_backbuf_rect(&vc, mval, size, 1, me->totvert + 1, &dummy_dist, 0, NULL, NULL);
+			float dummy_dist;
+			*index = view3d_sample_backbuf_rect(&vc, mval, size, 1, me->totvert + 1, &dummy_dist, 0, NULL, NULL);
+		}
+		else {
+			/* sample only on the exact position */
+			*index = view3d_sample_backbuf(&vc, mval[0], mval[1]);
+		}
+
+		if ((*index) <= 0 || (*index) > (unsigned int)me->totvert)
+			return 0;
+
+		(*index)--;
 	}
 	else {
-		/* sample only on the exact position */
-		*index = view3d_sample_backbuf(&vc, mval[0], mval[1]);
+		/* derived mesh to find deformed locations */
+		DerivedMesh *dm = mesh_get_derived_final(vc.scene, ob, CD_MASK_BAREMESH);
+		ARegion *ar = vc.ar;
+		RegionView3D *rv3d = ar->regiondata;
+
+		/* find the vert closest to 'mval' */
+		const float mval_f[2] = {(float)mval[0],
+		                         (float)mval[1]};
+
+		VertPickData data = {0};
+
+		ED_view3d_init_mats_rv3d(ob, rv3d);
+
+		if (dm == NULL) {
+			return 0;
+		}
+
+		/* setup data */
+		data.mvert = me->mvert;
+		data.ar = ar;
+		data.mval_f = mval_f;
+		data.len_best = FLT_MAX;
+		data.v_idx_best = -1;
+
+		dm->foreachMappedVert(dm, ed_mesh_pick_vert__mapFunc, &data);
+
+		dm->release(dm);
+
+		if (data.v_idx_best == -1) {
+			return 0;
+		}
+
+		*index = data.v_idx_best;
 	}
-
-	if ((*index) <= 0 || (*index) > (unsigned int)me->totvert)
-		return 0;
-
-	(*index)--;
 
 	return 1;
 }

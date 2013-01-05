@@ -70,6 +70,7 @@ extern EnumPropertyItem keyframe_handle_type_items[];
 extern EnumPropertyItem keyblock_type_items[];
 
 extern EnumPropertyItem keyingset_path_grouping_items[];
+extern EnumPropertyItem keying_flag_items[];
 
 extern EnumPropertyItem keyframe_paste_offset_items[];
 extern EnumPropertyItem keyframe_paste_merge_items[];
@@ -88,6 +89,8 @@ extern EnumPropertyItem operator_return_items[];
 extern EnumPropertyItem brush_sculpt_tool_items[];
 extern EnumPropertyItem brush_vertex_tool_items[];
 extern EnumPropertyItem brush_image_tool_items[];
+
+extern EnumPropertyItem symmetrize_direction_items[];
 
 extern EnumPropertyItem texture_type_items[];
 
@@ -131,6 +134,9 @@ extern EnumPropertyItem ramp_blend_items[];
 extern EnumPropertyItem prop_dynamicpaint_type_items[];
 
 extern EnumPropertyItem clip_editor_mode_items[];
+
+extern EnumPropertyItem icon_items[];
+extern EnumPropertyItem uilist_layout_type_items[];
 
 #ifdef WITH_FREESTYLE
 extern EnumPropertyItem linestyle_color_modifier_type_items[];

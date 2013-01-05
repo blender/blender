@@ -34,6 +34,7 @@
 #include <math.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <stddef.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -337,37 +338,12 @@ void defvert_flip_merged(MDeformVert *dvert, const int *flip_map, const int flip
 
 bDeformGroup *defgroup_find_name(Object *ob, const char *name)
 {
-	/* return a pointer to the deform group with this name
-	 * or return NULL otherwise.
-	 */
-	bDeformGroup *curdef;
-
-	for (curdef = ob->defbase.first; curdef; curdef = curdef->next) {
-		if (!strcmp(curdef->name, name)) {
-			return curdef;
-		}
-	}
-	return NULL;
+	return BLI_findstring(&ob->defbase, name, offsetof(bDeformGroup, name));
 }
 
 int defgroup_name_index(Object *ob, const char *name)
 {
-	/* Return the location of the named deform group within the list of
-	 * deform groups. This function is a combination of BLI_findlink and
-	 * defgroup_find_name. The other two could be called instead, but that
-	 * require looping over the vertexgroups twice.
-	 */
-	bDeformGroup *curdef;
-	int def_nr;
-
-	if (name && name[0] != '\0') {
-		for (curdef = ob->defbase.first, def_nr = 0; curdef; curdef = curdef->next, def_nr++) {
-			if (!strcmp(curdef->name, name))
-				return def_nr;
-		}
-	}
-
-	return -1;
+	return (name) ? BLI_findstringindex(&ob->defbase, name, offsetof(bDeformGroup, name)) : -1;
 }
 
 /* note, must be freed */
@@ -810,3 +786,43 @@ int defvert_find_shared(const MDeformVert *dvert_a, const MDeformVert *dvert_b)
 
 	return -1;
 }
+
+/* -------------------------------------------------------------------- */
+/* Defvert Array functions */
+
+void BKE_defvert_array_copy(MDeformVert *dst, const MDeformVert *src, int copycount)
+{
+	/* Assumes dst is already set up */
+	int i;
+
+	if (!src || !dst)
+		return;
+
+	memcpy(dst, src, copycount * sizeof(MDeformVert));
+
+	for (i = 0; i < copycount; i++) {
+		if (src[i].dw) {
+			dst[i].dw = MEM_mallocN(sizeof(MDeformWeight) * src[i].totweight, "copy_deformWeight");
+			memcpy(dst[i].dw, src[i].dw, sizeof(MDeformWeight) * src[i].totweight);
+		}
+	}
+
+}
+
+void BKE_defvert_array_free(MDeformVert *dvert, int totvert)
+{
+	/* Instead of freeing the verts directly,
+	 * call this function to delete any special
+	 * vert data */
+	int i;
+
+	if (!dvert)
+		return;
+
+	/* Free any special data from the verts */
+	for (i = 0; i < totvert; i++) {
+		if (dvert[i].dw) MEM_freeN(dvert[i].dw);
+	}
+	MEM_freeN(dvert);
+}
+

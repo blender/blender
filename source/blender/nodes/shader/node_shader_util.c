@@ -139,49 +139,49 @@ void nodeShaderSynchronizeID(bNode *node, int copyto)
 				if (copyto) {
 					switch (a) {
 						case MAT_IN_COLOR:
-							copy_v3_v3(&ma->r, ((bNodeSocketValueRGBA*)sock->default_value)->value); break;
+							copy_v3_v3(&ma->r, ((bNodeSocketValueRGBA *)sock->default_value)->value); break;
 						case MAT_IN_SPEC:
-							copy_v3_v3(&ma->specr, ((bNodeSocketValueRGBA*)sock->default_value)->value); break;
+							copy_v3_v3(&ma->specr, ((bNodeSocketValueRGBA *)sock->default_value)->value); break;
 						case MAT_IN_REFL:
-							ma->ref= ((bNodeSocketValueFloat*)sock->default_value)->value; break;
+							ma->ref= ((bNodeSocketValueFloat *)sock->default_value)->value; break;
 						case MAT_IN_MIR:
-							copy_v3_v3(&ma->mirr, ((bNodeSocketValueRGBA*)sock->default_value)->value); break;
+							copy_v3_v3(&ma->mirr, ((bNodeSocketValueRGBA *)sock->default_value)->value); break;
 						case MAT_IN_AMB:
-							ma->amb= ((bNodeSocketValueFloat*)sock->default_value)->value; break;
+							ma->amb = ((bNodeSocketValueFloat *)sock->default_value)->value; break;
 						case MAT_IN_EMIT:
-							ma->emit= ((bNodeSocketValueFloat*)sock->default_value)->value; break;
+							ma->emit = ((bNodeSocketValueFloat *)sock->default_value)->value; break;
 						case MAT_IN_SPECTRA:
-							ma->spectra= ((bNodeSocketValueFloat*)sock->default_value)->value; break;
+							ma->spectra = ((bNodeSocketValueFloat *)sock->default_value)->value; break;
 						case MAT_IN_RAY_MIRROR:
-							ma->ray_mirror= ((bNodeSocketValueFloat*)sock->default_value)->value; break;
+							ma->ray_mirror = ((bNodeSocketValueFloat *)sock->default_value)->value; break;
 						case MAT_IN_ALPHA:
-							ma->alpha= ((bNodeSocketValueFloat*)sock->default_value)->value; break;
+							ma->alpha = ((bNodeSocketValueFloat *)sock->default_value)->value; break;
 						case MAT_IN_TRANSLUCENCY:
-							ma->translucency= ((bNodeSocketValueFloat*)sock->default_value)->value; break;
+							ma->translucency = ((bNodeSocketValueFloat *)sock->default_value)->value; break;
 					}
 				}
 				else {
 					switch (a) {
 						case MAT_IN_COLOR:
-							copy_v3_v3(((bNodeSocketValueRGBA*)sock->default_value)->value, &ma->r); break;
+							copy_v3_v3(((bNodeSocketValueRGBA *)sock->default_value)->value, &ma->r); break;
 						case MAT_IN_SPEC:
-							copy_v3_v3(((bNodeSocketValueRGBA*)sock->default_value)->value, &ma->specr); break;
+							copy_v3_v3(((bNodeSocketValueRGBA *)sock->default_value)->value, &ma->specr); break;
 						case MAT_IN_REFL:
-							((bNodeSocketValueFloat*)sock->default_value)->value= ma->ref; break;
+							((bNodeSocketValueFloat *)sock->default_value)->value= ma->ref; break;
 						case MAT_IN_MIR:
-							copy_v3_v3(((bNodeSocketValueRGBA*)sock->default_value)->value, &ma->mirr); break;
+							copy_v3_v3(((bNodeSocketValueRGBA *)sock->default_value)->value, &ma->mirr); break;
 						case MAT_IN_AMB:
-							((bNodeSocketValueFloat*)sock->default_value)->value= ma->amb; break;
+							((bNodeSocketValueFloat *)sock->default_value)->value = ma->amb; break;
 						case MAT_IN_EMIT:
-							((bNodeSocketValueFloat*)sock->default_value)->value= ma->emit; break;
+							((bNodeSocketValueFloat *)sock->default_value)->value = ma->emit; break;
 						case MAT_IN_SPECTRA:
-							((bNodeSocketValueFloat*)sock->default_value)->value= ma->spectra; break;
+							((bNodeSocketValueFloat *)sock->default_value)->value = ma->spectra; break;
 						case MAT_IN_RAY_MIRROR:
-							((bNodeSocketValueFloat*)sock->default_value)->value= ma->ray_mirror; break;
+							((bNodeSocketValueFloat *)sock->default_value)->value = ma->ray_mirror; break;
 						case MAT_IN_ALPHA:
-							((bNodeSocketValueFloat*)sock->default_value)->value= ma->alpha; break;
+							((bNodeSocketValueFloat *)sock->default_value)->value = ma->alpha; break;
 						case MAT_IN_TRANSLUCENCY:
-							((bNodeSocketValueFloat*)sock->default_value)->value= ma->translucency; break;
+							((bNodeSocketValueFloat *)sock->default_value)->value = ma->translucency; break;
 					}
 				}
 			}
@@ -259,7 +259,7 @@ bNode *nodeGetActiveTexture(bNodeTree *ntree)
 			break;
 
 	if (node)
-		ntree= (bNodeTree*)node->id;
+		ntree = (bNodeTree *)node->id;
 
 	for (node= ntree->nodes.first; node; node= node->next)
 		if (node->flag & NODE_ACTIVE_TEXTURE)
@@ -320,7 +320,7 @@ void node_shader_gpu_tex_mapping(GPUMaterial *mat, bNode *node, GPUNodeStack *in
 	float domax= (texmap->flag & TEXMAP_CLIP_MAX) != 0;
 
 	if (domin || domax || !(texmap->flag & TEXMAP_UNIT_MATRIX)) {
-		GPUNodeLink *tmat = GPU_uniform((float*)texmap->mat);
+		GPUNodeLink *tmat = GPU_uniform((float *)texmap->mat);
 		GPUNodeLink *tmin = GPU_uniform(texmap->min);
 		GPUNodeLink *tmax = GPU_uniform(texmap->max);
 		GPUNodeLink *tdomin = GPU_uniform(&domin);

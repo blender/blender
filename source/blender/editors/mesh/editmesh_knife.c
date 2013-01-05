@@ -1315,7 +1315,7 @@ static void knife_bgl_get_mats(KnifeTool_OpData *UNUSED(kcd), bglMats *mats)
 	//copy_m4_m4(mats->projection, kcd->vc.rv3d->winmat);
 }
 
-/* Calculate maximum excursion (doubled) from (0,0,0) of mesh */
+/* Calculate maximum excursion from (0,0,0) of mesh */
 static void calc_ortho_extent(KnifeTool_OpData *kcd)
 {
 	BMIter iter;
@@ -1328,7 +1328,19 @@ static void calc_ortho_extent(KnifeTool_OpData *kcd)
 		for (i = 0; i < 3; i++)
 			max_xyz = max_ff(max_xyz, fabs(v->co[i]));
 	}
-	kcd->ortho_extent = 2 * max_xyz;
+	kcd->ortho_extent = max_xyz;
+}
+
+/* Clip the line (v1, v2) to planes perpendicular to it and distances d from
+ * the closest point on the line to the origin */
+static void clip_to_ortho_planes(float v1[3], float v2[3], float d)
+{
+	float closest[3];
+	const float origin[3] = {0.0f, 0.0f, 0.0f};
+
+	closest_to_line_v3(closest, origin, v1, v2);
+	dist_ensure_v3_v3fl(v1, closest, d);
+	dist_ensure_v3_v3fl(v2, closest, d);
 }
 
 /* Finds visible (or all, if cutting through) edges that intersects the current screen drag line */
@@ -1375,8 +1387,8 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	if (kcd->is_ortho) {
 		if (kcd->ortho_extent == 0.0f)
 			calc_ortho_extent(kcd);
-		limit_dist_v3(v1, v3, kcd->ortho_extent + 10.0f);
-		limit_dist_v3(v2, v4, kcd->ortho_extent + 10.0f);
+		clip_to_ortho_planes(v1, v3, kcd->ortho_extent + 10.0f);
+		clip_to_ortho_planes(v2, v4, kcd->ortho_extent + 10.0f);
 	}
 
 	BLI_smallhash_init(ehash);

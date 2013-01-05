@@ -123,9 +123,9 @@ typedef struct View2D {
 	/* horizontal scrollbar */
 #define V2D_SCROLL_TOP 				(1<<2)
 #define V2D_SCROLL_BOTTOM 			(1<<3)
-	/* special hack for outliner hscroll - prevent hanging older versions of Blender */
-#define V2D_SCROLL_BOTTOM_O   		(1<<4)
-#define V2D_SCROLL_HORIZONTAL  		(V2D_SCROLL_TOP|V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O)
+
+/* UNUSED							(1<<4) */
+#define V2D_SCROLL_HORIZONTAL  		(V2D_SCROLL_TOP|V2D_SCROLL_BOTTOM)
 	/* scale markings - vertical */
 #define V2D_SCROLL_SCALE_VERTICAL	(1<<5)
 	/* scale markings - horizontal */

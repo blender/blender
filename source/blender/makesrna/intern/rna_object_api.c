@@ -36,41 +36,78 @@
 
 #include "RNA_define.h"
 
-#include "DNA_object_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
 
 #include "rna_internal.h"  /* own include */
 
+static EnumPropertyItem space_items[] = {
+	{CONSTRAINT_SPACE_WORLD,    "WORLD", 0, "World Space",
+	                            "The most gobal space in Blender"},
+	{CONSTRAINT_SPACE_POSE,     "POSE", 0, "Pose Space",
+	                            "The pose space of a bone (its armature's object space)"},
+	{CONSTRAINT_SPACE_PARLOCAL, "LOCAL_WITH_PARENT", 0, "Local With Parent",
+	                            "The local space of a bone's parent bone"},
+	{CONSTRAINT_SPACE_LOCAL,    "LOCAL", 0, "Local Space",
+	                            "The local space of an object/bone"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 #ifdef RNA_RUNTIME
+
 #include "BLI_math.h"
 
-#include "BKE_main.h"
-#include "BKE_global.h"
-#include "BKE_context.h"
-#include "BKE_report.h"
-#include "BKE_object.h"
-#include "BKE_mesh.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_bvhutils.h"
-
-#include "BKE_customdata.h"
 #include "BKE_anim.h"
+#include "BKE_bvhutils.h"
+#include "BKE_cdderivedmesh.h"
+#include "BKE_constraint.h"
+#include "BKE_context.h"
+#include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_font.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
+#include "BKE_mesh.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
-#include "BKE_cdderivedmesh.h"
+#include "BKE_object.h"
+#include "BKE_report.h"
 
-#include "DNA_mesh_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_constraint_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
 #include "MEM_guardedalloc.h"
+
+/* Convert a given matrix from a space to another (using the object and/or a bone as reference). */
+static void rna_Scene_mat_convert_space(Object *ob, ReportList *reports, bPoseChannel *pchan,
+                                        float *mat, float *mat_ret, int from, int to)
+{
+	copy_m4_m4((float (*)[4])mat_ret, (float (*)[4])mat);
+
+	/* Error in case of invalid from/to values when pchan is NULL */
+	if (pchan == NULL) {
+		if (ELEM(from, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_PARLOCAL)) {
+			const char *identifier = NULL;
+			RNA_enum_identifier(space_items, from, &identifier);
+			BKE_reportf(reports, RPT_ERROR, "'from_space' '%s' is invalid when no pose bone is given!", identifier);
+			return;
+		}
+		if (ELEM(to, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_PARLOCAL)) {
+			const char *identifier = NULL;
+			RNA_enum_identifier(space_items, to, &identifier);
+			BKE_reportf(reports, RPT_ERROR, "'to_space' '%s' is invalid when no pose bone is given!", identifier);
+			return;
+		}
+	}
+
+	BKE_constraint_mat_convertspace(ob, pchan, (float (*)[4])mat_ret, from, to);
+}
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */
 /* settings: 0 - preview, 1 - render */
@@ -570,7 +607,7 @@ void rna_Object_dm_info(struct Object *ob, int type, char *result)
 }
 #endif /* NDEBUG */
 
-#else
+#else /* RNA_RUNTIME */
 
 void RNA_api_object(StructRNA *srna)
 {
@@ -583,6 +620,8 @@ void RNA_api_object(StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static int rna_matrix_dimsize_4x4[] = {4, 4};
+
 #ifndef NDEBUG
 	static EnumPropertyItem mesh_dm_info_items[] = {
 		{0, "SOURCE", 0, "Source", "Source mesh"},
@@ -591,6 +630,25 @@ void RNA_api_object(StructRNA *srna)
 		{0, NULL, 0, NULL, NULL}
 	};
 #endif
+
+	/* Matrix space conversion */
+	func = RNA_def_function(srna, "convert_space", "rna_Scene_mat_convert_space");
+	RNA_def_function_ui_description(func, "Convert (transform) the given matrix from one space to another");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "pose_bone", "PoseBone", "",
+	                       "Bone to use to define spaces (may be None, in which case only the two 'WORLD' and "
+	                       "'LOCAL' spaces are usable)");
+	parm = RNA_def_property(func, "matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_multi_array(parm, 2, rna_matrix_dimsize_4x4);
+	RNA_def_property_ui_text(parm, "", "The matrix to transform");
+	parm = RNA_def_property(func, "matrix_return", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_multi_array(parm, 2, rna_matrix_dimsize_4x4);
+	RNA_def_property_ui_text(parm, "", "The transformed matrix");
+	RNA_def_function_output(func, parm);
+	parm = RNA_def_enum(func, "from_space", space_items, CONSTRAINT_SPACE_WORLD, "",
+	                    "The space in which 'matrix' is currently");
+	parm = RNA_def_enum(func, "to_space", space_items, CONSTRAINT_SPACE_WORLD, "",
+	                    "The space to which you want to transform 'matrix'");
 
 	/* mesh */
 	func = RNA_def_function(srna, "to_mesh", "rna_Object_to_mesh");
@@ -737,5 +795,4 @@ void RNA_api_object_base(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 }
 
-#endif
-
+#endif /* RNA_RUNTIME */

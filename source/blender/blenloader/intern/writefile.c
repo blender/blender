@@ -853,8 +853,12 @@ static void write_userdef(WriteData *wd)
 			write_keymapitem(wd, kmi);
 	}
 
-	for (bext= U.addons.first; bext; bext=bext->next)
+	for (bext= U.addons.first; bext; bext=bext->next) {
 		writestruct(wd, DATA, "bAddon", 1, bext);
+		if (bext->prop) {
+			IDP_WriteProperty(bext->prop, wd);
+		}
+	}
 	
 	for (style= U.uistyles.first; style; style= style->next) {
 		writestruct(wd, DATA, "uiStyle", 1, style);
@@ -1231,7 +1235,7 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 	bConstraint *con;
 
 	for (con=conlist->first; con; con=con->next) {
-		bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+		bConstraintTypeInfo *cti= BKE_constraint_get_typeinfo(con);
 		
 		/* Write the specific data */
 		if (cti && con->data) {
@@ -1511,7 +1515,7 @@ static void write_vfonts(WriteData *wd, ListBase *idbase)
 
 			/* direct data */
 
-			if (vf->packedfile) {
+			if (vf->packedfile && !wd->current) {
 				pf = vf->packedfile;
 				writestruct(wd, DATA, "PackedFile", 1, pf);
 				writedata(wd, DATA, pf->size, pf->data);
@@ -1961,7 +1965,7 @@ static void write_images(WriteData *wd, ListBase *idbase)
 			writestruct(wd, ID_IM, "Image", 1, ima);
 			if (ima->id.properties) IDP_WriteProperty(ima->id.properties, wd);
 
-			if (ima->packedfile) {
+			if (ima->packedfile && !wd->current) {
 				pf = ima->packedfile;
 				writestruct(wd, DATA, "PackedFile", 1, pf);
 				writedata(wd, DATA, pf->size, pf->data);
@@ -2415,6 +2419,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 		for (sa= sc->areabase.first; sa; sa= sa->next) {
 			SpaceLink *sl;
 			Panel *pa;
+			uiList *ui_list;
 			ARegion *ar;
 			
 			writestruct(wd, DATA, "ScrArea", 1, sa);
@@ -2424,6 +2429,9 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				
 				for (pa= ar->panels.first; pa; pa= pa->next)
 					writestruct(wd, DATA, "Panel", 1, pa);
+				
+				for (ui_list = ar->ui_lists.first; ui_list; ui_list = ui_list->next)
+					writestruct(wd, DATA, "uiList", 1, ui_list);
 			}
 			
 			sl= sa->spacedata.first;
@@ -2551,20 +2559,31 @@ static void write_libraries(WriteData *wd, Main *main)
 		a=tot= set_listbasepointers(main, lbarray);
 
 		/* test: is lib being used */
-		foundone = FALSE;
-		while (tot--) {
-			for (id= lbarray[tot]->first; id; id= id->next) {
-				if (id->us>0 && (id->flag & LIB_EXTERN)) {
-					foundone = TRUE;
-					break;
+		if (main->curlib && main->curlib->packedfile)
+			foundone = TRUE;
+		else {
+			foundone = FALSE;
+			while (tot--) {
+				for (id= lbarray[tot]->first; id; id= id->next) {
+					if (id->us>0 && (id->flag & LIB_EXTERN)) {
+						foundone = TRUE;
+						break;
+					}
 				}
+				if (foundone) break;
 			}
-			if (foundone) break;
 		}
-
+		
 		if (foundone) {
 			writestruct(wd, ID_LI, "Library", 1, main->curlib);
 
+			if (main->curlib->packedfile && !wd->current) {
+				PackedFile *pf = main->curlib->packedfile;
+				writestruct(wd, DATA, "PackedFile", 1, pf);
+				writedata(wd, DATA, pf->size, pf->data);
+				printf("write packed .blend: %s\n", main->curlib->name);
+			}
+			
 			while (a--) {
 				for (id= lbarray[a]->first; id; id= id->next) {
 					if (id->us>0 && (id->flag & LIB_EXTERN)) {
@@ -2693,7 +2712,7 @@ static void write_sounds(WriteData *wd, ListBase *idbase)
 			writestruct(wd, ID_SO, "bSound", 1, sound);
 			if (sound->id.properties) IDP_WriteProperty(sound->id.properties, wd);
 
-			if (sound->packedfile) {
+			if (sound->packedfile && !wd->current) {
 				pf = sound->packedfile;
 				writestruct(wd, DATA, "PackedFile", 1, pf);
 				writedata(wd, DATA, pf->size, pf->data);

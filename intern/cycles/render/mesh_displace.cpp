@@ -19,6 +19,7 @@
 #include "device.h"
 
 #include "mesh.h"
+#include "object.h"
 #include "scene.h"
 #include "shader.h"
 
@@ -41,11 +42,24 @@ bool MeshManager::displace(Device *device, Scene *scene, Mesh *mesh, Progress& p
 	if(!has_displacement)
 		return false;
 
+	string msg = string_printf("Computing Displacement %s", mesh->name.c_str());
+	progress.set_status("Updating Mesh", msg);
+
+	/* find object index. todo: is arbitrary */
+	size_t object_index = ~0;
+
+	for(size_t i = 0; i < scene->objects.size(); i++) {
+		if(scene->objects[i]->mesh == mesh) {
+			object_index = i;
+			break;
+		}
+	}
+
 	/* setup input for device task */
 	vector<bool> done(mesh->verts.size(), false);
 	device_vector<uint4> d_input;
 	uint4 *d_input_data = d_input.resize(mesh->verts.size());
-	size_t d_input_offset = 0;
+	size_t d_input_size = 0;
 
 	for(size_t i = 0; i < mesh->triangles.size(); i++) {
 		Mesh::Triangle t = mesh->triangles[i];
@@ -61,8 +75,8 @@ bool MeshManager::displace(Device *device, Scene *scene, Mesh *mesh, Progress& p
 			done[t.v[j]] = true;
 
 			/* set up object, primitive and barycentric coordinates */
-			/* when used, non-instanced convention: object = -object-1; */
-			int object = ~0; /* todo */
+			/* when used, non-instanced convention: object = ~object */
+			int object = ~object_index;
 			int prim = mesh->tri_offset + i;
 			float u, v;
 
@@ -81,16 +95,16 @@ bool MeshManager::displace(Device *device, Scene *scene, Mesh *mesh, Progress& p
 
 			/* back */
 			uint4 in = make_uint4(object, prim, __float_as_int(u), __float_as_int(v));
-			d_input_data[d_input_offset++] = in;
+			d_input_data[d_input_size++] = in;
 		}
 	}
 
-	if(d_input_offset == 0)
+	if(d_input_size == 0)
 		return false;
 	
 	/* run device task */
 	device_vector<float4> d_output;
-	d_output.resize(d_input.size());
+	d_output.resize(d_input_size);
 
 	device->mem_alloc(d_input, MEM_READ_ONLY);
 	device->mem_copy_to(d_input);
@@ -101,7 +115,7 @@ bool MeshManager::displace(Device *device, Scene *scene, Mesh *mesh, Progress& p
 	task.shader_output = d_output.device_pointer;
 	task.shader_eval_type = SHADER_EVAL_DISPLACE;
 	task.shader_x = 0;
-	task.shader_w = d_input.size();
+	task.shader_w = d_output.size();
 
 	device->task_add(task);
 	device->task_wait();

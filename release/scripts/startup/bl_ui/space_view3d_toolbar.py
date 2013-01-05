@@ -854,6 +854,36 @@ class VIEW3D_PT_tools_brush_curve(Panel, View3DPaintPanel):
         row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
 
 
+class VIEW3D_PT_sculpt_topology(Panel, View3DPaintPanel):
+    bl_label = "Topology"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.sculpt_object and context.tool_settings.sculpt)
+
+    def draw(self, context):
+        layout = self.layout
+
+        toolsettings = context.tool_settings
+        sculpt = toolsettings.sculpt
+
+        if context.sculpt_object.use_dynamic_topology_sculpting:
+            layout.operator("sculpt.dynamic_topology_toggle", icon='X', text="Disable Dynamic")
+        else:
+            layout.operator("sculpt.dynamic_topology_toggle", icon='SCULPT_DYNTOPO', text="Enable Dynamic")
+
+        col = layout.column()
+        col.active = context.sculpt_object.use_dynamic_topology_sculpting
+        col.prop(sculpt, "detail_size")
+        col.prop(sculpt, "use_smooth_shading")
+        col.prop(sculpt, "use_edge_collapse")
+        col.operator("sculpt.optimize")
+        col.separator()
+        col.prop(sculpt, "symmetrize_direction")
+        col.operator("sculpt.symmetrize")
+
+
 class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
     bl_label = "Options"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1167,7 +1197,8 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, Panel):
         if pe.type == 'PARTICLES':
             if ob.particle_systems:
                 if len(ob.particle_systems) > 1:
-                    layout.template_list(ob, "particle_systems", ob.particle_systems, "active_index", rows=2, maxrows=3)
+                    layout.template_list("UI_UL_list", "", ob, "particle_systems",
+                                         ob.particle_systems, "active_index", rows=2, maxrows=3)
 
                 ptcache = ob.particle_systems.active.point_cache
         else:
@@ -1176,7 +1207,8 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, Panel):
                     ptcache = md.point_cache
 
         if ptcache and len(ptcache.point_caches) > 1:
-            layout.template_list(ptcache, "point_caches", ptcache.point_caches, "active_index", rows=2, maxrows=3)
+            layout.template_list("UI_UL_list", "", ptcache, "point_caches", ptcache.point_caches, "active_index",
+                                 rows=2, maxrows=3)
 
         if not pe.is_editable:
             layout.label(text="Point cache must be baked")

@@ -19,7 +19,18 @@
 # <pep8-80 compliant>
 
 import bpy
-from bpy.types import Panel, Header, Menu
+from bpy.types import Panel, Header, Menu, UIList
+
+
+class CLIP_UL_tracking_objects(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        # assert(isinstance(item, bpy.types.MovieTrackingObject)
+        tobj = item
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.label(tobj.name, icon='CAMERA_DATA' if tobj.is_camera else 'OBJECT_DATA')
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label("", icon='CAMERA_DATA' if tobj.is_camera else 'OBJECT_DATA')
 
 
 class CLIP_HT_header(Header):
@@ -471,8 +482,7 @@ class CLIP_PT_objects(CLIP_PT_clip_view_panel, Panel):
         tracking = sc.clip.tracking
 
         row = layout.row()
-        row.template_list(tracking, "objects",
-                          tracking, "active_object_index", rows=3)
+        row.template_list("CLIP_UL_tracking_objects", "", tracking, "objects", tracking, "active_object_index", rows=3)
 
         sub = row.column(align=True)
 
@@ -728,7 +738,7 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
         layout.active = stab.use_2d_stabilization
 
         row = layout.row()
-        row.template_list(stab, "tracks", stab, "active_track_index", rows=3)
+        row.template_list("UI_UL_list", "", stab, "tracks", stab, "active_track_index", rows=3)
 
         sub = row.column(align=True)
 

@@ -225,29 +225,48 @@ void BKE_displist_normals_add(ListBase *lb)
 	}
 }
 
-void BKE_displist_count(ListBase *lb, int *totvert, int *totface)
+void BKE_displist_count(ListBase *lb, int *totvert, int *totface, int *tottri)
 {
 	DispList *dl;
 
-	dl = lb->first;
-	while (dl) {
+	for (dl = lb->first; dl; dl = dl->next) {
+		int vert_tot = 0;
+		int face_tot = 0;
+		int tri_tot = 0;
+
 		switch (dl->type) {
 			case DL_SURF:
-				*totvert += dl->nr * dl->parts;
-				*totface += (dl->nr - 1) * (dl->parts - 1);
+			{
+				vert_tot = dl->nr * dl->parts;
+				face_tot = (dl->nr - 1) * (dl->parts - 1);
+				tri_tot  = face_tot * 2;
 				break;
+			}
 			case DL_INDEX3:
-			case DL_INDEX4:
-				*totvert += dl->nr;
-				*totface += dl->parts;
+			{
+				vert_tot = dl->nr;
+				face_tot = dl->parts;
+				tri_tot  = face_tot;
 				break;
+			}
+			case DL_INDEX4:
+			{
+				vert_tot = dl->nr;
+				face_tot = dl->parts;
+				tri_tot  = face_tot * 2;
+				break;
+			}
 			case DL_POLY:
 			case DL_SEGM:
-				*totvert += dl->nr * dl->parts;
+			{
+				vert_tot = dl->nr * dl->parts;
 				break;
+			}
 		}
 
-		dl = dl->next;
+		*totvert += vert_tot;
+		*totface += face_tot;
+		*tottri  += tri_tot;
 	}
 }
 
@@ -487,7 +506,7 @@ void BKE_displist_fill(ListBase *dispbase, ListBase *to, int flipnormal)
 		}
 
 		/* XXX (obedit && obedit->actcol)?(obedit->actcol-1):0)) { */
-		if (totvert && (tot = BLI_scanfill_calc(&sf_ctx, BLI_SCANFILL_CALC_REMOVE_DOUBLES))) {
+		if (totvert && (tot = BLI_scanfill_calc(&sf_ctx, BLI_SCANFILL_CALC_REMOVE_DOUBLES | BLI_SCANFILL_CALC_HOLES))) {
 			if (tot) {
 				dlnew = MEM_callocN(sizeof(DispList), "filldisplist");
 				dlnew->type = DL_INDEX3;
@@ -780,7 +799,7 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 		required_mode |= eModifierMode_Editmode;
 
 	if (cu->editnurb == NULL) {
-		keyVerts = do_ob_key(scene, ob);
+		keyVerts = BKE_key_evaluate_object(scene, ob, &numVerts);
 
 		if (keyVerts) {
 			/* split coords from key data, the latter also includes
@@ -789,7 +808,7 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 			 * shape key modifier yet. */
 			deformedVerts = BKE_curve_keyVertexCos_get(cu, nurb, keyVerts);
 			originalVerts = MEM_dupallocN(deformedVerts);
-			numVerts = BKE_nurbList_verts_count(nurb);
+			BLI_assert(BKE_nurbList_verts_count(nurb) == numVerts);
 		}
 	}
 

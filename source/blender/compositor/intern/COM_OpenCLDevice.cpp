@@ -65,12 +65,16 @@ void OpenCLDevice::execute(WorkPackage *work)
 	
 	executionGroup->finalizeChunkExecution(chunkNumber, inputBuffers);
 }
-cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, int offsetIndex, list<cl_mem> *cleanup, MemoryBuffer **inputMemoryBuffers, SocketReader *reader)
+cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, int offsetIndex,
+                                                               list<cl_mem> *cleanup, MemoryBuffer **inputMemoryBuffers,
+                                                               SocketReader *reader)
 {
 	return COM_clAttachMemoryBufferToKernelParameter(kernel, parameterIndex, offsetIndex, cleanup, inputMemoryBuffers, (ReadBufferOperation *)reader);
 }
 
-cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, int offsetIndex, list<cl_mem> *cleanup, MemoryBuffer **inputMemoryBuffers, ReadBufferOperation *reader)
+cl_mem OpenCLDevice::COM_clAttachMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, int offsetIndex,
+                                                               list<cl_mem> *cleanup, MemoryBuffer **inputMemoryBuffers,
+                                                               ReadBufferOperation *reader)
 {
 	cl_int error;
 	

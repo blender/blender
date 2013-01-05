@@ -262,6 +262,17 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 		cddm->pbvh_draw = can_pbvh_draw(ob, dm);
 	}
 
+	/* Sculpting on a BMesh (dynamic-topology) gets a special PBVH */
+	if (!cddm->pbvh && ob->sculpt->bm) {
+		cddm->pbvh = BKE_pbvh_new();
+		cddm->pbvh_draw = TRUE;
+
+		BKE_pbvh_build_bmesh(cddm->pbvh, ob->sculpt->bm,
+		                     ob->sculpt->bm_smooth_shading,
+		                     ob->sculpt->bm_log);
+	}
+		
+
 	/* always build pbvh from original mesh, and only use it for drawing if
 	 * this derivedmesh is just original mesh. it's the multires subsurf dm
 	 * that this is actually for, to support a pbvh on a modified mesh */
@@ -270,14 +281,14 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 		Mesh *me = ob->data;
 		int deformed = 0;
 
-		cddm->pbvh = BLI_pbvh_new();
+		cddm->pbvh = BKE_pbvh_new();
 		cddm->pbvh_draw = can_pbvh_draw(ob, dm);
 
 		pbvh_show_diffuse_color_set(cddm->pbvh, ob->sculpt->show_diffuse_color);
 
 		BKE_mesh_tessface_ensure(me);
 		
-		BLI_pbvh_build_mesh(cddm->pbvh, me->mface, me->mvert,
+		BKE_pbvh_build_mesh(cddm->pbvh, me->mface, me->mvert,
 		                    me->totface, me->totvert, &me->vdata);
 
 		deformed = ss->modifiers_active || me->key;
@@ -290,7 +301,7 @@ static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 			totvert = deformdm->getNumVerts(deformdm);
 			vertCos = MEM_callocN(3 * totvert * sizeof(float), "cdDM_getPBVH vertCos");
 			deformdm->getVertCos(deformdm, vertCos);
-			BLI_pbvh_apply_vertCos(cddm->pbvh, vertCos);
+			BKE_pbvh_apply_vertCos(cddm->pbvh, vertCos);
 			MEM_freeN(vertCos);
 		}
 	}
@@ -310,7 +321,7 @@ static void cdDM_update_normals_from_pbvh(DerivedMesh *dm)
 
 	face_nors = CustomData_get_layer(&dm->faceData, CD_NORMAL);
 
-	BLI_pbvh_update(cddm->pbvh, PBVH_UpdateNormals, face_nors);
+	BKE_pbvh_update(cddm->pbvh, PBVH_UpdateNormals, face_nors);
 }
 
 static void cdDM_drawVerts(DerivedMesh *dm)
@@ -414,6 +425,14 @@ static void cdDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges
 	MVert *mvert = cddm->mvert;
 	MEdge *medge = cddm->medge;
 	int i;
+
+	if (cddm->pbvh && cddm->pbvh_draw &&
+		BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH)
+	{
+		BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, TRUE);
+
+		return;
+	}
 	
 	if (GPU_buffer_legacy(dm)) {
 		DEBUG_VBO("Using legacy code. cdDM_drawEdges\n");
@@ -530,7 +549,8 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 		if (dm->numTessFaceData) {
 			float (*face_nors)[3] = CustomData_get_layer(&dm->faceData, CD_NORMAL);
 
-			BLI_pbvh_draw(cddm->pbvh, partial_redraw_planes, face_nors, setMaterial);
+			BKE_pbvh_draw(cddm->pbvh, partial_redraw_planes, face_nors,
+			              setMaterial, FALSE);
 			glShadeModel(GL_FLAT);
 		}
 
@@ -664,8 +684,9 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 					}
 					else {
 						if (nors) {
-							nors += 3; continue;
+							nors += 3;
 						}
+						continue;
 					}
 				}
 				else if (drawParamsMapped) {
@@ -673,8 +694,9 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 				}
 				else {
 					if (nors) {
-						nors += 3; continue;
+						nors += 3;
 					}
+					continue;
 				}
 			}
 			

@@ -39,10 +39,14 @@ struct ReportList;
 
 void FILE_OT_pack_all(struct wmOperatorType *ot);
 void FILE_OT_unpack_all(struct wmOperatorType *ot);
+void FILE_OT_pack_libraries(struct wmOperatorType *ot);
+void FILE_OT_unpack_libraries(struct wmOperatorType *ot);
+
 void FILE_OT_make_paths_relative(struct wmOperatorType *ot);
 void FILE_OT_make_paths_absolute(struct wmOperatorType *ot);
 void FILE_OT_report_missing_files(struct wmOperatorType *ot);
 void FILE_OT_find_missing_files(struct wmOperatorType *ot);
+
 
 void INFO_OT_reports_display_update(struct wmOperatorType *ot);
 

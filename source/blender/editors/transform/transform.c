@@ -686,6 +686,9 @@ static void view_editmove(unsigned short UNUSED(event))
 #define TFM_MODAL_EDGESLIDE_UP 24
 #define TFM_MODAL_EDGESLIDE_DOWN 25
 
+/* for analog input, like trackpad */
+#define TFM_MODAL_PROPSIZE		26
+
 /* called in transform_ops.c, on each regeneration of keymaps */
 wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
 {
@@ -715,6 +718,7 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
 		{TFM_MODAL_AUTOIK_LEN_DEC, "AUTOIK_CHAIN_LEN_DOWN", 0, "Decrease Max AutoIK Chain Length", ""},
 		{TFM_MODAL_EDGESLIDE_UP, "EDGESLIDE_EDGE_NEXT", 0, "Select next Edge Slide Edge", ""},
 		{TFM_MODAL_EDGESLIDE_DOWN, "EDGESLIDE_PREV_NEXT", 0, "Select previous Edge Slide Edge", ""},
+		{TFM_MODAL_PROPSIZE, "PROPORTIONAL_SIZE", 0, "Adjust Proportional Influence", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
@@ -750,6 +754,7 @@ wmKeyMap *transform_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, PAGEDOWNKEY, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_DOWN);
 	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_UP);
 	WM_modalkeymap_add_item(keymap, WHEELUPMOUSE, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_DOWN);
+	WM_modalkeymap_add_item(keymap, MOUSEPAN, 0, 0, 0, TFM_MODAL_PROPSIZE);
 
 	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, KM_ALT, 0, TFM_MODAL_EDGESLIDE_UP);
 	WM_modalkeymap_add_item(keymap, WHEELUPMOUSE, KM_PRESS, KM_ALT, 0, TFM_MODAL_EDGESLIDE_DOWN);
@@ -1024,6 +1029,19 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				removeSnapPoint(t);
 				t->redraw |= TREDRAW_HARD;
 				break;
+				
+			case TFM_MODAL_PROPSIZE:
+				/* MOUSEPAN usage... */
+				if (t->flag & T_PROP_EDIT) {
+					float fac = 1.0f + 0.005f *(event->y - event->prevy);
+					t->prop_size *= fac;
+					if (t->spacetype == SPACE_VIEW3D && t->persp != RV3D_ORTHO)
+						t->prop_size = min_ff(t->prop_size, ((View3D *)t->view)->far);
+					calculatePropRatio(t);
+				}
+				t->redraw |= TREDRAW_HARD;
+				break;
+				
 			case TFM_MODAL_PROPSIZE_UP:
 				if (t->flag & T_PROP_EDIT) {
 					t->prop_size *= 1.1f;
@@ -1500,7 +1518,6 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 				glTranslatef(mval[0], mval[1], 0);
 
 				glLineWidth(3.0);
-				glBegin(GL_LINES);
 				drawArrow(UP, 5, 10, 5);
 				drawArrow(DOWN, 5, 10, 5);
 				glLineWidth(1.0);
@@ -2258,8 +2275,8 @@ static void protectedQuaternionBits(short protectflag, float *quat, float *oldqu
 static void constraintTransLim(TransInfo *t, TransData *td)
 {
 	if (td->con) {
-		bConstraintTypeInfo *ctiLoc = get_constraint_typeinfo(CONSTRAINT_TYPE_LOCLIMIT);
-		bConstraintTypeInfo *ctiDist = get_constraint_typeinfo(CONSTRAINT_TYPE_DISTLIMIT);
+		bConstraintTypeInfo *ctiLoc = BKE_get_constraint_typeinfo(CONSTRAINT_TYPE_LOCLIMIT);
+		bConstraintTypeInfo *ctiDist = BKE_get_constraint_typeinfo(CONSTRAINT_TYPE_DISTLIMIT);
 		
 		bConstraintOb cob = {NULL};
 		bConstraint *con;
@@ -2309,7 +2326,7 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 				}
 				
 				/* get constraint targets if needed */
-				get_constraint_targets_for_solving(con, &cob, &targets, ctime);
+				BKE_get_constraint_targets_for_solving(con, &cob, &targets, ctime);
 				
 				/* do constraint */
 				cti->evaluate_constraint(con, &cob, &targets);
@@ -2361,7 +2378,7 @@ static void constraintob_from_transdata(bConstraintOb *cob, TransData *td)
 static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
 {
 	if (td->con) {
-		bConstraintTypeInfo *cti = get_constraint_typeinfo(CONSTRAINT_TYPE_ROTLIMIT);
+		bConstraintTypeInfo *cti = BKE_get_constraint_typeinfo(CONSTRAINT_TYPE_ROTLIMIT);
 		bConstraintOb cob;
 		bConstraint *con;
 		int do_limit = FALSE;
@@ -2428,7 +2445,7 @@ static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
 static void constraintSizeLim(TransInfo *t, TransData *td)
 {
 	if (td->con && td->ext) {
-		bConstraintTypeInfo *cti = get_constraint_typeinfo(CONSTRAINT_TYPE_SIZELIMIT);
+		bConstraintTypeInfo *cti = BKE_get_constraint_typeinfo(CONSTRAINT_TYPE_SIZELIMIT);
 		bConstraintOb cob = {NULL};
 		bConstraint *con;
 		float size_sign[3], size_abs[3];
@@ -2721,6 +2738,18 @@ int handleEventShear(TransInfo *t, wmEvent *event)
 
 		status = 1;
 	}
+	else if (event->type == XKEY && event->val == KM_PRESS) {
+		initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_ABSOLUTE);
+		t->customData = NULL;
+		
+		status = 1;
+	}
+	else if (event->type == YKEY && event->val == KM_PRESS) {
+		initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
+		t->customData = (void *)1;
+		
+		status = 1;
+	}
 	
 	return status;
 }
@@ -2754,7 +2783,7 @@ int Shear(TransInfo *t, const int UNUSED(mval[2]))
 	}
 	else {
 		/* default header print */
-		sprintf(str, "Shear: %.3f %s", value, t->proptext);
+		sprintf(str, "Shear: %.3f %s (Press X or Y to set shear axis)", value, t->proptext);
 	}
 	
 	t->values[0] = value;

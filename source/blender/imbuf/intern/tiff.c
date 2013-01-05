@@ -376,7 +376,7 @@ static void imb_read_tiff_resolution(ImBuf *ibuf, TIFF *image)
  * This method is most flexible and can handle multiple different bit depths 
  * and RGB channel orderings.
  */
-static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
+static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image)
 {
 	ImBuf *tmpibuf;
 	int success = 0;
@@ -389,6 +389,23 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 	TIFFGetField(image, TIFFTAG_BITSPERSAMPLE, &bitspersample);
 	TIFFGetField(image, TIFFTAG_SAMPLESPERPIXEL, &spp);     /* number of 'channels' */
 	TIFFGetField(image, TIFFTAG_PLANARCONFIG, &config);
+
+	if (spp == 4) {
+		/* HACK: this is really tricky hack, which is only needed to force libtiff
+		 *       do not touch RGB channels when there's alpha channel present
+		 *       The thing is: libtiff will premul RGB if alpha mode is set to
+		 *       unassociated, which really conflicts with blender's assumptions
+		 *
+		 *       Alternative would be to unpremul after load, but it'll be really
+		 *       lossy and unwanted behavior
+		 *
+		 *       So let's keep this thing here for until proper solution is found (sergey)
+		 */
+
+		unsigned short extraSampleTypes[1];
+		extraSampleTypes[0] = EXTRASAMPLE_ASSOCALPHA;
+		TIFFSetField(image, TIFFTAG_EXTRASAMPLES, 1, extraSampleTypes);
+	}
 
 	imb_read_tiff_resolution(ibuf, image);
 
@@ -471,10 +488,6 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 		if (bitspersample < 16)
 			if (ENDIAN_ORDER == B_ENDIAN)
 				IMB_convert_rgba_to_abgr(tmpibuf);
-		if (premul) {
-			IMB_premultiply_alpha(tmpibuf);
-			ibuf->flags |= IB_premul;
-		}
 		
 		/* assign rect last */
 		if (tmpibuf->rect_float)
@@ -557,6 +570,18 @@ ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags, char colorspace[
 		return NULL;
 	}
 
+	/* get alpha mode from file header */
+	if (flags & IB_alphamode_detect) {
+		if (spp == 4) {
+			unsigned short extra, *extraSampleTypes;
+
+			TIFFGetField(image, TIFFTAG_EXTRASAMPLES, &extra, &extraSampleTypes);
+
+			if (extraSampleTypes[0] == EXTRASAMPLE_ASSOCALPHA)
+				ibuf->flags |= IB_alphamode_premul;
+		}
+	}
+
 	/* if testing, we're done */
 	if (flags & IB_test) {
 		TIFFClose(image);
@@ -585,9 +610,6 @@ ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags, char colorspace[
 					hbuf->miplevel = level;
 					hbuf->ftype = ibuf->ftype;
 					ibuf->mipmap[level - 1] = hbuf;
-
-					if (flags & IB_premul)
-						hbuf->flags |= IB_premul;
 				}
 				else
 					hbuf = ibuf;
@@ -608,7 +630,7 @@ ImBuf *imb_loadtiff(unsigned char *mem, size_t size, int flags, char colorspace[
 	}
 
 	/* read pixels */
-	if (!(ibuf->flags & IB_tilecache) && !imb_read_tiff_pixels(ibuf, image, 0)) {
+	if (!(ibuf->flags & IB_tilecache) && !imb_read_tiff_pixels(ibuf, image)) {
 		fprintf(stderr, "imb_loadtiff: Failed to read tiff image.\n");
 		TIFFClose(image);
 		return NULL;
@@ -644,9 +666,6 @@ void imb_loadtiletiff(ImBuf *ibuf, unsigned char *mem, size_t size, int tx, int 
 				if (TIFFReadRGBATile(image, tx * ibuf->tilex, (ibuf->ytiles - 1 - ty) * ibuf->tiley, rect) == 1) {
 					if (ibuf->tiley > ibuf->y)
 						memmove(rect, rect + ibuf->tilex * (ibuf->tiley - ibuf->y), sizeof(int) * ibuf->tilex * ibuf->y);
-
-					if (ibuf->flags & IB_premul)
-						IMB_premultiply_rect(rect, 32, ibuf->tilex, ibuf->tiley);
 				}
 				else
 					printf("imb_loadtiff: failed to read tiff tile at mipmap level %d\n", ibuf->miplevel);
@@ -689,8 +708,6 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 	float *fromf = NULL;
 	float xres, yres;
 	int x, y, from_i, to_i, i;
-	int extraSampleTypes[1] = { EXTRASAMPLE_ASSOCALPHA };
-	
 
 	/* check for a valid number of bytes per pixel.  Like the PNG writer,
 	 * the TIFF writer supports 1, 3 or 4 bytes per pixel, corresponding
@@ -763,6 +780,13 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 	TIFFSetField(image, TIFFTAG_SAMPLESPERPIXEL, samplesperpixel);
 
 	if (samplesperpixel == 4) {
+		unsigned short extraSampleTypes[1];
+
+		if (bitspersample == 16)
+			extraSampleTypes[0] = EXTRASAMPLE_ASSOCALPHA;
+		else
+			extraSampleTypes[0] = EXTRASAMPLE_UNASSALPHA;
+
 		/* RGBA images */
 		TIFFSetField(image, TIFFTAG_EXTRASAMPLES, 1,
 		             extraSampleTypes);

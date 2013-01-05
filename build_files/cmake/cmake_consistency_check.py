@@ -75,12 +75,12 @@ def is_cmake(filename):
 
 def is_c_header(filename):
     ext = splitext(filename)[1]
-    return (ext in (".h", ".hpp", ".hxx"))
+    return (ext in {".h", ".hpp", ".hxx", ".hh"})
 
 
 def is_c(filename):
     ext = splitext(filename)[1]
-    return (ext in (".c", ".cpp", ".cxx", ".m", ".mm", ".rc", ".cc", ".inl"))
+    return (ext in {".c", ".cpp", ".cxx", ".m", ".mm", ".rc", ".cc", ".inl"})
 
 
 def is_c_any(filename):

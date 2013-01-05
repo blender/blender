@@ -468,6 +468,8 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				sceneconverter->SetMaterials(true);
 			if (useglslmat && (gs.matmode == GAME_MAT_GLSL))
 				sceneconverter->SetGLSLMaterials(true);
+			if (scene->gm.flag & GAME_NO_MATERIAL_CACHING)
+				sceneconverter->SetCacheMaterials(false);
 					
 			KX_Scene* startscene = new KX_Scene(keyboarddevice,
 				mousedevice,

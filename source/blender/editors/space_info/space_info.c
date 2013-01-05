@@ -178,7 +178,10 @@ static void info_main_area_draw(const bContext *C, ARegion *ar)
 static void info_operatortypes(void)
 {
 	WM_operatortype_append(FILE_OT_pack_all);
+	WM_operatortype_append(FILE_OT_pack_libraries);
 	WM_operatortype_append(FILE_OT_unpack_all);
+	WM_operatortype_append(FILE_OT_unpack_libraries);
+	
 	WM_operatortype_append(FILE_OT_make_paths_relative);
 	WM_operatortype_append(FILE_OT_make_paths_absolute);
 	WM_operatortype_append(FILE_OT_report_missing_files);

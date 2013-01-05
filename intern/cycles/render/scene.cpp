@@ -29,6 +29,7 @@
 #include "mesh.h"
 #include "object.h"
 #include "particles.h"
+#include "curves.h"
 #include "scene.h"
 #include "svm.h"
 #include "osl.h"
@@ -54,6 +55,7 @@ Scene::Scene(const SceneParams& params_, const DeviceInfo& device_info_)
 	integrator = new Integrator();
 	image_manager = new ImageManager();
 	particle_system_manager = new ParticleSystemManager();
+	curve_system_manager = new CurveSystemManager();
 
 	/* OSL only works on the CPU */
 	if(device_info_.type == DEVICE_CPU)
@@ -96,6 +98,7 @@ void Scene::free_memory(bool final)
 		light_manager->device_free(device, &dscene);
 
 		particle_system_manager->device_free(device, &dscene);
+		curve_system_manager->device_free(device, &dscene);
 
 		if(!params.persistent_images || final)
 			image_manager->device_free(device, &dscene);
@@ -112,6 +115,7 @@ void Scene::free_memory(bool final)
 		delete shader_manager;
 		delete light_manager;
 		delete particle_system_manager;
+		delete curve_system_manager;
 		delete image_manager;
 	}
 	else {
@@ -162,6 +166,11 @@ void Scene::device_update(Device *device_, Progress& progress)
 
 	progress.set_status("Updating Objects");
 	object_manager->device_update(device, &dscene, this, progress);
+
+	if(progress.get_cancel()) return;
+
+	progress.set_status("Updating Hair Systems");
+	curve_system_manager->device_update(device, &dscene, this, progress);
 
 	if(progress.get_cancel()) return;
 
@@ -242,7 +251,8 @@ bool Scene::need_reset()
 		|| filter->need_update
 		|| integrator->need_update
 		|| shader_manager->need_update
-		|| particle_system_manager->need_update);
+		|| particle_system_manager->need_update
+		|| curve_system_manager->need_update);
 }
 
 void Scene::reset()

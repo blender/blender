@@ -48,7 +48,6 @@
 
 #include "DNA_object_types.h"
 
-#define EDGE_MARK  1
 
 static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Object *UNUSED(ob))
 {

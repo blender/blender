@@ -280,7 +280,7 @@ static void rna_tracking_flushUpdate(Main *UNUSED(bmain), Scene *scene, PointerR
 
 static void rna_trackingObject_tracks_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-	MovieTrackingObject *object = (MovieTrackingObject * )ptr->data;
+	MovieTrackingObject *object = (MovieTrackingObject *)ptr->data;
 
 	if (object->flag & TRACKING_OBJECT_CAMERA) {
 		MovieClip *clip = (MovieClip *)ptr->id.data;
@@ -294,7 +294,7 @@ static void rna_trackingObject_tracks_begin(CollectionPropertyIterator *iter, Po
 
 static PointerRNA rna_trackingObject_reconstruction_get(PointerRNA *ptr)
 {
-	MovieTrackingObject *object = (MovieTrackingObject * )ptr->data;
+	MovieTrackingObject *object = (MovieTrackingObject *)ptr->data;
 
 	if (object->flag & TRACKING_OBJECT_CAMERA) {
 		MovieClip *clip = (MovieClip *)ptr->id.data;

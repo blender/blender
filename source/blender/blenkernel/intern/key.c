@@ -1300,13 +1300,13 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int
 }
 
 /* returns key coordinates (+ tilt) when key applied, NULL otherwise */
-float *do_ob_key(Scene *scene, Object *ob)
+float *BKE_key_evaluate_object(Scene *scene, Object *ob, int *r_totelem)
 {
 	Key *key = BKE_key_from_object(ob);
 	KeyBlock *actkb = BKE_keyblock_from_object(ob);
 	char *out;
 	int tot = 0, size = 0;
-	
+
 	if (key == NULL || key->block.first == NULL)
 		return NULL;
 
@@ -1344,7 +1344,7 @@ float *do_ob_key(Scene *scene, Object *ob)
 		return NULL;
 	
 	/* allocate array */
-	out = MEM_callocN(size, "do_ob_key out");
+	out = MEM_callocN(size, "BKE_key_evaluate_object out");
 
 	/* prevent python from screwing this up? anyhoo, the from pointer could be dropped */
 	key->from = (ID *)ob->data;
@@ -1383,6 +1383,9 @@ float *do_ob_key(Scene *scene, Object *ob)
 		else if (ob->type == OB_SURF) do_curve_key(scene, ob, key, out, tot);
 	}
 	
+	if (r_totelem) {
+		*r_totelem = tot;
+	}
 	return (float *)out;
 }
 
@@ -1732,7 +1735,7 @@ void BKE_key_convert_to_mesh(KeyBlock *kb, Mesh *me)
 }
 
 /************************* vert coords ************************/
-float (*BKE_key_convert_to_vertcos(Object * ob, KeyBlock * kb))[3]
+float (*BKE_key_convert_to_vertcos(Object *ob, KeyBlock *kb))[3]
 {
 	float (*vertCos)[3], *co;
 	float *fp = kb->data;

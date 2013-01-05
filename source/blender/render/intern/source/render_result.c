@@ -438,7 +438,7 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	rr->renrect.xmin = 0; rr->renrect.xmax = rectx - 2 * crop;
 	/* crop is one or two extra pixels rendered for filtering, is used for merging and display too */
 	rr->crop = crop;
-	
+
 	/* tilerect is relative coordinates within render disprect. do not subtract crop yet */
 	rr->tilerect.xmin = partrct->xmin - re->disprect.xmin;
 	rr->tilerect.xmax = partrct->xmax - re->disprect.xmin;
@@ -931,7 +931,7 @@ static void save_empty_result_tiles(Render *re)
 			IMB_exrtile_clear_channels(rl->exrhandle);
 		
 			for (pa = re->parts.first; pa; pa = pa->next) {
-				if (pa->ready == 0) {
+				if (pa->status != PART_STATUS_READY) {
 					int party = pa->disprect.ymin - re->disprect.ymin + pa->crop;
 					int partx = pa->disprect.xmin - re->disprect.xmin + pa->crop;
 					IMB_exrtile_write_channels(rl->exrhandle, partx, party, 0);
@@ -1084,8 +1084,7 @@ int render_result_exr_file_read_path(RenderResult *rr, RenderLayer *rl_single, c
 
 ImBuf *render_result_rect_to_ibuf(RenderResult *rr, RenderData *rd)
 {
-	int flags = (rd->color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE) ? IB_cm_predivide : 0;
-	ImBuf *ibuf = IMB_allocImBuf(rr->rectx, rr->recty, rd->im_format.planes, flags);
+	ImBuf *ibuf = IMB_allocImBuf(rr->rectx, rr->recty, rd->im_format.planes, 0);
 	
 	/* if not exists, BKE_imbuf_write makes one */
 	ibuf->rect = (unsigned int *)rr->rect32;
@@ -1155,17 +1154,15 @@ void render_result_rect_fill_zero(RenderResult *rr)
 		rr->rect32 = MEM_callocN(sizeof(int) * rr->rectx * rr->recty, "render_seq rect");
 }
 
-void render_result_rect_get_pixels(RenderResult *rr, RenderData *rd, unsigned int *rect, int rectx, int recty,
+void render_result_rect_get_pixels(RenderResult *rr, unsigned int *rect, int rectx, int recty,
                                    const ColorManagedViewSettings *view_settings, const ColorManagedDisplaySettings *display_settings)
 {
 	if (rr->rect32) {
 		memcpy(rect, rr->rect32, sizeof(int) * rr->rectx * rr->recty);
 	}
 	else if (rr->rectf) {
-		int predivide = (rd->color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);
-
 		IMB_display_buffer_transform_apply((unsigned char *) rect, rr->rectf, rr->rectx, rr->recty, 4,
-		                                   view_settings, display_settings, predivide);
+		                                   view_settings, display_settings, TRUE);
 	}
 	else
 		/* else fill with black */

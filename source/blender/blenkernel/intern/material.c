@@ -631,11 +631,14 @@ Material *give_current_material(Object *ob, short act)
 	if (totcolp == NULL || ob->totcol == 0) return NULL;
 	
 	if (act < 0) {
-		printf("no!\n");
+		printf("Negative material index!\n");
 	}
 	
-	if (act > ob->totcol) act = ob->totcol;
-	else if (act <= 0) act = 1;
+	/* return NULL for invalid 'act', can happen for mesh face indices */
+	if (act > ob->totcol)
+		return NULL;
+	else if (act <= 0)
+		return NULL;
 
 	if (ob->matbits && ob->matbits[act - 1]) {    /* in object */
 		ma = ob->mat[act - 1];
@@ -1237,6 +1240,11 @@ int object_remove_material_slot(Object *ob)
 
 	if (*matarar == NULL) return FALSE;
 
+	/* can happen on face selection in editmode */
+	if (ob->actcol > ob->totcol) {
+		ob->actcol = ob->totcol;
+	}
+	
 	/* we delete the actcol */
 	mao = (*matarar)[ob->actcol - 1];
 	if (mao) mao->id.us--;

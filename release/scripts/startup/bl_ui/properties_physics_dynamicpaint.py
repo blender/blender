@@ -18,11 +18,32 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Panel
+from bpy.types import Panel, UIList
 
 from bl_ui.properties_physics_common import (point_cache_ui,
                                              effector_weights_ui,
                                              )
+
+
+class PHYSICS_UL_dynapaint_surfaces(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        # assert(isinstance(item, bpy.types.DynamicPaintSurface)
+        surf = item
+        sticon = layout.enum_item_icon(surf, "surface_type", surf.surface_type)
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            row = layout.row(align=True)
+            row.label(text="", icon_value=icon)
+            row.label(text=surf.name, icon_value=sticon)
+            row = layout.row(align=True)
+            if surf.use_color_preview:
+                row.prop(surf, "show_preview", text="", emboss=False,
+                         icon='RESTRICT_VIEW_OFF' if surf.show_preview else 'RESTRICT_VIEW_ON')
+            row.prop(surf, "is_active", text="")
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            row = layout.row(align=True)
+            row.label(text="", icon_value=icon)
+            row.label(text="", icon_value=sticon)
 
 
 class PhysicButtonsPanel():
@@ -58,7 +79,8 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, Panel):
                 surface = canvas.canvas_surfaces.active
 
                 row = layout.row()
-                row.template_list(canvas, "canvas_surfaces", canvas.canvas_surfaces, "active_index", rows=2)
+                row.template_list("PHYSICS_UL_dynapaint_surfaces", "", canvas, "canvas_surfaces",
+                                   canvas.canvas_surfaces, "active_index", rows=2)
 
                 col = row.column(align=True)
                 col.operator("dpaint.surface_slot_add", icon='ZOOMIN', text="")

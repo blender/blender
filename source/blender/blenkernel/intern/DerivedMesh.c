@@ -1340,6 +1340,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	MultiresModifierData *mmd = get_multires_modifier(scene, ob, 0);
 	int has_multires = mmd != NULL, multires_applied = 0;
 	int sculpt_mode = ob->mode & OB_MODE_SCULPT && ob->sculpt;
+	int sculpt_dyntopo = (sculpt_mode && ob->sculpt->bm);
 
 	const int draw_flag = ((scene->toolsettings->multipaint ? CALC_WP_MULTIPAINT : 0) |
 	                       (scene->toolsettings->auto_normalize ? CALC_WP_AUTO_NORMALIZE : 0));
@@ -1407,7 +1408,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			if (!modifier_isEnabled(scene, md, required_mode)) continue;
 			if (useDeform < 0 && mti->dependsOnTime && mti->dependsOnTime(md)) continue;
 
-			if (mti->type == eModifierTypeType_OnlyDeform) {
+			if (mti->type == eModifierTypeType_OnlyDeform && !sculpt_dyntopo) {
 				if (!deformedVerts)
 					deformedVerts = mesh_getVertexCos(me, &numVerts);
 
@@ -1465,8 +1466,13 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			modifier_setError(md, "Modifier requires original data, bad stack position");
 			continue;
 		}
-		if (sculpt_mode && (!has_multires || multires_applied)) {
+		if (sculpt_mode &&
+			(!has_multires || multires_applied || ob->sculpt->bm))
+		{
 			int unsupported = 0;
+
+			if (sculpt_dyntopo)
+				unsupported = TRUE;
 
 			if (scene->toolsettings->sculpt->flags & SCULPT_ONLY_DEFORM)
 				unsupported |= mti->type != eModifierTypeType_OnlyDeform;
@@ -2310,20 +2316,19 @@ DerivedMesh *editbmesh_get_derived_base(Object *obedit, BMEditMesh *em)
 static void make_vertexcosnos__mapFunc(void *userData, int index, const float co[3],
                                        const float no_f[3], const short no_s[3])
 {
-	float *vec = userData;
-	
-	vec += 6 * index;
+	DMCoNo *co_no = &((DMCoNo *)userData)[index];
 
 	/* check if we've been here before (normal should not be 0) */
-	if (vec[3] || vec[4] || vec[5]) return;
+	if (!is_zero_v3(co_no->no)) {
+		return;
+	}
 
-	copy_v3_v3(vec, co);
-	vec += 3;
+	copy_v3_v3(co_no->co, co);
 	if (no_f) {
-		copy_v3_v3(vec, no_f);
+		copy_v3_v3(co_no->no, no_f);
 	}
 	else {
-		normal_short_to_float_v3(vec, no_s);
+		normal_short_to_float_v3(co_no->no, no_s);
 	}
 }
 

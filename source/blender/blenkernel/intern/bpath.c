@@ -603,8 +603,11 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 		case ID_LI:
 		{
 			Library *lib = (Library *)id;
-			if (rewrite_path_fixed(lib->name, visit_cb, absbase, bpath_user_data)) {
-				BKE_library_filepath_set(lib, lib->name);
+			/* keep packedfile paths always relative to the blend */
+			if (lib->packedfile == NULL) {
+				if (rewrite_path_fixed(lib->name, visit_cb, absbase, bpath_user_data)) {
+					BKE_library_filepath_set(lib, lib->name);
+				}
 			}
 			break;
 		}

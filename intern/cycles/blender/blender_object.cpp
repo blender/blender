@@ -196,7 +196,7 @@ void BlenderSync::sync_background_light()
 
 /* Object */
 
-Object *BlenderSync::sync_object(BL::Object b_parent, int persistent_id[OBJECT_PERSISTENT_ID_SIZE], BL::DupliObject b_dupli_ob, Transform& tfm, uint layer_flag, int motion)
+Object *BlenderSync::sync_object(BL::Object b_parent, int persistent_id[OBJECT_PERSISTENT_ID_SIZE], BL::DupliObject b_dupli_ob, Transform& tfm, uint layer_flag, int motion, bool hide_tris)
 {
 	BL::Object b_ob = (b_dupli_ob ? b_dupli_ob.object() : b_parent);
 	
@@ -247,7 +247,7 @@ Object *BlenderSync::sync_object(BL::Object b_parent, int persistent_id[OBJECT_P
 	bool use_holdout = (layer_flag & render_layer.holdout_layer) != 0;
 	
 	/* mesh sync */
-	object->mesh = sync_mesh(b_ob, object_updated);
+	object->mesh = sync_mesh(b_ob, object_updated, hide_tris);
 
 	/* sspecial case not tracked by object update flags */
 	if(use_holdout != object->use_holdout) {
@@ -390,7 +390,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 							BL::Array<int, OBJECT_PERSISTENT_ID_SIZE> persistent_id = b_dup->persistent_id();
 
 							/* sync object and mesh or light data */
-							Object *object = sync_object(*b_ob, persistent_id.data, *b_dup, tfm, ob_layer, motion);
+							Object *object = sync_object(*b_ob, persistent_id.data, *b_dup, tfm, ob_layer, motion, false);
 
 							/* sync possible particle data, note particle_id
 							 * starts counting at 1, first is dummy particle */
@@ -412,9 +412,23 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 				/* check if we should render or hide particle emitter */
 				BL::Object::particle_systems_iterator b_psys;
 
-				for(b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end(); ++b_psys)
-					if(b_psys->settings().use_render_emitter())
+				bool hair_present = false;
+				bool show_emitter = false;
+				bool hide_tris = false;
+
+				for(b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end(); ++b_psys) {
+
+					if((b_psys->settings().render_type()==BL::ParticleSettings::render_type_PATH)&&(b_psys->settings().type()==BL::ParticleSettings::type_HAIR))
+						hair_present = true;
+
+					if(b_psys->settings().use_render_emitter()) {
 						hide = false;
+						show_emitter = true;
+					}
+				}
+
+				if(hair_present && !show_emitter)
+					hide_tris = true;
 
 				/* hide original object for duplis */
 				BL::Object parent = b_ob->parent();
@@ -424,7 +438,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 				if(!hide) {
 					/* object itself */
 					Transform tfm = get_transform(b_ob->matrix_world());
-					sync_object(*b_ob, NULL, PointerRNA_NULL, tfm, ob_layer, motion);
+					sync_object(*b_ob, NULL, PointerRNA_NULL, tfm, ob_layer, motion, hide_tris);
 				}
 			}
 

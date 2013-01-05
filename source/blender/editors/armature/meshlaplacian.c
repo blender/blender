@@ -649,7 +649,9 @@ static float heat_limit_weight(float weight)
 		return weight;
 }
 
-void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource, bDeformGroup **dgrouplist, bDeformGroup **dgroupflip, float (*root)[3], float (*tip)[3], int *selected, const char **err_str)
+void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numsource,
+                         bDeformGroup **dgrouplist, bDeformGroup **dgroupflip,
+                         float (*root)[3], float (*tip)[3], int *selected, const char **err_str)
 {
 	LaplacianSystem *sys;
 	MPoly *mp;

@@ -290,7 +290,7 @@ class CyclesRender_PT_layers(CyclesButtonsPanel, Panel):
         rd = scene.render
 
         row = layout.row()
-        row.template_list(rd, "layers", rd.layers, "active_index", rows=2)
+        row.template_list("RENDER_UL_renderlayers", "", rd, "layers", rd.layers, "active_index", rows=2)
 
         col = row.column(align=True)
         col.operator("scene.render_layer_add", icon='ZOOMIN', text="")
@@ -407,7 +407,7 @@ class Cycles_PT_context_material(CyclesButtonsPanel, Panel):
         if ob:
             row = layout.row()
 
-            row.template_list(ob, "material_slots", ob, "active_material_index", rows=2)
+            row.template_list("MATERIAL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=2)
 
             col = row.column(align=True)
             col.operator("object.material_slot_add", icon='ZOOMIN', text="")
@@ -962,7 +962,7 @@ class CyclesParticle_PT_textures(CyclesButtonsPanel, Panel):
         part = psys.settings
 
         row = layout.row()
-        row.template_list(part, "texture_slots", part, "active_texture_index", rows=2)
+        row.template_list("TEXTURE_UL_texslots", "", part, "texture_slots", part, "active_texture_index", rows=2)
 
         col = row.column(align=True)
         col.operator("texture.slot_move", text="", icon='TRIA_UP').type = 'UP'
@@ -974,6 +974,89 @@ class CyclesParticle_PT_textures(CyclesButtonsPanel, Panel):
         else:
             slot = part.texture_slots[part.active_texture_index]
             layout.template_ID(slot, "texture", new="texture.new")
+
+class CyclesRender_PT_CurveRendering(CyclesButtonsPanel, Panel):
+    bl_label = "Cycles Hair Rendering"
+    bl_context = "particle"
+    
+    @classmethod
+    def poll(cls, context):
+        psys = context.particle_system
+        device_type = context.user_preferences.system.compute_device_type
+        experimental = context.scene.cycles.feature_set == 'EXPERIMENTAL' and (context.scene.cycles.device == 'CPU' or device_type == 'NONE')
+        return CyclesButtonsPanel.poll(context) and experimental and psys
+        
+    def draw_header(self, context):
+        cscene = context.scene.cycles_curves
+        self.layout.prop(cscene, "use_curves", text="")
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        scene = context.scene
+        cscene = scene.cycles_curves
+        
+        layout.active = cscene.use_curves
+        
+        layout.prop(cscene, "preset", text="Mode")
+        
+        if cscene.preset == 'CUSTOM':
+            layout.prop(cscene, "primitive", text="Primitive")
+        
+            if cscene.primitive == 'TRIANGLES':
+                layout.prop(cscene, "triangle_method", text="Method")
+                if cscene.triangle_method == 'TESSELLATED':
+                    layout.prop(cscene, "resolution", text="Resolution")
+                layout.prop(cscene, "use_smooth", text="Smooth")
+            elif cscene.primitive == 'LINE_SEGMENTS':
+                layout.prop(cscene, "use_backfacing", text="Check back-faces")
+                
+                row = layout.row()
+                row.prop(cscene, "use_encasing", text="Exclude encasing")
+                sub = row.row()
+                sub.active = cscene.use_encasing
+                sub.prop(cscene, "encasing_ratio", text="Ratio for encasing")
+                
+                layout.prop(cscene, "line_method", text="Method")
+                layout.prop(cscene, "use_tangent_normal", text="Use tangent normal as default")
+                layout.prop(cscene, "use_tangent_normal_geometry", text="Use tangent normal geometry")
+                layout.prop(cscene, "use_tangent_normal_correction", text="Correct tangent normal for slope")
+                layout.prop(cscene, "interpolation", text="Interpolation")
+                
+                row = layout.row()
+                row.prop(cscene, "segments", text="Segments")
+                row.prop(cscene, "normalmix", text="Ray Mix")
+            
+            row = layout.row()
+            row.prop(cscene, "use_cache", text="Export cache with children")
+            if cscene.use_cache:
+                row.prop(cscene, "use_parents", text="Include parents")  
+            
+class CyclesParticle_PT_CurveSettings(CyclesButtonsPanel, Panel):
+    bl_label = "Cycles Hair Settings"
+    bl_context = "particle"
+    
+    @classmethod
+    def poll(cls, context):
+        use_curves = context.scene.cycles_curves.use_curves and context.particle_system
+        device_type = context.user_preferences.system.compute_device_type
+        experimental = context.scene.cycles.feature_set == 'EXPERIMENTAL' and (context.scene.cycles.device == 'CPU' or device_type == 'NONE')
+        return CyclesButtonsPanel.poll(context) and experimental and use_curves
+
+    def draw(self, context):
+        layout = self.layout
+        
+        psys = context.particle_settings
+        cpsys = psys.cycles
+        
+        row = layout.row()
+        row.prop(cpsys, "shape", text="Shape")
+        row.prop(cpsys, "use_closetip", text="Close tip")
+        
+        layout.label(text="Width multiplier:")
+        row = layout.row()
+        row.prop(cpsys, "root_width", text="Root")
+        row.prop(cpsys, "tip_width", text="Tip")
 
 
 class CyclesScene_PT_simplify(CyclesButtonsPanel, Panel):

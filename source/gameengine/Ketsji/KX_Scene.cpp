@@ -47,6 +47,7 @@
 //#include "SCA_AlwaysEventManager.h"
 //#include "SCA_RandomEventManager.h"
 //#include "KX_RayEventManager.h"
+#include "SCA_2DFilterActuator.h"
 #include "KX_TouchEventManager.h"
 #include "SCA_KeyboardManager.h"
 #include "SCA_MouseManager.h"
@@ -227,7 +228,7 @@ KX_Scene::KX_Scene(class SCA_IInputDevice* keyboarddevice,
 	}
 	
 #ifdef WITH_PYTHON
-	m_attr_dict = PyDict_New(); /* new ref */
+	m_attr_dict = NULL;
 	m_draw_call_pre = NULL;
 	m_draw_call_post = NULL;
 #endif
@@ -287,9 +288,11 @@ KX_Scene::~KX_Scene()
 	}
 
 #ifdef WITH_PYTHON
-	PyDict_Clear(m_attr_dict);
-	/* Py_CLEAR: Py_DECREF's and NULL's */
-	Py_CLEAR(m_attr_dict);
+	if (m_attr_dict) {
+		PyDict_Clear(m_attr_dict);
+		/* Py_CLEAR: Py_DECREF's and NULL's */
+		Py_CLEAR(m_attr_dict);
+	}
 
 	/* these may be NULL but the macro checks */
 	Py_CLEAR(m_draw_call_pre);
@@ -1779,6 +1782,11 @@ static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *to)
 	if (sensor) {
 		sensor->Replace_EventManager(logicmgr);
 	}
+
+	SCA_2DFilterActuator *filter_actuator = dynamic_cast<class SCA_2DFilterActuator*>(brick);
+	if (filter_actuator) {
+		filter_actuator->SetScene(to);
+	}
 }
 
 #ifdef USE_BULLET
@@ -2062,6 +2070,9 @@ static PyObject *Map_GetItem(PyObject *self_v, PyObject *item)
 		PyErr_SetString(PyExc_SystemError, "val = scene[key]: KX_Scene, "BGE_PROXY_ERROR_MSG);
 		return NULL;
 	}
+
+	if (!self->m_attr_dict)
+		self->m_attr_dict = PyDict_New();
 	
 	if (self->m_attr_dict && (pyconvert=PyDict_GetItem(self->m_attr_dict, item))) {
 		
@@ -2089,7 +2100,10 @@ static int Map_SetItem(PyObject *self_v, PyObject *key, PyObject *val)
 		PyErr_SetString(PyExc_SystemError, "scene[key] = value: KX_Scene, "BGE_PROXY_ERROR_MSG);
 		return -1;
 	}
-	
+
+	if (!self->m_attr_dict)
+		self->m_attr_dict = PyDict_New();
+
 	if (val==NULL) { /* del ob["key"] */
 		int del= 0;
 		
@@ -2133,7 +2147,10 @@ static int Seq_Contains(PyObject *self_v, PyObject *value)
 		PyErr_SetString(PyExc_SystemError, "val in scene: KX_Scene, "BGE_PROXY_ERROR_MSG);
 		return -1;
 	}
-	
+
+	if (!self->m_attr_dict)
+		self->m_attr_dict = PyDict_New();
+
 	if (self->m_attr_dict && PyDict_GetItem(self->m_attr_dict, value))
 		return 1;
 	

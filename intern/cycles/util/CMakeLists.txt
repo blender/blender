@@ -9,7 +9,6 @@ set(INC_SYS
 )
 
 set(SRC
-	util_attribute.cpp
 	util_cache.cpp
 	util_cuda.cpp
 	util_dynlib.cpp
@@ -33,7 +32,6 @@ endif()
 set(SRC_HEADERS
 	util_algorithm.h
 	util_args.h
-	util_attribute.h
 	util_boundbox.h
 	util_cache.h
 	util_cuda.h

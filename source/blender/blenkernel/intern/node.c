@@ -1161,11 +1161,11 @@ void ntreeSetOutput(bNodeTree *ntree)
 bNodeTree *ntreeFromID(ID *id)
 {
 	switch (GS(id->name)) {
-		case ID_MA: return ((Material*)id)->nodetree;
-		case ID_LA: return ((Lamp*)id)->nodetree;
-		case ID_WO: return ((World*)id)->nodetree;
-		case ID_TE: return ((Tex*)id)->nodetree;
-		case ID_SCE: return ((Scene*)id)->nodetree;
+		case ID_MA:  return ((Material *)id)->nodetree;
+		case ID_LA:  return ((Lamp *)id)->nodetree;
+		case ID_WO:  return ((World *)id)->nodetree;
+		case ID_TE:  return ((Tex *)id)->nodetree;
+		case ID_SCE: return ((Scene *)id)->nodetree;
 		default: return NULL;
 	}
 }
@@ -2323,6 +2323,7 @@ static void registerShaderNodes(bNodeTreeType *ttype)
 	register_node_type_sh_layer_weight(ttype);
 	register_node_type_sh_tex_coord(ttype);
 	register_node_type_sh_particle_info(ttype);
+	register_node_type_sh_hair_info(ttype);
 	register_node_type_sh_bump(ttype);
 	register_node_type_sh_script(ttype);
 	register_node_type_sh_tangent(ttype);

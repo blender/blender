@@ -614,7 +614,6 @@ MTex *DocumentImporter::create_texture(COLLADAFW::EffectCommon *ef, COLLADAFW::T
 	ma->mtex[i]->texco = TEXCO_UV;
 	ma->mtex[i]->tex = add_texture("Texture");
 	ma->mtex[i]->tex->type = TEX_IMAGE;
-	ma->mtex[i]->tex->imaflag &= ~TEX_USEALPHA;
 	ma->mtex[i]->tex->ima = uid_image_map[ima_uid];
 	
 	texindex_texarray_map[ctex.getTextureMapId()].push_back(ma->mtex[i]);
@@ -745,7 +744,6 @@ void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Materia
 		mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
 		if (mtex != NULL) {
 			mtex->mapto = MAP_ALPHA;
-			mtex->tex->imaflag |= TEX_USEALPHA;
 			i++;
 			ma->spectra = ma->alpha = 0;
 			ma->mode |= MA_ZTRANSP | MA_TRANSP;

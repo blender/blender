@@ -603,7 +603,7 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
-	void **vblocks  = BLI_array_alloca(vblocks, do_vertex ? source->len : 0);
+	void **vblocks  = do_vertex ? BLI_array_alloca(vblocks, source->len) : NULL;
 	void **blocks   = BLI_array_alloca(blocks,  source->len);
 	float (*cos)[3] = BLI_array_alloca(cos,     source->len);
 	float *w        = BLI_array_alloca(w,       source->len);

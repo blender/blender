@@ -538,7 +538,7 @@ int wm_homefile_read(bContext *C, ReportList *UNUSED(reports), short from_memory
 	}
 	
 	if (U.themes.first == NULL) {
-		printf("\nError: No valid "STRINGIFY (BLENDER_STARTUP_FILE)", fall back to built-in default.\n\n");
+		printf("\nNote: No (valid) "STRINGIFY (BLENDER_STARTUP_FILE)" found, fall back to built-in default.\n\n");
 		success = 0;
 	}
 
@@ -556,7 +556,7 @@ int wm_homefile_read(bContext *C, ReportList *UNUSED(reports), short from_memory
 	/* check new prefs only after startup.blend was finished */
 	if (!from_memory && BLI_exists(prefstr)) {
 		int done = BKE_read_file_userdef(prefstr, NULL);
-		if (done) printf("read new prefs: %s\n", prefstr);
+		if (done) printf("Read new prefs: %s\n", prefstr);
 	}
 	
 	/* prevent buggy files that had G_FILE_RELATIVE_REMAP written out by mistake. Screws up autosaves otherwise

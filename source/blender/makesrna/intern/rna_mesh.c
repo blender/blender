@@ -154,7 +154,6 @@ static void rna_Mesh_update_vertmask(Main *bmain, Scene *scene, PointerRNA *ptr)
 	Mesh *me = ptr->data;
 	if ((me->editflag & ME_EDIT_PAINT_VERT_SEL) && (me->editflag & ME_EDIT_PAINT_FACE_SEL)) {
 		me->editflag &= ~ME_EDIT_PAINT_FACE_SEL;
-		BKE_mesh_flush_select_from_polys(me);
 	}
 	rna_Mesh_update_draw(bmain, scene, ptr);
 }
@@ -164,7 +163,6 @@ static void rna_Mesh_update_facemask(Main *bmain, Scene *scene, PointerRNA *ptr)
 	Mesh *me = ptr->data;
 	if ((me->editflag & ME_EDIT_PAINT_VERT_SEL) && (me->editflag & ME_EDIT_PAINT_FACE_SEL)) {
 		me->editflag &= ~ME_EDIT_PAINT_VERT_SEL;
-		BKE_mesh_flush_select_from_verts(me);
 	}
 	rna_Mesh_update_draw(bmain, scene, ptr);
 }
@@ -2963,7 +2961,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_extra_face_angle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWEXTRA_FACEANG);
 	RNA_def_property_ui_text(prop, "Face Angles",
-	                         "Display the angles in the selected edges in degrees, "
+	                         "Display the angles in the selected edges, "
 	                         "using global values when set in the transform panel");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 

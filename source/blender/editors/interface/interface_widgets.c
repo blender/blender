@@ -1324,11 +1324,13 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 			/* icons default draw 0.8f x height */
 			rect->xmin += (int)(0.8f * BLI_rcti_size_y(rect));
 
-			if (but->editstr || (but->flag & UI_TEXT_LEFT))
-				rect->xmin += 0.4f * U.widget_unit;
+			if (but->editstr || (but->flag & UI_TEXT_LEFT)) {
+				rect->xmin += (0.4f * U.widget_unit) / but->block->aspect;
+			}
 		}
-		else if ((but->flag & UI_TEXT_LEFT))
-			rect->xmin += 0.4f * U.widget_unit;
+		else if ((but->flag & UI_TEXT_LEFT)) {
+			rect->xmin += (0.4f * U.widget_unit) / but->block->aspect;
+		}
 
 		/* always draw text for textbutton cursor */
 		widget_draw_text(fstyle, wcol, but, rect);
@@ -2319,7 +2321,7 @@ void ui_draw_link_bezier(const rcti *rect)
 
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(2, GL_FLOAT, 0, coord_array);
-		glDrawArrays(GL_LINE_STRIP, 0, LINK_RESOL);
+		glDrawArrays(GL_LINE_STRIP, 0, LINK_RESOL + 1);
 		glDisableClientState(GL_VERTEX_ARRAY);
 
 		glDisable(GL_BLEND);
@@ -3467,14 +3469,14 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 	if (iconid) {
 		float height, aspect;
 		int xs = rect->xmin + 0.2f * UI_UNIT_X;
-		int ys = 1 + (rect->ymin + rect->ymax - UI_DPI_ICON_SIZE) / 2;
+		int ys = rect->ymin + 0.1f * BLI_rcti_size_y(rect);
 		
 		/* icons are 80% of height of button (16 pixels inside 20 height) */
 		height = 0.8f * BLI_rcti_size_y(rect);
 		aspect = ICON_DEFAULT_HEIGHT / height;
-
+		
 		glEnable(GL_BLEND);
-		UI_icon_draw_aspect(xs, ys, iconid, aspect, 0.5f); /* XXX scale weak get from fstyle? */
+		UI_icon_draw_aspect(xs, ys, iconid, aspect, 1.0f); /* XXX scale weak get from fstyle? */
 		glDisable(GL_BLEND);
 	}
 }

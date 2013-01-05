@@ -22,6 +22,27 @@ from bpy.types import Header, Menu, Panel
 import os
 
 
+def ui_style_items(col, context):
+    """ UI Style settings """
+    
+    split = col.split()
+    
+    col = split.column()
+    col.label(text="Kerning Style:")
+    col.row().prop(context, "font_kerning_style", expand=True)
+    col.prop(context, "points")
+    
+    col = split.column()
+    col.label(text="Shadow Offset:")
+    col.prop(context, "shadow_offset_x", text="X")
+    col.prop(context, "shadow_offset_y", text="Y")
+    
+    col = split.column()
+    col.prop(context, "shadow")
+    col.prop(context, "shadowalpha")
+    col.prop(context, "shadowcolor")
+
+    
 def ui_items_general(col, context):
     """ General UI Theme Settings (User Interface)
     """
@@ -492,7 +513,7 @@ class USERPREF_PT_system(Panel):
         sub.active = system.use_weight_color_range
         sub.template_color_ramp(system, "weight_color_range", expand=True)
 
-        if 'INTERNATIONAL' in bpy.app.build_options:
+        if bpy.app.build_options.international:
             column.separator()
             column.prop(system, "use_international_fonts")
             if system.use_international_fonts:
@@ -774,6 +795,21 @@ class USERPREF_PT_theme(Panel):
                 colsub = padding.column()
                 colsub = padding.column()
                 colsub.row().prop(ui, "show_colored_constraints")
+        elif theme.theme_area == 'STYLE':
+            col = split.column()
+            
+            style = context.user_preferences.ui_styles[0]
+            
+            ui = style.widget
+            col.label(text="Widget:")
+            ui_style_items(col, ui)
+            
+            col.separator()
+            col.separator()
+            
+            ui = style.widget_label
+            col.label(text="Widget Label:")
+            ui_style_items(col, ui)
         else:
             self._theme_generic(split, getattr(theme, theme.theme_area.lower()))
 
@@ -1126,7 +1162,8 @@ class USERPREF_PT_addons(Panel):
                         continue
 
                 # Addon UI Code
-                box = col.column().box()
+                col_box = col.column()
+                box = col_box.box()
                 colsub = box.column()
                 row = colsub.row()
 
@@ -1188,6 +1225,25 @@ class USERPREF_PT_addons(Panel):
 
                         for i in range(4 - tot_row):
                             split.separator()
+
+                    # Show addon user preferences
+                    if is_enabled:
+                        addon_preferences = userpref.addons[module_name].preferences
+                        if addon_preferences is not None:
+                            draw = getattr(addon_preferences, "draw", None)
+                            if draw is not None:
+                                addon_preferences_class = type(addon_preferences)
+                                box_prefs = col_box.box()
+                                box_prefs.label("Preferences:")
+                                addon_preferences_class.layout = box_prefs
+                                try:
+                                    draw(context)
+                                except:
+                                    import traceback
+                                    traceback.print_exc()
+                                    box_prefs.label(text="Error (see console)", icon='ERROR')
+                                del addon_preferences_class.layout
+
 
         # Append missing scripts
         # First collect scripts that are used but have no script file.

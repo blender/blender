@@ -20,8 +20,8 @@
  */
 
 #include "COM_ConvertAlphaNode.h"
-#include "COM_ConvertPremulToKeyOperation.h"
-#include "COM_ConvertKeyToPremulOperation.h"
+#include "COM_ConvertPremulToStraightOperation.h"
+#include "COM_ConvertStraightToPremulOperation.h"
 #include "COM_ExecutionSystem.h"
 
 void ConvertAlphaNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
@@ -31,10 +31,10 @@ void ConvertAlphaNode::convertToOperations(ExecutionSystem *graph, CompositorCon
 
 	/* value hardcoded in rna_nodetree.c */
 	if (node->custom1 == 1) {
-		operation = new ConvertPremulToKeyOperation();
+		operation = new ConvertPremulToStraightOperation();
 	}
 	else {
-		operation = new ConvertKeyToPremulOperation();
+		operation = new ConvertStraightToPremulOperation();
 	}
 
 	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);

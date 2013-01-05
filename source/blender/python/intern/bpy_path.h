@@ -1,5 +1,5 @@
 /*
- * Copyright 2011, Blender Foundation.
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -14,18 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Contributor(s): Campbell Barton
+ *
+ * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __UTIL_ATTRIBUTE_H__
-#define __UTIL_ATTRIBUTE_H__
+/** \file blender/python/intern/bpy_path.h
+ *  \ingroup pythonintern
+ */
 
-#include "util_types.h"
 
-CCL_NAMESPACE_BEGIN
+#ifndef __BPY_PATH_H__
+#define __BPY_PATH_H__
 
-const char *attribute_standard_name(AttributeStandard std);
+PyObject *BPyInit__bpy_path(void);
 
-CCL_NAMESPACE_END
-
-#endif /* __UTIL_ATTRIBUTE_H__ */
-
+#endif

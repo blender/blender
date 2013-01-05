@@ -89,6 +89,7 @@ typedef struct MultiresBakerJobData {
 	struct MultiresBakerJobData *next, *prev;
 	DerivedMesh *lores_dm, *hires_dm;
 	int simple, lvl, tot_lvl;
+	ListBase images;
 } MultiresBakerJobData;
 
 /* data passing to multires-baker job */
@@ -429,7 +430,7 @@ static void multiresbake_startjob(void *bkv, short *stop, short *do_update, floa
 
 		RE_multires_bake_images(&bkr);
 
-		BLI_freelistN(&bkr.image);
+		data->images = bkr.image;
 
 		baked_objects++;
 	}
@@ -439,12 +440,22 @@ static void multiresbake_freejob(void *bkv)
 {
 	MultiresBakeJob *bkj = bkv;
 	MultiresBakerJobData *data, *next;
+	LinkData *link;
 
 	data = bkj->data.first;
 	while (data) {
 		next = data->next;
 		data->lores_dm->release(data->lores_dm);
 		data->hires_dm->release(data->hires_dm);
+
+		/* delete here, since this delete will be called from main thread */
+		for (link = data->images.first; link; link = link->next) {
+			Image *ima = (Image *)link->data;
+			GPU_free_image(ima);
+		}
+
+		BLI_freelistN(&data->images);
+
 		MEM_freeN(data);
 		data = next;
 	}

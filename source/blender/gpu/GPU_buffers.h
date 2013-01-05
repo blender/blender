@@ -39,12 +39,15 @@
 #define DEBUG_VBO(X)
 #endif
 
+struct BMesh;
 struct CCGElem;
 struct CCGKey;
 struct CustomData;
 struct DMFlagMat;
 struct DerivedMesh;
+struct GHash;
 struct GPUVertPointLink;
+struct PBVH;
 
 typedef struct GPUBuffer {
 	int size;	/* in bytes */
@@ -168,12 +171,21 @@ void GPU_update_mesh_buffers(GPU_Buffers *buffers, MVert *mvert,
 GPU_Buffers *GPU_build_grid_buffers(int *grid_indices, int totgrid,
                                     unsigned int **grid_hidden, int gridsize);
 
+GPU_Buffers *GPU_build_bmesh_buffers(int smooth_shading);
+
+void GPU_update_bmesh_buffers(GPU_Buffers *buffers,
+							  struct BMesh *bm,
+							  struct GHash *bm_faces,
+							  struct GHash *bm_unique_verts,
+							  struct GHash *bm_other_verts);
+
 void GPU_update_grid_buffers(GPU_Buffers *buffers, struct CCGElem **grids,
                              const struct DMFlagMat *grid_flag_mats,
                              int *grid_indices, int totgrid, const struct CCGKey *key,
                              int show_diffuse_color);
 
-void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial);
+void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial,
+					  int wireframe);
 
 int GPU_buffers_diffuse_changed(GPU_Buffers *buffers, int show_diffuse_color);
 

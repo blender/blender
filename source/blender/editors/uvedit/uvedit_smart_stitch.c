@@ -136,6 +136,7 @@ typedef struct UvEdge {
 
 /* stitch state object */
 typedef struct StitchState {
+	float aspect;
 	/* use limit flag */
 	char use_limit;
 	/* limit to operator, same as original operator */
@@ -285,9 +286,11 @@ static int getNumOfIslandUvs(UvElementMap *elementMap, int island)
 	}
 }
 
-static void stitch_uv_rotate(float rotation, float medianPoint[2], float uv[2])
+static void stitch_uv_rotate(float rotation, float medianPoint[2], float uv[2], float aspect)
 {
 	float uv_rotation_result[2];
+
+	uv[1] /= aspect;
 
 	uv[0] -= medianPoint[0];
 	uv[1] -= medianPoint[1];
@@ -297,6 +300,8 @@ static void stitch_uv_rotate(float rotation, float medianPoint[2], float uv[2])
 
 	uv[0] = uv_rotation_result[0] + medianPoint[0];
 	uv[1] = uv_rotation_result[1] + medianPoint[1];
+
+	uv[1] *= aspect;
 }
 
 /* check if two uvelements are stitchable. This should only operate on -different- separate UvElements */
@@ -413,9 +418,11 @@ static void stitch_calculate_island_snapping(StitchState *state, PreviewPosition
 				island_stitch_data[i].rotation /= island_stitch_data[i].num_rot_elements;
 				island_stitch_data[i].medianPoint[0] /= island_stitch_data[i].numOfElements;
 				island_stitch_data[i].medianPoint[1] /= island_stitch_data[i].numOfElements;
+				island_stitch_data[i].medianPoint[1] /= state->aspect;
 			}
 			island_stitch_data[i].translation[0] /= island_stitch_data[i].numOfElements;
 			island_stitch_data[i].translation[1] /= island_stitch_data[i].numOfElements;
+
 			numOfIslandUVs = getNumOfIslandUvs(state->element_map, i);
 			element = &state->element_map->buf[state->element_map->islandIndices[i]];
 			for (j = 0; j < numOfIslandUVs; j++, element++) {
@@ -429,7 +436,7 @@ static void stitch_calculate_island_snapping(StitchState *state, PreviewPosition
 
 					if (final) {
 
-						stitch_uv_rotate(island_stitch_data[i].rotation, island_stitch_data[i].medianPoint, luv->uv);
+						stitch_uv_rotate(island_stitch_data[i].rotation, island_stitch_data[i].medianPoint, luv->uv, state->aspect);
 
 						add_v2_v2(luv->uv, island_stitch_data[i].translation);
 					}
@@ -438,7 +445,7 @@ static void stitch_calculate_island_snapping(StitchState *state, PreviewPosition
 						int face_preview_pos = preview_position[BM_elem_index_get(element->l->f)].data_position;
 
 						stitch_uv_rotate(island_stitch_data[i].rotation, island_stitch_data[i].medianPoint,
-						                 preview->preview_polys + face_preview_pos + 2 * element->tfindex);
+						                 preview->preview_polys + face_preview_pos + 2 * element->tfindex, state->aspect);
 
 						add_v2_v2(preview->preview_polys + face_preview_pos + 2 * element->tfindex,
 						          island_stitch_data[i].translation);
@@ -461,15 +468,12 @@ static void stitch_island_calculate_edge_rotation(UvEdge *edge, StitchState *sta
 	int index1, index2;
 	float rotation;
 	MLoopUV *luv1, *luv2;
-	BMLoop *l1, *l2;
 
 	element1 = state->uvs[edge->uv1];
 	element2 = state->uvs[edge->uv2];
 
-	l1 = element1->l;
-	luv1 = CustomData_bmesh_get(&state->em->bm->ldata, l1->head.data, CD_MLOOPUV);
-	l2 = element2->l;
-	luv2 = CustomData_bmesh_get(&state->em->bm->ldata, l2->head.data, CD_MLOOPUV);
+	luv1 = CustomData_bmesh_get(&state->em->bm->ldata, element1->l->head.data, CD_MLOOPUV);
+	luv2 = CustomData_bmesh_get(&state->em->bm->ldata, element2->l->head.data, CD_MLOOPUV);
 
 	if (state->mode == STITCH_VERT) {
 		index1 = uvfinal_map[element1 - state->element_map->buf];
@@ -484,14 +488,18 @@ static void stitch_island_calculate_edge_rotation(UvEdge *edge, StitchState *sta
 	uv1[0] = luv2->uv[0] - luv1->uv[0];
 	uv1[1] = luv2->uv[1] - luv1->uv[1];
 
+	uv1[1] /= state->aspect;
+
 	uv2[0] = uv_average[index2].uv[0] - uv_average[index1].uv[0];
 	uv2[1] = uv_average[index2].uv[1] - uv_average[index1].uv[1];
+
+	uv2[1] /= state->aspect;
 
 	normalize_v2(uv1);
 	normalize_v2(uv2);
 
-	edgecos = uv1[0] * uv2[0] + uv1[1] * uv2[1];
-	edgesin = uv1[0] * uv2[1] - uv2[0] * uv1[1];
+	edgecos = dot_v2v2(uv1, uv2);
+	edgesin = cross_v2v2(uv1, uv2);
 
 	rotation = (edgesin > 0.0f) ?
 	            +acosf(max_ff(-1.0f, min_ff(1.0f, edgecos))) :
@@ -536,7 +544,9 @@ static void stitch_island_calculate_vert_rotation(UvElement *element, StitchStat
 			negate_v2_v2(normal, state->normals + index_tmp2 * 2);
 			edgecos = dot_v2v2(normal, state->normals + index_tmp1 * 2);
 			edgesin = cross_v2v2(normal, state->normals + index_tmp1 * 2);
-			rotation += (edgesin > 0.0f) ? acosf(edgecos) : -acosf(edgecos);
+			rotation += (edgesin > 0.0f) ?
+			    +acosf(max_ff(-1.0f, min_ff(1.0f, edgecos))) :
+			    -acosf(max_ff(-1.0f, min_ff(1.0f, edgecos)));
 		}
 	}
 
@@ -837,13 +847,13 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 	int previous_island = state->static_island;
 	BMFace *efa;
 	BMIter iter;
-	UVVertAverage *final_position;
+	UVVertAverage *final_position = NULL;
 
 	char stitch_midpoints = state->midpoints;
 	/* used to map uv indices to uvaverage indices for selection */
-	unsigned int *uvfinal_map;
+	unsigned int *uvfinal_map = NULL;
 	/* per face preview position in preview buffer */
-	PreviewPosition *preview_position;
+	PreviewPosition *preview_position = NULL;
 
 	/* cleanup previous preview */
 	stitch_preview_delete(state->stitch_preview);
@@ -1157,6 +1167,14 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 		}
 	}
 
+	/* take mean position here. For edge case, this can't be done inside the loop for shared uvverts */
+	if (state->mode == STITCH_EDGE && stitch_midpoints) {
+		for (i = 0; i < state->total_separate_uvs; i++) {
+			final_position[i].uv[0] /= final_position[i].count;
+			final_position[i].uv[1] /= final_position[i].count;
+		}
+	}
+
 	/* second pass, calculate island rotation and translation before modifying any uvs */
 	if (state->snap_islands) {
 		if (state->mode == STITCH_VERT) {
@@ -1210,11 +1228,6 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 		else {
 			for (i = 0; i < state->total_separate_uvs; i++) {
 				UvElement *element = state->uvs[i];
-
-				if (stitch_midpoints) {
-					final_position[i].uv[0] /= final_position[i].count;
-					final_position[i].uv[1] /= final_position[i].count;
-				}
 
 				if (element->flag & STITCH_STITCHABLE) {
 					BMLoop *l;
@@ -1419,17 +1432,18 @@ static void stitch_switch_selection_mode(StitchState *state)
 	MEM_freeN(old_selection_stack);
 }
 
-static void stitch_calculate_edge_normal(BMEditMesh *em, UvEdge *edge, float *normal)
+static void stitch_calculate_edge_normal(BMEditMesh *em, UvEdge *edge, float *normal, float aspect)
 {
 	BMLoop *l1 = edge->element->l;
-	BMLoop *l2 = l1->next;
 	MLoopUV *luv1, *luv2;
 	float tangent[2];
 
 	luv1 = CustomData_bmesh_get(&em->bm->ldata, l1->head.data, CD_MLOOPUV);
-	luv2 = CustomData_bmesh_get(&em->bm->ldata, l2->head.data, CD_MLOOPUV);
+	luv2 = CustomData_bmesh_get(&em->bm->ldata, l1->next->head.data, CD_MLOOPUV);
 
 	sub_v2_v2v2(tangent, luv2->uv,  luv1->uv);
+
+	tangent[1] /= aspect;
 
 	normal[0] = tangent[1];
 	normal[1] = -tangent[0];
@@ -1447,6 +1461,8 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 	glEnableClientState(GL_VERTEX_ARRAY);
 
+	glPointSize(pointsize * 2.0f);
+
 	glEnable(GL_BLEND);
 
 	UI_ThemeColor4(TH_STITCH_PREVIEW_ACTIVE);
@@ -1462,19 +1478,18 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		UI_ThemeColor4(TH_STITCH_PREVIEW_EDGE);
 		glDrawArrays(GL_POLYGON, index, stitch_preview->uvs_per_polygon[i]);
+		#if 0
+		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+		UI_ThemeColor4(TH_STITCH_PREVIEW_VERT);
+		glDrawArrays(GL_POLYGON, index, stitch_preview->uvs_per_polygon[i]);
+		#endif
 
 		index += stitch_preview->uvs_per_polygon[i];
 	}
-	glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
-#if 0
-	UI_ThemeColor4(TH_STITCH_PREVIEW_VERT);
-	glDrawArrays(GL_TRIANGLES, 0, stitch_preview->num_tris * 3);
-#endif
 	glDisable(GL_BLEND);
 
 	/* draw vert preview */
 	if (state->mode == STITCH_VERT) {
-		glPointSize(pointsize * 2.0f);
 		UI_ThemeColor4(TH_STITCH_PREVIEW_STITCHABLE);
 		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_stitchable);
 		glDrawArrays(GL_POINTS, 0, stitch_preview->num_stitchable);
@@ -1541,7 +1556,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = scene->toolsettings;
 	ARegion *ar = CTX_wm_region(C);
-
+	float aspx, aspy;
 	Object *obedit = CTX_data_edit_object(C);
 
 	if (!ar)
@@ -1594,6 +1609,9 @@ static int stitch_init(bContext *C, wmOperator *op)
 		state_delete(state);
 		return 0;
 	}
+
+	uvedit_get_aspect(scene, obedit, em, &aspx, &aspy);
+	state->aspect = aspx / aspy;
 
 	/* Entirely possible if redoing last operator that static island is bigger than total number of islands.
 	 * This ensures we get no hang in the island checking code in stitch_stitch_process_data. */
@@ -1720,15 +1738,16 @@ static int stitch_init(bContext *C, wmOperator *op)
 	 * the winding of the polygon (assuming counter-clockwise flow). */
 
 	for (i = 0; i < total_edges; i++) {
+		UvEdge *edge = edges + i;
 		float normal[2];
-		if (edges[i].flag & STITCH_BOUNDARY) {
-			stitch_calculate_edge_normal(em, edges + i, normal);
+		if (edge->flag & STITCH_BOUNDARY) {
+			stitch_calculate_edge_normal(em, edge, normal, state->aspect);
 
-			add_v2_v2(state->normals + edges[i].uv1 * 2, normal);
-			add_v2_v2(state->normals + edges[i].uv2 * 2, normal);
+			add_v2_v2(state->normals + edge->uv1 * 2, normal);
+			add_v2_v2(state->normals + edge->uv2 * 2, normal);
 
-			normalize_v2(state->normals + edges[i].uv1 * 2);
-			normalize_v2(state->normals + edges[i].uv2 * 2);
+			normalize_v2(state->normals + edge->uv1 * 2);
+			normalize_v2(state->normals + edge->uv2 * 2);
 		}
 	}
 

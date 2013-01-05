@@ -301,6 +301,12 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 			case NODE_PARTICLE_INFO:
 				svm_node_particle_info(kg, sd, stack, node.y, node.z);
 				break;
+#ifdef __HAIR__
+			case NODE_HAIR_INFO:
+				svm_node_hair_info(kg, sd, stack, node.y, node.z);
+				break;
+#endif
+
 #endif
 			case NODE_CONVERT:
 				svm_node_convert(sd, stack, node.y, node.z, node.w);

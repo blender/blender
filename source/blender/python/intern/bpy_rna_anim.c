@@ -44,6 +44,7 @@
 #include "BKE_fcurve.h"
 
 #include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -147,20 +148,27 @@ static int pyrna_struct_anim_args_parse(
 /* internal use for insert and delete */
 static int pyrna_struct_keyframe_parse(
         PointerRNA *ptr, PyObject *args, PyObject *kw, const char *parse_str, const char *error_prefix,
-        const char **path_full, int *index, float *cfra, const char **group_name)     /* return values */
+        const char **path_full, int *index, float *cfra, const char **group_name, int *options)     /* return values */
 {
-	static const char *kwlist[] = {"data_path", "index", "frame", "group", NULL};
+	static const char *kwlist[] = {"data_path", "index", "frame", "group", "options", NULL};
+	PyObject *pyoptions = NULL;
 	const char *path;
 
-	/* note, parse_str MUST start with 's|ifs' */
-	if (!PyArg_ParseTupleAndKeywords(args, kw, parse_str, (char **)kwlist, &path, index, cfra, group_name))
+	/* note, parse_str MUST start with 's|ifsO!' */
+	if (!PyArg_ParseTupleAndKeywords(args, kw, parse_str, (char **)kwlist, &path, index, cfra, group_name,
+	                                 &PySet_Type, &pyoptions)) {
 		return -1;
+	}
 
 	if (pyrna_struct_anim_args_parse(ptr, error_prefix, path, path_full, index) < 0)
 		return -1;
 
 	if (*cfra == FLT_MAX)
 		*cfra = CTX_data_scene(BPy_GetContext())->r.cfra;
+
+	/* flag may be null (no option currently for remove keyframes e.g.). */
+	if (pyoptions && options && (pyrna_set_to_enum_bitfield(keying_flag_items, pyoptions, options, error_prefix) < 0))
+		return -1;
 
 	return 0; /* success */
 }
@@ -172,12 +180,19 @@ char pyrna_struct_keyframe_insert_doc[] =
 "\n"
 "   :arg data_path: path to the property to key, analogous to the fcurve's data path.\n"
 "   :type data_path: string\n"
-"   :arg index: array index of the property to key. Defaults to -1 which will key all indices or a single channel if the property is not an array.\n"
+"   :arg index: array index of the property to key. Defaults to -1 which will key all indices or a single channel "
+               "if the property is not an array.\n"
 "   :type index: int\n"
 "   :arg frame: The frame on which the keyframe is inserted, defaulting to the current frame.\n"
 "   :type frame: float\n"
 "   :arg group: The name of the group the F-Curve should be added to if it doesn't exist yet.\n"
 "   :type group: str\n"
+"   :arg options: Some optional flags:\n"
+"                     'NEEDED': Only insert keyframes where they're needed in the relevant F-Curves.\n"
+"                     'VISUAL': Insert keyframes based on 'visual transforms'.\n"
+"                     'XYZ_TO_RGB': Color for newly added transformation F-Curves (Location, Rotation, Scale) "
+                                   "and also Color is based on the transform axis.\n"
+"   :type flag: set\n"
 "   :return: Success of keyframe insertion.\n"
 "   :rtype: boolean\n"
 ;
@@ -188,12 +203,13 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
 	int index = -1;
 	float cfra = FLT_MAX;
 	const char *group_name = NULL;
+	int options = 0;
 
 	PYRNA_STRUCT_CHECK_OBJ(self);
 
 	if (pyrna_struct_keyframe_parse(&self->ptr, args, kw,
-	                                "s|ifs:bpy_struct.keyframe_insert()", "bpy_struct.keyframe_insert()",
-	                                &path_full, &index, &cfra, &group_name) == -1)
+	                                "s|ifsO!:bpy_struct.keyframe_insert()", "bpy_struct.keyframe_insert()",
+	                                &path_full, &index, &cfra, &group_name, &options) == -1)
 	{
 		return NULL;
 	}
@@ -203,7 +219,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
 
 		BKE_reports_init(&reports, RPT_STORE);
 
-		result = insert_keyframe(&reports, (ID *)self->ptr.id.data, NULL, group_name, path_full, index, cfra, 0);
+		result = insert_keyframe(&reports, (ID *)self->ptr.id.data, NULL, group_name, path_full, index, cfra, options);
 		MEM_freeN((void *)path_full);
 
 		if (BPy_reports_to_error(&reports, PyExc_RuntimeError, TRUE) == -1)
@@ -240,9 +256,9 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
 	PYRNA_STRUCT_CHECK_OBJ(self);
 
 	if (pyrna_struct_keyframe_parse(&self->ptr, args, kw,
-	                                "s|ifs:bpy_struct.keyframe_delete()",
+	                                "s|ifsO!:bpy_struct.keyframe_delete()",
 	                                "bpy_struct.keyframe_insert()",
-	                                &path_full, &index, &cfra, &group_name) == -1)
+	                                &path_full, &index, &cfra, &group_name, NULL) == -1)
 	{
 		return NULL;
 	}

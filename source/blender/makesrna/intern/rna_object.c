@@ -48,6 +48,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "BKE_paint.h"
 #include "BKE_tessmesh.h"
 #include "BKE_group.h" /* needed for object_in_group() */
 
@@ -1123,7 +1124,7 @@ static void rna_GameObjectSettings_used_state_get(PointerRNA *ptr, int *values)
 
 static void rna_GameObjectSettings_col_group_get(PointerRNA *ptr, int *values)
 {
-	Object *ob = (Object*)ptr->data;
+	Object *ob = (Object *)ptr->data;
 	int i;
 
 	for (i = 0; i < OB_MAX_COL_MASKS; i++) {
@@ -1133,7 +1134,7 @@ static void rna_GameObjectSettings_col_group_get(PointerRNA *ptr, int *values)
 
 static void rna_GameObjectSettings_col_group_set(PointerRNA *ptr, const int *values)
 {
-	Object *ob = (Object*)ptr->data;
+	Object *ob = (Object *)ptr->data;
 	int i, tot = 0;
 
 	/* ensure we always have some group selected */
@@ -1152,7 +1153,7 @@ static void rna_GameObjectSettings_col_group_set(PointerRNA *ptr, const int *val
 
 static void rna_GameObjectSettings_col_mask_get(PointerRNA *ptr, int *values)
 {
-	Object *ob = (Object*)ptr->data;
+	Object *ob = (Object *)ptr->data;
 	int i;
 
 	for (i = 0; i < OB_MAX_COL_MASKS; i++) {
@@ -1162,7 +1163,7 @@ static void rna_GameObjectSettings_col_mask_get(PointerRNA *ptr, int *values)
 
 static void rna_GameObjectSettings_col_mask_set(PointerRNA *ptr, const int *values)
 {
-	Object *ob = (Object*)ptr->data;
+	Object *ob = (Object *)ptr->data;
 	int i, tot = 0;
 
 	/* ensure we always have some mask selected */
@@ -1252,20 +1253,20 @@ static PointerRNA rna_Object_collision_get(PointerRNA *ptr)
 static PointerRNA rna_Object_active_constraint_get(PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
-	bConstraint *con = constraints_get_active(&ob->constraints);
+	bConstraint *con = BKE_constraints_get_active(&ob->constraints);
 	return rna_pointer_inherit_refine(ptr, &RNA_Constraint, con);
 }
 
 static void rna_Object_active_constraint_set(PointerRNA *ptr, PointerRNA value)
 {
 	Object *ob = (Object *)ptr->id.data;
-	constraints_set_active(&ob->constraints, (bConstraint *)value.data);
+	BKE_constraints_set_active(&ob->constraints, (bConstraint *)value.data);
 }
 
 static bConstraint *rna_Object_constraints_new(Object *object, int type)
 {
 	WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_ADDED, object);
-	return add_ob_constraint(object, NULL, type);
+	return BKE_add_ob_constraint(object, NULL, type);
 }
 
 static void rna_Object_constraints_remove(Object *object, ReportList *reports, PointerRNA *con_ptr)
@@ -1276,7 +1277,7 @@ static void rna_Object_constraints_remove(Object *object, ReportList *reports, P
 		return;
 	}
 
-	remove_constraint(&object->constraints, con);
+	BKE_remove_constraint(&object->constraints, con);
 	RNA_POINTER_INVALIDATE(con_ptr);
 
 	ED_object_constraint_update(object);
@@ -1286,7 +1287,7 @@ static void rna_Object_constraints_remove(Object *object, ReportList *reports, P
 
 static void rna_Object_constraints_clear(Object *object)
 {
-	free_constraints(&object->constraints);
+	BKE_free_constraints(&object->constraints);
 
 	ED_object_constraint_update(object);
 	ED_object_constraint_set_active(object, NULL);
@@ -1434,6 +1435,12 @@ int rna_DupliObject_index_get(PointerRNA *ptr)
 {
 	DupliObject *dob = (DupliObject *)ptr->data;
 	return dob->persistent_id[0];
+}
+
+int rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)
+{
+	SculptSession *ss = ((Object *)ptr->id.data)->sculpt;
+	return (ss && ss->bm);
 }
 
 #else
@@ -2628,6 +2635,12 @@ static void rna_def_object(BlenderRNA *brna)
 	                           "rna_Object_active_shape_key_index_range");
 	RNA_def_property_ui_text(prop, "Active Shape Key Index", "Current shape key index");
 	RNA_def_property_update(prop, 0, "rna_Object_active_shape_update");
+
+	/* sculpt */
+	prop = RNA_def_property(srna, "use_dynamic_topology_sculpting", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_Object_use_dynamic_topology_sculpting_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Dynamic Topology Sculpting", NULL);
 
 	RNA_api_object(srna);
 }

@@ -1801,7 +1801,7 @@ static void object_solver_inverted_matrix(Scene *scene, Object *ob, float invmat
 	int found = FALSE;
 
 	for (con = ob->constraints.first; con; con = con->next) {
-		bConstraintTypeInfo *cti = constraint_get_typeinfo(con);
+		bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
 
 		if (!cti)
 			continue;
@@ -1832,7 +1832,7 @@ static Object *object_solver_camera(Scene *scene, Object *ob)
 	bConstraint *con;
 
 	for (con = ob->constraints.first; con; con = con->next) {
-		bConstraintTypeInfo *cti = constraint_get_typeinfo(con);
+		bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
 
 		if (!cti)
 			continue;

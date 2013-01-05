@@ -147,7 +147,7 @@ static void mikk_compute_tangents(BL::Mesh b_mesh, BL::MeshTextureFaceLayer b_la
 	if(active_render)
 		attr = mesh->attributes.add(ATTR_STD_UV_TANGENT, name);
 	else
-		attr = mesh->attributes.add(name, TypeDesc::TypeVector, Attribute::CORNER);
+		attr = mesh->attributes.add(name, TypeDesc::TypeVector, ATTR_ELEMENT_CORNER);
 
 	float3 *tangent = attr->data_float3();
 
@@ -161,7 +161,7 @@ static void mikk_compute_tangents(BL::Mesh b_mesh, BL::MeshTextureFaceLayer b_la
 		if(active_render)
 			attr_sign = mesh->attributes.add(ATTR_STD_UV_TANGENT_SIGN, name_sign);
 		else
-			attr_sign = mesh->attributes.add(name_sign, TypeDesc::TypeFloat, Attribute::CORNER);
+			attr_sign = mesh->attributes.add(name_sign, TypeDesc::TypeFloat, ATTR_ELEMENT_CORNER);
 
 		tangent_sign = attr_sign->data_float();
 	}
@@ -223,10 +223,19 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 		int shader = used_shaders[mi];
 		bool smooth = f->use_smooth();
 
-		mesh->add_triangle(vi[0], vi[1], vi[2], shader, smooth);
-
-		if(n == 4)
-			mesh->add_triangle(vi[0], vi[2], vi[3], shader, smooth);
+		if(n == 4) {
+			if(len_squared(cross(mesh->verts[vi[1]] - mesh->verts[vi[0]], mesh->verts[vi[2]] - mesh->verts[vi[0]])) == 0.0f ||
+				len_squared(cross(mesh->verts[vi[2]] - mesh->verts[vi[0]], mesh->verts[vi[3]] - mesh->verts[vi[0]])) == 0.0f) {
+				mesh->add_triangle(vi[0], vi[1], vi[3], shader, smooth);
+				mesh->add_triangle(vi[2], vi[3], vi[1], shader, smooth);
+			}
+			else {
+				mesh->add_triangle(vi[0], vi[1], vi[2], shader, smooth);
+				mesh->add_triangle(vi[0], vi[2], vi[3], shader, smooth);
+			}
+		}
+		else
+			mesh->add_triangle(vi[0], vi[1], vi[2], shader, smooth);
 
 		nverts.push_back(n);
 	}
@@ -240,7 +249,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 				continue;
 
 			Attribute *attr = mesh->attributes.add(
-				ustring(l->name().c_str()), TypeDesc::TypeColor, Attribute::CORNER);
+				ustring(l->name().c_str()), TypeDesc::TypeColor, ATTR_ELEMENT_CORNER);
 
 			BL::MeshColorLayer::data_iterator c;
 			float3 *fdata = attr->data_float3();
@@ -279,7 +288,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 				if(active_render)
 					attr = mesh->attributes.add(std, name);
 				else
-					attr = mesh->attributes.add(name, TypeDesc::TypePoint, Attribute::CORNER);
+					attr = mesh->attributes.add(name, TypeDesc::TypePoint, ATTR_ELEMENT_CORNER);
 
 				BL::MeshTextureFaceLayer::data_iterator t;
 				float3 *fdata = attr->data_float3();
@@ -319,14 +328,9 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 	 * is available in the api. */
 	if(mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
 		Attribute *attr = mesh->attributes.add(ATTR_STD_GENERATED);
-		float3 loc = get_float3(b_mesh.texspace_location());
-		float3 size = get_float3(b_mesh.texspace_size());
 
-		if(size.x != 0.0f) size.x = 0.5f/size.x;
-		if(size.y != 0.0f) size.y = 0.5f/size.y;
-		if(size.z != 0.0f) size.z = 0.5f/size.z;
-
-		loc = loc*size - make_float3(0.5f, 0.5f, 0.5f);
+		float3 loc, size;
+		mesh_texture_space(b_mesh, loc, size);
 
 		float3 *generated = attr->data_float3();
 		size_t i = 0;
@@ -376,7 +380,7 @@ static void create_subd_mesh(Mesh *mesh, BL::Mesh b_mesh, PointerRNA *cmesh, con
 
 /* Sync */
 
-Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
+Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tris)
 {
 	/* test if we can instance or if the object is modified */
 	BL::ID b_ob_data = b_ob.data();
@@ -435,16 +439,24 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 	PointerRNA cmesh = RNA_pointer_get(&b_ob_data.ptr, "cycles");
 
 	vector<Mesh::Triangle> oldtriangle = mesh->triangles;
+	
+	/* compares curve_keys rather than strands in order to handle quick hair adjustsments in dynamic BVH - other methods could probably do this better*/
+	vector<Mesh::CurveKey> oldcurve_keys = mesh->curve_keys;
 
 	mesh->clear();
 	mesh->used_shaders = used_shaders;
 	mesh->name = ustring(b_ob_data.name().c_str());
 
 	if(b_mesh) {
-		if(cmesh.data && experimental && RNA_boolean_get(&cmesh, "use_subdivision"))
-			create_subd_mesh(mesh, b_mesh, &cmesh, used_shaders);
-		else
-			create_mesh(scene, mesh, b_mesh, used_shaders);
+		if(!(hide_tris && experimental && is_cpu)) {
+			if(cmesh.data && experimental && RNA_boolean_get(&cmesh, "use_subdivision"))
+				create_subd_mesh(mesh, b_mesh, &cmesh, used_shaders);
+			else
+				create_mesh(scene, mesh, b_mesh, used_shaders);
+		}
+
+		if(experimental && is_cpu)
+			sync_curves(mesh, b_mesh, b_ob, object_updated);
 
 		/* free derived mesh */
 		b_data.meshes.remove(b_mesh);
@@ -469,6 +481,13 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 		rebuild = true;
 	else if(oldtriangle.size()) {
 		if(memcmp(&oldtriangle[0], &mesh->triangles[0], sizeof(Mesh::Triangle)*oldtriangle.size()) != 0)
+			rebuild = true;
+	}
+
+	if(oldcurve_keys.size() != mesh->curve_keys.size())
+		rebuild = true;
+	else if(oldcurve_keys.size()) {
+		if(memcmp(&oldcurve_keys[0], &mesh->curve_keys[0], sizeof(Mesh::CurveKey)*oldcurve_keys.size()) != 0)
 			rebuild = true;
 	}
 	

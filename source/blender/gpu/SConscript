@@ -33,7 +33,7 @@ sources += env.Glob('shaders/*.c')
 defs = [ 'GLEW_STATIC' ]
 
 incs = '../blenlib ../blenkernel ../makesdna ../makesrna ../include ../blenloader ../nodes ../nodes/intern'
-incs += ' #/extern/glew/include #intern/guardedalloc #intern/smoke/extern ../imbuf .'
+incs += ' #/extern/glew/include #intern/guardedalloc #intern/smoke/extern ../imbuf ../bmesh .'
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
     incs += ' ' + env['BF_PTHREADS_INC']

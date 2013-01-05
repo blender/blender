@@ -30,6 +30,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_text.h"
 
 #include "RNA_define.h"
@@ -127,6 +129,7 @@ static void rna_def_text_line(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, "rna_TextLine_body_get", "rna_TextLine_body_length", "rna_TextLine_body_set");
 	RNA_def_property_ui_text(prop, "Line", "Text in the line");
 	RNA_def_property_update(prop, NC_TEXT | NA_EDITED, NULL);
+	RNA_def_property_translation_context(prop, BLF_I18NCONTEXT_ID_TEXT);
 }
 
 static void rna_def_text(BlenderRNA *brna)

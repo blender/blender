@@ -164,7 +164,7 @@ struct ImBuf *imb_load_dds(unsigned char *mem, size_t size, int flags, char colo
 		}
 
 		if (ibuf->dds_data.fourcc != FOURCC_DDS) {
-			ibuf->dds_data.data = (unsigned char*)dds.readData(ibuf->dds_data.size);
+			ibuf->dds_data.data = (unsigned char *)dds.readData(ibuf->dds_data.size);
 
 			/* flip compressed texture */
 			FlipDXTCImage(dds.width(), dds.height(), dds.mipmapCount(), dds.fourCC(), ibuf->dds_data.data);

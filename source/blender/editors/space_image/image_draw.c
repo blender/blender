@@ -75,13 +75,15 @@
 #include "WM_types.h"
 
 #include "RE_pipeline.h"
+#include "RE_engine.h"
 
 #include "image_intern.h"
 
-static void draw_render_info(Scene *scene, Image *ima, ARegion *ar)
+static void draw_render_info(Scene *scene, Image *ima, ARegion *ar, float zoomx, float zoomy)
 {
 	RenderResult *rr;
-	
+	Render *re = RE_GetRender(scene->id.name);
+
 	rr = BKE_image_acquire_renderresult(scene, ima);
 
 	if (rr && rr->text) {
@@ -89,6 +91,73 @@ static void draw_render_info(Scene *scene, Image *ima, ARegion *ar)
 	}
 
 	BKE_image_release_renderresult(scene, ima);
+
+	if (re) {
+		int total_tiles;
+		rcti *tiles;
+
+		RE_engine_get_current_tiles(re, &total_tiles, &tiles);
+
+		if (total_tiles) {
+			int i, x, y;
+			rcti *tile;
+
+			/* find window pixel coordinates of origin */
+			UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
+
+			glPushMatrix();
+			glTranslatef(x, y, 0.0f);
+			glScalef(zoomx, zoomy, 1.0f);
+
+			if (scene->r.mode & R_BORDER) {
+				glTranslatef(-scene->r.border.xmin * scene->r.xsch * scene->r.size / 100.0f,
+				             -scene->r.border.ymin * scene->r.ysch * scene->r.size / 100.0f,
+				             0.0f);
+			}
+
+			UI_ThemeColor(TH_FACE_SELECT);
+
+			for (i = 0, tile = tiles; i < total_tiles; i++, tile++) {
+				float delta_x = 4.0f * UI_DPI_FAC / zoomx;
+				float delta_y = 4.0f * UI_DPI_FAC / zoomy;
+
+				delta_x = min_ff(delta_x, tile->xmax - tile->xmin);
+				delta_y = min_ff(delta_y, tile->ymax - tile->ymin);
+
+				/* left bottom corner */
+				glBegin(GL_LINE_STRIP);
+				glVertex2f(tile->xmin, tile->ymin + delta_y);
+				glVertex2f(tile->xmin, tile->ymin);
+				glVertex2f(tile->xmin + delta_x, tile->ymin);
+				glEnd();
+
+				/* left top corner */
+				glBegin(GL_LINE_STRIP);
+				glVertex2f(tile->xmin, tile->ymax - delta_y);
+				glVertex2f(tile->xmin, tile->ymax);
+				glVertex2f(tile->xmin + delta_x, tile->ymax);
+				glEnd();
+
+				/* right bottom corner */
+				glBegin(GL_LINE_STRIP);
+				glVertex2f(tile->xmax - delta_x, tile->ymin);
+				glVertex2f(tile->xmax, tile->ymin);
+				glVertex2f(tile->xmax, tile->ymin + delta_y);
+				glEnd();
+
+				/* right top corner */
+				glBegin(GL_LINE_STRIP);
+				glVertex2f(tile->xmax - delta_x, tile->ymax);
+				glVertex2f(tile->xmax, tile->ymax);
+				glVertex2f(tile->xmax, tile->ymax - delta_y);
+				glEnd();
+			}
+
+			MEM_freeN(tiles);
+
+			glPopMatrix();
+		}
+	}
 }
 
 /* used by node view too */
@@ -146,7 +215,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 	if (channels >= 3) {
 		glColor3ubv(red);
 		if (fp)
-			BLI_snprintf(str, sizeof(str), "  R:%-.4f", fp[0]);
+			BLI_snprintf(str, sizeof(str), "  R:%-.5f", fp[0]);
 		else if (cp)
 			BLI_snprintf(str, sizeof(str), "  R:%-3d", cp[0]);
 		else
@@ -157,7 +226,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 		
 		glColor3ubv(green);
 		if (fp)
-			BLI_snprintf(str, sizeof(str), "  G:%-.4f", fp[1]);
+			BLI_snprintf(str, sizeof(str), "  G:%-.5f", fp[1]);
 		else if (cp)
 			BLI_snprintf(str, sizeof(str), "  G:%-3d", cp[1]);
 		else
@@ -168,7 +237,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 		
 		glColor3ubv(blue);
 		if (fp)
-			BLI_snprintf(str, sizeof(str), "  B:%-.4f", fp[2]);
+			BLI_snprintf(str, sizeof(str), "  B:%-.5f", fp[2]);
 		else if (cp)
 			BLI_snprintf(str, sizeof(str), "  B:%-3d", cp[2]);
 		else
@@ -518,8 +587,8 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene,
 		sima->curtile = ima->xrep * ima->yrep - 1;
 	
 	/* retrieve part of image buffer */
-	dx = ibuf->x / ima->xrep;
-	dy = ibuf->y / ima->yrep;
+	dx = max_ii(ibuf->x / ima->xrep, 1);
+	dy = max_ii(ibuf->y / ima->yrep, 1);
 	sx = (sima->curtile % ima->xrep) * dx;
 	sy = (sima->curtile / ima->xrep) * dy;
 	rect = get_part_from_buffer((unsigned int *)display_buffer, ibuf->x, sx, sy, sx + dx, sy + dy);
@@ -786,7 +855,6 @@ void draw_image_main(const bContext *C, ARegion *ar)
 	if (sima->mode == SI_MODE_PAINT)
 		draw_image_paint_helpers(C, ar, scene, zoomx, zoomy);
 
-
 	/* XXX integrate this code */
 #if 0
 	if (ibuf) {
@@ -812,5 +880,5 @@ void draw_image_main(const bContext *C, ARegion *ar)
 
 	/* render info */
 	if (ima && show_render)
-		draw_render_info(scene, ima, ar);
+		draw_render_info(scene, ima, ar, zoomx, zoomy);
 }
