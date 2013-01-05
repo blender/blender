@@ -198,7 +198,7 @@ static bool buildNavMesh(const RecastData *recastParams, int nverts, float *vert
 
 	if (!recast_createHeightfield(solid, width, height, bmin, bmax, recastParams->cellsize, recastParams->cellheight)) {
 		recast_destroyHeightfield(solid);
-		BKE_report(reports, RPT_ERROR, "Faled to create hight field");
+		BKE_report(reports, RPT_ERROR, "Failed to create height field");
 		return false;
 	}
 
@@ -222,7 +222,7 @@ static bool buildNavMesh(const RecastData *recastParams, int nverts, float *vert
 		recast_destroyHeightfield(solid);
 		recast_destroyCompactHeightfield(chf);
 
-		BKE_report(reports, RPT_ERROR, "Faled to create compact hight field");
+		BKE_report(reports, RPT_ERROR, "Failed to create compact height field");
 		return false;
 	}
 
@@ -232,7 +232,7 @@ static bool buildNavMesh(const RecastData *recastParams, int nverts, float *vert
 	if (!recast_erodeWalkableArea(walkableRadius, chf)) {
 		recast_destroyCompactHeightfield(chf);
 
-		BKE_report(reports, RPT_ERROR, "Faled to erode walkable area");
+		BKE_report(reports, RPT_ERROR, "Failed to erode walkable area");
 		return false;
 	}
 
@@ -240,7 +240,7 @@ static bool buildNavMesh(const RecastData *recastParams, int nverts, float *vert
 	if (!recast_buildDistanceField(chf)) {
 		recast_destroyCompactHeightfield(chf);
 
-		BKE_report(reports, RPT_ERROR, "Faled to build distance field");
+		BKE_report(reports, RPT_ERROR, "Failed to build distance field");
 		return false;
 	}
 
@@ -248,7 +248,7 @@ static bool buildNavMesh(const RecastData *recastParams, int nverts, float *vert
 	if (!recast_buildRegions(chf, 0, minRegionArea, mergeRegionArea)) {
 		recast_destroyCompactHeightfield(chf);
 
-		BKE_report(reports, RPT_ERROR, "Faled to build regions");
+		BKE_report(reports, RPT_ERROR, "Failed to build regions");
 		return false;
 	}
 
@@ -260,7 +260,7 @@ static bool buildNavMesh(const RecastData *recastParams, int nverts, float *vert
 		recast_destroyCompactHeightfield(chf);
 		recast_destroyContourSet(cset);
 
-		BKE_report(reports, RPT_ERROR, "Faled to build contours");
+		BKE_report(reports, RPT_ERROR, "Failed to build contours");
 		return false;
 	}
 
@@ -271,7 +271,7 @@ static bool buildNavMesh(const RecastData *recastParams, int nverts, float *vert
 		recast_destroyContourSet(cset);
 		recast_destroyPolyMesh(*pmesh);
 
-		BKE_report(reports, RPT_ERROR, "Faled to build poly mesh");
+		BKE_report(reports, RPT_ERROR, "Failed to build poly mesh");
 		return false;
 	}
 
@@ -285,7 +285,7 @@ static bool buildNavMesh(const RecastData *recastParams, int nverts, float *vert
 		recast_destroyPolyMesh(*pmesh);
 		recast_destroyPolyMeshDetail(*dmesh);
 
-		BKE_report(reports, RPT_ERROR, "Faled to build poly mesh detail");
+		BKE_report(reports, RPT_ERROR, "Failed to build poly mesh detail");
 		return false;
 	}
 
