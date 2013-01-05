@@ -2947,11 +2947,15 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 		case PROP_BOOLEAN:
 		{
 			BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
-			fprintf(f, "\t%s, %s, %s, %s, %d, ",
+			fprintf(f, "\t%s, %s, %s, %s, %s, %s, %s, %s, %d, ",
 			        rna_function_string(bprop->get),
 			        rna_function_string(bprop->set),
 			        rna_function_string(bprop->getarray),
 			        rna_function_string(bprop->setarray),
+			        rna_function_string(bprop->get_ex),
+			        rna_function_string(bprop->set_ex),
+			        rna_function_string(bprop->getarray_ex),
+			        rna_function_string(bprop->setarray_ex),
 			        bprop->defaultvalue);
 			if (prop->arraydimension && prop->totarraylength)
 				fprintf(f, "rna_%s%s_%s_default\n", srna->identifier, strnest, prop->identifier);
@@ -2961,12 +2965,17 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 		case PROP_INT:
 		{
 			IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
-			fprintf(f, "\t%s, %s, %s, %s, %s,\n\t",
+			fprintf(f, "\t%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,\n\t",
 			        rna_function_string(iprop->get),
 			        rna_function_string(iprop->set),
 			        rna_function_string(iprop->getarray),
 			        rna_function_string(iprop->setarray),
-			        rna_function_string(iprop->range));
+			        rna_function_string(iprop->range),
+			        rna_function_string(iprop->get_ex),
+			        rna_function_string(iprop->set_ex),
+			        rna_function_string(iprop->getarray_ex),
+			        rna_function_string(iprop->setarray_ex),
+			        rna_function_string(iprop->range_ex));
 			rna_int_print(f, iprop->softmin); fprintf(f, ", ");
 			rna_int_print(f, iprop->softmax); fprintf(f, ", ");
 			rna_int_print(f, iprop->hardmin); fprintf(f, ", ");
@@ -2981,12 +2990,17 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 		case PROP_FLOAT:
 		{
 			FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
-			fprintf(f, "\t%s, %s, %s, %s, %s, ",
+			fprintf(f, "\t%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, ",
 			        rna_function_string(fprop->get),
 			        rna_function_string(fprop->set),
 			        rna_function_string(fprop->getarray),
 			        rna_function_string(fprop->setarray),
-			        rna_function_string(fprop->range));
+			        rna_function_string(fprop->range),
+			        rna_function_string(fprop->get_ex),
+			        rna_function_string(fprop->set_ex),
+			        rna_function_string(fprop->getarray_ex),
+			        rna_function_string(fprop->setarray_ex),
+			        rna_function_string(fprop->range_ex));
 			rna_float_print(f, fprop->softmin); fprintf(f, ", ");
 			rna_float_print(f, fprop->softmax); fprintf(f, ", ");
 			rna_float_print(f, fprop->hardmin); fprintf(f, ", ");
@@ -3002,10 +3016,13 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 		case PROP_STRING:
 		{
 			StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
-			fprintf(f, "\t%s, %s, %s, %d, ",
+			fprintf(f, "\t%s, %s, %s, %s, %s, %s, %d, ",
 			        rna_function_string(sprop->get),
 			        rna_function_string(sprop->length),
 			        rna_function_string(sprop->set),
+			        rna_function_string(sprop->get_ex),
+			        rna_function_string(sprop->length_ex),
+			        rna_function_string(sprop->set_ex),
 			        sprop->maxlength);
 			rna_print_c_string(f, sprop->defaultvalue); fprintf(f, "\n");
 			break;
@@ -3013,10 +3030,12 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 		case PROP_ENUM:
 		{
 			EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
-			fprintf(f, "\t%s, %s, %s, NULL, ",
+			fprintf(f, "\t%s, %s, %s, %s, %s, NULL, ",
 			        rna_function_string(eprop->get),
 			        rna_function_string(eprop->set),
-			        rna_function_string(eprop->itemf));
+			        rna_function_string(eprop->itemf),
+			        rna_function_string(eprop->get_ex),
+			        rna_function_string(eprop->set_ex));
 			if (eprop->item)
 				fprintf(f, "rna_%s%s_%s_items, ", srna->identifier, strnest, prop->identifier);
 			else

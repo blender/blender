@@ -30,6 +30,8 @@
 
 #include "DNA_listBase.h"
 
+#include "RNA_types.h"
+
 struct BlenderRNA;
 struct ContainerRNA;
 struct StructRNA;
@@ -102,6 +104,27 @@ typedef int (*PropCollectionLengthFunc)(struct PointerRNA *ptr);
 typedef int (*PropCollectionLookupIntFunc)(struct PointerRNA *ptr, int key, struct PointerRNA *r_ptr);
 typedef int (*PropCollectionLookupStringFunc)(struct PointerRNA *ptr, const char *key, struct PointerRNA *r_ptr);
 typedef int (*PropCollectionAssignIntFunc)(struct PointerRNA *ptr, int key, const struct PointerRNA *assign_ptr);
+
+/* extended versions with PropertyRNA argument */
+typedef int (*PropBooleanGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop);
+typedef void (*PropBooleanSetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, int value);
+typedef void (*PropBooleanArrayGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, int *values);
+typedef void (*PropBooleanArraySetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, const int *values);
+typedef int (*PropIntGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop);
+typedef void (*PropIntSetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, int value);
+typedef void (*PropIntArrayGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, int *values);
+typedef void (*PropIntArraySetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, const int *values);
+typedef void (*PropIntRangeFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, int *min, int *max, int *softmin, int *softmax);
+typedef float (*PropFloatGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop);
+typedef void (*PropFloatSetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, float value);
+typedef void (*PropFloatArrayGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, float *values);
+typedef void (*PropFloatArraySetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, const float *values);
+typedef void (*PropFloatRangeFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, float *min, float *max, float *softmin, float *softmax);
+typedef void (*PropStringGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, char *value);
+typedef int (*PropStringLengthFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop);
+typedef void (*PropStringSetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, const char *value);
+typedef int (*PropEnumGetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop);
+typedef void (*PropEnumSetFuncEx)(struct PointerRNA *ptr, struct PropertyRNA *prop, int value);
 
 /* Container - generic abstracted container of RNA properties */
 typedef struct ContainerRNA {
@@ -193,9 +216,13 @@ typedef struct BoolPropertyRNA {
 
 	PropBooleanGetFunc get;
 	PropBooleanSetFunc set;
-
 	PropBooleanArrayGetFunc getarray;
 	PropBooleanArraySetFunc setarray;
+
+	PropBooleanGetFuncEx get_ex;
+	PropBooleanSetFuncEx set_ex;
+	PropBooleanArrayGetFuncEx getarray_ex;
+	PropBooleanArraySetFuncEx setarray_ex;
 
 	int defaultvalue;
 	const int *defaultarray;
@@ -206,11 +233,15 @@ typedef struct IntPropertyRNA {
 
 	PropIntGetFunc get;
 	PropIntSetFunc set;
-
 	PropIntArrayGetFunc getarray;
 	PropIntArraySetFunc setarray;
-
 	PropIntRangeFunc range;
+
+	PropIntGetFuncEx get_ex;
+	PropIntSetFuncEx set_ex;
+	PropIntArrayGetFuncEx getarray_ex;
+	PropIntArraySetFuncEx setarray_ex;
+	PropIntRangeFuncEx range_ex;
 
 	int softmin, softmax;
 	int hardmin, hardmax;
@@ -225,11 +256,15 @@ typedef struct FloatPropertyRNA {
 
 	PropFloatGetFunc get;
 	PropFloatSetFunc set;
-
 	PropFloatArrayGetFunc getarray;
 	PropFloatArraySetFunc setarray;
-
 	PropFloatRangeFunc range;
+
+	PropFloatGetFuncEx get_ex;
+	PropFloatSetFuncEx set_ex;
+	PropFloatArrayGetFuncEx getarray_ex;
+	PropFloatArraySetFuncEx setarray_ex;
+	PropFloatRangeFuncEx range_ex;
 
 	float softmin, softmax;
 	float hardmin, hardmax;
@@ -247,6 +282,10 @@ typedef struct StringPropertyRNA {
 	PropStringLengthFunc length;
 	PropStringSetFunc set;
 
+	PropStringGetFuncEx get_ex;
+	PropStringLengthFuncEx length_ex;
+	PropStringSetFuncEx set_ex;
+
 	int maxlength;	/* includes string terminator! */
 
 	const char *defaultvalue;
@@ -258,6 +297,9 @@ typedef struct EnumPropertyRNA {
 	PropEnumGetFunc get;
 	PropEnumSetFunc set;
 	PropEnumItemFunc itemf;
+
+	PropEnumGetFuncEx get_ex;
+	PropEnumSetFuncEx set_ex;
 	void *py_data; /* store py callback here */
 
 	EnumPropertyItem *item;

@@ -40,6 +40,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
+#include "BLI_math.h"
 
 #include "BLF_api.h"
 #include "BLF_translation.h"
@@ -937,6 +938,12 @@ void RNA_property_int_range(PointerRNA *ptr, PropertyRNA *prop, int *hardmin, in
 
 		iprop->range(ptr, hardmin, hardmax, &softmin, &softmax);
 	}
+	else if (iprop->range_ex) {
+		*hardmin = INT_MIN;
+		*hardmax = INT_MAX;
+
+		iprop->range_ex(ptr, prop, hardmin, hardmax, &softmin, &softmax);
+	}
 	else {
 		*hardmin = iprop->hardmin;
 		*hardmax = iprop->hardmax;
@@ -977,8 +984,17 @@ void RNA_property_int_ui_range(PointerRNA *ptr, PropertyRNA *prop, int *softmin,
 
 		iprop->range(ptr, &hardmin, &hardmax, softmin, softmax);
 
-		*softmin = MAX2(*softmin, hardmin);
-		*softmax = MIN2(*softmax, hardmax);
+		*softmin = max_ii(*softmin, hardmin);
+		*softmax = min_ii(*softmax, hardmax);
+	}
+	else if (iprop->range_ex) {
+		hardmin = INT_MIN;
+		hardmax = INT_MAX;
+
+		iprop->range_ex(ptr, prop, &hardmin, &hardmax, softmin, softmax);
+
+		*softmin = max_ii(*softmin, hardmin);
+		*softmax = min_ii(*softmax, hardmax);
 	}
 
 	*step = iprop->step;
@@ -1011,6 +1027,12 @@ void RNA_property_float_range(PointerRNA *ptr, PropertyRNA *prop, float *hardmin
 		*hardmax = FLT_MAX;
 
 		fprop->range(ptr, hardmin, hardmax, &softmin, &softmax);
+	}
+	else if (fprop->range_ex) {
+		*hardmin = -FLT_MAX;
+		*hardmax = FLT_MAX;
+
+		fprop->range_ex(ptr, prop, hardmin, hardmax, &softmin, &softmax);
 	}
 	else {
 		*hardmin = fprop->hardmin;
@@ -1056,8 +1078,17 @@ void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *soft
 
 		fprop->range(ptr, &hardmin, &hardmax, softmin, softmax);
 
-		*softmin = MAX2(*softmin, hardmin);
-		*softmax = MIN2(*softmax, hardmax);
+		*softmin = max_ff(*softmin, hardmin);
+		*softmax = min_ff(*softmax, hardmax);
+	}
+	else if (fprop->range_ex) {
+		hardmin = -FLT_MAX;
+		hardmax = FLT_MAX;
+
+		fprop->range_ex(ptr, prop, &hardmin, &hardmax, softmin, softmax);
+
+		*softmin = max_ff(*softmin, hardmin);
+		*softmax = min_ff(*softmax, hardmax);
 	}
 
 	*step = fprop->step;
@@ -1645,6 +1676,8 @@ int RNA_property_boolean_get(PointerRNA *ptr, PropertyRNA *prop)
 		return IDP_Int(idprop);
 	else if (bprop->get)
 		return bprop->get(ptr);
+	else if (bprop->get_ex)
+		return bprop->get_ex(ptr, prop);
 	else
 		return bprop->defaultvalue;
 }
@@ -1666,6 +1699,9 @@ void RNA_property_boolean_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 	}
 	else if (bprop->set) {
 		bprop->set(ptr, value);
+	}
+	else if (bprop->set_ex) {
+		bprop->set_ex(ptr, prop, value);
 	}
 	else if (prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val = {0};
@@ -1697,6 +1733,8 @@ void RNA_property_boolean_get_array(PointerRNA *ptr, PropertyRNA *prop, int *val
 		values[0] = RNA_property_boolean_get(ptr, prop);
 	else if (bprop->getarray)
 		bprop->getarray(ptr, values);
+	else if (bprop->getarray_ex)
+		bprop->getarray_ex(ptr, prop, values);
 	else if (bprop->defaultarray)
 		memcpy(values, bprop->defaultarray, sizeof(int) * prop->totarraylength);
 	else
@@ -1747,6 +1785,8 @@ void RNA_property_boolean_set_array(PointerRNA *ptr, PropertyRNA *prop, const in
 		RNA_property_boolean_set(ptr, prop, values[0]);
 	else if (bprop->setarray)
 		bprop->setarray(ptr, values);
+	else if (bprop->setarray_ex)
+		bprop->setarray_ex(ptr, prop, values);
 	else if (prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val = {0};
 		IDProperty *group;
@@ -1848,6 +1888,8 @@ int RNA_property_int_get(PointerRNA *ptr, PropertyRNA *prop)
 		return IDP_Int(idprop);
 	else if (iprop->get)
 		return iprop->get(ptr);
+	else if (iprop->get_ex)
+		return iprop->get_ex(ptr, prop);
 	else
 		return iprop->defaultvalue;
 }
@@ -1868,6 +1910,8 @@ void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 	}
 	else if (iprop->set)
 		iprop->set(ptr, value);
+	else if (iprop->set_ex)
+		iprop->set_ex(ptr, prop, value);
 	else if (prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val = {0};
 		IDProperty *group;
@@ -1900,6 +1944,8 @@ void RNA_property_int_get_array(PointerRNA *ptr, PropertyRNA *prop, int *values)
 		values[0] = RNA_property_int_get(ptr, prop);
 	else if (iprop->getarray)
 		iprop->getarray(ptr, values);
+	else if (iprop->getarray_ex)
+		iprop->getarray_ex(ptr, prop, values);
 	else if (iprop->defaultarray)
 		memcpy(values, iprop->defaultarray, sizeof(int) * prop->totarraylength);
 	else
@@ -1987,6 +2033,8 @@ void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *v
 		RNA_property_int_set(ptr, prop, values[0]);
 	else if (iprop->setarray)
 		iprop->setarray(ptr, values);
+	else if (iprop->setarray_ex)
+		iprop->setarray_ex(ptr, prop, values);
 	else if (prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val = {0};
 		IDProperty *group;
@@ -2087,6 +2135,8 @@ float RNA_property_float_get(PointerRNA *ptr, PropertyRNA *prop)
 	}
 	else if (fprop->get)
 		return fprop->get(ptr);
+	else if (fprop->get_ex)
+		return fprop->get_ex(ptr, prop);
 	else
 		return fprop->defaultvalue;
 }
@@ -2111,6 +2161,9 @@ void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value)
 	}
 	else if (fprop->set) {
 		fprop->set(ptr, value);
+	}
+	else if (fprop->set_ex) {
+		fprop->set_ex(ptr, prop, value);
 	}
 	else if (prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val = {0};
@@ -2150,6 +2203,8 @@ void RNA_property_float_get_array(PointerRNA *ptr, PropertyRNA *prop, float *val
 		values[0] = RNA_property_float_get(ptr, prop);
 	else if (fprop->getarray)
 		fprop->getarray(ptr, values);
+	else if (fprop->getarray_ex)
+		fprop->getarray_ex(ptr, prop, values);
 	else if (fprop->defaultarray)
 		memcpy(values, fprop->defaultarray, sizeof(float) * prop->totarraylength);
 	else
@@ -2248,6 +2303,9 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const floa
 		RNA_property_float_set(ptr, prop, values[0]);
 	else if (fprop->setarray) {
 		fprop->setarray(ptr, values);
+	}
+	else if (fprop->setarray_ex) {
+		fprop->setarray_ex(ptr, prop, values);
 	}
 	else if (prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val = {0};
@@ -2361,6 +2419,9 @@ void RNA_property_string_get(PointerRNA *ptr, PropertyRNA *prop, char *value)
 	else if (sprop->get) {
 		sprop->get(ptr, value);
 	}
+	else if (sprop->get_ex) {
+		sprop->get_ex(ptr, prop, value);
+	}
 	else {
 		strcpy(value, sprop->defaultvalue);
 	}
@@ -2421,6 +2482,8 @@ int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop)
 	}
 	else if (sprop->length)
 		return sprop->length(ptr);
+	else if (sprop->length_ex)
+		return sprop->length_ex(ptr, prop);
 	else
 		return strlen(sprop->defaultvalue);
 }
@@ -2439,6 +2502,8 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
 	}
 	else if (sprop->set)
 		sprop->set(ptr, value);  /* set function needs to clamp its self */
+	else if (sprop->set_ex)
+		sprop->set_ex(ptr, prop, value);  /* set function needs to clamp its self */
 	else if (prop->flag & PROP_EDITABLE) {
 		IDProperty *group;
 
@@ -2497,6 +2562,8 @@ int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop)
 		return IDP_Int(idprop);
 	else if (eprop->get)
 		return eprop->get(ptr);
+	else if (eprop->get_ex)
+		return eprop->get_ex(ptr, prop);
 	else
 		return eprop->defaultvalue;
 }
@@ -2514,6 +2581,9 @@ void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 	}
 	else if (eprop->set) {
 		eprop->set(ptr, value);
+	}
+	else if (eprop->set_ex) {
+		eprop->set_ex(ptr, prop, value);
 	}
 	else if (prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val = {0};

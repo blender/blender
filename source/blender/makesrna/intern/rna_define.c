@@ -2017,6 +2017,38 @@ void RNA_def_property_boolean_funcs(PropertyRNA *prop, const char *get, const ch
 	}
 }
 
+void RNA_def_property_boolean_funcs_runtime(PropertyRNA *prop, BooleanPropertyGetFunc getfunc, BooleanPropertySetFunc setfunc)
+{
+	BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
+
+	if (getfunc) bprop->get_ex = getfunc;
+	if (setfunc) bprop->set_ex = setfunc;
+
+	if (getfunc || setfunc) {
+		/* don't save in id properties */
+		prop->flag &= ~PROP_IDPROPERTY;
+
+		if (!setfunc)
+			prop->flag &= ~PROP_EDITABLE;
+	}
+}
+
+void RNA_def_property_boolean_array_funcs_runtime(PropertyRNA *prop, BooleanArrayPropertyGetFunc getfunc, BooleanArrayPropertySetFunc setfunc)
+{
+	BoolPropertyRNA *bprop = (BoolPropertyRNA *)prop;
+
+	if (getfunc) bprop->getarray_ex = getfunc;
+	if (setfunc) bprop->setarray_ex = setfunc;
+
+	if (getfunc || setfunc) {
+		/* don't save in id properties */
+		prop->flag &= ~PROP_IDPROPERTY;
+
+		if (!setfunc)
+			prop->flag &= ~PROP_EDITABLE;
+	}
+}
+
 void RNA_def_property_int_funcs(PropertyRNA *prop, const char *get, const char *set, const char *range)
 {
 	StructRNA *srna = DefRNA.laststruct;
@@ -2046,6 +2078,38 @@ void RNA_def_property_int_funcs(PropertyRNA *prop, const char *get, const char *
 			fprintf(stderr, "%s: \"%s.%s\", type is not int.\n", __func__, srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
+	}
+}
+
+void RNA_def_property_int_funcs_runtime(PropertyRNA *prop, IntPropertyGetFunc getfunc, IntPropertySetFunc setfunc, IntPropertyRangeFunc rangefunc)
+{
+	IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
+
+	if (getfunc) iprop->get_ex = getfunc;
+	if (setfunc) iprop->set_ex = setfunc;
+
+	if (getfunc || setfunc) {
+		/* don't save in id properties */
+		prop->flag &= ~PROP_IDPROPERTY;
+
+		if (!setfunc)
+			prop->flag &= ~PROP_EDITABLE;
+	}
+}
+
+void RNA_def_property_int_array_funcs_runtime(PropertyRNA *prop, IntArrayPropertyGetFunc getfunc, IntArrayPropertySetFunc setfunc, IntPropertyRangeFunc rangefunc)
+{
+	IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
+
+	if (getfunc) iprop->getarray_ex = getfunc;
+	if (setfunc) iprop->setarray_ex = setfunc;
+
+	if (getfunc || setfunc) {
+		/* don't save in id properties */
+		prop->flag &= ~PROP_IDPROPERTY;
+
+		if (!setfunc)
+			prop->flag &= ~PROP_EDITABLE;
 	}
 }
 
@@ -2081,6 +2145,40 @@ void RNA_def_property_float_funcs(PropertyRNA *prop, const char *get, const char
 	}
 }
 
+void RNA_def_property_float_funcs_runtime(PropertyRNA *prop, FloatPropertyGetFunc getfunc, FloatPropertySetFunc setfunc, FloatPropertyRangeFunc rangefunc)
+{
+	FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
+
+	if (getfunc) fprop->get_ex = getfunc;
+	if (setfunc) fprop->set_ex = setfunc;
+	if (rangefunc) fprop->range_ex = rangefunc;
+
+	if (getfunc || setfunc) {
+		/* don't save in id properties */
+		prop->flag &= ~PROP_IDPROPERTY;
+
+		if (!setfunc)
+			prop->flag &= ~PROP_EDITABLE;
+	}
+}
+
+void RNA_def_property_float_array_funcs_runtime(PropertyRNA *prop, FloatArrayPropertyGetFunc getfunc, FloatArrayPropertySetFunc setfunc, FloatPropertyRangeFunc rangefunc)
+{
+	FloatPropertyRNA *fprop = (FloatPropertyRNA *)prop;
+
+	if (getfunc) fprop->getarray_ex = getfunc;
+	if (setfunc) fprop->setarray_ex = setfunc;
+	if (rangefunc) fprop->range_ex = rangefunc;
+
+	if (getfunc || setfunc) {
+		/* don't save in id properties */
+		prop->flag &= ~PROP_IDPROPERTY;
+
+		if (!setfunc)
+			prop->flag &= ~PROP_EDITABLE;
+	}
+}
+
 void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char *set, const char *item)
 {
 	StructRNA *srna = DefRNA.laststruct;
@@ -2107,6 +2205,29 @@ void RNA_def_property_enum_funcs(PropertyRNA *prop, const char *get, const char 
 	}
 }
 
+void RNA_def_property_enum_funcs_runtime(PropertyRNA *prop, EnumPropertyGetFunc getfunc, EnumPropertySetFunc setfunc, EnumPropertyItemFunc itemfunc)
+{
+	EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
+
+	if (getfunc) eprop->get_ex = getfunc;
+	if (setfunc) eprop->set_ex = setfunc;
+	if (itemfunc) eprop->itemf = itemfunc;
+
+	if (getfunc || setfunc) {
+		/* don't save in id properties */
+		prop->flag &= ~PROP_IDPROPERTY;
+
+		if (!setfunc)
+			prop->flag &= ~PROP_EDITABLE;
+	}
+}
+
+void RNA_def_property_enum_py_data(PropertyRNA *prop, void *py_data)
+{
+	EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
+	eprop->py_data = py_data;
+}
+
 void RNA_def_property_string_funcs(PropertyRNA *prop, const char *get, const char *length, const char *set)
 {
 	StructRNA *srna = DefRNA.laststruct;
@@ -2130,6 +2251,23 @@ void RNA_def_property_string_funcs(PropertyRNA *prop, const char *get, const cha
 			fprintf(stderr, "%s: \"%s.%s\", type is not string.\n", __func__, srna->identifier, prop->identifier);
 			DefRNA.error = 1;
 			break;
+	}
+}
+
+void RNA_def_property_string_funcs_runtime(PropertyRNA *prop, StringPropertyGetFunc getfunc, StringPropertyLengthFunc lengthfunc, StringPropertySetFunc setfunc)
+{
+	StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
+
+	if (getfunc) sprop->get_ex = getfunc;
+	if (lengthfunc) sprop->length_ex = lengthfunc;
+	if (setfunc) sprop->set_ex = setfunc;
+
+	if (getfunc || setfunc) {
+		/* don't save in id properties */
+		prop->flag &= ~PROP_IDPROPERTY;
+
+		if (!setfunc)
+			prop->flag &= ~PROP_EDITABLE;
 	}
 }
 
@@ -2445,12 +2583,6 @@ void RNA_def_enum_funcs(PropertyRNA *prop, EnumPropertyItemFunc itemfunc)
 {
 	EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
 	eprop->itemf = itemfunc;
-}
-
-void RNA_def_enum_py_data(PropertyRNA *prop, void *py_data)
-{
-	EnumPropertyRNA *eprop = (EnumPropertyRNA *)prop;
-	eprop->py_data = py_data;
 }
 
 PropertyRNA *RNA_def_float(StructOrFunctionRNA *cont_, const char *identifier, float default_value,

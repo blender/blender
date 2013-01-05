@@ -91,7 +91,6 @@ PropertyRNA *RNA_def_string_translate(StructOrFunctionRNA *cont, const char *ide
 PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont, const char *identifier, const EnumPropertyItem *items, int default_value, const char *ui_name, const char *ui_description);
 PropertyRNA *RNA_def_enum_flag(StructOrFunctionRNA *cont, const char *identifier, const EnumPropertyItem *items, int default_value, const char *ui_name, const char *ui_description);
 void RNA_def_enum_funcs(PropertyRNA *prop, EnumPropertyItemFunc itemfunc);
-void RNA_def_enum_py_data(PropertyRNA *prop, void *py_data);
 
 PropertyRNA *RNA_def_float(StructOrFunctionRNA *cont, const char *identifier, float default_value, float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
 PropertyRNA *RNA_def_float_vector(StructOrFunctionRNA *cont, const char *identifier, int len, const float *default_value, float hardmin, float hardmax, const char *ui_name, const char *ui_description, float softmin, float softmax);
@@ -176,6 +175,17 @@ void RNA_def_property_pointer_funcs(PropertyRNA *prop, const char *get, const ch
 void RNA_def_property_collection_funcs(PropertyRNA *prop, const char *begin, const char *next, const char *end, const char *get, const char *length, const char *lookupint, const char *lookupstring, const char *assignint);
 void RNA_def_property_srna(PropertyRNA *prop, const char *type);
 void RNA_def_py_data(PropertyRNA *prop, void *py_data);
+
+void RNA_def_property_boolean_funcs_runtime(PropertyRNA *prop, BooleanPropertyGetFunc getfunc, BooleanPropertySetFunc setfunc);
+void RNA_def_property_boolean_array_funcs_runtime(PropertyRNA *prop, BooleanArrayPropertyGetFunc getfunc, BooleanArrayPropertySetFunc setfunc);
+void RNA_def_property_int_funcs_runtime(PropertyRNA *prop, IntPropertyGetFunc getfunc, IntPropertySetFunc setfunc, IntPropertyRangeFunc rangefunc);
+void RNA_def_property_int_array_funcs_runtime(PropertyRNA *prop, IntArrayPropertyGetFunc getfunc, IntArrayPropertySetFunc setfunc, IntPropertyRangeFunc rangefunc);
+void RNA_def_property_float_funcs_runtime(PropertyRNA *prop, FloatPropertyGetFunc getfunc, FloatPropertySetFunc setfunc, FloatPropertyRangeFunc rangefunc);
+void RNA_def_property_float_array_funcs_runtime(PropertyRNA *prop, FloatArrayPropertyGetFunc getfunc, FloatArrayPropertySetFunc setfunc, FloatPropertyRangeFunc rangefunc);
+void RNA_def_property_enum_funcs_runtime(PropertyRNA *prop, EnumPropertyGetFunc getfunc, EnumPropertySetFunc setfunc, EnumPropertyItemFunc itemfunc);
+void RNA_def_property_string_funcs_runtime(PropertyRNA *prop, StringPropertyGetFunc getfunc, StringPropertyLengthFunc lengthfunc, StringPropertySetFunc setfunc);
+
+void RNA_def_property_enum_py_data(PropertyRNA *prop, void *py_data);
 
 void RNA_def_property_translation_context(PropertyRNA *prop, const char *context);
 
