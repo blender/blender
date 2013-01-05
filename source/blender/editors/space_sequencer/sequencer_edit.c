@@ -1906,6 +1906,9 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 		for (seq = ed->seqbasep->first; seq; seq = seq->next)
 			BKE_sequence_calc(scene, seq);
 
+		if (BKE_sequence_test_overlap(ed->seqbasep, ms->parseq))
+			BKE_sequence_base_shuffle(ed->seqbasep, ms->parseq, scene);
+
 		BKE_sequencer_active_set(scene, ms->parseq);
 
 		ms->parseq->flag |= SELECT;
