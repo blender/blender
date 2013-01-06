@@ -137,6 +137,11 @@ MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
 	Mesh *me = (Mesh *)ob->data;
 	ModifierData *md;
 
+	if (ob->sculpt->bm) {
+		/* can't combine multires and dynamic topology */
+		return NULL;
+	}
+
 	if (!CustomData_get_layer(&me->ldata, CD_MDISPS)) {
 		/* multires can't work without displacement layer */
 		return NULL;
