@@ -14,7 +14,7 @@ USE_SDK=True
 ###################     Cocoa & architecture settings      ##################
 #############################################################################
 WITH_GHOST_COCOA=True
-MACOSX_ARCHITECTURE = 'i386' # valid archs: ppc, i386, ppc64, x86_64
+MACOSX_ARCHITECTURE = 'x86_64' # valid archs: ppc, i386, ppc64, x86_64
 
 
 cmd = 'uname -p'
