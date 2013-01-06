@@ -1932,9 +1932,9 @@ static void node_composit_buts_hue_sat(uiLayout *layout, bContext *UNUSED(C), Po
 
 static void node_composit_buts_dilateerode(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-	uiItemR(layout, ptr, "type", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "distance", 0, NULL, ICON_NONE);
-	switch (RNA_enum_get(ptr, "type")) {
+	switch (RNA_enum_get(ptr, "mode")) {
 		case CMP_NODE_DILATEERODE_DISTANCE_THRESH:
 			uiItemR(layout, ptr, "edge", 0, NULL, ICON_NONE);
 			break;
