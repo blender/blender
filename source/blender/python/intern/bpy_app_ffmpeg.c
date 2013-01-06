@@ -41,16 +41,16 @@ static PyTypeObject BlenderAppFFmpegType;
 
 #define DEF_FFMPEG_LIB_VERSION(lib) \
 	{(char *)(#lib "_version"), (char *)("The " #lib " version  as a tuple of 3 numbers")}, \
-	{(char *)(#lib "_version_string"), (char *)("The " #lib " version formatted as a string")},
+	{(char *)(#lib "_version_string"), (char *)("The " #lib " version formatted as a string")}
 
 static PyStructSequence_Field app_ffmpeg_info_fields[] = {
 	{(char *)"supported", (char *)("Boolean, True when Blender is built with FFmpeg support")},
 
-	DEF_FFMPEG_LIB_VERSION(avcodec)
-	DEF_FFMPEG_LIB_VERSION(avdevice)
-	DEF_FFMPEG_LIB_VERSION(avformat)
-	DEF_FFMPEG_LIB_VERSION(avutil)
-	DEF_FFMPEG_LIB_VERSION(swscale)
+	DEF_FFMPEG_LIB_VERSION(avcodec),
+	DEF_FFMPEG_LIB_VERSION(avdevice),
+	DEF_FFMPEG_LIB_VERSION(avformat),
+	DEF_FFMPEG_LIB_VERSION(avutil),
+	DEF_FFMPEG_LIB_VERSION(swscale),
 	{NULL}
 };
 
