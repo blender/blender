@@ -137,7 +137,7 @@ MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
 	Mesh *me = (Mesh *)ob->data;
 	ModifierData *md;
 
-	if (ob->sculpt->bm) {
+	if (ob->sculpt && ob->sculpt->bm) {
 		/* can't combine multires and dynamic topology */
 		return NULL;
 	}
