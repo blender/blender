@@ -464,7 +464,7 @@ static int image_view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &location[0], &location[1]);
 
-		delta = event->x - event->prevx + event->y - event->prevy;
+		delta = event->prevx - event->x + event->prevy - event->y;
 
 		if (U.uiflag & USER_ZOOM_INVERT)
 			delta *= -1;

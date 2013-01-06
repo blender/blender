@@ -2101,16 +2101,15 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else {
 		if (event->type == MOUSEZOOM || event->type == MOUSEPAN) {
-			/* Bypass Zoom invert flag for track pads (pass FALSE always) */
 
 			if (U.uiflag & USER_ZOOM_HORIZ) {
 				vod->origx = vod->oldx = event->x;
-				viewzoom_apply(vod, event->prevx, event->prevy, USER_ZOOM_DOLLY, (U.uiflag & USER_ZOOM_INVERT) == 0);
+				viewzoom_apply(vod, event->prevx, event->prevy, USER_ZOOM_DOLLY, (U.uiflag & USER_ZOOM_INVERT) != 0);
 			}
 			else {
 				/* Set y move = x move as MOUSEZOOM uses only x axis to pass magnification value */
 				vod->origy = vod->oldy = vod->origy + event->x - event->prevx;
-				viewzoom_apply(vod, event->prevx, event->prevy, USER_ZOOM_DOLLY, (U.uiflag & USER_ZOOM_INVERT) == 0);
+				viewzoom_apply(vod, event->prevx, event->prevy, USER_ZOOM_DOLLY, (U.uiflag & USER_ZOOM_INVERT) != 0);
 			}
 			ED_view3d_depth_tag_update(vod->rv3d);
 			

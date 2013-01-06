@@ -515,10 +515,10 @@ static int view_zoom_exec(bContext *C, wmOperator *op)
 
 static int view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if (event->type == MOUSEZOOM) {
+	if (event->type == MOUSEZOOM || event->type == MOUSEPAN) {
 		float delta, factor;
 
-		delta = event->x - event->prevx + event->y - event->prevy;
+		delta = event->prevx - event->x + event->prevy - event->y;
 
 		if (U.uiflag & USER_ZOOM_INVERT)
 			delta *= -1;
