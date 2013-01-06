@@ -590,12 +590,13 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_int(func, "channel", 0, 0, MAXSEQ - 1, "Channel",
 	                   "The channel for the new sequence", 0, MAXSEQ - 1);
+	/* don't use MAXFRAME since it makes importer scripts fail */
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm = RNA_def_int(func, "start_frame", 0, -MAXFRAME, MAXFRAME, "",
-	                   "The start frame for the new sequence", -MAXFRAME, MAXFRAME);
+	parm = RNA_def_int(func, "start_frame", 0, INT_MIN, INT_MAX, "",
+	                   "The start frame for the new sequence", INT_MIN, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_int(func, "end_frame", 0, -MAXFRAME, MAXFRAME, "",
-	            "The end frame for the new sequence", -MAXFRAME, MAXFRAME);
+	RNA_def_int(func, "end_frame", 0, INT_MIN, INT_MAX, "",
+	            "The end frame for the new sequence", INT_MIN, INT_MAX);
 	RNA_def_pointer(func, "seq1", "Sequence", "", "Sequence 1 for effect");
 	RNA_def_pointer(func, "seq2", "Sequence", "", "Sequence 2 for effect");
 	RNA_def_pointer(func, "seq3", "Sequence", "", "Sequence 3 for effect");
