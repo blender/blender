@@ -238,6 +238,7 @@ void ui_pan_to_scroll(wmEvent *event, int *type, int *val)
 				*type = WHEELUPMOUSE;
 			else
 				*type = WHEELDOWNMOUSE;
+			
 			lastdy = 0;
 		}
 	}
@@ -2717,7 +2718,9 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 		ui_pan_to_scroll(event, &type, &val);
 		
 		/* XXX hardcoded keymap check.... */
-		if (type == WHEELDOWNMOUSE && event->alt) {
+		if (type == MOUSEPAN && event->alt)
+			retval = WM_UI_HANDLER_BREAK; /* allow accumulating values, otherwise scrolling gets preference */
+		else if (type == WHEELDOWNMOUSE && event->alt) {
 			mx = but->rect.xmin;
 			click = 1;
 		}
@@ -2945,7 +2948,9 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 		ui_pan_to_scroll(event, &type, &val);
 
 		/* XXX hardcoded keymap check.... */
-		if (type == WHEELDOWNMOUSE && event->alt) {
+		if (type == MOUSEPAN && event->alt)
+			retval = WM_UI_HANDLER_BREAK; /* allow accumulating values, otherwise scrolling gets preference */
+		else if (type == WHEELDOWNMOUSE && event->alt) {
 			mx = but->rect.xmin;
 			click = 2;
 		}
@@ -6010,19 +6015,18 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 
 				retval = WM_UI_HANDLER_CONTINUE;
 				break;
-				case WHEELUPMOUSE:
-				case WHEELDOWNMOUSE:
-				case MIDDLEMOUSE:
-					/* XXX hardcoded keymap check... but anyway, while view changes, tooltips should be removed */
-					if (data->tooltiptimer) {
-						WM_event_remove_timer(data->wm, data->window, data->tooltiptimer);
-						data->tooltiptimer = NULL;
-					}
-				/* pass on purposedly */
-				default:
-					/* handle button type specific events */
-					retval = ui_do_button(C, block, but, event);
 			}
+				/* XXX hardcoded keymap check... but anyway, while view changes, tooltips should be removed */
+			case WHEELUPMOUSE:
+			case WHEELDOWNMOUSE:
+			case MIDDLEMOUSE:
+			case MOUSEPAN:
+				button_timers_tooltip_remove(C, but);
+
+			/* pass on purposedly */
+			default:
+				/* handle button type specific events */
+				retval = ui_do_button(C, block, but, event);
 		}
 	}
 	else if (data->state == BUTTON_STATE_WAIT_RELEASE) {

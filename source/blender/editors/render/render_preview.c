@@ -886,8 +886,6 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
 	ShaderPreview *sp = customdata;
 	ID *id = sp->id;
 	short idtype = GS(id->name);
-
-	printf("icon start job %s\n", id->name);
 	
 	if (idtype == ID_IM) {
 		Image *ima = (Image *)id;
@@ -1012,7 +1010,6 @@ static void icon_preview_endjob(void *customdata)
 	IconPreview *ip = customdata;
 
 	if (ip->id) {
-		printf("icon end job %s\n", ip->id->name);
 
 		if (GS(ip->id->name) == ID_BR)
 			WM_main_add_notifier(NC_BRUSH | NA_EDITED, ip->id);
