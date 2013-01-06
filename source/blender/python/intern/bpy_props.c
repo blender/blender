@@ -847,7 +847,7 @@ static void bpy_prop_string_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 			value[0] = '\0';
 		}
 		else {
-			memcpy(value, buffer, length+1);
+			memcpy(value, buffer, length + 1);
 		}
 
 		Py_DECREF(ret);

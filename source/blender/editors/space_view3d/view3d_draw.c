@@ -2987,20 +2987,116 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 		GPU_default_lights();
 	}
 
-	/* clear background */
-	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) && scene->world) {
-		IMB_colormanagement_pixel_to_display_space_v3(backcol, &scene->world->horr, &scene->view_settings,
-		                                              &scene->display_settings);
-
-		glClearColor(backcol[0], backcol[1], backcol[2], 0.0);
-	}
-	else
-		UI_ThemeClearColor(TH_BACK);
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
 	/* setup view matrices */
 	view3d_main_area_setup_view(scene, v3d, ar, NULL, NULL);
+
+	/* clear background */
+	if (scene->world && (v3d->flag2 & V3D_RENDER_OVERRIDE)) {  /* clear with solid color */
+		if (scene->world->skytype & WO_SKYBLEND) {  /* blend sky */
+			int x, y;
+			float col_hor[3];
+			float col_zen[3];
+
+#define XTOT 16
+#define YTOT 16
+
+			GLubyte grid_col[XTOT][YTOT][3];
+			float   grid_pos[XTOT][YTOT][2];
+
+			IMB_colormanagement_pixel_to_display_space_v3(col_hor, &scene->world->horr, &scene->view_settings,
+			                                              &scene->display_settings);
+			IMB_colormanagement_pixel_to_display_space_v3(col_zen, &scene->world->zenr, &scene->view_settings,
+			                                              &scene->display_settings);
+
+			glClearColor(col_hor[0], col_hor[1], col_hor[2], 0.0);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+			glLoadIdentity();
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glLoadIdentity();
+
+			glShadeModel(GL_SMOOTH);
+
+			for (x = 0; x < XTOT; x++) {
+				for (y = 0; y < YTOT; y++) {
+					const float xf = (float)x / (float)(XTOT - 1);
+					const float yf = (float)y / (float)(YTOT - 1);
+					const float mval[2] = {xf * (float)ar->winx, yf * ar->winy};
+					float out[3];
+					const float up[3] = {0.0f, 0.0f, 1.0f};
+					GLubyte *col_ub = grid_col[x][y];
+
+					float col_fac;
+					float col_fl[3];
+
+					/* -1..1 range */
+					grid_pos[x][y][0] = (xf - 0.5f) * 2.0f;
+					grid_pos[x][y][1] = (yf - 0.5f) * 2.0f;
+
+					ED_view3d_win_to_vector(ar, mval, out);
+
+					if (scene->world->skytype & WO_SKYPAPER) {
+						if (scene->world->skytype & WO_SKYREAL) {
+							col_fac = fabsf(((float)y / (float)YTOT) - 0.5f) * 2.0f;
+						}
+						else {
+							col_fac = (float)y / (float)YTOT;
+						}
+					}
+					else {
+						if (scene->world->skytype & WO_SKYREAL) {
+							col_fac = fabsf((angle_v3v3(up, out) / (float)M_PI) - 0.5f) * 2.0f;
+						}
+						else {
+							col_fac = 1.0f - (angle_v3v3(up, out) / (float)M_PI);
+						}
+					}
+
+					interp_v3_v3v3(col_fl, col_hor, col_zen, col_fac);
+
+					rgb_float_to_uchar(col_ub, col_fl);
+				}
+			}
+
+			glBegin(GL_QUADS);
+			for (x = 0; x < XTOT - 1; x++) {
+				for (y = 0; y < YTOT - 1; y++) {
+					glColor3ubv(grid_col[x][y]);
+					glVertex2fv(grid_pos[x][y]);
+					glColor3ubv(grid_col[x][y + 1]);
+					glVertex2fv(grid_pos[x][y + 1]);
+					glColor3ubv(grid_col[x + 1][y + 1]);
+					glVertex2fv(grid_pos[x + 1][y + 1]);
+					glColor3ubv(grid_col[x + 1][y]);
+					glVertex2fv(grid_pos[x + 1][y]);
+				}
+			}
+			glEnd();
+
+			glMatrixMode(GL_PROJECTION);
+			glPopMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
+
+			glShadeModel(GL_FLAT);
+#undef XTOT
+#undef YTOT
+		}
+		else {  /* solid sky */
+			IMB_colormanagement_pixel_to_display_space_v3(backcol, &scene->world->horr, &scene->view_settings,
+			                                              &scene->display_settings);
+
+			glClearColor(backcol[0], backcol[1], backcol[2], 0.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
+	}
+	else {
+		UI_ThemeClearColor(TH_BACK);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
 
