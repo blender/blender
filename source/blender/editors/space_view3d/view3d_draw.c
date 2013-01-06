@@ -3001,7 +3001,9 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 #define YTOT 16
 
 			GLubyte grid_col[XTOT][YTOT][4];
-			float   grid_pos[XTOT][YTOT][2];
+			static float   grid_pos[XTOT][YTOT][2];
+			static GLushort indices[XTOT-1][XTOT-1][4];
+			static char buf_calculated = FALSE;
 
 			IMB_colormanagement_pixel_to_display_space_v3(col_hor, &scene->world->horr, &scene->view_settings,
 			                                              &scene->display_settings);
@@ -3019,6 +3021,31 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 
 			glShadeModel(GL_SMOOTH);
 
+			/* calculate buffers the first time only */
+			if (!buf_calculated) {
+				for (x = 0; x < XTOT; x++) {
+					for (y = 0; y < YTOT; y++) {
+						const float xf = (float)x / (float)(XTOT - 1);
+						const float yf = (float)y / (float)(YTOT - 1);
+
+						/* -1..1 range */
+						grid_pos[x][y][0] = (xf - 0.5f) * 2.0f;
+						grid_pos[x][y][1] = (yf - 0.5f) * 2.0f;
+					}
+				}
+
+				for (x = 0; x < XTOT - 1; x++) {
+					for (y = 0; y < YTOT - 1; y++) {
+						indices[x][y][0] = x*XTOT + y;
+						indices[x][y][1] = x*XTOT + y + 1;
+						indices[x][y][2] = (x + 1)*XTOT + y + 1;
+						indices[x][y][3] = (x + 1)*XTOT + y;
+					}
+				}
+
+				buf_calculated = TRUE;
+			}
+
 			for (x = 0; x < XTOT; x++) {
 				for (y = 0; y < YTOT; y++) {
 					const float xf = (float)x / (float)(XTOT - 1);
@@ -3030,10 +3057,6 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 
 					float col_fac;
 					float col_fl[3];
-
-					/* -1..1 range */
-					grid_pos[x][y][0] = (xf - 0.5f) * 2.0f;
-					grid_pos[x][y][1] = (yf - 0.5f) * 2.0f;
 
 					ED_view3d_win_to_vector(ar, mval, out);
 
@@ -3061,20 +3084,14 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 				}
 			}
 
-			glBegin(GL_QUADS);
-			for (x = 0; x < XTOT - 1; x++) {
-				for (y = 0; y < YTOT - 1; y++) {
-					glColor4ubv(grid_col[x][y]);
-					glVertex2fv(grid_pos[x][y]);
-					glColor4ubv(grid_col[x][y + 1]);
-					glVertex2fv(grid_pos[x][y + 1]);
-					glColor4ubv(grid_col[x + 1][y + 1]);
-					glVertex2fv(grid_pos[x + 1][y + 1]);
-					glColor4ubv(grid_col[x + 1][y]);
-					glVertex2fv(grid_pos[x + 1][y]);
-				}
-			}
-			glEnd();
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glEnableClientState(GL_COLOR_ARRAY);
+			glVertexPointer(2, GL_FLOAT, 0, grid_pos);
+			glColorPointer(4, GL_UNSIGNED_BYTE, 0, grid_col);
+
+			glDrawElements(GL_QUADS, (XTOT - 1)*(YTOT - 1)*4, GL_UNSIGNED_SHORT, indices);
+			glDisableClientState(GL_VERTEX_ARRAY);
+			glDisableClientState(GL_COLOR_ARRAY);
 
 			glMatrixMode(GL_PROJECTION);
 			glPopMatrix();
