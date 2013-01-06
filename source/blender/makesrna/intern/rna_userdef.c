@@ -758,6 +758,26 @@ static void rna_def_userdef_theme_ui_panel(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
+static void rna_def_userdef_theme_ui_gradient(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "ThemeGradientColors", NULL);
+	RNA_def_struct_sdna(srna, "uiGradientColors");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
+	RNA_def_struct_ui_text(srna, "Theme Gradient Color", "Theme settings for gradient colors");
+
+	prop = RNA_def_property(srna, "gradient", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_ui_text(prop, "Gradient Color", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop = RNA_def_property(srna, "show_grad", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Use Gradient",
+	                         "Do a gradient for the background of the viewport working area");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+}
+
 static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -766,7 +786,8 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 	rna_def_userdef_theme_ui_wcol(brna);
 	rna_def_userdef_theme_ui_wcol_state(brna);
 	rna_def_userdef_theme_ui_panel(brna);
-	
+	rna_def_userdef_theme_ui_gradient(brna);
+
 	srna = RNA_def_struct(brna, "ThemeUserInterface", NULL);
 	RNA_def_struct_sdna(srna, "ThemeUI");
 	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
@@ -1359,6 +1380,11 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "skin_root", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Skin Root", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop = RNA_def_property(srna, "gradients", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_ui_text(prop, "Gradient", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 

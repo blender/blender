@@ -223,7 +223,10 @@ enum {
 	
 	TH_AXIS_X,		/* X/Y/Z Axis */
 	TH_AXIS_Y,
-	TH_AXIS_Z
+	TH_AXIS_Z,
+
+	TH_BACK_GRAD,
+	TH_SHOW_BACK_GRAD
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 

@@ -170,6 +170,13 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					else
 						cp = ts->button;
 					break;
+				case TH_BACK_GRAD:
+					cp = ts->gradients.gradient;
+					break;
+				case TH_SHOW_BACK_GRAD:
+					cp = &setting;
+					setting = ts->gradients.show_grad;
+					break;
 				case TH_TEXT:
 					if (theme_regionid == RGN_TYPE_WINDOW)
 						cp = ts->text;
@@ -2099,7 +2106,7 @@ void init_userdef_do_versions(void)
 			rgba_char_args_set(btheme->text.syntaxs,    76, 76, 76, 255);   /* Grey (mix between fg/bg) */
 		}
 	}
-	
+
 	if (U.pixelsize == 0.0f)
 		U.pixelsize = 1.0f;
 	

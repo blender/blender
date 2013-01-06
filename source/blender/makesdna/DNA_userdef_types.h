@@ -149,6 +149,13 @@ typedef struct uiPanelColors {
 	int pad;
 } uiPanelColors;
 
+typedef struct uiGradientColors {
+	char gradient[4];
+	char pad[4];
+	int show_grad;
+	int pad2;
+} uiGradientColors;
+
 typedef struct ThemeUI {
 	/* Interface Elements (buttons, menus, icons) */
 	uiWidgetColors wcol_regular, wcol_tool, wcol_text;
@@ -210,7 +217,9 @@ typedef struct ThemeSpace {
 	
 	/* note, cannot use name 'panel' because of DNA mapping old files */
 	uiPanelColors panelcolors;
-	
+
+	uiGradientColors gradients;
+
 	char shade1[4];
 	char shade2[4];
 	
@@ -437,6 +446,7 @@ typedef struct UserDef {
 	int ndof_flag;			/* flags for 3D mouse */
 
 	short ogl_multisamples;	/* amount of samples for OpenGL FSA, if zero no FSA */
+
 	short pad4;
 	
 	float glalphaclip;

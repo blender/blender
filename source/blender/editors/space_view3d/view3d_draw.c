@@ -3094,8 +3094,37 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 		}
 	}
 	else {
-		UI_ThemeClearColor(TH_BACK);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		if (UI_GetThemeValue(TH_SHOW_BACK_GRAD)) {
+			/* only clear depth buffer here */
+			glClear(GL_DEPTH_BUFFER_BIT);
+
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+			glLoadIdentity();
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glLoadIdentity();
+
+			glShadeModel(GL_SMOOTH);
+			glBegin(GL_QUADS);
+			UI_ThemeColor(TH_BACK_GRAD);
+			glVertex2f(-1.0, -1.0);
+			glVertex2f(1.0, -1.0);
+			UI_ThemeColor(TH_BACK);
+			glVertex2f(1.0, 1.0);
+			glVertex2f(-1.0, 1.0);
+			glEnd();
+			glShadeModel(GL_FLAT);
+
+			glMatrixMode(GL_PROJECTION);
+			glPopMatrix();
+
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
+		} else {
+			UI_ThemeClearColor(TH_BACK);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
 	}
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
