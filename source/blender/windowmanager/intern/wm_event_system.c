@@ -2792,6 +2792,8 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			switch (pd->subtype) {
 				case GHOST_kTrackpadEventMagnify:
 					event.type = MOUSEZOOM;
+					pd->deltaX = -pd->deltaX;
+					pd->deltaY = -pd->deltaY;
 					break;
 				case GHOST_kTrackpadEventRotate:
 					event.type = MOUSEROTATE;
