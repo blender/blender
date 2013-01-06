@@ -1439,6 +1439,27 @@ bool GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
 
 }
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 1070
+enum {
+    NSEventPhaseNone = 0,
+    NSEventPhaseBegan = 0x1 << 0,
+    NSEventPhaseStationary = 0x1 << 1,
+    NSEventPhaseChanged = 0x1 << 2,
+    NSEventPhaseEnded = 0x1 << 3,
+    NSEventPhaseCancelled = 0x1 << 4,
+};
+typedef NSUInteger NSEventPhase;
+
+@interface NSEvent (AvailableOn1070AndLater)
+- (BOOL)hasPreciseScrollingDeltas;
+- (CGFloat)scrollingDeltaX;
+- (CGFloat)scrollingDeltaY;
+- (NSEventPhase)momentumPhase;
+- (BOOL)isDirectionInvertedFromDevice;
+- (NSEventPhase)phase;
+@end
+#endif
+
 GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 {
 	NSEvent *event = (NSEvent *)eventPtr;
@@ -1581,10 +1602,13 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 			
 		case NSScrollWheel:
 			{
-				int momentum = [event momentumPhase];
+				int *momentum = NULL;
+				
+				if ([event respondsToSelector:@selector(momentumPhase)])
+					momentum = (int *)[event momentumPhase];
 
 				/* standard scrollwheel case, if no swiping happened, and no momentum (kinetic scroll) works */
-				if (!m_hasMultiTouchTrackpad && momentum == 0) {
+				if (!m_hasMultiTouchTrackpad && momentum == NULL) {
 					GHOST_TInt32 delta;
 					
 					double deltaF = [event deltaY];
