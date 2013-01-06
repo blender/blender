@@ -647,6 +647,23 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 		index_mp_to_orig = NULL;
 	}
 
+	/* TODO: not entirely correct, but currently dynamic topology will
+	 *       destroy UVs anyway, so textured display wouldn't work anyway
+	 *
+	 *       this will do more like solid view with lights set up for
+	 *       textured view, but object itself will be displayed gray
+	 *       (the same as it'll display without UV maps in textured view)
+	 */
+	if (cddm->pbvh && cddm->pbvh_draw && BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH) {
+		if (dm->numTessFaceData) {
+			glDisable(GL_TEXTURE_2D);
+			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, FALSE);
+			glEnable(GL_TEXTURE_2D);
+		}
+
+		return;
+	}
+
 	colType = CD_TEXTURE_MCOL;
 	mcol = dm->getTessFaceDataArray(dm, colType);
 	if (!mcol) {
