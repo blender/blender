@@ -779,7 +779,9 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tv3d.camera_path, 0x00, 0x00, 0x00, 255);
 
 	rgba_char_args_set(btheme->tv3d.skin_root, 180, 77, 77, 255);
-	
+	rgba_char_args_set(btheme->tv3d.gradients.gradient, 0, 0, 0, 0);
+	btheme->tv3d.gradients.show_grad = FALSE;
+
 	/* space buttons */
 	/* to have something initialized */
 	btheme->tbuts = btheme->tv3d;
