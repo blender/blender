@@ -1616,6 +1616,21 @@ static PyObject *bpy_bmface_normal_update(BPy_BMFace *self)
 }
 
 
+PyDoc_STRVAR(bpy_bmface_normal_flip_doc,
+".. method:: normal_flip()\n"
+"\n"
+"   Reverses winding of a face, which flips its normal.\n"
+);
+static PyObject *bpy_bmface_normal_flip(BPy_BMFace *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+
+	BM_face_normal_flip(self->bm, self->f);
+
+	Py_RETURN_NONE;
+}
+
+
 /* Loop
  * ---- */
 
@@ -2424,6 +2439,7 @@ static struct PyMethodDef bpy_bmface_methods[] = {
 	{"calc_center_bounds", (PyCFunction)bpy_bmface_calc_center_bounds, METH_NOARGS, bpy_bmface_calc_center_bounds_doc},
 
 	{"normal_update",  (PyCFunction)bpy_bmface_normal_update,  METH_NOARGS,  bpy_bmface_normal_update_doc},
+	{"normal_flip",  (PyCFunction)bpy_bmface_normal_flip,  METH_NOARGS,  bpy_bmface_normal_flip_doc},
 
 		{NULL, NULL, 0, NULL}
 };
