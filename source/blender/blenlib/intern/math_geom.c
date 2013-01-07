@@ -2349,7 +2349,7 @@ void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[
 		vnext = v[inext];
 
 		/* Mark Mayer et al algorithm that is used here does not operate well if vertex is close
-		 * to borders of face. In that case, do simple linear interpolation between the two edges */
+		 * to borders of face. In that case, do simple linear interpolation between the two edge vertices */
 		if (dist_to_line_segment_v3(co, vmid, vnext) < 10*FLT_EPSILON) {
 			edge_interp = true;
 			break;
@@ -2401,7 +2401,7 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
 		vnext = v[inext];
 
 		/* Mark Mayer et al algorithm that is used here does not operate well if vertex is close
-		 * to borders of face. In that case, do simple linear interpolation between the two edges */
+		 * to borders of face. In that case, do simple linear interpolation between the two edge vertices */
 		if (dist_to_line_segment_v2(co, vmid, vnext) < 10*FLT_EPSILON) {
 			edge_interp = true;
 			break;
