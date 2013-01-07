@@ -89,7 +89,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 	etable = MEM_callocN(sizeof(void **) * totedge, __func__);
 
 	/*do verts*/
-	mv = mvert = dm->dupVertArray(dm);
+	mv = mvert = dm->getVertArray(dm);
 	for (i = 0; i < totvert; i++, mv++) {
 		v = BM_vert_create(bm, mv->co, NULL, BM_CREATE_SKIP_CD);
 		normal_short_to_float_v3(v->no, mv->no);
@@ -107,7 +107,6 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 			*orig_index = ORIGINDEX_NONE;
 		}
 	}
-	MEM_freeN(mvert);
 	if (is_init) bm->elem_index_dirty &= ~BM_VERT;
 
 	/*do edges*/
