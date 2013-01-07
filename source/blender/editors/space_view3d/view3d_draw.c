@@ -599,7 +599,7 @@ static void draw_view_axis(RegionView3D *rv3d, rcti *rect)
 	float startx = k + 1.0f; /* axis center in screen coordinates, x=y */
 	float starty = k + 1.0f;
 	float ydisp = 0.0;          /* vertical displacement to allow obj info text */
-	int bright = 25 * (float)U.rvibright + 5; /* axis alpha (rvibright has range 0-10) */
+	int bright = - 20 * (10 - U.rvibright); /* axis alpha offset (rvibright has range 0-10) */
 	float vec[3];
 	float dx, dy;
 	
