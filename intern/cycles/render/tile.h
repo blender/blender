@@ -59,7 +59,7 @@ public:
 	} state;
 
 	TileManager(bool progressive, int num_samples, int2 tile_size, int start_resolution,
-	            bool preserve_tile_device, bool background, int num_devices = 1);
+	            bool preserve_tile_device, bool background, int tile_order, int num_devices = 1);
 	~TileManager();
 
 	void reset(BufferParams& params, int num_samples);
@@ -69,11 +69,21 @@ public:
 	bool done();
 
 protected:
+	/* Note: this should match enum_tile_order in properties.py */
+	enum {
+		CENTER = 0,
+		RIGHT_TO_LEFT = 1,
+		LEFT_TO_RIGHT = 2,
+		TOP_TO_BOTTOM = 3,
+		BOTTOM_TO_TOP = 4
+	} TileOrder;
+	
 	void set_tiles();
 
 	bool progressive;
 	int num_samples;
 	int2 tile_size;
+	int tile_order;
 	int start_resolution;
 	int num_devices;
 
@@ -106,9 +116,12 @@ protected:
 	 * mimics behavior of blender internal's tile order
 	 */
 	list<Tile>::iterator next_center_tile(int device);
+	
+	/* returns simple tile order */
+	list<Tile>::iterator next_simple_tile(int device, int tile_order);
 
-	/* returns first unhandled tile starting from left bottom corner of the image */
-	list<Tile>::iterator next_simple_tile(int device);
+	/* returns first unhandled tile (for viewport) */
+	list<Tile>::iterator next_viewport_tile(int device);
 };
 
 CCL_NAMESPACE_END

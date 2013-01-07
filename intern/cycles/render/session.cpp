@@ -41,7 +41,7 @@ CCL_NAMESPACE_BEGIN
 Session::Session(const SessionParams& params_)
 : params(params_),
   tile_manager(params.progressive, params.samples, params.tile_size, params.start_resolution,
-       params.background == false || params.progressive_refine, params.background,
+       params.background == false || params.progressive_refine, params.background, params.tile_order,
        max(params.device.multi_devices.size(), 1)),
   stats()
 {
