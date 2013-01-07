@@ -1192,6 +1192,16 @@ void GHOST_WindowWin32::processWin32TabletEvent(WPARAM wParam, LPARAM lParam)
 	}
 }
 
+void GHOST_WindowWin32::bringTabletContextToFront()
+{
+	if (m_wintab) {
+		GHOST_WIN32_WTOverlap fpWTOverlap = (GHOST_WIN32_WTOverlap) ::GetProcAddress(m_wintab, "WTOverlap");
+		if (fpWTOverlap) {
+			fpWTOverlap(m_tablet, TRUE);
+		}
+	}
+}
+
 /** Reverse the bits in a GHOST_TUns8 */
 static GHOST_TUns8 uns8ReverseBits(GHOST_TUns8 ch)
 {
