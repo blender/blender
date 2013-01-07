@@ -2298,34 +2298,45 @@ void CustomData_bmesh_merge(CustomData *source, CustomData *dest,
 	BMIter iter;
 	CustomData destold;
 	void *tmp;
-	int t;
+	int iter_type;
+	int totelem;
 
 	/* copy old layer description so that old data can be copied into
 	 * the new allocation */
 	destold = *dest;
-	if (destold.layers) destold.layers = MEM_dupallocN(destold.layers);
-	
-	CustomData_merge(source, dest, mask, alloctype, 0);
-	dest->pool = NULL;
-	CustomData_bmesh_init_pool(dest, 512, htype);
+	if (destold.layers) {
+		destold.layers = MEM_dupallocN(destold.layers);
+	}
 
 	switch (htype) {
 		case BM_VERT:
-			t = BM_VERTS_OF_MESH; break;
+			iter_type = BM_VERTS_OF_MESH;
+			totelem = bm->totvert;
+			break;
 		case BM_EDGE:
-			t = BM_EDGES_OF_MESH; break;
+			iter_type = BM_EDGES_OF_MESH;
+			totelem = bm->totedge;
+			break;
 		case BM_LOOP:
-			t = BM_LOOPS_OF_FACE; break;
+			iter_type = BM_LOOPS_OF_FACE;
+			totelem = bm->totloop;
+			break;
 		case BM_FACE:
-			t = BM_FACES_OF_MESH; break;
+			iter_type = BM_FACES_OF_MESH;
+			totelem = bm->totface;
+			break;
 		default: /* should never happen */
 			BLI_assert(!"invalid type given");
-			t = BM_VERTS_OF_MESH;
+			iter_type = BM_VERTS_OF_MESH;
 	}
 
-	if (t != BM_LOOPS_OF_FACE) {
+	CustomData_merge(source, dest, mask, alloctype, 0);
+	dest->pool = NULL;
+	CustomData_bmesh_init_pool(dest, totelem, htype);
+
+	if (iter_type != BM_LOOPS_OF_FACE) {
 		/*ensure all current elements follow new customdata layout*/
-		BM_ITER_MESH (h, &iter, bm, t) {
+		BM_ITER_MESH (h, &iter, bm, iter_type) {
 			tmp = NULL;
 			CustomData_bmesh_copy_data(&destold, dest, h->data, &tmp);
 			CustomData_bmesh_free_block(&destold, &h->data);
