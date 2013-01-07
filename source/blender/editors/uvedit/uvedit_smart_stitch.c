@@ -1273,7 +1273,8 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 			UvElement *element = state->selection_stack[i];
 
 			stitch_propagate_uv_final_position (element, i, preview_position, final_position, state, final, scene);
-		}  else {
+		}
+		else {
 			UvEdge *edge = state->selection_stack[i];
 
 			stitch_propagate_uv_final_position (state->uvs[edge->uv1], edge->uv1, preview_position, final_position, state, final, scene);

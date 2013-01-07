@@ -3138,7 +3138,8 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 
 			glMatrixMode(GL_MODELVIEW);
 			glPopMatrix();
-		} else {
+		}
+		else {
 			UI_ThemeClearColor(TH_BACK);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		}
