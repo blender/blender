@@ -33,6 +33,8 @@
 #include <Python.h>
 #include <frameobject.h>
 
+#include "BLI_utildefines.h"  /* for bool */
+
 #include "py_capi_utils.h"
 
 /* only for BLI_strncpy_wchar_from_utf8, should replace with py funcs but too late in release now */
@@ -44,7 +46,7 @@
 
 /* array utility function */
 int PyC_AsArray(void *array, PyObject *value, const Py_ssize_t length,
-                const PyTypeObject *type, const short is_double, const char *error_prefix)
+                const PyTypeObject *type, const bool is_double, const char *error_prefix)
 {
 	PyObject *value_fast;
 	Py_ssize_t value_len;
@@ -114,7 +116,7 @@ int PyC_AsArray(void *array, PyObject *value, const Py_ssize_t length,
 
 /* array utility function */
 PyObject *PyC_FromArray(const void *array, int length, const PyTypeObject *type,
-                        const short is_double, const char *error_prefix)
+                        const bool is_double, const char *error_prefix)
 {
 	PyObject *tuple;
 	int i;

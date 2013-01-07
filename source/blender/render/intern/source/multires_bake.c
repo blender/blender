@@ -952,7 +952,7 @@ static void create_ao_raytree(MultiresBakeRender *bkr, MAOBakeData *ao_data)
 	RayFace *face;
 	CCGElem **grid_data;
 	CCGKey key;
-	int num_grids, grid_size, face_side, num_faces;
+	int num_grids, grid_size /*, face_side */, num_faces;
 	int i;
 
 	num_grids = hidm->getNumGrids(hidm);
@@ -960,7 +960,7 @@ static void create_ao_raytree(MultiresBakeRender *bkr, MAOBakeData *ao_data)
 	grid_data = hidm->getGridData(hidm);
 	hidm->getGridKey(hidm, &key);
 
-	face_side = (grid_size << 1) - 1;
+	/* face_side = (grid_size << 1) - 1; */  /* UNUSED */
 	num_faces = num_grids * (grid_size - 1) * (grid_size - 1);
 
 	raytree = ao_data->raytree = RE_rayobject_create(bkr->raytrace_structure, num_faces, bkr->octree_resolution);

@@ -222,7 +222,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
 		result = insert_keyframe(&reports, (ID *)self->ptr.id.data, NULL, group_name, path_full, index, cfra, options);
 		MEM_freeN((void *)path_full);
 
-		if (BPy_reports_to_error(&reports, PyExc_RuntimeError, TRUE) == -1)
+		if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1)
 			return NULL;
 
 		return PyBool_FromLong(result);
@@ -271,7 +271,7 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
 		result = delete_keyframe(&reports, (ID *)self->ptr.id.data, NULL, group_name, path_full, index, cfra, 0);
 		MEM_freeN((void *)path_full);
 
-		if (BPy_reports_to_error(&reports, PyExc_RuntimeError, TRUE) == -1)
+		if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1)
 			return NULL;
 
 		return PyBool_FromLong(result);
@@ -313,7 +313,7 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 
 		result = ANIM_add_driver(&reports, (ID *)self->ptr.id.data, path_full, index, 0, DRIVER_TYPE_PYTHON);
 
-		if (BPy_reports_to_error(&reports, PyExc_RuntimeError, TRUE) == -1)
+		if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1)
 			return NULL;
 
 		if (result) {
@@ -390,7 +390,7 @@ PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
 
 		MEM_freeN((void *)path_full);
 
-		if (BPy_reports_to_error(&reports, PyExc_RuntimeError, TRUE) == -1)
+		if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1)
 			return NULL;
 		
 		WM_event_add_notifier(BPy_GetContext(), NC_ANIMATION | ND_FCURVES_ORDER, NULL);

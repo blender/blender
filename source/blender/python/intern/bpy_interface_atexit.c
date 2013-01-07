@@ -31,12 +31,12 @@
 
 #include <Python.h>
 
+#include "BLI_utildefines.h"
+
 #include "bpy_util.h"
 #include "bpy.h"  /* own include */
 
 #include "WM_api.h"
-
-#include "BLI_utildefines.h"
 
 static PyObject *bpy_atexit(PyObject *UNUSED(self), PyObject *UNUSED(args), PyObject *UNUSED(kw))
 {

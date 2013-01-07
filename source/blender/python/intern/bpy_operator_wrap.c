@@ -112,7 +112,7 @@ PyObject *PYOP_wrap_macro_define(PyObject *UNUSED(self), PyObject *args)
 	if (!PyArg_ParseTuple(args, "Os:_bpy.ops.macro_define", &macro, &opname))
 		return NULL;
 
-	if (WM_operatortype_find(opname, TRUE) == NULL) {
+	if (WM_operatortype_find(opname, true) == NULL) {
 		PyErr_Format(PyExc_ValueError,
 		             "Macro Define: '%s' is not a valid operator id",
 		             opname);
@@ -123,7 +123,7 @@ PyObject *PYOP_wrap_macro_define(PyObject *UNUSED(self), PyObject *args)
 	srna = srna_from_self(macro, "Macro Define:");
 	macroname = RNA_struct_identifier(srna);
 
-	ot = WM_operatortype_find(macroname, TRUE);
+	ot = WM_operatortype_find(macroname, true);
 
 	if (!ot) {
 		PyErr_Format(PyExc_ValueError,

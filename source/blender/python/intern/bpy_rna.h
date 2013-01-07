@@ -115,7 +115,7 @@ typedef struct {
 #endif /* !USE_PYRNA_STRUCT_REFERENCE */
 
 #ifdef PYRNA_FREE_SUPPORT
-	int freeptr; /* needed in some cases if ptr.data is created on the fly, free when deallocing */
+	bool freeptr;  /* needed in some cases if ptr.data is created on the fly, free when deallocing */
 #endif /* PYRNA_FREE_SUPPORT */
 } BPy_StructRNA;
 
@@ -164,7 +164,7 @@ typedef struct {
 #define BPy_BaseTypeRNA BPy_PropertyRNA
 
 StructRNA *srna_from_self(PyObject *self, const char *error_prefix);
-StructRNA *pyrna_struct_as_srna(PyObject *self, int parent, const char *error_prefix);
+StructRNA *pyrna_struct_as_srna(PyObject *self, const bool parent, const char *error_prefix);
 
 void      BPY_rna_init(void);
 PyObject *BPY_rna_module(void);
@@ -178,7 +178,7 @@ PyObject *pyrna_prop_CreatePyObject(PointerRNA *ptr, PropertyRNA *prop);
 
 /* extern'd by other modules which don't deal closely with RNA */
 PyObject *pyrna_id_CreatePyObject(struct ID *id);
-int       pyrna_id_FromPyObject(PyObject *obj, struct ID **id);
+bool      pyrna_id_FromPyObject(PyObject *obj, struct ID **id);
 
 /* operators also need this to set args */
 int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, int all_args, const char *error_prefix);
@@ -205,8 +205,8 @@ PyObject *pyrna_py_from_array_index(BPy_PropertyArrayRNA *self, PointerRNA *ptr,
 PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop);
 int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value);
 
-int pyrna_write_check(void);
-void pyrna_write_set(int val);
+bool pyrna_write_check(void);
+void pyrna_write_set(bool val);
 
 void pyrna_invalidate(BPy_DummyPointerRNA *self);
 int pyrna_struct_validity_check(BPy_StructRNA *pysrna);

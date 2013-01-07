@@ -29,9 +29,13 @@
 
 #include <Python.h>
 
-#include "bpy_util.h"
+#include "BLI_utildefines.h"
 #include "BLI_dynstr.h"
+
+#include "bpy_util.h"
+
 #include "MEM_guardedalloc.h"
+
 #include "BKE_report.h"
 #include "BKE_context.h"
 
@@ -59,13 +63,13 @@ char *BPy_enum_as_string(EnumPropertyItem *item)
 	return cstring;
 }
 
-short BPy_reports_to_error(ReportList *reports, PyObject *exception, const short clear)
+short BPy_reports_to_error(ReportList *reports, PyObject *exception, const bool clear)
 {
 	char *report_str;
 
 	report_str = BKE_reports_string(reports, RPT_ERROR);
 
-	if (clear) {
+	if (clear == true) {
 		BKE_reports_clear(reports);
 	}
 

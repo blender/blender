@@ -66,7 +66,7 @@ void BPY_python_end(void);
 
 /* 2.5 UI Scripts */
 int		BPY_filepath_exec(struct bContext *C, const char *filepath, struct ReportList *reports);
-int		BPY_text_exec(struct bContext *C, struct Text *text, struct ReportList *reports, const short do_jump);
+int		BPY_text_exec(struct bContext *C, struct Text *text, struct ReportList *reports, const bool do_jump);
 void	BPY_text_free_code(struct Text *text);
 void	BPY_modules_update(struct bContext *C); // XXX - annoying, need this for pointers that get out of date
 void	BPY_modules_load_user(struct bContext *C);

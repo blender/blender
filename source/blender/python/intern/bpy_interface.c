@@ -39,6 +39,15 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_path_util.h"
+#include "BLI_fileops.h"
+#include "BLI_listbase.h"
+#include "BLI_math_base.h"
+#include "BLI_string.h"
+#include "BLI_string_utf8.h"
+#include "BLI_utildefines.h"
+#include "BLI_threads.h"
+
 #include "RNA_types.h"
 
 #include "bpy.h"
@@ -51,15 +60,6 @@
 
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
-
-#include "BLI_path_util.h"
-#include "BLI_fileops.h"
-#include "BLI_listbase.h"
-#include "BLI_math_base.h"
-#include "BLI_string.h"
-#include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
-#include "BLI_threads.h"
 
 #include "BKE_context.h"
 #include "BKE_text.h"
@@ -166,7 +166,7 @@ void BPY_text_free_code(Text *text)
 {
 	if (text->compiled) {
 		PyGILState_STATE gilstate;
-		int use_gil = !PYC_INTERPRETER_ACTIVE;
+		bool use_gil = !PYC_INTERPRETER_ACTIVE;
 
 		if (use_gil)
 			gilstate = PyGILState_Ensure();
@@ -378,8 +378,8 @@ static void python_script_error_jump_text(struct Text *text)
 	python_script_error_jump(text->id.name + 2, &lineno, &offset);
 	if (lineno != -1) {
 		/* select the line with the error */
-		txt_move_to(text, lineno - 1, INT_MAX, FALSE);
-		txt_move_to(text, lineno - 1, offset, TRUE);
+		txt_move_to(text, lineno - 1, INT_MAX, false);
+		txt_move_to(text, lineno - 1, offset, true);
 	}
 }
 
@@ -397,7 +397,7 @@ typedef struct {
 #endif
 
 static int python_script_exec(bContext *C, const char *fn, struct Text *text,
-                              struct ReportList *reports, const short do_jump)
+                              struct ReportList *reports, const bool do_jump)
 {
 	Main *bmain_old = CTX_data_main(C);
 	PyObject *main_mod = NULL;
@@ -514,11 +514,11 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text,
 /* Can run a file or text block */
 int BPY_filepath_exec(bContext *C, const char *filepath, struct ReportList *reports)
 {
-	return python_script_exec(C, filepath, NULL, reports, FALSE);
+	return python_script_exec(C, filepath, NULL, reports, false);
 }
 
 
-int BPY_text_exec(bContext *C, struct Text *text, struct ReportList *reports, const short do_jump)
+int BPY_text_exec(bContext *C, struct Text *text, struct ReportList *reports, const bool do_jump)
 {
 	return python_script_exec(C, NULL, text, reports, do_jump);
 }
@@ -719,12 +719,12 @@ void BPY_modules_load_user(bContext *C)
 int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *result)
 {
 	PyGILState_STATE gilstate;
-	int use_gil = !PYC_INTERPRETER_ACTIVE;
+	bool use_gil = !PYC_INTERPRETER_ACTIVE;
 
 	PyObject *pyctx;
 	PyObject *item;
 	PointerRNA *ptr = NULL;
-	int done = FALSE;
+	bool done = false;
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();
@@ -743,7 +743,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 
 		//result->ptr = ((BPy_StructRNA *)item)->ptr;
 		CTX_data_pointer_set(result, ptr->id.data, ptr->type, ptr->data);
-		done = TRUE;
+		done = true;
 	}
 	else if (PySequence_Check(item)) {
 		PyObject *seq_fast = PySequence_Fast(item, "bpy_context_get sequence conversion");
@@ -774,7 +774,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 			}
 			Py_DECREF(seq_fast);
 
-			done = TRUE;
+			done = true;
 		}
 	}
 
