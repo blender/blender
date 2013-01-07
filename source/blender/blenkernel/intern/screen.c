@@ -167,6 +167,7 @@ ARegion *BKE_area_region_copy(SpaceType *st, ARegion *ar)
 	newar->prev = newar->next = NULL;
 	newar->handlers.first = newar->handlers.last = NULL;
 	newar->uiblocks.first = newar->uiblocks.last = NULL;
+	newar->ui_lists.first = newar->ui_lists.last = NULL;
 	newar->swinid = 0;
 	
 	/* use optional regiondata callback */
