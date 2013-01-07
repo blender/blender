@@ -402,39 +402,52 @@ static void rna_trackingDopesheet_tagUpdate(Main *UNUSED(bmain), Scene *scene, P
 
 /* API */
 
-static void add_tracks_to_base(MovieClip *clip, MovieTracking *tracking, ListBase *tracksbase, int frame, int number)
+static MovieTrackingTrack *add_track_to_base(MovieClip *clip, MovieTracking *tracking, ListBase *tracksbase, const char *name, int frame)
 {
-	int a, width, height;
+	int width, height;
 	MovieClipUser user = {0};
+	MovieTrackingTrack *track;
 
 	user.framenr = 1;
 
 	BKE_movieclip_get_size(clip, &user, &width, &height);
 
-	for (a = 0; a < number; a++)
-		BKE_tracking_track_add(tracking, tracksbase, 0, 0, frame, width, height);
+	track = BKE_tracking_track_add(tracking, tracksbase, 0, 0, frame, width, height);
+
+	if (name && name[0]) {
+		BLI_strncpy(track->name, name, sizeof(track->name));
+		BKE_tracking_track_unique_name(tracksbase, track);
+	}
+
+	return track;
 }
 
-static void rna_trackingTracks_add(ID *id, MovieTracking *tracking, int frame, int number)
+static MovieTrackingTrack *rna_trackingTracks_new(ID *id, MovieTracking *tracking, const char *name, int frame)
 {
 	MovieClip *clip = (MovieClip *) id;
+	MovieTrackingTrack *track;
 
-	add_tracks_to_base(clip, tracking, &tracking->tracks, frame, number);
+	track = add_track_to_base(clip, tracking, &tracking->tracks, name, frame);
 
 	WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, clip);
+
+	return track;
 }
 
-static void rna_trackingObject_tracks_add(ID *id, MovieTrackingObject *object, int frame, int number)
+static MovieTrackingTrack *rna_trackingObject_tracks_new(ID *id, MovieTrackingObject *object, const char *name, int frame)
 {
 	MovieClip *clip = (MovieClip *) id;
 	ListBase *tracksbase = &object->tracks;
+	MovieTrackingTrack *track;
 
 	if (object->flag & TRACKING_OBJECT_CAMERA)
 		tracksbase = &clip->tracking.tracks;
 
-	add_tracks_to_base(clip, &clip->tracking, tracksbase, frame, number);
+	track = add_track_to_base(clip, &clip->tracking, tracksbase, name, frame);
 
 	WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, NULL);
+
+	return track;
 }
 
 static MovieTrackingObject *rna_trackingObject_new(MovieTracking *tracking, const char *name)
@@ -1326,16 +1339,19 @@ static void rna_def_trackingTracks(BlenderRNA *brna)
 	StructRNA *srna;
 	FunctionRNA *func;
 	PropertyRNA *prop;
+	PropertyRNA *parm;
 
 	srna = RNA_def_struct(brna, "MovieTrackingTracks", NULL);
 	RNA_def_struct_sdna(srna, "MovieTracking");
 	RNA_def_struct_ui_text(srna, "Movie Tracks", "Collection of movie tracking tracks");
 
-	func = RNA_def_function(srna, "add", "rna_trackingTracks_add");
+	func = RNA_def_function(srna, "new", "rna_trackingTracks_new");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
-	RNA_def_function_ui_description(func, "Add a number of tracks to this movie clip");
-	RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame", "Frame number to add tracks on", MINFRAME, MAXFRAME);
-	RNA_def_int(func, "count", 1, 0, INT_MAX, "Number", "Number of tracks to add to the movie clip", 0, INT_MAX);
+	RNA_def_function_ui_description(func, "Create new motion track in this movie clip");
+	RNA_def_string(func, "name", "", 0, "", "Name of new track");
+	RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame", "Frame number to add track on", MINFRAME, MAXFRAME);
+	parm = RNA_def_pointer(func, "track", "MovieTrackingTrack", "", "Newly created track");
+	RNA_def_function_return(func, parm);
 
 	/* active track */
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
@@ -1350,16 +1366,19 @@ static void rna_def_trackingObjectTracks(BlenderRNA *brna)
 	StructRNA *srna;
 	FunctionRNA *func;
 	PropertyRNA *prop;
+	PropertyRNA *parm;
 
 	srna = RNA_def_struct(brna, "MovieTrackingObjectTracks", NULL);
 	RNA_def_struct_sdna(srna, "MovieTrackingObject");
 	RNA_def_struct_ui_text(srna, "Movie Tracks", "Collection of movie tracking tracks");
 
-	func = RNA_def_function(srna, "add", "rna_trackingObject_tracks_add");
+	func = RNA_def_function(srna, "new", "rna_trackingObject_tracks_new");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
-	RNA_def_function_ui_description(func, "Add a number of tracks to this movie clip");
+	RNA_def_function_ui_description(func, "create new motion track in this movie clip");
+	RNA_def_string(func, "name", "", 0, "", "Name of new track");
 	RNA_def_int(func, "frame", 1, MINFRAME, MAXFRAME, "Frame", "Frame number to add tracks on", MINFRAME, MAXFRAME);
-	RNA_def_int(func, "count", 1, 0, INT_MAX, "Number", "Number of tracks to add to the movie clip", 0, INT_MAX);
+	parm = RNA_def_pointer(func, "track", "MovieTrackingTrack", "", "Newly created track");
+	RNA_def_function_return(func, parm);
 
 	/* active track */
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
