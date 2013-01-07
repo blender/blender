@@ -2967,29 +2967,11 @@ static void view3d_main_area_draw_engine_info(RegionView3D *rv3d, ARegion *ar)
 	ED_region_info_draw(ar, rv3d->render_engine->text, 1, 0.25);
 }
 
-/* warning: this function has duplicate drawing in ED_view3d_draw_offscreen() */
-static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const char **grid_unit)
+/*
+ * Function to clear the view
+ */
+static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar)
 {
-	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-	Base *base;
-	float backcol[3];
-	unsigned int lay_used;
-
-	/* shadow buffers, before we setup matrices */
-	if (draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
-		gpu_update_lamps_shadows(scene, v3d);
-	
-	/* reset default OpenGL lights if needed (i.e. after preferences have been altered) */
-	if (rv3d->rflag & RV3D_GPULIGHT_UPDATE) {
-		rv3d->rflag &= ~RV3D_GPULIGHT_UPDATE;
-		GPU_default_lights();
-	}
-
-	/* setup view matrices */
-	view3d_main_area_setup_view(scene, v3d, ar, NULL, NULL);
-
 	/* clear background */
 	if (scene->world && (v3d->flag2 & V3D_RENDER_OVERRIDE)) {  /* clear with solid color */
 		if (scene->world->skytype & WO_SKYBLEND) {  /* blend sky */
@@ -2997,12 +2979,12 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 			float col_hor[3];
 			float col_zen[3];
 
-#define XTOT 16
-#define YTOT 16
+#define VIEWGRAD_RES_X 16
+#define VIEWGRAD_RES_Y 16
 
-			GLubyte grid_col[XTOT][YTOT][4];
-			static float   grid_pos[XTOT][YTOT][2];
-			static GLushort indices[XTOT-1][XTOT-1][4];
+			GLubyte grid_col[VIEWGRAD_RES_X][VIEWGRAD_RES_Y][4];
+			static float   grid_pos[VIEWGRAD_RES_X][VIEWGRAD_RES_Y][2];
+			static GLushort indices[VIEWGRAD_RES_X - 1][VIEWGRAD_RES_X - 1][4];
 			static char buf_calculated = FALSE;
 
 			IMB_colormanagement_pixel_to_display_space_v3(col_hor, &scene->world->horr, &scene->view_settings,
@@ -3023,10 +3005,10 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 
 			/* calculate buffers the first time only */
 			if (!buf_calculated) {
-				for (x = 0; x < XTOT; x++) {
-					for (y = 0; y < YTOT; y++) {
-						const float xf = (float)x / (float)(XTOT - 1);
-						const float yf = (float)y / (float)(YTOT - 1);
+				for (x = 0; x < VIEWGRAD_RES_X; x++) {
+					for (y = 0; y < VIEWGRAD_RES_Y; y++) {
+						const float xf = (float)x / (float)(VIEWGRAD_RES_X - 1);
+						const float yf = (float)y / (float)(VIEWGRAD_RES_Y - 1);
 
 						/* -1..1 range */
 						grid_pos[x][y][0] = (xf - 0.5f) * 2.0f;
@@ -3034,22 +3016,22 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 					}
 				}
 
-				for (x = 0; x < XTOT - 1; x++) {
-					for (y = 0; y < YTOT - 1; y++) {
-						indices[x][y][0] = x * XTOT + y;
-						indices[x][y][1] = x * XTOT + y + 1;
-						indices[x][y][2] = (x + 1) * XTOT + y + 1;
-						indices[x][y][3] = (x + 1) * XTOT + y;
+				for (x = 0; x < VIEWGRAD_RES_X - 1; x++) {
+					for (y = 0; y < VIEWGRAD_RES_Y - 1; y++) {
+						indices[x][y][0] = x * VIEWGRAD_RES_X + y;
+						indices[x][y][1] = x * VIEWGRAD_RES_X + y + 1;
+						indices[x][y][2] = (x + 1) * VIEWGRAD_RES_X + y + 1;
+						indices[x][y][3] = (x + 1) * VIEWGRAD_RES_X + y;
 					}
 				}
 
 				buf_calculated = TRUE;
 			}
 
-			for (x = 0; x < XTOT; x++) {
-				for (y = 0; y < YTOT; y++) {
-					const float xf = (float)x / (float)(XTOT - 1);
-					const float yf = (float)y / (float)(YTOT - 1);
+			for (x = 0; x < VIEWGRAD_RES_X; x++) {
+				for (y = 0; y < VIEWGRAD_RES_Y; y++) {
+					const float xf = (float)x / (float)(VIEWGRAD_RES_X - 1);
+					const float yf = (float)y / (float)(VIEWGRAD_RES_Y - 1);
 					const float mval[2] = {xf * (float)ar->winx, yf * ar->winy};
 					const float z_up[3] = {0.0f, 0.0f, 1.0f};
 					float out[3];
@@ -3062,10 +3044,10 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 
 					if (scene->world->skytype & WO_SKYPAPER) {
 						if (scene->world->skytype & WO_SKYREAL) {
-							col_fac = fabsf(((float)y / (float)YTOT) - 0.5f) * 2.0f;
+							col_fac = fabsf(((float)y / (float)VIEWGRAD_RES_Y) - 0.5f) * 2.0f;
 						}
 						else {
-							col_fac = (float)y / (float)YTOT;
+							col_fac = (float)y / (float)VIEWGRAD_RES_Y;
 						}
 					}
 					else {
@@ -3089,7 +3071,7 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 			glVertexPointer(2, GL_FLOAT, 0, grid_pos);
 			glColorPointer(4, GL_UNSIGNED_BYTE, 0, grid_col);
 
-			glDrawElements(GL_QUADS, (XTOT - 1) * (YTOT - 1) * 4, GL_UNSIGNED_SHORT, indices);
+			glDrawElements(GL_QUADS, (VIEWGRAD_RES_X - 1) * (VIEWGRAD_RES_Y - 1) * 4, GL_UNSIGNED_SHORT, indices);
 			glDisableClientState(GL_VERTEX_ARRAY);
 			glDisableClientState(GL_COLOR_ARRAY);
 
@@ -3099,14 +3081,16 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 			glPopMatrix();
 
 			glShadeModel(GL_FLAT);
-#undef XTOT
-#undef YTOT
+
+#undef VIEWGRAD_RES_X
+#undef VIEWGRAD_RES_Y
 		}
 		else {  /* solid sky */
-			IMB_colormanagement_pixel_to_display_space_v3(backcol, &scene->world->horr, &scene->view_settings,
+			float col_hor[3];
+			IMB_colormanagement_pixel_to_display_space_v3(col_hor, &scene->world->horr, &scene->view_settings,
 			                                              &scene->display_settings);
 
-			glClearColor(backcol[0], backcol[1], backcol[2], 0.0f);
+			glClearColor(col_hor[0], col_hor[1], col_hor[2], 0.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		}
 	}
@@ -3144,6 +3128,32 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		}
 	}
+}
+
+/* warning: this function has duplicate drawing in ED_view3d_draw_offscreen() */
+static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const char **grid_unit)
+{
+	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	Base *base;
+	unsigned int lay_used;
+
+	/* shadow buffers, before we setup matrices */
+	if (draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
+		gpu_update_lamps_shadows(scene, v3d);
+	
+	/* reset default OpenGL lights if needed (i.e. after preferences have been altered) */
+	if (rv3d->rflag & RV3D_GPULIGHT_UPDATE) {
+		rv3d->rflag &= ~RV3D_GPULIGHT_UPDATE;
+		GPU_default_lights();
+	}
+
+	/* setup view matrices */
+	view3d_main_area_setup_view(scene, v3d, ar, NULL, NULL);
+
+	/* clear the background */
+	view3d_main_area_clear(scene, v3d, ar);
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
 
