@@ -131,30 +131,19 @@ float area_tri_v3(const float v1[3], const float v2[3], const float v3[3])
 
 float area_poly_v3(int nr, float verts[][3], const float normal[3])
 {
-	float x, y, z, area, max;
-	float *cur, *prev;
-	int a, px = 0, py = 1;
-
-	/* first: find dominant axis: 0==X, 1==Y, 2==Z
-	 * don't use 'axis_dominant_v3()' because we need max axis too */
-	x = fabsf(normal[0]);
-	y = fabsf(normal[1]);
-	z = fabsf(normal[2]);
-	max = max_fff(x, y, z);
-	if (max == y) py = 2;
-	else if (max == x) {
-		px = 1;
-		py = 2;
-	}
+	int a, px, py;
+	const float max = axis_dominant_v3_max(&px, &py, normal);
+	float area;
+	float *co_curr, *co_prev;
 
 	/* The Trapezium Area Rule */
-	prev = verts[nr - 1];
-	cur = verts[0];
-	area = 0;
+	co_prev = verts[nr - 1];
+	co_curr = verts[0];
+	area = 0.0f;
 	for (a = 0; a < nr; a++) {
-		area += (cur[px] - prev[px]) * (cur[py] + prev[py]);
-		prev = verts[a];
-		cur = verts[a + 1];
+		area += (co_curr[px] - co_prev[px]) * (co_curr[py] + co_prev[py]);
+		co_prev = verts[a];
+		co_curr = verts[a + 1];
 	}
 
 	return fabsf(0.5f * area / max);
@@ -1952,15 +1941,27 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], int (*callback)(int, int,
 /****************************** Interpolation ********************************/
 
 /* get the 2 dominant axis values, 0==X, 1==Y, 2==Z */
-void axis_dominant_v3(int *axis_a, int *axis_b, const float axis[3])
+void axis_dominant_v3(int *r_axis_a, int *r_axis_b, const float axis[3])
 {
 	const float xn = fabsf(axis[0]);
 	const float yn = fabsf(axis[1]);
 	const float zn = fabsf(axis[2]);
 
-	if      (zn >= xn && zn >= yn) { *axis_a = 0; *axis_b = 1; }
-	else if (yn >= xn && yn >= zn) { *axis_a = 0; *axis_b = 2; }
-	else                           { *axis_a = 1; *axis_b = 2; }
+	if      (zn >= xn && zn >= yn) { *r_axis_a = 0; *r_axis_b = 1; }
+	else if (yn >= xn && yn >= zn) { *r_axis_a = 0; *r_axis_b = 2; }
+	else                           { *r_axis_a = 1; *r_axis_b = 2; }
+}
+
+/* same as axis_dominant_v3 but return the max value */
+float axis_dominant_v3_max(int *r_axis_a, int *r_axis_b, const float axis[3])
+{
+	const float xn = fabsf(axis[0]);
+	const float yn = fabsf(axis[1]);
+	const float zn = fabsf(axis[2]);
+
+	if      (zn >= xn && zn >= yn) { *r_axis_a = 0; *r_axis_b = 1; return zn; }
+	else if (yn >= xn && yn >= zn) { *r_axis_a = 0; *r_axis_b = 2; return yn; }
+	else                           { *r_axis_a = 1; *r_axis_b = 2; return xn; }
 }
 
 static float tri_signed_area(const float v1[3], const float v2[3], const float v3[3], const int i, const int j)

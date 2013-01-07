@@ -260,7 +260,12 @@ MINLINE void madd_sh_shfl(float r[9], const float sh[3], const float f);
 float form_factor_hemi_poly(float p[3], float n[3],
                             float v1[3], float v2[3], float v3[3], float v4[3]);
 
-void axis_dominant_v3(int *axis_a, int *axis_b, const float axis[3]);
+void  axis_dominant_v3(int *r_axis_a, int *r_axis_b, const float axis[3]);
+float axis_dominant_v3_max(int *r_axis_a, int *r_axis_b, const float axis[3])
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+#endif
+;
 
 MINLINE int max_axis_v3(const float vec[3]);
 MINLINE int min_axis_v3(const float vec[3]);
