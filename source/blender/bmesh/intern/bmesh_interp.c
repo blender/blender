@@ -606,9 +606,9 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	void **vblocks  = do_vertex ? BLI_array_alloca(vblocks, source->len) : NULL;
 	void **blocks   = BLI_array_alloca(blocks,  source->len);
 	float (*cos)[3] = BLI_array_alloca(cos,     source->len);
+	float (*cos_2d)[2] = BLI_array_alloca(cos_2d,     source->len);
 	float *w        = BLI_array_alloca(w,       source->len);
-	float co[3];
-	float cent[3] = {0.0f, 0.0f, 0.0f};
+	float co[2];
 	int i, ax, ay;
 
 	BM_elem_attrs_copy(bm, bm, source, target->f);
@@ -617,7 +617,6 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 	l_iter = l_first = BM_FACE_FIRST_LOOP(source);
 	do {
 		copy_v3_v3(cos[i], l_iter->v->co);
-		add_v3_v3(cent, cos[i]);
 
 		w[i] = 0.0f;
 		blocks[i] = l_iter->head.data;
@@ -634,28 +633,17 @@ void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
 
 	axis_dominant_v3(&ax, &ay, source->no);
 
-	/* scale source face coordinates a bit, so points sitting directly on an
-	 * edge will work. */
-	mul_v3_fl(cent, 1.0f / (float)source->len);
 	for (i = 0; i < source->len; i++) {
-		float vec[3], tmp[3];
-		sub_v3_v3v3(vec, cent, cos[i]);
-		mul_v3_fl(vec, 0.001f);
-		add_v3_v3(cos[i], vec);
-
-		copy_v3_v3(tmp, cos[i]);
-		cos[i][0] = tmp[ax];
-		cos[i][1] = tmp[ay];
-		cos[i][2] = 0.0f;
+		cos_2d[i][0] = cos[i][ax];
+		cos_2d[i][1] = cos[i][ay];
 	}
 
 
 	/* interpolate */
 	co[0] = target->v->co[ax];
 	co[1] = target->v->co[ay];
-	co[2] = 0.0f;
 
-	interp_weights_poly_v3(w, cos, source->len, co);
+	interp_weights_poly_v2(w, cos_2d, source->len, co);
 	CustomData_bmesh_interp(&bm->ldata, blocks, w, NULL, source->len, target->head.data);
 	if (do_vertex) {
 		CustomData_bmesh_interp(&bm->vdata, vblocks, w, NULL, source->len, target->v->head.data);
@@ -676,29 +664,17 @@ void BM_vert_interp_from_face(BMesh *bm, BMVert *v, BMFace *source)
 	void **blocks   = BLI_array_alloca(blocks, source->len);
 	float (*cos)[3] = BLI_array_alloca(cos,    source->len);
 	float *w        = BLI_array_alloca(w,      source->len);
-	float cent[3] = {0.0f, 0.0f, 0.0f};
 	int i;
 
 	i = 0;
 	l_iter = l_first = BM_FACE_FIRST_LOOP(source);
 	do {
 		copy_v3_v3(cos[i], l_iter->v->co);
-		add_v3_v3(cent, cos[i]);
 
 		w[i] = 0.0f;
 		blocks[i] = l_iter->v->head.data;
 		i++;
 	} while ((l_iter = l_iter->next) != l_first);
-
-	/* scale source face coordinates a bit, so points sitting directly on an
-	 * edge will work. */
-	mul_v3_fl(cent, 1.0f / (float)source->len);
-	for (i = 0; i < source->len; i++) {
-		float vec[3];
-		sub_v3_v3v3(vec, cent, cos[i]);
-		mul_v3_fl(vec, 0.01f);
-		add_v3_v3(cos[i], vec);
-	}
 
 	/* interpolate */
 	interp_weights_poly_v3(w, cos, source->len, v->co);

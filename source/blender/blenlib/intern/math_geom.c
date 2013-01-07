@@ -2335,14 +2335,25 @@ void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[
 {
 	/* TODO: t1 and t2 overlap each iter, we could call this only once per iter and reuse previous value */
 	float totweight, t1, t2, len, *vmid, *vprev, *vnext;
-	int i;
+	int i, inext, icur;
+	bool edge_interp = false;
 
 	totweight = 0.0f;
 
 	for (i = 0; i < n; i++) {
+		icur = i;
+		inext = (i == n - 1) ? 0 : i + 1;
+
 		vmid = v[i];
 		vprev = (i == 0) ? v[n - 1] : v[i - 1];
-		vnext = (i == n - 1) ? v[0] : v[i + 1];
+		vnext = v[inext];
+
+		/* Mark Mayer et al algorithm that is used here does not operate well if vertex is close
+		 * to borders of face. In that case, do simple linear interpolation between the two edges */
+		if (dist_to_line_segment_v3(co, vmid, vnext) < 10*FLT_EPSILON) {
+			edge_interp = true;
+			break;
+		}
 
 		t1 = mean_value_half_tan_v3(co, vprev, vmid);
 		t2 = mean_value_half_tan_v3(co, vmid, vnext);
@@ -2352,25 +2363,49 @@ void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[
 		totweight += w[i];
 	}
 
-	if (totweight != 0.0f) {
-		for (i = 0; i < n; i++) {
-			w[i] /= totweight;
+	if (edge_interp) {
+		float len_cur = len_v3v3(co, vmid);
+		float len_next = len_v3v3(co, vnext);
+		float edge_len = len_cur + len_next;
+		for (i = 0; i < n; i++)
+			w[i] = 0.0;
+
+		w[icur] = len_next/edge_len;
+		w[inext] = len_cur/edge_len;
+	}
+	else {
+		if (totweight != 0.0f) {
+			for (i = 0; i < n; i++) {
+				w[i] /= totweight;
+			}
 		}
 	}
 }
+
 
 void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[2])
 {
 	/* TODO: t1 and t2 overlap each iter, we could call this only once per iter and reuse previous value */
 	float totweight, t1, t2, len, *vmid, *vprev, *vnext;
-	int i;
+	int i, inext, icur;
+	bool edge_interp = false;
 
 	totweight = 0.0f;
 
 	for (i = 0; i < n; i++) {
+		icur = i;
+		inext = (i == n - 1) ? 0 : i + 1;
+
 		vmid = v[i];
 		vprev = (i == 0) ? v[n - 1] : v[i - 1];
-		vnext = (i == n - 1) ? v[0] : v[i + 1];
+		vnext = v[inext];
+
+		/* Mark Mayer et al algorithm that is used here does not operate well if vertex is close
+		 * to borders of face. In that case, do simple linear interpolation between the two edges */
+		if (dist_to_line_segment_v2(co, vmid, vnext) < 10*FLT_EPSILON) {
+			edge_interp = true;
+			break;
+		}
 
 		t1 = mean_value_half_tan_v2(co, vprev, vmid);
 		t2 = mean_value_half_tan_v2(co, vmid, vnext);
@@ -2380,9 +2415,21 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
 		totweight += w[i];
 	}
 
-	if (totweight != 0.0f) {
-		for (i = 0; i < n; i++) {
-			w[i] /= totweight;
+	if (edge_interp) {
+		float len_cur = len_v2v2(co, vmid);
+		float len_next = len_v2v2(co, vnext);
+		float edge_len = len_cur + len_next;
+		for (i = 0; i < n; i++)
+			w[i] = 0.0;
+
+		w[icur] = len_next/edge_len;
+		w[inext] = len_cur/edge_len;
+	}
+	else {
+		if (totweight != 0.0f) {
+			for (i = 0; i < n; i++) {
+				w[i] /= totweight;
+			}
 		}
 	}
 }
