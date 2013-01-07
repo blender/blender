@@ -184,10 +184,10 @@ typedef struct BMesh {
 	 * BM_LOOP isn't handled so far. */
 	char elem_index_dirty;
 
-	/*element pools*/
+	/* element pools */
 	struct BLI_mempool *vpool, *epool, *lpool, *fpool;
 
-	/*operator api stuff (must be all NULL or all alloc'd)*/
+	/* operator api stuff (must be all NULL or all alloc'd) */
 	struct BLI_mempool *vtoolflagpool, *etoolflagpool, *ftoolflagpool;
 
 	int stackdepth;
@@ -205,7 +205,7 @@ typedef struct BMesh {
 	 * Only use when the edit mesh cant be accessed - campbell */
 	short selectmode;
 	
-	/*ID of the shape key this bmesh came from*/
+	/* ID of the shape key this bmesh came from */
 	int shapenr;
 	
 	int walkers, totflags;

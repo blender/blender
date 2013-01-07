@@ -937,7 +937,7 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 		}
 		
 		/* color depends on whether there is a keyframe */
-		if (id_frame_has_keyframe((ID *)ob, /*BKE_scene_frame_get(scene)*/ (float)(CFRA), ANIMFILTER_KEYS_LOCAL))
+		if (id_frame_has_keyframe((ID *)ob, /* BKE_scene_frame_get(scene) */ (float)(CFRA), ANIMFILTER_KEYS_LOCAL))
 			UI_ThemeColor(TH_VERTEX_SELECT);
 		else
 			UI_ThemeColor(TH_TEXT_HI);
@@ -3036,10 +3036,10 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 
 				for (x = 0; x < XTOT - 1; x++) {
 					for (y = 0; y < YTOT - 1; y++) {
-						indices[x][y][0] = x*XTOT + y;
-						indices[x][y][1] = x*XTOT + y + 1;
-						indices[x][y][2] = (x + 1)*XTOT + y + 1;
-						indices[x][y][3] = (x + 1)*XTOT + y;
+						indices[x][y][0] = x * XTOT + y;
+						indices[x][y][1] = x * XTOT + y + 1;
+						indices[x][y][2] = (x + 1) * XTOT + y + 1;
+						indices[x][y][3] = (x + 1) * XTOT + y;
 					}
 				}
 
@@ -3089,7 +3089,7 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 			glVertexPointer(2, GL_FLOAT, 0, grid_pos);
 			glColorPointer(4, GL_UNSIGNED_BYTE, 0, grid_col);
 
-			glDrawElements(GL_QUADS, (XTOT - 1)*(YTOT - 1)*4, GL_UNSIGNED_SHORT, indices);
+			glDrawElements(GL_QUADS, (XTOT - 1) * (YTOT - 1) * 4, GL_UNSIGNED_SHORT, indices);
 			glDisableClientState(GL_VERTEX_ARRAY);
 			glDisableClientState(GL_COLOR_ARRAY);
 

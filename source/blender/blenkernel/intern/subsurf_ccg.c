@@ -3320,7 +3320,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		
 
 		/*I think this is for interpolating the center vert?*/
-		w2 = w; // + numVerts*(g2_wid-1)*(g2_wid-1); //numVerts*((g2_wid-1)*g2_wid+g2_wid-1);
+		w2 = w; // + numVerts*(g2_wid-1) * (g2_wid-1); //numVerts*((g2_wid-1) * g2_wid+g2_wid-1);
 		DM_interp_vert_data(dm, &ccgdm->dm, vertidx, w2,
 		                    numVerts, vertNum);
 		if (vertOrigIndex) {

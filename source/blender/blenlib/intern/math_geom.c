@@ -1817,7 +1817,7 @@ static int point_in_slice_as(float p[3], float origin[3], float normal[3])
 	return 1;
 }
 
-/*mama (knowing the squared length of the normal)*/
+/*mama (knowing the squared length of the normal) */
 static int point_in_slice_m(float p[3], float origin[3], float normal[3], float lns)
 {
 	float h, rp[3];
