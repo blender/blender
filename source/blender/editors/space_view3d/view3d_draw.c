@@ -3051,8 +3051,8 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 					const float xf = (float)x / (float)(XTOT - 1);
 					const float yf = (float)y / (float)(YTOT - 1);
 					const float mval[2] = {xf * (float)ar->winx, yf * ar->winy};
+					const float z_up[3] = {0.0f, 0.0f, 1.0f};
 					float out[3];
-					const float up[3] = {0.0f, 0.0f, 1.0f};
 					GLubyte *col_ub = grid_col[x][y];
 
 					float col_fac;
@@ -3070,10 +3070,10 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 					}
 					else {
 						if (scene->world->skytype & WO_SKYREAL) {
-							col_fac = fabsf((angle_v3v3(up, out) / (float)M_PI) - 0.5f) * 2.0f;
+							col_fac = fabsf((angle_normalized_v3v3(z_up, out) / (float)M_PI) - 0.5f) * 2.0f;
 						}
 						else {
-							col_fac = 1.0f - (angle_v3v3(up, out) / (float)M_PI);
+							col_fac = 1.0f - (angle_normalized_v3v3(z_up, out) / (float)M_PI);
 						}
 					}
 
