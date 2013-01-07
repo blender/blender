@@ -93,7 +93,7 @@ typedef struct Main {
 } Main;
 
 #define MAIN_VERSION_ATLEAST(main, ver, subver) \
-	((main)->versionfile >= (ver) || (main->versionfile == (ver) && (main)->subversionfile >= (subver)))
+	((main)->versionfile > (ver) || (main->versionfile == (ver) && (main)->subversionfile >= (subver)))
 
 #ifdef __cplusplus
 }

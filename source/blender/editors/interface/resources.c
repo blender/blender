@@ -170,8 +170,11 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					else
 						cp = ts->button;
 					break;
-				case TH_BACK_GRAD:
+				case TH_LOW_GRAD:
 					cp = ts->gradients.gradient;
+					break;
+				case TH_HIGH_GRAD:
+					cp = ts->gradients.high_gradient;
 					break;
 				case TH_SHOW_BACK_GRAD:
 					cp = &setting;
@@ -780,6 +783,7 @@ void ui_theme_init_default(void)
 
 	rgba_char_args_set(btheme->tv3d.skin_root, 180, 77, 77, 255);
 	rgba_char_args_set(btheme->tv3d.gradients.gradient, 0, 0, 0, 0);
+	rgba_char_args_set(btheme->tv3d.gradients.high_gradient, 0.225, 0.225, 0.225, 1.0);
 	btheme->tv3d.gradients.show_grad = FALSE;
 
 	/* space buttons */
@@ -2100,12 +2104,19 @@ void init_userdef_do_versions(void)
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(bmain, 266, 4)) {
+	if (!MAIN_VERSION_ATLEAST(bmain, 265, 4)) {
 		bTheme *btheme;
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			rgba_char_args_set(btheme->text.syntaxd,    50, 0, 140, 255);   /* Decorator/Preprocessor Dir.  Blue-purple */
 			rgba_char_args_set(btheme->text.syntaxr,    140, 60, 0, 255);   /* Reserved  Orange */
 			rgba_char_args_set(btheme->text.syntaxs,    76, 76, 76, 255);   /* Grey (mix between fg/bg) */
+		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(bmain, 265, 6)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			copy_v4_v4_char(btheme->tv3d.gradients.high_gradient, btheme->tv3d.back);
 		}
 	}
 

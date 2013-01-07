@@ -151,7 +151,7 @@ typedef struct uiPanelColors {
 
 typedef struct uiGradientColors {
 	char gradient[4];
-	char pad[4];
+	char high_gradient[4];
 	int show_grad;
 	int pad2;
 } uiGradientColors;

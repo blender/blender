@@ -3108,10 +3108,10 @@ static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar)
 
 			glShadeModel(GL_SMOOTH);
 			glBegin(GL_QUADS);
-			UI_ThemeColor(TH_BACK_GRAD);
+			UI_ThemeColor(TH_LOW_GRAD);
 			glVertex2f(-1.0, -1.0);
 			glVertex2f(1.0, -1.0);
-			UI_ThemeColor(TH_BACK);
+			UI_ThemeColor(TH_HIGH_GRAD);
 			glVertex2f(1.0, 1.0);
 			glVertex2f(-1.0, 1.0);
 			glEnd();
@@ -3124,7 +3124,7 @@ static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar)
 			glPopMatrix();
 		}
 		else {
-			UI_ThemeClearColor(TH_BACK);
+			UI_ThemeClearColor(TH_HIGH_GRAD);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		}
 	}
