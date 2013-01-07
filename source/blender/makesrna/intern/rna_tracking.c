@@ -475,6 +475,14 @@ static MovieTrackingMarker *rna_trackingMarkers_insert_frame(MovieTrackingTrack 
 	marker.framenr = framenr;
 	copy_v2_v2(marker.pos, co);
 
+	/* a bit arbitrary, but better than creating markers with zero pattern
+	 * which is forbidden actually
+	 */
+	copy_v2_v2(marker.pattern_corners[0], track->markers[0].pattern_corners[0]);
+	copy_v2_v2(marker.pattern_corners[1], track->markers[0].pattern_corners[1]);
+	copy_v2_v2(marker.pattern_corners[2], track->markers[0].pattern_corners[2]);
+	copy_v2_v2(marker.pattern_corners[3], track->markers[0].pattern_corners[3]);
+
 	new_marker = BKE_tracking_marker_insert(track, &marker);
 
 	WM_main_add_notifier(NC_MOVIECLIP | NA_EDITED, NULL);
