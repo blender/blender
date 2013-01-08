@@ -39,6 +39,7 @@ extern "C" {
 #endif
 
 #include "../blenloader/BLO_sys_types.h" /* XXX, should have a more generic include for this */
+#include "BLI_utildefines.h"
 
 struct BMesh;
 struct ID;
@@ -304,7 +305,7 @@ void CustomData_bmesh_free_block(struct CustomData *data, void **block);
 /* copy custom data to/from layers as in mesh/derivedmesh, to editmesh
  * blocks of data. the CustomData's must not be compatible */
 void CustomData_to_bmesh_block(const struct CustomData *source, 
-                               struct CustomData *dest, int src_index, void **dest_block);
+                               struct CustomData *dest, int src_index, void **dest_block, bool use_default_init);
 void CustomData_from_bmesh_block(const struct CustomData *source, 
                                  struct CustomData *dest, void *src_block, int dest_index);
 

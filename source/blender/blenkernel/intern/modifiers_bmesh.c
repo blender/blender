@@ -96,7 +96,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 		v->head.hflag = BM_vert_flag_from_mflag(mv->flag);
 		BM_elem_index_set(v, i); /* set_inline */
 
-		CustomData_to_bmesh_block(&dm->vertData, &bm->vdata, i, &v->head.data);
+		CustomData_to_bmesh_block(&dm->vertData, &bm->vdata, i, &v->head.data, true);
 		vtable[i] = v;
 
 		/* add bevel weight */
@@ -118,7 +118,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 		e->head.hflag = BM_edge_flag_from_mflag(me->flag);
 		BM_elem_index_set(e, i); /* set_inline */
 
-		CustomData_to_bmesh_block(&dm->edgeData, &bm->edata, i, &e->head.data);
+		CustomData_to_bmesh_block(&dm->edgeData, &bm->edata, i, &e->head.data, true);
 		etable[i] = e;
 
 		/* add crease */
@@ -168,10 +168,10 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 		l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f);
 
 		for (k = mp->loopstart; l; l = BM_iter_step(&liter), k++) {
-			CustomData_to_bmesh_block(&dm->loopData, &bm->ldata, k, &l->head.data);
+			CustomData_to_bmesh_block(&dm->loopData, &bm->ldata, k, &l->head.data, true);
 		}
 
-		CustomData_to_bmesh_block(&dm->polyData, &bm->pdata, i, &f->head.data);
+		CustomData_to_bmesh_block(&dm->polyData, &bm->pdata, i, &f->head.data, true);
 
 		if (face_normals) {
 			copy_v3_v3(f->no, face_normals[i]);

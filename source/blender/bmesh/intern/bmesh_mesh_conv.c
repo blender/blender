@@ -221,7 +221,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		normal_short_to_float_v3(v->no, mvert->no);
 
 		/* Copy Custom Data */
-		CustomData_to_bmesh_block(&me->vdata, &bm->vdata, i, &v->head.data);
+		CustomData_to_bmesh_block(&me->vdata, &bm->vdata, i, &v->head.data, true);
 
 		BM_elem_float_data_set(&bm->vdata, v, CD_BWEIGHT, (float)mvert->bweight / 255.0f);
 
@@ -267,7 +267,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		}
 
 		/* Copy Custom Data */
-		CustomData_to_bmesh_block(&me->edata, &bm->edata, i, &e->head.data);
+		CustomData_to_bmesh_block(&me->edata, &bm->edata, i, &e->head.data, true);
 
 		BM_elem_float_data_set(&bm->edata, e, CD_CREASE, (float)medge->crease / 255.0f);
 		BM_elem_float_data_set(&bm->edata, e, CD_BWEIGHT, (float)medge->bweight / 255.0f);
@@ -338,11 +338,11 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		j = 0;
 		BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, j) {
 			/* Save index of correspsonding MLoop */
-			CustomData_to_bmesh_block(&me->ldata, &bm->ldata, mpoly->loopstart + j, &l->head.data);
+			CustomData_to_bmesh_block(&me->ldata, &bm->ldata, mpoly->loopstart + j, &l->head.data, true);
 		}
 
 		/* Copy Custom Data */
-		CustomData_to_bmesh_block(&me->pdata, &bm->pdata, i, &f->head.data);
+		CustomData_to_bmesh_block(&me->pdata, &bm->pdata, i, &f->head.data, true);
 	}
 
 	bm->elem_index_dirty &= ~BM_FACE; /* added in order, clear dirty flag */
