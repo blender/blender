@@ -550,7 +550,7 @@ void EDBM_select_more(BMEditMesh *em)
 	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, use_faces ? TRUE : FALSE);
 	BMO_op_finish(em->bm, &bmop);
 
-	EDBM_select_flush(em);
+	EDBM_selectmode_flush(em);
 }
 
 void EDBM_select_less(BMEditMesh *em)
