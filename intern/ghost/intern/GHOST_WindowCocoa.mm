@@ -428,6 +428,13 @@ extern "C" {
 
 #pragma mark initialization / finalization
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 1070
+@interface NSView (NSOpenGLSurfaceResolution)
+- (BOOL)wantsBestResolutionOpenGLSurface;
+- (void)setWantsBestResolutionOpenGLSurface;
+@end
+#endif
+
 NSOpenGLContext* GHOST_WindowCocoa::s_firstOpenGLcontext = nil;
 
 GHOST_WindowCocoa::GHOST_WindowCocoa(
@@ -579,13 +586,15 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	setDrawingContextType(type);
 	updateDrawingContext();
 	activateDrawingContext();
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070	// retina support started with 10.7.4 afaik
+
 	if (m_systemCocoa->m_nativePixel) {
-		[m_openGLView setWantsBestResolutionOpenGLSurface:YES];
-		NSRect backingBounds = [m_openGLView convertRectToBacking:[m_openGLView bounds]];
-		m_systemCocoa->m_nativePixelSize = (float)backingBounds.size.width / (float)rect.size.width;
+		if ([m_openGLView respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:)]) {
+			[m_openGLView setWantsBestResolutionOpenGLSurface:YES];
+		
+			NSRect backingBounds = [m_openGLView convertRectToBacking:[m_openGLView bounds]];
+			m_systemCocoa->m_nativePixelSize = (float)backingBounds.size.width / (float)rect.size.width;
+		}
 	}
-#endif
 	
 	m_tablet.Active = GHOST_kTabletModeNone;
 	
