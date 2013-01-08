@@ -701,6 +701,14 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 			case GHOST_kEventWindowDeactivate:
 				wm_event_add_ghostevent(wm, win, type, time, data);
 				win->active = 0; /* XXX */
+				
+				/* clear modifiers for inactive windows */
+				win->eventstate->alt = 0;
+				win->eventstate->ctrl = 0;
+				win->eventstate->shift = 0;
+				win->eventstate->oskey = 0;
+				win->eventstate->keymodifier = 0;
+
 				break;
 			case GHOST_kEventWindowActivate: 
 			{
