@@ -2629,6 +2629,19 @@ void CustomData_bmesh_set_layer_n(CustomData *data, void *block, int n, void *so
 		memcpy(dest, source, typeInfo->size);
 }
 
+/**
+ * \param src_blocks must be pointers to the data, offset by layer->offset already.
+ */
+void CustomData_bmesh_interp_n(CustomData *data, void **src_blocks, const float *weights,
+                               const float *sub_weights, int count, void *dest_block, int n)
+{
+	CustomDataLayer *layer = &data->layers[n];
+	const LayerTypeInfo *typeInfo = layerType_getInfo(layer->type);
+
+	typeInfo->interp(src_blocks, weights, sub_weights, count,
+	                 (char *)dest_block + layer->offset);
+}
+
 void CustomData_bmesh_interp(CustomData *data, void **src_blocks, const float *weights,
                              const float *sub_weights, int count, void *dest_block)
 {
@@ -2651,9 +2664,7 @@ void CustomData_bmesh_interp(CustomData *data, void **src_blocks, const float *w
 			for (j = 0; j < count; ++j) {
 				sources[j] = (char *)src_blocks[j] + layer->offset;
 			}
-
-			typeInfo->interp(sources, weights, sub_weights, count,
-			                 (char *)dest_block + layer->offset);
+			CustomData_bmesh_interp_n(data, sources, weights, sub_weights, count, dest_block, i);
 		}
 	}
 

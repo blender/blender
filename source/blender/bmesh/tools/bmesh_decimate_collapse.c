@@ -441,6 +441,8 @@ static void bm_decim_triangulate_end(BMesh *bm)
 static void bm_edge_collapse_loop_customdata(BMesh *bm, BMLoop *l, BMVert *v_clear, BMVert *v_other,
                                              const float customdata_fac)
 {
+	/* disable seam check - the seam check would have to be done per layer, its not really that important */
+//#define USE_SEAM
 	/* these don't need to be updated, since they will get removed when the edge collapses */
 	BMLoop *l_clear, *l_other;
 	const int is_manifold = BM_edge_is_manifold(l->e);
@@ -464,7 +466,9 @@ static void bm_edge_collapse_loop_customdata(BMesh *bm, BMLoop *l, BMVert *v_cle
 
 	/* now we have both corners of the face 'l->f' */
 	for (side = 0; side < 2; side++) {
+#ifdef USE_SEAM
 		int is_seam = FALSE;
+#endif
 		void *src[2];
 		BMFace *f_exit = is_manifold ? l->radial_next->f : NULL;
 		BMEdge *e_prev = l->e;
@@ -501,34 +505,40 @@ static void bm_edge_collapse_loop_customdata(BMesh *bm, BMLoop *l, BMVert *v_cle
 				break;
 			}
 
+#ifdef USE_SEAM
 			/* break out unless we find a match */
 			is_seam = TRUE;
+#endif
 
 			/* ok. we have a loop. now be smart with it! */
 			for (i = 0; i < bm->ldata.totlayer; i++) {
 				if (CustomData_layer_has_math(&bm->ldata, i)) {
 					const int offset = bm->ldata.layers[i].offset;
 					const int type = bm->ldata.layers[i].type;
-					void *cd_src, *cd_iter;
-
-					/* todo, make nicer macros for this */
-					cd_src = (char *)src[0] + offset;
-					// cd_dst = (char *)src[1] + offset;  // UNUSED
-					cd_iter  = (char *)l_iter->head.data  + offset;
+					void *cd_src[2] = {(char *)src[0] + offset,
+					                   (char *)src[1] + offset};
+					void *cd_iter  = (char *)l_iter->head.data  + offset;;
 
 					/* detect seams */
-					if (CustomData_data_equals(type, cd_src, cd_iter)) {
-						CustomData_bmesh_interp(&bm->ldata, src, w, NULL, 2, l_iter->head.data);
+					if (CustomData_data_equals(type, cd_src[0], cd_iter)) {
+						CustomData_bmesh_interp_n(&bm->ldata, cd_src, w, NULL, 2, l_iter->head.data, i);
+#ifdef USE_SEAM
 						is_seam = FALSE;
+#endif
 					}
 				}
 			}
 
+#ifdef USE_SEAM
 			if (is_seam) {
 				break;
 			}
+#endif
 		}
 	}
+
+//#undef USE_SEAM
+
 }
 #endif  /* USE_CUSTOMDATA */
 

@@ -216,6 +216,8 @@ void CustomData_free_elem(struct CustomData *data, int index, int count);
 void CustomData_interp(const struct CustomData *source, struct CustomData *dest,
                        int *src_indices, float *weights, float *sub_weights,
                        int count, int dest_index);
+void CustomData_bmesh_interp_n(struct CustomData *data, void **src_blocks, const float *weights,
+                               const float *sub_weights, int count, void *dest_block, int n);
 void CustomData_bmesh_interp(struct CustomData *data, void **src_blocks,
                              const float *weights, const float *sub_weights, int count,
                              void *dest_block);
