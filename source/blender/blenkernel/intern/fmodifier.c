@@ -141,55 +141,34 @@ static void fcm_generator_verify(FModifier *fcm)
 	switch (data->mode) {
 		case FCM_GENERATOR_POLYNOMIAL: /* expanded polynomial expression */
 		{
+			const int arraysize_new = data->poly_order + 1;
 			/* arraysize needs to be order+1, so resize if not */
-			if (data->arraysize != (data->poly_order + 1)) {
-				float *nc;
-				
-				/* make new coefficients array, and copy over as much data as can fit */
-				nc = MEM_callocN(sizeof(float) * (data->poly_order + 1), "FMod_Generator_Coefs");
-				
+			if (data->arraysize != arraysize_new) {
 				if (data->coefficients) {
-					if ((int)data->arraysize > (data->poly_order + 1))
-						memcpy(nc, data->coefficients, sizeof(float) * (data->poly_order + 1));
-					else
-						memcpy(nc, data->coefficients, sizeof(float) * data->arraysize);
-						
-					/* free the old data */
-					MEM_freeN(data->coefficients);
+					data->coefficients = MEM_recallocN(data->coefficients, sizeof(float) * arraysize_new);
 				}
-				
-				/* set the new data */
-				data->coefficients = nc;
-				data->arraysize = data->poly_order + 1;
+				else {
+					data->coefficients = MEM_callocN(sizeof(float) * arraysize_new, "FMod_Generator_Coefs");
+				}
+				data->arraysize = arraysize_new;
 			}
+			break;
 		}
-		break;
-		
 		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* expanded polynomial expression */
 		{
+			const int arraysize_new = data->poly_order * 2;
 			/* arraysize needs to be (2 * order), so resize if not */
-			if (data->arraysize != (data->poly_order * 2)) {
-				float *nc;
-				
-				/* make new coefficients array, and copy over as much data as can fit */
-				nc = MEM_callocN(sizeof(float) * (data->poly_order * 2), "FMod_Generator_Coefs");
-				
+			if (data->arraysize != arraysize_new) {
 				if (data->coefficients) {
-					if (data->arraysize > (unsigned int)(data->poly_order * 2))
-						memcpy(nc, data->coefficients, sizeof(float) * (data->poly_order * 2));
-					else
-						memcpy(nc, data->coefficients, sizeof(float) * data->arraysize);
-						
-					/* free the old data */
-					MEM_freeN(data->coefficients);
+					data->coefficients = MEM_recallocN(data->coefficients, sizeof(float) * arraysize_new);
 				}
-				
-				/* set the new data */
-				data->coefficients = nc;
-				data->arraysize = data->poly_order * 2;
+				else {
+					data->coefficients = MEM_callocN(sizeof(float) * arraysize_new, "FMod_Generator_Coefs");
+				}
+				data->arraysize = arraysize_new;
 			}
+			break;
 		}
-		break;
 	}
 }
 
