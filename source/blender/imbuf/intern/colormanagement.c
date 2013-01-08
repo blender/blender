@@ -698,7 +698,7 @@ static OCIO_ConstProcessorRcPtr *create_display_buffer_processor(const char *vie
 	if (exposure != 0.0f) {
 		OCIO_MatrixTransformRcPtr *mt;
 		float gain = powf(2.0f, exposure);
-		const float scale4f[] = {gain, gain, gain, gain};
+		const float scale4f[] = {gain, gain, gain, 1.0f};
 		float m44[16], offset4[4];
 
 		OCIO_matrixTransformScale(m44, offset4, scale4f);
