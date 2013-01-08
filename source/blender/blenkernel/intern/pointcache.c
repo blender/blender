@@ -559,7 +559,7 @@ static int  ptcache_smoke_write(PTCacheFile *pf, void *smoke_v)
 		float dt, dx, *dens, *react, *fuel, *flame, *heat, *heatold, *vx, *vy, *vz, *r, *g, *b;
 		unsigned char *obstacles;
 		unsigned int in_len = sizeof(float)*(unsigned int)res;
-		unsigned char *out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len)*4, "pointcache_lzo_buffer");
+		unsigned char *out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len) * 4, "pointcache_lzo_buffer");
 		//int mode = res >= 1000000 ? 2 : 1;
 		int mode=1;		// light
 		if (sds->cache_comp == SM_CACHE_HEAVY) mode=2;	// heavy
@@ -792,7 +792,7 @@ static int  ptcache_dynamicpaint_write(PTCacheFile *pf, void *dp_v)
 	int cache_compress = 1;
 
 	/* version header */
-	ptcache_file_write(pf, DPAINT_CACHE_VERSION, 1, sizeof(char)*4);
+	ptcache_file_write(pf, DPAINT_CACHE_VERSION, 1, sizeof(char) * 4);
 
 	if (surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ && surface->data) {
 		int total_points=surface->data->total_points;
@@ -831,7 +831,7 @@ static int ptcache_dynamicpaint_read(PTCacheFile *pf, void *dp_v)
 	char version[4];
 	
 	/* version header */
-	ptcache_file_read(pf, version, 1, sizeof(char)*4);
+	ptcache_file_read(pf, version, 1, sizeof(char) * 4);
 	if (strncmp(version, DPAINT_CACHE_VERSION, 4)) {printf("Dynamic Paint: Invalid cache version: %s!\n", version); return 0;}
 
 	if (surface->format != MOD_DPAINT_SURFACE_F_IMAGESEQ && surface->data) {
@@ -1163,7 +1163,7 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
  */
 
 #define MAX_PTCACHE_PATH FILE_MAX
-#define MAX_PTCACHE_FILE ((FILE_MAX)*2)
+#define MAX_PTCACHE_FILE (FILE_MAX * 2)
 
 static int ptcache_path(PTCacheID *pid, char *filename)
 {
@@ -1258,7 +1258,7 @@ static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
 {
 	PTCacheFile *pf;
 	FILE *fp = NULL;
-	char filename[(FILE_MAX)*2];
+	char filename[FILE_MAX * 2];
 
 #ifndef DURIAN_POINTCACHE_LIB_OK
 	/* don't allow writing for linked objects */
@@ -1311,7 +1311,7 @@ static int ptcache_file_compressed_read(PTCacheFile *pf, unsigned char *result, 
 	size_t out_len = len;
 #endif
 	unsigned char *in;
-	unsigned char *props = MEM_callocN(16*sizeof(char), "tmp");
+	unsigned char *props = MEM_callocN(16 * sizeof(char), "tmp");
 
 	ptcache_file_read(pf, &compressed, 1, sizeof(unsigned char));
 	if (compressed) {
@@ -1354,7 +1354,7 @@ static int ptcache_file_compressed_write(PTCacheFile *pf, unsigned char *in, uns
 	int r = 0;
 	unsigned char compressed = 0;
 	size_t out_len= 0;
-	unsigned char *props = MEM_callocN(16*sizeof(char), "tmp");
+	unsigned char *props = MEM_callocN(16 * sizeof(char), "tmp");
 	size_t sizeOfIt = 5;
 
 	(void)mode; /* unused when building w/o compression */
@@ -1787,7 +1787,7 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
 			for (i=0; i<BPHYS_TOT_DATA; i++) {
 				if (pm->data[i]) {
 					unsigned int in_len = pm->totpoint*ptcache_data_size[i];
-					unsigned char *out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len)*4, "pointcache_lzo_buffer");
+					unsigned char *out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len) * 4, "pointcache_lzo_buffer");
 					ptcache_file_compressed_write(pf, (unsigned char *)(pm->data[i]), in_len, out, pid->cache->compression);
 					MEM_freeN(out);
 				}
@@ -1820,7 +1820,7 @@ static int ptcache_mem_frame_to_disk(PTCacheID *pid, PTCacheMem *pm)
 
 			if (pid->cache->compression) {
 				unsigned int in_len = extra->totdata * ptcache_extra_datasize[extra->type];
-				unsigned char *out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len)*4, "pointcache_lzo_buffer");
+				unsigned char *out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len) * 4, "pointcache_lzo_buffer");
 				ptcache_file_compressed_write(pf, (unsigned char *)(extra->data), in_len, out, pid->cache->compression);
 				MEM_freeN(out);
 			}

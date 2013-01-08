@@ -6387,7 +6387,7 @@ static int ui_menu_scroll(ARegion *ar, uiBlock *block, int my, uiBut *to_bt)
 			for (bt = block->buttons.first; bt; bt = bt->next)
 				ymax = max_ff(ymax, bt->rect.ymax);
 
-			if (ymax + dy - UI_UNIT_Y*0.5f < block->rect.ymax - UI_MENU_SCROLL_PAD)
+			if (ymax + dy - UI_UNIT_Y * 0.5f < block->rect.ymax - UI_MENU_SCROLL_PAD)
 				dy = block->rect.ymax - ymax - UI_MENU_SCROLL_PAD;
 		}
 		else {
@@ -6397,7 +6397,7 @@ static int ui_menu_scroll(ARegion *ar, uiBlock *block, int my, uiBut *to_bt)
 			for (bt = block->buttons.first; bt; bt = bt->next)
 				ymin = min_ff(ymin, bt->rect.ymin);
 
-			if (ymin + dy + UI_UNIT_Y*0.5f > block->rect.ymin + UI_MENU_SCROLL_PAD)
+			if (ymin + dy + UI_UNIT_Y * 0.5f > block->rect.ymin + UI_MENU_SCROLL_PAD)
 				dy = block->rect.ymin - ymin + UI_MENU_SCROLL_PAD;
 		}
 

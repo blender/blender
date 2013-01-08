@@ -3425,7 +3425,7 @@ static int drawDispListwire(ListBase *dlbase)
 
 #if 0
 				/* (ton) this code crashes for me when resolv is 86 or higher... no clue */
-				glVertexPointer(3, GL_FLOAT, sizeof(float) * 3 * dl->nr, data + 3*nr);
+				glVertexPointer(3, GL_FLOAT, sizeof(float) * 3 * dl->nr, data + 3 * nr);
 				if (dl->flag & DL_CYCL_V)
 					glDrawArrays(GL_LINE_LOOP, 0, dl->parts);
 				else

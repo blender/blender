@@ -1420,8 +1420,8 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			int size = mmd->dyngridsize;
 
 			writestruct(wd, DATA, "MDefInfluence", mmd->totinfluence, mmd->bindinfluences);
-			writedata(wd, DATA, sizeof(int)*(mmd->totvert+1), mmd->bindoffsets);
-			writedata(wd, DATA, sizeof(float)*3*mmd->totcagevert,
+			writedata(wd, DATA, sizeof(int) * (mmd->totvert + 1), mmd->bindoffsets);
+			writedata(wd, DATA, sizeof(float) * 3 * mmd->totcagevert,
 				mmd->bindcagecos);
 			writestruct(wd, DATA, "MDefCell", size*size*size, mmd->dyngrid);
 			writestruct(wd, DATA, "MDefInfluence", mmd->totinfluence, mmd->dyninfluences);
@@ -1678,7 +1678,7 @@ static void write_mdisps(WriteData *wd, int count, MDisps *mdlist, int external)
 			MDisps *md = &mdlist[i];
 			if (md->disps) {
 				if (!external)
-					writedata(wd, DATA, sizeof(float)*3*md->totdisp, md->disps);
+					writedata(wd, DATA, sizeof(float) * 3 * md->totdisp, md->disps);
 			}
 			
 			if (md->hidden)

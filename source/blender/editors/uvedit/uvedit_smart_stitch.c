@@ -1502,11 +1502,11 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
 	else {
 		UI_ThemeColor4(TH_STITCH_PREVIEW_STITCHABLE);
 		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_stitchable);
-		glDrawArrays(GL_LINES, 0, 2*stitch_preview->num_stitchable);
+		glDrawArrays(GL_LINES, 0, 2 * stitch_preview->num_stitchable);
 
 		UI_ThemeColor4(TH_STITCH_PREVIEW_UNSTITCHABLE);
 		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_unstitchable);
-		glDrawArrays(GL_LINES, 0, 2*stitch_preview->num_unstitchable);
+		glDrawArrays(GL_LINES, 0, 2 * stitch_preview->num_unstitchable);
 	}
 
 	glPopClientAttrib();

@@ -6862,7 +6862,7 @@ static void do_versions_nodetree_convert_angle(bNodeTree *ntree)
 			/* Convert degrees to radians. */
 			NodeDefocus *nqd = node->storage;
 			/* XXX DNA char to float conversion seems to map the char value into the [0.0f, 1.0f] range... */
-			nqd->rotation = DEG2RADF(nqd->rotation*255.0f);
+			nqd->rotation = DEG2RADF(nqd->rotation * 255.0f);
 		}
 		else if (node->type == CMP_NODE_CHROMA_MATTE) {
 			/* Convert degrees to radians. */
@@ -6874,7 +6874,7 @@ static void do_versions_nodetree_convert_angle(bNodeTree *ntree)
 			/* Convert degrees to radians. */
 			NodeGlare *ndg = node->storage;
 			/* XXX DNA char to float conversion seems to map the char value into the [0.0f, 1.0f] range... */
-			ndg->angle_ofs = DEG2RADF(ndg->angle_ofs*255.0f);
+			ndg->angle_ofs = DEG2RADF(ndg->angle_ofs * 255.0f);
 		}
 		/* XXX TexMapping struct is used by other nodes too (at least node_composite_mapValue),
 		 *     but not the rot part...

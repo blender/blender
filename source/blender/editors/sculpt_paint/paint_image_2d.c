@@ -391,7 +391,7 @@ int BKE_brush_painter_paint(BrushPainter *painter, BrushFunc func, const float p
 		double starttime, curtime = time;
 
 		/* compute brush spacing adapted to brush size */
-		spacing = brush->rate; //radius*brush->spacing*0.01f;
+		spacing = brush->rate; //radius*brush->spacing * 0.01f;
 
 		/* setup starting time, direction vector and accumulated time */
 		starttime = painter->accumtime;

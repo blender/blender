@@ -167,7 +167,7 @@ static void fcm_generator_verify(FModifier *fcm)
 		
 		case FCM_GENERATOR_POLYNOMIAL_FACTORISED: /* expanded polynomial expression */
 		{
-			/* arraysize needs to be 2*order, so resize if not */
+			/* arraysize needs to be (2 * order), so resize if not */
 			if (data->arraysize != (data->poly_order * 2)) {
 				float *nc;
 				
