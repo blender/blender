@@ -76,7 +76,8 @@ enum {
 	FLY_MODAL_PRECISION_ENABLE,
 	FLY_MODAL_PRECISION_DISABLE,
 	FLY_MODAL_FREELOOK_ENABLE,
-	FLY_MODAL_FREELOOK_DISABLE
+	FLY_MODAL_FREELOOK_DISABLE,
+	FLY_MODAL_SPEED,	/* mousepan typically */
 
 };
 
@@ -132,6 +133,8 @@ void fly_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, WHEELUPMOUSE, KM_PRESS, KM_ANY, 0, FLY_MODAL_ACCELERATE);
 	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, KM_ANY, 0, FLY_MODAL_DECELERATE);
 
+	WM_modalkeymap_add_item(keymap, MOUSEPAN, 0, 0, 0, FLY_MODAL_SPEED);
+	
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_PRESS, KM_ANY, 0, FLY_MODAL_PAN_ENABLE);
 	/* XXX - Bug in the event system, middle mouse release doesnt work */
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, FLY_MODAL_PAN_DISABLE);
@@ -544,7 +547,22 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 			case FLY_MODAL_CONFIRM:
 				fly->state = FLY_CONFIRM;
 				break;
-
+				
+			/* speed adjusting with mousepan (trackpad) */
+			case FLY_MODAL_SPEED:
+			{
+				float fac = 0.02f * (event->prevy - event->y);
+				
+				/* allowing to brake immediate */
+				if (fac > 0.0f && fly->speed < 0.0f)
+					fly->speed = 0.0f;
+				else if (fac < 0.0f && fly->speed > 0.0f)
+					fly->speed = 0.0f;
+				else
+					fly->speed += fly->grid * fac;
+				
+				break;
+			}
 			case FLY_MODAL_ACCELERATE:
 			{
 				double time_currwheel;
