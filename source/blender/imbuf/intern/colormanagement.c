@@ -351,9 +351,9 @@ static unsigned char *colormanage_cache_get(ImBuf *ibuf, const ColormanageCacheV
 
 		if (cache_data->exposure != view_settings->exposure ||
 		    cache_data->gamma != view_settings->gamma ||
-			cache_data->flag != view_settings->flag ||
-			cache_data->curve_mapping != curve_mapping ||
-			cache_data->curve_mapping_timestamp != curve_mapping_timestamp)
+		    cache_data->flag != view_settings->flag ||
+		    cache_data->curve_mapping != curve_mapping ||
+		    cache_data->curve_mapping_timestamp != curve_mapping_timestamp)
 		{
 			*cache_handle = NULL;
 
@@ -681,7 +681,7 @@ static ColorSpace *display_transform_get_colorspace(const ColorManagedViewSettin
 }
 
 static OCIO_ConstProcessorRcPtr *create_display_buffer_processor(const char *view_transform, const char *display,
-                                                            float exposure, float gamma)
+                                                                 float exposure, float gamma)
 {
 	OCIO_ConstConfigRcPtr *config = OCIO_getCurrentConfig();
 	OCIO_DisplayTransformRcPtr *dt;
@@ -731,7 +731,7 @@ static OCIO_ConstProcessorRcPtr *create_display_buffer_processor(const char *vie
 }
 
 static OCIO_ConstProcessorRcPtr *create_colorspace_transform_processor(const char *from_colorspace,
-                                                                  const char *to_colorspace)
+                                                                       const char *to_colorspace)
 {
 	OCIO_ConstConfigRcPtr *config = OCIO_getCurrentConfig();
 	OCIO_ConstProcessorRcPtr *processor;
@@ -1591,14 +1591,14 @@ void IMB_colormanagement_colorspace_to_scene_linear(float *buffer, int width, in
 		OCIO_PackedImageDesc *img;
 
 		img = OCIO_createOCIO_PackedImageDesc(buffer, width, height, channels, sizeof(float),
-		                                 channels * sizeof(float), channels * sizeof(float) * width);
+		                                      channels * sizeof(float), channels * sizeof(float) * width);
 
 		if (predivide)
 			OCIO_processorApply_predivide(processor, img);
 		else
 			OCIO_processorApply(processor, img);
 
-		OCIO_OCIO_PackedImageDescRelease(img);
+		OCIO_PackedImageDescRelease(img);
 	}
 }
 
@@ -2538,14 +2538,14 @@ void IMB_colormanagement_processor_apply(ColormanageProcessor *cm_processor, flo
 
 		/* apply OCIO processor */
 		img = OCIO_createOCIO_PackedImageDesc(buffer, width, height, channels, sizeof(float),
-		                                 channels * sizeof(float), channels * sizeof(float) * width);
+		                                      channels * sizeof(float), channels * sizeof(float) * width);
 
 		if (predivide)
 			OCIO_processorApply_predivide(cm_processor->processor, img);
 		else
 			OCIO_processorApply(cm_processor->processor, img);
 
-		OCIO_OCIO_PackedImageDescRelease(img);
+		OCIO_PackedImageDescRelease(img);
 	}
 }
 
