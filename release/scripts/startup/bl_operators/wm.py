@@ -44,7 +44,7 @@ class MESH_OT_delete_edgeloop(Operator):
         mesh = context.object.data
         use_mirror_x = mesh.use_mirror_x
         mesh.use_mirror_x = False
-        if 'FINISHED' in bpy.ops.transform.edge_slide(value=1.0):
+        if 'FINISHED' in bpy.ops.transform.edge_slide(value=1.0, correct_uv=True):
             bpy.ops.mesh.select_more()
             bpy.ops.mesh.remove_doubles()
             ret = {'FINISHED'}
