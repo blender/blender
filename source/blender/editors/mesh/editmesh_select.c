@@ -2250,7 +2250,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
-		e = BMW_begin(&walker, efa);
+		efa = BMW_begin(&walker, efa);
 		for (; efa; efa = BMW_step(&walker)) {
 			BM_face_select_set(bm, efa, sel);
 		}
@@ -2344,7 +2344,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
-				e = BMW_begin(&walker, efa);
+				efa = BMW_begin(&walker, efa);
 				for (; efa; efa = BMW_step(&walker)) {
 					BM_face_select_set(bm, efa, TRUE);
 				}
@@ -2381,8 +2381,9 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 			}
 		}
 		BMW_end(&walker);
+
+		EDBM_selectmode_flush(em);
 	}
-	EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);
 
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
 
