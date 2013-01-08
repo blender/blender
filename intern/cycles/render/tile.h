@@ -68,6 +68,7 @@ public:
 	bool next_tile(Tile& tile, int device = 0);
 	bool done();
 
+	void set_tile_order(int tile_order_) { tile_order = tile_order_; }
 protected:
 	/* Note: this should match enum_tile_order in properties.py */
 	enum {

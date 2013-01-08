@@ -139,6 +139,8 @@ void BlenderSession::reset_session(BL::BlendData b_data_, BL::Scene b_scene_)
 	session->progress.reset();
 	scene->reset();
 
+	session->tile_manager.set_tile_order(session_params.tile_order);
+
 	/* peak memory usage should show current render peak, not peak for all renders
 	 * made by this render session
 	 */
