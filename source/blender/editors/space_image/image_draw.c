@@ -514,11 +514,15 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 		unsigned char *display_buffer;
 		void *cache_handle;
 
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 		if (sima->flag & SI_USE_ALPHA) {
 			fdrawcheckerboard(x, y, x + ibuf->x * zoomx, y + ibuf->y * zoomy);
-
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		}
+		else {
+			glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
+			glRecti(x, y, x + ibuf->x * zoomx, y + ibuf->y * zoomy);
 		}
 
 		display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
@@ -532,8 +536,7 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 
 		IMB_display_buffer_release(cache_handle);
 
-		if (sima->flag & SI_USE_ALPHA)
-			glDisable(GL_BLEND);
+		glDisable(GL_BLEND);
 	}
 
 	/* reset zoom */
