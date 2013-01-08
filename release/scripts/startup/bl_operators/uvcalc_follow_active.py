@@ -49,8 +49,13 @@ def extend(obj, operator, EXTEND_MODE):
 
     # our own local walker
     def walk_face_init(faces, f_act):
+        # first tag all faces True (so we dont uvmap them)
+        for f in bm.faces:
+            f.tag = True
+        # then tag faces arg False
         for f in faces:
             f.tag = False
+        # tag the active face True since we begin there
         f_act.tag = True
     
     def walk_face(f):
