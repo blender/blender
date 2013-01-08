@@ -315,7 +315,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	UI_ThemeColor(TH_GRID);
 	
 	if (unit->system) {
-		/* Use GRID_MIN_PX*2 for units because very very small grid
+		/* Use GRID_MIN_PX * 2 for units because very very small grid
 		 * items are less useful when dealing with units */
 		void *usys;
 		int len, i;
@@ -381,7 +381,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 					drawgrid_draw(ar, wx, wy, x, y, sublines * dx);
 				}
 			}
-			else {  /* start blending out (GRID_MIN_PX < dx < (GRID_MIN_PX*10)) */
+			else {  /* start blending out (GRID_MIN_PX < dx < (GRID_MIN_PX * 10)) */
 				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
 				drawgrid_draw(ar, wx, wy, x, y, dx);
 

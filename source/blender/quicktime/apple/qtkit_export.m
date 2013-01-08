@@ -557,7 +557,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 			[qtexport->movie setAttribute:[NSNumber numberWithBool:YES] forKey:QTMovieEditableAttribute];
 			[qtexport->movie setAttribute:@"Made with Blender" forKey:QTMovieCopyrightAttribute];
 			
-			qtexport->frameDuration = QTMakeTime(rd->frs_sec_base*1000, rd->frs_sec*1000);
+			qtexport->frameDuration = QTMakeTime(rd->frs_sec_base * 1000, rd->frs_sec * 1000);
 			
 			/* specifying the codec attributes : try to retrieve them from render data first*/
 			if (rd->qtcodecsettings.codecType) {

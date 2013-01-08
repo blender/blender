@@ -132,7 +132,7 @@ GHOST_SystemX11(
 		GHOST_ASSERT(false, "Could not instantiate timer!");
 	}
 	
-	/* Taking care not to overflow the tv.tv_sec*1000 */
+	/* Taking care not to overflow the tv.tv_sec * 1000 */
 	m_start_time = GHOST_TUns64(tv.tv_sec) * 1000 + tv.tv_usec / 1000;
 	
 	
@@ -190,7 +190,7 @@ getMilliSeconds() const
 		GHOST_ASSERT(false, "Could not compute time!");
 	}
 
-	/* Taking care not to overflow the tv.tv_sec*1000 */
+	/* Taking care not to overflow the tv.tv_sec * 1000 */
 	return GHOST_TUns64(tv.tv_sec) * 1000 + tv.tv_usec / 1000 - m_start_time;
 }
 	

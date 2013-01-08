@@ -816,7 +816,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 
 
 		/* scale the mouse movement by this value - scales mouse movement to the view size
-		 * moffset[0]/(ar->winx-xmargin*2) - window size minus margin (same for y)
+		 * moffset[0] / (ar->winx-xmargin * 2) - window size minus margin (same for y)
 		 *
 		 * the mouse moves isn't linear */
 
