@@ -2396,6 +2396,7 @@ typedef struct SPHRangeData {
 	ParticleData *pa;
 
 	float h;
+	float mass;
 	float massfac;
 	int use_size;
 } SPHRangeData;
@@ -2408,7 +2409,7 @@ static void sph_evaluate_func(BVHTree *tree, ParticleSystem **psys, float co[3],
 
 	for (i=0; i < 10 && psys[i]; i++) {
 		pfr->npsys    = psys[i];
-		pfr->massfac  = psys[i]->part->mass;
+		pfr->massfac  = psys[i]->part->mass / pfr->mass;
 		pfr->use_size = psys[i]->part->flag & PART_SIZEMASS;
 
 		if (tree) {
@@ -2491,7 +2492,6 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 	ParticleSpring *spring = NULL;
 	SPHRangeData pfr;
 	SPHNeighbor *pfn;
-	float mass = sphdata->mass;
 	float *gravity = sphdata->gravity;
 	EdgeHash *springhash = sphdata->eh;
 
@@ -2501,7 +2501,7 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 	float visc = fluid->viscosity_omega;
 	float stiff_visc = fluid->viscosity_beta * (fluid->flag & SPH_FAC_VISCOSITY ? fluid->viscosity_omega : 1.f);
 
-	float inv_mass = 1.0f/mass;
+	float inv_mass = 1.0f / sphdata->mass;
 	float spring_constant = fluid->spring_k;
 
 	/* 4.0 seems to be a pretty good value */
@@ -2526,6 +2526,7 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 	pfr.data = data;
 	pfr.h = h;
 	pfr.pa = pa;
+	pfr.mass = sphdata->mass;
 
 	sph_evaluate_func( NULL, psys, state->co, &pfr, interaction_radius, sph_density_accum_cb);
 
@@ -2644,7 +2645,7 @@ static void sphclassical_density_accum_cb(void *userdata, int index, float UNUSE
 	 *     q1(x) = (2.0 - x)**4 * ( 1.0 + 2.0 * x)
 	 *     plot [0:2] q1(x) */
 	q  = qfac / pow3(pfr->h) * pow4(2.0f - rij_h) * ( 1.0f + 2.0f * rij_h);
-	q *= pfr->massfac;
+	q *= pfr->npsys->part->mass;
 
 	if (pfr->use_size)
 		q *= pfr->pa->size;
@@ -2792,6 +2793,7 @@ static void sphclassical_calc_dens(ParticleData *pa, float UNUSED(dfra), SPHData
 	pfr.data = data;
 	pfr.h = interaction_radius * sphdata->hfac;
 	pfr.pa = pa;
+	pfr.mass = sphdata->mass;
 
 	sph_evaluate_func( NULL, psys, pa->state.co, &pfr, interaction_radius, sphclassical_density_accum_cb);
 	pa->sphdensity = MIN2(MAX2(data[0], fluid->rest_density * 0.9f), fluid->rest_density * 1.1f);
@@ -2851,7 +2853,8 @@ void psys_sph_density(BVHTree *tree, SPHData *sphdata, float co[3], float vars[2
 
 	density[0] = density[1] = 0.0f;
 	pfr.data = density;
-	pfr.h = interaction_radius*sphdata->hfac;
+	pfr.h = interaction_radius * sphdata->hfac;
+	pfr.mass = sphdata->mass;
 
 	sph_evaluate_func(tree, psys, co, &pfr, interaction_radius, sphdata->density_cb);
 
