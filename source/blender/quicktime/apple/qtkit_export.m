@@ -61,8 +61,8 @@
 #import <QTKit/QTKit.h>
 #include <AudioToolbox/AudioToolbox.h>
 
-#if (MAC_OS_X_VERSION_MIN_REQUIRED <= 1040) || !__LP64__
-#error 64 bit build & OSX 10.5 minimum are needed for QTKit
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= 1040
+#error OSX 10.5 minimum is needed for QTKit
 #endif
 
 #include "quicktime_import.h"
