@@ -4104,8 +4104,9 @@ static char *rna_idp_path(PointerRNA *ptr, IDProperty *haystack, IDProperty *nee
 		else {
 			if (iter->type == IDP_GROUP) {
 				/* ensure this is RNA */
-				PointerRNA child_ptr = RNA_pointer_get(ptr, iter->name);
-				if (child_ptr.type) {
+				PropertyRNA *prop = RNA_struct_find_property(ptr, iter->name);
+				if (prop && prop->type == PROP_POINTER) {
+					PointerRNA child_ptr = RNA_property_pointer_get(ptr, prop);
 					link.name = iter->name;
 					link.index = -1;
 					if ((path = rna_idp_path(&child_ptr, iter, needle, &link))) {
