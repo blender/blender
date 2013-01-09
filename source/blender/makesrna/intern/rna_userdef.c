@@ -476,7 +476,7 @@ static void rna_AddonPref_unregister(Main *UNUSED(bmain), StructRNA *type)
 	RNA_struct_free(&BLENDER_RNA, type);
 
 	/* update while blender is running */
-	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
+	WM_main_add_notifier(NC_WINDOW, NULL);
 }
 
 static StructRNA *rna_AddonPref_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
@@ -523,7 +523,7 @@ static StructRNA *rna_AddonPref_register(Main *bmain, ReportList *reports, void 
 //	apt->draw = (have_function[0]) ? header_draw : NULL;
 
 	/* update while blender is running */
-	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
+	WM_main_add_notifier(NC_WINDOW, NULL);
 
 	return apt->ext.srna;
 }

@@ -306,31 +306,6 @@ void uiEndPanel(uiBlock *block, int width, int height)
 	}
 }
 
-void uiPanelClearType(wmWindowManager *wm, const ARegionType *art, const PanelType *type)
-{
-	wmWindow *win;
-	for (win = wm->windows.first; win; win = win->next) {
-		ScrArea *sa;
-		for (sa = win->screen->areabase.first; sa; sa = sa->next) {
-			ARegion *ar;
-			for (ar = sa->regionbase.first; ar; ar = ar->next) {
-				if (ar->type == art) {
-					uiBlock *block, *nblock = ar->uiblocks.first;
-					while ((block = nblock)) {
-						nblock = block->next;
-						if (block->panel) {
-							if (block->panel->type == type) {
-								uiFreeBlock(block->evil_C, block);
-								BLI_remlink(&ar->uiblocks, block);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
 static void ui_offset_panel_block(uiBlock *block)
 {
 	uiStyle *style = UI_GetStyleDraw();

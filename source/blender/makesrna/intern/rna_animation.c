@@ -198,6 +198,8 @@ static void rna_KeyingSetInfo_unregister(Main *bmain, StructRNA *type)
 	RNA_struct_free_extension(type, &ksi->ext);
 	RNA_struct_free(&BLENDER_RNA, type);
 	
+	WM_main_add_notifier(NC_WINDOW, NULL);
+
 	/* unlink Blender-side data */
 	ANIM_keyingset_info_unregister(bmain, ksi);
 }
@@ -249,6 +251,8 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain, ReportList *reports, v
 	/* add and register with other info as needed */
 	ANIM_keyingset_info_register(ksi);
 	
+	WM_main_add_notifier(NC_WINDOW, NULL);
+
 	/* return the struct-rna added */
 	return ksi->ext.srna;
 }
