@@ -293,18 +293,22 @@ static void rna_Node_parent_set(PointerRNA *ptr, PointerRNA value)
 	bNode *node = ptr->data;
 	bNode *parent = value.data;
 	
-	/* XXX only Frame node allowed for now,
-	 * in the future should have a poll function or so to test possible attachment.
-	 */
-	if (parent->type != NODE_FRAME)
-		return;
-	
-	/* make sure parent is not attached to the node */
-	if (nodeAttachNodeCheck(parent, node))
-		return;
+	if (parent) {
+		/* XXX only Frame node allowed for now,
+		 * in the future should have a poll function or so to test possible attachment.
+		 */
+		if (parent->type != NODE_FRAME)
+			return;
+		
+		/* make sure parent is not attached to the node */
+		if (nodeAttachNodeCheck(parent, node))
+			return;
+	}
 	
 	nodeDetachNode(node);
-	nodeAttachNode(node, parent);
+	if (parent) {
+		nodeAttachNode(node, parent);
+	}
 }
 
 static int rna_Node_parent_poll(PointerRNA *ptr, PointerRNA value)
