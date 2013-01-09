@@ -1309,14 +1309,16 @@ static int emDM_getNumPolys(DerivedMesh *dm)
 
 static int bmvert_to_mvert(BMesh *bm, BMVert *ev, MVert *vert_r)
 {
+	float *f;
+
 	copy_v3_v3(vert_r->co, ev->co);
 
 	normal_float_to_short_v3(vert_r->no, ev->no);
 
 	vert_r->flag = BM_vert_flag_to_mflag(ev);
 
-	if (CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {
-		vert_r->bweight = (unsigned char) (BM_elem_float_data_get(&bm->vdata, ev, CD_BWEIGHT) * 255.0f);
+	if ((f = CustomData_bmesh_get(&bm->vdata, ev->head.data, CD_BWEIGHT))) {
+		vert_r->bweight = (unsigned char)((*f) * 255.0f);
 	}
 
 	return 1;
@@ -1332,8 +1334,8 @@ static void emDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 		return;
 	}
 
-	// ev = EDBM_vert_at_index(bmdm->tc, index);
-	ev = BM_vert_at_index(bmdm->tc->bm, index); /* warning, does list loop, _not_ ideal */
+	ev = bmdm->tc->vert_index[index];  /* should be EDBM_vert_at_index() */
+	// ev = BM_vert_at_index(bmdm->tc->bm, index); /* warning, does list loop, _not_ ideal */
 
 	bmvert_to_mvert(bmdm->tc->bm, ev, vert_r);
 	if (bmdm->vertexCos)
@@ -1345,27 +1347,27 @@ static void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMesh *bm = bmdm->tc->bm;
 	BMEdge *e;
+	float *f;
 
 	if (index < 0 || index >= bmdm->te) {
 		printf("error in emDM_getEdge.\n");
 		return;
 	}
 
-	// e = EDBM_edge_at_index(bmdm->tc, index);
-	e = BM_edge_at_index(bmdm->tc->bm, index); /* warning, does list loop, _not_ ideal */
-
-	if (CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
-		edge_r->bweight = (unsigned char) (BM_elem_float_data_get(&bm->edata, e, CD_BWEIGHT) * 255.0f);
-	}
-
-	if (CustomData_has_layer(&bm->edata, CD_CREASE)) {
-		edge_r->crease = (unsigned char) (BM_elem_float_data_get(&bm->edata, e, CD_CREASE) * 255.0f);
-	}
+	e = bmdm->tc->edge_index[index];  /* should be EDBM_edge_at_index() */
+	// e = BM_edge_at_index(bmdm->tc->bm, index); /* warning, does list loop, _not_ ideal */
 
 	edge_r->flag = BM_edge_flag_to_mflag(e);
 
 	edge_r->v1 = BM_elem_index_get(e->v1);
 	edge_r->v2 = BM_elem_index_get(e->v2);
+
+	if ((f = CustomData_bmesh_get(&bm->edata, e->head.data, CD_BWEIGHT))) {
+		edge_r->bweight = (unsigned char)((*f) * 255.0f);
+	}
+	if ((f = CustomData_bmesh_get(&bm->edata, e->head.data, CD_CREASE))) {
+		edge_r->crease = (unsigned char)((*f) * 255.0f);
+	}
 }
 
 static void emDM_getTessFace(DerivedMesh *dm, int index, MFace *face_r)
