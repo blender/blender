@@ -57,12 +57,6 @@ if builder.find('scons') != -1:
         config = None
         bits = None
 
-        if builder.endswith('linux_glibc27_x86_64_scons'):
-            config = 'user-config-glibc27-x86_64.py'
-            bits = 64
-        elif builder.endswith('linux_glibc27_i386_scons'):
-            config = 'user-config-glibc27-i686.py'
-            bits = 32
         if builder.endswith('linux_glibc211_x86_64_scons'):
             config = 'user-config-glibc211-x86_64.py'
             bits = 64

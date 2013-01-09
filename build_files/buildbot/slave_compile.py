@@ -75,12 +75,6 @@ else:
         config_dir = os.path.join(buildbot_dir, 'config')
 
         configs = []
-        if builder.endswith('linux_glibc27_x86_64_scons'):
-            configs = ['user-config-player-glibc27-x86_64.py',
-                       'user-config-glibc27-x86_64.py']
-        elif builder.endswith('linux_glibc27_i386_scons'):
-            configs = ['user-config-player-glibc27-i686.py',
-                       'user-config-glibc27-i686.py']
         if builder.endswith('linux_glibc211_x86_64_scons'):
             configs = ['user-config-player-glibc211-x86_64.py',
                        'user-config-glibc211-x86_64.py']
