@@ -288,6 +288,43 @@ static const char *rna_Node_get_node_type(StructRNA *type)
 	return "";
 }
 
+static void rna_Node_parent_set(PointerRNA *ptr, PointerRNA value)
+{
+	bNode *node = ptr->data;
+	bNode *parent = value.data;
+	
+	/* XXX only Frame node allowed for now,
+	 * in the future should have a poll function or so to test possible attachment.
+	 */
+	if (parent->type != NODE_FRAME)
+		return;
+	
+	/* make sure parent is not attached to the node */
+	if (nodeAttachNodeCheck(parent, node))
+		return;
+	
+	nodeDetachNode(node);
+	nodeAttachNode(node, parent);
+}
+
+static int rna_Node_parent_poll(PointerRNA *ptr, PointerRNA value)
+{
+	bNode *node = ptr->data;
+	bNode *parent = value.data;
+	
+	/* XXX only Frame node allowed for now,
+	 * in the future should have a poll function or so to test possible attachment.
+	 */
+	if (parent->type != NODE_FRAME)
+		return FALSE;
+	
+	/* make sure parent is not attached to the node */
+	if (nodeAttachNodeCheck(parent, node))
+		return FALSE;
+	
+	return TRUE;
+}
+
 static StructRNA *rna_NodeSocket_refine(PointerRNA *ptr)
 {
 	bNodeSocket *sock = (bNodeSocket *)ptr->data;
@@ -4689,8 +4726,9 @@ static void rna_def_node(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "parent");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Node_parent_set", NULL, "rna_Node_parent_poll");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Node");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Parent", "Parent this node is attached to");
 	
 	prop = RNA_def_property(srna, "use_custom_color", PROP_BOOLEAN, PROP_NONE);
