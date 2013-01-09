@@ -5124,6 +5124,16 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		
 		sce->toolsettings->imapaint.paintcursor = NULL;
 		sce->toolsettings->particle.paintcursor = NULL;
+
+		/* in rare cases this is needed, see [#33806] */
+		if (sce->toolsettings->vpaint) {
+			sce->toolsettings->vpaint->vpaint_prev = NULL;
+			sce->toolsettings->vpaint->tot = 0;
+		}
+		if (sce->toolsettings->wpaint) {
+			sce->toolsettings->wpaint->wpaint_prev = NULL;
+			sce->toolsettings->wpaint->tot = 0;
+		}
 	}
 
 	if (sce->ed) {
