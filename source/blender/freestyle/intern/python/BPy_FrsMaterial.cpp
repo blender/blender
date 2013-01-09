@@ -44,15 +44,15 @@ static char FrsMaterial___doc__[] =
 "   colors and a shininess coefficient.\n"
 "\n"
 "   :arg iDiffuse: The diffuse color.\n"
-"   :type iDiffuse: :class:`mathutils.Vector`, list of tuple of 4 float values\n"
+"   :type iDiffuse: :class:`mathutils.Vector`, list or tuple of 4 float values\n"
 "   :arg iAmbiant: The ambiant color.\n"
-"   :type iAmbiant: :class:`mathutils.Vector`, list of tuple of 4 float values\n"
+"   :type iAmbiant: :class:`mathutils.Vector`, list or tuple of 4 float values\n"
 "   :arg iSpecular: The specular color.\n"
-"   :type iSpecular: :class:`mathutils.Vector`, list of tuple of 4 float values\n"
+"   :type iSpecular: :class:`mathutils.Vector`, list or tuple of 4 float values\n"
 "   :arg iEmission: The emissive color.\n"
-"   :type iEmission: :class:`mathutils.Vector`, list of tuple of 4 float values\n"
+"   :type iEmission: :class:`mathutils.Vector`, list or tuple of 4 float values\n"
 "   :arg iShininess: The shininess coefficient.\n"
-"   :type iShininess: :class:`mathutils.Vector`, list of tuple of 4 float values\n";
+"   :type iShininess: :class:float\n";
 
 static int Vec4(PyObject *obj, float *v)
 {
