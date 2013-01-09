@@ -981,7 +981,7 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
 		case CD_PROP_STR:
 		{
 			MStringProperty *mstring = value;
-			ret = PyBytes_FromStringAndSize(mstring->s, BLI_strnlen(mstring->s, sizeof(mstring->s)));
+			ret = PyBytes_FromStringAndSize(mstring->s, mstring->s_len);
 			break;
 		}
 		case CD_MTEXPOLY:
@@ -1067,13 +1067,17 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
 		case CD_PROP_STR:
 		{
 			MStringProperty *mstring = value;
-			const char *tmp_val = PyBytes_AsString(py_value);
-			if (UNLIKELY(tmp_val == NULL)) {
+			char *tmp_val;
+			Py_ssize_t tmp_val_len;
+			if (UNLIKELY(PyBytes_AsStringAndSize(py_value, &tmp_val, &tmp_val_len) == -1)) {
 				PyErr_Format(PyExc_TypeError, "expected bytes, not a %.200s", Py_TYPE(py_value)->tp_name);
 				ret = -1;
 			}
 			else {
-				BLI_strncpy(mstring->s, tmp_val, min_ii(PyBytes_Size(py_value), sizeof(mstring->s)));
+				if (tmp_val_len > sizeof(mstring->s))
+					tmp_val_len = sizeof(mstring->s);
+				memcpy(mstring->s, tmp_val, tmp_val_len);
+				mstring->s_len = tmp_val_len;
 			}
 			break;
 		}

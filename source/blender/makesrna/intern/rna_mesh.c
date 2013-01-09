@@ -1233,6 +1233,26 @@ static char *rna_MeshStringProperty_path(PointerRNA *ptr)
 	return rna_PolyCustomData_data_path(ptr, "layers_string", CD_PROP_STR);
 }
 
+/* XXX, we dont have propper byte string support yet, so for now use the (bytes + 1)
+ * bmesh API exposes correct python/bytestring access */
+void rna_MeshStringProperty_s_get(PointerRNA *ptr, char *value)
+{
+	MStringProperty *ms = (MStringProperty *)ptr->data;
+	BLI_strncpy(value, ms->s, (int)ms->s_len + 1);
+}
+
+int rna_MeshStringProperty_s_length(PointerRNA *ptr)
+{
+	MStringProperty *ms = (MStringProperty *)ptr->data;
+	return (int)ms->s_len + 1;
+}
+
+void rna_MeshStringProperty_s_set(PointerRNA *ptr, const char *value)
+{
+	MStringProperty *ms = (MStringProperty *)ptr->data;
+	BLI_strncpy(ms->s, value, sizeof(ms->s));
+}
+
 static int rna_Mesh_tot_vert_get(PointerRNA *ptr)
 {
 	Mesh *me = rna_mesh(ptr);
@@ -2161,6 +2181,7 @@ static void rna_def_mproperties(BlenderRNA *brna)
 	/* low level mesh data access, treat as bytes */
 	prop = RNA_def_property(srna, "value", PROP_STRING, PROP_BYTESTRING);
 	RNA_def_property_string_sdna(prop, NULL, "s");
+	RNA_def_property_string_funcs(prop, "rna_MeshStringProperty_s_get", "rna_MeshStringProperty_s_length", "rna_MeshStringProperty_s_set");
 	RNA_def_property_ui_text(prop, "Value", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 }
