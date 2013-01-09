@@ -8612,6 +8612,39 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 7)) {
+		Curve *cu;
+
+		for (cu = main->curve.first; cu; cu = cu->id.next) {
+			if (cu->flag & (CU_FRONT | CU_BACK)) {
+				Nurb *nu;
+
+				for (nu = cu->nurb.first; nu; nu = nu->next) {
+					int a;
+
+					if (nu->bezt) {
+						BezTriple *bezt = nu->bezt;
+						a = nu->pntsu;
+
+						while (a--) {
+							bezt->radius = 1.0f;
+							bezt++;
+						}
+					}
+					else if (nu->bp) {
+						BPoint *bp = nu->bp;
+						a = nu->pntsu * nu->pntsv;
+
+						while (a--) {
+							bp->radius = 1.0f;
+							bp++;
+						}
+					}
+				}
+			}
+		}
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 

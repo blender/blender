@@ -1485,8 +1485,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 								float *cur_data = data;
 
 								if (cu->taperobj == NULL) {
-									if ( (cu->bevobj != NULL) || !((cu->flag & CU_FRONT) || (cu->flag & CU_BACK)) )
-										fac = bevp->radius;
+									fac = bevp->radius;
 								}
 								else {
 									float len, taper_fac;
