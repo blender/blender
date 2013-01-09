@@ -51,10 +51,10 @@ void fdrawcheckerboard(float x1, float y1, float x2, float y2);
 
 /* OpenGL stipple defines */
 /* OpenGL stipple defines */
-extern unsigned char stipple_halftone[128];
-extern unsigned char stipple_quarttone[128];
-extern unsigned char stipple_diag_stripes_pos[128];
-extern unsigned char stipple_diag_stripes_neg[128];
+extern const unsigned char stipple_halftone[128];
+extern const unsigned char stipple_quarttone[128];
+extern const unsigned char stipple_diag_stripes_pos[128];
+extern const unsigned char stipple_diag_stripes_neg[128];
 
 /**
  * Draw a lined (non-looping) arc with the given
