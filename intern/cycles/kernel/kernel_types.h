@@ -48,6 +48,7 @@ CCL_NAMESPACE_BEGIN
 #endif
 #define __NON_PROGRESSIVE__
 #define __HAIR__
+#define __LAMP_MIS__
 #endif
 
 #ifdef __KERNEL_CUDA__
@@ -384,7 +385,7 @@ typedef enum AttributeStandard {
 
 /* Closure data */
 
-#define MAX_CLOSURE 8
+#define MAX_CLOSURE 16
 
 typedef struct ShaderClosure {
 	ClosureType type;
@@ -636,6 +637,7 @@ typedef struct KernelIntegrator {
 	int num_all_lights;
 	float pdf_triangles;
 	float pdf_lights;
+	float inv_pdf_lights;
 	int pdf_background_res;
 
 	/* bounces */
@@ -671,7 +673,7 @@ typedef struct KernelIntegrator {
 	int transmission_samples;
 	int ao_samples;
 	int mesh_light_samples;
-	int pad1, pad2;
+	int pad1;
 } KernelIntegrator;
 
 typedef struct KernelBVH {

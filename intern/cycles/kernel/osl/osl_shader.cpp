@@ -457,7 +457,11 @@ float3 OSLShader::volume_eval_phase(const ShaderClosure *sc, const float3 omega_
 int OSLShader::find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id, AttributeElement *elem)
 {
 	/* for OSL, a hash map is used to lookup the attribute by name. */
-	int object = sd->object*ATTR_PRIM_TYPES + (sd->segment != ~0);
+	int object = sd->object*ATTR_PRIM_TYPES;
+#ifdef __HAIR__
+	if(sd->segment != ~0) object += ATTR_PRIM_CURVE;
+#endif
+
 	OSLGlobals::AttributeMap &attr_map = kg->osl->attribute_map[object];
 	ustring stdname(std::string("geom:") + std::string(Attribute::standard_name((AttributeStandard)id)));
 	OSLGlobals::AttributeMap::const_iterator it = attr_map.find(stdname);
