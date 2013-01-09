@@ -799,7 +799,7 @@ static void stitch_validate_edge_stichability(UvEdge *edge, StitchState *state, 
 }
 
 
-static void stitch_propagate_uv_final_position (UvElement *element, int index, PreviewPosition *preview_position, UVVertAverage *final_position, StitchState *state, char final, Scene* scene)
+static void stitch_propagate_uv_final_position(UvElement *element, int index, PreviewPosition *preview_position, UVVertAverage *final_position, StitchState *state, char final, Scene *scene)
 {
 	StitchPreviewer *preview = state->stitch_preview;
 
@@ -1392,7 +1392,7 @@ static void stitch_switch_selection_mode(StitchState *state)
 
 	if (state->mode == STITCH_VERT) {
 		int i;
-		state->selection_stack = MEM_mallocN(state->total_separate_edges*sizeof(*state->selection_stack),
+		state->selection_stack = MEM_mallocN(state->total_separate_edges * sizeof(*state->selection_stack),
 		                                     "stitch_new_edge_selection_stack");
 
 		/* check if both elements of an edge are selected */
@@ -1415,7 +1415,7 @@ static void stitch_switch_selection_mode(StitchState *state)
 	}
 	else {
 		int i;
-		state->selection_stack = MEM_mallocN(state->total_separate_uvs*sizeof(*state->selection_stack),
+		state->selection_stack = MEM_mallocN(state->total_separate_uvs * sizeof(*state->selection_stack),
 		                                     "stitch_new_vert_selection_stack");
 
 		for (i = 0; i < old_selection_size; i++) {

@@ -48,9 +48,9 @@ struct Text;
 
 void bpy_import_init(PyObject *builtins);
 
-PyObject*	bpy_text_import(struct Text *text);
-PyObject*	bpy_text_import_name(const char *name, int *found);
-PyObject*	bpy_text_reimport(PyObject *module, int *found);
+PyObject   *bpy_text_import(struct Text *text);
+PyObject   *bpy_text_import_name(const char *name, int *found);
+PyObject   *bpy_text_reimport(PyObject *module, int *found);
 /* void		bpy_text_clear_modules(int clear_all);*/ /* Clear user modules */ 
 
 void bpy_text_filename_get(char *fn, size_t fn_len, struct Text *text);

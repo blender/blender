@@ -1694,7 +1694,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			
 			/* draw numbers in the appropriate range */
 			if (dfac > 0.0f) {
-				float h = 0.1f*UI_UNIT_Y + (float)(hor.ymin);
+				float h = 0.1f * UI_UNIT_Y + (float)(hor.ymin);
 				
 				for (; fac < hor.xmax - 0.5f * U.widget_unit; fac += dfac, val += grid->dx) {
 					

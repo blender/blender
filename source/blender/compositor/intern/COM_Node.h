@@ -58,7 +58,7 @@ private:
 	 * @brief The group node this node belongs to.
 	 * @note: used to find the links in the current subtree for muting nodes
 	 */
-	bNode* m_bNodeGroup;
+	bNode *m_bNodeGroup;
 
 public:
 	Node(bNode *editorNode, bool create_sockets = true);
@@ -145,8 +145,8 @@ public:
 	 */
 	OutputSocket *findOutputSocketBybNodeSocket(bNodeSocket *socket);
 	
-	inline void setbNodeGroup(bNode* group) {this->m_bNodeGroup = group;}
-	inline bNode* getbNodeGroup() {return this->m_bNodeGroup;}
+	inline void setbNodeGroup(bNode *group) {this->m_bNodeGroup = group;}
+	inline bNode *getbNodeGroup() {return this->m_bNodeGroup;}
 protected:
 	void addPreviewOperation(ExecutionSystem *system, CompositorContext *context, InputSocket *inputSocket);
 	void addPreviewOperation(ExecutionSystem *system, CompositorContext *context, OutputSocket *outputSocket);

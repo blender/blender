@@ -127,30 +127,24 @@ static short constraints_list_needinv(TransInfo *t, ListBase *list);
 
 /* ************************** Functions *************************** */
 
-static int trans_data_compare_dist(const void *A, const void *B)
+static int trans_data_compare_dist(const void *a, const void *b)
 {
-	const TransData *td_A = (const TransData*)A;
-	const TransData *td_B = (const TransData*)B;
+	const TransData *td_a = (const TransData *)a;
+	const TransData *td_b = (const TransData *)b;
 
-	if (td_A->dist < td_B->dist)
-		return -1;
-	else if (td_A->dist > td_B->dist)
-		return 1;
-	
-	return 0;
+	if      (td_a->dist < td_b->dist) return -1;
+	else if (td_a->dist > td_b->dist) return  1;
+	else                              return  0;
 }
 
-static int trans_data_compare_rdist(const void *A, const void *B)
+static int trans_data_compare_rdist(const void *a, const void *b)
 {
-	const TransData *td_A = (const TransData*)A;
-	const TransData *td_B = (const TransData*)B;
+	const TransData *td_a = (const TransData *)a;
+	const TransData *td_b = (const TransData *)b;
 
-	if (td_A->rdist < td_B->rdist)
-		return -1;
-	else if (td_A->rdist > td_B->rdist)
-		return 1;
-	
-	return 0;
+	if      (td_a->rdist < td_b->rdist) return -1;
+	else if (td_a->rdist > td_b->rdist) return  1;
+	else                                return  0;
 }
 
 void sort_trans_data_dist(TransInfo *t)

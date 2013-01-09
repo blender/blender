@@ -272,7 +272,7 @@ static void ptcache_particle_read(int index, void *psys_v, void **data, float cf
 	ParticleSystem *psys= psys_v;
 	ParticleData *pa;
 	BoidParticle *boid;
-	float timestep = 0.04f*psys->part->timetweak;
+	float timestep = 0.04f * psys->part->timetweak;
 
 	if (index >= psys->totpart)
 		return;
@@ -333,7 +333,7 @@ static void ptcache_particle_interpolate(int index, void *psys_v, void **data, f
 	ParticleSystem *psys= psys_v;
 	ParticleData *pa;
 	ParticleKey keys[4];
-	float dfra, timestep = 0.04f*psys->part->timetweak;
+	float dfra, timestep = 0.04f * psys->part->timetweak;
 
 	if (index >= psys->totpart)
 		return;

@@ -523,7 +523,7 @@ static int bpy_slot_from_py(BMesh *bm, BMOperator *bmop, BMOpSlot *slot, PyObjec
  *
  * \note Don't throw any exceptions and should always return a valid (PyObject *).
  */
-static PyObject* bpy_slot_to_py(BMesh *bm, BMOpSlot *slot)
+static PyObject *bpy_slot_to_py(BMesh *bm, BMOpSlot *slot)
 {
 	PyObject *item = NULL;
 

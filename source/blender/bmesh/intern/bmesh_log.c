@@ -523,14 +523,14 @@ void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log)
 	i = 0;
 	varr = MEM_mallocN(sizeof(int) * bm->totvert, AT);
 	BM_ITER_MESH (v, &bm_iter, bm, BM_VERTS_OF_MESH) {
-		((unsigned int*)varr)[i++] = bm_log_vert_id_get(log, v);
+		((unsigned int *)varr)[i++] = bm_log_vert_id_get(log, v);
 	}
 
 	/* Put all face IDs into an array */
 	i = 0;
 	farr = MEM_mallocN(sizeof(int) * bm->totface, AT);
 	BM_ITER_MESH (f, &bm_iter, bm, BM_FACES_OF_MESH) {
-		((unsigned int*)farr)[i++] = bm_log_face_id_get(log, f);
+		((unsigned int *)farr)[i++] = bm_log_face_id_get(log, f);
 	}
 
 	/* Create BMVert index remap array */

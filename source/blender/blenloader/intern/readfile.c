@@ -3340,7 +3340,7 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 	tex->env = newdataadr(fd, tex->env);
 	if (tex->env) {
 		tex->env->ima = NULL;
-		memset(tex->env->cube, 0, 6*sizeof(void *));
+		memset(tex->env->cube, 0, 6 * sizeof(void *));
 		tex->env->ok= 0;
 	}
 	tex->pd = newdataadr(fd, tex->pd);

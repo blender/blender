@@ -5265,7 +5265,7 @@ static int createSlideVerts(TransInfo *t)
 		if (dot_v3v3(loop_dir[l_nr], dir) < 0.0f) {
 			swap_v3_v3(sv_array->upvec, sv_array->downvec);
 			SWAP(BMVert, sv_array->vup, sv_array->vdown);
-			SWAP(BMVert*, sv_array->up, sv_array->down);
+			SWAP(BMVert *, sv_array->up, sv_array->down);
 		}
 	}
 

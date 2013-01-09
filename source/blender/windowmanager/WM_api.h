@@ -204,9 +204,9 @@ void		WM_operator_stack_clear(struct wmWindowManager *wm);
 
 struct wmOperatorType *WM_operatortype_find(const char *idnamem, int quiet);
 struct GHashIterator  *WM_operatortype_iter(void);
-void		WM_operatortype_append	(void (*opfunc)(struct wmOperatorType*));
-void		WM_operatortype_append_ptr	(void (*opfunc)(struct wmOperatorType*, void *), void *userdata);
-void		WM_operatortype_append_macro_ptr	(void (*opfunc)(struct wmOperatorType*, void *), void *userdata);
+void		WM_operatortype_append(void (*opfunc)(struct wmOperatorType *));
+void		WM_operatortype_append_ptr(void (*opfunc)(struct wmOperatorType *, void *), void *userdata);
+void		WM_operatortype_append_macro_ptr(void (*opfunc)(struct wmOperatorType *, void *), void *userdata);
 int			WM_operatortype_remove(const char *idname);
 
 struct wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *name, const char *description, int flag);
