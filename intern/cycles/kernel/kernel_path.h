@@ -238,7 +238,9 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 
 	float min_ray_pdf = FLT_MAX;
 	float ray_pdf = 0.0f;
+#ifdef __LAMP_MIS__
 	float ray_t = 0.0f;
+#endif
 	PathState state;
 	int rng_offset = PRNG_BASE_NUM;
 
@@ -446,7 +448,9 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 		/* set labels */
 		if(!(label & LABEL_TRANSPARENT)) {
 			ray_pdf = bsdf_pdf;
+#ifdef __LAMP_MIS__
 			ray_t = 0.0f;
+#endif
 			min_ray_pdf = fminf(bsdf_pdf, min_ray_pdf);
 		}
 
@@ -484,7 +488,9 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray ray, __global float *buffer,
 	float3 throughput, float min_ray_pdf, float ray_pdf, PathState state, int rng_offset, PathRadiance *L)
 {
+#ifdef __LAMP_MIS__
 	float ray_t = 0.0f;
+#endif
 
 	/* path iteration */
 	for(;; rng_offset += PRNG_BOUNCE_NUM) {
@@ -655,7 +661,9 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 		/* set labels */
 		if(!(label & LABEL_TRANSPARENT)) {
 			ray_pdf = bsdf_pdf;
+#ifdef __LAMP_MIS__
 			ray_t = 0.0f;
+#endif
 			min_ray_pdf = fminf(bsdf_pdf, min_ray_pdf);
 		}
 

@@ -84,9 +84,8 @@ __device uint phash(int kx, int ky, int kz, int3 p)
 
 __device float floorfrac(float x, int* i)
 {
-	float f = floorf(x);
-	*i = (int)f;
-	return x - f;
+	*i = quick_floor(x);
+	return x - *i;
 }
 
 __device float fade(float t)
@@ -133,7 +132,10 @@ __device_noinline float perlin(float x, float y, float z)
 										grad (hash (X+1, Y  , Z+1), fx-1.0f, fy	 , fz-1.0f )),
 							   nerp (u, grad (hash (X  , Y+1, Z+1), fx	 , fy-1.0f, fz-1.0f ),
 										grad (hash (X+1, Y+1, Z+1), fx-1.0f, fy-1.0f, fz-1.0f ))));
-	return scale3(result);
+	float r = scale3(result);
+
+	/* can happen for big coordinates, things even out to 0.0 then anyway */
+	return (isfinite(r))? r: 0.0f;
 }
 
 __device_noinline float perlin_periodic(float x, float y, float z, float3 pperiod)
@@ -162,7 +164,10 @@ __device_noinline float perlin_periodic(float x, float y, float z, float3 pperio
 										grad (phash (X+1, Y  , Z+1, p), fx-1.0f, fy	 , fz-1.0f )),
 							   nerp (u, grad (phash (X  , Y+1, Z+1, p), fx	 , fy-1.0f, fz-1.0f ),
 										grad (phash (X+1, Y+1, Z+1, p), fx-1.0f, fy-1.0f, fz-1.0f ))));
-	return scale3(result);
+	float r = scale3(result);
+
+	/* can happen for big coordinates, things even out to 0.0 then anyway */
+	return (isfinite(r))? r: 0.0f;
 }
 
 /* perlin noise in range 0..1 */
