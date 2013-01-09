@@ -1062,6 +1062,7 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			ui_apply_but_BUT(C, but, data);
 			break;
 		case TEX:
+		case SEARCH_MENU_UNLINK:
 		case SEARCH_MENU:
 			ui_apply_but_TEX(C, but, data);
 			break;
@@ -1169,7 +1170,7 @@ static void ui_but_drop(bContext *C, wmEvent *event, uiBut *but, uiHandleButtonD
 	for (wmd = drags->first; wmd; wmd = wmd->next) {
 		if (wmd->type == WM_DRAG_ID) {
 			/* align these types with UI_but_active_drop_name */
-			if (ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
+			if (ELEM4(but->type, TEX, IDPOIN, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 				ID *id = (ID *)wmd->poin;
 				
 				if (but->poin == NULL && but->rnapoin.data == NULL) {}
@@ -1270,7 +1271,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 	}
 
 	/* text/string and ID data */
-	else if (ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
+	else if (ELEM4(but->type, TEX, IDPOIN, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		uiHandleButtonData *active_data = but->active;
 
 		if (but->poin == NULL && but->rnapoin.data == NULL) {
@@ -1289,7 +1290,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 			if (ui_is_but_utf8(but)) BLI_strncpy_utf8(active_data->str, buf, active_data->maxlen);
 			else BLI_strncpy(active_data->str, buf, active_data->maxlen);
 
-			if (but->type == SEARCH_MENU) {
+			if (ELEM(but->type, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 				/* else uiSearchboxData.active member is not updated [#26856] */
 				ui_searchbox_update(C, data->searchbox, but, 1);
 			}
@@ -1436,7 +1437,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	/* XXX solve generic */
 	if (but->type == NUM || but->type == NUMSLI)
 		startx += (int)(0.5f * (BLI_rctf_size_y(&but->rect)));
-	else if (ELEM(but->type, TEX, SEARCH_MENU)) {
+	else if (ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		startx += 5;
 		if (but->flag & UI_HAS_ICON)
 			startx += UI_DPI_ICON_SIZE;
@@ -1816,7 +1817,7 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 	but->selend = len;
 
 	/* optional searchbox */
-	if (but->type == SEARCH_MENU) {
+	if (ELEM(but->type, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		data->searchbox = ui_searchbox_create(C, data->region, but);
 		ui_searchbox_update(C, data->searchbox, but, 1); /* 1 = reset */
 	}
@@ -1862,7 +1863,7 @@ static void ui_textedit_next_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 		return;
 
 	for (but = actbut->next; but; but = but->next) {
-		if (ELEM7(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI, IDPOIN, SEARCH_MENU)) {
+		if (ELEM8(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI, IDPOIN, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 			if (!(but->flag & UI_BUT_DISABLED)) {
 				data->postbut = but;
 				data->posttype = BUTTON_ACTIVATE_TEXT_EDITING;
@@ -1871,7 +1872,7 @@ static void ui_textedit_next_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 		}
 	}
 	for (but = block->buttons.first; but != actbut; but = but->next) {
-		if (ELEM7(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI, IDPOIN, SEARCH_MENU)) {
+		if (ELEM8(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI, IDPOIN, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 			if (!(but->flag & UI_BUT_DISABLED)) {
 				data->postbut = but;
 				data->posttype = BUTTON_ACTIVATE_TEXT_EDITING;
@@ -1890,7 +1891,7 @@ static void ui_textedit_prev_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 		return;
 
 	for (but = actbut->prev; but; but = but->prev) {
-		if (ELEM7(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI, IDPOIN, SEARCH_MENU)) {
+		if (ELEM8(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI, IDPOIN, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 			if (!(but->flag & UI_BUT_DISABLED)) {
 				data->postbut = but;
 				data->posttype = BUTTON_ACTIVATE_TEXT_EDITING;
@@ -1899,7 +1900,7 @@ static void ui_textedit_prev_but(uiBlock *block, uiBut *actbut, uiHandleButtonDa
 		}
 	}
 	for (but = block->buttons.last; but != actbut; but = but->prev) {
-		if (ELEM7(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI, IDPOIN, SEARCH_MENU)) {
+		if (ELEM8(but->type, TEX, NUM, NUMABS, NUMSLI, HSVSLI, IDPOIN, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 			if (!(but->flag & UI_BUT_DISABLED)) {
 				data->postbut = but;
 				data->posttype = BUTTON_ACTIVATE_TEXT_EDITING;
@@ -2428,6 +2429,34 @@ static int ui_do_but_TEX(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 	}
 
 	return WM_UI_HANDLER_CONTINUE;
+}
+
+static int ui_do_but_SEARCH_UNLINK(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
+{
+	/* unlink icon is on right */
+	if (ELEM(event->type, LEFTMOUSE, EVT_BUT_OPEN) && event->val == KM_PRESS) {
+		ARegion *ar = CTX_wm_region(C);
+		rcti rect;
+		int x = event->x, y = event->y;
+		
+		ui_window_to_block(ar, but->block, &x, &y);
+		
+		BLI_rcti_rctf_copy(&rect, &but->rect);
+		
+		rect.xmin = rect.xmax - (BLI_rcti_size_y(&rect));
+		if ( BLI_rcti_isect_pt(&rect, x, y) ) {
+			/* most likely NULL, but let's check, and give it temp zero string */
+			if (data->str == NULL)
+				data->str = MEM_callocN(16, "temp str");
+			data->str[0] = 0;
+			
+			ui_apply_but_TEX(C, but, data);
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			
+			return WM_UI_HANDLER_BREAK;
+		}
+	}
+	return ui_do_but_TEX(C, block, but, data, event);
 }
 
 static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, wmEvent *event)
@@ -5138,6 +5167,9 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 		case SEARCH_MENU:
 			retval = ui_do_but_TEX(C, block, but, data, event);
 			break;
+		case SEARCH_MENU_UNLINK:
+			retval = ui_do_but_SEARCH_UNLINK(C, block, but, data, event);
+			break;
 		case MENU:
 		case ICONROW:
 		case ICONTEXTROW:
@@ -5251,7 +5283,7 @@ int UI_but_active_drop_name(bContext *C)
 	uiBut *but = ui_but_find_activated(ar);
 
 	if (but) {
-		if (ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU))
+		if (ELEM4(but->type, TEX, IDPOIN, SEARCH_MENU, SEARCH_MENU_UNLINK))
 			return 1;
 	}
 	
@@ -5577,7 +5609,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 	copy_v2_fl(data->ungrab_mval, FLT_MAX);
 #endif
 
-	if (ELEM(but->type, BUT_CURVE, SEARCH_MENU)) {
+	if (ELEM3(but->type, BUT_CURVE, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		/* XXX curve is temp */
 	}
 	else {
@@ -6440,7 +6472,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 
 	/* if there's an active modal button, don't check events or outside, except for search menu */
 	but = ui_but_find_activated(ar);
-	if (but && button_modal_state(but->active->state) && but->type != SEARCH_MENU) {
+	if (but && button_modal_state(but->active->state) && but->type != SEARCH_MENU && but->type != SEARCH_MENU_UNLINK) {
 		/* if a button is activated modal, always reset the start mouse
 		 * position of the towards mechanism to avoid loosing focus,
 		 * and don't handle events */
@@ -6466,7 +6498,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 		if (block->block_event_func && block->block_event_func(C, block, event)) {
 			/* pass */
 		}   /* events not for active search menu button */
-		else if (but == NULL || but->type != SEARCH_MENU) {
+		else if (but == NULL || (but->type != SEARCH_MENU && but->type != SEARCH_MENU_UNLINK)) {
 			switch (event->type) {
 
 

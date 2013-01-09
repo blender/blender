@@ -897,7 +897,7 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, const rcti
 				}
 			}
 			else if (but->block->flag & UI_BLOCK_LOOP) {
-				if (but->type == SEARCH_MENU)
+				if (ELEM(but->type, SEARCH_MENU, SEARCH_MENU_UNLINK))
 					xs = rect->xmin + 4.0f * ofs;
 				else
 					xs = rect->xmin + ofs;
@@ -1283,7 +1283,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	else if (ELEM4(but->type, NUM, NUMABS, NUMSLI, SLI)) {
 		ui_text_clip_right_label(fstyle, but, rect);
 	}
-	else if (ELEM(but->type, TEX, SEARCH_MENU)) {
+	else if (ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		ui_text_clip_left(fstyle, but, rect);
 	}
 	else if ((but->block->flag & UI_BLOCK_LOOP) && (but->type == BUT)) {
@@ -1330,6 +1330,14 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		}
 		else if ((but->flag & UI_TEXT_LEFT)) {
 			rect->xmin += (0.4f * U.widget_unit) / but->block->aspect;
+		}
+		
+		/* unlink icon for this button type */
+		if (but->type == SEARCH_MENU_UNLINK && but->drawstr[0]) {
+			rcti temp = *rect;
+			
+			temp.xmin = temp.xmax - BLI_rcti_size_y(rect);
+			widget_draw_icon(but, ICON_X, 1.0f, &temp);
 		}
 
 		/* always draw text for textbutton cursor */
@@ -3215,7 +3223,8 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 			case TEX:
 				wt = widget_type(UI_WTYPE_NAME);
 				break;
-				
+			
+			case SEARCH_MENU_UNLINK:
 			case SEARCH_MENU:
 				wt = widget_type(UI_WTYPE_NAME);
 				if (but->block->flag & UI_BLOCK_LOOP)

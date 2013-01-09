@@ -254,7 +254,8 @@ typedef enum {
 	HISTOGRAM     = (48 << 9),
 	WAVEFORM      = (49 << 9),
 	VECTORSCOPE   = (50 << 9),
-	PROGRESSBAR   = (51 << 9)
+	PROGRESSBAR   = (51 << 9),
+	SEARCH_MENU_UNLINK   = (52 << 9)
 } eButType;
 
 #define BUTTYPE     (63 << 9)

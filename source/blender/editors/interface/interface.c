@@ -1605,7 +1605,7 @@ void ui_set_but_val(uiBut *but, double value)
 
 int ui_get_but_string_max_length(uiBut *but)
 {
-	if (ELEM(but->type, TEX, SEARCH_MENU))
+	if (ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK))
 		return but->hardmax;
 	else if (but->type == IDPOIN)
 		return MAX_ID_NAME - 2;
@@ -1688,7 +1688,7 @@ static float ui_get_but_step_unit(uiBut *but, float step_default)
 
 void ui_get_but_string(uiBut *but, char *str, size_t maxlen)
 {
-	if (but->rnaprop && ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
+	if (but->rnaprop && ELEM4(but->type, TEX, IDPOIN, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		PropertyType type;
 		const char *buf = NULL;
 		int buf_len;
@@ -1742,7 +1742,7 @@ void ui_get_but_string(uiBut *but, char *str, size_t maxlen)
 		BLI_strncpy(str, but->poin, maxlen);
 		return;
 	}
-	else if (but->type == SEARCH_MENU) {
+	else if (ELEM(but->type, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		/* string */
 		BLI_strncpy(str, but->poin, maxlen);
 		return;
@@ -1833,7 +1833,7 @@ int ui_set_but_string_eval_num(bContext *C, uiBut *but, const char *str, double 
 
 int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 {
-	if (but->rnaprop && ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
+	if (but->rnaprop && ELEM4(but->type, TEX, IDPOIN, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		if (RNA_property_editable(&but->rnapoin, but->rnaprop)) {
 			PropertyType type;
 
@@ -1890,7 +1890,7 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 
 		return 1;
 	}
-	else if (but->type == SEARCH_MENU) {
+	else if (ELEM(but->type, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		/* string */
 		BLI_strncpy(but->poin, str, but->hardmax);
 		return 1;
@@ -2360,6 +2360,7 @@ void ui_check_but(uiBut *but)
 		case IDPOIN:
 		case TEX:
 		case SEARCH_MENU:
+		case SEARCH_MENU_UNLINK:
 			if (!but->editstr) {
 				char str[UI_MAX_DRAW_STR];
 
@@ -2741,7 +2742,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 	}
 
 	if ((block->flag & UI_BLOCK_LOOP) ||
-	    ELEM8(but->type, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM, SEARCH_MENU, PROGRESSBAR))
+	    ELEM9(but->type, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM, SEARCH_MENU, PROGRESSBAR, SEARCH_MENU_UNLINK))
 	{
 		but->flag |= (UI_TEXT_LEFT | UI_ICON_LEFT);
 	}
