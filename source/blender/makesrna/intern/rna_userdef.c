@@ -514,7 +514,7 @@ static StructRNA *rna_AddonPref_register(Main *bmain, ReportList *reports, void 
 	memcpy(apt, &dummyapt, sizeof(dummyapt));
 	BKE_addon_pref_type_add(apt);
 
-	apt->ext.srna = RNA_def_struct(&BLENDER_RNA, identifier, "AddonPreferences");
+	apt->ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, identifier, &RNA_AddonPreferences);
 	apt->ext.data = data;
 	apt->ext.call = call;
 	apt->ext.free = free;

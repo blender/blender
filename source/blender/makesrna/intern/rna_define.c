@@ -623,30 +623,17 @@ static StructDefRNA *rna_find_def_struct(StructRNA *srna)
 }
 
 /* Struct Definition */
-
-StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *from)
+StructRNA *RNA_def_struct_ptr(BlenderRNA *brna, const char *identifier, StructRNA *srnafrom)
 {
-	StructRNA *srna, *srnafrom = NULL;
+	StructRNA *srna;
 	StructDefRNA *ds = NULL, *dsfrom = NULL;
 	PropertyRNA *prop;
-	
+
 	if (DefRNA.preprocess) {
 		char error[512];
 
 		if (rna_validate_identifier(identifier, error, FALSE) == 0) {
 			fprintf(stderr, "%s: struct identifier \"%s\" error - %s\n", __func__, identifier, error);
-			DefRNA.error = 1;
-		}
-	}
-	
-	if (from) {
-		/* find struct to derive from */
-		for (srnafrom = brna->structs.first; srnafrom; srnafrom = srnafrom->cont.next)
-			if (strcmp(srnafrom->identifier, from) == 0)
-				break;
-
-		if (!srnafrom) {
-			fprintf(stderr, "%s: struct %s not found to define %s.\n", __func__, from, identifier);
 			DefRNA.error = 1;
 		}
 	}
@@ -670,7 +657,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 		else
 			srna->base = srnafrom;
 	}
-	
+
 	srna->identifier = identifier;
 	srna->name = identifier; /* may be overwritten later RNA_def_struct_ui_text */
 	srna->description = "";
@@ -739,6 +726,28 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 	}
 
 	return srna;
+}
+
+StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *from)
+{
+	StructRNA *srnafrom = NULL;
+
+	/* only use RNA_def_struct() while pre-processing, otherwise use RNA_def_struct_ptr() */
+	BLI_assert(DefRNA.preprocess);
+
+	if (from) {
+		/* find struct to derive from */
+		for (srnafrom = brna->structs.first; srnafrom; srnafrom = srnafrom->cont.next)
+			if (strcmp(srnafrom->identifier, from) == 0)
+				break;
+
+		if (!srnafrom) {
+			fprintf(stderr, "%s: struct %s not found to define %s.\n", __func__, from, identifier);
+			DefRNA.error = 1;
+		}
+	}
+
+	return RNA_def_struct_ptr(brna, identifier, srnafrom);
 }
 
 void RNA_def_struct_sdna(StructRNA *srna, const char *structname)

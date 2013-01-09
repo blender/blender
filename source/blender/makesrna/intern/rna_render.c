@@ -196,7 +196,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, vo
 	et = MEM_callocN(sizeof(RenderEngineType), "python render engine");
 	memcpy(et, &dummyet, sizeof(dummyet));
 
-	et->ext.srna = RNA_def_struct(&BLENDER_RNA, et->idname, "RenderEngine");
+	et->ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, et->idname, &RNA_RenderEngine);
 	et->ext.data = data;
 	et->ext.call = call;
 	et->ext.free = free;

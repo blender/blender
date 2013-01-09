@@ -151,7 +151,7 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType *))
 	wmOperatorType *ot;
 	
 	ot = MEM_callocN(sizeof(wmOperatorType), "operatortype");
-	ot->srna = RNA_def_struct(&BLENDER_RNA, "", "OperatorProperties");
+	ot->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_OperatorProperties);
 	/* Set the default i18n context now, so that opfunc can redefine it if needed! */
 	RNA_def_struct_translation_context(ot->srna, BLF_I18NCONTEXT_OPERATOR_DEFAULT);
 	opfunc(ot);
@@ -173,7 +173,7 @@ void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType *, void *), void *
 	wmOperatorType *ot;
 
 	ot = MEM_callocN(sizeof(wmOperatorType), "operatortype");
-	ot->srna = RNA_def_struct(&BLENDER_RNA, "", "OperatorProperties");
+	ot->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_OperatorProperties);
 	/* Set the default i18n context now, so that opfunc can redefine it if needed! */
 	RNA_def_struct_translation_context(ot->srna, BLF_I18NCONTEXT_OPERATOR_DEFAULT);
 	opfunc(ot, userdata);
@@ -360,7 +360,7 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *nam
 	}
 	
 	ot = MEM_callocN(sizeof(wmOperatorType), "operatortype");
-	ot->srna = RNA_def_struct(&BLENDER_RNA, "", "OperatorProperties");
+	ot->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_OperatorProperties);
 	
 	ot->idname = idname;
 	ot->name = name;
@@ -390,7 +390,7 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *, void *), 
 	wmOperatorType *ot;
 
 	ot = MEM_callocN(sizeof(wmOperatorType), "operatortype");
-	ot->srna = RNA_def_struct(&BLENDER_RNA, "", "OperatorProperties");
+	ot->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_OperatorProperties);
 
 	ot->flag = OPTYPE_MACRO;
 	ot->exec = wm_macro_exec;

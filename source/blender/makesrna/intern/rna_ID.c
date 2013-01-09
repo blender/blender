@@ -248,7 +248,7 @@ StructRNA *rna_PropertyGroup_register(Main *UNUSED(bmain), ReportList *reports, 
 		return NULL;
 	}
 
-	return RNA_def_struct(&BLENDER_RNA, identifier, "PropertyGroup");  /* XXX */
+	return RNA_def_struct_ptr(&BLENDER_RNA, identifier, &RNA_PropertyGroup);  /* XXX */
 }
 
 StructRNA *rna_PropertyGroup_refine(PointerRNA *ptr)

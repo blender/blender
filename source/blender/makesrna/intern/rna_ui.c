@@ -225,7 +225,7 @@ static StructRNA *rna_Panel_register(Main *bmain, ReportList *reports, void *dat
 	pt = MEM_callocN(sizeof(PanelType), "python buttons panel");
 	memcpy(pt, &dummypt, sizeof(dummypt));
 
-	pt->ext.srna = RNA_def_struct(&BLENDER_RNA, pt->idname, "Panel");
+	pt->ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, pt->idname, &RNA_Panel);
 	pt->ext.data = data;
 	pt->ext.call = call;
 	pt->ext.free = free;
@@ -338,7 +338,7 @@ static StructRNA *rna_UIList_register(Main *bmain, ReportList *reports, void *da
 	ult = MEM_callocN(sizeof(uiListType) + over_alloc, "python uilist");
 	memcpy(ult, &dummyult, sizeof(dummyult));
 
-	ult->ext.srna = RNA_def_struct(&BLENDER_RNA, ult->idname, "UIList");
+	ult->ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, ult->idname, &RNA_UIList);
 	ult->ext.data = data;
 	ult->ext.call = call;
 	ult->ext.free = free;
@@ -439,7 +439,7 @@ static StructRNA *rna_Header_register(Main *bmain, ReportList *reports, void *da
 	ht = MEM_callocN(sizeof(HeaderType), "python buttons header");
 	memcpy(ht, &dummyht, sizeof(dummyht));
 
-	ht->ext.srna = RNA_def_struct(&BLENDER_RNA, ht->idname, "Header");
+	ht->ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, ht->idname, &RNA_Header);
 	ht->ext.data = data;
 	ht->ext.call = call;
 	ht->ext.free = free;
@@ -572,7 +572,7 @@ static StructRNA *rna_Menu_register(Main *bmain, ReportList *reports, void *data
 		mt->description = buf;
 	}
 
-	mt->ext.srna = RNA_def_struct(&BLENDER_RNA, mt->idname, "Menu");
+	mt->ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, mt->idname, &RNA_Menu);
 	mt->ext.data = data;
 	mt->ext.call = call;
 	mt->ext.free = free;
