@@ -431,7 +431,8 @@ extern "C" {
 #if MAC_OS_X_VERSION_MAX_ALLOWED < 1070
 @interface NSView (NSOpenGLSurfaceResolution)
 - (BOOL)wantsBestResolutionOpenGLSurface;
-- (void)setWantsBestResolutionOpenGLSurface;
+- (void)setWantsBestResolutionOpenGLSurface:(BOOL)flag;
+- (NSRect)convertRectToBacking:(NSRect)bounds;
 @end
 #endif
 
