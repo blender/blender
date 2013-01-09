@@ -165,8 +165,9 @@ static void panel_draw_header(const bContext *C, Panel *pnl)
 	RNA_parameter_list_free(&list);
 }
 
-static void rna_Panel_unregister(Main *UNUSED(bmain), StructRNA *type)
+static void rna_Panel_unregister(Main *bmain, StructRNA *type)
 {
+	wmWindowManager *wm;
 	ARegionType *art;
 	PanelType *pt = RNA_struct_blender_type_get(type);
 
@@ -174,6 +175,10 @@ static void rna_Panel_unregister(Main *UNUSED(bmain), StructRNA *type)
 		return;
 	if (!(art = region_type_find(NULL, pt->space_type, pt->region_type)))
 		return;
+
+	for (wm = bmain->wm.first; wm; wm = wm->id.next) {
+		uiPanelClearType(wm, art, pt);
+	}
 	
 	RNA_struct_free_extension(type, &pt->ext);
 

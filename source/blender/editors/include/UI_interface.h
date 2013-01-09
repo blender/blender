@@ -42,6 +42,7 @@ struct ID;
 struct Main;
 struct ListBase;
 struct ARegion;
+struct ARegionType;
 struct ScrArea;
 struct wmWindow;
 struct wmWindowManager;
@@ -660,6 +661,7 @@ void uiDrawPanels(const struct bContext *C, struct ARegion *ar);
 struct Panel *uiBeginPanel(struct ScrArea *sa, struct ARegion *ar, uiBlock *block, struct PanelType *pt, int *open);
 void uiEndPanel(uiBlock *block, int width, int height);
 void uiScalePanels(struct ARegion *ar, float new_width);
+void uiPanelClearType(struct wmWindowManager *wm, const struct ARegionType *art, const struct PanelType *type);
 
 /* Handlers
  *
