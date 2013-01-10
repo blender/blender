@@ -160,14 +160,14 @@ static int pyrna_struct_keyframe_parse(
 		return -1;
 	}
 
-	if (pyrna_struct_anim_args_parse(ptr, error_prefix, path, path_full, index) < 0)
+	if (pyrna_struct_anim_args_parse(ptr, error_prefix, path, path_full, index) == -1)
 		return -1;
 
 	if (*cfra == FLT_MAX)
 		*cfra = CTX_data_scene(BPy_GetContext())->r.cfra;
 
 	/* flag may be null (no option currently for remove keyframes e.g.). */
-	if (pyoptions && options && (pyrna_set_to_enum_bitfield(keying_flag_items, pyoptions, options, error_prefix) < 0))
+	if (pyoptions && options && (pyrna_set_to_enum_bitfield(keying_flag_items, pyoptions, options, error_prefix) == -1))
 		return -1;
 
 	return 0; /* success */
@@ -301,7 +301,7 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "s|i:driver_add", &path, &index))
 		return NULL;
 
-	if (pyrna_struct_anim_args_parse(&self->ptr, "bpy_struct.driver_add():", path, &path_full, &index) < 0) {
+	if (pyrna_struct_anim_args_parse(&self->ptr, "bpy_struct.driver_add():", path, &path_full, &index) == -1) {
 		return NULL;
 	}
 	else {
@@ -377,7 +377,7 @@ PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "s|i:driver_remove", &path, &index))
 		return NULL;
 
-	if (pyrna_struct_anim_args_parse(&self->ptr, "bpy_struct.driver_remove():", path, &path_full, &index) < 0) {
+	if (pyrna_struct_anim_args_parse(&self->ptr, "bpy_struct.driver_remove():", path, &path_full, &index) == -1) {
 		return NULL;
 	}
 	else {

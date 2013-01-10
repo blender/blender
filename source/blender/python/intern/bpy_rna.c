@@ -1187,7 +1187,7 @@ int pyrna_set_to_enum_bitfield(EnumPropertyItem *items, PyObject *value, int *r_
 			return -1;
 		}
 
-		if (pyrna_enum_value_from_id(items, param, &ret, error_prefix) < 0) {
+		if (pyrna_enum_value_from_id(items, param, &ret, error_prefix) == -1) {
 			return -1;
 		}
 
@@ -1682,13 +1682,13 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 				/* type checkins is done by each function */
 				if (RNA_property_flag(prop) & PROP_ENUM_FLAG) {
 					/* set of enum items, concatenate all values with OR */
-					if (pyrna_prop_to_enum_bitfield(ptr, prop, value, &val, error_prefix) < 0) {
+					if (pyrna_prop_to_enum_bitfield(ptr, prop, value, &val, error_prefix) == -1) {
 						return -1;
 					}
 				}
 				else {
 					/* simple enum string */
-					if (pyrna_string_to_enum(value, ptr, prop, &val, error_prefix) < 0) {
+					if (pyrna_string_to_enum(value, ptr, prop, &val, error_prefix) == -1) {
 						return -1;
 					}
 				}
@@ -4384,7 +4384,7 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 	bool attr_signed;
 	RawPropertyType raw_type;
 
-	if (foreach_parse_args(self, args, &attr, &seq, &tot, &size, &raw_type, &attr_tot, &attr_signed) < 0)
+	if (foreach_parse_args(self, args, &attr, &seq, &tot, &size, &raw_type, &attr_tot, &attr_signed) == -1)
 		return NULL;
 
 	if (tot == 0)
