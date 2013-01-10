@@ -276,7 +276,9 @@ if 'blenderlite' in B.targets:
             env[k] = v
 
 if 'cudakernels' in B.targets:
+    env['WITH_BF_CYCLES'] = True
     env['WITH_BF_CYCLES_CUDA_BINARIES'] = True
+    env['WITH_BF_PYTHON'] = False
 
 # Extended OSX_SDK and 3D_CONNEXION_CLIENT_LIBRARY and JAckOSX detection for OSX
 if env['OURPLATFORM']=='darwin':
