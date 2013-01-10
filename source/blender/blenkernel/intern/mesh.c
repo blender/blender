@@ -3337,3 +3337,39 @@ void BKE_mesh_poly_calc_angles(MVert *mvert, MLoop *mloop,
 	}
 }
 #endif
+
+
+void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh)
+{
+	if (UNLIKELY(mesh->cd_flag)) {
+		return;
+	}
+	else {
+		MVert *mv;
+		MEdge *med;
+		int i;
+
+		for (mv = mesh->mvert, i = 0; i < mesh->totvert; mv++, i++) {
+			if (mv->bweight != 0) {
+				mesh->cd_flag |= ME_CDFLAG_VERT_BWEIGHT;
+				break;
+			}
+		}
+
+		for (med = mesh->medge, i = 0; i < mesh->totedge; med++, i++) {
+			if (med->bweight != 0) {
+				mesh->cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
+				if (mesh->cd_flag & ME_CDFLAG_EDGE_CREASE) {
+					break;
+				}
+			}
+			if (med->crease != 0) {
+				mesh->cd_flag |= ME_CDFLAG_EDGE_CREASE;
+				if (mesh->cd_flag & ME_CDFLAG_EDGE_BWEIGHT) {
+					break;
+				}
+			}
+		}
+
+	}
+}

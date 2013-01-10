@@ -372,16 +372,19 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        # me = context.mesh
+        obj = context.object
+        me = context.mesh
         col = layout.column()
-        # sticky has no UI access since 2.49 - we may remove
-        '''
-        row = col.row(align=True)
-        row.operator("mesh.customdata_create_sticky")
-        row.operator("mesh.customdata_clear_sticky", icon='X')
-        '''
+
         col.operator("mesh.customdata_clear_mask", icon='X')
         col.operator("mesh.customdata_clear_skin", icon='X')
+
+        col = layout.column()
+
+        col.enabled = (obj.mode != 'EDIT')
+        col.prop(me, "use_customdata_vertex_bevel")
+        col.prop(me, "use_customdata_edge_bevel")
+        col.prop(me, "use_customdata_edge_crease")
 
 
 class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, Panel):

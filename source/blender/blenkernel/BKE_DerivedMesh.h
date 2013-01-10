@@ -173,6 +173,9 @@ struct DerivedMesh {
 	float auto_bump_scale;
 	DMDirtyFlag dirty;
 
+	/* use for converting to BMesh which doesn't store bevel weight and edge crease by default */
+	char cd_flag;
+
 	/** Calculate vert and face normals */
 	void (*calcNormals)(DerivedMesh *dm);
 

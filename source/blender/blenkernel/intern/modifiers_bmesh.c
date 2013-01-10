@@ -62,6 +62,10 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 	int is_init = (bm->totvert == 0) && (bm->totedge == 0) && (bm->totface == 0);
 	char has_orig_hflag = 0;
 
+	int cd_vert_bweight_offset;
+	int cd_edge_bweight_offset;
+	int cd_edge_crease_offset;
+
 	if (is_init == FALSE) {
 		/* check if we have an origflag */
 		has_orig_hflag |= CustomData_has_layer(&bm->vdata, CD_ORIGINDEX) ? BM_VERT : 0;
@@ -75,15 +79,17 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 	CustomData_bmesh_merge(&dm->loopData, &bm->ldata, CD_MASK_DERIVEDMESH, CD_CALLOC, bm, BM_LOOP);
 	CustomData_bmesh_merge(&dm->polyData, &bm->pdata, CD_MASK_DERIVEDMESH, CD_CALLOC, bm, BM_FACE);
 
+	if (is_init) {
+		BM_mesh_cd_flag_apply(bm, dm->cd_flag);
+	}
+
+	cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
+	cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
+	cd_edge_crease_offset  = CustomData_get_offset(&bm->edata, CD_CREASE);
+
 	totvert = dm->getNumVerts(dm);
 	totedge = dm->getNumEdges(dm);
 	/* totface = dm->getNumPolys(dm); */ /* UNUSED */
-
-	/* add crease layer */
-	BM_data_layer_add(bm, &bm->edata, CD_CREASE);
-	/* add bevel weight layers */
-	BM_data_layer_add(bm, &bm->edata, CD_BWEIGHT);
-	BM_data_layer_add(bm, &bm->vdata, CD_BWEIGHT);
 
 	vtable = MEM_callocN(sizeof(void **) * totvert, __func__);
 	etable = MEM_callocN(sizeof(void **) * totedge, __func__);
@@ -100,7 +106,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 		vtable[i] = v;
 
 		/* add bevel weight */
-		BM_elem_float_data_set(&bm->vdata, v, CD_BWEIGHT, (float)mv->bweight / 255.0f);
+		if (cd_vert_bweight_offset != -1) BM_ELEM_CD_SET_FLOAT(v, cd_vert_bweight_offset, (float)mv->bweight / 255.0f);
 
 		if (UNLIKELY(has_orig_hflag & BM_VERT)) {
 			int *orig_index = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_ORIGINDEX);
@@ -121,10 +127,8 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 		CustomData_to_bmesh_block(&dm->edgeData, &bm->edata, i, &e->head.data, true);
 		etable[i] = e;
 
-		/* add crease */
-		BM_elem_float_data_set(&bm->edata, e, CD_CREASE, (float)me->crease / 255.0f);
-		/* add bevel weight */
-		BM_elem_float_data_set(&bm->edata, e, CD_BWEIGHT, (float)me->bweight / 255.0f);
+		if (cd_edge_bweight_offset != -1) BM_ELEM_CD_SET_FLOAT(e, cd_edge_bweight_offset, (float)me->bweight / 255.0f);
+		if (cd_edge_crease_offset  != -1) BM_ELEM_CD_SET_FLOAT(e, cd_edge_crease_offset,  (float)me->crease  / 255.0f);
 
 		if (UNLIKELY(has_orig_hflag & BM_EDGE)) {
 			int *orig_index = CustomData_bmesh_get(&bm->edata, e->head.data, CD_ORIGINDEX);

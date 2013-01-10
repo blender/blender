@@ -289,6 +289,7 @@ static void createTransEdge(TransInfo *t)
 	float mtx[3][3], smtx[3][3];
 	int count = 0, countsel = 0;
 	int propmode = t->flag & T_PROP_EDIT;
+	int cd_edge_float_offset;
 
 	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 		if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
@@ -312,8 +313,22 @@ static void createTransEdge(TransInfo *t)
 	copy_m3_m4(mtx, t->obedit->obmat);
 	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
+	/* create data we need */
+	if (t->mode == TFM_BWEIGHT) {
+		BM_mesh_cd_flag_ensure(em->bm, BKE_mesh_from_object(t->obedit), ME_CDFLAG_EDGE_BWEIGHT);
+		cd_edge_float_offset = CustomData_get_offset(&em->bm->edata, CD_BWEIGHT);
+	}
+	else { //if (t->mode == TFM_CREASE) {
+		BLI_assert(t->mode == TFM_CREASE);
+		BM_mesh_cd_flag_ensure(em->bm, BKE_mesh_from_object(t->obedit), ME_CDFLAG_EDGE_CREASE);
+		cd_edge_float_offset = CustomData_get_offset(&em->bm->edata, CD_CREASE);
+	}
+
+	BLI_assert(cd_edge_float_offset != -1);
+
 	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 		if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && (BM_elem_flag_test(eed, BM_ELEM_SELECT) || propmode)) {
+			float *fl_ptr;
 			/* need to set center for center calculations */
 			mid_v3_v3v3(td->center, eed->v1->co, eed->v2->co);
 
@@ -327,17 +342,10 @@ static void createTransEdge(TransInfo *t)
 			copy_m3_m3(td->mtx, mtx);
 
 			td->ext = NULL;
-			if (t->mode == TFM_BWEIGHT) {
-				float *bweight = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_BWEIGHT);
-				td->val = bweight;
-				td->ival = bweight ? *bweight : 1.0f;
-			}
-			else {
-				float *crease = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_CREASE);
-				BLI_assert(t->mode == TFM_CREASE);
-				td->val = crease;
-				td->ival = crease ? *crease : 0.0f;
-			}
+
+			fl_ptr = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_float_offset);
+			td->val  =  fl_ptr;
+			td->ival = *fl_ptr;
 
 			td++;
 		}

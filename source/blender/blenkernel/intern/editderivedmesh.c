@@ -1402,7 +1402,7 @@ static void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 	BMesh *bm = bmdm->tc->bm;
 	BMVert *eve;
 	BMIter iter;
-	const int has_bweight = CustomData_has_layer(&bm->vdata, CD_BWEIGHT);
+	const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
 
 	if (bmdm->vertexCos) {
 		int i;
@@ -1412,9 +1412,8 @@ static void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 			normal_float_to_short_v3(vert_r->no, eve->no);
 			vert_r->flag = BM_vert_flag_to_mflag(eve);
 
-			if (has_bweight) {
-				vert_r->bweight = (unsigned char) (BM_elem_float_data_get(&bm->vdata, eve, CD_BWEIGHT) * 255.0f);
-			}
+			if (cd_vert_bweight_offset != -1) vert_r->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eve, cd_vert_bweight_offset);
+
 			vert_r++;
 		}
 	}
@@ -1424,9 +1423,8 @@ static void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 			normal_float_to_short_v3(vert_r->no, eve->no);
 			vert_r->flag = BM_vert_flag_to_mflag(eve);
 
-			if (has_bweight) {
-				vert_r->bweight = (unsigned char) (BM_elem_float_data_get(&bm->vdata, eve, CD_BWEIGHT) * 255.0f);
-			}
+			if (cd_vert_bweight_offset != -1) vert_r->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eve, cd_vert_bweight_offset);
+
 			vert_r++;
 		}
 	}
@@ -1437,24 +1435,20 @@ static void emDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 	BMesh *bm = ((EditDerivedBMesh *)dm)->tc->bm;
 	BMEdge *eed;
 	BMIter iter;
-	const int has_bweight = CustomData_has_layer(&bm->edata, CD_BWEIGHT);
-	const int has_crease = CustomData_has_layer(&bm->edata, CD_CREASE);
+
+	const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
+	const int cd_edge_crease_offset  = CustomData_get_offset(&bm->edata, CD_CREASE);
 
 	BM_mesh_elem_index_ensure(bm, BM_VERT);
 
 	BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-		if (has_bweight) {
-			edge_r->bweight = (unsigned char) (BM_elem_float_data_get(&bm->edata, eed, CD_BWEIGHT) * 255.0f);
-		}
-
-		if (has_crease) {
-			edge_r->crease = (unsigned char) (BM_elem_float_data_get(&bm->edata, eed, CD_CREASE) * 255.0f);
-		}
+		edge_r->v1 = BM_elem_index_get(eed->v1);
+		edge_r->v2 = BM_elem_index_get(eed->v2);
 
 		edge_r->flag = BM_edge_flag_to_mflag(eed);
 
-		edge_r->v1 = BM_elem_index_get(eed->v1);
-		edge_r->v2 = BM_elem_index_get(eed->v2);
+		if (cd_edge_crease_offset  != -1) edge_r->crease  = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eed, cd_edge_crease_offset);
+		if (cd_edge_bweight_offset != -1) edge_r->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eed, cd_edge_bweight_offset);
 
 		edge_r++;
 	}
@@ -1661,6 +1655,9 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em,
 
 	DM_init((DerivedMesh *)bmdm, DM_TYPE_EDITBMESH, em->bm->totvert,
 	        em->bm->totedge, em->tottri, em->bm->totloop, em->bm->totface);
+
+	/* could also get from the objects mesh directly */
+	bmdm->dm.cd_flag = BM_mesh_cd_flag_from_bmesh(bm);
 
 	bmdm->dm.getVertCos = emDM_getVertCos;
 	bmdm->dm.getMinMax = emDM_getMinMax;

@@ -42,6 +42,7 @@
 #include "BKE_displist.h"
 #include "BKE_report.h"
 #include "BKE_paint.h"
+#include "BKE_mesh.h"
 #include "BKE_tessmesh.h"
 
 #include "IMB_imbuf_types.h"
@@ -1350,6 +1351,17 @@ static int edgetag_shortest_path(Scene *scene, BMesh *bm, BMEdge *e_src, BMEdge 
 
 	/* note, would pass BM_EDGE except we are looping over all edges anyway */
 	BM_mesh_elem_index_ensure(bm, BM_VERT /* | BM_EDGE */);
+
+	switch (scene->toolsettings->edge_mode) {
+		case EDGE_MODE_TAG_CREASE:
+			BM_mesh_cd_flag_ensure(bm, BKE_mesh_from_object(OBACT), ME_CDFLAG_EDGE_CREASE);
+			break;
+		case EDGE_MODE_TAG_BEVEL:
+			BM_mesh_cd_flag_ensure(bm, BKE_mesh_from_object(OBACT), ME_CDFLAG_EDGE_BWEIGHT);
+			break;
+		default:
+			break;
+	}
 
 	BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, i) {
 		if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) == FALSE) {

@@ -1743,6 +1743,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *UNUSED(ob))
 	        mesh->totloop, mesh->totpoly);
 
 	dm->deformedOnly = 1;
+	dm->cd_flag = mesh->cd_flag;
 
 	alloctype = CD_REFERENCE;
 
@@ -1926,13 +1927,12 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, int use_mdisps,
 	int numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
 	int numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
 	int *index, add_orig;
-	int has_crease, has_edge_bweight, has_vert_bweight;
 	CustomDataMask mask;
 	unsigned int i, j;
 	
-	has_edge_bweight = CustomData_has_layer(&bm->edata, CD_BWEIGHT);
-	has_vert_bweight = CustomData_has_layer(&bm->vdata, CD_BWEIGHT);
-	has_crease = CustomData_has_layer(&bm->edata, CD_CREASE);
+	const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
+	const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
+	const int cd_edge_crease_offset  = CustomData_get_offset(&bm->edata, CD_CREASE);
 	
 	dm->deformedOnly = 1;
 	
@@ -1972,8 +1972,7 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, int use_mdisps,
 
 		mv->flag = BM_vert_flag_to_mflag(eve);
 
-		if (has_vert_bweight)
-			mv->bweight = (unsigned char)(BM_elem_float_data_get(&bm->vdata, eve, CD_BWEIGHT) * 255.0f);
+		if (cd_vert_bweight_offset != -1) mv->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eve, cd_vert_bweight_offset);
 
 		if (add_orig) *index = i;
 
@@ -1991,11 +1990,6 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, int use_mdisps,
 		med->v1 = BM_elem_index_get(eed->v1);
 		med->v2 = BM_elem_index_get(eed->v2);
 
-		if (has_crease)
-			med->crease = (unsigned char)(BM_elem_float_data_get(&bm->edata, eed, CD_CREASE) * 255.0f);
-		if (has_edge_bweight)
-			med->bweight = (unsigned char)(BM_elem_float_data_get(&bm->edata, eed, CD_BWEIGHT) * 255.0f);
-		
 		med->flag = BM_edge_flag_to_mflag(eed);
 
 		/* handle this differently to editmode switching,
@@ -2005,6 +1999,9 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, int use_mdisps,
 				med->flag |= ME_EDGEDRAW;
 			}
 		}
+
+		if (cd_edge_crease_offset  != -1) med->crease  = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eed, cd_edge_crease_offset);
+		if (cd_edge_bweight_offset != -1) med->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eed, cd_edge_bweight_offset);
 
 		CustomData_from_bmesh_block(&bm->edata, &dm->edgeData, eed->head.data, i);
 		if (add_orig) *index = i;
@@ -2068,6 +2065,8 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, int use_mdisps,
 	}
 	bm->elem_index_dirty &= ~BM_FACE;
 
+	dm->cd_flag = BM_mesh_cd_flag_from_bmesh(bm);
+
 	return dm;
 }
 
@@ -2105,6 +2104,7 @@ static DerivedMesh *cddm_copy_ex(DerivedMesh *source, int faces_from_tessfaces)
 	DM_from_template(dm, source, DM_TYPE_CDDM, numVerts, numEdges, numTessFaces,
 	                 numLoops, numPolys);
 	dm->deformedOnly = source->deformedOnly;
+	dm->cd_flag = source->cd_flag;
 	dm->dirty = source->dirty;
 
 	CustomData_copy_data(&source->vertData, &dm->vertData, 0, 0, numVerts);

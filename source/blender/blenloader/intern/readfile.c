@@ -8645,6 +8645,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (!MAIN_VERSION_ATLEAST(main, 265, 8)) {
+		Mesh *me;
+		for (me = main->mesh.first; me; me = me->id.next) {
+			BKE_mesh_do_versions_cd_flag_init(me);
+		}
+	}
+
+	// if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 7)) {
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 
