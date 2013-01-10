@@ -388,14 +388,17 @@ static void bpy_prop_boolean_array_get_cb(struct PointerRNA *ptr, struct Propert
 			values[i] = false;
 	}
 	else {
-		if (ret && PyC_AsArray(values, ret, len, &PyBool_Type, false, "BoolVectorProperty get") < 0) {
+		if (PyC_AsArray(values, ret, len, &PyBool_Type, false, "BoolVectorProperty get") < 0) {
 			printf_func_error(py_func);
 
 			for (i = 0; i < len; ++i)
 				values[i] = false;
-		}
 
-		Py_DECREF(ret);
+			/* PyC_AsArray decrements refcount internally on error */
+		}
+		else {
+			Py_DECREF(ret);
+		}
 	}
 
 	if (use_gil)
@@ -619,14 +622,17 @@ static void bpy_prop_int_array_get_cb(struct PointerRNA *ptr, struct PropertyRNA
 			values[i] = 0;
 	}
 	else {
-		if (ret && PyC_AsArray(values, ret, len, &PyLong_Type, false, "IntVectorProperty get") < 0) {
+		if (PyC_AsArray(values, ret, len, &PyLong_Type, false, "IntVectorProperty get") < 0) {
 			printf_func_error(py_func);
 
 			for (i = 0; i < len; ++i)
 				values[i] = 0;
-		}
 
-		Py_DECREF(ret);
+			/* PyC_AsArray decrements refcount internally on error */
+		}
+		else {
+			Py_DECREF(ret);
+		}
 	}
 
 	if (use_gil)
@@ -850,14 +856,17 @@ static void bpy_prop_float_array_get_cb(struct PointerRNA *ptr, struct PropertyR
 			values[i] = 0.0f;
 	}
 	else {
-		if (ret && PyC_AsArray(values, ret, len, &PyFloat_Type, false, "FloatVectorProperty get") < 0) {
+		if (PyC_AsArray(values, ret, len, &PyFloat_Type, false, "FloatVectorProperty get") < 0) {
 			printf_func_error(py_func);
 
 			for (i = 0; i < len; ++i)
 				values[i] = 0.0f;
-		}
 
-		Py_DECREF(ret);
+			/* PyC_AsArray decrements refcount internally on error */
+		}
+		else {
+			Py_DECREF(ret);
+		}
 	}
 
 	if (use_gil)
