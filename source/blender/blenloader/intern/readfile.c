@@ -8617,27 +8617,29 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for (cu = main->curve.first; cu; cu = cu->id.next) {
 			if (cu->flag & (CU_FRONT | CU_BACK)) {
-				Nurb *nu;
+				if ( cu->ext1 != 0.0f || cu->ext2 != 0.0f) {
+					Nurb *nu;
 
-				for (nu = cu->nurb.first; nu; nu = nu->next) {
-					int a;
+					for (nu = cu->nurb.first; nu; nu = nu->next) {
+						int a;
 
-					if (nu->bezt) {
-						BezTriple *bezt = nu->bezt;
-						a = nu->pntsu;
+						if (nu->bezt) {
+							BezTriple *bezt = nu->bezt;
+							a = nu->pntsu;
 
-						while (a--) {
-							bezt->radius = 1.0f;
-							bezt++;
+							while (a--) {
+								bezt->radius = 1.0f;
+								bezt++;
+							}
 						}
-					}
-					else if (nu->bp) {
-						BPoint *bp = nu->bp;
-						a = nu->pntsu * nu->pntsv;
+						else if (nu->bp) {
+							BPoint *bp = nu->bp;
+							a = nu->pntsu * nu->pntsv;
 
-						while (a--) {
-							bp->radius = 1.0f;
-							bp++;
+							while (a--) {
+								bp->radius = 1.0f;
+								bp++;
+							}
 						}
 					}
 				}
