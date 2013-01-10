@@ -243,7 +243,7 @@ __device void lamp_light_sample(KernelGlobals *kg, int lamp,
 
 		float costheta = dot(lightD, D);
 		ls->pdf = invarea/(costheta*costheta*costheta);
-		ls->eval_fac = ls->pdf;
+		ls->eval_fac = ls->pdf*kernel_data.integrator.inv_pdf_lights;
 	}
 #ifdef __BACKGROUND_MIS__
 	else if(type == LIGHT_BACKGROUND) {
@@ -302,23 +302,18 @@ __device void lamp_light_sample(KernelGlobals *kg, int lamp,
 				invarea = 1.0f;
 			}
 
-			ls->pdf = invarea;
 			ls->eval_fac = 0.25f*ls->pdf;
+			ls->pdf = invarea;
 		}
+
+		ls->eval_fac *= kernel_data.integrator.inv_pdf_lights;
+		ls->pdf *= lamp_light_pdf(kg, ls->Ng, -ls->D, ls->t);
 	}
 
 	ls->shader = __float_as_int(data1.x);
 	ls->object = ~0;
 	ls->prim = ~0;
 	ls->lamp = lamp;
-
-	/* compute pdf */
-	if(ls->t != FLT_MAX)
-		ls->pdf *= lamp_light_pdf(kg, ls->Ng, -ls->D, ls->t);
-	
-	/* this is a bit weak, but we don't want this as part of the pdf for
-	 * multiple importance sampling */
-	ls->eval_fac *= kernel_data.integrator.inv_pdf_lights;
 }
 
 __device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D, float t, LightSample *ls)
