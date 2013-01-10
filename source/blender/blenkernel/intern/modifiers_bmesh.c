@@ -59,7 +59,8 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 	BLI_array_declare(verts);
 	BLI_array_declare(edges);
 	int i, j, k, totvert, totedge /* , totface */ /* UNUSED */ ;
-	int is_init = (bm->totvert == 0) && (bm->totedge == 0) && (bm->totface == 0);
+	bool is_init = (bm->totvert == 0) && (bm->totedge == 0) && (bm->totface == 0);
+	bool is_cddm = (dm->type == DM_TYPE_CDDM);  /* duplicate the arrays for non cddm */
 	char has_orig_hflag = 0;
 
 	int cd_vert_bweight_offset;
@@ -95,7 +96,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 	etable = MEM_callocN(sizeof(void **) * totedge, __func__);
 
 	/*do verts*/
-	mv = mvert = dm->getVertArray(dm);
+	mv = mvert = is_cddm ? dm->getVertArray(dm) : dm->dupVertArray(dm);
 	for (i = 0; i < totvert; i++, mv++) {
 		v = BM_vert_create(bm, mv->co, NULL, BM_CREATE_SKIP_CD);
 		normal_short_to_float_v3(v->no, mv->no);
@@ -113,10 +114,11 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 			*orig_index = ORIGINDEX_NONE;
 		}
 	}
+	if (!is_cddm) MEM_freeN(mvert);
 	if (is_init) bm->elem_index_dirty &= ~BM_VERT;
 
 	/*do edges*/
-	me = medge = dm->dupEdgeArray(dm);
+	me = medge = is_cddm ? dm->getEdgeArray(dm) : dm->dupEdgeArray(dm);
 	for (i = 0; i < totedge; i++, me++) {
 		//BLI_assert(BM_edge_exists(vtable[me->v1], vtable[me->v2]) == NULL);
 		e = BM_edge_create(bm, vtable[me->v1], vtable[me->v2], NULL, BM_CREATE_SKIP_CD);
@@ -135,7 +137,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 			*orig_index = ORIGINDEX_NONE;
 		}
 	}
-	MEM_freeN(medge);
+	if (!is_cddm) MEM_freeN(medge);
 	if (is_init) bm->elem_index_dirty &= ~BM_EDGE;
 
 	/* do faces */
