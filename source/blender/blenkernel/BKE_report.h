@@ -35,6 +35,7 @@ extern "C" {
 #endif
 
 #include "DNA_windowmanager_types.h"
+#include "BLI_utildefines.h"
 
 /* Reporting Information and Errors
  *
