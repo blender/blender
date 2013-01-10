@@ -161,7 +161,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm)
 			edges[j] = etable[ml->e];
 		}
 
-		f = BM_face_create_ngon(bm, verts[0], verts[1], edges, mp->totloop, BM_CREATE_SKIP_CD);
+		f = BM_face_create(bm, verts, edges, mp->totloop, BM_CREATE_SKIP_CD);
 
 		if (UNLIKELY(f == NULL)) {
 			continue;
