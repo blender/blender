@@ -1,6 +1,7 @@
 BF_BUILDDIR = '../blender-build/linux-glibc211-i686'
 BF_INSTALLDIR = '../blender-install/linux-glibc211-i686'
 BF_NUMJOBS = 4
+WITHOUT_BF_OVERWRITE_INSTALL = True
 
 # Python configuration
 BF_PYTHON_VERSION = '3.3'

@@ -64,7 +64,8 @@ else:
         if builder.endswith('linux_glibc211_x86_64_scons'):
             configs = ['user-config-player-glibc211-x86_64.py',
                        'user-config-cuda-glibc211-x86_64.py',
-                       'user-config-glibc211-x86_64.py']
+                       'user-config-glibc211-x86_64.py'
+                       ]
             chroot_name = 'buildbot_squeeze_x86_64'
             cuda_chroot = 'buildbot_squeeze_x86_64'
         elif builder.endswith('linux_glibc211_i386_scons'):
@@ -77,8 +78,8 @@ else:
             cuda_chroot = 'buildbot_squeeze_x86_64'
 
         # Compilation will happen inside of chroot environment
-        prog_scons_cmd = ['schroot', '-c', chroot_name] + scons_cmd
-        cuda_scons_cmd = ['schroot', '-c', cuda_chroot] + scons_cmd
+        prog_scons_cmd = ['schroot', '-c', chroot_name, '--'] + scons_cmd
+        cuda_scons_cmd = ['schroot', '-c', cuda_chroot, '--'] + scons_cmd
 
         # We're using the same rules as release builder, so tweak
         # build and install dirs
@@ -112,6 +113,11 @@ else:
             elif config.find('cuda') != -1:
                 scons_options.append('cudakernels')
                 cur_scons_cmd = cuda_scons_cmd
+
+                if config.find('i686') != -1:
+                    scons_options.append('BF_BITNESS=32')
+                elif config.find('x86_64') != -1:
+                    scons_options.append('BF_BITNESS=64')
             else:
                 scons_options.append('blender')
                 cur_scons_cmd = prog_scons_cmd
