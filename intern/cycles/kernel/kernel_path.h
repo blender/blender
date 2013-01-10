@@ -486,7 +486,8 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 #ifdef __NON_PROGRESSIVE__
 
 __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray ray, __global float *buffer,
-	float3 throughput, float min_ray_pdf, float ray_pdf, PathState state, int rng_offset, PathRadiance *L)
+	float3 throughput, float throughput_normalize,
+	float min_ray_pdf, float ray_pdf, PathState state, int rng_offset, PathRadiance *L)
 {
 #ifdef __LAMP_MIS__
 	float ray_t = 0.0f;
@@ -558,7 +559,7 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 		/* path termination. this is a strange place to put the termination, it's
 		 * mainly due to the mixed in MIS that we use. gives too many unneeded
 		 * shader evaluations, only need emission if we are going to terminate */
-		float probability = path_state_terminate_probability(kg, &state, throughput);
+		float probability = path_state_terminate_probability(kg, &state, throughput*throughput_normalize);
 		float terminate = path_rng(kg, rng, sample, rng_offset + PRNG_TERMINATE);
 
 		if(terminate >= probability) {
@@ -946,7 +947,8 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 #endif
 
 				kernel_path_indirect(kg, rng, sample*num_samples + j, bsdf_ray, buffer,
-					tp*num_samples_inv, min_ray_pdf, bsdf_pdf, ps, rng_offset+PRNG_BOUNCE_NUM, &L);
+					tp*num_samples_inv, num_samples,
+					min_ray_pdf, bsdf_pdf, ps, rng_offset+PRNG_BOUNCE_NUM, &L);
 			}
 		}
 
