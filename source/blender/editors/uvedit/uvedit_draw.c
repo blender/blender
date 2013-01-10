@@ -194,8 +194,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 				uv_poly_copy_aspect(tf_uvorig, tf_uv, aspx, aspy, efa->len);
 
 				totarea += BM_face_calc_area(efa);
-				//totuvarea += tf_area(tf, efa->v4!=0);
-				totuvarea += uv_poly_area(tf_uv, efa->len);
+				totuvarea += area_poly_v2(efa->len, tf_uv);
 				
 				if (uvedit_face_visible_test(scene, ima, efa, tf)) {
 					BM_elem_flag_enable(efa, BM_ELEM_TAG);
@@ -238,8 +237,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 
 						uv_poly_copy_aspect(tf_uvorig, tf_uv, aspx, aspy, efa->len);
 
-						//uvarea = tf_area(tf, efa->v4!=0) / totuvarea;
-						uvarea = uv_poly_area(tf_uv, efa->len) / totuvarea;
+						uvarea = area_poly_v2(efa->len, tf_uv) / totuvarea;
 						
 						if (area < FLT_EPSILON || uvarea < FLT_EPSILON)
 							areadiff = 1.0f;

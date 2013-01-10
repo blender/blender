@@ -158,7 +158,6 @@ float BM_face_calc_area(BMFace *f)
 	BMLoop *l;
 	BMIter iter;
 	float (*verts)[3] = BLI_array_alloca(verts, f->len);
-	float normal[3];
 	float area;
 	int i;
 
@@ -173,6 +172,7 @@ float BM_face_calc_area(BMFace *f)
 		area = area_quad_v3(verts[0], verts[1], verts[2], verts[3]);
 	}
 	else {
+		float normal[3];
 		calc_poly_normal(normal, verts, f->len);
 		area = area_poly_v3(f->len, verts, normal);
 	}

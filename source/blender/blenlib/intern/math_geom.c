@@ -149,6 +149,25 @@ float area_poly_v3(int nr, float verts[][3], const float normal[3])
 	return fabsf(0.5f * area / max);
 }
 
+float area_poly_v2(int nr, float verts[][2])
+{
+	int a;
+	float area;
+	float *co_curr, *co_prev;
+
+	/* The Trapezium Area Rule */
+	co_prev = verts[nr - 1];
+	co_curr = verts[0];
+	area = 0.0f;
+	for (a = 0; a < nr; a++) {
+		area += (co_curr[0] - co_prev[0]) * (co_curr[1] + co_prev[1]);
+		co_prev = verts[a];
+		co_curr = verts[a + 1];
+	}
+
+	return fabsf(0.5f * area);
+}
+
 /********************************* Distance **********************************/
 
 /* distance p to line v1-v2

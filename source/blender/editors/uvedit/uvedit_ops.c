@@ -575,19 +575,6 @@ void uv_poly_center(BMEditMesh *em, BMFace *f, float r_cent[2])
 	mul_v2_fl(r_cent, 1.0f / (float)f->len);
 }
 
-float uv_poly_area(float uv[][2], int len)
-{
-	//BMESH_TODO: make this not suck
-	//maybe use scanfill? I dunno.
-
-	if (len >= 4)
-		return area_tri_v2(uv[0], uv[1], uv[2]) + area_tri_v2(uv[0], uv[2], uv[3]); 
-	else
-		return area_tri_v2(uv[0], uv[1], uv[2]); 
-
-	return 1.0;
-}
-
 void uv_poly_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy, int len)
 {
 	int i;
