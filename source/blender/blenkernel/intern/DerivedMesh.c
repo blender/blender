@@ -485,6 +485,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 	totedge = tmp.totedge = dm->getNumEdges(dm);
 	totloop = tmp.totloop = dm->getNumLoops(dm);
 	totpoly = tmp.totpoly = dm->getNumPolys(dm);
+	tmp.totface = 0;
 
 	CustomData_copy(&dm->vertData, &tmp.vdata, CD_MASK_MESH, CD_DUPLICATE, totvert);
 	CustomData_copy(&dm->edgeData, &tmp.edata, CD_MASK_MESH, CD_DUPLICATE, totedge);
@@ -541,9 +542,10 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 	}
 
 	/* yes, must be before _and_ after tessellate */
-	mesh_update_customdata_pointers(&tmp, TRUE);
+	mesh_update_customdata_pointers(&tmp, false);
 
-	BKE_mesh_tessface_calc(&tmp);
+	/* since 2.65 caller must do! */
+	// BKE_mesh_tessface_calc(&tmp);
 
 	CustomData_free(&me->vdata, me->totvert);
 	CustomData_free(&me->edata, me->totedge);
