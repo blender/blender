@@ -64,7 +64,7 @@ class TEXTURE_UL_texslots(UIList):
         tex = slot.texture if slot else None
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.label(tex.name if tex else "", icon_value=icon)
-            if tex:
+            if tex and isinstance(item, bpy.types.MaterialTextureSlot):
                 layout.prop(ma, "use_textures", text="", index=index)
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
