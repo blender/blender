@@ -184,21 +184,21 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
 		const int cd_edge_crease_offset  = CustomData_get_offset(&bm->edata, CD_CREASE);
 
-		BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-				MVertSkin *vs;
+		if (bm->totvertsel) {
+			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+				if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+					evedef = eve;
+					tot++;
+					add_v3_v3(&median[LOC_X], eve->co);
 
-				evedef = eve;
-				tot++;
-				add_v3_v3(&median[LOC_X], eve->co);
+					/* TODO cd_vert_bweight_offset */
+					(void)cd_vert_bweight_offset;
 
-				/* TODO cd_vert_bweight_offset */
-				(void)cd_vert_bweight_offset;
-
-				if (cd_vert_skin_offset != -1) {
-					vs = BM_ELEM_CD_GET_VOID_P(eve, cd_vert_skin_offset);
-					add_v2_v2(&median[M_SKIN_X], vs->radius); /* Third val not used currently. */
-					totskinradius++;
+					if (cd_vert_skin_offset != -1) {
+						MVertSkin *vs = BM_ELEM_CD_GET_VOID_P(eve, cd_vert_skin_offset);
+						add_v2_v2(&median[M_SKIN_X], vs->radius); /* Third val not used currently. */
+						totskinradius++;
+					}
 				}
 			}
 		}
@@ -206,17 +206,19 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		if ((cd_edge_bweight_offset != -1) ||
 		    (cd_edge_crease_offset  != -1))
 		{
-			BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-				if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-					if (cd_edge_bweight_offset != -1) {
-						median[M_WEIGHT] += BM_ELEM_CD_GET_FLOAT(eed, cd_edge_bweight_offset);
-					}
+			if (bm->totedgesel) {
+				BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
+					if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+						if (cd_edge_bweight_offset != -1) {
+							median[M_WEIGHT] += BM_ELEM_CD_GET_FLOAT(eed, cd_edge_bweight_offset);
+						}
 
-					if (cd_edge_crease_offset != -1) {
-						median[M_CREASE] += BM_ELEM_CD_GET_FLOAT(eed, cd_edge_crease_offset);
-					}
+						if (cd_edge_crease_offset != -1) {
+							median[M_CREASE] += BM_ELEM_CD_GET_FLOAT(eed, cd_edge_crease_offset);
+						}
 
-					totedgedata++;
+						totedgedata++;
+					}
 				}
 			}
 		}
