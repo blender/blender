@@ -302,7 +302,7 @@ __device void lamp_light_sample(KernelGlobals *kg, int lamp,
 				invarea = 1.0f;
 			}
 
-			ls->eval_fac = 0.25f*ls->pdf;
+			ls->eval_fac = 0.25f*invarea;
 			ls->pdf = invarea;
 		}
 
