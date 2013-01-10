@@ -215,7 +215,8 @@ def print_targets(targs, bc):
 def validate_targets(targs, bc):
     valid_list = ['.', 'blender', 'blenderstatic', 'blenderplayer', 'webplugin',
             'blendernogame', 'blenderstaticnogame', 'blenderlite', 'release',
-            'everything', 'clean', 'install-bin', 'install', 'nsis','buildslave']
+            'everything', 'clean', 'install-bin', 'install', 'nsis','buildslave',
+            'cudakernels']
     oklist = []
     for t in targs:
         if t in valid_list:
@@ -825,6 +826,18 @@ def NSIS_Installer(target=None, source=None, env=None):
         print
         print data.strip().split("\n")[-1]
     return rv
+
+def cudakernels_print(target, source, env):
+    return "Running cudakernels target"
+
+def cudakernels(target=None, source=None, env=None):
+    """
+    Builder for cuda kernels compilation. Used by release build environment only
+    """
+
+    # Currently nothing to do, everything is handled by a dependency resolver
+
+    pass
 
 def check_environ():
     problematic_envvars = ""

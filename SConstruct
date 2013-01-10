@@ -275,6 +275,9 @@ if 'blenderlite' in B.targets:
         if k not in B.arguments:
             env[k] = v
 
+if 'cudakernels' in B.targets:
+    env['WITH_BF_CYCLES_CUDA_BINARIES'] = True
+
 # Extended OSX_SDK and 3D_CONNEXION_CLIENT_LIBRARY and JAckOSX detection for OSX
 if env['OURPLATFORM']=='darwin':
     print B.bc.OKGREEN + "Detected Xcode version: -- " + B.bc.ENDC + env['XCODE_CUR_VER'] + " --"
@@ -651,6 +654,7 @@ datafileslist = []
 datafilestargetlist = []
 dottargetlist = []
 scriptinstall = []
+cubininstall = []
 
 if env['OURPLATFORM']!='darwin':
     dotblenderinstall = []
@@ -746,7 +750,7 @@ if env['OURPLATFORM']!='darwin':
                 for arch in env['BF_CYCLES_CUDA_BINARIES_ARCH']:
                     kernel_build_dir = os.path.join(B.root_build_dir, 'intern/cycles/kernel')
                     cubin_file = os.path.join(kernel_build_dir, "kernel_%s.cubin" % arch)
-                    scriptinstall.append(env.Install(dir=dir,source=cubin_file))
+                    cubininstall.append(env.Install(dir=dir,source=cubin_file))
 
             # osl shaders
             if env['WITH_BF_CYCLES_OSL']:
@@ -857,9 +861,9 @@ textinstall = env.Install(dir=env['BF_INSTALLDIR'], source=textlist)
 if  env['OURPLATFORM']=='darwin':
         allinstall = [blenderinstall, textinstall]
 elif env['OURPLATFORM']=='linux':
-        allinstall = [blenderinstall, dotblenderinstall, scriptinstall, textinstall, iconinstall]
+        allinstall = [blenderinstall, dotblenderinstall, scriptinstall, textinstall, iconinstall, cubininstall]
 else:
-        allinstall = [blenderinstall, dotblenderinstall, scriptinstall, textinstall]
+        allinstall = [blenderinstall, dotblenderinstall, scriptinstall, textinstall, cubininstall]
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
     dllsources = []
@@ -988,6 +992,20 @@ buildslave_cmd = env.Command('buildslave_exec', None, buildslave_action)
 buildslave_alias = env.Alias('buildslave', buildslave_cmd)
 
 Depends(buildslave_cmd, allinstall)
+
+cudakernels_action = env.Action(btools.cudakernels, btools.cudakernels_print)
+cudakernels_cmd = env.Command('cudakernels_exec', None, cudakernels_action)
+cudakernels_alias = env.Alias('cudakernels', cudakernels_cmd)
+
+cudakernel_dir = os.path.join(os.path.abspath(os.path.normpath(B.root_build_dir)), 'intern/cycles/kernel')
+cuda_kernels = []
+
+for x in env['BF_CYCLES_CUDA_BINARIES_ARCH']:
+    cubin = os.path.join(cudakernel_dir, 'kernel_' + x + '.cubin')
+    cuda_kernels.append(cubin)
+
+Depends(cudakernels_cmd, cuda_kernels)
+Depends(cudakernels_cmd, cubininstall)
 
 Default(B.program_list)
 
