@@ -924,7 +924,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	void *cache_handle = NULL;
 	const int is_imbuf = ED_space_sequencer_check_show_imbuf(sseq);
 
-	if (G.is_rendering == FALSE) {
+	if (G.is_rendering == FALSE && (scene->r.seq_flag & R_SEQ_GL_PREV) == 0) {
 		/* stop all running jobs, except screen one. currently previews frustrate Render
 		 * needed to make so sequencer's rendering doesn't conflict with compositor
 		 */
