@@ -35,11 +35,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_image.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
-#include "BKE_report.h"
-
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
@@ -47,6 +42,11 @@
 #include "BLI_string.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
+
+#include "BKE_image.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
+#include "BKE_report.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
