@@ -1345,6 +1345,15 @@ static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *eve
 			}
 		}
 	}
+	else {
+		/* modal keymap checking returns handled events fine, but all hardcoded modal
+		   handling typically swallows all events (OPERATOR_RUNNING_MODAL).
+		   This bypass just disables support for double clicks in hardcoded modal handlers */
+		if (event->val == KM_DBL_CLICK) {
+			event->prevval = event->val;
+			event->val = KM_PRESS;
+		}
+	}
 }
 
 /* bad hacking event system... better restore event type for checking of KM_CLICK for example */
@@ -1357,6 +1366,8 @@ static void wm_event_modalmap_end(wmEvent *event)
 		event->val = event->prevval;
 		event->prevval = 0;
 	}
+	else if (event->prevval == KM_DBL_CLICK)
+		event->val = KM_DBL_CLICK;
 
 }
 
