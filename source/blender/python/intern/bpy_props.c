@@ -974,20 +974,18 @@ static void bpy_prop_string_get_cb(struct PointerRNA *ptr, struct PropertyRNA *p
 		printf_func_error(py_func);
 		value[0] = '\0';
 	}
+	else if (!PyUnicode_Check(ret)) {
+		PyErr_Format(PyExc_TypeError,
+		             "return value must be a string, not %.200s",
+		             Py_TYPE(ret)->tp_name);
+		printf_func_error(py_func);
+		value[0] = '\0';
+		Py_DECREF(ret);
+	}
 	else {
 		Py_ssize_t length;
 		const char *buffer = _PyUnicode_AsStringAndSize(ret, &length);
-
-		if (!buffer) {
-			if (PyErr_Occurred()) {  /* should always be true */
-				printf_func_error(py_func);
-			}
-			value[0] = '\0';
-		}
-		else {
-			memcpy(value, buffer, length + 1);
-		}
-
+		memcpy(value, buffer, length + 1);
 		Py_DECREF(ret);
 	}
 
@@ -1034,9 +1032,20 @@ static int bpy_prop_string_length_cb(struct PointerRNA *ptr, struct PropertyRNA 
 
 	if (ret == NULL) {
 		printf_func_error(py_func);
+		length = 0;
+	}
+	else if (!PyUnicode_Check(ret)) {
+		PyErr_Format(PyExc_TypeError,
+		             "return value must be a string, not %.200s",
+		             Py_TYPE(ret)->tp_name);
+		printf_func_error(py_func);
+		length = 0;
+		Py_DECREF(ret);
 	}
 	else {
-		length = PyUnicode_GetLength(ret);
+		Py_ssize_t length_ssize_t = 0;
+		_PyUnicode_AsStringAndSize(ret, &length_ssize_t);
+		length = length_ssize_t;
 		Py_DECREF(ret);
 	}
 
