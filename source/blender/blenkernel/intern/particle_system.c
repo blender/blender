@@ -2697,7 +2697,8 @@ static void sphclassical_force_cb(void *sphdata_v, ParticleKey *state, float *fo
 	/* 4.77 is an experimentally determined density factor */
 	float rest_density = fluid->rest_density * (fluid->flag & SPH_FAC_DENSITY ? 4.77f : 1.0f);
 
-	float stiffness = fluid->stiffness_k;
+	// Use speed of sound squared
+	float stiffness = pow2(fluid->stiffness_k);
 
 	ParticleData *npa;
 	float vec[3];
