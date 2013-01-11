@@ -118,6 +118,9 @@ static int space_node_view_flag(bContext *C, SpaceNode *snode, ARegion *ar, cons
 				cur_new.xmin = cur_new.xmin - width_new / 2.0f;
 				cur_new.xmax = cur_new.xmax + width_new / 2.0f;
 			}
+
+			/* add some padding */
+			BLI_rctf_scale(&cur_new, 1.1f);
 		}
 
 		UI_view2d_smooth_view(C, ar, &cur_new);
