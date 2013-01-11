@@ -531,7 +531,12 @@ static void blender_crash_handler(int signum)
 
 	/* really crash */
 	signal(signum, SIG_DFL);
+#ifndef WIN32
 	kill(getpid(), signum);
+#else
+	/* force crash on windows for now */
+	*((void **)NULL) = NULL;
+#endif
 }
 
 
