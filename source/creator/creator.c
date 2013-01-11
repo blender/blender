@@ -40,10 +40,15 @@
 #  include <xmmintrin.h>
 #endif
 
+/* crash handler */
 #ifdef WIN32
 #  include <process.h> /* getpid */
 #else
 #  include <unistd.h> /* getpid */
+#endif
+/* for backtrace */
+#ifndef WIN32
+#  include <execinfo.h>
 #endif
 
 #ifdef WIN32
@@ -54,6 +59,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
+#include <errno.h>
 
 /* This little block needed for linking to Blender... */
 
@@ -438,6 +444,32 @@ static int set_fpe(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(dat
 	return 0;
 }
 
+static void blender_crash_handler_backtrace(FILE *fp)
+{
+#ifndef WIN32
+#define SIZE 100
+	void *buffer[SIZE];
+	int nptrs;
+	char **strings;
+	int i;
+
+	fputs("\n# backtrace\n", fp);
+
+	/* include a backtrace for good measure */
+	nptrs = backtrace(buffer, SIZE);
+	strings = backtrace_symbols(buffer, nptrs);
+	for (i = 0; i < nptrs; i++) {
+		fputs(strings[i], fp);
+		fputc('\n', fp);
+	}
+
+	free(strings);
+#undef SIZE
+#else  /* WIN32 */
+	/* TODO */
+	(void)fp;
+#endif
+}
 static void blender_crash_handler(int signum)
 {
 
@@ -460,27 +492,40 @@ static void blender_crash_handler(int signum)
 	}
 #endif
 
-	{
-		char header[512];
-		wmWindowManager *wm = G.main->wm.first;
+	FILE *fp;
+	char header[512];
+	wmWindowManager *wm = G.main->wm.first;
 
-		char fname[FILE_MAX];
+	char fname[FILE_MAX];
 
-		if (!G.main->name[0]) {
-			BLI_make_file_string("/", fname, BLI_temporary_dir(), "blender.crash.txt");
-		}
-		else {
-			BLI_strncpy(fname, G.main->name, sizeof(fname));
-			BLI_replace_extension(fname, sizeof(fname), ".crash.txt");
-		}
-
-		printf("Writing: %s\n", fname);
-		fflush(stdout);
-
-		BLI_snprintf(header, sizeof(header), "# " BLEND_VERSION_STRING_FMT);
-
-		BKE_report_write_file(fname, &wm->reports, header);
+	if (!G.main->name[0]) {
+		BLI_make_file_string("/", fname, BLI_temporary_dir(), "blender.crash.txt");
 	}
+	else {
+		BLI_strncpy(fname, G.main->name, sizeof(fname));
+		BLI_replace_extension(fname, sizeof(fname), ".crash.txt");
+	}
+
+	printf("Writing: %s\n", fname);
+	fflush(stdout);
+
+	BLI_snprintf(header, sizeof(header), "# " BLEND_VERSION_STRING_FMT);
+
+	/* open the crash log */
+	errno = 0;
+	fp = BLI_fopen(fname, "wb");
+	if (fp == NULL) {
+		fprintf(stderr, "Unable to save '%s': %s\n",
+				fname, errno ? strerror(errno) : "Unknown error opening file");
+	}
+	else {
+		BKE_report_write_file_fp(fp, &wm->reports, header);
+
+		blender_crash_handler_backtrace(fp);
+
+		fclose(fp);
+	}
+
 
 	/* really crash */
 	signal(signum, SIG_DFL);

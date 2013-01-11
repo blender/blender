@@ -302,7 +302,7 @@ int BKE_reports_contain(ReportList *reports, ReportType level)
 	return FALSE;
 }
 
-static bool BKE_report_write_file_fp(FILE *fp, ReportList *reports, const char *header)
+bool BKE_report_write_file_fp(FILE *fp, ReportList *reports, const char *header)
 {
 	Report *report;
 
@@ -321,8 +321,6 @@ bool BKE_report_write_file(const char *filepath, ReportList *reports, const char
 {
 	FILE *fp;
 
-	/* first try create the file, if it exists call without 'O_CREAT',
-	 * to avoid writing to a symlink - use 'O_EXCL' (CVE-2008-1103) */
 	errno = 0;
 	fp = BLI_fopen(filepath, "wb");
 	if (fp == NULL) {
