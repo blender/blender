@@ -519,7 +519,9 @@ static void blender_crash_handler(int signum)
 				fname, errno ? strerror(errno) : "Unknown error opening file");
 	}
 	else {
-		BKE_report_write_file_fp(fp, &wm->reports, header);
+		if (wm) {
+			BKE_report_write_file_fp(fp, &wm->reports, header);
+		}
 
 		blender_crash_handler_backtrace(fp);
 

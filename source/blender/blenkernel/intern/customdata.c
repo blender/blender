@@ -2345,6 +2345,7 @@ void CustomData_bmesh_merge(CustomData *source, CustomData *dest,
 		default: /* should never happen */
 			BLI_assert(!"invalid type given");
 			iter_type = BM_VERTS_OF_MESH;
+			totelem = bm->totvert;
 	}
 
 	CustomData_merge(source, dest, mask, alloctype, 0);
