@@ -1157,6 +1157,8 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 			if (block->rect.xmin <= mx && block->rect.xmin + PNL_HEADER >= mx)
 				inside_header = 1;
 		}
+		else if (block->rect.xmin > mx || block->rect.xmax < mx);
+			/* outside left/right side */
 		else if ((block->rect.ymax <= my) && (block->rect.ymax + PNL_HEADER >= my)) {
 			inside_header = 1;
 		}
