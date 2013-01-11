@@ -4223,7 +4223,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 			ParticleSettings *part = sim->psys->part;
 			psys_sph_init(sim, &sphdata);
 
-			if (part->fluid->flag & SPH_SOLVER_DDR) {
+			if (part->fluid->solver == SPH_SOLVER_DDR) {
 				/* Apply SPH forces using double-density relaxation algorithm
 				 * (Clavat et. al.) */
 				#pragma omp parallel for firstprivate (sphdata) private (pa) schedule(dynamic,5)
