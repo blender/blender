@@ -810,9 +810,9 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 	BMFace *efa;
 	MLoopUV *luv[3], dummyluv = {{0}};
 	MLoopCol *lcol[3] = {NULL} /* , dummylcol = {0} */;
-	const int cd_loop_uv_offset    = CustomData_get_active_offset(&bm->ldata, CD_MLOOPUV);
-	const int cd_loop_color_offset = CustomData_get_active_offset(&bm->ldata, CD_MLOOPCOL);
-	const int cd_poly_tex_offset   = CustomData_get_active_offset(&bm->pdata, CD_MTEXPOLY);
+	const int cd_loop_uv_offset    = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+	const int cd_loop_color_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPCOL);
+	const int cd_poly_tex_offset   = CustomData_get_offset(&bm->pdata, CD_MTEXPOLY);
 	bool has_uv   = (cd_loop_uv_offset    != -1);
 	bool has_vcol = (cd_loop_color_offset != -1);
 	int i;
