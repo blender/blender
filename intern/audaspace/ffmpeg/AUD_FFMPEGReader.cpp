@@ -107,7 +107,7 @@ void AUD_FFMPEGReader::init()
 	m_position = 0;
 	m_pkgbuf_left = 0;
 
-	if(av_find_stream_info(m_formatCtx)<0)
+	if(avformat_find_stream_info(m_formatCtx, NULL) < 0)
 		AUD_THROW(AUD_ERROR_FFMPEG, streaminfo_error);
 
 	// find audio stream and codec
@@ -133,7 +133,7 @@ void AUD_FFMPEGReader::init()
 	if(!aCodec)
 		AUD_THROW(AUD_ERROR_FFMPEG, nodecoder_error);
 
-	if(avcodec_open(m_codecCtx, aCodec)<0)
+	if(avcodec_open2(m_codecCtx, aCodec, NULL) < 0)
 		AUD_THROW(AUD_ERROR_FFMPEG, codecopen_error);
 
 	// XXX this prints file information to stdout:
@@ -236,14 +236,7 @@ AUD_FFMPEGReader::AUD_FFMPEGReader(boost::shared_ptr<AUD_Buffer> buffer) :
 AUD_FFMPEGReader::~AUD_FFMPEGReader()
 {
 	avcodec_close(m_codecCtx);
-
-	if(m_aviocontext)
-	{
-		avformat_close_input(&m_formatCtx);
-		av_free(m_aviocontext);
-	}
-	else
-		av_close_input_file(m_formatCtx);
+	avformat_close_input(&m_formatCtx);
 }
 
 int AUD_FFMPEGReader::read_packet(void* opaque, uint8_t* buf, int buf_size)

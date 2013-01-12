@@ -486,7 +486,7 @@ static int startffmpeg(struct anim *anim)
 		return -1;
 	}
 
-	if (av_find_stream_info(pFormatCtx) < 0) {
+	if (avformat_find_stream_info(pFormatCtx, NULL) < 0) {
 		av_close_input_file(pFormatCtx);
 		return -1;
 	}
@@ -523,7 +523,7 @@ static int startffmpeg(struct anim *anim)
 
 	pCodecCtx->workaround_bugs = 1;
 
-	if (avcodec_open(pCodecCtx, pCodec) < 0) {
+	if (avcodec_open2(pCodecCtx, pCodec, NULL) < 0) {
 		av_close_input_file(pFormatCtx);
 		return -1;
 	}

@@ -174,7 +174,7 @@ int VideoFFmpeg::openStream(const char *filename, AVInputFormat *inputFormat, AV
 	if (avformat_open_input(&formatCtx, filename, inputFormat, formatParams)!=0)
 		return -1;
 
-	if (av_find_stream_info(formatCtx)<0) 
+	if (avformat_find_stream_info(formatCtx, NULL) < 0)
 	{
 		av_close_input_file(formatCtx);
 		return -1;
@@ -209,7 +209,7 @@ int VideoFFmpeg::openStream(const char *filename, AVInputFormat *inputFormat, AV
 		return -1;
 	}
 	codecCtx->workaround_bugs = 1;
-	if (avcodec_open(codecCtx, codec)<0) 
+	if (avcodec_open2(codecCtx, codec, NULL) < 0)
 	{
 		av_close_input_file(formatCtx);
 		return -1;
