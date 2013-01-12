@@ -110,6 +110,12 @@ class SelectCamera(Operator):
     bl_label = "Select Camera"
     bl_options = {'REGISTER', 'UNDO'}
 
+    extend = BoolProperty(
+           name="Extend",
+           description="Extend the selection",
+           default=False
+           )
+
     def execute(self, context):
         scene = context.scene
         view = context.space_data
@@ -123,6 +129,8 @@ class SelectCamera(Operator):
         elif camera.name not in scene.objects:
             self.report({'WARNING'}, "Active camera is not in this scene")
         else:
+            if not self.extend:
+                bpy.ops.object.select_all(action='DESELECT')
             context.scene.objects.active = camera
             camera.select = True
             return {'FINISHED'}

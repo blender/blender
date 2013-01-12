@@ -3838,6 +3838,9 @@ static int edbm_select_face_by_sides_exec(bContext *C, wmOperator *op)
 	const int numverts = RNA_int_get(op->ptr, "number");
 	const int type = RNA_enum_get(op->ptr, "type");
 
+	if (!RNA_boolean_get(op->ptr, "extend"))
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 
 		int select;
@@ -3897,15 +3900,19 @@ void MESH_OT_select_face_by_sides(wmOperatorType *ot)
 	/* properties */
 	RNA_def_int(ot->srna, "number", 4, 3, INT_MAX, "Number of Vertices", "", 3, INT_MAX);
 	RNA_def_enum(ot->srna, "type", type_items, 1, "Type", "Type of comparison to make");
+	RNA_def_boolean(ot->srna, "extend", TRUE, "Extend", "Extend the selection");
 }
 
-static int edbm_select_loose_verts_exec(bContext *C, wmOperator *UNUSED(op))
+static int edbm_select_loose_verts_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMVert *eve;
 	BMEdge *eed;
 	BMIter iter;
+
+	if (!RNA_boolean_get(op->ptr, "extend"))
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
 	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 		if (!eve->e) {
@@ -3938,6 +3945,9 @@ void MESH_OT_select_loose_verts(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
 static int edbm_select_mirror_exec(bContext *C, wmOperator *op)

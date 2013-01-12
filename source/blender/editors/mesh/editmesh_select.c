@@ -1758,7 +1758,7 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
 /* ************************************************** */
@@ -2835,6 +2835,9 @@ static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
 	BMEdge *e;
 	BMIter iter;
 
+	if (!RNA_boolean_get(op->ptr, "extend"))
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+
 	/* Selects isolated verts, and edges that do not have 2 neighboring
 	 * faces
 	 */
@@ -2874,6 +2877,9 @@ void MESH_OT_select_non_manifold(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend the selection");
 }
 
 static int edbm_select_random_exec(bContext *C, wmOperator *op)
@@ -2938,8 +2944,7 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	/* props */
 	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f,
 	                         "Percent", "Percentage of elements to select randomly", 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", 0,
-	                "Extend Selection", "Extend selection instead of deselecting everything first");
+ 	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
 static int edbm_select_next_loop_exec(bContext *C, wmOperator *UNUSED(op))
