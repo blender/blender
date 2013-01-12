@@ -2020,16 +2020,22 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 	}
 
 	if (cmp) {
-		const float range_clamp[2]   = {0.0f, 1.0f};
-		const float range_unclamp[2] = {-1000.0f, 1000.0f};  /* arbitrary limits here */
-		const float *range = (cumap->flag & CUMA_DO_CLIP) ? range_clamp : range_unclamp;
+		rctf bounds;
+
+		if (cumap->flag & CUMA_DO_CLIP) {
+			bounds = cumap->clipr;
+		}
+		else {
+			bounds.xmin = bounds.ymin = -1000.0;
+			bounds.xmax = bounds.ymax =  1000.0;
+		}
 
 		uiLayoutRow(layout, TRUE);
 		uiBlockSetNFunc(block, curvemap_buttons_update, MEM_dupallocN(cb), cumap);
 		bt = uiDefButF(block, NUM, 0, "X", 0, 2 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y,
-		               &cmp->x, range[0], range[1], 1, 5, "");
+		               &cmp->x, bounds.xmin, bounds.xmax, 1, 5, "");
 		bt = uiDefButF(block, NUM, 0, "Y", 0, 1 * UI_UNIT_Y, UI_UNIT_X * 10, UI_UNIT_Y,
-		               &cmp->y, range[0], range[1], 1, 5, "");
+		               &cmp->y, bounds.ymin, bounds.ymax, 1, 5, "");
 	}
 
 	/* black/white levels */
