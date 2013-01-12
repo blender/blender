@@ -511,9 +511,24 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			BL::ShaderNodeTexImage b_image_node(b_node);
 			BL::Image b_image(b_image_node.image());
 			ImageTextureNode *image = new ImageTextureNode();
-			/* todo: handle generated/builtin images */
+			/* todo: handle movie images */
 			if(b_image && b_image.source() != BL::Image::source_MOVIE) {
-				image->filename = image_user_file_path(b_image_node.image_user(), b_image, b_scene.frame_current());
+				/* builtin images will use callback-based reading because
+				 * they could only be loaded correct from blender side
+				 */
+				bool is_builtin = b_image.packed_file() ||
+				                  b_image.source() == BL::Image::source_GENERATED;
+
+				if(is_builtin) {
+					/* for builtin images we're using image datablock name to find an image to read pixels from later */
+					image->filename = b_image.name();
+					image->is_builtin = true;
+				}
+				else {
+					image->filename = image_user_file_path(b_image_node.image_user(), b_image, b_scene.frame_current());
+					image->is_builtin = false;
+				}
+
 				image->animated = b_image_node.image_user().use_auto_refresh();
 			}
 			image->color_space = ImageTextureNode::color_space_enum[(int)b_image_node.color_space()];
@@ -528,8 +543,17 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			BL::Image b_image(b_env_node.image());
 			EnvironmentTextureNode *env = new EnvironmentTextureNode();
 			if(b_image && b_image.source() != BL::Image::source_MOVIE) {
-				env->filename = image_user_file_path(b_env_node.image_user(), b_image, b_scene.frame_current());
-				env->animated = b_env_node.image_user().use_auto_refresh();
+				bool is_builtin = b_image.packed_file() ||
+				                  b_image.source() == BL::Image::source_GENERATED;
+
+				if(is_builtin) {
+					env->filename = b_image.name();
+					env->is_builtin = true;
+				}
+				else {
+					env->filename = image_user_file_path(b_env_node.image_user(), b_image, b_scene.frame_current());
+					env->animated = b_env_node.image_user().use_auto_refresh();
+				}
 			}
 			env->color_space = EnvironmentTextureNode::color_space_enum[(int)b_env_node.color_space()];
 			env->projection = EnvironmentTextureNode::projection_enum[(int)b_env_node.projection()];

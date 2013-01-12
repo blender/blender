@@ -93,6 +93,10 @@ public:
 protected:
 	void do_write_update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile, bool do_update_only);
 	void do_write_update_render_tile(RenderTile& rtile, bool do_update_only);
+
+	void builtin_image_info(const string &name, bool &is_float, int &width, int &height, int &channels);
+	bool builtin_image_pixels(const string &name, unsigned char *pixels);
+	bool builtin_image_float_pixels(const string &name, float *pixels);
 };
 
 CCL_NAMESPACE_END

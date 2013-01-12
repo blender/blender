@@ -109,6 +109,11 @@ void BlenderSession::create_session()
 	session->reset(buffer_params, session_params.samples);
 
 	b_engine.use_highlight_tiles(session_params.progressive_refine == false);
+
+	/* setup callbacks for builtin image support */
+	scene->image_manager->builtin_image_info_cb = function_bind(&BlenderSession::builtin_image_info, this, _1, _2, _3, _4, _5);
+	scene->image_manager->builtin_image_pixels_cb = function_bind(&BlenderSession::builtin_image_pixels, this, _1, _2);
+	scene->image_manager->builtin_image_float_pixels_cb = function_bind(&BlenderSession::builtin_image_float_pixels, this, _1, _2);
 }
 
 void BlenderSession::reset_session(BL::BlendData b_data_, BL::Scene b_scene_)
@@ -605,6 +610,70 @@ void BlenderSession::test_cancel()
 	if(background)
 		if(b_engine.test_break())
 			session->progress.set_cancel("Cancelled");
+}
+
+void BlenderSession::builtin_image_info(const string &name, bool &is_float, int &width, int &height, int &channels)
+{
+	BL::Image b_image = b_data.images[name];
+
+	if(b_image) {
+		is_float = b_image.is_float();
+		width = b_image.size()[0];
+		height = b_image.size()[1];
+		channels = b_image.channels();
+	}
+	else {
+		is_float = false;
+		width = 0;
+		height = 0;
+		channels = 0;
+	}
+}
+
+bool BlenderSession::builtin_image_pixels(const string &name, unsigned char *pixels)
+{
+	BL::Image b_image = b_data.images[name];
+
+	if(b_image) {
+		int width = b_image.size()[0];
+		int height = b_image.size()[1];
+		int channels = b_image.channels();
+
+		BL::DynamicArray<float> pixels_array = b_image.pixels();
+		float *float_pixels = pixels_array.data;
+
+		/* a bit of shame, but Py API currently only returns float array,
+		 * which need to be converted back to char buffer
+		 */
+		unsigned char *cp = pixels;
+		float *fp = float_pixels;
+		for(int i = 0; i < channels * width * height; i++, cp++, fp++) {
+			*cp = *fp * 255;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+bool BlenderSession::builtin_image_float_pixels(const string &name, float *pixels)
+{
+	BL::Image b_image = b_data.images[name];
+
+	if(b_image) {
+		int width = b_image.size()[0];
+		int height = b_image.size()[1];
+		int channels = b_image.channels();
+
+		BL::DynamicArray<float> pixels_array = b_image.pixels();
+
+		memcpy(pixels, pixels_array.data, width * height * channels * sizeof(float));
+
+		return true;
+	}
+
+	return false;
 }
 
 CCL_NAMESPACE_END

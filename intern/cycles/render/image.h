@@ -51,9 +51,9 @@ public:
 	ImageManager();
 	~ImageManager();
 
-	int add_image(const string& filename, bool animated, bool& is_float);
-	void remove_image(const string& filename);
-	bool is_float_image(const string& filename);
+	int add_image(const string& filename, bool is_builtin, bool animated, bool& is_float);
+	void remove_image(const string& filename, bool is_builtin);
+	bool is_float_image(const string& filename, bool is_builtin);
 
 	void device_update(Device *device, DeviceScene *dscene, Progress& progress);
 	void device_free(Device *device, DeviceScene *dscene);
@@ -65,6 +65,9 @@ public:
 
 	bool need_update;
 
+	boost::function<void(const string &filename, bool &is_float, int &width, int &height, int &channels)> builtin_image_info_cb;
+	boost::function<bool(const string &filename, unsigned char *pixels)> builtin_image_pixels_cb;
+	boost::function<bool(const string &filename, float *pixels)> builtin_image_float_pixels_cb;
 private:
 	int tex_num_images;
 	int tex_num_float_images;
@@ -74,6 +77,7 @@ private:
 
 	struct Image {
 		string filename;
+		bool is_builtin;
 
 		bool need_load;
 		bool animated;
