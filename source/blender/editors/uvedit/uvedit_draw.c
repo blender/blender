@@ -134,14 +134,15 @@ static void draw_uvs_shadow(Object *obedit)
 	BMIter iter, liter;
 	MLoopUV *luv;
 
+	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+
 	/* draws the gray mesh when painting */
 	glColor3ub(112, 112, 112);
 
 	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 		glBegin(GL_LINE_LOOP);
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
-
+			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 			glVertex2fv(luv->uv);
 		}
 		glEnd();
@@ -173,6 +174,9 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 	float aspx, aspy, col[4];
 	int i;
 
+	const int cd_loop_uv_offset  = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+	const int cd_poly_tex_offset = CustomData_get_offset(&bm->pdata, CD_MTEXPOLY);
+
 	ED_space_image_get_uv_aspect(sima, &aspx, &aspy);
 	
 	switch (sima->dt_uvstretch) {
@@ -184,10 +188,10 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 				const int efa_len = efa->len;
 				float (*tf_uv)[2] = BLI_array_alloca(tf_uv, efa_len);
 				float (*tf_uvorig)[2] = BLI_array_alloca(tf_uvorig, efa_len);
-				tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
+				tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 
 				BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
-					luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 					copy_v2_v2(tf_uvorig[i], luv->uv);
 				}
 
@@ -214,7 +218,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 					if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
 						glBegin(GL_POLYGON);
 						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-							luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+							luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 							glVertex2fv(luv->uv);
 						}
 						glEnd();
@@ -231,7 +235,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 						area = BM_face_calc_area(efa) / totarea;
 
 						BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
-							luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+							luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 							copy_v2_v2(tf_uvorig[i], luv->uv);
 						}
 
@@ -251,7 +255,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 						
 						glBegin(GL_POLYGON);
 						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-							luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+							luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 							glVertex2fv(luv->uv);
 						}
 						glEnd();
@@ -269,7 +273,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 			glShadeModel(GL_SMOOTH);
 			
 			BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-				tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
+				tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 				
 				if (uvedit_face_visible_test(scene, ima, efa, tf)) {
 					const int efa_len = efa->len;
@@ -284,7 +288,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 					BM_elem_flag_enable(efa, BM_ELEM_TAG);
 
 					BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
-						luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 						copy_v2_v2(tf_uvorig[i], luv->uv);
 					}
 
@@ -310,7 +314,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, MTe
 
 					glBegin(GL_POLYGON);
 					BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
-						luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 						a = fabsf(uvang[i] - ang[i]) / (float)M_PI;
 						weight_to_rgb(col, 1.0f - powf((1.0f - a), 2.0f));
 						glColor3fv(col);
@@ -418,6 +422,9 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	int drawfaces, interpedges;
 	Image *ima = sima->image;
 
+	const int cd_loop_uv_offset  = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+	const int cd_poly_tex_offset = CustomData_get_offset(&bm->pdata, CD_MTEXPOLY);
+
 	activetf = EDBM_mtexpoly_active_get(em, &efa_act, FALSE, FALSE); /* will be set to NULL if hidden */
 	activef = BM_active_face_get(bm, FALSE, FALSE);
 	ts = scene->toolsettings;
@@ -467,7 +474,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		glEnable(GL_BLEND);
 		
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-			tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
+			tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 			
 			if (uvedit_face_visible_test(scene, ima, efa, tf)) {
 				BM_elem_flag_enable(efa, BM_ELEM_TAG);
@@ -480,7 +487,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 				
 				glBegin(GL_POLYGON);
 				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-					luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 					glVertex2fv(luv->uv);
 				}
 				glEnd();
@@ -497,7 +504,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 		/* would be nice to do this within a draw loop but most below are optional, so it would involve too many checks */
 		
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-			tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
+			tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 
 			if (uvedit_face_visible_test(scene, ima, efa, tf)) {
 				BM_elem_flag_enable(efa, BM_ELEM_TAG);
@@ -514,7 +521,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 	/* 3. draw active face stippled */
 
 	if (activef) {
-		tf = CustomData_bmesh_get(&bm->pdata, activef->head.data, CD_MTEXPOLY);
+		tf = BM_ELEM_CD_GET_VOID_P(activef, cd_poly_tex_offset);
 		if (uvedit_face_visible_test(scene, ima, activef, tf)) {
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -525,7 +532,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 			glBegin(GL_POLYGON);
 			BM_ITER_ELEM (l, &liter, activef, BM_LOOPS_OF_FACE) {
-				luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 				glVertex2fv(luv->uv);
 			}
 			glEnd();
@@ -548,14 +555,14 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 			BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 				if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 					continue;
-				tf = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_MTEXPOLY);
+				tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 
 				if (tf) {
 					cpack(0x111111);
 
 					glBegin(GL_LINE_LOOP);
 					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-						luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 						glVertex2fv(luv->uv);
 					}
 					glEnd();
@@ -565,19 +572,10 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 					glBegin(GL_LINE_LOOP);
 					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-						luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 						glVertex2fv(luv->uv);
 					}
 					glEnd();
-
-#if 0
-					glBegin(GL_LINE_STRIP);
-					luv = CustomData_bmesh_get(&bm->ldata, efa->lbase->head.data, CD_MLOOPUV);
-					glVertex2fv(luv->uv);
-					luv = CustomData_bmesh_get(&bm->ldata, efa->lbase->next->head.data, CD_MLOOPUV);
-					glVertex2fv(luv->uv);
-					glEnd();
-#endif
 
 					setlinestyle(0);
 				}
@@ -594,7 +592,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 				glBegin(GL_LINE_LOOP);
 				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-					luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 					glVertex2fv(luv->uv);
 				}
 				glEnd();
@@ -610,7 +608,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 
 				glBegin(GL_LINE_LOOP);
 				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-					luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 					glVertex2fv(luv->uv);
 				}
 				glEnd();
@@ -636,7 +634,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 							sel = (uvedit_uv_select_test(em, scene, l) ? 1 : 0);
 							glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2);
 
-							luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+							luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 							glVertex2fv(luv->uv);
 						}
 						glEnd();
@@ -656,9 +654,9 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 								glColor4ubv(sel ? (GLubyte *)col1 : (GLubyte *)col2);
 								lastsel = sel;
 							}
-							luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+							luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 							glVertex2fv(luv->uv);
-							luv = CustomData_bmesh_get(&bm->ldata, l->next->head.data, CD_MLOOPUV);
+							luv = BM_ELEM_CD_GET_VOID_P(l->next, cd_loop_uv_offset);
 							glVertex2fv(luv->uv);
 						}
 						glEnd();
@@ -673,7 +671,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 				
 					glBegin(GL_LINE_LOOP);
 					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-						luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 						glVertex2fv(luv->uv);
 					}
 					glEnd();
@@ -741,7 +739,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 				continue;
 
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 				if (!uvedit_uv_select_test(em, scene, l))
 					bglVertex2fv(luv->uv);
 			}
@@ -759,7 +757,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 				continue;
 
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
 				if (luv->flag & MLOOPUV_PINNED)
 					bglVertex2fv(luv->uv);
@@ -777,7 +775,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit)
 				continue;
 
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
+				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
 				if (uvedit_uv_select_test(em, scene, l))
 					bglVertex2fv(luv->uv);
