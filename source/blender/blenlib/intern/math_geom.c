@@ -131,33 +131,41 @@ float area_tri_v3(const float v1[3], const float v2[3], const float v3[3])
 
 float area_poly_v3(int nr, float verts[][3], const float normal[3])
 {
-	float x, y, z, area, max;
-	float *cur, *prev;
-	int a, px = 0, py = 1;
-
-	/* first: find dominant axis: 0==X, 1==Y, 2==Z
-	 * don't use 'axis_dominant_v3()' because we need max axis too */
-	x = fabsf(normal[0]);
-	y = fabsf(normal[1]);
-	z = fabsf(normal[2]);
-	max = max_fff(x, y, z);
-	if (max == y) py = 2;
-	else if (max == x) {
-		px = 1;
-		py = 2;
-	}
+	int a, px, py;
+	const float max = axis_dominant_v3_max(&px, &py, normal);
+	float area;
+	float *co_curr, *co_prev;
 
 	/* The Trapezium Area Rule */
-	prev = verts[nr - 1];
-	cur = verts[0];
-	area = 0;
+	co_prev = verts[nr - 1];
+	co_curr = verts[0];
+	area = 0.0f;
 	for (a = 0; a < nr; a++) {
-		area += (cur[px] - prev[px]) * (cur[py] + prev[py]);
-		prev = verts[a];
-		cur = verts[a + 1];
+		area += (co_curr[px] - co_prev[px]) * (co_curr[py] + co_prev[py]);
+		co_prev = verts[a];
+		co_curr = verts[a + 1];
 	}
 
 	return fabsf(0.5f * area / max);
+}
+
+float area_poly_v2(int nr, float verts[][2])
+{
+	int a;
+	float area;
+	float *co_curr, *co_prev;
+
+	/* The Trapezium Area Rule */
+	co_prev = verts[nr - 1];
+	co_curr = verts[0];
+	area = 0.0f;
+	for (a = 0; a < nr; a++) {
+		area += (co_curr[0] - co_prev[0]) * (co_curr[1] + co_prev[1]);
+		co_prev = verts[a];
+		co_curr = verts[a + 1];
+	}
+
+	return fabsf(0.5f * area);
 }
 
 /********************************* Distance **********************************/
@@ -329,7 +337,7 @@ void closest_on_tri_to_point_v3(float r[3], const float p[3],
 		return;
 	}
 	/* Check if P in edge region of AB, if so return projection of P onto AB */
-	vc = d1*d4 - d3*d2;
+	vc = d1 * d4 - d3 * d2;
 	if (vc <= 0.0f && d1 >= 0.0f && d3 <= 0.0f) {
 		float v = d1 / (d1 - d3);
 		/* barycentric coordinates (1-v,v,0) */
@@ -346,7 +354,7 @@ void closest_on_tri_to_point_v3(float r[3], const float p[3],
 		return;
 	}
 	/* Check if P in edge region of AC, if so return projection of P onto AC */
-	vb = d5*d2 - d1*d6;
+	vb = d5 * d2 - d1 * d6;
 	if (vb <= 0.0f && d2 >= 0.0f && d6 <= 0.0f) {
 		float w = d2 / (d2 - d6);
 		/* barycentric coordinates (1-w,0,w) */
@@ -354,7 +362,7 @@ void closest_on_tri_to_point_v3(float r[3], const float p[3],
 		return;
 	}
 	/* Check if P in edge region of BC, if so return projection of P onto BC */
-	va = d3*d6 - d5*d4;
+	va = d3 * d6 - d5 * d4;
 	if (va <= 0.0f && (d4 - d3) >= 0.0f && (d5 - d6) >= 0.0f) {
 		float w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
 		/* barycentric coordinates (0,1-w,w) */
@@ -1817,7 +1825,7 @@ static int point_in_slice_as(float p[3], float origin[3], float normal[3])
 	return 1;
 }
 
-/*mama (knowing the squared length of the normal)*/
+/*mama (knowing the squared length of the normal) */
 static int point_in_slice_m(float p[3], float origin[3], float normal[3], float lns)
 {
 	float h, rp[3];
@@ -1952,15 +1960,27 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], int (*callback)(int, int,
 /****************************** Interpolation ********************************/
 
 /* get the 2 dominant axis values, 0==X, 1==Y, 2==Z */
-void axis_dominant_v3(int *axis_a, int *axis_b, const float axis[3])
+void axis_dominant_v3(int *r_axis_a, int *r_axis_b, const float axis[3])
 {
 	const float xn = fabsf(axis[0]);
 	const float yn = fabsf(axis[1]);
 	const float zn = fabsf(axis[2]);
 
-	if      (zn >= xn && zn >= yn) { *axis_a = 0; *axis_b = 1; }
-	else if (yn >= xn && yn >= zn) { *axis_a = 0; *axis_b = 2; }
-	else                           { *axis_a = 1; *axis_b = 2; }
+	if      (zn >= xn && zn >= yn) { *r_axis_a = 0; *r_axis_b = 1; }
+	else if (yn >= xn && yn >= zn) { *r_axis_a = 0; *r_axis_b = 2; }
+	else                           { *r_axis_a = 1; *r_axis_b = 2; }
+}
+
+/* same as axis_dominant_v3 but return the max value */
+float axis_dominant_v3_max(int *r_axis_a, int *r_axis_b, const float axis[3])
+{
+	const float xn = fabsf(axis[0]);
+	const float yn = fabsf(axis[1]);
+	const float zn = fabsf(axis[2]);
+
+	if      (zn >= xn && zn >= yn) { *r_axis_a = 0; *r_axis_b = 1; return zn; }
+	else if (yn >= xn && yn >= zn) { *r_axis_a = 0; *r_axis_b = 2; return yn; }
+	else                           { *r_axis_a = 1; *r_axis_b = 2; return xn; }
 }
 
 static float tri_signed_area(const float v1[3], const float v2[3], const float v3[3], const int i, const int j)
@@ -2334,14 +2354,25 @@ void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[
 {
 	/* TODO: t1 and t2 overlap each iter, we could call this only once per iter and reuse previous value */
 	float totweight, t1, t2, len, *vmid, *vprev, *vnext;
-	int i;
+	int i, i_next, i_curr;
+	bool edge_interp = false;
 
 	totweight = 0.0f;
 
 	for (i = 0; i < n; i++) {
+		i_curr = i;
+		i_next = (i == n - 1) ? 0 : i + 1;
+
 		vmid = v[i];
 		vprev = (i == 0) ? v[n - 1] : v[i - 1];
-		vnext = (i == n - 1) ? v[0] : v[i + 1];
+		vnext = v[i_next];
+
+		/* Mark Mayer et al algorithm that is used here does not operate well if vertex is close
+		 * to borders of face. In that case, do simple linear interpolation between the two edge vertices */
+		if (dist_to_line_segment_v3(co, vmid, vnext) < 10 * FLT_EPSILON) {
+			edge_interp = true;
+			break;
+		}
 
 		t1 = mean_value_half_tan_v3(co, vprev, vmid);
 		t2 = mean_value_half_tan_v3(co, vmid, vnext);
@@ -2351,25 +2382,49 @@ void interp_weights_poly_v3(float *w, float v[][3], const int n, const float co[
 		totweight += w[i];
 	}
 
-	if (totweight != 0.0f) {
-		for (i = 0; i < n; i++) {
-			w[i] /= totweight;
+	if (edge_interp) {
+		float len_curr = len_v3v3(co, vmid);
+		float len_next = len_v3v3(co, vnext);
+		float edge_len = len_curr + len_next;
+		for (i = 0; i < n; i++)
+			w[i] = 0.0;
+
+		w[i_curr] = len_next / edge_len;
+		w[i_next] = len_curr / edge_len;
+	}
+	else {
+		if (totweight != 0.0f) {
+			for (i = 0; i < n; i++) {
+				w[i] /= totweight;
+			}
 		}
 	}
 }
+
 
 void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[2])
 {
 	/* TODO: t1 and t2 overlap each iter, we could call this only once per iter and reuse previous value */
 	float totweight, t1, t2, len, *vmid, *vprev, *vnext;
-	int i;
+	int i, i_next, i_curr;
+	bool edge_interp = false;
 
 	totweight = 0.0f;
 
 	for (i = 0; i < n; i++) {
+		i_curr = i;
+		i_next = (i == n - 1) ? 0 : i + 1;
+
 		vmid = v[i];
 		vprev = (i == 0) ? v[n - 1] : v[i - 1];
-		vnext = (i == n - 1) ? v[0] : v[i + 1];
+		vnext = v[i_next];
+
+		/* Mark Mayer et al algorithm that is used here does not operate well if vertex is close
+		 * to borders of face. In that case, do simple linear interpolation between the two edge vertices */
+		if (dist_to_line_segment_v2(co, vmid, vnext) < 10 * FLT_EPSILON) {
+			edge_interp = true;
+			break;
+		}
 
 		t1 = mean_value_half_tan_v2(co, vprev, vmid);
 		t2 = mean_value_half_tan_v2(co, vmid, vnext);
@@ -2379,9 +2434,21 @@ void interp_weights_poly_v2(float *w, float v[][2], const int n, const float co[
 		totweight += w[i];
 	}
 
-	if (totweight != 0.0f) {
-		for (i = 0; i < n; i++) {
-			w[i] /= totweight;
+	if (edge_interp) {
+		float len_curr = len_v2v2(co, vmid);
+		float len_next = len_v2v2(co, vnext);
+		float edge_len = len_curr + len_next;
+		for (i = 0; i < n; i++)
+			w[i] = 0.0;
+
+		w[i_curr] = len_next / edge_len;
+		w[i_next] = len_curr / edge_len;
+	}
+	else {
+		if (totweight != 0.0f) {
+			for (i = 0; i < n; i++) {
+				w[i] /= totweight;
+			}
 		}
 	}
 }

@@ -605,7 +605,11 @@ bool OSLRenderServices::get_object_standard_attribute(KernelGlobals *kg, ShaderD
 		return set_attribute_int(3, type, derivatives, val);
 	}
 	else if ((name == u_geom_trianglevertices || name == u_geom_polyvertices)
+#ifdef __HAIR__
 		     && sd->segment == ~0) {
+#else
+		) {
+#endif
 		float3 P[3];
 		triangle_vertices(kg, sd->prim, P);
 
@@ -675,7 +679,11 @@ bool OSLRenderServices::get_attribute(void *renderstate, bool derivatives, ustri
 	else {
 		object = sd->object;
 		prim = sd->prim;
+#ifdef __HAIR__
 		segment = sd->segment;
+#else
+		segment = ~0;
+#endif
 
 		if (object == ~0)
 			return get_background_attribute(kg, sd, name, type, derivatives, val);

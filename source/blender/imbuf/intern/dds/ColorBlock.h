@@ -69,7 +69,7 @@ struct ColorBlock
 	
 private:
 	
-	Color32 m_color[4*4];
+	Color32 m_color[4 * 4];
 	
 };
 

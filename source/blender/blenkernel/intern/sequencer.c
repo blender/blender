@@ -2391,7 +2391,7 @@ static ImBuf *seq_render_scene_strip(SeqRenderData context, Sequence *seq, float
 		BKE_scene_update_for_newframe(context.bmain, scene, scene->lay);
 		ibuf = sequencer_view3d_cb(scene, camera, context.rectx, context.recty, IB_rect,
 		                           context.scene->r.seq_prev_type, context.scene->r.seq_flag & R_SEQ_SOLID_TEX,
-		                           TRUE, FALSE, err_out);
+		                           TRUE, scene->r.alphamode, err_out);
 		if (ibuf == NULL) {
 			fprintf(stderr, "seq_render_scene_strip failed to get opengl buffer: %s\n", err_out);
 		}

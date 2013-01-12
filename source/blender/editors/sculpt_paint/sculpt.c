@@ -137,6 +137,11 @@ MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
 	Mesh *me = (Mesh *)ob->data;
 	ModifierData *md;
 
+	if (ob->sculpt && ob->sculpt->bm) {
+		/* can't combine multires and dynamic topology */
+		return NULL;
+	}
+
 	if (!CustomData_get_layer(&me->ldata, CD_MDISPS)) {
 		/* multires can't work without displacement layer */
 		return NULL;
@@ -4585,7 +4590,8 @@ void sculpt_dynamic_topology_disable(bContext *C,
 						CD_DUPLICATE, unode->bm_enter_totpoly);
 
 		mesh_update_customdata_pointers(me, FALSE);
-	} else {
+	}
+	else {
 		sculptsession_bm_to_me(ob, TRUE);
 	}
 

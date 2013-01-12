@@ -122,7 +122,7 @@ static void bpy_pydriver_update_dict(const float evaltime)
 void BPY_driver_reset(void)
 {
 	PyGILState_STATE gilstate;
-	int use_gil = TRUE; /* !PYC_INTERPRETER_ACTIVE; */
+	bool use_gil = true; /* !PYC_INTERPRETER_ACTIVE; */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();
@@ -175,7 +175,7 @@ float BPY_driver_exec(ChannelDriver *driver, const float evaltime)
 	PyObject *expr_vars; /* speed up by pre-hashing string & avoids re-converting unicode strings for every execution */
 	PyObject *expr_code;
 	PyGILState_STATE gilstate;
-	int use_gil;
+	bool use_gil;
 
 	DriverVar *dvar;
 	double result = 0.0; /* default return */
@@ -193,7 +193,7 @@ float BPY_driver_exec(ChannelDriver *driver, const float evaltime)
 		return 0.0f;
 	}
 
-	use_gil = TRUE; /* !PYC_INTERPRETER_ACTIVE; */
+	use_gil = true;  /* !PYC_INTERPRETER_ACTIVE; */
 
 	if (use_gil)
 		gilstate = PyGILState_Ensure();

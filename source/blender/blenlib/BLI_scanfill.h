@@ -103,7 +103,7 @@ enum {
 	BLI_SCANFILL_CALC_REMOVE_DOUBLES   = (1 << 1),
 
 	/* note: This flag removes checks for overlapping polygons.
-	 * when this flag is set, we'll never get back more faces then (totvert - 2)*/
+	 * when this flag is set, we'll never get back more faces then (totvert - 2) */
 	BLI_SCANFILL_CALC_HOLES            = (1 << 2)
 };
 

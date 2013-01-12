@@ -170,6 +170,16 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					else
 						cp = ts->button;
 					break;
+				case TH_LOW_GRAD:
+					cp = ts->gradients.gradient;
+					break;
+				case TH_HIGH_GRAD:
+					cp = ts->gradients.high_gradient;
+					break;
+				case TH_SHOW_BACK_GRAD:
+					cp = &setting;
+					setting = ts->gradients.show_grad;
+					break;
 				case TH_TEXT:
 					if (theme_regionid == RGN_TYPE_WINDOW)
 						cp = ts->text;
@@ -782,7 +792,10 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tv3d.camera_path, 0x00, 0x00, 0x00, 255);
 
 	rgba_char_args_set(btheme->tv3d.skin_root, 180, 77, 77, 255);
-	
+	rgba_char_args_set(btheme->tv3d.gradients.gradient, 0, 0, 0, 0);
+	rgba_char_args_set(btheme->tv3d.gradients.high_gradient, 58, 58, 58, 255);
+	btheme->tv3d.gradients.show_grad = FALSE;
+
 	/* space buttons */
 	/* to have something initialized */
 	btheme->tbuts = btheme->tv3d;
@@ -2116,7 +2129,7 @@ void init_userdef_do_versions(void)
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(bmain, 266, 4)) {
+	if (!MAIN_VERSION_ATLEAST(bmain, 265, 4)) {
 		bTheme *btheme;
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			rgba_char_args_set(btheme->text.syntaxd,    50, 0, 140, 255);   /* Decorator/Preprocessor Dir.  Blue-purple */
@@ -2124,7 +2137,14 @@ void init_userdef_do_versions(void)
 			rgba_char_args_set(btheme->text.syntaxs,    76, 76, 76, 255);   /* Grey (mix between fg/bg) */
 		}
 	}
-	
+
+	if (!MAIN_VERSION_ATLEAST(bmain, 265, 6)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			copy_v4_v4_char(btheme->tv3d.gradients.high_gradient, btheme->tv3d.back);
+		}
+	}
+
 	if (U.pixelsize == 0.0f)
 		U.pixelsize = 1.0f;
 	

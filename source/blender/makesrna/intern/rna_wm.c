@@ -1138,7 +1138,7 @@ static StructRNA *rna_Operator_register(Main *bmain, ReportList *reports, void *
 	 * for now just remove from dir(bpy.types) */
 
 	/* create a new operator type */
-	dummyot.ext.srna = RNA_def_struct(&BLENDER_RNA, dummyot.idname, "Operator");
+	dummyot.ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, dummyot.idname, &RNA_Operator);
 	RNA_def_struct_flag(dummyot.ext.srna, STRUCT_NO_IDPROPERTIES); /* operator properties are registered separately */
 	dummyot.ext.data = data;
 	dummyot.ext.call = call;
@@ -1219,7 +1219,7 @@ static StructRNA *rna_MacroOperator_register(Main *bmain, ReportList *reports, v
 	 * for now just remove from dir(bpy.types) */
 
 	/* create a new operator type */
-	dummyot.ext.srna = RNA_def_struct(&BLENDER_RNA, dummyot.idname, "Operator");
+	dummyot.ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, dummyot.idname, &RNA_Operator);
 	dummyot.ext.data = data;
 	dummyot.ext.call = call;
 	dummyot.ext.free = free;
@@ -1340,7 +1340,7 @@ static void rna_def_operator(BlenderRNA *brna)
 	/* RNA_def_property_clear_flag(prop, PROP_EDITABLE); */
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
-	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_TRANSLATE);
+	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->description");
 	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_description_set");
@@ -1407,7 +1407,7 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	/* RNA_def_property_clear_flag(prop, PROP_EDITABLE); */
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
-	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_TRANSLATE);
+	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->description");
 	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_Operator_bl_description_set");

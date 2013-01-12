@@ -56,6 +56,8 @@ void BLI_rctf_translate(struct rctf *rect, float x, float y);
 void BLI_rcti_translate(struct rcti *rect, int x, int y);
 void BLI_rcti_resize(struct rcti *rect, int x, int y);
 void BLI_rctf_resize(struct rctf *rect, float x, float y);
+void BLI_rcti_scale(rcti *rect, const float scale);
+void BLI_rctf_scale(rctf *rect, const float scale);
 void BLI_rctf_interp(struct rctf *rect, const struct rctf *rect_a, const struct rctf *rect_b, const float fac);
 //void BLI_rcti_interp(struct rctf *rect, struct rctf *rect_a, struct rctf *rect_b, float fac);
 int  BLI_rctf_clamp_pt_v(const struct rctf *rect, float xy[2]);

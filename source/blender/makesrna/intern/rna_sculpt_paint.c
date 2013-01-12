@@ -222,7 +222,7 @@ static void rna_Sculpt_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNU
 
 		if (ob->sculpt) {
 			ob->sculpt->bm_smooth_shading = (scene->toolsettings->sculpt->flags &
-											 SCULPT_DYNTOPO_SMOOTH_SHADING);
+			                                 SCULPT_DYNTOPO_SMOOTH_SHADING);
 		}
 	}
 }

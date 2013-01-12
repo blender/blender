@@ -81,6 +81,9 @@ def create_qtc_project_main():
     else:
         includes, defines = cmake_advanced_info()
 
+        if (includes, defines) == (None, None):
+            return
+
         # for some reason it doesnt give all internal includes
         includes = list(set(includes) | set(os.path.dirname(f)
                         for f in files_rel if is_c_header(f)))

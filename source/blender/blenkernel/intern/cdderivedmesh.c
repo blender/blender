@@ -647,6 +647,23 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 		index_mp_to_orig = NULL;
 	}
 
+	/* TODO: not entirely correct, but currently dynamic topology will
+	 *       destroy UVs anyway, so textured display wouldn't work anyway
+	 *
+	 *       this will do more like solid view with lights set up for
+	 *       textured view, but object itself will be displayed gray
+	 *       (the same as it'll display without UV maps in textured view)
+	 */
+	if (cddm->pbvh && cddm->pbvh_draw && BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH) {
+		if (dm->numTessFaceData) {
+			glDisable(GL_TEXTURE_2D);
+			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, FALSE);
+			glEnable(GL_TEXTURE_2D);
+		}
+
+		return;
+	}
+
 	colType = CD_TEXTURE_MCOL;
 	mcol = dm->getTessFaceDataArray(dm, colType);
 	if (!mcol) {
@@ -1726,6 +1743,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *UNUSED(ob))
 	        mesh->totloop, mesh->totpoly);
 
 	dm->deformedOnly = 1;
+	dm->cd_flag = mesh->cd_flag;
 
 	alloctype = CD_REFERENCE;
 
@@ -1757,49 +1775,10 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *UNUSED(ob))
 
 DerivedMesh *CDDM_from_curve(Object *ob)
 {
-	return CDDM_from_curve_displist(ob, &ob->disp, NULL);
+	return CDDM_from_curve_displist(ob, &ob->disp);
 }
 
-DerivedMesh *CDDM_from_curve_orco(struct Scene *scene, Object *ob)
-{
-	int *orco_index_ptr = NULL;
-	int (*orco_index)[4] = NULL;
-	float (*orco)[3] = NULL;
-	DerivedMesh *dm = CDDM_from_curve_displist(ob, &ob->disp, &orco_index_ptr);
-
-	if (orco_index_ptr) {
-		orco = (float (*)[3])BKE_curve_make_orco(scene, ob);
-	}
-
-	if (orco && orco_index_ptr) {
-		const char *uvname = "Orco";
-
-		int totpoly = dm->getNumPolys(dm);
-
-		MPoly *mpolys = dm->getPolyArray(dm);
-		MLoop *mloops = dm->getLoopArray(dm);
-
-		MLoopUV *mloopuvs;
-
-		CustomData_add_layer_named(&dm->polyData, CD_MTEXPOLY, CD_DEFAULT, NULL, dm->numPolyData, uvname);
-		mloopuvs = CustomData_add_layer_named(&dm->loopData, CD_MLOOPUV,  CD_DEFAULT, NULL, dm->numLoopData, uvname);
-
-		BKE_mesh_nurbs_to_mdata_orco(mpolys, totpoly,
-		                             mloops, mloopuvs,
-		                             orco, orco_index);
-	}
-
-	if (orco_index) {
-		MEM_freeN(orco_index);
-	}
-	if (orco) {
-		MEM_freeN(orco);
-	}
-
-	return dm;
-}
-
-DerivedMesh *CDDM_from_curve_displist(Object *ob, ListBase *dispbase, int **orco_index_ptr)
+DerivedMesh *CDDM_from_curve_displist(Object *ob, ListBase *dispbase)
 {
 	DerivedMesh *dm;
 	CDDerivedMesh *cddm;
@@ -1810,7 +1789,8 @@ DerivedMesh *CDDM_from_curve_displist(Object *ob, ListBase *dispbase, int **orco
 	int totvert, totedge, totloop, totpoly;
 
 	if (BKE_mesh_nurbs_displist_to_mdata(ob, dispbase, &allvert, &totvert, &alledge,
-	                                     &totedge, &allloop, &allpoly, &totloop, &totpoly, orco_index_ptr) != 0)
+	                                     &totedge, &allloop, &allpoly, NULL,
+	                                     &totloop, &totpoly) != 0)
 	{
 		/* Error initializing mdata. This often happens when curve is empty */
 		return CDDM_new(0, 0, 0, 0, 0);
@@ -1909,13 +1889,12 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, int use_mdisps,
 	int numCol = CustomData_number_of_layers(&bm->ldata, CD_MLOOPCOL);
 	int numTex = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
 	int *index, add_orig;
-	int has_crease, has_edge_bweight, has_vert_bweight;
 	CustomDataMask mask;
 	unsigned int i, j;
 	
-	has_edge_bweight = CustomData_has_layer(&bm->edata, CD_BWEIGHT);
-	has_vert_bweight = CustomData_has_layer(&bm->vdata, CD_BWEIGHT);
-	has_crease = CustomData_has_layer(&bm->edata, CD_CREASE);
+	const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
+	const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
+	const int cd_edge_crease_offset  = CustomData_get_offset(&bm->edata, CD_CREASE);
 	
 	dm->deformedOnly = 1;
 	
@@ -1955,8 +1934,7 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, int use_mdisps,
 
 		mv->flag = BM_vert_flag_to_mflag(eve);
 
-		if (has_vert_bweight)
-			mv->bweight = (unsigned char)(BM_elem_float_data_get(&bm->vdata, eve, CD_BWEIGHT) * 255.0f);
+		if (cd_vert_bweight_offset != -1) mv->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eve, cd_vert_bweight_offset);
 
 		if (add_orig) *index = i;
 
@@ -1974,11 +1952,6 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, int use_mdisps,
 		med->v1 = BM_elem_index_get(eed->v1);
 		med->v2 = BM_elem_index_get(eed->v2);
 
-		if (has_crease)
-			med->crease = (unsigned char)(BM_elem_float_data_get(&bm->edata, eed, CD_CREASE) * 255.0f);
-		if (has_edge_bweight)
-			med->bweight = (unsigned char)(BM_elem_float_data_get(&bm->edata, eed, CD_BWEIGHT) * 255.0f);
-		
 		med->flag = BM_edge_flag_to_mflag(eed);
 
 		/* handle this differently to editmode switching,
@@ -1988,6 +1961,9 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, int use_mdisps,
 				med->flag |= ME_EDGEDRAW;
 			}
 		}
+
+		if (cd_edge_crease_offset  != -1) med->crease  = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eed, cd_edge_crease_offset);
+		if (cd_edge_bweight_offset != -1) med->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eed, cd_edge_bweight_offset);
 
 		CustomData_from_bmesh_block(&bm->edata, &dm->edgeData, eed->head.data, i);
 		if (add_orig) *index = i;
@@ -2051,6 +2027,8 @@ static DerivedMesh *cddm_from_bmesh_ex(struct BMesh *bm, int use_mdisps,
 	}
 	bm->elem_index_dirty &= ~BM_FACE;
 
+	dm->cd_flag = BM_mesh_cd_flag_from_bmesh(bm);
+
 	return dm;
 }
 
@@ -2088,6 +2066,7 @@ static DerivedMesh *cddm_copy_ex(DerivedMesh *source, int faces_from_tessfaces)
 	DM_from_template(dm, source, DM_TYPE_CDDM, numVerts, numEdges, numTessFaces,
 	                 numLoops, numPolys);
 	dm->deformedOnly = source->deformedOnly;
+	dm->cd_flag = source->cd_flag;
 	dm->dirty = source->dirty;
 
 	CustomData_copy_data(&source->vertData, &dm->vertData, 0, 0, numVerts);

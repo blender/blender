@@ -182,7 +182,7 @@ static int bpy_app_debug_set(PyObject *UNUSED(self), PyObject *value, void *clos
 	const int flag = GET_INT_FROM_POINTER(closure);
 	const int param = PyObject_IsTrue(value);
 
-	if (param < 0) {
+	if (param == -1) {
 		PyErr_SetString(PyExc_TypeError, "bpy.app.debug can only be True/False");
 		return -1;
 	}

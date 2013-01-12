@@ -238,12 +238,12 @@ void OCIO_displayTransformRelease(OCIO_DisplayTransformRcPtr *dt)
 }
 
 OCIO_PackedImageDesc *OCIO_createOCIO_PackedImageDesc(float *data, long width, long height, long numChannels,
-                                            long chanStrideBytes, long xStrideBytes, long yStrideBytes)
+                                                      long chanStrideBytes, long xStrideBytes, long yStrideBytes)
 {
 	return impl->createOCIO_PackedImageDesc(data, width, height, numChannels, chanStrideBytes, xStrideBytes, yStrideBytes);
 }
 
-void OCIO_OCIO_PackedImageDescRelease(OCIO_PackedImageDesc* id)
+void OCIO_PackedImageDescRelease(OCIO_PackedImageDesc* id)
 {
 	impl->OCIO_PackedImageDescRelease(id);
 }

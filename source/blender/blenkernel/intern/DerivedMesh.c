@@ -313,6 +313,8 @@ void DM_from_template(DerivedMesh *dm, DerivedMesh *source, DerivedMeshType type
 	CustomData_copy(&source->polyData, &dm->polyData, CD_MASK_DERIVEDMESH,
 	                CD_CALLOC, numPolys);
 
+	dm->cd_flag = source->cd_flag;
+
 	dm->type = type;
 	dm->numVertData = numVerts;
 	dm->numEdgeData = numEdges;
@@ -483,11 +485,13 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 	totedge = tmp.totedge = dm->getNumEdges(dm);
 	totloop = tmp.totloop = dm->getNumLoops(dm);
 	totpoly = tmp.totpoly = dm->getNumPolys(dm);
+	tmp.totface = 0;
 
 	CustomData_copy(&dm->vertData, &tmp.vdata, CD_MASK_MESH, CD_DUPLICATE, totvert);
 	CustomData_copy(&dm->edgeData, &tmp.edata, CD_MASK_MESH, CD_DUPLICATE, totedge);
 	CustomData_copy(&dm->loopData, &tmp.ldata, CD_MASK_MESH, CD_DUPLICATE, totloop);
 	CustomData_copy(&dm->polyData, &tmp.pdata, CD_MASK_MESH, CD_DUPLICATE, totpoly);
+	me->cd_flag = dm->cd_flag;
 
 	if (CustomData_has_layer(&dm->vertData, CD_SHAPEKEY)) {
 		KeyBlock *kb;
@@ -538,9 +542,10 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 	}
 
 	/* yes, must be before _and_ after tessellate */
-	mesh_update_customdata_pointers(&tmp, TRUE);
+	mesh_update_customdata_pointers(&tmp, false);
 
-	BKE_mesh_tessface_calc(&tmp);
+	/* since 2.65 caller must do! */
+	// BKE_mesh_tessface_calc(&tmp);
 
 	CustomData_free(&me->vdata, me->totvert);
 	CustomData_free(&me->edata, me->totedge);

@@ -50,7 +50,6 @@ struct BMVert;
 int uvedit_face_visible_nolocal(struct Scene *scene, struct BMFace *efa);
 
 /* geometric utilities */
-float uv_poly_area(float uv[][2], int len);
 void  uv_poly_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float aspy, int len);
 void  uv_poly_center(struct BMEditMesh *em, struct BMFace *f, float r_cent[2]);
 

@@ -37,14 +37,14 @@ float noise_musgrave_fBm(point p, string basis, float H, float lacunarity, float
 	int i;
 
 	for (i = 0; i < (int)octaves; i++) {
-		value += noise("perlin", p) * pwr;
+		value += safe_noise(p) * pwr;
 		pwr *= pwHL;
 		p *= lacunarity;
 	}
 
 	rmd = octaves - floor(octaves);
 	if (rmd != 0.0)
-		value += rmd * noise("perlin", p) * pwr;
+		value += rmd * safe_noise(p) * pwr;
 
 	return value;
 }
@@ -65,14 +65,14 @@ float noise_musgrave_multi_fractal(point p, string basis, float H, float lacunar
 	int i;
 
 	for (i = 0; i < (int)octaves; i++) {
-		value *= (pwr * noise("perlin", p) + 1.0);
+		value *= (pwr * safe_noise(p) + 1.0);
 		pwr *= pwHL;
 		p *= lacunarity;
 	}
 
 	rmd = octaves - floor(octaves);
 	if (rmd != 0.0)
-		value *= (rmd * pwr * noise("perlin", p) + 1.0); /* correct? */
+		value *= (rmd * pwr * safe_noise(p) + 1.0); /* correct? */
 
 	return value;
 }
@@ -93,11 +93,11 @@ float noise_musgrave_hetero_terrain(point p, string basis, float H, float lacuna
 	int i;
 
 	/* first unscaled octave of function; later octaves are scaled */
-	value = offset + noise("perlin", p);
+	value = offset + safe_noise(p);
 	p *= lacunarity;
 
 	for (i = 1; i < (int)octaves; i++) {
-		increment = (noise("perlin", p) + offset) * pwr * value;
+		increment = (safe_noise(p) + offset) * pwr * value;
 		value += increment;
 		pwr *= pwHL;
 		p *= lacunarity;
@@ -105,7 +105,7 @@ float noise_musgrave_hetero_terrain(point p, string basis, float H, float lacuna
 
 	rmd = octaves - floor(octaves);
 	if (rmd != 0.0) {
-		increment = (noise("perlin", p) + offset) * pwr * value;
+		increment = (safe_noise(p) + offset) * pwr * value;
 		value += rmd * increment;
 	}
 
@@ -128,7 +128,7 @@ float noise_musgrave_hybrid_multi_fractal(point p, string basis, float H,
 	float pwr = pwHL;
 	int i;
 
-	result = noise("perlin", p) + offset;
+	result = safe_noise(p) + offset;
 	weight = gain * result;
 	p *= lacunarity;
 
@@ -136,7 +136,7 @@ float noise_musgrave_hybrid_multi_fractal(point p, string basis, float H,
 		if (weight > 1.0)
 			weight = 1.0;
 
-		signal = (noise("perlin", p) + offset) * pwr;
+		signal = (safe_noise(p) + offset) * pwr;
 		pwr *= pwHL;
 		result += weight * signal;
 		weight *= gain * signal;
@@ -145,7 +145,7 @@ float noise_musgrave_hybrid_multi_fractal(point p, string basis, float H,
 
 	rmd = octaves - floor(octaves);
 	if (rmd != 0.0)
-		result += rmd * ((noise("perlin", p) + offset) * pwr);
+		result += rmd * ((safe_noise(p) + offset) * pwr);
 
 	return result;
 }
@@ -166,7 +166,7 @@ float noise_musgrave_ridged_multi_fractal(point p, string basis, float H,
 	float pwr = pwHL;
 	int i;
 
-	signal = offset - fabs(noise("perlin", p));
+	signal = offset - fabs(safe_noise(p));
 	signal *= signal;
 	result = signal;
 	weight = 1.0;
@@ -174,7 +174,7 @@ float noise_musgrave_ridged_multi_fractal(point p, string basis, float H,
 	for (i = 1; i < (int)octaves; i++) {
 		p *= lacunarity;
 		weight = clamp(signal * gain, 0.0, 1.0);
-		signal = offset - fabs(noise("perlin", p));
+		signal = offset - fabs(safe_noise(p));
 		signal *= signal;
 		signal *= weight;
 		result += signal * pwr;

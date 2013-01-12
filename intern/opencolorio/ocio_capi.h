@@ -105,9 +105,9 @@ void OCIO_displayTransformSetLinearCC(OCIO_DisplayTransformRcPtr *dt, OCIO_Const
 void OCIO_displayTransformRelease(OCIO_DisplayTransformRcPtr *dt);
 
 OCIO_PackedImageDesc *OCIO_createOCIO_PackedImageDesc(float *data, long width, long height, long numChannels,
-                                            long chanStrideBytes, long xStrideBytes, long yStrideBytes);
+                                                      long chanStrideBytes, long xStrideBytes, long yStrideBytes);
 
-void OCIO_OCIO_PackedImageDescRelease(OCIO_PackedImageDesc *p);
+void OCIO_PackedImageDescRelease(OCIO_PackedImageDesc *p);
 
 OCIO_ExponentTransformRcPtr *OCIO_createExponentTransform(void);
 void OCIO_exponentTransformSetValue(OCIO_ExponentTransformRcPtr *et, const float *exponent);

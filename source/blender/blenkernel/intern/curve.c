@@ -875,7 +875,7 @@ static void basisNurb(float t, short order, short pnts, float *knots, float *bas
 
 
 void BKE_nurb_makeFaces(Nurb *nu, float *coord_array, int rowstride, int resolu, int resolv)
-/* coord_array  has to be 3*4*resolu*resolv in size, and zero-ed */
+/* coord_array  has to be (3 * 4 * resolu * resolv) in size, and zero-ed */
 {
 	BPoint *bp;
 	float *basisu, *basis, *basisv, *sum, *fp, *in;

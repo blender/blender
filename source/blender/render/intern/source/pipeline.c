@@ -45,6 +45,16 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math.h"
+#include "BLI_rect.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
+#include "BLI_path_util.h"
+#include "BLI_fileops.h"
+#include "BLI_threads.h"
+#include "BLI_rand.h"
+#include "BLI_callbacks.h"
+
 #include "BKE_animsys.h"  /* <------ should this be here?, needed for sequencer update */
 #include "BKE_camera.h"
 #include "BKE_global.h"
@@ -56,16 +66,6 @@
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 #include "BKE_writeavi.h"  /* <------ should be replaced once with generic movie module */
-
-#include "BLI_math.h"
-#include "BLI_rect.h"
-#include "BLI_listbase.h"
-#include "BLI_string.h"
-#include "BLI_path_util.h"
-#include "BLI_fileops.h"
-#include "BLI_threads.h"
-#include "BLI_rand.h"
-#include "BLI_callbacks.h"
 
 #include "PIL_time.h"
 #include "IMB_colormanagement.h"

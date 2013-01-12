@@ -167,7 +167,7 @@ typedef struct MIntProperty {
 	int		i;
 } MIntProperty;
 typedef struct MStringProperty {
-	char	s[256];
+	char	s[255], s_len;
 } MStringProperty;
 
 typedef struct OrigSpaceFace {

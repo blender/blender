@@ -82,7 +82,7 @@ int ED_space_clip_view_clip_poll(bContext *C)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
-	if (sc && sc->clip) {
+	if (sc) {
 		return sc->view == SC_VIEW_CLIP;
 	}
 

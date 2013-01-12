@@ -191,7 +191,8 @@ class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
         sub.prop(rd, "threads")
 
         sub = col.column(align=True)
-        sub.label(text="Tile Size:")
+        sub.label(text="Tiles:")
+        sub.prop(cscene, "tile_order", text="")
 
         sub.prop(rd, "tile_x", text="X")
         sub.prop(rd, "tile_y", text="Y")

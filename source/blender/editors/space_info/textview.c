@@ -71,14 +71,14 @@ BLI_INLINE void console_step_sel(ConsoleDrawContext *cdc, const int step)
 static void console_draw_sel(const int sel[2], const int xy[2], const int str_len_draw, int cwidth, int lheight)
 {
 	if (sel[0] <= str_len_draw && sel[1] >= 0) {
-		int sta = max_ii(sel[0], 0);
-		int end = min_ii(sel[1], str_len_draw);
+		const int sta = max_ii(sel[0], 0);
+		const int end = min_ii(sel[1], str_len_draw);
 
 		glEnable(GL_POLYGON_STIPPLE);
 		glPolygonStipple(stipple_halftone);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glColor4ub(255, 255, 255, 96);
+		glColor4ub(255, 255, 255, 48);
 
 		glRecti(xy[0] + (cwidth * sta), xy[1] - 2 + lheight, xy[0] + (cwidth * end), xy[1] - 2);
 

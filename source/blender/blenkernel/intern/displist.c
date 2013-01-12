@@ -975,7 +975,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 					curve_to_filledpoly(cu, nurb, dispbase);
 				}
 
-				dm = CDDM_from_curve_displist(ob, dispbase, NULL);
+				dm = CDDM_from_curve_displist(ob, dispbase);
 
 				CDDM_calc_normals_mapping(dm);
 			}
@@ -1065,7 +1065,7 @@ static DerivedMesh *create_orco_dm(Scene *scene, Object *ob)
 
 	/* OrcoDM should be created from underformed disp lists */
 	BKE_displist_make_curveTypes_forOrco(scene, ob, &disp);
-	dm = CDDM_from_curve_displist(ob, &disp, NULL);
+	dm = CDDM_from_curve_displist(ob, &disp);
 
 	BKE_displist_free(&disp);
 
@@ -1485,8 +1485,7 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 								float *cur_data = data;
 
 								if (cu->taperobj == NULL) {
-									if ( (cu->bevobj != NULL) || !((cu->flag & CU_FRONT) || (cu->flag & CU_BACK)) )
-										fac = bevp->radius;
+									fac = bevp->radius;
 								}
 								else {
 									float len, taper_fac;

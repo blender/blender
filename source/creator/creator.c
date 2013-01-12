@@ -40,6 +40,17 @@
 #  include <xmmintrin.h>
 #endif
 
+/* crash handler */
+#ifdef WIN32
+#  include <process.h> /* getpid */
+#else
+#  include <unistd.h> /* getpid */
+#endif
+/* for backtrace */
+#ifndef WIN32
+#  include <execinfo.h>
+#endif
+
 #ifdef WIN32
 #  include <Windows.h>
 #  include "utfconv.h"
@@ -48,6 +59,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
+#include <errno.h>
 
 /* This little block needed for linking to Blender... */
 
@@ -161,6 +173,8 @@ static int print_version(int argc, const char **argv, void *data);
 /* Initialize callbacks for the modules that need them */
 static void setCallbacks(void); 
 
+static bool use_crash_handler = true;
+
 #ifndef WITH_PYTHON_MODULE
 
 /* set breakpoints here when running in debug mode, useful to catch floating point errors */
@@ -250,6 +264,7 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	printf("Misc Options:\n");
 	BLI_argsPrintArgDoc(ba, "--debug");
 	BLI_argsPrintArgDoc(ba, "--debug-fpe");
+	BLI_argsPrintArgDoc(ba, "--disable-crash-handler");
 
 #ifdef WITH_FFMPEG
 	BLI_argsPrintArgDoc(ba, "--debug-ffmpeg");
@@ -354,6 +369,12 @@ static int disable_python(int UNUSED(argc), const char **UNUSED(argv), void *UNU
 	return 0;
 }
 
+static int disable_crash_handler(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+{
+	use_crash_handler = false;
+	return 0;
+}
+
 static int background_mode(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	G.background = 1;
@@ -426,6 +447,102 @@ static int set_fpe(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(dat
 
 	return 0;
 }
+
+static void blender_crash_handler_backtrace(FILE *fp)
+{
+#ifndef WIN32
+#define SIZE 100
+	void *buffer[SIZE];
+	int nptrs;
+	char **strings;
+	int i;
+
+	fputs("\n# backtrace\n", fp);
+
+	/* include a backtrace for good measure */
+	nptrs = backtrace(buffer, SIZE);
+	strings = backtrace_symbols(buffer, nptrs);
+	for (i = 0; i < nptrs; i++) {
+		fputs(strings[i], fp);
+		fputc('\n', fp);
+	}
+
+	free(strings);
+#undef SIZE
+#else  /* WIN32 */
+	/* TODO */
+	(void)fp;
+#endif
+}
+static void blender_crash_handler(int signum)
+{
+
+#if 0
+	{
+		char fname[FILE_MAX];
+
+		if (!G.main->name[0]) {
+			BLI_make_file_string("/", fname, BLI_temporary_dir(), "crash.blend");
+		}
+		else {
+			BLI_strncpy(fname, G.main->name, sizeof(fname));
+			BLI_replace_extension(fname, sizeof(fname), ".crash.blend");
+		}
+
+		printf("Writing: %s\n", fname);
+		fflush(stdout);
+
+		BKE_undo_save_file(fname);
+	}
+#endif
+
+	FILE *fp;
+	char header[512];
+	wmWindowManager *wm = G.main->wm.first;
+
+	char fname[FILE_MAX];
+
+	if (!G.main->name[0]) {
+		BLI_make_file_string("/", fname, BLI_temporary_dir(), "blender.crash.txt");
+	}
+	else {
+		BLI_strncpy(fname, G.main->name, sizeof(fname));
+		BLI_replace_extension(fname, sizeof(fname), ".crash.txt");
+	}
+
+	printf("Writing: %s\n", fname);
+	fflush(stdout);
+
+	BLI_snprintf(header, sizeof(header), "# " BLEND_VERSION_STRING_FMT);
+
+	/* open the crash log */
+	errno = 0;
+	fp = BLI_fopen(fname, "wb");
+	if (fp == NULL) {
+		fprintf(stderr, "Unable to save '%s': %s\n",
+				fname, errno ? strerror(errno) : "Unknown error opening file");
+	}
+	else {
+		if (wm) {
+			BKE_report_write_file_fp(fp, &wm->reports, header);
+		}
+
+		blender_crash_handler_backtrace(fp);
+
+		fclose(fp);
+	}
+
+
+	/* really crash */
+	signal(signum, SIG_DFL);
+#ifndef WIN32
+	kill(getpid(), signum);
+#else
+	/* force crash on windows for now */
+	*((void **)NULL) = NULL;
+#endif
+}
+
 
 static int set_factory_startup(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
@@ -1126,6 +1243,8 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 1, "-y", "--enable-autoexec", "\n\tEnable automatic python script execution" PY_ENABLE_AUTO, enable_python, NULL);
 	BLI_argsAdd(ba, 1, "-Y", "--disable-autoexec", "\n\tDisable automatic python script execution (pydrivers & startup scripts)" PY_DISABLE_AUTO, disable_python, NULL);
 
+	BLI_argsAdd(ba, 1, NULL, "--disable-crash-handler", "\n\tDisable the crash handler", disable_crash_handler, NULL);
+
 #undef PY_ENABLE_AUTO
 #undef PY_DISABLE_AUTO
 	
@@ -1310,6 +1429,10 @@ int main(int argc, const char **argv)
 	BLI_argsParse(ba, 1, NULL, NULL);
 #endif
 
+	if (use_crash_handler) {
+		/* after parsing args */
+		signal(SIGSEGV, blender_crash_handler);
+	}
 
 	/* after level 1 args, this is so playanim skips RNA init */
 	RNA_init();

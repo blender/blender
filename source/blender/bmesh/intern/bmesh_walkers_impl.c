@@ -403,6 +403,11 @@ static void *bmw_IslandWalker_step(BMWalker *walker)
 				continue;
 			}
 
+			/* saves checking BLI_ghash_haskey below (manifold edges theres a 50% chance) */
+			if (f == iwalk->cur) {
+				continue;
+			}
+
 			if (BLI_ghash_haskey(walker->visithash, f)) {
 				continue;
 			}

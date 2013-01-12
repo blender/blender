@@ -274,7 +274,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	step_tot = ((step_tot + 1) * ltmd->iter) - (ltmd->iter - 1);
 
 	/* will the screw be closed?
-	 * Note! smaller then FLT_EPSILON*100 gives problems with float precision so its never closed. */
+	 * Note! smaller then FLT_EPSILON * 100 gives problems with float precision so its never closed. */
 	if (fabsf(screw_ofs) <= (FLT_EPSILON * 100.0f) &&
 	    fabsf(fabsf(angle) - ((float)M_PI * 2.0f)) <= (FLT_EPSILON * 100.0f))
 	{

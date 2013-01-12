@@ -149,14 +149,20 @@ def cmake_advanced_info():
                 raise Exception("Unknown make program %r" % make_exe)
 
         os.system(cmd)
+        return join(CMAKE_DIR, ".cproject")
+        
 
     includes = []
     defines = []
 
-    create_eclipse_project()
+    project_path = create_eclipse_project()
+
+    if not exists(project_path):
+        print("Generating Eclipse Prokect File Failed: %r not found" % project_path)
+        return None, None
 
     from xml.dom.minidom import parse
-    tree = parse(join(CMAKE_DIR, ".cproject"))
+    tree = parse(project_path)
 
     # to check on nicer xml
     # f = open(".cproject_pretty", 'w')

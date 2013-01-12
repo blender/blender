@@ -761,6 +761,7 @@ GHOST_Event *GHOST_SystemWin32::processWindowEvent(GHOST_TEventType type, GHOST_
 
 	if (type == GHOST_kEventWindowActivate) {
 		system->getWindowManager()->setActiveWindow(window);
+		((GHOST_WindowWin32*)window)->bringTabletContextToFront();
 	}
 
 	return new GHOST_Event(system->getMilliSeconds(), type, window);

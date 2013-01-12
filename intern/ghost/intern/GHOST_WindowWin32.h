@@ -58,6 +58,7 @@ typedef UINT (API * GHOST_WIN32_WTInfo)(UINT, UINT, LPVOID);
 typedef HCTX (API * GHOST_WIN32_WTOpen)(HWND, LPLOGCONTEXTA, BOOL);
 typedef BOOL (API * GHOST_WIN32_WTClose)(HCTX);
 typedef BOOL (API * GHOST_WIN32_WTPacket)(HCTX, UINT, LPVOID);
+typedef BOOL (API * GHOST_WIN32_WTOverlap)(HCTX, BOOL);
 
 /**
  * GHOST window on M$ Windows OSs.
@@ -273,6 +274,7 @@ public:
 
 	void processWin32TabletInitEvent();
 	void processWin32TabletEvent(WPARAM wParam, LPARAM lParam);
+	void bringTabletContextToFront();
 
 protected:
 	GHOST_TSuccess initMultisample(PIXELFORMATDESCRIPTOR pfd);

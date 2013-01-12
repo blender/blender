@@ -799,7 +799,7 @@ static void stitch_validate_edge_stichability(UvEdge *edge, StitchState *state, 
 }
 
 
-static void stitch_propagate_uv_final_position (UvElement *element, int index, PreviewPosition *preview_position, UVVertAverage *final_position, StitchState *state, char final, Scene* scene)
+static void stitch_propagate_uv_final_position(UvElement *element, int index, PreviewPosition *preview_position, UVVertAverage *final_position, StitchState *state, char final, Scene *scene)
 {
 	StitchPreviewer *preview = state->stitch_preview;
 
@@ -1273,7 +1273,8 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 			UvElement *element = state->selection_stack[i];
 
 			stitch_propagate_uv_final_position (element, i, preview_position, final_position, state, final, scene);
-		}  else {
+		}
+		else {
 			UvEdge *edge = state->selection_stack[i];
 
 			stitch_propagate_uv_final_position (state->uvs[edge->uv1], edge->uv1, preview_position, final_position, state, final, scene);
@@ -1391,7 +1392,7 @@ static void stitch_switch_selection_mode(StitchState *state)
 
 	if (state->mode == STITCH_VERT) {
 		int i;
-		state->selection_stack = MEM_mallocN(state->total_separate_edges*sizeof(*state->selection_stack),
+		state->selection_stack = MEM_mallocN(state->total_separate_edges * sizeof(*state->selection_stack),
 		                                     "stitch_new_edge_selection_stack");
 
 		/* check if both elements of an edge are selected */
@@ -1414,7 +1415,7 @@ static void stitch_switch_selection_mode(StitchState *state)
 	}
 	else {
 		int i;
-		state->selection_stack = MEM_mallocN(state->total_separate_uvs*sizeof(*state->selection_stack),
+		state->selection_stack = MEM_mallocN(state->total_separate_uvs * sizeof(*state->selection_stack),
 		                                     "stitch_new_vert_selection_stack");
 
 		for (i = 0; i < old_selection_size; i++) {
@@ -1501,11 +1502,11 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
 	else {
 		UI_ThemeColor4(TH_STITCH_PREVIEW_STITCHABLE);
 		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_stitchable);
-		glDrawArrays(GL_LINES, 0, 2*stitch_preview->num_stitchable);
+		glDrawArrays(GL_LINES, 0, 2 * stitch_preview->num_stitchable);
 
 		UI_ThemeColor4(TH_STITCH_PREVIEW_UNSTITCHABLE);
 		glVertexPointer(2, GL_FLOAT, 0, stitch_preview->preview_unstitchable);
-		glDrawArrays(GL_LINES, 0, 2*stitch_preview->num_unstitchable);
+		glDrawArrays(GL_LINES, 0, 2 * stitch_preview->num_unstitchable);
 	}
 
 	glPopClientAttrib();

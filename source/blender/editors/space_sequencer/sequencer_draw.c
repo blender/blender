@@ -924,11 +924,18 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	void *cache_handle = NULL;
 	const int is_imbuf = ED_space_sequencer_check_show_imbuf(sseq);
 
-	if (G.is_rendering == FALSE) {
+	if (G.is_rendering == FALSE && (scene->r.seq_flag & R_SEQ_GL_PREV) == 0) {
 		/* stop all running jobs, except screen one. currently previews frustrate Render
 		 * needed to make so sequencer's rendering doesn't conflict with compositor
 		 */
 		WM_jobs_kill_type(CTX_wm_manager(C), WM_JOB_TYPE_COMPOSITE);
+
+		if ((scene->r.seq_flag & R_SEQ_GL_PREV) == 0) {
+			/* in case of final rendering used for preview, kill all previews,
+			 * otherwise threading conflict will happen in rendering module
+			 */
+			WM_jobs_kill_type(CTX_wm_manager(C), WM_JOB_TYPE_RENDER_PREVIEW);
+		}
 	}
 
 	render_size = sseq->render_size;
@@ -1051,6 +1058,10 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, ibuf->x, ibuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, display_buffer);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	glBegin(GL_QUADS);
 
 	if (draw_overlay) {
@@ -1082,6 +1093,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	glEnd();
 	glBindTexture(GL_TEXTURE_2D, last_texid);
 	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_BLEND);
 	glDeleteTextures(1, &texid);
 
 	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {

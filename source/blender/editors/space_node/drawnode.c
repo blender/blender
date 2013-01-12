@@ -1932,9 +1932,9 @@ static void node_composit_buts_hue_sat(uiLayout *layout, bContext *UNUSED(C), Po
 
 static void node_composit_buts_dilateerode(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-	uiItemR(layout, ptr, "type", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "distance", 0, NULL, ICON_NONE);
-	switch (RNA_enum_get(ptr, "type")) {
+	switch (RNA_enum_get(ptr, "mode")) {
 		case CMP_NODE_DILATEERODE_DISTANCE_THRESH:
 			uiItemR(layout, ptr, "edge", 0, NULL, ICON_NONE);
 			break;
@@ -3271,10 +3271,18 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 				}
 				else {
 					glPixelZoom(snode->zoom, snode->zoom);
-					
+
+					glEnable(GL_BLEND);
+					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+					glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
+					glRecti(x, y, x + ibuf->x * snode->zoom, y + ibuf->y * snode->zoom);
+
 					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, display_buffer);
 					
 					glPixelZoom(1.0f, 1.0f);
+
+					glDisable(GL_BLEND);
 				}
 			}
 

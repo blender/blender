@@ -39,7 +39,7 @@ char *BPy_enum_as_string(struct EnumPropertyItem *item);
 #define BLANK_PYTHON_TYPE {PyVarObject_HEAD_INIT(NULL, 0) NULL}
 
 /* error reporting */
-short BPy_reports_to_error(struct ReportList *reports, PyObject *exception, const short clear);
+short BPy_reports_to_error(struct ReportList *reports, PyObject *exception, const bool clear);
 short BPy_errors_to_report(struct ReportList *reports);
 
 /* TODO - find a better solution! */

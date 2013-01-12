@@ -950,8 +950,8 @@ static void icon_draw_texture(float x, float y, float w, float h, int ix, int iy
 {
 	float x1, x2, y1, y2;
 
-	if (rgb) glColor4f(alpha*rgb[0], rgb[1], rgb[2], alpha);
-	else glColor4f(alpha, alpha, alpha, alpha);
+	if (rgb) glColor4f(rgb[0], rgb[1], rgb[2], alpha);
+	else     glColor4f(alpha, alpha, alpha, alpha);
 
 	x1 = ix * icongltex.invw;
 	x2 = (ix + ih) * icongltex.invw;

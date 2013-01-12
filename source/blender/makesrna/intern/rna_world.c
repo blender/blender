@@ -529,7 +529,7 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "zenr");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Zenith Color", "Color at the zenith");
-	RNA_def_property_update(prop, 0, "rna_World_update");
+	RNA_def_property_update(prop, NC_WORLD | ND_WORLD_DRAW, "rna_World_update");
 
 	prop = RNA_def_property(srna, "ambient_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "ambr");
@@ -554,17 +554,17 @@ void RNA_def_world(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_sky_blend", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "skytype", WO_SKYBLEND);
 	RNA_def_property_ui_text(prop, "Blend Sky", "Render background with natural progression from horizon to zenith");
-	RNA_def_property_update(prop, 0, "rna_World_update");
+	RNA_def_property_update(prop, NC_WORLD | ND_WORLD_DRAW, "rna_World_update");
 
 	prop = RNA_def_property(srna, "use_sky_paper", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "skytype", WO_SKYPAPER);
 	RNA_def_property_ui_text(prop, "Paper Sky", "Flatten blend or texture coordinates");
-	RNA_def_property_update(prop, 0, "rna_World_update");
+	RNA_def_property_update(prop, NC_WORLD | ND_WORLD_DRAW, "rna_World_update");
 
 	prop = RNA_def_property(srna, "use_sky_real", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "skytype", WO_SKYREAL);
 	RNA_def_property_ui_text(prop, "Real Sky", "Render background with a real horizon, relative to the camera angle");
-	RNA_def_property_update(prop, 0, "rna_World_update");
+	RNA_def_property_update(prop, NC_WORLD | ND_WORLD_DRAW, "rna_World_update");
 
 	/* nested structs */
 	prop = RNA_def_property(srna, "light_settings", PROP_POINTER, PROP_NONE);

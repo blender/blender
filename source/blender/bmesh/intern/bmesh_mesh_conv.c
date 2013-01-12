@@ -98,6 +98,70 @@
 #include "bmesh.h"
 #include "intern/bmesh_private.h" /* for element checking */
 
+void BM_mesh_cd_flag_ensure(BMesh *bm, Mesh *mesh, const char cd_flag)
+{
+	const char cd_flag_all = BM_mesh_cd_flag_from_bmesh(bm) | cd_flag;
+	BM_mesh_cd_flag_apply(bm, cd_flag_all);
+	if (mesh) {
+		mesh->cd_flag = cd_flag_all;
+	}
+}
+
+void BM_mesh_cd_flag_apply(BMesh *bm, const char cd_flag)
+{
+	/* CustomData_bmesh_init_pool() must run first */
+	BLI_assert(bm->vdata.totlayer == 0 || bm->vdata.pool != NULL);
+	BLI_assert(bm->edata.totlayer == 0 || bm->edata.pool != NULL);
+
+	if (cd_flag & ME_CDFLAG_VERT_BWEIGHT) {
+		if (!CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {
+			BM_data_layer_add(bm, &bm->vdata, CD_BWEIGHT);
+		}
+	}
+	else {
+		if (CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {
+			BM_data_layer_free(bm, &bm->vdata, CD_BWEIGHT);
+		}
+	}
+
+	if (cd_flag & ME_CDFLAG_EDGE_BWEIGHT) {
+		if (!CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
+			BM_data_layer_add(bm, &bm->edata, CD_BWEIGHT);
+		}
+	}
+	else {
+		if (CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
+			BM_data_layer_free(bm, &bm->edata, CD_BWEIGHT);
+		}
+	}
+
+	if (cd_flag & ME_CDFLAG_EDGE_CREASE) {
+		if (!CustomData_has_layer(&bm->edata, CD_CREASE)) {
+			BM_data_layer_add(bm, &bm->edata, CD_CREASE);
+		}
+	}
+	else {
+		if (CustomData_has_layer(&bm->edata, CD_CREASE)) {
+			BM_data_layer_free(bm, &bm->edata, CD_CREASE);
+		}
+	}
+}
+
+char BM_mesh_cd_flag_from_bmesh(BMesh *bm)
+{
+	char cd_flag = 0;
+	if (CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {
+		cd_flag |= ME_CDFLAG_VERT_BWEIGHT;
+	}
+	if (CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
+		cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
+	}
+	if (CustomData_has_layer(&bm->edata, CD_CREASE)) {
+		cd_flag |= ME_CDFLAG_EDGE_CREASE;
+	}
+	return cd_flag;
+}
+
 /* Mesh -> BMesh */
 void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 {
@@ -115,6 +179,10 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 	float (*keyco)[3] = NULL;
 	int *keyi;
 	int totuv, i, j;
+
+	int cd_vert_bweight_offset;
+	int cd_edge_bweight_offset;
+	int cd_edge_crease_offset;
 
 	/* free custom data */
 	/* this isnt needed in most cases but do just incase */
@@ -151,15 +219,6 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		int li = CustomData_get_layer_index_n(&bm->pdata, CD_MTEXPOLY, i);
 		CustomData_set_layer_name(&bm->ldata, CD_MLOOPUV, i, bm->pdata.layers[li].name);
 	}
-
-	if (!CustomData_has_layer(&bm->edata, CD_CREASE))
-		CustomData_add_layer(&bm->edata, CD_CREASE, CD_ASSIGN, NULL, 0);
-
-	if (!CustomData_has_layer(&bm->edata, CD_BWEIGHT))
-		CustomData_add_layer(&bm->edata, CD_BWEIGHT, CD_ASSIGN, NULL, 0);
-
-	if (!CustomData_has_layer(&bm->vdata, CD_BWEIGHT))
-		CustomData_add_layer(&bm->vdata, CD_BWEIGHT, CD_ASSIGN, NULL, 0);
 
 	if ((act_key_nr != 0) && (me->key != NULL)) {
 		actkey = BLI_findlink(&me->key->block, act_key_nr - 1);
@@ -205,6 +264,12 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 	CustomData_bmesh_init_pool(&bm->ldata, me->totloop, BM_LOOP);
 	CustomData_bmesh_init_pool(&bm->pdata, me->totpoly, BM_FACE);
 
+	BM_mesh_cd_flag_apply(bm, me->cd_flag);
+
+	cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
+	cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
+	cd_edge_crease_offset  = CustomData_get_offset(&bm->edata, CD_CREASE);
+
 	for (i = 0, mvert = me->mvert; i < me->totvert; i++, mvert++) {
 		v = BM_vert_create(bm, keyco && set_key ? keyco[i] : mvert->co, NULL, BM_CREATE_SKIP_CD);
 		BM_elem_index_set(v, i); /* set_ok */
@@ -221,9 +286,9 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		normal_short_to_float_v3(v->no, mvert->no);
 
 		/* Copy Custom Data */
-		CustomData_to_bmesh_block(&me->vdata, &bm->vdata, i, &v->head.data);
+		CustomData_to_bmesh_block(&me->vdata, &bm->vdata, i, &v->head.data, true);
 
-		BM_elem_float_data_set(&bm->vdata, v, CD_BWEIGHT, (float)mvert->bweight / 255.0f);
+		if (cd_vert_bweight_offset != -1) BM_ELEM_CD_SET_FLOAT(v, cd_vert_bweight_offset, (float)mvert->bweight / 255.0f);
 
 		/* set shapekey data */
 		if (me->key) {
@@ -267,10 +332,11 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		}
 
 		/* Copy Custom Data */
-		CustomData_to_bmesh_block(&me->edata, &bm->edata, i, &e->head.data);
+		CustomData_to_bmesh_block(&me->edata, &bm->edata, i, &e->head.data, true);
 
-		BM_elem_float_data_set(&bm->edata, e, CD_CREASE, (float)medge->crease / 255.0f);
-		BM_elem_float_data_set(&bm->edata, e, CD_BWEIGHT, (float)medge->bweight / 255.0f);
+		if (cd_edge_bweight_offset != -1) BM_ELEM_CD_SET_FLOAT(e, cd_edge_bweight_offset, (float)medge->bweight / 255.0f);
+		if (cd_edge_crease_offset  != -1) BM_ELEM_CD_SET_FLOAT(e, cd_edge_crease_offset,  (float)medge->crease  / 255.0f);
+
 	}
 
 	bm->elem_index_dirty &= ~BM_EDGE; /* added in order, clear dirty flag */
@@ -338,11 +404,11 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		j = 0;
 		BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, j) {
 			/* Save index of correspsonding MLoop */
-			CustomData_to_bmesh_block(&me->ldata, &bm->ldata, mpoly->loopstart + j, &l->head.data);
+			CustomData_to_bmesh_block(&me->ldata, &bm->ldata, mpoly->loopstart + j, &l->head.data, true);
 		}
 
 		/* Copy Custom Data */
-		CustomData_to_bmesh_block(&me->pdata, &bm->pdata, i, &f->head.data);
+		CustomData_to_bmesh_block(&me->pdata, &bm->pdata, i, &f->head.data, true);
 	}
 
 	bm->elem_index_dirty &= ~BM_FACE; /* added in order, clear dirty flag */
@@ -496,6 +562,10 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 	BMIter iter, liter;
 	int i, j, ototvert;
 
+	const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
+	const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
+	const int cd_edge_crease_offset  = CustomData_get_offset(&bm->edata, CD_CREASE);
+
 	ototvert = me->totvert;
 
 	/* new vertex block */
@@ -555,10 +625,6 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 
 	i = 0;
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-		float *bweight = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_BWEIGHT);
-
-		mvert->bweight = bweight ? (char)((*bweight) * 255) : 0;
-
 		copy_v3_v3(mvert->co, v->co);
 		normal_float_to_short_v3(mvert->no, v->no);
 
@@ -568,6 +634,8 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 
 		/* copy over customdat */
 		CustomData_from_bmesh_block(&bm->vdata, &me->vdata, v->head.data, i);
+
+		if (cd_vert_bweight_offset != -1) mvert->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(v, cd_vert_bweight_offset);
 
 		i++;
 		mvert++;
@@ -579,13 +647,8 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 	med = medge;
 	i = 0;
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-		float *crease = CustomData_bmesh_get(&bm->edata, e->head.data, CD_CREASE);
-		float *bweight = CustomData_bmesh_get(&bm->edata, e->head.data, CD_BWEIGHT);
-
 		med->v1 = BM_elem_index_get(e->v1);
 		med->v2 = BM_elem_index_get(e->v2);
-		med->crease = crease ? (char)((*crease) * 255) : 0;
-		med->bweight = bweight ? (char)((*bweight) * 255) : 0;
 
 		med->flag = BM_edge_flag_to_mflag(e);
 
@@ -595,6 +658,9 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 		CustomData_from_bmesh_block(&bm->edata, &me->edata, e->head.data, i);
 
 		bmesh_quick_edgedraw_flag(med, e);
+
+		if (cd_edge_crease_offset  != -1) med->crease  = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(e, cd_edge_crease_offset);
+		if (cd_edge_bweight_offset != -1) med->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(e, cd_edge_bweight_offset);
 
 		i++;
 		med++;

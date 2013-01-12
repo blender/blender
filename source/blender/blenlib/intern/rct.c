@@ -317,6 +317,30 @@ void BLI_rctf_resize(rctf *rect, float x, float y)
 	rect->ymax = rect->ymin + y;
 }
 
+void BLI_rcti_scale(rcti *rect, const float scale)
+{
+	const int cent_x      = BLI_rcti_cent_x(rect);
+	const int cent_y      = BLI_rcti_cent_y(rect);
+	const int size_x_half = BLI_rcti_size_x(rect) * (scale * 0.5f);
+	const int size_y_half = BLI_rcti_size_y(rect) * (scale * 0.5f);
+	rect->xmin = cent_x - size_x_half;
+	rect->ymin = cent_y - size_y_half;
+	rect->xmax = cent_x + size_x_half;
+	rect->ymax = cent_y + size_y_half;
+}
+
+void BLI_rctf_scale(rctf *rect, const float scale)
+{
+	const float cent_x      = BLI_rctf_cent_x(rect);
+	const float cent_y      = BLI_rctf_cent_y(rect);
+	const float size_x_half = BLI_rctf_size_x(rect) * (scale * 0.5f);
+	const float size_y_half = BLI_rctf_size_y(rect) * (scale * 0.5f);
+	rect->xmin = cent_x - size_x_half;
+	rect->ymin = cent_y - size_y_half;
+	rect->xmax = cent_x + size_x_half;
+	rect->ymax = cent_y + size_y_half;
+}
+
 void BLI_rctf_interp(rctf *rect, const rctf *rect_a, const rctf *rect_b, const float fac)
 {
 	const float ifac = 1.0f - fac;

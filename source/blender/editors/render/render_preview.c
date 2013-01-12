@@ -84,6 +84,8 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_colormanagement.h"
 
+#include "GPU_extensions.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -710,7 +712,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	else {
 		/* validate owner */
 		//if (ri->rect == NULL)
-		//	ri->rect= MEM_mallocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "BIF_previewrender");
+		//	ri->rect= MEM_mallocN(sizeof(int) * ri->pr_rectx*ri->pr_recty, "BIF_previewrender");
 		//RE_ResultGet32(re, ri->rect);
 	}
 
@@ -884,7 +886,7 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
 	ShaderPreview *sp = customdata;
 	ID *id = sp->id;
 	short idtype = GS(id->name);
-
+	
 	if (idtype == ID_IM) {
 		Image *ima = (Image *)id;
 		ImBuf *ibuf = NULL;
@@ -1007,8 +1009,27 @@ static void icon_preview_endjob(void *customdata)
 {
 	IconPreview *ip = customdata;
 
-	if (ip->id && GS(ip->id->name) == ID_BR)
-		WM_main_add_notifier(NC_BRUSH | NA_EDITED, ip->id);
+	if (ip->id) {
+
+		if (GS(ip->id->name) == ID_BR)
+			WM_main_add_notifier(NC_BRUSH | NA_EDITED, ip->id);
+#if 0		
+		if (GS(ip->id->name) == ID_MA) {
+			Material *ma = (Material *)ip->id;
+			PreviewImage *prv_img = ma->preview;
+			int i;
+
+			/* signal to gpu texture */
+			for (i = 0; i < NUM_ICON_SIZES; ++i) {
+				if (prv_img->gputexture[i]) {
+					GPU_texture_free(prv_img->gputexture[i]);
+					prv_img->gputexture[i] = NULL;
+					WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, ip->id);
+				}
+			}
+		}
+#endif
+	}
 }
 
 static void icon_preview_free(void *customdata)
@@ -1044,7 +1065,7 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 
 	/* setup job */
 	WM_jobs_customdata_set(wm_job, ip, icon_preview_free);
-	WM_jobs_timer(wm_job, 0.25, NC_MATERIAL, NC_MATERIAL);
+	WM_jobs_timer(wm_job, 0.1, NC_MATERIAL, NC_MATERIAL);
 	WM_jobs_callbacks(wm_job, icon_preview_startjob_all_sizes, NULL, NULL, icon_preview_endjob);
 
 	WM_jobs_start(CTX_wm_manager(C), wm_job);

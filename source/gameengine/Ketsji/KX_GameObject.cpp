@@ -42,7 +42,6 @@ typedef unsigned __int64 uint_ptr;
 typedef unsigned long uint_ptr;
 #endif
 
-#define KX_INERTIA_INFINITE 10000
 #include "RAS_IPolygonMaterial.h"
 #include "KX_BlenderMaterial.h"
 #include "KX_GameObject.h"

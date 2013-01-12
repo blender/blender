@@ -1204,8 +1204,8 @@ int BKE_mesh_nurbs_to_mdata(Object *ob, MVert **allvert, int *totvert,
 	return BKE_mesh_nurbs_displist_to_mdata(ob, &ob->disp,
 	                                        allvert, totvert,
 	                                        alledge, totedge,
-	                                        allloop, allpoly,
-	                                        totloop, totpoly, NULL);
+	                                        allloop, allpoly, NULL,
+	                                        totloop, totpoly);
 }
 
 /* BMESH: this doesn't calculate all edges from polygons,
@@ -1213,25 +1213,24 @@ int BKE_mesh_nurbs_to_mdata(Object *ob, MVert **allvert, int *totvert,
 
 /* Initialize mverts, medges and, faces for converting nurbs to mesh and derived mesh */
 /* use specified dispbase */
-/* TODO: orco values for non DL_SURF types */
 int BKE_mesh_nurbs_displist_to_mdata(Object *ob, ListBase *dispbase,
                                      MVert **allvert, int *_totvert,
                                      MEdge **alledge, int *_totedge,
                                      MLoop **allloop, MPoly **allpoly,
-                                     int *_totloop, int *_totpoly,
-                                     int **orco_index_ptr)
+                                     MLoopUV **alluv,
+                                     int *_totloop, int *_totpoly)
 {
 	DispList *dl;
 	Curve *cu;
 	MVert *mvert;
 	MPoly *mpoly;
 	MLoop *mloop;
+	MLoopUV *mloopuv = NULL;
 	MEdge *medge;
 	float *data;
 	int a, b, ofs, vertcount, startvert, totvert = 0, totedge = 0, totloop = 0, totvlak = 0;
 	int p1, p2, p3, p4, *index;
 	int conv_polys = 0;
-	int (*orco_index)[4] = NULL;
 
 	cu = ob->data;
 
@@ -1278,14 +1277,12 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob, ListBase *dispbase,
 	*alledge = medge = MEM_callocN(sizeof(MEdge) * totedge, "nurbs_init medge");
 	*allloop = mloop = MEM_callocN(sizeof(MLoop) * totvlak * 4, "nurbs_init mloop"); // totloop
 	*allpoly = mpoly = MEM_callocN(sizeof(MPoly) * totvlak, "nurbs_init mloop");
+
+	if (alluv)
+		*alluv = mloopuv = MEM_callocN(sizeof(MLoopUV) * totvlak * 4, "nurbs_init mloopuv");
 	
 	/* verts and faces */
 	vertcount = 0;
-
-	if (orco_index_ptr) {
-		*orco_index_ptr = MEM_callocN(sizeof(int) * totvlak * 4, "nurbs_init orco");
-		orco_index = (int (*)[4]) *orco_index_ptr;
-	}
 
 	dl = dispbase->first;
 	while (dl) {
@@ -1359,6 +1356,15 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob, ListBase *dispbase,
 				mpoly->totloop = 3;
 				mpoly->mat_nr = dl->col;
 
+				if (mloopuv) {
+					int i;
+
+					for (i = 0; i < 3; i++, mloopuv++) {
+						mloopuv->uv[0] = (mloop[i].v - startvert)/(float)(dl->nr - 1);
+						mloopuv->uv[1] = 0.0f;
+					}
+				}
+
 				if (smooth) mpoly->flag |= ME_SMOOTH;
 				mpoly++;
 				mloop += 3;
@@ -1408,13 +1414,29 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob, ListBase *dispbase,
 					mpoly->totloop = 4;
 					mpoly->mat_nr = dl->col;
 
-					if (orco_index) {
-						const int poly_index = mpoly - *allpoly;
-						const int p_orco_base = startvert + ((dl->nr + 1) * a) + b;
-						orco_index[poly_index][0] = p_orco_base + 1;
-						orco_index[poly_index][1] = p_orco_base + dl->nr + 2;
-						orco_index[poly_index][2] = p_orco_base + dl->nr + 1;
-						orco_index[poly_index][3] = p_orco_base;
+					if (mloopuv) {
+						int orco_sizeu = dl->nr - 1;
+						int orco_sizev = dl->parts - 1;
+						int i;
+
+						/* exception as handled in convertblender.c too */
+						if (dl->flag & DL_CYCL_U) {
+							orco_sizeu++;
+							if (dl->flag & DL_CYCL_V)
+								orco_sizev++;
+						}
+
+						for (i = 0; i < 4; i++, mloopuv++) {
+							/* find uv based on vertex index into grid array */
+							int v = mloop[i].v - startvert;
+
+							mloopuv->uv[0] = (v / dl->nr)/(float)orco_sizev;
+							mloopuv->uv[1] = (v % dl->nr)/(float)orco_sizeu;
+
+							/* cyclic correction */
+							if ((i == 0 || i == 1) && mloopuv->uv[1] == 0.0f)
+								mloopuv->uv[1] = 1.0f;
+						}
 					}
 
 					if (smooth) mpoly->flag |= ME_SMOOTH;
@@ -1427,7 +1449,6 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob, ListBase *dispbase,
 					p1++;
 				}
 			}
-
 		}
 
 		dl = dl->next;
@@ -1448,33 +1469,8 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob, ListBase *dispbase,
 }
 
 
-MINLINE void copy_uv_orco_v2_v2(float r[2], const float a[2])
-{
-	r[0] = 0.5f + a[0] * 0.5f;
-	r[1] = 0.5f + a[1] * 0.5f;
-}
-
-/**
- * orco is normally from #BKE_curve_make_orco
- */
-void BKE_mesh_nurbs_to_mdata_orco(MPoly *mpoly, int totpoly,
-                                  MLoop *mloops, MLoopUV *mloopuvs,
-                                  float (*orco)[3], int (*orco_index)[4])
-{
-	MPoly *mp;
-
-	int i, j;
-	for (i = 0, mp = mpoly; i < totpoly; i++, mp++) {
-		MLoop *ml = mloops + mp->loopstart;
-		MLoopUV *mluv = mloopuvs + mp->loopstart;
-		for (j = 0; j < mp->totloop; j++, ml++, mluv++) {
-			copy_uv_orco_v2_v2(mluv->uv, orco[orco_index[i][j]]);
-		}
-	}
-}
-
 /* this may fail replacing ob->data, be sure to check ob->type */
-void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, int **orco_index_ptr)
+void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, int use_orco_uv)
 {
 	Main *bmain = G.main;
 	Object *ob1;
@@ -1484,6 +1480,7 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, int **orco_ind
 	MVert *allvert = NULL;
 	MEdge *alledge = NULL;
 	MLoop *allloop = NULL;
+	MLoopUV *alluv = NULL;
 	MPoly *allpoly = NULL;
 	int totvert, totedge, totloop, totpoly;
 
@@ -1492,7 +1489,8 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, int **orco_ind
 	if (dm == NULL) {
 		if (BKE_mesh_nurbs_displist_to_mdata(ob, dispbase, &allvert, &totvert,
 		                                     &alledge, &totedge, &allloop,
-		                                     &allpoly, &totloop, &totpoly, orco_index_ptr) != 0)
+		                                     &allpoly, (use_orco_uv)? &alluv: NULL,
+		                                     &totloop, &totpoly) != 0)
 		{
 			/* Error initializing */
 			return;
@@ -1509,6 +1507,12 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, int **orco_ind
 		me->medge = CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, alledge, me->totedge);
 		me->mloop = CustomData_add_layer(&me->ldata, CD_MLOOP, CD_ASSIGN, allloop, me->totloop);
 		me->mpoly = CustomData_add_layer(&me->pdata, CD_MPOLY, CD_ASSIGN, allpoly, me->totpoly);
+
+		if (alluv) {
+			const char *uvname = "Orco";
+			me->mtpoly = CustomData_add_layer_named(&me->pdata, CD_MTEXPOLY, CD_DEFAULT, NULL, me->totpoly, uvname);
+			me->mloopuv = CustomData_add_layer_named(&me->ldata, CD_MLOOPUV, CD_ASSIGN, alluv, me->totloop, uvname);
+		}
 
 		BKE_mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL);
 
@@ -1548,7 +1552,7 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, int **orco_ind
 
 void BKE_mesh_from_nurbs(Object *ob)
 {
-	BKE_mesh_from_nurbs_displist(ob, &ob->disp, NULL);
+	BKE_mesh_from_nurbs_displist(ob, &ob->disp, false);
 }
 
 typedef struct EdgeLink {
@@ -3337,3 +3341,39 @@ void BKE_mesh_poly_calc_angles(MVert *mvert, MLoop *mloop,
 	}
 }
 #endif
+
+
+void BKE_mesh_do_versions_cd_flag_init(Mesh *mesh)
+{
+	if (UNLIKELY(mesh->cd_flag)) {
+		return;
+	}
+	else {
+		MVert *mv;
+		MEdge *med;
+		int i;
+
+		for (mv = mesh->mvert, i = 0; i < mesh->totvert; mv++, i++) {
+			if (mv->bweight != 0) {
+				mesh->cd_flag |= ME_CDFLAG_VERT_BWEIGHT;
+				break;
+			}
+		}
+
+		for (med = mesh->medge, i = 0; i < mesh->totedge; med++, i++) {
+			if (med->bweight != 0) {
+				mesh->cd_flag |= ME_CDFLAG_EDGE_BWEIGHT;
+				if (mesh->cd_flag & ME_CDFLAG_EDGE_CREASE) {
+					break;
+				}
+			}
+			if (med->crease != 0) {
+				mesh->cd_flag |= ME_CDFLAG_EDGE_CREASE;
+				if (mesh->cd_flag & ME_CDFLAG_EDGE_BWEIGHT) {
+					break;
+				}
+			}
+		}
+
+	}
+}

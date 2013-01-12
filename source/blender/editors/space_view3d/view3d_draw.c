@@ -315,7 +315,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	UI_ThemeColor(TH_GRID);
 	
 	if (unit->system) {
-		/* Use GRID_MIN_PX*2 for units because very very small grid
+		/* Use GRID_MIN_PX * 2 for units because very very small grid
 		 * items are less useful when dealing with units */
 		void *usys;
 		int len, i;
@@ -381,7 +381,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 					drawgrid_draw(ar, wx, wy, x, y, sublines * dx);
 				}
 			}
-			else {  /* start blending out (GRID_MIN_PX < dx < (GRID_MIN_PX*10)) */
+			else {  /* start blending out (GRID_MIN_PX < dx < (GRID_MIN_PX * 10)) */
 				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
 				drawgrid_draw(ar, wx, wy, x, y, dx);
 
@@ -599,7 +599,7 @@ static void draw_view_axis(RegionView3D *rv3d, rcti *rect)
 	float startx = k + 1.0f; /* axis center in screen coordinates, x=y */
 	float starty = k + 1.0f;
 	float ydisp = 0.0;          /* vertical displacement to allow obj info text */
-	int bright = 25 * (float)U.rvibright + 5; /* axis alpha (rvibright has range 0-10) */
+	int bright = - 20 * (10 - U.rvibright); /* axis alpha offset (rvibright has range 0-10) */
 	float vec[3];
 	float dx, dy;
 	
@@ -937,7 +937,7 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 		}
 		
 		/* color depends on whether there is a keyframe */
-		if (id_frame_has_keyframe((ID *)ob, /*BKE_scene_frame_get(scene)*/ (float)(CFRA), ANIMFILTER_KEYS_LOCAL))
+		if (id_frame_has_keyframe((ID *)ob, /* BKE_scene_frame_get(scene) */ (float)(CFRA), ANIMFILTER_KEYS_LOCAL))
 			UI_ThemeColor(TH_VERTEX_SELECT);
 		else
 			UI_ThemeColor(TH_TEXT_HI);
@@ -2393,7 +2393,7 @@ static void gpu_update_lamps_shadows(Scene *scene, View3D *v3d)
 		invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
 		/* no need to call ED_view3d_draw_offscreen_init since shadow buffers were already updated */
-		ED_view3d_draw_offscreen(scene, v3d, &ar, winsize, winsize, viewmat, winmat, FALSE, FALSE);
+		ED_view3d_draw_offscreen(scene, v3d, &ar, winsize, winsize, viewmat, winmat, FALSE);
 		GPU_lamp_shadow_buffer_unbind(shadow->lamp);
 		
 		v3d->drawtype = drawtype;
@@ -2540,13 +2540,11 @@ void ED_view3d_draw_offscreen_init(Scene *scene, View3D *v3d)
 /* ED_view3d_draw_offscreen_init should be called before this to initialize
  * stuff like shadow buffers
  */
-void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
-                              int winx, int winy, float viewmat[4][4], float winmat[4][4],
-                              int do_bgpic, int colormanage_background)
+void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, int winy,
+                              float viewmat[4][4], float winmat[4][4], int do_bgpic)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
-	float backcol[3];
 	int bwinx, bwiny;
 	rcti brect;
 
@@ -2574,34 +2572,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	 * warning! can be slow so only free animated images - campbell */
 	GPU_free_images_anim();
 
-	/* set background color, fallback on the view background color
-	 * (if active clip is set but frame is failed to load fallback to horizon color as background) */
-	if (scene->world) {
-		/* NOTE: currently OpenGL is supposed to always work in sRGB space and do not
-		 *       apply any tonemaps since it's really tricky to support for all features (GLSL, textures, etc)
-		 *       but due to compatibility issues background is being affected display transform, so we can
-		 *       emulate behavior of disabled color management
-		 *       but this function is also used for sequencer's scene strips which shouldn't be affected by
-		 *       tonemaps now and should be purely sRGB, that's why we've got this colormanage_background
-		 *       we can drop this flag in cost of some compatibility loss -- background wouldn't be
-		 *       color managed in 3d viewport
-		 *       same goes to opengl rendering, where color profile should be applied as very final step
-		 */
-
-		if (colormanage_background) {
-			IMB_colormanagement_pixel_to_display_space_v3(backcol, &scene->world->horr, &scene->view_settings,
-			                                              &scene->display_settings);
-		}
-		else {
-			linearrgb_to_srgb_v3_v3(backcol, &scene->world->horr);
-		}
-
-		glClearColor(backcol[0], backcol[1], backcol[2], 0.0f);
-	}
-	else {
-		 UI_ThemeClearColor(TH_BACK);
-	}
-
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -2703,10 +2674,30 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	G.f &= ~G_RENDER_OGL;
 }
 
+/* get a color used for offscreen sky, returns color in sRGB space */
+void ED_view3d_offscreen_sky_color_get(Scene *scene, float sky_color[3])
+{
+	if (scene->world)
+		linearrgb_to_srgb_v3_v3(sky_color, &scene->world->horr);
+	else
+		UI_GetThemeColor3fv(TH_BACK, sky_color);
+}
+
+static void offscreen_imbuf_add_sky(ImBuf *ibuf, Scene *scene)
+{
+	float sky_color[3];
+
+	ED_view3d_offscreen_sky_color_get(scene, sky_color);
+
+	if (ibuf->rect_float)
+		IMB_alpha_under_color_float(ibuf->rect_float, ibuf->x, ibuf->y, sky_color);
+	else
+		IMB_alpha_under_color_byte((unsigned char *) ibuf->rect, ibuf->x, ibuf->y, sky_color);
+}
+
 /* utility func for ED_view3d_draw_offscreen */
-ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
-                                      int sizex, int sizey, unsigned int flag, int draw_background,
-                                      int colormanage_background, char err_out[256])
+ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, int sizex, int sizey, unsigned int flag,
+                                      int draw_background, int alpha_mode, char err_out[256])
 {
 	RegionView3D *rv3d = ar->regiondata;
 	ImBuf *ibuf;
@@ -2733,10 +2724,10 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
 		BKE_camera_params_compute_viewplane(&params, sizex, sizey, scene->r.xasp, scene->r.yasp);
 		BKE_camera_params_compute_matrix(&params);
 
-		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, params.winmat, draw_background, colormanage_background);
+		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, params.winmat, draw_background);
 	}
 	else {
-		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, NULL, draw_background, colormanage_background);
+		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, NULL, draw_background);
 	}
 
 	/* read in pixels & stamp */
@@ -2746,6 +2737,9 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
 		GPU_offscreen_read_pixels(ofs, GL_FLOAT, ibuf->rect_float);
 	else if (ibuf->rect)
 		GPU_offscreen_read_pixels(ofs, GL_UNSIGNED_BYTE, ibuf->rect);
+
+	if (alpha_mode == R_ADDSKY)
+		offscreen_imbuf_add_sky(ibuf, scene);
 
 	/* unbind */
 	GPU_offscreen_unbind(ofs);
@@ -2760,9 +2754,8 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
 }
 
 /* creates own 3d views, used by the sequencer */
-ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int width, int height,
-                                             unsigned int flag, int drawtype, int use_solid_tex, int draw_background,
-                                             int colormanage_background, char err_out[256])
+ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int width, int height, unsigned int flag, int drawtype,
+                                             int use_solid_tex, int draw_background, int alpha_mode, char err_out[256])
 {
 	View3D v3d = {NULL};
 	ARegion ar = {NULL};
@@ -2805,7 +2798,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int w
 	invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
 	return ED_view3d_draw_offscreen_imbuf(scene, &v3d, &ar, width, height, flag,
-	                                      draw_background, colormanage_background, err_out);
+	                                      draw_background, alpha_mode, err_out);
 
 	// seq_view3d_cb(scene, cfra, render_size, seqrectx, seqrecty);
 }
@@ -2974,6 +2967,169 @@ static void view3d_main_area_draw_engine_info(RegionView3D *rv3d, ARegion *ar)
 	ED_region_info_draw(ar, rv3d->render_engine->text, 1, 0.25);
 }
 
+/*
+ * Function to clear the view
+ */
+static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar)
+{
+	/* clear background */
+	if (scene->world && (v3d->flag2 & V3D_RENDER_OVERRIDE)) {  /* clear with solid color */
+		if (scene->world->skytype & WO_SKYBLEND) {  /* blend sky */
+			int x, y;
+			float col_hor[3];
+			float col_zen[3];
+
+#define VIEWGRAD_RES_X 16
+#define VIEWGRAD_RES_Y 16
+
+			GLubyte grid_col[VIEWGRAD_RES_X][VIEWGRAD_RES_Y][4];
+			static float   grid_pos[VIEWGRAD_RES_X][VIEWGRAD_RES_Y][2];
+			static GLushort indices[VIEWGRAD_RES_X - 1][VIEWGRAD_RES_X - 1][4];
+			static char buf_calculated = FALSE;
+
+			IMB_colormanagement_pixel_to_display_space_v3(col_hor, &scene->world->horr, &scene->view_settings,
+			                                              &scene->display_settings);
+			IMB_colormanagement_pixel_to_display_space_v3(col_zen, &scene->world->zenr, &scene->view_settings,
+			                                              &scene->display_settings);
+
+			glClear(GL_DEPTH_BUFFER_BIT);
+
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+			glLoadIdentity();
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glLoadIdentity();
+
+			glShadeModel(GL_SMOOTH);
+
+			/* calculate buffers the first time only */
+			if (!buf_calculated) {
+				for (x = 0; x < VIEWGRAD_RES_X; x++) {
+					for (y = 0; y < VIEWGRAD_RES_Y; y++) {
+						const float xf = (float)x / (float)(VIEWGRAD_RES_X - 1);
+						const float yf = (float)y / (float)(VIEWGRAD_RES_Y - 1);
+
+						/* -1..1 range */
+						grid_pos[x][y][0] = (xf - 0.5f) * 2.0f;
+						grid_pos[x][y][1] = (yf - 0.5f) * 2.0f;
+					}
+				}
+
+				for (x = 0; x < VIEWGRAD_RES_X - 1; x++) {
+					for (y = 0; y < VIEWGRAD_RES_Y - 1; y++) {
+						indices[x][y][0] = x * VIEWGRAD_RES_X + y;
+						indices[x][y][1] = x * VIEWGRAD_RES_X + y + 1;
+						indices[x][y][2] = (x + 1) * VIEWGRAD_RES_X + y + 1;
+						indices[x][y][3] = (x + 1) * VIEWGRAD_RES_X + y;
+					}
+				}
+
+				buf_calculated = TRUE;
+			}
+
+			for (x = 0; x < VIEWGRAD_RES_X; x++) {
+				for (y = 0; y < VIEWGRAD_RES_Y; y++) {
+					const float xf = (float)x / (float)(VIEWGRAD_RES_X - 1);
+					const float yf = (float)y / (float)(VIEWGRAD_RES_Y - 1);
+					const float mval[2] = {xf * (float)ar->winx, yf * ar->winy};
+					const float z_up[3] = {0.0f, 0.0f, 1.0f};
+					float out[3];
+					GLubyte *col_ub = grid_col[x][y];
+
+					float col_fac;
+					float col_fl[3];
+
+					ED_view3d_win_to_vector(ar, mval, out);
+
+					if (scene->world->skytype & WO_SKYPAPER) {
+						if (scene->world->skytype & WO_SKYREAL) {
+							col_fac = fabsf(((float)y / (float)VIEWGRAD_RES_Y) - 0.5f) * 2.0f;
+						}
+						else {
+							col_fac = (float)y / (float)VIEWGRAD_RES_Y;
+						}
+					}
+					else {
+						if (scene->world->skytype & WO_SKYREAL) {
+							col_fac = fabsf((angle_normalized_v3v3(z_up, out) / (float)M_PI) - 0.5f) * 2.0f;
+						}
+						else {
+							col_fac = 1.0f - (angle_normalized_v3v3(z_up, out) / (float)M_PI);
+						}
+					}
+
+					interp_v3_v3v3(col_fl, col_hor, col_zen, col_fac);
+
+					rgb_float_to_uchar(col_ub, col_fl);
+					col_ub[3] = 0;
+				}
+			}
+
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glEnableClientState(GL_COLOR_ARRAY);
+			glVertexPointer(2, GL_FLOAT, 0, grid_pos);
+			glColorPointer(4, GL_UNSIGNED_BYTE, 0, grid_col);
+
+			glDrawElements(GL_QUADS, (VIEWGRAD_RES_X - 1) * (VIEWGRAD_RES_Y - 1) * 4, GL_UNSIGNED_SHORT, indices);
+			glDisableClientState(GL_VERTEX_ARRAY);
+			glDisableClientState(GL_COLOR_ARRAY);
+
+			glMatrixMode(GL_PROJECTION);
+			glPopMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
+
+			glShadeModel(GL_FLAT);
+
+#undef VIEWGRAD_RES_X
+#undef VIEWGRAD_RES_Y
+		}
+		else {  /* solid sky */
+			float col_hor[3];
+			IMB_colormanagement_pixel_to_display_space_v3(col_hor, &scene->world->horr, &scene->view_settings,
+			                                              &scene->display_settings);
+
+			glClearColor(col_hor[0], col_hor[1], col_hor[2], 0.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
+	}
+	else {
+		if (UI_GetThemeValue(TH_SHOW_BACK_GRAD)) {
+			/* only clear depth buffer here */
+			glClear(GL_DEPTH_BUFFER_BIT);
+
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+			glLoadIdentity();
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			glLoadIdentity();
+
+			glShadeModel(GL_SMOOTH);
+			glBegin(GL_QUADS);
+			UI_ThemeColor(TH_LOW_GRAD);
+			glVertex2f(-1.0, -1.0);
+			glVertex2f(1.0, -1.0);
+			UI_ThemeColor(TH_HIGH_GRAD);
+			glVertex2f(1.0, 1.0);
+			glVertex2f(-1.0, 1.0);
+			glEnd();
+			glShadeModel(GL_FLAT);
+
+			glMatrixMode(GL_PROJECTION);
+			glPopMatrix();
+
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
+		}
+		else {
+			UI_ThemeClearColor(TH_HIGH_GRAD);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
+	}
+}
+
 /* warning: this function has duplicate drawing in ED_view3d_draw_offscreen() */
 static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const char **grid_unit)
 {
@@ -2981,7 +3137,6 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	Base *base;
-	float backcol[3];
 	unsigned int lay_used;
 
 	/* shadow buffers, before we setup matrices */
@@ -2994,20 +3149,11 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 		GPU_default_lights();
 	}
 
-	/* clear background */
-	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) && scene->world) {
-		IMB_colormanagement_pixel_to_display_space_v3(backcol, &scene->world->horr, &scene->view_settings,
-		                                              &scene->display_settings);
-
-		glClearColor(backcol[0], backcol[1], backcol[2], 0.0);
-	}
-	else
-		UI_ThemeClearColor(TH_BACK);
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
 	/* setup view matrices */
 	view3d_main_area_setup_view(scene, v3d, ar, NULL, NULL);
+
+	/* clear the background */
+	view3d_main_area_clear(scene, v3d, ar);
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
 

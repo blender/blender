@@ -373,8 +373,6 @@ void IMB_rect_from_float(struct ImBuf *ibuf);
  * Changed part will be stored in buffer. This is expected to be used for texture painting updates */
 void IMB_partial_rect_from_float(struct ImBuf *ibuf, float *buffer, int x, int y, int w, int h, int is_data);
 void IMB_float_from_rect(struct ImBuf *ibuf);
-/* note, check that the conversion exists, only some are supported */
-float *IMB_float_profile_ensure(struct ImBuf *ibuf, int profile, int *alloc);
 void IMB_color_to_bw(struct ImBuf *ibuf);
 void IMB_saturation(struct ImBuf *ibuf, float sat);
 
@@ -415,6 +413,9 @@ void bicubic_interpolation_color(struct ImBuf *in, unsigned char col[4], float c
 void nearest_interpolation_color(struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
 void bilinear_interpolation_color(struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
 void bilinear_interpolation_color_wrap(struct ImBuf *in, unsigned char col[4], float col_float[4], float u, float v);
+
+void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[3]);
+void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, float backcol[3]);
 
 /**
  *

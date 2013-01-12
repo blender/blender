@@ -198,6 +198,8 @@ static void rna_KeyingSetInfo_unregister(Main *bmain, StructRNA *type)
 	RNA_struct_free_extension(type, &ksi->ext);
 	RNA_struct_free(&BLENDER_RNA, type);
 	
+	WM_main_add_notifier(NC_WINDOW, NULL);
+
 	/* unlink Blender-side data */
 	ANIM_keyingset_info_unregister(bmain, ksi);
 }
@@ -234,7 +236,7 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain, ReportList *reports, v
 	memcpy(ksi, &dummyksi, sizeof(KeyingSetInfo));
 	
 	/* set RNA-extensions info */
-	ksi->ext.srna = RNA_def_struct(&BLENDER_RNA, ksi->idname, "KeyingSetInfo");
+	ksi->ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, ksi->idname, &RNA_KeyingSetInfo);
 	ksi->ext.data = data;
 	ksi->ext.call = call;
 	ksi->ext.free = free;
@@ -249,6 +251,8 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain, ReportList *reports, v
 	/* add and register with other info as needed */
 	ANIM_keyingset_info_register(ksi);
 	
+	WM_main_add_notifier(NC_WINDOW, NULL);
+
 	/* return the struct-rna added */
 	return ksi->ext.srna;
 }
@@ -577,7 +581,7 @@ static void rna_def_keyingset_info(BlenderRNA *brna)
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 	
-	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_TRANSLATE);
+	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "description");
 	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
@@ -777,7 +781,7 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_update(prop, NC_SCENE | ND_KEYINGSET | NA_RENAME, NULL);
 	
-	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_TRANSLATE);
+	prop = RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "description");
 	RNA_def_property_string_maxlength(prop, RNA_DYN_DESCR_MAX); /* else it uses the pointer size! */
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);

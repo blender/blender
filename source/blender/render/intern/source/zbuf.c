@@ -4148,8 +4148,17 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 				}
 				if (addpassflag & SCE_PASS_INDEXMA) {
 					ObjectRen *obr = R.objectinstance[zrow[totface-1].obi].obr;
-					VlakRen *vr = obr->vlaknodes->vlak;
-					Material *mat = vr->mat;
+					Material *mat = NULL;
+
+					if (zrow[totface-1].segment == -1) {
+						if (obr->vlaknodes)
+							mat = obr->vlaknodes->vlak->mat;
+					}
+					else {
+						if (obr->strandbuf)
+							mat = obr->strandbuf->ma;
+					}
+
 					if (mat) {
 						for (a= 0; a<totfullsample; a++)
 							add_transp_material_index(rlpp[a], od, mat);

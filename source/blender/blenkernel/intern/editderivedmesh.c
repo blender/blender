@@ -782,22 +782,18 @@ static void emDM_drawMappedFaces(DerivedMesh *dm,
 	if (poly_prev != GL_ZERO) glEnd();
 }
 
-static void bmdm_get_tri_tex(BMesh *bm, BMLoop **ls, MLoopUV *luv[3], MLoopCol *lcol[3],
-                             int has_uv, int has_col)
+static void bmdm_get_tri_uv(BMLoop *ls[3], MLoopUV *luv[3], const int cd_loop_uv_offset)
 {
-	if (has_uv) {
-		luv[0] = CustomData_bmesh_get(&bm->ldata, ls[0]->head.data, CD_MLOOPUV);
-		luv[1] = CustomData_bmesh_get(&bm->ldata, ls[1]->head.data, CD_MLOOPUV);
-		luv[2] = CustomData_bmesh_get(&bm->ldata, ls[2]->head.data, CD_MLOOPUV);
-	}
+	luv[0] = BM_ELEM_CD_GET_VOID_P(ls[0], cd_loop_uv_offset);
+	luv[1] = BM_ELEM_CD_GET_VOID_P(ls[1], cd_loop_uv_offset);
+	luv[2] = BM_ELEM_CD_GET_VOID_P(ls[2], cd_loop_uv_offset);
+}
 
-	if (has_col) {
-		lcol[0] = CustomData_bmesh_get(&bm->ldata, ls[0]->head.data, CD_MLOOPCOL);
-		lcol[1] = CustomData_bmesh_get(&bm->ldata, ls[1]->head.data, CD_MLOOPCOL);
-		lcol[2] = CustomData_bmesh_get(&bm->ldata, ls[2]->head.data, CD_MLOOPCOL);
-	}
-
-
+static void bmdm_get_tri_col(BMLoop *ls[3], MLoopCol *lcol[3], const int cd_loop_color_offset)
+{
+	lcol[0] = BM_ELEM_CD_GET_VOID_P(ls[0], cd_loop_color_offset);
+	lcol[1] = BM_ELEM_CD_GET_VOID_P(ls[1], cd_loop_color_offset);
+	lcol[2] = BM_ELEM_CD_GET_VOID_P(ls[2], cd_loop_color_offset);
 }
 
 static void emDM_drawFacesTex_common(DerivedMesh *dm,
@@ -813,15 +809,19 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 	float (*vertexNos)[3] = bmdm->vertexNos;
 	BMFace *efa;
 	MLoopUV *luv[3], dummyluv = {{0}};
-	MLoopCol *lcol[3] = {NULL}, dummylcol = {0};
-	int i, has_vcol = CustomData_has_layer(&bm->ldata, CD_MLOOPCOL);
-	int has_uv = CustomData_has_layer(&bm->pdata, CD_MTEXPOLY);
+	MLoopCol *lcol[3] = {NULL} /* , dummylcol = {0} */;
+	const int cd_loop_uv_offset    = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+	const int cd_loop_color_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPCOL);
+	const int cd_poly_tex_offset   = CustomData_get_offset(&bm->pdata, CD_MTEXPOLY);
+	bool has_uv   = (cd_loop_uv_offset    != -1);
+	bool has_vcol = (cd_loop_color_offset != -1);
+	int i;
 
 	(void) compareDrawOptions;
 
 	luv[0] = luv[1] = luv[2] = &dummyluv;
 
-	dummylcol.r = dummylcol.g = dummylcol.b = dummylcol.a = 255;
+	// dummylcol.r = dummylcol.g = dummylcol.b = dummylcol.a = 255;  /* UNUSED */
 
 	/* always use smooth shading even for flat faces, else vertex colors wont interpolate */
 	glShadeModel(GL_SMOOTH);
@@ -833,7 +833,7 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 
 		for (i = 0; i < em->tottri; i++) {
 			BMLoop **ls = em->looptris[i];
-			MTexPoly *tp = has_uv ? CustomData_bmesh_get(&bm->pdata, ls[0]->f->head.data, CD_MTEXPOLY) : NULL;
+			MTexPoly *tp = (cd_poly_tex_offset != -1) ? BM_ELEM_CD_GET_VOID_P(ls[0]->f, cd_poly_tex_offset) : NULL;
 			MTFace mtf = {{{0}}};
 			/*unsigned char *cp = NULL;*/ /*UNUSED*/
 			int drawSmooth = BM_elem_flag_test(ls[0]->f, BM_ELEM_SMOOTH);
@@ -841,7 +841,7 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 
 			efa = ls[0]->f;
 
-			if (has_uv) {
+			if (cd_poly_tex_offset != -1) {
 				ME_MTEXFACE_CPY(&mtf, tp);
 			}
 
@@ -858,25 +858,27 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 				if (!drawSmooth) {
 					glNormal3fv(bmdm->polyNos[BM_elem_index_get(efa)]);
 
-					bmdm_get_tri_tex(bm, ls, luv, lcol, has_uv, has_vcol);
+					if (has_uv)   bmdm_get_tri_uv(ls,  luv,  cd_loop_uv_offset);
+					if (has_vcol) bmdm_get_tri_col(ls, lcol, cd_loop_color_offset);
 
 					glTexCoord2fv(luv[0]->uv);
-					if (lcol[0])
+					if (has_vcol)
 						glColor3ubv((const GLubyte *)&(lcol[0]->r));
 					glVertex3fv(vertexCos[BM_elem_index_get(ls[0]->v)]);
 
 					glTexCoord2fv(luv[1]->uv);
-					if (lcol[1])
+					if (has_vcol)
 						glColor3ubv((const GLubyte *)&(lcol[1]->r));
 					glVertex3fv(vertexCos[BM_elem_index_get(ls[1]->v)]);
 
 					glTexCoord2fv(luv[2]->uv);
-					if (lcol[2])
+					if (has_vcol)
 						glColor3ubv((const GLubyte *)&(lcol[2]->r));
 					glVertex3fv(vertexCos[BM_elem_index_get(ls[2]->v)]);
 				}
 				else {
-					bmdm_get_tri_tex(bm, ls, luv, lcol, has_uv, has_vcol);
+					if (has_uv)   bmdm_get_tri_uv(ls,  luv,  cd_loop_uv_offset);
+					if (has_vcol) bmdm_get_tri_col(ls, lcol, cd_loop_color_offset);
 
 					glTexCoord2fv(luv[0]->uv);
 					if (lcol[0])
@@ -905,7 +907,7 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 
 		for (i = 0; i < em->tottri; i++) {
 			BMLoop **ls = em->looptris[i];
-			MTexPoly *tp = has_uv ? CustomData_bmesh_get(&bm->pdata, ls[0]->f->head.data, CD_MTEXPOLY) : NULL;
+			MTexPoly *tp = (cd_poly_tex_offset != -1) ? BM_ELEM_CD_GET_VOID_P(ls[0]->f, cd_poly_tex_offset) : NULL;
 			MTFace mtf = {{{0}}};
 			/*unsigned char *cp = NULL;*/ /*UNUSED*/
 			int drawSmooth = BM_elem_flag_test(ls[0]->f, BM_ELEM_SMOOTH);
@@ -913,12 +915,12 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 
 			efa = ls[0]->f;
 
-			if (has_uv) {
+			if (cd_poly_tex_offset != -1) {
 				ME_MTEXFACE_CPY(&mtf, tp);
 			}
 
 			if (drawParams)
-				draw_option = drawParams(&mtf, has_vcol, efa->mat_nr);
+				draw_option = drawParams(&mtf, (has_vcol), efa->mat_nr);
 			else if (drawParamsMapped)
 				draw_option = drawParamsMapped(userData, BM_elem_index_get(efa));
 			else
@@ -930,46 +932,42 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 				if (!drawSmooth) {
 					glNormal3fv(efa->no);
 
-					bmdm_get_tri_tex(bm, ls, luv, lcol, has_uv, has_vcol);
+					if (has_uv)   bmdm_get_tri_uv(ls,  luv,  cd_loop_uv_offset);
+					if (has_vcol) bmdm_get_tri_col(ls, lcol, cd_loop_color_offset);
 
-					if (luv[0])
-						glTexCoord2fv(luv[0]->uv);
-					if (lcol[0])
+					glTexCoord2fv(luv[0]->uv);
+					if (has_vcol)
 						glColor3ubv((const GLubyte *)&(lcol[0]->r));
 					glVertex3fv(ls[0]->v->co);
 
-					if (luv[1])
-						glTexCoord2fv(luv[1]->uv);
-					if (lcol[1])
+					glTexCoord2fv(luv[1]->uv);
+					if (has_vcol)
 						glColor3ubv((const GLubyte *)&(lcol[1]->r));
 					glVertex3fv(ls[1]->v->co);
 
-					if (luv[2])
-						glTexCoord2fv(luv[2]->uv);
-					if (lcol[2])
+					glTexCoord2fv(luv[2]->uv);
+					if (has_vcol)
 						glColor3ubv((const GLubyte *)&(lcol[2]->r));
 					glVertex3fv(ls[2]->v->co);
 				}
 				else {
-					bmdm_get_tri_tex(bm, ls, luv, lcol, has_uv, has_vcol);
+					if (has_uv)   bmdm_get_tri_uv(ls,  luv,  cd_loop_uv_offset);
+					if (has_vcol) bmdm_get_tri_col(ls, lcol, cd_loop_color_offset);
 
-					if (luv[0])
-						glTexCoord2fv(luv[0]->uv);
-					if (lcol[0])
+					glTexCoord2fv(luv[0]->uv);
+					if (has_vcol)
 						glColor3ubv((const GLubyte *)&(lcol[0]->r));
 					glNormal3fv(ls[0]->v->no);
 					glVertex3fv(ls[0]->v->co);
 
-					if (luv[1])
-						glTexCoord2fv(luv[1]->uv);
-					if (lcol[1])
+					glTexCoord2fv(luv[1]->uv);
+					if (has_vcol)
 						glColor3ubv((const GLubyte *)&(lcol[1]->r));
 					glNormal3fv(ls[1]->v->no);
 					glVertex3fv(ls[1]->v->co);
 
-					if (luv[2])
-						glTexCoord2fv(luv[2]->uv);
-					if (lcol[2])
+					glTexCoord2fv(luv[2]->uv);
+					if (has_vcol)
 						glColor3ubv((const GLubyte *)&(lcol[2]->r));
 					glNormal3fv(ls[2]->v->no);
 					glVertex3fv(ls[2]->v->co);
@@ -1309,14 +1307,16 @@ static int emDM_getNumPolys(DerivedMesh *dm)
 
 static int bmvert_to_mvert(BMesh *bm, BMVert *ev, MVert *vert_r)
 {
+	float *f;
+
 	copy_v3_v3(vert_r->co, ev->co);
 
 	normal_float_to_short_v3(vert_r->no, ev->no);
 
 	vert_r->flag = BM_vert_flag_to_mflag(ev);
 
-	if (CustomData_has_layer(&bm->vdata, CD_BWEIGHT)) {
-		vert_r->bweight = (unsigned char) (BM_elem_float_data_get(&bm->vdata, ev, CD_BWEIGHT) * 255.0f);
+	if ((f = CustomData_bmesh_get(&bm->vdata, ev->head.data, CD_BWEIGHT))) {
+		vert_r->bweight = (unsigned char)((*f) * 255.0f);
 	}
 
 	return 1;
@@ -1332,8 +1332,8 @@ static void emDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 		return;
 	}
 
-	// ev = EDBM_vert_at_index(bmdm->tc, index);
-	ev = BM_vert_at_index(bmdm->tc->bm, index); /* warning, does list loop, _not_ ideal */
+	ev = bmdm->tc->vert_index[index];  /* should be EDBM_vert_at_index() */
+	// ev = BM_vert_at_index(bmdm->tc->bm, index); /* warning, does list loop, _not_ ideal */
 
 	bmvert_to_mvert(bmdm->tc->bm, ev, vert_r);
 	if (bmdm->vertexCos)
@@ -1345,27 +1345,27 @@ static void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 	EditDerivedBMesh *bmdm = (EditDerivedBMesh *)dm;
 	BMesh *bm = bmdm->tc->bm;
 	BMEdge *e;
+	float *f;
 
 	if (index < 0 || index >= bmdm->te) {
 		printf("error in emDM_getEdge.\n");
 		return;
 	}
 
-	// e = EDBM_edge_at_index(bmdm->tc, index);
-	e = BM_edge_at_index(bmdm->tc->bm, index); /* warning, does list loop, _not_ ideal */
-
-	if (CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
-		edge_r->bweight = (unsigned char) (BM_elem_float_data_get(&bm->edata, e, CD_BWEIGHT) * 255.0f);
-	}
-
-	if (CustomData_has_layer(&bm->edata, CD_CREASE)) {
-		edge_r->crease = (unsigned char) (BM_elem_float_data_get(&bm->edata, e, CD_CREASE) * 255.0f);
-	}
+	e = bmdm->tc->edge_index[index];  /* should be EDBM_edge_at_index() */
+	// e = BM_edge_at_index(bmdm->tc->bm, index); /* warning, does list loop, _not_ ideal */
 
 	edge_r->flag = BM_edge_flag_to_mflag(e);
 
 	edge_r->v1 = BM_elem_index_get(e->v1);
 	edge_r->v2 = BM_elem_index_get(e->v2);
+
+	if ((f = CustomData_bmesh_get(&bm->edata, e->head.data, CD_BWEIGHT))) {
+		edge_r->bweight = (unsigned char)((*f) * 255.0f);
+	}
+	if ((f = CustomData_bmesh_get(&bm->edata, e->head.data, CD_CREASE))) {
+		edge_r->crease = (unsigned char)((*f) * 255.0f);
+	}
 }
 
 static void emDM_getTessFace(DerivedMesh *dm, int index, MFace *face_r)
@@ -1400,7 +1400,7 @@ static void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 	BMesh *bm = bmdm->tc->bm;
 	BMVert *eve;
 	BMIter iter;
-	const int has_bweight = CustomData_has_layer(&bm->vdata, CD_BWEIGHT);
+	const int cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
 
 	if (bmdm->vertexCos) {
 		int i;
@@ -1410,9 +1410,8 @@ static void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 			normal_float_to_short_v3(vert_r->no, eve->no);
 			vert_r->flag = BM_vert_flag_to_mflag(eve);
 
-			if (has_bweight) {
-				vert_r->bweight = (unsigned char) (BM_elem_float_data_get(&bm->vdata, eve, CD_BWEIGHT) * 255.0f);
-			}
+			if (cd_vert_bweight_offset != -1) vert_r->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eve, cd_vert_bweight_offset);
+
 			vert_r++;
 		}
 	}
@@ -1422,9 +1421,8 @@ static void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 			normal_float_to_short_v3(vert_r->no, eve->no);
 			vert_r->flag = BM_vert_flag_to_mflag(eve);
 
-			if (has_bweight) {
-				vert_r->bweight = (unsigned char) (BM_elem_float_data_get(&bm->vdata, eve, CD_BWEIGHT) * 255.0f);
-			}
+			if (cd_vert_bweight_offset != -1) vert_r->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eve, cd_vert_bweight_offset);
+
 			vert_r++;
 		}
 	}
@@ -1435,24 +1433,20 @@ static void emDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 	BMesh *bm = ((EditDerivedBMesh *)dm)->tc->bm;
 	BMEdge *eed;
 	BMIter iter;
-	const int has_bweight = CustomData_has_layer(&bm->edata, CD_BWEIGHT);
-	const int has_crease = CustomData_has_layer(&bm->edata, CD_CREASE);
+
+	const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
+	const int cd_edge_crease_offset  = CustomData_get_offset(&bm->edata, CD_CREASE);
 
 	BM_mesh_elem_index_ensure(bm, BM_VERT);
 
 	BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-		if (has_bweight) {
-			edge_r->bweight = (unsigned char) (BM_elem_float_data_get(&bm->edata, eed, CD_BWEIGHT) * 255.0f);
-		}
-
-		if (has_crease) {
-			edge_r->crease = (unsigned char) (BM_elem_float_data_get(&bm->edata, eed, CD_CREASE) * 255.0f);
-		}
+		edge_r->v1 = BM_elem_index_get(eed->v1);
+		edge_r->v2 = BM_elem_index_get(eed->v2);
 
 		edge_r->flag = BM_edge_flag_to_mflag(eed);
 
-		edge_r->v1 = BM_elem_index_get(eed->v1);
-		edge_r->v2 = BM_elem_index_get(eed->v2);
+		if (cd_edge_crease_offset  != -1) edge_r->crease  = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eed, cd_edge_crease_offset);
+		if (cd_edge_bweight_offset != -1) edge_r->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eed, cd_edge_bweight_offset);
 
 		edge_r++;
 	}
@@ -1659,6 +1653,9 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em,
 
 	DM_init((DerivedMesh *)bmdm, DM_TYPE_EDITBMESH, em->bm->totvert,
 	        em->bm->totedge, em->tottri, em->bm->totloop, em->bm->totface);
+
+	/* could also get from the objects mesh directly */
+	bmdm->dm.cd_flag = BM_mesh_cd_flag_from_bmesh(bm);
 
 	bmdm->dm.getVertCos = emDM_getVertCos;
 	bmdm->dm.getMinMax = emDM_getMinMax;

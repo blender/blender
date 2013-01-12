@@ -412,7 +412,7 @@ int BLI_natstrcmp(const char *s1, const char *s2)
 void BLI_timestr(double _time, char *str)
 {
 	/* format 00:00:00.00 (hr:min:sec) string has to be 12 long */
-	int  hr = ( (int)  _time) / (60*60);
+	int  hr = ( (int)  _time) / (60 * 60);
 	int min = (((int)  _time) / 60 ) % 60;
 	int sec = ( (int) (_time)) % 60;
 	int hun = ( (int) (_time   * 100.0)) % 100;

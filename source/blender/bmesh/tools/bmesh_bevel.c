@@ -1499,7 +1499,7 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 {
 	BMEdge *bme;
 	BevVert *bv;
-	BMEdge *bme2, *unflagged_bme;
+	BMEdge *bme2, *unflagged_bme, *first_bme;
 	BMFace *f;
 	BMIter iter, iter2;
 	EdgeHalf *e;
@@ -1511,10 +1511,16 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 	 * Only bevel selected edges that have exactly two incident faces.
 	 */
 
+	if (bp->vertex_only)
+		first_bme = v->e;
+	else
+		first_bme = NULL;
 	BM_ITER_ELEM (bme, &iter, v, BM_EDGES_OF_VERT) {
 		if (BM_elem_flag_test(bme, BM_ELEM_TAG) && !bp->vertex_only) {
 			BLI_assert(BM_edge_is_manifold(bme));
 			nsel++;
+			if (!first_bme)
+				first_bme = bme;
 		}
 		ntot++;
 
@@ -1543,7 +1549,8 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 	/* add edges to bv->edges in order that keeps adjacent edges sharing
 	 * a face, if possible */
 	i = 0;
-	bme = v->e;
+
+	bme = first_bme;
 	BM_BEVEL_EDGE_TAG_ENABLE(bme);
 	e = &bv->edges[0];
 	e->e = bme;
@@ -1557,6 +1564,8 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 					continue;
 				if (!unflagged_bme)
 					unflagged_bme = bme2;
+				if (!bme->l)
+					continue;
 				BM_ITER_ELEM (f, &iter2, bme2, BM_FACES_OF_EDGE) {
 					if (BM_face_edge_share_loop(f, bme)) {
 						found_shared_face = 1;
@@ -1591,7 +1600,7 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 	}
 	/* find wrap-around shared face */
 	BM_ITER_ELEM (f, &iter2, bme, BM_FACES_OF_EDGE) {
-		if (BM_face_edge_share_loop(f, bv->edges[0].e)) {
+		if (bv->edges[0].e->l && BM_face_edge_share_loop(f, bv->edges[0].e)) {
 			if (bv->edges[0].fnext == f)
 				continue;   /* if two shared faces, want the other one now */
 			bv->edges[ntot - 1].fnext = f;

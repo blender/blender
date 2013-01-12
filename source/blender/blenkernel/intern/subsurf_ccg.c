@@ -1322,8 +1322,8 @@ static void ccgDM_copyFinalLoopArray(DerivedMesh *dm, MLoop *mloop)
 	for (index = 0; index < totface; index++) {
 		CCGFace *f = ccgdm->faceMap[index].face;
 		int x, y, S, numVerts = ccgSubSurf_getFaceNumVerts(f);
-		/* int flag = (faceFlags)? faceFlags[index*2]: ME_SMOOTH; */ /* UNUSED */
-		/* int mat_nr = (faceFlags)? faceFlags[index*2+1]: 0; */ /* UNUSED */
+		/* int flag = (faceFlags) ? faceFlags[index * 2]: ME_SMOOTH; */ /* UNUSED */
+		/* int mat_nr = (faceFlags) ? faceFlags[index * 2 + 1]: 0; */ /* UNUSED */
 
 		for (S = 0; S < numVerts; S++) {
 			for (y = 0; y < gridSize - 1; y++) {
@@ -3328,7 +3328,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		
 
 		/*I think this is for interpolating the center vert?*/
-		w2 = w; // + numVerts*(g2_wid-1)*(g2_wid-1); //numVerts*((g2_wid-1)*g2_wid+g2_wid-1);
+		w2 = w; // + numVerts*(g2_wid-1) * (g2_wid-1); //numVerts*((g2_wid-1) * g2_wid+g2_wid-1);
 		DM_interp_vert_data(dm, &ccgdm->dm, vertidx, w2,
 		                    numVerts, vertNum);
 		if (vertOrigIndex) {

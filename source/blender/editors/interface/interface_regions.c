@@ -466,7 +466,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		data->totline++;
 	}
 
-	if (ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
+	if (ELEM4(but->type, TEX, IDPOIN, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		/* full string */
 		ui_get_but_string(but, buf, sizeof(buf));
 		if (buf[0]) {

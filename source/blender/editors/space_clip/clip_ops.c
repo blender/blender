@@ -382,8 +382,8 @@ static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		SpaceClip *sc = CTX_wm_space_clip(C);
 		float offset[2];
 
-		offset[0] = (event->x - event->prevx) / sc->zoom;
-		offset[1] = (event->y - event->prevy) / sc->zoom;
+		offset[0] = (event->prevx - event->x) / sc->zoom;
+		offset[1] = (event->prevy - event->y) / sc->zoom;
 
 		RNA_float_set_array(op->ptr, "offset", offset);
 
@@ -515,10 +515,10 @@ static int view_zoom_exec(bContext *C, wmOperator *op)
 
 static int view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	if (event->type == MOUSEZOOM) {
+	if (event->type == MOUSEZOOM || event->type == MOUSEPAN) {
 		float delta, factor;
 
-		delta = event->x - event->prevx + event->y - event->prevy;
+		delta = event->prevx - event->x + event->prevy - event->y;
 
 		if (U.uiflag & USER_ZOOM_INVERT)
 			delta *= -1;

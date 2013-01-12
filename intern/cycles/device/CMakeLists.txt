@@ -18,10 +18,13 @@ set(SRC
 	device_cpu.cpp
 	device_cuda.cpp
 	device_multi.cpp
-	device_network.cpp
 	device_opencl.cpp
 	device_task.cpp
 )
+
+if(WITH_NETWORK)
+	list(APPEND SRC device_network.cpp)
+endif()
 
 set(SRC_HEADERS
 	device.h

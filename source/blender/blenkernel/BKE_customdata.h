@@ -39,6 +39,7 @@ extern "C" {
 #endif
 
 #include "../blenloader/BLO_sys_types.h" /* XXX, should have a more generic include for this */
+#include "BLI_utildefines.h"
 
 struct BMesh;
 struct ID;
@@ -215,6 +216,8 @@ void CustomData_free_elem(struct CustomData *data, int index, int count);
 void CustomData_interp(const struct CustomData *source, struct CustomData *dest,
                        int *src_indices, float *weights, float *sub_weights,
                        int count, int dest_index);
+void CustomData_bmesh_interp_n(struct CustomData *data, void **src_blocks, const float *weights,
+                               const float *sub_weights, int count, void *dest_block, int n);
 void CustomData_bmesh_interp(struct CustomData *data, void **src_blocks,
                              const float *weights, const float *sub_weights, int count,
                              void *dest_block);
@@ -246,6 +249,8 @@ void *CustomData_get_layer(const struct CustomData *data, int type);
 void *CustomData_get_layer_n(const struct CustomData *data, int type, int n);
 void *CustomData_get_layer_named(const struct CustomData *data, int type,
                                  const char *name);
+int CustomData_get_offset(const struct CustomData *data, int type);
+int CustomData_get_n_offset(const struct CustomData *data, int type, int n);
 
 int CustomData_get_layer_index(const struct CustomData *data, int type);
 int CustomData_get_layer_index_n(const struct CustomData *data, int type, int n);
@@ -304,7 +309,7 @@ void CustomData_bmesh_free_block(struct CustomData *data, void **block);
 /* copy custom data to/from layers as in mesh/derivedmesh, to editmesh
  * blocks of data. the CustomData's must not be compatible */
 void CustomData_to_bmesh_block(const struct CustomData *source, 
-                               struct CustomData *dest, int src_index, void **dest_block);
+                               struct CustomData *dest, int src_index, void **dest_block, bool use_default_init);
 void CustomData_from_bmesh_block(const struct CustomData *source, 
                                  struct CustomData *dest, void *src_block, int dest_index);
 

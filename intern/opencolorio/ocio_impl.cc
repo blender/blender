@@ -479,7 +479,7 @@ void OCIOImpl::displayTransformRelease(OCIO_DisplayTransformRcPtr *dt)
 }
 
 OCIO_PackedImageDesc *OCIOImpl::createOCIO_PackedImageDesc(float *data, long width, long height, long numChannels,
-                                                 long chanStrideBytes, long xStrideBytes, long yStrideBytes)
+                                                           long chanStrideBytes, long xStrideBytes, long yStrideBytes)
 {
 	try {
 		void *mem = MEM_mallocN(sizeof(PackedImageDesc), __func__);

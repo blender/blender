@@ -35,15 +35,15 @@
 
 #include "RNA_types.h"
 
+#include "BLI_utildefines.h"
+#include "BLI_string.h"
+
 #include "BPY_extern.h"
 #include "bpy_operator.h"
 #include "bpy_operator_wrap.h"
 #include "bpy_rna.h" /* for setting arg props only - pyrna_py_to_prop() */
 #include "bpy_util.h"
 #include "../generic/bpy_internal_import.h"
-
-#include "BLI_utildefines.h"
-#include "BLI_string.h"
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
@@ -85,7 +85,7 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 	if (!PyArg_ParseTuple(args, "s|Os:_bpy.ops.poll", &opname, &context_dict, &context_str))
 		return NULL;
 	
-	ot = WM_operatortype_find(opname, TRUE);
+	ot = WM_operatortype_find(opname, true);
 
 	if (ot == NULL) {
 		PyErr_Format(PyExc_AttributeError,
@@ -147,7 +147,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 
 	/* note that context is an int, python does the conversion in this case */
 	int context = WM_OP_EXEC_DEFAULT;
-	int is_undo = FALSE;
+	int is_undo = false;
 
 	/* XXX Todo, work out a better solution for passing on context,
 	 * could make a tuple from self and pack the name and Context into it... */
@@ -164,7 +164,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 		return NULL;
 	}
 
-	ot = WM_operatortype_find(opname, TRUE);
+	ot = WM_operatortype_find(opname, true);
 
 	if (ot == NULL) {
 		PyErr_Format(PyExc_AttributeError,
@@ -209,7 +209,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 	CTX_py_dict_set(C, (void *)context_dict);
 	Py_XINCREF(context_dict); /* so we done loose it */
 
-	if (WM_operator_poll_context((bContext *)C, ot, context) == FALSE) {
+	if (WM_operator_poll_context((bContext *)C, ot, context) == false) {
 		const char *msg = CTX_wm_operator_poll_msg_get(C);
 		PyErr_Format(PyExc_RuntimeError,
 		             "Operator bpy.ops.%.200s.poll() %.200s",
@@ -248,7 +248,7 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 			}
 #endif
 
-			error_val = BPy_reports_to_error(reports, PyExc_RuntimeError, FALSE);
+			error_val = BPy_reports_to_error(reports, PyExc_RuntimeError, false);
 
 			/* operator output is nice to have in the terminal/console too */
 			if (reports->list.first) {
@@ -328,7 +328,7 @@ static PyObject *pyop_as_string(PyObject *UNUSED(self), PyObject *args)
 	if (!PyArg_ParseTuple(args, "s|O!i:_bpy.ops.as_string", &opname, &PyDict_Type, &kw, &all_args))
 		return NULL;
 
-	ot = WM_operatortype_find(opname, TRUE);
+	ot = WM_operatortype_find(opname, true);
 
 	if (ot == NULL) {
 		PyErr_Format(PyExc_AttributeError,
@@ -392,7 +392,7 @@ static PyObject *pyop_getrna(PyObject *UNUSED(self), PyObject *value)
 		PyErr_SetString(PyExc_TypeError, "_bpy.ops.get_rna() expects a string argument");
 		return NULL;
 	}
-	ot = WM_operatortype_find(opname, TRUE);
+	ot = WM_operatortype_find(opname, true);
 	if (ot == NULL) {
 		PyErr_Format(PyExc_KeyError, "_bpy.ops.get_rna(\"%s\") not found", opname);
 		return NULL;
@@ -408,7 +408,7 @@ static PyObject *pyop_getrna(PyObject *UNUSED(self), PyObject *value)
 	
 	pyrna = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
 #ifdef PYRNA_FREE_SUPPORT
-	pyrna->freeptr = TRUE;
+	pyrna->freeptr = true;
 #endif
 	return (PyObject *)pyrna;
 }
@@ -425,7 +425,7 @@ static PyObject *pyop_getinstance(PyObject *UNUSED(self), PyObject *value)
 		PyErr_SetString(PyExc_TypeError, "_bpy.ops.get_instance() expects a string argument");
 		return NULL;
 	}
-	ot = WM_operatortype_find(opname, TRUE);
+	ot = WM_operatortype_find(opname, true);
 	if (ot == NULL) {
 		PyErr_Format(PyExc_KeyError, "_bpy.ops.get_instance(\"%s\") not found", opname);
 		return NULL;
@@ -444,7 +444,7 @@ static PyObject *pyop_getinstance(PyObject *UNUSED(self), PyObject *value)
 
 	pyrna = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
 #ifdef PYRNA_FREE_SUPPORT
-	pyrna->freeptr = TRUE;
+	pyrna->freeptr = true;
 #endif
 	op->ptr = &pyrna->ptr;
 

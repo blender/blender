@@ -659,53 +659,6 @@ void IMB_float_from_rect(ImBuf *ibuf)
 	BLI_unlock_thread(LOCK_COLORMANAGE);
 }
 
-/* use when you need to get a buffer with a certain profile
- * if the return  */
-
-/* OCIO_TODO: used only by Cineon/DPX exporter which is still broken, so can not guarantee
- *            this function is working properly
- */
-float *IMB_float_profile_ensure(ImBuf *ibuf, int profile, int *alloc)
-{
-	int profile_from = IB_PROFILE_LINEAR_RGB;
-	int profile_to;
-
-	/* determine profile */
-	if (profile == IB_PROFILE_NONE)
-		profile_to = IB_PROFILE_LINEAR_RGB;
-	else
-		profile_to = IB_PROFILE_SRGB;
-	
-	if (profile_from == profile_to) {
-		/* simple case, just allocate the buffer and return */
-		*alloc = 0;
-
-		if (ibuf->rect_float == NULL)
-			IMB_float_from_rect(ibuf);
-
-		return ibuf->rect_float;
-	}
-	else {
-		/* conversion is needed, first check */
-		float *fbuf = MEM_mallocN(ibuf->x * ibuf->y * sizeof(float) * 4, "IMB_float_profile_ensure");
-		*alloc = 1;
-
-		if (ibuf->rect_float == NULL) {
-			IMB_buffer_float_from_byte(fbuf, (uchar *)ibuf->rect,
-			                           profile_to, profile_from, FALSE,
-			                           ibuf->x, ibuf->y, ibuf->x, ibuf->x);
-			IMB_premultiply_rect_float(ibuf->rect_float, ibuf->planes, ibuf->x, ibuf->y);
-		}
-		else {
-			IMB_buffer_float_from_float(fbuf, ibuf->rect_float,
-			                            4, profile_to, profile_from, TRUE,
-			                            ibuf->x, ibuf->y, ibuf->x, ibuf->x);
-		}
-
-		return fbuf;
-	}
-}
-
 /**************************** Color to Grayscale *****************************/
 
 /* no profile conversion */

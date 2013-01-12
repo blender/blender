@@ -178,7 +178,7 @@ typedef struct Object {
 	short ipoflag;				// xxx deprecated... old animation system
 	short scaflag;				/* ui state for game logic */
 	char scavisflag;			/* more display settings for game logic */
-	char pad5;
+	char depsflag;
 
 	int dupon, dupoff, dupsta, dupend;
 
@@ -529,6 +529,10 @@ typedef struct DupliObject {
 #define OB_BODY_TYPE_SENSOR			6
 #define OB_BODY_TYPE_NAVMESH		7
 #define OB_BODY_TYPE_CHARACTER			8
+
+/* ob->depsflag */
+#define OB_DEPS_EXTRA_OB_RECALC		1
+#define OB_DEPS_EXTRA_DATA_RECALC	2
 
 /* ob->scavisflag */
 #define OB_VIS_SENS		1

@@ -5137,6 +5137,16 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		
 		sce->toolsettings->imapaint.paintcursor = NULL;
 		sce->toolsettings->particle.paintcursor = NULL;
+
+		/* in rare cases this is needed, see [#33806] */
+		if (sce->toolsettings->vpaint) {
+			sce->toolsettings->vpaint->vpaint_prev = NULL;
+			sce->toolsettings->vpaint->tot = 0;
+	}
+		if (sce->toolsettings->wpaint) {
+			sce->toolsettings->wpaint->wpaint_prev = NULL;
+			sce->toolsettings->wpaint->tot = 0;
+		}
 	}
 
 	if (sce->ed) {
@@ -8811,6 +8821,49 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 7)) {
+		Curve *cu;
+
+		for (cu = main->curve.first; cu; cu = cu->id.next) {
+			if (cu->flag & (CU_FRONT | CU_BACK)) {
+				if ( cu->ext1 != 0.0f || cu->ext2 != 0.0f) {
+					Nurb *nu;
+
+					for (nu = cu->nurb.first; nu; nu = nu->next) {
+						int a;
+
+						if (nu->bezt) {
+							BezTriple *bezt = nu->bezt;
+							a = nu->pntsu;
+
+							while (a--) {
+								bezt->radius = 1.0f;
+								bezt++;
+							}
+						}
+						else if (nu->bp) {
+							BPoint *bp = nu->bp;
+							a = nu->pntsu * nu->pntsv;
+
+							while (a--) {
+								bp->radius = 1.0f;
+								bp++;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 265, 8)) {
+		Mesh *me;
+		for (me = main->mesh.first; me; me = me->id.next) {
+			BKE_mesh_do_versions_cd_flag_init(me);
+		}
+	}
+
+	// if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 7)) {
 
 #ifdef WITH_FREESTYLE
 	/* default values in Freestyle settings */

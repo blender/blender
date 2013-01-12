@@ -327,3 +327,53 @@ void IMB_processor_apply_threaded(int buffer_lines, int handle_size, void *init_
 
 	MEM_freeN(handles);
 }
+
+/* Alpha-under */
+
+void IMB_alpha_under_color_float(float *rect_float, int x, int y, float backcol[3])
+{
+	int a = x * y;
+	float *fp = rect_float;
+
+	while (a--) {
+		if (fp[3] == 0.0f) {
+			copy_v3_v3(fp, backcol);
+		}
+		else {
+			float mul = 1.0f - fp[3];
+
+			fp[0] += mul * backcol[0];
+			fp[1] += mul * backcol[1];
+			fp[2] += mul * backcol[2];
+		}
+
+		fp[3] = 1.0f;
+
+		fp += 4;
+	}
+}
+
+void IMB_alpha_under_color_byte(unsigned char *rect, int x, int y, float backcol[3])
+{
+	int a = x * y;
+	unsigned char *cp = rect;
+
+	while (a--) {
+		if (cp[3] == 0) {
+			cp[0] = backcol[0] * 255;
+			cp[1] = backcol[1] * 255;
+			cp[2] = backcol[2] * 255;
+		}
+		else {
+			int mul = 255 - cp[3];
+
+			cp[0] += mul * backcol[0] / 255;
+			cp[1] += mul * backcol[1] / 255;
+			cp[2] += mul * backcol[2] / 255;
+		}
+
+		cp[3] = 255;
+
+		cp += 4;
+	}
+}

@@ -288,6 +288,47 @@ static const char *rna_Node_get_node_type(StructRNA *type)
 	return "";
 }
 
+static void rna_Node_parent_set(PointerRNA *ptr, PointerRNA value)
+{
+	bNode *node = ptr->data;
+	bNode *parent = value.data;
+	
+	if (parent) {
+		/* XXX only Frame node allowed for now,
+		 * in the future should have a poll function or so to test possible attachment.
+		 */
+		if (parent->type != NODE_FRAME)
+			return;
+		
+		/* make sure parent is not attached to the node */
+		if (nodeAttachNodeCheck(parent, node))
+			return;
+	}
+	
+	nodeDetachNode(node);
+	if (parent) {
+		nodeAttachNode(node, parent);
+	}
+}
+
+static int rna_Node_parent_poll(PointerRNA *ptr, PointerRNA value)
+{
+	bNode *node = ptr->data;
+	bNode *parent = value.data;
+	
+	/* XXX only Frame node allowed for now,
+	 * in the future should have a poll function or so to test possible attachment.
+	 */
+	if (parent->type != NODE_FRAME)
+		return FALSE;
+	
+	/* make sure parent is not attached to the node */
+	if (nodeAttachNodeCheck(parent, node))
+		return FALSE;
+	
+	return TRUE;
+}
+
 static StructRNA *rna_NodeSocket_refine(PointerRNA *ptr)
 {
 	bNodeSocket *sock = (bNodeSocket *)ptr->data;
@@ -2480,7 +2521,7 @@ static void def_cmp_dilate_erode(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
-	static EnumPropertyItem type_items[] = {
+	static EnumPropertyItem mode_items[] = {
 	    {CMP_NODE_DILATEERODE_STEP,             "STEP",      0, "Step",      ""},
 	    {CMP_NODE_DILATEERODE_DISTANCE_THRESH,  "THRESHOLD", 0, "Threshold", ""},
 	    {CMP_NODE_DILATEERODE_DISTANCE,         "DISTANCE",  0, "Distance",  ""},
@@ -2488,10 +2529,10 @@ static void def_cmp_dilate_erode(StructRNA *srna)
 	    {0, NULL, 0, NULL, NULL}
 	};
 	
-	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
-	RNA_def_property_enum_items(prop, type_items);
-	RNA_def_property_ui_text(prop, "Distance", "Distance to grow/shrink (number of iterations)");
+	RNA_def_property_enum_items(prop, mode_items);
+	RNA_def_property_ui_text(prop, "Mode", "Growing/shrinking mode");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "distance", PROP_INT, PROP_NONE);
@@ -4689,8 +4730,9 @@ static void rna_def_node(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "parent");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_Node_parent_set", NULL, "rna_Node_parent_poll");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Node");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Parent", "Parent this node is attached to");
 	
 	prop = RNA_def_property(srna, "use_custom_color", PROP_BOOLEAN, PROP_NONE);

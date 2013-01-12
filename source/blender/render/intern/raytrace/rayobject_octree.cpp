@@ -1015,7 +1015,7 @@ static int RE_rayobject_octree_intersect(RayObject *tree, Isect *is)
 				vec2[2] = oz1 - dda_lambda * doz;
 				calc_ocval_ray(&ocval, (float)xo, (float)yo, (float)zo, vec1, vec2);
 
-				//is->dist = (u1+dda_lambda*(u2-u1))*o_lambda;
+				//is->dist = (u1 + dda_lambda * (u2 - u1)) * o_lambda;
 				if (testnode(oc, is, no, ocval) )
 					found = 1;
 

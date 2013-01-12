@@ -51,6 +51,7 @@ public:
 	bool experimental;
 	int samples;
 	int2 tile_size;
+	int tile_order;
 	int start_resolution;
 	int threads;
 

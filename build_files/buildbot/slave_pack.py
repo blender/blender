@@ -57,17 +57,13 @@ if builder.find('scons') != -1:
         config = None
         bits = None
 
-        if builder.endswith('linux_glibc27_x86_64_scons'):
-            config = 'user-config-glibc27-x86_64.py'
-            bits = 64
-        elif builder.endswith('linux_glibc27_i386_scons'):
-            config = 'user-config-glibc27-i686.py'
-            bits = 32
         if builder.endswith('linux_glibc211_x86_64_scons'):
             config = 'user-config-glibc211-x86_64.py'
+            chroot_name = 'buildbot_squeeze_x86_64'
             bits = 64
         elif builder.endswith('linux_glibc211_i386_scons'):
             config = 'user-config-glibc211-i686.py'
+            chroot_name = 'buildbot_squeeze_i686'
             bits = 32
 
         if config is not None:
@@ -76,7 +72,7 @@ if builder.find('scons') != -1:
 
         blender = os.path.join(install_dir, 'blender')
         blenderplayer = os.path.join(install_dir, 'blenderplayer')
-        subprocess.call(['strip', '--strip-all', blender, blenderplayer])
+        subprocess.call(['schroot', '-c', chroot_name, '--', 'strip', '--strip-all', blender, blenderplayer])
 
         extra = '/' + os.path.join('home', 'sources', 'release-builder', 'extra')
         mesalibs = os.path.join(extra, 'mesalibs' + str(bits) + '.tar.bz2')
@@ -86,7 +82,7 @@ if builder.find('scons') != -1:
         os.system('cp %s %s' % (software_gl, install_dir))
         os.system('chmod 755 %s' % (os.path.join(install_dir, 'blender-softwaregl')))
 
-        retcode = subprocess.call(['python', 'scons/scons.py'] + scons_options)
+        retcode = subprocess.call(['schroot', '-c', chroot_name, '--', 'python', 'scons/scons.py'] + scons_options)
 
         sys.exit(retcode)
     else:

@@ -154,13 +154,9 @@ int  BKE_mesh_nurbs_to_mdata(struct Object *ob, struct MVert **allvert, int *tot
                              int *totloop, int *totpoly);
 int BKE_mesh_nurbs_displist_to_mdata(struct Object *ob, struct ListBase *dispbase, struct MVert **allvert, int *_totvert,
                                      struct MEdge **alledge, int *_totedge, struct MLoop **allloop, struct MPoly **allpoly,
-                                     int *_totloop, int *_totpoly, int **orco_index_ptr);
-void BKE_mesh_nurbs_to_mdata_orco(struct MPoly *mpoly, int totpoly,
-                                  struct MLoop *mloops, struct MLoopUV *mloopuvs,
-                                  float (*orco)[3], int (*orco_index)[4]);
+                                     struct MLoopUV **alluv, int *_totloop, int *_totpoly);
+void BKE_mesh_from_nurbs_displist(struct Object *ob, struct ListBase *dispbase, int use_orco_uv);
 void BKE_mesh_from_nurbs(struct Object *ob);
-void BKE_mesh_from_nurbs_displist(struct Object *ob, struct ListBase *dispbase,
-                                  int **orco_index_ptr);
 void BKE_mesh_from_curve(struct Scene *scene, struct Object *ob);
 void BKE_mesh_delete_material_index(struct Mesh *me, short index);
 void BKE_mesh_smooth_flag_set(struct Object *meshOb, int enableSmooth);
@@ -333,6 +329,8 @@ void BKE_mesh_loops_to_mface_corners(struct CustomData *fdata, struct CustomData
 
 void BKE_mesh_poly_calc_angles(struct MVert *mvert, struct MLoop *mloop,
                                struct MPoly *mp, float angles[]);
+
+void BKE_mesh_do_versions_cd_flag_init(struct Mesh *mesh);
 
 #ifdef __cplusplus
 }

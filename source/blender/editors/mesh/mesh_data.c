@@ -462,7 +462,7 @@ int ED_mesh_color_add(bContext *C, Scene *UNUSED(scene), Object *UNUSED(ob), Mes
 		/* copy data from active vertex color layer */
 		if (layernum) {
 			const int layernum_dst = CustomData_get_active_layer(&em->bm->ldata, CD_MLOOPCOL);
-			BM_data_layer_copy(em->bm, &em->bm->ldata, CD_MLOOPUV, layernum, layernum_dst);
+			BM_data_layer_copy(em->bm, &em->bm->ldata, CD_MLOOPCOL, layernum, layernum_dst);
 		}
 		if (active_set || layernum == 0) {
 			CustomData_set_layer_active(&em->bm->ldata, CD_MLOOPCOL, layernum);

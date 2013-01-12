@@ -95,6 +95,14 @@ enum_curves_interpolation = (
     ('CARDINAL', "Cardinal interpolation", "Use cardinal interpolation between segments"),
     ('BSPLINE', "B-spline interpolation", "Use b-spline interpolation between segments"),
     )
+    
+enum_tile_order = (
+    ('CENTER', "Center", "Render from center to the edges"),
+    ('RIGHT_TO_LEFT', "Right to Left", "Render from right to left"),
+    ('LEFT_TO_RIGHT', "Left to Right", "Render from left to right"),
+    ('TOP_TO_BOTTOM', "Top to Bottom", "Render from top to bottom"),
+    ('BOTTOM_TO_TOP', "Bottom to Top", "Render from bottom to top"),
+    )
 
 class CyclesRenderSettings(bpy.types.PropertyGroup):
     @classmethod
@@ -351,6 +359,12 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 name="Cache BVH",
                 description="Cache last built BVH to disk for faster re-render if no geometry changed",
                 default=False,
+                )
+        cls.tile_order = EnumProperty(
+                name="Tile Order",
+                description="Tile order for rendering",
+                items=enum_tile_order,
+                default='CENTER',
                 )
         cls.use_progressive_refine = BoolProperty(
                 name="Progressive Refine",

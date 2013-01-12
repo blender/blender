@@ -331,7 +331,7 @@ void FallbackImpl::displayTransformRelease(OCIO_DisplayTransformRcPtr *)
 }
 
 OCIO_PackedImageDesc *FallbackImpl::createOCIO_PackedImageDesc(float *data, long width, long height, long numChannels,
-                                                     long chanStrideBytes, long xStrideBytes, long yStrideBytes)
+                                                               long chanStrideBytes, long xStrideBytes, long yStrideBytes)
 {
 	OCIO_PackedImageDescription *desc = (OCIO_PackedImageDescription*)MEM_callocN(sizeof(OCIO_PackedImageDescription), "OCIO_PackedImageDescription");
 

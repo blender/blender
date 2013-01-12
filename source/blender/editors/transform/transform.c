@@ -462,7 +462,10 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 			WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 		else
 			WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
-		
+
+		if (t->mode == TFM_EDGE_SLIDE && (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT))
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
+
 		/* for realtime animation record - send notifiers recognised by animation editors */
 		// XXX: is this notifier a lame duck?
 		if ((t->animtimer) && IS_AUTOKEY_ON(t->scene))
@@ -5262,7 +5265,7 @@ static int createSlideVerts(TransInfo *t)
 		if (dot_v3v3(loop_dir[l_nr], dir) < 0.0f) {
 			swap_v3_v3(sv_array->upvec, sv_array->downvec);
 			SWAP(BMVert, sv_array->vup, sv_array->vdown);
-			SWAP(BMVert*, sv_array->up, sv_array->down);
+			SWAP(BMVert *, sv_array->up, sv_array->down);
 		}
 	}
 
@@ -5424,7 +5427,7 @@ void projectSVData(TransInfo *t, int final)
 					}
 
 				}
-				
+
 				if (!affected)
 					continue;
 

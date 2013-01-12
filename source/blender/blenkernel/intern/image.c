@@ -904,7 +904,7 @@ void BKE_image_free_all_textures(void)
 				image_free_buffers(ima);
 		}
 	}
-	/* printf("freed total %d MB\n", totsize/(1024*1024)); */
+	/* printf("freed total %d MB\n", totsize / (1024 * 1024)); */
 }
 
 /* except_frame is weak, only works for seqs without offset... */

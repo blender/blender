@@ -127,8 +127,8 @@ void BlenderSync::sync_light(BL::Object b_parent, int persistent_id[OBJECT_PERSI
 		case BL::Lamp::type_AREA: {
 			BL::AreaLamp b_area_lamp(b_lamp);
 			light->size = 1.0f;
-			light->axisu = make_float3(tfm.x.x, tfm.y.x, tfm.z.x);
-			light->axisv = make_float3(tfm.x.y, tfm.y.y, tfm.z.y);
+			light->axisu = transform_get_column(&tfm, 0);
+			light->axisv = transform_get_column(&tfm, 1);
 			light->sizeu = b_area_lamp.size();
 			if(b_area_lamp.shape() == BL::AreaLamp::shape_RECTANGLE)
 				light->sizev = b_area_lamp.size_y();
@@ -140,8 +140,8 @@ void BlenderSync::sync_light(BL::Object b_parent, int persistent_id[OBJECT_PERSI
 	}
 
 	/* location and (inverted!) direction */
-	light->co = make_float3(tfm.x.w, tfm.y.w, tfm.z.w);
-	light->dir = -make_float3(tfm.x.z, tfm.y.z, tfm.z.z);
+	light->co = transform_get_column(&tfm, 3);
+	light->dir = -transform_get_column(&tfm, 2);
 
 	/* shader */
 	vector<uint> used_shaders;

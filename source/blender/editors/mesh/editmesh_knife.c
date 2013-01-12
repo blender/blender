@@ -1320,7 +1320,7 @@ static void calc_ortho_extent(KnifeTool_OpData *kcd)
 {
 	BMIter iter;
 	BMVert *v;
-	BMesh* bm = kcd->em->bm;
+	BMesh *bm = kcd->em->bm;
 	float max_xyz = 0.0f;
 	int i;
 

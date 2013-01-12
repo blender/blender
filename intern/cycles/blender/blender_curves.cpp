@@ -330,13 +330,17 @@ bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Par
 
 bool ObtainCacheParticleUV(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool use_parents)
 {
+#if 0
 	int keyno = 0;
+#endif
 
 	if(!(mesh && b_mesh && b_ob && CData))
 		return false;
 
+#if 0
 	Transform tfm = get_transform(b_ob->matrix_world());
 	Transform itfm = transform_quick_inverse(tfm);
+#endif
 
 	BL::Object::modifiers_iterator b_mod;
 	for(b_ob->modifiers.begin(b_mod); b_mod != b_ob->modifiers.end(); ++b_mod) {
@@ -348,12 +352,13 @@ bool ObtainCacheParticleUV(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Parti
 			BL::ParticleSettings b_part((const PointerRNA)b_psys.settings().ptr);
 
 			if((b_psys.settings().render_type()==BL::ParticleSettings::render_type_PATH)&&(b_psys.settings().type()==BL::ParticleSettings::type_HAIR)) {
-
+#if 0
 				int mi = clamp(b_psys.settings().material()-1, 0, mesh->used_shaders.size()-1);
 				int shader = mesh->used_shaders[mi];
 				int draw_step = b_psys.settings().draw_step();
 				int ren_step = (int)pow((float)2.0f,(float)draw_step);
-				/*b_psys.settings().render_step(draw_step);*/
+				b_psys.settings().render_step(draw_step);
+#endif
 
 				int totparts = b_psys.particles.length();
 				int totchild = b_psys.child_particles.length() * b_psys.settings().draw_percentage() / 100;
@@ -397,13 +402,16 @@ bool ObtainCacheParticleUV(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Parti
 
 bool ObtainCacheParticleVcol(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool use_parents, int vcol_num)
 {
+#if 0
 	int keyno = 0;
-
+#endif
 	if(!(mesh && b_mesh && b_ob && CData))
 		return false;
 
+#if 0
 	Transform tfm = get_transform(b_ob->matrix_world());
 	Transform itfm = transform_quick_inverse(tfm);
+#endif
 
 	BL::Object::modifiers_iterator b_mod;
 	for(b_ob->modifiers.begin(b_mod); b_mod != b_ob->modifiers.end(); ++b_mod) {
@@ -415,13 +423,13 @@ bool ObtainCacheParticleVcol(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Par
 			BL::ParticleSettings b_part((const PointerRNA)b_psys.settings().ptr);
 
 			if((b_psys.settings().render_type()==BL::ParticleSettings::render_type_PATH)&&(b_psys.settings().type()==BL::ParticleSettings::type_HAIR)) {
-
+#if 0
 				int mi = clamp(b_psys.settings().material()-1, 0, mesh->used_shaders.size()-1);
 				int shader = mesh->used_shaders[mi];
 				int draw_step = b_psys.settings().draw_step();
 				int ren_step = (int)pow((float)2.0f,(float)draw_step);
-				/*b_psys.settings().render_step(draw_step);*/
-
+				b_psys.settings().render_step(draw_step);
+#endif
 				int totparts = b_psys.particles.length();
 				int totchild = b_psys.child_particles.length() * b_psys.settings().draw_percentage() / 100;
 				int totcurves = totchild;

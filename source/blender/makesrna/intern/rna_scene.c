@@ -278,9 +278,11 @@ EnumPropertyItem image_color_mode_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+#ifdef RNA_RUNTIME
 #define IMAGE_COLOR_MODE_BW   image_color_mode_items[0]
 #define IMAGE_COLOR_MODE_RGB  image_color_mode_items[1]
 #define IMAGE_COLOR_MODE_RGBA image_color_mode_items[2]
+#endif
 
 EnumPropertyItem image_color_depth_items[] = {
 	/* 1 (monochrome) not used */

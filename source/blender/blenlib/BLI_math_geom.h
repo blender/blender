@@ -53,6 +53,7 @@ float area_tri_signed_v2(const float v1[2], const float v2[2], const float v3[2]
 float area_tri_v3(const float a[3], const float b[3], const float c[3]);
 float area_quad_v3(const float a[3], const float b[3], const float c[3], const float d[3]);
 float area_poly_v3(int nr, float verts[][3], const float normal[3]);
+float area_poly_v2(int nr, float verts[][2]);
 
 int is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3]);
 int is_quad_convex_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2]);
@@ -260,7 +261,12 @@ MINLINE void madd_sh_shfl(float r[9], const float sh[3], const float f);
 float form_factor_hemi_poly(float p[3], float n[3],
                             float v1[3], float v2[3], float v3[3], float v4[3]);
 
-void axis_dominant_v3(int *axis_a, int *axis_b, const float axis[3]);
+void  axis_dominant_v3(int *r_axis_a, int *r_axis_b, const float axis[3]);
+float axis_dominant_v3_max(int *r_axis_a, int *r_axis_b, const float axis[3])
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+#endif
+;
 
 MINLINE int max_axis_v3(const float vec[3]);
 MINLINE int min_axis_v3(const float vec[3]);

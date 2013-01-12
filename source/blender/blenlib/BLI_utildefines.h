@@ -32,6 +32,10 @@
  *  \ingroup bli
  */
 
+#ifndef NDEBUG /* for BLI_assert */
+#include <stdio.h>
+#endif
+
 /* note: use of (int, TRUE / FALSE) is deprecated,
  * use (bool, true / false) instead */
 #ifdef HAVE_STDBOOL_H

@@ -36,8 +36,8 @@ void PixelateNode::convertToOperations(ExecutionSystem *graph, CompositorContext
 	OutputSocket *outputSocket = this->getOutputSocket(0);
 	DataType datatype = inputSocket->getDataType();
 	if (inputSocket->isConnected()) {
-		SocketConnection * connection = inputSocket->getConnection();
-		OutputSocket* otherOutputSocket = connection->getFromSocket();
+		SocketConnection *connection = inputSocket->getConnection();
+		OutputSocket *otherOutputSocket = connection->getFromSocket();
 		datatype = otherOutputSocket->getDataType();
 	}
 

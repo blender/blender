@@ -60,6 +60,27 @@ else:
     if builder.find('linux') != -1:
         import shutil
 
+        configs = []
+        if builder.endswith('linux_glibc211_x86_64_scons'):
+            configs = ['user-config-player-glibc211-x86_64.py',
+                       'user-config-cuda-glibc211-x86_64.py',
+                       'user-config-glibc211-x86_64.py'
+                       ]
+            chroot_name = 'buildbot_squeeze_x86_64'
+            cuda_chroot = 'buildbot_squeeze_x86_64'
+        elif builder.endswith('linux_glibc211_i386_scons'):
+            configs = ['user-config-player-glibc211-i686.py',
+                       'user-config-cuda-glibc211-i686.py',
+                       'user-config-glibc211-i686.py']
+            chroot_name = 'buildbot_squeeze_i686'
+
+            # use 64bit cuda toolkit, so there'll be no memory limit issues
+            cuda_chroot = 'buildbot_squeeze_x86_64'
+
+        # Compilation will happen inside of chroot environment
+        prog_scons_cmd = ['schroot', '-c', chroot_name, '--'] + scons_cmd
+        cuda_scons_cmd = ['schroot', '-c', cuda_chroot, '--'] + scons_cmd
+
         # We're using the same rules as release builder, so tweak
         # build and install dirs
         build_dir = os.path.join('..', 'build', builder)
@@ -74,20 +95,6 @@ else:
         buildbot_dir = os.path.dirname(os.path.realpath(__file__))
         config_dir = os.path.join(buildbot_dir, 'config')
 
-        configs = []
-        if builder.endswith('linux_glibc27_x86_64_scons'):
-            configs = ['user-config-player-glibc27-x86_64.py',
-                       'user-config-glibc27-x86_64.py']
-        elif builder.endswith('linux_glibc27_i386_scons'):
-            configs = ['user-config-player-glibc27-i686.py',
-                       'user-config-glibc27-i686.py']
-        if builder.endswith('linux_glibc211_x86_64_scons'):
-            configs = ['user-config-player-glibc211-x86_64.py',
-                       'user-config-glibc211-x86_64.py']
-        elif builder.endswith('linux_glibc211_i386_scons'):
-            configs = ['user-config-player-glibc211-i686.py',
-                       'user-config-glibc211-i686.py']
-
         for config in configs:
             config_fpath = os.path.join(config_dir, config)
 
@@ -100,14 +107,24 @@ else:
 
             scons_options += common_options
 
-            if config.find('player') == -1:
-                scons_options.append('blender')
-            else:
+            if config.find('player') != -1:
                 scons_options.append('blenderplayer')
+                cur_scons_cmd = prog_scons_cmd
+            elif config.find('cuda') != -1:
+                scons_options.append('cudakernels')
+                cur_scons_cmd = cuda_scons_cmd
+
+                if config.find('i686') != -1:
+                    scons_options.append('BF_BITNESS=32')
+                elif config.find('x86_64') != -1:
+                    scons_options.append('BF_BITNESS=64')
+            else:
+                scons_options.append('blender')
+                cur_scons_cmd = prog_scons_cmd
 
             scons_options.append('BF_CONFIG=' + config_fpath)
 
-            retcode = subprocess.call(scons_cmd + scons_options)
+            retcode = subprocess.call(cur_scons_cmd + scons_options)
             if retcode != 0:
                 print('Error building rules wuth config ' + config)
                 sys.exit(retcode)
