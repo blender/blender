@@ -1520,9 +1520,8 @@ void KX_KetsjiEngine::RenderDebugProperties()
 	if (m_show_debug_properties && m_propertiesPresent) {
 
 		/* Title for debugging("Debug properties") */
-		debugtxt.Format("Debug Properties");
 		m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED,
-		                            debugtxt.ReadPtr(),
+		                            "Debug Properties",
 		                            xcoord + const_xindent + title_xmargin, // Adds the constant x indent (0 for now) to the title x margin
 		                            ycoord,
 		                            m_canvas->GetWidth() /* RdV, TODO ?? */,

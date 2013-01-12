@@ -65,13 +65,3 @@ const char *node_filter_label(struct bNode *node);
 void node_update_internal_links_default(struct bNodeTree *ntree, struct bNode *node);
 
 #endif
-
-// this is needed for inlining behavior
-#if defined _MSC_VER
-#   define DO_INLINE __inline
-#elif defined (__sun) || defined (__sun__)
-#   define DO_INLINE
-#else
-#   define DO_INLINE static inline
-#endif
-

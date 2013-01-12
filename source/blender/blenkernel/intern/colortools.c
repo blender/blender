@@ -895,7 +895,7 @@ void curvemapping_table_RGBA(const CurveMapping *cumap, float **array, int *size
 
 #define INV_255     (1.f / 255.f)
 
-DO_INLINE int get_bin_float(float f)
+BLI_INLINE int get_bin_float(float f)
 {
 	int bin = (int)((f * 255.0f) + 0.5f);  /* 0.5 to prevent quantisation differences */
 
