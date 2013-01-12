@@ -103,6 +103,8 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	int	m_motionblur;
 	float	m_motionblurvalue;
 
+	bool m_usingoverrideshader;
+
 protected:
 	int				m_drawingmode;
 	TexCoGen		m_texco[RAS_MAX_TEXCO];
@@ -320,6 +322,8 @@ public:
 	virtual void	SetAnisotropicFiltering(short level);
 	virtual short	GetAnisotropicFiltering();
 
+	virtual void	SetUsingOverrideShader(bool val);
+	virtual bool	GetUsingOverrideShader();
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:RAS_OpenGLRasterizer")

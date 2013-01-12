@@ -246,6 +246,9 @@ void KX_LightObject::BindShadowBuffer(RAS_IRasterizer *ras, RAS_ICanvas *canvas,
 	lamp = GetGPULamp();
 	GPU_lamp_shadow_buffer_bind(lamp, viewmat, &winsize, winmat);
 
+	if (GPU_lamp_shadow_buffer_type(lamp) == LA_SHADMAP_VARIANCE)
+		ras->SetUsingOverrideShader(true);
+
 	/* GPU_lamp_shadow_buffer_bind() changes the viewport, so update the canvas */
 	canvas->UpdateViewPort(0, 0, winsize, winsize);
 
@@ -276,6 +279,9 @@ void KX_LightObject::UnbindShadowBuffer(RAS_IRasterizer *ras)
 {
 	GPULamp *lamp = GetGPULamp();
 	GPU_lamp_shadow_buffer_unbind(lamp);
+
+	if (GPU_lamp_shadow_buffer_type(lamp) == LA_SHADMAP_VARIANCE)
+		ras->SetUsingOverrideShader(false);
 }
 
 struct Image *KX_LightObject::GetTextureImage(short texslot)

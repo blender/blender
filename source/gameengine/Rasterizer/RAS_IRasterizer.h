@@ -417,6 +417,8 @@ public:
 	virtual void	SetAnisotropicFiltering(short level)=0;
 	virtual short	GetAnisotropicFiltering()=0;
 
+	virtual void	SetUsingOverrideShader(bool val)=0;
+	virtual bool	GetUsingOverrideShader()=0;
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GE:RAS_IRasterizer")
