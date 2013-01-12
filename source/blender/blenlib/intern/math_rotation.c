@@ -589,10 +589,10 @@ void interp_qt_qtqt(float result[4], const float quat1[4], const float quat2[4],
 	}
 
 	if ((1.0f - cosom) > 0.0001f) {
-		omega = (float)acos(cosom);
-		sinom = (float)sin(omega);
-		sc1 = (float)sin((1 - t) * omega) / sinom;
-		sc2 = (float)sin(t * omega) / sinom;
+		omega = acosf(cosom);
+		sinom = sinf(omega);
+		sc1 = sinf((1.0f - t) * omega) / sinom;
+		sc2 = sinf(t * omega) / sinom;
 	}
 	else {
 		sc1 = 1.0f - t;

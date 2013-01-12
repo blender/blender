@@ -1746,7 +1746,7 @@ static void calc_bevel_sin_cos(float x1, float y1, float x2, float y2, float *si
 	else
 		t02 = (saacos(t02)) / 2.0f;
 
-	t02 = (float)sin(t02);
+	t02 = sinf(t02);
 	if (t02 == 0.0f)
 		t02 = 1.0f;
 

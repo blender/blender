@@ -1245,8 +1245,8 @@ void rotate_m4(float mat[4][4], const char axis, const float angle)
 
 	assert(axis >= 'X' && axis <= 'Z');
 
-	cosine = (float)cos(angle);
-	sine = (float)sin(angle);
+	cosine = cosf(angle);
+	sine   = sinf(angle);
 	switch (axis) {
 		case 'X':
 			for (col = 0; col < 4; col++)

@@ -1750,7 +1750,7 @@ static void knife_snap_angle(KnifeTool_OpData *kcd)
 
 	if (dx == 0.0f) {
 		kcd->angle_snapping = ANGLE_90;
-		kcd->curr.mval[0] =kcd->prev.mval[0];
+		kcd->curr.mval[0] = kcd->prev.mval[0];
 	}
 
 	w = dy / dx;

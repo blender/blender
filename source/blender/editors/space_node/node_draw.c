@@ -454,8 +454,8 @@ static void node_update_hidden(bNode *node)
 	
 	for (nsock = node->outputs.first; nsock; nsock = nsock->next) {
 		if (!nodeSocketIsHidden(nsock)) {
-			nsock->locx = node->totr.xmax - hiddenrad + (float)sin(rad) * hiddenrad;
-			nsock->locy = node->totr.ymin + hiddenrad + (float)cos(rad) * hiddenrad;
+			nsock->locx = node->totr.xmax - hiddenrad + sinf(rad) * hiddenrad;
+			nsock->locy = node->totr.ymin + hiddenrad + cosf(rad) * hiddenrad;
 			rad += drad;
 		}
 	}
@@ -465,8 +465,8 @@ static void node_update_hidden(bNode *node)
 	
 	for (nsock = node->inputs.first; nsock; nsock = nsock->next) {
 		if (!nodeSocketIsHidden(nsock)) {
-			nsock->locx = node->totr.xmin + hiddenrad + (float)sin(rad) * hiddenrad;
-			nsock->locy = node->totr.ymin + hiddenrad + (float)cos(rad) * hiddenrad;
+			nsock->locx = node->totr.xmin + hiddenrad + sinf(rad) * hiddenrad;
+			nsock->locy = node->totr.ymin + hiddenrad + cosf(rad) * hiddenrad;
 			rad += drad;
 		}
 	}

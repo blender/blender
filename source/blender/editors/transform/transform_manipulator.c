@@ -734,8 +734,8 @@ static void partial_doughnut(float radring, float radhole, int start, int end, i
 				float cos_phi, sin_phi, dist;
 
 				phi += side_delta;
-				cos_phi = (float)cos(phi);
-				sin_phi = (float)sin(phi);
+				cos_phi = cosf(phi);
+				sin_phi = sinf(phi);
 				dist = radhole + radring * cos_phi;
 
 				glVertex3f(cos_theta1 * dist, -sin_theta1 * dist,  radring * sin_phi);
@@ -749,8 +749,8 @@ static void partial_doughnut(float radring, float radhole, int start, int end, i
 				float cos_phi, sin_phi, dist;
 
 				phi += side_delta;
-				cos_phi = (float)cos(phi);
-				sin_phi = (float)sin(phi);
+				cos_phi = cosf(phi);
+				sin_phi = sinf(phi);
 				dist = radhole + radring * cos_phi;
 
 				glVertex3f(cos_theta1 * dist, -sin_theta1 * dist, radring * sin_phi);

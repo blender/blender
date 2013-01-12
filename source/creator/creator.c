@@ -516,7 +516,7 @@ static void blender_crash_handler(int signum)
 	fp = BLI_fopen(fname, "wb");
 	if (fp == NULL) {
 		fprintf(stderr, "Unable to save '%s': %s\n",
-				fname, errno ? strerror(errno) : "Unknown error opening file");
+		        fname, errno ? strerror(errno) : "Unknown error opening file");
 	}
 	else {
 		if (wm) {

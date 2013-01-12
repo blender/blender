@@ -962,9 +962,9 @@ makebreak:
 		float si, co;
 		
 		ct = chartransdata + cu->pos;
-		si = (float)sin(ct->rot);
-		co = (float)cos(ct->rot);
-				
+		si = sinf(ct->rot);
+		co = cosf(ct->rot);
+
 		f = cu->editfont->textcurs[0];
 		
 		f[0] = cu->fsize * (-0.1f * co + ct->xof);

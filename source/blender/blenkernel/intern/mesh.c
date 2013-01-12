@@ -1360,7 +1360,7 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob, ListBase *dispbase,
 					int i;
 
 					for (i = 0; i < 3; i++, mloopuv++) {
-						mloopuv->uv[0] = (mloop[i].v - startvert)/(float)(dl->nr - 1);
+						mloopuv->uv[0] = (mloop[i].v - startvert) / (float)(dl->nr - 1);
 						mloopuv->uv[1] = 0.0f;
 					}
 				}
@@ -1430,8 +1430,8 @@ int BKE_mesh_nurbs_displist_to_mdata(Object *ob, ListBase *dispbase,
 							/* find uv based on vertex index into grid array */
 							int v = mloop[i].v - startvert;
 
-							mloopuv->uv[0] = (v / dl->nr)/(float)orco_sizev;
-							mloopuv->uv[1] = (v % dl->nr)/(float)orco_sizeu;
+							mloopuv->uv[0] = (v / dl->nr) / (float)orco_sizev;
+							mloopuv->uv[1] = (v % dl->nr) / (float)orco_sizeu;
 
 							/* cyclic correction */
 							if ((i == 0 || i == 1) && mloopuv->uv[1] == 0.0f)

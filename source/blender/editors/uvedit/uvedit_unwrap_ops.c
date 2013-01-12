@@ -965,18 +965,18 @@ static void uv_map_rotation_matrix(float result[4][4], RegionView3D *rv3d, Objec
 	/* this is "kanonen gegen spatzen", a few plus minus 1 will do here */
 	/* i wanted to keep the reason here, so we're rotating*/
 	sideangle = (float)M_PI * (sideangledeg + 180.0f) / 180.0f;
-	rotside[0][0] = (float)cos(sideangle);
-	rotside[0][1] = -(float)sin(sideangle);
-	rotside[1][0] = (float)sin(sideangle);
-	rotside[1][1] = (float)cos(sideangle);
-	rotside[2][2] = 1.0f;
+	rotside[0][0] =  cosf(sideangle);
+	rotside[0][1] = -sinf(sideangle);
+	rotside[1][0] =  sinf(sideangle);
+	rotside[1][1] =  cosf(sideangle);
+	rotside[2][2] =  1.0f;
 
 	upangle = (float)M_PI * upangledeg / 180.0f;
-	rotup[1][1] = (float)cos(upangle) / radius;
-	rotup[1][2] = -(float)sin(upangle) / radius;
-	rotup[2][1] = (float)sin(upangle) / radius;
-	rotup[2][2] = (float)cos(upangle) / radius;
-	rotup[0][0] = (float)1.0f / radius;
+	rotup[1][1] =  cosf(upangle) / radius;
+	rotup[1][2] = -sinf(upangle) / radius;
+	rotup[2][1] =  sinf(upangle) / radius;
+	rotup[2][2] =  cosf(upangle) / radius;
+	rotup[0][0] =  1.0f / radius;
 
 	/* calculate transforms*/
 	mul_serie_m4(result, rotup, rotside, viewmatrix, rotobj, NULL, NULL, NULL, NULL);
