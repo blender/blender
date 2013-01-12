@@ -51,11 +51,11 @@ def process_po(po, lang, mo=None):
 
     # show stats
     cmd = (GETTEXT_MSGFMT_EXECUTABLE,
-        "--statistics",
-        po,
-        "-o",
-        mo or os.path.join(mo_dir, ".".join((DOMAIN, "mo"))),
-        )
+           "--statistics",
+           po,
+           "-o",
+           mo or os.path.join(mo_dir, ".".join((DOMAIN, "mo"))),
+          )
 
     print("Running ", " ".join(cmd))
     ret = subprocess.call(cmd)

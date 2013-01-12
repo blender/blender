@@ -43,42 +43,31 @@ FILE_NAME_POT = settings.FILE_NAME_POT
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="" \
-                                 "Update all branches:\n" \
-                                 "* Generate a temp messages.txt file.\n" \
-                                 "* Use it to generate a temp .pot file.\n" \
-                                 "* Use it to update all .po’s in /branches.")
-    parser.add_argument('--pproc-contexts', action="store_true",
-                        help="Pre-process po’s to avoid having plenty of "
-                             "fuzzy msgids just because a context was "
-                             "added/changed!")
-    parser.add_argument('-c', '--no_checks', default=True,
-                        action="store_false",
-                        help="No checks over UI messages.")
+    parser = argparse.ArgumentParser(description="Update all branches:\n"
+                                                 "* Generate a temp messages.txt file.\n"
+                                                 "* Use it to generate a blender.pot file.\n"
+                                                 "* Use it to update all .po’s in /branches.")
+    #parser.add_argument('--pproc-contexts', action="store_true",
+                        #help="Pre-process po’s to avoid having plenty of fuzzy msgids just because a context was "
+                             #"added/changed!")
+    parser.add_argument('-c', '--no_checks', default=True, action="store_false", help="No checks over UI messages.")
     parser.add_argument('-a', '--add', action="store_true",
-                        help="Add missing po’s (useful only when one or " \
-                             "more languages are given!).")
-    parser.add_argument('langs', metavar='ISO_code', nargs='*',
-                        help="Restrict processed languages to those.")
+                        help="Add missing po’s (useful only when one or more languages are given!).")
+    parser.add_argument('langs', metavar='ISO_code', nargs='*', help="Restrict processed languages to those.")
     args = parser.parse_args()
 
     ret = 0
 
     # Generate a temp messages file.
-    dummy, msgfile = tempfile.mkstemp(suffix=".txt",
-                                      prefix="blender_messages_")
+    dummy, msgfile = tempfile.mkstemp(suffix=".txt", prefix="blender_messages_")
     os.close(dummy)
     cmd = (PY3, "./update_msg.py", "-o", msgfile)
     t = subprocess.call(cmd)
     if t:
         ret = t
 
-    # Generate a temp pot file.
-    # Back to having a pot file in trunk/po. It's quite useful for translators that want to start
+    # Generate blender.pot file in trunk/po. It's quite useful for translators that want to start
     # a new translation and not not want to bother generating their own po from scratch!
-#    dummy, potfile = tempfile.mkstemp(suffix=".pot",
-#                                      prefix="blender_pot_")
-#    os.close(dummy)
     potfile = FILE_NAME_POT
     cmd = [PY3, "./update_pot.py", "-i", msgfile, "-o", potfile]
     if not args.no_checks:
@@ -93,8 +82,8 @@ def main():
         if args.add:
             cmd.append("-a")
         cmd += args.langs
-    if args.pproc_contexts:
-        cmd.append("--pproc-contexts")
+    #if args.pproc_contexts:
+        #cmd.append("--pproc-contexts")
     t = subprocess.call(cmd)
     if t:
         ret = t

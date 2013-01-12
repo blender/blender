@@ -41,6 +41,7 @@ TRUNK_PO_DIR = settings.TRUNK_PO_DIR
 FILE_NAME_POT = settings.FILE_NAME_POT
 
 
+# XXX Not updated, not sure it's that much useful...
 def pproc_newcontext_po(po, pot_messages, pot_stats):
     print("Adding new contexts to {}...".format(po))
     messages, state, stats = utils.parse_messages(po)
@@ -73,41 +74,39 @@ def pproc_newcontext_po(po, pot_messages, pot_stats):
 
 def process_po(po, lang):
     # update po file
-    cmd = (GETTEXT_MSGMERGE_EXECUTABLE,
-           "--update",
-           "-w", "1",  # XXX Ugly hack to prevent msgmerge merging
-                       #     short source comments together!
-           "--no-wrap",
-           "--backup=none",
-           "--lang={}".format(lang),
-           po,
-           FILE_NAME_POT,
-           )
+    #cmd = (GETTEXT_MSGMERGE_EXECUTABLE,
+           #"--update",
+           #"-w", "1",  # XXX Ugly hack to prevent msgmerge merging short source comments together!
+           #"--no-wrap",
+           #"--backup=none",
+           #"--lang={}".format(lang),
+           #po,
+           #FILE_NAME_POT,
+           #)
 
+    pot = utils.I18nMessages(kind='PO', src=FILE_NAME_POT)
+    msg = utils.I18nMessages(iso=lang, kind='PO', src=po)
     print("Updating {}...".format(po))
-    print("Running ", " ".join(cmd))
-    ret = subprocess.call(cmd)
+    msg.update(pot)
+    msg.write(kind='PO', dest=po)
+    #print("Running ", " ".join(cmd))
+    #ret = subprocess.call(cmd)
     print("Finished!\n")
-    return ret
+    return 0
 
 
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="Write out messages.txt "
                                                  "from Blender.")
-    parser.add_argument('-t', '--trunk', action="store_true",
-                        help="Update po’s in /trunk/po rather than /branches.")
-    parser.add_argument('-i', '--input', metavar="File",
-                        help="Input pot file path.")
-    parser.add_argument('--pproc-contexts', action="store_true",
-                        help="Pre-process po’s to avoid having plenty of "
-                             "fuzzy msgids just because a context was "
-                             "added/changed!")
+    parser.add_argument('-t', '--trunk', action="store_true", help="Update po’s in /trunk/po rather than /branches.")
+    parser.add_argument('-i', '--input', metavar="File", help="Input pot file path.")
+    #parser.add_argument('--pproc-contexts', action="store_true",
+                        #help="Pre-process po’s to avoid having plenty of fuzzy msgids just because a context was "
+                             #"added/changed!")
     parser.add_argument('-a', '--add', action="store_true",
-                        help="Add missing po’s (useful only when one or "
-                             "more languages are given!).")
-    parser.add_argument('langs', metavar='ISO_code', nargs='*',
-                        help="Restrict processed languages to those.")
+                        help="Add missing po’s (useful only when one or more languages are given!).")
+    parser.add_argument('langs', metavar='ISO_code', nargs='*', help="Restrict processed languages to those.")
     args = parser.parse_args()
 
     if args.input:
@@ -115,9 +114,11 @@ def main():
         FILE_NAME_POT = args.input
     ret = 0
 
-    if args.pproc_contexts:
-        _ctxt_proc = pproc_newcontext_po
-        pot_messages, _a, pot_stats = utils.parse_messages(FILE_NAME_POT)
+    #if args.pproc_contexts:
+        #_ctxt_proc = pproc_newcontext_po
+        #pot_messages, _a, pot_stats = utils.parse_messages(FILE_NAME_POT)
+    if 0:
+        pass
     else:
         _ctxt_proc = lambda a, b, c: 0
         pot_messages, pot_stats = None, None
