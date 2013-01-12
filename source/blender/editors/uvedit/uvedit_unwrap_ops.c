@@ -367,18 +367,16 @@ static ParamHandle *construct_param_handle(Scene *scene, Object *ob, BMEditMesh 
 }
 
 
-static void texface_from_original_index(BMFace *efa, int index, float **uv, ParamBool *pin, ParamBool *select, Scene *scene, BMEditMesh *em)
+static void texface_from_original_index(BMFace *efa, int index, float **uv, ParamBool *pin, ParamBool *select,
+                                        Scene *scene, BMEditMesh *em, const int cd_loop_uv_offset)
 {
 	BMLoop *l;
 	BMIter liter;
 	MLoopUV *luv;
 
-	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-
 	*uv = NULL;
 	*pin = 0;
 	*select = 1;
-
 
 	if (index == ORIGINDEX_NONE)
 		return;
@@ -389,6 +387,7 @@ static void texface_from_original_index(BMFace *efa, int index, float **uv, Para
 			*uv = luv->uv;
 			*pin = (luv->flag & MLOOPUV_PINNED) ? 1 : 0;
 			*select = (uvedit_uv_select_test(em, scene, l) != 0);
+			break;
 		}
 	}
 }
@@ -423,6 +422,8 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, Object *ob, B
 	BMFace **faceMap;
 	/* similar to the above, we need a way to map edges to their original ones */
 	BMEdge **edgeMap;
+
+	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
 	handle = param_construct_begin();
 
@@ -512,10 +513,10 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, Object *ob, B
 		
 		/* This is where all the magic is done. If the vertex exists in the, we pass the original uv pointer to the solver, thus
 		 * flushing the solution to the edit mesh. */
-		texface_from_original_index(origFace, origVertIndices[face->v1], &uv[0], &pin[0], &select[0], scene, em);
-		texface_from_original_index(origFace, origVertIndices[face->v2], &uv[1], &pin[1], &select[1], scene, em);
-		texface_from_original_index(origFace, origVertIndices[face->v3], &uv[2], &pin[2], &select[2], scene, em);
-		texface_from_original_index(origFace, origVertIndices[face->v4], &uv[3], &pin[3], &select[3], scene, em);
+		texface_from_original_index(origFace, origVertIndices[face->v1], &uv[0], &pin[0], &select[0], scene, em, cd_loop_uv_offset);
+		texface_from_original_index(origFace, origVertIndices[face->v2], &uv[1], &pin[1], &select[1], scene, em, cd_loop_uv_offset);
+		texface_from_original_index(origFace, origVertIndices[face->v3], &uv[2], &pin[2], &select[2], scene, em, cd_loop_uv_offset);
+		texface_from_original_index(origFace, origVertIndices[face->v4], &uv[3], &pin[3], &select[3], scene, em, cd_loop_uv_offset);
 
 		param_face_add(handle, key, 4, vkeys, co, uv, pin, select);
 	}
