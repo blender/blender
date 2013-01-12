@@ -225,7 +225,7 @@ static void knife_update_header(bContext *C, KnifeTool_OpData *kcd)
 	ED_area_headerprint(CTX_wm_area(C), header);
 }
 
-static inline int round_ftoi(float x)
+BLI_INLINE int round_ftoi(float x)
 {
 	return x > 0.0f ?  (int)(x + 0.5f) : (int)(x - 0.5f);
 }
