@@ -294,7 +294,7 @@ bool KX_TrackToActuator::Update(double curtime, bool frame)
 			{
 				// (1.0 , 0.0 , 0.0 ) x direction is forward, z (0.0 , 0.0 , 1.0 ) up
 				left  = dir.safe_normalized();
-				dir = (left.cross(up)).safe_normalized();
+				dir = -(left.cross(up)).safe_normalized();
 				mat.setValue (
 					left[0], dir[0],up[0], 
 					left[1], dir[1],up[1],
