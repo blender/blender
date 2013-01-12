@@ -305,6 +305,10 @@ public:
 	 */
 	virtual GHOST_TSuccess setCursorGrab(GHOST_TGrabCursorMode mode, GHOST_Rect *bounds, GHOST_TInt32 mouse_ungrab_xy[2]) { return GHOST_kSuccess; }
 
+	
+	virtual float getNativePixelSize(void) = 0;
+
+	
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_IWindow")
 #endif

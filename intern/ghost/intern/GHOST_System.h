@@ -175,9 +175,6 @@ public:
 	virtual bool useNativePixel(void);
 	bool m_nativePixel;
 
-	virtual float getNativePixelSize(void);
-	float m_nativePixelSize;
-
 	/***************************************************************************************
 	 * Event management functionality
 	 ***************************************************************************************/

@@ -74,7 +74,9 @@ extern "C" {
 - (void)windowDidMove:(NSNotification *)notification;
 - (void)windowWillMove:(NSNotification *)notification;
 - (BOOL)windowShouldClose:(id)sender;	
+- (void)windowDidChangeBackingProperties:(NSNotification *)notification;
 @end
+
 
 @implementation CocoaWindowDelegate : NSObject
 - (void)setSystemAndWindowCocoa:(GHOST_SystemCocoa *)sysCocoa windowCocoa:(GHOST_WindowCocoa *)winCocoa
@@ -126,6 +128,11 @@ extern "C" {
 		wm_event_do_notifiers(ghostC);
 		wm_draw_update(ghostC);
 	}*/
+}
+
+- (void)windowDidChangeBackingProperties:(NSNotification *)notification
+{
+	systemCocoa->handleWindowEvent(GHOST_kEventNativeResolutionChange, associatedWindow);
 }
 
 - (BOOL)windowShouldClose:(id)sender;
@@ -593,7 +600,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 			[m_openGLView setWantsBestResolutionOpenGLSurface:YES];
 		
 			NSRect backingBounds = [m_openGLView convertRectToBacking:[m_openGLView bounds]];
-			m_systemCocoa->m_nativePixelSize = (float)backingBounds.size.width / (float)rect.size.width;
+			m_nativePixelSize = (float)backingBounds.size.width / (float)rect.size.width;
 		}
 	}
 	
@@ -911,6 +918,17 @@ NSScreen* GHOST_WindowCocoa::getScreen()
 	return [m_window screen];
 }
 
+/* called for event, when window leaves monitor to another */
+void GHOST_WindowCocoa::setNativePixelSize(void)
+{
+	NSRect backingBounds = [m_openGLView convertRectToBacking:[m_openGLView bounds]];
+	
+	GHOST_Rect rect;
+	getClientBounds(rect);
+
+	m_nativePixelSize = (float)backingBounds.size.width / (float)rect.getWidth();
+
+}
 
 /**
  * \note Fullscreen switch is not actual fullscreen with display capture.

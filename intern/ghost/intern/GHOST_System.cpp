@@ -46,7 +46,6 @@
 
 GHOST_System::GHOST_System()
 	: m_nativePixel(false),
-	m_nativePixelSize(1),
 	m_displayManager(0),
 	m_timerManager(0),
 	m_windowManager(0),
@@ -382,9 +381,3 @@ bool GHOST_System::useNativePixel(void)
 	return 1;
 }
 
-float GHOST_System::getNativePixelSize(void)
-{
-	if (m_nativePixel)
-		return m_nativePixelSize;
-	return 1.0f;
-}

@@ -1054,6 +1054,13 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 					//m_ignoreWindowSizedMessages = true;
 				}
 				break;
+			case GHOST_kEventNativeResolutionChange:
+				
+				if (m_nativePixel) {
+					window->setNativePixelSize();
+					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventNativeResolutionChange, window) );
+				}
+
 			default:
 				return GHOST_kFailure;
 				break;

@@ -61,6 +61,8 @@ GHOST_Window::GHOST_Window(
 	
 	m_cursorGrabAccumPos[0] = 0;
 	m_cursorGrabAccumPos[1] = 0;
+	
+	m_nativePixelSize = 1.0f;
 
 	m_fullScreen = state == GHOST_kWindowStateFullScreen;
 	if (m_fullScreen) {
@@ -194,3 +196,4 @@ bool GHOST_Window::getModifiedState()
 {
 	return m_isUnsavedChanges;
 }
+

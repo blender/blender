@@ -885,9 +885,11 @@ int GHOST_UseNativePixels(void)
 	return system->useNativePixel();
 }
 
-float GHOST_GetNativePixelSize(void)
+float GHOST_GetNativePixelSize(GHOST_WindowHandle windowhandle)
 {
-	GHOST_ISystem *system = GHOST_ISystem::getSystem();
-	return system->getNativePixelSize();
+	GHOST_IWindow *window = (GHOST_IWindow *) windowhandle;
+	if (window)
+		return window->getNativePixelSize();
+	return 1.0f;
 }
 

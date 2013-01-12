@@ -183,6 +183,7 @@ typedef enum {
 	GHOST_kEventDraggingDropDone,
 	
 	GHOST_kEventOpenMainFile, // Needed for Cocoa to open double-clicked .blend file at startup
+	GHOST_kEventNativeResolutionChange, // Needed for Cocoa when window moves to other display
 
 	GHOST_kEventTimer,
 
