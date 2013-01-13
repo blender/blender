@@ -613,8 +613,8 @@ static void init_internal_icons(void)
 
 	def_internal_vicon(VICO_VIEW3D_VEC, vicon_view3d_draw);
 	def_internal_vicon(VICO_EDIT_VEC, vicon_edit_draw);
-	def_internal_vicon(VICO_EDITMODE_DEHLT, vicon_editmode_dehlt_draw);
-	def_internal_vicon(VICO_EDITMODE_HLT, vicon_editmode_hlt_draw);
+	def_internal_vicon(VICO_EDITMODE_VEC_DEHLT, vicon_editmode_dehlt_draw);
+	def_internal_vicon(VICO_EDITMODE_VEC_HLT, vicon_editmode_hlt_draw);
 	def_internal_vicon(VICO_DISCLOSURE_TRI_RIGHT_VEC, vicon_disclosure_tri_right_draw);
 	def_internal_vicon(VICO_DISCLOSURE_TRI_DOWN_VEC, vicon_disclosure_tri_down_draw);
 	def_internal_vicon(VICO_MOVE_UP_VEC, vicon_move_up_draw);
