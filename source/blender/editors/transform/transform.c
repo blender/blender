@@ -880,19 +880,45 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				break;
 			case TFM_MODAL_TRANSLATE:
 				/* only switch when... */
-				if (ELEM3(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL) ) {
+				if (ELEM5(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
+					if (t->mode == TFM_EDGE_SLIDE) {
+						freeEdgeSlideVerts(t);
+					}
+					else if (t->mode == TFM_VERT_SLIDE) {
+						freeVertSlideVerts(t);
+					}
 					resetTransRestrictions(t);
 					restoreTransObjects(t);
 					initTranslation(t);
 					initSnapping(t, NULL); // need to reinit after mode change
 					t->redraw |= TREDRAW_HARD;
+					WM_event_add_mousemove(t->context);
 				}
-				else if (t->mode == TFM_TRANSLATION) {
-					if (t->options & (CTX_MOVIECLIP | CTX_MASK)) {
-						restoreTransObjects(t);
+				else {
+					if (t->obedit && t->obedit->type == OB_MESH) {
+						if (t->mode == TFM_TRANSLATION) {
+							resetTransRestrictions(t);
+							restoreTransObjects(t);
 
-						t->flag ^= T_ALT_TRANSFORM;
-						t->redraw |= TREDRAW_HARD;
+							/* first try edge slide */
+							initEdgeSlide(t);
+							/* if that fails, do vertex slide */
+							if (t->state == TRANS_CANCEL) {
+								t->state = TRANS_STARTING;
+								initVertSlide(t);
+							}
+							initSnapping(t, NULL); // need to reinit after mode change
+							t->redraw |= TREDRAW_HARD;
+							WM_event_add_mousemove(t->context);
+						}
+					}
+					else if (t->options & (CTX_MOVIECLIP | CTX_MASK)) {
+						if (t->mode == TFM_TRANSLATION) {
+							restoreTransObjects(t);
+
+							t->flag ^= T_ALT_TRANSFORM;
+							t->redraw |= TREDRAW_HARD;
+						}
 					}
 				}
 				break;
@@ -6184,7 +6210,6 @@ static int doVertSlide(TransInfo *t, float perc)
 				else {
 					madd_v3_v3v3fl(sv->v->co, sv->co_orig_3d, dir, tperc);
 				}
-				printf("%.6f\n", tperc);
 			}
 			else {
 				copy_v3_v3(sv->v->co, sv->co_orig_3d);
