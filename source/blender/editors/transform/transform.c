@@ -4903,9 +4903,9 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 	return NULL;
 }
 
-static void calcNonProportionalEdgeSlide(TransInfo *t, SlideData *sld, const float mval[2])
+static void calcNonProportionalEdgeSlide(TransInfo *t, EdgeSlideData *sld, const float mval[2])
 {
-	TransDataSlideVert *sv = sld->sv;
+	TransDataEdgeSlideVert *sv = sld->sv;
 
 	if (sld->totsv > 0) {
 		int i = 0;
@@ -4934,17 +4934,17 @@ static void calcNonProportionalEdgeSlide(TransInfo *t, SlideData *sld, const flo
 	}
 }
 
-static int createSlideVerts(TransInfo *t)
+static int createEdgeSlideVerts(TransInfo *t)
 {
 	BMEditMesh *em = BMEdit_FromObject(t->obedit);
 	BMesh *bm = em->bm;
 	BMIter iter;
 	BMEdge *e, *e1;
 	BMVert *v, *v2, *first;
-	TransDataSlideVert *sv_array;
+	TransDataEdgeSlideVert *sv_array;
 	BMBVHTree *btree;
 	SmallHash table;
-	SlideData *sld = MEM_callocN(sizeof(*sld), "sld");
+	EdgeSlideData *sld = MEM_callocN(sizeof(*sld), "sld");
 	View3D *v3d = NULL;
 	RegionView3D *rv3d = NULL;
 	ARegion *ar = t->ar;
@@ -5041,7 +5041,7 @@ static int createSlideVerts(TransInfo *t)
 		return 0;
 	}
 
-	sv_array = MEM_callocN(sizeof(TransDataSlideVert) * j, "sv_array");
+	sv_array = MEM_callocN(sizeof(TransDataEdgeSlideVert) * j, "sv_array");
 	loop_nr = 0;
 
 	j = 0;
@@ -5103,7 +5103,7 @@ static int createSlideVerts(TransInfo *t)
 		/*iterate over the loop*/
 		first = v;
 		do {
-			TransDataSlideVert *sv = sv_array + j;
+			TransDataEdgeSlideVert *sv = sv_array + j;
 
 			sv->v = v;
 			sv->origvert = *v;
@@ -5306,10 +5306,10 @@ static int createSlideVerts(TransInfo *t)
 	return 1;
 }
 
-void projectSVData(TransInfo *t, int final)
+void projectEdgeSlideData(TransInfo *t, bool is_final)
 {
-	SlideData *sld = t->customData;
-	TransDataSlideVert *sv;
+	EdgeSlideData *sld = t->customData;
+	TransDataEdgeSlideVert *sv;
 	BMEditMesh *em = sld->em;
 	SmallHash visit;
 	int i;
@@ -5436,7 +5436,7 @@ void projectSVData(TransInfo *t, int final)
 				 * and we do not want to mess up other shape keys */
 				BM_loop_interp_from_face(em->bm, l, f_copy_flip, FALSE, FALSE);
 
-				if (final) {
+				if (is_final) {
 					BM_loop_interp_multires(em->bm, l, f_copy_flip);
 					if (f_copy != f_copy_flip) {
 						BM_loop_interp_multires(em->bm, l, f_copy);
@@ -5460,7 +5460,7 @@ void projectSVData(TransInfo *t, int final)
 	BLI_smallhash_release(&visit);
 }
 
-void freeSlideTempFaces(SlideData *sld)
+void freeEdgeSlideTempFaces(EdgeSlideData *sld)
 {
 	if (sld->origfaces_init) {
 		SmallHashIter hiter;
@@ -5481,13 +5481,13 @@ void freeSlideTempFaces(SlideData *sld)
 }
 
 
-void freeSlideVerts(TransInfo *t)
+void freeEdgeSlideVerts(TransInfo *t)
 {
-	SlideData *sld = t->customData;
+	EdgeSlideData *sld = t->customData;
 	
 #if 0 /*BMESH_TODO*/
 	if (me->drawflag & ME_DRAWEXTRA_EDGELEN) {
-		TransDataSlideVert *sv;
+		TransDataEdgeSlideVert *sv;
 		LinkNode *look = sld->vertlist;
 		GHash *vertgh = sld->vhash;
 		while (look) {
@@ -5504,7 +5504,7 @@ void freeSlideVerts(TransInfo *t)
 	if (!sld)
 		return;
 	
-	freeSlideTempFaces(sld);
+	freeEdgeSlideTempFaces(sld);
 
 	bmesh_edit_end(sld->em->bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 
@@ -5520,13 +5520,13 @@ void freeSlideVerts(TransInfo *t)
 
 void initEdgeSlide(TransInfo *t)
 {
-	SlideData *sld;
+	EdgeSlideData *sld;
 
 	t->mode = TFM_EDGE_SLIDE;
 	t->transform = EdgeSlide;
 	t->handleEvent = handleEventEdgeSlide;
 
-	if (!createSlideVerts(t)) {
+	if (!createEdgeSlideVerts(t)) {
 		t->state = TRANS_CANCEL;
 		return;
 	}
@@ -5536,7 +5536,7 @@ void initEdgeSlide(TransInfo *t)
 	if (!sld)
 		return;
 
-	t->customFree = freeSlideVerts;
+	t->customFree = freeEdgeSlideVerts;
 
 	/* set custom point first if you want value to be initialized by init */
 	setCustomPoints(t, &t->mouse, sld->end, sld->start);
@@ -5556,7 +5556,7 @@ void initEdgeSlide(TransInfo *t)
 int handleEventEdgeSlide(struct TransInfo *t, struct wmEvent *event)
 {
 	if (t->mode == TFM_EDGE_SLIDE) {
-		SlideData *sld = t->customData;
+		EdgeSlideData *sld = t->customData;
 
 		if (sld) {
 			switch (event->type) {
@@ -5602,14 +5602,14 @@ int handleEventEdgeSlide(struct TransInfo *t, struct wmEvent *event)
 void drawNonPropEdge(const struct bContext *C, TransInfo *t)
 {
 	if (t->mode == TFM_EDGE_SLIDE) {
-		SlideData *sld = (SlideData *)t->customData;
+		EdgeSlideData *sld = (EdgeSlideData *)t->customData;
 		/* Non-Prop mode */
 		if (sld && sld->is_proportional == FALSE) {
 			View3D *v3d = CTX_wm_view3d(C);
 			float marker[3];
 			float v1[3], v2[3];
 			float interp_v;
-			TransDataSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
+			TransDataEdgeSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
 			const float ctrl_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) + 1.5f;
 			const float guide_size = ctrl_size - 0.5f;
 			const float line_size = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.5f;
@@ -5675,8 +5675,8 @@ void drawNonPropEdge(const struct bContext *C, TransInfo *t)
 
 static int doEdgeSlide(TransInfo *t, float perc)
 {
-	SlideData *sld = t->customData;
-	TransDataSlideVert *svlist = sld->sv, *sv;
+	EdgeSlideData *sld = t->customData;
+	TransDataEdgeSlideVert *svlist = sld->sv, *sv;
 	int i;
 
 	sld->perc = perc;
@@ -5706,7 +5706,7 @@ static int doEdgeSlide(TransInfo *t, float perc)
 		 * \note len_v3v3(curr_sv->upvec, curr_sv->downvec)
 		 * is the same as the distance between the original vert locations, same goes for the lines below.
 		 */
-		TransDataSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
+		TransDataEdgeSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
 		const float curr_length_perc = curr_sv->edge_len * (((sld->flipped_vtx ? perc : -perc) + 1.0f) / 2.0f);
 
 		float down_co[3];
@@ -5729,7 +5729,7 @@ static int doEdgeSlide(TransInfo *t, float perc)
 		}
 	}
 	
-	projectSVData(t, 0);
+	projectEdgeSlideData(t, 0);
 	
 	return 1;
 }
@@ -5738,7 +5738,7 @@ int EdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 {
 	char str[128];
 	float final;
-	SlideData *sld =  t->customData;
+	EdgeSlideData *sld =  t->customData;
 	int flipped = sld->flipped_vtx;
 	int is_proportional = sld->is_proportional;
 

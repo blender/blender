@@ -5094,25 +5094,25 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			if (canceled == 0) {
 				/* we need to delete the temporary faces before automerging */
 				if (t->mode == TFM_EDGE_SLIDE) {
-					SlideData *sld = t->customData;
+					EdgeSlideData *sld = t->customData;
 
 					/* handle multires re-projection, done
 					 * on transform completion since it's
 					 * really slow -joeedh */
-					projectSVData(t, TRUE);
+					projectEdgeSlideData(t, TRUE);
 
 					/* free temporary faces to avoid automerging and deleting
 					 * during cleanup - psy-fi */
-					freeSlideTempFaces(sld);
+					freeEdgeSlideTempFaces(sld);
 				}
 				EDBM_automerge(t->scene, t->obedit, TRUE);
 			}
 			else {
 				if (t->mode == TFM_EDGE_SLIDE) {
-					SlideData *sld = t->customData;
+					EdgeSlideData *sld = t->customData;
 
 					sld->perc = 0.0;
-					projectSVData(t, FALSE);
+					projectEdgeSlideData(t, FALSE);
 				}
 			}
 		}

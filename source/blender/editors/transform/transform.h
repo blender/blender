@@ -188,7 +188,7 @@ typedef struct TransDataNla {
 struct LinkNode;
 struct GHash;
 
-typedef struct TransDataSlideVert {
+typedef struct TransDataEdgeSlideVert {
 	struct BMVert vup, vdown;
 	struct BMVert origvert;
 
@@ -201,10 +201,10 @@ typedef struct TransDataSlideVert {
 	float upvec[3], downvec[3];
 
 	int loop_nr;
-} TransDataSlideVert;
+} TransDataEdgeSlideVert;
 
-typedef struct SlideData {
-	TransDataSlideVert *sv;
+typedef struct EdgeSlideData {
+	TransDataEdgeSlideVert *sv;
 	int totsv;
 	
 	struct SmallHash vhash;
@@ -222,7 +222,7 @@ typedef struct SlideData {
 	int flipped_vtx;
 
 	int curr_sv_index;
-} SlideData;
+} EdgeSlideData;
 
 typedef struct TransData {
 	float  dist;         /* Distance needed to affect element (for Proportionnal Editing)                  */
@@ -715,8 +715,8 @@ void applyTransformOrientation(const struct bContext *C, float mat[3][3], char *
 
 int getTransformOrientation(const struct bContext *C, float normal[3], float plane[3], int activeOnly);
 
-void freeSlideTempFaces(SlideData *sld);
-void freeSlideVerts(TransInfo *t);
-void projectSVData(TransInfo *t, int final);
+void freeEdgeSlideTempFaces(EdgeSlideData *sld);
+void freeEdgeSlideVerts(TransInfo *t);
+void projectEdgeSlideData(TransInfo *t, bool is_final);
 
 #endif
