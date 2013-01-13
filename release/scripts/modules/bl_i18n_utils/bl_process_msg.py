@@ -397,8 +397,11 @@ def dump_py_messages_from_files(messages, check_ctxt, files):
             eval_str = ast.literal_eval(node)
             if eval_str:
                 # Parse optional context included in string!
-                if bpy.app.i18n.context_sep in eval_str:
-                    key = eval_str.split(bpy.app.i18n.context_sep, 1)
+                # XXX Not yet!
+                #if bpy.app.i18n.context_sep in eval_str:
+                    #key = eval_str.split(bpy.app.i18n.context_sep, 1)
+                if 0:
+                    pass
                 else:
                     key = (CONTEXT_DEFAULT, eval_str)
                 msgsrc = "{}:{}".format(fp_rel, node.lineno)
