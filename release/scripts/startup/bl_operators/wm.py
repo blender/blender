@@ -1255,13 +1255,6 @@ class WM_OT_copy_prev_settings(Operator):
         else:
             shutil.copytree(path_src, path_dst, symlinks=True)
 
-            # in 2.57 and earlier windows installers, system scripts were copied
-            # into the configuration directory, don't want to copy those
-            system_script = os.path.join(path_dst, "scripts/modules/bpy_types.py")
-            if os.path.isfile(system_script):
-                shutil.rmtree(os.path.join(path_dst, "scripts"))
-                shutil.rmtree(os.path.join(path_dst, "plugins"))
-
             # don't loose users work if they open the splash later.
             if bpy.data.is_saved is bpy.data.is_dirty is False:
                 bpy.ops.wm.read_homefile()
