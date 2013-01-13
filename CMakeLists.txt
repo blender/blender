@@ -1327,6 +1327,11 @@ elseif(WIN32)
 					optimized boost_locale-${BOOST_POSTFIX}
 					debug boost_locale-${BOOST_DEBUG_POSTFIX}) 
 			endif()
+			if(WITH_CYCLES_OSL)
+				set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
+					optimized boost_wave-${BOOST_POSTFIX}
+					debug boost_wave-${BOOST_DEBUG_POSTFIX}) 
+			endif()
 			set(BOOST_LIBPATH ${BOOST}/lib)
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB -DBOOST_THREAD_USE_LIB ")
 		endif()
