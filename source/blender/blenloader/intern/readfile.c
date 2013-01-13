@@ -1439,6 +1439,8 @@ void blo_end_movieclip_pointer_map(FileData *fd, Main *oldmain)
 	}
 }
 
+/* XXX disabled this feature - packed files also belong in temp saves and quit.blend, to make restore work */
+
 static void insert_packedmap(FileData *fd, PackedFile *pf)
 {
 	oldnewmap_insert(fd->packedmap, pf, pf, 0);
@@ -1863,7 +1865,7 @@ static PreviewImage *direct_link_preview_image(FileData *fd, PreviewImage *old_p
 				prv->rect[i] = newdataadr(fd, prv->rect[i]);
 			}
 		}
-		prv->gputexture[0] = prv->gputexture[1] = NULL;
+//		prv->gputexture[0] = prv->gputexture[1] = NULL;
 	}
 	
 	return prv;

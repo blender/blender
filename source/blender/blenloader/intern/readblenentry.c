@@ -311,8 +311,7 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFil
 		/* makes lookup of existing video clips in old main */
 		blo_make_movieclip_pointer_map(fd, oldmain);
 		
-		/* makes lookup of existing video clips in old main */
-		blo_make_packed_pointer_map(fd, oldmain);
+		/* removed packed data from this trick - it's internal data that needs saves */
 		
 		bfd = blo_read_file_internal(fd, filename);
 		
@@ -321,10 +320,7 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFil
 		
 		/* ensures relinked movie clips are not freed */
 		blo_end_movieclip_pointer_map(fd, oldmain);
-		
-		/* ensures relinked packed data is not freed */
-		blo_end_packed_pointer_map(fd, oldmain);
-		
+				
 		/* move libraries from old main to new main */
 		if (bfd && mainlist.first != mainlist.last) {
 			
