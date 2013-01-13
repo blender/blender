@@ -709,7 +709,7 @@ static void rna_def_image(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "channels", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_funcs(prop, "rna_Image_channels_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Channels", "Number of channels in pixels nuffer");
+	RNA_def_property_ui_text(prop, "Channels", "Number of channels in pixels buffer");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "is_float", PROP_BOOLEAN, PROP_NONE);
