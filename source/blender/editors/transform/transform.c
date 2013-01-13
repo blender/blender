@@ -4944,24 +4944,38 @@ static void calcNonProportionalEdgeSlide(TransInfo *t, EdgeSlideData *sld, const
 	TransDataEdgeSlideVert *sv = sld->sv;
 
 	if (sld->totsv > 0) {
+		ARegion *ar = t->ar;
+		RegionView3D *rv3d = NULL;
+		float projectMat[4][4];
+
 		int i = 0;
 
-		float v_proj[3];
+		float v_proj[2];
 		float dist = 0;
 		float min_dist = FLT_MAX;
+
+		if (t->spacetype == SPACE_VIEW3D) {
+			/* background mode support */
+			rv3d = t->ar ? t->ar->regiondata : NULL;
+		}
+
+		if (!rv3d) {
+			/* ok, let's try to survive this */
+			unit_m4(projectMat);
+		}
+		else {
+			ED_view3d_ob_project_mat_get(rv3d, t->obedit, projectMat);
+		}
 
 		for (i = 0; i < sld->totsv; i++, sv++) {
 			/* Set length */
 			sv->edge_len = len_v3v3(sv->upvec, sv->downvec);
 
-			mul_v3_m4v3(v_proj, t->obedit->obmat, sv->v->co);
-			/* allow points behind the view [#33643] */
-			if (ED_view3d_project_float_global(t->ar, v_proj, v_proj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
-				dist = len_squared_v2v2(mval, v_proj);
-				if (dist < min_dist) {
-					min_dist = dist;
-					sld->curr_sv_index = i;
-				}
+			ED_view3d_project_float_v2_m4(ar, sv->v->co, v_proj, projectMat);
+			dist = len_squared_v2v2(mval, v_proj);
+			if (dist < min_dist) {
+				min_dist = dist;
+				sld->curr_sv_index = i;
 			}
 		}
 	}
