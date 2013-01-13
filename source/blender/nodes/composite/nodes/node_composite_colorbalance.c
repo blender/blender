@@ -58,7 +58,7 @@ static bNodeSocketTemplate cmp_node_colorbalance_out[] = {
  *     out = Clamp(O) ^ power
  *         = Clamp((in * slope) + offset) ^ power
  */
-DO_INLINE float colorbalance_cdl(float in, float offset, float power, float slope)
+BLI_INLINE float colorbalance_cdl(float in, float offset, float power, float slope)
 {
 	float x = in * slope + offset;
 	
@@ -69,7 +69,7 @@ DO_INLINE float colorbalance_cdl(float in, float offset, float power, float slop
 }
 
 /* note: lift_lgg is just 2-lift, gamma_inv is 1.0/gamma */
-DO_INLINE float colorbalance_lgg(float in, float lift_lgg, float gamma_inv, float gain)
+BLI_INLINE float colorbalance_lgg(float in, float lift_lgg, float gamma_inv, float gain)
 {
 	/* 1:1 match with the sequencer with linear/srgb conversions, the conversion isn't pretty
 	 * but best keep it this way, since testing for durian shows a similar calculation
