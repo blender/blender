@@ -31,6 +31,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -880,6 +881,11 @@ static int rna_EnumPropertyItem_value_get(PointerRNA *ptr)
 	return ((EnumPropertyItem *)ptr->data)->value;
 }
 
+static int rna_EnumPropertyItem_icon_get(PointerRNA *ptr)
+{
+	return ((EnumPropertyItem *)ptr->data)->icon;
+}
+
 static PointerRNA rna_PointerProperty_fixed_type_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
@@ -1408,6 +1414,12 @@ static void rna_def_enum_property(BlenderRNA *brna, StructRNA *srna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_EnumPropertyItem_value_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Value", "Value of the item");
+
+	prop = RNA_def_property(srna, "icon", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_enum_items(prop, icon_items);
+	RNA_def_property_enum_funcs(prop, "rna_EnumPropertyItem_icon_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Icon", "Icon of the item");
 }
 
 static void rna_def_pointer_property(StructRNA *srna, PropertyType type)

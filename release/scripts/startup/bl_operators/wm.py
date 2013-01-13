@@ -506,10 +506,10 @@ class WM_MT_context_menu_enum(Menu):
         base_path, prop_string = data_path.rsplit(".", 1)
         value_base = context_path_validate(context, base_path)
 
-        values = [(i.name, i.identifier) for i in value_base.bl_rna.properties[prop_string].enum_items]
+        values = [(i.name, i.identifier, i.icon) for i in value_base.bl_rna.properties[prop_string].enum_items]
 
-        for name, identifier in values:
-            props = self.layout.operator("wm.context_set_enum", text=name)
+        for name, identifier, icon in values:
+            props = self.layout.operator("wm.context_set_enum", text=name, icon=icon)
             props.data_path = data_path
             props.value = identifier
 
