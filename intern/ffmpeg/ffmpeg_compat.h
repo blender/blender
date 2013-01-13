@@ -74,7 +74,9 @@
 
 #if ((LIBAVUTIL_VERSION_MAJOR > 51) || (LIBAVUTIL_VERSION_MAJOR == 51) && (LIBAVUTIL_VERSION_MINOR >= 32))
 #define FFMPEG_FFV1_ALPHA_SUPPORTED
-#else
+#endif
+
+#if ((LIBAVUTIL_VERSION_MAJOR < 51) || (LIBAVUTIL_VERSION_MAJOR == 51) && (LIBAVUTIL_VERSION_MINOR < 22))
 static inline
 int av_opt_set(void *obj, const char *name, const char *val, int search_flags)
 {
