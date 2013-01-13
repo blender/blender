@@ -226,7 +226,7 @@ class I18nMessages:
     def merge(self, replace=False, *args):
         pass
 
-    def update(self, ref, use_similar=0.8, keep_old_commented=True):
+    def update(self, ref, use_similar=0.75, keep_old_commented=True):
         """
         Update this I18nMessage with the ref one. Translations from ref are never used. Source comments from ref
         completely replace current ones. If use_similar is not 0.0, it will try to match new messages in ref with an
@@ -493,7 +493,6 @@ class I18nMessages:
                     msgstr_lines.append(line)
                 else:
                     self.parsing_errors.append((line_nr, "regular string outside msgctxt, msgid or msgstr scope"))
-                    print(line)
 
         # If no final empty line, last message is not finalized!
         if reading_msgstr:
@@ -534,7 +533,6 @@ class I18nMessages:
                     else:
                         chunks += ["\n" + _pmsgctxt + "\"" + msg.msgctxt + "\""]
                 if len(msg.msgid_lines) > 1:
-                    print(msg.msgid_lines)
                     chunks += [
                         "\n" + _pmsgid + "\"\"\n" + _p + "\"",
                         ("\"\n" + _p + "\"").join(msg.msgid_lines),
