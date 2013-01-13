@@ -1863,6 +1863,7 @@ static PreviewImage *direct_link_preview_image(FileData *fd, PreviewImage *old_p
 				prv->rect[i] = newdataadr(fd, prv->rect[i]);
 			}
 		}
+		prv->gputexture[0] = prv->gputexture[1] = NULL;
 	}
 	
 	return prv;
@@ -2723,14 +2724,15 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 {
 	bPoseChannel *pchan;
 	bArmature *arm = ob->data;
-	int rebuild;
+	int rebuild = 0;
 	
 	if (!pose || !arm)
 		return;
 	
-	
-	/* always rebuild to match proxy or lib changes */
-	rebuild = ob->proxy || (ob->id.lib==NULL && arm->id.lib);
+	/* always rebuild to match proxy or lib changes, but on Undo */
+	if (fd->memfile == NULL)
+		if (ob->proxy || (ob->id.lib==NULL && arm->id.lib))
+			rebuild = 1;
 	
 	if (ob->proxy) {
 		/* sync proxy layer */
@@ -4175,8 +4177,6 @@ static void lib_link_object(FileData *fd, Main *main)
 				else {
 					/* this triggers object_update to always use a copy */
 					ob->proxy->proxy_from = ob;
-					/* force proxy updates after load/undo, a bit weak */
-					ob->recalc = ob->proxy->recalc = (OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 				}
 			}
 			ob->proxy_group = newlibadr(fd, ob->id.lib, ob->proxy_group);
