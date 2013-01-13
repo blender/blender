@@ -46,14 +46,17 @@
 #else
 #  include <unistd.h> /* getpid */
 #endif
-/* for backtrace */
-#ifndef WIN32
-#  include <execinfo.h>
-#endif
 
 #ifdef WIN32
 #  include <Windows.h>
 #  include "utfconv.h"
+#endif
+
+/* for backtrace */
+#ifdef WIN32
+#  include <DbgHelp.h>
+#else
+#  include <execinfo.h>
 #endif
 
 #include <stdlib.h>
@@ -446,8 +449,8 @@ static int set_fpe(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(dat
 
 static void blender_crash_handler_backtrace(FILE *fp)
 {
-#ifndef WIN32
 #define SIZE 100
+#ifndef WIN32
 	void *buffer[SIZE];
 	int nptrs;
 	char **strings;
@@ -464,12 +467,38 @@ static void blender_crash_handler_backtrace(FILE *fp)
 	}
 
 	free(strings);
-#undef SIZE
-#else  /* WIN32 */
-	/* TODO */
+#else /* WIN32 */
 	(void)fp;
+#if 0
+	#define MAXSYMBOL 256
+	unsigned short	i;
+	void *stack[SIZE];
+	unsigned short nframes;
+	SYMBOL_INFO	*symbolinfo;
+	HANDLE process;
+
+	process = GetCurrentProcess();
+
+	SymInitialize(process, NULL, TRUE);
+
+	nframes = CaptureStackBackTrace(0, SIZE, stack, NULL);
+	symbolinfo = MEM_callocN(sizeof(SYMBOL_INFO) + MAXSYMBOL * sizeof( char ), "crash Symbol table");
+	symbolinfo->MaxNameLen = MAXSYMBOL - 1;
+	symbolinfo->SizeOfStruct = sizeof(SYMBOL_INFO);
+
+	for( i = 0; i < nframes; i++ )
+	{
+		SymFromAddr(process, ( DWORD64 )( stack[ i ] ), 0, symbolinfo);
+
+		fprintf(fp, "%u: %s - 0x%0X\n", nframes - i - 1, symbolinfo->Name, symbolinfo->Address);
+	}
+
+	MEM_freeN(symbolinfo);
 #endif
+#endif
+#undef SIZE
 }
+
 static void blender_crash_handler(int signum)
 {
 
@@ -534,8 +563,7 @@ static void blender_crash_handler(int signum)
 #ifndef WIN32
 	kill(getpid(), signum);
 #else
-	/* force crash on windows for now */
-	*((void **)NULL) = NULL;
+	TerminateProcess(GetCurrentProcess(), signum);
 #endif
 }
 
