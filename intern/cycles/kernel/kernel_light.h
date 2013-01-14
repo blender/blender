@@ -233,8 +233,10 @@ __device void lamp_light_sample(KernelGlobals *kg, int lamp,
 
 		if(radius > 0.0f)
 			D = distant_light_sample(D, radius, randu, randv);
+#ifdef __LAMP_MIS__
 		else
 			ls->use_mis = false;
+#endif
 
 		ls->P = D;
 		ls->Ng = D;
@@ -255,6 +257,9 @@ __device void lamp_light_sample(KernelGlobals *kg, int lamp,
 		ls->D = -D;
 		ls->t = FLT_MAX;
 		ls->eval_fac = 1.0f;
+#ifndef __LAMP_MIS__
+		ls->use_mis = true;
+#endif
 	}
 #endif
 	else {
@@ -266,8 +271,10 @@ __device void lamp_light_sample(KernelGlobals *kg, int lamp,
 			if(radius > 0.0f)
 				/* sphere light */
 				ls->P += sphere_light_sample(P, ls->P, radius, randu, randv);
+#ifdef __LAMP_MIS__
 			else
 				ls->use_mis = false;
+#endif
 
 			ls->D = normalize_len(ls->P - P, &ls->t);
 			ls->Ng = -ls->D;
@@ -298,7 +305,9 @@ __device void lamp_light_sample(KernelGlobals *kg, int lamp,
 			float invarea = data2.x;
 
 			if(invarea == 0.0f) {
+#ifdef __LAMP_MIS__
 				ls->use_mis = false;
+#endif
 				invarea = 1.0f;
 			}
 
