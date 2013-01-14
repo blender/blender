@@ -325,6 +325,11 @@ static void rna_userdef_addon_remove(ReportList *reports, PointerRNA *bext_ptr)
 		return;
 	}
 
+	if (bext->prop) {
+		IDP_FreeProperty(bext->prop);
+		MEM_freeN(bext->prop);
+	}
+
 	BLI_freelinkN(&U.addons, bext);
 	RNA_POINTER_INVALIDATE(bext_ptr);
 }
