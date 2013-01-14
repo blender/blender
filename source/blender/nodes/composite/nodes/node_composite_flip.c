@@ -43,55 +43,6 @@ static bNodeSocketTemplate cmp_node_flip_out[] = {
 	{	-1, 0, ""	}
 };
 
-#ifdef WITH_COMPOSITOR_LEGACY
-
-static void node_composit_exec_flip(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	if (in[0]->data) {
-		CompBuf *cbuf= in[0]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 1);	/* note, this returns zero'd image */
-		int i, src_pix, src_width, src_height, srcydelt, outydelt, x, y;
-		float *srcfp, *outfp;
-		
-		src_pix= cbuf->type;
-		src_width= cbuf->x;
-		src_height= cbuf->y;
-		srcfp= cbuf->rect;
-		outfp= stackbuf->rect;
-		srcydelt= src_width*src_pix;
-		outydelt= srcydelt;
-		
-		if (node->custom1) {		/*set up output pointer for y flip*/
-			outfp+= (src_height-1)*outydelt;
-			outydelt= -outydelt;
-		}
-
-		for (y=0; y<src_height; y++) {
-			if (node->custom1 == 1) {	/* no x flip so just copy line*/
-				memcpy(outfp, srcfp, sizeof(float) * src_pix * src_width);
-				srcfp+=srcydelt;
-			}
-			else {
-				outfp += (src_width-1)*src_pix;
-				for (x=0; x<src_width; x++) {
-					for (i=0; i<src_pix; i++) {
-						outfp[i] = srcfp[i];
-					}
-					outfp -= src_pix;
-					srcfp += src_pix;
-				}
-				outfp += src_pix;
-			}
-			outfp += outydelt;
-		}
-
-		out[0]->data= stackbuf;
-
-	}
-}
-
-#endif  /* WITH_COMPOSITOR_LEGACY */
-
 void register_node_type_cmp_flip(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
@@ -99,9 +50,6 @@ void register_node_type_cmp_flip(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_FLIP, "Flip", NODE_CLASS_DISTORT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_flip_in, cmp_node_flip_out);
 	node_type_size(&ntype, 140, 100, 320);
-#ifdef WITH_COMPOSITOR_LEGACY
-	node_type_exec(&ntype, node_composit_exec_flip);
-#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

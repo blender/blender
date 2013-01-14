@@ -43,48 +43,6 @@ static bNodeSocketTemplate cmp_node_mix_rgb_out[] = {
 	{	-1, 0, ""	}
 };
 
-#ifdef WITH_COMPOSITOR_LEGACY
-
-static void do_mix_rgb(bNode *node, float *out, float *in1, float *in2, float *fac)
-{
-	float col[3];
-	
-	copy_v3_v3(col, in1);
-	if (node->custom2)
-		ramp_blend(node->custom1, col, in2[3]*fac[0], in2);
-	else
-		ramp_blend(node->custom1, col, fac[0], in2);
-	copy_v3_v3(out, col);
-	out[3] = in1[3];
-}
-
-static void node_composit_exec_mix_rgb(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	/* stack order in: fac, Image, Image */
-	/* stack order out: Image */
-	float *fac= in[0]->vec;
-	
-	if (out[0]->hasoutput==0) return;
-	
-	/* input no image? then only color operation */
-	if (in[1]->data==NULL && in[2]->data==NULL) {
-		do_mix_rgb(node, out[0]->vec, in[1]->vec, in[2]->vec, fac);
-	}
-	else {
-		/* make output size of first available input image */
-		CompBuf *cbuf= in[1]->data?in[1]->data:in[2]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
-		
-		composit3_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[2]->data, in[2]->vec, in[0]->data, fac, do_mix_rgb, CB_RGBA, CB_RGBA, CB_VAL);
-		
-		out[0]->data= stackbuf;
-		
-		generate_preview(data, node, out[0]->data);
-	}
-}
-
-#endif  /* WITH_COMPOSITOR_LEGACY */
-
 /* custom1 = mix type */
 void register_node_type_cmp_mix_rgb(bNodeTreeType *ttype)
 {
@@ -94,9 +52,6 @@ void register_node_type_cmp_mix_rgb(bNodeTreeType *ttype)
 	node_type_socket_templates(&ntype, cmp_node_mix_rgb_in, cmp_node_mix_rgb_out);
 	node_type_size(&ntype, 110, 60, 120);
 	node_type_label(&ntype, node_blend_label);
-#ifdef WITH_COMPOSITOR_LEGACY
-	node_type_exec(&ntype, node_composit_exec_mix_rgb);
-#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

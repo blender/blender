@@ -49,18 +49,6 @@ static void node_composit_init_value(bNodeTree *UNUSED(ntree), bNode *node, bNod
 	dval->max = FLT_MAX;
 }
 
-#ifdef WITH_COMPOSITOR_LEGACY
-
-static void node_composit_exec_value(void *UNUSED(data), bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
-{
-	bNodeSocket *sock= node->outputs.first;
-	float val= ((bNodeSocketValueFloat*)sock->default_value)->value;
-	
-	out[0]->vec[0] = val;
-}
-
-#endif  /* WITH_COMPOSITOR_LEGACY */
-
 void register_node_type_cmp_value(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
@@ -69,9 +57,6 @@ void register_node_type_cmp_value(bNodeTreeType *ttype)
 	node_type_socket_templates(&ntype, NULL, cmp_node_value_out);
 	node_type_init(&ntype, node_composit_init_value);
 	node_type_size(&ntype, 80, 40, 120);
-#ifdef WITH_COMPOSITOR_LEGACY
-	node_type_exec(&ntype, node_composit_exec_value);
-#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

@@ -44,87 +44,6 @@ static bNodeSocketTemplate cmp_node_rotate_out[] = {
 	{	-1, 0, ""	}
 };
 
-#ifdef WITH_COMPOSITOR_LEGACY
-
-/* only supports RGBA nodes now */
-static void node_composit_exec_rotate(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
-{
-
-	if (out[0]->hasoutput==0)
-		return;
-
-	if (in[0]->data) {
-		CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1);	/* note, this returns zero'd image */
-		float rad, u, v, s, c, centx, centy, miny, maxy, minx, maxx;
-		int x, y, yo, xo;
-		ImBuf *ibuf, *obuf;
-
-		rad= in[1]->vec[0];
-
-
-		s= sin(rad);
-		c= cos(rad);
-		centx= cbuf->x/2;
-		centy= cbuf->y/2;
-
-		minx= -centx;
-		maxx= -centx + (float)cbuf->x;
-		miny= -centy;
-		maxy= -centy + (float)cbuf->y;
-
-
-		ibuf=IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0);
-		obuf=IMB_allocImBuf(stackbuf->x, stackbuf->y, 32, 0);
-
-		if (ibuf && obuf) {
-			ibuf->rect_float=cbuf->rect;
-			obuf->rect_float=stackbuf->rect;
-
-			for (y=miny; y<maxy; y++) {
-				yo= y+(int)centy;
-
-				for (x=minx; x<maxx;x++) {
-					u=c*x + y*s + centx;
-					v=-s*x + c*y + centy;
-					xo= x+(int)centx;
-
-					switch (node->custom1) {
-					case 0:
-						nearest_interpolation(ibuf, obuf, u, v, xo, yo);
-						break;
-					case 1:
-						bilinear_interpolation(ibuf, obuf, u, v, xo, yo);
-						break;
-					case 2:
-						bicubic_interpolation(ibuf, obuf, u, v, xo, yo);
-						break;
-					}
-
-				}
-			}
-
-			/* rotate offset vector too, but why negative rad, ehh?? Has to be replaced with [3][3] matrix once (ton) */
-			s= sin(-rad);
-			c= cos(-rad);
-			centx= (float)cbuf->xof; centy= (float)cbuf->yof;
-			stackbuf->xof= (int)( c*centx + s*centy);
-			stackbuf->yof= (int)(-s*centx + c*centy);
-
-			IMB_freeImBuf(ibuf);
-			IMB_freeImBuf(obuf);
-		}
-
-		/* pass on output and free */
-		out[0]->data= stackbuf;
-		if (cbuf!=in[0]->data) {
-			free_compbuf(cbuf);
-		}
-	}
-}
-
-#endif  /* WITH_COMPOSITOR_LEGACY */
-
 static void node_composit_init_rotate(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->custom1= 1; /* Bilinear Filter*/
@@ -138,9 +57,6 @@ void register_node_type_cmp_rotate(bNodeTreeType *ttype)
 	node_type_socket_templates(&ntype, cmp_node_rotate_in, cmp_node_rotate_out);
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_init(&ntype, node_composit_init_rotate);
-#ifdef WITH_COMPOSITOR_LEGACY
-	node_type_exec(&ntype, node_composit_exec_rotate);
-#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

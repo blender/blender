@@ -45,61 +45,6 @@ static bNodeSocketTemplate cmp_node_luma_matte_out[] = {
 	{-1, 0, ""}
 };
 
-#ifdef WITH_COMPOSITOR_LEGACY
-
-static void do_luma_matte(bNode *node, float *out, float *in)
-{
-	NodeChroma *c=(NodeChroma *)node->storage;
-	float alpha;
-
-	/* test range*/
-	if (in[0]>c->t1) {
-		alpha=1.0;
-	}
-	else if (in[0]<c->t2) {
-		alpha=0.0;
-	}
-	else {/*blend */
-		alpha=(in[0]-c->t2)/(c->t1-c->t2);
-	}
-	
-	/* don't make something that was more transparent less transparent */
-	if (alpha<in[3]) {
-		out[3]=alpha;
-	}
-	else {
-		out[3]=in[3];
-	}
-
-}
-
-static void node_composit_exec_luma_matte(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	CompBuf *cbuf;
-	CompBuf *outbuf;
-	
-	if (in[0]->hasinput==0)  return;
-	if (in[0]->data==NULL) return;
-	if (out[0]->hasoutput==0 && out[1]->hasoutput==0) return;
-	
-	cbuf=typecheck_compbuf(in[0]->data, CB_RGBA);
-	
-	outbuf=dupalloc_compbuf(cbuf);
-
-	composit1_pixel_processor(node, outbuf, cbuf, in[1]->vec, do_rgba_to_yuva, CB_RGBA);
-	composit1_pixel_processor(node, outbuf, outbuf, in[1]->vec, do_luma_matte, CB_RGBA);
-	composit1_pixel_processor(node, outbuf, outbuf, in[1]->vec, do_yuva_to_rgba, CB_RGBA);
-	
-	generate_preview(data, node, outbuf);
-	out[0]->data=outbuf;
-	if (out[1]->hasoutput)
-		out[1]->data=valbuf_from_rgbabuf(outbuf, CHAN_A);
-	if (cbuf!=in[0]->data)
-		free_compbuf(cbuf);
-}
-
-#endif  /* WITH_COMPOSITOR_LEGACY */
-
 static void node_composit_init_luma_matte(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
@@ -117,9 +62,6 @@ void register_node_type_cmp_luma_matte(bNodeTreeType *ttype)
 	node_type_size(&ntype, 200, 80, 250);
 	node_type_init(&ntype, node_composit_init_luma_matte);
 	node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
-#ifdef WITH_COMPOSITOR_LEGACY
-	node_type_exec(&ntype, node_composit_exec_luma_matte);
-#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

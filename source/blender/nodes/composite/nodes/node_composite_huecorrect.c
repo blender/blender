@@ -43,106 +43,6 @@ static bNodeSocketTemplate cmp_node_huecorrect_out[] = {
 	{	-1, 0, ""	}
 };
 
-#ifdef WITH_COMPOSITOR_LEGACY
-
-static void do_huecorrect(bNode *node, float *out, float *in)
-{
-	float hsv[3], f;
-	
-	rgb_to_hsv(in[0], in[1], in[2], hsv, hsv+1, hsv+2);
-	
-	curvemapping_initialize(node->storage);
-
-	/* adjust hue, scaling returned default 0.5 up to 1 */
-	f = curvemapping_evaluateF(node->storage, 0, hsv[0]);
-	hsv[0] += f-0.5f;
-	
-	/* adjust saturation, scaling returned default 0.5 up to 1 */
-	f = curvemapping_evaluateF(node->storage, 1, hsv[0]);
-	hsv[1] *= (f * 2.f);
-	
-	/* adjust value, scaling returned default 0.5 up to 1 */
-	f = curvemapping_evaluateF(node->storage, 2, hsv[0]);
-	hsv[2] *= (f * 2.f);
-	
-	hsv[0] = hsv[0] - floorf(hsv[0]); /* mod 1.0 */
-	CLAMP(hsv[1], 0.f, 1.f);
-	
-	/* convert back to rgb */
-	hsv_to_rgb(hsv[0], hsv[1], hsv[2], out, out+1, out+2);
-	
-	out[3] = in[3];
-}
-
-static void do_huecorrect_fac(bNode *node, float *out, float *in, float *fac)
-{
-	float hsv[3], rgb[3], f;
-	const float mfac = 1.f-*fac;
-	
-	rgb_to_hsv(in[0], in[1], in[2], hsv, hsv+1, hsv+2);
-	
-	curvemapping_initialize(node->storage);
-
-	/* adjust hue, scaling returned default 0.5 up to 1 */
-	f = curvemapping_evaluateF(node->storage, 0, hsv[0]);
-	hsv[0] += f-0.5f;
-	
-	/* adjust saturation, scaling returned default 0.5 up to 1 */
-	f = curvemapping_evaluateF(node->storage, 1, hsv[0]);
-	hsv[1] *= (f * 2.f);
-	
-	/* adjust value, scaling returned default 0.5 up to 1 */
-	f = curvemapping_evaluateF(node->storage, 2, hsv[0]);
-	hsv[2] *= (f * 2.f);
-	
-	hsv[0] = hsv[0] - floorf(hsv[0]);  /* mod 1.0 */
-	CLAMP(hsv[1], 0.f, 1.f);
-	
-	/* convert back to rgb */
-	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
-	
-	out[0] = mfac*in[0] + *fac*rgb[0];
-	out[1] = mfac*in[1] + *fac*rgb[1];
-	out[2] = mfac*in[2] + *fac*rgb[2];
-	out[3] = in[3];
-}
-
-static void node_composit_exec_huecorrect(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	CompBuf *cbuf= in[1]->data;
-	CompBuf *stackbuf;
-	
-	/* stack order input:  fac, image, black level, white level */
-	/* stack order output: image */
-	
-	if (out[0]->hasoutput==0)
-		return;
-
-	if (in[0]->vec[0] == 0.f && in[0]->data == NULL) {
-		out[0]->data = pass_on_compbuf(cbuf);
-		return;
-	}
-
-	/* input no image? then only color operation */
-	if (in[1]->data==NULL) {
-		do_huecorrect_fac(node, out[0]->vec, in[1]->vec, in[0]->vec);
-	}
-	
-	if (cbuf) {
-		stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* make output size of input image */
-		
-		if ((in[0]->data==NULL) && (in[0]->vec[0] >= 1.f))
-			composit1_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, do_huecorrect, CB_RGBA);
-		else
-			composit2_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[0]->data, in[0]->vec, do_huecorrect_fac, CB_RGBA, CB_VAL);
-		
-		out[0]->data= stackbuf;
-	}
-	
-}
-
-#endif  /* WITH_COMPOSITOR_LEGACY */
-
 static void node_composit_init_huecorrect(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	CurveMapping *cumapping = node->storage= curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
@@ -168,9 +68,6 @@ void register_node_type_cmp_huecorrect(bNodeTreeType *ttype)
 	node_type_size(&ntype, 320, 140, 400);
 	node_type_init(&ntype, node_composit_init_huecorrect);
 	node_type_storage(&ntype, "CurveMapping", node_free_curves, node_copy_curves);
-#ifdef WITH_COMPOSITOR_LEGACY
-	node_type_exec(&ntype, node_composit_exec_huecorrect);
-#endif
 
 	nodeRegisterType(ttype, &ntype);
 }
