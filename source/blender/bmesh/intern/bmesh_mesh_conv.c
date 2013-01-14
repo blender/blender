@@ -620,6 +620,8 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 	CustomData_add_layer(&me->ldata, CD_MLOOP, CD_ASSIGN, mloop, me->totloop);
 	CustomData_add_layer(&me->pdata, CD_MPOLY, CD_ASSIGN, mpoly, me->totpoly);
 
+	me->cd_flag = BM_mesh_cd_flag_from_bmesh(bm);
+
 	/* this is called again, 'dotess' arg is used there */
 	mesh_update_customdata_pointers(me, 0);
 
