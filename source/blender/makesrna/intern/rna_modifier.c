@@ -1666,7 +1666,7 @@ static void rna_def_modifier_displace(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_DisplaceModifier_vgroup_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "mid_level", PROP_FLOAT, PROP_DISTANCE);
+	prop = RNA_def_property(srna, "mid_level", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "midlevel");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);

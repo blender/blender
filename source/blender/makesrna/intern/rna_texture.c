@@ -563,7 +563,7 @@ static void rna_def_colormapping(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Color_mapping_update");
 
 	prop = RNA_def_property(srna, "contrast", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.01, 5);
+	RNA_def_property_range(prop, 0.0, 5);
 	RNA_def_property_ui_text(prop, "Contrast", "Adjust the contrast of the texture");
 	RNA_def_property_update(prop, 0, "rna_Color_mapping_update");
 
@@ -1978,7 +1978,7 @@ static void rna_def_texture(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop = RNA_def_property(srna, "contrast", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.01, 5);
+	RNA_def_property_range(prop, 0.0, 5);
 	RNA_def_property_ui_text(prop, "Contrast", "Adjust the contrast of the texture");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
