@@ -985,8 +985,8 @@ static void walker_select(BMEditMesh *em, int walkercode, void *start, int selec
 	         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
 	         BMW_FLAG_TEST_HIDDEN,
 	         BMW_NIL_LAY);
-	ele = BMW_begin(&walker, start);
-	for (; ele; ele = BMW_step(&walker)) {
+
+	for (ele = BMW_begin(&walker, start); ele; ele = BMW_step(&walker)) {
 		if (!select) {
 			BM_select_history_remove(bm, ele);
 		}
@@ -2262,8 +2262,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
-		efa = BMW_begin(&walker, efa);
-		for (; efa; efa = BMW_step(&walker)) {
+		for (efa = BMW_begin(&walker, efa); efa; efa = BMW_step(&walker)) {
 			BM_face_select_set(bm, efa, sel);
 		}
 		BMW_end(&walker);
@@ -2284,8 +2283,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
-		e = BMW_begin(&walker, eed->v1);
-		for (; e; e = BMW_step(&walker)) {
+		for (e = BMW_begin(&walker, eed->v1); e; e = BMW_step(&walker)) {
 			BM_edge_select_set(bm, e, sel);
 		}
 		BMW_end(&walker);
@@ -2356,8 +2354,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
-				efa = BMW_begin(&walker, efa);
-				for (; efa; efa = BMW_step(&walker)) {
+				for (efa = BMW_begin(&walker, efa); efa; efa = BMW_step(&walker)) {
 					BM_face_select_set(bm, efa, TRUE);
 				}
 			}
@@ -2385,8 +2382,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 
 		BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-				e = BMW_begin(&walker, v);
-				for (; e; e = BMW_step(&walker)) {
+				for (e = BMW_begin(&walker, v); e; e = BMW_step(&walker)) {
 					BM_edge_select_set(em->bm, e, true);
 				}
 			}

@@ -394,11 +394,10 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 		if (!BMO_elem_flag_test(bm, e, EDGE_MARK))
 			continue;
 
-		e = BMW_begin(&walker, e->v1);
 		BLI_array_empty(edges);
 
 		INIT_MINMAX(min, max);
-		for (tot = 0; e; tot++, e = BMW_step(&walker)) {
+		for (e = BMW_begin(&walker, e->v1), tot = 0; e; e = BMW_step(&walker), tot++) {
 			BLI_array_grow_one(edges);
 			edges[tot] = e;
 
@@ -454,11 +453,9 @@ static void bmo_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 			if (BMO_elem_flag_test(bm, l->e, EDGE_MARK)) {
 				/* walk */
 				BLI_array_empty(blocks);
-				tot = 0;
-				l2 = BMW_begin(&walker, l);
 
 				CustomData_data_initminmax(type, &min, &max);
-				for (tot = 0; l2; tot++, l2 = BMW_step(&walker)) {
+				for (l2 = BMW_begin(&walker, l), tot = 0; l2; l2 = BMW_step(&walker), tot++) {
 					BLI_array_grow_one(blocks);
 					blocks[tot] = CustomData_bmesh_get_layer_n(&bm->ldata, l2->head.data, layer);
 					CustomData_data_dominmax(type, blocks[tot], &min, &max);

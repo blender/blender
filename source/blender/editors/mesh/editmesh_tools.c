@@ -3190,8 +3190,7 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *base_old, BMesh 
 		         BMW_FLAG_NOP,
 		         BMW_NIL_LAY);
 
-		e = BMW_begin(&walker, v_seed);
-		for (; e; e = BMW_step(&walker)) {
+		for (e = BMW_begin(&walker, v_seed); e; e = BMW_step(&walker)) {
 			if (!BM_elem_flag_test(e->v1, BM_ELEM_TAG)) { BM_elem_flag_enable(e->v1, BM_ELEM_TAG); tot++; }
 			if (!BM_elem_flag_test(e->v2, BM_ELEM_TAG)) { BM_elem_flag_enable(e->v2, BM_ELEM_TAG); tot++; }
 		}

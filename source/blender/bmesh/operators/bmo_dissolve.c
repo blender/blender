@@ -55,10 +55,8 @@ static int UNUSED_FUNCTION(check_hole_in_region) (BMesh * bm, BMFace * f)
 	         BMW_FLAG_NOP,
 	         BMW_NIL_LAY);
 
-	f2 = BMW_begin(&regwalker, f);
-	for ( ; f2; f2 = BMW_step(&regwalker)) {
-		l2 = BM_iter_new(&liter2, bm, BM_LOOPS_OF_FACE, f2);
-		for ( ; l2; l2 = BM_iter_step(&liter2)) {
+	for (f2 = BMW_begin(&regwalker, f); f2; f2 = BMW_step(&regwalker)) {
+		BM_ITER_ELEM (l2, &liter2, f2, BM_LOOPS_OF_FACE) {
 			l3 = l2->radial_next;
 			if (BMO_elem_flag_test(bm, l3->f, FACE_MARK) !=
 			    BMO_elem_flag_test(bm, l2->f, FACE_MARK))
@@ -115,8 +113,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		         BMW_FLAG_NOP, /* no need to check BMW_FLAG_TEST_HIDDEN, faces are already marked by the bmo */
 		         BMW_NIL_LAY);
 
-		f2 = BMW_begin(&regwalker, f);
-		for ( ; f2; f2 = BMW_step(&regwalker)) {
+		for (f2 = BMW_begin(&regwalker, f); f2; f2 = BMW_step(&regwalker)) {
 			BLI_array_append(faces, f2);
 		}
 		BMW_end(&regwalker);
