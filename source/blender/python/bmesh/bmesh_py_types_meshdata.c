@@ -187,10 +187,10 @@ static int bpy_bmloopuv_flag_set(BPy_BMLoopUV *self, PyObject *value, void *flag
 	const int flag = GET_INT_FROM_POINTER(flag_p);
 
 	switch (PyLong_AsLong(value)) {
-		case TRUE:
+		case true:
 			self->data->flag |= flag;
 			return 0;
-		case FALSE:
+		case false:
 			self->data->flag &= ~flag;
 			return 0;
 		default:

@@ -69,7 +69,7 @@ static int dissolve_elem_cmp(const void *a1, const void *a2)
 	return 0;
 }
 
-void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const int do_dissolve_boundaries,
+void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const bool do_dissolve_boundaries,
                                   BMVert **vinput_arr, const int vinput_len,
                                   BMEdge **einput_arr, const int einput_len)
 {
@@ -117,7 +117,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const int 
 				BMFace *nf = BM_faces_join_pair(bm, e->l->f,
 				                                e->l->radial_next->f,
 				                                e,
-				                                FALSE); /* join faces */
+				                                false); /* join faces */
 
 				/* there may be some errors, we don't mind, just move on */
 				if (nf) {
@@ -148,7 +148,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const int 
 	for (i = bm->totedge - 1; i != -1; i--) {
 		e_iter = earray[i];
 
-		if (BM_edge_is_wire(e_iter) && (BM_elem_flag_test(e_iter, BM_ELEM_TAG) == FALSE)) {
+		if (BM_edge_is_wire(e_iter) && (BM_elem_flag_test(e_iter, BM_ELEM_TAG) == false)) {
 			/* edge has become wire */
 			int vidx_reverse;
 			BMVert *v1 = e_iter->v1;
@@ -179,7 +179,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const int 
 			if (LIKELY(v != NULL) &&
 			    BM_vert_edge_count(v) == 2)
 			{
-				BM_vert_collapse_edge(bm, v->e, v, TRUE); /* join edges */
+				BM_vert_collapse_edge(bm, v->e, v, true); /* join edges */
 			}
 		}
 	}
@@ -210,7 +210,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const int 
 				    /* check twice because cumulative effect could dissolve over angle limit */
 				    bm_vert_edge_face_angle(v) < angle_limit)
 				{
-					BMEdge *ne = BM_vert_collapse_edge(bm, v->e, v, TRUE); /* join edges */
+					BMEdge *ne = BM_vert_collapse_edge(bm, v->e, v, true); /* join edges */
 
 					if (ne && ne->l) {
 						BM_edge_normals_update(ne);
@@ -223,7 +223,7 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm, const float angle_limit, const int 
 	MEM_freeN(weight_elems);
 }
 
-void BM_mesh_decimate_dissolve(BMesh *bm, const float angle_limit, const int do_dissolve_boundaries)
+void BM_mesh_decimate_dissolve(BMesh *bm, const float angle_limit, const bool do_dissolve_boundaries)
 {
 	int vinput_len;
 	int einput_len;

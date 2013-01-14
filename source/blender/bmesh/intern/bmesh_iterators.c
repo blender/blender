@@ -164,13 +164,11 @@ void *BM_iter_as_arrayN(BMesh *bm, const char itype, void *data, int *r_len,
  *
  * Counts how many flagged / unflagged items are found in this element.
  */
-int BM_iter_elem_count_flag(const char itype, void *data, const char hflag, const short value)
+int BM_iter_elem_count_flag(const char itype, void *data, const char hflag, const bool value)
 {
 	BMIter iter;
 	BMElem *ele;
 	int count = 0;
-
-	BLI_assert(ELEM(value, TRUE, FALSE));
 
 	for (ele = BM_iter_new(&iter, NULL, itype, data); ele; ele = BM_iter_step(&iter)) {
 		if (BM_elem_flag_test_bool(ele, hflag) == value) {
@@ -186,13 +184,11 @@ int BM_iter_elem_count_flag(const char itype, void *data, const char hflag, cons
  *
  * Counts how many flagged / unflagged items are found in this mesh.
  */
-int BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, const short value)
+int BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, const bool value)
 {
 	BMIter iter;
 	BMElem *ele;
 	int count = 0;
-
-	BLI_assert(ELEM(value, TRUE, FALSE));
 
 	for (ele = BM_iter_new(&iter, bm, itype, NULL); ele; ele = BM_iter_step(&iter)) {
 		if (BM_elem_flag_test_bool(ele, hflag) == value) {

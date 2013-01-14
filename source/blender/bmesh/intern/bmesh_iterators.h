@@ -131,8 +131,8 @@ void   *BM_iter_as_arrayN(BMesh *bm, const char itype, void *data, int *r_len,
 __attribute__((warn_unused_result))
 #endif
 ;
-int     BM_iter_elem_count_flag(const char itype, void *data, const char hflag, const short value);
-int     BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, const short value);
+int     BM_iter_elem_count_flag(const char itype, void *data, const char hflag, const bool value);
+int     BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, const bool value);
 
 /* private for bmesh_iterators_inline.c */
 void  bmiter__vert_of_mesh_begin(struct BMIter *iter);

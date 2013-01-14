@@ -50,7 +50,7 @@ BLI_INLINE void *BM_iter_step(BMIter *iter)
  * it with the appropriate function pointers based
  * upon its type.
  */
-BLI_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *data)
+BLI_INLINE bool BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *data)
 {
 	/* int argtype; */
 	iter->itype = itype;
@@ -78,7 +78,7 @@ BLI_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *dat
 			break;
 		case BM_EDGES_OF_VERT:
 			if (UNLIKELY(!data)) {
-				return FALSE;
+				return false;
 			}
 
 			iter->begin = bmiter__edge_of_vert_begin;
@@ -87,7 +87,7 @@ BLI_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *dat
 			break;
 		case BM_FACES_OF_VERT:
 			if (UNLIKELY(!data)) {
-				return FALSE;
+				return false;
 			}
 
 			iter->begin = bmiter__face_of_vert_begin;
@@ -96,7 +96,7 @@ BLI_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *dat
 			break;
 		case BM_LOOPS_OF_VERT:
 			if (UNLIKELY(!data)) {
-				return FALSE;
+				return false;
 			}
 
 			iter->begin = bmiter__loop_of_vert_begin;
@@ -105,7 +105,7 @@ BLI_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *dat
 			break;
 		case BM_VERTS_OF_EDGE:
 			if (UNLIKELY(!data)) {
-				return FALSE;
+				return false;
 			}
 
 			iter->begin = bmiter__vert_of_edge_begin;
@@ -114,7 +114,7 @@ BLI_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *dat
 			break;
 		case BM_FACES_OF_EDGE:
 			if (UNLIKELY(!data)) {
-				return FALSE;
+				return false;
 			}
 
 			iter->begin = bmiter__face_of_edge_begin;
@@ -123,7 +123,7 @@ BLI_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *dat
 			break;
 		case BM_VERTS_OF_FACE:
 			if (UNLIKELY(!data)) {
-				return FALSE;
+				return false;
 			}
 
 			iter->begin = bmiter__vert_of_face_begin;
@@ -132,7 +132,7 @@ BLI_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *dat
 			break;
 		case BM_EDGES_OF_FACE:
 			if (UNLIKELY(!data)) {
-				return FALSE;
+				return false;
 			}
 
 			iter->begin = bmiter__edge_of_face_begin;
@@ -141,7 +141,7 @@ BLI_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *dat
 			break;
 		case BM_LOOPS_OF_FACE:
 			if (UNLIKELY(!data)) {
-				return FALSE;
+				return false;
 			}
 
 			iter->begin = bmiter__loop_of_face_begin;
@@ -150,7 +150,7 @@ BLI_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *dat
 			break;
 		case BM_LOOPS_OF_LOOP:
 			if (UNLIKELY(!data)) {
-				return FALSE;
+				return false;
 			}
 
 			iter->begin = bmiter__loops_of_loop_begin;
@@ -159,7 +159,7 @@ BLI_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *dat
 			break;
 		case BM_LOOPS_OF_EDGE:
 			if (UNLIKELY(!data)) {
-				return FALSE;
+				return false;
 			}
 
 			iter->begin = bmiter__loops_of_edge_begin;
@@ -169,13 +169,13 @@ BLI_INLINE int BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *dat
 		default:
 			/* should never happen */
 			BLI_assert(0);
-			return FALSE;
+			return false;
 			break;
 	}
 	
 	iter->begin(iter);
 
-	return TRUE;
+	return true;
 }
 
 /**

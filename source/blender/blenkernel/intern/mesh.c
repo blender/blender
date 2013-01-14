@@ -533,7 +533,7 @@ BMesh *BKE_mesh_to_bmesh(Mesh *me, Object *ob)
 
 	bm = BM_mesh_create(&bm_mesh_allocsize_default);
 
-	BM_mesh_bm_from_me(bm, me, TRUE, ob->shapenr);
+	BM_mesh_bm_from_me(bm, me, true, ob->shapenr);
 
 	return bm;
 }

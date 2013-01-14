@@ -29,18 +29,18 @@
 
 #include <stdio.h>
 
-int BM_vert_dissolve(BMesh *bm, BMVert *v);
+bool BM_vert_dissolve(BMesh *bm, BMVert *v);
 
-int BM_disk_dissolve(BMesh *bm, BMVert *v);
+bool BM_disk_dissolve(BMesh *bm, BMVert *v);
 
-BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e, const short do_del);
+BMFace *BM_faces_join_pair(BMesh *bm, BMFace *f1, BMFace *f2, BMEdge *e, const bool do_del);
 
 BMEdge *BM_verts_connect(BMesh *bm, BMVert *v1, BMVert *v2, BMFace **r_f);
 
 BMFace *BM_face_split(BMesh *bm, BMFace *f,
                       BMVert *v1, BMVert *v2,
                       BMLoop **r_l,
-                      BMEdge *example, const short nodouble);
+                      BMEdge *example, const bool no_double);
 
 BMFace *BM_face_split_n(BMesh *bm, BMFace *f,
                         BMVert *v1, BMVert *v2,
@@ -48,25 +48,25 @@ BMFace *BM_face_split_n(BMesh *bm, BMFace *f,
                         BMLoop **r_l, BMEdge *example);
 
 BMEdge *BM_vert_collapse_faces(BMesh *bm, BMEdge *ke, BMVert *kv, float fac,
-                               const short join_faces, const short kill_degenerate_faces);
+                               const bool join_faces, const bool kill_degenerate_faces);
 BMEdge *BM_vert_collapse_edge(BMesh *bm, BMEdge *ke, BMVert *kv,
-                              const short kill_degenerate_faces);
+                              const bool kill_degenerate_faces);
 
 
 BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float percent);
 
 BMVert *BM_edge_split_n(BMesh *bm, BMEdge *e, int numcuts);
 
-int     BM_face_validate(BMFace *face, FILE *err);
+bool    BM_face_validate(BMFace *face, FILE *err);
 
-void    BM_edge_calc_rotate(BMEdge *e, int ccw,
+void    BM_edge_calc_rotate(BMEdge *e, const bool ccw,
                             BMLoop **r_l1, BMLoop **r_l2);
-int     BM_edge_rotate_check(BMEdge *e);
-int     BM_edge_rotate_check_degenerate(BMEdge *e,
+bool    BM_edge_rotate_check(BMEdge *e);
+bool    BM_edge_rotate_check_degenerate(BMEdge *e,
                                         BMLoop *l1, BMLoop *l2);
-int     BM_edge_rotate_check_beauty(BMEdge *e,
+bool    BM_edge_rotate_check_beauty(BMEdge *e,
                                     BMLoop *l1, BMLoop *l2);
-BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const short ccw, const short check_flag);
+BMEdge *BM_edge_rotate(BMesh *bm, BMEdge *e, const bool ccw, const short check_flag);
 
 /* flags for BM_edge_rotate */
 enum {

@@ -90,7 +90,7 @@ static PyObject *bpy_bm_utils_vert_collapse_edge(PyObject *UNUSED(self), PyObjec
 
 	bm = py_edge->bm;
 
-	e_new = BM_vert_collapse_edge(bm, py_edge->e, py_vert->v, TRUE);
+	e_new = BM_vert_collapse_edge(bm, py_edge->e, py_vert->v, true);
 
 	if (e_new) {
 		return BPy_BMEdge_CreatePyObject(bm, e_new);
@@ -156,7 +156,7 @@ static PyObject *bpy_bm_utils_vert_collapse_faces(PyObject *UNUSED(self), PyObje
 
 	bm = py_edge->bm;
 
-	e_new = BM_vert_collapse_faces(bm, py_edge->e, py_vert->v, CLAMPIS(fac, 0.0f, 1.0f), do_join_faces, TRUE);
+	e_new = BM_vert_collapse_faces(bm, py_edge->e, py_vert->v, CLAMPIS(fac, 0.0f, 1.0f), do_join_faces, true);
 
 	if (e_new) {
 		return BPy_BMEdge_CreatePyObject(bm, e_new);
@@ -239,7 +239,7 @@ static PyObject *bpy_bm_utils_vert_separate(PyObject *UNUSED(self), PyObject *ar
 
 	edge_array = BPy_BMElem_PySeq_As_Array(&bm, edge_seq, 0, PY_SSIZE_T_MAX,
 	                                       &edge_array_len, BM_EDGE,
-	                                       TRUE, TRUE, "vert_separate(...)");
+	                                       true, true, "vert_separate(...)");
 
 	if (edge_array == NULL) {
 		return NULL;
@@ -338,7 +338,7 @@ PyDoc_STRVAR(bpy_bm_utils_edge_rotate_doc,
 static PyObject *bpy_bm_utils_edge_rotate(PyObject *UNUSED(self), PyObject *args)
 {
 	BPy_BMEdge *py_edge;
-	int do_ccw = FALSE;
+	int do_ccw = false;
 
 	BMesh *bm;
 	BMEdge *e_new = NULL;
@@ -396,7 +396,7 @@ static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args,
 
 	/* optional */
 	PyObject *py_coords = NULL;
-	int edge_exists = TRUE;
+	int edge_exists = true;
 	BPy_BMEdge *py_edge_example = NULL;
 
 	float *coords;
@@ -426,8 +426,8 @@ static PyObject *bpy_bm_utils_face_split(PyObject *UNUSED(self), PyObject *args,
 	}
 
 	/* this doubles for checking that the verts are in the same mesh */
-	if (BM_vert_in_face(py_face->f, py_vert_a->v) == FALSE ||
-	    BM_vert_in_face(py_face->f, py_vert_b->v) == FALSE)
+	if (BM_vert_in_face(py_face->f, py_vert_a->v) == false ||
+	    BM_vert_in_face(py_face->f, py_vert_b->v) == false)
 	{
 		PyErr_SetString(PyExc_ValueError,
 		                "face_split(...): one of the verts passed is not found in the face");
@@ -496,7 +496,7 @@ static PyObject *bpy_bm_utils_face_join(PyObject *UNUSED(self), PyObject *args)
 	BMFace **face_array;
 	Py_ssize_t face_seq_len = 0;
 	BMFace *f_new;
-	int do_remove = TRUE;
+	int do_remove = true;
 
 	if (!PyArg_ParseTuple(args, "O|i:face_join", &py_face_array, &do_remove)) {
 		return NULL;
@@ -504,7 +504,7 @@ static PyObject *bpy_bm_utils_face_join(PyObject *UNUSED(self), PyObject *args)
 
 	face_array = BPy_BMElem_PySeq_As_Array(&bm, py_face_array, 2, PY_SSIZE_T_MAX,
 	                                       &face_seq_len, BM_FACE,
-	                                       TRUE, TRUE, "face_join(...)");
+	                                       true, true, "face_join(...)");
 
 	if (face_array == NULL) {
 		return NULL; /* error will be set */

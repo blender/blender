@@ -55,5 +55,5 @@ void bmo_unsubdivide_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* do all the real work here */
-	BM_mesh_decimate_unsubdivide_ex(bm, iterations, TRUE);
+	BM_mesh_decimate_unsubdivide_ex(bm, iterations, true);
 }

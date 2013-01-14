@@ -41,7 +41,7 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot 
 	BMIter liter;
 	BMLoop *l;
 	BMVert *v2, *doub;
-	int split = FALSE;
+	bool split = false;
 
 	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 		v2 = BMO_slot_map_elem_get(slot_targetmap, l->v);
@@ -52,14 +52,14 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot 
 		    (v2 != l->next->v))
 		{
 			doub = l->v;
-			split = TRUE;
+			split = true;
 			break;
 		}
 	}
 
 	if (split && doub != v2) {
 		BMLoop *nl;
-		BMFace *f2 = BM_face_split(bm, f, doub, v2, &nl, NULL, FALSE);
+		BMFace *f2 = BM_face_split(bm, f, doub, v2, &nl, NULL, false);
 
 		remdoubles_splitface(f, bm, op, slot_targetmap);
 		remdoubles_splitface(f2, bm, op, slot_targetmap);
@@ -87,12 +87,12 @@ int remdoubles_face_overlaps(BMesh *bm, BMVert **varr,
 			amount = BM_verts_in_face(bm, f, varr, len);
 			if (amount >= len) {
 				if (overlapface) *overlapface = f;
-				return TRUE;
+				return true;
 			}
 			f = BM_iter_step(&vertfaces);
 		}
 	}
-	return FALSE;
+	return false;
 }
 #endif
 

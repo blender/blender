@@ -134,34 +134,34 @@ static void bm_vert_boundary_tangent(BMVert *v, float r_no[3], float r_no_face[3
 }
 
 /* check if we are the only tagged loop-face around this edge */
-static int bm_loop_is_radial_boundary(BMLoop *l_first)
+static bool bm_loop_is_radial_boundary(BMLoop *l_first)
 {
 	BMLoop *l = l_first->radial_next;
 
 	if (l == l_first) {
-		return TRUE; /* a real boundary */
+		return true; /* a real boundary */
 	}
 	else {
 		do {
 			if (BM_elem_flag_test(l->f, BM_ELEM_TAG)) {
-				return FALSE;
+				return false;
 			}
 		} while ((l = l->radial_next) != l_first);
 	}
-	return TRUE;
+	return true;
 }
 
 extern float BM_vert_calc_mean_tagged_edge_length(BMVert *v);
 
 void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 {
-	const int use_boundary        = BMO_slot_bool_get(op->slots_in,  "use_boundary");
-	const int use_even_offset     = BMO_slot_bool_get(op->slots_in,  "use_even_offset");
-	const int use_relative_offset = BMO_slot_bool_get(op->slots_in,  "use_relative_offset");
-	const int use_crease          = (BMO_slot_bool_get(op->slots_in,  "use_crease") &&
-	                                 CustomData_has_layer(&bm->edata, CD_CREASE));
-	const float depth             = BMO_slot_float_get(op->slots_in, "thickness");
-	const float inset             = depth;
+	const bool use_boundary        = BMO_slot_bool_get(op->slots_in,  "use_boundary");
+	const bool use_even_offset     = BMO_slot_bool_get(op->slots_in,  "use_even_offset");
+	const bool use_relative_offset = BMO_slot_bool_get(op->slots_in,  "use_relative_offset");
+	const bool use_crease          = (BMO_slot_bool_get(op->slots_in,  "use_crease") &&
+	                                  CustomData_has_layer(&bm->edata, CD_CREASE));
+	const float depth              = BMO_slot_float_get(op->slots_in, "thickness");
+	const float inset              = depth;
 
 	const int totvert_orig = bm->totvert;
 
@@ -203,7 +203,7 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* setup tags, all faces and verts will be tagged which will be duplicated */
-	BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, FALSE);
+	BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
 
 	BMO_ITER (f_src, &oiter, op->slots_in, "faces", BM_FACE) {
 		verts_loop_tot += f_src->len;
@@ -239,13 +239,13 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 		}
 
 		/* conflicts with BM_vert_calc_mean_tagged_edge_length */
-		if (use_relative_offset == FALSE) {
+		if (use_relative_offset == false) {
 			BM_elem_flag_disable(v_src, BM_ELEM_TAG);
 		}
 	}
 
 	if (use_relative_offset) {
-		BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, FALSE);
+		BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
 	}
 
 	verts_loop = MEM_mallocN(sizeof(BMVert **) * verts_loop_tot, __func__);
@@ -332,7 +332,7 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 			BMVert *v_pos1 = verts_pos[i_1];
 			BMVert *v_pos2 = verts_pos[i_2];
 
-			f_new = BM_face_create_quad_tri(bm, v_l1, v_l2, v_neg2, v_neg1, f_src, FALSE);
+			f_new = BM_face_create_quad_tri(bm, v_l1, v_l2, v_neg2, v_neg1, f_src, false);
 			BM_elem_flag_enable(f_new, BM_ELEM_TAG);
 			l_new = BM_FACE_FIRST_LOOP(f_new);
 
@@ -341,7 +341,7 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 			BM_elem_attrs_copy(bm, bm, l_next, l_new->next);
 			BM_elem_attrs_copy(bm, bm, l_next, l_new->next->next);
 
-			f_new = BM_face_create_quad_tri(bm, v_l2, v_l1, v_pos1, v_pos2, f_src, FALSE);
+			f_new = BM_face_create_quad_tri(bm, v_l2, v_l1, v_pos1, v_pos2, f_src, false);
 			BM_elem_flag_enable(f_new, BM_ELEM_TAG);
 			l_new = BM_FACE_FIRST_LOOP(f_new);
 
@@ -357,7 +357,7 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 					BMVert *v_b1 = verts_boundary[i_1];
 					BMVert *v_b2 = verts_boundary[i_2];
 
-					f_new = BM_face_create_quad_tri(bm, v_b2, v_b1, v_neg1, v_neg2, f_src, FALSE);
+					f_new = BM_face_create_quad_tri(bm, v_b2, v_b1, v_neg1, v_neg2, f_src, false);
 					BM_elem_flag_enable(f_new, BM_ELEM_TAG);
 					l_new = BM_FACE_FIRST_LOOP(f_new);
 
@@ -366,7 +366,7 @@ void bmo_wireframe_exec(BMesh *bm, BMOperator *op)
 					BM_elem_attrs_copy(bm, bm, l,      l_new->next);
 					BM_elem_attrs_copy(bm, bm, l,      l_new->next->next);
 
-					f_new = BM_face_create_quad_tri(bm, v_b1, v_b2, v_pos2, v_pos1, f_src, FALSE);
+					f_new = BM_face_create_quad_tri(bm, v_b1, v_b2, v_pos2, v_pos1, f_src, false);
 					BM_elem_flag_enable(f_new, BM_ELEM_TAG);
 					l_new = BM_FACE_FIRST_LOOP(f_new);
 

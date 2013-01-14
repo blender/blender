@@ -163,7 +163,7 @@ char BM_mesh_cd_flag_from_bmesh(BMesh *bm)
 }
 
 /* Mesh -> BMesh */
-void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
+void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, bool set_key, int act_key_nr)
 {
 	MVert *mvert;
 	BLI_array_declare(verts);
@@ -280,7 +280,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 
 		/* this is necessary for selection counts to work properly */
 		if (mvert->flag & SELECT) {
-			BM_vert_select_set(bm, v, TRUE);
+			BM_vert_select_set(bm, v, true);
 		}
 
 		normal_short_to_float_v3(v->no, mvert->no);
@@ -328,7 +328,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 
 		/* this is necessary for selection counts to work properly */
 		if (medge->flag & SELECT) {
-			BM_edge_select_set(bm, e, TRUE);
+			BM_edge_select_set(bm, e, true);
 		}
 
 		/* Copy Custom Data */
@@ -395,7 +395,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 
 		/* this is necessary for selection counts to work properly */
 		if (mpoly->flag & ME_FACE_SEL) {
-			BM_face_select_set(bm, f, TRUE);
+			BM_face_select_set(bm, f, true);
 		}
 
 		f->mat_nr = mpoly->mat_nr;
@@ -549,7 +549,7 @@ BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
 	}
 }
 
-void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
+void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, bool do_tessface)
 {
 	MLoop *mloop;
 	MPoly *mpoly;
@@ -757,11 +757,11 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 		if (vertMap) MEM_freeN(vertMap);
 	}
 
-	if (dotess) {
+	if (do_tessface) {
 		BKE_mesh_tessface_calc(me);
 	}
 
-	mesh_update_customdata_pointers(me, dotess);
+	mesh_update_customdata_pointers(me, do_tessface);
 
 	{
 		BMEditSelection *selected;
@@ -825,12 +825,12 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 		                                        * bmesh and the mesh are out of sync */
 		    (oldverts != NULL))                /* not used here, but 'oldverts' is used later for applying 'ofs' */
 		{
-			int act_is_basis = FALSE;
+			bool act_is_basis = false;
 
 			/* find if this key is a basis for any others */
 			for (currkey = me->key->block.first; currkey; currkey = currkey->next) {
 				if (bm->shapenr - 1 == currkey->relative) {
-					act_is_basis = TRUE;
+					act_is_basis = true;
 					break;
 				}
 			}

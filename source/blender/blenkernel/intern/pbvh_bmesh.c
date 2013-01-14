@@ -295,7 +295,7 @@ static BMFace *pbvh_bmesh_face_create(PBVH *bvh, int node_index, BMVert *v1,
 
 	/* Note: passing NULL for the 'example' parameter, profiling shows
 	 * a small performance bump */
-	f = BM_face_create_quad_tri(bvh->bm, v1, v2, v3, NULL, NULL, TRUE);
+	f = BM_face_create_quad_tri(bvh->bm, v1, v2, v3, NULL, NULL, true);
 	if (!BLI_ghash_haskey(bvh->bm_face_to_node, f)) {
 
 		BLI_ghash_insert(bvh->nodes[node_index].bm_faces, f, NULL);

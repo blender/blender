@@ -1346,7 +1346,7 @@ void EDBM_mesh_reveal(BMEditMesh *em)
 
 /* so many tools call these that we better make it a generic function.
  */
-void EDBM_update_generic(BMEditMesh *em, const short do_tessface, const short is_destructive)
+void EDBM_update_generic(BMEditMesh *em, const bool do_tessface, const bool is_destructive)
 {
 	Object *ob = em->ob;
 	/* order of calling isn't important */

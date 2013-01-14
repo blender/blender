@@ -87,8 +87,8 @@ BLI_INLINE BMDiskLink *rs_edge_link_get(BMEdge *e, BMVert *v, EdgeData *e_data)
 	                                &(((EdgeData *)e_data)->v2_disk_link);
 }
 
-static int rotsys_append_edge(BMEdge *e, BMVert *v,
-                              EdgeData *edata, VertData *vdata)
+static bool rotsys_append_edge(BMEdge *e, BMVert *v,
+                               EdgeData *edata, VertData *vdata)
 {
 	EdgeData *ed = &edata[BM_elem_index_get(e)];
 	VertData *vd = &vdata[BM_elem_index_get(v)];
@@ -116,7 +116,7 @@ static int rotsys_append_edge(BMEdge *e, BMVert *v,
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 static void UNUSED_FUNCTION(rotsys_remove_edge)(BMEdge *e, BMVert *v,
@@ -613,10 +613,10 @@ static void init_rotsys(BMesh *bm, EdgeData *edata, VertData *vdata)
 			BM_elem_index_set(v2, -1); /* set_dirty! */
 			//BM_edge_create(bm, cv, v2, NULL, 0);
 			
-			BM_vert_select_set(bm, v2, TRUE);
+			BM_vert_select_set(bm, v2, true);
 			if (lastv) {
 				e2 = BM_edge_create(bm, lastv, v2, NULL, 0);
-				BM_edge_select_set(bm, e2, TRUE);
+				BM_edge_select_set(bm, e2, true);
 			}
 			
 			lastv = v2;
@@ -742,7 +742,7 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
 	BMVert *endv;
 	EPathNode *node;
 	int i;
-	const int use_restrict = BMO_slot_bool_get(op->slots_in, "use_restrict");
+	const bool use_restrict = BMO_slot_bool_get(op->slots_in, "use_restrict");
 	BMOpSlot *slot_restrict = BMO_slot_get(op->slots_in, "restrict");
 
 
@@ -899,10 +899,10 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 	BMEdge **edges = NULL;
 	PathBase *pathbase;
 	BLI_array_declare(edges);
-	int use_restrict       = BMO_slot_bool_get(op->slots_in, "use_restrict");
-	int use_fill_check     = BMO_slot_bool_get(op->slots_in, "use_fill_check");
-	const short mat_nr     = BMO_slot_int_get(op->slots_in,  "mat_nr");
-	const short use_smooth = BMO_slot_bool_get(op->slots_in, "use_smooth");
+	const bool use_restrict   = BMO_slot_bool_get(op->slots_in, "use_restrict");
+	const bool use_fill_check = BMO_slot_bool_get(op->slots_in, "use_fill_check");
+	const short mat_nr        = BMO_slot_int_get(op->slots_in,  "mat_nr");
+	const bool use_smooth     = BMO_slot_bool_get(op->slots_in, "use_smooth");
 	int i, j, group = 0;
 	unsigned int winding[2]; /* accumulte winding directions for each edge which has a face */
 	BMOpSlot *slot_restrict          = BMO_slot_get(op->slots_in, "restrict");
@@ -1047,9 +1047,9 @@ void bmo_edgenet_fill_exec(BMesh *bm, BMOperator *op)
 				v2 = verts[0];
 			}
 
-			if ((use_fill_check == FALSE) ||
+			if ((use_fill_check == false) ||
 			    /* fairly expensive check - see if there are already faces filling this area */
-			    (BM_face_exists_multi_edge(edges, i) == FALSE))
+			    (BM_face_exists_multi_edge(edges, i) == false))
 			{
 				f = BM_face_create_ngon(bm, v1, v2, edges, i, BM_CREATE_NO_DOUBLE);
 				if (f && !BMO_elem_flag_test(bm, f, ELE_ORIG)) {
@@ -1287,7 +1287,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	BMFace *f;
 	int totv = 0, tote = 0, totf = 0, amount;
 	const short mat_nr     = BMO_slot_int_get(op->slots_in,  "mat_nr");
-	const short use_smooth = BMO_slot_bool_get(op->slots_in, "use_smooth");
+	const bool use_smooth  = BMO_slot_bool_get(op->slots_in, "use_smooth");
 
 	/* count number of each element type we were passe */
 	BMO_ITER (h, &oiter, op->slots_in, "geom", BM_VERT | BM_EDGE | BM_FACE) {
@@ -1321,7 +1321,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	if (totf == 0 && totv >= 4 && totv == tote + 2) {
 		/* find a free standing vertex and 2 endpoint verts */
 		BMVert *v_free = NULL, *v_a = NULL, *v_b = NULL;
-		int ok = TRUE;
+		bool ok = true;
 
 
 		BMO_ITER (v, &oiter, op->slots_in, "geom", BM_VERT) {
@@ -1339,26 +1339,26 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 			if (tot_edges == 0) {
 				/* only accept 1 free vert */
 				if (v_free == NULL)  v_free = v;
-				else                 ok = FALSE;  /* only ever want one of these */
+				else                 ok = false;  /* only ever want one of these */
 			}
 			else if (tot_edges == 1) {
 				if (v_a == NULL)       v_a = v;
 				else if (v_b == NULL)  v_b = v;
-				else                   ok = FALSE;  /* only ever want 2 of these */
+				else                   ok = false;  /* only ever want 2 of these */
 			}
 			else if (tot_edges == 2) {
 				/* do nothing, regular case */
 			}
 			else {
-				ok = FALSE; /* if a vertex has 3+ edge users then cancel - this is only simple cases */
+				ok = false; /* if a vertex has 3+ edge users then cancel - this is only simple cases */
 			}
 
-			if (ok == FALSE) {
+			if (ok == false) {
 				break;
 			}
 		}
 
-		if (ok == TRUE && v_free && v_a && v_b) {
+		if (ok == true && v_free && v_a && v_b) {
 			e = BM_edge_create(bm, v_free, v_a, NULL, BM_CREATE_NO_DOUBLE);
 			BMO_elem_flag_enable(bm, e, ELE_NEW);
 
@@ -1377,7 +1377,7 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 
 	BMO_op_initf(bm, &op2, op->flag,
 	             "edgenet_fill edges=%fe use_fill_check=%b mat_nr=%i use_smooth=%b",
-	             ELE_NEW, TRUE, mat_nr, use_smooth);
+	             ELE_NEW, true, mat_nr, use_smooth);
 
 	BMO_op_exec(bm, &op2);
 

@@ -107,7 +107,7 @@ static PyObject *bpy_bmeditselseq_add(BPy_BMEditSelSeq *self, BPy_BMElem *value)
 
 	if ((BPy_BMVert_Check(value) ||
 	     BPy_BMEdge_Check(value) ||
-	     BPy_BMFace_Check(value)) == FALSE)
+	     BPy_BMFace_Check(value)) == false)
 	{
 		PyErr_Format(PyExc_TypeError,
 		             "Expected a BMVert/BMedge/BMFace not a %.200s", Py_TYPE(value)->tp_name);
@@ -132,7 +132,7 @@ static PyObject *bpy_bmeditselseq_remove(BPy_BMEditSelSeq *self, BPy_BMElem *val
 
 	if ((BPy_BMVert_Check(value) ||
 	     BPy_BMEdge_Check(value) ||
-	     BPy_BMFace_Check(value)) == FALSE)
+	     BPy_BMFace_Check(value)) == false)
 	{
 		PyErr_Format(PyExc_TypeError,
 		             "Expected a BMVert/BMedge/BMFace not a %.200s", Py_TYPE(value)->tp_name);
@@ -141,7 +141,7 @@ static PyObject *bpy_bmeditselseq_remove(BPy_BMEditSelSeq *self, BPy_BMElem *val
 
 	BPY_BM_CHECK_SOURCE_OBJ(value, self->bm, "select_history.remove()");
 
-	if (BM_select_history_remove(self->bm, value->ele) == FALSE) {
+	if (BM_select_history_remove(self->bm, value->ele) == false) {
 		PyErr_SetString(PyExc_ValueError,
 		                "Element not found in selection history");
 		return NULL;
@@ -196,7 +196,7 @@ static PyObject *bpy_bmeditselseq_subscript_int(BPy_BMEditSelSeq *self, int keyn
 static PyObject *bpy_bmeditselseq_subscript_slice(BPy_BMEditSelSeq *self, Py_ssize_t start, Py_ssize_t stop)
 {
 	int count = 0;
-	int ok;
+	bool ok;
 
 	PyObject *list;
 	PyObject *item;
@@ -210,12 +210,12 @@ static PyObject *bpy_bmeditselseq_subscript_slice(BPy_BMEditSelSeq *self, Py_ssi
 
 	ok = (ese != NULL);
 
-	if (UNLIKELY(ok == FALSE)) {
+	if (UNLIKELY(ok == false)) {
 		return list;
 	}
 
 	/* first loop up-until the start */
-	for (ok = TRUE; ok; ok = ((ese = ese->next) != NULL)) {
+	for (ok = true; ok; ok = ((ese = ese->next) != NULL)) {
 		if (count == start) {
 			break;
 		}
@@ -429,7 +429,7 @@ int BPy_BMEditSel_Assign(BPy_BMesh *self, PyObject *value)
 
 	value_array = BPy_BMElem_PySeq_As_Array(&bm, value, 0, PY_SSIZE_T_MAX,
 	                                        &value_len, BM_VERT | BM_EDGE | BM_FACE,
-	                                        TRUE, TRUE, "BMesh.select_history = value");
+	                                        true, true, "BMesh.select_history = value");
 
 	if (value_array == NULL) {
 		return -1;

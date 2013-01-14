@@ -106,7 +106,7 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
 		}
 
 		for (i = 0; i < BLI_array_count(verts_pair); i++) {
-			nf = BM_face_split(bm, f, verts_pair[i][0], verts_pair[i][1], &nl, NULL, FALSE);
+			nf = BM_face_split(bm, f, verts_pair[i][0], verts_pair[i][1], &nl, NULL, false);
 			f = nf;
 			
 			if (!nl || !nf) {
@@ -221,7 +221,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 	int c = 0, cl1 = 0, cl2 = 0;
 
 	/* merge-bridge support */
-	const int   use_merge    = BMO_slot_bool_get(op->slots_in,  "use_merge");
+	const bool  use_merge    = BMO_slot_bool_get(op->slots_in,  "use_merge");
 	const float merge_factor = BMO_slot_float_get(op->slots_in, "merge_factor");
 
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, EDGE_MARK);
@@ -508,7 +508,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 				                            vv2[i2],
 				                            vv2[i2next],
 				                            vv1[i1next],
-				                            f_example, TRUE);
+				                            f_example, true);
 				if (UNLIKELY((f == NULL) || (f->len != 4))) {
 					fprintf(stderr, "%s: in bridge! (bmesh internal error)\n", __func__);
 				}

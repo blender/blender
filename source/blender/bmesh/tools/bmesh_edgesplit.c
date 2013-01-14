@@ -98,14 +98,14 @@ static void bm_edgesplit_validate_seams(BMesh *bm)
 	MEM_freeN(vtouch);
 }
 
-void BM_mesh_edgesplit(BMesh *bm, const int use_verts, const int tag_only)
+void BM_mesh_edgesplit(BMesh *bm, const bool use_verts, const bool tag_only)
 {
 	BMIter iter;
 	BMEdge *e;
 
 
-	if (tag_only == FALSE) {
-		BM_mesh_elem_hflag_enable_all(bm, BM_EDGE | (use_verts ? BM_VERT : 0), BM_ELEM_TAG, FALSE);
+	if (tag_only == false) {
+		BM_mesh_elem_hflag_enable_all(bm, BM_EDGE | (use_verts ? BM_VERT : 0), BM_ELEM_TAG, false);
 	}
 
 	if (use_verts) {
@@ -117,8 +117,8 @@ void BM_mesh_edgesplit(BMesh *bm, const int use_verts, const int tag_only)
 		 */
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 			if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
-				if (UNLIKELY(((BM_elem_flag_test(e->v1, BM_ELEM_TAG) == FALSE) &&
-				              (BM_elem_flag_test(e->v2, BM_ELEM_TAG) == FALSE))))
+				if (UNLIKELY(((BM_elem_flag_test(e->v1, BM_ELEM_TAG) == false) &&
+				              (BM_elem_flag_test(e->v2, BM_ELEM_TAG) == false))))
 				{
 					BM_elem_flag_enable(e->v1, BM_ELEM_TAG);
 					BM_elem_flag_enable(e->v2, BM_ELEM_TAG);
@@ -146,10 +146,10 @@ void BM_mesh_edgesplit(BMesh *bm, const int use_verts, const int tag_only)
 
 	if (use_verts) {
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-			if (BM_elem_flag_test(e->v1, BM_ELEM_TAG) == FALSE) {
+			if (BM_elem_flag_test(e->v1, BM_ELEM_TAG) == false) {
 				BM_elem_flag_disable(e->v1, BM_ELEM_TAG);
 			}
-			if (BM_elem_flag_test(e->v2, BM_ELEM_TAG) == FALSE) {
+			if (BM_elem_flag_test(e->v2, BM_ELEM_TAG) == false) {
 				BM_elem_flag_disable(e->v2, BM_ELEM_TAG);
 			}
 		}

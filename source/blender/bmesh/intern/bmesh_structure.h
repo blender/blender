@@ -42,10 +42,10 @@
 struct ListBase;
 
 /* LOOP CYCLE MANAGEMENT */
-int bmesh_loop_validate(BMFace *f);
+bool    bmesh_loop_validate(BMFace *f);
 
 /* DISK CYCLE MANAGMENT */
-int     bmesh_disk_edge_append(BMEdge *e, BMVert *v);
+void    bmesh_disk_edge_append(BMEdge *e, BMVert *v);
 void    bmesh_disk_edge_remove(BMEdge *e, BMVert *v);
 BMEdge *bmesh_disk_edge_next(BMEdge *e, BMVert *v);
 BMEdge *bmesh_disk_edge_prev(BMEdge *e, BMVert *v);
@@ -60,19 +60,19 @@ void    bmesh_radial_loop_remove(BMLoop *l, BMEdge *e);
  *      bmesh_radial_loop_next(BMLoop *l) / prev.
  * just use member access l->radial_next, l->radial_prev now */
 
-int     bmesh_radial_face_find(BMEdge *e, BMFace *f);
+bool    bmesh_radial_face_find(BMEdge *e, BMFace *f);
 int     bmesh_radial_facevert_count(BMLoop *l, BMVert *v);
 BMLoop *bmesh_radial_faceloop_find_first(BMLoop *l, BMVert *v);
 BMLoop *bmesh_radial_faceloop_find_next(BMLoop *l, BMVert *v);
 BMLoop *bmesh_radial_faceloop_find_vert(BMFace *f, BMVert *v);
-int     bmesh_radial_validate(int radlen, BMLoop *l);
+bool    bmesh_radial_validate(int radlen, BMLoop *l);
 
 /* EDGE UTILITIES */
-int     bmesh_vert_in_edge(BMEdge *e, BMVert *v);
-int     bmesh_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e);
-int     bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv); /*relink edge*/
+bool    bmesh_vert_in_edge(BMEdge *e, BMVert *v);
+bool    bmesh_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e);
+bool    bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv);  /* relink edge */
 BMVert *bmesh_edge_other_vert_get(BMEdge *e, BMVert *v);
 BMEdge *bmesh_disk_edge_exists(BMVert *v1, BMVert *v2);
-int     bmesh_disk_validate(int len, BMEdge *e, BMVert *v);
+bool    bmesh_disk_validate(int len, BMEdge *e, BMVert *v);
 
 #endif /* __BMESH_STRUCTURE_H__ */

@@ -261,7 +261,7 @@ void BM_mesh_free(BMesh *bm)
  *
  * Updates the normals of a mesh.
  */
-void BM_mesh_normals_update(BMesh *bm, const short skip_hidden)
+void BM_mesh_normals_update(BMesh *bm, const bool skip_hidden)
 {
 	BMVert *v;
 	BMFace *f;
@@ -362,8 +362,8 @@ static void UNUSED_FUNCTION(bm_mdisps_space_set)(Object *ob, BMesh *bm, int from
 {
 	/* switch multires data out of tangent space */
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
-		BMEditMesh *em = BMEdit_Create(bm, FALSE);
-		DerivedMesh *dm = CDDM_from_editbmesh(em, TRUE, FALSE);
+		BMEditMesh *em = BMEdit_Create(bm, false);
+		DerivedMesh *dm = CDDM_from_editbmesh(em, true, false);
 		MDisps *mdisps;
 		BMFace *f;
 		BMIter iter;
@@ -455,7 +455,7 @@ void bmesh_edit_end(BMesh *bm, int UNUSED(flag))
 #endif
 
 	/* compute normals, clear temp flags and flush selections */
-	BM_mesh_normals_update(bm, TRUE);
+	BM_mesh_normals_update(bm, true);
 	BM_mesh_select_mode_flush(bm);
 }
 
@@ -553,12 +553,12 @@ void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *fu
 	BMIter iter;
 	BMElem *ele;
 	int i;
-	int is_any_error = 0;
+	bool is_any_error = 0;
 
 	for (i = 0; i < 3; i++) {
-		const int is_dirty = (flag_types[i] & bm->elem_index_dirty);
+		const bool is_dirty = (flag_types[i] & bm->elem_index_dirty);
 		int index = 0;
-		int is_error = FALSE;
+		bool is_error = false;
 		int err_val = 0;
 		int err_idx = 0;
 
@@ -567,7 +567,7 @@ void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *fu
 				if (BM_elem_index_get(ele) != index) {
 					err_val = BM_elem_index_get(ele);
 					err_idx = index;
-					is_error = TRUE;
+					is_error = true;
 				}
 			}
 
@@ -575,13 +575,13 @@ void BM_mesh_elem_index_validate(BMesh *bm, const char *location, const char *fu
 			index++;
 		}
 
-		if ((is_error == TRUE) && (is_dirty == FALSE)) {
-			is_any_error = TRUE;
+		if ((is_error == true) && (is_dirty == false)) {
+			is_any_error = true;
 			fprintf(stderr,
 			        "Invalid Index: at %s, %s, %s[%d] invalid index %d, '%s', '%s'\n",
 			        location, func, type_names[i], err_idx, err_val, msg_a, msg_b);
 		}
-		else if ((is_error == FALSE) && (is_dirty == TRUE)) {
+		else if ((is_error == false) && (is_dirty == true)) {
 
 #if 0       /* mostly annoying */
 

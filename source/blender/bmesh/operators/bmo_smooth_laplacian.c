@@ -180,7 +180,7 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
 	float *v1, *v2, *v3, *v4;
 	float w1, w2, w3, w4;
 	int i, j;
-	int has_4_vert;
+	bool has_4_vert;
 	unsigned int idv1, idv2, idv3, idv4, idv[4];
 	BMEdge *e;
 	BMFace *f;
@@ -297,7 +297,7 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
 	float *v1, *v2, *v3, *v4;
 	float w2, w3, w4;
 	int i, j;
-	int has_4_vert;
+	bool has_4_vert;
 	unsigned int idv1, idv2, idv3, idv4, idv[4];
 
 	BMEdge *e;
@@ -537,7 +537,7 @@ void bmo_smooth_laplacian_vert_exec(BMesh *bm, BMOperator *op)
 {
 	int i;
 	int m_vertex_id;
-	int usex, usey, usez, preserve_volume;
+	bool usex, usey, usez, preserve_volume;
 	float lambda_factor, lambda_border;
 	float w;
 	BMOIter siter;

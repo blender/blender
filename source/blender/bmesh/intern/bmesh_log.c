@@ -280,7 +280,7 @@ static void bm_log_faces_restore(BMesh *bm, BMLog *log, GHash *faces)
 						bm_log_vert_from_id(log, lf->v_ids[2])};
 		BMFace *f;
 
-		f = BM_face_create_quad_tri_v(bm, v, 3, NULL, FALSE);
+		f = BM_face_create_quad_tri_v(bm, v, 3, NULL, false);
 		bm_log_face_id_set(log, f, GET_INT_FROM_POINTER(key));
 	}
 }

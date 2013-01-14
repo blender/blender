@@ -38,7 +38,7 @@ void BM_mesh_cd_flag_ensure(BMesh *bm, struct Mesh *mesh, const char cd_flag);
 void BM_mesh_cd_flag_apply(BMesh *bm, const char cd_flag);
 char BM_mesh_cd_flag_from_bmesh(BMesh *bm);
 
-void BM_mesh_bm_from_me(BMesh *bm, struct Mesh *me, int set_key, int act_key_nr);
-void BM_mesh_bm_to_me(BMesh *bm, struct Mesh *me, int dotess);
+void BM_mesh_bm_from_me(BMesh *bm, struct Mesh *me, bool set_key, int act_key_nr);
+void BM_mesh_bm_to_me(BMesh *bm, struct Mesh *me, bool do_tessface);
 
 #endif /* __BMESH_MESH_CONV_H__ */

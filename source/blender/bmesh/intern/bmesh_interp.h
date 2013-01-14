@@ -44,7 +44,7 @@ void  BM_elem_float_data_set(CustomData *cd, void *element, int type, const floa
 
 void  BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source);
 void  BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
-                              int do_vertex, int do_multires);
+                              const bool do_vertex, const bool do_multires);
 
 void  BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f);
 

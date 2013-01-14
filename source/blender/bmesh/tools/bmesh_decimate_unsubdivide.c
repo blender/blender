@@ -36,7 +36,7 @@
 #include "intern/bmesh_operators_private.h" /* own include */
 
 
-static int bm_vert_dissolve_fan_test(BMVert *v)
+static bool bm_vert_dissolve_fan_test(BMVert *v)
 {
 	/* check if we should walk over these verts */
 	BMIter iter;
@@ -61,21 +61,21 @@ static int bm_vert_dissolve_fan_test(BMVert *v)
 	}
 
 	if ((tot_edge == 4) && (tot_edge_boundary == 0) && (tot_edge_manifold == 4)) {
-		return TRUE;
+		return true;
 	}
 	else if ((tot_edge == 3) && (tot_edge_boundary == 0) && (tot_edge_manifold == 3)) {
-		return TRUE;
+		return true;
 	}
 	else if ((tot_edge == 3) && (tot_edge_boundary == 2) && (tot_edge_manifold == 1)) {
-		return TRUE;
+		return true;
 	}
 	else if ((tot_edge == 2) && (tot_edge_wire == 2)) {
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
-static int bm_vert_dissolve_fan(BMesh *bm, BMVert *v)
+static bool bm_vert_dissolve_fan(BMesh *bm, BMVert *v)
 {
 	/* collapse under 2 conditions.
 	 * - vert connects to 4 manifold edges (and 4 faces).
@@ -110,7 +110,7 @@ static int bm_vert_dissolve_fan(BMesh *bm, BMVert *v)
 	if (tot_edge == 2) {
 		/* check for 2 wire verts only */
 		if (tot_edge_wire == 2) {
-			return (BM_vert_collapse_edge(bm, v->e, v, TRUE) != NULL);
+			return (BM_vert_collapse_edge(bm, v->e, v, true) != NULL);
 		}
 	}
 	else if (tot_edge == 4) {
@@ -145,7 +145,7 @@ static int bm_vert_dissolve_fan(BMesh *bm, BMVert *v)
 			if (l->f->len > 3) {
 				BMLoop *l_new;
 				BLI_assert(l->prev->v != l->next->v);
-				BM_face_split(bm, l->f, l->prev->v, l->next->v, &l_new, NULL, TRUE);
+				BM_face_split(bm, l->f, l->prev->v, l->next->v, &l_new, NULL, true);
 				BM_elem_flag_merge_into(l_new->e, l->e, l->prev->e);
 			}
 		}
@@ -153,7 +153,7 @@ static int bm_vert_dissolve_fan(BMesh *bm, BMVert *v)
 		return BM_vert_dissolve(bm, v);
 	}
 
-	return FALSE;
+	return false;
 }
 
 enum {
@@ -170,7 +170,7 @@ enum {
 
 /**
  * \param tag_only so we can call this from an operator */
-void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const int tag_only)
+void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool tag_only)
 {
 #ifdef USE_WALKER
 #  define ELE_VERT_TAG 1
@@ -191,14 +191,14 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const int 
 
 	/* if tag_only is set, we assyme the caller knows what verts to tag
 	 * needed for the operator */
-	if (tag_only == FALSE) {
+	if (tag_only == false) {
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			BM_elem_flag_enable(v, BM_ELEM_TAG);
 		}
 	}
 
 	for (iter_step = 0; iter_step < iterations; iter_step++) {
-		int iter_done;
+		bool iter_done;
 
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG) && bm_vert_dissolve_fan_test(v)) {
@@ -215,7 +215,7 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const int 
 
 
 		/* main loop, keep tagging until we can't tag any more islands */
-		while (TRUE) {
+		while (true) {
 #ifdef USE_WALKER
 			BMWalker walker;
 #else
@@ -273,7 +273,7 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const int 
 			vert_seek_b_tot = 0;
 			vert_seek_b[vert_seek_b_tot++] = v_first;
 
-			while (TRUE) {
+			while (true) {
 				BMEdge *e;
 
 				if ((offset + depth) % nth) {
@@ -318,14 +318,16 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const int 
 		}
 
 		/* now we tagged all verts -1 for removal, lets loop over and rebuild faces */
-		iter_done = FALSE;
+		iter_done = false;
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_index_get(v) == VERT_INDEX_DO_COLLAPSE) {
-				iter_done |= bm_vert_dissolve_fan(bm, v);
+				if (bm_vert_dissolve_fan(bm, v)) {
+					iter_done = true;
+				}
 			}
 		}
 
-		if (iter_done == FALSE) {
+		if (iter_done == false) {
 			break;
 		}
 	}
@@ -340,5 +342,5 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const int 
 
 void BM_mesh_decimate_unsubdivide(BMesh *bm, const int iterations)
 {
-	BM_mesh_decimate_unsubdivide_ex(bm, iterations, FALSE);
+	BM_mesh_decimate_unsubdivide_ex(bm, iterations, false);
 }

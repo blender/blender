@@ -30,6 +30,6 @@
  *  \ingroup bmesh
  */
 
-int BM_mesh_validate(BMesh *bm);
+bool BM_mesh_validate(BMesh *bm);
 
 #endif /* __BMESH_MESH_VALIDATE_H__ */

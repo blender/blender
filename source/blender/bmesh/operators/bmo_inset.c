@@ -92,13 +92,13 @@ static BMLoop *bm_edge_is_mixed_face_tag(BMLoop *l)
 
 void bmo_inset_exec(BMesh *bm, BMOperator *op)
 {
-	const int use_outset          = BMO_slot_bool_get(op->slots_in, "use_outset");
-	const int use_boundary        = BMO_slot_bool_get(op->slots_in, "use_boundary") && (use_outset == FALSE);
-	const int use_even_offset     = BMO_slot_bool_get(op->slots_in, "use_even_offset");
-	const int use_even_boundry    = use_even_offset; /* could make own option */
-	const int use_relative_offset = BMO_slot_bool_get(op->slots_in, "use_relative_offset");
-	const float thickness         = BMO_slot_float_get(op->slots_in, "thickness");
-	const float depth             = BMO_slot_float_get(op->slots_in, "depth");
+	const bool use_outset          = BMO_slot_bool_get(op->slots_in, "use_outset");
+	const bool use_boundary        = BMO_slot_bool_get(op->slots_in, "use_boundary") && (use_outset == false);
+	const bool use_even_offset     = BMO_slot_bool_get(op->slots_in, "use_even_offset");
+	const bool use_even_boundry    = use_even_offset; /* could make own option */
+	const bool use_relative_offset = BMO_slot_bool_get(op->slots_in, "use_relative_offset");
+	const float thickness          = BMO_slot_float_get(op->slots_in, "thickness");
+	const float depth              = BMO_slot_float_get(op->slots_in, "depth");
 
 	int edge_info_len = 0;
 
@@ -111,13 +111,13 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 	BMFace *f;
 	int i, j, k;
 
-	if (use_outset == FALSE) {
-		BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, FALSE);
-		BMO_slot_buffer_hflag_enable(bm, op->slots_in, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
+	if (use_outset == false) {
+		BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
+		BMO_slot_buffer_hflag_enable(bm, op->slots_in, "faces", BM_FACE, BM_ELEM_TAG, false);
 	}
 	else {
-		BM_mesh_elem_hflag_enable_all(bm, BM_FACE, BM_ELEM_TAG, FALSE);
-		BMO_slot_buffer_hflag_disable(bm, op->slots_in, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
+		BM_mesh_elem_hflag_enable_all(bm, BM_FACE, BM_ELEM_TAG, false);
+		BMO_slot_buffer_hflag_disable(bm, op->slots_in, "faces", BM_FACE, BM_ELEM_TAG, false);
 	}
 
 	/* first count all inset edges we will split */
@@ -411,11 +411,11 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 
 					/* this saves expensive/slow glue check for common cases */
 					if (r_vout_len > 2) {
-						int ok = TRUE;
+						bool ok = true;
 						/* last step, NULL this vertex if has a tagged face */
 						BM_ITER_ELEM (f, &iter, v_split, BM_FACES_OF_VERT) {
 							if (BM_elem_flag_test(f, BM_ELEM_TAG)) {
-								ok = FALSE;
+								ok = false;
 								break;
 							}
 						}
@@ -471,7 +471,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 #endif
 		/* no need to check doubles, we KNOW there won't be any */
 		/* yes - reverse face is correct in this case */
-		f = BM_face_create_quad_tri_v(bm, varr, j, es->l->f, FALSE);
+		f = BM_face_create_quad_tri_v(bm, varr, j, es->l->f, false);
 		BMO_elem_flag_enable(bm, f, ELE_NEW);
 
 		/* copy for loop data, otherwise UV's and vcols are no good.
@@ -548,7 +548,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		/* done correcting edge verts normals */
 
 		/* untag verts */
-		BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, FALSE);
+		BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
 
 		/* tag face verts */
 		BMO_ITER (f, &oiter, op->slots_in, "faces", BM_FACE) {
