@@ -412,7 +412,9 @@ class I18nMessages:
         # Main loop over all lines in src...
         for line_nr, line in enumerate(src.splitlines()):
             if line == "":
-                finalize_message(self, line_nr)
+                if reading_msgstr:
+                    finalize_message(self, line_nr)
+                continue
 
             elif line.startswith(PO_MSGCTXT) or line.startswith(_comm_msgctxt):
                 reading_comment = False
@@ -493,6 +495,7 @@ class I18nMessages:
                     msgstr_lines.append(line)
                 else:
                     self.parsing_errors.append((line_nr, "regular string outside msgctxt, msgid or msgstr scope"))
+                    #self.parsing_errors += (str(comment_lines), str(msgctxt_lines), str(msgid_lines), str(msgstr_lines))
 
         # If no final empty line, last message is not finalized!
         if reading_msgstr:

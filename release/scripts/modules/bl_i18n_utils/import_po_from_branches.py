@@ -84,8 +84,8 @@ def main():
                             trans.append(m.msgstr)
                         trans = rtl_preprocess.log2vis(trans)
                         for k, t in zip(keys, trans):
-                            msgs[k].msgstr = t
-                        msgs.write(kinf='PO', dest=out_po)
+                            msgs.msgs[k].msgstr = t
+                        msgs.write(kind='PO', dest=out_po)
                         # Also copies org po!
                         shutil.copy(po, out_raw_po)
                         print("{:<10}: {:>6.1%} done, enough translated messages, processed and copied to trunk."
