@@ -5546,7 +5546,14 @@ static void lib_link_screen(FileData *fd, Main *main)
 	}
 }
 
-/* Only for undo files, or to restore a screen after reading without UI... */
+/**
+ * Only for undo files, or to restore a screen after reading without UI...
+ *
+ * user
+ * - 0: no usercount change
+ * - 1: ensure a user
+ * - 2: ensure a real user (even if a fake one is set)
+ */
 static void *restore_pointer_by_name(Main *mainp, ID *id, int user)
 {
 	if (id) {
