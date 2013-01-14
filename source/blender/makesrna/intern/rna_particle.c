@@ -349,8 +349,11 @@ static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *o
 	/*strands key loop data stored in cache + step->co*/
 	if (path_nbr) {
 		if (step >= 0 && step <= path_nbr) {
-			if (step <= max_k)
+			if (step <= max_k) {
 				copy_v3_v3(n_co, (cache + step)->co);
+				mul_m4_v3(particlesystem->imat, n_co);
+				mul_m4_v3(object->obmat, n_co);
+			}
 		}
 	}
 
@@ -1246,10 +1249,10 @@ static void rna_def_particle_hair_key(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_ParticleHairKey_location_object_get",
 	                             "rna_ParticleHairKey_location_object_set", NULL);
 	
-	prop = RNA_def_property(srna, "co_hair_space", PROP_FLOAT, PROP_TRANSLATION);
+	prop = RNA_def_property(srna, "co_local", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "co");
 	RNA_def_property_ui_text(prop, "Location",
-	                         "Location of the hair key in its internal coordinate system, "
+	                         "Location of the hair key in its local coordinate system, "
 	                         "relative to the emitting face");
 
 	/* Aided co func */
