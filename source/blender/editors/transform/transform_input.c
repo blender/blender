@@ -368,7 +368,7 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 	applyMouseInput(t, mi, mi->imval, t->values);
 }
 
-void setInputPostFct(MouseInput *mi, void (*post)(struct TransInfo *, float[3]))
+void setInputPostFct(MouseInput *mi, void (*post)(struct TransInfo *t, float values[3]))
 {
 	mi->post = post;
 }
