@@ -785,6 +785,11 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		
 			/* May have to look at the type of event and filter some out. */
 
+			if (xfe.detail != NotifyNonlinear) {
+				/* Needed for Ubuntu-Unity, see bug [#33831]  */
+				break;
+			}
+
 			GHOST_TEventType gtype = (xfe.type == FocusIn) ? 
 			                         GHOST_kEventWindowActivate : GHOST_kEventWindowDeactivate;
 
