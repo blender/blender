@@ -378,7 +378,7 @@ bool cuLibraryInit()
 
 	if(cuHavePrecompiledKernels())
 		result = true;
-#ifdef _WIN32
+#ifndef _WIN32
 	else if(cuCompilerPath() != "")
 		result = true;
 #endif
