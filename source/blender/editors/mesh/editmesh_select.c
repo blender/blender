@@ -2387,8 +2387,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				e = BMW_begin(&walker, v);
 				for (; e; e = BMW_step(&walker)) {
-					BM_vert_select_set(em->bm, e->v1, TRUE);
-					BM_vert_select_set(em->bm, e->v2, TRUE);
+					BM_edge_select_set(em->bm, e, true);
 				}
 			}
 		}
