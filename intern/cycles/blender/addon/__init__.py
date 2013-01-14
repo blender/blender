@@ -40,7 +40,6 @@ class CyclesRender(bpy.types.RenderEngine):
     bl_use_shading_nodes = True
 
     def __init__(self):
-        engine.init()
         self.session = None
 
     def __del__(self):
@@ -87,6 +86,8 @@ def register():
     from . import ui
     from . import properties
     from . import presets
+
+    engine.init()
 
     properties.register()
     ui.register()

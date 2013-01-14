@@ -30,6 +30,7 @@ CCL_NAMESPACE_BEGIN
  * matrixMulDynlinkJIT in the CUDA SDK. */
 
 bool cuLibraryInit();
+bool cuHavePrecompiledKernels();
 string cuCompilerPath();
 
 CCL_NAMESPACE_END

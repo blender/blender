@@ -47,10 +47,6 @@ if(WITH_CYCLES_OSL)
 	include_directories(${OSL_INCLUDES})
 endif()
 
-if(WITH_CYCLES_CUDA_BINARIES)
-	add_definitions(-DWITH_CUDA_BINARIES)
-endif()
-
 add_definitions(-DWITH_OPENCL)
 add_definitions(-DWITH_CUDA)
 add_definitions(-DWITH_MULTI)
