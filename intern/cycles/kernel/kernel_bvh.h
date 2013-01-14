@@ -344,7 +344,7 @@ __device_inline void bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
 }
 #endif
 
-__device_inline bool bvh_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect)
+__device bool bvh_intersect(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect)
 {
 	/* traversal stack in CUDA thread-local memory */
 	int traversalStack[BVH_STACK_SIZE];
@@ -470,7 +470,7 @@ __device_inline bool bvh_intersect(KernelGlobals *kg, const Ray *ray, const uint
 }
 
 #ifdef __OBJECT_MOTION__
-__device_inline bool bvh_intersect_motion(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect)
+__device bool bvh_intersect_motion(KernelGlobals *kg, const Ray *ray, const uint visibility, Intersection *isect)
 {
 	/* traversal stack in CUDA thread-local memory */
 	int traversalStack[BVH_STACK_SIZE];
