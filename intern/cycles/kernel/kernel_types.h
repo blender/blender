@@ -48,7 +48,6 @@ CCL_NAMESPACE_BEGIN
 #endif
 #define __NON_PROGRESSIVE__
 #define __HAIR__
-#define __LAMP_MIS__
 #endif
 
 #ifdef __KERNEL_CUDA__
@@ -117,6 +116,7 @@ CCL_NAMESPACE_BEGIN
 #define __CAMERA_MOTION__
 #define __ANISOTROPIC__
 #define __OBJECT_MOTION__
+#define __LAMP_MIS__
 #endif
 //#define __SOBOL_FULL_SCREEN__
 
