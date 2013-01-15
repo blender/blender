@@ -54,6 +54,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "UI_view2d.h"
+
 #include "logic_intern.h"
 
 // temporary new includes for texface functions
@@ -723,6 +725,39 @@ static void LOGIC_OT_texface_convert(wmOperatorType *ot)
 }
 
 
+/* ************************ view ********************* */
+
+static int logic_view_all_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	ARegion *ar = CTX_wm_region(C);
+	rctf cur_new = ar->v2d.tot;
+	float aspect = BLI_rctf_size_y(&ar->v2d.cur) / BLI_rctf_size_x(&ar->v2d.cur);
+	
+	/* force the view2d code to zoom to width, not height */
+	cur_new.ymin = cur_new.ymax - BLI_rctf_size_x(&cur_new) * aspect;
+	
+	UI_view2d_smooth_view(C, ar, &cur_new);
+
+	return OPERATOR_FINISHED;
+}
+
+static void LOGIC_OT_view_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "View All";
+	ot->idname = "LOGIC_OT_view_all";
+	ot->description = "Resize view so you can see all logic bricks";
+	
+	/* api callbacks */
+	ot->exec = logic_view_all_exec;
+	ot->poll = ED_operator_logic_active;
+	
+	/* flags */
+	ot->flag = 0;
+}
+
+/* ************************* */
+
 void ED_operatortypes_logic(void)
 {
 	WM_operatortype_append(LOGIC_OT_sensor_remove);
@@ -735,4 +770,5 @@ void ED_operatortypes_logic(void)
 	WM_operatortype_append(LOGIC_OT_actuator_add);
 	WM_operatortype_append(LOGIC_OT_actuator_move);
 	WM_operatortype_append(LOGIC_OT_texface_convert);
+	WM_operatortype_append(LOGIC_OT_view_all);
 }
