@@ -700,7 +700,7 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 		show_viewer = (image && image->source == IMA_SRC_VIEWER);
 
 		if (show_viewer) {
-			/* ED_space_image_get will acquire image buffer which requires
+			/* ED_space_image_get* will acquire image buffer which requires
 			 * lock here by the same reason why lock is needed in draw_image_main
 			 */
 			BLI_lock_thread(LOCK_DRAW_IMAGE);

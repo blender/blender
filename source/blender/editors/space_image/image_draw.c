@@ -834,7 +834,7 @@ void draw_image_main(const bContext *C, ARegion *ar)
 	show_render = (show_viewer && ima->type == IMA_TYPE_R_RESULT);
 
 	if (show_viewer) {
-		/* use locked draw for drawing viewer image buffer since the conpositor
+		/* use locked draw for drawing viewer image buffer since the compositor
 		 * is running in separated thread and compositor could free this buffers.
 		 * other images are not modifying in such a way so they does not require
 		 * lock (sergey)
