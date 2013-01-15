@@ -43,11 +43,11 @@ CCL_NAMESPACE_BEGIN
 #ifdef __KERNEL_CPU__
 #define __KERNEL_SHADING__
 #define __KERNEL_ADV_SHADING__
+#define __NON_PROGRESSIVE__
+#define __HAIR__
 #ifdef WITH_OSL
 #define __OSL__
 #endif
-#define __NON_PROGRESSIVE__
-#define __HAIR__
 #endif
 
 #ifdef __KERNEL_CUDA__
@@ -112,11 +112,11 @@ CCL_NAMESPACE_BEGIN
 #define __TRANSPARENT_SHADOWS__
 #define __PASSES__
 #define __BACKGROUND_MIS__
-#define __AO__
-#define __CAMERA_MOTION__
-#define __ANISOTROPIC__
-#define __OBJECT_MOTION__
 #define __LAMP_MIS__
+#define __AO__
+#define __ANISOTROPIC__
+#define __CAMERA_MOTION__
+#define __OBJECT_MOTION__
 #endif
 //#define __SOBOL_FULL_SCREEN__
 

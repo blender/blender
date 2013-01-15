@@ -241,7 +241,7 @@ public:
 #ifdef _WIN32
 		if(cuHavePrecompiledKernels()) {
 			if(major <= 1 && minor <= 2)
-				cuda_error(string_printf("CUDA device supported only compute capability 1.3 or up, found %d.%d.", major, minor));
+				cuda_error(string_printf("CUDA device requires compute capability 1.3 or up, found %d.%d. Your GPU is not supported.", major, minor));
 			else
 				cuda_error(string_printf("CUDA binary kernel for this graphics card compute capability (%d.%d) not found.", major, minor));
 			return "";
