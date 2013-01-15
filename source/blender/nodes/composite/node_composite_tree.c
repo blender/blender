@@ -51,7 +51,6 @@
 #include "BKE_tracking.h"
 
 #include "node_common.h"
-#include "node_exec.h"
 #include "node_util.h"
 
 #include "PIL_time.h"
@@ -267,92 +266,6 @@ bNodeTreeType ntreeType_Composite = {
 	/* update_internal_links */	node_update_internal_links_default
 };
 
-
-/* XXX Group nodes must set use_tree_data to false, since their trees can be shared by multiple nodes.
- * If use_tree_data is true, the ntree->execdata pointer is checked to avoid multiple execution of top-level trees.
- */
-struct bNodeTreeExec *ntreeCompositBeginExecTree(bNodeTree *ntree, int use_tree_data)
-{
-	bNodeTreeExec *exec;
-	bNode *node;
-	bNodeSocket *sock;
-	
-	if (use_tree_data) {
-		/* XXX hack: prevent exec data from being generated twice.
-		 * this should be handled by the renderer!
-		 */
-		if (ntree->execdata)
-			return ntree->execdata;
-	}
-	
-	/* ensures only a single output node is enabled */
-	ntreeSetOutput(ntree);
-	
-	exec = ntree_exec_begin(ntree);
-	
-	for (node= exec->nodetree->nodes.first; node; node= node->next) {
-		/* initialize needed for groups */
-		node->exec= 0;
-		
-		for (sock= node->outputs.first; sock; sock= sock->next) {
-			bNodeStack *ns= node_get_socket_stack(exec->stack, sock);
-			if (ns && sock->cache) {
-				ns->data= sock->cache;
-				sock->cache= NULL;
-			}
-		}
-		/* cannot initialize them while using in threads */
-		if (ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT)) {
-			curvemapping_initialize(node->storage);
-			if (node->type==CMP_NODE_CURVE_RGB)
-				curvemapping_premultiply(node->storage, 0);
-		}
-	}
-	
-	if (use_tree_data) {
-		/* XXX this should not be necessary, but is still used for cmp/sha/tex nodes,
-		 * which only store the ntree pointer. Should be fixed at some point!
-		 */
-		ntree->execdata = exec;
-	}
-	
-	return exec;
-}
-
-/* XXX Group nodes must set use_tree_data to false, since their trees can be shared by multiple nodes.
- * If use_tree_data is true, the ntree->execdata pointer is checked to avoid multiple execution of top-level trees.
- */
-void ntreeCompositEndExecTree(bNodeTreeExec *exec, int use_tree_data)
-{
-	if (exec) {
-		bNodeTree *ntree= exec->nodetree;
-		bNode *node;
-		bNodeStack *ns;
-		
-		for (node= exec->nodetree->nodes.first; node; node= node->next) {
-			bNodeSocket *sock;
-			
-			for (sock= node->outputs.first; sock; sock= sock->next) {
-				ns = node_get_socket_stack(exec->stack, sock);
-				if (ns && ns->data) {
-					sock->cache= ns->data;
-					ns->data= NULL;
-				}
-			}
-			if (node->type==CMP_NODE_CURVE_RGB)
-				curvemapping_premultiply(node->storage, 1);
-			
-			node->need_exec= 0;
-		}
-	
-		ntree_exec_end(exec);
-		
-		if (use_tree_data) {
-			/* XXX clear nodetree backpointer to exec data, same problem as noted in ntreeBeginExecTree */
-			ntree->execdata = NULL;
-		}
-	}
-}
 
 void *COM_linker_hack = NULL;
 

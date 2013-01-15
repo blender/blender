@@ -258,7 +258,7 @@ void ntree_exec_end(bNodeTreeExec *exec)
 	MEM_freeN(exec);
 }
 
-/**** Compositor/Material/Texture trees ****/
+/**** Material/Texture trees ****/
 
 bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread)
 {
@@ -285,32 +285,6 @@ bNodeThreadStack *ntreeGetThreadStack(bNodeTreeExec *exec, int thread)
 void ntreeReleaseThreadStack(bNodeThreadStack *nts)
 {
 	nts->used = 0;
-}
-
-void ntreeExecNodes(bNodeTreeExec *exec, void *callerdata, int thread)
-{
-	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
-	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
-	bNodeExec *nodeexec;
-	bNode *node;
-	int n;
-	
-	/* nodes are presorted, so exec is in order of list */
-	
-	for (n=0, nodeexec= exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
-		node = nodeexec->node;
-		if (node->need_exec) {
-			node_get_stack(node, exec->stack, nsin, nsout);
-			/* Handle muted nodes...
-			 * If the mute func is not set, assume the node should never be muted,
-			 * and hence execute it!
-			 */
-			if (node->typeinfo->execfunc)
-				node->typeinfo->execfunc(callerdata, node, nsin, nsout);
-			else if (node->typeinfo->newexecfunc)
-				node->typeinfo->newexecfunc(callerdata, thread, node, nodeexec->data, nsin, nsout);
-		}
-	}
 }
 
 void ntreeExecThreadNodes(bNodeTreeExec *exec, bNodeThreadStack *nts, void *callerdata, int thread)

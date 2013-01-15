@@ -737,8 +737,6 @@ void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMateria
 
 /* API */
 struct CompBuf;
-struct bNodeTreeExec *ntreeCompositBeginExecTree(struct bNodeTree *ntree, int use_tree_data);
-void ntreeCompositEndExecTree(struct bNodeTreeExec *exec, int use_tree_data);
 void ntreeCompositExecTree(struct bNodeTree *ntree, struct RenderData *rd, int rendering, int do_previews,
                            const struct ColorManagedViewSettings *view_settings, const struct ColorManagedDisplaySettings *display_settings);
 void ntreeCompositTagRender(struct Scene *sce);
