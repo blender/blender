@@ -133,6 +133,10 @@ __device_inline void path_radiance_init(PathRadiance *L, int use_light_pass)
 		L->indirect_glossy = make_float3(0.0f, 0.0f, 0.0f);
 		L->indirect_transmission = make_float3(0.0f, 0.0f, 0.0f);
 
+		L->path_diffuse = make_float3(0.0f, 0.0f, 0.0f);
+		L->path_glossy = make_float3(0.0f, 0.0f, 0.0f);
+		L->path_transmission = make_float3(0.0f, 0.0f, 0.0f);
+
 		L->emission = make_float3(0.0f, 0.0f, 0.0f);
 		L->background = make_float3(0.0f, 0.0f, 0.0f);
 		L->ao = make_float3(0.0f, 0.0f, 0.0f);
@@ -156,11 +160,11 @@ __device_inline void path_radiance_bsdf_bounce(PathRadiance *L, float3 *throughp
 			/* first on directly visible surface */
 			float3 value = *throughput*inverse_pdf;
 
-			L->indirect_diffuse = bsdf_eval->diffuse*value;
-			L->indirect_glossy = bsdf_eval->glossy*value;
-			L->indirect_transmission = bsdf_eval->transmission*value;
+			L->path_diffuse = bsdf_eval->diffuse*value;
+			L->path_glossy = bsdf_eval->glossy*value;
+			L->path_transmission = bsdf_eval->transmission*value;
 
-			*throughput = L->indirect_diffuse + L->indirect_glossy + L->indirect_transmission;
+			*throughput = L->path_diffuse + L->path_glossy + L->path_transmission;
 			
 			L->direct_throughput = *throughput;
 		}
@@ -266,22 +270,41 @@ __device_inline void path_radiance_accum_background(PathRadiance *L, float3 thro
 #endif
 }
 
+__device_inline void path_radiance_sum_indirect(PathRadiance *L)
+{
+	/* this division is a bit ugly, but means we only have to keep track of
+	 * only a single throughput further along the path, here we recover just
+	 * the indirect parth that is not influenced by any particular BSDF type */
+	if(L->use_light_pass) {
+		L->direct_emission = safe_divide_color(L->direct_emission, L->direct_throughput);
+		L->direct_diffuse += L->path_diffuse*L->direct_emission;
+		L->direct_glossy += L->path_glossy*L->direct_emission;
+		L->direct_transmission += L->path_transmission*L->direct_emission;
+
+		L->indirect = safe_divide_color(L->indirect, L->direct_throughput);
+		L->indirect_diffuse += L->path_diffuse*L->indirect;
+		L->indirect_glossy += L->path_glossy*L->indirect;
+		L->indirect_transmission += L->path_transmission*L->indirect;
+	}
+}
+
+__device_inline void path_radiance_reset_indirect(PathRadiance *L)
+{
+	if(L->use_light_pass) {
+		L->path_diffuse = make_float3(0.0f, 0.0f, 0.0f);
+		L->path_glossy = make_float3(0.0f, 0.0f, 0.0f);
+		L->path_transmission = make_float3(0.0f, 0.0f, 0.0f);
+
+		L->direct_emission = make_float3(0.0f, 0.0f, 0.0f);
+		L->indirect = make_float3(0.0f, 0.0f, 0.0f);
+	}
+}
+
 __device_inline float3 path_radiance_sum(KernelGlobals *kg, PathRadiance *L)
 {
 #ifdef __PASSES__
 	if(L->use_light_pass) {
-		/* this division is a bit ugly, but means we only have to keep track of
-		 * only a single throughput further along the path, here we recover just
-		 * the indirect parth that is not influenced by any particular BSDF type */
-		L->direct_emission = safe_divide_color(L->direct_emission, L->direct_throughput);
-		L->direct_diffuse += L->indirect_diffuse*L->direct_emission;
-		L->direct_glossy += L->indirect_glossy*L->direct_emission;
-		L->direct_transmission += L->indirect_transmission*L->direct_emission;
-
-		L->indirect = safe_divide_color(L->indirect, L->direct_throughput);
-		L->indirect_diffuse *= L->indirect;
-		L->indirect_glossy *= L->indirect;
-		L->indirect_transmission *= L->indirect;
+		path_radiance_sum_indirect(L);
 
 		float3 L_sum = L->emission
 			+ L->direct_diffuse + L->direct_glossy + L->direct_transmission

@@ -255,6 +255,10 @@ typedef struct PathRadiance {
 	float3 indirect_glossy;
 	float3 indirect_transmission;
 
+	float3 path_diffuse;
+	float3 path_glossy;
+	float3 path_transmission;
+
 	float4 shadow;
 } PathRadiance;
 

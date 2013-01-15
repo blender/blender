@@ -949,6 +949,11 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 				kernel_path_indirect(kg, rng, sample*num_samples + j, bsdf_ray, buffer,
 					tp*num_samples_inv, num_samples,
 					min_ray_pdf, bsdf_pdf, ps, rng_offset+PRNG_BOUNCE_NUM, &L);
+
+				/* for render passes, sum and reset indirect light pass variables
+				 * for the next samples */
+				path_radiance_sum_indirect(&L);
+				path_radiance_reset_indirect(&L);
 			}
 		}
 
