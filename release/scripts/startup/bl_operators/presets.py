@@ -477,7 +477,7 @@ class AddPresetNodeColor(AddPresetBase, Operator):
 class AddPresetInterfaceTheme(AddPresetBase, Operator):
     """Add a theme preset"""
     bl_idname = "wm.interface_theme_preset_add"
-    bl_label = "Add Tracking Settings Preset"
+    bl_label = "Add Theme Preset"
     preset_menu = "USERPREF_MT_interface_theme_presets"
     preset_subdir = "interface_theme"
 
