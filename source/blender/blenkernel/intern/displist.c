@@ -309,10 +309,11 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, i
 	BPoint *bp;
 	float *data;
 	int a, len, resolu;
+	const int editmode = (!forRender && (cu->editnurb || cu->editfont));
 
 	nu = nubase->first;
 	while (nu) {
-		if (nu->hide == 0) {
+		if (nu->hide == 0 || editmode == 0) {
 			if (forRender && cu->resolu_ren != 0)
 				resolu = cu->resolu_ren;
 			else

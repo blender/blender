@@ -4911,7 +4911,7 @@ static void ob_draw_RE_motion(float com[3], float rotscale[3][3], float itw, flo
 
 /*place to add drawers */
 
-static void tekenhandlesN(Nurb *nu, short sel, short hide_handles)
+static void drawhandlesN(Nurb *nu, short sel, short hide_handles)
 {
 	BezTriple *bezt;
 	float *fp;
@@ -4971,7 +4971,7 @@ static void tekenhandlesN(Nurb *nu, short sel, short hide_handles)
 	glEnd();
 }
 
-static void tekenhandlesN_active(Nurb *nu)
+static void drawhandlesN_active(Nurb *nu)
 {
 	BezTriple *bezt;
 	float *fp;
@@ -5006,7 +5006,7 @@ static void tekenhandlesN_active(Nurb *nu)
 	glLineWidth(1);
 }
 
-static void tekenvertsN(Nurb *nu, short sel, short hide_handles, void *lastsel)
+static void drawvertsN(Nurb *nu, short sel, short hide_handles, void *lastsel)
 {
 	BezTriple *bezt;
 	BPoint *bp;
@@ -5286,8 +5286,8 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	for (nu = nurb; nu; nu = nu->next) {
 		if (nu->type == CU_BEZIER) {
 			if (index == cu->actnu && !hide_handles)
-				tekenhandlesN_active(nu);
-			tekenhandlesN(nu, 0, hide_handles);
+				drawhandlesN_active(nu);
+			drawhandlesN(nu, 0, hide_handles);
 		}
 		index++;
 	}
@@ -5296,8 +5296,8 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	/* selected handles */
 	for (nu = nurb; nu; nu = nu->next) {
 		if (nu->type == CU_BEZIER && (cu->drawflag & CU_HIDE_HANDLES) == 0)
-			tekenhandlesN(nu, 1, hide_handles);
-		tekenvertsN(nu, 0, hide_handles, NULL);
+			drawhandlesN(nu, 1, hide_handles);
+		drawvertsN(nu, 0, hide_handles, NULL);
 	}
 	
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -5348,7 +5348,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 	
 	for (nu = nurb; nu; nu = nu->next) {
-		tekenvertsN(nu, 1, hide_handles, cu->lastsel);
+		drawvertsN(nu, 1, hide_handles, cu->lastsel);
 	}
 	
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
