@@ -34,7 +34,8 @@ class MESH_MT_vertex_group_specials(Menu):
         layout.operator("object.vertex_group_copy_to_linked", icon='LINK_AREA')
         layout.operator("object.vertex_group_copy_to_selected", icon='LINK_AREA')
         layout.operator("object.vertex_group_mirror", icon='ARROW_LEFTRIGHT')
-        layout.operator("object.vertex_group_remove", icon='X', text="Delete All").all = True
+        layout.operator("object.vertex_group_remove", icon='X', text="Delete All Vertex Groups").all = True
+        layout.operator("object.vertex_group_remove_from", icon='X', text="Remove Selected from All Vertex Groups").all = True
         layout.separator()
         layout.operator("object.vertex_group_lock", icon='LOCKED', text="Lock All").action = 'LOCK'
         layout.operator("object.vertex_group_lock", icon='UNLOCKED', text="UnLock All").action = 'UNLOCK'
