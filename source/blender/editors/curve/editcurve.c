@@ -1293,7 +1293,7 @@ void CU_deselect_all(Object *obedit)
 			else if (nu->bp) {
 				BPoint *bp;
 				for (bp = nu->bp, a = 0; a < nu->pntsu * nu->pntsv; a++, bp++) {
-					bp->f1 & ~SELECT;
+					bp->f1 &= ~SELECT;
 				}
 			}
 		}
