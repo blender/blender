@@ -107,6 +107,17 @@ static void ReadData(png_structp png_ptr, png_bytep data, png_size_t length)
 	longjmp(png_jmpbuf(png_ptr), 1);
 }
 
+static float channel_colormanage_noop(float value)
+{
+	return value;
+}
+
+/* wrap to avoid macro calling functions multiple times */
+BLI_INLINE unsigned short ftoshort(float val)
+{
+	return FTOUSHORT(val);
+}
+
 int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 {
 	png_structp png_ptr;
@@ -123,10 +134,21 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 	bool is_16bit  = (ibuf->ftype & PNG_16BIT);
 	bool has_float = (ibuf->rect_float != NULL);
 
+	float (*chanel_colormanage_cb)(float);
+
 	/* use the jpeg quality setting for compression */
 	int compression;
 	compression = (int)(((float)(ibuf->ftype & 0xff) / 11.1111f));
 	compression = compression < 0 ? 0 : (compression > 9 ? 9 : compression);
+
+	if (ibuf->float_colorspace) {
+		/* float buffer was managed already, no need in color space conversion */
+		chanel_colormanage_cb = channel_colormanage_noop;
+	}
+	else {
+		/* standard linear-to-srgb conversion if float buffer wasn't managed */
+		chanel_colormanage_cb = linearrgb_to_srgb;
+	}
 
 	/* for prints */
 	if (flags & IB_mem)
@@ -183,10 +205,10 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 				if (has_float) {
 					for (i = ibuf->x * ibuf->y; i > 0; i--) {
 						premul_to_straight_v4(from_straight, from_float);
-						to16[0] = FTOUSHORT(from_straight[0]);
-						to16[1] = FTOUSHORT(from_straight[1]);
-						to16[2] = FTOUSHORT(from_straight[2]);
-						to16[3] = FTOUSHORT(from_straight[3]);
+						to16[0] = ftoshort(chanel_colormanage_cb(from_straight[0]));
+						to16[1] = ftoshort(chanel_colormanage_cb(from_straight[1]));
+						to16[2] = ftoshort(chanel_colormanage_cb(from_straight[2]));
+						to16[3] = ftoshort(chanel_colormanage_cb(from_straight[3]));
 						to16 += 4; from_float += 4;
 					}
 				}
@@ -216,9 +238,9 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 				if (has_float) {
 					for (i = ibuf->x * ibuf->y; i > 0; i--) {
 						premul_to_straight_v4(from_straight, from_float);
-						to16[0] = FTOUSHORT(from_straight[0]);
-						to16[1] = FTOUSHORT(from_straight[1]);
-						to16[2] = FTOUSHORT(from_straight[2]);
+						to16[0] = ftoshort(chanel_colormanage_cb(from_straight[0]));
+						to16[1] = ftoshort(chanel_colormanage_cb(from_straight[1]));
+						to16[2] = ftoshort(chanel_colormanage_cb(from_straight[2]));
 						to16 += 3; from_float += 4;
 					}
 				}
@@ -246,7 +268,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 				if (has_float) {
 					for (i = ibuf->x * ibuf->y; i > 0; i--) {
 						premul_to_straight_v4(from_straight, from_float);
-						to16[0] = FTOUSHORT(from_straight[0]);
+						to16[0] = ftoshort(chanel_colormanage_cb(from_straight[0]));
 						to16++; from_float += 4;
 					}
 				}
