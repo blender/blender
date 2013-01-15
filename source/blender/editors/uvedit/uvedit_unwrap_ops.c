@@ -603,7 +603,7 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, int interact
 		param_flush(ms->handle);
 
 		if (sa) {
-			BLI_snprintf(str, sizeof(str), "Minimize Stretch. Blend %.2f", ms->blend);
+			BLI_snprintf(str, sizeof(str), "Minimize Stretch. Blend %.2f (Press + and -, or scroll wheel to set)", ms->blend);
 			ED_area_headerprint(sa, str);
 		}
 
@@ -686,20 +686,24 @@ static int minimize_stretch_modal(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_FINISHED;
 		case PADPLUSKEY:
 		case WHEELUPMOUSE:
-			if (ms->blend < 0.95f) {
-				ms->blend += 0.1f;
-				ms->lasttime = 0.0f;
-				RNA_float_set(op->ptr, "blend", ms->blend);
-				minimize_stretch_iteration(C, op, 1);
+			if(event->val == KM_PRESS) {
+				if (ms->blend < 0.95f) {
+					ms->blend += 0.1f;
+					ms->lasttime = 0.0f;
+					RNA_float_set(op->ptr, "blend", ms->blend);
+					minimize_stretch_iteration(C, op, 1);
+				}
 			}
 			break;
 		case PADMINUS:
 		case WHEELDOWNMOUSE:
-			if (ms->blend > 0.05f) {
-				ms->blend -= 0.1f;
-				ms->lasttime = 0.0f;
-				RNA_float_set(op->ptr, "blend", ms->blend);
-				minimize_stretch_iteration(C, op, 1);
+			if(event->val == KM_PRESS) {
+				if (ms->blend > 0.05f) {
+					ms->blend -= 0.1f;
+					ms->lasttime = 0.0f;
+					RNA_float_set(op->ptr, "blend", ms->blend);
+					minimize_stretch_iteration(C, op, 1);
+				}
 			}
 			break;
 		case TIMER:
