@@ -458,11 +458,14 @@ static DMDrawOption draw_mcol__set_draw_legacy(MTFace *UNUSED(tface), int has_mc
 		return DM_DRAW_OPTION_NO_MCOL;
 }
 
-static DMDrawOption draw_tface__set_draw(MTFace *UNUSED(tface), int UNUSED(has_mcol), int matnr)
+static DMDrawOption draw_tface__set_draw(MTFace *tface, int UNUSED(has_mcol), int matnr)
 {
 	Material *ma = give_current_material(Gtexdraw.ob, matnr + 1);
 
 	if (ma && (ma->game.flag & GEMAT_INVISIBLE)) return 0;
+
+	if (tface)
+		set_draw_settings_cached(0, tface, ma, Gtexdraw);
 
 	/* always use color from mcol, as set in update_tface_color_layer */
 	return DM_DRAW_OPTION_NORMAL;
