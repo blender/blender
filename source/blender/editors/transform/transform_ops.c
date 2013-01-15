@@ -767,7 +767,7 @@ static void TRANSFORM_OT_edge_slide(struct wmOperatorType *ot)
 static void TRANSFORM_OT_vert_slide(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name   = "Vert Slide";
+	ot->name   = "Vertex Slide";
 	ot->description = "Slide a vertex along a mesh";
 	ot->idname = OP_VERT_SLIDE;
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
