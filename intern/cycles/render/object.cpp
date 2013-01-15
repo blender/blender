@@ -91,37 +91,15 @@ void Object::apply_transform()
 	for(size_t i = 0; i < mesh->curve_keys.size(); i++)
 		mesh->curve_keys[i].co = transform_point(&tfm, mesh->curve_keys[i].co);
 
-	Attribute *attr_tangent = mesh->curve_attributes.find(ATTR_STD_CURVE_TANGENT);
-	Attribute *attr_fN = mesh->attributes.find(ATTR_STD_FACE_NORMAL);
-	Attribute *attr_vN = mesh->attributes.find(ATTR_STD_VERTEX_NORMAL);
-
-	Transform ntfm = transform_transpose(transform_inverse(tfm));
+	/* store matrix to transform later. when accessing these as attributes we
+	 * do not want the transform to be applied for consistency between static
+	 * and dynamic BVH, so we do it on packing. */
+	mesh->transform_normal = transform_transpose(transform_inverse(tfm));
 
 	/* we keep normals pointing in same direction on negative scale, notify
 	 * mesh about this in it (re)calculates normals */
 	if(transform_negative_scale(tfm))
 		mesh->transform_negative_scaled = true;
-
-	if(attr_fN) {
-		float3 *fN = attr_fN->data_float3();
-
-		for(size_t i = 0; i < mesh->triangles.size(); i++)
-			fN[i] = transform_direction(&ntfm, fN[i]);
-	}
-
-	if(attr_vN) {
-		float3 *vN = attr_vN->data_float3();
-
-		for(size_t i = 0; i < mesh->verts.size(); i++)
-			vN[i] = transform_direction(&ntfm, vN[i]);
-	}
-
-	if(attr_tangent) {
-		float3 *tangent = attr_tangent->data_float3();
-
-		for(size_t i = 0; i < mesh->curve_keys.size(); i++)
-			tangent[i] = transform_direction(&tfm, tangent[i]);
-	}
 
 	if(bounds.valid()) {
 		mesh->compute_bounds();

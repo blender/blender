@@ -3257,6 +3257,8 @@ void NormalMapNode::attributes(AttributeRequestSet *attributes)
 			attributes->add(ustring((string(attribute.c_str()) + ".tangent").c_str()));
 			attributes->add(ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));
 		}
+
+		attributes->add(ATTR_STD_VERTEX_NORMAL);
 	}
 	
 	ShaderNode::attributes(attributes);
