@@ -686,7 +686,7 @@ static int minimize_stretch_modal(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_FINISHED;
 		case PADPLUSKEY:
 		case WHEELUPMOUSE:
-			if(event->val == KM_PRESS) {
+			if (event->val == KM_PRESS) {
 				if (ms->blend < 0.95f) {
 					ms->blend += 0.1f;
 					ms->lasttime = 0.0f;
@@ -697,7 +697,7 @@ static int minimize_stretch_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 		case PADMINUS:
 		case WHEELDOWNMOUSE:
-			if(event->val == KM_PRESS) {
+			if (event->val == KM_PRESS) {
 				if (ms->blend > 0.05f) {
 					ms->blend -= 0.1f;
 					ms->lasttime = 0.0f;

@@ -102,15 +102,15 @@ typedef struct TransCon {
 	int   imval[2];	     /* initial mouse value for visual calculation                                */
 	                     /* the one in TransInfo is not garanty to stay the same (Rotates change it)  */
 	int   mode;          /* Mode flags of the Constraint                                              */
-	void  (*drawExtra)(struct TransInfo *);
+	void  (*drawExtra)(struct TransInfo *t);
 	                     /* For constraints that needs to draw differently from the other
 	                      * uses this instead of the generic draw function                            */
-	void  (*applyVec)(struct TransInfo *, struct TransData *, float *, float *, float *);
+	void  (*applyVec)(struct TransInfo *t, struct TransData *td, const float in[3], float out[3], float pvec[3]);
 	                     /* Apply function pointer for linear vectorial transformation                */
 	                     /* The last three parameters are pointers to the in/out/printable vectors    */
-	void  (*applySize)(struct TransInfo *, struct TransData *, float [3][3]);
+	void  (*applySize)(struct TransInfo *t, struct TransData *td, float [3][3]);
 	                     /* Apply function pointer for size transformation */
-	void  (*applyRot)(struct TransInfo *, struct TransData *, float [3], float *);
+	void  (*applyRot)(struct TransInfo *t, struct TransData *td, float vec[3], float *angle);
 	                     /* Apply function pointer for rotation transformation */
 } TransCon;
 
