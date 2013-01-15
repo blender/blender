@@ -150,7 +150,6 @@ def cmake_advanced_info():
 
         os.system(cmd)
         return join(CMAKE_DIR, ".cproject")
-        
 
     includes = []
     defines = []

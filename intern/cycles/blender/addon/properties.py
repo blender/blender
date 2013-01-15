@@ -96,7 +96,7 @@ enum_curves_interpolation = (
     ('CARDINAL', "Cardinal interpolation", "Use cardinal interpolation between segments"),
     ('BSPLINE', "B-spline interpolation", "Use b-spline interpolation between segments"),
     )
-    
+
 enum_tile_order = (
     ('CENTER', "Center", "Render from center to the edges"),
     ('RIGHT_TO_LEFT', "Right to Left", "Render from right to left"),
@@ -104,6 +104,7 @@ enum_tile_order = (
     ('TOP_TO_BOTTOM', "Top to Bottom", "Render from top to bottom"),
     ('BOTTOM_TO_TOP', "Bottom to Top", "Render from bottom to top"),
     )
+
 
 class CyclesRenderSettings(bpy.types.PropertyGroup):
     @classmethod
@@ -620,6 +621,7 @@ class CyclesMeshSettings(bpy.types.PropertyGroup):
         del bpy.types.Curve.cycles
         del bpy.types.MetaBall.cycles
 
+
 class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
     @classmethod
     def register(cls):
@@ -706,7 +708,7 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
                 name="Use Cycles Hair Rendering",
                 description="Activate Cycles hair rendering for particle system",
                 default=True,
-                )        
+                )
         cls.segments = IntProperty(
                 name="Segments",
                 description="Number of segments between path keys (note that this combines with the 'draw step' value)",
@@ -741,6 +743,7 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
     @classmethod
     def unregister(cls):
         del bpy.types.Scene.cycles_curves
+
 
 class CyclesCurveSettings(bpy.types.PropertyGroup):
     @classmethod
@@ -777,6 +780,7 @@ class CyclesCurveSettings(bpy.types.PropertyGroup):
     @classmethod
     def unregister(cls):
         del bpy.types.ParticleSettings.cycles
+
 
 def register():
     bpy.utils.register_class(CyclesRenderSettings)

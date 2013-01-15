@@ -41,6 +41,7 @@ import os
 
 USE_QUIET = (os.environ.get("QUIET", None) is not None)
 
+
 def main():
     source_info = project_source_info.build_info(use_cxx=False, ignore_prefix_list=CHECKER_IGNORE_PREFIX)
 
@@ -48,7 +49,7 @@ def main():
     for c, inc_dirs, defs in source_info:
 
         cmd = ([CHECKER_BIN] +
-                CHECKER_ARGS +
+               CHECKER_ARGS +
                [c] +
                [("-I%s" % i) for i in inc_dirs] +
                [("-D%s" % d) for d in defs]

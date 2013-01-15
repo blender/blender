@@ -108,7 +108,7 @@ typedef struct TransCon {
 	void  (*applyVec)(struct TransInfo *t, struct TransData *td, const float in[3], float out[3], float pvec[3]);
 	                     /* Apply function pointer for linear vectorial transformation                */
 	                     /* The last three parameters are pointers to the in/out/printable vectors    */
-	void  (*applySize)(struct TransInfo *t, struct TransData *td, float [3][3]);
+	void  (*applySize)(struct TransInfo *t, struct TransData *td, float smat[3][3]);
 	                     /* Apply function pointer for size transformation */
 	void  (*applyRot)(struct TransInfo *t, struct TransData *td, float vec[3], float *angle);
 	                     /* Apply function pointer for rotation transformation */

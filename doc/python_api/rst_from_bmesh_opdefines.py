@@ -65,10 +65,10 @@ def main():
     fsrc = open(FILE_OP_DEFINES_C, 'r', encoding="utf-8")
 
     blocks = []
-    
+
     is_block = False
     is_comment = False  # /* global comments only */
-    
+
     comment_ctx = None
     block_ctx = None
 
@@ -82,7 +82,7 @@ def main():
         elif l.strip().startswith("/*"):
             is_comment = True
             comment_ctx = []
-        
+
         if is_block:
             if l.strip().startswith("//"):
                 pass
@@ -93,11 +93,11 @@ def main():
                     l = l[:cpp_comment]
 
                 block_ctx.append(l)
-            
+
             if l.strip() == "};":
                 is_block = False
                 comment_ctx = None
-        
+
         if is_comment:
             c_comment_start = l.find("/*")
             if c_comment_start != -1:
@@ -113,7 +113,6 @@ def main():
     fsrc.close()
     del fsrc
 
-
    # namespace hack
     vars = (
         "BMO_OP_SLOT_ELEMENT_BUF",
@@ -124,7 +123,7 @@ def main():
         "BMO_OP_SLOT_VEC",
         "BMO_OP_SLOT_PTR",
         "BMO_OP_SLOT_MAPPING",
-        
+
         "BMO_OP_SLOT_SUBTYPE_MAP_ELEM",
         "BMO_OP_SLOT_SUBTYPE_MAP_BOOL",
         "BMO_OP_SLOT_SUBTYPE_MAP_INT",
@@ -157,23 +156,23 @@ def main():
     for comment, b in blocks:
         # magic, translate into python
         b[0] = b[0].replace("static BMOpDefine ", "")
-        
+
         for i, l in enumerate(b):
             l = l.strip()
             l = l.replace("{", "(")
             l = l.replace("}", ")")
-            
+
             if l.startswith("/*"):
                 l = l.replace("/*", "'''own <")
             else:
                 l = l.replace("/*", "'''inline <")
             l = l.replace("*/", ">''',")
-            
+
             # exec func. eg: bmo_rotate_edges_exec,
             if l.startswith("bmo_") and l.endswith("_exec,"):
                 l = "None,"
             b[i] = l
-            
+
         #for l in b:
         #    print(l)
 
@@ -182,7 +181,7 @@ def main():
             "__file__": "generated",
             "__name__": "__main__",
         }
-        
+
         global_namespace.update(vars_dict)
 
         text_a, text_b = text.split("=", 1)
@@ -190,7 +189,6 @@ def main():
         exec(compile(text, "generated", 'exec'), global_namespace)
         # print(global_namespace["result"])
         blocks_py.append((comment, global_namespace["result"]))
-
 
     # ---------------------
     # Now convert into rst.
@@ -217,7 +215,7 @@ def main():
             args_out_index[:] = [i for (i, a) in enumerate(args_out) if type(a) == tuple]
 
         fw(".. function:: %s(bm, %s)\n\n" % (b[0], ", ".join([args_in[i][0] for i in args_in_index])))
-        
+
         # -- wash the comment
         comment_washed = []
         for i, l in enumerate(comment):
@@ -235,7 +233,6 @@ def main():
         fw("\n".join(comment_washed))
         fw("\n")
         # -- done
-
 
         # get the args
         def get_args_wash(args, args_index, is_ret):
@@ -268,7 +265,7 @@ def main():
                         comment_next = comment_next[8:-1]  # strip inline <...>
                     else:
                         comment_next = ""
-                        
+
                 comment = ""
                 if comment_prev:
                     comment += comment_prev.strip()
@@ -304,18 +301,21 @@ def main():
 
                 elif tp == BMO_OP_SLOT_ELEMENT_BUF:
                     assert(tp_sub is not None)
-                    
+
                     ls = []
-                    if tp_sub & BM_VERT: ls.append(":class:`bmesh.types.BMVert`")
-                    if tp_sub & BM_EDGE: ls.append(":class:`bmesh.types.BMEdge`")
-                    if tp_sub & BM_FACE: ls.append(":class:`bmesh.types.BMFace`")
+                    if tp_sub & BM_VERT:
+                        ls.append(":class:`bmesh.types.BMVert`")
+                    if tp_sub & BM_EDGE:
+                        ls.append(":class:`bmesh.types.BMEdge`")
+                    if tp_sub & BM_FACE:
+                        ls.append(":class:`bmesh.types.BMFace`")
                     assert(ls)  # must be at least one
 
                     if tp_sub & BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE:
                         tp_str = "/".join(ls)
                     else:
                         tp_str = ("list of (%s)" % ", ".join(ls))
-                        
+
                     del ls
                 elif tp == BMO_OP_SLOT_MAPPING:
                     if tp_sub & BMO_OP_SLOT_SUBTYPE_MAP_EMPTY:
@@ -356,21 +356,21 @@ def main():
 
             fw("   :arg %s: %s\n" % (name, comment))
             fw("   :type %s: %s\n" % (name, tp))
-        
+
         if args_out_wash:
             fw("   :return:\n\n")
-            
+
             for (name, tp, comment) in args_out_wash:
                 assert(name.endswith(".out"))
                 name = name[:-4]
                 fw("      - ``%s``: %s\n\n" % (name, comment))
                 fw("        **type** %s\n" % tp)
-            
+
             fw("\n")
             fw("   :rtype: dict with string keys\n")
 
         fw("\n\n")
-        
+
     fout.close()
     del fout
     print(OUT_RST)

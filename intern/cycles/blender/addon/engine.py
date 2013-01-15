@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+
 def init():
     import bpy
     import _cycles
@@ -89,4 +90,3 @@ def available_devices():
 def with_osl():
     import _cycles
     return _cycles.with_osl
-

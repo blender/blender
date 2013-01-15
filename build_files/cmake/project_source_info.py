@@ -89,12 +89,12 @@ def makefile_log():
     if make_exe_basename.startswith("make"):
         print("running 'make' with --dry-run ...")
         process = subprocess.Popen([make_exe, "--always-make", "--dry-run", "--keep-going", "VERBOSE=1"],
-                                    stdout=subprocess.PIPE,
+                                   stdout=subprocess.PIPE,
                                    )
     elif make_exe_basename.startswith("ninja"):
         print("running 'ninja' with -t commands ...")
         process = subprocess.Popen([make_exe, "-t", "commands"],
-                                    stdout=subprocess.PIPE,
+                                   stdout=subprocess.PIPE,
                                    )
 
     while process.poll():

@@ -26,6 +26,7 @@ import addon_utils
 import sys
 import imp
 
+
 def disable_addons():
     # first disable all
     addons = bpy.context.user_preferences.addons

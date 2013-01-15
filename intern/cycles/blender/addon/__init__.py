@@ -34,6 +34,7 @@ import bpy
 
 from . import engine
 
+
 class CyclesRender(bpy.types.RenderEngine):
     bl_idname = 'CYCLES'
     bl_label = "Cycles Render"
@@ -68,7 +69,7 @@ class CyclesRender(bpy.types.RenderEngine):
     def view_update(self, context):
         if not self.session:
             engine.create(self, context.blend_data, context.scene,
-                context.region, context.space_data, context.region_data)
+                          context.region, context.space_data, context.region_data)
         engine.update(self, context.blend_data, context.scene)
 
     def view_draw(self, context):
@@ -104,4 +105,3 @@ def unregister():
     properties.unregister()
     presets.unregister()
     bpy.utils.unregister_module(__name__)
-
