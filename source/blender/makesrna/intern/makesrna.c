@@ -2466,7 +2466,8 @@ static const char *rna_property_subtypename(PropertySubType type)
 		case PROP_LAYER: return "PROP_LAYER";
 		case PROP_LAYER_MEMBER: return "PROP_LAYER_MEMBER";
 		case PROP_PASSWORD: return "PROP_PASSWORD";
-		default: {
+		default:
+		{
 			/* in case we don't have a type preset that includes the subtype */
 			if (RNA_SUBTYPE_UNIT(type)) {
 				return rna_property_subtypename(type & ~RNA_SUBTYPE_UNIT(type));

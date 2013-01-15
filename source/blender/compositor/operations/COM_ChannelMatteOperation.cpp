@@ -38,7 +38,8 @@ void ChannelMatteOperation::initExecution()
 
 	switch (this->m_limit_method) {
 		/* SINGLE */
-		case 0: {
+		case 0:
+		{
 			/* 123 / RGB / HSV / YUV / YCC */
 			const int matte_channel = this->m_matte_channel - 1;
 			const int limit_channel = this->m_limit_channel - 1;
@@ -48,21 +49,25 @@ void ChannelMatteOperation::initExecution()
 			break;
 		}
 		/* MAX */
-		case 1: {
+		case 1:
+		{
 			switch (this->m_matte_channel) {
-				case 1: {
+				case 1:
+				{
 					this->m_ids[0] = 0;
 					this->m_ids[1] = 1;
 					this->m_ids[2] = 2;
 					break;
 				}
-				case 2: {
+				case 2:
+				{
 					this->m_ids[0] = 1;
 					this->m_ids[1] = 0;
 					this->m_ids[2] = 2;
 					break;
 				}
-				case 3: {
+				case 3:
+				{
 					this->m_ids[0] = 2;
 					this->m_ids[1] = 0;
 					this->m_ids[2] = 1;

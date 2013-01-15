@@ -6097,7 +6097,8 @@ int RNA_property_equals(PointerRNA *a, PointerRNA *b, PropertyRNA *prop)
 
 	/* get and set the default values as appropriate for the various types */
 	switch (RNA_property_type(prop)) {
-		case PROP_BOOLEAN: {
+		case PROP_BOOLEAN:
+		{
 			if (len) {
 				int fixed_a[16], fixed_b[16];
 				int *array_a, *array_b;
@@ -6122,7 +6123,8 @@ int RNA_property_equals(PointerRNA *a, PointerRNA *b, PropertyRNA *prop)
 			}
 		}
 
-		case PROP_INT: {
+		case PROP_INT:
+		{
 			if (len) {
 				int fixed_a[16], fixed_b[16];
 				int *array_a, *array_b;
@@ -6147,7 +6149,8 @@ int RNA_property_equals(PointerRNA *a, PointerRNA *b, PropertyRNA *prop)
 			}
 		}
 
-		case PROP_FLOAT: {
+		case PROP_FLOAT:
+		{
 			if (len) {
 				float fixed_a[16], fixed_b[16];
 				float *array_a, *array_b;
@@ -6172,12 +6175,14 @@ int RNA_property_equals(PointerRNA *a, PointerRNA *b, PropertyRNA *prop)
 			}
 		}
 
-		case PROP_ENUM: {
+		case PROP_ENUM:
+		{
 			int value = RNA_property_enum_get(a, prop);
 			return value == RNA_property_enum_get(b, prop);
 		}
 
-		case PROP_STRING: {
+		case PROP_STRING:
+		{
 			char fixed_a[128], fixed_b[128];
 			int len_a, len_b;
 			char *value_a = RNA_property_string_get_alloc(a, prop, fixed_a, sizeof(fixed_a), &len_a);

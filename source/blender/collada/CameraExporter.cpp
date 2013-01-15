@@ -70,7 +70,8 @@ void CamerasExporter::operator()(Object *ob, Scene *sce)
 
 	switch (cam->type) {
 		case CAM_PANO:
-		case CAM_PERSP: {
+		case CAM_PERSP:
+		{
 			COLLADASW::PerspectiveOptic persp(mSW);
 			persp.setXFov(RAD2DEGF(focallength_to_fov(cam->lens, cam->sensor_x)), "xfov");
 			persp.setAspectRatio((float)(sce->r.xsch) / (float)(sce->r.ysch), false, "aspect_ratio");

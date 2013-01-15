@@ -502,7 +502,8 @@ static int loopcut_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			ED_region_tag_redraw(lcd->ar);
 			break;
-		case MOUSEMOVE: { /* mouse moved somewhere to select another loop */
+		case MOUSEMOVE:  /* mouse moved somewhere to select another loop */
+		{
 			float dist = 75.0f;
 			BMEdge *edge;
 

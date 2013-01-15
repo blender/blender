@@ -689,7 +689,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 			break;
 		}
 		case GHOST_kEventWindowActivate:
-		case GHOST_kEventWindowDeactivate: {
+		case GHOST_kEventWindowDeactivate:
+		{
 			g_WS.qual &= ~WS_QUAL_MOUSE;
 			break;
 		}

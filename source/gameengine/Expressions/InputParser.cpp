@@ -260,7 +260,8 @@ void CParser::NextSym()
 				opkind = OPless;
 			}
 			break;
-		case '\"' : {
+		case '\"' :
+		{
 			int start;
 			sym = constsym;
 			constkind = stringtype;
@@ -464,7 +465,8 @@ CExpression *CParser::Ex(int i)
 		}
 		else {
 			switch (sym) {
-				case constsym: {
+				case constsym:
+				{
 					switch (constkind) {
 						case booltype:
 							e1 = new CConstExpr(new CBoolValue(boolvalue));

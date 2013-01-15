@@ -43,7 +43,8 @@ void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 	bNode *bnode = this->getbNode();
 
 	switch (bnode->custom1) {
-		case CMP_SCALE_RELATIVE: {
+		case CMP_SCALE_RELATIVE:
+		{
 			ScaleOperation *operation = new ScaleOperation();
 
 			inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
@@ -51,9 +52,10 @@ void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 			inputYSocket->relinkConnections(operation->getInputSocket(2), 2, graph);
 
 			scaleoperation = operation;
+			break;
 		}
-		break;
-		case CMP_SCALE_SCENEPERCENT: {
+		case CMP_SCALE_SCENEPERCENT:
+		{
 			SetValueOperation *scaleFactorOperation = new SetValueOperation();
 			scaleFactorOperation->setValue(context->getRenderData()->size / 100.0f);
 			ScaleOperation *operation = new ScaleOperation();
@@ -63,10 +65,10 @@ void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 			graph->addOperation(scaleFactorOperation);
 
 			scaleoperation = operation;
+			break;
 		}
-		break;
-
-		case CMP_SCALE_RENDERPERCENT: {
+		case CMP_SCALE_RENDERPERCENT:
+		{
 			const RenderData *rd = context->getRenderData();
 			ScaleFixedSizeOperation *operation = new ScaleFixedSizeOperation();
 
@@ -81,10 +83,10 @@ void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 			operation->getInputSocket(0)->getConnection()->setIgnoreResizeCheck(true);
 
 			scaleoperation = operation;
+			break;
 		}
-		break;
-
-		case CMP_SCALE_ABSOLUTE: {
+		case CMP_SCALE_ABSOLUTE:
+		{
 			ScaleAbsoluteOperation *operation = new ScaleAbsoluteOperation(); // TODO: what is the use of this one.... perhaps some issues when the ui was updated....
 
 			inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
@@ -92,8 +94,8 @@ void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 			inputYSocket->relinkConnections(operation->getInputSocket(2), 2, graph);
 
 			scaleoperation = operation;
+			break;
 		}
-		break;
 	}
 
 	outputSocket->relinkConnections(scaleoperation->getOutputSocket(0));
