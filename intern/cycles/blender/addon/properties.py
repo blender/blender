@@ -74,13 +74,14 @@ enum_curve_presets = (
 enum_curve_primitives = (
     ('TRIANGLES', "Triangles", "Create triangle geometry around strands"),
     ('LINE_SEGMENTS', "Line Segments", "Use line segment primitives"),
-    ('CURVE_SEGMENTS', "?Curve Segments?", "Use curve segment primitives (not implemented)"),
+    ('CURVE_SEGMENTS', "Curve Segments", "Use segmented cardinal curve primitives"),
+    ('CURVE_RIBBONS', "Curve Ribbons", "Use smooth cardinal curve ribbon primitives"),
     )
 
 enum_triangle_curves = (
-    ('CAMERA', "Planes", "Create individual triangles forming planes that face camera"),
-    ('RIBBONS', "Ribbons", "Create individual triangles forming ribbon"),
-    ('TESSELLATED', "Tessellated", "Create mesh surrounding each strand"),
+    ('CAMERA_TRIANGLES', "Planes", "Create individual triangles forming planes that face camera"),
+    ('RIBBON_TRIANGLES', "Ribbons", "Create individual triangles forming ribbon"),
+    ('TESSELLATED_TRIANGLES', "Tessellated", "Create mesh surrounding each strand"),
     )
 
 enum_line_curves = (
@@ -643,7 +644,7 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
                 name="Mesh Geometry",
                 description="Method for creating triangle geometry",
                 items=enum_triangle_curves,
-                default='CAMERA',
+                default='CAMERA_TRIANGLES',
                 )
         cls.line_method = EnumProperty(
                 name="Intersection Method",
@@ -729,6 +730,12 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
                 description="Scale factor for encasing strand width",
                 min=0, max=100.0,
                 default=1.01,
+                )
+        cls.subdivisions = IntProperty(
+                name="Subdivisions",
+                description="Number of subdivisions used in Cardinal curve intersection (power of 2)",
+                min=0, max=24,
+                default=3,
                 )
 
     @classmethod

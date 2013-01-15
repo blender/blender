@@ -976,7 +976,7 @@ class CyclesRender_PT_CurveRendering(CyclesButtonsPanel, Panel):
         
             if cscene.primitive == 'TRIANGLES':
                 layout.prop(cscene, "triangle_method", text="Method")
-                if cscene.triangle_method == 'TESSELLATED':
+                if cscene.triangle_method == 'TESSELLATED_TRIANGLES':
                     layout.prop(cscene, "resolution", text="Resolution")
                 layout.prop(cscene, "use_smooth", text="Smooth")
             elif cscene.primitive == 'LINE_SEGMENTS':
@@ -997,6 +997,13 @@ class CyclesRender_PT_CurveRendering(CyclesButtonsPanel, Panel):
                 row = layout.row()
                 row.prop(cscene, "segments", text="Segments")
                 row.prop(cscene, "normalmix", text="Ray Mix")
+            elif cscene.primitive == 'CURVE_SEGMENTS' or cscene.primitive == 'CURVE_RIBBONS':
+                layout.prop(cscene, "subdivisions", text="Curve subdivisions")
+                layout.prop(cscene, "use_backfacing", text="Check back-faces")
+                
+                layout.prop(cscene, "interpolation", text="Interpolation")
+                row = layout.row()
+                row.prop(cscene, "segments", text="Segments")
             
             row = layout.row()
             row.prop(cscene, "use_cache", text="Export cache with children")

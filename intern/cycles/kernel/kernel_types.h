@@ -700,6 +700,7 @@ typedef enum CurveFlag {
 	CURVE_KN_NORMALCORRECTION = 128,		/* correct tangent normal for slope? */
 	CURVE_KN_TRUETANGENTGNORMAL = 256,		/* use tangent normal for geometry? */
 	CURVE_KN_TANGENTGNORMAL = 512,			/* use tangent normal for shader? */
+	CURVE_KN_RIBBONS = 1024,				/* use flat curve ribbons */
 } CurveFlag;
 
 typedef struct KernelCurves {
@@ -707,7 +708,7 @@ typedef struct KernelCurves {
 	float normalmix;
 	float encasing_ratio;
 	int curveflags;
-	int pad;
+	int subdivisions;
 
 } KernelCurves;
 

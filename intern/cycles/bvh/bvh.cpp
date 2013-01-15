@@ -18,6 +18,7 @@
 #include "mesh.h"
 #include "object.h"
 #include "scene.h"
+#include "curves.h"
 
 #include "bvh.h"
 #include "bvh_build.h"
@@ -631,8 +632,19 @@ void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility
 					int k0 = mesh->curves[pidx - str_offset].first_key + pack.prim_segment[prim]; // XXX!
 					int k1 = k0 + 1;
 
-					bbox.grow(mesh->curve_keys[k0].co, mesh->curve_keys[k0].radius);
-					bbox.grow(mesh->curve_keys[k1].co, mesh->curve_keys[k1].radius);
+					float3 p[4];
+					p[0] = mesh->curve_keys[max(k0 - 1,mesh->curves[pidx - str_offset].first_key)].co;
+					p[1] = mesh->curve_keys[k0].co;
+					p[2] = mesh->curve_keys[k1].co;
+					p[3] = mesh->curve_keys[min(k1 + 1,mesh->curves[pidx - str_offset].first_key + mesh->curves[pidx - str_offset].num_keys - 1)].co;
+					float3 lower;
+					float3 upper;
+					curvebounds(&lower.x, &upper.x, p, 0);
+					curvebounds(&lower.y, &upper.y, p, 1);
+					curvebounds(&lower.z, &upper.z, p, 2);
+					float mr = max(mesh->curve_keys[k0].radius,mesh->curve_keys[k1].radius);
+					bbox.grow(lower, mr);
+					bbox.grow(upper, mr);
 				}
 				else {
 					/* triangles */

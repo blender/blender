@@ -24,6 +24,7 @@
 #include "mesh.h"
 #include "object.h"
 #include "scene.h"
+#include "curves.h"
 
 #include "util_debug.h"
 #include "util_foreach.h"
@@ -91,11 +92,20 @@ void BVHBuild::add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, 
 		for(int k = 0; k < curve.num_keys - 1; k++) {
 			BoundBox bounds = BoundBox::empty;
 
-			float3 co0 = mesh->curve_keys[curve.first_key + k].co;
-			float3 co1 = mesh->curve_keys[curve.first_key + k + 1].co;
+			float3 co[4];
+			co[0] = mesh->curve_keys[max(curve.first_key + k - 1,curve.first_key)].co;
+			co[1] = mesh->curve_keys[curve.first_key + k].co;
+			co[2] = mesh->curve_keys[curve.first_key + k + 1].co;
+			co[3] = mesh->curve_keys[min(curve.first_key + k + 2, curve.first_key + curve.num_keys - 1)].co;
 
-			bounds.grow(co0, mesh->curve_keys[curve.first_key + k].radius);
-			bounds.grow(co1, mesh->curve_keys[curve.first_key + k + 1].radius);
+			float3 lower;
+			float3 upper;
+			curvebounds(&lower.x, &upper.x, co, 0);
+			curvebounds(&lower.y, &upper.y, co, 1);
+			curvebounds(&lower.z, &upper.z, co, 2);
+			float mr = max(mesh->curve_keys[curve.first_key + k].radius, mesh->curve_keys[curve.first_key + k + 1].radius);
+			bounds.grow(lower, mr);
+			bounds.grow(upper, mr);
 
 			if(bounds.valid()) {
 				references.push_back(BVHReference(bounds, j, i, k));

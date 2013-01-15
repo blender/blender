@@ -206,6 +206,315 @@ __device_inline void bvh_triangle_intersect(KernelGlobals *kg, Intersection *ise
 }
 
 #ifdef __HAIR__
+__device_inline void curvebounds(float *lower, float *lowert, float *upper, float *uppert, float p0, float p1, float p2, float p3)
+{
+	float halfdiscroot = (p2 * p2 - 3 * p3 * p1);
+	float ta = -1.0f;
+	float tb = -1.0f;
+	*uppert = 0.0f;
+	*upper = p0;
+	*lowert = 1.0f;
+	*lower = p0 + p1 + p2 + p3;
+	if(*lower >= *upper) {
+		*uppert = 1.0f;
+		*upper = *lower;
+		*lowert = 0.0f;
+		*lower = p0;
+	}
+
+	if(halfdiscroot >= 0) {
+		halfdiscroot = sqrt(halfdiscroot);
+		ta = (-p2 - halfdiscroot) / (3 * p3);
+		tb = (-p2 + halfdiscroot) / (3 * p3);
+	}
+
+	float t2;
+	float t3;
+	if(ta > 0.0f && ta < 1.0f) {
+		t2 = ta * ta;
+		t3 = t2 * ta;
+		float extrem = p3 * t3 + p2 * t2 + p1 * ta + p0;
+		if(extrem > *upper) {
+			*upper = extrem;
+			*uppert = ta;
+		}
+		if(extrem < *lower) {
+			*lower = extrem;
+			*lowert = ta;
+		}
+	}
+	if(tb > 0.0f && tb < 1.0f) {
+		t2 = tb * tb;
+		t3 = t2 * tb;
+		float extrem = p3 * t3 + p2 * t2 + p1 * tb + p0;
+		if(extrem >= *upper) {
+			*upper = extrem;
+			*uppert = tb;
+		}
+		if(extrem <= *lower) {
+			*lower = extrem;
+			*lowert = tb;
+		}
+	}
+}
+
+__device_inline void bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersection *isect,
+	float3 P, float3 idir, uint visibility, int object, int curveAddr, int segment)
+{
+	int depth = kernel_data.curve_kernel_data.subdivisions;
+
+	/* curve Intersection check */
+	float3 dir = 1.0f/idir;
+	
+	int flags = kernel_data.curve_kernel_data.curveflags;
+
+	int prim = kernel_tex_fetch(__prim_index, curveAddr);
+
+	float3 curve_coef[4];
+	float r_st,r_en;
+
+	/*obtain curve parameters*/
+	{
+		/*ray transform created - this shold be created at beginning of intersection loop*/
+		Transform htfm;
+		float d = sqrtf(dir.x * dir.x + dir.z * dir.z);
+		htfm = make_transform(
+			dir.z / d, 0, -dir.x /d, 0,
+			-dir.x * dir.y /d, d, -dir.y * dir.z /d, 0,
+			dir.x, dir.y, dir.z, 0,
+			0, 0, 0, 1) * make_transform(
+			1, 0, 0, -P.x,
+			0, 1, 0, -P.y,
+			0, 0, 1, -P.z,
+			0, 0, 0, 1);
+
+		float4 v00 = kernel_tex_fetch(__curves, prim);
+
+		int k0 = __float_as_int(v00.x) + segment;
+		int k1 = k0 + 1;
+
+		int ka = max(k0 - 1,__float_as_int(v00.x));
+		int kb = min(k1 + 1,__float_as_int(v00.x) + __float_as_int(v00.y) - 1);
+
+		float4 P0 = kernel_tex_fetch(__curve_keys, ka);
+		float4 P1 = kernel_tex_fetch(__curve_keys, k0);
+		float4 P2 = kernel_tex_fetch(__curve_keys, k1);
+		float4 P3 = kernel_tex_fetch(__curve_keys, kb);
+
+		float3 p0 = transform_point(&htfm, float4_to_float3(P0));
+		float3 p1 = transform_point(&htfm, float4_to_float3(P1));
+		float3 p2 = transform_point(&htfm, float4_to_float3(P2));
+		float3 p3 = transform_point(&htfm, float4_to_float3(P3));
+
+		float fc = 0.71f;
+		curve_coef[0] = p1;
+		curve_coef[1] = -fc*p0 + fc*p2;
+		curve_coef[2] = 2.0f * fc * p0 + (fc - 3.0f) * p1 + (3.0f - 2.0f * fc) * p2 - fc * p3;
+		curve_coef[3] = -fc * p0 + (2.0f - fc) * p1 + (fc - 2.0f) * p2 + fc * p3;
+		r_st = P1.w;
+		r_en = P2.w;
+	}
+	
+
+	float r_curr = max(r_st, r_en);
+
+	/*find bounds - this is slow for cubic curves*/
+	float xbound[4];
+	curvebounds(&xbound[0], &xbound[1], &xbound[2], &xbound[3], curve_coef[0].x, curve_coef[1].x, curve_coef[2].x, curve_coef[3].x);
+	if(xbound[0] > r_curr || xbound[2] < -r_curr)
+		return;
+
+	float ybound[4];
+	curvebounds(&ybound[0], &ybound[1], &ybound[2], &ybound[3], curve_coef[0].y, curve_coef[1].y, curve_coef[2].y, curve_coef[3].y);
+	if(ybound[0] > r_curr || ybound[2] < -r_curr)
+		return;
+
+	float zbound[4];
+	curvebounds(&zbound[0], &zbound[1], &zbound[2], &zbound[3], curve_coef[0].z, curve_coef[1].z, curve_coef[2].z, curve_coef[3].z);
+	if(zbound[0] - r_curr > isect->t || zbound[2] + r_curr < 0.0f)
+		return;
+
+
+	/*setup recurrent loop*/
+	int level = 1 << depth;
+	int tree = 0;
+	float resol = 0.5f / (float)level;
+
+	int xmin = (int)(xbound[1] / resol);
+	int xmax = (int)(xbound[3] / resol);
+	int ymin = (int)(ybound[1] / resol);
+	int ymax = (int)(ybound[3] / resol);
+	int zmin = (int)(zbound[1] / resol);
+	int zmax = (int)(zbound[3] / resol);
+	/*begin loop*/
+	while(!(tree >> (depth + 1))) {
+		float i_st = tree * resol;
+		float i_en = i_st + (level * resol);
+		float3 p_st = ((curve_coef[3] * i_st + curve_coef[2]) * i_st + curve_coef[1]) * i_st + curve_coef[0];
+		float3 p_en = ((curve_coef[3] * i_en + curve_coef[2]) * i_en + curve_coef[1]) * i_en + curve_coef[0];
+		
+
+		float bminx = min(p_st.x, p_en.x);
+		float bmaxx = max(p_st.x, p_en.x);
+		float bminy = min(p_st.y, p_en.y);
+		float bmaxy = max(p_st.y, p_en.y);
+		float bminz = min(p_st.z, p_en.z);
+		float bmaxz = max(p_st.z, p_en.z);
+
+		if(tree == xmin)
+			bminx = xbound[0];
+		if(tree == xmax)
+			bmaxx = xbound[2];
+		if(tree == ymin)
+			bminy = ybound[0];
+		if(tree == ymax)
+			bmaxy = ybound[2];
+		if(tree == zmin)
+			bminz = zbound[0];
+		if(tree == zmax)
+			bmaxz = zbound[2];
+
+
+		float r1 = r_st + (r_en - r_st) * i_st;
+		float r2 = r_st + (r_en - r_st) * i_en;
+		r_curr = max(r1, r2);
+
+		if (bminz - r_curr > isect->t || bmaxz + r_curr < 0.0f|| bminx > r_curr || bmaxx < -r_curr || bminy > r_curr || bmaxy < -r_curr) {
+			/* the bounding box does not overlap the square centered at O.*/
+			tree += level;
+			level = tree & -tree;
+		}
+		else if (level == 1) {
+
+			/* the maximum recursion depth is reached.
+			* check if dP0.(Q-P0)>=0 and dPn.(Pn-Q)>=0.
+			* dP* is reversed if necessary.*/
+			float t = isect->t;
+			float u = 0.0f;
+			if(flags & CURVE_KN_RIBBONS) {
+				float3 tg = (p_en - p_st);
+				float w = tg.x * tg.x + tg.y * tg.y;
+				if (w == 0) {
+					tree++;
+					level = tree & -tree;
+					continue;
+				}
+				w = -(p_st.x * tg.x + p_st.y * tg.y) / w;
+				w = clamp((float)w, 0.0f, 1.0f);
+
+				/* compute u on the curve segment.*/
+				u = i_st * (1 - w) + i_en * w;
+				r_curr = r_st + (r_en - r_st) * u;
+				/* compare x-y distances.*/
+				float3 p_curr = ((curve_coef[3] * u + curve_coef[2]) * u + curve_coef[1]) * u + curve_coef[0];
+
+				float3 dp_st = (3 * curve_coef[3] * i_st + 2 * curve_coef[2]) * i_st + curve_coef[1];
+				if (dot(tg, dp_st)< 0)
+					dp_st *= -1;
+				if (dot(dp_st, -p_st) + p_curr.z * dp_st.z < 0) {
+					tree++;
+					level = tree & -tree;
+					continue;
+				}
+				float3 dp_en = (3 * curve_coef[3] * i_en + 2 * curve_coef[2]) * i_en + curve_coef[1];
+				if (dot(tg, dp_en) < 0)
+					dp_en *= -1;
+				if (dot(dp_en, p_en) - p_curr.z * dp_en.z < 0) {
+					tree++;
+					level = tree & -tree;
+					continue;
+				}
+				
+				if (p_curr.x * p_curr.x + p_curr.y * p_curr.y >= r_curr * r_curr || p_curr.z <= 0.0f) {
+					tree++;
+					level = tree & -tree;
+					continue;
+				}
+				/* compare z distances.*/
+				if (isect->t < p_curr.z) {
+					tree++;
+					level = tree & -tree;
+					continue;
+				}
+				t = p_curr.z;
+			}
+			else {
+				float l = len(p_en - p_st);
+				float3 tg = (p_en - p_st) / l;
+				float gd = (r2 - r1) / l;
+				float difz = -dot(p_st,tg);
+				float cyla = 1.0f - (tg.z * tg.z * (1 + gd*gd));
+				float halfb = (-p_st.z - tg.z*(difz + gd*(difz*gd + r1)));
+				float tcentre = -halfb/cyla;
+				float zcentre = difz + (tg.z * tcentre);
+				float3 tdif = - p_st;
+				tdif.z += tcentre;
+				float tdifz = dot(tdif,tg);
+				float tb = 2*(tdif.z - tg.z*(tdifz + gd*(tdifz*gd + r1)));
+				float tc = dot(tdif,tdif) - tdifz * tdifz * (1 + gd*gd) - r1*r1 - 2*r1*tdifz*gd;
+				float td = tb*tb - 4*cyla*tc;
+				if (td < 0.0f){
+					tree++;
+					level = tree & -tree;
+					continue;
+				}
+				
+				float rootd = sqrtf(td);
+				float correction = ((-tb - rootd)/(2*cyla));
+				t = tcentre + correction;
+				float w = (zcentre + (tg.z * correction))/l;
+
+				float3 dp_st = (3 * curve_coef[3] * i_st + 2 * curve_coef[2]) * i_st + curve_coef[1];
+				if (dot(tg, dp_st)< 0)
+					dp_st *= -1;
+				float3 dp_en = (3 * curve_coef[3] * i_en + 2 * curve_coef[2]) * i_en + curve_coef[1];
+				if (dot(tg, dp_en) < 0)
+					dp_en *= -1;
+
+
+				if(flags & CURVE_KN_BACKFACING && (dot(dp_st, -p_st) + t * dp_st.z < 0 || dot(dp_en, p_en) - t * dp_en.z < 0 || isect->t < t || t <= 0.0f)) {
+					correction = ((-tb + rootd)/(2*cyla));
+					t = tcentre + correction;
+					w = (zcentre + (tg.z * correction))/l;
+				}			
+
+				if (dot(dp_st, -p_st) + t * dp_st.z < 0 || dot(dp_en, p_en) - t * dp_en.z < 0 || isect->t < t || t <= 0.0f) {
+					tree++;
+					level = tree & -tree;
+					continue;
+				}
+
+				w = clamp((float)w, 0.0f, 1.0f);
+				/* compute u on the curve segment.*/
+				u = i_st * (1 - w) + i_en * w;	
+
+			}
+			/* we found a new intersection.*/
+#ifdef __VISIBILITY_FLAG__
+			/* visibility flag test. we do it here under the assumption
+			 * that most triangles are culled by node flags */
+			if(kernel_tex_fetch(__prim_visibility, curveAddr) & visibility)
+#endif
+			{
+				/* record intersection */
+				isect->prim = curveAddr;
+				isect->segment = segment;
+				isect->object = object;
+				isect->u = u;
+				isect->v = 0.0f;
+				isect->t = t;
+			}
+			
+			tree++;
+			level = tree & -tree;
+		}
+		else {
+			/* split the curve into two curves and process */
+			level = level >> 1;
+		}
+	}
+}
+
 __device_inline void bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
 	float3 P, float3 idir, uint visibility, int object, int curveAddr, int segment)
 {
@@ -222,7 +531,6 @@ __device_inline void bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
 	float4 P1 = kernel_tex_fetch(__curve_keys, k0);
 	float4 P2 = kernel_tex_fetch(__curve_keys, k1);
 
-	float l = len(P2 - P1);
 	float r1 = P1.w;
 	float r2 = P2.w;
 	float mr = max(r1,r2);
@@ -230,6 +538,7 @@ __device_inline void bvh_curve_intersect(KernelGlobals *kg, Intersection *isect,
 	float3 p2 = float4_to_float3(P2);
 	float3 dif = P - p1;
 	float3 dir = 1.0f/idir;
+	float l = len(p2 - p1);
 
 	float sp_r = mr + 0.5f * l;
 	float3 sphere_dif = P - ((p1 + p2) * 0.5f);
@@ -425,8 +734,12 @@ __device bool bvh_intersect(KernelGlobals *kg, const Ray *ray, const uint visibi
 						/* intersect ray against primitive */
 #ifdef __HAIR__
 						uint segment = kernel_tex_fetch(__prim_segment, primAddr);
-						if(segment != ~0)
-							bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment);
+						if(segment != ~0) {
+							if(kernel_data.curve_kernel_data.curveflags & CURVE_KN_INTERPOLATE) 
+								bvh_cardinal_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment);
+							else
+								bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment);
+						}
 						else
 #endif
 							bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr);
@@ -551,8 +864,12 @@ __device bool bvh_intersect_motion(KernelGlobals *kg, const Ray *ray, const uint
 						/* intersect ray against primitive */
 #ifdef __HAIR__
 						uint segment = kernel_tex_fetch(__prim_segment, primAddr);
-						if(segment != ~0)
-							bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment);
+						if(segment != ~0) {
+							if(kernel_data.curve_kernel_data.curveflags & CURVE_KN_INTERPOLATE) 
+								bvh_cardinal_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment);
+							else
+								bvh_curve_intersect(kg, isect, P, idir, visibility, object, primAddr, segment);
+						}
 						else
 #endif
 							bvh_triangle_intersect(kg, isect, P, idir, visibility, object, primAddr);
@@ -697,6 +1014,32 @@ __device_inline float3 bvh_triangle_refine(KernelGlobals *kg, ShaderData *sd, co
 }
 
 #ifdef __HAIR__
+
+__device_inline float3 curvetangent(float t, float3 p0, float3 p1, float3 p2, float3 p3)
+{
+	float fc = 0.71f;
+	float data[4];
+	float t2 = t * t;
+    data[0] = -3.0f * fc          * t2  + 4.0f * fc * t                  - fc;
+    data[1] =  3.0f * (2.0f - fc) * t2  + 2.0f * (fc - 3.0f) * t;
+    data[2] =  3.0f * (fc - 2.0f) * t2  + 2.0f * (3.0f - 2.0f * fc) * t  + fc;
+    data[3] =  3.0f * fc          * t2  - 2.0f * fc * t;
+	return data[0] * p0 + data[1] * p1 + data[2] * p2 + data[3] * p3;
+}
+
+__device_inline float3 curvepoint(float t, float3 p0, float3 p1, float3 p2, float3 p3)
+{
+	float data[4];
+	float fc = 0.71f;
+	float t2 = t * t;
+	float t3 = t2 * t;
+	data[0] = -fc          * t3  + 2.0f * fc          * t2 - fc * t;
+	data[1] =  (2.0f - fc) * t3  + (fc - 3.0f)        * t2 + 1.0f;
+	data[2] =  (fc - 2.0f) * t3  + (3.0f - 2.0f * fc) * t2 + fc * t;
+	data[3] =  fc          * t3  - fc * t2;
+	return data[0] * p0 + data[1] * p1 + data[2] * p2 + data[3] * p3;
+}
+
 __device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, const Intersection *isect, const Ray *ray, float t)
 {
 	int flag = kernel_data.curve_kernel_data.curveflags;
@@ -723,64 +1066,92 @@ __device_inline float3 bvh_curve_refine(KernelGlobals *kg, ShaderData *sd, const
 
 	float4 P1 = kernel_tex_fetch(__curve_keys, k0);
 	float4 P2 = kernel_tex_fetch(__curve_keys, k1);
-	float l = len(P2 - P1);
+	float l = 1.0f;
+	float3 tg = normalize_len(float4_to_float3(P2 - P1),&l);
 	float r1 = P1.w;
 	float r2 = P2.w;
-	float3 tg = float4_to_float3(P2 - P1) / l;
-	float3 dif = P - float4_to_float3(P1) + t * D;
 	float gd = ((r2 - r1)/l);
-
+	
 	P = P + D*t;
 
-	dif = P - float4_to_float3(P1);
+	if(flag & CURVE_KN_INTERPOLATE) {
+		int ka = max(k0 - 1,__float_as_int(v00.x));
+		int kb = min(k1 + 1,__float_as_int(v00.x) + __float_as_int(v00.y) - 1);
 
-	#ifdef __UV__
-	sd->u = dot(dif,tg)/l;
-	sd->v = 0.0f;
-	#endif
+		float4 P0 = kernel_tex_fetch(__curve_keys, ka);
+		float4 P3 = kernel_tex_fetch(__curve_keys, kb);
 
-	if (flag & CURVE_KN_TRUETANGENTGNORMAL) {
-		sd->Ng = -(D - tg * (dot(tg,D) * kernel_data.curve_kernel_data.normalmix));
-		sd->Ng = normalize(sd->Ng);
-		if (flag & CURVE_KN_NORMALCORRECTION)
-		{
-			//sd->Ng = normalize(sd->Ng);
+		float3 p[4];
+		p[0] = float4_to_float3(P0);
+		p[1] = float4_to_float3(P1);
+		p[2] = float4_to_float3(P2);
+		p[3] = float4_to_float3(P3);
+
+		tg = normalize(curvetangent(isect->u,p[0],p[1],p[2],p[3]));
+		float3 p_curr = curvepoint(isect->u,p[0],p[1],p[2],p[3]);
+
+#ifdef __UV__
+		sd->u = isect->u;
+		sd->v = 0.0f;
+#endif
+
+		if(kernel_data.curve_kernel_data.curveflags & CURVE_KN_RIBBONS)
+			sd->Ng = normalize(-(D - tg * (dot(tg,D))));
+		else {
+			sd->Ng = normalize(P - p_curr);
 			sd->Ng = sd->Ng - gd * tg;
 			sd->Ng = normalize(sd->Ng);
 		}
+		sd->N = sd->Ng;
 	}
 	else {
-		sd->Ng = (dif - tg * sd->u * l) / (P1.w + sd->u * l * gd);
-		if (gd != 0.0f) {
-			sd->Ng = sd->Ng - gd * tg ;
+		float3 dif = P - float4_to_float3(P1);
+
+#ifdef __UV__
+		sd->u = dot(dif,tg)/l;
+		sd->v = 0.0f;
+#endif
+
+		if (flag & CURVE_KN_TRUETANGENTGNORMAL) {
+			sd->Ng = -(D - tg * (dot(tg,D) * kernel_data.curve_kernel_data.normalmix));
 			sd->Ng = normalize(sd->Ng);
+			if (flag & CURVE_KN_NORMALCORRECTION) {
+				sd->Ng = sd->Ng - gd * tg;
+				sd->Ng = normalize(sd->Ng);
+			}
 		}
-	}
+		else {
+			sd->Ng = (dif - tg * sd->u * l) / (P1.w + sd->u * l * gd);
+			if (gd != 0.0f) {
+				sd->Ng = sd->Ng - gd * tg ;
+				sd->Ng = normalize(sd->Ng);
+			}
+		}
 
-	sd->N = sd->Ng;
+		sd->N = sd->Ng;
 
-	if (flag & CURVE_KN_TANGENTGNORMAL && !(flag & CURVE_KN_TRUETANGENTGNORMAL)) {
-		sd->N = -(D - tg * (dot(tg,D) * kernel_data.curve_kernel_data.normalmix));
-		sd->N = normalize(sd->N);
-		if (flag & CURVE_KN_NORMALCORRECTION) {
-			//sd->N = normalize(sd->N);
-			sd->N = sd->N - gd * tg;
+		if (flag & CURVE_KN_TANGENTGNORMAL && !(flag & CURVE_KN_TRUETANGENTGNORMAL)) {
+			sd->N = -(D - tg * (dot(tg,D) * kernel_data.curve_kernel_data.normalmix));
 			sd->N = normalize(sd->N);
+			if (flag & CURVE_KN_NORMALCORRECTION) {
+				sd->N = sd->N - gd * tg;
+				sd->N = normalize(sd->N);
+			}
 		}
-	}
-	if (!(flag & CURVE_KN_TANGENTGNORMAL) && flag & CURVE_KN_TRUETANGENTGNORMAL) {
-		sd->N = (dif - tg * sd->u * l) / (P1.w + sd->u * l * gd);
-		if (gd != 0.0f) {
-			sd->N = sd->N - gd * tg ;
-			sd->N = normalize(sd->N);
+		if (!(flag & CURVE_KN_TANGENTGNORMAL) && flag & CURVE_KN_TRUETANGENTGNORMAL) {
+			sd->N = (dif - tg * sd->u * l) / (P1.w + sd->u * l * gd);
+			if (gd != 0.0f) {
+				sd->N = sd->N - gd * tg ;
+				sd->N = normalize(sd->N);
+			}
 		}
 	}
 
-	#ifdef __DPDU__
+#ifdef __DPDU__
 	/* dPdu/dPdv */
 	sd->dPdu = tg;
 	sd->dPdv = cross(tg,sd->Ng);
-	#endif
+#endif
 
 	if(isect->object != ~0) {
 #ifdef __OBJECT_MOTION__

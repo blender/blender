@@ -929,6 +929,7 @@ void BlenderSync::sync_curve_settings()
 		curve_system_manager->resolution = get_int(csscene, "resolution");
 		curve_system_manager->segments = get_int(csscene, "segments");
 		curve_system_manager->use_smooth = get_boolean(csscene, "use_smooth");
+		curve_system_manager->subdivisions = get_int(csscene, "subdivisions");
 
 		curve_system_manager->normalmix = get_float(csscene, "normalmix");
 		curve_system_manager->encasing_ratio = get_float(csscene, "encasing_ratio");
@@ -1055,11 +1056,11 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 
 	if(primitive == CURVE_TRIANGLES){
 		int vert_num = mesh->triangles.size() * 3;
-		if(triangle_method == CURVE_CAMERA) {
+		if(triangle_method == CURVE_CAMERA_TRIANGLES) {
 			ExportCurveTrianglePlanes(mesh, &CData, interpolation, use_smooth, segments, RotCam);
 			ExportCurveTriangleUVs(mesh, &CData, interpolation, use_smooth, segments, vert_num, 1);
 		}
-		else if(triangle_method == CURVE_RIBBONS) {
+		else if(triangle_method == CURVE_RIBBON_TRIANGLES) {
 			ExportCurveTriangleRibbons(mesh, &CData, interpolation, use_smooth, segments);
 			ExportCurveTriangleUVs(mesh, &CData, interpolation, use_smooth, segments, vert_num, 1);
 		}
