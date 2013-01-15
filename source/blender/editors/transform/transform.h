@@ -52,12 +52,7 @@ struct Object;
 struct View3D;
 struct ScrArea;
 struct Scene;
-struct bPose;
 struct bConstraint;
-struct BezTriple;
-struct wmOperatorType;
-struct wmOperator;
-struct wmWindowManager;
 struct wmKeyMap;
 struct wmKeyConfig;
 struct bContext;
@@ -65,7 +60,6 @@ struct wmEvent;
 struct wmTimer;
 struct ARegion;
 struct ReportList;
-struct SmallHash;
 
 typedef struct TransSnapPoint {
 	struct TransSnapPoint *next, *prev;
@@ -685,12 +679,12 @@ typedef enum {
 	INPUT_CUSTOM_RATIO
 } MouseInputMode;
 
-void initMouseInput(TransInfo *t, MouseInput *mi, int center[2], int mval[2]);
+void initMouseInput(TransInfo *t, MouseInput *mi, const int center[2], const int mval[2]);
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode);
 int handleMouseInput(struct TransInfo *t, struct MouseInput *mi, struct wmEvent *event);
 void applyMouseInput(struct TransInfo *t, struct MouseInput *mi, const int mval[2], float output[3]);
 
-void setCustomPoints(TransInfo *t, MouseInput *mi, int start[2], int end[2]);
+void setCustomPoints(TransInfo *t, MouseInput *mi, const int start[2], const int end[2]);
 void setInputPostFct(MouseInput *mi, void	(*post)(struct TransInfo *t, float values[3]));
 
 /*********************** Generics ********************************/

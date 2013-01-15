@@ -164,7 +164,7 @@ static void InputVerticalAbsolute(TransInfo *t, MouseInput *mi, const int mval[2
 	output[0] = dot_v3v3(t->viewinv[1], vec) * 2.0f;
 }
 
-void setCustomPoints(TransInfo *UNUSED(t), MouseInput *mi, int start[2], int end[2])
+void setCustomPoints(TransInfo *UNUSED(t), MouseInput *mi, const int start[2], const int end[2])
 {
 	int *data;
 
@@ -275,7 +275,7 @@ static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], 
 	output[0] = *angle;
 }
 
-void initMouseInput(TransInfo *UNUSED(t), MouseInput *mi, int center[2], int mval[2])
+void initMouseInput(TransInfo *UNUSED(t), MouseInput *mi, const int center[2], const int mval[2])
 {
 	mi->factor = 0;
 	mi->precision = 0;

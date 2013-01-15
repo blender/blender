@@ -5839,13 +5839,22 @@ static void calcVertSlideCustomPoints(struct TransInfo *t)
 {
 	VertSlideData *sld = t->customData;
 	TransDataVertSlideVert *sv = &sld->sv[sld->curr_sv_index];
-	int start[2] = {UNPACK2(sv->co_orig_2d)};
-	int end[2]   = {UNPACK2(sv->co_link_orig_2d[sv->co_link_curr])};
-	if (sld->flipped_vtx) {
-		setCustomPoints(t, &t->mouse, start, end);
-	}
-	else {
-		setCustomPoints(t, &t->mouse, end, start);
+	float *co_orig = sv->co_orig_2d;
+	float *co_curr = sv->co_link_orig_2d[sv->co_link_curr];
+	float  co_curr_flip[2];
+
+	sub_v2_v2v2(co_curr_flip, co_curr, co_orig);
+	sub_v2_v2v2(co_curr_flip, co_orig, co_curr_flip);
+
+	{
+		const int start[2] = {co_orig[0], co_orig[1]};
+		const int end[2]   = {co_curr_flip[0], co_curr_flip[1]};
+		if (!sld->flipped_vtx) {
+			setCustomPoints(t, &t->mouse, end, start);
+		}
+		else {
+			setCustomPoints(t, &t->mouse, start, end);
+		}
 	}
 }
 static void calcVertSlideMouseMove(struct TransInfo *t, const int mval[2], const bool is_init)
@@ -6200,15 +6209,14 @@ static int doVertSlide(TransInfo *t, float perc)
 	sv = svlist;
 
 	if (sld->is_proportional == TRUE) {
-		const float tperc = perc + 1.0f;
 		for (i = 0; i < sld->totsv; i++, sv++) {
-			interp_v3_v3v3(sv->v->co, sv->co_link_orig_3d[sv->co_link_curr], sv->co_orig_3d, tperc);
+			interp_v3_v3v3(sv->v->co, sv->co_orig_3d, sv->co_link_orig_3d[sv->co_link_curr], perc);
 		}
 	}
 	else {
 		TransDataVertSlideVert *sv_curr = &sld->sv[sld->curr_sv_index];
 		const float edge_len_curr = len_v3v3(sv_curr->co_orig_3d, sv_curr->co_link_orig_3d[sv_curr->co_link_curr]);
-		const float tperc = -perc * edge_len_curr;
+		const float tperc = perc * edge_len_curr;
 
 		for (i = 0; i < sld->totsv; i++, sv++) {
 			float edge_len;
