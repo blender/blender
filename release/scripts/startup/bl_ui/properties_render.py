@@ -60,6 +60,7 @@ class RENDER_UL_renderlayers(UIList):
 #		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "use", 0, 0, 0, 0, 0,  NULL);
 #	}
 
+
 class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -356,7 +357,7 @@ class RENDER_PT_performance(RenderButtonsPanel, Panel):
         subsub = sub.column()
         subsub.enabled = rd.threads_mode == 'FIXED'
         subsub.prop(rd, "threads")
-        
+
         sub = col.column(align=True)
         sub.label(text="Tile Size:")
         sub.prop(rd, "tile_x", text="X")

@@ -1584,7 +1584,7 @@ class WM_OT_addon_enable(Operator):
                                           "version %d.%d.%d and might not "
                                           "function (correctly), "
                                           "though it is enabled") %
-                                          info_ver)
+                                         info_ver)
             return {'FINISHED'}
         else:
             return {'CANCELLED'}

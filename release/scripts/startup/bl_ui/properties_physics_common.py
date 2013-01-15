@@ -133,7 +133,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
             row.prop(cache, "frame_end")
         if cachetype not in {'SMOKE', 'CLOTH', 'DYNAMIC_PAINT'}:
             row.prop(cache, "frame_step")
-            
+
         if cachetype != 'SMOKE':
             layout.label(text=cache.info)
 

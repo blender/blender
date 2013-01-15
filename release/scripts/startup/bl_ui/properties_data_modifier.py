@@ -333,23 +333,23 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
     def LAPLACIANSMOOTH(self, layout, ob, md):
         layout.prop(md, "iterations")
-        
+
         split = layout.split(percentage=0.25)
-        
+
         col = split.column()
         col.label(text="Axis:")
         col.prop(md, "use_x")
         col.prop(md, "use_y")
         col.prop(md, "use_z")
-        
+
         col = split.column()
         col.label(text="Lambda:")
         col.prop(md, "lambda_factor", text="Factor")
         col.prop(md, "lambda_border", text="Border")
-        
+
         col.separator()
         col.prop(md, "use_volume_preserve")
-        
+
         layout.label(text="Vertex Group:")
         layout.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
 
@@ -557,7 +557,6 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "bake_foam_fade")
 
         col = split.column()
-
 
     def PARTICLE_INSTANCE(self, layout, ob, md):
         layout.prop(md, "object")
@@ -1045,12 +1044,12 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
     def UV_WARP(self, layout, ob, md):
         split = layout.split()
         col = split.column()
-        col.prop(md, "center");
+        col.prop(md, "center")
 
         col = split.column()
         col.label(text="UV Axis:")
-        col.prop(md, "axis_u", text="");
-        col.prop(md, "axis_v", text="");
+        col.prop(md, "axis_u", text="")
+        col.prop(md, "axis_v", text="")
 
         split = layout.split()
         col = split.column()

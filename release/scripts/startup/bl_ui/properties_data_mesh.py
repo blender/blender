@@ -194,7 +194,6 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
         row = layout.row()
         row.template_list("MESH_UL_vgroups", "", ob, "vertex_groups", ob.vertex_groups, "active_index", rows=rows)
 
-
         col = row.column(align=True)
         col.operator("object.vertex_group_add", icon='ZOOMIN', text="")
         col.operator("object.vertex_group_remove", icon='ZOOMOUT', text="").all = False

@@ -22,6 +22,7 @@ import bpy
 from bpy.types import Operator
 from bpy.props import BoolProperty, EnumProperty, StringProperty
 
+
 # Base class for node 'Add' operators
 class NodeAddOperator():
     @staticmethod
@@ -78,8 +79,9 @@ class NODE_OT_add_node(NodeAddOperator, Operator):
     use_transform = BoolProperty(
             name="Use Transform",
             description="Start transform operator after inserting the node",
-            default = False,
+            default=False,
             )
+
     def execute(self, context):
         node = self.create_node(context, self.type)
 

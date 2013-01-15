@@ -208,9 +208,9 @@ def check(module_name):
 
     if loaded_state is Ellipsis:
         print("Warning: addon-module %r found module "
-               "but without __addon_enabled__ field, "
-               "possible name collision from file: %r" %
-               (module_name, getattr(mod, "__file__", "<unknown>")))
+              "but without __addon_enabled__ field, "
+              "possible name collision from file: %r" %
+              (module_name, getattr(mod, "__file__", "<unknown>")))
 
         loaded_state = False
 

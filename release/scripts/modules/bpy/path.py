@@ -47,6 +47,7 @@ from _bpy_path import (extensions_audio,
                        extensions_image,
                        )
 
+
 def abspath(path, start=None, library=None):
     """
     Returns the absolute path relative to the current blend file

@@ -1537,7 +1537,7 @@ class VIEW3D_MT_pose_group(Menu):
 
     def draw(self, context):
         layout = self.layout
-        
+
         pose = context.active_object.pose
 
         layout.operator_context = 'EXEC_AREA'

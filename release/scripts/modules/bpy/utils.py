@@ -237,7 +237,8 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     _addon_utils.reset_all(reload_scripts)
 
     # run the active integration preset
-    filepath = preset_find(_user_preferences.inputs.active_keyconfig, "keyconfig")
+    filepath = preset_find(_user_preferences.inputs.active_keyconfig,
+                           "keyconfig")
 
     if filepath:
         keyconfig_set(filepath)

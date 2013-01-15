@@ -172,7 +172,6 @@ class ConstraintButtonsPanel():
             sub.active = con.use_rotation
             sub.prop(con, "orient_weight", text="Rotation", slider=True)
 
-
     def IK_COPY_POSE(self, context, layout, con):
         self.target_template(layout, con)
         self.ik_template(layout, con)

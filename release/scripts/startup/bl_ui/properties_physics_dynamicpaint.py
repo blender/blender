@@ -80,7 +80,7 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, Panel):
 
                 row = layout.row()
                 row.template_list("PHYSICS_UL_dynapaint_surfaces", "", canvas, "canvas_surfaces",
-                                   canvas.canvas_surfaces, "active_index", rows=2)
+                                  canvas.canvas_surfaces, "active_index", rows=2)
 
                 col = row.column(align=True)
                 col.operator("dpaint.surface_slot_add", icon='ZOOMIN', text="")

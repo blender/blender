@@ -320,13 +320,13 @@ class AddPresetFluid(AddPresetBase, Operator):
     preset_menu = "FLUID_MT_presets"
 
     preset_defines = [
-    "fluid = bpy.context.fluid"
-    ]
+        "fluid = bpy.context.fluid"
+        ]
 
     preset_values = [
-    "fluid.settings.viscosity_base",
-    "fluid.settings.viscosity_exponent",
-    ]
+        "fluid.settings.viscosity_base",
+        "fluid.settings.viscosity_exponent",
+        ]
 
     preset_subdir = "fluid"
 

@@ -341,7 +341,7 @@ path_reference_mode = EnumProperty(
                ('COPY', "Copy", "Copy the file to the destination path "
                                 "(or subdirectory)"),
                ),
-        default='AUTO'
+        default='AUTO',
         )
 
 
@@ -480,10 +480,10 @@ def unique_name(key, name, name_dict, name_max=-1, clean_func=None, sep="."):
             while name_new in name_dict_values:
                 count_str = "%03d" % count
                 name_new = "%.*s%s%s" % (name_max - (len(count_str) + 1),
-                                        name_new_orig,
-                                        sep,
-                                        count_str,
-                                        )
+                                         name_new_orig,
+                                         sep,
+                                         count_str,
+                                         )
                 count += 1
 
         name_dict[key] = name_new

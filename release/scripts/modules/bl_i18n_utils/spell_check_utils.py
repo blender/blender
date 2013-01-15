@@ -37,7 +37,7 @@ dict_uimsgs = {
     "aren",  # aren't
     "betweens",  # yuck! in-betweens!
     "boolean", "booleans",
-    "couldn",  #couldn't
+    "couldn",  # couldn't
     "decrement",
     "derivate",
     "doesn",  # doesn't

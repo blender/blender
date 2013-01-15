@@ -76,7 +76,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
         elif md.smoke_type == 'FLOW':
 
             flow = md.flow_settings
-            
+
             layout.prop(flow, "smoke_flow_type", expand=False)
 
             if flow.smoke_flow_type != "OUTFLOW":
@@ -118,7 +118,8 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
 
             col = split.column()
             col.prop(coll, "collision_type")
-            
+
+
 class PHYSICS_PT_smoke_flow_advanced(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Flow Advanced"
     bl_options = {'DEFAULT_CLOSED'}
@@ -132,7 +133,7 @@ class PHYSICS_PT_smoke_flow_advanced(PhysicButtonsPanel, Panel):
         layout = self.layout
         ob = context.object
         flow = context.smoke.flow_settings
-        
+
         split = layout.split()
         col = split.column()
 
@@ -147,10 +148,11 @@ class PHYSICS_PT_smoke_flow_advanced(PhysicButtonsPanel, Panel):
         if flow.texture_map_type == "AUTO":
             sub.prop(flow, "texture_size")
         sub.prop(flow, "texture_offset")
-        
+
         col = split.column()
         col.label(text="Vertex Group:")
         col.prop_search(flow, "density_vertex_group", ob, "vertex_groups", text="")
+
 
 class PHYSICS_PT_smoke_fire(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Flames"
@@ -179,7 +181,8 @@ class PHYSICS_PT_smoke_fire(PhysicButtonsPanel, Panel):
         col.prop(domain, "flame_ignition")
         col.prop(domain, "flame_max_temp")
         col.prop(domain, "flame_smoke_color")
-        
+
+
 class PHYSICS_PT_smoke_adaptive_domain(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Adaptive Domain"
     bl_options = {'DEFAULT_CLOSED'}
@@ -199,10 +202,10 @@ class PHYSICS_PT_smoke_adaptive_domain(PhysicButtonsPanel, Panel):
 
         domain = context.smoke.domain_settings
         layout.active = domain.use_adaptive_domain
-        
+
         split = layout.split()
-        split.enabled = not domain.point_cache.is_baked
- 
+        split.enabled = (not domain.point_cache.is_baked)
+
         col = split.column(align=True)
         col.label(text="Resolution:")
         col.prop(domain, "additional_res")
@@ -211,6 +214,7 @@ class PHYSICS_PT_smoke_adaptive_domain(PhysicButtonsPanel, Panel):
         col = split.column(align=True)
         col.label(text="Advanced:")
         col.prop(domain, "adapt_threshold")
+
 
 class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, Panel):
     bl_label = "Smoke High Resolution"
@@ -249,6 +253,7 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, Panel):
 
         layout.prop(md, "show_high_resolution")
 
+
 class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Groups"
     bl_options = {'DEFAULT_CLOSED'}
@@ -262,7 +267,7 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         domain = context.smoke.domain_settings
-        
+
         split = layout.split()
 
         col = split.column()
@@ -275,6 +280,7 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, Panel):
         col = split.column()
         col.label(text="Collision Group:")
         col.prop(domain, "collision_group", text="")
+
 
 class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Cache"

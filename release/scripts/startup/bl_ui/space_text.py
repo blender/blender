@@ -152,7 +152,7 @@ class TEXT_MT_view(Menu):
         layout = self.layout
 
         layout.operator("text.properties", icon='MENU_PANEL')
-        
+
         layout.separator()
 
         layout.operator("text.move",

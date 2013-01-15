@@ -199,6 +199,7 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
             col = split.column()
             col.prop(game, "collision_mask")
 
+
 class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, Panel):
     bl_label = "Collision Bounds"
     COMPAT_ENGINES = {'BLENDER_GAME'}
@@ -411,10 +412,10 @@ class RENDER_PT_game_system(RenderButtonsPanel, Panel):
         col = row.column()
         col.prop(gs, "use_display_lists")
         col.active = gs.raster_storage != 'VERTEX_BUFFER_OBJECT'
-		
+
         row = layout.row()
         row.prop(gs, "raster_storage")
-        
+
         row = layout.row()
         row.label("Exit Key")
         row.prop(gs, "exit_key", text="", event=True)
