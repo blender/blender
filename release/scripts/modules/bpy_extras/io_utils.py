@@ -79,20 +79,23 @@ class ExportHelper:
         return {'RUNNING_MODAL'}
 
     def check(self, context):
+        import os
         change_ext = False
         change_axis = _check_axis_conversion(self)
 
         check_extension = self.check_extension
 
         if check_extension is not None:
-            filepath = bpy.path.ensure_ext(self.filepath,
-                                           self.filename_ext
-                                           if check_extension
-                                           else "")
+            filepath = self.filepath
+            if os.path.basename(filepath):
+                filepath = bpy.path.ensure_ext(filepath,
+                                               self.filename_ext
+                                               if check_extension
+                                               else "")
 
-            if filepath != self.filepath:
-                self.filepath = filepath
-                change_ext = True
+                if filepath != self.filepath:
+                    self.filepath = filepath
+                    change_ext = True
 
         return (change_ext or change_axis)
 
