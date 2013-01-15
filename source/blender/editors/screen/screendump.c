@@ -86,8 +86,8 @@ static unsigned int *screenshot(bContext *C, int *dumpsx, int *dumpsy)
 
 	x = 0;
 	y = 0;
-	*dumpsx = win->sizex;
-	*dumpsy = win->sizey;
+	*dumpsx = WM_window_pixels_x(win);
+	*dumpsy = WM_window_pixels_y(win);
 
 	if (*dumpsx && *dumpsy) {
 		
@@ -457,8 +457,8 @@ static int screencast_exec(bContext *C, wmOperator *op)
 		wmWindow *win = CTX_wm_window(C);
 		sj->x = 0;
 		sj->y = 0;
-		sj->dumpsx = win->sizex;
-		sj->dumpsy = win->sizey;
+		sj->dumpsx = WM_window_pixels_x(win);
+		sj->dumpsy = WM_window_pixels_y(win);
 	}
 	else {
 		ScrArea *curarea = CTX_wm_area(C);
