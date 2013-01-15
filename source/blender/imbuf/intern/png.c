@@ -60,6 +60,11 @@ static void ReadData(png_structp png_ptr, png_bytep data, png_size_t length);
 static void WriteData(png_structp png_ptr, png_bytep data, png_size_t length);
 static void Flush(png_structp png_ptr);
 
+BLI_INLINE unsigned short UPSAMPLE_8_TO_16(const unsigned char _val)
+{
+	return (_val << 8) + _val;
+}
+
 int imb_is_a_png(unsigned char *mem)
 {
 	int ret_val = 0;
@@ -115,7 +120,8 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 	int i, bytesperpixel, color_type = PNG_COLOR_TYPE_GRAY;
 	FILE *fp = NULL;
 
-	int is_16bit = (ibuf->ftype & PNG_16BIT) && ibuf->rect_float;
+	bool is_16bit  = (ibuf->ftype & PNG_16BIT);
+	bool has_float = (ibuf->rect_float != NULL);
 
 	/* use the jpeg quality setting for compression */
 	int compression;
@@ -174,13 +180,24 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 		case 4:
 			color_type = PNG_COLOR_TYPE_RGBA;
 			if (is_16bit) {
-				for (i = ibuf->x * ibuf->y; i > 0; i--) {
-					premul_to_straight_v4(from_straight, from_float);
-					to16[0] = FTOUSHORT(from_straight[0]);
-					to16[1] = FTOUSHORT(from_straight[1]);
-					to16[2] = FTOUSHORT(from_straight[2]);
-					to16[3] = FTOUSHORT(from_straight[3]);
-					to16 += 4; from_float += 4;
+				if (has_float) {
+					for (i = ibuf->x * ibuf->y; i > 0; i--) {
+						premul_to_straight_v4(from_straight, from_float);
+						to16[0] = FTOUSHORT(from_straight[0]);
+						to16[1] = FTOUSHORT(from_straight[1]);
+						to16[2] = FTOUSHORT(from_straight[2]);
+						to16[3] = FTOUSHORT(from_straight[3]);
+						to16 += 4; from_float += 4;
+					}
+				}
+				else {
+					for (i = ibuf->x * ibuf->y; i > 0; i--) {
+						to16[0] = UPSAMPLE_8_TO_16(from[0]);
+						to16[1] = UPSAMPLE_8_TO_16(from[1]);
+						to16[2] = UPSAMPLE_8_TO_16(from[2]);
+						to16[3] = UPSAMPLE_8_TO_16(from[3]);
+						to16 += 4; from += 4;
+					}
 				}
 			}
 			else {
@@ -196,12 +213,22 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 		case 3:
 			color_type = PNG_COLOR_TYPE_RGB;
 			if (is_16bit) {
-				for (i = ibuf->x * ibuf->y; i > 0; i--) {
-					premul_to_straight_v4(from_straight, from_float);
-					to16[0] = FTOUSHORT(from_straight[0]);
-					to16[1] = FTOUSHORT(from_straight[1]);
-					to16[2] = FTOUSHORT(from_straight[2]);
-					to16 += 3; from_float += 4;
+				if (has_float) {
+					for (i = ibuf->x * ibuf->y; i > 0; i--) {
+						premul_to_straight_v4(from_straight, from_float);
+						to16[0] = FTOUSHORT(from_straight[0]);
+						to16[1] = FTOUSHORT(from_straight[1]);
+						to16[2] = FTOUSHORT(from_straight[2]);
+						to16 += 3; from_float += 4;
+					}
+				}
+				else {
+					for (i = ibuf->x * ibuf->y; i > 0; i--) {
+						to16[0] = UPSAMPLE_8_TO_16(from[0]);
+						to16[1] = UPSAMPLE_8_TO_16(from[1]);
+						to16[2] = UPSAMPLE_8_TO_16(from[2]);
+						to16 += 3; from += 4;
+					}
 				}
 			}
 			else {
@@ -216,10 +243,18 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 		case 1:
 			color_type = PNG_COLOR_TYPE_GRAY;
 			if (is_16bit) {
-				for (i = ibuf->x * ibuf->y; i > 0; i--) {
-					premul_to_straight_v4(from_straight, from_float);
-					to16[0] = FTOUSHORT(from_straight[0]);
-					to16++; from_float += 4;
+				if (has_float) {
+					for (i = ibuf->x * ibuf->y; i > 0; i--) {
+						premul_to_straight_v4(from_straight, from_float);
+						to16[0] = FTOUSHORT(from_straight[0]);
+						to16++; from_float += 4;
+					}
+				}
+				else {
+					for (i = ibuf->x * ibuf->y; i > 0; i--) {
+						to16[0] = UPSAMPLE_8_TO_16(from[0]);
+						to16++; from += 4;
+					}
 				}
 			}
 			else {
