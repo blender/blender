@@ -1222,7 +1222,7 @@ static void *display_buffer_apply_get_linear_buffer(DisplayBufferThread *handle)
 			}
 			else if (channels == 4) {
 				rgba_uchar_to_float(fp, cp);
-				straight_to_premul_v4(fp, fp);
+				straight_to_premul_v4(fp);
 			}
 			else {
 				BLI_assert(!"Buffers of 3 or 4 channels are only supported here");
@@ -2347,7 +2347,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 			else if (byte_buffer) {
 				rgba_uchar_to_float(pixel, byte_buffer + linear_index);
 				IMB_colormanagement_colorspace_to_scene_linear_v3(pixel, rect_colorspace);
-				straight_to_premul_v4(pixel, pixel);
+				straight_to_premul_v4(pixel);
 			}
 
 			if (!is_data) {
@@ -2361,7 +2361,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf, unsigned char *display_buffe
 			}
 			else {
 				float pixel_straight[4];
-				premul_to_straight_v4(pixel_straight, pixel);
+				premul_to_straight_v4_v4(pixel_straight, pixel);
 				rgba_float_to_uchar(display_buffer + display_index, pixel_straight);
 			}
 		}

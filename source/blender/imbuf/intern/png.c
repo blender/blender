@@ -204,7 +204,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 			if (is_16bit) {
 				if (has_float) {
 					for (i = ibuf->x * ibuf->y; i > 0; i--) {
-						premul_to_straight_v4(from_straight, from_float);
+						premul_to_straight_v4_v4(from_straight, from_float);
 						to16[0] = ftoshort(chanel_colormanage_cb(from_straight[0]));
 						to16[1] = ftoshort(chanel_colormanage_cb(from_straight[1]));
 						to16[2] = ftoshort(chanel_colormanage_cb(from_straight[2]));
@@ -237,7 +237,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 			if (is_16bit) {
 				if (has_float) {
 					for (i = ibuf->x * ibuf->y; i > 0; i--) {
-						premul_to_straight_v4(from_straight, from_float);
+						premul_to_straight_v4_v4(from_straight, from_float);
 						to16[0] = ftoshort(chanel_colormanage_cb(from_straight[0]));
 						to16[1] = ftoshort(chanel_colormanage_cb(from_straight[1]));
 						to16[2] = ftoshort(chanel_colormanage_cb(from_straight[2]));
@@ -267,7 +267,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 			if (is_16bit) {
 				if (has_float) {
 					for (i = ibuf->x * ibuf->y; i > 0; i--) {
-						premul_to_straight_v4(from_straight, from_float);
+						premul_to_straight_v4_v4(from_straight, from_float);
 						to16[0] = ftoshort(chanel_colormanage_cb(from_straight[0]));
 						to16++; from_float += 4;
 					}
