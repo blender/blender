@@ -2747,6 +2747,15 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 	return NULL;
 }
 
+static bool wm_event_is_double_click(wmEvent *event, wmEvent *event_state)
+{
+	return (((event->type == event_state->prevtype && event_state->prevval == KM_RELEASE && event->val == KM_PRESS)) &&
+	        ((ABS(event->x - event_state->prevclickx)) <= 2 &&
+	         (ABS(event->y - event_state->prevclicky)) <= 2 &&
+	         ((PIL_check_seconds_timer() - event_state->prevclicktime) * 1000 < U.dbl_click_time))
+	        );
+}
+
 /* windows store own event queues, no bContext here */
 /* time is in 1000s of seconds, from ghost */
 void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int UNUSED(time), void *customdata)
@@ -2868,15 +2877,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			}
 			
 			/* double click test */
-			if (event.type == evt->prevtype && event.val == KM_PRESS) {
-				if ((ABS(event.x - evt->prevclickx)) <= 2 &&
-				    (ABS(event.y - evt->prevclicky)) <= 2 &&
-				    ((PIL_check_seconds_timer() - evt->prevclicktime) * 1000 < U.dbl_click_time))
-				{
-					if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS) )
-						printf("%s Send double click\n", __func__);
-					event.val = KM_DBL_CLICK;
-				}
+			if (wm_event_is_double_click(&event, evt)) {
+				if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS) )
+					printf("%s Send double click\n", __func__);
+				event.val = KM_DBL_CLICK;
 			}
 			if (event.val == KM_PRESS) {
 				evt->prevclicktime = PIL_check_seconds_timer();
@@ -2982,15 +2986,10 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 
 			/* double click test */
 			/* if previous event was same type, and previous was release, and now it presses... */
-			if (event.type == evt->prevtype && evt->prevval == KM_RELEASE && event.val == KM_PRESS) {
-				if ((ABS(event.x - evt->prevclickx)) <= 2 &&
-				    (ABS(event.y - evt->prevclicky)) <= 2 &&
-				    ((PIL_check_seconds_timer() - evt->prevclicktime) * 1000 < U.dbl_click_time))
-				{
-					if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS) )
-						printf("%s Send double click\n", __func__);
-					evt->val = event.val = KM_DBL_CLICK;
-				}
+			if (wm_event_is_double_click(&event, evt)) {
+				if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS) )
+					printf("%s Send double click\n", __func__);
+				evt->val = event.val = KM_DBL_CLICK;
 			}
 			
 			/* this case happens on holding a key pressed, it should not generate
