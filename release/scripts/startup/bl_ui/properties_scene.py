@@ -166,8 +166,8 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, Panel):
             col = row.column(align=True)
             col.label(text="Keyframing Settings:")
             col.prop(ksp, "bl_options")
-            
-            
+
+
 class SCENE_PT_color_management(SceneButtonsPanel, Panel):
     bl_label = "Color Management"
     bl_options = {'DEFAULT_CLOSED'}
@@ -192,8 +192,8 @@ class SCENE_PT_color_management(SceneButtonsPanel, Panel):
         col.separator()
         col.label(text="Sequencer:")
         col.prop(scene.sequencer_colorspace_settings, "name")
-        
-        
+
+
 class SCENE_PT_audio(SceneButtonsPanel, Panel):
     bl_label = "Audio"
     bl_options = {'DEFAULT_CLOSED'}
@@ -268,8 +268,8 @@ class SCENE_PT_simplify(SceneButtonsPanel, Panel):
         col = split.column()
         col.prop(rd, "simplify_shadow_samples", text="Shadow Samples")
         col.prop(rd, "simplify_ao_sss", text="AO and SSS")
-        
-        
+
+
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "scene"
