@@ -233,7 +233,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_ne
 			/* Deal with comments first */
 			if (*str == '#') {
 				/* fill the remaining line */
-				text_format_fill(&str, &fmt, prev, len - (int)(str - fs.buf));
+				text_format_fill(&str, &fmt, FMT_TYPE_COMMENT, len - (int)(str - fs.buf));
 			}
 			else if (*str == '"' || *str == '\'') {
 				/* Strings */
@@ -259,8 +259,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_ne
 			/* Booleans */
 			else if (prev != FMT_TYPE_DEFAULT && (i = txtfmt_py_find_bool(str)) != -1) {
 				if (i > 0) {
-					memset(fmt, FMT_TYPE_NUMERAL, i);
-					i--; fmt += i; str += i;
+					text_format_fill(&str, &fmt, FMT_TYPE_NUMERAL, i);
 				}
 				else {
 					str += BLI_str_utf8_size_safe(str) - 1;
