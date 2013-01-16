@@ -456,6 +456,8 @@ GHOST_WindowX11(
 
 #ifdef WITH_X11_XINPUT
 	initXInputDevices();
+
+	m_tabletData.Active = GHOST_kTabletModeNone;
 #endif
 
 	/* now set up the rendering context. */
