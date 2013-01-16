@@ -8663,6 +8663,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (!MAIN_VERSION_ATLEAST(main, 265, 9)) {
+		Brush *br;
+		for (br = main->brush.first; br; br = br->id.next) {
+			if (br->ob_mode & OB_MODE_TEXTURE_PAINT) {
+				br->mtex.brush_map_mode = MTEX_MAP_MODE_TILED;
+			}
+		}
+	}
+
 	// if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 7)) {
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

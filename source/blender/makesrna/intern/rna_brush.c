@@ -867,11 +867,6 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_RESTORE_MESH);
 	RNA_def_property_ui_text(prop, "Restore Mesh", "Allow a single dot to be carefully positioned");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
-
-	prop = RNA_def_property(srna, "use_fixed_texture", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_FIXED_TEX);
-	RNA_def_property_ui_text(prop, "Fixed Texture", "Keep texture origin in fixed position");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	/* only for projection paint, TODO, other paint modes */
 	prop = RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);

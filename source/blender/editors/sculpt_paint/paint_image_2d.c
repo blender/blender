@@ -331,7 +331,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, const float pos[2
 		flt = cache->flt;
 		size = (cache->size) ? cache->size : diameter;
 
-		if (brush->flag & BRUSH_FIXED_TEX) {
+		if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_TILED) {
 			BKE_brush_imbuf_new(scene, brush, flt, 3, size, &cache->maskibuf, use_color_correction);
 			brush_painter_fixed_tex_partial_update(painter, pos);
 		}
@@ -342,7 +342,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, const float pos[2
 		cache->lastalpha = alpha;
 		cache->lastjitter = brush->jitter;
 	}
-	else if ((brush->flag & BRUSH_FIXED_TEX) && mtex && mtex->tex) {
+	else if ((brush->mtex.brush_map_mode == MTEX_MAP_MODE_TILED) && mtex && mtex->tex) {
 		int dx = (int)painter->lastpaintpos[0] - (int)pos[0];
 		int dy = (int)painter->lastpaintpos[1] - (int)pos[1];
 
