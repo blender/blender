@@ -178,14 +178,31 @@ void ED_text_format_register(TextFormatType *tft)
 
 TextFormatType *ED_text_format_get(Text *text)
 {
-	/* NOTE: once more types are added we'll need to return some type based on 'text'
-	 * for now this function is more of a placeholder */
+	TextFormatType* tft;
 
-	/* XXX, wrong, but OK for testing */
-	if (text && BLI_testextensie(text->id.name + 2, ".osl")) {
-		return tft_lb.last;
+	if (text) {
+		const char *text_ext = strchr(text->id.name + 2, '.');
+		if (text_ext) {
+			text_ext++;  /* skip the '.' */
+			/* Check all text formats in the static list */
+			for (tft = tft_lb.first; tft; tft = tft->next) {
+				/* All formats should have an ext, but just in case */
+				const char **ext;
+				for (ext = tft->ext; *ext; ext++) {
+					/* If extension matches text name, return the matching tft */
+					if (BLI_strcasecmp(text_ext, *ext) == 0) {
+						return tft;
+					}
+				}
+			}
+		}
+
+		/* If we make it here we never found an extension that worked - return 
+		 * the "default" text format */
+		return tft_lb.first;
 	}
 	else {
+		/* Return the "default" text format */
 		return tft_lb.first;
 	}
 }

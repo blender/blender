@@ -39,6 +39,7 @@ set(SRC
 	text_autocomplete.c
 	text_draw.c
 	text_format.c
+	text_format_lua.c
 	text_format_osl.c
 	text_format_py.c
 	text_header.c
