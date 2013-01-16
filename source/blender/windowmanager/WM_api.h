@@ -131,6 +131,7 @@ void		*WM_paint_cursor_activate(struct wmWindowManager *wm,
 void		WM_paint_cursor_end(struct wmWindowManager *wm, void *handle);
 
 void		WM_cursor_warp		(struct wmWindow *win, int x, int y);
+float		WM_cursor_pressure	(const struct wmWindow *win);
 
 			/* event map */
 int			WM_userdef_event_map(int kmitype);

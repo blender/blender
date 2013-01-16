@@ -1318,6 +1318,21 @@ void WM_cursor_warp(wmWindow *win, int x, int y)
 	}
 }
 
+/**
+ * Get the cursor pressure, in most cases you'll want to use wmTabletData from the event
+ */
+float WM_cursor_pressure(const struct wmWindow *win)
+{
+	const GHOST_TabletData *td = GHOST_GetTabletData(win->ghostwin);
+	/* if there's tablet data from an active tablet device then add it */
+	if ((td != NULL) && td->Active != GHOST_kTabletModeNone) {
+		return td->Pressure;
+	}
+	else {
+		return -1.0f;
+	}
+}
+
 /* support for native pixel size */
 /* mac retina opens window in size X, but it has up to 2 x more pixels */
 int WM_window_pixels_x(wmWindow *win)
