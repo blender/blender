@@ -30,7 +30,7 @@ from bpy.types import (Brush,
 
 from rna_prop_ui import PropertyPanel
 
-from bl_ui.properties_paint_common import sculpt_brush_texture_settings
+from bl_ui.properties_paint_common import brush_texture_settings
 
 
 class TEXTURE_MT_specials(Menu):
@@ -884,8 +884,8 @@ class TEXTURE_PT_mapping(TextureSlotPanel, Panel):
                 split.prop(tex, "object", text="")
 
         if isinstance(idblock, Brush):
-            if context.sculpt_object:
-                sculpt_brush_texture_settings(layout, idblock)
+            if context.sculpt_object or context.image_paint_object:
+                brush_texture_settings(layout, idblock, context.sculpt_object)
         else:
             if isinstance(idblock, Material):
                 split = layout.split(percentage=0.3)

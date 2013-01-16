@@ -429,6 +429,12 @@ static void rna_def_brush_texture_slot(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem prop_tex_paint_map_mode_items[] = {
+		{MTEX_MAP_MODE_VIEW, "VIEW_PLANE", 0, "View Plane", ""},
+		{MTEX_MAP_MODE_TILED, "TILED", 0, "Tiled", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "BrushTextureSlot", "TextureSlot");
 	RNA_def_struct_sdna(srna, "MTex");
 	RNA_def_struct_ui_text(srna, "Brush Texture Slot", "Texture slot for textures in a Brush datablock");
@@ -442,6 +448,12 @@ static void rna_def_brush_texture_slot(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "map_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "brush_map_mode");
 	RNA_def_property_enum_items(prop, prop_map_mode_items);
+	RNA_def_property_ui_text(prop, "Mode", "");
+	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
+
+	prop = RNA_def_property(srna, "tex_paint_map_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "brush_map_mode");
+	RNA_def_property_enum_items(prop, prop_tex_paint_map_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "");
 	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 }
