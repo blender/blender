@@ -1599,7 +1599,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 			}
 			break;
 			
-			/* these events only happen on swiping trackpads */
+			/* these events only happen on swiping trackpads or tablets */
+			/* warning: using tablet + trackpad at same time frustrates this static variable */
 		case NSEventTypeBeginGesture:
 			m_hasMultiTouchTrackpad = 1;
 			break;
@@ -1633,9 +1634,17 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 					double dy;
 					
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
+					int phase = [event phase];
+					
 					/* with 10.7 nice scrolling deltas are supported */
 					dx = [event scrollingDeltaX];
 					dy = [event scrollingDeltaY];
+					
+					/* however, wacom tablet (intuos5) needs old deltas, it then has momentum and phase at zero */
+					if (phase == 0 && momentum==NULL) {
+						dx = [event deltaX];
+						dy = [event deltaY];
+					}
 
 #else
 					/* trying to pretend you have nice scrolls... */
