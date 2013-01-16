@@ -3199,3 +3199,57 @@ void BKE_image_get_aspect(Image *image, float *aspx, float *aspy)
 	else
 		*aspy = 1.0f;
 }
+
+unsigned char *BKE_image_get_pixels_for_frame(struct Image *image, int frame)
+{
+	ImageUser iuser = {0};
+	void *lock;
+	ImBuf *ibuf;
+	unsigned char *pixels = NULL;
+
+	iuser.framenr = frame;
+	iuser.ok = TRUE;
+
+	ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
+
+	if (ibuf) {
+		pixels = (unsigned char *) ibuf->rect;
+
+		if (pixels)
+			pixels = MEM_dupallocN(pixels);
+
+		BKE_image_release_ibuf(image, ibuf, lock);
+	}
+
+	if (!pixels)
+		return NULL;
+
+	return pixels;
+}
+
+float *BKE_image_get_float_pixels_for_frame(struct Image *image, int frame)
+{
+	ImageUser iuser = {0};
+	void *lock;
+	ImBuf *ibuf;
+	float *pixels = NULL;
+
+	iuser.framenr = frame;
+	iuser.ok = TRUE;
+
+	ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
+
+	if (ibuf) {
+		pixels = ibuf->rect_float;
+
+		if (pixels)
+			pixels = MEM_dupallocN(pixels);
+
+		BKE_image_release_ibuf(image, ibuf, lock);
+	}
+
+	if (!pixels)
+		return NULL;
+
+	return pixels;
+}

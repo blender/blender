@@ -612,8 +612,25 @@ void BlenderSession::test_cancel()
 			session->progress.set_cancel("Cancelled");
 }
 
-void BlenderSession::builtin_image_info(const string &name, bool &is_float, int &width, int &height, int &channels)
+/* builtin image file name is actually an image datablock name with
+ * absolute sequence frame number concatenated via '@' character
+ *
+ * this function splits image id name and frame number from a
+ * builtin image name
+ */
+void BlenderSession::builtin_name_split(const string &builtin_name, string &name, int &frame)
 {
+	int last = builtin_name.find_last_of('@');
+	name = builtin_name.substr(0, last);
+	frame = atoi(builtin_name.substr(last + 1, builtin_name.size() - last - 1).c_str());
+}
+
+void BlenderSession::builtin_image_info(const string &builtin_name, bool &is_float, int &width, int &height, int &channels)
+{
+	string name;
+	int frame;
+	builtin_name_split(builtin_name, name, frame);
+
 	BL::Image b_image = b_data.images[name];
 
 	if(b_image) {
@@ -630,8 +647,12 @@ void BlenderSession::builtin_image_info(const string &name, bool &is_float, int 
 	}
 }
 
-bool BlenderSession::builtin_image_pixels(const string &name, unsigned char *pixels)
+bool BlenderSession::builtin_image_pixels(const string &builtin_name, unsigned char *pixels)
 {
+	string name;
+	int frame;
+	builtin_name_split(builtin_name, name, frame);
+
 	BL::Image b_image = b_data.images[name];
 
 	if(b_image) {
@@ -639,16 +660,27 @@ bool BlenderSession::builtin_image_pixels(const string &name, unsigned char *pix
 		int height = b_image.size()[1];
 		int channels = b_image.channels();
 
-		BL::DynamicArray<float> pixels_array = b_image.pixels();
-		float *float_pixels = pixels_array.data;
+		unsigned char *image_pixels;
+		image_pixels = image_get_pixels_for_frame(b_image, frame);
 
-		/* a bit of shame, but Py API currently only returns float array,
-		 * which need to be converted back to char buffer
-		 */
-		unsigned char *cp = pixels;
-		float *fp = float_pixels;
-		for(int i = 0; i < channels * width * height; i++, cp++, fp++) {
-			*cp = *fp * 255;
+		if(image_pixels) {
+			memcpy(pixels, image_pixels, width * height * channels * sizeof(unsigned char));
+			MEM_freeN(image_pixels);
+		}
+		else {
+			if(channels == 1) {
+				memset(pixels, 0, width * height * sizeof(unsigned char));
+			}
+			else {
+				unsigned char *cp = pixels;
+				for(int i = 0; i < width * height; i++, cp += channels) {
+					cp[0] = 255;
+					cp[1] = 0;
+					cp[2] = 255;
+					if(channels == 4)
+						cp[3] = 255;
+				}
+			}
 		}
 
 		return true;
@@ -657,8 +689,12 @@ bool BlenderSession::builtin_image_pixels(const string &name, unsigned char *pix
 	return false;
 }
 
-bool BlenderSession::builtin_image_float_pixels(const string &name, float *pixels)
+bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, float *pixels)
 {
+	string name;
+	int frame;
+	builtin_name_split(builtin_name, name, frame);
+
 	BL::Image b_image = b_data.images[name];
 
 	if(b_image) {
@@ -666,9 +702,28 @@ bool BlenderSession::builtin_image_float_pixels(const string &name, float *pixel
 		int height = b_image.size()[1];
 		int channels = b_image.channels();
 
-		BL::DynamicArray<float> pixels_array = b_image.pixels();
+		float *image_pixels;
+		image_pixels = image_get_float_pixels_for_frame(b_image, frame);
 
-		memcpy(pixels, pixels_array.data, width * height * channels * sizeof(float));
+		if(image_pixels) {
+			memcpy(pixels, image_pixels, width * height * channels * sizeof(float));
+			MEM_freeN(image_pixels);
+		}
+		else {
+			if(channels == 1) {
+				memset(pixels, 0, width * height * sizeof(float));
+			}
+			else {
+				float *fp = pixels;
+				for(int i = 0; i < width * height; i++, fp += channels) {
+					fp[0] = 1.0f;
+					fp[1] = 0.0f;
+					fp[2] = 1.0f;
+					if(channels == 4)
+						fp[3] = 1.0f;
+				}
+			}
+		}
 
 		return true;
 	}

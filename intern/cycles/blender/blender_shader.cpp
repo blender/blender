@@ -511,17 +511,24 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			BL::ShaderNodeTexImage b_image_node(b_node);
 			BL::Image b_image(b_image_node.image());
 			ImageTextureNode *image = new ImageTextureNode();
-			/* todo: handle movie images */
-			if(b_image && b_image.source() != BL::Image::source_MOVIE) {
+			if(b_image) {
 				/* builtin images will use callback-based reading because
 				 * they could only be loaded correct from blender side
 				 */
 				bool is_builtin = b_image.packed_file() ||
-				                  b_image.source() == BL::Image::source_GENERATED;
+				                  b_image.source() == BL::Image::source_GENERATED ||
+				                  b_image.source() == BL::Image::source_MOVIE;
 
 				if(is_builtin) {
-					/* for builtin images we're using image datablock name to find an image to read pixels from later */
-					image->filename = b_image.name();
+					/* for builtin images we're using image datablock name to find an image to
+					 * read pixels from later
+					 *
+					 * also store frame number as well, so there's no differences in handling
+					 * builtin names for packed images and movies
+					 */
+					int scene_frame = b_scene.frame_current();
+					int image_frame = image_user_frame_number(b_image_node.image_user(), scene_frame);
+					image->filename = b_image.name() + "@" + string_printf("%d", image_frame);
 					image->is_builtin = true;
 				}
 				else {
@@ -542,12 +549,15 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 			BL::ShaderNodeTexEnvironment b_env_node(b_node);
 			BL::Image b_image(b_env_node.image());
 			EnvironmentTextureNode *env = new EnvironmentTextureNode();
-			if(b_image && b_image.source() != BL::Image::source_MOVIE) {
+			if(b_image) {
 				bool is_builtin = b_image.packed_file() ||
-				                  b_image.source() == BL::Image::source_GENERATED;
+				                  b_image.source() == BL::Image::source_GENERATED ||
+				                  b_image.source() == BL::Image::source_MOVIE;
 
 				if(is_builtin) {
-					env->filename = b_image.name();
+					int scene_frame = b_scene.frame_current();
+					int image_frame = image_user_frame_number(b_env_node.image_user(), scene_frame);
+					env->filename = b_image.name() + "@" + string_printf("%d", image_frame);
 					env->is_builtin = true;
 				}
 				else {

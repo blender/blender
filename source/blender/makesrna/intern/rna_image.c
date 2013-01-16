@@ -427,6 +427,11 @@ static void rna_def_imageuser(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
+	prop = RNA_def_property(srna, "frame_current", PROP_INT, PROP_TIME);
+	RNA_def_property_int_sdna(prop, NULL, "framenr");
+	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
+	RNA_def_property_ui_text(prop, "Current Frame", "Current frame number in image sequence or movie");
+
 	/* animation */
 	prop = RNA_def_property(srna, "use_cyclic", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "cycl", 0);
