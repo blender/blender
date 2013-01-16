@@ -2749,11 +2749,20 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 
 static bool wm_event_is_double_click(wmEvent *event, wmEvent *event_state)
 {
-	return (((event->type == event_state->prevtype && event_state->prevval == KM_RELEASE && event->val == KM_PRESS)) &&
-	        ((ABS(event->x - event_state->prevclickx)) <= 2 &&
-	         (ABS(event->y - event_state->prevclicky)) <= 2 &&
-	         ((PIL_check_seconds_timer() - event_state->prevclicktime) * 1000 < U.dbl_click_time))
-	        );
+	if ((event->type == event_state->prevtype) &&
+	    (event_state->prevval == KM_RELEASE) &&
+	    (event->val == KM_PRESS))
+	{
+		if ((ISMOUSE(event->type) == false) || ((ABS(event->x - event_state->prevclickx)) <= 2 &&
+		                                        (ABS(event->y - event_state->prevclicky)) <= 2))
+		{
+			if ((PIL_check_seconds_timer() - event_state->prevclicktime) * 1000 < U.dbl_click_time) {
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 /* windows store own event queues, no bContext here */
