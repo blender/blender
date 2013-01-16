@@ -105,6 +105,7 @@ int text_check_bracket(const char ch);
 int text_check_delim(const char ch);
 int text_check_digit(const char ch);
 int text_check_identifier(const char ch);
+int text_check_identifier_nodigit(const char ch);
 int text_check_whitespace(const char ch);
 int text_find_identifier_start(const char *str, int i);
 

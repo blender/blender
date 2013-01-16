@@ -2930,6 +2930,16 @@ int text_check_identifier(const char ch)
 	return 0;
 }
 
+int text_check_identifier_nodigit(const char ch)
+{
+	if (ch <= '9') return 0;
+	if (ch < 'A') return 0;
+	if (ch <= 'Z' || ch == '_') return 1;
+	if (ch < 'a') return 0;
+	if (ch <= 'z') return 1;
+	return 0;
+}
+
 int text_check_whitespace(const char ch)
 {
 	if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n')
