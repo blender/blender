@@ -290,9 +290,9 @@ static BMVert *pbvh_bmesh_vert_create(PBVH *bvh, int node_index,
 	return v;
 }
 
-static BMFace *pbvh_bmesh_face_create(PBVH *bvh, int node_index, BMVert *v1,
-									  BMVert *v2, BMVert *v3,
-									  const BMFace *UNUSED(example))
+static BMFace *pbvh_bmesh_face_create(PBVH *bvh, int node_index,
+                                      BMVert *v1, BMVert *v2, BMVert *v3,
+                                      const BMFace *UNUSED(example))
 {
 	BMFace *f;
 	void *val = SET_INT_IN_POINTER(node_index);
@@ -465,14 +465,14 @@ typedef struct {
 
 static int edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
 {
-	BMVert *v[3];
+	BMVert *v_tri[3];
 	float c[3];
 
 	/* Get closest point in triangle to sphere center */
-	// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v, 3);
-	BM_face_as_array_vert_tri(f, v);
+	// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v_tri, 3);
+	BM_face_as_array_vert_tri(f, v_tri);
 
-	closest_on_tri_to_point_v3(c, q->center, v[0]->co, v[1]->co, v[2]->co);
+	closest_on_tri_to_point_v3(c, q->center, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co);
 
 	/* Check if triangle intersects the sphere */
 	return ((len_squared_v3v3(q->center, c) <= q->radius_squared));
@@ -767,31 +767,32 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 	 * really buy anything. */
 	deleted_faces->count = 0;
 	BM_ITER_ELEM (f, &bm_iter, v2, BM_FACES_OF_VERT) {
-		BMVert *v[3];
+		BMVert *v_tri[3];
 		BMFace *existing_face;
 		PBVHNode *n;
 		int ni;
 
 		/* Get vertices, replace use of v2 with v1 */
-		// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v, 3);
-		BM_face_as_array_vert_tri(f, v);
+		// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v_tri, 3);
+		BM_face_as_array_vert_tri(f, v_tri);
 		for (i = 0; i < 3; i++) {
-			if (v[i] == v2)
-				v[i] = v1;
+			if (v_tri[i] == v2) {
+				v_tri[i] = v1;
+			}
 		}
 
 		/* Check if a face using these vertices already exists. If so,
 		 * skip adding this face and mark the existing one for
 		 * deletion as well. Prevents extraneous "flaps" from being
 		 * created. */
-		if (BM_face_exists(v, 3, &existing_face)) {
+		if (BM_face_exists(v_tri, 3, &existing_face)) {
 			BLI_assert(existing_face);
 			BLI_buffer_append(deleted_faces, BMFace *, existing_face);
 		}
 		else {
 			n = pbvh_bmesh_node_lookup(bvh, bvh->bm_face_to_node, f);
 			ni = n - bvh->nodes;
-			pbvh_bmesh_face_create(bvh, ni, v[0], v[1], v[2], f);
+			pbvh_bmesh_face_create(bvh, ni, v_tri[0], v_tri[1], v_tri[2], f);
 
 			/* Ensure that v1 is in the new face's node */
 			if (!BLI_ghash_haskey(n->bm_unique_verts, v1) &&
@@ -806,21 +807,21 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 	/* Delete the tagged faces */
 	for (i = 0; i < deleted_faces->count; i++) {
 		BMFace *f_del = BLI_buffer_at(deleted_faces, BMFace *, i);
-		BMVert *v[3];
+		BMVert *v_tri[3];
 		int j;
 
-		// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f_del, (void **)v, 3);
-		BM_face_as_array_vert_tri(f_del, v);
+		// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f_del, (void **)v_tri, 3);
+		BM_face_as_array_vert_tri(f_del, v_tri);
 
 		/* Check if any of the face's vertices are now unused, if so
 		   remove them from the PBVH */
 		for (j = 0; j < 3; j++) {
-			if (v[j] != v2 && BM_vert_face_count(v[j]) == 0) {
-				BLI_ghash_insert(deleted_verts, v[j], NULL);
-				pbvh_bmesh_vert_remove(bvh, v[j]);
+			if (v_tri[j] != v2 && BM_vert_face_count(v_tri[j]) == 0) {
+				BLI_ghash_insert(deleted_verts, v_tri[j], NULL);
+				pbvh_bmesh_vert_remove(bvh, v_tri[j]);
 			}
 			else {
-				v[j] = NULL;
+				v_tri[j] = NULL;
 			}
 		}
 
@@ -830,9 +831,9 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 
 		/* Delete unused vertices */
 		for (j = 0; j < 3; j++) {
-			if (v[j]) {
-				BM_log_vert_removed(bvh->bm, bvh->bm_log, v[j]);
-				BM_vert_kill(bvh->bm, v[j]);
+			if (v_tri[j]) {
+				BM_log_vert_removed(bvh->bm, bvh->bm_log, v_tri[j]);
+				BM_vert_kill(bvh->bm, v_tri[j]);
 			}
 		}
 	}
@@ -928,14 +929,14 @@ int pbvh_bmesh_node_raycast(PBVHNode *node, const float ray_start[3],
 
 			BLI_assert(f->len == 3);
 			if (f->len == 3) {
-				BMVert *v[3];
+				BMVert *v_tri[3];
 
-				// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v, 3);
-				BM_face_as_array_vert_tri(f, v);
+				// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v_tri, 3);
+				BM_face_as_array_vert_tri(f, v_tri);
 				hit |= ray_face_intersection(ray_start, ray_normal,
-				                             v[0]->co,
-				                             v[1]->co,
-				                             v[2]->co,
+				                             v_tri[0]->co,
+				                             v_tri[1]->co,
+				                             v_tri[2]->co,
 				                             NULL, dist);
 			}
 		}
