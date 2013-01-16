@@ -1080,3 +1080,37 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 		}
 	}
 }
+
+
+/**
+ * Small utility functions for fast access
+ *
+ * faster alternative to:
+ *  BM_iter_as_array(bm, BM_VERTS_OF_FACE, f, (void**)v, 3);
+ */
+void BM_face_as_array_vert_tri(BMFace *f, BMVert *r_verts[3])
+{
+	BMLoop *l = BM_FACE_FIRST_LOOP(f);
+
+	BLI_assert(f->len == 3);
+
+	r_verts[0] = l->v; l = l->next;
+	r_verts[1] = l->v; l = l->next;
+	r_verts[2] = l->v;
+}
+
+/**
+ * faster alternative to:
+ *  BM_iter_as_array(bm, BM_VERTS_OF_FACE, f, (void**)v, 4);
+ */
+void BM_face_as_array_vert_quad(BMFace *f, BMVert *r_verts[4])
+{
+	BMLoop *l = BM_FACE_FIRST_LOOP(f);
+
+	BLI_assert(f->len == 4);
+
+	r_verts[0] = l->v; l = l->next;
+	r_verts[1] = l->v; l = l->next;
+	r_verts[2] = l->v; l = l->next;
+	r_verts[3] = l->v;
+}

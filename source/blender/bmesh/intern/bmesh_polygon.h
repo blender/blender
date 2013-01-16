@@ -50,4 +50,7 @@ void  BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
 
 void  BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len);
 
+void BM_face_as_array_vert_tri(BMFace *f, BMVert *r_verts[3]);
+void BM_face_as_array_vert_quad(BMFace *f, BMVert *r_verts[4]);
+
 #endif /* __BMESH_POLYGON_H__ */

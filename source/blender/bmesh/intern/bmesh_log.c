@@ -215,7 +215,8 @@ static BMLogFace *bm_log_face_alloc(BMLog *log, BMFace *f)
 
 	BLI_assert(f->len == 3);
 
-	BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v, 3);
+	// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v, 3);
+	BM_face_as_array_vert_tri(f, v);
 
 	lf->v_ids[0] = bm_log_vert_id_get(log, v[0]);
 	lf->v_ids[1] = bm_log_vert_id_get(log, v[1]);

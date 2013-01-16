@@ -710,12 +710,13 @@ void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
 			cross_v3_v3v3(r_plane, efa->no, vec);
 		}
 		else {
-			BMVert *verts[4] = {NULL};
-
-			BM_iter_as_array(NULL, BM_VERTS_OF_FACE, efa, (void **)verts, 4);
-
 			if (efa->len == 4) {
+				BMVert *verts[4] = {NULL};
 				float vecA[3], vecB[3];
+
+				// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, efa, (void **)verts, 4);
+				BM_face_as_array_vert_quad(efa, verts);
+
 				sub_v3_v3v3(vecA, verts[3]->co, verts[2]->co);
 				sub_v3_v3v3(vecB, verts[0]->co, verts[1]->co);
 				add_v3_v3v3(r_plane, vecA, vecB);

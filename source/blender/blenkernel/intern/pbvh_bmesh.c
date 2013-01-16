@@ -53,7 +53,8 @@ static void pbvh_bmesh_node_finalize(PBVH *bvh, int node_index)
 
 	GHASH_ITER (gh_iter, n->bm_faces) {
 		BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
-		BMIter bm_iter;
+		BMLoop *l_iter;
+		BMLoop *l_first;
 		BMVert *v;
 		void *node_val = SET_INT_IN_POINTER(node_index);
 
@@ -61,7 +62,9 @@ static void pbvh_bmesh_node_finalize(PBVH *bvh, int node_index)
 		BLI_ghash_insert(bvh->bm_face_to_node, f, node_val);
 
 		/* Update vertices */
-		BM_ITER_ELEM (v, &bm_iter, f, BM_VERTS_OF_FACE) {
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+		do {
+			v = l_iter->v;
 			if (!BLI_ghash_haskey(n->bm_unique_verts, v)) {
 				if (BLI_ghash_haskey(bvh->bm_vert_to_node, v)) {
 					if (!BLI_ghash_haskey(n->bm_other_verts, v))
@@ -74,7 +77,7 @@ static void pbvh_bmesh_node_finalize(PBVH *bvh, int node_index)
 			}
 			/* Update node bounding box */
 			BB_expand(&n->vb, v->co);
-		}
+		} while ((l_iter = l_iter->next) != l_first);
 	}
 
 	BLI_assert(n->vb.bmin[0] <= n->vb.bmax[0] &&
@@ -233,15 +236,16 @@ static int pbvh_bmesh_node_limit_ensure(PBVH *bvh, int node_index)
 	prim_bbc = BLI_ghash_ptr_new("prim_bbc");
 
 	GHASH_ITER (gh_iter, bvh->nodes[node_index].bm_faces) {
-		BMIter bm_iter;
-		BMVert *v;
 		BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
 		BBC *bbc = MEM_callocN(sizeof(BBC), "BBC");
+		BMLoop *l_iter;
+		BMLoop *l_first;
 
 		BB_reset((BB *)bbc);
-		BM_ITER_ELEM (v, &bm_iter, f, BM_VERTS_OF_FACE) {
-			BB_expand((BB *)bbc, v->co);
-		}
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+		do {
+			BB_expand((BB *)bbc, l_iter->v->co);
+		} while ((l_iter = l_iter->next) != l_first);
 		BBC_update_centroid(bbc);
 
 		BLI_ghash_insert(prim_bbc, f, bbc);
@@ -394,14 +398,18 @@ static void pbvh_bmesh_vert_remove(PBVH *bvh, BMVert *v)
 static void pbvh_bmesh_face_remove(PBVH *bvh, BMFace *f)
 {
 	PBVHNode *f_node;
-	BMIter bm_iter;
 	BMVert *v;
+
+	BMLoop *l_iter;
+	BMLoop *l_first;
 
 	f_node = pbvh_bmesh_node_lookup(bvh, bvh->bm_face_to_node, f);
 
 	/* Check if any of this face's vertices need to be removed
 	 * from the node */
-	BM_ITER_ELEM (v, &bm_iter, f, BM_VERTS_OF_FACE) {
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		v = l_iter->v;
 		if (pbvh_bmesh_node_vert_use_count(bvh, f_node, v) == 1) {
 			if (BLI_ghash_lookup(f_node->bm_unique_verts, v)) {
 				/* Find a different node that uses 'v' */
@@ -419,7 +427,7 @@ static void pbvh_bmesh_face_remove(PBVH *bvh, BMFace *f)
 				BLI_ghash_remove(f_node->bm_other_verts, v, NULL, NULL);
 			}
 		}
-	}
+	} while ((l_iter = l_iter->next) != l_first);
 
 	/* Remove face from node and top level */
 	BLI_ghash_remove(f_node->bm_faces, f, NULL, NULL);
@@ -436,18 +444,21 @@ static BMVert *bm_triangle_other_vert_find(BMFace *triangle, const BMVert *v1,
 	BLI_assert(v1 != v2);
 
 	if (triangle->len == 3) {
-		BMIter iter;
+		BMLoop *l_iter;
+		BMLoop *l_first;
 		BMVert *v, *other = NULL;
-		int found_v1 = FALSE, found_v2 = FALSE;
+		bool found_v1 = false, found_v2 = false;
 
-		BM_ITER_ELEM (v, &iter, triangle, BM_VERTS_OF_FACE) {
+		l_iter = l_first = BM_FACE_FIRST_LOOP(triangle);
+		do {
+			v = l_iter->v;
 			if (v == v1)
-				found_v1 = TRUE;
+				found_v1 = true;
 			else if (v == v2)
-				found_v2 = TRUE;
+				found_v2 = true;
 			else
 				other = v;
-		}
+		} while ((l_iter = l_iter->next) != l_first);
 
 		if (found_v1 && found_v2)
 			return other;
@@ -508,7 +519,9 @@ static int edge_queue_tri_in_sphere(const EdgeQueue *q, BMFace *f)
 	float c[3];
 
 	/* Get closest point in triangle to sphere center */
-	BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v, 3);
+	// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v, 3);
+	BM_face_as_array_vert_tri(f, v);
+
 	closest_on_tri_to_point_v3(c, q->center, v[0]->co, v[1]->co, v[2]->co);
 
 	/* Check if triangle intersects the sphere */
@@ -810,7 +823,8 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 		int ni;
 
 		/* Get vertices, replace use of v2 with v1 */
-		BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v, 3);
+		// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v, 3);
+		BM_face_as_array_vert_tri(f, v);
 		for (i = 0; i < 3; i++) {
 			if (v[i] == v2)
 				v[i] = v1;
@@ -845,7 +859,8 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 		BMVert *v[3];
 		int j;
 
-		BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f_del, (void **)v, 3);
+		// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f_del, (void **)v, 3);
+		BM_face_as_array_vert_tri(f_del, v);
 
 		/* Check if any of the face's vertices are now unused, if so
 		   remove them from the PBVH */
@@ -965,12 +980,13 @@ int pbvh_bmesh_node_raycast(PBVHNode *node, const float ray_start[3],
 			if (f->len == 3) {
 				BMVert *v[3];
 
-				BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v, 3);
+				// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v, 3);
+				BM_face_as_array_vert_tri(f, v);
 				hit |= ray_face_intersection(ray_start, ray_normal,
-											 v[0]->co,
-											 v[1]->co,
-											 v[2]->co,
-											 NULL, dist);
+				                             v[0]->co,
+				                             v[1]->co,
+				                             v[2]->co,
+				                             NULL, dist);
 			}
 		}
 	}
@@ -1083,6 +1099,17 @@ int BKE_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
 	return modified;
 }
 
+BLI_INLINE void bm_face_as_array_index_tri(BMFace *f, int r_index[3])
+{
+	BMLoop *l = BM_FACE_FIRST_LOOP(f);
+
+	BLI_assert(f->len == 3);
+
+	r_index[0] = BM_elem_index_get(l->v); l = l->next;
+	r_index[1] = BM_elem_index_get(l->v); l = l->next;
+	r_index[2] = BM_elem_index_get(l->v);
+}
+
 /* In order to perform operations on the original node coordinates
  * (such as raycast), store the node's triangles and vertices.*/
 void BKE_pbvh_bmesh_node_save_orig(PBVHNode *node)
@@ -1120,15 +1147,19 @@ void BKE_pbvh_bmesh_node_save_orig(PBVHNode *node)
 	/* Copy the triangles */
 	i = 0;
 	GHASH_ITER (gh_iter, node->bm_faces) {
-		BMIter bm_iter;
 		BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
+
+#if 0
+		BMIter bm_iter;
 		BMVert *v;
 		int j = 0;
-
 		BM_ITER_ELEM (v, &bm_iter, f, BM_VERTS_OF_FACE) {
 			node->bm_ortri[i][j] = BM_elem_index_get(v);
 			j++;
 		}
+#else
+		bm_face_as_array_index_tri(f, node->bm_ortri[i]);
+#endif
 		i++;
 	}
 	node->bm_tot_ortri = i;

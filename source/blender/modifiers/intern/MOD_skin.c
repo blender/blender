@@ -1278,7 +1278,8 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 		return;
 
 	/* Get split face's verts */
-	BM_iter_as_array(bm, BM_VERTS_OF_FACE, split_face, (void **)verts, 4);
+	// BM_iter_as_array(bm, BM_VERTS_OF_FACE, split_face, (void **)verts, 4);
+	BM_face_as_array_vert_quad(split_face, verts);
 	skin_choose_quad_bridge_order(verts, frame->verts, best_order);
 
 	/* Delete split face and merge */
@@ -1314,16 +1315,21 @@ static void skin_hole_detach_partially_attached_frame(BMesh *bm, Frame *frame)
 }
 
 
-static void quad_from_tris(BMesh *bm, BMEdge *e, BMFace *adj[2], BMVert *ndx[4])
+static void quad_from_tris(BMEdge *e, BMFace *adj[2], BMVert *ndx[4])
 {
 	BMVert *tri[2][3];
 	BMVert *opp = NULL;
 	int i, j;
 
 	BLI_assert(adj[0]->len == 3 && adj[1]->len == 3);
-	
+
+#if 0
 	BM_iter_as_array(bm, BM_VERTS_OF_FACE, adj[0], (void **)tri[0], 3);
 	BM_iter_as_array(bm, BM_VERTS_OF_FACE, adj[1], (void **)tri[1], 3);
+#else
+	BM_face_as_array_vert_tri(adj[0], tri[0]);
+	BM_face_as_array_vert_tri(adj[1], tri[1]);
+#endif
 
 	/* Find what the second tri has that the first doesn't */
 	for (i = 0; i < 3; i++) {
@@ -1354,7 +1360,7 @@ static void add_quad_from_tris(SkinOutput *so, BMEdge *e, BMFace *adj[2])
 {
 	BMVert *quad[4];
 
-	quad_from_tris(so->bm, e, adj, quad);
+	quad_from_tris(e, adj, quad);
 
 	add_poly(so, quad[0], quad[1], quad[2], quad[3]);
 }
@@ -1381,7 +1387,7 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 
 				/* Construct quad using the two triangles adjacent to
 				 * the edge */
-				quad_from_tris(so->bm, e, adj, quad);
+				quad_from_tris(e, adj, quad);
 
 				/* Calculate a score for the quad, higher score for
 				 * triangles being closer to coplanar */

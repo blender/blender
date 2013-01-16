@@ -174,7 +174,6 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, bool set_key, int act_key_nr)
 	BMVert *v, **vt = NULL, **verts = NULL;
 	BMEdge *e, **fedges = NULL, **et = NULL;
 	BMFace *f;
-	BMLoop *l;
 	BLI_array_declare(fedges);
 	float (*keyco)[3] = NULL;
 	int *keyi;
@@ -343,7 +342,8 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, bool set_key, int act_key_nr)
 
 	mpoly = me->mpoly;
 	for (i = 0; i < me->totpoly; i++, mpoly++) {
-		BMIter iter;
+		BMLoop *l_iter;
+		BMLoop *l_first;
 
 		BLI_array_empty(fedges);
 		BLI_array_empty(verts);
@@ -401,11 +401,12 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, bool set_key, int act_key_nr)
 		f->mat_nr = mpoly->mat_nr;
 		if (i == me->act_face) bm->act_face = f;
 
-		j = 0;
-		BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, j) {
+		j = mpoly->loopstart;
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+		do {
 			/* Save index of correspsonding MLoop */
-			CustomData_to_bmesh_block(&me->ldata, &bm->ldata, mpoly->loopstart + j, &l->head.data, true);
-		}
+			CustomData_to_bmesh_block(&me->ldata, &bm->ldata, j++, &l_iter->head.data, true);
+		} while ((l_iter = l_iter->next) != l_first);
 
 		/* Copy Custom Data */
 		CustomData_to_bmesh_block(&me->pdata, &bm->pdata, i, &f->head.data, true);
