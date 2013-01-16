@@ -59,36 +59,6 @@ class SCENE_PT_scene(SceneButtonsPanel, Panel):
         layout.prop(scene, "active_clip", text="Active Clip")
 
 
-class SCENE_PT_audio(SceneButtonsPanel, Panel):
-    bl_label = "Audio"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        scene = context.scene
-        rd = context.scene.render
-        ffmpeg = rd.ffmpeg
-
-        layout.prop(scene, "audio_volume")
-        layout.operator("sound.bake_animation")
-
-        split = layout.split()
-
-        col = split.column()
-        col.label("Listener:")
-        col.prop(scene, "audio_distance_model", text="")
-        col.prop(scene, "audio_doppler_speed", text="Speed")
-        col.prop(scene, "audio_doppler_factor", text="Doppler")
-
-        col = split.column()
-        col.label("Format:")
-        col.prop(ffmpeg, "audio_channels", text="")
-        col.prop(ffmpeg, "audio_mixrate", text="Rate")
-
-        layout.operator("sound.mixdown")
-
-
 class SCENE_PT_unit(SceneButtonsPanel, Panel):
     bl_label = "Units"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -196,6 +166,63 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, Panel):
             col = row.column(align=True)
             col.label(text="Keyframing Settings:")
             col.prop(ksp, "bl_options")
+            
+            
+class SCENE_PT_color_management(SceneButtonsPanel, Panel):
+    bl_label = "Color Management"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+
+        col = layout.column()
+        col.label(text="Display:")
+        col.prop(scene.display_settings, "display_device")
+
+        col = layout.column()
+        col.separator()
+        col.label(text="Render:")
+        col.template_colormanaged_view_settings(scene, "view_settings")
+
+        col = layout.column()
+        col.separator()
+        col.label(text="Sequencer:")
+        col.prop(scene.sequencer_colorspace_settings, "name")
+        
+        
+class SCENE_PT_audio(SceneButtonsPanel, Panel):
+    bl_label = "Audio"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = context.scene.render
+        ffmpeg = rd.ffmpeg
+
+        layout.prop(scene, "audio_volume")
+        layout.operator("sound.bake_animation")
+
+        split = layout.split()
+
+        col = split.column()
+        col.label("Listener:")
+        col.prop(scene, "audio_distance_model", text="")
+        col.prop(scene, "audio_doppler_speed", text="Speed")
+        col.prop(scene, "audio_doppler_factor", text="Doppler")
+
+        col = split.column()
+        col.label("Format:")
+        col.prop(ffmpeg, "audio_channels", text="")
+        col.prop(ffmpeg, "audio_mixrate", text="Rate")
+
+        layout.operator("sound.mixdown")
 
 
 class SCENE_PT_physics(SceneButtonsPanel, Panel):
@@ -241,35 +268,8 @@ class SCENE_PT_simplify(SceneButtonsPanel, Panel):
         col = split.column()
         col.prop(rd, "simplify_shadow_samples", text="Shadow Samples")
         col.prop(rd, "simplify_ao_sss", text="AO and SSS")
-
-
-class SCENE_PT_color_management(Panel):
-    bl_label = "Color Management"
-    bl_space_type = 'PROPERTIES'
-    bl_region_type = 'WINDOW'
-    bl_context = "scene"
-
-    def draw(self, context):
-        layout = self.layout
-
-        scene = context.scene
-        rd = scene.render
-
-        col = layout.column()
-        col.label(text="Display:")
-        col.prop(scene.display_settings, "display_device")
-
-        col = layout.column()
-        col.separator()
-        col.label(text="Render:")
-        col.template_colormanaged_view_settings(scene, "view_settings")
-
-        col = layout.column()
-        col.separator()
-        col.label(text="Sequencer:")
-        col.prop(scene.sequencer_colorspace_settings, "name")
-
-
+        
+        
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
     _context_path = "scene"

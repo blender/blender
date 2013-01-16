@@ -1112,6 +1112,7 @@ def get_panels():
         types.RENDER_PT_dimensions,
         types.RENDER_PT_stamp,
         types.SCENE_PT_scene,
+        types.SCENE_PT_color_management,
         types.SCENE_PT_audio,
         types.SCENE_PT_unit,
         types.SCENE_PT_keying_sets,
