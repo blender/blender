@@ -3882,8 +3882,9 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	 *      brush coord/pressure/etc.
 	 *      It's more an events design issue, which doesn't split coordinate/pressure/angle
 	 *      changing events. We should avoid this after events system re-design */
-	if (paint_space_stroke_enabled(brush) || cache->first_time)
+	if (paint_supports_dynamic_size(brush) || cache->first_time) {
 		cache->pressure = RNA_float_get(ptr, "pressure");
+	}
 
 	/* Truly temporary data that isn't stored in properties */
 

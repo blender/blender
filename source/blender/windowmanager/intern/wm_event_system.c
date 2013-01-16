@@ -2655,7 +2655,7 @@ static void update_tablet_data(wmWindow *win, wmEvent *event)
 		event->custom = EVT_DATA_TABLET;
 		event->customdata = wmtab;
 		event->customdatafree = 1;
-		// printf("%s: using tablet %.5f\n", wmtab->Pressure, __func__);
+		// printf("%s: using tablet %.5f\n", __func__, wmtab->Pressure);
 	}
 	else {
 		// printf("%s: not using tablet\n", __func__);
