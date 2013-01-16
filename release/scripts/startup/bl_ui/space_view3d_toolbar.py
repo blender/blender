@@ -773,6 +773,11 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
                 col.separator()
                 col.prop(brush, "rate", text="Rate", slider=True)
 
+            # XXX, not sure where this should go, but sculpt brush uses space.
+            col = layout.column()
+            col.active = brush.sculpt_capabilities.has_spacing
+            col.prop(brush, "use_space")
+
             if brush.use_space:
                 col.separator()
                 row = col.row()
