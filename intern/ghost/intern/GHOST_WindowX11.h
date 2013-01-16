@@ -196,9 +196,8 @@ public:
 	getXWindow(
 	    );
 #ifdef WITH_X11_XINPUT
-	class XTablet
+	typedef struct GHOST_TabletX11
 	{
-public:
 		GHOST_TabletData CommonData;
 
 		XDevice *StylusDevice;
@@ -212,9 +211,9 @@ public:
 
 		int PressureLevels;
 		int XtiltLevels, YtiltLevels;
-	};
+	} GHOST_TabletX11;
 
-	XTablet& GetXTablet()
+	GHOST_TabletX11 &GetXTablet()
 	{
 		return m_xtablet;
 	}
@@ -388,7 +387,7 @@ private:
 
 #ifdef WITH_X11_XINPUT
 	/* Tablet devices */
-	XTablet m_xtablet;
+	GHOST_TabletX11 m_xtablet;
 #endif
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)

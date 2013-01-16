@@ -2756,7 +2756,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 
 	/* initialize and copy state (only mouse x y and modifiers) */
 	event = *evt;
-	
+
 	switch (type) {
 		/* mouse move, also to inactive window (X11 does this) */
 		case GHOST_kEventCursorMove:
@@ -3100,4 +3100,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 
 	}
 
+#if 0
+	WM_event_print(&event);
+#endif
 }
