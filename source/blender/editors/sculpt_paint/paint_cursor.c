@@ -597,15 +597,11 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	glTranslatef(translation[0], translation[1], 0);
 
 	/* draw an inner brush */
-	if (BKE_brush_use_size_pressure(scene, brush)) {
-		const wmWindow *win = CTX_wm_window(C);
-		const float pressure = WM_cursor_pressure(win);
-		if (pressure != -1.0f && pressure != 0.0f) {
-			/* inner at full alpha */
-			glutil_draw_lined_arc(0.0, M_PI * 2.0, final_radius * pressure, 40);
-			/* outer at half alpha */
-			glColor4f(outline_col[0], outline_col[1], outline_col[2], outline_alpha * 0.5f);
-		}
+	if (ups->draw_pressure) {
+		/* inner at full alpha */
+		glutil_draw_lined_arc(0.0, M_PI * 2.0, final_radius * ups->pressure_value, 40);
+		/* outer at half alpha */
+		glColor4f(outline_col[0], outline_col[1], outline_col[2], outline_alpha * 0.5f);
 	}
 	glutil_draw_lined_arc(0.0, M_PI * 2.0, final_radius, 40);
 	glTranslatef(-translation[0], -translation[1], 0);
