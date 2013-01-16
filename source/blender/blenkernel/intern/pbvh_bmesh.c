@@ -505,36 +505,34 @@ static void short_edge_queue_edge_add(EdgeQueue *q, BLI_mempool *pool,
 		edge_queue_insert(q, pool, e, len_sq);
 }
 
-static int long_edge_queue_face_add(EdgeQueue *q, BLI_mempool *pool,
-									BMFace *f)
+static void long_edge_queue_face_add(EdgeQueue *q, BLI_mempool *pool,
+                                     BMFace *f)
 {
-	BMIter bm_iter;
-	BMEdge *e;
-
 	if (edge_queue_tri_in_sphere(q, f)) {
-		/* Check each edge of the face */
-		BM_ITER_ELEM (e, &bm_iter, f, BM_EDGES_OF_FACE) {
-			long_edge_queue_edge_add(q, pool, e);
-		}
-	}
+		BMLoop *l_iter;
+		BMLoop *l_first;
 
-	return TRUE;
+		/* Check each edge of the face */
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+		do {
+			long_edge_queue_edge_add(q, pool, l_iter->e);
+		} while ((l_iter = l_iter->next) != l_first);
+	}
 }
 
-static int short_edge_queue_face_add(EdgeQueue *q, BLI_mempool *pool,
-									 BMFace *f)
+static void short_edge_queue_face_add(EdgeQueue *q, BLI_mempool *pool,
+                                      BMFace *f)
 {
-	BMIter bm_iter;
-	BMEdge *e;
-
 	if (edge_queue_tri_in_sphere(q, f)) {
-		/* Check each edge of the face */
-		BM_ITER_ELEM (e, &bm_iter, f, BM_EDGES_OF_FACE) {
-			short_edge_queue_edge_add(q, pool, e);
-		}
-	}
+		BMLoop *l_iter;
+		BMLoop *l_first;
 
-	return TRUE;
+		/* Check each edge of the face */
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+		do {
+			short_edge_queue_edge_add(q, pool, l_iter->e);
+		} while ((l_iter = l_iter->next) != l_first);
+	}
 }
 
 /* Create a priority queue containing vertex pairs connected by a long
@@ -814,7 +812,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 		BM_face_as_array_vert_tri(f_del, v_tri);
 
 		/* Check if any of the face's vertices are now unused, if so
-		   remove them from the PBVH */
+		 * remove them from the PBVH */
 		for (j = 0; j < 3; j++) {
 			if (v_tri[j] != v2 && BM_vert_face_count(v_tri[j]) == 1) {
 				BLI_ghash_insert(deleted_verts, v_tri[j], NULL);
