@@ -816,7 +816,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 		/* Check if any of the face's vertices are now unused, if so
 		   remove them from the PBVH */
 		for (j = 0; j < 3; j++) {
-			if (v_tri[j] != v2 && BM_vert_face_count(v_tri[j]) == 0) {
+			if (v_tri[j] != v2 && BM_vert_face_count(v_tri[j]) == 1) {
 				BLI_ghash_insert(deleted_verts, v_tri[j], NULL);
 				pbvh_bmesh_vert_remove(bvh, v_tri[j]);
 			}
