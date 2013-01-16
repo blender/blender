@@ -196,31 +196,9 @@ public:
 	getXWindow(
 	    );
 #ifdef WITH_X11_XINPUT
-	typedef struct GHOST_TabletX11
+	GHOST_TabletData *GetTabletData()
 	{
-		GHOST_TabletData CommonData;
-
-		XDevice *StylusDevice;
-		XDevice *EraserDevice;
-
-		XID StylusID, EraserID;
-
-		int MotionEvent;
-		int ProxInEvent;
-		int ProxOutEvent;
-
-		int PressureLevels;
-		int XtiltLevels, YtiltLevels;
-	} GHOST_TabletX11;
-
-	GHOST_TabletX11 &GetXTablet()
-	{
-		return m_xtablet;
-	}
-
-	const GHOST_TabletData *GetTabletData()
-	{
-		return &m_xtablet.CommonData;
+		return &m_tabletData;
 	}
 #else // WITH_X11_XINPUT
 	const GHOST_TabletData *GetTabletData()
@@ -386,8 +364,7 @@ private:
 #endif
 
 #ifdef WITH_X11_XINPUT
-	/* Tablet devices */
-	GHOST_TabletX11 m_xtablet;
+	GHOST_TabletData m_tabletData;
 #endif
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)

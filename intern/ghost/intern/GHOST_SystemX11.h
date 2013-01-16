@@ -39,6 +39,11 @@
 #include "GHOST_System.h"
 #include "../GHOST_Types.h"
 
+// For tablets
+#ifdef WITH_X11_XINPUT
+#  include <X11/extensions/XInput.h>
+#endif
+
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
 #  define GHOST_X11_RES_NAME  "Blender" /* res_name */
 #  define GHOST_X11_RES_CLASS "Blender" /* res_class */
@@ -284,11 +289,37 @@ public:
 	Atom m_incr;
 	Atom m_utf8_string;
 
+#ifdef WITH_X11_XINPUT
+	typedef struct GHOST_TabletX11 {
+		XDevice *StylusDevice;
+		XDevice *EraserDevice;
+
+		XID StylusID, EraserID;
+
+		int MotionEvent;
+		int ProxInEvent;
+		int ProxOutEvent;
+
+		int PressureLevels;
+		int XtiltLevels, YtiltLevels;
+	} GHOST_TabletX11;
+
+	GHOST_TabletX11 &GetXTablet()
+	{
+		return m_xtablet;
+	}
+#endif // WITH_X11_XINPUT
+
 private:
 
 	Display *m_display;
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
 	XIM m_xim;
+#endif
+
+#ifdef WITH_X11_XINPUT
+	/* Tablet devices */
+	GHOST_TabletX11 m_xtablet;
 #endif
 
 	/// The vector of windows that need to be updated.
@@ -311,6 +342,10 @@ private:
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
 	bool openX11_IM();
+#endif
+
+#ifdef WITH_X11_XINPUT
+	void initXInputDevices();
 #endif
 
 	GHOST_WindowX11 *
