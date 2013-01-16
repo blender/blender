@@ -518,6 +518,40 @@ static void setTabletMode(GHOST_SystemX11 *system, GHOST_WindowX11 *window, XID 
 }
 #endif /* WITH_X11_XINPUT */
 
+#ifdef WITH_X11_XINPUT
+static bool checkTabletProximity(Display *display, XDevice *device)
+{
+	/* see: state.c from xinput, to get more data out of the device */
+	XDeviceState *state;
+
+	state = XQueryDeviceState(display, device);
+
+	if (state) {
+		XInputClass *cls = state->data;
+		// printf("%d class%s :\n", state->num_classes,
+		//       (state->num_classes > 1) ? "es" : "");
+		for(int loop=0; loop < state->num_classes; loop++) {
+			switch(cls->c_class) {
+				case ValuatorClass:
+					XValuatorState *val_state = (XValuatorState *) cls;
+					// printf("ValuatorClass Mode=%s Proximity=%s\n",
+					//        val_state->mode & 1 ? "Absolute" : "Relative",
+					//        val_state->mode & 2 ? "Out" : "In");
+
+					if ((val_state->mode & 2) == 0) {
+						XFreeDeviceState(state);
+						return true;
+					}
+					break;
+			}
+			cls = (XInputClass *) ((char *) cls + cls->length);
+		}
+		XFreeDeviceState(state);
+	}
+	return false;
+}
+#endif /* WITH_X11_XINPUT */
+
 void
 GHOST_SystemX11::processEvent(XEvent *xe)
 {
@@ -527,7 +561,23 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 	if (!window) {
 		return;
 	}
-	
+
+#ifdef WITH_X11_XINPUT
+	/* Proximity-Out Events are not reliable, if the tablet is active - check on each event
+	 * this adds a little overhead but only while the tablet is in use.
+	 * in the futire we could have a ghost call window->CheckTabletProximity()
+	 * but for now enough parts of the code are checking 'Active'
+	 * - campbell */
+	if (window->GetTabletData()->Active != GHOST_kTabletModeNone) {
+		if (checkTabletProximity(xe->xany.display, m_xtablet.StylusDevice) == false &&
+		    checkTabletProximity(xe->xany.display, m_xtablet.EraserDevice) == false)
+		{
+			// printf("proximity disable\n");
+			window->GetTabletData()->Active = GHOST_kTabletModeNone;
+		}
+	}
+#endif /* WITH_X11_XINPUT */
+
 	switch (xe->type) {
 		case Expose:
 		{
