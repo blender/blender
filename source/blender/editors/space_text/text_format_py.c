@@ -259,7 +259,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_ne
 			/* Booleans */
 			else if (prev != FMT_TYPE_DEFAULT && (i = txtfmt_py_find_bool(str)) != -1) {
 				if (i > 0) {
-					text_format_fill(&str, &fmt, FMT_TYPE_NUMERAL, i);
+					text_format_fill_ascii(&str, &fmt, FMT_TYPE_NUMERAL, i);
 				}
 				else {
 					str += BLI_str_utf8_size_safe(str) - 1;
@@ -284,7 +284,12 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_ne
 				else if ((i = txtfmt_py_find_decorator(str))    != -1) prev = FMT_TYPE_DIRECTIVE;
 
 				if (i > 0) {
-					text_format_fill(&str, &fmt, prev, i);
+					if (prev == FMT_TYPE_DIRECTIVE) {  /* can contain utf8 */
+						text_format_fill(&str, &fmt, prev, i);
+					}
+					else {
+						text_format_fill_ascii(&str, &fmt, prev, i);
+					}
 				}
 				else {
 					str += BLI_str_utf8_size_safe(str) - 1;

@@ -168,6 +168,25 @@ void text_format_fill(const char **str_p, char **fmt_p, const char type, const i
 	*str_p = str;
 	*fmt_p = fmt;
 }
+/**
+ * ascii version of #text_format_fill,
+ * use when we no the text being stepped over is ascii (as is the case for most keywords)
+ */
+void text_format_fill_ascii(const char **str_p, char **fmt_p, const char type, const int len)
+{
+	const char *str = *str_p;
+	char *fmt = *fmt_p;
+
+	memset(fmt, type, len);
+
+	str += len - 1;
+	fmt += len - 1;
+
+	BLI_assert(*str != '\0');
+
+	*str_p = str;
+	*fmt_p = fmt;
+}
 
 /* *** Registration *** */
 static ListBase tft_lb = {NULL, NULL};

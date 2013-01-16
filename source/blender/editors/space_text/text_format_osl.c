@@ -295,7 +295,12 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const int do_n
 				else if ((i = txtfmt_osl_find_preprocessor(str)) != -1) prev = FMT_TYPE_DIRECTIVE;
 
 				if (i > 0) {
-					text_format_fill(&str, &fmt, prev, i);
+					if (prev == FMT_TYPE_DIRECTIVE) {  /* can contain utf8 */
+						text_format_fill(&str, &fmt, prev, i);
+					}
+					else {
+						text_format_fill_ascii(&str, &fmt, prev, i);
+					}
 				}
 				else {
 					str += BLI_str_utf8_size_safe(str) - 1;

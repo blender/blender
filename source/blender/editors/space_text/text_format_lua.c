@@ -258,7 +258,7 @@ static void txtfmt_lua_format_line(SpaceText *st, TextLine *line, const int do_n
 			/* Booleans */
 			else if (prev != FMT_TYPE_DEFAULT && (i = txtfmt_lua_find_bool(str)) != -1) {
 				if (i > 0) {
-					text_format_fill(&str, &fmt, FMT_TYPE_NUMERAL, i);
+					text_format_fill_ascii(&str, &fmt, FMT_TYPE_NUMERAL, i);
 				}
 				else {
 					str += BLI_str_utf8_size_safe(str) - 1;
@@ -282,7 +282,7 @@ static void txtfmt_lua_format_line(SpaceText *st, TextLine *line, const int do_n
 				else if ((i = txtfmt_lua_find_keyword(str))      != -1) prev = FMT_TYPE_KEYWORD;
 
 				if (i > 0) {
-					text_format_fill(&str, &fmt, prev, i);
+					text_format_fill_ascii(&str, &fmt, prev, i);
 				}
 				else {
 					str += BLI_str_utf8_size_safe(str) - 1;

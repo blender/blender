@@ -60,6 +60,7 @@ int  flatten_string_strlen(FlattenString *fs, const char *str);
 
 int  text_check_format_len(TextLine *line, unsigned int len);
 void text_format_fill(const char **str_p, char **fmt_p, const char type, const int len);
+void text_format_fill_ascii(const char **str_p, char **fmt_p, const char type, const int len);
 
 /* *** Generalize Formatting *** */
 typedef struct TextFormatType {
