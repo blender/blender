@@ -316,7 +316,7 @@ typedef struct ProjPaintState {
 	float normal_angle_range;       /* difference between normal_angle and normal_angle_inner, for easy access */
 	
 	short is_ortho;
-	short is_airbrush;              /* only to avoid using (ps.brush->flag & BRUSH_AIRBRUSH) */
+	bool do_masking;              /* use masking during painting. Some operations such as airbrush may disable */
 	short is_texbrush;              /* only to avoid running  */
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 	float seam_bleed_px;
@@ -3800,7 +3800,7 @@ static void blend_color_mix_accum_float(float cp[4], const float cp1[4], const u
 
 static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask)
 {
-	if (ps->is_airbrush == 0 && mask < 1.0f) {
+	if (ps->do_masking && mask < 1.0f) {
 		projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, ((ProjPixelClone *)projPixel)->clonepx.uint, (int)(alpha * 255), ps->blend);
 		blend_color_mix(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(mask * 255));
 	}
@@ -3811,7 +3811,7 @@ static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, floa
 
 static void do_projectpaint_clone_f(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask)
 {
-	if (ps->is_airbrush == 0 && mask < 1.0f) {
+	if (ps->do_masking && mask < 1.0f) {
 		IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, ((ProjPixelClone *)projPixel)->clonepx.f, alpha, ps->blend);
 		blend_color_mix_float(projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, mask);
 	}
@@ -3946,7 +3946,7 @@ static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, const
 		rgba_ub[3] = 255;
 	}
 	
-	if (ps->is_airbrush == 0 && mask < 1.0f) {
+	if (ps->do_masking && mask < 1.0f) {
 		projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, *((unsigned int *)rgba_ub), (int)(alpha * 255), ps->blend);
 		blend_color_mix(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(mask * 255));
 	}
@@ -3978,7 +3978,7 @@ static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, flo
 		rgba[3] = 1.0;
 	}
 	
-	if (ps->is_airbrush == 0 && mask < 1.0f) {
+	if (ps->do_masking && mask < 1.0f) {
 		IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, rgba, alpha, ps->blend);
 		blend_color_mix_float(projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, mask);
 	}
@@ -4105,21 +4105,31 @@ static void *do_projectpaint_thread(void *ph_v)
 
 				/*if (dist < radius) {*/ /* correct but uses a sqrtf */
 				if (dist_nosqrt <= radius_squared) {
+					float samplecos[2];
 					dist = sqrtf(dist_nosqrt);
 
 					falloff = BKE_brush_curve_strength_clamp(ps->brush, dist, radius);
 
+					if (ps->is_texbrush) {
+						if (ps->brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) {
+							sub_v2_v2v2(samplecos, projPixel->projCoSS, pos);
+						}
+						else {
+							copy_v2_v2(samplecos, projPixel->projCoSS);
+						}
+					}
+
 					if (falloff > 0.0f) {
 						if (ps->is_texbrush) {
 							/* note, for clone and smear, we only use the alpha, could be a special function */
-							BKE_brush_sample_tex(ps->scene, ps->brush, projPixel->projCoSS, rgba, thread_index);
+							BKE_brush_sample_tex(ps->scene, ps->brush, samplecos, rgba, thread_index);
 							alpha = rgba[3];
 						}
 						else {
 							alpha = 1.0f;
 						}
 						
-						if (ps->is_airbrush) {
+						if (!ps->do_masking) {
 							/* for an aurbrush there is no real mask, so just multiply the alpha by it */
 							alpha *= falloff * BKE_brush_alpha_get(ps->scene, ps->brush);
 							mask = ((float)projPixel->mask) / 65535.0f;
@@ -4998,7 +5008,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 	ps->pixel_sizeof = project_paint_pixel_sizeof(ps->tool);
 	BLI_assert(ps->pixel_sizeof >= sizeof(ProjPixel));
 
-	ps->is_airbrush = (brush->flag & BRUSH_AIRBRUSH) ? 1 : 0;
+	ps->do_masking = (brush->flag & BRUSH_AIRBRUSH || brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) ? false : true;
 	ps->is_texbrush = (brush->mtex.tex) ? 1 : 0;
 
 
@@ -5953,7 +5963,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 
 	/* override */
 	ps.is_texbrush = 0;
-	ps.is_airbrush = 1;
+	ps.do_masking = false;
 	orig_brush_size = BKE_brush_size_get(scene, ps.brush);
 	BKE_brush_size_set(scene, ps.brush, 32); /* cover the whole image */
 
