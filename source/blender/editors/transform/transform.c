@@ -5857,7 +5857,34 @@ static void calcVertSlideCustomPoints(struct TransInfo *t)
 		}
 	}
 }
-static void calcVertSlideMouseMove(struct TransInfo *t, const int mval[2], const bool is_init)
+
+/**
+ * Run once when initializing vert slide to find the reference edge
+ */
+static void calcVertSlideMouseActiveVert(struct TransInfo *t, const int mval[2])
+{
+	VertSlideData *sld = t->customData;
+	float mval_fl[2] = {UNPACK2(mval)};
+	TransDataVertSlideVert *sv;
+
+	/* set the vertex to use as a reference for the mouse direction 'curr_sv_index' */
+	float dist = 0.0f;
+	float min_dist = FLT_MAX;
+	int i;
+
+	for (i = 0; i < sld->totsv; i++, sv++) {
+		/* allow points behind the view [#33643] */
+		dist = len_squared_v2v2(mval_fl, sv->co_orig_2d);
+		if (dist < min_dist) {
+			min_dist = dist;
+			sld->curr_sv_index = i;
+		}
+	}
+}
+/**
+ * Run while moving the mouse to slide along the edge matching the mouse direction
+ */
+static void calcVertSlideMouseActiveEdges(struct TransInfo *t, const int mval[2])
 {
 	VertSlideData *sld = t->customData;
 	float mval_fl[2] = {UNPACK2(mval)};
@@ -5867,21 +5894,6 @@ static void calcVertSlideMouseMove(struct TransInfo *t, const int mval[2], const
 	int i;
 
 	sv = sld->sv;
-
-	if (is_init) {
-		/* set the vertex to use as a reference for the mouse direction 'curr_sv_index' */
-		float dist = 0.0f;
-		float min_dist = FLT_MAX;
-
-		for (i = 0; i < sld->totsv; i++, sv++) {
-			/* allow points behind the view [#33643] */
-			dist = len_squared_v2v2(mval_fl, sv->co_orig_2d);
-			if (dist < min_dist) {
-				min_dist = dist;
-				sld->curr_sv_index = i;
-			}
-		}
-	}
 
 	/* first get the direction of the original vertex */
 	sub_v2_v2v2(dir, sld->sv[sld->curr_sv_index].co_orig_2d, mval_fl);
@@ -6025,8 +6037,10 @@ static int createVertSlideVerts(TransInfo *t)
 
 	t->customData = sld;
 
-	if (rv3d)
-		calcVertSlideMouseMove(t, t->mval, true);
+	if (rv3d) {
+		calcVertSlideMouseActiveVert(t, t->mval);
+		calcVertSlideMouseActiveEdges(t, t->mval);
+	}
 
 	return 1;
 }
@@ -6134,7 +6148,10 @@ int handleEventVertSlide(struct TransInfo *t, struct wmEvent *event)
 #endif
 				case MOUSEMOVE:
 				{
-					calcVertSlideMouseMove(t, event->mval, false);
+					/* don't recalculat the best edge */
+					if (!(t->flag & T_ALT_TRANSFORM)) {
+						calcVertSlideMouseActiveEdges(t, event->mval);
+					}
 					calcVertSlideCustomPoints(t);
 				}
 				default:
@@ -6264,12 +6281,12 @@ int VertSlide(TransInfo *t, const int UNUSED(mval[2]))
 
 		outputNumInput(&(t->num), c);
 
-		BLI_snprintf(str, sizeof(str), "Vert Slide: %s (E)ven: %s, (F)lipped: %s",
-		             &c[0], !is_proportional ? "ON" : "OFF", flipped ? "ON" : "OFF");
+		BLI_snprintf(str, sizeof(str), "Vert Slide: %s (E)ven: %s, (F)lipped: %s, Alt Hold: %s",
+		             &c[0], !is_proportional ? "ON" : "OFF", flipped ? "ON" : "OFF", (t->flag & T_ALT_TRANSFORM) ? "ON" : "OFF");
 	}
 	else {
-		BLI_snprintf(str, sizeof(str), "Vert Slide: %.2f (E)ven: %s, (F)lipped: %s",
-		             final, !is_proportional ? "ON" : "OFF", flipped ? "ON" : "OFF");
+		BLI_snprintf(str, sizeof(str), "Vert Slide: %.2f (E)ven: %s, (F)lipped: %s, Alt Hold: %s",
+		             final, !is_proportional ? "ON" : "OFF", flipped ? "ON" : "OFF", (t->flag & T_ALT_TRANSFORM) ? "ON" : "OFF");
 	}
 
 	CLAMP(final, -1.0f, 1.0f);
