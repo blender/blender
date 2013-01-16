@@ -530,10 +530,10 @@ static bool checkTabletProximity(Display *display, XDevice *device)
 		XInputClass *cls = state->data;
 		// printf("%d class%s :\n", state->num_classes,
 		//       (state->num_classes > 1) ? "es" : "");
-		for(int loop=0; loop < state->num_classes; loop++) {
-			switch(cls->c_class) {
+		for (int loop = 0; loop < state->num_classes; loop++) {
+			switch (cls->c_class) {
 				case ValuatorClass:
-					XValuatorState *val_state = (XValuatorState *) cls;
+					XValuatorState *val_state = (XValuatorState *)cls;
 					// printf("ValuatorClass Mode=%s Proximity=%s\n",
 					//        val_state->mode & 1 ? "Absolute" : "Relative",
 					//        val_state->mode & 2 ? "Out" : "In");
@@ -544,7 +544,7 @@ static bool checkTabletProximity(Display *display, XDevice *device)
 					}
 					break;
 			}
-			cls = (XInputClass *) ((char *) cls + cls->length);
+			cls = (XInputClass *) ((char *)cls + cls->length);
 		}
 		XFreeDeviceState(state);
 	}

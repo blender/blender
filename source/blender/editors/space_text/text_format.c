@@ -197,7 +197,7 @@ void ED_text_format_register(TextFormatType *tft)
 
 TextFormatType *ED_text_format_get(Text *text)
 {
-	TextFormatType* tft;
+	TextFormatType *tft;
 
 	if (text) {
 		const char *text_ext = strchr(text->id.name + 2, '.');
