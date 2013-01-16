@@ -549,7 +549,7 @@ static void validate_solution(LaplacianSystem * sys, short flag, float lambda, f
 	}
 	for (i = 0; i < sys->numVerts; i++) {
 		if (sys->zerola[i] == 0) {
-			lam = sys->numNeEd[i] == sys->numNeFa[i] ? (lambda >= 0.0 ? 1.0 : -1.0) : (lambda_border >= 0.0 ? 1.0 : -1.0);
+			lam = sys->numNeEd[i] == sys->numNeFa[i] ? (lambda >= 0.0f ? 1.0f : -1.0f) : (lambda_border >= 0.0f ? 1.0f : -1.0f);
 			if (flag & MOD_LAPLACIANSMOOTH_X) {
 				sys->vertexCos[i][0] += lam * (nlGetVariable(0, i) - sys->vertexCos[i][0]);
 			}
@@ -635,27 +635,27 @@ static void laplaciansmoothModifier_do(
 			if (sys->zerola[i] == 0) {
 				if (smd->flag & MOD_LAPLACIANSMOOTH_NORMALIZED) {
 					w = sys->vweights[i];
-					sys->vweights[i] = (w == 0.0f) ? 0.0f : -fabs(smd->lambda) * wpaint / w;
+					sys->vweights[i] = (w == 0.0f) ? 0.0f : -fabsf(smd->lambda) * wpaint / w;
 					w = sys->vlengths[i];
-					sys->vlengths[i] = (w == 0.0f) ? 0.0f : -fabs(smd->lambda_border) * wpaint * 2.0f / w;
+					sys->vlengths[i] = (w == 0.0f) ? 0.0f : -fabsf(smd->lambda_border) * wpaint * 2.0f / w;
 					if (sys->numNeEd[i] == sys->numNeFa[i]) {
-						nlMatrixAdd(i, i,  1.0f + fabs(smd->lambda) * wpaint);
+						nlMatrixAdd(i, i,  1.0f + fabsf(smd->lambda) * wpaint);
 					}
 					else {
-						nlMatrixAdd(i, i,  1.0f + fabs(smd->lambda_border) * wpaint * 2.0f);
+						nlMatrixAdd(i, i,  1.0f + fabsf(smd->lambda_border) * wpaint * 2.0f);
 					}
 				}
 				else {
 					w = sys->vweights[i] * sys->ring_areas[i];
-					sys->vweights[i] = (w == 0.0f) ? 0.0f : -fabs(smd->lambda) * wpaint / (4.0f * w);
+					sys->vweights[i] = (w == 0.0f) ? 0.0f : -fabsf(smd->lambda) * wpaint / (4.0f * w);
 					w = sys->vlengths[i];
-					sys->vlengths[i] = (w == 0.0f) ? 0.0f : -fabs(smd->lambda_border) * wpaint * 2.0f / w;
+					sys->vlengths[i] = (w == 0.0f) ? 0.0f : -fabsf(smd->lambda_border) * wpaint * 2.0f / w;
 
 					if (sys->numNeEd[i] == sys->numNeFa[i]) {
-						nlMatrixAdd(i, i,  1.0f + fabs(smd->lambda) * wpaint / (4.0f * sys->ring_areas[i]));
+						nlMatrixAdd(i, i,  1.0f + fabsf(smd->lambda) * wpaint / (4.0f * sys->ring_areas[i]));
 					}
 					else {
-						nlMatrixAdd(i, i,  1.0f + fabs(smd->lambda_border) * wpaint * 2.0f);
+						nlMatrixAdd(i, i,  1.0f + fabsf(smd->lambda_border) * wpaint * 2.0f);
 					}
 				}
 			}
