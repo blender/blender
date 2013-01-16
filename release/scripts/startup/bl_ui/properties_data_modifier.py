@@ -349,6 +349,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         col.separator()
         col.prop(md, "use_volume_preserve")
+        col.prop(md, "use_normalized")
 
         layout.label(text="Vertex Group:")
         layout.prop_search(md, "vertex_group", ob, "vertex_groups", text="")

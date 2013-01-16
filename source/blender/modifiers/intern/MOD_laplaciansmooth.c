@@ -82,6 +82,7 @@ typedef struct BLaplacianSystem LaplacianSystem;
 
 static CustomDataMask required_data_mask(Object *UNUSED(ob), ModifierData *md);
 static int is_disabled(ModifierData *md, int UNUSED(useRenderParams));
+static float average_area_quad_v3(float *v1, float *v2, float *v3, float *v4);
 static float compute_volume(float (*vertexCos)[3], MFace *mfaces, int numFaces);
 static float cotan_weight(float *v1, float *v2, float *v3);
 static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numFaces, int a_numVerts);
@@ -93,7 +94,7 @@ static void init_data(ModifierData *md);
 static void init_laplacian_matrix(LaplacianSystem *sys);
 static void memset_laplacian_system(LaplacianSystem *sys, int val);
 static void volume_preservation(LaplacianSystem *sys, float vini, float vend, short flag);
-static void validate_solution(LaplacianSystem *sys, short flag);
+static void validate_solution(LaplacianSystem *sys, short flag, float lambda, float lambda_border);
 
 static void delete_void_pointer(void *data)
 {
@@ -199,7 +200,7 @@ static void init_data(ModifierData *md)
 	smd->lambda = 0.00001f;
 	smd->lambda_border = 0.00005f;
 	smd->repeat = 1;
-	smd->flag = MOD_LAPLACIANSMOOTH_X | MOD_LAPLACIANSMOOTH_Y | MOD_LAPLACIANSMOOTH_Z | MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME;
+	smd->flag = MOD_LAPLACIANSMOOTH_X | MOD_LAPLACIANSMOOTH_Y | MOD_LAPLACIANSMOOTH_Z | MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME | MOD_LAPLACIANSMOOTH_NORMALIZED;
 	smd->defgrp_name[0] = '\0';
 }
 
@@ -237,6 +238,13 @@ static CustomDataMask required_data_mask(Object *UNUSED(ob), ModifierData *md)
 	if (smd->defgrp_name[0]) dataMask |= CD_MASK_MDEFORMVERT;
 
 	return dataMask;
+}
+
+static float average_area_quad_v3(float *v1, float *v2, float *v3, float *v4)
+{
+	float areaq = 0.0f;
+	areaq = area_tri_v3(v1, v2, v3) + area_tri_v3(v1, v2, v4) + area_tri_v3(v1, v3, v4);
+	return areaq / 2.0f;
 }
 
 static float cotan_weight(float *v1, float *v2, float *v3)
@@ -372,10 +380,16 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
 			if (has_4_vert) sys->zerola[idv4] = 1;
 		}
 
-		sys->ring_areas[idv1] += areaf;
-		sys->ring_areas[idv2] += areaf;
-		sys->ring_areas[idv3] += areaf;
-		if (has_4_vert) sys->ring_areas[idv4] += areaf;
+		if (has_4_vert) {
+			sys->ring_areas[idv1] += average_area_quad_v3(v1, v2, v3, v4);
+			sys->ring_areas[idv2] += average_area_quad_v3(v2, v3, v4, v1);
+			sys->ring_areas[idv3] += average_area_quad_v3(v3, v4, v1, v2);
+			sys->ring_areas[idv4] += average_area_quad_v3(v4, v1, v2, v3);
+		} else {
+			sys->ring_areas[idv1] += areaf;
+			sys->ring_areas[idv2] += areaf;
+			sys->ring_areas[idv3] += areaf;
+		}
 
 		if (has_4_vert) {
 
@@ -403,9 +417,9 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
 			}
 		}
 		else {
-			w1 = cotan_weight(v1, v2, v3);
-			w2 = cotan_weight(v2, v3, v1);
-			w3 = cotan_weight(v3, v1, v2);
+			w1 = cotan_weight(v1, v2, v3) / 2.0f;
+			w2 = cotan_weight(v2, v3, v1) / 2.0f;
+			w3 = cotan_weight(v3, v1, v2) / 2.0f;
 
 			sys->fweights[i][0] = sys->fweights[i][0] + w1;
 			sys->fweights[i][1] = sys->fweights[i][1] + w2;
@@ -505,9 +519,10 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
 	}
 }
 
-static void validate_solution(LaplacianSystem *sys, short flag)
+static void validate_solution(LaplacianSystem * sys, short flag, float lambda, float lambda_border)
 {
 	int i, idv1, idv2;
+	float lam;
 	float leni, lene;
 	float vini, vend;
 	float *vi1, *vi2, ve1[3], ve2[3];
@@ -534,14 +549,15 @@ static void validate_solution(LaplacianSystem *sys, short flag)
 	}
 	for (i = 0; i < sys->numVerts; i++) {
 		if (sys->zerola[i] == 0) {
+			lam = sys->numNeEd[i] == sys->numNeFa[i] ? (lambda >= 0.0 ? 1.0 : -1.0) : (lambda_border >= 0.0 ? 1.0 : -1.0);
 			if (flag & MOD_LAPLACIANSMOOTH_X) {
-				sys->vertexCos[i][0] = nlGetVariable(0, i);
+				sys->vertexCos[i][0] += lam * (nlGetVariable(0, i) - sys->vertexCos[i][0]);
 			}
 			if (flag & MOD_LAPLACIANSMOOTH_Y) {
-				sys->vertexCos[i][1] = nlGetVariable(1, i);
+				sys->vertexCos[i][1] += lam * (nlGetVariable(1, i) - sys->vertexCos[i][1]);
 			}
 			if (flag & MOD_LAPLACIANSMOOTH_Z) {
-				sys->vertexCos[i][2] = nlGetVariable(2, i);
+				sys->vertexCos[i][2] += lam * (nlGetVariable(2, i) - sys->vertexCos[i][2]);
 			}
 		}
 	}
@@ -617,16 +633,30 @@ static void laplaciansmoothModifier_do(
 			}
 
 			if (sys->zerola[i] == 0) {
-				w = sys->vweights[i] * sys->ring_areas[i];
-				sys->vweights[i] = (w == 0.0f) ? 0.0f : -smd->lambda * wpaint / (4.0f * w);
-				w = sys->vlengths[i];
-				sys->vlengths[i] = (w == 0.0f) ? 0.0f : -smd->lambda_border * wpaint * 2.0f / w;
-
-				if (sys->numNeEd[i] == sys->numNeFa[i]) {
-					nlMatrixAdd(i, i,  1.0f + smd->lambda * wpaint / (4.0f * sys->ring_areas[i]));
+				if (smd->flag & MOD_LAPLACIANSMOOTH_NORMALIZED) {
+					w = sys->vweights[i];
+					sys->vweights[i] = (w == 0.0f) ? 0.0f : -fabs(smd->lambda) * wpaint / w;
+					w = sys->vlengths[i];
+					sys->vlengths[i] = (w == 0.0f) ? 0.0f : -fabs(smd->lambda_border) * wpaint * 2.0f / w;
+					if (sys->numNeEd[i] == sys->numNeFa[i]) {
+						nlMatrixAdd(i, i,  1.0f + fabs(smd->lambda) * wpaint);
+					}
+					else {
+						nlMatrixAdd(i, i,  1.0f + fabs(smd->lambda_border) * wpaint * 2.0f);
+					}
 				}
 				else {
-					nlMatrixAdd(i, i,  1.0f + smd->lambda_border * wpaint * 2.0f);
+					w = sys->vweights[i] * sys->ring_areas[i];
+					sys->vweights[i] = (w == 0.0f) ? 0.0f : -fabs(smd->lambda) * wpaint / (4.0f * w);
+					w = sys->vlengths[i];
+					sys->vlengths[i] = (w == 0.0f) ? 0.0f : -fabs(smd->lambda_border) * wpaint * 2.0f / w;
+
+					if (sys->numNeEd[i] == sys->numNeFa[i]) {
+						nlMatrixAdd(i, i,  1.0f + fabs(smd->lambda) * wpaint / (4.0f * sys->ring_areas[i]));
+					}
+					else {
+						nlMatrixAdd(i, i,  1.0f + fabs(smd->lambda_border) * wpaint * 2.0f);
+					}
 				}
 			}
 			else {
@@ -640,7 +670,7 @@ static void laplaciansmoothModifier_do(
 		nlEnd(NL_SYSTEM);
 
 		if (nlSolveAdvanced(NULL, NL_TRUE)) {
-			validate_solution(sys, smd->flag);
+			validate_solution(sys, smd->flag, smd->lambda, smd->lambda_border);
 		}
 		nlDeleteContext(sys->context);
 		sys->context = NULL;

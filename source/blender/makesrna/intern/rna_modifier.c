@@ -1840,18 +1840,23 @@ static void rna_def_modifier_laplaciansmooth(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME);
 	RNA_def_property_ui_text(prop, "Preserve Volume", "Apply volume preservation after smooth");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+	
+	prop = RNA_def_property(srna, "use_normalized", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_LAPLACIANSMOOTH_NORMALIZED);
+	RNA_def_property_ui_text(prop, "Normalized Version", "Improves and stabilizes the shape enhanced");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "lambda_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "lambda");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.0000001, 1000.0, 0.0000001, 8);
+	RNA_def_property_ui_range(prop, -1000.0, 1000.0, 0.0000001, 8);
 	RNA_def_property_ui_text(prop, "Lambda Factor", "Smooth factor effect");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "lambda_border", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "lambda_border");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.0000001, 1000.0, 0.0000001, 8);
+	RNA_def_property_ui_range(prop, -1000.0, 1000.0, 0.0000001, 8);
 	RNA_def_property_ui_text(prop, "Lambda Border", "Lambda factor in border");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
