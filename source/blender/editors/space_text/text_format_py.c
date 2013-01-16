@@ -231,9 +231,9 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_ne
 		/* Not in a string... */
 		else {
 			/* Deal with comments first */
-			if (prev == FMT_TYPE_COMMENT || *str == '#') {
-				*fmt = FMT_TYPE_COMMENT;
-				str += BLI_str_utf8_size_safe(str) - 1;
+			if (*str == '#') {
+				/* fill the remaining line */
+				text_format_fill(&str, &fmt, prev, len - (int)(str - fs.buf));
 			}
 			else if (*str == '"' || *str == '\'') {
 				/* Strings */
@@ -285,8 +285,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const int do_ne
 				else if ((i = txtfmt_py_find_decorator(str))    != -1) prev = FMT_TYPE_DIRECTIVE;
 
 				if (i > 0) {
-					memset(fmt, prev, i);
-					i--; fmt += i; str += i;
+					text_format_fill(&str, &fmt, prev, i);
 				}
 				else {
 					str += BLI_str_utf8_size_safe(str) - 1;

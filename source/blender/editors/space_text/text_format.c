@@ -140,6 +140,35 @@ int text_check_format_len(TextLine *line, unsigned int len)
 	return 1;
 }
 
+/**
+ * Fill the string with formatting constant,
+ * advancing \a str_p and \a fmt_p
+ *
+ * \param len length in bytes
+ */
+void text_format_fill(const char **str_p, char **fmt_p, const char type, const int len)
+{
+	const char *str = *str_p;
+	char *fmt = *fmt_p;
+	int i = 0;
+
+	while (i < len) {
+		const int size = BLI_str_utf8_size_safe(str);
+		*fmt++ = type;
+
+		str += size;
+		i   += size;
+	}
+
+	str--;
+	fmt--;
+
+	BLI_assert(*str != '\0');
+
+	*str_p = str;
+	*fmt_p = fmt;
+}
+
 /* *** Registration *** */
 static ListBase tft_lb = {NULL, NULL};
 void ED_text_format_register(TextFormatType *tft)

@@ -228,10 +228,7 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const int do_n
 		/* Handle continuations */
 		else if (cont) {
 			/* C-Style comments */
-			if (cont & FMT_CONT_COMMENT_CXX) {
-				*fmt = FMT_TYPE_COMMENT;
-			}
-			else if (cont & FMT_CONT_COMMENT_C) {
+			if (cont & FMT_CONT_COMMENT_C) {
 				if (*str == '*' && *(str + 1) == '/') {
 					*fmt = FMT_TYPE_COMMENT; fmt++; str++;
 					*fmt = FMT_TYPE_COMMENT;
@@ -254,8 +251,8 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const int do_n
 		else {
 			/* Deal with comments first */
 			if (*str == '/' && *(str + 1) == '/') {
-				cont = FMT_CONT_COMMENT_CXX;
-				*fmt = FMT_TYPE_COMMENT;
+				/* fill the remaining line */
+				text_format_fill(&str, &fmt, FMT_TYPE_COMMENT, len - (int)(str - fs.buf));
 			}
 			/* C-Style (multi-line) comments */
 			else if (*str == '/' && *(str + 1) == '*') {
@@ -298,8 +295,7 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const int do_n
 				else if ((i = txtfmt_osl_find_preprocessor(str)) != -1) prev = FMT_TYPE_DIRECTIVE;
 
 				if (i > 0) {
-					memset(fmt, prev, i);
-					i--; fmt += i; str += i;
+					text_format_fill(&str, &fmt, prev, i);
 				}
 				else {
 					str += BLI_str_utf8_size_safe(str) - 1;
