@@ -116,7 +116,7 @@ static void make_snap(Snapshot *snap, Brush *brush, ViewContext *vc)
 	snap->winy = vc->ar->winy;
 }
 
-static int load_tex(Sculpt *sd, Brush *br, ViewContext *vc)
+static int load_tex(Brush *br, ViewContext *vc)
 {
 	static GLuint overlay_texture = 0;
 	static int init = 0;
@@ -130,10 +130,6 @@ static int load_tex(Sculpt *sd, Brush *br, ViewContext *vc)
 	int size;
 	int j;
 	int refresh;
-
-#ifndef _OPENMP
-	(void)sd; /* quied unused warning */
-#endif
 	
 	if (br->mtex.brush_map_mode == MTEX_MAP_MODE_TILED && !br->mtex.tex) return 0;
 	
@@ -186,7 +182,7 @@ static int load_tex(Sculpt *sd, Brush *br, ViewContext *vc)
 
 		buffer = MEM_mallocN(sizeof(GLubyte) * size * size, "load_tex");
 
-		#pragma omp parallel for schedule(static) if (sd->flags & SCULPT_USE_OPENMP)
+		#pragma omp parallel for schedule(static)
 		for (j = 0; j < size; j++) {
 			int i;
 			float y;
@@ -376,7 +372,7 @@ static int sculpt_get_brush_geometry(bContext *C, ViewContext *vc,
 /* Draw an overlay that shows what effect the brush's texture will
  * have on brush strength */
 /* TODO: sculpt only for now */
-static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
+static void paint_draw_alpha_overlay(UnifiedPaintSettings *ups, Brush *brush,
                                      ViewContext *vc, int x, int y)
 {
 	rctf quad;
@@ -401,7 +397,7 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 	             GL_VIEWPORT_BIT |
 	             GL_TEXTURE_BIT);
 
-	if (load_tex(sd, brush, vc)) {
+	if (load_tex(brush, vc)) {
 		glEnable(GL_BLEND);
 
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
@@ -416,24 +412,24 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 			/* brush rotation */
 			glTranslatef(0.5, 0.5, 0);
 			glRotatef((double)RAD2DEGF((brush->flag & BRUSH_RAKE) ?
-			                           sd->last_angle : sd->special_rotation),
+			                           ups->last_angle : ups->special_rotation),
 			          0.0, 0.0, 1.0);
 			glTranslatef(-0.5f, -0.5f, 0);
 
 			/* scale based on tablet pressure */
-			if (sd->draw_pressure && BKE_brush_use_size_pressure(vc->scene, brush)) {
+			if (ups->draw_pressure && BKE_brush_use_size_pressure(vc->scene, brush)) {
 				glTranslatef(0.5f, 0.5f, 0);
-				glScalef(1.0f / sd->pressure_value, 1.0f / sd->pressure_value, 1);
+				glScalef(1.0f / ups->pressure_value, 1.0f / ups->pressure_value, 1);
 				glTranslatef(-0.5f, -0.5f, 0);
 			}
 
-			if (sd->draw_anchored) {
-				const float *aim = sd->anchored_initial_mouse;
+			if (ups->draw_anchored) {
+				const float *aim = ups->anchored_initial_mouse;
 				const rcti *win = &vc->ar->winrct;
-				quad.xmin = aim[0] - sd->anchored_size - win->xmin;
-				quad.ymin = aim[1] - sd->anchored_size - win->ymin;
-				quad.xmax = aim[0] + sd->anchored_size - win->xmin;
-				quad.ymax = aim[1] + sd->anchored_size - win->ymin;
+				quad.xmin = aim[0] - ups->anchored_size - win->xmin;
+				quad.ymin = aim[1] - ups->anchored_size - win->ymin;
+				quad.xmax = aim[0] + ups->anchored_size - win->xmin;
+				quad.ymax = aim[1] + ups->anchored_size - win->ymin;
 			}
 			else {
 				const int radius = BKE_brush_size_get(vc->scene, brush);
@@ -476,7 +472,7 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 
 /* Special actions taken when paint cursor goes over mesh */
 /* TODO: sculpt only for now */
-static void paint_cursor_on_hit(Sculpt *sd, Brush *brush, ViewContext *vc,
+static void paint_cursor_on_hit(UnifiedPaintSettings *ups, Brush *brush, ViewContext *vc,
                                 const float location[3])
 {
 	float unprojected_radius, projected_radius;
@@ -484,8 +480,8 @@ static void paint_cursor_on_hit(Sculpt *sd, Brush *brush, ViewContext *vc,
 	/* update the brush's cached 3D radius */
 	if (!BKE_brush_use_locked_size(vc->scene, brush)) {
 		/* get 2D brush radius */
-		if (sd->draw_anchored)
-			projected_radius = sd->anchored_size;
+		if (ups->draw_anchored)
+			projected_radius = ups->anchored_size;
 		else {
 			if (brush->flag & BRUSH_ANCHORED)
 				projected_radius = 8;
@@ -498,8 +494,8 @@ static void paint_cursor_on_hit(Sculpt *sd, Brush *brush, ViewContext *vc,
 		                                                    projected_radius);
 
 		/* scale 3D brush radius by pressure */
-		if (sd->draw_pressure && BKE_brush_use_size_pressure(vc->scene, brush))
-			unprojected_radius *= sd->pressure_value;
+		if (ups->draw_pressure && BKE_brush_use_size_pressure(vc->scene, brush))
+			unprojected_radius *= ups->pressure_value;
 
 		/* set cached value in either Brush or UnifiedPaintSettings */
 		BKE_brush_unprojected_radius_set(vc->scene, brush, unprojected_radius);
@@ -509,6 +505,7 @@ static void paint_cursor_on_hit(Sculpt *sd, Brush *brush, ViewContext *vc,
 static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 {
 	Scene *scene = CTX_data_scene(C);
+	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 	Paint *paint = paint_get_active_from_context(C);
 	Brush *brush = paint_brush(paint);
 	ViewContext vc;
@@ -534,7 +531,6 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	/* TODO: as sculpt and other paint modes are unified, this
 	 * special mode of drawing will go away */
 	if (vc.obact->sculpt) {
-		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 		float location[3];
 		int pixel_radius, hit;
 
@@ -547,14 +543,14 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 			const float v = 1 - u;
 			const float r = 20;
 
-			const float dx = sd->last_x - x;
-			const float dy = sd->last_y - y;
+			const float dx = ups->last_x - x;
+			const float dy = ups->last_y - y;
 
 			if (dx * dx + dy * dy >= r * r) {
-				sd->last_angle = atan2(dx, dy);
+				ups->last_angle = atan2(dx, dy);
 
-				sd->last_x = u * sd->last_x + v * x;
-				sd->last_y = u * sd->last_y + v * y;
+				ups->last_x = u * ups->last_x + v * x;
+				ups->last_y = u * ups->last_y + v * y;
 			}
 		}
 
@@ -562,7 +558,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 		hit = sculpt_get_brush_geometry(C, &vc, x, y, &pixel_radius, location);
 
 		/* draw overlay */
-		paint_draw_alpha_overlay(sd, brush, &vc, x, y);
+		paint_draw_alpha_overlay(ups, brush, &vc, x, y);
 
 		if (BKE_brush_use_locked_size(scene, brush))
 			BKE_brush_size_set(scene, brush, pixel_radius);
@@ -581,12 +577,12 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
 		/* only do if brush is over the mesh */
 		if (hit)
-			paint_cursor_on_hit(sd, brush, &vc, location);
+			paint_cursor_on_hit(ups, brush, &vc, location);
 
-		if (sd->draw_anchored) {
-			final_radius = sd->anchored_size;
-			translation[0] = sd->anchored_initial_mouse[0] - vc.ar->winrct.xmin;
-			translation[1] = sd->anchored_initial_mouse[1] - vc.ar->winrct.ymin;
+		if (ups->draw_anchored) {
+			final_radius = ups->anchored_size;
+			translation[0] = ups->anchored_initial_mouse[0] - vc.ar->winrct.xmin;
+			translation[1] = ups->anchored_initial_mouse[1] - vc.ar->winrct.ymin;
 		}
 	}
 
