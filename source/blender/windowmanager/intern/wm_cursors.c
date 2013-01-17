@@ -191,10 +191,12 @@ void WM_cursor_grab_enable(wmWindow *win, int wrap, int hide, int bounds[4])
 	float fac = GHOST_GetNativePixelSize(win->ghostwin);
 
 	/* in case pixel coords differ from window/mouse coords */
-	bounds[0] /= fac;
-	bounds[1] /= fac;
-	bounds[2] /= fac;
-	bounds[3] /= fac;
+	if (bounds) {
+		bounds[0] /= fac;
+		bounds[1] /= fac;
+		bounds[2] /= fac;
+		bounds[3] /= fac;
+	}
 	
 	if (hide) mode = GHOST_kGrabHide;
 	else if (wrap) mode = GHOST_kGrabWrap;
