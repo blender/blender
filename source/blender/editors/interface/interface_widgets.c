@@ -1325,11 +1325,11 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 			rect->xmin += (int)(0.8f * BLI_rcti_size_y(rect));
 
 			if (but->editstr || (but->flag & UI_TEXT_LEFT)) {
-				rect->xmin += (0.4f * U.widget_unit) / but->block->aspect;
+				rect->xmin += (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
 			}
 		}
 		else if ((but->flag & UI_TEXT_LEFT)) {
-			rect->xmin += (0.4f * U.widget_unit) / but->block->aspect;
+			rect->xmin += (UI_TEXT_MARGIN_X * U.widget_unit) / but->block->aspect;
 		}
 		
 		/* unlink icon for this button type */

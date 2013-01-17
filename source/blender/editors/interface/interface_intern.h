@@ -537,6 +537,8 @@ extern unsigned char checker_stipple_sml[32 * 32 / 8];
 #define UI_TRANSP_DARK 100
 #define UI_TRANSP_LIGHT 160
 
+#define UI_TEXT_MARGIN_X 0.4f
+
 /* interface_style.c */
 void uiStyleInit(void);
 

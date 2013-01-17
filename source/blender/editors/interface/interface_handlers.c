@@ -1416,11 +1416,11 @@ static int ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
 }
 
 /* note, but->block->aspect is used here, when drawing button style is getting scaled too */
-static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, short x)
+static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, const float x)
 {
 	uiStyle *style = UI_GetStyle();  // XXX pass on as arg
 	uiFontStyle *fstyle = &style->widget;
-	int startx = but->rect.xmin;
+	float startx = but->rect.xmin;
 	char *origstr, password_str[UI_MAX_DRAW_STR];
 
 	uiStyleFontSet(fstyle);
@@ -1430,18 +1430,20 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	
 	ui_button_text_password_hide(password_str, but, FALSE);
 
-	origstr = MEM_callocN(sizeof(char) * data->maxlen, "ui_textedit origstr");
+	origstr = MEM_mallocN(sizeof(char) * data->maxlen, "ui_textedit origstr");
 	
 	BLI_strncpy(origstr, but->drawstr, data->maxlen);
 	
-	/* XXX solve generic */
-	if (but->type == NUM || but->type == NUMSLI)
+	/* XXX solve generic, see: #widget_draw_text_icon */
+	if (but->type == NUM || but->type == NUMSLI) {
 		startx += (int)(0.5f * (BLI_rctf_size_y(&but->rect)));
+	}
 	else if (ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
-		/* text draws with offset 0.40, but this extra .05 makes clicks inbetween characters feel nicer */
-		startx += (0.45f * U.widget_unit);
-		if (but->flag & UI_HAS_ICON)
+		if (but->flag & UI_HAS_ICON) {
 			startx += UI_DPI_ICON_SIZE;
+		}
+		/* but this extra .05 makes clicks inbetween characters feel nicer */
+		startx += ((UI_TEXT_MARGIN_X + 0.05f) * U.widget_unit);
 	}
 	
 	/* mouse dragged outside the widget to the left */
@@ -1511,7 +1513,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	MEM_freeN(origstr);
 }
 
-static void ui_textedit_set_cursor_select(uiBut *but, uiHandleButtonData *data, short x)
+static void ui_textedit_set_cursor_select(uiBut *but, uiHandleButtonData *data, const float x)
 {
 	if      (x > data->selstartx) data->selextend = EXTEND_RIGHT;
 	else if (x < data->selstartx) data->selextend = EXTEND_LEFT;
