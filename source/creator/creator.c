@@ -165,9 +165,10 @@ static int print_version(int argc, const char **argv, void *data);
 
 /* for the callbacks: */
 
-#define BLEND_VERSION_STRING_FMT                                              \
-    "Blender %d.%02d (sub %d)\n",                                             \
-    BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION          \
+#define BLEND_VERSION_FMT         "Blender %d.%02d (sub %d)"
+#define BLEND_VERSION_ARG         BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION
+/* pass directly to printf */
+#define BLEND_VERSION_STRING_FMT  BLEND_VERSION_FMT "\n", BLEND_VERSION_ARG
 
 /* Initialize callbacks for the modules that need them */
 static void setCallbacks(void); 
@@ -538,7 +539,13 @@ static void blender_crash_handler(int signum)
 	printf("Writing: %s\n", fname);
 	fflush(stdout);
 
-	BLI_snprintf(header, sizeof(header), "# " BLEND_VERSION_STRING_FMT);
+	BLI_snprintf(header, sizeof(header), "# " BLEND_VERSION_FMT ", Revision: %s\n", BLEND_VERSION_ARG,
+#ifdef BUILD_DATE
+	             build_rev
+#else
+	             "Unknown"
+#endif
+	             );
 
 	/* open the crash log */
 	errno = 0;

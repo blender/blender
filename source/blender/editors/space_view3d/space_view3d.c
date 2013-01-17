@@ -584,6 +584,9 @@ static void view3d_main_area_free(ARegion *ar)
 			if (rv3d->depths->depths) MEM_freeN(rv3d->depths->depths);
 			MEM_freeN(rv3d->depths);
 		}
+		if (rv3d->sms) {
+			MEM_freeN(rv3d->sms);
+		}
 		MEM_freeN(rv3d);
 		ar->regiondata = NULL;
 	}
