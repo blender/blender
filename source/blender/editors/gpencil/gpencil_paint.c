@@ -1564,8 +1564,8 @@ static void gpencil_draw_apply_event(wmOperator *op, wmEvent *event)
 	p->curtime = PIL_check_seconds_timer();
 	
 	/* handle pressure sensitivity (which is supplied by tablets) */
-	if (event->custom == EVT_DATA_TABLET) {
-		wmTabletData *wmtab = event->customdata;
+	if (event->tablet_data) {
+		wmTabletData *wmtab = event->tablet_data;
 		
 		tablet = (wmtab->Active != EVT_TABLET_NONE);
 		p->pressure = wmtab->Pressure;

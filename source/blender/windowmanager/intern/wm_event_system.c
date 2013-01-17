@@ -84,6 +84,8 @@
 #  include "RNA_enum_types.h"
 #endif
 
+static void update_tablet_data(wmWindow *win, wmEvent *event);
+
 static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA *properties, ReportList *reports,
                                      short context, short poll_only);
 
@@ -94,6 +96,9 @@ void wm_event_add(wmWindow *win, wmEvent *event_to_add)
 	wmEvent *event = MEM_callocN(sizeof(wmEvent), "wmEvent");
 	
 	*event = *event_to_add;
+
+	update_tablet_data(win, event);
+
 	BLI_addtail(&win->queue, event);
 }
 
@@ -108,6 +113,11 @@ void wm_event_free(wmEvent *event)
 				MEM_freeN(event->customdata);
 		}
 	}
+
+	if (event->tablet_data) {
+		MEM_freeN(event->tablet_data);
+	}
+
 	MEM_freeN(event);
 }
 
@@ -2652,12 +2662,11 @@ static void update_tablet_data(wmWindow *win, wmEvent *event)
 		wmtab->Xtilt = td->Xtilt;
 		wmtab->Ytilt = td->Ytilt;
 		
-		event->custom = EVT_DATA_TABLET;
-		event->customdata = wmtab;
-		event->customdatafree = 1;
+		event->tablet_data = wmtab;
 		// printf("%s: using tablet %.5f\n", __func__, wmtab->Pressure);
 	}
 	else {
+		event->tablet_data = NULL;
 		// printf("%s: not using tablet\n", __func__);
 	}
 }
@@ -2800,7 +2809,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			if (lastevent && lastevent->type == MOUSEMOVE)
 				lastevent->type = INBETWEEN_MOUSEMOVE;
 
-			update_tablet_data(win, &event);
 			wm_event_add(win, &event);
 			
 			/* also add to other window if event is there, this makes overdraws disappear nicely */
@@ -2813,7 +2821,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				oevent.y = owin->eventstate->y = event.y;
 				oevent.type = MOUSEMOVE;
 				
-				update_tablet_data(owin, &oevent);
 				wm_event_add(owin, &oevent);
 			}
 				
@@ -2845,7 +2852,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			event.prevx = event.x - pd->deltaX;
 			event.prevy = event.y - (-pd->deltaY);
 			
-			update_tablet_data(win, &event);
 			wm_event_add(win, &event);
 			break;
 		}
@@ -2911,11 +2917,9 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				oevent.type = event.type;
 				oevent.val = event.val;
 				
-				update_tablet_data(owin, &oevent);
 				wm_event_add(owin, &oevent);
 			}
 			else {
-				update_tablet_data(win, &event);
 				wm_event_add(win, &event);
 			}
 			

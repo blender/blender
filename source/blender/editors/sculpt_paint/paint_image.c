@@ -5295,7 +5295,6 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 {
 	const Scene *scene = CTX_data_scene(C);
 	PaintOperation *pop = op->customdata;
-	wmTabletData *wmtab;
 	PointerRNA itemptr;
 	float pressure, mousef[2];
 	double time;
@@ -5306,8 +5305,8 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 	tablet = 0;
 	pop->s.blend = pop->s.brush->blend;
 
-	if (event->custom == EVT_DATA_TABLET) {
-		wmtab = event->customdata;
+	if (event->tablet_data) {
+		wmTabletData *wmtab = event->tablet_data;
 
 		tablet = (wmtab->Active != EVT_TABLET_NONE);
 		pressure = wmtab->Pressure;
