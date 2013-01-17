@@ -523,6 +523,13 @@ static int rna_Property_unit_get(PointerRNA *ptr)
 	return RNA_SUBTYPE_UNIT(prop->subtype);
 }
 
+static int rna_Property_icon_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop = (PropertyRNA *)ptr->data;
+	rna_idproperty_check(&prop, ptr);
+	return prop->icon;
+}
+
 static int rna_Property_readonly_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
@@ -1136,6 +1143,12 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, property_unit_items);
 	RNA_def_property_enum_funcs(prop, "rna_Property_unit_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Unit", "Type of units for this property");
+
+	prop = RNA_def_property(srna, "icon", PROP_ENUM, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_enum_items(prop, icon_items);
+	RNA_def_property_enum_funcs(prop, "rna_Property_icon_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Icon", "Icon of the item");
 
 	prop = RNA_def_property(srna, "is_readonly", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
