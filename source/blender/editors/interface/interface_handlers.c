@@ -1438,7 +1438,8 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	if (but->type == NUM || but->type == NUMSLI)
 		startx += (int)(0.5f * (BLI_rctf_size_y(&but->rect)));
 	else if (ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
-		startx += 5;
+		/* text draws with offset 0.40, but this extra .05 makes clicks inbetween characters feel nicer */
+		startx += (0.45f * U.widget_unit);
 		if (but->flag & UI_HAS_ICON)
 			startx += UI_DPI_ICON_SIZE;
 	}
@@ -1463,21 +1464,18 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 		but->ofs = i;
 		but->pos = but->ofs;
 	}
-	/* mouse inside the widget */
+	/* mouse inside the widget, mouse coords mapped in widget space */
 	else if (x >= startx) {
 		int pos_i;
 
 		/* keep track of previous distance from the cursor to the char */
 		float cdist, cdist_prev = 0.0f;
 		short pos_prev;
-
-		const float aspect_sqrt = sqrtf(but->block->aspect);
 		
 		but->pos = pos_prev = strlen(origstr) - but->ofs;
 
 		while (TRUE) {
-			/* XXX does not take zoom level into account */
-			cdist = startx + aspect_sqrt * BLF_width(fstyle->uifont_id, origstr + but->ofs);
+			cdist = startx + BLF_width(fstyle->uifont_id, origstr + but->ofs);
 
 			/* check if position is found */
 			if (cdist < x) {
