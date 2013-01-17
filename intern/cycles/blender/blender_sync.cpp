@@ -359,22 +359,22 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine b_engine, BL::Use
 	params.background = background;
 
 	/* samples */
-	if(get_boolean(cscene, "progressive")) {
+	if(get_boolean(cscene, "progressive") == 0 && params.device.type == DEVICE_CPU){
 		if(background) {
-			params.samples = get_int(cscene, "samples");
+			params.samples = get_int(cscene, "aa_samples");
 		}
 		else {
-			params.samples = get_int(cscene, "preview_samples");
+			params.samples = get_int(cscene, "preview_aa_samples");
 			if(params.samples == 0)
 				params.samples = INT_MAX;
 		}
 	}
 	else {
 		if(background) {
-			params.samples = get_int(cscene, "aa_samples");
+			params.samples = get_int(cscene, "samples");
 		}
 		else {
-			params.samples = get_int(cscene, "preview_aa_samples");
+			params.samples = get_int(cscene, "preview_samples");
 			if(params.samples == 0)
 				params.samples = INT_MAX;
 		}
