@@ -1447,10 +1447,10 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 	}
 	
 	/* mouse dragged outside the widget to the left */
-	if (x < startx && but->ofs > 0) {
+	if (x < startx) {
 		int i = but->ofs;
 
-		origstr[but->ofs] = 0;
+		origstr[but->ofs] = '\0';
 		
 		while (i > 0) {
 			if (BLI_str_cursor_step_prev_utf8(origstr, but->ofs, &i)) {
@@ -1467,7 +1467,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 		but->pos = but->ofs;
 	}
 	/* mouse inside the widget, mouse coords mapped in widget space */
-	else if (x >= startx) {
+	else {  /* (x >= startx) */
 		int pos_i;
 
 		/* keep track of previous distance from the cursor to the char */
@@ -1476,7 +1476,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, con
 		
 		but->pos = pos_prev = strlen(origstr) - but->ofs;
 
-		while (TRUE) {
+		while (true) {
 			cdist = startx + BLF_width(fstyle->uifont_id, origstr + but->ofs);
 
 			/* check if position is found */
