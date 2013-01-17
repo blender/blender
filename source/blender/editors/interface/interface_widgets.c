@@ -1798,7 +1798,7 @@ static void widget_state_menu_item(uiWidgetType *wt, int state)
 	if ((state & UI_BUT_DISABLED) && (state & UI_ACTIVE)) {
 		widget_state_blend(wt->wcol.text, wt->wcol.text_sel, 0.5f);
 		/* draw the backdrop at low alpha, helps navigating with keys
-		 * when inactive items are active */
+		 * when disabled items are active */
 		copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
 		wt->wcol.inner[3] = 64;
 	}

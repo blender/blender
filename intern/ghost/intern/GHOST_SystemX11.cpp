@@ -521,8 +521,14 @@ static void setTabletMode(GHOST_SystemX11 *system, GHOST_WindowX11 *window, XID 
 #ifdef WITH_X11_XINPUT
 static bool checkTabletProximity(Display *display, XDevice *device)
 {
+	/* we could have true/false/not-found return value, but for now false is OK */
+
 	/* see: state.c from xinput, to get more data out of the device */
 	XDeviceState *state;
+
+	if (device == NULL) {
+		return false;
+	}
 
 	state = XQueryDeviceState(display, device);
 
