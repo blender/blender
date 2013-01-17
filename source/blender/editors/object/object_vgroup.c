@@ -2725,7 +2725,7 @@ void OBJECT_OT_vertex_group_remove_from(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Remove from Vertex Group";
 	ot->idname = "OBJECT_OT_vertex_group_remove_from";
-	ot->description = "Remove the selected vertices from the active vertex group";
+	ot->description = "Remove the selected vertices from active or all vertex group(s)";
 
 	/* api callbacks */
 	ot->poll = vertex_group_poll_edit_or_wpaint_vert_select;
