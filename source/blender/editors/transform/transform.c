@@ -5873,7 +5873,6 @@ static void calcVertSlideMouseActiveVert(struct TransInfo *t, const int mval[2])
 	int i;
 
 	for (i = 0, sv = sld->sv; i < sld->totsv; i++, sv++) {
-		/* allow points behind the view [#33643] */
 		dist = len_squared_v2v2(mval_fl, sv->co_orig_2d);
 		if (dist < min_dist) {
 			min_dist = dist;
