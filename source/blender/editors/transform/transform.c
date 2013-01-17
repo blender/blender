@@ -5872,7 +5872,7 @@ static void calcVertSlideMouseActiveVert(struct TransInfo *t, const int mval[2])
 	float min_dist = FLT_MAX;
 	int i;
 
-	for (i = 0; i < sld->totsv; i++, sv++) {
+	for (i = 0, sv = sld->sv; i < sld->totsv; i++, sv++) {
 		/* allow points behind the view [#33643] */
 		dist = len_squared_v2v2(mval_fl, sv->co_orig_2d);
 		if (dist < min_dist) {
@@ -5893,15 +5893,11 @@ static void calcVertSlideMouseActiveEdges(struct TransInfo *t, const int mval[2]
 	TransDataVertSlideVert *sv;
 	int i;
 
-	sv = sld->sv;
-
 	/* first get the direction of the original vertex */
 	sub_v2_v2v2(dir, sld->sv[sld->curr_sv_index].co_orig_2d, mval_fl);
 	normalize_v2(dir);
 
-	sv = sld->sv;
-
-	for (i = 0; i < sld->totsv; i++, sv++) {
+	for (i = 0, sv = sld->sv; i < sld->totsv; i++, sv++) {
 		if (sv->co_link_tot > 1) {
 			float dir_dot_best = -FLT_MAX;
 			int co_link_curr_best = -1;
