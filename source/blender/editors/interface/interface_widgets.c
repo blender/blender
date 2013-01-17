@@ -1794,11 +1794,19 @@ static void widget_state_menu_item(uiWidgetType *wt, int state)
 {
 	wt->wcol = *(wt->wcol_theme);
 	
-	if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
-		wt->wcol.text[0] = 0.5f * (wt->wcol.text[0] + wt->wcol.text_sel[0]);
-		wt->wcol.text[1] = 0.5f * (wt->wcol.text[1] + wt->wcol.text_sel[1]);
-		wt->wcol.text[2] = 0.5f * (wt->wcol.text[2] + wt->wcol.text_sel[2]);
+	/* active and disabled (not so common) */
+	if ((state & UI_BUT_DISABLED) && (state & UI_ACTIVE)) {
+		widget_state_blend(wt->wcol.text, wt->wcol.text_sel, 0.5f);
+		/* draw the backdrop at low alpha, helps navigating with keys
+		 * when inactive items are active */
+		copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
+		wt->wcol.inner[3] = 64;
 	}
+	/* regular disabled */
+	else if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
+		widget_state_blend(wt->wcol.text, wt->wcol.text_sel, 0.5f);
+	}
+	/* regular active */
 	else if (state & UI_ACTIVE) {
 		copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
 		copy_v3_v3_char(wt->wcol.text, wt->wcol.text_sel);
@@ -3443,7 +3451,7 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, const char *name, int ic
 	uiWidgetType *wt = widget_type(UI_WTYPE_MENU_ITEM);
 	rcti _rect = *rect;
 	char *cpoin;
-	
+
 	wt->state(wt, state);
 	wt->draw(&wt->wcol, rect, 0, 0);
 	
