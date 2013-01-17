@@ -3906,12 +3906,13 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 		}
 	}
 
-	if (BKE_brush_use_size_pressure(scene, brush)) {
+	if (BKE_brush_use_size_pressure(scene, brush) && paint_supports_dynamic_size(brush)) {
 		cache->pixel_radius *= cache->pressure;
 		cache->radius = cache->initial_radius * cache->pressure;
 	}
-	else
+	else {
 		cache->radius = cache->initial_radius;
+	}
 
 	cache->radius_squared = cache->radius * cache->radius;
 
