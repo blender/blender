@@ -188,12 +188,20 @@ void WM_cursor_grab_enable(wmWindow *win, int wrap, int hide, int bounds[4])
 	 * It helps not to get a stuck WM when hitting a breakpoint  
 	 * */
 	GHOST_TGrabCursorMode mode = GHOST_kGrabNormal;
+	float fac = GHOST_GetNativePixelSize(win->ghostwin);
 
+	/* in case pixel coords differ from window/mouse coords */
+	bounds[0] /= fac;
+	bounds[1] /= fac;
+	bounds[2] /= fac;
+	bounds[3] /= fac;
+	
 	if (hide) mode = GHOST_kGrabHide;
 	else if (wrap) mode = GHOST_kGrabWrap;
 	if ((G.debug & G_DEBUG) == 0) {
 		if (win && win->ghostwin) {
 			const GHOST_TabletData *tabletdata = GHOST_GetTabletData(win->ghostwin);
+			
 			/* Note: There is no tabletdata on Windows if no tablet device is connected. */
 			if (!tabletdata)
 				GHOST_SetCursorGrab(win->ghostwin, mode, bounds, NULL);
