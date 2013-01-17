@@ -491,7 +491,14 @@ static void ui_item_enum_expand(uiLayout *layout, uiBlock *block, PointerRNA *pt
 
 	RNA_property_enum_items_gettexted(block->evil_C, ptr, prop, &item, &totitem, &free);
 
-	uiBlockSetCurLayout(block, ui_item_local_sublayout(layout, layout, 1));
+	/* we dont want nested rows, cols in menus */
+	if (layout->root->type != UI_LAYOUT_MENU) {
+		uiBlockSetCurLayout(block, ui_item_local_sublayout(layout, layout, 1));
+	}
+	else {
+		uiBlockSetCurLayout(block, layout);
+	}
+
 	for (a = 0; a < totitem; a++) {
 		if (!item[a].identifier[0])
 			continue;

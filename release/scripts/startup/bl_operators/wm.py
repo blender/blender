@@ -509,8 +509,7 @@ class WM_MT_context_menu_enum(Menu):
 
         layout = self.layout
         layout.label(prop.name, icon=prop.icon)
-        col = self.layout.column()
-        col.prop(value_base, prop_string, expand=True)
+        layout.prop(value_base, prop_string, expand=True)
 
 
 class WM_OT_context_menu_enum(Operator):

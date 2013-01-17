@@ -6559,6 +6559,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 							ui_pan_to_scroll(event, &type, &val);
 						
 						if (val == KM_PRESS) {
+							const eButType type_flip = BUT | ROW;
 
 							PASS_EVENT_TO_PARENT_IF_NONACTIVE;
 
@@ -6571,13 +6572,13 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 								{
 									/* the following is just a hack - uiBut->type set to BUT and BUTM have there menus built 
 									 * opposite ways - this should be changed so that all popup-menus use the same uiBlock->direction */
-									if (but->type & BUT)
+									if (but->type & type_flip)
 										but = ui_but_next(but);
 									else
 										but = ui_but_prev(but);
 								}
 								else {
-									if (but->type & BUT)
+									if (but->type & type_flip)
 										but = ui_but_prev(but);
 									else
 										but = ui_but_next(but);
@@ -6594,7 +6595,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 								    ((ELEM(type, UPARROWKEY, WHEELUPMOUSE)) && (block->direction & UI_RIGHT)) ||
 								    ((ELEM(type, DOWNARROWKEY, WHEELDOWNMOUSE)) && (block->direction & UI_TOP)))
 								{
-									if ((bt = ui_but_first(block)) && (bt->type & BUT)) {
+									if ((bt = ui_but_first(block)) && (bt->type & type_flip)) {
 										bt = ui_but_last(block);
 									}
 									else {
@@ -6602,7 +6603,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 									}
 								}
 								else {
-									if ((bt = ui_but_first(block)) && (bt->type & BUT)) {
+									if ((bt = ui_but_first(block)) && (bt->type & type_flip)) {
 										/* keep ui_but_first() */
 									}
 									else {
