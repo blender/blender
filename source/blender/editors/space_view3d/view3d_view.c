@@ -163,9 +163,17 @@ void view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera
 	
 	/* initialize sms */
 	view3d_smooth_view_state_backup(&sms.dst, v3d, rv3d);
-	view3d_smooth_view_state_backup(&sms.org, v3d, rv3d);
 	view3d_smooth_view_state_backup(&sms.src, v3d, rv3d);
-	sms.to_camera = false;
+	/* if smoothview runs multiple times... */
+	if (rv3d->sms == NULL) {
+		view3d_smooth_view_state_backup(&sms.org, v3d, rv3d);
+		sms.org_view = rv3d->view;
+	}
+	else {
+		sms.org = rv3d->sms->org;
+		sms.org_view = rv3d->sms->org_view;
+	}
+	/* sms.to_camera = false; */  /* initizlized to zero anyway */
 
 	/* note on camera locking, this is a little confusing but works ok.
 	 * we may be changing the view 'as if' there is no active camera, but in fact
@@ -217,7 +225,6 @@ void view3d_smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera
 			/* grid draw as floor */
 			if ((rv3d->viewlock & RV3D_LOCKED) == 0) {
 				/* use existing if exists, means multiple calls to smooth view wont loose the original 'view' setting */
-				sms.org_view = rv3d->sms ? rv3d->sms->org_view : rv3d->view;
 				rv3d->view = RV3D_VIEW_USER;
 			}
 
@@ -347,12 +354,16 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent
 		view3d_boxview_copy(CTX_wm_area(C), CTX_wm_region(C));
 
 	/* note: this doesn't work right because the v3d->lens is now used in ortho mode r51636,
-	 * when switching camera in quad-view the other ortho views would zoom & reset. */
-#if 0
-	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
-#else
-	ED_region_tag_redraw(CTX_wm_region(C));
-#endif
+	 * when switching camera in quad-view the other ortho views would zoom & reset.
+	 *
+	 * For now only redraw all regions when smoothview finishes.
+	 */
+	if (step >= 1.0f) {
+		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+	}
+	else {
+		ED_region_tag_redraw(CTX_wm_region(C));
+	}
 	
 	return OPERATOR_FINISHED;
 }

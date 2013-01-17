@@ -4274,8 +4274,6 @@ void ED_view3d_from_object(Object *ob, float ofs[3], float quat[4], float *dist,
 		CameraParams params;
 
 		BKE_camera_params_init(&params);
-		/* incase we can't get the lens */
-		params.lens = *lens;
 		BKE_camera_params_from_object(&params, ob);
 		*lens = params.lens;
 	}
