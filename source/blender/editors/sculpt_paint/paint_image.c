@@ -4965,7 +4965,6 @@ typedef struct PaintOperation {
 
 	int first;
 	int prevmouse[2];
-	float prev_pressure; /* need this since we don't get tablet events for pressure change */
 	int orig_brush_size;
 	double starttime;
 
@@ -5183,6 +5182,11 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 	/* create painter */
 	pop->painter = BKE_brush_painter_new(scene, pop->s.brush);
 
+	{
+		UnifiedPaintSettings *ups = &settings->unified_paint_settings;
+		ups->draw_pressure = true;
+	}
+
 	return 1;
 }
 
@@ -5271,6 +5275,11 @@ static void paint_exit(bContext *C, wmOperator *op)
 		BKE_reportf(op->reports, RPT_WARNING, "Packed MultiLayer files cannot be painted: %s", pop->s.warnpackedfile);
 
 	MEM_freeN(pop);
+
+	{
+		UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+		ups->draw_pressure = false;
+	}
 }
 
 static int paint_exec(bContext *C, wmOperator *op)
@@ -5313,8 +5322,9 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 		if (wmtab->Active == EVT_TABLET_ERASER)
 			pop->s.blend = IMB_BLEND_ERASE_ALPHA;
 	}
-	else { /* otherwise airbrush becomes 1.0 pressure instantly */
-		pressure = pop->prev_pressure ? pop->prev_pressure : 1.0f;
+	else {
+		BLI_assert(fabsf(WM_cursor_pressure(CTX_wm_window(C))) == 1.0f);
+		pressure = 1.0f;
 	}
 
 	if (pop->first) {
@@ -5347,7 +5357,10 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 	/* apply */
 	paint_apply(C, op, &itemptr);
 
-	pop->prev_pressure = pressure;
+	{
+		UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+		ups->pressure_value = pressure;
+	}
 }
 
 static int paint_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -5358,7 +5371,7 @@ static int paint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		MEM_freeN(op->customdata);
 		return OPERATOR_CANCELLED;
 	}
-	
+
 	paint_apply_event(C, op, event);
 
 	pop = op->customdata;
@@ -5488,6 +5501,16 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 		glColor4f(brush->add_col[0], brush->add_col[1], brush->add_col[2], alpha);
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
+		{
+			UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+			/* hrmf, duplicate paint_draw_cursor logic here */
+			if (ups->draw_pressure && BKE_brush_use_size_pressure(scene, brush)) {
+				/* inner at full alpha */
+				glutil_draw_lined_arc(0, (float)(M_PI * 2.0), size * ups->pressure_value, 40);
+				/* outer at half alpha */
+				glColor4f(brush->add_col[0], brush->add_col[1], brush->add_col[2], alpha * 0.5f);
+			}
+		}
 		glutil_draw_lined_arc(0, (float)(M_PI * 2.0), size, 40);
 		glDisable(GL_BLEND);
 		glDisable(GL_LINE_SMOOTH);

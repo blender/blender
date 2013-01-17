@@ -2172,6 +2172,11 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UNU
 	if (me->editflag & ME_EDIT_MIRROR_X) {
 		wpd->vgroup_mirror = wpaint_mirror_vgroup_ensure(ob, wpd->vgroup_active);
 	}
+
+	{
+		UnifiedPaintSettings *ups = &ts->unified_paint_settings;
+		ups->draw_pressure = true;
+	}
 	
 	return TRUE;
 }
@@ -2414,6 +2419,11 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 	swap_m4m4(vc->rv3d->persmat, mat);
 
+	{
+		UnifiedPaintSettings *ups = &ts->unified_paint_settings;
+		ups->pressure_value = pressure;
+	}
+
 	DAG_id_tag_update(ob->data, 0);
 	ED_region_tag_redraw(vc->ar);
 }
@@ -2454,7 +2464,12 @@ static void wpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 			}
 		}
 	}
-	
+
+	{
+		UnifiedPaintSettings *ups = &ts->unified_paint_settings;
+		ups->draw_pressure = false;
+	}
+
 	DAG_id_tag_update(ob->data, 0);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
@@ -2735,6 +2750,11 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const fl
 	invert_m4_m4(imat, mat);
 	copy_m3_m4(vpd->vpimat, imat);
 
+	{
+		UnifiedPaintSettings *ups = &ts->unified_paint_settings;
+		ups->draw_pressure = true;
+	}
+
 	return 1;
 }
 
@@ -2889,6 +2909,11 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		do_shared_vertexcol(me, do_tessface);
 	}
 
+	{
+		UnifiedPaintSettings *ups = &ts->unified_paint_settings;
+		ups->pressure_value = pressure;
+	}
+
 	ED_region_tag_redraw(vc->ar);
 
 	if (vpd->use_fast_update == FALSE) {
@@ -2918,6 +2943,11 @@ static void vpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 
 	if (vpd->polyfacemap_arena) {
 		BLI_memarena_free(vpd->polyfacemap_arena);
+	}
+
+	{
+		UnifiedPaintSettings *ups = &ts->unified_paint_settings;
+		ups->draw_pressure = false;
 	}
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
