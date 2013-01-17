@@ -529,24 +529,6 @@ static void validate_solution(LaplacianSystem * sys, short flag, float lambda, f
 	if (flag & MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME) {
 		vini = compute_volume(sys->vertexCos, sys->mfaces, sys->numFaces);
 	}
-	for (i = 0; i < sys->numEdges; i++) {
-		idv1 = sys->medges[i].v1;
-		idv2 = sys->medges[i].v2;
-		vi1 = sys->vertexCos[idv1];
-		vi2 = sys->vertexCos[idv2];
-		ve1[0] = nlGetVariable(0, idv1);
-		ve1[1] = nlGetVariable(1, idv1);
-		ve1[2] = nlGetVariable(2, idv1);
-		ve2[0] = nlGetVariable(0, idv2);
-		ve2[1] = nlGetVariable(1, idv2);
-		ve2[2] = nlGetVariable(2, idv2);
-		leni = len_v3v3(vi1, vi2);
-		lene = len_v3v3(ve1, ve2);
-		if (lene > leni * MOD_LAPLACIANSMOOTH_MAX_EDGE_PERCENTAGE || lene < leni * MOD_LAPLACIANSMOOTH_MIN_EDGE_PERCENTAGE) {
-			sys->zerola[idv1] = 1;
-			sys->zerola[idv2] = 1;
-		}
-	}
 	for (i = 0; i < sys->numVerts; i++) {
 		if (sys->zerola[i] == 0) {
 			lam = sys->numNeEd[i] == sys->numNeFa[i] ? (lambda >= 0.0f ? 1.0f : -1.0f) : (lambda_border >= 0.0f ? 1.0f : -1.0f);
