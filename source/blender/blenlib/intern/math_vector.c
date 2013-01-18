@@ -122,6 +122,32 @@ void mid_v3_v3v3v3(float v[3], const float v1[3], const float v2[3], const float
 	v[2] = (v1[2] + v2[2] + v3[2]) / 3.0f;
 }
 
+/**
+ * Equivalent to:
+ * interp_v3_v3v3(v, v1, v2, -1.0f);
+ */
+
+void flip_v4_v4v4(float v[4], const float v1[4], const float v2[4])
+{
+	v[0] = v1[0] + (v1[0] - v2[0]);
+	v[1] = v1[1] + (v1[1] - v2[1]);
+	v[2] = v1[2] + (v1[2] - v2[2]);
+	v[3] = v1[3] + (v1[3] - v2[3]);
+}
+
+void flip_v3_v3v3(float v[3], const float v1[3], const float v2[3])
+{
+	v[0] = v1[0] + (v1[0] - v2[0]);
+	v[1] = v1[1] + (v1[1] - v2[1]);
+	v[2] = v1[2] + (v1[2] - v2[2]);
+}
+
+void flip_v2_v2v2(float v[2], const float v1[2], const float v2[2])
+{
+	v[0] = v1[0] + (v1[0] - v2[0]);
+	v[1] = v1[1] + (v1[1] - v2[1]);
+}
+
 /********************************** Angles ***********************************/
 
 /* Return the angle in radians between vecs 1-2 and 2-3 in radians
