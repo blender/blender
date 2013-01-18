@@ -81,6 +81,10 @@ public:
 	real tB; // parameter defining the intersection point with respect to the segment EdgeB.
 };
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4521) // disable warning C4521: multiple copy constructors specified
+#endif
 
 template<class T, class Point>
 class Segment
@@ -182,6 +186,10 @@ private:
 	std::vector<Intersection<Segment<T,Point> >*> _Intersections; // list of intersections parameters
 	bool _order; // true if A and B are in the same order than _edge.A and _edge.B. false otherwise.
 };
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 /*! defines a binary function that can be overload by the user to specify at each condition the intersection
  *  between 2 edges must be computed
