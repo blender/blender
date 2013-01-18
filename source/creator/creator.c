@@ -53,10 +53,10 @@
 #endif
 
 /* for backtrace */
-#ifdef WIN32
-#  include <DbgHelp.h>
-#else
+#if defined(__linux__) || defined(__APPLE__)
 #  include <execinfo.h>
+#elif defined(_MSV_VER)
+#  include <DbgHelp.h>
 #endif
 
 #include <stdlib.h>
@@ -448,10 +448,12 @@ static int set_fpe(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(dat
 	return 0;
 }
 
+#if defined(__linux__) || defined(__APPLE__)
+
+/* Unix */
 static void blender_crash_handler_backtrace(FILE *fp)
 {
 #define SIZE 100
-#ifndef WIN32
 	void *buffer[SIZE];
 	int nptrs;
 	char **strings;
@@ -468,10 +470,17 @@ static void blender_crash_handler_backtrace(FILE *fp)
 	}
 
 	free(strings);
-#else /* WIN32 */
+#undef SIZE
+}
+
+#elif defined(_MSV_VER)
+
+static void blender_crash_handler_backtrace(FILE *fp)
+{
 	(void)fp;
+
 #if 0
-	#define MAXSYMBOL 256
+#define MAXSYMBOL 256
 	unsigned short	i;
 	void *stack[SIZE];
 	unsigned short nframes;
@@ -496,9 +505,16 @@ static void blender_crash_handler_backtrace(FILE *fp)
 
 	MEM_freeN(symbolinfo);
 #endif
-#endif
-#undef SIZE
 }
+
+#else  /* non msvc/osx/linux */
+
+static void blender_crash_handler_backtrace(FILE *fp)
+{
+	(void)fp;
+}
+
+#endif
 
 static void blender_crash_handler(int signum)
 {
