@@ -521,11 +521,10 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
 
 static void validate_solution(LaplacianSystem * sys, short flag, float lambda, float lambda_border)
 {
-	int i, idv1, idv2;
+	int i;
 	float lam;
-	float leni, lene;
 	float vini, vend;
-	float *vi1, *vi2, ve1[3], ve2[3];
+
 	if (flag & MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME) {
 		vini = compute_volume(sys->vertexCos, sys->mfaces, sys->numFaces);
 	}

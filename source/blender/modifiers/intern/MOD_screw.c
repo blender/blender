@@ -314,11 +314,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		CustomData_add_layer(&result->polyData, CD_ORIGINDEX, CD_CALLOC, NULL, maxPolys);
 	}
 
-#if 0 // trunk
-	origindex = result->getPolyDataArray(result, CD_ORIGINDEX);
-#else // bmesh
 	origindex = CustomData_get_layer(&result->polyData, CD_ORIGINDEX);
-#endif
 
 	DM_copy_vert_data(dm, result, 0, 0, totvert); /* copy first otherwise this overwrites our own vertex normals */
 	

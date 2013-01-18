@@ -37,6 +37,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_rand.h"
+#include "BLI_math_vector.h"
 #include "BLI_ghash.h"
 
 #include "DNA_scene_types.h"
@@ -104,12 +105,19 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	MVert *mvert_src = dm->getVertArray(dm);
 
 
-	vertMap = MEM_callocN(sizeof(*vertMap) * numVert_src, "build modifier vertMap");
-	for (i = 0; i < numVert_src; i++) vertMap[i] = i;
-	edgeMap = MEM_callocN(sizeof(*edgeMap) * numEdge_src, "build modifier edgeMap");
-	for (i = 0; i < numEdge_src; i++) edgeMap[i] = i;
-	faceMap = MEM_callocN(sizeof(*faceMap) * numPoly_src, "build modifier faceMap");
-	for (i = 0; i < numPoly_src; i++) faceMap[i] = i;
+	vertMap = MEM_mallocN(sizeof(*vertMap) * numVert_src, "build modifier vertMap");
+	edgeMap = MEM_mallocN(sizeof(*edgeMap) * numEdge_src, "build modifier edgeMap");
+	faceMap = MEM_mallocN(sizeof(*faceMap) * numPoly_src, "build modifier faceMap");
+
+#pragma omp parallel sections if (numVert_src + numEdge_src + numPoly_src >= DM_OMP_LIMIT)
+	{
+#pragma omp section
+		{ range_vn_i(vertMap, numVert_src, 0); }
+#pragma omp section
+		{ range_vn_i(edgeMap, numEdge_src, 0); }
+#pragma omp section
+		{ range_vn_i(faceMap, numPoly_src, 0); }
+	}
 
 	frac = (BKE_scene_frame_get(md->scene) - bmd->start) / bmd->length;
 	CLAMP(frac, 0.0f, 1.0f);
