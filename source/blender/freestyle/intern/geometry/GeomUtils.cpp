@@ -185,10 +185,9 @@ intersection_test intersect2dSeg2dSegParametric(const Vec2r& p1, const Vec2r& p2
 	if (fabs(denom) < epsilon)
 		return (COLINEAR);
 
-	real d1, d2, e1;
+	real d1, e1;
 
 	d1 = p1[1] - p3[1];
-	d2 = p2[1] - p1[1];
 	e1 = p1[0] - p3[0];
 
 	num = -b2 * d1 - a2 * e1;
