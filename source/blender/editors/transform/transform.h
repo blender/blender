@@ -208,12 +208,12 @@ typedef struct EdgeSlideData {
 	struct BMEditMesh *em;
 
 	/* flag that is set when origfaces is initialized */
-	int origfaces_init;
+	bool origfaces_init;
 
 	float perc;
 
-	int is_proportional;
-	int flipped_vtx;
+	bool is_proportional;
+	bool flipped_vtx;
 
 	int curr_sv_index;
 } EdgeSlideData;
@@ -237,8 +237,8 @@ typedef struct VertSlideData {
 
 	float perc;
 
-	int is_proportional;
-	int flipped_vtx;
+	bool is_proportional;
+	bool flipped_vtx;
 
 	int curr_sv_index;
 } VertSlideData;

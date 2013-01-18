@@ -5323,7 +5323,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	if (rv3d)
 		calcNonProportionalEdgeSlide(t, sld, mval);
 
-	sld->origfaces_init = TRUE;
+	sld->origfaces_init = true;
 	sld->em = em;
 	
 	/*zero out start*/
@@ -5523,7 +5523,7 @@ void freeEdgeSlideTempFaces(EdgeSlideData *sld)
 
 		BLI_smallhash_release(&sld->origfaces);
 
-		sld->origfaces_init = FALSE;
+		sld->origfaces_init = false;
 
 		/* arrays are dirty from removing faces: EDBM_index_arrays_free */
 		EDBM_update_generic(sld->em, FALSE, TRUE);
@@ -5789,8 +5789,8 @@ int EdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 	char str[128];
 	float final;
 	EdgeSlideData *sld =  t->customData;
-	int flipped = sld->flipped_vtx;
-	int is_proportional = sld->is_proportional;
+	bool flipped = sld->flipped_vtx;
+	bool is_proportional = sld->is_proportional;
 
 	final = t->values[0];
 
@@ -5843,8 +5843,7 @@ static void calcVertSlideCustomPoints(struct TransInfo *t)
 	float *co_curr = sv->co_link_orig_2d[sv->co_link_curr];
 	float  co_curr_flip[2];
 
-	sub_v2_v2v2(co_curr_flip, co_curr, co_orig);
-	sub_v2_v2v2(co_curr_flip, co_orig, co_curr_flip);
+	flip_v2_v2v2(co_curr_flip, co_orig, co_curr);
 
 	{
 		const int start[2] = {co_orig[0], co_orig[1]};
@@ -5943,9 +5942,9 @@ static int createVertSlideVerts(TransInfo *t)
 		rv3d = t->ar ? t->ar->regiondata : NULL;
 	}
 
-	sld->is_proportional = TRUE;
+	sld->is_proportional = true;
 	sld->curr_sv_index = 0;
-	sld->flipped_vtx = FALSE;
+	sld->flipped_vtx = false;
 
 	if (!rv3d) {
 		/* ok, let's try to survive this */
@@ -6170,6 +6169,7 @@ static void drawVertSlide(const struct bContext *C, TransInfo *t)
 			const float line_size = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.5f;
 			const int alpha_shade = -30;
 			int i;
+			bool is_constrained = !(t->flag & T_ALT_TRANSFORM);
 
 			if (v3d && v3d->zbuf)
 				glDisable(GL_DEPTH_TEST);
@@ -6185,10 +6185,26 @@ static void drawVertSlide(const struct bContext *C, TransInfo *t)
 			glLineWidth(line_size);
 			UI_ThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
 			glBegin(GL_LINES);
-			sv = sld->sv;
-			for (i = 0; i < sld->totsv; i++, sv++) {
-				glVertex3fv(sv->co_orig_3d);
-				glVertex3fv(sv->co_link_orig_3d[sv->co_link_curr]);
+			if (is_constrained) {
+				sv = sld->sv;
+				for (i = 0; i < sld->totsv; i++, sv++) {
+					glVertex3fv(sv->co_orig_3d);
+					glVertex3fv(sv->co_link_orig_3d[sv->co_link_curr]);
+				}
+			}
+			else {
+				sv = sld->sv;
+				for (i = 0; i < sld->totsv; i++, sv++) {
+					float a[3], b[3];
+					sub_v3_v3v3(a, sv->co_link_orig_3d[sv->co_link_curr], sv->co_orig_3d);
+					mul_v3_fl(a, 100.0f);
+					negate_v3_v3(b, a);
+					add_v3_v3(a, sv->co_orig_3d);
+					add_v3_v3(b, sv->co_orig_3d);
+
+					glVertex3fv(a);
+					glVertex3fv(b);
+				}
 			}
 			bglEnd();
 
@@ -6259,15 +6275,18 @@ int VertSlide(TransInfo *t, const int UNUSED(mval[2]))
 	char str[128];
 	float final;
 	VertSlideData *sld =  t->customData;
-	int flipped = sld->flipped_vtx;
-	int is_proportional = sld->is_proportional;
+	const bool flipped = sld->flipped_vtx;
+	const bool is_proportional = sld->is_proportional;
+	const bool is_constrained = !((t->flag & T_ALT_TRANSFORM) || hasNumInput(&t->num));
 
 	final = t->values[0];
 
 	snapGrid(t, &final);
 
 	/* only do this so out of range values are not displayed */
-	CLAMP(final, -1.0f, 1.0f);
+	if(is_constrained) {
+		CLAMP(final, 0.0f, 1.0f);
+	}
 
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
@@ -6284,7 +6303,9 @@ int VertSlide(TransInfo *t, const int UNUSED(mval[2]))
 		             final, !is_proportional ? "ON" : "OFF", flipped ? "ON" : "OFF", (t->flag & T_ALT_TRANSFORM) ? "ON" : "OFF");
 	}
 
-	CLAMP(final, -1.0f, 1.0f);
+	if(is_constrained) {
+		CLAMP(final, 0.0f, 1.0f);
+	}
 
 	t->values[0] = final;
 
