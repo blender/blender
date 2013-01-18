@@ -218,10 +218,8 @@ typedef struct Object {
 	char boundtype;            /* bounding box use for drawing */
 	char collision_boundtype;  /* bounding box type used for collision */
 
-	char  restrictflag;	/* for restricting view, select, render etc. accessible in outliner */
-
+	short dtx;			/* viewport draw extra settings */
 	char dt;			/* viewport draw type */
-	char dtx;			/* viewport draw extra settings */
 	char empty_drawtype;
 	float empty_drawsize;
 	float dupfacesca;	/* dupliface scale */
@@ -241,8 +239,9 @@ typedef struct Object {
 
 	struct BulletSoftBody *bsoft;	/* settings for game engine bullet soft body */
 
+	char restrictflag;		/* for restricting view, select, render etc. accessible in outliner */
+	char recalc;			/* dependency flag */
 	short softflag;			/* softbody settings */
-	short recalc;			/* dependency flag */
 	float anisotropicFriction[3];
 
 	ListBase constraints;		/* object constraints */
@@ -406,17 +405,19 @@ typedef struct DupliObject {
 
 #define OB_PAINT		100	/* temporary used in draw code */
 
-/* dtx: flags, char! */
-#define OB_AXIS			2
-#define OB_TEXSPACE		4
-#define OB_DRAWNAME		8
-#define OB_DRAWIMAGE	16
+/* dtx: flags (short) */
+#define OB_DRAWBOUNDOX		(1 << 0)
+#define OB_AXIS				(1 << 1)
+#define OB_TEXSPACE			(1 << 2)
+#define OB_DRAWNAME			(1 << 3)
+#define OB_DRAWIMAGE		(1 << 4)
 	/* for solid+wire display */
-#define OB_DRAWWIRE		32
-	/* for overdraw */
-#define OB_DRAWXRAY		64
+#define OB_DRAWWIRE			(1 << 5)
+	/* for overdraw s*/
+#define OB_DRAWXRAY			(1 << 6)
 	/* enable transparent draw */
-#define OB_DRAWTRANSP	128
+#define OB_DRAWTRANSP		(1 << 7)
+#define OB_DRAW_ALL_EDGES	(1 << 8)  /* only for meshes currently */
 
 /* empty_drawtype: no flags */
 #define OB_ARROWS		1

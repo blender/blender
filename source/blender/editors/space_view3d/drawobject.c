@@ -206,7 +206,7 @@ static int check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)
 
 /* check for glsl drawing */
 
-int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, const short dt)
+int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, const char dt)
 {
 	if (!GPU_glsl_support())
 		return 0;
@@ -1077,7 +1077,7 @@ static void draw_transp_spot_volume(Lamp *la, float x, float z)
 }
 
 static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
-                     const short dt, const short dflag, const unsigned char ob_wire_col[4])
+                     const char dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	Object *ob = base->object;
 	const float pixsize = ED_view3d_pixel_size(rv3d, ob->obmat[3]);
@@ -2820,7 +2820,7 @@ static DMDrawOption draw_em_fancy__setGLSLFaceOpts(void *userData, int index)
 }
 
 static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
-                          Object *ob, BMEditMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, const short dt)
+                          Object *ob, BMEditMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, const char dt)
 
 {
 	Mesh *me = ob->data;
@@ -3026,7 +3026,7 @@ static void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm)
 }
 
 static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
-                            const short dt, const unsigned char ob_wire_col[4], const short dflag)
+                            const char dt, const unsigned char ob_wire_col[4], const short dflag)
 {
 	Object *ob = base->object;
 	Mesh *me = ob->data;
@@ -3235,7 +3235,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			glDepthMask(0);  /* disable write in zbuffer, selected edge wires show better */
 		}
 		
-		dm->drawEdges(dm, (dt == OB_WIRE || totface == 0), me->drawflag & ME_ALLEDGES);
+		dm->drawEdges(dm, (dt == OB_WIRE || totface == 0), (ob->dtx & OB_DRAW_ALL_EDGES));
 
 		if (dt != OB_WIRE && (draw_wire == OBDRAW_WIRE_ON_DEPTH)) {
 			glDepthMask(1);
@@ -3261,7 +3261,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 /* returns 1 if nothing was drawn, for detecting to draw an object center */
 static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
-                            const short dt, const unsigned char ob_wire_col[4], const short dflag)
+                            const char dt, const unsigned char ob_wire_col[4], const short dflag)
 {
 	Object *ob = base->object;
 	Object *obedit = scene->obedit;
@@ -3583,7 +3583,7 @@ static void drawCurveDMWired(Object *ob)
 }
 
 /* return 1 when nothing was drawn */
-static int drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, const short dt)
+static int drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, const char dt)
 {
 	Object *ob = base->object;
 	DerivedMesh *dm = ob->derivedFinal;
@@ -3619,7 +3619,7 @@ static int drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, B
  * \return 1 when nothing was drawn
  */
 static int drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
-                                   const short dt, const short dflag, const unsigned char ob_wire_col[4])
+                                   const char dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	Object *ob = base->object;
 	ListBase *lb = NULL;
@@ -3745,7 +3745,7 @@ static int drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3d
 	return FALSE;
 }
 static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
-                        const short dt, const short dflag, const unsigned char ob_wire_col[4])
+                        const char dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	int retval;
 
@@ -5262,7 +5262,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 }
 
 static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, Nurb *nurb,
-                     const short dt, const short dflag, const unsigned char ob_wire_col[4])
+                     const char dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	ToolSettings *ts = scene->toolsettings;
 	Object *ob = base->object;
@@ -5591,7 +5591,7 @@ static void drawcone(const float vec[3], float radius, float height, float tmat[
 }
 /* return TRUE if nothing was drawn */
 static int drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
-                     const short dt, const short dflag, const unsigned char ob_wire_col[4])
+                     const char dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	Object *ob = base->object;
 	MetaBall *mb;
@@ -6240,7 +6240,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	unsigned char _ob_wire_col[4];      /* dont initialize this */
 	unsigned char *ob_wire_col = NULL;  /* dont initialize this, use NULL crashes as a way to find invalid use */
 	int i, selstart, selend, empty_object = 0;
-	short dt, dtx, zbufoff = 0;
+	short dtx;
+	char  dt;
+	short zbufoff = 0;
 	const short is_obact = (ob == OBACT);
 
 	/* only once set now, will be removed too, should become a global standard */
@@ -6754,7 +6756,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		}
 
 		if (ob->gameflag & OB_BOUNDS) {
-			if (ob->boundtype != ob->collision_boundtype || (dtx & OB_BOUNDBOX) == 0) {
+			if (ob->boundtype != ob->collision_boundtype || (dtx & OB_DRAWBOUNDOX) == 0) {
 
 				setlinestyle(2);
 				draw_bounding_volume(scene, ob, ob->collision_boundtype);
@@ -6768,7 +6770,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			if (dtx & OB_AXIS) {
 				drawaxes(1.0f, OB_ARROWS);
 			}
-			if (dtx & OB_BOUNDBOX) {
+			if (dtx & OB_DRAWBOUNDOX) {
 				draw_bounding_volume(scene, ob, ob->boundtype);
 			}
 			if (dtx & OB_TEXSPACE) {
@@ -7251,7 +7253,7 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 	if (dm) dm->release(dm);
 }
 
-void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, const short dt, int outline)
+void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, const char dt, int outline)
 {
 	if (ob == NULL)
 		return;

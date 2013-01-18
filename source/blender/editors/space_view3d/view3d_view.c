@@ -879,7 +879,8 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	ARegion *ar = vc->ar;
 	rctf rect;
 	short code, hits;
-	char dt, dtx;
+	char dt;
+	short dtx;
 	
 	G.f |= G_PICKSEL;
 	

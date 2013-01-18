@@ -119,8 +119,8 @@ void draw_motion_paths_cleanup(View3D *v3d);
 
 /* drawobject.c */
 void draw_object(Scene *scene, struct ARegion *ar, View3D *v3d, Base *base, const short dflag);
-int draw_glsl_material(Scene *scene, struct Object *ob, View3D *v3d, const short dt);
-void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob, const short dt, int outline);
+int draw_glsl_material(Scene *scene, struct Object *ob, View3D *v3d, const char dt);
+void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob, const char dt, int outline);
 void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob);
 void drawaxes(float size, char drawtype);
 

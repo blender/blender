@@ -1927,7 +1927,8 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	BoundBox bb, *bb_tmp; /* use a copy because draw_object, calls clear_mesh_caches */
 	GLuint displist = 0;
 	short transflag, use_displist = -1;  /* -1 is initialize */
-	char dt, dtx;
+	char dt;
+	short dtx;
 	
 	if (base->object->restrictflag & OB_RESTRICT_VIEW) return;
 	
