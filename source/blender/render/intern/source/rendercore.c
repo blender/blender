@@ -2207,8 +2207,14 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 			float rgb[3];
 
 			copy_v3_v3(rgb, shr.combined);
-			if (R.scene_color_manage)
-				IMB_colormanagement_scene_linear_to_colorspace_v3(rgb, bs->rect_colorspace);
+			if (R.scene_color_manage) {
+				/* Vertex colors have no way to specify color space, so they
+				 * default to sRGB. */
+				if (!bs->vcol)
+					IMB_colormanagement_scene_linear_to_colorspace_v3(rgb, bs->rect_colorspace);
+				else
+					linearrgb_to_srgb_v3_v3(rgb, rgb);
+			}
 			rgb_float_to_uchar(col, rgb);
 		}
 		else {
@@ -2223,7 +2229,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 		}
 
 		if (bs->vcol) {
-			/* Vertex colour baking. Vcol has no useful alpha channel (it exists
+			/* Vertex color baking. Vcol has no useful alpha channel (it exists
 			 * but is used only for vertex painting). */
 			bs->vcol->r = col[0];
 			bs->vcol->g = col[1];
@@ -2265,7 +2271,7 @@ static void bake_displacement(void *handle, ShadeInput *UNUSED(shi), float dist,
 		col[3] = 255;
 
 		if(bs->vcol) {
-			/* Vertex colour baking. Vcol has no useful alpha channel (it exists
+			/* Vertex color baking. Vcol has no useful alpha channel (it exists
 			 * but is used only for vertex painting). */
 			bs->vcol->r = col[0];
 			bs->vcol->g = col[1];
@@ -2511,7 +2517,7 @@ static int get_next_bake_face(BakeShade *bs)
 
 			if ((bs->actob && bs->actob == obr->ob) || (!bs->actob && (obr->ob->flag & SELECT))) {
 				if(R.r.bake_flag & R_BAKE_VCOL) {
-					/* Gather face data for vertex colour bake */
+					/* Gather face data for vertex color bake */
 					Mesh *me;
 					int *origindex, vcollayer;
 					CustomDataLayer *cdl;
