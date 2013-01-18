@@ -4769,7 +4769,7 @@ static int allow_render_dupli_instance(Render *UNUSED(re), DupliObject *dob, Obj
 
 	if (totmaterial) {
 		for (a= 0; a<*totmaterial; a++) {
-			ma= give_current_material(obd, a);
+			ma= give_current_material(obd, a + 1);
 			if (ma && (ma->material_type == MA_TYPE_HALO))
 				return 0;
 		}
