@@ -106,7 +106,7 @@ NodeGroup* BlenderFileLoader::Load()
 int BlenderFileLoader::countClippedFaces(float v1[3], float v2[3], float v3[3], int clip[3])
 {
 	float *v[3];
-	int numClipped, sum, numTris;
+	int numClipped, sum, numTris = 0;
 
 	v[0] = v1;
 	v[1] = v2;
@@ -356,7 +356,7 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	// We parse vlak nodes and count the number of faces after the clipping by
 	// the near and far view planes is applied (Note: mesh vertices are in the
 	// camera coordinate system).
-	VlakRen *vlr;
+	VlakRen *vlr = NULL;
 	unsigned numFaces = 0;
 	float v1[3], v2[3], v3[3], v4[3];
 	float n1[3], n2[3], n3[3], n4[3], facenormal[3];

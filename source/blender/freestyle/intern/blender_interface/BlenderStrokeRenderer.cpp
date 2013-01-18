@@ -117,6 +117,10 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count) : Str
 	freestyle_scene->r.im_format.imtype = R_IMF_IMTYPE_PNG;
 	BKE_scene_disable_color_management(freestyle_scene);
 
+	if (G.debug & G_DEBUG_FREESTYLE) {
+		printf("%s: %d threads\n", __func__, freestyle_scene->r.threads);
+	}
+
 	// Render layer
 	SceneRenderLayer *srl = (SceneRenderLayer *)freestyle_scene->r.layers.first;
 	srl->layflag = SCE_LAY_SOLID | SCE_LAY_ZTRA;
@@ -221,7 +225,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 	vector<Strip*>& strips = iStrokeRep->getStrips();
 	Strip::vertex_container::iterator v[3];
 	StrokeVertexRep *svRep[3];
-	Vec3r color[3];
+	/* Vec3r color[3]; */ /* UNUSED */
 	unsigned int vertex_index, edge_index, loop_index;
 	Vec2r p;
 
@@ -481,6 +485,8 @@ Object *BlenderStrokeRenderer::NewMesh() const
 #if 0
 	BKE_scene_base_deselect_all(scene);
 	BKE_scene_base_select(scene, base);
+#else
+	(void)base;
 #endif
 	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
 

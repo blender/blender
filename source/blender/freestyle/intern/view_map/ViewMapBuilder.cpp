@@ -573,6 +573,8 @@ static void computeCumulativeVisibility(ViewMap *ioViewMap, G& grid, real epsilo
 			if (_global.debug & G_DEBUG_FREESTYLE) {
 				cout << "\tConclusion: QI = " << maxIndex << ", " << (*ve)->occluders_size() << " occluders." << endl;
 			}
+		#else
+			(void)maxIndex;
 		#endif
 		// occludee --
 		if (!wFaces.empty()) {

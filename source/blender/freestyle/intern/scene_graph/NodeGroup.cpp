@@ -96,14 +96,14 @@ void NodeGroup::DetachChildren()
 
 void NodeGroup::DetachChild(Node *iChild)
 {
-	int found = 0;
+	/* int found = 0; */ /* UNUSED */
 	vector<Node*>::iterator node;
 
 	for (node = _Children.begin(); node != _Children.end(); ++node) {
 		if ((*node) == iChild) {
 			(*node)->release();
 			_Children.erase(node);
-			found = 1;
+			/* found = 1; */ /* UNUSED */
 			break;
 		}
 	}

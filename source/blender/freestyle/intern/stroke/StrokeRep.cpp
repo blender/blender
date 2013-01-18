@@ -292,10 +292,10 @@ void Strip::createStrip (const vector<StrokeVertex*>& iStrokeVertices)
 	_vertices.push_back(new StrokeVertexRep(sv->getPoint() + thicknessLast[1] * stripDirLast));
 	++i;
 	_vertices.push_back(new StrokeVertexRep(sv->getPoint() - thicknessLast[0] * stripDirLast));
-	int n = i;
 	++i;
 
 #if 0
+	int n = i - 1;
 	// check whether the orientation of the extremity was user defined
 	userDir = _stroke->getEndingOrientation();
 	if (userDir != Vec2r(0, 0)) {

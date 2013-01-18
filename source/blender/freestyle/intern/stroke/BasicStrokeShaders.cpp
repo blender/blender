@@ -226,10 +226,10 @@ ThicknessVariationPatternShader::ThicknessVariationPatternShader(const string pa
 int ThicknessVariationPatternShader::shade(Stroke& stroke) const
 {
 	StrokeInternal::StrokeVertexIterator v, vend;
-	float *array = 0;
-	int size;
+	float *array = NULL;
+	/* int size; */ /* UNUSED */
 	array = _aThickness;
-	size = _size;
+	/* size = _size; */ /* UNUSED */
 	int vert_size = stroke.strokeVerticesSize();
 	int sig = 0;
 	unsigned index;

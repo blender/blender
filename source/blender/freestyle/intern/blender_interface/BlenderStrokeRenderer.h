@@ -25,8 +25,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BLENDERSTROKERENDERER_H__
-#define __BLENDERSTROKERENDERER_H__
+#ifndef __BLENDER_STROKE_RENDERER_H__
+#define __BLENDER_STROKE_RENDERER_H__
 
 /** \file blender/freestyle/intern/blender_interface/BlenderStrokeRenderer.h
  *  \ingroup freestyle
@@ -73,4 +73,4 @@ protected:
 	float get_stroke_vertex_z(void) const;
 };
 
-#endif // __BLENDERSTROKERENDERER_H__
+#endif // __BLENDER_STROKE_RENDERER_H__

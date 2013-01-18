@@ -67,7 +67,7 @@ void ViewEdgeXBuilder::BuildViewEdges(WXShape *iWShape, ViewShape *oVShape, vect
 	// Reinit structures
 	Init(oVShape);
 
-	ViewEdge *vedge;
+	/* ViewEdge *vedge; */ /* UNUSED */
 	// Let us build the smooth stuff
 	//----------------------------------------
 	// We parse all faces to find the ones that contain smooth edges
@@ -87,7 +87,7 @@ void ViewEdgeXBuilder::BuildViewEdges(WXShape *iWShape, ViewShape *oVShape, vect
 				continue;
 			// here we know that we're dealing with a face layer that has not been processed yet and that contains
 			// a smooth edge.
-			vedge = BuildSmoothViewEdge(OWXFaceLayer(*sl, true));
+			/* vedge =*/ /* UNUSED */ BuildSmoothViewEdge(OWXFaceLayer(*sl, true));
 		}
 	}
 
@@ -225,7 +225,7 @@ ViewEdge *ViewEdgeXBuilder::BuildSharpViewEdge(const OWXEdge& iWEdge)
 
 	// Find first edge:
 	OWXEdge firstWEdge = iWEdge;
-	OWXEdge previousWEdge = firstWEdge;
+	/* OWXEdge previousWEdge = firstWEdge; */ /* UNUSED */
 	OWXEdge currentWEdge = firstWEdge;
 	list<OWXEdge> edgesChain;
 #if 0 /* TK 02-Sep-2012 Experimental fix for incorrect view edge visibility. */

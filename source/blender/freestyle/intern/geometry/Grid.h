@@ -37,6 +37,9 @@
 
 #include <cstring> // for memset
 #include <float.h>
+#ifndef _MSC_VER
+#include <stdint.h> // For SET_UINT_IN_POINTER, i.e. uintptr_t.
+#endif
 #include <vector>
 
 #include "Geom.h"
@@ -44,6 +47,10 @@
 #include "Polygon.h"
 
 #include "../system/FreestyleConfig.h"
+
+extern "C" {
+	#include "BLI_utildefines.h"
+}
 
 using namespace std;
 using namespace Geometry;
@@ -325,8 +332,8 @@ protected:
 				visitor.discoverCell(current_cell);
 				OccludersSet& occluders = current_cell->getOccluders(); // FIXME: I had forgotten the ref &
 				for (OccludersSet::iterator it = occluders.begin(); it != occluders.end(); it++) {
-					if ((unsigned long)(*it)->userdata2 != _timestamp) {
-						(*it)->userdata2 = (void*)_timestamp;
+					if (GET_UINT_FROM_POINTER((*it)->userdata2) != _timestamp) {
+						(*it)->userdata2 = SET_UINT_IN_POINTER(_timestamp);
 						visitor.examineOccluder(*it);
 					}
 				}
