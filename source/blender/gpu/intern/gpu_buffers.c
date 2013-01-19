@@ -1922,22 +1922,6 @@ static int gpu_bmesh_vert_visible_count(GHash *bm_unique_verts,
 	return totvert;
 }
 
-/* Return TRUE if all vertices in the face are visible, FALSE otherwise */
-static int gpu_bmesh_face_visible(BMFace *f)
-{
-	BMLoop *l_iter;
-	BMLoop *l_first;
-
-	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-	do {
-		if (BM_elem_flag_test(l_iter->v, BM_ELEM_HIDDEN)) {
-			return false;
-		}
-	} while ((l_iter = l_iter->next) != l_first);
-
-	return true;
-}
-
 /* Return the total number of visible faces */
 static int gpu_bmesh_face_visible_count(GHash *bm_faces)
 {
@@ -1947,7 +1931,7 @@ static int gpu_bmesh_face_visible_count(GHash *bm_faces)
 	GHASH_ITER (gh_iter, bm_faces) {
 		BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
 
-		if (gpu_bmesh_face_visible(f))
+		if (!paint_is_bmesh_face_hidden(f))
 			totface++;
 	}
 
@@ -2014,7 +1998,7 @@ void GPU_update_bmesh_buffers(GPU_Buffers *buffers,
 
 				BLI_assert(f->len == 3);
 
-				if (gpu_bmesh_face_visible(f)) {
+				if (!paint_is_bmesh_face_hidden(f)) {
 					BMVert *v[3];
 					float fmask = 0;
 					int i;
@@ -2068,7 +2052,7 @@ void GPU_update_bmesh_buffers(GPU_Buffers *buffers,
 			GHASH_ITER (gh_iter, bm_faces) {
 				BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
 
-				if (gpu_bmesh_face_visible(f)) {
+				if (!paint_is_bmesh_face_hidden(f)) {
 					BMLoop *l_iter;
 					BMLoop *l_first;
 

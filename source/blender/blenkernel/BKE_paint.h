@@ -34,6 +34,7 @@
 
 struct bContext;
 struct BMesh;
+struct BMFace;
 struct Brush;
 struct MDisps;
 struct MeshElemMap;
@@ -72,6 +73,7 @@ int paint_vertsel_test(struct Object *ob);
 int paint_is_face_hidden(const struct MFace *f, const struct MVert *mvert);
 int paint_is_grid_face_hidden(const unsigned int *grid_hidden,
                               int gridsize, int x, int y);
+int paint_is_bmesh_face_hidden(struct BMFace *f);
 
 /* paint masks */
 float paint_grid_paint_mask(const struct GridPaintMask *gpm, unsigned level,

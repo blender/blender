@@ -28,6 +28,7 @@
 #include "BKE_ccg.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
+#include "BKE_paint.h"
 #include "BKE_pbvh.h"
 
 #include "GPU_buffers.h"
@@ -936,10 +937,9 @@ int pbvh_bmesh_node_raycast(PBVHNode *node, const float ray_start[3],
 			BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
 
 			BLI_assert(f->len == 3);
-			if (f->len == 3) {
+			if (f->len == 3 && !paint_is_bmesh_face_hidden(f)) {
 				BMVert *v_tri[3];
 
-				// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v_tri, 3);
 				BM_face_as_array_vert_tri(f, v_tri);
 				hit |= ray_face_intersection(ray_start, ray_normal,
 				                             v_tri[0]->co,
@@ -1071,7 +1071,9 @@ BLI_INLINE void bm_face_as_array_index_tri(BMFace *f, int r_index[3])
 }
 
 /* In order to perform operations on the original node coordinates
- * (such as raycast), store the node's triangles and vertices.*/
+ * (currently just raycast), store the node's triangles and vertices.
+ *
+ * Skips triangles that are hidden. */
 void BKE_pbvh_bmesh_node_save_orig(PBVHNode *node)
 {
 	GHashIterator gh_iter;
@@ -1108,6 +1110,9 @@ void BKE_pbvh_bmesh_node_save_orig(PBVHNode *node)
 	i = 0;
 	GHASH_ITER (gh_iter, node->bm_faces) {
 		BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
+
+		if (paint_is_bmesh_face_hidden(f))
+			continue;
 
 #if 0
 		BMIter bm_iter;
