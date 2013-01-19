@@ -430,7 +430,11 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
 
 	BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
-	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
+	/* Disable OpenMP when dynamic-topology is enabled. Otherwise, new
+	 * entries might be inserted by sculpt_undo_push_node() into the
+	 * GHash used internally by BM_log_original_vert_co() by a
+	 * different thread. [#33787] */
+	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP && !ss->bm)
 	for (n = 0; n < totnode; n++) {
 		SculptUndoNode *unode;
 		SculptUndoType type = (brush->sculpt_tool == SCULPT_TOOL_MASK ?
