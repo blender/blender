@@ -136,9 +136,9 @@ struct ImBuf *imb_load_dds(unsigned char *mem, size_t size, int flags, char colo
 			if (pixel.a != 255) {
 				bits_per_pixel = 32;
 				break;
-			};
-		};
-	};
+			}
+		}
+	}
 	ibuf = IMB_allocImBuf(dds.width(), dds.height(), bits_per_pixel, 0); 
 	if (ibuf == 0) return(0); /* memory allocation failed */
 

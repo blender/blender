@@ -387,7 +387,7 @@ static short edbm_extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 		if (ele->head.htype == BM_FACE) {
 			f = (BMFace *)ele;
 			add_normal_aligned(nor, f->no);
-		};
+		}
 	}
 
 	normalize_v3(nor);

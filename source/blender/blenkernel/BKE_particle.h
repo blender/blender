@@ -306,7 +306,7 @@ int psys_get_particle_state(struct ParticleSimulationData *sim, int p, struct Pa
 
 void psys_sph_init(struct ParticleSimulationData *sim, struct SPHData *sphdata);
 void psys_sph_finalise(struct SPHData *sphdata);
-void psys_sph_density(struct BVHTree *tree, struct SPHData* data, float co[3], float vars[2]);
+void psys_sph_density(struct BVHTree *tree, struct SPHData *data, float co[3], float vars[2]);
 
 /* for anim.c */
 void psys_get_dupli_texture(struct ParticleSystem *psys, struct ParticleSettings *part,

@@ -6284,7 +6284,7 @@ int VertSlide(TransInfo *t, const int UNUSED(mval[2]))
 	snapGrid(t, &final);
 
 	/* only do this so out of range values are not displayed */
-	if(is_constrained) {
+	if (is_constrained) {
 		CLAMP(final, 0.0f, 1.0f);
 	}
 
@@ -6303,7 +6303,7 @@ int VertSlide(TransInfo *t, const int UNUSED(mval[2]))
 		             final, !is_proportional ? "ON" : "OFF", flipped ? "ON" : "OFF", (t->flag & T_ALT_TRANSFORM) ? "ON" : "OFF");
 	}
 
-	if(is_constrained) {
+	if (is_constrained) {
 		CLAMP(final, 0.0f, 1.0f);
 	}
 

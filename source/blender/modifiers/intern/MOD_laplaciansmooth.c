@@ -385,7 +385,8 @@ static void init_laplacian_matrix(LaplacianSystem *sys)
 			sys->ring_areas[idv2] += average_area_quad_v3(v2, v3, v4, v1);
 			sys->ring_areas[idv3] += average_area_quad_v3(v3, v4, v1, v2);
 			sys->ring_areas[idv4] += average_area_quad_v3(v4, v1, v2, v3);
-		} else {
+		}
+		else {
 			sys->ring_areas[idv1] += areaf;
 			sys->ring_areas[idv2] += areaf;
 			sys->ring_areas[idv3] += areaf;
