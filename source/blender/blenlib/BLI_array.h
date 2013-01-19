@@ -25,53 +25,19 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifndef __BLI_ARRAY_H__
+#define __BLI_ARRAY_H__
+
 /** \file BLI_array.h
  *  \ingroup bli
- *  \brief A macro array library.
- *
- * this library needs to be changed to not use macros quite so heavily,
- * and to be more of a complete array API.  The way arrays are
- * exposed to client code as normal C arrays is very useful though, imho.
- * it does require some use of macros, however.
- *
- * anyway, it's used a bit too heavily to simply rewrite as a
- * more "correct" solution without macros entirely.  I originally wrote this
- * to be very easy to use, without the normal pain of most array libraries.
- * This was especially helpful when it came to the massive refactors necessary
- * for bmesh, and really helped to speed the process up. - joeedh
- *
- * little array macro library.  example of usage:
- *
- * int *arr = NULL;
- * BLI_array_declare(arr);
- * int i;
- *
- * for (i = 0; i < 10; i++) {
- *     BLI_array_grow_one(arr);
- *     arr[i] = something;
- * }
- * BLI_array_free(arr);
- *
- * arrays are buffered, using double-buffering (so on each reallocation,
- * the array size is doubled).  supposedly this should give good Big Oh
- * behavior, though it may not be the best in practice.
+ *  \brief A (mainly) macro array library.
  */
 
-#define BLI_array_declare(arr)                                                \
-	int   _##arr##_count = 0;                                                 \
-	void *_##arr##_tmp;                                                       \
-	void *_##arr##_static = NULL
-
-/* this will use stack space, up to maxstatic array elements, before
- * switching to dynamic heap allocation */
-#define BLI_array_staticdeclare(arr, maxstatic)                               \
-	int   _##arr##_count = 0;                                                 \
-	void *_##arr##_tmp;                                                       \
-	char  _##arr##_static[maxstatic * sizeof(arr)]
-
+/* -------------------------------------------------------------------- */
+/* internal defines */
 
 /* this returns the entire size of the array, including any buffering. */
-#define BLI_array_totalsize_dyn(arr)  (                                       \
+#define _bli_array_totalsize_dynamic(arr)  (                                  \
 	((arr) == NULL) ?                                                         \
 	    0 :                                                                   \
 	    MEM_allocN_len(arr) / sizeof(*arr)                                    \
@@ -80,13 +46,35 @@
 #define _bli_array_totalsize_static(arr)  \
 	(sizeof(_##arr##_static) / sizeof(*arr))
 
-#define BLI_array_totalsize(arr)  (                                           \
+#define _bli_array_totalsize(arr)  (                                          \
 	(size_t)                                                                  \
 	(((void *)(arr) == (void *)_##arr##_static && (void *)(arr) != NULL) ?    \
 	    _bli_array_totalsize_static(arr) :                                    \
-	    BLI_array_totalsize_dyn(arr))                                         \
+	    _bli_array_totalsize_dynamic(arr))                                    \
 )
 
+/* BLI_array.c
+ *
+ * Doing the realloc in a macro isn't so simple,
+ * so use a function the macros can use.
+ */
+void _bli_array_grow_func(void **arr_p, const void *arr_static,
+                          const int sizeof_arr_p, const int arr_count, const int num,
+                          const char *alloc_str);
+
+
+/* -------------------------------------------------------------------- */
+/* public defines */
+
+#define BLI_array_declare(arr)                                                \
+	int   _##arr##_count = 0;                                                 \
+	void *_##arr##_static = NULL
+
+/* this will use stack space, up to maxstatic array elements, before
+ * switching to dynamic heap allocation */
+#define BLI_array_staticdeclare(arr, maxstatic)                               \
+	int   _##arr##_count = 0;                                                 \
+	char  _##arr##_static[maxstatic * sizeof(arr)]
 
 /* this returns the logical size of the array, not including buffering. */
 #define BLI_array_count(arr) _##arr##_count
@@ -97,38 +85,23 @@
  * to allocate the exact sized array. */
 
 /* grow an array by a specified number of items */
-#define BLI_array_grow_items(arr, num)  (                                     \
+#define BLI_array_grow_items(arr, num)  ((                                    \
 	(((void *)(arr) == NULL) &&                                               \
 	 ((void *)(_##arr##_static) != NULL) &&                                   \
-	/* dont add _##arr##_count below because it must be zero */               \
+	/* don't add _##arr##_count below because it must be zero */              \
 	 (_bli_array_totalsize_static(arr) >= _##arr##_count + num)) ?            \
 	/* we have an empty array and a static var big enough */                  \
-	((arr = (void *)_##arr##_static), (_##arr##_count += (num)))              \
+	(arr = (void *)_##arr##_static)                                           \
 	    :                                                                     \
 	/* use existing static array or allocate */                               \
-	(LIKELY(BLI_array_totalsize(arr) >= _##arr##_count + num) ?               \
-	    (_##arr##_count += num) :  /* UNLIKELY --> realloc */                 \
-	    (                                                                     \
-	        (void) (_##arr##_tmp = MEM_callocN(                               \
-	                sizeof(*arr) * (num < _##arr##_count ?                    \
-	                                (_##arr##_count * 2 + 2) :                \
-	                                (_##arr##_count + num)),                  \
-	                #arr " " __FILE__ ":" STRINGIFY(__LINE__)                 \
-	                )                                                         \
-	                ),                                                        \
-	        (void) (arr && memcpy(_##arr##_tmp,                               \
-	                              arr,                                        \
-	                              sizeof(*arr) * _##arr##_count)              \
-	                ),                                                        \
-	        (void) (arr && ((void *)(arr) != (void *)_##arr##_static ?        \
-	                (MEM_freeN(arr), arr) :                                   \
-	                arr)                                                      \
-	                ),                                                        \
-	        (void) (arr = _##arr##_tmp                                        \
-	                ),                                                        \
-	        (_##arr##_count += num)                                           \
-	    ))                                                                    \
-)
+	(LIKELY(_bli_array_totalsize(arr) >= _##arr##_count + num) ?              \
+	 (void)0 /* do nothing */ :                                               \
+	 (_bli_array_grow_func((void **)&(arr), _##arr##_static,                  \
+	                       sizeof(*arr), _##arr##_count, num,                 \
+	                       "BLI_array." #arr)))                               \
+	),                                                                        \
+	/* increment the array count, all conditions above are accounted for. */  \
+	(_##arr##_count += num))
 
 /* returns length of array */
 #define BLI_array_grow_one(arr)  BLI_array_grow_items(arr, 1)
@@ -167,19 +140,22 @@
 /* resets the logical size of an array to zero, but doesn't
  * free the memory. */
 #define BLI_array_empty(arr)                                                  \
-	_##arr##_count = 0; (void)0
+	{ _##arr##_count = 0; } (void)0
 
 /* set the count of the array, doesn't actually increase the allocated array
  * size.  don't use this unless you know what you're doing. */
 #define BLI_array_length_set(arr, count)                                      \
-	_##arr##_count = (count); (void)0
+	{ _##arr##_count = (count); }(void)0
 
 /* only to prevent unused warnings */
 #define BLI_array_fake_user(arr)                                              \
 	(void)_##arr##_count,                                                     \
-	(void)_##arr##_tmp,                                                       \
 	(void)_##arr##_static
 
+
+/* -------------------------------------------------------------------- */
+/* other useful defines
+ * (unrelated to the main array macros) */
 
 /* not part of the 'API' but handy funcs,
  * same purpose as BLI_array_staticdeclare()
@@ -224,3 +200,4 @@
 	const int _##arr##_count = (realsize)
 #endif
 
+#endif  /* __BLI_ARRAY_H__ */
