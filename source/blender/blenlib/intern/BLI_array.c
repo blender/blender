@@ -76,7 +76,7 @@ void _bli_array_grow_func(void **arr_p, const void *arr_static,
 	void *arr = *arr_p;
 	void *arr_tmp;
 
-	arr_tmp = MEM_callocN(sizeof_arr_p *
+	arr_tmp = MEM_mallocN(sizeof_arr_p *
 	                      ((num < arr_count) ?
 	                      (arr_count * 2 + 2) : (arr_count + num)), alloc_str);
 
