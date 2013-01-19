@@ -416,22 +416,20 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, bool set_key, int act_key_nr)
 
 	if (me->mselect && me->totselect != 0) {
 
-		BMVert **vert_array = MEM_callocN(sizeof(BMVert *) * bm->totvert,
-		                                  "Selection Conversion Vertex Pointer Array");
-		BMEdge **edge_array = MEM_callocN(sizeof(BMEdge *) * bm->totedge,
-		                                  "Selection Conversion Edge Pointer Array");
-		BMFace **face_array = MEM_callocN(sizeof(BMFace *) * bm->totface,
-		                                  "Selection Conversion Face Pointer Array");
-
-		BMIter  iter;
-		BMVert  *vert;
-		BMEdge  *edge;
-		BMFace  *face;
+		BMVert **vert_array = MEM_mallocN(sizeof(BMVert *) * bm->totvert, "VSelConv");
+		BMEdge **edge_array = MEM_mallocN(sizeof(BMEdge *) * bm->totedge, "ESelConv");
+		BMFace **face_array = MEM_mallocN(sizeof(BMFace *) * bm->totface, "FSelConv");
 		MSelect *msel;
 
-		BM_ITER_MESH_INDEX (vert, &iter, bm, BM_VERTS_OF_MESH, i) { vert_array[i] = vert; }
-		BM_ITER_MESH_INDEX (edge, &iter, bm, BM_EDGES_OF_MESH, i) { edge_array[i] = edge; }
-		BM_ITER_MESH_INDEX (face, &iter, bm, BM_FACES_OF_MESH, i) { face_array[i] = face; }
+#pragma omp parallel sections if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
+		{
+#pragma omp section
+			{ BM_iter_as_array(bm, BM_VERTS_OF_MESH, NULL, (void **)vert_array, bm->totvert); }
+#pragma omp section
+			{ BM_iter_as_array(bm, BM_EDGES_OF_MESH, NULL, (void **)edge_array, bm->totedge); }
+#pragma omp section
+			{ BM_iter_as_array(bm, BM_FACES_OF_MESH, NULL, (void **)face_array, bm->totface); }
+		}
 
 		for (i = 0, msel = me->mselect; i < me->totselect; i++, msel++) {
 			switch (msel->type) {
