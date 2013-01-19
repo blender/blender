@@ -302,11 +302,27 @@ void *BLI_mempool_findelem(BLI_mempool *pool, int index)
 		BLI_mempool_iternew(pool, &iter);
 		for (elem = BLI_mempool_iterstep(&iter); index-- != 0; elem = BLI_mempool_iterstep(&iter)) {
 			/* do nothing */
-		};
+		}
 		return elem;
 	}
 
 	return NULL;
+}
+
+/**
+ * \param data array of pointers at least the size of 'pool->totused'
+ */
+void BLI_mempool_as_array(BLI_mempool *pool, void **data)
+{
+	BLI_mempool_iter iter;
+	void *elem;
+	void **p = data;
+	BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
+	BLI_mempool_iternew(pool, &iter);
+	for (elem = BLI_mempool_iterstep(&iter); elem; elem = BLI_mempool_iterstep(&iter)) {
+		*p++ = elem;
+	}
+	BLI_assert((p - data) == pool->totused);
 }
 
 void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter)

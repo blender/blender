@@ -86,6 +86,11 @@ __attribute__((warn_unused_result))
 __attribute__((nonnull(1)))
 #endif
 ;
+void        BLI_mempool_as_array(BLI_mempool *pool, void **data)
+#ifdef __GNUC__
+__attribute__((nonnull(1)))
+#endif
+;
 
 /** iteration stuff.  note: this may easy to produce bugs with **/
 /* private structure */
