@@ -439,8 +439,18 @@ static void pbvh_bmesh_face_remove(PBVH *bvh, BMFace *f)
 
 static void pbvh_bmesh_edge_loops(BLI_Buffer *buf, BMEdge *e)
 {
-	BLI_buffer_resize(buf, BM_edge_face_count(e));
-	BM_iter_as_array(NULL, BM_LOOPS_OF_EDGE, e, buf->data, buf->count);
+	/* fast-path for most common case where an edge has 2 faces,
+	 * no need to iterate twice.
+	 * This assumes that the buffer */
+	BMLoop **data = buf->data;
+	BLI_assert(buf->alloc_count >= 2);
+	if (LIKELY(BM_edge_loop_pair(e, &data[0], &data[1]))) {
+		buf->count = 2;
+	}
+	else {
+		BLI_buffer_resize(buf, BM_edge_face_count(e));
+		BM_iter_as_array(NULL, BM_LOOPS_OF_EDGE, e, buf->data, buf->count);
+	}
 }
 
 static void pbvh_bmesh_node_drop_orig(PBVHNode *node)
@@ -1003,9 +1013,10 @@ void BKE_pbvh_build_bmesh(PBVH *bvh, BMesh *bm, int smooth_shading,
 
 /* Collapse short edges, subdivide long edges */
 int BKE_pbvh_bmesh_update_topology(PBVH *bvh, PBVHTopologyUpdateMode mode,
-								   const float center[3], float radius)
+                                   const float center[3], float radius)
 {
-	BLI_buffer_declare_static(BMFace *, edge_loops, BLI_BUFFER_NOP, 8);
+	/* 2 is enough for edge faces - manifold edge */
+	BLI_buffer_declare_static(BMFace *, edge_loops, BLI_BUFFER_NOP, 2);
 	BLI_buffer_declare_static(BMFace *, deleted_faces, BLI_BUFFER_NOP, 32);
 
 	int modified = FALSE;
