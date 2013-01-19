@@ -806,8 +806,11 @@ void BM_log_vert_removed(BMesh *bm, BMLog *log, BMVert *v)
 	unsigned int v_id = bm_log_vert_id_get(log, v);
 	void *key = SET_INT_IN_POINTER(v_id);
 
-	if (BLI_ghash_lookup(entry->added_verts, key)) {
-		BLI_ghash_remove(entry->added_verts, key, NULL, NULL);
+	/* if it has a key, it shouldn't be NULL */
+	BLI_assert(!!BLI_ghash_lookup(entry->added_verts, key) ==
+	           !!BLI_ghash_haskey(entry->added_verts, key));
+
+	if (BLI_ghash_remove(entry->added_verts, key, NULL, NULL)) {
 		range_tree_uint_release(log->unused_ids, v_id);
 	}
 	else {
@@ -844,8 +847,11 @@ void BM_log_face_removed(BMLog *log, BMFace *f)
 	unsigned int f_id = bm_log_face_id_get(log, f);
 	void *key = SET_INT_IN_POINTER(f_id);
 
-	if (BLI_ghash_lookup(entry->added_faces, key)) {
-		BLI_ghash_remove(entry->added_faces, key, NULL, NULL);
+	/* if it has a key, it shouldn't be NULL */
+	BLI_assert(!!BLI_ghash_lookup(entry->added_faces, key) ==
+	           !!BLI_ghash_haskey(entry->added_faces, key));
+
+	if (BLI_ghash_remove(entry->added_faces, key, NULL, NULL)) {
 		range_tree_uint_release(log->unused_ids, f_id);
 	}
 	else {
