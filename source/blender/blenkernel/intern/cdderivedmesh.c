@@ -2285,6 +2285,7 @@ void CDDM_calc_normals_tessface(DerivedMesh *dm)
  */
 DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 {
+// #define USE_LOOPS
 	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
 	CDDerivedMesh *cddm2 = NULL;
 	MVert *mv, *mvert = NULL;
@@ -2296,7 +2297,10 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 	MLoop *ml, *mloop = NULL;
 	BLI_array_declare(mloop);
 	EdgeHash *ehash = BLI_edgehash_new();
-	int *newv = NULL, *newe = NULL, *newl = NULL;
+	int *newv = NULL, *newe = NULL;
+#ifdef USE_LOOPS
+	int *newl = NULL;
+#endif
 	int *oldv = NULL, *olde = NULL, *oldl = NULL, *oldp = NULL;
 	BLI_array_declare(oldv); BLI_array_declare(olde); BLI_array_declare(oldl); BLI_array_declare(oldp);
 	int i, j, c, totloop, totpoly;
@@ -2304,10 +2308,11 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 	totloop = dm->numLoopData;
 	totpoly = dm->numPolyData;
 	
-	newv = MEM_callocN(sizeof(int) * dm->numVertData, "newv vtable CDDM_merge_verts");
-	newe = MEM_callocN(sizeof(int) * dm->numEdgeData, "newv etable CDDM_merge_verts");
-	newl = MEM_callocN(sizeof(int) * totloop, "newv ltable CDDM_merge_verts");
-	
+	newv = MEM_mallocN(sizeof(int) * dm->numVertData, "newv vtable CDDM_merge_verts");
+	newe = MEM_mallocN(sizeof(int) * dm->numEdgeData, "newv etable CDDM_merge_verts");
+#ifdef USE_LOOPS
+	newl = MEM_mallocN(sizeof(int) * totloop, "newv ltable CDDM_merge_verts");
+#endif
 	/* fill newl with destination vertex indices */
 	mv = cddm->mvert;
 	c = 0;
@@ -2316,6 +2321,10 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 			BLI_array_append(oldv, i);
 			newv[i] = c++;
 			BLI_array_append(mvert, *mv);
+		}
+		else {
+			/* dummy value */
+			newv[i] = 0;
 		}
 	}
 	
@@ -2385,7 +2394,9 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 		for (j = 0; j < mp->totloop; j++, ml++) {
 			med = cddm->medge + ml->e;
 			if (LIKELY(med->v1 != med->v2)) {
+#ifdef USE_LOOPS
 				newl[j + mp->loopstart] = BLI_array_count(mloop);
+#endif
 				BLI_array_append(oldl, j + mp->loopstart);
 				BLI_array_append(mloop, *ml);
 				c++;
@@ -2451,8 +2462,10 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 		MEM_freeN(newv); 
 	if (newe)
 		MEM_freeN(newe); 
+#ifdef USE_LOOPS
 	if (newl)
 		MEM_freeN(newl);
+#endif
 	if (oldv) 
 		MEM_freeN(oldv); 
 	if (olde) 
