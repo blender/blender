@@ -501,21 +501,18 @@ int node_tweak_area_default(bNode *node, int x, int y)
 
 int node_get_colorid(bNode *node)
 {
-	if (node->typeinfo->nclass == NODE_CLASS_INPUT)
-		return TH_NODE_IN_OUT;
-	if (node->typeinfo->nclass == NODE_CLASS_OUTPUT) {
-		if (node->flag & NODE_DO_OUTPUT)
-			return TH_NODE_IN_OUT;
-		else
-			return TH_NODE;
+	switch (node->typeinfo->nclass) {
+		case NODE_CLASS_INPUT:      return TH_NODE_IN_OUT;
+		case NODE_CLASS_OUTPUT:     return (node->flag & NODE_DO_OUTPUT) ? TH_NODE_IN_OUT : TH_NODE;
+		case NODE_CLASS_CONVERTOR:  return TH_NODE_CONVERTOR;
+		case NODE_CLASS_OP_COLOR:
+		case NODE_CLASS_OP_VECTOR:
+		case NODE_CLASS_OP_FILTER:  return TH_NODE_OPERATOR;
+		case NODE_CLASS_GROUP:      return TH_NODE_GROUP;
+		case NODE_CLASS_MATTE:      return TH_NODE_MATTE;
+		case NODE_CLASS_DISTORT:    return TH_NODE_DISTORT;
+		default:                    return TH_NODE;
 	}
-	if (node->typeinfo->nclass == NODE_CLASS_CONVERTOR)
-		return TH_NODE_CONVERTOR;
-	if (ELEM3(node->typeinfo->nclass, NODE_CLASS_OP_COLOR, NODE_CLASS_OP_VECTOR, NODE_CLASS_OP_FILTER))
-		return TH_NODE_OPERATOR;
-	if (node->typeinfo->nclass == NODE_CLASS_GROUP)
-		return TH_NODE_GROUP;
-	return TH_NODE;
 }
 
 /* note: in cmp_util.c is similar code, for node_compo_pass_on()
