@@ -27,9 +27,7 @@
 
 /** \file blender/blenlib/intern/BLI_mempool.c
  *  \ingroup bli
- */
-
-/*
+ *
  * Simple, fast memory allocator for allocating many elements of the same size.
  */
 
@@ -295,11 +293,9 @@ int BLI_mempool_count(BLI_mempool *pool)
 
 void *BLI_mempool_findelem(BLI_mempool *pool, int index)
 {
-	if (!(pool->flag & BLI_MEMPOOL_ALLOW_ITER)) {
-		fprintf(stderr, "%s: Error! you can't iterate over this mempool!\n", __func__);
-		return NULL;
-	}
-	else if ((index >= 0) && (index < pool->totused)) {
+	BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
+
+	if ((index >= 0) && (index < pool->totused)) {
 		/* we could have some faster mem chunk stepping code inline */
 		BLI_mempool_iter iter;
 		void *elem;
@@ -315,13 +311,7 @@ void *BLI_mempool_findelem(BLI_mempool *pool, int index)
 
 void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter)
 {
-	if (!(pool->flag & BLI_MEMPOOL_ALLOW_ITER)) {
-		fprintf(stderr, "%s: Error! you can't iterate over this mempool!\n", __func__);
-		iter->curchunk = NULL;
-		iter->curindex = 0;
-
-		return;
-	}
+	BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
 
 	iter->pool = pool;
 	iter->curchunk = pool->chunks.first;
