@@ -4724,6 +4724,7 @@ static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 		
 		if (!ima || !ibuf || !(ibuf->rect || ibuf->rect_float)) {
 			BKE_image_release_ibuf(ima, ibuf, NULL);
+			BKE_image_release_ibuf(s->image, s->canvas, NULL);
 			return 0;
 		}
 
