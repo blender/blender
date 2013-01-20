@@ -67,10 +67,13 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::getNumDisplays(GHOST_TUns8& numDisplay
  */
 GHOST_TSuccess GHOST_DisplayManagerWin32::getNumDisplaySettings(GHOST_TUns8 display, GHOST_TInt32& numSettings) const
 {
-	GHOST_ASSERT((display == kMainDisplay), "GHOST_DisplayManagerWin32::getNumDisplaySettings(): only main displlay is supported");
+	DISPLAY_DEVICE display_device;
+	display_device.cb = sizeof(DISPLAY_DEVICE);
+	::EnumDisplayDevices(NULL, display, &display_device, 0);
+
 	numSettings = 0;
 	DEVMODE dm;
-	while (::EnumDisplaySettings(NULL, numSettings, &dm)) {
+	while (::EnumDisplaySettings(display_device.DeviceName, numSettings, &dm)) {
 		numSettings++;
 	}
 	return GHOST_kSuccess;
@@ -79,10 +82,13 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::getNumDisplaySettings(GHOST_TUns8 disp
 
 GHOST_TSuccess GHOST_DisplayManagerWin32::getDisplaySetting(GHOST_TUns8 display, GHOST_TInt32 index, GHOST_DisplaySetting& setting) const
 {
-	GHOST_ASSERT((display == kMainDisplay), "GHOST_DisplayManagerWin32::getDisplaySetting(): only main display is supported");
+	DISPLAY_DEVICE display_device;
+	display_device.cb = sizeof(DISPLAY_DEVICE);
+	::EnumDisplayDevices(NULL, display, &display_device, 0);
+
 	GHOST_TSuccess success;
 	DEVMODE dm;
-	if (::EnumDisplaySettings(NULL, index, &dm)) {
+	if (::EnumDisplaySettings(display_device.DeviceName, index, &dm)) {
 #ifdef GHOST_DEBUG
 		printf("display mode: width=%d, height=%d, bpp=%d, frequency=%d\n", dm.dmPelsWidth, dm.dmPelsHeight, dm.dmBitsPerPel, dm.dmDisplayFrequency);
 #endif // GHOST_DEBUG
@@ -112,23 +118,24 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::getDisplaySetting(GHOST_TUns8 display,
 
 GHOST_TSuccess GHOST_DisplayManagerWin32::getCurrentDisplaySetting(GHOST_TUns8 display, GHOST_DisplaySetting& setting) const
 {
-	GHOST_ASSERT((display == kMainDisplay), "GHOST_DisplayManagerWin32::getCurrentDisplaySetting(): only main display is supported");
-	return getDisplaySetting(kMainDisplay, ENUM_CURRENT_SETTINGS, setting);
+	return getDisplaySetting(display, ENUM_CURRENT_SETTINGS, setting);
 }
 
 
 GHOST_TSuccess GHOST_DisplayManagerWin32::setCurrentDisplaySetting(GHOST_TUns8 display, const GHOST_DisplaySetting& setting)
 {
-	GHOST_ASSERT((display == kMainDisplay), "GHOST_DisplayManagerWin32::setCurrentDisplaySetting(): only main display is supported");
+	DISPLAY_DEVICE display_device;
+	display_device.cb = sizeof(DISPLAY_DEVICE);
+	::EnumDisplayDevices(NULL, display, &display_device, 0);
 
 	GHOST_DisplaySetting match;
 	findMatch(display, setting, match);
 	DEVMODE dm;
 	int i = 0;
-	while (::EnumDisplaySettings(NULL, i++, &dm)) {
-		if ((dm.dmBitsPerPel == match.bpp) &&
-		    (dm.dmPelsWidth == match.xPixels) &&
-		    (dm.dmPelsHeight == match.yPixels) &&
+	while (::EnumDisplaySettings(display_device.DeviceName, i++, &dm)) {
+		if ((dm.dmBitsPerPel       == match.bpp    ) &&
+		    (dm.dmPelsWidth        == match.xPixels) &&
+		    (dm.dmPelsHeight       == match.yPixels) &&
 		    (dm.dmDisplayFrequency == match.frequency))
 		{
 			break;
