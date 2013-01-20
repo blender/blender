@@ -526,6 +526,7 @@ void macro_wrapper(struct wmOperatorType *ot, void *userdata) {}
 int pyrna_id_FromPyObject(struct PyObject *obj, struct ID **id) { return 0; }
 struct PyObject *pyrna_id_CreatePyObject(struct ID *id) {return NULL; }
 void BPY_context_update(struct bContext *C) {};
+const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *msgid) { return msgid; }
 
 /* intern/dualcon */
 struct DualConMesh;
