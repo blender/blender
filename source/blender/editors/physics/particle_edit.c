@@ -4147,8 +4147,8 @@ int PE_minmax(Scene *scene, float min[3], float max[3])
 /* initialize needed data for bake edit */
 static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache, ParticleSystem *psys)
 {
-	PTCacheEdit *edit= (psys)? psys->edit : cache->edit;
-	ParticleSystemModifierData *psmd= (psys)? psys_get_modifier(ob, psys): NULL;
+	PTCacheEdit *edit;
+	ParticleSystemModifierData *psmd = (psys) ? psys_get_modifier(ob, psys) : NULL;
 	POINT_P; KEY_K;
 	ParticleData *pa = NULL;
 	HairKey *hkey;
@@ -4163,6 +4163,8 @@ static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache,
 
 	if (psys == NULL && (cache && cache->mem_cache.first == NULL))
 		return;
+
+	edit = (psys) ? psys->edit : cache->edit;
 
 	if (!edit) {
 		totpoint = psys ? psys->totpart : (int)((PTCacheMem *)cache->mem_cache.first)->totpoint;
