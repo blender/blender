@@ -874,7 +874,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 						glVertex2f((float)v2d->cur.xmax - offset - 1, y + 0.45f * U.widget_unit);
 						glVertex2f((float)v2d->cur.xmax - 1, y + 0.45f * U.widget_unit);
 						glVertex2f((float)v2d->cur.xmax - 1, y - 0.35f * U.widget_unit);
-						glEnd(); // GL_LINES
+						glEnd();
 						
 						/* 'push down' icon for normal active-actions */
 						UI_icon_draw((float)v2d->cur.xmax - offset, ydatac, ICON_FREEZE);
