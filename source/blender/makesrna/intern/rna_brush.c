@@ -432,6 +432,7 @@ static void rna_def_brush_texture_slot(BlenderRNA *brna)
 	static EnumPropertyItem prop_tex_paint_map_mode_items[] = {
 		{MTEX_MAP_MODE_VIEW, "VIEW_PLANE", 0, "View Plane", ""},
 		{MTEX_MAP_MODE_TILED, "TILED", 0, "Tiled", ""},
+		{MTEX_MAP_MODE_3D, "3D", 0, "3D", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

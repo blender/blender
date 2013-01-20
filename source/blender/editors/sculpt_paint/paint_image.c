@@ -355,7 +355,7 @@ typedef union pixelStore {
 
 typedef struct ProjPixel {
 	float projCoSS[2]; /* the floating point screen projection of this pixel */
-	
+	float worldCoSS[3];
 	/* Only used when the airbrush is disabled.
 	 * Store the max mask value to avoid painting over an area with a lower opacity
 	 * with an advantage that we can avoid touching the pixel at all, if the 
@@ -1526,6 +1526,11 @@ static int project_paint_pixel_sizeof(const short tool)
 	}
 }
 
+static bool project_paint_supports_3d_mapping(Brush *brush)
+{
+	return (brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) && (brush->imagepaint_tool == PAINT_TOOL_DRAW);
+}
+
 /* run this function when we know a bucket's, face's pixel can be initialized,
  * return the ProjPixel which is added to 'ps->bucketRect[bucket_index]' */
 static ProjPixel *project_paint_uvpixel_init(
@@ -1537,6 +1542,7 @@ static ProjPixel *project_paint_uvpixel_init(
         const int face_index,
         const int image_index,
         const float pixelScreenCo[4],
+        const float world_spaceCo[3],
         const int side,
         const float w[3])
 {
@@ -1565,6 +1571,9 @@ static ProjPixel *project_paint_uvpixel_init(
 	}
 	
 	/* screenspace unclamped, we could keep its z and w values but don't need them at the moment */
+	if(project_paint_supports_3d_mapping(ps->brush))
+		copy_v3_v3(projPixel->worldCoSS, world_spaceCo);
+
 	copy_v2_v2(projPixel->projCoSS, pixelScreenCo);
 	
 	projPixel->x_px = x_px;
@@ -2374,6 +2383,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 	
 	float *uv1co, *uv2co, *uv3co; /* for convenience only, these will be assigned to tf->uv[0],1,2 or tf->uv[0],2,3 */
 	float pixelScreenCo[4];
+	bool do_3d_mapping = project_paint_supports_3d_mapping(ps->brush);
 	
 	rcti bounds_px; /* ispace bounds */
 	/* vars for getting uvspace bounds */
@@ -2449,7 +2459,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 		v1coSS = ps->screenCoords[(*(&mf->v1 + i1))];
 		v2coSS = ps->screenCoords[(*(&mf->v1 + i2))];
 		v3coSS = ps->screenCoords[(*(&mf->v1 + i3))];
-		
+
 		/* This funtion gives is a concave polyline in UV space from the clipped quad and tri*/
 		project_bucket_clip_face(
 		        is_ortho, bucket_bounds,
@@ -2501,9 +2511,9 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 						else          screen_px_from_persp(uv, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, pixelScreenCo, w);
 						
 						/* a pity we need to get the worldspace pixel location here */
-						if (do_clip) {
+						if (do_clip || do_3d_mapping) {
 							interp_v3_v3v3v3(wco, ps->dm_mvert[(*(&mf->v1 + i1))].co, ps->dm_mvert[(*(&mf->v1 + i2))].co, ps->dm_mvert[(*(&mf->v1 + i3))].co, w);
-							if (ED_view3d_clipping_test(ps->rv3d, wco, TRUE)) {
+							if (do_clip && ED_view3d_clipping_test(ps->rv3d, wco, TRUE)) {
 								continue; /* Watch out that no code below this needs to run */
 							}
 						}
@@ -2520,9 +2530,10 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 							if (mask > 0.0f) {
 								BLI_linklist_prepend_arena(
 								        bucketPixelNodes,
-								        project_paint_uvpixel_init(ps, arena, ibuf, x, y, mask, face_index, image_index, pixelScreenCo, side, w),
-								        arena
-								        );
+								        project_paint_uvpixel_init(ps, arena, ibuf, x, y, mask, face_index,
+												image_index, pixelScreenCo, wco, side, w),
+												arena
+												);
 							}
 						}
 						
@@ -2725,11 +2736,11 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 											}
 											
 											/* a pity we need to get the worldspace pixel location here */
-											if (do_clip) {
+											if (do_clip || do_3d_mapping) {
 												if (side) interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, w);
 												else      interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, w);
 
-												if (ED_view3d_clipping_test(ps->rv3d, wco, TRUE)) {
+												if (do_clip && ED_view3d_clipping_test(ps->rv3d, wco, TRUE)) {
 													continue; /* Watch out that no code below this needs to run */
 												}
 											}
@@ -2739,7 +2750,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 											if (mask > 0.0f) {
 												BLI_linklist_prepend_arena(
 												        bucketPixelNodes,
-												        project_paint_uvpixel_init(ps, arena, ibuf, x, y, mask, face_index, image_index, pixelScreenCo, side, w),
+												        project_paint_uvpixel_init(ps, arena, ibuf, x, y, mask, face_index, image_index, pixelScreenCo, wco, side, w),
 												        arena
 												        );
 											}
@@ -4105,7 +4116,7 @@ static void *do_projectpaint_thread(void *ph_v)
 
 				/*if (dist < radius) {*/ /* correct but uses a sqrtf */
 				if (dist_nosqrt <= radius_squared) {
-					float samplecos[2];
+					float samplecos[3];
 					dist = sqrtf(dist_nosqrt);
 
 					falloff = BKE_brush_curve_strength_clamp(ps->brush, dist, radius);
@@ -4114,9 +4125,11 @@ static void *do_projectpaint_thread(void *ph_v)
 						if (ps->brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) {
 							sub_v2_v2v2(samplecos, projPixel->projCoSS, pos);
 						}
-						else {
-							copy_v2_v2(samplecos, projPixel->projCoSS);
-						}
+						/* taking 3d copy to account for 3D mapping too. It gets concatenated during sampling */
+						else if (project_paint_supports_3d_mapping(ps->brush))
+							copy_v3_v3(samplecos, projPixel->worldCoSS);
+						else
+							copy_v3_v3(samplecos, projPixel->projCoSS);
 					}
 
 					if (falloff > 0.0f) {
@@ -5008,7 +5021,9 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 	ps->pixel_sizeof = project_paint_pixel_sizeof(ps->tool);
 	BLI_assert(ps->pixel_sizeof >= sizeof(ProjPixel));
 
-	ps->do_masking = (brush->flag & BRUSH_AIRBRUSH || brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) ? false : true;
+	/* disable for 3d mapping also because painting on mirrored mesh can create "stripes" */
+	ps->do_masking = (brush->flag & BRUSH_AIRBRUSH || brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW ||
+						project_paint_supports_3d_mapping(brush)) ? false : true;
 	ps->is_texbrush = (brush->mtex.tex) ? 1 : 0;
 
 
