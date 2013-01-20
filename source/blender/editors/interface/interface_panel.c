@@ -522,11 +522,9 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 		float y = headrect.ymax;
 
 		glEnable(GL_BLEND);
-
 		
 		if (UI_GetThemeValue(TH_PANEL_SHOW_HEADER)) {
 			/* draw with background color */
-			glEnable(GL_BLEND);
 			UI_ThemeColor4(TH_PANEL_HEADER);
 			glRectf(minx, headrect.ymin + 1, maxx, y);
 
@@ -542,7 +540,6 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, rcti *rect)
 			fdrawline(minx, y, maxx, y);
 			glColor4f(1.0f, 1.0f, 1.0f, 0.25f);
 			fdrawline(minx, y - 1, maxx, y - 1);
-			glDisable(GL_BLEND);
 		}
 
 		glDisable(GL_BLEND);
