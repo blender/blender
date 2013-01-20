@@ -1505,7 +1505,7 @@ int RNA_property_path_from_ID_check(PointerRNA *ptr, PropertyRNA *prop)
 
 static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerRNA *ptr, PropertyRNA *prop)
 {
-	int is_rna = (prop->magic == RNA_MAGIC);
+	const bool is_rna = (prop->magic == RNA_MAGIC);
 	prop = rna_ensure_property(prop);
 
 	if (is_rna) {
@@ -1585,19 +1585,19 @@ static ListBase rna_updates_cache = {NULL, NULL};
 
 void RNA_property_update_cache_add(PointerRNA *ptr, PropertyRNA *prop)
 {
+	const bool is_rna = (prop->magic == RNA_MAGIC);
 	tRnaUpdateCacheElem *uce = NULL;
 	UpdateFunc fn = NULL;
 	LinkData *ld;
-	short is_rna = (prop->magic == RNA_MAGIC);
 	
 	/* sanity check */
-	if (ELEM(NULL, ptr, prop))
+	if (NULL == ptr)
 		return;
 		
 	prop = rna_ensure_property(prop);
 	
 	/* we can only handle update calls with no context args for now (makes animsys updates easier) */
-	if ((is_rna == 0) || (prop->update == NULL) || (prop->flag & PROP_CONTEXT_UPDATE))
+	if ((is_rna == false) || (prop->update == NULL) || (prop->flag & PROP_CONTEXT_UPDATE))
 		return;
 	fn = prop->update;
 		
@@ -4210,11 +4210,11 @@ char *RNA_path_from_ID_to_struct(PointerRNA *ptr)
 
 char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
 {
-	int is_rna = (prop->magic == RNA_MAGIC);
+	const bool is_rna = (prop->magic == RNA_MAGIC);
 	const char *propname;
 	char *ptrpath, *path;
 
-	if (!ptr->id.data || !ptr->data || !prop)
+	if (!ptr->id.data || !ptr->data)
 		return NULL;
 	
 	/* path from ID to the struct holding this property */

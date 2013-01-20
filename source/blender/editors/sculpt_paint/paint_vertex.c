@@ -2598,9 +2598,8 @@ static int set_vpaint(bContext *C, wmOperator *op)  /* toggle */
 		BKE_paint_init(&vp->paint, PAINT_CURSOR_VERTEX_PAINT);
 	}
 	
-	if (me)
-		/* update modifier stack for mapping requirements */
-		DAG_id_tag_update(&me->id, 0);
+	/* update modifier stack for mapping requirements */
+	DAG_id_tag_update(&me->id, 0);
 	
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
 	

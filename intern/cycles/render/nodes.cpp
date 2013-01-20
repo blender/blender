@@ -144,7 +144,7 @@ ImageTextureNode::ImageTextureNode()
 	filename = "";
 	is_builtin = false;
 	color_space = ustring("Color");
-	projection = ustring("Flat");;
+	projection = ustring("Flat");
 	projection_blend = 0.0f;
 	animated = false;
 

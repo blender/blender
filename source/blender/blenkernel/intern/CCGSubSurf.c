@@ -1416,18 +1416,25 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 		float no[3];
 
 		for (S = 0; S < f->numVerts; S++) {
-			for (y = 0; y < gridSize - 1; y++)
-				for (x = 0; x < gridSize - 1; x++)
+			for (y = 0; y < gridSize - 1; y++) {
+				for (x = 0; x < gridSize - 1; x++) {
 					NormZero(FACE_getIFNo(f, lvl, S, x, y));
+				}
+			}
 
-			if (FACE_getEdges(f)[(S - 1 + f->numVerts) % f->numVerts]->flags & Edge_eEffected)
-				for (x = 0; x < gridSize - 1; x++)
+			if (FACE_getEdges(f)[(S - 1 + f->numVerts) % f->numVerts]->flags & Edge_eEffected) {
+				for (x = 0; x < gridSize - 1; x++) {
 					NormZero(FACE_getIFNo(f, lvl, S, x, gridSize - 1));
-			if (FACE_getEdges(f)[S]->flags & Edge_eEffected)
-				for (y = 0; y < gridSize - 1; y++)
+				}
+			}
+			if (FACE_getEdges(f)[S]->flags & Edge_eEffected) {
+				for (y = 0; y < gridSize - 1; y++) {
 					NormZero(FACE_getIFNo(f, lvl, S, gridSize - 1, y));
-			if (FACE_getVerts(f)[S]->flags & Vert_eEffected)
+				}
+			}
+			if (FACE_getVerts(f)[S]->flags & Vert_eEffected) {
 				NormZero(FACE_getIFNo(f, lvl, S, gridSize - 1, gridSize - 1));
+			}
 		}
 
 		for (S = 0; S < f->numVerts; S++) {

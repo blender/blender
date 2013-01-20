@@ -308,8 +308,9 @@ static void ptcache_particle_read(int index, void *psys_v, void **data, float cf
 		pa->lifetime = times[2];
 	}
 
-	if (boid)
+	if (boid) {
 		PTCACHE_DATA_TO(data, BPHYS_DATA_BOIDS, 0, &boid->data);
+	}
 
 	/* determine velocity from previous location */
 	if (data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_VELOCITY]) {

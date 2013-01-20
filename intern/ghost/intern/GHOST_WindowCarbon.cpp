@@ -182,7 +182,8 @@ GHOST_WindowCarbon::GHOST_WindowCarbon(
 		    (SInt32) this);                     // Store a pointer to the class in the refCon
 #endif
 		//GHOST_PRINT("GHOST_WindowCarbon::GHOST_WindowCarbon(): creating full-screen OpenGL context\n");
-		setDrawingContextType(GHOST_kDrawingContextTypeOpenGL);; installDrawingContext(GHOST_kDrawingContextTypeOpenGL);
+		setDrawingContextType(GHOST_kDrawingContextTypeOpenGL);
+		installDrawingContext(GHOST_kDrawingContextTypeOpenGL);
 		updateDrawingContext();
 		activateDrawingContext();
 
