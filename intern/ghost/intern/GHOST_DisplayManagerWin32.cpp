@@ -52,11 +52,15 @@ GHOST_DisplayManagerWin32::GHOST_DisplayManagerWin32(void)
 
 GHOST_TSuccess GHOST_DisplayManagerWin32::getNumDisplays(GHOST_TUns8& numDisplays) const
 {
-	// We do not support multiple monitors at the moment
 	numDisplays = ::GetSystemMetrics(SM_CMONITORS);
 	return numDisplays > 0 ? GHOST_kSuccess : GHOST_kFailure;
 }
 
+static BOOL get_dd(DWORD d, DISPLAY_DEVICE* dd)
+{
+	dd->cb = sizeof(DISPLAY_DEVICE);
+	return ::EnumDisplayDevices(NULL, d, dd, 0);
+}
 
 /*
  * When you call EnumDisplaySettings with iModeNum set to zero, the operating system 
@@ -68,8 +72,7 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::getNumDisplays(GHOST_TUns8& numDisplay
 GHOST_TSuccess GHOST_DisplayManagerWin32::getNumDisplaySettings(GHOST_TUns8 display, GHOST_TInt32& numSettings) const
 {
 	DISPLAY_DEVICE display_device;
-	display_device.cb = sizeof(DISPLAY_DEVICE);
-	::EnumDisplayDevices(NULL, display, &display_device, 0);
+	if (!get_dd(display, &display_device)) return GHOST_kFailure;
 
 	numSettings = 0;
 	DEVMODE dm;
@@ -83,8 +86,7 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::getNumDisplaySettings(GHOST_TUns8 disp
 GHOST_TSuccess GHOST_DisplayManagerWin32::getDisplaySetting(GHOST_TUns8 display, GHOST_TInt32 index, GHOST_DisplaySetting& setting) const
 {
 	DISPLAY_DEVICE display_device;
-	display_device.cb = sizeof(DISPLAY_DEVICE);
-	::EnumDisplayDevices(NULL, display, &display_device, 0);
+	if (!get_dd(display, &display_device)) return GHOST_kFailure;
 
 	GHOST_TSuccess success;
 	DEVMODE dm;
@@ -125,8 +127,7 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::getCurrentDisplaySetting(GHOST_TUns8 d
 GHOST_TSuccess GHOST_DisplayManagerWin32::setCurrentDisplaySetting(GHOST_TUns8 display, const GHOST_DisplaySetting& setting)
 {
 	DISPLAY_DEVICE display_device;
-	display_device.cb = sizeof(DISPLAY_DEVICE);
-	::EnumDisplayDevices(NULL, display, &display_device, 0);
+	if (!get_dd(display, &display_device)) return GHOST_kFailure;
 
 	GHOST_DisplaySetting match;
 	findMatch(display, setting, match);
