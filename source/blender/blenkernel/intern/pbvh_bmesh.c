@@ -817,10 +817,13 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 	for (i = 0; i < deleted_faces->count; i++) {
 		BMFace *f_del = BLI_buffer_at(deleted_faces, BMFace *, i);
 		BMVert *v_tri[3];
+		BMEdge *e_tri[3];
 		int j;
 
-		// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f_del, (void **)v_tri, 3);
+		/* Get vertices and edges of face */
 		BM_face_as_array_vert_tri(f_del, v_tri);
+		for (j = 0; j < 3; j++)
+			e_tri[j] = BM_edge_exists(v_tri[j], v_tri[j == 2 ? 0 : j + 1]);
 
 		/* Check if any of the face's vertices are now unused, if so
 		 * remove them from the PBVH */
@@ -837,6 +840,13 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 		/* Remove the face */
 		pbvh_bmesh_face_remove(bvh, f_del);
 		BM_face_kill(bvh->bm, f_del);
+
+		/* Check if any of the face's edges are now unused by any
+		 * face, if so delete them */
+		for (j = 0; j < 3; j++) {
+			if (BM_edge_face_count(e_tri[j]) == 0)
+				BM_edge_kill(bvh->bm, e_tri[j]);
+		}
 
 		/* Delete unused vertices */
 		for (j = 0; j < 3; j++) {
