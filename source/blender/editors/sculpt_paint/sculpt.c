@@ -4180,6 +4180,17 @@ static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
 	}
 }
 
+/* Copy the PBVH bounding box into the object's bounding box */
+static void sculpt_update_object_bounding_box(Object *ob)
+{
+	if (ob->bb) {
+		float bb_min[3], bb_max[3];
+
+		BKE_pbvh_bounding_box(ob->sculpt->pbvh, bb_min, bb_max);
+		BKE_boundbox_init_from_minmax(ob->bb, bb_min, bb_max);
+	}
+}
+
 static void sculpt_flush_update(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
@@ -4200,6 +4211,11 @@ static void sculpt_flush_update(bContext *C)
 		rcti r;
 
 		BKE_pbvh_update(ss->pbvh, PBVH_UpdateBB, NULL);
+		/* Update the object's bounding box too so that the object
+		 * doesn't get incorrectly clipped during drawing in
+		 * draw_mesh_object(). [#33790] */
+		sculpt_update_object_bounding_box(ob);
+
 		if (sculpt_get_redraw_rect(ar, CTX_wm_region_view3d(C), ob, &r)) {
 			if (ss->cache)
 				ss->cache->previous_r = r;
