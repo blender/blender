@@ -912,6 +912,10 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 			j = BLI_array_count(facedata) - 1;
 			
 			BMO_elem_flag_enable(bm, face, SUBD_SPLIT);
+
+			/* must initialize all members here */
+			facedata[j].start = NULL;
+			facedata[j].pat = NULL;
 			facedata[j].totedgesel = totesel;
 			facedata[j].face = face;
 		}

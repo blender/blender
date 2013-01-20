@@ -2303,9 +2303,14 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 #endif
 	int *oldv = NULL, *olde = NULL, *oldl = NULL, *oldp = NULL;
 	BLI_array_declare(oldv); BLI_array_declare(olde); BLI_array_declare(oldl); BLI_array_declare(oldp);
-	int i, j, c, totloop, totpoly;
-	
+	int i, j, c, totpoly;
+#ifdef USE_LOOPS
+	int totloop;
+#endif
+
+#ifdef USE_LOOPS
 	totloop = dm->numLoopData;
+#endif
 	totpoly = dm->numPolyData;
 	
 	newv = MEM_mallocN(sizeof(int) * dm->numVertData, "newv vtable CDDM_merge_verts");
