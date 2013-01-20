@@ -46,6 +46,9 @@ EnumPropertyItem property_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+/* XXX Keep in sync with bpy_props.c's property_subtype_xxx_items ???
+ *     Currently it is not...
+ */
 EnumPropertyItem property_subtype_items[] = {
 	{PROP_NONE, "NONE", 0, "None", ""},
 
@@ -53,7 +56,7 @@ EnumPropertyItem property_subtype_items[] = {
 	{PROP_FILEPATH, "FILEPATH", 0, "File Path", ""},
 	{PROP_DIRPATH, "DIRPATH", 0, "Directory Path", ""},
 	{PROP_FILENAME, "FILENAME", 0, "File Name", ""},
-	{PROP_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
+	{PROP_PASSWORD, "PASSWORD", 0, "Password", "A string that is displayed hidden ('********')"},
 
 	/* numbers */
 	{PROP_UNSIGNED, "UNSIGNED", 0, "Unsigned", ""},

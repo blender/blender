@@ -74,13 +74,15 @@ static EnumPropertyItem property_flag_enum_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 /* subtypes */
+/* XXX Keep in sync with rna_rna.c's property_subtype_items ???
+ *     Currently it is not...
+ */
 static EnumPropertyItem property_subtype_string_items[] = {
 	{PROP_FILEPATH, "FILE_PATH", 0, "File Path", ""},
 	{PROP_DIRPATH, "DIR_PATH", 0, "Directory Path", ""},
 	{PROP_FILENAME, "FILE_NAME", 0, "Filename", ""},
 	{PROP_BYTESTRING, "BYTE_STRING", 0, "Byte String", ""},
-	{PROP_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
-	{PROP_PASSWORD, "PASSWORD", 0, "Password", 0},
+	{PROP_PASSWORD, "PASSWORD", 0, "Password", "A string that is displayed hidden ('********')"},
 
 	{PROP_NONE, "NONE", 0, "None", ""},
 	{0, NULL, 0, NULL, NULL}};

@@ -47,6 +47,8 @@
 
 #include "DNA_userdef_types.h" /* For user settings. */
 
+#include "BPY_extern.h"
+
 static const char unifont_filename[] = "droidsans.ttf.gz";
 static unsigned char *unifont_ttf = NULL;
 static int unifont_size = 0;
@@ -84,7 +86,15 @@ const char *BLF_pgettext(const char *msgctxt, const char *msgid)
 {
 #ifdef WITH_INTERNATIONAL
 	if (msgid && msgid[0]) {
-		return bl_locale_pgettext(msgctxt, msgid);
+		const char *ret = bl_locale_pgettext(msgctxt, msgid);
+		/* We assume if the returned string is the same (memory level) as the msgid, no translation was found,
+		 * and we can try py scripts' ones!
+		 */
+		if (ret == msgid) {
+			ret = BPY_app_translations_py_pgettext(msgctxt, msgid);
+		}
+
+		return ret;
 	}
 	return "";
 #else

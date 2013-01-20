@@ -31,7 +31,7 @@ Import ('env')
 sources = env.Glob('intern/*.c')
 
 incs = '. intern  #/intern/guardedalloc #/intern/locale ../blenkernel ../blenlib ../blenloader'
-incs += ' ../makesdna ../makesrna ../imbuf ../editors/include'
+incs += ' ../makesdna ../makesrna ../python ../imbuf ../editors/include'
 incs += ' #/extern/glew/include'
 incs += ' ' + env['BF_FREETYPE_INC']
 

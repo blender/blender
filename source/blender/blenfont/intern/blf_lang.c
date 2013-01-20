@@ -60,7 +60,7 @@ static EnumPropertyItem *locales_menu = NULL;
 static int num_locales_menu = 0;
 
 #define ULANGUAGE ((U.language >= 0 && U.language < num_locales) ? U.language : 0)
-#define LOCALE(_id) (locales ? locales[_id] : "")
+#define LOCALE(_id) (locales ? locales[(_id)] : "")
 
 static void free_locales(void)
 {
@@ -113,7 +113,7 @@ static void fill_locales(void)
 	}
 	num_locales_menu++; /* The "closing" void item... */
 
-	/* And now, buil locales and locale_menu! */
+	/* And now, build locales and locale_menu! */
 	locales_menu = MEM_callocN(num_locales_menu * sizeof(EnumPropertyItem), __func__);
 	line = lines;
 	/* Do not allocate locales with zero-sized mem, as LOCALE macro uses NULL locales as invalid marker! */
@@ -234,16 +234,26 @@ void BLF_lang_set(const char *str)
 	}
 }
 
+/* Get the current locale (short code, e.g. es_ES). */
 const char *BLF_lang_get(void)
 {
-	int uilang = ULANGUAGE;
-	return LOCALE(uilang);
+	const char *locale = LOCALE(ULANGUAGE);
+	if (locale[0] == '\0') {
+		/* Default locale, we have to find which one we are actually using! */
+		locale = bl_locale_get();
+	}
+	return locale;
 }
 
 #undef LOCALE
 #undef ULANGUAGE
 
 #else /* ! WITH_INTERNATIONAL */
+
+EnumPropertyItem *BLF_RNA_lang_enum_properties(void)
+{
+	return NULL;
+}
 
 void BLF_lang_init(void)
 {
@@ -266,3 +276,56 @@ const char *BLF_lang_get(void)
 }
 
 #endif /* WITH_INTERNATIONAL */
+
+
+/* Get locale's elements (if relevant pointer is not NULL and element actually exists, e.g. if there is no variant,
+ * *variant and *language_variant will always be NULL).
+ * Non-null elements are always MEM_mallocN'ed, it's the caller's responsibility to free them.
+ * NOTE: Keep that one always available, you never know, may become useful even in no-WITH_INTERNATIONAL context...
+ */
+void BLF_locale_explode(const char *locale, char **language, char **country, char **variant,
+                        char **language_country, char **language_variant)
+{
+	char *m1, *m2, *_t = NULL;
+
+	m1 = strchr(locale, '_');
+	m2 = strchr(locale, '@');
+
+	if (language || language_variant) {
+		if (m1 || m2) {
+			_t = m1 ? BLI_strdupn(locale, m1 - locale) : BLI_strdupn(locale, m2 - locale);
+			if (language)
+				*language = _t;
+		}
+		else if (language) {
+			*language = NULL;
+		}
+	}
+	if (country) {
+		if (m1)
+			*country = m2 ? BLI_strdupn(m1 + 1, m2 - (m1 + 1)) : BLI_strdup(m1 + 1);
+		else
+			*country = NULL;
+	}
+	if (variant) {
+		if (m2)
+			*variant = BLI_strdup(m2 + 1);
+		else
+			*variant = NULL;
+	}
+	if (language_country) {
+		if (m2)
+			*language_country = BLI_strdupn(locale, m2 - locale);
+		else
+			*language_country = NULL;
+	}
+	if (language_variant) {
+		if (m2)
+			*language_variant = m1 ? BLI_strdupcat(_t, m2 + 1) : BLI_strdup(locale);
+		else
+			*language_variant = NULL;
+	}
+	if (_t && !language) {
+		MEM_freeN(_t);
+	}
+}

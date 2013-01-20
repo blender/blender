@@ -87,6 +87,11 @@ void	BPY_context_update(struct bContext *C);
 
 void	BPY_id_release(struct ID *id);
 
+/* I18n for addons */
+#ifdef WITH_INTERNATIONAL
+const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *msgid);
+#endif
+
 #ifdef __cplusplus
 }				/* extern "C" */
 #endif

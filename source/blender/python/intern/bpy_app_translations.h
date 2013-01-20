@@ -15,36 +15,18 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2012, Blender Foundation
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): Bastien Montagne.
+ * Contributor(s): Bastien Montagne
  *
  * ***** END GPL LICENSE BLOCK *****
- *
  */
 
-/** \file locale/boost_locale_wrapper.h
- *  \ingroup locale
- *  A thin C wrapper around boost::locale...
+/** \file blender/python/intern/bpy_app_translations.h
+ *  \ingroup pythonintern
  */
 
-#ifndef __BOOST_LOCALE_WRAPPER_H__
-#define __BOOST_LOCALE_WRAPPER_H__
+#ifndef __BPY_APP_TRANSLATIONS_H__
+#define __BPY_APP_TRANSLATIONS_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+PyObject *BPY_app_translations_struct(void);
 
-void bl_locale_init(const char *messages_path, const char *default_domain);
-void bl_locale_set(const char *locale);
-const char *bl_locale_get(void);
-const char *bl_locale_pgettext(const char *msgctxt, const char *msgid);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* __BOOST_LOCALE_WRAPPER_H__ */
+#endif /* __BPY_APP_TRANSLATIONS_H__ */

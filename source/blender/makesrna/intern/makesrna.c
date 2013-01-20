@@ -2444,7 +2444,6 @@ static const char *rna_property_subtypename(PropertySubType type)
 		case PROP_FILENAME: return "PROP_FILENAME";
 		case PROP_DIRPATH: return "PROP_DIRPATH";
 		case PROP_BYTESTRING: return "PROP_BYTESTRING";
-		case PROP_TRANSLATE: return "PROP_TRANSLATE";
 		case PROP_UNSIGNED: return "PROP_UNSIGNED";
 		case PROP_PERCENTAGE: return "PROP_PERCENTAGE";
 		case PROP_FACTOR: return "PROP_FACTOR";
