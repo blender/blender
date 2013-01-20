@@ -437,9 +437,11 @@ void bmo_smooth_vert_exec(BMesh *UNUSED(bm), BMOperator *op)
 	i = 0;
 	BMO_ITER (v, &siter, op->slots_in, "verts", BM_VERT) {
 		BLI_array_grow_one(cos);
+
 		co = cos[i];
-		
-		j  = 0;
+		zero_v3(co);
+
+		j = 0;
 		BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
 			co2 = BM_edge_other_vert(e, v)->co;
 			add_v3_v3v3(co, co, co2);
