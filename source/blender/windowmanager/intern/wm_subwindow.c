@@ -241,7 +241,8 @@ static wmSubWindow *_curswin = NULL;
 
 void wmSubWindowScissorSet(wmWindow *win, int swinid, rcti *srct)
 {
-	int width, height;
+	int x, y, width, height;
+
 	_curswin = swin_from_swinid(win, swinid);
 	
 	if (_curswin == NULL) {
@@ -250,24 +251,30 @@ void wmSubWindowScissorSet(wmWindow *win, int swinid, rcti *srct)
 	}
 	
 	win->curswin = _curswin;
+
 	_curwindow = win;
 	
+	x      = _curswin->winrct.xmin;
+	y      = _curswin->winrct.ymin;
 	width  = BLI_rcti_size_x(&_curswin->winrct) + 1;
 	height = BLI_rcti_size_y(&_curswin->winrct) + 1;
-	glViewport(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
+
+	glViewport(x, y, width, height);
 
 	if (srct) {
-		int width  = BLI_rcti_size_x(srct) + 1; /* only here */
-		int height = BLI_rcti_size_y(srct) + 1;
-		glScissor(srct->xmin, srct->ymin, width, height);
+		x      = srct->xmin;
+		y      = srct->ymin;
+		width  = BLI_rcti_size_x(srct) + 1;
+		height = BLI_rcti_size_y(srct) + 1;
 	}
-	else
-		glScissor(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
+    
+    glScissor(x, y, width, height);
 	
 	wmOrtho2(-GLA_PIXEL_OFS, (float)width - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, (float)height - GLA_PIXEL_OFS);
-	glLoadIdentity();
 
-	glFlush();
+	glLoadIdentity(); /* reset MODELVIEW */
+
+	glFlush(); /* XXX: jwilkins - is this really needed here? */
 }
 
 
