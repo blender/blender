@@ -1710,19 +1710,37 @@ class VIEW3D_MT_edit_mesh_specials(Menu):
 
         layout.operator("mesh.subdivide", text="Subdivide").smoothness = 0.0
         layout.operator("mesh.subdivide", text="Subdivide Smooth").smoothness = 1.0
+
+        layout.separator()
+
         layout.operator("mesh.merge", text="Merge...")
         layout.operator("mesh.remove_doubles")
+
+        layout.separator()
+
         layout.operator("mesh.hide", text="Hide").unselected = False
         layout.operator("mesh.reveal", text="Reveal")
         layout.operator("mesh.select_all", text="Select Inverse").action = 'INVERT'
+
+        layout.separator()
+
         layout.operator("mesh.flip_normals")
         layout.operator("mesh.vertices_smooth", text="Smooth")
         layout.operator("mesh.vertices_smooth_laplacian", text="Laplacian Smooth")
+
+        layout.separator()
+
         layout.operator("mesh.inset")
         layout.operator("mesh.bevel", text="Bevel")
         layout.operator("mesh.bridge_edge_loops")
+
+        layout.separator()
+
         layout.operator("mesh.faces_shade_smooth")
         layout.operator("mesh.faces_shade_flat")
+
+        layout.separator()
+
         layout.operator("mesh.blend_from_shape")
         layout.operator("mesh.shape_propagate_to_all")
         layout.operator("mesh.select_vertex_path")
