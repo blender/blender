@@ -1626,8 +1626,6 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 					/* Unicode String */
 #ifdef WITH_INTERNATIONAL
 					bool do_translate = RNA_property_flag(prop) & PROP_STRING_PY_TRANSLATE;
-#else
-					bool do_translate = false;
 #endif  /* WITH_INTERNATIONAL */
 
 #ifdef USE_STRING_COERCE
@@ -1644,9 +1642,11 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 #endif  /* USE_STRING_COERCE */
 
 					/* Any half-brained compiler should be able to optimize this out when WITH_INTERNATIONAL is off */
+#ifdef WITH_INTERNATIONAL
 					if (do_translate) {
 						param = IFACE_(param);
 					}
+#endif
 
 					if (param == NULL) {
 						if (PyUnicode_Check(value)) {

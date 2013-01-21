@@ -277,8 +277,8 @@ static void bm_log_faces_restore(BMesh *bm, BMLog *log, GHash *faces)
 		void *key = BLI_ghashIterator_getKey(&gh_iter);
 		BMLogFace *lf = BLI_ghashIterator_getValue(&gh_iter);
 		BMVert *v[3] = {bm_log_vert_from_id(log, lf->v_ids[0]),
-						bm_log_vert_from_id(log, lf->v_ids[1]),
-						bm_log_vert_from_id(log, lf->v_ids[2])};
+		                bm_log_vert_from_id(log, lf->v_ids[1]),
+		                bm_log_vert_from_id(log, lf->v_ids[2])};
 		BMFace *f;
 
 		f = BM_face_create_quad_tri_v(bm, v, 3, NULL, false);

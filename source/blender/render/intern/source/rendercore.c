@@ -1139,7 +1139,7 @@ static void addAlphaOverFloatMask(float *dest, float *source, unsigned short dma
 		dest[3]+= source[3];
 		
 		return;
-	 }
+	}
 
 	dest[0]= (mul*dest[0]) + source[0];
 	dest[1]= (mul*dest[1]) + source[1];

@@ -41,7 +41,8 @@
 
 
 
-#define BEVEL_EPSILON  1e-6
+#define BEVEL_EPSILON_D  1e-6
+#define BEVEL_EPSILON    1e-6f
 
 /* for testing */
 // #pragma GCC diagnostic error "-Wpadded"
@@ -320,7 +321,7 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f,
 	sub_v3_v3v3(dir1, v->co, BM_edge_other_vert(e1->e, v)->co);
 	sub_v3_v3v3(dir2, BM_edge_other_vert(e2->e, v)->co, v->co);
 
-	if (angle_v3v3(dir1, dir2) < 100.0f * (float)BEVEL_EPSILON) {
+	if (angle_v3v3(dir1, dir2) < 100.0f * BEVEL_EPSILON) {
 		/* special case: e1 and e2 are parallel; put offset point perp to both, from v.
 		 * need to find a suitable plane.
 		 * if offsets are different, we're out of luck: just use e1->offset */
@@ -406,7 +407,7 @@ static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
 	madd_v3_v3fl(off2a, norm_perp2, e2->offset);
 	add_v3_v3v3(off2b, off2a, dir2);
 
-	if (angle_v3v3(dir1, dir2) < 100.0f * (float)BEVEL_EPSILON) {
+	if (angle_v3v3(dir1, dir2) < 100.0f * BEVEL_EPSILON) {
 		/* lines are parallel; off1a is a good meet point */
 		copy_v3_v3(meetco, off1a);
 	}
@@ -418,7 +419,7 @@ static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
 		}
 		else if (iret == 2) {
 			/* lines are not coplanar; meetco and isect2 are nearest to first and second lines */
-			if (len_v3v3(meetco, isect2) > 100.0f * (float)BEVEL_EPSILON) {
+			if (len_v3v3(meetco, isect2) > 100.0f * BEVEL_EPSILON) {
 				/* offset lines don't meet: project average onto emid; this is not ideal (see TODO above) */
 				mid_v3_v3v3(co, meetco, isect2);
 				closest_to_line_v3(meetco, co, v->co, BM_edge_other_vert(emid->e, v)->co);
@@ -467,7 +468,7 @@ static void slide_dist(EdgeHalf *e, BMVert *v, float d, float slideco[3])
 	sub_v3_v3v3(dir, v->co, BM_edge_other_vert(e->e, v)->co);
 	len = normalize_v3(dir);
 	if (d > len)
-		d = len - (float)(50.0 * BEVEL_EPSILON);
+		d = len - (float)(50.0 * BEVEL_EPSILON_D);
 	copy_v3_v3(slideco, v->co);
 	madd_v3_v3fl(slideco, dir, -d);
 }
@@ -525,7 +526,7 @@ static int make_unit_square_map(const float va[3], const float vmid[3], const fl
 
 	sub_v3_v3v3(va_vmid, vmid, va);
 	sub_v3_v3v3(vb_vmid, vmid, vb);
-	if (fabsf(angle_v3v3(va_vmid, vb_vmid) - (float)M_PI) > 100.f *(float)BEVEL_EPSILON) {
+	if (fabsf(angle_v3v3(va_vmid, vb_vmid) - (float)M_PI) > 100.0f * BEVEL_EPSILON) {
 		sub_v3_v3v3(vo, va, vb_vmid);
 		cross_v3_v3v3(vddir, vb_vmid, va_vmid);
 		normalize_v3(vddir);
@@ -787,7 +788,7 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 							float dir1[3], dir2[3];
 							sub_v3_v3v3(dir1, bv->v->co, BM_edge_other_vert(e1->e, bv->v)->co);
 							sub_v3_v3v3(dir2, BM_edge_other_vert(e2->e, bv->v)->co, bv->v->co);
-							if (angle_v3v3(dir1, dir2) < 100.0f * (float)BEVEL_EPSILON) {
+							if (angle_v3v3(dir1, dir2) < 100.0f * BEVEL_EPSILON) {
 								epipe = e1;
 								break;
 							}
@@ -1092,14 +1093,14 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 	}
 }
 
-static VMesh* new_adj_subdiv_vmesh(MemArena *mem_arena, int count, int seg)
+static VMesh *new_adj_subdiv_vmesh(MemArena *mem_arena, int count, int seg)
 {
 	VMesh *vm;
 
 	vm = (VMesh *)BLI_memarena_alloc(mem_arena, sizeof(VMesh));
 	vm->count = count;
 	vm->seg = seg;
-	vm->mesh = (NewVert *)BLI_memarena_alloc(mem_arena, count * (1 + seg/2) * (1 + seg) * sizeof(NewVert));
+	vm->mesh = (NewVert *)BLI_memarena_alloc(mem_arena, count * (1 + seg / 2) * (1 + seg) * sizeof(NewVert));
 	vm->mesh_kind = M_ADJ_SUBDIV;
 	return vm;
 }
@@ -1111,7 +1112,7 @@ static VMesh* new_adj_subdiv_vmesh(MemArena *mem_arena, int count, int seg)
  *    0 <= j < ns2, 0 <= k <= ns2  (for even ns2)
  *        also (j=ns2, k=ns2) at i=0 (for even ns2)
  * This function returns the canonical one for any i, j, k in [0,n],[0,ns],[0,ns] */
-static NewVert* mesh_vert_canon(VMesh *vm, int i, int j, int k)
+static NewVert *mesh_vert_canon(VMesh *vm, int i, int j, int k)
 {
 	int n, ns, ns2, odd;
 	NewVert *ans;
@@ -1187,9 +1188,10 @@ static void vmesh_center(VMesh *vm, float r_cent[3])
 /* Do one step of quadratic subdivision (Doo-Sabin), with special rules at boundaries.
  * For now, this is written assuming vm0->nseg is odd.
  * See Hwang-Chuang 2003 paper: "N-sided hole filling and vertex blending using subdivision surfaces"  */
-static VMesh* quadratic_subdiv(MemArena *mem_arena, VMesh *vm0)
+static VMesh *quadratic_subdiv(MemArena *mem_arena, VMesh *vm0)
 {
-	int n, ns0, ns20, ns1, ns21, i, j, k, j1, k1;
+	int n, ns0, ns20, ns1 /*, ns21 */;
+	int i, j, k, j1, k1;
 	VMesh *vm1;
 	float co[3], co1[3], co2[3], co3[3], co4[3];
 	float co11[3], co21[3], co31[3], co41[3];
@@ -1204,7 +1206,7 @@ static VMesh* quadratic_subdiv(MemArena *mem_arena, VMesh *vm0)
 	BLI_assert(ns0 % 2 == 1);
 
 	ns1 = 2 * ns0 - 1;
-	ns21 = ns1 / 2;
+	// ns21 = ns1 / 2;  /* UNUSED */
 	vm1 = new_adj_subdiv_vmesh(mem_arena, n, ns1);
 
 	for (i = 0; i < n; i ++) {
@@ -1320,7 +1322,7 @@ static int interp_range(const float *frac, int n, const float f, float *r_rest)
 }
 
 /* Interpolate given vmesh to make one with target nseg and evenly spaced border vertices */
-static VMesh* interp_vmesh(MemArena *mem_arena, VMesh *vm0, int nseg)
+static VMesh *interp_vmesh(MemArena *mem_arena, VMesh *vm0, int nseg)
 {
 	int n, ns0, nseg2, odd, i, j, k, j0, k0;
 	float *prev_frac, *frac, f, restj, restk;
@@ -1405,8 +1407,8 @@ static void bevel_build_rings_subdiv(BevelParams *bp, BMesh *bm, BevVert *bv)
 		copy_v3_v3(cob, mesh_vert(bv->vmesh, (i + 1) % n, 0, 0)->co);
 		copy_v3_v3(coc, mesh_vert(bv->vmesh, (i + n -1) % n, 0, 0)->co);
 		copy_v3_v3(mesh_vert(vm0, i, 0, 0)->co, coa);
-		interp_v3_v3v3(mesh_vert(vm0, i, 0, 1)->co, coa, cob, 1.0f/3.0f);
-		interp_v3_v3v3(mesh_vert(vm0, i, 1, 0)->co, coa, coc, 1.0f/3.0f);
+		interp_v3_v3v3(mesh_vert(vm0, i, 0, 1)->co, coa, cob, 1.0f / 3.0f);
+		interp_v3_v3v3(mesh_vert(vm0, i, 1, 0)->co, coa, coc, 1.0f / 3.0f);
 		interp_v3_v3v3(mesh_vert(vm0, i, 1, 1)->co, coa, bv->v->co, fullness);
 	}
 	vmesh_copy_equiv_verts(vm0);
@@ -1442,16 +1444,16 @@ static void bevel_build_rings_subdiv(BevelParams *bp, BMesh *bm, BevVert *bv)
 		 *    j in [0, ns2-1], k in [0, ns2].  And then the center ngon.
 		 * For even ns,
 		 *    j in [0, ns2-1], k in [0, ns2-1] */
-		 for (j = 0; j < ns2; j++) {
-		 	for (k = 0; k < ns2 + odd; k++) {
+		for (j = 0; j < ns2; j++) {
+			for (k = 0; k < ns2 + odd; k++) {
 				bmv1 = mesh_vert(vm, i, j, k)->v;
 				bmv2 = mesh_vert(vm, i, j, k + 1)->v;
 				bmv3 = mesh_vert(vm, i, j + 1, k + 1)->v;
 				bmv4 = mesh_vert(vm, i, j + 1, k)->v;
 				BLI_assert(bmv1 && bmv2 && bmv3 && bmv4);
 				bev_create_quad_tri(bm, bmv1, bmv2, bmv3, bmv4, f);
-		 	}
-		 }
+			}
+		}
 	} while ((v = v->next) != vm->boundstart);
 
 	/* center ngon */

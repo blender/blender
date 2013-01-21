@@ -248,36 +248,6 @@ const char *BLF_lang_get(void)
 #undef LOCALE
 #undef ULANGUAGE
 
-#else /* ! WITH_INTERNATIONAL */
-
-EnumPropertyItem *BLF_RNA_lang_enum_properties(void)
-{
-	return NULL;
-}
-
-void BLF_lang_init(void)
-{
-	return;
-}
-
-void BLF_lang_free(void)
-{
-	return;
-}
-
-void BLF_lang_set(const char *UNUSED(str))
-{
-	return;
-}
-
-const char *BLF_lang_get(void)
-{
-	return "";
-}
-
-#endif /* WITH_INTERNATIONAL */
-
-
 /* Get locale's elements (if relevant pointer is not NULL and element actually exists, e.g. if there is no variant,
  * *variant and *language_variant will always be NULL).
  * Non-null elements are always MEM_mallocN'ed, it's the caller's responsibility to free them.
@@ -329,3 +299,32 @@ void BLF_locale_explode(const char *locale, char **language, char **country, cha
 		MEM_freeN(_t);
 	}
 }
+
+#else /* ! WITH_INTERNATIONAL */
+
+struct EnumPropertyItem *BLF_RNA_lang_enum_properties(void)
+{
+	return NULL;
+}
+
+void BLF_lang_init(void)
+{
+	return;
+}
+
+void BLF_lang_free(void)
+{
+	return;
+}
+
+void BLF_lang_set(const char *UNUSED(str))
+{
+	return;
+}
+
+const char *BLF_lang_get(void)
+{
+	return "";
+}
+
+#endif /* WITH_INTERNATIONAL */

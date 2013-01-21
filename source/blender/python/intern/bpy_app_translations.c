@@ -147,7 +147,7 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
 	_translations_cache = BLI_ghash_new(_ghashutil_keyhash, _ghashutil_keycmp, __func__);
 
 	/* Iterate over all py dicts. */
-	while(PyDict_Next(py_messages, &pos, NULL, &uuid_dict)) {
+	while (PyDict_Next(py_messages, &pos, NULL, &uuid_dict)) {
 		PyObject *lang_dict;
 
 #if 0
@@ -172,7 +172,7 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
 			Py_ssize_t ppos = 0;
 
 			/* Iterate over all translations of the found language dict, and populate our ghash cache. */
-			while(PyDict_Next(lang_dict, &ppos, &pykey, &trans)) {
+			while (PyDict_Next(lang_dict, &ppos, &pykey, &trans)) {
 				GHashKey *key;
 				PyObject *tmp;
 				const char *msgctxt = NULL, *msgid = NULL;

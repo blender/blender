@@ -1399,10 +1399,10 @@ void BKE_pbvh_raycast(PBVH *bvh, BKE_pbvh_HitOccludedCallback cb, void *data,
 }
 
 int ray_face_intersection(const float ray_start[3],
-						  const float ray_normal[3],
-						  const float *t0, const float *t1,
-						  const float *t2, const float *t3,
-						  float *fdist)
+                          const float ray_normal[3],
+                          const float *t0, const float *t1,
+                          const float *t2, const float *t3,
+                          float *fdist)
 {
 	float dist;
 

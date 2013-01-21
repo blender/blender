@@ -1567,8 +1567,9 @@ static ProjPixel *project_paint_uvpixel_init(
 	}
 	
 	/* screenspace unclamped, we could keep its z and w values but don't need them at the moment */
-	if(ps->brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D)
+	if (ps->brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) {
 		copy_v3_v3(projPixel->worldCoSS, world_spaceCo);
+	}
 
 	copy_v2_v2(projPixel->projCoSS, pixelScreenCo);
 	
@@ -2520,16 +2521,15 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 						if ((ps->do_occlude == FALSE) ||
 						    !project_bucket_point_occluded(ps, bucketFaceNodes, face_index, pixelScreenCo))
 						{
-							
 							mask = project_paint_uvpixel_mask(ps, face_index, side, w);
-							
+
 							if (mask > 0.0f) {
 								BLI_linklist_prepend_arena(
 								        bucketPixelNodes,
 								        project_paint_uvpixel_init(ps, arena, ibuf, x, y, mask, face_index,
-												image_index, pixelScreenCo, wco, side, w),
-												arena
-												);
+								                                   image_index, pixelScreenCo, wco, side, w),
+								        arena
+								        );
 							}
 						}
 						
@@ -5021,7 +5021,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 
 	/* disable for 3d mapping also because painting on mirrored mesh can create "stripes" */
 	ps->do_masking = (brush->flag & BRUSH_AIRBRUSH || brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW ||
-						brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) ? false : true;
+	                  brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) ? false : true;
 	ps->is_texbrush = (brush->mtex.tex) ? 1 : 0;
 
 
