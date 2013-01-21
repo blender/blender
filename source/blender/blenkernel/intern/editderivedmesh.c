@@ -1410,7 +1410,7 @@ static void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 			normal_float_to_short_v3(vert_r->no, eve->no);
 			vert_r->flag = BM_vert_flag_to_mflag(eve);
 
-			if (cd_vert_bweight_offset != -1) vert_r->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eve, cd_vert_bweight_offset);
+			vert_r->bweight = (cd_vert_bweight_offset != -1) ? BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eve, cd_vert_bweight_offset) : 0;
 
 			vert_r++;
 		}
@@ -1421,7 +1421,7 @@ static void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 			normal_float_to_short_v3(vert_r->no, eve->no);
 			vert_r->flag = BM_vert_flag_to_mflag(eve);
 
-			if (cd_vert_bweight_offset != -1) vert_r->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eve, cd_vert_bweight_offset);
+			vert_r->bweight = (cd_vert_bweight_offset != -1) ? BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eve, cd_vert_bweight_offset) : 0;
 
 			vert_r++;
 		}
@@ -1445,8 +1445,8 @@ static void emDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 
 		edge_r->flag = BM_edge_flag_to_mflag(eed);
 
-		if (cd_edge_crease_offset  != -1) edge_r->crease  = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eed, cd_edge_crease_offset);
-		if (cd_edge_bweight_offset != -1) edge_r->bweight = BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eed, cd_edge_bweight_offset);
+		edge_r->crease  = (cd_edge_crease_offset  != -1) ? BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eed, cd_edge_crease_offset)  : 0;
+		edge_r->bweight = (cd_edge_bweight_offset != -1) ? BM_ELEM_CD_GET_FLOAT_AS_UCHAR(eed, cd_edge_bweight_offset) : 0;
 
 		edge_r++;
 	}
@@ -1469,6 +1469,7 @@ static void emDM_copyTessFaceArray(DerivedMesh *dm, MFace *face_r)
 		face_r->mat_nr = (unsigned char) ef->mat_nr;
 
 		face_r->flag = BM_face_flag_to_mflag(ef);
+		face_r->edcode = 0;
 
 		face_r->v1 = BM_elem_index_get(l[0]->v);
 		face_r->v2 = BM_elem_index_get(l[1]->v);

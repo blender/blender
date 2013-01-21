@@ -1013,7 +1013,11 @@ static void ccgDM_getFinalFace(DerivedMesh *dm, int faceNum, MFace *mf)
 		mf->flag = faceFlags[i].flag;
 		mf->mat_nr = faceFlags[i].mat_nr;
 	}
-	else mf->flag = ME_SMOOTH;
+	else {
+		mf->flag = ME_SMOOTH;
+	}
+
+	mf->edcode = 0;
 }
 
 /* Translate GridHidden into the ME_HIDE flag for MVerts. Assumes
@@ -1122,6 +1126,7 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
 				vd = ccgSubSurf_getFaceGridEdgeData(ss, f, S, x);
 				copy_v3_v3(mvert[i].co, CCG_elem_co(&key, vd));
 				normal_float_to_short_v3(mvert[i].no, CCG_elem_no(&key, vd));
+				mvert[i].flag = mvert[i].bweight = 0;
 			}
 		}
 
@@ -1131,6 +1136,7 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
 					vd = ccgSubSurf_getFaceGridData(ss, f, S, x, y);
 					copy_v3_v3(mvert[i].co, CCG_elem_co(&key, vd));
 					normal_float_to_short_v3(mvert[i].no, CCG_elem_no(&key, vd));
+					mvert[i].flag = mvert[i].bweight = 0;
 				}
 			}
 		}
@@ -1150,6 +1156,7 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
 			 * faces which are now zerod out, see comment in:
 			 * ccgSubSurf__calcVertNormals(), - campbell */
 			normal_float_to_short_v3(mvert[i].no, CCG_elem_no(&key, vd));
+			mvert[i].flag = mvert[i].bweight = 0;
 		}
 	}
 
@@ -1160,6 +1167,7 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
 		vd = ccgSubSurf_getVertData(ss, v);
 		copy_v3_v3(mvert[i].co, CCG_elem_co(&key, vd));
 		normal_float_to_short_v3(mvert[i].no, CCG_elem_no(&key, vd));
+		mvert[i].flag = mvert[i].bweight = 0;
 		i++;
 	}
 }
@@ -1174,6 +1182,7 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
 	int edgeSize = ccgSubSurf_getEdgeSize(ss);
 	int i = 0;
 	short *edgeFlags = ccgdm->edgeFlags;
+	const short ed_interior_flag = ccgdm->drawInteriorEdges ? (ME_EDGEDRAW | ME_EDGERENDER) : 0;
 
 	totface = ccgSubSurf_getNumFaces(ss);
 	for (index = 0; index < totface; index++) {
@@ -1184,10 +1193,10 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
 			for (x = 0; x < gridSize - 1; x++) {
 				MEdge *med = &medge[i];
 
-				if (ccgdm->drawInteriorEdges)
-					med->flag = ME_EDGEDRAW | ME_EDGERENDER;
 				med->v1 = getFaceIndex(ss, f, S, x, 0, edgeSize, gridSize);
 				med->v2 = getFaceIndex(ss, f, S, x + 1, 0, edgeSize, gridSize);
+				med->crease = med->bweight = 0;
+				med->flag = ed_interior_flag;
 				i++;
 			}
 
@@ -1196,21 +1205,21 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
 					MEdge *med;
 
 					med = &medge[i];
-					if (ccgdm->drawInteriorEdges)
-						med->flag = ME_EDGEDRAW | ME_EDGERENDER;
 					med->v1 = getFaceIndex(ss, f, S, x, y,
 					                       edgeSize, gridSize);
 					med->v2 = getFaceIndex(ss, f, S, x, y + 1,
 					                       edgeSize, gridSize);
+					med->crease = med->bweight = 0;
+					med->flag = ed_interior_flag;
 					i++;
 
 					med = &medge[i];
-					if (ccgdm->drawInteriorEdges)
-						med->flag = ME_EDGEDRAW | ME_EDGERENDER;
 					med->v1 = getFaceIndex(ss, f, S, y, x,
 					                       edgeSize, gridSize);
 					med->v2 = getFaceIndex(ss, f, S, y + 1, x,
 					                       edgeSize, gridSize);
+					med->crease = med->bweight = 0;
+					med->flag = ed_interior_flag;
 					i++;
 				}
 			}
@@ -1239,6 +1248,7 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
 			MEdge *med = &medge[i];
 			med->v1 = getEdgeIndex(ss, e, x, edgeSize);
 			med->v2 = getEdgeIndex(ss, e, x + 1, edgeSize);
+			med->crease = med->bweight = 0;
 			med->flag = flags;
 			i++;
 		}
@@ -1278,6 +1288,7 @@ static void ccgDM_copyFinalFaceArray(DerivedMesh *dm, MFace *mface)
 					                      edgeSize, gridSize);
 					mf->mat_nr = mat_nr;
 					mf->flag = flag;
+					mf->edcode = 0;
 
 					i++;
 				}
