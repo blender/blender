@@ -797,12 +797,12 @@ static void apply_heights_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 	CLAMP(uv[1], 0.0f, 1.0f);
 
 	get_ccgdm_data(lores_dm, hires_dm,
-	               height_data->orig_index_mf_to_mpoly, height_data->orig_index_mf_to_mpoly,
+	               height_data->orig_index_mf_to_mpoly, height_data->orig_index_mp_to_orig,
 	               lvl, face_index, uv[0], uv[1], p1, 0);
 
 	if (height_data->ssdm) {
 		get_ccgdm_data(lores_dm, height_data->ssdm,
-		               height_data->orig_index_mf_to_mpoly, height_data->orig_index_mf_to_mpoly,
+		               height_data->orig_index_mf_to_mpoly, height_data->orig_index_mp_to_orig,
 		               0, face_index, uv[0], uv[1], p0, n);
 	}
 	else {
