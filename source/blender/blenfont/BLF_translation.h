@@ -33,6 +33,8 @@
 #ifndef __BLF_TRANSLATION_H__
 #define __BLF_TRANSLATION_H__
 
+#include "BLI_utildefines.h"  /* for bool type */
+
 #define TEXT_DOMAIN_NAME "blender"
 
 /* blf_lang.c */
@@ -53,7 +55,8 @@ const char *BLF_lang_get(void);
 
 /* Get locale's elements (if relevant pointer is not NULL and element actually exists, e.g. if there is no variant,
  * *variant and *language_variant will always be NULL).
- * Non-null elements are always MEM_mallocN'ed, it's the caller's responsibility to free them. 
+ * Non-null elements are always MEM_mallocN'ed, it's the caller's responsibility to free them.
+ * NOTE: Always available, even in non-WITH_INTERNATIONAL builds.
  */
 void BLF_locale_explode(const char *locale, char **language, char **country, char **variant,
                         char **language_country, char **language_variant);
@@ -63,16 +66,14 @@ struct EnumPropertyItem *BLF_RNA_lang_enum_properties(void);
 
 /* blf_translation.c  */
 
-#ifdef WITH_INTERNATIONAL
 unsigned char *BLF_get_unifont(int *unifont_size);
 void BLF_free_unifont(void);
-#endif
 
 const char *BLF_pgettext(const char *msgctxt, const char *msgid);
 
 /* translation */
-int BLF_translate_iface(void);
-int BLF_translate_tooltips(void);
+bool BLF_translate_iface(void);
+bool BLF_translate_tooltips(void);
 const char *BLF_translate_do_iface(const char *msgctxt, const char *msgid);
 const char *BLF_translate_do_tooltip(const char *msgctxt, const char *msgid);
 
@@ -83,17 +84,17 @@ const char *BLF_translate_do_tooltip(const char *msgctxt, const char *msgid);
 
 /* Those macros should be used everywhere in UI code. */
 #ifdef WITH_INTERNATIONAL
-/*	#define _(msgid) BLF_gettext(msgid) */
-	#define IFACE_(msgid) BLF_translate_do_iface(NULL, msgid)
-	#define TIP_(msgid) BLF_translate_do_tooltip(NULL, msgid)
-	#define CTX_IFACE_(context, msgid) BLF_translate_do_iface(context, msgid)
-	#define CTX_TIP_(context, msgid) BLF_translate_do_tooltip(context, msgid)
+/*#  define _(msgid) BLF_gettext(msgid) */
+#  define IFACE_(msgid) BLF_translate_do_iface(NULL, msgid)
+#  define TIP_(msgid) BLF_translate_do_tooltip(NULL, msgid)
+#  define CTX_IFACE_(context, msgid) BLF_translate_do_iface(context, msgid)
+#  define CTX_TIP_(context, msgid) BLF_translate_do_tooltip(context, msgid)
 #else
-/*	#define _(msgid) msgid */
-	#define IFACE_(msgid) msgid
-	#define TIP_(msgid) msgid
-	#define CTX_IFACE_(context, msgid) msgid
-	#define CTX_TIP_(context, msgid)   msgid
+/*#  define _(msgid) msgid */
+#  define IFACE_(msgid) msgid
+#  define TIP_(msgid)   msgid
+#  define CTX_IFACE_(context, msgid) msgid
+#  define CTX_TIP_(context, msgid)   msgid
 #endif
 
 /* Helper macro, when we want to define a same msgid for multiple msgctxt...
@@ -160,7 +161,7 @@ typedef struct
 
 #define BLF_I18NCONTEXTS_ITEM(ctxt_id, py_id) {#ctxt_id, py_id, ctxt_id}
 
-#define BLF_I18NCONTEXTS_DESC {                                                                                         \
+#define BLF_I18NCONTEXTS_DESC {                                                                                        \
 	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_DEFAULT, "default"),                                                         \
 	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "operator_default"),                                       \
 	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_ACTION, "id_action"),                                                     \
@@ -197,7 +198,5 @@ typedef struct
 	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_MASK, "id_mask"),                                                         \
 	{NULL, NULL, NULL}                                                                                                 \
 }
-
-//#undef _BLF_I18NCONTEXTS_ITEM
 
 #endif /* __BLF_TRANSLATION_H__ */

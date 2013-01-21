@@ -29,18 +29,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "RNA_types.h"
 
 #include "BLF_translation.h" /* own include */
 
-#include "BLI_utildefines.h"
-
-#ifdef WITH_INTERNATIONAL
-
-#include <string.h>
-
-#include "boost_locale_wrapper.h"
+#include "BLI_fileops.h"
+#include "BLI_linklist.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
 
 #include "BKE_global.h"
 
@@ -48,19 +46,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_fileops.h"
-#include "BLI_linklist.h"
-#include "BLI_path_util.h"
-#include "BLI_string.h"
+#ifdef WITH_INTERNATIONAL
+
+#include "boost_locale_wrapper.h"
 
 /* Locale options. */
 static const char **locales = NULL;
 static int num_locales = 0;
 static EnumPropertyItem *locales_menu = NULL;
 static int num_locales_menu = 0;
-
-#define ULANGUAGE ((U.language >= 0 && U.language < num_locales) ? U.language : 0)
-#define LOCALE(_id) (locales ? locales[(_id)] : "")
 
 static void free_locales(void)
 {
@@ -177,14 +171,20 @@ static void fill_locales(void)
 
 	BLI_file_free_lines(lines);
 }
+#endif  /* WITH_INTERNATIONAL */
 
 EnumPropertyItem *BLF_RNA_lang_enum_properties(void)
 {
+#ifdef WITH_INTERNATIONAL
 	return locales_menu;
+#else
+	return NULL;
+#endif
 }
 
 void BLF_lang_init(void)
 {
+#ifdef WITH_INTERNATIONAL
 	char *messagepath = BLI_get_folder(BLENDER_DATAFILES, "locale");
 
 	if (messagepath) {
@@ -194,15 +194,24 @@ void BLF_lang_init(void)
 	else {
 		printf("%s: 'locale' data path for translations not found, continuing\n", __func__);
 	}
+#else
+#endif
 }
 
 void BLF_lang_free(void)
 {
+#ifdef WITH_INTERNATIONAL
 	free_locales();
+#else
+#endif
 }
+
+#define ULANGUAGE ((U.language >= 0 && U.language < num_locales) ? U.language : 0)
+#define LOCALE(_id) (locales ? locales[(_id)] : "")
 
 void BLF_lang_set(const char *str)
 {
+#ifdef WITH_INTERNATIONAL
 	int ulang = ULANGUAGE;
 	const char *short_locale = str ? str : LOCALE(ulang);
 	const char *short_locale_utf8 = NULL;
@@ -232,17 +241,24 @@ void BLF_lang_set(const char *str)
 	if (short_locale[0]) {
 		MEM_freeN((void *)short_locale_utf8);
 	}
+#else
+	(void)str;
+#endif
 }
 
 /* Get the current locale (short code, e.g. es_ES). */
 const char *BLF_lang_get(void)
 {
+#ifdef WITH_INTERNATIONAL
 	const char *locale = LOCALE(ULANGUAGE);
 	if (locale[0] == '\0') {
 		/* Default locale, we have to find which one we are actually using! */
 		locale = bl_locale_get();
 	}
 	return locale;
+#else
+	return "";
+#endif
 }
 
 #undef LOCALE
@@ -299,32 +315,3 @@ void BLF_locale_explode(const char *locale, char **language, char **country, cha
 		MEM_freeN(_t);
 	}
 }
-
-#else /* ! WITH_INTERNATIONAL */
-
-struct EnumPropertyItem *BLF_RNA_lang_enum_properties(void)
-{
-	return NULL;
-}
-
-void BLF_lang_init(void)
-{
-	return;
-}
-
-void BLF_lang_free(void)
-{
-	return;
-}
-
-void BLF_lang_set(const char *UNUSED(str))
-{
-	return;
-}
-
-const char *BLF_lang_get(void)
-{
-	return "";
-}
-
-#endif /* WITH_INTERNATIONAL */
