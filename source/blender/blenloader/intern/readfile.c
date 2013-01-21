@@ -9784,7 +9784,7 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
 		
 		a = set_listbasepointers(mainvar, lbarray);
 		while (a--) {
-			id= lbarray[a]->first;
+			id = lbarray[a]->first;
 			while (id) {
 				if (id->flag & LIB_NEED_EXPAND) {
 					switch (GS(id->name)) {
@@ -9927,7 +9927,7 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const 
 				
 				if (do_it) {
 					base = MEM_callocN(sizeof(Base), "add_ext_base");
-					BLI_addtail(&(sce->base), base);
+					BLI_addtail(&sce->base, base);
 					base->lay = ob->lay;
 					base->object = ob;
 					base->flag = ob->flag;
