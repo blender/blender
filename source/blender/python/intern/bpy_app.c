@@ -36,9 +36,7 @@
 #include "bpy_app_ffmpeg.h"
 #include "bpy_app_build_options.h"
 
-#ifdef WITH_INTERNATIONAL
-#  include "bpy_app_translations.h"
-#endif
+#include "bpy_app_translations.h"
 
 #include "bpy_app_handlers.h"
 #include "bpy_driver.h"
@@ -90,9 +88,7 @@ static PyStructSequence_Field app_info_fields[] = {
 	{(char *)"ffmpeg", (char *)"FFmpeg library information backend"},
 	{(char *)"build_options", (char *)"A set containing most important enabled optional build features"},
 	{(char *)"handlers", (char *)"Application handler callbacks"},
-#ifdef WITH_INTERNATIONAL
 	{(char *)"translations", (char *)"Application and addons internationalization API"},
-#endif
 	{NULL},
 };
 
@@ -159,9 +155,7 @@ static PyObject *make_app_info(void)
 	SetObjItem(BPY_app_ffmpeg_struct());
 	SetObjItem(BPY_app_build_options_struct());
 	SetObjItem(BPY_app_handlers_struct());
-#ifdef WITH_INTERNATIONAL
 	SetObjItem(BPY_app_translations_struct());
-#endif
 
 #undef SetIntItem
 #undef SetStrItem

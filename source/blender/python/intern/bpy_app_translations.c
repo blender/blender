@@ -32,18 +32,14 @@
 /* XXX Why bloody hell isn't that included in Python.h???? */
 #include <structmember.h>
 
-/* Need this one before BPY_extern.h, for bool def! */
+#include "BLI_string.h"
+#include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 
 #include "BPY_extern.h"
 #include "bpy_app_translations.h"
 
-#ifdef WITH_INTERNATIONAL
-
 #include "MEM_guardedalloc.h"
-
-#include "BLI_string.h"
-#include "BLI_ghash.h"
 
 #include "BLF_translation.h"
 
@@ -66,6 +62,8 @@ typedef struct
 
 /* Our singleton instance pointer */
 static BlenderAppTranslations *_translations = NULL;
+
+#ifdef WITH_INTERNATIONAL
 
 /***** Helpers for ghash *****/
 typedef struct GHashKey {
@@ -295,10 +293,14 @@ const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *ms
 #undef STATIC_LOCALE_SIZE
 }
 
+#endif  /* WITH_INTERNATIONAL */
+
 PyDoc_STRVAR(app_translations_py_messages_register_doc,
 ".. method:: register(module_name, translations_dict)\n"
 "\n"
 "   Registers an addon's UI translations.\n"
+"\n"
+"   Note: Does nothing when Blender is built without internationalization support.\n"
 "\n"
 "   :arg module_name: The name identifying the addon.\n"
 "   :type module_name: string\n"
@@ -309,6 +311,7 @@ PyDoc_STRVAR(app_translations_py_messages_register_doc,
 );
 static PyObject *app_translations_py_messages_register(BlenderAppTranslations *self, PyObject *args, PyObject *kw)
 {
+#ifdef WITH_INTERNATIONAL
 	static const char *kwlist[] = {"module_name", "translations_dict", NULL};
 	PyObject *module_name, *uuid_dict;
 
@@ -329,6 +332,11 @@ static PyObject *app_translations_py_messages_register(BlenderAppTranslations *s
 
 	/* Clear cached messages dict! */
 	_clear_translations_cache();
+#else
+	(void)self;
+	(void)args;
+	(void)kw;
+#endif
 
 	/* And we are done! */
 	Py_RETURN_NONE;
@@ -339,12 +347,15 @@ PyDoc_STRVAR(app_translations_py_messages_unregister_doc,
 "\n"
 "   Unregisters an addon's UI translations.\n"
 "\n"
+"   Note: Does nothing when Blender is built without internationalization support.\n"
+"\n"
 "   :arg module_name: The name identifying the addon.\n"
 "   :type module_name: string\n"
 "\n"
 );
 static PyObject *app_translations_py_messages_unregister(BlenderAppTranslations *self, PyObject *args, PyObject *kw)
 {
+#ifdef WITH_INTERNATIONAL
 	static const char *kwlist[] = {"module_name", NULL};
 	PyObject *module_name;
 
@@ -359,13 +370,18 @@ static PyObject *app_translations_py_messages_unregister(BlenderAppTranslations 
 		/* Clear cached messages ghash! */
 		_clear_translations_cache();
 	}
+#else
+	(void)self;
+	(void)args;
+	(void)kw;
+#endif
 
 	/* And we are done! */
 	Py_RETURN_NONE;
 }
 
-
 /***** C-defined contexts *****/
+/* This is always available (even when WITH_INTERNATIONAL is not defined). */
 
 static PyTypeObject BlenderAppTranslationsContextsType;
 
@@ -433,7 +449,10 @@ PyMemberDef app_translations_members[] = {
 	{NULL}
 };
 
-PyDoc_STRVAR(app_translations_locale_doc, "The actual locale currently in use.");
+PyDoc_STRVAR(app_translations_locale_doc,
+	"The actual locale currently in use (will always return a void string when Blender is built without "
+	"internationalization support)."
+);
 static PyObject *app_translations_locale_get(PyObject *UNUSED(self), void *UNUSED(userdata))
 {
 	return PyUnicode_FromString(BLF_lang_get());
@@ -447,22 +466,22 @@ static PyObject *app_translations_locales_get(PyObject *UNUSED(self), void *UNUS
 	EnumPropertyItem *it, *items = BLF_RNA_lang_enum_properties();
 	int num_locales = 0, pos = 0;
 
-	/* This is not elegant, but simple! */
-	for (it = items; it->identifier; it++) {
-		if (it->value)
-			num_locales++;
+	if (items) {
+		/* This is not elegant, but simple! */
+		for (it = items; it->identifier; it++) {
+			if (it->value)
+				num_locales++;
+		}
 	}
 
 	ret = PyTuple_New(num_locales);
 
-#define TupleSetItem() PyTuple_SET_ITEM(ret, pos++, PyUnicode_FromString(it->description))
-
-	for (it = items; it->identifier; it++) {
-		if (it->value)
-			TupleSetItem();
+	if (items) {
+		for (it = items; it->identifier; it++) {
+			if (it->value)
+				PyTuple_SET_ITEM(ret, pos++, PyUnicode_FromString(it->description));
+		}
 	}
-
-#undef TupleSetItem
 
 	return ret;
 }
@@ -482,6 +501,7 @@ PyDoc_STRVAR(app_translations_pgettext_doc,
 "         single-parameter calls (context then defaults to BLF_I18NCONTEXT_DEFAULT).\n"
 "   NOTE: You should really rarely need to use this function in regular addon code, as all translation should be\n"
 "         handled by Blender internal code.\n"
+"   Note: Does nothing when Blender is built without internationalization support (hence always returns msgid).\n"
 "\n"
 "   :arg msgid: The string to translate.\n"
 "   :type msgid: string\n"
@@ -493,6 +513,9 @@ PyDoc_STRVAR(app_translations_pgettext_doc,
 );
 static PyObject *app_translations_pgettext(BlenderAppTranslations *UNUSED(self), PyObject *args, PyObject *kw)
 {
+	/* Note we could optimize this a bit when WITH_INTERNATIONAL is not defined, but don't think "code complexity" would
+	 * be worth it, as this func should not often be used!
+	 */
 	static const char *kwlist[] = {"msgid", "msgctxt", NULL};
 	char *msgid, *msgctxt = NULL;
 
@@ -712,12 +735,3 @@ PyObject *BPY_app_translations_struct(void)
 
 	return ret;
 }
-
-#else  /* WITH_INTERNATIONAL */
-
-PyObject *BPY_app_translations_struct(void)
-{
-	Py_RETURN_NONE;
-}
-
-#endif  /* WITH_INTERNATIONAL */
