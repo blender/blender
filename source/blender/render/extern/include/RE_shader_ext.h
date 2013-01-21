@@ -184,6 +184,11 @@ typedef struct ShadeInput {
 	
 } ShadeInput;
 
+typedef struct BakeImBufuserData {
+	float *displacement_buffer;
+	float displacement_min, displacement_max;
+	char *mask_buffer;
+} BakeImBufuserData;
 
 /* node shaders... */
 struct Tex;
@@ -207,6 +212,7 @@ struct Object;
 int RE_bake_shade_all_selected(struct Render *re, int type, struct Object *actob, short *do_update, float *progress);
 struct Image *RE_bake_shade_get_image(void);
 void RE_bake_ibuf_filter(struct ImBuf *ibuf, char *mask, const int filter);
+void RE_bake_ibuf_normalize_displacement(struct ImBuf *ibuf, float *displacement, char *mask, float global_displacement_min, float global_displacement_max);
 
 #define BAKE_RESULT_OK			0
 #define BAKE_RESULT_NO_OBJECTS		1

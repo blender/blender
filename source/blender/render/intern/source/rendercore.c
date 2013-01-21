@@ -2016,6 +2016,11 @@ typedef struct BakeShade {
 	
 	unsigned int *rect;
 	float *rect_float;
+
+	/* displacement buffer used for normalization with unknown maximal distance */
+	int use_displacement_buffer;
+	float *displacement_buffer;
+	float *displacement_min, *displacement_max;
 	
 	int use_mask;
 	char *rect_mask; /* bake pixel mask */
@@ -2252,13 +2257,23 @@ static void bake_displacement(void *handle, ShadeInput *UNUSED(shi), float dist,
 	BakeShade *bs= handle;
 	float disp;
 	
-	if (R.r.bake_flag & R_BAKE_NORMALIZE && R.r.bake_maxdist) {
-		disp = (dist+R.r.bake_maxdist) / (R.r.bake_maxdist*2); /* alter the range from [-bake_maxdist, bake_maxdist] to [0, 1]*/
+	if (R.r.bake_flag & R_BAKE_NORMALIZE) {
+		if (R.r.bake_maxdist)
+			disp = (dist+R.r.bake_maxdist) / (R.r.bake_maxdist*2); /* alter the range from [-bake_maxdist, bake_maxdist] to [0, 1]*/
+		else
+			disp = dist;
 	}
 	else {
 		disp = 0.5f + dist; /* alter the range from [-0.5,0.5] to [0,1]*/
 	}
-	
+
+	if (bs->displacement_buffer) {
+		float *displacement = bs->displacement_buffer + (bs->rectx * y + x);
+		*displacement = disp;
+		*bs->displacement_min = min_ff(*bs->displacement_min, disp);
+		*bs->displacement_max = max_ff(*bs->displacement_max, disp);
+	}
+
 	if (bs->rect_float && !bs->vcol) {
 		float *col= bs->rect_float + 4*(bs->rectx*y + x);
 		col[0] = col[1] = col[2] = disp;
@@ -2654,6 +2669,9 @@ static void shade_verts(BakeShade *bs)
 	bs->ima = NULL;
 	bs->rect = NULL;
 	bs->rect_float = NULL;
+	bs->displacement_buffer = NULL;
+	bs->displacement_min = NULL;
+	bs->displacement_max = NULL;
 
 	bs->quad = 0;
 
@@ -2715,18 +2733,37 @@ static void shade_tface(BakeShade *bs)
 	bs->rect_float= bs->ibuf->rect_float;
 	bs->vcol = NULL;
 	bs->quad= 0;
-	
-	if (bs->use_mask) {
-		if (bs->ibuf->userdata==NULL) {
+	bs->rect_mask = NULL;
+	bs->displacement_buffer = NULL;
+	bs->displacement_min = NULL;
+	bs->displacement_max = NULL;
+
+	if (bs->use_mask || bs->use_displacement_buffer) {
+		BakeImBufuserData *userdata = bs->ibuf->userdata;
+		if (userdata == NULL) {
 			BLI_lock_thread(LOCK_CUSTOM1);
-			if (bs->ibuf->userdata==NULL) /* since the thread was locked, its possible another thread alloced the value */
-				bs->ibuf->userdata = (void *)MEM_callocN(sizeof(char)*bs->rectx*bs->recty, "BakeMask");
-			bs->rect_mask= (char *)bs->ibuf->userdata;
+			userdata = bs->ibuf->userdata;
+			if (userdata == NULL) /* since the thread was locked, its possible another thread alloced the value */
+				userdata = MEM_callocN(sizeof(BakeImBufuserData), "BakeMask");
+
+			if (bs->use_mask)
+				userdata->mask_buffer = MEM_callocN(sizeof(char) * bs->rectx * bs->recty, "BakeMask");
+
+			if (bs->use_displacement_buffer) {
+				userdata->displacement_buffer = MEM_callocN(sizeof(float) * bs->rectx * bs->recty, "BakeDisp");
+				userdata->displacement_min = FLT_MAX;
+				userdata->displacement_max = -FLT_MAX;
+			}
+
+			bs->ibuf->userdata = userdata;
+
 			BLI_unlock_thread(LOCK_CUSTOM1);
 		}
-		else {
-			bs->rect_mask= (char *)bs->ibuf->userdata;
-		}
+
+		bs->rect_mask = userdata->mask_buffer;
+		bs->displacement_buffer = userdata->displacement_buffer;
+		bs->displacement_min = &userdata->displacement_min;
+		bs->displacement_max = &userdata->displacement_max;
 	}
 	
 	/* get pixel level vertex coordinates */
@@ -2800,6 +2837,43 @@ void RE_bake_ibuf_filter(ImBuf *ibuf, char *mask, const int filter)
 	}
 }
 
+void RE_bake_ibuf_normalize_displacement(ImBuf *ibuf, float *displacement, char *mask, float global_displacement_min, float global_displacement_max)
+{
+	int i;
+	float *current_displacement = displacement;
+	char *current_mask = mask;
+	float max_distance;
+
+	max_distance = max_ff(fabsf(global_displacement_min), fabsf(global_displacement_max));
+
+	for (i = 0; i < ibuf->x * ibuf->y; i++) {
+		if (*current_mask == FILTER_MASK_USED) {
+			float normalized_displacement;
+
+			if (max_distance > 1e-5f)
+				normalized_displacement = (*current_displacement + max_distance) / (max_distance * 2);
+			else
+				normalized_displacement = 0.0f;
+
+			if (ibuf->rect_float) {
+				/* currently baking happens to RGBA only */
+				float *fp = ibuf->rect_float + i * 4;
+				fp[0] = fp[1] = fp[2] = normalized_displacement;
+				fp[3] = 1.0f;
+			}
+
+			if (ibuf->rect) {
+				unsigned char *cp = (unsigned char *) (ibuf->rect + i);
+				cp[0] = cp[1] = cp[2] = FTOCHAR(normalized_displacement);
+				cp[3] = 255;
+			}
+		}
+
+		current_displacement++;
+		current_mask++;
+	}
+}
+
 /* using object selection tags, the faces with UV maps get baked */
 /* render should have been setup */
 /* returns 0 if nothing was handled */
@@ -2809,6 +2883,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	ListBase threads;
 	Image *ima;
 	int a, vdone = FALSE, use_mask = FALSE, result = BAKE_RESULT_OK;
+	int use_displacement_buffer = FALSE;
 	
 	re->scene_color_manage = BKE_scene_check_color_management_enabled(re->scene);
 	
@@ -2822,7 +2897,13 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	/* do we need a mask? */
 	if (re->r.bake_filter)
 		use_mask = TRUE;
-	
+
+	/* do we need buffer to store displacements  */
+	if ((R.r.bake_flag & R_BAKE_NORMALIZE) && R.r.bake_maxdist == 0.0f) {
+		use_displacement_buffer = TRUE;
+		use_mask = TRUE;
+	}
+
 	/* baker uses this flag to detect if image was initialized */
 	if ((R.r.bake_flag & R_BAKE_VCOL) == 0) {
 		for (ima = G.main->image.first; ima; ima = ima->id.next) {
@@ -2863,6 +2944,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 			handles[a].zspan = MEM_callocN(sizeof(ZSpan), "zspan for bake");
 		
 		handles[a].use_mask = use_mask;
+		handles[a].use_displacement_buffer = use_displacement_buffer;
 
 		handles[a].do_update = do_update; /* use to tell the view to update */
 		
@@ -2885,12 +2967,33 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 				break;
 		}
 	}
-	
+
 	/* filter and refresh images */
 	if ((R.r.bake_flag & R_BAKE_VCOL) == 0) {
+		float global_displacement_min = FLT_MAX, global_displacement_max = -FLT_MAX;
+
+		if (use_displacement_buffer) {
+			for (ima = G.main->image.first; ima; ima = ima->id.next) {
+				if ((ima->id.flag & LIB_DOIT)==0) {
+					ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+					BakeImBufuserData *userdata;
+
+					if (!ibuf)
+						continue;
+
+					userdata = (BakeImBufuserData *) ibuf->userdata;
+					global_displacement_min = min_ff(global_displacement_min, userdata->displacement_min);
+					global_displacement_max = max_ff(global_displacement_max, userdata->displacement_max);
+
+					BKE_image_release_ibuf(ima, ibuf, NULL);
+				}
+			}
+		}
+
 		for (ima = G.main->image.first; ima; ima = ima->id.next) {
 			if ((ima->id.flag & LIB_DOIT)==0) {
 				ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+				BakeImBufuserData *userdata;
 
 				if (ima->flag & IMA_USED_FOR_RENDER)
 					result = BAKE_RESULT_FEEDBACK_LOOP;
@@ -2898,7 +3001,13 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 				if (!ibuf)
 					continue;
 
-				RE_bake_ibuf_filter(ibuf, (char *)ibuf->userdata, re->r.bake_filter);
+				userdata = (BakeImBufuserData *) ibuf->userdata;
+				RE_bake_ibuf_filter(ibuf, userdata->mask_buffer, re->r.bake_filter);
+
+				if (use_displacement_buffer) {
+					RE_bake_ibuf_normalize_displacement(ibuf, userdata->displacement_buffer, userdata->mask_buffer,
+					                                    global_displacement_min, global_displacement_max);
+				}
 
 				ibuf->userflags |= IB_BITMAPDIRTY;
 				BKE_image_release_ibuf(ima, ibuf, NULL);
