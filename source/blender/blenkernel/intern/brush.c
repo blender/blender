@@ -477,19 +477,22 @@ void BKE_brush_sample_tex(const Scene *scene, Brush *brush, const float sampleco
 	MTex *mtex = &brush->mtex;
 
 	if (mtex && mtex->tex) {
-		float co[3], tin, tr, tg, tb, ta;
+		float tin, tr, tg, tb, ta;
 		int hasrgb;
 		const int radius = BKE_brush_size_get(scene, brush);
 
 		if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) {
-			copy_v3_v3(co, sampleco);
-		} else {
+			hasrgb = externtex(mtex, sampleco, &tin, &tr, &tg, &tb, &ta, thread);
+		}
+		else {
+			float co[3];
+
 			co[0] = sampleco[0] / radius;
 			co[1] = sampleco[1] / radius;
 			co[2] = 0.0f;
-		}
 
-		hasrgb = externtex(mtex, co, &tin, &tr, &tg, &tb, &ta, thread);
+			hasrgb = externtex(mtex, co, &tin, &tr, &tg, &tb, &ta, thread);
+		}
 
 		if (hasrgb) {
 			rgba[0] = tr;

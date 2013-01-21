@@ -1526,10 +1526,6 @@ static int project_paint_pixel_sizeof(const short tool)
 	}
 }
 
-static bool project_paint_supports_3d_mapping(Brush *brush)
-{
-	return (brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) && (brush->imagepaint_tool == PAINT_TOOL_DRAW);
-}
 
 /* run this function when we know a bucket's, face's pixel can be initialized,
  * return the ProjPixel which is added to 'ps->bucketRect[bucket_index]' */
@@ -1571,7 +1567,7 @@ static ProjPixel *project_paint_uvpixel_init(
 	}
 	
 	/* screenspace unclamped, we could keep its z and w values but don't need them at the moment */
-	if(project_paint_supports_3d_mapping(ps->brush))
+	if(ps->brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D)
 		copy_v3_v3(projPixel->worldCoSS, world_spaceCo);
 
 	copy_v2_v2(projPixel->projCoSS, pixelScreenCo);
@@ -2383,7 +2379,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 	
 	float *uv1co, *uv2co, *uv3co; /* for convenience only, these will be assigned to tf->uv[0],1,2 or tf->uv[0],2,3 */
 	float pixelScreenCo[4];
-	bool do_3d_mapping = project_paint_supports_3d_mapping(ps->brush);
+	bool do_3d_mapping = ps->brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D;
 	
 	rcti bounds_px; /* ispace bounds */
 	/* vars for getting uvspace bounds */
@@ -4013,6 +4009,7 @@ static void *do_projectpaint_thread(void *ph_v)
 
 	LinkNode *node;
 	ProjPixel *projPixel;
+	Brush *brush = ps->brush;
 	
 	int last_index = -1;
 	ProjPaintImage *last_projIma = NULL;
@@ -4032,10 +4029,10 @@ static void *do_projectpaint_thread(void *ph_v)
 	float co[2];
 	float mask = 1.0f; /* airbrush wont use mask */
 	unsigned short mask_short;
-	const float radius = (float)BKE_brush_size_get(ps->scene, ps->brush);
+	const float radius = (float)BKE_brush_size_get(ps->scene, brush);
 	const float radius_squared = radius * radius; /* avoid a square root with every dist comparison */
 	
-	short lock_alpha = ELEM(ps->brush->blend, IMB_BLEND_ERASE_ALPHA, IMB_BLEND_ADD_ALPHA) ? 0 : ps->brush->flag & BRUSH_LOCK_ALPHA;
+	short lock_alpha = ELEM(brush->blend, IMB_BLEND_ERASE_ALPHA, IMB_BLEND_ADD_ALPHA) ? 0 : brush->flag & BRUSH_LOCK_ALPHA;
 	
 	LinkNode *smearPixels = NULL;
 	LinkNode *smearPixels_f = NULL;
@@ -4122,11 +4119,12 @@ static void *do_projectpaint_thread(void *ph_v)
 					falloff = BKE_brush_curve_strength_clamp(ps->brush, dist, radius);
 
 					if (ps->is_texbrush) {
-						if (ps->brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) {
+						MTex *mtex = &brush->mtex;
+						if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
 							sub_v2_v2v2(samplecos, projPixel->projCoSS, pos);
 						}
 						/* taking 3d copy to account for 3D mapping too. It gets concatenated during sampling */
-						else if (project_paint_supports_3d_mapping(ps->brush))
+						else if (mtex->brush_map_mode == MTEX_MAP_MODE_3D)
 							copy_v3_v3(samplecos, projPixel->worldCoSS);
 						else
 							copy_v3_v3(samplecos, projPixel->projCoSS);
@@ -4135,7 +4133,7 @@ static void *do_projectpaint_thread(void *ph_v)
 					if (falloff > 0.0f) {
 						if (ps->is_texbrush) {
 							/* note, for clone and smear, we only use the alpha, could be a special function */
-							BKE_brush_sample_tex(ps->scene, ps->brush, samplecos, rgba, thread_index);
+							BKE_brush_sample_tex(ps->scene, brush, samplecos, rgba, thread_index);
 							alpha = rgba[3];
 						}
 						else {
@@ -4144,7 +4142,7 @@ static void *do_projectpaint_thread(void *ph_v)
 						
 						if (!ps->do_masking) {
 							/* for an aurbrush there is no real mask, so just multiply the alpha by it */
-							alpha *= falloff * BKE_brush_alpha_get(ps->scene, ps->brush);
+							alpha *= falloff * BKE_brush_alpha_get(ps->scene, brush);
 							mask = ((float)projPixel->mask) / 65535.0f;
 						}
 						else {
@@ -4152,7 +4150,7 @@ static void *do_projectpaint_thread(void *ph_v)
 							falloff = 1.0f - falloff;
 							falloff = 1.0f - (falloff * falloff);
 							
-							mask_short = (unsigned short)(projPixel->mask * (BKE_brush_alpha_get(ps->scene, ps->brush) * falloff));
+							mask_short = (unsigned short)(projPixel->mask * (BKE_brush_alpha_get(ps->scene, brush) * falloff));
 							if (mask_short > projPixel->mask_max) {
 								mask = ((float)mask_short) / 65535.0f;
 								projPixel->mask_max = mask_short;
@@ -5023,7 +5021,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 
 	/* disable for 3d mapping also because painting on mirrored mesh can create "stripes" */
 	ps->do_masking = (brush->flag & BRUSH_AIRBRUSH || brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW ||
-						project_paint_supports_3d_mapping(brush)) ? false : true;
+						brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) ? false : true;
 	ps->is_texbrush = (brush->mtex.tex) ? 1 : 0;
 
 
