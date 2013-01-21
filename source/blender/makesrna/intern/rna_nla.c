@@ -115,7 +115,7 @@ static void rna_NlaStrip_start_frame_set(PointerRNA *ptr, float value)
 		if (data->prev->type == NLASTRIP_TYPE_TRANSITION) {
 			CLAMP(value, data->prev->start + NLASTRIP_MIN_LEN_THRESH, data->end - NLASTRIP_MIN_LEN_THRESH);
 			
-			/* readjust the transition to stick to the endpoints of the action-clips */
+			/* re-adjust the transition to stick to the endpoints of the action-clips */
 			data->prev->end = value;
 		}
 		else {
