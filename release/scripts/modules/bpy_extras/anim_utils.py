@@ -169,15 +169,16 @@ def bake_action(frame_start,
         euler_prev = None
 
         for (f, matrix) in zip(frame_range, obj_info):
-            obj.matrix_basis = matrix[name]
+            name = "Action Bake" # XXX: placeholder
+            obj.matrix_basis = matrix
 
-            obj.keyframe_insert("location", -1, f, options)
+            obj.keyframe_insert("location", -1, f, name, options)
 
             rotation_mode = obj.rotation_mode
             if rotation_mode == 'QUATERNION':
-                obj.keyframe_insert("rotation_quaternion", -1, f, options)
+                obj.keyframe_insert("rotation_quaternion", -1, f, name, options)
             elif rotation_mode == 'AXIS_ANGLE':
-                obj.keyframe_insert("rotation_axis_angle", -1, f, options)
+                obj.keyframe_insert("rotation_axis_angle", -1, f, name, options)
             else:  # euler, XYZ, ZXY etc
                 if euler_prev is not None:
                     euler = obj.rotation_euler.copy()
@@ -187,9 +188,9 @@ def bake_action(frame_start,
                     del euler
                 else:
                     euler_prev = obj.rotation_euler.copy()
-                obj.keyframe_insert("rotation_euler", -1, f, options)
+                obj.keyframe_insert("rotation_euler", -1, f, name, options)
 
-            obj.keyframe_insert("scale", -1, f, options)
+            obj.keyframe_insert("scale", -1, f, name, options)
 
     # -------------------------------------------------------------------------
     # Clean
