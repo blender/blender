@@ -1872,6 +1872,14 @@ static int bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
 						BLI_array_append(vv, bmv);
 					}
 				}
+				else if (bp->vertex_only && vm->mesh_kind == M_ADJ_SUBDIV && vm->seg > 1) {
+					BLI_assert(v->prev == vend);
+					i = vend->index;
+					for (k = vm->seg - 1; k > 0; k--) {
+						bmv = mesh_vert(vm, i, 0, k)->v;
+						BLI_array_append(vv, bmv);
+					}
+				}
 				v = v->prev;
 				BLI_array_append(vv, v->nv.v);
 			}
