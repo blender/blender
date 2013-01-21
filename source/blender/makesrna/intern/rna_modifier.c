@@ -1846,7 +1846,7 @@ static void rna_def_modifier_laplaciansmooth(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "use_normalized", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_LAPLACIANSMOOTH_NORMALIZED);
-	RNA_def_property_ui_text(prop, "Normalized Version", "Improves and stabilizes the shape enhanced");
+	RNA_def_property_ui_text(prop, "Normalized", "Improve and stabilize the enhanced shape");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "lambda_factor", PROP_FLOAT, PROP_NONE);
@@ -3498,16 +3498,19 @@ static void rna_def_modifier_meshcache(BlenderRNA *brna)
 	};
 
 	static EnumPropertyItem prop_time_type_items[] = {
+		/* use 'eval_frame' */
 		{MOD_MESHCACHE_TIME_FRAME,   "FRAME",   0, "Frame",  "Control playback using a frame-number "
-		                                                   "(ignoring time FPS and start frame from the file)"},  /* use 'eval_frame' */
-		{MOD_MESHCACHE_TIME_SECONDS, "TIME",    0, "Time",   "Control playback using time in seconds"},          /* use 'eval_time' */
-		{MOD_MESHCACHE_TIME_FACTOR,  "FACTOR",  0, "Factor", "Control playback using a valid between [0 - 1]"},    /* use 'eval_factor' */
+		                                                   "(ignoring time FPS and start frame from the file)"},
+		/* use 'eval_time' */
+		{MOD_MESHCACHE_TIME_SECONDS, "TIME",    0, "Time",   "Control playback using time in seconds"},
+		/* use 'eval_factor' */
+		{MOD_MESHCACHE_TIME_FACTOR,  "FACTOR",  0, "Factor", "Control playback using a value between [0, 1]"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
 	static EnumPropertyItem prop_time_play_items[] = {
 		{MOD_MESHCACHE_PLAY_CFEA, "SCENE", 0, "Scene", "Use the time from the scene"},
-		{MOD_MESHCACHE_PLAY_EVAL, "CUSTOM", 0, "Custom", "Use the modifiers own time evaluation"},
+		{MOD_MESHCACHE_PLAY_EVAL, "CUSTOM", 0, "Custom", "Use the modifier's own time evaluation"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -3595,7 +3598,7 @@ static void rna_def_modifier_meshcache(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "eval_frame", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "eval_frame");
 	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
-	RNA_def_property_ui_text(prop, "Evaluation Frame", "The frame to evaluage (starting at 0)");
+	RNA_def_property_ui_text(prop, "Evaluation Frame", "The frame to evaluate (starting at 0)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "eval_time", PROP_FLOAT, PROP_NONE);

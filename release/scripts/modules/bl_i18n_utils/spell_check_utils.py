@@ -488,6 +488,7 @@ dict_uimsgs = {
     # Files types/formats
     "avi",
     "attrac",
+    "autocad",
     "autodesk",
     "bmp",
     "btx",
