@@ -284,7 +284,7 @@ void BLF_locale_explode(const char *locale, char **language, char **country, cha
 				*language = _t;
 		}
 		else if (language) {
-			*language = NULL;
+			*language = BLI_strdup(locale);
 		}
 	}
 	if (country) {
@@ -300,14 +300,14 @@ void BLF_locale_explode(const char *locale, char **language, char **country, cha
 			*variant = NULL;
 	}
 	if (language_country) {
-		if (m2)
-			*language_country = BLI_strdupn(locale, m2 - locale);
+		if (m1)
+			*language_country = m2 ? BLI_strdupn(locale, m2 - locale) : BLI_strdup(locale);
 		else
 			*language_country = NULL;
 	}
 	if (language_variant) {
 		if (m2)
-			*language_variant = m1 ? BLI_strdupcat(_t, m2 + 1) : BLI_strdup(locale);
+			*language_variant = m1 ? BLI_strdupcat(_t, m2) : BLI_strdup(locale);
 		else
 			*language_variant = NULL;
 	}
