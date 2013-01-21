@@ -2004,7 +2004,7 @@ static int rekey_exec(bContext *C, wmOperator *op)
 	PE_set_data(C, &data);
 
 	data.dval= 1.0f / (float)(data.totrekey-1);
-	data.totrekey= RNA_int_get(op->ptr, "keys");
+	data.totrekey= RNA_int_get(op->ptr, "keys_number");
 
 	foreach_selected_point(&data, rekey_particle);
 	
@@ -2031,7 +2031,7 @@ void PARTICLE_OT_rekey(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int(ot->srna, "keys", 2, 2, INT_MAX, "Number of Keys", "", 2, 100);
+	RNA_def_int(ot->srna, "keys_number", 2, 2, INT_MAX, "Number of Keys", "", 2, 100);
 }
 
 static void rekey_particle_to_time(Scene *scene, Object *ob, int pa_index, float path_time)
