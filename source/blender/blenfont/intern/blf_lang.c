@@ -27,6 +27,10 @@
  *  \ingroup blf
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "RNA_types.h"
 
 #include "BLF_translation.h" /* own include */
 
@@ -34,8 +38,6 @@
 
 #ifdef WITH_INTERNATIONAL
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "boost_locale_wrapper.h"
@@ -43,8 +45,6 @@
 #include "BKE_global.h"
 
 #include "DNA_userdef_types.h"
-
-#include "RNA_types.h"
 
 #include "MEM_guardedalloc.h"
 
