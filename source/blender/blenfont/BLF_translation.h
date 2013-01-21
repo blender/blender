@@ -50,7 +50,7 @@ void BLF_lang_free(void);
 
 /* Set the current locale. */
 void BLF_lang_set(const char *);
-/* Get the current locale (short code, e.g. es_ES). */
+/* Get the current locale ([partial] ISO code, e.g. es_ES). */
 const char *BLF_lang_get(void);
 
 /* Get locale's elements (if relevant pointer is not NULL and element actually exists, e.g. if there is no variant,
@@ -110,8 +110,11 @@ const char *BLF_translate_do_tooltip(const char *msgctxt, const char *msgid);
  * things, and limit the number of existing contexts!
  */
 
-/* Default, void context. Just in case... */
-#define BLF_I18NCONTEXT_DEFAULT ""
+/* Default, void context.
+ * WARNING! The "" context is not the same as no (NULL) context at mo/boost::locale level!
+ */
+#define BLF_I18NCONTEXT_DEFAULT NULL  /* Translated as None in Python. */
+#define BLF_I18NCONTEXT_DEFAULT_BPY_INTERN ""  /* Only used in code, never exposed to user! */
 
 /* Default context for operator names/labels. */
 #define BLF_I18NCONTEXT_OPERATOR_DEFAULT "Operator"

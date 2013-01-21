@@ -76,7 +76,7 @@ typedef struct GHashKey {
 static GHashKey *_ghashutil_keyalloc(const void *msgctxt, const void *msgid)
 {
 	GHashKey *key = MEM_mallocN(sizeof(GHashKey), "GHashPair");
-	key->msgctxt = BLI_strdup(msgctxt);
+	key->msgctxt = BLI_strdup(msgctxt ? msgctxt : BLF_I18NCONTEXT_DEFAULT_BPY_INTERN);
 	key->msgid = BLI_strdup(msgid);
 	return key;
 }
@@ -186,7 +186,10 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
 				}
 
 				tmp = PyTuple_GET_ITEM(pykey, 0);
-				if (PyUnicode_Check(tmp)) {
+				if (tmp == Py_None) {
+					msgctxt = BLF_I18NCONTEXT_DEFAULT;
+				}
+				else if (PyUnicode_Check(tmp)) {
 					msgctxt = _PyUnicode_AsString(tmp);
 				}
 				tmp = PyTuple_GET_ITEM(pykey, 1);
@@ -194,7 +197,7 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
 					msgid = _PyUnicode_AsString(tmp);
 				}
 
-				if (!(msgctxt && msgid)) {
+				if (!msgid) {
 					continue;
 				}
 
@@ -247,7 +250,7 @@ const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *ms
 	}
 
 	/* And now, simply create the key (context, messageid) and find it in the cached dict! */
-	key = _ghashutil_keyalloc(msgctxt ? msgctxt : BLF_I18NCONTEXT_DEFAULT, msgid);
+	key = _ghashutil_keyalloc(msgctxt, msgid);
 
 	tmp = BLI_ghash_lookup(_translations_cache, key);
 
@@ -359,12 +362,19 @@ static PyObject *app_translations_contexts_make(void)
 	}
 
 #define SetObjString(item) PyStructSequence_SET_ITEM(translations_contexts, pos++, PyUnicode_FromString((item)))
+#define SetObjNone() Py_INCREF(Py_None); PyStructSequence_SET_ITEM(translations_contexts, pos++, Py_None)
 
 	for (ctxt = _contexts; ctxt->c_id; ctxt++) {
-		SetObjString(ctxt->value);
+		if (ctxt->value) {
+			SetObjString(ctxt->value);
+		}
+		else {
+			SetObjNone();
+		}
 	}
 
 #undef SetObjString
+#undef SetObjNone
 
 	return translations_contexts;
 }
@@ -372,7 +382,9 @@ static PyObject *app_translations_contexts_make(void)
 /***** Main BlenderAppTranslations Py object definition *****/
 
 PyDoc_STRVAR(app_translations_contexts_doc,
-	"A named tuple containing all pre-defined translation contexts."
+	"A named tuple containing all pre-defined translation contexts.\n"
+	"WARNING: do not use the \"" BLF_I18NCONTEXT_DEFAULT_BPY_INTERN "\" context, it is internally assimilated as the "
+	"default one!\n"
 );
 
 PyDoc_STRVAR(app_translations_contexts_C_to_py_doc,
@@ -433,14 +445,14 @@ PyDoc_STRVAR(app_translations_pgettext_doc,
 "\n"
 "   Try to translate the given msgid (with optional msgctxt).\n"
 "   NOTE: The (msgid, msgctxt) parameter orders has been switched compared to gettext function, to allow\n"
-"         single-parameter calls (context then defaults to BLF_I18NCONTEXT_DEFAULT)."
+"         single-parameter calls (context then defaults to BLF_I18NCONTEXT_DEFAULT).\n"
 "   NOTE: You should really rarely need to use this function in regular addon code, as all translation should be\n"
-"         handled by Blender internal code."
+"         handled by Blender internal code.\n"
 "\n"
 "   :arg msgid: The string to translate.\n"
 "   :type msgid: string\n"
 "   :arg msgctxt: The translation context.\n"
-"   :type msgctxt: string\n"
+"   :type msgctxt: string or None\n"
 "   :default msgctxt: BLF_I18NCONTEXT_DEFAULT value.\n"
 "   :return: The translated string (or msgid if no translation was found).\n"
 "\n"
@@ -450,7 +462,7 @@ static PyObject *app_translations_pgettext(BlenderAppTranslations *UNUSED(self),
 	static const char *kwlist[] = {"msgid", "msgctxt", NULL};
 	char *msgid, *msgctxt = NULL;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|s:bpy.app.translations.pgettext()", (char **)kwlist,
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|z:bpy.app.translations.pgettext", (char **)kwlist,
 	                                 &msgid, &msgctxt))
 	{
 		return NULL;
@@ -466,7 +478,7 @@ PyMethodDef app_translations_methods[] = {
 	{(char *)"unregister", (PyCFunction)app_translations_py_messages_unregister, METH_VARARGS | METH_KEYWORDS,
 	                       app_translations_py_messages_unregister_doc},
 	{(char *)"pgettext", (PyCFunction)app_translations_pgettext, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
-	                      app_translations_pgettext_doc},
+	                     app_translations_pgettext_doc},
 	{NULL}
 };
 
