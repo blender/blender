@@ -346,7 +346,7 @@ static void round_box__edges(uiWidgetBase *wt, int roundboxalign, const rcti *re
 	                  (roundboxalign & (UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT)) == (UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT)) ? 1 : 2;
 
 	minsize = min_ii(BLI_rcti_size_x(rect) * hnum,
-	               BLI_rcti_size_y(rect) * vnum);
+	                 BLI_rcti_size_y(rect) * vnum);
 	
 	if (2.0f * rad > minsize)
 		rad = 0.5f * minsize;

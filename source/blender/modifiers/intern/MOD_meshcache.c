@@ -153,11 +153,10 @@ static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 
 static void meshcache_do(
         MeshCacheModifierData *mcmd, Object *ob, DerivedMesh *UNUSED(dm),
-        float (*vertexCos_)[3], int numVerts)
+        float (*vertexCos_Real)[3], int numVerts)
 {
 	float (*vertexCos_Store)[3] = (mcmd->factor < 1.0f) ?
 	                              MEM_mallocN(sizeof(*vertexCos_Store) * numVerts, __func__) : NULL;
-	float (*vertexCos_Real)[3] = vertexCos_;
 	float (*vertexCos)[3] = vertexCos_Store ? vertexCos_Store : vertexCos_Real;
 
 	Scene *scene = mcmd->modifier.scene;

@@ -409,7 +409,7 @@ static void draw_spline_curve(const bContext *C, MaskLayer *masklay, MaskSpline 
                               int width, int height)
 {
 	const unsigned int resol = max_ii(BKE_mask_spline_feather_resolution(spline, width, height),
-	                                BKE_mask_spline_resolution(spline, width, height));
+	                                  BKE_mask_spline_resolution(spline, width, height));
 
 	unsigned char rgb_tmp[4];
 

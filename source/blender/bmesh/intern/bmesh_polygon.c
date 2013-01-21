@@ -319,7 +319,7 @@ void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nvert
 	if (angle < FLT_EPSILON)
 		return;
 
-	if (len_v3(axis) < FLT_EPSILON) {
+	if (len_squared_v3(axis) < FLT_EPSILON) {
 		axis[0] = 0.0f;
 		axis[1] = 1.0f;
 		axis[2] = 0.0f;
