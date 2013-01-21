@@ -428,6 +428,27 @@ static void *do_multires_bake_thread(void *data_v)
 	return NULL;
 }
 
+/* some of arrays inside ccgdm are lazy-initialized, which will generally
+ * require lock around accessing such data
+ * this function will ensure all arrays are allocated before threading started
+ */
+static void init_ccgdm_arrays(DerivedMesh *dm)
+{
+	CCGElem **grid_data;
+	CCGKey key;
+	int grid_size;
+	int *grid_offset;
+
+	grid_size = dm->getGridSize(dm);
+	grid_data = dm->getGridData(dm);
+	grid_offset = dm->getGridOffset(dm);
+	dm->getGridKey(dm, &key);
+
+	(void) grid_data;
+	(void) grid_data;
+	(void) grid_offset;
+}
+
 static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, int require_tangent, MPassKnownData passKnownData,
                              MInitBakeData initBakeData, MApplyBakeData applyBakeData, MFreeBakeData freeBakeData)
 {
@@ -466,6 +487,8 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, int require_ta
 			BLI_init_threads(&threads, do_multires_bake_thread, tot_thread);
 
 		handles = MEM_callocN(tot_thread * sizeof(MultiresBakeThread), "do_multires_bake handles");
+
+		init_ccgdm_arrays(bkr->hires_dm);
 
 		/* faces queue */
 		queue.cur_face = 0;
@@ -514,6 +537,8 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, int require_ta
 
 		if (freeBakeData)
 			freeBakeData(bake_data);
+
+		MEM_freeN(handles);
 
 		BKE_image_release_ibuf(ima, ibuf, NULL);
 	}
@@ -673,6 +698,7 @@ static void *init_heights_data(MultiresBakeRender *bkr, Image *ima)
 				smd.subdivType = ME_SIMPLE_SUBSURF;
 
 			height_data->ssdm = subsurf_make_derived_from_derived(bkr->lores_dm, &smd, NULL, 0);
+			init_ccgdm_arrays(height_data->ssdm);
 		}
 	}
 
