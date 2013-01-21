@@ -883,7 +883,13 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3], const s
 	while (!done && f->len > 3) {
 		done = true;
 		l_iter = find_ear(f, projectverts, use_beauty, abscoss);
-		if (l_iter) {
+
+		/* force triangulation - if we can't find an ear the face is degenerate */
+		if (l_iter == NULL) {
+			l_iter = BM_FACE_FIRST_LOOP(f);
+		}
+
+		{
 			done = false;
 /*			printf("Subdividing face...\n");*/
 			f = BM_face_split(bm, l_iter->f, l_iter->prev->v, l_iter->next->v, &newl, NULL, true);
@@ -913,6 +919,8 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3], const s
 
 		}
 	}
+
+	BLI_assert(f->len == 3);
 
 #if 0 /* XXX find_ear should now always return a corner, so no more need for this piece of code... */
 	if (f->len > 3) {
