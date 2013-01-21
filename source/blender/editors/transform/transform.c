@@ -907,6 +907,13 @@ int transformEvent(TransInfo *t, wmEvent *event)
 								t->state = TRANS_STARTING;
 								initVertSlide(t);
 							}
+							/* vert slide can fail on unconnected vertices (rare but possible) */
+							if(t->state == TRANS_CANCEL) {
+								t->state = TRANS_STARTING;
+								resetTransRestrictions(t);
+								restoreTransObjects(t);
+								initTranslation(t);
+							}
 							initSnapping(t, NULL); // need to reinit after mode change
 							t->redraw |= TREDRAW_HARD;
 							WM_event_add_mousemove(t->context);
