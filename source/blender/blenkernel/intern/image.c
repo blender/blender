@@ -2888,6 +2888,21 @@ static ImBuf *image_get_ibuf_threadsafe(Image *ima, ImageUser *iuser, int *frame
 	return ibuf;
 }
 
+BLI_INLINE int image_quick_test(Image *ima, ImageUser *iuser)
+{
+	if (ima == NULL)
+		return FALSE;
+
+	if (iuser) {
+		if (iuser->ok == 0)
+			return FALSE;
+	}
+	else if (ima->ok == 0)
+		return FALSE;
+
+	return TRUE;
+}
+
 /* Checks optional ImageUser and verifies/creates ImBuf.
  *
  * not thread-safe, so callee should worry about thread locks
@@ -2902,14 +2917,7 @@ static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 		*lock_r = NULL;
 
 	/* quick reject tests */
-	if (ima == NULL)
-		return NULL;
-
-	if (iuser) {
-		if (iuser->ok == 0)
-			return NULL;
-	}
-	else if (ima->ok == 0)
+	if (!image_quick_test(ima, iuser))
 		return NULL;
 
 	ibuf = image_get_ibuf_threadsafe(ima, iuser, &frame, &index);
@@ -3033,14 +3041,7 @@ int BKE_image_has_ibuf(Image *ima, ImageUser *iuser)
 	ImBuf *ibuf;
 
 	/* quick reject tests */
-	if (ima == NULL)
-		return FALSE;
-
-	if (iuser) {
-		if (iuser->ok == 0)
-			return FALSE;
-	}
-	else if (ima->ok == 0)
+	if (!image_quick_test(ima, iuser))
 		return FALSE;
 
 	ibuf = image_get_ibuf_threadsafe(ima, iuser, NULL, NULL);
@@ -3121,6 +3122,9 @@ ImBuf *BKE_image_pool_acquire_ibuf(Image *ima, ImageUser *iuser, ImagePool *pool
 {
 	ImBuf *ibuf;
 	int index, frame, found;
+
+	if (!image_quick_test(ima, iuser))
+		return NULL;
 
 	if (pool == NULL) {
 		/* pool could be NULL, in this case use general acquire function */
