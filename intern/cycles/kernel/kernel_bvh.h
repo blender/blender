@@ -206,19 +206,19 @@ __device_inline void bvh_triangle_intersect(KernelGlobals *kg, Intersection *ise
 }
 
 #ifdef __HAIR__
-__device_inline void curvebounds(float *lower, float *lowert, float *upper, float *uppert, float p0, float p1, float p2, float p3)
+__device_inline void curvebounds(float *lower, float *upper, float *extremta, float *extrema, float *extremtb, float *extremb, float p0, float p1, float p2, float p3)
 {
 	float halfdiscroot = (p2 * p2 - 3 * p3 * p1);
 	float ta = -1.0f;
 	float tb = -1.0f;
-	*uppert = 0.0f;
+	*extremta = -1.0f;
+	*extremtb = -1.0f;
 	*upper = p0;
-	*lowert = 1.0f;
 	*lower = p0 + p1 + p2 + p3;
+	*extrema = *upper;
+	*extremb = *lower;
 	if(*lower >= *upper) {
-		*uppert = 1.0f;
 		*upper = *lower;
-		*lowert = 0.0f;
 		*lower = p0;
 	}
 
@@ -233,27 +233,25 @@ __device_inline void curvebounds(float *lower, float *lowert, float *upper, floa
 	if(ta > 0.0f && ta < 1.0f) {
 		t2 = ta * ta;
 		t3 = t2 * ta;
-		float extrem = p3 * t3 + p2 * t2 + p1 * ta + p0;
-		if(extrem > *upper) {
-			*upper = extrem;
-			*uppert = ta;
+		*extremta = ta;
+		*extrema = p3 * t3 + p2 * t2 + p1 * ta + p0;
+		if(*extrema > *upper) {
+			*upper = *extrema;
 		}
-		if(extrem < *lower) {
-			*lower = extrem;
-			*lowert = ta;
+		if(*extrema < *lower) {
+			*lower = *extrema;
 		}
 	}
 	if(tb > 0.0f && tb < 1.0f) {
 		t2 = tb * tb;
 		t3 = t2 * tb;
-		float extrem = p3 * t3 + p2 * t2 + p1 * tb + p0;
-		if(extrem >= *upper) {
-			*upper = extrem;
-			*uppert = tb;
+		*extremtb = tb;
+		*extremb = p3 * t3 + p2 * t2 + p1 * tb + p0;
+		if(*extremb >= *upper) {
+			*upper = *extremb;
 		}
-		if(extrem <= *lower) {
-			*lower = extrem;
-			*lowert = tb;
+		if(*extremb <= *lower) {
+			*lower = *extremb;
 		}
 	}
 }
@@ -319,41 +317,34 @@ __device_inline void bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersectio
 	float r_curr = max(r_st, r_en);
 
 	/*find bounds - this is slow for cubic curves*/
-	float xbound[4];
-	curvebounds(&xbound[0], &xbound[1], &xbound[2], &xbound[3], curve_coef[0].x, curve_coef[1].x, curve_coef[2].x, curve_coef[3].x);
-	if(xbound[0] > r_curr || xbound[2] < -r_curr)
+	float upper,lower;
+	float xextrem[4];
+	curvebounds(&lower, &upper, &xextrem[0], &xextrem[1], &xextrem[2], &xextrem[3], curve_coef[0].x, curve_coef[1].x, curve_coef[2].x, curve_coef[3].x);
+	if(lower > r_curr || upper < -r_curr)
 		return;
 
-	float ybound[4];
-	curvebounds(&ybound[0], &ybound[1], &ybound[2], &ybound[3], curve_coef[0].y, curve_coef[1].y, curve_coef[2].y, curve_coef[3].y);
-	if(ybound[0] > r_curr || ybound[2] < -r_curr)
+	float yextrem[4];
+	curvebounds(&lower, &upper, &yextrem[0], &yextrem[1], &yextrem[2], &yextrem[3], curve_coef[0].y, curve_coef[1].y, curve_coef[2].y, curve_coef[3].y);
+	if(lower > r_curr || upper < -r_curr)
 		return;
 
-	float zbound[4];
-	curvebounds(&zbound[0], &zbound[1], &zbound[2], &zbound[3], curve_coef[0].z, curve_coef[1].z, curve_coef[2].z, curve_coef[3].z);
-	if(zbound[0] - r_curr > isect->t || zbound[2] + r_curr < 0.0f)
+	float zextrem[4];
+	curvebounds(&lower, &upper, &zextrem[0], &zextrem[1], &zextrem[2], &zextrem[3], curve_coef[0].z, curve_coef[1].z, curve_coef[2].z, curve_coef[3].z);
+	if(lower - r_curr > isect->t || upper + r_curr < 0.0f)
 		return;
-
 
 	/*setup recurrent loop*/
 	int level = 1 << depth;
 	int tree = 0;
-	float resol = 0.5f / (float)level;
+	float resol = 1.0f / (float)level;
 
-	int xmin = (int)(xbound[1] / resol);
-	int xmax = (int)(xbound[3] / resol);
-	int ymin = (int)(ybound[1] / resol);
-	int ymax = (int)(ybound[3] / resol);
-	int zmin = (int)(zbound[1] / resol);
-	int zmax = (int)(zbound[3] / resol);
 	/*begin loop*/
-	while(!(tree >> (depth + 1))) {
+	while(!(tree >> (depth))) {
 		float i_st = tree * resol;
 		float i_en = i_st + (level * resol);
 		float3 p_st = ((curve_coef[3] * i_st + curve_coef[2]) * i_st + curve_coef[1]) * i_st + curve_coef[0];
 		float3 p_en = ((curve_coef[3] * i_en + curve_coef[2]) * i_en + curve_coef[1]) * i_en + curve_coef[0];
 		
-
 		float bminx = min(p_st.x, p_en.x);
 		float bmaxx = max(p_st.x, p_en.x);
 		float bminy = min(p_st.y, p_en.y);
@@ -361,19 +352,30 @@ __device_inline void bvh_cardinal_curve_intersect(KernelGlobals *kg, Intersectio
 		float bminz = min(p_st.z, p_en.z);
 		float bmaxz = max(p_st.z, p_en.z);
 
-		if(tree == xmin)
-			bminx = xbound[0];
-		if(tree == xmax)
-			bmaxx = xbound[2];
-		if(tree == ymin)
-			bminy = ybound[0];
-		if(tree == ymax)
-			bmaxy = ybound[2];
-		if(tree == zmin)
-			bminz = zbound[0];
-		if(tree == zmax)
-			bmaxz = zbound[2];
-
+		if(xextrem[0] >= i_st && xextrem[0] <= i_en) {
+			bminx = min(bminx,xextrem[1]);
+			bmaxx = max(bmaxx,xextrem[1]);
+		}
+		if(xextrem[2] >= i_st && xextrem[2] <= i_en) {
+			bminx = min(bminx,xextrem[3]);
+			bmaxx = max(bmaxx,xextrem[3]);
+		}
+		if(yextrem[0] >= i_st && yextrem[0] <= i_en) {
+			bminy = min(bminy,yextrem[1]);
+			bmaxy = max(bmaxy,yextrem[1]);
+		}
+		if(yextrem[2] >= i_st && yextrem[2] <= i_en) {
+			bminy = min(bminy,yextrem[3]);
+			bmaxy = max(bmaxy,yextrem[3]);
+		}
+		if(zextrem[0] >= i_st && zextrem[0] <= i_en) {
+			bminz = min(bminz,zextrem[1]);
+			bmaxz = max(bmaxz,zextrem[1]);
+		}
+		if(zextrem[2] >= i_st && zextrem[2] <= i_en) {
+			bminz = min(bminz,zextrem[3]);
+			bmaxz = max(bmaxz,zextrem[3]);
+		}
 
 		float r1 = r_st + (r_en - r_st) * i_st;
 		float r2 = r_st + (r_en - r_st) * i_en;
