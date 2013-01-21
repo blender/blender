@@ -83,6 +83,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_group.h"
 #include "BKE_icons.h"
+#include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_lamp.h"
 #include "BKE_lattice.h"
@@ -307,6 +308,9 @@ void free_sculptsession(Object *ob)
 
 		if (ss->texcache)
 			MEM_freeN(ss->texcache);
+
+		if (ss->tex_pool)
+			BKE_image_pool_free(ss->tex_pool);
 
 		if (ss->layer_co)
 			MEM_freeN(ss->layer_co);

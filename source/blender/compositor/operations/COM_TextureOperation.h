@@ -45,6 +45,7 @@ private:
 	const RenderData *m_rd;
 	SocketReader *m_inputSize;
 	SocketReader *m_inputOffset;
+	struct ImagePool *m_pool;
 
 protected:
 

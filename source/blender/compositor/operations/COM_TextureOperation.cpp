@@ -23,6 +23,7 @@
 #include "COM_TextureOperation.h"
 
 #include "BLI_listbase.h"
+#include "BKE_image.h"
 
 TextureBaseOperation::TextureBaseOperation() : NodeOperation()
 {
@@ -46,11 +47,14 @@ void TextureBaseOperation::initExecution()
 {
 	this->m_inputOffset = getInputSocketReader(0);
 	this->m_inputSize = getInputSocketReader(1);
+	this->m_pool = BKE_image_pool_new();
 }
 void TextureBaseOperation::deinitExecution()
 {
 	this->m_inputSize = NULL;
 	this->m_inputOffset = NULL;
+	BKE_image_pool_free(this->m_pool);
+	this->m_pool = NULL;
 }
 
 void TextureBaseOperation::determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2])
@@ -95,7 +99,7 @@ void TextureBaseOperation::executePixel(float output[4], float x, float y, Pixel
 	vec[1] = textureSize[1] * (v + textureOffset[1]);
 	vec[2] = textureSize[2] * textureOffset[2];
 
-	retval = multitex_ext(this->m_texture, vec, NULL, NULL, 0, &texres);
+	retval = multitex_ext(this->m_texture, vec, NULL, NULL, 0, &texres, m_pool);
 
 	if (texres.talpha)
 		output[3] = texres.ta;

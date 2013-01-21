@@ -1060,7 +1060,7 @@ static void get_texture_value(Tex *texture, float tex_co[3], TexResult *texres)
 	int result_type;
 
 	/* no node textures for now */
-	result_type = multitex_ext_safe(texture, tex_co, texres);
+	result_type = multitex_ext_safe(texture, tex_co, texres, NULL);
 
 	/* if the texture gave an RGB value, we assume it didn't give a valid
 	 * intensity, since this is in the context of modifiers don't use perceptual color conversion.

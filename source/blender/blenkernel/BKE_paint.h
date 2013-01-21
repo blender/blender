@@ -47,6 +47,7 @@ struct Paint;
 struct PBVH;
 struct Scene;
 struct StrokeCache;
+struct ImagePool;
 
 extern const char PAINT_CURSOR_SCULPT[3];
 extern const char PAINT_CURSOR_VERTEX_PAINT[3];
@@ -116,6 +117,7 @@ typedef struct SculptSession {
 	
 	/* Used to cache the render of the active texture */
 	unsigned int texcache_side, *texcache, texcache_actual;
+	struct ImagePool *tex_pool;
 
 	/* Layer brush persistence between strokes */
 	float (*layer_co)[3]; /* Copy of the mesh vertices' locations */

@@ -150,6 +150,7 @@ static HaloRen *initstar(Render *re, ObjectRen *obr, const float vec[3], float h
 	har->hasize= hasize;
 	
 	har->zd= 0.0;
+	har->pool = re->pool;
 	
 	return har;
 }

@@ -60,6 +60,7 @@ struct TexResult;
 struct Tex;
 struct Image;
 struct ImBuf;
+struct ImagePool;
 
 /* texture.h */
 
@@ -76,9 +77,9 @@ void render_realtime_texture(struct ShadeInput *shi, struct Image *ima);
 
 /* imagetexture.h */
 
-int imagewraposa(struct Tex *tex, struct Image *ima, struct ImBuf *ibuf, const float texvec[3], const float dxt[2], const float dyt[2], struct TexResult *texres);
-int imagewrap(struct Tex *tex, struct Image *ima, struct ImBuf *ibuf, const float texvec[3], struct TexResult *texres);
-void image_sample(struct Image *ima, float fx, float fy, float dx, float dy, float result[4]);
+int imagewraposa(struct Tex *tex, struct Image *ima, struct ImBuf *ibuf, const float texvec[3], const float dxt[2], const float dyt[2], struct TexResult *texres, struct ImagePool *pool);
+int imagewrap(struct Tex *tex, struct Image *ima, struct ImBuf *ibuf, const float texvec[3], struct TexResult *texres, struct ImagePool *pool);
+void image_sample(struct Image *ima, float fx, float fy, float dx, float dy, float result[4], struct ImagePool *pool);
 
 #endif /* __TEXTURE_H__ */
 

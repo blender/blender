@@ -1483,7 +1483,9 @@ static void dynamicPaint_setInitialColor(DynamicPaintSurface *surface)
 		/* for vertex surface loop through tfaces and find uv color
 		 *  that provides highest alpha */
 		if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
-			#pragma omp parallel for schedule(static)
+			struct ImagePool *pool = BKE_image_pool_new();
+
+			#pragma omp parallel for schedule(static) shared(pool)
 			for (i = 0; i < numOfFaces; i++) {
 				int numOfVert = (mface[i].v4) ? 4 : 3;
 				float uv[3] = {0.0f};
@@ -1496,7 +1498,7 @@ static void dynamicPaint_setInitialColor(DynamicPaintSurface *surface)
 					uv[0] = tface[i].uv[j][0] * 2.0f - 1.0f;
 					uv[1] = tface[i].uv[j][1] * 2.0f - 1.0f;
 
-					multitex_ext_safe(tex, uv, &texres);
+					multitex_ext_safe(tex, uv, &texres, pool);
 
 					if (texres.tin > pPoint[*vert].alpha) {
 						copy_v3_v3(pPoint[*vert].color, &texres.tr);
@@ -1504,6 +1506,7 @@ static void dynamicPaint_setInitialColor(DynamicPaintSurface *surface)
 					}
 				}
 			}
+			BKE_image_pool_free(pool);
 		}
 		else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
 			ImgSeqFormatData *f_data = (ImgSeqFormatData *)sData->format_data;
@@ -1529,7 +1532,7 @@ static void dynamicPaint_setInitialColor(DynamicPaintSurface *surface)
 				uv_final[0] = uv_final[0] * 2.0f - 1.0f;
 				uv_final[1] = uv_final[1] * 2.0f - 1.0f;
 					
-				multitex_ext_safe(tex, uv_final, &texres);
+				multitex_ext_safe(tex, uv_final, &texres, NULL);
 
 				/* apply color */
 				copy_v3_v3(pPoint[i].color, &texres.tr);

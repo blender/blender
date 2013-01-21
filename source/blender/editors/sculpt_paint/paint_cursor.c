@@ -43,6 +43,7 @@
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
+#include "BKE_image.h"
 #include "BKE_paint.h"
 
 #include "WM_api.h"
@@ -143,6 +144,8 @@ static int load_tex(Brush *br, ViewContext *vc)
 	    !same_snap(&snap, br, vc);
 
 	if (refresh) {
+		struct ImagePool *pool = NULL;
+
 		if (br->mtex.tex && br->mtex.tex->preview)
 			tex_changed_timestamp = br->mtex.tex->preview->changed_timestamp[0];
 
@@ -181,6 +184,9 @@ static int load_tex(Brush *br, ViewContext *vc)
 		}
 
 		buffer = MEM_mallocN(sizeof(GLubyte) * size * size, "load_tex");
+
+		if (br->mtex.tex)
+			pool = BKE_image_pool_new();
 
 		#pragma omp parallel for schedule(static)
 		for (j = 0; j < size; j++) {
@@ -232,7 +238,7 @@ static int load_tex(Brush *br, ViewContext *vc)
 					x += br->mtex.ofs[0];
 					y += br->mtex.ofs[1];
 
-					avg = br->mtex.tex ? paint_get_tex_pixel(br, x, y) : 1;
+					avg = br->mtex.tex ? paint_get_tex_pixel(br, x, y, pool) : 1;
 
 					avg += br->texture_sample_bias;
 
@@ -246,6 +252,9 @@ static int load_tex(Brush *br, ViewContext *vc)
 				}
 			}
 		}
+
+		if (pool)
+			BKE_image_pool_free(pool);
 
 		if (!overlay_texture)
 			glGenTextures(1, &overlay_texture);

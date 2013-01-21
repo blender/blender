@@ -44,6 +44,7 @@ struct anim;
 struct Scene;
 struct Object;
 struct ImageFormatData;
+struct ImagePool;
 struct Main;
 
 #define IMA_MAX_SPACE       64
@@ -145,6 +146,11 @@ int BKE_image_has_ibuf(struct Image *ima, struct ImageUser *iuser);
  * a thread safe way, always call both acquire and release */
 struct ImBuf *BKE_image_acquire_ibuf(struct Image *ima, struct ImageUser *iuser, void **lock_r);
 void BKE_image_release_ibuf(struct Image *ima, struct ImBuf *ibuf, void *lock);
+
+struct ImagePool *BKE_image_pool_new(void);
+void BKE_image_pool_free(struct ImagePool *pool);
+struct ImBuf *BKE_image_pool_acquire_ibuf(struct Image *ima, struct ImageUser *iuser, struct ImagePool *pool);
+void BKE_image_pool_release_ibuf(struct Image *ima, struct ImBuf *ibuf, struct ImagePool *pool);
 
 /* returns a new image or NULL if it can't load */
 struct Image *BKE_image_load(const char *filepath);

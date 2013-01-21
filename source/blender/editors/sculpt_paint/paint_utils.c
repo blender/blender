@@ -173,13 +173,13 @@ float paint_calc_object_space_radius(ViewContext *vc, const float center[3],
 	return len_v3(delta) / scale;
 }
 
-float paint_get_tex_pixel(Brush *br, float u, float v)
+float paint_get_tex_pixel(Brush *br, float u, float v, struct ImagePool *pool)
 {
 	TexResult texres = {0};
 	float co[3] = {u, v, 0.0f};
 	int hasrgb;
 
-	hasrgb = multitex_ext(br->mtex.tex, co, NULL, NULL, 0, &texres);
+	hasrgb = multitex_ext(br->mtex.tex, co, NULL, NULL, 0, &texres, pool);
 
 	if (hasrgb & TEX_RGB)
 		texres.tin = rgb_to_grayscale(&texres.tr) * texres.ta;

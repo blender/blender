@@ -1070,6 +1070,8 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,
 		}
 	}
 
+	har->pool = re->pool;
+
 	return har;
 }
 
@@ -1222,6 +1224,8 @@ HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Mater
 			//	har->alfa= tin;
 			//}
 		}
+
+	har->pool = re->pool;
 
 	return har;
 }
