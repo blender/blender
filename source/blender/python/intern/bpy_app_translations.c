@@ -177,13 +177,21 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
 				PyObject *tmp;
 				const char *msgctxt = NULL, *msgid = NULL;
 
-				tmp = PyTuple_GetItem(pykey, 0);
-				if (tmp && PyUnicode_Check(tmp) && !PyUnicode_READY(tmp)) {
-					msgctxt = (const char *)PyUnicode_AsUTF8(tmp);
+				if ((PyTuple_CheckExact(pykey) == false) ||
+				    (PyTuple_GET_SIZE(pykey) != 2) ||
+				    (PyUnicode_Check(trans) == false))
+				{
+					/* TODO, we should error here */
+					continue;
 				}
-				tmp = PyTuple_GetItem(pykey, 1);
-				if (tmp && PyUnicode_Check(tmp) && !PyUnicode_READY(tmp)) {
-					msgid = (const char *)PyUnicode_AsUTF8(tmp);
+
+				tmp = PyTuple_GET_ITEM(pykey, 0);
+				if (PyUnicode_Check(tmp)) {
+					msgctxt = _PyUnicode_AsString(tmp);
+				}
+				tmp = PyTuple_GET_ITEM(pykey, 1);
+				if (PyUnicode_Check(tmp)) {
+					msgid = _PyUnicode_AsString(tmp);
 				}
 
 				if (!(msgctxt && msgid)) {
@@ -197,9 +205,7 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
 					continue;
 				}
 
-				if (trans && PyUnicode_Check(trans) && !PyUnicode_READY(trans)) {
-					BLI_ghash_insert(_translations_cache, key, BLI_strdup((const char *)PyUnicode_AsUTF8(trans)));
-				}
+				BLI_ghash_insert(_translations_cache, key, BLI_strdup(_PyUnicode_AsString(trans)));
 			}
 		}
 	}
