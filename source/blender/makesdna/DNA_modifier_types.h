@@ -1174,7 +1174,7 @@ typedef struct MeshCacheModifierData {
 
 	char interp;
 
-	char pad[4];
+	float factor;
 
 	/* play_mode == MOD_MESHCACHE_PLAY_CFEA */
 	float frame_start;

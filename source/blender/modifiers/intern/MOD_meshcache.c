@@ -34,11 +34,12 @@
 #include "BLI_path_util.h"
 #include "BLI_math.h"
 
-
 #include "BKE_DerivedMesh.h"
 #include "BKE_scene.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "MOD_meshcache_util.h"  /* utility functions */
 
@@ -99,6 +100,8 @@ static void initData(ModifierData *md)
 	mcmd->interp = MOD_MESHCACHE_INTERP_LINEAR;
 	mcmd->frame_scale = 1.0f;
 
+	mcmd->factor = 1.0f;
+
 	/* (Y, Z). Blender default */
 	mcmd->forward_axis = 1;
 	mcmd->up_axis      = 2;
@@ -124,6 +127,8 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tmcmd->frame_start = mcmd->frame_start;
 	tmcmd->frame_scale = mcmd->frame_scale;
 
+	tmcmd->factor = mcmd->factor;
+
 	tmcmd->eval_frame  = mcmd->eval_frame;
 	tmcmd->eval_time   = mcmd->eval_time;
 	tmcmd->eval_factor = mcmd->eval_factor;
@@ -142,14 +147,19 @@ static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 	MeshCacheModifierData *mcmd = (MeshCacheModifierData *) md;
 
 	/* leave it up to the modifier to check the file is valid on calculation */
-	return (mcmd->filepath[0] == '\0');
+	return (mcmd->factor <= 0.0f) || (mcmd->filepath[0] == '\0');
 }
 
 
 static void meshcache_do(
         MeshCacheModifierData *mcmd, Object *ob, DerivedMesh *UNUSED(dm),
-        float (*vertexCos)[3], int numVerts)
+        float (*vertexCos_)[3], int numVerts)
 {
+	float (*vertexCos_Store)[3] = (mcmd->factor < 1.0f) ?
+	                              MEM_mallocN(sizeof(*vertexCos_Store) * numVerts, __func__) : NULL;
+	float (*vertexCos_Real)[3] = vertexCos_;
+	float (*vertexCos)[3] = vertexCos_Store ? vertexCos_Store : vertexCos_Real;
+
 	Scene *scene = mcmd->modifier.scene;
 	const float fps = FPS;
 
@@ -262,6 +272,14 @@ static void meshcache_do(
 				mul_m3_v3(mat, vertexCos[i]);
 			}
 		}
+	}
+
+	if (vertexCos_Store) {
+		if (ok) {
+			interp_vn_vn(*vertexCos_Real, *vertexCos_Store, mcmd->factor, numVerts * 3);
+		}
+
+		MEM_freeN(vertexCos_Store);
 	}
 }
 

@@ -711,6 +711,19 @@ void msub_vn_vnvn(float *array_tar, const float *array_src_a, const float *array
 	}
 }
 
+void interp_vn_vn(float *array_tar, const float *array_src, const float t, const int size)
+{
+	const float s = 1.0f - t;
+	float *tar = array_tar + (size - 1);
+	const float *src = array_src + (size - 1);
+	int i = size;
+	while (i--) {
+		*(tar) = (s * *(tar)) + (t * *(src));
+		tar--;
+		src--;
+	}
+}
+
 void fill_vn_i(int *array_tar, const int size, const int val)
 {
 	int *tar = array_tar + (size - 1);
