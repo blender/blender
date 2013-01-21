@@ -134,7 +134,7 @@ static void _clear_translations_cache(void)
 
 static void _build_translations_cache(PyObject *py_messages, const char *locale)
 {
-	PyObject *uuid_dict;
+	PyObject *uuid, *uuid_dict;
 	Py_ssize_t pos = 0;
 	char *language = NULL, *language_country = NULL, *language_variant = NULL;
 
@@ -147,7 +147,7 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
 	_translations_cache = BLI_ghash_new(_ghashutil_keyhash, _ghashutil_keycmp, __func__);
 
 	/* Iterate over all py dicts. */
-	while (PyDict_Next(py_messages, &pos, NULL, &uuid_dict)) {
+	while (PyDict_Next(py_messages, &pos, &uuid, &uuid_dict)) {
 		PyObject *lang_dict;
 
 #if 0
@@ -155,49 +155,83 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
 		printf("\n");
 #endif
 
-		if (!PyDict_Check(uuid_dict))
-			continue;
-
 		/* Try to get first complete locale, then language+country, then language+variant, then only language */
 		lang_dict = PyDict_GetItemString(uuid_dict, locale);
-		if (!lang_dict && language_country)
+		if (!lang_dict && language_country) {
 			lang_dict = PyDict_GetItemString(uuid_dict, language_country);
-		if (!lang_dict && language_variant)
+			locale = language_country;
+		}
+		if (!lang_dict && language_variant) {
 			lang_dict = PyDict_GetItemString(uuid_dict, language_variant);
-		if (!lang_dict && language)
+			locale = language_variant;
+		}
+		if (!lang_dict && language) {
 			lang_dict = PyDict_GetItemString(uuid_dict, language);
+			locale = language;
+		}
 
-		if (lang_dict && PyDict_Check(lang_dict)) {
+		if (lang_dict) {
 			PyObject *pykey, *trans;
 			Py_ssize_t ppos = 0;
+
+			if (!PyDict_Check(lang_dict)) {
+				printf("WARNING! In translations' dict of \"");
+				PyObject_Print(uuid, stdout, Py_PRINT_RAW);
+				printf("\":\n");
+				printf("    Each language key must have a dictionary as value, \"%s\" is not valid, skipping: ",
+				       locale);
+				PyObject_Print(lang_dict, stdout, Py_PRINT_RAW);
+				printf("\n");
+				continue;
+			}
 
 			/* Iterate over all translations of the found language dict, and populate our ghash cache. */
 			while (PyDict_Next(lang_dict, &ppos, &pykey, &trans)) {
 				GHashKey *key;
-				PyObject *tmp;
 				const char *msgctxt = NULL, *msgid = NULL;
+				bool invalid_key = false;
 
-				if ((PyTuple_CheckExact(pykey) == false) ||
-				    (PyTuple_GET_SIZE(pykey) != 2) ||
-				    (PyUnicode_Check(trans) == false))
-				{
-					/* TODO, we should error here */
+				if ((PyTuple_CheckExact(pykey) == false) || (PyTuple_GET_SIZE(pykey) != 2)) {
+					invalid_key = true;
+				}
+				else {
+					PyObject *tmp = PyTuple_GET_ITEM(pykey, 0);
+					if (tmp == Py_None) {
+						msgctxt = BLF_I18NCONTEXT_DEFAULT;
+					}
+					else if (PyUnicode_Check(tmp)) {
+						msgctxt = _PyUnicode_AsString(tmp);
+					}
+					else {
+						invalid_key = true;
+					}
+
+					tmp = PyTuple_GET_ITEM(pykey, 1);
+					if (PyUnicode_Check(tmp)) {
+						msgid = _PyUnicode_AsString(tmp);
+					}
+					else {
+						invalid_key = true;
+					}
+				}
+
+				if (invalid_key) {
+					printf("WARNING! In translations' dict of \"");
+					PyObject_Print(uuid, stdout, Py_PRINT_RAW);
+					printf("\", %s language:\n", locale);
+					printf("    Keys must be tuples of (msgctxt [string or None], msgid [string]), "
+					       "this one is not valid, skipping: ");
+					PyObject_Print(pykey, stdout, Py_PRINT_RAW);
+					printf("\n");
 					continue;
 				}
-
-				tmp = PyTuple_GET_ITEM(pykey, 0);
-				if (tmp == Py_None) {
-					msgctxt = BLF_I18NCONTEXT_DEFAULT;
-				}
-				else if (PyUnicode_Check(tmp)) {
-					msgctxt = _PyUnicode_AsString(tmp);
-				}
-				tmp = PyTuple_GET_ITEM(pykey, 1);
-				if (PyUnicode_Check(tmp)) {
-					msgid = _PyUnicode_AsString(tmp);
-				}
-
-				if (!msgid) {
+				if (PyUnicode_Check(trans) == false) {
+					printf("WARNING! In translations' dict of \"");
+					PyObject_Print(uuid, stdout, Py_PRINT_RAW);
+					printf("\":\n");
+					printf("    Values must be strings, this one is not valid, skipping: ");
+					PyObject_Print(trans, stdout, Py_PRINT_RAW);
+					printf("\n");
 					continue;
 				}
 
@@ -287,7 +321,7 @@ static PyObject *app_translations_py_messages_register(BlenderAppTranslations *s
 	if (PyDict_Contains(self->py_messages, module_name)) {
 		PyErr_Format(PyExc_ValueError,
 		             "bpy.app.translations.register: translations message cache already contains some data for "
-		             "addon '%s'", (const char *)PyUnicode_1BYTE_DATA(module_name));
+		             "addon '%s'", (const char *)_PyUnicode_AsString(module_name));
 		return NULL;
 	}
 
