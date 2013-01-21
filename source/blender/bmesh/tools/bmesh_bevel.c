@@ -1093,13 +1093,14 @@ static void bevel_build_rings(BMesh *bm, BevVert *bv)
 	}
 }
 
-static VMesh *new_adj_subdiv_vmesh(MemArena *mem_arena, int count, int seg)
+static VMesh *new_adj_subdiv_vmesh(MemArena *mem_arena, int count, int seg, BoundVert *bounds)
 {
 	VMesh *vm;
 
 	vm = (VMesh *)BLI_memarena_alloc(mem_arena, sizeof(VMesh));
 	vm->count = count;
 	vm->seg = seg;
+	vm->boundstart = bounds;
 	vm->mesh = (NewVert *)BLI_memarena_alloc(mem_arena, count * (1 + seg / 2) * (1 + seg) * sizeof(NewVert));
 	vm->mesh_kind = M_ADJ_SUBDIV;
 	return vm;
@@ -1207,7 +1208,7 @@ static VMesh *quadratic_subdiv(MemArena *mem_arena, VMesh *vm0)
 
 	ns1 = 2 * ns0 - 1;
 	// ns21 = ns1 / 2;  /* UNUSED */
-	vm1 = new_adj_subdiv_vmesh(mem_arena, n, ns1);
+	vm1 = new_adj_subdiv_vmesh(mem_arena, n, ns1, vm0->boundstart);
 
 	for (i = 0; i < n; i ++) {
 		/* For handle vm0 polys with lower left corner at (i,j,k) for
@@ -1281,6 +1282,32 @@ static VMesh *quadratic_subdiv(MemArena *mem_arena, VMesh *vm0)
 	return vm1;
 }
 
+/* After a step of quadratic_subdiv, adjust the ring 1 verts to be on the planes of their respective faces,
+ * so that the cross-tangents will match on further subdivision. */
+static void fix_vmesh_tangents(VMesh *vm, BevVert *bv)
+{
+	int i, n;
+	NewVert *v;
+	BoundVert *bndv;
+	float co[3];
+
+	n = vm->count;
+	bndv = vm->boundstart;
+	do {
+		i = bndv->index;
+
+		/* (i, 1, 1) snap to edge line */
+		v = mesh_vert(vm, i, 1, 1);
+		closest_to_line_v3(co, v->co, bndv->nv.co, bv->v->co);
+		copy_v3_v3(v->co, co);
+		copy_v3_v3(mesh_vert(vm, (i + n -1) % n, 1, vm->seg - 1)->co, co);
+
+		/* Also want (i, 1, k) snapped to plane of adjacent face for
+		 * 1 < k < ns - 1, but current initial cage and subdiv rules
+		  * ensure this, so nothing to do */
+	} while ((bndv = bndv->next) != vm->boundstart);
+}
+
 /* Fill frac with fractions of way along ring 0 for vertex i, for use with interp_range function */
 static void fill_vmesh_fracs(VMesh *vm, float *frac, int i)
 {
@@ -1333,7 +1360,7 @@ static VMesh *interp_vmesh(MemArena *mem_arena, VMesh *vm0, int nseg)
 	ns0 = vm0->seg;
 	nseg2 = nseg / 2;
 	odd = nseg % 2;
-	vm1 = new_adj_subdiv_vmesh(mem_arena, n, nseg);
+	vm1 = new_adj_subdiv_vmesh(mem_arena, n, nseg, vm0->boundstart);
 	prev_frac = (float *)BLI_memarena_alloc(mem_arena, (ns0 + 1 ) *sizeof(float));
 	frac = (float *)BLI_memarena_alloc(mem_arena, (ns0 + 1 ) *sizeof(float));
 
@@ -1399,7 +1426,7 @@ static void bevel_build_rings_subdiv(BevelParams *bp, BMesh *bm, BevVert *bv)
 	BLI_assert(n >= 3 && ns > 1);
 
 	/* First construct an initial control mesh, with nseg==3 */
-	vm0 = new_adj_subdiv_vmesh(mem_arena, n, 3);
+	vm0 = new_adj_subdiv_vmesh(mem_arena, n, 3, bv->vmesh->boundstart);
 
 	for (i = 0; i < n; i++) {
 		/* Boundaries just divide input polygon edges into 3 even segments */
@@ -1416,8 +1443,8 @@ static void bevel_build_rings_subdiv(BevelParams *bp, BMesh *bm, BevVert *bv)
 	vm1 = vm0;
 	do {
 		vm1 = quadratic_subdiv(mem_arena, vm1);
-		/* TODO: readjust vertex positions to make better cross-tangents */
-	} while (vm1->seg < ns);
+		fix_vmesh_tangents(vm1, bv);
+	} while (vm1->seg <= ns);
 	vm1 = interp_vmesh(mem_arena, vm1, ns);
 
 	/* copy final vmesh into bv->vmesh, make BMVerts and BMFaces */

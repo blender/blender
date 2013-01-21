@@ -3459,14 +3459,14 @@ static void bl_debug_draw(void)
 	if (_bl_debug_draw_quads_tot) {
 		int i;
 		cpack(0x00FF0000);
-		glBegin(GL_LINE_LOOP);
 		for (i = 0; i < _bl_debug_draw_quads_tot; i ++) {
+			glBegin(GL_LINE_LOOP);
 			glVertex3fv(_bl_debug_draw_quads[i][0]);
 			glVertex3fv(_bl_debug_draw_quads[i][1]);
 			glVertex3fv(_bl_debug_draw_quads[i][2]);
 			glVertex3fv(_bl_debug_draw_quads[i][3]);
+			glEnd();
 		}
-		glEnd();
 	}
 	if (_bl_debug_draw_edges_tot) {
 		int i;
