@@ -5991,7 +5991,7 @@ static int createVertSlideVerts(TransInfo *t)
 
 	j = 0;
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-		if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+		if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 			int k;
 			sv_array[j].v = v;
 			copy_v3_v3(sv_array[j].co_orig_3d, v->co);
