@@ -40,10 +40,12 @@
 
 
 #include "BKE_object.h"
+#include "BKE_constraint.h"
 
 #include "TransformReader.h"
 #include "AnimationImporter.h"
 #include "ArmatureImporter.h"
+#include "ControllerExporter.h"
 #include "MeshImporter.h"
 
 
@@ -73,9 +75,11 @@ public:
 	Object* create_camera_object(COLLADAFW::InstanceCamera*, Scene*);
 	Object* create_lamp_object(COLLADAFW::InstanceLight*, Scene*);
 	Object* create_instance_node(Object*, COLLADAFW::Node*, COLLADAFW::Node*, Scene*, bool);
+	void create_constraints(ExtraTags *et, Object *ob);
 	void write_node(COLLADAFW::Node*, COLLADAFW::Node*, Scene*, Object*, bool);
 	MTex* create_texture(COLLADAFW::EffectCommon*, COLLADAFW::Texture&, Material*, int, TexIndexTextureArrayMap&);
 	void write_profile_COMMON(COLLADAFW::EffectCommon*, Material*);
+	
 	void translate_anim_recursive(COLLADAFW::Node*, COLLADAFW::Node*, Object*);
 
 	/**
@@ -127,6 +131,10 @@ public:
 	bool addExtraTags(const COLLADAFW::UniqueId &uid, ExtraTags *extra_tags);
 	/** Get an extisting ExtraTags for uid */
 	ExtraTags* getExtraTags(const COLLADAFW::UniqueId &uid);
+
+	bool is_armature(COLLADAFW::Node * node);
+
+
 
 private:
 

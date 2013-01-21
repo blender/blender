@@ -937,10 +937,9 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 					if (is_matrix) {
 						apply_matrix_curves(ob, animcurves, root, node,  transform);
 					}
-					else {
+					else {				
 
 						if (is_joint) {
-
 							add_bone_animation_sampled(ob, animcurves, root, node, transform);
 						}
 						else {
@@ -1676,8 +1675,6 @@ void AnimationImporter::evaluate_transform_at_frame(float mat[4][4], COLLADAFW::
 				default:
 					fprintf(stderr, "unsupported transformation type %d\n", type);
 			}
-			// dae_matrix_to_mat4(tm, m);
-			
 		}
 
 		float temp[4][4];

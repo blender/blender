@@ -74,6 +74,7 @@ bool ExtraHandler::parseElement(
 		if (!et) {
 			et = new ExtraTags(std::string(profileName));
 			dimp->addExtraTags(uniqueId, et);
+
 		}
 		currentExtraTags = et;
 		return true;

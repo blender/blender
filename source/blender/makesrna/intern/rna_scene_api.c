@@ -101,6 +101,7 @@ static void rna_Scene_collada_export(
         int selected,
         int include_children,
         int include_armatures,
+        int include_shapekeys,
         int deform_bones_only,
 
         int active_uv_only,
@@ -113,7 +114,7 @@ static void rna_Scene_collada_export(
         int second_life)
 {
 	collada_export(scene, filepath, apply_modifiers, export_mesh_type, selected,
-	               include_children, include_armatures, deform_bones_only,
+	               include_children, include_armatures, include_shapekeys, deform_bones_only,
 	               active_uv_only, include_uv_textures, include_material_textures,
 	               use_texture_copies, use_object_instantiation, sort_by_name, second_life);
 }
@@ -149,6 +150,7 @@ void RNA_api_scene(StructRNA *srna)
 	parm = RNA_def_boolean(func, "selected", 0, "Selection Only", "Export only selected elements");
 	parm = RNA_def_boolean(func, "include_children", 0, "Include Children", "Export all children of selected objects (even if not selected)");
 	parm = RNA_def_boolean(func, "include_armatures", 0, "Include Armatures", "Export related armatures (even if not selected)");
+	parm = RNA_def_boolean(func, "include_shapekeys", 0, "Include Shape Keys", "Export all Shape Keys from Mesh Objects");
 	parm = RNA_def_boolean(func, "deform_bones_only", 0, "Deform Bones only", "Only export deforming bones with armatures");
 
 	parm = RNA_def_boolean(func, "active_uv_only", 0, "Active UV Layer only", "Export only the active UV Layer");

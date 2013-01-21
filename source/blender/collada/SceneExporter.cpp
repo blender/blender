@@ -182,6 +182,46 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 		colladaNode.end();
 	}
 
+	if (ob->constraints.first != NULL ){
+		bConstraint *con = (bConstraint*) ob->constraints.first;
+		while(con){
+			std::string con_name(id_name(con));
+			std::string con_tag = con_name + "_constraint";
+			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"type",con->type);
+			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"enforce",con->enforce);
+			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"flag",con->flag);
+			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"headtail",con->headtail);
+			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"lin_error",con->lin_error);
+			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"own_space",con->ownspace);
+			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"rot_error",con->rot_error);
+			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"tar_space",con->tarspace);
+			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"lin_error",con->lin_error);
+			
+			//not ideal: add the target object name as another parameter. 
+			//No real mapping in the .dae
+			//Need support for multiple target objects also.
+			bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
+			ListBase targets = {NULL, NULL};
+			if (cti && cti->get_constraint_targets) {
+			
+				bConstraintTarget *ct;
+				Object *obtar;
+			
+				cti->get_constraint_targets(con, &targets);
+				if(cti){
+					int i = 1;
+					for (ct = (bConstraintTarget*)targets.first; ct; ct = ct->next){
+						obtar = ct->tar;
+						std::string tar_id(id_name(obtar));
+						colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"target_id",tar_id);
+					}
+				}
+			}
+            
+			con = con->next;
+		}
+	}
+
 	for (std::list<Object *>::iterator i = child_objects.begin(); i != child_objects.end(); ++i) {
 		if (bc_is_marked(*i)) {
 			bc_remove_mark(*i);
@@ -189,8 +229,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 		}
 	}
 
-	if (ob->type != OB_ARMATURE) {
+	if (ob->type != OB_ARMATURE)
 		colladaNode.end();
-	}
 }
 

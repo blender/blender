@@ -7,6 +7,7 @@ op.export_mesh_type_selection = 'view'
 op.selected = True
 op.include_children = False
 op.include_armatures = True
+op.include_shapekeys = False
 op.deform_bones_only = True
 op.active_uv_only = True
 op.include_uv_textures = True

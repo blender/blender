@@ -37,6 +37,7 @@ public:
 	bool selected;
 	bool include_children;
 	bool include_armatures;
+	bool include_shapekeys;
 	bool deform_bones_only;
 
 	bool active_uv_only;

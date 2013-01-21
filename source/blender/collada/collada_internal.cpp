@@ -283,3 +283,9 @@ std::string get_material_id(Material *mat)
 {
 	return translate_id(id_name(mat)) + "-material";
 }
+
+std::string get_morph_id(Object *ob)
+{
+	return translate_id(id_name(ob)) + "-morph";
+}
+

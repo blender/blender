@@ -29,13 +29,16 @@
 
 #include "COLLADAFWNode.h"
 #include "COLLADAFWUniqueId.h"
+#include "COLLADAFWMorphController.h"
 
 extern "C" {
 #include "BKE_context.h"
+#include "BKE_key.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_key_types.h"
 
 #include "ED_armature.h"
 }
@@ -88,6 +91,7 @@ private:
 	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> joint_by_uid; // contains all joints
 	std::vector<COLLADAFW::Node*> root_joints;
 	std::vector<COLLADAFW::Node*> finished_joints;
+	std::vector<COLLADAFW::MorphController*> morph_controllers;
 	std::map<COLLADAFW::UniqueId, Object*> joint_parent_map;
 	std::map<COLLADAFW::UniqueId, Object*> unskinned_armature_map;
 
@@ -103,11 +107,8 @@ private:
 	JointData *get_joint_data(COLLADAFW::Node *node);
 #endif
 
-	void create_bone(SkinInfo& skin, COLLADAFW::Node *node, EditBone *parent, int totchild,
+	void create_bone(SkinInfo* skin, COLLADAFW::Node *node, EditBone *parent, int totchild,
 	                 float parent_mat[4][4], bArmature *arm);
-
-	void create_unskinned_bone(COLLADAFW::Node *node, EditBone *parent, int totchild,
-	                           float parent_mat[4][4], Object * ob_arm);
 
 	void add_leaf_bone(float mat[4][4], EditBone *bone, COLLADAFW::Node * node);
 
@@ -140,9 +141,6 @@ public:
 	ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, AnimationImporterBase *anim, Scene *sce);
 	~ArmatureImporter();
 
-	// root - if this joint is the top joint in hierarchy, if a joint
-	// is a child of a node (not joint), root should be true since
-	// this is where we build armature bones from
 	void add_joint(COLLADAFW::Node *node, bool root, Object *parent, Scene *sce);
 
 #if 0
@@ -151,6 +149,8 @@ public:
 
 	// here we add bones to armatures, having armatures previously created in write_controller
 	void make_armatures(bContext *C);
+
+	void make_shape_keys();
 
 #if 0
 	// link with meshes, create vertex groups, assign weights

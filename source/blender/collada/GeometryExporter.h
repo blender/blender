@@ -39,8 +39,11 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_key_types.h"
 
 #include "ExportSettings.h"
+
+#include "BKE_key.h"
 
 extern Object *bc_get_highest_selected_ancestor_or_self(Object *ob);
 
@@ -100,6 +103,8 @@ public:
 	COLLADASW::URI getUrlBySemantics(std::string geom_id, COLLADASW::InputSemantic::Semantics type, std::string other_suffix = "");
 
 	COLLADASW::URI makeUrl(std::string id);
+
+	void export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb);
 	
 	/* int getTriCount(MFace *faces, int totface);*/
 private:

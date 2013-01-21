@@ -210,10 +210,11 @@ void DocumentImporter::finish()
 	}
 
 
-	mesh_importer.optimize_material_assignments();
+	mesh_importer.optimize_material_assignements();
 
 	armature_importer.set_tags_map(this->uid_tags_map);
 	armature_importer.make_armatures(mContext);
+	armature_importer.make_shape_keys();
 
 #if 0
 	armature_importer.fix_animation();
@@ -256,7 +257,7 @@ void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node, COLLADAFW
 {
 
 	// The split in #29246, rootmap must point at actual root when
-	// calculating bones in apply_curves_as_matrix.
+	// calculating bones in apply_curves_as_matrix. - actual root is the root node.
 	// This has to do with inverse bind poses being world space
 	// (the sources for skinned bones' restposes) and the way
 	// non-skinning nodes have their "restpose" recursively calculated.
@@ -265,7 +266,7 @@ void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node, COLLADAFW
 	if (par) { // && par->getType() == COLLADAFW::Node::JOINT) {
 		// par is root if there's no corresp. key in root_map
 		if (root_map.find(par->getUniqueId()) == root_map.end())
-			root_map[node->getUniqueId()] = par;
+			root_map[node->getUniqueId()] = node;
 		else
 			root_map[node->getUniqueId()] = root_map[par->getUniqueId()];
 	}
@@ -376,8 +377,8 @@ Object *DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 		anim_importer.read_node_transform(source_node, obn);
 	}
 
-	DAG_scene_sort(CTX_data_main(mContext), sce);
-	DAG_ids_flush_update(CTX_data_main(mContext), 0);
+	/*DAG_scene_sort(CTX_data_main(mContext), sce);
+	DAG_ids_flush_update(CTX_data_main(mContext), 0);*/
 
 	COLLADAFW::NodePointerArray &children = source_node->getChildNodes();
 	if (children.getCount()) {
@@ -406,22 +407,29 @@ Object *DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 	return obn;
 }
 
+// to create constraints off node <extra> tags. Assumes only constraint data in
+// current <extra> with blender profile.
+void DocumentImporter::create_constraints(ExtraTags *et, Object *ob){
+	if ( et && et->isProfile("blender")){
+		std::string name;
+		short* type = 0;
+		et->setData("type", type);
+		bConstraint * con = BKE_add_ob_constraint(ob, "Test_con", *type);
+		
+	}
+}
+
 void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent_node, Scene *sce, Object *par, bool is_library_node)
 {
 	Object *ob = NULL;
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
 	bool read_transform = true;
 
-	std::vector<Object *> *objects_done = new std::vector<Object *>();
+	ExtraTags *et = getExtraTags(node->getUniqueId());
 
+	std::vector<Object *> *objects_done = new std::vector<Object *>();
+    
 	if (is_joint) {
-		if (par) {
-			Object *empty = par;
-			par = bc_add_object(sce, OB_ARMATURE, NULL);
-			bc_set_parent(par, empty->parent, mContext);
-			//remove empty : todo
-			object_map.insert(std::make_pair<COLLADAFW::UniqueId, Object *>(parent_node->getUniqueId(), par));
-		}
 		armature_importer.add_joint(node, parent_node == NULL || parent_node->getType() != COLLADAFW::Node::JOINT, par, sce);
 	}
 	else {
@@ -487,10 +495,15 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 
 			read_transform = false;
 		}
+
 		// if node is empty - create empty object
 		// XXX empty node may not mean it is empty object, not sure about this
 		if ( (geom_done + camera_done + lamp_done + controller_done + inst_done) < 1) {
-			ob = bc_add_object(sce, OB_EMPTY, NULL);
+			//Check if Object is armature, by checking if immediate child is a JOINT node.
+			if(is_armature(node))
+				ob = bc_add_object(sce, OB_ARMATURE, NULL);
+			else ob = bc_add_object(sce, OB_EMPTY, NULL);
+
 			objects_done->push_back(ob);
 		}
 		
@@ -507,6 +520,8 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 			if (is_library_node)
 				libnode_ob.push_back(ob);
 		}
+
+		//create_constraints(et,ob);
 
 	}
 
@@ -959,11 +974,12 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 	Lamp *lamp = NULL;
 	std::string la_id, la_name;
 
-	TagsMap::iterator etit;
+	ExtraTags *et = getExtraTags(light->getUniqueId());
+	/*TagsMap::iterator etit;
 	ExtraTags *et = 0;
 	etit = uid_tags_map.find(light->getUniqueId().toAscii());
 	if (etit != uid_tags_map.end())
-		et = etit->second;
+		et = etit->second;*/
 
 	la_id = light->getOriginalId();
 	la_name = light->getName();
@@ -1183,3 +1199,14 @@ bool DocumentImporter::addExtraTags(const COLLADAFW::UniqueId &uid, ExtraTags *e
 	return true;
 }
 
+bool DocumentImporter::is_armature(COLLADAFW::Node *node){
+	COLLADAFW::NodePointerArray &child_nodes = node->getChildNodes();
+	for (unsigned int i = 0; i < child_nodes.getCount(); i++) {	
+		if(child_nodes[i]->getType() == COLLADAFW::Node::JOINT) return true;
+		else continue;
+	}
+    
+	//no child is JOINT
+	return false;
+
+}
