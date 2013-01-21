@@ -471,6 +471,37 @@ static PyObject *app_translations_pgettext(BlenderAppTranslations *UNUSED(self),
 	return PyUnicode_FromString(BLF_pgettext(msgctxt ? msgctxt : BLF_I18NCONTEXT_DEFAULT, msgid));
 }
 
+PyDoc_STRVAR(app_translations_locale_explode_doc,
+".. method:: locale_explode(locale)\n"
+"\n"
+"   Return all components and their combinations  of the given ISO locale string.\n"
+"\n"
+"   >>> bpy.app.translations.locale_explode(\"sr_RS@latin\")\n"
+"   (\"sr\", \"RS\", \"latin\", \"sr_RS\", \"sr@latin\")\n"
+"\n"
+"   For non-complete locales, missing elements will be None.\n"
+"\n"
+"   :arg locale: The ISO locale string to explode.\n"
+"   :type msgid: string\n"
+"   :return: A tuple (language, country, variant, language_country, language@variant).\n"
+"\n"
+);
+static PyObject *app_translations_locale_explode(BlenderAppTranslations *UNUSED(self), PyObject *args, PyObject *kw)
+{
+	static const char *kwlist[] = {"locale", NULL};
+	const char *locale;
+	char *language, *country, *variant, *language_country, *language_variant;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "s:bpy.app.translations.locale_explode", (char **)kwlist, &locale))
+	{
+		return NULL;
+	}
+
+	BLF_locale_explode(locale, &language, &country, &variant, &language_country, &language_variant);
+
+	return Py_BuildValue("sssss", language, country, variant, language_country, language_variant);
+}
+
 PyMethodDef app_translations_methods[] = {
 	/* Can't use METH_KEYWORDS alone, see http://bugs.python.org/issue11587 */
 	{(char *)"register", (PyCFunction)app_translations_py_messages_register, METH_VARARGS | METH_KEYWORDS,
@@ -479,6 +510,8 @@ PyMethodDef app_translations_methods[] = {
 	                       app_translations_py_messages_unregister_doc},
 	{(char *)"pgettext", (PyCFunction)app_translations_pgettext, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
 	                     app_translations_pgettext_doc},
+	{(char *)"locale_explode", (PyCFunction)app_translations_locale_explode, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+	                           app_translations_locale_explode_doc},
 	{NULL}
 };
 
