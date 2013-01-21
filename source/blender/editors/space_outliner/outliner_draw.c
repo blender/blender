@@ -1066,7 +1066,8 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 						UI_icon_draw(x, y, ICON_MOD_SKIN); break;
 					case eModifierType_Triangulate:
 						UI_icon_draw(x, y, ICON_MOD_TRIANGULATE); break;
-
+					case eModifierType_MeshCache:
+						UI_icon_draw(x, y, ICON_MOD_MESHDEFORM); break;  /* XXX, needs own icon */
 					/* Default */
 					case eModifierType_None:
 					case eModifierType_ShapeKey:

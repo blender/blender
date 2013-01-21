@@ -92,6 +92,7 @@ extern StructRNA RNA_BoolProperty;
 extern StructRNA RNA_Brush;
 extern StructRNA RNA_BrushTextureSlot;
 extern StructRNA RNA_BuildModifier;
+extern StructRNA RNA_MeshCacheModifier;
 extern StructRNA RNA_Camera;
 extern StructRNA RNA_CastModifier;
 extern StructRNA RNA_ChildOfConstraint;

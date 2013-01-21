@@ -280,5 +280,6 @@ void modifier_type_init(ModifierTypeInfo *types[])
 	INIT_TYPE(LaplacianSmooth);
 	INIT_TYPE(Triangulate);
 	INIT_TYPE(UVWarp);
+	INIT_TYPE(MeshCache);
 #undef INIT_TYPE
 }

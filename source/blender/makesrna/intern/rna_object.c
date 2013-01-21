@@ -156,6 +156,15 @@ EnumPropertyItem object_type_curve_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+EnumPropertyItem object_axis_items[] = {
+	{OB_POSX, "POS_X", 0, "+X", ""},
+	{OB_POSY, "POS_Y", 0, "+Y", ""},
+	{OB_POSZ, "POS_Z", 0, "+Z", ""},
+	{OB_NEGX, "NEG_X", 0, "-X", ""},
+	{OB_NEGY, "NEG_Y", 0, "-Y", ""},
+	{OB_NEGZ, "NEG_Z", 0, "-Z", ""},
+	{0, NULL, 0, NULL, NULL}
+};
 
 #ifdef RNA_RUNTIME
 
@@ -2002,16 +2011,6 @@ static void rna_def_object(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
-	static EnumPropertyItem track_items[] = {
-		{OB_POSX, "POS_X", 0, "+X", ""},
-		{OB_POSY, "POS_Y", 0, "+Y", ""},
-		{OB_POSZ, "POS_Z", 0, "+Z", ""},
-		{OB_NEGX, "NEG_X", 0, "-X", ""},
-		{OB_NEGY, "NEG_Y", 0, "-Y", ""},
-		{OB_NEGZ, "NEG_Z", 0, "-Z", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
 
 	static EnumPropertyItem up_items[] = {
 		{OB_POSX, "X", 0, "X", ""},
@@ -2142,7 +2141,7 @@ static void rna_def_object(BlenderRNA *brna)
 	 *      since some other tools still refer to this */
 	prop = RNA_def_property(srna, "track_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "trackflag");
-	RNA_def_property_enum_items(prop, track_items);
+	RNA_def_property_enum_items(prop, object_axis_items);
 	RNA_def_property_ui_text(prop, "Track Axis",
 	                         "Axis that points in 'forward' direction (applies to DupliFrame when "
 	                         "parent 'Follow' is enabled)");

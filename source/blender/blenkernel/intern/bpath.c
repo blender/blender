@@ -459,6 +459,10 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 					OceanModifierData *omd = (OceanModifierData *) md;
 					rewrite_path_fixed(omd->cachepath, visit_cb, absbase, bpath_user_data);
 				}
+				else if (md->type == eModifierType_MeshCache) {
+					MeshCacheModifierData *mcmd = (MeshCacheModifierData *) md;
+					rewrite_path_fixed(mcmd->filepath, visit_cb, absbase, bpath_user_data);
+				}
 			}
 
 			if (ob->soft) {

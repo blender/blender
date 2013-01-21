@@ -162,6 +162,42 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         sub.active = md.use_random_order
         sub.prop(md, "seed")
 
+    def MESH_CACHE(self, layout, ob, md):
+        layout.prop(md, "cache_format")
+        layout.prop(md, "filepath")
+
+        layout.label(text="Evaluation:")
+        layout.prop(md, "interpolation")
+
+        layout.label(text="Time Mapping:")
+
+        row = layout.row()
+        row.prop(md, "time_mode", expand=True)
+        row = layout.row()
+        row.prop(md, "play_mode", expand=True)
+        if md.play_mode == 'SCENE':
+            layout.prop(md, "frame_start")
+            layout.prop(md, "frame_scale")
+        else:
+            time_mode = md.time_mode
+            if time_mode == 'FRAME':
+                layout.prop(md, "eval_frame")
+            elif time_mode == 'TIME':
+                layout.prop(md, "eval_time")
+            elif time_mode == 'FACTOR':
+                layout.prop(md, "eval_factor")
+
+        layout.label(text="Axis Mapping:")
+        split = layout.split(percentage=0.5, align=True)
+        split.alert = (md.forward_axis[-1] == md.up_axis[-1])
+        split.label("Forward/Up Axis:")
+        split.prop(md, "forward_axis", text="")
+        split.prop(md, "up_axis", text="")
+        split = layout.split(percentage=0.5)
+        split.label(text="Flip Axis:")
+        row = split.row()
+        row.prop(md, "flip_axis")
+
     def CAST(self, layout, ob, md):
         split = layout.split(percentage=0.25)
 
