@@ -262,9 +262,13 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	keymap = WM_keymap_find(keyconf, "Mesh", 0, 0);
 	keymap->poll = ED_operator_editmesh;
 	
-	WM_keymap_add_item(keymap, "MESH_OT_loopcut_slide", RKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_bevel", BKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_loopcut_slide", RKEY, KM_PRESS, KM_CTRL, 0);	
 	WM_keymap_add_item(keymap, "MESH_OT_inset", IKEY, KM_PRESS, 0, 0);
+
+	kmi = WM_keymap_add_item(keymap, "MESH_OT_bevel", BKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "vertex_only", FALSE);
+	kmi = WM_keymap_add_item(keymap, "MESH_OT_bevel", BKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "vertex_only", TRUE);
 
 	/* selecting */
 	/* standard mouse selection goes via space_view3d */
