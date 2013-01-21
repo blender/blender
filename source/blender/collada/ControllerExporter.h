@@ -34,6 +34,7 @@
 
 #include "COLLADASWStreamWriter.h"
 #include "COLLADASWLibraryControllers.h"
+#include "COLLADASWInstanceController.h"
 #include "COLLADASWInputList.h"
 #include "COLLADASWNode.h"
 #include "COLLADASWExtraTechnique.h"
