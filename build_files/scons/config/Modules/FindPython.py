@@ -19,6 +19,8 @@ def FindPython():
     incconf64 = os.path.join(include, "x86_64-linux-gnu", "python" + version + cur_flags, "pyconfig.h")
     if os.path.exists(incconf64):
         incconf = os.path.join(include, "x86_64-linux-gnu", "python" + version + cur_flags)
+    else:
+        incconf = ''
 
     # Determine whether python is in /usr/lib or /usr/lib64
     lib32 = os.path.join(python, "lib", "python" + version, "sysconfig.py")
