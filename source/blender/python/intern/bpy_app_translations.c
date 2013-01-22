@@ -516,7 +516,10 @@ static PyObject *app_translations_pgettext(BlenderAppTranslations *UNUSED(self),
 	/* Note we could optimize this a bit when WITH_INTERNATIONAL is not defined, but don't think "code complexity" would
 	 * be worth it, as this func should not often be used!
 	 */
-	static const char *kwlist[] = {"msgid", "msgctxt", NULL};
+	/* XXX This code fails with scons when WITH_INTERNATIONAL is not defined, at link time, stating that BLF_pgettext
+	 * is undefined... So using #ifdef after all, rather than removing scons from blender trunk!
+	 */
+ 	static const char *kwlist[] = {"msgid", "msgctxt", NULL};
 	char *msgid, *msgctxt = NULL;
 
 	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|z:bpy.app.translations.pgettext", (char **)kwlist,
@@ -525,7 +528,11 @@ static PyObject *app_translations_pgettext(BlenderAppTranslations *UNUSED(self),
 		return NULL;
 	}
 
+#ifdef WITH_INTERNATIONAL
 	return PyUnicode_FromString(BLF_pgettext(msgctxt ? msgctxt : BLF_I18NCONTEXT_DEFAULT, msgid));
+#else
+	return PyUnicode_FromString(msgid);
+#endif
 }
 
 PyDoc_STRVAR(app_translations_locale_explode_doc,
