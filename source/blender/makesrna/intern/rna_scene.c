@@ -1420,6 +1420,11 @@ static void rna_UnifiedPaintSettings_unprojected_radius_set(PointerRNA *ptr, flo
 	ups->unprojected_radius = value;
 }
 
+static char *rna_UnifiedPaintSettings_path(PointerRNA *ptr)
+{
+	return BLI_strdup("tool_settings.unified_paint_settings");
+}
+
 /* note: without this, when Multi-Paint is activated/deactivated, the colors
  * will not change right away when multiple bones are selected, this function
  * is not for general use and only for the few cases where changing scene
@@ -1447,6 +1452,11 @@ static void rna_SceneSequencer_update(Main *UNUSED(bmain), Scene *UNUSED(scene),
 {
 	BKE_sequencer_cache_cleanup();
 	BKE_sequencer_preprocessed_cache_cleanup();
+}
+
+static char *rna_ToolSettings_path(PointerRNA *ptr)
+{
+	return BLI_strdup("tool_settings");
 }
 
 #else
@@ -1520,6 +1530,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	};
 
 	srna = RNA_def_struct(brna, "ToolSettings", NULL);
+	RNA_def_struct_path_func(srna, "rna_ToolSettings_path");
 	RNA_def_struct_ui_text(srna, "Tool Settings", "");
 	
 	prop = RNA_def_property(srna, "sculpt", PROP_POINTER, PROP_NONE);
@@ -1836,6 +1847,7 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "UnifiedPaintSettings", NULL);
+	RNA_def_struct_path_func(srna, "rna_UnifiedPaintSettings_path");
 	RNA_def_struct_ui_text(srna, "Unified Paint Settings", "Overrides for some of the active brush's settings");
 
 	/* high-level flags to enable or disable unified paint settings */

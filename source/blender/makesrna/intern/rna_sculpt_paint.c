@@ -190,6 +190,11 @@ static int rna_ParticleEdit_hair_get(PointerRNA *ptr)
 	return 0;
 }
 
+static char *rna_ParticleEdit_path(PointerRNA *ptr)
+{
+	return BLI_strdup("tool_settings.particle_edit");
+}
+
 static int rna_Brush_mode_poll(PointerRNA *ptr, PointerRNA value)
 {
 	Scene *scene = (Scene *)ptr->id.data;
@@ -242,6 +247,33 @@ static void rna_Sculpt_ShowDiffuseColor_update(Main *UNUSED(bmain), Scene *scene
 	}
 }
 
+static char *rna_Sculpt_path(PointerRNA *ptr)
+{
+	return BLI_strdup("tool_settings.sculpt");
+}
+
+static char *rna_VertexPaint_path(PointerRNA *ptr)
+{
+	Scene *scene = (Scene *)ptr->id.data;
+	ToolSettings *ts = scene->toolsettings;
+	if (ptr->data == ts->vpaint) {
+		return BLI_strdup("tool_settings.vertex_paint");
+	}
+	else {
+		return BLI_strdup("tool_settings.weight_paint");
+	}
+}
+
+static char *rna_ImagePaintSettings_path(PointerRNA *ptr)
+{
+	return BLI_strdup("tool_settings.image_paint");
+}
+
+static char *rna_UvSculpt_path(PointerRNA *ptr)
+{
+	return BLI_strdup("tool_settings.uv_sculpt");
+}
+
 #else
 
 static void rna_def_paint(BlenderRNA *brna)
@@ -283,6 +315,7 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "Sculpt", "Paint");
+	RNA_def_struct_path_func(srna, "rna_Sculpt_path");
 	RNA_def_struct_ui_text(srna, "Sculpt", "");
 
 	prop = RNA_def_property(srna, "radial_symmetry", PROP_INT, PROP_XYZ);
@@ -368,6 +401,7 @@ static void rna_def_uv_sculpt(BlenderRNA  *brna)
 	StructRNA *srna;
 
 	srna = RNA_def_struct(brna, "UvSculpt", "Paint");
+	RNA_def_struct_path_func(srna, "rna_UvSculpt_path");
 	RNA_def_struct_ui_text(srna, "UV Sculpting", "");
 }
 
@@ -380,6 +414,7 @@ static void rna_def_vertex_paint(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "VertexPaint", "Paint");
 	RNA_def_struct_sdna(srna, "VPaint");
+	RNA_def_struct_path_func(srna, "rna_VertexPaint_path");
 	RNA_def_struct_ui_text(srna, "Vertex Paint", "Properties of vertex and weight paint mode");
 
 	/* vertex paint only */
@@ -408,6 +443,7 @@ static void rna_def_image_paint(BlenderRNA *brna)
 	
 	srna = RNA_def_struct(brna, "ImagePaint", "Paint");
 	RNA_def_struct_sdna(srna, "ImagePaintSettings");
+	RNA_def_struct_path_func(srna, "rna_ImagePaintSettings_path");
 	RNA_def_struct_ui_text(srna, "Image Paint", "Properties of image and texture painting mode");
 	
 	/* booleans */
@@ -492,6 +528,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "ParticleEdit", NULL);
 	RNA_def_struct_sdna(srna, "ParticleEditSettings");
+	RNA_def_struct_path_func(srna, "rna_ParticleEdit_path");
 	RNA_def_struct_ui_text(srna, "Particle Edit", "Properties of particle editing mode");
 
 	prop = RNA_def_property(srna, "tool", PROP_ENUM, PROP_NONE);
