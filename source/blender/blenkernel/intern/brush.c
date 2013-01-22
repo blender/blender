@@ -662,7 +662,9 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 void BKE_brush_size_set(Scene *scene, Brush *brush, int size)
 {
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-
+	
+	size = (int)((float)size / U.pixelsize);
+	
 	if (ups->flag & UNIFIED_PAINT_SIZE)
 		ups->size = size;
 	else
