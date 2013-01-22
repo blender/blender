@@ -274,6 +274,11 @@ static char *rna_UvSculpt_path(PointerRNA *ptr)
 	return BLI_strdup("tool_settings.uv_sculpt");
 }
 
+static char *rna_ParticleBrush_path(PointerRNA *ptr)
+{
+	return BLI_strdup("tool_settings.particle_edit.brush");
+}
+
 #else
 
 static void rna_def_paint(BlenderRNA *brna)
@@ -624,6 +629,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "ParticleBrush", NULL);
 	RNA_def_struct_sdna(srna, "ParticleBrushData");
+	RNA_def_struct_path_func(srna, "rna_ParticleBrush_path");
 	RNA_def_struct_ui_text(srna, "Particle Brush", "Particle editing brush");
 
 	prop = RNA_def_property(srna, "size", PROP_INT, PROP_DISTANCE);
