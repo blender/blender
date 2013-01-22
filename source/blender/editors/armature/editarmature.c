@@ -4997,6 +4997,10 @@ void create_vgroups_from_armature(ReportList *reports, Scene *scene, Object *ob,
 	bArmature *arm = par->data;
 
 	if (mode == ARM_GROUPS_NAME) {
+		/* its possible there are DWeight's outside the range of the current
+		 * objects deform groups, in this case the new groups wont be empty [#33889] */
+		ED_vgroup_data_clamp_range(ob->data, BLI_countlist(&ob->defbase));
+
 		/* Traverse the bone list, trying to create empty vertex 
 		 * groups corresponding to the bone.
 		 */

@@ -82,6 +82,7 @@ static void vgroup_remap_update_users(Object *ob, int *map);
 static void vgroup_delete_edit_mode(Object *ob, bDeformGroup *defgroup);
 static void vgroup_delete_object_mode(Object *ob, bDeformGroup *dg);
 static void vgroup_delete_all(Object *ob);
+static int ED_vgroup_give_parray(ID *id, MDeformVert ***dvert_arr, int *dvert_tot, const short use_vert_sel);
 
 static int vertex_group_use_vert_sel(Object *ob)
 {
@@ -180,6 +181,29 @@ int ED_vgroup_data_create(ID *id)
 	}
 	else {
 		return FALSE;
+	}
+}
+
+/**
+ * Removes out of range MDeformWeights
+ */
+void ED_vgroup_data_clamp_range(ID *id, const int total)
+{
+	MDeformVert **dvert_arr;
+	int dvert_tot;
+
+	if (ED_vgroup_give_parray(id, &dvert_arr, &dvert_tot, false)) {
+		int i;
+		for (i = 0; i < dvert_tot; i++) {
+			MDeformVert *dv = dvert_arr[i];
+			int j;
+			for (j = 0; j < dv->totweight; j++) {
+				if (dv->dw[j].def_nr >= total) {
+					defvert_remove_group(dv, &dv->dw[j]);
+					j--;
+				}
+			}
+		}
 	}
 }
 
