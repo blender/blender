@@ -574,6 +574,23 @@ data_to_c_simple("release/datafiles/brushicons/thumb.png")
 data_to_c_simple("release/datafiles/brushicons/twist.png")
 data_to_c_simple("release/datafiles/brushicons/vertexdraw.png")
 
+data_to_c_simple("release/datafiles/matcaps/mc01.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc02.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc03.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc04.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc05.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc06.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc07.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc08.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc09.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc10.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc11.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc12.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc13.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc14.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc15.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc16.jpg")
+
 ##### END DATAFILES ##########
 
 Help(opts.GenerateHelpText(env))
