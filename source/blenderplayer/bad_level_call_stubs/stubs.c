@@ -336,6 +336,7 @@ void uiLayoutSetEnabled(struct uiLayout *layout, int enabled) {}
 void uiLayoutSetAlignment(struct uiLayout *layout, int alignment) {}
 void uiLayoutSetScaleX(struct uiLayout *layout, float scale) {}
 void uiLayoutSetScaleY(struct uiLayout *layout, float scale) {}
+void uiTemplateIconView(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname) {}
 void ED_base_object_free_and_unlink(struct Scene *scene, struct Base *base) {}
 void ED_mesh_calc_normals(struct Mesh *me) {}
 void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int verts, int edges, int faces) {}
