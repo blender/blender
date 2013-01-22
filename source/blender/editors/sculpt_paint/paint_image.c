@@ -3756,6 +3756,8 @@ typedef struct ProjectHandle {
 	
 	/* thread settings */
 	int thread_index;
+
+	struct ImagePool *pool;
 } ProjectHandle;
 
 static void blend_color_mix(unsigned char cp[4], const unsigned char cp1[4], const unsigned char cp2[4], const int fac)
@@ -4005,6 +4007,7 @@ static void *do_projectpaint_thread(void *ph_v)
 	const float *lastpos =       ((ProjectHandle *)ph_v)->prevmval;
 	const float *pos =           ((ProjectHandle *)ph_v)->mval;
 	const int thread_index =     ((ProjectHandle *)ph_v)->thread_index;
+	struct ImagePool *pool =     ((ProjectHandle *)ph_v)->pool;
 	/* Done with args from ProjectHandle */
 
 	LinkNode *node;
@@ -4133,7 +4136,7 @@ static void *do_projectpaint_thread(void *ph_v)
 					if (falloff > 0.0f) {
 						if (ps->is_texbrush) {
 							/* note, for clone and smear, we only use the alpha, could be a special function */
-							BKE_brush_sample_tex(ps->scene, brush, samplecos, rgba, thread_index);
+							BKE_brush_sample_tex(ps->scene, brush, samplecos, rgba, thread_index, pool);
 							alpha = rgba[3];
 						}
 						else {
@@ -4269,12 +4272,16 @@ static int project_paint_op(void *state, ImBuf *UNUSED(ibufb), const float lastp
 	ListBase threads;
 	int a, i;
 	
+	struct ImagePool *pool;
+	
 	if (!project_bucket_iter_init(ps, pos)) {
 		return 0;
 	}
 	
 	if (ps->thread_tot > 1)
 		BLI_init_threads(&threads, do_projectpaint_thread, ps->thread_tot);
+	
+	pool = BKE_image_pool_new();
 	
 	/* get the threads running */
 	for (a = 0; a < ps->thread_tot; a++) {
@@ -4299,6 +4306,8 @@ static int project_paint_op(void *state, ImBuf *UNUSED(ibufb), const float lastp
 			memcpy(handles[a].projImages[i].partRedrawRect, ps->projImages[i].partRedrawRect, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
 		}
 
+		handles[a].pool = pool;
+
 		if (ps->thread_tot > 1)
 			BLI_insert_thread(&threads, &handles[a]);
 	}
@@ -4308,6 +4317,8 @@ static int project_paint_op(void *state, ImBuf *UNUSED(ibufb), const float lastp
 	else
 		do_projectpaint_thread(&handles[0]);
 		
+	
+	BKE_image_pool_free(pool);
 	
 	/* move threaded bounds back into ps->projectPartialRedraws */
 	for (i = 0; i < ps->image_tot; i++) {

@@ -3398,7 +3398,7 @@ void do_lamp_tex(LampRen *la, const float lavec[3], ShadeInput *shi, float col_r
 
 /* ------------------------------------------------------------------------- */
 
-int externtex(MTex *mtex, const float vec[3], float *tin, float *tr, float *tg, float *tb, float *ta, const int thread)
+int externtex(MTex *mtex, const float vec[3], float *tin, float *tr, float *tg, float *tb, float *ta, const int thread, struct ImagePool *pool)
 {
 	Tex *tex;
 	TexResult texr;
@@ -3424,7 +3424,7 @@ int externtex(MTex *mtex, const float vec[3], float *tin, float *tr, float *tg, 
 		do_2d_mapping(mtex, texvec, NULL, NULL, dxt, dyt);
 	}
 	
-	rgb = multitex(tex, texvec, dxt, dyt, 0, &texr, thread, mtex->which_output, R.pool);
+	rgb = multitex(tex, texvec, dxt, dyt, 0, &texr, thread, mtex->which_output, pool);
 	
 	if (rgb) {
 		texr.tin = rgb_to_bw(&texr.tr);

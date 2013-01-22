@@ -472,7 +472,7 @@ int BKE_brush_clone_image_delete(Brush *brush)
 }
 
 /* Brush Sampling for 3d brushes. Currently used for texture painting only, but should be generalized */
-void BKE_brush_sample_tex(const Scene *scene, Brush *brush, const float sampleco[3], float rgba[4], const int thread)
+void BKE_brush_sample_tex(const Scene *scene, Brush *brush, const float sampleco[3], float rgba[4], const int thread, struct ImagePool *pool)
 {
 	MTex *mtex = &brush->mtex;
 
@@ -482,7 +482,7 @@ void BKE_brush_sample_tex(const Scene *scene, Brush *brush, const float sampleco
 		const int radius = BKE_brush_size_get(scene, brush);
 
 		if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) {
-			hasrgb = externtex(mtex, sampleco, &tin, &tr, &tg, &tb, &ta, thread);
+			hasrgb = externtex(mtex, sampleco, &tin, &tr, &tg, &tb, &ta, thread, pool);
 		}
 		else {
 			float co[3];
@@ -491,7 +491,7 @@ void BKE_brush_sample_tex(const Scene *scene, Brush *brush, const float sampleco
 			co[1] = sampleco[1] / radius;
 			co[2] = 0.0f;
 
-			hasrgb = externtex(mtex, co, &tin, &tr, &tg, &tb, &ta, thread);
+			hasrgb = externtex(mtex, co, &tin, &tr, &tg, &tb, &ta, thread, pool);
 		}
 
 		if (hasrgb) {
@@ -526,7 +526,7 @@ void BKE_brush_sample_tex_2D(const Scene *scene, Brush *brush, const float xy[2]
 		co[1] = xy[1] / radius;
 		co[2] = 0.0f;
 
-		hasrgb = externtex(mtex, co, &tin, &tr, &tg, &tb, &ta, thread);
+		hasrgb = externtex(mtex, co, &tin, &tr, &tg, &tb, &ta, thread, NULL);
 
 		if (hasrgb) {
 			rgba[0] = tr;

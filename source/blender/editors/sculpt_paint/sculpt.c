@@ -898,7 +898,7 @@ static float tex_strength(SculptSession *ss, Brush *br,
 		/* Get strength by feeding the vertex 
 		 * location directly into a texture */
 		externtex(mtex, point, &avg,
-		          &jnk, &jnk, &jnk, &jnk, 0);
+		          &jnk, &jnk, &jnk, &jnk, 0, ss->tex_pool);
 	}
 	else if (ss->texcache) {
 		float rotation = -mtex->rot;
