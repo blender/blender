@@ -438,17 +438,15 @@ if not quickie and do_clean:
 # with _any_ library but since we used a fixed python version this tends to
 # be most problematic.
 if env['WITH_BF_PYTHON']:
-    found_python_h = found_pyconfig_h = False
+    found_python_h = False
     for bf_python_inc in env.subst('${BF_PYTHON_INC}').split():
         py_h = os.path.join(Dir(bf_python_inc).abspath, "Python.h")
         if os.path.exists(py_h):
             found_python_h = True
         py_h = os.path.join(Dir(bf_python_inc).abspath, "pyconfig.h")
-        if os.path.exists(py_h):
-            found_pyconfig_h = True
 
-    if not (found_python_h and found_pyconfig_h):
-        print("""\nMissing: Python.h and/or pyconfig.h in "%s"
+    if not (found_python_h):
+        print("""\nMissing: Python.h in "%s"
          Set 'BF_PYTHON_INC' to point to valid include path(s),
          containing Python.h and pyconfig.h for Python version "%s".
 
