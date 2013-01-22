@@ -1387,11 +1387,14 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 static int gp_convert_check_has_valid_timing(bContext *C, bGPDlayer *gpl, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	bGPDframe *gpf = gpencil_layer_getframe(gpl, CFRA, 0);
-	bGPDstroke *gps = gpf->strokes.first;
+	bGPDframe *gpf = NULL;
+	bGPDstroke *gps = NULL;
 	bGPDspoint *pt;
 	double base_time, cur_time, prev_time = -1.0;
 	int i, valid = TRUE;
+	
+	if (!gpl || !(gpf = gpencil_layer_getframe(gpl, CFRA, 0)) || !(gps = gpf->strokes.first))
+		return FALSE;
 	
 	do {
 		base_time = cur_time = gps->inittime;
@@ -1438,11 +1441,19 @@ static void gp_convert_set_end_frame(struct Main *UNUSED(main), struct Scene *UN
 static int gp_convert_poll(bContext *C)
 {
 	bGPdata *gpd = gpencil_data_get_active(C);
+	bGPDlayer *gpl = NULL;
+	bGPDframe *gpf = NULL;
 	ScrArea *sa = CTX_wm_area(C);
 	Scene *scene = CTX_data_scene(C);
 
-	/* only if there's valid data, and the current view is 3D View */
-	return ((sa && sa->spacetype == SPACE_VIEW3D) && gpencil_layer_getactive(gpd) && (scene->obedit == NULL));
+	/* only if the current view is 3D View, if there's valid data (i.e. at least one stroke!),
+	 * and if we are not in edit mode!
+	 */
+	return ((sa && sa->spacetype == SPACE_VIEW3D) &&
+	        (gpl = gpencil_layer_getactive(gpd)) &&
+	        (gpf = gpencil_layer_getframe(gpl, CFRA, 0)) &&
+	        (gpf->strokes.first) &&
+	        (scene->obedit == NULL));
 }
 
 static int gp_convert_layer_exec(bContext *C, wmOperator *op)
