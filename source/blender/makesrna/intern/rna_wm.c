@@ -853,8 +853,11 @@ static void rna_Operator_unregister(struct Main *bmain, StructRNA *type)
 
 	/* update while blender is running */
 	wm = bmain->wm.first;
-	if (wm)
+	if (wm) {
 		WM_operator_stack_clear(wm);
+
+		WM_operator_handlers_clear(wm, ot);
+	}
 	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
 
 	RNA_struct_free_extension(type, &ot->ext);

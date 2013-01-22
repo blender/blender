@@ -149,6 +149,31 @@ void WM_operator_stack_clear(wmWindowManager *wm)
 	WM_main_add_notifier(NC_WM | ND_HISTORY, NULL);
 }
 
+/**
+ * This function is needed in the case when an addon id disabled
+ * while a modal operator it defined is running.
+ */
+void WM_operator_handlers_clear(wmWindowManager *wm, wmOperatorType *ot)
+{
+	wmWindow *win;
+	for (win = wm->windows.first; win; win = win->next) {
+		ListBase *lb[2] = {&win->handlers, &win->modalhandlers};
+		wmEventHandler *handler;
+		int i;
+
+		for (i = 0; i < 2; i++) {
+			for (handler = lb[i]->first; handler; handler = handler->next) {
+				if (handler->op && handler->op->type == ot) {
+					/* don't run op->cancel because it needs the context,
+					 * assume whoever unregisters the operator will cleanup */
+					handler->flag |= WM_HANDLER_DO_FREE;
+					WM_operator_free(handler->op);
+					handler->op = NULL;
+				}
+			}
+		}
+	}
+}
 
 /* ************ uiListType handling ************** */
 

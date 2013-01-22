@@ -202,6 +202,7 @@ int			WM_operator_confirm_message(struct bContext *C, struct wmOperator *op, con
 		/* operator api */
 void		WM_operator_free		(struct wmOperator *op);
 void		WM_operator_stack_clear(struct wmWindowManager *wm);
+void		WM_operator_handlers_clear(wmWindowManager *wm, struct wmOperatorType *ot);
 
 struct wmOperatorType *WM_operatortype_find(const char *idnamem, int quiet);
 struct GHashIterator  *WM_operatortype_iter(void);
