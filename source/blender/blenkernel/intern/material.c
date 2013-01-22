@@ -681,19 +681,6 @@ Material *give_node_material(Material *ma)
 	return NULL;
 }
 
-/* GS reads the memory pointed at in a specific ordering. There are,
- * however two definitions for it. I have jotted them down here, both,
- * but I think the first one is actually used. The thing is that
- * big-endian systems might read this the wrong way round. OTOH, we
- * constructed the IDs that are read out with this macro explicitly as
- * well. I expect we'll sort it out soon... */
-
-/* from blendef: */
-#define GS(a)   (*((short *)(a)))
-
-/* from misc_util: flip the bytes from x  */
-/*  #define GS(x) (((unsigned char *)(x))[0] << 8 | ((unsigned char *)(x))[1]) */
-
 void resize_object_material(Object *ob, const short totcol)
 {
 	Material **newmatar;

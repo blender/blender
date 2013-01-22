@@ -69,6 +69,7 @@
 #include "BKE_library.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h" /* BKE_ST_MAXNAME */
@@ -561,6 +562,7 @@ char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, i
 }
 
 /* return NULL if no match is found */
+#if 0
 static char *wm_prop_pystring_from_context(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index)
 {
 
@@ -583,7 +585,7 @@ static char *wm_prop_pystring_from_context(bContext *C, PointerRNA *ptr, Propert
 
 	for (link = lb.first; link; link = link->next) {
 		const char *identifier = link->data;
-		PointerRNA ctx_item_ptr = {{0}}; // CTX_data_pointer_get(C, identifier);
+		PointerRNA ctx_item_ptr = {{0}} // CTX_data_pointer_get(C, identifier); // XXX, this isnt working
 
 		if (ctx_item_ptr.type == NULL) {
 			continue;
@@ -624,6 +626,94 @@ static char *wm_prop_pystring_from_context(bContext *C, PointerRNA *ptr, Propert
 
 	return ret;
 }
+#else
+
+/* use hard coded checks for now */
+static char *wm_prop_pystring_from_context(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index)
+{
+	const char *member_id = NULL;
+
+	char *prop_str = NULL;
+	char *ret = NULL;
+
+	if (ptr->id.data) {
+		ID *idptr = ptr->id.data;
+
+#define CTX_TEST_PTR_ID(C, member, idptr) \
+		{ \
+			const char *ctx_member = member; \
+			PointerRNA ctx_item_ptr = CTX_data_pointer_get(C, ctx_member); \
+			if (ctx_item_ptr.id.data == idptr) { \
+				member_id = ctx_member; \
+				break; \
+			} \
+		} (void)0
+
+#define CTX_TEST_PTR_ID_CAST(C, member, member_full, cast, idptr) \
+		{ \
+			const char *ctx_member = member; \
+			const char *ctx_member_full = member_full; \
+			PointerRNA ctx_item_ptr = CTX_data_pointer_get(C, ctx_member); \
+			if (ctx_item_ptr.id.data && cast(ctx_item_ptr.id.data) == idptr) { \
+				member_id = ctx_member_full; \
+				break; \
+			} \
+		} (void)0
+
+		switch (GS(idptr->name)) {
+			case ID_SCE:
+			{
+				CTX_TEST_PTR_ID(C, "scene", ptr->id.data);
+				break;
+			}
+			case ID_OB:
+			{
+				CTX_TEST_PTR_ID(C, "object", ptr->id.data);
+				break;
+			}
+			/* from rna_Main_objects_new */
+			case OB_DATA_SUPPORT_ID_CASE:
+			{
+#define ID_CAST_OBDATA(id_pt) (((Object *)(id_pt))->data)
+				CTX_TEST_PTR_ID_CAST(C, "object", "object.data", ID_CAST_OBDATA, ptr->id.data);
+				break;
+#undef ID_CAST_OBDATA
+			}
+			case ID_MA:
+			{
+#define ID_CAST_OBMATACT(id_pt) (give_current_material(((Object *)id_pt), ((Object *)id_pt)->actcol))
+				CTX_TEST_PTR_ID_CAST(C, "object", "object.active_material", ID_CAST_OBMATACT, ptr->id.data);
+				break;
+#undef ID_CAST_OBMATACT
+			}
+			case ID_WO:
+			{
+#define ID_CAST_SCENEWORLD(id_pt) (((Scene *)(id_pt))->world)
+				CTX_TEST_PTR_ID_CAST(C, "scene", "scene.world", ID_CAST_SCENEWORLD, ptr->id.data);
+				break;
+#undef ID_CAST_SCENEWORLD
+			}
+			case ID_SCR:
+			{
+				CTX_TEST_PTR_ID(C, "screen", ptr->id.data);
+				break;
+			}
+		}
+
+		if (member_id) {
+			prop_str = RNA_path_struct_property_py(ptr, prop, index);
+			if (prop_str) {
+				ret = BLI_sprintfN("bpy.context.%s.%s", member_id, prop_str);
+				MEM_freeN(prop_str);
+			}
+		}
+#undef CTX_TEST_PTR_ID
+#undef CTX_TEST_PTR_ID_CAST
+	}
+
+	return ret;
+}
+#endif
 
 char *WM_prop_pystring_assign(bContext *C, PointerRNA *ptr, PropertyRNA *prop, int index)
 {

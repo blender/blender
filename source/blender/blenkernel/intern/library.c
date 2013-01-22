@@ -123,9 +123,6 @@
  * only use this definition, makes little and big endian systems
  * work fine, in conjunction with MAKE_ID */
 
-/* from blendef: */
-#define GS(a)  (*((short *)(a)))
-
 /* ************* general ************************ */
 
 
