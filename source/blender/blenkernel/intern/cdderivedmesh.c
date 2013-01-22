@@ -1111,6 +1111,19 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 		index_mp_to_orig = NULL;
 	}
 
+	/* TODO: same as for solid draw, not entirely correct, but works fine for now,
+	 *       will skip using textures (dyntopo currently destroys UV anyway) and
+	 *       works fine for matcap
+	 */
+	if (cddm->pbvh && cddm->pbvh_draw && BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH) {
+		if (dm->numTessFaceData) {
+			setMaterial(1, &gattribs);
+			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, FALSE);
+		}
+
+		return;
+	}
+
 	cdDM_update_normals_from_pbvh(dm);
 
 	matnr = -1;
@@ -1410,6 +1423,19 @@ static void cdDM_drawMappedFacesMat(DerivedMesh *dm,
 	const int *index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
 	if (index_mf_to_mpoly == NULL) {
 		index_mp_to_orig = NULL;
+	}
+
+	/* TODO: same as for solid draw, not entirely correct, but works fine for now,
+	 *       will skip using textures (dyntopo currently destroys UV anyway) and
+	 *       works fine for matcap
+	 */
+	if (cddm->pbvh && cddm->pbvh_draw && BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH) {
+		if (dm->numTessFaceData) {
+			setMaterial(userData, 1, NULL);
+			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, FALSE);
+		}
+
+		return;
 	}
 
 	cdDM_update_normals_from_pbvh(dm);
