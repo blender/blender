@@ -4108,18 +4108,6 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 		softbody_reset(ob, sb, vertexCos, numVerts);
 	}
 
-	/* continue physics special case */
-	if (BKE_ptcache_get_continue_physics()) {
-		BKE_ptcache_invalidate(cache);
-		/* do simulation */
-		dtime = timescale;
-		softbody_update_positions(ob, sb, vertexCos, numVerts);
-		softbody_step(scene, ob, sb, dtime);
-		softbody_to_object(ob, vertexCos, numVerts, 0);
-		sb->last_frame = framenr;
-		return;
-	}
-
 	/* still no points? go away */
 	if (sb->totpoint==0) {
 		return;

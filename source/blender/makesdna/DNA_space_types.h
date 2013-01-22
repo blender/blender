@@ -434,7 +434,7 @@ typedef enum eScreen_Redraws_Flag {
 	TIME_WITH_SEQ_AUDIO    = (1 << 4), /* DEPRECATED */
 	TIME_SEQ               = (1 << 5),
 	TIME_ALL_IMAGE_WIN     = (1 << 6),
-	TIME_CONTINUE_PHYSICS  = (1 << 7),
+	TIME_CONTINUE_PHYSICS  = (1 << 7), /* UNUSED */
 	TIME_NODES             = (1 << 8),
 	TIME_CLIPS             = (1 << 9),
 } eScreen_Redraws_Flag;

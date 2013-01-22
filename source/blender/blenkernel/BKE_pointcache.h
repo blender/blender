@@ -294,10 +294,6 @@ int     BKE_ptcache_read(PTCacheID *pid, float cfra);
 /* Main cache writing call. */
 int     BKE_ptcache_write(PTCacheID *pid, unsigned int cfra);
 
-/****************** Continue physics ***************/
-void BKE_ptcache_set_continue_physics(struct Main *bmain, struct Scene *scene, int enable);
-int BKE_ptcache_get_continue_physics(void);
-
 /******************* Allocate & free ***************/
 struct PointCache *BKE_ptcache_add(struct ListBase *ptcaches);
 void BKE_ptcache_free_mem(struct ListBase *mem_cache);

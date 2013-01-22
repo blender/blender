@@ -2536,7 +2536,7 @@ int  BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 	after= 0;
 
 	if (mode == PTCACHE_RESET_DEPSGRAPH) {
-		if (!(cache->flag & PTCACHE_BAKED) && !BKE_ptcache_get_continue_physics()) {
+		if (!(cache->flag & PTCACHE_BAKED)) {
 
 			after= 1;
 		}
@@ -2544,12 +2544,7 @@ int  BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 		cache->flag |= PTCACHE_OUTDATED;
 	}
 	else if (mode == PTCACHE_RESET_BAKED) {
-		if (!BKE_ptcache_get_continue_physics()) {
-			reset= 1;
-			clear= 1;
-		}
-		else
-			cache->flag |= PTCACHE_OUTDATED;
+		cache->flag |= PTCACHE_OUTDATED;
 	}
 	else if (mode == PTCACHE_RESET_OUTDATED) {
 		reset = 1;
@@ -2693,30 +2688,6 @@ void BKE_ptcache_remove(void)
 	if (rmdir) {
 		BLI_delete(path, 1, 0);
 	}
-}
-
-/* Continuous Interaction */
-
-static int CONTINUE_PHYSICS = 0;
-
-void BKE_ptcache_set_continue_physics(Main *bmain, Scene *scene, int enable)
-{
-	Object *ob;
-
-	if (CONTINUE_PHYSICS != enable) {
-		CONTINUE_PHYSICS = enable;
-
-		if (CONTINUE_PHYSICS == 0) {
-			for (ob=bmain->object.first; ob; ob=ob->id.next)
-				if (BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_OUTDATED))
-					DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		}
-	}
-}
-
-int  BKE_ptcache_get_continue_physics(void)
-{
-	return CONTINUE_PHYSICS;
 }
 
 /* Point Cache handling */

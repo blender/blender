@@ -137,7 +137,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 		
 		numverts = dm->getNumVerts(dm);
 		
-		if ((current_time > collmd->time_xnew) || (BKE_ptcache_get_continue_physics())) {
+		if (current_time > collmd->time_xnew) {
 			unsigned int i;
 
 			/* check if mesh has changed */

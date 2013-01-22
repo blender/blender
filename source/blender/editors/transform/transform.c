@@ -2124,12 +2124,6 @@ void transformApply(bContext *C, TransInfo *t)
 		t->state = TRANS_CONFIRM;
 	}
 
-	if (BKE_ptcache_get_continue_physics()) {
-		// TRANSFORM_FIX_ME
-		//do_screenhandlers(G.curscreen);
-		t->redraw |= TREDRAW_HARD;
-	}
-
 	t->context = NULL;
 }
 
