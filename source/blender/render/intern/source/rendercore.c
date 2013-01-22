@@ -2892,9 +2892,11 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 		use_mask = TRUE;
 
 	/* do we need buffer to store displacements  */
-	if ((R.r.bake_flag & R_BAKE_NORMALIZE) && R.r.bake_maxdist == 0.0f) {
-		use_displacement_buffer = TRUE;
-		use_mask = TRUE;
+	if (type == RE_BAKE_DISPLACEMENT) {
+		if ((R.r.bake_flag & R_BAKE_NORMALIZE) && R.r.bake_maxdist == 0.0f) {
+			use_displacement_buffer = TRUE;
+			use_mask = TRUE;
+		}
 	}
 
 	/* baker uses this flag to detect if image was initialized */
