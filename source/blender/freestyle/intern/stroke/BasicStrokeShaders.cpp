@@ -580,6 +580,7 @@ int BackboneStretcherShader::shade(Stroke& stroke) const
 int SamplingShader::shade(Stroke& stroke) const
 {
 	stroke.Resample(_sampling);
+	stroke.UpdateLength();
 	return 0;
 }
 

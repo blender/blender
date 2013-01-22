@@ -577,6 +577,7 @@ class pySamplingShader(StrokeShader):
 		return "pySamplingShader"
 	def shade(self, stroke):
 		stroke.Resample(float(self._sampling)) 
+		stroke.UpdateLength()
 
 class pyBackboneStretcherShader(StrokeShader):
 	def __init__(self, l):

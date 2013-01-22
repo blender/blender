@@ -605,6 +605,7 @@ void Stroke::Resample(float iSampling)
 	//real curvilinearLength = 0.0f;
 	vertex_container newVertices;
 	real t = 0.0f;
+	const real limit = 0.99;
 	StrokeVertex *newVertex = NULL;
 	StrokeInternal::StrokeVertexIterator it = strokeVerticesBegin();
 	StrokeInternal::StrokeVertexIterator next = it;
@@ -612,9 +613,9 @@ void Stroke::Resample(float iSampling)
 	StrokeInternal::StrokeVertexIterator itend = strokeVerticesEnd();
 	while ((it != itend) && (next != itend)) {
 		newVertices.push_back(&(*it));
-		Vec3r a((it)->point2d());
-		Vec3r b((next)->point2d());
-		Vec3r vec_tmp(b - a);
+		Vec2r a((it)->getPoint());
+		Vec2r b((next)->getPoint());
+		Vec2r vec_tmp(b - a);
 		real norm_var = vec_tmp.norm();
 		if (norm_var <= _sampling) {
 			//curvilinearLength += norm_var;
@@ -625,7 +626,6 @@ void Stroke::Resample(float iSampling)
 
 		//curvilinearLength += _sampling;
 		t = _sampling / norm_var;
-		float limit = 0.99f;
 		while (t < limit) {
 			newVertex = new StrokeVertex(&(*it), &(*next), t);
 			//newVertex->setCurvilinearAbscissa(curvilinearLength);
@@ -673,17 +673,17 @@ void Stroke::InsertVertex(StrokeVertex *iVertex, StrokeInternal::StrokeVertexIte
 
 void Stroke::UpdateLength()
 {
-	// recompute various values (length, curvilign abscissa)
+	// recompute curvilinear abscissa and stroke length
 	float curvabsc = 0.0f;
 	vertex_container::iterator it = _Vertices.begin(), itend = _Vertices.end();
 	vertex_container::iterator previous = it;
 	for (; it != itend; ++it) {
-		curvabsc += ((*it)->point2d() - (*previous)->point2d()).norm();
+		curvabsc += ((*it)->getPoint() - (*previous)->getPoint()).norm();
 		(*it)->setCurvilinearAbscissa(curvabsc);
 		previous = it;
 	}
 	_Length = curvabsc;
-	for (; it != itend; ++it) {
+	for (it = _Vertices.begin(); it != itend; ++it) {
 		(*it)->setStrokeLength(_Length);
 	}
 }
