@@ -194,7 +194,7 @@ BF_OCIO_LIB = 'OpenColorIO yaml-cpp tinyxml'
 BF_OCIO_LIB_STATIC = '${BF_OCIO_LIBPATH}/libOpenColorIO.a ${BF_OCIO_LIBPATH}/libtinyxml.a ${BF_OCIO_LIBPATH}/libyaml-cpp.a'
 BF_OCIO_LIBPATH = '${BF_OCIO}/lib'
 
-WITH_BF_BOOST = False
+WITH_BF_BOOST = True
 WITH_BF_STATICBOOST = False
 BF_BOOST = '/usr'
 BF_BOOST_INC = '${BF_BOOST}/include'
