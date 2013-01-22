@@ -4997,17 +4997,18 @@ void create_vgroups_from_armature(ReportList *reports, Scene *scene, Object *ob,
 	bArmature *arm = par->data;
 
 	if (mode == ARM_GROUPS_NAME) {
-		/* its possible there are DWeight's outside the range of the current
-		 * objects deform groups, in this case the new groups wont be empty [#33889] */
-		ED_vgroup_data_clamp_range(ob->data, BLI_countlist(&ob->defbase));
-
+		const int defbase_tot = BLI_countlist(&ob->defbase);
+		int defbase_add;
 		/* Traverse the bone list, trying to create empty vertex 
 		 * groups corresponding to the bone.
 		 */
-		bone_looper(ob, arm->bonebase.first, NULL, vgroup_add_unique_bone_cb);
+		defbase_add = bone_looper(ob, arm->bonebase.first, NULL, vgroup_add_unique_bone_cb);
 
-		if (ob->type == OB_MESH)
-			ED_vgroup_data_create(ob->data);
+		if (defbase_add) {
+			/* its possible there are DWeight's outside the range of the current
+			 * objects deform groups, in this case the new groups wont be empty [#33889] */
+			ED_vgroup_data_clamp_range(ob->data, defbase_tot);
+		}
 	}
 	else if (mode == ARM_GROUPS_ENVELOPE || mode == ARM_GROUPS_AUTO) {
 		/* Traverse the bone list, trying to create vertex groups 
