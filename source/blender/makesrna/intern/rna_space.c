@@ -145,6 +145,7 @@ EnumPropertyItem clip_editor_mode_items[] = {
 #include "BKE_paint.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_icons.h"
 
 #include "ED_image.h"
 #include "ED_node.h"
@@ -152,6 +153,8 @@ EnumPropertyItem clip_editor_mode_items[] = {
 #include "ED_view3d.h"
 #include "ED_sequencer.h"
 #include "ED_clip.h"
+
+#include "GPU_material.h"
 
 #include "IMB_imbuf_types.h"
 
