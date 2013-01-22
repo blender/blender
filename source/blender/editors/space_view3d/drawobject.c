@@ -176,9 +176,12 @@ static int check_object_draw_texture(Scene *scene, View3D *v3d, int drawtype)
 		return TRUE;
 
 	/* textured solid */
-	if (v3d->drawtype == OB_SOLID && (v3d->flag2 & (V3D_SOLID_TEX | V3D_SHOW_SOLID_MATCAP))
+	if (v3d->drawtype == OB_SOLID && (v3d->flag2 & V3D_SOLID_TEX)
 		&& !BKE_scene_use_new_shading_nodes(scene))
 			return TRUE;
+	
+	if (v3d->flag2 & V3D_SHOW_SOLID_MATCAP)
+		return 1;
 	
 	return FALSE;
 }
@@ -218,11 +221,12 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, const char dt)
 		return 0;
 	if (ob == OBACT && (ob && ob->mode & OB_MODE_WEIGHT_PAINT))
 		return 0;
-	if (BKE_scene_use_new_shading_nodes(scene))
-		return 0;
 	
 	if (v3d->flag2 & V3D_SHOW_SOLID_MATCAP)
 		return 1;
+	
+	if (BKE_scene_use_new_shading_nodes(scene))
+		return 0;
 	
 	return (scene->gm.matmode == GAME_MAT_GLSL) && (dt > OB_SOLID);
 }
