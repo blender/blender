@@ -921,12 +921,15 @@ NSScreen* GHOST_WindowCocoa::getScreen()
 /* called for event, when window leaves monitor to another */
 void GHOST_WindowCocoa::setNativePixelSize(void)
 {
-	NSRect backingBounds = [m_openGLView convertRectToBacking:[m_openGLView bounds]];
-	
-	GHOST_Rect rect;
-	getClientBounds(rect);
+	/* make sure 10.6 keeps running */
+	if ([m_openGLView respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:)]) {
+		NSRect backingBounds = [m_openGLView convertRectToBacking:[m_openGLView bounds]];
+		
+		GHOST_Rect rect;
+		getClientBounds(rect);
 
-	m_nativePixelSize = (float)backingBounds.size.width / (float)rect.getWidth();
+		m_nativePixelSize = (float)backingBounds.size.width / (float)rect.getWidth();
+	}
 }
 
 /**
