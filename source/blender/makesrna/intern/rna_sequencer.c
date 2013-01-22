@@ -2058,13 +2058,13 @@ static void rna_def_transform(StructRNA *srna)
 	prop = RNA_def_property(srna, "scale_start_x", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "ScalexIni");
 	RNA_def_property_ui_text(prop, "Scale X", "");
-	RNA_def_property_ui_range(prop, 0, 10, 3, 10);
+	RNA_def_property_ui_range(prop, 0, 10, 3, 6);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop = RNA_def_property(srna, "scale_start_y", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "ScaleyIni");
 	RNA_def_property_ui_text(prop, "Scale Y", "");
-	RNA_def_property_ui_range(prop, 0, 10, 3, 10);
+	RNA_def_property_ui_range(prop, 0, 10, 3, 6);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop = RNA_def_property(srna, "use_uniform_scale", PROP_BOOLEAN, PROP_NONE);
@@ -2075,13 +2075,13 @@ static void rna_def_transform(StructRNA *srna)
 	prop = RNA_def_property(srna, "translate_start_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xIni");
 	RNA_def_property_ui_text(prop, "Translate X", "");
-	RNA_def_property_ui_range(prop, -500.0f, 500.0f, 3, 10);
+	RNA_def_property_ui_range(prop, -500.0f, 500.0f, 3, 6);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop = RNA_def_property(srna, "translate_start_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "yIni");
 	RNA_def_property_ui_text(prop, "Translate Y", "");
-	RNA_def_property_ui_range(prop, -500.0f, 500.0f, 3, 10);
+	RNA_def_property_ui_range(prop, -500.0f, 500.0f, 3, 6);
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop = RNA_def_property(srna, "rotation_start", PROP_FLOAT, PROP_NONE);

@@ -1210,6 +1210,15 @@ void RNA_def_property_ui_icon(PropertyRNA *prop, int icon, int consecutive)
 		prop->flag |= PROP_ICONS_CONSECUTIVE;
 }
 
+/**
+ * The values hare are a little confusing:
+ *
+ * \param step For floats this is (step / 100), why /100? - nobody knows.
+ * for int's, whole values are used.
+ *
+ * \param precision The number of zeros to show
+ * (as a whole number - common range is 1 - 6), see PRECISION_FLOAT_MAX
+ */
 void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double step, int precision)
 {
 	StructRNA *srna = DefRNA.laststruct;
@@ -1230,6 +1239,21 @@ void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double
 			fprop->softmax = (float)max;
 			fprop->step = (float)step;
 			fprop->precision = (int)precision;
+#if 0 /* handy but annoying */
+			if (DefRNA.preprocess) {
+				/* check we're not over PRECISION_FLOAT_MAX */
+				if (fprop->precision > 6) {
+					fprintf(stderr, "%s: \"%s.%s\", precision value over maximum.\n",
+					        __func__, srna->identifier, prop->identifier);
+					DefRNA.error = 1;
+				}
+				else if (fprop->precision < 1) {
+					fprintf(stderr, "%s: \"%s.%s\", precision value under minimum.\n",
+					        __func__, srna->identifier, prop->identifier);
+					DefRNA.error = 1;
+				}
+			}
+#endif
 			break;
 		}
 		default:

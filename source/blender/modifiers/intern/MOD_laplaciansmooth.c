@@ -586,7 +586,7 @@ static void laplaciansmoothModifier_do(
 
 	init_laplacian_matrix(sys);
 
-    for (iter = 0; iter < smd->repeat; iter++) {
+	for (iter = 0; iter < smd->repeat; iter++) {
 		nlBegin(NL_SYSTEM);
 		for (i = 0; i < numVerts; i++) {
 			nlSetVariable(0, i, vertexCos[i][0]);
@@ -648,7 +648,7 @@ static void laplaciansmoothModifier_do(
 			}
 		}
 
-		if (iter == 0){
+		if (iter == 0) {
 			fill_laplacian_matrix(sys);
 		}
 

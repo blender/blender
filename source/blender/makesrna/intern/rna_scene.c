@@ -3709,7 +3709,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "motion_blur_shutter", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "blurfac");
-	RNA_def_property_ui_range(prop, 0.01f, 2.0f, 1, 0);
+	RNA_def_property_ui_range(prop, 0.01f, 2.0f, 1, 1);
 	RNA_def_property_ui_text(prop, "Shutter", "Time taken in frames between shutter open and close");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");

@@ -549,8 +549,7 @@ static PyObject *app_translations_locale_explode(BlenderAppTranslations *UNUSED(
 	const char *locale;
 	char *language, *country, *variant, *language_country, *language_variant;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "s:bpy.app.translations.locale_explode", (char **)kwlist, &locale))
-	{
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "s:bpy.app.translations.locale_explode", (char **)kwlist, &locale)) {
 		return NULL;
 	}
 
