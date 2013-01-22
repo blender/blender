@@ -1038,6 +1038,10 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowDeactivate, window) );
 				break;
 			case GHOST_kEventWindowUpdate:
+				if (m_nativePixel) {
+					window->setNativePixelSize();
+					pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventNativeResolutionChange, window) );
+				}
 				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowUpdate, window) );
 				break;
 			case GHOST_kEventWindowMove:

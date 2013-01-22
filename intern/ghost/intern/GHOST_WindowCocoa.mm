@@ -927,7 +927,6 @@ void GHOST_WindowCocoa::setNativePixelSize(void)
 	getClientBounds(rect);
 
 	m_nativePixelSize = (float)backingBounds.size.width / (float)rect.getWidth();
-
 }
 
 /**
