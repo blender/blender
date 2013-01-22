@@ -54,6 +54,7 @@ struct GPUNodeStack;
 struct GPUMaterial;
 struct GPUTexture;
 struct GPULamp;
+struct PreviewImage;
 
 typedef struct GPUNode GPUNode;
 typedef struct GPUNodeLink GPUNodeLink;
@@ -108,6 +109,7 @@ GPUNodeLink *GPU_attribute(int type, const char *name);
 GPUNodeLink *GPU_uniform(float *num);
 GPUNodeLink *GPU_dynamic_uniform(float *num, int dynamictype, void *data);
 GPUNodeLink *GPU_image(struct Image *ima, struct ImageUser *iuser, int isdata);
+GPUNodeLink *GPU_image_preview(struct PreviewImage *prv);
 GPUNodeLink *GPU_texture(int size, float *pixels);
 GPUNodeLink *GPU_dynamic_texture(struct GPUTexture *tex, int dynamictype, void *data);
 GPUNodeLink *GPU_builtin(GPUBuiltin builtin);
@@ -122,6 +124,7 @@ GPUBlendMode GPU_material_alpha_blend(GPUMaterial *material, float obcol[4]);
 /* High level functions to create and use GPU materials */
 
 GPUMaterial *GPU_material_from_blender(struct Scene *scene, struct Material *ma);
+GPUMaterial *GPU_material_matcap(struct Scene *scene, struct Material *ma);
 void GPU_material_free(struct Material *ma);
 
 void GPU_materials_free(void);

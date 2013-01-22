@@ -664,6 +664,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 	return *bind;
 }
 
+/* Image *ima can be NULL */
 void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float * frect, int rectw, int recth, int mipmap, int use_high_bit_depth, Image *ima)
 {
 	unsigned int *scalerect = NULL;
@@ -723,7 +724,8 @@ void GPU_create_gl_tex(unsigned int *bind, unsigned int *pix, float * frect, int
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 
-		ima->tpageflag |= IMA_MIPMAP_COMPLETE;
+		if (ima)
+			ima->tpageflag |= IMA_MIPMAP_COMPLETE;
 	}
 
 	if (GLEW_EXT_texture_filter_anisotropic)
@@ -1283,10 +1285,9 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GPUMaterial *gpumat;
 	GPUBlendMode alphablend;
 	int a;
-
 	int gamma = BKE_scene_check_color_management_enabled(scene);
-
 	int new_shading_nodes = BKE_scene_use_new_shading_nodes(scene);
+	int use_matcap = (v3d->flag2 & V3D_SHOW_SOLID_MATCAP); /* assumes v3d->defmaterial->preview is set */
 	
 	/* initialize state */
 	memset(&GMS, 0, sizeof(GMS));
@@ -1298,7 +1299,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 
 	GMS.gob = ob;
 	GMS.gscene = scene;
-	GMS.totmat= ob->totcol+1; /* materials start from 1, default material is 0 */
+	GMS.totmat= use_matcap? 1 : ob->totcol+1; /* materials start from 1, default material is 0 */
 	GMS.glay= (v3d->localvd)? v3d->localvd->lay: v3d->lay; /* keep lamps visible in local view */
 	GMS.gviewmat= rv3d->viewmat;
 	GMS.gviewinv= rv3d->viewinv;
@@ -1324,59 +1325,72 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 		GMS.alphablend= GMS.alphablend_fixed;
 	}
 
-	/* no materials assigned? */
-	if (ob->totcol==0) {
-		gpu_material_to_fixed(&GMS.matbuf[0], &defmaterial, 0, ob, new_shading_nodes);
-
+	/* viewport material, setup in space_view3d, defaults to matcap using ma->preview now */
+	if (use_matcap) {
+		GMS.gmatbuf[0] = v3d->defmaterial;
+		GPU_material_matcap(scene, v3d->defmaterial);
+		
 		/* do material 1 too, for displists! */
 		memcpy(&GMS.matbuf[1], &GMS.matbuf[0], sizeof(GPUMaterialFixed));
-
-		if (glsl) {
-			GMS.gmatbuf[0]= &defmaterial;
-			GPU_material_from_blender(GMS.gscene, &defmaterial);
-		}
-
+	
 		GMS.alphablend[0]= GPU_BLEND_SOLID;
 	}
+	else {
 	
-	/* setup materials */
-	for (a=1; a<=ob->totcol; a++) {
-		/* find a suitable material */
-		ma= give_current_material(ob, a);
-		if (!glsl && !new_shading_nodes) ma= gpu_active_node_material(ma);
-		if (ma==NULL) ma= &defmaterial;
+		/* no materials assigned? */
+		if (ob->totcol==0) {
+			gpu_material_to_fixed(&GMS.matbuf[0], &defmaterial, 0, ob, new_shading_nodes);
 
-		/* create glsl material if requested */
-		gpumat = (glsl)? GPU_material_from_blender(GMS.gscene, ma): NULL;
+			/* do material 1 too, for displists! */
+			memcpy(&GMS.matbuf[1], &GMS.matbuf[0], sizeof(GPUMaterialFixed));
 
-		if (gpumat) {
-			/* do glsl only if creating it succeed, else fallback */
-			GMS.gmatbuf[a]= ma;
-			alphablend = GPU_material_alpha_blend(gpumat, ob->col);
+			if (glsl) {
+				GMS.gmatbuf[0]= &defmaterial;
+				GPU_material_from_blender(GMS.gscene, &defmaterial);
+			}
+
+			GMS.alphablend[0]= GPU_BLEND_SOLID;
 		}
-		else {
-			/* fixed function opengl materials */
-			gpu_material_to_fixed(&GMS.matbuf[a], ma, gamma, ob, new_shading_nodes);
+		
+		/* setup materials */
+		for (a=1; a<=ob->totcol; a++) {
+			/* find a suitable material */
+			ma= give_current_material(ob, a);
+			if (!glsl && !new_shading_nodes) ma= gpu_active_node_material(ma);
+			if (ma==NULL) ma= &defmaterial;
 
-			if (GMS.use_alpha_pass) {
-				GMS.matbuf[a].diff[3]= ma->alpha;
-				alphablend = (ma->alpha == 1.0f)? GPU_BLEND_SOLID: GPU_BLEND_ALPHA;
+			/* create glsl material if requested */
+			gpumat = (glsl)? GPU_material_from_blender(GMS.gscene, ma): NULL;
+
+			if (gpumat) {
+				/* do glsl only if creating it succeed, else fallback */
+				GMS.gmatbuf[a]= ma;
+				alphablend = GPU_material_alpha_blend(gpumat, ob->col);
 			}
 			else {
-				GMS.matbuf[a].diff[3]= 1.0f;
-				alphablend = GPU_BLEND_SOLID;
+				/* fixed function opengl materials */
+				gpu_material_to_fixed(&GMS.matbuf[a], ma, gamma, ob, new_shading_nodes);
+
+				if (GMS.use_alpha_pass) {
+					GMS.matbuf[a].diff[3]= ma->alpha;
+					alphablend = (ma->alpha == 1.0f)? GPU_BLEND_SOLID: GPU_BLEND_ALPHA;
+				}
+				else {
+					GMS.matbuf[a].diff[3]= 1.0f;
+					alphablend = GPU_BLEND_SOLID;
+				}
 			}
+
+			/* setting 'do_alpha_after = TRUE' indicates this object needs to be
+			 * drawn in a second alpha pass for improved blending */
+			if (do_alpha_after && !GMS.is_alpha_pass)
+				if (ELEM3(alphablend, GPU_BLEND_ALPHA, GPU_BLEND_ADD, GPU_BLEND_ALPHA_SORT))
+					*do_alpha_after = TRUE;
+
+			GMS.alphablend[a]= alphablend;
 		}
-
-		/* setting 'do_alpha_after = TRUE' indicates this object needs to be
-		 * drawn in a second alpha pass for improved blending */
-		if (do_alpha_after && !GMS.is_alpha_pass)
-			if (ELEM3(alphablend, GPU_BLEND_ALPHA, GPU_BLEND_ADD, GPU_BLEND_ALPHA_SORT))
-				*do_alpha_after = TRUE;
-
-		GMS.alphablend[a]= alphablend;
 	}
-
+	
 	/* let's start with a clean state */
 	GPU_disable_material();
 }

@@ -1554,6 +1554,88 @@ void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, const char *propname
 	MEM_freeN(cb);
 }
 
+
+/********************* Icon viewer Template ************************/
+
+/* ID Search browse menu, open */
+static uiBlock *icon_view_menu(bContext *C, ARegion *ar, void *arg_litem)
+{
+	static RNAUpdateCb cb;
+	uiBlock *block;
+	uiBut *but;
+	int icon;
+	EnumPropertyItem *item;
+	int a, free;
+
+	/* arg_litem is malloced, can be freed by parent button */
+	cb = *((RNAUpdateCb *)arg_litem);
+	
+	icon = RNA_property_enum_get(&cb.ptr, cb.prop);
+	
+	block = uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP | UI_BLOCK_REDRAW);
+	
+	
+	RNA_property_enum_items(C, &cb.ptr, cb.prop, &item, NULL, &free);
+	
+	for (a = 0; item[a].identifier; a++) {
+		int x, y;
+		
+		x = (a % 8) * UI_UNIT_X * 6;
+		y = (a / 8) * UI_UNIT_X * 6;
+		
+		icon = item[a].icon;
+		but = uiDefIconButR_prop(block, ROW, 0, icon, x, y, UI_UNIT_X * 6, UI_UNIT_Y * 6, &cb.ptr, cb.prop, -1, 0, icon, -1, -1, NULL);
+		uiButSetFlag(but, UI_HAS_ICON | UI_ICON_PREVIEW);
+	}
+
+	uiBoundsBlock(block, 0.3f * U.widget_unit);
+	uiBlockSetDirection(block, UI_TOP);
+	uiEndBlock(C, block);
+		
+	if (free) {
+		MEM_freeN(item);
+	}
+	
+	return block;
+}
+
+void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname)
+{
+	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
+	RNAUpdateCb *cb;
+	uiBlock *block;
+	uiBut *but;
+	rctf rect;
+	int icon;
+	
+	if (!prop || RNA_property_type(prop) != PROP_ENUM)
+		return;
+	
+	icon = RNA_property_enum_get(ptr, prop);
+	
+	cb = MEM_callocN(sizeof(RNAUpdateCb), "RNAUpdateCb");
+	cb->ptr = *ptr;
+	cb->prop = prop;
+	
+	rect.xmin = 0; rect.xmax = 10.0f * UI_UNIT_X;
+	rect.ymin = 0; rect.ymax = 10.0f * UI_UNIT_X;
+	
+	block = uiLayoutAbsoluteBlock(layout);
+
+	but = uiDefBlockButN(block, icon_view_menu, MEM_dupallocN(cb), "", 0, 0, UI_UNIT_X * 6, UI_UNIT_Y * 6, "");
+
+	
+//	but = uiDefIconButR_prop(block, ROW, 0, icon, 0, 0, BLI_rctf_size_x(&rect), BLI_rctf_size_y(&rect), ptr, prop, -1, 0, icon, -1, -1, NULL);
+	
+	but->icon = icon;
+	uiButSetFlag(but, UI_HAS_ICON | UI_ICON_PREVIEW);
+	
+	uiButSetNFunc(but, rna_update_cb, MEM_dupallocN(cb), NULL);
+	
+	MEM_freeN(cb);
+}
+
 /********************* Histogram Template ************************/
 
 void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, const char *propname)

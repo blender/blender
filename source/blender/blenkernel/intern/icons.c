@@ -51,6 +51,8 @@
 
 #include "BLO_sys_types.h" // for intptr_t support
 
+#include "GPU_extensions.h"
+
 /* GLOBALS */
 
 static GHash *gIcons = NULL;
@@ -138,7 +140,10 @@ void BKE_previewimg_freefunc(void *link)
 				MEM_freeN(prv->rect[i]);
 				prv->rect[i] = NULL;
 			}
+			if (prv->gputexture[i])
+				GPU_texture_free(prv->gputexture[i]);
 		}
+		
 		MEM_freeN(prv);
 	}
 }
@@ -165,6 +170,7 @@ PreviewImage *BKE_previewimg_copy(PreviewImage *prv)
 			else {
 				prv_img->rect[i] = NULL;
 			}
+			prv_img->gputexture[i] = NULL;
 		}
 	}
 	return prv_img;

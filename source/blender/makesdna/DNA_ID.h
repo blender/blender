@@ -43,7 +43,8 @@ struct Library;
 struct FileData;
 struct ID;
 struct PackedFile;
-
+struct GPUTexture;
+	
 typedef struct IDPropertyData {
 	void *pointer;
 	ListBase group;
@@ -154,6 +155,7 @@ typedef struct PreviewImage {
 	short changed[2];
 	short changed_timestamp[2];
 	unsigned int *rect[2];
+	struct GPUTexture *gputexture[2];
 } PreviewImage;
 
 /**

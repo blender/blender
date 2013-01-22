@@ -88,6 +88,7 @@
 #include "ED_types.h"
 
 #include "UI_resources.h"
+#include "UI_interface_icons.h"
 
 #include "WM_api.h"
 #include "BLF_api.h"
@@ -175,8 +176,9 @@ static int check_object_draw_texture(Scene *scene, View3D *v3d, int drawtype)
 		return TRUE;
 
 	/* textured solid */
-	if (v3d->drawtype == OB_SOLID && (v3d->flag2 & V3D_SOLID_TEX) && !BKE_scene_use_new_shading_nodes(scene))
-		return TRUE;
+	if (v3d->drawtype == OB_SOLID && (v3d->flag2 & (V3D_SOLID_TEX | V3D_SHOW_SOLID_MATCAP))
+		&& !BKE_scene_use_new_shading_nodes(scene))
+			return TRUE;
 	
 	return FALSE;
 }
@@ -218,6 +220,9 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, const char dt)
 		return 0;
 	if (BKE_scene_use_new_shading_nodes(scene))
 		return 0;
+	
+	if (v3d->flag2 & V3D_SHOW_SOLID_MATCAP)
+		return 1;
 	
 	return (scene->gm.matmode == GAME_MAT_GLSL) && (dt > OB_SOLID);
 }
@@ -6224,6 +6229,34 @@ static void draw_object_wire_color(Scene *scene, Base *base, unsigned char r_ob_
 	r_ob_wire_col[3] = 255;
 }
 
+static void draw_object_matcap_check(Scene *scene, View3D *v3d, Object *ob)
+{
+	/* fixed rule, active object draws as matcap */
+	if (ob == OBACT) {
+		if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT))
+			return;
+			
+		if (v3d->defmaterial == NULL) {
+			extern Material defmaterial;
+			
+			v3d->defmaterial = MEM_mallocN(sizeof(Material), "matcap material");
+			*(v3d->defmaterial) = defmaterial;
+			v3d->defmaterial->gpumaterial.first = v3d->defmaterial->gpumaterial.last = NULL;
+			v3d->defmaterial->preview = NULL;
+		}
+		/* first time users */
+		if (v3d->matcap_icon == 0)
+			v3d->matcap_icon = ICON_MATCAP_01;
+		
+		if (v3d->defmaterial->preview == NULL)
+			v3d->defmaterial->preview = UI_icon_to_preview(v3d->matcap_icon);
+		
+		/* signal to all material checks, gets cleared below */
+		v3d->flag2 |= V3D_SHOW_SOLID_MATCAP;
+	}
+
+}
+
 /**
  * main object drawing function, draws in selection
  * \param dflag (draw flag) can be DRAW_PICKING and/or DRAW_CONSTCOLOR, DRAW_SCENESET
@@ -6313,6 +6346,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	dt = MIN2(dt, ob->dt);
 	if (v3d->zbuf == 0 && dt > OB_WIRE) dt = OB_WIRE;
 	dtx = 0;
+	
+	/* matcap check */
+	if (dt == OB_SOLID && (v3d->flag2 & V3D_SOLID_MATCAP))
+		draw_object_matcap_check(scene, v3d, ob);
 
 	/* faceselect exception: also draw solid when (dt == wire), except in editmode */
 	if (is_obact && (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT))) {
@@ -6813,7 +6850,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	/* return warning, this is cached text draw */
 	invert_m4_m4(ob->imat, ob->obmat);
 	view3d_cached_text_draw_end(v3d, ar, 1, NULL);
-
+	/* return warning, clear temp flag */
+	v3d->flag2 &= ~V3D_SHOW_SOLID_MATCAP;
+	
 	glLoadMatrixf(rv3d->viewmat);
 
 	if (zbufoff) {

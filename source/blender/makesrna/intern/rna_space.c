@@ -41,6 +41,7 @@
 
 #include "DNA_action_types.h"
 #include "DNA_key_types.h"
+#include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
@@ -375,6 +376,24 @@ static void rna_SpaceView3D_viewport_shade_update(Main *UNUSED(bmain), Scene *UN
 		}
 	}
 }
+
+static void rna_SpaceView3D_matcap_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	View3D *v3d = (View3D *)(ptr->data);
+	
+	if (v3d->defmaterial) {
+		Material *ma = v3d->defmaterial;
+		
+		if (ma->preview)
+			BKE_previewimg_free(&ma->preview);
+		
+		if (ma->gpumaterial.first)
+			GPU_material_free(ma);
+		
+		WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, ma);
+	}
+}
+
 
 static void rna_SpaceView3D_pivot_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
@@ -1463,6 +1482,7 @@ static void rna_def_backgroundImages(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove all background images");
 }
 
+
 static void rna_def_space_view3d(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1499,6 +1519,27 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 	
+	static EnumPropertyItem view3d_matcap_items[] = {
+		{ICON_MATCAP_01, "01", ICON_MATCAP_01, "", ""},
+		{ICON_MATCAP_02, "02", ICON_MATCAP_02, "", ""},
+		{ICON_MATCAP_03, "03", ICON_MATCAP_03, "", ""},
+		{ICON_MATCAP_04, "04", ICON_MATCAP_04, "", ""},
+		{ICON_MATCAP_05, "05", ICON_MATCAP_05, "", ""},
+		{ICON_MATCAP_06, "06", ICON_MATCAP_06, "", ""},
+		{ICON_MATCAP_07, "07", ICON_MATCAP_07, "", ""},
+		{ICON_MATCAP_08, "08", ICON_MATCAP_08, "", ""},
+		{ICON_MATCAP_09, "09", ICON_MATCAP_09, "", ""},
+		{ICON_MATCAP_10, "10", ICON_MATCAP_10, "", ""},
+		{ICON_MATCAP_11, "11", ICON_MATCAP_11, "", ""},
+		{ICON_MATCAP_12, "12", ICON_MATCAP_12, "", ""},
+		{ICON_MATCAP_13, "13", ICON_MATCAP_13, "", ""},
+		{ICON_MATCAP_14, "14", ICON_MATCAP_14, "", ""},
+		{ICON_MATCAP_15, "15", ICON_MATCAP_15, "", ""},
+		{ICON_MATCAP_16, "16", ICON_MATCAP_16, "", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+	
+
 	srna = RNA_def_struct(brna, "SpaceView3D", "Space");
 	RNA_def_struct_sdna(srna, "View3D");
 	RNA_def_struct_ui_text(srna, "3D View Space", "3D View space data");
@@ -1818,6 +1859,17 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_BUNDLENAME);
 	RNA_def_property_ui_text(prop, "Show 3D Marker Names", "Show names for reconstructed tracks objects");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "use_matcap", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SOLID_MATCAP);
+	RNA_def_property_ui_text(prop, "Matcap", "Active Objects draw images mapped on normals, enhancing Solid Draw Mode");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+	
+	prop = RNA_def_property(srna, "matcap_icon", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "matcap_icon");
+	RNA_def_property_enum_items(prop, view3d_matcap_items);
+	RNA_def_property_ui_text(prop, "Matcap", "Image to use for Material Capture, active objects only");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_matcap_update");
 
 	/* region */
 

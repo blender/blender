@@ -2427,7 +2427,10 @@ class VIEW3D_PT_view3d_display(Panel):
             col.label(text="Shading:")
             col.prop(gs, "material_mode", text="")
             col.prop(view, "show_textured_solid")
-
+        if view.viewport_shade == 'SOLID':
+            col.prop(view, "use_matcap")
+            if view.use_matcap:
+                col.template_icon_view(view, "matcap_icon")
         col.prop(view, "show_backface_culling")
 
         layout.separator()

@@ -539,6 +539,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int isdata, d
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &lastbindcode);
 
 	GPU_update_image_time(ima, time);
+	/* this binds a texture, so that's why to restore it with lastbindcode */
 	bindcode = GPU_verify_image(ima, iuser, 0, 0, mipmap, isdata);
 
 	if (ima->gputexture) {
@@ -577,6 +578,59 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int isdata, d
 	glBindTexture(GL_TEXTURE_2D, lastbindcode);
 
 	return tex;
+}
+
+GPUTexture *GPU_texture_from_preview(PreviewImage *prv, int mipmap)
+{
+	GPUTexture *tex = prv->gputexture[0];
+	GLint w, h, lastbindcode;
+	GLuint bindcode = 0;
+	
+	glGetIntegerv(GL_TEXTURE_BINDING_2D, &lastbindcode);
+	
+	if (tex)
+		bindcode = tex->bindcode;
+	
+	/* this binds a texture, so that's why to restore it */
+	if (bindcode == 0) {
+		GPU_create_gl_tex(&bindcode, prv->rect[0], NULL, prv->w[0], prv->h[0], mipmap, 0, NULL);
+	}
+	if (tex) {
+		tex->bindcode = bindcode;
+		glBindTexture(GL_TEXTURE_2D, lastbindcode);
+		return tex;
+	}
+
+	/* error binding anything */
+	if (!bindcode) {
+		glBindTexture(GL_TEXTURE_2D, lastbindcode);
+		return NULL;
+	}
+	
+	tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
+	tex->bindcode = bindcode;
+	tex->number = -1;
+	tex->refcount = 1;
+	tex->target = GL_TEXTURE_2D;
+	
+	prv->gputexture[0]= tex;
+	
+	if (!glIsTexture(tex->bindcode)) {
+		GPU_print_error("Blender Texture");
+	}
+	else {
+		glBindTexture(GL_TEXTURE_2D, tex->bindcode);
+		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
+		glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
+		
+		tex->w = w;
+		tex->h = h;
+	}
+	
+	glBindTexture(GL_TEXTURE_2D, lastbindcode);
+	
+	return tex;
+
 }
 
 GPUTexture *GPU_texture_create_1D(int w, float *fpixels, char err_out[256])

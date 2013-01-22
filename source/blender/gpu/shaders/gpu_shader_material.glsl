@@ -2256,3 +2256,18 @@ void node_output_material(vec4 surface, vec4 volume, float displacement, out vec
 	result = surface;
 }
 
+/* ********************** matcap style render ******************** */
+
+void material_preview_matcap(vec4 color, sampler2D ima, vec3 N, out vec4 result)
+{
+	vec2 tex;
+
+	if (N.z < 0.0) {
+		N.z = 0.0;
+		N = normalize(N);
+	}
+
+	tex.x = 0.5 + 0.49 * N.x;
+	tex.y = 0.5 + 0.49 * N.y;
+	result = texture2D(ima, tex);
+}

@@ -75,10 +75,6 @@
 
 #include "interface_intern.h"
 
-
-// #define ICON_IMAGE_W        600
-// #define ICON_IMAGE_H        640
-
 #define ICON_GRID_COLS      26
 #define ICON_GRID_ROWS      30
 
@@ -89,7 +85,9 @@
 typedef struct IconImage {
 	int w;
 	int h;
-	unsigned int *rect; 
+	unsigned int *rect;
+	unsigned char *datatoc_rect;
+	int datatoc_size;
 } IconImage;
 
 typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
@@ -132,13 +130,12 @@ static IconTexture icongltex = {0, 0, 0, 0.0f, 0.0f};
 
 /* **************************************************** */
 
-static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int size, int type)
+
+static DrawInfo *def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int size, int type)
 {
 	Icon *new_icon = NULL;
 	IconImage *iimg = NULL;
 	DrawInfo *di;
-	int y = 0;
-	int imgsize = 0;
 
 	new_icon = MEM_callocN(sizeof(Icon), "texicon");
 
@@ -155,17 +152,27 @@ static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int 
 		di->data.texture.h = size;
 	}
 	else if (type == ICON_TYPE_BUFFER) {
-		iimg = MEM_mallocN(sizeof(IconImage), "icon_img");
-		iimg->rect = MEM_mallocN(size * size * sizeof(unsigned int), "icon_rect");
+		iimg = MEM_callocN(sizeof(IconImage), "icon_img");
 		iimg->w = size;
 		iimg->h = size;
 
-		/* Here we store the rect in the icon - same as before */
-		imgsize = bbuf->x;
-		for (y = 0; y < size; y++) {
-			memcpy(&iimg->rect[y * size], &bbuf->rect[(y + yofs) * imgsize + xofs], size * sizeof(int));
+		/* icon buffers can get initialized runtime now, via datatoc */
+		if (bbuf) {
+			int y, imgsize;
+			
+			iimg->rect = MEM_mallocN(size * size * sizeof(unsigned int), "icon_rect");
+			
+			/* Here we store the rect in the icon - same as before */
+			if (size == bbuf->x && size == bbuf->y && xofs == 0 && yofs == 0)
+				memcpy(iimg->rect, bbuf->rect, size * size * sizeof(int));
+			else {
+				/* this code assumes square images */
+				imgsize = bbuf->x;
+				for (y = 0; y < size; y++) {
+					memcpy(&iimg->rect[y * size], &bbuf->rect[(y + yofs) * imgsize + xofs], imgsize * sizeof(int));
+				}
+			}
 		}
-
 		di->data.buffer.image = iimg;
 	}
 
@@ -173,6 +180,8 @@ static void def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int 
 	new_icon->drawinfo = di;
 
 	BKE_icon_set(icon_id, new_icon);
+	
+	return di;
 }
 
 static void def_internal_vicon(int icon_id, VectorDrawFunc drawFunc)
@@ -463,21 +472,19 @@ static void vicon_move_down_draw(int x, int y, int w, int h, float UNUSED(alpha)
 static void init_brush_icons(void)
 {
 
-#define INIT_BRUSH_ICON(icon_id, name)                                        \
-	{                                                                         \
-		bbuf = IMB_ibImageFromMemory((unsigned char *)datatoc_ ##name## _png, \
-		                             datatoc_ ##name## _png_size,             \
-		                             IB_rect, NULL, "<brush icon>");          \
-		if (bbuf) {                                                           \
-			IMB_premultiply_alpha(bbuf);                                      \
-			def_internal_icon(bbuf, icon_id, 0, 0, w, ICON_TYPE_BUFFER);      \
-		}                                                                     \
-		IMB_freeImBuf(bbuf);                                                  \
-	} (void)0
+#define INIT_BRUSH_ICON(icon_id, name)                                          \
+	{                                                                           \
+		unsigned char *rect = (unsigned char *)datatoc_ ##name## _png;			\
+		int size = datatoc_ ##name## _png_size;									\
+		DrawInfo *di;															\
+		\
+		di = def_internal_icon(NULL, icon_id, 0, 0, w, ICON_TYPE_BUFFER);		\
+		di->data.buffer.image->datatoc_rect = rect;								\
+		di->data.buffer.image->datatoc_size = size;								\
+	}
 	/* end INIT_BRUSH_ICON */
 
-	ImBuf *bbuf;
-	const int w = 96;
+	const int w = 96; /* warning, brush size hardcoded in C, but it gets scaled */
 
 	INIT_BRUSH_ICON(ICON_BRUSH_ADD, add);
 	INIT_BRUSH_ICON(ICON_BRUSH_BLOB, blob);
@@ -511,6 +518,60 @@ static void init_brush_icons(void)
 	INIT_BRUSH_ICON(ICON_BRUSH_VERTEXDRAW, vertexdraw);
 
 #undef INIT_BRUSH_ICON
+}
+
+static void icon_verify_datatoc(IconImage *iimg)
+{
+	/* if it has own rect, things are all OK */
+	if (iimg->rect)
+		return;
+	
+	if (iimg->datatoc_rect) {
+		ImBuf *bbuf = IMB_ibImageFromMemory(iimg->datatoc_rect,
+											iimg->datatoc_size, IB_rect, NULL, "<matcap icon>");
+		/* w and h were set on initialize */
+		if (bbuf->x != iimg->h && bbuf->y != iimg->w)
+			IMB_scalefastImBuf(bbuf, iimg->w, iimg->h);
+		
+		iimg->rect = bbuf->rect;
+		bbuf->rect = NULL;
+		IMB_freeImBuf(bbuf);
+	}
+}
+
+static void init_matcap_icons(void)
+{
+	/* dynamic allocation now, tucking datatoc pointers in DrawInfo */
+#define INIT_MATCAP_ICON(icon_id, name)                                         \
+	{	\
+		unsigned char *rect = (unsigned char *)datatoc_ ##name## _jpg;			\
+		int size = datatoc_ ##name## _jpg_size;									\
+		DrawInfo *di;															\
+		\
+		di = def_internal_icon(NULL, icon_id, 0, 0, 128, ICON_TYPE_BUFFER);		\
+		di->data.buffer.image->datatoc_rect = rect;								\
+		di->data.buffer.image->datatoc_size = size;								\
+	}
+
+	INIT_MATCAP_ICON(ICON_MATCAP_01, mc01);
+	INIT_MATCAP_ICON(ICON_MATCAP_02, mc02);
+	INIT_MATCAP_ICON(ICON_MATCAP_03, mc03);
+	INIT_MATCAP_ICON(ICON_MATCAP_04, mc04);
+	INIT_MATCAP_ICON(ICON_MATCAP_05, mc05);
+	INIT_MATCAP_ICON(ICON_MATCAP_06, mc06);
+	INIT_MATCAP_ICON(ICON_MATCAP_07, mc07);
+	INIT_MATCAP_ICON(ICON_MATCAP_08, mc08);
+	INIT_MATCAP_ICON(ICON_MATCAP_09, mc09);
+	INIT_MATCAP_ICON(ICON_MATCAP_10, mc10);
+	INIT_MATCAP_ICON(ICON_MATCAP_11, mc11);
+	INIT_MATCAP_ICON(ICON_MATCAP_12, mc12);
+	INIT_MATCAP_ICON(ICON_MATCAP_13, mc13);
+	INIT_MATCAP_ICON(ICON_MATCAP_14, mc14);
+	INIT_MATCAP_ICON(ICON_MATCAP_15, mc15);
+	INIT_MATCAP_ICON(ICON_MATCAP_16, mc16);
+
+#undef INIT_MATCAP_ICON
+
 }
 
 static void init_internal_icons(void)
@@ -762,7 +823,8 @@ void UI_icons_free_drawinfo(void *drawinfo)
 	if (di) {
 		if (di->type == ICON_TYPE_BUFFER) {
 			if (di->data.buffer.image) {
-				MEM_freeN(di->data.buffer.image->rect);
+				if (di->data.buffer.image->rect)
+					MEM_freeN(di->data.buffer.image->rect);
 				MEM_freeN(di->data.buffer.image);
 			}
 		}
@@ -842,6 +904,7 @@ void UI_icons_init(int first_dyn_id)
 	BKE_icons_init(first_dyn_id);
 	init_internal_icons();
 	init_brush_icons();
+	init_matcap_icons();
 #endif
 }
 
@@ -889,6 +952,34 @@ static void icon_set_image(bContext *C, ID *id, PreviewImage *prv_img, enum eIco
 
 	ED_preview_icon_job(C, prv_img, id, prv_img->rect[size],
 	                    prv_img->w[size], prv_img->h[size]);
+}
+
+PreviewImage *UI_icon_to_preview(int icon_id)
+{
+	Icon *icon = BKE_icon_get(icon_id);
+	
+	if (icon) {
+		DrawInfo *di = (DrawInfo *)icon->drawinfo;
+		if (di && di->data.buffer.image) {
+			ImBuf *bbuf;
+			
+			bbuf = IMB_ibImageFromMemory(di->data.buffer.image->datatoc_rect, di->data.buffer.image->datatoc_size, IB_rect, NULL, "<matcap buffer>");
+			if (bbuf) {
+				PreviewImage *prv = BKE_previewimg_create();
+				
+				prv->rect[0] = bbuf->rect;
+
+				prv->w[0] = bbuf->x;
+				prv->h[0] = bbuf->y;
+				
+				bbuf->rect = NULL;
+				IMB_freeImBuf(bbuf);
+				
+				return prv;
+			}
+		}
+	}
+	return NULL;
 }
 
 static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect), int rw, int rh,
@@ -994,6 +1085,8 @@ static int get_draw_size(enum eIconSizes size)
 	return 0;
 }
 
+
+
 static void icon_draw_size(float x, float y, int icon_id, float aspect, float alpha, const float rgb[3],
                            enum eIconSizes size, int draw_size, int UNUSED(nocreate), short is_preview)
 {
@@ -1042,6 +1135,8 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 		/* it is a builtin icon */
 		iimg = di->data.buffer.image;
 
+		icon_verify_datatoc(iimg);
+			
 		if (!iimg->rect) return;  /* something has gone wrong! */
 
 		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);

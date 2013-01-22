@@ -38,7 +38,8 @@ extern "C" {
 
 struct Image;
 struct ImageUser;
-
+struct PreviewImage;
+	
 struct GPUTexture;
 typedef struct GPUTexture GPUTexture;
 
@@ -112,6 +113,8 @@ GPUTexture *GPU_texture_create_depth(int w, int h, char err_out[256]);
 GPUTexture *GPU_texture_create_vsm_shadow_map(int size, char err_out[256]);
 GPUTexture *GPU_texture_from_blender(struct Image *ima,
 	struct ImageUser *iuser, int isdata, double time, int mipmap);
+GPUTexture *GPU_texture_from_preview(struct PreviewImage *prv, int mipmap);
+
 void GPU_texture_free(GPUTexture *tex);
 
 void GPU_texture_ref(GPUTexture *tex);

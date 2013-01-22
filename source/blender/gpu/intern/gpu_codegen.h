@@ -43,6 +43,7 @@ struct GPUOutput;
 struct GPUNode;
 struct GPUVertexAttribs;
 struct GPUFrameBuffer;
+struct PreviewImage;
 
 #define MAX_FUNCTION_NAME	64
 #define MAX_PARAMETER		32
@@ -138,6 +139,7 @@ typedef struct GPUInput {
 
 	struct Image *ima;		/* image */
 	struct ImageUser *iuser;/* image user */
+	struct PreviewImage *prv;	/* preview images & icons */
 	int image_isdata;		/* image does not contain color data */
 	float *dynamicvec;		/* vector data in case it is dynamic */
 	int dynamictype;		/* origin of the dynamic uniform (GPUDynamicType) */

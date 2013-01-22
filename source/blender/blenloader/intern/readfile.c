@@ -1850,8 +1850,8 @@ static PreviewImage *direct_link_preview_image(FileData *fd, PreviewImage *old_p
 			if (prv->rect[i]) {
 				prv->rect[i] = newdataadr(fd, prv->rect[i]);
 			}
+			prv->gputexture[i] = NULL;
 		}
-//		prv->gputexture[0] = prv->gputexture[1] = NULL;
 	}
 	
 	return prv;
@@ -5998,6 +5998,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				v3d->afterdraw_xray.first = v3d->afterdraw_xray.last = NULL;
 				v3d->afterdraw_xraytransp.first = v3d->afterdraw_xraytransp.last = NULL;
 				v3d->properties_storage = NULL;
+				v3d->defmaterial = NULL;
 				
 				/* render can be quite heavy, set to wire on load */
 				if (v3d->drawtype == OB_RENDER)
