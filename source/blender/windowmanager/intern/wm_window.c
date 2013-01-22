@@ -75,6 +75,11 @@
 
 #include "UI_interface.h"
 
+/* for assert */
+#ifndef NDEBUG
+#  include "BLI_threads.h"
+#endif
+
 /* the global to talk to ghost */
 static GHOST_SystemHandle g_system = NULL;
 
@@ -1036,8 +1041,12 @@ static int wm_window_timer(const bContext *C)
 
 void wm_window_process_events(const bContext *C) 
 {
-	int hasevent = GHOST_ProcessEvents(g_system, 0); /* 0 is no wait */
-	
+	int hasevent;
+
+	BLI_assert(BLI_thread_is_main());
+
+	hasevent = GHOST_ProcessEvents(g_system, 0); /* 0 is no wait */
+
 	if (hasevent)
 		GHOST_DispatchEvents(g_system);
 	
@@ -1059,7 +1068,9 @@ void wm_window_testbreak(void)
 {
 	static double ltime = 0;
 	double curtime = PIL_check_seconds_timer();
-	
+
+	BLI_assert(BLI_thread_is_main());
+
 	/* only check for breaks every 50 milliseconds
 	 * if we get called more often.
 	 */

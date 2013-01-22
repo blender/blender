@@ -73,6 +73,7 @@
 #include "render_intern.h"
 
 /* Render Callbacks */
+static int render_break(void *rjv);
 
 /* called inside thread! */
 void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf, volatile rcti *renrect)
@@ -210,7 +211,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	lay = (v3d) ? v3d->lay : scene->lay;
 
 	G.is_break = FALSE;
-	RE_test_break_cb(re, NULL, (int (*)(void *))blender_test_break);
+	RE_test_break_cb(re, NULL, render_break);
 
 	ima = BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
@@ -439,6 +440,15 @@ static int render_breakjob(void *rjv)
 	if (G.is_break)
 		return 1;
 	if (rj->stop && *(rj->stop))
+		return 1;
+	return 0;
+}
+
+/* for exec() when there is no render job
+ * note: this wont check for the escape key being pressed, but doing so isnt threadsafe */
+static int render_break(void *UNUSED(rjv))
+{
+	if (G.is_break)
 		return 1;
 	return 0;
 }
