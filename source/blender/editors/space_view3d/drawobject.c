@@ -169,21 +169,26 @@ static void ob_wire_color_blend_theme_id(const unsigned char ob_wire_col[4], con
 }
 
 /* this condition has been made more complex since editmode can draw textures */
-static int check_object_draw_texture(Scene *scene, View3D *v3d, int drawtype)
+static bool check_object_draw_texture(Scene *scene, View3D *v3d, int drawtype)
 {
 	/* texture and material draw modes */
-	if (ELEM(v3d->drawtype, OB_TEXTURE, OB_MATERIAL) && drawtype > OB_SOLID)
-		return TRUE;
+	if (ELEM(v3d->drawtype, OB_TEXTURE, OB_MATERIAL) && drawtype > OB_SOLID) {
+		return true;
+	}
 
 	/* textured solid */
-	if (v3d->drawtype == OB_SOLID && (v3d->flag2 & V3D_SOLID_TEX)
-		&& !BKE_scene_use_new_shading_nodes(scene))
-			return TRUE;
+	if ((v3d->drawtype == OB_SOLID) &&
+	    (v3d->flag2 & V3D_SOLID_TEX) &&
+	    (BKE_scene_use_new_shading_nodes(scene) == false))
+	{
+		return true;
+	}
 	
-	if (v3d->flag2 & V3D_SHOW_SOLID_MATCAP)
-		return 1;
+	if (v3d->flag2 & V3D_SHOW_SOLID_MATCAP) {
+		return true;
+	}
 	
-	return FALSE;
+	return false;
 }
 
 static int check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)

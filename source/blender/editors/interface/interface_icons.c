@@ -528,7 +528,7 @@ static void icon_verify_datatoc(IconImage *iimg)
 	
 	if (iimg->datatoc_rect) {
 		ImBuf *bbuf = IMB_ibImageFromMemory(iimg->datatoc_rect,
-											iimg->datatoc_size, IB_rect, NULL, "<matcap icon>");
+		                                    iimg->datatoc_size, IB_rect, NULL, "<matcap icon>");
 		/* w and h were set on initialize */
 		if (bbuf->x != iimg->h && bbuf->y != iimg->w)
 			IMB_scalefastImBuf(bbuf, iimg->w, iimg->h);
@@ -542,16 +542,16 @@ static void icon_verify_datatoc(IconImage *iimg)
 static void init_matcap_icons(void)
 {
 	/* dynamic allocation now, tucking datatoc pointers in DrawInfo */
-#define INIT_MATCAP_ICON(icon_id, name)                                         \
-	{	\
-		unsigned char *rect = (unsigned char *)datatoc_ ##name## _jpg;			\
-		int size = datatoc_ ##name## _jpg_size;									\
-		DrawInfo *di;															\
-		\
-		di = def_internal_icon(NULL, icon_id, 0, 0, 128, ICON_TYPE_BUFFER);		\
-		di->data.buffer.image->datatoc_rect = rect;								\
-		di->data.buffer.image->datatoc_size = size;								\
-	}
+#define INIT_MATCAP_ICON(icon_id, name)                                       \
+	{                                                                         \
+		unsigned char *rect = (unsigned char *)datatoc_ ##name## _jpg;        \
+		int size = datatoc_ ##name## _jpg_size;                               \
+		DrawInfo *di;                                                         \
+		                                                                      \
+		di = def_internal_icon(NULL, icon_id, 0, 0, 128, ICON_TYPE_BUFFER);   \
+		di->data.buffer.image->datatoc_rect = rect;                           \
+		di->data.buffer.image->datatoc_size = size;                           \
+	} (void)0
 
 	INIT_MATCAP_ICON(ICON_MATCAP_01, mc01);
 	INIT_MATCAP_ICON(ICON_MATCAP_02, mc02);
