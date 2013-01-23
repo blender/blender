@@ -346,6 +346,12 @@ static void rna_def_rigidbody_world(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Split Impulse", "Reduces extra velocity that can build up when objects collide (lowers simulation stabilty a litte so use only when necessary)");
 	RNA_def_property_update(prop, NC_SCENE, "rna_RigidBodyWorld_reset");
 
+	/* cache */
+	prop = RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "pointcache");
+	RNA_def_property_ui_text(prop, "Point Cache", "");
+
 	/* effector weights */
 	prop = RNA_def_property(srna, "effector_weights", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "EffectorWeights");

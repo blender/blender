@@ -97,6 +97,10 @@ void BKE_rigidbody_free_world(RigidBodyWorld *rbw)
 	if (rbw->objects)
 		free(rbw->objects);
 
+	/* free cache */
+	BKE_ptcache_free_list(&(rbw->ptcaches));
+	rbw->pointcache = NULL;
+
 	/* free effector weights */
 	if (rbw->effector_weights)
 		MEM_freeN(rbw->effector_weights);
@@ -472,6 +476,9 @@ RigidBodyWorld *BKE_rigidbody_create_world(Scene *scene)
 	rbw->steps_per_second = 60; /* Bullet default (60 Hz) */
 	rbw->num_solver_iterations = 10; /* 10 is bullet default */
 
+	rbw->pointcache = BKE_ptcache_add(&(rbw->ptcaches));
+	rbw->pointcache->step = 1;
+
 	/* return this sim world */
 	return rbw;
 }
@@ -749,7 +756,8 @@ void BKE_rigidbody_sync_transforms(Scene *scene, Object *ob, float ctime)
 
 void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw)
 {
-// RB_TODO implement this
+	if (rbw)
+		rbw->pointcache->flag |= PTCACHE_OUTDATED;
 }
 
 /* ------------------ */

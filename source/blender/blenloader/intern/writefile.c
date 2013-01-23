@@ -2307,6 +2307,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		if (sce->rigidbody_world) {
 			writestruct(wd, DATA, "RigidBodyWorld", 1, sce->rigidbody_world);
 			writestruct(wd, DATA, "EffectorWeights", 1, sce->rigidbody_world->effector_weights);
+			write_pointcaches(wd, &(sce->rigidbody_world->ptcaches));
 		}
 		
 		sce= sce->id.next;

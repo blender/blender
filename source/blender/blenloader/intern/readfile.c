@@ -5303,6 +5303,12 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		rbw->effector_weights = newdataadr(fd, rbw->effector_weights);
 		if (!rbw->effector_weights)
 			rbw->effector_weights = BKE_add_effector_weights(NULL);
+
+		/* link cache */
+		direct_link_pointcache_list(fd, &rbw->ptcaches, &rbw->pointcache, FALSE);
+		/* make sure simulation starts from the beginning after loading file */
+		if (rbw->pointcache)
+			rbw->ltime = rbw->pointcache->startframe;
 	}
 }
 

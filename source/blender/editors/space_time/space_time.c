@@ -92,7 +92,7 @@ static void time_draw_sfra_efra(Scene *scene, View2D *v2d)
 
 #define CACHE_DRAW_HEIGHT   3.0f
 
-static void time_draw_cache(SpaceTime *stime, Object *ob)
+static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 {
 	PTCacheID *pid;
 	ListBase pidlist;
@@ -102,7 +102,7 @@ static void time_draw_cache(SpaceTime *stime, Object *ob)
 	if (!(stime->cache_display & TIME_CACHE_DISPLAY) || (!ob))
 		return;
 
-	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+	BKE_ptcache_ids_from_object(&pidlist, ob, scene, 0);
 
 	/* iterate over pointcaches on the active object, 
 	 * add spacetimecache and vertex array for each */
@@ -127,6 +127,9 @@ static void time_draw_cache(SpaceTime *stime, Object *ob)
 				break;
 			case PTCACHE_TYPE_DYNAMICPAINT:
 				if (!(stime->cache_display & TIME_CACHE_DYNAMICPAINT)) continue;
+				break;
+			case PTCACHE_TYPE_RIGIDBODY:
+				if (!(stime->cache_display & TIME_CACHE_RIGIDBODY)) continue;
 				break;
 		}
 
@@ -191,6 +194,10 @@ static void time_draw_cache(SpaceTime *stime, Object *ob)
 				break;
 			case PTCACHE_TYPE_DYNAMICPAINT:
 				col[0] = 1.0;   col[1] = 0.1;   col[2] = 0.75;
+				col[3] = 0.1;
+				break;
+			case PTCACHE_TYPE_RIGIDBODY:
+				col[0] = 1.0;   col[1] = 0.6;   col[2] = 0.0;
 				col[3] = 0.1;
 				break;
 			default:
@@ -499,7 +506,7 @@ static void time_main_area_draw(const bContext *C, ARegion *ar)
 	draw_markers_time(C, 0);
 	
 	/* caches */
-	time_draw_cache(stime, obact);
+	time_draw_cache(stime, obact, scene);
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
@@ -648,6 +655,7 @@ static void time_init(wmWindowManager *UNUSED(wm), ScrArea *sa)
 	stime->cache_display |= TIME_CACHE_DISPLAY;
 	stime->cache_display |= (TIME_CACHE_SOFTBODY | TIME_CACHE_PARTICLES);
 	stime->cache_display |= (TIME_CACHE_CLOTH | TIME_CACHE_SMOKE | TIME_CACHE_DYNAMICPAINT);
+	stime->cache_display |= TIME_CACHE_RIGIDBODY;
 }
 
 static SpaceLink *time_duplicate(SpaceLink *sl)

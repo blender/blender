@@ -2760,6 +2760,11 @@ static void rna_def_space_time(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "cache_display", TIME_CACHE_DYNAMICPAINT);
 	RNA_def_property_ui_text(prop, "Dynamic Paint", "Show the active object's Dynamic Paint cache");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TIME, NULL);
+	
+	prop = RNA_def_property(srna, "cache_rigidbody", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "cache_display", TIME_CACHE_RIGIDBODY);
+	RNA_def_property_ui_text(prop, "Rigid Body", "Show the active object's Rigid Body cache");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TIME, NULL);
 }
 
 static void rna_def_console_line(BlenderRNA *brna)
