@@ -2593,6 +2593,7 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 {
 	float deler, tempf, softmin, softmax, softrange;
 	int lvalue, temp, changed = 0;
+	const bool is_float = ui_is_but_float(but);
 	
 	if (mx == data->draglastx)
 		return changed;
@@ -2614,7 +2615,7 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 	if (ui_is_a_warp_but(but)) {
 		/* Mouse location isn't screen clamped to the screen so use a linear mapping
 		 * 2px == 1-int, or 1px == 1-ClickStep */
-		if (ui_is_but_float(but)) {
+		if (is_float) {
 			fac *= 0.01f * but->a1;
 			tempf = (float)data->startvalue + ((float)(mx - data->dragstartx) * fac);
 			tempf = ui_numedit_apply_snapf(but, tempf, softmin, softmax, softrange, snap);
@@ -2671,21 +2672,21 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 	else {
 		/* Use a non-linear mapping of the mouse drag especially for large floats (normal behavior) */
 		deler = 500;
-		if (!ui_is_but_float(but)) {
+		if (!is_float) {
 			/* prevent large ranges from getting too out of control */
-			if      (softrange > 600) deler = powf(softrange, 0.75);
-			else if (softrange < 100) deler = 200.0;
+			if      (softrange > 600) deler = powf(softrange, 0.75f);
 			else if (softrange <  25) deler = 50.0;
+			else if (softrange < 100) deler = 100.0;
 		}
 		deler /= fac;
 
-		if (softrange > 11) {
+		if ((is_float == true) && (softrange > 11)) {
 			/* non linear change in mouse input- good for high precicsion */
-			data->dragf += (((float)(mx - data->draglastx)) / deler) * (fabsf(data->dragstartx - mx) * 0.002f);
+			data->dragf += (((float)(mx - data->draglastx)) / deler) * (fabsf(mx - data->dragstartx) / 500.0f);
 		}
-		else if (softrange > 129) { /* only scale large int buttons */
+		else if ((is_float == false) && (softrange > 129)) { /* only scale large int buttons */
 			/* non linear change in mouse input- good for high precicsionm ints need less fine tuning */
-			data->dragf += (((float)(mx - data->draglastx)) / deler) * (fabsf(data->dragstartx - mx) * 0.004f);
+			data->dragf += (((float)(mx - data->draglastx)) / deler) * (fabsf(mx - data->dragstartx) / 250.0f);
 		}
 		else {
 			/*no scaling */
@@ -2697,7 +2698,7 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 		tempf = (softmin + data->dragf * softrange);
 
 
-		if (!ui_is_but_float(but)) {
+		if (!is_float) {
 			temp = floorf(tempf + 0.5f);
 
 			temp = ui_numedit_apply_snap(temp, softmin, softmax, snap);
