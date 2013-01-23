@@ -49,6 +49,9 @@
 #  define GHOST_X11_RES_CLASS "Blender" /* res_class */
 #endif
 
+/* generic error handlers */
+int GHOST_X11_ApplicationErrorHandler(Display *display, XErrorEvent *theEvent);
+int GHOST_X11_ApplicationIOErrorHandler(Display *display);
 
 class GHOST_WindowX11;
 

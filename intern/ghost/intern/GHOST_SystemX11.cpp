@@ -69,8 +69,10 @@
 #include <stdio.h> /* for fprintf only */
 #include <cstdlib> /* for exit */
 
-static GHOST_TKey
-convertXKey(KeySym key);
+/* for debugging - so we can breakpoint X11 errors */
+// #define USE_X11_ERROR_HANDLERS
+
+static GHOST_TKey convertXKey(KeySym key);
 
 /* these are for copy and select copy */
 static char *txt_cut_buffer = NULL;
@@ -90,6 +92,11 @@ GHOST_SystemX11(
 		std::cerr << "Unable to open a display" << std::endl;
 		abort(); /* was return before, but this would just mean it will crash later */
 	}
+
+#ifdef USE_X11_ERROR_HANDLERS
+	(void) XSetErrorHandler(GHOST_X11_ApplicationErrorHandler);
+	(void) XSetIOErrorHandler(GHOST_X11_ApplicationIOErrorHandler);
+#endif
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
 	/* note -- don't open connection to XIM server here, because the locale
@@ -1726,10 +1733,18 @@ GHOST_TSuccess GHOST_SystemX11::pushDragDropEvent(GHOST_TEventType eventType,
  * Basically it will not crash blender now if you have a X device that
  * is configured but not plugged in.
  */
-static int ApplicationErrorHandler(Display *display, XErrorEvent *theEvent)
+int GHOST_X11_ApplicationErrorHandler(Display *display, XErrorEvent *theEvent)
 {
 	fprintf(stderr, "Ignoring Xlib error: error code %d request code %d\n",
 	        theEvent->error_code, theEvent->request_code);
+
+	/* No exit! - but keep lint happy */
+	return 0;
+}
+
+int GHOST_X11_ApplicationIOErrorHandler(Display *display)
+{
+	fprintf(stderr, "Ignoring Xlib error: error IO\n");
 
 	/* No exit! - but keep lint happy */
 	return 0;
@@ -1832,7 +1847,9 @@ static BOOL is_eraser(const char *name, const char *type)
 
 void GHOST_SystemX11::initXInputDevices()
 {
-	static XErrorHandler old_handler = (XErrorHandler) 0;
+	static XErrorHandler   old_handler = (XErrorHandler) 0;
+	static XIOErrorHandler old_handler_io = (XIOErrorHandler) 0;
+
 	XExtensionVersion *version = XGetExtensionVersion(m_display, INAME);
 
 	if (version && (version != (XExtensionVersion *)NoSuchExtension)) {
@@ -1843,7 +1860,8 @@ void GHOST_SystemX11::initXInputDevices()
 			m_xtablet.EraserDevice = NULL;
 
 			/* Install our error handler to override Xlib's termination behavior */
-			old_handler = XSetErrorHandler(ApplicationErrorHandler);
+			old_handler = XSetErrorHandler(GHOST_X11_ApplicationErrorHandler);
+			old_handler_io = XSetIOErrorHandler(GHOST_X11_ApplicationIOErrorHandler);
 
 			for (int i = 0; i < device_count; ++i) {
 				char *device_type = device_info[i].type ? XGetAtomName(m_display, device_info[i].type) : NULL;
@@ -1893,6 +1911,7 @@ void GHOST_SystemX11::initXInputDevices()
 
 			/* Restore handler */
 			(void) XSetErrorHandler(old_handler);
+			(void) XSetIOErrorHandler(old_handler_io);
 
 			XFreeDeviceList(device_info);
 		}
