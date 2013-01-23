@@ -2430,7 +2430,12 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	shi->co[0]= l*v3[0]+u*v1[0]+v*v2[0];
 	shi->co[1]= l*v3[1]+u*v1[1]+v*v2[1];
 	shi->co[2]= l*v3[2]+u*v1[2]+v*v2[2];
-	
+
+	/* avoid self shadow with vertex bake from adjacent faces [#33729] */
+	if ((bs->vcol != NULL) && (bs->actob == NULL)) {
+		madd_v3_v3fl(shi->co, vlr->n, 0.00001f);
+	}
+
 	if (obi->flag & R_TRANSFORMED)
 		mul_m4_v3(obi->mat, shi->co);
 	
