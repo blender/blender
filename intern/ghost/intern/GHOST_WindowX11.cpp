@@ -1211,11 +1211,13 @@ installDrawingContext(
 	switch (type) {
 		case GHOST_kDrawingContextTypeOpenGL:
 		{
+#ifdef WITH_X11_XINPUT
 			/* use our own event handlers to avoid exiting blender,
 			 * this would happen for eg:
 			 * if you open blender, unplug a tablet, then open a new window. */
 			XErrorHandler old_handler      = XSetErrorHandler(GHOST_X11_ApplicationErrorHandler);
 			XIOErrorHandler old_handler_io = XSetIOErrorHandler(GHOST_X11_ApplicationIOErrorHandler);
+#endif
 
 			m_context = glXCreateContext(m_display, m_visual, s_firstContext, True);
 			if (m_context != NULL) {
@@ -1231,10 +1233,11 @@ installDrawingContext(
 				success = GHOST_kFailure;
 			}
 
+#ifdef WITH_X11_XINPUT
 			/* Restore handler */
 			(void) XSetErrorHandler(old_handler);
 			(void) XSetIOErrorHandler(old_handler_io);
-
+#endif
 			break;
 		}
 		case GHOST_kDrawingContextTypeNone:
