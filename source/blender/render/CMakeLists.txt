@@ -54,6 +54,7 @@ set(SRC
 	intern/raytrace/rayobject_qbvh.cpp
 	intern/raytrace/rayobject_rtbuild.cpp
 	intern/raytrace/rayobject_vbvh.cpp
+	intern/source/bake.c
 	intern/source/convertblender.c
 	intern/source/envmap.c
 	intern/source/external_engine.c
