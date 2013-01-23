@@ -359,7 +359,7 @@ static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *o
 
 }
 
-static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, ParticleSystemModifierData *modifier, ParticleData *particle, int particle_no,
+static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, ParticleSystemModifierData *modifier, ParticleData *particle, int particle_no, int uv_no,
                                              float n_uv[2])
 {
 	ParticleSettings *part = 0;
@@ -398,7 +398,7 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Par
 		if (n_uv && ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
 			if (num != DMCACHE_NOTFOUND) {
 				MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
-				MTFace *mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, 0);
+				MTFace *mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, uv_no);
 				mtface += num;
 				
 				psys_interpolate_uvs(mtface, mface->v4, particle->fuv, n_uv);
@@ -3365,6 +3365,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	prop = RNA_def_pointer(func, "modifier", "ParticleSystemModifier", "", "Particle modifier");
 	prop = RNA_def_pointer(func, "particle", "Particle", "", "Particle");
 	prop = RNA_def_int(func, "particle_no", 0, INT_MIN, INT_MAX, "Particle no", "", INT_MIN, INT_MAX);
+	prop = RNA_def_int(func, "uv_no", 0, INT_MIN, INT_MAX, "UV no", "", INT_MIN, INT_MAX);
 	prop = RNA_def_property(func, "uv", PROP_FLOAT, PROP_COORDS);
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_flag(prop, PROP_THICK_WRAP);

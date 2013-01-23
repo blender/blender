@@ -685,10 +685,6 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
                 description="Correct the tangent normal for the strand's slope",
                 default=False,
                 )
-        cls.use_cache = BoolProperty(
-                name="Export Cached data",
-                default=True,
-                )
         cls.use_parents = BoolProperty(
                 name="Use parent strands",
                 description="Use parents with children",

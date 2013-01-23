@@ -92,7 +92,6 @@ CurveSystemManager::CurveSystemManager()
 
 	use_curves = true;
 	use_smooth = true;
-	use_cache = true;
 	use_parents = false;
 	use_encasing = true;
 	use_backfacing = false;
@@ -175,7 +174,6 @@ bool CurveSystemManager::modified(const CurveSystemManager& CurveSystemManager)
 		encasing_ratio == CurveSystemManager.encasing_ratio &&
 		use_backfacing == CurveSystemManager.use_backfacing &&
 		normalmix == CurveSystemManager.normalmix &&
-		use_cache == CurveSystemManager.use_cache &&
 		use_smooth == CurveSystemManager.use_smooth &&
 		triangle_method == CurveSystemManager.triangle_method &&
 		resolution == CurveSystemManager.resolution &&
@@ -196,8 +194,7 @@ bool CurveSystemManager::modified_mesh(const CurveSystemManager& CurveSystemMana
 		resolution == CurveSystemManager.resolution &&
 		use_curves == CurveSystemManager.use_curves &&
 		use_joined == CurveSystemManager.use_joined &&
-		segments == CurveSystemManager.segments &&
-		use_cache == CurveSystemManager.use_cache);
+		segments == CurveSystemManager.segments);
 }
 
 void CurveSystemManager::tag_update(Scene *scene)

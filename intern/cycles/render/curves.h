@@ -108,7 +108,6 @@ public:
 
 	bool use_curves;
 	bool use_smooth;
-	bool use_cache;
 	bool use_parents;
 	bool use_encasing;
 	bool use_backfacing;
