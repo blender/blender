@@ -856,6 +856,7 @@ endif()
 		bf_modifiers
 		bf_bmesh
 		bf_blenkernel
+		bf_rigidbody
 		bf_nodes
 		bf_gpu
 		bf_blenloader
