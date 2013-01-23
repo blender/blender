@@ -2433,7 +2433,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 
 	/* avoid self shadow with vertex bake from adjacent faces [#33729] */
 	if ((bs->vcol != NULL) && (bs->actob == NULL)) {
-		madd_v3_v3fl(shi->co, vlr->n, 0.00001f);
+		madd_v3_v3fl(shi->co, vlr->n, 0.0001f);
 	}
 
 	if (obi->flag & R_TRANSFORMED)
@@ -2568,9 +2568,6 @@ static int get_next_bake_face(BakeShade *bs)
 					bs->mpoly = me->mpoly + *origindex;
 					bs->vcol = ((MLoopCol*)cdl->data) + bs->mpoly->loopstart;
 					bs->mloop = me->mloop + bs->mpoly->loopstart;
-
-					/* Tag mesh for reevaluation. */
-					DAG_id_tag_update(&me->id, 0);
 				}
 				else {
 					Image *ima = NULL;
@@ -2660,6 +2657,9 @@ static void bake_single_vertex(BakeShade *bs, VertRen *vert, float u, float v)
 		bs->vcol = basevcol;
 		break;
 	}
+
+	/* needs to be done during baking and not before else the mesh will update before bake starts */
+	DAG_id_tag_update(&bs->obi->ob->id, OB_RECALC_DATA);
 }
 
 /* Bake all vertices of a face. Actually, this still works on a face-by-face
