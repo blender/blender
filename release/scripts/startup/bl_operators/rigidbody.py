@@ -206,6 +206,7 @@ class ConnectRigidBodies(Operator):
                ('SLIDER', "Slider", "Restricts rigid boddy translation to one axis"),
                ('PISTON', "Piston", "Restricts rigid boddy translation and rotation to one axis"),
                ('GENERIC', "Generic", "Restricts translation and rotation to specified axes"),
+               ('GENERIC_SPRING', "Generic Spring", "Restricts translation and rotation to specified axes with springs")),
         default='FIXED',)
 
     pivot_type = EnumProperty(

@@ -569,8 +569,26 @@ void BKE_rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, shor
 					}
 					RB_constraint_set_limits_piston(rbc->physics_constraint, lin_lower, lin_upper, ang_lower, ang_upper);
 					break;
+				case RBC_TYPE_6DOF_SPRING:
+					rbc->physics_constraint = RB_constraint_new_6dof_spring(loc, rot, rb1, rb2);
+
+					RB_constraint_set_spring_6dof_spring(rbc->physics_constraint, RB_LIMIT_LIN_X, rbc->flag & RBC_FLAG_USE_SPRING_X);
+					RB_constraint_set_stiffness_6dof_spring(rbc->physics_constraint, RB_LIMIT_LIN_X, rbc->spring_stiffness_x);
+					RB_constraint_set_damping_6dof_spring(rbc->physics_constraint, RB_LIMIT_LIN_X, rbc->spring_damping_x);
+
+					RB_constraint_set_spring_6dof_spring(rbc->physics_constraint, RB_LIMIT_LIN_Y, rbc->flag & RBC_FLAG_USE_SPRING_Y);
+					RB_constraint_set_stiffness_6dof_spring(rbc->physics_constraint, RB_LIMIT_LIN_Y, rbc->spring_stiffness_y);
+					RB_constraint_set_damping_6dof_spring(rbc->physics_constraint, RB_LIMIT_LIN_Y, rbc->spring_damping_y);
+
+					RB_constraint_set_spring_6dof_spring(rbc->physics_constraint, RB_LIMIT_LIN_Z, rbc->flag & RBC_FLAG_USE_SPRING_Z);
+					RB_constraint_set_stiffness_6dof_spring(rbc->physics_constraint, RB_LIMIT_LIN_Z, rbc->spring_stiffness_z);
+					RB_constraint_set_damping_6dof_spring(rbc->physics_constraint, RB_LIMIT_LIN_Z, rbc->spring_damping_z);
+
+					RB_constraint_set_equilibrium_6dof_spring(rbc->physics_constraint);
+				/* fall through */
 				case RBC_TYPE_6DOF:
-					rbc->physics_constraint = RB_constraint_new_6dof(loc, rot, rb1, rb2);
+					if (rbc->type == RBC_TYPE_6DOF) /* a litte awkward but avoids duplicate code for limits */
+						rbc->physics_constraint = RB_constraint_new_6dof(loc, rot, rb1, rb2);
 
 					if (rbc->flag & RBC_FLAG_USE_LIMIT_LIN_X)
 						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_LIN_X, rbc->limit_lin_x_lower, rbc->limit_lin_x_upper);
@@ -774,6 +792,13 @@ RigidBodyCon *BKE_rigidbody_create_constraint(Scene *scene, Object *ob, short ty
 	rbc->limit_ang_y_upper = M_PI_4;
 	rbc->limit_ang_z_lower = -M_PI_4;
 	rbc->limit_ang_z_upper = M_PI_4;
+
+	rbc->spring_damping_x = 0.5f;
+	rbc->spring_damping_y = 0.5f;
+	rbc->spring_damping_z = 0.5f;
+	rbc->spring_stiffness_x = 10.0f;
+	rbc->spring_stiffness_y = 10.0f;
+	rbc->spring_stiffness_z = 10.0f;
 
 	/* flag cache as outdated */
 	BKE_rigidbody_cache_reset(rbw);

@@ -207,6 +207,15 @@ typedef struct RigidBodyCon {
 	float limit_ang_z_lower;	/* lower limit for z axis rotation */
 	float limit_ang_z_upper;	/* upper limit for z axis rotation */
 
+	/* spring settings */
+	/* RB_TODO document spring properties */
+	float spring_stiffness_x;
+	float spring_stiffness_y;
+	float spring_stiffness_z;
+	float spring_damping_x;
+	float spring_damping_y;
+	float spring_damping_z;
+
 	/* References to Physics Sim object. Exist at runtime only */
 	void *physics_constraint;	/* Physics object representation (i.e. btTypedConstraint) */
 } RigidBodyCon;
@@ -257,6 +266,10 @@ typedef enum eRigidBodyCon_Flag {
 	RBC_FLAG_USE_LIMIT_ANG_X			= (1<<8),
 	RBC_FLAG_USE_LIMIT_ANG_Y			= (1<<9),
 	RBC_FLAG_USE_LIMIT_ANG_Z			= (1<<10),
+	/* springs */
+	RBC_FLAG_USE_SPRING_X				= (1<<11),
+	RBC_FLAG_USE_SPRING_Y				= (1<<12),
+	RBC_FLAG_USE_SPRING_Z				= (1<<13)
 } eRigidBodyCon_Flag;
 
 /* ******************************** */
