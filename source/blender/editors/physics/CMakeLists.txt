@@ -44,6 +44,7 @@ set(SRC
 	physics_fluid.c
 	physics_ops.c
 	physics_pointcache.c
+	rigidbody_constraint.c
 	rigidbody_object.c
 	rigidbody_world.c
 

@@ -1701,7 +1701,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 		 * 2) Rigid Body sim participants MUST always be part of a group...
 		 */
 		// XXX: is 2) really a good measure here?
-		if ((basen->flag & OB_FROMGROUP) || ob->rigidbody_object) {
+		if ((basen->flag & OB_FROMGROUP) || ob->rigidbody_object || ob->rigidbody_constraint) {
 			Group *group;
 			for (group = bmain->group.first; group; group = group->id.next) {
 				if (object_in_group(ob, group))

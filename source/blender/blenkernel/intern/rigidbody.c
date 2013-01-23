@@ -74,13 +74,23 @@
 /* Free rigidbody world */
 void BKE_rigidbody_free_world(RigidBodyWorld *rbw)
 {
-	GroupObject *go;
 	/* sanity check */
 	if (!rbw)
 		return;
 
 	if (rbw->physics_world) {
 		/* free physics references, we assume that all physics objects in will have been added to the world */
+		GroupObject *go;
+		if (rbw->constraints) {
+			for (go = rbw->constraints->gobject.first; go; go = go->next) {
+				if (go->ob && go->ob->rigidbody_constraint) {
+					RigidBodyCon *rbc = go->ob->rigidbody_constraint;
+
+					if (rbc->physics_constraint)
+						RB_dworld_remove_constraint(rbw->physics_world, rbc->physics_constraint);
+				}
+			}
+		}
 		if (rbw->group) {
 			for (go = rbw->group->gobject.first; go; go = go->next) {
 				if (go->ob && go->ob->rigidbody_object) {
@@ -134,6 +144,26 @@ void BKE_rigidbody_free_object(Object *ob)
 	ob->rigidbody_object = NULL;
 }
 
+/* Free RigidBody constraint and sim instance */
+void BKE_rigidbody_free_constraint(Object *ob)
+{
+	RigidBodyCon *rbc = (ob) ? ob->rigidbody_constraint : NULL;
+
+	/* sanity check */
+	if (rbc == NULL)
+		return;
+
+	/* free physics reference */
+	if (rbc->physics_constraint) {
+		RB_constraint_delete(rbc->physics_constraint);
+		rbc->physics_constraint = NULL;
+	}
+
+	/* free data itself */
+	MEM_freeN(rbc);
+	ob->rigidbody_constraint = NULL;
+}
+
 /* Copying Methods --------------------- */
 
 /* These just copy the data, clearing out references to physics objects.
@@ -159,6 +189,27 @@ RigidBodyOb *BKE_rigidbody_copy_object(Object *ob)
 
 	/* return new copy of settings */
 	return rboN;
+}
+
+RigidBodyCon *BKE_rigidbody_copy_constraint(Object *ob)
+{
+	RigidBodyCon *rbcN = NULL;
+
+	if (ob->rigidbody_constraint) {
+		/* just duplicate the whole struct first (to catch all the settings) */
+		rbcN = MEM_dupallocN(ob->rigidbody_constraint);
+
+		// RB_TODO be more clever about copying constrained objects
+
+		/* tag object as needing to be verified */
+		rbcN->flag |= RBC_FLAG_NEEDS_VALIDATE;
+
+		/* clear out all the fields which need to be revalidated later */
+		rbcN->physics_constraint = NULL;
+	}
+
+	/* return new copy of settings */
+	return rbcN;
 }
 
 /* ************************************** */
@@ -381,6 +432,7 @@ void BKE_rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, short re
 		return;
 
 	/* make sure collision shape exists */
+	/* FIXME we shouldn't always have to rebuild collision shapes when rebuilding objects, but it's needed for constraints to update correctly */
 	if (rbo->physics_shape == NULL || rebuild)
 		BKE_rigidbody_validate_sim_shape(ob, true);
 
@@ -424,6 +476,151 @@ void BKE_rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, short re
 
 	if (rbw && rbw->physics_world)
 		RB_dworld_add_body(rbw->physics_world, rbo->physics_object, rbo->col_groups);
+}
+
+/* --------------------- */
+
+/* Create physics sim representation of constraint given rigid body constraint settings
+ * < rebuild: even if an instance already exists, replace it
+ */
+void BKE_rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, short rebuild)
+{
+	RigidBodyCon *rbc = (ob) ? ob->rigidbody_constraint : NULL;
+	float loc[3];
+	float rot[4];
+	float lin_lower;
+	float lin_upper;
+	float ang_lower;
+	float ang_upper;
+
+	/* sanity checks:
+	 *	- object should have a rigid body constraint
+	 *  - rigid body constraint should have at least one constrained object
+	 */
+	if (rbc == NULL) {
+		return;
+	}
+
+	if (ELEM4(NULL, rbc->ob1, rbc->ob1->rigidbody_object, rbc->ob2, rbc->ob2->rigidbody_object)) {
+		if (rbc->physics_constraint) {
+			RB_dworld_remove_constraint(rbw->physics_world, rbc->physics_constraint);
+			RB_constraint_delete(rbc->physics_constraint);
+			rbc->physics_constraint = NULL;
+		}
+		return;
+	}
+
+	if (rbc->physics_constraint) {
+		if (rebuild == false)
+			RB_dworld_remove_constraint(rbw->physics_world, rbc->physics_constraint);
+	}
+	if (rbc->physics_constraint == NULL || rebuild) {
+		rbRigidBody *rb1 = rbc->ob1->rigidbody_object->physics_object;
+		rbRigidBody *rb2 = rbc->ob2->rigidbody_object->physics_object;
+
+		/* remove constraint if it already exists before creating a new one */
+		if (rbc->physics_constraint) {
+			RB_constraint_delete(rbc->physics_constraint);
+			rbc->physics_constraint = NULL;
+		}
+
+		mat4_to_loc_quat(loc, rot, ob->obmat);
+
+		if (rb1 && rb2) {
+			switch (rbc->type) {
+				case RBC_TYPE_POINT:
+					rbc->physics_constraint = RB_constraint_new_point(loc, rb1, rb2);
+					break;
+				case RBC_TYPE_FIXED:
+					rbc->physics_constraint = RB_constraint_new_fixed(loc, rot, rb1, rb2);
+					break;
+				case RBC_TYPE_HINGE:
+					rbc->physics_constraint = RB_constraint_new_hinge(loc, rot, rb1, rb2);
+					if (rbc->flag & RBC_FLAG_USE_LIMIT_ANG_Z) {
+						RB_constraint_set_limits_hinge(rbc->physics_constraint, rbc->limit_ang_z_lower, rbc->limit_ang_z_upper);
+					}
+					else
+						RB_constraint_set_limits_hinge(rbc->physics_constraint, 0.0f, -1.0f);
+					break;
+				case RBC_TYPE_SLIDER:
+					rbc->physics_constraint = RB_constraint_new_slider(loc, rot, rb1, rb2);
+					if (rbc->flag & RBC_FLAG_USE_LIMIT_LIN_X)
+						RB_constraint_set_limits_slider(rbc->physics_constraint, rbc->limit_lin_x_lower, rbc->limit_lin_x_upper);
+					else
+						RB_constraint_set_limits_slider(rbc->physics_constraint, 0.0f, -1.0f);
+					break;
+				case RBC_TYPE_PISTON:
+					rbc->physics_constraint = RB_constraint_new_piston(loc, rot, rb1, rb2);
+					if (rbc->flag & RBC_FLAG_USE_LIMIT_LIN_X) {
+						lin_lower = rbc->limit_lin_x_lower;
+						lin_upper = rbc->limit_lin_x_upper;
+					}
+					else {
+						lin_lower = 0.0f;
+						lin_upper = -1.0f;
+					}
+					if (rbc->flag & RBC_FLAG_USE_LIMIT_ANG_X) {
+						ang_lower = rbc->limit_ang_x_lower;
+						ang_upper = rbc->limit_ang_x_upper;
+					}
+					else {
+						ang_lower = 0.0f;
+						ang_upper = -1.0f;
+					}
+					RB_constraint_set_limits_piston(rbc->physics_constraint, lin_lower, lin_upper, ang_lower, ang_upper);
+					break;
+				case RBC_TYPE_6DOF:
+					rbc->physics_constraint = RB_constraint_new_6dof(loc, rot, rb1, rb2);
+
+					if (rbc->flag & RBC_FLAG_USE_LIMIT_LIN_X)
+						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_LIN_X, rbc->limit_lin_x_lower, rbc->limit_lin_x_upper);
+					else
+						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_LIN_X, 0.0f, -1.0f);
+
+					if (rbc->flag & RBC_FLAG_USE_LIMIT_LIN_Y)
+						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_LIN_Y, rbc->limit_lin_y_lower, rbc->limit_lin_y_upper);
+					else
+						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_LIN_Y, 0.0f, -1.0f);
+
+					if (rbc->flag & RBC_FLAG_USE_LIMIT_LIN_Z)
+						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_LIN_Z, rbc->limit_lin_z_lower, rbc->limit_lin_z_upper);
+					else
+						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_LIN_Z, 0.0f, -1.0f);
+
+					if (rbc->flag & RBC_FLAG_USE_LIMIT_ANG_X)
+						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_ANG_X, rbc->limit_ang_x_lower, rbc->limit_ang_x_upper);
+					else
+						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_ANG_X, 0.0f, -1.0f);
+
+					if (rbc->flag & RBC_FLAG_USE_LIMIT_ANG_Y)
+						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_ANG_Y, rbc->limit_ang_y_lower, rbc->limit_ang_y_upper);
+					else
+						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_ANG_Y, 0.0f, -1.0f);
+
+					if (rbc->flag & RBC_FLAG_USE_LIMIT_ANG_Z)
+						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_ANG_Z, rbc->limit_ang_z_lower, rbc->limit_ang_z_upper);
+					else
+						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_ANG_Z, 0.0f, -1.0f);
+					break;
+			}
+		}
+
+		RB_constraint_set_enabled(rbc->physics_constraint, rbc->flag & RBC_FLAG_ENABLED);
+
+		if (rbc->flag & RBC_FLAG_USE_BREAKING)
+			RB_constraint_set_breaking_threshold(rbc->physics_constraint, rbc->breaking_threshold);
+		else
+			RB_constraint_set_breaking_threshold(rbc->physics_constraint, FLT_MAX);
+
+		if (rbc->flag & RBC_FLAG_OVERRIDE_SOLVER_ITERATIONS)
+			RB_constraint_set_solver_iterations(rbc->physics_constraint, rbc->num_solver_iterations);
+		else
+			RB_constraint_set_solver_iterations(rbc->physics_constraint, -1);
+	}
+
+	if (rbw && rbw->physics_world && rbc->physics_constraint) {
+		RB_dworld_add_constraint(rbw->physics_world, rbc->physics_constraint, rbc->flag & RBC_FLAG_DISABLE_COLLISIONS);
+	}
 }
 
 /* --------------------- */
@@ -536,6 +733,55 @@ RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type)
 	return rbo;
 }
 
+/* Add rigid body constraint to the specified object */
+RigidBodyCon *BKE_rigidbody_create_constraint(Scene *scene, Object *ob, short type)
+{
+	RigidBodyCon *rbc;
+	RigidBodyWorld *rbw = scene->rigidbody_world;
+
+	/* sanity checks
+	 *	- rigidbody world must exist
+	 *	- object must exist
+	 *	- cannot add constraint if it already exists
+	 */
+	if (ob == NULL || (ob->rigidbody_constraint != NULL))
+		return NULL;
+
+	/* create new settings data, and link it up */
+	rbc = MEM_callocN(sizeof(RigidBodyCon), "RigidBodyCon");
+
+	/* set default settings */
+	rbc->type = type;
+
+	rbc->ob1 = NULL;
+	rbc->ob2 = NULL;
+
+	rbc->flag |= RBC_FLAG_ENABLED;
+	rbc->flag |= RBC_FLAG_DISABLE_COLLISIONS;
+
+	rbc->breaking_threshold = 10.0f; /* no good default here, just use 10 for now */
+	rbc->num_solver_iterations = 10; /* 10 is Bullet default */
+
+	rbc->limit_lin_x_lower = -1.0f;
+	rbc->limit_lin_x_upper = 1.0f;
+	rbc->limit_lin_y_lower = -1.0f;
+	rbc->limit_lin_y_upper = 1.0f;
+	rbc->limit_lin_z_lower = -1.0f;
+	rbc->limit_lin_z_upper = 1.0f;
+	rbc->limit_ang_x_lower = -M_PI_4;
+	rbc->limit_ang_x_upper = M_PI_4;
+	rbc->limit_ang_y_lower = -M_PI_4;
+	rbc->limit_ang_y_upper = M_PI_4;
+	rbc->limit_ang_z_lower = -M_PI_4;
+	rbc->limit_ang_z_upper = M_PI_4;
+
+	/* flag cache as outdated */
+	BKE_rigidbody_cache_reset(rbw);
+
+	/* return this object */
+	return rbc;
+}
+
 /* ************************************** */
 /* Utilities API */
 
@@ -555,6 +801,7 @@ void BKE_rigidbody_remove_object(Scene *scene, Object *ob)
 {
 	RigidBodyWorld *rbw = scene->rigidbody_world;
 	RigidBodyOb *rbo = ob->rigidbody_object;
+	RigidBodyCon *rbc;
 	GroupObject *go;
 	int i;
 
@@ -572,9 +819,46 @@ void BKE_rigidbody_remove_object(Scene *scene, Object *ob)
 				}
 			}
 		}
+
+		/* remove object from rigid body constraints */
+		if (rbw->constraints) {
+			for (go = rbw->constraints->gobject.first; go; go = go->next) {
+				Object *obt = go->ob;
+				if (obt) {
+					rbc = obt->rigidbody_constraint;
+					if (rbc->ob1 == ob) {
+						rbc->ob1 = NULL;
+						rbc->flag |= RBC_FLAG_NEEDS_VALIDATE;
+					}
+					if (rbc->ob2 == ob) {
+						rbc->ob2 = NULL;
+						rbc->flag |= RBC_FLAG_NEEDS_VALIDATE;
+					}
+				}
+			}
+		}
 	}
+
 	/* remove object's settings */
 	BKE_rigidbody_free_object(ob);
+
+	/* flag cache as outdated */
+	BKE_rigidbody_cache_reset(rbw);
+}
+
+void BKE_rigidbody_remove_constraint(Scene *scene, Object *ob)
+{
+	RigidBodyWorld *rbw = scene->rigidbody_world;
+	RigidBodyCon *rbc = ob->rigidbody_constraint;
+
+	if (rbw) {
+		/* remove from rigidbody world, free object won't do this */
+		if (rbw && rbw->physics_world && rbc->physics_constraint)
+			RB_dworld_remove_constraint(rbw->physics_world, rbc->physics_constraint);
+	}
+	/* remove object's settings */
+	BKE_rigidbody_free_constraint(ob);
+
 	/* flag cache as outdated */
 	BKE_rigidbody_cache_reset(rbw);
 }
@@ -744,6 +1028,40 @@ static void rigidbody_update_simulation(Scene *scene, RigidBodyWorld *rbw, int r
 
 			/* update simulation object... */
 			rigidbody_update_sim_ob(scene, rbw, ob, rbo);
+		}
+	}
+	/* update constraints */
+	if (rbw->constraints == NULL) /* no constraints, move on */
+		return;
+	for (go = rbw->constraints->gobject.first; go; go = go->next) {
+		Object *ob = go->ob;
+
+		if (ob) {
+			/* validate that we've got valid object set up here... */
+			RigidBodyCon *rbc = ob->rigidbody_constraint;
+			/* update transformation matrix of the object so we don't get a frame of lag for simple animations */
+			BKE_object_where_is_calc(scene, ob);
+
+			if (rbc == NULL) {
+				/* Since this object is included in the group but doesn't have
+				 * constraint settings (perhaps it was added manually), add!
+				 */
+				ob->rigidbody_constraint = BKE_rigidbody_create_constraint(scene, ob, RBC_TYPE_FIXED);
+				BKE_rigidbody_validate_sim_constraint(rbw, ob, true);
+
+				rbc = ob->rigidbody_constraint;
+			}
+			else {
+				/* perform simulation data updates as tagged */
+				if (rebuild) {
+					/* World has been rebuilt so rebuild constraint */
+					BKE_rigidbody_validate_sim_constraint(rbw, ob, true);
+				}
+				else if (rbc->flag & RBC_FLAG_NEEDS_VALIDATE) {
+					BKE_rigidbody_validate_sim_constraint(rbw, ob, false);
+				}
+				rbc->flag &= ~RBC_FLAG_NEEDS_VALIDATE;
+			}
 		}
 	}
 }

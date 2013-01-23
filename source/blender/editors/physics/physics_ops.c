@@ -96,6 +96,10 @@ static void operatortypes_particle(void)
 	WM_operatortype_append(RIGIDBODY_OT_shape_change);
 	WM_operatortype_append(RIGIDBODY_OT_mass_calculate);
 
+	WM_operatortype_append(RIGIDBODY_OT_constraint_add);
+	WM_operatortype_append(RIGIDBODY_OT_constraint_group_add);
+	WM_operatortype_append(RIGIDBODY_OT_constraint_remove);
+
 	WM_operatortype_append(RIGIDBODY_OT_world_add);
 	WM_operatortype_append(RIGIDBODY_OT_world_remove);
 //	WM_operatortype_append(RIGIDBODY_OT_world_export);

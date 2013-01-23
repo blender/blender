@@ -2777,7 +2777,7 @@ int  BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 		}
 	}
 
-	if (scene->rigidbody_world && ob->rigidbody_object) {
+	if (scene->rigidbody_world && (ob->rigidbody_object || ob->rigidbody_constraint)) {
 		if (ob->rigidbody_object)
 			ob->rigidbody_object->flag |= RBO_FLAG_NEEDS_RESHAPE;
 		BKE_ptcache_id_from_rigidbody(&pid, ob, scene->rigidbody_world);

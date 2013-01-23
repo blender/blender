@@ -273,6 +273,7 @@ typedef struct Object {
 	ListBase *duplilist;	/* for temporary dupli list storage, only for use by RNA API */
 	
 	struct RigidBodyOb *rigidbody_object;		/* settings for Bullet rigid body */
+	struct RigidBodyCon *rigidbody_constraint;	/* settings for Bullet constraint */
 
 	float ima_ofs[2];		/* offset for image empties */
 } Object;

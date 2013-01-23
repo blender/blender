@@ -2433,6 +2433,11 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "rigidbody_object");
 	RNA_def_property_struct_type(prop, "RigidBodyObject");
 	RNA_def_property_ui_text(prop, "Rigid Body Settings", "Settings for rigid body simulation");
+
+	prop = RNA_def_property(srna, "rigid_body_constraint", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "rigidbody_constraint");
+	RNA_def_property_struct_type(prop, "RigidBodyConstraint");
+	RNA_def_property_ui_text(prop, "Rigid Body Constraint", "Constraint constraining rigid bodies");
 	
 	/* restrict */
 	prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);

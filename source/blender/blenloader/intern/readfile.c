@@ -4363,6 +4363,11 @@ static void lib_link_object(FileData *fd, Main *main)
 			
 			lib_link_particlesystems(fd, ob, &ob->id, &ob->particlesystem);
 			lib_link_modifiers(fd, ob);
+
+			if (ob->rigidbody_constraint) {
+				ob->rigidbody_constraint->ob1 = newlibadr(fd, ob->id.lib, ob->rigidbody_constraint->ob1);
+				ob->rigidbody_constraint->ob2 = newlibadr(fd, ob->id.lib, ob->rigidbody_constraint->ob2);
+			}
 		}
 	}
 	
@@ -4797,7 +4802,10 @@ static void direct_link_object(FileData *fd, Object *ob)
 		rbo->physics_object = NULL;
 		rbo->physics_shape = NULL;
 	}
-	
+	ob->rigidbody_constraint = newdataadr(fd, ob->rigidbody_constraint);
+	if (ob->rigidbody_constraint)
+		ob->rigidbody_constraint->physics_constraint = NULL;
+
 	link_list(fd, &ob->particlesystem);
 	direct_link_particlesystems(fd, &ob->particlesystem);
 	
@@ -5021,6 +5029,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 				RigidBodyWorld *rbw = sce->rigidbody_world;
 				if (rbw->group)
 					rbw->group = newlibadr(fd, sce->id.lib, rbw->group);
+				if (rbw->constraints)
+					rbw->constraints = newlibadr(fd, sce->id.lib, rbw->constraints);
 				if (rbw->effector_weights)
 					rbw->effector_weights->group = newlibadr(fd, sce->id.lib, rbw->effector_weights->group);
 			}
@@ -9679,7 +9689,12 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	
 	if (ob->pd && ob->pd->tex)
 		expand_doit(fd, mainvar, ob->pd->tex);
-	
+
+	if (ob->rigidbody_constraint) {
+		expand_doit(fd, mainvar, ob->rigidbody_constraint->ob1);
+		expand_doit(fd, mainvar, ob->rigidbody_constraint->ob2);
+	}
+
 }
 
 static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
@@ -9728,6 +9743,7 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 	
 	if (sce->rigidbody_world) {
 		expand_doit(fd, mainvar, sce->rigidbody_world->group);
+		expand_doit(fd, mainvar, sce->rigidbody_world->constraints);
 	}
 
 #ifdef DURIAN_CAMERA_SWITCH

@@ -388,6 +388,7 @@ void BKE_object_free(Object *ob)
 	
 	free_partdeflect(ob->pd);
 	BKE_rigidbody_free_object(ob);
+	BKE_rigidbody_free_constraint(ob);
 
 	if (ob->soft) sbFree(ob->soft);
 	if (ob->bsoft) bsbFree(ob->bsoft);
@@ -1288,9 +1289,10 @@ static Object *object_copy_do(Object *ob, int copy_caches)
 	}
 	obn->soft = copy_softbody(ob->soft, copy_caches);
 	obn->bsoft = copy_bulletsoftbody(ob->bsoft);
+	obn->rigidbody_object = BKE_rigidbody_copy_object(ob);
+	obn->rigidbody_constraint = BKE_rigidbody_copy_constraint(ob);
 
 	BKE_object_copy_particlesystems(obn, ob);
-	obn->rigidbody_object = BKE_rigidbody_copy_object(ob);
 	
 	obn->derivedDeform = NULL;
 	obn->derivedFinal = NULL;

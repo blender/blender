@@ -53,6 +53,8 @@ typedef struct RigidBodyWorld {
 	struct Group *group;		/* Group containing objects to use for Rigid Bodies */
 	struct Object **objects;	/* Array to access group objects by index, only used at runtime */
 	
+	struct Group *constraints;	/* Group containing objects to use for Rigid Body Constraints*/
+
 	int pad;
 	float ltime;				/* last frame world was evaluated for (internal) */
 	
@@ -170,6 +172,92 @@ typedef enum eRigidBody_Shape {
 		/* concave mesh approximated using primitives */
 	//RB_SHAPE_COMPOUND,
 } eRigidBody_Shape;
+
+/* ******************************** */
+/* RigidBody Constraint */
+
+/* RigidBodyConstraint (rbc)
+ *
+ * Represents an constraint connecting two rigid bodies.
+ */
+typedef struct RigidBodyCon {
+	struct Object *ob1;			/* First object influenced by the constraint */
+	struct Object *ob2;			/* Second object influenced by the constraint */
+
+	/* General Settings for this RigidBodyCon */
+	short type;					/* (eRigidBodyCon_Type) role of RigidBody in sim  */
+	short num_solver_iterations;/* number of constraint solver iterations made per simulation step */
+
+	int flag;					/* (eRigidBodyCon_Flag) */
+
+	float breaking_threshold;	/* breaking impulse threshold */
+	float pad;
+
+	/* limits */
+	float limit_lin_x_lower;	/* lower limit for x axis translation */
+	float limit_lin_x_upper;	/* upper limit for x axis translation */
+	float limit_lin_y_lower;	/* lower limit for y axis translation */
+	float limit_lin_y_upper;	/* upper limit for y axis translation */
+	float limit_lin_z_lower;	/* lower limit for z axis translation */
+	float limit_lin_z_upper;	/* upper limit for z axis translation */
+	float limit_ang_x_lower;	/* lower limit for x axis rotation */
+	float limit_ang_x_upper;	/* upper limit for x axis rotation */
+	float limit_ang_y_lower;	/* lower limit for y axis rotation */
+	float limit_ang_y_upper;	/* upper limit for y axis rotation */
+	float limit_ang_z_lower;	/* lower limit for z axis rotation */
+	float limit_ang_z_upper;	/* upper limit for z axis rotation */
+
+	/* References to Physics Sim object. Exist at runtime only */
+	void *physics_constraint;	/* Physics object representation (i.e. btTypedConstraint) */
+} RigidBodyCon;
+
+
+/* Participation types for RigidBodyOb */
+typedef enum eRigidBodyCon_Type {
+	/* lets bodies rotate around a specified point */
+	RBC_TYPE_POINT = 0,
+	/* lets bodies rotate around a specified axis */
+	RBC_TYPE_HINGE,
+	/* simulates wheel suspension */
+	RBC_TYPE_HINGE2,
+	/* restricts movent to a specified axis */
+	RBC_TYPE_SLIDER,
+	/* lets object rotate within a cpecified cone */
+	RBC_TYPE_CONE_TWIST,
+	/* allows user to specify constraint axes */
+	RBC_TYPE_6DOF,
+	/* like 6DOF but has springs */
+	RBC_TYPE_6DOF_SPRING,
+	/* simulates a universal joint */
+	RBC_TYPE_UNIVERSAL,
+	/* glues two bodies together */
+	RBC_TYPE_FIXED,
+	/* similar to slider but also allows rotation around slider axis */
+	RBC_TYPE_PISTON,
+	/* Simplified spring constraint with only once axis that's automatically placed between the connected bodies */
+	RBC_TYPE_SPRING
+} eRigidBodyCon_Type;
+
+/* Flags for RigidBodyCon */
+typedef enum eRigidBodyCon_Flag {
+	/* constraint influences rigid body motion */
+	RBC_FLAG_ENABLED					= (1<<0),
+	/* constraint needs to be validated */
+	RBC_FLAG_NEEDS_VALIDATE				= (1<<1),
+	/* allow constrained bodies to collide */
+	RBC_FLAG_DISABLE_COLLISIONS			= (1<<2),
+	/* constraint can break */
+	RBC_FLAG_USE_BREAKING				= (1<<3),
+	/* constraint use custom number of constraint solver iterations */
+	RBC_FLAG_OVERRIDE_SOLVER_ITERATIONS	= (1<<4),
+	/* limits */
+	RBC_FLAG_USE_LIMIT_LIN_X			= (1<<5),
+	RBC_FLAG_USE_LIMIT_LIN_Y			= (1<<6),
+	RBC_FLAG_USE_LIMIT_LIN_Z			= (1<<7),
+	RBC_FLAG_USE_LIMIT_ANG_X			= (1<<8),
+	RBC_FLAG_USE_LIMIT_ANG_Y			= (1<<9),
+	RBC_FLAG_USE_LIMIT_ANG_Z			= (1<<10),
+} eRigidBodyCon_Flag;
 
 /* ******************************** */
 

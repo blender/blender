@@ -188,3 +188,63 @@ class BakeToKeyframes(Operator):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
+
+class ConnectRigidBodies(Operator):
+
+
+    '''Connect selected rigid bodies to active'''
+    bl_idname = "rigidbody.connect"
+    bl_label = "ConnectRigidBodies"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    con_type = EnumProperty(
+        name="Type",
+        description="Type of generated contraint",
+        items=(('FIXED', "Fixed", "Glues ridig bodies together"),
+               ('POINT', "Point", "Constrains rigid bodies to move aound common pivot point"),
+               ('HINGE', "Hinge", "Restricts rigid body rotation to one axis"),
+               ('SLIDER', "Slider", "Restricts rigid boddy translation to one axis"),
+               ('PISTON', "Piston", "Restricts rigid boddy translation and rotation to one axis"),
+               ('GENERIC', "Generic", "Restricts translation and rotation to specified axes"),
+        default='FIXED',)
+
+    pivot_type = EnumProperty(
+        name="Location",
+        description="Constraint pivot location",
+        items=(('CENTER', "Center", "Pivot location is between the constrained rigid bodies"),
+               ('ACTIVE', "Active", "Pivot location is at the active object position"),
+               ('SELECTED', "Selected", "Pivot location is at the slected object position")),
+        default='CENTER',)
+
+    @classmethod
+    def poll(cls, context):
+        obj = bpy.context.object
+        objs = bpy.context.selected_objects
+        return (obj and obj.rigid_body and (len(objs) > 1))
+
+    def execute(self, context):
+
+        objs = bpy.context.selected_objects
+        ob_act = bpy.context.active_object
+
+        for ob in objs:
+            if ob == ob_act:
+                continue
+            if self.pivot_type == 'ACTIVE':
+                loc = ob_act.location
+            elif self.pivot_type == 'SELECTED':
+                loc = ob.location
+            else:
+                loc = (ob_act.location + ob.location) / 2
+            bpy.ops.object.add(type='EMPTY', view_align=False, enter_editmode=False, location=loc)
+            bpy.ops.rigidbody.constraint_group_add()
+            con = bpy.context.active_object.rigid_body_constraint
+            con.type = self.con_type
+            con.object1 = ob_act
+            con.object2 = ob
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)

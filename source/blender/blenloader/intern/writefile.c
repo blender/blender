@@ -1492,7 +1492,10 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 				// TODO: if any extra data is added to handle duplis, will need separate function then
 				writestruct(wd, DATA, "RigidBodyOb", 1, ob->rigidbody_object);
 			}
-			
+			if (ob->rigidbody_constraint) {
+				writestruct(wd, DATA, "RigidBodyCon", 1, ob->rigidbody_constraint);
+			}
+
 			write_particlesystems(wd, &ob->particlesystem);
 			write_modifiers(wd, &ob->modifiers);
 		}

@@ -59,6 +59,16 @@ EnumPropertyItem rigidbody_ob_shape_items[] = {
 	{RB_SHAPE_TRIMESH, "MESH", ICON_MESH_MONKEY, "Mesh", "Mesh consisting of triangles only, allowing for more detailed interactions than convex hulls"},
 	{0, NULL, 0, NULL, NULL}};
 
+/* collision shapes of constraints in rigid body sim */
+EnumPropertyItem rigidbody_con_type_items[] = {
+	{RBC_TYPE_FIXED, "FIXED", ICON_FORCE_FORCE, "Fixed", "Glues rigid bodies together"},
+	{RBC_TYPE_POINT, "POINT", ICON_FORCE_FORCE, "Point", "Constrains rigid bodies to move aound common pivot point"},
+	{RBC_TYPE_HINGE, "HINGE", ICON_FORCE_FORCE, "Hinge", "Restricts rigid body rotation to one axis"},
+	{RBC_TYPE_SLIDER, "SLIDER", ICON_FORCE_FORCE, "Slider", "Restricts rigid boddy translation to one axis"},
+	{RBC_TYPE_PISTON, "PISTON", ICON_FORCE_FORCE, "Piston", "Restricts rigid boddy translation and rotation to one axis"},
+	{RBC_TYPE_6DOF, "GENERIC", ICON_FORCE_FORCE, "Generic", "Restricts translation and rotation to specified axes"},
+	{0, NULL, 0, NULL, NULL}};
+
 
 #ifdef RNA_RUNTIME
 
@@ -286,6 +296,91 @@ static void rna_RigidBodyOb_angular_damping_set(PointerRNA *ptr, float value)
 		RB_body_set_angular_damping(rbo->physics_object, value);
 }
 
+static char *rna_RigidBodyCon_path(PointerRNA *ptr)
+{
+	/* NOTE: this hardcoded path should work as long as only Objects have this */
+	return BLI_sprintfN("rigid_body_constraint");
+}
+
+static void rna_RigidBodyCon_type_set(PointerRNA *ptr, int value)
+{
+	RigidBodyCon *rbc = (RigidBodyCon *)ptr->data;
+
+	rbc->type = value;
+	rbc->flag |= RBC_FLAG_NEEDS_VALIDATE;
+}
+
+static void rna_RigidBodyCon_enabled_set(PointerRNA *ptr, int value)
+{
+	RigidBodyCon *rbc = (RigidBodyCon *)ptr->data;
+
+	RB_FLAG_SET(rbc->flag, value, RBC_FLAG_ENABLED);
+
+	if (rbc->physics_constraint)
+		RB_constraint_set_enabled(rbc->physics_constraint, value);
+}
+
+static void rna_RigidBodyCon_disable_collisions_set(PointerRNA *ptr, int value)
+{
+	RigidBodyCon *rbc = (RigidBodyCon *)ptr->data;
+
+	RB_FLAG_SET(rbc->flag, value, RBC_FLAG_DISABLE_COLLISIONS);
+
+	rbc->flag |= RBC_FLAG_NEEDS_VALIDATE;
+}
+
+static void rna_RigidBodyCon_use_breaking_set(PointerRNA *ptr, int value)
+{
+	RigidBodyCon *rbc = (RigidBodyCon *)ptr->data;
+
+	if (value) {
+		rbc->flag |= RBC_FLAG_USE_BREAKING;
+		if (rbc->physics_constraint)
+			RB_constraint_set_breaking_threshold(rbc->physics_constraint, rbc->breaking_threshold);
+	}
+	else {
+		rbc->flag &= ~RBC_FLAG_USE_BREAKING;
+		if (rbc->physics_constraint)
+			RB_constraint_set_breaking_threshold(rbc->physics_constraint, FLT_MAX);
+	}
+}
+
+static void rna_RigidBodyCon_breaking_threshold_set(PointerRNA *ptr, float value)
+{
+	RigidBodyCon *rbc = (RigidBodyCon *)ptr->data;
+
+	rbc->breaking_threshold = value;
+
+	if (rbc->physics_constraint && (rbc->flag & RBC_FLAG_USE_BREAKING))
+		RB_constraint_set_breaking_threshold(rbc->physics_constraint, value);
+}
+
+static void rna_RigidBodyCon_override_solver_iterations_set(PointerRNA *ptr, int value)
+{
+	RigidBodyCon *rbc = (RigidBodyCon *)ptr->data;
+
+	if (value) {
+		rbc->flag |= RBC_FLAG_OVERRIDE_SOLVER_ITERATIONS;
+		if (rbc->physics_constraint)
+			RB_constraint_set_solver_iterations(rbc->physics_constraint, rbc->num_solver_iterations);
+	}
+	else {
+		rbc->flag &= ~RBC_FLAG_OVERRIDE_SOLVER_ITERATIONS;
+		if (rbc->physics_constraint)
+			RB_constraint_set_solver_iterations(rbc->physics_constraint, -1);
+	}
+}
+
+static void rna_RigidBodyCon_num_solver_iterations_set(PointerRNA *ptr, int value)
+{
+	RigidBodyCon *rbc = (RigidBodyCon *)ptr->data;
+
+	rbc->num_solver_iterations = value;
+
+	if (rbc->physics_constraint && (rbc->flag & RBC_FLAG_OVERRIDE_SOLVER_ITERATIONS))
+		RB_constraint_set_solver_iterations(rbc->physics_constraint, value);
+}
+
 #else
 
 static void rna_def_rigidbody_world(BlenderRNA *brna)
@@ -303,6 +398,12 @@ static void rna_def_rigidbody_world(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Group");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_ui_text(prop, "Group", "Group containing objects participating in this simulation");
+	RNA_def_property_update(prop, NC_SCENE, "rna_RigidBodyWorld_reset");
+
+	prop = RNA_def_property(srna, "constraints", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Group");
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
+	RNA_def_property_ui_text(prop, "Constraints", "Group containing rigid body constraint objects");
 	RNA_def_property_update(prop, NC_SCENE, "rna_RigidBodyWorld_reset");
 	
 	/* booleans */
@@ -501,10 +602,198 @@ static void rna_def_rigidbody_object(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 }
 
+static void rna_def_rigidbody_constraint(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "RigidBodyConstraint", NULL);
+	RNA_def_struct_sdna(srna, "RigidBodyCon");
+	RNA_def_struct_ui_text(srna, "Rigid Body Constraint", "Constraint influencing Objects inside Rigid Body Simulation");
+	RNA_def_struct_path_func(srna, "rna_RigidBodyCon_path");
+
+	/* Enums */
+	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_enum_items(prop, rigidbody_con_type_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_RigidBodyCon_type_set", NULL);
+	RNA_def_property_ui_text(prop, "Type", "Type of Rigid Body Constraint");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", RBC_FLAG_ENABLED);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_RigidBodyCon_enabled_set");
+	RNA_def_property_ui_text(prop, "Enabled", "Enable this constraint");
+	RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "disable_collisions", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", RBC_FLAG_DISABLE_COLLISIONS);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_RigidBodyCon_disable_collisions_set");
+	RNA_def_property_ui_text(prop, "Disable Collisions", "Disables collisions between constrained ridid bodies");
+	RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "object1", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "ob1");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Object 1", "First Rigid Body Object to be constrained");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "object2", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "ob2");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Object 2", "Second Rigid Body Object to be constrained");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_reset");
+
+	/* Breaking Threshold */
+	prop = RNA_def_property(srna, "use_breaking", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", RBC_FLAG_USE_BREAKING);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_RigidBodyCon_use_breaking_set");
+	RNA_def_property_ui_text(prop, "Breakable", "Constraint can be broaken if it receives an impulse above the threshold");
+	RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "breaking_threshold", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "breaking_threshold");
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0f, 1000.0f, 100.0, 2);
+	RNA_def_property_float_default(prop, 10.0f);
+	RNA_def_property_float_funcs(prop, NULL, "rna_RigidBodyCon_breaking_threshold_set", NULL);
+	RNA_def_property_ui_text(prop, "Breaking Threshold", "Impulse threshold that must be reached for the constraint to break");
+	RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_reset");
+
+	/* Solver Iterations */
+	prop = RNA_def_property(srna, "override_solver_iterations", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", RBC_FLAG_OVERRIDE_SOLVER_ITERATIONS);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_RigidBodyCon_override_solver_iterations_set");
+	RNA_def_property_ui_text(prop, "Override Solver Iterations", "Overrides the number of solver iterations for this constraint");
+	RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "num_solver_iterations", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "num_solver_iterations");
+	RNA_def_property_range(prop, 1, 1000);
+	RNA_def_property_ui_range(prop, 1, 100, 1, 0);
+	RNA_def_property_int_default(prop, 10);
+	RNA_def_property_int_funcs(prop, NULL, "rna_RigidBodyCon_num_solver_iterations_set", NULL);
+	RNA_def_property_ui_text(prop, "Solver Iterations", "Number of constraint solver iterations made per simulation step (higher values are more accurate but slower)");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
+
+	/* Limits */
+	prop = RNA_def_property(srna, "use_limit_lin_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", RBC_FLAG_USE_LIMIT_LIN_X);
+	RNA_def_property_ui_text(prop, "X Axis", "Limits translation on x axis");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "use_limit_lin_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", RBC_FLAG_USE_LIMIT_LIN_Y);
+	RNA_def_property_ui_text(prop, "Y Axis", "Limits translation on y axis");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "use_limit_lin_z", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", RBC_FLAG_USE_LIMIT_LIN_Z);
+	RNA_def_property_ui_text(prop, "Z Axis", "Limits translation on z axis");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "use_limit_ang_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", RBC_FLAG_USE_LIMIT_ANG_X);
+	RNA_def_property_ui_text(prop, "X Angle", "Limits rotation around x axis");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "use_limit_ang_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", RBC_FLAG_USE_LIMIT_ANG_Y);
+	RNA_def_property_ui_text(prop, "Y Angle", "Limits rotation around y axis");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "use_limit_ang_z", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", RBC_FLAG_USE_LIMIT_ANG_Z);
+	RNA_def_property_ui_text(prop, "Z Angle", "Limits rotation around z axis");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "limit_lin_x_lower", PROP_FLOAT, PROP_UNIT_LENGTH);
+	RNA_def_property_float_sdna(prop, NULL, "limit_lin_x_lower");
+	RNA_def_property_float_default(prop, -1.0f);
+	RNA_def_property_ui_text(prop, "Lower X Limit", "Lower limit of x axis translation");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "limit_lin_x_upper", PROP_FLOAT, PROP_UNIT_LENGTH);
+	RNA_def_property_float_sdna(prop, NULL, "limit_lin_x_upper");
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_ui_text(prop, "Upper X Limit", "Upper limit of x axis translation");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "limit_lin_y_lower", PROP_FLOAT, PROP_UNIT_LENGTH);
+	RNA_def_property_float_sdna(prop, NULL, "limit_lin_y_lower");
+	RNA_def_property_float_default(prop, -1.0f);
+	RNA_def_property_ui_text(prop, "Lower Y Limit", "Lower limit of y axis translation");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "limit_lin_y_upper", PROP_FLOAT, PROP_UNIT_LENGTH);
+	RNA_def_property_float_sdna(prop, NULL, "limit_lin_y_upper");
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_ui_text(prop, "Upper Y Limit", "Upper limit of y axis translation");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "limit_lin_z_lower", PROP_FLOAT, PROP_UNIT_LENGTH);
+	RNA_def_property_float_sdna(prop, NULL, "limit_lin_z_lower");
+	RNA_def_property_float_default(prop, -1.0f);
+	RNA_def_property_ui_text(prop, "Lower Z Limit", "Lower limit of z axis translation");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "limit_lin_z_upper", PROP_FLOAT, PROP_UNIT_LENGTH);
+	RNA_def_property_float_sdna(prop, NULL, "limit_lin_z_upper");
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_ui_text(prop, "Upper Z Limit", "Upper limit of z axis translation");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "limit_ang_x_lower", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_sdna(prop, NULL, "limit_ang_x_lower");
+	RNA_def_property_range(prop, -M_PI * 2, M_PI * 2);
+	RNA_def_property_float_default(prop, -M_PI_4);
+	RNA_def_property_ui_text(prop, "Lower X Angle Limit", "Lower limit of x axis rotation");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "limit_ang_x_upper", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_sdna(prop, NULL, "limit_ang_x_upper");
+	RNA_def_property_range(prop, -M_PI * 2, M_PI * 2);
+	RNA_def_property_float_default(prop, M_PI_4);
+	RNA_def_property_ui_text(prop, "Upper X Angle Limit", "Upper limit of x axis rotation");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "limit_ang_y_lower", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_sdna(prop, NULL, "limit_ang_y_lower");
+	RNA_def_property_range(prop, -M_PI * 2, M_PI * 2);
+	RNA_def_property_float_default(prop, -M_PI_4);
+	RNA_def_property_ui_text(prop, "Lower Y Angle Limit", "Lower limit of y axis rotation");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "limit_ang_y_upper", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_sdna(prop, NULL, "limit_ang_y_upper");
+	RNA_def_property_range(prop, -M_PI * 2, M_PI * 2);
+	RNA_def_property_float_default(prop, M_PI_4);
+	RNA_def_property_ui_text(prop, "Upper Y Angle Limit", "Upper limit of y axis rotation");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "limit_ang_z_lower", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_sdna(prop, NULL, "limit_ang_z_lower");
+	RNA_def_property_range(prop, -M_PI * 2, M_PI * 2);
+	RNA_def_property_float_default(prop, -M_PI_4);
+	RNA_def_property_ui_text(prop, "Lower Z Angle Limit", "Lower limit of z axis rotation");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "limit_ang_z_upper", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_sdna(prop, NULL, "limit_ang_z_upper");
+	RNA_def_property_range(prop, -M_PI * 2, M_PI * 2);
+	RNA_def_property_float_default(prop, M_PI_4);
+	RNA_def_property_ui_text(prop, "Upper Z Angle Limit", "Upper limit of z axis rotation");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_RigidBodyOb_reset");
+}
+
 void RNA_def_rigidbody(BlenderRNA *brna)
 {
 	rna_def_rigidbody_world(brna);
 	rna_def_rigidbody_object(brna);
+	rna_def_rigidbody_constraint(brna);
 }
 
 

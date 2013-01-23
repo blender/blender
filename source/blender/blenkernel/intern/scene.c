@@ -943,6 +943,9 @@ Base *BKE_scene_base_add(Scene *sce, Object *ob)
 
 void BKE_scene_base_remove(Scene *sce, Base *base)
 {
+	/* remove rigid body constraint from world before removing object */
+	if (base->object->rigidbody_constraint)
+		BKE_rigidbody_remove_constraint(sce, base->object);
 	/* remove rigid body object from world before removing object */
 	if (base->object->rigidbody_object)
 		BKE_rigidbody_remove_object(sce, base->object);

@@ -48,6 +48,10 @@ int PE_poll_view3d(struct bContext *C);
 void ED_rigidbody_ob_add(struct wmOperator *op, struct Scene *scene, struct Object *ob, int type);
 void ED_rigidbody_ob_remove(struct Scene *scene, struct Object *ob);
 
+/* rigidbody_constraint.c */
+void ED_rigidbody_con_add(struct wmOperator *op, struct Scene *scene, struct Object *ob, int type);
+void ED_rigidbody_con_remove(struct Scene *scene, struct Object *ob);
+
 /* operators */
 void ED_operatortypes_physics(void);
 void ED_keymap_physics(struct wmKeyConfig *keyconf);
