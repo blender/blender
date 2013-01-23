@@ -197,8 +197,8 @@ static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numFaces, in
 static void init_data(ModifierData *md)
 {
 	LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *) md;
-	smd->lambda = 0.00001f;
-	smd->lambda_border = 0.00005f;
+	smd->lambda = 0.01f;
+	smd->lambda_border = 0.01f;
 	smd->repeat = 1;
 	smd->flag = MOD_LAPLACIANSMOOTH_X | MOD_LAPLACIANSMOOTH_Y | MOD_LAPLACIANSMOOTH_Z | MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME | MOD_LAPLACIANSMOOTH_NORMALIZED;
 	smd->defgrp_name[0] = '\0';
