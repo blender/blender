@@ -92,6 +92,9 @@ def draw(layout, context, context_member, property_type, use_edit=True):
     if not rna_item:
         return
 
+    if rna_item.id_data.library is not None:
+        use_edit = False
+
     assert(isinstance(rna_item, property_type))
 
     items = rna_item.items()
