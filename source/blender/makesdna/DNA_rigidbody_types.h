@@ -136,19 +136,19 @@ typedef enum eRigidBodyOb_Type {
 /* Flags for RigidBodyOb */
 typedef enum eRigidBodyOb_Flag {
 	/* rigidbody is kinematic (controlled by the animation system) */
-	RBO_FLAG_KINEMATIC			= (1<<0),
+	RBO_FLAG_KINEMATIC			= (1 << 0),
 	/* rigidbody needs to be validated (usually set after duplicating and not hooked up yet) */
-	RBO_FLAG_NEEDS_VALIDATE		= (1<<1),
+	RBO_FLAG_NEEDS_VALIDATE		= (1 << 1),
 	/* rigidbody shape needs refreshing (usually after exiting editmode) */
-	RBO_FLAG_NEEDS_RESHAPE		= (1<<2),
+	RBO_FLAG_NEEDS_RESHAPE		= (1 << 2),
 	/* rigidbody can be deactivated */
-	RBO_FLAG_USE_DEACTIVATION	= (1<<3),
+	RBO_FLAG_USE_DEACTIVATION	= (1 << 3),
 	/* rigidbody is deactivated at the beginning of simulation */
-	RBO_FLAG_START_DEACTIVATED	= (1<<4),
+	RBO_FLAG_START_DEACTIVATED	= (1 << 4),
 	/* rigidbody is not dynamically simulated */
-	RBO_FLAG_DISABLED			= (1<<5),
+	RBO_FLAG_DISABLED			= (1 << 5),
 	/* collision margin is not embedded (only used by convex hull shapes for now) */
-	RBO_FLAG_USE_MARGIN			= (1<<6)
+	RBO_FLAG_USE_MARGIN			= (1 << 6)
 } eRigidBodyOb_Flag;
 
 /* RigidBody Collision Shape */
@@ -250,26 +250,26 @@ typedef enum eRigidBodyCon_Type {
 /* Flags for RigidBodyCon */
 typedef enum eRigidBodyCon_Flag {
 	/* constraint influences rigid body motion */
-	RBC_FLAG_ENABLED					= (1<<0),
+	RBC_FLAG_ENABLED					= (1 << 0),
 	/* constraint needs to be validated */
-	RBC_FLAG_NEEDS_VALIDATE				= (1<<1),
+	RBC_FLAG_NEEDS_VALIDATE				= (1 << 1),
 	/* allow constrained bodies to collide */
-	RBC_FLAG_DISABLE_COLLISIONS			= (1<<2),
+	RBC_FLAG_DISABLE_COLLISIONS			= (1 << 2),
 	/* constraint can break */
-	RBC_FLAG_USE_BREAKING				= (1<<3),
+	RBC_FLAG_USE_BREAKING				= (1 << 3),
 	/* constraint use custom number of constraint solver iterations */
-	RBC_FLAG_OVERRIDE_SOLVER_ITERATIONS	= (1<<4),
+	RBC_FLAG_OVERRIDE_SOLVER_ITERATIONS	= (1 << 4),
 	/* limits */
-	RBC_FLAG_USE_LIMIT_LIN_X			= (1<<5),
-	RBC_FLAG_USE_LIMIT_LIN_Y			= (1<<6),
-	RBC_FLAG_USE_LIMIT_LIN_Z			= (1<<7),
-	RBC_FLAG_USE_LIMIT_ANG_X			= (1<<8),
-	RBC_FLAG_USE_LIMIT_ANG_Y			= (1<<9),
-	RBC_FLAG_USE_LIMIT_ANG_Z			= (1<<10),
+	RBC_FLAG_USE_LIMIT_LIN_X			= (1 << 5),
+	RBC_FLAG_USE_LIMIT_LIN_Y			= (1 << 6),
+	RBC_FLAG_USE_LIMIT_LIN_Z			= (1 << 7),
+	RBC_FLAG_USE_LIMIT_ANG_X			= (1 << 8),
+	RBC_FLAG_USE_LIMIT_ANG_Y			= (1 << 9),
+	RBC_FLAG_USE_LIMIT_ANG_Z			= (1 << 10),
 	/* springs */
-	RBC_FLAG_USE_SPRING_X				= (1<<11),
-	RBC_FLAG_USE_SPRING_Y				= (1<<12),
-	RBC_FLAG_USE_SPRING_Z				= (1<<13)
+	RBC_FLAG_USE_SPRING_X				= (1 << 11),
+	RBC_FLAG_USE_SPRING_Y				= (1 << 12),
+	RBC_FLAG_USE_SPRING_Z				= (1 << 13)
 } eRigidBodyCon_Flag;
 
 /* ******************************** */

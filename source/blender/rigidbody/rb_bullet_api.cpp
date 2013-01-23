@@ -94,10 +94,10 @@ struct rbCollisionShape {
 
 struct rbFilterCallback : public btOverlapFilterCallback
 {
-	virtual bool	needBroadphaseCollision(btBroadphaseProxy* proxy0, btBroadphaseProxy* proxy1) const
+	virtual bool needBroadphaseCollision(btBroadphaseProxy *proxy0, btBroadphaseProxy *proxy1) const
 	{
-		rbRigidBody *rb0 = (rbRigidBody*)((btRigidBody*)proxy0->m_clientObject)->getUserPointer();
-		rbRigidBody *rb1 = (rbRigidBody*)((btRigidBody*)proxy1->m_clientObject)->getUserPointer();
+		rbRigidBody *rb0 = (rbRigidBody *)((btRigidBody *)proxy0->m_clientObject)->getUserPointer();
+		rbRigidBody *rb1 = (rbRigidBody *)((btRigidBody *)proxy1->m_clientObject)->getUserPointer();
 		
 		bool collides;
 		collides = (proxy0->m_collisionFilterGroup & proxy1->m_collisionFilterMask) != 0;
@@ -135,19 +135,22 @@ rbDynamicsWorld *RB_dworld_new(const float gravity[3])
 	world->collisionConfiguration = new btDefaultCollisionConfiguration();
 	
 	world->dispatcher = new btCollisionDispatcher(world->collisionConfiguration);
-	btGImpactCollisionAlgorithm::registerAlgorithm((btCollisionDispatcher*)world->dispatcher); // XXX: experimental
+	btGImpactCollisionAlgorithm::registerAlgorithm((btCollisionDispatcher *)world->dispatcher); // XXX: experimental
 	
 	world->pairCache = new btDbvtBroadphase();
 	
 	world->filterCallback = new rbFilterCallback();
 	world->pairCache->getOverlappingPairCache()->setOverlapFilterCallback(world->filterCallback);
-	
+
 	/* constraint solving */
 	world->constraintSolver = new btSequentialImpulseConstraintSolver();
-	
+
 	/* world */
-	world->dynamicsWorld = new btDiscreteDynamicsWorld(world->dispatcher,world->pairCache,world->constraintSolver,world->collisionConfiguration);
-	
+	world->dynamicsWorld = new btDiscreteDynamicsWorld(world->dispatcher,
+	                                                   world->pairCache,
+	                                                   world->constraintSolver,
+	                                                   world->collisionConfiguration);
+
 	RB_dworld_set_gravity(world, gravity);
 	
 	return world;
@@ -211,13 +214,13 @@ void RB_dworld_step_simulation(rbDynamicsWorld *world, float timeStep, int maxSu
 void RB_dworld_export(rbDynamicsWorld *world, const char *filename)
 {
 	//create a large enough buffer. There is no method to pre-calculate the buffer size yet.
-	int maxSerializeBufferSize = 1024*1024*5;
+	int maxSerializeBufferSize = 1024 * 1024 * 5;
 	
 	btDefaultSerializer *serializer = new btDefaultSerializer(maxSerializeBufferSize);
 	world->dynamicsWorld->serialize(serializer);
 	
 	FILE *file = fopen(filename, "wb");
-	fwrite(serializer->getBufferPointer(),serializer->getCurrentBufferSize(),1, file);
+	fwrite(serializer->getBufferPointer(), serializer->getCurrentBufferSize(), 1, file);
 	fclose(file);
 }
 
@@ -280,7 +283,7 @@ void RB_body_delete(rbRigidBody *object)
 	/* manually remove constraint refs of the rigid body, normally this happens when removing constraints from the world
 	 * but since we delete everything when the world is rebult, we need to do it manually here */
 	for (int i = body->getNumConstraintRefs() - 1; i >= 0; i--) {
-		btTypedConstraint* con = body->getConstraintRef(i);
+		btTypedConstraint *con = body->getConstraintRef(i);
 		body->removeConstraintRef(con);
 	}
 	
@@ -321,7 +324,7 @@ float RB_body_get_mass(rbRigidBody *object)
 void RB_body_set_mass(rbRigidBody *object, float value)
 {
 	btRigidBody *body = object->body;
-	btVector3 localInertia(0,0,0);
+	btVector3 localInertia(0, 0, 0);
 	
 	/* calculate new inertia if non-zero mass */
 	if (value) {
@@ -510,7 +513,7 @@ void RB_body_get_transform_matrix(rbRigidBody *object, float m_out[4][4])
 	btTransform trans;
 	ms->getWorldTransform(trans);
 	
-	trans.getOpenGLMatrix((btScalar*)m_out);
+	trans.getOpenGLMatrix((btScalar *)m_out);
 }
 
 void RB_body_set_loc_rot(rbRigidBody *object, const float loc[3], const float rot[4])
@@ -643,7 +646,7 @@ rbCollisionShape *RB_shape_new_convex_hull(float *verts, int stride, int count, 
 rbMeshData *RB_trimesh_data_new()
 {
 	// XXX: welding threshold?
-	return (rbMeshData*) new btTriangleMesh(true, false);
+	return (rbMeshData *) new btTriangleMesh(true, false);
 }
  
 void RB_trimesh_add_triangle(rbMeshData *mesh, const float v1[3], const float v2[3], const float v3[3])
@@ -670,7 +673,7 @@ rbCollisionShape *RB_shape_new_trimesh(rbMeshData *mesh)
 	// RB_TODO perhaps we need to allow saving out this for performance when rebuilding?
 	btBvhTriangleMeshShape *unscaledShape = new btBvhTriangleMeshShape(tmesh, true, true);
 	
-	shape->cshape = new btScaledBvhTriangleMeshShape(unscaledShape, btVector3(1.0f,1.0f,1.0f));
+	shape->cshape = new btScaledBvhTriangleMeshShape(unscaledShape, btVector3(1.0f, 1.0f, 1.0f));
 	shape->mesh = tmesh;
 	return shape;
 }
@@ -694,7 +697,7 @@ rbCollisionShape *RB_shape_new_gimpact_mesh(rbMeshData *mesh)
 void RB_shape_delete(rbCollisionShape *shape)
 {
 	if (shape->cshape->getShapeType() == SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE) {
-		btBvhTriangleMeshShape *child_shape = ((btScaledBvhTriangleMeshShape*)shape->cshape)->getChildShape();
+		btBvhTriangleMeshShape *child_shape = ((btScaledBvhTriangleMeshShape *)shape->cshape)->getChildShape();
 		if (child_shape)
 			delete child_shape;
 	}
@@ -757,7 +760,7 @@ rbConstraint *RB_constraint_new_point(float pivot[3], rbRigidBody *rb1, rbRigidB
 	
 	btTypedConstraint *con = new btPoint2PointConstraint(*body1, *body2, pivot1, pivot2);
 	
-	return (rbConstraint*)con;
+	return (rbConstraint *)con;
 }
 
 rbConstraint *RB_constraint_new_fixed(float pivot[3], float orn[4], rbRigidBody *rb1, rbRigidBody *rb2)
@@ -775,7 +778,7 @@ rbConstraint *RB_constraint_new_fixed(float pivot[3], float orn[4], rbRigidBody 
 	for (int i = 0; i < 6; i++)
 		con->setLimit(i, 0, 0);
 	
-	return (rbConstraint*)con;
+	return (rbConstraint *)con;
 }
 
 rbConstraint *RB_constraint_new_hinge(float pivot[3], float orn[4], rbRigidBody *rb1, rbRigidBody *rb2)
@@ -789,7 +792,7 @@ rbConstraint *RB_constraint_new_hinge(float pivot[3], float orn[4], rbRigidBody 
 	
 	btHingeConstraint *con = new btHingeConstraint(*body1, *body2, transform1, transform2);
 	
-	return (rbConstraint*)con;
+	return (rbConstraint *)con;
 }
 
 rbConstraint *RB_constraint_new_slider(float pivot[3], float orn[4], rbRigidBody *rb1, rbRigidBody *rb2)
@@ -803,7 +806,7 @@ rbConstraint *RB_constraint_new_slider(float pivot[3], float orn[4], rbRigidBody
 	
 	btSliderConstraint *con = new btSliderConstraint(*body1, *body2, transform1, transform2, true);
 	
-	return (rbConstraint*)con;
+	return (rbConstraint *)con;
 }
 
 rbConstraint *RB_constraint_new_piston(float pivot[3], float orn[4], rbRigidBody *rb1, rbRigidBody *rb2)
@@ -818,7 +821,7 @@ rbConstraint *RB_constraint_new_piston(float pivot[3], float orn[4], rbRigidBody
 	btSliderConstraint *con = new btSliderConstraint(*body1, *body2, transform1, transform2, true);
 	con->setUpperAngLimit(-1.0f); // unlock rotation axis
 	
-	return (rbConstraint*)con;
+	return (rbConstraint *)con;
 }
 
 rbConstraint *RB_constraint_new_6dof(float pivot[3], float orn[4], rbRigidBody *rb1, rbRigidBody *rb2)
@@ -832,7 +835,7 @@ rbConstraint *RB_constraint_new_6dof(float pivot[3], float orn[4], rbRigidBody *
 	
 	btTypedConstraint *con = new btGeneric6DofConstraint(*body1, *body2, transform1, transform2, true);
 	
-	return (rbConstraint*)con;
+	return (rbConstraint *)con;
 }
 
 rbConstraint *RB_constraint_new_6dof_spring(float pivot[3], float orn[4], rbRigidBody *rb1, rbRigidBody *rb2)
@@ -846,7 +849,7 @@ rbConstraint *RB_constraint_new_6dof_spring(float pivot[3], float orn[4], rbRigi
 	
 	btTypedConstraint *con = new btGeneric6DofSpringConstraint(*body1, *body2, transform1, transform2, true);
 	
-	return (rbConstraint*)con;
+	return (rbConstraint *)con;
 }
 
 /* Cleanup ----------------------------- */

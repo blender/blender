@@ -1169,9 +1169,9 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 		/* draw title (node label) */
 		BLI_strncpy(showname, node->label, sizeof(showname));
 		uiDefBut(node->block, LABEL, 0, showname,
-				 (int)(rct->xmin-NODE_DYS), (int)(rct->ymax),
-				 (short)512, (short)NODE_DY,
-				 NULL, 0, 0, 0, 0, "");
+		         (int)(rct->xmin - NODE_DYS), (int)(rct->ymax),
+		         (short)512, (short)NODE_DY,
+		         NULL, 0, 0, 0, 0, NULL);
 	}
 
 	/* only draw input socket. as they all are placed on the same position.

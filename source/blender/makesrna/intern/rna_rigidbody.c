@@ -538,13 +538,13 @@ static void rna_def_rigidbody_world(BlenderRNA *brna)
 	/* groups */
 	prop = RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Group");
-	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
 	RNA_def_property_ui_text(prop, "Group", "Group containing objects participating in this simulation");
 	RNA_def_property_update(prop, NC_SCENE, "rna_RigidBodyWorld_reset");
 
 	prop = RNA_def_property(srna, "constraints", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Group");
-	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
 	RNA_def_property_ui_text(prop, "Constraints", "Group containing rigid body constraint objects");
 	RNA_def_property_update(prop, NC_SCENE, "rna_RigidBodyWorld_reset");
 	

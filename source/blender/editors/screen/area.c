@@ -1882,7 +1882,7 @@ void ED_region_info_draw(ARegion *ar, const char *text, int block, float alpha)
 	UI_ThemeColor(TH_TEXT_HI);
 	BLF_clipping(fontid, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	BLF_enable(fontid, BLF_CLIPPING);
-	BLF_position(fontid, rect.xmin + 0.6f * U.widget_unit, rect.ymin + 0.3f*U.widget_unit, 0.0f);
+	BLF_position(fontid, rect.xmin + 0.6f * U.widget_unit, rect.ymin + 0.3f * U.widget_unit, 0.0f);
 
 	BLF_draw(fontid, text, BLF_DRAW_STR_DUMMY_MAX);
 

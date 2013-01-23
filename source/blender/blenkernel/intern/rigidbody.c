@@ -466,7 +466,7 @@ void BKE_rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, short re
 
 
 		RB_body_set_linear_factor(rbo->physics_object,
-								  (ob->protectflag & OB_LOCK_LOCX) == 0,
+		                          (ob->protectflag & OB_LOCK_LOCX) == 0,
 		                          (ob->protectflag & OB_LOCK_LOCY) == 0,
 		                          (ob->protectflag & OB_LOCK_LOCZ) == 0);
 		RB_body_set_angular_factor(rbo->physics_object,
