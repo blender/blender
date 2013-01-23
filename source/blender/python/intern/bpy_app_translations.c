@@ -73,7 +73,7 @@ typedef struct GHashKey {
 
 static GHashKey *_ghashutil_keyalloc(const void *msgctxt, const void *msgid)
 {
-	GHashKey *key = MEM_mallocN(sizeof(GHashKey), "GHashPair");
+	GHashKey *key = MEM_mallocN(sizeof(GHashKey), "Py i18n GHashKey");
 	key->msgctxt = BLI_strdup(msgctxt ? msgctxt : BLF_I18NCONTEXT_DEFAULT_BPY_INTERN);
 	key->msgid = BLI_strdup(msgid);
 	return key;
@@ -285,6 +285,8 @@ const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *ms
 	key = _ghashutil_keyalloc(msgctxt, msgid);
 
 	tmp = BLI_ghash_lookup(_translations_cache, key);
+
+	_ghashutil_keyfree((void *)key);
 
 	if (tmp)
 		return tmp;
