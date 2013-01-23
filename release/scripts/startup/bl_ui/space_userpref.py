@@ -800,6 +800,13 @@ class USERPREF_PT_theme(Panel):
 
             style = context.user_preferences.ui_styles[0]
 
+            ui = style.panel_title
+            col.label(text="Panel Title:")
+            ui_style_items(col, ui)
+
+            col.separator()
+            col.separator()
+
             ui = style.widget
             col.label(text="Widget:")
             ui_style_items(col, ui)

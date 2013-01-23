@@ -66,7 +66,7 @@ typedef struct uiFont {
 	short blf_id;		/* from blfont lib */
 	short uifont_id;	/* own id */
 	short r_to_l;		/* fonts that read from left to right */
-	short pad;
+	short hinting;
 } uiFont;
 
 /* this state defines appearance of text */
