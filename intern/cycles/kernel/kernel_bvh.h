@@ -929,7 +929,7 @@ __device_inline float3 ray_offset(float3 P, float3 Ng)
 	const float epsilon_f = 1e-5f;
 	/* ideally this should match epsilon_f, but instancing/mblur
 	 * precision makes it problematic */
-	const float epsilon_test = 1e-1f;
+	const float epsilon_test = 1.0f;
 	const int epsilon_i = 32;
 
 	float3 res;
