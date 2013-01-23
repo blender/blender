@@ -42,6 +42,17 @@
 
 #include "rna_internal.h"
 
+#define DEF_ICON_BLANK_SKIP
+#define DEF_ICON(name) {ICON_##name, (#name), 0, (#name), ""},
+#define DEF_VICO(name) {VICO_##name, (#name), 0, (#name), ""},
+EnumPropertyItem icon_items[] = {
+#include "UI_icons.h"
+	{0, NULL, 0, NULL, NULL}
+};
+#undef DEF_ICON_BLANK_SKIP
+#undef DEF_ICON
+#undef DEF_VICO
+
 #ifdef RNA_RUNTIME
 
 static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, const char *propname, const char *name, int icon,
@@ -180,17 +191,6 @@ static int rna_ui_get_enum_icon(bContext *C, PointerRNA *ptr, const char *propna
 }
 
 #else
-
-#define DEF_ICON_BLANK_SKIP
-#define DEF_ICON(name) {ICON_##name, (#name), 0, (#name), ""},
-#define DEF_VICO(name) {VICO_##name, (#name), 0, (#name), ""},
-EnumPropertyItem icon_items[] = {
-#include "UI_icons.h"
-	{0, NULL, 0, NULL, NULL}
-};
-#undef DEF_ICON_BLANK_SKIP
-#undef DEF_ICON
-#undef DEF_VICO
 
 static void api_ui_item_common(FunctionRNA *func)
 {
