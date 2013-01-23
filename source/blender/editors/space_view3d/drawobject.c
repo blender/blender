@@ -4923,7 +4923,7 @@ static void ob_draw_RE_motion(float com[3], float rotscale[3][3], float itw, flo
 	glEnd();
 }
 
-/*place to add drawers */
+/* place to add drawers */
 
 static void drawhandlesN(Nurb *nu, short sel, short hide_handles)
 {
@@ -5424,39 +5424,6 @@ static void draw_empty_cone(float size)
 	gluDeleteQuadric(qobj);
 }
 
-/* draw points on curve speed handles */
-#if 0  /* XXX old animation system stuff */
-static void curve_draw_speed(Scene *scene, Object *ob)
-{
-	Curve *cu = ob->data;
-	IpoCurve *icu;
-	BezTriple *bezt;
-	float loc[4], dir[3];
-	int a;
-	
-	if (cu->ipo == NULL)
-		return;
-	
-	icu = cu->ipo->curve.first;
-	if (icu == NULL || icu->totvert < 2)
-		return;
-	
-	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
-	bglBegin(GL_POINTS);
-
-	for (a = 0, bezt = icu->bezt; a < icu->totvert; a++, bezt++) {
-		if (where_on_path(ob, bezt->vec[1][1], loc, dir)) {
-			UI_ThemeColor((bezt->f2 & SELECT) && ob == OBACT ? TH_VERTEX_SELECT : TH_VERTEX);
-			bglVertex3fv(loc);
-		}
-	}
-
-	glPointSize(1.0);
-	bglEnd();
-}
-#endif  /* XXX old animation system stuff */
-
-
 static void draw_textcurs(RegionView3D *rv3d, float textcurs[4][2])
 {
 	cpack(0);
@@ -5560,7 +5527,7 @@ static void drawcircle_size(float size)
 
 }
 
-/* needs fixing if non-identity matrice used */
+/* needs fixing if non-identity matrix used */
 static void drawtube(const float vec[3], float radius, float height, float tmat[4][4])
 {
 	float cur[3];
@@ -5582,7 +5549,8 @@ static void drawtube(const float vec[3], float radius, float height, float tmat[
 	glVertex3f(cur[0], cur[1] - radius, cur[2]);
 	glEnd();
 }
-/* needs fixing if non-identity matrice used */
+
+/* needs fixing if non-identity matrix used */
 static void drawcone(const float vec[3], float radius, float height, float tmat[4][4])
 {
 	float cur[3];
@@ -5603,6 +5571,7 @@ static void drawcone(const float vec[3], float radius, float height, float tmat[
 	glVertex3f(cur[0], cur[1] - radius, cur[2]);
 	glEnd();
 }
+
 /* return TRUE if nothing was drawn */
 static int drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
                      const char dt, const short dflag, const unsigned char ob_wire_col[4])
@@ -5651,7 +5620,6 @@ static int drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 	}
 	
 	while (ml) {
-
 		/* draw radius */
 		if (mb->editelems) {
 			if ((dflag & DRAW_CONSTCOLOR) == 0) {
