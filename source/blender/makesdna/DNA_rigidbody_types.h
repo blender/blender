@@ -37,6 +37,8 @@
 
 struct Group;
 
+struct EffectorWeights;
+
 /* ******************************** */
 /* RigidBody World */
 
@@ -46,6 +48,8 @@ struct Group;
  */
 typedef struct RigidBodyWorld {
 	/* Sim World Settings ------------------------------------------------------------- */
+	struct EffectorWeights *effector_weights; /* effectors info */
+
 	struct Group *group;		/* Group containing objects to use for Rigid Bodies */
 	struct Object **objects;	/* Array to access group objects by index, only used at runtime */
 	

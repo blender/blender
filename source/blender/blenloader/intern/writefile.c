@@ -2306,6 +2306,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		/* writing RigidBodyWorld data to the blend file */
 		if (sce->rigidbody_world) {
 			writestruct(wd, DATA, "RigidBodyWorld", 1, sce->rigidbody_world);
+			writestruct(wd, DATA, "EffectorWeights", 1, sce->rigidbody_world->effector_weights);
 		}
 		
 		sce= sce->id.next;

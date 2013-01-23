@@ -5021,6 +5021,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 				RigidBodyWorld *rbw = sce->rigidbody_world;
 				if (rbw->group)
 					rbw->group = newlibadr(fd, sce->id.lib, rbw->group);
+				if (rbw->effector_weights)
+					rbw->effector_weights->group = newlibadr(fd, sce->id.lib, rbw->effector_weights->group);
 			}
 			
 			if (sce->nodetree) {
@@ -5296,6 +5298,11 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		rbw->physics_world = NULL;
 		rbw->objects = NULL;
 		rbw->numbodies = 0;
+
+		/* set effector weights */
+		rbw->effector_weights = newdataadr(fd, rbw->effector_weights);
+		if (!rbw->effector_weights)
+			rbw->effector_weights = BKE_add_effector_weights(NULL);
 	}
 }
 

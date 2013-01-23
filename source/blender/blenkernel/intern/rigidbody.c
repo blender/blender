@@ -97,6 +97,10 @@ void BKE_rigidbody_free_world(RigidBodyWorld *rbw)
 	if (rbw->objects)
 		free(rbw->objects);
 
+	/* free effector weights */
+	if (rbw->effector_weights)
+		MEM_freeN(rbw->effector_weights);
+
 	/* free rigidbody world itself */
 	MEM_freeN(rbw);
 }
@@ -459,6 +463,8 @@ RigidBodyWorld *BKE_rigidbody_create_world(Scene *scene)
 	rbw = MEM_callocN(sizeof(RigidBodyWorld), "RigidBodyWorld");
 
 	/* set default settings */
+	rbw->effector_weights = BKE_add_effector_weights(NULL);
+
 	rbw->ltime = PSFRA;
 
 	rbw->time_scale = 1.0f;
@@ -596,6 +602,7 @@ static void rigidbody_update_sim_world(Scene *scene, RigidBodyWorld *rbw)
 	/* adjust gravity to take effector weights into account */
 	if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
 		copy_v3_v3(adj_gravity, scene->physics_settings.gravity);
+		mul_v3_fl(adj_gravity, rbw->effector_weights->global_gravity * rbw->effector_weights->weight[0]);
 	}
 	else {
 		zero_v3(adj_gravity);
@@ -630,6 +637,43 @@ static void rigidbody_update_sim_ob(Scene *scene, RigidBodyWorld *rbw, Object *o
 	if (rbo->flag & RBO_FLAG_KINEMATIC) {
 		RB_body_activate(rbo->physics_object);
 		RB_body_set_loc_rot(rbo->physics_object, loc, rot);
+	}
+	/* update influence of effectors - but don't do it on an effector */
+	/* only dynamic bodies need effector update */
+	else if (rbo->type == RBO_TYPE_ACTIVE && ((ob->pd == NULL) || (ob->pd->forcefield == PFIELD_NULL))) {
+		EffectorWeights *effector_weights = rbw->effector_weights;
+		EffectedPoint epoint;
+		ListBase *effectors;
+
+		/* get effectors present in the group specified by effector_weights */
+		effectors = pdInitEffectors(scene, ob, NULL, effector_weights);
+		if (effectors) {
+			float force[3] = {0.0f, 0.0f, 0.0f};
+			float loc[3], vel[3];
+
+			/* create dummy 'point' which represents last known position of object as result of sim */
+			// XXX: this can create some inaccuracies with sim position, but is probably better than using unsimulated vals?
+			RB_body_get_position(rbo->physics_object, loc);
+			RB_body_get_linear_velocity(rbo->physics_object, vel);
+
+			pd_point_from_loc(scene, loc, vel, 0, &epoint);
+
+			/* calculate net force of effectors, and apply to sim object
+			 *	- we use 'central force' since apply force requires a "relative position" which we don't have...
+			 */
+			pdDoEffectors(effectors, NULL, effector_weights, &epoint, force, NULL);
+			if (G.f & G_DEBUG)
+				printf("\tapplying force (%f,%f,%f) to '%s'\n", force[0], force[1], force[2], ob->id.name + 2);
+			/* activate object in case it is deactivated */
+			if (!is_zero_v3(force))
+				RB_body_activate(rbo->physics_object);
+			RB_body_apply_central_force(rbo->physics_object, force);
+		}
+		else if (G.f & G_DEBUG)
+			printf("\tno forces to apply to '%s'\n", ob->id.name + 2);
+
+		/* cleanup */
+		pdEndEffectors(&effectors);
 	}
 	/* NOTE: passive objects don't need to be updated since they don't move */
 
