@@ -58,7 +58,7 @@ extern "C"{
 	#include "BKE_DerivedMesh.h"
 }
 
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 #include "BulletSoftBody/btSoftBody.h"
 
 #include "CcdPhysicsEnvironment.h"
@@ -574,4 +574,4 @@ bool KX_ReInstanceBulletShapeFromMesh(KX_GameObject *gameobj, KX_GameObject *fro
 	spc->ReplaceControllerShape(bm);
 	return true;
 }
-#endif // USE_BULLET
+#endif // WITH_BULLET

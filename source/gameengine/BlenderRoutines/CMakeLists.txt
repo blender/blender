@@ -73,7 +73,7 @@ if(WITH_BULLET)
 	list(APPEND INC_SYS
 		${BULLET_INCLUDE_DIRS}
 	)
-	add_definitions(-DUSE_BULLET)
+	add_definitions(-DWITH_BULLET)
 endif()
 
 

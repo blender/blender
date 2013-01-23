@@ -37,7 +37,6 @@ set(INC
 	../modifiers
 	../nodes
 	../render/extern/include
-	../rigidbody
 	../../../intern/guardedalloc
 	../../../intern/iksolver/extern
 	../../../intern/memutil
@@ -264,7 +263,10 @@ if(WITH_BULLET)
 	list(APPEND INC_SYS
 		${BULLET_INCLUDE_DIRS}
 	)
-	add_definitions(-DUSE_BULLET)
+	list(APPEND INC
+		../rigidbody
+	)
+	add_definitions(-DWITH_BULLET)
 endif()
 
 #if(WITH_MOD_CLOTH_ELTOPO)

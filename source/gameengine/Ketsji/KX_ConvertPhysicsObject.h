@@ -145,7 +145,7 @@ void	KX_ConvertDynamoObject(KX_GameObject* gameobj,
 	struct	KX_ObjectProperties*	objprop);
 
 
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 
 void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	class	RAS_MeshObject* meshobj,

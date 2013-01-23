@@ -59,7 +59,7 @@
 #include "BKE_modifier.h"
 
 #include "BKE_DerivedMesh.h"
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 #include "Bullet-C-Api.h"
 #endif
 #include "BLI_kdopbvh.h"
@@ -385,7 +385,7 @@ static CollPair* cloth_collision(ModifierData *md1, ModifierData *md2,
 	CollisionModifierData *collmd = (CollisionModifierData *) md2;
 	/* Cloth *cloth = clmd->clothObject; */ /* UNUSED */
 	MFace *face1=NULL, *face2 = NULL;
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 	ClothVertex *verts1 = clmd->clothObject->verts;
 #endif
 	double distance = 0;
@@ -458,7 +458,7 @@ static CollPair* cloth_collision(ModifierData *md1, ModifierData *md2,
 			}
 		}
 		
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 		// calc distance + normal
 		distance = plNearestPoints (
 			verts1[collpair->ap1].txold, verts1[collpair->ap2].txold, verts1[collpair->ap3].txold, collmd->current_x[collpair->bp1].co, collmd->current_x[collpair->bp2].co, collmd->current_x[collpair->bp3].co, collpair->pa, collpair->pb, collpair->vector );

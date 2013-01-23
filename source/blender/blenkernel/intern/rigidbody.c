@@ -42,7 +42,9 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
-#include "RBI_api.h"
+#ifdef WITH_BULLET
+#  include "RBI_api.h"
+#endif
 
 #include "DNA_anim_types.h"
 #include "DNA_group_types.h"
@@ -65,6 +67,8 @@
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
+
+#ifdef WITH_BULLET
 
 /* ************************************** */
 /* Memory Management */
@@ -1210,3 +1214,36 @@ void BKE_rigidbody_do_simulation(Scene *scene, float ctime)
 	}
 }
 /* ************************************** */
+
+#else  /* WITH_BULLET */
+
+/* stubs */
+#ifdef __GNUC__
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
+void BKE_rigidbody_free_world(RigidBodyWorld *rbw) {}
+void BKE_rigidbody_free_object(Object *ob) {}
+void BKE_rigidbody_free_constraint(Object *ob) {}
+struct RigidBodyOb *BKE_rigidbody_copy_object(Object *ob) { return NULL; }
+struct RigidBodyCon *BKE_rigidbody_copy_constraint(Object *ob) { return NULL; }
+void BKE_rigidbody_validate_sim_shape(Object *ob, short rebuild) {}
+void BKE_rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, short rebuild) {}
+void BKE_rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, short rebuild) {}
+void BKE_rigidbody_validate_sim_world(Scene *scene, RigidBodyWorld *rbw, short rebuild) {}
+struct RigidBodyWorld *BKE_rigidbody_create_world(Scene *scene) { return NULL; }
+struct RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type) { return NULL; }
+struct RigidBodyCon *BKE_rigidbody_create_constraint(Scene *scene, Object *ob, short type) { return NULL; }
+struct RigidBodyWorld *BKE_rigidbody_get_world(Scene *scene) { return NULL; }
+void BKE_rigidbody_remove_object(Scene *scene, Object *ob) {}
+void BKE_rigidbody_remove_constraint(Scene *scene, Object *ob) {}
+void BKE_rigidbody_sync_transforms(Scene *scene, Object *ob, float ctime) {}
+void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw) {}
+void BKE_rigidbody_do_simulation(Scene *scene, float ctime) {}
+
+#ifdef __GNUC__
+#  pragma GCC diagnostic pop
+#endif
+
+#endif  /* WITH_BULLET */

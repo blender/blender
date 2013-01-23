@@ -56,6 +56,6 @@ if env['WITH_BF_CXX_GUARDEDALLOC']:
     defs.append('WITH_CXX_GUARDEDALLOC')
 
 if env['WITH_BF_BULLET']:
-    defs.append('USE_BULLET')
+    defs.append('WITH_BULLET')
 
 env.BlenderLib ( 'ge_phys_bullet', Split(sources), Split(incs), defs, libtype=['core','player'], priority=[350,50], cxx_compileflags=env['BGE_CXXFLAGS'])

@@ -106,7 +106,10 @@ add_subdirectory(nodes)
 add_subdirectory(modifiers)
 add_subdirectory(makesdna)
 add_subdirectory(makesrna)
-add_subdirectory(rigidbody)
+
+if(WITH_BULLET)
+	add_subdirectory(rigidbody)
+endif()
 
 if(WITH_COMPOSITOR)
 	add_subdirectory(opencl)  # later on this may be used more generally

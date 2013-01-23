@@ -238,6 +238,13 @@ if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
+if(WITH_BULLET)
+	list(APPEND INC
+		../../rigidbody
+	)
+	add_definitions(-DWITH_BULLET)
+endif()
+
 # Build makesrna executable
 blender_include_dirs(
 	.
@@ -254,7 +261,6 @@ blender_include_dirs(
 	../../windowmanager
 	../../editors/include
 	../../render/extern/include
-	../../rigidbody
 	../../../../intern/audaspace/intern
 	../../../../intern/cycles/blender
 	../../../../intern/guardedalloc

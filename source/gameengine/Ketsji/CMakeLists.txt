@@ -254,7 +254,7 @@ if(WITH_BULLET)
 	list(APPEND INC
 		${BULLET_INCLUDE_DIRS}
 	)
-	add_definitions(-DUSE_BULLET)
+	add_definitions(-DWITH_BULLET)
 endif()
 
 blender_add_lib(ge_logic_ketsji "${SRC}" "${INC}" "${INC_SYS}")

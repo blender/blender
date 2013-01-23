@@ -73,7 +73,9 @@
 
 #include "BIK_api.h"
 
-#include "RBI_api.h"
+#ifdef WITH_BULLET
+#  include "RBI_api.h"
+#endif
 
 /* both in intern */
 #ifdef WITH_SMOKE
@@ -883,10 +885,10 @@ static int  ptcache_rigidbody_write(int index, void *rb_v, void **data, int UNUS
 		RigidBodyOb *rbo = ob->rigidbody_object;
 		
 		if (rbo->type == RBO_TYPE_ACTIVE) {
-			
+#ifdef WITH_BULLET
 			RB_body_get_position(rbo->physics_object, rbo->pos);
 			RB_body_get_orientation(rbo->physics_object, rbo->orn);
-			
+#endif
 			PTCACHE_DATA_FROM(data, BPHYS_DATA_LOCATION, rbo->pos);
 			PTCACHE_DATA_FROM(data, BPHYS_DATA_ROTATION, rbo->orn);
 		}

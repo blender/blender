@@ -42,7 +42,7 @@
 #include "CTR_Map.h"
 #include "CTR_HashedPtr.h"
 
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 
 #include "CcdPhysicsEnvironment.h"
 #include "CcdPhysicsController.h"

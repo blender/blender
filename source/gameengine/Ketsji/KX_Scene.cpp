@@ -88,7 +88,7 @@
 #include "BL_DeformableGameObject.h"
 #include "KX_ObstacleSimulation.h"
 
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 #include "KX_SoftBodyDeformer.h"
 #include "KX_ConvertPhysicsObject.h"
 #include "CcdPhysicsEnvironment.h"
@@ -1131,7 +1131,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 				blendobj->parent &&							// original object had armature (not sure this test is needed)
 				blendobj->parent->type == OB_ARMATURE &&
 				blendmesh->dvert!=NULL;						// mesh has vertex group
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 			bool bHasSoftBody = (!parentobj && (blendobj->gameflag & OB_SOFT_BODY));
 #endif
 			bool releaseParent = true;
@@ -1222,7 +1222,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 				);
 				newobj->SetDeformer(meshdeformer);
 			}
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 			else if (bHasSoftBody)
 			{
 				KX_SoftBodyDeformer *softdeformer = new KX_SoftBodyDeformer(mesh, newobj);
@@ -1239,7 +1239,7 @@ void KX_Scene::ReplaceMesh(class CValue* obj,void* meshobj, bool use_gfx, bool u
 	gameobj->AddMeshUser();
 	}
 
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 	if (use_phys) { /* update the new assigned mesh with the physics mesh */
 		KX_ReInstanceBulletShapeFromMesh(gameobj, NULL, use_gfx?NULL:mesh);
 	}
@@ -1756,7 +1756,7 @@ short KX_Scene::GetAnimationFPS()
 	return m_blenderScene->r.frs_sec;
 }
 
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 #include "KX_BulletPhysicsController.h"
 #endif
 
@@ -1768,7 +1768,7 @@ static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *to)
 	brick->Replace_NetworkScene(to->GetNetworkScene());
 
 	/* near sensors have physics controllers */
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 	KX_TouchSensor *touch_sensor = dynamic_cast<class KX_TouchSensor *>(brick);
 	if (touch_sensor) {
 		touch_sensor->GetPhysicsController()->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
@@ -1789,7 +1789,7 @@ static void MergeScene_LogicBrick(SCA_ILogicBrick* brick, KX_Scene *to)
 	}
 }
 
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 #include "CcdGraphicController.h" // XXX  ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 #include "CcdPhysicsEnvironment.h" // XXX  ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 #include "KX_BulletPhysicsController.h"
@@ -1858,7 +1858,7 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 			for (int i=0; i<children.size(); i++)
 					children[i]->SetSGClientInfo(to);
 		}
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 		SGControllerList::iterator contit;
 		SGControllerList& controllers = sg->GetSGControllerList();
 		for (contit = controllers.begin();contit!=controllers.end();++contit)
@@ -1867,7 +1867,7 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 			if (phys_ctrl)
 				phys_ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 		}
-#endif // USE_BULLET
+#endif // WITH_BULLET
 	}
 	/* If the object is a light, update it's scene */
 	if (gameobj->GetGameObjectType() == SCA_IObject::OBJ_LIGHT)
@@ -1886,7 +1886,7 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 
 bool KX_Scene::MergeScene(KX_Scene *other)
 {
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 	CcdPhysicsEnvironment *env=			dynamic_cast<CcdPhysicsEnvironment *>(this->GetPhysicsEnvironment());
 	CcdPhysicsEnvironment *env_other=	dynamic_cast<CcdPhysicsEnvironment *>(other->GetPhysicsEnvironment());
 
@@ -1896,7 +1896,7 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 		printf("\tsource %d, terget %d\n", (int)(env!=NULL), (int)(env_other!=NULL));
 		return false;
 	}
-#endif // USE_BULLET
+#endif // WITH_BULLET
 
 	if (GetSceneConverter() != other->GetSceneConverter()) {
 		printf("KX_Scene::MergeScene: converters differ, aborting\n");
@@ -1939,7 +1939,7 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 	GetLightList()->MergeList(other->GetLightList());
 	other->GetLightList()->ReleaseAndRemoveAll();
 
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 	if (env) /* bullet scene? - dummy scenes don't need touching */
 		env->MergeEnvironment(env_other);
 #endif

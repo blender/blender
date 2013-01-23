@@ -111,7 +111,7 @@ if env['WITH_BF_QUICKTIME']:
     incs += ' ' + env['BF_QUICKTIME_INC']
 
 if env['WITH_BF_BULLET']:
-    defs.append('USE_BULLET')
+    defs.append('WITH_BULLET')
 
 if env['OURPLATFORM'] == 'darwin':
     if env['WITH_BF_OPENMP']:

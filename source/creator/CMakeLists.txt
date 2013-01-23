@@ -856,7 +856,6 @@ endif()
 		bf_modifiers
 		bf_bmesh
 		bf_blenkernel
-		bf_rigidbody
 		bf_nodes
 		bf_gpu
 		bf_blenloader
@@ -969,6 +968,10 @@ endif()
 
 	if(WITH_INTERNATIONAL)
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_locale)
+	endif()
+
+	if(WITH_BULLET)
+		list_insert_after(BLENDER_SORTED_LIBS "bf_blenkernel" "bf_rigidbody")
 	endif()
 
 	if(WITH_BULLET AND NOT WITH_BULLET_SYSTEM)

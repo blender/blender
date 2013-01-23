@@ -1606,7 +1606,7 @@ void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	RNAUpdateCb *cb;
 	uiBlock *block;
 	uiBut *but;
-	rctf rect;
+//	rctf rect;  /* UNUSED */
 	int icon;
 	
 	if (!prop || RNA_property_type(prop) != PROP_ENUM)
@@ -1618,8 +1618,8 @@ void uiTemplateIconView(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	cb->ptr = *ptr;
 	cb->prop = prop;
 	
-	rect.xmin = 0; rect.xmax = 10.0f * UI_UNIT_X;
-	rect.ymin = 0; rect.ymax = 10.0f * UI_UNIT_X;
+//	rect.xmin = 0; rect.xmax = 10.0f * UI_UNIT_X;
+//	rect.ymin = 0; rect.ymax = 10.0f * UI_UNIT_X;
 	
 	block = uiLayoutAbsoluteBlock(layout);
 

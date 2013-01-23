@@ -40,7 +40,9 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
-#include "RBI_api.h"
+#ifdef WITH_BULLET
+#  include "RBI_api.h"
+#endif
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -170,8 +172,9 @@ static int rigidbody_world_export_exec(bContext *C, wmOperator *op)
 	}
 
 	RNA_string_get(op->ptr, "filepath", path);
+#ifdef WITH_BULLET
 	RB_dworld_export(rbw->physics_world, path);
-
+#endif
 	return OPERATOR_FINISHED;
 }
 

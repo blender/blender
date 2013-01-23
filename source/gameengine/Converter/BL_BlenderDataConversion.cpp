@@ -164,7 +164,7 @@ extern Material defmaterial;	/* material.c */
 #include "SG_Tree.h"
 
 #include "KX_ConvertPhysicsObject.h"
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 #include "CcdPhysicsEnvironment.h"
 #include "CcdGraphicController.h"
 #endif
@@ -1526,7 +1526,7 @@ static void BL_CreateGraphicObjectNew(KX_GameObject* gameobj,
 	{
 		switch (physics_engine)
 		{
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 		case UseBullet:
 			{
 				CcdPhysicsEnvironment* env = (CcdPhysicsEnvironment*)kxscene->GetPhysicsEnvironment();
@@ -1829,7 +1829,7 @@ static void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	
 	switch (physics_engine)
 	{
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 		case UseBullet:
 			KX_ConvertBulletObject(gameobj, meshobj, dm, kxscene, shapeprops, smmaterial, &objprop);
 			break;
@@ -1980,7 +1980,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 		bool bHasDvert = mesh->dvert != NULL && ob->defbase.first;
 		bool bHasArmature = (BL_ModifierDeformer::HasArmatureDeformer(ob) && ob->parent && ob->parent->type == OB_ARMATURE && bHasDvert);
 		bool bHasModifier = BL_ModifierDeformer::HasCompatibleDeformer(ob);
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 		bool bHasSoftBody = (!ob->parent && (ob->gameflag & OB_SOFT_BODY));
 #endif
 		if (bHasModifier) {
@@ -2007,7 +2007,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 			BL_MeshDeformer *dcont = new BL_MeshDeformer((BL_DeformableGameObject*)gameobj,
 														  ob, meshobj);
 			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 		} else if (bHasSoftBody) {
 			KX_SoftBodyDeformer *dcont = new KX_SoftBodyDeformer(meshobj, (BL_DeformableGameObject*)gameobj);
 			((BL_DeformableGameObject*)gameobj)->SetDeformer(dcont);

@@ -136,7 +136,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	 * in other scenes when compositing */
 	if (bmd->object != ob) {
 		/* weak! - but we can too easy end up with circular dep crash otherwise */
-		if (modifiers_findByType(bmd->object, eModifierType_Boolean) == false) {
+		if (modifiers_findByType(bmd->object, eModifierType_Boolean) == NULL) {
 			dm = mesh_get_derived_final(md->scene, bmd->object, CD_MASK_MESH);
 		}
 		else {

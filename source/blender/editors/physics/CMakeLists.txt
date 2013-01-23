@@ -27,7 +27,6 @@ set(INC
 	../../makesdna
 	../../makesrna
 	../../windowmanager
-	../../rigidbody
 	../../../../intern/elbeem/extern
 	../../../../intern/guardedalloc
 )
@@ -61,6 +60,13 @@ endif()
 
 if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
+endif()
+
+if(WITH_BULLET)
+	list(APPEND INC
+		../../rigidbody
+	)
+	add_definitions(-DWITH_BULLET)
 endif()
 
 blender_add_lib(bf_editor_physics "${SRC}" "${INC}" "${INC_SYS}")
