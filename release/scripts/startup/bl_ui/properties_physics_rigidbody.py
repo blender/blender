@@ -35,7 +35,13 @@ class PHYSICS_PT_rigid_body(PHYSICS_PT_rigidbody_panel, Panel):
         ob = context.object
         rd = context.scene.render
         return (ob and ob.rigid_body and (not rd.use_game_engine))
-        
+
+    def draw_header(self, context):
+        obj = context.object
+        rbo = obj.rigid_body
+        if rbo is not None:
+            self.layout.prop(rbo, "enabled", text="");
+
     def draw(self, context):
         layout = self.layout
 
@@ -46,7 +52,6 @@ class PHYSICS_PT_rigid_body(PHYSICS_PT_rigidbody_panel, Panel):
             layout.prop(rbo, "type", text="Type")
             
             row = layout.row()
-            row.prop(rbo, "enabled");
             row.prop(rbo, "kinematic", text="Animated")
 
             if rbo.type == 'ACTIVE':

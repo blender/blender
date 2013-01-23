@@ -252,9 +252,15 @@ class SCENE_PT_rigid_body_world(SceneButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        rd = context.scene.render
         scene = context.scene
+        rd = scene.render
         return scene and (rd.engine in cls.COMPAT_ENGINES)
+
+    def draw_header(self, context):
+        scene = context.scene
+        rbw = scene.rigidbody_world
+        if rbw is not None:
+            self.layout.prop(rbw, "enabled", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -268,8 +274,6 @@ class SCENE_PT_rigid_body_world(SceneButtonsPanel, Panel):
         else:
             split = layout.split()
             split.operator("rigidbody.world_remove")
-            layout.separator()
-            layout.prop(context.scene.rigidbody_world, "enabled")
             layout.active = rbw.enabled
 
             col = layout.column()
