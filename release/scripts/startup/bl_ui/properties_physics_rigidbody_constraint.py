@@ -42,174 +42,167 @@ class PHYSICS_PT_rigid_body_constraint(PHYSICS_PT_rigidbody_constraint_panel, Pa
         ob = context.object
         rbc = ob.rigid_body_constraint
 
-        if rbc:
-            layout.prop(rbc, "type")
+        layout.prop(rbc, "type")
 
-            split = layout.split()
+        row = layout.row()
+        row.prop(rbc, "enabled")
+        row.prop(rbc, "disable_collisions")
 
-            row = split.row()
-            row.prop(rbc, "enabled")
-            row.prop(rbc, "disable_collisions")
+        layout.prop(rbc, "object1")
+        layout.prop(rbc, "object2")
 
-            split = layout.split()
-            split.prop(rbc, "object1")
-            split = layout.split()
-            split.prop(rbc, "object2")
+        row = layout.row()
+        row.prop(rbc, "use_breaking")
+        sub = row.row()
+        sub.active = rbc.use_breaking
+        sub.prop(rbc, "breaking_threshold", text="Threshold")
 
-            split = layout.split()
-            col = split.row()
-            col.prop(rbc, "use_breaking")
-            sub = col.column()
-            sub.active = rbc.use_breaking
-            sub.prop(rbc, "breaking_threshold", text="Threshold")
+        row = layout.row()
+        row.prop(rbc, "override_solver_iterations", text="Override Iterations")
+        sub = row.row()
+        sub.active = rbc.override_solver_iterations
+        sub.prop(rbc, "num_solver_iterations", text="Iterations")
 
-            split = layout.split()
-            col = split.row()
-            col.prop(rbc, "override_solver_iterations", text="Override Iterations")
-            sub = col.split()
-            sub.active = rbc.override_solver_iterations
-            sub.prop(rbc, "num_solver_iterations", text="Iterations")
+        if rbc.type == 'HINGE':
+            col = layout.column(align=True)
+            col.label("Limits:")
 
-            if rbc.type == 'HINGE':
+            row = col.row()
+            sub = row.row()
+            sub.scale_x = 0.5
+            sub.prop(rbc, "use_limit_ang_z", toggle=True)
+            sub = row.row()
+            sub.active = rbc.use_limit_ang_z
+            sub.prop(rbc, "limit_ang_z_lower", text="Lower")
+            sub.prop(rbc, "limit_ang_z_upper", text="Upper")
+
+        elif rbc.type == 'SLIDER':
+            col = layout.column(align=True)
+            col.label("Limits:")
+
+            row = col.row()
+            sub = row.row()
+            sub.scale_x = 0.5
+            sub.prop(rbc, "use_limit_lin_x", toggle=True)
+            sub = row.row()
+            sub.active = rbc.use_limit_lin_x
+            sub.prop(rbc, "limit_lin_x_lower", text="Lower")
+            sub.prop(rbc, "limit_lin_x_upper", text="Upper")
+
+        elif rbc.type == 'PISTON':
+            col = layout.column(align=True)
+            col.label("Limits:")
+
+            row = col.row()
+            sub = row.row()
+            sub.scale_x = 0.5
+            sub.prop(rbc, "use_limit_lin_x", toggle=True)
+            sub = row.row()
+            sub.active = rbc.use_limit_lin_x
+            sub.prop(rbc, "limit_lin_x_lower", text="Lower")
+            sub.prop(rbc, "limit_lin_x_upper", text="Upper")
+
+            col = layout.column(align=True)
+
+            row = col.row()
+            sub = row.row()
+            sub.scale_x = 0.5
+            sub.prop(rbc, "use_limit_ang_x", toggle=True)
+            sub = row.row()
+            sub.active = rbc.use_limit_ang_x
+            sub.prop(rbc, "limit_ang_x_lower", text="Lower")
+            sub.prop(rbc, "limit_ang_x_upper", text="Upper")
+
+        elif rbc.type in {'GENERIC', 'GENERIC_SPRING'}:
+            col = layout.column(align=True)
+            col.label("Limits:")
+
+            row = col.row()
+            sub = row.row()
+            sub.scale_x = 0.5
+            sub.prop(rbc, "use_limit_lin_x", toggle=True)
+            sub = row.row()
+            sub.active = rbc.use_limit_lin_x
+            sub.prop(rbc, "limit_lin_x_lower", text="Lower")
+            sub.prop(rbc, "limit_lin_x_upper", text="Upper")
+
+            row = col.row()
+            sub = row.row()
+            sub.scale_x = 0.5
+            sub.prop(rbc, "use_limit_lin_y", toggle=True)
+            sub = row.row()
+            sub.active = rbc.use_limit_lin_y
+            sub.prop(rbc, "limit_lin_y_lower", text="Lower")
+            sub.prop(rbc, "limit_lin_y_upper", text="Upper")
+
+            row = col.row()
+            sub = row.row()
+            sub.scale_x = 0.5
+            sub.prop(rbc, "use_limit_lin_z", toggle=True)
+            sub = row.row()
+            sub.active = rbc.use_limit_lin_z
+            sub.prop(rbc, "limit_lin_z_lower", text="Lower")
+            sub.prop(rbc, "limit_lin_z_upper", text="Upper")
+
+            col = layout.column(align=True)
+
+            row = col.row()
+            sub = row.row()
+            sub.scale_x = 0.5
+            sub.prop(rbc, "use_limit_ang_x", toggle=True)
+            sub = row.row()
+            sub.active = rbc.use_limit_ang_x
+            sub.prop(rbc, "limit_ang_x_lower", text="Lower")
+            sub.prop(rbc, "limit_ang_x_upper", text="Upper")
+
+            row = col.row()
+            sub = row.row()
+            sub.scale_x = 0.5
+            sub.prop(rbc, "use_limit_ang_y", toggle=True)
+            sub = row.row()
+            sub.active = rbc.use_limit_ang_y
+            sub.prop(rbc, "limit_ang_y_lower", text="Lower")
+            sub.prop(rbc, "limit_ang_y_upper", text="Upper")
+
+            row = col.row()
+            sub = row.row()
+            sub.scale_x = 0.5
+            sub.prop(rbc, "use_limit_ang_z", toggle=True)
+            sub = row.row()
+            sub.active = rbc.use_limit_ang_z
+            sub.prop(rbc, "limit_ang_z_lower", text="Lower")
+            sub.prop(rbc, "limit_ang_z_upper", text="Upper")
+
+            if rbc.type == 'GENERIC_SPRING':                  
                 col = layout.column(align=True)
-                col.label("Limits:")
+                col.label("Springs:")
 
                 row = col.row()
                 sub = row.row()
-                sub.scale_x = 0.5
-                sub.prop(rbc, "use_limit_ang_z", toggle=True)
+                sub.scale_x = 0.1
+                sub.prop(rbc, "use_spring_x", toggle=True, text="X")
                 sub = row.row()
-                sub.active = rbc.use_limit_ang_z
-                sub.prop(rbc, "limit_ang_z_lower", text="Lower")
-                sub.prop(rbc, "limit_ang_z_upper", text="Upper")
-
-            elif rbc.type == 'SLIDER':
-                col = layout.column(align=True)
-                col.label("Limits:")
+                sub.active = rbc.use_spring_x
+                sub.prop(rbc, "spring_stiffness_x", text="Stiffness")
+                sub.prop(rbc, "spring_damping_x")
 
                 row = col.row()
                 sub = row.row()
-                sub.scale_x = 0.5
-                sub.prop(rbc, "use_limit_lin_x", toggle=True)
+                sub.scale_x = 0.1
+                sub.prop(rbc, "use_spring_y", toggle=True, text="Y")
                 sub = row.row()
-                sub.active = rbc.use_limit_lin_x
-                sub.prop(rbc, "limit_lin_x_lower", text="Lower")
-                sub.prop(rbc, "limit_lin_x_upper", text="Upper")
-
-            elif rbc.type == 'PISTON':
-                col = layout.column(align=True)
-                col.label("Limits:")
+                sub.active = rbc.use_spring_y
+                sub.prop(rbc, "spring_stiffness_y", text="Stiffness")
+                sub.prop(rbc, "spring_damping_y")
 
                 row = col.row()
                 sub = row.row()
-                sub.scale_x = 0.5
-                sub.prop(rbc, "use_limit_lin_x", toggle=True)
+                sub.scale_x = 0.1
+                sub.prop(rbc, "use_spring_z", toggle=True, text="Z")
                 sub = row.row()
-                sub.active = rbc.use_limit_lin_x
-                sub.prop(rbc, "limit_lin_x_lower", text="Lower")
-                sub.prop(rbc, "limit_lin_x_upper", text="Upper")
-
-                col = layout.column(align=True)
-
-                row = col.row()
-                sub = row.row()
-                sub.scale_x = 0.5
-                sub.prop(rbc, "use_limit_ang_x", toggle=True)
-                sub = row.row()
-                sub.active = rbc.use_limit_ang_x
-                sub.prop(rbc, "limit_ang_x_lower", text="Lower")
-                sub.prop(rbc, "limit_ang_x_upper", text="Upper")
-
-            elif rbc.type in {'GENERIC', 'GENERIC_SPRING'}:
-                col = layout.column(align=True)
-                col.label("Limits:")
-
-                row = col.row()
-                sub = row.row()
-                sub.scale_x = 0.5
-                sub.prop(rbc, "use_limit_lin_x", toggle=True)
-                sub = row.row()
-                sub.active = rbc.use_limit_lin_x
-                sub.prop(rbc, "limit_lin_x_lower", text="Lower")
-                sub.prop(rbc, "limit_lin_x_upper", text="Upper")
-
-                row = col.row()
-                sub = row.row()
-                sub.scale_x = 0.5
-                sub.prop(rbc, "use_limit_lin_y", toggle=True)
-                sub = row.row()
-                sub.active = rbc.use_limit_lin_y
-                sub.prop(rbc, "limit_lin_y_lower", text="Lower")
-                sub.prop(rbc, "limit_lin_y_upper", text="Upper")
-
-                row = col.row()
-                sub = row.row()
-                sub.scale_x = 0.5
-                sub.prop(rbc, "use_limit_lin_z", toggle=True)
-                sub = row.row()
-                sub.active = rbc.use_limit_lin_z
-                sub.prop(rbc, "limit_lin_z_lower", text="Lower")
-                sub.prop(rbc, "limit_lin_z_upper", text="Upper")
-
-                col = layout.column(align=True)
-
-                row = col.row()
-                sub = row.row()
-                sub.scale_x = 0.5
-                sub.prop(rbc, "use_limit_ang_x", toggle=True)
-                sub = row.row()
-                sub.active = rbc.use_limit_ang_x
-                sub.prop(rbc, "limit_ang_x_lower", text="Lower")
-                sub.prop(rbc, "limit_ang_x_upper", text="Upper")
-
-                row = col.row()
-                sub = row.row()
-                sub.scale_x = 0.5
-                sub.prop(rbc, "use_limit_ang_y", toggle=True)
-                sub = row.row()
-                sub.active = rbc.use_limit_ang_y
-                sub.prop(rbc, "limit_ang_y_lower", text="Lower")
-                sub.prop(rbc, "limit_ang_y_upper", text="Upper")
-
-                row = col.row()
-                sub = row.row()
-                sub.scale_x = 0.5
-                sub.prop(rbc, "use_limit_ang_z", toggle=True)
-                sub = row.row()
-                sub.active = rbc.use_limit_ang_z
-                sub.prop(rbc, "limit_ang_z_lower", text="Lower")
-                sub.prop(rbc, "limit_ang_z_upper", text="Upper")
-
-                if rbc.type == 'GENERIC_SPRING':                  
-                    col = layout.column(align=True)
-                    col.label("Springs:")
-
-                    row = col.row()
-                    sub = row.row()
-                    sub.scale_x = 0.1
-                    sub.prop(rbc, "use_spring_x", toggle=True, text="X")
-                    sub = row.row()
-                    sub.active = rbc.use_spring_x
-                    sub.prop(rbc, "spring_stiffness_x", text="Stiffness")
-                    sub.prop(rbc, "spring_damping_x")
-
-                    row = col.row()
-                    sub = row.row()
-                    sub.scale_x = 0.1
-                    sub.prop(rbc, "use_spring_y", toggle=True, text="Y")
-                    sub = row.row()
-                    sub.active = rbc.use_spring_y
-                    sub.prop(rbc, "spring_stiffness_y", text="Stiffness")
-                    sub.prop(rbc, "spring_damping_y")
-
-                    row = col.row()
-                    sub = row.row()
-                    sub.scale_x = 0.1
-                    sub.prop(rbc, "use_spring_z", toggle=True, text="Z")
-                    sub = row.row()
-                    sub.active = rbc.use_spring_z
-                    sub.prop(rbc, "spring_stiffness_z", text="Stiffness")
-                    sub.prop(rbc, "spring_damping_z")
+                sub.active = rbc.use_spring_z
+                sub.prop(rbc, "spring_stiffness_z", text="Stiffness")
+                sub.prop(rbc, "spring_damping_z")
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

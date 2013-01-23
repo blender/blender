@@ -50,13 +50,10 @@ class PHYSICS_PT_rigid_body(PHYSICS_PT_rigidbody_panel, Panel):
         
         if rbo is not None:
             layout.prop(rbo, "type", text="Type")
-            
-            row = layout.row()
-            row.prop(rbo, "kinematic", text="Animated")
+            layout.prop(rbo, "kinematic", text="Animated")
 
             if rbo.type == 'ACTIVE':
-                col = layout.column()
-                col.prop(rbo, "mass")
+                layout.prop(rbo, "mass")
 
 
 class PHYSICS_PT_rigid_body_collisions(PHYSICS_PT_rigidbody_panel, Panel):
@@ -91,6 +88,7 @@ class PHYSICS_PT_rigid_body_collisions(PHYSICS_PT_rigidbody_panel, Panel):
             sub = col.column()
             sub.active = rbo.use_margin
             sub.prop(rbo, "collision_margin", text="Margin")
+            
         layout.prop(rbo, "collision_groups")
 
 
