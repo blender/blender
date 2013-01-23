@@ -118,6 +118,7 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_property_types.h"
+#include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sdna_types.h"
 #include "DNA_sequence_types.h"
@@ -1487,6 +1488,11 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			}
 			writestruct(wd, DATA, "BulletSoftBody", 1, ob->bsoft);
 			
+			if (ob->rigidbody_object) {
+				// TODO: if any extra data is added to handle duplis, will need separate function then
+				writestruct(wd, DATA, "RigidBodyOb", 1, ob->rigidbody_object);
+			}
+			
 			write_particlesystems(wd, &ob->particlesystem);
 			write_modifiers(wd, &ob->modifiers);
 		}
@@ -2296,7 +2302,12 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		}
 
 		write_view_settings(wd, &sce->view_settings);
-
+		
+		/* writing RigidBodyWorld data to the blend file */
+		if (sce->rigidbody_world) {
+			writestruct(wd, DATA, "RigidBodyWorld", 1, sce->rigidbody_world);
+		}
+		
 		sce= sce->id.next;
 	}
 	/* flush helps the compression for undo-save */

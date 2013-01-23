@@ -37,6 +37,7 @@ set(INC
 	../modifiers
 	../nodes
 	../render/extern/include
+	../rigidbody
 	../../../intern/guardedalloc
 	../../../intern/iksolver/extern
 	../../../intern/memutil
@@ -128,6 +129,7 @@ set(SRC
 	intern/pointcache.c
 	intern/property.c
 	intern/report.c
+	intern/rigidbody.c
 	intern/sca.c
 	intern/scene.c
 	intern/screen.c
@@ -219,6 +221,7 @@ set(SRC
 	BKE_pointcache.h
 	BKE_property.h
 	BKE_report.h
+	BKE_rigidbody.h
 	BKE_sca.h
 	BKE_scene.h
 	BKE_screen.h

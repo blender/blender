@@ -38,6 +38,7 @@ incs += ' ../render/extern/include #/intern/cycles/blender'
 incs += ' ../nodes'
 incs += ' #/extern/glew/include'
 incs += ' #/intern/smoke/extern'
+incs += ' ../rigidbody'
 
 incs += ' ../bmesh'
 

@@ -2428,6 +2428,12 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Particle Systems", "Particle systems emitted from the object");
 	rna_def_object_particle_systems(brna, prop);
 
+	
+	prop = RNA_def_property(srna, "rigid_body", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "rigidbody_object");
+	RNA_def_property_struct_type(prop, "RigidBodyObject");
+	RNA_def_property_ui_text(prop, "Rigid Body Settings", "Settings for rigid body simulation");
+	
 	/* restrict */
 	prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_VIEW);

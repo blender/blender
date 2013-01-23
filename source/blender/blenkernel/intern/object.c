@@ -98,6 +98,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_property.h"
+#include "BKE_rigidbody.h"
 #include "BKE_sca.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
@@ -386,6 +387,7 @@ void BKE_object_free(Object *ob)
 	BKE_free_constraints(&ob->constraints);
 	
 	free_partdeflect(ob->pd);
+	BKE_rigidbody_free_object(ob);
 
 	if (ob->soft) sbFree(ob->soft);
 	if (ob->bsoft) bsbFree(ob->bsoft);
@@ -1288,6 +1290,7 @@ static Object *object_copy_do(Object *ob, int copy_caches)
 	obn->bsoft = copy_bulletsoftbody(ob->bsoft);
 
 	BKE_object_copy_particlesystems(obn, ob);
+	obn->rigidbody_object = BKE_rigidbody_copy_object(ob);
 	
 	obn->derivedDeform = NULL;
 	obn->derivedFinal = NULL;

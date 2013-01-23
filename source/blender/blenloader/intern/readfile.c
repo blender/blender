@@ -81,6 +81,7 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_property_types.h"
+#include "DNA_rigidbody_types.h"
 #include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
@@ -4785,7 +4786,18 @@ static void direct_link_object(FileData *fd, Object *ob)
 	}
 	ob->bsoft = newdataadr(fd, ob->bsoft);
 	ob->fluidsimSettings= newdataadr(fd, ob->fluidsimSettings); /* NT */
-
+	
+	ob->rigidbody_object = newdataadr(fd, ob->rigidbody_object);
+	if (ob->rigidbody_object) {
+		RigidBodyOb *rbo = ob->rigidbody_object;
+		
+		/* must nullify the references to physics sim objects, since they no-longer exist 
+		 * (and will need to be recalculated) 
+		 */
+		rbo->physics_object = NULL;
+		rbo->physics_shape = NULL;
+	}
+	
 	link_list(fd, &ob->particlesystem);
 	direct_link_particlesystems(fd, &ob->particlesystem);
 	
@@ -5003,6 +5015,14 @@ static void lib_link_scene(FileData *fd, Main *main)
 			BKE_sequencer_update_muting(sce->ed);
 			BKE_sequencer_update_sound_bounds_all(sce);
 			
+			
+			/* rigidbody world relies on it's linked groups */
+			if (sce->rigidbody_world) {
+				RigidBodyWorld *rbw = sce->rigidbody_world;
+				if (rbw->group)
+					rbw->group = newlibadr(fd, sce->id.lib, rbw->group);
+			}
+			
 			if (sce->nodetree) {
 				lib_link_ntree(fd, &sce->id, sce->nodetree);
 				composite_patch(sce->nodetree, sce);
@@ -5079,6 +5099,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	Editing *ed;
 	Sequence *seq;
 	MetaStack *ms;
+	RigidBodyWorld *rbw;
 	
 	sce->theDag = NULL;
 	sce->dagisvalid = 0;
@@ -5265,6 +5286,17 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	}
 
 	direct_link_view_settings(fd, &sce->view_settings);
+	
+	sce->rigidbody_world = newdataadr(fd, sce->rigidbody_world);
+	rbw = sce->rigidbody_world;
+	if (rbw) {
+		/* must nullify the reference to physics sim object, since it no-longer exist 
+		 * (and will need to be recalculated) 
+		 */
+		rbw->physics_world = NULL;
+		rbw->objects = NULL;
+		rbw->numbodies = 0;
+	}
 }
 
 /* ************ READ WM ***************** */
@@ -9679,6 +9711,10 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 			if (seq->sound) expand_doit(fd, mainvar, seq->sound);
 		}
 		SEQ_END
+	}
+	
+	if (sce->rigidbody_world) {
+		expand_doit(fd, mainvar, sce->rigidbody_world->group);
 	}
 
 #ifdef DURIAN_CAMERA_SWITCH

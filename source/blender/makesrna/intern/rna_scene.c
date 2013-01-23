@@ -35,6 +35,7 @@
 #include "DNA_group_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_world_types.h"
@@ -405,8 +406,7 @@ static void rna_Scene_object_unlink(Scene *scene, ReportList *reports, Object *o
 		scene->basact = NULL;
 	}
 
-	BLI_remlink(&scene->base, base);
-	MEM_freeN(base);
+	BKE_scene_base_remove(scene, base);
 
 	ob->id.us--;
 
@@ -4552,6 +4552,13 @@ void RNA_def_scene(BlenderRNA *brna)
 	                         "All Keying Sets available for use (Builtins and Absolute Keying Sets for this Scene)");
 	RNA_def_property_update(prop, NC_SCENE | ND_KEYINGSET, NULL);
 	rna_def_scene_keying_sets_all(brna, prop);
+	
+	/* Rigid Body Simulation */
+	prop = RNA_def_property(srna, "rigidbody_world", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "rigidbody_world");
+	RNA_def_property_struct_type(prop, "RigidBodyWorld");
+	RNA_def_property_ui_text(prop, "Rigid Body World", "");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
 	/* Tool Settings */
 	prop = RNA_def_property(srna, "tool_settings", PROP_POINTER, PROP_NONE);

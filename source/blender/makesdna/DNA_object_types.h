@@ -56,6 +56,7 @@ struct ParticleSystem;
 struct DerivedMesh;
 struct SculptSession;
 struct bGPdata;
+struct RigidBodyOb;
 
 
 /* Vertex Groups - Name Info */
@@ -270,6 +271,8 @@ typedef struct Object {
 	ListBase gpulamp;		/* runtime, for glsl lamp display only */
 	ListBase pc_ids;
 	ListBase *duplilist;	/* for temporary dupli list storage, only for use by RNA API */
+	
+	struct RigidBodyOb *rigidbody_object;		/* settings for Bullet rigid body */
 
 	float ima_ofs[2];		/* offset for image empties */
 } Object;

@@ -70,6 +70,7 @@ set(DEFSRC
 	rna_pose.c
 	rna_property.c
 	rna_render.c
+	rna_rigidbody.c
 	rna_rna.c
 	rna_scene.c
 	rna_screen.c
@@ -253,6 +254,7 @@ blender_include_dirs(
 	../../windowmanager
 	../../editors/include
 	../../render/extern/include
+	../../rigidbody
 	../../../../intern/audaspace/intern
 	../../../../intern/cycles/blender
 	../../../../intern/guardedalloc
