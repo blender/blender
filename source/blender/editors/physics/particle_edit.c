@@ -3254,7 +3254,7 @@ static int brush_add(PEData *data, short number)
 	ParticleEditSettings *pset= PE_settings(scene);
 	int i, k, n= 0, totpart= psys->totpart;
 	float mco[2];
-	short dmx= 0, dmy= 0;
+	float dmx, dmy;
 	float co1[3], co2[3], min_d, imat[4][4];
 	float framestep, timestep;
 	short size= pset->brush[PE_BRUSH_ADD].size;
@@ -3282,11 +3282,18 @@ static int brush_add(PEData *data, short number)
 
 	for (i=0; i<number; i++) {
 		if (number>1) {
-			dmx=dmy=size;
-			while (dmx*dmx+dmy*dmy>size2) {
-				dmx=(short)((2.0f*BLI_frand()-1.0f)*size);
-				dmy=(short)((2.0f*BLI_frand()-1.0f)*size);
+			dmx = size;
+			dmy = size;
+
+			/* rejection sampling to get points in circle */
+			while (dmx*dmx + dmy*dmy > size2) {
+				dmx= (2.0f*BLI_frand() - 1.0f)*size;
+				dmy= (2.0f*BLI_frand() - 1.0f)*size;
 			}
+		}
+		else {
+			dmx = 0.0f;
+			dmy = 0.0f;
 		}
 
 		mco[0] = data->mval[0] + dmx;
@@ -3390,8 +3397,14 @@ static int brush_add(PEData *data, short number)
 					weight[w] = 0.0f;
 				}
 
-				for (w=0; w<maxw; w++)
-					weight[w] /= totw;
+				if(totw > 0.0f) {
+					for (w=0; w<maxw; w++)
+						weight[w] /= totw;
+				}
+				else {
+					for (w=0; w<maxw; w++)
+						weight[w] = 1.0f/maxw;
+				}
 
 				ppa= psys->particles+ptn[0].index;
 
@@ -3403,7 +3416,7 @@ static int brush_add(PEData *data, short number)
 					psys_get_particle_on_path(&sim, ptn[0].index, key3, 0);
 					mul_v3_fl(key3[0].co, weight[0]);
 					
-					/* TODO: interpolatint the weight would be nicer */
+					/* TODO: interpolating the weight would be nicer */
 					thkey->weight= (ppa->hair+MIN2(k, ppa->totkey-1))->weight;
 					
 					if (maxw>1) {
