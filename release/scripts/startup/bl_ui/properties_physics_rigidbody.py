@@ -48,7 +48,7 @@ class PHYSICS_PT_rigid_body(PHYSICS_PT_rigidbody_panel, Panel):
         ob = context.object
         rbo = ob.rigid_body
         
-        if rbo:
+        if rbo is not None:
             layout.prop(rbo, "type", text="Type")
             
             row = layout.row()

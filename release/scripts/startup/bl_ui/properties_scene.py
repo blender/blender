@@ -269,26 +269,28 @@ class SCENE_PT_rigid_body_world(SceneButtonsPanel, Panel):
 
         rbw = scene.rigidbody_world
 
-        if not rbw:
+        if rbw is None:
             layout.operator("rigidbody.world_add")
         else:
-            split = layout.split()
-            split.operator("rigidbody.world_remove")
-            layout.active = rbw.enabled
+            col = layout.column()
+            col.operator("rigidbody.world_remove")
 
             col = layout.column()
-            col.prop(rbw, "group")
-            col.prop(rbw, "constraints")
+            col.active = rbw.enabled
 
-            split = layout.split()
+            colsub = col.column()
+            colsub.prop(rbw, "group")
+            colsub.prop(rbw, "constraints")
 
-            col = split.column()
-            col.prop(rbw, "time_scale", text="Speed")
-            col.prop(rbw, "use_split_impulse")
+            split = col.split()
 
-            col = split.column()
-            col.prop(rbw, "steps_per_second", text="Steps Per Second")
-            col.prop(rbw, "num_solver_iterations", text="Solver Iterations")
+            colsub = split.column()
+            colsub.prop(rbw, "time_scale", text="Speed")
+            colsub.prop(rbw, "use_split_impulse")
+
+            colsub = split.column()
+            colsub.prop(rbw, "steps_per_second", text="Steps Per Second")
+            colsub.prop(rbw, "num_solver_iterations", text="Solver Iterations")
 
 
 class SCENE_PT_rigid_body_cache(SceneButtonsPanel, Panel):
