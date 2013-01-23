@@ -1212,6 +1212,33 @@ void mat4_to_loc_rot_size(float loc[3], float rot[3][3], float size[3], float wm
 	copy_v3_v3(loc, wmat[3]);
 }
 
+void mat4_to_loc_quat(float loc[3], float quat[4], float wmat[4][4])
+{
+	float mat3[3][3];
+	float mat3_n[3][3]; /* normalized mat3 */
+
+	copy_m3_m4(mat3, wmat);
+	normalize_m3_m3(mat3_n, mat3);
+
+	/* so scale doesn't interfere with rotation [#24291] */
+	/* note: this is a workaround for negative matrix not working for rotation conversion, FIXME */
+	if (is_negative_m3(mat3)) {
+		negate_v3(mat3_n[0]);
+		negate_v3(mat3_n[1]);
+		negate_v3(mat3_n[2]);
+	}
+
+	mat3_to_quat(quat, mat3_n);
+	copy_v3_v3(loc, wmat[3]);
+}
+
+void mat4_decompose(float loc[3], float quat[4], float size[3], float wmat[4][4])
+{
+	float rot[3][3];
+	mat4_to_loc_rot_size(loc, rot, size, wmat);
+	mat3_to_quat(quat, rot);
+}
+
 void scale_m3_fl(float m[3][3], float scale)
 {
 	m[0][0] = m[1][1] = m[2][2] = scale;
