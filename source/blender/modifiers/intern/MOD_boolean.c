@@ -135,7 +135,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	 * in some cases the depsgraph fails us - especially for objects
 	 * in other scenes when compositing */
 	if (bmd->object != ob) {
-		dm = mesh_get_derived_final(md->scene, bmd->object, CD_MASK_MESH);
+		/* weak! - but we can too easy end up with circular dep crash otherwise */
+		if (modifiers_findByType(bmd->object, eModifierType_Boolean) == false) {
+			dm = mesh_get_derived_final(md->scene, bmd->object, CD_MASK_MESH);
+		}
+		else {
+			dm = bmd->object->derivedFinal;
+		}
 	}
 	else {
 		dm = NULL;
