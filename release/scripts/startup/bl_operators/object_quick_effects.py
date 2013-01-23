@@ -72,7 +72,7 @@ class QuickFur(Operator):
             )
 
     def execute(self, context):
-        fake_context = bpy.context.copy()
+        fake_context = context.copy()
         mesh_objects = [obj for obj in context.selected_objects
                         if obj.type == 'MESH']
 
@@ -161,7 +161,7 @@ class QuickExplode(Operator):
             )
 
     def execute(self, context):
-        fake_context = bpy.context.copy()
+        fake_context = context.copy()
         obj_act = context.active_object
 
         if obj_act is None or obj_act.type != 'MESH':
@@ -311,7 +311,7 @@ class QuickSmoke(Operator):
             )
 
     def execute(self, context):
-        fake_context = bpy.context.copy()
+        fake_context = context.copy()
         mesh_objects = [obj for obj in context.selected_objects
                         if obj.type == 'MESH']
         min_co = Vector((100000.0, 100000.0, 100000.0))
@@ -432,7 +432,7 @@ class QuickFluid(Operator):
             )
 
     def execute(self, context):
-        fake_context = bpy.context.copy()
+        fake_context = context.copy()
         mesh_objects = [obj for obj in context.selected_objects
                         if (obj.type == 'MESH' and not 0.0 in obj.dimensions)]
         min_co = Vector((100000, 100000, 100000))

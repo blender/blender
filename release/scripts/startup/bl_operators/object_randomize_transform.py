@@ -23,7 +23,8 @@ from bpy.types import Operator
 from mathutils import Vector
 
 
-def randomize_selected(seed, delta, loc, rot, scale, scale_even, scale_min):
+def randomize_selected(context, seed, delta,
+                       loc, rot, scale, scale_even, scale_min):
 
     import random
     from random import uniform
@@ -33,7 +34,7 @@ def randomize_selected(seed, delta, loc, rot, scale, scale_even, scale_min):
     def rand_vec(vec_range):
         return Vector(uniform(-val, val) for val in vec_range)
 
-    for obj in bpy.context.selected_objects:
+    for obj in context.selected_objects:
 
         if loc:
             if delta:
@@ -180,6 +181,7 @@ class RandomizeLocRotSize(Operator):
         #scale_min = self.scale_min
         scale_min = 0
 
-        randomize_selected(seed, delta, loc, rot, scale, scale_even, scale_min)
+        randomize_selected(context, seed, delta,
+                           loc, rot, scale, scale_even, scale_min)
 
         return {'FINISHED'}

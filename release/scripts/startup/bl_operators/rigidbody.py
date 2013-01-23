@@ -32,7 +32,7 @@ class CopyRigidbodySettings(Operator):
 
     @classmethod
     def poll(cls, context):
-        obj = bpy.context.object
+        obj = context.object
         return (obj and obj.rigid_body)
 
     def execute(self, context):
@@ -101,22 +101,22 @@ class BakeToKeyframes(Operator):
 
     @classmethod
     def poll(cls, context):
-        obj = bpy.context.object
+        obj = context.object
         return (obj and obj.rigid_body)
 
     def execute(self, context):
         bake = []
         objs = []
-        scene = bpy.context.scene
+        scene = context.scene
         frame_orig = scene.frame_current
         frames = list(range(self.frame_start, self.frame_end + 1, self.step))
 
         # filter objects selection
-        for ob in bpy.context.selected_objects:
-            if not ob.rigid_body or ob.rigid_body.type != 'ACTIVE':
-                ob.select = False
+        for obj in context.selected_objects:
+            if not obj.rigid_body or obj.rigid_body.type != 'ACTIVE':
+                obj.select = False
 
-        objs = bpy.context.selected_objects
+        objs = context.selected_objects
 
         if objs:
             # store transformation data
@@ -124,31 +124,31 @@ class BakeToKeyframes(Operator):
                 scene.frame_set(f)
                 if f in frames:
                     mat = {}
-                    for i, ob in enumerate(objs):
-                        mat[i] = ob.matrix_world.copy()
+                    for i, obj in enumerate(objs):
+                        mat[i] = obj.matrix_world.copy()
                     bake.append(mat)
 
             # apply transformations as keyframes
             for i, f in enumerate(frames):
                 scene.frame_set(f)
-                ob_prev = objs[0]
-                for j, ob in enumerate(objs):
+                obj_prev = objs[0]
+                for j, obj in enumerate(objs):
                     mat = bake[i][j]
 
-                    ob.location = mat.to_translation()
+                    obj.location = mat.to_translation()
 
-                    rot_mode = ob.rotation_mode
+                    rot_mode = obj.rotation_mode
                     if rot_mode == 'QUATERNION':
-                        ob.rotation_quaternion = mat.to_quaternion()
+                        obj.rotation_quaternion = mat.to_quaternion()
                     elif rot_mode == 'AXIS_ANGLE':
                         # this is a little roundabout but there's no better way right now
                         aa = mat.to_quaternion().to_axis_angle()
-                        ob.rotation_axis_angle = (aa[1], ) + aa[0][:]
+                        obj.rotation_axis_angle = (aa[1], ) + aa[0][:]
                     else: # euler
                         # make sure euler rotation is compatible to previous frame
-                        ob.rotation_euler = mat.to_euler(rot_mode, ob_prev.rotation_euler)
+                        obj.rotation_euler = mat.to_euler(rot_mode, obj_prev.rotation_euler)
 
-                    ob_prev = ob
+                    obj_prev = obj
 
                 bpy.ops.anim.keyframe_insert(type='BUILTIN_KSI_LocRot', confirm_success=False)
 
@@ -156,8 +156,8 @@ class BakeToKeyframes(Operator):
             bpy.ops.rigidbody.objects_remove()
 
             # clean up keyframes
-            for ob in objs:
-                action = ob.animation_data.action
+            for obj in objs:
+                action = obj.animation_data.action
                 for fcu in action.fcurves:
                     keyframe_points = fcu.keyframe_points
                     i = 1
@@ -219,30 +219,30 @@ class ConnectRigidBodies(Operator):
 
     @classmethod
     def poll(cls, context):
-        obj = bpy.context.object
-        objs = bpy.context.selected_objects
+        obj = context.object
+        objs = context.selected_objects
         return (obj and obj.rigid_body and (len(objs) > 1))
 
     def execute(self, context):
 
-        objs = bpy.context.selected_objects
-        ob_act = bpy.context.active_object
+        objs = context.selected_objects
+        obj_act = context.active_object
 
-        for ob in objs:
-            if ob == ob_act:
+        for obj in objs:
+            if obj == obj_act:
                 continue
             if self.pivot_type == 'ACTIVE':
-                loc = ob_act.location
+                loc = obj_act.location
             elif self.pivot_type == 'SELECTED':
-                loc = ob.location
+                loc = obj.location
             else:
-                loc = (ob_act.location + ob.location) / 2
+                loc = (obj_act.location + obj.location) / 2.0
             bpy.ops.object.add(type='EMPTY', view_align=False, enter_editmode=False, location=loc)
             bpy.ops.rigidbody.constraint_group_add()
-            con = bpy.context.active_object.rigid_body_constraint
+            con = context.active_object.rigid_body_constraint
             con.type = self.con_type
-            con.object1 = ob_act
-            con.object2 = ob
+            con.object1 = obj_act
+            con.object2 = obj
 
         return {'FINISHED'}
 

@@ -1730,7 +1730,7 @@ class WM_OT_addon_install(Operator):
             # don't use bpy.utils.script_paths("addons") because we may not be able to write to it.
             path_addons = bpy.utils.user_resource('SCRIPTS', "addons", create=True)
         else:
-            path_addons = bpy.context.user_preferences.filepaths.script_directory
+            path_addons = context.user_preferences.filepaths.script_directory
             if path_addons:
                 path_addons = os.path.join(path_addons, "addons")
 

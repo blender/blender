@@ -516,7 +516,7 @@ def lightmap_uvpack(meshes,
 
 def unwrap(operator, context, **kwargs):
 
-    is_editmode = (bpy.context.object.mode == 'EDIT')
+    is_editmode = (context.object.mode == 'EDIT')
     if is_editmode:
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
