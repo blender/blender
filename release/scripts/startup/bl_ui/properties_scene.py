@@ -21,6 +21,10 @@ import bpy
 from bpy.types import Panel, UIList
 from rna_prop_ui import PropertyPanel
 
+from bl_ui.properties_physics_common import (
+    point_cache_ui,
+    effector_weights_ui,
+    )
 
 class SCENE_UL_keying_set_paths(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
@@ -240,6 +244,83 @@ class SCENE_PT_physics(SceneButtonsPanel, Panel):
         layout.active = scene.use_gravity
 
         layout.prop(scene, "gravity", text="")
+
+
+class SCENE_PT_rigid_body_world(SceneButtonsPanel, Panel):
+    bl_label = "Rigid Body World"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    @classmethod
+    def poll(cls, context):
+        rd = context.scene.render
+        scene = context.scene
+        return scene and (rd.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+
+        rbw = scene.rigidbody_world
+
+        if not rbw:
+            layout.operator("rigidbody.world_add")
+        else:
+            split = layout.split()
+            split.operator("rigidbody.world_remove")
+            layout.separator()
+            layout.prop(context.scene.rigidbody_world, "enabled")
+            layout.active = rbw.enabled
+
+            col = layout.column()
+            col.prop(rbw, "group")
+            col.prop(rbw, "constraints")
+
+            split = layout.split()
+
+            col = split.column()
+            col.prop(rbw, "time_scale", text="Speed")
+            col.prop(rbw, "use_split_impulse")
+
+            col = split.column()
+            col.prop(rbw, "steps_per_second", text="Steps Per Second")
+            col.prop(rbw, "num_solver_iterations", text="Solver Iterations")
+
+
+class SCENE_PT_rigid_body_cache(SceneButtonsPanel, Panel):
+    bl_label = "Rigid Body Cache"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    @classmethod
+    def poll(cls, context):
+        rd = context.scene.render
+        scene = context.scene
+        return scene and scene.rigidbody_world and (rd.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        scene = context.scene
+        rbw = scene.rigidbody_world
+
+        point_cache_ui(self, context, rbw.point_cache, rbw.point_cache.is_baked is False and rbw.enabled, 'RIGID_BODY')
+
+
+class SCENE_PT_rigid_body_field_weights(SceneButtonsPanel, Panel):
+    bl_label = "Rigid Body Field Weights"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    @classmethod
+    def poll(cls, context):
+        rd = context.scene.render
+        scene = context.scene
+        return scene and scene.rigidbody_world and (rd.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        scene = context.scene
+        rbw = scene.rigidbody_world
+
+        effector_weights_ui(self, context, rbw.effector_weights, 'RIGID_BODY')
 
 
 class SCENE_PT_simplify(SceneButtonsPanel, Panel):

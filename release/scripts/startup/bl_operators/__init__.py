@@ -35,6 +35,7 @@ _modules = (
     "object_randomize_transform",
     "object_quick_effects",
     "presets",
+    "rigidbody",
     "screen_play_rendered_anim",
     "sequencer",
     "uvcalc_follow_active",

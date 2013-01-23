@@ -1,0 +1,130 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+# <pep8 compliant>
+import bpy
+from bpy.types import Panel
+
+
+class PHYSICS_PT_rigidbody_panel():
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "physics"
+
+
+class PHYSICS_PT_rigid_body(PHYSICS_PT_rigidbody_panel, Panel):
+    bl_label = "Rigid Body"
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        rd = context.scene.render
+        return (ob and ob.rigid_body and (not rd.use_game_engine))
+        
+    def draw(self, context):
+        layout = self.layout
+
+        ob = context.object
+        rbo = ob.rigid_body
+        
+        if rbo:
+            layout.prop(rbo, "type", text="Type")
+            
+            row = layout.row()
+            row.prop(rbo, "enabled");
+            row.prop(rbo, "kinematic", text="Animated")
+
+            if rbo.type == 'ACTIVE':
+                col = layout.column()
+                col.prop(rbo, "mass")
+
+
+class PHYSICS_PT_rigid_body_collisions(PHYSICS_PT_rigidbody_panel, Panel):
+    bl_label = "Rigid Body Collisions"
+
+    @classmethod
+    def poll(cls, context):
+        return (context.object and context.object.rigid_body and 
+                (not context.scene.render.use_game_engine))
+        
+    def draw(self, context):
+        layout = self.layout
+
+        ob = context.object
+        rbo = ob.rigid_body
+        
+        layout.prop(rbo, "collision_shape", text="Shape")
+        
+        split = layout.split()
+        
+        col = split.column()
+        col.label(text="Surface Response:")
+        col.prop(rbo, "friction")
+        col.prop(rbo, "restitution", text="Bounciness")
+        
+        col = split.column()
+        col.label(text="Sensitivity:")
+        if rbo.collision_shape in {'MESH', 'CONE'}:
+            col.prop(rbo, "collision_margin", text="Margin")
+        else:
+            col.prop(rbo, "use_margin");
+            sub = col.column()
+            sub.active = rbo.use_margin
+            sub.prop(rbo, "collision_margin", text="Margin")
+        layout.prop(rbo, "collision_groups")
+
+
+class PHYSICS_PT_rigid_body_dynamics(PHYSICS_PT_rigidbody_panel, Panel):
+    bl_label = "Rigid Body Dynamics"
+    bl_default_closed = True
+
+    @classmethod
+    def poll(cls, context):
+        return (context.object and context.object.rigid_body and
+                context.object.rigid_body.type == 'ACTIVE' and
+                (not context.scene.render.use_game_engine))
+        
+    def draw(self, context):
+        layout = self.layout
+
+        ob = context.object
+        rbo = ob.rigid_body
+        
+        #col = layout.column(align=1)
+        #col.label(text="Activation:")
+        # XXX: settings such as activate on collison/etc. 
+        
+        split = layout.split();
+        
+        col = split.column()
+        col.label(text="Deactivation:")
+        col.prop(rbo, "use_deactivation")
+        sub = col.column()
+        sub.active = rbo.use_deactivation
+        sub.prop(rbo, "start_deactivated")
+        sub.prop(rbo, "deactivate_linear_velocity", text="Linear Vel")
+        sub.prop(rbo, "deactivate_angular_velocity", text="Angular Vel")
+        # TODO: other params such as time?
+        
+        col = split.column()
+        col.label(text="Damping:")
+        col.prop(rbo, "linear_damping", text="Translation")
+        col.prop(rbo, "angular_damping", text="Rotation")
+
+if __name__ == "__main__":  # only for live edit.
+    bpy.utils.register_module(__name__)

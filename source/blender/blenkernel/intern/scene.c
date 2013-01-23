@@ -1206,6 +1206,12 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	BKE_animsys_evaluate_all_animation(bmain, sce, ctime);
 	/*...done with recusrive funcs */
 
+	/* run rigidbody sim */
+	// XXX: this position may still change, objects not being updated correctly before simulation is run
+	// NOTE: current position is so that rigidbody sim affects other objects
+	if (BKE_scene_check_rigidbody_active(sce))
+		BKE_rigidbody_do_simulation(sce, ctime);
+
 	/* clear "LIB_DOIT" flag from all materials, to prevent infinite recursion problems later 
 	 * when trying to find materials with drivers that need evaluating [#32017] 
 	 */

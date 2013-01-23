@@ -2146,6 +2146,8 @@ void BKE_object_where_is_calc_time(Scene *scene, Object *ob, float ctime)
 		BKE_object_to_mat4(ob, ob->obmat);
 	}
 	
+	BKE_rigidbody_sync_transforms(scene, ob, ctime);
+	
 	/* solve constraints */
 	if (ob->constraints.first && !(ob->transflag & OB_NO_CONSTRAINTS)) {
 		bConstraintOb *cob;

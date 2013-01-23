@@ -751,7 +751,35 @@ static void rigidbody_update_simulation(Scene *scene, RigidBodyWorld *rbw, int r
 /* Sync rigid body and object transformations */
 void BKE_rigidbody_sync_transforms(Scene *scene, Object *ob, float ctime)
 {
-// RB_TODO implement this
+	RigidBodyWorld *rbw = scene->rigidbody_world;
+	RigidBodyOb *rbo = ob->rigidbody_object;
+
+	/* keep original transform for kinematic and passive objects */
+	if (ELEM(NULL, rbw, rbo) || rbo->flag & RBO_FLAG_KINEMATIC || rbo->type == RBO_TYPE_PASSIVE)
+		return;
+
+	/* use rigid body transform after cache start frame */
+	if (ctime > rbw->pointcache->startframe) {
+		float mat[4][4], size_mat[4][4], size[3];
+
+		/* keep original transform when the simulation is muted */
+		if (rbw->flag & RBW_FLAG_MUTED)
+			return;
+
+		normalize_qt(rbo->orn); // RB_TODO investigate why quaternion isn't normalized at this point
+		quat_to_mat4(mat, rbo->orn);
+		copy_v3_v3(mat[3], rbo->pos);
+
+		mat4_to_size(size, ob->obmat);
+		size_to_mat4(size_mat, size);
+		mult_m4_m4m4(mat, mat, size_mat);
+
+		copy_m4_m4(ob->obmat, mat);
+	}
+	/* otherwise set rigid body transform to current obmat */
+	else {
+		mat4_to_loc_quat(rbo->pos, rbo->orn, ob->obmat);
+	}
 }
 
 void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw)
@@ -765,6 +793,77 @@ void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw)
 /* Run RigidBody simulation for the specified physics world */
 void BKE_rigidbody_do_simulation(Scene *scene, float ctime)
 {
-// RB_TODO implement this
+	float timestep;
+	RigidBodyWorld *rbw = scene->rigidbody_world;
+	PointCache *cache;
+	PTCacheID pid;
+	int startframe, endframe;
+
+	BKE_ptcache_id_from_rigidbody(&pid, NULL, rbw);
+	BKE_ptcache_id_time(&pid, scene, ctime, &startframe, &endframe, NULL);
+	cache = rbw->pointcache;
+
+	/* flag cache as outdated if we don't have a world or number of objects in the simulation has changed */
+	if (rbw->physics_world == NULL || rbw->numbodies != BLI_countlist(&rbw->group->gobject)) {
+		cache->flag |= PTCACHE_OUTDATED;
+	}
+
+	if (ctime <= startframe) {
+		rbw->ltime = startframe;
+		/* reset and rebuild simulation if necessary */
+		if (cache->flag & PTCACHE_OUTDATED) {
+			BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+			rigidbody_update_simulation(scene, rbw, true);
+			BKE_ptcache_validate(cache, (int)ctime);
+			cache->last_exact = 0;
+			cache->flag &= ~PTCACHE_REDO_NEEDED;
+		}
+		return;
+	}
+	/* rebuild world if it's outdated on second frame */
+	else if (ctime == startframe + 1 && rbw->ltime == startframe && cache->flag & PTCACHE_OUTDATED) {
+		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+		rigidbody_update_simulation(scene, rbw, true);
+	}
+	/* make sure we don't go out of cache frame range */
+	else if (ctime > endframe) {
+		ctime = endframe;
+	}
+
+	/* don't try to run the simulation if we don't have a world yet but allow reading baked cache */
+	if (rbw->physics_world == NULL && !(cache->flag & PTCACHE_BAKED))
+		return;
+	else if (rbw->objects == NULL)
+		rigidbody_update_ob_array(rbw);
+
+	/* try to read from cache */
+	// RB_TODO deal with interpolated, old and baked results
+	if (BKE_ptcache_read(&pid, ctime)) {
+		BKE_ptcache_validate(cache, (int)ctime);
+		rbw->ltime = ctime;
+		return;
+	}
+
+	/* advance simulation, we can only step one frame forward */
+	if (ctime == rbw->ltime + 1) {
+		/* write cache for first frame when on second frame */
+		if (rbw->ltime == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact == 0)) {
+			BKE_ptcache_write(&pid, startframe);
+		}
+
+		/* update and validate simulation */
+		rigidbody_update_simulation(scene, rbw, false);
+
+		/* calculate how much time elapsed since last step in seconds */
+		timestep = 1.0f / (float)FPS * (ctime - rbw->ltime) * rbw->time_scale;
+		/* step simulation by the requested timestep, steps per second are adjusted to take time scale into account */
+		RB_dworld_step_simulation(rbw->physics_world, timestep, INT_MAX, 1.0f / (float)rbw->steps_per_second * min_ff(rbw->time_scale, 1.0f));
+
+		/* write cache for current frame */
+		BKE_ptcache_validate(cache, (int)ctime);
+		BKE_ptcache_write(&pid, (unsigned int)ctime);
+
+		rbw->ltime = ctime;
+	}
 }
 /* ************************************** */

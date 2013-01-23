@@ -108,6 +108,29 @@ class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
         draw_repeat_tools(context, layout)
 
         draw_gpencil_tools(context, layout)
+        col = layout.column(align=True)
+
+
+class VIEW3D_PT_tools_rigidbody(View3DPanel, Panel):
+    bl_context = "objectmode"
+    bl_label = "Rigidbody Tools"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        col.label(text="Add/Remove:")
+        row = col.row()
+        row.operator("rigidbody.objects_add", text="Add Active").type = 'ACTIVE'
+        row.operator("rigidbody.objects_add", text="Add Passive").type = 'PASSIVE'
+        row = col.row()
+        row.operator("rigidbody.objects_remove", text="Remove")
+
+        col = layout.column(align=True)
+        col.label(text="Object Tools:")
+        col.operator("rigidbody.shape_change", text="Change Shape")
+        col.operator("rigidbody.mass_calculate", text="Calculate Mass")
 
 # ********** default tools for editmode_mesh ****************
 

@@ -27,6 +27,7 @@ set(INC
 	../../makesdna
 	../../makesrna
 	../../windowmanager
+	../../rigidbody
 	../../../../intern/elbeem/extern
 	../../../../intern/guardedalloc
 )
@@ -43,6 +44,8 @@ set(SRC
 	physics_fluid.c
 	physics_ops.c
 	physics_pointcache.c
+	rigidbody_object.c
+	rigidbody_world.c
 
 	physics_intern.h
 )
