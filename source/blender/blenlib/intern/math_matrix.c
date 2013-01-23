@@ -980,14 +980,8 @@ void normalize_m4(float mat[4][4])
 
 void normalize_m4_m4(float rmat[4][4], float mat[4][4])
 {
-	float len;
-
-	len = normalize_v3_v3(rmat[0], mat[0]);
-	if (len != 0.0f) rmat[0][3] = mat[0][3] / len;
-	len = normalize_v3_v3(rmat[1], mat[1]);
-	if (len != 0.0f) rmat[1][3] = mat[1][3] / len;
-	len = normalize_v3_v3(rmat[2], mat[2]);
-	if (len != 0.0f) rmat[2][3] = mat[2][3] / len;
+	copy_m4_m4(rmat, mat);
+	normalize_m4(rmat);
 }
 
 void adjoint_m2_m2(float m1[2][2], float m[2][2])
