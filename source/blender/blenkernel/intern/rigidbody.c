@@ -953,8 +953,14 @@ static void rigidbody_update_sim_ob(Scene *scene, RigidBodyWorld *rbw, Object *o
 	if (!(rbo->flag & RBO_FLAG_USE_MARGIN) && rbo->shape == RB_SHAPE_CONVEXH)
 		RB_shape_set_margin(rbo->physics_shape, RBO_GET_MARGIN(rbo) * MIN3(scale[0], scale[1], scale[2]));
 
+	/* make transformed objects temporarily kinmatic so that they can be moved by the user during simulation */
+	if ((ob->flag & SELECT && G.moving & G_TRANSFORM_OBJ) || rbo->type == RBO_TYPE_PASSIVE) {
+		RB_body_set_kinematic_state(rbo->physics_object, TRUE);
+		RB_body_set_mass(rbo->physics_object, 0.0f);
+	}
+
 	/* update rigid body location and rotation for kinematic bodies */
-	if (rbo->flag & RBO_FLAG_KINEMATIC) {
+	if (rbo->flag & RBO_FLAG_KINEMATIC || (ob->flag & SELECT && G.moving & G_TRANSFORM_OBJ)) {
 		RB_body_activate(rbo->physics_object);
 		RB_body_set_loc_rot(rbo->physics_object, loc, rot);
 	}
@@ -1095,6 +1101,24 @@ static void rigidbody_update_simulation(Scene *scene, RigidBodyWorld *rbw, int r
 	}
 }
 
+static void rigidbody_update_simulation_post_step(RigidBodyWorld *rbw)
+{
+	GroupObject *go;
+
+	for (go = rbw->group->gobject.first; go; go = go->next) {
+		Object *ob = go->ob;
+
+		if (ob) {
+			RigidBodyOb *rbo = ob->rigidbody_object;
+			/* reset kinematic state for transformed objects */
+			if (ob->flag & SELECT && G.moving & G_TRANSFORM_OBJ) {
+				RB_body_set_kinematic_state(rbo->physics_object, rbo->flag & RBO_FLAG_KINEMATIC || rbo->flag & RBO_FLAG_DISABLED);
+				RB_body_set_mass(rbo->physics_object, RBO_GET_MASS(rbo));
+			}
+		}
+	}
+}
+
 /* Sync rigid body and object transformations */
 void BKE_rigidbody_sync_transforms(Scene *scene, Object *ob, float ctime)
 {
@@ -1105,8 +1129,8 @@ void BKE_rigidbody_sync_transforms(Scene *scene, Object *ob, float ctime)
 	if (ELEM(NULL, rbw, rbo) || rbo->flag & RBO_FLAG_KINEMATIC || rbo->type == RBO_TYPE_PASSIVE)
 		return;
 
-	/* use rigid body transform after cache start frame */
-	if (ctime > rbw->pointcache->startframe) {
+	/* use rigid body transform after cache start frame if objects is not being transformed */
+	if (ctime > rbw->pointcache->startframe && !(ob->flag & SELECT && G.moving & G_TRANSFORM_OBJ)) {
 		float mat[4][4], size_mat[4][4], size[3];
 
 		/* keep original transform when the simulation is muted */
@@ -1127,6 +1151,31 @@ void BKE_rigidbody_sync_transforms(Scene *scene, Object *ob, float ctime)
 	else {
 		mat4_to_loc_quat(rbo->pos, rbo->orn, ob->obmat);
 	}
+}
+
+void BKE_rigidbody_aftertrans_update(Object *ob, float loc[3], float rot[3], float quat[4], float rotAxis[3], float rotAngle)
+{
+	RigidBodyOb *rbo = ob->rigidbody_object;
+
+	/* return rigid body and objext to their initial states */
+	copy_v3_v3(rbo->pos, ob->loc);
+	copy_v3_v3(ob->loc, loc);
+
+	if (ob->rotmode > 0) {
+		eulO_to_quat(rbo->orn, ob->rot, ob->rotmode);
+		copy_v3_v3(ob->rot, rot);
+	}
+	else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+		axis_angle_to_quat(rbo->orn, ob->rotAxis, ob->rotAngle);
+		copy_v3_v3(ob->rotAxis, rotAxis);
+		ob->rotAngle = rotAngle;
+	}
+	else {
+		copy_qt_qt(rbo->orn, ob->quat);
+		copy_qt_qt(ob->quat, quat);
+	}
+	RB_body_set_loc_rot(rbo->physics_object, rbo->pos, rbo->orn);
+	// RB_TODO update rigid body physics object's loc/rot for dynamic objects here as well (needs to be done outside bullet's update loop)
 }
 
 void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw)
@@ -1205,6 +1254,8 @@ void BKE_rigidbody_do_simulation(Scene *scene, float ctime)
 		timestep = 1.0f / (float)FPS * (ctime - rbw->ltime) * rbw->time_scale;
 		/* step simulation by the requested timestep, steps per second are adjusted to take time scale into account */
 		RB_dworld_step_simulation(rbw->physics_world, timestep, INT_MAX, 1.0f / (float)rbw->steps_per_second * min_ff(rbw->time_scale, 1.0f));
+
+		rigidbody_update_simulation_post_step(rbw);
 
 		/* write cache for current frame */
 		BKE_ptcache_validate(cache, (int)ctime);

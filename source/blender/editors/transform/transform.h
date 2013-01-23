@@ -137,6 +137,7 @@ typedef struct TransDataExtension {
 	                      * namely when a bone is in "NoLocal" or "Hinge" mode)... */
 	float  r_smtx[3][3]; /* Invers of previous one. */
 	int    rotOrder;	/* rotation mode,  as defined in eRotationModes (DNA_action_types.h) */
+	float oloc[3], orot[3], oquat[4], orotAxis[3], orotAngle; /* Original object transformation used for rigid bodies */
 } TransDataExtension;
 
 typedef struct TransData2D {
