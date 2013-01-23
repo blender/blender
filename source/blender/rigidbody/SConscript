@@ -34,5 +34,5 @@ sources = env.Glob('*.cpp')
 
 incs = '../blenlib ../../../intern/guardedalloc ../../../extern/bullet2/src'
 
-env.BlenderLib ('bf_rigidbody', sources, Split(incs), [], libtype='core', priority=180 )
+env.BlenderLib ('bf_rigidbody', sources, Split(incs), [], libtype=['core', 'player'], priority=[180, 30] )
 
