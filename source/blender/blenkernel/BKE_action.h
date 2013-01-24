@@ -220,7 +220,7 @@ void BKE_pose_remove_group(struct Object *ob);
 void what_does_obaction(struct Object *ob, struct Object *workob, struct bPose *pose, struct bAction *act, char groupname[], float cframe);
 
 /* for proxy */
-int BKE_pose_copy_result(struct bPose *to, struct bPose *from);
+bool BKE_pose_copy_result(struct bPose *to, struct bPose *from);
 /* clear all transforms */
 void BKE_pose_rest(struct bPose *pose);
 

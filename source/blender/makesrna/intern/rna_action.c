@@ -39,6 +39,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_action.h"
 
 #include "WM_types.h"

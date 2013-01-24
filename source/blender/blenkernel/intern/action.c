@@ -1118,18 +1118,18 @@ void BKE_pose_rest(bPose *pose)
 }
 
 /* both poses should be in sync */
-int BKE_pose_copy_result(bPose *to, bPose *from)
+bool BKE_pose_copy_result(bPose *to, bPose *from)
 {
 	bPoseChannel *pchanto, *pchanfrom;
 	
 	if (to == NULL || from == NULL) {
 		printf("Pose copy error, pose to:%p from:%p\n", (void *)to, (void *)from); /* debug temp */
-		return 0;
+		return false;
 	}
 
 	if (to == from) {
 		printf("BKE_pose_copy_result source and target are the same\n");
-		return 0;
+		return false;
 	}
 
 
@@ -1153,7 +1153,7 @@ int BKE_pose_copy_result(bPose *to, bPose *from)
 			pchanto->protectflag = pchanfrom->protectflag;
 		}
 	}
-	return 1;
+	return true;
 }
 
 /* For the calculation of the effects of an Action at the given frame on an object 
