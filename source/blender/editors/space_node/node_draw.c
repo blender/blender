@@ -702,19 +702,6 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	if (node->flag & NODE_MUTED)
 		UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);
 	
-	/* debug info: using wrong shaders in wrong context */
-	if (ntree->type == NTREE_SHADER) {
-		if (snode->flag & SNODE_NEW_SHADERS) {
-			if (node->typeinfo->compatibility == NODE_OLD_SHADING)
-				UI_ThemeColor(TH_REDALERT);
-		}
-		else {
-			if (node->typeinfo->compatibility == NODE_NEW_SHADING)
-				UI_ThemeColor(TH_REDALERT);
-		}
-	}
-	
-
 
 #ifdef WITH_COMPOSITOR
 	if (ntree->type == NTREE_COMPOSIT && (snode->flag & SNODE_SHOW_HIGHLIGHT)) {
