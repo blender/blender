@@ -48,6 +48,12 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
+#include "BLI_math.h"
+#include "BLI_blenlib.h"
+#include "BLI_rand.h"
+#include "BLI_threads.h"
+#include "BLI_utildefines.h"
+
 #include "BKE_blender.h"
 #include "BKE_colortools.h"
 #include "BKE_global.h"
@@ -56,18 +62,11 @@
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_texture.h"
-
 #include "BKE_library.h"
 
 #include "node_util.h"
 
 #include "NOD_texture.h"
-
-#include "BLI_math.h"
-#include "BLI_blenlib.h"
-#include "BLI_rand.h"
-#include "BLI_threads.h"
-#include "BLI_utildefines.h"
 
 #include "BLF_translation.h"
 

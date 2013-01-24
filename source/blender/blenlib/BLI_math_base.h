@@ -132,7 +132,7 @@
 #define hypotf(a, b) ((float)hypot(a, b))
 #endif
 
-#endif
+#endif  /* C99 or POSIX.1-2001 */
 
 #ifdef WIN32
 #  ifndef FREE_WINDOWS

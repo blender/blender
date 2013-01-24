@@ -99,5 +99,4 @@ typedef struct Main {
 }
 #endif
 
-#endif
-
+#endif  /* __BKE_MAIN_H__ */

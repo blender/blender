@@ -577,7 +577,7 @@ struct ShadeResult;
 
 struct bNodeTreeExec *ntreeShaderBeginExecTree(struct bNodeTree *ntree, int use_tree_data);
 void            ntreeShaderEndExecTree(struct bNodeTreeExec *exec, int use_tree_data);
-int             ntreeShaderExecTree(struct bNodeTree *ntree, struct ShadeInput *shi, struct ShadeResult *shr);
+bool            ntreeShaderExecTree(struct bNodeTree *ntree, struct ShadeInput *shi, struct ShadeResult *shr);
 void            ntreeShaderGetTexcoMode(struct bNodeTree *ntree, int osa, short *texco, int *mode);
 void            nodeShaderSynchronizeID(struct bNode *node, int copyto);
 

@@ -35,16 +35,15 @@
 
 #include "DNA_scene_types.h"
 
-#include "BKE_global.h" /* XXX TESTING */
-#include "BKE_image.h"
-#include "BKE_ocean.h"
-
 #include "BLI_math.h"
 #include "BLI_path_util.h"
 #include "BLI_rand.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
+
+#include "BKE_image.h"
+#include "BKE_ocean.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

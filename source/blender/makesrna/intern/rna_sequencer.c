@@ -40,6 +40,8 @@
 #include "DNA_sequence_types.h"
 #include "DNA_movieclip_types.h"
 
+#include "BLI_math.h"
+
 #include "BKE_animsys.h"
 #include "BKE_global.h"
 #include "BKE_sequencer.h"
@@ -48,7 +50,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "WM_types.h"
-#include "BLI_math.h"
 
 #include "BLF_translation.h"
 

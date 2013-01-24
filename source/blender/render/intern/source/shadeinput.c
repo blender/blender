@@ -151,7 +151,7 @@ void shade_material_loop(ShadeInput *shi, ShadeResult *shr)
 /* do a shade, finish up some passes, apply mist */
 void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 {
-	int compat = 0;
+	bool compat = false;
 	float alpha;
 	
 	/* ------  main shading loop -------- */
@@ -163,7 +163,7 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 		compat = ntreeShaderExecTree(shi->mat->nodetree, shi, shr);
 	
 	/* also run this when node shaders fail, due to incompatible shader nodes */
-	if (compat == 0) {
+	if (compat == false) {
 		/* copy all relevant material vars, note, keep this synced with render_types.h */
 		shade_input_init_material(shi);
 		

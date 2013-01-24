@@ -249,7 +249,7 @@ void ntreeShaderEndExecTree(bNodeTreeExec *exec, int use_tree_data)
 }
 
 /* only for Blender internal */
-int ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
+bool ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 {
 	ShaderCallData scd;
 	/**

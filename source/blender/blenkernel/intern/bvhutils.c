@@ -38,11 +38,11 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_linklist.h"
+#include "BLI_math.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_tessmesh.h"
 
-#include "BLI_math.h"
 #include "MEM_guardedalloc.h"
 
 /* Math stuff for ray casting on mesh faces and for nearest surface */

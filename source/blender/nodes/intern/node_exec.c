@@ -287,7 +287,7 @@ void ntreeReleaseThreadStack(bNodeThreadStack *nts)
 	nts->used = 0;
 }
 
-int ntreeExecThreadNodes(bNodeTreeExec *exec, bNodeThreadStack *nts, void *callerdata, int thread)
+bool ntreeExecThreadNodes(bNodeTreeExec *exec, bNodeThreadStack *nts, void *callerdata, int thread)
 {
 	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
 	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
@@ -306,7 +306,7 @@ int ntreeExecThreadNodes(bNodeTreeExec *exec, bNodeThreadStack *nts, void *calle
 			 * and hence execute it!
 			 */
 //			if (node->typeinfo->compatibility == NODE_NEW_SHADING)
-//				return 0;
+//				return false;
 			if (node->typeinfo->execfunc)
 				node->typeinfo->execfunc(callerdata, node, nsin, nsout);
 			else if (node->typeinfo->newexecfunc)
@@ -315,5 +315,5 @@ int ntreeExecThreadNodes(bNodeTreeExec *exec, bNodeThreadStack *nts, void *calle
 	}
 	
 	/* signal to that all went OK, for render */
-	return 1;
+	return true;
 }

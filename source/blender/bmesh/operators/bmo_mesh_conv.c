@@ -36,15 +36,15 @@
 #include "DNA_key_types.h"
 #include "DNA_modifier_types.h"
 
+#include "BLI_math.h"
+#include "BLI_array.h"
+
 #include "BKE_mesh.h"
 #include "BLI_listbase.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_customdata.h"
-
-#include "BLI_math.h"
-#include "BLI_array.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"

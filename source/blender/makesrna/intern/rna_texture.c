@@ -44,6 +44,8 @@
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h" /* MAXFRAME only */
 
+#include "BLI_utildefines.h"
+
 #include "BKE_node.h"
 
 #include "WM_api.h"

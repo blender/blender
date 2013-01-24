@@ -38,11 +38,11 @@ int tot_hints    = 0;
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_global.h"
-
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 #include "BLI_utildefines.h"
+
+#include "BKE_global.h"
 
 #include "rayintersection.h"
 #include "rayobject.h"

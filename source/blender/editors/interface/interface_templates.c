@@ -34,11 +34,14 @@
 #include "DNA_dynamicpaint_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_force.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_ghash.h"
 #include "BLI_rect.h"
+#include "BLI_math.h"
+#include "BLI_listbase.h"
 
 #include "BLF_api.h"
 #include "BLF_translation.h"
@@ -46,22 +49,26 @@
 #include "BKE_animsys.h"
 #include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
+#include "BKE_displist.h"
 #include "BKE_dynamicpaint.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
 #include "BKE_material.h"
-#include "BKE_texture.h"
+#include "BKE_modifier.h"
+#include "BKE_object.h"
+#include "BKE_particle.h"
 #include "BKE_report.h"
-#include "BKE_displist.h"
 #include "BKE_sca.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_texture.h"
 
 #include "ED_screen.h"
 #include "ED_object.h"
 #include "ED_render.h"
+#include "ED_util.h"
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
@@ -715,21 +722,6 @@ void uiTemplatePathBuilder(uiLayout *layout, PointerRNA *ptr, const char *propna
 /************************ Modifier Template *************************/
 
 #define ERROR_LIBDATA_MESSAGE "Can't edit external libdata"
-
-#include <string.h>
-
-#include "DNA_object_force.h"
-
-#include "BKE_depsgraph.h"
-#include "BKE_modifier.h"
-#include "BKE_particle.h"
-
-#include "ED_util.h"
-
-#include "BLI_math.h"
-#include "BLI_listbase.h"
-
-#include "ED_object.h"
 
 static void modifiers_setOnCage(bContext *C, void *ob_v, void *md_v)
 {

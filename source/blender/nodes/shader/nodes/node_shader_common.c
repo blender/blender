@@ -33,6 +33,8 @@
 
 #include "DNA_node_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "BKE_node.h"
 
 #include "node_shader_util.h"

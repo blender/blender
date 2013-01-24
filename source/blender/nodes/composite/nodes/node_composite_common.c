@@ -32,11 +32,11 @@
 
 #include "DNA_node_types.h"
 
-#include "BKE_node.h"
-
 #include "node_composite_util.h"
 #include "node_common.h"
 #include "node_exec.h"
+
+#include "BKE_node.h"
 
 void register_node_type_cmp_group(bNodeTreeType *ttype)
 {

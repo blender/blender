@@ -52,6 +52,9 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "BLI_threads.h"
+#include "BLI_blenlib.h"
+
 #include "BKE_bmfont.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -61,9 +64,6 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_DerivedMesh.h"
-
-#include "BLI_threads.h"
-#include "BLI_blenlib.h"
 
 #include "GPU_buffers.h"
 #include "GPU_draw.h"

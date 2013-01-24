@@ -731,4 +731,4 @@ BLI_INLINE int DM_origindex_mface_mpoly(const int *index_mf_to_mpoly, const int 
 	return (j != ORIGINDEX_NONE) ? (index_mp_to_orig ? index_mp_to_orig[j] : j) : ORIGINDEX_NONE;
 }
 
-#endif
+#endif  /* __BKE_DERIVEDMESH_H__ */
