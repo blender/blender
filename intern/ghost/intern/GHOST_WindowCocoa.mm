@@ -488,8 +488,8 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	[m_window setSystemAndWindowCocoa:systemCocoa windowCocoa:this];
 	
 	//Forbid to resize the window below the blender defined minimum one
-	minSize.width = 640;
-	minSize.height = 480;
+	minSize.width = 320;
+	minSize.height = 240;
 	[m_window setContentMinSize:minSize];
 	
 	setTitle(title);
@@ -1049,7 +1049,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				[tmpWindow registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType,
 												   NSStringPboardType, NSTIFFPboardType, nil]];
 				//Forbid to resize the window below the blender defined minimum one
-				[tmpWindow setContentMinSize:NSMakeSize(640, 480)];
+				[tmpWindow setContentMinSize:NSMakeSize(320, 240)];
 				
 				//Assign the openGL view to the new window
 				[tmpWindow setContentView:m_openGLView];
