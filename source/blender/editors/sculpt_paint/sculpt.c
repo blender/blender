@@ -4901,6 +4901,12 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))
 		/* Enter sculptmode */
 		ob->mode |= OB_MODE_SCULPT;
 
+		/* Remove dynamic-topology flag; this will be enabled if the
+		 * file was saved with dynamic topology on, but we don't
+		 * automatically re-enter dynamic-topology mode when loading a
+		 * file. */
+		me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
+
 		if (flush_recalc)
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
