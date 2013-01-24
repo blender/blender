@@ -100,6 +100,16 @@ void BKE_mesh_calc_poly_center(struct MPoly *mpoly, struct MLoop *loopstart,
 float BKE_mesh_calc_poly_area(struct MPoly *mpoly, struct MLoop *loopstart,
                               struct MVert *mvarray, const float polynormal[3]);
 
+void BKE_mesh_calc_relative_deform(
+        const struct MPoly *mpoly, const int totpoly,
+        const struct MLoop *mloop, const int totvert,
+
+        const float (*vert_cos_src)[3],
+        const float (*vert_cos_dst)[3],
+
+        const float (*vert_cos_org)[3],
+              float (*vert_cos_new)[3]);
+
 /* Find the index of the loop in 'poly' which references vertex,
  * returns -1 if not found */
 int poly_find_loop_from_vert(const struct MPoly *poly,

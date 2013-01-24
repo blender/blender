@@ -26,6 +26,9 @@
 
 #ifndef __MOD_MESHCACHE_UTIL_H__
 
+struct MPoly;
+struct MLoop;
+
 /* MOD_meshcache_mdd.c */
 bool MOD_meshcache_read_mdd_index(FILE *fp,
                                   float (*vertexCos)[3], const int vertex_tot,
@@ -54,6 +57,7 @@ bool MOD_meshcache_read_pc2_times(const char *filepath,
                                   const float time, const float fps, const char time_mode,
                                   const char **err_str);
 
+/* MOD_meshcache_util.c */
 void MOD_meshcache_calc_range(const float frame, const char interp,
                               const int frame_tot,
                               int r_index_range[2], float *r_factor);

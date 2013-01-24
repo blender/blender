@@ -28,6 +28,8 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
@@ -37,6 +39,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_scene.h"
 #include "BKE_global.h"
+#include "BKE_mesh.h"
 #include "BKE_main.h"
 
 #include "MEM_guardedalloc.h"
@@ -84,6 +87,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	tmcmd->frame_scale = mcmd->frame_scale;
 
 	tmcmd->factor = mcmd->factor;
+	tmcmd->deform_mode = mcmd->deform_mode;
 
 	tmcmd->eval_frame  = mcmd->eval_frame;
 	tmcmd->eval_time   = mcmd->eval_time;
@@ -111,7 +115,8 @@ static void meshcache_do(
         MeshCacheModifierData *mcmd, Object *ob, DerivedMesh *UNUSED(dm),
         float (*vertexCos_Real)[3], int numVerts)
 {
-	float (*vertexCos_Store)[3] = (mcmd->factor < 1.0f) ?
+	const bool use_factor = mcmd->factor < 1.0f;
+	float (*vertexCos_Store)[3] = (use_factor || (mcmd->deform_mode == MOD_MESHCACHE_DEFORM_INTEGRATE)) ?
 	                              MEM_mallocN(sizeof(*vertexCos_Store) * numVerts, __func__) : NULL;
 	float (*vertexCos)[3] = vertexCos_Store ? vertexCos_Store : vertexCos_Real;
 
@@ -229,8 +234,57 @@ static void meshcache_do(
 		}
 	}
 
+	/* tricky shape key integration (slow!) */
+	if (mcmd->deform_mode == MOD_MESHCACHE_DEFORM_INTEGRATE) {
+		/* we could support any object type */
+		if (ob->type != OB_MESH) {
+			modifier_setError(&mcmd->modifier, "'Integrate' only valid for Mesh objects");
+		}
+		else {
+			Mesh *me = ob->data;
+			if (me->totvert != numVerts) {
+				modifier_setError(&mcmd->modifier, "'Integrate' original mesh vertex mismatch");
+			}
+			else {
+				if (me->totpoly == 0) {
+					modifier_setError(&mcmd->modifier, "'Integrate' requires faces");
+				}
+				else {
+					/* the moons align! */
+					int i;
+
+					float (*vertexCos_Source)[3] = MEM_mallocN(sizeof(*vertexCos_Source) * numVerts, __func__);
+					float (*vertexCos_New)[3]    = MEM_mallocN(sizeof(*vertexCos_New) * numVerts, __func__);
+					MVert *mv = me->mvert;
+
+					for (i = 0; i < numVerts; i++, mv++) {
+						copy_v3_v3(vertexCos_Source[i], mv->co);
+					}
+
+					BKE_mesh_calc_relative_deform(
+					        me->mpoly, me->totpoly,
+					        me->mloop, me->totvert,
+
+					        (const float (*)[3])vertexCos_Source,   /* from the original Mesh*/
+					        (const float (*)[3])vertexCos_Real,     /* the input we've been given (shape keys!) */
+
+					        (const float (*)[3])vertexCos,          /* the result of this modifier */
+					        vertexCos_New       /* the result of this function */
+					        );
+
+					/* write the corrected locations back into the result */
+					memcpy(use_factor ? vertexCos : vertexCos_Real, vertexCos_New, sizeof(*vertexCos) * numVerts);
+
+					MEM_freeN(vertexCos_Source);
+					MEM_freeN(vertexCos_New);
+				}
+			}
+		}
+	}
+
 	if (vertexCos_Store) {
-		if (ok) {
+
+		if (ok && use_factor) {
 			interp_vn_vn(*vertexCos_Real, *vertexCos_Store, mcmd->factor, numVerts * 3);
 		}
 

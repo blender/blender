@@ -168,6 +168,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         layout.label(text="Evaluation:")
         layout.prop(md, "factor", slider=True)
+        layout.prop(md, "deform_mode")
         layout.prop(md, "interpolation")
 
         layout.label(text="Time Mapping:")

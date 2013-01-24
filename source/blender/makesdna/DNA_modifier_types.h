@@ -1175,6 +1175,8 @@ typedef struct MeshCacheModifierData {
 	char interp;
 
 	float factor;
+	char deform_mode;
+	char pad[7];
 
 	/* play_mode == MOD_MESHCACHE_PLAY_CFEA */
 	float frame_start;
@@ -1192,6 +1194,11 @@ typedef struct MeshCacheModifierData {
 enum {
 	MOD_MESHCACHE_TYPE_MDD  = 1,
 	MOD_MESHCACHE_TYPE_PC2  = 2
+};
+
+enum {
+	MOD_MESHCACHE_DEFORM_OVERWRITE  = 0,
+	MOD_MESHCACHE_DEFORM_INTEGRATE  = 1
 };
 
 enum {

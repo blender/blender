@@ -3489,6 +3489,14 @@ static void rna_def_modifier_meshcache(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem prop_deform_mode_items[] = {
+		{MOD_MESHCACHE_DEFORM_OVERWRITE, "OVERWRITE", 0, "Overwrite",
+		 "Replace vertex coords with cached values"},
+		{MOD_MESHCACHE_DEFORM_INTEGRATE, "INTEGRATE", 0, "Integrate",
+		 "Integrate deformation from this modifiers input with the mesh-cache coords (useful for shape keys)"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	static EnumPropertyItem prop_interpolation_type_items[] = {
 		{MOD_MESHCACHE_INTERP_NONE, "NONE", 0, "None ", ""},
 		{MOD_MESHCACHE_INTERP_LINEAR, "LINEAR", 0, "Linear", ""},
@@ -3553,6 +3561,11 @@ static void rna_def_modifier_meshcache(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Time Mode", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	prop = RNA_def_property(srna, "deform_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "deform_mode");
+	RNA_def_property_enum_items(prop, prop_deform_mode_items);
+	RNA_def_property_ui_text(prop, "Deform Mode", "");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_ui_text(prop, "File Path", "Path to external displacements file");

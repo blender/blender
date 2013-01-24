@@ -2993,6 +2993,68 @@ float BKE_mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
 	}
 }
 
+/**
+ * This function takes the difference between 2 vertex-coord-arrays
+ * (\a vert_cos_src, \a vert_cos_dst),
+ * and applies the difference to \a vert_cos_new relative to \a vert_cos_org.
+ *
+ * \param vert_cos_src reference deform source.
+ * \param vert_cos_dst reference deform destination.
+ *
+ * \param vert_cos_org reference for the output location.
+ * \param vert_cos_new resulting coords.
+ */
+void BKE_mesh_calc_relative_deform(
+        const MPoly *mpoly, const int totpoly,
+        const MLoop *mloop, const int totvert,
+
+        const float (*vert_cos_src)[3],
+        const float (*vert_cos_dst)[3],
+
+        const float (*vert_cos_org)[3],
+              float (*vert_cos_new)[3])
+{
+	const MPoly *mp;
+	int i;
+
+	int *vert_accum = MEM_callocN(sizeof(*vert_accum) * totvert, __func__);
+
+	memset(vert_cos_new, '\0', sizeof(*vert_cos_new) * totvert);
+
+	for (i = 0, mp = mpoly; i < totpoly; i++, mp++) {
+		const MLoop *loopstart = mloop + mp->loopstart;
+		int j;
+
+		for (j = 0; j < mp->totloop; j++) {
+			int v_prev = (loopstart + ((mp->totloop + (j - 1)) % mp->totloop))->v;
+			int v_curr = (loopstart + j)->v;
+			int v_next = (loopstart + ((j + 1) % mp->totloop))->v;
+
+			float tvec[3];
+
+			barycentric_transform(
+			            tvec, vert_cos_dst[v_curr],
+			            vert_cos_org[v_prev], vert_cos_org[v_curr], vert_cos_org[v_next],
+			            vert_cos_src[v_prev], vert_cos_src[v_curr], vert_cos_src[v_next]
+			            );
+
+			add_v3_v3(vert_cos_new[v_curr], tvec);
+			vert_accum[v_curr] += 1;
+		}
+	}
+
+	for (i = 0; i < totvert; i++) {
+		if (vert_accum[i]) {
+			mul_v3_fl(vert_cos_new[i], 1.0f / (float)vert_accum[i]);
+		}
+		else {
+			copy_v3_v3(vert_cos_new[i], vert_cos_org[i]);
+		}
+	}
+
+	MEM_freeN(vert_accum);
+}
+
 /* Find the index of the loop in 'poly' which references vertex,
  * returns -1 if not found */
 int poly_find_loop_from_vert(const MPoly *poly, const MLoop *loopstart,
