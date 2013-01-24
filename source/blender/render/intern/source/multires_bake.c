@@ -452,7 +452,7 @@ static void init_ccgdm_arrays(DerivedMesh *dm)
 	grid_offset = dm->getGridOffset(dm);
 	dm->getGridKey(dm, &key);
 
-	(void) grid_data;
+	(void) grid_size;
 	(void) grid_data;
 	(void) grid_offset;
 }

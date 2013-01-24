@@ -896,7 +896,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				}
 				else {
 					if (t->obedit && t->obedit->type == OB_MESH) {
-						if (t->mode == TFM_TRANSLATION) {
+						if ((t->mode == TFM_TRANSLATION) && (t->spacetype == SPACE_VIEW3D)) {
 							resetTransRestrictions(t);
 							restoreTransObjects(t);
 

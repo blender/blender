@@ -112,7 +112,7 @@ typedef enum BrushFlags {
 	BRUSH_SIZE_PRESSURE = (1 << 3),
 	BRUSH_JITTER_PRESSURE = (1 << 4),
 	BRUSH_SPACING_PRESSURE = (1 << 5),
-	BRUSH_FIXED_TEX = (1 << 6), /* obsolete, use mtex->brush_map_mode = MTEX_MAP_MODE_TILED instead */
+	// BRUSH_FIXED_TEX = (1 << 6), /* obsolete, use mtex->brush_map_mode = MTEX_MAP_MODE_TILED instead */
 	BRUSH_RAKE = (1 << 7),
 	BRUSH_ANCHORED = (1 << 8),
 	BRUSH_DIR_IN = (1 << 9),

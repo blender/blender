@@ -309,7 +309,7 @@ typedef struct Material {
 #define MA_SPEC_WARDISO		4
 
 /* dynamode */
-#define MA_DRAW_DYNABUTS    1		/* deprecated */
+// #define MA_DRAW_DYNABUTS    1		/* deprecated */
 #define MA_FH_NOR	        2
 
 /* ramps */
@@ -373,7 +373,7 @@ typedef struct Material {
 #define MAP_AMB			2048
 #define MAP_DISPLACE	4096
 #define MAP_WARP		8192
-#define MAP_LAYER		16384		/* unused */
+// #define MAP_LAYER		16384		/* unused */
 
 /* volume mapto - reuse definitions for now - a bit naughty! */
 #define MAP_DENSITY				128

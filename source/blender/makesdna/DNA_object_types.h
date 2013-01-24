@@ -171,7 +171,7 @@ typedef struct Object {
 	float sf; /* sf is time-offset */
 
 	short flag;			/* copy of Base */
-	short colbits DNA_DEPRECATED;		/* deprecated */
+	short colbits DNA_DEPRECATED;		/* deprecated, use 'matbits' */
 	
 	short transflag, protectflag;	/* transformation settings and transform locks  */
 	short trackflag, upflag;
