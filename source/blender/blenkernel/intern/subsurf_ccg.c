@@ -1119,6 +1119,7 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
 		vd = ccgSubSurf_getFaceCenterData(f);
 		copy_v3_v3(mvert[i].co, CCG_elem_co(&key, vd));
 		normal_float_to_short_v3(mvert[i].no, CCG_elem_no(&key, vd));
+		mvert[i].flag = mvert[i].bweight = 0;
 		i++;
 		
 		for (S = 0; S < numVerts; S++) {
