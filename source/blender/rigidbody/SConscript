@@ -25,14 +25,18 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-Import ('env')
+Import('env')
 
 # XXX: we need a contingency plan for when not compiling with Bullet,
 # since this module will always get included... 
 # This problem will also apply to other engines at a later date too...
 sources = env.Glob('*.cpp')
 
-incs = '../blenlib ../../../intern/guardedalloc ../../../extern/bullet2/src'
+incs = [
+    '.',
+    '../../../extern/bullet2/src',
+    ]
 
-env.BlenderLib ('bf_rigidbody', sources, Split(incs), [], libtype=['core', 'player'], priority=[180, 30] )
-
+env.BlenderLib('bf_rigidbody', sources=sources,
+               includes=incs, defines=[],
+               libtype=['core', 'player'], priority=[180, 30])

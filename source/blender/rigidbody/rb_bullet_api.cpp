@@ -60,8 +60,6 @@ subject to the following restrictions:
  
 #include "RBI_api.h"
 
-#include "BLI_math.h"
-
 #include "btBulletDynamicsCommon.h"
 
 #include "LinearMath/btVector3.h"

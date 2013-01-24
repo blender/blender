@@ -23,7 +23,6 @@
 
 SET(INC
 	.
-	../blenlib
 	../../../extern/bullet2/src
 )
 
