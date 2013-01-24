@@ -608,7 +608,7 @@ static PyObject *app_translations_new(PyTypeObject *type, PyObject *UNUSED(args)
 	return (PyObject *)_translations;
 }
 
-void app_translations_free(void *obj)
+static void app_translations_free(void *obj)
 {
 	PyObject_Del(obj);
 #ifdef WITH_INTERNATIONAL
