@@ -236,49 +236,46 @@ static void meshcache_do(
 
 	/* tricky shape key integration (slow!) */
 	if (mcmd->deform_mode == MOD_MESHCACHE_DEFORM_INTEGRATE) {
+		Mesh *me = ob->data;
+
 		/* we could support any object type */
-		if (ob->type != OB_MESH) {
+		if (UNLIKELY(ob->type != OB_MESH)) {
 			modifier_setError(&mcmd->modifier, "'Integrate' only valid for Mesh objects");
 		}
+		else if (UNLIKELY(me->totvert != numVerts)) {
+			modifier_setError(&mcmd->modifier, "'Integrate' original mesh vertex mismatch");
+		}
+		else if (UNLIKELY(me->totpoly == 0)) {
+			modifier_setError(&mcmd->modifier, "'Integrate' requires faces");
+		}
 		else {
-			Mesh *me = ob->data;
-			if (me->totvert != numVerts) {
-				modifier_setError(&mcmd->modifier, "'Integrate' original mesh vertex mismatch");
+			/* the moons align! */
+			int i;
+
+			float (*vertexCos_Source)[3] = MEM_mallocN(sizeof(*vertexCos_Source) * numVerts, __func__);
+			float (*vertexCos_New)[3]    = MEM_mallocN(sizeof(*vertexCos_New) * numVerts, __func__);
+			MVert *mv = me->mvert;
+
+			for (i = 0; i < numVerts; i++, mv++) {
+				copy_v3_v3(vertexCos_Source[i], mv->co);
 			}
-			else {
-				if (me->totpoly == 0) {
-					modifier_setError(&mcmd->modifier, "'Integrate' requires faces");
-				}
-				else {
-					/* the moons align! */
-					int i;
 
-					float (*vertexCos_Source)[3] = MEM_mallocN(sizeof(*vertexCos_Source) * numVerts, __func__);
-					float (*vertexCos_New)[3]    = MEM_mallocN(sizeof(*vertexCos_New) * numVerts, __func__);
-					MVert *mv = me->mvert;
+			BKE_mesh_calc_relative_deform(
+			        me->mpoly, me->totpoly,
+			        me->mloop, me->totvert,
 
-					for (i = 0; i < numVerts; i++, mv++) {
-						copy_v3_v3(vertexCos_Source[i], mv->co);
-					}
+			        (const float (*)[3])vertexCos_Source,   /* from the original Mesh*/
+			        (const float (*)[3])vertexCos_Real,     /* the input we've been given (shape keys!) */
 
-					BKE_mesh_calc_relative_deform(
-					        me->mpoly, me->totpoly,
-					        me->mloop, me->totvert,
+			        (const float (*)[3])vertexCos,          /* the result of this modifier */
+			        vertexCos_New                           /* the result of this function */
+			        );
 
-					        (const float (*)[3])vertexCos_Source,   /* from the original Mesh*/
-					        (const float (*)[3])vertexCos_Real,     /* the input we've been given (shape keys!) */
+			/* write the corrected locations back into the result */
+			memcpy(use_factor ? vertexCos : vertexCos_Real, vertexCos_New, sizeof(*vertexCos) * numVerts);
 
-					        (const float (*)[3])vertexCos,          /* the result of this modifier */
-					        vertexCos_New       /* the result of this function */
-					        );
-
-					/* write the corrected locations back into the result */
-					memcpy(use_factor ? vertexCos : vertexCos_Real, vertexCos_New, sizeof(*vertexCos) * numVerts);
-
-					MEM_freeN(vertexCos_Source);
-					MEM_freeN(vertexCos_New);
-				}
-			}
+			MEM_freeN(vertexCos_Source);
+			MEM_freeN(vertexCos_New);
 		}
 	}
 
