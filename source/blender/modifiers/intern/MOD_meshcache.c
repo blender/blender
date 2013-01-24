@@ -202,38 +202,6 @@ static void meshcache_do(
 
 
 	/* -------------------------------------------------------------------- */
-	/* Apply the transformation matrix (if needed) */
-	if (UNLIKELY(err_str)) {
-		modifier_setError(&mcmd->modifier, err_str);
-	}
-	else if (ok) {
-		bool use_matrix = false;
-		float mat[3][3];
-		unit_m3(mat);
-
-		if (mat3_from_axis_conversion(mcmd->forward_axis, mcmd->up_axis, 1, 2, mat)) {
-			use_matrix = true;
-		}
-
-		if (mcmd->flip_axis) {
-			float tmat[3][3];
-			unit_m3(tmat);
-			if (mcmd->flip_axis & (1 << 0)) tmat[0][0] = -1.0f;
-			if (mcmd->flip_axis & (1 << 1)) tmat[1][1] = -1.0f;
-			if (mcmd->flip_axis & (1 << 2)) tmat[2][2] = -1.0f;
-			mul_m3_m3m3(mat, tmat, mat);
-
-			use_matrix = true;
-		}
-
-		if (use_matrix) {
-			int i;
-			for (i = 0; i < numVerts; i++) {
-				mul_m3_v3(mat, vertexCos[i]);
-			}
-		}
-	}
-
 	/* tricky shape key integration (slow!) */
 	if (mcmd->deform_mode == MOD_MESHCACHE_DEFORM_INTEGRATE) {
 		Mesh *me = ob->data;
@@ -272,17 +240,55 @@ static void meshcache_do(
 			        );
 
 			/* write the corrected locations back into the result */
-			memcpy(use_factor ? vertexCos : vertexCos_Real, vertexCos_New, sizeof(*vertexCos) * numVerts);
+			memcpy(vertexCos, vertexCos_New, sizeof(*vertexCos) * numVerts);
 
 			MEM_freeN(vertexCos_Source);
 			MEM_freeN(vertexCos_New);
 		}
 	}
 
-	if (vertexCos_Store) {
 
-		if (ok && use_factor) {
-			interp_vn_vn(*vertexCos_Real, *vertexCos_Store, mcmd->factor, numVerts * 3);
+	/* -------------------------------------------------------------------- */
+	/* Apply the transformation matrix (if needed) */
+	if (UNLIKELY(err_str)) {
+		modifier_setError(&mcmd->modifier, err_str);
+	}
+	else if (ok) {
+		bool use_matrix = false;
+		float mat[3][3];
+		unit_m3(mat);
+
+		if (mat3_from_axis_conversion(mcmd->forward_axis, mcmd->up_axis, 1, 2, mat)) {
+			use_matrix = true;
+		}
+
+		if (mcmd->flip_axis) {
+			float tmat[3][3];
+			unit_m3(tmat);
+			if (mcmd->flip_axis & (1 << 0)) tmat[0][0] = -1.0f;
+			if (mcmd->flip_axis & (1 << 1)) tmat[1][1] = -1.0f;
+			if (mcmd->flip_axis & (1 << 2)) tmat[2][2] = -1.0f;
+			mul_m3_m3m3(mat, tmat, mat);
+
+			use_matrix = true;
+		}
+
+		if (use_matrix) {
+			int i;
+			for (i = 0; i < numVerts; i++) {
+				mul_m3_v3(mat, vertexCos[i]);
+			}
+		}
+	}
+
+	if (vertexCos_Store) {
+		if (ok) {
+			if (use_factor) {
+				interp_vn_vn(*vertexCos_Real, *vertexCos_Store, mcmd->factor, numVerts * 3);
+			}
+			else {
+				memcpy(vertexCos_Real, vertexCos_Store, sizeof(*vertexCos_Store) * numVerts);
+			}
 		}
 
 		MEM_freeN(vertexCos_Store);
