@@ -2205,9 +2205,20 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 				}
 			}
 
+#if 0
 			/* force reload on first use, but not for multilayer, that makes nodes and buttons in ui drawing fail */
 			if (ima->type != IMA_TYPE_MULTILAYER)
 				image_free_buffers(ima);
+#else
+			/* image buffers for non-sequence multilayer will share buffers with RenderResult,
+			 * however sequence multilayer will own buffers. Such logic makes switching from
+			 * single multilayer file to sequence completely instable
+			 * since changes in nodes seems this workaround isn't needed anymore, all sockets
+			 * are nicely detecting anyway, but freeing buffers always here makes multilayer
+			 * sequences behave stable
+			 */
+			image_free_buffers(ima);
+#endif
 
 			ima->ok = 1;
 			if (iuser)

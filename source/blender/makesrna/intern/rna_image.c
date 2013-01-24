@@ -88,11 +88,15 @@ static int rna_Image_dirty_get(PointerRNA *ptr)
 	return 0;
 }
 
-static void rna_Image_source_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Image_source_set(PointerRNA *ptr, int value)
 {
 	Image *ima = ptr->id.data;
-	BKE_image_signal(ima, NULL, IMA_SIGNAL_SRC_CHANGE);
-	DAG_id_tag_update(&ima->id, 0);
+
+	if (value != ima->source) {
+		ima->source = value;
+		BKE_image_signal(ima, NULL, IMA_SIGNAL_SRC_CHANGE);
+		DAG_id_tag_update(&ima->id, 0);
+	}
 }
 
 static void rna_Image_fields_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -527,9 +531,9 @@ static void rna_def_image(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, image_source_items);
-	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Image_source_itemf");
+	RNA_def_property_enum_funcs(prop, NULL, "rna_Image_source_set", "rna_Image_source_itemf");
 	RNA_def_property_ui_text(prop, "Source", "Where the image comes from");
-	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_source_update");
+	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, NULL);
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_type_items);
