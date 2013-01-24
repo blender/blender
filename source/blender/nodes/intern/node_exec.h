@@ -79,6 +79,6 @@ void ntree_exec_end(struct bNodeTreeExec *exec);
 
 struct bNodeThreadStack *ntreeGetThreadStack(struct bNodeTreeExec *exec, int thread);
 void ntreeReleaseThreadStack(struct bNodeThreadStack *nts);
-void ntreeExecThreadNodes(struct bNodeTreeExec *exec, struct bNodeThreadStack *nts, void *callerdata, int thread);
+int ntreeExecThreadNodes(struct bNodeTreeExec *exec, struct bNodeThreadStack *nts, void *callerdata, int thread);
 
 #endif

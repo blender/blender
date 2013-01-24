@@ -248,7 +248,8 @@ void ntreeShaderEndExecTree(bNodeTreeExec *exec, int use_tree_data)
 	}
 }
 
-void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
+/* only for Blender internal */
+int ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 {
 	ShaderCallData scd;
 	/**
@@ -258,6 +259,7 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	Material *mat = shi->mat;
 	bNodeThreadStack *nts = NULL;
 	bNodeTreeExec *exec = ntree->execdata;
+	int compat;
 	
 	/* convert caller data to struct */
 	scd.shi = shi;
@@ -277,13 +279,17 @@ void ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	}
 	
 	nts = ntreeGetThreadStack(exec, shi->thread);
-	ntreeExecThreadNodes(exec, nts, &scd, shi->thread);
+	compat = ntreeExecThreadNodes(exec, nts, &scd, shi->thread);
 	ntreeReleaseThreadStack(nts);
 	
 	// \note: set material back to preserved material
 	shi->mat = mat;
+		
 	/* better not allow negative for now */
 	if (shr->combined[0] < 0.0f) shr->combined[0] = 0.0f;
 	if (shr->combined[1] < 0.0f) shr->combined[1] = 0.0f;
 	if (shr->combined[2] < 0.0f) shr->combined[2] = 0.0f;
+	
+	/* if compat is zero, it has been using non-compatible nodes */
+	return compat;
 }

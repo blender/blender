@@ -917,6 +917,7 @@ typedef enum eSpaceNode_Flag {
 	SNODE_AUTO_RENDER    = (1 << 5),
 	SNODE_SHOW_HIGHLIGHT = (1 << 6),
 	SNODE_USE_HIDDEN_PREVIEW = (1 << 10),
+	SNODE_NEW_SHADERS = (1 << 11),
 } eSpaceNode_Flag;
 
 /* snode->texfrom */

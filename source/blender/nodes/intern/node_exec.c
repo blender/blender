@@ -287,7 +287,7 @@ void ntreeReleaseThreadStack(bNodeThreadStack *nts)
 	nts->used = 0;
 }
 
-void ntreeExecThreadNodes(bNodeTreeExec *exec, bNodeThreadStack *nts, void *callerdata, int thread)
+int ntreeExecThreadNodes(bNodeTreeExec *exec, bNodeThreadStack *nts, void *callerdata, int thread)
 {
 	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
 	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
@@ -305,10 +305,17 @@ void ntreeExecThreadNodes(bNodeTreeExec *exec, bNodeThreadStack *nts, void *call
 			 * If the mute func is not set, assume the node should never be muted,
 			 * and hence execute it!
 			 */
+			if (node->typeinfo->compatibility != NODE_OLD_SHADING)
+				break;
 			if (node->typeinfo->execfunc)
 				node->typeinfo->execfunc(callerdata, node, nsin, nsout);
 			else if (node->typeinfo->newexecfunc)
 				node->typeinfo->newexecfunc(callerdata, thread, node, nodeexec->data, nsin, nsout);
 		}
 	}
+	
+	/* signal to switch back to no-node render */
+	if (node)
+		return 0;
+	return 1;
 }
