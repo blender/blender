@@ -110,8 +110,8 @@ static void draw_render_info(Scene *scene, Image *ima, ARegion *ar, float zoomx,
 			glScalef(zoomx, zoomy, 1.0f);
 
 			if (scene->r.mode & R_BORDER) {
-				glTranslatef(-scene->r.border.xmin * scene->r.xsch * scene->r.size / 100.0f,
-				             -scene->r.border.ymin * scene->r.ysch * scene->r.size / 100.0f,
+				glTranslatef((int)(-scene->r.border.xmin * scene->r.xsch * scene->r.size / 100.0f),
+				             (int)(-scene->r.border.ymin * scene->r.ysch * scene->r.size / 100.0f),
 				             0.0f);
 			}
 
