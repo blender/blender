@@ -2002,7 +2002,7 @@ float ED_rollBoneToVector(EditBone *bone, const float align_axis[3], const short
 
 	sub_v3_v3v3(nor, bone->tail, bone->head);
 	vec_roll_to_mat3(nor, 0.0f, mat);
-
+	
 	/* check the bone isn't aligned with the axis */
 	if (!is_zero_v3(align_axis) && angle_v3v3(align_axis, mat[2]) > FLT_EPSILON) {
 		float vec[3], align_axis_proj[3], roll;

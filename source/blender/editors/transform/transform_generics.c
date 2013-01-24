@@ -819,7 +819,7 @@ static void recalcData_view3d(TransInfo *t)
 							mul_m3_v3(t->mat, up_axis);
 						}
 						
-						ebo->roll = ED_rollBoneToVector(ebo, up_axis, FALSE);
+						ebo->roll = ED_rollBoneToVector(ebo, up_axis, TRUE);
 					}
 				}
 			}
