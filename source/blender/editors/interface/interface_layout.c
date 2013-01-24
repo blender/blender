@@ -1463,6 +1463,7 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propna
 	block = uiLayoutGetBlock(layout);
 
 	ui_item_rna_size(layout, name, icon, ptr, prop, 0, 0, &w, &h);
+	w += UI_UNIT_X; /* X icon needs more space */
 	but = ui_item_with_label(layout, block, name, icon, ptr, prop, 0, 0, 0, w, h, 0);
 
 	ui_but_add_search(but, ptr, prop, searchptr, searchprop);
