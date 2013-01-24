@@ -47,7 +47,7 @@
 
 #include "MOD_modifiertypes.h"
 
-#include "CCGSubSurf.h"
+#include "intern/CCGSubSurf.h"
 
 static void initData(ModifierData *md)
 {

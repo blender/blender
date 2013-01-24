@@ -28,7 +28,6 @@ set(INC
 	.
 	intern
 	../blenkernel
-	../blenkernel/intern
 	../blenlib
 	../blenfont
 	../blenloader
@@ -70,6 +69,7 @@ set(SRC
 	intern/MOD_meshcache.c
 	intern/MOD_meshcache_mdd.c
 	intern/MOD_meshcache_pc2.c
+	intern/MOD_meshcache_util.c
 	intern/MOD_meshdeform.c
 	intern/MOD_mirror.c
 	intern/MOD_multires.c
