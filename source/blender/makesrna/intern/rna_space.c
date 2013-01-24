@@ -511,8 +511,9 @@ static void rna_RegionView3D_view_rotation_set(PointerRNA *ptr, const float *val
 static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *values)
 {
 	RegionView3D *rv3d = (RegionView3D *)(ptr->data);
-	negate_v3_v3(rv3d->ofs, values);
-	ED_view3d_from_m4((float (*)[4])values, rv3d->ofs, rv3d->viewquat, &rv3d->dist);
+	float mat[4][4];
+	invert_m4_m4(mat, (float (*)[4])values);
+	ED_view3d_from_m4(mat, rv3d->ofs, rv3d->viewquat, &rv3d->dist);
 }
 
 /* api call */
