@@ -1,4 +1,5 @@
 /*
+
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -128,8 +129,19 @@ int RE_engine_is_external(Render *re)
 
 RenderEngine *RE_engine_create(RenderEngineType *type)
 {
+	return RE_engine_create_ex(type, FALSE);
+}
+
+RenderEngine *RE_engine_create_ex(RenderEngineType *type, int use_for_viewport)
+{
 	RenderEngine *engine = MEM_callocN(sizeof(RenderEngine), "RenderEngine");
 	engine->type = type;
+
+	if (use_for_viewport) {
+		engine->flag |= RE_ENGINE_USED_FOR_VIEWPORT;
+
+		BLI_begin_threaded_malloc();
+	}
 
 	return engine;
 }
@@ -141,6 +153,10 @@ void RE_engine_free(RenderEngine *engine)
 		BPY_DECREF_RNA_INVALIDATE(engine->py_instance);
 	}
 #endif
+
+	if (engine->flag & RE_ENGINE_USED_FOR_VIEWPORT) {
+		BLI_end_threaded_malloc();
+	}
 
 	if (engine->text)
 		MEM_freeN(engine->text);

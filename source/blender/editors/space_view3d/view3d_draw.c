@@ -2883,7 +2883,7 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar, int draw
 		if (!(type->view_update && type->view_draw))
 			return 0;
 
-		engine = RE_engine_create(type);
+		engine = RE_engine_create_ex(type, TRUE);
 
 		engine->tile_x = scene->r.tilex;
 		engine->tile_y = scene->r.tiley;
