@@ -3314,21 +3314,14 @@ static int brush_add(PEData *data, short number)
 		int newtotpart=totpart+n;
 		float hairmat[4][4], cur_co[3];
 		KDTree *tree=0;
-		ParticleData *pa, *new_pars= MEM_callocN(newtotpart*sizeof(ParticleData), "ParticleData new");
-		PTCacheEditPoint *point, *new_points= MEM_callocN(newtotpart*sizeof(PTCacheEditPoint), "PTCacheEditPoint array new");
+		ParticleData *pa;
+		PTCacheEditPoint *point;
 		PTCacheEditKey *key;
 		HairKey *hkey;
 
-		/* save existing elements */
-		memcpy(new_pars, psys->particles, totpart * sizeof(ParticleData));
-		memcpy(new_points, edit->points, totpart * sizeof(PTCacheEditPoint));
-
 		/* change old arrays to new ones */
-		if (psys->particles) MEM_freeN(psys->particles);
-		psys->particles= new_pars;
-
-		if (edit->points) MEM_freeN(edit->points);
-		edit->points= new_points;
+		psys->particles = MEM_recallocN(psys->particles, newtotpart * sizeof(ParticleData));
+		edit->points    = MEM_recallocN(edit->points,    newtotpart * sizeof(PTCacheEditPoint));
 
 		if (edit->mirror_cache) {
 			MEM_freeN(edit->mirror_cache);
@@ -3350,8 +3343,8 @@ static int brush_add(PEData *data, short number)
 		edit->totpoint= psys->totpart= newtotpart;
 
 		/* create new elements */
-		pa= psys->particles + totpart;
-		point= edit->points + totpart;
+		pa = psys->particles + totpart;
+		point = edit->points + totpart;
 
 		for (i=totpart; i<newtotpart; i++, pa++, point++) {
 			memcpy(pa, add_pars + i - totpart, sizeof(ParticleData));
