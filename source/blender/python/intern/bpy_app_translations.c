@@ -608,6 +608,14 @@ static PyObject *app_translations_new(PyTypeObject *type, PyObject *UNUSED(args)
 	return (PyObject *)_translations;
 }
 
+void app_translations_free(void *obj)
+{
+	PyObject_Del(obj);
+#ifdef WITH_INTERNATIONAL
+	_clear_translations_cache();
+#endif
+}
+
 PyDoc_STRVAR(app_translations_doc,
 "   This object contains some data/methods regarding internationalization in Blender, and allows every py script\n"
 "   to feature translations for its own UI messages.\n"
@@ -700,7 +708,7 @@ static PyTypeObject BlenderAppTranslationsType = {
 	                            /* newfunc tp_new; */
 	(newfunc)app_translations_new,
 	/*  Low-level free-memory routine */
-	NULL,                       /* freefunc tp_free;  */
+	app_translations_free,                       /* freefunc tp_free;  */
 	/* For PyObject_IS_GC */
 	NULL,                       /* inquiry tp_is_gc;  */
 	NULL,                       /* PyObject *tp_bases; */
