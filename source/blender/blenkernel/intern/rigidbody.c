@@ -1157,7 +1157,7 @@ void BKE_rigidbody_aftertrans_update(Object *ob, float loc[3], float rot[3], flo
 {
 	RigidBodyOb *rbo = ob->rigidbody_object;
 
-	/* return rigid body and objext to their initial states */
+	/* return rigid body and object to their initial states */
 	copy_v3_v3(rbo->pos, ob->loc);
 	copy_v3_v3(ob->loc, loc);
 
@@ -1174,7 +1174,8 @@ void BKE_rigidbody_aftertrans_update(Object *ob, float loc[3], float rot[3], flo
 		copy_qt_qt(rbo->orn, ob->quat);
 		copy_qt_qt(ob->quat, quat);
 	}
-	RB_body_set_loc_rot(rbo->physics_object, rbo->pos, rbo->orn);
+	if (rbo->physics_object)
+		RB_body_set_loc_rot(rbo->physics_object, rbo->pos, rbo->orn);
 	// RB_TODO update rigid body physics object's loc/rot for dynamic objects here as well (needs to be done outside bullet's update loop)
 }
 
