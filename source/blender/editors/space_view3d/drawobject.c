@@ -2653,16 +2653,21 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 		BMFace *f;
 		int n;
 
-#define DRAW_EM_MEASURE_STATS_FACEAREA()                                      \
-	if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {                               \
-		mul_v3_fl(vmid, 1.0f / (float)n);                                     \
-		if (unit->system)                                                     \
-			bUnit_AsString(numstr, sizeof(numstr),                            \
-			               (double)(area * unit->scale_length),               \
-			               3, unit->system, B_UNIT_LENGTH, do_split, FALSE);  \
-		else                                                                  \
-			BLI_snprintf(numstr, sizeof(numstr), conv_float, area);           \
-		view3d_cached_text_draw_add(vmid, numstr, 0, txt_flag, col);          \
+#define DRAW_EM_MEASURE_STATS_FACEAREA()                                                 \
+	if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {                                          \
+		mul_v3_fl(vmid, 1.0f / (float)n);                                                \
+		if (unit->system) {                                                              \
+			bUnit_AsString(numstr, sizeof(numstr),                                       \
+			               (double)(area * unit->scale_length * unit->scale_length),     \
+			               3, unit->system, B_UNIT_AREA, do_split, FALSE);               \
+			view3d_cached_text_draw_add(vmid, numstr, 0,                                 \
+			                            /* Metric system uses unicode "squared" sign! */ \
+			                            txt_flag ^ V3D_CACHE_TEXT_ASCII, col);           \
+		}                                                                                \
+		else {                                                                           \
+			BLI_snprintf(numstr, sizeof(numstr), conv_float, area);                      \
+			view3d_cached_text_draw_add(vmid, numstr, 0, txt_flag, col);                 \
+		}                                                                                \
 	} (void)0
 
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);

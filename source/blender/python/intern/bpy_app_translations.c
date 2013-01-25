@@ -708,7 +708,7 @@ static PyTypeObject BlenderAppTranslationsType = {
 	                            /* newfunc tp_new; */
 	(newfunc)app_translations_new,
 	/*  Low-level free-memory routine */
-	app_translations_free,                       /* freefunc tp_free;  */
+	app_translations_free,      /* freefunc tp_free;  */
 	/* For PyObject_IS_GC */
 	NULL,                       /* inquiry tp_is_gc;  */
 	NULL,                       /* PyObject *tp_bases; */
