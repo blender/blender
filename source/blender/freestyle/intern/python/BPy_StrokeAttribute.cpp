@@ -73,29 +73,33 @@ static int StrokeAttribute___init__(BPy_StrokeAttribute *self, PyObject *args, P
 
 	PyObject *obj1 = 0, *obj2 = 0 , *obj3 = 0, *obj4 = 0, *obj5 = 0 , *obj6 = 0;
 
-    if (! PyArg_ParseTuple(args, "|OOOOOO", &obj1, &obj2, &obj3, &obj4, &obj5, &obj6) )
-        return -1;
+	if (! PyArg_ParseTuple(args, "|OOOOOO", &obj1, &obj2, &obj3, &obj4, &obj5, &obj6) )
+		return -1;
 
-	if( !obj1 || !obj2 || !obj3 ){
-		
+	if ( !obj1 ) {
+
 		self->sa = new StrokeAttribute();
-		
-	} else if( 	BPy_StrokeAttribute_Check(obj1) && 
+
+	} else if ( BPy_StrokeAttribute_Check(obj1) && !obj2 ) {	
+
+		self->sa = new StrokeAttribute(	*( ((BPy_StrokeAttribute *) obj1)->sa ) );
+
+	} else if ( BPy_StrokeAttribute_Check(obj1) && 
 				BPy_StrokeAttribute_Check(obj2) &&
-				PyFloat_Check(obj3) ) {	
-		
-			self->sa = new StrokeAttribute(	*( ((BPy_StrokeAttribute *) obj1)->sa ),
-											*( ((BPy_StrokeAttribute *) obj2)->sa ),
-											PyFloat_AsDouble( obj3 ) );	
-										
-	} else if( 	obj4 && obj5 && obj6 ) {
-	
-			self->sa = new StrokeAttribute(	PyFloat_AsDouble( obj1 ),
-											PyFloat_AsDouble( obj2 ),
-											PyFloat_AsDouble( obj3 ),
-											PyFloat_AsDouble( obj4 ),
-											PyFloat_AsDouble( obj5 ),
-											PyFloat_AsDouble( obj6 ) );
+				PyFloat_Check(obj3) && !obj4 ) {	
+
+		self->sa = new StrokeAttribute(	*( ((BPy_StrokeAttribute *) obj1)->sa ),
+										*( ((BPy_StrokeAttribute *) obj2)->sa ),
+										PyFloat_AsDouble( obj3 ) );
+
+	} else if ( obj6 ) {
+
+		self->sa = new StrokeAttribute(	PyFloat_AsDouble( obj1 ),
+										PyFloat_AsDouble( obj2 ),
+										PyFloat_AsDouble( obj3 ),
+										PyFloat_AsDouble( obj4 ),
+										PyFloat_AsDouble( obj5 ),
+										PyFloat_AsDouble( obj6 ) );
 
 	} else {
 		PyErr_SetString(PyExc_TypeError, "invalid arguments");
