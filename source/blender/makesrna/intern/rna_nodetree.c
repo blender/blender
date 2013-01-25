@@ -2537,7 +2537,8 @@ static void def_cmp_dilate_erode(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "distance", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "custom2");
-	RNA_def_property_range(prop, -100, 100);
+	RNA_def_property_range(prop, -5000, 5000);
+	RNA_def_property_ui_range(prop, -100, 100, 0, 0);
 	RNA_def_property_ui_text(prop, "Distance", "Distance to grow/shrink (number of iterations)");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
