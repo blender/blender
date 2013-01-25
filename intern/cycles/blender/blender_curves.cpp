@@ -1046,8 +1046,6 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 				if(mesh->need_attribute(scene, name) || mesh->need_attribute(scene, std)) {
 					Attribute *attr;
 
-					Attribute *attr_uv = NULL, *attr_intercept = NULL;
-	
 					if(active_render)
 						attr = mesh->curve_attributes.add(std, name);
 					else

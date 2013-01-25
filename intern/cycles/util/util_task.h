@@ -111,7 +111,6 @@ protected:
 	static thread_mutex mutex;
 	static int users;
 	static vector<thread*> threads;
-	static vector<int> thread_level;
 	static volatile bool do_exit;
 
 	static list<Entry> queue;
