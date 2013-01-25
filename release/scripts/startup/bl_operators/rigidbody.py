@@ -238,7 +238,7 @@ class ConnectRigidBodies(Operator):
             else:
                 loc = (obj_act.location + obj.location) / 2.0
             bpy.ops.object.add(type='EMPTY', view_align=False, enter_editmode=False, location=loc)
-            bpy.ops.rigidbody.constraint_group_add()
+            bpy.ops.rigidbody.constraint_add()
             con = context.active_object.rigid_body_constraint
             con.type = self.con_type
             con.object1 = obj_act

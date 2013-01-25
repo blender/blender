@@ -90,6 +90,8 @@ static int ED_operator_rigidbody_add_poll(bContext *C)
 
 void ED_rigidbody_ob_add(wmOperator *op, Scene *scene, Object *ob, int type)
 {
+	RigidBodyWorld *rbw = BKE_rigidbody_get_world(scene);
+
 	/* check that object doesn't already belong to the current simulation */
 	if (ob->rigidbody_object) {
 		BKE_reportf(op->reports, RPT_INFO, "Object '%s' already has a Rigid Body", ob->id.name + 2);
@@ -104,14 +106,32 @@ void ED_rigidbody_ob_add(wmOperator *op, Scene *scene, Object *ob, int type)
 		return;
 	}
 
+	/* Add rigid body world and group if they don't exist for convenience */
+	if (rbw == NULL) {
+		rbw = BKE_rigidbody_create_world(scene);
+		BKE_rigidbody_validate_sim_world(scene, rbw, false);
+		scene->rigidbody_world = rbw;
+	}
+	if (rbw->group == NULL) {
+		rbw->group = add_group("RigidBodyWorld");
+	}
+
 	/* make rigidbody object settings */
 	ob->rigidbody_object = BKE_rigidbody_create_object(scene, ob, type);
 	ob->rigidbody_object->flag |= RBO_FLAG_NEEDS_VALIDATE;
+
+	/* add object to rigid body group */
+	add_to_group(rbw->group, ob, scene, NULL);
 }
 
 void ED_rigidbody_ob_remove(Scene *scene, Object *ob)
 {
+	RigidBodyWorld *rbw = BKE_rigidbody_get_world(scene);
+
 	BKE_rigidbody_remove_object(scene, ob);
+	if (rbw)
+		rem_from_group(rbw->group, ob, scene, NULL);
+
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 }
 
@@ -209,7 +229,6 @@ void RIGIDBODY_OT_object_remove(wmOperatorType *ot)
 static int rigidbody_obs_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	RigidBodyWorld *rbw = BKE_rigidbody_get_world(scene);
 	int type = RNA_enum_get(op->ptr, "type");
 
 	/* sanity check */
@@ -217,19 +236,9 @@ static int rigidbody_obs_add_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "No Scene to add Rigid Bodies to");
 		return OPERATOR_CANCELLED;
 	}
-	/* Add rigid body world and group if they don't exist for convenience */
-	if (rbw == NULL) {
-		rbw = BKE_rigidbody_create_world(scene);
-		BKE_rigidbody_validate_sim_world(scene, rbw, false);
-		scene->rigidbody_world = rbw;
-	}
-	if (rbw->group == NULL) {
-		rbw->group = add_group("RigidBodyWorld");
-	}
 	/* create rigid body objects and add them to the world's group */
 	CTX_DATA_BEGIN(C, Object *, ob, selected_objects) {
 		ED_rigidbody_ob_add(op, scene, ob, type);
-		add_to_group(rbw->group, ob, scene, NULL);
 	}
 	CTX_DATA_END;
 
@@ -266,7 +275,6 @@ void RIGIDBODY_OT_objects_add(wmOperatorType *ot)
 static int rigidbody_obs_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	RigidBodyWorld *rbw = BKE_rigidbody_get_world(scene);
 
 	/* sanity checks */
 	if (scene == NULL)
@@ -277,8 +285,6 @@ static int rigidbody_obs_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	{
 		if (ob->rigidbody_object) {
 			ED_rigidbody_ob_remove(scene, ob);
-			if (rbw)
-				rem_from_group(rbw->group, ob, scene, NULL);
 		}
 	}
 	CTX_DATA_END;
