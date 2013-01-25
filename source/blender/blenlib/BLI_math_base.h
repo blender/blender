@@ -81,7 +81,7 @@
 #endif
 
 /* do not redefine functions from C99 or POSIX.1-2001 */
-#if !(defined(_ISOC99_SOURCE) || _POSIX_C_SOURCE >= 200112L)
+#if !(defined(_ISOC99_SOURCE) || (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L))
 
 #ifndef sqrtf
 #define sqrtf(a) ((float)sqrt(a))
