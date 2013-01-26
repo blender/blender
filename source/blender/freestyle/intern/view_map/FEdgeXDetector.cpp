@@ -40,6 +40,8 @@
 #include "../geometry/GeomUtils.h"
 #include "../geometry/normal_cycle.h"
 
+#include "BKE_global.h"
+
 void FEdgeXDetector::processShapes(WingedEdge& we)
 {
 	bool progressBarDisplay = false;
@@ -171,6 +173,16 @@ void FEdgeXDetector::preProcessFace(WXFace *iFace)
 
 void FEdgeXDetector::computeCurvatures(WXVertex *vertex)
 {
+	// TODO: for some reason, the 'vertex' may have no associated edges
+	// (i.e., WVertex::_EdgeList is empty), which causes a crash due to
+	// a subsequent call of WVertex::_EdgeList.front().
+	if (vertex->GetEdges().empty()) {
+		if (G.debug & G_DEBUG_FREESTYLE) {
+			printf("Warning: WVertex %d has no associated edges.\n", vertex->GetId());
+		}
+		return;
+	}
+
 	// CURVATURE LAYER
 	// store all the curvature datas for each vertex
 
