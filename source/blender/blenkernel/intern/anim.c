@@ -69,6 +69,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_anim.h"
 #include "BKE_report.h"
+#include "BKE_rigidbody.h"
 
 
 // XXX bad level call...
@@ -327,6 +328,7 @@ static void motionpaths_calc_update_scene(Scene *scene)
 {
 #if 1 // 'production' optimizations always on
 	Base *base, *last = NULL;
+	float ctime = BKE_scene_frame_get(scene);
 	
 	/* only stuff that moves or needs display still */
 	DAG_scene_update_flags(G.main, scene, scene->lay, TRUE);
@@ -339,6 +341,14 @@ static void motionpaths_calc_update_scene(Scene *scene)
 		if (base->object->flag & BA_TEMP_TAG)
 			last = base;
 	}
+	
+	/* run rigidbody sim 
+	 * NOTE: keep in sync with BKE_scene_update_for_newframe() in scene.c
+	 */
+	// XXX: this position may still change, objects not being updated correctly before simulation is run
+	// NOTE: current position is so that rigidbody sim affects other objects
+	if (BKE_scene_check_rigidbody_active(scene))
+		BKE_rigidbody_do_simulation(scene, ctime);
 	
 	/* perform updates for tagged objects */
 	/* XXX: this will break if rigs depend on scene or other data that
