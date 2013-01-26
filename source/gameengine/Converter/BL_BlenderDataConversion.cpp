@@ -1973,6 +1973,22 @@ static KX_GameObject *gameobject_from_blenderobject(
 			((ob->gameflag2 & OB_NEVER_DO_ACTIVITY_CULLING)!=0);
 		gameobj->SetIgnoreActivityCulling(ignoreActivityCulling);
 		gameobj->SetOccluder((ob->gameflag & OB_OCCLUDER) != 0, false);
+
+		// we only want obcolor used if there is a material in the mesh
+		// that requires it
+		Material *mat= NULL;
+		bool bUseObjectColor=false;
+		
+		for (int i=0;i<mesh->totcol;i++) {
+			mat=mesh->mat[i];
+			if (!mat) break;
+			if ((mat->shade_flag &= MA_OBCOLOR)) {
+				bUseObjectColor = true;
+				break;
+			}
+		}
+		if (bUseObjectColor)
+			gameobj->SetObjectColor(ob->col);
 	
 		// two options exists for deform: shape keys and armature
 		// only support relative shape key
