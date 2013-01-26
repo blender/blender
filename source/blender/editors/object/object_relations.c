@@ -354,7 +354,8 @@ static int make_proxy_exec(bContext *C, wmOperator *op)
 		
 		/* remove base, leave user count of object, it gets linked in BKE_object_make_proxy */
 		if (gob == NULL) {
-			BKE_scene_base_remove(scene, oldbase);
+			BKE_scene_base_unlink(scene, oldbase);
+			MEM_freeN(oldbase);
 		}
 		
 		BKE_object_make_proxy(newob, ob, gob);

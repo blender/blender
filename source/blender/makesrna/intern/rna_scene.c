@@ -406,7 +406,8 @@ static void rna_Scene_object_unlink(Scene *scene, ReportList *reports, Object *o
 		scene->basact = NULL;
 	}
 
-	BKE_scene_base_remove(scene, base);
+	BKE_scene_base_unlink(scene, base);
+	MEM_freeN(base);
 
 	ob->id.us--;
 

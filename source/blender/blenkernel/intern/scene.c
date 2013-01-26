@@ -941,7 +941,7 @@ Base *BKE_scene_base_add(Scene *sce, Object *ob)
 	return b;
 }
 
-void BKE_scene_base_remove(Scene *sce, Base *base)
+void BKE_scene_base_unlink(Scene *sce, Base *base)
 {
 	/* remove rigid body constraint from world before removing object */
 	if (base->object->rigidbody_constraint)
@@ -951,7 +951,6 @@ void BKE_scene_base_remove(Scene *sce, Base *base)
 		BKE_rigidbody_remove_object(sce, base->object);
 	
 	BLI_remlink(&sce->base, base);
-	MEM_freeN(base);
 }
 
 void BKE_scene_base_deselect_all(Scene *sce)

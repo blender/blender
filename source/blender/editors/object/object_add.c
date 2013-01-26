@@ -941,10 +941,11 @@ static void object_delete_check_glsl_update(Object *ob)
 void ED_base_object_free_and_unlink(Main *bmain, Scene *scene, Base *base)
 {
 	DAG_id_type_tag(bmain, ID_OB);
-	BKE_scene_base_remove(scene, base);
+	BKE_scene_base_unlink(scene, base);
 	object_delete_check_glsl_update(base->object);
 	BKE_libblock_free_us(&bmain->object, base->object);
 	if (scene->basact == base) scene->basact = NULL;
+	MEM_freeN(base);
 }
 
 static int object_delete_exec(bContext *C, wmOperator *op)
