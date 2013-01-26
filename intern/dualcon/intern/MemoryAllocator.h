@@ -43,6 +43,8 @@
 class VirtualMemoryAllocator
 {
 public:
+virtual ~VirtualMemoryAllocator() {}
+
 virtual void *allocate( ) = 0;
 virtual void deallocate(void *obj) = 0;
 virtual void destroy( ) = 0;

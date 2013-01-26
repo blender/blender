@@ -260,7 +260,8 @@ void CParser::NextSym()
 				opkind = OPless;
 			}
 			break;
-		case '\"' : {
+		case '\"' :
+		{
 			int start;
 			sym = constsym;
 			constkind = stringtype;
@@ -354,7 +355,7 @@ int CParser::MakeInt()
 }
 #endif
 
-STR_String CParser::Symbol2Str(int s)
+const char *CParser::Symbol2Str(int s)
 {
 	// returns a string representation of of symbol s,
 	// for use in Term when generating an error
@@ -370,18 +371,20 @@ STR_String CParser::Symbol2Str(int s)
 		case whocodedsym: return "WHOMADE";
 		case eolsym: return "end of line";
 		case idsym: return "identifier";
-		default: return "unknown";  // should not happen
 	}
+	return "unknown";  // should not happen
 }
 
 void CParser::Term(int s)
 {
 	// generates an error if the next symbol isn't the specified symbol s
 	// otherwise, skip the symbol
-	if (s == sym) NextSym();
+	if (s == sym) {
+		NextSym();
+	}
 	else {
 		STR_String msg;
-		msg.Format("Warning: " + Symbol2Str(s) + " expected\ncontinuing without it");
+		msg.Format("Warning: %s expected\ncontinuing without it", Symbol2Str(s));
 
 //		AfxMessageBox(msg,MB_ICONERROR);
 
@@ -462,7 +465,8 @@ CExpression *CParser::Ex(int i)
 		}
 		else {
 			switch (sym) {
-				case constsym: {
+				case constsym:
+				{
 					switch (constkind) {
 						case booltype:
 							e1 = new CConstExpr(new CBoolValue(boolvalue));

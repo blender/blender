@@ -45,7 +45,8 @@ struct ARegion;
 typedef struct wmEventHandler {
 	struct wmEventHandler *next, *prev;
 
-	int type, flag;                     /* type default=0, rest is custom */
+	int type;                           /* WM_HANDLER_DEFAULT, ... */
+	int flag;                           /* WM_HANDLER_BLOCKING, ... */
 
 	/* keymap handler */
 	wmKeyMap *keymap;                   /* pointer to builtin/custom keymaps */
@@ -72,21 +73,17 @@ typedef struct wmEventHandler {
 
 } wmEventHandler;
 
-
-/* handler flag */
-		/* after this handler all others are ignored */
-#define WM_HANDLER_BLOCKING     1
-		/* handler tagged to be freed in wm_handlers_do() */
-#define WM_HANDLER_DO_FREE      2
-
-
-
 /* custom types for handlers, for signalling, freeing */
 enum {
 	WM_HANDLER_DEFAULT,
 	WM_HANDLER_FILESELECT
 };
 
+/* handler flag */
+enum {
+	WM_HANDLER_BLOCKING    = 1,  /* after this handler all others are ignored */
+	WM_HANDLER_DO_FREE     = 2   /* handler tagged to be freed in wm_handlers_do() */
+};
 
 /* wm_event_system.c */
 void        wm_event_free_all       (wmWindow *win);

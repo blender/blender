@@ -1864,15 +1864,11 @@ void ED_region_info_draw(ARegion *ar, const char *text, int block, float alpha)
 
 	/* background box */
 	ED_region_visible_rect(ar, &rect);
-	rect.xmin = 0;
 	rect.ymin = BLI_rcti_size_y(&ar->winrct) - header_height;
 
-	if (block) {
-		rect.xmax = BLI_rcti_size_x(&ar->winrct);
-	}
-	else {
-		rect.xmax = rect.xmin + BLF_width(fontid, text) + 24;
-	}
+	/* box fill entire width or just around text */
+	if (!block)
+		rect.xmax = min_ii(rect.xmax, rect.xmin + BLF_width(fontid, text) + 1.2f * U.widget_unit);
 
 	rect.ymax = BLI_rcti_size_y(&ar->winrct);
 
@@ -1884,8 +1880,13 @@ void ED_region_info_draw(ARegion *ar, const char *text, int block, float alpha)
 
 	/* text */
 	UI_ThemeColor(TH_TEXT_HI);
-	BLF_position(fontid, 12, rect.ymin + 5, 0.0f);
+	BLF_clipping(fontid, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+	BLF_enable(fontid, BLF_CLIPPING);
+	BLF_position(fontid, rect.xmin + 0.6f * U.widget_unit, rect.ymin + 0.3f * U.widget_unit, 0.0f);
+
 	BLF_draw(fontid, text, BLF_DRAW_STR_DUMMY_MAX);
+
+	BLF_disable(fontid, BLF_CLIPPING);
 }
 
 void ED_region_grid_draw(ARegion *ar, float zoomx, float zoomy)

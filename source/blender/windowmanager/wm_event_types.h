@@ -39,11 +39,10 @@
 #define __WM_EVENT_TYPES_H__
 
 /* customdata type */
-#define EVT_DATA_TABLET		1
-#define EVT_DATA_GESTURE	2
-#define EVT_DATA_TIMER		3
-#define EVT_DATA_LISTBASE	4
-#define EVT_DATA_NDOF_MOTION 5
+#define EVT_DATA_GESTURE        1
+#define EVT_DATA_TIMER          2
+#define EVT_DATA_LISTBASE       3
+#define EVT_DATA_NDOF_MOTION    4
 
 /* tablet active, matches GHOST_TTabletMode */
 #define EVT_TABLET_NONE		0

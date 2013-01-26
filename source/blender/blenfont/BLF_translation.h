@@ -33,6 +33,8 @@
 #ifndef __BLF_TRANSLATION_H__
 #define __BLF_TRANSLATION_H__
 
+#include "BLI_utildefines.h"  /* for bool type */
+
 #define TEXT_DOMAIN_NAME "blender"
 
 /* blf_lang.c */
@@ -48,24 +50,30 @@ void BLF_lang_free(void);
 
 /* Set the current locale. */
 void BLF_lang_set(const char *);
-/* Get the current locale (short code, e.g. es_ES). */
+/* Get the current locale ([partial] ISO code, e.g. es_ES). */
 const char *BLF_lang_get(void);
+
+/* Get locale's elements (if relevant pointer is not NULL and element actually exists, e.g. if there is no variant,
+ * *variant and *language_variant will always be NULL).
+ * Non-null elements are always MEM_mallocN'ed, it's the caller's responsibility to free them.
+ * NOTE: Always available, even in non-WITH_INTERNATIONAL builds.
+ */
+void BLF_locale_explode(const char *locale, char **language, char **country, char **variant,
+                        char **language_country, char **language_variant);
 
 /* Get EnumPropertyItem's for translations menu. */
 struct EnumPropertyItem *BLF_RNA_lang_enum_properties(void);
 
 /* blf_translation.c  */
 
-#ifdef WITH_INTERNATIONAL
 unsigned char *BLF_get_unifont(int *unifont_size);
 void BLF_free_unifont(void);
-#endif
 
 const char *BLF_pgettext(const char *msgctxt, const char *msgid);
 
 /* translation */
-int BLF_translate_iface(void);
-int BLF_translate_tooltips(void);
+bool BLF_translate_iface(void);
+bool BLF_translate_tooltips(void);
 const char *BLF_translate_do_iface(const char *msgctxt, const char *msgid);
 const char *BLF_translate_do_tooltip(const char *msgctxt, const char *msgid);
 
@@ -76,17 +84,17 @@ const char *BLF_translate_do_tooltip(const char *msgctxt, const char *msgid);
 
 /* Those macros should be used everywhere in UI code. */
 #ifdef WITH_INTERNATIONAL
-/*	#define _(msgid) BLF_gettext(msgid) */
-	#define IFACE_(msgid) BLF_translate_do_iface(NULL, msgid)
-	#define TIP_(msgid) BLF_translate_do_tooltip(NULL, msgid)
-	#define CTX_IFACE_(context, msgid) BLF_translate_do_iface(context, msgid)
-	#define CTX_TIP_(context, msgid) BLF_translate_do_tooltip(context, msgid)
+/*#  define _(msgid) BLF_gettext(msgid) */
+#  define IFACE_(msgid) BLF_translate_do_iface(NULL, msgid)
+#  define TIP_(msgid) BLF_translate_do_tooltip(NULL, msgid)
+#  define CTX_IFACE_(context, msgid) BLF_translate_do_iface(context, msgid)
+#  define CTX_TIP_(context, msgid) BLF_translate_do_tooltip(context, msgid)
 #else
-/*	#define _(msgid) msgid */
-	#define IFACE_(msgid) msgid
-	#define TIP_(msgid) msgid
-	#define CTX_IFACE_(context, msgid) msgid
-	#define CTX_TIP_(context, msgid)   msgid
+/*#  define _(msgid) msgid */
+#  define IFACE_(msgid) msgid
+#  define TIP_(msgid)   msgid
+#  define CTX_IFACE_(context, msgid) msgid
+#  define CTX_TIP_(context, msgid)   msgid
 #endif
 
 /* Helper macro, when we want to define a same msgid for multiple msgctxt...
@@ -102,8 +110,11 @@ const char *BLF_translate_do_tooltip(const char *msgctxt, const char *msgid);
  * things, and limit the number of existing contexts!
  */
 
-/* Default, void context. Just in case... */
-#define BLF_I18NCONTEXT_DEFAULT ""
+/* Default, void context.
+ * WARNING! The "" context is not the same as no (NULL) context at mo/boost::locale level!
+ */
+#define BLF_I18NCONTEXT_DEFAULT NULL  /* Translated as None in Python. */
+#define BLF_I18NCONTEXT_DEFAULT_BPY_INTERN ""  /* Only used in code, never exposed to user! */
 
 /* Default context for operator names/labels. */
 #define BLF_I18NCONTEXT_OPERATOR_DEFAULT "Operator"
@@ -145,5 +156,53 @@ const char *BLF_translate_do_tooltip(const char *msgctxt, const char *msgid);
 #define BLF_I18NCONTEXT_ID_WINDOWMANAGER        "WindowManager"
 #define BLF_I18NCONTEXT_ID_MOVIECLIP            "MovieClip"
 #define BLF_I18NCONTEXT_ID_MASK                 "Mask"
+
+/* Helper for bpy.app.i18n object... */
+typedef struct
+{
+	const char *c_id;
+	const char *py_id;
+	const char *value;
+} BLF_i18n_contexts_descriptor;
+
+#define BLF_I18NCONTEXTS_ITEM(ctxt_id, py_id) {#ctxt_id, py_id, ctxt_id}
+
+#define BLF_I18NCONTEXTS_DESC {                                                                                        \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_DEFAULT, "default"),                                                         \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "operator_default"),                                       \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_ACTION, "id_action"),                                                     \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_ARMATURE, "id_armature"),                                                 \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_BRUSH, "id_brush"),                                                       \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_CAMERA, "id_camera"),                                                     \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_CURVE, "id_curve"),                                                       \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_GPENCIL, "id_gpencil"),                                                   \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_GROUP, "id_group"),                                                       \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_ID, "id_id"),                                                             \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_IMAGE, "id_image"),                                                       \
+	/*BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_IPO, "id_ipo"),*/                                                       \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_SHAPEKEY, "id_shapekey"),                                                 \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_LAMP, "id_lamp"),                                                         \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_LIBRARY, "id_library"),                                                   \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_LATTICE, "id_lattice"),                                                   \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_MATERIAL, "id_material"),                                                 \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_METABALL, "id_metaball"),                                                 \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_MESH, "id_mesh"),                                                         \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_NODETREE, "id_nodetree"),                                                 \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_OBJECT, "id_object"),                                                     \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_PARTICLESETTINGS, "id_particlesettings"),                                 \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_SCENE, "id_scene"),                                                       \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_SCREEN, "id_screen"),                                                     \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_SEQUENCE, "id_sequence"),                                                 \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_SPEAKER, "id_speaker"),                                                   \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_SOUND, "id_sound"),                                                       \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_TEXTURE, "id_texture"),                                                   \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_TEXT, "id_text"),                                                         \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_VFONT, "id_vfont"),                                                       \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_WORLD, "id_world"),                                                       \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_WINDOWMANAGER, "id_windowmanager"),                                       \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_MOVIECLIP, "id_movieclip"),                                               \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_MASK, "id_mask"),                                                         \
+	{NULL, NULL, NULL}                                                                                                 \
+}
 
 #endif /* __BLF_TRANSLATION_H__ */

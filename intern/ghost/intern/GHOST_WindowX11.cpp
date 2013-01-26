@@ -186,11 +186,6 @@ GHOST_WindowX11(
 	int natom;
 	int glxVersionMajor, glxVersionMinor; /* As in GLX major.minor */
 
-#ifdef WITH_X11_XINPUT
-	/* initialize incase X11 fails to load */
-	memset(&m_xtablet, 0, sizeof(m_xtablet));
-#endif
-
 	m_visual = NULL;
 
 	if (!glXQueryVersion(m_display, &glxVersionMajor, &glxVersionMinor)) {
@@ -363,8 +358,8 @@ GHOST_WindowX11(
 	xsizehints->y = top;
 	xsizehints->width = width;
 	xsizehints->height = height;
-	xsizehints->min_width = 640;     /* size hints, could be made apart of the ghost api */
-	xsizehints->min_height = 480;    /* limits are also arbitrary, but should not allow 1x1 window */
+	xsizehints->min_width = 320;     /* size hints, could be made apart of the ghost api */
+	xsizehints->min_height = 240;    /* limits are also arbitrary, but should not allow 1x1 window */
 	xsizehints->max_width = 65535;
 	xsizehints->max_height = 65535;
 	XSetWMNormalHints(m_display, m_window, xsizehints);
@@ -461,6 +456,8 @@ GHOST_WindowX11(
 
 #ifdef WITH_X11_XINPUT
 	initXInputDevices();
+
+	m_tabletData.Active = GHOST_kTabletModeNone;
 #endif
 
 	/* now set up the rendering context. */
@@ -517,200 +514,30 @@ bool GHOST_WindowX11::createX11_XIC()
 #endif
 
 #ifdef WITH_X11_XINPUT
-/* 
- * Dummy function to get around IO Handler exiting if device invalid
- * Basically it will not crash blender now if you have a X device that
- * is configured but not plugged in.
- */
-static int ApplicationErrorHandler(Display *display, XErrorEvent *theEvent)
-{
-	fprintf(stderr, "Ignoring Xlib error: error code %d request code %d\n",
-	        theEvent->error_code, theEvent->request_code);
-
-	/* No exit! - but keep lint happy */
-	return 0;
-}
-
-/* These C functions are copied from Wine 1.1.13's wintab.c */
-#define BOOL int
-#define TRUE 1
-#define FALSE 0
-
-static bool match_token(const char *haystack, const char *needle)
-{
-	const char *p, *q;
-	for (p = haystack; *p; )
-	{
-		while (*p && isspace(*p))
-			p++;
-		if (!*p)
-			break;
-
-		for (q = needle; *q && *p && tolower(*p) == tolower(*q); q++)
-			p++;
-		if (!*q && (isspace(*p) || !*p))
-			return TRUE;
-
-		while (*p && !isspace(*p))
-			p++;
-	}
-	return FALSE;
-}
-
-
-/* Determining if an X device is a Tablet style device is an imperfect science.
- * We rely on common conventions around device names as well as the type reported
- * by Wacom tablets.  This code will likely need to be expanded for alternate tablet types
- *
- * Wintab refers to any device that interacts with the tablet as a cursor,
- * (stylus, eraser, tablet mouse, airbrush, etc)
- * this is not to be confused with wacom x11 configuration "cursor" device.
- * Wacoms x11 config "cursor" refers to its device slot (which we mirror with
- * our gSysCursors) for puck like devices (tablet mice essentially).
- */
-#if 0 // unused
-static BOOL is_tablet_cursor(const char *name, const char *type)
-{
-	int i;
-	static const char *tablet_cursor_whitelist[] = {
-		"wacom",
-		"wizardpen",
-		"acecad",
-		"tablet",
-		"cursor",
-		"stylus",
-		"eraser",
-		"pad",
-		NULL
-	};
-
-	for (i = 0; tablet_cursor_whitelist[i] != NULL; i++) {
-		if (name && match_token(name, tablet_cursor_whitelist[i]))
-			return TRUE;
-		if (type && match_token(type, tablet_cursor_whitelist[i]))
-			return TRUE;
-	}
-	return FALSE;
-}
-#endif
-static BOOL is_stylus(const char *name, const char *type)
-{
-	int i;
-	static const char *tablet_stylus_whitelist[] = {
-		"stylus",
-		"wizardpen",
-		"acecad",
-		NULL
-	};
-
-	for (i = 0; tablet_stylus_whitelist[i] != NULL; i++) {
-		if (name && match_token(name, tablet_stylus_whitelist[i]))
-			return TRUE;
-		if (type && match_token(type, tablet_stylus_whitelist[i]))
-			return TRUE;
-	}
-
-	return FALSE;
-}
-
-static BOOL is_eraser(const char *name, const char *type)
-{
-	if (name && match_token(name, "eraser"))
-		return TRUE;
-	if (type && match_token(type, "eraser"))
-		return TRUE;
-	return FALSE;
-}
-#undef BOOL
-#undef TRUE
-#undef FALSE
-/* end code copied from wine */
-
 void GHOST_WindowX11::initXInputDevices()
 {
-	static XErrorHandler old_handler = (XErrorHandler) 0;
 	XExtensionVersion *version = XGetExtensionVersion(m_display, INAME);
 
 	if (version && (version != (XExtensionVersion *)NoSuchExtension)) {
 		if (version->present) {
-			int device_count;
-			XDeviceInfo *device_info = XListInputDevices(m_display, &device_count);
-			m_xtablet.StylusDevice = NULL;
-			m_xtablet.EraserDevice = NULL;
-			m_xtablet.CommonData.Active = GHOST_kTabletModeNone;
-
-			/* Install our error handler to override Xlib's termination behavior */
-			old_handler = XSetErrorHandler(ApplicationErrorHandler);
-
-			for (int i = 0; i < device_count; ++i) {
-				char *device_type = device_info[i].type ? XGetAtomName(m_display, device_info[i].type) : NULL;
-				
-//				printf("Tablet type:'%s', name:'%s', index:%d\n", device_type, device_info[i].name, i);
-
-
-				if (m_xtablet.StylusDevice == NULL && is_stylus(device_info[i].name, device_type)) {
-//					printf("\tfound stylus\n");
-					m_xtablet.StylusID = device_info[i].id;
-					m_xtablet.StylusDevice = XOpenDevice(m_display, m_xtablet.StylusID);
-
-					if (m_xtablet.StylusDevice != NULL) {
-						/* Find how many pressure levels tablet has */
-						XAnyClassPtr ici = device_info[i].inputclassinfo;
-						for (int j = 0; j < m_xtablet.StylusDevice->num_classes; ++j) {
-							if (ici->c_class == ValuatorClass) {
-//								printf("\t\tfound ValuatorClass\n");
-								XValuatorInfo *xvi = (XValuatorInfo *)ici;
-								m_xtablet.PressureLevels = xvi->axes[2].max_value;
-							
-								/* this is assuming that the tablet has the same tilt resolution in both
-								 * positive and negative directions. It would be rather weird if it didn't.. */
-								m_xtablet.XtiltLevels = xvi->axes[3].max_value;
-								m_xtablet.YtiltLevels = xvi->axes[4].max_value;
-								break;
-							}
-						
-							ici = (XAnyClassPtr)(((char *)ici) + ici->length);
-						}
-					}
-					else {
-						m_xtablet.StylusID = 0;
-					}
-				}
-				else if (m_xtablet.EraserDevice == NULL && is_eraser(device_info[i].name, device_type)) {
-//					printf("\tfound eraser\n");
-					m_xtablet.EraserID = device_info[i].id;
-					m_xtablet.EraserDevice = XOpenDevice(m_display, m_xtablet.EraserID);
-					if (m_xtablet.EraserDevice == NULL) m_xtablet.EraserID = 0;
-				}
-
-				if (device_type) {
-					XFree((void *)device_type);
-				}
-			}
-
-			/* Restore handler */
-			(void) XSetErrorHandler(old_handler);
-
-			XFreeDeviceList(device_info);
-
-
+			GHOST_SystemX11::GHOST_TabletX11 &xtablet = m_system->GetXTablet();
 			XEventClass xevents[10], ev;
 			int dcount = 0;
 
-			if (m_xtablet.StylusDevice) {
-				DeviceMotionNotify(m_xtablet.StylusDevice, m_xtablet.MotionEvent, ev);
+			if (xtablet.StylusDevice) {
+				DeviceMotionNotify(xtablet.StylusDevice, xtablet.MotionEvent, ev);
 				if (ev) xevents[dcount++] = ev;
-				ProximityIn(m_xtablet.StylusDevice, m_xtablet.ProxInEvent, ev);
+				ProximityIn(xtablet.StylusDevice, xtablet.ProxInEvent, ev);
 				if (ev) xevents[dcount++] = ev;
-				ProximityOut(m_xtablet.StylusDevice, m_xtablet.ProxOutEvent, ev);
+				ProximityOut(xtablet.StylusDevice, xtablet.ProxOutEvent, ev);
 				if (ev) xevents[dcount++] = ev;
 			}
-			if (m_xtablet.EraserDevice) {
-				DeviceMotionNotify(m_xtablet.EraserDevice, m_xtablet.MotionEvent, ev);
+			if (xtablet.EraserDevice) {
+				DeviceMotionNotify(xtablet.EraserDevice, xtablet.MotionEvent, ev);
 				if (ev) xevents[dcount++] = ev;
-				ProximityIn(m_xtablet.EraserDevice, m_xtablet.ProxInEvent, ev);
+				ProximityIn(xtablet.EraserDevice, xtablet.ProxInEvent, ev);
 				if (ev) xevents[dcount++] = ev;
-				ProximityOut(m_xtablet.EraserDevice, m_xtablet.ProxOutEvent, ev);
+				ProximityOut(xtablet.EraserDevice, xtablet.ProxOutEvent, ev);
 				if (ev) xevents[dcount++] = ev;
 			}
 
@@ -1341,15 +1168,6 @@ GHOST_WindowX11::
 		XFreeCursor(m_display, m_custom_cursor);
 	}
 
-#ifdef WITH_X11_XINPUT
-	/* close tablet devices */
-	if (m_xtablet.StylusDevice)
-		XCloseDevice(m_display, m_xtablet.StylusDevice);
-	
-	if (m_xtablet.EraserDevice)
-		XCloseDevice(m_display, m_xtablet.EraserDevice);
-#endif /* WITH_X11_XINPUT */
-
 	if (m_context != s_firstContext) {
 		glXDestroyContext(m_display, m_context);
 	}
@@ -1392,6 +1210,15 @@ installDrawingContext(
 	GHOST_TSuccess success;
 	switch (type) {
 		case GHOST_kDrawingContextTypeOpenGL:
+		{
+#ifdef WITH_X11_XINPUT
+			/* use our own event handlers to avoid exiting blender,
+			 * this would happen for eg:
+			 * if you open blender, unplug a tablet, then open a new window. */
+			XErrorHandler old_handler      = XSetErrorHandler(GHOST_X11_ApplicationErrorHandler);
+			XIOErrorHandler old_handler_io = XSetIOErrorHandler(GHOST_X11_ApplicationIOErrorHandler);
+#endif
+
 			m_context = glXCreateContext(m_display, m_visual, s_firstContext, True);
 			if (m_context != NULL) {
 				if (!s_firstContext) {
@@ -1406,12 +1233,18 @@ installDrawingContext(
 				success = GHOST_kFailure;
 			}
 
+#ifdef WITH_X11_XINPUT
+			/* Restore handler */
+			(void) XSetErrorHandler(old_handler);
+			(void) XSetIOErrorHandler(old_handler_io);
+#endif
 			break;
-
+		}
 		case GHOST_kDrawingContextTypeNone:
+		{
 			success = GHOST_kSuccess;
 			break;
-
+		}
 		default:
 			success = GHOST_kFailure;
 	}

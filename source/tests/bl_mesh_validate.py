@@ -98,7 +98,7 @@ def test_meshes():
         data.loops.add(len(m[2]))
         for idx, v in enumerate(m[2]):
             data.loops[idx].vertex_index = v
-        # Polys.
+        # Polygons.
         data.polygons.add(len(m[3]))
         for idx, l in enumerate(m[3]):
             data.polygons[idx].loop_start = l[0]
@@ -131,7 +131,7 @@ def test_builtins():
                             data.loops[l].edge_index = \
                                 random.randrange(0, len(data.edges) * 2)
                     elif rnd == 3:
-                        # Make fun with some poly.
+                        # Make fun with some polygons.
                         p = random.randrange(0, len(data.polygons))
                         if random.randint(0, 1):
                             data.polygons[p].loop_start = \

@@ -62,6 +62,7 @@ struct RayFace;
 struct RenderEngine;
 struct ReportList;
 struct Main;
+struct ImagePool;
 
 #define TABLEINITSIZE 1024
 
@@ -264,6 +265,8 @@ struct Render
 	RenderStats i;
 
 	struct ReportList *reports;
+
+	struct ImagePool *pool;
 };
 
 /* ------------------------------------------------------------------------- */
@@ -377,6 +380,7 @@ struct halosort {
 /* ------------------------------------------------------------------------- */
 struct Material;
 struct MTFace;
+struct ImagePool;
 
 typedef struct RadFace {
 	float unshot[3], totrad[3];
@@ -409,6 +413,7 @@ typedef struct HaloRen {
 	int pixels;
 	unsigned int lay;
 	struct Material *mat;
+	struct ImagePool *pool;
 } HaloRen;
 
 /* ------------------------------------------------------------------------- */

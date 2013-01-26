@@ -1460,7 +1460,8 @@ float BLI_gNoise(float noisesize, float x, float y, float z, int hard, int noise
 			noisefunc = cellNoiseU;
 			break;
 		case 0:
-		default: {
+		default:
+		{
 			noisefunc = orgBlenderNoise;
 			/* add one to make return value same as BLI_hnoise */
 			x += 1;
@@ -1592,7 +1593,8 @@ float mg_fBm(float x, float y, float z, float H, float lacunarity, float octaves
 			noisefunc = cellNoise;
 			break;
 		case 0:
-		default: {
+		default:
+		{
 			noisefunc = orgBlenderNoiseS;
 		}
 	}
@@ -1662,7 +1664,8 @@ float mg_MultiFractal(float x, float y, float z, float H, float lacunarity, floa
 			noisefunc = cellNoise;
 			break;
 		case 0:
-		default: {
+		default:
+		{
 			noisefunc = orgBlenderNoiseS;
 		}
 	}
@@ -1728,7 +1731,8 @@ float mg_HeteroTerrain(float x, float y, float z, float H, float lacunarity, flo
 			noisefunc = cellNoise;
 			break;
 		case 0:
-		default: {
+		default:
+		{
 			noisefunc = orgBlenderNoiseS;
 		}
 	}
@@ -1801,7 +1805,8 @@ float mg_HybridMultiFractal(float x, float y, float z, float H, float lacunarity
 			noisefunc = cellNoise;
 			break;
 		case 0:
-		default: {
+		default:
+		{
 			noisefunc = orgBlenderNoiseS;
 		}
 	}
@@ -1876,7 +1881,8 @@ float mg_RidgedMultiFractal(float x, float y, float z, float H, float lacunarity
 			noisefunc = cellNoise;
 			break;
 		case 0:
-		default: {
+		default:
+		{
 			noisefunc = orgBlenderNoiseS;
 		}
 	}
@@ -1941,7 +1947,8 @@ float mg_VLNoise(float x, float y, float z, float distortion, int nbas1, int nba
 			noisefunc1 = cellNoise;
 			break;
 		case 0:
-		default: {
+		default:
+		{
 			noisefunc1 = orgBlenderNoiseS;
 		}
 	}
@@ -1975,7 +1982,8 @@ float mg_VLNoise(float x, float y, float z, float distortion, int nbas1, int nba
 			noisefunc2 = cellNoise;
 			break;
 		case 0:
-		default: {
+		default:
+		{
 			noisefunc2 = orgBlenderNoiseS;
 		}
 	}

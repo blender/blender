@@ -34,6 +34,7 @@
 
 struct bContext;
 struct BMesh;
+struct BMFace;
 struct Brush;
 struct MDisps;
 struct MeshElemMap;
@@ -46,6 +47,7 @@ struct Paint;
 struct PBVH;
 struct Scene;
 struct StrokeCache;
+struct ImagePool;
 
 extern const char PAINT_CURSOR_SCULPT[3];
 extern const char PAINT_CURSOR_VERTEX_PAINT[3];
@@ -72,6 +74,7 @@ int paint_vertsel_test(struct Object *ob);
 int paint_is_face_hidden(const struct MFace *f, const struct MVert *mvert);
 int paint_is_grid_face_hidden(const unsigned int *grid_hidden,
                               int gridsize, int x, int y);
+int paint_is_bmesh_face_hidden(struct BMFace *f);
 
 /* paint masks */
 float paint_grid_paint_mask(const struct GridPaintMask *gpm, unsigned level,
@@ -114,6 +117,7 @@ typedef struct SculptSession {
 	
 	/* Used to cache the render of the active texture */
 	unsigned int texcache_side, *texcache, texcache_actual;
+	struct ImagePool *tex_pool;
 
 	/* Layer brush persistence between strokes */
 	float (*layer_co)[3]; /* Copy of the mesh vertices' locations */

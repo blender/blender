@@ -127,11 +127,11 @@ static int bpy_bm_elem_hflag_set(BPy_BMElem *self, PyObject *value, void *flag)
 
 	param = PyLong_AsLong(value);
 
-	if (param == TRUE) {
+	if (param == true) {
 		BM_elem_flag_enable(self->ele, hflag);
 		return 0;
 	}
-	else if (param == FALSE) {
+	else if (param == false) {
 		BM_elem_flag_disable(self->ele, hflag);
 		return 0;
 	}
@@ -869,7 +869,7 @@ static PyObject *bpy_bmesh_to_mesh(BPy_BMesh *self, PyObject *args)
 
 	bm = self->bm;
 
-	BM_mesh_bm_to_me(bm, me, FALSE);
+	BM_mesh_bm_to_me(bm, me, false);
 
 	/* we could have the user do this but if they forget blender can easy crash
 	 * since the references arrays for the objects derived meshes are now invalid */
@@ -899,9 +899,9 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args)
 	Object *ob;
 	struct Scene *scene;
 	BMesh *bm;
-	int use_deform = TRUE;
-	int use_render = FALSE;
-	int use_cage   = FALSE;
+	int use_deform = true;
+	int use_render = false;
+	int use_cage   = false;
 	DerivedMesh *dm;
 	const int mask = CD_MASK_BMESH;
 
@@ -999,7 +999,7 @@ static PyObject *bpy_bmesh_from_mesh(BPy_BMesh *self, PyObject *args, PyObject *
 	BMesh *bm;
 	PyObject *py_mesh;
 	Mesh *me;
-	int use_shape_key = FALSE;
+	int use_shape_key = false;
 	int shape_key_index = 0;
 
 	if (!PyArg_ParseTupleAndKeywords(args, kw, "O|ii:from_mesh", (char **)kwlist,
@@ -1047,7 +1047,7 @@ static PyObject *bpy_bmesh_select_flush(BPy_BMesh *self, PyObject *value)
 	BPY_BM_CHECK_OBJ(self);
 
 	param = PyLong_AsLong(value);
-	if (param != FALSE && param != TRUE) {
+	if (param != false && param != true) {
 		PyErr_SetString(PyExc_TypeError,
 		                "expected a boolean type 0/1");
 		return NULL;
@@ -1071,7 +1071,7 @@ PyDoc_STRVAR(bpy_bmesh_normal_update_doc,
 static PyObject *bpy_bmesh_normal_update(BPy_BMesh *self, PyObject *args)
 {
 
-	int skip_hidden = FALSE;
+	int skip_hidden = false;
 
 	BPY_BM_CHECK_OBJ(self);
 
@@ -1178,7 +1178,7 @@ static PyObject *bpy_bm_elem_select_set(BPy_BMElem *self, PyObject *value)
 	BPY_BM_CHECK_OBJ(self);
 
 	param = PyLong_AsLong(value);
-	if (param != FALSE && param != TRUE) {
+	if (param != false && param != true) {
 		PyErr_SetString(PyExc_TypeError,
 		                "expected a boolean type 0/1");
 		return NULL;
@@ -1206,7 +1206,7 @@ static PyObject *bpy_bm_elem_hide_set(BPy_BMElem *self, PyObject *value)
 	BPY_BM_CHECK_OBJ(self);
 
 	param = PyLong_AsLong(value);
-	if (param != FALSE && param != TRUE) {
+	if (param != false && param != true) {
 		PyErr_SetString(PyExc_TypeError,
 		                "expected a boolean type 0/1");
 		return NULL;
@@ -1273,7 +1273,7 @@ static PyObject *bpy_bmvert_copy_from_vert_interp(BPy_BMVert *self, PyObject *ar
 
 		vert_array = BPy_BMElem_PySeq_As_Array(&bm, vert_seq, 2, 2,
 		                                       &vert_seq_len, BM_VERT,
-		                                       TRUE, TRUE, "BMVert.copy_from_vert_interp(...)");
+		                                       true, true, "BMVert.copy_from_vert_interp(...)");
 
 		if (vert_array == NULL) {
 			return NULL;
@@ -1523,8 +1523,8 @@ static PyObject *bpy_bmface_copy(BPy_BMFace *self, PyObject *args, PyObject *kw)
 	static const char *kwlist[] = {"verts", "edges", NULL};
 
 	BMesh *bm = self->bm;
-	int do_verts = TRUE;
-	int do_edges = TRUE;
+	int do_verts = true;
+	int do_edges = true;
 
 	BMFace *f_cpy;
 	BPY_BM_CHECK_OBJ(self);
@@ -1664,8 +1664,8 @@ PyDoc_STRVAR(bpy_bmloop_copy_from_face_interp_doc,
 static PyObject *bpy_bmloop_copy_from_face_interp(BPy_BMLoop *self, PyObject *args)
 {
 	BPy_BMFace *py_face = NULL;
-	int do_vertex   = TRUE;
-	int do_multires = TRUE;
+	int do_vertex   = true;
+	int do_multires = true;
 
 	BPY_BM_CHECK_OBJ(self);
 
@@ -1833,7 +1833,7 @@ static PyObject *bpy_bmedgeseq_new(BPy_BMElemSeq *self, PyObject *args)
 
 		vert_array = BPy_BMElem_PySeq_As_Array(&bm, vert_seq, 2, 2,
 		                                       &vert_seq_len, BM_VERT,
-		                                       TRUE, TRUE, "edges.new(...)");
+		                                       true, true, "edges.new(...)");
 
 		if (vert_array == NULL) {
 			return NULL;
@@ -1911,7 +1911,7 @@ static PyObject *bpy_bmfaceseq_new(BPy_BMElemSeq *self, PyObject *args)
 
 		vert_array = BPy_BMElem_PySeq_As_Array(&bm, vert_seq, 3, PY_SSIZE_T_MAX,
 		                                       &vert_seq_len, BM_VERT,
-		                                       TRUE, TRUE, "faces.new(...)");
+		                                       true, true, "faces.new(...)");
 
 		if (vert_array == NULL) {
 			return NULL;
@@ -2064,7 +2064,7 @@ static PyObject *bpy_bmedgeseq_get__method(BPy_BMElemSeq *self, PyObject *args)
 
 		vert_array = BPy_BMElem_PySeq_As_Array(&bm, vert_seq, 2, 2,
 		                                       &vert_seq_len, BM_VERT,
-		                                       TRUE, TRUE, "edges.get(...)");
+		                                       true, true, "edges.get(...)");
 
 		if (vert_array == NULL) {
 			return NULL;
@@ -2116,7 +2116,7 @@ static PyObject *bpy_bmfaceseq_get__method(BPy_BMElemSeq *self, PyObject *args)
 
 		vert_array = BPy_BMElem_PySeq_As_Array(&bm, vert_seq, 1, PY_SSIZE_T_MAX,
 		                                       &vert_seq_len, BM_VERT,
-		                                       TRUE, TRUE, "faces.get(...)");
+		                                       true, true, "faces.get(...)");
 
 		if (vert_array == NULL) {
 			return NULL;
@@ -2243,7 +2243,7 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
 {
 	static const char *kwlist[] = {"key", "reverse", NULL};
 	PyObject *keyfunc = NULL; /* optional */
-	int reverse = FALSE; /* optional */
+	int do_reverse = false; /* optional */
 
 	const char htype = bm_iter_itype_htype_map[self->itype];
 	int n_elem;
@@ -2268,7 +2268,7 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
 		if (!PyArg_ParseTupleAndKeywords(args, kw,
 		                                 "|Oi:BMElemSeq.sort",
 		                                 (char **)kwlist,
-		                                 &keyfunc, &reverse))
+		                                 &keyfunc, &do_reverse))
 		{
 			return NULL;
 		}
@@ -2338,7 +2338,7 @@ static PyObject *bpy_bmelemseq_sort(BPy_BMElemSeq *self, PyObject *args, PyObjec
 	range_vn_i(elem_idx, n_elem, 0);
 
 	/* Sort the index array according to the order of the 'keys' array */
-	if (reverse)
+	if (do_reverse)
 		elem_idx_compare_by_keys = bpy_bmelemseq_sort_cmp_by_keys_descending;
 	else
 		elem_idx_compare_by_keys = bpy_bmelemseq_sort_cmp_by_keys_ascending;
@@ -2616,7 +2616,7 @@ static PyObject *bpy_bmelemseq_subscript_slice(BPy_BMElemSeq *self, Py_ssize_t s
 {
 	BMIter iter;
 	int count = 0;
-	int ok;
+	bool ok;
 
 	PyObject *list;
 	PyObject *item;
@@ -2628,14 +2628,14 @@ static PyObject *bpy_bmelemseq_subscript_slice(BPy_BMElemSeq *self, Py_ssize_t s
 
 	ok = BM_iter_init(&iter, self->bm, self->itype, self->py_ele ? self->py_ele->ele : NULL);
 
-	BLI_assert(ok == TRUE);
+	BLI_assert(ok == true);
 
-	if (UNLIKELY(ok == FALSE)) {
+	if (UNLIKELY(ok == false)) {
 		return list;
 	}
 
 	/* first loop up-until the start */
-	for (ok = TRUE; ok; ok = (BM_iter_step(&iter) != NULL)) {
+	for (ok = true; ok; ok = (BM_iter_step(&iter) != NULL)) {
 		if (count == start) {
 			break;
 		}
@@ -3434,7 +3434,7 @@ int bpy_bm_generic_valid_check(BPy_BMGeneric *self)
 		 * function where the actual error will be caused by
 		 * the previous action. */
 #if 0
-		if (BM_mesh_validate(self->bm) == FALSE) {
+		if (BM_mesh_validate(self->bm) == false) {
 			PyErr_Format(PyExc_ReferenceError,
 			             "BMesh used by %.200s has become invalid",
 			             Py_TYPE(self)->tp_name);
@@ -3479,7 +3479,7 @@ void bpy_bm_generic_invalidate(BPy_BMGeneric *self)
  */
 void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_ssize_t max, Py_ssize_t *r_size,
                                 const char htype,
-                                const char do_unique_check, const char do_bm_check,
+                                const bool do_unique_check, const bool do_bm_check,
                                 const char *error_prefix)
 {
 	BMesh *bm = (r_bm && *r_bm) ? *r_bm : NULL;
@@ -3546,17 +3546,17 @@ void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_
 
 		if (do_unique_check) {
 			/* check for double verts! */
-			int ok = TRUE;
+			bool ok = true;
 			for (i = 0; i < seq_len; i++) {
-				if (UNLIKELY(BM_elem_flag_test(alloc[i], BM_ELEM_INTERNAL_TAG) == FALSE)) {
-					ok = FALSE;
+				if (UNLIKELY(BM_elem_flag_test(alloc[i], BM_ELEM_INTERNAL_TAG) == false)) {
+					ok = false;
 				}
 
 				/* ensure we don't leave this enabled */
 				BM_elem_flag_disable(alloc[i], BM_ELEM_INTERNAL_TAG);
 			}
 
-			if (ok == FALSE) {
+			if (ok == false) {
 				PyErr_Format(PyExc_ValueError,
 				             "%s: found the same %.200s used multiple times",
 				             error_prefix, BPy_BMElem_StringFromHType(htype));

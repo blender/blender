@@ -73,11 +73,11 @@ def find_matching_po(languages, stats, forbidden):
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description=""
-                        "Update 'languages' text file used by Blender at runtime to build translations menu.")
+    parser = argparse.ArgumentParser(description="Update 'languages' text file used by Blender at runtime to build "
+                                                 "translations menu.")
     parser.add_argument('-m', '--min_translation', type=int, default=-100,
-                        help="Minimum level of translation, as a percentage "
-                             "(translations below this are commented out in menu).")
+                        help="Minimum level of translation, as a percentage (translations below this are commented out "
+                             "in menu).")
     parser.add_argument('langs', metavar='ISO_code', nargs='*',
                         help="Unconditionally exclude those languages from the menu.")
     args = parser.parse_args()
@@ -92,8 +92,8 @@ def main():
     for po in os.listdir(TRUNK_PO_DIR):
         if po.endswith(".po") and not po.endswith("_raw.po"):
             lang = os.path.basename(po)[:-3]
-            u1, u2, _stats = utils.parse_messages(os.path.join(TRUNK_PO_DIR, po))
-            stats[lang] = _stats["trans_msg"] / _stats["tot_msg"]
+            msgs = utils.I18nMessages(kind='PO', src=os.path.join(TRUNK_PO_DIR, po))
+            stats[lang] = msgs.nbr_trans_msgs / msgs.nbr_msgs
 
     # Generate languages file used by Blender's i18n system.
     # First, match all entries in LANGUAGES to a lang in stats, if possible!

@@ -32,12 +32,25 @@
 #ifndef __ED_PHYSICS_H__
 #define __ED_PHYSICS_H__
 
+struct bContext;
+struct wmOperator;
 struct wmKeyConfig;
+
+struct Scene;
+struct Object;
 
 /* particle_edit.c */
 int PE_poll(struct bContext *C);
 int PE_hair_poll(struct bContext *C);
 int PE_poll_view3d(struct bContext *C);
+
+/* rigidbody_object.c */
+void ED_rigidbody_ob_add(struct wmOperator *op, struct Scene *scene, struct Object *ob, int type);
+void ED_rigidbody_ob_remove(struct Scene *scene, struct Object *ob);
+
+/* rigidbody_constraint.c */
+void ED_rigidbody_con_add(struct wmOperator *op, struct Scene *scene, struct Object *ob, int type);
+void ED_rigidbody_con_remove(struct Scene *scene, struct Object *ob);
 
 /* operators */
 void ED_operatortypes_physics(void);

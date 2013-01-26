@@ -255,7 +255,7 @@ void wmSubWindowScissorSet(wmWindow *win, int swinid, rcti *srct)
 	width  = BLI_rcti_size_x(&_curswin->winrct) + 1;
 	height = BLI_rcti_size_y(&_curswin->winrct) + 1;
 	glViewport(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
-
+	
 	if (srct) {
 		int width  = BLI_rcti_size_x(srct) + 1; /* only here */
 		int height = BLI_rcti_size_y(srct) + 1;
@@ -266,10 +266,9 @@ void wmSubWindowScissorSet(wmWindow *win, int swinid, rcti *srct)
 	
 	wmOrtho2(-GLA_PIXEL_OFS, (float)width - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, (float)height - GLA_PIXEL_OFS);
 	glLoadIdentity();
-
+	
 	glFlush();
 }
-
 
 /* enable the WM versions of opengl calls */
 void wmSubWindowSet(wmWindow *win, int swinid)

@@ -1922,20 +1922,6 @@ static int gpu_bmesh_vert_visible_count(GHash *bm_unique_verts,
 	return totvert;
 }
 
-/* Return TRUE if all vertices in the face are visible, FALSE otherwise */
-static int gpu_bmesh_face_visible(BMFace *f)
-{
-	BMIter bm_iter;
-	BMVert *v;
-
-	BM_ITER_ELEM (v, &bm_iter, f, BM_VERTS_OF_FACE) {
-		if (BM_elem_flag_test(v, BM_ELEM_HIDDEN))
-			return FALSE;
-	}
-
-	return TRUE;
-}
-
 /* Return the total number of visible faces */
 static int gpu_bmesh_face_visible_count(GHash *bm_faces)
 {
@@ -1945,7 +1931,7 @@ static int gpu_bmesh_face_visible_count(GHash *bm_faces)
 	GHASH_ITER (gh_iter, bm_faces) {
 		BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
 
-		if (gpu_bmesh_face_visible(f))
+		if (!paint_is_bmesh_face_hidden(f))
 			totface++;
 	}
 
@@ -2012,24 +1998,25 @@ void GPU_update_bmesh_buffers(GPU_Buffers *buffers,
 
 				BLI_assert(f->len == 3);
 
-				if (gpu_bmesh_face_visible(f)) {
+				if (!paint_is_bmesh_face_hidden(f)) {
 					BMVert *v[3];
 					float fmask = 0;
 					int i;
 
-					BM_iter_as_array(bm, BM_VERTS_OF_FACE, f, (void**)v, 3);
+					// BM_iter_as_array(bm, BM_VERTS_OF_FACE, f, (void**)v, 3);
+					BM_face_as_array_vert_tri(f, v);
 
 					/* Average mask value */
 					for (i = 0; i < 3; i++) {
 						fmask += *((float*)CustomData_bmesh_get(&bm->vdata,
-																v[i]->head.data,
-																CD_PAINT_MASK));
+						                                        v[i]->head.data,
+						                                        CD_PAINT_MASK));
 					}
 					fmask /= 3.0f;
 					
 					for (i = 0; i < 3; i++) {
 						gpu_bmesh_vert_to_buffer_copy(v[i], bm, vert_data,
-													  &v_index, f->no, &fmask);
+						                              &v_index, f->no, &fmask);
 					}
 				}
 			}
@@ -2063,12 +2050,15 @@ void GPU_update_bmesh_buffers(GPU_Buffers *buffers,
 			GHashIterator gh_iter;
 
 			GHASH_ITER (gh_iter, bm_faces) {
-				BMIter bm_iter;
 				BMFace *f = BLI_ghashIterator_getKey(&gh_iter);
-				BMVert *v;
 
-				if (gpu_bmesh_face_visible(f)) {
-					BM_ITER_ELEM (v, &bm_iter, f, BM_VERTS_OF_FACE) {
+				if (!paint_is_bmesh_face_hidden(f)) {
+					BMLoop *l_iter;
+					BMLoop *l_first;
+
+					l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+					do {
+						BMVert *v = l_iter->v;
 						if (use_short) {
 							unsigned short *elem = tri_data;
 							(*elem) = BM_elem_index_get(v);
@@ -2081,7 +2071,7 @@ void GPU_update_bmesh_buffers(GPU_Buffers *buffers,
 							elem++;
 							tri_data = elem;
 						}
-					}
+					} while ((l_iter = l_iter->next) != l_first);
 				}
 			}
 

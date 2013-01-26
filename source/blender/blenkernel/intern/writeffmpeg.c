@@ -373,7 +373,7 @@ static void set_ffmpeg_property_option(AVCodecContext *c, IDProperty *prop)
 {
 	char name[128];
 	char *param;
-	const AVOption *rv = NULL;
+	int fail = TRUE;
 
 	PRINT("FFMPEG expert option: %s: ", prop->name);
 
@@ -388,30 +388,30 @@ static void set_ffmpeg_property_option(AVCodecContext *c, IDProperty *prop)
 	switch (prop->type) {
 		case IDP_STRING:
 			PRINT("%s.\n", IDP_String(prop));
-			av_set_string3(c, prop->name, IDP_String(prop), 1, &rv);
+			fail = av_opt_set(c, prop->name, IDP_String(prop), 0);
 			break;
 		case IDP_FLOAT:
 			PRINT("%g.\n", IDP_Float(prop));
-			rv = av_set_double(c, prop->name, IDP_Float(prop));
+			fail = av_opt_set_double(c, prop->name, IDP_Float(prop), 0);
 			break;
 		case IDP_INT:
 			PRINT("%d.\n", IDP_Int(prop));
 
 			if (param) {
 				if (IDP_Int(prop)) {
-					av_set_string3(c, name, param, 1, &rv);
+					fail = av_opt_set(c, name, param, 0);
 				}
 				else {
 					return;
 				}
 			}
 			else {
-				rv = av_set_int(c, prop->name, IDP_Int(prop));
+				fail = av_opt_set_int(c, prop->name, IDP_Int(prop), 0);
 			}
 			break;
 	}
 
-	if (!rv) {
+	if (fail) {
 		PRINT("ffmpeg-option not supported: %s! Skipping.\n", prop->name);
 	}
 }
@@ -464,8 +464,9 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 
 	error[0] = '\0';
 
-	st = av_new_stream(of, 0);
+	st = avformat_new_stream(of, NULL);
 	if (!st) return NULL;
+	st->id = 0;
 
 	/* Set up the codec context */
 	
@@ -541,16 +542,7 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	}
 
 	if (codec_id == CODEC_ID_FFV1) {
-#ifdef FFMPEG_FFV1_ALPHA_SUPPORTED
-		if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
-			c->pix_fmt = PIX_FMT_RGB32;
-		}
-		else {
-			c->pix_fmt = PIX_FMT_BGR0;
-		}
-#else
 		c->pix_fmt = PIX_FMT_RGB32;
-#endif
 	}
 
 	if (codec_id == CODEC_ID_QTRLE) {
@@ -582,7 +574,7 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 
 	set_ffmpeg_properties(rd, c, "video");
 	
-	if (avcodec_open(c, codec) < 0) {
+	if (avcodec_open2(c, codec, NULL) < 0) {
 		BLI_strncpy(error, IMB_ffmpeg_last_error(), error_size);
 		return NULL;
 	}
@@ -619,8 +611,9 @@ static AVStream *alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 
 	error[0] = '\0';
 
-	st = av_new_stream(of, 1);
+	st = avformat_new_stream(of, NULL);
 	if (!st) return NULL;
+	st->id = 1;
 
 	c = st->codec;
 	c->codec_id = codec_id;
@@ -642,7 +635,7 @@ static AVStream *alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 
 	set_ffmpeg_properties(rd, c, "audio");
 
-	if (avcodec_open(c, codec) < 0) {
+	if (avcodec_open2(c, codec, NULL) < 0) {
 		//XXX error("Couldn't initialize audio codec");
 		BLI_strncpy(error, IMB_ffmpeg_last_error(), error_size);
 		return NULL;
@@ -1151,7 +1144,7 @@ IDProperty *BKE_ffmpeg_property_add(RenderData *rd, const char *type, int opt_in
 	
 	val.i = 0;
 
-	avcodec_get_context_defaults(&c);
+	avcodec_get_context_defaults3(&c, NULL);
 
 	o = c.av_class->option + opt_index;
 	parent = c.av_class->option + parent_index;
@@ -1182,23 +1175,23 @@ IDProperty *BKE_ffmpeg_property_add(RenderData *rd, const char *type, int opt_in
 	}
 
 	switch (o->type) {
-		case FF_OPT_TYPE_INT:
-		case FF_OPT_TYPE_INT64:
+		case AV_OPT_TYPE_INT:
+		case AV_OPT_TYPE_INT64:
 			val.i = FFMPEG_DEF_OPT_VAL_INT(o);
 			idp_type = IDP_INT;
 			break;
-		case FF_OPT_TYPE_DOUBLE:
-		case FF_OPT_TYPE_FLOAT:
+		case AV_OPT_TYPE_DOUBLE:
+		case AV_OPT_TYPE_FLOAT:
 			val.f = FFMPEG_DEF_OPT_VAL_DOUBLE(o);
 			idp_type = IDP_FLOAT;
 			break;
-		case FF_OPT_TYPE_STRING:
+		case AV_OPT_TYPE_STRING:
 			val.string.str = (char *)"                                                                               ";
 			val.string.len = 80;
 /*		val.str = (char *)"                                                                               ";*/
 			idp_type = IDP_STRING;
 			break;
-		case FF_OPT_TYPE_CONST:
+		case AV_OPT_TYPE_CONST:
 			val.i = 1;
 			idp_type = IDP_INT;
 			break;
@@ -1238,7 +1231,7 @@ int BKE_ffmpeg_property_add_string(RenderData *rd, const char *type, const char 
 	char *param;
 	IDProperty *prop = NULL;
 	
-	avcodec_get_context_defaults(&c);
+	avcodec_get_context_defaults3(&c, NULL);
 
 	strncpy(name_, str, sizeof(name_));
 
@@ -1259,10 +1252,10 @@ int BKE_ffmpeg_property_add_string(RenderData *rd, const char *type, const char 
 	if (!o) {
 		return 0;
 	}
-	if (param && o->type == FF_OPT_TYPE_CONST) {
+	if (param && o->type == AV_OPT_TYPE_CONST) {
 		return 0;
 	}
-	if (param && o->type != FF_OPT_TYPE_CONST && o->unit) {
+	if (param && o->type != AV_OPT_TYPE_CONST && o->unit) {
 		p = my_av_find_opt(&c, param, o->unit, 0, 0);
 		if (p) {
 			prop = BKE_ffmpeg_property_add(rd, (char *) type, p - c.av_class->option, o - c.av_class->option);

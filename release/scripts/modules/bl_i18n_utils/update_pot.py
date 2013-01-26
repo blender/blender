@@ -23,6 +23,7 @@
 # Update blender.pot file from messages.txt
 
 import subprocess
+import collections
 import os
 import sys
 import re
@@ -41,9 +42,11 @@ except:
 LANGUAGES_CATEGORIES = settings.LANGUAGES_CATEGORIES
 LANGUAGES = settings.LANGUAGES
 
-COMMENT_PREFIX = settings.COMMENT_PREFIX
-COMMENT_PREFIX_SOURCE = settings.COMMENT_PREFIX_SOURCE
-CONTEXT_PREFIX = settings.CONTEXT_PREFIX
+PO_COMMENT_PREFIX = settings.PO_COMMENT_PREFIX
+PO_COMMENT_PREFIX_SOURCE = settings.PO_COMMENT_PREFIX_SOURCE
+PO_COMMENT_PREFIX_SOURCE_CUSTOM = settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM
+MSG_COMMENT_PREFIX = settings.MSG_COMMENT_PREFIX
+MSG_CONTEXT_PREFIX = settings.MSG_CONTEXT_PREFIX
 FILE_NAME_MESSAGES = settings.FILE_NAME_MESSAGES
 FILE_NAME_POT = settings.FILE_NAME_POT
 SOURCE_DIR = settings.SOURCE_DIR
@@ -77,6 +80,10 @@ pygettexts = tuple(re.compile(r).search
                    for r in settings.PYGETTEXT_KEYWORDS)
 _clean_str = re.compile(settings.str_clean_re).finditer
 clean_str = lambda s: "".join(m.group("clean") for m in _clean_str(s))
+
+
+def _new_messages():
+    return getattr(collections, "OrderedDict", dict)()
 
 
 def check_file(path, rel_path, messages):
@@ -207,20 +214,22 @@ def get_svnrev():
 
 
 def gen_empty_pot():
+    blender_ver = ""
     blender_rev = get_svnrev().decode()
     utctime = time.gmtime()
     time_str = time.strftime("%Y-%m-%d %H:%M+0000", utctime)
     year_str = time.strftime("%Y", utctime)
 
-    return utils.gen_empty_messages(blender_rev, time_str, year_str)
+    return utils.I18nMessages.gen_empty_messages("__POT__", blender_ver, blender_rev, time_str, year_str)
 
 
 escape_re = tuple(re.compile(r[0]) for r in settings.ESCAPE_RE)
 escape = lambda s, n: escape_re[n].sub(settings.ESCAPE_RE[n][1], s)
 
 
-def merge_messages(msgs, states, messages, do_checks, spell_cache):
-    num_added = num_present = 0
+def merge_messages(msgs, messages, do_checks, spell_cache):
+    num_added = 0
+    num_present = msgs.nbr_msgs
     for (context, msgid), srcs in messages.items():
         if do_checks:
             err = spell_check(msgid, spell_cache)
@@ -233,19 +242,15 @@ def merge_messages(msgs, states, messages, do_checks, spell_cache):
         for n in range(len(escape_re)):
             msgid = escape(msgid, n)
 
-        srcs = [COMMENT_PREFIX_SOURCE + s for s in srcs]
-
         key = (context, msgid)
-        if key not in msgs:
-            msgs[key] = {"msgid_lines": [msgid],
-                         "msgstr_lines": [""],
-                         "comment_lines": srcs,
-                         "msgctxt_lines": [context]}
+        if key not in msgs.msgs:
+            msg = utils.I18nMessage([context], [msgid], [""], [])
+            msg.sources = srcs
+            msgs.msgs[key] = msg
             num_added += 1
         else:
-            # We need to merge comments!
-            msgs[key]["comment_lines"].extend(srcs)
-            num_present += 1
+            # We need to merge sources!
+            msgs.msgs[key].sources += srcs
 
     return num_added, num_present
 
@@ -270,7 +275,7 @@ def main():
 
     print("Running fake py gettext…")
     # Not using any more xgettext, simpler to do it ourself!
-    messages = utils.new_messages()
+    messages = _new_messages()
     py_xgettext(messages)
     print("Finished, found {} messages.".format(len(messages)))
 
@@ -281,55 +286,49 @@ def main():
         spell_cache = set()
 
     print("Generating POT file {}…".format(FILE_NAME_POT))
-    msgs, states = gen_empty_pot()
-    tot_messages, _a = merge_messages(msgs, states, messages,
-                                      True, spell_cache)
+    msgs = gen_empty_pot()
+    tot_messages, _a = merge_messages(msgs, messages, True, spell_cache)
 
     # add messages collected automatically from RNA
     print("\tMerging RNA messages from {}…".format(FILE_NAME_MESSAGES))
-    messages = utils.new_messages()
+    messages.clear()
     with open(FILE_NAME_MESSAGES, encoding="utf-8") as f:
         srcs = []
         context = ""
         for line in f:
             line = utils.stripeol(line)
 
-            if line.startswith(COMMENT_PREFIX):
-                srcs.append(line[len(COMMENT_PREFIX):].strip())
-            elif line.startswith(CONTEXT_PREFIX):
-                context = line[len(CONTEXT_PREFIX):].strip()
+            if line.startswith(MSG_COMMENT_PREFIX):
+                srcs.append(line[len(MSG_COMMENT_PREFIX):].strip())
+            elif line.startswith(MSG_CONTEXT_PREFIX):
+                context = line[len(MSG_CONTEXT_PREFIX):].strip()
             else:
                 key = (context, line)
                 messages[key] = srcs
                 srcs = []
                 context = ""
-    num_added, num_present = merge_messages(msgs, states, messages,
-                                            True, spell_cache)
+    num_added, num_present = merge_messages(msgs, messages, True, spell_cache)
     tot_messages += num_added
-    print("\tMerged {} messages ({} were already present)."
-          "".format(num_added, num_present))
+    print("\tMerged {} messages ({} were already present).".format(num_added, num_present))
 
     print("\tAdding languages labels...")
-    messages = {(CONTEXT_DEFAULT, lng[1]):
-                ("Languages’ labels from bl_i18n_utils/settings.py",)
-                for lng in LANGUAGES}
-    messages.update({(CONTEXT_DEFAULT, cat[1]):
-                     ("Language categories’ labels from bl_i18n_utils/settings.py",)
-                     for cat in LANGUAGES_CATEGORIES})
-    num_added, num_present = merge_messages(msgs, states, messages,
-                                            True, spell_cache)
+    messages.clear()
+    messages.update(((CONTEXT_DEFAULT, lng[1]), ("Languages’ labels from bl_i18n_utils/settings.py",))
+                    for lng in LANGUAGES)
+    messages.update(((CONTEXT_DEFAULT, cat[1]), ("Language categories’ labels from bl_i18n_utils/settings.py",))
+                     for cat in LANGUAGES_CATEGORIES)
+    num_added, num_present = merge_messages(msgs, messages, True, spell_cache)
     tot_messages += num_added
     print("\tAdded {} language messages.".format(num_added))
 
     # Write back all messages into blender.pot.
-    utils.write_messages(FILE_NAME_POT, msgs, states["comm_msg"],
-                         states["fuzzy_msg"])
+    msgs.write('PO', FILE_NAME_POT)
 
     if SPELL_CACHE and spell_cache:
         with open(SPELL_CACHE, 'wb') as f:
             pickle.dump(spell_cache, f)
 
-    print("Finished, total: {} messages!".format(tot_messages - 1))
+    print("Finished, total: {} messages!".format(tot_messages))
 
     return 0
 

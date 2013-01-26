@@ -154,9 +154,9 @@ static void edgering_find_order(BMEdge *lasteed, BMEdge *eed,
 static void edgering_sel(RingSelOpData *lcd, int previewlines, int select)
 {
 	BMEditMesh *em = lcd->em;
-	BMEdge *startedge = lcd->eed;
-	BMEdge *eed, *lasteed;
-	BMVert *v[2][2], *lastv1;
+	BMEdge *eed_start = lcd->eed;
+	BMEdge *eed, *eed_last;
+	BMVert *v[2][2], *v_last;
 	BMWalker walker;
 	float (*edges)[2][3] = NULL;
 	BLI_array_declare(edges);
@@ -164,7 +164,7 @@ static void edgering_sel(RingSelOpData *lcd, int previewlines, int select)
 	
 	memset(v, 0, sizeof(v));
 	
-	if (!startedge)
+	if (!eed_start)
 		return;
 
 	if (lcd->edges) {
@@ -183,8 +183,7 @@ static void edgering_sel(RingSelOpData *lcd, int previewlines, int select)
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
-		eed = BMW_begin(&walker, startedge);
-		for ( ; eed; eed = BMW_step(&walker)) {
+		for (eed = BMW_begin(&walker, eed_start); eed; eed = BMW_step(&walker)) {
 			BM_edge_select_set(em->bm, eed, TRUE);
 		}
 		BMW_end(&walker);
@@ -197,22 +196,23 @@ static void edgering_sel(RingSelOpData *lcd, int previewlines, int select)
 	         BMW_FLAG_TEST_HIDDEN,
 	         BMW_NIL_LAY);
 
-	eed = startedge = BMW_begin(&walker, startedge);
-	lastv1 = NULL;
-	for (lasteed = NULL; eed; eed = BMW_step(&walker)) {
-		if (lasteed) {
-			if (lastv1) {
+	v_last   = NULL;
+	eed_last = NULL;
+
+	for (eed = eed_start = BMW_begin(&walker, eed_start); eed; eed = BMW_step(&walker)) {
+		if (eed_last) {
+			if (v_last) {
 				v[1][0] = v[0][0];
 				v[1][1] = v[0][1];
 			}
 			else {
-				v[1][0] = lasteed->v1;
-				v[1][1] = lasteed->v2;
-				lastv1 = lasteed->v1;
+				v[1][0] = eed_last->v1;
+				v[1][1] = eed_last->v2;
+				v_last  = eed_last->v1;
 			}
 
-			edgering_find_order(lasteed, eed, lastv1, v);
-			lastv1 = v[0][0];
+			edgering_find_order(eed_last, eed, v_last, v);
+			v_last = v[0][0];
 
 			BLI_array_grow_items(edges, previewlines);
 
@@ -223,18 +223,18 @@ static void edgering_sel(RingSelOpData *lcd, int previewlines, int select)
 				tot++;
 			}
 		}
-		lasteed = eed;
+		eed_last = eed;
 	}
 	
 #ifdef BMW_EDGERING_NGON
 	if (lasteed != startedge && BM_edge_share_face_check(lasteed, startedge)) {
 #else
-	if (lasteed != startedge && BM_edge_share_quad_check(lasteed, startedge)) {
+	if (eed_last != eed_start && BM_edge_share_quad_check(eed_last, eed_start)) {
 #endif
 		v[1][0] = v[0][0];
 		v[1][1] = v[0][1];
 
-		edgering_find_order(lasteed, startedge, lastv1, v);
+		edgering_find_order(eed_last, eed_start, v_last, v);
 		
 		BLI_array_grow_items(edges, previewlines);
 
@@ -502,7 +502,8 @@ static int loopcut_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			ED_region_tag_redraw(lcd->ar);
 			break;
-		case MOUSEMOVE: { /* mouse moved somewhere to select another loop */
+		case MOUSEMOVE:  /* mouse moved somewhere to select another loop */
+		{
 			float dist = 75.0f;
 			BMEdge *edge;
 

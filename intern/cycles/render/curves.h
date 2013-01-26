@@ -29,6 +29,8 @@ class DeviceScene;
 class Progress;
 class Scene;
 
+void curvebounds(float *lower, float *upper, float3 *p, int dim);
+
 typedef enum curve_presets {
 	CURVE_CUSTOM,
 	CURVE_TANGENT_SHADING,
@@ -39,13 +41,14 @@ typedef enum curve_presets {
 typedef enum curve_primitives {
 	CURVE_TRIANGLES,
 	CURVE_LINE_SEGMENTS,
-	CURVE_SEGMENTS
+	CURVE_SEGMENTS,
+	CURVE_RIBBONS
 } curve_primitives;
 
 typedef enum curve_triangles {
-	CURVE_CAMERA,
-	CURVE_RIBBONS,
-	CURVE_TESSELATED
+	CURVE_CAMERA_TRIANGLES,
+	CURVE_RIBBON_TRIANGLES,
+	CURVE_TESSELATED_TRIANGLES
 } curve_triangles;
 
 typedef enum curve_lines {
@@ -98,13 +101,13 @@ public:
 	int triangle_method;
 	int resolution;
 	int segments;
+	int subdivisions;
 
 	float normalmix;
 	float encasing_ratio;
 
 	bool use_curves;
 	bool use_smooth;
-	bool use_cache;
 	bool use_parents;
 	bool use_encasing;
 	bool use_backfacing;

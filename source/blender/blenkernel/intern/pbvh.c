@@ -1238,6 +1238,19 @@ PBVHType BKE_pbvh_type(const PBVH *bvh)
 	return bvh->type;
 }
 
+void BKE_pbvh_bounding_box(const PBVH *bvh, float min[3], float max[3])
+{
+	if (bvh->totnode) {
+		const BB *bb = &bvh->nodes[0].vb;
+		copy_v3_v3(min, bb->bmin);
+		copy_v3_v3(max, bb->bmax);
+	}
+	else {
+		zero_v3(min);
+		zero_v3(max);
+	}
+}
+
 BLI_bitmap *BKE_pbvh_grid_hidden(const PBVH *bvh)
 {
 	BLI_assert(bvh->type == PBVH_GRIDS);
@@ -1386,10 +1399,10 @@ void BKE_pbvh_raycast(PBVH *bvh, BKE_pbvh_HitOccludedCallback cb, void *data,
 }
 
 int ray_face_intersection(const float ray_start[3],
-						  const float ray_normal[3],
-						  const float *t0, const float *t1,
-						  const float *t2, const float *t3,
-						  float *fdist)
+                          const float ray_normal[3],
+                          const float *t0, const float *t1,
+                          const float *t2, const float *t3,
+                          float *fdist)
 {
 	float dist;
 

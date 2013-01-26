@@ -44,44 +44,6 @@ static bNodeSocketTemplate cmp_node_valtorgb_out[] = {
 	{	-1, 0, ""	}
 };
 
-#ifdef WITH_COMPOSITOR_LEGACY
-
-static void do_colorband_composit(bNode *node, float *out, float *in)
-{
-	do_colorband(node->storage, in[0], out);
-}
-
-static void node_composit_exec_valtorgb(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	/* stack order in: fac */
-	/* stack order out: col, alpha */
-	
-	if (out[0]->hasoutput==0 && out[1]->hasoutput==0) 
-		return;
-	
-	if (node->storage) {
-		/* input no image? then only color operation */
-		if (in[0]->data==NULL) {
-			do_colorband(node->storage, in[0]->vec[0], out[0]->vec);
-		}
-		else {
-			/* make output size of input image */
-			CompBuf *cbuf= in[0]->data;
-			CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
-			
-			composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_colorband_composit, CB_VAL);
-			
-			out[0]->data= stackbuf;
-			
-			if (out[1]->hasoutput)
-				out[1]->data= valbuf_from_rgbabuf(stackbuf, CHAN_A);
-
-		}
-	}
-}
-
-#endif  /* WITH_COMPOSITOR_LEGACY */
-
 static void node_composit_init_valtorgb(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->storage= add_colorband(1);
@@ -96,9 +58,6 @@ void register_node_type_cmp_valtorgb(bNodeTreeType *ttype)
 	node_type_size(&ntype, 240, 200, 300);
 	node_type_init(&ntype, node_composit_init_valtorgb);
 	node_type_storage(&ntype, "ColorBand", node_free_standard_storage, node_copy_standard_storage);
-#ifdef WITH_COMPOSITOR_LEGACY
-	node_type_exec(&ntype, node_composit_exec_valtorgb);
-#endif
 
 	nodeRegisterType(ttype, &ntype);
 }
@@ -115,38 +74,6 @@ static bNodeSocketTemplate cmp_node_rgbtobw_out[] = {
 	{	-1, 0, ""	}
 };
 
-#ifdef WITH_COMPOSITOR_LEGACY
-
-static void do_rgbtobw(bNode *UNUSED(node), float *out, float *in)
-{
-	out[0] = rgb_to_bw(in);
-}
-
-static void node_composit_exec_rgbtobw(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	/* stack order out: bw */
-	/* stack order in: col */
-	
-	if (out[0]->hasoutput==0)
-		return;
-	
-	/* input no image? then only color operation */
-	if (in[0]->data==NULL) {
-		do_rgbtobw(node, out[0]->vec, in[0]->vec);
-	}
-	else {
-		/* make output size of input image */
-		CompBuf *cbuf= in[0]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); /* allocs */
-		
-		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_rgbtobw, CB_RGBA);
-		
-		out[0]->data= stackbuf;
-	}
-}
-
-#endif  /* WITH_COMPOSITOR_LEGACY */
-
 void register_node_type_cmp_rgbtobw(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
@@ -154,9 +81,6 @@ void register_node_type_cmp_rgbtobw(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTOR, 0);
 	node_type_socket_templates(&ntype, cmp_node_rgbtobw_in, cmp_node_rgbtobw_out);
 	node_type_size(&ntype, 80, 40, 120);
-#ifdef WITH_COMPOSITOR_LEGACY
-	node_type_exec(&ntype, node_composit_exec_rgbtobw);
-#endif
 	
 	nodeRegisterType(ttype, &ntype);
 }

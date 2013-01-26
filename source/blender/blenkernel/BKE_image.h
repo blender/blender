@@ -44,6 +44,7 @@ struct anim;
 struct Scene;
 struct Object;
 struct ImageFormatData;
+struct ImagePool;
 struct Main;
 
 #define IMA_MAX_SPACE       64
@@ -146,6 +147,11 @@ int BKE_image_has_ibuf(struct Image *ima, struct ImageUser *iuser);
 struct ImBuf *BKE_image_acquire_ibuf(struct Image *ima, struct ImageUser *iuser, void **lock_r);
 void BKE_image_release_ibuf(struct Image *ima, struct ImBuf *ibuf, void *lock);
 
+struct ImagePool *BKE_image_pool_new(void);
+void BKE_image_pool_free(struct ImagePool *pool);
+struct ImBuf *BKE_image_pool_acquire_ibuf(struct Image *ima, struct ImageUser *iuser, struct ImagePool *pool);
+void BKE_image_pool_release_ibuf(struct Image *ima, struct ImBuf *ibuf, struct ImagePool *pool);
+
 /* returns a new image or NULL if it can't load */
 struct Image *BKE_image_load(const char *filepath);
 /* returns existing Image when filename/type is same (frame optional) */
@@ -218,6 +224,10 @@ void BKE_image_get_aspect(struct Image *image, float *aspx, float *aspy);
 void BKE_image_buf_fill_color(unsigned char *rect, float *rect_float, int width, int height, const float color[4]);
 void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int height, int width);
 void BKE_image_buf_fill_checker_color(unsigned char *rect, float *rect_float, int height, int width);
+
+/* Cycles hookup */
+unsigned char *BKE_image_get_pixels_for_frame(struct Image *image, int frame);
+float *BKE_image_get_float_pixels_for_frame(struct Image *image, int frame);
 
 #ifdef __cplusplus
 }

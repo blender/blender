@@ -550,9 +550,16 @@ static void recalcData_nla(TransInfo *t)
 				break;
 		}
 		
-		/* use RNA to write the values... */
-		// TODO: do we need to write in 2 passes to make sure that no truncation goes on?
+		/* Use RNA to write the values to ensure that constraints on these are obeyed
+		 * (e.g. for transition strips, the values are taken from the neighbours)
+		 * 
+		 * NOTE: we write these twice to avoid truncation errors which can arise when
+		 * moving the strips a large distance using numeric input [#33852] 
+		 */
 		RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &strip_ptr);
+		
+		RNA_float_set(&strip_ptr, "frame_start", tdn->h1[0]);
+		RNA_float_set(&strip_ptr, "frame_end", tdn->h2[0]);
 		
 		RNA_float_set(&strip_ptr, "frame_start", tdn->h1[0]);
 		RNA_float_set(&strip_ptr, "frame_end", tdn->h2[0]);
@@ -812,7 +819,7 @@ static void recalcData_view3d(TransInfo *t)
 							mul_m3_v3(t->mat, up_axis);
 						}
 						
-						ebo->roll = ED_rollBoneToVector(ebo, up_axis, FALSE);
+						ebo->roll = ED_rollBoneToVector(ebo, up_axis, TRUE);
 					}
 				}
 			}

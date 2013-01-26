@@ -86,15 +86,15 @@ def makefile_log():
     make_exe = cmake_cache_var("CMAKE_MAKE_PROGRAM")
     make_exe_basename = os.path.basename(make_exe)
 
-    if make_exe_basename.startswith("make"):
+    if make_exe_basename.startswith(("make", "gmake")):
         print("running 'make' with --dry-run ...")
         process = subprocess.Popen([make_exe, "--always-make", "--dry-run", "--keep-going", "VERBOSE=1"],
-                                    stdout=subprocess.PIPE,
+                                   stdout=subprocess.PIPE,
                                    )
     elif make_exe_basename.startswith("ninja"):
         print("running 'ninja' with -t commands ...")
         process = subprocess.Popen([make_exe, "-t", "commands"],
-                                    stdout=subprocess.PIPE,
+                                   stdout=subprocess.PIPE,
                                    )
 
     while process.poll():

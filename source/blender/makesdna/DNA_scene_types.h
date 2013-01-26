@@ -830,29 +830,11 @@ typedef struct Sculpt {
 	//char tablet_size, tablet_strength; XXX not used?
 	int radial_symm[3];
 
-	// all this below is used to communicate with the cursor drawing routine
-
-	/* record movement of mouse so that rake can start at an intuitive angle */
-	float last_x, last_y;
-	float last_angle;
-
-	int draw_anchored;
-	int   anchored_size;
-	float anchored_location[3];
-	float anchored_initial_mouse[2];
-
-	int draw_pressure;
-	float pressure_value;
-
-	float special_rotation;
-
 	/* Maximum edge length for dynamic topology sculpting (in pixels) */
 	int detail_size;
 
 	/* Direction used for SCULPT_OT_symmetrize operator */
 	int symmetrize_direction;
-
-	int pad;
 } Sculpt;
 
 typedef struct UvSculpt {
@@ -915,7 +897,24 @@ typedef struct UnifiedPaintSettings {
 
 	/* user preferences for sculpt and paint */
 	int flag;
-	int pad;
+
+	/* rake rotation */
+
+	/* record movement of mouse so that rake can start at an intuitive angle */
+	float last_x, last_y;
+	float last_angle;
+
+	float special_rotation;
+
+	// all this below is used to communicate with the cursor drawing routine
+	int draw_anchored;
+	int   anchored_size;
+	float anchored_location[3];
+	float anchored_initial_mouse[2];
+
+	/* drawing pressure */
+	int draw_pressure;
+	float pressure_value;
 } UnifiedPaintSettings;
 
 typedef enum {
@@ -1187,6 +1186,9 @@ typedef struct Scene {
 	ColorManagedViewSettings view_settings;
 	ColorManagedDisplaySettings display_settings;
 	ColorManagedColorspaceSettings sequencer_colorspace_settings;
+	
+	/* RigidBody simulation world+settings */
+	struct RigidBodyWorld *rigidbody_world;
 } Scene;
 
 

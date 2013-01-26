@@ -52,9 +52,9 @@ void TransformWriter::add_node_transform(COLLADASW::Node& node, float mat[4][4],
 
 	TransformBase::decompose(local, loc, rot, NULL, scale);
 	if (node.getType() == COLLADASW::Node::JOINT)
-		node.addMatrix("transform", dmat);
+	node.addMatrix("transform", dmat);
 	else
-		add_transform(node, loc, rot, scale);
+	add_transform(node, loc, rot, scale);
 }
 
 void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob)
@@ -93,12 +93,13 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob)
 
 	add_transform(node, loc, rot, scale);
 #endif
-
+	UnitConverter converter;
+	
 	/* Using parentinv should allow use of existing curves */
 	if (ob->parent) {
 		// If parentinv is identity don't add it.
 		bool add_parinv = false;
-
+    		
 		for (int i = 0; i < 16; ++i) {
 			float f = (i % 4 == i / 4) ? 1.0f : 0.0f;
 			add_parinv |= (ob->parentinv[i % 4][i / 4] != f);
@@ -106,12 +107,14 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob)
 
 		if (add_parinv) {
 			double dmat[4][4];
-			UnitConverter converter;
 			converter.mat4_to_dae_double(dmat, ob->parentinv);
 			node.addMatrix("parentinverse", dmat);
 		}
 	}
-
+    
+	double d_obmat[4][4];	
+	converter.mat4_to_dae_double(d_obmat, ob->obmat);
+	node.addMatrix("transform",d_obmat);
 	add_transform(node, ob->loc, ob->rot, ob->size);
 }
 
@@ -123,7 +126,6 @@ void TransformWriter::add_node_transform_identity(COLLADASW::Node& node)
 
 void TransformWriter::add_transform(COLLADASW::Node& node, float loc[3], float rot[3], float scale[3])
 {
-	node.addTranslate("location", loc[0], loc[1], loc[2]);
 #if 0
 	node.addRotateZ("rotationZ", COLLADABU::Math::Utils::radToDegF(rot[2]));
 	node.addRotateY("rotationY", COLLADABU::Math::Utils::radToDegF(rot[1]));
@@ -132,6 +134,7 @@ void TransformWriter::add_transform(COLLADASW::Node& node, float loc[3], float r
 	node.addRotateZ("rotationZ", RAD2DEGF(rot[2]));
 	node.addRotateY("rotationY", RAD2DEGF(rot[1]));
 	node.addRotateX("rotationX", RAD2DEGF(rot[0]));
-
 	node.addScale("scale", scale[0], scale[1], scale[2]);
+	node.addTranslate("location", loc[0], loc[1], loc[2]);
+
 }

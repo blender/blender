@@ -44,7 +44,7 @@ BLI_INLINE char _bm_elem_flag_test(const BMHeader *head, const char hflag)
 	return head->hflag & hflag;
 }
 
-BLI_INLINE short _bm_elem_flag_test_bool(const BMHeader *head, const char hflag)
+BLI_INLINE bool _bm_elem_flag_test_bool(const BMHeader *head, const char hflag)
 {
 	return (head->hflag & hflag) != 0;
 }

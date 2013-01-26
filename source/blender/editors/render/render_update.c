@@ -394,7 +394,14 @@ static void texture_changed(Main *bmain, Tex *tex)
 
 			if (dm && totmaterial && material) {
 				for (a = 0; a < *totmaterial; a++) {
-					if (material_uses_texture((*material)[a], tex)) {
+					Material *ma;
+
+					if (ob->matbits && ob->matbits[a])
+						ma = ob->mat[a];
+					else
+						ma = (*material)[a];
+
+					if (ma && material_uses_texture(ma, tex)) {
 						GPU_drawobject_free(dm);
 						break;
 					}

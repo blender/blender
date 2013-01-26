@@ -860,7 +860,7 @@ extern int GHOST_UseNativePixels(void);
 /**
  * If window was opened using native pixel size, it returns scaling factor.
  */
-extern float GHOST_GetNativePixelSize(void);
+extern float GHOST_GetNativePixelSize(GHOST_WindowHandle windowhandle);
 
 
 #ifdef __cplusplus

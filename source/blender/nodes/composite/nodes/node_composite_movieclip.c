@@ -42,106 +42,6 @@ static bNodeSocketTemplate cmp_node_movieclip_out[] = {
 	{	-1, 0, ""	}
 };
 
-#ifdef WITH_COMPOSITOR_LEGACY
-
-static CompBuf *node_composit_get_movieclip(RenderData *rd, MovieClip *clip, MovieClipUser *user)
-{
-	ImBuf *orig_ibuf, *ibuf;
-	CompBuf *stackbuf;
-	int type;
-
-	float *rect;
-	int alloc = FALSE;
-
-	orig_ibuf = BKE_movieclip_get_ibuf(clip, user);
-
-	if (orig_ibuf == NULL || (orig_ibuf->rect == NULL && orig_ibuf->rect_float == NULL)) {
-		IMB_freeImBuf(orig_ibuf);
-		return NULL;
-	}
-
-	ibuf = IMB_dupImBuf(orig_ibuf);
-	IMB_freeImBuf(orig_ibuf);
-
-	if (ibuf->rect_float == NULL || (ibuf->userflags & IB_RECT_INVALID)) {
-		IMB_float_from_rect(ibuf);
-		ibuf->userflags &= ~IB_RECT_INVALID;
-	}
-
-	/* now we need a float buffer from the image with matching color management */
-	if (ibuf->channels == 4) {
-		rect = node_composit_get_float_buffer(rd, ibuf, &alloc);
-	}
-	else {
-		/* non-rgba passes can't use color profiles */
-		rect = ibuf->rect_float;
-	}
-	/* done coercing into the correct color management */
-
-	if (!alloc) {
-		rect = MEM_dupallocN(rect);
-		alloc = TRUE;
-	}
-
-	type = ibuf->channels;
-
-	if (rd->scemode & R_COMP_CROP) {
-		stackbuf = get_cropped_compbuf(&rd->disprect, rect, ibuf->x, ibuf->y, type);
-		if (alloc)
-			MEM_freeN(rect);
-	}
-	else {
-		/* we put imbuf copy on stack, cbuf knows rect is from other ibuf when freed! */
-		stackbuf = alloc_compbuf(ibuf->x, ibuf->y, type, FALSE);
-		stackbuf->rect = rect;
-		stackbuf->malloc = alloc;
-	}
-
-	IMB_freeImBuf(ibuf);
-
-	return stackbuf;
-}
-
-static void node_composit_exec_movieclip(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
-{
-	if (node->id) {
-		RenderData *rd = data;
-		MovieClip *clip = (MovieClip *)node->id;
-		MovieClipUser *user = (MovieClipUser *)node->storage;
-		CompBuf *stackbuf = NULL;
-
-		BKE_movieclip_user_set_frame(user, rd->cfra);
-
-		stackbuf = node_composit_get_movieclip(rd, clip, user);
-
-		if (stackbuf) {
-			MovieTrackingStabilization *stab = &clip->tracking.stabilization;
-
-			/* put image on stack */
-			out[0]->data = stackbuf;
-
-			if (stab->flag & TRACKING_2D_STABILIZATION) {
-				float loc[2], scale, angle;
-				int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, rd->cfra);
-
-				BKE_tracking_stabilization_data_get(&clip->tracking, clip_framenr, stackbuf->x, stackbuf->y,
-							loc, &scale, &angle);
-
-				out[1]->vec[0] = loc[0];
-				out[2]->vec[0] = loc[1];
-
-				out[3]->vec[0] = scale;
-				out[4]->vec[0] = angle;
-			}
-
-			/* generate preview */
-			generate_preview(data, node, stackbuf);
-		}
-	}
-}
-
-#endif  /* WITH_COMPOSITOR_LEGACY */
-
 static void init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	MovieClipUser *user = MEM_callocN(sizeof(MovieClipUser), "node movie clip user");
@@ -159,9 +59,6 @@ void register_node_type_cmp_movieclip(bNodeTreeType *ttype)
 	node_type_size(&ntype, 120, 80, 300);
 	node_type_init(&ntype, init);
 	node_type_storage(&ntype, "MovieClipUser", node_free_standard_storage, node_copy_standard_storage);
-#ifdef WITH_COMPOSITOR_LEGACY
-	node_type_exec(&ntype, node_composit_exec_movieclip);
-#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

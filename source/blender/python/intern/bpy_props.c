@@ -74,13 +74,15 @@ static EnumPropertyItem property_flag_enum_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 /* subtypes */
+/* XXX Keep in sync with rna_rna.c's property_subtype_items ???
+ *     Currently it is not...
+ */
 static EnumPropertyItem property_subtype_string_items[] = {
 	{PROP_FILEPATH, "FILE_PATH", 0, "File Path", ""},
 	{PROP_DIRPATH, "DIR_PATH", 0, "Directory Path", ""},
 	{PROP_FILENAME, "FILE_NAME", 0, "Filename", ""},
 	{PROP_BYTESTRING, "BYTE_STRING", 0, "Byte String", ""},
-	{PROP_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
-	{PROP_PASSWORD, "PASSWORD", 0, "Password", 0},
+	{PROP_PASSWORD, "PASSWORD", 0, "Password", "A string that is displayed hidden ('********')"},
 
 	{PROP_NONE, "NONE", 0, "None", ""},
 	{0, NULL, 0, NULL, NULL}};
@@ -1257,6 +1259,20 @@ static size_t strswapbufcpy(char *buf, const char **orig)
 }
 #endif
 
+static int icon_id_from_name(const char *name)
+{
+	EnumPropertyItem *item;
+	int id;
+
+	if (name[0]) {
+		for (item = icon_items, id = 0; item->identifier; item++, id++)
+			if (strcmp(item->name, name) == 0)
+				return item->value;
+	}
+	
+	return 0;
+}
+
 static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, int *defvalue, const short is_enum_flag)
 {
 	EnumPropertyItem *items;
@@ -1303,6 +1319,7 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 
 	for (i = 0; i < seq_len; i++) {
 		EnumPropertyItem tmp = {0, "", 0, "", ""};
+		const char *tmp_icon = NULL;
 		Py_ssize_t item_size;
 		Py_ssize_t id_str_size;
 		Py_ssize_t name_str_size;
@@ -1312,12 +1329,14 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 
 		if ((PyTuple_CheckExact(item)) &&
 		    (item_size = PyTuple_GET_SIZE(item)) &&
-		    (item_size == 3 || item_size == 4) &&
+		    (item_size >= 3 && item_size <= 5) &&
 		    (tmp.identifier =  _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 0), &id_str_size)) &&
 		    (tmp.name =        _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 1), &name_str_size)) &&
 		    (tmp.description = _PyUnicode_AsStringAndSize(PyTuple_GET_ITEM(item, 2), &desc_str_size)) &&
 		    /* TODO, number isn't ensured to be unique from the script author */
-		    (item_size < 4 || py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.value) != -1))
+		    (item_size != 4 || py_long_as_int(PyTuple_GET_ITEM(item, 3), &tmp.value) != -1) &&
+		    (item_size != 5 || ((tmp_icon = _PyUnicode_AsString(PyTuple_GET_ITEM(item, 3))) &&
+		                        py_long_as_int(PyTuple_GET_ITEM(item, 4), &tmp.value) != -1)))
 		{
 			if (is_enum_flag) {
 				if (item_size < 4) {
@@ -1340,6 +1359,9 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 				}
 			}
 
+			if (tmp_icon)
+				tmp.icon = icon_id_from_name(tmp_icon);
+
 			items[i] = tmp;
 
 			/* calculate combine string length */
@@ -1349,8 +1371,8 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 			MEM_freeN(items);
 			PyErr_SetString(PyExc_TypeError,
 			                "EnumProperty(...): expected a tuple containing "
-			                "(identifier, name, description) and optionally a "
-			                "unique number");
+			                "(identifier, name, description) and optionally an "
+			                "icon name and unique number");
 			return NULL;
 		}
 
@@ -2501,7 +2523,7 @@ BPY_PROPDEF_DESC_DOC
 "   :arg options: Enumerator in ['HIDDEN', 'SKIP_SAVE', 'ANIMATABLE', 'ENUM_FLAG', 'LIBRARY_EDITABLE'].\n"
 "   :type options: set\n"
 "   :arg items: sequence of enum items formatted:\n"
-"      [(identifier, name, description, number), ...] where the identifier is used\n"
+"      [(identifier, name, description, icon, number), ...] where the identifier is used\n"
 "      for python access and other values are used for the interface.\n"
 "      Note the item is optional.\n"
 "      For dynamic values a callback can be passed which returns a list in\n"
@@ -2509,7 +2531,7 @@ BPY_PROPDEF_DESC_DOC
 "      This function must take 2 arguments (self, context)\n"
 "      WARNING: Do not use generators here (they will work the first time, but will lead to empty values\n"
 "               in some unload/reload scenarii)!\n"
-"   :type items: sequence of string triplets or a function\n"
+"   :type items: sequence of string triples or a function\n"
 BPY_PROPDEF_UPDATE_DOC
 );
 static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)

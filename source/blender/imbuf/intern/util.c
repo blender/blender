@@ -306,8 +306,8 @@ static int isffmpeg(const char *filename)
 		return 0;
 	}
 
-	if (av_find_stream_info(pFormatCtx) < 0) {
-		if (UTIL_DEBUG) fprintf(stderr, "isffmpeg: av_find_stream_info failed\n");
+	if (avformat_find_stream_info(pFormatCtx, NULL) < 0) {
+		if (UTIL_DEBUG) fprintf(stderr, "isffmpeg: avformat_find_stream_info failed\n");
 		av_close_input_file(pFormatCtx);
 		return 0;
 	}
@@ -340,7 +340,7 @@ static int isffmpeg(const char *filename)
 		return 0;
 	}
 
-	if (avcodec_open(pCodecCtx, pCodec) < 0) {
+	if (avcodec_open2(pCodecCtx, pCodec, NULL) < 0) {
 		av_close_input_file(pFormatCtx);
 		return 0;
 	}

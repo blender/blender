@@ -257,6 +257,13 @@ public:
 	{
 		m_userData = userData;
 	}
+	
+	virtual float getNativePixelSize(void)
+	{
+		if (m_nativePixelSize > 0.0f)
+			return m_nativePixelSize;
+		return 1.0f;
+	}
 
 protected:
 	/**
@@ -351,6 +358,9 @@ protected:
 	GHOST_TUns32 m_fullScreenWidth;
 	/** Full-screen height */
 	GHOST_TUns32 m_fullScreenHeight;
+	
+	/* OSX only, retina screens */
+	float m_nativePixelSize;
 };
 
 

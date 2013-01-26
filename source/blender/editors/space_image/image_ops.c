@@ -1109,6 +1109,11 @@ static int image_replace_exec(bContext *C, wmOperator *op)
 	/* we cant do much if the str is longer then FILE_MAX :/ */
 	BLI_strncpy(sima->image->name, str, sizeof(sima->image->name));
 
+	if (sima->image->source == IMA_SRC_GENERATED) {
+		sima->image->source = IMA_SRC_FILE;
+		BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_SRC_CHANGE);
+	}
+	
 	if (BLI_testextensie_array(str, imb_ext_movie))
 		sima->image->source = IMA_SRC_MOVIE;
 	else

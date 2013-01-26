@@ -1121,8 +1121,10 @@ static void node_update_reroute(const bContext *UNUSED(C), bNodeTree *UNUSED(ntr
 static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(snode),  bNodeTree *ntree, bNode *node)
 {
 	bNodeSocket *sock;
-#if 0   /* UNUSED */
+	char showname[128]; /* 128 used below */
 	rctf *rct = &node->totr;
+
+#if 0   /* UNUSED */
 	float size = NODE_REROUTE_SIZE;
 #endif
 	float socket_size = NODE_SOCKSIZE;
@@ -1162,6 +1164,15 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 		glDisable(GL_BLEND);
 	}
 #endif
+
+	if (node->label[0] != '\0') {
+		/* draw title (node label) */
+		BLI_strncpy(showname, node->label, sizeof(showname));
+		uiDefBut(node->block, LABEL, 0, showname,
+		         (int)(rct->xmin - NODE_DYS), (int)(rct->ymax),
+		         (short)512, (short)NODE_DY,
+		         NULL, 0, 0, 0, 0, NULL);
+	}
 
 	/* only draw input socket. as they all are placed on the same position.
 	 * highlight also if node itself is selected, since we don't display the node body separately!

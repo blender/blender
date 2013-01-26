@@ -112,7 +112,7 @@ void bmo_extrude_discrete_faces_exec(BMesh *bm, BMOperator *op)
 			l3 = l->next;
 			l4 = l2->next;
 
-			f3 = BM_face_create_quad_tri(bm, l3->v, l4->v, l2->v, l->v, f, FALSE);
+			f3 = BM_face_create_quad_tri(bm, l3->v, l4->v, l2->v, l->v, f, false);
 			/* XXX, no error check here, why? - Campbell */
 
 			l_tmp = BM_FACE_FIRST_LOOP(f3);
@@ -225,7 +225,7 @@ void bmo_extrude_edge_only_exec(BMesh *bm, BMOperator *op)
 			f_verts[3] = e_new->v2;
 		}
 		/* not sure what to do about example face, pass NULL for now */
-		f = BM_face_create_quad_tri_v(bm, f_verts, 4, NULL, FALSE);
+		f = BM_face_create_quad_tri_v(bm, f_verts, 4, NULL, false);
 		bm_extrude_copy_face_loop_attributes(bm, f);
 		
 		if (BMO_elem_flag_test(bm, e, EXT_INPUT))
@@ -248,7 +248,7 @@ void bmo_extrude_vert_indiv_exec(BMesh *bm, BMOperator *op)
 	BMOIter siter;
 	BMVert *v, *dupev;
 	BMEdge *e;
-	const int has_vskin = CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN);
+	const bool has_vskin = CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN);
 
 	for (v = BMO_iter_new(&siter, op->slots_in, "verts", BM_VERT); v; v = BMO_iter_step(&siter)) {
 		dupev = BM_vert_create(bm, v->co, v, 0);
@@ -273,7 +273,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e, *e_new;
 	BMVert *v, *v2;
 	BMFace *f;
-	int found, fwd, delorig = FALSE;
+	bool found, fwd, delorig = false;
 	BMOpSlot *slot_facemap_out;
 	BMOpSlot *slot_edges_exclude;
 
@@ -293,20 +293,20 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 				continue;
 			}
 
-			found = FALSE; /* found a face that isn't input? */
+			found = false; /* found a face that isn't input? */
 			edge_face_tot = 0; /* edge/face count */
 
 			BM_ITER_ELEM (f, &fiter, e, BM_FACES_OF_EDGE) {
 				if (!BMO_elem_flag_test(bm, f, EXT_INPUT)) {
-					found = TRUE;
-					delorig = TRUE;
+					found = true;
+					delorig = true;
 					break;
 				}
 
 				edge_face_tot++;
 			}
 
-			if ((edge_face_tot > 1) && (found == FALSE)) {
+			if ((edge_face_tot > 1) && (found == false)) {
 				/* edge has a face user, that face isn't extrude input */
 				BMO_elem_flag_enable(bm, e, EXT_DEL);
 			}
@@ -316,26 +316,26 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 	/* calculate verts to delete */
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		if (v->e) {  /* only deal with verts attached to geometry [#33651] */
-			found = FALSE;
+			found = false;
 
 			BM_ITER_ELEM (e, &viter, v, BM_EDGES_OF_VERT) {
 				if (!BMO_elem_flag_test(bm, e, EXT_INPUT) || !BMO_elem_flag_test(bm, e, EXT_DEL)) {
-					found = TRUE;
+					found = true;
 					break;
 				}
 			}
 
 			/* avoid an extra loop */
-			if (found == TRUE) {
+			if (found == true) {
 				BM_ITER_ELEM (f, &viter, v, BM_FACES_OF_VERT) {
 					if (!BMO_elem_flag_test(bm, f, EXT_INPUT)) {
-						found = TRUE;
+						found = true;
 						break;
 					}
 				}
 			}
 
-			if (found == FALSE) {
+			if (found == false) {
 				BMO_elem_flag_enable(bm, v, EXT_DEL);
 			}
 		}
@@ -347,7 +347,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 
-	if (delorig == TRUE) {
+	if (delorig == true) {
 		BMO_op_initf(bm, &delop, op->flag,
 		             "delete geom=%fvef context=%i",
 		             EXT_DEL, DEL_ONLYTAGGED);
@@ -435,7 +435,7 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
 		}
 
 		/* not sure what to do about example face, pass NULL for now */
-		f = BM_face_create_quad_tri_v(bm, f_verts, 4, NULL, FALSE);
+		f = BM_face_create_quad_tri_v(bm, f_verts, 4, NULL, false);
 		bm_extrude_copy_face_loop_attributes(bm, f);
 	}
 
@@ -665,7 +665,7 @@ void bmo_solidify_face_region_exec(BMesh *bm, BMOperator *op)
 	BMO_op_finish(bm, &reverseop);
 
 	/* Extrude the region */
-	BMO_op_initf(bm, &extrudeop, op->flag, "extrude_face_region use_keep_orig=%b", TRUE);
+	BMO_op_initf(bm, &extrudeop, op->flag, "extrude_face_region use_keep_orig=%b", true);
 	BMO_slot_copy(op,         slots_in, "geom",
 	              &extrudeop, slots_in, "geom");
 	BMO_op_exec(bm, &extrudeop);

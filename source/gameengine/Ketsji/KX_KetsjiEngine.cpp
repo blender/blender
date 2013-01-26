@@ -1457,15 +1457,14 @@ void KX_KetsjiEngine::RenderDebugProperties()
 	RAS_Rect viewport;
 	m_canvas->SetViewPort(0, 0, int(m_canvas->GetWidth()), int(m_canvas->GetHeight()));
 	
-	if (m_show_framerate || m_show_profile)	{
+	if (m_show_framerate || m_show_profile) {
 		/* Title for profiling("Profile") */
-		debugtxt.Format("Profile");
 		m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED,
-									debugtxt.Ptr(),
-									xcoord + const_xindent + title_xmargin, // Adds the constant x indent (0 for now) to the title x margin
-									ycoord,
-									m_canvas->GetWidth() /* RdV, TODO ?? */,
-									m_canvas->GetHeight() /* RdV, TODO ?? */);
+		                            "Profile",
+		                            xcoord + const_xindent + title_xmargin, // Adds the constant x indent (0 for now) to the title x margin
+		                            ycoord,
+		                            m_canvas->GetWidth() /* RdV, TODO ?? */,
+		                            m_canvas->GetHeight() /* RdV, TODO ?? */);
 
 		// Increase the indent by default increase
 		ycoord += const_ysize;
@@ -1475,35 +1474,31 @@ void KX_KetsjiEngine::RenderDebugProperties()
 
 	/* Framerate display */
 	if (m_show_framerate) {
-		debugtxt.Format("Frametime :");
-		m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED, 
-									debugtxt.Ptr(),
-									xcoord + const_xindent,
-									ycoord, 
-									m_canvas->GetWidth() /* RdV, TODO ?? */,
-									m_canvas->GetHeight() /* RdV, TODO ?? */);
+		m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED,
+		                            "Frametime :",
+		                            xcoord + const_xindent,
+		                            ycoord,
+		                            m_canvas->GetWidth() /* RdV, TODO ?? */,
+		                            m_canvas->GetHeight() /* RdV, TODO ?? */);
 		
 		debugtxt.Format("%5.1fms (%5.1f fps)", tottime * 1000.f, 1.0/tottime);
-		m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED, 
-									debugtxt.Ptr(),
-									xcoord + const_xindent + profile_indent,
-									ycoord,
-									m_canvas->GetWidth() /* RdV, TODO ?? */,
-									m_canvas->GetHeight() /* RdV, TODO ?? */);
+		m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED,
+		                            debugtxt.ReadPtr(),
+		                            xcoord + const_xindent + profile_indent,
+		                            ycoord,
+		                            m_canvas->GetWidth() /* RdV, TODO ?? */,
+		                            m_canvas->GetHeight() /* RdV, TODO ?? */);
 		// Increase the indent by default increase
 		ycoord += const_ysize;
 	}
 
 	/* Profile display */
-	if (m_show_profile)
-	{
-		for (int j = tc_first; j < tc_numCategories; j++)
-		{
-			debugtxt.Format(m_profileLabels[j]);
+	if (m_show_profile) {
+		for (int j = tc_first; j < tc_numCategories; j++) {
 			m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED,
-			                            debugtxt.Ptr(),
+			                            m_profileLabels[j],
 			                            xcoord + const_xindent,
-										ycoord,
+			                            ycoord,
 			                            m_canvas->GetWidth(),
 			                            m_canvas->GetHeight());
 
@@ -1511,7 +1506,7 @@ void KX_KetsjiEngine::RenderDebugProperties()
 
 			debugtxt.Format("%5.2fms (%2d%%)", time*1000.f, (int)(time/tottime * 100.f));
 			m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED,
-			                            debugtxt.Ptr(),
+			                            debugtxt.ReadPtr(),
 			                            xcoord + const_xindent + profile_indent, ycoord,
 			                            m_canvas->GetWidth(),
 			                            m_canvas->GetHeight());
@@ -1522,17 +1517,15 @@ void KX_KetsjiEngine::RenderDebugProperties()
 	ycoord += title_y_top_margin;
 
 	/* Property display*/
-	if (m_show_debug_properties && m_propertiesPresent)
-	{
+	if (m_show_debug_properties && m_propertiesPresent) {
 
 		/* Title for debugging("Debug properties") */
-		debugtxt.Format("Debug Properties");
-		m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED, 
-									debugtxt.Ptr(),
-									xcoord + const_xindent + title_xmargin, // Adds the constant x indent (0 for now) to the title x margin
-									ycoord, 
-									m_canvas->GetWidth() /* RdV, TODO ?? */, 
-									m_canvas->GetHeight() /* RdV, TODO ?? */);
+		m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED,
+		                            "Debug Properties",
+		                            xcoord + const_xindent + title_xmargin, // Adds the constant x indent (0 for now) to the title x margin
+		                            ycoord,
+		                            m_canvas->GetWidth() /* RdV, TODO ?? */,
+		                            m_canvas->GetHeight() /* RdV, TODO ?? */);
 
 		// Increase the indent by default increase
 		ycoord += const_ysize;
@@ -1540,20 +1533,18 @@ void KX_KetsjiEngine::RenderDebugProperties()
 		ycoord += title_y_bottom_margin;
 
 		KX_SceneList::iterator sceneit;
-		for (sceneit = m_scenes.begin();sceneit != m_scenes.end() ; sceneit++)
-		{
+		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); sceneit++) {
 			KX_Scene* scene = *sceneit;
 			/* the 'normal' debug props */
 			vector<SCA_DebugProp*>& debugproplist = scene->GetDebugProperties();
 			
 			for (vector<SCA_DebugProp*>::iterator it = debugproplist.begin();
-				 !(it==debugproplist.end());it++)
+			     !(it==debugproplist.end());it++)
 			{
-				CValue* propobj = (*it)->m_obj;
+				CValue *propobj = (*it)->m_obj;
 				STR_String objname = propobj->GetName();
 				STR_String propname = (*it)->m_name;
-				if (propname == "__state__")
-				{
+				if (propname == "__state__") {
 					// reserve name for object state
 					KX_GameObject* gameobj = static_cast<KX_GameObject*>(propobj);
 					unsigned int state = gameobj->GetState();
@@ -1571,27 +1562,25 @@ void KX_KetsjiEngine::RenderDebugProperties()
 							first = false;
 						}
 					}
-					m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED, 
-													debugtxt.Ptr(),
-													xcoord + const_xindent,
-													ycoord,
-													m_canvas->GetWidth(),
-													m_canvas->GetHeight());
+					m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED,
+					                            debugtxt.ReadPtr(),
+					                            xcoord + const_xindent,
+					                            ycoord,
+					                            m_canvas->GetWidth(),
+					                            m_canvas->GetHeight());
 					ycoord += const_ysize;
 				}
-				else
-				{
-					CValue* propval = propobj->GetProperty(propname);
-					if (propval)
-					{
+				else {
+					CValue *propval = propobj->GetProperty(propname);
+					if (propval) {
 						STR_String text = propval->GetText();
 						debugtxt = objname + ": '" + propname + "' = " + text;
-						m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED, 
-													debugtxt.Ptr(),
-													xcoord + const_xindent,
-													ycoord,
-													m_canvas->GetWidth(),
-													m_canvas->GetHeight());
+						m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED,
+						                            debugtxt.ReadPtr(),
+						                            xcoord + const_xindent,
+						                            ycoord,
+						                            m_canvas->GetWidth(),
+						                            m_canvas->GetHeight());
 						ycoord += const_ysize;
 					}
 				}
@@ -1627,19 +1616,14 @@ KX_Scene* KX_KetsjiEngine::FindScene(const STR_String& scenename)
 void KX_KetsjiEngine::ConvertAndAddScene(const STR_String& scenename,bool overlay)
 {
 	// only add scene when it doesn't exist!
-	if (FindScene(scenename))
-	{
-		STR_String tmpname = scenename;
-		printf("warning: scene %s already exists, not added!\n",tmpname.Ptr());
+	if (FindScene(scenename)) {
+		printf("warning: scene %s already exists, not added!\n",scenename.ReadPtr());
 	}
-	else
-	{
-		if (overlay)
-		{
+	else {
+		if (overlay) {
 			m_addingOverlayScenes.insert(scenename);
 		}
-		else
-		{
+		else {
 			m_addingBackgroundScenes.insert(scenename);
 		}
 	}

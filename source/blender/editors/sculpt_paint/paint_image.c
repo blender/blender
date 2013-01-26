@@ -316,7 +316,7 @@ typedef struct ProjPaintState {
 	float normal_angle_range;       /* difference between normal_angle and normal_angle_inner, for easy access */
 	
 	short is_ortho;
-	short is_airbrush;              /* only to avoid using (ps.brush->flag & BRUSH_AIRBRUSH) */
+	bool do_masking;              /* use masking during painting. Some operations such as airbrush may disable */
 	short is_texbrush;              /* only to avoid running  */
 #ifndef PROJ_DEBUG_NOSEAMBLEED
 	float seam_bleed_px;
@@ -355,7 +355,7 @@ typedef union pixelStore {
 
 typedef struct ProjPixel {
 	float projCoSS[2]; /* the floating point screen projection of this pixel */
-	
+	float worldCoSS[3];
 	/* Only used when the airbrush is disabled.
 	 * Store the max mask value to avoid painting over an area with a lower opacity
 	 * with an advantage that we can avoid touching the pixel at all, if the 
@@ -1526,6 +1526,7 @@ static int project_paint_pixel_sizeof(const short tool)
 	}
 }
 
+
 /* run this function when we know a bucket's, face's pixel can be initialized,
  * return the ProjPixel which is added to 'ps->bucketRect[bucket_index]' */
 static ProjPixel *project_paint_uvpixel_init(
@@ -1537,6 +1538,7 @@ static ProjPixel *project_paint_uvpixel_init(
         const int face_index,
         const int image_index,
         const float pixelScreenCo[4],
+        const float world_spaceCo[3],
         const int side,
         const float w[3])
 {
@@ -1565,6 +1567,10 @@ static ProjPixel *project_paint_uvpixel_init(
 	}
 	
 	/* screenspace unclamped, we could keep its z and w values but don't need them at the moment */
+	if (ps->brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) {
+		copy_v3_v3(projPixel->worldCoSS, world_spaceCo);
+	}
+
 	copy_v2_v2(projPixel->projCoSS, pixelScreenCo);
 	
 	projPixel->x_px = x_px;
@@ -2374,6 +2380,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 	
 	float *uv1co, *uv2co, *uv3co; /* for convenience only, these will be assigned to tf->uv[0],1,2 or tf->uv[0],2,3 */
 	float pixelScreenCo[4];
+	bool do_3d_mapping = ps->brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D;
 	
 	rcti bounds_px; /* ispace bounds */
 	/* vars for getting uvspace bounds */
@@ -2449,7 +2456,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 		v1coSS = ps->screenCoords[(*(&mf->v1 + i1))];
 		v2coSS = ps->screenCoords[(*(&mf->v1 + i2))];
 		v3coSS = ps->screenCoords[(*(&mf->v1 + i3))];
-		
+
 		/* This funtion gives is a concave polyline in UV space from the clipped quad and tri*/
 		project_bucket_clip_face(
 		        is_ortho, bucket_bounds,
@@ -2501,9 +2508,9 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 						else          screen_px_from_persp(uv, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, pixelScreenCo, w);
 						
 						/* a pity we need to get the worldspace pixel location here */
-						if (do_clip) {
+						if (do_clip || do_3d_mapping) {
 							interp_v3_v3v3v3(wco, ps->dm_mvert[(*(&mf->v1 + i1))].co, ps->dm_mvert[(*(&mf->v1 + i2))].co, ps->dm_mvert[(*(&mf->v1 + i3))].co, w);
-							if (ED_view3d_clipping_test(ps->rv3d, wco, TRUE)) {
+							if (do_clip && ED_view3d_clipping_test(ps->rv3d, wco, TRUE)) {
 								continue; /* Watch out that no code below this needs to run */
 							}
 						}
@@ -2514,13 +2521,13 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 						if ((ps->do_occlude == FALSE) ||
 						    !project_bucket_point_occluded(ps, bucketFaceNodes, face_index, pixelScreenCo))
 						{
-							
 							mask = project_paint_uvpixel_mask(ps, face_index, side, w);
-							
+
 							if (mask > 0.0f) {
 								BLI_linklist_prepend_arena(
 								        bucketPixelNodes,
-								        project_paint_uvpixel_init(ps, arena, ibuf, x, y, mask, face_index, image_index, pixelScreenCo, side, w),
+								        project_paint_uvpixel_init(ps, arena, ibuf, x, y, mask, face_index,
+								                                   image_index, pixelScreenCo, wco, side, w),
 								        arena
 								        );
 							}
@@ -2725,11 +2732,11 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 											}
 											
 											/* a pity we need to get the worldspace pixel location here */
-											if (do_clip) {
+											if (do_clip || do_3d_mapping) {
 												if (side) interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, w);
 												else      interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, w);
 
-												if (ED_view3d_clipping_test(ps->rv3d, wco, TRUE)) {
+												if (do_clip && ED_view3d_clipping_test(ps->rv3d, wco, TRUE)) {
 													continue; /* Watch out that no code below this needs to run */
 												}
 											}
@@ -2739,7 +2746,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 											if (mask > 0.0f) {
 												BLI_linklist_prepend_arena(
 												        bucketPixelNodes,
-												        project_paint_uvpixel_init(ps, arena, ibuf, x, y, mask, face_index, image_index, pixelScreenCo, side, w),
+												        project_paint_uvpixel_init(ps, arena, ibuf, x, y, mask, face_index, image_index, pixelScreenCo, wco, side, w),
 												        arena
 												        );
 											}
@@ -3749,6 +3756,8 @@ typedef struct ProjectHandle {
 	
 	/* thread settings */
 	int thread_index;
+
+	struct ImagePool *pool;
 } ProjectHandle;
 
 static void blend_color_mix(unsigned char cp[4], const unsigned char cp1[4], const unsigned char cp2[4], const int fac)
@@ -3800,7 +3809,7 @@ static void blend_color_mix_accum_float(float cp[4], const float cp1[4], const u
 
 static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask)
 {
-	if (ps->is_airbrush == 0 && mask < 1.0f) {
+	if (ps->do_masking && mask < 1.0f) {
 		projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, ((ProjPixelClone *)projPixel)->clonepx.uint, (int)(alpha * 255), ps->blend);
 		blend_color_mix(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(mask * 255));
 	}
@@ -3811,7 +3820,7 @@ static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, floa
 
 static void do_projectpaint_clone_f(ProjPaintState *ps, ProjPixel *projPixel, float alpha, float mask)
 {
-	if (ps->is_airbrush == 0 && mask < 1.0f) {
+	if (ps->do_masking && mask < 1.0f) {
 		IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, ((ProjPixelClone *)projPixel)->clonepx.f, alpha, ps->blend);
 		blend_color_mix_float(projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, mask);
 	}
@@ -3946,7 +3955,7 @@ static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, const
 		rgba_ub[3] = 255;
 	}
 	
-	if (ps->is_airbrush == 0 && mask < 1.0f) {
+	if (ps->do_masking && mask < 1.0f) {
 		projPixel->newColor.uint = IMB_blend_color(projPixel->newColor.uint, *((unsigned int *)rgba_ub), (int)(alpha * 255), ps->blend);
 		blend_color_mix(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(mask * 255));
 	}
@@ -3978,7 +3987,7 @@ static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, flo
 		rgba[3] = 1.0;
 	}
 	
-	if (ps->is_airbrush == 0 && mask < 1.0f) {
+	if (ps->do_masking && mask < 1.0f) {
 		IMB_blend_color_float(projPixel->newColor.f, projPixel->newColor.f, rgba, alpha, ps->blend);
 		blend_color_mix_float(projPixel->pixel.f_pt,  projPixel->origColor.f, projPixel->newColor.f, mask);
 	}
@@ -3998,10 +4007,12 @@ static void *do_projectpaint_thread(void *ph_v)
 	const float *lastpos =       ((ProjectHandle *)ph_v)->prevmval;
 	const float *pos =           ((ProjectHandle *)ph_v)->mval;
 	const int thread_index =     ((ProjectHandle *)ph_v)->thread_index;
+	struct ImagePool *pool =     ((ProjectHandle *)ph_v)->pool;
 	/* Done with args from ProjectHandle */
 
 	LinkNode *node;
 	ProjPixel *projPixel;
+	Brush *brush = ps->brush;
 	
 	int last_index = -1;
 	ProjPaintImage *last_projIma = NULL;
@@ -4021,10 +4032,10 @@ static void *do_projectpaint_thread(void *ph_v)
 	float co[2];
 	float mask = 1.0f; /* airbrush wont use mask */
 	unsigned short mask_short;
-	const float radius = (float)BKE_brush_size_get(ps->scene, ps->brush);
+	const float radius = (float)BKE_brush_size_get(ps->scene, brush);
 	const float radius_squared = radius * radius; /* avoid a square root with every dist comparison */
 	
-	short lock_alpha = ELEM(ps->brush->blend, IMB_BLEND_ERASE_ALPHA, IMB_BLEND_ADD_ALPHA) ? 0 : ps->brush->flag & BRUSH_LOCK_ALPHA;
+	short lock_alpha = ELEM(brush->blend, IMB_BLEND_ERASE_ALPHA, IMB_BLEND_ADD_ALPHA) ? 0 : brush->flag & BRUSH_LOCK_ALPHA;
 	
 	LinkNode *smearPixels = NULL;
 	LinkNode *smearPixels_f = NULL;
@@ -4105,23 +4116,36 @@ static void *do_projectpaint_thread(void *ph_v)
 
 				/*if (dist < radius) {*/ /* correct but uses a sqrtf */
 				if (dist_nosqrt <= radius_squared) {
+					float samplecos[3];
 					dist = sqrtf(dist_nosqrt);
 
 					falloff = BKE_brush_curve_strength_clamp(ps->brush, dist, radius);
 
+					if (ps->is_texbrush) {
+						MTex *mtex = &brush->mtex;
+						if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
+							sub_v2_v2v2(samplecos, projPixel->projCoSS, pos);
+						}
+						/* taking 3d copy to account for 3D mapping too. It gets concatenated during sampling */
+						else if (mtex->brush_map_mode == MTEX_MAP_MODE_3D)
+							copy_v3_v3(samplecos, projPixel->worldCoSS);
+						else
+							copy_v3_v3(samplecos, projPixel->projCoSS);
+					}
+
 					if (falloff > 0.0f) {
 						if (ps->is_texbrush) {
 							/* note, for clone and smear, we only use the alpha, could be a special function */
-							BKE_brush_sample_tex(ps->scene, ps->brush, projPixel->projCoSS, rgba, thread_index);
+							BKE_brush_sample_tex(ps->scene, brush, samplecos, rgba, thread_index, pool);
 							alpha = rgba[3];
 						}
 						else {
 							alpha = 1.0f;
 						}
 						
-						if (ps->is_airbrush) {
+						if (!ps->do_masking) {
 							/* for an aurbrush there is no real mask, so just multiply the alpha by it */
-							alpha *= falloff * BKE_brush_alpha_get(ps->scene, ps->brush);
+							alpha *= falloff * BKE_brush_alpha_get(ps->scene, brush);
 							mask = ((float)projPixel->mask) / 65535.0f;
 						}
 						else {
@@ -4129,7 +4153,7 @@ static void *do_projectpaint_thread(void *ph_v)
 							falloff = 1.0f - falloff;
 							falloff = 1.0f - (falloff * falloff);
 							
-							mask_short = (unsigned short)(projPixel->mask * (BKE_brush_alpha_get(ps->scene, ps->brush) * falloff));
+							mask_short = (unsigned short)(projPixel->mask * (BKE_brush_alpha_get(ps->scene, brush) * falloff));
 							if (mask_short > projPixel->mask_max) {
 								mask = ((float)mask_short) / 65535.0f;
 								projPixel->mask_max = mask_short;
@@ -4248,12 +4272,16 @@ static int project_paint_op(void *state, ImBuf *UNUSED(ibufb), const float lastp
 	ListBase threads;
 	int a, i;
 	
+	struct ImagePool *pool;
+	
 	if (!project_bucket_iter_init(ps, pos)) {
 		return 0;
 	}
 	
 	if (ps->thread_tot > 1)
 		BLI_init_threads(&threads, do_projectpaint_thread, ps->thread_tot);
+	
+	pool = BKE_image_pool_new();
 	
 	/* get the threads running */
 	for (a = 0; a < ps->thread_tot; a++) {
@@ -4278,6 +4306,8 @@ static int project_paint_op(void *state, ImBuf *UNUSED(ibufb), const float lastp
 			memcpy(handles[a].projImages[i].partRedrawRect, ps->projImages[i].partRedrawRect, sizeof(ImagePaintPartialRedraw) * PROJ_BOUNDBOX_SQUARED);
 		}
 
+		handles[a].pool = pool;
+
 		if (ps->thread_tot > 1)
 			BLI_insert_thread(&threads, &handles[a]);
 	}
@@ -4287,6 +4317,8 @@ static int project_paint_op(void *state, ImBuf *UNUSED(ibufb), const float lastp
 	else
 		do_projectpaint_thread(&handles[0]);
 		
+	
+	BKE_image_pool_free(pool);
 	
 	/* move threaded bounds back into ps->projectPartialRedraws */
 	for (i = 0; i < ps->image_tot; i++) {
@@ -4714,6 +4746,7 @@ static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 		
 		if (!ima || !ibuf || !(ibuf->rect || ibuf->rect_float)) {
 			BKE_image_release_ibuf(ima, ibuf, NULL);
+			BKE_image_release_ibuf(s->image, s->canvas, NULL);
 			return 0;
 		}
 
@@ -4955,7 +4988,6 @@ typedef struct PaintOperation {
 
 	int first;
 	int prevmouse[2];
-	float prev_pressure; /* need this since we don't get tablet events for pressure change */
 	int orig_brush_size;
 	double starttime;
 
@@ -4998,7 +5030,9 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 	ps->pixel_sizeof = project_paint_pixel_sizeof(ps->tool);
 	BLI_assert(ps->pixel_sizeof >= sizeof(ProjPixel));
 
-	ps->is_airbrush = (brush->flag & BRUSH_AIRBRUSH) ? 1 : 0;
+	/* disable for 3d mapping also because painting on mirrored mesh can create "stripes" */
+	ps->do_masking = (brush->flag & BRUSH_AIRBRUSH || brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW ||
+	                  brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) ? false : true;
 	ps->is_texbrush = (brush->mtex.tex) ? 1 : 0;
 
 
@@ -5173,6 +5207,11 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 	/* create painter */
 	pop->painter = BKE_brush_painter_new(scene, pop->s.brush);
 
+	{
+		UnifiedPaintSettings *ups = &settings->unified_paint_settings;
+		ups->draw_pressure = true;
+	}
+
 	return 1;
 }
 
@@ -5261,6 +5300,11 @@ static void paint_exit(bContext *C, wmOperator *op)
 		BKE_reportf(op->reports, RPT_WARNING, "Packed MultiLayer files cannot be painted: %s", pop->s.warnpackedfile);
 
 	MEM_freeN(pop);
+
+	{
+		UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+		ups->draw_pressure = false;
+	}
 }
 
 static int paint_exec(bContext *C, wmOperator *op)
@@ -5285,7 +5329,6 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 {
 	const Scene *scene = CTX_data_scene(C);
 	PaintOperation *pop = op->customdata;
-	wmTabletData *wmtab;
 	PointerRNA itemptr;
 	float pressure, mousef[2];
 	double time;
@@ -5296,16 +5339,17 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 	tablet = 0;
 	pop->s.blend = pop->s.brush->blend;
 
-	if (event->custom == EVT_DATA_TABLET) {
-		wmtab = event->customdata;
+	if (event->tablet_data) {
+		wmTabletData *wmtab = event->tablet_data;
 
 		tablet = (wmtab->Active != EVT_TABLET_NONE);
 		pressure = wmtab->Pressure;
 		if (wmtab->Active == EVT_TABLET_ERASER)
 			pop->s.blend = IMB_BLEND_ERASE_ALPHA;
 	}
-	else { /* otherwise airbrush becomes 1.0 pressure instantly */
-		pressure = pop->prev_pressure ? pop->prev_pressure : 1.0f;
+	else {
+		BLI_assert(fabsf(WM_cursor_pressure(CTX_wm_window(C))) == 1.0f);
+		pressure = 1.0f;
 	}
 
 	if (pop->first) {
@@ -5338,7 +5382,10 @@ static void paint_apply_event(bContext *C, wmOperator *op, wmEvent *event)
 	/* apply */
 	paint_apply(C, op, &itemptr);
 
-	pop->prev_pressure = pressure;
+	{
+		UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+		ups->pressure_value = pressure;
+	}
 }
 
 static int paint_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -5349,7 +5396,7 @@ static int paint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		MEM_freeN(op->customdata);
 		return OPERATOR_CANCELLED;
 	}
-	
+
 	paint_apply_event(C, op, event);
 
 	pop = op->customdata;
@@ -5479,6 +5526,16 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 		glColor4f(brush->add_col[0], brush->add_col[1], brush->add_col[2], alpha);
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
+		{
+			UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+			/* hrmf, duplicate paint_draw_cursor logic here */
+			if (ups->draw_pressure && BKE_brush_use_size_pressure(scene, brush)) {
+				/* inner at full alpha */
+				glutil_draw_lined_arc(0, (float)(M_PI * 2.0), size * ups->pressure_value, 40);
+				/* outer at half alpha */
+				glColor4f(brush->add_col[0], brush->add_col[1], brush->add_col[2], alpha * 0.5f);
+			}
+		}
 		glutil_draw_lined_arc(0, (float)(M_PI * 2.0), size, 40);
 		glDisable(GL_BLEND);
 		glDisable(GL_LINE_SMOOTH);
@@ -5953,7 +6010,7 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 
 	/* override */
 	ps.is_texbrush = 0;
-	ps.is_airbrush = 1;
+	ps.do_masking = false;
 	orig_brush_size = BKE_brush_size_get(scene, ps.brush);
 	BKE_brush_size_set(scene, ps.brush, 32); /* cover the whole image */
 

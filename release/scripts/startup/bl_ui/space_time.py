@@ -152,6 +152,7 @@ class TIME_MT_cache(Menu):
         col.prop(st, "cache_cloth")
         col.prop(st, "cache_smoke")
         col.prop(st, "cache_dynamicpaint")
+        col.prop(st, "cache_rigidbody")
 
 
 class TIME_MT_frame(Menu):

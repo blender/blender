@@ -93,6 +93,7 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas, int storage)
 	m_noOfScanlines(32),
 	m_motionblur(0),
 	m_motionblurvalue(-1.0),
+	m_usingoverrideshader(false),
 	m_texco_num(0),
 	m_attrib_num(0),
 	//m_last_alphablend(GPU_BLEND_SOLID),
@@ -1057,3 +1058,14 @@ short RAS_OpenGLRasterizer::GetAnisotropicFiltering()
 {
 	return (short)GPU_get_anisotropic();
 }
+
+void RAS_OpenGLRasterizer::SetUsingOverrideShader(bool val)
+{
+	m_usingoverrideshader = val;
+}
+
+bool RAS_OpenGLRasterizer::GetUsingOverrideShader()
+{
+	return m_usingoverrideshader;
+}
+

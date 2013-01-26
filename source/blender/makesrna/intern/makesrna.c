@@ -2444,7 +2444,6 @@ static const char *rna_property_subtypename(PropertySubType type)
 		case PROP_FILENAME: return "PROP_FILENAME";
 		case PROP_DIRPATH: return "PROP_DIRPATH";
 		case PROP_BYTESTRING: return "PROP_BYTESTRING";
-		case PROP_TRANSLATE: return "PROP_TRANSLATE";
 		case PROP_UNSIGNED: return "PROP_UNSIGNED";
 		case PROP_PERCENTAGE: return "PROP_PERCENTAGE";
 		case PROP_FACTOR: return "PROP_FACTOR";
@@ -2466,7 +2465,8 @@ static const char *rna_property_subtypename(PropertySubType type)
 		case PROP_LAYER: return "PROP_LAYER";
 		case PROP_LAYER_MEMBER: return "PROP_LAYER_MEMBER";
 		case PROP_PASSWORD: return "PROP_PASSWORD";
-		default: {
+		default:
+		{
 			/* in case we don't have a type preset that includes the subtype */
 			if (RNA_SUBTYPE_UNIT(type)) {
 				return rna_property_subtypename(type & ~RNA_SUBTYPE_UNIT(type));
@@ -3262,6 +3262,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
 	{"rna_pose.c", "rna_pose_api.c", RNA_def_pose},
 	{"rna_property.c", NULL, RNA_def_gameproperty},
 	{"rna_render.c", NULL, RNA_def_render},
+	{"rna_rigidbody.c", NULL, RNA_def_rigidbody},
 	{"rna_scene.c", "rna_scene_api.c", RNA_def_scene},
 	{"rna_screen.c", NULL, RNA_def_screen},
 	{"rna_sculpt_paint.c", NULL, RNA_def_sculpt_paint},
@@ -3547,8 +3548,27 @@ static const char *cpp_classes = ""
 "#define COLLECTION_PROPERTY_LOOKUP_STRING_FALSE(sname, identifier) \\\n"
 "	inline static int sname##_##identifier##_lookup_string_wrap(PointerRNA *ptr, const char *key, PointerRNA *r_ptr) \\\n"
 "	{ \\\n"
-"		memset(r_ptr, 0, sizeof(*r_ptr)); \\\n"
-"		return 0; \\\n"
+"		CollectionPropertyIterator iter; \\\n"
+"		int found = 0; \\\n"
+"		PropertyRNA *item_name_prop = RNA_struct_name_property(ptr->type); \\\n"
+"		sname##_##identifier##_begin(&iter, ptr); \\\n"
+"		while (iter.valid && !found) { \\\n"
+"			char name_fixed[32]; \\\n"
+"			const char *name; \\\n"
+"			int name_length; \\\n"
+"			name = RNA_property_string_get_alloc(&iter.ptr, item_name_prop, name_fixed, sizeof(name_fixed), &name_length); \\\n"
+"			if (!strncmp(name, key, name_length)) { \\\n"
+"				*r_ptr = iter.ptr; \\\n"
+"				found = 1; \\\n"
+"			} \\\n"
+"			if (name_fixed != name) \\\n"
+"				MEM_freeN((void *) name); \\\n"
+"			sname##_##identifier##_next(&iter); \\\n"
+"		} \\\n"
+"		sname##_##identifier##_end(&iter); \\\n"
+"		if (!found) \\\n"
+"			memset(r_ptr, 0, sizeof(*r_ptr)); \\\n"
+"		return found; \\\n"
 "	} \n"
 "#define COLLECTION_PROPERTY_LOOKUP_STRING_TRUE(sname, identifier) \\\n"
 "	inline static int sname##_##identifier##_lookup_string_wrap(PointerRNA *ptr, const char *key, PointerRNA *r_ptr) \\\n"

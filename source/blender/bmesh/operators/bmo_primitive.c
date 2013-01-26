@@ -420,7 +420,7 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 		v2 = eva[icoface[a][1]];
 		v3 = eva[icoface[a][2]];
 
-		eftemp = BM_face_create_quad_tri(bm, v1, v2, v3, NULL, NULL, FALSE);
+		eftemp = BM_face_create_quad_tri(bm, v1, v2, v3, NULL, NULL, false);
 		
 		BM_ITER_ELEM (l, &liter, eftemp, BM_LOOPS_OF_FACE) {
 			BMO_elem_flag_enable(bm, l->e, EDGE_MARK);
@@ -438,7 +438,7 @@ void bmo_create_icosphere_exec(BMesh *bm, BMOperator *op)
 		             "cuts=%i "
 		             "use_grid_fill=%b use_sphere=%b",
 		             EDGE_MARK, dia, (1 << (subdiv - 1)) - 1,
-		             TRUE, TRUE);
+		             true, true);
 
 		BMO_op_exec(bm, &bmop);
 		BMO_slot_buffer_flag_enable(bm, bmop.slots_out, "geom.out", BM_VERT, VERT_MARK);
@@ -488,14 +488,14 @@ void bmo_create_monkey_exec(BMesh *bm, BMOperator *op)
 		                        tv[monkeyf[i][1] + i - monkeyo],
 		                        tv[monkeyf[i][2] + i - monkeyo],
 		                        (monkeyf[i][3] != monkeyf[i][2]) ? tv[monkeyf[i][3] + i - monkeyo] : NULL,
-		                        NULL, FALSE);
+		                        NULL, false);
 
 		BM_face_create_quad_tri(bm,
 		                        tv[monkeynv + monkeyf[i][2] + i - monkeyo],
 		                        tv[monkeynv + monkeyf[i][1] + i - monkeyo],
 		                        tv[monkeynv + monkeyf[i][0] + i - monkeyo],
 		                        (monkeyf[i][3] != monkeyf[i][2]) ? tv[monkeynv + monkeyf[i][3] + i - monkeyo] : NULL,
-		                        NULL, FALSE);
+		                        NULL, false);
 	}
 
 	MEM_freeN(tv);
@@ -508,8 +508,8 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 {
 	const float dia = BMO_slot_float_get(op->slots_in, "diameter");
 	const int segs = BMO_slot_int_get(op->slots_in, "segments");
-	const int cap_ends = BMO_slot_bool_get(op->slots_in, "cap_ends");
-	const int cap_tris = BMO_slot_bool_get(op->slots_in, "cap_tris");
+	const bool cap_ends = BMO_slot_bool_get(op->slots_in, "cap_ends");
+	const bool cap_tris = BMO_slot_bool_get(op->slots_in, "cap_tris");
 
 	BMVert *v1, *lastv1 = NULL, *cent1, *firstv1 = NULL;
 	float vec[3], mat[4][4], phi, phid;
@@ -547,7 +547,7 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 		if (a && cap_ends) {
 			BMFace *f;
 			
-			f = BM_face_create_quad_tri(bm, cent1, lastv1, v1, NULL, NULL, FALSE);
+			f = BM_face_create_quad_tri(bm, cent1, lastv1, v1, NULL, NULL, false);
 			BMO_elem_flag_enable(bm, f, FACE_NEW);
 		}
 		
@@ -565,7 +565,7 @@ void bmo_create_circle_exec(BMesh *bm, BMOperator *op)
 	if (cap_ends) {
 		BMFace *f;
 		
-		f = BM_face_create_quad_tri(bm, cent1, v1, firstv1, NULL, NULL, FALSE);
+		f = BM_face_create_quad_tri(bm, cent1, v1, firstv1, NULL, NULL, false);
 		BMO_elem_flag_enable(bm, f, FACE_NEW);
 	}
 	
@@ -584,8 +584,8 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 	float dia2 = BMO_slot_float_get(op->slots_in, "diameter2");
 	float depth = BMO_slot_float_get(op->slots_in, "depth");
 	int segs = BMO_slot_int_get(op->slots_in, "segments");
-	int cap_ends = BMO_slot_bool_get(op->slots_in, "cap_ends");
-	int cap_tris = BMO_slot_bool_get(op->slots_in, "cap_tris");
+	const bool cap_ends = BMO_slot_bool_get(op->slots_in, "cap_ends");
+	const bool cap_tris = BMO_slot_bool_get(op->slots_in, "cap_tris");
 	int a;
 	
 	if (!segs)
@@ -634,12 +634,12 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 			if (cap_ends) {
 				BMFace *f;
 				
-				f = BM_face_create_quad_tri(bm, cent1, lastv1, v1, NULL, NULL, FALSE);
+				f = BM_face_create_quad_tri(bm, cent1, lastv1, v1, NULL, NULL, false);
 				BMO_elem_flag_enable(bm, f, FACE_NEW);
-				f = BM_face_create_quad_tri(bm, cent2, v2, lastv2, NULL, NULL, FALSE);
+				f = BM_face_create_quad_tri(bm, cent2, v2, lastv2, NULL, NULL, false);
 				BMO_elem_flag_enable(bm, f, FACE_NEW);
 			}
-			BM_face_create_quad_tri(bm, lastv1, lastv2, v2, v1, NULL, FALSE);
+			BM_face_create_quad_tri(bm, lastv1, lastv2, v2, v1, NULL, false);
 		}
 		else {
 			firstv1 = v1;
@@ -656,9 +656,9 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 	if (cap_ends) {
 		BMFace *f;
 		
-		f = BM_face_create_quad_tri(bm, cent1, v1, firstv1, NULL, NULL, FALSE);
+		f = BM_face_create_quad_tri(bm, cent1, v1, firstv1, NULL, NULL, false);
 		BMO_elem_flag_enable(bm, f, FACE_NEW);
-		f = BM_face_create_quad_tri(bm, cent2, firstv2, v2, NULL, NULL, FALSE);
+		f = BM_face_create_quad_tri(bm, cent2, firstv2, v2, NULL, NULL, false);
 		BMO_elem_flag_enable(bm, f, FACE_NEW);
 	}
 	
@@ -666,7 +666,7 @@ void bmo_create_cone_exec(BMesh *bm, BMOperator *op)
 		BMO_op_callf(bm, op->flag, "dissolve_faces faces=%ff", FACE_NEW);
 	}
 	
-	BM_face_create_quad_tri(bm, v1, v2, firstv2, firstv1, NULL, FALSE);
+	BM_face_create_quad_tri(bm, v1, v2, firstv2, firstv1, NULL, false);
 
 	BMO_op_callf(bm, op->flag, "remove_doubles verts=%fv dist=%f", VERT_MARK, 0.000001);
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, VERT_MARK);
@@ -738,14 +738,14 @@ void bmo_create_cube_exec(BMesh *bm, BMOperator *op)
 	BMO_elem_flag_enable(bm, v8, VERT_MARK);
 
 	/* the four sides */
-	BM_face_create_quad_tri(bm, v5, v6, v2, v1, NULL, FALSE);
-	BM_face_create_quad_tri(bm, v6, v7, v3, v2, NULL, FALSE);
-	BM_face_create_quad_tri(bm, v7, v8, v4, v3, NULL, FALSE);
-	BM_face_create_quad_tri(bm, v8, v5, v1, v4, NULL, FALSE);
+	BM_face_create_quad_tri(bm, v5, v6, v2, v1, NULL, false);
+	BM_face_create_quad_tri(bm, v6, v7, v3, v2, NULL, false);
+	BM_face_create_quad_tri(bm, v7, v8, v4, v3, NULL, false);
+	BM_face_create_quad_tri(bm, v8, v5, v1, v4, NULL, false);
 	
 	/* top/bottom */
-	BM_face_create_quad_tri(bm, v1, v2, v3, v4, NULL, FALSE);
-	BM_face_create_quad_tri(bm, v8, v7, v6, v5, NULL, FALSE);
+	BM_face_create_quad_tri(bm, v1, v2, v3, v4, NULL, false);
+	BM_face_create_quad_tri(bm, v8, v7, v6, v5, NULL, false);
 
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "verts.out", BM_VERT, VERT_MARK);
 }

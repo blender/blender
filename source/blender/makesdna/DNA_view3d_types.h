@@ -46,6 +46,7 @@ struct RenderEngine;
 struct bGPdata;
 struct SmoothView3DStore;
 struct wmTimer;
+struct Material;
 
 /* This is needed to not let VC choke on near and far... old
  * proprietary MS extensions... */
@@ -160,8 +161,8 @@ typedef struct View3D {
 
 	float bundle_size;			/* size of bundles in reconstructed data */
 	short bundle_drawtype;		/* display style for bundle */
-
-	char pad[6];
+	short pad;
+	int matcap_icon;			/* icon id */
 	
 	unsigned int lay_used; /* used while drawing */
 	
@@ -209,11 +210,11 @@ typedef struct View3D {
 	
 	/* drawflags, denoting state */
 	short zbuf, transp, xray;
-
 	char pad3[2];
 
-	void *properties_storage;	/* Nkey panel stores stuff here (runtime only!) */
-
+	void *properties_storage;		/* Nkey panel stores stuff here (runtime only!) */
+	struct Material *defmaterial;	/* used by matcap now */
+	
 	/* XXX deprecated? */
 	struct bGPdata *gpd  DNA_DEPRECATED;		/* Grease-Pencil Data (annotation layers) */
 
@@ -264,12 +265,14 @@ typedef struct View3D {
 #define V3D_SOLID_TEX			8
 #define V3D_SHOW_GPENCIL		16
 #define V3D_LOCK_CAMERA			32
-#define V3D_RENDER_SHADOW		64 /* This is a runtime only flag that's used to tell draw_mesh_object() that we're doing a shadow pass instead of a regular draw */
-#define V3D_SHOW_RECONSTRUCTION		128
+#define V3D_RENDER_SHADOW		64		/* This is a runtime only flag that's used to tell draw_mesh_object() that we're doing a shadow pass instead of a regular draw */
+#define V3D_SHOW_RECONSTRUCTION	128
 #define V3D_SHOW_CAMERAPATH		256
 #define V3D_SHOW_BUNDLENAME		512
 #define V3D_BACKFACE_CULLING	1024
-#define V3D_RENDER_BORDER	2048
+#define V3D_RENDER_BORDER		2048
+#define V3D_SOLID_MATCAP		4096	/* user flag */
+#define V3D_SHOW_SOLID_MATCAP	8192	/* runtime flag */
 
 /* View3D->around */
 #define V3D_CENTER		 0

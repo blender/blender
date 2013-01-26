@@ -38,6 +38,7 @@ set(INC_SYS
 
 set(SRC
 	intern/BLI_args.c
+	intern/BLI_array.c
 	intern/BLI_dynstr.c
 	intern/BLI_ghash.c
 	intern/BLI_heap.c

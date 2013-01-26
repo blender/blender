@@ -16,12 +16,6 @@
 
 #include "BLI_utildefines.h" /* for BLI_assert */
 
-#ifdef _MSC_VER
-#  define CCG_INLINE __inline
-#else
-#  define CCG_INLINE inline
-#endif
-
 /* used for normalize_v3 in BLI_math_vector
  * float.h's FLT_EPSILON causes trouble with subsurf normals - campbell */
 #define EPSILON (1.0e-35f)
@@ -305,7 +299,7 @@ struct CCGVert {
 //	byte *userData;
 };
 
-static CCG_INLINE byte *VERT_getLevelData(CCGVert *v)
+BLI_INLINE byte *VERT_getLevelData(CCGVert *v)
 {
 	return (byte *)(&(v)[1]);
 }
@@ -324,7 +318,7 @@ struct CCGEdge {
 //	byte *userData;
 };
 
-static CCG_INLINE byte *EDGE_getLevelData(CCGEdge *e)
+BLI_INLINE byte *EDGE_getLevelData(CCGEdge *e)
 {
 	return (byte *)(&(e)[1]);
 }
@@ -342,17 +336,17 @@ struct CCGFace {
 //	byte *userData;
 };
 
-static CCG_INLINE CCGVert **FACE_getVerts(CCGFace *f)
+BLI_INLINE CCGVert **FACE_getVerts(CCGFace *f)
 {
 	return (CCGVert **)(&f[1]);
 }
 
-static CCG_INLINE CCGEdge **FACE_getEdges(CCGFace *f)
+BLI_INLINE CCGEdge **FACE_getEdges(CCGFace *f)
 {
 	return (CCGEdge **)(&(FACE_getVerts(f)[f->numVerts]));
 }
 
-static CCG_INLINE byte *FACE_getCenterData(CCGFace *f)
+BLI_INLINE byte *FACE_getCenterData(CCGFace *f)
 {
 	return (byte *)(&(FACE_getEdges(f)[(f)->numVerts]));
 }
@@ -698,28 +692,28 @@ static CCGFace *_face_new(CCGFaceHDL fHDL, CCGVert **verts, CCGEdge **edges, int
 	return f;
 }
 
-static CCG_INLINE void *_face_getIECo(CCGFace *f, int lvl, int S, int x, int levels, int dataSize)
+BLI_INLINE void *_face_getIECo(CCGFace *f, int lvl, int S, int x, int levels, int dataSize)
 {
 	int maxGridSize = ccg_gridsize(levels);
 	int spacing = ccg_spacing(levels, lvl);
 	byte *gridBase = FACE_getCenterData(f) + dataSize * (1 + S * (maxGridSize + maxGridSize * maxGridSize));
 	return &gridBase[dataSize * x * spacing];
 }
-static CCG_INLINE void *_face_getIENo(CCGFace *f, int lvl, int S, int x, int levels, int dataSize, int normalDataOffset)
+BLI_INLINE void *_face_getIENo(CCGFace *f, int lvl, int S, int x, int levels, int dataSize, int normalDataOffset)
 {
 	int maxGridSize = ccg_gridsize(levels);
 	int spacing = ccg_spacing(levels, lvl);
 	byte *gridBase = FACE_getCenterData(f) + dataSize * (1 + S * (maxGridSize + maxGridSize * maxGridSize));
 	return &gridBase[dataSize * x * spacing + normalDataOffset];
 }
-static CCG_INLINE void *_face_getIFCo(CCGFace *f, int lvl, int S, int x, int y, int levels, int dataSize)
+BLI_INLINE void *_face_getIFCo(CCGFace *f, int lvl, int S, int x, int y, int levels, int dataSize)
 {
 	int maxGridSize = ccg_gridsize(levels);
 	int spacing = ccg_spacing(levels, lvl);
 	byte *gridBase = FACE_getCenterData(f) + dataSize * (1 + S * (maxGridSize + maxGridSize * maxGridSize));
 	return &gridBase[dataSize * (maxGridSize + (y * maxGridSize + x) * spacing)];
 }
-static CCG_INLINE float *_face_getIFNo(CCGFace *f, int lvl, int S, int x, int y, int levels, int dataSize, int normalDataOffset)
+BLI_INLINE float *_face_getIFNo(CCGFace *f, int lvl, int S, int x, int y, int levels, int dataSize, int normalDataOffset)
 {
 	int maxGridSize = ccg_gridsize(levels);
 	int spacing = ccg_spacing(levels, lvl);
@@ -742,7 +736,7 @@ static int _face_getEdgeIndex(CCGFace *f, CCGEdge *e)
 			return i;
 	return -1;
 }
-static CCG_INLINE void *_face_getIFCoEdge(CCGFace *f, CCGEdge *e, int f_ed_idx, int lvl, int eX, int eY, int levels, int dataSize)
+BLI_INLINE void *_face_getIFCoEdge(CCGFace *f, CCGEdge *e, int f_ed_idx, int lvl, int eX, int eY, int levels, int dataSize)
 {
 	int maxGridSize = ccg_gridsize(levels);
 	int spacing = ccg_spacing(levels, lvl);
@@ -1422,18 +1416,25 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 		float no[3];
 
 		for (S = 0; S < f->numVerts; S++) {
-			for (y = 0; y < gridSize - 1; y++)
-				for (x = 0; x < gridSize - 1; x++)
+			for (y = 0; y < gridSize - 1; y++) {
+				for (x = 0; x < gridSize - 1; x++) {
 					NormZero(FACE_getIFNo(f, lvl, S, x, y));
+				}
+			}
 
-			if (FACE_getEdges(f)[(S - 1 + f->numVerts) % f->numVerts]->flags & Edge_eEffected)
-				for (x = 0; x < gridSize - 1; x++)
+			if (FACE_getEdges(f)[(S - 1 + f->numVerts) % f->numVerts]->flags & Edge_eEffected) {
+				for (x = 0; x < gridSize - 1; x++) {
 					NormZero(FACE_getIFNo(f, lvl, S, x, gridSize - 1));
-			if (FACE_getEdges(f)[S]->flags & Edge_eEffected)
-				for (y = 0; y < gridSize - 1; y++)
+				}
+			}
+			if (FACE_getEdges(f)[S]->flags & Edge_eEffected) {
+				for (y = 0; y < gridSize - 1; y++) {
 					NormZero(FACE_getIFNo(f, lvl, S, gridSize - 1, y));
-			if (FACE_getVerts(f)[S]->flags & Vert_eEffected)
+				}
+			}
+			if (FACE_getVerts(f)[S]->flags & Vert_eEffected) {
 				NormZero(FACE_getIFNo(f, lvl, S, gridSize - 1, gridSize - 1));
+			}
 		}
 
 		for (S = 0; S < f->numVerts; S++) {

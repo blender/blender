@@ -39,6 +39,7 @@ struct World;
 struct Tex;
 struct Lamp;
 struct Material;
+struct PreviewImage;
 struct PointerRNA;
 
 typedef struct IconFile {
@@ -75,6 +76,8 @@ void UI_icons_free_drawinfo(void *drawinfo);
 
 struct ListBase *UI_iconfile_list(void);
 int UI_iconfile_get_index(const char *filename);
+
+struct PreviewImage *UI_icon_to_preview(int icon_id);
 
 int UI_rnaptr_icon_get(struct bContext *C, struct PointerRNA *ptr, int rnaicon, int big);
 

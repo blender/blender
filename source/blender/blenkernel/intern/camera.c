@@ -237,6 +237,9 @@ void BKE_camera_params_from_object(CameraParams *params, Object *ob)
 		params->clipsta = la->clipsta;
 		params->clipend = la->clipend;
 	}
+	else {
+		params->lens = 35.0f;
+	}
 }
 
 void BKE_camera_params_from_view3d(CameraParams *params, View3D *v3d, RegionView3D *rv3d)

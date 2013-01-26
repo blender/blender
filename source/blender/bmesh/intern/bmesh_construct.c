@@ -53,7 +53,7 @@ static void bm_loop_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
  * \brief Make Quad/Triangle
  *
  * Creates a new quad or triangle from a list of 3 or 4 vertices.
- * If \a nodouble is TRUE, then a check is done to see if a face
+ * If \a no_double is true, then a check is done to see if a face
  * with these vertices already exists and returns it instead.
  *
  * If a pointer to an example face is provided, it's custom data
@@ -65,16 +65,16 @@ static void bm_loop_attrs_copy(BMesh *source_mesh, BMesh *target_mesh,
 
 BMFace *BM_face_create_quad_tri(BMesh *bm,
                                 BMVert *v1, BMVert *v2, BMVert *v3, BMVert *v4,
-                                const BMFace *example, const int nodouble)
+                                const BMFace *example, const bool no_double)
 {
 	BMVert *vtar[4] = {v1, v2, v3, v4};
-	return BM_face_create_quad_tri_v(bm, vtar, v4 ? 4 : 3, example, nodouble);
+	return BM_face_create_quad_tri_v(bm, vtar, v4 ? 4 : 3, example, no_double);
 }
 
-BMFace *BM_face_create_quad_tri_v(BMesh *bm, BMVert **verts, int len, const BMFace *example, const int nodouble)
+BMFace *BM_face_create_quad_tri_v(BMesh *bm, BMVert **verts, int len, const BMFace *example, const bool no_double)
 {
 	BMFace *f = NULL;
-	int is_overlap = FALSE;
+	bool is_overlap = false;
 
 	/* sanity check - debug mode only */
 	if (len == 3) {
@@ -97,7 +97,7 @@ BMFace *BM_face_create_quad_tri_v(BMesh *bm, BMVert **verts, int len, const BMFa
 	}
 
 
-	if (nodouble) {
+	if (no_double) {
 		/* check if face exists or overlaps */
 		is_overlap = BM_face_exists(verts, len, &f);
 	}
@@ -793,7 +793,7 @@ void BM_elem_attrs_copy(BMesh *source_mesh, BMesh *target_mesh, const void *sour
 
 	/* First we copy select */
 	if (BM_elem_flag_test((BMElem *)sheader, BM_ELEM_SELECT)) {
-		BM_elem_select_set(target_mesh, (BMElem *)target, TRUE);
+		BM_elem_select_set(target_mesh, (BMElem *)target, true);
 	}
 	
 	/* Now we copy flags */

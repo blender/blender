@@ -83,6 +83,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_group.h"
 #include "BKE_icons.h"
+#include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_lamp.h"
 #include "BKE_lattice.h"
@@ -97,6 +98,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_property.h"
+#include "BKE_rigidbody.h"
 #include "BKE_sca.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
@@ -312,6 +314,9 @@ void free_sculptsession(Object *ob)
 		if (ss->texcache)
 			MEM_freeN(ss->texcache);
 
+		if (ss->tex_pool)
+			BKE_image_pool_free(ss->tex_pool);
+
 		if (ss->layer_co)
 			MEM_freeN(ss->layer_co);
 
@@ -386,6 +391,8 @@ void BKE_object_free(Object *ob)
 	BKE_free_constraints(&ob->constraints);
 	
 	free_partdeflect(ob->pd);
+	BKE_rigidbody_free_object(ob);
+	BKE_rigidbody_free_constraint(ob);
 
 	if (ob->soft) sbFree(ob->soft);
 	if (ob->bsoft) bsbFree(ob->bsoft);
@@ -1296,6 +1303,8 @@ static Object *object_copy_do(Object *ob, int copy_caches)
 	}
 	obn->soft = copy_softbody(ob->soft, copy_caches);
 	obn->bsoft = copy_bulletsoftbody(ob->bsoft);
+	obn->rigidbody_object = BKE_rigidbody_copy_object(ob);
+	obn->rigidbody_constraint = BKE_rigidbody_copy_constraint(ob);
 
 	BKE_object_copy_particlesystems(obn, ob);
 	
@@ -2153,6 +2162,8 @@ void BKE_object_where_is_calc_time(Scene *scene, Object *ob, float ctime)
 		BKE_object_to_mat4(ob, ob->obmat);
 	}
 	
+	BKE_rigidbody_sync_transforms(scene, ob, ctime);
+	
 	/* solve constraints */
 	if (ob->constraints.first && !(ob->transflag & OB_NO_CONSTRAINTS)) {
 		bConstraintOb *cob;
@@ -2714,8 +2725,10 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 
 				case OB_ARMATURE:
 					if (ob->id.lib && ob->proxy_from) {
-						// printf("pose proxy copy, lib ob %s proxy %s\n", ob->id.name, ob->proxy_from->id.name);
-						BKE_pose_copy_result(ob->pose, ob->proxy_from->pose);
+						if (BKE_pose_copy_result(ob->pose, ob->proxy_from->pose) == false) {
+							printf("Proxy copy error, lib Object: %s proxy Object: %s\n",
+							       ob->id.name + 2, ob->proxy_from->id.name + 2);
+						}
 					}
 					else {
 						BKE_pose_where_is(scene, ob);

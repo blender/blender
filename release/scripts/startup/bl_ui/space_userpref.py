@@ -24,25 +24,25 @@ import os
 
 def ui_style_items(col, context):
     """ UI Style settings """
-    
+
     split = col.split()
-    
+
     col = split.column()
     col.label(text="Kerning Style:")
     col.row().prop(context, "font_kerning_style", expand=True)
     col.prop(context, "points")
-    
+
     col = split.column()
     col.label(text="Shadow Offset:")
     col.prop(context, "shadow_offset_x", text="X")
     col.prop(context, "shadow_offset_y", text="Y")
-    
+
     col = split.column()
     col.prop(context, "shadow")
     col.prop(context, "shadowalpha")
     col.prop(context, "shadowcolor")
 
-    
+
 def ui_items_general(col, context):
     """ General UI Theme Settings (User Interface)
     """
@@ -200,7 +200,7 @@ class USERPREF_PT_interface(Panel):
         col.prop(view, "show_playback_fps", text="Playback FPS")
         col.prop(view, "use_global_scene")
         col.prop(view, "object_origin_size")
- 
+
         col.separator()
         col.separator()
         col.separator()
@@ -763,13 +763,13 @@ class USERPREF_PT_theme(Panel):
             colsub.row().prop(ui, "axis_x")
             colsub.row().prop(ui, "axis_y")
             colsub.row().prop(ui, "axis_z")
-            
+
             subsplit = row.split(percentage=0.85)
 
             padding = subsplit.split(percentage=0.15)
             colsub = padding.column()
             colsub = padding.column()
-            
+
             layout.separator()
             layout.separator()
         elif theme.theme_area == 'BONE_COLOR_SETS':
@@ -797,16 +797,23 @@ class USERPREF_PT_theme(Panel):
                 colsub.row().prop(ui, "show_colored_constraints")
         elif theme.theme_area == 'STYLE':
             col = split.column()
-            
+
             style = context.user_preferences.ui_styles[0]
-            
+
+            ui = style.panel_title
+            col.label(text="Panel Title:")
+            ui_style_items(col, ui)
+
+            col.separator()
+            col.separator()
+
             ui = style.widget
             col.label(text="Widget:")
             ui_style_items(col, ui)
-            
+
             col.separator()
             col.separator()
-            
+
             ui = style.widget_label
             col.label(text="Widget Label:")
             ui_style_items(col, ui)
@@ -1100,8 +1107,8 @@ class USERPREF_PT_addons(Panel):
         used_ext = {ext.module for ext in userpref.addons}
 
         userpref_addons_folder = os.path.join(userpref.filepaths.script_directory, "addons")
-        scripts_addons_folder  = bpy.utils.user_resource('SCRIPTS', "addons")
-        
+        scripts_addons_folder = bpy.utils.user_resource('SCRIPTS', "addons")
+
         # collect the categories that can be filtered on
         addons = [(mod, addon_utils.module_bl_info(mod)) for mod in addon_utils.modules(addon_utils.addons_fake_modules)]
 
@@ -1152,7 +1159,7 @@ class USERPREF_PT_addons(Panel):
                     (filter == "Enabled" and is_enabled) or
                     (filter == "Disabled" and not is_enabled) or
                     (filter == "User" and (mod.__file__.startswith((scripts_addons_folder, userpref_addons_folder))))
-                   ):
+                    ):
 
                 if search and search not in info["name"].lower():
                     if info["author"]:
@@ -1243,7 +1250,6 @@ class USERPREF_PT_addons(Panel):
                                     traceback.print_exc()
                                     box_prefs.label(text="Error (see console)", icon='ERROR')
                                 del addon_preferences_class.layout
-
 
         # Append missing scripts
         # First collect scripts that are used but have no script file.

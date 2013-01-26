@@ -34,7 +34,7 @@ USE_QUICK_RENDER = False
 IS_BMESH = hasattr(__import__("bpy").types, "LoopColors")
 
 # -----------------------------------------------------------------------------
-# utility funcs
+# utility functions
 
 
 def render_gl(context, filepath, shade):
@@ -147,7 +147,7 @@ def ctx_viewport_camera(context):
 def ctx_camera_setup(context,
                      location=(0.0, 0.0, 0.0),
                      lookat=(0.0, 0.0, 0.0),
-                     # most likely the followuing vars can be left as defaults
+                     # most likely the following vars can be left as defaults
                      up=(0.0, 0.0, 1.0),
                      lookat_axis='-Z',
                      up_axis='Y',
@@ -258,7 +258,7 @@ def mesh_uv_add(obj):
     uv_lay = obj.data.uv_textures.new()
 
     if IS_BMESH:
-        # XXX, odd that we need to do this. until uvs and texface
+        # XXX, odd that we need to do this. until UV's and texface
         # are separated we will need to keep it
         uv_loops = obj.data.uv_layers[-1]
         uv_list = uv_loops.data[:]

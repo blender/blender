@@ -995,8 +995,8 @@ static void walker_select(BMEditMesh *em, int walkercode, void *start, int selec
 	         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
 	         BMW_FLAG_TEST_HIDDEN,
 	         BMW_NIL_LAY);
-	ele = BMW_begin(&walker, start);
-	for (; ele; ele = BMW_step(&walker)) {
+
+	for (ele = BMW_begin(&walker, start); ele; ele = BMW_step(&walker)) {
 		if (!select) {
 			BM_select_history_remove(bm, ele);
 		}
@@ -1782,7 +1782,7 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend Select", "");
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
 /* ************************************************** */
@@ -2286,8 +2286,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
-		efa = BMW_begin(&walker, efa);
-		for (; efa; efa = BMW_step(&walker)) {
+		for (efa = BMW_begin(&walker, efa); efa; efa = BMW_step(&walker)) {
 			BM_face_select_set(bm, efa, sel);
 		}
 		BMW_end(&walker);
@@ -2308,8 +2307,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *
 		         BMW_FLAG_TEST_HIDDEN,
 		         BMW_NIL_LAY);
 
-		e = BMW_begin(&walker, eed->v1);
-		for (; e; e = BMW_step(&walker)) {
+		for (e = BMW_begin(&walker, eed->v1); e; e = BMW_step(&walker)) {
 			BM_edge_select_set(bm, e, sel);
 		}
 		BMW_end(&walker);
@@ -2380,8 +2378,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
-				efa = BMW_begin(&walker, efa);
-				for (; efa; efa = BMW_step(&walker)) {
+				for (efa = BMW_begin(&walker, efa); efa; efa = BMW_step(&walker)) {
 					BM_face_select_set(bm, efa, TRUE);
 				}
 			}
@@ -2409,10 +2406,8 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 
 		BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-				e = BMW_begin(&walker, v);
-				for (; e; e = BMW_step(&walker)) {
-					BM_vert_select_set(em->bm, e->v1, TRUE);
-					BM_vert_select_set(em->bm, e->v2, TRUE);
+				for (e = BMW_begin(&walker, v); e; e = BMW_step(&walker)) {
+					BM_edge_select_set(em->bm, e, true);
 				}
 			}
 		}
@@ -2859,6 +2854,9 @@ static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
 	BMEdge *e;
 	BMIter iter;
 
+	if (!RNA_boolean_get(op->ptr, "extend"))
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+
 	/* Selects isolated verts, and edges that do not have 2 neighboring
 	 * faces
 	 */
@@ -2898,6 +2896,9 @@ void MESH_OT_select_non_manifold(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend the selection");
 }
 
 static int edbm_select_random_exec(bContext *C, wmOperator *op)
@@ -2962,8 +2963,7 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	/* props */
 	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f,
 	                         "Percent", "Percentage of elements to select randomly", 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", 0,
-	                "Extend Selection", "Extend selection instead of deselecting everything first");
+ 	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
 static int edbm_select_next_loop_exec(bContext *C, wmOperator *UNUSED(op))

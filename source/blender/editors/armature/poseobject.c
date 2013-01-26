@@ -576,7 +576,7 @@ void POSE_OT_select_hierarchy(wmOperatorType *ot)
 	
 	/* props */
 	ot->prop = RNA_def_enum(ot->srna, "direction", direction_items, BONE_SELECT_PARENT, "Direction", "");
-	RNA_def_boolean(ot->srna, "extend", 0, "Add to Selection", "");
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
 /* ******************* select grouped operator ************* */

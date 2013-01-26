@@ -20,357 +20,661 @@
 
 # Some misc utilities...
 
-import os
-import sys
 import collections
+import copy
+import os
+import re
+import sys
 
 from bl_i18n_utils import settings
 
 
-COMMENT_PREFIX = settings.COMMENT_PREFIX
+PO_COMMENT_PREFIX = settings.PO_COMMENT_PREFIX
+PO_COMMENT_PREFIX_MSG = settings.PO_COMMENT_PREFIX_MSG
+PO_COMMENT_PREFIX_SOURCE = settings.PO_COMMENT_PREFIX_SOURCE
+PO_COMMENT_PREFIX_SOURCE_CUSTOM = settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM
+PO_COMMENT_FUZZY = settings.PO_COMMENT_FUZZY
+PO_MSGCTXT = settings.PO_MSGCTXT
+PO_MSGID = settings.PO_MSGID
+PO_MSGSTR = settings.PO_MSGSTR
+
+PO_HEADER_KEY = settings.PO_HEADER_KEY
+PO_HEADER_COMMENT = settings.PO_HEADER_COMMENT
+PO_HEADER_COMMENT_COPYRIGHT = settings.PO_HEADER_COMMENT_COPYRIGHT
+PO_HEADER_MSGSTR = settings.PO_HEADER_MSGSTR
+
+PARSER_CACHE_HASH = settings.PARSER_CACHE_HASH
+
 WARN_NC = settings.WARN_MSGID_NOT_CAPITALIZED
 NC_ALLOWED = settings.WARN_MSGID_NOT_CAPITALIZED_ALLOWED
+PARSER_CACHE_HASH = settings.PARSER_CACHE_HASH
 
+
+##### Misc Utils #####
 
 def stripeol(s):
     return s.rstrip("\n\r")
 
 
-# XXX For now, we assume that all messages > 30 chars are tooltips!
-def is_tooltip(msgid):
-    return len(msgid) > 30
+_valid_po_path_re = re.compile(r"^\S+:[0-9]+$")
+def is_valid_po_path(path):
+    return bool(_valid_po_path_re.match(path))
 
 
-def new_messages():
-    return getattr(collections, 'OrderedDict', dict)()
-
-
-def parse_messages(fname):
+class I18nMessage:
     """
-    Returns a tupple (messages, states, stats).
-    messages is an odereddict of dicts
-        {(ctxt, msgid): {msgid_lines:, msgstr_lines:,
-                         comment_lines:, msgctxt_lines:}}.
-    states is a dict of three sets of (msgid, ctxt), and a boolean flag
-        indicating the .po is somewhat broken
-        {trans_msg:, fuzzy_msg:, comm_msg:, is_broken:}.
-    stats is a dict of values
-        {tot_msg:, trans_msg:, tot_ttips:, trans_ttips:, comm_msg:,
-         nbr_signs:, nbr_trans_signs:, contexts: set()}.
-    Note: This function will silently "arrange" mis-formated entries, thus
-        using afterward write_messages() should always produce a po-valid file,
-        though not correct!
+    Internal representation of a message.
     """
-    tot_messages = 0
-    tot_tooltips = 0
-    trans_messages = 0
-    trans_tooltips = 0
-    comm_messages = 0
-    nbr_signs = 0
-    nbr_trans_signs = 0
-    contexts = set()
-    reading_msgid = False
-    reading_msgstr = False
-    reading_msgctxt = False
-    reading_comment = False
-    is_translated = False
-    is_fuzzy = False
-    is_commented = False
-    is_broken = False
-    msgid_lines = []
-    msgstr_lines = []
-    msgctxt_lines = []
-    comment_lines = []
+    __slots__ = ("msgctxt_lines", "msgid_lines", "msgstr_lines", "comment_lines", "is_fuzzy", "is_commented")
 
-    messages = new_messages()
-    translated_messages = set()
-    fuzzy_messages = set()
-    commented_messages = set()
+    def __init__(self, msgctxt_lines=[], msgid_lines=[], msgstr_lines=[], comment_lines=[],
+                 is_commented=False, is_fuzzy=False):
+        self.msgctxt_lines = msgctxt_lines
+        self.msgid_lines = msgid_lines
+        self.msgstr_lines = msgstr_lines
+        self.comment_lines = comment_lines
+        self.is_fuzzy = is_fuzzy
+        self.is_commented = is_commented
 
-    def clean_vars():
-        nonlocal reading_msgid, reading_msgstr, reading_msgctxt, \
-                 reading_comment, is_fuzzy, is_translated, is_commented, \
-                 msgid_lines, msgstr_lines, msgctxt_lines, comment_lines
-        reading_msgid = reading_msgstr = reading_msgctxt = \
-                        reading_comment = False
-        is_tooltip = is_fuzzy = is_translated = is_commented = False
+    def _get_msgctxt(self):
+        return ("".join(self.msgctxt_lines)).replace("\\n", "\n")
+    def _set_msgctxt(self, ctxt):
+        self.msgctxt_lines = [ctxt]
+    msgctxt = property(_get_msgctxt, _set_msgctxt)
+
+    def _get_msgid(self):
+        return ("".join(self.msgid_lines)).replace("\\n", "\n")
+    def _set_msgid(self, msgid):
+        self.msgid_lines = [msgid]
+    msgid = property(_get_msgid, _set_msgid)
+
+    def _get_msgstr(self):
+        return ("".join(self.msgstr_lines)).replace("\\n", "\n")
+    def _set_msgstr(self, msgstr):
+        self.msgstr_lines = [msgstr]
+    msgstr = property(_get_msgstr, _set_msgstr)
+
+    def _get_sources(self):
+        lstrip1 = len(PO_COMMENT_PREFIX_SOURCE)
+        lstrip2 = len(PO_COMMENT_PREFIX_SOURCE_CUSTOM)
+        return ([l[lstrip1:] for l in self.comment_lines if l.startswith(PO_COMMENT_PREFIX_SOURCE)] +
+                [l[lstrip2:] for l in self.comment_lines if l.startswith(PO_COMMENT_PREFIX_SOURCE_CUSTOM)])
+    def _set_sources(self, sources):
+        # list.copy() is not available in py3.2 ...
+        cmmlines = []
+        cmmlines[:] = self.comment_lines
+        for l in cmmlines:
+            if l.startswith(PO_COMMENT_PREFIX_SOURCE) or l.startswith(PO_COMMENT_PREFIX_SOURCE_CUSTOM):
+                self.comment_lines.remove(l)
+        lines_src = []
+        lines_src_custom = []
+        for src in  sources:
+            if is_valid_po_path(src):
+                lines_src.append(PO_COMMENT_PREFIX_SOURCE + src)
+            else:
+                lines_src_custom.append(PO_COMMENT_PREFIX_SOURCE_CUSTOM + src)
+        self.comment_lines += lines_src_custom + lines_src
+    sources = property(_get_sources, _set_sources)
+
+    def _get_is_tooltip(self):
+        # XXX For now, we assume that all messages > 30 chars are tooltips!
+        return len(self.msgid) > 30
+    is_tooltip = property(_get_is_tooltip)
+
+    def normalize(self, max_len=80):
+        """
+        Normalize this message, call this before exporting it...
+        Currently normalize msgctxt, msgid and msgstr lines to given max_len (if below 1, make them single line).
+        """
+        max_len -= 2  # The two quotes!
+        # We do not need the full power of textwrap... We just split first at escaped new lines, then into each line
+        # if needed... No word splitting, nor fancy spaces handling!
+        def _wrap(text, max_len, init_len):
+            if len(text) + init_len < max_len:
+                return [text]
+            lines = text.splitlines()
+            ret = []
+            for l in lines:
+                tmp = []
+                cur_len = 0
+                words = l.split(' ')
+                for w in words:
+                    cur_len += len(w) + 1
+                    if cur_len > (max_len - 1) and tmp:
+                        ret.append(" ".join(tmp) + " ")
+                        del tmp[:]
+                        cur_len = len(w) + 1
+                    tmp.append(w)
+                if tmp:
+                    ret.append(" ".join(tmp))
+            return ret
+        if max_len < 1:
+            self.msgctxt_lines = self.msgctxt.replace("\n", "\\n\n").splitlines()
+            self.msgid_lines = self.msgid.replace("\n", "\\n\n").splitlines()
+            self.msgstr_lines = self.msgstr.replace("\n", "\\n\n").splitlines()
+        else:
+            init_len = len(PO_MSGCTXT) + 1
+            if self.is_commented:
+                init_len += len(PO_COMMENT_PREFIX_MSG)
+            self.msgctxt_lines = _wrap(self.msgctxt.replace("\n", "\\n\n"), max_len, init_len)
+
+            init_len = len(PO_MSGID) + 1
+            if self.is_commented:
+                init_len += len(PO_COMMENT_PREFIX_MSG)
+            self.msgid_lines = _wrap(self.msgid.replace("\n", "\\n\n"), max_len, init_len)
+
+            init_len = len(PO_MSGSTR) + 1
+            if self.is_commented:
+                init_len += len(PO_COMMENT_PREFIX_MSG)
+            self.msgstr_lines = _wrap(self.msgstr.replace("\n", "\\n\n"), max_len, init_len)
+
+
+class I18nMessages:
+    """
+    Internal representation of messages for one language (iso code), with additional stats info.
+    """
+
+    # Avoid parsing again!
+    # Keys should be (pseudo) file-names, values are tuples (hash, I18nMessages)
+    # Note: only used by po parser currently!
+    _parser_cache = {}
+
+    def __init__(self, iso="__POT__", kind=None, key=None, src=None):
+        self.iso = iso
+        self.msgs = self._new_messages()
+        self.trans_msgs = set()
+        self.fuzzy_msgs = set()
+        self.comm_msgs = set()
+        self.ttip_msgs = set()
+        self.contexts = set()
+        self.nbr_msgs = 0
+        self.nbr_trans_msgs = 0
+        self.nbr_ttips = 0
+        self.nbr_trans_ttips = 0
+        self.nbr_comm_msgs = 0
+        self.nbr_signs = 0
+        self.nbr_trans_signs = 0
+        self.parsing_errors = []
+        if kind and src:
+            self.parse(kind, key, src)
+        self.update_info()
+
+    @staticmethod
+    def _new_messages():
+        return getattr(collections, 'OrderedDict', dict)()
+
+    @classmethod
+    def gen_empty_messages(cls, iso, blender_ver, blender_rev, time, year, default_copyright=True):
+        """Generate an empty I18nMessages object (only header is present!)."""
+        msgstr = PO_HEADER_MSGSTR.format(blender_ver=str(blender_ver), blender_rev=int(blender_rev),
+                                         time=str(time), iso=str(iso))
+        comment = ""
+        if default_copyright:
+            comment = PO_HEADER_COMMENT_COPYRIGHT.format(year=str(year))
+        comment = comment + PO_HEADER_COMMENT
+
+        msgs = cls(iso=iso)
+        msgs.msgs[PO_HEADER_KEY] = I18nMessage([], [""], [msgstr], [comment], False, True)
+        msgs.update_info()
+
+        return msgs
+
+    def normalize(self, max_len=80):
+        for msg in self.msgs.values():
+            msg.normalize(max_len)
+
+    def merge(self, replace=False, *args):
+        pass
+
+    def update(self, ref, use_similar=0.75, keep_old_commented=True):
+        """
+        Update this I18nMessage with the ref one. Translations from ref are never used. Source comments from ref
+        completely replace current ones. If use_similar is not 0.0, it will try to match new messages in ref with an
+        existing one. Messages no more found in ref will be marked as commented if keep_old_commented is True,
+        or removed.
+        """
+        import difflib
+        similar_pool = {}
+        if use_similar > 0.0:
+            for key in self.msgs:
+                similar_pool.setdefault(key[1], set()).add(key)
+
+        msgs = self._new_messages()
+        for (key, msg) in ref.msgs.items():
+            if key in self.msgs:
+                msgs[key] = self.msgs[key]
+                msgs[key].sources = msg.sources
+            else:
+                skey = None
+                if use_similar > 0.0:
+                    # try to find some close key in existing messages...
+                    tmp = difflib.get_close_matches(key[1], similar_pool, n=1, cutoff=use_similar)
+                    if tmp:
+                        tmp = tmp[0]
+                        # Try to get the same context, else just get one...
+                        skey = (key[0], tmp)
+                        if skey not in similar_pool[tmp]:
+                            skey = tuple(similar_pool[tmp])[0]
+                msgs[key] = msg
+                if skey:
+                    msgs[key].msgstr = self.msgs[skey].msgstr
+                    msgs[key].is_fuzzy = True
+        # Add back all "old" and already commented messages as commented ones, if required.
+        if keep_old_commented:
+            for key, msg in self.msgs.items():
+                if key not in msgs:
+                    msgs[key] = msg
+                    msgs[key].is_commented = True
+        # And finalize the update!
+        self.msgs = msgs
+
+    def update_info(self):
+        self.trans_msgs.clear()
+        self.fuzzy_msgs.clear()
+        self.comm_msgs.clear()
+        self.ttip_msgs.clear()
+        self.contexts.clear()
+        self.nbr_signs = 0
+        self.nbr_trans_signs = 0
+        for key, msg in self.msgs.items():
+            if key == PO_HEADER_KEY:
+                continue
+            if msg.is_commented:
+                self.comm_msgs.add(key)
+            else:
+                if msg.msgstr:
+                    self.trans_msgs.add(key)
+                if msg.is_fuzzy:
+                    self.fuzzy_msgs.add(key)
+                if msg.is_tooltip:
+                    self.ttip_msgs.add(key)
+                self.contexts.add(key[0])
+                self.nbr_signs += len(msg.msgid)
+                self.nbr_trans_signs += len(msg.msgstr)
+        self.nbr_msgs = len(self.msgs)
+        self.nbr_trans_msgs = len(self.trans_msgs)
+        self.nbr_ttips = len(self.ttip_msgs)
+        self.nbr_trans_ttips = len(self.ttip_msgs & self.trans_msgs)
+        self.nbr_comm_msgs = len(self.comm_msgs)
+
+    def print_stats(self, prefix=""):
+        """
+        Print out some stats about an I18nMessages object.
+        """
+        lvl = 0.0
+        lvl_ttips = 0.0
+        lvl_comm = 0.0
+        lvl_trans_ttips = 0.0
+        lvl_ttips_in_trans = 0.0
+        if self.nbr_msgs > 0:
+            lvl = float(self.nbr_trans_msgs) / float(self.nbr_msgs)
+            lvl_ttips = float(self.nbr_ttips) / float(self.nbr_msgs)
+            lvl_comm = float(self.nbr_comm_msgs) / float(self.nbr_msgs + self.nbr_comm_msgs)
+        if self.nbr_ttips > 0:
+            lvl_trans_ttips = float(self.nbr_trans_ttips) / float(self.nbr_ttips)
+        if self.nbr_trans_msgs > 0:
+            lvl_ttips_in_trans = float(self.nbr_trans_ttips) / float(self.nbr_trans_msgs)
+
+        lines = ("",
+                 "{:>6.1%} done! ({} translated messages over {}).\n"
+                 "".format(lvl, self.nbr_trans_msgs, self.nbr_msgs),
+                 "{:>6.1%} of messages are tooltips ({} over {}).\n"
+                 "".format(lvl_ttips, self.nbr_ttips, self.nbr_msgs),
+                 "{:>6.1%} of tooltips are translated ({} over {}).\n"
+                 "".format(lvl_trans_ttips, self.nbr_trans_ttips, self.nbr_ttips),
+                 "{:>6.1%} of translated messages are tooltips ({} over {}).\n"
+                 "".format(lvl_ttips_in_trans, self.nbr_trans_ttips, self.nbr_trans_msgs),
+                 "{:>6.1%} of messages are commented ({} over {}).\n"
+                 "".format(lvl_comm, self.nbr_comm_msgs, self.nbr_comm_msgs + self.nbr_msgs),
+                 "This translation is currently made of {} signs.\n".format(self.nbr_trans_signs))
+        print(prefix.join(lines))
+
+    def parse(self, kind, key, src):
+        del self.parsing_errors[:]
+        self.parsers[kind](self, src, key)
+        if self.parsing_errors:
+            print("WARNING! Errors while parsing {}:".format(key))
+            for line, error in self.parsing_errors:
+                print("    Around line {}: {}".format(line, error))
+            print("The parser solved them as well as it could...")
+        self.update_info()
+
+    def parse_messages_from_po(self, src, key=None):
+        """
+        Parse a po file.
+        Note: This function will silently "arrange" mis-formated entries, thus using afterward write_messages() should
+              always produce a po-valid file, though not correct!
+        """
+        reading_msgid = False
+        reading_msgstr = False
+        reading_msgctxt = False
+        reading_comment = False
+        is_commented = False
+        is_fuzzy = False
+        msgctxt_lines = []
         msgid_lines = []
         msgstr_lines = []
-        msgctxt_lines = []
         comment_lines = []
 
-    def finalize_message():
-        nonlocal reading_msgid, reading_msgstr, reading_msgctxt, \
-                 reading_comment, is_fuzzy, is_translated, is_commented, \
-                 msgid_lines, msgstr_lines, msgctxt_lines, comment_lines, \
-                 messages, translated_messages, fuzzy_messages, \
-                 commented_messages, \
-                 tot_messages, tot_tooltips, trans_messages, trans_tooltips, \
-                 comm_messages, nbr_signs, nbr_trans_signs, contexts
+        # Helper function
+        def finalize_message(self, line_nr):
+            nonlocal reading_msgid, reading_msgstr, reading_msgctxt, reading_comment
+            nonlocal is_commented, is_fuzzy, msgid_lines, msgstr_lines, msgctxt_lines, comment_lines
 
-        msgid = "".join(msgid_lines)
-        msgctxt = "".join(msgctxt_lines)
-        msgkey = (msgctxt, msgid)
-        is_ttip = is_tooltip(msgid)
+            msgid = "".join(msgid_lines)
+            msgctxt = "".join(msgctxt_lines)
+            msgkey = (msgctxt, msgid)
 
-        # Never allow overriding existing msgid/msgctxt pairs!
-        if msgkey in messages:
-            clean_vars()
-            return
+            # Never allow overriding existing msgid/msgctxt pairs!
+            if msgkey in self.msgs:
+                self.parsing_errors.append((line_nr, "{} context/msgid is already in current messages!".format(msgkey)))
+                return
 
-        nbr_signs += len(msgid)
-        if is_commented:
-            commented_messages.add(msgkey)
-        elif is_fuzzy:
-            fuzzy_messages.add(msgkey)
-        elif is_translated:
-            translated_messages.add(msgkey)
-            nbr_trans_signs += len("".join(msgstr_lines))
-        messages[msgkey] = {"msgid_lines"  : msgid_lines,
-                            "msgstr_lines" : msgstr_lines,
-                            "comment_lines": comment_lines,
-                            "msgctxt_lines": msgctxt_lines}
+            self.msgs[msgkey] = I18nMessage(msgctxt_lines, msgid_lines, msgstr_lines, comment_lines,
+                                            is_commented, is_fuzzy)
 
-        if is_commented:
-            comm_messages += 1
-        else:
-            tot_messages += 1
-            if is_ttip:
-                tot_tooltips += 1
-            if not is_fuzzy and is_translated:
-                trans_messages += 1
-                if is_ttip:
-                    trans_tooltips += 1
-            if msgctxt not in contexts:
-                contexts.add(msgctxt)
+            # Let's clean up and get ready for next message!
+            reading_msgid = reading_msgstr = reading_msgctxt = reading_comment = False
+            is_commented = is_fuzzy = False
+            msgctxt_lines = []
+            msgid_lines = []
+            msgstr_lines = []
+            comment_lines = []
 
-        clean_vars()
+        # try to use src as file name...
+        if os.path.exists(src):
+            if not key:
+                key = src
+            with open(src, 'r', encoding="utf-8") as f:
+                src = f.read()
 
-    with open(fname, 'r', encoding="utf-8") as f:
-        for line_nr, line in enumerate(f):
-            line = stripeol(line)
+        # Try to use values from cache!
+        curr_hash = None
+        if key and key in self._parser_cache:
+            old_hash, msgs = self._parser_cache[key]
+            import hashlib
+            curr_hash = hashlib.new(PARSER_CACHE_HASH, src.encode()).digest()
+            if curr_hash == old_hash:
+                self.msgs = copy.deepcopy(msgs)  # we might edit self.msgs!
+                return
+
+        _comm_msgctxt = PO_COMMENT_PREFIX_MSG + PO_MSGCTXT
+        _len_msgctxt = len(PO_MSGCTXT + '"')
+        _len_comm_msgctxt = len(_comm_msgctxt + '"')
+        _comm_msgid = PO_COMMENT_PREFIX_MSG + PO_MSGID
+        _len_msgid = len(PO_MSGID + '"')
+        _len_comm_msgid = len(_comm_msgid + '"')
+        _comm_msgstr = PO_COMMENT_PREFIX_MSG + PO_MSGSTR
+        _len_msgstr = len(PO_MSGSTR + '"')
+        _len_comm_msgstr = len(_comm_msgstr + '"')
+        _len_comm_str = len(PO_COMMENT_PREFIX_MSG + '"')
+
+        # Main loop over all lines in src...
+        for line_nr, line in enumerate(src.splitlines()):
             if line == "":
-                finalize_message()
+                if reading_msgstr:
+                    finalize_message(self, line_nr)
+                continue
 
-            elif line.startswith("msgctxt") or \
-                 line.startswith("".join((COMMENT_PREFIX, "msgctxt"))):
+            elif line.startswith(PO_MSGCTXT) or line.startswith(_comm_msgctxt):
                 reading_comment = False
                 reading_ctxt = True
-                if line.startswith(COMMENT_PREFIX):
+                if line.startswith(PO_COMMENT_PREFIX_MSG):
                     is_commented = True
-                    line = line[9 + len(COMMENT_PREFIX):-1]
+                    line = line[_len_comm_msgctxt:-1]
                 else:
-                    line = line[9:-1]
+                    line = line[_len_msgctxt:-1]
                 msgctxt_lines.append(line)
 
-            elif line.startswith("msgid") or \
-                 line.startswith("".join((COMMENT_PREFIX, "msgid"))):
+            elif line.startswith(PO_MSGID) or line.startswith(_comm_msgid):
                 reading_comment = False
                 reading_msgid = True
-                if line.startswith(COMMENT_PREFIX):
+                if line.startswith(PO_COMMENT_PREFIX_MSG):
+                    if not is_commented and reading_ctxt:
+                        self.parsing_errors.append((line_nr, "commented msgid following regular msgctxt"))
                     is_commented = True
-                    line = line[7 + len(COMMENT_PREFIX):-1]
+                    line = line[_len_comm_msgid:-1]
                 else:
-                    line = line[7:-1]
+                    line = line[_len_msgid:-1]
+                reading_ctxt = False
                 msgid_lines.append(line)
 
-            elif line.startswith("msgstr") or \
-                 line.startswith("".join((COMMENT_PREFIX, "msgstr"))):
+            elif line.startswith(PO_MSGSTR) or line.startswith(_comm_msgstr):
                 if not reading_msgid:
-                    is_broken = True
+                    self.parsing_errors.append((line_nr, "msgstr without a prior msgid"))
                 else:
                     reading_msgid = False
                 reading_msgstr = True
-                if line.startswith(COMMENT_PREFIX):
-                    line = line[8 + len(COMMENT_PREFIX):-1]
+                if line.startswith(PO_COMMENT_PREFIX_MSG):
+                    line = line[_len_comm_msgstr:-1]
                     if not is_commented:
-                        is_broken = True
+                        self.parsing_errors.append((line_nr, "commented msgstr following regular msgid"))
                 else:
-                    line = line[8:-1]
+                    line = line[_len_msgstr:-1]
                     if is_commented:
-                        is_broken = True
+                        self.parsing_errors.append((line_nr, "regular msgstr following commented msgid"))
                 msgstr_lines.append(line)
-                if line:
-                    is_translated = True
 
-            elif line.startswith("#"):
-                if reading_msgid:
-                    if is_commented:
-                        msgid_lines.append(line[1 + len(COMMENT_PREFIX):-1])
-                    else:
-                        msgid_lines.append(line)
-                        is_broken = True
-                elif reading_msgstr:
-                    if is_commented:
-                        msgstr_lines.append(line[1 + len(COMMENT_PREFIX):-1])
-                    else:
-                        msgstr_lines.append(line)
-                        is_broken = True
+            elif line.startswith(PO_COMMENT_PREFIX[0]):
+                if line.startswith(PO_COMMENT_PREFIX_MSG):
+                    if reading_msgctxt:
+                        if is_commented:
+                            msgctxt_lines.append(line[_len_comm_str:-1])
+                        else:
+                            msgctxt_lines.append(line)
+                            self.parsing_errors.append((line_nr, "commented string while reading regular msgctxt"))
+                    elif reading_msgid:
+                        if is_commented:
+                            msgid_lines.append(line[_len_comm_str:-1])
+                        else:
+                            msgid_lines.append(line)
+                            self.parsing_errors.append((line_nr, "commented string while reading regular msgid"))
+                    elif reading_msgstr:
+                        if is_commented:
+                            msgstr_lines.append(line[_len_comm_str:-1])
+                        else:
+                            msgstr_lines.append(line)
+                            self.parsing_errors.append((line_nr, "commented string while reading regular msgstr"))
                 else:
-                    if line.startswith("#, fuzzy"):
+                    if reading_msgctxt or reading_msgid or reading_msgstr:
+                        self.parsing_errors.append((line_nr,
+                                                    "commented string within msgctxt, msgid or msgstr scope, ignored"))
+                    elif line.startswith(PO_COMMENT_FUZZY):
                         is_fuzzy = True
                     else:
                         comment_lines.append(line)
                     reading_comment = True
 
             else:
-                if reading_msgid:
+                if reading_msgctxt:
+                    msgctxt_lines.append(line[1:-1])
+                elif reading_msgid:
                     msgid_lines.append(line[1:-1])
                 elif reading_msgstr:
                     line = line[1:-1]
                     msgstr_lines.append(line)
-                    if not is_translated and line:
-                        is_translated = True
                 else:
-                    is_broken = True
+                    self.parsing_errors.append((line_nr, "regular string outside msgctxt, msgid or msgstr scope"))
+                    #self.parsing_errors += (str(comment_lines), str(msgctxt_lines), str(msgid_lines), str(msgstr_lines))
 
         # If no final empty line, last message is not finalized!
         if reading_msgstr:
-            finalize_message()
+            finalize_message(self, line_nr)
 
-    return (messages,
-            {"trans_msg": translated_messages,
-             "fuzzy_msg": fuzzy_messages,
-             "comm_msg" : commented_messages,
-             "is_broken": is_broken},
-            {"tot_msg"        : tot_messages,
-             "trans_msg"      : trans_messages,
-             "tot_ttips"      : tot_tooltips,
-             "trans_ttips"    : trans_tooltips,
-             "comm_msg"       : comm_messages,
-             "nbr_signs"      : nbr_signs,
-             "nbr_trans_signs": nbr_trans_signs,
-             "contexts"       : contexts})
+        if key:
+            if not curr_hash:
+                import hashlib
+                curr_hash = hashlib.new(PARSER_CACHE_HASH, src.encode()).digest()
+            self._parser_cache[key] = (curr_hash, self.msgs)
 
+    def write(self, kind, dest):
+        self.writers[kind](self, dest)
 
-def write_messages(fname, messages, commented, fuzzy):
-    "Write in fname file the content of messages (similar to parse_messages " \
-    "returned values). commented and fuzzy are two sets containing msgid. " \
-    "Returns the number of written messages."
-    num = 0
-    with open(fname, 'w', encoding="utf-8") as f:
-        for msgkey, val in messages.items():
-            msgctxt, msgid = msgkey
-            f.write("\n".join(val["comment_lines"]))
-            # Only mark as fuzzy if msgstr is not empty!
-            if msgkey in fuzzy and "".join(val["msgstr_lines"]):
-                f.write("\n#, fuzzy")
-            if msgkey in commented:
-                if msgctxt:
-                    f.write("\n{}msgctxt \"".format(COMMENT_PREFIX))
-                    f.write("\"\n{}\"".format(COMMENT_PREFIX).join(
-                                       val["msgctxt_lines"]))
-                    f.write("\"")
-                f.write("\n{}msgid \"".format(COMMENT_PREFIX))
-                f.write("\"\n{}\"".format(COMMENT_PREFIX).join(
-                                   val["msgid_lines"]))
-                f.write("\"\n{}msgstr \"".format(COMMENT_PREFIX))
-                f.write("\"\n{}\"".format(COMMENT_PREFIX).join(
-                                   val["msgstr_lines"]))
-                f.write("\"\n\n")
-            else:
-                if msgctxt:
-                    f.write("\nmsgctxt \"")
-                    f.write("\"\n\"".join(val["msgctxt_lines"]))
-                    f.write("\"")
-                f.write("\nmsgid \"")
-                f.write("\"\n\"".join(val["msgid_lines"]))
-                f.write("\"\nmsgstr \"")
-                f.write("\"\n\"".join(val["msgstr_lines"]))
-                f.write("\"\n\n")
-            num += 1
-    return num
+    def write_messages_to_po(self, fname):
+        """
+        Write messages in fname po file.
+        """
+        self.normalize(max_len=0)  # No wrapping for now...
+        with open(fname, 'w', encoding="utf-8") as f:
+            for msg in self.msgs.values():
+                f.write("\n".join(msg.comment_lines))
+                # Only mark as fuzzy if msgstr is not empty!
+                if msg.is_fuzzy and msg.msgstr:
+                    f.write("\n" + PO_COMMENT_FUZZY)
+                _p = PO_COMMENT_PREFIX_MSG if msg.is_commented else ""
+                _pmsgctxt = _p + PO_MSGCTXT
+                _pmsgid = _p + PO_MSGID
+                _pmsgstr = _p + PO_MSGSTR
+                chunks = []
+                if msg.msgctxt:
+                    if len(msg.msgctxt_lines) > 1:
+                        chunks += [
+                            "\n" + _pmsgctxt + "\"\"\n" + _p + "\"",
+                            ("\"\n" + _p + "\"").join(msg.msgctxt_lines),
+                            "\"",
+                        ]
+                    else:
+                        chunks += ["\n" + _pmsgctxt + "\"" + msg.msgctxt + "\""]
+                if len(msg.msgid_lines) > 1:
+                    chunks += [
+                        "\n" + _pmsgid + "\"\"\n" + _p + "\"",
+                        ("\"\n" + _p + "\"").join(msg.msgid_lines),
+                        "\"",
+                    ]
+                else:
+                    chunks += ["\n" + _pmsgid + "\"" + msg.msgid + "\""]
+                if len(msg.msgstr_lines) > 1:
+                    chunks += [
+                        "\n" + _pmsgstr + "\"\"\n" + _p + "\"",
+                        ("\"\n" + _p + "\"").join(msg.msgstr_lines),
+                        "\"",
+                    ]
+                else:
+                    chunks += ["\n" + _pmsgstr + "\"" + msg.msgstr + "\""]
+                chunks += ["\n\n"]
+                f.write("".join(chunks))
 
-
-def gen_empty_messages(blender_rev, time_str, year_str):
-    """Generate an empty messages & state data (only header if present!)."""
-    header_key = ("", "")
-
-    messages = new_messages()
-    messages[header_key] = {
-        "msgid_lines": [""],
-        "msgctxt_lines": [],
-        "msgstr_lines": [
-            "Project-Id-Version: Blender r{}\\n"
-            "".format(blender_rev),
-            "Report-Msgid-Bugs-To: \\n",
-            "POT-Creation-Date: {}\\n"
-            "".format(time_str),
-            "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\\n",
-            "Last-Translator: FULL NAME <EMAIL@ADDRESS>\\n",
-            "Language-Team: LANGUAGE <LL@li.org>\\n",
-            "Language: \\n",
-            "MIME-Version: 1.0\\n",
-            "Content-Type: text/plain; charset=UTF-8\\n",
-            "Content-Transfer-Encoding: 8bit\\n"
-        ],
-        "comment_lines": [
-            "# Blender's translation file (po format).",
-            "# Copyright (C) {} The Blender Foundation."
-            "".format(year_str),
-            "# This file is distributed under the same "
-            "# license as the Blender package.",
-            "# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.",
-            "#",
-        ],
+    parsers = {
+        "PO": parse_messages_from_po,
+#        "PYTUPLE": parse_messages_from_pytuple,
     }
 
-    states = {"trans_msg": set(),
-              "fuzzy_msg": {header_key},
-              "comm_msg": set(),
-              "is_broken": False}
-
-    return messages, states
+    writers = {
+        "PO": write_messages_to_po,
+        #"PYDICT": write_messages_to_pydict,
+    }
 
 
-def print_stats(stats, glob_stats=None, prefix=""):
+class I18n:
     """
-    Print out some stats about a po file.
-    glob_stats is for making global stats over several po's.
+    Internal representation of a whole translation set.
     """
-    tot_msgs        = stats["tot_msg"]
-    trans_msgs      = stats["trans_msg"]
-    tot_ttips       = stats["tot_ttips"]
-    trans_ttips     = stats["trans_ttips"]
-    comm_msgs       = stats["comm_msg"]
-    nbr_signs       = stats["nbr_signs"]
-    nbr_trans_signs = stats["nbr_trans_signs"]
-    contexts        = stats["contexts"]
-    lvl = lvl_ttips = lvl_trans_ttips = lvl_ttips_in_trans = lvl_comm = 0.0
 
-    if tot_msgs > 0:
-        lvl = float(trans_msgs) / float(tot_msgs)
-        lvl_ttips = float(tot_ttips) / float(tot_msgs)
-        lvl_comm = float(comm_msgs) / float(tot_msgs+comm_msgs)
-    if tot_ttips > 0:
-        lvl_trans_ttips = float(trans_ttips) / float(tot_ttips)
-    if trans_msgs > 0:
-        lvl_ttips_in_trans = float(trans_ttips) / float(trans_msgs)
+    def __init__(self, src):
+        self.trans = {}
+        self.update_info()
 
-    if glob_stats:
-        glob_stats["nbr"]                += 1.0
-        glob_stats["lvl"]                += lvl
-        glob_stats["lvl_ttips"]          += lvl_ttips
-        glob_stats["lvl_trans_ttips"]    += lvl_trans_ttips
-        glob_stats["lvl_ttips_in_trans"] += lvl_ttips_in_trans
-        glob_stats["lvl_comm"]           += lvl_comm
-        glob_stats["nbr_trans_signs"]    += nbr_trans_signs
-        if glob_stats["nbr_signs"] == 0:
-            glob_stats["nbr_signs"] = nbr_signs
-        glob_stats["contexts"] |= contexts
+    def update_info(self):
+        self.nbr_trans = 0
+        self.lvl = 0.0
+        self.lvl_ttips = 0.0
+        self.lvl_trans_ttips = 0.0
+        self.lvl_ttips_in_trans = 0.0
+        self.lvl_comm = 0.0
+        self.nbr_signs = 0
+        self.nbr_trans_signs = 0
+        self.contexts = set()
 
-    lines = ("",
-             "{:>6.1%} done! ({} translated messages over {}).\n"
-             "".format(lvl, trans_msgs, tot_msgs),
-             "{:>6.1%} of messages are tooltips ({} over {}).\n"
-             "".format(lvl_ttips, tot_ttips, tot_msgs),
-             "{:>6.1%} of tooltips are translated ({} over {}).\n"
-             "".format(lvl_trans_ttips, trans_ttips, tot_ttips),
-             "{:>6.1%} of translated messages are tooltips ({} over {}).\n"
-             "".format(lvl_ttips_in_trans, trans_ttips, trans_msgs),
-             "{:>6.1%} of messages are commented ({} over {}).\n"
-             "".format(lvl_comm, comm_msgs, comm_msgs + tot_msgs),
-             "This translation is currently made of {} signs.\n"
-             "".format(nbr_trans_signs))
-    print(prefix.join(lines))
-    return 0
+        if TEMPLATE_ISO_ID in self.trans:
+            self.nbr_trans = len(self.trans) - 1
+            self.nbr_signs = self.trans[TEMPLATE_ISO_ID].nbr_signs
+        else:
+            self.nbr_trans = len(self.trans)
+        for iso, msgs in self.trans.items():
+            msgs.update_info()
+            if msgs.nbr_msgs > 0:
+                self.lvl += float(msgs.nbr_trans_msgs) / float(msgs.nbr_msgs)
+                self.lvl_ttips += float(msgs.nbr_ttips) / float(msgs.nbr_msgs)
+                self.lvl_comm += float(msgs.nbr_comm_msgs) / float(msgs.nbr_msgs + msgs.nbr_comm_msgs)
+            if msgs.nbr_ttips > 0:
+                self.lvl_trans_ttips = float(msgs.nbr_trans_ttips) / float(msgs.nbr_ttips)
+            if msgs.nbr_trans_msgs > 0:
+                self.lvl_ttips_in_trans = float(msgs.nbr_trans_ttips) / float(msgs.nbr_trans_msgs)
+            if self.nbr_signs == 0:
+                self.nbr_signs = msgs.nbr_signs
+            self.nbr_trans_signs += msgs.nbr_trans_signs
+            self.contexts |= msgs.contexts
+
+    def print_stats(self, prefix="", print_msgs=True):
+        """
+        Print out some stats about an I18n object.
+        If print_msgs is True, it will also print all its translations' stats.
+        """
+        if print_msgs:
+            msgs_prefix = prefix + "    "
+            for key, msgs in self.trans:
+                if key == TEMPLATE_ISO_ID:
+                    continue
+                print(prefix + key + ":")
+                msgs.print_stats(prefix=msgs_prefix)
+                print(prefix)
+
+        nbr_contexts = len(self.contexts - {CONTEXT_DEFAULT})
+        if nbr_contexts != 1:
+            if nbr_contexts == 0:
+                nbr_contexts = "No"
+            _ctx_txt = "s are"
+        else:
+            _ctx_txt = " is"
+        lines = ("",
+                 "Average stats for all {} translations:\n".format(self.nbr_trans),
+                 "    {:>6.1%} done!\n".format(self.lvl / self.nbr_trans),
+                 "    {:>6.1%} of messages are tooltips.\n".format(self.lvl_ttips / self.nbr_trans),
+                 "    {:>6.1%} of tooltips are translated.\n".format(self.lvl_trans_ttips / self.nbr_trans),
+                 "    {:>6.1%} of translated messages are tooltips.\n".format(self.lvl_ttips_in_trans / self.nbr_trans),
+                 "    {:>6.1%} of messages are commented.\n".format(self.lvl_comm / self.nbr_trans),
+                 "    The org msgids are currently made of {} signs.\n".format(self.nbr_signs),
+                 "    All processed translations are currently made of {} signs.\n".format(self.nbr_trans_signs),
+                 "    {} specific context{} present:\n            {}\n"
+                 "".format(self.nbr_contexts, _ctx_txt, "\n            ".join(self.contexts - {CONTEXT_DEFAULT})),
+                 "\n")
+        print(prefix.join(lines))
+
+
+##### Parsers #####
+
+#def parse_messages_from_pytuple(self, src, key=None):
+    #"""
+    #Returns a dict of tuples similar to the one returned by parse_messages_from_po (one per language, plus a 'pot'
+    #one keyed as '__POT__').
+    #"""
+    ## src may be either a string to be interpreted as py code, or a real tuple!
+    #if isinstance(src, str):
+        #src = eval(src)
+#
+    #curr_hash = None
+    #if key and key in _parser_cache:
+        #old_hash, ret = _parser_cache[key]
+        #import hashlib
+        #curr_hash = hashlib.new(PARSER_CACHE_HASH, str(src).encode()).digest()
+        #if curr_hash == old_hash:
+            #return ret
+#
+    #pot = new_messages()
+    #states = gen_states()
+    #stats = gen_stats()
+    #ret = {"__POT__": (pot, states, stats)}
+    #for msg in src:
+        #key = msg[0]
+        #messages[msgkey] = gen_message(msgid_lines, msgstr_lines, comment_lines, msgctxt_lines)
+        #pot[key] = gen_message(msgid_lines=[key[1]], msgstr_lines=[
+        #for lang, trans, (is_fuzzy, comments) in msg[2:]:
+            #if trans and not is_fuzzy:
+                #i18n_dict.setdefault(lang, dict())[key] = trans
+#
+    #if key:
+        #if not curr_hash:
+            #import hashlib
+            #curr_hash = hashlib.new(PARSER_CACHE_HASH, str(src).encode()).digest()
+        #_parser_cache[key] = (curr_hash, val)
+    #return ret

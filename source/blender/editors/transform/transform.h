@@ -52,12 +52,7 @@ struct Object;
 struct View3D;
 struct ScrArea;
 struct Scene;
-struct bPose;
 struct bConstraint;
-struct BezTriple;
-struct wmOperatorType;
-struct wmOperator;
-struct wmWindowManager;
 struct wmKeyMap;
 struct wmKeyConfig;
 struct bContext;
@@ -65,7 +60,6 @@ struct wmEvent;
 struct wmTimer;
 struct ARegion;
 struct ReportList;
-struct SmallHash;
 
 typedef struct TransSnapPoint {
 	struct TransSnapPoint *next, *prev;
@@ -108,15 +102,15 @@ typedef struct TransCon {
 	int   imval[2];	     /* initial mouse value for visual calculation                                */
 	                     /* the one in TransInfo is not garanty to stay the same (Rotates change it)  */
 	int   mode;          /* Mode flags of the Constraint                                              */
-	void  (*drawExtra)(struct TransInfo *);
+	void  (*drawExtra)(struct TransInfo *t);
 	                     /* For constraints that needs to draw differently from the other
 	                      * uses this instead of the generic draw function                            */
-	void  (*applyVec)(struct TransInfo *, struct TransData *, float *, float *, float *);
+	void  (*applyVec)(struct TransInfo *t, struct TransData *td, const float in[3], float out[3], float pvec[3]);
 	                     /* Apply function pointer for linear vectorial transformation                */
 	                     /* The last three parameters are pointers to the in/out/printable vectors    */
-	void  (*applySize)(struct TransInfo *, struct TransData *, float [3][3]);
+	void  (*applySize)(struct TransInfo *t, struct TransData *td, float smat[3][3]);
 	                     /* Apply function pointer for size transformation */
-	void  (*applyRot)(struct TransInfo *, struct TransData *, float [3], float *);
+	void  (*applyRot)(struct TransInfo *t, struct TransData *td, float vec[3], float *angle);
 	                     /* Apply function pointer for rotation transformation */
 } TransCon;
 
@@ -143,6 +137,7 @@ typedef struct TransDataExtension {
 	                      * namely when a bone is in "NoLocal" or "Hinge" mode)... */
 	float  r_smtx[3][3]; /* Invers of previous one. */
 	int    rotOrder;	/* rotation mode,  as defined in eRotationModes (DNA_action_types.h) */
+	float oloc[3], orot[3], oquat[4], orotAxis[3], orotAngle; /* Original object transformation used for rigid bodies */
 } TransDataExtension;
 
 typedef struct TransData2D {
@@ -188,7 +183,7 @@ typedef struct TransDataNla {
 struct LinkNode;
 struct GHash;
 
-typedef struct TransDataSlideVert {
+typedef struct TransDataEdgeSlideVert {
 	struct BMVert vup, vdown;
 	struct BMVert origvert;
 
@@ -201,10 +196,10 @@ typedef struct TransDataSlideVert {
 	float upvec[3], downvec[3];
 
 	int loop_nr;
-} TransDataSlideVert;
+} TransDataEdgeSlideVert;
 
-typedef struct SlideData {
-	TransDataSlideVert *sv;
+typedef struct EdgeSlideData {
+	TransDataEdgeSlideVert *sv;
 	int totsv;
 	
 	struct SmallHash vhash;
@@ -214,15 +209,40 @@ typedef struct SlideData {
 	struct BMEditMesh *em;
 
 	/* flag that is set when origfaces is initialized */
-	int origfaces_init;
+	bool origfaces_init;
 
 	float perc;
 
-	int is_proportional;
-	int flipped_vtx;
+	bool is_proportional;
+	bool flipped_vtx;
 
 	int curr_sv_index;
-} SlideData;
+} EdgeSlideData;
+
+
+typedef struct TransDataVertSlideVert {
+	BMVert *v;
+	float   co_orig_3d[3];
+	float   co_orig_2d[2];
+	float (*co_link_orig_3d)[3];
+	float (*co_link_orig_2d)[2];
+	int     co_link_tot;
+	int     co_link_curr;
+} TransDataVertSlideVert;
+
+typedef struct VertSlideData {
+	TransDataVertSlideVert *sv;
+	int totsv;
+
+	struct BMEditMesh *em;
+
+	float perc;
+
+	bool is_proportional;
+	bool flipped_vtx;
+
+	int curr_sv_index;
+} VertSlideData;
 
 typedef struct TransData {
 	float  dist;         /* Distance needed to affect element (for Proportionnal Editing)                  */
@@ -246,8 +266,8 @@ typedef struct TransData {
 } TransData;
 
 typedef struct MouseInput {
-	void	(*apply)(struct TransInfo *, struct MouseInput *, const int [2], float [3]);
-	void	(*post)(struct TransInfo *, float [3]);
+	void	(*apply)(struct TransInfo *t, struct MouseInput *mi, const int mval[2], float output[3]);
+	void	(*post)(struct TransInfo *t, float values[3]);
 
 	int     imval[2];       	/* initial mouse position                */
 	char	precision;
@@ -530,6 +550,10 @@ void initEdgeSlide(TransInfo *t);
 int handleEventEdgeSlide(TransInfo *t, struct wmEvent *event);
 int EdgeSlide(TransInfo *t, const int mval[2]);
 
+void initVertSlide(TransInfo *t);
+int handleEventVertSlide(TransInfo *t, struct wmEvent *event);
+int VertSlide(TransInfo *t, const int mval[2]);
+
 void initTimeTranslate(TransInfo *t);
 int TimeTranslate(TransInfo *t, const int mval[2]);
 
@@ -656,13 +680,13 @@ typedef enum {
 	INPUT_CUSTOM_RATIO
 } MouseInputMode;
 
-void initMouseInput(TransInfo *t, MouseInput *mi, int center[2], int mval[2]);
+void initMouseInput(TransInfo *t, MouseInput *mi, const int center[2], const int mval[2]);
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode);
 int handleMouseInput(struct TransInfo *t, struct MouseInput *mi, struct wmEvent *event);
 void applyMouseInput(struct TransInfo *t, struct MouseInput *mi, const int mval[2], float output[3]);
 
-void setCustomPoints(TransInfo *t, MouseInput *mi, int start[2], int end[2]);
-void setInputPostFct(MouseInput *mi, void	(*post)(struct TransInfo *, float [3]));
+void setCustomPoints(TransInfo *t, MouseInput *mi, const int start[2], const int end[2]);
+void setInputPostFct(MouseInput *mi, void	(*post)(struct TransInfo *t, float values[3]));
 
 /*********************** Generics ********************************/
 
@@ -671,8 +695,6 @@ void postTrans (struct bContext *C, TransInfo *t);
 void resetTransRestrictions(TransInfo *t);
 
 void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis, short options);
-
-void drawNonPropEdge(const struct bContext *C, TransInfo *t);
 
 /* DRAWLINE options flags */
 #define DRAWLIGHT	1
@@ -715,8 +737,10 @@ void applyTransformOrientation(const struct bContext *C, float mat[3][3], char *
 
 int getTransformOrientation(const struct bContext *C, float normal[3], float plane[3], int activeOnly);
 
-void freeSlideTempFaces(SlideData *sld);
-void freeSlideVerts(TransInfo *t);
-void projectSVData(TransInfo *t, int final);
+void freeEdgeSlideTempFaces(EdgeSlideData *sld);
+void freeEdgeSlideVerts(TransInfo *t);
+void projectEdgeSlideData(TransInfo *t, bool is_final);
+
+void freeVertSlideVerts(TransInfo *t);
 
 #endif

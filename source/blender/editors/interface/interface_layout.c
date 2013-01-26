@@ -491,7 +491,14 @@ static void ui_item_enum_expand(uiLayout *layout, uiBlock *block, PointerRNA *pt
 
 	RNA_property_enum_items_gettexted(block->evil_C, ptr, prop, &item, &totitem, &free);
 
-	uiBlockSetCurLayout(block, ui_item_local_sublayout(layout, layout, 1));
+	/* we dont want nested rows, cols in menus */
+	if (layout->root->type != UI_LAYOUT_MENU) {
+		uiBlockSetCurLayout(block, ui_item_local_sublayout(layout, layout, 1));
+	}
+	else {
+		uiBlockSetCurLayout(block, layout);
+	}
+
 	for (a = 0; a < totitem; a++) {
 		if (!item[a].identifier[0])
 			continue;
@@ -1456,6 +1463,7 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propna
 	block = uiLayoutGetBlock(layout);
 
 	ui_item_rna_size(layout, name, icon, ptr, prop, 0, 0, &w, &h);
+	w += UI_UNIT_X; /* X icon needs more space */
 	but = ui_item_with_label(layout, block, name, icon, ptr, prop, 0, 0, 0, w, h, 0);
 
 	ui_but_add_search(but, ptr, prop, searchptr, searchprop);

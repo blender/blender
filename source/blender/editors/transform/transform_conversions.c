@@ -85,6 +85,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
+#include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 #include "BKE_tessmesh.h"
@@ -4541,6 +4542,27 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	short constinv;
 	short skip_invert = 0;
 
+	if (ob->rigidbody_object) {
+		float rot[3][3], scale[3];
+
+		/* save original object transform */
+		copy_v3_v3(td->ext->oloc, ob->loc);
+
+		if (ob->rotmode > 0) {
+			copy_v3_v3(td->ext->orot, ob->rot);
+		}
+		else if (ob->rotmode == ROT_MODE_AXISANGLE) {
+			td->ext->orotAngle = ob->rotAngle;
+			copy_v3_v3(td->ext->orotAxis, ob->rotAxis);
+		}
+		else {
+			copy_qt_qt(td->ext->oquat, ob->quat);
+		}
+		/* update object's loc/rot to get current rigid body transform */
+		mat4_to_loc_rot_size(ob->loc, rot, scale, ob->obmat);
+		BKE_object_mat3_to_rot(ob, rot, FALSE);
+	}
+
 	/* axismtx has the real orientation */
 	copy_m3_m4(td->axismtx, ob->obmat);
 	normalize_m3(td->axismtx);
@@ -5094,25 +5116,25 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			if (canceled == 0) {
 				/* we need to delete the temporary faces before automerging */
 				if (t->mode == TFM_EDGE_SLIDE) {
-					SlideData *sld = t->customData;
+					EdgeSlideData *sld = t->customData;
 
 					/* handle multires re-projection, done
 					 * on transform completion since it's
 					 * really slow -joeedh */
-					projectSVData(t, TRUE);
+					projectEdgeSlideData(t, TRUE);
 
 					/* free temporary faces to avoid automerging and deleting
 					 * during cleanup - psy-fi */
-					freeSlideTempFaces(sld);
+					freeEdgeSlideTempFaces(sld);
 				}
 				EDBM_automerge(t->scene, t->obedit, TRUE);
 			}
 			else {
 				if (t->mode == TFM_EDGE_SLIDE) {
-					SlideData *sld = t->customData;
+					EdgeSlideData *sld = t->customData;
 
 					sld->perc = 0.0;
-					projectSVData(t, FALSE);
+					projectEdgeSlideData(t, FALSE);
 				}
 			}
 		}
@@ -5494,6 +5516,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				if (ob->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS)
 					recalcObPaths = 1;
 			}
+			/* restore rigid body transform */
+			if (ob->rigidbody_object && canceled)
+				BKE_rigidbody_aftertrans_update(ob, td->ext->oloc, td->ext->orot, td->ext->oquat, td->ext->orotAxis, td->ext->orotAngle);
 		}
 		
 		/* recalculate motion paths for objects (if necessary) 

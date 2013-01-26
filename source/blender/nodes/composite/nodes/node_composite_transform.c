@@ -48,89 +48,6 @@ static bNodeSocketTemplate cmp_node_transform_out[] = {
 	{	-1, 0, ""	}
 };
 
-#ifdef WITH_COMPOSITOR_LEGACY
-
-CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float angle, float scale, int filter_type)
-{
-	CompBuf *stackbuf = alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, TRUE);
-	ImBuf *ibuf, *obuf;
-	float mat[4][4], lmat[4][4], rmat[4][4], smat[4][4], cmat[4][4], icmat[4][4];
-	float svec[3] = {scale, scale, scale}, loc[2] = {x, y};
-
-	unit_m4(rmat);
-	unit_m4(lmat);
-	unit_m4(smat);
-	unit_m4(cmat);
-
-	/* image center as rotation center */
-	cmat[3][0] = (float)cbuf->x/2.0f;
-	cmat[3][1] = (float)cbuf->y/2.0f;
-	invert_m4_m4(icmat, cmat);
-
-	size_to_mat4(smat, svec);		/* scale matrix */
-	add_v2_v2(lmat[3], loc);		/* tranlation matrix */
-	rotate_m4(rmat, 'Z', angle);	/* rotation matrix */
-
-	/* compose transformation matrix */
-	mul_serie_m4(mat, lmat, cmat, rmat, smat, icmat, NULL, NULL, NULL);
-
-	invert_m4(mat);
-
-	ibuf = IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0);
-	obuf = IMB_allocImBuf(stackbuf->x, stackbuf->y, 32, 0);
-
-	if (ibuf && obuf) {
-		int i, j;
-
-		ibuf->rect_float = cbuf->rect;
-		obuf->rect_float = stackbuf->rect;
-
-		for (j = 0; j < cbuf->y; j++) {
-			for (i = 0; i < cbuf->x; i++) {
-				float vec[3] = {i, j, 0};
-
-				mul_v3_m4v3(vec, mat, vec);
-
-				switch (filter_type) {
-					case 0:
-						nearest_interpolation(ibuf, obuf, vec[0], vec[1], i, j);
-						break;
-					case 1:
-						bilinear_interpolation(ibuf, obuf, vec[0], vec[1], i, j);
-						break;
-					case 2:
-						bicubic_interpolation(ibuf, obuf, vec[0], vec[1], i, j);
-						break;
-				}
-			}
-		}
-
-		IMB_freeImBuf(ibuf);
-		IMB_freeImBuf(obuf);
-	}
-
-	/* pass on output and free */
-	return stackbuf;
-}
-
-static void node_composit_exec_transform(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	if (in[0]->data) {
-		CompBuf *cbuf = typecheck_compbuf(in[0]->data, CB_RGBA);
-		CompBuf *stackbuf;
-
-		stackbuf = node_composit_transform(cbuf, in[1]->vec[0], in[2]->vec[0], in[3]->vec[0], in[4]->vec[0], node->custom1);
-
-		/* pass on output and free */
-		out[0]->data = stackbuf;
-
-		if (cbuf != in[0]->data)
-			free_compbuf(cbuf);
-	}
-}
-
-#endif  /* WITH_COMPOSITOR_LEGACY */
-
 void register_node_type_cmp_transform(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
@@ -138,9 +55,6 @@ void register_node_type_cmp_transform(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_TRANSFORM, "Transform", NODE_CLASS_DISTORT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_transform_in, cmp_node_transform_out);
 	node_type_size(&ntype, 140, 100, 320);
-#ifdef WITH_COMPOSITOR_LEGACY
-	node_type_exec(&ntype, node_composit_exec_transform);
-#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

@@ -33,6 +33,7 @@
 #include <libavcodec/avcodec.h>
 #include <libavutil/rational.h>
 #include <libavutil/opt.h>
+#include <libavutil/mathematics.h>
 
 #if (LIBAVFORMAT_VERSION_MAJOR > 52) || ((LIBAVFORMAT_VERSION_MAJOR >= 52) && (LIBAVFORMAT_VERSION_MINOR >= 101))
 #define FFMPEG_HAVE_PARSE_UTILS 1
@@ -75,8 +76,66 @@
 #define FFMPEG_FFV1_ALPHA_SUPPORTED
 #endif
 
+#if ((LIBAVUTIL_VERSION_MAJOR < 51) || (LIBAVUTIL_VERSION_MAJOR == 51) && (LIBAVUTIL_VERSION_MINOR < 22))
+static inline
+int av_opt_set(void *obj, const char *name, const char *val, int search_flags)
+{
+	const AVOption *rv = NULL;
+	av_set_string3(obj, name, val, 1, &rv);
+	return rv != NULL;
+}
+
+static inline
+int av_opt_set_int(void *obj, const char *name, int64_t val, int search_flags)
+{
+	const AVOption *rv = NULL;
+	rv = av_set_int(obj, name, val);
+	return rv != NULL;
+}
+
+static inline
+int av_opt_set_double(void *obj, const char *name, double val, int search_flags)
+{
+	const AVOption *rv = NULL;
+	rv = av_set_double(obj, name, val);
+	return rv != NULL;
+}
+
+#define AV_OPT_TYPE_INT     FF_OPT_TYPE_INT
+#define AV_OPT_TYPE_INT64   FF_OPT_TYPE_INT64
+#define AV_OPT_TYPE_STRING  FF_OPT_TYPE_STRING
+#define AV_OPT_TYPE_CONST   FF_OPT_TYPE_CONST
+#define AV_OPT_TYPE_DOUBLE  FF_OPT_TYPE_DOUBLE
+#define AV_OPT_TYPE_FLOAT   FF_OPT_TYPE_FLOAT
+#endif
+
 #if ((LIBAVFORMAT_VERSION_MAJOR < 53) || ((LIBAVFORMAT_VERSION_MAJOR == 53) && (LIBAVFORMAT_VERSION_MINOR < 24)) || ((LIBAVFORMAT_VERSION_MAJOR == 53) && (LIBAVFORMAT_VERSION_MINOR < 24) && (LIBAVFORMAT_VERSION_MICRO < 2)))
 #define avformat_close_input(x) av_close_input_file(*(x))
+#endif
+
+#if ((LIBAVCODEC_VERSION_MAJOR < 53) || (LIBAVCODEC_VERSION_MAJOR == 53 && LIBAVCODEC_VERSION_MINOR < 35))
+static inline
+int avcodec_open2(AVCodecContext *avctx, AVCodec *codec, AVDictionary **options)
+{
+	/* TODO: no options are taking into account */
+	return avcodec_open(avctx, codec);
+}
+#endif
+
+#if ((LIBAVFORMAT_VERSION_MAJOR < 53) || (LIBAVFORMAT_VERSION_MAJOR == 53 && LIBAVFORMAT_VERSION_MINOR < 21))
+static inline
+AVStream *avformat_new_stream(AVFormatContext *s, AVCodec *c)
+{
+	/* TODO: no codec is taking into account */
+	return av_new_stream(s, 0);
+}
+
+static inline
+int avformat_find_stream_info(AVFormatContext *ic, AVDictionary **options)
+{
+	/* TODO: no options are taking into account */
+	return av_find_stream_info(ic);
+}
 #endif
 
 #if ((LIBAVFORMAT_VERSION_MAJOR > 53) || ((LIBAVFORMAT_VERSION_MAJOR == 53) && (LIBAVFORMAT_VERSION_MINOR > 32)) || ((LIBAVFORMAT_VERSION_MAJOR == 53) && (LIBAVFORMAT_VERSION_MINOR == 24) && (LIBAVFORMAT_VERSION_MICRO >= 100)))

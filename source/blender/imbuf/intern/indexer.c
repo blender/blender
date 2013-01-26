@@ -332,7 +332,7 @@ int IMB_proxy_size_to_array_index(IMB_Proxy_Size pr_size)
 			return 3;
 		default:
 			return 0;
-	};
+	}
 	return 0;
 }
 
@@ -352,7 +352,7 @@ int IMB_timecode_to_array_index(IMB_Timecode_Type tc)
 			return 3;
 		default:
 			return 0;
-	};
+	}
 	return 0;
 }
 
@@ -496,7 +496,9 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
 
 	fprintf(stderr, "Starting work on proxy: %s\n", rv->of->filename);
 
-	rv->st = av_new_stream(rv->of, 0);
+	rv->st = avformat_new_stream(rv->of, NULL);
+	rv->st->id = 0;
+
 	rv->c = rv->st->codec;
 	rv->c->codec_type = AVMEDIA_TYPE_VIDEO;
 	rv->c->codec_id = CODEC_ID_MJPEG;
@@ -531,8 +533,8 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
 	/* there's no  way to set JPEG quality in the same way as in AVI JPEG and image sequence,
 	 * but this seems to be giving expected quality result */
 	ffmpeg_quality = (int)(1.0f + 30.0f * (1.0f - (float)quality / 100.0f) + 0.5f);
-	av_set_int(rv->c, "qmin", ffmpeg_quality);
-	av_set_int(rv->c, "qmax", ffmpeg_quality);
+	av_opt_set_int(rv->c, "qmin", ffmpeg_quality, 0);
+	av_opt_set_int(rv->c, "qmax", ffmpeg_quality, 0);
 
 	if (rv->of->flags & AVFMT_GLOBALHEADER) {
 		rv->c->flags |= CODEC_FLAG_GLOBAL_HEADER;
@@ -545,7 +547,7 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
 		return 0;
 	}
 
-	avcodec_open(rv->c, rv->codec);
+	avcodec_open2(rv->c, rv->codec, NULL);
 
 	rv->video_buffersize = 2000000;
 	rv->video_buffer = (uint8_t *)MEM_mallocN(
@@ -758,7 +760,7 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim, IMB_Tim
 		return NULL;
 	}
 
-	if (av_find_stream_info(context->iFormatCtx) < 0) {
+	if (avformat_find_stream_info(context->iFormatCtx, NULL) < 0) {
 		av_close_input_file(context->iFormatCtx);
 		MEM_freeN(context);
 		return NULL;
@@ -797,7 +799,7 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim, IMB_Tim
 
 	context->iCodecCtx->workaround_bugs = 1;
 
-	if (avcodec_open(context->iCodecCtx, context->iCodec) < 0) {
+	if (avcodec_open2(context->iCodecCtx, context->iCodec, NULL) < 0) {
 		av_close_input_file(context->iFormatCtx);
 		MEM_freeN(context);
 		return NULL;

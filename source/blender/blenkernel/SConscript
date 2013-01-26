@@ -41,6 +41,7 @@ incs += ' ../render/extern/include ../makesrna'
 incs += ' ../imbuf ../ikplugin ../avi #/intern/elbeem/extern ../nodes ../modifiers'
 incs += ' #/intern/iksolver/extern ../blenloader'
 incs += ' #/extern/bullet2/src'
+incs += ' ../rigidbody'
 incs += ' #/intern/opennl/extern #/intern/bsp/extern'
 incs += ' ../gpu #/extern/glew/include'
 incs += ' ../bmesh'
@@ -110,7 +111,7 @@ if env['WITH_BF_QUICKTIME']:
     incs += ' ' + env['BF_QUICKTIME_INC']
 
 if env['WITH_BF_BULLET']:
-    defs.append('USE_BULLET')
+    defs.append('WITH_BULLET')
 
 if env['OURPLATFORM'] == 'darwin':
     if env['WITH_BF_OPENMP']:

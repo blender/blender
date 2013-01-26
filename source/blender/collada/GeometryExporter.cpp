@@ -69,9 +69,8 @@ void GeometryExporter::exportGeom(Scene *sce)
 }
 
 void GeometryExporter::operator()(Object *ob)
-{
+{ 
 	// XXX don't use DerivedMesh, Mesh instead?
-
 #if 0		
 	DerivedMesh *dm = mesh_get_derived_final(mScene, ob, CD_MASK_BAREMESH);
 #endif
@@ -155,17 +154,92 @@ void GeometryExporter::operator()(Object *ob)
 
 	closeGeometry();
 
-	if (this->export_settings->apply_modifiers)
-	{
+	if (this->export_settings->apply_modifiers) {
 		BKE_libblock_free_us(&(G.main->mesh), me);
 	}
-
-
+    
+	if (this->export_settings->include_shapekeys) {
+		Key * key = BKE_key_from_object(ob);
+		if(key) {
+			KeyBlock * kb = (KeyBlock*)key->block.first;
+			//skip the basis
+			kb = kb->next;
+			for (; kb; kb = kb->next) {
+				BKE_key_convert_to_mesh(kb, me);
+				export_key_mesh(ob, me, kb);
+			}
+		}
+	}
 #if 0
 	dm->release(dm);
 #endif
 }
 
+void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb){
+	std::string geom_id = get_geometry_id(ob, false) + "_morph_" + translate_id(kb->name);
+	std::vector<Normal> nor;
+	std::vector<Face> norind;
+	
+	if (exportedGeometry.find(geom_id) != exportedGeometry.end())
+	{
+		return;
+	}
+
+	std::string geom_name =  id_name(ob) + "_morph_" + kb->name;
+
+	exportedGeometry.insert(geom_id);
+
+	bool has_color = (bool)CustomData_has_layer(&me->fdata, CD_MCOL);
+
+	create_normals(nor, norind, me);
+
+	// openMesh(geoId, geoName, meshId)
+	openMesh(geom_id, geom_name);
+	
+	// writes <source> for vertex coords
+	createVertsSource(geom_id, me);
+	
+	// writes <source> for normal coords
+	createNormalsSource(geom_id, me, nor);
+
+	bool has_uvs = (bool)CustomData_has_layer(&me->fdata, CD_MTFACE);
+	
+	// writes <source> for uv coords if mesh has uv coords
+	if (has_uvs)
+		createTexcoordsSource(geom_id, me);
+
+	if (has_color)
+		createVertexColorSource(geom_id, me);
+
+	// <vertices>
+
+	COLLADASW::Vertices verts(mSW);
+	verts.setId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::VERTEX));
+	COLLADASW::InputList &input_list = verts.getInputList();
+	COLLADASW::Input input(COLLADASW::InputSemantic::POSITION, getUrlBySemantics(geom_id, COLLADASW::InputSemantic::POSITION));
+	input_list.push_back(input);
+	verts.add();
+
+	//createLooseEdgeList(ob, me, geom_id, norind);
+
+	// XXX slow		
+	if (ob->totcol) {
+		for (int a = 0; a < ob->totcol; a++) {
+			createPolylist(a, has_uvs, has_color, ob, me, geom_id, norind);
+		}
+	}
+	else {
+		createPolylist(0, has_uvs, has_color, ob, me, geom_id, norind);
+	}
+	
+	closeMesh();
+	
+	if (me->flag & ME_TWOSIDED) {
+		mSW->appendTextBlock("<extra><technique profile=\"MAYA\"><double_sided>1</double_sided></technique></extra>");
+	}
+
+	closeGeometry();
+}
 
 void GeometryExporter::createLooseEdgeList(Object *ob,
                                            Mesh   *me,

@@ -615,6 +615,7 @@ void default_mtex(MTex *mtex)
 	mtex->gravityfac = 1.0f;
 	mtex->fieldfac = 1.0f;
 	mtex->normapspace = MTEX_NSPACE_TANGENT;
+	mtex->brush_map_mode = MTEX_MAP_MODE_TILED;
 }
 
 

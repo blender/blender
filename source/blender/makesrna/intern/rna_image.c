@@ -88,11 +88,15 @@ static int rna_Image_dirty_get(PointerRNA *ptr)
 	return 0;
 }
 
-static void rna_Image_source_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Image_source_set(PointerRNA *ptr, int value)
 {
 	Image *ima = ptr->id.data;
-	BKE_image_signal(ima, NULL, IMA_SIGNAL_SRC_CHANGE);
-	DAG_id_tag_update(&ima->id, 0);
+
+	if (value != ima->source) {
+		ima->source = value;
+		BKE_image_signal(ima, NULL, IMA_SIGNAL_SRC_CHANGE);
+		DAG_id_tag_update(&ima->id, 0);
+	}
 }
 
 static void rna_Image_fields_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -377,6 +381,38 @@ static void rna_Image_pixels_set(PointerRNA *ptr, const float *values)
 	BKE_image_release_ibuf(ima, ibuf, lock);
 }
 
+static int rna_Image_channels_get(PointerRNA *ptr)
+{
+	Image *im = (Image *)ptr->data;
+	ImBuf *ibuf;
+	void *lock;
+	int channels = 0;
+
+	ibuf = BKE_image_acquire_ibuf(im, NULL, &lock);
+	if (ibuf)
+		channels = ibuf->channels;
+
+	BKE_image_release_ibuf(im, ibuf, lock);
+
+	return channels;
+}
+
+static int rna_Image_is_float_get(PointerRNA *ptr)
+{
+	Image *im = (Image *)ptr->data;
+	ImBuf *ibuf;
+	void *lock;
+	int is_float = FALSE;
+
+	ibuf = BKE_image_acquire_ibuf(im, NULL, &lock);
+	if (ibuf)
+		is_float = ibuf->rect_float != NULL;
+
+	BKE_image_release_ibuf(im, ibuf, lock);
+
+	return is_float;
+}
+
 #else
 
 static void rna_def_imageuser(BlenderRNA *brna)
@@ -394,6 +430,11 @@ static void rna_def_imageuser(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Auto Refresh", "Always refresh image on frame changes");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+
+	prop = RNA_def_property(srna, "frame_current", PROP_INT, PROP_TIME);
+	RNA_def_property_int_sdna(prop, NULL, "framenr");
+	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
+	RNA_def_property_ui_text(prop, "Current Frame", "Current frame number in image sequence or movie");
 
 	/* animation */
 	prop = RNA_def_property(srna, "use_cyclic", PROP_BOOLEAN, PROP_NONE);
@@ -490,9 +531,9 @@ static void rna_def_image(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, image_source_items);
-	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Image_source_itemf");
+	RNA_def_property_enum_funcs(prop, NULL, "rna_Image_source_set", "rna_Image_source_itemf");
 	RNA_def_property_ui_text(prop, "Source", "Where the image comes from");
-	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_source_update");
+	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, NULL);
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_type_items);
@@ -664,12 +705,26 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Duration", "Duration (in frames) of the image (1 when not a video/sequence)");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
+	/* NOTE about pixels/channels/is_floa:
+	 * this properties describes how image is stored internally (inside of ImBuf),
+	 * not how it was saved to disk or how it'll be saved on disk
+	 */
 	prop = RNA_def_property(srna, "pixels", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_DYNAMIC);
 	RNA_def_property_multi_array(prop, 1, NULL);
 	RNA_def_property_ui_text(prop, "Pixels", "Image pixels in floating point values");
 	RNA_def_property_dynamic_array_funcs(prop, "rna_Image_pixels_get_length");
 	RNA_def_property_float_funcs(prop, "rna_Image_pixels_get", "rna_Image_pixels_set", NULL);
+
+	prop = RNA_def_property(srna, "channels", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_funcs(prop, "rna_Image_channels_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Channels", "Number of channels in pixels buffer");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "is_float", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_Image_is_float_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Is Float", "True if this image is stored in float buffer");
 
 	prop = RNA_def_property(srna, "colorspace_settings", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "colorspace_settings");

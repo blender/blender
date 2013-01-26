@@ -52,7 +52,7 @@ void bmo_triangulate_exec(BMesh *bm, BMOperator *op)
 	float (*projectverts)[3] = NULL;
 	BLI_array_declare(projectverts);
 	int i;
-	const int use_beauty = BMO_slot_bool_get(op->slots_in, "use_beauty");
+	const bool use_beauty = BMO_slot_bool_get(op->slots_in, "use_beauty");
 	BMOpSlot *slot_facemap_out = BMO_slot_get(op->slots_out, "face_map.out");
 
 	for (face = BMO_iter_new(&siter, op->slots_in, "faces", BM_FACE); face; face = BMO_iter_step(&siter)) {
@@ -138,7 +138,7 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 				fac2 = opp1 / (len2 + len3 + len6) + opp2 / (len4 + len1 + len6);
 				
 				if (fac1 > fac2) {
-					e = BM_edge_rotate(bm, e, FALSE, BM_EDGEROT_CHECK_EXISTS);
+					e = BM_edge_rotate(bm, e, false, BM_EDGEROT_CHECK_EXISTS);
 					if (e) {
 						BMO_elem_flag_enable(bm, e, ELE_NEW);
 
@@ -195,7 +195,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
 		BMFace *f = BM_face_create_quad_tri(bm,
 		                                    sf_tri->v1->tmp.p, sf_tri->v2->tmp.p, sf_tri->v3->tmp.p, NULL,
-		                                    NULL, TRUE);
+		                                    NULL, true);
 		BMLoop *l;
 		BMIter liter;
 		

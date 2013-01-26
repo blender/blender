@@ -46,14 +46,17 @@
 #else
 #  include <unistd.h> /* getpid */
 #endif
-/* for backtrace */
-#ifndef WIN32
-#  include <execinfo.h>
-#endif
 
 #ifdef WIN32
 #  include <Windows.h>
 #  include "utfconv.h"
+#endif
+
+/* for backtrace */
+#if defined(__linux__) || defined(__APPLE__)
+#  include <execinfo.h>
+#elif defined(_MSV_VER)
+#  include <DbgHelp.h>
 #endif
 
 #include <stdlib.h>
@@ -166,9 +169,10 @@ static int print_version(int argc, const char **argv, void *data);
 
 /* for the callbacks: */
 
-#define BLEND_VERSION_STRING_FMT                                              \
-    "Blender %d.%02d (sub %d)\n",                                             \
-    BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION          \
+#define BLEND_VERSION_FMT         "Blender %d.%02d (sub %d)"
+#define BLEND_VERSION_ARG         BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION
+/* pass directly to printf */
+#define BLEND_VERSION_STRING_FMT  BLEND_VERSION_FMT "\n", BLEND_VERSION_ARG
 
 /* Initialize callbacks for the modules that need them */
 static void setCallbacks(void); 
@@ -448,9 +452,11 @@ static int set_fpe(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(dat
 	return 0;
 }
 
+#if defined(__linux__) || defined(__APPLE__)
+
+/* Unix */
 static void blender_crash_handler_backtrace(FILE *fp)
 {
-#ifndef WIN32
 #define SIZE 100
 	void *buffer[SIZE];
 	int nptrs;
@@ -469,11 +475,51 @@ static void blender_crash_handler_backtrace(FILE *fp)
 
 	free(strings);
 #undef SIZE
-#else  /* WIN32 */
-	/* TODO */
+}
+
+#elif defined(_MSV_VER)
+
+static void blender_crash_handler_backtrace(FILE *fp)
+{
 	(void)fp;
+
+#if 0
+#define MAXSYMBOL 256
+	unsigned short	i;
+	void *stack[SIZE];
+	unsigned short nframes;
+	SYMBOL_INFO	*symbolinfo;
+	HANDLE process;
+
+	process = GetCurrentProcess();
+
+	SymInitialize(process, NULL, TRUE);
+
+	nframes = CaptureStackBackTrace(0, SIZE, stack, NULL);
+	symbolinfo = MEM_callocN(sizeof(SYMBOL_INFO) + MAXSYMBOL * sizeof( char ), "crash Symbol table");
+	symbolinfo->MaxNameLen = MAXSYMBOL - 1;
+	symbolinfo->SizeOfStruct = sizeof(SYMBOL_INFO);
+
+	for( i = 0; i < nframes; i++ )
+	{
+		SymFromAddr(process, ( DWORD64 )( stack[ i ] ), 0, symbolinfo);
+
+		fprintf(fp, "%u: %s - 0x%0X\n", nframes - i - 1, symbolinfo->Name, symbolinfo->Address);
+	}
+
+	MEM_freeN(symbolinfo);
 #endif
 }
+
+#else  /* non msvc/osx/linux */
+
+static void blender_crash_handler_backtrace(FILE *fp)
+{
+	(void)fp;
+}
+
+#endif
+
 static void blender_crash_handler(int signum)
 {
 
@@ -513,14 +559,20 @@ static void blender_crash_handler(int signum)
 	printf("Writing: %s\n", fname);
 	fflush(stdout);
 
-	BLI_snprintf(header, sizeof(header), "# " BLEND_VERSION_STRING_FMT);
+	BLI_snprintf(header, sizeof(header), "# " BLEND_VERSION_FMT ", Revision: %s\n", BLEND_VERSION_ARG,
+#ifdef BUILD_DATE
+	             build_rev
+#else
+	             "Unknown"
+#endif
+	             );
 
 	/* open the crash log */
 	errno = 0;
 	fp = BLI_fopen(fname, "wb");
 	if (fp == NULL) {
 		fprintf(stderr, "Unable to save '%s': %s\n",
-				fname, errno ? strerror(errno) : "Unknown error opening file");
+		        fname, errno ? strerror(errno) : "Unknown error opening file");
 	}
 	else {
 		if (wm) {
@@ -538,8 +590,7 @@ static void blender_crash_handler(int signum)
 #ifndef WIN32
 	kill(getpid(), signum);
 #else
-	/* force crash on windows for now */
-	*((void **)NULL) = NULL;
+	TerminateProcess(GetCurrentProcess(), signum);
 #endif
 }
 

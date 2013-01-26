@@ -53,9 +53,6 @@ if env['WITH_BF_CYCLES_OSL']:
     defs.append('WITH_OSL')
     incs.append(cycles['BF_OSL_INC'])
 
-if env['WITH_BF_CYCLES_CUDA_BINARIES']:
-    defs.append('WITH_CUDA_BINARIES')
-
 incs.extend('. bvh render device kernel kernel/osl kernel/svm util subd'.split())
 incs.extend('#intern/guardedalloc #source/blender/makesrna #source/blender/makesdna'.split())
 incs.extend('#source/blender/blenloader ../../source/blender/makesrna/intern'.split())

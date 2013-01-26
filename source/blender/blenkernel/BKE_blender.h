@@ -42,7 +42,7 @@ extern "C" {
  * and keep comment above the defines.
  * Use STRINGIFY() rather than defining with quotes */
 #define BLENDER_VERSION         265
-#define BLENDER_SUBVERSION      8
+#define BLENDER_SUBVERSION      9
 
 /* 262 was the last editmesh release but it has compatibility code for bmesh data */
 #define BLENDER_MINVERSION      262
@@ -52,7 +52,7 @@ extern "C" {
 /* can be left blank, otherwise a,b,c... etc with no quotes */
 #define BLENDER_VERSION_CHAR    a
 /* alpha/beta/rc/release, docs use this */
-#define BLENDER_VERSION_CYCLE   alpha
+#define BLENDER_VERSION_CYCLE   beta
 
 extern char versionstr[]; /* from blender.c */
 

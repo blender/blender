@@ -154,7 +154,6 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_solidify);
 	WM_operatortype_append(MESH_OT_select_nth);
 	WM_operatortype_append(MESH_OT_vert_connect);
-	WM_operatortype_append(MESH_OT_vert_slide);
 	WM_operatortype_append(MESH_OT_knife_tool);
 
 	WM_operatortype_append(MESH_OT_bevel);
@@ -269,9 +268,13 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	keymap = WM_keymap_find(keyconf, "Mesh", 0, 0);
 	keymap->poll = ED_operator_editmesh;
 	
-	WM_keymap_add_item(keymap, "MESH_OT_loopcut_slide", RKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_bevel", BKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_loopcut_slide", RKEY, KM_PRESS, KM_CTRL, 0);	
 	WM_keymap_add_item(keymap, "MESH_OT_inset", IKEY, KM_PRESS, 0, 0);
+
+	kmi = WM_keymap_add_item(keymap, "MESH_OT_bevel", BKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "vertex_only", FALSE);
+	kmi = WM_keymap_add_item(keymap, "MESH_OT_bevel", BKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "vertex_only", TRUE);
 
 	/* selecting */
 	/* standard mouse selection goes via space_view3d */
@@ -366,7 +369,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_vert_connect", JKEY, KM_PRESS, 0, 0);
 
 	/* Vertex Slide */
-	WM_keymap_add_item(keymap, "MESH_OT_vert_slide", VKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "TRANSFORM_OT_vert_slide", VKEY, KM_PRESS, KM_SHIFT, 0);
 	/* use KM_CLICK because same key is used for tweaks */
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_dupli_extrude_cursor", ACTIONMOUSE, KM_CLICK, KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "rotate_source", TRUE);

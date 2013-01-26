@@ -167,7 +167,7 @@ static GHash *text_autocomplete_build(Text *text)
 
 			while (i_start < linep->len) {
 				/* seek identifier beginning */
-				while (i_start < linep->len && !text_check_identifier(linep->line[i_start])) {
+				while (i_start < linep->len && !text_check_identifier_nodigit(linep->line[i_start])) {
 					i_start++;
 				}
 				i_end = i_start;
@@ -175,7 +175,11 @@ static GHash *text_autocomplete_build(Text *text)
 					i_end++;
 				}
 
-				if (i_start != i_end) {
+				if ((i_start != i_end) &&
+				    /* check we're at the beginning of a line or that the previous char is not an identifier
+					 * this prevents digits from being added */
+				    ((i_start < 1) || !text_check_identifier(linep->line[i_start - 1])))
+				{
 					char *str_sub = &linep->line[i_start];
 					const int choice_len = i_end - i_start;
 

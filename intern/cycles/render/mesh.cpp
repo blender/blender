@@ -43,6 +43,7 @@ Mesh::Mesh()
 	need_update = true;
 	transform_applied = false;
 	transform_negative_scaled = false;
+	transform_normal = transform_identity();
 	displacement_method = DISPLACE_BUMP;
 	bounds = BoundBox::empty;
 
@@ -94,6 +95,7 @@ void Mesh::clear()
 
 	transform_applied = false;
 	transform_negative_scaled = false;
+	transform_normal = transform_identity();
 }
 
 void Mesh::add_triangle(int v0, int v1, int v2, int shader_, bool smooth_)
@@ -151,7 +153,7 @@ void Mesh::add_face_normals()
 	/* don't compute if already there */
 	if(attributes.find(ATTR_STD_FACE_NORMAL))
 		return;
-
+	
 	/* get attributes */
 	Attribute *attr_fN = attributes.add(ATTR_STD_FACE_NORMAL);
 	float3 *fN = attr_fN->data_float3();
@@ -181,6 +183,14 @@ void Mesh::add_face_normals()
 				fN[i] = -fN[i];
 		}
 	}
+
+	/* expected to be in local space */
+	if(transform_applied) {
+		Transform ntfm = transform_inverse(transform_normal);
+
+		for(size_t i = 0; i < triangles_size; i++)
+			fN[i] = normalize(transform_direction(&ntfm, fN[i]));
+	}
 }
 
 void Mesh::add_vertex_normals()
@@ -188,7 +198,7 @@ void Mesh::add_vertex_normals()
 	/* don't compute if already there */
 	if(attributes.find(ATTR_STD_VERTEX_NORMAL))
 		return;
-
+	
 	/* get attributes */
 	Attribute *attr_fN = attributes.find(ATTR_STD_FACE_NORMAL);
 	Attribute *attr_vN = attributes.add(ATTR_STD_VERTEX_NORMAL);
@@ -232,10 +242,18 @@ void Mesh::pack_normals(Scene *scene, float4 *normal, float4 *vnormal)
 	size_t triangles_size = triangles.size();
 	uint *shader_ptr = (shader.size())? &shader[0]: NULL;
 
+	bool do_transform = transform_applied;
+	Transform ntfm = transform_normal;
+
 	for(size_t i = 0; i < triangles_size; i++) {
-		normal[i].x = fN[i].x;
-		normal[i].y = fN[i].y;
-		normal[i].z = fN[i].z;
+		float3 fNi = fN[i];
+
+		if(do_transform)
+			fNi = normalize(transform_direction(&ntfm, fNi));
+
+		normal[i].x = fNi.x;
+		normal[i].y = fNi.y;
+		normal[i].z = fNi.z;
 
 		/* stuff shader id in here too */
 		if(shader_ptr[i] != last_shader || last_smooth != smooth[i]) {
@@ -249,8 +267,14 @@ void Mesh::pack_normals(Scene *scene, float4 *normal, float4 *vnormal)
 
 	size_t verts_size = verts.size();
 
-	for(size_t i = 0; i < verts_size; i++)
-		vnormal[i] = make_float4(vN[i].x, vN[i].y, vN[i].z, 0.0f);
+	for(size_t i = 0; i < verts_size; i++) {
+		float3 vNi = vN[i];
+
+		if(do_transform)
+			vNi = normalize(transform_direction(&ntfm, vNi));
+
+		vnormal[i] = make_float4(vNi.x, vNi.y, vNi.z, 0.0f);
+	}
 }
 
 void Mesh::pack_verts(float4 *tri_verts, float4 *tri_vindex, size_t vert_offset)

@@ -77,6 +77,24 @@ sources.extend((
 	os.path.join(env['DATA_SOURCES'], "thumb.png.c"),
 	os.path.join(env['DATA_SOURCES'], "twist.png.c"),
 	os.path.join(env['DATA_SOURCES'], "vertexdraw.png.c"),
+	
+	os.path.join(env['DATA_SOURCES'], "mc01.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc02.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc03.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc04.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc05.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc06.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc07.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc08.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc09.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc10.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc11.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc12.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc13.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc14.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc15.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc16.jpg.c"),
+
 	))
 
 env.BlenderLib ( 'bf_editor_datafiles', sources, Split(incs), [], libtype=['core', 'player'], priority=[235, 30] )

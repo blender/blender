@@ -45,91 +45,6 @@ static bNodeSocketTemplate cmp_node_diff_matte_out[] = {
 	{-1, 0, ""}
 };
 
-#ifdef WITH_COMPOSITOR_LEGACY
-
-static void do_diff_matte(bNode *node, float *outColor, float *inColor1, float *inColor2)
-{
-	NodeChroma *c= (NodeChroma *)node->storage;
-	float tolerance=c->t1;
-	float fper=c->t2;
-	/* get falloff amount over tolerance size */
-	float falloff=(1.0f-fper) * tolerance;
-	float difference;
-	float alpha;
-	float maxInputAlpha;
-
-	/* average together the distances */
-	difference= fabs(inColor2[0]-inColor1[0]) +
-		fabs(inColor2[1]-inColor1[1]) +
-		fabs(inColor2[2]-inColor1[2]);
-	difference=difference/3.0f;
-
-	copy_v3_v3(outColor, inColor1);
-
-	if (difference <= tolerance) {
-		if (difference <= falloff) {
-			alpha = 0.0f;
-		}
-		else {
-			/* alpha as percent (distance / tolerance), each modified by falloff amount (in pixels)*/
-			alpha=(difference-falloff)/(tolerance-falloff);
-		}
-
-		/*only change if more transparent than either image */
-		maxInputAlpha=max_ff(inColor1[3], inColor2[3]);
-		if (alpha < maxInputAlpha) {
-			/*clamp*/
-			if (alpha < 0.0f) alpha = 0.0f;
-			if (alpha > 1.0f) alpha = 1.0f;
-			outColor[3] = alpha;
-		}
-		else { /* leave as before */
-			outColor[3]=maxInputAlpha;
-		}
-	}
-}
-
-static void node_composit_exec_diff_matte(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	CompBuf *outbuf= NULL;
-	CompBuf *imbuf1= NULL;
-	CompBuf *imbuf2= NULL;
-	/* NodeChroma *c; */ /* UNUSED */
-
-	/*is anything connected?*/
-	if (out[0]->hasoutput==0 && out[1]->hasoutput==0) return;
-
-	/*must have an image imput*/
-	if (in[0]->data==NULL) return;
-
-
-	imbuf1=typecheck_compbuf(in[0]->data, CB_RGBA);
-
-	/* if there's an image, use that, if not use the color */
-	if (in[1]->data) {
-		imbuf2=typecheck_compbuf(in[1]->data, CB_RGBA);
-	}
-
-	/* c=node->storage; */ /* UNUSED */
-	outbuf=dupalloc_compbuf(imbuf1);
-
-	/* note, processor gets a keyvals array passed on as buffer constant */
-	composit2_pixel_processor(node, outbuf, imbuf1, in[0]->vec, imbuf2, in[1]->vec, do_diff_matte, CB_RGBA, CB_RGBA);
-
-	out[0]->data=outbuf;
-	if (out[1]->hasoutput)
-		out[1]->data=valbuf_from_rgbabuf(outbuf, CHAN_A);
-	generate_preview(data, node, outbuf);
-
-	if (imbuf1!=in[0]->data)
-		free_compbuf(imbuf1);
-
-	if (imbuf2!=in[1]->data)
-		free_compbuf(imbuf2);
-}
-
-#endif  /* WITH_COMPOSITOR_LEGACY */
-
 static void node_composit_init_diff_matte(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	NodeChroma *c= MEM_callocN(sizeof(NodeChroma), "node chroma");
@@ -147,9 +62,6 @@ void register_node_type_cmp_diff_matte(bNodeTreeType *ttype)
 	node_type_size(&ntype, 200, 80, 250);
 	node_type_init(&ntype, node_composit_init_diff_matte);
 	node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
-#ifdef WITH_COMPOSITOR_LEGACY
-	node_type_exec(&ntype, node_composit_exec_diff_matte);
-#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

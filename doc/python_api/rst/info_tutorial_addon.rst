@@ -486,16 +486,14 @@ using :kbd:`Ctrl-Shift-Space` as the key shortcut to activate it.
        kmi = km.keymap_items.new(ObjectCursorArray.bl_idname, 'SPACE', 'PRESS', ctrl=True, shift=True)
        kmi.properties.total = 4
 
-       addon_keymaps.append(km)
+       addon_keymaps.append((km, kmi))
 
 
    def unregister():
 
        # handle the keymap
-       wm = bpy.context.window_manager
-       for km in addon_keymaps:
-           wm.keyconfigs.addon.keymaps.remove(km)
-       # clear the list
+       for km, kmi in addon_keymaps:
+           km.keymap_items.remove(kmi)
        addon_keymaps.clear()
 
 
@@ -568,18 +566,16 @@ Bringing it all together
        km = wm.keyconfigs.addon.keymaps.new(name='Object Mode', space_type='EMPTY')
        kmi = km.keymap_items.new(ObjectCursorArray.bl_idname, 'SPACE', 'PRESS', ctrl=True, shift=True)
        kmi.properties.total = 4
-       addon_keymaps.append(km)
+       addon_keymaps.append((km, kmi))
 
    def unregister():
        bpy.utils.unregister_class(ObjectCursorArray)
        bpy.types.VIEW3D_MT_object.remove(menu_func)
 
        # handle the keymap
-       wm = bpy.context.window_manager
-       for km in addon_keymaps:
-           wm.keyconfigs.addon.keymaps.remove(km)
-       # clear the list
-       del addon_keymaps[:]
+       for km, kmi in addon_keymaps:
+           km.keymap_items.remove(kmi)
+       addon_keymaps.clear()
 
 
    if __name__ == "__main__":

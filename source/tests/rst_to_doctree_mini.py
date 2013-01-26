@@ -45,7 +45,7 @@ def parse_rst_py(filepath):
     # -->
     # ("foo", "bar")
     re_prefix = re.compile(r"^\.\.\s([a-zA-Z09\-]+)::\s*(.*)\s*$")
-    
+
     tree = collections.defaultdict(list)
     indent_map = {}
     indent_prev = 0

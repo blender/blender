@@ -36,6 +36,7 @@ struct ARegion;
 struct bContext;
 struct bglMats;
 struct Brush;
+struct ImagePool;
 struct ListBase;
 struct Mesh;
 struct Object;
@@ -61,7 +62,8 @@ struct PaintStroke *paint_stroke_new(struct bContext *C,
                                      StrokeUpdateStep update_step, StrokeDone done, int event_type);
 void paint_stroke_data_free(struct wmOperator *op);
 
-int paint_space_stroke_enabled(struct Brush *br);
+bool paint_space_stroke_enabled(struct Brush *br);
+bool paint_supports_dynamic_size(struct Brush *br);
 
 struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf);
 int paint_stroke_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
@@ -139,7 +141,7 @@ void paint_calc_redraw_planes(float planes[4][4],
 
 void projectf(struct bglMats *mats, const float v[3], float p[2]);
 float paint_calc_object_space_radius(struct ViewContext *vc, const float center[3], float pixel_radius);
-float paint_get_tex_pixel(struct Brush *br, float u, float v);
+float paint_get_tex_pixel(struct Brush *br, float u, float v, struct ImagePool *pool);
 int imapaint_pick_face(struct ViewContext *vc, const int mval[2], unsigned int *index, unsigned int totface);
 void imapaint_pick_uv(struct Scene *scene, struct Object *ob, unsigned int faceindex, const int xy[2], float uv[2]);
 

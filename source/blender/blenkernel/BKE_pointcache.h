@@ -67,6 +67,7 @@
 #define PTCACHE_TYPE_SMOKE_DOMAIN       3
 #define PTCACHE_TYPE_SMOKE_HIGHRES      4
 #define PTCACHE_TYPE_DYNAMICPAINT       5
+#define PTCACHE_TYPE_RIGIDBODY          6
 
 /* high bits reserved for flags that need to be stored in file */
 #define PTCACHE_TYPEFLAG_COMPRESS       (1 << 16)
@@ -91,6 +92,7 @@ struct PointCache;
 struct Scene;
 struct SmokeModifierData;
 struct SoftBody;
+struct RigidBodyWorld;
 
 /* temp structure for read/write */
 typedef struct PTCacheData {
@@ -260,6 +262,7 @@ void BKE_ptcache_id_from_particles(PTCacheID *pid, struct Object *ob, struct Par
 void BKE_ptcache_id_from_cloth(PTCacheID *pid, struct Object *ob, struct ClothModifierData *clmd);
 void BKE_ptcache_id_from_smoke(PTCacheID *pid, struct Object *ob, struct SmokeModifierData *smd);
 void BKE_ptcache_id_from_dynamicpaint(PTCacheID *pid, struct Object *ob, struct DynamicPaintSurface *surface);
+void BKE_ptcache_id_from_rigidbody(PTCacheID *pid, struct Object *ob, struct RigidBodyWorld *rbw);
 
 void BKE_ptcache_ids_from_object(struct ListBase *lb, struct Object *ob, struct Scene *scene, int duplis);
 
@@ -293,10 +296,6 @@ int     BKE_ptcache_read(PTCacheID *pid, float cfra);
 
 /* Main cache writing call. */
 int     BKE_ptcache_write(PTCacheID *pid, unsigned int cfra);
-
-/****************** Continue physics ***************/
-void BKE_ptcache_set_continue_physics(struct Main *bmain, struct Scene *scene, int enable);
-int BKE_ptcache_get_continue_physics(void);
 
 /******************* Allocate & free ***************/
 struct PointCache *BKE_ptcache_add(struct ListBase *ptcaches);

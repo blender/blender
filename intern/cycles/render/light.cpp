@@ -198,8 +198,10 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 		bool have_emission = false;
 
 		/* skip if we are not visible for BSDFs */
-		if(!(object->visibility & (PATH_RAY_DIFFUSE|PATH_RAY_GLOSSY|PATH_RAY_TRANSMIT)))
+		if(!(object->visibility & (PATH_RAY_DIFFUSE|PATH_RAY_GLOSSY|PATH_RAY_TRANSMIT))) {
+			j++;
 			continue;
+		}
 
 		/* skip if we have no emission shaders */
 		foreach(uint sindex, mesh->used_shaders) {

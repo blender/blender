@@ -30,9 +30,6 @@
  *  \ingroup cmpnodes
  */
 
-#include "BLF_translation.h"
-
-
 #include "node_composite_util.h"
 
 /* **************** Translate  ******************** */
@@ -46,66 +43,6 @@ static bNodeSocketTemplate cmp_node_moviedistortion_out[] = {
 	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };
-
-#ifdef WITH_COMPOSITOR_LEGACY
-static void node_composit_exec_moviedistortion(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	if (in[0]->data) {
-		if (node->id) {
-			MovieClip *clip = (MovieClip *)node->id;
-			CompBuf *cbuf = typecheck_compbuf(in[0]->data, CB_RGBA);
-			CompBuf *stackbuf = alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 0);
-			ImBuf *ibuf;
-
-			ibuf = IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0);
-
-			if (ibuf) {
-				RenderData *rd = data;
-				ImBuf *obuf;
-				MovieTracking *tracking = &clip->tracking;
-				int width, height;
-				float overscan = 0.0f;
-				MovieClipUser user = {0};
-
-				BKE_movieclip_user_set_frame(&user, rd->cfra);
-
-				ibuf->rect_float = cbuf->rect;
-
-				BKE_movieclip_get_size(clip, &user, &width, &height);
-
-				if (!node->storage)
-					node->storage = BKE_tracking_distortion_new();
-
-				if (node->custom1 == 0)
-					obuf = BKE_tracking_distortion_exec(node->storage, tracking, ibuf, width, height, overscan, 1);
-				else
-					obuf = BKE_tracking_distortion_exec(node->storage, tracking, ibuf, width, height, overscan, 0);
-
-				stackbuf->rect = obuf->rect_float;
-				stackbuf->malloc = TRUE;
-
-				obuf->mall &= ~IB_rectfloat;
-				obuf->rect_float = NULL;
-
-				IMB_freeImBuf(ibuf);
-				IMB_freeImBuf(obuf);
-			}
-
-			/* pass on output and free */
-			out[0]->data = stackbuf;
-
-			if (cbuf != in[0]->data)
-				free_compbuf(cbuf);
-		}
-		else {
-			CompBuf *cbuf = in[0]->data;
-			CompBuf *stackbuf = pass_on_compbuf(cbuf);
-
-			out[0]->data = stackbuf;
-		}
-	}
-}
-#endif  /* WITH_COMPOSITOR_LEGACY */
 
 static const char *label(bNode *node)
 {
@@ -137,9 +74,6 @@ void register_node_type_cmp_moviedistortion(bNodeTreeType *ttype)
 	node_type_socket_templates(&ntype, cmp_node_moviedistortion_in, cmp_node_moviedistortion_out);
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_label(&ntype, label);
-#ifdef WITH_COMPOSITOR_LEGACY
-	node_type_exec(&ntype, node_composit_exec_moviedistortion);
-#endif
 
 	node_type_storage(&ntype, NULL, storage_free, storage_copy);
 

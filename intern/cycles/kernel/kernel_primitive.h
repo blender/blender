@@ -106,7 +106,7 @@ __device float3 primitive_tangent(KernelGlobals *kg, ShaderData *sd)
 		float3 data = primitive_attribute_float3(kg, sd, attr_elem, attr_offset, NULL, NULL);
 		data = make_float3(-(data.y - 0.5f), (data.x - 0.5f), 0.0f);
 		object_normal_transform(kg, sd, &data);
-		return cross(sd->N, normalize(cross(data, sd->N)));;
+		return cross(sd->N, normalize(cross(data, sd->N)));
 	}
 	else {
 		/* otherwise use surface derivatives */

@@ -32,6 +32,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -42,16 +43,18 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_object.h"
 #include "BKE_context.h"
+#include "BKE_icons.h"
+#include "BKE_object.h"
 #include "BKE_screen.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_object.h"
 
-#include "BIF_gl.h"
+#include "GPU_material.h"
 
+#include "BIF_gl.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -335,6 +338,14 @@ static void view3d_free(SpaceLink *sl)
 	if (vd->localvd) MEM_freeN(vd->localvd);
 	
 	if (vd->properties_storage) MEM_freeN(vd->properties_storage);
+	
+	/* matcap material, its preview rect gets freed via icons */
+	if (vd->defmaterial) {
+		if (vd->defmaterial->gpumaterial.first)
+			GPU_material_free(vd->defmaterial);
+		BKE_previewimg_free(&vd->defmaterial->preview);
+		MEM_freeN(vd->defmaterial);
+	}
 }
 
 
@@ -365,6 +376,8 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	
 	/* copy or clear inside new stuff */
 
+	v3dn->defmaterial = NULL;
+	
 	BLI_duplicatelist(&v3dn->bgpicbase, &v3do->bgpicbase);
 
 	v3dn->properties_storage = NULL;
@@ -583,6 +596,9 @@ static void view3d_main_area_free(ARegion *ar)
 		if (rv3d->depths) {
 			if (rv3d->depths->depths) MEM_freeN(rv3d->depths->depths);
 			MEM_freeN(rv3d->depths);
+		}
+		if (rv3d->sms) {
+			MEM_freeN(rv3d->sms);
 		}
 		MEM_freeN(rv3d);
 		ar->regiondata = NULL;

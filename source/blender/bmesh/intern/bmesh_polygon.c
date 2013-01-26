@@ -50,7 +50,7 @@
  * Used for tessellator
  */
 
-static short testedgesidef(const float v1[2], const float v2[2], const float v3[2])
+static bool testedgesidef(const float v1[2], const float v2[2], const float v3[2])
 {
 	/* is v3 to the right of v1 - v2 ? With exception: v3 == v1 || v3 == v2 */
 	double inp;
@@ -59,13 +59,13 @@ static short testedgesidef(const float v1[2], const float v2[2], const float v3[
 	inp = (v2[0] - v1[0]) * (v1[1] - v3[1]) + (v1[1] - v2[1]) * (v1[0] - v3[0]);
 
 	if (inp < 0.0) {
-		return FALSE;
+		return false;
 	}
 	else if (inp == 0) {
-		if (v1[0] == v3[0] && v1[1] == v3[1]) return FALSE;
-		if (v2[0] == v3[0] && v2[1] == v3[1]) return FALSE;
+		if (v1[0] == v3[0] && v1[1] == v3[1]) return false;
+		if (v2[0] == v3[0] && v2[1] == v3[1]) return false;
 	}
-	return TRUE;
+	return true;
 }
 
 /**
@@ -319,7 +319,7 @@ void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nvert
 	if (angle < FLT_EPSILON)
 		return;
 
-	if (len_v3(axis) < FLT_EPSILON) {
+	if (len_squared_v3(axis) < FLT_EPSILON) {
 		axis[0] = 0.0f;
 		axis[1] = 1.0f;
 		axis[2] = 0.0f;
@@ -498,7 +498,7 @@ void BM_face_normal_flip(BMesh *bm, BMFace *f)
 
 /* detects if two line segments cross each other (intersects).
  * note, there could be more winding cases then there needs to be. */
-static int line_crosses_v2f(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
+static bool line_crosses_v2f(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
 {
 
 #define GETMIN2_AXIS(a, b, ma, mb, axis)   \
@@ -526,7 +526,7 @@ static int line_crosses_v2f(const float v1[2], const float v2[2], const float v3
 	w5 = !testedgesidef(v3, v1, v4);
 	
 	if (w1 == w2 && w2 == w3 && w3 == w4 && w4 == w5) {
-		return TRUE;
+		return true;
 	}
 	
 	GETMIN2(v1, v2, mv1, mv2);
@@ -549,7 +549,7 @@ static int line_crosses_v2f(const float v1[2], const float v2[2], const float v3
 		return (mv4[1] >= mv1[1] && mv3[1] <= mv2[1]);
 	}
 
-	return FALSE;
+	return false;
 
 #undef GETMIN2_AXIS
 #undef GETMIN2
@@ -567,7 +567,7 @@ static int line_crosses_v2f(const float v1[2], const float v2[2], const float v3
  * instead of projecting co directly into f's orientation space,
  * so there might be accuracy issues.
  */
-int BM_face_point_inside_test(BMFace *f, const float co[3])
+bool BM_face_point_inside_test(BMFace *f, const float co[3])
 {
 	int ax, ay;
 	float co2[2], cent[2] = {0.0f, 0.0f}, out[2] = {FLT_MAX * 0.5f, FLT_MAX * 0.5f};
@@ -614,7 +614,7 @@ int BM_face_point_inside_test(BMFace *f, const float co[3])
 	return crosses % 2 != 0;
 }
 
-static int bm_face_goodline(float const (*projectverts)[3], BMFace *f, int v1i, int v2i, int v3i)
+static bool bm_face_goodline(float const (*projectverts)[3], BMFace *f, int v1i, int v2i, int v3i)
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
@@ -627,7 +627,7 @@ static int bm_face_goodline(float const (*projectverts)[3], BMFace *f, int v1i, 
 
 	/* v3 must be on the left side of [v1, v2] line, else we know [v1, v3] is outside of f! */
 	if (testedgesidef(v1, v2, v3)) {
-		return FALSE;
+		return false;
 	}
 
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
@@ -649,10 +649,10 @@ static int bm_face_goodline(float const (*projectverts)[3], BMFace *f, int v1i, 
 			else
 				printf("%d in (%d, %d, %d)\n", v1i, i, v3i, v2i);
 #endif
-			return FALSE;
+			return false;
 		}
 	} while ((l_iter = l_iter->next) != l_first);
-	return TRUE;
+	return true;
 }
 
 /**
@@ -665,7 +665,7 @@ static int bm_face_goodline(float const (*projectverts)[3], BMFace *f, int v1i, 
  * \param abscoss Must be allocated by caller, and at least f->len length
  *        (allow to avoid allocating a new one for each tri!).
  */
-static BMLoop *find_ear(BMFace *f, float (*verts)[3], const int use_beauty, float *abscoss)
+static BMLoop *find_ear(BMFace *f, float (*verts)[3], const bool use_beauty, float *abscoss)
 {
 	BMLoop *bestear = NULL;
 
@@ -726,7 +726,8 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3], const int use_beauty, floa
 		/* float angle, bestangle = 180.0f; */
 		float cos, tcos, bestcos = 1.0f;
 		float *tcoss;
-		int isear, i = 0, j, len;
+		bool is_ear;
+		int i = 0, j, len;
 
 		/* Compute cos of all corners! */
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
@@ -745,7 +746,7 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3], const int use_beauty, floa
 		l_iter = l_first;
 		tcoss = abscoss;
 		do {
-			isear = TRUE;
+			is_ear = true;
 
 			v1 = l_iter->prev->v;
 			v2 = l_iter->v;
@@ -753,7 +754,7 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3], const int use_beauty, floa
 
 			/* We may have already internal edges... */
 			if (BM_edge_exists(v1, v3)) {
-				isear = FALSE;
+				is_ear = false;
 			}
 			else if (!bm_face_goodline((float const (*)[3])verts, f, BM_elem_index_get(v1),
 			                           BM_elem_index_get(v2), BM_elem_index_get(v3)))
@@ -762,10 +763,10 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3], const int use_beauty, floa
 				printf("(%d, %d, %d) would not be a valid tri!\n",
 				       BM_elem_index_get(v1), BM_elem_index_get(v2), BM_elem_index_get(v3));
 #endif
-				isear = FALSE;
+				is_ear = false;
 			}
 
-			if (isear) {
+			if (is_ear) {
 #if 0 /* Old, already commented code */
 				/* if this code comes back, it needs to be converted to radians */
 				angle = angle_v3v3v3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
@@ -845,9 +846,10 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3], const int use_beauty, floa
  * \note newedgeflag sets a flag layer flag, obviously not the header flag.
  */
 void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3], const short newedge_oflag,
-                         const short newface_oflag, BMFace **newfaces, const short use_beauty)
+                         const short newface_oflag, BMFace **newfaces, const bool use_beauty)
 {
-	int i, done, nvert, nf_i = 0;
+	int i, nvert, nf_i = 0;
+	bool done;
 	BMLoop *newl;
 	BMLoop *l_iter;
 	BMLoop *l_first;
@@ -877,14 +879,20 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3], const s
 		projectverts[i][2] = 0.0f;
 	}
 
-	done = FALSE;
+	done = false;
 	while (!done && f->len > 3) {
-		done = TRUE;
+		done = true;
 		l_iter = find_ear(f, projectverts, use_beauty, abscoss);
-		if (l_iter) {
-			done = FALSE;
+
+		/* force triangulation - if we can't find an ear the face is degenerate */
+		if (l_iter == NULL) {
+			l_iter = BM_FACE_FIRST_LOOP(f);
+		}
+
+		{
+			done = false;
 /*			printf("Subdividing face...\n");*/
-			f = BM_face_split(bm, l_iter->f, l_iter->prev->v, l_iter->next->v, &newl, NULL, TRUE);
+			f = BM_face_split(bm, l_iter->f, l_iter->prev->v, l_iter->next->v, &newl, NULL, true);
 
 			if (UNLIKELY(!f)) {
 				fprintf(stderr, "%s: triangulator failed to split face! (bmesh internal error)\n", __func__);
@@ -912,13 +920,15 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3], const s
 		}
 	}
 
+	BLI_assert(f->len == 3);
+
 #if 0 /* XXX find_ear should now always return a corner, so no more need for this piece of code... */
 	if (f->len > 3) {
 		l_iter = BM_FACE_FIRST_LOOP(f);
 		while (l_iter->f->len > 3) {
 			nextloop = l_iter->next->next;
 			f = BM_face_split(bm, l_iter->f, l_iter->v, nextloop->v,
-			                  &newl, NULL, TRUE);
+			                  &newl, NULL, true);
 			if (!f) {
 				printf("triangle fan step of triangulator failed.\n");
 
@@ -1077,4 +1087,38 @@ void BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len)
 			}
 		}
 	}
+}
+
+
+/**
+ * Small utility functions for fast access
+ *
+ * faster alternative to:
+ *  BM_iter_as_array(bm, BM_VERTS_OF_FACE, f, (void**)v, 3);
+ */
+void BM_face_as_array_vert_tri(BMFace *f, BMVert *r_verts[3])
+{
+	BMLoop *l = BM_FACE_FIRST_LOOP(f);
+
+	BLI_assert(f->len == 3);
+
+	r_verts[0] = l->v; l = l->next;
+	r_verts[1] = l->v; l = l->next;
+	r_verts[2] = l->v;
+}
+
+/**
+ * faster alternative to:
+ *  BM_iter_as_array(bm, BM_VERTS_OF_FACE, f, (void**)v, 4);
+ */
+void BM_face_as_array_vert_quad(BMFace *f, BMVert *r_verts[4])
+{
+	BMLoop *l = BM_FACE_FIRST_LOOP(f);
+
+	BLI_assert(f->len == 4);
+
+	r_verts[0] = l->v; l = l->next;
+	r_verts[1] = l->v; l = l->next;
+	r_verts[2] = l->v; l = l->next;
+	r_verts[3] = l->v;
 }

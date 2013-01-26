@@ -39,110 +39,6 @@ static bNodeSocketTemplate cmp_node_splitviewer_in[] = {
 	{	-1, 0, ""	}
 };
 
-#ifdef WITH_COMPOSITOR_LEGACY
-
-static void do_copy_split_rgba(bNode *UNUSED(node), float *out, float *in1, float *in2, float *fac)
-{
-	if (*fac==0.0f) {
-		copy_v4_v4(out, in1);
-	}
-	else {
-		copy_v4_v4(out, in2);
-	}
-}
-
-static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
-{
-	/* image assigned to output */
-	/* stack order input sockets: image image */
-	
-	if (in[0]->data==NULL || in[1]->data==NULL)
-		return;
-	
-	if (node->id && (node->flag & NODE_DO_OUTPUT)) {	/* only one works on out */
-		Image *ima= (Image *)node->id;
-		RenderData *rd= data;
-		ImBuf *ibuf;
-		CompBuf *cbuf, *buf1, *buf2, *mask;
-		int x, y;
-		float offset;
-		void *lock;
-		
-		buf1= typecheck_compbuf(in[0]->data, CB_RGBA);
-		buf2= typecheck_compbuf(in[1]->data, CB_RGBA);
-		
-		BKE_image_user_frame_calc(node->storage, rd->cfra, 0);
-		
-		/* always returns for viewer image, but we check nevertheless */
-		ibuf= BKE_image_acquire_ibuf(ima, node->storage, &lock);
-		if (ibuf==NULL) {
-			printf("node_composit_exec_viewer error\n");
-			BKE_image_release_ibuf(ima, ibuf, lock);
-			return;
-		}
-		
-		/* free all in ibuf */
-		imb_freerectImBuf(ibuf);
-		imb_freerectfloatImBuf(ibuf);
-		IMB_freezbuffloatImBuf(ibuf);
-		
-		/* make ibuf, and connect to ima */
-		ibuf->x= buf1->x;
-		ibuf->y= buf1->y;
-		imb_addrectfloatImBuf(ibuf);
-		
-		ima->ok= IMA_OK_LOADED;
-
-		/* output buf */
-		cbuf= alloc_compbuf(buf1->x, buf1->y, CB_RGBA, 0);	/* no alloc*/
-		cbuf->rect= ibuf->rect_float;
-		
-		/* mask buf */
-		mask= alloc_compbuf(buf1->x, buf1->y, CB_VAL, 1);
-		
-		
-		/* Check which offset mode is selected and limit offset if needed */
-		if (node->custom2 == 0) {
-			offset = buf1->x / 100.0f * node->custom1;
-			CLAMP(offset, 0, buf1->x);
-		}
-		else {
-			offset = buf1->y / 100.0f * node->custom1;
-			CLAMP(offset, 0, buf1->y);
-		}
-		
-		if (node->custom2 == 0) {
-			for (y=0; y<buf1->y; y++) {
-				float *fac= mask->rect + y*buf1->x;
-				for (x=offset; x>0; x--, fac++)
-					*fac= 1.0f;
-			}
-		}
-		else {
-			for (y=0; y<offset; y++) {
-				float *fac= mask->rect + y*buf1->x;
-				for (x=buf1->x; x>0; x--, fac++)
-					*fac= 1.0f;
-			}
-		}
-		
-		composit3_pixel_processor(node, cbuf, buf1, in[0]->vec, buf2, in[1]->vec, mask, NULL, do_copy_split_rgba, CB_RGBA, CB_RGBA, CB_VAL);
-		
-		BKE_image_release_ibuf(ima, ibuf, lock);
-		
-		generate_preview(data, node, cbuf);
-		free_compbuf(cbuf);
-		free_compbuf(mask);
-		
-		if (in[0]->data != buf1) 
-			free_compbuf(buf1);
-		if (in[1]->data != buf2) 
-			free_compbuf(buf2);
-	}
-}
-
-#endif  /* WITH_COMPOSITOR_LEGACY */
-
 static void node_composit_init_splitviewer(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	ImageUser *iuser= MEM_callocN(sizeof(ImageUser), "node image user");
@@ -162,9 +58,6 @@ void register_node_type_cmp_splitviewer(bNodeTreeType *ttype)
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_init(&ntype, node_composit_init_splitviewer);
 	node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
-#ifdef WITH_COMPOSITOR_LEGACY
-	node_type_exec(&ntype, node_composit_exec_splitviewer);
-#endif
 
 	/* Do not allow muting for this node. */
 	node_type_internal_links(&ntype, NULL);

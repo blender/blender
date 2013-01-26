@@ -56,6 +56,7 @@ modules = (
     ("gpu.rst", "gpu", False),
 )
 
+
 def is_directive_pydata(filepath, directive):
     if directive.type in {"function", "method", "class", "attribute", "data"}:
         return True
@@ -113,7 +114,6 @@ def module_validate(filepath, mod, mod_name, doctree, partial_ok):
                                 print(directive_to_str(filepath, directive_child), end=" ")
                                 print("rst contains non existing class member %r" % attr_id)
 
-
     # MODULE member missing from RST ???
     doctree_dict = directive_members_dict(filepath, doctree)
     for attr in dir(mod):
@@ -136,7 +136,7 @@ def module_validate(filepath, mod, mod_name, doctree, partial_ok):
 
 
 def main():
-    
+
     if bge is None:
         print("Skipping BGE modules!")
 
@@ -151,7 +151,7 @@ def main():
         doctree = rst_to_doctree_mini.parse_rst_py(filepath)
         __import__(modname)
         mod = sys.modules[modname]
-        
+
         module_validate(filepath, mod, modname, doctree, partial_ok)
 
 

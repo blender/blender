@@ -105,5 +105,23 @@ void PTCACHE_OT_bake_from_cache(struct wmOperatorType *ot);
 void PTCACHE_OT_add(struct wmOperatorType *ot);
 void PTCACHE_OT_remove(struct wmOperatorType *ot);
 
-#endif /* __PHYSICS_INTERN_H__ */
+/* rigidbody_object.c */
+void RIGIDBODY_OT_object_add(struct wmOperatorType *ot);
+void RIGIDBODY_OT_object_remove(struct wmOperatorType *ot);
 
+void RIGIDBODY_OT_objects_add(struct wmOperatorType *ot);
+void RIGIDBODY_OT_objects_remove(struct wmOperatorType *ot);
+
+void RIGIDBODY_OT_shape_change(struct wmOperatorType *ot);
+void RIGIDBODY_OT_mass_calculate(struct wmOperatorType *ot);
+
+/* rigidbody_constraint.c */
+void RIGIDBODY_OT_constraint_add(struct wmOperatorType *ot);
+void RIGIDBODY_OT_constraint_remove(struct wmOperatorType *ot);
+
+/*rigidbody_world.c */
+void RIGIDBODY_OT_world_add(struct wmOperatorType *ot);
+void RIGIDBODY_OT_world_remove(struct wmOperatorType *ot);
+void RIGIDBODY_OT_world_export(struct wmOperatorType *ot);
+
+#endif /* __PHYSICS_INTERN_H__ */

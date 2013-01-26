@@ -113,6 +113,9 @@ typedef enum {
 
 PBVHType BKE_pbvh_type(const PBVH *bvh);
 
+/* Get the PBVH root's bounding box */
+void BKE_pbvh_bounding_box(const PBVH *bvh, float min[3], float max[3]);
+
 /* multires hidden data, only valid for type == PBVH_GRIDS */
 unsigned int **BKE_pbvh_grid_hidden(const PBVH *bvh);
 

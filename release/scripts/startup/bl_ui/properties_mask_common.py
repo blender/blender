@@ -26,7 +26,8 @@ from bpy.types import Menu, UIList
 
 
 class MASK_UL_layers(UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+    def draw_item(self, context, layout, data, item, icon,
+                  active_data, active_propname, index):
         # assert(isinstance(item, bpy.types.MaskLayer)
         mask = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
@@ -86,7 +87,8 @@ class MASK_PT_layers:
         rows = 5 if active_layer else 2
 
         row = layout.row()
-        row.template_list("MASK_UL_layers", "", mask, "layers", mask, "active_layer_index", rows=rows)
+        row.template_list("MASK_UL_layers", "", mask, "layers",
+                          mask, "active_layer_index", rows=rows)
 
         sub = row.column(align=True)
 

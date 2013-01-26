@@ -99,4 +99,6 @@ extern std::string get_camera_id(Object *ob);
 
 extern std::string get_material_id(Material *mat);
 
+extern std::string get_morph_id(Object *ob);
+
 #endif /* __COLLADA_INTERNAL_H__ */

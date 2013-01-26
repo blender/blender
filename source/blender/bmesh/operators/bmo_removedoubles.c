@@ -41,7 +41,7 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot 
 	BMIter liter;
 	BMLoop *l;
 	BMVert *v2, *doub;
-	int split = FALSE;
+	bool split = false;
 
 	BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 		v2 = BMO_slot_map_elem_get(slot_targetmap, l->v);
@@ -52,14 +52,14 @@ static void remdoubles_splitface(BMFace *f, BMesh *bm, BMOperator *op, BMOpSlot 
 		    (v2 != l->next->v))
 		{
 			doub = l->v;
-			split = TRUE;
+			split = true;
 			break;
 		}
 	}
 
 	if (split && doub != v2) {
 		BMLoop *nl;
-		BMFace *f2 = BM_face_split(bm, f, doub, v2, &nl, NULL, FALSE);
+		BMFace *f2 = BM_face_split(bm, f, doub, v2, &nl, NULL, false);
 
 		remdoubles_splitface(f, bm, op, slot_targetmap);
 		remdoubles_splitface(f2, bm, op, slot_targetmap);
@@ -87,12 +87,12 @@ int remdoubles_face_overlaps(BMesh *bm, BMVert **varr,
 			amount = BM_verts_in_face(bm, f, varr, len);
 			if (amount >= len) {
 				if (overlapface) *overlapface = f;
-				return TRUE;
+				return true;
 			}
 			f = BM_iter_step(&vertfaces);
 		}
 	}
-	return FALSE;
+	return false;
 }
 #endif
 
@@ -394,11 +394,10 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 		if (!BMO_elem_flag_test(bm, e, EDGE_MARK))
 			continue;
 
-		e = BMW_begin(&walker, e->v1);
 		BLI_array_empty(edges);
 
 		INIT_MINMAX(min, max);
-		for (tot = 0; e; tot++, e = BMW_step(&walker)) {
+		for (e = BMW_begin(&walker, e->v1), tot = 0; e; e = BMW_step(&walker), tot++) {
 			BLI_array_grow_one(edges);
 			edges[tot] = e;
 
@@ -454,11 +453,9 @@ static void bmo_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 			if (BMO_elem_flag_test(bm, l->e, EDGE_MARK)) {
 				/* walk */
 				BLI_array_empty(blocks);
-				tot = 0;
-				l2 = BMW_begin(&walker, l);
 
 				CustomData_data_initminmax(type, &min, &max);
-				for (tot = 0; l2; tot++, l2 = BMW_step(&walker)) {
+				for (l2 = BMW_begin(&walker, l), tot = 0; l2; l2 = BMW_step(&walker), tot++) {
 					BLI_array_grow_one(blocks);
 					blocks[tot] = CustomData_bmesh_get_layer_n(&bm->ldata, l2->head.data, layer);
 					CustomData_data_dominmax(type, blocks[tot], &min, &max);

@@ -26,18 +26,18 @@ from bpy.types import Operator
 
 
 def extend(obj, operator, EXTEND_MODE):
-    
+
     import bmesh
     me = obj.data
     # script will fail without UVs
     if not me.uv_textures:
         me.uv_textures.new()
-    
+
     bm = bmesh.from_edit_mesh(me)
-    
+
     f_act = bm.faces.active
     uv_act = bm.loops.layers.uv.active
-    
+
     if f_act is None:
         operator.report({'ERROR'}, "No active face")
         return
@@ -57,7 +57,7 @@ def extend(obj, operator, EXTEND_MODE):
             f.tag = False
         # tag the active face True since we begin there
         f_act.tag = True
-    
+
     def walk_face(f):
         # all faces in this list must be tagged
         f.tag = True
@@ -102,7 +102,6 @@ def extend(obj, operator, EXTEND_MODE):
             else:
                 break
 
-
     def extrapolate_uv(fac,
                        l_a_outer, l_a_inner,
                        l_b_outer, l_b_inner):
@@ -112,7 +111,7 @@ def extend(obj, operator, EXTEND_MODE):
     def apply_uv(f_prev, l_prev, f_next):
         l_a = [None, None, None, None]
         l_b = [None, None, None, None]
-        
+
         l_a[0] = l_prev
         l_a[1] = l_a[0].link_loop_next
         l_a[2] = l_a[1].link_loop_next
@@ -133,7 +132,7 @@ def extend(obj, operator, EXTEND_MODE):
         #  +-----------+
         #  copy from this face to the one above.
 
-        # get the other loops 
+        # get the other loops
         l_next = l_prev.link_loop_radial_next
         if l_next.vert != l_prev.vert:
             l_b[1] = l_next

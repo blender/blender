@@ -135,7 +135,6 @@ option(WITH_GAMEENGINE    "Enable Game Engine" ON)
 option(WITH_PLAYER        "Build Player" OFF)
 option(WITH_OPENCOLORIO   "Enable OpenColorIO color management" ON)
 option(WITH_COMPOSITOR    "Enable the tile based nodal compositor" ON)
-option(WITH_COMPOSITOR_LEGACY "Enable legacy compositor" OFF)
 
 # GHOST Windowing Library Options
 option(WITH_GHOST_DEBUG   "Enable debugging output for the GHOST library" OFF)
@@ -1329,6 +1328,11 @@ elseif(WIN32)
 				set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
 					optimized boost_locale-${BOOST_POSTFIX}
 					debug boost_locale-${BOOST_DEBUG_POSTFIX}) 
+			endif()
+			if(WITH_CYCLES_OSL)
+				set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
+					optimized boost_wave-${BOOST_POSTFIX}
+					debug boost_wave-${BOOST_DEBUG_POSTFIX}) 
 			endif()
 			set(BOOST_LIBPATH ${BOOST}/lib)
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB -DBOOST_THREAD_USE_LIB ")

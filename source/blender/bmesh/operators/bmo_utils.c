@@ -122,8 +122,8 @@ void bmo_rotate_edges_exec(BMesh *bm, BMOperator *op)
 {
 	BMOIter siter;
 	BMEdge *e, *e2;
-	const int use_ccw = BMO_slot_bool_get(op->slots_in, "use_ccw");
-	const int is_single = BMO_slot_buffer_count(op->slots_in, "edges") == 1;
+	const bool use_ccw   = BMO_slot_bool_get(op->slots_in, "use_ccw");
+	const bool is_single = BMO_slot_buffer_count(op->slots_in, "edges") == 1;
 	short check_flag = is_single ?
 	            BM_EDGEROT_CHECK_EXISTS :
 	            BM_EDGEROT_CHECK_EXISTS | BM_EDGEROT_CHECK_DEGENERATE;
@@ -140,8 +140,8 @@ void bmo_rotate_edges_exec(BMesh *bm, BMOperator *op)
 			if (BM_edge_face_pair(e, &fa, &fb)) {
 
 				/* check we're untouched */
-				if (BMO_elem_flag_test(bm, fa, FACE_TAINT) == FALSE &&
-				    BMO_elem_flag_test(bm, fb, FACE_TAINT) == FALSE)
+				if (BMO_elem_flag_test(bm, fa, FACE_TAINT) == false &&
+				    BMO_elem_flag_test(bm, fb, FACE_TAINT) == false)
 				{
 
 					if (!(e2 = BM_edge_rotate(bm, e, use_ccw, check_flag))) {
@@ -172,14 +172,14 @@ void bmo_rotate_edges_exec(BMesh *bm, BMOperator *op)
 #define SEL_FLAG	1
 #define SEL_ORIG	2
 
-static void bmo_region_extend_extend(BMesh *bm, BMOperator *op, int usefaces)
+static void bmo_region_extend_extend(BMesh *bm, BMOperator *op, const bool use_faces)
 {
 	BMVert *v;
 	BMEdge *e;
 	BMIter eiter;
 	BMOIter siter;
 
-	if (!usefaces) {
+	if (!use_faces) {
 		BMO_ITER (v, &siter, op->slots_in, "geom", BM_VERT) {
 			BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
 				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN))
@@ -216,14 +216,14 @@ static void bmo_region_extend_extend(BMesh *bm, BMOperator *op, int usefaces)
 	}
 }
 
-static void bmo_region_extend_constrict(BMesh *bm, BMOperator *op, int usefaces)
+static void bmo_region_extend_constrict(BMesh *bm, BMOperator *op, const bool use_faces)
 {
 	BMVert *v;
 	BMEdge *e;
 	BMIter eiter;
 	BMOIter siter;
 
-	if (!usefaces) {
+	if (!use_faces) {
 		BMO_ITER (v, &siter, op->slots_in, "geom", BM_VERT) {
 			BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
 				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN))
@@ -265,8 +265,8 @@ static void bmo_region_extend_constrict(BMesh *bm, BMOperator *op, int usefaces)
 
 void bmo_region_extend_exec(BMesh *bm, BMOperator *op)
 {
-	int use_faces = BMO_slot_bool_get(op->slots_in, "use_faces");
-	int constrict = BMO_slot_bool_get(op->slots_in, "use_constrict");
+	const bool use_faces = BMO_slot_bool_get(op->slots_in, "use_faces");
+	const bool constrict = BMO_slot_bool_get(op->slots_in, "use_constrict");
 
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "geom", BM_ALL_NOLOOP, SEL_ORIG);
 
@@ -314,7 +314,8 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(fstack);
 	BMLoop *l, *l2;
 	float maxx, maxx_test, cent[3];
-	int i, i_max, flagflip = BMO_slot_bool_get(op->slots_in, "use_flip");
+	int i, i_max;
+	const bool use_flip = BMO_slot_bool_get(op->slots_in, "use_flip");
 
 	startf = NULL;
 	maxx = -1.0e10;
@@ -349,7 +350,7 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 		BM_face_normal_flip(bm, startf);
 		BMO_elem_flag_toggle(bm, startf, FACE_FLIP);
 
-		if (flagflip)
+		if (use_flip)
 			BM_elem_flag_toggle(startf, BM_ELEM_TAG);
 	}
 	
@@ -381,11 +382,11 @@ void bmo_recalc_face_normals_exec(BMesh *bm, BMOperator *op)
 						BM_face_normal_flip(bm, l2->f);
 						
 						BMO_elem_flag_toggle(bm, l2->f, FACE_FLIP);
-						if (flagflip)
+						if (use_flip)
 							BM_elem_flag_toggle(l2->f, BM_ELEM_TAG);
 					}
 					else if (BM_elem_flag_test(l2->f, BM_ELEM_TAG) || BM_elem_flag_test(l->f, BM_ELEM_TAG)) {
-						if (flagflip) {
+						if (use_flip) {
 							BM_elem_flag_disable(l->f, BM_ELEM_TAG);
 							BM_elem_flag_disable(l2->f, BM_ELEM_TAG);
 						}
@@ -436,9 +437,11 @@ void bmo_smooth_vert_exec(BMesh *UNUSED(bm), BMOperator *op)
 	i = 0;
 	BMO_ITER (v, &siter, op->slots_in, "verts", BM_VERT) {
 		BLI_array_grow_one(cos);
+
 		co = cos[i];
-		
-		j  = 0;
+		zero_v3(co);
+
+		j = 0;
 		BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
 			co2 = BM_edge_other_vert(e, v)->co;
 			add_v3_v3v3(co, co, co2);
@@ -489,11 +492,11 @@ void bmo_rotate_uvs_exec(BMesh *bm, BMOperator *op)
 	BMFace *fs;       /* current face */
 	BMIter l_iter;    /* iteration loop */
 
-	const int use_ccw = BMO_slot_bool_get(op->slots_in, "use_ccw");
+	const bool use_ccw = BMO_slot_bool_get(op->slots_in, "use_ccw");
 
 	BMO_ITER (fs, &fs_iter, op->slots_in, "faces", BM_FACE) {
 		if (CustomData_has_layer(&(bm->ldata), CD_MLOOPUV)) {
-			if (use_ccw == FALSE) {  /* same loops direction */
+			if (use_ccw == false) {  /* same loops direction */
 				BMLoop *lf;	/* current face loops */
 				MLoopUV *f_luv; /* first face loop uv */
 				float p_uv[2];	/* previous uvs */
@@ -594,11 +597,11 @@ void bmo_rotate_colors_exec(BMesh *bm, BMOperator *op)
 	BMFace *fs;       /* current face */
 	BMIter l_iter;    /* iteration loop */
 
-	const int use_ccw = BMO_slot_bool_get(op->slots_in, "use_ccw");
+	const bool use_ccw = BMO_slot_bool_get(op->slots_in, "use_ccw");
 
 	BMO_ITER (fs, &fs_iter, op->slots_in, "faces", BM_FACE) {
 		if (CustomData_has_layer(&(bm->ldata), CD_MLOOPCOL)) {
-			if (use_ccw == FALSE) {  /* same loops direction */
+			if (use_ccw == false) {  /* same loops direction */
 				BMLoop *lf;	/* current face loops */
 				MLoopCol *f_lcol; /* first face loop color */
 				MLoopCol p_col;	/* previous color */

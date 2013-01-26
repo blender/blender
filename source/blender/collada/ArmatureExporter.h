@@ -41,6 +41,7 @@
 #include "DNA_listBase.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_scene_types.h"
 
 #include "TransformWriter.h"
@@ -62,11 +63,9 @@ public:
 	void add_armature_bones(Object *ob_arm, Scene *sce, SceneExporter *se,
 	                        std::list<Object *>& child_objects);
 
-	bool is_skinned_mesh(Object *ob);
-
 	bool add_instance_controller(Object *ob);
 
-	void export_controllers(Scene *sce);
+	//void export_controllers(Scene *sce);*/
 
 	void operator()(Object *ob);
 
@@ -97,29 +96,6 @@ private:
 	void add_blender_leaf_bone(Bone *bone, Object *ob_arm, COLLADASW::Node& node);
 
 	std::string get_controller_id(Object *ob_arm, Object *ob);
-
-	// ob should be of type OB_MESH
-	// both args are required
-	void export_controller(Object *ob, Object *ob_arm);
-
-	void add_joints_element(ListBase *defbase,
-	                        const std::string& joints_source_id, const std::string& inv_bind_mat_source_id);
-
-	void add_bind_shape_mat(Object *ob);
-
-	std::string add_joints_source(Object *ob_arm, ListBase *defbase, const std::string& controller_id);
-
-	std::string add_inv_bind_mats_source(Object *ob_arm, ListBase *defbase, const std::string& controller_id);
-
-	Bone *get_bone_from_defgroup(Object *ob_arm, bDeformGroup *def);
-
-	bool is_bone_defgroup(Object *ob_arm, bDeformGroup *def);
-
-	std::string add_weights_source(Mesh *me, const std::string& controller_id,
-	                               const std::list<float>& weights);
-
-	void add_vertex_weights_element(const std::string& weights_source_id, const std::string& joints_source_id,
-	                                const std::list<int>& vcount, const std::list<int>& joints);
 
 	void write_bone_URLs(COLLADASW::InstanceController &ins, Object *ob_arm, Bone *bone);
 };

@@ -112,7 +112,7 @@ class INFO_MT_file(Menu):
 
         layout.separator()
 
-        layout.operator_context = 'EXEC_AREA' if  context.blend_data.is_saved else 'INVOKE_AREA'
+        layout.operator_context = 'EXEC_AREA' if context.blend_data.is_saved else 'INVOKE_AREA'
         layout.operator("wm.save_mainfile", text="Save", icon='FILE_TICK')
 
         layout.operator_context = 'INVOKE_AREA'
@@ -124,8 +124,9 @@ class INFO_MT_file(Menu):
 
         layout.operator("screen.userpref_show", text="User Preferences...", icon='PREFERENCES')
 
-        layout.operator_context = 'EXEC_AREA'
+        layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.save_homefile", icon='SAVE_PREFS')
+        layout.operator_context = 'EXEC_AREA'
         layout.operator("wm.read_factory_settings", icon='LOAD_FACTORY')
 
         layout.separator()
@@ -373,7 +374,7 @@ class INFO_MT_help(Menu):
         layout = self.layout
 
         layout.operator("wm.url_open", text="Manual", icon='HELP').url = "http://wiki.blender.org/index.php/Doc:2.6/Manual"
-        layout.operator("wm.url_open", text="Release Log", icon='URL').url = "http://www.blender.org/development/release-logs/blender-265"
+        layout.operator("wm.url_open", text="Release Log", icon='URL').url = "http://www.blender.org/development/release-logs/blender-266"
         layout.separator()
 
         layout.operator("wm.url_open", text="Blender Website", icon='URL').url = "http://www.blender.org"

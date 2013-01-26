@@ -43,18 +43,21 @@ CCL_NAMESPACE_BEGIN
 #ifdef __KERNEL_CPU__
 #define __KERNEL_SHADING__
 #define __KERNEL_ADV_SHADING__
+#define __NON_PROGRESSIVE__
+#define __LAMP_MIS__
+#define __HAIR__
 #ifdef WITH_OSL
 #define __OSL__
 #endif
-#define __NON_PROGRESSIVE__
-#define __HAIR__
-#define __LAMP_MIS__
 #endif
 
 #ifdef __KERNEL_CUDA__
 #define __KERNEL_SHADING__
 #if __CUDA_ARCH__ >= 200
 #define __KERNEL_ADV_SHADING__
+#endif
+#if __CUDA_ARCH__ >= 210
+#define __LAMP_MIS__
 #endif
 #endif
 
@@ -114,8 +117,8 @@ CCL_NAMESPACE_BEGIN
 #define __PASSES__
 #define __BACKGROUND_MIS__
 #define __AO__
-#define __CAMERA_MOTION__
 #define __ANISOTROPIC__
+#define __CAMERA_MOTION__
 #define __OBJECT_MOTION__
 #endif
 //#define __SOBOL_FULL_SCREEN__
@@ -254,6 +257,10 @@ typedef struct PathRadiance {
 	float3 indirect_diffuse;
 	float3 indirect_glossy;
 	float3 indirect_transmission;
+
+	float3 path_diffuse;
+	float3 path_glossy;
+	float3 path_transmission;
 
 	float4 shadow;
 } PathRadiance;
@@ -696,6 +703,7 @@ typedef enum CurveFlag {
 	CURVE_KN_NORMALCORRECTION = 128,		/* correct tangent normal for slope? */
 	CURVE_KN_TRUETANGENTGNORMAL = 256,		/* use tangent normal for geometry? */
 	CURVE_KN_TANGENTGNORMAL = 512,			/* use tangent normal for shader? */
+	CURVE_KN_RIBBONS = 1024,				/* use flat curve ribbons */
 } CurveFlag;
 
 typedef struct KernelCurves {
@@ -703,7 +711,7 @@ typedef struct KernelCurves {
 	float normalmix;
 	float encasing_ratio;
 	int curveflags;
-	int pad;
+	int subdivisions;
 
 } KernelCurves;
 

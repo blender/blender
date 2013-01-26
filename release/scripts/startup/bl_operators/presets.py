@@ -320,13 +320,13 @@ class AddPresetFluid(AddPresetBase, Operator):
     preset_menu = "FLUID_MT_presets"
 
     preset_defines = [
-    "fluid = bpy.context.fluid"
-    ]
+        "fluid = bpy.context.fluid"
+        ]
 
     preset_values = [
-    "fluid.settings.viscosity_base",
-    "fluid.settings.viscosity_exponent",
-    ]
+        "fluid.settings.viscosity_base",
+        "fluid.settings.viscosity_exponent",
+        ]
 
     preset_subdir = "fluid"
 
@@ -477,7 +477,7 @@ class AddPresetNodeColor(AddPresetBase, Operator):
 class AddPresetInterfaceTheme(AddPresetBase, Operator):
     """Add a theme preset"""
     bl_idname = "wm.interface_theme_preset_add"
-    bl_label = "Add Tracking Settings Preset"
+    bl_label = "Add Theme Preset"
     preset_menu = "USERPREF_MT_interface_theme_presets"
     preset_subdir = "interface_theme"
 

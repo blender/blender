@@ -44,6 +44,12 @@ def physics_add(self, layout, md, name, type, typeicon, toggles):
     else:
         sub.operator("object.modifier_add", text=name, icon=typeicon).type = type
 
+def physics_add_special(self, layout, data, name, addop, removeop, typeicon):
+    sub = layout.row(align=True)
+    if data:
+        sub.operator(removeop, text=name, icon='X')
+    else:
+        sub.operator(addop, text=name, icon=typeicon)
 
 class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
     bl_label = ""
@@ -76,6 +82,18 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
             physics_add(self, col, context.fluid, "Fluid", 'FLUID_SIMULATION', 'MOD_FLUIDSIM', True)
             physics_add(self, col, context.smoke, "Smoke", 'SMOKE', 'MOD_SMOKE', True)
 
+        if(ob.type == 'MESH'):
+            physics_add_special(self, col, ob.rigid_body, "Rigid Body",
+                                "rigidbody.object_add",
+                                "rigidbody.object_remove",
+                                'MESH_ICOSPHERE') # XXX: need dedicated icon
+
+        # all types of objects can have rigid body constraint
+        physics_add_special(self, col, ob.rigid_body_constraint, "Rigid Body Constraint",
+                            "rigidbody.constraint_add",
+                            "rigidbody.constraint_remove",
+                            'CONSTRAINT') # RB_TODO needs better icon
+
 
 # cache-type can be 'PSYS' 'HAIR' 'SMOKE' etc
 
@@ -84,11 +102,12 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
 
     layout.context_pointer_set("point_cache", cache)
 
-    row = layout.row()
-    row.template_list("UI_UL_list", "", cache, "point_caches", cache.point_caches, "active_index", rows=2)
-    col = row.column(align=True)
-    col.operator("ptcache.add", icon='ZOOMIN', text="")
-    col.operator("ptcache.remove", icon='ZOOMOUT', text="")
+    if not cachetype == 'RIGID_BODY':
+        row = layout.row()
+        row.template_list("UI_UL_list", "", cache, "point_caches", cache.point_caches, "active_index", rows=2)
+        col = row.column(align=True)
+        col.operator("ptcache.add", icon='ZOOMIN', text="")
+        col.operator("ptcache.remove", icon='ZOOMOUT', text="")
 
     row = layout.row()
     if cachetype in {'PSYS', 'HAIR', 'SMOKE'}:
@@ -131,13 +150,13 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
             row.enabled = enabled
             row.prop(cache, "frame_start")
             row.prop(cache, "frame_end")
-        if cachetype not in {'SMOKE', 'CLOTH', 'DYNAMIC_PAINT'}:
+        if cachetype not in {'SMOKE', 'CLOTH', 'DYNAMIC_PAINT', 'RIGID_BODY'}:
             row.prop(cache, "frame_step")
-            
+
         if cachetype != 'SMOKE':
             layout.label(text=cache.info)
 
-        if cachetype not in {'SMOKE', 'DYNAMIC_PAINT'}:
+        if cachetype not in {'SMOKE', 'DYNAMIC_PAINT', 'RIGID_BODY'}:
             split = layout.split()
             split.enabled = enabled and bpy.data.is_saved
 

@@ -90,7 +90,7 @@ static BMEdge *connect_smallest_face(BMesh *bm, BMVert *v1, BMVert *v2, BMFace *
 	}
 
 	if (curf) {
-		face = BM_face_split(bm, curf, v1, v2, &nl, NULL, FALSE);
+		face = BM_face_split(bm, curf, v1, v2, &nl, NULL, false);
 		
 		if (r_nf) *r_nf = face;
 		return nl ? nl->e : NULL;
@@ -715,8 +715,8 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 	BMFace *face;
 	BLI_array_declare(verts);
 	float smooth, fractal, along_normal;
-	int use_sphere, cornertype, use_single_edge, use_grid_fill, use_only_quads;
-	int skey, seed, i, j, matched, a, b, numcuts, totesel;
+	bool use_sphere, use_single_edge, use_grid_fill, use_only_quads;
+	int cornertype, skey, seed, i, j, matched, a, b, numcuts, totesel;
 	
 	BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, SUBD_SPLIT);
 	
@@ -912,6 +912,10 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 			j = BLI_array_count(facedata) - 1;
 			
 			BMO_elem_flag_enable(bm, face, SUBD_SPLIT);
+
+			/* must initialize all members here */
+			facedata[j].start = NULL;
+			facedata[j].pat = NULL;
 			facedata[j].totedgesel = totesel;
 			facedata[j].face = face;
 		}
@@ -983,7 +987,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 			BLI_array_grow_items(loops_split, numcuts);
 			for (j = 0; j < numcuts; j++) {
-				int ok = TRUE;
+				bool ok = true;
 
 				/* Check for special case: [#32500]
 				 * This edge pair could be used by more then one face,
@@ -1006,7 +1010,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 								BLI_assert(other_loop->prev->v != loops[a]->v);
 								BLI_assert(other_loop->next->v != loops[a]->v);
 
-								ok = FALSE;
+								ok = false;
 								break;
 							}
 						}
@@ -1014,7 +1018,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 				}
 
 
-				if (ok == TRUE) {
+				if (ok == true) {
 					loops_split[j][0] = loops[a];
 					loops_split[j][1] = loops[b];
 				}
@@ -1036,10 +1040,10 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 
 			for (j = 0; j < BLI_array_count(loops_split); j++) {
 				if (loops_split[j][0]) {
-					BLI_assert(BM_edge_exists(loops_split[j][0]->v, loops_split[j][1]->v) == FALSE);
+					BLI_assert(BM_edge_exists(loops_split[j][0]->v, loops_split[j][1]->v) == NULL);
 
 					/* BMFace *nf = */ /* UNUSED */
-					BM_face_split(bm, face, loops_split[j][0]->v, loops_split[j][1]->v, &nl, NULL, FALSE);
+					BM_face_split(bm, face, loops_split[j][0]->v, loops_split[j][1]->v, &nl, NULL, false);
 				}
 			}
 
@@ -1123,7 +1127,7 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
 		BMElem *ele;
 
 		for (ele = BMO_iter_new(&iter, op.slots_out, "geom_inner.out", BM_EDGE | BM_VERT); ele; ele = BMO_iter_step(&iter)) {
-			BM_elem_select_set(bm, ele, TRUE);
+			BM_elem_select_set(bm, ele, true);
 		}
 	}
 	else if (seltype == SUBDIV_SELECT_LOOPCUT) {
@@ -1131,10 +1135,10 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
 		BMElem *ele;
 		
 		/* deselect input */
-		BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
+		BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
 
 		for (ele = BMO_iter_new(&iter, op.slots_out, "geom_inner.out", BM_EDGE | BM_VERT); ele; ele = BMO_iter_step(&iter)) {
-			BM_elem_select_set(bm, ele, TRUE);
+			BM_elem_select_set(bm, ele, true);
 
 			if (ele->head.htype == BM_VERT) {
 				BMEdge *e;
@@ -1145,13 +1149,13 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
 					     BM_elem_flag_test(e->v1, BM_ELEM_SELECT) &&
 					     BM_elem_flag_test(e->v2, BM_ELEM_SELECT))
 					{
-						BM_edge_select_set(bm, e, TRUE);
+						BM_edge_select_set(bm, e, true);
 					}
 					else if (BM_elem_flag_test(e, BM_ELEM_SELECT) &&
 					         (!BM_elem_flag_test(e->v1, BM_ELEM_SELECT) ||
 					          !BM_elem_flag_test(e->v2, BM_ELEM_SELECT)))
 					{
-						BM_edge_select_set(bm, e, FALSE);
+						BM_edge_select_set(bm, e, false);
 					}
 				}
 			}

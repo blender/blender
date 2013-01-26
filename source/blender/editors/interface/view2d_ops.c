@@ -952,6 +952,13 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			fac = 0.01f * (event->prevy - event->y);
 		dy = fac * BLI_rctf_size_y(&v2d->cur) / 10.0f;
 
+		/* support trackpad zoom to always zoom entirely - the v2d code uses portrait or landscape exceptions */
+		if (v2d->keepzoom & V2D_KEEPASPECT) {
+			if (fabsf(dx) > fabsf(dy))
+				dy = dx;
+			else
+				dx = dy;
+		}
 		RNA_float_set(op->ptr, "deltax", dx);
 		RNA_float_set(op->ptr, "deltay", dy);
 		
@@ -1037,6 +1044,14 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 			fac = 0.01f * (event->y - vzd->lasty);
 			dy = fac * BLI_rctf_size_y(&v2d->cur);
 			
+		}
+		
+		/* support zoom to always zoom entirely - the v2d code uses portrait or landscape exceptions */
+		if (v2d->keepzoom & V2D_KEEPASPECT) {
+			if (fabsf(dx) > fabsf(dy))
+				dy = dx;
+			else
+				dx = dy;
 		}
 		
 		/* set transform amount, and add current deltas to stored total delta (for redo) */

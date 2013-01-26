@@ -35,6 +35,7 @@
 #include "DNA_group_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_world_types.h"
@@ -412,7 +413,7 @@ static void rna_Scene_object_unlink(Scene *scene, ReportList *reports, Object *o
 		scene->basact = NULL;
 	}
 
-	BLI_remlink(&scene->base, base);
+	BKE_scene_base_unlink(scene, base);
 	MEM_freeN(base);
 
 	ob->id.us--;
@@ -1427,6 +1428,11 @@ static void rna_UnifiedPaintSettings_unprojected_radius_set(PointerRNA *ptr, flo
 	ups->unprojected_radius = value;
 }
 
+static char *rna_UnifiedPaintSettings_path(PointerRNA *ptr)
+{
+	return BLI_strdup("tool_settings.unified_paint_settings");
+}
+
 /* note: without this, when Multi-Paint is activated/deactivated, the colors
  * will not change right away when multiple bones are selected, this function
  * is not for general use and only for the few cases where changing scene
@@ -1454,6 +1460,11 @@ static void rna_SceneSequencer_update(Main *UNUSED(bmain), Scene *UNUSED(scene),
 {
 	BKE_sequencer_cache_cleanup();
 	BKE_sequencer_preprocessed_cache_cleanup();
+}
+
+static char *rna_ToolSettings_path(PointerRNA *ptr)
+{
+	return BLI_strdup("tool_settings");
 }
 
 #ifdef WITH_FREESTYLE
@@ -1576,6 +1587,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	};
 
 	srna = RNA_def_struct(brna, "ToolSettings", NULL);
+	RNA_def_struct_path_func(srna, "rna_ToolSettings_path");
 	RNA_def_struct_ui_text(srna, "Tool Settings", "");
 	
 	prop = RNA_def_property(srna, "sculpt", PROP_POINTER, PROP_NONE);
@@ -1892,6 +1904,7 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "UnifiedPaintSettings", NULL);
+	RNA_def_struct_path_func(srna, "rna_UnifiedPaintSettings_path");
 	RNA_def_struct_ui_text(srna, "Unified Paint Settings", "Overrides for some of the active brush's settings");
 
 	/* high-level flags to enable or disable unified paint settings */
@@ -4202,7 +4215,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "motion_blur_shutter", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "blurfac");
-	RNA_def_property_ui_range(prop, 0.01f, 2.0f, 1, 0);
+	RNA_def_property_ui_range(prop, 0.01f, 2.0f, 1, 1);
 	RNA_def_property_ui_text(prop, "Shutter", "Time taken in frames between shutter open and close");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
@@ -5058,6 +5071,13 @@ void RNA_def_scene(BlenderRNA *brna)
 	                         "All Keying Sets available for use (Builtins and Absolute Keying Sets for this Scene)");
 	RNA_def_property_update(prop, NC_SCENE | ND_KEYINGSET, NULL);
 	rna_def_scene_keying_sets_all(brna, prop);
+	
+	/* Rigid Body Simulation */
+	prop = RNA_def_property(srna, "rigidbody_world", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "rigidbody_world");
+	RNA_def_property_struct_type(prop, "RigidBodyWorld");
+	RNA_def_property_ui_text(prop, "Rigid Body World", "");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
 	/* Tool Settings */
 	prop = RNA_def_property(srna, "tool_settings", PROP_POINTER, PROP_NONE);

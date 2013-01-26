@@ -46,6 +46,7 @@
 #include "DNA_group_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
+#include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
@@ -72,6 +73,7 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pointcache.h"
+#include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 #include "BKE_world.h"
@@ -313,6 +315,9 @@ void BKE_scene_free(Scene *sce)
 
 	BKE_free_animdata((ID *)sce);
 	BKE_keyingsets_free(&sce->keyingsets);
+	
+	if (sce->rigidbody_world)
+		BKE_rigidbody_free_world(sce->rigidbody_world);
 	
 	if (sce->r.avicodecdata) {
 		free_avicodecdata(sce->r.avicodecdata);
@@ -950,6 +955,18 @@ Base *BKE_scene_base_add(Scene *sce, Object *ob)
 	return b;
 }
 
+void BKE_scene_base_unlink(Scene *sce, Base *base)
+{
+	/* remove rigid body constraint from world before removing object */
+	if (base->object->rigidbody_constraint)
+		BKE_rigidbody_remove_constraint(sce, base->object);
+	/* remove rigid body object from world before removing object */
+	if (base->object->rigidbody_object)
+		BKE_rigidbody_remove_object(sce, base->object);
+	
+	BLI_remlink(&sce->base, base);
+}
+
 void BKE_scene_base_deselect_all(Scene *sce)
 {
 	Base *b;
@@ -1205,6 +1222,12 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	BKE_animsys_evaluate_all_animation(bmain, sce, ctime);
 	/*...done with recusrive funcs */
 
+	/* run rigidbody sim */
+	// XXX: this position may still change, objects not being updated correctly before simulation is run
+	// NOTE: current position is so that rigidbody sim affects other objects
+	if (BKE_scene_check_rigidbody_active(sce))
+		BKE_rigidbody_do_simulation(sce, ctime);
+
 	/* clear "LIB_DOIT" flag from all materials, to prevent infinite recursion problems later 
 	 * when trying to find materials with drivers that need evaluating [#32017] 
 	 */
@@ -1392,4 +1415,9 @@ void BKE_scene_disable_color_management(Scene *scene)
 int BKE_scene_check_color_management_enabled(const Scene *scene)
 {
 	return strcmp(scene->display_settings.display_device, "None") != 0;
+}
+
+int BKE_scene_check_rigidbody_active(const Scene *scene)
+{
+	return scene && scene->rigidbody_world && scene->rigidbody_world->group && !(scene->rigidbody_world->flag & RBW_FLAG_MUTED);
 }

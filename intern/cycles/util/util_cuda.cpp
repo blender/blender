@@ -376,19 +376,21 @@ bool cuLibraryInit()
 	/* cuda 4.0 */
 	CUDA_LIBRARY_FIND(cuCtxSetCurrent);
 
-#ifndef WITH_CUDA_BINARIES
-#ifdef _WIN32
-	return false; /* runtime build doesn't work at the moment */
-#else
-	if(cuCompilerPath() == "")
-		return false;
+	if(cuHavePrecompiledKernels())
+		result = true;
+#ifndef _WIN32
+	else if(cuCompilerPath() != "")
+		result = true;
 #endif
-#endif
-
-	/* success */
-	result = true;
 
 	return result;
+}
+
+bool cuHavePrecompiledKernels()
+{
+	string cubins_path = path_get("lib");
+
+	return path_exists(cubins_path);
 }
 
 string cuCompilerPath()

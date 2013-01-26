@@ -49,9 +49,9 @@
 /**
  * Check of this BMesh is valid, this function can be slow since its intended to help with debugging.
  *
- * \return TRUE when the mesh is valid.
+ * \return true when the mesh is valid.
  */
-int BM_mesh_validate(BMesh *bm)
+bool BM_mesh_validate(BMesh *bm)
 {
 	int errtot;
 
@@ -106,11 +106,11 @@ int BM_mesh_validate(BMesh *bm)
 				if (l_iter->e != e) {
 					ERRMSG("edge %d: has invalid loop, loop is of face %d", i, BM_elem_index_get(l_iter->f));
 				}
-				else if (BM_vert_in_edge(e, l_iter->v) == FALSE) {
+				else if (BM_vert_in_edge(e, l_iter->v) == false) {
 					ERRMSG("edge %d: has invalid loop with vert not in edge, loop is of face %d",
 					       i, BM_elem_index_get(l_iter->f));
 				}
-				else if (BM_vert_in_edge(e, l_iter->next->v) == FALSE) {
+				else if (BM_vert_in_edge(e, l_iter->next->v) == false) {
 					ERRMSG("edge %d: has invalid loop with next vert not in edge, loop is of face %d",
 					       i, BM_elem_index_get(l_iter->f));
 				}
@@ -181,7 +181,7 @@ int BM_mesh_validate(BMesh *bm)
 
 	ERRMSG("Finished - errors %d", errtot);
 
-	return TRUE;
+	return true;
 }
 
 

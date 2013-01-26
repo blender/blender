@@ -500,18 +500,16 @@ class WM_MT_context_menu_enum(Menu):
 
     def draw(self, context):
         data_path = self.data_path
-        value = context_path_validate(bpy.context, data_path)
+        value = context_path_validate(context, data_path)
         if value is Ellipsis:
             return {'PASS_THROUGH'}
         base_path, prop_string = data_path.rsplit(".", 1)
         value_base = context_path_validate(context, base_path)
+        prop = value_base.bl_rna.properties[prop_string]
 
-        values = [(i.name, i.identifier) for i in value_base.bl_rna.properties[prop_string].enum_items]
-
-        for name, identifier in values:
-            props = self.layout.operator("wm.context_set_enum", text=name)
-            props.data_path = data_path
-            props.value = identifier
+        layout = self.layout
+        layout.label(prop.name, icon=prop.icon)
+        layout.prop(value_base, prop_string, expand=True)
 
 
 class WM_OT_context_menu_enum(Operator):
@@ -1255,13 +1253,6 @@ class WM_OT_copy_prev_settings(Operator):
         else:
             shutil.copytree(path_src, path_dst, symlinks=True)
 
-            # in 2.57 and earlier windows installers, system scripts were copied
-            # into the configuration directory, don't want to copy those
-            system_script = os.path.join(path_dst, "scripts/modules/bpy_types.py")
-            if os.path.isfile(system_script):
-                shutil.rmtree(os.path.join(path_dst, "scripts"))
-                shutil.rmtree(os.path.join(path_dst, "plugins"))
-
             # don't loose users work if they open the splash later.
             if bpy.data.is_saved is bpy.data.is_dirty is False:
                 bpy.ops.wm.read_homefile()
@@ -1596,7 +1587,7 @@ class WM_OT_addon_enable(Operator):
                                           "version %d.%d.%d and might not "
                                           "function (correctly), "
                                           "though it is enabled") %
-                                          info_ver)
+                                         info_ver)
             return {'FINISHED'}
         else:
             return {'CANCELLED'}
@@ -1739,7 +1730,7 @@ class WM_OT_addon_install(Operator):
             # don't use bpy.utils.script_paths("addons") because we may not be able to write to it.
             path_addons = bpy.utils.user_resource('SCRIPTS', "addons", create=True)
         else:
-            path_addons = bpy.context.user_preferences.filepaths.script_directory
+            path_addons = context.user_preferences.filepaths.script_directory
             if path_addons:
                 path_addons = os.path.join(path_addons, "addons")
 

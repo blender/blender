@@ -34,42 +34,42 @@
 #include "intern/bmesh_private.h"
 #include "intern/bmesh_walkers_private.h"
 
-static int bmw_mask_check_vert(BMWalker *walker, BMVert *v)
+static bool bmw_mask_check_vert(BMWalker *walker, BMVert *v)
 {
 	if ((walker->flag & BMW_FLAG_TEST_HIDDEN) && BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
-		return FALSE;
+		return false;
 	}
 	else if (walker->mask_vert && !BMO_elem_flag_test(walker->bm, v, walker->mask_vert)) {
-		return FALSE;
+		return false;
 	}
 	else {
-		return TRUE;
+		return true;
 	}
 }
 
-static int bmw_mask_check_edge(BMWalker *walker, BMEdge *e)
+static bool bmw_mask_check_edge(BMWalker *walker, BMEdge *e)
 {
 	if ((walker->flag & BMW_FLAG_TEST_HIDDEN) && BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
-		return FALSE;
+		return false;
 	}
 	else if (walker->mask_edge && !BMO_elem_flag_test(walker->bm, e, walker->mask_edge)) {
-		return FALSE;
+		return false;
 	}
 	else {
-		return TRUE;
+		return true;
 	}
 }
 
-static int bmw_mask_check_face(BMWalker *walker, BMFace *f)
+static bool bmw_mask_check_face(BMWalker *walker, BMFace *f)
 {
 	if ((walker->flag & BMW_FLAG_TEST_HIDDEN) && BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-		return FALSE;
+		return false;
 	}
 	else if (walker->mask_face && !BMO_elem_flag_test(walker->bm, f, walker->mask_face)) {
-		return FALSE;
+		return false;
 	}
 	else {
-		return TRUE;
+		return true;
 	}
 }
 
@@ -164,7 +164,7 @@ static void *bmw_ShellWalker_step(BMWalker *walker)
 {
 	BMEdge *curedge, *next = NULL;
 	BMVert *ov = NULL;
-	int restrictpass = 1;
+	bool restrictpass = true;
 	BMwShellWalker shellWalk = *((BMwShellWalker *)BMW_current_state(walker));
 	
 	if (!BLI_ghash_haskey(walker->visithash, shellWalk.base)) {
@@ -447,7 +447,7 @@ static void bmw_LoopWalker_begin(BMWalker *walker, void *data)
 	lwalk->is_single = (vert_edge_count[0] == 2 && vert_edge_count[1] == 2);
 
 	/* could also check that vertex*/
-	if ((lwalk->is_boundary == FALSE) &&
+	if ((lwalk->is_boundary == false) &&
 	    (vert_edge_count[0] == 3 || vert_edge_count[1] == 3))
 	{
 		BMIter iter;
@@ -548,19 +548,19 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 
 			/* typical loopiong over edges in the middle of a mesh */
 			/* however, why use 2 here at all? I guess for internal ngon loops it can be useful. Antony R. */
-			((vert_edge_tot == 4 || vert_edge_tot == 2) && owalk.is_boundary == FALSE) ||
+			((vert_edge_tot == 4 || vert_edge_tot == 2) && owalk.is_boundary == false) ||
 
 			/* walk over boundary of faces but stop at corners */
-			(owalk.is_boundary == TRUE && owalk.is_single == FALSE && vert_edge_tot > 2) ||
+			(owalk.is_boundary == true && owalk.is_single == false && vert_edge_tot > 2) ||
 
 			/* initial edge was a boundary, so is this edge and vertex is only apart of this face
 			 * this lets us walk over the the boundary of an ngon which is handy */
-			(owalk.is_boundary == TRUE && owalk.is_single == TRUE && vert_edge_tot == 2 && BM_edge_is_boundary(e)))
+			(owalk.is_boundary == true && owalk.is_single == true && vert_edge_tot == 2 && BM_edge_is_boundary(e)))
 		{
 			i = 0;
 			stopi = vert_edge_tot / 2;
 			while (1) {
-				if ((owalk.is_boundary == FALSE) && (i == stopi)) {
+				if ((owalk.is_boundary == false) && (i == stopi)) {
 					break;
 				}
 
@@ -589,7 +589,7 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 			    bmw_mask_check_edge(walker, l->e) &&
 			    !BLI_ghash_haskey(walker->visithash, l->e))
 			{
-				if (!(owalk.is_boundary == FALSE && i != stopi)) {
+				if (!(owalk.is_boundary == false && i != stopi)) {
 					lwalk = BMW_state_add(walker);
 					lwalk->cur = l->e;
 					lwalk->lastv = v;
@@ -642,47 +642,47 @@ static void *bmw_LoopWalker_step(BMWalker *walker)
 
 /* Check whether the face loop should includes the face specified
  * by the given BMLoop */
-static int bmw_FaceLoopWalker_include_face(BMWalker *walker, BMLoop *l)
+static bool bmw_FaceLoopWalker_include_face(BMWalker *walker, BMLoop *l)
 {
 	/* face must have degree 4 */
 	if (l->f->len != 4) {
-		return FALSE;
+		return false;
 	}
 
 	if (!bmw_mask_check_face(walker, l->f)) {
-		return FALSE;
+		return false;
 	}
 
 	/* the face must not have been already visite */
 	if (BLI_ghash_haskey(walker->visithash, l->f) && BLI_ghash_haskey(walker->secvisithash, l->e)) {
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 /* Check whether the face loop can start from the given edge */
-static int bmw_FaceLoopWalker_edge_begins_loop(BMWalker *walker, BMEdge *e)
+static bool bmw_FaceLoopWalker_edge_begins_loop(BMWalker *walker, BMEdge *e)
 {
 	/* There is no face loop starting from a wire edge */
 	if (BM_edge_is_wire(e)) {
-		return FALSE;
+		return false;
 	}
 	
 	/* Don't start a loop from a boundary edge if it cannot
 	 * be extended to cover any faces */
 	if (BM_edge_is_boundary(e)) {
 		if (!bmw_FaceLoopWalker_include_face(walker, e->l)) {
-			return FALSE;
+			return false;
 		}
 	}
 	
 	/* Don't start a face loop from non-manifold edges */
 	if (!BM_edge_is_manifold(e)) {
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 static void bmw_FaceLoopWalker_begin(BMWalker *walker, void *data)
@@ -697,7 +697,7 @@ static void bmw_FaceLoopWalker_begin(BMWalker *walker, void *data)
 
 	lwalk = BMW_state_add(walker);
 	lwalk->l = e->l;
-	lwalk->nocalc = 0;
+	lwalk->no_calc = false;
 	BLI_ghash_insert(walker->visithash, lwalk->l->f, NULL);
 
 	/* rewin */
@@ -708,7 +708,7 @@ static void bmw_FaceLoopWalker_begin(BMWalker *walker, void *data)
 
 	lwalk = BMW_state_add(walker);
 	*lwalk = owalk;
-	lwalk->nocalc = 0;
+	lwalk->no_calc = false;
 
 	BLI_ghash_free(walker->secvisithash, NULL, NULL);
 	walker->secvisithash = BLI_ghash_ptr_new("bmesh walkers 3");
@@ -740,7 +740,7 @@ static void *bmw_FaceLoopWalker_step(BMWalker *walker)
 
 	l = l->radial_next;
 	
-	if (lwalk->nocalc) {
+	if (lwalk->no_calc) {
 		return f;
 	}
 
@@ -758,11 +758,11 @@ static void *bmw_FaceLoopWalker_step(BMWalker *walker)
 		lwalk->l = l;
 
 		if (l->f->len != 4) {
-			lwalk->nocalc = 1;
+			lwalk->no_calc = true;
 			lwalk->l = origl;
 		}
 		else {
-			lwalk->nocalc = 0;
+			lwalk->no_calc = false;
 		}
 
 		BLI_ghash_insert(walker->secvisithash, l->e, NULL);

@@ -238,13 +238,16 @@ public:
 		if(path_exists(cubin))
 			return cubin;
 
-#if defined(WITH_CUDA_BINARIES) && defined(_WIN32)
-		if(major <= 1 && minor <= 2)
-			cuda_error(string_printf("CUDA device supported only compute capability 1.3 or up, found %d.%d.", major, minor));
-		else
-			cuda_error(string_printf("CUDA binary kernel for this graphics card compute capability (%d.%d) not found.", major, minor));
-		return "";
-#else
+#ifdef _WIN32
+		if(cuHavePrecompiledKernels()) {
+			if(major <= 1 && minor <= 2)
+				cuda_error(string_printf("CUDA device requires compute capability 1.3 or up, found %d.%d. Your GPU is not supported.", major, minor));
+			else
+				cuda_error(string_printf("CUDA binary kernel for this graphics card compute capability (%d.%d) not found.", major, minor));
+			return "";
+		}
+#endif
+
 		/* if not, find CUDA compiler */
 		string nvcc = cuCompilerPath();
 
@@ -282,7 +285,6 @@ public:
 		printf("Kernel compilation finished in %.2lfs.\n", time_dt() - starttime);
 
 		return cubin;
-#endif
 	}
 
 	bool load_kernels(bool experimental)

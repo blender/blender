@@ -59,7 +59,7 @@ typedef struct NearestHit {
 	struct BMFace *efa;
 	struct MTexPoly *tf;
 	struct BMLoop *l, *nextl;
-	struct MLoopUV *luv, *nextluv;
+	struct MLoopUV *luv, *luv_next;
 	int lindex; //index of loop within face
 	int vert1, vert2; //index in mesh of edge vertices
 } NearestHit;

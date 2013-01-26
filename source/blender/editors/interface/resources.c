@@ -395,6 +395,10 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->syntaxc; break;
 				case TH_NODE_FRAME:
 					cp = ts->movie; break;
+				case TH_NODE_MATTE:
+					cp = ts->syntaxs; break;
+				case TH_NODE_DISTORT:
+					cp = ts->syntaxd; break;
 				case TH_NODE_CURVING:
 					cp = &ts->noodle_curving; break;
 
@@ -2116,7 +2120,7 @@ void init_userdef_do_versions(void)
 			btheme->tclip.panelcolors = btheme->tui.panel;
 		}
 	}
-	
+
 	if (bmain->versionfile < 266) {
 		bTheme *btheme;
 		
@@ -2142,6 +2146,14 @@ void init_userdef_do_versions(void)
 		bTheme *btheme;
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			copy_v4_v4_char(btheme->tv3d.gradients.high_gradient, btheme->tv3d.back);
+		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(bmain, 265, 9)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			rgba_char_args_test_set(btheme->tnode.syntaxs, 151, 116, 116, 255);  /* matte nodes */
+			rgba_char_args_test_set(btheme->tnode.syntaxd, 116, 151, 151, 255);  /* distort nodes */
 		}
 	}
 

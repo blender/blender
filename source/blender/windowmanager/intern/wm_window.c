@@ -75,6 +75,11 @@
 
 #include "UI_interface.h"
 
+/* for assert */
+#ifndef NDEBUG
+#  include "BLI_threads.h"
+#endif
+
 /* the global to talk to ghost */
 static GHOST_SystemHandle g_system = NULL;
 
@@ -377,7 +382,7 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 		
 		/* displays with larger native pixels, like Macbook. Used to scale dpi with */
 		/* needed here, because it's used before it reads userdef */
-		U.pixelsize = GHOST_GetNativePixelSize();
+		U.pixelsize = GHOST_GetNativePixelSize(win->ghostwin);
 		BKE_userdef_state();
 		
 		/* store actual window size in blender window */
@@ -595,12 +600,13 @@ int wm_window_fullscreen_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 static void wm_convert_cursor_position(wmWindow *win, int *x, int *y)
 {
-
+	float fac = GHOST_GetNativePixelSize(win->ghostwin);
+	
 	GHOST_ScreenToClient(win->ghostwin, *x, *y, x, y);
-	*x *= GHOST_GetNativePixelSize();
+	*x *= fac;
 	
 	*y = (win->sizey - 1) - *y;
-	*y *= GHOST_GetNativePixelSize();
+	*y *= fac;
 }
 
 
@@ -661,6 +667,10 @@ void wm_window_make_drawable(bContext *C, wmWindow *win)
 			printf("%s: set drawable %d\n", __func__, win->winid);
 		}
 		GHOST_ActivateWindowDrawingContext(win->ghostwin);
+		
+		/* this can change per window */
+		U.pixelsize = GHOST_GetNativePixelSize(win->ghostwin);
+		BKE_userdef_state();
 	}
 }
 
@@ -947,6 +957,15 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 				
 				break;
 			}
+			case GHOST_kEventNativeResolutionChange:
+				// printf("change, pixel size %f\n", GHOST_GetNativePixelSize(win->ghostwin));
+				
+				U.pixelsize = GHOST_GetNativePixelSize(win->ghostwin);
+				BKE_userdef_state();
+				WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
+				WM_event_add_notifier(C, NC_WINDOW | NA_EDITED, NULL);
+
+				break;
 			case GHOST_kEventTrackpad:
 			{
 				GHOST_TEventTrackpadData *pd = data;
@@ -1022,8 +1041,12 @@ static int wm_window_timer(const bContext *C)
 
 void wm_window_process_events(const bContext *C) 
 {
-	int hasevent = GHOST_ProcessEvents(g_system, 0); /* 0 is no wait */
-	
+	int hasevent;
+
+	BLI_assert(BLI_thread_is_main());
+
+	hasevent = GHOST_ProcessEvents(g_system, 0); /* 0 is no wait */
+
 	if (hasevent)
 		GHOST_DispatchEvents(g_system);
 	
@@ -1045,7 +1068,9 @@ void wm_window_testbreak(void)
 {
 	static double ltime = 0;
 	double curtime = PIL_check_seconds_timer();
-	
+
+	BLI_assert(BLI_thread_is_main());
+
 	/* only check for breaks every 50 milliseconds
 	 * if we get called more often.
 	 */
@@ -1289,7 +1314,7 @@ void WM_init_native_pixels(int do_it)
 void WM_cursor_warp(wmWindow *win, int x, int y)
 {
 	if (win && win->ghostwin) {
-		float f = GHOST_GetNativePixelSize();
+		float f = GHOST_GetNativePixelSize(win->ghostwin);
 		int oldx = x, oldy = y;
 
 		x = x / f;
@@ -1304,18 +1329,33 @@ void WM_cursor_warp(wmWindow *win, int x, int y)
 	}
 }
 
+/**
+ * Get the cursor pressure, in most cases you'll want to use wmTabletData from the event
+ */
+float WM_cursor_pressure(const struct wmWindow *win)
+{
+	const GHOST_TabletData *td = GHOST_GetTabletData(win->ghostwin);
+	/* if there's tablet data from an active tablet device then add it */
+	if ((td != NULL) && td->Active != GHOST_kTabletModeNone) {
+		return td->Pressure;
+	}
+	else {
+		return -1.0f;
+	}
+}
+
 /* support for native pixel size */
 /* mac retina opens window in size X, but it has up to 2 x more pixels */
 int WM_window_pixels_x(wmWindow *win)
 {
-	float f = GHOST_GetNativePixelSize();
+	float f = GHOST_GetNativePixelSize(win->ghostwin);
 	
 	return (int)(f * (float)win->sizex);
 }
 
 int WM_window_pixels_y(wmWindow *win)
 {
-	float f = GHOST_GetNativePixelSize();
+	float f = GHOST_GetNativePixelSize(win->ghostwin);
 	
 	return (int)(f * (float)win->sizey);
 	

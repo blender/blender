@@ -26,6 +26,7 @@ import addon_utils
 import sys
 import imp
 
+
 def disable_addons():
     # first disable all
     addons = bpy.context.user_preferences.addons
@@ -86,7 +87,7 @@ def reload_addons(do_reload=True, do_reverse=True):
                 imp.reload(sys.modules[mod_name])
 
             if do_reverse:
-                # in case order matters when it shouldnt
+                # in case order matters when it shouldn't
                 modules.reverse()
 
 

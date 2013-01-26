@@ -90,7 +90,7 @@ public:
 	Transform worldtocamera;
 
 	Transform rastertocamera;
-	Transform cameratoraster;;
+	Transform cameratoraster;
 
 	float3 dx;
 	float3 dy;

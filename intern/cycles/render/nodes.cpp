@@ -142,8 +142,9 @@ ImageTextureNode::ImageTextureNode()
 	slot = -1;
 	is_float = -1;
 	filename = "";
+	is_builtin = false;
 	color_space = ustring("Color");
-	projection = ustring("Flat");;
+	projection = ustring("Flat");
 	projection_blend = 0.0f;
 	animated = false;
 
@@ -155,7 +156,7 @@ ImageTextureNode::ImageTextureNode()
 ImageTextureNode::~ImageTextureNode()
 {
 	if(image_manager)
-		image_manager->remove_image(filename);
+		image_manager->remove_image(filename, is_builtin);
 }
 
 ShaderNode *ImageTextureNode::clone() const
@@ -176,7 +177,7 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 	image_manager = compiler.image_manager;
 	if(is_float == -1) {
 		bool is_float_bool;
-		slot = image_manager->add_image(filename, animated, is_float_bool);
+		slot = image_manager->add_image(filename, is_builtin, animated, is_float_bool);
 		is_float = (int)is_float_bool;
 	}
 
@@ -237,7 +238,7 @@ void ImageTextureNode::compile(OSLCompiler& compiler)
 	tex_mapping.compile(compiler);
 
 	if(is_float == -1)
-		is_float = (int)image_manager->is_float_image(filename);
+		is_float = (int)image_manager->is_float_image(filename, false);
 
 	compiler.parameter("filename", filename.c_str());
 	if(is_float || color_space != "Color")
@@ -271,6 +272,7 @@ EnvironmentTextureNode::EnvironmentTextureNode()
 	slot = -1;
 	is_float = -1;
 	filename = "";
+	is_builtin = false;
 	color_space = ustring("Color");
 	projection = ustring("Equirectangular");
 	animated = false;
@@ -283,7 +285,7 @@ EnvironmentTextureNode::EnvironmentTextureNode()
 EnvironmentTextureNode::~EnvironmentTextureNode()
 {
 	if(image_manager)
-		image_manager->remove_image(filename);
+		image_manager->remove_image(filename, is_builtin);
 }
 
 ShaderNode *EnvironmentTextureNode::clone() const
@@ -304,7 +306,7 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 	image_manager = compiler.image_manager;
 	if(slot == -1) {
 		bool is_float_bool;
-		slot = image_manager->add_image(filename, animated, is_float_bool);
+		slot = image_manager->add_image(filename, is_builtin, animated, is_float_bool);
 		is_float = (int)is_float_bool;
 	}
 
@@ -354,7 +356,7 @@ void EnvironmentTextureNode::compile(OSLCompiler& compiler)
 	tex_mapping.compile(compiler);
 
 	if(is_float == -1)
-		is_float = (int)image_manager->is_float_image(filename);
+		is_float = (int)image_manager->is_float_image(filename, false);
 
 	compiler.parameter("filename", filename.c_str());
 	compiler.parameter("projection", projection);
@@ -3255,6 +3257,8 @@ void NormalMapNode::attributes(AttributeRequestSet *attributes)
 			attributes->add(ustring((string(attribute.c_str()) + ".tangent").c_str()));
 			attributes->add(ustring((string(attribute.c_str()) + ".tangent_sign").c_str()));
 		}
+
+		attributes->add(ATTR_STD_VERTEX_NORMAL);
 	}
 	
 	ShaderNode::attributes(attributes);

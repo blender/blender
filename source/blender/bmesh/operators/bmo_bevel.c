@@ -34,7 +34,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 {
 	const float offset = BMO_slot_float_get(op->slots_in, "offset");
 	const int   seg    = BMO_slot_int_get(op->slots_in,   "segments");
-	const int   vonly  = BMO_slot_bool_get(op->slots_in,  "vertex_only");
+	const bool  vonly  = BMO_slot_bool_get(op->slots_in,  "vertex_only");
 
 	if (offset > 0) {
 		BMOIter siter;
@@ -43,7 +43,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 
 		/* first flush 'geom' into flags, this makes it possible to check connected data,
 		 * BM_FACE is cleared so we can put newly created faces into a bmesh slot. */
-		BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, FALSE);
+		BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
 
 		BMO_ITER (v, &siter, op->slots_in, "geom", BM_VERT) {
 			BM_elem_flag_enable(v, BM_ELEM_TAG);

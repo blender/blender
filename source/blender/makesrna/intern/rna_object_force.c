@@ -1182,7 +1182,7 @@ static void rna_def_field(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "f_strength");
-	RNA_def_property_range(prop, -1000.0f, 1000.0f);
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Strength", "Strength of force field");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 

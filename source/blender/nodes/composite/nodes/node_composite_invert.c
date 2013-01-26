@@ -43,82 +43,6 @@ static bNodeSocketTemplate cmp_node_invert_out[] = {
 	{ -1, 0, "" }
 };
 
-#ifdef WITH_COMPOSITOR_LEGACY
-
-static void do_invert(bNode *node, float *out, float *in)
-{
-	if (node->custom1 & CMP_CHAN_RGB) {
-		out[0] = 1.0f - in[0];
-		out[1] = 1.0f - in[1];
-		out[2] = 1.0f - in[2];
-	}
-	else {
-		copy_v3_v3(out, in);
-	}
-		
-	if (node->custom1 & CMP_CHAN_A)
-		out[3] = 1.0f - in[3];
-	else
-		out[3] = in[3];
-}
-
-static void do_invert_fac(bNode *node, float *out, float *in, float *fac)
-{
-	float col[4], facm;
-
-	do_invert(node, col, in);
-
-	/* blend inverted result against original input with fac */
-	facm = 1.0f - fac[0];
-
-	if (node->custom1 & CMP_CHAN_RGB) {
-		col[0] = fac[0]*col[0] + (facm*in[0]);
-		col[1] = fac[0]*col[1] + (facm*in[1]);
-		col[2] = fac[0]*col[2] + (facm*in[2]);
-	}
-	if (node->custom1 & CMP_CHAN_A)
-		col[3] = fac[0]*col[3] + (facm*in[3]);
-	
-	copy_v4_v4(out, col);
-}
-
-static void node_composit_exec_invert(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	/* stack order in: fac, Image, Image */
-	/* stack order out: Image */
-	float *fac= in[0]->vec;
-	
-	if (out[0]->hasoutput==0) return;
-	
-	/* input no image? then only color operation */
-	if (in[1]->data==NULL && in[0]->data==NULL) {
-		do_invert_fac(node, out[0]->vec, in[1]->vec, fac);
-	}
-	else {
-		/* make output size of first available input image, or then size of fac */
-		CompBuf *cbuf= in[1]->data?in[1]->data:in[0]->data;
-
-		/* if neither RGB or A toggled on, pass through */
-		if (node->custom1 != 0) {
-			CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
-			
-			if (fac[0] < 1.0f || in[0]->data!=NULL)
-				composit2_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[0]->data, fac, do_invert_fac, CB_RGBA, CB_VAL);
-			else
-				composit1_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, do_invert, CB_RGBA);
-			out[0]->data= stackbuf;
-			return;
-			
-		}
-		else {
-			out[0]->data = pass_on_compbuf(cbuf);
-			return;
-		}
-	}
-}
-
-#endif  /* WITH_COMPOSITOR_LEGACY */
-
 static void node_composit_init_invert(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->custom1 |= CMP_CHAN_RGB;
@@ -133,9 +57,6 @@ void register_node_type_cmp_invert(bNodeTreeType *ttype)
 	node_type_socket_templates(&ntype, cmp_node_invert_in, cmp_node_invert_out);
 	node_type_size(&ntype, 120, 120, 140);
 	node_type_init(&ntype, node_composit_init_invert);
-#ifdef WITH_COMPOSITOR_LEGACY
-	node_type_exec(&ntype, node_composit_exec_invert);
-#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

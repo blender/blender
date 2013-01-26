@@ -70,6 +70,7 @@ public:
 	int slot;
 	int is_float;
 	string filename;
+	bool is_builtin;
 	ustring color_space;
 	ustring projection;
 	float projection_blend;
@@ -89,6 +90,7 @@ public:
 	int slot;
 	int is_float;
 	string filename;
+	bool is_builtin;
 	ustring color_space;
 	ustring projection;
 	bool animated;

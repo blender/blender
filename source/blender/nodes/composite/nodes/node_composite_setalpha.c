@@ -43,41 +43,6 @@ static bNodeSocketTemplate cmp_node_setalpha_out[] = {
 	{	-1, 0, ""	}
 };
 
-#ifdef WITH_COMPOSITOR_LEGACY
-
-static void node_composit_exec_setalpha(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	/* stack order out: RGBA image */
-	/* stack order in: col, alpha */
-	
-	/* input no image? then only color operation */
-	if (in[0]->data==NULL && in[1]->data==NULL) {
-		out[0]->vec[0] = in[0]->vec[0];
-		out[0]->vec[1] = in[0]->vec[1];
-		out[0]->vec[2] = in[0]->vec[2];
-		out[0]->vec[3] = in[1]->vec[0];
-	}
-	else {
-		/* make output size of input image */
-		CompBuf *cbuf= in[0]->data?in[0]->data:in[1]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
-		
-		if (in[1]->data==NULL && in[1]->vec[0]==1.0f) {
-			/* pass on image */
-			composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_copy_rgb, CB_RGBA);
-		}
-		else {
-			/* send an compbuf or a value to set as alpha - composit2_pixel_processor handles choosing the right one */
-			composit2_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba, CB_RGBA, CB_VAL);
-		}
-	
-		out[0]->data= stackbuf;
-	}
-}
-
-#endif  /* WITH_COMPOSITOR_LEGACY */
-
-
 void register_node_type_cmp_setalpha(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
@@ -85,9 +50,6 @@ void register_node_type_cmp_setalpha(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_SETALPHA, "Set Alpha", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_setalpha_in, cmp_node_setalpha_out);
 	node_type_size(&ntype, 120, 40, 140);
-#ifdef WITH_COMPOSITOR_LEGACY
-	node_type_exec(&ntype, node_composit_exec_setalpha);
-#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

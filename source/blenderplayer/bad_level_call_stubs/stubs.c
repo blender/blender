@@ -121,6 +121,7 @@ struct wmEvent;
 struct wmKeyConfig;
 struct wmKeyMap;
 struct wmOperator;
+struct wmOperatorType;
 struct wmWindow;
 struct wmWindowManager;
 
@@ -203,6 +204,7 @@ int WM_operator_props_dialog_popup(struct bContext *C, struct wmOperator *op, in
 int WM_operator_confirm(struct bContext *C, struct wmOperator *op, struct wmEvent *event) {return 0;}
 struct MenuType *WM_menutype_find(const char *idname, int quiet) {return (struct MenuType *) NULL;}
 void WM_operator_stack_clear(struct bContext *C) {}
+void WM_operator_handlers_clear(struct bContext *C, struct wmOperatorType *ot) {}
 
 void WM_autosave_init(struct bContext *C) {}
 void WM_jobs_kill_all_except(struct wmWindowManager *wm) {}
@@ -341,6 +343,7 @@ void uiLayoutSetEnabled(struct uiLayout *layout, int enabled) {}
 void uiLayoutSetAlignment(struct uiLayout *layout, int alignment) {}
 void uiLayoutSetScaleX(struct uiLayout *layout, float scale) {}
 void uiLayoutSetScaleY(struct uiLayout *layout, float scale) {}
+void uiTemplateIconView(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname) {}
 void ED_base_object_free_and_unlink(struct Scene *scene, struct Base *base) {}
 void ED_mesh_calc_normals(struct Mesh *me) {}
 void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int verts, int edges, int faces) {}
@@ -533,6 +536,7 @@ void macro_wrapper(struct wmOperatorType *ot, void *userdata) {}
 int pyrna_id_FromPyObject(struct PyObject *obj, struct ID **id) { return 0; }
 struct PyObject *pyrna_id_CreatePyObject(struct ID *id) {return NULL; }
 void BPY_context_update(struct bContext *C) {};
+const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *msgid) { return msgid; }
 
 #ifdef WITH_FREESTYLE
 /* Freestyle */

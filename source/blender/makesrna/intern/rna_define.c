@@ -1210,6 +1210,15 @@ void RNA_def_property_ui_icon(PropertyRNA *prop, int icon, int consecutive)
 		prop->flag |= PROP_ICONS_CONSECUTIVE;
 }
 
+/**
+ * The values hare are a little confusing:
+ *
+ * \param step For floats this is (step / 100), why /100? - nobody knows.
+ * for int's, whole values are used.
+ *
+ * \param precision The number of zeros to show
+ * (as a whole number - common range is 1 - 6), see PRECISION_FLOAT_MAX
+ */
 void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double step, int precision)
 {
 	StructRNA *srna = DefRNA.laststruct;
@@ -1230,6 +1239,21 @@ void RNA_def_property_ui_range(PropertyRNA *prop, double min, double max, double
 			fprop->softmax = (float)max;
 			fprop->step = (float)step;
 			fprop->precision = (int)precision;
+#if 0 /* handy but annoying */
+			if (DefRNA.preprocess) {
+				/* check we're not over PRECISION_FLOAT_MAX */
+				if (fprop->precision > 6) {
+					fprintf(stderr, "%s: \"%s.%s\", precision value over maximum.\n",
+					        __func__, srna->identifier, prop->identifier);
+					DefRNA.error = 1;
+				}
+				else if (fprop->precision < 1) {
+					fprintf(stderr, "%s: \"%s.%s\", precision value under minimum.\n",
+					        __func__, srna->identifier, prop->identifier);
+					DefRNA.error = 1;
+				}
+			}
+#endif
 			break;
 		}
 		default:
@@ -2534,13 +2558,14 @@ PropertyRNA *RNA_def_string_file_name(StructOrFunctionRNA *cont_, const char *id
 	return prop;
 }
 
-PropertyRNA *RNA_def_string_translate(StructOrFunctionRNA *cont_, const char *identifier, const char *default_value,
-                                      int maxlen, const char *ui_name, const char *ui_description)
+PropertyRNA *RNA_def_string_py_translate(StructOrFunctionRNA *cont_, const char *identifier, const char *default_value,
+                                         int maxlen, const char *ui_name, const char *ui_description)
 {
 	ContainerRNA *cont = cont_;
 	PropertyRNA *prop;
 
-	prop = RNA_def_property(cont, identifier, PROP_STRING, PROP_TRANSLATE);
+	prop = RNA_def_property(cont, identifier, PROP_STRING, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_STRING_PY_TRANSLATE);
 	if (maxlen != 0) RNA_def_property_string_maxlength(prop, maxlen);
 	if (default_value) RNA_def_property_string_default(prop, default_value);
 	RNA_def_property_ui_text(prop, ui_name, ui_description);

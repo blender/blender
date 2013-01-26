@@ -52,12 +52,14 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"  /* PET modes */
 
-#include "RNA_access.h"
-
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
-
-#include "BLF_api.h"
+#include "BLI_utildefines.h"
+#include "BLI_math.h"
+#include "BLI_rect.h"
+#include "BLI_listbase.h"
+#include "BLI_string.h"
+#include "BLI_ghash.h"
+#include "BLI_linklist.h"
+#include "BLI_smallhash.h"
 
 #include "BKE_nla.h"
 #include "BKE_bmesh.h"
@@ -69,6 +71,9 @@
 #include "BKE_unit.h"
 #include "BKE_mask.h"
 
+#include "BIF_gl.h"
+#include "BIF_glutil.h"
+
 #include "ED_image.h"
 #include "ED_keyframing.h"
 #include "ED_screen.h"
@@ -79,25 +84,25 @@
 #include "ED_clip.h"
 #include "ED_mask.h"
 
-#include "UI_view2d.h"
 #include "WM_types.h"
 #include "WM_api.h"
 
-#include "BLI_math.h"
-#include "BLI_blenlib.h"
-#include "BLI_utildefines.h"
-#include "BLI_ghash.h"
-#include "BLI_linklist.h"
-#include "BLI_smallhash.h"
-#include "BLI_array.h"
-
+#include "UI_view2d.h"
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
+
+#include "RNA_access.h"
+
+#include "BLF_api.h"
 
 #include "transform.h"
 
 static void drawTransformApply(const struct bContext *C, ARegion *ar, void *arg);
 static int doEdgeSlide(TransInfo *t, float perc);
+static int doVertSlide(TransInfo *t, float perc);
+
+static void drawEdgeSlide(const struct bContext *C, TransInfo *t);
+static void drawVertSlide(const struct bContext *C, TransInfo *t);
 
 /* ************************** SPACE DEPENDANT CODE **************************** */
 
@@ -875,19 +880,52 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				break;
 			case TFM_MODAL_TRANSLATE:
 				/* only switch when... */
-				if (ELEM3(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL) ) {
+				if (ELEM5(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_EDGE_SLIDE, TFM_VERT_SLIDE)) {
+					if (t->mode == TFM_EDGE_SLIDE) {
+						freeEdgeSlideVerts(t);
+					}
+					else if (t->mode == TFM_VERT_SLIDE) {
+						freeVertSlideVerts(t);
+					}
 					resetTransRestrictions(t);
 					restoreTransObjects(t);
 					initTranslation(t);
 					initSnapping(t, NULL); // need to reinit after mode change
 					t->redraw |= TREDRAW_HARD;
+					WM_event_add_mousemove(t->context);
 				}
-				else if (t->mode == TFM_TRANSLATION) {
-					if (t->options & (CTX_MOVIECLIP | CTX_MASK)) {
-						restoreTransObjects(t);
+				else {
+					if (t->obedit && t->obedit->type == OB_MESH) {
+						if ((t->mode == TFM_TRANSLATION) && (t->spacetype == SPACE_VIEW3D)) {
+							resetTransRestrictions(t);
+							restoreTransObjects(t);
 
-						t->flag ^= T_ALT_TRANSFORM;
-						t->redraw |= TREDRAW_HARD;
+							/* first try edge slide */
+							initEdgeSlide(t);
+							/* if that fails, do vertex slide */
+							if (t->state == TRANS_CANCEL) {
+								t->state = TRANS_STARTING;
+								initVertSlide(t);
+							}
+							/* vert slide can fail on unconnected vertices (rare but possible) */
+							if (t->state == TRANS_CANCEL) {
+								t->state = TRANS_STARTING;
+								resetTransRestrictions(t);
+								restoreTransObjects(t);
+								initTranslation(t);
+							}
+							initSnapping(t, NULL); // need to reinit after mode change
+							t->redraw |= TREDRAW_HARD;
+							WM_event_add_mousemove(t->context);
+						}
+					}
+					else if (t->options & (CTX_MOVIECLIP | CTX_MASK)) {
+						if (t->mode == TFM_TRANSLATION) {
+							restoreTransObjects(t);
+
+							t->flag ^= T_ALT_TRANSFORM;
+							t->redraw |= TREDRAW_HARD;
+						}
 					}
 				}
 				break;
@@ -1600,7 +1638,10 @@ static void drawTransformView(const struct bContext *C, ARegion *UNUSED(ar), voi
 	drawConstraint(t);
 	drawPropCircle(C, t);
 	drawSnapping(C, t);
-	drawNonPropEdge(C, t);
+
+	/* edge slide, vert slide */
+	drawEdgeSlide(C, t);
+	drawVertSlide(C, t);
 }
 
 /* just draw a little warning message in the top-right corner of the viewport to warn that autokeying is enabled */
@@ -1949,6 +1990,9 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		case TFM_EDGE_SLIDE:
 			initEdgeSlide(t);
 			break;
+		case TFM_VERT_SLIDE:
+			initVertSlide(t);
+			break;
 		case TFM_BONE_ROLL:
 			initBoneRoll(t);
 			break;
@@ -2078,12 +2122,6 @@ void transformApply(bContext *C, TransInfo *t)
 	/* If auto confirm is on, break after one pass */
 	if (t->options & CTX_AUTOCONFIRM) {
 		t->state = TRANS_CONFIRM;
-	}
-
-	if (BKE_ptcache_get_continue_physics()) {
-		// TRANSFORM_FIX_ME
-		//do_screenhandlers(G.curscreen);
-		t->redraw |= TREDRAW_HARD;
 	}
 
 	t->context = NULL;
@@ -4902,29 +4940,43 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 	return NULL;
 }
 
-static void calcNonProportionalEdgeSlide(TransInfo *t, SlideData *sld, const float mval[2])
+static void calcNonProportionalEdgeSlide(TransInfo *t, EdgeSlideData *sld, const float mval[2])
 {
-	TransDataSlideVert *sv = sld->sv;
+	TransDataEdgeSlideVert *sv = sld->sv;
 
 	if (sld->totsv > 0) {
+		ARegion *ar = t->ar;
+		RegionView3D *rv3d = NULL;
+		float projectMat[4][4];
+
 		int i = 0;
 
-		float v_proj[3];
+		float v_proj[2];
 		float dist = 0;
 		float min_dist = FLT_MAX;
+
+		if (t->spacetype == SPACE_VIEW3D) {
+			/* background mode support */
+			rv3d = t->ar ? t->ar->regiondata : NULL;
+		}
+
+		if (!rv3d) {
+			/* ok, let's try to survive this */
+			unit_m4(projectMat);
+		}
+		else {
+			ED_view3d_ob_project_mat_get(rv3d, t->obedit, projectMat);
+		}
 
 		for (i = 0; i < sld->totsv; i++, sv++) {
 			/* Set length */
 			sv->edge_len = len_v3v3(sv->upvec, sv->downvec);
 
-			mul_v3_m4v3(v_proj, t->obedit->obmat, sv->v->co);
-			/* allow points behind the view [#33643] */
-			if (ED_view3d_project_float_global(t->ar, v_proj, v_proj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
-				dist = len_squared_v2v2(mval, v_proj);
-				if (dist < min_dist) {
-					min_dist = dist;
-					sld->curr_sv_index = i;
-				}
+			ED_view3d_project_float_v2_m4(ar, sv->v->co, v_proj, projectMat);
+			dist = len_squared_v2v2(mval, v_proj);
+			if (dist < min_dist) {
+				min_dist = dist;
+				sld->curr_sv_index = i;
 			}
 		}
 	}
@@ -4933,17 +4985,17 @@ static void calcNonProportionalEdgeSlide(TransInfo *t, SlideData *sld, const flo
 	}
 }
 
-static int createSlideVerts(TransInfo *t)
+static int createEdgeSlideVerts(TransInfo *t)
 {
 	BMEditMesh *em = BMEdit_FromObject(t->obedit);
 	BMesh *bm = em->bm;
 	BMIter iter;
 	BMEdge *e, *e1;
 	BMVert *v, *v2, *first;
-	TransDataSlideVert *sv_array;
+	TransDataEdgeSlideVert *sv_array;
 	BMBVHTree *btree;
 	SmallHash table;
-	SlideData *sld = MEM_callocN(sizeof(*sld), "sld");
+	EdgeSlideData *sld = MEM_callocN(sizeof(*sld), "sld");
 	View3D *v3d = NULL;
 	RegionView3D *rv3d = NULL;
 	ARegion *ar = t->ar;
@@ -5040,7 +5092,7 @@ static int createSlideVerts(TransInfo *t)
 		return 0;
 	}
 
-	sv_array = MEM_callocN(sizeof(TransDataSlideVert) * j, "sv_array");
+	sv_array = MEM_callocN(sizeof(TransDataEdgeSlideVert) * j, "sv_array");
 	loop_nr = 0;
 
 	j = 0;
@@ -5102,7 +5154,7 @@ static int createSlideVerts(TransInfo *t)
 		/*iterate over the loop*/
 		first = v;
 		do {
-			TransDataSlideVert *sv = sv_array + j;
+			TransDataEdgeSlideVert *sv = sv_array + j;
 
 			sv->v = v;
 			sv->origvert = *v;
@@ -5272,7 +5324,7 @@ static int createSlideVerts(TransInfo *t)
 	if (rv3d)
 		calcNonProportionalEdgeSlide(t, sld, mval);
 
-	sld->origfaces_init = TRUE;
+	sld->origfaces_init = true;
 	sld->em = em;
 	
 	/*zero out start*/
@@ -5305,10 +5357,10 @@ static int createSlideVerts(TransInfo *t)
 	return 1;
 }
 
-void projectSVData(TransInfo *t, int final)
+void projectEdgeSlideData(TransInfo *t, bool is_final)
 {
-	SlideData *sld = t->customData;
-	TransDataSlideVert *sv;
+	EdgeSlideData *sld = t->customData;
+	TransDataEdgeSlideVert *sv;
 	BMEditMesh *em = sld->em;
 	SmallHash visit;
 	int i;
@@ -5435,7 +5487,7 @@ void projectSVData(TransInfo *t, int final)
 				 * and we do not want to mess up other shape keys */
 				BM_loop_interp_from_face(em->bm, l, f_copy_flip, FALSE, FALSE);
 
-				if (final) {
+				if (is_final) {
 					BM_loop_interp_multires(em->bm, l, f_copy_flip);
 					if (f_copy != f_copy_flip) {
 						BM_loop_interp_multires(em->bm, l, f_copy);
@@ -5459,7 +5511,7 @@ void projectSVData(TransInfo *t, int final)
 	BLI_smallhash_release(&visit);
 }
 
-void freeSlideTempFaces(SlideData *sld)
+void freeEdgeSlideTempFaces(EdgeSlideData *sld)
 {
 	if (sld->origfaces_init) {
 		SmallHashIter hiter;
@@ -5472,7 +5524,7 @@ void freeSlideTempFaces(SlideData *sld)
 
 		BLI_smallhash_release(&sld->origfaces);
 
-		sld->origfaces_init = FALSE;
+		sld->origfaces_init = false;
 
 		/* arrays are dirty from removing faces: EDBM_index_arrays_free */
 		EDBM_update_generic(sld->em, FALSE, TRUE);
@@ -5480,13 +5532,13 @@ void freeSlideTempFaces(SlideData *sld)
 }
 
 
-void freeSlideVerts(TransInfo *t)
+void freeEdgeSlideVerts(TransInfo *t)
 {
-	SlideData *sld = t->customData;
+	EdgeSlideData *sld = t->customData;
 	
 #if 0 /*BMESH_TODO*/
 	if (me->drawflag & ME_DRAWEXTRA_EDGELEN) {
-		TransDataSlideVert *sv;
+		TransDataEdgeSlideVert *sv;
 		LinkNode *look = sld->vertlist;
 		GHash *vertgh = sld->vhash;
 		while (look) {
@@ -5503,7 +5555,7 @@ void freeSlideVerts(TransInfo *t)
 	if (!sld)
 		return;
 	
-	freeSlideTempFaces(sld);
+	freeEdgeSlideTempFaces(sld);
 
 	bmesh_edit_end(sld->em->bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 
@@ -5519,13 +5571,13 @@ void freeSlideVerts(TransInfo *t)
 
 void initEdgeSlide(TransInfo *t)
 {
-	SlideData *sld;
+	EdgeSlideData *sld;
 
 	t->mode = TFM_EDGE_SLIDE;
 	t->transform = EdgeSlide;
 	t->handleEvent = handleEventEdgeSlide;
 
-	if (!createSlideVerts(t)) {
+	if (!createEdgeSlideVerts(t)) {
 		t->state = TRANS_CANCEL;
 		return;
 	}
@@ -5535,7 +5587,7 @@ void initEdgeSlide(TransInfo *t)
 	if (!sld)
 		return;
 
-	t->customFree = freeSlideVerts;
+	t->customFree = freeEdgeSlideVerts;
 
 	/* set custom point first if you want value to be initialized by init */
 	setCustomPoints(t, &t->mouse, sld->end, sld->start);
@@ -5555,7 +5607,7 @@ void initEdgeSlide(TransInfo *t)
 int handleEventEdgeSlide(struct TransInfo *t, struct wmEvent *event)
 {
 	if (t->mode == TFM_EDGE_SLIDE) {
-		SlideData *sld = t->customData;
+		EdgeSlideData *sld = t->customData;
 
 		if (sld) {
 			switch (event->type) {
@@ -5598,17 +5650,17 @@ int handleEventEdgeSlide(struct TransInfo *t, struct wmEvent *event)
 	return 0;
 }
 
-void drawNonPropEdge(const struct bContext *C, TransInfo *t)
+void drawEdgeSlide(const struct bContext *C, TransInfo *t)
 {
 	if (t->mode == TFM_EDGE_SLIDE) {
-		SlideData *sld = (SlideData *)t->customData;
+		EdgeSlideData *sld = (EdgeSlideData *)t->customData;
 		/* Non-Prop mode */
 		if (sld && sld->is_proportional == FALSE) {
 			View3D *v3d = CTX_wm_view3d(C);
 			float marker[3];
 			float v1[3], v2[3];
 			float interp_v;
-			TransDataSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
+			TransDataEdgeSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
 			const float ctrl_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) + 1.5f;
 			const float guide_size = ctrl_size - 0.5f;
 			const float line_size = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.5f;
@@ -5674,8 +5726,8 @@ void drawNonPropEdge(const struct bContext *C, TransInfo *t)
 
 static int doEdgeSlide(TransInfo *t, float perc)
 {
-	SlideData *sld = t->customData;
-	TransDataSlideVert *svlist = sld->sv, *sv;
+	EdgeSlideData *sld = t->customData;
+	TransDataEdgeSlideVert *svlist = sld->sv, *sv;
 	int i;
 
 	sld->perc = perc;
@@ -5705,7 +5757,7 @@ static int doEdgeSlide(TransInfo *t, float perc)
 		 * \note len_v3v3(curr_sv->upvec, curr_sv->downvec)
 		 * is the same as the distance between the original vert locations, same goes for the lines below.
 		 */
-		TransDataSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
+		TransDataEdgeSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
 		const float curr_length_perc = curr_sv->edge_len * (((sld->flipped_vtx ? perc : -perc) + 1.0f) / 2.0f);
 
 		float down_co[3];
@@ -5728,7 +5780,7 @@ static int doEdgeSlide(TransInfo *t, float perc)
 		}
 	}
 	
-	projectSVData(t, 0);
+	projectEdgeSlideData(t, 0);
 	
 	return 1;
 }
@@ -5737,9 +5789,9 @@ int EdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 {
 	char str[128];
 	float final;
-	SlideData *sld =  t->customData;
-	int flipped = sld->flipped_vtx;
-	int is_proportional = sld->is_proportional;
+	EdgeSlideData *sld =  t->customData;
+	bool flipped = sld->flipped_vtx;
+	bool is_proportional = sld->is_proportional;
 
 	final = t->values[0];
 
@@ -5781,6 +5833,498 @@ int EdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 
 	return 1;
 }
+
+
+/* ******************** Vert Slide *************** */
+static void calcVertSlideCustomPoints(struct TransInfo *t)
+{
+	VertSlideData *sld = t->customData;
+	TransDataVertSlideVert *sv = &sld->sv[sld->curr_sv_index];
+	float *co_orig = sv->co_orig_2d;
+	float *co_curr = sv->co_link_orig_2d[sv->co_link_curr];
+	float  co_curr_flip[2];
+
+	flip_v2_v2v2(co_curr_flip, co_orig, co_curr);
+
+	{
+		const int start[2] = {co_orig[0], co_orig[1]};
+		const int end[2]   = {co_curr_flip[0], co_curr_flip[1]};
+		if (!sld->flipped_vtx) {
+			setCustomPoints(t, &t->mouse, end, start);
+		}
+		else {
+			setCustomPoints(t, &t->mouse, start, end);
+		}
+	}
+}
+
+/**
+ * Run once when initializing vert slide to find the reference edge
+ */
+static void calcVertSlideMouseActiveVert(struct TransInfo *t, const int mval[2])
+{
+	VertSlideData *sld = t->customData;
+	float mval_fl[2] = {UNPACK2(mval)};
+	TransDataVertSlideVert *sv;
+
+	/* set the vertex to use as a reference for the mouse direction 'curr_sv_index' */
+	float dist = 0.0f;
+	float min_dist = FLT_MAX;
+	int i;
+
+	for (i = 0, sv = sld->sv; i < sld->totsv; i++, sv++) {
+		dist = len_squared_v2v2(mval_fl, sv->co_orig_2d);
+		if (dist < min_dist) {
+			min_dist = dist;
+			sld->curr_sv_index = i;
+		}
+	}
+}
+/**
+ * Run while moving the mouse to slide along the edge matching the mouse direction
+ */
+static void calcVertSlideMouseActiveEdges(struct TransInfo *t, const int mval[2])
+{
+	VertSlideData *sld = t->customData;
+	float mval_fl[2] = {UNPACK2(mval)};
+
+	float dir[2];
+	TransDataVertSlideVert *sv;
+	int i;
+
+	/* first get the direction of the original vertex */
+	sub_v2_v2v2(dir, sld->sv[sld->curr_sv_index].co_orig_2d, mval_fl);
+	normalize_v2(dir);
+
+	for (i = 0, sv = sld->sv; i < sld->totsv; i++, sv++) {
+		if (sv->co_link_tot > 1) {
+			float dir_dot_best = -FLT_MAX;
+			int co_link_curr_best = -1;
+			int j;
+
+			for (j = 0; j < sv->co_link_tot; j++) {
+				float tdir[2];
+				float dir_dot;
+				sub_v2_v2v2(tdir, sv->co_orig_2d, sv->co_link_orig_2d[j]);
+				normalize_v2(tdir);
+				dir_dot = dot_v2v2(dir, tdir);
+				if (dir_dot > dir_dot_best) {
+					dir_dot_best = dir_dot;
+					co_link_curr_best = j;
+				}
+			}
+
+			if (co_link_curr_best != -1) {
+				sv->co_link_curr = co_link_curr_best;
+			}
+		}
+	}
+}
+
+static int createVertSlideVerts(TransInfo *t)
+{
+	BMEditMesh *em = BMEdit_FromObject(t->obedit);
+	BMesh *bm = em->bm;
+	BMIter iter;
+	BMIter eiter;
+	BMEdge *e;
+	BMVert *v;
+	TransDataVertSlideVert *sv_array;
+	VertSlideData *sld = MEM_callocN(sizeof(*sld), "sld");
+//	View3D *v3d = NULL;
+	RegionView3D *rv3d = NULL;
+	ARegion *ar = t->ar;
+	float projectMat[4][4];
+	int j;
+
+	if (t->spacetype == SPACE_VIEW3D) {
+		/* background mode support */
+//		v3d = t->sa ? t->sa->spacedata.first : NULL;
+		rv3d = t->ar ? t->ar->regiondata : NULL;
+	}
+
+	sld->is_proportional = true;
+	sld->curr_sv_index = 0;
+	sld->flipped_vtx = false;
+
+	if (!rv3d) {
+		/* ok, let's try to survive this */
+		unit_m4(projectMat);
+	}
+	else {
+		ED_view3d_ob_project_mat_get(rv3d, t->obedit, projectMat);
+	}
+
+	j = 0;
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+		bool ok = false;
+		if (BM_elem_flag_test(v, BM_ELEM_SELECT) && v->e) {
+			BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
+				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+					ok = true;
+					break;
+				}
+			}
+		}
+
+		if (ok) {
+			BM_elem_flag_enable(v, BM_ELEM_TAG);
+			j += 1;
+		}
+		else {
+			BM_elem_flag_disable(v, BM_ELEM_TAG);
+		}
+	}
+
+	if (!j) {
+		MEM_freeN(sld);
+		return 0;
+	}
+
+	sv_array = MEM_callocN(sizeof(TransDataVertSlideVert) * j, "sv_array");
+
+	j = 0;
+	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+		if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+			int k;
+			sv_array[j].v = v;
+			copy_v3_v3(sv_array[j].co_orig_3d, v->co);
+
+			k = 0;
+			BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
+				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+					k++;
+				}
+			}
+
+			sv_array[j].co_link_orig_3d = MEM_mallocN(sizeof(*sv_array[j].co_link_orig_3d) * k, __func__);
+			sv_array[j].co_link_orig_2d = MEM_mallocN(sizeof(*sv_array[j].co_link_orig_2d) * k, __func__);
+			sv_array[j].co_link_tot = k;
+
+			k = 0;
+			BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {
+				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+					BMVert *v_other = BM_edge_other_vert(e, v);
+					copy_v3_v3(sv_array[j].co_link_orig_3d[k], v_other->co);
+					ED_view3d_project_float_v2_m4(ar,
+					                              sv_array[j].co_link_orig_3d[k],
+					                              sv_array[j].co_link_orig_2d[k],
+					                              projectMat);
+					k++;
+				}
+			}
+
+			ED_view3d_project_float_v2_m4(ar,
+			                              sv_array[j].co_orig_3d,
+			                              sv_array[j].co_orig_2d,
+			                              projectMat);
+
+			j++;
+		}
+	}
+
+	sld->sv = sv_array;
+	sld->totsv = j;
+
+	sld->em = em;
+
+	sld->perc = 0.0f;
+
+	t->customData = sld;
+
+	if (rv3d) {
+		calcVertSlideMouseActiveVert(t, t->mval);
+		calcVertSlideMouseActiveEdges(t, t->mval);
+	}
+
+	return 1;
+}
+
+void freeVertSlideVerts(TransInfo *t)
+{
+	VertSlideData *sld = t->customData;
+
+	if (!sld)
+		return;
+
+
+	if (sld->totsv > 0) {
+		TransDataVertSlideVert *sv = sld->sv;
+		int i = 0;
+		for (i = 0; i < sld->totsv; i++, sv++) {
+			MEM_freeN(sv->co_link_orig_2d);
+			MEM_freeN(sv->co_link_orig_3d);
+		}
+	}
+
+	MEM_freeN(sld->sv);
+	MEM_freeN(sld);
+
+	t->customData = NULL;
+
+	recalcData(t);
+}
+
+void initVertSlide(TransInfo *t)
+{
+	VertSlideData *sld;
+
+	t->mode = TFM_VERT_SLIDE;
+	t->transform = VertSlide;
+	t->handleEvent = handleEventVertSlide;
+
+	if (!createVertSlideVerts(t)) {
+		t->state = TRANS_CANCEL;
+		return;
+	}
+
+	sld = t->customData;
+
+	if (!sld)
+		return;
+
+	t->customFree = freeVertSlideVerts;
+
+	/* set custom point first if you want value to be initialized by init */
+	calcVertSlideCustomPoints(t);
+	initMouseInputMode(t, &t->mouse, INPUT_CUSTOM_RATIO);
+
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
+
+	t->num.increment = t->snap[1];
+
+	t->flag |= T_NO_CONSTRAINT | T_NO_PROJECT;
+}
+
+int handleEventVertSlide(struct TransInfo *t, struct wmEvent *event)
+{
+	if (t->mode == TFM_VERT_SLIDE) {
+		VertSlideData *sld = t->customData;
+
+		if (sld) {
+			switch (event->type) {
+				case EKEY:
+					if (event->val == KM_PRESS) {
+						sld->is_proportional = !sld->is_proportional;
+						return 1;
+					}
+					break;
+				case FKEY:
+				{
+					if (event->val == KM_PRESS) {
+						if (sld->is_proportional == FALSE) {
+							sld->flipped_vtx = !sld->flipped_vtx;
+							calcVertSlideCustomPoints(t);
+						}
+						return 1;
+					}
+					break;
+				}
+#if 0
+				case EVT_MODAL_MAP:
+				{
+					switch (event->val) {
+						case TFM_MODAL_EDGESLIDE_DOWN:
+						{
+							sld->curr_sv_index = ((sld->curr_sv_index - 1) + sld->totsv) % sld->totsv;
+							break;
+						}
+						case TFM_MODAL_EDGESLIDE_UP:
+						{
+							sld->curr_sv_index = (sld->curr_sv_index + 1) % sld->totsv;
+							break;
+						}
+					}
+				}
+#endif
+				case MOUSEMOVE:
+				{
+					/* don't recalculat the best edge */
+					if (!(t->flag & T_ALT_TRANSFORM)) {
+						calcVertSlideMouseActiveEdges(t, event->mval);
+					}
+					calcVertSlideCustomPoints(t);
+				}
+				default:
+					break;
+			}
+		}
+	}
+	return 0;
+}
+
+static void drawVertSlide(const struct bContext *C, TransInfo *t)
+{
+	if (t->mode == TFM_VERT_SLIDE) {
+		VertSlideData *sld = (VertSlideData *)t->customData;
+		/* Non-Prop mode */
+		if (sld) {
+			View3D *v3d = CTX_wm_view3d(C);
+			TransDataVertSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
+			TransDataVertSlideVert *sv;
+			const float ctrl_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) + 1.5f;
+			const float line_size = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.5f;
+			const int alpha_shade = -30;
+			int i;
+			bool is_constrained = !(t->flag & T_ALT_TRANSFORM);
+
+			if (v3d && v3d->zbuf)
+				glDisable(GL_DEPTH_TEST);
+
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			glPushAttrib(GL_CURRENT_BIT | GL_LINE_BIT | GL_POINT_BIT);
+			glPushMatrix();
+
+			glMultMatrixf(t->obedit->obmat);
+
+			glLineWidth(line_size);
+			UI_ThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
+			glBegin(GL_LINES);
+			if (is_constrained) {
+				sv = sld->sv;
+				for (i = 0; i < sld->totsv; i++, sv++) {
+					glVertex3fv(sv->co_orig_3d);
+					glVertex3fv(sv->co_link_orig_3d[sv->co_link_curr]);
+				}
+			}
+			else {
+				sv = sld->sv;
+				for (i = 0; i < sld->totsv; i++, sv++) {
+					float a[3], b[3];
+					sub_v3_v3v3(a, sv->co_link_orig_3d[sv->co_link_curr], sv->co_orig_3d);
+					mul_v3_fl(a, 100.0f);
+					negate_v3_v3(b, a);
+					add_v3_v3(a, sv->co_orig_3d);
+					add_v3_v3(b, sv->co_orig_3d);
+
+					glVertex3fv(a);
+					glVertex3fv(b);
+				}
+			}
+			bglEnd();
+
+			glPointSize(ctrl_size);
+
+			bglBegin(GL_POINTS);
+			bglVertex3fv((sld->flipped_vtx && sld->is_proportional == FALSE) ?
+			             curr_sv->co_link_orig_3d[curr_sv->co_link_curr] :
+			             curr_sv->co_orig_3d);
+			bglEnd();
+
+			glPopMatrix();
+			glPopAttrib();
+
+			glDisable(GL_BLEND);
+
+			if (v3d && v3d->zbuf)
+				glEnable(GL_DEPTH_TEST);
+		}
+	}
+}
+
+static int doVertSlide(TransInfo *t, float perc)
+{
+	VertSlideData *sld = t->customData;
+	TransDataVertSlideVert *svlist = sld->sv, *sv;
+	int i;
+
+	sld->perc = perc;
+	sv = svlist;
+
+	if (sld->is_proportional == TRUE) {
+		for (i = 0; i < sld->totsv; i++, sv++) {
+			interp_v3_v3v3(sv->v->co, sv->co_orig_3d, sv->co_link_orig_3d[sv->co_link_curr], perc);
+		}
+	}
+	else {
+		TransDataVertSlideVert *sv_curr = &sld->sv[sld->curr_sv_index];
+		const float edge_len_curr = len_v3v3(sv_curr->co_orig_3d, sv_curr->co_link_orig_3d[sv_curr->co_link_curr]);
+		const float tperc = perc * edge_len_curr;
+
+		for (i = 0; i < sld->totsv; i++, sv++) {
+			float edge_len;
+			float dir[3];
+
+			sub_v3_v3v3(dir, sv->co_link_orig_3d[sv->co_link_curr], sv->co_orig_3d);
+			edge_len = normalize_v3(dir);
+
+			if (edge_len > FLT_EPSILON) {
+				if (sld->flipped_vtx) {
+					madd_v3_v3v3fl(sv->v->co, sv->co_link_orig_3d[sv->co_link_curr], dir, -tperc);
+				}
+				else {
+					madd_v3_v3v3fl(sv->v->co, sv->co_orig_3d, dir, tperc);
+				}
+			}
+			else {
+				copy_v3_v3(sv->v->co, sv->co_orig_3d);
+			}
+		}
+	}
+
+	return 1;
+}
+
+int VertSlide(TransInfo *t, const int UNUSED(mval[2]))
+{
+	char str[128];
+	float final;
+	VertSlideData *sld =  t->customData;
+	const bool flipped = sld->flipped_vtx;
+	const bool is_proportional = sld->is_proportional;
+	const bool is_constrained = !((t->flag & T_ALT_TRANSFORM) || hasNumInput(&t->num));
+
+	final = t->values[0];
+
+	snapGrid(t, &final);
+
+	/* only do this so out of range values are not displayed */
+	if (is_constrained) {
+		CLAMP(final, 0.0f, 1.0f);
+	}
+
+	if (hasNumInput(&t->num)) {
+		char c[NUM_STR_REP_LEN];
+
+		applyNumInput(&t->num, &final);
+
+		outputNumInput(&(t->num), c);
+
+		BLI_snprintf(str, sizeof(str), "Vert Slide: %s (E)ven: %s, (F)lipped: %s, Alt Hold: %s",
+		             &c[0], !is_proportional ? "ON" : "OFF", flipped ? "ON" : "OFF", (t->flag & T_ALT_TRANSFORM) ? "ON" : "OFF");
+	}
+	else {
+		BLI_snprintf(str, sizeof(str), "Vert Slide: %.2f (E)ven: %s, (F)lipped: %s, Alt Hold: %s",
+		             final, !is_proportional ? "ON" : "OFF", flipped ? "ON" : "OFF", (t->flag & T_ALT_TRANSFORM) ? "ON" : "OFF");
+	}
+
+	if (is_constrained) {
+		CLAMP(final, 0.0f, 1.0f);
+	}
+
+	t->values[0] = final;
+
+	/*do stuff here*/
+	if (t->customData)
+		doVertSlide(t, final);
+	else {
+		strcpy(str, "Invalid Vert Selection");
+		t->state = TRANS_CANCEL;
+	}
+
+	recalcData(t);
+
+	ED_area_headerprint(t->sa, str);
+
+	return 1;
+}
+
 
 /* ******************** EditBone roll *************** */
 

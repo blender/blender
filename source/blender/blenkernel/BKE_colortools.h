@@ -42,14 +42,6 @@ struct Histogram;
 struct ImBuf;
 struct rctf;
 
-#if defined _MSC_VER
-#   define DO_INLINE __inline
-#elif defined(__sun) || defined(__sun__)
-#   define DO_INLINE
-#else
-#   define DO_INLINE static inline
-#endif
-
 void                curvemapping_set_defaults(struct CurveMapping *cumap, int tot, float minx, float miny, float maxx, float maxy);
 struct CurveMapping *curvemapping_add(int tot, float minx, float miny, float maxx, float maxy);
 void                curvemapping_free_data(struct CurveMapping *cumap);

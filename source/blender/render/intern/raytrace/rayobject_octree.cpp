@@ -667,10 +667,12 @@ static void RE_rayobject_octree_done(RayObject *tree)
 	oc->ocface = NULL;
 	MEM_freeN(oc->ro_nodes);
 	oc->ro_nodes = NULL;
-	
+
+#if 0
 	printf("%f %f - %f\n", oc->min[0], oc->max[0], oc->ocfacx);
 	printf("%f %f - %f\n", oc->min[1], oc->max[1], oc->ocfacy);
 	printf("%f %f - %f\n", oc->min[2], oc->max[2], oc->ocfacz);
+#endif
 }
 
 static void RE_rayobject_octree_bb(RayObject *tree, float *min, float *max)

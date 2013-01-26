@@ -1111,6 +1111,19 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 		index_mp_to_orig = NULL;
 	}
 
+	/* TODO: same as for solid draw, not entirely correct, but works fine for now,
+	 *       will skip using textures (dyntopo currently destroys UV anyway) and
+	 *       works fine for matcap
+	 */
+	if (cddm->pbvh && cddm->pbvh_draw && BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH) {
+		if (dm->numTessFaceData) {
+			setMaterial(1, &gattribs);
+			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, FALSE);
+		}
+
+		return;
+	}
+
 	cdDM_update_normals_from_pbvh(dm);
 
 	matnr = -1;
@@ -1410,6 +1423,19 @@ static void cdDM_drawMappedFacesMat(DerivedMesh *dm,
 	const int *index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
 	if (index_mf_to_mpoly == NULL) {
 		index_mp_to_orig = NULL;
+	}
+
+	/* TODO: same as for solid draw, not entirely correct, but works fine for now,
+	 *       will skip using textures (dyntopo currently destroys UV anyway) and
+	 *       works fine for matcap
+	 */
+	if (cddm->pbvh && cddm->pbvh_draw && BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH) {
+		if (dm->numTessFaceData) {
+			setMaterial(userData, 1, NULL);
+			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, FALSE);
+		}
+
+		return;
 	}
 
 	cdDM_update_normals_from_pbvh(dm);
@@ -2285,6 +2311,7 @@ void CDDM_calc_normals_tessface(DerivedMesh *dm)
  */
 DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 {
+// #define USE_LOOPS
 	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
 	CDDerivedMesh *cddm2 = NULL;
 	MVert *mv, *mvert = NULL;
@@ -2296,18 +2323,27 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 	MLoop *ml, *mloop = NULL;
 	BLI_array_declare(mloop);
 	EdgeHash *ehash = BLI_edgehash_new();
-	int *newv = NULL, *newe = NULL, *newl = NULL;
+	int *newv = NULL, *newe = NULL;
+#ifdef USE_LOOPS
+	int *newl = NULL;
+#endif
 	int *oldv = NULL, *olde = NULL, *oldl = NULL, *oldp = NULL;
 	BLI_array_declare(oldv); BLI_array_declare(olde); BLI_array_declare(oldl); BLI_array_declare(oldp);
-	int i, j, c, totloop, totpoly;
-	
+	int i, j, c, totpoly;
+#ifdef USE_LOOPS
+	int totloop;
+#endif
+
+#ifdef USE_LOOPS
 	totloop = dm->numLoopData;
+#endif
 	totpoly = dm->numPolyData;
 	
-	newv = MEM_callocN(sizeof(int) * dm->numVertData, "newv vtable CDDM_merge_verts");
-	newe = MEM_callocN(sizeof(int) * dm->numEdgeData, "newv etable CDDM_merge_verts");
-	newl = MEM_callocN(sizeof(int) * totloop, "newv ltable CDDM_merge_verts");
-	
+	newv = MEM_mallocN(sizeof(int) * dm->numVertData, "newv vtable CDDM_merge_verts");
+	newe = MEM_mallocN(sizeof(int) * dm->numEdgeData, "newv etable CDDM_merge_verts");
+#ifdef USE_LOOPS
+	newl = MEM_mallocN(sizeof(int) * totloop, "newv ltable CDDM_merge_verts");
+#endif
 	/* fill newl with destination vertex indices */
 	mv = cddm->mvert;
 	c = 0;
@@ -2316,6 +2352,10 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 			BLI_array_append(oldv, i);
 			newv[i] = c++;
 			BLI_array_append(mvert, *mv);
+		}
+		else {
+			/* dummy value */
+			newv[i] = 0;
 		}
 	}
 	
@@ -2385,7 +2425,9 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 		for (j = 0; j < mp->totloop; j++, ml++) {
 			med = cddm->medge + ml->e;
 			if (LIKELY(med->v1 != med->v2)) {
+#ifdef USE_LOOPS
 				newl[j + mp->loopstart] = BLI_array_count(mloop);
+#endif
 				BLI_array_append(oldl, j + mp->loopstart);
 				BLI_array_append(mloop, *ml);
 				c++;
@@ -2451,8 +2493,10 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap)
 		MEM_freeN(newv); 
 	if (newe)
 		MEM_freeN(newe); 
+#ifdef USE_LOOPS
 	if (newl)
 		MEM_freeN(newl);
+#endif
 	if (oldv) 
 		MEM_freeN(oldv); 
 	if (olde) 

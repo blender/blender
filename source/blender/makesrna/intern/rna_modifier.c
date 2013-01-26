@@ -58,6 +58,7 @@
 
 EnumPropertyItem modifier_type_items[] = {
 	{0, "", 0, N_("Modify"), ""},
+	{eModifierType_MeshCache, "MESH_CACHE", ICON_MOD_MESHDEFORM, "Mesh Cache", ""},
 	{eModifierType_UVProject, "UV_PROJECT", ICON_MOD_UVPROJECT, "UV Project", ""},
 	{eModifierType_UVWarp, "UV_WARP", ICON_MOD_UVPROJECT, "UV Warp", ""},
 	{eModifierType_WeightVGEdit, "VERTEX_WEIGHT_EDIT", ICON_MOD_VERTEX_WEIGHT, "Vertex Weight Edit", ""},
@@ -219,6 +220,8 @@ static StructRNA *rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_TriangulateModifier;
 		case eModifierType_UVWarp:
 			return &RNA_UVWarpModifier;
+		case eModifierType_MeshCache:
+			return &RNA_MeshCacheModifier;
 		/* Default */
 		case eModifierType_None:
 		case eModifierType_ShapeKey:
@@ -1666,7 +1669,7 @@ static void rna_def_modifier_displace(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_DisplaceModifier_vgroup_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "mid_level", PROP_FLOAT, PROP_DISTANCE);
+	prop = RNA_def_property(srna, "mid_level", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "midlevel");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
@@ -1840,18 +1843,23 @@ static void rna_def_modifier_laplaciansmooth(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME);
 	RNA_def_property_ui_text(prop, "Preserve Volume", "Apply volume preservation after smooth");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+	
+	prop = RNA_def_property(srna, "use_normalized", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_LAPLACIANSMOOTH_NORMALIZED);
+	RNA_def_property_ui_text(prop, "Normalized", "Improve and stabilize the enhanced shape");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "lambda_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "lambda");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.0000001, 1000.0, 0.0000001, 8);
+	RNA_def_property_ui_range(prop, -1000.0, 1000.0, 5, 3);
 	RNA_def_property_ui_text(prop, "Lambda Factor", "Smooth factor effect");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "lambda_border", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "lambda_border");
 	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.0000001, 1000.0, 0.0000001, 8);
+	RNA_def_property_ui_range(prop, -1000.0, 1000.0, 5, 3);
 	RNA_def_property_ui_text(prop, "Lambda Border", "Lambda factor in border");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
@@ -3473,6 +3481,158 @@ static void rna_def_modifier_triangulate(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
+static void rna_def_modifier_meshcache(BlenderRNA *brna)
+{
+	static EnumPropertyItem prop_format_type_items[] = {
+		{MOD_MESHCACHE_TYPE_MDD, "MDD", 0, "MDD ", ""},
+		{MOD_MESHCACHE_TYPE_PC2, "PC2", 0, "PC2", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem prop_deform_mode_items[] = {
+		{MOD_MESHCACHE_DEFORM_OVERWRITE, "OVERWRITE", 0, "Overwrite",
+		 "Replace vertex coords with cached values"},
+		{MOD_MESHCACHE_DEFORM_INTEGRATE, "INTEGRATE", 0, "Integrate",
+		 "Integrate deformation from this modifiers input with the mesh-cache coords (useful for shape keys)"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem prop_interpolation_type_items[] = {
+		{MOD_MESHCACHE_INTERP_NONE, "NONE", 0, "None ", ""},
+		{MOD_MESHCACHE_INTERP_LINEAR, "LINEAR", 0, "Linear", ""},
+		/* for cardinal we'd need to read 4x cache's */
+		// {MOD_MESHCACHE_INTERP_CARDINAL, "CARDINAL", 0, "Cardinal", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem prop_time_type_items[] = {
+		/* use 'eval_frame' */
+		{MOD_MESHCACHE_TIME_FRAME,   "FRAME",   0, "Frame",  "Control playback using a frame-number "
+		                                                   "(ignoring time FPS and start frame from the file)"},
+		/* use 'eval_time' */
+		{MOD_MESHCACHE_TIME_SECONDS, "TIME",    0, "Time",   "Control playback using time in seconds"},
+		/* use 'eval_factor' */
+		{MOD_MESHCACHE_TIME_FACTOR,  "FACTOR",  0, "Factor", "Control playback using a value between [0, 1]"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem prop_time_play_items[] = {
+		{MOD_MESHCACHE_PLAY_CFEA, "SCENE", 0, "Scene", "Use the time from the scene"},
+		{MOD_MESHCACHE_PLAY_EVAL, "CUSTOM", 0, "Custom", "Use the modifier's own time evaluation"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem prop_flip_axis_flag_items[] = {
+		{(1 << 0), "X", 0, "X", ""},
+		{(1 << 1), "Y", 0, "Y", ""},
+		{(1 << 2), "Z", 0, "Z", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "MeshCacheModifier", "Modifier");
+	RNA_def_struct_ui_text(srna, "Cache Modifier", "Cache Mesh");
+	RNA_def_struct_sdna(srna, "MeshCacheModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_MESHDEFORM);  /* XXX, needs own icon */
+
+	prop = RNA_def_property(srna, "cache_format", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type");
+	RNA_def_property_enum_items(prop, prop_format_type_items);
+	RNA_def_property_ui_text(prop, "Format", "");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "interp");
+	RNA_def_property_enum_items(prop, prop_interpolation_type_items);
+	RNA_def_property_ui_text(prop, "Interpolation", "");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "time_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "time_mode");
+	RNA_def_property_enum_items(prop, prop_time_type_items);
+	RNA_def_property_ui_text(prop, "Time Mode", "Method to control playback time");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "play_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "play_mode");
+	RNA_def_property_enum_items(prop, prop_time_play_items);
+	RNA_def_property_ui_text(prop, "Time Mode", "");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "deform_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "deform_mode");
+	RNA_def_property_enum_items(prop, prop_deform_mode_items);
+	RNA_def_property_ui_text(prop, "Deform Mode", "");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property_ui_text(prop, "File Path", "Path to external displacements file");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "factor");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Influence", "Influence of the deformation");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	/* -------------------------------------------------------------------- */
+	/* Axis Conversion */
+	prop = RNA_def_property(srna, "forward_axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "forward_axis");
+	RNA_def_property_enum_items(prop, object_axis_items);
+	RNA_def_property_ui_text(prop, "Forward", "");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "up_axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "up_axis");
+	RNA_def_property_enum_items(prop, object_axis_items);
+	RNA_def_property_ui_text(prop, "Up", "");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "flip_axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "flip_axis");
+	RNA_def_property_enum_items(prop, prop_flip_axis_flag_items);
+	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+	RNA_def_property_ui_text(prop, "Flip Axis",  "");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	/* -------------------------------------------------------------------- */
+	/* For Scene time */
+	prop = RNA_def_property(srna, "frame_start", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "frame_start");
+	RNA_def_property_range(prop, -MAXFRAME, MAXFRAME);
+	RNA_def_property_ui_text(prop, "Frame Start", "Add this to the start frame");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "frame_scale", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "frame_scale");
+	RNA_def_property_range(prop, 0.0f, 100.0f);
+	RNA_def_property_ui_text(prop, "Frame Scale", "Evaluation time in seconds");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	/* -------------------------------------------------------------------- */
+	/* eval values depend on 'time_mode' */
+	prop = RNA_def_property(srna, "eval_frame", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "eval_frame");
+	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
+	RNA_def_property_ui_text(prop, "Evaluation Frame", "The frame to evaluate (starting at 0)");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "eval_time", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "eval_time");
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_text(prop, "Evaluation Time", "Evaluation time in seconds");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "eval_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "eval_factor");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Evaluation Factor", "Evaluation time in seconds");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+}
+
 void RNA_def_modifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -3582,6 +3742,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_skin(brna);
 	rna_def_modifier_laplaciansmooth(brna);
 	rna_def_modifier_triangulate(brna);
+	rna_def_modifier_meshcache(brna);
 }
 
 #endif

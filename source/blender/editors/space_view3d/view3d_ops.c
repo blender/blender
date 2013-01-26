@@ -39,13 +39,13 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_blender.h"
-#include "BKE_context.h"
-#include "BKE_main.h"
-
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+
+#include "BKE_blender.h"
+#include "BKE_context.h"
+#include "BKE_main.h"
 
 #include "RNA_access.h"
 

@@ -38,6 +38,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_threads.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -692,10 +693,25 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	}
 
 	if (mask) {
-		int width, height;
+		Image *image = ED_space_image(sima);
+		int width, height, show_viewer;
 		float aspx, aspy;
+
+		show_viewer = (image && image->source == IMA_SRC_VIEWER);
+
+		if (show_viewer) {
+			/* ED_space_image_get* will acquire image buffer which requires
+			 * lock here by the same reason why lock is needed in draw_image_main
+			 */
+			BLI_lock_thread(LOCK_DRAW_IMAGE);
+		}
+
 		ED_space_image_get_size(sima, &width, &height);
 		ED_space_image_get_aspect(sima, &aspx, &aspy);
+
+		if (show_viewer)
+			BLI_unlock_thread(LOCK_DRAW_IMAGE);
+
 		ED_mask_draw_region(mask, ar,
 		                    sima->mask_info.draw_flag, sima->mask_info.draw_type,
 		                    width, height,

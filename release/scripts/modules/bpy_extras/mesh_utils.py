@@ -247,7 +247,7 @@ def edge_loops_from_tessfaces(mesh, tessfaces=None, seams=()):
                         break
 
                 i = ed_adj.index(context_loop[-2])
-                context_loop.append(ed_adj[not  i])
+                context_loop.append(ed_adj[not i])
 
                 # Dont look at this again
                 del ed_adj[:]
@@ -530,12 +530,12 @@ def face_random_points(num_points, tessfaces):
         tris.append((verts[fv[0]].co,
                      verts[fv[1]].co,
                      verts[fv[2]].co,
-                    ))
+                     ))
         if len(fv) == 4:
             tris.append((verts[fv[0]].co,
                          verts[fv[3]].co,
                          verts[fv[2]].co,
-                        ))
+                         ))
         tri_faces.append(tris)
 
     # For each face, generate the required number of random points

@@ -2290,7 +2290,7 @@ static short animdata_use_time(AnimData *adt)
 	return 0;
 }
 
-static void dag_object_time_update_flags(Object *ob)
+static void dag_object_time_update_flags(Scene *scene, Object *ob)
 {
 	if (ob->constraints.first) {
 		bConstraint *con;
@@ -2349,6 +2349,9 @@ static void dag_object_time_update_flags(Object *ob)
 	
 	if (object_modifiers_use_time(ob)) ob->recalc |= OB_RECALC_DATA;
 	if ((ob->pose) && (ob->pose->flag & POSE_CONSTRAINTS_TIMEDEPEND)) ob->recalc |= OB_RECALC_DATA;
+	
+	if (ob->rigidbody_object && BKE_scene_check_rigidbody_active(scene))
+		ob->recalc |= OB_RECALC_OB;
 	
 	{
 		AnimData *adt = BKE_animdata_from_id((ID *)ob->data);
@@ -2434,7 +2437,7 @@ void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay, const s
 		if (do_time) {
 			/* now if DagNode were part of base, the node->lay could be checked... */
 			/* we do all now, since the scene_flush checks layers and clears recalc flags even */
-			dag_object_time_update_flags(ob);
+			dag_object_time_update_flags(scene, ob);
 		}
 
 		/* handled in next loop */
@@ -2447,7 +2450,7 @@ void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay, const s
 		for (group = bmain->group.first; group; group = group->id.next) {
 			if (group->id.flag & LIB_DOIT) {
 				for (go = group->gobject.first; go; go = go->next) {
-					dag_object_time_update_flags(go->ob);
+					dag_object_time_update_flags(scene, go->ob);
 				}
 			}
 		}
@@ -2466,7 +2469,7 @@ void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay, const s
 
 		/* hrmf... an exception to look at once, for invisible camera object we do it over */
 		if (scene->camera)
-			dag_object_time_update_flags(scene->camera);
+			dag_object_time_update_flags(scene, scene->camera);
 	}
 
 	/* and store the info in groupobject */

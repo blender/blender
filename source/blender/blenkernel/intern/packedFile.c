@@ -553,7 +553,7 @@ int unpackLibraries(Main *bmain, ReportList *reports)
 			if (newname != NULL) {
 				ret_value = RET_OK;
 				
-				printf("Saved .blend library: %s\n", newname);
+				printf("Unpacked .blend library: %s\n", newname);
 				
 				freePackedFile(lib->packedfile);
 				lib->packedfile = NULL;
@@ -569,6 +569,16 @@ int unpackLibraries(Main *bmain, ReportList *reports)
 void packLibraries(Main *bmain, ReportList *reports)
 {
 	Library *lib;
+	
+	/* test for relativenss */
+	for (lib = bmain->library.first; lib; lib = lib->id.next)
+		if (0 == BLI_path_is_rel(lib->name))
+			break;
+	
+	if (lib) {
+		BKE_reportf(reports, RPT_ERROR, "Cannot pack absolute file: '%s'", lib->name);
+		return;
+	}
 	
 	for (lib = bmain->library.first; lib; lib = lib->id.next)
 		if (lib->packedfile == NULL)

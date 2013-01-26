@@ -26,7 +26,6 @@ import os
 import shutil
 import sys
 import subprocess
-from codecs import open
 
 try:
     import settings
@@ -48,14 +47,10 @@ PY3 = settings.PYTHON3_EXEC
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="Import advanced enough po’s " \
-                                                 "from branches to trunk.")
-    parser.add_argument('-t', '--threshold', type=int,
-                        help="Import threshold, as a percentage.")
-    parser.add_argument('-s', '--strict', action="store_true",
-                        help="Raise an error if a po is broken.")
-    parser.add_argument('langs', metavar='ISO_code', nargs='*',
-                        help="Restrict processed languages to those.")
+    parser = argparse.ArgumentParser(description="Import advanced enough po’s from branches to trunk.")
+    parser.add_argument('-t', '--threshold', type=float, help="Import threshold, as a percentage.")
+    parser.add_argument('-s', '--strict', action="store_true", help="Raise an error if a po is broken.")
+    parser.add_argument('langs', metavar='ISO_code', nargs='*', help="Restrict processed languages to those.")
     args = parser.parse_args()
 
     ret = 0
@@ -70,51 +65,40 @@ def main():
         po = os.path.join(BRANCHES_DIR, lang, ".".join((lang, "po")))
         if os.path.exists(po):
             po_is_rtl = os.path.join(BRANCHES_DIR, lang, RTL_PREPROCESS_FILE)
-            msgs, state, stats = utils.parse_messages(po)
-            tot_msgs = stats["tot_msg"]
-            trans_msgs = stats["trans_msg"]
+            msgs = utils.I18nMessages(iso=lang, kind='PO', src=po)
             lvl = 0.0
-            if tot_msgs:
-                lvl = float(trans_msgs) / float(tot_msgs)
+            if msgs.nbr_msgs:
+                lvl = msgs.nbr_trans_msgs / msgs.nbr_msgs
             if lvl > threshold:
-                if state["is_broken"] and args.strict:
-                    print("{:<10}: {:>6.1%} done, but BROKEN, skipped." \
-                          "".format(lang, lvl))
+                if msgs.parsing_errors and args.strict:
+                    print("{:<10}: {:>6.1%} done, but BROKEN, skipped.".format(lang, lvl))
                     ret = 1
                 else:
                     if os.path.exists(po_is_rtl):
-                        out_po = os.path.join(TRUNK_PO_DIR,
-                                              ".".join((lang, "po")))
-                        out_raw_po = os.path.join(TRUNK_PO_DIR,
-                                                  "_".join((lang, "raw.po")))
+                        out_po = os.path.join(TRUNK_PO_DIR, ".".join((lang, "po")))
+                        out_raw_po = os.path.join(TRUNK_PO_DIR, "_".join((lang, "raw.po")))
                         keys = []
                         trans = []
-                        for k, m in msgs.items():
+                        for k, m in msgs.msgs.items():
                             keys.append(k)
-                            trans.append("".join(m["msgstr_lines"]))
+                            trans.append(m.msgstr)
                         trans = rtl_preprocess.log2vis(trans)
                         for k, t in zip(keys, trans):
-                            # Mono-line for now...
-                            msgs[k]["msgstr_lines"] = [t]
-                        utils.write_messages(out_po, msgs, state["comm_msg"],
-                                             state["fuzzy_msg"])
+                            msgs.msgs[k].msgstr = t
+                        msgs.write(kind='PO', dest=out_po)
                         # Also copies org po!
                         shutil.copy(po, out_raw_po)
-                        print("{:<10}: {:>6.1%} done, enough translated " \
-                              "messages, processed and copied to trunk." \
+                        print("{:<10}: {:>6.1%} done, enough translated messages, processed and copied to trunk."
                               "".format(lang, lvl))
                     else:
                         shutil.copy(po, TRUNK_PO_DIR)
-                        print("{:<10}: {:>6.1%} done, enough translated " \
-                              "messages, copied to trunk.".format(lang, lvl))
+                        print("{:<10}: {:>6.1%} done, enough translated messages, copied to trunk.".format(lang, lvl))
             else:
-                if state["is_broken"] and args.strict:
-                    print("{:<10}: {:>6.1%} done, BROKEN and not enough " \
-                          "translated messages, skipped".format(lang, lvl))
+                if msgs.parsing_errors and args.strict:
+                    print("{:<10}: {:>6.1%} done, BROKEN and not enough translated messages, skipped".format(lang, lvl))
                     ret = 1
                 else:
-                    print("{:<10}: {:>6.1%} done, not enough translated " \
-                          "messages, skipped.".format(lang, lvl))
+                    print("{:<10}: {:>6.1%} done, not enough translated messages, skipped.".format(lang, lvl))
     return ret
 
 

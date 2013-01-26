@@ -262,6 +262,11 @@ public:
 	 * Hides the progress bar icon
 	 */
 	virtual GHOST_TSuccess endProgressBar();
+	
+	
+	virtual void setNativePixelSize(void);
+
+	
 protected:
 	/**
 	 * Tries to install a rendering context in this window.

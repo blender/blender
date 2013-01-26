@@ -200,13 +200,14 @@ static void viewAxisCorrectCenter(TransInfo *t, float t_con_center[3])
 	}
 }
 
-static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3])
+static void axisProjection(TransInfo *t, const float axis[3], const float in[3], float out[3])
 {
 	float norm[3], vec[3], factor, angle;
 	float t_con_center[3];
 
-	if (in[0] == 0.0f && in[1] == 0.0f && in[2] == 0.0f)
+	if (is_zero_v3(in)) {
 		return;
+	}
 
 	copy_v3_v3(t_con_center, t->con.center);
 
@@ -278,7 +279,7 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 	}
 }
 
-static void planeProjection(TransInfo *t, float in[3], float out[3])
+static void planeProjection(TransInfo *t, const float in[3], float out[3])
 {
 	float vec[3], factor, norm[3];
 
@@ -308,7 +309,7 @@ static void planeProjection(TransInfo *t, float in[3], float out[3])
  *
  */
 
-static void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], float out[3], float pvec[3])
+static void applyAxisConstraintVec(TransInfo *t, TransData *td, const float in[3], float out[3], float pvec[3])
 {
 	copy_v3_v3(out, in);
 	if (!td && t->con.mode & CON_APPLY) {
@@ -351,7 +352,7 @@ static void applyAxisConstraintVec(TransInfo *t, TransData *td, float in[3], flo
  * Further down, that vector is mapped to each data's space.
  */
 
-static void applyObjectConstraintVec(TransInfo *t, TransData *td, float in[3], float out[3], float pvec[3])
+static void applyObjectConstraintVec(TransInfo *t, TransData *td, const float in[3], float out[3], float pvec[3])
 {
 	copy_v3_v3(out, in);
 	if (t->con.mode & CON_APPLY) {

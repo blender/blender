@@ -131,6 +131,7 @@ void		*WM_paint_cursor_activate(struct wmWindowManager *wm,
 void		WM_paint_cursor_end(struct wmWindowManager *wm, void *handle);
 
 void		WM_cursor_warp		(struct wmWindow *win, int x, int y);
+float		WM_cursor_pressure	(const struct wmWindow *win);
 
 			/* event map */
 int			WM_userdef_event_map(int kmitype);
@@ -201,6 +202,7 @@ int			WM_operator_confirm_message(struct bContext *C, struct wmOperator *op, con
 		/* operator api */
 void		WM_operator_free		(struct wmOperator *op);
 void		WM_operator_stack_clear(struct wmWindowManager *wm);
+void		WM_operator_handlers_clear(wmWindowManager *wm, struct wmOperatorType *ot);
 
 struct wmOperatorType *WM_operatortype_find(const char *idnamem, int quiet);
 struct GHashIterator  *WM_operatortype_iter(void);

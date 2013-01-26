@@ -2002,7 +2002,7 @@ float ED_rollBoneToVector(EditBone *bone, const float align_axis[3], const short
 
 	sub_v3_v3v3(nor, bone->tail, bone->head);
 	vec_roll_to_mat3(nor, 0.0f, mat);
-
+	
 	/* check the bone isn't aligned with the axis */
 	if (!is_zero_v3(align_axis) && angle_v3v3(align_axis, mat[2]) > FLT_EPSILON) {
 		float vec[3], align_axis_proj[3], roll;
@@ -4349,7 +4349,7 @@ void ARMATURE_OT_select_hierarchy(wmOperatorType *ot)
 	/* props */
 	RNA_def_enum(ot->srna, "direction", direction_items,
 	             BONE_SELECT_PARENT, "Direction", "");
-	RNA_def_boolean(ot->srna, "extend", 0, "Add to Selection", "");
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
 /* ***************** EditBone Alignment ********************* */
@@ -4997,13 +4997,18 @@ void create_vgroups_from_armature(ReportList *reports, Scene *scene, Object *ob,
 	bArmature *arm = par->data;
 
 	if (mode == ARM_GROUPS_NAME) {
+		const int defbase_tot = BLI_countlist(&ob->defbase);
+		int defbase_add;
 		/* Traverse the bone list, trying to create empty vertex 
 		 * groups corresponding to the bone.
 		 */
-		bone_looper(ob, arm->bonebase.first, NULL, vgroup_add_unique_bone_cb);
+		defbase_add = bone_looper(ob, arm->bonebase.first, NULL, vgroup_add_unique_bone_cb);
 
-		if (ob->type == OB_MESH)
-			ED_vgroup_data_create(ob->data);
+		if (defbase_add) {
+			/* its possible there are DWeight's outside the range of the current
+			 * objects deform groups, in this case the new groups wont be empty [#33889] */
+			ED_vgroup_data_clamp_range(ob->data, defbase_tot);
+		}
 	}
 	else if (mode == ARM_GROUPS_ENVELOPE || mode == ARM_GROUPS_AUTO) {
 		/* Traverse the bone list, trying to create vertex groups 

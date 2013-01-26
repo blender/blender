@@ -2004,7 +2004,7 @@ static int rekey_exec(bContext *C, wmOperator *op)
 	PE_set_data(C, &data);
 
 	data.dval= 1.0f / (float)(data.totrekey-1);
-	data.totrekey= RNA_int_get(op->ptr, "keys");
+	data.totrekey= RNA_int_get(op->ptr, "keys_number");
 
 	foreach_selected_point(&data, rekey_particle);
 	
@@ -2031,7 +2031,7 @@ void PARTICLE_OT_rekey(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int(ot->srna, "keys", 2, 2, INT_MAX, "Number of Keys", "", 2, 100);
+	RNA_def_int(ot->srna, "keys_number", 2, 2, INT_MAX, "Number of Keys", "", 2, 100);
 }
 
 static void rekey_particle_to_time(Scene *scene, Object *ob, int pa_index, float path_time)
@@ -3254,7 +3254,7 @@ static int brush_add(PEData *data, short number)
 	ParticleEditSettings *pset= PE_settings(scene);
 	int i, k, n= 0, totpart= psys->totpart;
 	float mco[2];
-	short dmx= 0, dmy= 0;
+	float dmx, dmy;
 	float co1[3], co2[3], min_d, imat[4][4];
 	float framestep, timestep;
 	short size= pset->brush[PE_BRUSH_ADD].size;
@@ -3282,11 +3282,18 @@ static int brush_add(PEData *data, short number)
 
 	for (i=0; i<number; i++) {
 		if (number>1) {
-			dmx=dmy=size;
-			while (dmx*dmx+dmy*dmy>size2) {
-				dmx=(short)((2.0f*BLI_frand()-1.0f)*size);
-				dmy=(short)((2.0f*BLI_frand()-1.0f)*size);
+			dmx = size;
+			dmy = size;
+
+			/* rejection sampling to get points in circle */
+			while (dmx*dmx + dmy*dmy > size2) {
+				dmx= (2.0f*BLI_frand() - 1.0f)*size;
+				dmy= (2.0f*BLI_frand() - 1.0f)*size;
 			}
+		}
+		else {
+			dmx = 0.0f;
+			dmy = 0.0f;
 		}
 
 		mco[0] = data->mval[0] + dmx;
@@ -3307,8 +3314,8 @@ static int brush_add(PEData *data, short number)
 		int newtotpart=totpart+n;
 		float hairmat[4][4], cur_co[3];
 		KDTree *tree=0;
-		ParticleData *pa, *new_pars= MEM_callocN(newtotpart*sizeof(ParticleData), "ParticleData new");
-		PTCacheEditPoint *point, *new_points= MEM_callocN(newtotpart*sizeof(PTCacheEditPoint), "PTCacheEditPoint array new");
+		ParticleData *pa, *new_pars = MEM_callocN(newtotpart*sizeof(ParticleData), "ParticleData new");
+		PTCacheEditPoint *point, *new_points = MEM_callocN(newtotpart*sizeof(PTCacheEditPoint), "PTCacheEditPoint array new");
 		PTCacheEditKey *key;
 		HairKey *hkey;
 
@@ -3343,8 +3350,8 @@ static int brush_add(PEData *data, short number)
 		edit->totpoint= psys->totpart= newtotpart;
 
 		/* create new elements */
-		pa= psys->particles + totpart;
-		point= edit->points + totpart;
+		pa = psys->particles + totpart;
+		point = edit->points + totpart;
 
 		for (i=totpart; i<newtotpart; i++, pa++, point++) {
 			memcpy(pa, add_pars + i - totpart, sizeof(ParticleData));
@@ -3390,8 +3397,14 @@ static int brush_add(PEData *data, short number)
 					weight[w] = 0.0f;
 				}
 
-				for (w=0; w<maxw; w++)
-					weight[w] /= totw;
+				if(totw > 0.0f) {
+					for (w=0; w<maxw; w++)
+						weight[w] /= totw;
+				}
+				else {
+					for (w=0; w<maxw; w++)
+						weight[w] = 1.0f/maxw;
+				}
 
 				ppa= psys->particles+ptn[0].index;
 
@@ -3403,7 +3416,7 @@ static int brush_add(PEData *data, short number)
 					psys_get_particle_on_path(&sim, ptn[0].index, key3, 0);
 					mul_v3_fl(key3[0].co, weight[0]);
 					
-					/* TODO: interpolatint the weight would be nicer */
+					/* TODO: interpolating the weight would be nicer */
 					thkey->weight= (ppa->hair+MIN2(k, ppa->totkey-1))->weight;
 					
 					if (maxw>1) {
@@ -4147,8 +4160,8 @@ int PE_minmax(Scene *scene, float min[3], float max[3])
 /* initialize needed data for bake edit */
 static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache, ParticleSystem *psys)
 {
-	PTCacheEdit *edit= (psys)? psys->edit : cache->edit;
-	ParticleSystemModifierData *psmd= (psys)? psys_get_modifier(ob, psys): NULL;
+	PTCacheEdit *edit;
+	ParticleSystemModifierData *psmd = (psys) ? psys_get_modifier(ob, psys) : NULL;
 	POINT_P; KEY_K;
 	ParticleData *pa = NULL;
 	HairKey *hkey;
@@ -4163,6 +4176,8 @@ static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache,
 
 	if (psys == NULL && (cache && cache->mem_cache.first == NULL))
 		return;
+
+	edit = (psys) ? psys->edit : cache->edit;
 
 	if (!edit) {
 		totpoint = psys ? psys->totpart : (int)((PTCacheMem *)cache->mem_cache.first)->totpoint;

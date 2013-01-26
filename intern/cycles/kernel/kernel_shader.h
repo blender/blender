@@ -53,7 +53,7 @@ __device_noinline void shader_setup_object_transforms(KernelGlobals *kg, ShaderD
 }
 #endif
 
-__device_inline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
+__device void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	const Intersection *isect, const Ray *ray)
 {
 #ifdef __INSTANCING__

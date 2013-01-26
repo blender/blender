@@ -1279,8 +1279,24 @@ void CU_deselect_all(Object *obedit)
 	ListBase *editnurb = object_editcurve_get(obedit);
 
 	if (editnurb) {
-		selectend_nurb(obedit, FIRST, 0, DESELECT); /* set first control points as unselected */
-		select_adjacent_cp(editnurb, 1, 1, DESELECT); /* cascade selection */
+		Nurb *nu;
+		int a;
+		for (nu = editnurb->first; nu; nu = nu->next) {
+			if (nu->bezt) {
+				BezTriple *bezt;
+				for (bezt = nu->bezt, a = 0; a < nu->pntsu; a++, bezt++) {
+					bezt->f1 &= ~SELECT;
+					bezt->f2 &= ~SELECT;
+					bezt->f3 &= ~SELECT;
+				}
+			}
+			else if (nu->bp) {
+				BPoint *bp;
+				for (bp = nu->bp, a = 0; a < nu->pntsu * nu->pntsv; a++, bp++) {
+					bp->f1 &= ~SELECT;
+				}
+			}
+		}
 	}
 }
 
@@ -1289,8 +1305,27 @@ void CU_select_all(Object *obedit)
 	ListBase *editnurb = object_editcurve_get(obedit);
 
 	if (editnurb) {
-		selectend_nurb(obedit, FIRST, 0, SELECT); /* set first control points as unselected */
-		select_adjacent_cp(editnurb, 1, 1, SELECT); /* cascade selection */
+		Nurb *nu;
+		int a;
+		for (nu = editnurb->first; nu; nu = nu->next) {
+			if (nu->bezt) {
+				BezTriple *bezt;
+				for (bezt = nu->bezt, a = 0; a < nu->pntsu; a++, bezt++) {
+					if (bezt->hide == 0) {
+						bezt->f1 |= SELECT;
+						bezt->f2 |= SELECT;
+						bezt->f3 |= SELECT;
+					}
+				}
+			}
+			else if (nu->bp) {
+				BPoint *bp;
+				for (bp = nu->bp, a = 0; a < nu->pntsu * nu->pntsv; a++, bp++) {
+					if (bp->hide == 0)
+						bp->f1 |= SELECT;
+				}
+			}
+		}
 	}
 }
 
@@ -5510,7 +5545,7 @@ void CURVE_OT_select_random(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly", 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first");
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
 /********************* every nth number of point *******************/

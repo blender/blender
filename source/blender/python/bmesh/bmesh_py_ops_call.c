@@ -214,7 +214,7 @@ static int bpy_slot_from_py(BMesh *bm, BMOperator *bmop, BMOpSlot *slot, PyObjec
 				return -1;
 			}
 			else if (((size = ((MatrixObject *)value)->num_col) != ((MatrixObject *)value)->num_row) ||
-			         (ELEM(size, 3, 4) == FALSE))
+			         (ELEM(size, 3, 4) == false))
 			{
 				PyErr_Format(PyExc_TypeError,
 				             "%.200s: keyword \"%.200s\" expected a 3x3 or 4x4 matrix Matrix",
@@ -319,7 +319,7 @@ static int bpy_slot_from_py(BMesh *bm, BMOperator *bmop, BMOpSlot *slot, PyObjec
 
 					elem_array = BPy_BMElem_PySeq_As_Array(&bm, value, 0, PY_SSIZE_T_MAX,
 					                                       &elem_array_len, (slot->slot_subtype.elem & BM_ALL_NOLOOP),
-					                                       TRUE, TRUE, slot_name);
+					                                       true, true, slot_name);
 
 					/* error is set above */
 					if (elem_array == NULL) {

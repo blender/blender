@@ -58,12 +58,23 @@
 #  define GHOST_PRINTF(x, ...)
 #endif // GHOST_DEBUG
 
-
-#ifdef GHOST_DEBUG
+#ifdef WITH_ASSERT_ABORT
+#  include <stdio.h>  //for fprintf()
+#  include <stdlib.h> //for abort()
+#  define GHOST_ASSERT(x, info)                                               \
+	{                                                                         \
+		if (!(x)) {                                                           \
+			fprintf(stderr, "GHOST_ASSERT failed: ");                         \
+			fprintf(stderr, info);                                            \
+			fprintf(stderr, "\n");                                            \
+			abort();                                                          \
+		}                                                                     \
+	} (void)0
+#elif defined(GHOST_DEBUG)
 #  define GHOST_ASSERT(x, info)                                               \
 	{                                                                         \
 	    if (!(x)) {                                                           \
-	        GHOST_PRINT("assertion failed: ");                                \
+	        GHOST_PRINT("GHOST_ASSERT failed: ");                             \
 	        GHOST_PRINT(info);                                                \
 	        GHOST_PRINT("\n");                                                \
 	    }                                                                     \

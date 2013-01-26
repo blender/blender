@@ -43,6 +43,7 @@
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_particle_types.h"
+#include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
 
@@ -71,6 +72,10 @@
 #include "BKE_softbody.h"
 
 #include "BIK_api.h"
+
+#ifdef WITH_BULLET
+#  include "RBI_api.h"
+#endif
 
 /* both in intern */
 #ifdef WITH_SMOKE
@@ -308,8 +313,9 @@ static void ptcache_particle_read(int index, void *psys_v, void **data, float cf
 		pa->lifetime = times[2];
 	}
 
-	if (boid)
+	if (boid) {
 		PTCACHE_DATA_TO(data, BPHYS_DATA_BOIDS, 0, &boid->data);
+	}
 
 	/* determine velocity from previous location */
 	if (data[BPHYS_DATA_LOCATION] && !data[BPHYS_DATA_VELOCITY]) {
@@ -866,6 +872,97 @@ static int ptcache_dynamicpaint_read(PTCacheFile *pf, void *dp_v)
 	return 1;
 }
 
+/* Rigid Body functions */
+static int  ptcache_rigidbody_write(int index, void *rb_v, void **data, int UNUSED(cfra))
+{
+	RigidBodyWorld *rbw = rb_v;
+	Object *ob = NULL;
+	
+	if (rbw->objects)
+		ob = rbw->objects[index];
+	
+	if (ob && ob->rigidbody_object) {
+		RigidBodyOb *rbo = ob->rigidbody_object;
+		
+		if (rbo->type == RBO_TYPE_ACTIVE) {
+#ifdef WITH_BULLET
+			RB_body_get_position(rbo->physics_object, rbo->pos);
+			RB_body_get_orientation(rbo->physics_object, rbo->orn);
+#endif
+			PTCACHE_DATA_FROM(data, BPHYS_DATA_LOCATION, rbo->pos);
+			PTCACHE_DATA_FROM(data, BPHYS_DATA_ROTATION, rbo->orn);
+		}
+	}
+
+	return 1;
+}
+static void ptcache_rigidbody_read(int index, void *rb_v, void **data, float UNUSED(cfra), float *old_data)
+{
+	RigidBodyWorld *rbw = rb_v;
+	Object *ob = NULL;
+	
+	if (rbw->objects)
+		ob = rbw->objects[index];
+	
+	if (ob && ob->rigidbody_object) {
+		RigidBodyOb *rbo = ob->rigidbody_object;
+		
+		if (rbo->type == RBO_TYPE_ACTIVE) {
+			
+			if (old_data) {
+				memcpy(rbo->pos, data, 3 * sizeof(float));
+				memcpy(rbo->orn, data + 3, 4 * sizeof(float));
+			}
+			else {
+				PTCACHE_DATA_TO(data, BPHYS_DATA_LOCATION, 0, rbo->pos);
+				PTCACHE_DATA_TO(data, BPHYS_DATA_ROTATION, 0, rbo->orn);
+			}
+		}
+	}
+}
+static void ptcache_rigidbody_interpolate(int index, void *rb_v, void **data, float cfra, float cfra1, float cfra2, float *old_data)
+{
+	RigidBodyWorld *rbw = rb_v;
+	Object *ob = NULL;
+	ParticleKey keys[4];
+	float dfra;
+	
+	if (rbw->objects)
+		ob = rbw->objects[index];
+	
+	if (ob && ob->rigidbody_object) {
+		RigidBodyOb *rbo = ob->rigidbody_object;
+		
+		if (rbo->type == RBO_TYPE_ACTIVE) {
+			
+			copy_v3_v3(keys[1].co, rbo->pos);
+			copy_v3_v3(keys[1].rot, rbo->orn);
+			
+			if (old_data) {
+				memcpy(keys[2].co, data, 3 * sizeof(float));
+				memcpy(keys[2].rot, data + 3, 4 * sizeof(float));
+			}
+			else {
+				BKE_ptcache_make_particle_key(keys+2, 0, data, cfra2);
+			}
+			
+			dfra = cfra2 - cfra1;
+		
+			psys_interpolate_particle(-1, keys, (cfra - cfra1) / dfra, keys, 1);
+			interp_qt_qtqt(keys->rot, keys[1].rot, keys[2].rot, (cfra - cfra1) / dfra);
+			
+			copy_v3_v3(rbo->pos, keys->co);
+			copy_v3_v3(rbo->orn, keys->rot);
+		}
+	}
+}
+static int ptcache_rigidbody_totpoint(void *rb_v, int UNUSED(cfra))
+{
+	RigidBodyWorld *rbw = rb_v;
+	
+	return rbw->numbodies;
+}
+
 /* Creating ID's */
 void BKE_ptcache_id_from_softbody(PTCacheID *pid, Object *ob, SoftBody *sb)
 {
@@ -1071,6 +1168,42 @@ void BKE_ptcache_id_from_dynamicpaint(PTCacheID *pid, Object *ob, DynamicPaintSu
 	pid->max_step = 1;
 }
 
+void BKE_ptcache_id_from_rigidbody(PTCacheID *pid, Object *ob, RigidBodyWorld *rbw)
+{
+	
+	memset(pid, 0, sizeof(PTCacheID));
+	
+	pid->ob= ob;
+	pid->calldata= rbw;
+	pid->type= PTCACHE_TYPE_RIGIDBODY;
+	pid->cache= rbw->pointcache;
+	pid->cache_ptr= &rbw->pointcache;
+	pid->ptcaches= &rbw->ptcaches;
+	pid->totpoint= pid->totwrite= ptcache_rigidbody_totpoint;
+	
+	pid->write_point			= ptcache_rigidbody_write;
+	pid->read_point				= ptcache_rigidbody_read;
+	pid->interpolate_point		= ptcache_rigidbody_interpolate;
+	
+	pid->write_stream			= NULL;
+	pid->read_stream			= NULL;
+	
+	pid->write_extra_data		= NULL;
+	pid->read_extra_data		= NULL;
+	pid->interpolate_extra_data	= NULL;
+	
+	pid->write_header			= ptcache_basic_header_write;
+	pid->read_header			= ptcache_basic_header_read;
+	
+	pid->data_types= (1<<BPHYS_DATA_LOCATION) | (1<<BPHYS_DATA_ROTATION);
+	pid->info_types= 0;
+	
+	pid->stack_index = pid->cache->index;
+	
+	pid->default_step = 1;
+	pid->max_step = 1;
+}
+
 void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int duplis)
 {
 	PTCacheID *pid;
@@ -1131,6 +1264,12 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 				}
 			}
 		}
+	}
+	
+	if (scene && ob->rigidbody_object && scene->rigidbody_world) {
+		pid = MEM_callocN(sizeof(PTCacheID), "PTCacheID");
+		BKE_ptcache_id_from_rigidbody(pid, ob, scene->rigidbody_world);
+		BLI_addtail(lb, pid);
 	}
 
 	if (scene && (duplis-- > 0) && (ob->transflag & OB_DUPLI)) {
@@ -2535,7 +2674,7 @@ int  BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 	after= 0;
 
 	if (mode == PTCACHE_RESET_DEPSGRAPH) {
-		if (!(cache->flag & PTCACHE_BAKED) && !BKE_ptcache_get_continue_physics()) {
+		if (!(cache->flag & PTCACHE_BAKED)) {
 
 			after= 1;
 		}
@@ -2543,12 +2682,7 @@ int  BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 		cache->flag |= PTCACHE_OUTDATED;
 	}
 	else if (mode == PTCACHE_RESET_BAKED) {
-		if (!BKE_ptcache_get_continue_physics()) {
-			reset= 1;
-			clear= 1;
-		}
-		else
-			cache->flag |= PTCACHE_OUTDATED;
+		cache->flag |= PTCACHE_OUTDATED;
 	}
 	else if (mode == PTCACHE_RESET_OUTDATED) {
 		reset = 1;
@@ -2645,6 +2779,14 @@ int  BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 		}
 	}
 
+	if (scene->rigidbody_world && (ob->rigidbody_object || ob->rigidbody_constraint)) {
+		if (ob->rigidbody_object)
+			ob->rigidbody_object->flag |= RBO_FLAG_NEEDS_RESHAPE;
+		BKE_ptcache_id_from_rigidbody(&pid, ob, scene->rigidbody_world);
+		/* only flag as outdated, resetting should happen on start frame */
+		pid.cache->flag |= PTCACHE_OUTDATED;
+	}
+
 	if (ob->type == OB_ARMATURE)
 		BIK_clear_cache(ob->pose);
 
@@ -2692,30 +2834,6 @@ void BKE_ptcache_remove(void)
 	if (rmdir) {
 		BLI_delete(path, 1, 0);
 	}
-}
-
-/* Continuous Interaction */
-
-static int CONTINUE_PHYSICS = 0;
-
-void BKE_ptcache_set_continue_physics(Main *bmain, Scene *scene, int enable)
-{
-	Object *ob;
-
-	if (CONTINUE_PHYSICS != enable) {
-		CONTINUE_PHYSICS = enable;
-
-		if (CONTINUE_PHYSICS == 0) {
-			for (ob=bmain->object.first; ob; ob=ob->id.next)
-				if (BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_OUTDATED))
-					DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		}
-	}
-}
-
-int  BKE_ptcache_get_continue_physics(void)
-{
-	return CONTINUE_PHYSICS;
 }
 
 /* Point Cache handling */

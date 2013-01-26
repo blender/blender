@@ -39,30 +39,27 @@ BRANCHES_DIR = settings.BRANCHES_DIR
 
 def do_clean(po, strict):
     print("Cleaning {}...".format(po))
-    messages, states, u1 = utils.parse_messages(po)
+    msgs = utils.I18nMessages(kind='PO', src=po)
 
-    if strict and states["is_broken"]:
+    if strict and msgs.parsing_errors:
         print("ERROR! This .po file is broken!")
         return 1
 
-    for msgkey in states["comm_msg"]:
-        del messages[msgkey]
-    utils.write_messages(po, messages, states["comm_msg"], states["fuzzy_msg"])
-    print("Removed {} commented messages.".format(len(states["comm_msg"])))
+    nbr_rem = len(msgs.comm_msgs)
+    for msgkey in msgs.comm_msgs:
+        del msgs.msgs[msgkey]
+    msgs.write(kind='PO', dest=po)
+    print("Removed {} commented messages.".format(nbr_rem))
     return 0
 
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="Clean po’s in branches " \
-                                                 "or trunk (i.e. remove " \
-                                                 "all commented messages).")
-    parser.add_argument('-t', '--trunk', action="store_true",
-                        help="Clean po’s in trunk rather than branches.")
-    parser.add_argument('-s', '--strict', action="store_true",
-                        help="Raise an error if a po is broken.")
-    parser.add_argument('langs', metavar='ISO_code', nargs='*',
-                        help="Restrict processed languages to those.")
+    parser = argparse.ArgumentParser(description="Clean po’s in branches or trunk (i.e. remove all commented "
+                                                 "messages).")
+    parser.add_argument('-t', '--trunk', action="store_true", help="Clean po’s in trunk rather than branches.")
+    parser.add_argument('-s', '--strict', action="store_true", help="Raise an error if a po is broken.")
+    parser.add_argument('langs', metavar='ISO_code', nargs='*', help="Restrict processed languages to those.")
     args = parser.parse_args()
 
     ret = 0

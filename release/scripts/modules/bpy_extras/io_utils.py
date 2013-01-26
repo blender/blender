@@ -79,20 +79,23 @@ class ExportHelper:
         return {'RUNNING_MODAL'}
 
     def check(self, context):
+        import os
         change_ext = False
         change_axis = _check_axis_conversion(self)
 
         check_extension = self.check_extension
 
         if check_extension is not None:
-            filepath = bpy.path.ensure_ext(self.filepath,
-                                           self.filename_ext
-                                           if check_extension
-                                           else "")
+            filepath = self.filepath
+            if os.path.basename(filepath):
+                filepath = bpy.path.ensure_ext(filepath,
+                                               self.filename_ext
+                                               if check_extension
+                                               else "")
 
-            if filepath != self.filepath:
-                self.filepath = filepath
-                change_ext = True
+                if filepath != self.filepath:
+                    self.filepath = filepath
+                    change_ext = True
 
         return (change_ext or change_axis)
 
@@ -338,7 +341,7 @@ path_reference_mode = EnumProperty(
                ('COPY', "Copy", "Copy the file to the destination path "
                                 "(or subdirectory)"),
                ),
-        default='AUTO'
+        default='AUTO',
         )
 
 
@@ -477,10 +480,10 @@ def unique_name(key, name, name_dict, name_max=-1, clean_func=None, sep="."):
             while name_new in name_dict_values:
                 count_str = "%03d" % count
                 name_new = "%.*s%s%s" % (name_max - (len(count_str) + 1),
-                                        name_new_orig,
-                                        sep,
-                                        count_str,
-                                        )
+                                         name_new_orig,
+                                         sep,
+                                         count_str,
+                                         )
                 count += 1
 
         name_dict[key] = name_new

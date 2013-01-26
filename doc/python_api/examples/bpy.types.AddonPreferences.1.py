@@ -17,6 +17,8 @@ from bpy.props import StringProperty, IntProperty, BoolProperty
 
 
 class ExampleAddonPreferences(AddonPreferences):
+    # this must match the addon name, use '__package__'
+    # when defining this in a submodule of a python package.
     bl_idname = __name__
 
     filepath = StringProperty(

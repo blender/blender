@@ -55,6 +55,7 @@ int collada_export(Scene *sce,
                    int selected,
                    int include_children,
                    int include_armatures,
+                   int include_shapekeys,
                    int deform_bones_only,
 
 				   int active_uv_only,

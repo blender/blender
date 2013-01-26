@@ -47,6 +47,8 @@
 #include "BKE_paint.h"
 #include "BKE_subsurf.h"
 
+#include "bmesh.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -222,6 +224,22 @@ int paint_is_grid_face_hidden(const unsigned int *grid_hidden,
 	        BLI_BITMAP_GET(grid_hidden, y * gridsize + x + 1) ||
 	        BLI_BITMAP_GET(grid_hidden, (y + 1) * gridsize + x + 1) ||
 	        BLI_BITMAP_GET(grid_hidden, (y + 1) * gridsize + x));
+}
+
+/* Return TRUE if all vertices in the face are visible, FALSE otherwise */
+int paint_is_bmesh_face_hidden(BMFace *f)
+{
+	BMLoop *l_iter;
+	BMLoop *l_first;
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	do {
+		if (BM_elem_flag_test(l_iter->v, BM_ELEM_HIDDEN)) {
+			return true;
+		}
+	} while ((l_iter = l_iter->next) != l_first);
+
+	return false;
 }
 
 float paint_grid_paint_mask(const GridPaintMask *gpm, unsigned level,

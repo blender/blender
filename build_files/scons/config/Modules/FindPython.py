@@ -15,6 +15,13 @@ def FindPython():
             abi_flags = cur_flags
             break
 
+    # Find config.h. In some distros, such as ubuntu 12.10 they are not in standard include dir.
+    incconf64 = os.path.join(include, "x86_64-linux-gnu", "python" + version + cur_flags, "pyconfig.h")
+    if os.path.exists(incconf64):
+        incconf = os.path.join(include, "x86_64-linux-gnu", "python" + version + cur_flags)
+    else:
+        incconf = ''
+
     # Determine whether python is in /usr/lib or /usr/lib64
     lib32 = os.path.join(python, "lib", "python" + version, "sysconfig.py")
     lib64 = os.path.join(python, "lib64", "python" + version, "sysconfig.py")
@@ -29,4 +36,5 @@ def FindPython():
     return {'PYTHON': python,
             "VERSION": version,
             'LIBPATH': libpath,
-            'ABI_FLAGS': abi_flags}
+            'ABI_FLAGS': abi_flags,
+            'CONFIG': incconf}

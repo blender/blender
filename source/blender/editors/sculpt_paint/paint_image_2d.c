@@ -205,7 +205,7 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf,
 					xy[0] = x + xoff;
 					xy[1] = y + yoff;
 
-					BKE_brush_sample_tex(scene, brush, xy, tf, 0);
+					BKE_brush_sample_tex_2D(scene, brush, xy, tf, 0);
 				}
 
 				bf[0] = tf[0] * mf[0];
@@ -236,7 +236,7 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf,
 					xy[0] = x + xoff;
 					xy[1] = y + yoff;
 
-					BKE_brush_sample_tex(scene, brush, xy, rgba, 0);
+					BKE_brush_sample_tex_2D(scene, brush, xy, rgba, 0);
 					rgba_float_to_uchar(t, rgba);
 				}
 
@@ -314,6 +314,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, const float pos[2
 	short flt;
 	const int diameter = 2 * BKE_brush_size_get(scene, brush);
 	const float alpha = BKE_brush_alpha_get(scene, brush);
+	const bool do_tiled = ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_3D);
 
 	if (diameter != cache->lastsize ||
 	    alpha != cache->lastalpha ||
@@ -331,7 +332,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, const float pos[2
 		flt = cache->flt;
 		size = (cache->size) ? cache->size : diameter;
 
-		if (brush->flag & BRUSH_FIXED_TEX) {
+		if (do_tiled) {
 			BKE_brush_imbuf_new(scene, brush, flt, 3, size, &cache->maskibuf, use_color_correction);
 			brush_painter_fixed_tex_partial_update(painter, pos);
 		}
@@ -342,7 +343,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, const float pos[2
 		cache->lastalpha = alpha;
 		cache->lastjitter = brush->jitter;
 	}
-	else if ((brush->flag & BRUSH_FIXED_TEX) && mtex && mtex->tex) {
+	else if (do_tiled && mtex && mtex->tex) {
 		int dx = (int)painter->lastpaintpos[0] - (int)pos[0];
 		int dy = (int)painter->lastpaintpos[1] - (int)pos[1];
 
@@ -539,7 +540,7 @@ unsigned int *BKE_brush_gen_texture_cache(Brush *br, int half_side)
 				co[2] = 0.0f;
 				
 				/* This is copied from displace modifier code */
-				hasrgb = multitex_ext(mtex->tex, co, NULL, NULL, 0, &texres);
+				hasrgb = multitex_ext(mtex->tex, co, NULL, NULL, 0, &texres, NULL);
 			
 				/* if the texture gave an RGB value, we assume it didn't give a valid
 				 * intensity, so calculate one (formula from do_material_tex).

@@ -33,26 +33,28 @@
 
 #include "BLF_translation.h"
 
+#include "MEM_guardedalloc.h"
+
+#include "BLI_fileops.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
+
+#include "DNA_userdef_types.h" /* For user settings. */
+
+#include "BPY_extern.h"
+
 #ifdef WITH_INTERNATIONAL
 
 #include "boost_locale_wrapper.h"
 
-#include "MEM_guardedalloc.h"
-
-#include "BLI_utildefines.h"
-#include "BLI_path_util.h"
-#include "BLI_string.h"
-#include "BLI_path_util.h"
-#include "BLI_fileops.h"
-
-#include "DNA_userdef_types.h" /* For user settings. */
-
 static const char unifont_filename[] = "droidsans.ttf.gz";
 static unsigned char *unifont_ttf = NULL;
 static int unifont_size = 0;
+#endif  /* WITH_INTERNATIONAL */
 
 unsigned char *BLF_get_unifont(int *unifont_size_r)
 {
+#ifdef WITH_INTERNATIONAL
 	if (unifont_ttf == NULL) {
 		char *fontpath = BLI_get_folder(BLENDER_DATAFILES, "fonts");
 		if (fontpath) {
@@ -70,21 +72,41 @@ unsigned char *BLF_get_unifont(int *unifont_size_r)
 	*unifont_size_r = unifont_size;
 
 	return unifont_ttf;
+#else
+	(void)unifont_size_r;
+	return NULL;
+#endif
 }
 
 void BLF_free_unifont(void)
 {
+#ifdef WITH_INTERNATIONAL
 	if (unifont_ttf)
 		MEM_freeN(unifont_ttf);
-}
-
+#else
 #endif
+}
 
 const char *BLF_pgettext(const char *msgctxt, const char *msgid)
 {
 #ifdef WITH_INTERNATIONAL
 	if (msgid && msgid[0]) {
-		return bl_locale_pgettext(msgctxt, msgid);
+		const char *ret;
+
+		/*if (msgctxt && !strcmp(msgctxt, BLF_I18NCONTEXT_DEFAULT_BPY_INTERN)) { */
+		if (msgctxt && !msgctxt[0]) {
+			/* BLF_I18NCONTEXT_DEFAULT_BPY_INTERN context is reserved and considered the same as default NULL one. */
+			msgctxt = NULL;
+		}
+		ret = bl_locale_pgettext(msgctxt, msgid);
+		/* We assume if the returned string is the same (memory level) as the msgid, no translation was found,
+		 * and we can try py scripts' ones!
+		 */
+		if (ret == msgid) {
+			ret = BPY_app_translations_py_pgettext(msgctxt, msgid);
+		}
+
+		return ret;
 	}
 	return "";
 #else
@@ -93,21 +115,21 @@ const char *BLF_pgettext(const char *msgctxt, const char *msgid)
 #endif
 }
 
-int BLF_translate_iface(void)
+bool BLF_translate_iface(void)
 {
 #ifdef WITH_INTERNATIONAL
 	return (U.transopts & USER_DOTRANSLATE) && (U.transopts & USER_TR_IFACE);
 #else
-	return 0;
+	return false;
 #endif
 }
 
-int BLF_translate_tooltips(void)
+bool BLF_translate_tooltips(void)
 {
 #ifdef WITH_INTERNATIONAL
 	return (U.transopts & USER_DOTRANSLATE) && (U.transopts & USER_TR_TOOLTIPS);
 #else
-	return 0;
+	return false;
 #endif
 }
 

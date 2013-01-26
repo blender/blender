@@ -48,6 +48,8 @@ _modules = (
     "properties_physics_dynamicpaint",
     "properties_physics_field",
     "properties_physics_fluid",
+    "properties_physics_rigidbody",
+    "properties_physics_rigidbody_constraint",
     "properties_physics_smoke",
     "properties_physics_softbody",
     "properties_render",
@@ -133,6 +135,7 @@ def register():
 
 def unregister():
     bpy.utils.unregister_module(__name__)
+
 
 # Define a default UIList, when a list does not need any custom drawing...
 class UI_UL_list(bpy.types.UIList):

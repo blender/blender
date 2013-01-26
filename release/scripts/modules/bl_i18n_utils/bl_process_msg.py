@@ -23,27 +23,41 @@
 #      You should not directly use this script, rather use update_msg.py!
 
 import os
+import re
+import collections
+import copy
 
 # XXX Relative import does not work here when used from Blender...
 from bl_i18n_utils import settings
 
+import bpy
 
-#classes = set()
-
+print(dir(settings))
 
 SOURCE_DIR = settings.SOURCE_DIR
 
 CUSTOM_PY_UI_FILES = [os.path.abspath(os.path.join(SOURCE_DIR, p)) for p in settings.CUSTOM_PY_UI_FILES]
 FILE_NAME_MESSAGES = settings.FILE_NAME_MESSAGES
-COMMENT_PREFIX = settings.COMMENT_PREFIX
-CONTEXT_PREFIX = settings.CONTEXT_PREFIX
+MSG_COMMENT_PREFIX = settings.MSG_COMMENT_PREFIX
+MSG_CONTEXT_PREFIX = settings.MSG_CONTEXT_PREFIX
 CONTEXT_DEFAULT = settings.CONTEXT_DEFAULT
+#CONTEXT_DEFAULT = bpy.app.i18n.contexts.default # XXX Not yet! :)
 UNDOC_OPS_STR = settings.UNDOC_OPS_STR
 
 NC_ALLOWED = settings.WARN_MSGID_NOT_CAPITALIZED_ALLOWED
 
 
+##### Utils #####
+
+# check for strings like ": %d"
+ignore_reg = re.compile(r"^(?:[-*.()/\\+:%xWXYZ0-9]|%d|%f|%s|%r|\s)*$")
+filter_message = ignore_reg.match
+
+
 def check(check_ctxt, messages, key, msgsrc):
+    """
+    Performs a set of checks over the given key (context, message)...
+    """
     if check_ctxt is None:
         return
     multi_rnatip = check_ctxt.get("multi_rnatip")
@@ -73,7 +87,79 @@ def check(check_ctxt, messages, key, msgsrc):
             undoc_ops.add(key)
 
 
+def print_warnings(check_ctxt, messages):
+    if check_ctxt is not None:
+        print("WARNINGS:")
+        keys = set()
+        for c in check_ctxt.values():
+            keys |= c
+        # XXX Temp, see below
+        keys -= check_ctxt["multi_rnatip"]
+        for key in keys:
+            if key in check_ctxt["undoc_ops"]:
+                print("\tThe following operators are undocumented:")
+            else:
+                print("\t“{}”|“{}”:".format(*key))
+                if key in check_ctxt["multi_lines"]:
+                    print("\t\t-> newline in this message!")
+                if key in check_ctxt["not_capitalized"]:
+                    print("\t\t-> message not capitalized!")
+                if key in check_ctxt["end_point"]:
+                    print("\t\t-> message with endpoint!")
+                # XXX Hide this one for now, too much false positives.
+#                if key in check_ctxt["multi_rnatip"]:
+#                    print("\t\t-> tip used in several RNA items")
+                if key in check_ctxt["py_in_rna"]:
+                    print("\t\t-> RNA message also used in py UI code:")
+            print("\t\t{}".format("\n\t\t".join(messages[key])))
+
+
+def enable_addons(addons={}, support={}, disable=False):
+    """
+    Enable (or disable) addons based either on a set of names, or a set of 'support' types.
+    Returns the list of all affected addons (as fake modules)!
+    """
+    import addon_utils
+    import bpy
+
+    userpref = bpy.context.user_preferences
+    used_ext = {ext.module for ext in userpref.addons}
+
+    ret = [mod for mod in addon_utils.modules(addon_utils.addons_fake_modules)
+           if ((addons and mod.__name__ in addons) or
+               (not addons and addon_utils.module_bl_info(mod)["support"] in support))]
+
+    for mod in ret:
+        module_name = mod.__name__
+        if disable:
+            if module_name not in used_ext:
+                continue
+            print("    Disabling module ", module_name)
+            bpy.ops.wm.addon_disable(module=module_name)
+        else:
+            if module_name in used_ext:
+                continue
+            print("    Enabling module ", module_name)
+            bpy.ops.wm.addon_enable(module=module_name)
+
+    # XXX There are currently some problems with bpy/rna...
+    #     *Very* tricky to solve!
+    #     So this is a hack to make all newly added operator visible by
+    #     bpy.types.OperatorProperties.__subclasses__()
+    for cat in dir(bpy.ops):
+        cat = getattr(bpy.ops, cat)
+        for op in dir(cat):
+            getattr(cat, op).get_rna()
+
+    return ret
+
+
+##### RNA #####
+
 def dump_messages_rna(messages, check_ctxt):
+    """
+    Dump into messages dict all RNA-defined UI messages (labels en tooltips).
+    """
     import bpy
 
     def classBlackList():
@@ -257,20 +343,17 @@ def dump_messages_rna(messages, check_ctxt):
     # Parse everything (recursively parsing from bpy_struct "class"...).
     processed = process_cls_list(type(bpy.context).__base__.__subclasses__())
     print("{} classes processed!".format(processed))
-#    import pickle
-#    global classes
-#    classes = {str(c) for c in classes}
-#    with open("/home/i7deb64/Bureau/tpck_2", "wb") as f:
-#        pickle.dump(classes, f, protocol=0)
 
     from bpy_extras.keyconfig_utils import KM_HIERARCHY
 
     walk_keymap_hierarchy(KM_HIERARCHY, "KM_HIERARCHY")
 
 
-def dump_messages_pytext(messages, check_ctxt):
-    """ dumps text inlined in the python user interface: eg.
+##### Python source code #####
 
+def dump_py_messages_from_files(messages, check_ctxt, files):
+    """
+    Dump text inlined in the python files given, e.g. 'My Name' in:
         layout.prop("someprop", text="My Name")
     """
     import ast
@@ -278,7 +361,6 @@ def dump_messages_pytext(messages, check_ctxt):
     # -------------------------------------------------------------------------
     # Gather function names
 
-    import bpy
     # key: func_id
     # val: [(arg_kw, arg_pos), (arg_kw, arg_pos), ...]
     func_translate_args = {}
@@ -290,15 +372,12 @@ def dump_messages_pytext(messages, check_ctxt):
     # E.g. we don’t want to get strings inside subscripts (blah["foo"])!
     stopper_nodes = {ast.Subscript, }
 
+    # For now only consider functions from UILayout...
     for func_id, func in bpy.types.UILayout.bl_rna.functions.items():
-        # check it has a 'text' argument
+        # check it has one or more arguments as defined in translate_kw
         for (arg_pos, (arg_kw, arg)) in enumerate(func.parameters.items()):
-            if ((arg_kw in translate_kw) and
-                (arg.is_output is False) and
-                (arg.type == 'STRING')):
-
-                func_translate_args.setdefault(func_id, []).append((arg_kw,
-                                                                    arg_pos))
+            if ((arg_kw in translate_kw) and (arg.is_output is False) and (arg.type == 'STRING')):
+                func_translate_args.setdefault(func_id, []).append((arg_kw, arg_pos))
     # print(func_translate_args)
 
     check_ctxt_py = None
@@ -308,19 +387,23 @@ def dump_messages_pytext(messages, check_ctxt):
                          "not_capitalized": check_ctxt["not_capitalized"],
                          "end_point": check_ctxt["end_point"]}
 
-    # -------------------------------------------------------------------------
-    # Function definitions
-
+    # Helper function
     def extract_strings(fp_rel, node):
-        """ Recursively get strings, needed in case we have "Blah" + "Blah",
-            passed as an argument in that case it wont evaluate to a string.
-            However, break on some kind of stopper nodes, like e.g. Subscript.
         """
-
+        Recursively get strings, needed in case we have "Blah" + "Blah", passed as an argument in that case it won't
+        evaluate to a string. However, break on some kind of stopper nodes, like e.g. Subscript.
+        """
         if type(node) == ast.Str:
             eval_str = ast.literal_eval(node)
             if eval_str:
-                key = (CONTEXT_DEFAULT, eval_str)
+                # Parse optional context included in string!
+                # XXX Not yet!
+                #if bpy.app.i18n.context_sep in eval_str:
+                    #key = eval_str.split(bpy.app.i18n.context_sep, 1)
+                if 0:
+                    pass
+                else:
+                    key = (CONTEXT_DEFAULT, eval_str)
                 msgsrc = "{}:{}".format(fp_rel, node.lineno)
                 check(check_ctxt_py, messages, key, msgsrc)
                 messages.setdefault(key, []).append(msgsrc)
@@ -330,10 +413,9 @@ def dump_messages_pytext(messages, check_ctxt):
             if type(nd) not in stopper_nodes:
                 extract_strings(fp_rel, nd)
 
-    def extract_strings_from_file(fp):
-        filedata = open(fp, 'r', encoding="utf8")
-        root_node = ast.parse(filedata.read(), fp, 'exec')
-        filedata.close()
+    for fp in files:
+        with open(fp, 'r', encoding="utf8") as filedata:
+            root_node = ast.parse(filedata.read(), fp, 'exec')
 
         fp_rel = os.path.relpath(fp, SOURCE_DIR)
 
@@ -361,70 +443,39 @@ def dump_messages_pytext(messages, check_ctxt):
                             if kw.arg == arg_kw:
                                 extract_strings(fp_rel, kw.value)
 
-    # -------------------------------------------------------------------------
-    # Dump Messages
 
-    mod_dir = os.path.join(SOURCE_DIR,
-                           "release",
-                           "scripts",
-                           "startup",
-                           "bl_ui")
+def dump_py_messages(messages, check_ctxt, addons):
+    mod_dir = os.path.join(SOURCE_DIR, "release", "scripts", "startup", "bl_ui")
 
-    files = [os.path.join(mod_dir, fn)
-             for fn in sorted(os.listdir(mod_dir))
-             if not fn.startswith("_")
-             if fn.endswith("py")
-             ]
+    files = [os.path.join(mod_dir, fn) for fn in sorted(os.listdir(mod_dir))
+             if not fn.startswith("_") if fn.endswith("py")]
 
     # Dummy Cycles has its py addon in its own dir!
     files += CUSTOM_PY_UI_FILES
 
-    for fp in files:
-        extract_strings_from_file(fp)
+    # Add all addons we support in main translation file!
+    for mod in addons:
+        fn = mod.__file__
+        if os.path.basename(fn) == "__init__.py":
+            mod_dir = os.path.dirname(fn)
+            files += [fn for fn in sorted(os.listdir(mod_dir))
+                      if os.path.isfile(fn) and os.path.splitext(fn)[1] == ".py"]
+        else:
+            files.append(fn)
 
+    dump_py_messages_from_files(messages, check_ctxt, files)
+
+
+##### Main functions! #####
 
 def dump_messages(do_messages, do_checks):
-    import collections
-    import re
-
-    def enable_addons():
-        """For now, enable all official addons, before extracting msgids."""
-        import addon_utils
-        import bpy
-
-        userpref = bpy.context.user_preferences
-        used_ext = {ext.module for ext in userpref.addons}
-        support = {"OFFICIAL"}
-        # collect the categories that can be filtered on
-        addons = [(mod, addon_utils.module_bl_info(mod)) for mod in
-                  addon_utils.modules(addon_utils.addons_fake_modules)]
-
-        for mod, info in addons:
-            module_name = mod.__name__
-            if module_name in used_ext or info["support"] not in support:
-                continue
-            print("    Enabling module ", module_name)
-            bpy.ops.wm.addon_enable(module=module_name)
-
-        # XXX There are currently some problems with bpy/rna...
-        #     *Very* tricky to solve!
-        #     So this is a hack to make all newly added operator visible by
-        #     bpy.types.OperatorProperties.__subclasses__()
-        for cat in dir(bpy.ops):
-            cat = getattr(bpy.ops, cat)
-            for op in dir(cat):
-                getattr(cat, op).get_rna()
-
-    # check for strings like ": %d"
-    ignore_reg = re.compile(r"^(?:[-*.()/\\+:%xWXYZ0-9]|%d|%f|%s|%r|\s)*$")
-    filter_message = ignore_reg.match
-
     messages = getattr(collections, 'OrderedDict', dict)()
 
     messages[(CONTEXT_DEFAULT, "")] = []
 
     # Enable all wanted addons.
-    enable_addons()
+    # For now, enable all official addons, before extracting msgids.
+    addons = enable_addons(support={"OFFICIAL"})
 
     check_ctxt = None
     if do_checks:
@@ -439,34 +490,88 @@ def dump_messages(do_messages, do_checks):
     dump_messages_rna(messages, check_ctxt)
 
     # get strings from UI layout definitions text="..." args
+    dump_py_messages(messages, check_ctxt, addons)
+
+    del messages[(CONTEXT_DEFAULT, "")]
+
+    print_warnings(check_ctxt, messages)
+
+    if do_messages:
+        print("Writing messages…")
+        num_written = 0
+        num_filtered = 0
+        with open(FILE_NAME_MESSAGES, 'w', encoding="utf8") as message_file:
+            for (ctx, key), value in messages.items():
+                # filter out junk values
+                if filter_message(key):
+                    num_filtered += 1
+                    continue
+
+                # Remove newlines in key and values!
+                message_file.write("\n".join(MSG_COMMENT_PREFIX + msgsrc.replace("\n", "") for msgsrc in value))
+                message_file.write("\n")
+                if ctx:
+                    message_file.write(MSG_CONTEXT_PREFIX + ctx.replace("\n", "") + "\n")
+                message_file.write(key.replace("\n", "") + "\n")
+                num_written += 1
+
+        print("Written {} messages to: {} ({} were filtered out)."
+              "".format(num_written, FILE_NAME_MESSAGES, num_filtered))
+
+
+def dump_addon_messages(module_name, messages_formats, do_checks):
+    messages = getattr(collections, 'OrderedDict', dict)()
+
+    messages[(CONTEXT_DEFAULT, "")] = []
+    minus_messages = copy.deepcopy(messages)
+
+    check_ctxt = None
+    minus_check_ctxt = None
+    if do_checks:
+        check_ctxt = {"multi_rnatip": set(),
+                      "multi_lines": set(),
+                      "py_in_rna": set(),
+                      "not_capitalized": set(),
+                      "end_point": set(),
+                      "undoc_ops": set()}
+        minus_check_ctxt = copy.deepcopy(check_ctxt)
+
+    # Get current addon state (loaded or not):
+    was_loaded = addon_utils.check(module_name)[1]
+
+    # Enable our addon and get strings from RNA.
+    enable_addons(addons={module_name})
+    dump_messages_rna(messages, check_ctxt)
+
+    # Now disable our addon, and rescan RNA.
+    enable_addons(addons={module_name}, disable=True)
+    dump_messages_rna(minus_messages, minus_check_ctxt)
+
+    # Restore previous state if needed!
+    if was_loaded:
+        enable_addons(addons={module_name})
+
+    # and make the diff!
+    for key in minus_messages:
+        if k == (CONTEXT_DEFAULT, ""):
+            continue
+        del messages[k]
+
+    if check_ctxt:
+        for key in check_ctxt:
+            for warning in minus_check_ctxt[key]:
+                check_ctxt[key].remove(warning)
+
+    # and we are done with those!
+    del minus_messages
+    del minus_check_ctxt
+
+    # get strings from UI layout definitions text="..." args
     dump_messages_pytext(messages, check_ctxt)
 
     del messages[(CONTEXT_DEFAULT, "")]
 
-    if do_checks:
-        print("WARNINGS:")
-        keys = set()
-        for c in check_ctxt.values():
-            keys |= c
-        # XXX Temp, see below
-        keys -= check_ctxt["multi_rnatip"]
-        for key in keys:
-            if key in check_ctxt["undoc_ops"]:
-                print("\tThe following operators are undocumented:")
-            else:
-                print("\t“{}”|“{}”:".format(*key))
-                if key in check_ctxt["multi_lines"]:
-                    print("\t\t-> newline in this message!")
-                if key in check_ctxt["not_capitalized"]:
-                    print("\t\t-> message not capitalized!")
-                if key in check_ctxt["end_point"]:
-                    print("\t\t-> message with endpoint!")
-                # XXX Hide this one for now, too much false positives.
-#                if key in check_ctxt["multi_rnatip"]:
-#                    print("\t\t-> tip used in several RNA items")
-                if key in check_ctxt["py_in_rna"]:
-                    print("\t\t-> RNA message also used in py UI code:")
-            print("\t\t{}".format("\n\t\t".join(messages[key])))
+    print_warnings
 
     if do_messages:
         print("Writing messages…")
@@ -489,6 +594,7 @@ def dump_messages(do_messages, do_checks):
 
         print("Written {} messages to: {} ({} were filtered out)."
               "".format(num_written, FILE_NAME_MESSAGES, num_filtered))
+
 
 
 def main():

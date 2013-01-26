@@ -60,13 +60,16 @@
 #include "rayobject.h"
 #include "rendercore.h"
 
-typedef void (*MPassKnownData)(DerivedMesh *lores_dm, DerivedMesh *hires_dm, const void *bake_data,
-                               ImBuf *ibuf, const int face_index, const int lvl, const float st[2],
-                               float tangmat[3][3], const int x, const int y);
+typedef void (*MPassKnownData)(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void *thread_data,
+                               void *bake_data, ImBuf *ibuf, const int face_index, const int lvl,
+                               const float st[2], float tangmat[3][3], const int x, const int y);
 
 typedef void * (*MInitBakeData)(MultiresBakeRender *bkr, Image *ima);
-typedef void   (*MApplyBakeData)(void *bake_data);
 typedef void   (*MFreeBakeData)(void *bake_data);
+
+typedef struct MultiresBakeResult {
+	float height_min, height_max;
+} MultiresBakeResult;
 
 typedef struct {
 	MVert *mvert;
@@ -79,6 +82,7 @@ typedef struct {
 	int i0, i1, i2;
 	DerivedMesh *lores_dm, *hires_dm;
 	int lvl;
+	void *thread_data;
 	void *bake_data;
 	ImBuf *ibuf;
 	MPassKnownData pass_data;
@@ -95,7 +99,6 @@ typedef struct {
 
 typedef struct {
 	float *heights;
-	float height_min, height_max;
 	Image *ima;
 	DerivedMesh *ssdm;
 	const int *orig_index_mf_to_mpoly;
@@ -161,9 +164,11 @@ static void multiresbake_get_normal(const MResolvePixelData *data, float norm[],
 
 static void init_bake_rast(MBakeRast *bake_rast, const ImBuf *ibuf, const MResolvePixelData *data, MFlushPixel flush_pixel)
 {
+	BakeImBufuserData *userdata = (BakeImBufuserData *) ibuf->userdata;
+
 	memset(bake_rast, 0, sizeof(MBakeRast));
 
-	bake_rast->texels = ibuf->userdata;
+	bake_rast->texels = userdata->mask_buffer;
 	bake_rast->w = ibuf->x;
 	bake_rast->h = ibuf->y;
 	bake_rast->data = data;
@@ -222,7 +227,7 @@ static void flush_pixel(const MResolvePixelData *data, const int x, const int y)
 		zero_m3(to_tang);
 	}
 
-	data->pass_data(data->lores_dm, data->hires_dm, data->bake_data,
+	data->pass_data(data->lores_dm, data->hires_dm, data->thread_data, data->bake_data,
 	                data->ibuf, data->face_index, data->lvl, st, to_tang, x, y);
 }
 
@@ -348,6 +353,9 @@ typedef struct MultiresBakeThread {
 	/* thread-specific data */
 	MBakeRast bake_rast;
 	MResolvePixelData data;
+
+	/* displacement-specific data */
+	float height_min, height_max;
 } MultiresBakeThread;
 
 static int multires_bake_queue_next_face(MultiresBakeQueue *queue)
@@ -428,8 +436,29 @@ static void *do_multires_bake_thread(void *data_v)
 	return NULL;
 }
 
+/* some of arrays inside ccgdm are lazy-initialized, which will generally
+ * require lock around accessing such data
+ * this function will ensure all arrays are allocated before threading started
+ */
+static void init_ccgdm_arrays(DerivedMesh *dm)
+{
+	CCGElem **grid_data;
+	CCGKey key;
+	int grid_size;
+	int *grid_offset;
+
+	grid_size = dm->getGridSize(dm);
+	grid_data = dm->getGridData(dm);
+	grid_offset = dm->getGridOffset(dm);
+	dm->getGridKey(dm, &key);
+
+	(void) grid_size;
+	(void) grid_data;
+	(void) grid_offset;
+}
+
 static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, int require_tangent, MPassKnownData passKnownData,
-                             MInitBakeData initBakeData, MApplyBakeData applyBakeData, MFreeBakeData freeBakeData)
+                             MInitBakeData initBakeData, MFreeBakeData freeBakeData, MultiresBakeResult *result)
 {
 	DerivedMesh *dm = bkr->lores_dm;
 	const int lvl = bkr->lvl;
@@ -467,6 +496,8 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, int require_ta
 
 		handles = MEM_callocN(tot_thread * sizeof(MultiresBakeThread), "do_multires_bake handles");
 
+		init_ccgdm_arrays(bkr->hires_dm);
+
 		/* faces queue */
 		queue.cur_face = 0;
 		queue.tot_face = tot_face;
@@ -491,8 +522,12 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, int require_ta
 			handle->data.hires_dm = bkr->hires_dm;
 			handle->data.lvl = lvl;
 			handle->data.pass_data = passKnownData;
+			handle->data.thread_data = handle;
 			handle->data.bake_data = bake_data;
 			handle->data.ibuf = ibuf;
+
+			handle->height_min = FLT_MAX;
+			handle->height_max = -FLT_MAX;
 
 			init_bake_rast(&handle->bake_rast, ibuf, &handle->data, flush_pixel);
 
@@ -506,14 +541,22 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, int require_ta
 		else
 			do_multires_bake_thread(&handles[0]);
 
+		/* construct bake result */
+		result->height_min = handles[0].height_min;
+		result->height_max = handles[0].height_max;
+
+		for (i = 1; i < tot_thread; i++) {
+			result->height_min = min_ff(result->height_min, handles[i].height_min);
+			result->height_max = max_ff(result->height_max, handles[i].height_max);
+		}
+
 		BLI_spin_end(&queue.spin);
 
 		/* finalize baking */
-		if (applyBakeData)
-			applyBakeData(bake_data);
-
 		if (freeBakeData)
 			freeBakeData(bake_data);
+
+		MEM_freeN(handles);
 
 		BKE_image_release_ibuf(ima, ibuf, NULL);
 	}
@@ -651,13 +694,15 @@ static void *init_heights_data(MultiresBakeRender *bkr, Image *ima)
 	MHeightBakeData *height_data;
 	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 	DerivedMesh *lodm = bkr->lores_dm;
+	BakeImBufuserData *userdata = ibuf->userdata;
+
+	if (userdata->displacement_buffer == NULL)
+		userdata->displacement_buffer = MEM_callocN(sizeof(float) * ibuf->x * ibuf->y, "MultiresBake heights");
 
 	height_data = MEM_callocN(sizeof(MHeightBakeData), "MultiresBake heightData");
 
 	height_data->ima = ima;
-	height_data->heights = MEM_callocN(sizeof(float) * ibuf->x * ibuf->y, "MultiresBake heights");
-	height_data->height_max = -FLT_MAX;
-	height_data->height_min = FLT_MAX;
+	height_data->heights = userdata->displacement_buffer;
 
 	if (!bkr->use_lores_mesh) {
 		SubsurfModifierData smd = {{NULL}};
@@ -673,6 +718,7 @@ static void *init_heights_data(MultiresBakeRender *bkr, Image *ima)
 				smd.subdivType = ME_SIMPLE_SUBSURF;
 
 			height_data->ssdm = subsurf_make_derived_from_derived(bkr->lores_dm, &smd, NULL, 0);
+			init_ccgdm_arrays(height_data->ssdm);
 		}
 	}
 
@@ -684,48 +730,6 @@ static void *init_heights_data(MultiresBakeRender *bkr, Image *ima)
 	return (void *)height_data;
 }
 
-static void apply_heights_data(void *bake_data)
-{
-	MHeightBakeData *height_data = (MHeightBakeData *)bake_data;
-	ImBuf *ibuf = BKE_image_acquire_ibuf(height_data->ima, NULL, NULL);
-	int x, y, i;
-	float height, *heights = height_data->heights;
-	float min = height_data->height_min, max = height_data->height_max;
-
-	for (x = 0; x < ibuf->x; x++) {
-		for (y = 0; y < ibuf->y; y++) {
-			i = ibuf->x * y + x;
-
-			if (((char *)ibuf->userdata)[i] != FILTER_MASK_USED)
-				continue;
-
-			if (ibuf->rect_float) {
-				float *rrgbf = ibuf->rect_float + i * 4;
-
-				if (max - min > 1e-5f) height = (heights[i] - min) / (max - min);
-				else height = 0;
-
-				rrgbf[0] = rrgbf[1] = rrgbf[2] = height;
-			}
-			else {
-				char *rrgb = (char *)ibuf->rect + i * 4;
-
-				if (max - min > 1e-5f) height = (heights[i] - min) / (max - min);
-				else height = 0;
-
-				rrgb[0] = rrgb[1] = rrgb[2] = FTOCHAR(height);
-			}
-		}
-	}
-
-	if (ibuf->rect_float)
-		ibuf->userflags |= IB_RECT_INVALID;
-
-	ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-
-	BKE_image_release_ibuf(height_data->ima, ibuf, NULL);
-}
-
 static void free_heights_data(void *bake_data)
 {
 	MHeightBakeData *height_data = (MHeightBakeData *)bake_data;
@@ -733,7 +737,6 @@ static void free_heights_data(void *bake_data)
 	if (height_data->ssdm)
 		height_data->ssdm->release(height_data->ssdm);
 
-	MEM_freeN(height_data->heights);
 	MEM_freeN(height_data);
 }
 
@@ -743,13 +746,14 @@ static void free_heights_data(void *bake_data)
  *   - find coord of point and normal with specified UV in lo-res mesh (or subdivided lo-res
  *     mesh to make texture smoother) let's call this point p0 and n.
  *   - height wound be dot(n, p1-p0) */
-static void apply_heights_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, const void *bake_data,
+static void apply_heights_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void *thread_data_v, void *bake_data,
                                    ImBuf *ibuf, const int face_index, const int lvl, const float st[2],
                                    float UNUSED(tangmat[3][3]), const int x, const int y)
 {
 	MTFace *mtface = CustomData_get_layer(&lores_dm->faceData, CD_MTFACE);
 	MFace mface;
 	MHeightBakeData *height_data = (MHeightBakeData *)bake_data;
+	MultiresBakeThread *thread_data = (MultiresBakeThread *) thread_data_v;
 	float uv[2], *st0, *st1, *st2, *st3;
 	int pixel = ibuf->x * y + x;
 	float vec[3], p0[3], p1[3], n[3], len;
@@ -771,12 +775,12 @@ static void apply_heights_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 	CLAMP(uv[1], 0.0f, 1.0f);
 
 	get_ccgdm_data(lores_dm, hires_dm,
-	               height_data->orig_index_mf_to_mpoly, height_data->orig_index_mf_to_mpoly,
+	               height_data->orig_index_mf_to_mpoly, height_data->orig_index_mp_to_orig,
 	               lvl, face_index, uv[0], uv[1], p1, 0);
 
 	if (height_data->ssdm) {
 		get_ccgdm_data(lores_dm, height_data->ssdm,
-		               height_data->orig_index_mf_to_mpoly, height_data->orig_index_mf_to_mpoly,
+		               height_data->orig_index_mf_to_mpoly, height_data->orig_index_mp_to_orig,
 		               0, face_index, uv[0], uv[1], p0, n);
 	}
 	else {
@@ -796,15 +800,18 @@ static void apply_heights_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 	len = dot_v3v3(n, vec);
 
 	height_data->heights[pixel] = len;
-	if (len < height_data->height_min) height_data->height_min = len;
-	if (len > height_data->height_max) height_data->height_max = len;
+
+	thread_data->height_min = min_ff(thread_data->height_min, len);
+	thread_data->height_max = max_ff(thread_data->height_max, len);
 
 	if (ibuf->rect_float) {
 		float *rrgbf = ibuf->rect_float + pixel * 4;
+		rrgbf[0] = rrgbf[1] = rrgbf[2] = len;
 		rrgbf[3] = 1.0f;
 	}
 	else {
 		char *rrgb = (char *)ibuf->rect + pixel * 4;
+		rrgb[0] = rrgb[1] = rrgb[2] = FTOCHAR(len);
 		rrgb[3] = 255;
 	}
 }
@@ -836,9 +843,9 @@ static void free_normal_data(void *bake_data)
  *   - find coord and normal of point with specified UV in hi-res mesh
  *   - multiply it by tangmat
  *   - vector in color space would be norm(vec) /2 + (0.5, 0.5, 0.5) */
-static void apply_tangmat_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, const void *bake_data,
-                                   ImBuf *ibuf, const int face_index, const int lvl, const float st[2],
-                                   float tangmat[3][3], const int x, const int y)
+static void apply_tangmat_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void *UNUSED(thread_data),
+                                   void *bake_data, ImBuf *ibuf, const int face_index, const int lvl,
+                                   const float st[2], float tangmat[3][3], const int x, const int y)
 {
 	MTFace *mtface = CustomData_get_layer(&lores_dm->faceData, CD_MTFACE);
 	MFace mface;
@@ -1073,9 +1080,9 @@ static int trace_ao_ray(MAOBakeData *ao_data, float ray_start[3], float ray_dire
 	return RE_rayobject_raycast(ao_data->raytree, &isect);
 }
 
-static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, const void *bake_data,
-                              ImBuf *ibuf, const int face_index, const int lvl, const float st[2],
-                              float UNUSED(tangmat[3][3]), const int x, const int y)
+static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void *UNUSED(thread_data),
+                              void *bake_data, ImBuf *ibuf, const int face_index, const int lvl,
+                              const float st[2], float UNUSED(tangmat[3][3]), const int x, const int y)
 {
 	MAOBakeData *ao_data = (MAOBakeData *) bake_data;
 	MTFace *mtface = CustomData_get_layer(&lores_dm->faceData, CD_MTFACE);
@@ -1205,7 +1212,7 @@ static void count_images(MultiresBakeRender *bkr)
 		mtface[a].tpage->id.flag &= ~LIB_DOIT;
 }
 
-static void bake_images(MultiresBakeRender *bkr)
+static void bake_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 {
 	LinkData *link;
 
@@ -1214,18 +1221,19 @@ static void bake_images(MultiresBakeRender *bkr)
 		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 
 		if (ibuf->x > 0 && ibuf->y > 0) {
-			ibuf->userdata = MEM_callocN(ibuf->y * ibuf->x, "MultiresBake imbuf mask");
+			BakeImBufuserData *userdata = MEM_callocN(sizeof(BakeImBufuserData), "MultiresBake userdata");
+			userdata->mask_buffer = MEM_callocN(ibuf->y * ibuf->x, "MultiresBake imbuf mask");
+			ibuf->userdata = userdata;
 
 			switch (bkr->mode) {
 				case RE_BAKE_NORMALS:
-					do_multires_bake(bkr, ima, TRUE, apply_tangmat_callback, init_normal_data, NULL, free_normal_data);
+					do_multires_bake(bkr, ima, TRUE, apply_tangmat_callback, init_normal_data, free_normal_data, result);
 					break;
 				case RE_BAKE_DISPLACEMENT:
-					do_multires_bake(bkr, ima, FALSE, apply_heights_callback, init_heights_data,
-					                 apply_heights_data, free_heights_data);
+					do_multires_bake(bkr, ima, FALSE, apply_heights_callback, init_heights_data, free_heights_data, result);
 					break;
 				case RE_BAKE_AO:
-					do_multires_bake(bkr, ima, FALSE, apply_ao_callback, init_ao_data, NULL, free_ao_data);
+					do_multires_bake(bkr, ima, FALSE, apply_ao_callback, init_ao_data, free_ao_data, result);
 					break;
 			}
 		}
@@ -1236,18 +1244,25 @@ static void bake_images(MultiresBakeRender *bkr)
 	}
 }
 
-static void finish_images(MultiresBakeRender *bkr)
+static void finish_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 {
 	LinkData *link;
+	int use_displacement_buffer = bkr->mode == RE_BAKE_DISPLACEMENT;
 
 	for (link = bkr->image.first; link; link = link->next) {
 		Image *ima = (Image *)link->data;
 		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+		BakeImBufuserData *userdata = (BakeImBufuserData *) ibuf->userdata;
 
 		if (ibuf->x <= 0 || ibuf->y <= 0)
 			continue;
 
-		RE_bake_ibuf_filter(ibuf, (char *)ibuf->userdata, bkr->bake_filter);
+		RE_bake_ibuf_filter(ibuf, userdata->mask_buffer, bkr->bake_filter);
+
+		if (use_displacement_buffer) {
+			RE_bake_ibuf_normalize_displacement(ibuf, userdata->displacement_buffer, userdata->mask_buffer,
+			                                    result->height_min, result->height_max);
+		}
 
 		ibuf->userflags |= IB_BITMAPDIRTY | IB_DISPLAY_BUFFER_INVALID;
 
@@ -1260,7 +1275,11 @@ static void finish_images(MultiresBakeRender *bkr)
 		}
 
 		if (ibuf->userdata) {
-			MEM_freeN(ibuf->userdata);
+			if (userdata->displacement_buffer)
+				MEM_freeN(userdata->displacement_buffer);
+
+			MEM_freeN(userdata->mask_buffer);
+			MEM_freeN(userdata);
 			ibuf->userdata = NULL;
 		}
 
@@ -1270,7 +1289,9 @@ static void finish_images(MultiresBakeRender *bkr)
 
 void RE_multires_bake_images(MultiresBakeRender *bkr)
 {
+	MultiresBakeResult result;
+
 	count_images(bkr);
-	bake_images(bkr);
-	finish_images(bkr);
+	bake_images(bkr, &result);
+	finish_images(bkr, &result);
 }

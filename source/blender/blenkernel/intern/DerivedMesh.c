@@ -169,7 +169,7 @@ static MPoly *dm_getPolyArray(DerivedMesh *dm)
 
 static MVert *dm_dupVertArray(DerivedMesh *dm)
 {
-	MVert *tmp = MEM_callocN(sizeof(*tmp) * dm->getNumVerts(dm),
+	MVert *tmp = MEM_mallocN(sizeof(*tmp) * dm->getNumVerts(dm),
 	                         "dm_dupVertArray tmp");
 
 	if (tmp) dm->copyVertArray(dm, tmp);
@@ -179,7 +179,7 @@ static MVert *dm_dupVertArray(DerivedMesh *dm)
 
 static MEdge *dm_dupEdgeArray(DerivedMesh *dm)
 {
-	MEdge *tmp = MEM_callocN(sizeof(*tmp) * dm->getNumEdges(dm),
+	MEdge *tmp = MEM_mallocN(sizeof(*tmp) * dm->getNumEdges(dm),
 	                         "dm_dupEdgeArray tmp");
 
 	if (tmp) dm->copyEdgeArray(dm, tmp);
@@ -189,7 +189,7 @@ static MEdge *dm_dupEdgeArray(DerivedMesh *dm)
 
 static MFace *dm_dupFaceArray(DerivedMesh *dm)
 {
-	MFace *tmp = MEM_callocN(sizeof(*tmp) * dm->getNumTessFaces(dm),
+	MFace *tmp = MEM_mallocN(sizeof(*tmp) * dm->getNumTessFaces(dm),
 	                         "dm_dupFaceArray tmp");
 
 	if (tmp) dm->copyTessFaceArray(dm, tmp);
@@ -199,7 +199,7 @@ static MFace *dm_dupFaceArray(DerivedMesh *dm)
 
 static MLoop *dm_dupLoopArray(DerivedMesh *dm)
 {
-	MLoop *tmp = MEM_callocN(sizeof(*tmp) * dm->getNumLoops(dm),
+	MLoop *tmp = MEM_mallocN(sizeof(*tmp) * dm->getNumLoops(dm),
 	                         "dm_dupLoopArray tmp");
 
 	if (tmp) dm->copyLoopArray(dm, tmp);
@@ -209,7 +209,7 @@ static MLoop *dm_dupLoopArray(DerivedMesh *dm)
 
 static MPoly *dm_dupPolyArray(DerivedMesh *dm)
 {
-	MPoly *tmp = MEM_callocN(sizeof(*tmp) * dm->getNumPolys(dm),
+	MPoly *tmp = MEM_mallocN(sizeof(*tmp) * dm->getNumPolys(dm),
 	                         "dm_dupPolyArray tmp");
 
 	if (tmp) dm->copyPolyArray(dm, tmp);
@@ -574,7 +574,7 @@ void DM_to_meshkey(DerivedMesh *dm, Mesh *me, KeyBlock *kb)
 	if (totvert == 0 || me->totvert == 0 || me->totvert != totvert) return;
 	
 	if (kb->data) MEM_freeN(kb->data);
-	kb->data = MEM_callocN(me->key->elemsize * me->totvert, "kb->data");
+	kb->data = MEM_mallocN(me->key->elemsize * me->totvert, "kb->data");
 	kb->totelem = totvert;
 	
 	fp = kb->data;
@@ -1584,9 +1584,15 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					DM_add_edge_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 					DM_add_poly_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
 
-					range_vn_i(DM_get_vert_data_layer(dm, CD_ORIGINDEX), dm->numVertData, 0);
-					range_vn_i(DM_get_edge_data_layer(dm, CD_ORIGINDEX), dm->numEdgeData, 0);
-					range_vn_i(DM_get_poly_data_layer(dm, CD_ORIGINDEX), dm->numPolyData, 0);
+#pragma omp parallel sections if (dm->numVertData + dm->numEdgeData + dm->numPolyData >= DM_OMP_LIMIT)
+					{
+#pragma omp section
+						{ range_vn_i(DM_get_vert_data_layer(dm, CD_ORIGINDEX), dm->numVertData, 0); }
+#pragma omp section
+						{ range_vn_i(DM_get_edge_data_layer(dm, CD_ORIGINDEX), dm->numEdgeData, 0); }
+#pragma omp section
+						{ range_vn_i(DM_get_poly_data_layer(dm, CD_ORIGINDEX), dm->numPolyData, 0); }
+					}
 				}
 			}
 
@@ -2353,15 +2359,14 @@ DMCoNo *mesh_get_mapped_verts_nors(Scene *scene, Object *ob)
 		return NULL;
 	
 	dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
-	vertexcosnos = MEM_callocN(sizeof(DMCoNo) * me->totvert, "vertexcosnos map");
 	
 	if (dm->foreachMappedVert) {
+		vertexcosnos = MEM_callocN(sizeof(DMCoNo) * me->totvert, "vertexcosnos map");
 		dm->foreachMappedVert(dm, make_vertexcosnos__mapFunc, vertexcosnos);
 	}
 	else {
-		DMCoNo *v_co_no = vertexcosnos;
+		DMCoNo *v_co_no = vertexcosnos = MEM_mallocN(sizeof(DMCoNo) * me->totvert, "vertexcosnos map");
 		int a;
-		
 		for (a = 0; a < me->totvert; a++, v_co_no++) {
 			dm->getVertCo(dm, a, v_co_no->co);
 			dm->getVertNo(dm, a, v_co_no->no);

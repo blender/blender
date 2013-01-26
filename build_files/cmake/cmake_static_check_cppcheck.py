@@ -56,7 +56,7 @@ def main():
     check_commands = []
     for c, inc_dirs, defs in source_info:
         cmd = ([CHECKER_BIN] +
-                CHECKER_ARGS +
+               CHECKER_ARGS +
                [c] +
                [("-I%s" % i) for i in inc_dirs] +
                [("-D%s" % d) for d in defs]

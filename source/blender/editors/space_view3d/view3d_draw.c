@@ -1927,7 +1927,8 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	BoundBox bb, *bb_tmp; /* use a copy because draw_object, calls clear_mesh_caches */
 	GLuint displist = 0;
 	short transflag, use_displist = -1;  /* -1 is initialize */
-	char dt, dtx;
+	char dt;
+	short dtx;
 	
 	if (base->object->restrictflag & OB_RESTRICT_VIEW) return;
 	
@@ -2882,7 +2883,7 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar, int draw
 		if (!(type->view_update && type->view_draw))
 			return 0;
 
-		engine = RE_engine_create(type);
+		engine = RE_engine_create_ex(type, TRUE);
 
 		engine->tile_x = scene->r.tilex;
 		engine->tile_y = scene->r.tiley;
@@ -3458,14 +3459,14 @@ static void bl_debug_draw(void)
 	if (_bl_debug_draw_quads_tot) {
 		int i;
 		cpack(0x00FF0000);
-		glBegin(GL_LINE_LOOP);
 		for (i = 0; i < _bl_debug_draw_quads_tot; i ++) {
+			glBegin(GL_LINE_LOOP);
 			glVertex3fv(_bl_debug_draw_quads[i][0]);
 			glVertex3fv(_bl_debug_draw_quads[i][1]);
 			glVertex3fv(_bl_debug_draw_quads[i][2]);
 			glVertex3fv(_bl_debug_draw_quads[i][3]);
+			glEnd();
 		}
-		glEnd();
 	}
 	if (_bl_debug_draw_edges_tot) {
 		int i;

@@ -163,7 +163,7 @@ char BM_mesh_cd_flag_from_bmesh(BMesh *bm)
 }
 
 /* Mesh -> BMesh */
-void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
+void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, bool set_key, int act_key_nr)
 {
 	MVert *mvert;
 	BLI_array_declare(verts);
@@ -174,7 +174,6 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 	BMVert *v, **vt = NULL, **verts = NULL;
 	BMEdge *e, **fedges = NULL, **et = NULL;
 	BMFace *f;
-	BMLoop *l;
 	BLI_array_declare(fedges);
 	float (*keyco)[3] = NULL;
 	int *keyi;
@@ -280,7 +279,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 
 		/* this is necessary for selection counts to work properly */
 		if (mvert->flag & SELECT) {
-			BM_vert_select_set(bm, v, TRUE);
+			BM_vert_select_set(bm, v, true);
 		}
 
 		normal_short_to_float_v3(v->no, mvert->no);
@@ -328,7 +327,7 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 
 		/* this is necessary for selection counts to work properly */
 		if (medge->flag & SELECT) {
-			BM_edge_select_set(bm, e, TRUE);
+			BM_edge_select_set(bm, e, true);
 		}
 
 		/* Copy Custom Data */
@@ -343,7 +342,8 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 
 	mpoly = me->mpoly;
 	for (i = 0; i < me->totpoly; i++, mpoly++) {
-		BMIter iter;
+		BMLoop *l_iter;
+		BMLoop *l_first;
 
 		BLI_array_empty(fedges);
 		BLI_array_empty(verts);
@@ -395,17 +395,18 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 
 		/* this is necessary for selection counts to work properly */
 		if (mpoly->flag & ME_FACE_SEL) {
-			BM_face_select_set(bm, f, TRUE);
+			BM_face_select_set(bm, f, true);
 		}
 
 		f->mat_nr = mpoly->mat_nr;
 		if (i == me->act_face) bm->act_face = f;
 
-		j = 0;
-		BM_ITER_ELEM_INDEX (l, &iter, f, BM_LOOPS_OF_FACE, j) {
+		j = mpoly->loopstart;
+		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+		do {
 			/* Save index of correspsonding MLoop */
-			CustomData_to_bmesh_block(&me->ldata, &bm->ldata, mpoly->loopstart + j, &l->head.data, true);
-		}
+			CustomData_to_bmesh_block(&me->ldata, &bm->ldata, j++, &l_iter->head.data, true);
+		} while ((l_iter = l_iter->next) != l_first);
 
 		/* Copy Custom Data */
 		CustomData_to_bmesh_block(&me->pdata, &bm->pdata, i, &f->head.data, true);
@@ -415,22 +416,20 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 
 	if (me->mselect && me->totselect != 0) {
 
-		BMVert **vert_array = MEM_callocN(sizeof(BMVert *) * bm->totvert,
-		                                  "Selection Conversion Vertex Pointer Array");
-		BMEdge **edge_array = MEM_callocN(sizeof(BMEdge *) * bm->totedge,
-		                                  "Selection Conversion Edge Pointer Array");
-		BMFace **face_array = MEM_callocN(sizeof(BMFace *) * bm->totface,
-		                                  "Selection Conversion Face Pointer Array");
-
-		BMIter  iter;
-		BMVert  *vert;
-		BMEdge  *edge;
-		BMFace  *face;
+		BMVert **vert_array = MEM_mallocN(sizeof(BMVert *) * bm->totvert, "VSelConv");
+		BMEdge **edge_array = MEM_mallocN(sizeof(BMEdge *) * bm->totedge, "ESelConv");
+		BMFace **face_array = MEM_mallocN(sizeof(BMFace *) * bm->totface, "FSelConv");
 		MSelect *msel;
 
-		BM_ITER_MESH_INDEX (vert, &iter, bm, BM_VERTS_OF_MESH, i) { vert_array[i] = vert; }
-		BM_ITER_MESH_INDEX (edge, &iter, bm, BM_EDGES_OF_MESH, i) { edge_array[i] = edge; }
-		BM_ITER_MESH_INDEX (face, &iter, bm, BM_FACES_OF_MESH, i) { face_array[i] = face; }
+#pragma omp parallel sections if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
+		{
+#pragma omp section
+			{ BM_iter_as_array(bm, BM_VERTS_OF_MESH, NULL, (void **)vert_array, bm->totvert); }
+#pragma omp section
+			{ BM_iter_as_array(bm, BM_EDGES_OF_MESH, NULL, (void **)edge_array, bm->totedge); }
+#pragma omp section
+			{ BM_iter_as_array(bm, BM_FACES_OF_MESH, NULL, (void **)face_array, bm->totface); }
+		}
 
 		for (i = 0, msel = me->mselect; i < me->totselect; i++, msel++) {
 			switch (msel->type) {
@@ -549,7 +548,7 @@ BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
 	}
 }
 
-void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
+void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, bool do_tessface)
 {
 	MLoop *mloop;
 	MPoly *mpoly;
@@ -619,6 +618,8 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 	CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, medge, me->totedge);
 	CustomData_add_layer(&me->ldata, CD_MLOOP, CD_ASSIGN, mloop, me->totloop);
 	CustomData_add_layer(&me->pdata, CD_MPOLY, CD_ASSIGN, mpoly, me->totpoly);
+
+	me->cd_flag = BM_mesh_cd_flag_from_bmesh(bm);
 
 	/* this is called again, 'dotess' arg is used there */
 	mesh_update_customdata_pointers(me, 0);
@@ -755,11 +756,11 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 		if (vertMap) MEM_freeN(vertMap);
 	}
 
-	if (dotess) {
+	if (do_tessface) {
 		BKE_mesh_tessface_calc(me);
 	}
 
-	mesh_update_customdata_pointers(me, dotess);
+	mesh_update_customdata_pointers(me, do_tessface);
 
 	{
 		BMEditSelection *selected;
@@ -823,12 +824,12 @@ void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
 		                                        * bmesh and the mesh are out of sync */
 		    (oldverts != NULL))                /* not used here, but 'oldverts' is used later for applying 'ofs' */
 		{
-			int act_is_basis = FALSE;
+			bool act_is_basis = false;
 
 			/* find if this key is a basis for any others */
 			for (currkey = me->key->block.first; currkey; currkey = currkey->next) {
 				if (bm->shapenr - 1 == currkey->relative) {
-					act_is_basis = TRUE;
+					act_is_basis = true;
 					break;
 				}
 			}

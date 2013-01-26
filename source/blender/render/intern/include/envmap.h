@@ -44,9 +44,10 @@
 
 struct Render;
 struct TexResult;
+struct ImagePool;
 
 void make_envmaps(struct Render *re);
-int envmaptex(struct Tex *tex, const float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres);
+int envmaptex(struct Tex *tex, const float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres, struct ImagePool *pool);
 
 #endif /* __ENVMAP_H__ */
 

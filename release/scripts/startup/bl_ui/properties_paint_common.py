@@ -70,34 +70,40 @@ class UnifiedPaintPanel():
 
 
 # Used in both the View3D toolbar and texture properties
-def sculpt_brush_texture_settings(layout, brush):
+def brush_texture_settings(layout, brush, sculpt):
     tex_slot = brush.texture_slot
 
     layout.label(text="Brush Mapping:")
 
     # map_mode
-    layout.row().prop(tex_slot, "map_mode", text="")
-    layout.separator()
-
+    if sculpt:
+        layout.row().prop(tex_slot, "map_mode", text="")
+        layout.separator()
+    else:
+        layout.row().prop(tex_slot, "tex_paint_map_mode", text="")
+        layout.separator()
+        
     # angle and texture_angle_source
     col = layout.column()
-    col.active = brush.sculpt_capabilities.has_texture_angle_source
-    col.label(text="Angle:")
-    if brush.sculpt_capabilities.has_random_texture_angle:
-        col.prop(brush, "texture_angle_source_random", text="")
-    else:
-        col.prop(brush, "texture_angle_source_no_random", text="")
+    if sculpt:
+        col.active = brush.sculpt_capabilities.has_texture_angle_source
+        col.label(text="Angle:")
+        if brush.sculpt_capabilities.has_random_texture_angle:
+            col.prop(brush, "texture_angle_source_random", text="")
+        else:
+            col.prop(brush, "texture_angle_source_no_random", text="")
 
-    col = layout.column()
-    col.active = brush.sculpt_capabilities.has_texture_angle
-    col.prop(tex_slot, "angle", text="")
+        col = layout.column()
+        col.active = brush.sculpt_capabilities.has_texture_angle
+        col.prop(tex_slot, "angle", text="")
 
     # scale and offset
     split = layout.split()
     split.prop(tex_slot, "offset")
     split.prop(tex_slot, "scale")
-
-    # texture_sample_bias
-    col = layout.column(align=True)
-    col.label(text="Sample Bias:")
-    col.prop(brush, "texture_sample_bias", slider=True, text="")
+    
+    if sculpt:
+        # texture_sample_bias
+        col = layout.column(align=True)
+        col.label(text="Sample Bias:")
+        col.prop(brush, "texture_sample_bias", slider=True, text="")

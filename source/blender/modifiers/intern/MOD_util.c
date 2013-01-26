@@ -74,7 +74,7 @@ void get_texture_value(Tex *texture, float *tex_co, TexResult *texres)
 	int result_type;
 
 	/* no node textures for now */
-	result_type = multitex_ext_safe(texture, tex_co, texres);
+	result_type = multitex_ext_safe(texture, tex_co, texres, NULL);
 
 	/* if the texture gave an RGB value, we assume it didn't give a valid
 	 * intensity, since this is in the context of modifiers don't use perceptual color conversion.
@@ -280,5 +280,6 @@ void modifier_type_init(ModifierTypeInfo *types[])
 	INIT_TYPE(LaplacianSmooth);
 	INIT_TYPE(Triangulate);
 	INIT_TYPE(UVWarp);
+	INIT_TYPE(MeshCache);
 #undef INIT_TYPE
 }

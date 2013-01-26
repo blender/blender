@@ -614,10 +614,10 @@ def pyfunc2sphinx(ident, fw, identifier, py_func, is_class=True):
     '''
     function or class method to sphinx
     '''
-    
+
     if type(py_func) == type(bpy.types.Space.draw_handler_add):
         return
-    
+
     arg_str = inspect.formatargspec(*inspect.getargspec(py_func))
 
     if not is_class:
@@ -992,6 +992,7 @@ context_type_map = {
     "world": ("World", False),
 }
 
+
 def pycontext2sphinx(basepath):
     # Only use once. very irregular
 
@@ -1018,7 +1019,6 @@ def pycontext2sphinx(basepath):
         "clip_context_dir",
         "sequencer_context_dir",
     )
-
 
     unique = set()
     blend_cdll = ctypes.CDLL("")

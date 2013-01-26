@@ -41,7 +41,6 @@ set(INC_SYS
 set(SRC
 	operators/bmo_bevel.c
 	operators/bmo_connect.c
-	operators/bmo_slide.c
 	operators/bmo_create.c
 	operators/bmo_dissolve.c
 	operators/bmo_dupe.c

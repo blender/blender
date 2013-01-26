@@ -36,13 +36,14 @@ extern "C" {
 
 // #define DEPS_DEBUG
 
-struct ID;
-struct Main;
-struct Scene;
-struct DagNodeQueue;
 struct DagForest;
 struct DagNode;
+struct DagNodeQueue;
 struct GHash;
+struct ID;
+struct Main;
+struct Object;
+struct Scene;
 
 /* **** DAG relation types *** */
 

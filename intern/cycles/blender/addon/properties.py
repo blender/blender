@@ -74,13 +74,14 @@ enum_curve_presets = (
 enum_curve_primitives = (
     ('TRIANGLES', "Triangles", "Create triangle geometry around strands"),
     ('LINE_SEGMENTS', "Line Segments", "Use line segment primitives"),
-    ('CURVE_SEGMENTS', "?Curve Segments?", "Use curve segment primitives (not implemented)"),
+    ('CURVE_SEGMENTS', "Curve Segments", "Use segmented cardinal curve primitives"),
+    ('CURVE_RIBBONS', "Curve Ribbons", "Use smooth cardinal curve ribbon primitives"),
     )
 
 enum_triangle_curves = (
-    ('CAMERA', "Planes", "Create individual triangles forming planes that face camera"),
-    ('RIBBONS', "Ribbons", "Create individual triangles forming ribbon"),
-    ('TESSELLATED', "Tessellated", "Create mesh surrounding each strand"),
+    ('CAMERA_TRIANGLES', "Planes", "Create individual triangles forming planes that face camera"),
+    ('RIBBON_TRIANGLES', "Ribbons", "Create individual triangles forming ribbon"),
+    ('TESSELLATED_TRIANGLES', "Tessellated", "Create mesh surrounding each strand"),
     )
 
 enum_line_curves = (
@@ -95,7 +96,7 @@ enum_curves_interpolation = (
     ('CARDINAL', "Cardinal interpolation", "Use cardinal interpolation between segments"),
     ('BSPLINE', "B-spline interpolation", "Use b-spline interpolation between segments"),
     )
-    
+
 enum_tile_order = (
     ('CENTER', "Center", "Render from center to the edges"),
     ('RIGHT_TO_LEFT', "Right to Left", "Render from right to left"),
@@ -103,6 +104,7 @@ enum_tile_order = (
     ('TOP_TO_BOTTOM', "Top to Bottom", "Render from top to bottom"),
     ('BOTTOM_TO_TOP', "Bottom to Top", "Render from bottom to top"),
     )
+
 
 class CyclesRenderSettings(bpy.types.PropertyGroup):
     @classmethod
@@ -619,6 +621,7 @@ class CyclesMeshSettings(bpy.types.PropertyGroup):
         del bpy.types.Curve.cycles
         del bpy.types.MetaBall.cycles
 
+
 class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
     @classmethod
     def register(cls):
@@ -643,7 +646,7 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
                 name="Mesh Geometry",
                 description="Method for creating triangle geometry",
                 items=enum_triangle_curves,
-                default='CAMERA',
+                default='CAMERA_TRIANGLES',
                 )
         cls.line_method = EnumProperty(
                 name="Intersection Method",
@@ -682,10 +685,6 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
                 description="Correct the tangent normal for the strand's slope",
                 default=False,
                 )
-        cls.use_cache = BoolProperty(
-                name="Export Cached data",
-                default=True,
-                )
         cls.use_parents = BoolProperty(
                 name="Use parent strands",
                 description="Use parents with children",
@@ -705,7 +704,7 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
                 name="Use Cycles Hair Rendering",
                 description="Activate Cycles hair rendering for particle system",
                 default=True,
-                )        
+                )
         cls.segments = IntProperty(
                 name="Segments",
                 description="Number of segments between path keys (note that this combines with the 'draw step' value)",
@@ -730,10 +729,17 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
                 min=0, max=100.0,
                 default=1.01,
                 )
+        cls.subdivisions = IntProperty(
+                name="Subdivisions",
+                description="Number of subdivisions used in Cardinal curve intersection (power of 2)",
+                min=0, max=24,
+                default=3,
+                )
 
     @classmethod
     def unregister(cls):
         del bpy.types.Scene.cycles_curves
+
 
 class CyclesCurveSettings(bpy.types.PropertyGroup):
     @classmethod
@@ -770,6 +776,7 @@ class CyclesCurveSettings(bpy.types.PropertyGroup):
     @classmethod
     def unregister(cls):
         del bpy.types.ParticleSettings.cycles
+
 
 def register():
     bpy.utils.register_class(CyclesRenderSettings)

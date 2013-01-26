@@ -2226,6 +2226,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	BLI_snprintf(uiblockstr, sizeof(uiblockstr), "buttonswin %p", (void *)ar);
 	block= uiBeginBlock(C, ar, uiblockstr, UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_logic_buts, NULL);
+	uiBoundsBlock(block, U.widget_unit/2);
 	
 	/* loop over all objects and set visible/linked flags for the logic bricks */
 	for (a=0; a<count; a++) {
@@ -2516,7 +2517,7 @@ void logic_buttons(bContext *C, ARegion *ar)
 	uiBlockLayoutResolve(block, NULL, &yco);	/* stores final height in yco */
 	height = MIN2(height, yco);
 
-	UI_view2d_totRect_set(&ar->v2d, 57.5f * U.widget_unit, height);
+	UI_view2d_totRect_set(&ar->v2d, 57.5f * U.widget_unit, height - U.widget_unit);
 	
 	/* set the view */
 	UI_view2d_view_ortho(&ar->v2d);

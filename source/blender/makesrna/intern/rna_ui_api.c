@@ -42,6 +42,17 @@
 
 #include "rna_internal.h"
 
+#define DEF_ICON_BLANK_SKIP
+#define DEF_ICON(name) {ICON_##name, (#name), 0, (#name), ""},
+#define DEF_VICO(name) {VICO_##name, (#name), 0, (#name), ""},
+EnumPropertyItem icon_items[] = {
+#include "UI_icons.h"
+	{0, NULL, 0, NULL, NULL}
+};
+#undef DEF_ICON_BLANK_SKIP
+#undef DEF_ICON
+#undef DEF_VICO
+
 #ifdef RNA_RUNTIME
 
 static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, const char *propname, const char *name, int icon,
@@ -181,22 +192,11 @@ static int rna_ui_get_enum_icon(bContext *C, PointerRNA *ptr, const char *propna
 
 #else
 
-#define DEF_ICON_BLANK_SKIP
-#define DEF_ICON(name) {ICON_##name, (#name), 0, (#name), ""},
-#define DEF_VICO(name) {VICO_##name, (#name), 0, (#name), ""},
-EnumPropertyItem icon_items[] = {
-#include "UI_icons.h"
-	{0, NULL, 0, NULL, NULL}
-};
-#undef DEF_ICON_BLANK_SKIP
-#undef DEF_ICON
-#undef DEF_VICO
-
 static void api_ui_item_common(FunctionRNA *func)
 {
 	PropertyRNA *prop;
 
-	RNA_def_string_translate(func, "text", "", 0, "", "Override automatic text of the item");
+	RNA_def_string_py_translate(func, "text", "", 0, "", "Override automatic text of the item");
 
 	prop = RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, icon_items);
@@ -466,7 +466,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm = RNA_def_string(func, "type_property", "", 0, "",
 	                      "Identifier of property in data giving the type of the ID-blocks to use");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_string_translate(func, "text", "", 0, "", "Custom label to display in UI");
+	RNA_def_string_py_translate(func, "text", "", 0, "", "Custom label to display in UI");
 	
 	func = RNA_def_function(srna, "template_path_builder", "uiTemplatePathBuilder");
 	parm = RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property");
@@ -475,7 +475,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "root", "ID", "", "ID-block from which path is evaluated from");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR);
-	RNA_def_string_translate(func, "text", "", 0, "", "Custom label to display in UI");
+	RNA_def_string_py_translate(func, "text", "", 0, "", "Custom label to display in UI");
 	
 	func = RNA_def_function(srna, "template_modifier", "uiTemplateModifier");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
@@ -511,6 +511,10 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Item. A color ramp widget");
 	api_ui_item_rna_common(func);
 	RNA_def_boolean(func, "expand", 0, "", "Expand button to show more detail");
+	
+	func = RNA_def_function(srna, "template_icon_view", "uiTemplateIconView");
+	RNA_def_function_ui_description(func, "Enum. Large widget showing Icon previews");
+	api_ui_item_rna_common(func);
 	
 	func = RNA_def_function(srna, "template_histogram", "uiTemplateHistogram");
 	RNA_def_function_ui_description(func, "Item. A histogramm widget to analyze imaga data");

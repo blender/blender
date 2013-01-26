@@ -38,45 +38,47 @@ BRANCHES_DIR = settings.BRANCHES_DIR
 FILE_NAME_POT = settings.FILE_NAME_POT
 
 
-def print_diff(ref_messages, messages, states):
+def print_diff(ref_msgs, msgs):
     # Remove comments from messages list!
-    messages = set(messages.keys()) - states["comm_msg"]
-    unneeded = (messages - ref_messages)
-    for msgid in unneeded:
-        print('\tUnneeded message id "{}"'.format(msgid))
+    messages = set(msgs.msgs.keys()) - msgs.comm_msgs
+    unneeded = (messages - ref_msgs.msgs.keys())
+    for msgkey in unneeded:
+        print('\tUnneeded message context/id "{}"'.format(msgkey))
 
-    missing = (ref_messages - messages)
-    for msgid in missing:
-        print('\tMissing message id "{}"'.format(msgid))
+    missing = (ref_msgs.msgs.keys() - messages)
+    for msgkey in missing:
+        print('\tMissing message context/id "{}"'.format(msgkey))
 
-    for msgid in states["comm_msg"]:
-        print('\tCommented message id "{}"'.format(msgid))
+    for msgid in msgs.comm_msgs:
+        print('\tCommented message context/id "{}"'.format(msgkey))
 
-    print("\t{} unneeded messages, {} missing messages, {} commented messages." \
-          "".format(len(unneeded), len(missing), len(states["comm_msg"])))
+    print("\t{} unneeded messages, {} missing messages, {} commented messages."
+          "".format(len(unneeded), len(missing), len(msgs.comm_msgs)))
     return 0
 
 
-def process_po(ref_messages, po, glob_stats, do_stats, do_messages):
+#def process_po(ref_messages, po, glob_stats, do_stats, do_messages):
+def process_po(ref_messages, po, do_stats, do_messages):
     print("Checking {}...".format(po))
     ret = 0
 
-    messages, states, stats = utils.parse_messages(po)
+    messages = utils.I18nMessages(kind='PO', src=po)
     if do_messages:
-        t = print_diff(ref_messages, messages, states)
+        t = print_diff(ref_messages, messages)
         if t:
             ret = t
     if do_stats:
         print("\tStats:")
-        t = utils.print_stats(stats, glob_stats, prefix="        ")
+        t = messages.print_stats(prefix="        ")
         if t:
             ret = t
-    if states["is_broken"]:
+    if messages.parsing_errors:
         print("\tERROR! This .po is broken!")
         ret = 1
     return ret
 
 
+# XXX Quick update for new I18Nfoo objects, need rework!
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="Check po’s in branches " \
@@ -97,22 +99,21 @@ def main():
     if args.pot:
         global FILE_NAME_POT
         FILE_NAME_POT = args.pot
-    glob_stats = {"nbr"               : 0.0,
-                  "lvl"               : 0.0,
-                  "lvl_ttips"         : 0.0,
-                  "lvl_trans_ttips"   : 0.0,
-                  "lvl_ttips_in_trans": 0.0,
-                  "lvl_comm"          : 0.0,
-                  "nbr_signs"         : 0,
-                  "nbr_trans_signs"   : 0,
-                  "contexts"          : set()}
+    #glob_stats = {"nbr"               : 0.0,
+                  #"lvl"               : 0.0,
+                  #"lvl_ttips"         : 0.0,
+                  #"lvl_trans_ttips"   : 0.0,
+                  #"lvl_ttips_in_trans": 0.0,
+                  #"lvl_comm"          : 0.0,
+                  #"nbr_signs"         : 0,
+                  #"nbr_trans_signs"   : 0,
+                  #"contexts"          : set()}
     ret = 0
 
     pot_messages = None
     if args.messages:
-        pot_messages, u1, pot_stats = utils.parse_messages(FILE_NAME_POT)
-        pot_messages = set(pot_messages.keys())
-        glob_stats["nbr_signs"] = pot_stats["nbr_signs"]
+        pot_messages = utils.I18nMessages(kind='PO', src=FILE_NAME_POT)
+        #glob_stats["nbr_signs"] = pot_stats["nbr_signs"]
 
     if args.langs:
         for lang in args.langs:
@@ -121,16 +122,16 @@ def main():
             else:
                 po = os.path.join(BRANCHES_DIR, lang, ".".join((lang, "po")))
             if os.path.exists(po):
-                t = process_po(pot_messages, po, glob_stats,
-                               args.stats, args.messages)
+                #t = process_po(pot_messages, po, glob_stats, args.stats, args.messages)
+                t = process_po(pot_messages, po, args.stats, args.messages)
                 if t:
                     ret = t
     elif args.trunk:
         for po in os.listdir(TRUNK_PO_DIR):
             if po.endswith(".po"):
                 po = os.path.join(TRUNK_PO_DIR, po)
-                t = process_po(pot_messages, po, glob_stats,
-                               args.stats, args.messages)
+                #t = process_po(pot_messages, po, glob_stats, args.stats, args.messages)
+                t = process_po(pot_messages, po, args.stats, args.messages)
                 if t:
                     ret = t
     else:
@@ -138,35 +139,35 @@ def main():
             for po in os.listdir(os.path.join(BRANCHES_DIR, lang)):
                 if po.endswith(".po"):
                     po = os.path.join(BRANCHES_DIR, lang, po)
-                    t = process_po(pot_messages, po, glob_stats,
-                                   args.stats, args.messages)
+                    #t = process_po(pot_messages, po, glob_stats, args.stats, args.messages)
+                    t = process_po(pot_messages, po, args.stats, args.messages)
                     if t:
                         ret = t
 
-    if args.stats and glob_stats["nbr"] != 0.0:
-        nbr_contexts = len(glob_stats["contexts"] - {""})
-        if nbr_contexts != 1:
-            if nbr_contexts == 0:
-                nbr_contexts = "No"
-            _ctx_txt = "s are"
-        else:
-            _ctx_txt = " is"
-        print("\nAverage stats for all {:.0f} processed files:\n"
-              "    {:>6.1%} done!\n"
-              "    {:>6.1%} of messages are tooltips.\n"
-              "    {:>6.1%} of tooltips are translated.\n"
-              "    {:>6.1%} of translated messages are tooltips.\n"
-              "    {:>6.1%} of messages are commented.\n"
-              "    The org msgids are currently made of {} signs.\n"
-              "    All processed translations are currently made of {} signs.\n"
-              "    {} specific context{} present:\n            {}\n"
-              "".format(glob_stats["nbr"], glob_stats["lvl"] / glob_stats["nbr"],
-                        glob_stats["lvl_ttips"] / glob_stats["nbr"],
-                        glob_stats["lvl_trans_ttips"] / glob_stats["nbr"],
-                        glob_stats["lvl_ttips_in_trans"] / glob_stats["nbr"],
-                        glob_stats["lvl_comm"] / glob_stats["nbr"], glob_stats["nbr_signs"],
-                        glob_stats["nbr_trans_signs"], nbr_contexts, _ctx_txt,
-                        "\n            ".join(glob_stats["contexts"]-{""})))
+    #if args.stats and glob_stats["nbr"] != 0.0:
+        #nbr_contexts = len(glob_stats["contexts"] - {""})
+        #if nbr_contexts != 1:
+            #if nbr_contexts == 0:
+                #nbr_contexts = "No"
+            #_ctx_txt = "s are"
+        #else:
+            #_ctx_txt = " is"
+        #print("\nAverage stats for all {:.0f} processed files:\n"
+              #"    {:>6.1%} done!\n"
+              #"    {:>6.1%} of messages are tooltips.\n"
+              #"    {:>6.1%} of tooltips are translated.\n"
+              #"    {:>6.1%} of translated messages are tooltips.\n"
+              #"    {:>6.1%} of messages are commented.\n"
+              #"    The org msgids are currently made of {} signs.\n"
+              #"    All processed translations are currently made of {} signs.\n"
+              #"    {} specific context{} present:\n            {}\n"
+              #"".format(glob_stats["nbr"], glob_stats["lvl"] / glob_stats["nbr"],
+                        #glob_stats["lvl_ttips"] / glob_stats["nbr"],
+                        #glob_stats["lvl_trans_ttips"] / glob_stats["nbr"],
+                        #glob_stats["lvl_ttips_in_trans"] / glob_stats["nbr"],
+                        #glob_stats["lvl_comm"] / glob_stats["nbr"], glob_stats["nbr_signs"],
+                        #glob_stats["nbr_trans_signs"], nbr_contexts, _ctx_txt,
+                        #"\n            ".join(glob_stats["contexts"]-{""})))
 
     return ret
 

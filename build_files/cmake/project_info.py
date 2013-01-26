@@ -141,7 +141,7 @@ def cmake_advanced_info():
         if sys.platform == "win32":
             cmd = 'cmake "%s" -G"Eclipse CDT4 - MinGW Makefiles"' % CMAKE_DIR
         else:
-            if make_exe_basename.startswith("make"):
+            if make_exe_basename.startswith(("make", "gmake")):
                 cmd = 'cmake "%s" -G"Eclipse CDT4 - Unix Makefiles"' % CMAKE_DIR
             elif make_exe_basename.startswith("ninja"):
                 cmd = 'cmake "%s" -G"Eclipse CDT4 - Ninja"' % CMAKE_DIR
@@ -150,7 +150,6 @@ def cmake_advanced_info():
 
         os.system(cmd)
         return join(CMAKE_DIR, ".cproject")
-        
 
     includes = []
     defines = []

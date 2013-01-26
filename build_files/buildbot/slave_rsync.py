@@ -41,5 +41,3 @@ print(command)
 
 ret = os.system(command)
 sys.exit(ret)
-
-

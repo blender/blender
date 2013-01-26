@@ -550,6 +550,12 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 	snode->id = snode->from = NULL;
 	
 	if (snode->treetype == NTREE_SHADER) {
+		/* we use this to signal warnings, when node shaders are drawn in wrong render engine */
+		if (BKE_scene_use_new_shading_nodes(scene))
+			snode->flag |= SNODE_NEW_SHADERS;
+		else
+			snode->flag &= ~SNODE_NEW_SHADERS;
+			
 		/* need active object, or we allow pinning... */
 		if (snode->shaderfrom == SNODE_SHADER_OBJECT) {
 			if (ob) {

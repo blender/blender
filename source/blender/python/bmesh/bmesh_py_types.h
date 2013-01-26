@@ -160,7 +160,7 @@ PyObject *BPy_BMElem_CreatePyObject(BMesh *bm, BMHeader *ele); /* just checks ty
 
 void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_ssize_t max, Py_ssize_t *r_size,
                                 const char htype,
-                                const char do_unique_check, const char do_bm_check,
+                                const bool do_unique_check, const bool do_bm_check,
                                 const char *error_prefix);
 
 PyObject *BPy_BMElem_Array_As_Tuple(BMesh *bm, BMHeader **elem, Py_ssize_t elem_len);

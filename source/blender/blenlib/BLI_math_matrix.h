@@ -173,6 +173,8 @@ void rotate_m4(float mat[4][4], const char axis, const float angle);
 
 void mat3_to_rot_size(float rot[3][3], float size[3], float mat3[3][3]);
 void mat4_to_loc_rot_size(float loc[3], float rot[3][3], float size[3], float wmat[4][4]);
+void mat4_to_loc_quat(float loc[3], float quat[4], float wmat[4][4]);
+void mat4_decompose(float loc[3], float quat[4], float size[3], float wmat[4][4]);
 
 void loc_eul_size_to_mat4(float R[4][4],
                           const float loc[3], const float eul[3], const float size[3]);

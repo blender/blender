@@ -110,8 +110,8 @@ static void draw_render_info(Scene *scene, Image *ima, ARegion *ar, float zoomx,
 			glScalef(zoomx, zoomy, 1.0f);
 
 			if (scene->r.mode & R_BORDER) {
-				glTranslatef(-scene->r.border.xmin * scene->r.xsch * scene->r.size / 100.0f,
-				             -scene->r.border.ymin * scene->r.ysch * scene->r.size / 100.0f,
+				glTranslatef((int)(-scene->r.border.xmin * scene->r.xsch * scene->r.size / 100.0f),
+				             (int)(-scene->r.border.ymin * scene->r.ysch * scene->r.size / 100.0f),
 				             0.0f);
 			}
 
@@ -834,7 +834,7 @@ void draw_image_main(const bContext *C, ARegion *ar)
 	show_render = (show_viewer && ima->type == IMA_TYPE_R_RESULT);
 
 	if (show_viewer) {
-		/* use locked draw for drawing viewer image buffer since the conpositor
+		/* use locked draw for drawing viewer image buffer since the compositor
 		 * is running in separated thread and compositor could free this buffers.
 		 * other images are not modifying in such a way so they does not require
 		 * lock (sergey)

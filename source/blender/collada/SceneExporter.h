@@ -43,6 +43,7 @@ extern "C" {
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_userdef_types.h"
@@ -51,6 +52,7 @@ extern "C" {
 #include "BKE_fcurve.h"
 #include "BKE_animsys.h"
 #include "BLI_path_util.h"
+#include "BKE_constraint.h"
 #include "BLI_fileops.h"
 #include "ED_keyframing.h"
 }

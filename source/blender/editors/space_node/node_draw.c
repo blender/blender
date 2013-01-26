@@ -454,8 +454,8 @@ static void node_update_hidden(bNode *node)
 	
 	for (nsock = node->outputs.first; nsock; nsock = nsock->next) {
 		if (!nodeSocketIsHidden(nsock)) {
-			nsock->locx = node->totr.xmax - hiddenrad + (float)sin(rad) * hiddenrad;
-			nsock->locy = node->totr.ymin + hiddenrad + (float)cos(rad) * hiddenrad;
+			nsock->locx = node->totr.xmax - hiddenrad + sinf(rad) * hiddenrad;
+			nsock->locy = node->totr.ymin + hiddenrad + cosf(rad) * hiddenrad;
 			rad += drad;
 		}
 	}
@@ -465,8 +465,8 @@ static void node_update_hidden(bNode *node)
 	
 	for (nsock = node->inputs.first; nsock; nsock = nsock->next) {
 		if (!nodeSocketIsHidden(nsock)) {
-			nsock->locx = node->totr.xmin + hiddenrad + (float)sin(rad) * hiddenrad;
-			nsock->locy = node->totr.ymin + hiddenrad + (float)cos(rad) * hiddenrad;
+			nsock->locx = node->totr.xmin + hiddenrad + sinf(rad) * hiddenrad;
+			nsock->locy = node->totr.ymin + hiddenrad + cosf(rad) * hiddenrad;
 			rad += drad;
 		}
 	}
@@ -501,21 +501,18 @@ int node_tweak_area_default(bNode *node, int x, int y)
 
 int node_get_colorid(bNode *node)
 {
-	if (node->typeinfo->nclass == NODE_CLASS_INPUT)
-		return TH_NODE_IN_OUT;
-	if (node->typeinfo->nclass == NODE_CLASS_OUTPUT) {
-		if (node->flag & NODE_DO_OUTPUT)
-			return TH_NODE_IN_OUT;
-		else
-			return TH_NODE;
+	switch (node->typeinfo->nclass) {
+		case NODE_CLASS_INPUT:      return TH_NODE_IN_OUT;
+		case NODE_CLASS_OUTPUT:     return (node->flag & NODE_DO_OUTPUT) ? TH_NODE_IN_OUT : TH_NODE;
+		case NODE_CLASS_CONVERTOR:  return TH_NODE_CONVERTOR;
+		case NODE_CLASS_OP_COLOR:
+		case NODE_CLASS_OP_VECTOR:
+		case NODE_CLASS_OP_FILTER:  return TH_NODE_OPERATOR;
+		case NODE_CLASS_GROUP:      return TH_NODE_GROUP;
+		case NODE_CLASS_MATTE:      return TH_NODE_MATTE;
+		case NODE_CLASS_DISTORT:    return TH_NODE_DISTORT;
+		default:                    return TH_NODE;
 	}
-	if (node->typeinfo->nclass == NODE_CLASS_CONVERTOR)
-		return TH_NODE_CONVERTOR;
-	if (ELEM3(node->typeinfo->nclass, NODE_CLASS_OP_COLOR, NODE_CLASS_OP_VECTOR, NODE_CLASS_OP_FILTER))
-		return TH_NODE_OPERATOR;
-	if (node->typeinfo->nclass == NODE_CLASS_GROUP)
-		return TH_NODE_GROUP;
-	return TH_NODE;
 }
 
 /* note: in cmp_util.c is similar code, for node_compo_pass_on()
@@ -704,6 +701,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	
 	if (node->flag & NODE_MUTED)
 		UI_ThemeColorBlend(color_id, TH_REDALERT, 0.5f);
+	
 
 #ifdef WITH_COMPOSITOR
 	if (ntree->type == NTREE_COMPOSIT && (snode->flag & SNODE_SHOW_HIGHLIGHT)) {
@@ -798,6 +796,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 
 	/* outline active and selected emphasis */
 	if (node->flag & SELECT) {
+		
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);
 		
@@ -805,6 +804,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 			UI_ThemeColorShadeAlpha(TH_ACTIVE, 0, -40);
 		else
 			UI_ThemeColorShadeAlpha(TH_SELECT, 0, -40);
+		
 		uiSetRoundBox(UI_CNR_ALL);
 		uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD);
 		

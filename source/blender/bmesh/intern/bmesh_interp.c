@@ -599,7 +599,7 @@ void BM_loop_interp_multires(BMesh *bm, BMLoop *target, BMFace *source)
  * if do_vertex is true, target's vert data will also get interpolated.
  */
 void BM_loop_interp_from_face(BMesh *bm, BMLoop *target, BMFace *source,
-                              int do_vertex, int do_multires)
+                              const bool do_vertex, const bool do_multires)
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;

@@ -20,7 +20,7 @@
 import bpy
 from bpy.types import Menu, Panel
 from bl_ui.properties_paint_common import UnifiedPaintPanel
-from bl_ui.properties_paint_common import sculpt_brush_texture_settings
+from bl_ui.properties_paint_common import brush_texture_settings
 
 
 class View3DPanel():
@@ -108,6 +108,33 @@ class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
         draw_repeat_tools(context, layout)
 
         draw_gpencil_tools(context, layout)
+        col = layout.column(align=True)
+
+
+class VIEW3D_PT_tools_rigidbody(View3DPanel, Panel):
+    bl_context = "objectmode"
+    bl_label = "Rigidbody Tools"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        col = layout.column(align=True)
+        col.label(text="Add/Remove:")
+        row = col.row()
+        row.operator("rigidbody.objects_add", text="Add Active").type = 'ACTIVE'
+        row.operator("rigidbody.objects_add", text="Add Passive").type = 'PASSIVE'
+        row = col.row()
+        row.operator("rigidbody.objects_remove", text="Remove")
+
+        col = layout.column(align=True)
+        col.label(text="Object Tools:")
+        col.operator("rigidbody.shape_change", text="Change Shape")
+        col.operator("rigidbody.mass_calculate", text="Calculate Mass")
+        col.operator("rigidbody.object_settings_copy", text="Copy from Active")
+        col.operator("rigidbody.bake_to_keyframes", text="Bake To Keyframes")
+        col.label(text="Constraints:")
+        col.operator("rigidbody.connect", text="Connect")
 
 # ********** default tools for editmode_mesh ****************
 
@@ -720,12 +747,10 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
         col = layout.column()
 
         col.template_ID_preview(brush, "texture", new="texture.new", rows=3, cols=8)
-        if brush.use_paint_image:
-            col.prop(brush, "use_fixed_texture")
+
+        brush_texture_settings(col, brush, context.sculpt_object)
 
         if context.sculpt_object:
-            sculpt_brush_texture_settings(col, brush)
-
             # use_texture_overlay and texture_overlay_alpha
             col = layout.column(align=True)
             col.active = brush.sculpt_capabilities.has_overlay

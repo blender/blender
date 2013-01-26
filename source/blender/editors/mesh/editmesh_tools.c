@@ -387,7 +387,7 @@ static short edbm_extrude_edge(Object *obedit, BMEditMesh *em, const char hflag,
 		if (ele->head.htype == BM_FACE) {
 			f = (BMFace *)ele;
 			add_normal_aligned(nor, f->no);
-		};
+		}
 	}
 
 	normalize_v3(nor);
@@ -3190,8 +3190,7 @@ static int mesh_separate_loose(Main *bmain, Scene *scene, Base *base_old, BMesh 
 		         BMW_FLAG_NOP,
 		         BMW_NIL_LAY);
 
-		e = BMW_begin(&walker, v_seed);
-		for (; e; e = BMW_step(&walker)) {
+		for (e = BMW_begin(&walker, v_seed); e; e = BMW_step(&walker)) {
 			if (!BM_elem_flag_test(e->v1, BM_ELEM_TAG)) { BM_elem_flag_enable(e->v1, BM_ELEM_TAG); tot++; }
 			if (!BM_elem_flag_test(e->v2, BM_ELEM_TAG)) { BM_elem_flag_enable(e->v2, BM_ELEM_TAG); tot++; }
 		}
@@ -3838,6 +3837,9 @@ static int edbm_select_face_by_sides_exec(bContext *C, wmOperator *op)
 	const int numverts = RNA_int_get(op->ptr, "number");
 	const int type = RNA_enum_get(op->ptr, "type");
 
+	if (!RNA_boolean_get(op->ptr, "extend"))
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 
 		int select;
@@ -3897,15 +3899,19 @@ void MESH_OT_select_face_by_sides(wmOperatorType *ot)
 	/* properties */
 	RNA_def_int(ot->srna, "number", 4, 3, INT_MAX, "Number of Vertices", "", 3, INT_MAX);
 	RNA_def_enum(ot->srna, "type", type_items, 1, "Type", "Type of comparison to make");
+	RNA_def_boolean(ot->srna, "extend", TRUE, "Extend", "Extend the selection");
 }
 
-static int edbm_select_loose_verts_exec(bContext *C, wmOperator *UNUSED(op))
+static int edbm_select_loose_verts_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	BMVert *eve;
 	BMEdge *eed;
 	BMIter iter;
+
+	if (!RNA_boolean_get(op->ptr, "extend"))
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
 	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 		if (!eve->e) {
@@ -3938,6 +3944,9 @@ void MESH_OT_select_loose_verts(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
 static int edbm_select_mirror_exec(bContext *C, wmOperator *op)
@@ -4593,7 +4602,7 @@ static int edbm_noise_exec(bContext *C, wmOperator *op)
 		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 				float tin, dum;
-				externtex(ma->mtex[0], eve->co, &tin, &dum, &dum, &dum, &dum, 0);
+				externtex(ma->mtex[0], eve->co, &tin, &dum, &dum, &dum, &dum, 0, NULL);
 				eve->co[2] += fac * tin;
 			}
 		}

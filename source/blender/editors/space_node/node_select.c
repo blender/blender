@@ -30,13 +30,13 @@
 
 #include "DNA_node_types.h"
 
-#include "BKE_context.h"
-#include "BKE_main.h"
-#include "BKE_node.h"
-
 #include "BLI_rect.h"
 #include "BLI_lasso.h"
 #include "BLI_utildefines.h"
+
+#include "BKE_context.h"
+#include "BKE_main.h"
+#include "BKE_node.h"
 
 #include "ED_node.h"  /* own include */
 #include "ED_screen.h"

@@ -55,10 +55,15 @@ AUD_FFMPEGWriter::AUD_FFMPEGWriter(std::string filename, AUD_DeviceSpecs specs, 
 {
 	static const char* formats[] = { NULL, "ac3", "flac", "matroska", "mp2", "mp3", "ogg", "wav" };
 
-	if(avformat_alloc_output_context2(&m_formatCtx, NULL, formats[format], filename.c_str()))
-		AUD_THROW(AUD_ERROR_FFMPEG, context_error);
+	m_formatCtx = avformat_alloc_context();
+	if (!m_formatCtx) AUD_THROW(AUD_ERROR_FFMPEG, context_error);
 
-	m_outputFmt = m_formatCtx->oformat;
+	strcpy(m_formatCtx->filename, filename.c_str());
+	m_outputFmt = m_formatCtx->oformat = av_guess_format(formats[format], filename.c_str(), NULL);
+	if (!m_outputFmt) {
+		avformat_free_context(m_formatCtx);
+		AUD_THROW(AUD_ERROR_FFMPEG, context_error);
+	}
 
 	switch(codec)
 	{
@@ -116,7 +121,7 @@ AUD_FFMPEGWriter::AUD_FFMPEGWriter(std::string filename, AUD_DeviceSpecs specs, 
 		if(m_outputFmt->audio_codec == CODEC_ID_NONE)
 			AUD_THROW(AUD_ERROR_SPECS, codec_error);
 
-		m_stream = av_new_stream(m_formatCtx, 0);
+		m_stream = avformat_new_stream(m_formatCtx, NULL);
 		if(!m_stream)
 			AUD_THROW(AUD_ERROR_FFMPEG, stream_error);
 
@@ -164,7 +169,7 @@ AUD_FFMPEGWriter::AUD_FFMPEGWriter(std::string filename, AUD_DeviceSpecs specs, 
 			if(!codec)
 				AUD_THROW(AUD_ERROR_FFMPEG, codec_error);
 
-			if(avcodec_open(m_codecCtx, codec))
+			if(avcodec_open2(m_codecCtx, codec, NULL))
 				AUD_THROW(AUD_ERROR_FFMPEG, codec_error);
 
 			m_output_buffer.resize(FF_MIN_BUFFER_SIZE);

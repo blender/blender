@@ -784,6 +784,8 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, int color_man
 	           R_IMF_CHAN_DEPTH_32)) == 0)
 	{
 		row = uiLayoutRow(col, FALSE);
+
+		uiItemL(row, IFACE_("Color Depth:"), ICON_NONE);
 		uiItemR(row, imfptr, "color_depth", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 	}
 

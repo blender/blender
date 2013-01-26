@@ -1035,9 +1035,6 @@ void ntreeFreeTree_ex(bNodeTree *ntree, const short do_id_user)
 	 */
 	if (ntree->execdata) {
 		switch (ntree->type) {
-			case NTREE_COMPOSIT:
-				ntreeCompositEndExecTree(ntree->execdata, 1);
-				break;
 			case NTREE_SHADER:
 				ntreeShaderEndExecTree(ntree->execdata, 1);
 				break;

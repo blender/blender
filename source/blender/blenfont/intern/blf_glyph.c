@@ -213,6 +213,7 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 	FT_Error err;
 	FT_Bitmap bitmap, tempbitmap;
 	int sharp = (U.text_render & USER_TEXT_DISABLE_AA);
+	int flags = FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP;
 	FT_BBox bbox;
 	unsigned int key;
 
@@ -220,10 +221,13 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 	if (g)
 		return g;
 
+	if (font->flags & BLF_HINTING)
+		flags &= ~FT_LOAD_NO_HINTING;
+	
 	if (sharp)
 		err = FT_Load_Glyph(font->face, (FT_UInt)index, FT_LOAD_TARGET_MONO);
 	else
-		err = FT_Load_Glyph(font->face, (FT_UInt)index, FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);  /* Sure about NO_* flags? */
+		err = FT_Load_Glyph(font->face, (FT_UInt)index, flags);  
 	if (err)
 		return NULL;
 

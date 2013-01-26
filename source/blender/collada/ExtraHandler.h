@@ -31,6 +31,7 @@
 
 #include "COLLADASaxFWLIExtraDataCallbackHandler.h"
 #include "COLLADASaxFWLFilePartLoader.h"
+#include "COLLADASWInstanceController.h"
 
 #include "DocumentImporter.h"
 #include "AnimationImporter.h"

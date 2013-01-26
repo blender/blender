@@ -128,6 +128,7 @@ set(SRC
 	intern/pointcache.c
 	intern/property.c
 	intern/report.c
+	intern/rigidbody.c
 	intern/sca.c
 	intern/scene.c
 	intern/screen.c
@@ -219,6 +220,7 @@ set(SRC
 	BKE_pointcache.h
 	BKE_property.h
 	BKE_report.h
+	BKE_rigidbody.h
 	BKE_sca.h
 	BKE_scene.h
 	BKE_screen.h
@@ -261,7 +263,10 @@ if(WITH_BULLET)
 	list(APPEND INC_SYS
 		${BULLET_INCLUDE_DIRS}
 	)
-	add_definitions(-DUSE_BULLET)
+	list(APPEND INC
+		../rigidbody
+	)
+	add_definitions(-DWITH_BULLET)
 endif()
 
 #if(WITH_MOD_CLOTH_ELTOPO)

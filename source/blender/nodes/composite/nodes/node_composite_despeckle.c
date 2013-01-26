@@ -42,15 +42,6 @@ static bNodeSocketTemplate cmp_node_despeckle_out[] = {
 	{	-1, 0, ""	}
 };
 
-#ifdef WITH_COMPOSITOR_LEGACY
-
-static void node_composit_exec_despeckle(void *UNUSED(data), bNode *UNUSED(node), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
-{
-	/* pass */
-}
-
-#endif  /* WITH_COMPOSITOR_LEGACY */
-
 static void node_composit_init_despeckle(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	node->custom3 = 0.5f;
@@ -65,9 +56,6 @@ void register_node_type_cmp_despeckle(bNodeTreeType *ttype)
 	node_type_socket_templates(&ntype, cmp_node_despeckle_in, cmp_node_despeckle_out);
 	node_type_size(&ntype, 80, 40, 120);
 	node_type_init(&ntype, node_composit_init_despeckle);
-#ifdef WITH_COMPOSITOR_LEGACY
-	node_type_exec(&ntype, node_composit_exec_despeckle);
-#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

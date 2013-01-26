@@ -37,7 +37,7 @@ void   BM_mesh_free(BMesh *bm);
 void   BM_mesh_data_free(BMesh *bm);
 void   BM_mesh_clear(BMesh *bm);
 
-void BM_mesh_normals_update(BMesh *bm, const short skip_hidden);
+void BM_mesh_normals_update(BMesh *bm, const bool skip_hidden);
 
 void bmesh_edit_begin(BMesh *bm, int type_flag);
 void bmesh_edit_end(BMesh *bm, int type_flag);

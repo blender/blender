@@ -985,6 +985,10 @@ endif()
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_locale)
 	endif()
 
+	if(WITH_BULLET)
+		list_insert_after(BLENDER_SORTED_LIBS "bf_blenkernel" "bf_rigidbody")
+	endif()
+
 	if(WITH_BULLET AND NOT WITH_BULLET_SYSTEM)
 		list_insert_after(BLENDER_SORTED_LIBS "ge_logic_ngnetwork" "extern_bullet")
 	endif()

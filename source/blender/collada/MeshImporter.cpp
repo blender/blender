@@ -946,6 +946,13 @@ Object *MeshImporter::get_object_by_geom_uid(const COLLADAFW::UniqueId& geom_uid
 	return NULL;
 }
 
+Mesh *MeshImporter::get_mesh_by_geom_uid(const COLLADAFW::UniqueId& mesh_uid)
+{
+	if (uid_mesh_map.find(mesh_uid) != uid_mesh_map.end())
+		return uid_mesh_map[mesh_uid];
+	return NULL;
+}
+
 MTex *MeshImporter::assign_textures_to_uvlayer(COLLADAFW::TextureCoordinateBinding &ctexture,
                                                Mesh *me, TexIndexTextureArrayMap& texindex_texarray_map,
                                                MTex *color_texture)
@@ -1061,7 +1068,7 @@ std::vector<Object *> MeshImporter::get_all_users_of(Mesh *reference_mesh)
  *
  * During import all materials have been assigned to Object.
  * Now we iterate over the imported objects and optimize
- * the assignments as follows:
+ * the assignements as follows:
  *
  * for each imported geometry:
  *     if number of users is 1:
@@ -1075,7 +1082,7 @@ std::vector<Object *> MeshImporter::get_all_users_of(Mesh *reference_mesh)
  *             adjust all other users accordingly.
  *
  **/
-void MeshImporter::optimize_material_assignments()
+void MeshImporter::optimize_material_assignements()
 {
 	for (std::vector<Object *>::iterator it = imported_objects.begin();
 	     it != imported_objects.end(); ++it)
@@ -1119,7 +1126,7 @@ void MeshImporter::optimize_material_assignments()
  * come along with different materials. So we first create the objects
  * and assign the materials to Object, then in a later cleanup we decide
  * which materials shall be moved to the created geometries. Also see
- * optimize_material_assignments() above.
+ * optimize_material_assignements() above.
  */
 MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmaterial,
                                               std::map<COLLADAFW::UniqueId, Material *>& uid_material_map,

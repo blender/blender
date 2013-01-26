@@ -40,16 +40,16 @@
  *	MISC utility functions.
  */
 
-int bmesh_vert_in_edge(BMEdge *e, BMVert *v)
+bool bmesh_vert_in_edge(BMEdge *e, BMVert *v)
 {
-	if (e->v1 == v || e->v2 == v) return TRUE;
-	return FALSE;
+	if (e->v1 == v || e->v2 == v) return true;
+	return false;
 }
-int bmesh_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e)
+bool bmesh_verts_in_edge(BMVert *v1, BMVert *v2, BMEdge *e)
 {
-	if (e->v1 == v1 && e->v2 == v2) return TRUE;
-	else if (e->v1 == v2 && e->v2 == v1) return TRUE;
-	return FALSE;
+	if (e->v1 == v1 && e->v2 == v2) return true;
+	else if (e->v1 == v2 && e->v2 == v1) return true;
+	return false;
 }
 
 BMVert *bmesh_edge_other_vert_get(BMEdge *e, BMVert *v)
@@ -63,19 +63,19 @@ BMVert *bmesh_edge_other_vert_get(BMEdge *e, BMVert *v)
 	return NULL;
 }
 
-int bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
+bool bmesh_edge_swapverts(BMEdge *e, BMVert *orig, BMVert *newv)
 {
 	if (e->v1 == orig) {
 		e->v1 = newv;
 		e->v1_disk_link.next = e->v1_disk_link.prev = NULL;
-		return TRUE;
+		return true;
 	}
 	else if (e->v2 == orig) {
 		e->v2 = newv;
 		e->v2_disk_link.next = e->v2_disk_link.prev = NULL;
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 /**
@@ -165,7 +165,7 @@ BLI_INLINE BMDiskLink *bmesh_disk_edge_link_from_vert(BMEdge *e, BMVert *v)
 	}
 }
 
-int bmesh_disk_edge_append(BMEdge *e, BMVert *v)
+void bmesh_disk_edge_append(BMEdge *e, BMVert *v)
 {
 	if (!v->e) {
 		BMDiskLink *dl1 = bmesh_disk_edge_link_from_vert(e, v);
@@ -187,8 +187,6 @@ int bmesh_disk_edge_append(BMEdge *e, BMVert *v)
 		if (dl3)
 			dl3->next = e;
 	}
-
-	return TRUE;
 }
 
 void bmesh_disk_edge_remove(BMEdge *e, BMVert *v)
@@ -280,23 +278,23 @@ int bmesh_disk_count(BMVert *v)
 	}
 }
 
-int bmesh_disk_validate(int len, BMEdge *e, BMVert *v)
+bool bmesh_disk_validate(int len, BMEdge *e, BMVert *v)
 {
 	BMEdge *e_iter;
 
 	if (!BM_vert_in_edge(e, v))
-		return FALSE;
+		return false;
 	if (bmesh_disk_count(v) != len || len == 0)
-		return FALSE;
+		return false;
 
 	e_iter = e;
 	do {
 		if (len != 1 && bmesh_disk_edge_prev(e_iter, v) == e_iter) {
-			return FALSE;
+			return false;
 		}
 	} while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e);
 
-	return TRUE;
+	return true;
 }
 
 /**
@@ -362,34 +360,34 @@ BMEdge *bmesh_disk_faceedge_find_next(BMEdge *e, BMVert *v)
 }
 
 /*****radial cycle functions, e.g. loops surrounding edges**** */
-int bmesh_radial_validate(int radlen, BMLoop *l)
+bool bmesh_radial_validate(int radlen, BMLoop *l)
 {
 	BMLoop *l_iter = l;
 	int i = 0;
 	
 	if (bmesh_radial_length(l) != radlen)
-		return FALSE;
+		return false;
 
 	do {
 		if (UNLIKELY(!l_iter)) {
 			BMESH_ASSERT(0);
-			return FALSE;
+			return false;
 		}
 		
 		if (l_iter->e != l->e)
-			return FALSE;
+			return false;
 		if (l_iter->v != l->e->v1 && l_iter->v != l->e->v2)
-			return FALSE;
+			return false;
 		
 		if (UNLIKELY(i > BM_LOOP_RADIAL_MAX)) {
 			BMESH_ASSERT(0);
-			return FALSE;
+			return false;
 		}
 		
 		i++;
 	} while ((l_iter = l_iter->radial_next) != l);
 
-	return TRUE;
+	return true;
 }
 
 /**
@@ -511,7 +509,7 @@ void bmesh_radial_append(BMEdge *e, BMLoop *l)
 	l->e = e;
 }
 
-int bmesh_radial_face_find(BMEdge *e, BMFace *f)
+bool bmesh_radial_face_find(BMEdge *e, BMFace *f)
 {
 	BMLoop *l_iter;
 	int i, len;
@@ -519,9 +517,9 @@ int bmesh_radial_face_find(BMEdge *e, BMFace *f)
 	len = bmesh_radial_length(e->l);
 	for (i = 0, l_iter = e->l; i < len; i++, l_iter = l_iter->radial_next) {
 		if (l_iter->f == f)
-			return TRUE;
+			return true;
 	}
-	return FALSE;
+	return false;
 }
 
 /**
@@ -545,7 +543,7 @@ int bmesh_radial_facevert_count(BMLoop *l, BMVert *v)
 }
 
 /*****loop cycle functions, e.g. loops surrounding a face**** */
-int bmesh_loop_validate(BMFace *f)
+bool bmesh_loop_validate(BMFace *f)
 {
 	int i;
 	int len = f->len;
@@ -554,7 +552,7 @@ int bmesh_loop_validate(BMFace *f)
 	l_first = BM_FACE_FIRST_LOOP(f);
 
 	if (l_first == NULL) {
-		return FALSE;
+		return false;
 	}
 
 	/* Validate that the face loop cycle is the length specified by f->len */
@@ -562,22 +560,22 @@ int bmesh_loop_validate(BMFace *f)
 		if ((l_iter->f != f) ||
 		    (l_iter == l_first))
 		{
-			return FALSE;
+			return false;
 		}
 	}
 	if (l_iter != l_first) {
-		return FALSE;
+		return false;
 	}
 
 	/* Validate the loop->prev links also form a cycle of length f->len */
 	for (i = 1, l_iter = l_first->prev; i < len; i++, l_iter = l_iter->prev) {
 		if (l_iter == l_first) {
-			return FALSE;
+			return false;
 		}
 	}
 	if (l_iter != l_first) {
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }

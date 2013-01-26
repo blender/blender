@@ -708,7 +708,8 @@ void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight
 				value2_in->value.x = 1.0f;
 
 			weight_out = math_node->output("Value");
-			disconnect(weight_in);
+			if(weight_in->link)
+				disconnect(weight_in);
 		}
 
 		/* connected to closure mix weight */

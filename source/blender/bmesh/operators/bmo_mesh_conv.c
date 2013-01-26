@@ -36,15 +36,15 @@
 #include "DNA_key_types.h"
 #include "DNA_modifier_types.h"
 
+#include "BLI_math.h"
+#include "BLI_array.h"
+
 #include "BKE_mesh.h"
 #include "BLI_listbase.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_customdata.h"
-
-#include "BLI_math.h"
-#include "BLI_array.h"
 
 #include "bmesh.h"
 #include "intern/bmesh_private.h"
@@ -53,9 +53,9 @@
 
 void bmo_mesh_to_bmesh_exec(BMesh *bm, BMOperator *op)
 {
-	Object *ob  = BMO_slot_ptr_get(op->slots_in,  "object");
-	Mesh *me    = BMO_slot_ptr_get(op->slots_in,  "mesh");
-	int set_key = BMO_slot_bool_get(op->slots_in, "use_shapekey");
+	Object *ob   = BMO_slot_ptr_get(op->slots_in,  "object");
+	Mesh *me     = BMO_slot_ptr_get(op->slots_in,  "mesh");
+	bool set_key = BMO_slot_bool_get(op->slots_in, "use_shapekey");
 
 	BM_mesh_bm_from_me(bm, me, set_key, ob->shapenr);
 
@@ -72,14 +72,14 @@ void bmo_object_load_bmesh_exec(BMesh *bm, BMOperator *op)
 
 	BMO_op_callf(bm, op->flag,
 	             "bmesh_to_mesh mesh=%p object=%p skip_tessface=%b",
-	             me, ob, TRUE);
+	             me, ob, true);
 }
 
 void bmo_bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 {
 	Mesh *me = BMO_slot_ptr_get(op->slots_in, "mesh");
 	/* Object *ob = BMO_slot_ptr_get(op, "object"); */
-	int dotess = !BMO_slot_bool_get(op->slots_in, "skip_tessface");
+	const bool dotess = !BMO_slot_bool_get(op->slots_in, "skip_tessface");
 
 	BM_mesh_bm_to_me(bm, me, dotess);
 }

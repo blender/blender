@@ -2205,9 +2205,20 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 				}
 			}
 
+#if 0
 			/* force reload on first use, but not for multilayer, that makes nodes and buttons in ui drawing fail */
 			if (ima->type != IMA_TYPE_MULTILAYER)
 				image_free_buffers(ima);
+#else
+			/* image buffers for non-sequence multilayer will share buffers with RenderResult,
+			 * however sequence multilayer will own buffers. Such logic makes switching from
+			 * single multilayer file to sequence completely instable
+			 * since changes in nodes seems this workaround isn't needed anymore, all sockets
+			 * are nicely detecting anyway, but freeing buffers always here makes multilayer
+			 * sequences behave stable
+			 */
+			image_free_buffers(ima);
+#endif
 
 			ima->ok = 1;
 			if (iuser)
@@ -2811,6 +2822,28 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	return ibuf;
 }
 
+static void image_get_fame_and_index(Image *ima, ImageUser *iuser, int *frame_r, int *index_r)
+{
+	int frame = 0, index = 0;
+
+	/* see if we already have an appropriate ibuf, with image source and type */
+	if (ima->source == IMA_SRC_MOVIE) {
+		frame = iuser ? iuser->framenr : ima->lastframe;
+	}
+	else if (ima->source == IMA_SRC_SEQUENCE) {
+		if (ima->type == IMA_TYPE_IMAGE) {
+			frame = iuser ? iuser->framenr : ima->lastframe;
+		}
+		else if (ima->type == IMA_TYPE_MULTILAYER) {
+			frame = iuser ? iuser->framenr : ima->lastframe;
+			index = iuser ? iuser->multi_index : IMA_NO_INDEX;
+		}
+	}
+
+	*frame_r = frame;
+	*index_r = index;
+}
+
 static ImBuf *image_get_ibuf_threadsafe(Image *ima, ImageUser *iuser, int *frame_r, int *index_r)
 {
 	ImBuf *ibuf = NULL;
@@ -2866,6 +2899,21 @@ static ImBuf *image_get_ibuf_threadsafe(Image *ima, ImageUser *iuser, int *frame
 	return ibuf;
 }
 
+BLI_INLINE int image_quick_test(Image *ima, ImageUser *iuser)
+{
+	if (ima == NULL)
+		return FALSE;
+
+	if (iuser) {
+		if (iuser->ok == 0)
+			return FALSE;
+	}
+	else if (ima->ok == 0)
+		return FALSE;
+
+	return TRUE;
+}
+
 /* Checks optional ImageUser and verifies/creates ImBuf.
  *
  * not thread-safe, so callee should worry about thread locks
@@ -2880,14 +2928,7 @@ static ImBuf *image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 		*lock_r = NULL;
 
 	/* quick reject tests */
-	if (ima == NULL)
-		return NULL;
-
-	if (iuser) {
-		if (iuser->ok == 0)
-			return NULL;
-	}
-	else if (ima->ok == 0)
+	if (!image_quick_test(ima, iuser))
 		return NULL;
 
 	ibuf = image_get_ibuf_threadsafe(ima, iuser, &frame, &index);
@@ -3011,14 +3052,7 @@ int BKE_image_has_ibuf(Image *ima, ImageUser *iuser)
 	ImBuf *ibuf;
 
 	/* quick reject tests */
-	if (ima == NULL)
-		return FALSE;
-
-	if (iuser) {
-		if (iuser->ok == 0)
-			return FALSE;
-	}
-	else if (ima->ok == 0)
+	if (!image_quick_test(ima, iuser))
 		return FALSE;
 
 	ibuf = image_get_ibuf_threadsafe(ima, iuser, NULL, NULL);
@@ -3035,6 +3069,122 @@ int BKE_image_has_ibuf(Image *ima, ImageUser *iuser)
 	}
 
 	return ibuf != NULL;
+}
+
+/* ******** Pool for image buffers ********  */
+
+typedef struct ImagePoolEntry {
+	struct ImagePoolEntry *next, *prev;
+	Image *image;
+	ImBuf *ibuf;
+	int index;
+	int frame;
+} ImagePoolEntry;
+
+typedef struct ImagePool {
+	ListBase image_buffers;
+} ImagePool;
+
+ImagePool *BKE_image_pool_new(void)
+{
+	ImagePool *pool = MEM_callocN(sizeof(ImagePool), "Image Pool");
+
+	return pool;
+}
+
+void BKE_image_pool_free(ImagePool *pool)
+{
+	ImagePoolEntry *entry, *next_entry;
+
+	/* use single lock to dereference all the image buffers */
+	BLI_spin_lock(&image_spin);
+
+	for (entry = pool->image_buffers.first; entry; entry = next_entry) {
+		next_entry = entry->next;
+
+		if (entry->ibuf)
+			IMB_freeImBuf(entry->ibuf);
+
+		MEM_freeN(entry);
+	}
+
+	BLI_spin_unlock(&image_spin);
+
+	MEM_freeN(pool);
+}
+
+BLI_INLINE ImBuf *image_pool_find_entry(ImagePool *pool, Image *image, int frame, int index, int *found)
+{
+	ImagePoolEntry *entry;
+
+	*found = FALSE;
+
+	for (entry = pool->image_buffers.first; entry; entry = entry->next) {
+		if (entry->image == image && entry->frame == frame && entry->index == index) {
+			*found = TRUE;
+			return entry->ibuf;
+		}
+	}
+
+	return NULL;
+}
+
+ImBuf *BKE_image_pool_acquire_ibuf(Image *ima, ImageUser *iuser, ImagePool *pool)
+{
+	ImBuf *ibuf;
+	int index, frame, found;
+
+	if (!image_quick_test(ima, iuser))
+		return NULL;
+
+	if (pool == NULL) {
+		/* pool could be NULL, in this case use general acquire function */
+		return BKE_image_acquire_ibuf(ima, iuser, NULL);
+	}
+
+	image_get_fame_and_index(ima, iuser, &frame, &index);
+
+	ibuf = image_pool_find_entry(pool, ima, frame, index, &found);
+	if (found)
+		return ibuf;
+
+	BLI_spin_lock(&image_spin);
+
+	ibuf = image_pool_find_entry(pool, ima, frame, index, &found);
+
+	/* will also create entry even in cases image buffer failed to load,
+	 * prevents trying to load the same buggy file multiple times
+	 */
+	if (!found) {
+		ImagePoolEntry *entry;
+
+		ibuf = image_acquire_ibuf(ima, iuser, NULL);
+
+		if (ibuf)
+			IMB_refImBuf(ibuf);
+
+		entry = MEM_callocN(sizeof(ImagePoolEntry), "Image Pool Entry");
+		entry->image = ima;
+		entry->frame = frame;
+		entry->index = index;
+		entry->ibuf = ibuf;
+
+		BLI_addtail(&pool->image_buffers, entry);
+	}
+
+	BLI_spin_unlock(&image_spin);
+
+	return ibuf;
+}
+
+void BKE_image_pool_release_ibuf(Image *ima, ImBuf *ibuf, ImagePool *pool)
+{
+	/* if pool wasn't actually used, use general release stuff,
+	 * for pools image buffers will be dereferenced on pool free
+	 */
+	if (pool == NULL) {
+		BKE_image_release_ibuf(ima, ibuf, NULL);
+	}
 }
 
 int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr, short *r_is_in_range)
@@ -3198,4 +3348,58 @@ void BKE_image_get_aspect(Image *image, float *aspx, float *aspy)
 		*aspy = image->aspy / image->aspx;
 	else
 		*aspy = 1.0f;
+}
+
+unsigned char *BKE_image_get_pixels_for_frame(struct Image *image, int frame)
+{
+	ImageUser iuser = {0};
+	void *lock;
+	ImBuf *ibuf;
+	unsigned char *pixels = NULL;
+
+	iuser.framenr = frame;
+	iuser.ok = TRUE;
+
+	ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
+
+	if (ibuf) {
+		pixels = (unsigned char *) ibuf->rect;
+
+		if (pixels)
+			pixels = MEM_dupallocN(pixels);
+
+		BKE_image_release_ibuf(image, ibuf, lock);
+	}
+
+	if (!pixels)
+		return NULL;
+
+	return pixels;
+}
+
+float *BKE_image_get_float_pixels_for_frame(struct Image *image, int frame)
+{
+	ImageUser iuser = {0};
+	void *lock;
+	ImBuf *ibuf;
+	float *pixels = NULL;
+
+	iuser.framenr = frame;
+	iuser.ok = TRUE;
+
+	ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
+
+	if (ibuf) {
+		pixels = ibuf->rect_float;
+
+		if (pixels)
+			pixels = MEM_dupallocN(pixels);
+
+		BKE_image_release_ibuf(image, ibuf, lock);
+	}
+
+	if (!pixels)
+		return NULL;
+
+	return pixels;
 }

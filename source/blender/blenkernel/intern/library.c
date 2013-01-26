@@ -47,6 +47,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_group_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
@@ -54,6 +55,8 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_movieclip_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_nla_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
@@ -64,51 +67,49 @@
 #include "DNA_vfont_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
-#include "DNA_gpencil_types.h"
-#include "DNA_movieclip_types.h"
-#include "DNA_mask_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
 #include "BKE_bpath.h"
 
+#include "BKE_action.h"
 #include "BKE_animsys.h"
+#include "BKE_armature.h"
+#include "BKE_brush.h"
 #include "BKE_camera.h"
 #include "BKE_context.h"
-#include "BKE_lamp.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
-#include "BKE_global.h"
-#include "BKE_sound.h"
-#include "BKE_object.h"
-#include "BKE_screen.h"
-#include "BKE_mesh.h"
-#include "BKE_material.h"
 #include "BKE_curve.h"
-#include "BKE_mball.h"
-#include "BKE_text.h"
-#include "BKE_texture.h"
-#include "BKE_scene.h"
+#include "BKE_fcurve.h"
+#include "BKE_font.h"
+#include "BKE_global.h"
+#include "BKE_group.h"
+#include "BKE_gpencil.h"
+#include "BKE_idprop.h"
 #include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
-#include "BKE_world.h"
-#include "BKE_font.h"
-#include "BKE_group.h"
+#include "BKE_lamp.h"
 #include "BKE_lattice.h"
-#include "BKE_armature.h"
-#include "BKE_action.h"
-#include "BKE_node.h"
-#include "BKE_brush.h"
-#include "BKE_idprop.h"
-#include "BKE_particle.h"
-#include "BKE_gpencil.h"
-#include "BKE_fcurve.h"
-#include "BKE_speaker.h"
+#include "BKE_library.h"
+#include "BKE_mesh.h"
+#include "BKE_material.h"
+#include "BKE_main.h"
+#include "BKE_mball.h"
 #include "BKE_movieclip.h"
 #include "BKE_mask.h"
+#include "BKE_node.h"
+#include "BKE_object.h"
+#include "BKE_particle.h"
+#include "BKE_packedFile.h"
+#include "BKE_speaker.h"
+#include "BKE_sound.h"
+#include "BKE_screen.h"
+#include "BKE_scene.h"
+#include "BKE_text.h"
+#include "BKE_texture.h"
+#include "BKE_world.h"
 #ifdef WITH_FREESTYLE
 #  include "BKE_linestyle.h"
 #endif
@@ -124,9 +125,6 @@
 /* GS reads the memory pointed at in a specific ordering. 
  * only use this definition, makes little and big endian systems
  * work fine, in conjunction with MAKE_ID */
-
-/* from blendef: */
-#define GS(a)  (*((short *)(a)))
 
 /* ************* general ************************ */
 
@@ -795,9 +793,10 @@ void *BKE_libblock_copy(ID *id)
 	return idn;
 }
 
-static void BKE_library_free(Library *UNUSED(lib))
+static void BKE_library_free(Library *lib)
 {
-	/* no freeing needed for libraries yet */
+	if (lib->packedfile)
+		freePackedFile(lib->packedfile);
 }
 
 static void (*free_windowmanager_cb)(bContext *, wmWindowManager *) = NULL;

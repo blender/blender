@@ -91,14 +91,14 @@ void CompositorOperation::deinitExecution()
 			}
 		}
 
-		BLI_lock_thread(LOCK_DRAW_IMAGE);
-		BKE_image_signal(BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result"), NULL, IMA_SIGNAL_FREE);
-		BLI_unlock_thread(LOCK_DRAW_IMAGE);
-
 		if (re) {
 			RE_ReleaseResult(re);
 			re = NULL;
 		}
+
+		BLI_lock_thread(LOCK_DRAW_IMAGE);
+		BKE_image_signal(BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result"), NULL, IMA_SIGNAL_FREE);
+		BLI_unlock_thread(LOCK_DRAW_IMAGE);
 	}
 	else {
 		if (this->m_outputBuffer) {

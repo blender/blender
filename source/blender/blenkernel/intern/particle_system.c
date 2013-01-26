@@ -4500,7 +4500,7 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 	int startframe = 0, endframe = 100, oldtotpart = 0;
 
 	/* cache shouldn't be used for hair or "continue physics" */
-	if (part->type != PART_HAIR && BKE_ptcache_get_continue_physics() == 0) {
+	if (part->type != PART_HAIR) {
 		psys_clear_temp_pointcache(psys);
 
 		/* set suitable cache range automatically */

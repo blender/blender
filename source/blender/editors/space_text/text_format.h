@@ -49,18 +49,18 @@ enum {
 	FMT_CONT_TRIPLE             = (1 << 2),  /* triplets of quotes: """ or ''' */
 	FMT_CONT_QUOTESINGLE_TRIPLE = (FMT_CONT_TRIPLE | FMT_CONT_QUOTESINGLE),
 	FMT_CONT_QUOTEDOUBLE_TRIPLE = (FMT_CONT_TRIPLE | FMT_CONT_QUOTEDOUBLE),
-	FMT_CONT_COMMENT_C          = (1 << 3),  /* multi-line comments, OSL only (C style) */
-	FMT_CONT_COMMENT_CXX        = (1 << 4),  /* single-line comments, OSL only (C++ style) */
+	FMT_CONT_COMMENT_C          = (1 << 3)   /* multi-line comments, OSL only (C style) */
 };
 #define FMT_CONT_ALL \
-	(FMT_CONT_QUOTESINGLE | FMT_CONT_QUOTEDOUBLE | FMT_CONT_TRIPLE | FMT_CONT_COMMENT_C | FMT_CONT_COMMENT_CXX)
+	(FMT_CONT_QUOTESINGLE | FMT_CONT_QUOTEDOUBLE | FMT_CONT_TRIPLE | FMT_CONT_COMMENT_C)
 
 int  flatten_string(struct SpaceText *st, FlattenString *fs, const char *in);
 void flatten_string_free(FlattenString *fs);
 int  flatten_string_strlen(FlattenString *fs, const char *str);
 
 int  text_check_format_len(TextLine *line, unsigned int len);
-
+void text_format_fill(const char **str_p, char **fmt_p, const char type, const int len);
+void text_format_fill_ascii(const char **str_p, char **fmt_p, const char type, const int len);
 
 /* *** Generalize Formatting *** */
 typedef struct TextFormatType {
@@ -101,6 +101,7 @@ void            ED_text_format_register(TextFormatType *tft);
 /* formatters */
 void ED_text_format_register_py(void);
 void ED_text_format_register_osl(void);
+void ED_text_format_register_lua(void);
 
 #define STR_LITERAL_STARTSWITH(str, str_literal, len_var) \
 	(strncmp(str, str_literal, len_var = (sizeof(str_literal) - 1)) == 0)

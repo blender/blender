@@ -56,6 +56,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_mesh.h"
@@ -430,7 +431,11 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
 
 	BKE_pbvh_search_gather(ss->pbvh, NULL, NULL, &nodes, &totnode);
 
-	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
+	/* Disable OpenMP when dynamic-topology is enabled. Otherwise, new
+	 * entries might be inserted by sculpt_undo_push_node() into the
+	 * GHash used internally by BM_log_original_vert_co() by a
+	 * different thread. [#33787] */
+	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP && !ss->bm)
 	for (n = 0; n < totnode; n++) {
 		SculptUndoNode *unode;
 		SculptUndoType type = (brush->sculpt_tool == SCULPT_TOOL_MASK ?
@@ -893,7 +898,7 @@ static float tex_strength(SculptSession *ss, Brush *br,
 		/* Get strength by feeding the vertex 
 		 * location directly into a texture */
 		externtex(mtex, point, &avg,
-		          &jnk, &jnk, &jnk, &jnk, 0);
+		          &jnk, &jnk, &jnk, &jnk, 0, ss->tex_pool);
 	}
 	else if (ss->texcache) {
 		float rotation = -mtex->rot;
@@ -979,7 +984,7 @@ static float tex_strength(SculptSession *ss, Brush *br,
 		x += br->mtex.ofs[0];
 		y += br->mtex.ofs[1];
 
-		avg = paint_get_tex_pixel(br, x, y);
+		avg = paint_get_tex_pixel(br, x, y, ss->tex_pool);
 	}
 
 	avg += br->texture_sample_bias;
@@ -3372,11 +3377,17 @@ static void sculpt_update_tex(const Scene *scene, Sculpt *sd, SculptSession *ss)
 		ss->texcache = NULL;
 	}
 
+	if (ss->tex_pool) {
+		BKE_image_pool_free(ss->tex_pool);
+		ss->tex_pool = NULL;
+	}
+
 	/* Need to allocate a bigger buffer for bigger brush size */
 	ss->texcache_side = 2 * radius;
 	if (!ss->texcache || ss->texcache_side > ss->texcache_actual) {
 		ss->texcache = BKE_brush_gen_texture_cache(brush, radius);
 		ss->texcache_actual = ss->texcache_side;
+		ss->tex_pool = BKE_image_pool_new();
 	}
 }
 
@@ -3654,6 +3665,7 @@ static void sculpt_omp_done(SculptSession *ss)
 static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSession *ss, wmOperator *op, const float mouse[2])
 {
 	StrokeCache *cache = MEM_callocN(sizeof(StrokeCache), "stroke cache");
+	UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
 	Brush *brush = paint_brush(&sd->paint);
 	ViewContext *vc = paint_stroke_view_context(op->customdata);
 	Object *ob = CTX_data_active_object(C);
@@ -3762,7 +3774,7 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 		}
 	}
 
-	cache->special_rotation = (brush->flag & BRUSH_RAKE) ? sd->last_angle : 0;
+	cache->special_rotation = (brush->flag & BRUSH_RAKE) ? ups->last_angle : 0;
 
 	cache->first_time = 1;
 
@@ -3771,7 +3783,7 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	sculpt_omp_start(sd, ss);
 }
 
-static void sculpt_update_brush_delta(Sculpt *sd, Object *ob, Brush *brush)
+static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Brush *brush)
 {
 	SculptSession *ss = ob->sculpt;
 	StrokeCache *cache = ss->cache;
@@ -3836,17 +3848,17 @@ static void sculpt_update_brush_delta(Sculpt *sd, Object *ob, Brush *brush)
 		copy_v3_v3(cache->old_grab_location, grab_location);
 
 		if (tool == SCULPT_TOOL_GRAB)
-			copy_v3_v3(sd->anchored_location, cache->true_location);
+			copy_v3_v3(ups->anchored_location, cache->true_location);
 		else if (tool == SCULPT_TOOL_THUMB)
-			copy_v3_v3(sd->anchored_location, cache->orig_grab_location);
+			copy_v3_v3(ups->anchored_location, cache->orig_grab_location);
 
 		if (ELEM(tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB)) {
 			/* location stays the same for finding vertices in brush radius */
 			copy_v3_v3(cache->true_location, cache->orig_grab_location);
 
-			sd->draw_anchored = 1;
-			copy_v2_v2(sd->anchored_initial_mouse, cache->initial_mouse);
-			sd->anchored_size = cache->pixel_radius;
+			ups->draw_anchored = 1;
+			copy_v2_v2(ups->anchored_initial_mouse, cache->initial_mouse);
+			ups->anchored_size = cache->pixel_radius;
 		}
 	}
 }
@@ -3857,6 +3869,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
                                          PointerRNA *ptr)
 {
 	Scene *scene = CTX_data_scene(C);
+	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 	SculptSession *ss = ob->sculpt;
 	StrokeCache *cache = ss->cache;
 	Brush *brush = paint_brush(&sd->paint);
@@ -3880,13 +3893,14 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	 *      brush coord/pressure/etc.
 	 *      It's more an events design issue, which doesn't split coordinate/pressure/angle
 	 *      changing events. We should avoid this after events system re-design */
-	if (paint_space_stroke_enabled(brush) || cache->first_time)
+	if (paint_supports_dynamic_size(brush) || cache->first_time) {
 		cache->pressure = RNA_float_get(ptr, "pressure");
+	}
 
 	/* Truly temporary data that isn't stored in properties */
 
-	sd->draw_pressure =  1;
-	sd->pressure_value = cache->pressure;
+	ups->draw_pressure =  1;
+	ups->pressure_value = cache->pressure;
 
 	cache->previous_pixel_radius = cache->pixel_radius;
 	cache->pixel_radius = BKE_brush_size_get(scene, brush);
@@ -3903,12 +3917,13 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 		}
 	}
 
-	if (BKE_brush_use_size_pressure(scene, brush)) {
+	if (BKE_brush_use_size_pressure(scene, brush) && paint_supports_dynamic_size(brush)) {
 		cache->pixel_radius *= cache->pressure;
 		cache->radius = cache->initial_radius * cache->pressure;
 	}
-	else
+	else {
 		cache->radius = cache->initial_radius;
+	}
 
 	cache->radius_squared = cache->radius * cache->radius;
 
@@ -3932,7 +3947,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 		const float dx = cache->mouse[0] - cache->initial_mouse[0];
 		const float dy = cache->mouse[1] - cache->initial_mouse[1];
 
-		sd->anchored_size = cache->pixel_radius = sqrt(dx * dx + dy * dy);
+		ups->anchored_size = cache->pixel_radius = sqrt(dx * dx + dy * dy);
 
 		cache->special_rotation = atan2(dx, dy) + M_PI;
 
@@ -3944,27 +3959,27 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 			halfway[1] = dy * 0.5f + cache->initial_mouse[1];
 
 			if (sculpt_stroke_get_location(C, out, halfway)) {
-				copy_v3_v3(sd->anchored_location, out);
-				copy_v2_v2(sd->anchored_initial_mouse, halfway);
+				copy_v3_v3(ups->anchored_location, out);
+				copy_v2_v2(ups->anchored_initial_mouse, halfway);
 				copy_v2_v2(cache->tex_mouse, halfway);
-				copy_v3_v3(cache->true_location, sd->anchored_location);
-				sd->anchored_size /= 2.0f;
+				copy_v3_v3(cache->true_location, ups->anchored_location);
+				ups->anchored_size /= 2.0f;
 				cache->pixel_radius  /= 2.0f;
 				hit = 1;
 			}
 		}
 
 		if (!hit)
-			copy_v2_v2(sd->anchored_initial_mouse, cache->initial_mouse);
+			copy_v2_v2(ups->anchored_initial_mouse, cache->initial_mouse);
 
 		cache->radius = paint_calc_object_space_radius(paint_stroke_view_context(stroke),
 		                                               cache->true_location,
 		                                               cache->pixel_radius);
 		cache->radius_squared = cache->radius * cache->radius;
 
-		copy_v3_v3(sd->anchored_location, cache->true_location);
+		copy_v3_v3(ups->anchored_location, cache->true_location);
 
-		sd->draw_anchored = 1;
+		ups->draw_anchored = 1;
 	}
 	else if (brush->flag & BRUSH_RAKE) {
 		const float u = 0.5f;
@@ -3985,7 +4000,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 		}
 	}
 
-	sculpt_update_brush_delta(sd, ob, brush);
+	sculpt_update_brush_delta(ups, ob, brush);
 
 	if (brush->sculpt_tool == SCULPT_TOOL_ROTATE) {
 		const float dx = cache->mouse[0] - cache->initial_mouse[0];
@@ -3993,13 +4008,13 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 
 		cache->vertex_rotation = -atan2f(dx, dy) * cache->bstrength;
 
-		sd->draw_anchored = 1;
-		copy_v2_v2(sd->anchored_initial_mouse, cache->initial_mouse);
-		copy_v3_v3(sd->anchored_location, cache->true_location);
-		sd->anchored_size = cache->pixel_radius;
+		ups->draw_anchored = 1;
+		copy_v2_v2(ups->anchored_initial_mouse, cache->initial_mouse);
+		copy_v3_v3(ups->anchored_location, cache->true_location);
+		ups->anchored_size = cache->pixel_radius;
 	}
 
-	sd->special_rotation = cache->special_rotation;
+	ups->special_rotation = cache->special_rotation;
 }
 
 /* Returns true iff any of the smoothing modes are active (currently
@@ -4172,6 +4187,17 @@ static void sculpt_restore_mesh(Sculpt *sd, Object *ob)
 	}
 }
 
+/* Copy the PBVH bounding box into the object's bounding box */
+static void sculpt_update_object_bounding_box(Object *ob)
+{
+	if (ob->bb) {
+		float bb_min[3], bb_max[3];
+
+		BKE_pbvh_bounding_box(ob->sculpt->pbvh, bb_min, bb_max);
+		BKE_boundbox_init_from_minmax(ob->bb, bb_min, bb_max);
+	}
+}
+
 static void sculpt_flush_update(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
@@ -4192,6 +4218,11 @@ static void sculpt_flush_update(bContext *C)
 		rcti r;
 
 		BKE_pbvh_update(ss->pbvh, PBVH_UpdateBB, NULL);
+		/* Update the object's bounding box too so that the object
+		 * doesn't get incorrectly clipped during drawing in
+		 * draw_mesh_object(). [#33790] */
+		sculpt_update_object_bounding_box(ob);
+
 		if (sculpt_get_redraw_rect(ar, CTX_wm_region_view3d(C), ob, &r)) {
 			if (ss->cache)
 				ss->cache->previous_r = r;
@@ -4289,6 +4320,7 @@ static void sculpt_brush_exit_tex(Sculpt *sd)
 
 static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(stroke))
 {
+	UnifiedPaintSettings *ups = &CTX_data_tool_settings(C)->unified_paint_settings;
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
@@ -4296,9 +4328,9 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 	sculpt_omp_done(ss);
 
 	/* reset values used to draw brush after completing the stroke */
-	sd->draw_anchored = 0;
-	sd->draw_pressure = 0;
-	sd->special_rotation = 0;
+	ups->draw_anchored = 0;
+	ups->draw_pressure = 0;
+	ups->special_rotation = 0;
 
 	/* Finished */
 	if (ss->cache) {
@@ -4868,6 +4900,12 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))
 	else {
 		/* Enter sculptmode */
 		ob->mode |= OB_MODE_SCULPT;
+
+		/* Remove dynamic-topology flag; this will be enabled if the
+		 * file was saved with dynamic topology on, but we don't
+		 * automatically re-enter dynamic-topology mode when loading a
+		 * file. */
+		me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
 
 		if (flush_recalc)
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);

@@ -1317,7 +1317,8 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
 
 	switch (wipe->wipetype) {
 		case DO_SINGLE_WIPE:
-			width = wipezone->width;
+			width = min_ii(wipezone->width, facf0 * yo);
+			width = min_ii(width, yo - facf0 * yo);
 
 			if (angle == 0.0f) {
 				b1 = posy;

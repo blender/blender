@@ -32,6 +32,8 @@
 #ifndef __PIXELSHADING_H__
 #define __PIXELSHADING_H__
 
+struct ImagePool;
+
 /**
  * Render the pixel at (x,y) for object ap. Apply the jitter mask. 
  * Output is given in float collector[4]. The type vector:

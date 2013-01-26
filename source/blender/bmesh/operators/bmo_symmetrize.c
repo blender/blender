@@ -176,7 +176,7 @@ static void symm_split_asymmetric_edges(Symm *symm)
 			                       plane_co[symm->axis][0],
 			                       plane_co[symm->axis][1],
 			                       plane_co[symm->axis][2],
-			                       &lambda, TRUE);
+			                       &lambda, true);
 			BLI_assert(r);
 
 			madd_v3_v3v3fl(co, e->v1->co, edge_dir, lambda);
@@ -244,7 +244,7 @@ typedef struct {
 	int len;
 
 	/* True only if none of the polygon's edges were split */
-	int already_symmetric;
+	bool already_symmetric;
 
 	BMFace *src_face;
 } SymmPoly;
@@ -261,11 +261,11 @@ static void symm_poly_with_splits(const Symm *symm,
 
 	/* Count vertices and check for edge splits */
 	out->len = f->len;
-	out->already_symmetric = TRUE;
+	out->already_symmetric = true;
 	BM_ITER_ELEM (l, &iter, f, BM_LOOPS_OF_FACE) {
 		if (BLI_ghash_haskey(symm->edge_split_map, l->e)) {
 			out->len++;
-			out->already_symmetric = FALSE;
+			out->already_symmetric = false;
 		}
 	}
 
@@ -332,11 +332,11 @@ static BMVert *symm_poly_mirror_dst(const Symm *symm,
 		return NULL;
 }
 
-static int symm_poly_next_crossing(const Symm *symm,
-                                   const SymmPoly *sp,
-                                   int start,
-                                   int *l1,
-                                   int *l2)
+static bool symm_poly_next_crossing(const Symm *symm,
+                                    const SymmPoly *sp,
+                                    int start,
+                                    int *l1,
+                                    int *l2)
 {
 	int i;
 
@@ -347,12 +347,12 @@ static int symm_poly_next_crossing(const Symm *symm,
 		if ((symm_poly_co_side(symm, sp, *l1) == SYMM_SIDE_KILL) ^
 		    (symm_poly_co_side(symm, sp, *l2) == SYMM_SIDE_KILL))
 		{
-			return TRUE;
+			return true;
 		}
 	}
 
 	BLI_assert(!"symm_poly_next_crossing failed");
-	return FALSE;
+	return false;
 }
 
 static BMFace *symm_face_create_v(BMesh *bm, BMFace *example,
@@ -378,7 +378,7 @@ static BMFace *symm_face_create_v(BMesh *bm, BMFace *example,
 	f_new = BM_face_create(bm, fv, fe, len, BM_CREATE_NO_DOUBLE);
 	if (example)
 		BM_elem_attrs_copy(bm, bm, example, f_new);
-	BM_face_select_set(bm, f_new, TRUE);
+	BM_face_select_set(bm, f_new, true);
 	BMO_elem_flag_enable(bm, f_new, SYMM_OUTPUT_GEOM);
 
 	return f_new;
@@ -465,15 +465,15 @@ static void symm_mirror_polygons(Symm *symm)
 	BMO_ITER (f, &oiter, symm->op->slots_in, "input", BM_FACE) {
 		BMIter iter;
 		BMLoop *l;
-		int mirror_all = TRUE, ignore_all = TRUE;
+		bool mirror_all = true, ignore_all = true;
 
 		/* Check if entire polygon can be mirrored or ignored */
 		BM_ITER_ELEM (l, &iter, f, BM_LOOPS_OF_FACE) {
 			const SymmSide side = symm_co_side(symm, l->v->co);
 			if (side == SYMM_SIDE_KILL)
-				mirror_all = FALSE;
+				mirror_all = false;
 			else if (side == SYMM_SIDE_KEEP)
-				ignore_all = FALSE;
+				ignore_all = false;
 		}
 
 		if (mirror_all) {

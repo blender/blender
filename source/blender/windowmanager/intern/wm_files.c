@@ -306,11 +306,6 @@ static void wm_init_userdef(bContext *C)
 
 	/* update tempdir from user preferences */
 	BLI_init_temporary_dir(U.tempdir);
-	
-	/* displays with larger native pixels, like Macbook. Used to scale dpi with */
-	if (G.background == FALSE)
-		U.pixelsize = GHOST_GetNativePixelSize();
-	if (U.pixelsize == 0) U.pixelsize = 1;
 
 	BKE_userdef_state();
 }

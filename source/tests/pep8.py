@@ -21,20 +21,20 @@
 import os
 
 # depends on pep8, pyflakes, pylint
-# for ubuntu
+# for Ubuntu
 #
 #   sudo apt-get install pylint pyflakes
 #
 #   sudo apt-get install python-setuptools python-pip
 #   sudo pip install pep8
 #
-# in debian install pylint pyflakes pep8 with apt-get/aptitude/etc
+# in Debian install pylint pyflakes pep8 with apt-get/aptitude/etc
 #
 # on *nix run
 #   python source/tests/pep8.py > test_pep8.log 2>&1
 
 # how many lines to read into the file, pep8 comment
-# should be directly after the licence header, ~20 in most cases
+# should be directly after the license header, ~20 in most cases
 PEP8_SEEK_COMMENT = 40
 SKIP_PREFIX = "./tools", "./config", "./scons", "./extern"
 FORCE_PEP8_ALL = False
@@ -115,7 +115,7 @@ def main():
         # let pep8 complain about line length
         os.system("pylint "
                   "--disable="
-                  "C0111,"  # missing docstring
+                  "C0111,"  # missing doc string
                   "C0103,"  # invalid name
                   "W0613,"  # unused argument, may add this back
                             # but happens a lot for 'context' for eg.

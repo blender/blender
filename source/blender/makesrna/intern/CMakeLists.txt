@@ -70,6 +70,7 @@ set(DEFSRC
 	rna_pose.c
 	rna_property.c
 	rna_render.c
+	rna_rigidbody.c
 	rna_rna.c
 	rna_scene.c
 	rna_screen.c
@@ -241,6 +242,13 @@ endif()
 
 if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
+endif()
+
+if(WITH_BULLET)
+	list(APPEND INC
+		../../rigidbody
+	)
+	add_definitions(-DWITH_BULLET)
 endif()
 
 # Build makesrna executable

@@ -18,10 +18,13 @@
 
 # <pep8 compliant>
 
-import bpy, _cycles, os, tempfile
+import bpy
+import _cycles
 
-# compile .osl file with given filepath to temporary .oso file
+
 def osl_compile(input_path, report):
+    """compile .osl file with given filepath to temporary .oso file"""
+    import tempfile
     output_file = tempfile.NamedTemporaryFile(mode='w', suffix=".oso", delete=False)
     output_path = output_file.name
     output_file.close()
@@ -33,9 +36,12 @@ def osl_compile(input_path, report):
 
     return ok, output_path
 
-# compile and update shader script node
+
 def update_script_node(node, report):
-    import os, shutil
+    """compile and update shader script node"""
+    import os
+    import shutil
+    import tempfile
 
     if node.mode == 'EXTERNAL':
         # compile external script file
@@ -103,7 +109,7 @@ def update_script_node(node, report):
 
                 report({'ERROR'}, "Can't read OSO bytecode to store in node at %r" % oso_path)
                 ok = False
-    
+
     else:
         report({'WARNING'}, "No text or file specified in node, nothing to compile")
         return
@@ -125,4 +131,3 @@ def update_script_node(node, report):
             pass
 
     return ok
-

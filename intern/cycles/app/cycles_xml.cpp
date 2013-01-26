@@ -233,16 +233,16 @@ static void xml_read_film(const XMLReadState& state, pugi::xml_node node)
 	float aspect = (float)cam->width/(float)cam->height;
 
 	if(cam->width >= cam->height) {
-		cam->left = -aspect;
-		cam->right = aspect;
-		cam->bottom = -1.0f;
-		cam->top = 1.0f;
+		cam->viewplane.left = -aspect;
+		cam->viewplane.right = aspect;
+		cam->viewplane.bottom = -1.0f;
+		cam->viewplane.top = 1.0f;
 	}
 	else {
-		cam->left = -1.0f;
-		cam->right = 1.0f;
-		cam->bottom = -1.0f/aspect;
-		cam->top = 1.0f/aspect;
+		cam->viewplane.left = -1.0f;
+		cam->viewplane.right = 1.0f;
+		cam->viewplane.bottom = -1.0f/aspect;
+		cam->viewplane.top = 1.0f/aspect;
 	}
 
 	cam->need_update = true;

@@ -47,7 +47,7 @@
 
 #include "MOD_modifiertypes.h"
 
-#include "CCGSubSurf.h"
+#include "intern/CCGSubSurf.h"
 
 static void initData(ModifierData *md)
 {
@@ -103,7 +103,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		subsurf_flags |= SUBSURF_USE_RENDER_PARAMS;
 	if (isFinalCalc)
 		subsurf_flags |= SUBSURF_IS_FINAL_CALC;
-	if (ob->flag & OB_MODE_EDIT)
+	if (ob->mode & OB_MODE_EDIT)
 		subsurf_flags |= SUBSURF_IN_EDIT_MODE;
 	
 	result = subsurf_make_derived_from_derived(derivedData, smd, NULL, subsurf_flags);

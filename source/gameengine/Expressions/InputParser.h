@@ -102,7 +102,7 @@ private:
 #if 0	/* not used yet */
 	int MakeInt();
 #endif
-	STR_String Symbol2Str(int s);
+	const char *Symbol2Str(int s);
 	void Term(int s);
 	int Priority(int optor);
 	CExpression *Ex(int i);

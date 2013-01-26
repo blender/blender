@@ -107,18 +107,18 @@ void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode)
 #pragma omp section
 			{
 				BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-					int ok = TRUE;
+					bool ok = true;
 					if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
 						l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 						do {
 							if (!BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
-								ok = FALSE;
+								ok = false;
 								break;
 							}
 						} while ((l_iter = l_iter->next) != l_first);
 					}
 					else {
-						ok = FALSE;
+						ok = false;
 					}
 
 					BM_elem_flag_set(f, BM_ELEM_SELECT, ok);
@@ -129,18 +129,18 @@ void BM_mesh_select_mode_flush_ex(BMesh *bm, const short selectmode)
 	}
 	else if (selectmode & SCE_SELECT_EDGE) {
 		BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-			int ok = TRUE;
+			bool ok = true;
 			if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
 				l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 				do {
 					if (!BM_elem_flag_test(l_iter->e, BM_ELEM_SELECT)) {
-						ok = FALSE;
+						ok = false;
 						break;
 					}
 				} while ((l_iter = l_iter->next) != l_first);
 			}
 			else {
-				ok = FALSE;
+				ok = false;
 			}
 
 			BM_elem_flag_set(f, BM_ELEM_SELECT, ok);
@@ -171,7 +171,7 @@ void BM_mesh_deselect_flush(BMesh *bm)
 	BMIter eiter;
 	BMIter fiter;
 
-	int ok;
+	bool ok;
 
 	/* we can use 2 sections here because the second loop isnt checking edge selection */
 #pragma omp parallel sections if (bm->totedge + bm->totface >= BM_OMP_LIMIT)
@@ -191,21 +191,21 @@ void BM_mesh_deselect_flush(BMesh *bm)
 #pragma omp section
 		{
 			BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-				ok = TRUE;
+				ok = true;
 				if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
 					l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 					do {
 						if (!BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
-							ok = FALSE;
+							ok = false;
 							break;
 						}
 					} while ((l_iter = l_iter->next) != l_first);
 				}
 				else {
-					ok = FALSE;
+					ok = false;
 				}
 
-				if (ok == FALSE) {
+				if (ok == false) {
 					BM_elem_flag_disable(f, BM_ELEM_SELECT);
 				}
 			}
@@ -233,7 +233,7 @@ void BM_mesh_select_flush(BMesh *bm)
 	BMIter eiter;
 	BMIter fiter;
 
-	int ok;
+	bool ok;
 
 	/* we can use 2 sections here because the second loop isnt checking edge selection */
 #pragma omp parallel sections if (bm->totedge + bm->totface >= BM_OMP_LIMIT)
@@ -253,18 +253,18 @@ void BM_mesh_select_flush(BMesh *bm)
 #pragma omp section
 		{
 			BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
-				ok = TRUE;
+				ok = true;
 				if (!BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
 					l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 					do {
 						if (!BM_elem_flag_test(l_iter->v, BM_ELEM_SELECT)) {
-							ok = FALSE;
+							ok = false;
 							break;
 						}
 					} while ((l_iter = l_iter->next) != l_first);
 				}
 				else {
-					ok = FALSE;
+					ok = false;
 				}
 
 				if (ok) {
@@ -283,7 +283,7 @@ void BM_mesh_select_flush(BMesh *bm)
  * Changes selection state of a single vertex
  * in a mesh
  */
-void BM_vert_select_set(BMesh *bm, BMVert *v, int select)
+void BM_vert_select_set(BMesh *bm, BMVert *v, const bool select)
 {
 	BLI_assert(v->head.htype == BM_VERT);
 
@@ -310,7 +310,7 @@ void BM_vert_select_set(BMesh *bm, BMVert *v, int select)
  *
  * Changes selection state of a single edge in a mesh.
  */
-void BM_edge_select_set(BMesh *bm, BMEdge *e, int select)
+void BM_edge_select_set(BMesh *bm, BMEdge *e, const bool select)
 {
 	BLI_assert(e->head.htype == BM_EDGE);
 
@@ -322,8 +322,8 @@ void BM_edge_select_set(BMesh *bm, BMEdge *e, int select)
 		if (!BM_elem_flag_test(e, BM_ELEM_SELECT)) bm->totedgesel += 1;
 
 		BM_elem_flag_enable(e, BM_ELEM_SELECT);
-		BM_vert_select_set(bm, e->v1, TRUE);
-		BM_vert_select_set(bm, e->v2, TRUE);
+		BM_vert_select_set(bm, e->v1, true);
+		BM_vert_select_set(bm, e->v2, true);
 	}
 	else {
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) bm->totedgesel -= 1;
@@ -354,13 +354,13 @@ void BM_edge_select_set(BMesh *bm, BMEdge *e, int select)
 				}
 
 				if (deselect) {
-					BM_vert_select_set(bm, verts[i], FALSE);
+					BM_vert_select_set(bm, verts[i], false);
 				}
 			}
 		}
 		else {
-			BM_vert_select_set(bm, e->v1, FALSE);
-			BM_vert_select_set(bm, e->v2, FALSE);
+			BM_vert_select_set(bm, e->v1, false);
+			BM_vert_select_set(bm, e->v2, false);
 		}
 
 	}
@@ -372,7 +372,7 @@ void BM_edge_select_set(BMesh *bm, BMEdge *e, int select)
  * Changes selection state of a single
  * face in a mesh.
  */
-void BM_face_select_set(BMesh *bm, BMFace *f, int select)
+void BM_face_select_set(BMesh *bm, BMFace *f, const bool select)
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
@@ -391,8 +391,8 @@ void BM_face_select_set(BMesh *bm, BMFace *f, int select)
 		BM_elem_flag_enable(f, BM_ELEM_SELECT);
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
-			BM_vert_select_set(bm, l_iter->v, TRUE);
-			BM_edge_select_set(bm, l_iter->e, TRUE);
+			BM_vert_select_set(bm, l_iter->v, true);
+			BM_edge_select_set(bm, l_iter->e, true);
 		} while ((l_iter = l_iter->next) != l_first);
 	}
 	else {
@@ -412,7 +412,7 @@ void BM_face_select_set(BMesh *bm, BMFace *f, int select)
 			}
 
 			if (!f2) {
-				BM_edge_select_set(bm, l->e, FALSE);
+				BM_edge_select_set(bm, l->e, false);
 			}
 		}
 
@@ -426,7 +426,7 @@ void BM_face_select_set(BMesh *bm, BMFace *f, int select)
 			}
 
 			if (!e) {
-				BM_vert_select_set(bm, l->v, FALSE);
+				BM_vert_select_set(bm, l->v, false);
 			}
 		}
 	}
@@ -467,7 +467,7 @@ void BM_mesh_select_mode_set(BMesh *bm, int selectmode)
 
 		BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
 			if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
-				BM_edge_select_set(bm, (BMEdge *)ele, TRUE);
+				BM_edge_select_set(bm, (BMEdge *)ele, true);
 			}
 		}
 		BM_mesh_select_mode_flush(bm);
@@ -481,7 +481,7 @@ void BM_mesh_select_mode_set(BMesh *bm, int selectmode)
 #endif
 		BM_ITER_MESH (ele, &iter, bm, BM_FACES_OF_MESH) {
 			if (BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
-				BM_face_select_set(bm, (BMFace *)ele, TRUE);
+				BM_face_select_set(bm, (BMFace *)ele, true);
 			}
 		}
 		BM_mesh_select_mode_flush(bm);
@@ -492,13 +492,11 @@ void BM_mesh_select_mode_set(BMesh *bm, int selectmode)
  * counts number of elements with flag enabled/disabled
  */
 static int bm_mesh_flag_count(BMesh *bm, const char htype, const char hflag,
-                              const short respecthide, const short test_for_enabled)
+                              const short respecthide, const bool test_for_enabled)
 {
 	BMElem *ele;
 	BMIter iter;
 	int tot = 0;
-
-	BLI_assert(ELEM(test_for_enabled, TRUE, FALSE));
 
 	if (htype & BM_VERT) {
 		for (ele = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); ele; ele = BM_iter_step(&iter)) {
@@ -522,21 +520,21 @@ static int bm_mesh_flag_count(BMesh *bm, const char htype, const char hflag,
 	return tot;
 }
 
-int BM_mesh_elem_hflag_count_enabled(BMesh *bm, const char htype, const char hflag, int respecthide)
+int BM_mesh_elem_hflag_count_enabled(BMesh *bm, const char htype, const char hflag, const bool respecthide)
 {
-	return bm_mesh_flag_count(bm, htype, hflag, respecthide, TRUE);
+	return bm_mesh_flag_count(bm, htype, hflag, respecthide, true);
 }
 
-int BM_mesh_elem_hflag_count_disabled(BMesh *bm, const char htype, const char hflag, int respecthide)
+int BM_mesh_elem_hflag_count_disabled(BMesh *bm, const char htype, const char hflag, const bool respecthide)
 {
-	return bm_mesh_flag_count(bm, htype, hflag, respecthide, FALSE);
+	return bm_mesh_flag_count(bm, htype, hflag, respecthide, false);
 }
 
 /**
  * \note use BM_elem_flag_test(ele, BM_ELEM_SELECT) to test selection
  * \note by design, this will not touch the editselection history stuff
  */
-void BM_elem_select_set(BMesh *bm, BMElem *ele, int select)
+void BM_elem_select_set(BMesh *bm, BMElem *ele, const bool select)
 {
 	switch (ele->head.htype) {
 		case BM_VERT:
@@ -560,12 +558,12 @@ void BM_active_face_set(BMesh *bm, BMFace *efa)
 	bm->act_face = efa;
 }
 
-BMFace *BM_active_face_get(BMesh *bm, int sloppy, int selected)
+BMFace *BM_active_face_get(BMesh *bm, const bool is_sloppy, const bool is_selected)
 {
-	if (bm->act_face && (!selected || BM_elem_flag_test(bm->act_face, BM_ELEM_SELECT))) {
+	if (bm->act_face && (!is_selected || BM_elem_flag_test(bm->act_face, BM_ELEM_SELECT))) {
 		return bm->act_face;
 	}
-	else if (sloppy) {
+	else if (is_sloppy) {
 		BMIter iter;
 		BMFace *f = NULL;
 		BMEditSelection *ese;
@@ -579,7 +577,7 @@ BMFace *BM_active_face_get(BMesh *bm, int sloppy, int selected)
 				if (BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
 					f = NULL;
 				}
-				else if (selected && !BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+				else if (is_selected && !BM_elem_flag_test(f, BM_ELEM_SELECT)) {
 					f = NULL;
 				}
 				else {
@@ -712,12 +710,13 @@ void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
 			cross_v3_v3v3(r_plane, efa->no, vec);
 		}
 		else {
-			BMVert *verts[4] = {NULL};
-
-			BM_iter_as_array(NULL, BM_VERTS_OF_FACE, efa, (void **)verts, 4);
-
 			if (efa->len == 4) {
+				BMVert *verts[4] = {NULL};
 				float vecA[3], vecB[3];
+
+				// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, efa, (void **)verts, 4);
+				BM_face_as_array_vert_quad(efa, verts);
+
 				sub_v3_v3v3(vecA, verts[3]->co, verts[2]->co);
 				sub_v3_v3v3(vecB, verts[0]->co, verts[1]->co);
 				add_v3_v3v3(r_plane, vecA, vecB);
@@ -743,20 +742,20 @@ void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
 
 
 /* --- macro wrapped funcs --- */
-int _bm_select_history_check(BMesh *bm, const BMHeader *ele)
+bool _bm_select_history_check(BMesh *bm, const BMHeader *ele)
 {
 	return (BLI_findptr(&bm->selected, ele, offsetof(BMEditSelection, ele)) != NULL);
 }
 
-int _bm_select_history_remove(BMesh *bm, BMHeader *ele)
+bool _bm_select_history_remove(BMesh *bm, BMHeader *ele)
 {
 	BMEditSelection *ese = BLI_findptr(&bm->selected, ele, offsetof(BMEditSelection, ele));
 	if (ese) {
 		BLI_freelinkN(&bm->selected, ese);
-		return TRUE;
+		return true;
 	}
 	else {
-		return FALSE;
+		return false;
 	}
 }
 
@@ -800,10 +799,10 @@ void BM_select_history_validate(BMesh *bm)
 }
 
 /* utility function */
-int BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
+bool BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
 {
 	BMEditSelection *ese_last = bm->selected.last;
-	BMFace *efa = BM_active_face_get(bm, FALSE, FALSE);
+	BMFace *efa = BM_active_face_get(bm, false, false);
 
 	ese->next = ese->prev = NULL;
 
@@ -828,14 +827,14 @@ int BM_select_history_active_get(BMesh *bm, BMEditSelection *ese)
 	}
 	else {
 		ese->ele = NULL;
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 void BM_mesh_elem_hflag_disable_test(BMesh *bm, const char htype, const char hflag,
-                                     int respecthide, const char hflag_test)
+                                     const bool respecthide, const char hflag_test)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
@@ -851,7 +850,7 @@ void BM_mesh_elem_hflag_disable_test(BMesh *bm, const char htype, const char hfl
 
 	if ((htype == (BM_VERT | BM_EDGE | BM_FACE)) &&
 	    (hflag == BM_ELEM_SELECT) &&
-	    (respecthide == FALSE) &&
+	    (respecthide == false) &&
 	    (hflag_test == 0))
 	{
 		/* fast path for deselect all, avoid topology loops
@@ -887,7 +886,7 @@ void BM_mesh_elem_hflag_disable_test(BMesh *bm, const char htype, const char hfl
 					}
 
 					if (hflag & BM_ELEM_SELECT) {
-						BM_elem_select_set(bm, ele, FALSE);
+						BM_elem_select_set(bm, ele, false);
 					}
 					BM_elem_flag_disable(ele, hflag);
 				}
@@ -897,7 +896,7 @@ void BM_mesh_elem_hflag_disable_test(BMesh *bm, const char htype, const char hfl
 }
 
 void BM_mesh_elem_hflag_enable_test(BMesh *bm, const char htype, const char hflag,
-                                    int respecthide, const char hflag_test)
+                                    const bool respecthide, const char hflag_test)
 {
 	const char iter_types[3] = {BM_VERTS_OF_MESH,
 	                            BM_EDGES_OF_MESH,
@@ -935,7 +934,7 @@ void BM_mesh_elem_hflag_enable_test(BMesh *bm, const char htype, const char hfla
 				}
 
 				if (hflag & BM_ELEM_SELECT) {
-					BM_elem_select_set(bm, ele, TRUE);
+					BM_elem_select_set(bm, ele, true);
 				}
 				BM_elem_flag_enable(ele, hflag_nosel);
 			}
@@ -944,14 +943,14 @@ void BM_mesh_elem_hflag_enable_test(BMesh *bm, const char htype, const char hfla
 }
 
 void BM_mesh_elem_hflag_disable_all(BMesh *bm, const char htype, const char hflag,
-                                    int respecthide)
+                                    const bool respecthide)
 {
 	/* call with 0 hflag_test */
 	BM_mesh_elem_hflag_disable_test(bm, htype, hflag, respecthide, 0);
 }
 
 void BM_mesh_elem_hflag_enable_all(BMesh *bm, const char htype, const char hflag,
-                                   int respecthide)
+                                   const bool respecthide)
 {
 	/* call with 0 hflag_test */
 	BM_mesh_elem_hflag_enable_test(bm, htype, hflag, respecthide, 0);
@@ -963,7 +962,7 @@ static void vert_flush_hide_set(BMVert *v)
 {
 	BMIter iter;
 	BMEdge *e;
-	int hide = TRUE;
+	bool hide = true;
 
 	BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
 		hide = hide && BM_elem_flag_test(e, BM_ELEM_HIDDEN);
@@ -976,7 +975,7 @@ static void edge_flush_hide(BMEdge *e)
 {
 	BMIter iter;
 	BMFace *f;
-	int hide = TRUE;
+	bool hide = true;
 
 	BM_ITER_ELEM (f, &iter, e, BM_FACES_OF_EDGE) {
 		hide = hide && BM_elem_flag_test(f, BM_ELEM_HIDDEN);
@@ -985,12 +984,14 @@ static void edge_flush_hide(BMEdge *e)
 	BM_elem_flag_set(e, BM_ELEM_HIDDEN, hide);
 }
 
-void BM_vert_hide_set(BMVert *v, int hide)
+void BM_vert_hide_set(BMVert *v, const bool hide)
 {
 	/* vert hiding: vert + surrounding edges and faces */
 	BMIter iter, fiter;
 	BMEdge *e;
 	BMFace *f;
+
+	BLI_assert(v->head.htype == BM_VERT);
 
 	BM_elem_flag_set(v, BM_ELEM_HIDDEN, hide);
 
@@ -1003,11 +1004,13 @@ void BM_vert_hide_set(BMVert *v, int hide)
 	}
 }
 
-void BM_edge_hide_set(BMEdge *e, int hide)
+void BM_edge_hide_set(BMEdge *e, const bool hide)
 {
 	BMIter iter;
 	BMFace *f;
 	/* BMVert *v; */
+
+	BLI_assert(e->head.htype == BM_EDGE);
 
 	/* edge hiding: faces around the edge */
 	BM_ITER_ELEM (f, &iter, e, BM_FACES_OF_EDGE) {
@@ -1021,10 +1024,12 @@ void BM_edge_hide_set(BMEdge *e, int hide)
 	vert_flush_hide_set(e->v2);
 }
 
-void BM_face_hide_set(BMFace *f, int hide)
+void BM_face_hide_set(BMFace *f, const bool hide)
 {
 	BMIter iter;
 	BMLoop *l;
+
+	BLI_assert(f->head.htype == BM_FACE);
 
 	BM_elem_flag_set(f, BM_ELEM_HIDDEN, hide);
 
@@ -1037,21 +1042,21 @@ void BM_face_hide_set(BMFace *f, int hide)
 	}
 }
 
-void _bm_elem_hide_set(BMesh *bm, BMHeader *head, int hide)
+void _bm_elem_hide_set(BMesh *bm, BMHeader *head, const bool hide)
 {
 	/* Follow convention of always deselecting before
 	 * hiding an element */
 	switch (head->htype) {
 		case BM_VERT:
-			if (hide) BM_vert_select_set(bm, (BMVert *)head, FALSE);
+			if (hide) BM_vert_select_set(bm, (BMVert *)head, false);
 			BM_vert_hide_set((BMVert *)head, hide);
 			break;
 		case BM_EDGE:
-			if (hide) BM_edge_select_set(bm, (BMEdge *)head, FALSE);
+			if (hide) BM_edge_select_set(bm, (BMEdge *)head, false);
 			BM_edge_hide_set((BMEdge *)head, hide);
 			break;
 		case BM_FACE:
-			if (hide) BM_face_select_set(bm, (BMFace *)head, FALSE);
+			if (hide) BM_face_select_set(bm, (BMFace *)head, false);
 			BM_face_hide_set((BMFace *)head, hide);
 			break;
 		default:

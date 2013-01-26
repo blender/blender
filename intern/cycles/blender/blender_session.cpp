@@ -109,6 +109,11 @@ void BlenderSession::create_session()
 	session->reset(buffer_params, session_params.samples);
 
 	b_engine.use_highlight_tiles(session_params.progressive_refine == false);
+
+	/* setup callbacks for builtin image support */
+	scene->image_manager->builtin_image_info_cb = function_bind(&BlenderSession::builtin_image_info, this, _1, _2, _3, _4, _5);
+	scene->image_manager->builtin_image_pixels_cb = function_bind(&BlenderSession::builtin_image_pixels, this, _1, _2);
+	scene->image_manager->builtin_image_float_pixels_cb = function_bind(&BlenderSession::builtin_image_float_pixels, this, _1, _2);
 }
 
 void BlenderSession::reset_session(BL::BlendData b_data_, BL::Scene b_scene_)
@@ -605,6 +610,125 @@ void BlenderSession::test_cancel()
 	if(background)
 		if(b_engine.test_break())
 			session->progress.set_cancel("Cancelled");
+}
+
+/* builtin image file name is actually an image datablock name with
+ * absolute sequence frame number concatenated via '@' character
+ *
+ * this function splits image id name and frame number from a
+ * builtin image name
+ */
+void BlenderSession::builtin_name_split(const string &builtin_name, string &name, int &frame)
+{
+	int last = builtin_name.find_last_of('@');
+	name = builtin_name.substr(0, last);
+	frame = atoi(builtin_name.substr(last + 1, builtin_name.size() - last - 1).c_str());
+}
+
+void BlenderSession::builtin_image_info(const string &builtin_name, bool &is_float, int &width, int &height, int &channels)
+{
+	string name;
+	int frame;
+	builtin_name_split(builtin_name, name, frame);
+
+	BL::Image b_image = b_data.images[name];
+
+	if(b_image) {
+		is_float = b_image.is_float();
+		width = b_image.size()[0];
+		height = b_image.size()[1];
+		channels = b_image.channels();
+	}
+	else {
+		is_float = false;
+		width = 0;
+		height = 0;
+		channels = 0;
+	}
+}
+
+bool BlenderSession::builtin_image_pixels(const string &builtin_name, unsigned char *pixels)
+{
+	string name;
+	int frame;
+	builtin_name_split(builtin_name, name, frame);
+
+	BL::Image b_image = b_data.images[name];
+
+	if(b_image) {
+		int width = b_image.size()[0];
+		int height = b_image.size()[1];
+		int channels = b_image.channels();
+
+		unsigned char *image_pixels;
+		image_pixels = image_get_pixels_for_frame(b_image, frame);
+
+		if(image_pixels) {
+			memcpy(pixels, image_pixels, width * height * channels * sizeof(unsigned char));
+			MEM_freeN(image_pixels);
+		}
+		else {
+			if(channels == 1) {
+				memset(pixels, 0, width * height * sizeof(unsigned char));
+			}
+			else {
+				unsigned char *cp = pixels;
+				for(int i = 0; i < width * height; i++, cp += channels) {
+					cp[0] = 255;
+					cp[1] = 0;
+					cp[2] = 255;
+					if(channels == 4)
+						cp[3] = 255;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+bool BlenderSession::builtin_image_float_pixels(const string &builtin_name, float *pixels)
+{
+	string name;
+	int frame;
+	builtin_name_split(builtin_name, name, frame);
+
+	BL::Image b_image = b_data.images[name];
+
+	if(b_image) {
+		int width = b_image.size()[0];
+		int height = b_image.size()[1];
+		int channels = b_image.channels();
+
+		float *image_pixels;
+		image_pixels = image_get_float_pixels_for_frame(b_image, frame);
+
+		if(image_pixels) {
+			memcpy(pixels, image_pixels, width * height * channels * sizeof(float));
+			MEM_freeN(image_pixels);
+		}
+		else {
+			if(channels == 1) {
+				memset(pixels, 0, width * height * sizeof(float));
+			}
+			else {
+				float *fp = pixels;
+				for(int i = 0; i < width * height; i++, fp += channels) {
+					fp[0] = 1.0f;
+					fp[1] = 0.0f;
+					fp[2] = 1.0f;
+					if(channels == 4)
+						fp[3] = 1.0f;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
 CCL_NAMESPACE_END

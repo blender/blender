@@ -1746,7 +1746,7 @@ static void calc_bevel_sin_cos(float x1, float y1, float x2, float y2, float *si
 	else
 		t02 = (saacos(t02)) / 2.0f;
 
-	t02 = (float)sin(t02);
+	t02 = sinf(t02);
 	if (t02 == 0.0f)
 		t02 = 1.0f;
 
@@ -2220,6 +2220,7 @@ void BKE_curve_bevelList_make(Object *ob)
 	struct bevelsort *sortdata, *sd, *sd1;
 	int a, b, nr, poly, resolu = 0, len = 0;
 	int do_tilt, do_radius, do_weight;
+	int is_editmode = 0;
 
 	/* this function needs an object, because of tflag and upflag */
 	cu = ob->data;
@@ -2233,12 +2234,17 @@ void BKE_curve_bevelList_make(Object *ob)
 	if (cu->editnurb && ob->type != OB_FONT) {
 		ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 		nu = nurbs->first;
+		is_editmode = 1;
 	}
 	else {
 		nu = cu->nurb.first;
 	}
 
-	while (nu) {
+	for (; nu; nu = nu->next) {
+		
+		if (nu->hide && is_editmode)
+			continue;
+		
 		/* check if we will calculate tilt data */
 		do_tilt = CU_DO_TILT(cu, nu);
 		do_radius = CU_DO_RADIUS(cu, nu); /* normal display uses the radius, better just to calculate them */
@@ -2384,7 +2390,6 @@ void BKE_curve_bevelList_make(Object *ob)
 				}
 			}
 		}
-		nu = nu->next;
 	}
 
 	/* STEP 2: DOUBLE POINTS AND AUTOMATIC RESOLUTION, REDUCE DATABLOCKS */

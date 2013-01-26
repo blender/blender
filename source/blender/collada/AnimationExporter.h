@@ -34,6 +34,7 @@ extern "C"
 #include "DNA_camera_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_material_types.h"
+#include "DNA_constraint_types.h"
 
 #include "BLI_math.h"
 #include "BLI_string.h"
@@ -47,6 +48,10 @@ extern "C"
 #include "BKE_action.h" // pose functions
 #include "BKE_armature.h"
 #include "BKE_object.h"
+#include "BKE_constraint.h"
+#include "BIK_api.h"
+#include "BKE_global.h"
+#include "ED_object.h"
 
 #ifdef NAN_BUILDINFO
 extern char build_rev[];
@@ -73,8 +78,12 @@ extern char build_rev[];
 
 #include "collada_internal.h"
 
+#include "IK_solver.h"
+
 #include <vector>
 #include <algorithm> // std::find
+
+
 
 class AnimationExporter: COLLADASW::LibraryAnimations
 {
@@ -98,6 +107,10 @@ protected:
 	const ExportSettings *export_settings;
 
 	void dae_animation(Object *ob, FCurve *fcu, char *transformName, bool is_param, Material *ma = NULL);
+    
+	void export_object_constraint_animation(Object *ob);
+
+	void export_morph_animation(Object *ob);
 
 	void write_bone_animation_matrix(Object *ob_arm, Bone *bone);
 
@@ -119,6 +132,8 @@ protected:
 	
 	void dae_baked_animation(std::vector<float> &fra, Object *ob_arm, Bone *bone);
 
+	void dae_baked_object_animation(std::vector<float> &fra, Object *ob);
+
 	float convert_time(float frame);
 
 	float convert_angle(float angle);
@@ -130,7 +145,7 @@ protected:
 	
 	void get_source_values(BezTriple *bezt, COLLADASW::InputSemantic::Semantics semantic, bool rotation, float *values, int *length);
 	
-	float * get_eul_source_for_quat(Object *ob );
+	float* get_eul_source_for_quat(Object *ob );
 
 	std::string create_source_from_fcurve(COLLADASW::InputSemantic::Semantics semantic, FCurve *fcu, const std::string& anim_id, const char *axis_name);
 
@@ -143,16 +158,20 @@ protected:
 	std::string create_xyz_source(float *v, int tot, const std::string& anim_id);
 
 	std::string create_4x4_source(std::vector<float> &frames, Object * ob_arm, Bone *bone, const std::string& anim_id);
-
+    
 	std::string create_interpolation_source(FCurve *fcu, const std::string& anim_id, const char *axis_name, bool *has_tangents);
 
 	std::string fake_interpolation_source(int tot, const std::string& anim_id, const char *axis_name);
+	
 	// for rotation, axis name is always appended and the value of append_axis is ignored
 	std::string get_transform_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis);
 	std::string get_light_param_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis);
 	std::string get_camera_param_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis);
+	
 	void find_frames(Object *ob, std::vector<float> &fra, const char *prefix, const char *tm_name);
 	void find_frames(Object *ob, std::vector<float> &fra);
+
+	void make_anim_frames_from_targets(Object *ob, std::vector<float> &frames );
 
 	void find_rotation_frames(Object *ob, std::vector<float> &fra, const char *prefix, int rotmode);
 	
@@ -165,4 +184,11 @@ protected:
 	char *extract_transform_name(char *rna_path);
 
 	std::string getObjectBoneName(Object *ob, const FCurve * fcu);
+
+	void getBakedPoseData(Object *obarm, int startFrame, int endFrame, bool ActionBake, bool ActionBakeFirstFrame);
+
+	bool validateConstraints(bConstraint *con);
+
+	void calc_ob_mat_at_time(Object *ob, float ctime , float mat[][4]);
+
 };

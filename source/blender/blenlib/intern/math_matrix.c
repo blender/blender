@@ -980,14 +980,8 @@ void normalize_m4(float mat[4][4])
 
 void normalize_m4_m4(float rmat[4][4], float mat[4][4])
 {
-	float len;
-
-	len = normalize_v3_v3(rmat[0], mat[0]);
-	if (len != 0.0f) rmat[0][3] = mat[0][3] / len;
-	len = normalize_v3_v3(rmat[1], mat[1]);
-	if (len != 0.0f) rmat[1][3] = mat[1][3] / len;
-	len = normalize_v3_v3(rmat[2], mat[2]);
-	if (len != 0.0f) rmat[2][3] = mat[2][3] / len;
+	copy_m4_m4(rmat, mat);
+	normalize_m4(rmat);
 }
 
 void adjoint_m2_m2(float m1[2][2], float m[2][2])
@@ -1212,6 +1206,33 @@ void mat4_to_loc_rot_size(float loc[3], float rot[3][3], float size[3], float wm
 	copy_v3_v3(loc, wmat[3]);
 }
 
+void mat4_to_loc_quat(float loc[3], float quat[4], float wmat[4][4])
+{
+	float mat3[3][3];
+	float mat3_n[3][3]; /* normalized mat3 */
+
+	copy_m3_m4(mat3, wmat);
+	normalize_m3_m3(mat3_n, mat3);
+
+	/* so scale doesn't interfere with rotation [#24291] */
+	/* note: this is a workaround for negative matrix not working for rotation conversion, FIXME */
+	if (is_negative_m3(mat3)) {
+		negate_v3(mat3_n[0]);
+		negate_v3(mat3_n[1]);
+		negate_v3(mat3_n[2]);
+	}
+
+	mat3_to_quat(quat, mat3_n);
+	copy_v3_v3(loc, wmat[3]);
+}
+
+void mat4_decompose(float loc[3], float quat[4], float size[3], float wmat[4][4])
+{
+	float rot[3][3];
+	mat4_to_loc_rot_size(loc, rot, size, wmat);
+	mat3_to_quat(quat, rot);
+}
+
 void scale_m3_fl(float m[3][3], float scale)
 {
 	m[0][0] = m[1][1] = m[2][2] = scale;
@@ -1245,8 +1266,8 @@ void rotate_m4(float mat[4][4], const char axis, const float angle)
 
 	assert(axis >= 'X' && axis <= 'Z');
 
-	cosine = (float)cos(angle);
-	sine = (float)sin(angle);
+	cosine = cosf(angle);
+	sine   = sinf(angle);
 	switch (axis) {
 		case 'X':
 			for (col = 0; col < 4; col++)

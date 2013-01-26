@@ -125,8 +125,8 @@ static float event_tablet_data(wmEvent *event, int *pen_flip)
 	int erasor = 0;
 	float pressure = 1;
 
-	if (event->custom == EVT_DATA_TABLET) {
-		wmTabletData *wmtab = event->customdata;
+	if (event->tablet_data) {
+		wmTabletData *wmtab = event->tablet_data;
 
 		erasor = (wmtab->Active == EVT_TABLET_ERASER);
 		pressure = (wmtab->Active != EVT_TABLET_NONE) ? wmtab->Pressure : 1;
@@ -324,10 +324,15 @@ static void stroke_done(struct bContext *C, struct wmOperator *op)
 }
 
 /* Returns zero if the stroke dots should not be spaced, non-zero otherwise */
-int paint_space_stroke_enabled(Brush *br)
+bool paint_space_stroke_enabled(Brush *br)
 {
-	return (br->flag & BRUSH_SPACE) &&
-	       !(br->flag & BRUSH_ANCHORED) &&
+	return (br->flag & BRUSH_SPACE) && paint_supports_dynamic_size(br);
+}
+
+/* return true if the brush size can change during paint (normally used for pressure) */
+bool paint_supports_dynamic_size(Brush *br)
+{
+	return !(br->flag & BRUSH_ANCHORED) &&
 	       !ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK);
 }
 

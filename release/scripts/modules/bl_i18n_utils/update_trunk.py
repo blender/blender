@@ -25,8 +25,7 @@
 # * Copy po’s from branches advanced enough.
 # * Clean po’s in trunk.
 # * Compile po’s in trunk in mo’s, keeping track of those failing.
-# * Remove po’s, mo’s (and their dir’s) that failed to compile or
-#   are no more present in trunk.
+# * Remove po’s, mo’s (and their dir’s) that failed to compile or are no more present in trunk.
 
 import subprocess
 import os
@@ -49,25 +48,6 @@ LANGUAGES_FILE = settings.LANGUAGES_FILE
 
 PY3 = settings.PYTHON3_EXEC
 
-
-def find_matching_po(languages, stats):
-    """Match languages defined in LANGUAGES setting to relevant po, if possible!"""
-    ret = []
-    for uid, label, org_key in languages:
-        key = org_key
-        if key not in stats:
-            # Try to simplify the key (eg from es_ES to es).
-            if '_' in org_key:
-                key = org_key[0:org_key.index('_')]
-            if '@' in org_key:
-                key = key + org_key[org_key.index('@'):]
-        if key in stats:
-            ret.append((stats[key], uid, label, org_key))
-        else:
-            # Mark invalid entries, so that we can put them in the languages file,
-            # but commented!
-            ret.append((0.0, -uid, label, org_key))
-    return ret
 
 def main():
     import argparse
@@ -99,7 +79,8 @@ def main():
             os.remove(po)
 
     # Copy po’s from branches.
-    cmd = [PY3, "./import_po_from_branches.py", "-s"]
+    #cmd = [PY3, "./import_po_from_branches.py", "-s"]
+    cmd = [PY3, "./import_po_from_branches.py"]
     if args.threshold is not None:
         cmd += ["-t", str(args.threshold)]
     if args.langs:
@@ -124,7 +105,8 @@ def main():
             if args.langs and lang not in args.langs:
                 continue
 
-            cmd = [PY3, "./clean_po.py", "-t", "-s", lang]
+            #cmd = [PY3, "./clean_po.py", "-t", "-s", lang]
+            cmd = [PY3, "./clean_po.py", "-t", lang]
             t = subprocess.call(cmd)
             if t:
                 ret = t

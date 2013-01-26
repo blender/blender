@@ -1416,11 +1416,11 @@ static int ui_textedit_delete_selection(uiBut *but, uiHandleButtonData *data)
 }
 
 /* note, but->block->aspect is used here, when drawing button style is getting scaled too */
-static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, short x)
+static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, const float x)
 {
 	uiStyle *style = UI_GetStyle();  // XXX pass on as arg
 	uiFontStyle *fstyle = &style->widget;
-	int startx = but->rect.xmin;
+	float startx = but->rect.xmin;
 	char *origstr, password_str[UI_MAX_DRAW_STR];
 
 	uiStyleFontSet(fstyle);
@@ -1430,24 +1430,27 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	
 	ui_button_text_password_hide(password_str, but, FALSE);
 
-	origstr = MEM_callocN(sizeof(char) * data->maxlen, "ui_textedit origstr");
+	origstr = MEM_mallocN(sizeof(char) * data->maxlen, "ui_textedit origstr");
 	
 	BLI_strncpy(origstr, but->drawstr, data->maxlen);
 	
-	/* XXX solve generic */
-	if (but->type == NUM || but->type == NUMSLI)
+	/* XXX solve generic, see: #widget_draw_text_icon */
+	if (but->type == NUM || but->type == NUMSLI) {
 		startx += (int)(0.5f * (BLI_rctf_size_y(&but->rect)));
+	}
 	else if (ELEM3(but->type, TEX, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
-		startx += 5;
-		if (but->flag & UI_HAS_ICON)
+		if (but->flag & UI_HAS_ICON) {
 			startx += UI_DPI_ICON_SIZE;
+		}
+		/* but this extra .05 makes clicks inbetween characters feel nicer */
+		startx += ((UI_TEXT_MARGIN_X + 0.05f) * U.widget_unit);
 	}
 	
 	/* mouse dragged outside the widget to the left */
-	if (x < startx && but->ofs > 0) {
+	if (x < startx) {
 		int i = but->ofs;
 
-		origstr[but->ofs] = 0;
+		origstr[but->ofs] = '\0';
 		
 		while (i > 0) {
 			if (BLI_str_cursor_step_prev_utf8(origstr, but->ofs, &i)) {
@@ -1463,21 +1466,18 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 		but->ofs = i;
 		but->pos = but->ofs;
 	}
-	/* mouse inside the widget */
-	else if (x >= startx) {
+	/* mouse inside the widget, mouse coords mapped in widget space */
+	else {  /* (x >= startx) */
 		int pos_i;
 
 		/* keep track of previous distance from the cursor to the char */
 		float cdist, cdist_prev = 0.0f;
 		short pos_prev;
-
-		const float aspect_sqrt = sqrtf(but->block->aspect);
 		
 		but->pos = pos_prev = strlen(origstr) - but->ofs;
 
-		while (TRUE) {
-			/* XXX does not take zoom level into account */
-			cdist = startx + aspect_sqrt * BLF_width(fstyle->uifont_id, origstr + but->ofs);
+		while (true) {
+			cdist = startx + BLF_width(fstyle->uifont_id, origstr + but->ofs);
 
 			/* check if position is found */
 			if (cdist < x) {
@@ -1513,7 +1513,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	MEM_freeN(origstr);
 }
 
-static void ui_textedit_set_cursor_select(uiBut *but, uiHandleButtonData *data, short x)
+static void ui_textedit_set_cursor_select(uiBut *but, uiHandleButtonData *data, const float x)
 {
 	if      (x > data->selstartx) data->selextend = EXTEND_RIGHT;
 	else if (x < data->selstartx) data->selextend = EXTEND_LEFT;
@@ -2593,6 +2593,7 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 {
 	float deler, tempf, softmin, softmax, softrange;
 	int lvalue, temp, changed = 0;
+	const bool is_float = ui_is_but_float(but);
 	
 	if (mx == data->draglastx)
 		return changed;
@@ -2614,7 +2615,7 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 	if (ui_is_a_warp_but(but)) {
 		/* Mouse location isn't screen clamped to the screen so use a linear mapping
 		 * 2px == 1-int, or 1px == 1-ClickStep */
-		if (ui_is_but_float(but)) {
+		if (is_float) {
 			fac *= 0.01f * but->a1;
 			tempf = (float)data->startvalue + ((float)(mx - data->dragstartx) * fac);
 			tempf = ui_numedit_apply_snapf(but, tempf, softmin, softmax, softrange, snap);
@@ -2671,21 +2672,21 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 	else {
 		/* Use a non-linear mapping of the mouse drag especially for large floats (normal behavior) */
 		deler = 500;
-		if (!ui_is_but_float(but)) {
+		if (!is_float) {
 			/* prevent large ranges from getting too out of control */
-			if      (softrange > 600) deler = powf(softrange, 0.75);
-			else if (softrange < 100) deler = 200.0;
+			if      (softrange > 600) deler = powf(softrange, 0.75f);
 			else if (softrange <  25) deler = 50.0;
+			else if (softrange < 100) deler = 100.0;
 		}
 		deler /= fac;
 
-		if (softrange > 11) {
+		if ((is_float == true) && (softrange > 11)) {
 			/* non linear change in mouse input- good for high precicsion */
-			data->dragf += (((float)(mx - data->draglastx)) / deler) * (fabsf(data->dragstartx - mx) * 0.002f);
+			data->dragf += (((float)(mx - data->draglastx)) / deler) * (fabsf(mx - data->dragstartx) / 500.0f);
 		}
-		else if (softrange > 129) { /* only scale large int buttons */
+		else if ((is_float == false) && (softrange > 129)) { /* only scale large int buttons */
 			/* non linear change in mouse input- good for high precicsionm ints need less fine tuning */
-			data->dragf += (((float)(mx - data->draglastx)) / deler) * (fabsf(data->dragstartx - mx) * 0.004f);
+			data->dragf += (((float)(mx - data->draglastx)) / deler) * (fabsf(mx - data->dragstartx) / 250.0f);
 		}
 		else {
 			/*no scaling */
@@ -2697,7 +2698,7 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 		tempf = (softmin + data->dragf * softrange);
 
 
-		if (!ui_is_but_float(but)) {
+		if (!is_float) {
 			temp = floorf(tempf + 0.5f);
 
 			temp = ui_numedit_apply_snap(temp, softmin, softmax, snap);
@@ -6559,6 +6560,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 							ui_pan_to_scroll(event, &type, &val);
 						
 						if (val == KM_PRESS) {
+							const eButType type_flip = BUT | ROW;
 
 							PASS_EVENT_TO_PARENT_IF_NONACTIVE;
 
@@ -6571,13 +6573,13 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 								{
 									/* the following is just a hack - uiBut->type set to BUT and BUTM have there menus built 
 									 * opposite ways - this should be changed so that all popup-menus use the same uiBlock->direction */
-									if (but->type & BUT)
+									if (but->type & type_flip)
 										but = ui_but_next(but);
 									else
 										but = ui_but_prev(but);
 								}
 								else {
-									if (but->type & BUT)
+									if (but->type & type_flip)
 										but = ui_but_prev(but);
 									else
 										but = ui_but_next(but);
@@ -6594,7 +6596,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 								    ((ELEM(type, UPARROWKEY, WHEELUPMOUSE)) && (block->direction & UI_RIGHT)) ||
 								    ((ELEM(type, DOWNARROWKEY, WHEELDOWNMOUSE)) && (block->direction & UI_TOP)))
 								{
-									if ((bt = ui_but_first(block)) && (bt->type & BUT)) {
+									if ((bt = ui_but_first(block)) && (bt->type & type_flip)) {
 										bt = ui_but_last(block);
 									}
 									else {
@@ -6602,7 +6604,7 @@ static int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle 
 									}
 								}
 								else {
-									if ((bt = ui_but_first(block)) && (bt->type & BUT)) {
+									if ((bt = ui_but_first(block)) && (bt->type & type_flip)) {
 										/* keep ui_but_first() */
 									}
 									else {

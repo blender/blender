@@ -43,6 +43,9 @@ set(SRC
 	physics_fluid.c
 	physics_ops.c
 	physics_pointcache.c
+	rigidbody_constraint.c
+	rigidbody_object.c
+	rigidbody_world.c
 
 	physics_intern.h
 )
@@ -57,6 +60,13 @@ endif()
 
 if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
+endif()
+
+if(WITH_BULLET)
+	list(APPEND INC
+		../../rigidbody
+	)
+	add_definitions(-DWITH_BULLET)
 endif()
 
 blender_add_lib(bf_editor_physics "${SRC}" "${INC}" "${INC_SYS}")

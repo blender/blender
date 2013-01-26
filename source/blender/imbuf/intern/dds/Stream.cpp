@@ -47,7 +47,7 @@ unsigned int mem_read(Stream & mem, unsigned long long & i)
 	if (mem.pos + 8 > mem.size) {
 		printf("DDS: trying to read beyond end of stream (corrupt file?)");
 		return(0);
-	};
+	}
 	memcpy(&i, mem.mem + mem.pos, 8); // @@ todo: make sure little endian
 	mem.pos += 8;
 	return(8);
@@ -58,7 +58,7 @@ unsigned int mem_read(Stream & mem, unsigned int & i)
 	if (mem.pos + 4 > mem.size) {
 		printf("DDS: trying to read beyond end of stream (corrupt file?)");
 		return(0);
-	};
+	}
 	memcpy(&i, mem.mem + mem.pos, 4); // @@ todo: make sure little endian
 	mem.pos += 4;
 	return(4);
@@ -69,7 +69,7 @@ unsigned int mem_read(Stream & mem, unsigned short & i)
 	if (mem.pos + 2 > mem.size) {
 		printf("DDS: trying to read beyond end of stream (corrupt file?)");
 		return(0);
-	};
+	}
 	memcpy(&i, mem.mem + mem.pos, 2); // @@ todo: make sure little endian
 	mem.pos += 2;
 	return(2);
@@ -80,7 +80,7 @@ unsigned int mem_read(Stream & mem, unsigned char & i)
 	if (mem.pos + 1 > mem.size) {
 		printf("DDS: trying to read beyond end of stream (corrupt file?)");
 		return(0);
-	};
+	}
 	i = (mem.mem + mem.pos)[0];
 	mem.pos += 1;
 	return(1);
@@ -91,7 +91,7 @@ unsigned int mem_read(Stream & mem, unsigned char *i, unsigned int cnt)
 	if (mem.pos + cnt > mem.size) {
 		printf("DDS: trying to read beyond end of stream (corrupt file?)");
 		return(0);
-	};
+	}
 	memcpy(i, mem.mem + mem.pos, cnt);
 	mem.pos += cnt;
 	return(cnt);

@@ -1777,7 +1777,7 @@ PyObject *KX_GameObject::PyReinstancePhysicsMesh(PyObject *args)
 		) {
 		return NULL;
 	}
-#ifdef USE_BULLET
+#ifdef WITH_BULLET
 	/* gameobj and mesh can be NULL */
 	if (KX_ReInstanceBulletShapeFromMesh(this, gameobj, mesh))
 		Py_RETURN_TRUE;

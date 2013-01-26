@@ -88,6 +88,7 @@
 #include "ED_types.h"
 
 #include "UI_resources.h"
+#include "UI_interface_icons.h"
 
 #include "WM_api.h"
 #include "BLF_api.h"
@@ -172,17 +173,26 @@ static void ob_wire_color_blend_theme_id(const unsigned char ob_wire_col[4], con
 }
 
 /* this condition has been made more complex since editmode can draw textures */
-static int check_object_draw_texture(Scene *scene, View3D *v3d, int drawtype)
+static bool check_object_draw_texture(Scene *scene, View3D *v3d, int drawtype)
 {
 	/* texture and material draw modes */
-	if (ELEM(v3d->drawtype, OB_TEXTURE, OB_MATERIAL) && drawtype > OB_SOLID)
-		return TRUE;
+	if (ELEM(v3d->drawtype, OB_TEXTURE, OB_MATERIAL) && drawtype > OB_SOLID) {
+		return true;
+	}
 
 	/* textured solid */
-	if (v3d->drawtype == OB_SOLID && (v3d->flag2 & V3D_SOLID_TEX) && !BKE_scene_use_new_shading_nodes(scene))
-		return TRUE;
+	if ((v3d->drawtype == OB_SOLID) &&
+	    (v3d->flag2 & V3D_SOLID_TEX) &&
+	    (BKE_scene_use_new_shading_nodes(scene) == false))
+	{
+		return true;
+	}
 	
-	return FALSE;
+	if (v3d->flag2 & V3D_SHOW_SOLID_MATCAP) {
+		return true;
+	}
+	
+	return false;
 }
 
 static int check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)
@@ -210,7 +220,7 @@ static int check_ob_drawface_dot(Scene *sce, View3D *vd, char dt)
 
 /* check for glsl drawing */
 
-int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, const short dt)
+int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, const char dt)
 {
 	if (!GPU_glsl_support())
 		return 0;
@@ -220,6 +230,10 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, const short dt)
 		return 0;
 	if (ob == OBACT && (ob && ob->mode & OB_MODE_WEIGHT_PAINT))
 		return 0;
+	
+	if (v3d->flag2 & V3D_SHOW_SOLID_MATCAP)
+		return 1;
+	
 	if (BKE_scene_use_new_shading_nodes(scene))
 		return 0;
 	
@@ -1081,7 +1095,7 @@ static void draw_transp_spot_volume(Lamp *la, float x, float z)
 }
 
 static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
-                     const short dt, const short dflag, const unsigned char ob_wire_col[4])
+                     const char dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	Object *ob = base->object;
 	const float pixsize = ED_view3d_pixel_size(rv3d, ob->obmat[3]);
@@ -2677,16 +2691,21 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 		BMFace *f;
 		int n;
 
-#define DRAW_EM_MEASURE_STATS_FACEAREA()                                      \
-	if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {                               \
-		mul_v3_fl(vmid, 1.0f / (float)n);                                     \
-		if (unit->system)                                                     \
-			bUnit_AsString(numstr, sizeof(numstr),                            \
-			               (double)(area * unit->scale_length),               \
-			               3, unit->system, B_UNIT_LENGTH, do_split, FALSE);  \
-		else                                                                  \
-			BLI_snprintf(numstr, sizeof(numstr), conv_float, area);           \
-		view3d_cached_text_draw_add(vmid, numstr, 0, txt_flag, col);          \
+#define DRAW_EM_MEASURE_STATS_FACEAREA()                                                 \
+	if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {                                          \
+		mul_v3_fl(vmid, 1.0f / (float)n);                                                \
+		if (unit->system) {                                                              \
+			bUnit_AsString(numstr, sizeof(numstr),                                       \
+			               (double)(area * unit->scale_length * unit->scale_length),     \
+			               3, unit->system, B_UNIT_AREA, do_split, FALSE);               \
+			view3d_cached_text_draw_add(vmid, numstr, 0,                                 \
+			                            /* Metric system uses unicode "squared" sign! */ \
+			                            txt_flag ^ V3D_CACHE_TEXT_ASCII, col);           \
+		}                                                                                \
+		else {                                                                           \
+			BLI_snprintf(numstr, sizeof(numstr), conv_float, area);                      \
+			view3d_cached_text_draw_add(vmid, numstr, 0, txt_flag, col);                 \
+		}                                                                                \
 	} (void)0
 
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
@@ -2858,7 +2877,7 @@ static DMDrawOption draw_em_fancy__setGLSLFaceOpts(void *userData, int index)
 }
 
 static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
-                          Object *ob, BMEditMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, const short dt)
+                          Object *ob, BMEditMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, const char dt)
 
 {
 	Mesh *me = ob->data;
@@ -3094,7 +3113,7 @@ static void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm)
 }
 
 static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
-                            const short dt, const unsigned char ob_wire_col[4], const short dflag)
+                            const char dt, const unsigned char ob_wire_col[4], const short dflag)
 {
 	Object *ob = base->object;
 	Mesh *me = ob->data;
@@ -3303,7 +3322,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			glDepthMask(0);  /* disable write in zbuffer, selected edge wires show better */
 		}
 		
-		dm->drawEdges(dm, (dt == OB_WIRE || totface == 0), me->drawflag & ME_ALLEDGES);
+		dm->drawEdges(dm, (dt == OB_WIRE || totface == 0), (ob->dtx & OB_DRAW_ALL_EDGES));
 
 		if (dt != OB_WIRE && (draw_wire == OBDRAW_WIRE_ON_DEPTH)) {
 			glDepthMask(1);
@@ -3329,7 +3348,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 
 /* returns 1 if nothing was drawn, for detecting to draw an object center */
 static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
-                            const short dt, const unsigned char ob_wire_col[4], const short dflag)
+                            const char dt, const unsigned char ob_wire_col[4], const short dflag)
 {
 	Object *ob = base->object;
 	Object *obedit = scene->obedit;
@@ -3651,7 +3670,7 @@ static void drawCurveDMWired(Object *ob)
 }
 
 /* return 1 when nothing was drawn */
-static int drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, const short dt)
+static int drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, const char dt)
 {
 	Object *ob = base->object;
 	DerivedMesh *dm = ob->derivedFinal;
@@ -3687,7 +3706,7 @@ static int drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, B
  * \return 1 when nothing was drawn
  */
 static int drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
-                                   const short dt, const short dflag, const unsigned char ob_wire_col[4])
+                                   const char dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	Object *ob = base->object;
 	ListBase *lb = NULL;
@@ -3813,7 +3832,7 @@ static int drawDispList_nobackface(Scene *scene, View3D *v3d, RegionView3D *rv3d
 	return FALSE;
 }
 static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
-                        const short dt, const short dflag, const unsigned char ob_wire_col[4])
+                        const char dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	int retval;
 
@@ -4977,9 +4996,9 @@ static void ob_draw_RE_motion(float com[3], float rotscale[3][3], float itw, flo
 	glEnd();
 }
 
-/*place to add drawers */
+/* place to add drawers */
 
-static void tekenhandlesN(Nurb *nu, short sel, short hide_handles)
+static void drawhandlesN(Nurb *nu, short sel, short hide_handles)
 {
 	BezTriple *bezt;
 	float *fp;
@@ -5039,7 +5058,7 @@ static void tekenhandlesN(Nurb *nu, short sel, short hide_handles)
 	glEnd();
 }
 
-static void tekenhandlesN_active(Nurb *nu)
+static void drawhandlesN_active(Nurb *nu)
 {
 	BezTriple *bezt;
 	float *fp;
@@ -5074,7 +5093,7 @@ static void tekenhandlesN_active(Nurb *nu)
 	glLineWidth(1);
 }
 
-static void tekenvertsN(Nurb *nu, short sel, short hide_handles, void *lastsel)
+static void drawvertsN(Nurb *nu, short sel, short hide_handles, void *lastsel)
 {
 	BezTriple *bezt;
 	BPoint *bp;
@@ -5330,7 +5349,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 }
 
 static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, Nurb *nurb,
-                     const short dt, const short dflag, const unsigned char ob_wire_col[4])
+                     const char dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	ToolSettings *ts = scene->toolsettings;
 	Object *ob = base->object;
@@ -5354,8 +5373,8 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	for (nu = nurb; nu; nu = nu->next) {
 		if (nu->type == CU_BEZIER) {
 			if (index == cu->actnu && !hide_handles)
-				tekenhandlesN_active(nu);
-			tekenhandlesN(nu, 0, hide_handles);
+				drawhandlesN_active(nu);
+			drawhandlesN(nu, 0, hide_handles);
 		}
 		index++;
 	}
@@ -5364,8 +5383,8 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	/* selected handles */
 	for (nu = nurb; nu; nu = nu->next) {
 		if (nu->type == CU_BEZIER && (cu->drawflag & CU_HIDE_HANDLES) == 0)
-			tekenhandlesN(nu, 1, hide_handles);
-		tekenvertsN(nu, 0, hide_handles, NULL);
+			drawhandlesN(nu, 1, hide_handles);
+		drawvertsN(nu, 0, hide_handles, NULL);
 	}
 	
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -5416,7 +5435,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 	
 	for (nu = nurb; nu; nu = nu->next) {
-		tekenvertsN(nu, 1, hide_handles, cu->lastsel);
+		drawvertsN(nu, 1, hide_handles, cu->lastsel);
 	}
 	
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -5477,39 +5496,6 @@ static void draw_empty_cone(float size)
 	
 	gluDeleteQuadric(qobj);
 }
-
-/* draw points on curve speed handles */
-#if 0  /* XXX old animation system stuff */
-static void curve_draw_speed(Scene *scene, Object *ob)
-{
-	Curve *cu = ob->data;
-	IpoCurve *icu;
-	BezTriple *bezt;
-	float loc[4], dir[3];
-	int a;
-	
-	if (cu->ipo == NULL)
-		return;
-	
-	icu = cu->ipo->curve.first;
-	if (icu == NULL || icu->totvert < 2)
-		return;
-	
-	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
-	bglBegin(GL_POINTS);
-
-	for (a = 0, bezt = icu->bezt; a < icu->totvert; a++, bezt++) {
-		if (where_on_path(ob, bezt->vec[1][1], loc, dir)) {
-			UI_ThemeColor((bezt->f2 & SELECT) && ob == OBACT ? TH_VERTEX_SELECT : TH_VERTEX);
-			bglVertex3fv(loc);
-		}
-	}
-
-	glPointSize(1.0);
-	bglEnd();
-}
-#endif  /* XXX old animation system stuff */
-
 
 static void draw_textcurs(RegionView3D *rv3d, float textcurs[4][2])
 {
@@ -5614,7 +5600,7 @@ static void drawcircle_size(float size)
 
 }
 
-/* needs fixing if non-identity matrice used */
+/* needs fixing if non-identity matrix used */
 static void drawtube(const float vec[3], float radius, float height, float tmat[4][4])
 {
 	float cur[3];
@@ -5636,7 +5622,8 @@ static void drawtube(const float vec[3], float radius, float height, float tmat[
 	glVertex3f(cur[0], cur[1] - radius, cur[2]);
 	glEnd();
 }
-/* needs fixing if non-identity matrice used */
+
+/* needs fixing if non-identity matrix used */
 static void drawcone(const float vec[3], float radius, float height, float tmat[4][4])
 {
 	float cur[3];
@@ -5657,9 +5644,10 @@ static void drawcone(const float vec[3], float radius, float height, float tmat[
 	glVertex3f(cur[0], cur[1] - radius, cur[2]);
 	glEnd();
 }
+
 /* return TRUE if nothing was drawn */
 static int drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
-                     const short dt, const short dflag, const unsigned char ob_wire_col[4])
+                     const char dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	Object *ob = base->object;
 	MetaBall *mb;
@@ -5705,7 +5693,6 @@ static int drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 	}
 	
 	while (ml) {
-
 		/* draw radius */
 		if (mb->editelems) {
 			if ((dflag & DRAW_CONSTCOLOR) == 0) {
@@ -6292,6 +6279,34 @@ static void draw_object_wire_color(Scene *scene, Base *base, unsigned char r_ob_
 	r_ob_wire_col[3] = 255;
 }
 
+static void draw_object_matcap_check(Scene *scene, View3D *v3d, Object *ob)
+{
+	/* fixed rule, active object draws as matcap */
+	if (ob == OBACT) {
+		if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT))
+			return;
+			
+		if (v3d->defmaterial == NULL) {
+			extern Material defmaterial;
+			
+			v3d->defmaterial = MEM_mallocN(sizeof(Material), "matcap material");
+			*(v3d->defmaterial) = defmaterial;
+			v3d->defmaterial->gpumaterial.first = v3d->defmaterial->gpumaterial.last = NULL;
+			v3d->defmaterial->preview = NULL;
+		}
+		/* first time users */
+		if (v3d->matcap_icon == 0)
+			v3d->matcap_icon = ICON_MATCAP_01;
+		
+		if (v3d->defmaterial->preview == NULL)
+			v3d->defmaterial->preview = UI_icon_to_preview(v3d->matcap_icon);
+		
+		/* signal to all material checks, gets cleared below */
+		v3d->flag2 |= V3D_SHOW_SOLID_MATCAP;
+	}
+
+}
+
 /**
  * main object drawing function, draws in selection
  * \param dflag (draw flag) can be DRAW_PICKING and/or DRAW_CONSTCOLOR, DRAW_SCENESET
@@ -6308,7 +6323,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	unsigned char _ob_wire_col[4];      /* dont initialize this */
 	unsigned char *ob_wire_col = NULL;  /* dont initialize this, use NULL crashes as a way to find invalid use */
 	int i, selstart, selend, empty_object = 0;
-	short dt, dtx, zbufoff = 0;
+	short dtx;
+	char  dt;
+	short zbufoff = 0;
 	const short is_obact = (ob == OBACT);
 
 	/* only once set now, will be removed too, should become a global standard */
@@ -6379,6 +6396,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	dt = MIN2(dt, ob->dt);
 	if (v3d->zbuf == 0 && dt > OB_WIRE) dt = OB_WIRE;
 	dtx = 0;
+	
+	/* matcap check */
+	if (dt == OB_SOLID && (v3d->flag2 & V3D_SOLID_MATCAP))
+		draw_object_matcap_check(scene, v3d, ob);
 
 	/* faceselect exception: also draw solid when (dt == wire), except in editmode */
 	if (is_obact && (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT))) {
@@ -6822,7 +6843,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 		}
 
 		if (ob->gameflag & OB_BOUNDS) {
-			if (ob->boundtype != ob->collision_boundtype || (dtx & OB_BOUNDBOX) == 0) {
+			if (ob->boundtype != ob->collision_boundtype || (dtx & OB_DRAWBOUNDOX) == 0) {
 
 				setlinestyle(2);
 				draw_bounding_volume(scene, ob, ob->collision_boundtype);
@@ -6836,7 +6857,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 			if (dtx & OB_AXIS) {
 				drawaxes(1.0f, OB_ARROWS);
 			}
-			if (dtx & OB_BOUNDBOX) {
+			if (dtx & OB_DRAWBOUNDOX) {
 				draw_bounding_volume(scene, ob, ob->boundtype);
 			}
 			if (dtx & OB_TEXSPACE) {
@@ -6879,7 +6900,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, const short
 	/* return warning, this is cached text draw */
 	invert_m4_m4(ob->imat, ob->obmat);
 	view3d_cached_text_draw_end(v3d, ar, 1, NULL);
-
+	/* return warning, clear temp flag */
+	v3d->flag2 &= ~V3D_SHOW_SOLID_MATCAP;
+	
 	glLoadMatrixf(rv3d->viewmat);
 
 	if (zbufoff) {
@@ -7319,7 +7342,7 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 	if (dm) dm->release(dm);
 }
 
-void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, const short dt, int outline)
+void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, const char dt, int outline)
 {
 	if (ob == NULL)
 		return;

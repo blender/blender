@@ -682,8 +682,10 @@ void undo_push_mesh(bContext *C, const char *name)
 	undo_editmode_push(C, name, getEditMesh, free_undo, undoMesh_to_editbtMesh, editbtMesh_to_undoMesh, NULL);
 }
 
-/* write comment here */
-UvVertMap *EDBM_uv_vert_map_create(BMEditMesh *em, int selected, const float limit[2])
+/**
+ * Return a new UVVertMap from the editmesh
+ */
+UvVertMap *EDBM_uv_vert_map_create(BMEditMesh *em, bool use_select, const float limit[2])
 {
 	BMVert *ev;
 	BMFace *efa;
@@ -696,6 +698,7 @@ UvVertMap *EDBM_uv_vert_map_create(BMEditMesh *em, int selected, const float lim
 	MLoopUV *luv;
 	unsigned int a;
 	int totverts, i, totuv;
+	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
 	
@@ -704,8 +707,9 @@ UvVertMap *EDBM_uv_vert_map_create(BMEditMesh *em, int selected, const float lim
 
 	/* generate UvMapVert array */
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		if (!selected || ((!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) && BM_elem_flag_test(efa, BM_ELEM_SELECT)))
+		if ((use_select == false) || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 			totuv += efa->len;
+		}
 	}
 
 	if (totuv == 0) {
@@ -726,7 +730,7 @@ UvVertMap *EDBM_uv_vert_map_create(BMEditMesh *em, int selected, const float lim
 	
 	a = 0;
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		if (!selected || ((!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) && BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
+		if ((use_select == false) || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 			i = 0;
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				buf->tfindex = i;
@@ -761,7 +765,7 @@ UvVertMap *EDBM_uv_vert_map_create(BMEditMesh *em, int selected, const float lim
 			/* tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
 			
 			l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa, v->tfindex);
-			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 			uv = luv->uv;
 			
 			lastv = NULL;
@@ -773,7 +777,7 @@ UvVertMap *EDBM_uv_vert_map_create(BMEditMesh *em, int selected, const float lim
 				/* tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY); */ /* UNUSED */
 				
 				l = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa, iterv->tfindex);
-				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 				uv2 = luv->uv;
 				
 				sub_v2_v2v2(uvdiff, uv2, uv);
@@ -831,6 +835,8 @@ UvElementMap *EDBM_uv_element_map_create(BMEditMesh *em, int selected, int do_is
 	BMFace **stack;
 	int stacksize = 0;
 
+	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+
 	BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
 
 	totverts = em->bm->totvert;
@@ -843,8 +849,9 @@ UvElementMap *EDBM_uv_element_map_create(BMEditMesh *em, int selected, int do_is
 
 	/* generate UvElement array */
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		if (!selected || ((!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) && BM_elem_flag_test(efa, BM_ELEM_SELECT)))
+		if (!selected || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 			totuv += efa->len;
+		}
 	}
 
 	if (totuv == 0) {
@@ -869,7 +876,7 @@ UvElementMap *EDBM_uv_element_map_create(BMEditMesh *em, int selected, int do_is
 	j = 0;
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		island_number[j++] = INVALID_ISLAND;
-		if (!selected || ((!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) && BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
+		if (!selected || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 			BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 				buf->l = l;
 				buf->separate = 0;
@@ -898,7 +905,7 @@ UvElementMap *EDBM_uv_element_map_create(BMEditMesh *em, int selected, int do_is
 			newvlist = v;
 
 			l = v->l;
-			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 			uv = luv->uv;
 
 			lastv = NULL;
@@ -908,7 +915,7 @@ UvElementMap *EDBM_uv_element_map_create(BMEditMesh *em, int selected, int do_is
 				next = iterv->next;
 
 				l = iterv->l;
-				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 				uv2 = luv->uv;
 
 				sub_v2_v2v2(uvdiff, uv2, uv);
@@ -1339,7 +1346,7 @@ void EDBM_mesh_reveal(BMEditMesh *em)
 
 /* so many tools call these that we better make it a generic function.
  */
-void EDBM_update_generic(BMEditMesh *em, const short do_tessface, const short is_destructive)
+void EDBM_update_generic(BMEditMesh *em, const bool do_tessface, const bool is_destructive)
 {
 	Object *ob = em->ob;
 	/* order of calling isn't important */

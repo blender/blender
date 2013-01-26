@@ -171,6 +171,10 @@ void mid_v3_v3v3(float r[3], const float a[3], const float b[3]);
 void mid_v2_v2v2(float r[2], const float a[2], const float b[2]);
 void mid_v3_v3v3v3(float v[3], const float v1[3], const float v2[3], const float v3[3]);
 
+void flip_v4_v4v4(float v[4], const float v1[4], const float v2[4]);
+void flip_v3_v3v3(float v[3], const float v1[3], const float v2[3]);
+void flip_v2_v2v2(float v[2], const float v1[2], const float v2[2]);
+
 /********************************* Comparison ********************************/
 
 MINLINE int is_zero_v3(const float a[3]);
@@ -251,6 +255,7 @@ void sub_vn_vn(float *array_tar, const float *array_src, const int size);
 void sub_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_src_b, const int size);
 void msub_vn_vn(float *array_tar, const float *array_src, const float f, const int size);
 void msub_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_src_b, const float f, const int size);
+void interp_vn_vn(float *array_tar, const float *array_src, const float t, const int size);
 void fill_vn_i(int *array_tar, const int size, const int val);
 void fill_vn_ushort(unsigned short *array_tar, const int size, const unsigned short val);
 void fill_vn_fl(float *array_tar, const int size, const float val);

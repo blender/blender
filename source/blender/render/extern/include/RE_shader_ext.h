@@ -184,19 +184,24 @@ typedef struct ShadeInput {
 	
 } ShadeInput;
 
+typedef struct BakeImBufuserData {
+	float *displacement_buffer;
+	char *mask_buffer;
+} BakeImBufuserData;
 
 /* node shaders... */
 struct Tex;
 struct MTex;
 struct ImBuf;
+struct ImagePool;
 
 /* this one uses nodes */
-int	multitex_ext(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres);
+int	multitex_ext(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres, struct ImagePool *pool);
 /* nodes disabled */
-int multitex_ext_safe(struct Tex *tex, float texvec[3], struct TexResult *texres);
+int multitex_ext_safe(struct Tex *tex, float texvec[3], struct TexResult *texres, struct ImagePool *pool);
 /* only for internal node usage */
 int multitex_nodes(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres,
-                   const short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex);
+                   const short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex, struct ImagePool *pool);
 
 /* shaded view and bake */
 struct Render;
@@ -206,6 +211,7 @@ struct Object;
 int RE_bake_shade_all_selected(struct Render *re, int type, struct Object *actob, short *do_update, float *progress);
 struct Image *RE_bake_shade_get_image(void);
 void RE_bake_ibuf_filter(struct ImBuf *ibuf, char *mask, const int filter);
+void RE_bake_ibuf_normalize_displacement(struct ImBuf *ibuf, float *displacement, char *mask, float displacement_min, float displacement_max);
 
 #define BAKE_RESULT_OK			0
 #define BAKE_RESULT_NO_OBJECTS		1

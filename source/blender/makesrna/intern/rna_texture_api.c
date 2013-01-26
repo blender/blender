@@ -71,7 +71,7 @@ static void clear_envmap(struct EnvMap *env, bContext *C)
 static void texture_evaluate(struct Tex *tex, float value[3], float color_r[4])
 {
 	TexResult texres = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
-	multitex_ext(tex, value, NULL, NULL, 1, &texres);
+	multitex_ext(tex, value, NULL, NULL, 1, &texres, NULL);
 
 	color_r[0] = texres.tr;
 	color_r[1] = texres.tg;

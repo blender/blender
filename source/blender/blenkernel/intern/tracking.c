@@ -1660,7 +1660,7 @@ ImBuf *BKE_tracking_sample_pattern(int frame_width, int frame_height, ImBuf *sea
 	/* real sampling requires libmv, but areas are supposing pattern would be
 	 * sampled if search area does exists, so we'll need to create empty
 	 * pattern area here to prevent adding NULL-checks all over just to deal
-	 * with situation when lubmv is disabled
+	 * with situation when libmv is disabled
 	 */
 
 	(void) frame_width;

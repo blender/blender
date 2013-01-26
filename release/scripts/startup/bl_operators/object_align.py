@@ -114,14 +114,15 @@ def GlobalBB_HQ(obj):
     return Vector((left, front, up)), Vector((right, back, down))
 
 
-def align_objects(align_x,
+def align_objects(context,
+                  align_x,
                   align_y,
                   align_z,
                   align_mode,
                   relative_to,
                   bb_quality):
 
-    cursor = bpy.context.scene.cursor_location
+    cursor = context.scene.cursor_location
 
     Left_Front_Up_SEL = [0.0, 0.0, 0.0]
     Right_Back_Down_SEL = [0.0, 0.0, 0.0]
@@ -130,7 +131,7 @@ def align_objects(align_x,
 
     objs = []
 
-    for obj in bpy.context.selected_objects:
+    for obj in context.selected_objects:
         matrix_world = obj.matrix_world.copy()
         bb_world = [matrix_world * Vector(v[:]) for v in obj.bound_box]
         objs.append((obj, bb_world))
@@ -150,7 +151,7 @@ def align_objects(align_x,
 
         # Active Center
 
-        if obj == bpy.context.active_object:
+        if obj == context.active_object:
 
             center_active_x = (Left_Front_Up[0] + Right_Back_Down[0]) / 2.0
             center_active_y = (Left_Front_Up[1] + Right_Back_Down[1]) / 2.0
@@ -386,7 +387,8 @@ class AlignObjects(Operator):
 
     def execute(self, context):
         align_axis = self.align_axis
-        ret = align_objects('X' in align_axis,
+        ret = align_objects(context,
+                            'X' in align_axis,
                             'Y' in align_axis,
                             'Z' in align_axis,
                             self.align_mode,

@@ -80,6 +80,9 @@
 #define MAXFLOAT  ((float)3.40282347e+38)
 #endif
 
+/* do not redefine functions from C99 or POSIX.1-2001 */
+#if !(defined(_ISOC99_SOURCE) || (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 200112L))
+
 #ifndef sqrtf
 #define sqrtf(a) ((float)sqrt(a))
 #endif
@@ -128,6 +131,8 @@
 #ifndef hypotf
 #define hypotf(a, b) ((float)hypot(a, b))
 #endif
+
+#endif  /* C99 or POSIX.1-2001 */
 
 #ifdef WIN32
 #  ifndef FREE_WINDOWS

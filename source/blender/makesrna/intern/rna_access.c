@@ -1505,7 +1505,7 @@ int RNA_property_path_from_ID_check(PointerRNA *ptr, PropertyRNA *prop)
 
 static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerRNA *ptr, PropertyRNA *prop)
 {
-	int is_rna = (prop->magic == RNA_MAGIC);
+	const bool is_rna = (prop->magic == RNA_MAGIC);
 	prop = rna_ensure_property(prop);
 
 	if (is_rna) {
@@ -1585,19 +1585,19 @@ static ListBase rna_updates_cache = {NULL, NULL};
 
 void RNA_property_update_cache_add(PointerRNA *ptr, PropertyRNA *prop)
 {
+	const bool is_rna = (prop->magic == RNA_MAGIC);
 	tRnaUpdateCacheElem *uce = NULL;
 	UpdateFunc fn = NULL;
 	LinkData *ld;
-	short is_rna = (prop->magic == RNA_MAGIC);
 	
 	/* sanity check */
-	if (ELEM(NULL, ptr, prop))
+	if (NULL == ptr)
 		return;
 		
 	prop = rna_ensure_property(prop);
 	
 	/* we can only handle update calls with no context args for now (makes animsys updates easier) */
-	if ((is_rna == 0) || (prop->update == NULL) || (prop->flag & PROP_CONTEXT_UPDATE))
+	if ((is_rna == false) || (prop->update == NULL) || (prop->flag & PROP_CONTEXT_UPDATE))
 		return;
 	fn = prop->update;
 		
@@ -4210,11 +4210,11 @@ char *RNA_path_from_ID_to_struct(PointerRNA *ptr)
 
 char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop)
 {
-	int is_rna = (prop->magic == RNA_MAGIC);
+	const bool is_rna = (prop->magic == RNA_MAGIC);
 	const char *propname;
 	char *ptrpath, *path;
 
-	if (!ptr->id.data || !ptr->data || !prop)
+	if (!ptr->id.data || !ptr->data)
 		return NULL;
 	
 	/* path from ID to the struct holding this property */
@@ -6097,7 +6097,8 @@ int RNA_property_equals(PointerRNA *a, PointerRNA *b, PropertyRNA *prop)
 
 	/* get and set the default values as appropriate for the various types */
 	switch (RNA_property_type(prop)) {
-		case PROP_BOOLEAN: {
+		case PROP_BOOLEAN:
+		{
 			if (len) {
 				int fixed_a[16], fixed_b[16];
 				int *array_a, *array_b;
@@ -6122,7 +6123,8 @@ int RNA_property_equals(PointerRNA *a, PointerRNA *b, PropertyRNA *prop)
 			}
 		}
 
-		case PROP_INT: {
+		case PROP_INT:
+		{
 			if (len) {
 				int fixed_a[16], fixed_b[16];
 				int *array_a, *array_b;
@@ -6147,7 +6149,8 @@ int RNA_property_equals(PointerRNA *a, PointerRNA *b, PropertyRNA *prop)
 			}
 		}
 
-		case PROP_FLOAT: {
+		case PROP_FLOAT:
+		{
 			if (len) {
 				float fixed_a[16], fixed_b[16];
 				float *array_a, *array_b;
@@ -6172,12 +6175,14 @@ int RNA_property_equals(PointerRNA *a, PointerRNA *b, PropertyRNA *prop)
 			}
 		}
 
-		case PROP_ENUM: {
+		case PROP_ENUM:
+		{
 			int value = RNA_property_enum_get(a, prop);
 			return value == RNA_property_enum_get(b, prop);
 		}
 
-		case PROP_STRING: {
+		case PROP_STRING:
+		{
 			char fixed_a[128], fixed_b[128];
 			int len_a, len_b;
 			char *value_a = RNA_property_string_get_alloc(a, prop, fixed_a, sizeof(fixed_a), &len_a);

@@ -136,12 +136,12 @@ static void hull_output_triangles(BMesh *bm, GHash *hull_triangles)
 				}
 
 				/* Create new hull face */
-				f = BM_face_create_quad_tri_v(bm, t->v, 3, example, TRUE);
+				f = BM_face_create_quad_tri_v(bm, t->v, 3, example, true);
 				BM_face_copy_shared(bm, f);
 			}
 			/* Mark face for 'geom.out' slot and select */
 			BMO_elem_flag_enable(bm, f, HULL_FLAG_OUTPUT_GEOM);
-			BM_face_select_set(bm, f, TRUE);
+			BM_face_select_set(bm, f, true);
 
 			/* Mark edges for 'geom.out' slot */
 			for (i = 0; i < 3; i++) {
@@ -200,7 +200,7 @@ static int hull_final_edges_lookup(HullFinalEdges *final_edges,
 
 	adj = BLI_ghash_lookup(final_edges->edges, v1);
 	if (!adj)
-		return FALSE;
+		return false;
 
 	return !!final_edges_find_link(adj, v2);
 }
@@ -268,17 +268,17 @@ static void hull_remove_overlapping(BMesh *bm, GHash *hull_triangles,
 		HullTriangle *t = BLI_ghashIterator_getKey(&hull_iter);
 		BMIter bm_iter1, bm_iter2;
 		BMFace *f;
-		int f_on_hull;
+		bool f_on_hull;
 
 		BM_ITER_ELEM (f, &bm_iter1, t->v[0], BM_FACES_OF_VERT) {
 			BMEdge *e;
 
 			/* Check that all the face's edges are on the hull,
 			 * otherwise can't reuse it */
-			f_on_hull = TRUE;
+			f_on_hull = true;
 			BM_ITER_ELEM (e, &bm_iter2, f, BM_EDGES_OF_FACE) {
 				if (!hull_final_edges_lookup(final_edges, e->v1, e->v2)) {
-					f_on_hull = FALSE;
+					f_on_hull = false;
 					break;
 				}
 			}
@@ -288,7 +288,7 @@ static void hull_remove_overlapping(BMesh *bm, GHash *hull_triangles,
 			if (BM_vert_in_face(f, t->v[1]) &&
 			    BM_vert_in_face(f, t->v[2]) && f_on_hull)
 			{
-				t->skip = TRUE;
+				t->skip = true;
 				BMO_elem_flag_disable(bm, f, HULL_FLAG_INTERIOR_ELE);
 				BMO_elem_flag_enable(bm, f, HULL_FLAG_HOLE);
 			}
@@ -330,18 +330,18 @@ static void hull_tag_unused(BMesh *bm, BMOperator *op)
 	 * input set */
 	BMO_ITER (v, &oiter, op->slots_in, "input", BM_VERT) {
 		if (BMO_elem_flag_test(bm, v, HULL_FLAG_INTERIOR_ELE)) {
-			int del = TRUE;
+			bool del = true;
 		
 			BM_ITER_ELEM (e, &iter, v, BM_EDGES_OF_VERT) {
 				if (!BMO_elem_flag_test(bm, e, HULL_FLAG_INPUT)) {
-					del = FALSE;
+					del = false;
 					break;
 				}
 			}
 
 			BM_ITER_ELEM (f, &iter, v, BM_FACES_OF_VERT) {
 				if (!BMO_elem_flag_test(bm, f, HULL_FLAG_INPUT)) {
-					del = FALSE;
+					del = false;
 					break;
 				}
 			}
@@ -353,11 +353,11 @@ static void hull_tag_unused(BMesh *bm, BMOperator *op)
 
 	BMO_ITER (e, &oiter, op->slots_in, "input", BM_EDGE) {
 		if (BMO_elem_flag_test(bm, e, HULL_FLAG_INTERIOR_ELE)) {
-			int del = TRUE;
+			bool del = true;
 
 			BM_ITER_ELEM (f, &iter, e, BM_FACES_OF_EDGE) {
 				if (!BMO_elem_flag_test(bm, f, HULL_FLAG_INPUT)) {
-					del = FALSE;
+					del = false;
 					break;
 				}
 			}
@@ -396,13 +396,13 @@ static void hull_tag_holes(BMesh *bm, BMOperator *op)
 	/* Mark edges too if all adjacent faces are holes and the edge is
 	 * not already isolated */
 	BMO_ITER (e, &oiter, op->slots_in, "input", BM_EDGE) {
-		int hole = TRUE;
-		int any_faces = FALSE;
+		bool hole = true;
+		bool any_faces = false;
 		
 		BM_ITER_ELEM (f, &iter, e, BM_FACES_OF_EDGE) {
-			any_faces = TRUE;
+			any_faces = true;
 			if (!BMO_elem_flag_test(bm, f, HULL_FLAG_HOLE)) {
-				hole = FALSE;
+				hole = false;
 				break;
 			}
 		}

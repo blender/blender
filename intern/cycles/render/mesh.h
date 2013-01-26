@@ -90,6 +90,7 @@ public:
 	BoundBox bounds;
 	bool transform_applied;
 	bool transform_negative_scaled;
+	Transform transform_normal;
 	DisplacementMethod displacement_method;
 
 	/* Update Flags */

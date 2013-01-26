@@ -43,6 +43,7 @@ class RENDER_MT_framerate_presets(Menu):
     draw = Menu.draw_preset
 
 
+
 class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -245,7 +246,7 @@ class RENDER_PT_performance(RenderButtonsPanel, Panel):
         subsub = sub.column()
         subsub.enabled = rd.threads_mode == 'FIXED'
         subsub.prop(rd, "threads")
-        
+
         sub = col.column(align=True)
         sub.label(text="Tile Size:")
         sub.prop(rd, "tile_x", text="X")

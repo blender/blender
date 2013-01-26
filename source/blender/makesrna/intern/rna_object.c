@@ -156,6 +156,15 @@ EnumPropertyItem object_type_curve_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+EnumPropertyItem object_axis_items[] = {
+	{OB_POSX, "POS_X", 0, "+X", ""},
+	{OB_POSY, "POS_Y", 0, "+Y", ""},
+	{OB_POSZ, "POS_Z", 0, "+Z", ""},
+	{OB_NEGX, "NEG_X", 0, "-X", ""},
+	{OB_NEGY, "NEG_Y", 0, "-Y", ""},
+	{OB_NEGZ, "NEG_Z", 0, "-Z", ""},
+	{0, NULL, 0, NULL, NULL}
+};
 
 #ifdef RNA_RUNTIME
 
@@ -2002,16 +2011,6 @@ static void rna_def_object(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
-	static EnumPropertyItem track_items[] = {
-		{OB_POSX, "POS_X", 0, "+X", ""},
-		{OB_POSY, "POS_Y", 0, "+Y", ""},
-		{OB_POSZ, "POS_Z", 0, "+Z", ""},
-		{OB_NEGX, "NEG_X", 0, "-X", ""},
-		{OB_NEGY, "NEG_Y", 0, "-Y", ""},
-		{OB_NEGZ, "NEG_Z", 0, "-Z", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
 
 	static EnumPropertyItem up_items[] = {
 		{OB_POSX, "X", 0, "X", ""},
@@ -2142,7 +2141,7 @@ static void rna_def_object(BlenderRNA *brna)
 	 *      since some other tools still refer to this */
 	prop = RNA_def_property(srna, "track_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "trackflag");
-	RNA_def_property_enum_items(prop, track_items);
+	RNA_def_property_enum_items(prop, object_axis_items);
 	RNA_def_property_ui_text(prop, "Track Axis",
 	                         "Axis that points in 'forward' direction (applies to DupliFrame when "
 	                         "parent 'Follow' is enabled)");
@@ -2429,6 +2428,17 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Particle Systems", "Particle systems emitted from the object");
 	rna_def_object_particle_systems(brna, prop);
 
+	
+	prop = RNA_def_property(srna, "rigid_body", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "rigidbody_object");
+	RNA_def_property_struct_type(prop, "RigidBodyObject");
+	RNA_def_property_ui_text(prop, "Rigid Body Settings", "Settings for rigid body simulation");
+
+	prop = RNA_def_property(srna, "rigid_body_constraint", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "rigidbody_constraint");
+	RNA_def_property_struct_type(prop, "RigidBodyConstraint");
+	RNA_def_property_ui_text(prop, "Rigid Body Constraint", "Constraint constraining rigid bodies");
+	
 	/* restrict */
 	prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", OB_RESTRICT_VIEW);
@@ -2557,7 +2567,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	prop = RNA_def_property(srna, "show_bounds", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_BOUNDBOX);
+	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_DRAWBOUNDOX);
 	RNA_def_property_ui_text(prop, "Draw Bounds", "Display the object's bounds");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
@@ -2586,7 +2596,12 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_DRAWWIRE);
 	RNA_def_property_ui_text(prop, "Draw Wire", "Add the object's wireframe over solid drawing");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
-	
+
+	prop = RNA_def_property(srna, "show_all_edges", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_DRAW_ALL_EDGES);
+	RNA_def_property_ui_text(prop, "Draw All Edges", "Display all edges for mesh objects");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
 	prop = RNA_def_property(srna, "show_transparent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dtx", OB_DRAWTRANSP);
 	RNA_def_property_ui_text(prop, "Draw Transparent",

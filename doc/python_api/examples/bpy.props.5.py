@@ -16,6 +16,7 @@ import bpy
 def get_float(self):
     return self["testprop"]
 
+
 def set_float(self, value):
     self["testprop"] = value
 
@@ -36,6 +37,7 @@ bpy.types.Scene.test_date = bpy.props.StringProperty(get=get_date)
 def get_array(self):
     return (True, self["somebool"])
 
+
 def set_array(self, values):
     self["somebool"] = values[0] and values[1]
 
@@ -51,9 +53,11 @@ test_items = [
     ("YELLOW", "Red", "", 4),
     ]
 
+
 def get_enum(self):
     import random
     return random.randint(1, 4)
+
 
 def set_enum(self, value):
     print("setting value", value)
@@ -66,16 +70,16 @@ bpy.types.Scene.test_enum = bpy.props.EnumProperty(items=test_items, get=get_enu
 scene = bpy.context.scene
 
 scene.test_float = 12.34
-print (scene.test_float)
+print(scene.test_float)
 
 scene.test_array = (True, False)
-print ([x for x in scene.test_array])
+print([x for x in scene.test_array])
 
 #scene.test_date = "blah"   # this would fail, property is read-only
-print (scene.test_date)
+print(scene.test_date)
 
 scene.test_enum = 'BLUE'
-print (scene.test_enum)
+print(scene.test_enum)
 
 
 # >>> 12.34000015258789

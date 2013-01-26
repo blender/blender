@@ -41,90 +41,6 @@ static bNodeSocketTemplate cmp_node_viewer_in[] = {
 	{   -1, 0, ""   }
 };
 
-#ifdef WITH_COMPOSITOR_LEGACY
-
-static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, bNodeStack **UNUSED(out))
-{
-	/* image assigned to output */
-	/* stack order input sockets: col, alpha, z */
-	
-	if (node->id && (node->flag & NODE_DO_OUTPUT)) {  /* only one works on out */
-		RenderData *rd = data;
-		Image *ima = (Image *)node->id;
-		ImBuf *ibuf;
-		CompBuf *cbuf, *tbuf;
-		int rectx, recty;
-		void *lock;
-		
-		BKE_image_user_frame_calc(node->storage, rd->cfra, 0);
-
-		/* always returns for viewer image, but we check nevertheless */
-		ibuf = BKE_image_acquire_ibuf(ima, node->storage, &lock);
-		if (ibuf == NULL) {
-			printf("node_composit_exec_viewer error\n");
-			BKE_image_release_ibuf(ima, ibuf, lock);
-			return;
-		}
-		
-		/* free all in ibuf */
-		imb_freerectImBuf(ibuf);
-		imb_freerectfloatImBuf(ibuf);
-		IMB_freezbuffloatImBuf(ibuf);
-		
-		/* get size */
-		tbuf = in[0]->data ? in[0]->data : (in[1]->data ? in[1]->data : in[2]->data);
-		if (tbuf == NULL) {
-			rectx = 320; recty = 256;
-		}
-		else {
-			rectx = tbuf->x;
-			recty = tbuf->y;
-		}
-		
-		/* make ibuf, and connect to ima */
-		ibuf->x = rectx;
-		ibuf->y = recty;
-		imb_addrectfloatImBuf(ibuf);
-		
-		ima->ok = IMA_OK_LOADED;
-
-		/* now we combine the input with ibuf */
-		cbuf = alloc_compbuf(rectx, recty, CB_RGBA, 0);  /* no alloc*/
-		cbuf->rect = ibuf->rect_float;
-		
-		/* when no alpha, we can simply copy */
-		if (in[1]->data == NULL) {
-			composit1_pixel_processor(node, cbuf, in[0]->data, in[0]->vec, do_copy_rgba, CB_RGBA);
-		}
-		else
-			composit2_pixel_processor(node, cbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_copy_a_rgba, CB_RGBA, CB_VAL);
-		
-		/* zbuf option */
-		if (in[2]->data) {
-			CompBuf *zbuf = alloc_compbuf(rectx, recty, CB_VAL, 1);
-			ibuf->zbuf_float = zbuf->rect;
-			ibuf->mall |= IB_zbuffloat;
-			
-			composit1_pixel_processor(node, zbuf, in[2]->data, in[2]->vec, do_copy_value, CB_VAL);
-			
-			/* free compbuf, but not the rect */
-			zbuf->malloc = 0;
-			free_compbuf(zbuf);
-		}
-
-		BKE_image_release_ibuf(ima, ibuf, lock);
-
-		generate_preview(data, node, cbuf);
-		free_compbuf(cbuf);
-
-	}
-	else if (in[0]->data) {
-		generate_preview(data, node, in[0]->data);
-	}
-}
-
-#endif  /* WITH_COMPOSITOR_LEGACY */
-
 static void node_composit_init_viewer(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	ImageUser *iuser = MEM_callocN(sizeof(ImageUser), "node image user");
@@ -145,9 +61,6 @@ void register_node_type_cmp_viewer(bNodeTreeType *ttype)
 	node_type_size(&ntype, 80, 60, 200);
 	node_type_init(&ntype, node_composit_init_viewer);
 	node_type_storage(&ntype, "ImageUser", node_free_standard_storage, node_copy_standard_storage);
-#ifdef WITH_COMPOSITOR_LEGACY
-	node_type_exec(&ntype, node_composit_exec_viewer);
-#endif
 
 	node_type_internal_links(&ntype, NULL);
 

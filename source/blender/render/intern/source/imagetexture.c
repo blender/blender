@@ -110,7 +110,7 @@ static void ibuf_get_color(float col[4], struct ImBuf *ibuf, int x, int y)
 	}
 }
 
-int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResult *texres)
+int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResult *texres, struct ImagePool *pool)
 {
 	float fx, fy, val1, val2, val3;
 	int x, y, retval;
@@ -130,13 +130,13 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 		if (ima->ibufs.first==NULL && (R.r.scemode & R_NO_IMAGE_LOAD))
 			return retval;
 
-		ibuf= BKE_image_acquire_ibuf(ima, &tex->iuser, NULL);
+		ibuf = BKE_image_pool_acquire_ibuf(ima, &tex->iuser, pool);
 
 		ima->flag|= IMA_USED_FOR_RENDER;
 	}
 	if (ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL)) {
 		if (ima)
-			BKE_image_release_ibuf(ima, ibuf, NULL);
+			BKE_image_pool_release_ibuf(ima, ibuf, pool);
 		return retval;
 	}
 	
@@ -164,14 +164,14 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 			}
 			else {
 				if (ima)
-					BKE_image_release_ibuf(ima, ibuf, NULL);
+					BKE_image_pool_release_ibuf(ima, ibuf, pool);
 				return retval;
 			}
 		}
 		if ( (tex->flag & TEX_CHECKER_EVEN)==0) {
 			if ((xs+ys) & 1) {
 				if (ima)
-					BKE_image_release_ibuf(ima, ibuf, NULL);
+					BKE_image_pool_release_ibuf(ima, ibuf, pool);
 				return retval;
 			}
 		}
@@ -188,14 +188,14 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 	if (tex->extend == TEX_CLIPCUBE) {
 		if (x<0 || y<0 || x>=ibuf->x || y>=ibuf->y || texvec[2]<-1.0f || texvec[2]>1.0f) {
 			if (ima)
-				BKE_image_release_ibuf(ima, ibuf, NULL);
+				BKE_image_pool_release_ibuf(ima, ibuf, pool);
 			return retval;
 		}
 	}
 	else if ( tex->extend==TEX_CLIP || tex->extend==TEX_CHECKER) {
 		if (x<0 || y<0 || x>=ibuf->x || y>=ibuf->y) {
 			if (ima)
-				BKE_image_release_ibuf(ima, ibuf, NULL);
+				BKE_image_pool_release_ibuf(ima, ibuf, pool);
 			return retval;
 		}
 	}
@@ -302,10 +302,10 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], TexResul
 		texres->tg*= fx;
 		texres->tb*= fx;
 	}
-	
+
 	if (ima)
-		BKE_image_release_ibuf(ima, ibuf, NULL);
-	
+		BKE_image_pool_release_ibuf(ima, ibuf, pool);
+
 	BRICONTRGB;
 	
 	return retval;
@@ -1045,7 +1045,7 @@ static void image_mipmap_test(Tex *tex, ImBuf *ibuf)
 	
 }
 
-static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], float dxt[2], float dyt[2], TexResult *texres)
+static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], float dxt[2], float dyt[2], TexResult *texres, struct ImagePool *pool)
 {
 	TexResult texr;
 	float fx, fy, minx, maxx, miny, maxy;
@@ -1076,12 +1076,12 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 
 	if (ima) {	/* hack for icon render */
 		if ((ima->ibufs.first == NULL) && (R.r.scemode & R_NO_IMAGE_LOAD)) return retval;
-		ibuf = BKE_image_acquire_ibuf(ima, &tex->iuser, NULL);
+		ibuf = BKE_image_pool_acquire_ibuf(ima, &tex->iuser, pool);
 	}
 
 	if ((ibuf == NULL) || ((ibuf->rect == NULL) && (ibuf->rect_float == NULL))) {
 		if (ima)
-			BKE_image_release_ibuf(ima, ibuf, NULL);
+			BKE_image_pool_release_ibuf(ima, ibuf, pool);
 		return retval;
 	}
 
@@ -1199,12 +1199,12 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 			else {
 				if ((tex->flag & TEX_CHECKER_ODD) == 0 && ((xs + ys) & 1) == 0) {
 					if (ima)
-						BKE_image_release_ibuf(ima, ibuf, NULL);
+						BKE_image_pool_release_ibuf(ima, ibuf, pool);
 					return retval;
 				}
 				if ((tex->flag & TEX_CHECKER_EVEN) == 0 && (xs + ys) & 1) {
 					if (ima)
-						BKE_image_release_ibuf(ima, ibuf, NULL);
+						BKE_image_pool_release_ibuf(ima, ibuf, pool);
 					return retval;
 				}
 				fx -= xs;
@@ -1224,14 +1224,14 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 	if (tex->extend == TEX_CLIPCUBE) {
 		if ((fx + minx) < 0.f || (fy + miny) < 0.f || (fx - minx) > 1.f || (fy - miny) > 1.f || texvec[2] < -1.f || texvec[2] > 1.f) {
 			if (ima)
-				BKE_image_release_ibuf(ima, ibuf, NULL);
+				BKE_image_pool_release_ibuf(ima, ibuf, pool);
 			return retval;
 		}
 	}
 	else if (tex->extend == TEX_CLIP || tex->extend == TEX_CHECKER) {
 		if ((fx + minx) < 0.f || (fy + miny) < 0.f || (fx - minx) > 1.f || (fy - miny) > 1.f) {
 			if (ima)
-				BKE_image_release_ibuf(ima, ibuf, NULL);
+				BKE_image_pool_release_ibuf(ima, ibuf, pool);
 			return retval;
 		}
 	}
@@ -1455,7 +1455,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 	}
 
 	if (ima)
-		BKE_image_release_ibuf(ima, ibuf, NULL);
+		BKE_image_pool_release_ibuf(ima, ibuf, pool);
 
 	BRICONTRGB;
 	
@@ -1463,7 +1463,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float tex
 }
 
 
-int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const float DXT[2], const float DYT[2], TexResult *texres)
+int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const float DXT[2], const float DYT[2], TexResult *texres, struct ImagePool *pool)
 {
 	TexResult texr;
 	float fx, fy, minx, maxx, miny, maxy, dx, dy, dxt[2], dyt[2];
@@ -1477,7 +1477,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 
 	/* anisotropic filtering */
 	if (tex->texfilter != TXF_BOX)
-		return imagewraposa_aniso(tex, ima, ibuf, texvec, dxt, dyt, texres);
+		return imagewraposa_aniso(tex, ima, ibuf, texvec, dxt, dyt, texres, pool);
 
 	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0f;
 	
@@ -1493,13 +1493,13 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 		if (ima->ibufs.first==NULL && (R.r.scemode & R_NO_IMAGE_LOAD))
 			return retval;
 		
-		ibuf= BKE_image_acquire_ibuf(ima, &tex->iuser, NULL);
+		ibuf = BKE_image_pool_acquire_ibuf(ima, &tex->iuser, pool);
 
 		ima->flag|= IMA_USED_FOR_RENDER;
 	}
 	if (ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL)) {
 		if (ima)
-			BKE_image_release_ibuf(ima, ibuf, NULL);
+			BKE_image_pool_release_ibuf(ima, ibuf, pool);
 		return retval;
 	}
 	
@@ -1608,14 +1608,14 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 					}
 					else {
 						if (ima)
-							BKE_image_release_ibuf(ima, ibuf, NULL);
+							BKE_image_pool_release_ibuf(ima, ibuf, pool);
 						return retval;
 					}
 				}
 				if ( (tex->flag & TEX_CHECKER_EVEN)==0) {
 					if ((xs + ys) & 1) {
 						if (ima)
-							BKE_image_release_ibuf(ima, ibuf, NULL);
+							BKE_image_pool_release_ibuf(ima, ibuf, pool);
 						return retval;
 					}
 				}
@@ -1652,14 +1652,14 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	if (tex->extend == TEX_CLIPCUBE) {
 		if (fx+minx<0.0f || fy+miny<0.0f || fx-minx>1.0f || fy-miny>1.0f || texvec[2]<-1.0f || texvec[2]>1.0f) {
 			if (ima)
-				BKE_image_release_ibuf(ima, ibuf, NULL);
+				BKE_image_pool_release_ibuf(ima, ibuf, pool);
 			return retval;
 		}
 	}
 	else if (tex->extend==TEX_CLIP || tex->extend==TEX_CHECKER) {
 		if (fx+minx<0.0f || fy+miny<0.0f || fx-minx>1.0f || fy-miny>1.0f) {
 			if (ima)
-				BKE_image_release_ibuf(ima, ibuf, NULL);
+				BKE_image_pool_release_ibuf(ima, ibuf, pool);
 			return retval;
 		}
 	}
@@ -1855,17 +1855,17 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], const
 	}
 
 	if (ima)
-		BKE_image_release_ibuf(ima, ibuf, NULL);
+		BKE_image_pool_release_ibuf(ima, ibuf, pool);
 
 	BRICONTRGB;
 	
 	return retval;
 }
 
-void image_sample(Image *ima, float fx, float fy, float dx, float dy, float result[4])
+void image_sample(Image *ima, float fx, float fy, float dx, float dy, float result[4], struct ImagePool *pool)
 {
 	TexResult texres;
-	ImBuf *ibuf= BKE_image_acquire_ibuf(ima, NULL, NULL);
+	ImBuf *ibuf = BKE_image_pool_acquire_ibuf(ima, NULL, pool);
 	
 	if (UNLIKELY(ibuf == NULL)) {
 		zero_v4(result);
@@ -1884,7 +1884,7 @@ void image_sample(Image *ima, float fx, float fy, float dx, float dy, float resu
 
 	ima->flag|= IMA_USED_FOR_RENDER;
 
-	BKE_image_release_ibuf(ima, ibuf, NULL);
+	BKE_image_pool_release_ibuf(ima, ibuf, pool);
 }
 
 void ibuf_sample(ImBuf *ibuf, float fx, float fy, float dx, float dy, float result[4])

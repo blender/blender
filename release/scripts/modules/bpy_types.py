@@ -484,13 +484,16 @@ class Text(bpy_types.ID):
                                  if cont.type == 'PYTHON']
                      )
 
+
 class NodeSocket(StructRNA):  # , metaclass=RNAMeta
     __slots__ = ()
 
     @property
     def links(self):
         """List of node links from or to this socket"""
-        return tuple(link for link in self.id_data.links if link.from_socket == self or link.to_socket == self)
+        return tuple(link for link in self.id_data.links
+                     if (link.from_socket == self or
+                         link.to_socket == self))
 
 
 # values are module: [(cls, path, line), ...]
@@ -609,6 +612,10 @@ class RenderEngine(StructRNA, metaclass=RNAMeta):
 
 
 class KeyingSetInfo(StructRNA, metaclass=RNAMeta):
+    __slots__ = ()
+
+
+class AddonPreferences(StructRNA, metaclass=RNAMeta):
     __slots__ = ()
 
 

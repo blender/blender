@@ -102,6 +102,12 @@ extern EnumPropertyItem object_type_items[];
 
 extern EnumPropertyItem object_type_curve_items[];
 
+extern EnumPropertyItem rigidbody_ob_type_items[];
+extern EnumPropertyItem rigidbody_ob_shape_items[];
+extern EnumPropertyItem rigidbody_con_type_items[];
+
+extern EnumPropertyItem object_axis_items[];
+
 extern EnumPropertyItem controller_type_items[];
 
 extern EnumPropertyItem keymap_propvalue_items[];

@@ -77,7 +77,8 @@ typedef enum ModifierType {
 	eModifierType_Skin              = 42,
 	eModifierType_LaplacianSmooth   = 43,
 	eModifierType_Triangulate       = 44,
-	eModifierType_UVWarp          = 45,
+	eModifierType_UVWarp            = 45,
+	eModifierType_MeshCache         = 46,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -1133,6 +1134,7 @@ enum {
 #define MOD_LAPLACIANSMOOTH_Y (1<<2)
 #define MOD_LAPLACIANSMOOTH_Z (1<<3)
 #define MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME (1 << 4)
+#define MOD_LAPLACIANSMOOTH_NORMALIZED (1 << 5)
 
 typedef struct LaplacianSmoothModifierData {
 	ModifierData modifier;
@@ -1156,5 +1158,65 @@ typedef struct UVWarpModifierData {
 	char vgroup_name[64];   /* optional vertexgroup name, MAX_VGROUP_NAME */
 	char uvlayer_name[64];  /* MAX_CUSTOMDATA_LAYER_NAME */
 } UVWarpModifierData;
+
+/* cache modifier */
+typedef struct MeshCacheModifierData {
+	ModifierData modifier;
+	char flag;
+	char type;  /* file format */
+	char time_mode;
+	char play_mode;
+
+	/* axis conversion */
+	char forward_axis;
+	char up_axis;
+	char flip_axis;
+
+	char interp;
+
+	float factor;
+	char deform_mode;
+	char pad[7];
+
+	/* play_mode == MOD_MESHCACHE_PLAY_CFEA */
+	float frame_start;
+	float frame_scale;
+
+	/* play_mode == MOD_MESHCACHE_PLAY_EVAL */
+	/* we could use one float for all these but their purpose is very different */
+	float eval_frame;
+	float eval_time;
+	float eval_factor;
+
+	char filepath[1024];	// FILE_MAX
+} MeshCacheModifierData;
+
+enum {
+	MOD_MESHCACHE_TYPE_MDD  = 1,
+	MOD_MESHCACHE_TYPE_PC2  = 2
+};
+
+enum {
+	MOD_MESHCACHE_DEFORM_OVERWRITE  = 0,
+	MOD_MESHCACHE_DEFORM_INTEGRATE  = 1
+};
+
+enum {
+	MOD_MESHCACHE_INTERP_NONE  = 0,
+	MOD_MESHCACHE_INTERP_LINEAR = 1,
+	// MOD_MESHCACHE_INTERP_CARDINAL  = 2
+};
+
+enum {
+	MOD_MESHCACHE_TIME_FRAME = 0,
+	MOD_MESHCACHE_TIME_SECONDS = 1,
+	MOD_MESHCACHE_TIME_FACTOR = 2,
+};
+
+enum {
+	MOD_MESHCACHE_PLAY_CFEA = 0,
+	MOD_MESHCACHE_PLAY_EVAL = 1,
+};
+
 
 #endif  /* __DNA_MODIFIER_TYPES_H__ */

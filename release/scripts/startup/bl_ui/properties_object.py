@@ -230,6 +230,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
         col.prop(ob, "show_x_ray", text="X-Ray")
         if ob.type == 'MESH':
             col.prop(ob, "show_transparent", text="Transparency")
+            col.prop(ob, "show_all_edges")
 
 
 class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):

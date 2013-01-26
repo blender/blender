@@ -112,7 +112,7 @@ typedef enum BrushFlags {
 	BRUSH_SIZE_PRESSURE = (1 << 3),
 	BRUSH_JITTER_PRESSURE = (1 << 4),
 	BRUSH_SPACING_PRESSURE = (1 << 5),
-	BRUSH_FIXED_TEX = (1 << 6),
+	// BRUSH_FIXED_TEX = (1 << 6), /* obsolete, use mtex->brush_map_mode = MTEX_MAP_MODE_TILED instead */
 	BRUSH_RAKE = (1 << 7),
 	BRUSH_ANCHORED = (1 << 8),
 	BRUSH_DIR_IN = (1 << 9),
@@ -164,10 +164,12 @@ typedef enum BrushSculptTool {
 } BrushSculptTool;
 
 /* ImagePaintSettings.tool */
-#define PAINT_TOOL_DRAW     0
-#define PAINT_TOOL_SOFTEN   1
-#define PAINT_TOOL_SMEAR    2
-#define PAINT_TOOL_CLONE    3
+typedef enum BrushImagePaintTool{
+	PAINT_TOOL_DRAW = 0,
+	PAINT_TOOL_SOFTEN = 1,
+	PAINT_TOOL_SMEAR = 2,
+	PAINT_TOOL_CLONE = 3
+} BrushImagePaintTool;
 
 /* direction that the brush displaces along */
 enum {

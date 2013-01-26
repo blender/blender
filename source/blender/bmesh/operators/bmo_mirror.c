@@ -53,8 +53,8 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 	float dist = BMO_slot_float_get(op->slots_in, "merge_dist");
 	int i, ototvert /*, ototedge */;
 	int axis = BMO_slot_int_get(op->slots_in, "axis");
-	int mirroru = BMO_slot_bool_get(op->slots_in, "mirror_u");
-	int mirrorv = BMO_slot_bool_get(op->slots_in, "mirror_v");
+	bool mirror_u = BMO_slot_bool_get(op->slots_in, "mirror_u");
+	bool mirror_v = BMO_slot_bool_get(op->slots_in, "mirror_v");
 	BMOpSlot *slot_targetmap;
 
 	ototvert = bm->totvert;
@@ -97,7 +97,7 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 		v = BM_iter_step(&iter);
 	}
 	
-	if (mirroru || mirrorv) {
+	if (mirror_u || mirror_v) {
 		BMFace *f;
 		BMLoop *l;
 		MLoopUV *luv;
@@ -109,9 +109,9 @@ void bmo_mirror_exec(BMesh *bm, BMOperator *op)
 				totlayer = CustomData_number_of_layers(&bm->ldata, CD_MLOOPUV);
 				for (i = 0; i < totlayer; i++) {
 					luv = CustomData_bmesh_get_n(&bm->ldata, l->head.data, CD_MLOOPUV, i);
-					if (mirroru)
+					if (mirror_u)
 						luv->uv[0] = 1.0f - luv->uv[0];
-					if (mirrorv)
+					if (mirror_v)
 						luv->uv[1] = 1.0f - luv->uv[1];
 				}
 			}

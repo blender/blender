@@ -29,6 +29,7 @@ set(INC
 	../editors/include
 	../makesdna
 	../makesrna
+	../python
 	../imbuf
 	../../../intern/guardedalloc
 	../../../intern/locale

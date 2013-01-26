@@ -45,44 +45,6 @@ static bNodeSocketTemplate cmp_node_normal_out[] = {
 	{	-1, 0, ""	}
 };
 
-#ifdef WITH_COMPOSITOR_LEGACY
-
-static void do_normal(bNode *node, float *out, float *in)
-{
-	bNodeSocket *sock= node->outputs.first;
-	float *nor= ((bNodeSocketValueVector*)sock->default_value)->value;
-	
-	/* render normals point inside... the widget points outside */
-	out[0] = -dot_v3v3(nor, in);
-}
-
-/* generates normal, does dot product */
-static void node_composit_exec_normal(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
-{
-	bNodeSocket *sock= node->outputs.first;
-	float *nor= ((bNodeSocketValueVector*)sock->default_value)->value;
-	/* stack order input:  normal */
-	/* stack order output: normal, value */
-	
-	/* input no image? then only vector op */
-	if (in[0]->data==NULL) {
-		copy_v3_v3(out[0]->vec, nor);
-		/* render normals point inside... the widget points outside */
-		out[1]->vec[0] = -dot_v3v3(out[0]->vec, in[0]->vec);
-	}
-	else if (out[1]->hasoutput) {
-		/* make output size of input image */
-		CompBuf *cbuf= in[0]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); /* allocs */
-		
-		composit1_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, do_normal, CB_VEC3);
-		
-		out[1]->data= stackbuf;
-	}
-}
-
-#endif  /* WITH_COMPOSITOR_LEGACY */
-
 static void init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
 	bNodeSocket *sock= node->outputs.first;
@@ -101,9 +63,6 @@ void register_node_type_cmp_normal(bNodeTreeType *ttype)
 	node_type_socket_templates(&ntype, cmp_node_normal_in, cmp_node_normal_out);
 	node_type_init(&ntype, init);
 	node_type_size(&ntype, 100, 60, 200);
-#ifdef WITH_COMPOSITOR_LEGACY
-	node_type_exec(&ntype, node_composit_exec_normal);
-#endif
 
 	nodeRegisterType(ttype, &ntype);
 }

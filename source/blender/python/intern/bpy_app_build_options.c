@@ -32,7 +32,7 @@
 static PyTypeObject BlenderAppBuildOptionsType;
 
 static PyStructSequence_Field app_builtopts_info_fields[] = {
-	/* names mostly follow CMake options, lowecases, after WITH_ */
+	/* names mostly follow CMake options, lowercase, after WITH_ */
 	{(char *)"bullet", NULL},
 	{(char *)"codec_avi", NULL},
 	{(char *)"codec_ffmpeg", NULL},
@@ -72,7 +72,7 @@ static PyStructSequence_Field app_builtopts_info_fields[] = {
 
 static PyStructSequence_Desc app_builtopts_info_desc = {
 	(char *)"bpy.app.build_options",     /* name */
-	(char *)"This module contains information about FFmpeg blender is linked against",    /* doc */
+	(char *)"This module contains information about options blender is built with",    /* doc */
 	app_builtopts_info_fields,    /* fields */
 	(sizeof(app_builtopts_info_fields) / sizeof(PyStructSequence_Field)) - 1
 };

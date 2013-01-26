@@ -84,6 +84,7 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_property_types.h"
+#include "DNA_rigidbody_types.h"
 #include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
@@ -212,20 +213,6 @@
  * - link all LibBlocks and indirect pointers to libblocks
  * - initialize FileGlobal and copy pointers to Global
  */
-
-/* also occurs in library.c */
-/* GS reads the memory pointed at in a specific ordering. There are,
- * however two definitions for it. I have jotted them down here, both,
- * but I think the first one is actually used. The thing is that
- * big-endian systems might read this the wrong way round. OTOH, we
- * constructed the IDs that are read out with this macro explicitly as
- * well. I expect we'll sort it out soon... */
-
-/* from blendef: */
-#define GS(a)	(*((short *)(a)))
-
-/* from misc_util: flip the bytes from x  */
-/*  #define GS(x) (((unsigned char *)(x))[0] << 8 | ((unsigned char *)(x))[1]) */
 
 /***/
 
@@ -1442,6 +1429,8 @@ void blo_end_movieclip_pointer_map(FileData *fd, Main *oldmain)
 	}
 }
 
+/* XXX disabled this feature - packed files also belong in temp saves and quit.blend, to make restore work */
+
 static void insert_packedmap(FileData *fd, PackedFile *pf)
 {
 	oldnewmap_insert(fd->packedmap, pf, pf, 0);
@@ -1865,6 +1854,7 @@ static PreviewImage *direct_link_preview_image(FileData *fd, PreviewImage *old_p
 			if (prv->rect[i]) {
 				prv->rect[i] = newdataadr(fd, prv->rect[i]);
 			}
+			prv->gputexture[i] = NULL;
 		}
 	}
 	
@@ -2726,14 +2716,15 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 {
 	bPoseChannel *pchan;
 	bArmature *arm = ob->data;
-	int rebuild;
+	int rebuild = 0;
 	
 	if (!pose || !arm)
 		return;
 	
-	
-	/* always rebuild to match proxy or lib changes */
-	rebuild = ob->proxy || (ob->id.lib==NULL && arm->id.lib);
+	/* always rebuild to match proxy or lib changes, but on Undo */
+	if (fd->memfile == NULL)
+		if (ob->proxy || (ob->id.lib==NULL && arm->id.lib))
+			rebuild = 1;
 	
 	if (ob->proxy) {
 		/* sync proxy layer */
@@ -4178,8 +4169,6 @@ static void lib_link_object(FileData *fd, Main *main)
 				else {
 					/* this triggers object_update to always use a copy */
 					ob->proxy->proxy_from = ob;
-					/* force proxy updates after load/undo, a bit weak */
-					ob->recalc = ob->proxy->recalc = (OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 				}
 			}
 			ob->proxy_group = newlibadr(fd, ob->id.lib, ob->proxy_group);
@@ -4377,6 +4366,11 @@ static void lib_link_object(FileData *fd, Main *main)
 			
 			lib_link_particlesystems(fd, ob, &ob->id, &ob->particlesystem);
 			lib_link_modifiers(fd, ob);
+
+			if (ob->rigidbody_constraint) {
+				ob->rigidbody_constraint->ob1 = newlibadr(fd, ob->id.lib, ob->rigidbody_constraint->ob1);
+				ob->rigidbody_constraint->ob2 = newlibadr(fd, ob->id.lib, ob->rigidbody_constraint->ob2);
+			}
 		}
 	}
 	
@@ -4800,6 +4794,20 @@ static void direct_link_object(FileData *fd, Object *ob)
 	}
 	ob->bsoft = newdataadr(fd, ob->bsoft);
 	ob->fluidsimSettings= newdataadr(fd, ob->fluidsimSettings); /* NT */
+	
+	ob->rigidbody_object = newdataadr(fd, ob->rigidbody_object);
+	if (ob->rigidbody_object) {
+		RigidBodyOb *rbo = ob->rigidbody_object;
+		
+		/* must nullify the references to physics sim objects, since they no-longer exist 
+		 * (and will need to be recalculated) 
+		 */
+		rbo->physics_object = NULL;
+		rbo->physics_shape = NULL;
+	}
+	ob->rigidbody_constraint = newdataadr(fd, ob->rigidbody_constraint);
+	if (ob->rigidbody_constraint)
+		ob->rigidbody_constraint->physics_constraint = NULL;
 
 	link_list(fd, &ob->particlesystem);
 	direct_link_particlesystems(fd, &ob->particlesystem);
@@ -5018,6 +5026,18 @@ static void lib_link_scene(FileData *fd, Main *main)
 			BKE_sequencer_update_muting(sce->ed);
 			BKE_sequencer_update_sound_bounds_all(sce);
 			
+			
+			/* rigidbody world relies on it's linked groups */
+			if (sce->rigidbody_world) {
+				RigidBodyWorld *rbw = sce->rigidbody_world;
+				if (rbw->group)
+					rbw->group = newlibadr(fd, sce->id.lib, rbw->group);
+				if (rbw->constraints)
+					rbw->constraints = newlibadr(fd, sce->id.lib, rbw->constraints);
+				if (rbw->effector_weights)
+					rbw->effector_weights->group = newlibadr(fd, sce->id.lib, rbw->effector_weights->group);
+			}
+			
 			if (sce->nodetree) {
 				lib_link_ntree(fd, &sce->id, sce->nodetree);
 				composite_patch(sce->nodetree, sce);
@@ -5104,6 +5124,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	Editing *ed;
 	Sequence *seq;
 	MetaStack *ms;
+	RigidBodyWorld *rbw;
 	
 	sce->theDag = NULL;
 	sce->dagisvalid = 0;
@@ -5303,6 +5324,28 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	}
 
 	direct_link_view_settings(fd, &sce->view_settings);
+	
+	sce->rigidbody_world = newdataadr(fd, sce->rigidbody_world);
+	rbw = sce->rigidbody_world;
+	if (rbw) {
+		/* must nullify the reference to physics sim object, since it no-longer exist 
+		 * (and will need to be recalculated) 
+		 */
+		rbw->physics_world = NULL;
+		rbw->objects = NULL;
+		rbw->numbodies = 0;
+
+		/* set effector weights */
+		rbw->effector_weights = newdataadr(fd, rbw->effector_weights);
+		if (!rbw->effector_weights)
+			rbw->effector_weights = BKE_add_effector_weights(NULL);
+
+		/* link cache */
+		direct_link_pointcache_list(fd, &rbw->ptcaches, &rbw->pointcache, FALSE);
+		/* make sure simulation starts from the beginning after loading file */
+		if (rbw->pointcache)
+			rbw->ltime = rbw->pointcache->startframe;
+	}
 }
 
 /* ************ READ WM ***************** */
@@ -5570,7 +5613,14 @@ static void lib_link_screen(FileData *fd, Main *main)
 	}
 }
 
-/* Only for undo files, or to restore a screen after reading without UI... */
+/**
+ * Only for undo files, or to restore a screen after reading without UI...
+ *
+ * user
+ * - 0: no usercount change
+ * - 1: ensure a user
+ * - 2: ensure a real user (even if a fake one is set)
+ */
 static void *restore_pointer_by_name(Main *mainp, ID *id, int user)
 {
 	if (id) {
@@ -6029,6 +6079,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				v3d->afterdraw_xray.first = v3d->afterdraw_xray.last = NULL;
 				v3d->afterdraw_xraytransp.first = v3d->afterdraw_xraytransp.last = NULL;
 				v3d->properties_storage = NULL;
+				v3d->defmaterial = NULL;
 				
 				/* render can be quite heavy, set to wire on load */
 				if (v3d->drawtype == OB_RENDER)
@@ -8863,6 +8914,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (!MAIN_VERSION_ATLEAST(main, 265, 9)) {
+		Brush *br;
+		for (br = main->brush.first; br; br = br->id.next) {
+			if (br->ob_mode & OB_MODE_TEXTURE_PAINT) {
+				br->mtex.brush_map_mode = MTEX_MAP_MODE_TILED;
+			}
+		}
+	}
+
 	// if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 7)) {
 
 #ifdef WITH_FREESTYLE
@@ -9882,7 +9942,12 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	
 	if (ob->pd && ob->pd->tex)
 		expand_doit(fd, mainvar, ob->pd->tex);
-	
+
+	if (ob->rigidbody_constraint) {
+		expand_doit(fd, mainvar, ob->rigidbody_constraint->ob1);
+		expand_doit(fd, mainvar, ob->rigidbody_constraint->ob2);
+	}
+
 }
 
 static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
@@ -9939,6 +10004,11 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 			if (seq->sound) expand_doit(fd, mainvar, seq->sound);
 		}
 		SEQ_END
+	}
+	
+	if (sce->rigidbody_world) {
+		expand_doit(fd, mainvar, sce->rigidbody_world->group);
+		expand_doit(fd, mainvar, sce->rigidbody_world->constraints);
 	}
 
 #ifdef DURIAN_CAMERA_SWITCH
@@ -10053,7 +10123,7 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
 		
 		a = set_listbasepointers(mainvar, lbarray);
 		while (a--) {
-			id= lbarray[a]->first;
+			id = lbarray[a]->first;
 			while (id) {
 				if (id->flag & LIB_NEED_EXPAND) {
 					switch (GS(id->name)) {
@@ -10201,7 +10271,7 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const 
 				
 				if (do_it) {
 					base = MEM_callocN(sizeof(Base), "add_ext_base");
-					BLI_addtail(&(sce->base), base);
+					BLI_addtail(&sce->base, base);
 					base->lay = ob->lay;
 					base->object = ob;
 					base->flag = ob->flag;

@@ -36,6 +36,9 @@ set(INC
 	../windowmanager
 	../imbuf
 	../../../intern/guardedalloc
+	../ikplugin
+	../../../intern/iksolver/extern
+	
 )
 
 set(INC_SYS
@@ -48,6 +51,7 @@ set(SRC
 	ArmatureExporter.cpp
 	ArmatureImporter.cpp
 	CameraExporter.cpp
+	ControllerExporter.cpp
 	DocumentExporter.cpp
 	DocumentImporter.cpp
 	EffectExporter.cpp
@@ -74,6 +78,7 @@ set(SRC
 	ArmatureExporter.h
 	ArmatureImporter.h
 	CameraExporter.h
+	ControllerExporter.h
 	DocumentExporter.h
 	DocumentImporter.h
 	EffectExporter.h

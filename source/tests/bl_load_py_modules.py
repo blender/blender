@@ -107,7 +107,7 @@ def load_modules():
                 modules.append(mod_imp)
 
     #
-    # check which filepaths we didnt load
+    # check which filepaths we didn't load
     source_files = []
     for mod_dir in module_paths:
         source_files.extend(source_list(mod_dir, filename_check=lambda f: f.endswith(".py")))

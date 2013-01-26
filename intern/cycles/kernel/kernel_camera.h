@@ -213,7 +213,7 @@ __device void camera_sample(KernelGlobals *kg, int x, int y, float filter_u, flo
 
 #ifdef __CAMERA_MOTION__
 	/* motion blur */
-	if(kernel_data.cam.shuttertime == 0.0f)
+	if(kernel_data.cam.shuttertime == -1.0f)
 		ray->time = TIME_INVALID;
 	else
 		ray->time = 0.5f + 0.5f*(time - 0.5f)*kernel_data.cam.shuttertime;

@@ -248,24 +248,27 @@ __device void svm_node_normal_map(KernelGlobals *kg, ShaderData *sd, float *stac
 		}
 
 		/* first try to get tangent attribute */
-		AttributeElement attr_elem, attr_sign_elem;
+		AttributeElement attr_elem, attr_sign_elem, attr_normal_elem;
 		int attr_offset = find_attribute(kg, sd, node.z, &attr_elem);
 		int attr_sign_offset = find_attribute(kg, sd, node.w, &attr_sign_elem);
+		int attr_normal_offset = find_attribute(kg, sd, ATTR_STD_VERTEX_NORMAL, &attr_normal_elem);
 
-		if(attr_offset == ATTR_STD_NOT_FOUND || attr_sign_offset == ATTR_STD_NOT_FOUND) {
+		if(attr_offset == ATTR_STD_NOT_FOUND || attr_sign_offset == ATTR_STD_NOT_FOUND || attr_normal_offset == ATTR_STD_NOT_FOUND) {
 			stack_store_float3(stack, normal_offset, make_float3(0.0f, 0.0f, 0.0f));
 			return;
 		}
 
-		/* ensure orthogonal and normalized (interpolation breaks it) */
+		/* get _unnormalized_ interpolated normal and tangent */
 		float3 tangent = primitive_attribute_float3(kg, sd, attr_elem, attr_offset, NULL, NULL);
 		float sign = primitive_attribute_float(kg, sd, attr_sign_elem, attr_sign_offset, NULL, NULL);
+		float3 normal = primitive_attribute_float3(kg, sd, attr_normal_elem, attr_normal_offset, NULL, NULL);
 
-		object_normal_transform(kg, sd, &tangent);
-		tangent = cross(sd->N, normalize(cross(tangent, sd->N)));;
+		/* apply normal map */
+		float3 B = sign * cross(normal, tangent);
+		N = normalize(color.x * tangent + color.y * B + color.z * normal);
 
-		float3 B = sign * cross(sd->N, tangent);
-		N = normalize(color.x * tangent + color.y * B + color.z * sd->N);
+		/* transform to world space */
+		object_normal_transform(kg, sd, &N);
 	}
 	else {
 		/* object, world space */

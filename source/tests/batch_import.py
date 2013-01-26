@@ -112,7 +112,7 @@ def batch_import(operator="",
     for i, f in enumerate(files):
         print("    %s(filepath=%r) # %d of %d" % (operator, f, i + start, len(files)))
 
-        # hack so loading the new file doesnt undo our loaded addons
+        # hack so loading the new file doesn't undo our loaded addons
         addon_utils.reset_all = lambda: None  # XXX, hack
 
         bpy.ops.wm.read_factory_settings()
