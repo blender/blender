@@ -857,9 +857,12 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 		}
 	}
 
-	/* Move v1 to the midpoint of v1 and v2 */
-	BM_log_vert_before_modified(bvh->bm, bvh->bm_log, v1);
-	mid_v3_v3v3(v1->co, v1->co, v2->co);
+	/* Move v1 to the midpoint of v1 and v2 (if v1 still exists, it
+	 * may have been deleted above) */
+	if (!BLI_ghash_haskey(deleted_verts, v1)) {
+		BM_log_vert_before_modified(bvh->bm, bvh->bm_log, v1);
+		mid_v3_v3v3(v1->co, v1->co, v2->co);
+	}
 
 	/* Delete v2 */
 	BLI_assert(BM_vert_face_count(v2) == 0);
