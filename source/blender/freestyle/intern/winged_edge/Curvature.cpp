@@ -586,8 +586,14 @@ static bool sphere_clip_vector(const Vec3r& O, real r, const Vec3r& P, Vec3r& V)
 // use marking ? (measure *timings* ...)
 void compute_curvature_tensor(WVertex *start, real radius, NormalCycle& nc)
 {
+	// TODO: for some reason, the WVertex 'start' may have no associated edges
+	// (i.e., WVertex::_EdgeList is empty), which causes a crash due to a call
+	// of WVertex::_EdgeList.front().
+	if (start->GetEdges().empty())
+		return;
+
 	// in case we have a non-manifold vertex, skip it...
-	if(start->isBoundary())
+	if (start->isBoundary())
 		return;
 
 	std::set<WVertex*> vertices;
