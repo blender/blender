@@ -57,6 +57,8 @@ int Interface0D_Init( PyObject *module )
 	Py_INCREF( &TVertex_Type );
 	PyModule_AddObject(module, "TVertex", (PyObject *)&TVertex_Type);
 
+	StrokeVertex_mathutils_register_callback();
+
 	return 0;
 }
 

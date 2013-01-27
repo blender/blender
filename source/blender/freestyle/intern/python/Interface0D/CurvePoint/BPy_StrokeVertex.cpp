@@ -1,5 +1,6 @@
 #include "BPy_StrokeVertex.h"
 
+#include "../../BPy_Freestyle.h"
 #include "../../BPy_Convert.h"
 #include "../../BPy_StrokeAttribute.h"
 #include "../../Interface0D/BPy_SVertex.h"
@@ -7,6 +8,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "../../../python/mathutils/mathutils.h" /* for Vector callbacks */
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -108,247 +111,187 @@ static int StrokeVertex___init__(BPy_StrokeVertex *self, PyObject *args, PyObjec
 	return 0;
 }
 
-static char StrokeVertex_x___doc__[] =
-".. method:: x()\n"
-"\n"
-"   Returns the 2D point X coordinate.\n"
-"\n"
-"   :return: The X coordinate.\n"
-"   :rtype: float\n";
-
-static PyObject * StrokeVertex_x( BPy_StrokeVertex *self ) {
-	return PyFloat_FromDouble( self->sv->x() );
-}
-
-static char StrokeVertex_y___doc__[] =
-".. method:: y()\n"
-"\n"
-"   Returns the 2D point Y coordinate.\n"
-"\n"
-"   :return: The Y coordinate.\n"
-"   :rtype: float\n";
-
-static PyObject * StrokeVertex_y( BPy_StrokeVertex *self ) {
-	return PyFloat_FromDouble( self->sv->y() );
-}
-
-static char StrokeVertex_getPoint___doc__[] =
-".. method:: getPoint()\n"
-"\n"
-"   Returns the 2D point coordinates as a two-dimensional vector.\n"
-"\n"
-"   :return: The 2D coordinates.\n"
-"   :rtype: :class:`mathutils.Vector`\n";
-
-static PyObject * StrokeVertex_getPoint( BPy_StrokeVertex *self ) {
-	Vec2f v( self->sv->getPoint() );
-	return Vector_from_Vec2f( v );
-}
-
-static char StrokeVertex_attribute___doc__[] =
-".. method:: attribute()\n"
-"\n"
-"   Returns the StrokeAttribute for this StrokeVertex.\n"
-"\n"
-"   :return: The StrokeAttribute object.\n"
-"   :rtype: :class:`StrokeAttribute`\n";
-
-static PyObject * StrokeVertex_attribute( BPy_StrokeVertex *self ) {
-	return BPy_StrokeAttribute_from_StrokeAttribute( self->sv->attribute() );
-}
-
-static char StrokeVertex_curvilinearAbscissa___doc__[] =
-".. method:: curvilinearAbscissa()\n"
-"\n"
-"   Returns the curvilinear abscissa.\n"
-"\n"
-"   :return: The curvilinear abscissa.\n"
-"   :rtype: float\n";
-
-static PyObject * StrokeVertex_curvilinearAbscissa( BPy_StrokeVertex *self ) {
-	return PyFloat_FromDouble( self->sv->curvilinearAbscissa() );
-}
-
-static char StrokeVertex_strokeLength___doc__[] =
-".. method:: strokeLength()\n"
-"\n"
-"   Returns the length of the Stroke to which this StrokeVertex belongs\n"
-"\n"
-"   :return: The stroke length.\n"
-"   :rtype: float\n";
-
-static PyObject * StrokeVertex_strokeLength( BPy_StrokeVertex *self ) {
-	return PyFloat_FromDouble( self->sv->strokeLength() );
-}
-
-static char StrokeVertex_u___doc__[] =
-".. method:: u()\n"
-"\n"
-"   Returns the curvilinear abscissa of this StrokeVertex in the Stroke\n"
-"\n"
-"   :return: The curvilinear abscissa.\n"
-"   :rtype: float\n";
-
-static PyObject * StrokeVertex_u( BPy_StrokeVertex *self ) {
-	return PyFloat_FromDouble( self->sv->u() );
-}
-
-static char StrokeVertex_setX___doc__[] =
-".. method:: setX(x)\n"
-"\n"
-"   Sets the 2D point X coordinate.\n"
-"\n"
-"   :arg x: The X coordinate.\n"
-"   :type x: float\n";
-
-static PyObject *StrokeVertex_setX( BPy_StrokeVertex *self , PyObject *args) {
-	double r;
-
-	if(!( PyArg_ParseTuple(args, "d", &r)  ))
-		return NULL;
-
-	self->sv->setX( r );
-
-	Py_RETURN_NONE;
-}
-
-static char StrokeVertex_setY___doc__[] =
-".. method:: setY(y)\n"
-"\n"
-"   Sets the 2D point Y coordinate.\n"
-"\n"
-"   :arg y: The Y coordinate.\n"
-"   :type y: float\n";
-
-static PyObject *StrokeVertex_setY( BPy_StrokeVertex *self , PyObject *args) {
-	double r;
-
-	if(!( PyArg_ParseTuple(args, "d", &r)  ))
-		return NULL;
-
-	self->sv->setY( r );
-
-	Py_RETURN_NONE;
-}
-
-static char StrokeVertex_setPoint___doc__[] =
-".. method:: setPoint(x, y)\n"
-"\n"
-"   Sets the 2D point X and Y coordinates.\n"
-"\n"
-"   :arg x: The X coordinate.\n"
-"   :type x: float\n"
-"   :arg y: The Y coordinate.\n"
-"   :type y: float\n"
-"\n"
-".. method:: setPoint(p)\n"
-"\n"
-"   Sets the 2D point X and Y coordinates.\n"
-"\n"
-"   :arg p: A two-dimensional vector.\n"
-"   :type p: :class:`mathutils.Vector`, list or tuple of 2 real numbers\n";
-
-static PyObject *StrokeVertex_setPoint( BPy_StrokeVertex *self , PyObject *args) {
-	PyObject *obj1 = 0, *obj2 = 0;
-
-	if(!( PyArg_ParseTuple(args, "O|O", &obj1, &obj2) ))
-		return NULL;
-	
-	if( obj1 && !obj2 ){
-		Vec2f *v = Vec2f_ptr_from_PyObject(obj1);
-		if( !v ) {
-			PyErr_SetString(PyExc_TypeError, "argument 1 must be a 2D vector (either a list of 2 elements or Vector)");
-			return NULL;
-		}
-		self->sv->setPoint( *v );
-		delete v; 
-	} else if( PyFloat_Check(obj1) && obj2 && PyFloat_Check(obj2) ){
-		self->sv->setPoint( PyFloat_AsDouble(obj1), PyFloat_AsDouble(obj2) );
-	} else {
-		PyErr_SetString(PyExc_TypeError, "invalid arguments");
-		return NULL;
-	}
-
-	Py_RETURN_NONE;
-}
-
-static char StrokeVertex_setAttribute___doc__[] =
-".. method:: setAttribute(iAttribute)\n"
-"\n"
-"   Sets the attribute.\n"
-"\n"
-"   :arg iAttribute: A StrokeAttribute object.\n"
-"   :type iAttribute: :class:`StrokeAttribute`\n";
-
-static PyObject *StrokeVertex_setAttribute( BPy_StrokeVertex *self , PyObject *args) {
-	PyObject *py_sa;
-
-	if(!( PyArg_ParseTuple(args, "O!", &StrokeAttribute_Type, &py_sa) ))
-		return NULL;
-
-	self->sv->setAttribute(*( ((BPy_StrokeAttribute *) py_sa)->sa ));
-
-	Py_RETURN_NONE;
-}
-
-static char StrokeVertex_setCurvilinearAbscissa___doc__[] =
-".. method:: setCurvilinearAbscissa(iAbscissa)\n"
-"\n"
-"   Sets the curvilinear abscissa of this StrokeVertex in the Stroke\n"
-"\n"
-"   :arg iAbscissa: The curvilinear abscissa.\n"
-"   :type iAbscissa: float\n";
-
-static PyObject *StrokeVertex_setCurvilinearAbscissa( BPy_StrokeVertex *self , PyObject *args) {
-	double r;
-
-	if(!( PyArg_ParseTuple(args, "d", &r)  ))
-		return NULL;
-
-	self->sv->setCurvilinearAbscissa( r );
-
-	Py_RETURN_NONE;
-}
-
-static char StrokeVertex_setStrokeLength___doc__[] =
-".. method:: setStrokeLength(iLength)\n"
-"\n"
-"   Sets the stroke length (it is only a value retained by the\n"
-"   StrokeVertex, and it won't change the real stroke length).\n"
-"\n"
-"   :arg iLength: The stroke length.\n"
-"   :type iLength: float\n";
-
-static PyObject *StrokeVertex_setStrokeLength( BPy_StrokeVertex *self , PyObject *args) {
-	double r;
-
-	if(!( PyArg_ParseTuple(args, "d", &r)  ))
-		return NULL;
-
-	self->sv->setStrokeLength( r );
-
-	Py_RETURN_NONE;
-}
-
 // real 	operator[] (const int i) const
 // real & 	operator[] (const int i)
 
 /*----------------------StrokeVertex instance definitions ----------------------------*/
 static PyMethodDef BPy_StrokeVertex_methods[] = {	
-	{"x", ( PyCFunction ) StrokeVertex_x, METH_NOARGS, StrokeVertex_x___doc__},
-	{"y", ( PyCFunction ) StrokeVertex_y, METH_NOARGS, StrokeVertex_y___doc__},
-	{"getPoint", ( PyCFunction ) StrokeVertex_getPoint, METH_NOARGS, StrokeVertex_getPoint___doc__},
-	{"attribute", ( PyCFunction ) StrokeVertex_attribute, METH_NOARGS, StrokeVertex_attribute___doc__},
-	{"curvilinearAbscissa", ( PyCFunction ) StrokeVertex_curvilinearAbscissa, METH_NOARGS, StrokeVertex_curvilinearAbscissa___doc__},
-	{"strokeLength", ( PyCFunction ) StrokeVertex_strokeLength, METH_NOARGS, StrokeVertex_strokeLength___doc__},
-	{"u", ( PyCFunction ) StrokeVertex_u, METH_NOARGS, StrokeVertex_u___doc__},
-	{"setX", ( PyCFunction ) StrokeVertex_setX, METH_VARARGS, StrokeVertex_setX___doc__},
-	{"setY", ( PyCFunction ) StrokeVertex_setY, METH_VARARGS, StrokeVertex_setY___doc__},
-	{"setPoint", ( PyCFunction ) StrokeVertex_setPoint, METH_VARARGS, StrokeVertex_setPoint___doc__},
-	{"setAttribute", ( PyCFunction ) StrokeVertex_setAttribute, METH_VARARGS, StrokeVertex_setAttribute___doc__},
-	{"setCurvilinearAbscissa", ( PyCFunction ) StrokeVertex_setCurvilinearAbscissa, METH_VARARGS, StrokeVertex_setCurvilinearAbscissa___doc__},
-	{"setStrokeLength", ( PyCFunction ) StrokeVertex_setStrokeLength, METH_VARARGS, StrokeVertex_setStrokeLength___doc__},
 	{NULL, NULL, 0, NULL}
+};
+
+/*----------------------mathutils callbacks ----------------------------*/
+
+static int StrokeVertex_mathutils_check(BaseMathObject *bmo)
+{
+	if (!BPy_StrokeVertex_Check(bmo->cb_user))
+		return -1;
+	return 0;
+}
+
+static int StrokeVertex_mathutils_get(BaseMathObject *bmo, int subtype)
+{
+	BPy_StrokeVertex *self = (BPy_StrokeVertex *)bmo->cb_user;
+	bmo->data[0] = (float)self->sv->x();
+	bmo->data[1] = (float)self->sv->y();
+	return 0;
+}
+
+static int StrokeVertex_mathutils_set(BaseMathObject *bmo, int subtype)
+{
+	BPy_StrokeVertex *self = (BPy_StrokeVertex *)bmo->cb_user;
+	self->sv->setX((real)bmo->data[0]);
+	self->sv->setY((real)bmo->data[1]);
+	return 0;
+}
+
+static int StrokeVertex_mathutils_get_index(BaseMathObject *bmo, int subtype, int index)
+{
+	BPy_StrokeVertex *self = (BPy_StrokeVertex *)bmo->cb_user;
+	switch (index) {
+	case 0: bmo->data[0] = (float)self->sv->x(); break;
+	case 1: bmo->data[1] = (float)self->sv->y(); break;
+	default:
+		return -1;
+	}
+	return 0;
+}
+
+static int StrokeVertex_mathutils_set_index(BaseMathObject *bmo, int subtype, int index)
+{
+	BPy_StrokeVertex *self = (BPy_StrokeVertex *)bmo->cb_user;
+	switch (index) {
+	case 0: self->sv->setX((real)bmo->data[0]); break;
+	case 1: self->sv->setY((real)bmo->data[1]); break;
+	default:
+		return -1;
+	}
+	return 0;
+}
+
+static Mathutils_Callback StrokeVertex_mathutils_cb = {
+	StrokeVertex_mathutils_check,
+	StrokeVertex_mathutils_get,
+	StrokeVertex_mathutils_set,
+	StrokeVertex_mathutils_get_index,
+	StrokeVertex_mathutils_set_index
+};
+
+static unsigned char StrokeVertex_mathutils_cb_index = -1;
+
+void StrokeVertex_mathutils_register_callback()
+{
+	StrokeVertex_mathutils_cb_index = Mathutils_RegisterCallback(&StrokeVertex_mathutils_cb);
+}
+
+/*----------------------StrokeVertex get/setters ----------------------------*/
+
+PyDoc_STRVAR(StrokeVertex_attribute_doc,
+"StrokeAttribute for this StrokeVertex.\n"
+"\n"
+":type: StrokeAttribute"
+);
+
+static PyObject *StrokeVertex_attribute_get(BPy_StrokeVertex *self, void *UNUSED(closure))
+{
+	return BPy_StrokeAttribute_from_StrokeAttribute(self->sv->attribute());
+}
+
+static int StrokeVertex_attribute_set(BPy_StrokeVertex *self, PyObject *value, void *UNUSED(closure))
+{
+	if (!BPy_StrokeAttribute_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be a StrokeAttribute object");
+		return -1;
+	}
+	self->sv->setAttribute(*(((BPy_StrokeAttribute *)value)->sa));
+	return 0;
+}
+
+PyDoc_STRVAR(StrokeVertex_curvilinear_abscissa_doc,
+"Curvilinear abscissa of this StrokeVertex in the Stroke.\n"
+"\n"
+":type: float"
+);
+
+static PyObject *StrokeVertex_curvilinear_abscissa_get(BPy_StrokeVertex *self, void *UNUSED(closure))
+{
+	return PyFloat_FromDouble(self->sv->curvilinearAbscissa());
+}
+
+static int StrokeVertex_curvilinear_abscissa_set(BPy_StrokeVertex *self, PyObject *value, void *UNUSED(closure))
+{
+	float scalar;
+	if ((scalar = PyFloat_AsDouble(value)) == -1.0f && PyErr_Occurred()) { /* parsed item not a number */
+		PyErr_SetString(PyExc_TypeError, "value must be a number");
+		return -1;
+	}
+	self->sv->setCurvilinearAbscissa(scalar);
+	return 0;
+}
+
+PyDoc_STRVAR(StrokeVertex_point_doc,
+"2D point coordinates.\n"
+"\n"
+":type: mathutils.Vector"
+);
+
+static PyObject *StrokeVertex_point_get(BPy_StrokeVertex *self, void *UNUSED(closure))
+{
+	return Vector_CreatePyObject_cb((PyObject *)self, 2, StrokeVertex_mathutils_cb_index, 0);
+}
+
+static int StrokeVertex_point_set(BPy_StrokeVertex *self, PyObject *value, void *UNUSED(closure))
+{
+	Vec2f *v = Vec2f_ptr_from_PyObject(value);
+	if (!v) {
+		PyErr_SetString(PyExc_ValueError, "value must be a 2-dimensional vector");
+		return -1;
+	}
+	self->sv->setX(v->x());
+	self->sv->setY(v->y());
+	return 0;
+}
+
+PyDoc_STRVAR(StrokeVertex_stroke_length_doc,
+"Stroke length (it is only a value retained by the StrokeVertex,\n"
+"and it won't change the real stroke length).\n"
+"\n"
+":type: float"
+);
+
+static PyObject *StrokeVertex_stroke_length_get(BPy_StrokeVertex *self, void *UNUSED(closure))
+{
+	return PyFloat_FromDouble(self->sv->strokeLength());
+}
+
+static int StrokeVertex_stroke_length_set(BPy_StrokeVertex *self, PyObject *value, void *UNUSED(closure))
+{
+	float scalar;
+	if ((scalar = PyFloat_AsDouble(value)) == -1.0f && PyErr_Occurred()) { /* parsed item not a number */
+		PyErr_SetString(PyExc_TypeError, "value must be a number");
+		return -1;
+	}
+	self->sv->setStrokeLength(scalar);
+	return 0;
+}
+
+PyDoc_STRVAR(StrokeVertex_u_doc,
+"Curvilinear abscissa of this StrokeVertex in the Stroke.\n"
+"\n"
+":type: float"
+);
+
+static PyObject *StrokeVertex_u_get(BPy_StrokeVertex *self, void *UNUSED(closure))
+{
+	return PyFloat_FromDouble(self->sv->u());
+}
+
+static PyGetSetDef BPy_StrokeVertex_getseters[] = {
+	{(char *)"attribute", (getter)StrokeVertex_attribute_get, (setter)StrokeVertex_attribute_set, (char *)StrokeVertex_attribute_doc, NULL},
+	{(char *)"curvilinear_abscissa", (getter)StrokeVertex_curvilinear_abscissa_get, (setter)StrokeVertex_curvilinear_abscissa_set, (char *)StrokeVertex_curvilinear_abscissa_doc, NULL},
+	{(char *)"point", (getter)StrokeVertex_point_get, (setter)StrokeVertex_point_set, (char *)StrokeVertex_point_doc, NULL},
+	{(char *)"stroke_length", (getter)StrokeVertex_stroke_length_get, (setter)StrokeVertex_stroke_length_set, (char *)StrokeVertex_stroke_length_doc, NULL},
+	{(char *)"u", (getter)StrokeVertex_u_get, (setter)NULL, (char *)StrokeVertex_u_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_StrokeVertex type definition ------------------------------*/
@@ -382,7 +325,7 @@ PyTypeObject StrokeVertex_Type = {
 	0,                              /* tp_iternext */
 	BPy_StrokeVertex_methods,       /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_StrokeVertex_getseters,     /* tp_getset */
 	&CurvePoint_Type,               /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */

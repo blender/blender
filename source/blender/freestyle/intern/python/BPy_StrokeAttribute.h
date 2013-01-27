@@ -25,6 +25,7 @@ typedef struct {
 /*---------------------------Python BPy_StrokeAttribute visible prototypes-----------*/
 
 int StrokeAttribute_Init( PyObject *module );
+void StrokeAttribute_mathutils_register_callback();
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

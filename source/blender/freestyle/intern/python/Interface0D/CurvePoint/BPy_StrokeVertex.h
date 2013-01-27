@@ -22,6 +22,10 @@ typedef struct {
 	StrokeVertex *sv;
 } BPy_StrokeVertex;
 
+/*---------------------------Python BPy_StrokeVertex visible prototypes-----------*/
+
+void StrokeVertex_mathutils_register_callback();
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus

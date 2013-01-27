@@ -483,6 +483,8 @@ Vec3f * Vec3f_ptr_from_PyObject( PyObject* obj ) {
 	Vec3f *v;
 	if( (v = Vec3f_ptr_from_Vector( obj )) )
 		return v;
+	if( (v = Vec3f_ptr_from_Color( obj )) )
+		return v;
 	if( (v = Vec3f_ptr_from_PyList( obj )) )
 		return v;
 	if( (v = Vec3f_ptr_from_PyTuple( obj )) )
@@ -494,6 +496,8 @@ Vec3r * Vec3r_ptr_from_PyObject( PyObject* obj ) {
 	Vec3r *v;
 	if( (v = Vec3r_ptr_from_Vector( obj )) )
 		return v;
+	if( (v = Vec3r_ptr_from_Color( obj )) )
+		return v;
 	if( (v = Vec3r_ptr_from_PyList( obj )) )
 		return v;
 	if( (v = Vec3r_ptr_from_PyTuple( obj )) )
@@ -502,51 +506,47 @@ Vec3r * Vec3r_ptr_from_PyObject( PyObject* obj ) {
 }
 
 Vec2f * Vec2f_ptr_from_Vector( PyObject* obj ) {
-	PyObject *v;
 	if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 2)
 		return NULL;
-	v = PyObject_GetAttrString(obj,"x");
-	float x = PyFloat_AsDouble( v );
-	Py_DECREF( v );
-	v = PyObject_GetAttrString(obj,"y");
-	float y = PyFloat_AsDouble( v );
-	Py_DECREF( v );
-	
-	return new Vec2f(x,y);
+	float x = ((VectorObject *)obj)->vec[0];
+	float y = ((VectorObject *)obj)->vec[1];
+	return new Vec2f(x, y);
 }
 
 Vec3f * Vec3f_ptr_from_Vector( PyObject* obj ) {
-	PyObject *v;
 	if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 3)
 		return NULL;
-	v = PyObject_GetAttrString(obj,"x");
-	float x = PyFloat_AsDouble( v );
-	Py_DECREF( v );
-	v = PyObject_GetAttrString(obj,"y");
-	float y = PyFloat_AsDouble( v );
-	Py_DECREF( v );
-	v = PyObject_GetAttrString(obj,"z");
-	float z = PyFloat_AsDouble( v );
-	Py_DECREF( v );
-	
+	float x = ((VectorObject *)obj)->vec[0];
+	float y = ((VectorObject *)obj)->vec[1];
+	float z = ((VectorObject *)obj)->vec[2];
 	return new Vec3f(x,y,z);
 }
 
 Vec3r * Vec3r_ptr_from_Vector( PyObject* obj ) {
-	PyObject *v;
 	if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 3)
 		return NULL;
-	v = PyObject_GetAttrString(obj,"x");
-	double x = PyFloat_AsDouble( v );
-	Py_DECREF( v );
-	v = PyObject_GetAttrString(obj,"y");
-	double y = PyFloat_AsDouble( v );
-	Py_DECREF( v );
-	v = PyObject_GetAttrString(obj,"z");
-	double z = PyFloat_AsDouble( v );
-	Py_DECREF( v );
-	
+	real x = ((VectorObject *)obj)->vec[0];
+	real y = ((VectorObject *)obj)->vec[1];
+	real z = ((VectorObject *)obj)->vec[2];
 	return new Vec3r(x,y,z);
+}
+
+Vec3f * Vec3f_ptr_from_Color( PyObject* obj ) {
+	if (!ColorObject_Check(obj))
+		return NULL;
+	float r = ((ColorObject *)obj)->col[0];
+	float g = ((ColorObject *)obj)->col[1];
+	float b = ((ColorObject *)obj)->col[2];
+	return new Vec3f(r,g,b);
+}
+
+Vec3r * Vec3r_ptr_from_Color( PyObject* obj ) {
+	if (!ColorObject_Check(obj))
+		return NULL;
+	real r = ((ColorObject *)obj)->col[0];
+	real g = ((ColorObject *)obj)->col[1];
+	real b = ((ColorObject *)obj)->col[2];
+	return new Vec3r(r,g,b);
 }
 
 Vec2f * Vec2f_ptr_from_PyList( PyObject* obj ) {

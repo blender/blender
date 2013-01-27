@@ -27,48 +27,21 @@
 
 from freestyle_init import *
 from logical_operators import *
-from PredicatesB1D import *
 from shaders import *
-from PredicatesU0D import *
-from math import *
 
-## thickness modifiers
-
-normalInfo=Normal2DF0D()
-curvatureInfo=Curvature2DAngleF0D()
-
-def edgestopping(x, sigma): 
-	return exp(- x*x/(2*sigma*sigma))
-
-class pyDiffusion2Shader(StrokeShader):
-	def __init__(self, lambda1, nbIter):
-		StrokeShader.__init__(self)
-		self._lambda = lambda1
-		self._nbIter = nbIter
-	def getName(self):
-		return "pyDiffusionShader"
-	def shade(self, stroke):
-		for i in range (1, self._nbIter):
-			it = stroke.strokeVerticesBegin()
-			while it.isEnd() == 0:
-				v=it.getObject()
-				p1 = v.getPoint()
-				p2 = normalInfo(it.castToInterface0DIterator())*self._lambda*curvatureInfo(it.castToInterface0DIterator())
-				v.setPoint(p1+p2)
-				it.increment()
+# pyDiffusion2Shader parameters
+offset = 0.25
+nbIter = 30
 
 upred = AndUP1D(QuantitativeInvisibilityUP1D(0), ExternalContourUP1D())
 Operators.select( upred )
-bpred = TrueBP1D();
+bpred = TrueBP1D()
 Operators.bidirectionalChain(ChainPredicateIterator(upred, bpred), NotUP1D(upred) )
-shaders_list = 	[
-		ConstantThicknessShader(4),
-		StrokeTextureShader("smoothAlpha.bmp", Stroke.OPAQUE_MEDIUM, 0),
-		SamplingShader(2),
-		pyDiffusion2Shader(-0.03, 30), 
-		IncreasingColorShader(1.0,0.0,0.0,1, 0, 1, 0, 1)
-		]
+shaders_list = [
+    ConstantThicknessShader(4),
+    StrokeTextureShader("smoothAlpha.bmp", Stroke.OPAQUE_MEDIUM, 0),
+    SamplingShader(2),
+    pyDiffusion2Shader(offset, nbIter), 
+    IncreasingColorShader(1, 0, 0, 1, 0, 1, 0, 1)
+    ]
 Operators.create(TrueUP1D(), shaders_list)
-
-
-

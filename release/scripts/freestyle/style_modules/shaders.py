@@ -28,7 +28,7 @@ class pyDepthDiscontinuityThicknessShader(StrokeShader):
 		while it.isEnd() == 0:
 			z = self.__func(it.castToInterface0DIterator())
 			thickness = a*z+b
-			it.getObject().attribute().setThickness(thickness, thickness)
+			it.getObject().attribute.thickness = (thickness, thickness)
 			it.increment()
 
 class pyConstantThicknessShader(StrokeShader):
@@ -42,9 +42,8 @@ class pyConstantThicknessShader(StrokeShader):
 		it = stroke.strokeVerticesBegin()
 		it_end = stroke.strokeVerticesEnd()
 		while it.isEnd() == 0:
-			att = it.getObject().attribute()
 			t = self._thickness/2.0
-			att.setThickness(t, t)
+			it.getObject().attribute.thickness = (t, t)
 			it.increment()
 
 class pyFXSThicknessShader(StrokeShader):
@@ -58,9 +57,8 @@ class pyFXSThicknessShader(StrokeShader):
 		it = stroke.strokeVerticesBegin()
 		it_end = stroke.strokeVerticesEnd()
 		while it.isEnd() == 0:
-			att = it.getObject().attribute()
 			t = self._thickness/2.0
-			att.setThickness(t, t)
+			it.getObject().attribute.thickness = (t, t)
 			it.increment()
 
 class pyFXSVaryingThicknessWithDensityShader(StrokeShader):
@@ -81,7 +79,6 @@ class pyFXSVaryingThicknessWithDensityShader(StrokeShader):
 		it_end = stroke.strokeVerticesEnd()
 		func = DensityF0D(self.wsize)
 		while it.isEnd() == 0:
-			att = it.getObject().attribute()
 			toto = it.castToInterface0DIterator()
 			c= func(toto)
 			if (c < self.threshold_min ):
@@ -90,9 +87,10 @@ class pyFXSVaryingThicknessWithDensityShader(StrokeShader):
 				c = self.threshold_max
 ##			t = (c - self.threshold_min)/(self.threshold_max - self.threshold_min)*(self._thicknessMax-self._thicknessMin) + self._thicknessMin
 			t = (self.threshold_max - c  )/(self.threshold_max - self.threshold_min)*(self._thicknessMax-self._thicknessMin) + self._thicknessMin
-			att.setThickness(t/2.0, t/2.0)
+			it.getObject().attribute.thickness = (t/2.0, t/2.0)
 			i = i+1
 			it.increment()
+
 class pyIncreasingThicknessShader(StrokeShader):
 	def __init__(self, thicknessMin, thicknessMax):
 		StrokeShader.__init__(self)
@@ -107,13 +105,12 @@ class pyIncreasingThicknessShader(StrokeShader):
 		it = stroke.strokeVerticesBegin()
 		it_end = stroke.strokeVerticesEnd()
 		while it.isEnd() == 0:
-			att = it.getObject().attribute()
 			c = float(i)/float(n)
 			if(i < float(n)/2.0):
 				t = (1.0 - c)*self._thicknessMin + c * self._thicknessMax
 			else:
 				t = (1.0 - c)*self._thicknessMax + c * self._thicknessMin
-			att.setThickness(t/2.0, t/2.0)
+			it.getObject().attribute.thickness = (t/2.0, t/2.0)
 			i = i+1
 			it.increment()
 
@@ -139,15 +136,15 @@ class pyConstrainedIncreasingThicknessShader(StrokeShader):
 		it = stroke.strokeVerticesBegin()
 		it_end = stroke.strokeVerticesEnd()
 		while it.isEnd() == 0:
-			att = it.getObject().attribute()
+			att = it.getObject().attribute
 			c = float(i)/float(n)
 			if(i < float(n)/2.0):
 				t = (1.0 - c)*self._thicknessMin + c * maxT
 			else:
 				t = (1.0 - c)*maxT + c * self._thicknessMin
-			att.setThickness(t/2.0, t/2.0)
+			att.thickness = (t/2.0, t/2.0)
 			if(i == n-1):
-				att.setThickness(self._thicknessMin/2.0, self._thicknessMin/2.0)
+				att.thickness = (self._thicknessMin/2.0, self._thicknessMin/2.0)
 			i = i+1
 			it.increment()
 
@@ -172,10 +169,9 @@ class pyDecreasingThicknessShader(StrokeShader):
 		it = stroke.strokeVerticesBegin()
 		it_end = stroke.strokeVerticesEnd()
 		while it.isEnd() == 0:
-			att = it.getObject().attribute()
 			c = float(i)/float(n)
 			t = (1.0 - c)*tMax +c*tMin
-			att.setThickness(t/2.0, t/2.0)
+			it.getObject().attribute.thickness = (t/2.0, t/2.0)
 			i = i+1
 			it.increment()
 
@@ -198,14 +194,13 @@ class pyNonLinearVaryingThicknessShader(StrokeShader):
 		it = stroke.strokeVerticesBegin()
 		it_end = stroke.strokeVerticesEnd()
 		while it.isEnd() == 0:
-			att = it.getObject().attribute()
 			if(i < float(n)/2.0):
 				c = float(i)/float(n)
 			else:
 				c = float(n-i)/float(n)
 			c = smoothC(c, self._exponent)
 			t = (1.0 - c)*self._thicknessMax + c * self._thicknessMin
-			att.setThickness(t/2.0, t/2.0)
+			it.getObject().attribute.thickness = (t/2.0, t/2.0)
 			i = i+1
 			it.increment()
 
@@ -231,13 +226,12 @@ class pySLERPThicknessShader(StrokeShader):
 		it = stroke.strokeVerticesBegin()
 		it_end = stroke.strokeVerticesEnd()
 		while it.isEnd() == 0:
-			att = it.getObject().attribute()
 			c = float(i)/float(n)
 			if(i < float(n)/2.0):
 				t = sin((1-c)*self._omega)/sinh(self._omega)*self._thicknessMin + sin(c*self._omega)/sinh(self._omega) * maxT
 			else:
 				t = sin((1-c)*self._omega)/sinh(self._omega)*maxT + sin(c*self._omega)/sinh(self._omega) * self._thicknessMin
-			att.setThickness(t/2.0, t/2.0)
+			it.getObject().attribute.thickness = (t/2.0, t/2.0)
 			i = i+1
 			it.increment()
 
@@ -266,33 +260,30 @@ class pyTVertexThickenerShader(StrokeShader): ## FIXME
 					it3 = StrokeVertexIterator(it)
 					count = 0
 					while (it3.isEnd() == 0 and count < n):
-						att = it3.getObject().attribute()
-						tr = att.getThicknessR();
-						tl = att.getThicknessL();
+						att = it3.getObject().attribute
+						(tr, tl) = att.thickness
 						r = (a-1.0)/float(n-1)*(float(n)/float(count+1) - 1) + 1
 						#r = (1.0-a)/float(n-1)*count + a
-						att.setThickness(r*tr, r*tl)	
+						att.thickness = (r*tr, r*tl)	
 						it3.increment()
 						count = count + 1
 				if(it2.isEnd()):
 					it4 = StrokeVertexIterator(it)
 					count = 0
 					while (it4.isBegin() == 0 and count < n):
-						att = it4.getObject().attribute()
-						tr = att.getThicknessR();
-						tl = att.getThicknessL();
+						att = it4.getObject().attribute
+						(tr, tl) = att.thickness
 						r = (a-1.0)/float(n-1)*(float(n)/float(count+1) - 1) + 1
 						#r = (1.0-a)/float(n-1)*count + a
-						att.setThickness(r*tr, r*tl)	
+						att.thickness = (r*tr, r*tl)	
 						it4.decrement()
 						count = count + 1
 					if ((it4.isBegin() == 1)):
-						att = it4.getObject().attribute()
-						tr = att.getThicknessR();
-						tl = att.getThicknessL();
+						att = it4.getObject().attribute
+						(tr, tl) = att.thickness
 						r = (a-1.0)/float(n-1)*(float(n)/float(count+1) - 1) + 1
 						#r = (1.0-a)/float(n-1)*count + a
-						att.setThickness(r*tr, r*tl)	
+						att.thickness = (r*tr, r*tl)	
 			it.increment()
 
 class pyImportance2DThicknessShader(StrokeShader):
@@ -317,10 +308,9 @@ class pyImportance2DThicknessShader(StrokeShader):
 				k = self._kmin
 			else:
 				k = (self._kmax*(self._w-d) + self._kmin*d)/self._w
-			att = v.attribute()
-			tr = att.getThicknessR()
-			tl = att.getThicknessL()
-			att.setThickness(k*tr/2.0, k*tl/2.0)
+			att = v.attribute
+			(tr, tl) = att.thickness
+			att.thickness = (k*tr/2.0, k*tl/2.0)
 			it.increment()
 
 class pyImportance3DThicknessShader(StrokeShader):
@@ -346,10 +336,9 @@ class pyImportance3DThicknessShader(StrokeShader):
 				k = self._kmin
 			else:
 				k = (self._kmax*(self._w-d) + self._kmin*d)/self._w
-			att = v.attribute()
-			tr = att.getThicknessR()
-			tl = att.getThicknessL()
-			att.setThickness(k*tr/2.0, k*tl/2.0)
+			att = v.attribute
+			(tr, tl) = att.thickness
+			att.thickness = (k*tr/2.0, k*tl/2.0)
 			it.increment()
 
 class pyZDependingThicknessShader(StrokeShader):
@@ -376,7 +365,7 @@ class pyZDependingThicknessShader(StrokeShader):
 		while it.isEnd() == 0:
 			z = (self.__func(it.castToInterface0DIterator()) - z_min) * z_diff
 			thickness = (1 - z) * self.__max + z * self.__min
-			it.getObject().attribute().setThickness(thickness, thickness)
+			it.getObject().attribute.thickness = (thickness, thickness)
 			it.increment()
 
 
@@ -396,9 +385,9 @@ class pyConstantColorShader(StrokeShader):
 		it = stroke.strokeVerticesBegin()
 		it_end = stroke.strokeVerticesEnd()
 		while it.isEnd() == 0:
-			att = it.getObject().attribute()
-			att.setColor(self._r, self._g, self._b)
-			att.setAlpha(self._a)
+			att = it.getObject().attribute
+			att.color = (self._r, self._g, self._b)
+			att.alpha = self._a
 			it.increment()
 
 #c1->c2
@@ -415,13 +404,13 @@ class pyIncreasingColorShader(StrokeShader):
 		it = stroke.strokeVerticesBegin()
 		it_end = stroke.strokeVerticesEnd()
 		while it.isEnd() == 0:
-			att = it.getObject().attribute()
+			att = it.getObject().attribute
 			c = float(inc)/float(n)
 
-			att.setColor(  (1-c)*self._c1[0] + c*self._c2[0], 
-				      (1-c)*self._c1[1] + c*self._c2[1],
-			                    (1-c)*self._c1[2] + c*self._c2[2],)
-			att.setAlpha((1-c)*self._c1[3] + c*self._c2[3],)
+			att.color = ((1-c)*self._c1[0] + c*self._c2[0], 
+				     (1-c)*self._c1[1] + c*self._c2[1],
+				     (1-c)*self._c1[2] + c*self._c2[2])
+			att.alpha = (1-c)*self._c1[3] + c*self._c2[3]
 			inc = inc+1
 			it.increment()
 
@@ -439,13 +428,13 @@ class pyInterpolateColorShader(StrokeShader):
 		it = stroke.strokeVerticesBegin()
 		it_end = stroke.strokeVerticesEnd()
 		while it.isEnd() == 0:
-			att = it.getObject().attribute()
+			att = it.getObject().attribute
 			u = float(inc)/float(n)
 			c = 1-2*(fabs(u-0.5))
-			att.setColor(  (1-c)*self._c1[0] + c*self._c2[0], 
-				      (1-c)*self._c1[1] + c*self._c2[1],
-			                    (1-c)*self._c1[2] + c*self._c2[2],)
-			att.setAlpha((1-c)*self._c1[3] + c*self._c2[3],)
+			att.color = ((1-c)*self._c1[0] + c*self._c2[0], 
+				     (1-c)*self._c1[1] + c*self._c2[1],
+				     (1-c)*self._c1[2] + c*self._c2[2])
+			att.alpha = (1-c)*self._c1[3] + c*self._c2[3]
 			inc = inc+1
 			it.increment()
 
@@ -511,8 +500,7 @@ class pyMaterialColorShader(StrokeShader):
 			g = max(0,g)
 			b = max(0,b)
 
-			att = it.getObject().attribute()
-			att.setColor(r, g, b)
+			it.getObject().attribute.color = (r, g, b)
 			it.increment()
 
 class pyRandomColorShader(StrokeShader):
@@ -529,7 +517,7 @@ class pyRandomColorShader(StrokeShader):
 		print(c0, c1, c2)
 		it = stroke.strokeVerticesBegin()
 		while(it.isEnd() == 0):
-			it.getObject().attribute().setColor(c0,c1,c2)
+			it.getObject().attribute.color = (c0,c1,c2)
 			it.increment()
 
 class py2DCurvatureColorShader(StrokeShader):
@@ -538,18 +526,13 @@ class py2DCurvatureColorShader(StrokeShader):
 
 	def shade(self, stroke):
 		it = stroke.strokeVerticesBegin()
-		it_end = stroke.strokeVerticesEnd()
 		func = Curvature2DAngleF0D()
 		while it.isEnd() == 0:
-			toto = it.castToInterface0DIterator()
-			sv = it.getObject()
-			att = sv.attribute()
-			c = func(toto)
-			if (c<0):
+			c = func(it.castToInterface0DIterator())
+			if c < 0:
 				print("negative 2D curvature")
 			color = 10.0 * c/3.1415
-			print(color)
-			att.setColor(color,color,color);
+			it.getObject().attribute.color = (color, color, color)
 			it.increment()
 
 class pyTimeColorShader(StrokeShader):
@@ -562,8 +545,7 @@ class pyTimeColorShader(StrokeShader):
 		it = stroke.strokeVerticesBegin()
 		it_end = stroke.strokeVerticesEnd()
 		while it.isEnd() == 0:
-			att = it.getObject().attribute()
-			att.setColor(c,c,c)
+			it.getObject().attribute.color = (c,c,c)
 			it.increment()
 		self._t = self._t+self._step
 
@@ -607,8 +589,8 @@ class pyBackboneStretcherShader(StrokeShader):
 		dn.normalize()
 		newFirst = p0+d1*float(self._l)
 		newLast = pn+dn*float(self._l)
-		v0.setPoint(newFirst)
-		vn.setPoint(newLast)
+		v0.point = newFirst
+		vn.point = newLast
 		stroke.UpdateLength()
 		
 class pyLengthDependingBackboneStretcherShader(StrokeShader):
@@ -641,8 +623,8 @@ class pyLengthDependingBackboneStretcherShader(StrokeShader):
 		dn.normalize()
 		newFirst = p0+d1*float(stretch)
 		newLast = pn+dn*float(stretch)
-		v0.setPoint(newFirst)
-		vn.setPoint(newLast)
+		v0.point = newFirst
+		vn.point = newLast
 		stroke.UpdateLength()
 
 
@@ -655,23 +637,23 @@ class pyGuidingLineShader(StrokeShader):
 		it = stroke.strokeVerticesBegin() 	## get the first vertex
 		itlast = stroke.strokeVerticesEnd() 	## 
 		itlast.decrement()			## get the last one
-		t = itlast.getObject().getPoint() - it.getObject().getPoint()	## tangent direction
+		t = itlast.getObject().point - it.getObject().point	## tangent direction
 		itmiddle = StrokeVertexIterator(it)	## 
-		while(itmiddle.getObject().u()<0.5):	## look for the stroke middle vertex
+		while(itmiddle.getObject().u<0.5):	## look for the stroke middle vertex
 			itmiddle.increment()		##
 		it = StrokeVertexIterator(itmiddle)	
 		it.increment()
 		while(it.isEnd() == 0):			## position all the vertices along the tangent for the right part
-			it.getObject().setPoint(itmiddle.getObject().getPoint() \
-			+t*(it.getObject().u()-itmiddle.getObject().u()))
+			it.getObject().point = itmiddle.getObject().point \
+			    +t*(it.getObject().u-itmiddle.getObject().u)
 			it.increment()
 		it = StrokeVertexIterator(itmiddle)
 		it.decrement()
 		while(it.isBegin() == 0):		## position all the vertices along the tangent for the left part
-			it.getObject().setPoint(itmiddle.getObject().getPoint() \
-			-t*(itmiddle.getObject().u()-it.getObject().u()))
+			it.getObject().point = itmiddle.getObject().point \
+			    -t*(itmiddle.getObject().u-it.getObject().u)
 			it.decrement()
-		it.getObject().setPoint(itmiddle.getObject().getPoint()-t*(itmiddle.getObject().u())) ## first vertex
+		it.getObject().point = itmiddle.getObject().point-t*itmiddle.getObject().u ## first vertex
 		stroke.UpdateLength()
 
 
@@ -692,30 +674,28 @@ class pyBackboneStretcherNoCuspShader(StrokeShader):
 		v0 = it0.getObject()
 		v1 = it1.getObject()
 		if((v0.getNature() & Nature.CUSP == 0) and (v1.getNature() & Nature.CUSP == 0)):
-			p0 = v0.getPoint()
-			p1 = v1.getPoint()
+			p0 = v0.point
+			p1 = v1.point
 			d1 = p0-p1
 			d1.normalize()
 			newFirst = p0+d1*float(self._l)
-			v0.setPoint(newFirst)
+			v0.point = newFirst
 		vn_1 = itn_1.getObject()
 		vn = itn.getObject()
 		if((vn.getNature() & Nature.CUSP == 0) and (vn_1.getNature() & Nature.CUSP == 0)):
-			pn = vn.getPoint()
-			pn_1 = vn_1.getPoint()
+			pn = vn.point
+			pn_1 = vn_1.point
 			dn = pn-pn_1
 			dn.normalize()
 			newLast = pn+dn*float(self._l)	
-			vn.setPoint(newLast)
+			vn.point = newLast
 		stroke.UpdateLength()
 
-normalInfo=Normal2DF0D()
-curvatureInfo=Curvature2DAngleF0D()
-
-def edgestopping(x, sigma): 
-	return exp(- x*x/(2*sigma*sigma))
-
 class pyDiffusion2Shader(StrokeShader):
+	"""This shader iteratively adds an offset to the position of each
+	stroke vertex in the direction perpendicular to the stroke direction
+	at the point.  The offset is scaled by the 2D curvature (i.e., how
+	quickly the stroke curve is) at the point."""
 	def __init__(self, lambda1, nbIter):
 		StrokeShader.__init__(self)
 		self._lambda = lambda1
@@ -729,9 +709,9 @@ class pyDiffusion2Shader(StrokeShader):
 			it = stroke.strokeVerticesBegin()
 			while it.isEnd() == 0:
 				v=it.getObject()
-				p1 = v.getPoint()
+				p1 = v.point
 				p2 = self._normalInfo(it.castToInterface0DIterator())*self._lambda*self._curvatureInfo(it.castToInterface0DIterator())
-				v.setPoint(p1+p2)
+				v.point = p1+p2
 				it.increment()
 		stroke.UpdateLength()
 
@@ -750,14 +730,15 @@ class pyTipRemoverShader(StrokeShader):
 		it = stroke.strokeVerticesBegin()
 		while(it.isEnd() == 0):
 			v = it.getObject()
-			if((v.curvilinearAbscissa() < self._l) or (v.strokeLength()-v.curvilinearAbscissa() < self._l)):
+			if((v.curvilinear_abscissa < self._l) or (v.stroke_length-v.curvilinear_abscissa < self._l)):
 				verticesToRemove.append(v)
-			oldAttributes.append(StrokeAttribute(v.attribute()))
+			oldAttributes.append(StrokeAttribute(v.attribute))
 			it.increment()
 		if(originalSize-len(verticesToRemove) < 2):
 			return
 		for sv in verticesToRemove:
 			stroke.RemoveVertex(sv)
+		stroke.UpdateLength()
 		stroke.Resample(originalSize)
 		if(stroke.strokeVerticesSize() != originalSize):
 			print("pyTipRemover: Warning: resampling problem")
@@ -765,8 +746,7 @@ class pyTipRemoverShader(StrokeShader):
 		for a in oldAttributes:
 			if(it.isEnd() == 1):
 				break
-			v = it.getObject()
-			v.setAttribute(a)
+			it.getObject().attribute = a
 			it.increment()
 		stroke.UpdateLength()
 
@@ -827,7 +807,7 @@ class pyHLRShader(StrokeShader):
 				else:
 					invisible = 0
 			if(invisible == 1):		
-				v.attribute().setVisible(0)
+				v.attribute.visible = False
 			it.increment()
 			it2.increment()
 
@@ -871,7 +851,7 @@ class pyTVertexOrientationShader(StrokeShader):
 			if(tv != None):			
 				dir = self.findOrientation(tv, ve)
 				#print(dir.x, dir.y)
-				v.attribute().setAttributeVec2f("orientation", dir)
+				v.attribute.setAttributeVec2f("orientation", dir)
 		while(it2.isEnd() == 0):
 			vprevious = it.getObject()
 			v = it2.getObject()
@@ -881,7 +861,7 @@ class pyTVertexOrientationShader(StrokeShader):
 				if(tv != None):	
 					dir = self.findOrientation(tv, ve)
 					#print(dir.x, dir.y)
-					v.attribute().setAttributeVec2f("orientation", dir)			
+					v.attribute.setAttributeVec2f("orientation", dir)			
 			it.increment()
 			it2.increment()
 		## case where the last vertex is a TVertex
@@ -894,7 +874,7 @@ class pyTVertexOrientationShader(StrokeShader):
 			if(tv != None):			
 				dir = self.findOrientation(tv, ve)
 				#print(dir.x, dir.y)
-				v.attribute().setAttributeVec2f("orientation", dir)
+				v.attribute.setAttributeVec2f("orientation", dir)
 
 class pySinusDisplacementShader(StrokeShader):
 	def __init__(self, f, a):
@@ -911,13 +891,13 @@ class pySinusDisplacementShader(StrokeShader):
 			v = it.getObject()
 			#print(self._getNormal.getName())
 			n = self._getNormal(it.castToInterface0DIterator())
-			p = v.getPoint()
-			u = v.u()
+			p = v.point
+			u = v.u
 			a = self._a*(1-2*(fabs(u-0.5)))
 			n = n*a*cos(self._f*u*6.28)
 			#print(n.x, n.y)
-			v.setPoint(p+n)
-			#v.setPoint(v.getPoint()+n*a*cos(f*v.u()))
+			v.point = p+n
+			#v.point = v.point+n*a*cos(f*v.u)
 			it.increment()
 		stroke.UpdateLength()
 
@@ -936,7 +916,7 @@ class pyPerlinNoise1DShader(StrokeShader):
 			v = it.getObject()
 			i = v.getProjectedX() + v.getProjectedY()
 			nres = self.__noise.turbulence1(i, self.__freq, self.__amp, self.__oct)
-			v.setPoint(v.getProjectedX() + nres, v.getProjectedY() + nres)
+			v.point = (v.getProjectedX() + nres, v.getProjectedY() + nres)
 			it.increment()
 		stroke.UpdateLength()
 
@@ -955,7 +935,7 @@ class pyPerlinNoise2DShader(StrokeShader):
 			v = it.getObject()
 			vec = Vector([v.getProjectedX(), v.getProjectedY()])
 			nres = self.__noise.turbulence2(vec, self.__freq, self.__amp, self.__oct)
-			v.setPoint(v.getProjectedX() + nres, v.getProjectedY() + nres)
+			v.point = (v.getProjectedX() + nres, v.getProjectedY() + nres)
 			it.increment()
 		stroke.UpdateLength()
 
@@ -971,10 +951,10 @@ class pyBluePrintCirclesShader(StrokeShader):
 		it = stroke.strokeVerticesBegin()
 		if it.isEnd():
 			return
-		p_min = it.getObject().getPoint()
-		p_max = it.getObject().getPoint()
+		p_min = Vector(it.getObject().point)
+		p_max = Vector(it.getObject().point)
 		while it.isEnd() == 0:
-			p = it.getObject().getPoint()
+			p = it.getObject().point
 			if (p.x < p_min.x):
 				p_min.x = p.x
 			if (p.x > p_max.x):
@@ -1011,7 +991,7 @@ class pyBluePrintCirclesShader(StrokeShader):
 				c = prev_center + (center - prev_center) * t
 				p_new.x = c.x + r * cos(2 * pi * t)
 				p_new.y = c.y + r * sin(2 * pi * t)
-				it.getObject().setPoint(p_new)
+				it.getObject().point = p_new
 				i = i + 1
 				it.increment()
 			i = 1
@@ -1035,10 +1015,10 @@ class pyBluePrintEllipsesShader(StrokeShader):
 		it = stroke.strokeVerticesBegin()
 		if it.isEnd():
 			return
-		p_min = it.getObject().getPoint()
-		p_max = it.getObject().getPoint()
+		p_min = Vector(it.getObject().point)
+		p_max = Vector(it.getObject().point)
 		while it.isEnd() == 0:
-			p = it.getObject().getPoint()
+			p = it.getObject().point
 			if (p.x < p_min.x):
 				p_min.x = p.x
 			if (p.x > p_max.x):
@@ -1070,7 +1050,7 @@ class pyBluePrintEllipsesShader(StrokeShader):
 				c = prev_center + (center - prev_center) * t
 				p_new.x = c.x + r.x * cos(2 * pi * t)
 				p_new.y = c.y + r.y * sin(2 * pi * t)
-				it.getObject().setPoint(p_new)
+				it.getObject().point = p_new
 				i = i + 1
 				it.increment()
 			i = 1
@@ -1097,10 +1077,10 @@ class pyBluePrintSquaresShader(StrokeShader):
 		it = stroke.strokeVerticesBegin()
 		if it.isEnd():
 			return
-		p_min = it.getObject().getPoint()
-		p_max = it.getObject().getPoint()
+		p_min = Vector(it.getObject().point)
+		p_max = Vector(it.getObject().point)
 		while it.isEnd() == 0:
-			p = it.getObject().getPoint()
+			p = it.getObject().point
 			if (p.x < p_min.x):
 				p_min.x = p.x
 			if (p.x > p_max.x):
@@ -1168,8 +1148,8 @@ class pyBluePrintSquaresShader(StrokeShader):
 					if visible == 0:
 						visible = 1
 					continue
-				it.getObject().setPoint(p_new)
-				it.getObject().attribute().setVisible(visible)
+				it.getObject().point = p_new
+				it.getObject().attribute.visible = visible
 				if visible == 0:
 					visible = 1
 				i = i + 1
@@ -1196,7 +1176,7 @@ class pyBluePrintDirectedSquaresShader(StrokeShader):
 		p_mean = Vector([0, 0])
 		it = stroke.strokeVerticesBegin()
 		while it.isEnd() == 0:
-			p = it.getObject().getPoint()
+			p = it.getObject().point
 			p_mean = p_mean + p
 			it.increment()
 		sv_nb = stroke.strokeVerticesSize()
@@ -1206,7 +1186,7 @@ class pyBluePrintDirectedSquaresShader(StrokeShader):
 		p_var_xy = 0
 		it = stroke.strokeVerticesBegin()
 		while it.isEnd() == 0:
-			p = it.getObject().getPoint()
+			p = it.getObject().point
 			p_var_xx = p_var_xx + pow(p.x - p_mean.x, 2)
 			p_var_yy = p_var_yy + pow(p.y - p_mean.y, 2)
 			p_var_xy = p_var_xy + (p.x - p_mean.x) * (p.y - p_mean.y)
@@ -1267,8 +1247,8 @@ class pyBluePrintDirectedSquaresShader(StrokeShader):
 					p_new = p_fourth + vec_fourth * float(i - third)/float(fourth - third - 1)
 					if i == fourth - 1:
 						visible = 0
-				it.getObject().setPoint(p_new)
-				it.getObject().attribute().setVisible(visible)
+				it.getObject().point = p_new
+				it.getObject().attribute.visible = visible
 				if visible == 0:
 					visible = 1
 				i = i + 1
@@ -1291,14 +1271,14 @@ class pyModulateAlphaShader(StrokeShader):
 	def shade(self, stroke):
 		it = stroke.strokeVerticesBegin()
 		while it.isEnd() == 0:
-			alpha = it.getObject().attribute().getAlpha()
-			p = it.getObject().getPoint()
+			alpha = it.getObject().attribute.alpha
+			p = it.getObject().point
 			alpha = alpha * p.y / 400
 			if alpha < self.__min:
 				alpha = self.__min
 			elif alpha > self.__max:
 				alpha = self.__max
-			it.getObject().attribute().setAlpha(alpha)
+			it.getObject().attribute.alpha = alpha
 			it.increment()
 
 
@@ -1311,9 +1291,9 @@ class pyDummyShader(StrokeShader):
 		it_end = stroke.strokeVerticesEnd()
 		while it.isEnd() == 0:
 			toto = it.castToInterface0DIterator()
-			att = it.getObject().attribute()
-			att.setColor(0.3, 0.4, 0.4)
-			att.setThickness(0, 5)
+			att = it.getObject().attribute
+			att.color = (0.3, 0.4, 0.4)
+			att.thickness = (0, 5)
 			it.increment()
 
 class pyDebugShader(StrokeShader):

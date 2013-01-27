@@ -128,6 +128,8 @@ Vec3r * Vec3r_ptr_from_PyObject( PyObject* obj );
 Vec2f * Vec2f_ptr_from_Vector( PyObject* obj );
 Vec3f * Vec3f_ptr_from_Vector( PyObject* obj );
 Vec3r * Vec3r_ptr_from_Vector( PyObject* obj );
+Vec3f * Vec3f_ptr_from_Color( PyObject* obj );
+Vec3r * Vec3r_ptr_from_Color( PyObject* obj );
 Vec2f * Vec2f_ptr_from_PyList( PyObject* obj );
 Vec3f * Vec3f_ptr_from_PyList( PyObject* obj );
 Vec3r * Vec3r_ptr_from_PyList( PyObject* obj );

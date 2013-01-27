@@ -18,6 +18,8 @@ int StrokeAttribute_Init( PyObject *module )
 		return -1;
 	Py_INCREF( &StrokeAttribute_Type );
 	PyModule_AddObject(module, "StrokeAttribute", (PyObject *)&StrokeAttribute_Type);
+
+	StrokeAttribute_mathutils_register_callback();
 	return 0;
 }
 
@@ -130,122 +132,6 @@ static PyObject * StrokeAttribute___repr__(BPy_StrokeAttribute* self)
 		 << " L: " << self->sa->getThicknessL();
 
 	return PyUnicode_FromString( repr.str().c_str() );
-}
-
-
-static char StrokeAttribute_getColorR___doc__[] =
-".. method:: getColorR()\n"
-"\n"
-"   Returns the red component of the stroke color.\n"
-"\n"
-"   :return: Red component of the stroke color.\n"
-"   :rtype: float\n";
-
-static PyObject *StrokeAttribute_getColorR( BPy_StrokeAttribute *self ) {
-	return PyFloat_FromDouble( self->sa->getColorR() );	
-}
-
-static char StrokeAttribute_getColorG___doc__[] =
-".. method:: getColorG()\n"
-"\n"
-"   Returns the green component of the stroke color.\n"
-"\n"
-"   :return: Green component of the stroke color.\n"
-"   :rtype: float\n";
-
-static PyObject *StrokeAttribute_getColorG( BPy_StrokeAttribute *self ) {
-	return PyFloat_FromDouble( self->sa->getColorG() );	
-}
-
-static char StrokeAttribute_getColorB___doc__[] =
-".. method:: getColorB()\n"
-"\n"
-"   Returns the blue component of the stroke color.\n"
-"\n"
-"   :return: Blue component of the stroke color.\n"
-"   :rtype: float\n";
-
-static PyObject *StrokeAttribute_getColorB( BPy_StrokeAttribute *self ) {
-	return PyFloat_FromDouble( self->sa->getColorB() );	
-}
-
-static char StrokeAttribute_getColorRGB___doc__[] =
-".. method:: getColorRGB()\n"
-"\n"
-"   Returns the RGB components of the stroke color.\n"
-"\n"
-"   :return: RGB components of the stroke color.\n"
-"   :rtype: :class:`mathutils.Vector`\n";
-
-static PyObject *StrokeAttribute_getColorRGB( BPy_StrokeAttribute *self ) {
-	Vec3f v( self->sa->getColorRGB() );
-	return Vector_from_Vec3f( v );	
-}
-
-static char StrokeAttribute_getAlpha___doc__[] =
-".. method:: getAlpha()\n"
-"\n"
-"   Returns the alpha component of the stroke color.\n"
-"\n"
-"   :return: Alpha component of the stroke color.\n"
-"   :rtype: float\n";
-
-static PyObject *StrokeAttribute_getAlpha( BPy_StrokeAttribute *self ) {
-	return PyFloat_FromDouble( self->sa->getAlpha() );	
-}
-
-static char StrokeAttribute_getThicknessR___doc__[] =
-".. method:: getThicknessR()\n"
-"\n"
-"   Returns the thickness on the right of the vertex when following\n"
-"   the stroke.\n"
-"\n"
-"   :return: The thickness on the right of the vertex.\n"
-"   :rtype: float\n";
-
-static PyObject *StrokeAttribute_getThicknessR( BPy_StrokeAttribute *self ) {
-	return PyFloat_FromDouble( self->sa->getThicknessR() );	
-}
-
-static char StrokeAttribute_getThicknessL___doc__[] =
-".. method:: getThicknessL()\n"
-"\n"
-"   Returns the thickness on the left of the vertex when following\n"
-"   the stroke.\n"
-"\n"
-"   :return: The thickness on the left of the vertex.\n"
-"   :rtype: float\n";
-
-static PyObject *StrokeAttribute_getThicknessL( BPy_StrokeAttribute *self ) {
-	return PyFloat_FromDouble( self->sa->getThicknessL() );	
-}
-
-static char StrokeAttribute_getThicknessRL___doc__[] =
-".. method:: getThicknessRL()\n"
-"\n"
-"   Returns the thickness on the right and on the left of the vertex\n"
-"   when following the stroke.\n"
-"\n"
-"   :return: A two-dimensional vector.  The first value is the\n"
-"      thickness on the right of the vertex when following the stroke,\n"
-"      and the second one is the thickness on the left.\n"
-"   :rtype: :class:`mathutils.Vector`\n";
-
-static PyObject *StrokeAttribute_getThicknessRL( BPy_StrokeAttribute *self ) {
-	Vec2f v( self->sa->getThicknessRL() );
-	return Vector_from_Vec2f( v );
-}
-
-static char StrokeAttribute_isVisible___doc__[] =
-".. method:: isVisible()\n"
-"\n"
-"   Returns true if the StrokeVertex is visible, false otherwise.\n"
-"\n"
-"   :return: True if the StrokeVertex is visible, false otherwise.\n"
-"   :rtype: bool\n";
-
-static PyObject *StrokeAttribute_isVisible( BPy_StrokeAttribute *self ) {
-	return PyBool_from_bool( self->sa->isVisible() );	
 }
 
 static char StrokeAttribute_getAttributeReal___doc__[] =
@@ -367,142 +253,6 @@ static PyObject *StrokeAttribute_isAttributeAvailableVec3f( BPy_StrokeAttribute 
 	return PyBool_from_bool( self->sa->isAttributeAvailableVec3f( attr ) );
 }
 
-
-static char StrokeAttribute_setColor___doc__[] =
-".. method:: setColor(r, g, b)\n"
-"\n"
-"   Sets the stroke color.\n"
-"\n"
-"   :arg r: Red component of the stroke color.\n"
-"   :type r: float\n"
-"   :arg g: Green component of the stroke color.\n"
-"   :type g: float\n"
-"   :arg b: Blue component of the stroke color.\n"
-"   :type b: float\n"
-"\n"
-".. method:: setColor(iRGB)\n"
-"\n"
-"   Sets the stroke color.\n"
-"\n"
-"   :arg iRGB: The new RGB values.\n"
-"   :type iRGB: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n";
-
-static PyObject * StrokeAttribute_setColor( BPy_StrokeAttribute *self, PyObject *args ) {
-	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0 ;
-
-	if(!( PyArg_ParseTuple(args, "O|OO", &obj1, &obj2, &obj3) ))
-		return NULL;
-
-	if( obj1 && !obj2 && !obj3 ){
-
-		Vec3f *v = Vec3f_ptr_from_PyObject(obj1);
-		if( !v ) {
-			PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
-			return NULL;
-		}
-		self->sa->setColor( *v );
-		delete v;
-		
-	} else if( 	obj1 && obj2 && obj3 ){
-
-		self->sa->setColor(	PyFloat_AsDouble(obj1),
-							PyFloat_AsDouble(obj2),
-							PyFloat_AsDouble(obj3) );
-
-	} else {
-		PyErr_SetString(PyExc_TypeError, "invalid arguments");
-		return NULL;
-	}
-	
-	Py_RETURN_NONE;
-}
-
-static char StrokeAttribute_setAlpha___doc__[] =
-".. method:: setAlpha(alpha)\n"
-"\n"
-"   Sets the alpha component of the stroke color.\n"
-"\n"
-"   :arg alpha: The new alpha value.\n"
-"   :type alpha: float\n";
-
-static PyObject * StrokeAttribute_setAlpha( BPy_StrokeAttribute *self, PyObject *args ){
-	float f = 0;
-
-	if(!( PyArg_ParseTuple(args, "f", &f) ))
-		return NULL;
-	
-	self->sa->setAlpha( f );
-	Py_RETURN_NONE;
-}
-
-static char StrokeAttribute_setThickness___doc__[] =
-".. method:: setThickness(tr, tl)\n"
-"\n"
-"   Sets the stroke thickness.\n"
-"\n"
-"   :arg tr: The thickness on the right of the vertex when following\n"
-"      the stroke.\n"
-"   :type tr: float\n"
-"   :arg tl: The thickness on the left of the vertex when following\n"
-"      the stroke.\n"
-"   :type tl: float\n"
-"\n"
-".. method:: setThickness(tRL)\n"
-"\n"
-"   Sets the stroke thickness.\n"
-"\n"
-"   :arg tRL: The thickness on the right and on the left of the vertex\n"
-"      when following the stroke.\n"
-"   :type tRL: :class:`mathutils.Vector`, list or tuple of 2 real numbers\n";
-
-static PyObject * StrokeAttribute_setThickness( BPy_StrokeAttribute *self, PyObject *args )  {
-	PyObject *obj1 = 0, *obj2 = 0;
-
-	if(!( PyArg_ParseTuple(args, "O|O", &obj1, &obj2) ))
-		return NULL;
-
-	if( obj1 && !obj2 ){
-		
-		Vec2f *v = Vec2f_ptr_from_PyObject(obj1);
-		if( !v ) {
-			PyErr_SetString(PyExc_TypeError, "argument 1 must be a 2D vector (either a list of 2 elements or Vector)");
-			return NULL;
-		}
-		self->sa->setThickness( *v );
-		delete v;
-				
-	} else if( 	obj1 && obj2 ){
-					
-		self->sa->setThickness(	PyFloat_AsDouble(obj1),
-								PyFloat_AsDouble(obj2) );
-
-	} else {
-		PyErr_SetString(PyExc_TypeError, "invalid arguments");
-		return NULL;
-	}
-	
-	Py_RETURN_NONE;
-}
-
-static char StrokeAttribute_setVisible___doc__[] =
-".. method:: setVisible(iVisible)\n"
-"\n"
-"   Sets the visibility flag.  True means the StrokeVertex is visible.\n"
-"\n"
-"   :arg iVisible: True if the StrokeVertex is visible.\n"
-"   :type iVisible: bool\n";
-
-static PyObject * StrokeAttribute_setVisible( BPy_StrokeAttribute *self, PyObject *args ) {
-	PyObject *py_b;
-
-	if(!( PyArg_ParseTuple(args, "O", &py_b) ))
-		return NULL;
-
-	self->sa->setVisible( bool_from_PyBool(py_b) );
-
-	Py_RETURN_NONE;
-}
-
 static char StrokeAttribute_setAttributeReal___doc__[] =
 ".. method:: setAttributeReal(iName, att)\n"
 "\n"
@@ -586,29 +336,231 @@ static PyObject * StrokeAttribute_setAttributeVec3f( BPy_StrokeAttribute *self, 
 
 /*----------------------StrokeAttribute instance definitions ----------------------------*/
 static PyMethodDef BPy_StrokeAttribute_methods[] = {
-	{"getColorR", ( PyCFunction ) StrokeAttribute_getColorR, METH_NOARGS, StrokeAttribute_getColorR___doc__},
-	{"getColorG", ( PyCFunction ) StrokeAttribute_getColorG, METH_NOARGS, StrokeAttribute_getColorG___doc__},
-	{"getColorB", ( PyCFunction ) StrokeAttribute_getColorB, METH_NOARGS, StrokeAttribute_getColorB___doc__},
-	{"getColorRGB", ( PyCFunction ) StrokeAttribute_getColorRGB, METH_NOARGS, StrokeAttribute_getColorRGB___doc__},
-	{"getAlpha", ( PyCFunction ) StrokeAttribute_getAlpha, METH_NOARGS, StrokeAttribute_getAlpha___doc__},
-	{"getThicknessR", ( PyCFunction ) StrokeAttribute_getThicknessR, METH_NOARGS, StrokeAttribute_getThicknessR___doc__},
-	{"getThicknessL", ( PyCFunction ) StrokeAttribute_getThicknessL, METH_NOARGS, StrokeAttribute_getThicknessL___doc__},
-	{"getThicknessRL", ( PyCFunction ) StrokeAttribute_getThicknessRL, METH_NOARGS, StrokeAttribute_getThicknessRL___doc__},
-	{"isVisible", ( PyCFunction ) StrokeAttribute_isVisible, METH_NOARGS, StrokeAttribute_isVisible___doc__},
 	{"getAttributeReal", ( PyCFunction ) StrokeAttribute_getAttributeReal, METH_VARARGS, StrokeAttribute_getAttributeReal___doc__},
 	{"getAttributeVec2f", ( PyCFunction ) StrokeAttribute_getAttributeVec2f, METH_VARARGS, StrokeAttribute_getAttributeVec2f___doc__},
 	{"getAttributeVec3f", ( PyCFunction ) StrokeAttribute_getAttributeVec3f, METH_VARARGS, StrokeAttribute_getAttributeVec3f___doc__},
 	{"isAttributeAvailableReal", ( PyCFunction ) StrokeAttribute_isAttributeAvailableReal, METH_VARARGS, StrokeAttribute_isAttributeAvailableReal___doc__},
 	{"isAttributeAvailableVec2f", ( PyCFunction ) StrokeAttribute_isAttributeAvailableVec2f, METH_VARARGS, StrokeAttribute_isAttributeAvailableVec2f___doc__},
 	{"isAttributeAvailableVec3f", ( PyCFunction ) StrokeAttribute_isAttributeAvailableVec3f, METH_VARARGS, StrokeAttribute_isAttributeAvailableVec3f___doc__},
-	{"setColor", ( PyCFunction ) StrokeAttribute_setColor, METH_VARARGS, StrokeAttribute_setColor___doc__},
-	{"setAlpha", ( PyCFunction ) StrokeAttribute_setAlpha, METH_VARARGS, StrokeAttribute_setAlpha___doc__},
-	{"setThickness", ( PyCFunction ) StrokeAttribute_setThickness, METH_VARARGS, StrokeAttribute_setThickness___doc__},
-	{"setVisible", ( PyCFunction ) StrokeAttribute_setVisible, METH_VARARGS, StrokeAttribute_setVisible___doc__},
 	{"setAttributeReal", ( PyCFunction ) StrokeAttribute_setAttributeReal, METH_VARARGS, StrokeAttribute_setAttributeReal___doc__},
 	{"setAttributeVec2f", ( PyCFunction ) StrokeAttribute_setAttributeVec2f, METH_VARARGS, StrokeAttribute_setAttributeVec2f___doc__},
 	{"setAttributeVec3f", ( PyCFunction ) StrokeAttribute_setAttributeVec3f, METH_VARARGS, StrokeAttribute_setAttributeVec3f___doc__},
 	{NULL, NULL, 0, NULL}
+};
+
+/*----------------------mathutils callbacks ----------------------------*/
+
+/* subtype */
+#define MATHUTILS_SUBTYPE_COLOR      1
+#define MATHUTILS_SUBTYPE_THICKNESS  2
+
+static int StrokeAttribute_mathutils_check(BaseMathObject *bmo)
+{
+	if (!BPy_StrokeAttribute_Check(bmo->cb_user))
+		return -1;
+	return 0;
+}
+
+static int StrokeAttribute_mathutils_get(BaseMathObject *bmo, int subtype)
+{
+	BPy_StrokeAttribute *self = (BPy_StrokeAttribute *)bmo->cb_user;
+	switch (subtype) {
+	case MATHUTILS_SUBTYPE_COLOR:
+		bmo->data[0] = self->sa->getColorR();
+		bmo->data[1] = self->sa->getColorG();
+		bmo->data[2] = self->sa->getColorB();
+		break;
+	case MATHUTILS_SUBTYPE_THICKNESS:
+		bmo->data[0] = self->sa->getThicknessR();
+		bmo->data[1] = self->sa->getThicknessL();
+		break;
+	default:
+		return -1;
+	}
+	return 0;
+}
+
+static int StrokeAttribute_mathutils_set(BaseMathObject *bmo, int subtype)
+{
+	BPy_StrokeAttribute *self = (BPy_StrokeAttribute *)bmo->cb_user;
+	switch (subtype) {
+	case MATHUTILS_SUBTYPE_COLOR:
+		self->sa->setColor(bmo->data[0], bmo->data[1], bmo->data[1]);
+		break;
+	case MATHUTILS_SUBTYPE_THICKNESS:
+		self->sa->setThickness(bmo->data[0], bmo->data[1]);
+		break;
+	default:
+		return -1;
+	}
+	return 0;
+}
+
+static int StrokeAttribute_mathutils_get_index(BaseMathObject *bmo, int subtype, int index)
+{
+	BPy_StrokeAttribute *self = (BPy_StrokeAttribute *)bmo->cb_user;
+	switch (subtype) {
+	case MATHUTILS_SUBTYPE_COLOR:
+		switch (index) {
+		case 0: bmo->data[0] = self->sa->getColorR(); break;
+		case 1: bmo->data[1] = self->sa->getColorG(); break;
+		case 2: bmo->data[2] = self->sa->getColorB(); break;
+		default:
+			return -1;
+		}
+		break;
+	case MATHUTILS_SUBTYPE_THICKNESS:
+		switch (index) {
+		case 0: bmo->data[0] = self->sa->getThicknessR(); break;
+		case 1: bmo->data[1] = self->sa->getThicknessL(); break;
+		default:
+			return -1;
+		}
+		break;
+	default:
+		return -1;
+	}
+	return 0;
+}
+
+static int StrokeAttribute_mathutils_set_index(BaseMathObject *bmo, int subtype, int index)
+{
+	BPy_StrokeAttribute *self = (BPy_StrokeAttribute *)bmo->cb_user;
+	switch (subtype) {
+	case MATHUTILS_SUBTYPE_COLOR:
+		{
+			float r = (index == 0) ? bmo->data[0] : self->sa->getColorR();
+			float g = (index == 1) ? bmo->data[1] : self->sa->getColorG();
+			float b = (index == 2) ? bmo->data[2] : self->sa->getColorB();
+			self->sa->setColor(r, g, b);
+		}
+		break;
+	case MATHUTILS_SUBTYPE_THICKNESS:
+		{
+			float tr = (index == 0) ? bmo->data[0] : self->sa->getThicknessR();
+			float tl = (index == 1) ? bmo->data[1] : self->sa->getThicknessL();
+			self->sa->setThickness(tr, tl);
+		}
+		break;
+	default:
+		return -1;
+	}
+	return 0;
+}
+
+static Mathutils_Callback StrokeAttribute_mathutils_cb = {
+	StrokeAttribute_mathutils_check,
+	StrokeAttribute_mathutils_get,
+	StrokeAttribute_mathutils_set,
+	StrokeAttribute_mathutils_get_index,
+	StrokeAttribute_mathutils_set_index
+};
+
+static unsigned char StrokeAttribute_mathutils_cb_index = -1;
+
+void StrokeAttribute_mathutils_register_callback()
+{
+	StrokeAttribute_mathutils_cb_index = Mathutils_RegisterCallback(&StrokeAttribute_mathutils_cb);
+}
+
+/*----------------------StrokeAttribute get/setters ----------------------------*/
+
+PyDoc_STRVAR(StrokeAttribute_alpha_doc,
+"Alpha component of the stroke color.\n"
+"\n"
+":type: float"
+);
+
+static PyObject *StrokeAttribute_alpha_get(BPy_StrokeAttribute *self, void *UNUSED(closure))
+{
+	return PyFloat_FromDouble(self->sa->getAlpha());
+}
+
+static int StrokeAttribute_alpha_set(BPy_StrokeAttribute *self, PyObject *value, void *UNUSED(closure))
+{
+	float scalar;
+	if ((scalar = PyFloat_AsDouble(value)) == -1.0f && PyErr_Occurred()) { /* parsed item not a number */
+		PyErr_SetString(PyExc_TypeError, "value must be a number");
+		return -1;
+	}
+	self->sa->setAlpha(scalar);
+	return 0;
+}
+
+PyDoc_STRVAR(StrokeAttribute_color_doc,
+"RGB components of the stroke color.\n"
+"\n"
+":type: mathutils.Color"
+);
+
+static PyObject *StrokeAttribute_color_get(BPy_StrokeAttribute *self, void *UNUSED(closure))
+{
+	return Color_CreatePyObject_cb((PyObject *)self, StrokeAttribute_mathutils_cb_index, MATHUTILS_SUBTYPE_COLOR);
+}
+
+static int StrokeAttribute_color_set(BPy_StrokeAttribute *self, PyObject *value, void *UNUSED(closure))
+{
+	Vec3f *v = Vec3f_ptr_from_PyObject(value);
+	if (!v) {
+		PyErr_SetString(PyExc_ValueError, "value must be a 3-dimensional vector");
+		return -1;
+	}
+	self->sa->setColor(v->x(), v->y(), v->z());
+	return 0;
+}
+
+PyDoc_STRVAR(StrokeAttribute_thickness_doc,
+"Right and left components of the stroke thickness.\n"
+"The right (left) component is the thickness on the right (left) of the vertex\n"
+"when following the stroke.\n"
+"\n"
+":type: mathutils.Vector"
+);
+
+static PyObject *StrokeAttribute_thickness_get(BPy_StrokeAttribute *self, void *UNUSED(closure))
+{
+	return Vector_CreatePyObject_cb((PyObject *)self, 2, StrokeAttribute_mathutils_cb_index, MATHUTILS_SUBTYPE_THICKNESS);
+}
+
+static int StrokeAttribute_thickness_set(BPy_StrokeAttribute *self, PyObject *value, void *UNUSED(closure))
+{
+	Vec2f *v = Vec2f_ptr_from_PyObject(value);
+	if (!v) {
+		PyErr_SetString(PyExc_ValueError, "value must be a 2-dimensional vector");
+		return -1;
+	}
+	self->sa->setThickness(v->x(), v->y());
+	return 0;
+}
+
+PyDoc_STRVAR(StrokeAttribute_visible_doc,
+"visible component of the stroke color.\n"
+"\n"
+":type: float"
+);
+
+static PyObject *StrokeAttribute_visible_get(BPy_StrokeAttribute *self, void *UNUSED(closure))
+{
+	return PyBool_from_bool(self->sa->isVisible());
+}
+
+static int StrokeAttribute_visible_set(BPy_StrokeAttribute *self, PyObject *value, void *UNUSED(closure))
+{
+	float scalar;
+	if ((scalar = PyFloat_AsDouble(value)) == -1.0f && PyErr_Occurred()) { /* parsed item not a number */
+		PyErr_SetString(PyExc_TypeError, "value must be a number");
+		return -1;
+	}
+	self->sa->setVisible(scalar);
+	return 0;
+}
+
+static PyGetSetDef BPy_StrokeAttribute_getseters[] = {
+	{(char *)"alpha", (getter)StrokeAttribute_alpha_get, (setter)StrokeAttribute_alpha_set, (char *)StrokeAttribute_alpha_doc, NULL},
+	{(char *)"color", (getter)StrokeAttribute_color_get, (setter)StrokeAttribute_color_set, (char *)StrokeAttribute_color_doc, NULL},
+	{(char *)"thickness", (getter)StrokeAttribute_thickness_get, (setter)StrokeAttribute_thickness_set, (char *)StrokeAttribute_thickness_doc, NULL},
+	{(char *)"visible", (getter)StrokeAttribute_visible_get, (setter)StrokeAttribute_visible_set, (char *)StrokeAttribute_visible_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_StrokeAttribute type definition ------------------------------*/
@@ -643,7 +595,7 @@ PyTypeObject StrokeAttribute_Type = {
 	0,                              /* tp_iternext */
 	BPy_StrokeAttribute_methods,    /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_StrokeAttribute_getseters,  /* tp_getset */
 	0,                              /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */
