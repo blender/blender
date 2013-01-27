@@ -876,7 +876,7 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
-	ot->name = "Cut links";
+	ot->name = "Cut Links";
 	ot->idname = "NODE_OT_links_cut";
 	ot->description = "Use the mouse to cut (remove) some links";
 

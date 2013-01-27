@@ -145,7 +145,7 @@ void LOGIC_OT_links_cut(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
-	ot->name = "Cut links";
+	ot->name = "Cut Links";
 	ot->idname = "LOGIC_OT_links_cut";
 	ot->description = "Remove logic brick connections";
 	

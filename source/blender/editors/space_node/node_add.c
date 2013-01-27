@@ -305,7 +305,7 @@ void NODE_OT_add_reroute(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
-	ot->name = "Add reroute";
+	ot->name = "Add Reroute";
 	ot->idname = "NODE_OT_add_reroute";
 
 	ot->invoke = WM_gesture_lines_invoke;

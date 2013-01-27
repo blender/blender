@@ -1203,7 +1203,7 @@ static int ed_marker_select_border_invoke_wrapper(bContext *C, wmOperator *op, w
 static void MARKER_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Marker Border select";
+	ot->name = "Marker Border Select";
 	ot->description = "Select all time markers using border selection";
 	ot->idname = "MARKER_OT_select_border";
 	
@@ -1260,7 +1260,7 @@ static int ed_marker_select_all_exec(bContext *C, wmOperator *op)
 static void MARKER_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "(De)select all markers";
+	ot->name = "(De)select all Markers";
 	ot->description = "Change selection of all time markers";
 	ot->idname = "MARKER_OT_select_all";
 	

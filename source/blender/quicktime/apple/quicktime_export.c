@@ -905,7 +905,7 @@ int fromcocoa_request_qtcodec_settings(bContext *C, wmOperator *op)
 void SCENE_OT_render_data_set_quicktime_codec(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Change codec";
+	ot->name = "Change Codec";
 	ot->description = "Change Quicktime codec Settings";
 	ot->idname = "SCENE_OT_render_data_set_quicktime_codec";
 	

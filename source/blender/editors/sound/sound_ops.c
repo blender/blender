@@ -264,7 +264,7 @@ static void SOUND_OT_update_animation_flags(wmOperatorType *ot)
 	 */
 
 	/* identifiers */
-	ot->name = "Update animation";
+	ot->name = "Update Animation";
 	ot->description = "Update animation flags";
 	ot->idname = "SOUND_OT_update_animation_flags";
 
@@ -300,7 +300,7 @@ static int sound_bake_animation_exec(bContext *C, wmOperator *UNUSED(op))
 static void SOUND_OT_bake_animation(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Update animation cache";
+	ot->name = "Update Animation Cache";
 	ot->description = "Update the audio animation cache";
 	ot->idname = "SOUND_OT_bake_animation";
 

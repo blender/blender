@@ -478,7 +478,7 @@ static int navmesh_create_exec(bContext *C, wmOperator *op)
 void MESH_OT_navmesh_make(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Create navigation mesh";
+	ot->name = "Create Navigation Mesh";
 	ot->description = "Create navigation mesh for selected objects";
 	ot->idname = "MESH_OT_navmesh_make";
 

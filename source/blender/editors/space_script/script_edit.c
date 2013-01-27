@@ -71,7 +71,7 @@ static int run_pyfile_exec(bContext *C, wmOperator *op)
 void SCRIPT_OT_python_file_run(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Run python file";
+	ot->name = "Run Python File";
 	ot->description = "Run Python file";
 	ot->idname = "SCRIPT_OT_python_file_run";
 	ot->flag = OPTYPE_UNDO;

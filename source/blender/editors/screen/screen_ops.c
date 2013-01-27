@@ -729,7 +729,7 @@ static int actionzone_cancel(bContext *UNUSED(C), wmOperator *op)
 static void SCREEN_OT_actionzone(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Handle area action zones";
+	ot->name = "Handle Area Action Zones";
 	ot->description = "Handle area action zones for mouse actions/gestures";
 	ot->idname = "SCREEN_OT_actionzone";
 	
@@ -851,7 +851,7 @@ static int area_swap_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 static void SCREEN_OT_area_swap(wmOperatorType *ot)
 {
-	ot->name = "Swap areas";
+	ot->name = "Swap Areas";
 	ot->description = "Swap selected areas screen positions";
 	ot->idname = "SCREEN_OT_area_swap";
 	
@@ -1169,7 +1169,7 @@ static int area_move_modal(bContext *C, wmOperator *op, wmEvent *event)
 static void SCREEN_OT_area_move(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Move area edges";
+	ot->name = "Move Area Edges";
 	ot->description = "Move selected area edges";
 	ot->idname = "SCREEN_OT_area_move";
 	
@@ -2568,7 +2568,7 @@ static int spacedata_cleanup(bContext *C, wmOperator *op)
 static void SCREEN_OT_spacedata_cleanup(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Clean-up space-data";
+	ot->name = "Clean-up Space-data";
 	ot->description = "Remove unused settings for invisible editors";
 	ot->idname = "SCREEN_OT_spacedata_cleanup";
 	
@@ -3368,7 +3368,7 @@ static int border_select_do(bContext *C, wmOperator *op)
 static void SCREEN_OT_border_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Border select";
+	ot->name = "Border Select";
 	ot->idname = "SCREEN_OT_border_select";
 	
 	/* api callbacks */
