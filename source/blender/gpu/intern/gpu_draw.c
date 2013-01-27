@@ -930,8 +930,7 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h)
 	ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 	
 	if (ima->repbind || (GPU_get_mipmap() && !GTS.gpu_mipmap) || !ima->bindcode || !ibuf ||
-	    (!is_power_of_2_i(ibuf->x) || !is_power_of_2_i(ibuf->y)) ||
-	    (w == 0) || (h == 0))
+		(w == 0) || (h == 0))
 	{
 		/* these cases require full reload still */
 		GPU_free_image(ima);
