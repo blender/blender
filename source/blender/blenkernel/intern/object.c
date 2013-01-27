@@ -1808,7 +1808,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[4][4])
 		CLAMP(ctime, 0.0f, 1.0f);
 	}
 	else {
-		ctime = scene->r.cfra;
+		ctime = BKE_scene_frame_get(scene);
 		if (IS_EQF(cu->pathlen, 0.0f) == 0)
 			ctime /= cu->pathlen;
 		
@@ -2187,7 +2187,7 @@ void BKE_object_where_is_calc_mat4(Scene *scene, Object *ob, float obmat[4][4])
 
 void BKE_object_where_is_calc(struct Scene *scene, Object *ob)
 {
-	BKE_object_where_is_calc_time(scene, ob, (float)scene->r.cfra);
+	BKE_object_where_is_calc_time(scene, ob, BKE_scene_frame_get(scene));
 }
 
 void BKE_object_where_is_calc_simul(Scene *scene, Object *ob)
@@ -2226,7 +2226,7 @@ void BKE_object_where_is_calc_simul(Scene *scene, Object *ob)
 		bConstraintOb *cob;
 		
 		cob = BKE_constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
-		BKE_solve_constraints(&ob->constraints, cob, (float)scene->r.cfra);
+		BKE_solve_constraints(&ob->constraints, cob, BKE_scene_frame_get(scene));
 		BKE_constraints_clear_evalob(cob);
 	}
 }
@@ -2670,7 +2670,7 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 		if (ob->recalc & OB_RECALC_DATA) {
 			ID *data_id = (ID *)ob->data;
 			AnimData *adt = BKE_animdata_from_id(data_id);
-			float ctime = (float)scene->r.cfra;  /* XXX this is bad... */
+			float ctime = BKE_scene_frame_get(scene);
 			
 			if (G.debug & G_DEBUG)
 				printf("recalcdata %s\n", ob->id.name + 2);
