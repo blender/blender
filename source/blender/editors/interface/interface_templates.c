@@ -58,6 +58,7 @@
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_packedFile.h"
 #include "BKE_particle.h"
 #include "BKE_report.h"
 #include "BKE_sca.h"
@@ -536,7 +537,18 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			uiButSetFlag(but, UI_BUT_DISABLED);
 	}
 
-	if (flag & UI_ID_OPEN) {
+	/* Due to space limit in UI - skip the "open" icon for packed data, and allow to unpack.
+	   Only for images, sound and fonts */
+	if (id && BKE_pack_check(id)) {
+
+		but = uiDefIconButO(block, BUT, "FILE_OT_unpack_item", WM_OP_INVOKE_REGION_WIN, ICON_UGLYPACKAGE, 0, 0, UI_UNIT_X, UI_UNIT_Y, "Packed File");
+		uiButGetOperatorPtrRNA(but);
+		
+		RNA_string_set(but->opptr, "id_name", id->name+2);
+		RNA_int_set(but->opptr, "id_type", GS(id->name));
+		
+	}
+	else if (flag & UI_ID_OPEN) {
 		int w = id ? UI_UNIT_X : (flag & UI_ID_ADD_NEW) ? UI_UNIT_X * 3 : UI_UNIT_X * 6;
 		
 		if (openop) {

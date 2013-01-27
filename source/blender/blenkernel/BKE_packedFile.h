@@ -35,6 +35,7 @@
 #define RET_OK      0
 #define RET_ERROR   1
 
+struct ID;
 struct bSound;
 struct Image;
 struct Main;
@@ -71,6 +72,11 @@ int checkPackedFile(const char *filename, struct PackedFile *pf);
 int seekPackedFile(struct PackedFile *pf, int offset, int whence);
 void rewindPackedFile(struct PackedFile *pf);
 int readPackedFile(struct PackedFile *pf, void *data, int size);
+
+/* ID should be not NULL, return 1 if there's a packed file */
+int BKE_pack_check(struct ID *id);
+/* ID should be not NULL, throws error when ID is Library */
+void BKE_unpack_id(struct Main *bmain, struct ID *id, struct ReportList *reports, int how);
 
 #endif
 

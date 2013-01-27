@@ -180,6 +180,7 @@ static void info_operatortypes(void)
 	WM_operatortype_append(FILE_OT_pack_all);
 	WM_operatortype_append(FILE_OT_pack_libraries);
 	WM_operatortype_append(FILE_OT_unpack_all);
+	WM_operatortype_append(FILE_OT_unpack_item);
 	WM_operatortype_append(FILE_OT_unpack_libraries);
 	
 	WM_operatortype_append(FILE_OT_make_paths_relative);
