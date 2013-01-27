@@ -360,6 +360,9 @@ void *MEM_reallocN(void *vmemh, size_t len)
 
 		MEM_freeN(vmemh);
 	}
+	else {
+		newp = MEM_mallocN(len, __func__);
+	}
 
 	return newp;
 }
@@ -390,6 +393,9 @@ void *MEM_recallocN(void *vmemh, size_t len)
 		}
 
 		MEM_freeN(vmemh);
+	}
+	else {
+		newp = MEM_callocN(len, __func__);
 	}
 
 	return newp;
