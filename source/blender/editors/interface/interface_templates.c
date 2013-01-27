@@ -541,7 +541,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	   Only for images, sound and fonts */
 	if (id && BKE_pack_check(id)) {
 
-		but = uiDefIconButO(block, BUT, "FILE_OT_unpack_item", WM_OP_INVOKE_REGION_WIN, ICON_UGLYPACKAGE, 0, 0, UI_UNIT_X, UI_UNIT_Y, "Packed File");
+		but = uiDefIconButO(block, BUT, "FILE_OT_unpack_item", WM_OP_INVOKE_REGION_WIN, ICON_PACKAGE, 0, 0, UI_UNIT_X, UI_UNIT_Y, "Packed File");
 		uiButGetOperatorPtrRNA(but);
 		
 		RNA_string_set(but->opptr, "id_name", id->name+2);
