@@ -25,7 +25,7 @@ int StrokeAttribute_Init( PyObject *module )
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char StrokeAttribute___doc__[] =
+PyDoc_STRVAR(StrokeAttribute_doc,
 "Class to define a set of attributes associated with a :class:`StrokeVertex`.\n"
 "The attribute set stores the color, alpha and thickness values for a Stroke\n"
 "Vertex.\n"
@@ -68,7 +68,7 @@ static char StrokeAttribute___doc__[] =
 "   :arg a2: The second StrokeAttribute object.\n"
 "   :type a2: :class:`StrokeAttribute`\n"
 "   :arg t: The interpolation parameter.\n"
-"   :type t: float\n";
+"   :type t: float\n");
 
 static int StrokeAttribute___init__(BPy_StrokeAttribute *self, PyObject *args, PyObject *kwds)
 {
@@ -134,17 +134,17 @@ static PyObject * StrokeAttribute___repr__(BPy_StrokeAttribute* self)
 	return PyUnicode_FromString( repr.str().c_str() );
 }
 
-static char StrokeAttribute_getAttributeReal___doc__[] =
-".. method:: getAttributeReal(iName)\n"
+PyDoc_STRVAR(StrokeAttribute_get_attribute_real_doc,
+".. method:: get_attribute_real(iName)\n"
 "\n"
 "   Returns an attribute of float type.\n"
 "\n"
 "   :arg iName: The name of the attribute.\n"
 "   :type iName: str\n"
 "   :return: The attribute value.\n"
-"   :rtype: float\n";
+"   :rtype: float\n");
 
-static PyObject *StrokeAttribute_getAttributeReal( BPy_StrokeAttribute *self, PyObject *args ) {
+static PyObject *StrokeAttribute_get_attribute_real( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *attr;
 
 	if(!( PyArg_ParseTuple(args, "s", &attr) ))
@@ -154,17 +154,17 @@ static PyObject *StrokeAttribute_getAttributeReal( BPy_StrokeAttribute *self, Py
 	return PyFloat_FromDouble( a );
 }
 
-static char StrokeAttribute_getAttributeVec2f___doc__[] =
-".. method:: getAttributeVec2f(iName)\n"
+PyDoc_STRVAR(StrokeAttribute_get_attribute_vec2_doc,
+".. method:: get_attribute_vec2(iName)\n"
 "\n"
 "   Returns an attribute of two-dimensional vector type.\n"
 "\n"
 "   :arg iName: The name of the attribute.\n"
 "   :type iName: str\n"
 "   :return: The attribute value.\n"
-"   :rtype: :class:`mathutils.Vector`\n";
+"   :rtype: :class:`mathutils.Vector`\n");
 
-static PyObject *StrokeAttribute_getAttributeVec2f( BPy_StrokeAttribute *self, PyObject *args ) {
+static PyObject *StrokeAttribute_get_attribute_vec2( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *attr;
 
 	if(!( PyArg_ParseTuple(args, "s", &attr) ))
@@ -174,17 +174,17 @@ static PyObject *StrokeAttribute_getAttributeVec2f( BPy_StrokeAttribute *self, P
 	return Vector_from_Vec2f( a );
 }
 
-static char StrokeAttribute_getAttributeVec3f___doc__[] =
-".. method:: getAttributeVec3f(iName)\n"
+PyDoc_STRVAR(StrokeAttribute_get_attribute_vec3_doc,
+".. method:: get_attribute_vec3(iName)\n"
 "\n"
 "   Returns an attribute of three-dimensional vector type.\n"
 "\n"
 "   :arg iName: The name of the attribute.\n"
 "   :type iName: str\n"
 "   :return: The attribute value.\n"
-"   :rtype: :class:`mathutils.Vector`\n";
+"   :rtype: :class:`mathutils.Vector`\n");
 
-static PyObject *StrokeAttribute_getAttributeVec3f( BPy_StrokeAttribute *self, PyObject *args ) {
+static PyObject *StrokeAttribute_get_attribute_vec3( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *attr;
 
 	if(!( PyArg_ParseTuple(args, "s", &attr) ))
@@ -194,17 +194,17 @@ static PyObject *StrokeAttribute_getAttributeVec3f( BPy_StrokeAttribute *self, P
 	return Vector_from_Vec3f( a );
 }
 
-static char StrokeAttribute_isAttributeAvailableReal___doc__[] =
-".. method:: isAttributeAvailableReal(iName)\n"
+PyDoc_STRVAR(StrokeAttribute_has_attribute_real_doc,
+".. method:: has_attribute_real(iName)\n"
 "\n"
 "   Checks whether the attribute iName of float type is available.\n"
 "\n"
 "   :arg iName: The name of the attribute.\n"
 "   :type iName: str\n"
 "   :return: True if the attribute is availbale.\n"
-"   :rtype: bool\n";
+"   :rtype: bool\n");
 
-static PyObject *StrokeAttribute_isAttributeAvailableReal( BPy_StrokeAttribute *self, PyObject *args ) {
+static PyObject *StrokeAttribute_has_attribute_real( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *attr;
 
 	if(!( PyArg_ParseTuple(args, "s", &attr) ))
@@ -213,8 +213,8 @@ static PyObject *StrokeAttribute_isAttributeAvailableReal( BPy_StrokeAttribute *
 	return PyBool_from_bool( self->sa->isAttributeAvailableReal( attr ) );
 }
 
-static char StrokeAttribute_isAttributeAvailableVec2f___doc__[] =
-".. method:: isAttributeAvailableVec2f(iName)\n"
+PyDoc_STRVAR(StrokeAttribute_has_attribute_vec2_doc,
+".. method:: has_attribute_vec2(iName)\n"
 "\n"
 "   Checks whether the attribute iName of two-dimensional vector type\n"
 "   is available.\n"
@@ -222,9 +222,9 @@ static char StrokeAttribute_isAttributeAvailableVec2f___doc__[] =
 "   :arg iName: The name of the attribute.\n"
 "   :type iName: str\n"
 "   :return: True if the attribute is availbale.\n"
-"   :rtype: bool\n";
+"   :rtype: bool\n");
 
-static PyObject *StrokeAttribute_isAttributeAvailableVec2f( BPy_StrokeAttribute *self, PyObject *args ) {
+static PyObject *StrokeAttribute_has_attribute_vec2( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *attr;
 
 	if(!( PyArg_ParseTuple(args, "s", &attr) ))
@@ -233,8 +233,8 @@ static PyObject *StrokeAttribute_isAttributeAvailableVec2f( BPy_StrokeAttribute 
 	return PyBool_from_bool( self->sa->isAttributeAvailableVec2f( attr ) );
 }
 
-static char StrokeAttribute_isAttributeAvailableVec3f___doc__[] =
-".. method:: isAttributeAvailableVec3f(iName)\n"
+PyDoc_STRVAR(StrokeAttribute_has_attribute_vec3_doc,
+".. method:: has_attribute_vec3(iName)\n"
 "\n"
 "   Checks whether the attribute iName of three-dimensional vector\n"
 "   type is available.\n"
@@ -242,9 +242,9 @@ static char StrokeAttribute_isAttributeAvailableVec3f___doc__[] =
 "   :arg iName: The name of the attribute.\n"
 "   :type iName: str\n"
 "   :return: True if the attribute is availbale.\n"
-"   :rtype: bool\n";
+"   :rtype: bool\n");
 
-static PyObject *StrokeAttribute_isAttributeAvailableVec3f( BPy_StrokeAttribute *self, PyObject *args ) {
+static PyObject *StrokeAttribute_has_attribute_vec3( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *attr;
 
 	if(!( PyArg_ParseTuple(args, "s", &attr) ))
@@ -253,8 +253,8 @@ static PyObject *StrokeAttribute_isAttributeAvailableVec3f( BPy_StrokeAttribute 
 	return PyBool_from_bool( self->sa->isAttributeAvailableVec3f( attr ) );
 }
 
-static char StrokeAttribute_setAttributeReal___doc__[] =
-".. method:: setAttributeReal(iName, att)\n"
+PyDoc_STRVAR(StrokeAttribute_set_attribute_real_doc,
+".. method:: set_attribute_real(iName, att)\n"
 "\n"
 "   Adds a user-defined attribute of float type.  If there is no\n"
 "   attribute of the given name, it is added.  Otherwise, the new value\n"
@@ -263,9 +263,9 @@ static char StrokeAttribute_setAttributeReal___doc__[] =
 "   :arg iName: The name of the attribute.\n"
 "   :type iName: str\n"
 "   :arg att: The attribute value.\n"
-"   :type att: float\n";
+"   :type att: float\n");
 
-static PyObject * StrokeAttribute_setAttributeReal( BPy_StrokeAttribute *self, PyObject *args ) {
+static PyObject * StrokeAttribute_set_attribute_real( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *s = 0;
 	double d = 0;
 
@@ -276,8 +276,8 @@ static PyObject * StrokeAttribute_setAttributeReal( BPy_StrokeAttribute *self, P
 	Py_RETURN_NONE;
 }
 
-static char StrokeAttribute_setAttributeVec2f___doc__[] =
-".. method:: setAttributeVec2f(iName, att)\n"
+PyDoc_STRVAR(StrokeAttribute_set_attribute_vec2_doc,
+".. method:: set_attribute_vec2(iName, att)\n"
 "\n"
 "   Adds a user-defined attribute of two-dimensional vector type.  If\n"
 "   there is no attribute of the given name, it is added.  Otherwise,\n"
@@ -286,9 +286,9 @@ static char StrokeAttribute_setAttributeVec2f___doc__[] =
 "   :arg iName: The name of the attribute.\n"
 "   :type iName: str\n"
 "   :arg att: The attribute value.\n"
-"   :type att: :class:`mathutils.Vector`, list or tuple of 2 real numbers\n";
+"   :type att: :class:`mathutils.Vector`, list or tuple of 2 real numbers\n");
 
-static PyObject * StrokeAttribute_setAttributeVec2f( BPy_StrokeAttribute *self, PyObject *args ) {
+static PyObject * StrokeAttribute_set_attribute_vec2( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *s;
 	PyObject *obj = 0;
 
@@ -305,8 +305,8 @@ static PyObject * StrokeAttribute_setAttributeVec2f( BPy_StrokeAttribute *self, 
 	Py_RETURN_NONE;
 }
 
-static char StrokeAttribute_setAttributeVec3f___doc__[] =
-".. method:: setAttributeVec3f(iName, att)\n"
+PyDoc_STRVAR(StrokeAttribute_set_attribute_vec3_doc,
+".. method:: set_attribute_vec3(iName, att)\n"
 "\n"
 "   Adds a user-defined attribute of three-dimensional vector type.\n"
 "   If there is no attribute of the given name, it is added.\n"
@@ -315,9 +315,9 @@ static char StrokeAttribute_setAttributeVec3f___doc__[] =
 "   :arg iName: The name of the attribute.\n"
 "   :type iName: str\n"
 "   :arg att: The attribute value.\n"
-"   :type att: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n";
+"   :type att: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n");
 
-static PyObject * StrokeAttribute_setAttributeVec3f( BPy_StrokeAttribute *self, PyObject *args ) {
+static PyObject * StrokeAttribute_set_attribute_vec3( BPy_StrokeAttribute *self, PyObject *args ) {
 	char *s;
 	PyObject *obj = 0;
 
@@ -336,15 +336,15 @@ static PyObject * StrokeAttribute_setAttributeVec3f( BPy_StrokeAttribute *self, 
 
 /*----------------------StrokeAttribute instance definitions ----------------------------*/
 static PyMethodDef BPy_StrokeAttribute_methods[] = {
-	{"getAttributeReal", ( PyCFunction ) StrokeAttribute_getAttributeReal, METH_VARARGS, StrokeAttribute_getAttributeReal___doc__},
-	{"getAttributeVec2f", ( PyCFunction ) StrokeAttribute_getAttributeVec2f, METH_VARARGS, StrokeAttribute_getAttributeVec2f___doc__},
-	{"getAttributeVec3f", ( PyCFunction ) StrokeAttribute_getAttributeVec3f, METH_VARARGS, StrokeAttribute_getAttributeVec3f___doc__},
-	{"isAttributeAvailableReal", ( PyCFunction ) StrokeAttribute_isAttributeAvailableReal, METH_VARARGS, StrokeAttribute_isAttributeAvailableReal___doc__},
-	{"isAttributeAvailableVec2f", ( PyCFunction ) StrokeAttribute_isAttributeAvailableVec2f, METH_VARARGS, StrokeAttribute_isAttributeAvailableVec2f___doc__},
-	{"isAttributeAvailableVec3f", ( PyCFunction ) StrokeAttribute_isAttributeAvailableVec3f, METH_VARARGS, StrokeAttribute_isAttributeAvailableVec3f___doc__},
-	{"setAttributeReal", ( PyCFunction ) StrokeAttribute_setAttributeReal, METH_VARARGS, StrokeAttribute_setAttributeReal___doc__},
-	{"setAttributeVec2f", ( PyCFunction ) StrokeAttribute_setAttributeVec2f, METH_VARARGS, StrokeAttribute_setAttributeVec2f___doc__},
-	{"setAttributeVec3f", ( PyCFunction ) StrokeAttribute_setAttributeVec3f, METH_VARARGS, StrokeAttribute_setAttributeVec3f___doc__},
+	{"get_attribute_real", ( PyCFunction ) StrokeAttribute_get_attribute_real, METH_VARARGS, StrokeAttribute_get_attribute_real_doc},
+	{"get_attribute_vec2", ( PyCFunction ) StrokeAttribute_get_attribute_vec2, METH_VARARGS, StrokeAttribute_get_attribute_vec2_doc},
+	{"get_attribute_vec3", ( PyCFunction ) StrokeAttribute_get_attribute_vec3, METH_VARARGS, StrokeAttribute_get_attribute_vec3_doc},
+	{"has_attribute_real", ( PyCFunction ) StrokeAttribute_has_attribute_real, METH_VARARGS, StrokeAttribute_has_attribute_real_doc},
+	{"has_attribute_vec2", ( PyCFunction ) StrokeAttribute_has_attribute_vec2, METH_VARARGS, StrokeAttribute_has_attribute_vec2_doc},
+	{"has_attribute_vec3", ( PyCFunction ) StrokeAttribute_has_attribute_vec3, METH_VARARGS, StrokeAttribute_has_attribute_vec3_doc},
+	{"set_attribute_real", ( PyCFunction ) StrokeAttribute_set_attribute_real, METH_VARARGS, StrokeAttribute_set_attribute_real_doc},
+	{"set_attribute_vec2", ( PyCFunction ) StrokeAttribute_set_attribute_vec2, METH_VARARGS, StrokeAttribute_set_attribute_vec2_doc},
+	{"set_attribute_vec3", ( PyCFunction ) StrokeAttribute_set_attribute_vec3, METH_VARARGS, StrokeAttribute_set_attribute_vec3_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -586,7 +586,7 @@ PyTypeObject StrokeAttribute_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	StrokeAttribute___doc__,        /* tp_doc */
+	StrokeAttribute_doc,            /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */

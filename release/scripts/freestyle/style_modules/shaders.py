@@ -821,47 +821,56 @@ class pyTVertexOrientationShader(StrokeShader):
 	## the previous or next edge
 	def findOrientation(self, tv, ve):
 		mateVE = tv.mate(ve)
-		if((ve.qi() != 0) or (mateVE.qi() != 0)):
+		if ve.qi() != 0 or mateVE.qi() != 0:
 			ait = AdjacencyIterator(tv,1,0)
 			winner = None
-			incoming = 1
-			while(ait.isEnd() == 0):
+			incoming = True
+			while not ait.isEnd():
 				ave = ait.getObject()
-				if((ave.getId() != ve.getId()) and (ave.getId() != mateVE.getId())):
+				if  ave.getId() != ve.getId() and ave.getId() != mateVE.getId():
 					winner = ait.getObject()
-					if(ait.isIncoming() == 0):
-						incoming = 0
+					if not ait.isIncoming():
+						incoming = False
 						break
 				ait.increment()
-			if(winner != None):
-				if(incoming != 0):
+			if winner is not None:
+				if not incoming:
 					direction = self._Get2dDirection(winner.fedgeB())
 				else:
 					direction = self._Get2dDirection(winner.fedgeA())
 				return direction
+		return None
+	def castToTVertex(self, cp):
+		if cp.t2d() == 0.0:
+			return cp.A().viewvertex()
+		elif cp.t2d() == 1.0:
+			return cp.B().viewvertex()
+		return None
 	def shade(self, stroke):
 		it = stroke.strokeVerticesBegin()
 		it2 = StrokeVertexIterator(it)
 		it2.increment()
 		## case where the first vertex is a TVertex
-		v = it.getObject() 
+		v = it.getObject()
 		if(v.getNature() & Nature.T_VERTEX):
-			tv = v.castToTVertex()
-			ve = getFEdge(v, it2.getObject()).viewedge()
-			if(tv != None):			
+			tv = self.castToTVertex(v)
+			if tv is not None:
+				ve = getFEdge(v, it2.getObject()).viewedge()
 				dir = self.findOrientation(tv, ve)
-				#print(dir.x, dir.y)
-				v.attribute.setAttributeVec2f("orientation", dir)
+				if dir is not None:
+					#print(dir.x, dir.y)
+					v.attribute.set_attribute_vec2("orientation", dir)
 		while(it2.isEnd() == 0):
 			vprevious = it.getObject()
 			v = it2.getObject()
 			if(v.getNature() & Nature.T_VERTEX):
-				tv = v.castToTVertex()
-				ve = getFEdge(vprevious, v).viewedge()
-				if(tv != None):	
+				tv = self.castToTVertex(v)
+				if tv is not None:
+					ve = getFEdge(vprevious, v).viewedge()
 					dir = self.findOrientation(tv, ve)
-					#print(dir.x, dir.y)
-					v.attribute.setAttributeVec2f("orientation", dir)			
+					if dir is not None:
+						#print(dir.x, dir.y)
+						v.attribute.set_attribute_vec2("orientation", dir)
 			it.increment()
 			it2.increment()
 		## case where the last vertex is a TVertex
@@ -869,12 +878,13 @@ class pyTVertexOrientationShader(StrokeShader):
 		if(v.getNature() & Nature.T_VERTEX):
 			itPrevious = StrokeVertexIterator(it)
 			itPrevious.decrement()
-			tv = v.castToTVertex()
-			ve = getFEdge(itPrevious.getObject(), v).viewedge()
-			if(tv != None):			
+			tv = self.castToTVertex(v)
+			if tv is not None:
+				ve = getFEdge(itPrevious.getObject(), v).viewedge()
 				dir = self.findOrientation(tv, ve)
-				#print(dir.x, dir.y)
-				v.attribute.setAttributeVec2f("orientation", dir)
+				if dir is not None:
+					#print(dir.x, dir.y)
+					v.attribute.set_attribute_vec2("orientation", dir)
 
 class pySinusDisplacementShader(StrokeShader):
 	def __init__(self, f, a):
