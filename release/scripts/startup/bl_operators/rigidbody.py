@@ -27,7 +27,7 @@ from bpy.props import EnumProperty
 class CopyRigidbodySettings(Operator):
     '''Copy Rigid Body settings from active object to selected'''
     bl_idname = "rigidbody.object_settings_copy"
-    bl_label = "Copy Rigidbody Settings"
+    bl_label = "Copy Rigid Body Settings"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -190,23 +190,17 @@ class BakeToKeyframes(Operator):
 
 
 class ConnectRigidBodies(Operator):
-
-
     '''Connect selected rigid bodies to active'''
     bl_idname = "rigidbody.connect"
-    bl_label = "ConnectRigidBodies"
+    bl_label = "Connect Rigid Bodies"
     bl_options = {'REGISTER', 'UNDO'}
 
     con_type = EnumProperty(
         name="Type",
-        description="Type of generated contraint",
-        items=(('FIXED', "Fixed", "Glues ridig bodies together"),
-               ('POINT', "Point", "Constrains rigid bodies to move aound common pivot point"),
-               ('HINGE', "Hinge", "Restricts rigid body rotation to one axis"),
-               ('SLIDER', "Slider", "Restricts rigid boddy translation to one axis"),
-               ('PISTON', "Piston", "Restricts rigid boddy translation and rotation to one axis"),
-               ('GENERIC', "Generic", "Restricts translation and rotation to specified axes"),
-               ('GENERIC_SPRING', "Generic Spring", "Restricts translation and rotation to specified axes with springs")),
+        description="Type of generated constraint",
+        # XXX Would be nice to get icons too, but currently not possible ;)
+        items=tuple((e.identifier, e.name, e.description, e. value)
+                    for e in bpy.types.RigidBodyConstraint.bl_rna.properties["type"].enum_items),
         default='FIXED',)
 
     pivot_type = EnumProperty(
@@ -214,7 +208,7 @@ class ConnectRigidBodies(Operator):
         description="Constraint pivot location",
         items=(('CENTER', "Center", "Pivot location is between the constrained rigid bodies"),
                ('ACTIVE', "Active", "Pivot location is at the active object position"),
-               ('SELECTED', "Selected", "Pivot location is at the slected object position")),
+               ('SELECTED', "Selected", "Pivot location is at the selected object position")),
         default='CENTER',)
 
     @classmethod

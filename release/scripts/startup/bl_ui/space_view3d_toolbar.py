@@ -113,7 +113,7 @@ class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
 
 class VIEW3D_PT_tools_rigidbody(View3DPanel, Panel):
     bl_context = "objectmode"
-    bl_label = "Rigidbody Tools"
+    bl_label = "Rigid Body Tools"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
