@@ -52,6 +52,10 @@
 #  include <sys/mman.h>
 #endif
 
+#if defined(_MSC_VER)
+#  define __func__ __FUNCTION__
+#endif
+
 #include "MEM_guardedalloc.h"
 
 /* Only for debugging:
