@@ -129,17 +129,17 @@ def align_objects(context,
 
     flag_first = True
 
-    objs = []
+    objects = []
 
     for obj in context.selected_objects:
         matrix_world = obj.matrix_world.copy()
         bb_world = [matrix_world * Vector(v[:]) for v in obj.bound_box]
-        objs.append((obj, bb_world))
+        objects.append((obj, bb_world))
 
-    if not objs:
+    if not objects:
         return False
 
-    for obj, bb_world in objs:
+    for obj, bb_world in objects:
 
         if bb_quality and obj.type == 'MESH':
             GBB = GlobalBB_HQ(obj)
@@ -201,7 +201,7 @@ def align_objects(context,
 
     # Main Loop
 
-    for obj, bb_world in objs:
+    for obj, bb_world in objects:
         matrix_world = obj.matrix_world.copy()
         bb_world = [matrix_world * Vector(v[:]) for v in obj.bound_box]
 
