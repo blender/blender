@@ -1864,9 +1864,7 @@ static int game_physics_copy_exec(bContext *C, wmOperator *UNUSED(op))
 			ob_iter->max_vel = ob->max_vel;
 			ob_iter->obstacleRad = ob->obstacleRad;
 			ob_iter->mass = ob->mass;
-			ob_iter->anisotropicFriction[0] = ob->anisotropicFriction[0];
-			ob_iter->anisotropicFriction[1] = ob->anisotropicFriction[1];
-			ob_iter->anisotropicFriction[2] = ob->anisotropicFriction[2];
+			copy_v3_v3(ob_iter->anisotropicFriction, ob->anisotropicFriction);
 			ob_iter->collision_boundtype = ob->collision_boundtype;
 			ob_iter->margin = ob->margin;
 			ob_iter->bsoft = copy_bulletsoftbody(ob->bsoft);
@@ -1874,6 +1872,9 @@ static int game_physics_copy_exec(bContext *C, wmOperator *UNUSED(op))
 				ob_iter->restrictflag |= OB_RESTRICT_RENDER;
 			else
 				ob_iter->restrictflag &= ~OB_RESTRICT_RENDER;
+
+			ob_iter->col_group = ob->col_group;
+			ob_iter->col_mask = ob->col_mask;
 		}
 	}
 	CTX_DATA_END;
