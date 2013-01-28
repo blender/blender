@@ -362,6 +362,11 @@ class INFO_MT_window(Menu):
 
         layout.operator("wm.window_duplicate")
         layout.operator("wm.window_fullscreen_toggle", icon='FULLSCREEN_ENTER')
+
+        layout.separator()
+
+        layout.operator("screen.screenshot").full = True
+
         if sys.platform[:3] == "win":
             layout.separator()
             layout.operator("wm.console_toggle", icon='CONSOLE')
