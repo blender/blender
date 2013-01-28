@@ -523,6 +523,7 @@ data_to_c("source/blender/compositor/operations/COM_OpenCLKernels.cl",
 
 data_to_c_simple("release/datafiles/startup.blend")
 data_to_c_simple("release/datafiles/preview.blend")
+data_to_c_simple("release/datafiles/preview_cycles.blend")
 
 # --- glsl ---
 data_to_c_simple("source/blender/gpu/shaders/gpu_shader_material.glsl")
