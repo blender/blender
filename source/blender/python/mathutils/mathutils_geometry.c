@@ -251,6 +251,86 @@ static PyObject *M_Geometry_intersect_line_line(PyObject *UNUSED(self), PyObject
 	}
 }
 
+/* Line-Line intersection using algorithm from mathworld.wolfram.com */
+
+PyDoc_STRVAR(M_Geometry_intersect_sphere_sphere_2d_doc,
+".. function:: intersect_sphere_sphere_2d(p_a, radius_a, p_b, radius_b)\n"
+"\n"
+"   Returns 2 points on between intersecting circles.\n"
+"\n"
+"   :arg p_a: Center of the first circle\n"
+"   :type p_a: :class:`mathutils.Vector`\n"
+"   :arg radius_a: Radius of the first circle\n"
+"   :type radius_a: float\n"
+"   :arg p_b: Center of the second circle\n"
+"   :type p_b: :class:`mathutils.Vector`\n"
+"   :arg radius_b: Radius of the second circle\n"
+"   :type radius_b: float\n"
+"   :rtype: tuple of :class:`mathutils.Vector`'s or None when there is no intersection\n"
+);
+static PyObject *M_Geometry_intersect_sphere_sphere_2d(PyObject *UNUSED(self), PyObject *args)
+{
+	PyObject *ret;
+	VectorObject *vec_a, *vec_b;
+	float *v_a, *v_b;
+	float rad_a, rad_b;
+	float v_ab[2];
+	float dist;
+
+	if (!PyArg_ParseTuple(args, "O!fO!f:intersect_sphere_sphere_2d",
+	                      &vector_Type, &vec_a, &rad_a,
+	                      &vector_Type, &vec_b, &rad_b))
+	{
+		return NULL;
+	}
+
+	if (BaseMath_ReadCallback(vec_a) == -1 ||
+	    BaseMath_ReadCallback(vec_b) == -1)
+	{
+		return NULL;
+	}
+
+	ret = PyTuple_New(2);
+
+	v_a = vec_a->vec;
+	v_b = vec_b->vec;
+
+	sub_v2_v2v2(v_ab, v_b, v_a);
+	dist = len_v2(v_ab);
+
+	if (/* out of range */
+	    (dist > rad_a + rad_b) ||
+	    /* fully-contained in the other */
+	    (dist < abs(rad_a - rad_b)) ||
+	    /* co-incident */
+	    (dist < FLT_EPSILON))
+	{
+		/* out of range */
+		PyTuple_SET_ITEM(ret, 0,  Py_None); Py_INCREF(Py_None);
+		PyTuple_SET_ITEM(ret, 1,  Py_None); Py_INCREF(Py_None);
+	}
+	else {
+		const float dist_delta = ((rad_a * rad_a) - (rad_b * rad_b) + (dist * dist)) / (2.0f * dist);
+		const float h = powf(fabsf((rad_a * rad_a) - (dist_delta * dist_delta)), 0.5f);
+		float i_cent[2];
+		float i1[2], i2[2];
+
+		i_cent[0] = v_a[0] + ((v_ab[0] * dist_delta) / dist);
+		i_cent[1] = v_a[1] + ((v_ab[1] * dist_delta) / dist);
+
+		i1[0] = i_cent[0] + h * v_ab[1] / dist;
+		i1[1] = i_cent[1] - h * v_ab[0] / dist;
+
+		i2[0] = i_cent[0] - h * v_ab[1] / dist;
+		i2[1] = i_cent[1] + h * v_ab[0] / dist;
+
+		PyTuple_SET_ITEM(ret, 0, Vector_CreatePyObject(i1, 2, Py_NEW, NULL));
+		PyTuple_SET_ITEM(ret, 1, Vector_CreatePyObject(i2, 2, Py_NEW, NULL));
+	}
+
+	return ret;
+}
+
 PyDoc_STRVAR(M_Geometry_normal_doc,
 ".. function:: normal(v1, v2, v3, v4=None)\n"
 "\n"
@@ -1376,6 +1456,7 @@ static PyMethodDef M_Geometry_methods[] = {
 	{"intersect_line_sphere", (PyCFunction) M_Geometry_intersect_line_sphere, METH_VARARGS, M_Geometry_intersect_line_sphere_doc},
 	{"intersect_line_sphere_2d", (PyCFunction) M_Geometry_intersect_line_sphere_2d, METH_VARARGS, M_Geometry_intersect_line_sphere_2d_doc},
 	{"distance_point_to_plane", (PyCFunction) M_Geometry_distance_point_to_plane, METH_VARARGS, M_Geometry_distance_point_to_plane_doc},
+	{"intersect_sphere_sphere_2d", (PyCFunction) M_Geometry_intersect_sphere_sphere_2d, METH_VARARGS, M_Geometry_intersect_sphere_sphere_2d_doc},
 	{"area_tri", (PyCFunction) M_Geometry_area_tri, METH_VARARGS, M_Geometry_area_tri_doc},
 	{"normal", (PyCFunction) M_Geometry_normal, METH_VARARGS, M_Geometry_normal_doc},
 	{"barycentric_transform", (PyCFunction) M_Geometry_barycentric_transform, METH_VARARGS, M_Geometry_barycentric_transform_doc},
