@@ -551,12 +551,12 @@ enum {
  * blocktypes, when using "standard" keying but 'Visual Keying' option in Auto-Keying 
  * settings is on.
  */
-static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
+static bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 {
 	bConstraint *con = NULL;
 	short searchtype = VISUALKEY_NONE;
-	short has_rigidbody = FALSE;
-	short has_parent = FALSE;
+	bool has_rigidbody = false;
+	bool has_parent = false;
 	const char *identifier = NULL;
 	
 	/* validate data */
@@ -590,13 +590,13 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 	}
 	
 	/* check if any data to search using */
-	if (ELEM(NULL, con, identifier) && (has_parent == FALSE) && (has_rigidbody == FALSE))
-		return 0;
+	if (ELEM(NULL, con, identifier) && (has_parent == false) && (has_rigidbody == false))
+		return false;
 	
 	/* location or rotation identifiers only... */
 	if (identifier == NULL) {
 		printf("%s failed: NULL identifier\n", __func__);
-		return 0;
+		return false;
 	}
 	else if (strstr(identifier, "location")) {
 		searchtype = VISUALKEY_LOC;
@@ -609,7 +609,7 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 	}
 	else {
 		printf("%s failed: identifier - '%s'\n", __func__, identifier);
-		return 0;
+		return false;
 	}
 	
 	
@@ -617,7 +617,7 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 	if (searchtype) {
 		/* parent or rigidbody are always matching */
 		if (has_parent || has_rigidbody)
-			return 1;
+			return true;
 		
 		/* constraints */
 		for (; con; con = con->next) {
@@ -629,48 +629,48 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 			switch (con->type) {
 				/* multi-transform constraints */
 				case CONSTRAINT_TYPE_CHILDOF:
-					return 1;
+					return true;
 				case CONSTRAINT_TYPE_TRANSFORM:
 				case CONSTRAINT_TYPE_TRANSLIKE:
-					return 1;
+					return true;
 				case CONSTRAINT_TYPE_FOLLOWPATH:
-					return 1;
+					return true;
 				case CONSTRAINT_TYPE_KINEMATIC:
-					return 1;
+					return true;
 				
 				/* single-transform constraits  */
 				case CONSTRAINT_TYPE_TRACKTO:
-					if (searchtype == VISUALKEY_ROT) return 1;
+					if (searchtype == VISUALKEY_ROT) return true;
 					break;
 				case CONSTRAINT_TYPE_DAMPTRACK:
-					if (searchtype == VISUALKEY_ROT) return 1;
+					if (searchtype == VISUALKEY_ROT) return true;
 					break;
 				case CONSTRAINT_TYPE_ROTLIMIT:
-					if (searchtype == VISUALKEY_ROT) return 1;
+					if (searchtype == VISUALKEY_ROT) return true;
 					break;
 				case CONSTRAINT_TYPE_LOCLIMIT:
-					if (searchtype == VISUALKEY_LOC) return 1;
+					if (searchtype == VISUALKEY_LOC) return true;
 					break;
 				case CONSTRAINT_TYPE_SIZELIMIT:
-					if (searchtype == VISUALKEY_SCA) return 1;
+					if (searchtype == VISUALKEY_SCA) return true;
 					break;
 				case CONSTRAINT_TYPE_DISTLIMIT:
-					if (searchtype == VISUALKEY_LOC) return 1;
+					if (searchtype == VISUALKEY_LOC) return true;
 					break;
 				case CONSTRAINT_TYPE_ROTLIKE:
-					if (searchtype == VISUALKEY_ROT) return 1;
+					if (searchtype == VISUALKEY_ROT) return true;
 					break;
 				case CONSTRAINT_TYPE_LOCLIKE:
-					if (searchtype == VISUALKEY_LOC) return 1;
+					if (searchtype == VISUALKEY_LOC) return true;
 					break;
 				case CONSTRAINT_TYPE_SIZELIKE:
-					if (searchtype == VISUALKEY_SCA) return 1;
+					if (searchtype == VISUALKEY_SCA) return true;
 					break;
 				case CONSTRAINT_TYPE_LOCKTRACK:
-					if (searchtype == VISUALKEY_ROT) return 1;
+					if (searchtype == VISUALKEY_ROT) return true;
 					break;
 				case CONSTRAINT_TYPE_MINMAX:
-					if (searchtype == VISUALKEY_LOC) return 1;
+					if (searchtype == VISUALKEY_LOC) return true;
 					break;
 				
 				default:
@@ -679,8 +679,8 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 		}
 	}
 	
-	/* when some condition is met, this function returns, so here it can be 0 */
-	return 0;
+	/* when some condition is met, this function returns, so that means we've got nothing */
+	return false;
 }
 
 /* This helper function extracts the value to use for visual-keyframing 
