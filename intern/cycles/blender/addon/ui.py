@@ -1175,6 +1175,9 @@ def get_panels():
         types.PARTICLE_PT_force_fields,
         types.PARTICLE_PT_vertexgroups,
         types.PARTICLE_PT_custom_props,
+        types.MATERIAL_PT_preview,
+        types.DATA_PT_preview,
+        types.WORLD_PT_preview,
         )
 
 
