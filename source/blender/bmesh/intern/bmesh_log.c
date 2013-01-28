@@ -165,13 +165,13 @@ static BMFace *bm_log_face_from_id(BMLog *log, unsigned int id)
  * Returns zero if no paint-mask layer is present */
 static float vert_mask_get(BMesh *bm, BMVert *v)
 {
-	CustomData *cd = &bm->vdata;
-	if (CustomData_has_layer(&bm->vdata, CD_PAINT_MASK)) {
-		float *mask = CustomData_bmesh_get(cd, v->head.data, CD_PAINT_MASK);
+	float *mask = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_PAINT_MASK);
+	BLI_assert((CustomData_has_layer(&bm->vdata, CD_PAINT_MASK) == 0) == (mask == NULL));
+	if (mask) {
 		return *mask;
 	}
 	else {
-		return 0;
+		return 0.0f;
 	}
 }
 
@@ -180,10 +180,10 @@ static float vert_mask_get(BMesh *bm, BMVert *v)
  * Has no effect is no paint-mask layer is present */
 static void vert_mask_set(BMesh *bm, BMVert *v, float new_mask)
 {
-	CustomData *cd = &bm->vdata;
-	if (CustomData_has_layer(cd, CD_PAINT_MASK)) {
-		float *mask = CustomData_bmesh_get(cd, v->head.data, CD_PAINT_MASK);
-		(*mask) = new_mask;
+	float *mask = CustomData_bmesh_get(&bm->vdata, v->head.data, CD_PAINT_MASK);
+	BLI_assert((CustomData_has_layer(&bm->vdata, CD_PAINT_MASK) == 0) == (mask == NULL));
+	if (*mask) {
+		*mask = new_mask;
 	}
 }
 
