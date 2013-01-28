@@ -52,6 +52,7 @@
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_rigidbody_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -554,6 +555,7 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 {
 	bConstraint *con = NULL;
 	short searchtype = VISUALKEY_NONE;
+	short has_rigidbody = FALSE;
 	short has_parent = FALSE;
 	const char *identifier = NULL;
 	
@@ -569,10 +571,14 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 	if (ptr->type == &RNA_Object) {
 		/* Object */
 		Object *ob = (Object *)ptr->data;
+		RigidBodyOb *rbo = ob->rigidbody_object;
 		
 		con = ob->constraints.first;
 		identifier = RNA_property_identifier(prop);
 		has_parent = (ob->parent != NULL);
+		
+		/* active rigidbody objects only, as only those are affected by sim */
+		has_rigidbody = ((rbo) && (rbo->type == RBO_TYPE_ACTIVE));
 	}
 	else if (ptr->type == &RNA_PoseBone) {
 		/* Pose Channel */
@@ -584,7 +590,7 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 	}
 	
 	/* check if any data to search using */
-	if (ELEM(NULL, con, identifier) && (has_parent == FALSE))
+	if (ELEM(NULL, con, identifier) && (has_parent == FALSE) && (has_rigidbody == FALSE))
 		return 0;
 	
 	/* location or rotation identifiers only... */
@@ -609,8 +615,8 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 	
 	/* only search if a searchtype and initial constraint are available */
 	if (searchtype) {
-		/* parent is always matching */
-		if (has_parent)
+		/* parent or rigidbody are always matching */
+		if (has_parent || has_rigidbody)
 			return 1;
 		
 		/* constraints */
@@ -696,12 +702,12 @@ static float visualkey_get_value(PointerRNA *ptr, PropertyRNA *prop, int array_i
 	 */
 	if (ptr->type == &RNA_Object) {
 		Object *ob = (Object *)ptr->data;
-
+		
 		/* Loc code is specific... */
 		if (strstr(identifier, "location")) {
 			return ob->obmat[3][array_index];
 		}
-
+		
 		copy_m4_m4(tmat, ob->obmat);
 		rotmode = ob->rotmode;
 	}
