@@ -272,7 +272,7 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE | IMAGEFILE, FILE_SPECIAL, FILE_SAVE,
 	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
-	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "Screenshot the whole Blender window");
+	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "Capture the whole window. If disabled, only capture the active area");
 }
 
 /* *************** screenshot movie job ************************* */
@@ -500,5 +500,5 @@ void SCREEN_OT_screencast(wmOperatorType *ot)
 	ot->flag = 0;
 	
 	RNA_def_property(ot->srna, "filepath", PROP_STRING, PROP_FILEPATH);
-	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "Screencast the whole Blender window");
+	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "Capture the whole window. If disabled, only capture the active area");
 }
