@@ -214,13 +214,14 @@ class ConnectRigidBodies(Operator):
     @classmethod
     def poll(cls, context):
         obj = context.object
-        objects = context.selected_objects
-        return (obj and obj.rigid_body and (len(objects) > 1))
+        return (obj and obj.rigid_body)
 
     def execute(self, context):
 
+        scene = context.scene
         objects = context.selected_objects
         obj_act = context.active_object
+        change = False
 
         for obj in objects:
             if obj == obj_act:
@@ -237,10 +238,15 @@ class ConnectRigidBodies(Operator):
             con.type = self.con_type
             con.object1 = obj_act
             con.object2 = obj
-        # restore selection
-        bpy.ops.object.select_all(action='DESELECT')
-        for obj in objs:
-            obj.select = True;
-        bpy.context.scene.objects.active = obj_act
-
-        return {'FINISHED'}
+            change = True
+        
+        if change:
+            # restore selection
+            bpy.ops.object.select_all(action='DESELECT')
+            for obj in objects:
+                obj.select = True;
+            scene.objects.active = obj_act
+            return {'FINISHED'}
+        else:
+            self.report({'WARNING'}, "No other objects selected")
+            return {'CANCELLED'}
