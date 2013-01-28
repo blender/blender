@@ -345,8 +345,8 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
 		 */
 		int half_window = this->m_iterations;
 		int window = half_window * 2 + 1;
-		float *temp = (float *)MEM_mallocN((2*window - 1) * sizeof(float), "dilate erode temp");
-		float *buf = (float *)MEM_mallocN((max(bwidth, bheight) + 5*half_window) * sizeof(float), "dilate erode buf");
+		float *temp = (float *)MEM_mallocN((2 * window - 1) * sizeof(float), "dilate erode temp");
+		float *buf = (float *)MEM_mallocN((max(bwidth, bheight) + 5 * half_window) * sizeof(float), "dilate erode buf");
 
 		for (y = 0; y < bheight; y++) {
 			for (x = 0; x < window - 1; x++) {
@@ -355,11 +355,11 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
 			for (x = 0; x < bwidth; x++) {
 				buf[x + window - 1] = rectf[bwidth * y + x];
 			}
-			for (x = bwidth + window - 1; x < bwidth + 5*half_window; x++) {
+			for (x = bwidth + window - 1; x < bwidth + 5 * half_window; x++) {
 				buf[x] = -MAXFLOAT;
 			}
 
-			for(i = 0; i < (bwidth + 3*half_window) / window; i++) {
+			for (i = 0; i < (bwidth + 3 * half_window) / window; i++) {
 				int start = (i + 1) * window - 1;
 
 				temp[window - 1] = buf[start];
@@ -368,8 +368,8 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
 					temp[window - 1 + x] = max(temp[window + x - 2], buf[start + x]);
 				}
 
-				start = half_window + (i-1) * window + 1;
-				for (x = -min(0, start); x < window - max(0, start+window - bwidth); x++) {
+				start = half_window + (i - 1) * window + 1;
+				for (x = -min(0, start); x < window - max(0, start + window - bwidth); x++) {
 					rectf[bwidth * y + (start + x)] = max(temp[x], temp[x + window - 1]);
 				}
 			}
@@ -382,11 +382,11 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
 			for (y = 0; y < bheight; y++) {
 				buf[y + window - 1] = rectf[bwidth * y + x];
 			}
-			for (y = bheight + window - 1; y < bheight + 5*half_window; y++) {
+			for (y = bheight + window - 1; y < bheight + 5 * half_window; y++) {
 				buf[y] = -MAXFLOAT;
 			}
 
-			for(i = 0; i < (bheight + 3*half_window) / window; i++) {
+			for (i = 0; i < (bheight + 3 * half_window) / window; i++) {
 				int start = (i + 1) * window - 1;
 
 				temp[window - 1] = buf[start];
@@ -395,8 +395,8 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
 					temp[window - 1 + y] = max(temp[window + y - 2], buf[start + y]);
 				}
 
-				start = half_window + (i-1) * window + 1;
-				for (y = -min(0, start); y < window - max(0, start+window - bheight); y++) {
+				start = half_window + (i - 1) * window + 1;
+				for (y = -min(0, start); y < window - max(0, start + window - bheight); y++) {
 					rectf[bwidth * (y + start) + x] = max(temp[y], temp[y + window - 1]);
 				}
 			}
@@ -464,8 +464,8 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
 
 		int half_window = this->m_iterations;
 		int window = half_window * 2 + 1;
-		float *temp = (float *)MEM_mallocN((2*window - 1) * sizeof(float), "dilate erode temp");
-		float *buf = (float *)MEM_mallocN((max(bwidth, bheight) + 5*half_window) * sizeof(float), "dilate erode buf");
+		float *temp = (float *)MEM_mallocN((2 * window - 1) * sizeof(float), "dilate erode temp");
+		float *buf = (float *)MEM_mallocN((max(bwidth, bheight) + 5 * half_window) * sizeof(float), "dilate erode buf");
 
 		for (y = 0; y < bheight; y++) {
 			for (x = 0; x < window - 1; x++) {
@@ -474,11 +474,11 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
 			for (x = 0; x < bwidth; x++) {
 				buf[x + window - 1] = rectf[bwidth * y + x];
 			}
-			for (x = bwidth + window - 1; x < bwidth + 5*half_window; x++) {
+			for (x = bwidth + window - 1; x < bwidth + 5 * half_window; x++) {
 				buf[x] = MAXFLOAT;
 			}
 
-			for(i = 0; i < (bwidth + 3*half_window) / window; i++) {
+			for (i = 0; i < (bwidth + 3 * half_window) / window; i++) {
 				int start = (i + 1) * window - 1;
 
 				temp[window - 1] = buf[start];
@@ -487,8 +487,8 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
 					temp[window - 1 + x] = min(temp[window + x - 2], buf[start + x]);
 				}
 
-				start = half_window + (i-1) * window + 1;
-				for (x = -min(0, start); x < window - max(0, start+window - bwidth); x++) {
+				start = half_window + (i - 1) * window + 1;
+				for (x = -min(0, start); x < window - max(0, start + window - bwidth); x++) {
 					rectf[bwidth * y + (start + x)] = min(temp[x], temp[x + window - 1]);
 				}
 			}
@@ -501,11 +501,11 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
 			for (y = 0; y < bheight; y++) {
 				buf[y + window - 1] = rectf[bwidth * y + x];
 			}
-			for (y = bheight + window - 1; y < bheight + 5*half_window; y++) {
+			for (y = bheight + window - 1; y < bheight + 5 * half_window; y++) {
 				buf[y] = MAXFLOAT;
 			}
 
-			for(i = 0; i < (bheight + 3*half_window) / window; i++) {
+			for (i = 0; i < (bheight + 3 * half_window) / window; i++) {
 				int start = (i + 1) * window - 1;
 
 				temp[window - 1] = buf[start];
@@ -514,8 +514,8 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
 					temp[window - 1 + y] = min(temp[window + y - 2], buf[start + y]);
 				}
 
-				start = half_window + (i-1) * window + 1;
-				for (y = -min(0, start); y < window - max(0, start+window - bheight); y++) {
+				start = half_window + (i - 1) * window + 1;
+				for (y = -min(0, start); y < window - max(0, start + window - bheight); y++) {
 					rectf[bwidth * (y + start) + x] = min(temp[y], temp[y + window - 1]);
 				}
 			}

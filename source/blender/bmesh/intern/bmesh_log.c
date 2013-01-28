@@ -452,7 +452,8 @@ BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMLogEntry *entry)
 
 	/* Let BMLog manage the entry list again */
 	log->entries.first = log->entries.last = entry;
-	if (entry) {
+
+	{
 		while (entry->prev) {
 			entry = entry->prev;
 			log->entries.first = entry;
