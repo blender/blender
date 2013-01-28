@@ -121,6 +121,50 @@ static void DisableForText()
 	}
 }
 
+void BL_draw_gamedebug_box(int xco, int yco, int width, int height, float percentage)
+{
+	/* This is a rather important line :( The gl-mode hasn't been left
+	 * behind quite as neatly as we'd have wanted to. I don't know
+	 * what cause it, though :/ .*/
+	glDisable(GL_DEPTH_TEST);
+	
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	
+	glOrtho(0, width, 0, height, -100, 100);
+	
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+	
+	yco = height - yco;
+	int barsize = 50;
+
+	/* draw in black first*/
+	glColor3ub(0, 0, 0);
+	glBegin(GL_QUADS);
+	glVertex2f(xco + 1 + 1 + barsize * percentage, yco - 1 + 10);
+	glVertex2f(xco + 1, yco - 1 + 10);
+	glVertex2f(xco + 1, yco - 1);
+	glVertex2f(xco + 1 + 1 + barsize * percentage, yco - 1);
+	glEnd();
+	
+	glColor3ub(255, 255, 255);
+	glBegin(GL_QUADS);
+	glVertex2f(xco + 1 + barsize * percentage, yco + 10);
+	glVertex2f(xco, yco + 10);
+	glVertex2f(xco, yco);
+	glVertex2f(xco + 1 + barsize * percentage, yco);
+	glEnd();
+	
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	glEnable(GL_DEPTH_TEST);
+}
+
 /* Print 3D text */
 void BL_print_game_line(int fontid, const char* text, int size, int dpi, float* color, double* mat, float aspect)
 {
@@ -164,7 +208,9 @@ void BL_print_gamedebug_line(const char* text, int xco, int yco, int width, int 
 
 	/* the actual drawing */
 	glColor3ub(255, 255, 255);
-	BLF_draw_default((float)xco, (float)(height-yco), 0.0f, (char *)text, 65535); /* XXX, use real len */
+	BLF_size(blf_mono_font, 11, 72);
+	BLF_position(blf_mono_font, (float)xco, (float)(height-yco), 0.0f);
+	BLF_draw(blf_mono_font, (char *)text, 65535); /* XXX, use real len */
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
@@ -193,9 +239,13 @@ void BL_print_gamedebug_line_padded(const char* text, int xco, int yco, int widt
 
 	/* draw in black first*/
 	glColor3ub(0, 0, 0);
-	BLF_draw_default((float)(xco+2), (float)(height-yco-2), 0.0f, text, 65535); /* XXX, use real len */
+	BLF_size(blf_mono_font, 11, 72);
+	BLF_position(blf_mono_font, (float)xco+1, (float)(height-yco-1), 0.0f);
+	BLF_draw(blf_mono_font, (char *)text, 65535);/* XXX, use real len */
+	
 	glColor3ub(255, 255, 255);
-	BLF_draw_default((float)xco, (float)(height-yco), 0.0f, text, 65535); /* XXX, use real len */
+	BLF_position(blf_mono_font, (float)xco, (float)(height-yco), 0.0f);
+	BLF_draw(blf_mono_font, (char *)text, 65535);
 
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();

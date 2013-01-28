@@ -70,6 +70,12 @@ public:
 	void				DisableOpenGLLights();
 	void				ProcessLighting(RAS_IRasterizer *rasty, bool uselights, const MT_Transform& viewmat);
 
+	void				RenderBox2D(int xco,
+						int yco,
+						int width,
+						int height,
+						float percentage);
+
 	void				RenderText3D(int fontid,
 									 const char* text,
 									 int size,

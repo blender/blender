@@ -100,6 +100,22 @@ public:
 		double* oglmatrix,
 		int drawingmode
 	)=0;
+	
+	/**
+	 * Renders 2D boxes.
+	 * \param xco			Position on the screen (origin in lower left corner).
+	 * \param yco			Position on the screen (origin in lower left corner).
+	 * \param width			Width of the canvas to draw to.
+	 * \param height		Height of the canvas to draw to.
+	 * \param percentage	Percentage of bar.
+	 */
+	virtual
+		void
+		RenderBox2D(int xco,
+					int yco,
+					int width,
+					int height,
+					float percentage) = 0;
 
 	/**
 	 * Renders 3D text string using BFL.

@@ -283,6 +283,78 @@ void GPC_RenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmatrix,in
 	}
 }
 
+void GPC_RenderTools::RenderBox2D(int xco,
+										int yco,
+										int width,
+										int height,
+										float percentage)
+{
+	// Save and change OpenGL settings
+	int texture2D;
+	glGetIntegerv(GL_TEXTURE_2D, (GLint*)&texture2D);
+	glDisable(GL_TEXTURE_2D);
+	int fog;
+	glGetIntegerv(GL_FOG, (GLint*)&fog);
+	glDisable(GL_FOG);
+	
+	int light;
+	glGetIntegerv(GL_LIGHTING, (GLint*)&light);
+	glDisable(GL_LIGHTING);
+	
+	glDisable(GL_DEPTH_TEST);
+	
+	// Set up viewing settings
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho(0, width, 0, height, -1, 1);
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+	
+	yco = height - yco;
+	int barsize = 50;
+	
+	// draw in black first
+	glColor3ub(0, 0, 0);
+	glBegin(GL_QUADS);
+	glVertex2f(xco + 1 + 1 + barsize * percentage, yco - 1 + 10);
+	glVertex2f(xco + 1, yco - 1 + 10);
+	glVertex2f(xco + 1, yco - 1);
+	glVertex2f(xco + 1 + 1 + barsize * percentage, yco - 1);
+	glEnd();
+	
+	glColor3ub(255, 255, 255);
+	glBegin(GL_QUADS);
+	glVertex2f(xco + 1 + barsize * percentage, yco + 10);
+	glVertex2f(xco, yco + 10);
+	glVertex2f(xco, yco);
+	glVertex2f(xco + 1 + barsize * percentage, yco);
+	glEnd();
+	
+	// Restore view settings
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	
+	// Restore OpenGL Settings
+	if (fog)
+		glEnable(GL_FOG);
+	else
+		glDisable(GL_FOG);
+	
+	if (texture2D)
+		glEnable(GL_TEXTURE_2D);
+	else
+		glDisable(GL_TEXTURE_2D);
+	if (light)
+		glEnable(GL_LIGHTING);
+	else
+		glDisable(GL_LIGHTING);
+}
+
+
 void GPC_RenderTools::RenderText3D(	int fontid,
 									const char* text,
 									int size,

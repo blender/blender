@@ -1446,7 +1446,7 @@ void KX_KetsjiEngine::RenderDebugProperties()
 	int xcoord = 12;	// mmmm, these constants were taken from blender source
 	int ycoord = 17;	// to 'mimic' behavior
 	
-	int profile_indent = 64;
+	int profile_indent = 72;
 
 	float tottime = m_logger->GetAverage();
 	if (tottime < 1e-6f) {
@@ -1481,7 +1481,7 @@ void KX_KetsjiEngine::RenderDebugProperties()
 		                            m_canvas->GetWidth() /* RdV, TODO ?? */,
 		                            m_canvas->GetHeight() /* RdV, TODO ?? */);
 		
-		debugtxt.Format("%5.1fms (%5.1f fps)", tottime * 1000.f, 1.0/tottime);
+		debugtxt.Format("%5.1fms (%.1ffps)", tottime * 1000.f, 1.0/tottime);
 		m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED,
 		                            debugtxt.ReadPtr(),
 		                            xcoord + const_xindent + profile_indent,
@@ -1504,12 +1504,14 @@ void KX_KetsjiEngine::RenderDebugProperties()
 
 			double time = m_logger->GetAverage((KX_TimeCategory)j);
 
-			debugtxt.Format("%5.2fms (%2d%%)", time*1000.f, (int)(time/tottime * 100.f));
+			debugtxt.Format("%5.2fms | %d%%", time*1000.f, (int)(time/tottime * 100.f));
 			m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED,
 			                            debugtxt.ReadPtr(),
 			                            xcoord + const_xindent + profile_indent, ycoord,
 			                            m_canvas->GetWidth(),
 			                            m_canvas->GetHeight());
+
+			m_rendertools->RenderBox2D(xcoord + (int)(2.2 * profile_indent), ycoord, m_canvas->GetWidth(), m_canvas->GetHeight(), time/tottime);
 			ycoord += const_ysize;
 		}
 	}
