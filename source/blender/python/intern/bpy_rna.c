@@ -6857,7 +6857,7 @@ static int bpy_class_validate_recursive(PointerRNA *dummyptr, StructRNA *srna, v
 		i++;
 
 		if (item == NULL) {
-			if ((flag & FUNC_REGISTER_OPTIONAL) == 0) {
+			if ((flag & (FUNC_REGISTER_OPTIONAL & ~FUNC_REGISTER)) == 0) {
 				PyErr_Format(PyExc_AttributeError,
 				             "expected %.200s, %.200s class to have an \"%.200s\" attribute",
 				             class_type, py_class_name,
