@@ -1787,8 +1787,6 @@ static void do_render_all_options(Render *re)
 	/* ensure no images are in memory from previous animated sequences */
 	BKE_image_all_free_anim_ibufs(re->r.cfra);
 
-	re->pool = BKE_image_pool_new();
-
 	if (RE_engine_render(re, 1)) {
 		/* in this case external render overrides all */
 	}
@@ -1801,7 +1799,12 @@ static void do_render_all_options(Render *re)
 		re->display_draw(re->ddh, re->result, NULL);
 	}
 	else {
+		re->pool = BKE_image_pool_new();
+
 		do_render_composite_fields_blur_3d(re);
+
+		BKE_image_pool_free(re->pool);
+		re->pool = NULL;
 	}
 	
 	re->i.lastframetime = PIL_check_seconds_timer() - re->i.starttime;
@@ -1813,9 +1816,6 @@ static void do_render_all_options(Render *re)
 		renderresult_stampinfo(re);
 		re->display_draw(re->ddh, re->result, NULL);
 	}
-
-	BKE_image_pool_free(re->pool);
-	re->pool = NULL;
 }
 
 static int check_valid_camera(Scene *scene, Object *camera_override)
