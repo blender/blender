@@ -190,7 +190,7 @@ class BakeToKeyframes(Operator):
 
 
 class ConnectRigidBodies(Operator):
-    '''Connect selected rigid bodies to active'''
+    '''Create rigid body constraint between two selected rigid bodies'''
     bl_idname = "rigidbody.connect"
     bl_label = "Connect Rigid Bodies"
     bl_options = {'REGISTER', 'UNDO'}
