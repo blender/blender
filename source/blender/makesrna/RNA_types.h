@@ -342,8 +342,8 @@ typedef enum FunctionFlag {
 	FUNC_ALLOW_WRITE = 4096,
 
 	/* registering */
-	FUNC_REGISTER = 16,
-	FUNC_REGISTER_OPTIONAL = 16 | 32,
+	FUNC_REGISTER = 32,
+	FUNC_REGISTER_OPTIONAL = 32 | 64,
 
 	/* internal flags */
 	FUNC_BUILTIN = 128,
