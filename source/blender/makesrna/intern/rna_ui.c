@@ -791,7 +791,7 @@ static void rna_def_panel(BlenderRNA *brna)
 
 	func = RNA_def_function(srna, "draw_header", NULL);
 	RNA_def_function_ui_description(func, "Draw UI elements into the panel's header UI layout");
-	RNA_def_function_flag(func, FUNC_REGISTER);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 

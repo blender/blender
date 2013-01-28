@@ -138,6 +138,7 @@ def unregister():
 
 # Define a default UIList, when a list does not need any custom drawing...
 class UI_UL_list(bpy.types.UIList):
-    pass
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        pass
 
 bpy.utils.register_class(UI_UL_list)
