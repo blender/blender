@@ -2336,7 +2336,7 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 			ListBase targets = {NULL, NULL};
 			
 			/* only consider constraint if enabled */
-			if (con->flag & CONSTRAINT_DISABLE) continue;
+			if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) continue;
 			if (con->enforce == 0.0f) continue;
 			
 			/* only use it if it's tagged for this purpose (and the right type) */
@@ -2427,7 +2427,7 @@ static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
 		/* Evaluate valid constraints */
 		for (con = td->con; con; con = con->next) {
 			/* only consider constraint if enabled */
-			if (con->flag & CONSTRAINT_DISABLE) continue;
+			if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) continue;
 			if (con->enforce == 0.0f) continue;
 
 			/* we're only interested in Limit-Rotation constraints */
@@ -2517,7 +2517,7 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 		/* Evaluate valid constraints */
 		for (con = td->con; con; con = con->next) {
 			/* only consider constraint if enabled */
-			if (con->flag & CONSTRAINT_DISABLE) continue;
+			if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) continue;
 			if (con->enforce == 0.0f) continue;
 			
 			/* we're only interested in Limit-Scale constraints */
