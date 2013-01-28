@@ -190,7 +190,7 @@ class BakeToKeyframes(Operator):
 
 
 class ConnectRigidBodies(Operator):
-    '''Create rigid body constraint between two selected rigid bodies'''
+    '''Create rigid body constraints between selected and active rigid bodies'''
     bl_idname = "rigidbody.connect"
     bl_label = "Connect Rigid Bodies"
     bl_options = {'REGISTER', 'UNDO'}
@@ -237,9 +237,10 @@ class ConnectRigidBodies(Operator):
             con.type = self.con_type
             con.object1 = obj_act
             con.object2 = obj
+        # restore selection
+        bpy.ops.object.select_all(action='DESELECT')
+        for obj in objs:
+            obj.select = True;
+        bpy.context.scene.objects.active = obj_act
 
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self)
