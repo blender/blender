@@ -425,10 +425,6 @@ static int controller_add_exec(bContext *C, wmOperator *op)
 	ob->scaflag |= OB_SHOWCONT;
 	
 	WM_event_add_notifier(C, NC_LOGIC, NULL);
-
-	/* prevent the operator to get stuck with the "object" of the previous call -
-	 * it only happens when it's called from the "smart controller", see bug #54102 */
-	RNA_string_set(op->ptr, "object", "");	
 	
 	return OPERATOR_FINISHED;
 }
