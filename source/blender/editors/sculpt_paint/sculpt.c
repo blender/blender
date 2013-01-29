@@ -4527,7 +4527,7 @@ static void SCULPT_OT_set_persistent_base(wmOperatorType *ot)
 
 static void sculpt_dynamic_topology_triangulate(BMesh *bm)
 {
-	BMO_op_callf(bm, BMO_FLAG_DEFAULTS, "triangulate faces=%af");
+	BM_mesh_triangulate(bm, false, false);
 }
 
 void sculpt_pbvh_clear(Object *ob)
