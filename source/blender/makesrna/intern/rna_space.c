@@ -2045,7 +2045,7 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	/* note: custom set function is ONLY to avoid rna setting a user for this. */
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceProperties_pin_id_set",
 	                               "rna_SpaceProperties_pin_id_typef", NULL);
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_PROPERTIES, "rna_SpaceProperties_pin_id_update");
 
 	prop = RNA_def_property(srna, "use_pin_id", PROP_BOOLEAN, PROP_NONE);
