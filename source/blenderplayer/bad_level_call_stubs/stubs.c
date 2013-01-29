@@ -540,8 +540,9 @@ const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *ms
 
 #ifdef WITH_FREESTYLE
 /* Freestyle */
-void FRS_add_freestyle_config(struct SceneRenderLayer* srl) {}
-void FRS_free_freestyle_config(struct SceneRenderLayer* srl) {}
+void FRS_init_freestyle_config(struct FreestyleConfig *config) {}
+void FRS_free_freestyle_config(struct FreestyleConfig *config) {} 
+void FRS_copy_freestyle_config(struct FreestyleConfig *new_config, struct FreestyleConfig *config) {}
 struct FreestyleLineSet *FRS_get_active_lineset(struct FreestyleConfig *config) { return NULL; }
 short FRS_get_active_lineset_index(struct FreestyleConfig *config) { return 0; }
 void FRS_set_active_lineset_index(struct FreestyleConfig *config, short index) {}
