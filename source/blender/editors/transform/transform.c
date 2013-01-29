@@ -4932,7 +4932,7 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 				/* check if we need to flip
 				 * (compare the normal defines by the edges with the face normal) */
 				cross_v3_v3v3(tvec, e_dir_prev, e_dir_next);
-				if (dot_v3v3(tvec, l->f->no) > 0.0f) {
+				if ((dot_v3v3(tvec, l->f->no) < 0.0f) == BM_loop_is_convex(l)) {
 					negate_v3(vec_accum);
 				}
 			}

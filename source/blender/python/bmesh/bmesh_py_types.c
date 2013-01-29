@@ -559,6 +559,15 @@ static PyObject *bpy_bmloop_link_loop_radial_prev_get(BPy_BMLoop *self)
 	return BPy_BMLoop_CreatePyObject(self->bm, self->l->radial_prev);
 }
 
+PyDoc_STRVAR(bpy_bm_is_convex_doc,
+"True when this loop is at the convex corner of a face, depends on a valid face normal (read-only).\n\n:type: :class:`BMLoop`"
+);
+static PyObject *bpy_bm_is_convex_get(BPy_BMLoop *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return PyBool_FromLong(BM_loop_is_convex(self->l));
+}
+
 /* ElemSeq
  * ^^^^^^^ */
 
@@ -721,7 +730,8 @@ static PyGetSetDef bpy_bmloop_getseters[] = {
 	{(char *)"link_loop_radial_prev", (getter)bpy_bmloop_link_loop_radial_prev_get, (setter)NULL, (char *)bpy_bmloop_link_loop_radial_prev_doc, NULL},
 
 	/* readonly checks */
-	{(char *)"is_valid",   (getter)bpy_bm_is_valid_get, (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
+	{(char *)"is_convex",  (getter)bpy_bm_is_convex_get, (setter)NULL, (char *)bpy_bm_is_convex_doc, NULL},
+	{(char *)"is_valid",   (getter)bpy_bm_is_valid_get,  (setter)NULL, (char *)bpy_bm_is_valid_doc,  NULL},
 
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };

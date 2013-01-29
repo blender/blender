@@ -1007,6 +1007,22 @@ void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
 }
 
 /**
+ * Check if the loop is convex or concave
+ * (depends on face normal)
+ */
+bool BM_loop_is_convex(BMLoop *l)
+{
+	float e_dir_prev[3];
+	float e_dir_next[3];
+	float l_no[3];
+
+	sub_v3_v3v3(e_dir_prev, l->prev->v->co, l->v->co);
+	sub_v3_v3v3(e_dir_next, l->next->v->co, l->v->co);
+	cross_v3_v3v3(l_no, e_dir_next, e_dir_prev);
+	return dot_v3v3(l_no, l->f->no) > 0.0f;
+}
+
+/**
  * Calculates the angle between the previous and next loops
  * (angle at this loops face corner).
  *
@@ -1034,7 +1050,7 @@ void BM_loop_calc_face_normal(BMLoop *l, float r_normal[3])
 	                  l->v->co,
 	                  l->next->v->co) != 0.0f)
 	{
-		return;
+		/* pass */
 	}
 	else {
 		copy_v3_v3(r_normal, l->f->no);
