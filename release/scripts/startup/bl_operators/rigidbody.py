@@ -27,7 +27,7 @@ from bpy.props import EnumProperty
 class CopyRigidbodySettings(Operator):
     '''Copy Rigid Body settings from active object to selected'''
     bl_idname = "rigidbody.object_settings_copy"
-    bl_label = "Copy Rigidbody Settings"
+    bl_label = "Copy Rigid Body Settings"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -37,21 +37,21 @@ class CopyRigidbodySettings(Operator):
 
     def execute(self, context):
         obj = context.object
-        scn = context.scene
+        scene = context.scene
 
         # deselect all but mesh objects
         for o in context.selected_objects:
             if o.type != 'MESH':
                 o.select = False
 
-        sel = context.selected_objects
-        if sel:
+        objects = context.selected_objects
+        if objects:
             # add selected objects to active one groups and recalculate
             bpy.ops.group.objects_add_active()
-            scn.frame_set(scn.frame_current)
+            scene.frame_set(scene.frame_current)
 
             # copy settings
-            for o in sel:
+            for o in objects:
                 if o.rigid_body is None:
                     continue
                 
@@ -106,7 +106,7 @@ class BakeToKeyframes(Operator):
 
     def execute(self, context):
         bake = []
-        objs = []
+        objects = []
         scene = context.scene
         frame_orig = scene.frame_current
         frames = list(range(self.frame_start, self.frame_end + 1, self.step))
@@ -116,23 +116,23 @@ class BakeToKeyframes(Operator):
             if not obj.rigid_body or obj.rigid_body.type != 'ACTIVE':
                 obj.select = False
 
-        objs = context.selected_objects
+        objects = context.selected_objects
 
-        if objs:
+        if objects:
             # store transformation data
             for f in list(range(self.frame_start, self.frame_end + 1)):
                 scene.frame_set(f)
                 if f in frames:
                     mat = {}
-                    for i, obj in enumerate(objs):
+                    for i, obj in enumerate(objects):
                         mat[i] = obj.matrix_world.copy()
                     bake.append(mat)
 
             # apply transformations as keyframes
             for i, f in enumerate(frames):
                 scene.frame_set(f)
-                obj_prev = objs[0]
-                for j, obj in enumerate(objs):
+                obj_prev = objects[0]
+                for j, obj in enumerate(objects):
                     mat = bake[i][j]
 
                     obj.location = mat.to_translation()
@@ -156,7 +156,7 @@ class BakeToKeyframes(Operator):
             bpy.ops.rigidbody.objects_remove()
 
             # clean up keyframes
-            for obj in objs:
+            for obj in objects:
                 action = obj.animation_data.action
                 for fcu in action.fcurves:
                     keyframe_points = fcu.keyframe_points
@@ -190,23 +190,17 @@ class BakeToKeyframes(Operator):
 
 
 class ConnectRigidBodies(Operator):
-
-
-    '''Connect selected rigid bodies to active'''
+    '''Create rigid body constraints between selected and active rigid bodies'''
     bl_idname = "rigidbody.connect"
-    bl_label = "ConnectRigidBodies"
+    bl_label = "Connect Rigid Bodies"
     bl_options = {'REGISTER', 'UNDO'}
 
     con_type = EnumProperty(
         name="Type",
-        description="Type of generated contraint",
-        items=(('FIXED', "Fixed", "Glues ridig bodies together"),
-               ('POINT', "Point", "Constrains rigid bodies to move aound common pivot point"),
-               ('HINGE', "Hinge", "Restricts rigid body rotation to one axis"),
-               ('SLIDER', "Slider", "Restricts rigid boddy translation to one axis"),
-               ('PISTON', "Piston", "Restricts rigid boddy translation and rotation to one axis"),
-               ('GENERIC', "Generic", "Restricts translation and rotation to specified axes"),
-               ('GENERIC_SPRING', "Generic Spring", "Restricts translation and rotation to specified axes with springs")),
+        description="Type of generated constraint",
+        # XXX Would be nice to get icons too, but currently not possible ;)
+        items=tuple((e.identifier, e.name, e.description, e. value)
+                    for e in bpy.types.RigidBodyConstraint.bl_rna.properties["type"].enum_items),
         default='FIXED',)
 
     pivot_type = EnumProperty(
@@ -214,21 +208,22 @@ class ConnectRigidBodies(Operator):
         description="Constraint pivot location",
         items=(('CENTER', "Center", "Pivot location is between the constrained rigid bodies"),
                ('ACTIVE', "Active", "Pivot location is at the active object position"),
-               ('SELECTED', "Selected", "Pivot location is at the slected object position")),
+               ('SELECTED', "Selected", "Pivot location is at the selected object position")),
         default='CENTER',)
 
     @classmethod
     def poll(cls, context):
         obj = context.object
-        objs = context.selected_objects
-        return (obj and obj.rigid_body and (len(objs) > 1))
+        return (obj and obj.rigid_body)
 
     def execute(self, context):
 
-        objs = context.selected_objects
+        scene = context.scene
+        objects = context.selected_objects
         obj_act = context.active_object
+        change = False
 
-        for obj in objs:
+        for obj in objects:
             if obj == obj_act:
                 continue
             if self.pivot_type == 'ACTIVE':
@@ -243,9 +238,15 @@ class ConnectRigidBodies(Operator):
             con.type = self.con_type
             con.object1 = obj_act
             con.object2 = obj
-
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self)
+            change = True
+        
+        if change:
+            # restore selection
+            bpy.ops.object.select_all(action='DESELECT')
+            for obj in objects:
+                obj.select = True;
+            scene.objects.active = obj_act
+            return {'FINISHED'}
+        else:
+            self.report({'WARNING'}, "No other objects selected")
+            return {'CANCELLED'}

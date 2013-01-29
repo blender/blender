@@ -52,6 +52,7 @@
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_rigidbody_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -550,11 +551,12 @@ enum {
  * blocktypes, when using "standard" keying but 'Visual Keying' option in Auto-Keying 
  * settings is on.
  */
-static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
+static bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 {
 	bConstraint *con = NULL;
 	short searchtype = VISUALKEY_NONE;
-	short has_parent = FALSE;
+	bool has_rigidbody = false;
+	bool has_parent = false;
 	const char *identifier = NULL;
 	
 	/* validate data */
@@ -569,10 +571,14 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 	if (ptr->type == &RNA_Object) {
 		/* Object */
 		Object *ob = (Object *)ptr->data;
+		RigidBodyOb *rbo = ob->rigidbody_object;
 		
 		con = ob->constraints.first;
 		identifier = RNA_property_identifier(prop);
 		has_parent = (ob->parent != NULL);
+		
+		/* active rigidbody objects only, as only those are affected by sim */
+		has_rigidbody = ((rbo) && (rbo->type == RBO_TYPE_ACTIVE));
 	}
 	else if (ptr->type == &RNA_PoseBone) {
 		/* Pose Channel */
@@ -584,13 +590,13 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 	}
 	
 	/* check if any data to search using */
-	if (ELEM(NULL, con, identifier) && (has_parent == FALSE))
-		return 0;
+	if (ELEM(NULL, con, identifier) && (has_parent == false) && (has_rigidbody == false))
+		return false;
 	
 	/* location or rotation identifiers only... */
 	if (identifier == NULL) {
 		printf("%s failed: NULL identifier\n", __func__);
-		return 0;
+		return false;
 	}
 	else if (strstr(identifier, "location")) {
 		searchtype = VISUALKEY_LOC;
@@ -603,15 +609,15 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 	}
 	else {
 		printf("%s failed: identifier - '%s'\n", __func__, identifier);
-		return 0;
+		return false;
 	}
 	
 	
 	/* only search if a searchtype and initial constraint are available */
 	if (searchtype) {
-		/* parent is always matching */
-		if (has_parent)
-			return 1;
+		/* parent or rigidbody are always matching */
+		if (has_parent || has_rigidbody)
+			return true;
 		
 		/* constraints */
 		for (; con; con = con->next) {
@@ -623,48 +629,48 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 			switch (con->type) {
 				/* multi-transform constraints */
 				case CONSTRAINT_TYPE_CHILDOF:
-					return 1;
+					return true;
 				case CONSTRAINT_TYPE_TRANSFORM:
 				case CONSTRAINT_TYPE_TRANSLIKE:
-					return 1;
+					return true;
 				case CONSTRAINT_TYPE_FOLLOWPATH:
-					return 1;
+					return true;
 				case CONSTRAINT_TYPE_KINEMATIC:
-					return 1;
+					return true;
 				
 				/* single-transform constraits  */
 				case CONSTRAINT_TYPE_TRACKTO:
-					if (searchtype == VISUALKEY_ROT) return 1;
+					if (searchtype == VISUALKEY_ROT) return true;
 					break;
 				case CONSTRAINT_TYPE_DAMPTRACK:
-					if (searchtype == VISUALKEY_ROT) return 1;
+					if (searchtype == VISUALKEY_ROT) return true;
 					break;
 				case CONSTRAINT_TYPE_ROTLIMIT:
-					if (searchtype == VISUALKEY_ROT) return 1;
+					if (searchtype == VISUALKEY_ROT) return true;
 					break;
 				case CONSTRAINT_TYPE_LOCLIMIT:
-					if (searchtype == VISUALKEY_LOC) return 1;
+					if (searchtype == VISUALKEY_LOC) return true;
 					break;
 				case CONSTRAINT_TYPE_SIZELIMIT:
-					if (searchtype == VISUALKEY_SCA) return 1;
+					if (searchtype == VISUALKEY_SCA) return true;
 					break;
 				case CONSTRAINT_TYPE_DISTLIMIT:
-					if (searchtype == VISUALKEY_LOC) return 1;
+					if (searchtype == VISUALKEY_LOC) return true;
 					break;
 				case CONSTRAINT_TYPE_ROTLIKE:
-					if (searchtype == VISUALKEY_ROT) return 1;
+					if (searchtype == VISUALKEY_ROT) return true;
 					break;
 				case CONSTRAINT_TYPE_LOCLIKE:
-					if (searchtype == VISUALKEY_LOC) return 1;
+					if (searchtype == VISUALKEY_LOC) return true;
 					break;
 				case CONSTRAINT_TYPE_SIZELIKE:
-					if (searchtype == VISUALKEY_SCA) return 1;
+					if (searchtype == VISUALKEY_SCA) return true;
 					break;
 				case CONSTRAINT_TYPE_LOCKTRACK:
-					if (searchtype == VISUALKEY_ROT) return 1;
+					if (searchtype == VISUALKEY_ROT) return true;
 					break;
 				case CONSTRAINT_TYPE_MINMAX:
-					if (searchtype == VISUALKEY_LOC) return 1;
+					if (searchtype == VISUALKEY_LOC) return true;
 					break;
 				
 				default:
@@ -673,8 +679,8 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 		}
 	}
 	
-	/* when some condition is met, this function returns, so here it can be 0 */
-	return 0;
+	/* when some condition is met, this function returns, so that means we've got nothing */
+	return false;
 }
 
 /* This helper function extracts the value to use for visual-keyframing 
@@ -696,12 +702,12 @@ static float visualkey_get_value(PointerRNA *ptr, PropertyRNA *prop, int array_i
 	 */
 	if (ptr->type == &RNA_Object) {
 		Object *ob = (Object *)ptr->data;
-
+		
 		/* Loc code is specific... */
 		if (strstr(identifier, "location")) {
 			return ob->obmat[3][array_index];
 		}
-
+		
 		copy_m4_m4(tmat, ob->obmat);
 		rotmode = ob->rotmode;
 	}

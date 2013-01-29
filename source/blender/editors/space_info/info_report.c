@@ -148,7 +148,7 @@ static int select_report_pick_invoke(bContext *C, wmOperator *op, wmEvent *event
 void INFO_OT_select_pick(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Select report";
+	ot->name = "Select Report";
 	ot->description = "Select reports by index";
 	ot->idname = "INFO_OT_select_pick";
 

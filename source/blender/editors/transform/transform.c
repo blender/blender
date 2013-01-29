@@ -2336,7 +2336,7 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 			ListBase targets = {NULL, NULL};
 			
 			/* only consider constraint if enabled */
-			if (con->flag & CONSTRAINT_DISABLE) continue;
+			if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) continue;
 			if (con->enforce == 0.0f) continue;
 			
 			/* only use it if it's tagged for this purpose (and the right type) */
@@ -2427,7 +2427,7 @@ static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
 		/* Evaluate valid constraints */
 		for (con = td->con; con; con = con->next) {
 			/* only consider constraint if enabled */
-			if (con->flag & CONSTRAINT_DISABLE) continue;
+			if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) continue;
 			if (con->enforce == 0.0f) continue;
 
 			/* we're only interested in Limit-Rotation constraints */
@@ -2517,7 +2517,7 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 		/* Evaluate valid constraints */
 		for (con = td->con; con; con = con->next) {
 			/* only consider constraint if enabled */
-			if (con->flag & CONSTRAINT_DISABLE) continue;
+			if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) continue;
 			if (con->enforce == 0.0f) continue;
 			
 			/* we're only interested in Limit-Scale constraints */
@@ -4872,70 +4872,102 @@ int BoneEnvelope(TransInfo *t, const int UNUSED(mval[2]))
 static BMEdge *get_other_edge(BMVert *v, BMEdge *e)
 {
 	BMIter iter;
-	BMEdge *e2;
+	BMEdge *e_iter;
 
-	BM_ITER_ELEM (e2, &iter, v, BM_EDGES_OF_VERT) {
-		if (BM_elem_flag_test(e2, BM_ELEM_SELECT) && e2 != e)
-			return e2;
+	BM_ITER_ELEM (e_iter, &iter, v, BM_EDGES_OF_VERT) {
+		if (BM_elem_flag_test(e_iter, BM_ELEM_SELECT) && e_iter != e) {
+			return e_iter;
+		}
 	}
 
 	return NULL;
 }
 
-static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
-                             BMEdge *olde, BMEdge *nexte, float vec[3])
+static void len_v3_ensure(float v[3], const float length)
 {
-	BMLoop *firstl;
-	float a[3] = {0.0f, 0.0f, 0.0f}, n[3] = {0.0f, 0.0f, 0.0f};
+	normalize_v3(v);
+	mul_v3_fl(v, length);
+}
+
+/**
+ * Given 2 edges and a loop, step over the loops
+ * and calculate a direction to slide along.
+ *
+ * \param r_slide_vec the direction to slide,
+ * the length of the vector defines the slide distance.
+ */
+static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
+                             BMEdge *e_prev, BMEdge *e_next, float r_slide_vec[3])
+{
+	BMLoop *l_first;
+	float vec_accum[3] = {0.0f, 0.0f, 0.0f};
+	float vec_accum_len = 0.0f;
 	int i = 0;
 
-	firstl = l;
+	BLI_assert(BM_edge_share_vert(e_prev, e_next) == v);
+
+	l_first = l;
 	do {
 		l = BM_face_other_edge_loop(l->f, l->e, v);
 		if (l->radial_next == l)
 			return NULL;
 		
-		if (l->e == nexte) {
+		if (l->e == e_next) {
 			if (i) {
-				mul_v3_fl(a, 1.0f / (float)i);
+				len_v3_ensure(vec_accum, vec_accum_len / (float)i);
 			}
 			else {
-				float f1[3], f2[3], f3[3];
+				/* When there is no edge to slide along,
+				 * we must slide along the vector defined by the face we're attach to */
+				float e_dir_prev[3], e_dir_next[3], tvec[3];
 
-				sub_v3_v3v3(f1, BM_edge_other_vert(olde, v)->co, v->co);
-				sub_v3_v3v3(f2, BM_edge_other_vert(nexte, v)->co, v->co);
+				sub_v3_v3v3(e_dir_prev, BM_edge_other_vert(e_prev, v)->co, v->co);
+				sub_v3_v3v3(e_dir_next, BM_edge_other_vert(e_next, v)->co, v->co);
 
-				cross_v3_v3v3(f3, f1, l->f->no);
-				cross_v3_v3v3(a, f2, l->f->no);
-				mul_v3_fl(a, -1.0f);
+				cross_v3_v3v3(tvec, l->f->no, e_dir_prev);
+				cross_v3_v3v3(vec_accum, e_dir_next, l->f->no);
 
-				mid_v3_v3v3(a, a, f3);
+				mid_v3_v3v3(vec_accum, vec_accum, tvec);
+
+				/* check if we need to flip
+				 * (compare the normal defines by the edges with the face normal) */
+				cross_v3_v3v3(tvec, e_dir_prev, e_dir_next);
+				if (dot_v3v3(tvec, l->f->no) > 0.0f) {
+					negate_v3(vec_accum);
+				}
 			}
-			
-			copy_v3_v3(vec, a);
+
+			copy_v3_v3(r_slide_vec, vec_accum);
 			return l;
 		}
 		else {
-			sub_v3_v3v3(n, BM_edge_other_vert(l->e, v)->co, v->co);
-			add_v3_v3v3(a, a, n);
+			/* accumulate the normalized edge vector,
+			 * normalize so some edges don't skew the result */
+			float tvec[3];
+			sub_v3_v3v3(tvec, BM_edge_other_vert(l->e, v)->co, v->co);
+			vec_accum_len += normalize_v3(tvec);
+			add_v3_v3(vec_accum, tvec);
 			i += 1;
 		}
 
-		if (BM_face_other_edge_loop(l->f, l->e, v)->e == nexte) {
-			if (i)
-				mul_v3_fl(a, 1.0f / (float)i);
-			
-			copy_v3_v3(vec, a);
+		if (BM_face_other_edge_loop(l->f, l->e, v)->e == e_next) {
+			if (i) {
+				len_v3_ensure(vec_accum, vec_accum_len / (float)i);
+			}
+
+			copy_v3_v3(r_slide_vec, vec_accum);
 			return BM_face_other_edge_loop(l->f, l->e, v);
 		}
 		
+		BLI_assert(l != l->radial_next);
 		l = l->radial_next;
-	} while (l != firstl);
+	} while (l != l_first);
 
-	if (i)
-		mul_v3_fl(a, 1.0f / (float)i);
+	if (i) {
+		len_v3_ensure(vec_accum, vec_accum_len / (float)i);
+	}
 	
-	copy_v3_v3(vec, a);
+	copy_v3_v3(r_slide_vec, vec_accum);
 	
 	return NULL;
 }
@@ -4991,7 +5023,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	BMesh *bm = em->bm;
 	BMIter iter;
 	BMEdge *e, *e1;
-	BMVert *v, *v2, *first;
+	BMVert *v, *v2;
 	TransDataEdgeSlideVert *sv_array;
 	BMBVHTree *btree;
 	SmallHash table;
@@ -5098,6 +5130,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	j = 0;
 	while (1) {
 		BMLoop *l, *l1, *l2;
+		BMVert *v_first;
 
 		v = NULL;
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -5112,7 +5145,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 		if (!v->e)
 			continue;
 		
-		first = v;
+		v_first = v;
 
 		/*walk along the edge loop*/
 		e = v->e;
@@ -5132,7 +5165,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 				break;
 
 			v = BM_edge_other_vert(e, v);
-		} while (e != first->e);
+		} while (e != v_first->e);
 
 		BM_elem_flag_disable(v, BM_ELEM_TAG);
 
@@ -5152,9 +5185,11 @@ static int createEdgeSlideVerts(TransInfo *t)
 		}
 
 		/*iterate over the loop*/
-		first = v;
+		v_first = v;
 		do {
 			TransDataEdgeSlideVert *sv = sv_array + j;
+
+			BLI_assert(j < MEM_allocN_len(sv_array) / sizeof(*sv));
 
 			sv->v = v;
 			sv->origvert = *v;
@@ -5178,6 +5213,8 @@ static int createEdgeSlideVerts(TransInfo *t)
 			e = get_other_edge(v, e);
 			if (!e) {
 				//v2=v, v = BM_edge_other_vert(l1->e, v);
+
+				BLI_assert(j + 1 < MEM_allocN_len(sv_array) / sizeof(*sv));
 
 				sv = sv_array + j + 1;
 				sv->v = v;
@@ -5208,7 +5245,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 
 			BM_elem_flag_disable(v, BM_ELEM_TAG);
 			BM_elem_flag_disable(v2, BM_ELEM_TAG);
-		} while (e != first->e && l1);
+		} while (e != v_first->e && l1);
 
 		loop_nr++;
 	}

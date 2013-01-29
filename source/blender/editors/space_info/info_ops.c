@@ -46,9 +46,11 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
+#include "BKE_screen.h"
 
 
 #include "WM_api.h"
@@ -248,6 +250,78 @@ void FILE_OT_unpack_all(wmOperatorType *ot)
 	/* properties */
 	RNA_def_enum(ot->srna, "method", unpack_all_method_items, PF_USE_LOCAL, "Method", "How to unpack");
 }
+
+/********************* unpack single item operator *********************/
+
+static const EnumPropertyItem unpack_item_method_items[] = {
+	{PF_USE_LOCAL, "USE_LOCAL", 0, "Use file from current directory (create when necessary)", ""},
+	{PF_WRITE_LOCAL, "WRITE_LOCAL", 0, "Write file to current directory (overwrite existing file)", ""},
+	{PF_USE_ORIGINAL, "USE_ORIGINAL", 0, "Use file in original location (create when necessary)", ""},
+	{PF_WRITE_ORIGINAL, "WRITE_ORIGINAL", 0, "Write file to original location (overwrite existing file)", ""},
+	/* {PF_ASK, "ASK", 0, "Ask for each file", ""}, */
+	{0, NULL, 0, NULL, NULL}};
+
+
+static int unpack_item_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain = CTX_data_main(C);
+	ID *id;
+	char idname[BKE_ST_MAXNAME];
+	int type = RNA_int_get(op->ptr, "id_type");
+	int method = RNA_enum_get(op->ptr, "method");
+	
+	RNA_string_get(op->ptr, "id_name", idname);
+	id = BKE_libblock_find_name(type, idname);
+
+	if (id == NULL) {
+		BKE_report(op->reports, RPT_WARNING, "No packed file");
+		return OPERATOR_CANCELLED;
+	}
+	
+	if (method != PF_KEEP)
+		BKE_unpack_id(bmain, id, op->reports, method);  /* XXX PF_ASK can't work here */
+	
+	G.fileflags &= ~G_AUTOPACK;
+	
+	return OPERATOR_FINISHED;
+}
+
+static int unpack_item_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+{
+	uiPopupMenu *pup;
+	uiLayout *layout;
+	
+	pup = uiPupMenuBegin(C, "Unpack", ICON_NONE);
+	layout = uiPupMenuLayout(pup);
+	
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
+	uiItemsFullEnumO(layout, op->type->idname, "method", op->ptr->data, WM_OP_EXEC_REGION_WIN, 0);
+	
+	uiPupMenuEnd(C, pup);
+	
+	return OPERATOR_CANCELLED;
+}
+
+void FILE_OT_unpack_item(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Unpack Item";
+	ot->idname = "FILE_OT_unpack_item";
+	ot->description = "Unpack this file to an external file";
+	
+	/* api callbacks */
+	ot->exec = unpack_item_exec;
+	ot->invoke = unpack_item_invoke;
+	
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_enum(ot->srna, "method", unpack_item_method_items, PF_USE_LOCAL, "Method", "How to unpack");
+	RNA_def_string(ot->srna, "id_name", "", BKE_ST_MAXNAME, "ID name", "Name of ID block to unpack");
+	RNA_def_int(ot->srna, "id_type", 0, 0, INT_MAX, "ID Type", "Identifier type of ID block", 0, INT_MAX);
+}
+
 
 /********************* make paths relative operator *********************/
 

@@ -3954,7 +3954,7 @@ static int wm_ndof_sensitivity_exec(bContext *UNUSED(C), wmOperator *op)
 
 static void WM_OT_ndof_sensitivity_change(wmOperatorType *ot)
 {
-	ot->name = "Change NDOF sensitivity";
+	ot->name = "Change NDOF Sensitivity";
 	ot->idname = "WM_OT_ndof_sensitivity_change";
 	ot->description = "Change NDOF sensitivity";
 	

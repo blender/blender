@@ -169,7 +169,7 @@ static DrawInfo *def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs,
 				/* this code assumes square images */
 				imgsize = bbuf->x;
 				for (y = 0; y < size; y++) {
-					memcpy(&iimg->rect[y * size], &bbuf->rect[(y + yofs) * imgsize + xofs], imgsize * sizeof(int));
+					memcpy(&iimg->rect[y * size], &bbuf->rect[(y + yofs) * imgsize + xofs], size * sizeof(int));
 				}
 			}
 		}

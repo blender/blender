@@ -288,7 +288,14 @@ void BlenderSession::write_render_tile(RenderTile& rtile)
 
 void BlenderSession::update_render_tile(RenderTile& rtile)
 {
-	do_write_update_render_tile(rtile, true);
+	/* use final write for preview renders, otherwise render result wouldn't be
+	 * be updated in blender side
+	 * would need to be investigated a bit further, but for now shall be fine
+	 */
+	if (!b_engine.is_preview())
+		do_write_update_render_tile(rtile, true);
+	else
+		do_write_update_render_tile(rtile, false);
 }
 
 void BlenderSession::render()

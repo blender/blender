@@ -972,7 +972,7 @@ static int viewrotate_cancel(bContext *C, wmOperator *op)
 void VIEW3D_OT_rotate(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Rotate view";
+	ot->name = "Rotate View";
 	ot->description = "Rotate the view";
 	ot->idname = "VIEW3D_OT_rotate";
 
@@ -1330,7 +1330,7 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void VIEW3D_OT_ndof_orbit_zoom(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "NDOF Orbit View with zoom";
+	ot->name = "NDOF Orbit View with Zoom";
 	ot->description = "Explore every angle of an object using the 3D mouse";
 	ot->idname = "VIEW3D_OT_ndof_orbit_zoom";
 
@@ -1590,7 +1590,7 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void VIEW3D_OT_ndof_all(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "NDOF move View";
+	ot->name = "NDOF Move View";
 	ot->description = "Position your viewpoint with the 3D mouse";
 	ot->idname = "VIEW3D_OT_ndof_all";
 
@@ -1753,7 +1753,7 @@ void VIEW3D_OT_move(wmOperatorType *ot)
 {
 
 	/* identifiers */
-	ot->name = "Move view";
+	ot->name = "Move View";
 	ot->description = "Move the view";
 	ot->idname = "VIEW3D_OT_move";
 
@@ -2375,7 +2375,7 @@ static int viewdolly_cancel(bContext *C, wmOperator *op)
 void VIEW3D_OT_dolly(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Dolly view";
+	ot->name = "Dolly View";
 	ot->description = "Dolly in/out in the view";
 	ot->idname = "VIEW3D_OT_dolly";
 
@@ -3457,7 +3457,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name = "View numpad";
+	ot->name = "View Numpad";
 	ot->description = "Use a preset viewpoint";
 	ot->idname = "VIEW3D_OT_viewnumpad";
 

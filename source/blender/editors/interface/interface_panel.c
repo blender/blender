@@ -247,6 +247,14 @@ Panel *uiBeginPanel(ScrArea *sa, ARegion *ar, uiBlock *block, PanelType *pt, int
 		}
 	}
 
+	/* Do not allow closed panels without headers! Else user could get "disappeared" UI! */
+	if ((pt->flag & PNL_NO_HEADER) && (pa->flag & PNL_CLOSED)) {
+		pa->flag &= ~PNL_CLOSED;
+		/* Force update of panels' positions! */
+		pa->sizex = 0;
+		pa->sizey = 0;
+	}
+
 	BLI_strncpy(pa->drawname, drawname, UI_MAX_NAME_STR);
 
 	/* if a new panel is added, we insert it right after the panel

@@ -39,6 +39,7 @@ struct ReportList;
 
 void FILE_OT_pack_all(struct wmOperatorType *ot);
 void FILE_OT_unpack_all(struct wmOperatorType *ot);
+void FILE_OT_unpack_item(struct wmOperatorType *ot);
 void FILE_OT_pack_libraries(struct wmOperatorType *ot);
 void FILE_OT_unpack_libraries(struct wmOperatorType *ot);
 

@@ -946,7 +946,7 @@ static int rna_Function_registered_get(PointerRNA *ptr)
 static int rna_Function_registered_optional_get(PointerRNA *ptr)
 {
 	FunctionRNA *func = (FunctionRNA *)ptr->data;
-	return func->flag & FUNC_REGISTER_OPTIONAL;
+	return func->flag & (FUNC_REGISTER_OPTIONAL & ~FUNC_REGISTER);
 }
 
 static int rna_Function_no_self_get(PointerRNA *ptr)

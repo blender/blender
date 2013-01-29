@@ -4215,25 +4215,25 @@ Types
 
    A keyboard sensor detects player key presses.
 
-   See module :mod:`bge.keys` for keycode values.
+   See module :mod:`bge.events` for keycode values.
 
    .. attribute:: key
 
       The key code this sensor is looking for.
 
-      :type: keycode from :mod:`bge.keys` module
+      :type: keycode from :mod:`bge.events` module
 
    .. attribute:: hold1
 
       The key code for the first modifier this sensor is looking for.
 
-      :type: keycode from :mod:`bge.keys` module
+      :type: keycode from :mod:`bge.events` module
 
    .. attribute:: hold2
 
       The key code for the second modifier this sensor is looking for.
 
-      :type: keycode from :mod:`bge.keys` module
+      :type: keycode from :mod:`bge.events` module
 
    .. attribute:: toggleProperty
 

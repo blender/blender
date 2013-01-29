@@ -97,6 +97,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_datafiles.h"
 #include "ED_render.h"
 #include "ED_view3d.h"
 
@@ -168,7 +169,8 @@ typedef struct ShaderPreview {
 	int sizex, sizey;
 	unsigned int *pr_rect;
 	int pr_method;
-	
+
+	Main *pr_main;
 } ShaderPreview;
 
 typedef struct IconPreviewSize {
@@ -187,23 +189,33 @@ typedef struct IconPreview {
 /* *************************** Preview for buttons *********************** */
 
 static Main *pr_main = NULL;
+static Main *pr_main_cycles = NULL;
+
+#ifndef WITH_HEADLESS
+static Main *load_main_from_memory(char *blend, int blend_size)
+{
+	const int fileflags = G.fileflags;
+	Main *bmain = NULL;
+	BlendFileData *bfd;
+
+	G.fileflags |= G_FILE_NO_UI;
+	bfd = BLO_read_from_memory(blend, blend_size, NULL);
+	if (bfd) {
+		bmain = bfd->main;
+
+		MEM_freeN(bfd);
+	}
+	G.fileflags = fileflags;
+
+	return bmain;
+}
+#endif
 
 void ED_preview_init_dbase(void)
 {
 #ifndef WITH_HEADLESS
-	BlendFileData *bfd;
-	extern int datatoc_preview_blend_size;
-	extern char datatoc_preview_blend[];
-	const int fileflags = G.fileflags;
-	
-	G.fileflags |= G_FILE_NO_UI;
-	bfd = BLO_read_from_memory(datatoc_preview_blend, datatoc_preview_blend_size, NULL);
-	if (bfd) {
-		pr_main = bfd->main;
-		
-		MEM_freeN(bfd);
-	}
-	G.fileflags = fileflags;
+	pr_main = load_main_from_memory(datatoc_preview_blend, datatoc_preview_blend_size);
+	pr_main_cycles = load_main_from_memory(datatoc_preview_cycles_blend, datatoc_preview_cycles_blend_size);
 #endif
 }
 
@@ -211,6 +223,9 @@ void ED_preview_free_dbase(void)
 {
 	if (pr_main)
 		free_main(pr_main);
+
+	if (pr_main_cycles)
+		free_main(pr_main_cycles);
 }
 
 static int preview_mat_has_sss(Material *mat, bNodeTree *ntree)
@@ -239,7 +254,7 @@ static int preview_mat_has_sss(Material *mat, bNodeTree *ntree)
 	return 0;
 }
 
-static Scene *preview_get_scene(void)
+static Scene *preview_get_scene(Main *pr_main)
 {
 	if (pr_main == NULL) return NULL;
 	
@@ -253,8 +268,9 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 {
 	Scene *sce;
 	Base *base;
+	Main *pr_main = sp->pr_main;
 	
-	sce = preview_get_scene();
+	sce = preview_get_scene(pr_main);
 	if (sce) {
 		
 		/* this flag tells render to not execute depsgraph or ipos etc */
@@ -299,45 +315,47 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				sp->matcopy = mat;
 				BLI_addtail(&pr_main->mat, mat);
 				
-				init_render_material(mat, 0, NULL);     /* call that retrieves mode_l */
-				end_render_material(mat);
-				
-				/* un-useful option */
-				if (sp->pr_method == PR_ICON_RENDER)
-					mat->shade_flag &= ~MA_OBCOLOR;
+				if (!BKE_scene_use_new_shading_nodes(scene)) {
+					init_render_material(mat, 0, NULL);     /* call that retrieves mode_l */
+					end_render_material(mat);
+					
+					/* un-useful option */
+					if (sp->pr_method == PR_ICON_RENDER)
+						mat->shade_flag &= ~MA_OBCOLOR;
 
-				/* turn on raytracing if needed */
-				if (mat->mode_l & MA_RAYMIRROR)
-					sce->r.mode |= R_RAYTRACE;
-				if (mat->material_type == MA_TYPE_VOLUME)
-					sce->r.mode |= R_RAYTRACE;
-				if ((mat->mode_l & MA_RAYTRANSP) && (mat->mode_l & MA_TRANSP))
-					sce->r.mode |= R_RAYTRACE;
-				if (preview_mat_has_sss(mat, NULL))
-					sce->r.mode |= R_SSS;
-				
-				/* turn off fake shadows if needed */
-				/* this only works in a specific case where the preview.blend contains
-				 * an object starting with 'c' which has a material linked to it (not the obdata)
-				 * and that material has a fake shadow texture in the active texture slot */
-				for (base = sce->base.first; base; base = base->next) {
-					if (base->object->id.name[2] == 'c') {
-						Material *shadmat = give_current_material(base->object, base->object->actcol);
-						if (shadmat) {
-							if (mat->mode & MA_SHADBUF) shadmat->septex = 0;
-							else shadmat->septex |= 1;
+					/* turn on raytracing if needed */
+					if (mat->mode_l & MA_RAYMIRROR)
+						sce->r.mode |= R_RAYTRACE;
+					if (mat->material_type == MA_TYPE_VOLUME)
+						sce->r.mode |= R_RAYTRACE;
+					if ((mat->mode_l & MA_RAYTRANSP) && (mat->mode_l & MA_TRANSP))
+						sce->r.mode |= R_RAYTRACE;
+					if (preview_mat_has_sss(mat, NULL))
+						sce->r.mode |= R_SSS;
+					
+					/* turn off fake shadows if needed */
+					/* this only works in a specific case where the preview.blend contains
+					 * an object starting with 'c' which has a material linked to it (not the obdata)
+					 * and that material has a fake shadow texture in the active texture slot */
+					for (base = sce->base.first; base; base = base->next) {
+						if (base->object->id.name[2] == 'c') {
+							Material *shadmat = give_current_material(base->object, base->object->actcol);
+							if (shadmat) {
+								if (mat->mode & MA_SHADBUF) shadmat->septex = 0;
+								else shadmat->septex |= 1;
+							}
 						}
 					}
-				}
-				
-				/* turn off bounce lights for volume, 
-				 * doesn't make much visual difference and slows it down too */
-				if (mat->material_type == MA_TYPE_VOLUME) {
-					for (base = sce->base.first; base; base = base->next) {
-						if (base->object->type == OB_LAMP) {
-							/* if doesn't match 'Lamp.002' --> main key light */
-							if (strcmp(base->object->id.name + 2, "Lamp.002") != 0) {
-								base->object->restrictflag |= OB_RESTRICT_RENDER;
+					
+					/* turn off bounce lights for volume, 
+					 * doesn't make much visual difference and slows it down too */
+					if (mat->material_type == MA_TYPE_VOLUME) {
+						for (base = sce->base.first; base; base = base->next) {
+							if (base->object->type == OB_LAMP) {
+								/* if doesn't match 'Lamp.002' --> main key light */
+								if (strcmp(base->object->id.name + 2, "Lamp.002") != 0) {
+									base->object->restrictflag |= OB_RESTRICT_RENDER;
+								}
 							}
 						}
 					}
@@ -432,19 +450,21 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				sp->lampcopy = la;
 				BLI_addtail(&pr_main->lamp, la);
 			}
-			
-			if (la && la->type == LA_SUN && (la->sun_effect_type & LA_SUN_EFFECT_SKY)) {
-				sce->lay = 1 << MA_ATMOS;
-				sce->world = scene->world;
-				sce->camera = (Object *)BLI_findstring(&pr_main->object, "CameraAtmo", offsetof(ID, name) + 2);
+
+			sce->lay = 1 << MA_LAMP;
+
+			if (!BKE_scene_use_new_shading_nodes(scene)) {
+				if (la && la->type == LA_SUN && (la->sun_effect_type & LA_SUN_EFFECT_SKY)) {
+					sce->lay = 1 << MA_ATMOS;
+					sce->world = scene->world;
+					sce->camera = (Object *)BLI_findstring(&pr_main->object, "CameraAtmo", offsetof(ID, name) + 2);
+				}
+				else {
+					sce->world = NULL;
+					sce->camera = (Object *)BLI_findstring(&pr_main->object, "Camera", offsetof(ID, name) + 2);
+				}
 			}
-			else {
-				sce->lay = 1 << MA_LAMP;
-				sce->world = NULL;
-				sce->camera = (Object *)BLI_findstring(&pr_main->object, "Camera", offsetof(ID, name) + 2);
-			}
-			sce->r.mode &= ~R_SHADOW;
-			
+				
 			for (base = sce->base.first; base; base = base->next) {
 				if (base->object->id.name[2] == 'p') {
 					if (base->object->type == OB_LAMP)
@@ -639,6 +659,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	short idtype = GS(id->name);
 	char name[32];
 	int sizex;
+	Main *pr_main = sp->pr_main;
 	
 	/* in case of split preview, use border render */
 	if (split) {
@@ -648,7 +669,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	else sizex = sp->sizex;
 	
 	/* we have to set preview variables first */
-	sce = preview_get_scene();
+	sce = preview_get_scene(pr_main);
 	if (sce) {
 		sce->r.xsch = sizex;
 		sce->r.ysch = sp->sizey;
@@ -749,6 +770,7 @@ static void shader_preview_startjob(void *customdata, short *stop, short *do_upd
 static void shader_preview_free(void *customdata)
 {
 	ShaderPreview *sp = customdata;
+	Main *pr_main = sp->pr_main;
 	
 	if (sp->matcopy) {
 		struct IDProperty *properties;
@@ -1076,13 +1098,14 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	Object *ob = CTX_data_active_object(C);
 	wmJob *wm_job;
 	ShaderPreview *sp;
+	Scene *scene = CTX_data_scene(C);
 
 	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner, "Shader Preview",
 	                    WM_JOB_EXCL_RENDER, WM_JOB_TYPE_RENDER_PREVIEW);
 	sp = MEM_callocN(sizeof(ShaderPreview), "shader preview");
 
 	/* customdata for preview thread */
-	sp->scene = CTX_data_scene(C);
+	sp->scene = scene;
 	sp->owner = owner;
 	sp->sizex = sizex;
 	sp->sizey = sizey;
@@ -1090,6 +1113,14 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	sp->id = id;
 	sp->parent = parent;
 	sp->slot = slot;
+
+	/* hardcoded preview .blend for cycles/internal, this should be solved
+	 * once with custom preview .blend path for external engines */
+	if (BKE_scene_use_new_shading_nodes(scene))
+		sp->pr_main = pr_main_cycles;
+	else
+		sp->pr_main = pr_main;
+
 	if (ob && ob->totcol) copy_v4_v4(sp->col, ob->col);
 	else sp->col[0] = sp->col[1] = sp->col[2] = sp->col[3] = 1.0f;
 	

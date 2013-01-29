@@ -1124,7 +1124,7 @@ static int sequencer_snap_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(ev
 void SEQUENCER_OT_snap(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Snap strips";
+	ot->name = "Snap Strips";
 	ot->idname = "SEQUENCER_OT_snap";
 	ot->description = "Frame where selected strips will be snapped";
 	

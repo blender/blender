@@ -2258,7 +2258,7 @@ static void do_strip_modifiers(Scene *scene, Object *armob, Bone *bone, bPoseCha
 {
 	bActionModifier *amod;
 	bActionStrip *strip, *strip2;
-	float scene_cfra = (float)scene->r.cfra;
+	float scene_cfra = BKE_scene_frame_get(scene);
 	int do_modif;
 
 	for (strip = armob->nlastrips.first; strip; strip = strip->next) {

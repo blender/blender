@@ -330,8 +330,10 @@ static void LOGIC_OT_sensor_add(wmOperatorType *ot)
 	/* properties */
 	ot->prop = prop = RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, SENS_ALWAYS, "Type", "Type of sensor to add");
 	RNA_def_enum_funcs(prop, rna_Sensor_type_itemf);
-	RNA_def_string(ot->srna, "name", "", MAX_NAME, "Name", "Name of the Sensor to add");
-	RNA_def_string(ot->srna, "object", "", MAX_NAME, "Object", "Name of the Object to add the Sensor to");
+	prop = RNA_def_string(ot->srna, "name", "", MAX_NAME, "Name", "Name of the Sensor to add");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_string(ot->srna, "object", "", MAX_NAME, "Object", "Name of the Object to add the Sensor to");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ************* Add/Remove Controller Operator ************* */
@@ -423,16 +425,14 @@ static int controller_add_exec(bContext *C, wmOperator *op)
 	ob->scaflag |= OB_SHOWCONT;
 	
 	WM_event_add_notifier(C, NC_LOGIC, NULL);
-
-	/* prevent the operator to get stuck with the "object" of the previous call -
-	 * it only happens when it's called from the "smart controller", see bug #54102 */
-	RNA_string_set(op->ptr, "object", "");	
 	
 	return OPERATOR_FINISHED;
 }
 
 static void LOGIC_OT_controller_add(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Add Controller";
 	ot->description = "Add a controller to the active object";
@@ -448,8 +448,10 @@ static void LOGIC_OT_controller_add(wmOperatorType *ot)
 	
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", controller_type_items, CONT_LOGIC_AND, "Type", "Type of controller to add");
-	RNA_def_string(ot->srna, "name", "", MAX_NAME, "Name", "Name of the Controller to add");
-	RNA_def_string(ot->srna, "object", "", MAX_NAME, "Object", "Name of the Object to add the Controller to");
+	prop = RNA_def_string(ot->srna, "name", "", MAX_NAME, "Name", "Name of the Controller to add");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_string(ot->srna, "object", "", MAX_NAME, "Object", "Name of the Object to add the Controller to");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ************* Add/Remove Actuator Operator ************* */
@@ -551,8 +553,10 @@ static void LOGIC_OT_actuator_add(wmOperatorType *ot)
 	/* properties */
 	ot->prop = prop = RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, CONT_LOGIC_AND, "Type", "Type of actuator to add");
 	RNA_def_enum_funcs(prop, rna_Actuator_type_itemf);
-	RNA_def_string(ot->srna, "name", "", MAX_NAME, "Name", "Name of the Actuator to add");
-	RNA_def_string(ot->srna, "object", "", MAX_NAME, "Object", "Name of the Object to add the Actuator to");
+	prop = RNA_def_string(ot->srna, "name", "", MAX_NAME, "Name", "Name of the Actuator to add");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_string(ot->srna, "object", "", MAX_NAME, "Object", "Name of the Object to add the Actuator to");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /* ************* Move Logic Bricks Operator ************* */

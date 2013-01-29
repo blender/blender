@@ -146,9 +146,7 @@ class IMAGE_MT_image(Menu):
             if not show_render:
                 layout.separator()
 
-                if ima.packed_file:
-                    layout.operator("image.unpack")
-                else:
+                if not ima.packed_file:
                     layout.operator("image.pack")
 
                 # only for dirty && specific image types, perhaps

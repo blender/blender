@@ -1065,7 +1065,7 @@ static void do_mesh_key(Scene *scene, Object *ob, Key *key, char *out, const int
 	if (key->slurph && key->type != KEY_RELATIVE) {
 		const float ctime_scaled = key->ctime / 100.0f;
 		float delta = (float)key->slurph / tot;
-		float cfra = (float)scene->r.cfra + scene->r.subframe;
+		float cfra = BKE_scene_frame_get(scene);
 		int step, a;
 
 		if (tot > 100 && slurph_opt) {
@@ -1163,7 +1163,7 @@ static void do_curve_key(Scene *scene, Object *ob, Key *key, char *out, const in
 	if (key->slurph && key->type != KEY_RELATIVE) {
 		const float ctime_scaled = key->ctime / 100.0f;
 		float delta = (float)key->slurph / tot;
-		float cfra = (float)scene->r.cfra + scene->r.subframe;
+		float cfra = BKE_scene_frame_get(scene);
 		Nurb *nu;
 		int i = 0, remain = 0;
 		int step, a;
@@ -1245,7 +1245,7 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int
 	if (key->slurph && key->type != KEY_RELATIVE) {
 		const float ctime_scaled = key->ctime / 100.0f;
 		float delta = (float)key->slurph / tot;
-		float cfra = (float)scene->r.cfra + scene->r.subframe;
+		float cfra = BKE_scene_frame_get(scene);
 		int a;
 
 		for (a = 0; a < tot; a++, cfra += delta) {
@@ -1360,7 +1360,7 @@ float *BKE_key_evaluate_object(Scene *scene, Object *ob, int *r_totelem)
 	}
 	else {
 		/* do shapekey local drivers */
-		float ctime = (float)scene->r.cfra + scene->r.subframe;
+		float ctime = BKE_scene_frame_get(scene);
 
 		BKE_animsys_evaluate_animdata(scene, &key->id, key->adt, ctime, ADT_RECALC_DRIVERS);
 		

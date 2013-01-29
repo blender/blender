@@ -908,7 +908,7 @@ static int change_frame_modal(bContext *C, wmOperator *op, wmEvent *event)
 void CLIP_OT_change_frame(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Change frame";
+	ot->name = "Change Frame";
 	ot->idname = "CLIP_OT_change_frame";
 	ot->description = "Interactively change the current frame number";
 

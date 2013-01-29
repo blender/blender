@@ -55,8 +55,10 @@
 
 static void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 {
-	scene->r.cfra = frame;
-	scene->r.subframe = subframe;
+	float cfra = (float)frame + subframe;
+
+	scene->r.cfra = floorf(cfra);
+	scene->r.subframe = cfra - floorf(cfra);
 	
 	CLAMP(scene->r.cfra, MINAFRAME, MAXFRAME);
 	BKE_scene_update_for_newframe(G.main, scene, (1 << 20) - 1);

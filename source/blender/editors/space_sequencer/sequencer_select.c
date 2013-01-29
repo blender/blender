@@ -704,7 +704,7 @@ static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEv
 void SEQUENCER_OT_select_linked_pick(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Select pick linked";
+	ot->name = "Select Pick Linked";
 	ot->idname = "SEQUENCER_OT_select_linked_pick";
 	ot->description = "Select a chain of linked strips nearest to the mouse pointer";
 	
@@ -739,7 +739,7 @@ static int sequencer_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 void SEQUENCER_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Select linked";
+	ot->name = "Select Linked";
 	ot->idname = "SEQUENCER_OT_select_linked";
 	ot->description = "Select all strips adjacent to the current selection";
 	

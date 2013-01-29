@@ -1069,7 +1069,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_track_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Clear track";
+	ot->name = "Clear Track";
 	ot->description = "Clear tracking constraint or flag from object";
 	ot->idname = "OBJECT_OT_track_clear";
 	

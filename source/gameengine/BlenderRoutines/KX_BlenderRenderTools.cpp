@@ -280,6 +280,16 @@ void KX_BlenderRenderTools::applyTransform(RAS_IRasterizer* rasty,double* oglmat
 		}
 	}
 }
+
+void KX_BlenderRenderTools::RenderBox2D(int xco,
+			int yco,
+			int width,
+			int height,
+			float percentage)
+{
+	BL_draw_gamedebug_box(xco, yco, width, height, percentage);
+}
+
 void KX_BlenderRenderTools::RenderText3D(int fontid,
 										 const char* text,
 										 int size,

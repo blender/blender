@@ -720,7 +720,7 @@ static int add_feather_vertex_invoke(bContext *C, wmOperator *op, wmEvent *event
 void MASK_OT_add_feather_vertex(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Add feather Vertex";
+	ot->name = "Add Feather Vertex";
 	ot->description = "Add vertex to feather";
 	ot->idname = "MASK_OT_add_feather_vertex";
 

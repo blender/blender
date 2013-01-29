@@ -950,7 +950,6 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...)
 {
 	AviList list;
 	AviChunk chunk;
-	AviIndexEntry *temp;
 	va_list ap;
 	int stream;
 	int64_t rec_off;
@@ -965,15 +964,7 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...)
 
 	if (frame_num + 1 > movie->index_entries) {
 		const size_t entry_size = (movie->header->Streams + 1) * sizeof(AviIndexEntry);
-
-		if (movie->entries != NULL) {
-			temp = (AviIndexEntry *)MEM_recallocN(movie->entries, (frame_num + 1) * entry_size);
-		}
-		else {
-			temp = (AviIndexEntry *) MEM_callocN((frame_num + 1) * entry_size, "newidxentry");
-		}
-
-		movie->entries = temp;
+		movie->entries = (AviIndexEntry *)MEM_recallocN(movie->entries, (frame_num + 1) * entry_size);
 		movie->index_entries = frame_num + 1;
 	}
 

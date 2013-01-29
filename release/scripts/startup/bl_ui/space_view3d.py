@@ -2702,6 +2702,8 @@ class VIEW3D_PT_etch_a_ton(Panel):
         col.prop(toolsettings, "use_etch_quick")
         col.prop(toolsettings, "use_etch_overdraw")
 
+        col.separator()
+
         col.prop(toolsettings, "etch_convert_mode")
 
         if toolsettings.etch_convert_mode == 'LENGTH':
@@ -2713,11 +2715,20 @@ class VIEW3D_PT_etch_a_ton(Panel):
         elif toolsettings.etch_convert_mode == 'RETARGET':
             col.prop(toolsettings, "etch_template")
             col.prop(toolsettings, "etch_roll_mode")
-            col.prop(toolsettings, "use_etch_autoname")
-            col.prop(toolsettings, "etch_number")
-            col.prop(toolsettings, "etch_side")
 
-        col.operator("sketch.convert", text="Convert")
+            col.separator()
+
+            colsub = col.column(align=True)
+            colsub.prop(toolsettings, "use_etch_autoname")
+            sub = colsub.column() 
+            sub.enabled = not toolsettings.use_etch_autoname
+            sub.prop(toolsettings, "etch_number")
+            sub.prop(toolsettings, "etch_side")
+
+        col.separator()
+
+        col.operator("sketch.convert", text="Convert to Bones")
+        col.operator("sketch.delete", text="Delete Strokes")
 
 
 class VIEW3D_PT_context_properties(Panel):

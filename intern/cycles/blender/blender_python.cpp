@@ -52,8 +52,9 @@ static PyObject *init_func(PyObject *self, PyObject *args)
 static PyObject *create_func(PyObject *self, PyObject *args)
 {
 	PyObject *pyengine, *pyuserpref, *pydata, *pyscene, *pyregion, *pyv3d, *pyrv3d;
+	int preview_osl;
 
-	if(!PyArg_ParseTuple(args, "OOOOOOO", &pyengine, &pyuserpref, &pydata, &pyscene, &pyregion, &pyv3d, &pyrv3d))
+	if(!PyArg_ParseTuple(args, "OOOOOOOp", &pyengine, &pyuserpref, &pydata, &pyscene, &pyregion, &pyv3d, &pyrv3d, &preview_osl))
 		return NULL;
 
 	/* RNA */
@@ -91,14 +92,22 @@ static PyObject *create_func(PyObject *self, PyObject *args)
 	Py_BEGIN_ALLOW_THREADS
 
 	if(rv3d) {
-		/* interactive session */
+		/* interactive viewport session */
 		int width = region.width();
 		int height = region.height();
 
 		session = new BlenderSession(engine, userpref, data, scene, v3d, rv3d, width, height);
 	}
 	else {
-		/* offline session */
+		/* override some settings for preview */
+		if(engine.is_preview()) {
+			PointerRNA cscene = RNA_pointer_get(&sceneptr, "cycles");
+
+			RNA_boolean_set(&cscene, "shading_system", preview_osl);
+			RNA_boolean_set(&cscene, "use_progressive_refine", true);
+		}
+
+		/* offline session or preview render */
 		session = new BlenderSession(engine, userpref, data, scene);
 	}
 

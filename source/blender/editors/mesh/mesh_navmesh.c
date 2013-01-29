@@ -56,7 +56,8 @@
 #include "recast-capi.h"
 
 
-static void createVertsTrisData(bContext *C, LinkNode *obs, int *nverts_r, float **verts_r, int *ntris_r, int **tris_r)
+static void createVertsTrisData(bContext *C, LinkNode *obs,
+                                int *nverts_r, float **verts_r, int *ntris_r, int **tris_r, unsigned int *r_lay)
 {
 	MVert *mvert;
 	int nfaces = 0, *tri, i, curnverts, basenverts, curnfaces;
@@ -91,6 +92,8 @@ static void createVertsTrisData(bContext *C, LinkNode *obs, int *nverts_r, float
 			if (mf->v4)
 				ntris += 1;
 		}
+
+		*r_lay |= ob->lay;
 	}
 
 	/* create data */
@@ -295,7 +298,8 @@ static bool buildNavMesh(const RecastData *recastParams, int nverts, float *vert
 	return true;
 }
 
-static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, struct recast_polyMeshDetail *dmesh, Base *base)
+static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, struct recast_polyMeshDetail *dmesh,
+                                  Base *base, unsigned int lay)
 {
 	float co[3], rot[3];
 	BMEditMesh *em;
@@ -316,7 +320,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 
 	if (createob) {
 		/* create new object */
-		obedit = ED_object_add_type(C, OB_MESH, co, rot, FALSE, 1);
+		obedit = ED_object_add_type(C, OB_MESH, co, rot, FALSE, lay);
 	}
 	else {
 		obedit = base->object;
@@ -452,15 +456,16 @@ static int navmesh_create_exec(bContext *C, wmOperator *op)
 		struct recast_polyMesh *pmesh = NULL;
 		struct recast_polyMeshDetail *dmesh = NULL;
 		bool ok;
+		unsigned int lay = 0;
 
 		int nverts = 0, ntris = 0;
 		int *tris = 0;
 		float *verts = NULL;
 
-		createVertsTrisData(C, obs, &nverts, &verts, &ntris, &tris);
+		createVertsTrisData(C, obs, &nverts, &verts, &ntris, &tris, &lay);
 		BLI_linklist_free(obs, NULL);
 		if ((ok = buildNavMesh(&scene->gm.recastData, nverts, verts, ntris, tris, &pmesh, &dmesh, op->reports))) {
-			createRepresentation(C, pmesh, dmesh, navmeshBase);
+			createRepresentation(C, pmesh, dmesh, navmeshBase, lay);
 		}
 
 		MEM_freeN(verts);
@@ -478,7 +483,7 @@ static int navmesh_create_exec(bContext *C, wmOperator *op)
 void MESH_OT_navmesh_make(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Create navigation mesh";
+	ot->name = "Create Navigation Mesh";
 	ot->description = "Create navigation mesh for selected objects";
 	ot->idname = "MESH_OT_navmesh_make";
 

@@ -35,6 +35,7 @@ class MESH_OT_delete_edgeloop(Operator):
     """to a single face loop"""
     bl_idname = "mesh.delete_edgeloop"
     bl_label = "Delete Edge Loop"
+    bl_options = {'UNDO', 'REGISTER'}
 
     @classmethod
     def poll(cls, context):

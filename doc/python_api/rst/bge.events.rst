@@ -69,7 +69,7 @@ Functions
 
    Return the string name of a key event. Will raise a ValueError error if its invalid.
 
-   :arg event: key event from bge.keys or the keyboard sensor.
+   :arg event: key event constant from :mod:`bge.events` or the keyboard sensor.
    :type event: int
    :rtype: string
    
@@ -78,7 +78,7 @@ Functions
    Return the string name of a key event. Returns an empty string if the event cant be represented as a character.
    
    :type event: int
-   :arg event: key event from :mod:`bge.keys` or the keyboard sensor.
+   :arg event: key event constant from :mod:`bge.events` or the keyboard sensor.
    :type shift: bool
    :arg shift: set to true if shift is held.
    :rtype: string
