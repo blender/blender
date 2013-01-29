@@ -44,9 +44,8 @@ void  BM_vert_normal_update_all(BMVert *v);
 void  BM_face_normal_flip(BMesh *bm, BMFace *f);
 bool  BM_face_point_inside_test(BMFace *f, const float co[3]);
 
-void  BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
-                          const short newedge_oflag, const short newface_oflag, BMFace **newfaces,
-                          const bool use_beauty);
+void  BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3], BMFace **newfaces,
+                          const bool use_beauty, const bool use_tag);
 
 void  BM_face_legal_splits(BMesh *bm, BMFace *f, BMLoop *(*loops)[2], int len);
 

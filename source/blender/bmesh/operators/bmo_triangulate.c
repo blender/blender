@@ -37,45 +37,21 @@
 
 #include "intern/bmesh_operators_private.h" /* own include */
 
-#define EDGE_NEW	1
-#define FACE_NEW	1
-
 #define ELE_NEW		1
 #define FACE_MARK	2
 #define EDGE_MARK	4
 
 void bmo_triangulate_exec(BMesh *bm, BMOperator *op)
 {
-	BMOIter siter;
-	BMFace *face, **newfaces = NULL;
-	BLI_array_declare(newfaces);
-	float (*projectverts)[3] = NULL;
-	BLI_array_declare(projectverts);
-	int i;
 	const bool use_beauty = BMO_slot_bool_get(op->slots_in, "use_beauty");
-	BMOpSlot *slot_facemap_out = BMO_slot_get(op->slots_out, "face_map.out");
 
-	for (face = BMO_iter_new(&siter, op->slots_in, "faces", BM_FACE); face; face = BMO_iter_step(&siter)) {
+	BM_mesh_elem_hflag_disable_all(bm, BM_FACE | BM_EDGE, BM_ELEM_TAG, false);
+	BMO_slot_buffer_hflag_enable(bm, op->slots_in, "faces", BM_FACE, BM_ELEM_TAG, false);
 
-		BLI_array_empty(projectverts);
-		BLI_array_empty(newfaces);
+	BM_mesh_triangulate(bm, use_beauty, true);
 
-		BLI_array_grow_items(projectverts, face->len * 3);
-		BLI_array_grow_items(newfaces, face->len);
-
-		BM_face_triangulate(bm, face, projectverts, EDGE_NEW, FACE_NEW, newfaces, use_beauty);
-
-		BMO_slot_map_elem_insert(op, slot_facemap_out, face, face);
-		for (i = 0; newfaces[i]; i++) {
-			BMO_slot_map_elem_insert(op, slot_facemap_out, newfaces[i], face);
-		}
-	}
-	
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "edges.out", BM_EDGE, EDGE_NEW);
-	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "faces.out", BM_FACE, FACE_NEW);
-	
-	BLI_array_free(projectverts);
-	BLI_array_free(newfaces);
+	BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "edges.out", BM_EDGE, BM_ELEM_TAG);
+	BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faces.out", BM_FACE, BM_ELEM_TAG);
 }
 
 void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)

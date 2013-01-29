@@ -33,8 +33,6 @@
 #include "BKE_modifier.h"
 #include "BKE_tessmesh.h"
 
-/* triangulation modifier, directly calls the bmesh operator */
-
 static DerivedMesh *triangulate_dm(DerivedMesh *dm, const int flag)
 {
 	DerivedMesh *result;
@@ -44,13 +42,7 @@ static DerivedMesh *triangulate_dm(DerivedMesh *dm, const int flag)
 
 	bm = DM_to_bmesh(dm);
 
-	BM_mesh_elem_toolflags_ensure(bm);
-	BMO_push(bm, NULL);
-
-	BMO_op_callf(bm, BMO_FLAG_DEFAULTS,
-	             "triangulate faces=%af use_beauty=%b",
-	             (flag & MOD_TRIANGULATE_BEAUTY));
-	BMO_pop(bm);
+	BM_mesh_triangulate(bm, (flag & MOD_TRIANGULATE_BEAUTY), false);
 
 	result = CDDM_from_bmesh(bm, FALSE);
 	BM_mesh_free(bm);

@@ -845,8 +845,9 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3], const bool use_beauty, flo
  *
  * \note newedgeflag sets a flag layer flag, obviously not the header flag.
  */
-void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3], const short newedge_oflag,
-                         const short newface_oflag, BMFace **newfaces, const bool use_beauty)
+void BM_face_triangulate(BMesh *bm, BMFace *f,
+                         float (*projectverts)[3], BMFace **newfaces,
+                         const bool use_beauty, const bool use_tag)
 {
 	int i, nvert, nf_i = 0;
 	bool done;
@@ -900,8 +901,11 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3], const s
 			}
 
 			copy_v3_v3(f->no, l_iter->f->no);
-			BMO_elem_flag_enable(bm, newl->e, newedge_oflag);
-			BMO_elem_flag_enable(bm, f, newface_oflag);
+
+			if (use_tag) {
+				BM_elem_flag_enable(newl->e, BM_ELEM_TAG);
+				BM_elem_flag_enable(f, BM_ELEM_TAG);
+			}
 			
 			if (newfaces)
 				newfaces[nf_i++] = f;
