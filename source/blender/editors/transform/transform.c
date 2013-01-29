@@ -4991,7 +4991,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	BMesh *bm = em->bm;
 	BMIter iter;
 	BMEdge *e, *e1;
-	BMVert *v, *v2, *first;
+	BMVert *v, *v2;
 	TransDataEdgeSlideVert *sv_array;
 	BMBVHTree *btree;
 	SmallHash table;
@@ -5098,6 +5098,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	j = 0;
 	while (1) {
 		BMLoop *l, *l1, *l2;
+		BMVert *v_first;
 
 		v = NULL;
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -5112,7 +5113,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 		if (!v->e)
 			continue;
 		
-		first = v;
+		v_first = v;
 
 		/*walk along the edge loop*/
 		e = v->e;
@@ -5132,7 +5133,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 				break;
 
 			v = BM_edge_other_vert(e, v);
-		} while (e != first->e);
+		} while (e != v_first->e);
 
 		BM_elem_flag_disable(v, BM_ELEM_TAG);
 
@@ -5152,9 +5153,11 @@ static int createEdgeSlideVerts(TransInfo *t)
 		}
 
 		/*iterate over the loop*/
-		first = v;
+		v_first = v;
 		do {
 			TransDataEdgeSlideVert *sv = sv_array + j;
+
+			BLI_assert(j < MEM_allocN_len(sv_array) / sizeof(*sv));
 
 			sv->v = v;
 			sv->origvert = *v;
@@ -5178,6 +5181,8 @@ static int createEdgeSlideVerts(TransInfo *t)
 			e = get_other_edge(v, e);
 			if (!e) {
 				//v2=v, v = BM_edge_other_vert(l1->e, v);
+
+				BLI_assert(j + 1 < MEM_allocN_len(sv_array) / sizeof(*sv));
 
 				sv = sv_array + j + 1;
 				sv->v = v;
@@ -5208,7 +5213,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 
 			BM_elem_flag_disable(v, BM_ELEM_TAG);
 			BM_elem_flag_disable(v2, BM_ELEM_TAG);
-		} while (e != first->e && l1);
+		} while (e != v_first->e && l1);
 
 		loop_nr++;
 	}
