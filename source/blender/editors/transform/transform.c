@@ -5028,6 +5028,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	BMEdge *e, *e1;
 	BMVert *v, *v2;
 	TransDataEdgeSlideVert *sv_array;
+	int sv_tot;
 	BMBVHTree *btree;
 	SmallHash table;
 	EdgeSlideData *sld = MEM_callocN(sizeof(*sld), "sld");
@@ -5127,10 +5128,10 @@ static int createEdgeSlideVerts(TransInfo *t)
 		return 0;
 	}
 
-	sv_array = MEM_callocN(sizeof(TransDataEdgeSlideVert) * j, "sv_array");
+	sv_tot = j;
+	sv_array = MEM_callocN(sizeof(TransDataEdgeSlideVert) * sv_tot, "sv_array");
 	loop_nr = 0;
 
-	j = 0;
 	while (1) {
 		BMLoop *l, *l1, *l2;
 		BMVert *v_first;
@@ -5190,10 +5191,10 @@ static int createEdgeSlideVerts(TransInfo *t)
 		/*iterate over the loop*/
 		v_first = v;
 		do {
-			TransDataEdgeSlideVert *sv = sv_array + j;
+			TransDataEdgeSlideVert *sv;
 
-			BLI_assert(j < MEM_allocN_len(sv_array) / sizeof(*sv));
-
+			/* XXX, 'sv' will initialize multiple times, this is suspicious. see [#34024] */
+			sv = sv_array + GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
 			sv->v = v;
 			sv->origvert = *v;
 			sv->loop_nr = loop_nr;
@@ -5215,11 +5216,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 			e1 = e;
 			e = get_other_edge(v, e);
 			if (!e) {
-				//v2=v, v = BM_edge_other_vert(l1->e, v);
-
-				BLI_assert(j + 1 < MEM_allocN_len(sv_array) / sizeof(*sv));
-
-				sv = sv_array + j + 1;
+				sv = sv_array + GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
 				sv->v = v;
 				sv->origvert = *v;
 				sv->loop_nr = loop_nr;
@@ -5236,15 +5233,12 @@ static int createEdgeSlideVerts(TransInfo *t)
 
 				BM_elem_flag_disable(v, BM_ELEM_TAG);
 				BM_elem_flag_disable(v2, BM_ELEM_TAG);
-				
-				j += 2;
+
 				break;
 			}
 
 			l1 = get_next_loop(v, l1, e1, e, vec);
 			l2 = l2 ? get_next_loop(v, l2, e1, e, vec2) : NULL;
-
-			j += 1;
 
 			BM_elem_flag_disable(v, BM_ELEM_TAG);
 			BM_elem_flag_disable(v2, BM_ELEM_TAG);
@@ -5256,7 +5250,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	/* EDBM_flag_disable_all(em, BM_ELEM_SELECT); */
 
 	sld->sv = sv_array;
-	sld->totsv = j;
+	sld->totsv = sv_tot;
 	
 	/* find mouse vectors, the global one, and one per loop in case we have
 	 * multiple loops selected, in case they are oriented different */
