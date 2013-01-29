@@ -236,8 +236,9 @@ class I18nMessages:
         import difflib
         similar_pool = {}
         if use_similar > 0.0:
-            for key in self.msgs:
-                similar_pool.setdefault(key[1], set()).add(key)
+            for key, msg in self.msgs.items():
+                if msg.msgstr:  # No need to waste time with void translations!
+                    similar_pool.setdefault(key[1], set()).add(key)
 
         msgs = self._new_messages()
         for (key, msg) in ref.msgs.items():
@@ -259,10 +260,11 @@ class I18nMessages:
                 if skey:
                     msgs[key].msgstr = self.msgs[skey].msgstr
                     msgs[key].is_fuzzy = True
-        # Add back all "old" and already commented messages as commented ones, if required.
+        # Add back all "old" and already commented messages as commented ones, if required
+        # (and translation was not void!).
         if keep_old_commented:
             for key, msg in self.msgs.items():
-                if key not in msgs:
+                if key not in msgs and msg.msgstr:
                     msgs[key] = msg
                     msgs[key].is_commented = True
         # And finalize the update!
