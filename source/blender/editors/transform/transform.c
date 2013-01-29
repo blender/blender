@@ -4883,15 +4883,25 @@ static BMEdge *get_other_edge(BMVert *v, BMEdge *e)
 	return NULL;
 }
 
+static void len_v3_ensure(float v[3], const float length)
+{
+	normalize_v3(v);
+	mul_v3_fl(v, length);
+}
+
 /**
  * Given 2 edges and a loop, step over the loops
  * and calculate a direction to slide along.
+ *
+ * \param r_slide_vec the direction to slide,
+ * the length of the vector defines the slide distance.
  */
 static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
-                             BMEdge *e_prev, BMEdge *e_next, float slide_vec[3])
+                             BMEdge *e_prev, BMEdge *e_next, float r_slide_vec[3])
 {
 	BMLoop *l_first;
 	float vec_accum[3] = {0.0f, 0.0f, 0.0f};
+	float vec_accum_len = 0.0f;
 	int i = 0;
 
 	BLI_assert(BM_edge_share_vert(e_prev, e_next) == v);
@@ -4904,7 +4914,7 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 		
 		if (l->e == e_next) {
 			if (i) {
-				mul_v3_fl(vec_accum, 1.0f / (float)i);
+				len_v3_ensure(vec_accum, vec_accum_len / (float)i);
 			}
 			else {
 				/* When there is no edge to slide along,
@@ -4927,7 +4937,7 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 				}
 			}
 
-			copy_v3_v3(slide_vec, vec_accum);
+			copy_v3_v3(r_slide_vec, vec_accum);
 			return l;
 		}
 		else {
@@ -4935,28 +4945,29 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 			 * normalize so some edges don't skew the result */
 			float tvec[3];
 			sub_v3_v3v3(tvec, BM_edge_other_vert(l->e, v)->co, v->co);
-			normalize_v3(tvec);
-			add_v3_v3v3(vec_accum, vec_accum, tvec);
+			vec_accum_len += normalize_v3(tvec);
+			add_v3_v3(vec_accum, tvec);
 			i += 1;
 		}
 
 		if (BM_face_other_edge_loop(l->f, l->e, v)->e == e_next) {
 			if (i) {
-				mul_v3_fl(vec_accum, 1.0f / (float)i);
+				len_v3_ensure(vec_accum, vec_accum_len / (float)i);
 			}
 
-			copy_v3_v3(slide_vec, vec_accum);
+			copy_v3_v3(r_slide_vec, vec_accum);
 			return BM_face_other_edge_loop(l->f, l->e, v);
 		}
 		
+		BLI_assert(l != l->radial_next);
 		l = l->radial_next;
 	} while (l != l_first);
 
 	if (i) {
-		mul_v3_fl(vec_accum, 1.0f / (float)i);
+		len_v3_ensure(vec_accum, vec_accum_len / (float)i);
 	}
 	
-	copy_v3_v3(slide_vec, vec_accum);
+	copy_v3_v3(r_slide_vec, vec_accum);
 	
 	return NULL;
 }
