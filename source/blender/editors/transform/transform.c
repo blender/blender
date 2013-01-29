@@ -4883,12 +4883,18 @@ static BMEdge *get_other_edge(BMVert *v, BMEdge *e)
 	return NULL;
 }
 
+/**
+ * Given 2 edges and a loop, step over the loops
+ * and calculate a direction to slide along.
+ */
 static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
-                             BMEdge *e_prev, BMEdge *e_next, float vec[3])
+                             BMEdge *e_prev, BMEdge *e_next, float slide_vec[3])
 {
 	BMLoop *firstl;
-	float a[3] = {0.0f, 0.0f, 0.0f}, n[3] = {0.0f, 0.0f, 0.0f};
+	float vec_accum[3] = {0.0f, 0.0f, 0.0f};
 	int i = 0;
+
+	BLI_assert(BM_edge_share_vert(e_prev, e_next) == v);
 
 	firstl = l;
 	do {
@@ -4898,7 +4904,7 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 		
 		if (l->e == e_next) {
 			if (i) {
-				mul_v3_fl(a, 1.0f / (float)i);
+				mul_v3_fl(vec_accum, 1.0f / (float)i);
 			}
 			else {
 				/* When there is no edge to slide along,
@@ -4909,43 +4915,45 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 				sub_v3_v3v3(e_dir_next, BM_edge_other_vert(e_next, v)->co, v->co);
 
 				cross_v3_v3v3(tvec, l->f->no, e_dir_prev);
-				cross_v3_v3v3(a, e_dir_next, l->f->no);
+				cross_v3_v3v3(vec_accum, e_dir_next, l->f->no);
 
-				mid_v3_v3v3(a, a, tvec);
+				mid_v3_v3v3(vec_accum, vec_accum, tvec);
 
 				/* check if we need to flip
 				 * (compare the normal defines by the edges with the face normal) */
 				cross_v3_v3v3(tvec, e_dir_prev, e_dir_next);
 				if (dot_v3v3(tvec, l->f->no) > 0.0f) {
-					negate_v3(a);
+					negate_v3(vec_accum);
 				}
 			}
 
-			copy_v3_v3(vec, a);
+			copy_v3_v3(slide_vec, vec_accum);
 			return l;
 		}
 		else {
-			sub_v3_v3v3(n, BM_edge_other_vert(l->e, v)->co, v->co);
-			add_v3_v3v3(a, a, n);
+			float tvec[3];
+			sub_v3_v3v3(tvec, BM_edge_other_vert(l->e, v)->co, v->co);
+			add_v3_v3v3(vec_accum, vec_accum, tvec);
 			i += 1;
 		}
 
 		if (BM_face_other_edge_loop(l->f, l->e, v)->e == e_next) {
 			if (i) {
-				mul_v3_fl(a, 1.0f / (float)i);
+				mul_v3_fl(vec_accum, 1.0f / (float)i);
 			}
 
-			copy_v3_v3(vec, a);
+			copy_v3_v3(slide_vec, vec_accum);
 			return BM_face_other_edge_loop(l->f, l->e, v);
 		}
 		
 		l = l->radial_next;
 	} while (l != firstl);
 
-	if (i)
-		mul_v3_fl(a, 1.0f / (float)i);
+	if (i) {
+		mul_v3_fl(vec_accum, 1.0f / (float)i);
+	}
 	
-	copy_v3_v3(vec, a);
+	copy_v3_v3(slide_vec, vec_accum);
 	
 	return NULL;
 }
