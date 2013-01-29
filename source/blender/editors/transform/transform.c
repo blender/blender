@@ -4890,13 +4890,13 @@ static BMEdge *get_other_edge(BMVert *v, BMEdge *e)
 static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
                              BMEdge *e_prev, BMEdge *e_next, float slide_vec[3])
 {
-	BMLoop *firstl;
+	BMLoop *l_first;
 	float vec_accum[3] = {0.0f, 0.0f, 0.0f};
 	int i = 0;
 
 	BLI_assert(BM_edge_share_vert(e_prev, e_next) == v);
 
-	firstl = l;
+	l_first = l;
 	do {
 		l = BM_face_other_edge_loop(l->f, l->e, v);
 		if (l->radial_next == l)
@@ -4931,8 +4931,11 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 			return l;
 		}
 		else {
+			/* accumulate the normalized edge vector,
+			 * normalize so some edges don't skew the result */
 			float tvec[3];
 			sub_v3_v3v3(tvec, BM_edge_other_vert(l->e, v)->co, v->co);
+			normalize_v3(tvec);
 			add_v3_v3v3(vec_accum, vec_accum, tvec);
 			i += 1;
 		}
@@ -4947,7 +4950,7 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 		}
 		
 		l = l->radial_next;
-	} while (l != firstl);
+	} while (l != l_first);
 
 	if (i) {
 		mul_v3_fl(vec_accum, 1.0f / (float)i);
