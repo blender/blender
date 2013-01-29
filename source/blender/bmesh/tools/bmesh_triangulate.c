@@ -42,13 +42,17 @@ void BM_mesh_triangulate(BMesh *bm, const bool use_beauty, const bool tag_only)
 
 	if (tag_only == false) {
 		BM_ITER_MESH (face, &iter, bm, BM_FACES_OF_MESH) {
-			BM_face_triangulate(bm, face, NULL, use_beauty, false);
+			if (face->len > 3) {
+				BM_face_triangulate(bm, face, NULL, use_beauty, false);
+			}
 		}
 	}
 	else {
 		BM_ITER_MESH (face, &iter, bm, BM_FACES_OF_MESH) {
 			if (BM_elem_flag_test(face, BM_ELEM_TAG)) {
-				BM_face_triangulate(bm, face, NULL, use_beauty, true);
+				if (face->len > 3) {
+					BM_face_triangulate(bm, face, NULL, use_beauty, true);
+				}
 			}
 		}
 	}

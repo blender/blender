@@ -671,13 +671,14 @@ static bool bm_face_goodline(float const (*projectverts)[2], BMFace *f, int v1i,
  * \brief Find Ear
  *
  * Used by tessellator to find the next triangle to 'clip off' of a polygon while tessellating.
+ *
  * \param f The face to search.
- * \param verts an array of face vert coords.
+ * \param projectverts an array of face vert coords.
  * \param use_beauty Currently only applies to quads, can be extended later on.
  * \param abscoss Must be allocated by caller, and at least f->len length
  *        (allow to avoid allocating a new one for each tri!).
  */
-static BMLoop *find_ear(BMFace *f, float (*projectverts)[2], const bool use_beauty, float *abscoss)
+static BMLoop *poly_find_ear(BMFace *f, float (*projectverts)[2], const bool use_beauty, float *abscoss)
 {
 	BMLoop *bestear = NULL;
 
@@ -826,15 +827,7 @@ static BMLoop *find_ear(BMFace *f, float (*projectverts)[2], const bool use_beau
 /**
  * \brief BMESH TRIANGULATE FACE
  *
- * --- Prev description (wasn’t correct, ear clipping was currently simply picking the first tri in the loop!)
- * Triangulates a face using a simple 'ear clipping' algorithm that tries to
- * favor non-skinny triangles (angles less than 90 degrees).
- *
- * If the triangulator has bits left over (or cannot triangulate at all)
- * it uses a simple fan triangulation,
- * --- End of prev description
- *
- * Currently tries to repeatedly find the best triangle (i.e. the most "open" one), provided it does not
+ * Currently repeatedly find the best triangle (i.e. the most "open" one), provided it does not
  * produces a "remaining" face with too much wide/narrow angles
  * (using cos (i.e. dot product of normalized vectors) of angles).
  *
@@ -842,7 +835,7 @@ static BMLoop *find_ear(BMFace *f, float (*projectverts)[2], const bool use_beau
  * with a length equal to (f->len - 2). It will be filled with the new
  * triangles.
  *
- * \note newedgeflag sets a flag layer flag, obviously not the header flag.
+ * \note use_tag tags new flags and edges.
  */
 void BM_face_triangulate(BMesh *bm, BMFace *f,
                          BMFace **r_faces_new,
@@ -871,7 +864,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 	bm->elem_index_dirty |= BM_VERT; /* see above */
 
 	while (f->len > 3) {
-		l_iter = find_ear(f, projectverts, use_beauty, abscoss);
+		l_iter = poly_find_ear(f, projectverts, use_beauty, abscoss);
 
 		/* force triangulation - if we can't find an ear the face is degenerate */
 		if (l_iter == NULL) {
