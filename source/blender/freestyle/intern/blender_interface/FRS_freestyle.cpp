@@ -95,6 +95,10 @@ Scene *freestyle_scene;
 
 string default_module_path;
 
+// function declarations
+static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *lineset);
+static void copy_module(FreestyleModuleConfig *new_module, FreestyleModuleConfig *module);
+
 //=======================================================
 //   Initialization 
 //=======================================================
@@ -641,10 +645,8 @@ void FRS_finish_stroke_rendering(Render *re) {
 //   Freestyle Panel Configuration
 //=======================================================
 
-void FRS_add_freestyle_config(SceneRenderLayer *srl)
+void FRS_init_freestyle_config(FreestyleConfig *config)
 {
-	FreestyleConfig *config = &srl->freestyleConfig;
-
 	config->mode = FREESTYLE_CONTROL_SCRIPT_MODE;
 
 	config->modules.first = config->modules.last = NULL;
@@ -656,11 +658,11 @@ void FRS_add_freestyle_config(SceneRenderLayer *srl)
 	config->linesets.first = config->linesets.last = NULL;
 }
 
-void FRS_free_freestyle_config(SceneRenderLayer *srl)
+void FRS_free_freestyle_config(FreestyleConfig *config)
 {
 	FreestyleLineSet *lineset;
 
-	for (lineset = (FreestyleLineSet*)srl->freestyleConfig.linesets.first; lineset; lineset = lineset->next) {
+	for (lineset = (FreestyleLineSet*)config->linesets.first; lineset; lineset = lineset->next) {
 		if (lineset->group) {
 			lineset->group->id.us--;
 			lineset->group = NULL;
@@ -668,8 +670,58 @@ void FRS_free_freestyle_config(SceneRenderLayer *srl)
 		lineset->linestyle->id.us--;
 		lineset->linestyle = NULL;
 	}
-	BLI_freelistN(&srl->freestyleConfig.linesets);
-	BLI_freelistN(&srl->freestyleConfig.modules);
+	BLI_freelistN(&config->linesets);
+	BLI_freelistN(&config->modules);
+}
+
+void FRS_copy_freestyle_config(FreestyleConfig *new_config, FreestyleConfig *config)
+{
+	FreestyleLineSet *lineset, *new_lineset;
+	FreestyleModuleConfig *module, *new_module;
+
+	new_config->mode = config->mode;
+	new_config->raycasting_algorithm = config->raycasting_algorithm; /* deprecated */
+	new_config->flags = config->flags;
+	new_config->sphere_radius = config->sphere_radius;
+	new_config->dkr_epsilon = config->dkr_epsilon;
+	new_config->crease_angle = config->crease_angle;
+
+	new_config->linesets.first = new_config->linesets.last = NULL;
+	for (lineset = (FreestyleLineSet*)config->linesets.first; lineset; lineset = lineset->next) {
+		new_lineset = FRS_alloc_lineset();
+		copy_lineset(new_lineset, lineset);
+		BLI_addtail(&new_config->linesets, (void*)new_lineset);
+	}
+
+	new_config->modules.first = new_config->modules.last = NULL;
+	for (module = (FreestyleModuleConfig*)config->modules.first; module; module = module->next) {
+		new_module = FRS_alloc_module();
+		copy_module(new_module, module);
+		BLI_addtail(&new_config->modules, (void*)new_module);
+	}
+}
+
+static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *lineset)
+{
+	new_lineset->linestyle = lineset->linestyle;
+	new_lineset->linestyle->id.us++;
+	new_lineset->flags = lineset->flags;
+	new_lineset->selection = lineset->selection;
+	new_lineset->qi = lineset->qi;
+	new_lineset->qi_start = lineset->qi_start;
+	new_lineset->qi_end = lineset->qi_end;
+	new_lineset->edge_types = lineset->edge_types;
+	new_lineset->exclude_edge_types = lineset->exclude_edge_types;
+	new_lineset->group = lineset->group;
+	if (new_lineset->group) {
+		new_lineset->group->id.us++;
+	}
+	strcpy(new_lineset->name, lineset->name);
+}
+
+FreestyleModuleConfig *FRS_alloc_module()
+{
+	return (FreestyleModuleConfig*)MEM_callocN(sizeof(FreestyleModuleConfig), "style module configuration");
 }
 
 void FRS_add_module(FreestyleConfig *config)
@@ -680,6 +732,12 @@ void FRS_add_module(FreestyleConfig *config)
 
 	strcpy(module_conf->module_path, default_module_path.c_str());
 	module_conf->is_displayed = 1;
+}
+
+static void copy_module(FreestyleModuleConfig *new_module, FreestyleModuleConfig *module)
+{
+	strcpy(new_module->module_path, module->module_path);
+	new_module->is_displayed = module->is_displayed;
 }
 
 void FRS_delete_module(FreestyleConfig *config, FreestyleModuleConfig *module_conf)
@@ -705,11 +763,16 @@ static void unique_lineset_name(FreestyleConfig *config, FreestyleLineSet *lines
 	               sizeof(lineset->name));
 }
 
+FreestyleLineSet *FRS_alloc_lineset()
+{
+	return (FreestyleLineSet*)MEM_callocN(sizeof(FreestyleLineSet), "Freestyle line set");
+}
+
 FreestyleLineSet *FRS_add_lineset(FreestyleConfig *config)
 {
 	int lineset_index = BLI_countlist(&config->linesets);
 
-	FreestyleLineSet *lineset = (FreestyleLineSet*)MEM_callocN(sizeof(FreestyleLineSet), "Freestyle line set");
+	FreestyleLineSet *lineset = FRS_alloc_lineset();
 	BLI_addtail(&config->linesets, (void*)lineset);
 	FRS_set_active_lineset_index(config, lineset_index);
 

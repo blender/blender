@@ -210,6 +210,22 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		/* remove animation used by sequencer */
 		if (type != SCE_COPY_FULL)
 			remove_sequencer_fcurves(scen);
+
+#ifdef WITH_FREESTYLE
+		{
+			SceneRenderLayer *srl, *new_srl;
+
+			new_srl = scen->r.layers.first;
+			for (srl = sce->r.layers.first; srl; srl = srl->next) {
+				if (type == SCE_COPY_FULL) {
+					FRS_copy_freestyle_config(&new_srl->freestyleConfig, &srl->freestyleConfig);
+				} else {
+					FRS_init_freestyle_config(&srl->freestyleConfig);
+				}
+				new_srl = new_srl->next;
+			}
+		}
+#endif
 	}
 
 	/* tool settings */
@@ -340,7 +356,7 @@ void BKE_scene_free(Scene *sce)
 		SceneRenderLayer *srl;
 
 		for (srl = sce->r.layers.first; srl; srl = srl->next) {
-			FRS_free_freestyle_config(srl);
+			FRS_free_freestyle_config(&srl->freestyleConfig);
 		}
 	}
 #endif
@@ -1267,7 +1283,7 @@ SceneRenderLayer *BKE_scene_add_render_layer(Scene *sce, const char *name)
 	srl->layflag = 0x7FFF;   /* solid ztra halo edge strand */
 	srl->passflag = SCE_PASS_COMBINED | SCE_PASS_Z;
 #ifdef WITH_FREESTYLE
-	FRS_add_freestyle_config(srl);
+	FRS_init_freestyle_config(&srl->freestyleConfig);
 #endif
 
 	return srl;

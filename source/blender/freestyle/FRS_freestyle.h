@@ -61,12 +61,15 @@ void FRS_finish_stroke_rendering(struct Render* re);
 void FRS_composite_result(struct Render* re, struct SceneRenderLayer* srl, struct Render* freestyle_render);
 void FRS_exit(void);
 
-/* Panel configuration */
+/* FreestyleConfig.modules */
+FreestyleModuleConfig *FRS_alloc_module(void);
 void FRS_add_module(FreestyleConfig *config);
 void FRS_delete_module(FreestyleConfig *config, FreestyleModuleConfig *module_conf);
 void FRS_move_module_up(FreestyleConfig *config, FreestyleModuleConfig *module_conf);
 void FRS_move_module_down(FreestyleConfig *config, FreestyleModuleConfig *module_conf);
 
+/* FreestyleConfig.linesets */
+FreestyleLineSet *FRS_alloc_lineset(void);
 FreestyleLineSet *FRS_add_lineset(FreestyleConfig *config);
 void FRS_copy_active_lineset(FreestyleConfig *config);
 void FRS_paste_active_lineset(FreestyleConfig *config);

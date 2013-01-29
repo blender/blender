@@ -38,8 +38,10 @@ extern "C" {
 
 #include "DNA_scene_types.h"
 
-void FRS_add_freestyle_config(SceneRenderLayer* srl);
-void FRS_free_freestyle_config(SceneRenderLayer* srl);
+void FRS_init_freestyle_config(FreestyleConfig *config);
+void FRS_free_freestyle_config(FreestyleConfig *config);
+
+void FRS_copy_freestyle_config(FreestyleConfig *new_config, FreestyleConfig *config);
 
 #ifdef __cplusplus
 }

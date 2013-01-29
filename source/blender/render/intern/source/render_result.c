@@ -569,7 +569,7 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 		rl->layflag = 0x7FFF;    /* solid ztra halo strand */
 		rl->passflag = SCE_PASS_COMBINED;
 #ifdef WITH_FREESTYLE
-		FRS_add_freestyle_config( srl );
+		FRS_init_freestyle_config(&srl->freestyleConfig);
 #endif
 		
 		re->r.actlay = 0;
