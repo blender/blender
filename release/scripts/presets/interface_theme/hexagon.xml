@@ -1,7 +1,9 @@
 <bpy>
   <Theme>
     <user_interface>
-      <ThemeUserInterface icon_file=""
+      <ThemeUserInterface menu_shadow_fac="0.5"
+                          menu_shadow_width="12"
+                          icon_file=""
                           icon_alpha="1"
                           axis_x="#dc0000"
                           axis_y="#00dc00"
@@ -275,17 +277,16 @@
                    camera_path="#000000"
                    skin_root="#000000">
         <space>
-          <ThemeSpaceGeneric back="#7f818d"
-                             title="#000000"
-                             text="#000000"
-                             text_hi="#ffffff"
-                             header="#646875"
-                             header_text="#000000"
-                             header_text_hi="#ffffff"
-                             button="#6c717f57"
-                             button_title="#eaeaea"
-                             button_text="#d7d7d7"
-                             button_text_hi="#ffffff">
+          <ThemeSpaceGradient title="#000000"
+                              text="#000000"
+                              text_hi="#ffffff"
+                              header="#646875"
+                              header_text="#000000"
+                              header_text_hi="#ffffff"
+                              button="#6c717f57"
+                              button_title="#eaeaea"
+                              button_text="#d7d7d7"
+                              button_text_hi="#ffffff">
             <panelcolors>
               <ThemePanelColors header="#00000019"
                                 back="#72727280"
@@ -293,7 +294,13 @@
                                 show_back="FALSE">
               </ThemePanelColors>
             </panelcolors>
-          </ThemeSpaceGeneric>
+            <gradients>
+              <ThemeGradientColors show_grad="FALSE"
+                                   gradient="#000000"
+                                   high_gradient="#393939">
+              </ThemeGradientColors>
+            </gradients>
+          </ThemeSpaceGradient>
         </space>
       </ThemeView3D>
     </view_3d>
@@ -586,7 +593,10 @@
                        selected_text="#c67777"
                        cursor="#ff0000"
                        syntax_builtin="#800050"
+                       syntax_symbols="#4c4c4c"
                        syntax_special="#5f5f00"
+                       syntax_preprocessor="#32008c"
+                       syntax_reserved="#8c3c00"
                        syntax_comment="#006432"
                        syntax_string="#640000"
                        syntax_numbers="#0000c8">
@@ -651,6 +661,8 @@
                        operator_node="#6c697e"
                        group_node="#69756e"
                        frame_node="#9a9b9ba0"
+                       matte_node="#977474"
+                       distor_node="#749797"
                        noodle_curving="5">
         <space>
           <ThemeSpaceGeneric back="#7c7e88"
