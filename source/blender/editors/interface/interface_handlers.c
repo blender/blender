@@ -291,15 +291,15 @@ static uiBut *ui_but_last(uiBlock *block)
 	return NULL;
 }
 
-static int ui_is_a_warp_but(uiBut *but)
+static bool ui_is_a_warp_but(uiBut *but)
 {
 	if (U.uiflag & USER_CONTINUOUS_MOUSE) {
-		if (ELEM6(but->type, NUM, NUMABS, HSVCIRCLE, TRACKPREVIEW, HSVCUBE, BUT_CURVE)) {
-			return TRUE;
+		if (ELEM7(but->type, NUM, NUMSLI, NUMABS, HSVCIRCLE, TRACKPREVIEW, HSVCUBE, BUT_CURVE)) {
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 static float ui_mouse_scale_warp_factor(const short shift)
@@ -2882,36 +2882,66 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 	return retval;
 }
 
-static int ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data, const short shift, const short ctrl, int mx)
+static bool ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data,
+                               const bool is_horizontal, const bool shift, const bool ctrl, int mx)
 {
 	float deler, f, tempf, softmin, softmax, softrange;
-	int temp, lvalue, changed = 0;
+	int temp, lvalue;
+	bool changed = false;
+	float mx_fl, my_fl;
+	/* note, 'offs' is really from the widget drawing rounded corners see 'widget_numslider' */
+	float offs;
 
 	softmin = but->softmin;
 	softmax = but->softmax;
 	softrange = softmax - softmin;
 
+	/* yes, 'mx' as both x/y is intentional */
+	ui_mouse_scale_warp(data, mx, mx, &mx_fl, &my_fl, shift);
+
 	if (but->type == NUMSLI) {
-		deler = (BLI_rctf_size_x(&but->rect) - 5.0f * but->aspect);
+		offs = (BLI_rctf_size_y(&but->rect) / 2.0f) * but->aspect;
+		deler = BLI_rctf_size_x(&but->rect) - offs;
 	}
 	else if (but->type == HSVSLI) {
-		deler = (BLI_rctf_size_x(&but->rect) / 2.0f - 5.0f * but->aspect);
+		offs = (BLI_rctf_size_y(&but->rect) / 2.0f) * but->aspect;
+		deler = (BLI_rctf_size_x(&but->rect) / 2.0f) - offs;
 	}
 	else if (but->type == SCROLL) {
-		int horizontal = (BLI_rctf_size_x(&but->rect) > BLI_rctf_size_y(&but->rect));
-		float size = (horizontal) ? BLI_rctf_size_x(&but->rect) : -BLI_rctf_size_y(&but->rect);
+		const float size = (is_horizontal) ? BLI_rctf_size_x(&but->rect) : -BLI_rctf_size_y(&but->rect);
 		deler = size * (but->softmax - but->softmin) / (but->softmax - but->softmin + but->a1);
+		offs = 0.0;
 	}
 	else {
-		deler = (BLI_rctf_size_x(&but->rect) - 5.0f * but->aspect);
+		offs = (BLI_rctf_size_y(&but->rect) / 2.0f) * but->aspect;
+		deler = (BLI_rctf_size_x(&but->rect) - offs);
 	}
 
-	f = (float)(mx - data->dragstartx) / deler + data->dragfstart;
-	
-	if (shift)
-		f = (f - data->dragfstart) / 10.0f + data->dragfstart;
-
+	f = (mx_fl - data->dragstartx) / deler + data->dragfstart;
 	CLAMP(f, 0.0f, 1.0f);
+
+
+	/* deal with mouse correction */
+#ifdef USE_CONT_MOUSE_CORRECT
+	if (ui_is_a_warp_but(but)) {
+		/* OK but can go outside bounds */
+		if (is_horizontal) {
+			data->ungrab_mval[0] = (but->rect.xmin + offs / but->aspect) + (f * deler);
+			data->ungrab_mval[1] = BLI_rctf_cent_y(&but->rect);
+		}
+		else {
+			data->ungrab_mval[1] = (but->rect.ymin + offs / but->aspect) + (f * deler);
+			data->ungrab_mval[0] = BLI_rctf_cent_x(&but->rect);
+		}
+		BLI_rctf_clamp_pt_v(&but->rect, data->ungrab_mval);
+	}
+#endif
+	if (is_horizontal == false) {
+		mx_fl = my_fl;
+	}
+	/* done correcting mouse */
+
+
 	tempf = softmin + f * softrange;
 	temp = floorf(tempf + 0.5f);
 
@@ -2947,7 +2977,7 @@ static int ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data, const short 
 		if (temp != lvalue) {
 			data->value = temp;
 			data->dragchange = 1;
-			changed = 1;
+			changed = true;
 		}
 	}
 	else {
@@ -2956,7 +2986,7 @@ static int ui_numedit_but_SLI(uiBut *but, uiHandleButtonData *data, const short 
 		if (tempf != (float)data->value) {
 			data->value = tempf;
 			data->dragchange = 1;
-			changed = 1;
+			changed = true;
 		}
 	}
 
@@ -3032,7 +3062,7 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 				click = 1;
 		}
 		else if (event->type == MOUSEMOVE) {
-			if (ui_numedit_but_SLI(but, data, event->shift, event->ctrl, mx))
+			if (ui_numedit_but_SLI(but, data, true, event->shift, event->ctrl, mx))
 				ui_numedit_apply(C, block, but, data);
 		}
 		retval = WM_UI_HANDLER_BREAK;
@@ -3109,7 +3139,7 @@ static int ui_do_but_SCROLL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 {
 	int mx, my /*, click = 0 */;
 	int retval = WM_UI_HANDLER_CONTINUE;
-	int horizontal = (BLI_rctf_size_x(&but->rect) > BLI_rctf_size_y(&but->rect));
+	bool horizontal = (BLI_rctf_size_x(&but->rect) > BLI_rctf_size_y(&but->rect));
 	
 	mx = event->x;
 	my = event->y;
@@ -3146,7 +3176,7 @@ static int ui_do_but_SCROLL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
 		else if (event->type == MOUSEMOVE) {
-			if (ui_numedit_but_SLI(but, data, 0, 0, (horizontal) ? mx : my))
+			if (ui_numedit_but_SLI(but, data, horizontal, false, false, (horizontal) ? mx : my))
 				ui_numedit_apply(C, block, but, data);
 		}
 
