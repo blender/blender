@@ -37,9 +37,10 @@ void curveinterp_v3_v3v3v3v3(float3 *p, float3 *v1, float3 *v2, float3 *v3, floa
 void interp_weights(float t, float data[4], int type);
 float shaperadius(float shape, float root, float tip, float time);
 void InterpolateKeySegments(int seg, int segno, int key, int curve, float3 *keyloc, float *time, ParticleCurveData *CData, int interpolation);
-bool ObtainCacheParticleUV(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool use_parents, int uv_num);
-bool ObtainCacheParticleVcol(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool use_parents, int vcol_num);
-bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool use_parents);
+void ToggleRender(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, BL::Scene *scene);
+bool ObtainCacheParticleUV(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool use_parents, bool background, int uv_num);
+bool ObtainCacheParticleVcol(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool use_parents, bool background, int vcol_num);
+bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool use_parents, bool background);
 void ExportCurveTrianglePlanes(Mesh *mesh, ParticleCurveData *CData, int interpolation, bool use_smooth, int segments, float3 RotCam);
 void ExportCurveTriangleRibbons(Mesh *mesh, ParticleCurveData *CData, int interpolation, bool use_smooth, int segments);
 void ExportCurveTriangleGeometry(Mesh *mesh, ParticleCurveData *CData, int interpolation, bool use_smooth, int resolution, int segments);
@@ -151,7 +152,7 @@ void InterpolateKeySegments(int seg, int segno, int key, int curve, float3 *keyl
 		curveinterp_v3_v3v3v3v3(keyloc, &ckey_loc1, &ckey_loc2, &ckey_loc3, &ckey_loc4, t);
 }
 
-bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool use_parents)
+bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool use_parents, bool background)
 {
 
 	int curvenum = 0;
@@ -176,12 +177,10 @@ bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Par
 
 				int mi = clamp(b_psys.settings().material()-1, 0, mesh->used_shaders.size()-1);
 				int shader = mesh->used_shaders[mi];
-				int draw_step = b_psys.settings().draw_step();
+				int draw_step = background ? b_psys.settings().render_step() : b_psys.settings().draw_step();
 				int ren_step = (int)pow((float)2.0f,(float)draw_step);
-				/*b_psys.settings().render_step(draw_step);*/
-
 				int totparts = b_psys.particles.length();
-				int totchild = b_psys.child_particles.length() * b_psys.settings().draw_percentage() / 100;
+				int totchild = background ? b_psys.child_particles.length() : (int)((float)b_psys.child_particles.length() * (float)b_psys.settings().draw_percentage() / 100.0f);
 				int totcurves = totchild;
 				
 				if(use_parents || b_psys.settings().child_type() == 0)
@@ -240,7 +239,7 @@ bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Par
 
 }
 
-bool ObtainCacheParticleUV(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool use_parents, int uv_num)
+bool ObtainCacheParticleUV(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool use_parents, bool background, int uv_num)
 {
 #if 0
 	int keyno = 0;
@@ -269,13 +268,10 @@ bool ObtainCacheParticleUV(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Parti
 #if 0
 				int mi = clamp(b_psys.settings().material()-1, 0, mesh->used_shaders.size()-1);
 				int shader = mesh->used_shaders[mi];
-				int draw_step = b_psys.settings().draw_step();
-				int ren_step = (int)pow((float)2.0f,(float)draw_step);
-				b_psys.settings().render_step(draw_step);
 #endif
 
 				int totparts = b_psys.particles.length();
-				int totchild = b_psys.child_particles.length() * b_psys.settings().draw_percentage() / 100;
+				int totchild = background ? b_psys.child_particles.length() : (int)((float)b_psys.child_particles.length() * (float)b_psys.settings().draw_percentage() / 100.0f);
 				int totcurves = totchild;
 				
 				if (use_parents || b_psys.settings().child_type() == 0)
@@ -314,7 +310,7 @@ bool ObtainCacheParticleUV(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Parti
 
 }
 
-bool ObtainCacheParticleVcol(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool use_parents, int vcol_num)
+bool ObtainCacheParticleVcol(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool use_parents, bool background, int vcol_num)
 {
 #if 0
 	int keyno = 0;
@@ -342,12 +338,9 @@ bool ObtainCacheParticleVcol(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Par
 #if 0
 				int mi = clamp(b_psys.settings().material()-1, 0, mesh->used_shaders.size()-1);
 				int shader = mesh->used_shaders[mi];
-				int draw_step = b_psys.settings().draw_step();
-				int ren_step = (int)pow((float)2.0f,(float)draw_step);
-				b_psys.settings().render_step(draw_step);
 #endif
 				int totparts = b_psys.particles.length();
-				int totchild = b_psys.child_particles.length() * b_psys.settings().draw_percentage() / 100;
+				int totchild = background ? b_psys.child_particles.length() : (int)((float)b_psys.child_particles.length() * (float)b_psys.settings().draw_percentage() / 100.0f);
 				int totcurves = totchild;
 				
 				if (use_parents || b_psys.settings().child_type() == 0)
@@ -384,6 +377,18 @@ bool ObtainCacheParticleVcol(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Par
 
 	return true;
 
+}
+
+void ToggleRender(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, BL::Scene *scene)
+{
+	BL::Object::modifiers_iterator b_mod;
+	for(b_ob->modifiers.begin(b_mod); b_mod != b_ob->modifiers.end(); ++b_mod) {
+		if ((b_mod->type() == b_mod->type_PARTICLE_SYSTEM) && (b_mod->show_viewport()) && (b_mod->show_render())) {
+			BL::ParticleSystemModifier psmd((const PointerRNA)b_mod->ptr);
+			BL::ParticleSystem b_psys((const PointerRNA)psmd.particle_system().ptr);
+			b_psys.ToggleRender(*scene, *b_ob);
+		}
+	}
 }
 
 void ExportCurveTrianglePlanes(Mesh *mesh, ParticleCurveData *CData, int interpolation, bool use_smooth, int segments, float3 RotCam)
@@ -945,7 +950,10 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 
 	ParticleCurveData CData;
 
-	ObtainCacheParticleData(mesh, &b_mesh, &b_ob, &CData, use_parents);
+	if(!preview)
+		ToggleRender(mesh, &b_mesh, &b_ob, &b_scene);
+
+	ObtainCacheParticleData(mesh, &b_mesh, &b_ob, &CData, use_parents, !preview);
 
 	/* attach strands to mesh */
 	BL::Object b_CamOb = b_scene.camera();
@@ -959,7 +967,7 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 
 	if(primitive == CURVE_TRIANGLES){
 		int vert_num = mesh->triangles.size() * 3;
-		ObtainCacheParticleUV(mesh, &b_mesh, &b_ob, &CData, use_parents, 0);
+		ObtainCacheParticleUV(mesh, &b_mesh, &b_ob, &CData, use_parents, !preview, 0);
 		if(triangle_method == CURVE_CAMERA_TRIANGLES) {
 			ExportCurveTrianglePlanes(mesh, &CData, interpolation, use_smooth, segments, RotCam);
 			ExportCurveTriangleUVs(mesh, &CData, interpolation, use_smooth, segments, vert_num, 1);
@@ -1021,7 +1029,7 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 				Attribute *attr_vcol = mesh->curve_attributes.add(
 					ustring(l->name().c_str()), TypeDesc::TypeColor, ATTR_ELEMENT_CURVE);
 
-				ObtainCacheParticleVcol(mesh, &b_mesh, &b_ob, &CData, use_parents, vcol_num);
+				ObtainCacheParticleVcol(mesh, &b_mesh, &b_ob, &CData, use_parents, !preview, vcol_num);
 
 				float3 *vcol = attr_vcol->data_float3();
 
@@ -1051,7 +1059,7 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 					else
 						attr = mesh->curve_attributes.add(name, TypeDesc::TypePoint,  ATTR_ELEMENT_CURVE);
 
-					ObtainCacheParticleUV(mesh, &b_mesh, &b_ob, &CData, use_parents, uv_num);
+					ObtainCacheParticleUV(mesh, &b_mesh, &b_ob, &CData, use_parents, !preview, uv_num);
 
 					float3 *uv = attr->data_float3();
 
@@ -1064,6 +1072,9 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 		}
 
 	}
+
+	if(!preview)
+		ToggleRender(mesh, &b_mesh, &b_ob, &b_scene);
 
 	mesh->compute_bounds();
 }
