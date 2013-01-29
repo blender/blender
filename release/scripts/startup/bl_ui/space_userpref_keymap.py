@@ -172,17 +172,17 @@ class InputKeyMapPanel:
         if kmi.show_expanded:
             box = col.box()
 
+            split = box.split(percentage=0.4)
+            sub = split.row()
+
+            if km.is_modal:
+                sub.prop(kmi, "propvalue", text="")
+            else:
+                # One day...
+                #~ sub.prop_search(kmi, "idname", bpy.context.window_manager, "operators_all", text="")
+                sub.prop(kmi, "idname", text="")
+
             if map_type not in {'TEXTINPUT', 'TIMER'}:
-                split = box.split(percentage=0.4)
-                sub = split.row()
-
-                if km.is_modal:
-                    sub.prop(kmi, "propvalue", text="")
-                else:
-                    # One day...
-                    #~ sub.prop_search(kmi, "idname", bpy.context.window_manager, "operators_all", text="")
-                    sub.prop(kmi, "idname", text="")
-
                 sub = split.column()
                 subrow = sub.row(align=True)
 
