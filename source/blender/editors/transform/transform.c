@@ -4901,16 +4901,24 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 				mul_v3_fl(a, 1.0f / (float)i);
 			}
 			else {
-				float f1[3], f2[3], f3[3];
+				/* When there is no edge to slide along,
+				 * we must slide along the vector defined by the face we're attach to */
+				float e_dir_prev[3], e_dir_next[3], tvec[3];
 
-				sub_v3_v3v3(f1, BM_edge_other_vert(e_prev, v)->co, v->co);
-				sub_v3_v3v3(f2, BM_edge_other_vert(e_next, v)->co, v->co);
+				sub_v3_v3v3(e_dir_prev, BM_edge_other_vert(e_prev, v)->co, v->co);
+				sub_v3_v3v3(e_dir_next, BM_edge_other_vert(e_next, v)->co, v->co);
 
-				cross_v3_v3v3(f3, f1, l->f->no);
-				cross_v3_v3v3(a, f2, l->f->no);
-				negate_v3(a);
+				cross_v3_v3v3(tvec, l->f->no, e_dir_prev);
+				cross_v3_v3v3(a, e_dir_next, l->f->no);
 
-				mid_v3_v3v3(a, a, f3);
+				mid_v3_v3v3(a, a, tvec);
+
+				/* check if we need to flip
+				 * (compare the normal defines by the edges with the face normal) */
+				cross_v3_v3v3(tvec, e_dir_prev, e_dir_next);
+				if (dot_v3v3(tvec, l->f->no) > 0.0f) {
+					negate_v3(a);
+				}
 			}
 
 			copy_v3_v3(vec, a);
