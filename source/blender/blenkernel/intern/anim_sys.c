@@ -504,7 +504,7 @@ void BKE_animdata_separate_by_basepath(ID *srcID, ID *dstID, ListBase *basepaths
 		else if (dstAdt->action == srcAdt->action) {
 			printf("Argh! Source and Destination share animation! ('%s' and '%s' both use '%s') Making new empty action\n",
 			       srcID->name, dstID->name, srcAdt->action->id.name);
-
+			
 			/* TODO: review this... */
 			id_us_min(&dstAdt->action->id);
 			dstAdt->action = add_empty_action(dstAdt->action->id.name + 2);
@@ -533,9 +533,9 @@ void BKE_animdata_separate_by_basepath(ID *srcID, ID *dstID, ListBase *basepaths
 					/* just need to change lists */
 					BLI_remlink(&srcAdt->drivers, fcu);
 					BLI_addtail(&dstAdt->drivers, fcu);
-
+					
 					/* TODO: add depsgraph flushing calls? */
-
+					
 					/* can stop now, as moved already */
 					break;
 				}

@@ -312,7 +312,7 @@ static void motionpaths_calc_optimise_depsgraph(Scene *scene, ListBase *targets)
 				BLI_addhead(&scene->base, base);
 				
 				mpt->ob->flag |= BA_TEMP_TAG;
-
+				
 				/* we really don't need to continue anymore once this happens, but this line might really 'break' */
 				break;
 			}
