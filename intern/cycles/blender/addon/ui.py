@@ -522,6 +522,19 @@ def panel_node_draw(layout, id_data, output_type, input_name):
     return True
 
 
+class CyclesLamp_PT_preview(CyclesButtonsPanel, Panel):
+    bl_label = "Preview"
+    bl_context = "data"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.lamp and CyclesButtonsPanel.poll(context)
+
+    def draw(self, context):
+        self.layout.template_preview(context.lamp)
+
+
 class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
     bl_label = "Lamp"
     bl_context = "data"
@@ -604,6 +617,19 @@ class CyclesLamp_PT_spot(CyclesButtonsPanel, Panel):
 
         col = split.column()
         col.prop(lamp, "show_cone")
+
+
+class CyclesWorld_PT_preview(CyclesButtonsPanel, Panel):
+    bl_label = "Preview"
+    bl_context = "world"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.world and CyclesButtonsPanel.poll(context)
+
+    def draw(self, context):
+        self.layout.template_preview(context.world)
 
 
 class CyclesWorld_PT_surface(CyclesButtonsPanel, Panel):
@@ -690,6 +716,19 @@ class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
         sub.prop(cworld, "sample_map_resolution")
         if not cscene.progressive and (device_type == 'NONE' or cscene.device == 'CPU'):
             sub.prop(cworld, "samples")
+
+
+class CyclesMaterial_PT_preview(CyclesButtonsPanel, Panel):
+    bl_label = "Preview"
+    bl_context = "material"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.material and CyclesButtonsPanel.poll(context)
+
+    def draw(self, context):
+        self.layout.template_preview(context.material)
 
 
 class CyclesMaterial_PT_surface(CyclesButtonsPanel, Panel):
@@ -1175,9 +1214,6 @@ def get_panels():
         types.PARTICLE_PT_force_fields,
         types.PARTICLE_PT_vertexgroups,
         types.PARTICLE_PT_custom_props,
-        types.MATERIAL_PT_preview,
-        types.DATA_PT_preview,
-        types.WORLD_PT_preview,
         )
 
 
