@@ -152,7 +152,7 @@ static SpaceLink *image_new(const bContext *UNUSED(C))
 	simage->spacetype = SPACE_IMAGE;
 	simage->zoom = 1.0f;
 	simage->lock = TRUE;
-	simage->flag = SI_SHOW_GPENCIL;
+	simage->flag = SI_SHOW_GPENCIL | SI_USE_ALPHA;
 
 	simage->iuser.ok = TRUE;
 	simage->iuser.fie_ima = 2;
