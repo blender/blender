@@ -4872,18 +4872,19 @@ int BoneEnvelope(TransInfo *t, const int UNUSED(mval[2]))
 static BMEdge *get_other_edge(BMVert *v, BMEdge *e)
 {
 	BMIter iter;
-	BMEdge *e2;
+	BMEdge *e_iter;
 
-	BM_ITER_ELEM (e2, &iter, v, BM_EDGES_OF_VERT) {
-		if (BM_elem_flag_test(e2, BM_ELEM_SELECT) && e2 != e)
-			return e2;
+	BM_ITER_ELEM (e_iter, &iter, v, BM_EDGES_OF_VERT) {
+		if (BM_elem_flag_test(e_iter, BM_ELEM_SELECT) && e_iter != e) {
+			return e_iter;
+		}
 	}
 
 	return NULL;
 }
 
 static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
-                             BMEdge *olde, BMEdge *nexte, float vec[3])
+                             BMEdge *e_prev, BMEdge *e_next, float vec[3])
 {
 	BMLoop *firstl;
 	float a[3] = {0.0f, 0.0f, 0.0f}, n[3] = {0.0f, 0.0f, 0.0f};
@@ -4895,23 +4896,23 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 		if (l->radial_next == l)
 			return NULL;
 		
-		if (l->e == nexte) {
+		if (l->e == e_next) {
 			if (i) {
 				mul_v3_fl(a, 1.0f / (float)i);
 			}
 			else {
 				float f1[3], f2[3], f3[3];
 
-				sub_v3_v3v3(f1, BM_edge_other_vert(olde, v)->co, v->co);
-				sub_v3_v3v3(f2, BM_edge_other_vert(nexte, v)->co, v->co);
+				sub_v3_v3v3(f1, BM_edge_other_vert(e_prev, v)->co, v->co);
+				sub_v3_v3v3(f2, BM_edge_other_vert(e_next, v)->co, v->co);
 
 				cross_v3_v3v3(f3, f1, l->f->no);
 				cross_v3_v3v3(a, f2, l->f->no);
-				mul_v3_fl(a, -1.0f);
+				negate_v3(a);
 
 				mid_v3_v3v3(a, a, f3);
 			}
-			
+
 			copy_v3_v3(vec, a);
 			return l;
 		}
@@ -4921,10 +4922,11 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 			i += 1;
 		}
 
-		if (BM_face_other_edge_loop(l->f, l->e, v)->e == nexte) {
-			if (i)
+		if (BM_face_other_edge_loop(l->f, l->e, v)->e == e_next) {
+			if (i) {
 				mul_v3_fl(a, 1.0f / (float)i);
-			
+			}
+
 			copy_v3_v3(vec, a);
 			return BM_face_other_edge_loop(l->f, l->e, v);
 		}
