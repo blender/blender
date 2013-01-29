@@ -737,3 +737,21 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         self.path_menu(bpy.utils.preset_paths(self.preset_subdir),
                        self.preset_operator,
                        filter_ext=lambda ext: ext.lower() in {".py", ".xml"})
+
+class Region(StructRNA):
+    __slots__ = ()
+
+    def callback_add(self, cb, args, draw_mode):
+        """
+        Append a draw function to this region,
+        deprecated, instead use bpy.types.SpaceView3D.draw_handler_add
+        """
+        for area in self.id_data.areas:
+            for region in area.regions:
+                if region == self:
+                    spacetype = type(area.spaces[0])
+                    return spacetype.draw_handler_add(cb, args, self.type,
+                                                      draw_mode)
+
+        return None
+
