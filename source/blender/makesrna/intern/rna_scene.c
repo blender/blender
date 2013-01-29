@@ -2691,8 +2691,8 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_occlusion_culling", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_DBVT_CULLING);
 	RNA_def_property_ui_text(prop, "DBVT Culling",
-	                         "Use optimized Bullet DBVT tree for view frustum and occlusion culling "
-	                         "(more efficient, but it can waste unecessary CPU if the scene doesn't have Occluder objects");
+	                         "Use optimized Bullet DBVT tree for view frustum and occlusion culling (more efficient, "
+	                         "but it can waste unnecessary CPU if the scene doesn't have occluder objects)");
 	
 	/* not used  *//* deprecated !!!!!!!!!!!!! */
 	prop = RNA_def_property(srna, "use_activity_culling", PROP_BOOLEAN, PROP_NONE);
