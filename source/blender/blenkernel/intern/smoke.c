@@ -213,8 +213,8 @@ static void smoke_pos_to_cell(SmokeDomainSettings *sds, float pos[3])
 	pos[2] *= 1.0f / sds->cell_size[2];
 }
 
-/* set domain resolution and dimensions from object derivedmesh */
-static void smoke_set_domain_from_derivedmesh(SmokeDomainSettings *sds, Object *ob, DerivedMesh *dm)
+/* set domain transformations and base resolution from object derivedmesh */
+static void smoke_set_domain_from_derivedmesh(SmokeDomainSettings *sds, Object *ob, DerivedMesh *dm, int init_resolution)
 {
 	size_t i;
 	float min[3] = {FLT_MAX, FLT_MAX, FLT_MAX}, max[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
@@ -246,7 +246,10 @@ static void smoke_set_domain_from_derivedmesh(SmokeDomainSettings *sds, Object *
 
 	/* calculate domain dimensions */
 	sub_v3_v3v3(size, max, min);
-	copy_v3_v3(sds->cell_size, size);
+	if (init_resolution) {
+		zero_v3_int(sds->base_res);
+		copy_v3_v3(sds->cell_size, size);
+	}
 	mul_v3_v3(size, ob->size);
 	copy_v3_v3(sds->global_size, size);
 	copy_v3_v3(sds->dp0, min);
@@ -254,18 +257,18 @@ static void smoke_set_domain_from_derivedmesh(SmokeDomainSettings *sds, Object *
 	invert_m4_m4(sds->imat, ob->obmat);
 
 	// prevent crash when initializing a plane as domain
-	if ((size[0] < FLT_EPSILON) || (size[1] < FLT_EPSILON) || (size[2] < FLT_EPSILON))
+	if (!init_resolution || (size[0] < FLT_EPSILON) || (size[1] < FLT_EPSILON) || (size[2] < FLT_EPSILON))
 		return;
 
 	/* define grid resolutions from longest domain side */
-	if (size[0] > MAX2(size[1], size[2])) {
+	if (size[0] >= MAX2(size[1], size[2])) {
 		scale = res / size[0];
 		sds->scale = size[0] / ob->size[0];
 		sds->base_res[0] = res;
 		sds->base_res[1] = (int)(size[1] * scale + 0.5f);
 		sds->base_res[2] = (int)(size[2] * scale + 0.5f);
 	}
-	else if (size[1] > MAX2(size[0], size[2])) {
+	else if (size[1] >= MAX2(size[0], size[2])) {
 		scale = res / size[1];
 		sds->scale = size[1] / ob->size[1];
 		sds->base_res[0] = (int)(size[0] * scale + 0.5f);
@@ -293,7 +296,7 @@ static int smokeModifier_init(SmokeModifierData *smd, Object *ob, Scene *scene, 
 		SmokeDomainSettings *sds = smd->domain;
 		int res[3];
 		/* set domain dimensions from derivedmesh */
-		smoke_set_domain_from_derivedmesh(sds, ob, dm);
+		smoke_set_domain_from_derivedmesh(sds, ob, dm, TRUE);
 		/* reset domain values */
 		zero_v3_int(sds->shift);
 		zero_v3(sds->shift_f);
@@ -1984,7 +1987,7 @@ static void step(Scene *scene, Object *ob, SmokeModifierData *smd, DerivedMesh *
 	/* update object state */
 	invert_m4_m4(sds->imat, ob->obmat);
 	copy_m4_m4(sds->obmat, ob->obmat);
-	smoke_set_domain_from_derivedmesh(sds, ob, domain_dm);
+	smoke_set_domain_from_derivedmesh(sds, ob, domain_dm, (sds->flags & MOD_SMOKE_ADAPTIVE_DOMAIN));
 
 	/* use global gravity if enabled */
 	if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
