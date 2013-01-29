@@ -30,7 +30,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_array.h"
 
 #include "bmesh.h"
 
@@ -40,27 +39,17 @@ void BM_mesh_triangulate(BMesh *bm, const bool use_beauty, const bool tag_only)
 {
 	BMIter iter;
 	BMFace *face;
-	float (*projectverts)[3] = NULL;
-	BLI_array_declare(projectverts);
 
 	if (tag_only == false) {
 		BM_ITER_MESH (face, &iter, bm, BM_FACES_OF_MESH) {
-			BLI_array_empty(projectverts);
-			BLI_array_reserve(projectverts, face->len * 3);
-
-			BM_face_triangulate(bm, face, projectverts, NULL, use_beauty, false);
+			BM_face_triangulate(bm, face, NULL, use_beauty, false);
 		}
 	}
 	else {
 		BM_ITER_MESH (face, &iter, bm, BM_FACES_OF_MESH) {
 			if (BM_elem_flag_test(face, BM_ELEM_TAG)) {
-				BLI_array_empty(projectverts);
-				BLI_array_grow_items(projectverts, face->len * 3);
-
-				BM_face_triangulate(bm, face, projectverts, NULL, use_beauty, true);
+				BM_face_triangulate(bm, face, NULL, use_beauty, true);
 			}
 		}
 	}
-
-	BLI_array_free(projectverts);
 }
