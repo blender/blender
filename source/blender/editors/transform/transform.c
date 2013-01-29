@@ -4917,23 +4917,20 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 				len_v3_ensure(vec_accum, vec_accum_len / (float)i);
 			}
 			else {
-				/* When there is no edge to slide along,
-				 * we must slide along the vector defined by the face we're attach to */
-				float e_dir_prev[3], e_dir_next[3], tvec[3];
+				BMLoop *l_tmp = BM_face_vert_share_loop(l_first->f, v);
 
-				sub_v3_v3v3(e_dir_prev, BM_edge_other_vert(e_prev, v)->co, v->co);
-				sub_v3_v3v3(e_dir_next, BM_edge_other_vert(e_next, v)->co, v->co);
-
-				cross_v3_v3v3(tvec, l->f->no, e_dir_prev);
-				cross_v3_v3v3(vec_accum, e_dir_next, l->f->no);
-
-				mid_v3_v3v3(vec_accum, vec_accum, tvec);
-
-				/* check if we need to flip
-				 * (compare the normal defines by the edges with the face normal) */
-				cross_v3_v3v3(tvec, e_dir_prev, e_dir_next);
-				if ((dot_v3v3(tvec, l->f->no) < 0.0f) == BM_loop_is_convex(l)) {
-					negate_v3(vec_accum);
+				if (ELEM(l_tmp->e, e_prev, e_next) && ELEM(l_tmp->prev->e, e_prev, e_next)) {
+					float tvec[3];
+					BM_loop_calc_face_tangent(l_tmp, vec_accum);
+					if (!BM_loop_is_convex(l_tmp)) {
+						negate_v3(vec_accum);
+					}
+					cross_v3_v3v3(tvec, vec_accum, l_tmp->f->no);
+					cross_v3_v3v3(vec_accum, l_tmp->f->no, tvec);
+					len_v3_ensure(vec_accum, (BM_edge_calc_length(e_prev) + BM_edge_calc_length(e_next)) / 2.0f);
+				}
+				else {
+					BLI_assert(0);
 				}
 			}
 
