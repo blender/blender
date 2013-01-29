@@ -1774,28 +1774,28 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	/* etch-a-ton */
 	prop = RNA_def_property(srna, "use_bone_sketching", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bone_sketching", BONE_SKETCHING);
-	RNA_def_property_ui_text(prop, "Use Bone Sketching", "DOC BROKEN");
+	RNA_def_property_ui_text(prop, "Use Bone Sketching", "Use sketching to create and edit bones");
 /*	RNA_def_property_ui_icon(prop, ICON_EDIT, 0); */
 
 	prop = RNA_def_property(srna, "use_etch_quick", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bone_sketching", BONE_SKETCHING_QUICK);
-	RNA_def_property_ui_text(prop, "Quick Sketching", "DOC BROKEN");
+	RNA_def_property_ui_text(prop, "Quick Sketching", "Automatically convert and delete on stroke end");
 
 	prop = RNA_def_property(srna, "use_etch_overdraw", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bone_sketching", BONE_SKETCHING_ADJUST);
-	RNA_def_property_ui_text(prop, "Overdraw Sketching", "DOC BROKEN");
+	RNA_def_property_ui_text(prop, "Overdraw Sketching", "Adjust strokes by drawing near them");
 	
 	prop = RNA_def_property(srna, "use_etch_autoname", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "skgen_retarget_options", SK_RETARGET_AUTONAME);
-	RNA_def_property_ui_text(prop, "Autoname", "DOC BROKEN");
+	RNA_def_property_ui_text(prop, "Autoname Bones", "Automatically generate values to replace &N and &S suffix placeholders in template names");
 
 	prop = RNA_def_property(srna, "etch_number", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "skgen_num_string");
-	RNA_def_property_ui_text(prop, "Number", "DOC BROKEN");
+	RNA_def_property_ui_text(prop, "Number", "Text to replace &N with (e.g. 'Finger.&N' -> 'Finger.1' or 'Finger.One')");
 
 	prop = RNA_def_property(srna, "etch_side", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "skgen_num_string");
-	RNA_def_property_ui_text(prop, "Side", "DOC BROKEN");
+	RNA_def_property_ui_text(prop, "Side", "Text to replace &S with (e.g. 'Arm.&S' -> 'Arm.R' or 'Arm.Right')");
 
 	prop = RNA_def_property(srna, "etch_template", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "skgen_template");
@@ -1814,14 +1814,14 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_float_sdna(prop, NULL, "skgen_correlation_limit");
 	RNA_def_property_range(prop, 0.00001, 1.0);
 	RNA_def_property_ui_range(prop, 0.01, 1.0, 0.01, 2);
-	RNA_def_property_ui_text(prop, "Limit", "Number of bones in the subdivided stroke");
+	RNA_def_property_ui_text(prop, "Limit", "Correlation threshold for number of bones in the subdivided stroke");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "etch_length_limit", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "skgen_length_limit");
 	RNA_def_property_range(prop, 0.00001, 100000.0);
 	RNA_def_property_ui_range(prop, 0.001, 100.0, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Length", "Number of bones in the subdivided stroke");
+	RNA_def_property_ui_text(prop, "Length", "Maximum length of the subdivided bones");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "etch_roll_mode", PROP_ENUM, PROP_NONE);
