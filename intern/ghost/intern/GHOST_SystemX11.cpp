@@ -73,7 +73,7 @@
 // #define USE_X11_ERROR_HANDLERS
 
 /* see [#34039] Fix Alt key glitch on Unity desktop */
-#define USE_UNITY_WORKAROUND
+// #define USE_UNITY_WORKAROUND
 
 static GHOST_TKey convertXKey(KeySym key);
 
