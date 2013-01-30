@@ -462,8 +462,8 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
                 type=cls,
                 )
         cls.sample_as_light = BoolProperty(
-                name="Sample as Lamp",
-                description="Use direct light sampling for this material, "
+                name="Multiple Importance Sample",
+                description="Use multiple importance sampling for this material, "
                             "disabling may reduce overall noise for large "
                             "objects that emit little light compared to other light sources",
                 default=True,
@@ -499,6 +499,12 @@ class CyclesLampSettings(bpy.types.PropertyGroup):
                 min=1, max=10000,
                 default=1,
                 )
+        cls.use_multiple_importance_sampling = BoolProperty(
+                name="Multiple Importance Sample",
+                description="Use multiple importance sampling for the lamp, "
+                            "reduces noise for area lamps and sharp glossy materials",
+                default=False,
+                )
 
     @classmethod
     def unregister(cls):
@@ -514,8 +520,8 @@ class CyclesWorldSettings(bpy.types.PropertyGroup):
                 type=cls,
                 )
         cls.sample_as_light = BoolProperty(
-                name="Sample as Lamp",
-                description="Use direct light sampling for the environment, "
+                name="Multiple Importance Sample",
+                description="Use multiple importance sampling for the environment, "
                             "enabling for non-solid colors is recommended",
                 default=False,
                 )

@@ -156,6 +156,7 @@ void BlenderSync::sync_light(BL::Object b_parent, int persistent_id[OBJECT_PERSI
 	/* shadow */
 	PointerRNA clamp = RNA_pointer_get(&b_lamp.ptr, "cycles");
 	light->cast_shadow = get_boolean(clamp, "cast_shadow");
+	light->use_mis = get_boolean(clamp, "use_multiple_importance_sampling");
 	light->samples = get_int(clamp, "samples");
 
 	/* tag */

@@ -93,7 +93,7 @@ __device bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
 	}
 
 	/* return lamp index for MIS */
-	if(ls.use_mis)
+	if(ls.shader & SHADER_USE_MIS)
 		*lamp = ls.lamp;
 	else
 		*lamp= ~0;
@@ -114,7 +114,7 @@ __device bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
 
 	shader_bsdf_eval(kg, sd, ls.D, eval, &bsdf_pdf);
 
-	if(ls.use_mis) {
+	if(ls.shader & SHADER_USE_MIS) {
 		/* multiple importance sampling */
 		float mis_weight = power_heuristic(ls.pdf, bsdf_pdf);
 		light_eval *= mis_weight;

@@ -254,7 +254,7 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 		bool hit = scene_intersect(kg, &ray, visibility, &isect);
 
 #ifdef __LAMP_MIS__
-		if(kernel_data.integrator.pdf_lights > 0.0f && !(state.flag & PATH_RAY_CAMERA)) {
+		if(kernel_data.integrator.use_lamp_mis && !(state.flag & PATH_RAY_CAMERA)) {
 			/* ray starting from previous non-transparent bounce */
 			Ray light_ray;
 
@@ -501,7 +501,7 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 		bool hit = scene_intersect(kg, &ray, visibility, &isect);
 
 #ifdef __LAMP_MIS__
-		if(kernel_data.integrator.pdf_lights > 0.0f && !(state.flag & PATH_RAY_CAMERA)) {
+		if(kernel_data.integrator.use_lamp_mis && !(state.flag & PATH_RAY_CAMERA)) {
 			/* ray starting from previous non-transparent bounce */
 			Ray light_ray;
 

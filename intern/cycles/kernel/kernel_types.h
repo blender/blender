@@ -288,8 +288,9 @@ typedef enum ShaderFlag {
 	SHADER_SMOOTH_NORMAL = (1 << 31),
 	SHADER_CAST_SHADOW = (1 << 30),
 	SHADER_AREA_LIGHT = (1 << 29),
+	SHADER_USE_MIS = (1 << 28),
 
-	SHADER_MASK = ~(SHADER_SMOOTH_NORMAL|SHADER_CAST_SHADOW|SHADER_AREA_LIGHT)
+	SHADER_MASK = ~(SHADER_SMOOTH_NORMAL|SHADER_CAST_SHADOW|SHADER_AREA_LIGHT|SHADER_USE_MIS)
 } ShaderFlag;
 
 /* Light Type */
@@ -680,7 +681,7 @@ typedef struct KernelIntegrator {
 	int transmission_samples;
 	int ao_samples;
 	int mesh_light_samples;
-	int pad1;
+	int use_lamp_mis;
 } KernelIntegrator;
 
 typedef struct KernelBVH {

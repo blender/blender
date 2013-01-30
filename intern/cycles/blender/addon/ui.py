@@ -574,6 +574,8 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
         col = split.column()
         col.prop(clamp, "cast_shadow")
 
+        layout.prop(clamp, "use_multiple_importance_sampling")
+
         if lamp.type == 'HEMI':
             layout.label(text="Not supported, interpreted as sun lamp.")
 
@@ -807,8 +809,9 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
         col.prop(mat, "diffuse_color", text="Viewport Color")
 
         col = split.column()
-        col.prop(cmat, "sample_as_light")
         col.prop(mat, "pass_index")
+
+        layout.prop(cmat, "sample_as_light")
 
 
 class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
