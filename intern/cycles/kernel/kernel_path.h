@@ -399,19 +399,18 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 
 				Ray light_ray;
 				BsdfEval L_light;
-				int lamp;
+				bool is_lamp;
 
 #ifdef __OBJECT_MOTION__
 				light_ray.time = sd.time;
 #endif
 
-				if(direct_emission(kg, &sd, -1, light_t, light_o, light_u, light_v, &light_ray, &L_light, &lamp)) {
+				if(direct_emission(kg, &sd, -1, light_t, light_o, light_u, light_v, &light_ray, &L_light, &is_lamp)) {
 					/* trace shadow ray */
 					float3 shadow;
 
 					if(!shadow_blocked(kg, &state, &light_ray, &shadow)) {
 						/* accumulate */
-						bool is_lamp = (lamp != ~0);
 						path_radiance_accum_light(&L, throughput, &L_light, shadow, state.bounce, is_lamp);
 					}
 				}
@@ -612,20 +611,19 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 
 				Ray light_ray;
 				BsdfEval L_light;
-				int lamp;
+				bool is_lamp;
 
 #ifdef __OBJECT_MOTION__
 				light_ray.time = sd.time;
 #endif
 
 				/* sample random light */
-				if(direct_emission(kg, &sd, -1, light_t, light_o, light_u, light_v, &light_ray, &L_light, &lamp)) {
+				if(direct_emission(kg, &sd, -1, light_t, light_o, light_u, light_v, &light_ray, &L_light, &is_lamp)) {
 					/* trace shadow ray */
 					float3 shadow;
 
 					if(!shadow_blocked(kg, &state, &light_ray, &shadow)) {
 						/* accumulate */
-						bool is_lamp = (lamp != ~0);
 						path_radiance_accum_light(L, throughput, &L_light, shadow, state.bounce, is_lamp);
 					}
 				}
@@ -819,7 +817,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 		if(sd.flag & SD_BSDF_HAS_EVAL) {
 			Ray light_ray;
 			BsdfEval L_light;
-			int lamp;
+			bool is_lamp;
 
 #ifdef __OBJECT_MOTION__
 			light_ray.time = sd.time;
@@ -837,13 +835,12 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 					float light_u = path_rng(kg, rng, sample*num_samples + j, rng_offset + PRNG_LIGHT_U);
 					float light_v = path_rng(kg, rng, sample*num_samples + j, rng_offset + PRNG_LIGHT_V);
 
-					if(direct_emission(kg, &sd, i, 0.0f, 0.0f, light_u, light_v, &light_ray, &L_light, &lamp)) {
+					if(direct_emission(kg, &sd, i, 0.0f, 0.0f, light_u, light_v, &light_ray, &L_light, &is_lamp)) {
 						/* trace shadow ray */
 						float3 shadow;
 
 						if(!shadow_blocked(kg, &state, &light_ray, &shadow)) {
 							/* accumulate */
-							bool is_lamp = (lamp != ~0);
 							path_radiance_accum_light(&L, throughput*num_samples_inv, &L_light, shadow, state.bounce, is_lamp);
 						}
 					}
@@ -867,13 +864,12 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 					if(kernel_data.integrator.num_all_lights)
 						light_t = 0.5f*light_t;
 
-					if(direct_emission(kg, &sd, -1, light_t, 0.0f, light_u, light_v, &light_ray, &L_light, &lamp)) {
+					if(direct_emission(kg, &sd, -1, light_t, 0.0f, light_u, light_v, &light_ray, &L_light, &is_lamp)) {
 						/* trace shadow ray */
 						float3 shadow;
 
 						if(!shadow_blocked(kg, &state, &light_ray, &shadow)) {
 							/* accumulate */
-							bool is_lamp = (lamp != ~0);
 							path_radiance_accum_light(&L, throughput*num_samples_inv, &L_light, shadow, state.bounce, is_lamp);
 						}
 					}

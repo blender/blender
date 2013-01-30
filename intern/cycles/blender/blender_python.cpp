@@ -54,7 +54,7 @@ static PyObject *create_func(PyObject *self, PyObject *args)
 	PyObject *pyengine, *pyuserpref, *pydata, *pyscene, *pyregion, *pyv3d, *pyrv3d;
 	int preview_osl;
 
-	if(!PyArg_ParseTuple(args, "OOOOOOOp", &pyengine, &pyuserpref, &pydata, &pyscene, &pyregion, &pyv3d, &pyrv3d, &preview_osl))
+	if(!PyArg_ParseTuple(args, "OOOOOOOi", &pyengine, &pyuserpref, &pydata, &pyscene, &pyregion, &pyv3d, &pyrv3d, &preview_osl))
 		return NULL;
 
 	/* RNA */
