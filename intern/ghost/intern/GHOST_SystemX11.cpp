@@ -72,6 +72,9 @@
 /* for debugging - so we can breakpoint X11 errors */
 // #define USE_X11_ERROR_HANDLERS
 
+/* see [#34039] Fix Alt key glitch on Unity desktop */
+#define USE_UNITY_WORKAROUND
+
 static GHOST_TKey convertXKey(KeySym key);
 
 /* these are for copy and select copy */
@@ -496,6 +499,46 @@ processEvents(
 
 			processEvent(&xevent);
 			anyProcessed = true;
+
+
+#ifdef USE_UNITY_WORKAROUND
+			/* note: processEvent() can't include this code because
+			 * KeymapNotify event have no valid window information. */
+
+			/* the X server generates KeymapNotify event immediately after
+			 * every EnterNotify and FocusIn event.  we handle this event
+			 * to correct modifier states. */
+			if ((xevent.type == FocusIn || xevent.type == EnterNotify)) {
+				/* use previous event's window, because KeymapNotify event
+				 * has no window information. */
+				GHOST_WindowX11 *window = findGhostWindow(xevent.xany.window);
+				if (window) {
+					XNextEvent(m_display, &xevent);
+
+					if (xevent.type == KeymapNotify) {
+						/* XK_Hyper_L/R currently unused */
+						const static KeySym modifiers[8] = {XK_Shift_L, XK_Shift_R,
+						                                    XK_Control_L, XK_Control_R,
+						                                    XK_Alt_L, XK_Alt_R,
+						                                    XK_Super_L, XK_Super_R};
+
+						for (int i = 0; i < (sizeof(modifiers) / sizeof(*modifiers)); i++) {
+							KeyCode kc = XKeysymToKeycode(m_display, modifiers[i]);
+							if (((xevent.xkeymap.key_vector[kc >> 3] >> (kc & 7)) & 1) != 0) {
+								pushEvent(new GHOST_EventKey(
+								              getMilliSeconds(),
+								              GHOST_kEventKeyDown,
+								              window,
+								              convertXKey(modifiers[i]),
+								              '\0',
+								              NULL));
+							}
+						}
+					}
+				}
+			}
+#endif  /* USE_UNITY_WORKAROUND */
+
 		}
 		
 		if (generateWindowExposeEvents()) {

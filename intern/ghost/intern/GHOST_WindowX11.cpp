@@ -266,15 +266,14 @@ GHOST_WindowX11(
 	/* Specify which events we are interested in hearing. */
 
 	xattributes.event_mask =
-	    ExposureMask | StructureNotifyMask |
-	    KeyPressMask | KeyReleaseMask |
-	    EnterWindowMask | LeaveWindowMask |
-	    ButtonPressMask | ButtonReleaseMask |
-	    PointerMotionMask | FocusChangeMask | PropertyChangeMask;
+	        ExposureMask | StructureNotifyMask |
+	        KeyPressMask | KeyReleaseMask |
+	        EnterWindowMask | LeaveWindowMask |
+	        ButtonPressMask | ButtonReleaseMask |
+	        PointerMotionMask | FocusChangeMask |
+	        PropertyChangeMask | KeymapStateMask;
 
 	/* create the window! */
-
-	;
 	if (parentWindow == 0) {
 		m_window =  XCreateWindow(m_display,
 		                          RootWindow(m_display, m_visual->screen),
@@ -508,7 +507,7 @@ bool GHOST_WindowX11::createX11_XIC()
 	             EnterWindowMask | LeaveWindowMask |
 	             ButtonPressMask | ButtonReleaseMask |
 	             PointerMotionMask | FocusChangeMask |
-	             PropertyChangeMask | fevent);
+	             PropertyChangeMask | KeymapStateMask | fevent);
 	return true;
 }
 #endif
