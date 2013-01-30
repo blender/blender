@@ -1029,6 +1029,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		unsigned int index;
 
 		view3d_operator_needs_opengl(C);
+		ED_view3d_init_mats_rv3d(vc.obact, vc.rv3d);
 
 		if (use_vert_sel) {
 			if (ED_mesh_pick_vert(C, vc.obact, event->mval, &index, ED_MESH_PICK_DEFAULT_VERT_SIZE, TRUE)) {
@@ -1118,6 +1119,7 @@ static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA 
 				               win->eventstate->y - vc.ar->winrct.ymin};
 
 				view3d_operator_needs_opengl(C);
+				ED_view3d_init_mats_rv3d(vc.obact, vc.rv3d);
 
 				if (use_vert_sel) {
 					if (ED_mesh_pick_vert(C, vc.obact, mval, &index, ED_MESH_PICK_DEFAULT_VERT_SIZE, TRUE)) {
@@ -2230,7 +2232,8 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	indexar = wpd->indexar;
 	
 	view3d_operator_needs_opengl(C);
-		
+	ED_view3d_init_mats_rv3d(ob, vc->rv3d);
+
 	/* load projection matrix */
 	mult_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
 
@@ -2863,7 +2866,8 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	RNA_float_get_array(itemptr, "mouse", mval);
 
 	view3d_operator_needs_opengl(C);
-			
+	ED_view3d_init_mats_rv3d(ob, vc->rv3d);
+
 	/* load projection matrix */
 	mult_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
 
