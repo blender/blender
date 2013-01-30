@@ -51,6 +51,7 @@ defs.append('WITH_CUDA')
 
 if env['WITH_BF_CYCLES_OSL']:
     defs.append('WITH_OSL')
+    defs.append('OSL_STATIC_LIBRARY')
     incs.append(cycles['BF_OSL_INC'])
 
 incs.extend('. bvh render device kernel kernel/osl kernel/svm util subd'.split())
