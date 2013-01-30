@@ -453,6 +453,22 @@ static void wm_operator_print(bContext *C, wmOperator *op)
 	MEM_freeN(buf);
 }
 
+/**
+ * Sets the active region for this space from the context.
+ *
+ * \see #BKE_area_find_region_active_win
+ */
+void WM_operator_region_active_win_set(bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa) {
+		ARegion *ar = CTX_wm_region(C);
+		if (ar && ar->regiontype == RGN_TYPE_WINDOW) {
+			sa->region_active_win = BLI_findindex(&sa->regionbase, ar);
+		}
+	}
+}
+
 /* for debugging only, getting inspecting events manually is tedious */
 #ifndef NDEBUG
 
@@ -573,10 +589,13 @@ static void wm_operator_finished(bContext *C, wmOperator *op, int repeat)
 			MEM_freeN(buf);
 		}
 
-		if (wm_operator_register_check(wm, op->type))
+		if (wm_operator_register_check(wm, op->type)) {
 			wm_operator_register(C, op);
-		else
+			WM_operator_region_active_win_set(C);
+		}
+		else {
 			WM_operator_free(op);
+		}
 	}
 }
 
@@ -1045,7 +1064,14 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 				}
 				
 				if (!(ar && ar->regiontype == type) && area) {
-					ARegion *ar1 = BKE_area_find_region_type(area, type);
+					ARegion *ar1;
+					if (type == RGN_TYPE_WINDOW) {
+						ar1 = BKE_area_find_region_active_win(area);
+					}
+					else {
+						ar1 = BKE_area_find_region_type(area, type);
+					}
+
 					if (ar1)
 						CTX_wm_region_set(C, ar1);
 				}
@@ -1417,6 +1443,19 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 				if (ot->flag & OPTYPE_UNDO)
 					wm->op_undo_depth--;
 
+				if (retval & (OPERATOR_CANCELLED | OPERATOR_FINISHED))
+					wm_operator_reports(C, op, retval, FALSE);
+
+				/* important to run 'wm_operator_finished' before NULLing the context members */
+				if (retval & OPERATOR_FINISHED) {
+					wm_operator_finished(C, op, 0);
+					handler->op = NULL;
+				}
+				else if (retval & (OPERATOR_CANCELLED | OPERATOR_FINISHED)) {
+					WM_operator_free(op);
+					handler->op = NULL;
+				}
+
 				/* putting back screen context, reval can pass trough after modal failures! */
 				if ((retval & OPERATOR_PASS_THROUGH) || wm_event_always_pass(event)) {
 					CTX_wm_area_set(C, area);
@@ -1426,18 +1465,6 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 					/* this special cases is for areas and regions that get removed */
 					CTX_wm_area_set(C, NULL);
 					CTX_wm_region_set(C, NULL);
-				}
-
-				if (retval & (OPERATOR_CANCELLED | OPERATOR_FINISHED))
-					wm_operator_reports(C, op, retval, FALSE);
-
-				if (retval & OPERATOR_FINISHED) {
-					wm_operator_finished(C, op, 0);
-					handler->op = NULL;
-				}
-				else if (retval & (OPERATOR_CANCELLED | OPERATOR_FINISHED)) {
-					WM_operator_free(op);
-					handler->op = NULL;
 				}
 
 				/* remove modal handler, operator itself should have been canceled and freed */

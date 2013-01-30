@@ -311,6 +311,8 @@ void		WM_event_fileselect_event(struct bContext *C, void *ophandle, int eventval
 void		WM_event_print(struct wmEvent *event);
 #endif
 
+void		WM_operator_region_active_win_set(struct bContext *C);
+
 			/* drag and drop */
 struct wmDrag		*WM_event_start_drag(struct bContext *C, int icon, int type, void *poin, double value);
 void				WM_event_drag_image(struct wmDrag *, struct ImBuf *, float scale, int sx, int sy);

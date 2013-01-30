@@ -110,7 +110,7 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 
 	/* keep in sync with logic in ED_undo_operator_repeat() */
 	ar = CTX_wm_region(C);
-	ar1 = BKE_area_find_region_type(CTX_wm_area(C), RGN_TYPE_WINDOW);
+	ar1 = BKE_area_find_region_active_win(CTX_wm_area(C));
 	if (ar1)
 		CTX_wm_region_set((bContext *)C, ar1);
 

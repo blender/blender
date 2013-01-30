@@ -341,7 +341,7 @@ int ED_undo_operator_repeat(bContext *C, struct wmOperator *op)
 
 		/* keep in sync with logic in view3d_panel_operator_redo() */
 		ARegion *ar = CTX_wm_region(C);
-		ARegion *ar1 = BKE_area_find_region_type(CTX_wm_area(C), RGN_TYPE_WINDOW);
+		ARegion *ar1 = BKE_area_find_region_active_win(CTX_wm_area(C));
 
 		if (ar1)
 			CTX_wm_region_set(C, ar1);

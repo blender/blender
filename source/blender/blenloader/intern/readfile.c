@@ -6005,6 +6005,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 		
 		sa->handlers.first = sa->handlers.last = NULL;
 		sa->type = NULL;	/* spacetype callbacks */
+		sa->region_active_win = -1;
 		
 		for (ar = sa->regionbase.first; ar; ar = ar->next)
 			direct_link_region(fd, ar, sa->spacetype);

@@ -355,6 +355,20 @@ ARegion *BKE_area_find_region_type(ScrArea *sa, int type)
 	return NULL;
 }
 
+ARegion *BKE_area_find_region_active_win(ScrArea *sa)
+{
+	if (sa) {
+		ARegion *ar = BLI_findlink(&sa->regionbase, sa->region_active_win);
+		if (ar && (ar->regiontype == RGN_TYPE_WINDOW)) {
+			return ar;
+		}
+
+		/* fallback to any */
+		return BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+	}
+	return NULL;
+}
+
 /* note, using this function is generally a last resort, you really want to be
  * using the context when you can - campbell
  * -1 for any type */
