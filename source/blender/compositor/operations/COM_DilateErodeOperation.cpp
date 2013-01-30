@@ -383,7 +383,7 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
 			buf[x] = -MAXFLOAT;
 		}
 		for (x = xmin; x < xmax; ++x) {
-			buf[x - rect->xmin + window - 1] = buffer[4*(y * width + x)];
+			buf[x - rect->xmin + window - 1] = buffer[4 * (y * width + x)];
 		}
 
 		for (i = 0; i < (bwidth + 3 * half_window) / window; i++) {
@@ -397,7 +397,7 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
 
 			start = half_window + (i - 1) * window + 1;
 			for (x = -min(0, start); x < window - max(0, start + window - bwidth); x++) {
-				rectf[bwidth * (y-ymin) + (start + x)] = max(temp[x], temp[x + window - 1]);
+				rectf[bwidth * (y - ymin) + (start + x)] = max(temp[x], temp[x + window - 1]);
 			}
 		}
 	}
@@ -408,7 +408,7 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
 			buf[y] = -MAXFLOAT;
 		}
 		for (y = ymin; y < ymax; y++) {
-			buf[y - rect->ymin + window - 1] = rectf[(y-ymin) * bwidth + x];
+			buf[y - rect->ymin + window - 1] = rectf[(y - ymin) * bwidth + x];
 		}
 
 		for (i = 0; i < (bheight + 3 * half_window) / window; i++) {
@@ -422,7 +422,7 @@ void *DilateStepOperation::initializeTileData(rcti *rect)
 
 			start = half_window + (i - 1) * window + 1;
 			for (y = -min(0, start); y < window - max(0, start + window - bheight); y++) {
-				rectf[bwidth * (y + start + (rect->ymin-ymin)) + x] = max(temp[y], temp[y + window - 1]);
+				rectf[bwidth * (y + start + (rect->ymin - ymin)) + x] = max(temp[y], temp[y + window - 1]);
 			}
 		}
 	}
@@ -510,7 +510,7 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
 			buf[x] = MAXFLOAT;
 		}
 		for (x = xmin; x < xmax; ++x) {
-			buf[x - rect->xmin + window - 1] = buffer[4*(y * width + x)];
+			buf[x - rect->xmin + window - 1] = buffer[4 * (y * width + x)];
 		}
 
 		for (i = 0; i < (bwidth + 3 * half_window) / window; i++) {
@@ -524,7 +524,7 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
 
 			start = half_window + (i - 1) * window + 1;
 			for (x = -min(0, start); x < window - max(0, start + window - bwidth); x++) {
-				rectf[bwidth * (y-ymin) + (start + x)] = min(temp[x], temp[x + window - 1]);
+				rectf[bwidth * (y - ymin) + (start + x)] = min(temp[x], temp[x + window - 1]);
 			}
 		}
 	}
@@ -535,7 +535,7 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
 			buf[y] = MAXFLOAT;
 		}
 		for (y = ymin; y < ymax; y++) {
-			buf[y - rect->ymin + window - 1] = rectf[(y-ymin) * bwidth + x];
+			buf[y - rect->ymin + window - 1] = rectf[(y - ymin) * bwidth + x];
 		}
 
 		for (i = 0; i < (bheight + 3 * half_window) / window; i++) {
@@ -549,7 +549,7 @@ void *ErodeStepOperation::initializeTileData(rcti *rect)
 
 			start = half_window + (i - 1) * window + 1;
 			for (y = -min(0, start); y < window - max(0, start + window - bheight); y++) {
-				rectf[bwidth * (y + start + (rect->ymin-ymin)) + x] = min(temp[y], temp[y + window - 1]);
+				rectf[bwidth * (y + start + (rect->ymin - ymin)) + x] = min(temp[y], temp[y + window - 1]);
 			}
 		}
 	}

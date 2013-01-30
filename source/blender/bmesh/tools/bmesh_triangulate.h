@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/tools/bmesh_triangulate.c
+/** \file blender/bmesh/tools/bmesh_triangulate.h
  *  \ingroup bmesh
  *
  * Triangulate.

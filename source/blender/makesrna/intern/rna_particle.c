@@ -289,8 +289,8 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle, ParticleSystemMod
 	}
 }
 
-static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *object, ParticleSystemModifierData *modifier, int particle_no, int step,
-                                       float n_co[3])
+static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *object, ParticleSystemModifierData *modifier,
+                                       int particle_no, int step, float n_co[3])
 {
 	ParticleSettings *part = 0;
 	ParticleData *pars = 0;
@@ -307,7 +307,7 @@ static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *o
 	part = particlesystem->part;
 	pars = particlesystem->particles;
 
-	if(particlesystem->renderdata) {
+	if (particlesystem->renderdata) {
 		step_nbr = part->ren_step;
 		totchild = particlesystem->totchild;
 	}
@@ -381,10 +381,12 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Par
 
 	part = particlesystem->part;
 
-	if(particlesystem->renderdata)
+	if (particlesystem->renderdata) {
 		totchild = particlesystem->totchild;
-	else
+	}
+	else {
 		totchild = (int)((float)particlesystem->totchild * (float)(part->disp) / 100.0f);
+	}
 
 	/* can happen for disconnected/global hair */
 	if (part->type == PART_HAIR && !particlesystem->childcache)
@@ -466,10 +468,11 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Par
 	}
 }
 
-static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, ParticleSystemModifierData *modifier, ParticleData *particle, int particle_no, int vcol_no,
-                                             float n_mcol[3])
+static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, ParticleSystemModifierData *modifier,
+                                               ParticleData *particle, int particle_no, int vcol_no,
+                                               float n_mcol[3])
 {
-	ParticleSettings *part = 0;
+	ParticleSettings *part;
 	int totpart;
 	int totchild = 0;
 	int num;
@@ -481,10 +484,12 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, P
 
 	part = particlesystem->part;
 
-	if(particlesystem->renderdata)
+	if (particlesystem->renderdata) {
 		totchild = particlesystem->totchild;
-	else
+	}
+	else {
 		totchild = (int)((float)particlesystem->totchild * (float)(part->disp) / 100.0f);
+	}
 
 	/* can happen for disconnected/global hair */
 	if (part->type == PART_HAIR && !particlesystem->childcache)
@@ -495,7 +500,7 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, P
 	if (particle_no >= totpart + totchild)
 		return;
 
-/* 3. start creating renderable things */
+	/* 3. start creating renderable things */
 	/* setup per particle individual stuff */
 	if (particle_no < totpart) {
 

@@ -92,6 +92,13 @@ __attribute__((nonnull(1)))
 #endif
 ;
 
+void *BLI_mempool_as_arrayN(BLI_mempool *pool, const char *allocstr)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull(1, 2)))
+#endif
+;
+
 /** iteration stuff.  note: this may easy to produce bugs with **/
 /* private structure */
 typedef struct BLI_mempool_iter {
