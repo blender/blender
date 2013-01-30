@@ -323,124 +323,147 @@ DilateStepOperation::DilateStepOperation() : NodeOperation()
 void DilateStepOperation::initExecution()
 {
 	this->m_inputProgram = this->getInputSocketReader(0);
-	this->m_cached_buffer = NULL;
-	this->initMutex();
+}
+
+
+// small helper to pass data from initializeTileData to executePixel
+typedef struct tile_info {
+	rcti rect;
+	int width;
+	float *buffer;
+} tile_info;
+
+static tile_info *create_cache(int xmin, int xmax, int ymin, int ymax)
+{
+	tile_info *result = (tile_info *)MEM_mallocN(sizeof(tile_info), "dilate erode tile");
+	result->rect.xmin = xmin;
+	result->rect.xmax = xmax;
+	result->rect.ymin = ymin;
+	result->rect.ymax = ymax;
+	result->width = xmax - xmin;
+	result->buffer = (float *)MEM_callocN(sizeof(float) * (ymax - ymin) * result->width, "dilate erode cache");
+	return result;
 }
 
 void *DilateStepOperation::initializeTileData(rcti *rect)
 {
-	if (this->m_cached_buffer != NULL) {
-		return this->m_cached_buffer;
-	}
-	lockMutex();
-	if (this->m_cached_buffer == NULL) {
-		MemoryBuffer *buffer = (MemoryBuffer *)this->m_inputProgram->initializeTileData(NULL);
-		float *rectf = buffer->convertToValueBuffer();
-		int x, y, i;
-		int bwidth = buffer->getWidth();
-		int bheight = buffer->getHeight();
+	MemoryBuffer *tile = (MemoryBuffer *)this->m_inputProgram->initializeTileData(NULL);
+	int x, y, i;
+	int width = tile->getWidth();
+	int height = tile->getHeight();
+	float *buffer = tile->getBuffer();
 
-		/*
-		  The following is based on the van Herk/Gil-Werman algorithm for morphology operations.
-		 */
-		int half_window = this->m_iterations;
-		int window = half_window * 2 + 1;
-		float *temp = (float *)MEM_mallocN((2 * window - 1) * sizeof(float), "dilate erode temp");
-		float *buf = (float *)MEM_mallocN((max(bwidth, bheight) + 5 * half_window) * sizeof(float), "dilate erode buf");
+	int half_window = this->m_iterations;
+	int window = half_window * 2 + 1;
 
-		for (y = 0; y < bheight; y++) {
-			for (x = 0; x < window - 1; x++) {
-				buf[x] = -MAXFLOAT;
-			}
-			for (x = 0; x < bwidth; x++) {
-				buf[x + window - 1] = rectf[bwidth * y + x];
-			}
-			for (x = bwidth + window - 1; x < bwidth + 5 * half_window; x++) {
-				buf[x] = -MAXFLOAT;
-			}
+	int xmin = max(0, rect->xmin - half_window);
+	int ymin = max(0, rect->ymin - half_window);
+	int xmax = min(width,  rect->xmax + half_window);
+	int ymax = min(height, rect->ymax + half_window);
 
-			for (i = 0; i < (bwidth + 3 * half_window) / window; i++) {
-				int start = (i + 1) * window - 1;
+	int bwidth = rect->xmax - rect->xmin;
+	int bheight = rect->ymax - rect->ymin;
 
-				temp[window - 1] = buf[start];
-				for (x = 1; x < window; x++) {
-					temp[window - 1 - x] = max(temp[window - x], buf[start - x]);
-					temp[window - 1 + x] = max(temp[window + x - 2], buf[start + x]);
-				}
+	// Note: Cache buffer has original tilesize width, but new height.
+	// We have to calculate the additional rows in the first pass,
+	// to have valid data available for the second pass.
+	tile_info *result = create_cache(rect->xmin, rect->xmax, ymin, ymax);
+	float *rectf = result->buffer;
 
-				start = half_window + (i - 1) * window + 1;
-				for (x = -min(0, start); x < window - max(0, start + window - bwidth); x++) {
-					rectf[bwidth * y + (start + x)] = max(temp[x], temp[x + window - 1]);
-				}
-			}
+	// temp holds maxima for every step in the algorithm, buf holds a
+	// single row or column of input values, padded with MAXFLOATs to
+	// simplify the logic.
+	float *temp = (float *)MEM_mallocN(sizeof(float) * (2 * window - 1), "dilate erode temp");
+	float *buf = (float *)MEM_mallocN(sizeof(float) * (max(bwidth, bheight) + 5 * half_window), "dilate erode buf");
+
+	// The following is based on the van Herk/Gil-Werman algorithm for morphology operations.
+	// first pass, horizontal dilate/erode
+	for (y = ymin; y < ymax; y++) {
+		for (x = 0; x < bwidth + 5 * half_window; x++) {
+			buf[x] = -MAXFLOAT;
+		}
+		for (x = xmin; x < xmax; ++x) {
+			buf[x - rect->xmin + window - 1] = buffer[4*(y * width + x)];
 		}
 
-		for (x = 0; x < bwidth; x++) {
-			for (y = 0; y < window - 1; y++) {
-				buf[y] = -MAXFLOAT;
-			}
-			for (y = 0; y < bheight; y++) {
-				buf[y + window - 1] = rectf[bwidth * y + x];
-			}
-			for (y = bheight + window - 1; y < bheight + 5 * half_window; y++) {
-				buf[y] = -MAXFLOAT;
+		for (i = 0; i < (bwidth + 3 * half_window) / window; i++) {
+			int start = (i + 1) * window - 1;
+
+			temp[window - 1] = buf[start];
+			for (x = 1; x < window; x++) {
+				temp[window - 1 - x] = max(temp[window - x], buf[start - x]);
+				temp[window - 1 + x] = max(temp[window + x - 2], buf[start + x]);
 			}
 
-			for (i = 0; i < (bheight + 3 * half_window) / window; i++) {
-				int start = (i + 1) * window - 1;
-
-				temp[window - 1] = buf[start];
-				for (y = 1; y < window; y++) {
-					temp[window - 1 - y] = max(temp[window - y], buf[start - y]);
-					temp[window - 1 + y] = max(temp[window + y - 2], buf[start + y]);
-				}
-
-				start = half_window + (i - 1) * window + 1;
-				for (y = -min(0, start); y < window - max(0, start + window - bheight); y++) {
-					rectf[bwidth * (y + start) + x] = max(temp[y], temp[y + window - 1]);
-				}
+			start = half_window + (i - 1) * window + 1;
+			for (x = -min(0, start); x < window - max(0, start + window - bwidth); x++) {
+				rectf[bwidth * (y-ymin) + (start + x)] = max(temp[x], temp[x + window - 1]);
 			}
 		}
-
-		MEM_freeN(temp);
-		MEM_freeN(buf);
-		this->m_cached_buffer = rectf;
 	}
-	unlockMutex();
-	return this->m_cached_buffer;
+
+	// second pass, vertical dilate/erode
+	for (x = 0; x < bwidth; x++) {
+		for (y = 0; y < bheight + 5 * half_window; y++) {
+			buf[y] = -MAXFLOAT;
+		}
+		for (y = ymin; y < ymax; y++) {
+			buf[y - rect->ymin + window - 1] = rectf[(y-ymin) * bwidth + x];
+		}
+
+		for (i = 0; i < (bheight + 3 * half_window) / window; i++) {
+			int start = (i + 1) * window - 1;
+
+			temp[window - 1] = buf[start];
+			for (y = 1; y < window; y++) {
+				temp[window - 1 - y] = max(temp[window - y], buf[start - y]);
+				temp[window - 1 + y] = max(temp[window + y - 2], buf[start + y]);
+			}
+
+			start = half_window + (i - 1) * window + 1;
+			for (y = -min(0, start); y < window - max(0, start + window - bheight); y++) {
+				rectf[bwidth * (y + start + (rect->ymin-ymin)) + x] = max(temp[y], temp[y + window - 1]);
+			}
+		}
+	}
+
+	MEM_freeN(temp);
+	MEM_freeN(buf);
+
+	return result;
 }
 
 
 void DilateStepOperation::executePixel(float output[4], int x, int y, void *data)
 {
-	output[0] = this->m_cached_buffer[y * this->getWidth() + x];
+	tile_info *tile = (tile_info *)data;
+	int nx = x - tile->rect.xmin;
+	int ny = y - tile->rect.ymin;
+	output[0] = tile->buffer[tile->width * ny + nx];
 }
 
 void DilateStepOperation::deinitExecution()
 {
 	this->m_inputProgram = NULL;
-	this->deinitMutex();
-	if (this->m_cached_buffer) {
-		MEM_freeN(this->m_cached_buffer);
-		this->m_cached_buffer = NULL;
-	}
+}
+
+void DilateStepOperation::deinitializeTileData(rcti *rect, void *data)
+{
+	tile_info *tile = (tile_info *)data;
+	MEM_freeN(tile->buffer);
+	MEM_freeN(tile);
 }
 
 bool DilateStepOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
-	if (this->m_cached_buffer) {
-		return false;
-	}
-	else {
-		rcti newInput;
-	
-		newInput.xmax = getWidth();
-		newInput.xmin = 0;
-		newInput.ymax = getHeight();
-		newInput.ymin = 0;
-	
-		return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
-	}
+	rcti newInput;
+	int it = this->m_iterations;
+	newInput.xmax = input->xmax + it;
+	newInput.xmin = input->xmin - it;
+	newInput.ymax = input->ymax + it;
+	newInput.ymin = input->ymin - it;
+
+	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
 // Erode step
@@ -451,80 +474,88 @@ ErodeStepOperation::ErodeStepOperation() : DilateStepOperation()
 
 void *ErodeStepOperation::initializeTileData(rcti *rect)
 {
-	if (this->m_cached_buffer != NULL) {
-		return this->m_cached_buffer;
-	}
-	lockMutex();
-	if (this->m_cached_buffer == NULL) {
-		MemoryBuffer *buffer = (MemoryBuffer *)this->m_inputProgram->initializeTileData(NULL);
-		float *rectf = buffer->convertToValueBuffer();
-		int x, y, i;
-		int bwidth = buffer->getWidth();
-		int bheight = buffer->getHeight();
+	MemoryBuffer *tile = (MemoryBuffer *)this->m_inputProgram->initializeTileData(NULL);
+	int x, y, i;
+	int width = tile->getWidth();
+	int height = tile->getHeight();
+	float *buffer = tile->getBuffer();
 
-		int half_window = this->m_iterations;
-		int window = half_window * 2 + 1;
-		float *temp = (float *)MEM_mallocN((2 * window - 1) * sizeof(float), "dilate erode temp");
-		float *buf = (float *)MEM_mallocN((max(bwidth, bheight) + 5 * half_window) * sizeof(float), "dilate erode buf");
+	int half_window = this->m_iterations;
+	int window = half_window * 2 + 1;
 
-		for (y = 0; y < bheight; y++) {
-			for (x = 0; x < window - 1; x++) {
-				buf[x] = MAXFLOAT;
-			}
-			for (x = 0; x < bwidth; x++) {
-				buf[x + window - 1] = rectf[bwidth * y + x];
-			}
-			for (x = bwidth + window - 1; x < bwidth + 5 * half_window; x++) {
-				buf[x] = MAXFLOAT;
-			}
+	int xmin = max(0, rect->xmin - half_window);
+	int ymin = max(0, rect->ymin - half_window);
+	int xmax = min(width,  rect->xmax + half_window);
+	int ymax = min(height, rect->ymax + half_window);
 
-			for (i = 0; i < (bwidth + 3 * half_window) / window; i++) {
-				int start = (i + 1) * window - 1;
+	int bwidth = rect->xmax - rect->xmin;
+	int bheight = rect->ymax - rect->ymin;
 
-				temp[window - 1] = buf[start];
-				for (x = 1; x < window; x++) {
-					temp[window - 1 - x] = min(temp[window - x], buf[start - x]);
-					temp[window - 1 + x] = min(temp[window + x - 2], buf[start + x]);
-				}
+	// Note: Cache buffer has original tilesize width, but new height.
+	// We have to calculate the additional rows in the first pass,
+	// to have valid data available for the second pass.
+	tile_info *result = create_cache(rect->xmin, rect->xmax, ymin, ymax);
+	float *rectf = result->buffer;
 
-				start = half_window + (i - 1) * window + 1;
-				for (x = -min(0, start); x < window - max(0, start + window - bwidth); x++) {
-					rectf[bwidth * y + (start + x)] = min(temp[x], temp[x + window - 1]);
-				}
-			}
+	// temp holds maxima for every step in the algorithm, buf holds a
+	// single row or column of input values, padded with MAXFLOATs to
+	// simplify the logic.
+	float *temp = (float *)MEM_mallocN(sizeof(float) * (2 * window - 1), "dilate erode temp");
+	float *buf = (float *)MEM_mallocN(sizeof(float) * (max(bwidth, bheight) + 5 * half_window), "dilate erode buf");
+
+	// The following is based on the van Herk/Gil-Werman algorithm for morphology operations.
+	// first pass, horizontal dilate/erode
+	for (y = ymin; y < ymax; y++) {
+		for (x = 0; x < bwidth + 5 * half_window; x++) {
+			buf[x] = MAXFLOAT;
+		}
+		for (x = xmin; x < xmax; ++x) {
+			buf[x - rect->xmin + window - 1] = buffer[4*(y * width + x)];
 		}
 
-		for (x = 0; x < bwidth; x++) {
-			for (y = 0; y < window - 1; y++) {
-				buf[y] = MAXFLOAT;
-			}
-			for (y = 0; y < bheight; y++) {
-				buf[y + window - 1] = rectf[bwidth * y + x];
-			}
-			for (y = bheight + window - 1; y < bheight + 5 * half_window; y++) {
-				buf[y] = MAXFLOAT;
+		for (i = 0; i < (bwidth + 3 * half_window) / window; i++) {
+			int start = (i + 1) * window - 1;
+
+			temp[window - 1] = buf[start];
+			for (x = 1; x < window; x++) {
+				temp[window - 1 - x] = min(temp[window - x], buf[start - x]);
+				temp[window - 1 + x] = min(temp[window + x - 2], buf[start + x]);
 			}
 
-			for (i = 0; i < (bheight + 3 * half_window) / window; i++) {
-				int start = (i + 1) * window - 1;
-
-				temp[window - 1] = buf[start];
-				for (y = 1; y < window; y++) {
-					temp[window - 1 - y] = min(temp[window - y], buf[start - y]);
-					temp[window - 1 + y] = min(temp[window + y - 2], buf[start + y]);
-				}
-
-				start = half_window + (i - 1) * window + 1;
-				for (y = -min(0, start); y < window - max(0, start + window - bheight); y++) {
-					rectf[bwidth * (y + start) + x] = min(temp[y], temp[y + window - 1]);
-				}
+			start = half_window + (i - 1) * window + 1;
+			for (x = -min(0, start); x < window - max(0, start + window - bwidth); x++) {
+				rectf[bwidth * (y-ymin) + (start + x)] = min(temp[x], temp[x + window - 1]);
 			}
 		}
-
-		MEM_freeN(temp);
-		MEM_freeN(buf);
-		this->m_cached_buffer = rectf;
 	}
-	unlockMutex();
-	return this->m_cached_buffer;
+
+	// second pass, vertical dilate/erode
+	for (x = 0; x < bwidth; x++) {
+		for (y = 0; y < bheight + 5 * half_window; y++) {
+			buf[y] = MAXFLOAT;
+		}
+		for (y = ymin; y < ymax; y++) {
+			buf[y - rect->ymin + window - 1] = rectf[(y-ymin) * bwidth + x];
+		}
+
+		for (i = 0; i < (bheight + 3 * half_window) / window; i++) {
+			int start = (i + 1) * window - 1;
+
+			temp[window - 1] = buf[start];
+			for (y = 1; y < window; y++) {
+				temp[window - 1 - y] = min(temp[window - y], buf[start - y]);
+				temp[window - 1 + y] = min(temp[window + y - 2], buf[start + y]);
+			}
+
+			start = half_window + (i - 1) * window + 1;
+			for (y = -min(0, start); y < window - max(0, start + window - bheight); y++) {
+				rectf[bwidth * (y + start + (rect->ymin-ymin)) + x] = min(temp[y], temp[y + window - 1]);
+			}
+		}
+	}
+
+	MEM_freeN(temp);
+	MEM_freeN(buf);
+
+	return result;
 }
