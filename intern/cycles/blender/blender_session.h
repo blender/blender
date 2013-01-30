@@ -94,10 +94,10 @@ protected:
 	void do_write_update_render_result(BL::RenderResult b_rr, BL::RenderLayer b_rlay, RenderTile& rtile, bool do_update_only);
 	void do_write_update_render_tile(RenderTile& rtile, bool do_update_only);
 
-	void builtin_name_split(const string &builtin_name, string &name, int &frame);
-	void builtin_image_info(const string &builtin_name, bool &is_float, int &width, int &height, int &channels);
-	bool builtin_image_pixels(const string &builtin_name, unsigned char *pixels);
-	bool builtin_image_float_pixels(const string &builtin_name, float *pixels);
+	int builtin_image_frame(const string &builtin_name);
+	void builtin_image_info(const string &builtin_name, void *builtin_data, bool &is_float, int &width, int &height, int &channels);
+	bool builtin_image_pixels(const string &builtin_name, void *builtin_data, unsigned char *pixels);
+	bool builtin_image_float_pixels(const string &builtin_name, void *builtin_data, float *pixels);
 };
 
 CCL_NAMESPACE_END

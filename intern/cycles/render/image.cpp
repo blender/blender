@@ -85,14 +85,14 @@ bool ImageManager::set_animation_frame_update(int frame)
 	return false;
 }
 
-bool ImageManager::is_float_image(const string& filename, bool is_builtin)
+bool ImageManager::is_float_image(const string& filename, void *builtin_data)
 {
 	bool is_float = false;
 
-	if(is_builtin) {
+	if(builtin_data) {
 		if(builtin_image_info_cb) {
 			int width, height, channels;
-			builtin_image_info_cb(filename, is_float, width, height, channels);
+			builtin_image_info_cb(filename, builtin_data, is_float, width, height, channels);
 		}
 
 		return is_float;
@@ -123,13 +123,13 @@ bool ImageManager::is_float_image(const string& filename, bool is_builtin)
 	return is_float;
 }
 
-int ImageManager::add_image(const string& filename, bool is_builtin, bool animated, bool& is_float)
+int ImageManager::add_image(const string& filename, void *builtin_data, bool animated, bool& is_float)
 {
 	Image *img;
 	size_t slot;
 
 	/* load image info and find out if we need a float texture */
-	is_float = (pack_images)? false: is_float_image(filename, is_builtin);
+	is_float = (pack_images)? false: is_float_image(filename, builtin_data);
 
 	if(is_float) {
 		/* find existing image */
@@ -160,7 +160,7 @@ int ImageManager::add_image(const string& filename, bool is_builtin, bool animat
 		/* add new image */
 		img = new Image();
 		img->filename = filename;
-		img->is_builtin = is_builtin;
+		img->builtin_data = builtin_data;
 		img->need_load = true;
 		img->animated = animated;
 		img->users = 1;
@@ -195,7 +195,7 @@ int ImageManager::add_image(const string& filename, bool is_builtin, bool animat
 		/* add new image */
 		img = new Image();
 		img->filename = filename;
-		img->is_builtin = is_builtin;
+		img->builtin_data = builtin_data;
 		img->need_load = true;
 		img->animated = animated;
 		img->users = 1;
@@ -209,12 +209,12 @@ int ImageManager::add_image(const string& filename, bool is_builtin, bool animat
 	return slot;
 }
 
-void ImageManager::remove_image(const string& filename, bool is_builtin)
+void ImageManager::remove_image(const string& filename, void *builtin_data)
 {
 	size_t slot;
 
 	for(slot = 0; slot < images.size(); slot++) {
-		if(images[slot] && images[slot]->filename == filename && images[slot]->is_builtin == is_builtin) {
+		if(images[slot] && images[slot]->filename == filename && images[slot]->builtin_data == builtin_data) {
 			/* decrement user count */
 			images[slot]->users--;
 			assert(images[slot]->users >= 0);
@@ -232,7 +232,7 @@ void ImageManager::remove_image(const string& filename, bool is_builtin)
 	if(slot == images.size()) {
 		/* see if it's in a float texture slot */
 		for(slot = 0; slot < float_images.size(); slot++) {
-			if(float_images[slot] && float_images[slot]->filename == filename && float_images[slot]->is_builtin == is_builtin) {
+			if(float_images[slot] && float_images[slot]->filename == filename && float_images[slot]->builtin_data == builtin_data) {
 				/* decrement user count */
 				float_images[slot]->users--;
 				assert(float_images[slot]->users >= 0);
@@ -257,7 +257,7 @@ bool ImageManager::file_load_image(Image *img, device_vector<uchar4>& tex_img)
 	ImageInput *in = NULL;
 	int width, height, components;
 
-	if(!img->is_builtin) {
+	if(!img->builtin_data) {
 		/* load image from file through OIIO */
 		in = ImageInput::create(img->filename);
 
@@ -281,7 +281,7 @@ bool ImageManager::file_load_image(Image *img, device_vector<uchar4>& tex_img)
 			return false;
 
 		bool is_float;
-		builtin_image_info_cb(img->filename, is_float, width, height, components);
+		builtin_image_info_cb(img->filename, img->builtin_data, is_float, width, height, components);
 	}
 
 	/* we only handle certain number of components */
@@ -309,7 +309,7 @@ bool ImageManager::file_load_image(Image *img, device_vector<uchar4>& tex_img)
 		delete in;
 	}
 	else {
-		builtin_image_pixels_cb(img->filename, pixels);
+		builtin_image_pixels_cb(img->filename, img->builtin_data, pixels);
 	}
 
 	if(components == 3) {
@@ -340,7 +340,7 @@ bool ImageManager::file_load_float_image(Image *img, device_vector<float4>& tex_
 	ImageInput *in = NULL;
 	int width, height, components;
 
-	if(!img->is_builtin) {
+	if(!img->builtin_data) {
 		/* load image from file through OIIO */
 		in = ImageInput::create(img->filename);
 
@@ -365,7 +365,7 @@ bool ImageManager::file_load_float_image(Image *img, device_vector<float4>& tex_
 			return false;
 
 		bool is_float;
-		builtin_image_info_cb(img->filename, is_float, width, height, components);
+		builtin_image_info_cb(img->filename, img->builtin_data, is_float, width, height, components);
 	}
 
 	if(!(components == 1 || components == 3 || components == 4)) {
@@ -391,7 +391,7 @@ bool ImageManager::file_load_float_image(Image *img, device_vector<float4>& tex_
 		delete in;
 	}
 	else {
-		builtin_image_float_pixels_cb(img->filename, pixels);
+		builtin_image_float_pixels_cb(img->filename, img->builtin_data, pixels);
 	}
 
 	if(components == 3) {
