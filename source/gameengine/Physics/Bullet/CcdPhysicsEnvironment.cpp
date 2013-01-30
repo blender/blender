@@ -310,6 +310,22 @@ public:
 	{
 		return m_controller->getJumpCount();
 	}
+
+	virtual void SetWalkDirection(PHY__Vector3 dir)
+	{
+		btVector3 vec = btVector3(dir[0], dir[1], dir[2]);
+		m_controller->setWalkDirection(vec);
+	}
+
+	virtual PHY__Vector3 GetWalkDirection()
+	{
+		btVector3 vec = m_controller->getWalkDirection();
+		PHY__Vector3 retval;
+		retval[0] = vec[0];
+		retval[1] = vec[1];
+		retval[2] = vec[2];
+		return retval;
+	}
 };
 
 class CcdOverlapFilterCallBack : public btOverlapFilterCallback

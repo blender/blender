@@ -29,6 +29,8 @@ public:
 	static PyObject*	pyattr_get_max_jumps(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_max_jumps(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_jump_count(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_walk_dir(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_walk_dir(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 #endif // WITH_PYTHON
 
 private:

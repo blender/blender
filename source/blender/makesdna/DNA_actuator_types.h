@@ -277,10 +277,13 @@ typedef struct bActuator {
 #define ACT_ANG_VEL_LOCAL		32
 //#define ACT_ADD_LIN_VEL_LOCAL	64
 #define ACT_ADD_LIN_VEL			64
+#define ACT_ADD_CHAR_LOC		128
+#define ACT_CHAR_JUMP			256
 
 /* objectactuator->type */
-#define ACT_OBJECT_NORMAL	0
-#define ACT_OBJECT_SERVO	1
+#define ACT_OBJECT_NORMAL		0
+#define ACT_OBJECT_SERVO		1
+#define ACT_OBJECT_CHARACTER	2
 
 /* actuator->type */
 #define ACT_OBJECT		0

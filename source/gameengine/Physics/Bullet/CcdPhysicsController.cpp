@@ -115,6 +115,11 @@ void BlenderBulletCharacterController::jump()
 	m_jumps++;
 }
 
+const btVector3& BlenderBulletCharacterController::getWalkDirection()
+{
+	return m_walkDirection;
+}
+
 CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 :m_cci(ci)
 {
@@ -926,18 +931,25 @@ void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dloc
 		if (local)
 			dloc = xform.getBasis()*dloc;
 
-		if (m_characterController)
-		{
-			m_characterController->setWalkDirection(dloc/GetPhysicsEnvironment()->getNumTimeSubSteps());
-		}
-		else
-		{
-
-			xform.setOrigin(xform.getOrigin() + dloc);
-			SetCenterOfMassTransform(xform);
-		}
+		xform.setOrigin(xform.getOrigin() + dloc);
+		SetCenterOfMassTransform(xform);
 	}
 
+}
+
+void		CcdPhysicsController::SetWalkDirection(float dirX,float dirY,float dirZ,bool local)
+{
+
+	if (m_object && m_characterController)
+	{
+		btVector3 dir(dirX,dirY,dirZ);
+		btTransform xform = m_object->getWorldTransform();
+
+		if (local)
+			dir = xform.getBasis()*dir;
+
+		m_characterController->setWalkDirection(dir/GetPhysicsEnvironment()->getNumTimeSubSteps());
+	}
 }
 
 void		CcdPhysicsController::RelativeRotate(const float rotval[9],bool local)
@@ -1267,6 +1279,13 @@ void		CcdPhysicsController::applyImpulse(float attachX,float attachY,float attac
 	}
 
 }
+
+void		CcdPhysicsController::Jump()
+{
+	if (m_object && m_characterController)
+		m_characterController->jump();
+}
+
 void		CcdPhysicsController::SetActive(bool active)
 {
 }
@@ -1323,6 +1342,24 @@ void		CcdPhysicsController::GetVelocity(const float posX,const float posY,const 
 		linvZ = 0.f;
 	}
 }
+
+void		CcdPhysicsController::GetWalkDirection(float& dirX,float& dirY,float& dirZ)
+{
+	if (m_object && m_characterController)
+	{
+		const btVector3 dir = m_characterController->getWalkDirection();
+		dirX = dir.x();
+		dirY = dir.y();
+		dirZ = dir.z();
+	}
+	else
+	{
+		dirX = 0.f;
+		dirY = 0.f;
+		dirZ = 0.f;
+	}
+}
+
 void		CcdPhysicsController::getReactionForce(float& forceX,float& forceY,float& forceZ)
 {
 }

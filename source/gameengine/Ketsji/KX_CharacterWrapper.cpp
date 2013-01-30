@@ -5,6 +5,7 @@
 
 #include "KX_CharacterWrapper.h"
 #include "PHY_ICharacter.h"
+#include "KX_PyMath.h"
 
 KX_CharacterWrapper::KX_CharacterWrapper(PHY_ICharacter* character) :
 		PyObjectPlus(),
@@ -47,6 +48,7 @@ PyAttributeDef KX_CharacterWrapper::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("gravity", KX_CharacterWrapper, pyattr_get_gravity, pyattr_set_gravity),
 	KX_PYATTRIBUTE_RW_FUNCTION("maxJumps", KX_CharacterWrapper, pyattr_get_max_jumps, pyattr_set_max_jumps),
 	KX_PYATTRIBUTE_RO_FUNCTION("jumpCount", KX_CharacterWrapper, pyattr_get_jump_count),
+	KX_PYATTRIBUTE_RW_FUNCTION("walkDirection", KX_CharacterWrapper, pyattr_get_walk_dir, pyattr_set_walk_dir),
 	{ NULL }	//Sentinel
 };
 
@@ -106,6 +108,33 @@ PyObject *KX_CharacterWrapper::pyattr_get_jump_count(void *self_v, const KX_PYAT
 	KX_CharacterWrapper* self = static_cast<KX_CharacterWrapper*>(self_v);
 
 	return PyLong_FromLong(self->m_character->GetJumpCount());
+}
+
+PyObject *KX_CharacterWrapper::pyattr_get_walk_dir(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_CharacterWrapper* self = static_cast<KX_CharacterWrapper*>(self_v);
+	PHY__Vector3 vec = self->m_character->GetWalkDirection();
+	MT_Vector3 retval = MT_Vector3(vec[0], vec[1], vec[2]);
+
+	return PyObjectFrom(retval);
+}
+
+int KX_CharacterWrapper::pyattr_set_walk_dir(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_CharacterWrapper* self = static_cast<KX_CharacterWrapper*>(self_v);
+	MT_Vector3 dir;
+	if (!PyVecTo(value, dir)) {
+		PyErr_SetString(PyExc_TypeError, "KX_CharacterWrapper.walkDirection: expected a vector");
+		return PY_SET_ATTR_FAIL;
+	}
+
+	PHY__Vector3 vec;
+	vec[0] = dir[0];
+	vec[1] = dir[1];
+	vec[2] = dir[2];
+
+	self->m_character->SetWalkDirection(vec);
+	return PY_SET_ATTR_SUCCESS;
 }
 
 PyMethodDef KX_CharacterWrapper::Methods[] = {

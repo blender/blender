@@ -417,6 +417,8 @@ public:
 	virtual bool canJump() const;
 
 	virtual void jump();
+
+	const btVector3& getWalkDirection();
 };
 
 ///CcdPhysicsController is a physics object that supports continuous collision detection and time of impact based physics resolution.
@@ -424,7 +426,7 @@ class CcdPhysicsController : public PHY_IPhysicsController
 {
 protected:
 	btCollisionObject* m_object;
-	btKinematicCharacterController* m_characterController;
+	BlenderBulletCharacterController* m_characterController;
 	
 
 	class PHY_IMotionState*		m_MotionState;
@@ -517,6 +519,7 @@ protected:
 
 		// kinematic methods
 		virtual void		RelativeTranslate(float dlocX,float dlocY,float dlocZ,bool local);
+		virtual void		SetWalkDirection(float dirX,float dirY,float dirZ,bool local);
 		virtual void		RelativeRotate(const float drot[9],bool local);
 		virtual	void		getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal);
 		virtual	void		setOrientation(float quatImag0,float quatImag1,float quatImag2,float quatReal);
@@ -531,6 +534,7 @@ protected:
 		virtual void		SetAngularVelocity(float ang_velX,float ang_velY,float ang_velZ,bool local);
 		virtual void		SetLinearVelocity(float lin_velX,float lin_velY,float lin_velZ,bool local);
 		virtual void		applyImpulse(float attachX,float attachY,float attachZ, float impulseX,float impulseY,float impulseZ);
+		virtual void		Jump();
 		virtual void		SetActive(bool active);
 
 		// reading out information from physics
@@ -538,6 +542,7 @@ protected:
 		virtual void		GetAngularVelocity(float& angVelX,float& angVelY,float& angVelZ);
 		virtual void		GetVelocity(const float posX,const float posY,const float posZ,float& linvX,float& linvY,float& linvZ); 
 		virtual	void		getReactionForce(float& forceX,float& forceY,float& forceZ);
+		virtual void		GetWalkDirection(float& dirX,float& dirY,float& dirZ);
 
 		// dyna's that are rigidbody are free in orientation, dyna's with non-rigidbody are restricted 
 		virtual	void		setRigidBody(bool rigid);

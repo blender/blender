@@ -1860,6 +1860,25 @@ static void draw_actuator_motion(uiLayout *layout, PointerRNA *ptr)
 			uiItemR(col, ptr, "integral_coefficient", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 			uiItemR(col, ptr, "derivate_coefficient", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 			break;
+		case ACT_OBJECT_CHARACTER:
+			split = uiLayoutSplit(layout, 0.9, FALSE);
+			row = uiLayoutRow(split, FALSE);
+			uiItemR(row, ptr, "offset_location", 0, NULL, ICON_NONE);
+			row = uiLayoutRow(split, TRUE);
+			uiItemR(row, ptr, "use_local_location", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
+			uiItemR(row, ptr, "use_add_character_location", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
+
+			split = uiLayoutSplit(layout, 0.9, FALSE);
+			row = uiLayoutRow(split, FALSE);
+			uiItemR(row, ptr, "offset_rotation", 0, NULL, ICON_NONE);
+			uiItemR(split, ptr, "use_local_rotation", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
+
+			split = uiLayoutSplit(layout, 0.9, FALSE);
+			row = uiLayoutRow(split, FALSE);
+			split = uiLayoutSplit(row, 0.7, FALSE);
+			uiItemL(split, "", ICON_NONE); /*Just use this for some spacing */
+			uiItemR(split, ptr, "use_character_jump", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
+			break;
 	}
 }
 

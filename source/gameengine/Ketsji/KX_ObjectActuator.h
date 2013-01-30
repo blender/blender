@@ -54,7 +54,12 @@ struct KX_LocalFlags {
 		LinearVelocity(false),
 		AngularVelocity(false),
 		AddOrSetLinV(false),
+		AddOrSetCharLoc(false),
+		ServoControl(false),
+		CharacterMotion(false),
+		CharacterJump(false),
 		ZeroForce(false),
+		ZeroTorque(false),
 		ZeroDRot(false),
 		ZeroDLoc(false),
 		ZeroLinearVelocity(false),
@@ -69,7 +74,10 @@ struct KX_LocalFlags {
 	bool LinearVelocity;
 	bool AngularVelocity;
 	bool AddOrSetLinV;
+	bool AddOrSetCharLoc;
 	bool ServoControl;
+	bool CharacterMotion;
+	bool CharacterJump;
 	bool ZeroForce;
 	bool ZeroTorque;
 	bool ZeroDRot;
