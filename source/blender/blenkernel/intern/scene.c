@@ -217,11 +217,7 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 
 			new_srl = scen->r.layers.first;
 			for (srl = sce->r.layers.first; srl; srl = srl->next) {
-				if (type == SCE_COPY_FULL) {
-					FRS_copy_freestyle_config(&new_srl->freestyleConfig, &srl->freestyleConfig);
-				} else {
-					FRS_init_freestyle_config(&srl->freestyleConfig);
-				}
+				FRS_copy_freestyle_config(&new_srl->freestyleConfig, &srl->freestyleConfig);
 				new_srl = new_srl->next;
 			}
 		}
