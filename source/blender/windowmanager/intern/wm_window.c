@@ -425,6 +425,15 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 			wm_set_apple_prefsize(wm_init_state.size_x, wm_init_state.size_y);
 		}
 #else
+		/* default size when un-maximized, unless the screen(s) are smaller */
+
+		/* clamp by these arbitrary values because currently wm_get_screensize()
+		 * will span multiple monitors and using xinerama isnt totally reliable
+		 * since we don't which monitor the window manager will put the blender
+		 * window in. */
+		wm_init_state.size_x = MIN2(1800, wm_init_state.size_x - 100);
+		wm_init_state.size_y = MIN2(980,  wm_init_state.size_y - 100);
+
 		wm_init_state.start_x = 0;
 		wm_init_state.start_y = 0;
 		
@@ -439,8 +448,14 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 				win->sizex = wm_init_state.size_x;
 				win->sizey = wm_init_state.size_y;
 
-				/* we can't properly resize a maximized window */
-				win->windowstate = GHOST_kWindowStateNormal;
+				if (wm_init_state.override_flag & WIN_OVERRIDE_GEOM) {
+					/* we can't properly resize a maximized window */
+					win->windowstate = GHOST_kWindowStateNormal;
+				}
+				else {
+					/* otherwise default factory settings start maximized */
+					win->windowstate = GHOST_kWindowStateMaximized;
+				}
 
 				wm_init_state.override_flag &= ~WIN_OVERRIDE_GEOM;
 			}
