@@ -1100,6 +1100,10 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	ShaderPreview *sp;
 	Scene *scene = CTX_data_scene(C);
 
+	/* node previews not supported for cycles */
+	if (BKE_scene_use_new_shading_nodes(scene) && method == PR_NODE_RENDER)
+		return;
+
 	wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), owner, "Shader Preview",
 	                    WM_JOB_EXCL_RENDER, WM_JOB_TYPE_RENDER_PREVIEW);
 	sp = MEM_callocN(sizeof(ShaderPreview), "shader preview");
