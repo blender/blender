@@ -59,6 +59,10 @@ public:
 	bool get_matrix(OSL::Matrix44 &result, ustring from);
 	bool get_inverse_matrix(OSL::Matrix44 &result, ustring from);
 
+	bool transform_points(OSL::ShaderGlobals *sg, ustring from, ustring to,
+		float time, const OSL::Vec3 *Pin, OSL::Vec3 *Pout, int npoints,
+		TypeDesc::VECSEMANTICS vectype);
+
 	bool get_array_attribute(void *renderstate, bool derivatives,
 	                         ustring object, TypeDesc type, ustring name,
 	                         int index, void *val);
