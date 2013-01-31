@@ -1393,7 +1393,7 @@ void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRN
 
 	/* turn button into search button */
 	if (searchprop) {
-		if(RNA_property_flag(prop) & PROP_NEVER_UNLINK)
+		if (RNA_property_flag(prop) & PROP_NEVER_UNLINK)
 			but->type = SEARCH_MENU;
 		else
 			but->type = SEARCH_MENU_UNLINK;

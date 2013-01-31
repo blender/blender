@@ -712,7 +712,7 @@ typedef struct NodeTrackPosData {
 } NodeTrackPosData;
 
 typedef struct NodeTranslateData {
-		char wrap_axis, pad[7];
+	char wrap_axis, pad[7];
 } NodeTranslateData;
 
 
