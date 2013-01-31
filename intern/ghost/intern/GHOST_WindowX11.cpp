@@ -328,6 +328,26 @@ GHOST_WindowX11(
 	GHOST_PRINT("Set drop target\n");
 #endif
 
+	if (state == GHOST_kWindowStateMaximized || state == GHOST_kWindowStateFullScreen) {
+		Atom _NET_WM_STATE = XInternAtom(m_display, "_NET_WM_STATE", False);
+		Atom _NET_WM_STATE_MAXIMIZED_VERT = XInternAtom(m_display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
+		Atom _NET_WM_STATE_MAXIMIZED_HORZ = XInternAtom(m_display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
+		Atom _NET_WM_STATE_FULLSCREEN     = XInternAtom(m_display, "_NET_WM_STATE_FULLSCREEN", False);
+		Atom atoms[2];
+		int count = 0;
+
+		if (state == GHOST_kWindowStateMaximized) {
+			atoms[count++] = _NET_WM_STATE_MAXIMIZED_VERT;
+			atoms[count++] = _NET_WM_STATE_MAXIMIZED_HORZ;
+		}
+		else {
+			atoms[count++] = _NET_WM_STATE_FULLSCREEN;
+		}
+
+		XChangeProperty(m_display, m_window, _NET_WM_STATE, XA_ATOM, 32,
+		                PropModeReplace, (unsigned char *)atoms, count);
+		m_post_init = False;
+	}
 	/*
 	 * One of the problem with WM-spec is that can't set a property
 	 * to a window that isn't mapped. That is why we can't "just
@@ -339,7 +359,7 @@ GHOST_WindowX11(
 	 * So, m_post_init indicate that we need wait for the MapNotify
 	 * event and then set the Window state to the m_post_state.
 	 */
-	if ((state != GHOST_kWindowStateNormal) && (state != GHOST_kWindowStateMinimized)) {
+	else if ((state != GHOST_kWindowStateNormal) && (state != GHOST_kWindowStateMinimized)) {
 		m_post_init = True;
 		m_post_state = state;
 	}
