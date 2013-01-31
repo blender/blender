@@ -448,14 +448,8 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 				win->sizex = wm_init_state.size_x;
 				win->sizey = wm_init_state.size_y;
 
-				if (wm_init_state.override_flag & WIN_OVERRIDE_GEOM) {
-					/* we can't properly resize a maximized window */
-					win->windowstate = GHOST_kWindowStateNormal;
-				}
-				else {
-					/* otherwise default factory settings start maximized */
-					win->windowstate = GHOST_kWindowStateMaximized;
-				}
+				/* we can't properly resize a maximized window */
+				win->windowstate = GHOST_kWindowStateNormal;
 
 				wm_init_state.override_flag &= ~WIN_OVERRIDE_GEOM;
 			}
