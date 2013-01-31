@@ -548,7 +548,8 @@ static void blender_crash_handler(int signum)
 		BLI_make_file_string("/", fname, BLI_temporary_dir(), "blender.crash.txt");
 	}
 	else {
-		BLI_strncpy(fname, G.main->name, sizeof(fname));
+		const char *fname_base = BLI_path_basename(G.main->name);
+		BLI_make_file_string("/", fname, BLI_temporary_dir(), fname_base);
 		BLI_replace_extension(fname, sizeof(fname), ".crash.txt");
 	}
 
