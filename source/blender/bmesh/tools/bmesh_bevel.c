@@ -1654,7 +1654,13 @@ static void build_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv)
 		if (v->ebev) {
 			va = mesh_vert(vm, i, 0, 0)->co;
 			vb = mesh_vert(vm, i, 0, ns)->co;
-			project_to_edge(v->ebev->e, va, vb, midco);
+			if (bv->edgecount == 3 && bv->selcount == 1) {
+				/* special case: profile cuts the third face, so line it up with that */
+				copy_v3_v3(midco, bv->v->co);
+			}
+			else {
+				project_to_edge(v->ebev->e, va, vb, midco);
+			}
 			for (k = 1; k < ns; k++) {
 				get_point_on_round_edge(v->ebev, k, va, midco, vb, co);
 				copy_v3_v3(mesh_vert(vm, i, 0, k)->co, co);
