@@ -114,6 +114,17 @@ void wm_get_screensize(int *width_r, int *height_r)
 	*height_r = uiheight;
 }
 
+/* size of all screens, useful since the mouse is bound by this */
+void wm_get_screensize_all(int *width_r, int *height_r)
+{
+	unsigned int uiwidth;
+	unsigned int uiheight;
+
+	GHOST_GetAllDisplayDimensions(g_system, &uiwidth, &uiheight);
+	*width_r = uiwidth;
+	*height_r = uiheight;
+}
+
 /* keeps offset and size within monitor bounds */
 /* XXX solve dual screen... */
 static void wm_window_check_position(rcti *rect)
@@ -829,7 +840,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 					
 					GHOST_DisposeRectangle(client_rect);
 					
-					wm_get_screensize(&scr_w, &scr_h);
+					wm_get_screensize_all(&scr_w, &scr_h);
 					sizex = r - l;
 					sizey = b - t;
 					posx = l;

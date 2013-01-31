@@ -719,6 +719,11 @@ void GHOST_SystemCocoa::getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUns
 	[pool drain];
 }
 
+void GHOST_SystemCocoa::getAllDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const
+{
+	/* TODO! */
+	getMainDisplayDimensions(width, height);
+}
 
 GHOST_IWindow* GHOST_SystemCocoa::createWindow(
 	const STR_String& title, 

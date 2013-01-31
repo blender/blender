@@ -242,6 +242,23 @@ getMainDisplayDimensions(
 	}
 }
 
+
+/**
+ * Returns the dimensions of the main display on this system.
+ * \return The dimension of the main display.
+ */
+void
+GHOST_SystemX11::
+getAllDisplayDimensions(
+		GHOST_TUns32& width,
+		GHOST_TUns32& height) const
+{
+	if (m_display) {
+		width  = DisplayWidth(m_display, DefaultScreen(m_display));
+		height = DisplayHeight(m_display, DefaultScreen(m_display));
+	}
+}
+
 /**
  * Create a new window.
  * The new window is added to the list of windows managed.

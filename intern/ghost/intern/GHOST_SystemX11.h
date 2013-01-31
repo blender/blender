@@ -117,6 +117,16 @@ public:
 	    ) const;
 
 	/**
+	 * Returns the dimensions of all displays on this system.
+	 * \return The dimension of the main display.
+	 */
+	void
+	getAllDisplayDimensions(
+	    GHOST_TUns32& width,
+	    GHOST_TUns32& height
+	    ) const;
+
+	/**
 	 * Create a new window.
 	 * The new window is added to the list of windows managed. 
 	 * Never explicitly delete the window, use disposeWindow() instead.

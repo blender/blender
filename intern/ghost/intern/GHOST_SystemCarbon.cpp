@@ -396,6 +396,11 @@ void GHOST_SystemCarbon::getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUn
 	height = bnds.bottom - bnds.top;
 }
 
+void GHOST_SystemCarbon::getAllDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const
+{
+	/* TODO */
+	getMainDisplayDimensions(width, height);
+}
 
 GHOST_IWindow *GHOST_SystemCarbon::createWindow(
 		const STR_String& title,

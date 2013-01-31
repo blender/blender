@@ -91,6 +91,12 @@ public:
 	 * \return The dimension of the main display.
 	 */
 	virtual void getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const;
+
+	/**
+	 * Returns the combine dimensions of all monitors.
+	 * \return The dimension of the workspace.
+	 */
+	virtual void getAllDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const;
 	
 	/**
 	 * Create a new window.
