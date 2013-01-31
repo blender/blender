@@ -50,6 +50,10 @@
 #  include "GHOST_DropTargetX11.h"
 #endif
 
+#ifdef WITH_X11_XINERAMA
+#  include "X11/extensions/Xinerama.h"
+#endif
+
 #include "GHOST_Debug.h"
 
 #include <X11/Xatom.h>
@@ -237,8 +241,48 @@ getMainDisplayDimensions(
 		GHOST_TUns32& height) const
 {
 	if (m_display) {
-		width  = DisplayWidth(m_display, DefaultScreen(m_display));
-		height = DisplayHeight(m_display, DefaultScreen(m_display));
+
+#ifdef WITH_X11_XINERAMA
+		GHOST_TInt32 m_x = 1, m_y = 1;
+		getCursorPosition(m_x, m_y);
+
+		/* NOTE, no way to select a primary monitor, uses the first */
+		bool success = false;
+		int dummy1, dummy2;
+		if (XineramaQueryExtension(m_display, &dummy1, &dummy2)) {
+			if (XineramaIsActive(m_display)) {
+				int heads = 0;
+				XineramaScreenInfo *p = XineramaQueryScreens(m_display, &heads);
+				/* with a single head, all dimensions is fine */
+				if (heads > 1) {
+					int i;
+					for (i = 0; i < heads; i++) {
+						if ((m_x >= p[i].x_org) && (m_x <= p[i].x_org + p[i].width) &&
+						    (m_y >= p[i].y_org) && (m_y <= p[i].y_org + p[i].height))
+						{
+							width = p[i].width;
+							height = p[i].height;
+							break;
+						}
+					}
+					/* highly unlikely! */
+					if (i == heads) {
+						width = p[0].width;
+						height = p[0].height;
+					}
+					success = true;
+				}
+				XFree(p);
+			}
+		}
+
+		if (success) {
+			return;
+		}
+#endif
+
+		/* fallback to all */
+		getAllDisplayDimensions(width, height);
 	}
 }
 

@@ -436,18 +436,11 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 			wm_set_apple_prefsize(wm_init_state.size_x, wm_init_state.size_y);
 		}
 #else
-		/* default size when un-maximized, unless the screen(s) are smaller */
-
-		/* clamp by these arbitrary values because currently wm_get_screensize()
-		 * will span multiple monitors and using xinerama isnt totally reliable
-		 * since we don't which monitor the window manager will put the blender
-		 * window in. */
-		wm_init_state.size_x = MIN2(1800, wm_init_state.size_x - 100);
-		wm_init_state.size_y = MIN2(980,  wm_init_state.size_y - 100);
-
+		/* note!, this isnt quite correct, active screen maybe offset 1000s if PX,
+		 * we'd need a wm_get_screensize like function that gives offset,
+		 * in practice the window manager will likely move to the correct monitor */
 		wm_init_state.start_x = 0;
 		wm_init_state.start_y = 0;
-		
 #endif
 	}
 	

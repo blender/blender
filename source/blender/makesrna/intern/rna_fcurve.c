@@ -647,7 +647,6 @@ static FCM_EnvelopeData *rna_FModifierEnvelope_points_add(FModifier *fmod, Repor
 	fed.f1 = fed.f2 = 0;
 
 	if (env->data) {
-		/* add point to end of control points */
 		short exists = -1;
 		i = BKE_fcm_envelope_find_index(env->data, frame, env->totvert, &exists);
 		if (exists) {

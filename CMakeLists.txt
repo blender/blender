@@ -166,6 +166,7 @@ unset(PLATFORM_DEFAULT)
 
 if(UNIX AND NOT APPLE)
 	option(WITH_X11_XINPUT "Enable X11 Xinput (tablet support and unicode input)"	ON)
+	option(WITH_X11_XINERAMA "Enable multi-monitor support"	ON)
 	option(WITH_X11_XF86VMODE "Enable X11 video mode switching"	ON)
 	option(WITH_SYSTEM_GLEW "Use GLEW OpenGL wrapper library provided by the operating system" ON)
 
@@ -414,6 +415,7 @@ if(WITH_GHOST_SDL OR WITH_HEADLESS)
 	set(WITH_GHOST_XDND OFF)
 	set(WITH_X11_XF86VMODE OFF)
 	set(WITH_X11_XINPUT OFF)
+	set(WITH_X11_XINERAMA OFF)
 endif()
 
 if(MINGW)
@@ -798,6 +800,10 @@ if(UNIX AND NOT APPLE)
 
 		if(WITH_X11_XINPUT)
 			set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} ${X11_Xinput_LIB}")
+		endif()
+
+		if(WITH_X11_XINERAMA)
+			set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} ${X11_Xinerama_LIB}")
 		endif()
 
 		if(WITH_X11_XF86VMODE)
