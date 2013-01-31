@@ -45,7 +45,11 @@
 #  ifdef __cplusplus
 typedef bool _BLI_Bool;
 #  else
-#   define _BLI_Bool signed char
+/* using char here may cause nasty tricky bugs, e.g.
+ *     bool do_translate = RNA_property_flag(prop) & PROP_STRING_PY_TRANSLATE;
+ * as PROP_STRING_PY_TRANSLATE is farther than 8th bit, do_translate would be always false!
+ */
+#   define _BLI_Bool unsigned int
 #  endif
 # else
 #  define _BLI_Bool _Bool
