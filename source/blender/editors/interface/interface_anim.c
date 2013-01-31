@@ -135,8 +135,7 @@ int ui_but_anim_expression_create(uiBut *but, const char *str)
 	ID *id;
 	FCurve *fcu;
 	char *path;
-	int rnaindex;
-	short ok = 0;
+	bool ok = false;
 	
 	/* button must have RNA-pointer to a numeric-capable property */
 	if (ELEM(NULL, but->rnapoin.data, but->rnaprop)) {
@@ -181,6 +180,7 @@ int ui_but_anim_expression_create(uiBut *but, const char *str)
 			/* updates */
 			driver->flag |= DRIVER_FLAG_RECOMPILE;
 			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME, NULL);
+			ok = true;
 		}
 	}
 	
