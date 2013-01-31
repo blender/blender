@@ -5625,7 +5625,7 @@ void initEdgeSlide(TransInfo *t)
 
 	/* set custom point first if you want value to be initialized by init */
 	setCustomPoints(t, &t->mouse, sld->end, sld->start);
-	initMouseInputMode(t, &t->mouse, INPUT_CUSTOM_RATIO);
+	initMouseInputMode(t, &t->mouse, INPUT_CUSTOM_RATIO_FLIP);
 	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
@@ -5876,19 +5876,14 @@ static void calcVertSlideCustomPoints(struct TransInfo *t)
 	TransDataVertSlideVert *sv = &sld->sv[sld->curr_sv_index];
 	float *co_orig = sv->co_orig_2d;
 	float *co_curr = sv->co_link_orig_2d[sv->co_link_curr];
-	float  co_curr_flip[2];
+	const int start[2] = {co_orig[0], co_orig[1]};
+	const int end[2]   = {co_curr[0], co_curr[1]};
 
-	flip_v2_v2v2(co_curr_flip, co_orig, co_curr);
-
-	{
-		const int start[2] = {co_orig[0], co_orig[1]};
-		const int end[2]   = {co_curr_flip[0], co_curr_flip[1]};
-		if (!sld->flipped_vtx) {
-			setCustomPoints(t, &t->mouse, end, start);
-		}
-		else {
-			setCustomPoints(t, &t->mouse, start, end);
-		}
+	if (sld->flipped_vtx && sld->is_proportional == false) {
+		setCustomPoints(t, &t->mouse, start, end);
+	}
+	else {
+		setCustomPoints(t, &t->mouse, end, start);
 	}
 }
 
@@ -6144,16 +6139,17 @@ int handleEventVertSlide(struct TransInfo *t, struct wmEvent *event)
 				case EKEY:
 					if (event->val == KM_PRESS) {
 						sld->is_proportional = !sld->is_proportional;
+						if (sld->flipped_vtx) {
+							calcVertSlideCustomPoints(t);
+						}
 						return 1;
 					}
 					break;
 				case FKEY:
 				{
 					if (event->val == KM_PRESS) {
-						if (sld->is_proportional == FALSE) {
-							sld->flipped_vtx = !sld->flipped_vtx;
-							calcVertSlideCustomPoints(t);
-						}
+						sld->flipped_vtx = !sld->flipped_vtx;
+						calcVertSlideCustomPoints(t);
 						return 1;
 					}
 					break;

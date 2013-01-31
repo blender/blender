@@ -677,7 +677,8 @@ typedef enum {
 	INPUT_HORIZONTAL_ABSOLUTE,
 	INPUT_VERTICAL_RATIO,
 	INPUT_VERTICAL_ABSOLUTE,
-	INPUT_CUSTOM_RATIO
+	INPUT_CUSTOM_RATIO,
+	INPUT_CUSTOM_RATIO_FLIP
 } MouseInputMode;
 
 void initMouseInput(TransInfo *t, MouseInput *mi, const int center[2], const int mval[2]);
