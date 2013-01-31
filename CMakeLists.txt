@@ -269,6 +269,9 @@ mark_as_advanced(WITH_CXX_GUARDEDALLOC)
 option(WITH_ASSERT_ABORT "Call abort() when raising an assertion through BLI_assert()" OFF)
 mark_as_advanced(WITH_ASSERT_ABORT)
 
+option(WITH_BOOST					"Enable features depending no boost" ON)
+
+
 if(APPLE)
 	cmake_minimum_required(VERSION 2.8.8)
 	cmake_policy(VERSION 2.8.8)
@@ -396,9 +399,22 @@ if(WITH_CYCLES)
 	set(WITH_OPENIMAGEIO ON)
 endif()
 
-# auto enable boost for cycles, booleans, audaspace or i18n
-if(WITH_CYCLES OR WITH_MOD_BOOLEAN OR WITH_AUDASPACE OR WITH_INTERNATIONAL)
-	set(WITH_BOOST ON)
+# enable boost for cycles, booleans, audaspace or i18n
+# otherwise if the user disabled
+if(NOT WITH_BOOST)
+	# Explicitly disabled. so disable all deps.
+	set(WITH_CYCLES         OFF)
+	set(WITH_MOD_BOOLEAN    OFF)
+	set(WITH_AUDASPACE      OFF)
+	set(WITH_INTERNATIONAL  OFF)
+
+	set(WITH_OPENAL         OFF)  # depends on AUDASPACE
+	set(WITH_GAMEENGINE     OFF)  # depends on AUDASPACE
+elseif(WITH_CYCLES OR WITH_MOD_BOOLEAN OR WITH_AUDASPACE OR WITH_INTERNATIONAL)
+	# Keep enabled
+else()
+	# Enabled but we don't need it
+	set(WITH_BOOST OFF)
 endif()
 
 # auto enable llvm for cycles_osl
@@ -2184,12 +2200,10 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_MOD_FLUID)
 	info_cfg_option(WITH_MOD_OCEANSIM)
 
+	# debug
+	message(STATUS "HAVE_STDBOOL_H = ${HAVE_STDBOOL_H}")
+
 	info_cfg_text("")
 
 	message("${_config_msg}")
 endif()
-
-# debug
-message(
-    STATUS "HAVE_STDBOOL_H = ${HAVE_STDBOOL_H}"
-)
