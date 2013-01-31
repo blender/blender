@@ -633,6 +633,82 @@ static void rna_fcurve_range(FCurve *fcu, float range[2])
 	calc_fcurve_range(fcu, range, range + 1, FALSE, FALSE);
 }
 
+
+static FCM_EnvelopeData *rna_FModifierEnvelope_points_add(FModifier *fmod, ReportList *reports, float frame)
+{
+	FCM_EnvelopeData fed;
+	FMod_Envelope *env = (FMod_Envelope *)fmod->data;
+
+	/* init template data */
+	fed.min = -1.0f;
+	fed.max = 1.0f;
+	fed.time = frame;
+	fed.f1 = fed.f2 = 0;
+	int i;
+
+	if (env->data) {
+		/* add point to end of control points */
+		short exists = -1;
+		i = BKE_fcm_envelope_find_index(env->data, frame, env->totvert, &exists);
+		if (exists) {
+			BKE_reportf(reports, RPT_ERROR, "Already a control point at frame %.6f", frame);
+			return NULL;
+		}
+
+		/* realloc memory for extra point */
+		env->data = (FCM_EnvelopeData *) MEM_reallocN((void *)env->data, (env->totvert + 1) * sizeof(FCM_EnvelopeData));
+
+		/* move the points after the added point */
+		if (i < env->totvert) {
+			memmove(env->data + i + 1, env->data + i, (env->totvert - i) * sizeof(FCM_EnvelopeData));
+		}
+
+		env->totvert++;
+	}
+	else {
+		env->data = MEM_mallocN(sizeof(FCM_EnvelopeData), "FCM_EnvelopeData");
+		env->totvert = 1;
+		i = 0;
+	}
+
+	/* add point to paste at index i */
+	*(env->data + i) = fed;
+	return (env->data + i);
+}
+
+void rna_FModifierEnvelope_points_remove(FModifier *fmod, ReportList *reports, PointerRNA *point)
+{
+	FCM_EnvelopeData *cp = point->data;
+	FMod_Envelope *env = (FMod_Envelope *)fmod->data;
+
+	int index = (int)(cp - env->data);
+
+	/* test point is in range */
+	if (index < 0 || index >= env->totvert) {
+		BKE_report(reports, RPT_ERROR, "Control Point not in FEnvelopeModifier");
+		return;
+	}
+
+	if (env->totvert > 1) {
+		/* move data after the removed point */
+
+		memmove(env->data + index, env->data + (index + 1), sizeof(FCM_EnvelopeData) * ((env->totvert - index) - 1));
+
+		/* realloc smaller array */
+		env->totvert--;
+		env->data = (FCM_EnvelopeData *) MEM_reallocN((void *)env->data, (env->totvert) * sizeof(FCM_EnvelopeData));
+	}
+	else {
+		/* just free array, since the only vert was deleted */
+		if (env->data) {
+			MEM_freeN(env->data);
+			env->data = NULL;
+		}
+		env->totvert = 0;
+	}
+	RNA_POINTER_INVALIDATE(point);
+}
+
 #else
 
 static void rna_def_fmodifier_generator(BlenderRNA *brna)
@@ -770,6 +846,36 @@ static void rna_def_fmodifier_envelope_ctrl(BlenderRNA *brna)
 	/*	- selection flags (not implemented in UI yet though) */
 }
 
+static void rna_def_fmodifier_envelope_control_points(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "FModifierEnvelopeControlPoints");
+	srna = RNA_def_struct(brna, "FModifierEnvelopeControlPoints", NULL);
+	RNA_def_struct_sdna(srna, "FModifier");
+
+	RNA_def_struct_ui_text(srna, "Control Points", "Control points defining the shape of the envelope");
+
+	func = RNA_def_function(srna, "add", "rna_FModifierEnvelope_points_add");
+	RNA_def_function_ui_description(func, "Add a control point to a FModifierEnvelope");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm = RNA_def_float(func, "frame", 0.0f, -FLT_MAX, FLT_MAX, "",
+	                     "Frame to add this control-point", -FLT_MAX, FLT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_pointer(func, "point", "FModifierEnvelopeControlPoint", "", "Newly created control-point");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "remove", "rna_FModifierEnvelope_points_remove");
+	RNA_def_function_ui_description(func, "Remove a control-point from an FModifierEnvelope");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "point", "FModifierEnvelopeControlPoint", "", "Control-point to remove");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL | PROP_RNAPTR);
+}
+
+
 static void rna_def_fmodifier_envelope(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -784,6 +890,7 @@ static void rna_def_fmodifier_envelope(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "data", "totvert");
 	RNA_def_property_struct_type(prop, "FModifierEnvelopeControlPoint");
 	RNA_def_property_ui_text(prop, "Control Points", "Control points defining the shape of the envelope");
+	rna_def_fmodifier_envelope_control_points(brna, prop);
 	
 	/* Range Settings */
 	prop = RNA_def_property(srna, "reference_value", PROP_FLOAT, PROP_NONE);

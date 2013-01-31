@@ -480,6 +480,92 @@ static FModifierTypeInfo FMI_ENVELOPE = {
 	fcm_envelope_evaluate /* evaluate */
 };
 
+/* exported function for finding points */
+
+/* Binary search algorithm for finding where to insert Envelope Data Point.
+ * Returns the index to insert at (data already at that index will be offset if replace is 0)
+ */
+#define BINARYSEARCH_FRAMEEQ_THRESH 0.0001f
+
+int BKE_fcm_envelope_find_index(FCM_EnvelopeData array[], float frame, int arraylen, short *exists)
+{
+	int start = 0, end = arraylen;
+	int loopbreaker = 0, maxloop = arraylen * 2;
+
+	/* initialize exists-flag first */
+	*exists = 0;
+
+	/* sneaky optimizations (don't go through searching process if...):
+	 * - keyframe to be added is to be added out of current bounds
+	 * - keyframe to be added would replace one of the existing ones on bounds
+	 */
+	if ((arraylen <= 0) || (array == NULL)) {
+		printf("Warning: binarysearch_fcm_envelopedata_index() encountered invalid array\n");
+		return 0;
+	}
+	else {
+		/* check whether to add before/after/on */
+		float framenum;
+
+		/* 'First' Point (when only one point, this case is used) */
+		framenum = array[0].time;
+		if (IS_EQT(frame, framenum, BINARYSEARCH_FRAMEEQ_THRESH)) {
+			*exists = 1;
+			return 0;
+		}
+		else if (frame < framenum) {
+			return 0;
+		}
+
+		/* 'Last' Point */
+		framenum = array[(arraylen - 1)].time;
+		if (IS_EQT(frame, framenum, BINARYSEARCH_FRAMEEQ_THRESH)) {
+			*exists = 1;
+			return (arraylen - 1);
+		}
+		else if (frame > framenum) {
+			return arraylen;
+		}
+	}
+
+
+	/* most of the time, this loop is just to find where to put it
+	 * - 'loopbreaker' is just here to prevent infinite loops
+	 */
+	for (loopbreaker = 0; (start <= end) && (loopbreaker < maxloop); loopbreaker++) {
+		/* compute and get midpoint */
+		int mid = start + ((end - start) / 2);  /* we calculate the midpoint this way to avoid int overflows... */
+		float midfra = array[mid].time;
+
+		/* check if exactly equal to midpoint */
+		if (IS_EQT(frame, midfra, BINARYSEARCH_FRAMEEQ_THRESH)) {
+			*exists = 1;
+			return mid;
+		}
+
+		/* repeat in upper/lower half */
+		if (frame > midfra) {
+			start = mid + 1;
+		}
+		else if (frame < midfra) {
+			end = mid - 1;
+		}
+	}
+
+	/* print error if loop-limit exceeded */
+	if (loopbreaker == (maxloop - 1)) {
+		printf("Error: binarysearch_fcm_envelopedata_index() was taking too long\n");
+
+		// include debug info
+		printf("\tround = %d: start = %d, end = %d, arraylen = %d\n", loopbreaker, start, end, arraylen);
+	}
+
+	/* not found, so return where to place it */
+	return start;
+}
+#undef BINARYSEARCH_FRAMEEQ_THRESH
+
+
 /* Cycles F-Curve Modifier  --------------------------- */
 
 /* This modifier changes evaltime to something that exists within the curve's frame-range, 
