@@ -638,13 +638,13 @@ static FCM_EnvelopeData *rna_FModifierEnvelope_points_add(FModifier *fmod, Repor
 {
 	FCM_EnvelopeData fed;
 	FMod_Envelope *env = (FMod_Envelope *)fmod->data;
+	int i;
 
 	/* init template data */
 	fed.min = -1.0f;
 	fed.max = 1.0f;
 	fed.time = frame;
 	fed.f1 = fed.f2 = 0;
-	int i;
 
 	if (env->data) {
 		/* add point to end of control points */
