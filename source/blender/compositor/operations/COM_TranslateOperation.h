@@ -33,6 +33,9 @@ private:
 	float m_deltaX;
 	float m_deltaY;
 	bool m_isDeltaSet;
+	float m_relativeOffsetX;
+	float m_relativeOffsetY;
+	char m_wrappingType;
 public:
 	TranslateOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
@@ -54,6 +57,10 @@ public:
 			this->m_isDeltaSet = true;
 		}
 	}
+
+	void setWrapping(char wrapping_type);
+	float getWrappedOriginalXPos(float x);
+	float getWrappedOriginalYPos(float y);
 };
 
 #endif

@@ -2379,6 +2379,11 @@ static void node_composit_buts_stabilize2d(uiLayout *layout, bContext *C, Pointe
 	uiItemR(layout, ptr, "filter_type", 0, "", ICON_NONE);
 }
 
+static void node_composit_buts_translate(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "wrap_axis", 0, NULL, ICON_NONE);
+}
+
 static void node_composit_buts_transform(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "filter_type", 0, "", ICON_NONE);
@@ -2930,6 +2935,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_TRANSFORM:
 			ntype->uifunc = node_composit_buts_transform;
+			break;
+		case CMP_NODE_TRANSLATE:
+			ntype->uifunc = node_composit_buts_translate;
 			break;
 		case CMP_NODE_MOVIEDISTORTION:
 			ntype->uifunc = node_composit_buts_moviedistortion;

@@ -4225,6 +4225,28 @@ static void def_cmp_trackpos(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_cmp_translate(StructRNA *srna)
+{
+	static EnumPropertyItem translate_items[] = {
+		{0, "NONE",	 0, "None",		"No wrapping on x and y"},
+		{1, "XAXIS", 0, "X-Axis",	"Wrap all pixels on the x-Axis"},
+	    {2, "YAXIS", 0, "Y-Axis",	"Wrap all pixels on the y-Axis"},
+	    {3, "BOTH", 0, "Both axes",	"Wrap all pixels on the both axes"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	PropertyRNA *prop;
+
+	RNA_def_struct_sdna_from(srna, "NodeTranslateData", "storage");
+
+	prop = RNA_def_property(srna, "wrap_axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "wrap_axis");
+	RNA_def_property_enum_items(prop, translate_items);
+	RNA_def_property_ui_text(prop, "Wrapping", "Wrap image on a specific axis");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+
 /* -- Texture Nodes --------------------------------------------------------- */
 
 static void def_tex_output(StructRNA *srna)

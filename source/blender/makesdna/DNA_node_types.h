@@ -711,6 +711,11 @@ typedef struct NodeTrackPosData {
 	char track_name[64];
 } NodeTrackPosData;
 
+typedef struct NodeTranslateData {
+		char wrap_axis, pad[7];
+} NodeTranslateData;
+
+
 typedef struct NodeShaderScript {
 	int mode;
 	int flag;

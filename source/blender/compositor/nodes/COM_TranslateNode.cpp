@@ -37,10 +37,15 @@ void TranslateNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	InputSocket *inputYSocket = this->getInputSocket(2);
 	OutputSocket *outputSocket = this->getOutputSocket(0);
 	TranslateOperation *operation = new TranslateOperation();
-	
+
+	bNode *editorNode = this->getbNode();
+	NodeTranslateData *data = (NodeTranslateData *)editorNode->storage;
+	operation->setWrapping(data->wrap_axis);
+
 	inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
 	inputXSocket->relinkConnections(operation->getInputSocket(1), 1, graph);
 	inputYSocket->relinkConnections(operation->getInputSocket(2), 2, graph);
 	outputSocket->relinkConnections(operation->getOutputSocket(0));
 	graph->addOperation(operation);
 }
+
