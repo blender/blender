@@ -4752,7 +4752,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
-	int length;
+	bool is_array, is_array_component;
 	const char *name;
 	uiStringInfo label = {BUT_GET_LABEL, NULL};
 
@@ -4779,12 +4779,14 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		if (is_anim)
 			is_anim = RNA_property_path_from_ID_check(&but->rnapoin, but->rnaprop);
 
-		length = RNA_property_array_length(&but->rnapoin, but->rnaprop);
+		/* determine if we can key a single component of an array */
+		is_array = RNA_property_array_length(&but->rnapoin, but->rnaprop) != 0;
+		is_array_component = (is_array && but->rnaindex != -1);
 		
 		/* Keyframes */
 		if (but->flag & UI_BUT_ANIMATED_KEY) {
 			/* replace/delete keyfraemes */
-			if (length) {
+			if (is_array_component) {
 				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Replace Keyframes"),
 				               ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 1);
 				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Replace Single Keyframe"),
@@ -4796,9 +4798,9 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			}
 			else {
 				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Replace Keyframe"),
-				               ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 0);
+				               ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 1);
 				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Keyframe"),
-				               ICON_NONE, "ANIM_OT_keyframe_delete_button", "all", 0);
+				               ICON_NONE, "ANIM_OT_keyframe_delete_button", "all", 1);
 			}
 			
 			/* keyframe settings */
@@ -4810,7 +4812,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			/* pass */
 		}
 		else if (is_anim) {
-			if (length) {
+			if (is_array_component) {
 				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Insert Keyframes"),
 				               ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 1);
 				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Insert Single Keyframe"),
@@ -4818,12 +4820,12 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			}
 			else {
 				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Insert Keyframe"),
-				               ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 0);
+				               ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 1);
 			}
 		}
 		
 		if (but->flag & UI_BUT_ANIMATED) {
-			if (length) {
+			if (is_array_component) {
 				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Keyframes"),
 				               ICON_NONE, "ANIM_OT_keyframe_clear_button", "all", 1);
 				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Single Keyframes"),
@@ -4831,7 +4833,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			}
 			else {
 				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Keyframes"),
-				               ICON_NONE, "ANIM_OT_keyframe_clear_button", "all", 0);
+				               ICON_NONE, "ANIM_OT_keyframe_clear_button", "all", 1);
 			}
 		}
 
@@ -4839,7 +4841,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		if (but->flag & UI_BUT_DRIVEN) {
 			uiItemS(layout);
 
-			if (length) {
+			if (is_array_component) {
 				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Drivers"),
 				               ICON_NONE, "ANIM_OT_driver_button_remove", "all", 1);
 				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Single Driver"),
@@ -4847,7 +4849,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			}
 			else {
 				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Driver"),
-				               ICON_NONE, "ANIM_OT_driver_button_remove", "all", 0);
+				               ICON_NONE, "ANIM_OT_driver_button_remove", "all", 1);
 			}
 
 			uiItemO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Copy Driver"),
@@ -4863,7 +4865,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		else if (is_anim) {
 			uiItemS(layout);
 
-			if (length) {
+			if (is_array_component) {
 				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Add Drivers"),
 				               ICON_NONE, "ANIM_OT_driver_button_add", "all", 1);
 				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Add Single Driver"),
@@ -4871,7 +4873,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			}
 			else {
 				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Add Driver"),
-				               ICON_NONE, "ANIM_OT_driver_button_add", "all", 0);
+				               ICON_NONE, "ANIM_OT_driver_button_add", "all", 1);
 			}
 
 			if (ANIM_driver_can_paste()) {
@@ -4885,7 +4887,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		if (is_anim) {
 			uiItemS(layout);
 
-			if (length) {
+			if (is_array_component) {
 				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Add All to Keying Set"),
 				               ICON_NONE, "ANIM_OT_keyingset_button_add", "all", 1);
 				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Add Single to Keying Set"),
@@ -4895,7 +4897,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			}
 			else {
 				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Add to Keying Set"),
-				               ICON_NONE, "ANIM_OT_keyingset_button_add", "all", 0);
+				               ICON_NONE, "ANIM_OT_keyingset_button_add", "all", 1);
 				uiItemO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Remove from Keying Set"),
 				        ICON_NONE, "ANIM_OT_keyingset_button_remove");
 			}
@@ -4908,15 +4910,15 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		/* Copy Property Value
 		 * Paste Property Value */
 		
-		if (length) {
+		if (is_array_component) {
 			uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Reset All to Default Values"),
 			               ICON_NONE, "UI_OT_reset_default_button", "all", 1);
 			uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Reset Single to Default Value"),
 			               ICON_NONE, "UI_OT_reset_default_button", "all", 0);
 		}
 		else {
-			uiItemO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Reset to Default Value"),
-			        ICON_NONE, "UI_OT_reset_default_button");
+			uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Reset to Default Value"),
+			        ICON_NONE, "UI_OT_reset_default_button", "all", 1);
 		}
 		
 		uiItemO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Copy Data Path"),
