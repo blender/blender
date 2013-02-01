@@ -75,5 +75,10 @@ void    BKE_lattice_modifiers_calc(struct Scene *scene, struct Object *ob);
 
 struct MDeformVert *BKE_lattice_deform_verts_get(struct Object *lattice);
 
+void BKE_lattice_minmax(struct Lattice *lt, float min[3], float max[3]);
+void BKE_lattice_center_median(struct Lattice *lt, float cent[3]);
+void BKE_lattice_center_bounds(struct Lattice *lt, float cent[3]);
+void BKE_lattice_translate(struct Lattice *lt, float offset[3], int do_keys);
+
 #endif
 

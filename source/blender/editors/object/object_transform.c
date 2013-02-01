@@ -899,6 +899,20 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					break;
 				}
 			}
+			else if (ob->type == OB_LATTICE) {
+				Lattice *lt = ob->data;
+
+				if (centermode == ORIGIN_TO_CURSOR) { /* done */ }
+				else if (around == V3D_CENTROID) { BKE_lattice_center_median(lt, cent); }
+				else { BKE_lattice_center_bounds(lt, cent); }
+
+				negate_v3_v3(cent_neg, cent);
+				BKE_lattice_translate(lt, cent_neg, 1);
+
+				tot_change++;
+				lt->id.flag |= LIB_DOIT;
+				do_inverse_offset = TRUE;
+			}
 
 			/* offset other selected objects */
 			if (do_inverse_offset && (centermode != GEOMETRY_TO_ORIGIN)) {
