@@ -35,13 +35,13 @@ set(INC
 	../imbuf
 	../makesdna
 	../makesrna
-	../opencl
 	../windowmanager
 	../nodes
 	../nodes/composite
 	../nodes/intern
 	../render/extern/include
 	../render/intern/include
+	../../../intern/opencl
 	../../../intern/guardedalloc
 )
 

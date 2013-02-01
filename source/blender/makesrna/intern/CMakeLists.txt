@@ -240,7 +240,7 @@ endif()
 
 if(WITH_BULLET)
 	list(APPEND INC
-		../../rigidbody
+		../../../../intern/rigidbody
 	)
 	add_definitions(-DWITH_BULLET)
 endif()
