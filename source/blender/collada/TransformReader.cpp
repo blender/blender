@@ -47,6 +47,7 @@ void TransformReader::get_node_mat(float mat[4][4], COLLADAFW::Node *node, std::
 		COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
         
 		if(type == COLLADAFW::Transformation::MATRIX){
+			// XXX why does this return and discard all following transformations?
 			dae_matrix_to_mat4(tm, mat);
 			return;
 		}

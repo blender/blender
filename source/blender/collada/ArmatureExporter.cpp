@@ -111,12 +111,12 @@ bool ArmatureExporter::add_instance_controller(Object *ob)
 	return true;
 }
 
+#if 0
 void ArmatureExporter::operator()(Object *ob)
 {
 	Object *ob_arm = bc_get_assigned_armature(ob);
 
 }
-#if 0
 
 bool ArmatureExporter::already_written(Object *ob_arm)
 {
@@ -248,7 +248,7 @@ void ArmatureExporter::add_blender_leaf_bone(Bone *bone, Object *ob_arm, COLLADA
 
 void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW::Node& node)
 {
-	bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm->pose, bone->name);
+	//bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm->pose, bone->name);
 
 	float mat[4][4];
 

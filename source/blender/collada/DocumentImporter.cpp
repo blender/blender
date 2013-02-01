@@ -414,7 +414,7 @@ void DocumentImporter::create_constraints(ExtraTags *et, Object *ob){
 		std::string name;
 		short* type = 0;
 		et->setData("type", type);
-		bConstraint * con = BKE_add_ob_constraint(ob, "Test_con", *type);
+		BKE_add_ob_constraint(ob, "Test_con", *type);
 		
 	}
 }
@@ -424,8 +424,6 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 	Object *ob = NULL;
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
 	bool read_transform = true;
-
-	ExtraTags *et = getExtraTags(node->getUniqueId());
 
 	std::vector<Object *> *objects_done = new std::vector<Object *>();
     

@@ -393,6 +393,7 @@ void ControllerExporter::add_weight_extras(Key *key){
 	//skip the basis
 	kb = kb->next;
 	for (; kb; kb = kb->next) {
+		// XXX why is the weight not used here and set to 0.0?
 		float weight = kb->curval;
 		extra.addExtraTechniqueParameter ("KHR", "morph_weights" , 0.000, "MORPH_WEIGHT_TO_TARGET");
 	}

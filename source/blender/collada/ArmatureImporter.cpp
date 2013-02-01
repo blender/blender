@@ -200,7 +200,6 @@ void ArmatureImporter::add_leaf_bone(float mat[4][4], EditBone *bone,  COLLADAFW
 void ArmatureImporter::fix_leaf_bones( )
 {
 	// just setting tail for leaf bones here
-    float correctionMin = 1.0f;
 	std::vector<LeafBone>::iterator it;
 	for (it = leaf_bones.begin(); it != leaf_bones.end(); it++) {
 		LeafBone& leaf = *it;
@@ -212,7 +211,7 @@ void ArmatureImporter::fix_leaf_bones( )
 		mul_v3_fl(vec, leaf_bone_length);
 		add_v3_v3v3(leaf.bone->tail, leaf.bone->head , vec);
 
-		}
+	}
 }
 
 #if 0
@@ -466,8 +465,6 @@ void ArmatureImporter::set_pose(Object *ob_arm,  COLLADAFW::Node *root_node, con
 	float mat[4][4];
 	float obmat[4][4];
 
-	float angle = 0.0f;
-	
 	// object-space
 	get_node_mat(obmat, root_node, NULL, NULL);
 
@@ -492,6 +489,7 @@ void ArmatureImporter::set_pose(Object *ob_arm,  COLLADAFW::Node *root_node, con
 		
 	}
 
+	//float angle = 0.0f;
 	///*mat4_to_axis_angle(ax, &angle, mat);
 	//pchan->bone->roll = angle;*/
 

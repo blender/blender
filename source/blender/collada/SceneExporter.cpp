@@ -209,7 +209,6 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 			
 				cti->get_constraint_targets(con, &targets);
 				if(cti){
-					int i = 1;
 					for (ct = (bConstraintTarget*)targets.first; ct; ct = ct->next){
 						obtar = ct->tar;
 						std::string tar_id(id_name(obtar));

@@ -439,11 +439,11 @@ void AnimationExporter::sample_and_write_bone_animation_matrix(Object *ob_arm, B
 	std::vector<float> fra;
 	//char prefix[256];
 
-	FCurve *fcu = (FCurve *)ob_arm->adt->action->curves.first;
-
 	//Check if there is a fcurve in the armature for the bone in param
 	//when baking this check is not needed, solve every bone for every frame.
-	/*while (fcu) {
+	/*FCurve *fcu = (FCurve *)ob_arm->adt->action->curves.first;
+
+	while (fcu) {
 		std::string bone_name = getObjectBoneName(ob_arm, fcu);
 		int val = BLI_strcasecmp((char *)bone_name.c_str(), bone->name);
 		if (val == 0) break;
@@ -901,8 +901,7 @@ std::string AnimationExporter::create_4x4_source(std::vector<float> &frames, Obj
     
 	bPoseChannel *parchan = NULL;
 	bPoseChannel *pchan = NULL;
-	bPoseChannel *rootchan = NULL;
-		
+
 	if (ob->type == OB_ARMATURE ){
 		bPose *pose = ob->pose;
 		pchan = BKE_pose_channel_find_name(pose, bone->name);
