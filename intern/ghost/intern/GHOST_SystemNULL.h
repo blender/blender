@@ -38,7 +38,7 @@ class GHOST_WindowNULL;
 class GHOST_SystemNULL : public GHOST_System {
 public:
 
-	GHOST_SystemNULL( ) : GHOST_System() { /* nop */ }
+	GHOST_SystemNULL() : GHOST_System() { /* nop */ }
 	~GHOST_SystemNULL() { /* nop */ }
 	bool processEvents(bool waitForEvent) { return false; }
 	int toggleConsole(int action) { return 0; }
@@ -46,11 +46,12 @@ public:
 	GHOST_TSuccess getButtons(GHOST_Buttons& buttons) const { return GHOST_kSuccess; }
 	GHOST_TUns8 *getClipboard(bool selection) const { return NULL; }
 	void putClipboard(GHOST_TInt8 *buffer, bool selection) const { /* nop */ }
-	GHOST_TUns64 getMilliSeconds( ) const { return 0; }
-	GHOST_TUns8 getNumDisplays( ) const { return GHOST_TUns8(1); }
-	GHOST_TSuccess getCursorPosition( GHOST_TInt32& x, GHOST_TInt32& y ) const { return GHOST_kFailure; }
-	GHOST_TSuccess setCursorPosition( GHOST_TInt32 x, GHOST_TInt32 y ) { return GHOST_kFailure; }
-	void getMainDisplayDimensions( GHOST_TUns32& width, GHOST_TUns32& height ) const { /* nop */ }
+	GHOST_TUns64 getMilliSeconds() const { return 0; }
+	GHOST_TUns8 getNumDisplays() const { return GHOST_TUns8(1); }
+	GHOST_TSuccess getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const { return GHOST_kFailure; }
+	GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) { return GHOST_kFailure; }
+	void getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const { /* nop */ }
+	void getAllDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const { /* nop */ }
 
 	GHOST_TSuccess init() {
 		GHOST_TSuccess success = GHOST_System::init();

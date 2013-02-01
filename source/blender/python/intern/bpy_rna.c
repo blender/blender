@@ -6542,6 +6542,9 @@ static PyObject *pyrna_basetype_dir(BPy_BaseTypeRNA *self)
 
 static PyTypeObject pyrna_basetype_Type = BLANK_PYTHON_TYPE;
 
+/**
+ * Accessed from Python as 'bpy.types'
+ */
 PyObject *BPY_rna_types(void)
 {
 	BPy_BaseTypeRNA *self;

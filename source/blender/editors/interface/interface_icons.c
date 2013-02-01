@@ -130,6 +130,7 @@ static IconTexture icongltex = {0, 0, 0, 0.0f, 0.0f};
 
 /* **************************************************** */
 
+#ifndef WITH_HEADLESS
 
 static DrawInfo *def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int size, int type)
 {
@@ -469,6 +470,7 @@ static void vicon_move_down_draw(int x, int y, int w, int h, float UNUSED(alpha)
 }
 
 #ifndef WITH_HEADLESS
+
 static void init_brush_icons(void)
 {
 
@@ -780,6 +782,8 @@ static void free_iconfile_list(struct ListBase *list)
 		BLI_freelinkN(list, ifile);
 	}
 }
+
+#endif  /* WITH_HEADLESS */
 
 int UI_iconfile_get_index(const char *filename)
 {
@@ -1134,9 +1138,9 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	else if (di->type == ICON_TYPE_BUFFER) {
 		/* it is a builtin icon */
 		iimg = di->data.buffer.image;
-
+#ifndef WITH_HEADLESS
 		icon_verify_datatoc(iimg);
-			
+#endif
 		if (!iimg->rect) return;  /* something has gone wrong! */
 
 		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);

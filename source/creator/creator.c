@@ -1485,10 +1485,13 @@ int main(int argc, const char **argv)
 
 
 #if defined(WITH_PYTHON_MODULE) || defined(WITH_HEADLESS)
-	G.background = 1; /* python module mode ALWAYS runs in background mode (for now) */
+	G.background = true; /* python module mode ALWAYS runs in background mode (for now) */
+	(void)blender_esc;
 #else
 	/* for all platforms, even windos has it! */
-	if (G.background) signal(SIGINT, blender_esc);  /* ctrl c out bg render */
+	if (G.background) {
+		signal(SIGINT, blender_esc);  /* ctrl c out bg render */
+	}
 #endif
 
 	/* background render uses this font too */
