@@ -57,6 +57,7 @@
 #include "BKE_tessmesh.h"
 #include "BKE_multires.h"
 #include "BKE_armature.h"
+#include "BKE_lattice.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
