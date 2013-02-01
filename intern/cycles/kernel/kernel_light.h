@@ -312,6 +312,9 @@ __device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D, f
 	ls->prim = ~0;
 	ls->lamp = lamp;
 
+	if(!(ls->shader & SHADER_USE_MIS))
+		return false;
+
 	if(type == LIGHT_DISTANT) {
 		/* distant light */
 		float radius = data1.y;
