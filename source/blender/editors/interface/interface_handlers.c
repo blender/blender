@@ -225,7 +225,11 @@ void ui_pan_to_scroll(const wmEvent *event, int *type, int *val)
 {
 	static int lastdy = 0;
 	int dy = event->prevy - event->y;
-	
+
+	/* This event should be originally from event->type,
+	 * converting wrong event into wheel is bad, see [#33803] */
+	BLI_assert(*type == MOUSEPAN);
+
 	/* sign differs, reset */
 	if ((dy > 0 && lastdy < 0) || (dy < 0 && lastdy > 0))
 		lastdy = dy;
@@ -2745,7 +2749,9 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		int type = event->type, val = event->val;
 		
-		ui_pan_to_scroll(event, &type, &val);
+		if (type == MOUSEPAN) {
+			ui_pan_to_scroll(event, &type, &val);
+		}
 		
 		/* XXX hardcoded keymap check.... */
 		if (type == MOUSEPAN && event->alt)
@@ -3004,8 +3010,10 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		int type = event->type, val = event->val;
-		
-		ui_pan_to_scroll(event, &type, &val);
+
+		if (type == MOUSEPAN) {
+			ui_pan_to_scroll(event, &type, &val);
+		}
 
 		/* XXX hardcoded keymap check.... */
 		if (type == MOUSEPAN && event->alt)
