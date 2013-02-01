@@ -82,11 +82,4 @@ public:
 	}
 };
 
-#endif
-
-
-
-
-
-
-
+#endif  /* __GHOST_SYSTEMNULL_H__ */

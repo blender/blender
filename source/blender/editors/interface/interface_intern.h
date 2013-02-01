@@ -319,7 +319,7 @@ struct uiBlock {
 	void *handle_func_arg;
 	
 	/* custom extra handling */
-	int (*block_event_func)(const struct bContext *C, struct uiBlock *, struct wmEvent *);
+	int (*block_event_func)(const struct bContext *C, struct uiBlock *, const struct wmEvent *);
 	
 	/* extra draw function for custom blocks */
 	void (*drawextra)(const struct bContext *C, void *idv, void *arg1, void *arg2, rcti *rect);
@@ -468,7 +468,7 @@ ARegion *ui_searchbox_create(struct bContext *C, struct ARegion *butregion, uiBu
 int ui_searchbox_inside(struct ARegion *ar, int x, int y);
 void ui_searchbox_update(struct bContext *C, struct ARegion *ar, uiBut *but, int reset);
 void ui_searchbox_autocomplete(struct bContext *C, struct ARegion *ar, uiBut *but, char *str);
-void ui_searchbox_event(struct bContext *C, struct ARegion *ar, uiBut *but, struct wmEvent *event);
+void ui_searchbox_event(struct bContext *C, struct ARegion *ar, uiBut *but, const struct wmEvent *event);
 void ui_searchbox_apply(uiBut *but, struct ARegion *ar);
 void ui_searchbox_free(struct bContext *C, struct ARegion *ar);
 void ui_but_search_test(uiBut *but);
@@ -489,7 +489,7 @@ int ui_step_name_menu(uiBut *but, int step);
 struct AutoComplete;
 
 /* interface_panel.c */
-extern int ui_handler_panel_region(struct bContext *C, struct wmEvent *event);
+extern int ui_handler_panel_region(struct bContext *C, const struct wmEvent *event);
 extern void ui_draw_aligned_panel(struct uiStyle *style, uiBlock *block, rcti *rect);
 
 /* interface_draw.c */
@@ -507,7 +507,7 @@ void ui_draw_but_IMAGE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rct
 void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 
 /* interface_handlers.c */
-extern void ui_pan_to_scroll(struct wmEvent *event, int *type, int *val);
+extern void ui_pan_to_scroll(const struct wmEvent *event, int *type, int *val);
 extern void ui_button_activate_do(struct bContext *C, struct ARegion *ar, uiBut *but);
 extern void ui_button_active_free(const struct bContext *C, uiBut *but);
 extern int ui_button_is_active(struct ARegion *ar);
