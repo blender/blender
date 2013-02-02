@@ -734,60 +734,38 @@ static BMLoop *poly_find_ear(BMFace *f, float (*projectverts)[2], const bool use
 
 	}
 	else {
-		BMVert *v1, *v2, *v3;
-
 		/* float angle, bestangle = 180.0f; */
-		float cos, tcos, bestcos = 1.0f;
-		float *tcoss;
-		bool is_ear;
-		int i = 0, j, len;
+		float cos, bestcos = 1.0f;
+		int i, j, len;
 
 		/* Compute cos of all corners! */
+		i = 0;
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		len = l_iter->f->len;
-		tcoss = abscoss;
 		do {
-			v1 = l_iter->prev->v;
-			v2 = l_iter->v;
-			v3 = l_iter->next->v;
+			const BMVert *v1 = l_iter->prev->v;
+			const BMVert *v2 = l_iter->v;
+			const BMVert *v3 = l_iter->next->v;
 
-			*tcoss = fabsf(cos_v3v3v3(v1->co, v2->co, v3->co));
+			abscoss[i] = fabsf(cos_v3v3v3(v1->co, v2->co, v3->co));
 /*			printf("tcoss: %f\n", *tcoss);*/
-			tcoss++;
+			i++;
 		} while ((l_iter = l_iter->next) != l_first);
 
+		i = 0;
 		l_iter = l_first;
-		tcoss = abscoss;
 		do {
-			is_ear = true;
+			const BMVert *v1 = l_iter->prev->v;
+			const BMVert *v2 = l_iter->v;
+			const BMVert *v3 = l_iter->next->v;
 
-			v1 = l_iter->prev->v;
-			v2 = l_iter->v;
-			v3 = l_iter->next->v;
-
-			/* We may have already internal edges... */
-			if (BM_edge_exists(v1, v3)) {
-				is_ear = false;
-			}
-			else if (!bm_face_goodline((float const (*)[2])projectverts, f, BM_elem_index_get(v1),
-			                           BM_elem_index_get(v2), BM_elem_index_get(v3)))
+			if (bm_face_goodline((float const (*)[2])projectverts, f,
+			                     BM_elem_index_get(v1), BM_elem_index_get(v2), BM_elem_index_get(v3)))
 			{
-#if 0
-				printf("(%d, %d, %d) would not be a valid tri!\n",
-				       BM_elem_index_get(v1), BM_elem_index_get(v2), BM_elem_index_get(v3));
-#endif
-				is_ear = false;
-			}
-
-			if (is_ear) {
 				/* Compute highest cos (i.e. narrowest angle) of this tri. */
-				cos = *tcoss;
-				tcos = fabsf(cos_v3v3v3(v2->co, v3->co, v1->co));
-				if (tcos > cos)
-					cos = tcos;
-				tcos = fabsf(cos_v3v3v3(v3->co, v1->co, v2->co));
-				if (tcos > cos)
-					cos = tcos;
+				cos = max_fff(abscoss[i],
+				              fabsf(cos_v3v3v3(v2->co, v3->co, v1->co)),
+				              fabsf(cos_v3v3v3(v3->co, v1->co, v2->co)));
 
 				/* Compare to prev best (i.e. lowest) cos. */
 				if (cos < bestcos) {
@@ -816,7 +794,6 @@ static BMLoop *poly_find_ear(BMFace *f, float (*projectverts)[2], const bool use
 #endif
 				}
 			}
-			tcoss++;
 			i++;
 		} while ((l_iter = l_iter->next) != l_first);
 	}
