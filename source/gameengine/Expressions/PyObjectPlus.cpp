@@ -43,7 +43,7 @@
  * Center for the Neural Basis of Cognition (CNBC) 
  * http://www.python.org/doc/PyCPP.html
  *
-------------------------------*/
+ * ----------------------------- */
 #include <stdlib.h>
 #include <stddef.h>
 
@@ -103,7 +103,7 @@ void PyObjectPlus::InvalidateProxy()		// check typename of each parent
 
 /*------------------------------
  * PyObjectPlus Type		-- Every class, even the abstract one should have a Type
-------------------------------*/
+ * ----------------------------- */
 
 
 PyTypeObject PyObjectPlus::Type = {
@@ -217,8 +217,8 @@ PyObject *PyObjectPlus::py_base_new(PyTypeObject *type, PyObject *args, PyObject
 }
 
 /**
-  * \param self A PyObjectPlus_Proxy
-  */
+ * \param self A PyObjectPlus_Proxy
+ */
 void PyObjectPlus::py_base_dealloc(PyObject *self)				// python wrapper
 {
 #ifdef USE_WEAKREFS

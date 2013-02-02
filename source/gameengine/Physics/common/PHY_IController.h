@@ -41,10 +41,10 @@ class PHY_IPhysicsEnvironment;
 #endif
 
 /**
-	PHY_IController is the abstract simplified Interface to objects 
-	controlled by the physics engine. This includes the physics objects
-	and the graphics object for view frustrum and occlusion culling.
-*/
+ * PHY_IController is the abstract simplified Interface to objects
+ * controlled by the physics engine. This includes the physics objects
+ * and the graphics object for view frustrum and occlusion culling.
+ */
 class PHY_IController
 {
 	public:

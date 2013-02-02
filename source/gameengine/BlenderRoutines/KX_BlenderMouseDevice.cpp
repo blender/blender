@@ -46,8 +46,8 @@ KX_BlenderMouseDevice::~KX_BlenderMouseDevice()
 }
 
 /**
-	IsPressed gives boolean information about mouse status, true if pressed, false if not
-*/
+ * IsPressed gives boolean information about mouse status, true if pressed, false if not
+ */
 
 bool KX_BlenderMouseDevice::IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode)
 {
@@ -62,11 +62,11 @@ bool KX_BlenderMouseDevice::IsPressed(SCA_IInputDevice::KX_EnumInputs inputcode)
 }
 */
 
-/** 
-	NextFrame toggles currentTable with previousTable,
-	and copy relevant event information from previous to current
-	(pressed keys need to be remembered)
-*/
+/**
+ * NextFrame toggles currentTable with previousTable,
+ * and copy relevant event information from previous to current
+ * (pressed keys need to be remembered)
+ */
 void	KX_BlenderMouseDevice::NextFrame()
 {
 	SCA_IInputDevice::NextFrame();
@@ -104,13 +104,11 @@ void	KX_BlenderMouseDevice::NextFrame()
 }
 
 
-/** 
-	ConvertBlenderEvent translates blender mouse events into ketsji kbd events
-	extra event information is stored, like ramp-mode (just released/pressed)
-*/
-
-
-bool	KX_BlenderMouseDevice::ConvertBlenderEvent(unsigned short incode,short val)
+/**
+ * ConvertBlenderEvent translates blender mouse events into ketsji kbd events
+ * extra event information is stored, like ramp-mode (just released/pressed)
+ */
+bool KX_BlenderMouseDevice::ConvertBlenderEvent(unsigned short incode, short val)
 {
 	bool result = false;
 	

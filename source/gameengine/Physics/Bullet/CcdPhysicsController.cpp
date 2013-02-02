@@ -675,9 +675,9 @@ CcdPhysicsController::~CcdPhysicsController()
 }
 
 
-		/**
-			SynchronizeMotionStates ynchronizes dynas, kinematic and deformable entities (and do 'late binding')
-		*/
+/**
+ * SynchronizeMotionStates ynchronizes dynas, kinematic and deformable entities (and do 'late binding')
+ */
 bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 {
 	//sync non-static to motionstate, and static from motionstate (todo: add kinematic etc.)
@@ -760,8 +760,8 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 }
 
 		/**
-			WriteMotionStateToDynamics synchronizes dynas, kinematic and deformable entities (and do 'late binding')
-		*/
+		 * WriteMotionStateToDynamics synchronizes dynas, kinematic and deformable entities (and do 'late binding')
+		 */
 		
 void		CcdPhysicsController::WriteMotionStateToDynamics(bool nondynaonly)
 {

@@ -36,16 +36,16 @@
 
 
 /**
-	PHY_IPhysicsController is the abstract simplified Interface to a physical object.
-	It contains the IMotionState and IDeformableMesh Interfaces.
-*/
+ * PHY_IPhysicsController is the abstract simplified Interface to a physical object.
+ * It contains the IMotionState and IDeformableMesh Interfaces.
+ */
 class PHY_IGraphicController : public PHY_IController
 {
 	public:
 		virtual ~PHY_IGraphicController();
 		/**
-			SynchronizeMotionStates ynchronizes dynas, kinematic and deformable entities (and do 'late binding')
-		*/
+		 * SynchronizeMotionStates ynchronizes dynas, kinematic and deformable entities (and do 'late binding')
+		 */
 		virtual bool SetGraphicTransform()=0;
 		virtual void Activate(bool active=true)=0;
 		virtual void setLocalAabb(const PHY__Vector3& aabbMin,const PHY__Vector3& aabbMax)=0;

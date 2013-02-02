@@ -178,23 +178,15 @@ bool SCA_RandomActuator::Update()
 	case KX_RANDOMACT_FLOAT_NORMAL: {
 		/* normal (big numbers): para1 = mean, para2 = std dev               */
 
-		/* 
-
-		   070301 - nzc - Changed the termination condition. I think I 
-		   made a small mistake here, but it only affects distro's where
-		   the seed equals 0. In that case, the algorithm locks. Let's
-		   just guard that case separately.
-
-		*/
+		/* 070301 - nzc: Changed the termination condition. I think I
+		 * made a small mistake here, but it only affects distro's where
+		 * the seed equals 0. In that case, the algorithm locks. Let's
+		 * just guard that case separately.
+		 */
 
 		float x = 0.0, y = 0.0, s = 0.0, t = 0.0;
 		if (m_base->GetSeed() == 0) {
-			/*
-
-			  070301 - nzc 
-			  Just taking the mean here seems reasonable.
-
-			 */
+			/* 070301 - nzc: Just taking the mean here seems reasonable. */
 			tmpval = new CFloatValue(m_parameter1);
 		}
 		else {

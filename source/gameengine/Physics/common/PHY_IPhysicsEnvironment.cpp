@@ -33,9 +33,10 @@
 #include "PHY_IPhysicsEnvironment.h"
 
 /**
-*	Physics Environment takes care of stepping the simulation and is a container for physics entities (rigidbodies,constraints, materials etc.)
-*	A derived class may be able to 'construct' entities by loading and/or converting
-*/
+ * Physics Environment takes care of stepping the simulation and is a container for physics entities
+ * (rigidbodies,constraints, materials etc.)
+ * A derived class may be able to 'construct' entities by loading and/or converting
+ */
 
 
 

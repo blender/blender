@@ -503,12 +503,12 @@ protected:
 
 
 		/**
-			SynchronizeMotionStates ynchronizes dynas, kinematic and deformable entities (and do 'late binding')
-		*/
+		 * SynchronizeMotionStates ynchronizes dynas, kinematic and deformable entities (and do 'late binding')
+		 */
 		virtual bool		SynchronizeMotionStates(float time);
 		/**
-			WriteMotionStateToDynamics ynchronizes dynas, kinematic and deformable entities (and do 'late binding')
-		*/
+		 * WriteMotionStateToDynamics ynchronizes dynas, kinematic and deformable entities (and do 'late binding')
+		 */
 		
 		virtual void		WriteMotionStateToDynamics(bool nondynaonly);
 		virtual	void		WriteDynamicsToMotionState();

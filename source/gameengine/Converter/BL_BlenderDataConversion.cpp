@@ -933,7 +933,7 @@ static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace
 		if (ma) {
 			alpha_blend = ma->game.alpha_blend;
 			/* Commented out for now. If we ever get rid of
-				* "Texture Face/Singletexture" we can then think about it */
+			 * "Texture Face/Singletexture" we can then think about it */
 
 			/* Texture Face mode ignores texture but requires "Face Textures to be True "*/
 	#if 0
