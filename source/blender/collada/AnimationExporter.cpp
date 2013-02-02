@@ -730,7 +730,6 @@ void AnimationExporter::get_source_values(BezTriple *bezt, COLLADASW::InputSeman
 				values[1] = bezt->vec[2][1];
 			}
 			break;
-			break;
 		default:
 			*length = 0;
 			break;
