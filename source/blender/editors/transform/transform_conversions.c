@@ -2642,6 +2642,14 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 	
 	/* stop if trying to build list if nothing selected */
 	if (count == 0) {
+		/* clear temp metas that may have been created but aren't needed now 
+		 * because they fell on the wrong side of CFRA
+		 */
+		for (ale = anim_data.first; ale; ale = ale->next) {
+			NlaTrack *nlt = (NlaTrack *)ale->data;
+			BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);
+		}
+		
 		/* cleanup temp list */
 		BLI_freelistN(&anim_data);
 		return;
@@ -2686,14 +2694,14 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 						tdn->oldTrack = tdn->nlt = nlt;
 						tdn->strip = strip;
 						tdn->trackIndex = BLI_findindex(&adt->nla_tracks, nlt);
-
+						
 						yval = (float)(tdn->trackIndex * NLACHANNEL_STEP(snla));
-
+						
 						tdn->h1[0] = strip->start;
 						tdn->h1[1] = yval;
 						tdn->h2[0] = strip->end;
 						tdn->h2[1] = yval;
-
+						
 						center[0] = (float)CFRA;
 						center[1] = yval;
 						center[2] = 0.0f;
