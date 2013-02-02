@@ -2679,15 +2679,15 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 				data->prop = newdataadr(fd, data->prop);
 				if (data->prop)
 					IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
-			}
 				break;
+			}
 			case CONSTRAINT_TYPE_SPLINEIK:
 			{
 				bSplineIKConstraint *data= con->data;
-				
+
 				data->points= newdataadr(fd, data->points);
-			}
 				break;
+			}
 			case CONSTRAINT_TYPE_KINEMATIC:
 			{
 				bKinematicConstraint *data = con->data;
@@ -2697,14 +2697,15 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 
 				/* version patch for runtime flag, was not cleared in some case */
 				data->flag &= ~CONSTRAINT_IK_AUTO;
+				break;
 			}
 			case CONSTRAINT_TYPE_CHILDOF:
 			{
 				/* XXX version patch, in older code this flag wasn't always set, and is inherent to type */
 				if (con->ownspace == CONSTRAINT_SPACE_POSE)
 					con->flag |= CONSTRAINT_SPACEONCE;
-			}
 				break;
+			}
 		}
 	}
 }
