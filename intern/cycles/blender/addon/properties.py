@@ -66,9 +66,11 @@ enum_panorama_types = (
 
 enum_curve_presets = (
     ('CUSTOM', "Custom", "Set general parameters"),
-    ('TANGENT_SHADING', "Tangent Normal", "Use planar geometry and tangent normals"),
-    ('TRUE_NORMAL', "True Normal", "Use true normals (good for thin strands)"),
-    ('ACCURATE_PRESET', "Accurate", "Use best settings (suitable for glass materials)"),
+    ('FAST_PLANES', "Fast Planes", "Use camera facing triangles (fast but memory intensive)"),
+    ('TANGENT_SHADING', "Tangent Normal", "Use planar line segments and tangent normals"),
+    ('TRUE_NORMAL', "True Normal", "Use true normals with line segments(good for thin strands)"),
+    ('ACCURATE_PRESET', "Accurate", "Use best line segment settings (suitable for glass materials)"),
+    ('SMOOTH_CURVES', "Smooth Curves", "Use smooth cardinal curves (slowest)"),
     )
 
 enum_curve_primitives = (

@@ -33,9 +33,11 @@ void curvebounds(float *lower, float *upper, float3 *p, int dim);
 
 typedef enum curve_presets {
 	CURVE_CUSTOM,
+	CURVE_FAST_PLANES,
 	CURVE_TANGENT_SHADING,
 	CURVE_TRUE_NORMAL,
-	CURVE_ACCURATE_PRESET
+	CURVE_ACCURATE_PRESET,
+	CURVE_SMOOTH_CURVES
 } curve_presets;
 
 typedef enum curve_primitives {
