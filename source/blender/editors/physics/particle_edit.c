@@ -3397,7 +3397,7 @@ static int brush_add(PEData *data, short number)
 					weight[w] = 0.0f;
 				}
 
-				if(totw > 0.0f) {
+				if (totw > 0.0f) {
 					for (w=0; w<maxw; w++)
 						weight[w] /= totw;
 				}
