@@ -1065,7 +1065,7 @@ static void scene_depsgraph_hack(Scene *scene, Scene *scene_parent)
 		
 		if (ob->depsflag) {
 			int recalc = 0;
-			// printf("depshack %s\n", ob->id.name+2);
+			// printf("depshack %s\n", ob->id.name + 2);
 			
 			if (ob->depsflag & OB_DEPS_EXTRA_OB_RECALC)
 				recalc |= OB_RECALC_OB;

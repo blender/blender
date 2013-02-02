@@ -164,7 +164,7 @@ typedef enum BrushSculptTool {
 } BrushSculptTool;
 
 /* ImagePaintSettings.tool */
-typedef enum BrushImagePaintTool{
+typedef enum BrushImagePaintTool {
 	PAINT_TOOL_DRAW = 0,
 	PAINT_TOOL_SOFTEN = 1,
 	PAINT_TOOL_SMEAR = 2,

@@ -4347,7 +4347,7 @@ static int project_paint_sub_stroke(ProjPaintState *ps, BrushPainter *painter, c
 	pos[1] = (float)(mval_i[1]);
 	
 	// we may want to use this later 
-	// BKE_brush_painter_require_imbuf(painter, ((ibuf->rect_float)? 1: 0), 0, 0);
+	// BKE_brush_painter_require_imbuf(painter, ((ibuf->rect_float) ? 1 : 0), 0, 0);
 	
 	if (BKE_brush_painter_paint(painter, project_paint_op, pos, time, pressure, ps, 0)) {
 		return 1;

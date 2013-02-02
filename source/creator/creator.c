@@ -921,7 +921,7 @@ static int set_ge_parameters(int argc, const char **argv, void *data)
 			}
 
 
-		} /* if (*(argv[a+1]) == '=') */
+		} /* if (*(argv[a + 1]) == '=') */
 	}
 
 	return a;

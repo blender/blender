@@ -146,16 +146,15 @@ int ED_markers_post_apply_transform(ListBase *markers, Scene *scene, int mode, f
 						marker->frame += (int)floorf(value + 0.5f);
 						changed++;
 					}
+					break;
 				}
-				break;
-					
 				case TFM_TIME_SCALE:
 				{
 					/* rescale the distance between the marker and the current frame */
 					marker->frame = cfra + (int)floorf(((float)(marker->frame - cfra) * value) + 0.5f);
 					changed++;
+					break;
 				}
-				break;
 			}
 		}
 	}

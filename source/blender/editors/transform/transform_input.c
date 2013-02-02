@@ -238,7 +238,7 @@ static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], 
 	double deler = (((dx1 * dx1 + dy1 * dy1) +
 	                 (dx2 * dx2 + dy2 * dy2) -
 	                 (dx3 * dx3 + dy3 * dy3)) / (2.0 * ((A * B) ? (A * B) : 1.0)));
-	/* ((A*B)?(A*B):1.0) this takes care of potential divide by zero errors */
+	/* ((A * B) ? (A * B) : 1.0) this takes care of potential divide by zero errors */
 
 	float dphi;
 

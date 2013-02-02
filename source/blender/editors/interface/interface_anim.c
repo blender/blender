@@ -59,7 +59,7 @@ static FCurve *ui_but_get_fcurve(uiBut *but, bAction **action, int *driven)
 {
 	/* for entire array buttons we check the first component, it's not perfect
 	 * but works well enough in typical cases */
-	int rnaindex = (but->rnaindex == -1)? 0: but->rnaindex;
+	int rnaindex = (but->rnaindex == -1) ? 0 : but->rnaindex;
 
 	return rna_get_fcurve(&but->rnapoin, but->rnaprop, rnaindex, action, driven);
 }

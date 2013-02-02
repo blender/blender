@@ -96,7 +96,7 @@ typedef struct SPHData {
 	float *gravity;
 	float hfac;
 	/* Average distance to neighbours (other particles in the support domain),
-	   for calculating the Courant number (adaptive time step). */
+	 * for calculating the Courant number (adaptive time step). */
 	int pass;
 	float element_size;
 	float flow[3];

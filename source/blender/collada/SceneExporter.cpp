@@ -184,7 +184,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 
 	if (ob->constraints.first != NULL ){
 		bConstraint *con = (bConstraint*) ob->constraints.first;
-		while(con){
+		while (con) {
 			std::string con_name(id_name(con));
 			std::string con_tag = con_name + "_constraint";
 			colladaNode.addExtraTechniqueChildParameter("blender",con_tag,"type",con->type);

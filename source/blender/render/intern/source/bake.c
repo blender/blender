@@ -734,8 +734,8 @@ static void bake_single_vertex(BakeShade *bs, VertRen *vert, float u, float v)
 }
 
 /* Bake all vertices of a face. Actually, this still works on a face-by-face
-   basis, and each vertex on each face is shaded. Vertex colors are a property
-   of loops, not vertices. */
+ * basis, and each vertex on each face is shaded. Vertex colors are a property
+ * of loops, not vertices. */
 static void shade_verts(BakeShade *bs)
 {
 	VlakRen *vlr = bs->vlr;
@@ -756,7 +756,7 @@ static void shade_verts(BakeShade *bs)
 	zero_v3(bs->dyco);
 
 	/* Shade each vertex of the face. u and v are barycentric coordinates; since
-	   we're only interested in vertices, these will be 0 or 1. */
+	 * we're only interested in vertices, these will be 0 or 1. */
 	if ((vlr->flag & R_FACE_SPLIT) == 0) {
 		/* Processing triangle face, whole quad, or first half of split quad. */
 

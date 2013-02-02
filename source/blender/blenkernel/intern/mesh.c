@@ -1489,7 +1489,7 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, int use_orco_u
 	if (dm == NULL) {
 		if (BKE_mesh_nurbs_displist_to_mdata(ob, dispbase, &allvert, &totvert,
 		                                     &alledge, &totedge, &allloop,
-		                                     &allpoly, (use_orco_uv)? &alluv: NULL,
+		                                     &allpoly, (use_orco_uv) ? &alluv : NULL,
 		                                     &totloop, &totpoly) != 0)
 		{
 			/* Error initializing */

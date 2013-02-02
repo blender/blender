@@ -997,7 +997,7 @@ void ui_fontscale(short *points, float aspect)
 /* project button or block (but==NULL) to pixels in regionspace */
 static void ui_but_to_pixelrect(rcti *rect, const ARegion *ar, uiBlock *block, uiBut *but)
 {
-	rctf rectf = (but)? but->rect: block->rect;
+	rctf rectf = (but) ? but->rect : block->rect;
 	
 	ui_block_to_window_fl(ar, block, &rectf.xmin, &rectf.ymin);
 	ui_block_to_window_fl(ar, block, &rectf.xmax, &rectf.ymax);

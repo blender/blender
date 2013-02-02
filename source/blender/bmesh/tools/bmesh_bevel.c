@@ -518,7 +518,7 @@ static int bev_ccw_test(BMEdge *a, BMEdge *b, BMFace *f)
  * We want M to make M*A=B where A has the left side above, as columns
  * and B has the right side as columns - both extended into homogeneous coords.
  * So M = B*(Ainverse).  Doing Ainverse by hand gives the code below.
-*/
+ */
 static int make_unit_square_map(const float va[3], const float vmid[3], const float vb[3],
                                 float r_mat[4][4])
 {
@@ -1304,7 +1304,7 @@ static void fix_vmesh_tangents(VMesh *vm, BevVert *bv)
 
 		/* Also want (i, 1, k) snapped to plane of adjacent face for
 		 * 1 < k < ns - 1, but current initial cage and subdiv rules
-		  * ensure this, so nothing to do */
+		 * ensure this, so nothing to do */
 	} while ((bndv = bndv->next) != vm->boundstart);
 }
 
