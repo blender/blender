@@ -7342,6 +7342,17 @@ static void do_version_node_cleanup_dynamic_sockets_264(void *UNUSED(data), ID *
 	}
 }
 
+static void do_version_node_fix_translate_wrapping(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
+{
+    bNode *node;
+
+    for (node = ntree->nodes.first; node; node = node->next) {
+        if (node->type == CMP_NODE_TRANSLATE && node->storage == NULL) {
+            node->storage = MEM_callocN(sizeof(NodeTranslateData), "node translate data");
+        }
+    }
+}
+
 static void do_version_node_fix_internal_links_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
 {
 	bNode *node;
@@ -8715,6 +8726,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+
+    // add storage for compositor translate nodes when not existing
+    if (!MAIN_VERSION_ATLEAST(main, 265, 9)) {
+        bNodeTreeType *ntreetype;
+
+        ntreetype = ntreeGetType(NTREE_COMPOSIT);
+        if (ntreetype && ntreetype->foreach_nodetree)
+            ntreetype->foreach_nodetree(main, NULL, do_version_node_fix_translate_wrapping);
+    }
+
+
 
 	// if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 7)) {
 
