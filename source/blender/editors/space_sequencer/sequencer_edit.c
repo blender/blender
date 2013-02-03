@@ -2463,9 +2463,15 @@ void SEQUENCER_OT_strip_jump(wmOperatorType *ot)
 static void swap_sequence(Scene *scene, Sequence *seqa, Sequence *seqb)
 {
 	int gap = seqb->startdisp - seqa->enddisp;
-	seqb->start = (seqb->start - seqb->startdisp) + seqa->startdisp;
+	int seq_a_start;
+	int seq_b_start;
+
+	seq_b_start = (seqb->start - seqb->startdisp) + seqa->startdisp;
+	BKE_sequence_translate(scene, seqb, seq_b_start - seqb->start);
 	BKE_sequence_calc(scene, seqb);
-	seqa->start = (seqa->start - seqa->startdisp) + seqb->enddisp + gap;
+
+	seq_a_start = (seqa->start - seqa->startdisp) + seqb->enddisp + gap;
+	BKE_sequence_translate(scene, seqa, seq_a_start - seqa->start);
 	BKE_sequence_calc(scene, seqa);
 }
 
