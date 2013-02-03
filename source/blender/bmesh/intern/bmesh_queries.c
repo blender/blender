@@ -1058,6 +1058,29 @@ void BM_loop_calc_face_normal(BMLoop *l, float r_normal[3])
 }
 
 /**
+ * \brief BM_loop_calc_face_direction
+ *
+ * Calculate the direction a loop is pointing.
+ *
+ * \param l The loop to calculate the direction at
+ * \param r_dir Resulting direction
+ */
+void BM_loop_calc_face_direction(BMLoop *l, float r_dir[3])
+{
+	float v_prev[3];
+	float v_next[3];
+
+	sub_v3_v3v3(v_prev, l->v->co, l->prev->v->co);
+	sub_v3_v3v3(v_next, l->next->v->co, l->v->co);
+
+	normalize_v3(v_prev);
+	normalize_v3(v_next);
+
+	add_v3_v3v3(r_dir, v_prev, v_next);
+	normalize_v3(r_dir);
+}
+
+/**
  * \brief BM_loop_calc_face_tangent
  *
  * Calculate the tangent at this loop corner or fallback to the face normal on straight lines.

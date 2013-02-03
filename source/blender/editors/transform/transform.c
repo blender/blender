@@ -4920,7 +4920,6 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 				/* When there is no edge to slide along,
 				 * we must slide along the vector defined by the face we're attach to */
 				BMLoop *l_tmp = BM_face_vert_share_loop(l_first->f, v);
-				float tvec[3];
 
 				BLI_assert(ELEM(l_tmp->e, e_prev, e_next) && ELEM(l_tmp->prev->e, e_prev, e_next));
 
@@ -4930,12 +4929,9 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 					sub_v3_v3v3(vec_accum, l_tmp->next->next->v->co, v->co);
 				}
 				else {
-					BM_loop_calc_face_tangent(l_tmp, vec_accum);
-					if (!BM_loop_is_convex(l_tmp)) {
-						negate_v3(vec_accum);
-					}
-					cross_v3_v3v3(tvec, vec_accum, l_tmp->f->no);
-					cross_v3_v3v3(vec_accum, l_tmp->f->no, tvec);
+					float tdir[3];
+					BM_loop_calc_face_direction(l_tmp, tdir);
+					cross_v3_v3v3(vec_accum, l_tmp->f->no, tdir);
 					len_v3_ensure(vec_accum, (BM_edge_calc_length(e_prev) + BM_edge_calc_length(e_next)) / 2.0f);
 				}
 			}
