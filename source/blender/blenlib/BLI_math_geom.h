@@ -68,6 +68,7 @@ void closest_to_line_segment_v2(float closest[2], const float p[2], const float 
 float dist_to_plane_normalized_v3(const float p[3], const float plane_co[3], const float plane_no_unit[3]);
 float dist_to_plane_v3(const float p[3], const float plane_co[3], const float plane_no[3]);
 float dist_to_line_segment_v3(const float p[3], const float l1[3], const float l2[3]);
+float dist_to_line_v3(const float p[3], const float l1[3], const float l2[3]);
 float closest_to_line_v3(float r[3], const float p[3], const float l1[3], const float l2[3]);
 float closest_to_line_v2(float r[2], const float p[2], const float l1[2], const float l2[2]);
 void closest_to_line_segment_v3(float r[3], const float p[3], const float l1[3], const float l2[3]);

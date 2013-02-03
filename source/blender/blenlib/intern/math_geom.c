@@ -304,6 +304,15 @@ float dist_to_line_segment_v3(const float v1[3], const float v2[3], const float 
 	return len_v3v3(closest, v1);
 }
 
+float dist_to_line_v3(const float v1[3], const float v2[3], const float v3[3])
+{
+	float closest[3];
+
+	closest_to_line_v3(closest, v1, v2, v3);
+
+	return len_v3v3(closest, v1);
+}
+
 /* Adapted from "Real-Time Collision Detection" by Christer Ericson,
  * published by Morgan Kaufmann Publishers, copyright 2005 Elsevier Inc.
  * 
