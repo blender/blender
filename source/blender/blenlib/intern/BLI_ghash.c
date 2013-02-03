@@ -78,9 +78,9 @@ void BLI_ghash_insert(GHash *gh, void *key, void *val)
 	unsigned int hash = gh->hashfp(key) % gh->nbuckets;
 	Entry *e = (Entry *)BLI_mempool_alloc(gh->entrypool);
 
+	e->next = gh->buckets[hash];
 	e->key = key;
 	e->val = val;
-	e->next = gh->buckets[hash];
 	gh->buckets[hash] = e;
 
 	if (++gh->nentries > (float)gh->nbuckets / 2) {
@@ -109,13 +109,13 @@ void BLI_ghash_insert(GHash *gh, void *key, void *val)
 
 void *BLI_ghash_lookup(GHash *gh, const void *key)
 {
-	if (gh) {
-		unsigned int hash = gh->hashfp(key) % gh->nbuckets;
-		Entry *e;
+	const unsigned int hash = gh->hashfp(key) % gh->nbuckets;
+	Entry *e;
 
-		for (e = gh->buckets[hash]; e; e = e->next)
-			if (gh->cmpfp(key, e->key) == 0)
-				return e->val;
+	for (e = gh->buckets[hash]; e; e = e->next) {
+		if (gh->cmpfp(key, e->key) == 0) {
+			return e->val;
+		}
 	}
 	return NULL;
 }
