@@ -1093,23 +1093,27 @@ void BM_loop_calc_face_tangent(BMLoop *l, float r_tangent[3])
 {
 	float v_prev[3];
 	float v_next[3];
+	float dir[3];
 
 	sub_v3_v3v3(v_prev, l->prev->v->co, l->v->co);
 	sub_v3_v3v3(v_next, l->v->co, l->next->v->co);
 
 	normalize_v3(v_prev);
 	normalize_v3(v_next);
+	add_v3_v3v3(dir, v_prev, v_next);
 
-	if (compare_v3v3(v_prev, v_next, FLT_EPSILON) == false) {
-		float dir[3];
+	if (compare_v3v3(v_prev, v_next, FLT_EPSILON * 10.0f) == false) {
 		float nor[3]; /* for this purpose doesn't need to be normalized */
-		add_v3_v3v3(dir, v_prev, v_next);
 		cross_v3_v3v3(nor, v_prev, v_next);
+		/* concave face check */
+		if (UNLIKELY(dot_v3v3(nor, l->f->no) < 0.0f)) {
+			negate_v3(nor);
+		}
 		cross_v3_v3v3(r_tangent, dir, nor);
 	}
 	else {
 		/* prev/next are the same - compare with face normal since we don't have one */
-		cross_v3_v3v3(r_tangent, v_next, l->f->no);
+		cross_v3_v3v3(r_tangent, dir, l->f->no);
 	}
 
 	normalize_v3(r_tangent);
