@@ -133,8 +133,8 @@ bool GaussianXBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadB
 	}
 	{
 		if (this->m_sizeavailable && this->m_gausstab != NULL) {
-			newInput.xmax = input->xmax + this->m_rad;
-			newInput.xmin = input->xmin - this->m_rad;
+            newInput.xmax = input->xmax + this->m_rad + 1;
+            newInput.xmin = input->xmin - this->m_rad - 1;
 			newInput.ymax = input->ymax;
 			newInput.ymin = input->ymin;
 		}
