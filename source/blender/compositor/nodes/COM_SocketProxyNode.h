@@ -30,8 +30,10 @@
  * @ingroup Node
  */
 class SocketProxyNode : public Node {
+private:
+    bool m_buffer;
 public:
-	SocketProxyNode(bNode *editorNode, bNodeSocket *editorInput, bNodeSocket *editorOutput);
+    SocketProxyNode(bNode *editorNode, bNodeSocket *editorInput, bNodeSocket *editorOutput, bool buffer);
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 
 	virtual bool isProxyNode() const { return true; }
