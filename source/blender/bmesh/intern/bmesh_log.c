@@ -736,7 +736,7 @@ void BM_log_redo(BMesh *bm, BMLog *log)
  * vertex in the map of added vertices.
  *
  * If the vertex already existed prior to the current log entry, a
- * seperate key/value map of modified vertices is used (using the
+ * separate key/value map of modified vertices is used (using the
  * vertex's ID as the key). The values stored in that case are
  * the vertex's original state so that an undo can restore the
  * previous state.

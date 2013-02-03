@@ -3153,10 +3153,10 @@ static int rna_property_array_length_all_dimensions(PointerRNA *ptr, PropertyRNA
 	const int dim = RNA_property_array_dimension(ptr, prop, len);
 	int size;
 
-	if(dim == 0)
+	if (dim == 0)
 		return 0;
 
-	for(size = 1, i = 0; i < dim; i++)
+	for (size = 1, i = 0; i < dim; i++)
 		size *= len[i];
 	
 	return size;
@@ -3197,7 +3197,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 		}
 
 		/* dynamic array? need to get length per item */
-		if(itemprop->getlength) {
+		if (itemprop->getlength) {
 			itemprop = NULL;
 		}
 		/* try to access as raw array */

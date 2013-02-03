@@ -1391,7 +1391,7 @@ void GPU_update_mesh_buffers(GPU_Buffers *buffers, MVert *mvert,
 		vert_data = glMapBufferARB(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
 
 		if (vert_data) {
-			/* Vertex data is shared if smooth-shaded, but seperate
+			/* Vertex data is shared if smooth-shaded, but separate
 			   copies are made for flat shading because normals
 			   shouldn't be shared. */
 			if (buffers->smooth) {
