@@ -143,9 +143,10 @@ typedef struct ScrArea {
 	
 	short headertype;				/* OLD! 0=no header, 1= down, 2= up */
 	short do_refresh;				/* private, for spacetype refresh callback */
-	short cursor, flag;
+	short flag;
 	short region_active_win;		/* index of last used region of 'RGN_TYPE_WINDOW'
 									 * runtuime variable, updated by executing operators */
+	short pad;
 	
 	struct SpaceType *type;		/* callbacks for this space type */
 	

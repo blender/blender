@@ -252,24 +252,21 @@ static void bm_log_faces_unmake(BMesh *bm, BMLog *log, GHash *faces)
 		void *key = BLI_ghashIterator_getKey(&gh_iter);
 		unsigned int id = GET_INT_FROM_POINTER(key);
 		BMFace *f = bm_log_face_from_id(log, id);
-		BMVert *v_tri[3];
 		BMEdge *e_tri[3];
+		BMLoop *l_iter;
 		int i;
 
-		/* Remove any unused edges */
-		BM_face_as_array_vert_tri(f, v_tri);
-		for (i = 0; i < 3; i++) {
-			BMVert *v1 = v_tri[i];
-			BMVert *v2 = v_tri[i == 2 ? 0 : i + 1];
-			e_tri[i] = BM_edge_exists(v1, v2);
+		l_iter = BM_FACE_FIRST_LOOP(f);
+		for (i = 0; i < 3; i++, l_iter = l_iter->next) {
+			e_tri[i] = l_iter->e;
 		}
 
+		/* Remove any unused edges */
 		BM_face_kill(bm, f);
-
 		for (i = 0; i < 3; i++) {
-			BMEdge *e = e_tri[i];
-			if (BM_edge_face_count(e) == 0)
-				BM_edge_kill(bm, e);
+			if (BM_edge_is_wire(e_tri[i])) {
+				BM_edge_kill(bm, e_tri[i]);
+			}
 		}
 	}
 }
