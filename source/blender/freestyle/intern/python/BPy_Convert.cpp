@@ -208,7 +208,7 @@ PyObject * BPy_Nature_from_Nature( unsigned short n ) {
 	PyObject *py_n;
 
 	PyObject *args = PyTuple_New(1);
-	PyTuple_SetItem( args, 0, PyLong_FromLong(n) );
+	PyTuple_SET_ITEM( args, 0, PyLong_FromLong(n) );
 	py_n =  Nature_Type.tp_new(&Nature_Type, args, NULL);
 	Py_DECREF(args);
 
@@ -235,7 +235,7 @@ PyObject * BPy_MediumType_from_MediumType( Stroke::MediumType n ) {
 	PyObject *py_mt;
 
 	PyObject *args = PyTuple_New(1);
-	PyTuple_SetItem( args, 0, PyLong_FromLong(n) );
+	PyTuple_SET_ITEM( args, 0, PyLong_FromLong(n) );
 	py_mt = MediumType_Type.tp_new( &MediumType_Type, args, NULL );
 	Py_DECREF(args);
 
@@ -334,7 +334,7 @@ PyObject * BPy_IntegrationType_from_IntegrationType( IntegrationType i ) {
 	PyObject *py_it;
 
 	PyObject *args = PyTuple_New(1);
-	PyTuple_SetItem( args, 0, PyLong_FromLong(i) );
+	PyTuple_SET_ITEM( args, 0, PyLong_FromLong(i) );
 	py_it = IntegrationType_Type.tp_new( &IntegrationType_Type, args, NULL );
 	Py_DECREF(args);
 
@@ -353,8 +353,8 @@ PyObject * BPy_CurvePoint_from_CurvePoint( CurvePoint& cp ) {
 PyObject * BPy_directedViewEdge_from_directedViewEdge( ViewVertex::directedViewEdge& dve ) {
 	PyObject *py_dve = PyTuple_New(2);
 	
-	PyTuple_SetItem( py_dve, 0, BPy_ViewEdge_from_ViewEdge(*(dve.first)) );
-	PyTuple_SetItem( py_dve, 1, PyBool_from_bool(dve.second) );
+	PyTuple_SET_ITEM( py_dve, 0, BPy_ViewEdge_from_ViewEdge(*(dve.first)) );
+	PyTuple_SET_ITEM( py_dve, 1, PyBool_from_bool(dve.second) );
 	
 	return py_dve;
 }
