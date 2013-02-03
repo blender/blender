@@ -4890,6 +4890,45 @@ static void len_v3_ensure(float v[3], const float length)
 }
 
 /**
+ * Find the closest point on the ngon on the opposite side.
+ * used to set the edge slide distance for ngons.
+ */
+static bool bm_loop_calc_opposite_co(BMLoop *l_tmp,
+                                     const float plane_no[3],
+                                     float r_co[3])
+{
+	/* skip adjacent edges */
+	BMLoop *l_first = l_tmp->next;
+	BMLoop *l_last  = l_tmp->prev;
+	BMLoop *l_iter;
+	float dist = FLT_MAX;
+
+	l_iter = l_first;
+	do {
+		float tvec[3];
+		if (isect_line_plane_v3(tvec,
+		                        l_iter->v->co, l_iter->next->v->co,
+		                        l_tmp->v->co, plane_no, false))
+		{
+			const float fac = line_point_factor_v3(tvec, l_iter->v->co, l_iter->next->v->co);
+			/* allow some overlap to avoid missing the intersection because of float precision */
+			if ((fac > -FLT_EPSILON) && (fac < 1.0f + FLT_EPSILON)) {
+				/* likelyhood of multiple intersections per ngon is quite low,
+				 * it would have to loop back on its self, but better support it
+				 * so check for the closest opposite edge */
+				const float tdist = len_v3v3(l_tmp->v->co, tvec);
+				if (tdist < dist) {
+					copy_v3_v3(r_co, tvec);
+					dist = tdist;
+				}
+			}
+		}
+	} while ((l_iter = l_iter->next) != l_last);
+
+	return (dist != FLT_MAX);
+}
+
+/**
  * Given 2 edges and a loop, step over the loops
  * and calculate a direction to slide along.
  *
@@ -4932,7 +4971,26 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 					float tdir[3];
 					BM_loop_calc_face_direction(l_tmp, tdir);
 					cross_v3_v3v3(vec_accum, l_tmp->f->no, tdir);
+#if 0
+					/* rough guess, we can  do better! */
 					len_v3_ensure(vec_accum, (BM_edge_calc_length(e_prev) + BM_edge_calc_length(e_next)) / 2.0f);
+#else
+					/* be clever, check the opposite ngon edge to slide into.
+					 * this gives best results */
+					{
+						float tvec[3];
+						float dist;
+
+						if (bm_loop_calc_opposite_co(l_tmp, tdir, tvec)) {
+							dist = len_v3v3(l_tmp->v->co, tvec);
+						}
+						else {
+							dist = (BM_edge_calc_length(e_prev) + BM_edge_calc_length(e_next)) / 2.0f;
+						}
+
+						len_v3_ensure(vec_accum, dist);
+					}
+#endif
 				}
 			}
 
