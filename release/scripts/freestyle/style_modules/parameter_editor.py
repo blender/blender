@@ -365,13 +365,13 @@ def iter_material_color(stroke, material_attr):
     while not it.isEnd():
         material = func(it.castToInterface0DIterator())
         if material_attr == "DIFF":
-            color = (material.diffuseR(),
-                     material.diffuseG(),
-                     material.diffuseB())
+            color = (material.diffuse[0],
+                     material.diffuse[1],
+                     material.diffuse[2])
         elif material_attr == "SPEC":
-            color = (material.specularR(),
-                     material.specularG(),
-                     material.specularB())
+            color = (material.specular[0],
+                     material.specular[1],
+                     material.specular[2])
         else:
             raise ValueError("unexpected material attribute: " + material_attr)
         yield it, color
@@ -383,31 +383,31 @@ def iter_material_value(stroke, material_attr):
     while not it.isEnd():
         material = func(it.castToInterface0DIterator())
         if material_attr == "DIFF":
-            r = material.diffuseR()
-            g = material.diffuseG()
-            b = material.diffuseB()
+            r = material.diffuse[0]
+            g = material.diffuse[1]
+            b = material.diffuse[2]
             t = 0.35 * r + 0.45 * r + 0.2 * b
         elif material_attr == "DIFF_R":
-            t = material.diffuseR()
+            t = material.diffuse[0]
         elif material_attr == "DIFF_G":
-            t = material.diffuseG()
+            t = material.diffuse[1]
         elif material_attr == "DIFF_B":
-            t = material.diffuseB()
+            t = material.diffuse[2]
         elif material_attr == "SPEC":
-            r = material.specularR()
-            g = material.specularG()
-            b = material.specularB()
+            r = material.specular[0]
+            g = material.specular[1]
+            b = material.specular[2]
             t = 0.35 * r + 0.45 * r + 0.2 * b
         elif material_attr == "SPEC_R":
-            t = material.specularR()
+            t = material.specular[0]
         elif material_attr == "SPEC_G":
-            t = material.specularG()
+            t = material.specular[1]
         elif material_attr == "SPEC_B":
-            t = material.specularB()
+            t = material.specular[2]
         elif material_attr == "SPEC_HARDNESS":
             t = material.shininess()
         elif material_attr == "ALPHA":
-            t = material.diffuseA()
+            t = material.diffuse[3]
         else:
             raise ValueError("unexpected material attribute: " + material_attr)
         yield it, t

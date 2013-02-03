@@ -6,6 +6,8 @@
 extern "C" {
 #endif
 
+#include "BLI_math.h"
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //-------------------MODULE INITIALIZATION--------------------------------
@@ -19,6 +21,8 @@ int FrsMaterial_Init( PyObject *module )
 
 	Py_INCREF( &FrsMaterial_Type );
 	PyModule_AddObject(module, "Material", (PyObject *)&FrsMaterial_Type);
+
+	FrsMaterial_mathutils_register_callback();
 	return 0;
 }
 
@@ -115,438 +119,281 @@ static PyObject * FrsMaterial___repr__( BPy_FrsMaterial* self)
     return PyUnicode_FromFormat("Material - address: %p", self->m );
 }
 
-static char FrsMaterial_diffuse___doc__[] =
-".. method:: diffuse()\n"
-"\n"
-"   Returns the diffuse color.\n"
-"\n"
-"   :return: The diffuse color.\n"
-"   :rtype: Tuple of 4 float values\n";
-
-static PyObject * FrsMaterial_diffuse( BPy_FrsMaterial* self) {
-	const float *diffuse = self->m->diffuse();
-	PyObject *py_diffuse = PyTuple_New(4);
-	
-	PyTuple_SetItem( py_diffuse, 0, PyFloat_FromDouble( diffuse[0] ) );
-	PyTuple_SetItem( py_diffuse, 1, PyFloat_FromDouble( diffuse[1] ) );
-	PyTuple_SetItem( py_diffuse, 2, PyFloat_FromDouble( diffuse[2] ) );
-	PyTuple_SetItem( py_diffuse, 3, PyFloat_FromDouble( diffuse[3] ) );
-	
-	return py_diffuse;
-}
-
-static char FrsMaterial_diffuseR___doc__[] =
-".. method:: diffuseR()\n"
-"\n"
-"   Returns the red component of the diffuse color.\n"
-"\n"
-"   :return: The red component of the diffuse color.\n"
-"   :rtype: float\n";
-
-static PyObject * FrsMaterial_diffuseR( BPy_FrsMaterial* self) {
-	return PyFloat_FromDouble( self->m->diffuseR() );
-}
-
-static char FrsMaterial_diffuseG___doc__[] =
-".. method:: diffuseG()\n"
-"\n"
-"   Returns the green component of the diffuse color.\n"
-"\n"
-"   :return: The green component of the diffuse color.\n"
-"   :rtype: float\n";
-
-static PyObject * FrsMaterial_diffuseG( BPy_FrsMaterial* self) {
-	return PyFloat_FromDouble( self->m->diffuseG() );
-}
-
-static char FrsMaterial_diffuseB___doc__[] =
-".. method:: diffuseB()\n"
-"\n"
-"   Returns the blue component of the diffuse color.\n"
-"\n"
-"   :return: The blue component of the diffuse color.\n"
-"   :rtype: float\n";
-
-static PyObject * FrsMaterial_diffuseB( BPy_FrsMaterial* self) {
-	return PyFloat_FromDouble( self->m->diffuseB() );
-}
-
-static char FrsMaterial_diffuseA___doc__[] =
-".. method:: diffuseA()\n"
-"\n"
-"   Returns the alpha component of the diffuse color.\n"
-"\n"
-"   :return: The alpha component of the diffuse color.\n"
-"   :rtype: float\n";
-
-static PyObject * FrsMaterial_diffuseA( BPy_FrsMaterial* self) {
-	return PyFloat_FromDouble( self->m->diffuseA() );
-}
-
-static char FrsMaterial_specular___doc__[] =
-".. method:: specular()\n"
-"\n"
-"   Returns the specular color.\n"
-"\n"
-"   :return: The specular color.\n"
-"   :rtype: Tuple of 4 float values\n";
-
-static PyObject * FrsMaterial_specular( BPy_FrsMaterial* self) {
-	const float *specular = self->m->specular();
-	PyObject *py_specular = PyTuple_New(4);
-	
-	PyTuple_SetItem( py_specular, 0, PyFloat_FromDouble( specular[0] ) );
-	PyTuple_SetItem( py_specular, 1, PyFloat_FromDouble( specular[1] ) );
-	PyTuple_SetItem( py_specular, 2, PyFloat_FromDouble( specular[2] ) );
-	PyTuple_SetItem( py_specular, 3, PyFloat_FromDouble( specular[3] ) );
-	
-	return py_specular;
-}
-
-static char FrsMaterial_specularR___doc__[] =
-".. method:: specularR()\n"
-"\n"
-"   Returns the red component of the specular color.\n"
-"\n"
-"   :return: The red component of the specular color.\n"
-"   :rtype: float\n";
-
-static PyObject * FrsMaterial_specularR( BPy_FrsMaterial* self) {
-	return PyFloat_FromDouble( self->m->specularR() );
-}
-
-static char FrsMaterial_specularG___doc__[] =
-".. method:: specularG()\n"
-"\n"
-"   Returns the green component of the specular color.\n"
-"\n"
-"   :return: The green component of the specular color.\n"
-"   :rtype: float\n";
-
-static PyObject * FrsMaterial_specularG( BPy_FrsMaterial* self) {
-	return PyFloat_FromDouble( self->m->specularG() );
-}
-
-static char FrsMaterial_specularB___doc__[] =
-".. method:: specularB()\n"
-"\n"
-"   Returns the blue component of the specular color.\n"
-"\n"
-"   :return: The blue component of the specular color.\n"
-"   :rtype: float\n";
-
-static PyObject * FrsMaterial_specularB( BPy_FrsMaterial* self) {
-	return PyFloat_FromDouble( self->m->specularB() );
-}
-
-static char FrsMaterial_specularA___doc__[] =
-".. method:: specularA()\n"
-"\n"
-"   Returns the alpha component of the specular color.\n"
-"\n"
-"   :return: The alpha component of the specular color.\n"
-"   :rtype: float\n";
-
-static PyObject * FrsMaterial_specularA( BPy_FrsMaterial* self) {
-	return PyFloat_FromDouble( self->m->specularA() );
-}
-
-static char FrsMaterial_ambient___doc__[] =
-".. method:: ambient()\n"
-"\n"
-"   Returns the ambiant color.\n"
-"\n"
-"   :return: The ambiant color.\n"
-"   :rtype: Tuple of 4 float values\n";
-
-static PyObject * FrsMaterial_ambient( BPy_FrsMaterial* self) {
-	const float *ambient = self->m->ambient();
-	PyObject *py_ambient = PyTuple_New(4);
-	
-	PyTuple_SetItem( py_ambient, 0, PyFloat_FromDouble( ambient[0] ) );
-	PyTuple_SetItem( py_ambient, 1, PyFloat_FromDouble( ambient[1] ) );
-	PyTuple_SetItem( py_ambient, 2, PyFloat_FromDouble( ambient[2] ) );
-	PyTuple_SetItem( py_ambient, 3, PyFloat_FromDouble( ambient[3] ) );
-	
-	return py_ambient;
-}
-
-static char FrsMaterial_ambientR___doc__[] =
-".. method:: ambientR()\n"
-"\n"
-"   Returns the red component of the ambiant color.\n"
-"\n"
-"   :return: The red component of the ambiant color.\n"
-"   :rtype: float\n";
-
-static PyObject * FrsMaterial_ambientR( BPy_FrsMaterial* self) {
-	return PyFloat_FromDouble( self->m->ambientR() );
-}
-
-static char FrsMaterial_ambientG___doc__[] =
-".. method:: ambientG()\n"
-"\n"
-"   Returns the green component of the ambiant color.\n"
-"\n"
-"   :return: The green component of the ambiant color.\n"
-"   :rtype: float\n";
-
-static PyObject * FrsMaterial_ambientG( BPy_FrsMaterial* self) {
-	return PyFloat_FromDouble( self->m->ambientG() );
-}
-
-static char FrsMaterial_ambientB___doc__[] =
-".. method:: ambientB()\n"
-"\n"
-"   Returns the blue component of the ambiant color.\n"
-"\n"
-"   :return: The blue component of the ambiant color.\n"
-"   :rtype: float\n";
-
-static PyObject * FrsMaterial_ambientB( BPy_FrsMaterial* self) {
-	return PyFloat_FromDouble( self->m->ambientB() );
-}
-
-static char FrsMaterial_ambientA___doc__[] =
-".. method:: ambientA()\n"
-"\n"
-"   Returns the alpha component of the ambiant color.\n"
-"\n"
-"   :return: The alpha component of the ambiant color.\n"
-"   :rtype: float\n";
-
-static PyObject * FrsMaterial_ambientA( BPy_FrsMaterial* self) {
-	return PyFloat_FromDouble( self->m->ambientA() );
-}
-
-static char FrsMaterial_emission___doc__[] =
-".. method:: emission()\n"
-"\n"
-"   Returns the emissive color.\n"
-"\n"
-"   :return: the emissive color.\n"
-"   :rtype: Tuple of 4 float values\n";
-
-static PyObject * FrsMaterial_emission( BPy_FrsMaterial* self) {
-	const float *emission = self->m->emission();
-	PyObject *py_emission = PyTuple_New(4);
-	
-	PyTuple_SetItem( py_emission, 0, PyFloat_FromDouble( emission[0] ) );
-	PyTuple_SetItem( py_emission, 1, PyFloat_FromDouble( emission[1] ) );
-	PyTuple_SetItem( py_emission, 2, PyFloat_FromDouble( emission[2] ) );
-	PyTuple_SetItem( py_emission, 3, PyFloat_FromDouble( emission[3] ) );
-	
-	return py_emission;
-}
-
-static char FrsMaterial_emissionR___doc__[] =
-".. method:: emissionR()\n"
-"\n"
-"   Returns the red component of the emissive color.\n"
-"\n"
-"   :return: The red component of the emissive color.\n"
-"   :rtype: float\n";
-
-static PyObject * FrsMaterial_emissionR( BPy_FrsMaterial* self) {
-	return PyFloat_FromDouble( self->m->emissionR() );
-}
-
-static char FrsMaterial_emissionG___doc__[] =
-".. method:: emissionG()\n"
-"\n"
-"   Returns the green component of the emissive color.\n"
-"\n"
-"   :return: The green component of the emissive color.\n"
-"   :rtype: float\n";
-
-static PyObject * FrsMaterial_emissionG( BPy_FrsMaterial* self) {
-	return PyFloat_FromDouble( self->m->emissionG() );
-}
-
-static char FrsMaterial_emissionB___doc__[] =
-".. method:: emissionB()\n"
-"\n"
-"   Returns the blue component of the emissive color.\n"
-"\n"
-"   :return: The blue component of the emissive color.\n"
-"   :rtype: float\n";
-
-static PyObject * FrsMaterial_emissionB( BPy_FrsMaterial* self) {
-	return PyFloat_FromDouble( self->m->emissionB() );
-}
-
-static char FrsMaterial_emissionA___doc__[] =
-".. method:: emissionA()\n"
-"\n"
-"   Returns the alpha component of the emissive color.\n"
-"\n"
-"   :return: The alpha component of the emissive color.\n"
-"   :rtype: float\n";
-
-static PyObject * FrsMaterial_emissionA( BPy_FrsMaterial* self) {
-	return PyFloat_FromDouble( self->m->emissionA() );
-}
-
-static char FrsMaterial_shininess___doc__[] =
-".. method:: shininess()\n"
-"\n"
-"   Returns the shininess coefficient.\n"
-"\n"
-"   :return: Shininess\n"
-"   :rtype: float\n";
-
-static PyObject * FrsMaterial_shininess( BPy_FrsMaterial* self) {
-	return PyFloat_FromDouble( self->m->shininess() );
-}
-
-static char FrsMaterial_setDiffuse___doc__[] =
-".. method:: setDiffuse(r, g, b, a)\n"
-"\n"
-"   Sets the diffuse color.\n"
-"\n"
-"   :arg r: Red component.\n"
-"   :type r: float\n"
-"   :arg g: Green component.\n"
-"   :type g: float\n"
-"   :arg b: Blue component.\n"
-"   :type b: float\n"
-"   :arg a: Alpha component.\n"
-"   :type a: float\n";
-
-static PyObject * FrsMaterial_setDiffuse( BPy_FrsMaterial *self, PyObject *args ) {
-	float f1, f2, f3, f4;
-
-	if(!( PyArg_ParseTuple(args, "ffff", &f1, &f2, &f3, &f4)  ))
-		return NULL;
-
-	self->m->setDiffuse(f1, f2, f3, f4);
-
-	Py_RETURN_NONE;
-}
- 
-static char FrsMaterial_setSpecular___doc__[] =
-".. method:: setSpecular(r, g, b, a)\n"
-"\n"
-"   Sets the specular color.\n"
-"\n"
-"   :arg r: Red component.\n"
-"   :type r: float\n"
-"   :arg g: Green component.\n"
-"   :type g: float\n"
-"   :arg b: Blue component.\n"
-"   :type b: float\n"
-"   :arg a: Alpha component.\n"
-"   :type a: float\n";
-
-static PyObject * FrsMaterial_setSpecular( BPy_FrsMaterial *self, PyObject *args ) {
-	float f1, f2, f3, f4;
-
-	if(!( PyArg_ParseTuple(args, "ffff", &f1, &f2, &f3, &f4)  ))
-		return NULL;
-
-	self->m->setSpecular(f1, f2, f3, f4);
-
-	Py_RETURN_NONE;
-}
-
-static char FrsMaterial_setAmbient___doc__[] =
-".. method:: setAmbient(r, g, b, a)\n"
-"\n"
-"   Sets the ambiant color.\n"
-"\n"
-"   :arg r: Red component.\n"
-"   :type r: float\n"
-"   :arg g: Green component.\n"
-"   :type g: float\n"
-"   :arg b: Blue component.\n"
-"   :type b: float\n"
-"   :arg a: Alpha component.\n"
-"   :type a: float\n";
-
-static PyObject * FrsMaterial_setAmbient( BPy_FrsMaterial *self, PyObject *args ) {
-	float f1, f2, f3, f4;
-
-	if(!( PyArg_ParseTuple(args, "ffff", &f1, &f2, &f3, &f4)  ))
-		return NULL;
-
-	self->m->setAmbient(f1, f2, f3, f4);
-
-	Py_RETURN_NONE;
-}
-
-static char FrsMaterial_setEmission___doc__[] =
-".. method:: setEmission(r, g, b, a)\n"
-"\n"
-"   Sets the emissive color.\n"
-"\n"
-"   :arg r: Red component.\n"
-"   :type r: float\n"
-"   :arg g: Green component.\n"
-"   :type g: float\n"
-"   :arg b: Blue component.\n"
-"   :type b: float\n"
-"   :arg a: Alpha component.\n"
-"   :type a: float\n";
-
-static PyObject * FrsMaterial_setEmission( BPy_FrsMaterial *self, PyObject *args ) {
-	float f1, f2, f3, f4;
-
-	if(!( PyArg_ParseTuple(args, "ffff", &f1, &f2, &f3, &f4)  ))
-		return NULL;
-
-	self->m->setEmission(f1, f2, f3, f4);
-
-	Py_RETURN_NONE;
-}
-
-static char FrsMaterial_setShininess___doc__[] =
-".. method:: setShininess(s)\n"
-"\n"
-"   Sets the shininess.\n"
-"\n"
-"   :arg s: Shininess.\n"
-"   :type s: float\n";
-
-static PyObject * FrsMaterial_setShininess( BPy_FrsMaterial *self, PyObject *args ) {
-	float f;
-
-	if(!( PyArg_ParseTuple(args, "f", &f)  ))
-		return NULL;
-
-	self->m->setShininess(f);
-
-	Py_RETURN_NONE;
-}
-
 /*----------------------FrsMaterial instance definitions ----------------------------*/
 static PyMethodDef BPy_FrsMaterial_methods[] = {
-	{"diffuse", ( PyCFunction ) FrsMaterial_diffuse, METH_NOARGS, FrsMaterial_diffuse___doc__},
-	{"diffuseR", ( PyCFunction ) FrsMaterial_diffuseR, METH_NOARGS, FrsMaterial_diffuseR___doc__},
-	{"diffuseG", ( PyCFunction ) FrsMaterial_diffuseG, METH_NOARGS, FrsMaterial_diffuseG___doc__},
-	{"diffuseB", ( PyCFunction ) FrsMaterial_diffuseB, METH_NOARGS, FrsMaterial_diffuseB___doc__},
-	{"diffuseA", ( PyCFunction ) FrsMaterial_diffuseA, METH_NOARGS, FrsMaterial_diffuseA___doc__},
-	{"specular", ( PyCFunction ) FrsMaterial_specular, METH_NOARGS, FrsMaterial_specular___doc__},
-	{"specularR", ( PyCFunction ) FrsMaterial_specularR, METH_NOARGS, FrsMaterial_specularR___doc__},
-	{"specularG", ( PyCFunction ) FrsMaterial_specularG, METH_NOARGS, FrsMaterial_specularG___doc__},
-	{"specularB", ( PyCFunction ) FrsMaterial_specularB, METH_NOARGS, FrsMaterial_specularB___doc__},
-	{"specularA", ( PyCFunction ) FrsMaterial_specularA, METH_NOARGS, FrsMaterial_specularA___doc__},
-	{"ambient", ( PyCFunction ) FrsMaterial_ambient, METH_NOARGS, FrsMaterial_ambient___doc__},
-	{"ambientR", ( PyCFunction ) FrsMaterial_ambientR, METH_NOARGS, FrsMaterial_ambientR___doc__},
-	{"ambientG", ( PyCFunction ) FrsMaterial_ambientG, METH_NOARGS, FrsMaterial_ambientG___doc__},
-	{"ambientB", ( PyCFunction ) FrsMaterial_ambientB, METH_NOARGS, FrsMaterial_ambientB___doc__},
-	{"ambientA", ( PyCFunction ) FrsMaterial_ambientA, METH_NOARGS, FrsMaterial_ambientA___doc__},
-	{"emission", ( PyCFunction ) FrsMaterial_emission, METH_NOARGS, FrsMaterial_emission___doc__},
-	{"emissionR", ( PyCFunction ) FrsMaterial_emissionR, METH_NOARGS, FrsMaterial_emissionR___doc__},
-	{"emissionG", ( PyCFunction ) FrsMaterial_emissionG, METH_NOARGS, FrsMaterial_emissionG___doc__},
-	{"emissionB", ( PyCFunction ) FrsMaterial_emissionB, METH_NOARGS, FrsMaterial_emissionB___doc__},
-	{"emissionA", ( PyCFunction ) FrsMaterial_emissionA, METH_NOARGS, FrsMaterial_emissionA___doc__},
-	{"shininess", ( PyCFunction ) FrsMaterial_shininess, METH_NOARGS, FrsMaterial_shininess___doc__},
-	{"setDiffuse", ( PyCFunction ) FrsMaterial_setDiffuse, METH_NOARGS, FrsMaterial_setDiffuse___doc__},
-	{"setSpecular", ( PyCFunction ) FrsMaterial_setSpecular, METH_NOARGS, FrsMaterial_setSpecular___doc__},
-	{"setAmbient", ( PyCFunction ) FrsMaterial_setAmbient, METH_NOARGS, FrsMaterial_setAmbient___doc__},
-	{"setEmission", ( PyCFunction ) FrsMaterial_setEmission, METH_NOARGS, FrsMaterial_setEmission___doc__},
-	{"setShininess", ( PyCFunction ) FrsMaterial_setShininess, METH_NOARGS, FrsMaterial_setShininess___doc__},
 	{NULL, NULL, 0, NULL}
+};
+
+/*----------------------mathutils callbacks ----------------------------*/
+
+/* subtype */
+#define MATHUTILS_SUBTYPE_DIFFUSE   1
+#define MATHUTILS_SUBTYPE_SPECULAR  2
+#define MATHUTILS_SUBTYPE_AMBIENT   3
+#define MATHUTILS_SUBTYPE_EMISSION  4
+
+static int FrsMaterial_mathutils_check(BaseMathObject *bmo)
+{
+	if (!BPy_FrsMaterial_Check(bmo->cb_user))
+		return -1;
+	return 0;
+}
+
+static int FrsMaterial_mathutils_get(BaseMathObject *bmo, int subtype)
+{
+	BPy_FrsMaterial *self = (BPy_FrsMaterial *)bmo->cb_user;
+	switch (subtype) {
+	case MATHUTILS_SUBTYPE_DIFFUSE:
+		bmo->data[0] = self->m->diffuseR();
+		bmo->data[1] = self->m->diffuseG();
+		bmo->data[2] = self->m->diffuseB();
+		bmo->data[3] = self->m->diffuseA();
+		break;
+	case MATHUTILS_SUBTYPE_SPECULAR:
+		bmo->data[0] = self->m->specularR();
+		bmo->data[1] = self->m->specularG();
+		bmo->data[2] = self->m->specularB();
+		bmo->data[3] = self->m->specularA();
+		break;
+	case MATHUTILS_SUBTYPE_AMBIENT:
+		bmo->data[0] = self->m->ambientR();
+		bmo->data[1] = self->m->ambientG();
+		bmo->data[2] = self->m->ambientB();
+		bmo->data[3] = self->m->ambientA();
+		break;
+	case MATHUTILS_SUBTYPE_EMISSION:
+		bmo->data[0] = self->m->emissionR();
+		bmo->data[1] = self->m->emissionG();
+		bmo->data[2] = self->m->emissionB();
+		bmo->data[3] = self->m->emissionA();
+		break;
+	default:
+		return -1;
+	}
+	return 0;
+}
+
+static int FrsMaterial_mathutils_set(BaseMathObject *bmo, int subtype)
+{
+	BPy_FrsMaterial *self = (BPy_FrsMaterial *)bmo->cb_user;
+	switch (subtype) {
+	case MATHUTILS_SUBTYPE_DIFFUSE:
+		self->m->setDiffuse(bmo->data[0], bmo->data[1], bmo->data[2], bmo->data[3]);
+		break;
+	case MATHUTILS_SUBTYPE_SPECULAR:
+		self->m->setSpecular(bmo->data[0], bmo->data[1], bmo->data[2], bmo->data[3]);
+		break;
+	case MATHUTILS_SUBTYPE_AMBIENT:
+		self->m->setAmbient(bmo->data[0], bmo->data[1], bmo->data[2], bmo->data[3]);
+		break;
+	case MATHUTILS_SUBTYPE_EMISSION:
+		self->m->setEmission(bmo->data[0], bmo->data[1], bmo->data[2], bmo->data[3]);
+		break;
+	default:
+		return -1;
+	}
+	return 0;
+}
+
+static int FrsMaterial_mathutils_get_index(BaseMathObject *bmo, int subtype, int index)
+{
+	BPy_FrsMaterial *self = (BPy_FrsMaterial *)bmo->cb_user;
+	switch (subtype) {
+	case MATHUTILS_SUBTYPE_DIFFUSE:
+		{
+			const float *color = self->m->diffuse();
+			bmo->data[index] = color[index];
+		}
+		break;
+	case MATHUTILS_SUBTYPE_SPECULAR:
+		{
+			const float *color = self->m->specular();
+			bmo->data[index] = color[index];
+		}
+		break;
+	case MATHUTILS_SUBTYPE_AMBIENT:
+		{
+			const float *color = self->m->ambient();
+			bmo->data[index] = color[index];
+		}
+		break;
+	case MATHUTILS_SUBTYPE_EMISSION:
+		{
+			const float *color = self->m->emission();
+			bmo->data[index] = color[index];
+		}
+		break;
+	default:
+		return -1;
+	}
+	return 0;
+}
+
+static int FrsMaterial_mathutils_set_index(BaseMathObject *bmo, int subtype, int index)
+{
+	BPy_FrsMaterial *self = (BPy_FrsMaterial *)bmo->cb_user;
+	float color[4];
+	switch (subtype) {
+	case MATHUTILS_SUBTYPE_DIFFUSE:
+		copy_v4_v4(color, self->m->diffuse());
+		color[index] = bmo->data[index];
+		self->m->setDiffuse(color[0], color[1], color[2], color[3]);
+		break;
+	case MATHUTILS_SUBTYPE_SPECULAR:
+		copy_v4_v4(color, self->m->specular());
+		color[index] = bmo->data[index];
+		self->m->setSpecular(color[0], color[1], color[2], color[3]);
+		break;
+	case MATHUTILS_SUBTYPE_AMBIENT:
+		copy_v4_v4(color, self->m->ambient());
+		color[index] = bmo->data[index];
+		self->m->setAmbient(color[0], color[1], color[2], color[3]);
+		break;
+	case MATHUTILS_SUBTYPE_EMISSION:
+		copy_v4_v4(color, self->m->emission());
+		color[index] = bmo->data[index];
+		self->m->setEmission(color[0], color[1], color[2], color[3]);
+		break;
+	default:
+		return -1;
+	}
+	return 0;
+}
+
+static Mathutils_Callback FrsMaterial_mathutils_cb = {
+	FrsMaterial_mathutils_check,
+	FrsMaterial_mathutils_get,
+	FrsMaterial_mathutils_set,
+	FrsMaterial_mathutils_get_index,
+	FrsMaterial_mathutils_set_index
+};
+
+static unsigned char FrsMaterial_mathutils_cb_index = -1;
+
+void FrsMaterial_mathutils_register_callback()
+{
+	FrsMaterial_mathutils_cb_index = Mathutils_RegisterCallback(&FrsMaterial_mathutils_cb);
+}
+
+/*----------------------FrsMaterial get/setters ----------------------------*/
+
+PyDoc_STRVAR(FrsMaterial_diffuse_doc,
+"RGBA components of the diffuse color of the material.\n"
+"\n"
+":type: mathutils.Vector"
+);
+
+static PyObject *FrsMaterial_diffuse_get(BPy_FrsMaterial *self, void *UNUSED(closure))
+{
+	return Vector_CreatePyObject_cb((PyObject *)self, 4, FrsMaterial_mathutils_cb_index, MATHUTILS_SUBTYPE_DIFFUSE);
+}
+
+static int FrsMaterial_diffuse_set(BPy_FrsMaterial *self, PyObject *value, void *UNUSED(closure))
+{
+	float color[4];
+	if (!Vec4((PyObject *)value, color)) {
+		PyErr_SetString(PyExc_ValueError, "value must be a 4-dimensional vector");
+		return -1;
+	}
+	self->m->setDiffuse(color[0], color[1], color[2], color[3]);
+	return 0;
+}
+
+PyDoc_STRVAR(FrsMaterial_specular_doc,
+"RGBA components of the specular color of the material.\n"
+"\n"
+":type: mathutils.Vector"
+);
+
+static PyObject *FrsMaterial_specular_get(BPy_FrsMaterial *self, void *UNUSED(closure))
+{
+	return Vector_CreatePyObject_cb((PyObject *)self, 4, FrsMaterial_mathutils_cb_index, MATHUTILS_SUBTYPE_SPECULAR);
+}
+
+static int FrsMaterial_specular_set(BPy_FrsMaterial *self, PyObject *value, void *UNUSED(closure))
+{
+	float color[4];
+	if (!Vec4((PyObject *)value, color)) {
+		PyErr_SetString(PyExc_ValueError, "value must be a 4-dimensional vector");
+		return -1;
+	}
+	self->m->setSpecular(color[0], color[1], color[2], color[3]);
+	return 0;
+}
+
+PyDoc_STRVAR(FrsMaterial_ambient_doc,
+"RGBA components of the ambient color of the material.\n"
+"\n"
+":type: mathutils.Color"
+);
+
+static PyObject *FrsMaterial_ambient_get(BPy_FrsMaterial *self, void *UNUSED(closure))
+{
+	return Vector_CreatePyObject_cb((PyObject *)self, 4, FrsMaterial_mathutils_cb_index, MATHUTILS_SUBTYPE_AMBIENT);
+}
+
+static int FrsMaterial_ambient_set(BPy_FrsMaterial *self, PyObject *value, void *UNUSED(closure))
+{
+	float color[4];
+	if (!Vec4((PyObject *)value, color)) {
+		PyErr_SetString(PyExc_ValueError, "value must be a 4-dimensional vector");
+		return -1;
+	}
+	self->m->setAmbient(color[0], color[1], color[2], color[3]);
+	return 0;
+}
+
+PyDoc_STRVAR(FrsMaterial_emission_doc,
+"RGBA components of the emissive color of the material.\n"
+"\n"
+":type: mathutils.Color"
+);
+
+static PyObject *FrsMaterial_emission_get(BPy_FrsMaterial *self, void *UNUSED(closure))
+{
+	return Vector_CreatePyObject_cb((PyObject *)self, 4, FrsMaterial_mathutils_cb_index, MATHUTILS_SUBTYPE_EMISSION);
+}
+
+static int FrsMaterial_emission_set(BPy_FrsMaterial *self, PyObject *value, void *UNUSED(closure))
+{
+	float color[4];
+	if (!Vec4((PyObject *)value, color)) {
+		PyErr_SetString(PyExc_ValueError, "value must be a 4-dimensional vector");
+		return -1;
+	}
+	self->m->setEmission(color[0], color[1], color[2], color[3]);
+	return 0;
+}
+
+PyDoc_STRVAR(FrsMaterial_shininess_doc,
+"Shininess coefficient of the material.\n"
+"\n"
+":type: float"
+);
+
+static PyObject *FrsMaterial_shininess_get(BPy_FrsMaterial *self, void *UNUSED(closure))
+{
+	return PyFloat_FromDouble(self->m->shininess());
+}
+
+static int FrsMaterial_shininess_set(BPy_FrsMaterial *self, PyObject *value, void *UNUSED(closure))
+{
+	float scalar;
+	if ((scalar = PyFloat_AsDouble(value)) == -1.0f && PyErr_Occurred()) { /* parsed item not a number */
+		PyErr_SetString(PyExc_TypeError, "value must be a number");
+		return -1;
+	}
+	self->m->setShininess(scalar);
+	return 0;
+}
+
+static PyGetSetDef BPy_FrsMaterial_getseters[] = {
+	{(char *)"diffuse", (getter)FrsMaterial_diffuse_get, (setter)FrsMaterial_diffuse_set, (char *)FrsMaterial_diffuse_doc, NULL},
+	{(char *)"specular", (getter)FrsMaterial_specular_get, (setter)FrsMaterial_specular_set, (char *)FrsMaterial_specular_doc, NULL},
+	{(char *)"ambient", (getter)FrsMaterial_ambient_get, (setter)FrsMaterial_ambient_set, (char *)FrsMaterial_ambient_doc, NULL},
+	{(char *)"emission", (getter)FrsMaterial_emission_get, (setter)FrsMaterial_emission_set, (char *)FrsMaterial_emission_doc, NULL},
+	{(char *)"shininess", (getter)FrsMaterial_shininess_get, (setter)FrsMaterial_shininess_set, (char *)FrsMaterial_shininess_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_FrsMaterial type definition ------------------------------*/
@@ -581,7 +428,7 @@ PyTypeObject FrsMaterial_Type = {
 	0,                              /* tp_iternext */
 	BPy_FrsMaterial_methods,        /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_FrsMaterial_getseters,      /* tp_getset */
 	0,                              /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */

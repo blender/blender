@@ -459,9 +459,9 @@ class pyMaterialColorShader(StrokeShader):
 			toto = it.castToInterface0DIterator()
 			mat = func(toto)
 			
-			r = mat.diffuseR()
-			g = mat.diffuseG()
-			b = mat.diffuseB()
+			r = mat.diffuse[0]
+			g = mat.diffuse[1]
+			b = mat.diffuse[2]
 
 			X = 0.412453*r + 0.35758 *g + 0.180423*b
 			Y = 0.212671*r + 0.71516 *g + 0.072169*b
