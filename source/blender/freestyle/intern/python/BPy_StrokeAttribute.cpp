@@ -385,7 +385,7 @@ static int StrokeAttribute_mathutils_set(BaseMathObject *bmo, int subtype)
 	BPy_StrokeAttribute *self = (BPy_StrokeAttribute *)bmo->cb_user;
 	switch (subtype) {
 	case MATHUTILS_SUBTYPE_COLOR:
-		self->sa->setColor(bmo->data[0], bmo->data[1], bmo->data[1]);
+		self->sa->setColor(bmo->data[0], bmo->data[1], bmo->data[2]);
 		break;
 	case MATHUTILS_SUBTYPE_THICKNESS:
 		self->sa->setThickness(bmo->data[0], bmo->data[1]);
@@ -468,8 +468,7 @@ void StrokeAttribute_mathutils_register_callback()
 PyDoc_STRVAR(StrokeAttribute_alpha_doc,
 "Alpha component of the stroke color.\n"
 "\n"
-":type: float"
-);
+":type: float");
 
 static PyObject *StrokeAttribute_alpha_get(BPy_StrokeAttribute *self, void *UNUSED(closure))
 {
@@ -490,8 +489,7 @@ static int StrokeAttribute_alpha_set(BPy_StrokeAttribute *self, PyObject *value,
 PyDoc_STRVAR(StrokeAttribute_color_doc,
 "RGB components of the stroke color.\n"
 "\n"
-":type: mathutils.Color"
-);
+":type: mathutils.Color");
 
 static PyObject *StrokeAttribute_color_get(BPy_StrokeAttribute *self, void *UNUSED(closure))
 {
@@ -514,8 +512,7 @@ PyDoc_STRVAR(StrokeAttribute_thickness_doc,
 "The right (left) component is the thickness on the right (left) of the vertex\n"
 "when following the stroke.\n"
 "\n"
-":type: mathutils.Vector"
-);
+":type: mathutils.Vector");
 
 static PyObject *StrokeAttribute_thickness_get(BPy_StrokeAttribute *self, void *UNUSED(closure))
 {
@@ -534,10 +531,9 @@ static int StrokeAttribute_thickness_set(BPy_StrokeAttribute *self, PyObject *va
 }
 
 PyDoc_STRVAR(StrokeAttribute_visible_doc,
-"visible component of the stroke color.\n"
+"The visibility flag.  True if the StrokeVertex is visible.\n"
 "\n"
-":type: float"
-);
+":type: bool");
 
 static PyObject *StrokeAttribute_visible_get(BPy_StrokeAttribute *self, void *UNUSED(closure))
 {
@@ -546,12 +542,11 @@ static PyObject *StrokeAttribute_visible_get(BPy_StrokeAttribute *self, void *UN
 
 static int StrokeAttribute_visible_set(BPy_StrokeAttribute *self, PyObject *value, void *UNUSED(closure))
 {
-	float scalar;
-	if ((scalar = PyFloat_AsDouble(value)) == -1.0f && PyErr_Occurred()) { /* parsed item not a number */
-		PyErr_SetString(PyExc_TypeError, "value must be a number");
+	if (!PyBool_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be boolean");
 		return -1;
 	}
-	self->sa->setVisible(scalar);
+	self->sa->setVisible(bool_from_PyBool(value));
 	return 0;
 }
 
