@@ -50,6 +50,12 @@ void bmo_triangulate_exec(BMesh *bm, BMOperator *op)
 
 	BM_mesh_triangulate(bm, use_beauty, true);
 
+	if (use_beauty) {
+		BMO_op_callf(bm, op->flag,
+		             "beautify_fill faces=%hf constrain_edges=%He",
+		             BM_ELEM_TAG, BM_ELEM_TAG);
+	}
+
 	BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "edges.out", BM_EDGE, BM_ELEM_TAG);
 	BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faces.out", BM_FACE, BM_ELEM_TAG);
 }
