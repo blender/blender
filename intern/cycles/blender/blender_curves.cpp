@@ -828,7 +828,7 @@ void ExportCurveTriangleVcol(Mesh *mesh, ParticleCurveData *CData, int interpola
 		return;
 
 	float time = 0.0f;
-	float prevtime = 0.0f;
+//	float prevtime = 0.0f; // UNUSED
 
 	int vertexindex = vert_offset;
 
@@ -865,7 +865,7 @@ void ExportCurveTriangleVcol(Mesh *mesh, ParticleCurveData *CData, int interpola
 						}
 					}
 
-					prevtime = time;
+					// prevtime = time;  // UNUSED
 				}
 			}
 		}

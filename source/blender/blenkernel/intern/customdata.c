@@ -1242,12 +1242,15 @@ void CustomData_update_typemap(CustomData *data)
 	}
 }
 
+/* currently only used in BLI_assert */
+#ifndef NDEBUG
 static int customdata_typemap_is_valid(const CustomData *data)
 {
 	CustomData data_copy = *data;
 	CustomData_update_typemap(&data_copy);
 	return (memcmp(data->typemap, data_copy.typemap, sizeof(data->typemap)) == 0);
 }
+#endif
 
 void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
                       CustomDataMask mask, int alloctype, int totelem)

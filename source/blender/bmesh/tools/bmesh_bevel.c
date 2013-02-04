@@ -384,6 +384,7 @@ static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
 	int iret;
 
 	BLI_assert(f1 != NULL && f2 != NULL);
+	(void)f1, (void)f2;  /* UNUSED */
 
 	/* get direction vectors for two offset lines */
 	sub_v3_v3v3(dir1, v->co, BM_edge_other_vert(e1->e, v)->co);
