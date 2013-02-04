@@ -412,6 +412,14 @@ static PyObject *bpy_bmedge_is_manifold_get(BPy_BMEdge *self)
 	return PyBool_FromLong(BM_edge_is_manifold(self->e));
 }
 
+PyDoc_STRVAR(bpy_bmedge_is_contiguous_doc,
+"True when this edge is manifold, between two faces with the same winding (read-only).\n\n:type: boolean"
+);
+static PyObject *bpy_bmedge_is_contiguous_get(BPy_BMEdge *self)
+{
+	BPY_BM_CHECK_OBJ(self);
+	return PyBool_FromLong(BM_edge_is_contiguous(self->e));
+}
 
 PyDoc_STRVAR(bpy_bmedge_is_wire_doc,
 "True when this edge is not connected to any faces (read-only).\n\n:type: boolean"
@@ -678,10 +686,11 @@ static PyGetSetDef bpy_bmedge_getseters[] = {
 	{(char *)"link_loops", (getter)bpy_bmelemseq_elem_get, (setter)NULL, (char *)bpy_bmedge_link_loops_doc, (void *)BM_LOOPS_OF_EDGE},
 
 	/* readonly checks */
-	{(char *)"is_manifold",  (getter)bpy_bmedge_is_manifold_get,  (setter)NULL, (char *)bpy_bmedge_is_manifold_doc, NULL},
-	{(char *)"is_wire",      (getter)bpy_bmedge_is_wire_get,      (setter)NULL, (char *)bpy_bmedge_is_wire_doc, NULL},
+	{(char *)"is_manifold",   (getter)bpy_bmedge_is_manifold_get,   (setter)NULL, (char *)bpy_bmedge_is_manifold_doc, NULL},
+	{(char *)"is_contiguous", (getter)bpy_bmedge_is_contiguous_get, (setter)NULL, (char *)bpy_bmedge_is_contiguous_doc, NULL},
+	{(char *)"is_wire",       (getter)bpy_bmedge_is_wire_get,       (setter)NULL, (char *)bpy_bmedge_is_wire_doc, NULL},
 	{(char *)"is_boundary",   (getter)bpy_bmedge_is_boundary_get,   (setter)NULL, (char *)bpy_bmedge_is_boundary_doc, NULL},
-	{(char *)"is_valid",     (getter)bpy_bm_is_valid_get,         (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
+	{(char *)"is_valid",      (getter)bpy_bm_is_valid_get,          (setter)NULL, (char *)bpy_bm_is_valid_doc, NULL},
 
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };

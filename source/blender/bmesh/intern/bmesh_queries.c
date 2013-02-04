@@ -763,6 +763,19 @@ int BM_edge_is_manifold(BMEdge *e)
 #endif
 
 /**
+ * Tests that the edge is manifold and
+ * that both its faces point the same way.
+ */
+bool BM_edge_is_contiguous(BMEdge *e)
+{
+	const BMLoop *l = e->l;
+	const BMLoop *l_other = l->radial_next;
+	return (l && (l_other != l) &&               /* not 0 or 1 face users */
+	             (l_other->radial_next == l) &&  /* 2 face users */
+	             (l_other->v != l->v));
+}
+
+/**
  * Tests whether or not an edge is on the boundary
  * of a shell (has one face associated with it)
  */
