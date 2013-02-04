@@ -52,22 +52,22 @@ void SocketProxyNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	InputSocket *inputsocket = this->getInputSocket(0);
 	if (outputsocket->isConnected()) {
 		if (inputsocket->isConnected()) {
-            SocketProxyOperation *operation = new SocketProxyOperation(this->getOutputSocket()->getDataType());
+			SocketProxyOperation *operation = new SocketProxyOperation(this->getOutputSocket()->getDataType());
 			inputsocket->relinkConnections(operation->getInputSocket(0));
 			outputsocket->relinkConnections(operation->getOutputSocket(0));
 			graph->addOperation(operation);
-            if (m_buffer){
-                WriteBufferOperation * writeOperation = new WriteBufferOperation();
-                ReadBufferOperation * readOperation = new ReadBufferOperation();
-                readOperation->setMemoryProxy(writeOperation->getMemoryProxy());
+			if (m_buffer) {
+				WriteBufferOperation *writeOperation = new WriteBufferOperation();
+				ReadBufferOperation *readOperation = new ReadBufferOperation();
+				readOperation->setMemoryProxy(writeOperation->getMemoryProxy());
 
-                operation->getOutputSocket()->relinkConnections(readOperation->getOutputSocket());
-                addLink(graph, operation->getOutputSocket(), writeOperation->getInputSocket(0));
+				operation->getOutputSocket()->relinkConnections(readOperation->getOutputSocket());
+				addLink(graph, operation->getOutputSocket(), writeOperation->getInputSocket(0));
 
-                graph->addOperation(writeOperation);
-                graph->addOperation(readOperation);
-            }
-        }
+				graph->addOperation(writeOperation);
+				graph->addOperation(readOperation);
+			}
+		}
 		else {
 			/* If input is not connected, add a constant value operation instead */
 			switch (outputsocket->getDataType()) {

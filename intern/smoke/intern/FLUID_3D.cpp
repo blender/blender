@@ -1055,7 +1055,7 @@ void FLUID_3D::project()
 			for (x = 1; x < _xRes - 1; x++, index++)
 			{
 				float vMask[3] = {1.0f, 1.0f, 1.0f}, vObst[3] = {0, 0, 0};
-				float vR = 0.0f, vL = 0.0f, vT = 0.0f, vB = 0.0f, vD = 0.0f, vU = 0.0f;
+				// float vR = 0.0f, vL = 0.0f, vT = 0.0f, vB = 0.0f, vD = 0.0f, vU = 0.0f;  // UNUSED
 
 				float pC = _pressure[index]; // center
 				float pR = _pressure[index + 1]; // right

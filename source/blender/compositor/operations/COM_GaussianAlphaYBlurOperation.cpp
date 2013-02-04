@@ -184,8 +184,8 @@ bool GaussianAlphaYBlurOperation::determineDependingAreaOfInterest(rcti *input, 
 		if (this->m_sizeavailable && this->m_gausstab != NULL) {
 			newInput.xmax = input->xmax;
 			newInput.xmin = input->xmin;
-            newInput.ymax = input->ymax + this->m_rad + 1;
-            newInput.ymin = input->ymin - this->m_rad - 1;
+			newInput.ymax = input->ymax + this->m_rad + 1;
+			newInput.ymin = input->ymin - this->m_rad - 1;
 		}
 		else {
 			newInput.xmax = this->getWidth();

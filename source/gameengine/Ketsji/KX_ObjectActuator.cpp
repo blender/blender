@@ -238,8 +238,8 @@ bool KX_ObjectActuator::Update()
 			{
 				parent->GetPhysicsController()->Jump();
 			}
-		}else
-		{
+		}
+		else {
 			if (!m_bitLocalFlag.ZeroForce)
 			{
 				parent->ApplyForce(m_force,(m_bitLocalFlag.Force) != 0);
