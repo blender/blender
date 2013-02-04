@@ -183,7 +183,7 @@ float TranslateOperation::getWrappedOriginalYPos(float y)
 	return fmodf(originalYPos, this->getHeight());
 }
 
-float TranslateOperation::setFactorXY(float factorX, float factorY)
+void TranslateOperation::setFactorXY(float factorX, float factorY)
 {
 	m_factorX = factorX;
 	m_factorY = factorY;

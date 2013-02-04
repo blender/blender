@@ -64,7 +64,7 @@ public:
 	float getWrappedOriginalXPos(float x);
 	float getWrappedOriginalYPos(float y);
 
-	float setFactorXY(float factorX, float factorY);
+	void setFactorXY(float factorX, float factorY);
 };
 
 #endif
