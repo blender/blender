@@ -12,7 +12,8 @@ set(INC_SYS
 
 set(SRC
 	kernel.cpp
-	kernel_optimized.cpp
+	kernel_sse2.cpp
+	kernel_sse3.cpp
 	kernel.cl
 	kernel.cu
 )
@@ -149,7 +150,8 @@ include_directories(SYSTEM ${INC_SYS})
 add_library(cycles_kernel ${SRC} ${SRC_HEADERS} ${SRC_CLOSURE_HEADERS} ${SRC_SVM_HEADERS})
 
 if(WITH_CYCLES_OPTIMIZED_KERNEL)
-	set_source_files_properties(kernel_optimized.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_OPTIMIZED_KERNEL_FLAGS}")
+	set_source_files_properties(kernel_sse2.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE2_KERNEL_FLAGS}")
+	set_source_files_properties(kernel_sse3.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE3_KERNEL_FLAGS}")
 endif()
 
 if(WITH_CYCLES_CUDA)

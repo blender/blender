@@ -126,21 +126,21 @@ __device_inline void bvh_node_intersect(KernelGlobals *kg,
 
 	/* intersect ray against child nodes */
 	float3 ood = P * idir;
-	float c0lox = n0xy.x * idir.x - ood.x;
-	float c0hix = n0xy.y * idir.x - ood.x;
-	float c0loy = n0xy.z * idir.y - ood.y;
-	float c0hiy = n0xy.w * idir.y - ood.y;
-	float c0loz = nz.x * idir.z - ood.z;
-	float c0hiz = nz.y * idir.z - ood.z;
+	NO_EXTENDED_PRECISION float c0lox = n0xy.x * idir.x - ood.x;
+	NO_EXTENDED_PRECISION float c0hix = n0xy.y * idir.x - ood.x;
+	NO_EXTENDED_PRECISION float c0loy = n0xy.z * idir.y - ood.y;
+	NO_EXTENDED_PRECISION float c0hiy = n0xy.w * idir.y - ood.y;
+	NO_EXTENDED_PRECISION float c0loz = nz.x * idir.z - ood.z;
+	NO_EXTENDED_PRECISION float c0hiz = nz.y * idir.z - ood.z;
 	NO_EXTENDED_PRECISION float c0min = max4(min(c0lox, c0hix), min(c0loy, c0hiy), min(c0loz, c0hiz), 0.0f);
 	NO_EXTENDED_PRECISION float c0max = min4(max(c0lox, c0hix), max(c0loy, c0hiy), max(c0loz, c0hiz), t);
 
-	float c1loz = nz.z * idir.z - ood.z;
-	float c1hiz = nz.w * idir.z - ood.z;
-	float c1lox = n1xy.x * idir.x - ood.x;
-	float c1hix = n1xy.y * idir.x - ood.x;
-	float c1loy = n1xy.z * idir.y - ood.y;
-	float c1hiy = n1xy.w * idir.y - ood.y;
+	NO_EXTENDED_PRECISION float c1loz = nz.z * idir.z - ood.z;
+	NO_EXTENDED_PRECISION float c1hiz = nz.w * idir.z - ood.z;
+	NO_EXTENDED_PRECISION float c1lox = n1xy.x * idir.x - ood.x;
+	NO_EXTENDED_PRECISION float c1hix = n1xy.y * idir.x - ood.x;
+	NO_EXTENDED_PRECISION float c1loy = n1xy.z * idir.y - ood.y;
+	NO_EXTENDED_PRECISION float c1hiy = n1xy.w * idir.y - ood.y;
 	NO_EXTENDED_PRECISION float c1min = max4(min(c1lox, c1hix), min(c1loy, c1hiy), min(c1loz, c1hiz), 0.0f);
 	NO_EXTENDED_PRECISION float c1max = min4(max(c1lox, c1hix), max(c1loy, c1hiy), max(c1loz, c1hiz), t);
 

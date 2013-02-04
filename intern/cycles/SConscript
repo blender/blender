@@ -36,7 +36,8 @@ sources = cycles.Glob('bvh/*.cpp') + cycles.Glob('device/*.cpp') + cycles.Glob('
 
 sources.remove(path.join('util', 'util_view.cpp'))
 sources.remove(path.join('render', 'film_response.cpp'))
-sources.remove(path.join('kernel', 'kernel_optimized.cpp'))
+sources.remove(path.join('kernel', 'kernel_sse2.cpp'))
+sources.remove(path.join('kernel', 'kernel_sse3.cpp'))
 
 incs = [] 
 defs = []
@@ -73,21 +74,29 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', '
 
 # optimized kernel
 if env['WITH_BF_RAYOPTIMIZATION']:
-    optim_cxxflags = Split(env['CXXFLAGS'])
+    sse2_cxxflags = Split(env['CXXFLAGS'])
+    sse3_cxxflags = Split(env['CXXFLAGS'])
 
     if env['OURPLATFORM'] == 'win32-vc':
-        optim_cxxflags.append('/arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /EHsc'.split())
+        sse2_cxxflags.append('/arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /EHsc'.split())
+        sse3_cxxflags.append('/arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /EHsc'.split())
     elif env['OURPLATFORM'] == 'win64-vc':
-        optim_cxxflags.append('-D_CRT_SECURE_NO_WARNINGS /fp:fast /EHsc'.split())
+        sse2_cxxflags.append('-D_CRT_SECURE_NO_WARNINGS /fp:fast /EHsc'.split())
+        sse3_cxxflags.append('-D_CRT_SECURE_NO_WARNINGS /fp:fast /EHsc'.split())
     else:
-        optim_cxxflags.append('-ffast-math -msse -msse2 -msse3 -mfpmath=sse'.split())
+        sse2_cxxflags.append('-ffast-math -msse -msse2 -mfpmath=sse'.split())
+        sse3_cxxflags.append('-ffast-math -msse -msse2 -msse3 -mfpmath=sse'.split())
     
     defs.append('WITH_OPTIMIZED_KERNEL')
     optim_defs = defs[:]
-    optim_sources = [path.join('kernel', 'kernel_optimized.cpp')]
 
-    cycles_optim = cycles.Clone()
-    cycles_optim.BlenderLib('bf_intern_cycles_optimized', optim_sources, incs, optim_defs, libtype=['intern'], priority=[10], cxx_compileflags=optim_cxxflags)
+    cycles_sse3 = cycles.Clone()
+    sse3_sources = [path.join('kernel', 'kernel_sse3.cpp')]
+    cycles_sse3.BlenderLib('bf_intern_cycles_sse3', sse3_sources, incs, optim_defs, libtype=['intern'], priority=[10], cxx_compileflags=sse3_cxxflags)
+
+    cycles_sse2 = cycles.Clone()
+    sse2_sources = [path.join('kernel', 'kernel_sse2.cpp')]
+    cycles_sse2.BlenderLib('bf_intern_cycles_sse2', sse2_sources, incs, optim_defs, libtype=['intern'], priority=[10], cxx_compileflags=sse2_cxxflags)
 
 cycles.BlenderLib('bf_intern_cycles', sources, incs, defs, libtype=['intern'], priority=[0], cxx_compileflags=cxxflags)
 
