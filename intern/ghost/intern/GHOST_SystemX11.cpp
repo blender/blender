@@ -77,7 +77,7 @@
 // #define USE_X11_ERROR_HANDLERS
 
 /* see [#34039] Fix Alt key glitch on Unity desktop */
-// #define USE_UNITY_WORKAROUND
+#define USE_UNITY_WORKAROUND
 
 static GHOST_TKey convertXKey(KeySym key);
 
@@ -569,30 +569,38 @@ processEvents(
 			/* the X server generates KeymapNotify event immediately after
 			 * every EnterNotify and FocusIn event.  we handle this event
 			 * to correct modifier states. */
-			if ((xevent.type == FocusIn || xevent.type == EnterNotify)) {
+			if (xevent.type == FocusIn) {
 				/* use previous event's window, because KeymapNotify event
 				 * has no window information. */
 				GHOST_WindowX11 *window = findGhostWindow(xevent.xany.window);
-				if (window) {
+				if (window && XPending(m_display) >= 2) {
 					XNextEvent(m_display, &xevent);
 
 					if (xevent.type == KeymapNotify) {
-						/* XK_Hyper_L/R currently unused */
-						const static KeySym modifiers[8] = {XK_Shift_L, XK_Shift_R,
-						                                    XK_Control_L, XK_Control_R,
-						                                    XK_Alt_L, XK_Alt_R,
-						                                    XK_Super_L, XK_Super_R};
+						XEvent xev_next;
 
-						for (int i = 0; i < (sizeof(modifiers) / sizeof(*modifiers)); i++) {
-							KeyCode kc = XKeysymToKeycode(m_display, modifiers[i]);
-							if (((xevent.xkeymap.key_vector[kc >> 3] >> (kc & 7)) & 1) != 0) {
-								pushEvent(new GHOST_EventKey(
-								              getMilliSeconds(),
-								              GHOST_kEventKeyDown,
-								              window,
-								              convertXKey(modifiers[i]),
-								              '\0',
-								              NULL));
+						/* check if KeyPress or KeyRelease event was generated
+						 * in order to confirm the window is active. */
+						XPeekEvent(m_display, &xev_next);
+
+						if (xev_next.type == KeyPress || xev_next.type == KeyRelease) {
+							/* XK_Hyper_L/R currently unused */
+							const static KeySym modifiers[8] = {XK_Shift_L, XK_Shift_R,
+							                                    XK_Control_L, XK_Control_R,
+							                                    XK_Alt_L, XK_Alt_R,
+							                                    XK_Super_L, XK_Super_R};
+
+							for (int i = 0; i < (sizeof(modifiers) / sizeof(*modifiers)); i++) {
+								KeyCode kc = XKeysymToKeycode(m_display, modifiers[i]);
+								if (((xevent.xkeymap.key_vector[kc >> 3] >> (kc & 7)) & 1) != 0) {
+									pushEvent(new GHOST_EventKey(
+									              getMilliSeconds(),
+									              GHOST_kEventKeyDown,
+									              window,
+									              convertXKey(modifiers[i]),
+									              '\0',
+									              NULL));
+								}
 							}
 						}
 					}
