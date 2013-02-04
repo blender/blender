@@ -134,7 +134,7 @@ typedef enum PropertySubType {
 	PROP_AXISANGLE = 28,
 	PROP_XYZ = 29,
 	PROP_XYZ_LENGTH = 29 | PROP_UNIT_LENGTH,
-	PROP_COLOR_GAMMA = 30,
+	PROP_COLOR_GAMMA = 30, /* used for colors which would be color managed before display */
 	PROP_COORDS = 31, /* generic array, no units applied, only that x/y/z/w are used (python vec) */
 
 	/* booleans */

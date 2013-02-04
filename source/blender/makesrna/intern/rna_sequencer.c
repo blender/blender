@@ -2111,7 +2111,7 @@ static void rna_def_solid_color(StructRNA *srna)
 
 	RNA_def_struct_sdna_from(srna, "SolidColorVars", "effectdata");
 
-	prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
+	prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "col");
 	RNA_def_property_ui_text(prop, "Color", "");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
