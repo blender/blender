@@ -8728,7 +8728,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	// add storage for compositor translate nodes when not existing
-	if (!MAIN_VERSION_ATLEAST(main, 265, 9)) {
+	if (!MAIN_VERSION_ATLEAST(main, 265, 10)) {
 		bNodeTreeType *ntreetype;
 
 		ntreetype = ntreeGetType(NTREE_COMPOSIT);
