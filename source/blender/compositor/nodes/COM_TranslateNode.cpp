@@ -38,9 +38,17 @@ void TranslateNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	OutputSocket *outputSocket = this->getOutputSocket(0);
 	TranslateOperation *operation = new TranslateOperation();
 
-	bNode *editorNode = this->getbNode();
-	NodeTranslateData *data = (NodeTranslateData *)editorNode->storage;
+	bNode *bnode = this->getbNode();
+	NodeTranslateData *data = (NodeTranslateData *)bnode->storage;
 	operation->setWrapping(data->wrap_axis);
+
+	if (data->relative) {
+		const RenderData *rd = context->getRenderData();
+		float fx = rd->xsch * rd->size / 100.0f;
+		float fy = rd->ysch * rd->size / 100.0f;
+
+		operation->setFactorXY(fx, fy);
+	}
 
 	inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
 	inputXSocket->relinkConnections(operation->getInputSocket(1), 1, graph);

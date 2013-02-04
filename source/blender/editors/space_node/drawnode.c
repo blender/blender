@@ -2381,6 +2381,7 @@ static void node_composit_buts_stabilize2d(uiLayout *layout, bContext *C, Pointe
 
 static void node_composit_buts_translate(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
+	uiItemR(layout, ptr, "use_relative", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "wrap_axis", 0, NULL, ICON_NONE);
 }
 

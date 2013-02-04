@@ -34,6 +34,8 @@ TranslateOperation::TranslateOperation() : NodeOperation()
 	this->m_inputXOperation = NULL;
 	this->m_inputYOperation = NULL;
 	this->m_isDeltaSet = false;
+	this->m_factorX = 1.0f;
+	this->m_factorY = 1.0f;
 }
 void TranslateOperation::initExecution()
 {
@@ -180,3 +182,10 @@ float TranslateOperation::getWrappedOriginalYPos(float y)
 	while (originalYPos < 0) originalYPos += this->m_height;
 	return fmodf(originalYPos, this->getHeight());
 }
+
+float TranslateOperation::setFactorXY(float factorX, float factorY)
+{
+	m_factorX = factorX;
+	m_factorY = factorY;
+}
+

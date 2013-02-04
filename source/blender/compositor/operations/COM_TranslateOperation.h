@@ -35,6 +35,8 @@ private:
 	bool m_isDeltaSet;
 	float m_relativeOffsetX;
 	float m_relativeOffsetY;
+	float m_factorX;
+	float m_factorY;
 	char m_wrappingType;
 public:
 	TranslateOperation();
@@ -44,8 +46,8 @@ public:
 	void initExecution();
 	void deinitExecution();
 
-	float getDeltaX() { return this->m_deltaX; }
-	float getDeltaY() { return this->m_deltaY; }
+	float getDeltaX() { return this->m_deltaX * this->m_factorX; }
+	float getDeltaY() { return this->m_deltaY * this->m_factorY; }
 	
 	inline void ensureDelta() {
 		if (!this->m_isDeltaSet) {
@@ -61,6 +63,8 @@ public:
 	void setWrapping(char wrapping_type);
 	float getWrappedOriginalXPos(float x);
 	float getWrappedOriginalYPos(float y);
+
+	float setFactorXY(float factorX, float factorY);
 };
 
 #endif
