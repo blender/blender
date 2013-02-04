@@ -850,24 +850,8 @@ class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
                 split = layout.split(percentage=0.2)
                 split.label(text="Type:")
                 split.prop(tex, "type", text="")
-
-
-class CyclesTexture_PT_nodes(CyclesButtonsPanel, Panel):
-    bl_label = "Nodes"
-    bl_context = "texture"
-
-    @classmethod
-    def poll(cls, context):
-        tex = context.texture
-        return (tex and tex.use_nodes) and CyclesButtonsPanel.poll(context)
-
-    def draw(self, context):
-        layout = self.layout
-
-        tex = context.texture
-        panel_node_draw(layout, tex, 'OUTPUT_TEXTURE', 'Color')
-
-
+                
+                
 class CyclesTexture_PT_node(CyclesButtonsPanel, Panel):
     bl_label = "Node"
     bl_context = "texture"
@@ -893,12 +877,11 @@ class CyclesTexture_PT_mapping(CyclesButtonsPanel, Panel):
     def poll(cls, context):
         tex = context.texture
         node = context.texture_node
-        return (node or (tex and tex.use_nodes)) and CyclesButtonsPanel.poll(context)
+        return node and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
-
-        # tex = context.texture
+        
         node = context.texture_node
 
         mapping = node.texture_mapping
