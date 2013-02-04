@@ -958,7 +958,7 @@ static void rigidbody_update_sim_ob(Scene *scene, RigidBodyWorld *rbw, Object *o
 		RB_shape_set_margin(rbo->physics_shape, RBO_GET_MARGIN(rbo) * MIN3(scale[0], scale[1], scale[2]));
 
 	/* make transformed objects temporarily kinmatic so that they can be moved by the user during simulation */
-	if ((ob->flag & SELECT && G.moving & G_TRANSFORM_OBJ) || rbo->type == RBO_TYPE_PASSIVE) {
+	if (ob->flag & SELECT && G.moving & G_TRANSFORM_OBJ) {
 		RB_body_set_kinematic_state(rbo->physics_object, TRUE);
 		RB_body_set_mass(rbo->physics_object, 0.0f);
 	}
@@ -1118,6 +1118,9 @@ static void rigidbody_update_simulation_post_step(RigidBodyWorld *rbw)
 			if (ob->flag & SELECT && G.moving & G_TRANSFORM_OBJ) {
 				RB_body_set_kinematic_state(rbo->physics_object, rbo->flag & RBO_FLAG_KINEMATIC || rbo->flag & RBO_FLAG_DISABLED);
 				RB_body_set_mass(rbo->physics_object, RBO_GET_MASS(rbo));
+				/* deactivate passive objects so they don't interfere with deactivation of active objects */
+				if (rbo->type == RBO_TYPE_PASSIVE)
+					RB_body_deactivate(rbo->physics_object);
 			}
 		}
 	}
@@ -1178,8 +1181,12 @@ void BKE_rigidbody_aftertrans_update(Object *ob, float loc[3], float rot[3], flo
 		copy_qt_qt(rbo->orn, ob->quat);
 		copy_qt_qt(ob->quat, quat);
 	}
-	if (rbo->physics_object)
+	if (rbo->physics_object) {
+		/* allow passive objects to return to original transform */
+		if (rbo->type == RBO_TYPE_PASSIVE)
+			RB_body_set_kinematic_state(rbo->physics_object, TRUE);
 		RB_body_set_loc_rot(rbo->physics_object, rbo->pos, rbo->orn);
+	}
 	// RB_TODO update rigid body physics object's loc/rot for dynamic objects here as well (needs to be done outside bullet's update loop)
 }
 
