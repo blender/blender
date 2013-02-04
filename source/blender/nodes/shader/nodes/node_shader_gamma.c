@@ -29,7 +29,7 @@
 #include "node_shader_util.h"
 
 /* **************** Gamma Tools  ******************** */
-  
+
 static bNodeSocketTemplate sh_node_gamma_in[] = {
 	{	SOCK_RGBA, 1, N_("Color"),			1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Gamma"),			1.0f, 0.0f, 0.0f, 0.0f, 0.001f, 10.0f, PROP_UNSIGNED},

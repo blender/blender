@@ -111,7 +111,7 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob)
 			node.addMatrix("parentinverse", dmat);
 		}
 	}
-    
+
 	double d_obmat[4][4];	
 	converter.mat4_to_dae_double(d_obmat, ob->obmat);
 	node.addMatrix("transform",d_obmat);

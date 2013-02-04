@@ -96,7 +96,7 @@ bool ControllerExporter::add_instance_controller(Object *ob)
 	for (bone = (Bone *)arm->bonebase.first; bone; bone = bone->next) {
 		write_bone_URLs(ins, ob_arm, bone);
 	}
-    
+
 	InstanceWriter::add_material_bindings(ins.getBindMaterial(), ob, this->export_settings->active_uv_only);
 		
 	ins.add();
@@ -302,7 +302,7 @@ void ControllerExporter::export_morph_controller(Object *ob, Key *key)
 
 	openMorph(controller_id, controller_name,
 	         COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, get_geometry_id(ob, use_instantiation)));
-    
+
 	std::string targets_id = add_morph_targets(key, ob);
 	std::string morph_weights_id = add_morph_weights(key, ob);
 	
@@ -320,7 +320,7 @@ void ControllerExporter::export_morph_controller(Object *ob, Key *key)
 	{
 		BKE_libblock_free_us(&(G.main->mesh), me);
 	}
-    
+
 	//support for animations
 	//can also try the base element and param alternative
 	add_weight_extras(key);
@@ -337,7 +337,7 @@ std::string ControllerExporter::add_morph_targets(Key *key, Object *ob)
 	source.setArrayId(source_id + ARRAY_ID_SUFFIX);
 	source.setAccessorCount(key->totkey - 1);
 	source.setAccessorStride(1);
-    
+
 	COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
 	param.push_back("IDREF");
 
@@ -366,7 +366,7 @@ std::string ControllerExporter::add_morph_weights(Key *key, Object *ob)
 	source.setArrayId(source_id + ARRAY_ID_SUFFIX);
 	source.setAccessorCount(key->totkey - 1);
 	source.setAccessorStride(1);
-    
+
 	COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
 	param.push_back("MORPH_WEIGHT");
 	

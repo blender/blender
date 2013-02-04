@@ -216,7 +216,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 					}
 				}
 			}
-            
+
 			con = con->next;
 		}
 	}

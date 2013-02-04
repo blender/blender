@@ -875,7 +875,7 @@ static void ui_do_animate(const bContext *C, Panel *panel)
 void uiBeginPanels(const bContext *UNUSED(C), ARegion *ar)
 {
 	Panel *pa;
-  
+
 	/* set all panels as inactive, so that at the end we know
 	 * which ones were used */
 	for (pa = ar->panels.first; pa; pa = pa->next) {

@@ -157,7 +157,7 @@ void GeometryExporter::operator()(Object *ob)
 	if (this->export_settings->apply_modifiers) {
 		BKE_libblock_free_us(&(G.main->mesh), me);
 	}
-    
+
 	if (this->export_settings->include_shapekeys) {
 		Key * key = BKE_key_from_object(ob);
 		if(key) {

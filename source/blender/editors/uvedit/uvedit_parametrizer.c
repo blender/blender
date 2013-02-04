@@ -1057,7 +1057,7 @@ static PFace *p_face_add(PHandle *handle)
 	e1->pair = NULL;
 	e2->pair = NULL;
 	e3->pair = NULL;
-   
+
 	e1->flag = 0;
 	e2->flag = 0;
 	e3->flag = 0;

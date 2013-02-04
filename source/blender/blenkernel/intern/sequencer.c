@@ -1746,7 +1746,7 @@ void BKE_sequencer_color_balance_apply(StripColorBalance *cb, ImBuf *ibuf, float
 	init_data.mask = mask_input;
 
 	IMB_processor_apply_threaded(ibuf->y, sizeof(ColorBalanceThread), &init_data,
-                                 color_balance_init_handle, color_balance_do_thread);
+	                             color_balance_init_handle, color_balance_do_thread);
 
 	/* color balance either happens on float buffer or byte buffer, but never on both,
 	 * free byte buffer if there's float buffer since float buffer would be used for

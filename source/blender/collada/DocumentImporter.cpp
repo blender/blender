@@ -426,7 +426,7 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 	bool read_transform = true;
 
 	std::vector<Object *> *objects_done = new std::vector<Object *>();
-    
+
 	if (is_joint) {
 		armature_importer.add_joint(node, parent_node == NULL || parent_node->getType() != COLLADAFW::Node::JOINT, par, sce);
 	}
@@ -1203,7 +1203,7 @@ bool DocumentImporter::is_armature(COLLADAFW::Node *node){
 		if(child_nodes[i]->getType() == COLLADAFW::Node::JOINT) return true;
 		else continue;
 	}
-    
+
 	//no child is JOINT
 	return false;
 

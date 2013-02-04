@@ -319,7 +319,7 @@ void ArmatureImporter::create_armature_bones( )
 
 		if (!ob_arm)
 			continue;
-        
+
 		ED_armature_to_edit(ob_arm);
 
 		/*
@@ -327,8 +327,8 @@ void ArmatureImporter::create_armature_bones( )
 		 * check if bones have already been created for a given joint
 		 */
 
-        create_bone(NULL, *ri , NULL, (*ri)->getChildNodes().getCount(), NULL, (bArmature *)ob_arm->data);
-        
+		create_bone(NULL, *ri , NULL, (*ri)->getChildNodes().getCount(), NULL, (bArmature *)ob_arm->data);
+
 		//leaf bone tails are derived from the matrix, so no need of this.
 		fix_leaf_bones();
 
@@ -336,15 +336,13 @@ void ArmatureImporter::create_armature_bones( )
 		unskinned_armature_map[(*ri)->getUniqueId()] = ob_arm;
 
 		ED_armature_from_edit(ob_arm);
-        
+
 		//This serves no purpose, as pose is automatically reset later, in BKE_where_is_bone()
 		//set_pose(ob_arm, *ri, NULL, NULL);
 
 		ED_armature_edit_free(ob_arm);
 		DAG_id_tag_update(&ob_arm->id, OB_RECALC_OB | OB_RECALC_DATA);
 	}
-
-	
 }
 
 void ArmatureImporter::create_armature_bones(SkinInfo& skin)
@@ -650,12 +648,12 @@ bool ArmatureImporter::write_controller(const COLLADAFW::Controller *controller)
 void ArmatureImporter::make_shape_keys(){
 	std::vector<COLLADAFW::MorphController *>::iterator mc;
 	float weight;
-        
+
 	for (mc = morph_controllers.begin(); mc != morph_controllers.end(); mc++) {
 		//Controller data
 		COLLADAFW::UniqueIdArray& morphTargetIds = (*mc)->getMorphTargets();
 		COLLADAFW::FloatOrDoubleArray& morphWeights = (*mc)->getMorphWeights();
-        
+
 		//Prereq: all the geometries must be imported and mesh objects must be made
 		Object *source_ob = this->mesh_importer->get_object_by_geom_uid((*mc)->getSource());
 		

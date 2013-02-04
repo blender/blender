@@ -654,7 +654,6 @@ static int sculpt_brush_test_cyl(SculptBrushTest *test, float co[3], float locat
 /* ===== Sculpting =====
  *
  */
-  
 
 static float overlapped_curve(Brush *br, float x)
 {

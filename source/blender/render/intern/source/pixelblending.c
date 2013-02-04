@@ -120,7 +120,7 @@ void addalphaAddfacFloat(float dest[4], const float source[4], char addfac)
 	else 
 #endif
 	dest[0] = c;
-   
+
 	c = (m * dest[1]) + source[1];
 #ifdef RE_FLOAT_COLOR_CLIPPING
 	if (c >= RE_FULL_COLOR_FLOAT) dest[1] = RE_FULL_COLOR_FLOAT; 

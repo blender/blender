@@ -33,7 +33,7 @@
 SocketProxyNode::SocketProxyNode(bNode *editorNode, bNodeSocket *editorInput, bNodeSocket *editorOutput, bool buffer) : Node(editorNode, false)
 {
 	DataType dt;
-    this->m_buffer = buffer;
+	this->m_buffer = buffer;
 
 	dt = COM_DT_VALUE;
 	if (editorInput->type == SOCK_RGBA) dt = COM_DT_COLOR;
