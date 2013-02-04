@@ -300,7 +300,14 @@ static short summary_keyframes_loop(KeyframeEditData *ked, bAnimContext *ac, Key
 	
 	/* loop through each F-Curve, working on the keyframes until the first curve aborts */
 	for (ale = anim_data.first; ale; ale = ale->next) {
-		ret_code = ANIM_fcurve_keyframes_loop(ked, ale->data, key_ok, key_cb, fcu_cb);
+		switch (ale->datatype) {
+			case ALE_MASKLAY:
+			case ALE_GPFRAME:
+				break;
+			default:
+				ret_code = ANIM_fcurve_keyframes_loop(ked, ale->data, key_ok, key_cb, fcu_cb);
+				break;
+		}
 		
 		if (ret_code)
 			break;
