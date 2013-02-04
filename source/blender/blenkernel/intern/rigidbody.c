@@ -416,6 +416,10 @@ void BKE_rigidbody_validate_sim_shape(Object *ob, short rebuild)
 		rbo->physics_shape = new_shape;
 		RB_shape_set_margin(rbo->physics_shape, RBO_GET_MARGIN(rbo));
 	}
+	else { /* otherwise fall back to box shape */
+		rbo->shape = RB_SHAPE_BOX;
+		BKE_rigidbody_validate_sim_shape(ob, true);
+	}
 }
 
 /* --------------------- */
