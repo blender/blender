@@ -875,7 +875,6 @@ class CyclesTexture_PT_mapping(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        tex = context.texture
         node = context.texture_node
         return node and CyclesButtonsPanel.poll(context)
 
@@ -907,15 +906,13 @@ class CyclesTexture_PT_colors(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        # tex = context.texture
         # node = context.texture_node
         return False
-        #return (node or (tex and tex.use_nodes)) and CyclesButtonsPanel.poll(context)
+        #return node and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
-
-        # tex = context.texture
+        
         node = context.texture_node
 
         mapping = node.color_mapping
