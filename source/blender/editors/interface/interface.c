@@ -927,6 +927,8 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 		block->auto_open = block->oldblock->auto_open;
 		block->auto_open_last = block->oldblock->auto_open_last;
 		block->tooltipdisabled = block->oldblock->tooltipdisabled;
+		copy_v3_v3(ui_block_hsv_get(block),
+		           ui_block_hsv_get(block->oldblock));
 
 		block->oldblock = NULL;
 	}
