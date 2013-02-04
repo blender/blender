@@ -74,60 +74,17 @@
 
 #include "ED_mesh.h"
 
-
 #include "BLF_api.h"
-
 
 #include "view3d_intern.h"  // own include
 
-
-#ifdef _WIN32
-#include <time.h>
-#include <stdio.h>
-#include <conio.h>
-#include <windows.h>
-
-static LARGE_INTEGER liFrequency;
-static LARGE_INTEGER liStartTime;
-static LARGE_INTEGER liCurrentTime;
-
-static void tstart(void)
-{
-	QueryPerformanceFrequency(&liFrequency);
-	QueryPerformanceCounter(&liStartTime);
-}
-static void tend(void)
-{
-	QueryPerformanceCounter(&liCurrentTime);
-}
-static double tval(void)
-{
-	return ((double)( (liCurrentTime.QuadPart - liStartTime.QuadPart) * (double)1000.0 / (double)liFrequency.QuadPart));
-}
-#else
-#include <sys/time.h>
-static struct timeval _tstart, _tend;
-static struct timezone tz;
-static void tstart(void)
-{
-	gettimeofday(&_tstart, &tz);
-}
-static void tend(void)
-{
-	gettimeofday(&_tend, &tz);
-}
-  #if 0
-static double tval()
-{
-	double t1, t2;
-	t1 = ( double ) _tstart.tv_sec * 1000 + ( double ) _tstart.tv_usec / (1000);
-	t2 = ( double ) _tend.tv_sec * 1000 + ( double ) _tend.tv_usec / (1000);
-	return t2 - t1;
-}
-  #endif
-#endif
-
 struct GPUTexture;
+
+// #define DEBUG_DRAW_TIME
+
+#ifdef DEBUG_DRAW_TIME
+#  include "PIL_time.h"
+#endif
 
 static int intersect_edges(float *points, float a, float b, float c, float d, float edges[12][2][3])
 {
@@ -275,7 +232,10 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 		return;
 	}
 
-	tstart();
+#ifdef DEBUG_DRAW_TIME
+	TIMEIT_START(draw);
+#endif
+
 	/* generate flame spectrum texture */
 	#define SPEC_WIDTH 256
 	#define FIRE_THRESH 7
@@ -522,8 +482,10 @@ void draw_smoke_volume(SmokeDomainSettings *sds, Object *ob,
 		n++;
 	}
 
-	tend();
-	// printf ( "Draw Time: %f\n",(float) tval() );
+#ifdef DEBUG_DRAW_TIME
+	printf("Draw Time: %f\n", (float)TIMEIT_VALUE(draw));
+	TIMEIT_END(draw);
+#endif
 
 	if (tex_shadow)
 		GPU_texture_unbind(tex_shadow);
