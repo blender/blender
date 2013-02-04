@@ -562,6 +562,13 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 		tmp.key = NULL;
 	}
 
+	/* Clear selection history */
+	tmp.mselect = NULL;
+	tmp.totselect = 0;
+	if (me->mselect) {
+		MEM_freeN(me->mselect);
+	}
+
 	*me = tmp;
 }
 
