@@ -2110,7 +2110,7 @@ static void colormanage_description_strip(char *description)
 {
 	int i, n;
 
-	for (i = strlen(description) - 1; i >= 0; i--) {
+	for (i = (int)strlen(description) - 1; i >= 0; i--) {
 		if (ELEM(description[i], '\r', '\n')) {
 			description[i] = '\0';
 		}

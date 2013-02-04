@@ -2120,6 +2120,7 @@ void RNA_def_property_int_funcs_runtime(PropertyRNA *prop, IntPropertyGetFunc ge
 
 	if (getfunc) iprop->get_ex = getfunc;
 	if (setfunc) iprop->set_ex = setfunc;
+	if (rangefunc) iprop->range_ex = rangefunc;
 
 	if (getfunc || setfunc) {
 		/* don't save in id properties */
@@ -2136,6 +2137,7 @@ void RNA_def_property_int_array_funcs_runtime(PropertyRNA *prop, IntArrayPropert
 
 	if (getfunc) iprop->getarray_ex = getfunc;
 	if (setfunc) iprop->setarray_ex = setfunc;
+	if (rangefunc) iprop->range_ex = rangefunc;
 
 	if (getfunc || setfunc) {
 		/* don't save in id properties */
