@@ -967,6 +967,7 @@ static void actkeys_mselect_single(bAnimContext *ac, bAnimListElem *ale, short s
 				else if (ale->type == ANIMTYPE_MASKLAYER)
 					ED_mask_select_frame(ale->data, selx, select_mode);
 			}
+			BLI_freelistN(&anim_data);
 		}
 		else {
 			ANIM_animchannel_keyframes_loop(&ked, ac->ads, ale, ok_cb, select_cb, NULL);
