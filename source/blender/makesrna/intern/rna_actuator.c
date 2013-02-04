@@ -876,7 +876,7 @@ static void rna_def_object_actuator(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_add_character_location", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_ADD_CHAR_LOC);
-	RNA_def_property_ui_text(prop, "Add", "Toggles between ADD and SET character location");
+	RNA_def_property_ui_text(prop, "Add", "Toggle between ADD and SET character location");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop = RNA_def_property(srna, "use_servo_limit_x", PROP_BOOLEAN, PROP_NONE);
@@ -896,7 +896,7 @@ static void rna_def_object_actuator(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_character_jump", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ACT_CHAR_JUMP);
-	RNA_def_property_ui_text(prop, "Jump", "Makes the character jump using the settings in the physics properties");
+	RNA_def_property_ui_text(prop, "Jump", "Make the character jump using the settings in the physics properties");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 }
 

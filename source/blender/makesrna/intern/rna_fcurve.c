@@ -684,7 +684,7 @@ void rna_FModifierEnvelope_points_remove(FModifier *fmod, ReportList *reports, P
 
 	/* test point is in range */
 	if (index < 0 || index >= env->totvert) {
-		BKE_report(reports, RPT_ERROR, "Control Point not in FEnvelopeModifier");
+		BKE_report(reports, RPT_ERROR, "Control point not in Envelope F-Modifier");
 		return;
 	}
 
