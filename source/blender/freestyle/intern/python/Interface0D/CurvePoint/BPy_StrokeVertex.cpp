@@ -188,8 +188,7 @@ void StrokeVertex_mathutils_register_callback()
 PyDoc_STRVAR(StrokeVertex_attribute_doc,
 "StrokeAttribute for this StrokeVertex.\n"
 "\n"
-":type: StrokeAttribute"
-);
+":type: StrokeAttribute");
 
 static PyObject *StrokeVertex_attribute_get(BPy_StrokeVertex *self, void *UNUSED(closure))
 {
@@ -209,8 +208,7 @@ static int StrokeVertex_attribute_set(BPy_StrokeVertex *self, PyObject *value, v
 PyDoc_STRVAR(StrokeVertex_curvilinear_abscissa_doc,
 "Curvilinear abscissa of this StrokeVertex in the Stroke.\n"
 "\n"
-":type: float"
-);
+":type: float");
 
 static PyObject *StrokeVertex_curvilinear_abscissa_get(BPy_StrokeVertex *self, void *UNUSED(closure))
 {
@@ -231,8 +229,7 @@ static int StrokeVertex_curvilinear_abscissa_set(BPy_StrokeVertex *self, PyObjec
 PyDoc_STRVAR(StrokeVertex_point_doc,
 "2D point coordinates.\n"
 "\n"
-":type: mathutils.Vector"
-);
+":type: mathutils.Vector");
 
 static PyObject *StrokeVertex_point_get(BPy_StrokeVertex *self, void *UNUSED(closure))
 {
@@ -241,13 +238,13 @@ static PyObject *StrokeVertex_point_get(BPy_StrokeVertex *self, void *UNUSED(clo
 
 static int StrokeVertex_point_set(BPy_StrokeVertex *self, PyObject *value, void *UNUSED(closure))
 {
-	Vec2f *v = Vec2f_ptr_from_PyObject(value);
-	if (!v) {
+	float v[2];
+	if (!float_array_from_PyObject(value, v, 2)) {
 		PyErr_SetString(PyExc_ValueError, "value must be a 2-dimensional vector");
 		return -1;
 	}
-	self->sv->setX(v->x());
-	self->sv->setY(v->y());
+	self->sv->setX(v[0]);
+	self->sv->setY(v[1]);
 	return 0;
 }
 
@@ -255,8 +252,7 @@ PyDoc_STRVAR(StrokeVertex_stroke_length_doc,
 "Stroke length (it is only a value retained by the StrokeVertex,\n"
 "and it won't change the real stroke length).\n"
 "\n"
-":type: float"
-);
+":type: float");
 
 static PyObject *StrokeVertex_stroke_length_get(BPy_StrokeVertex *self, void *UNUSED(closure))
 {
@@ -277,8 +273,7 @@ static int StrokeVertex_stroke_length_set(BPy_StrokeVertex *self, PyObject *valu
 PyDoc_STRVAR(StrokeVertex_u_doc,
 "Curvilinear abscissa of this StrokeVertex in the Stroke.\n"
 "\n"
-":type: float"
-);
+":type: float");
 
 static PyObject *StrokeVertex_u_get(BPy_StrokeVertex *self, void *UNUSED(closure))
 {

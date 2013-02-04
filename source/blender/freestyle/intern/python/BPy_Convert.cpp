@@ -601,6 +601,25 @@ Vec3r * Vec3r_ptr_from_PyTuple( PyObject* obj ) {
 	return new Vec3r(x,y,z);
 }
 
+// helper for argument parsing
+
+int float_array_from_PyObject(PyObject *obj, float *v, int n)
+{
+	if (VectorObject_Check(obj) && ((VectorObject *)obj)->size == n) {
+		for (int i = 0; i < n; i++)
+			v[i] = ((VectorObject *)obj)->vec[i];
+	} else if (PyList_Check(obj) && PyList_Size(obj) == n) {
+		for (int i = 0; i < n; i++)
+			v[i] = PyFloat_AsDouble(PyList_GetItem(obj, i));
+	} else if (PyTuple_Check(obj) && PyTuple_Size(obj) == n) {
+		for (int i = 0; i < n; i++)
+			v[i] = PyFloat_AsDouble(PyTuple_GetItem(obj, i));
+	} else {
+		return 0;
+	}
+	return 1;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 

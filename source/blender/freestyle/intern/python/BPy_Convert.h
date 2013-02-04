@@ -137,6 +137,7 @@ Vec2f * Vec2f_ptr_from_PyTuple( PyObject* obj );
 Vec3f * Vec3f_ptr_from_PyTuple( PyObject* obj );
 Vec3r * Vec3r_ptr_from_PyTuple( PyObject* obj );
 
+int float_array_from_PyObject(PyObject *obj, float *v, int n);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

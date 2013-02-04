@@ -58,23 +58,6 @@ static char FrsMaterial___doc__[] =
 "   :arg iShininess: The shininess coefficient.\n"
 "   :type iShininess: :class:float\n";
 
-static int Vec4(PyObject *obj, float *v)
-{
-	if (VectorObject_Check(obj) && ((VectorObject *)obj)->size == 4) {
-		for (int i = 0; i < 4; i++)
-			v[i] = ((VectorObject *)obj)->vec[i];
-	} else if( PyList_Check(obj) && PyList_Size(obj) == 4 ) {
-		for (int i = 0; i < 4; i++)
-			v[i] = PyFloat_AsDouble(PyList_GetItem(obj, i));
-	} else if( PyTuple_Check(obj) && PyTuple_Size(obj) == 4 ) {
-		for (int i = 0; i < 4; i++)
-			v[i] = PyFloat_AsDouble(PyTuple_GetItem(obj, i));
-	} else {
-		return 0;
-	}
-	return 1;
-}
-
 static int FrsMaterial___init__(BPy_FrsMaterial *self, PyObject *args, PyObject *kwds)
 {
 	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0, *obj4 = 0;
@@ -94,7 +77,10 @@ static int FrsMaterial___init__(BPy_FrsMaterial *self, PyObject *args, PyObject 
 		}
 		self->m = new FrsMaterial( *m );
 
-	} else if( Vec4(obj1, f1) && obj2 && Vec4(obj2, f2) && obj3 && Vec4(obj3, f3) && obj4 && Vec4(obj4, f4) ) {
+	} else if( float_array_from_PyObject(obj1, f1, 4) && obj2 &&
+		       float_array_from_PyObject(obj2, f2, 4) && obj3 &&
+		       float_array_from_PyObject(obj3, f3, 4) && obj4 &&
+		       float_array_from_PyObject(obj4, f4, 4) ) {
 		self->m = new FrsMaterial(f1, f2, f3, f4, f5);
 
 	} else {
@@ -280,8 +266,7 @@ void FrsMaterial_mathutils_register_callback()
 PyDoc_STRVAR(FrsMaterial_diffuse_doc,
 "RGBA components of the diffuse color of the material.\n"
 "\n"
-":type: mathutils.Vector"
-);
+":type: mathutils.Vector");
 
 static PyObject *FrsMaterial_diffuse_get(BPy_FrsMaterial *self, void *UNUSED(closure))
 {
@@ -291,7 +276,7 @@ static PyObject *FrsMaterial_diffuse_get(BPy_FrsMaterial *self, void *UNUSED(clo
 static int FrsMaterial_diffuse_set(BPy_FrsMaterial *self, PyObject *value, void *UNUSED(closure))
 {
 	float color[4];
-	if (!Vec4((PyObject *)value, color)) {
+	if (!float_array_from_PyObject(value, color, 4)) {
 		PyErr_SetString(PyExc_ValueError, "value must be a 4-dimensional vector");
 		return -1;
 	}
@@ -302,8 +287,7 @@ static int FrsMaterial_diffuse_set(BPy_FrsMaterial *self, PyObject *value, void 
 PyDoc_STRVAR(FrsMaterial_specular_doc,
 "RGBA components of the specular color of the material.\n"
 "\n"
-":type: mathutils.Vector"
-);
+":type: mathutils.Vector");
 
 static PyObject *FrsMaterial_specular_get(BPy_FrsMaterial *self, void *UNUSED(closure))
 {
@@ -313,7 +297,7 @@ static PyObject *FrsMaterial_specular_get(BPy_FrsMaterial *self, void *UNUSED(cl
 static int FrsMaterial_specular_set(BPy_FrsMaterial *self, PyObject *value, void *UNUSED(closure))
 {
 	float color[4];
-	if (!Vec4((PyObject *)value, color)) {
+	if (!float_array_from_PyObject(value, color, 4)) {
 		PyErr_SetString(PyExc_ValueError, "value must be a 4-dimensional vector");
 		return -1;
 	}
@@ -324,8 +308,7 @@ static int FrsMaterial_specular_set(BPy_FrsMaterial *self, PyObject *value, void
 PyDoc_STRVAR(FrsMaterial_ambient_doc,
 "RGBA components of the ambient color of the material.\n"
 "\n"
-":type: mathutils.Color"
-);
+":type: mathutils.Color");
 
 static PyObject *FrsMaterial_ambient_get(BPy_FrsMaterial *self, void *UNUSED(closure))
 {
@@ -335,7 +318,7 @@ static PyObject *FrsMaterial_ambient_get(BPy_FrsMaterial *self, void *UNUSED(clo
 static int FrsMaterial_ambient_set(BPy_FrsMaterial *self, PyObject *value, void *UNUSED(closure))
 {
 	float color[4];
-	if (!Vec4((PyObject *)value, color)) {
+	if (!float_array_from_PyObject(value, color, 4)) {
 		PyErr_SetString(PyExc_ValueError, "value must be a 4-dimensional vector");
 		return -1;
 	}
@@ -346,8 +329,7 @@ static int FrsMaterial_ambient_set(BPy_FrsMaterial *self, PyObject *value, void 
 PyDoc_STRVAR(FrsMaterial_emission_doc,
 "RGBA components of the emissive color of the material.\n"
 "\n"
-":type: mathutils.Color"
-);
+":type: mathutils.Color");
 
 static PyObject *FrsMaterial_emission_get(BPy_FrsMaterial *self, void *UNUSED(closure))
 {
@@ -357,7 +339,7 @@ static PyObject *FrsMaterial_emission_get(BPy_FrsMaterial *self, void *UNUSED(cl
 static int FrsMaterial_emission_set(BPy_FrsMaterial *self, PyObject *value, void *UNUSED(closure))
 {
 	float color[4];
-	if (!Vec4((PyObject *)value, color)) {
+	if (!float_array_from_PyObject(value, color, 4)) {
 		PyErr_SetString(PyExc_ValueError, "value must be a 4-dimensional vector");
 		return -1;
 	}
@@ -368,8 +350,7 @@ static int FrsMaterial_emission_set(BPy_FrsMaterial *self, PyObject *value, void
 PyDoc_STRVAR(FrsMaterial_shininess_doc,
 "Shininess coefficient of the material.\n"
 "\n"
-":type: float"
-);
+":type: float");
 
 static PyObject *FrsMaterial_shininess_get(BPy_FrsMaterial *self, void *UNUSED(closure))
 {
