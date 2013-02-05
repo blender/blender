@@ -441,6 +441,7 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode;
 	bNodeTree *ntree;
+	Main *bmain;
 	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
 	int treetype;
@@ -448,6 +449,7 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
 
 	/* retrieve state */
 	snode = CTX_wm_space_node(C);
+	bmain = CTX_data_main(C);
 
 	if (RNA_struct_property_is_set(op->ptr, "type"))
 		treetype = RNA_enum_get(op->ptr, "type");
@@ -457,7 +459,7 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
 	if (RNA_struct_property_is_set(op->ptr, "name"))
 		RNA_string_get(op->ptr, "name", treename);
 
-	ntree = ntreeAddTree(treename, treetype, 0);
+	ntree = ntreeAddTree(bmain, treename, treetype, 0);
 	if (!ntree)
 		return OPERATOR_CANCELLED;
 

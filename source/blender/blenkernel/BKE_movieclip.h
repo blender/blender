@@ -43,7 +43,7 @@ struct MovieDistortion;
 void BKE_movieclip_free(struct MovieClip *clip);
 void BKE_movieclip_unlink(struct Main *bmain, struct MovieClip *clip);
 
-struct MovieClip *BKE_movieclip_file_add(const char *name);
+struct MovieClip *BKE_movieclip_file_add(struct Main *bmain, const char *name);
 void BKE_movieclip_reload(struct MovieClip *clip);
 
 struct ImBuf *BKE_movieclip_get_ibuf(struct MovieClip *clip, struct MovieClipUser *user);

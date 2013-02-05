@@ -51,6 +51,12 @@ __attribute__((warn_unused_result))
 __attribute__((nonnull))
 #endif
 ;
+void *BKE_libblock_copy_ex(struct Main *bmain, struct ID *id)
+#ifdef __GNUC__
+__attribute__((warn_unused_result))
+__attribute__((nonnull))
+#endif
+;
 void *BKE_libblock_copy(struct ID *id)
 #ifdef __GNUC__
 __attribute__((warn_unused_result))

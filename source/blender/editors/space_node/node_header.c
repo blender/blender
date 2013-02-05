@@ -136,7 +136,7 @@ static void do_node_add_group(bContext *C, void *UNUSED(arg), int event)
 		ntemp.type = -event;
 		switch (ntemp.type) {
 			case NODE_GROUP:
-				ntemp.ngroup = ntreeAddTree("Group", snode->treetype, ntemp.type);
+				ntemp.ngroup = ntreeAddTree(bmain, "Group", snode->treetype, ntemp.type);
 				break;
 			default:
 				ntemp.ngroup = NULL;

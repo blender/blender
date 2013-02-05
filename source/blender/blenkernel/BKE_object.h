@@ -49,6 +49,7 @@ struct bAction;
 struct RenderData;
 struct rctf;
 struct MovieClip;
+struct Main;
 
 void BKE_object_workob_clear(struct Object *workob);
 void BKE_object_workob_calc_parent(struct Scene *scene, struct Object *ob, struct Object *workob);
@@ -78,12 +79,12 @@ void BKE_object_unlink(struct Object *ob);
 int  BKE_object_exists_check(struct Object *obtest);
 int BKE_object_is_in_editmode(struct Object *ob);
 
-struct Object *BKE_object_add_only_object(int type, const char *name);
+struct Object *BKE_object_add_only_object(struct Main *bmain, int type, const char *name);
 struct Object *BKE_object_add(struct Scene *scene, int type);
 void *BKE_object_obdata_add_from_type(int type);
 
+struct Object *BKE_object_copy_ex(struct Main *bmain, struct Object *ob, int copy_caches);
 struct Object *BKE_object_copy(struct Object *ob);
-struct Object *BKE_object_copy_with_caches(struct Object *ob);
 void BKE_object_make_local(struct Object *ob);
 int  BKE_object_is_libdata(struct Object *ob);
 int  BKE_object_obdata_is_libdata(struct Object *ob);

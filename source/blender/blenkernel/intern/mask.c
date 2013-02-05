@@ -698,18 +698,18 @@ void BKE_mask_point_select_set_handle(MaskSplinePoint *point, const short do_sel
 }
 
 /* only mask block itself */
-static Mask *mask_alloc(const char *name)
+static Mask *mask_alloc(Main *bmain, const char *name)
 {
 	Mask *mask;
 
-	mask = BKE_libblock_alloc(&G.main->mask, ID_MSK, name);
+	mask = BKE_libblock_alloc(&bmain->mask, ID_MSK, name);
 
 	mask->id.flag |= LIB_FAKEUSER;
 
 	return mask;
 }
 
-Mask *BKE_mask_new(const char *name)
+Mask *BKE_mask_new(Main *bmain, const char *name)
 {
 	Mask *mask;
 	char mask_name[MAX_ID_NAME - 2];
@@ -719,7 +719,7 @@ Mask *BKE_mask_new(const char *name)
 	else
 		strcpy(mask_name, "Mask");
 
-	mask = mask_alloc(mask_name);
+	mask = mask_alloc(bmain, mask_name);
 
 	/* arbitrary defaults */
 	mask->sfra = 1;

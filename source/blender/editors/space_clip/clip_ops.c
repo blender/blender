@@ -160,6 +160,7 @@ static int open_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	bScreen *screen = CTX_wm_screen(C);
+	Main *bmain = CTX_data_main(C);
 	PropertyPointerRNA *pprop;
 	PointerRNA idptr;
 	MovieClip *clip = NULL;
@@ -191,7 +192,7 @@ static int open_exec(bContext *C, wmOperator *op)
 
 	errno = 0;
 
-	clip = BKE_movieclip_file_add(str);
+	clip = BKE_movieclip_file_add(bmain, str);
 
 	if (!clip) {
 		if (op->customdata)

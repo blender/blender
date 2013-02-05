@@ -1558,7 +1558,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				mb = newob->data;
 				mb->id.us--;
 
-				newob->data = BKE_mesh_add("Mesh");
+				newob->data = BKE_mesh_add(bmain, "Mesh");
 				newob->type = OB_MESH;
 
 				me = newob->data;

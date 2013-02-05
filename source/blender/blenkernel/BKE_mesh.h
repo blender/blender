@@ -39,6 +39,7 @@ struct DispList;
 struct ListBase;
 struct BMEditMesh;
 struct BMesh;
+struct Main;
 struct Mesh;
 struct MPoly;
 struct MLoop;
@@ -146,7 +147,8 @@ void BKE_mesh_flush_select_from_verts(struct Mesh *me);
 
 void BKE_mesh_unlink(struct Mesh *me);
 void BKE_mesh_free(struct Mesh *me, int unlink);
-struct Mesh *BKE_mesh_add(const char *name);
+struct Mesh *BKE_mesh_add(struct Main *bmain, const char *name);
+struct Mesh *BKE_mesh_copy_ex(struct Main *bmain, struct Mesh *me);
 struct Mesh *BKE_mesh_copy(struct Mesh *me);
 void mesh_update_customdata_pointers(struct Mesh *me, const short do_ensure_tess_cd);
 

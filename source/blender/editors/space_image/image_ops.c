@@ -1716,6 +1716,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	Scene *scene;
 	Object *obedit;
 	Image *ima;
+	Main *bmain;
 	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
 	char name[MAX_ID_NAME - 2];
@@ -1726,6 +1727,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	sima = CTX_wm_space_image(C);
 	scene = CTX_data_scene(C);
 	obedit = CTX_data_edit_object(C);
+	bmain = CTX_data_main(C);
 
 	RNA_string_get(op->ptr, "name", name);
 	width = RNA_int_get(op->ptr, "width");
@@ -1738,7 +1740,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	if (!alpha)
 		color[3] = 1.0f;
 
-	ima = BKE_image_add_generated(width, height, name, alpha ? 32 : 24, floatbuf, gen_type, color);
+	ima = BKE_image_add_generated(bmain, width, height, name, alpha ? 32 : 24, floatbuf, gen_type, color);
 
 	if (!ima)
 		return OPERATOR_CANCELLED;

@@ -829,16 +829,16 @@ int BKE_object_exists_check(Object *obtest)
 void *BKE_object_obdata_add_from_type(int type)
 {
 	switch (type) {
-		case OB_MESH:      return BKE_mesh_add("Mesh");
-		case OB_CURVE:     return BKE_curve_add("Curve", OB_CURVE);
-		case OB_SURF:      return BKE_curve_add("Surf", OB_SURF);
-		case OB_FONT:      return BKE_curve_add("Text", OB_FONT);
-		case OB_MBALL:     return BKE_mball_add("Meta");
-		case OB_CAMERA:    return BKE_camera_add("Camera");
-		case OB_LAMP:      return BKE_lamp_add("Lamp");
-		case OB_LATTICE:   return BKE_lattice_add("Lattice");
-		case OB_ARMATURE:  return BKE_armature_add("Armature");
-		case OB_SPEAKER:   return BKE_speaker_add("Speaker");
+		case OB_MESH:      return BKE_mesh_add(G.main, "Mesh");
+		case OB_CURVE:     return BKE_curve_add(G.main, "Curve", OB_CURVE);
+		case OB_SURF:      return BKE_curve_add(G.main, "Surf", OB_SURF);
+		case OB_FONT:      return BKE_curve_add(G.main, "Text", OB_FONT);
+		case OB_MBALL:     return BKE_mball_add(G.main, "Meta");
+		case OB_CAMERA:    return BKE_camera_add(G.main, "Camera");
+		case OB_LAMP:      return BKE_lamp_add(G.main, "Lamp");
+		case OB_LATTICE:   return BKE_lattice_add(G.main, "Lattice");
+		case OB_ARMATURE:  return BKE_armature_add(G.main, "Armature");
+		case OB_SPEAKER:   return BKE_speaker_add(G.main, "Speaker");
 		case OB_EMPTY:     return NULL;
 		default:
 			printf("BKE_object_obdata_add_from_type: Internal error, bad type: %d\n", type);
@@ -867,14 +867,14 @@ static const char *get_obdata_defname(int type)
 }
 
 /* more general add: creates minimum required data, but without vertices etc. */
-Object *BKE_object_add_only_object(int type, const char *name)
+Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
 {
 	Object *ob;
 
 	if (!name)
 		name = get_obdata_defname(type);
 
-	ob = BKE_libblock_alloc(&G.main->object, ID_OB, name);
+	ob = BKE_libblock_alloc(&bmain->object, ID_OB, name);
 
 	/* default object vars */
 	ob->type = type;
@@ -960,7 +960,7 @@ Object *BKE_object_add(struct Scene *scene, int type)
 	char name[MAX_ID_NAME];
 
 	BLI_strncpy(name, get_obdata_defname(type), sizeof(name));
-	ob = BKE_object_add_only_object(type, name);
+	ob = BKE_object_add_only_object(G.main, type, name);
 
 	ob->data = BKE_object_obdata_add_from_type(type);
 
@@ -1226,13 +1226,13 @@ void BKE_object_transform_copy(Object *ob_tar, const Object *ob_src)
 	copy_v3_v3(ob_tar->size, ob_src->size);
 }
 
-static Object *object_copy_do(Object *ob, int copy_caches)
+Object *BKE_object_copy_ex(Main *bmain, Object *ob, int copy_caches)
 {
 	Object *obn;
 	ModifierData *md;
 	int a;
 
-	obn = BKE_libblock_copy(&ob->id);
+	obn = BKE_libblock_copy_ex(bmain, &ob->id);
 	
 	if (ob->totcol) {
 		obn->mat = MEM_dupallocN(ob->mat);
@@ -1308,13 +1308,7 @@ static Object *object_copy_do(Object *ob, int copy_caches)
 /* copy objects, will re-initialize cached simulation data */
 Object *BKE_object_copy(Object *ob)
 {
-	return object_copy_do(ob, FALSE);
-}
-
-/* copy objects, will duplicate cached simulation data */
-Object *BKE_object_copy_with_caches(Object *ob)
-{
-	return object_copy_do(ob, TRUE);
+	return BKE_object_copy_ex(G.main, ob, FALSE);
 }
 
 static void extern_local_object(Object *ob)

@@ -311,7 +311,7 @@ static int group_create_exec(bContext *C, wmOperator *op)
 	
 	RNA_string_get(op->ptr, "name", name);
 	
-	group = add_group(name);
+	group = add_group(bmain, name);
 		
 	CTX_DATA_BEGIN (C, Base *, base, selected_bases)
 	{
@@ -348,12 +348,13 @@ static int group_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_context(C);
+	Main *bmain = CTX_data_main(C);
 	Group *group;
 
 	if (ob == NULL)
 		return OPERATOR_CANCELLED;
 
-	group = add_group("Group");
+	group = add_group(bmain, "Group");
 	add_to_group(group, ob, scene, NULL);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);

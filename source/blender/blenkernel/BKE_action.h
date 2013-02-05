@@ -44,6 +44,7 @@ struct FCurve;
 struct bPose;
 struct bItasc;
 struct bPoseChannel;
+struct Main;
 struct Object;
 struct Scene;
 struct ID;
@@ -56,7 +57,7 @@ extern "C" {
 /* Action Lib Stuff ----------------- */
 
 /* Allocate a new bAction with the given name */
-struct bAction *add_empty_action(const char name[]);
+struct bAction *add_empty_action(struct Main *bmain, const char name[]);
 
 /* Allocate a copy of the given Action and all its data */	
 struct bAction *BKE_action_copy(struct bAction *src);

@@ -35,6 +35,7 @@
  */
 
 struct Lattice;
+struct Main;
 struct Object;
 struct Scene;
 struct DerivedMesh;
@@ -42,7 +43,7 @@ struct BPoint;
 struct MDeformVert;
 
 void BKE_lattice_resize(struct Lattice *lt, int u, int v, int w, struct Object *ltOb);
-struct Lattice *BKE_lattice_add(const char *name);
+struct Lattice *BKE_lattice_add(struct Main *bmain, const char *name);
 struct Lattice *BKE_lattice_copy(struct Lattice *lt);
 void BKE_lattice_free(struct Lattice *lt);
 void BKE_lattice_make_local(struct Lattice *lt);

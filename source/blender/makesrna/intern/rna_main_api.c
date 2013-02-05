@@ -34,6 +34,7 @@
 #include <errno.h>
 
 #include "DNA_ID.h"
+#include "DNA_modifier_types.h"
 
 #include "BLI_path_util.h"
 
@@ -48,6 +49,8 @@
 #include "BKE_main.h"
 #include "BKE_camera.h"
 #include "BKE_curve.h"
+#include "BKE_DerivedMesh.h"
+#include "BKE_displist.h"
 #include "BKE_mesh.h"
 #include "BKE_armature.h"
 #include "BKE_lamp.h"
@@ -99,17 +102,17 @@
 
 #include "BLF_translation.h"
 
-static Camera *rna_Main_cameras_new(Main *UNUSED(bmain), const char *name)
+static Camera *rna_Main_cameras_new(Main *bmain, const char *name)
 {
-	ID *id = BKE_camera_add(name);
+	ID *id = BKE_camera_add(bmain, name);
 	id_us_min(id);
 	return (Camera *)id;
 }
-static void rna_Main_cameras_remove(Main *UNUSED(bmain), ReportList *reports, PointerRNA *camera_ptr)
+static void rna_Main_cameras_remove(Main *bmain, ReportList *reports, PointerRNA *camera_ptr)
 {
 	Camera *camera = camera_ptr->data;
 	if (ID_REAL_USERS(camera) <= 0) {
-		BKE_libblock_free(&G.main->camera, camera);
+		BKE_libblock_free(&bmain->camera, camera);
 		RNA_POINTER_INVALIDATE(camera_ptr);
 	}
 	else {
@@ -144,7 +147,7 @@ static void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports
 	}
 }
 
-static Object *rna_Main_objects_new(Main *UNUSED(bmain), ReportList *reports, const char *name, ID *data)
+static Object *rna_Main_objects_new(Main *bmain, ReportList *reports, const char *name, ID *data)
 {
 	Object *ob;
 	int type = OB_EMPTY;
@@ -189,7 +192,7 @@ static Object *rna_Main_objects_new(Main *UNUSED(bmain), ReportList *reports, co
 		id_us_plus(data);
 	}
 
-	ob = BKE_object_add_only_object(type, name);
+	ob = BKE_object_add_only_object(bmain, type, name);
 	id_us_min(&ob->id);
 
 	ob->data = data;
@@ -198,12 +201,12 @@ static Object *rna_Main_objects_new(Main *UNUSED(bmain), ReportList *reports, co
 	return ob;
 }
 
-static void rna_Main_objects_remove(Main *UNUSED(bmain), ReportList *reports, PointerRNA *object_ptr)
+static void rna_Main_objects_remove(Main *bmain, ReportList *reports, PointerRNA *object_ptr)
 {
 	Object *object = object_ptr->data;
 	if (ID_REAL_USERS(object) <= 0) {
 		BKE_object_unlink(object); /* needed or ID pointers to this are not cleared */
-		BKE_libblock_free(&G.main->object, object);
+		BKE_libblock_free(&bmain->object, object);
 		RNA_POINTER_INVALIDATE(object_ptr);
 	}
 	else {
@@ -212,17 +215,17 @@ static void rna_Main_objects_remove(Main *UNUSED(bmain), ReportList *reports, Po
 	}
 }
 
-static Material *rna_Main_materials_new(Main *UNUSED(bmain), const char *name)
+static Material *rna_Main_materials_new(Main *bmain, const char *name)
 {
-	ID *id = (ID *)BKE_material_add(name);
+	ID *id = (ID *)BKE_material_add(bmain, name);
 	id_us_min(id);
 	return (Material *)id;
 }
-static void rna_Main_materials_remove(Main *UNUSED(bmain), ReportList *reports, PointerRNA *material_ptr)
+static void rna_Main_materials_remove(Main *bmain, ReportList *reports, PointerRNA *material_ptr)
 {
 	Material *material = material_ptr->data;
 	if (ID_REAL_USERS(material) <= 0) {
-		BKE_libblock_free(&G.main->mat, material);
+		BKE_libblock_free(&bmain->mat, material);
 		RNA_POINTER_INVALIDATE(material_ptr);
 	}
 	else {
@@ -231,18 +234,18 @@ static void rna_Main_materials_remove(Main *UNUSED(bmain), ReportList *reports, 
 	}
 }
 
-static bNodeTree *rna_Main_nodetree_new(Main *UNUSED(bmain), const char *name, int type)
+static bNodeTree *rna_Main_nodetree_new(Main *bmain, const char *name, int type)
 {
-	bNodeTree *tree = ntreeAddTree(name, type, NODE_GROUP);
+	bNodeTree *tree = ntreeAddTree(bmain, name, type, NODE_GROUP);
 
 	id_us_min(&tree->id);
 	return tree;
 }
-static void rna_Main_nodetree_remove(Main *UNUSED(bmain), ReportList *reports, PointerRNA *tree_ptr)
+static void rna_Main_nodetree_remove(Main *bmain, ReportList *reports, PointerRNA *tree_ptr)
 {
 	bNodeTree *tree = tree_ptr->data;
 	if (ID_REAL_USERS(tree) <= 0) {
-		BKE_libblock_free(&G.main->nodetree, tree);
+		BKE_libblock_free(&bmain->nodetree, tree);
 		RNA_POINTER_INVALIDATE(tree_ptr);
 	}
 	else {
@@ -251,18 +254,212 @@ static void rna_Main_nodetree_remove(Main *UNUSED(bmain), ReportList *reports, P
 	}
 }
 
-static Mesh *rna_Main_meshes_new(Main *UNUSED(bmain), const char *name)
+static Mesh *rna_Main_meshes_new(Main *bmain, const char *name)
 {
-	Mesh *me = BKE_mesh_add(name);
+	Mesh *me = BKE_mesh_add(bmain, name);
 	id_us_min(&me->id);
 	return me;
 }
-static void rna_Main_meshes_remove(Main *UNUSED(bmain), ReportList *reports, PointerRNA *mesh_ptr)
+
+/* copied from Mesh_getFromObject and adapted to RNA interface */
+/* settings: 1 - preview, 2 - render */
+Mesh *rna_Main_meshes_new_from_object(Main *bmain, ReportList *reports, Scene *sce, Object *ob, int apply_modifiers, int settings)
+{
+	Mesh *tmpmesh;
+	Curve *tmpcu = NULL, *copycu;
+	Object *tmpobj = NULL;
+	int render = settings == eModifierMode_Render, i;
+	int cage = !apply_modifiers;
+
+	/* perform the mesh extraction based on type */
+	switch (ob->type) {
+		case OB_FONT:
+		case OB_CURVE:
+		case OB_SURF:
+		{
+			ListBase dispbase = {NULL, NULL};
+			DerivedMesh *derivedFinal = NULL;
+			int uv_from_orco;
+
+			/* copies object and modifiers (but not the data) */
+			tmpobj = BKE_object_copy_ex(bmain, ob, TRUE);
+			tmpcu = (Curve *)tmpobj->data;
+			tmpcu->id.us--;
+
+			/* if getting the original caged mesh, delete object modifiers */
+			if (cage)
+				BKE_object_free_modifiers(tmpobj);
+
+			/* copies the data */
+			copycu = tmpobj->data = BKE_curve_copy((Curve *) ob->data);
+
+			/* temporarily set edit so we get updates from edit mode, but
+			 * also because for text datablocks copying it while in edit
+			 * mode gives invalid data structures */
+			copycu->editfont = tmpcu->editfont;
+			copycu->editnurb = tmpcu->editnurb;
+
+			/* get updated display list, and convert to a mesh */
+			BKE_displist_make_curveTypes_forRender(sce, tmpobj, &dispbase, &derivedFinal, FALSE);
+
+			copycu->editfont = NULL;
+			copycu->editnurb = NULL;
+
+			tmpobj->derivedFinal = derivedFinal;
+
+			/* convert object type to mesh */
+			uv_from_orco = (tmpcu->flag & CU_UV_ORCO) != 0;
+			BKE_mesh_from_nurbs_displist(tmpobj, &dispbase, uv_from_orco);
+
+			tmpmesh = tmpobj->data;
+
+			BKE_displist_free(&dispbase);
+
+			/* BKE_mesh_from_nurbs changes the type to a mesh, check it worked */
+			if (tmpobj->type != OB_MESH) {
+				BKE_libblock_free_us(&(G.main->object), tmpobj);
+				BKE_report(reports, RPT_ERROR, "Cannot convert curve to mesh (does the curve have any segments?)");
+				return NULL;
+			}
+
+			BKE_libblock_free_us(&bmain->object, tmpobj);
+			break;
+		}
+
+		case OB_MBALL:
+		{
+			/* metaballs don't have modifiers, so just convert to mesh */
+			Object *basis_ob = BKE_mball_basis_find(sce, ob);
+			/* todo, re-generatre for render-res */
+			/* metaball_polygonize(scene, ob) */
+
+			if (ob != basis_ob)
+				return NULL;  /* only do basis metaball */
+
+			tmpmesh = BKE_mesh_add(bmain, "Mesh");
+			/* BKE_mesh_add gives us a user count we don't need */
+			tmpmesh->id.us--;
+
+			if (render) {
+				ListBase disp = {NULL, NULL};
+				BKE_displist_make_mball_forRender(sce, ob, &disp);
+				BKE_mesh_from_metaball(&disp, tmpmesh);
+				BKE_displist_free(&disp);
+			}
+			else
+				BKE_mesh_from_metaball(&ob->disp, tmpmesh);
+
+			break;
+
+		}
+		case OB_MESH:
+			/* copies object and modifiers (but not the data) */
+			if (cage) {
+				/* copies the data */
+				tmpmesh = BKE_mesh_copy_ex(bmain, ob->data);
+				/* if not getting the original caged mesh, get final derived mesh */
+			}
+			else {
+				/* Make a dummy mesh, saves copying */
+				DerivedMesh *dm;
+				/* CustomDataMask mask = CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL; */
+				CustomDataMask mask = CD_MASK_MESH; /* this seems more suitable, exporter,
+			                                         * for example, needs CD_MASK_MDEFORMVERT */
+
+				/* Write the display mesh into the dummy mesh */
+				if (render)
+					dm = mesh_create_derived_render(sce, ob, mask);
+				else
+					dm = mesh_create_derived_view(sce, ob, mask);
+
+				tmpmesh = BKE_mesh_add(bmain, "Mesh");
+				DM_to_mesh(dm, tmpmesh, ob);
+				dm->release(dm);
+			}
+
+			/* BKE_mesh_add/copy gives us a user count we don't need */
+			tmpmesh->id.us--;
+
+			break;
+		default:
+			BKE_report(reports, RPT_ERROR, "Object does not have geometry data");
+			return NULL;
+	}
+
+	/* Copy materials to new mesh */
+	switch (ob->type) {
+		case OB_SURF:
+		case OB_FONT:
+		case OB_CURVE:
+			tmpmesh->totcol = tmpcu->totcol;
+
+			/* free old material list (if it exists) and adjust user counts */
+			if (tmpcu->mat) {
+				for (i = tmpcu->totcol; i-- > 0; ) {
+					/* are we an object material or data based? */
+
+					tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : tmpcu->mat[i];
+
+					if (tmpmesh->mat[i]) {
+						tmpmesh->mat[i]->id.us++;
+					}
+				}
+			}
+			break;
+
+#if 0
+		/* Crashes when assigning the new material, not sure why */
+		case OB_MBALL:
+			tmpmb = (MetaBall *)ob->data;
+			tmpmesh->totcol = tmpmb->totcol;
+
+			/* free old material list (if it exists) and adjust user counts */
+			if (tmpmb->mat) {
+				for (i = tmpmb->totcol; i-- > 0; ) {
+					tmpmesh->mat[i] = tmpmb->mat[i]; /* CRASH HERE ??? */
+					if (tmpmesh->mat[i]) {
+						tmpmb->mat[i]->id.us++;
+					}
+				}
+			}
+			break;
+#endif
+
+		case OB_MESH:
+			if (!cage) {
+				Mesh *origmesh = ob->data;
+				tmpmesh->flag = origmesh->flag;
+				tmpmesh->mat = MEM_dupallocN(origmesh->mat);
+				tmpmesh->totcol = origmesh->totcol;
+				tmpmesh->smoothresh = origmesh->smoothresh;
+				if (origmesh->mat) {
+					for (i = origmesh->totcol; i-- > 0; ) {
+						/* are we an object material or data based? */
+						tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : origmesh->mat[i];
+
+						if (tmpmesh->mat[i]) {
+							tmpmesh->mat[i]->id.us++;
+						}
+					}
+				}
+			}
+			break;
+	} /* end copy materials */
+
+	/* cycles and exporters rely on this still */
+	BKE_mesh_tessface_ensure(tmpmesh);
+
+	/* make sure materials get updated in objects */
+	test_object_materials(&tmpmesh->id);
+
+	return tmpmesh;
+}
+
+static void rna_Main_meshes_remove(Main *bmain, ReportList *reports, PointerRNA *mesh_ptr)
 {
 	Mesh *mesh = mesh_ptr->data;
-
 	if (ID_REAL_USERS(mesh) <= 0) {
-		BKE_libblock_free(&G.main->mesh, mesh);
+		BKE_libblock_free(&bmain->mesh, mesh);
 		RNA_POINTER_INVALIDATE(mesh_ptr);
 	}
 	else {
@@ -271,18 +468,18 @@ static void rna_Main_meshes_remove(Main *UNUSED(bmain), ReportList *reports, Poi
 	}
 }
 
-static Lamp *rna_Main_lamps_new(Main *UNUSED(bmain), const char *name, int type)
+static Lamp *rna_Main_lamps_new(Main *bmain, const char *name, int type)
 {
-	Lamp *lamp = BKE_lamp_add(name);
+	Lamp *lamp = BKE_lamp_add(bmain, name);
 	lamp->type = type;
 	id_us_min(&lamp->id);
 	return lamp;
 }
-static void rna_Main_lamps_remove(Main *UNUSED(bmain), ReportList *reports, PointerRNA *lamp_ptr)
+static void rna_Main_lamps_remove(Main *bmain, ReportList *reports, PointerRNA *lamp_ptr)
 {
 	Lamp *lamp = lamp_ptr->data;
 	if (ID_REAL_USERS(lamp) <= 0) {
-		BKE_libblock_free(&G.main->lamp, lamp);
+		BKE_libblock_free(&bmain->lamp, lamp);
 		RNA_POINTER_INVALIDATE(lamp_ptr);
 	}
 	else {
@@ -291,19 +488,19 @@ static void rna_Main_lamps_remove(Main *UNUSED(bmain), ReportList *reports, Poin
 	}
 }
 
-static Image *rna_Main_images_new(Main *UNUSED(bmain), const char *name, int width, int height, int alpha, int float_buffer)
+static Image *rna_Main_images_new(Main *bmain, const char *name, int width, int height, int alpha, int float_buffer)
 {
 	float color[4] = {0.0, 0.0, 0.0, 1.0};
-	Image *image = BKE_image_add_generated(width, height, name, alpha ? 32 : 24, float_buffer, 0, color);
+	Image *image = BKE_image_add_generated(bmain, width, height, name, alpha ? 32 : 24, float_buffer, 0, color);
 	id_us_min(&image->id);
 	return image;
 }
-static Image *rna_Main_images_load(Main *UNUSED(bmain), ReportList *reports, const char *filepath)
+static Image *rna_Main_images_load(Main *bmain, ReportList *reports, const char *filepath)
 {
 	Image *ima;
 
 	errno = 0;
-	ima = BKE_image_load(filepath);
+	ima = BKE_image_load(bmain, filepath);
 
 	if (!ima) {
 		BKE_reportf(reports, RPT_ERROR, "Cannot read '%s': %s", filepath,
@@ -312,11 +509,11 @@ static Image *rna_Main_images_load(Main *UNUSED(bmain), ReportList *reports, con
 
 	return ima;
 }
-static void rna_Main_images_remove(Main *UNUSED(bmain), ReportList *reports, PointerRNA *image_ptr)
+static void rna_Main_images_remove(Main *bmain, ReportList *reports, PointerRNA *image_ptr)
 {
 	Image *image = image_ptr->data;
 	if (ID_REAL_USERS(image) <= 0) {
-		BKE_libblock_free(&G.main->image, image);
+		BKE_libblock_free(&bmain->image, image);
 		RNA_POINTER_INVALIDATE(image_ptr);
 	}
 	else {
@@ -325,17 +522,17 @@ static void rna_Main_images_remove(Main *UNUSED(bmain), ReportList *reports, Poi
 	}
 }
 
-static Lattice *rna_Main_lattices_new(Main *UNUSED(bmain), const char *name)
+static Lattice *rna_Main_lattices_new(Main *bmain, const char *name)
 {
-	Lattice *lt = BKE_lattice_add(name);
+	Lattice *lt = BKE_lattice_add(bmain, name);
 	id_us_min(&lt->id);
 	return lt;
 }
-static void rna_Main_lattices_remove(Main *UNUSED(bmain), ReportList *reports, PointerRNA *lt_ptr)
+static void rna_Main_lattices_remove(Main *bmain, ReportList *reports, PointerRNA *lt_ptr)
 {
 	Lattice *lt = lt_ptr->data;
 	if (ID_REAL_USERS(lt) <= 0) {
-		BKE_libblock_free(&G.main->latt, lt);
+		BKE_libblock_free(&bmain->latt, lt);
 		RNA_POINTER_INVALIDATE(lt_ptr);
 	}
 	else {
@@ -344,17 +541,17 @@ static void rna_Main_lattices_remove(Main *UNUSED(bmain), ReportList *reports, P
 	}
 }
 
-static Curve *rna_Main_curves_new(Main *UNUSED(bmain), const char *name, int type)
+static Curve *rna_Main_curves_new(Main *bmain, const char *name, int type)
 {
-	Curve *cu = BKE_curve_add(name, type);
+	Curve *cu = BKE_curve_add(bmain, name, type);
 	id_us_min(&cu->id);
 	return cu;
 }
-static void rna_Main_curves_remove(Main *UNUSED(bmain), ReportList *reports, PointerRNA *cu_ptr)
+static void rna_Main_curves_remove(Main *bmain, ReportList *reports, PointerRNA *cu_ptr)
 {
 	Curve *cu = cu_ptr->data;
 	if (ID_REAL_USERS(cu) <= 0) {
-		BKE_libblock_free(&G.main->curve, cu);
+		BKE_libblock_free(&bmain->curve, cu);
 		RNA_POINTER_INVALIDATE(cu_ptr);
 	}
 	else {
@@ -363,17 +560,17 @@ static void rna_Main_curves_remove(Main *UNUSED(bmain), ReportList *reports, Poi
 	}
 }
 
-static MetaBall *rna_Main_metaballs_new(Main *UNUSED(bmain), const char *name)
+static MetaBall *rna_Main_metaballs_new(Main *bmain, const char *name)
 {
-	MetaBall *mb = BKE_mball_add(name);
+	MetaBall *mb = BKE_mball_add(bmain, name);
 	id_us_min(&mb->id);
 	return mb;
 }
-static void rna_Main_metaballs_remove(Main *UNUSED(bmain), ReportList *reports, PointerRNA *mb_ptr)
+static void rna_Main_metaballs_remove(Main *bmain, ReportList *reports, PointerRNA *mb_ptr)
 {
 	MetaBall *mb = mb_ptr->data;
 	if (ID_REAL_USERS(mb) <= 0) {
-		BKE_libblock_free(&G.main->mball, mb);
+		BKE_libblock_free(&bmain->mball, mb);
 		RNA_POINTER_INVALIDATE(mb_ptr);
 	}
 	else {
@@ -409,18 +606,18 @@ static void rna_Main_fonts_remove(Main *bmain, ReportList *reports, PointerRNA *
 	}
 }
 
-static Tex *rna_Main_textures_new(Main *UNUSED(bmain), const char *name, int type)
+static Tex *rna_Main_textures_new(Main *bmain, const char *name, int type)
 {
-	Tex *tex = add_texture(name);
+	Tex *tex = add_texture(bmain, name);
 	tex_set_type(tex, type);
 	id_us_min(&tex->id);
 	return tex;
 }
-static void rna_Main_textures_remove(Main *UNUSED(bmain), ReportList *reports, PointerRNA *tex_ptr)
+static void rna_Main_textures_remove(Main *bmain, ReportList *reports, PointerRNA *tex_ptr)
 {
 	Tex *tex = tex_ptr->data;
 	if (ID_REAL_USERS(tex) <= 0) {
-		BKE_libblock_free(&G.main->tex, tex);
+		BKE_libblock_free(&bmain->tex, tex);
 		RNA_POINTER_INVALIDATE(tex_ptr);
 	}
 	else {
@@ -429,17 +626,17 @@ static void rna_Main_textures_remove(Main *UNUSED(bmain), ReportList *reports, P
 	}
 }
 
-static Brush *rna_Main_brushes_new(Main *UNUSED(bmain), const char *name)
+static Brush *rna_Main_brushes_new(Main *bmain, const char *name)
 {
-	Brush *brush = BKE_brush_add(name);
+	Brush *brush = BKE_brush_add(bmain, name);
 	id_us_min(&brush->id);
 	return brush;
 }
-static void rna_Main_brushes_remove(Main *UNUSED(bmain), ReportList *reports, PointerRNA *brush_ptr)
+static void rna_Main_brushes_remove(Main *bmain, ReportList *reports, PointerRNA *brush_ptr)
 {
 	Brush *brush = brush_ptr->data;
 	if (ID_REAL_USERS(brush) <= 0) {
-		BKE_libblock_free(&G.main->brush, brush);
+		BKE_libblock_free(&bmain->brush, brush);
 		RNA_POINTER_INVALIDATE(brush_ptr);
 	}
 	else {
@@ -448,17 +645,17 @@ static void rna_Main_brushes_remove(Main *UNUSED(bmain), ReportList *reports, Po
 	}
 }
 
-static World *rna_Main_worlds_new(Main *UNUSED(bmain), const char *name)
+static World *rna_Main_worlds_new(Main *bmain, const char *name)
 {
-	World *world = add_world(name);
+	World *world = add_world(bmain, name);
 	id_us_min(&world->id);
 	return world;
 }
-static void rna_Main_worlds_remove(Main *UNUSED(bmain), ReportList *reports, PointerRNA *world_ptr)
+static void rna_Main_worlds_remove(Main *bmain, ReportList *reports, PointerRNA *world_ptr)
 {
 	Group *world = world_ptr->data;
 	if (ID_REAL_USERS(world) <= 0) {
-		BKE_libblock_free(&G.main->world, world);
+		BKE_libblock_free(&bmain->world, world);
 		RNA_POINTER_INVALIDATE(world_ptr);
 	}
 	else {
@@ -467,29 +664,29 @@ static void rna_Main_worlds_remove(Main *UNUSED(bmain), ReportList *reports, Poi
 	}
 }
 
-static Group *rna_Main_groups_new(Main *UNUSED(bmain), const char *name)
+static Group *rna_Main_groups_new(Main *bmain, const char *name)
 {
-	return add_group(name);
+	return add_group(bmain, name);
 }
-static void rna_Main_groups_remove(Main *UNUSED(bmain), PointerRNA *group_ptr)
+static void rna_Main_groups_remove(Main *bmain, PointerRNA *group_ptr)
 {
 	Group *group = group_ptr->data;
 	BKE_group_unlink(group);
-	BKE_libblock_free(&G.main->group, group);
+	BKE_libblock_free(&bmain->group, group);
 	RNA_POINTER_INVALIDATE(group_ptr);
 }
 
-static Speaker *rna_Main_speakers_new(Main *UNUSED(bmain), const char *name)
+static Speaker *rna_Main_speakers_new(Main *bmain, const char *name)
 {
-	Speaker *speaker = BKE_speaker_add(name);
+	Speaker *speaker = BKE_speaker_add(bmain, name);
 	id_us_min(&speaker->id);
 	return speaker;
 }
-static void rna_Main_speakers_remove(Main *UNUSED(bmain), ReportList *reports, PointerRNA *speaker_ptr)
+static void rna_Main_speakers_remove(Main *bmain, ReportList *reports, PointerRNA *speaker_ptr)
 {
 	Speaker *speaker = speaker_ptr->data;
 	if (ID_REAL_USERS(speaker) <= 0) {
-		BKE_libblock_free(&G.main->speaker, speaker);
+		BKE_libblock_free(&bmain->speaker, speaker);
 		RNA_POINTER_INVALIDATE(speaker_ptr);
 	}
 	else {
@@ -498,15 +695,15 @@ static void rna_Main_speakers_remove(Main *UNUSED(bmain), ReportList *reports, P
 	}
 }
 
-static Text *rna_Main_texts_new(Main *UNUSED(bmain), const char *name)
+static Text *rna_Main_texts_new(Main *bmain, const char *name)
 {
-	return BKE_text_add(name);
+	return BKE_text_add(bmain, name);
 }
-static void rna_Main_texts_remove(Main *UNUSED(bmain), PointerRNA *text_ptr)
+static void rna_Main_texts_remove(Main *bmain, PointerRNA *text_ptr)
 {
 	Text *text = text_ptr->data;
-	BKE_text_unlink(G.main, text);
-	BKE_libblock_free(&G.main->text, text);
+	BKE_text_unlink(bmain, text);
+	BKE_libblock_free(&bmain->text, text);
 	RNA_POINTER_INVALIDATE(text_ptr);
 }
 
@@ -515,7 +712,7 @@ static Text *rna_Main_texts_load(Main *bmain, ReportList *reports, const char *f
 	Text *txt;
 
 	errno = 0;
-	txt = BKE_text_load(filepath, bmain->name);
+	txt = BKE_text_load(bmain, filepath, bmain->name);
 
 	if (!txt)
 		BKE_reportf(reports, RPT_ERROR, "Cannot read '%s': %s", filepath,
@@ -524,17 +721,17 @@ static Text *rna_Main_texts_load(Main *bmain, ReportList *reports, const char *f
 	return txt;
 }
 
-static bArmature *rna_Main_armatures_new(Main *UNUSED(bmain), const char *name)
+static bArmature *rna_Main_armatures_new(Main *bmain, const char *name)
 {
-	bArmature *arm = BKE_armature_add(name);
+	bArmature *arm = BKE_armature_add(bmain, name);
 	id_us_min(&arm->id);
 	return arm;
 }
-static void rna_Main_armatures_remove(Main *UNUSED(bmain), ReportList *reports, PointerRNA *arm_ptr)
+static void rna_Main_armatures_remove(Main *bmain, ReportList *reports, PointerRNA *arm_ptr)
 {
 	bArmature *arm = arm_ptr->data;
 	if (ID_REAL_USERS(arm) <= 0) {
-		BKE_libblock_free(&G.main->armature, arm);
+		BKE_libblock_free(&bmain->armature, arm);
 		RNA_POINTER_INVALIDATE(arm_ptr);
 	}
 	else {
@@ -543,18 +740,18 @@ static void rna_Main_armatures_remove(Main *UNUSED(bmain), ReportList *reports, 
 	}
 }
 
-static bAction *rna_Main_actions_new(Main *UNUSED(bmain), const char *name)
+static bAction *rna_Main_actions_new(Main *bmain, const char *name)
 {
-	bAction *act = add_empty_action(name);
+	bAction *act = add_empty_action(bmain, name);
 	id_us_min(&act->id);
 	act->id.flag &= ~LIB_FAKEUSER;
 	return act;
 }
-static void rna_Main_actions_remove(Main *UNUSED(bmain), ReportList *reports, PointerRNA *act_ptr)
+static void rna_Main_actions_remove(Main *bmain, ReportList *reports, PointerRNA *act_ptr)
 {
 	bAction *act = act_ptr->data;
 	if (ID_REAL_USERS(act) <= 0) {
-		BKE_libblock_free(&G.main->action, act);
+		BKE_libblock_free(&bmain->action, act);
 		RNA_POINTER_INVALIDATE(act_ptr);
 	}
 	else {
@@ -582,12 +779,12 @@ static void rna_Main_particles_remove(Main *bmain, ReportList *reports, PointerR
 	}
 }
 
-static MovieClip *rna_Main_movieclip_load(Main *UNUSED(bmain), ReportList *reports, const char *filepath)
+static MovieClip *rna_Main_movieclip_load(Main *bmain, ReportList *reports, const char *filepath)
 {
 	MovieClip *clip;
 
 	errno = 0;
-	clip = BKE_movieclip_file_add(filepath);
+	clip = BKE_movieclip_file_add(bmain, filepath);
 
 	if (!clip)
 		BKE_reportf(reports, RPT_ERROR, "Cannot read '%s': %s", filepath,
@@ -596,28 +793,28 @@ static MovieClip *rna_Main_movieclip_load(Main *UNUSED(bmain), ReportList *repor
 	return clip;
 }
 
-static void rna_Main_movieclips_remove(Main *UNUSED(bmain), PointerRNA *clip_ptr)
+static void rna_Main_movieclips_remove(Main *bmain, PointerRNA *clip_ptr)
 {
 	MovieClip *clip = clip_ptr->data;
-	BKE_movieclip_unlink(G.main, clip);
-	BKE_libblock_free(&G.main->movieclip, clip);
+	BKE_movieclip_unlink(bmain, clip);
+	BKE_libblock_free(&bmain->movieclip, clip);
 	RNA_POINTER_INVALIDATE(clip_ptr);
 }
 
-static Mask *rna_Main_mask_new(Main *UNUSED(bmain), const char *name)
+static Mask *rna_Main_mask_new(Main *bmain, const char *name)
 {
 	Mask *mask;
 
-	mask = BKE_mask_new("Mask");
+	mask = BKE_mask_new(bmain, "Mask");
 
 	return mask;
 }
 
-static void rna_Main_masks_remove(Main *UNUSED(bmain), PointerRNA *mask_ptr)
+static void rna_Main_masks_remove(Main *bmain, PointerRNA *mask_ptr)
 {
 	Mask *mask = mask_ptr->data;
-	BKE_mask_free(G.main, mask);
-	BKE_libblock_free(&G.main->mask, mask);
+	BKE_mask_free(bmain, mask);
+	BKE_libblock_free(&bmain->mask, mask);
 	RNA_POINTER_INVALIDATE(mask_ptr);
 }
 
@@ -911,6 +1108,12 @@ void RNA_def_main_meshes(BlenderRNA *brna, PropertyRNA *cprop)
 	PropertyRNA *parm;
 	PropertyRNA *prop;
 
+	static EnumPropertyItem mesh_type_items[] = {
+		{eModifierMode_Realtime, "PREVIEW", 0, "Preview", "Apply modifier preview settings"},
+		{eModifierMode_Render, "RENDER", 0, "Render", "Apply modifier render settings"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	RNA_def_property_srna(cprop, "BlendDataMeshes");
 	srna = RNA_def_struct(brna, "BlendDataMeshes", NULL);
 	RNA_def_struct_sdna(srna, "Main");
@@ -922,6 +1125,21 @@ void RNA_def_main_meshes(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	/* return type */
 	parm = RNA_def_pointer(func, "mesh", "Mesh", "", "New mesh datablock");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "new_from_object", "rna_Main_meshes_new_from_object");
+	RNA_def_function_ui_description(func, "Add a new mesh created from object with modifiers applied");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate modifiers");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	parm = RNA_def_pointer(func, "object", "Object", "", "Object to create mesh from");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	parm = RNA_def_boolean(func, "apply_modifiers", 0, "", "Apply modifiers");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Modifier settings to apply");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_pointer(func, "mesh", "Mesh", "",
+	                       "Mesh created from object, remove it if it is only used for export");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_meshes_remove");

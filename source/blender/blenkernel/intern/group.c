@@ -127,11 +127,11 @@ void BKE_group_unlink(Group *group)
 	group->id.us = 0;
 }
 
-Group *add_group(const char *name)
+Group *add_group(Main *bmain, const char *name)
 {
 	Group *group;
 	
-	group = BKE_libblock_alloc(&G.main->group, ID_GR, name);
+	group = BKE_libblock_alloc(&bmain->group, ID_GR, name);
 	group->layer = (1 << 20) - 1;
 	return group;
 }

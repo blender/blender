@@ -242,11 +242,11 @@ void BKE_image_free(Image *ima)
 }
 
 /* only image block itself */
-static Image *image_alloc(const char *name, short source, short type)
+static Image *image_alloc(Main *bmain, const char *name, short source, short type)
 {
 	Image *ima;
 
-	ima = BKE_libblock_alloc(&G.main->image, ID_IM, name);
+	ima = BKE_libblock_alloc(&bmain->image, ID_IM, name);
 	if (ima) {
 		ima->ok = IMA_OK;
 
@@ -325,7 +325,7 @@ static void image_assign_ibuf(Image *ima, ImBuf *ibuf, int index, int frame)
 /* empty image block, of similar type and filename */
 Image *BKE_image_copy(Image *ima)
 {
-	Image *nima = image_alloc(ima->id.name + 2, ima->source, ima->type);
+	Image *nima = image_alloc(G.main, ima->id.name + 2, ima->source, ima->type);
 
 	BLI_strncpy(nima->name, ima->name, sizeof(ima->name));
 
@@ -568,7 +568,7 @@ static void image_init_color_management(Image *ima)
 	}
 }
 
-Image *BKE_image_load(const char *filepath)
+Image *BKE_image_load(Main *bmain, const char *filepath)
 {
 	Image *ima;
 	int file, len;
@@ -576,7 +576,7 @@ Image *BKE_image_load(const char *filepath)
 	char str[FILE_MAX];
 
 	BLI_strncpy(str, filepath, sizeof(str));
-	BLI_path_abs(str, G.main->name);
+	BLI_path_abs(str, bmain->name);
 
 	/* exists? */
 	file = BLI_open(str, O_BINARY | O_RDONLY, 0);
@@ -589,7 +589,7 @@ Image *BKE_image_load(const char *filepath)
 	while (len > 0 && filepath[len - 1] != '/' && filepath[len - 1] != '\\') len--;
 	libname = filepath + len;
 
-	ima = image_alloc(libname, IMA_SRC_FILE, IMA_TYPE_IMAGE);
+	ima = image_alloc(bmain, libname, IMA_SRC_FILE, IMA_TYPE_IMAGE);
 	BLI_strncpy(ima->name, filepath, sizeof(ima->name));
 
 	if (BLI_testextensie_array(filepath, imb_ext_movie))
@@ -631,7 +631,7 @@ Image *BKE_image_load_exists(const char *filepath)
 		}
 	}
 
-	return BKE_image_load(filepath);
+	return BKE_image_load(G.main, filepath);
 }
 
 static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short gen_type,
@@ -691,10 +691,10 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 }
 
 /* adds new image block, creates ImBuf and initializes color */
-Image *BKE_image_add_generated(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short gen_type, float color[4])
+Image *BKE_image_add_generated(Main *bmain, unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short gen_type, float color[4])
 {
 	/* on save, type is changed to FILE in editsima.c */
-	Image *ima = image_alloc(name, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);
+	Image *ima = image_alloc(bmain, name, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);
 
 	if (ima) {
 		ImBuf *ibuf;
@@ -720,7 +720,7 @@ Image *BKE_image_add_from_imbuf(ImBuf *ibuf)
 	/* on save, type is changed to FILE in editsima.c */
 	Image *ima;
 
-	ima = image_alloc(BLI_path_basename(ibuf->name), IMA_SRC_FILE, IMA_TYPE_IMAGE);
+	ima = image_alloc(G.main, BLI_path_basename(ibuf->name), IMA_SRC_FILE, IMA_TYPE_IMAGE);
 
 	if (ima) {
 		BLI_strncpy(ima->name, ibuf->name, FILE_MAX);
@@ -2104,7 +2104,7 @@ Image *BKE_image_verify_viewer(int type, const char *name)
 				break;
 
 	if (ima == NULL)
-		ima = image_alloc(name, IMA_SRC_VIEWER, type);
+		ima = image_alloc(G.main, name, IMA_SRC_VIEWER, type);
 
 	/* happens on reload, imagewindow cannot be image user when hidden*/
 	if (ima->id.us == 0)

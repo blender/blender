@@ -46,6 +46,7 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -113,7 +114,7 @@ void ED_rigidbody_ob_add(wmOperator *op, Scene *scene, Object *ob, int type)
 		scene->rigidbody_world = rbw;
 	}
 	if (rbw->group == NULL) {
-		rbw->group = add_group("RigidBodyWorld");
+		rbw->group = add_group(G.main, "RigidBodyWorld");
 	}
 
 	/* make rigidbody object settings */

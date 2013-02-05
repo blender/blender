@@ -43,6 +43,7 @@
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_paint.h"
 #include "BKE_subsurf.h"
@@ -179,7 +180,7 @@ void BKE_paint_init(Paint *p, const char col[3])
 	/* If there's no brush, create one */
 	brush = paint_brush(p);
 	if (brush == NULL)
-		brush = BKE_brush_add("Brush");
+		brush = BKE_brush_add(G.main, "Brush");
 	paint_brush_set(p, brush);
 
 	memcpy(p->paint_cursor_col, col, 3);

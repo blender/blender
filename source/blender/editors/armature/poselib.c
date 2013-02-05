@@ -54,6 +54,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_depsgraph.h"
+#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_object.h"
@@ -196,7 +197,7 @@ static bAction *poselib_init_new(Object *ob)
 	/* init object's poselib action (unlink old one if there) */
 	if (ob->poselib)
 		id_us_min(&ob->poselib->id);
-	ob->poselib = add_empty_action("PoseLib");
+	ob->poselib = add_empty_action(G.main, "PoseLib");
 	
 	return ob->poselib;
 }

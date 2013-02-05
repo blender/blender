@@ -435,7 +435,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 	mesh_synced.insert(mesh);
 
 	/* create derived mesh */
-	BL::Mesh b_mesh = object_to_mesh(b_ob, b_scene, true, !preview);
+	BL::Mesh b_mesh = object_to_mesh(b_data, b_ob, b_scene, true, !preview);
 	PointerRNA cmesh = RNA_pointer_get(&b_ob_data.ptr, "cycles");
 
 	vector<Mesh::Triangle> oldtriangle = mesh->triangles;
@@ -507,7 +507,7 @@ void BlenderSync::sync_mesh_motion(BL::Object b_ob, Mesh *mesh, int motion)
 		return;
 
 	/* get derived mesh */
-	BL::Mesh b_mesh = object_to_mesh(b_ob, b_scene, true, !preview);
+	BL::Mesh b_mesh = object_to_mesh(b_data, b_ob, b_scene, true, !preview);
 
 	if(b_mesh) {
 		BL::Mesh::vertices_iterator v;

@@ -73,7 +73,7 @@ typedef struct PoseTree {
 extern "C" {
 #endif
 
-struct bArmature *BKE_armature_add(const char *name);
+struct bArmature *BKE_armature_add(struct Main *bmain, const char *name);
 struct bArmature *BKE_armature_from_object(struct Object *ob);
 void BKE_armature_bonelist_free(struct ListBase *lb);
 void BKE_armature_free(struct bArmature *arm);

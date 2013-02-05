@@ -37,9 +37,10 @@ extern "C" {
 #endif
 
 struct Lamp;
+struct Main;
 struct Scene;
 
-struct Lamp *BKE_lamp_add(const char *name) WARN_UNUSED;
+struct Lamp *BKE_lamp_add(struct Main *bmain, const char *name) WARN_UNUSED;
 struct Lamp *BKE_lamp_copy(struct Lamp *la) WARN_UNUSED;
 struct Lamp *localize_lamp(struct Lamp *la) WARN_UNUSED;
 void BKE_lamp_make_local(struct Lamp *la);

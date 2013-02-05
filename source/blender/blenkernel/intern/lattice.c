@@ -180,11 +180,11 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 	MEM_freeN(vertexCos);
 }
 
-Lattice *BKE_lattice_add(const char *name)
+Lattice *BKE_lattice_add(Main *bmain, const char *name)
 {
 	Lattice *lt;
 	
-	lt = BKE_libblock_alloc(&G.main->latt, ID_LT, name);
+	lt = BKE_libblock_alloc(&bmain->latt, ID_LT, name);
 	
 	lt->flag = LT_GRID;
 	

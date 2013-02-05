@@ -1039,7 +1039,7 @@ static bNode *node_group_make_from_selected(bNodeTree *ntree)
 	node_get_selected_minmax(ntree, NULL, min, max);
 
 	/* new nodetree */
-	ngroup = ntreeAddTree("NodeGroup", ntree->type, NODE_GROUP);
+	ngroup = ntreeAddTree(G.main, "NodeGroup", ntree->type, NODE_GROUP);
 
 	/* make group node */
 	ntemp.type = NODE_GROUP;

@@ -10027,7 +10027,7 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 			Base *base;
 			
 			/* BKE_object_add(...) messes with the selection */
-			Object *ob = BKE_object_add_only_object(OB_EMPTY, group->id.name+2);
+			Object *ob = BKE_object_add_only_object(mainvar, OB_EMPTY, group->id.name+2);
 			ob->type = OB_EMPTY;
 			ob->lay = scene->lay;
 			

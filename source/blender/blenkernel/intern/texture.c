@@ -540,9 +540,8 @@ void tex_set_type(Tex *tex, int type)
 
 /* ------------------------------------------------------------------------- */
 
-Tex *add_texture(const char *name)
+Tex *add_texture(Main *bmain, const char *name)
 {
-	Main *bmain = G.main;
 	Tex *tex;
 
 	tex = BKE_libblock_alloc(&bmain->tex, ID_TE, name);

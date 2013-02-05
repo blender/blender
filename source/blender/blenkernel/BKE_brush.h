@@ -37,12 +37,13 @@ struct ID;
 struct Brush;
 struct ImBuf;
 struct ImagePool;
+struct Main;
 struct Scene;
 struct wmOperator;
 // enum CurveMappingPreset;
 
 /* datablock functions */
-struct Brush *BKE_brush_add(const char *name);
+struct Brush *BKE_brush_add(struct Main *bmain, const char *name);
 struct Brush *BKE_brush_copy(struct Brush *brush);
 void BKE_brush_make_local(struct Brush *brush);
 void BKE_brush_free(struct Brush *brush);
