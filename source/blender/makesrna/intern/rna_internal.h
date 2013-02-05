@@ -117,7 +117,7 @@ typedef struct BlenderDefRNA {
 	ListBase structs;
 	ListBase allocs;
 	struct StructRNA *laststruct;
-	int error, silent, preprocess, verify;
+	int error, silent, preprocess, verify, animate;
 } BlenderDefRNA;
 
 extern BlenderDefRNA DefRNA;

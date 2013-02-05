@@ -4708,15 +4708,19 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sequencer Color Space Settings", "Settings of color space sequencer is working in");
 
 	/* Nestled Data  */
+	/* *** Non-Animated *** */
+	RNA_define_animate_sdna(false);
 	rna_def_tool_settings(brna);
 	rna_def_unified_paint_settings(brna);
 	rna_def_unit_settings(brna);
 	rna_def_scene_image_format_data(brna);
-	rna_def_scene_render_data(brna);
 	rna_def_scene_game_data(brna);
-	rna_def_scene_render_layer(brna);
 	rna_def_transform_orientation(brna);
 	rna_def_selected_uv_element(brna);
+	RNA_define_animate_sdna(true);
+	/* *** Animated *** */
+	rna_def_scene_render_data(brna);
+	rna_def_scene_render_layer(brna);
 	
 	/* Scene API */
 	RNA_api_scene(srna);

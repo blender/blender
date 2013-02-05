@@ -43,6 +43,7 @@ BlenderRNA *RNA_create(void);
 void RNA_define_free(BlenderRNA *brna);
 void RNA_free(BlenderRNA *brna);
 void RNA_define_verify_sdna(int verify);
+void RNA_define_animate_sdna(int animate);
 
 void RNA_init(void);
 void RNA_exit(void);

@@ -3882,6 +3882,13 @@ static int rna_preprocess(const char *outfile)
 		if (PROCESS_ITEMS[i].define) {
 			PROCESS_ITEMS[i].define(brna);
 
+			/* sanity check */
+			if (!DefRNA.animate) {
+				fprintf(stderr,
+				        "Error: DefRNA.animate left disabled in %s\n",
+				        PROCESS_ITEMS[i].filename);
+			}
+
 			for (ds = DefRNA.structs.first; ds; ds = ds->cont.next)
 				if (!ds->filename)
 					ds->filename = PROCESS_ITEMS[i].filename;
