@@ -37,7 +37,6 @@ void curveinterp_v3_v3v3v3v3(float3 *p, float3 *v1, float3 *v2, float3 *v3, floa
 void interp_weights(float t, float data[4], int type);
 float shaperadius(float shape, float root, float tip, float time);
 void InterpolateKeySegments(int seg, int segno, int key, int curve, float3 *keyloc, float *time, ParticleCurveData *CData, int interpolation);
-void ToggleRender(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, BL::Scene *scene);
 bool ObtainCacheParticleUV(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool use_parents, bool background, int uv_num);
 bool ObtainCacheParticleVcol(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool use_parents, bool background, int vcol_num);
 bool ObtainCacheParticleData(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, ParticleCurveData *CData, bool use_parents, bool background);
@@ -380,14 +379,14 @@ bool ObtainCacheParticleVcol(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, Par
 
 }
 
-void ToggleRender(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, BL::Scene *scene)
+static void set_resolution(Mesh *mesh, BL::Mesh *b_mesh, BL::Object *b_ob, BL::Scene *scene, bool render)
 {
 	BL::Object::modifiers_iterator b_mod;
 	for(b_ob->modifiers.begin(b_mod); b_mod != b_ob->modifiers.end(); ++b_mod) {
 		if ((b_mod->type() == b_mod->type_PARTICLE_SYSTEM) && (b_mod->show_viewport()) && (b_mod->show_render())) {
 			BL::ParticleSystemModifier psmd((const PointerRNA)b_mod->ptr);
 			BL::ParticleSystem b_psys((const PointerRNA)psmd.particle_system().ptr);
-			b_psys.ToggleRender(*scene, *b_ob);
+			b_psys.set_resolution(*scene, *b_ob, (render)? 2: 1);
 		}
 	}
 }
@@ -1017,7 +1016,7 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 	ParticleCurveData CData;
 
 	if(!preview)
-		ToggleRender(mesh, &b_mesh, &b_ob, &b_scene);
+		set_resolution(mesh, &b_mesh, &b_ob, &b_scene, true);
 
 	ObtainCacheParticleData(mesh, &b_mesh, &b_ob, &CData, use_parents, !preview);
 
@@ -1166,7 +1165,7 @@ void BlenderSync::sync_curves(Mesh *mesh, BL::Mesh b_mesh, BL::Object b_ob, bool
 	}
 
 	if(!preview)
-		ToggleRender(mesh, &b_mesh, &b_ob, &b_scene);
+		set_resolution(mesh, &b_mesh, &b_ob, &b_scene, false);
 
 	mesh->compute_bounds();
 }

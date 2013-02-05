@@ -583,19 +583,21 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, P
 	}
 }
 
-static void rna_ParticleSystem_ToggleRender(ParticleSystem *particlesystem, Scene *scene, Object *object)
+static void rna_ParticleSystem_set_resolution(ParticleSystem *particlesystem, Scene *scene, Object *object, int resolution)
 {
-	ParticleSystemModifierData *psmd = psys_get_modifier(object, particlesystem);
-	float mat[4][4];
+	if (resolution == eModifierMode_Render) {
+		ParticleSystemModifierData *psmd = psys_get_modifier(object, particlesystem);
+		float mat[4][4];
 
-	unit_m4(mat);
-	
-	if (particlesystem->renderdata)
-		psys_render_restore(object, particlesystem);
-	else {
+		unit_m4(mat);
+
 		psys_render_set(object, particlesystem, mat, mat, 1, 1, 0.f);
 		psmd->flag &= ~eParticleSystemFlag_psys_updated;
 		particle_system_update(scene, object, particlesystem);
+	}
+	else {
+		if (particlesystem->renderdata)
+			psys_render_restore(object, particlesystem);
 	}
 }
 
@@ -3082,6 +3084,12 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	PropertyRNA *prop;
 	FunctionRNA *func;
 
+	static EnumPropertyItem resolution_items[] = {
+		{eModifierMode_Realtime, "PREVIEW", 0, "Preview", "Apply modifier preview settings"},
+		{eModifierMode_Render, "RENDER", 0, "Render", "Apply modifier render settings"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "ParticleSystem", NULL);
 	RNA_def_struct_ui_text(srna, "Particle System", "Particle system in an object");
 	RNA_def_struct_ui_icon(srna, ICON_PARTICLE_DATA);
@@ -3380,11 +3388,12 @@ static void rna_def_particle_system(BlenderRNA *brna)
 
 	RNA_def_struct_path_func(srna, "rna_ParticleSystem_path");
 
-	/* Toggle Render settings */
-	func = RNA_def_function(srna, "ToggleRender", "rna_ParticleSystem_ToggleRender");
-	RNA_def_function_ui_description(func, "Toggle render settings");
+	/* set viewport or render resolution */
+	func = RNA_def_function(srna, "set_resolution", "rna_ParticleSystem_set_resolution");
+	RNA_def_function_ui_description(func, "Set the resolution to use for the number of particles");
 	prop = RNA_def_pointer(func, "scene", "Scene", "", "Scene");
 	prop = RNA_def_pointer(func, "object", "Object", "", "Object");
+	prop = RNA_def_enum(func, "resolution", resolution_items, 0, "", "Resolution settings to apply");
 
 	/* extract cached hair location data */
 	func = RNA_def_function(srna, "co_hair", "rna_ParticleSystem_co_hair");
