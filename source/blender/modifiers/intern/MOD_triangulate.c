@@ -42,7 +42,7 @@ static DerivedMesh *triangulate_dm(DerivedMesh *dm, const int flag)
 
 	bm = DM_to_bmesh(dm);
 
-	BM_mesh_triangulate(bm, (flag & MOD_TRIANGULATE_BEAUTY), false);
+	BM_mesh_triangulate(bm, (flag & MOD_TRIANGULATE_BEAUTY), false, NULL, NULL);
 
 	result = CDDM_from_bmesh(bm, FALSE);
 	BM_mesh_free(bm);

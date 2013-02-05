@@ -30,6 +30,7 @@
 #ifndef __BMESH_TRIAMGULATE_H__
 #define __BMESH_TRIAMGULATE_H__
 
-void BM_mesh_triangulate(BMesh *bm, const bool use_beauty, const bool tag_only);
+void BM_mesh_triangulate(BMesh *bm, const bool use_beauty, const bool tag_only,
+                         BMOperator *op, BMOpSlot *slot_facemap_out);
 
 #endif  /* __BMESH_TRIAMGULATE_H__ */
