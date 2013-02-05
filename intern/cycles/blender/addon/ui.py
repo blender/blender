@@ -168,6 +168,19 @@ class CyclesRender_PT_film(CyclesButtonsPanel, Panel):
         if cscene.filter_type != 'BOX':
             sub.prop(cscene, "filter_width", text="Width")
 
+        layout.separator()
+
+        rd = scene.render
+        col = layout.column()
+
+        split = col.split(percentage=0.40)
+        split.prop(rd, "use_antialiasing", "OpenGL AA")
+        row = split.row()
+        row.active = rd.use_antialiasing
+        row.prop(rd, "antialiasing_samples", expand=True)
+
+        col.prop(rd, "alpha_mode", text="OpenGL Alpha")
+
 
 class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
     bl_label = "Performance"
