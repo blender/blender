@@ -624,6 +624,18 @@ void uiFileBrowseContextProperty(const bContext *C, PointerRNA *ptr, PropertyRNA
 
 /********************* Button Items *************************/
 
+/**
+ * Update a buttons tip with an enum's description if possible.
+ */
+static void ui_but_tip_from_enum_item(uiBut *but, EnumPropertyItem *item)
+{
+	if (but->tip == NULL || but->tip[0] == '\0') {
+		if (item->description && item->description[0]) {
+			but->tip = item->description;
+		}
+	}
+}
+
 /* disabled item */
 static void ui_item_disabled(uiLayout *layout, const char *name)
 {
@@ -837,6 +849,7 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 				else {
 					uiItemEnumO_ptr__internal(column, ot, item[i].name, item[i].icon, prop, item[i].value);
 				}
+				ui_but_tip_from_enum_item(block->buttons.last, &item[i]);
 			}
 			else {
 				if (item[i].name) {
@@ -849,6 +862,8 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 					uiItemL(column, item[i].name, ICON_NONE);
 					bt = block->buttons.last;
 					bt->flag = UI_TEXT_LEFT;
+
+					ui_but_tip_from_enum_item(bt, &item[i]);
 				}
 				else {  /* XXX bug here, colums draw bottom item badly */
 					uiItemS(column);
@@ -1239,6 +1254,7 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname
 		for (i = 0; i < totitem; i++) {
 			if (item[i].identifier[0]) {
 				uiItemEnumR(column, item[i].name, ICON_NONE, ptr, propname, item[i].value);
+				ui_but_tip_from_enum_item(block->buttons.last, &item[i]);
 			}
 			else {
 				if (item[i].name) {
@@ -1251,6 +1267,8 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname
 					uiItemL(column, item[i].name, ICON_NONE);
 					bt = block->buttons.last;
 					bt->flag = UI_TEXT_LEFT;
+
+					ui_but_tip_from_enum_item(bt, &item[i]);
 				}
 				else
 					uiItemS(column);
