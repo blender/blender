@@ -533,7 +533,7 @@ static void icon_verify_datatoc(IconImage *iimg)
 		                                    iimg->datatoc_size, IB_rect, NULL, "<matcap icon>");
 		/* w and h were set on initialize */
 		if (bbuf->x != iimg->h && bbuf->y != iimg->w)
-			IMB_scalefastImBuf(bbuf, iimg->w, iimg->h);
+			IMB_scaleImBuf(bbuf, iimg->w, iimg->h);
 		
 		iimg->rect = bbuf->rect;
 		bbuf->rect = NULL;
@@ -550,7 +550,7 @@ static void init_matcap_icons(void)
 		int size = datatoc_ ##name## _jpg_size;                               \
 		DrawInfo *di;                                                         \
 		                                                                      \
-		di = def_internal_icon(NULL, icon_id, 0, 0, 128, ICON_TYPE_BUFFER);   \
+		di = def_internal_icon(NULL, icon_id, 0, 0, 96, ICON_TYPE_BUFFER);   \
 		di->data.buffer.image->datatoc_rect = rect;                           \
 		di->data.buffer.image->datatoc_size = size;                           \
 	} (void)0
@@ -571,6 +571,14 @@ static void init_matcap_icons(void)
 	INIT_MATCAP_ICON(ICON_MATCAP_14, mc14);
 	INIT_MATCAP_ICON(ICON_MATCAP_15, mc15);
 	INIT_MATCAP_ICON(ICON_MATCAP_16, mc16);
+	INIT_MATCAP_ICON(ICON_MATCAP_17, mc17);
+	INIT_MATCAP_ICON(ICON_MATCAP_18, mc18);
+	INIT_MATCAP_ICON(ICON_MATCAP_19, mc19);
+	INIT_MATCAP_ICON(ICON_MATCAP_20, mc20);
+	INIT_MATCAP_ICON(ICON_MATCAP_21, mc21);
+	INIT_MATCAP_ICON(ICON_MATCAP_22, mc22);
+	INIT_MATCAP_ICON(ICON_MATCAP_23, mc23);
+	INIT_MATCAP_ICON(ICON_MATCAP_24, mc24);
 
 #undef INIT_MATCAP_ICON
 

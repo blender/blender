@@ -95,6 +95,14 @@ sources.extend((
 	os.path.join(env['DATA_SOURCES'], "mc14.jpg.c"),
 	os.path.join(env['DATA_SOURCES'], "mc15.jpg.c"),
 	os.path.join(env['DATA_SOURCES'], "mc16.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc17.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc18.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc19.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc20.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc21.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc22.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc23.jpg.c"),
+	os.path.join(env['DATA_SOURCES'], "mc24.jpg.c"),
 
 	))
 
