@@ -648,7 +648,7 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void MESH_OT_drop_named_image(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Assign Image to UV Map";
+	ot->name = "Drop Image to Mesh UV Map";
 	ot->description = "Assign Image to active UV Map, or create an UV Map";
 	ot->idname = "MESH_OT_drop_named_image";
 	
@@ -657,7 +657,7 @@ void MESH_OT_drop_named_image(wmOperatorType *ot)
 	ot->invoke = drop_named_image_invoke;
 	
 	/* flags */
-	ot->flag = OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
 	
 	/* properties */
 	RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME - 2, "Name", "Image name to assign");

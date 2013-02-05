@@ -1637,7 +1637,7 @@ void OUTLINER_OT_parent_drop(wmOperatorType *ot)
 	ot->poll = ED_operator_outliner_active;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* properties */
 	RNA_def_string(ot->srna, "child", "Object", MAX_ID_NAME, "Child", "Child Object");
@@ -1726,7 +1726,7 @@ void OUTLINER_OT_parent_clear(wmOperatorType *ot)
 	ot->poll = ED_operator_outliner_active;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* properties */
 	RNA_def_string(ot->srna, "dragged_obj", "Object", MAX_ID_NAME, "Child", "Child Object");
@@ -1819,7 +1819,7 @@ void OUTLINER_OT_scene_drop(wmOperatorType *ot)
 	ot->poll = ED_operator_outliner_active;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* properties */
 	RNA_def_string(ot->srna, "object", "Object", MAX_ID_NAME, "Object", "Target Object");
@@ -1883,7 +1883,7 @@ void OUTLINER_OT_material_drop(wmOperatorType *ot)
 	ot->poll = ED_operator_outliner_active;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* properties */
 	RNA_def_string(ot->srna, "object", "Object", MAX_ID_NAME, "Object", "Target Object");
