@@ -1204,7 +1204,6 @@ def get_panels():
         types.PARTICLE_PT_field_weights,
         types.PARTICLE_PT_force_fields,
         types.PARTICLE_PT_vertexgroups,
-        types.PARTICLE_PT_custom_props,
         types.MATERIAL_PT_custom_props,
         types.BONE_PT_custom_props,
         types.OBJECT_PT_custom_props,
