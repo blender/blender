@@ -151,7 +151,7 @@ Mesh *bc_to_mesh_apply_modifiers(Scene *scene, Object *ob, BC_export_mesh_type e
 		}
 	}
 
-	tmpmesh = BKE_mesh_add("ColladaMesh"); // name is not important here
+	tmpmesh = BKE_mesh_add(G.main, "ColladaMesh"); // name is not important here
 	DM_to_mesh(dm, tmpmesh, ob);
 	dm->release(dm);
 	return tmpmesh;

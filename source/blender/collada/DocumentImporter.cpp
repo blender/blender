@@ -601,7 +601,7 @@ bool DocumentImporter::writeMaterial(const COLLADAFW::Material *cmat)
 		return true;
 		
 	const std::string& str_mat_id = cmat->getName().size() ? cmat->getName() : cmat->getOriginalId();
-	Material *ma = BKE_material_add((char *)str_mat_id.c_str());
+	Material *ma = BKE_material_add(G.main, (char *)str_mat_id.c_str());
 	
 	this->uid_effect_map[cmat->getInstantiatedEffect()] = ma;
 	this->uid_material_map[cmat->getUniqueId()] = ma;
@@ -625,7 +625,7 @@ MTex *DocumentImporter::create_texture(COLLADAFW::EffectCommon *ef, COLLADAFW::T
 	
 	ma->mtex[i] = add_mtex();
 	ma->mtex[i]->texco = TEXCO_UV;
-	ma->mtex[i]->tex = add_texture("Texture");
+	ma->mtex[i]->tex = add_texture(G.main, "Texture");
 	ma->mtex[i]->tex->type = TEX_IMAGE;
 	ma->mtex[i]->tex->ima = uid_image_map[ima_uid];
 	
@@ -831,8 +831,8 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
 	
 	cam_id = camera->getOriginalId();
 	cam_name = camera->getName();
-	if (cam_name.size()) cam = (Camera *)BKE_camera_add((char *)cam_name.c_str());
-	else cam = (Camera *)BKE_camera_add((char *)cam_id.c_str());
+	if (cam_name.size()) cam = (Camera *)BKE_camera_add(G.main, (char *)cam_name.c_str());
+	else cam = (Camera *)BKE_camera_add(G.main, (char *)cam_id.c_str());
 	
 	if (!cam) {
 		fprintf(stderr, "Cannot create camera.\n");
@@ -981,8 +981,8 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 
 	la_id = light->getOriginalId();
 	la_name = light->getName();
-	if (la_name.size()) lamp = (Lamp *)BKE_lamp_add((char *)la_name.c_str());
-	else lamp = (Lamp *)BKE_lamp_add((char *)la_id.c_str());
+	if (la_name.size()) lamp = (Lamp *)BKE_lamp_add(G.main, (char *)la_name.c_str());
+	else lamp = (Lamp *)BKE_lamp_add(G.main, (char *)la_id.c_str());
 
 	if (!lamp) {
 		fprintf(stderr, "Cannot create lamp.\n");
