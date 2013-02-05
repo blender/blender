@@ -818,7 +818,7 @@ static void shade_tface(BakeShade *bs)
 			BLI_lock_thread(LOCK_CUSTOM1);
 			userdata = bs->ibuf->userdata;
 			if (userdata == NULL) /* since the thread was locked, its possible another thread alloced the value */
-				userdata = MEM_callocN(sizeof(BakeImBufuserData), STRINGIFY(BakeImBufuserData));
+				userdata = MEM_callocN(sizeof(BakeImBufuserData), "BakeImBufuserData");
 
 			if (bs->use_mask) {
 				if (userdata->mask_buffer == NULL) {

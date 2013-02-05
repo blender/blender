@@ -47,7 +47,7 @@ static bNodeSocketTemplate cmp_node_mask_out[] = {
 
 static void node_composit_init_mask(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
-	NodeMask *data = MEM_callocN(sizeof(NodeMask), STRINGIFY(NodeMask));
+	NodeMask *data = MEM_callocN(sizeof(NodeMask), "NodeMask");
 	data->size_x = data->size_y = 256;
 	node->storage = data;
 
