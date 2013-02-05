@@ -951,7 +951,7 @@ static void rna_def_rigidbody_constraint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Upper Z Angle Limit", "Upper limit of Z axis rotation");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_RigidBodyOb_reset");
 
-	prop = RNA_def_property(srna, "spring_stiffness_x", PROP_FLOAT, PROP_UNIT_LENGTH);
+	prop = RNA_def_property(srna, "spring_stiffness_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spring_stiffness_x");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);
@@ -960,7 +960,7 @@ static void rna_def_rigidbody_constraint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "X Axis Stiffness", "Stiffness on the X axis");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
 
-	prop = RNA_def_property(srna, "spring_stiffness_y", PROP_FLOAT, PROP_UNIT_LENGTH);
+	prop = RNA_def_property(srna, "spring_stiffness_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spring_stiffness_y");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);
@@ -969,7 +969,7 @@ static void rna_def_rigidbody_constraint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Y Axis Stiffness", "Stiffness on the Y axis");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
 
-	prop = RNA_def_property(srna, "spring_stiffness_z", PROP_FLOAT, PROP_UNIT_LENGTH);
+	prop = RNA_def_property(srna, "spring_stiffness_z", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spring_stiffness_z");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);
