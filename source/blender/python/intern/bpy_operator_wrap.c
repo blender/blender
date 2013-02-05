@@ -29,10 +29,8 @@
  * functionality.
  */
 
-
 #include <Python.h>
 
-#include "bpy_operator_wrap.h"
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -42,6 +40,8 @@
 #include "RNA_define.h"
 
 #include "bpy_rna.h"
+#include "bpy_intern_string.h"
+#include "bpy_operator_wrap.h"  /* own include */
 
 static void operator_properties_init(wmOperatorType *ot)
 {
@@ -57,6 +57,66 @@ static void operator_properties_init(wmOperatorType *ot)
 		PyErr_Print(); /* failed to register operator props */
 		PyErr_Clear();
 	}
+
+	/* set the default property: ot->prop */
+	{
+		/* picky developers will notice that 'bl_property' won't work with inheritance
+		 * get direct from the dict to avoid raising a load of attribute errors (yes this isnt ideal) - campbell */
+		PyTypeObject *py_class = ot->ext.data;
+		PyObject *py_class_dict = py_class->tp_dict;
+		PyObject *bl_property = PyDict_GetItem(py_class_dict, bpy_intern_str_bl_property);
+		const char *prop_id;
+		bool prop_raise_error;
+
+		if (bl_property) {
+			if (PyUnicode_Check(bl_property)) {
+				/* since the property is explicitly given, raise an error if its not found */
+				prop_id = _PyUnicode_AsString(bl_property);
+				prop_raise_error = true;
+			}
+			else {
+				PyErr_Format(PyExc_ValueError,
+				             "%.200s.bl_property should be a string, not %.200s",
+				             ot->idname, Py_TYPE(bl_property)->tp_name);
+
+				/* this could be done cleaner, for now its OK */
+				PyErr_Print();
+				PyErr_Clear();
+
+				prop_id = NULL;
+				prop_raise_error = false;
+			}
+		}
+		else {
+			prop_id = "type";
+			prop_raise_error = false;
+		}
+
+		if (prop_id) {
+			/* fallback to hard-coded string */
+			PointerRNA ptr;
+			PropertyRNA *prop;
+
+			RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
+			prop = RNA_struct_find_property(&ptr, prop_id);
+			if (prop) {
+				ot->prop = prop;
+			}
+			else {
+				if (prop_raise_error) {
+					PyErr_Format(PyExc_ValueError,
+					             "%.200s.bl_property '%.200s' not found",
+					             ot->idname, prop_id);
+
+					/* this could be done cleaner, for now its OK */
+					PyErr_Print();
+					PyErr_Clear();
+				}
+			}
+		}
+	}
+	/* end 'ot->prop' assignment */
+
 }
 
 void operator_wrapper(wmOperatorType *ot, void *userdata)
@@ -68,18 +128,6 @@ void operator_wrapper(wmOperatorType *ot, void *userdata)
 	ot->srna = srna; /* restore */
 
 	operator_properties_init(ot);
-
-	/* XXX - not nice, set the first enum as searchable, should have a way for python to set */
-	{
-		PointerRNA ptr;
-		PropertyRNA *prop;
-
-		RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
-		prop = RNA_struct_find_property(&ptr, "type");
-		if (prop) {
-			ot->prop = prop;
-		}
-	}
 }
 
 void macro_wrapper(wmOperatorType *ot, void *userdata)
