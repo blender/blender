@@ -935,12 +935,12 @@ GHOST_TWindowState GHOST_WindowX11::getState() const
 	 */
 	if ((state == IconicState) || (state == WithdrawnState))
 		state_ret = GHOST_kWindowStateMinimized;
-	else if (netwmIsMaximized() == True)
-		state_ret = GHOST_kWindowStateMaximized;
 	else if (netwmIsFullScreen() == True)
 		state_ret = GHOST_kWindowStateFullScreen;
 	else if (motifIsFullScreen() == True)
 		state_ret = GHOST_kWindowStateFullScreen;
+	else if (netwmIsMaximized() == True)
+		state_ret = GHOST_kWindowStateMaximized;
 	return (state_ret);
 }
 
