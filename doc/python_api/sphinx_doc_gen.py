@@ -696,6 +696,8 @@ def pyprop2sphinx(ident, fw, identifier, py_prop):
     write_indented_lines(ident + "   ", fw, py_prop.__doc__)
     if py_prop.fset is None:
         fw(ident + "   (readonly)\n\n")
+    else:
+        fw("\n")
 
 
 def pymodule2sphinx(basepath, module_name, module, title):
@@ -1814,7 +1816,18 @@ def refactor_sphinx_log(sphinx_logfile):
             refactored_logfile.write("%-12s %s\n             %s\n" % log)
 
 
+def monkey_patch():
+    filepath = os.path.join(SCRIPT_DIR, "sphinx_doc_gen_monkeypatch.py")
+    global_namespace = {"__file__": filepath, "__name__": "__main__"}
+    file = open(filepath, 'rb')
+    exec(compile(file.read(), filepath, 'exec'), global_namespace)
+    file.close()
+
+
 def main():
+
+    # first monkey patch to load in fake members
+    monkey_patch()
 
     # eventually, create the dirs
     for dir_path in [ARGS.output_dir, SPHINX_IN]:

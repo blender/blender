@@ -88,12 +88,12 @@ static void operator_properties_init(wmOperatorType *ot)
 			}
 		}
 		else {
+			/* fallback to hard-coded string (pre 2.66, could be deprecated) */
 			prop_id = "type";
 			prop_raise_error = false;
 		}
 
 		if (prop_id) {
-			/* fallback to hard-coded string */
 			PointerRNA ptr;
 			PropertyRNA *prop;
 
