@@ -284,12 +284,12 @@ extern void RB_constraint_set_enabled(rbConstraint *con, int enabled);
 extern void RB_constraint_set_limits_hinge(rbConstraint *con, float lower, float upper);
 extern void RB_constraint_set_limits_slider(rbConstraint *con, float lower, float upper);
 extern void RB_constraint_set_limits_piston(rbConstraint *con, float lin_lower, float lin_upper, float ang_lower, float ang_upper);
-extern void RB_constraint_set_limits_6dof(rbConstraint *con, float axis, float lower, float upper);
+extern void RB_constraint_set_limits_6dof(rbConstraint *con, int axis, float lower, float upper);
 
 /* 6dof spring specific */
-extern void RB_constraint_set_stiffness_6dof_spring(rbConstraint *con, float axis, float stiffness);
-extern void RB_constraint_set_damping_6dof_spring(rbConstraint *con, float axis, float damping);
-extern void RB_constraint_set_spring_6dof_spring(rbConstraint *con, float axis, int enable);
+extern void RB_constraint_set_stiffness_6dof_spring(rbConstraint *con, int axis, float stiffness);
+extern void RB_constraint_set_damping_6dof_spring(rbConstraint *con, int axis, float damping);
+extern void RB_constraint_set_spring_6dof_spring(rbConstraint *con, int axis, int enable);
 extern void RB_constraint_set_equilibrium_6dof_spring(rbConstraint *con);
 
 /* Set number of constraint solver iterations made per step, this overrided world setting
