@@ -493,11 +493,10 @@ bool BlenderSession::draw(int w, int h)
 		}
 		else {
 			/* update camera from 3d view */
-			bool need_update = scene->camera->need_update;
 
 			sync->sync_view(b_v3d, b_rv3d, w, h);
 
-			if(scene->camera->need_update && !need_update)
+			if(scene->camera->need_update)
 				reset = true;
 
 			session->scene->mutex.unlock();
