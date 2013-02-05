@@ -915,7 +915,8 @@ void RB_constraint_set_damping_6dof_spring(rbConstraint *con, float axis, float 
 {
 	btGeneric6DofSpringConstraint *constraint = reinterpret_cast<btGeneric6DofSpringConstraint*>(con);
 	
-	constraint->setDamping(axis, damping);
+	// invert damping range so that 0 = no damping
+	constraint->setDamping(axis, 1.0f - damping);
 }
 
 void RB_constraint_set_spring_6dof_spring(rbConstraint *con, float axis, int enable)
