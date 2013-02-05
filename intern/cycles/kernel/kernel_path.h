@@ -411,7 +411,7 @@ __device float4 kernel_path_progressive(KernelGlobals *kg, RNG *rng, int sample,
 
 					if(!shadow_blocked(kg, &state, &light_ray, &shadow)) {
 						/* accumulate */
-						path_radiance_accum_light(&L, throughput, &L_light, shadow, state.bounce, is_lamp);
+						path_radiance_accum_light(&L, throughput, &L_light, shadow, 1.0f, state.bounce, is_lamp);
 					}
 				}
 			}
@@ -624,7 +624,7 @@ __device void kernel_path_indirect(KernelGlobals *kg, RNG *rng, int sample, Ray 
 
 					if(!shadow_blocked(kg, &state, &light_ray, &shadow)) {
 						/* accumulate */
-						path_radiance_accum_light(L, throughput, &L_light, shadow, state.bounce, is_lamp);
+						path_radiance_accum_light(L, throughput, &L_light, shadow, 1.0f, state.bounce, is_lamp);
 					}
 				}
 			}
@@ -841,7 +841,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 
 						if(!shadow_blocked(kg, &state, &light_ray, &shadow)) {
 							/* accumulate */
-							path_radiance_accum_light(&L, throughput*num_samples_inv, &L_light, shadow*num_samples_inv, state.bounce, is_lamp);
+							path_radiance_accum_light(&L, throughput*num_samples_inv, &L_light, shadow, num_samples_inv, state.bounce, is_lamp);
 						}
 					}
 				}
@@ -870,7 +870,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 
 						if(!shadow_blocked(kg, &state, &light_ray, &shadow)) {
 							/* accumulate */
-							path_radiance_accum_light(&L, throughput*num_samples_inv, &L_light, shadow*num_samples_inv, state.bounce, is_lamp);
+							path_radiance_accum_light(&L, throughput*num_samples_inv, &L_light, shadow, num_samples_inv, state.bounce, is_lamp);
 						}
 					}
 				}
