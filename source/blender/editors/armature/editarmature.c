@@ -3658,6 +3658,16 @@ void ARMATURE_OT_subdivide(wmOperatorType *ot)
  * easy to retrieve any hierarchical/chain relationships which are necessary for
  * this to be done easily.
  */
+ 
+/* helper to clear BONE_TRANSFORM flags */
+static void armature_clear_swap_done_flags(bArmature *arm)
+{
+	EditBone *ebone;
+	
+	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		ebone->flag &= ~BONE_TRANSFORM;
+	}
+}
 
 static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op)) 
 {
@@ -3669,9 +3679,16 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 	/* get chains of bones (ends on chains) */
 	chains_find_tips(arm->edbo, &chains);
 	if (chains.first == NULL) return OPERATOR_CANCELLED;
-
+	
+	/* ensure that mirror bones will also be operated on */
 	armature_tag_select_mirrored(arm);
-
+	
+	/* clear BONE_TRANSFORM flags 
+	 * - used to prevent duplicate/cancelling operations from occurring [#34123] 
+	 * - BONE_DONE cannot be used here as that's already used for mirroring
+	 */
+	armature_clear_swap_done_flags(arm);
+	
 	/* loop over chains, only considering selected and visible bones */
 	for (chain = chains.first; chain; chain = chain->next) {
 		EditBone *ebo, *child = NULL, *parent = NULL;
@@ -3684,51 +3701,59 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 			 */
 			parent = ebo->parent;
 			
-			/* only if selected and editable */
-			if (EBONE_VISIBLE(arm, ebo) && EBONE_EDITABLE(ebo)) {
-				/* swap head and tail coordinates */
-				SWAP(float, ebo->head[0], ebo->tail[0]);
-				SWAP(float, ebo->head[1], ebo->tail[1]);
-				SWAP(float, ebo->head[2], ebo->tail[2]);
-				
-				/* do parent swapping:
-				 *	- use 'child' as new parent
-				 *	- connected flag is only set if points are coincidental
-				 */
-				ebo->parent = child;
-				if ((child) && equals_v3v3(ebo->head, child->tail))
-					ebo->flag |= BONE_CONNECTED;
-				else
-					ebo->flag &= ~BONE_CONNECTED;
-				
-				/* get next bones 
-				 *	- child will become the new parent of next bone
-				 */
-				child = ebo;
-			}
-			else {
-				/* not swapping this bone, however, if its 'parent' got swapped, unparent us from it 
-				 * as it will be facing in opposite direction
-				 */
-				if ((parent) && (EBONE_VISIBLE(arm, parent) && EBONE_EDITABLE(parent))) {
-					ebo->parent = NULL;
-					ebo->flag &= ~BONE_CONNECTED;
+			/* skip bone if already handled... [#34123] */
+			if ((ebo->flag & BONE_TRANSFORM) == 0) {
+				/* only if selected and editable */
+				if (EBONE_VISIBLE(arm, ebo) && EBONE_EDITABLE(ebo)) {
+					/* swap head and tail coordinates */
+					SWAP(float, ebo->head[0], ebo->tail[0]);
+					SWAP(float, ebo->head[1], ebo->tail[1]);
+					SWAP(float, ebo->head[2], ebo->tail[2]);
+					
+					/* do parent swapping:
+					 *	- use 'child' as new parent
+					 *	- connected flag is only set if points are coincidental
+					 */
+					ebo->parent = child;
+					if ((child) && equals_v3v3(ebo->head, child->tail))
+						ebo->flag |= BONE_CONNECTED;
+					else
+						ebo->flag &= ~BONE_CONNECTED;
+					
+					/* get next bones 
+					 *	- child will become the new parent of next bone
+					 */
+					child = ebo;
+				}
+				else {
+					/* not swapping this bone, however, if its 'parent' got swapped, unparent us from it 
+					 * as it will be facing in opposite direction
+					 */
+					if ((parent) && (EBONE_VISIBLE(arm, parent) && EBONE_EDITABLE(parent))) {
+						ebo->parent = NULL;
+						ebo->flag &= ~BONE_CONNECTED;
+					}
+					
+					/* get next bones
+					 *	- child will become new parent of next bone (not swapping occurred, 
+					 *	  so set to NULL to prevent infinite-loop)
+					 */
+					child = NULL;
 				}
 				
-				/* get next bones
-				 *	- child will become new parent of next bone (not swapping occurred, 
-				 *	  so set to NULL to prevent infinite-loop)
-				 */
-				child = NULL;
+				/* tag as done (to prevent double-swaps) */
+				ebo->flag |= BONE_TRANSFORM;
 			}
 		}
 	}
 	
 	/* free chains */
 	BLI_freelistN(&chains);
-
+	
+	/* clear temp flags */
+	armature_clear_swap_done_flags(arm);
 	armature_tag_unselect(arm);
-
+	
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
 	
