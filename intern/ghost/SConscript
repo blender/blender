@@ -67,6 +67,7 @@ elif window_system in ('linux', 'openbsd3', 'sunos5', 'freebsd7', 'freebsd8', 'f
     ## just dont use the PREFIX.
     # defs += ['PREFIX=\\"/usr/local/\\"']  # XXX, make an option
     defs += ['WITH_X11_XINPUT']  # XXX, make an option
+    defs += ['WITH_X11_XINERAMA']
 
     # freebsd doesn't seem to support XDND protocol
     if env['WITH_GHOST_XDND'] and window_system not in ('freebsd7', 'freebsd8', 'freebsd9'):
