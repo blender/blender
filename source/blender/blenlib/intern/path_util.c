@@ -848,7 +848,7 @@ const char *BLI_getDefaultDocumentFolder(void)
 /* ************************************************************* */
 /* ************************************************************* */
 
-// #define PATH_DEBUG2
+// #define PATH_DEBUG
 
 static char *blender_version_decimal(const int ver)
 {
@@ -871,14 +871,14 @@ static int test_path(char *targetpath, const char *path_base, const char *path_s
 		BLI_strncpy(targetpath, tmppath, sizeof(tmppath));
 
 	if (BLI_is_dir(targetpath)) {
-#ifdef PATH_DEBUG2
-		printf("\tpath found: %s\n", targetpath);
+#ifdef PATH_DEBUG
+		printf("\t%s found: %s\n", __func__, targetpath);
 #endif
 		return 1;
 	}
 	else {
-#ifdef PATH_DEBUG2
-		printf("\tpath missing: %s\n", targetpath);
+#ifdef PATH_DEBUG
+		printf("\t%s missing: %s\n", __func__, targetpath);
 #endif
 		//targetpath[0] = '\0';
 		return 0;
@@ -892,10 +892,16 @@ static int test_env_path(char *path, const char *envvar)
 	
 	if (BLI_is_dir(env)) {
 		BLI_strncpy(path, env, FILE_MAX);
+#ifdef PATH_DEBUG
+		printf("\t%s env %s found: %s\n", __func__, envvar, env);
+#endif
 		return 1;
 	}
 	else {
 		path[0] = '\0';
+#ifdef PATH_DEBUG
+		printf("\t%s env %s missing: %s\n", __func__, envvar, env);
+#endif
 		return 0;
 	}
 }
@@ -904,8 +910,8 @@ static int get_path_local(char *targetpath, const char *folder_name, const char 
 {
 	char relfolder[FILE_MAX];
 	
-#ifdef PATH_DEBUG2
-	printf("get_path_local...\n");
+#ifdef PATH_DEBUG
+	printf("%s...\n", __func__);
 #endif
 
 	if (folder_name) {
@@ -964,8 +970,8 @@ static int get_path_user(char *targetpath, const char *folder_name, const char *
 	if (!user_path[0])
 		return 0;
 	
-#ifdef PATH_DEBUG2
-	printf("get_path_user: %s\n", user_path);
+#ifdef PATH_DEBUG
+	printf("%s: %s\n", __func__, user_path);
 #endif
 	
 	if (subfolder_name) {
@@ -1034,8 +1040,8 @@ static int get_path_system(char *targetpath, const char *folder_name, const char
 	if (!system_path[0])
 		return 0;
 	
-#ifdef PATH_DEBUG2
-	printf("get_path_system: %s\n", system_path);
+#ifdef PATH_DEBUG
+	printf("%s: %s\n", __func__, system_path);
 #endif
 	
 	if (subfolder_name) {
@@ -1174,7 +1180,7 @@ char *BLI_get_folder_version(const int id, const int ver, const int do_check)
 
 
 #ifdef PATH_DEBUG
-#undef PATH_DEBUG
+#  undef PATH_DEBUG
 #endif
 
 void BLI_setenv(const char *env, const char *val)
