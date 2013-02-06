@@ -20,44 +20,26 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_TranslateOperation_h_
-#define _COM_TranslateOperation_h_
+#ifndef _COM_WrapOperation_h_
+#define _COM_WrapOperation_h_
 
 #include "COM_NodeOperation.h"
 
-class TranslateOperation : public NodeOperation {
+class WrapOperation : public NodeOperation {
 private:
 	SocketReader *m_inputOperation;
-	SocketReader *m_inputXOperation;
-	SocketReader *m_inputYOperation;
-	float m_deltaX;
-	float m_deltaY;
-	bool m_isDeltaSet;
-	float m_relativeOffsetX;
-	float m_relativeOffsetY;
-	float m_factorX;
-	float m_factorY;
+	int m_wrappingType;
 public:
-	TranslateOperation();
+	WrapOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 
 	void initExecution();
 	void deinitExecution();
 
-	float getDeltaX() { return this->m_deltaX * this->m_factorX; }
-	float getDeltaY() { return this->m_deltaY * this->m_factorY; }
-	
-	inline void ensureDelta() {
-		if (!this->m_isDeltaSet) {
-			float tempDelta[4];
-			this->m_inputXOperation->read(tempDelta, 0, 0, COM_PS_NEAREST);
-			this->m_deltaX = tempDelta[0];
-			this->m_inputYOperation->read(tempDelta, 0, 0, COM_PS_NEAREST);
-			this->m_deltaY = tempDelta[0];
-			this->m_isDeltaSet = true;
-		}
-	}
+	void setWrapping(int wrapping_type);
+	float getWrappedOriginalXPos(float x);
+	float getWrappedOriginalYPos(float y);
 
 	void setFactorXY(float factorX, float factorY);
 };

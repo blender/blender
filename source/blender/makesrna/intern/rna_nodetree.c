@@ -4228,10 +4228,10 @@ static void def_cmp_trackpos(StructRNA *srna)
 static void def_cmp_translate(StructRNA *srna)
 {
 	static EnumPropertyItem translate_items[] = {
-		{0, "NONE", 0, "None", "No wrapping on X and Y"},
-		{1, "XAXIS", 0, "X Axis", "Wrap all pixels on the X axis"},
-		{2, "YAXIS", 0, "Y Axis", "Wrap all pixels on the Y axis"},
-		{3, "BOTH", 0, "Both Axes", "Wrap all pixels on both axes"},
+		{CMP_NODE_WRAP_NONE, "NONE",  0, "None",       "No wrapping on X and Y"},
+		{CMP_NODE_WRAP_X,    "XAXIS", 0, "X Axis",     "Wrap all pixels on the X axis"},
+		{CMP_NODE_WRAP_Y,    "YAXIS", 0, "Y Axis",     "Wrap all pixels on the Y axis"},
+		{CMP_NODE_WRAP_XY,   "BOTH",  0, "Both Axes",  "Wrap all pixels on both axes"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

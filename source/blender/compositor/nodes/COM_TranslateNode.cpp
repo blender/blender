@@ -23,6 +23,7 @@
 #include "COM_TranslateNode.h"
 
 #include "COM_TranslateOperation.h"
+#include "COM_WrapOperation.h"
 #include "COM_ExecutionSystem.h"
 
 TranslateNode::TranslateNode(bNode *editorNode) : Node(editorNode)
@@ -40,7 +41,16 @@ void TranslateNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 
 	bNode *bnode = this->getbNode();
 	NodeTranslateData *data = (NodeTranslateData *)bnode->storage;
-	operation->setWrapping(data->wrap_axis);
+
+	if (data->wrap_axis) {
+		WrapOperation *wrapOperation = new WrapOperation();
+		wrapOperation->setWrapping(data->wrap_axis);
+		inputSocket->relinkConnections(wrapOperation->getInputSocket(0), 0, graph);
+		addLink(graph, wrapOperation->getOutputSocket(), operation->getInputSocket(0));
+		graph->addOperation(wrapOperation);
+	} else {
+		inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
+	}
 
 	if (data->relative) {
 		const RenderData *rd = context->getRenderData();
@@ -50,7 +60,6 @@ void TranslateNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 		operation->setFactorXY(fx, fy);
 	}
 
-	inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
 	inputXSocket->relinkConnections(operation->getInputSocket(1), 1, graph);
 	inputYSocket->relinkConnections(operation->getInputSocket(2), 2, graph);
 	outputSocket->relinkConnections(operation->getOutputSocket(0));

@@ -580,6 +580,8 @@ set(SRC
 	# Distort operation
 	operations/COM_TranslateOperation.h
 	operations/COM_TranslateOperation.cpp
+	operations/COM_WrapOperation.h
+	operations/COM_WrapOperation.cpp
 	operations/COM_RotateOperation.h
 	operations/COM_RotateOperation.cpp
 	operations/COM_ScaleOperation.h
