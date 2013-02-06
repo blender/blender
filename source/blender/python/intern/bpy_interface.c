@@ -332,7 +332,7 @@ void BPY_python_start(int argc, const char **argv)
 				PyErr_Print();
 				PyErr_Clear();
 			}
-			// Py_DECREF(mod); /* ideally would decref, but in this case we never wan't to free */
+			// Py_DECREF(mod); /* ideally would decref, but in this case we never want to free */
 		}
 	}
 #endif

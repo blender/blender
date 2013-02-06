@@ -2579,6 +2579,7 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 			
 			totfilltri = BLI_scanfill_calc(&sf_ctx, 0);
 			BLI_assert(totfilltri <= mp->totloop - 2);
+			(void)totfilltri;
 
 			for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next, mf++) {
 				mface_to_poly_map[mface_index] = poly_index;

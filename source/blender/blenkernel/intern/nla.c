@@ -1447,9 +1447,9 @@ void BKE_nla_validate_state(AnimData *adt)
 			if (strip->extendmode != NLASTRIP_EXTEND_NOTHING) {
 				/* 1) First strip must be set to extend hold, otherwise, stuff before acts dodgy
 				 * 2) Only overwrite extend mode if *not* changing it will most probably result in 
-				 * occlusion problems, which will occur iff
-				 *	- blendmode = REPLACE
-				 *	- all channels the same (this is fiddly to test, so is currently assumed)
+				 * occlusion problems, which will occur if...
+				 * - blendmode = REPLACE
+				 * - all channels the same (this is fiddly to test, so is currently assumed)
 				 *
 				 * Should fix problems such as [#29869]
 				 */

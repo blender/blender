@@ -552,7 +552,7 @@ void Session::run_cpu()
 			}
 			else if(need_tonemap) {
 				/* tonemap only if we do not reset, we don't we don't
-				 * wan't to show the result of an incomplete sample*/
+				 * want to show the result of an incomplete sample*/
 				tonemap();
 			}
 

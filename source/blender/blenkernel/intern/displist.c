@@ -759,7 +759,7 @@ static ModifierData *curve_get_tessellate_point(Scene *scene, Object *ob, int fo
 
 			/* this modifiers are moving point of tessellation automatically
 			 * (some of them even can't be applied on tessellated curve), set flag
-			 * for incformation button in modifier's header
+			 * for information button in modifier's header
 			 */
 			md->mode |= eModifierMode_ApplyOnSpline;
 		}

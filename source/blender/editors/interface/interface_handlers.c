@@ -6973,7 +6973,7 @@ static int ui_handle_menus_recursive(bContext *C, const wmEvent *event, uiPopupB
 			retval = ui_handle_menu_return_submenu(C, event, menu);
 			submenu = NULL;  /* hint not to use this, it may be freed by call above */
 			(void)submenu;
-			/* we may wan't to quit the submenu and handle the even in this menu,
+			/* we may want to quit the submenu and handle the even in this menu,
 			 * if its important to use it, check 'data->menu' first */
 			if ((retval == WM_UI_HANDLER_BREAK) && do_ret_out_parent) {
 				retval = ui_handle_menu_event(C, event, menu, level);

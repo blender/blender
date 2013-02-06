@@ -656,7 +656,7 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
  * available.  my ussual solution to this is to use the
  * ratio of change of the size to change the unprojected
  * radius.  Not completely convinced that is correct.
- * In anycase, a better solution is needed to prevent
+ * In any case, a better solution is needed to prevent
  * inconsistency. */
 
 void BKE_brush_size_set(Scene *scene, Brush *brush, int size)

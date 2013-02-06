@@ -354,7 +354,7 @@ void BKE_rigidbody_validate_sim_shape(Object *ob, short rebuild)
 	/* if automatically determining dimensions, use the Object's boundbox
 	 *	- assume that all quadrics are standing upright on local z-axis
 	 *	- assume even distribution of mass around the Object's pivot
-	 *	  (i.e. Object pivot is centralised in boundbox)
+	 *	  (i.e. Object pivot is centralized in boundbox)
 	 */
 	// XXX: all dimensions are auto-determined now... later can add stored settings for this
 	/* get object dimensions without scaling */

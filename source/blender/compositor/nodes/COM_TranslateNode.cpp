@@ -48,7 +48,8 @@ void TranslateNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 		inputSocket->relinkConnections(wrapOperation->getInputSocket(0), 0, graph);
 		addLink(graph, wrapOperation->getOutputSocket(), operation->getInputSocket(0));
 		graph->addOperation(wrapOperation);
-	} else {
+	}
+	else {
 		inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
 	}
 

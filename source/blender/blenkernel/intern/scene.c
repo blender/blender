@@ -716,7 +716,7 @@ void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)
 }
 
 /* used by metaballs
- * doesnt return the original duplicated object, only dupli's
+ * doesn't return the original duplicated object, only dupli's
  */
 int BKE_scene_base_iter_next(Scene **scene, int val, Base **base, Object **ob)
 {
