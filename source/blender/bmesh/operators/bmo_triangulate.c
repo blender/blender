@@ -51,12 +51,6 @@ void bmo_triangulate_exec(BMesh *bm, BMOperator *op)
 
 	BM_mesh_triangulate(bm, use_beauty, true, op, slot_facemap_out);
 
-	if (use_beauty) {
-		BMO_op_callf(bm, op->flag,
-		             "beautify_fill faces=%hf constrain_edges=%He",
-		             BM_ELEM_TAG, BM_ELEM_TAG);
-	}
-
 	BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "edges.out", BM_EDGE, BM_ELEM_TAG);
 	BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faces.out", BM_FACE, BM_ELEM_TAG);
 }
@@ -69,7 +63,7 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e;
 	int stop = 0;
 	
-	BMO_slot_buffer_flag_enable(bm, op->slots_in, "constrain_edges", BM_EDGE, EDGE_MARK);
+	BMO_slot_buffer_flag_enable(bm, op->slots_in, "edges", BM_EDGE, EDGE_MARK);
 	
 	BMO_ITER (f, &siter, op->slots_in, "faces", BM_FACE) {
 		if (f->len == 3) {
@@ -83,7 +77,7 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 			BMVert *v1, *v2, *v3, *v4;
 			
-			if (!BM_edge_is_manifold(e) || BMO_elem_flag_test(bm, e, EDGE_MARK)) {
+			if (!BM_edge_is_manifold(e) || !BMO_elem_flag_test(bm, e, EDGE_MARK)) {
 				continue;
 			}
 
@@ -123,7 +117,7 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 				if (fac1 > fac2) {
 					e = BM_edge_rotate(bm, e, false, BM_EDGEROT_CHECK_EXISTS);
 					if (e) {
-						BMO_elem_flag_enable(bm, e, ELE_NEW);
+						BMO_elem_flag_enable(bm, e, ELE_NEW | EDGE_MARK);
 
 						BMO_elem_flag_enable(bm, e->l->f, FACE_MARK | ELE_NEW);
 						BMO_elem_flag_enable(bm, e->l->radial_next->f, FACE_MARK | ELE_NEW);
@@ -194,7 +188,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	BLI_smallhash_release(&hash);
 	
 	/* clean up fill */
-	BMO_op_initf(bm, &bmop, op->flag, "beautify_fill faces=%ff constrain_edges=%fe", ELE_NEW, EDGE_MARK);
+	BMO_op_initf(bm, &bmop, op->flag, "beautify_fill faces=%ff edges=%Fe", ELE_NEW, EDGE_MARK);
 	BMO_op_exec(bm, &bmop);
 	BMO_slot_buffer_flag_enable(bm, bmop.slots_out, "geom.out", BM_FACE | BM_EDGE, ELE_NEW);
 	BMO_op_finish(bm, &bmop);

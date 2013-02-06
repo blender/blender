@@ -1853,7 +1853,7 @@ static void remerge_faces(KnifeTool_OpData *kcd)
 	BMOperator bmop;
 	int idx;
 
-	BMO_op_initf(bm, &bmop, "beautify_fill faces=%ff constrain_edges=%fe", FACE_NEW, BOUNDARY);
+	BMO_op_initf(bm, &bmop, "beautify_fill faces=%ff edges=%Fe", FACE_NEW, BOUNDARY);
 
 	BMO_op_exec(bm, &bmop);
 	BMO_slot_buffer_flag_enable(bm, &bmop, "geom.out", BM_FACE, FACE_NEW);
