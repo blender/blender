@@ -44,7 +44,6 @@ CCL_NAMESPACE_BEGIN
 #define __KERNEL_SHADING__
 #define __KERNEL_ADV_SHADING__
 #define __NON_PROGRESSIVE__
-#define __LAMP_MIS__
 #define __HAIR__
 #ifdef WITH_OSL
 #define __OSL__
@@ -55,9 +54,6 @@ CCL_NAMESPACE_BEGIN
 #define __KERNEL_SHADING__
 #if __CUDA_ARCH__ >= 200
 #define __KERNEL_ADV_SHADING__
-#endif
-#if __CUDA_ARCH__ >= 210
-#define __LAMP_MIS__
 #endif
 #endif
 
@@ -116,6 +112,7 @@ CCL_NAMESPACE_BEGIN
 #define __TRANSPARENT_SHADOWS__
 #define __PASSES__
 #define __BACKGROUND_MIS__
+#define __LAMP_MIS__
 #define __AO__
 #define __ANISOTROPIC__
 #define __CAMERA_MOTION__
