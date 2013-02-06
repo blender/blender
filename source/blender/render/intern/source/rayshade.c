@@ -433,14 +433,18 @@ void makeraytree(Render *re)
 		 * This is ONLY needed to kept a bogus behavior of SUN and HEMI lights */
 		INIT_MINMAX(min, max);
 		RE_rayobject_merge_bb(re->raytree, min, max);
+		if (min[0] > max[0]) {  /* empty raytree */
+			zero_v3(min);
+			zero_v3(max);
+		}
 		for (i=0; i<3; i++) {
+			/* TODO: explain why add top both min and max??? */
 			min[i] += 0.01f;
 			max[i] += 0.01f;
 			sub[i] = max[i]-min[i];
 		}
 
-		re->maxdist = dot_v3v3(sub, sub);
-		if (re->maxdist > 0.0f) re->maxdist= sqrt(re->maxdist);
+		re->maxdist = len_v3(sub);
 
 		re->i.infostr= "Raytree finished";
 		re->stats_draw(re->sdh, &re->i);

@@ -700,9 +700,11 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 			}
 			else {
 				if (around == V3D_CENTROID) {
-					const float total_div = 1.0f / (float)em->bm->totvert;
-					BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-						madd_v3_v3fl(cent, eve->co, total_div);
+					if (em->bm->totvert) {
+						const float total_div = 1.0f / (float)em->bm->totvert;
+						BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+							madd_v3_v3fl(cent, eve->co, total_div);
+						}
 					}
 				}
 				else {

@@ -563,7 +563,9 @@ void docenter_armature(Scene *scene, Object *ob, float cursor[3], int centermode
 				add_v3_v3(cent, ebone->head);
 				add_v3_v3(cent, ebone->tail);
 			}
-			mul_v3_fl(cent, 1.0f / (float)total);
+			if (total) {
+				mul_v3_fl(cent, 1.0f / (float)total);
+			}
 		}
 		else {
 			float min[3], max[3];

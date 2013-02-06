@@ -2005,7 +2005,8 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 
 static int add_named_exec(bContext *C, wmOperator *op)
 {
-	wmEvent *event = CTX_wm_window(C)->eventstate;
+	wmWindow *win = CTX_wm_window(C);
+	wmEvent *event = win ? win->eventstate : NULL;
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Base *basen, *base;
@@ -2037,8 +2038,10 @@ static int add_named_exec(bContext *C, wmOperator *op)
 
 	basen->lay = basen->object->lay = scene->lay;
 
-	ED_object_location_from_view(C, basen->object->loc);
-	ED_view3d_cursor3d_position(C, basen->object->loc, event->x, event->y);
+	if (event) {
+		ED_object_location_from_view(C, basen->object->loc);
+		ED_view3d_cursor3d_position(C, basen->object->loc, event->x, event->y);
+	}
 	
 	ED_base_object_activate(C, basen);
 

@@ -6023,7 +6023,7 @@ static int createVertSlideVerts(TransInfo *t)
 	if (t->spacetype == SPACE_VIEW3D) {
 		/* background mode support */
 //		v3d = t->sa ? t->sa->spacedata.first : NULL;
-		rv3d = t->ar ? t->ar->regiondata : NULL;
+		rv3d = ar ? ar->regiondata : NULL;
 	}
 
 	sld->is_proportional = true;
@@ -6089,18 +6089,30 @@ static int createVertSlideVerts(TransInfo *t)
 				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
 					BMVert *v_other = BM_edge_other_vert(e, v);
 					copy_v3_v3(sv_array[j].co_link_orig_3d[k], v_other->co);
-					ED_view3d_project_float_v2_m4(ar,
-					                              sv_array[j].co_link_orig_3d[k],
-					                              sv_array[j].co_link_orig_2d[k],
-					                              projectMat);
+					if (ar) {
+						ED_view3d_project_float_v2_m4(ar,
+						                              sv_array[j].co_link_orig_3d[k],
+						                              sv_array[j].co_link_orig_2d[k],
+						                              projectMat);
+					}
+					else {
+						copy_v2_v2(sv_array[j].co_link_orig_2d[k],
+						           sv_array[j].co_link_orig_3d[k]);
+					}
 					k++;
 				}
 			}
 
-			ED_view3d_project_float_v2_m4(ar,
-			                              sv_array[j].co_orig_3d,
-			                              sv_array[j].co_orig_2d,
-			                              projectMat);
+			if (ar) {
+				ED_view3d_project_float_v2_m4(ar,
+				                              sv_array[j].co_orig_3d,
+				                              sv_array[j].co_orig_2d,
+				                              projectMat);
+			}
+			else {
+				copy_v2_v2(sv_array[j].co_orig_2d,
+				           sv_array[j].co_orig_3d);
+			}
 
 			j++;
 		}

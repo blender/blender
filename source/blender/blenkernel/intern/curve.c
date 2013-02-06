@@ -3436,7 +3436,9 @@ int BKE_curve_center_median(Curve *cu, float cent[3])
 		}
 	}
 
-	mul_v3_fl(cent, 1.0f / (float)total);
+	if (total) {
+		mul_v3_fl(cent, 1.0f / (float)total);
+	}
 
 	return (total != 0);
 }
