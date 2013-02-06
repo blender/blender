@@ -1655,7 +1655,8 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 		else {
 			/* always copy custom shape */
 			pchan->custom = pchanp->custom;
-			pchan->custom_tx = pchanp->custom_tx;
+			if (pchanp->custom_tx)
+				pchan->custom_tx = BKE_pose_channel_find_name(pose, pchanp->custom_tx->name);
 
 			/* ID-Property Syncing */
 			{
