@@ -158,7 +158,10 @@ extern char build_system[];
 #endif
 
 /*	Local Function prototypes */
-#ifndef WITH_PYTHON_MODULE
+#ifdef WITH_PYTHON_MODULE
+int  main_python_enter(int argc, const char **argv);
+void main_python_exit(void);
+#else
 static int print_help(int argc, const char **argv, void *data);
 static int print_version(int argc, const char **argv, void *data);
 #endif
@@ -173,9 +176,9 @@ static int print_version(int argc, const char **argv, void *data);
 /* Initialize callbacks for the modules that need them */
 static void setCallbacks(void); 
 
-static bool use_crash_handler = true;
-
 #ifndef WITH_PYTHON_MODULE
+
+static bool use_crash_handler = true;
 
 /* set breakpoints here when running in debug mode, useful to catch floating point errors */
 #if defined(__linux__) || defined(_WIN32) || defined(OSX_SSE_FPE)
@@ -1469,12 +1472,14 @@ int main(int argc, const char **argv)
 	setupArguments(C, ba, &syshandle);
 
 	BLI_argsParse(ba, 1, NULL, NULL);
-#endif
 
 	if (use_crash_handler) {
 		/* after parsing args */
 		signal(SIGSEGV, blender_crash_handler);
 	}
+#else
+	(void)syshandle;
+#endif
 
 	/* after level 1 args, this is so playanim skips RNA init */
 	RNA_init();
@@ -1486,7 +1491,6 @@ int main(int argc, const char **argv)
 
 #if defined(WITH_PYTHON_MODULE) || defined(WITH_HEADLESS)
 	G.background = true; /* python module mode ALWAYS runs in background mode (for now) */
-	(void)blender_esc;
 #else
 	/* for all platforms, even windos has it! */
 	if (G.background) {

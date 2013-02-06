@@ -1497,7 +1497,7 @@ PyObject *BPyInit_idprop(void)
 
 	mod = PyModule_Create(&IDProp_module_def);
 
-	/* bmesh.types */
+	/* idprop.types */
 	PyModule_AddObject(mod, "types", (submodule = BPyInit_idprop_types()));
 	PyDict_SetItemString(sys_modules, PyModule_GetName(submodule), submodule);
 	Py_INCREF(submodule);
