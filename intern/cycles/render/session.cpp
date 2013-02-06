@@ -381,7 +381,7 @@ bool Session::acquire_tile(Device *tile_device, RenderTile& rtile)
 
 	buffer_params.get_offset_stride(rtile.offset, rtile.stride);
 
-	RenderBuffers *tilebuffers = new RenderBuffers(tile_device);
+	RenderBuffers *tilebuffers;
 
 	/* allocate buffers */
 	if(params.progressive_refine) {
