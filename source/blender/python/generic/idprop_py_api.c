@@ -1454,6 +1454,8 @@ static PyObject *BPyInit_idprop_types(void)
 
 	submodule = PyModule_Create(&IDProp_types_module_def);
 
+	IDProp_Init_Types();
+
 #define MODULE_TYPE_ADD(s, t) \
 	PyModule_AddObject(s, t.tp_name, (PyObject *)&t); Py_INCREF((PyObject *)&t)
 
