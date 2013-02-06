@@ -242,14 +242,15 @@ set(SRC
 	src/BulletCollision/CollisionShapes/btUniformScalingShape.h
 	src/BulletCollision/Gimpact/btBoxCollision.h
 	src/BulletCollision/Gimpact/btClipPolygon.h
+	src/BulletCollision/Gimpact/btCompoundFromGimpact.h
 	src/BulletCollision/Gimpact/btContactProcessing.h
-	src/BulletCollision/Gimpact/btGenericPoolAllocator.h
-	src/BulletCollision/Gimpact/btGeometryOperations.h
 	src/BulletCollision/Gimpact/btGImpactBvh.h
 	src/BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h
 	src/BulletCollision/Gimpact/btGImpactMassUtil.h
 	src/BulletCollision/Gimpact/btGImpactQuantizedBvh.h
 	src/BulletCollision/Gimpact/btGImpactShape.h
+	src/BulletCollision/Gimpact/btGenericPoolAllocator.h
+	src/BulletCollision/Gimpact/btGeometryOperations.h
 	src/BulletCollision/Gimpact/btQuantization.h
 	src/BulletCollision/Gimpact/btTriangleShapeEx.h
 	src/BulletCollision/Gimpact/gim_array.h
