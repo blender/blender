@@ -1740,8 +1740,7 @@ class WM_OT_addon_install(Operator):
             return {'CANCELLED'}
 
         # create dir is if missing.
-        if not os.path.exists(path_addons):
-            os.makedirs(path_addons)
+        os.makedirs(path_addons, exist_ok=True)
 
         # Check if we are installing from a target path,
         # doing so causes 2+ addons of same name or when the same from/to

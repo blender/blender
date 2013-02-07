@@ -436,10 +436,7 @@ def path_reference_copy(copy_set, report=print):
             pass
         else:
             dir_to = os.path.dirname(file_dst)
-
-            if not os.path.isdir(dir_to):
-                os.makedirs(dir_to)
-
+            os.makedirs(dir_to, exist_ok=True)
             shutil.copy(file_src, file_dst)
 
 
