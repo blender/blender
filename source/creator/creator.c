@@ -1478,6 +1478,7 @@ int main(int argc, const char **argv)
 		signal(SIGSEGV, blender_crash_handler);
 	}
 #else
+	G.factory_startup = true;  /* using preferences or user startup makes no sense for py-as-module */
 	(void)syshandle;
 #endif
 
