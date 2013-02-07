@@ -244,8 +244,10 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		params->display = FILE_SHORTDISPLAY;
 		params->filter = 0;
 		params->filter_glob[0] = '\0';
-		params->sort = FILE_SORT_ALPHA;
 	}
+
+	/* operator has no setting for this */
+	params->sort = FILE_SORT_ALPHA;
 
 
 	/* initialize the list with previous folders */
