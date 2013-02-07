@@ -85,6 +85,9 @@ typedef struct uiLayout uiLayout;
 #define UI_MAX_DRAW_STR 400
 #define UI_MAX_NAME_STR 128
 
+/* use for clamping popups within the screen */
+#define UI_SCREEN_MARGIN 10
+
 /* uiBlock->dt */
 #define UI_EMBOSS       0   /* use widget style for drawing */
 #define UI_EMBOSSN      1   /* Nothing, only icon and/or text */

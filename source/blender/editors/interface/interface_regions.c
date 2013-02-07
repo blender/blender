@@ -1532,7 +1532,7 @@ static void ui_block_region_draw(const bContext *C, ARegion *ar)
 static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 {
 	uiBut *bt;
-	int width = UI_ThemeMenuShadowWidth();
+	int width = UI_SCREEN_MARGIN;
 	int winx, winy;
 
 	if (block->flag & UI_BLOCK_NO_WIN_CLIP) {
