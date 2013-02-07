@@ -43,6 +43,7 @@
 
 #include "GHOST_C-api.h"
 
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
@@ -442,6 +443,13 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 		wm_init_state.start_x = 0;
 		wm_init_state.start_y = 0;
 #endif
+
+#if !defined(__APPLE__) && !defined(WIN32)  /* X11 */
+		/* X11, start maximized but use default same size */
+		wm_init_state.size_x = min_ii(wm_init_state.size_x, WM_WIN_INIT_SIZE_X);
+		wm_init_state.size_y = min_ii(wm_init_state.size_y, WM_WIN_INIT_SIZE_Y);
+#endif
+
 	}
 	
 	for (win = wm->windows.first; win; win = win->next) {
@@ -452,8 +460,18 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 				win->sizex = wm_init_state.size_x;
 				win->sizey = wm_init_state.size_y;
 
-				/* we can't properly resize a maximized window */
+#if !defined(__APPLE__) && !defined(WIN32)  /* X11 */
+				if (wm_init_state.override_flag & WIN_OVERRIDE_GEOM) {
+					/* we can't properly resize a maximized window */
+					win->windowstate = GHOST_kWindowStateNormal;
+				}
+				else {
+					/* loading without userpref, default to maximized */
+					win->windowstate = GHOST_kWindowStateMaximized;
+				}
+#else
 				win->windowstate = GHOST_kWindowStateNormal;
+#endif
 
 				wm_init_state.override_flag &= ~WIN_OVERRIDE_GEOM;
 			}
