@@ -1434,7 +1434,7 @@ void BKE_sequencer_proxy_rebuild(SeqIndexBuildContext *context, short *stop, sho
 			seq_proxy_build_frame(render_context, seq, cfra, 100);
 		}
 
-		*progress = (float) cfra / (seq->enddisp - seq->endstill - seq->startdisp + seq->startstill);
+		*progress = (float) (cfra - seq->startdisp - seq->startstill) / (seq->enddisp - seq->endstill - seq->startdisp - seq->startstill);
 		*do_update = TRUE;
 
 		if (*stop || G.is_break)
