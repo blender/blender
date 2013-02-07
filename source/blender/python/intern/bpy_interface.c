@@ -765,6 +765,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 
 		//result->ptr = ((BPy_StructRNA *)item)->ptr;
 		CTX_data_pointer_set(result, ptr->id.data, ptr->type, ptr->data);
+		CTX_data_type_set(result, CTX_DATA_TYPE_POINTER);
 		done = true;
 	}
 	else if (PySequence_Check(item)) {
@@ -795,12 +796,12 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 
 			}
 			Py_DECREF(seq_fast);
-
+			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 			done = true;
 		}
 	}
 
-	if (done == 0) {
+	if (done == false) {
 		if (item) printf("PyContext '%s' not a valid type\n", member);
 		else      printf("PyContext '%s' not found\n", member);
 	}

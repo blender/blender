@@ -134,8 +134,7 @@ def batch_import(operator="",
             print("\tSaving: %r" % fout_blend)
 
             fout_dir = os.path.dirname(fout_blend)
-            if not os.path.exists(fout_dir):
-                os.makedirs(fout_dir)
+            os.makedirs(fout_dir, exist_ok=True)
 
             bpy.ops.wm.save_as_mainfile(filepath=fout_blend)
 
