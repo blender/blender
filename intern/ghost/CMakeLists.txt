@@ -276,13 +276,6 @@ elseif(UNIX)
 		)
 	endif()
 
-	if(WITH_X11_XINERAMA)
-		add_definitions(-DWITH_X11_XINERAMA)
-		list(APPEND INC_SYS
-			${X11_Xinerama_INCLUDE_PATH}
-		)
-	endif()
-
 elseif(WIN32)
 	## Warnings as errors, this is too strict!
 	#if(MSVC)
