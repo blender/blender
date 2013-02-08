@@ -63,10 +63,9 @@ extern "C" {
 
 // get node name, or fall back to original id if not present (name is optional)
 template<class T>
-static const char *bc_get_dae_name(T *node)
+static const std::string bc_get_dae_name(T *node)
 {
-	const std::string& name = node->getName();
-	return name.size() ? name.c_str() : node->getOriginalId().c_str();
+	return node->getName().size() ? node->getName(): node->getOriginalId();
 }
 
 static const char *bc_primTypeToStr(COLLADAFW::MeshPrimitive::PrimitiveType type)
@@ -268,7 +267,7 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)  // checks if mesh has su
 {
 	COLLADAFW::MeshPrimitiveArray& prim_arr = mesh->getMeshPrimitives();
 
-	const char *name = bc_get_dae_name(mesh);
+	const std::string &name = bc_get_dae_name(mesh);
 	
 	for (unsigned i = 0; i < prim_arr.getCount(); i++) {
 		
@@ -287,7 +286,7 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)  // checks if mesh has su
 				int count = vca[j];
 				if (count < 3) {
 					fprintf(stderr, "Primitive %s in %s has at least one face with vertex count < 3\n",
-					        type_str, name);
+					        type_str, name.c_str());
 					return false;
 				}
 			}
@@ -305,7 +304,7 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)  // checks if mesh has su
 	}
 	
 	if (mesh->getPositions().empty()) {
-		fprintf(stderr, "Mesh %s has no vertices.\n", name);
+		fprintf(stderr, "Mesh %s has no vertices.\n", name.c_str());
 		return false;
 	}
 
@@ -1291,7 +1290,7 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry *geom)
 	COLLADAFW::Mesh *mesh = (COLLADAFW::Mesh *)geom;
 	
 	if (!is_nice_mesh(mesh)) {
-		fprintf(stderr, "Ignoring mesh %s\n", bc_get_dae_name(mesh));
+		fprintf(stderr, "Ignoring mesh %s\n", bc_get_dae_name(mesh).c_str());
 		return true;
 	}
 	
