@@ -403,6 +403,7 @@ class USERPREF_PT_system(Panel):
         return (userpref.active_section == 'SYSTEM')
 
     def draw(self, context):
+        import sys
         layout = self.layout
 
         userpref = context.user_preferences
@@ -466,6 +467,9 @@ class USERPREF_PT_system(Panel):
         col.label(text="Window Draw Method:")
         col.prop(system, "window_draw_method", text="")
         col.prop(system, "multi_sample", text="")
+        if sys.platform == "linux" and system.multi_sample != 'NONE':
+            col.label(text="Might fail for Mesh editing selection!")
+            col.separator()
         col.prop(system, "use_region_overlap")
         col.label(text="Text Draw Options:")
         col.prop(system, "use_text_antialiasing")
