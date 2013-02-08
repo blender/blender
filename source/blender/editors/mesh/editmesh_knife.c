@@ -645,6 +645,7 @@ static void knife_get_vert_faces(KnifeTool_OpData *kcd, KnifeVert *kfv, BMFace *
 {
 	BMIter bmiter;
 	BMFace *f;
+	Ref *r;
 
 	if (kfv->isface && facef) {
 		knife_append_list(kcd, lst, facef);
@@ -652,6 +653,11 @@ static void knife_get_vert_faces(KnifeTool_OpData *kcd, KnifeVert *kfv, BMFace *
 	else if (kfv->v) {
 		BM_ITER_ELEM (f, &bmiter, kfv->v, BM_FACES_OF_VERT) {
 			knife_append_list(kcd, lst, f);
+		}
+	}
+	else {
+		for (r = kfv->faces.first; r; r = r->next) {
+			knife_append_list(kcd, lst, r->ref);
 		}
 	}
 }
@@ -780,6 +786,7 @@ static void knife_cut_through(KnifeTool_OpData *kcd)
 	kcd->totlinehit = 0;
 
 	/* set up for next cut */
+	kcd->curr.vert = lastv;
 	kcd->prev = kcd->curr;
 }
 
