@@ -19,7 +19,6 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
-import os
 
 
 def ui_style_items(col, context):
@@ -183,6 +182,7 @@ class USERPREF_PT_interface(Panel):
         return (userpref.active_section == 'INTERFACE')
 
     def draw(self, context):
+        import sys
         layout = self.layout
 
         userpref = context.user_preferences
@@ -268,7 +268,7 @@ class USERPREF_PT_interface(Panel):
 
         col.prop(view, "show_splash")
 
-        if os.name == "nt":
+        if sys.platform[:3] == "win":
             col.prop(view, "use_quit_dialog")
 
 
@@ -1077,6 +1077,8 @@ class USERPREF_PT_addons(Panel):
 
     @staticmethod
     def is_user_addon(mod, user_addon_paths):
+        import os
+
         if not user_addon_paths:
             for path in (bpy.utils.script_path_user(),
                          bpy.utils.script_path_pref()):
@@ -1099,6 +1101,7 @@ class USERPREF_PT_addons(Panel):
             box.label(l)
 
     def draw(self, context):
+        import os
         import addon_utils
 
         layout = self.layout
