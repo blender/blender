@@ -125,7 +125,7 @@ typedef struct Image {
 #define IMA_DO_PREMUL		4    /* deprecated, should not be used */
 #define IMA_REFLECT			16
 #define IMA_NOCOLLECT   	32
-#define IMA_DEPRECATED		64
+#define IMA_DONE_TAG		64
 #define IMA_OLD_PREMUL		128
 /*#define IMA_CM_PREDIVIDE	256*/  /* deprecated, should not be used */
 #define IMA_USED_FOR_RENDER	512

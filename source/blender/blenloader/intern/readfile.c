@@ -8644,8 +8644,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 5)) {
 		Scene *scene;
-		Image *image;
-		Tex *tex;
+		Image *image, *nimage;
+		Tex *tex, *otex;
 
 		for (scene = main->scene.first; scene; scene = scene->id.next) {
 			Sequence *seq;
@@ -8664,16 +8664,63 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (image = main->image.first; image; image = image->id.next) {
 			if (image->flag & IMA_DO_PREMUL)
 				image->alpha_mode = IMA_ALPHA_STRAIGHT;
+
+			image->flag &= ~IMA_DONE_TAG;
 		}
 
+		/* use alpha flag moved from texture to image datablock */
 		for (tex = main->tex.first; tex; tex = tex->id.next) {
 			if (tex->type == TEX_IMAGE && (tex->imaflag & TEX_USEALPHA) == 0) {
 				image = blo_do_versions_newlibadr(fd, tex->id.lib, tex->ima);
 
-				if (image)
+				/* skip if no image or already tested */
+				if (!image || (image->flag & (IMA_DONE_TAG|IMA_IGNORE_ALPHA)))
+					continue;
+
+				image->flag |= IMA_DONE_TAG;
+
+				/* we might have some textures using alpha and others not, so we check if
+				 * they exist and duplicate the image datablock if necessary */
+				for (otex = main->tex.first; otex; otex = otex->id.next)
+					if (otex->type == TEX_IMAGE && (otex->imaflag & TEX_USEALPHA))
+						if (image == blo_do_versions_newlibadr(fd, otex->id.lib, otex->ima))
+							break;
+
+				if (otex) {
+					/* copy image datablock */
+					nimage = BKE_image_copy(main, image);
+					nimage->flag |= IMA_IGNORE_ALPHA|IMA_DONE_TAG;
+					nimage->id.us--;
+
+					/* we need to do some trickery to make file loading think
+					 * this new datablock is part of file we're loading */
+					blo_do_versions_oldnewmap_insert(fd->libmap, nimage, nimage, 0);
+					nimage->id.lib = image->id.lib;
+					nimage->id.flag |= (image->id.flag & LIB_NEED_LINK);
+
+					/* assign new image, and update the users counts accordingly */
+					for (otex = main->tex.first; otex; otex = otex->id.next) {
+						if (otex->type == TEX_IMAGE && (otex->imaflag & TEX_USEALPHA) == 0) {
+							if (image == blo_do_versions_newlibadr(fd, otex->id.lib, otex->ima)) {
+								if (!(otex->id.flag & LIB_NEED_LINK)) {
+									image->id.us--;
+									nimage->id.us++;
+								}
+								otex->ima = nimage;
+								break;
+							}
+						}
+					}
+				}
+				else {
+					/* no other textures using alpha, just set the flag */
 					image->flag |= IMA_IGNORE_ALPHA;
+				}
 			}
 		}
+
+		for (image = main->image.first; image; image = image->id.next)
+			image->flag &= ~IMA_DONE_TAG;
 	}
 
 	if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 7)) {

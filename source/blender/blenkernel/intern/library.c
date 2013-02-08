@@ -312,7 +312,7 @@ int id_copy(ID *id, ID **newid, int test)
 			if (!test) *newid = (ID *)BKE_texture_copy((Tex *)id);
 			return 1;
 		case ID_IM:
-			if (!test) *newid = (ID *)BKE_image_copy((Image *)id);
+			if (!test) *newid = (ID *)BKE_image_copy(G.main, (Image *)id);
 			return 1;
 		case ID_LT:
 			if (!test) *newid = (ID *)BKE_lattice_copy((Lattice *)id);
