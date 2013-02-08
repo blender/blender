@@ -547,9 +547,11 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 	}
 	// if node has child nodes write them
 	COLLADAFW::NodePointerArray &child_nodes = node->getChildNodes();
-	ob = *objects_done->begin();
-	for (unsigned int i = 0; i < child_nodes.getCount(); i++) {
-		write_node(child_nodes[i], node, sce, ob, is_library_node);
+	if (objects_done->size() > 0) {
+		ob = *objects_done->begin();
+		for (unsigned int i = 0; i < child_nodes.getCount(); i++) {
+			write_node(child_nodes[i], node, sce, ob, is_library_node);
+		}
 	}
 }
 
