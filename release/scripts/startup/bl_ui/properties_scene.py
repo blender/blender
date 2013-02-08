@@ -32,10 +32,10 @@ class SCENE_UL_keying_set_paths(UIList):
         kspath = item
         icon = layout.enum_item_icon(kspath, "id_type", kspath.id_type)
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(kspath.data_path, icon_value=icon)
+            layout.label(text=kspath.data_path, translate=False, icon_value=icon)
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
-            layout.label("", icon_value=icon)
+            layout.label(text="", icon_value=icon)
 
 
 class SceneButtonsPanel():

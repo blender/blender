@@ -33,7 +33,7 @@ class PHYSICS_UL_dynapaint_surfaces(UIList):
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             row = layout.row(align=True)
             row.label(text="", icon_value=icon)
-            row.label(text=surf.name, icon_value=sticon)
+            row.label(text=surf.name, translate=False, icon_value=sticon)
             row = layout.row(align=True)
             if surf.use_color_preview:
                 row.prop(surf, "show_preview", text="", emboss=False,

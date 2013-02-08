@@ -48,17 +48,11 @@ class RENDER_UL_renderlayers(UIList):
         # assert(isinstance(item, bpy.types.SceneRenderLayer)
         layer = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(layer.name, icon_value=icon)
+            layout.label(text=layer.name, translate=False, icon_value=icon)
             layout.prop(layer, "use", text="", index=index)
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
-            layout.label("", icon_value=icon)
-
-#	else if (RNA_struct_is_a(itemptr->type, &RNA_SceneRenderLayer)) {
-#		uiItemL(sub, name, icon);
-#		uiBlockSetEmboss(block, UI_EMBOSS);
-#		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "use", 0, 0, 0, 0, 0,  NULL);
-#	}
+            layout.label(text="", icon_value=icon)
 
 
 class RenderButtonsPanel():

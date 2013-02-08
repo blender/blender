@@ -76,16 +76,18 @@ class MATERIAL_UL_matslots(UIList):
         slot = item
         ma = slot.material
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(ma.name if ma else "", icon_value=icon)
+            layout.label(text=ma.name if ma else "", translate=False, icon_value=icon)
             if ma and not context.scene.render.use_shading_nodes:
                 manode = ma.active_node_material
                 if manode:
-                    layout.label("Node %s" % manode.name, icon_value=layout.icon(manode))
+                    layout.label(text="Node %s" % manode.name, translate=False, icon_value=layout.icon(manode))
                 elif ma.use_nodes:
-                    layout.label("Node <none>")
+                    layout.label(text="Node <none>", translate=False)
+                else:
+                    layout.label(text="")
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
-            layout.label("", icon_value=icon)
+            layout.label(text="", icon_value=icon)
 
 
 class MaterialButtonsPanel():

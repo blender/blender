@@ -63,12 +63,12 @@ class TEXTURE_UL_texslots(UIList):
         slot = item
         tex = slot.texture if slot else None
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(tex.name if tex else "", icon_value=icon)
+            layout.label(text=tex.name if tex else "", translate=False, icon_value=icon)
             if tex and isinstance(item, bpy.types.MaterialTextureSlot):
                 layout.prop(ma, "use_textures", text="", index=index)
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
-            layout.label("", icon_value=icon)
+            layout.label(text="", icon_value=icon)
 
 
 from bl_ui.properties_material import active_node_mat
