@@ -88,6 +88,10 @@ public:
 	                  GHOST_TInt32 y);
 
 	void
+	getAllDisplayDimensions(GHOST_TUns32& width,
+	                        GHOST_TUns32& height) const;
+
+	void
 	getMainDisplayDimensions(GHOST_TUns32& width,
 	                         GHOST_TUns32& height) const;
 
