@@ -41,6 +41,7 @@
 #include "RNA_enum_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -401,17 +402,22 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 	/* and the marker name too, shifted slightly to the top-right */
 	if (marker->name && marker->name[0]) {
 		float x, y;
+
+		/* minimal y coordinate which wouldn't be occluded by scroll */
+		int min_y = 17.0f * UI_DPI_FAC;
 		
 		if (marker->flag & SELECT) {
 			UI_ThemeColor(TH_TEXT_HI);
 			x = xpos * xscale + 4.0f * UI_DPI_FAC;
 			y = (ypixels <= 39.0f * UI_DPI_FAC) ? (ypixels - 10.0f * UI_DPI_FAC) : 29.0f * UI_DPI_FAC;
+			y = max_ii(y, min_y);
 		}
 		else {
 			UI_ThemeColor(TH_TEXT);
 			if ((marker->frame <= cfra) && (marker->frame + 5 > cfra)) {
 				x = xpos * xscale + 8.0f * UI_DPI_FAC;
 				y = (ypixels <= 39.0f * UI_DPI_FAC) ? (ypixels - 10.0f * UI_DPI_FAC) : 29.0f * UI_DPI_FAC;
+				y = max_ii(y, min_y);
 			}
 			else {
 				x = xpos * xscale + 8.0f * UI_DPI_FAC;
