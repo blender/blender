@@ -246,10 +246,13 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 			float sumw = 0.0f;
 
 			for (j = 0; j < vert->totweight; j++) {
-				int joint_index = joint_index_by_def_index[vert->dw[j].def_nr];
-				if (joint_index != -1 && vert->dw[j].weight > 0.0f) {
-					jw[joint_index] += vert->dw[j].weight;
-					sumw += vert->dw[j].weight;
+				int idx = vert->dw[j].def_nr;
+				if (idx >= 0) {
+					int joint_index = joint_index_by_def_index[idx];
+					if (joint_index != -1 && vert->dw[j].weight > 0.0f) {
+						jw[joint_index] += vert->dw[j].weight;
+						sumw += vert->dw[j].weight;
+					}
 				}
 			}
 
