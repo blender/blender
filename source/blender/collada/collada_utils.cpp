@@ -116,9 +116,12 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA;
 	par->recalc |= OB_RECALC_OB;
 
+	/** done once after import
 	DAG_scene_sort(bmain, sce);
 	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
+    */
+
 
 	return true;
 }

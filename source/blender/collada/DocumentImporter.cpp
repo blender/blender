@@ -76,6 +76,9 @@ extern "C" {
 
 #include "MEM_guardedalloc.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 }
 
 #include "ExtraHandler.h"
@@ -207,6 +210,12 @@ void DocumentImporter::finish()
 		for (unsigned int i = 0; i < roots.getCount(); i++) {
 			write_node(roots[i], NULL, sce, NULL, false);
 		}
+
+		Main *bmain = CTX_data_main(mContext);
+		DAG_scene_sort(bmain, sce);
+		DAG_ids_flush_update(bmain, 0);
+		WM_event_add_notifier(mContext, NC_OBJECT | ND_TRANSFORM, NULL);
+
 	}
 
 
@@ -424,8 +433,15 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 	Object *ob = NULL;
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
 	bool read_transform = true;
+	std::string id   = node->getOriginalId();
+	std::string name = node->getName();
 
 	std::vector<Object *> *objects_done = new std::vector<Object *>();
+
+	fprintf(stderr,
+			"Writing node id='%s', name='%s'\n",
+			id.c_str(),
+			name.c_str());
 
 	if (is_joint) {
 		armature_importer.add_joint(node, parent_node == NULL || parent_node->getType() != COLLADAFW::Node::JOINT, par, sce);
@@ -449,8 +465,6 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 			ob = mesh_importer.create_mesh_object(node, geom[geom_done], false, uid_material_map,
 			                                      material_texture_mapping_map);
 			if (ob == NULL) {
-				std::string id   = node->getOriginalId();
-				std::string name = node->getName();
 				fprintf(stderr,
 						"<node id=\"%s\", name=\"%s\" >...contains a reference to an unknown instance_mesh.\n",
 						id.c_str(),
