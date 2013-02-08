@@ -448,13 +448,23 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 		while (geom_done < geom.getCount()) {
 			ob = mesh_importer.create_mesh_object(node, geom[geom_done], false, uid_material_map,
 			                                      material_texture_mapping_map);
-			objects_done->push_back(ob);
+			if (ob == NULL) {
+				std::string id   = node->getOriginalId();
+				std::string name = node->getName();
+				fprintf(stderr,
+						"<node id=\"%s\", name=\"%s\" >...contains a reference to an unknown instance_mesh.\n",
+						id.c_str(),
+						name.c_str());
+			}
+			else {
+				objects_done->push_back(ob);
+			}
 			++geom_done;
 		}
 		while (camera_done < camera.getCount()) {
 			ob = create_camera_object(camera[camera_done], sce);
 			if (ob == NULL) {
-				std::string id = node->getOriginalId();
+				std::string id   = node->getOriginalId();
 				std::string name = node->getName();
 				fprintf(stderr, "<node id=\"%s\", name=\"%s\" >...contains a reference to an unknown instance_camera.\n", id.c_str(), name.c_str());
 			}
@@ -537,6 +547,7 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 	}
 	// if node has child nodes write them
 	COLLADAFW::NodePointerArray &child_nodes = node->getChildNodes();
+	ob = *objects_done->begin();
 	for (unsigned int i = 0; i < child_nodes.getCount(); i++) {
 		write_node(child_nodes[i], node, sce, ob, is_library_node);
 	}
