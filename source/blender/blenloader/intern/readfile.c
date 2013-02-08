@@ -8649,6 +8649,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for (scene = main->scene.first; scene; scene = scene->id.next) {
 			Sequence *seq;
+			bool set_premul = false;
 
 			SEQ_BEGIN (scene->ed, seq)
 			{
@@ -8659,6 +8660,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			if (scene->r.bake_samples == 0)
 			scene->r.bake_samples = 256;
+
+			if (scene->world) {
+				World *world = blo_do_versions_newlibadr(fd, scene->id.lib, scene->world);
+
+				if (is_zero_v3(&world->horr)) {
+					if ((world->skytype & WO_SKYBLEND) == 0 || is_zero_v3(&world->zenr)) {
+						set_premul = true;
+					}
+				}
+			}
+			else
+				set_premul = true;
+
+			if (set_premul) {
+				printf("2.66 versioning fix: replacing black sky with premultiplied alpha for scene %s\n", scene->id.name + 2);
+				scene->r.alphamode = R_ALPHAPREMUL;
+			}
 		}
 
 		for (image = main->image.first; image; image = image->id.next) {
