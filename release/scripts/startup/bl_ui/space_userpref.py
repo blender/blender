@@ -1217,15 +1217,15 @@ class USERPREF_PT_addons(Panel):
                     if mod:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="File:")
-                        split.label(text=mod.__file__)
+                        split.label(text=mod.__file__, translate=False)
                     if info["author"]:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Author:")
-                        split.label(text=info["author"])
+                        split.label(text=info["author"], translate=False)
                     if info["version"]:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Version:")
-                        split.label(text='.'.join(str(x) for x in info["version"]))
+                        split.label(text='.'.join(str(x) for x in info["version"]), translate=False)
                     if info["warning"]:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Warning:")
@@ -1282,7 +1282,7 @@ class USERPREF_PT_addons(Panel):
                 colsub = box.column()
                 row = colsub.row()
 
-                row.label(text=module_name, icon='ERROR')
+                row.label(text=module_name, translate=False, icon='ERROR')
 
                 if is_enabled:
                     row.operator("wm.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False).module = module_name

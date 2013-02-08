@@ -135,11 +135,11 @@ def draw(layout, context, context_member, property_type, use_edit=True):
         else:
             row = box.row()
 
-        row.label(text=key)
+        row.label(text=key, translate=False)
 
         # explicit exception for arrays
         if to_dict or to_list:
-            row.label(text=val_draw)
+            row.label(text=val_draw, translate=False)
         else:
             if key in rna_properties:
                 row.prop(rna_item, key, text="")

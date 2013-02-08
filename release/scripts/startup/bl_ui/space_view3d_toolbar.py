@@ -1142,14 +1142,14 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):
         row = split.row()
         row.active = (ipaint.use_stencil_layer)
         stencil_text = mesh.uv_texture_stencil.name if mesh.uv_texture_stencil else ""
-        row.menu("VIEW3D_MT_tools_projectpaint_stencil", text=stencil_text)
+        row.menu("VIEW3D_MT_tools_projectpaint_stencil", text=stencil_text, translate=False)
         row.prop(ipaint, "invert_stencil", text="", icon='IMAGE_ALPHA')
 
         col = layout.column()
         col.active = (settings.brush.image_tool == 'CLONE')
         col.prop(ipaint, "use_clone_layer", text="Clone from UV map")
         clone_text = mesh.uv_texture_clone.name if mesh.uv_texture_clone else ""
-        col.menu("VIEW3D_MT_tools_projectpaint_clone", text=clone_text)
+        col.menu("VIEW3D_MT_tools_projectpaint_clone", text=clone_text, translate=False)
 
         layout.prop(ipaint, "seam_bleed")
 
@@ -1188,7 +1188,7 @@ class VIEW3D_MT_tools_projectpaint_clone(Menu):
         layout = self.layout
 
         for i, tex in enumerate(context.active_object.data.uv_textures):
-            props = layout.operator("wm.context_set_int", text=tex.name)
+            props = layout.operator("wm.context_set_int", text=tex.name, translate=False)
             props.data_path = "active_object.data.uv_texture_clone_index"
             props.value = i
 
@@ -1199,7 +1199,7 @@ class VIEW3D_MT_tools_projectpaint_stencil(Menu):
     def draw(self, context):
         layout = self.layout
         for i, tex in enumerate(context.active_object.data.uv_textures):
-            props = layout.operator("wm.context_set_int", text=tex.name)
+            props = layout.operator("wm.context_set_int", text=tex.name, translate=False)
             props.data_path = "active_object.data.uv_texture_stencil_index"
             props.value = i
 

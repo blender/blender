@@ -718,7 +718,9 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         files.sort()
 
         for f, filepath in files:
-            props = layout.operator(operator, text=bpy.path.display_name(f))
+            props = layout.operator(operator,
+                                    text=bpy.path.display_name(f),
+                                    translate=False)
 
             for attr, value in props_default.items():
                 setattr(props, attr, value)
