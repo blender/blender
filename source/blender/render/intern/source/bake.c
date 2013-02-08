@@ -1072,8 +1072,8 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 				if (!ibuf)
 					continue;
 
+				userdata = (BakeImBufuserData *)ibuf->userdata;
 				if (userdata) {
-					userdata = (BakeImBufuserData *) ibuf->userdata;
 					RE_bake_ibuf_filter(ibuf, userdata->mask_buffer, re->r.bake_filter);
 
 					if (use_displacement_buffer) {
