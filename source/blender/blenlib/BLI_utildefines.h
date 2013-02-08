@@ -46,8 +46,8 @@
 typedef bool _BLI_Bool;
 #  else
 /* using char here may cause nasty tricky bugs, e.g.
- *     bool do_translate = RNA_property_flag(prop) & PROP_STRING_PY_TRANSLATE;
- * as PROP_STRING_PY_TRANSLATE is farther than 8th bit, do_translate would be always false!
+ *     bool is_bit_flag = RNA_property_flag(prop) & PROP_ENUM_FLAG;
+ * as PROP_ENUM_FLAG is farther than 8th bit, do_translate would be always false!
  */
 #   define _BLI_Bool unsigned int
 #  endif

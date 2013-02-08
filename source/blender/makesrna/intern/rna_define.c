@@ -2574,21 +2574,6 @@ PropertyRNA *RNA_def_string_file_name(StructOrFunctionRNA *cont_, const char *id
 	return prop;
 }
 
-PropertyRNA *RNA_def_string_py_translate(StructOrFunctionRNA *cont_, const char *identifier, const char *default_value,
-                                         int maxlen, const char *ui_name, const char *ui_description)
-{
-	ContainerRNA *cont = cont_;
-	PropertyRNA *prop;
-
-	prop = RNA_def_property(cont, identifier, PROP_STRING, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_STRING_PY_TRANSLATE);
-	if (maxlen != 0) RNA_def_property_string_maxlength(prop, maxlen);
-	if (default_value) RNA_def_property_string_default(prop, default_value);
-	RNA_def_property_ui_text(prop, ui_name, ui_description);
-
-	return prop;
-}
-
 PropertyRNA *RNA_def_enum(StructOrFunctionRNA *cont_, const char *identifier, const EnumPropertyItem *items,
                           int default_value, const char *ui_name, const char *ui_description)
 {
