@@ -237,8 +237,14 @@ void ui_pan_to_scroll(const wmEvent *event, int *type, int *val)
 		lastdy += dy;
 		
 		if (ABS(lastdy) > (int)UI_UNIT_Y) {
+			int dy = event->prevy - event->y;
+			
+			if (U.uiflag2 & USER_TRACKPAD_NATURAL)
+				dy = -dy;
+			
 			*val = KM_PRESS;
-			if (event->prevy - event->y > 0)
+			
+			if (dy > 0)
 				*type = WHEELUPMOUSE;
 			else
 				*type = WHEELDOWNMOUSE;

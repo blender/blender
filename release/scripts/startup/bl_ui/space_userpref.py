@@ -963,6 +963,8 @@ class USERPREF_PT_input(Panel, InputKeyMapPanel):
         return (userpref.active_section == 'INPUT')
 
     def draw_input_prefs(self, inputs, layout):
+        import sys
+
         # General settings
         row = layout.row()
         col = row.column()
@@ -1014,6 +1016,11 @@ class USERPREF_PT_input(Panel, InputKeyMapPanel):
         sub.label(text="Mouse Wheel:")
         sub.prop(inputs, "invert_zoom_wheel", text="Invert Wheel Zoom Direction")
         #sub.prop(view, "wheel_scroll_lines", text="Scroll Lines")
+
+        if sys.platform == "darwin":
+            sub = col.column()
+            sub.label(text="Trackpad:")
+            sub.prop(inputs, "use_trackpad_natural")
 
         col.separator()
         sub = col.column()
