@@ -165,8 +165,10 @@ static void rna_uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const c
 static PointerRNA rna_uiItemO(uiLayout *layout, const char *opname, const char *name, const char *text_ctxt,
                               int translate, int icon, int emboss)
 {
-	wmOperatorType *ot = WM_operatortype_find(opname, 0); /* print error next */
+	wmOperatorType *ot;
+	int flag;
 
+	ot = WM_operatortype_find(opname, 0); /* print error next */
 	if (!ot || !ot->srna) {
 		RNA_warning("%s '%s'", ot ? "unknown operator" : "operator missing srna", opname);
 		return PointerRNA_NULL;
@@ -175,7 +177,7 @@ static PointerRNA rna_uiItemO(uiLayout *layout, const char *opname, const char *
 	/* Get translated name (label). */
 	name = rna_translate_ui_text(name, text_ctxt, ot->srna, NULL, translate);
 
-	int flag = UI_ITEM_O_RETURN_PROPS;
+	flag = UI_ITEM_O_RETURN_PROPS;
 	flag |= (emboss) ? 0 : UI_ITEM_R_NO_BG;
 
 	return uiItemFullO_ptr(layout, ot, name, icon, NULL, uiLayoutGetOperatorContext(layout), flag);
