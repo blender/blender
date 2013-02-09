@@ -396,7 +396,10 @@ def dump_py_messages_from_files(messages, check_ctxt, files):
         try:
             return op.get_rna().bl_rna.translation_context
         except Exception as e:
+            default_op_context = bpy.app.translations.contexts.operator_default
             print("ERROR: ", str(e))
+            print("       Assuming default operator context '{}'".format(default_op_context))
+            return default_op_context
 
     # -------------------------------------------------------------------------
     # Gather function names
