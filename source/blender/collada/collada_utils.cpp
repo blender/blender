@@ -286,3 +286,20 @@ int bc_get_active_UVLayer(Object *ob)
 	Mesh *me = (Mesh *)ob->data;
 	return CustomData_get_active_layer_index(&me->fdata, CD_MTFACE);
 }
+
+std::string bc_url_encode(std::string data) {
+	/* XXX We probably do not need to do a full encoding.
+	   But in case that is necessary,then it can be added here.
+	*/
+	return bc_replace_string(data,"#", "%23");
+}
+
+std::string bc_replace_string(std::string data, const std::string& pattern,
+                          const std::string& replacement) {
+    size_t pos = 0;
+    while((pos = data.find(pattern, pos)) != std::string::npos) {
+         data.replace(pos, pattern.length(), replacement);
+         pos += replacement.length();
+    }
+    return data;
+}

@@ -131,7 +131,8 @@ bool DocumentImporter::import()
 	// deselect all to select new objects
 	BKE_scene_base_deselect_all(CTX_data_scene(mContext));
 
-	if (!root.loadDocument(mFilename)) {
+	const std::string encodedFilename = bc_url_encode(mFilename);
+	if (!root.loadDocument(encodedFilename)) {
 		fprintf(stderr, "COLLADAFW::Root::loadDocument() returned false on 1st pass\n");
 		return false;
 	}
@@ -146,7 +147,7 @@ bool DocumentImporter::import()
 	COLLADASaxFWL::Loader loader2;
 	COLLADAFW::Root root2(&loader2, this);
 	
-	if (!root2.loadDocument(mFilename)) {
+	if (!root2.loadDocument(encodedFilename)) {
 		fprintf(stderr, "COLLADAFW::Root::loadDocument() returned false on 2nd pass\n");
 		return false;
 	}
@@ -1235,3 +1236,4 @@ bool DocumentImporter::is_armature(COLLADAFW::Node *node){
 	return false;
 
 }
+

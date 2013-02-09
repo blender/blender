@@ -77,4 +77,7 @@ extern void bc_bubble_sort_by_Object_name(LinkNode *export_set);
 extern bool bc_is_root_bone(Bone *aBone, bool deform_bones_only);
 extern int  bc_get_active_UVLayer(Object *ob);
 
+extern std::string bc_replace_string(std::string data, const std::string& pattern, const std::string& replacement); 
+extern std::string bc_url_encode(std::string data); 
+
 #endif
