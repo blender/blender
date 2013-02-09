@@ -78,6 +78,9 @@ BlenderBulletCharacterController::BlenderBulletCharacterController(btMotionState
 
 void BlenderBulletCharacterController::updateAction(btCollisionWorld *collisionWorld, btScalar dt)
 {
+	if (onGround())
+		m_jumps = 0;
+
 	btKinematicCharacterController::updateAction(collisionWorld,dt);
 	m_motionState->setWorldTransform(getGhostObject()->getWorldTransform());
 }
@@ -104,9 +107,6 @@ bool BlenderBulletCharacterController::canJump() const
 
 void BlenderBulletCharacterController::jump()
 {
-	if (onGround())
-		m_jumps = 0;
-
 	if (!canJump())
 		return;
 		
