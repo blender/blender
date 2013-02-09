@@ -1982,7 +1982,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 		for (int i=0;i<mesh->totcol;i++) {
 			mat=mesh->mat[i];
 			if (!mat) break;
-			if ((mat->shade_flag &= MA_OBCOLOR)) {
+			if ((mat->shade_flag & MA_OBCOLOR)) {
 				bUseObjectColor = true;
 				break;
 			}
