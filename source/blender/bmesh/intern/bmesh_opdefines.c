@@ -1455,7 +1455,8 @@ static BMOpDefine bmo_beautify_fill_def = {
 static BMOpDefine bmo_triangle_fill_def = {
 	"triangle_fill",
 	/* slots_in */
-	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},    /* input edges */
+	{{"use_beauty", BMO_OP_SLOT_BOOL},
+	 {"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},    /* input edges */
 	 {{'\0'}},
 	},
 	/* slots_out */

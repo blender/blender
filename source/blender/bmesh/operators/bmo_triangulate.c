@@ -149,9 +149,9 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 
 void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 {
+	const bool use_beauty = BMO_slot_bool_get(op->slots_in, "use_beauty");
 	BMOIter siter;
 	BMEdge *e;
-	BMOperator bmop;
 	ScanFillContext sf_ctx;
 	/* ScanFillEdge *sf_edge; */ /* UNUSED */
 	ScanFillVert *sf_vert, *sf_vert_1, *sf_vert_2;
@@ -203,11 +203,14 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	BLI_scanfill_end(&sf_ctx);
 	BLI_smallhash_release(&hash);
 	
-	/* clean up fill */
-	BMO_op_initf(bm, &bmop, op->flag, "beautify_fill faces=%ff edges=%Fe", ELE_NEW, EDGE_MARK);
-	BMO_op_exec(bm, &bmop);
-	BMO_slot_buffer_flag_enable(bm, bmop.slots_out, "geom.out", BM_FACE | BM_EDGE, ELE_NEW);
-	BMO_op_finish(bm, &bmop);
+	if (use_beauty) {
+		BMOperator bmop;
+
+		BMO_op_initf(bm, &bmop, op->flag, "beautify_fill faces=%ff edges=%Fe", ELE_NEW, EDGE_MARK);
+		BMO_op_exec(bm, &bmop);
+		BMO_slot_buffer_flag_enable(bm, bmop.slots_out, "geom.out", BM_FACE | BM_EDGE, ELE_NEW);
+		BMO_op_finish(bm, &bmop);
+	}
 	
 	BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "geom.out", BM_EDGE | BM_FACE, ELE_NEW);
 }
