@@ -3185,6 +3185,9 @@ void BKE_object_relink(Object *ob)
 
 	if (ob->adt)
 		BKE_relink_animdata(ob->adt);
+	
+	if (ob->rigidbody_constraint)
+		BKE_rigidbody_relink_constraint(ob->rigidbody_constraint);
 
 	ID_NEW(ob->parent);
 

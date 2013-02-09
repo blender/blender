@@ -203,8 +203,6 @@ RigidBodyCon *BKE_rigidbody_copy_constraint(Object *ob)
 		/* just duplicate the whole struct first (to catch all the settings) */
 		rbcN = MEM_dupallocN(ob->rigidbody_constraint);
 
-		// RB_TODO be more clever about copying constrained objects
-
 		/* tag object as needing to be verified */
 		rbcN->flag |= RBC_FLAG_NEEDS_VALIDATE;
 
@@ -214,6 +212,13 @@ RigidBodyCon *BKE_rigidbody_copy_constraint(Object *ob)
 
 	/* return new copy of settings */
 	return rbcN;
+}
+
+/* preserve relationships between constraints and rigid bodies after duplication */
+void BKE_rigidbody_relink_constraint(RigidBodyCon *rbc)
+{
+	ID_NEW(rbc->ob1);
+	ID_NEW(rbc->ob2);
 }
 
 /* ************************************** */
@@ -1291,6 +1296,7 @@ void BKE_rigidbody_free_object(Object *ob) {}
 void BKE_rigidbody_free_constraint(Object *ob) {}
 struct RigidBodyOb *BKE_rigidbody_copy_object(Object *ob) { return NULL; }
 struct RigidBodyCon *BKE_rigidbody_copy_constraint(Object *ob) { return NULL; }
+void BKE_rigidbody_relink_constraint(RigidBodyCon *rbc) {}
 void BKE_rigidbody_validate_sim_shape(Object *ob, short rebuild) {}
 void BKE_rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, short rebuild) {}
 void BKE_rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, short rebuild) {}
