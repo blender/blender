@@ -63,25 +63,36 @@ EnumPropertyItem icon_items[] = {
 static const char *rna_translate_ui_text(const char *text, const char *text_ctxt, StructRNA *type, PropertyRNA *prop,
                                          int translate)
 {
-	if (!text || !text[0] || !translate) {
+	/* Also return text if UI labels translation is disabled. */
+	if (!text || !text[0] || !translate || !BLF_translate_iface()) {
 		return text;
 	}
 
 	/* If a text_ctxt is specified, use it! */
 	if (text_ctxt && text_ctxt[0]) {
-		return CTX_IFACE_(text_ctxt, text);
+		return BLF_pgettext(text_ctxt, text);
 	}
 
 	/* Else, if an RNA type or property is specified, use its context. */
+#if 0
+	/* XXX Disabled for now. Unfortunately, their is absolutely no way from py code to get the RNA struct corresponding
+	 *     to the 'data' (in functions like prop() & co), as this is pure runtime data. Hence, messages extraction
+	 *     script can't determine the correct context it should use for such 'text' messages...
+	 *     So for now, one have to explicitly specify the 'text_ctxt' when using prop() etc. functions,
+	 *     if default context is not suitable.
+	 */
 	if (prop) {
-		return CTX_IFACE_(RNA_property_translation_context(prop), text);
+		return BLF_pgettext(RNA_property_translation_context(prop), text);
 	}
+#else
+	(void)prop;
+#endif
 	if (type) {
-		return CTX_IFACE_(RNA_struct_translation_context(type), text);
+		return BLF_pgettext(RNA_struct_translation_context(type), text);
 	}
 
-	/* Else, no context! */
-	return IFACE_(text);
+	/* Else, default context! */
+	return BLF_pgettext(BLF_I18NCONTEXT_DEFAULT, text);
 }
 
 static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, const char *propname, const char *name, const char *text_ctxt,
