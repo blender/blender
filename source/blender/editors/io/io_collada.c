@@ -368,9 +368,8 @@ void WM_OT_collada_import(wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_OPENFILE,
 	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 
-	RNA_def_boolean(ot->srna,
-	                "import_units", 0, "Import Units",
-					"If enabled use Units as defined in Collada Import, else keep Blender's current Units settings. ");
+	RNA_def_boolean(ot->srna, "import_units", 0, "Import Units",
+	                "If enabled use Units as defined in Collada Import, else keep Blender's current Units settings");
 
 }
 #endif

@@ -80,9 +80,10 @@ class MATERIAL_UL_matslots(UIList):
             if ma and not context.scene.render.use_shading_nodes:
                 manode = ma.active_node_material
                 if manode:
-                    layout.label(text="Node %s" % manode.name, translate=False, icon_value=layout.icon(manode))
+                    pgettext = bpy.app.translations.pgettext
+                    layout.label(text=pgettext("Node %s") % manode.name, translate=False, icon_value=layout.icon(manode))
                 elif ma.use_nodes:
-                    layout.label(text="Node <none>", translate=False)
+                    layout.label(text="Node <none>")
                 else:
                     layout.label(text="")
         elif self.layout_type in {'GRID'}:
