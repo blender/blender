@@ -424,7 +424,7 @@ static void dag_add_lamp_driver_relations(DagForest *dag, DagNode *node, Lamp *l
 		dag_add_shader_nodetree_driver_relations(dag, node, la->nodetree);
 }
 
-static void dag_add_collision_field_relation(DagForest *dag, Scene *scene, Object *ob, DagNode *node, int skip_forcefield)
+static void dag_add_collision_field_relation(DagForest *dag, Scene *scene, Object *ob, DagNode *node, int skip_forcefield, bool no_collision)
 {
 	Base *base;
 	DagNode *node2;
@@ -435,7 +435,7 @@ static void dag_add_collision_field_relation(DagForest *dag, Scene *scene, Objec
 		if ((base->lay & ob->lay) && base->object->pd) {
 			Object *ob1 = base->object;
 			if ((ob1->pd->deflect || ob1->pd->forcefield) && (ob1 != ob)) {
-				if (skip_forcefield && ob1->pd->forcefield == skip_forcefield)
+				if ((skip_forcefield && ob1->pd->forcefield == skip_forcefield) || (no_collision && ob1->pd->forcefield == 0))
 					continue;
 				node2 = dag_get_node(dag, ob1);
 				dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Field Collision");
@@ -599,10 +599,13 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 		    modifiers_isModifierEnabled(ob, eModifierType_Cloth) ||
 		    modifiers_isModifierEnabled(ob, eModifierType_DynamicPaint))
 		{
-			dag_add_collision_field_relation(dag, scene, ob, node, 0);  /* TODO: use effectorweight->group */
+			dag_add_collision_field_relation(dag, scene, ob, node, 0, false);  /* TODO: use effectorweight->group */
 		}
 		else if (modifiers_isModifierEnabled(ob, eModifierType_Smoke)) {
-			dag_add_collision_field_relation(dag, scene, ob, node, PFIELD_SMOKEFLOW);
+			dag_add_collision_field_relation(dag, scene, ob, node, PFIELD_SMOKEFLOW, false);
+		}
+		else if (ob->rigidbody_object) {
+			dag_add_collision_field_relation(dag, scene, ob, node, 0, true);
 		}
 	}
 	
