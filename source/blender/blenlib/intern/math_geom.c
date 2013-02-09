@@ -1966,7 +1966,48 @@ void plot_line_v2v2i(const int p1[2], const int p2[2], int (*callback)(int, int,
 	}
 }
 
-/****************************** Interpolation ********************************/
+/****************************** Axis Utils ********************************/
+
+/**
+ * \brief Normal to x,y matrix
+ *
+ * Creates a 3x3 matrix from a normal.
+ * This matrix can be applied to vectors so their 'z' axis runs along \a normal.
+ * In practice it means you can use x,y as 2d coords. \see
+ *
+ * \param r_mat The matrix to return.
+ * \param normal A unit length vector.
+ */
+bool axis_dominant_v3_to_m3(float r_mat[3][3], const float normal[3])
+{
+	float up[3] = {0.0f, 0.0f, 1.0f};
+	float axis[3];
+	float angle;
+
+	/* double check they are normalized */
+#ifdef DEBUG
+	float test;
+	BLI_assert(fabsf((test = len_squared_v3(normal)) - 1.0f) < 0.0001f || fabsf(test) < 0.0001f);
+#endif
+
+	cross_v3_v3v3(axis, normal, up);
+	angle = saacos(dot_v3v3(normal, up));
+
+	if (angle >= FLT_EPSILON) {
+		if (len_squared_v3(axis) < FLT_EPSILON) {
+			axis[0] = 0.0f;
+			axis[1] = 1.0f;
+			axis[2] = 0.0f;
+		}
+
+		axis_angle_to_mat3(r_mat, axis, angle);
+		return true;
+	}
+	else {
+		unit_m3(r_mat);
+		return false;
+	}
+}
 
 /* get the 2 dominant axis values, 0==X, 1==Y, 2==Z */
 void axis_dominant_v3(int *r_axis_a, int *r_axis_b, const float axis[3])
@@ -1991,6 +2032,9 @@ float axis_dominant_v3_max(int *r_axis_a, int *r_axis_b, const float axis[3])
 	else if (yn >= xn && yn >= zn) { *r_axis_a = 0; *r_axis_b = 2; return yn; }
 	else                           { *r_axis_a = 1; *r_axis_b = 2; return xn; }
 }
+
+
+/****************************** Interpolation ********************************/
 
 static float tri_signed_area(const float v1[3], const float v2[3], const float v3[3], const int i, const int j)
 {
@@ -3535,7 +3579,7 @@ float form_factor_hemi_poly(float p[3], float n[3], float v1[3], float v2[3], fl
 int is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3])
 {
 	float nor[3], nor1[3], nor2[3], vec[4][2];
-	int axis_a, axis_b;
+	float mat[3][3];
 
 	/* define projection, do both trias apart, quad is undefined! */
 
@@ -3552,18 +3596,14 @@ int is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], c
 	}
 
 	add_v3_v3v3(nor, nor1, nor2);
+	normalize_v3(nor);
 
-	axis_dominant_v3(&axis_a, &axis_b, nor);
+	axis_dominant_v3_to_m3(mat, nor);
 
-	vec[0][0] = v1[axis_a];
-	vec[0][1] = v1[axis_b];
-	vec[1][0] = v2[axis_a];
-	vec[1][1] = v2[axis_b];
-
-	vec[2][0] = v3[axis_a];
-	vec[2][1] = v3[axis_b];
-	vec[3][0] = v4[axis_a];
-	vec[3][1] = v4[axis_b];
+	mul_v2_m3v3(vec[0], mat, v1);
+	mul_v2_m3v3(vec[1], mat, v2);
+	mul_v2_m3v3(vec[2], mat, v3);
+	mul_v2_m3v3(vec[3], mat, v4);
 
 	/* linetests, the 2 diagonals have to instersect to be convex */
 	return (isect_line_line_v2(vec[0], vec[2], vec[1], vec[3]) > 0) ? TRUE : FALSE;

@@ -298,35 +298,6 @@ static void scale_edge_v3f(float v1[3], float v2[3], const float fac)
 }
 
 /**
- * \brief POLY NORMAL TO MATRIX
- *
- * Creates a 3x3 matrix from a normal.
- */
-static bool poly_normal_to_xy_mat3(float r_mat[3][3], const float normal[3])
-{
-	float up[3] = {0.0f, 0.0f, 1.0f}, axis[3];
-	float angle;
-
-	cross_v3_v3v3(axis, normal, up);
-	angle = saacos(dot_v3v3(normal, up));
-
-	if (angle >= FLT_EPSILON) {
-		if (len_squared_v3(axis) < FLT_EPSILON) {
-			axis[0] = 0.0f;
-			axis[1] = 1.0f;
-			axis[2] = 0.0f;
-		}
-
-		axis_angle_to_mat3(r_mat, axis, angle);
-		return true;
-	}
-	else {
-		unit_m3(r_mat);
-		return false;
-	}
-}
-
-/**
  * \brief POLY ROTATE PLANE
  *
  * Rotates a polygon so that it's
@@ -336,7 +307,7 @@ void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nvert
 {
 	float mat[3][3];
 
-	if (poly_normal_to_xy_mat3(mat, normal)) {
+	if (axis_dominant_v3_to_m3(mat, normal)) {
 		int i;
 		for (i = 0; i < nverts; i++) {
 			mul_m3_v3(mat, verts[i]);
@@ -828,7 +799,7 @@ void BM_face_triangulate(BMesh *bm, BMFace *f,
 	float *abscoss = BLI_array_alloca(abscoss, f_len_orig);
 	float mat[3][3];
 
-	poly_normal_to_xy_mat3(mat, f->no);
+	axis_dominant_v3_to_m3(mat, f->no);
 
 	/* copy vertex coordinates to vertspace area */
 	i = 0;
