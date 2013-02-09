@@ -31,6 +31,7 @@
 #include "DocumentExporter.h"
 #include "DocumentImporter.h"
 #include "ExportSettings.h"
+#include "ImportSettings.h"
 
 extern "C"
 {
@@ -42,9 +43,17 @@ extern "C"
 #include "BLI_path_util.h"
 #include "BLI_linklist.h"
 
-int collada_import(bContext *C, const char *filepath)
+int collada_import(bContext *C,
+				   const char *filepath,
+				   int import_units)
 {
-	DocumentImporter imp(C, filepath);
+
+	ImportSettings import_settings;
+	import_settings.filepath = (char *)filepath;
+
+	import_settings.import_units =  import_units != 0;
+
+	DocumentImporter imp(C, &import_settings);
 	if (imp.import()) return 1;
 
 	return 0;

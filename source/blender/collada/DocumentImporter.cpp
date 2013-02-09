@@ -99,9 +99,9 @@ extern "C" {
 // creates empties for each imported bone on layer 2, for debugging
 // #define ARMATURE_TEST
 
-DocumentImporter::DocumentImporter(bContext *C, const char *filename) :
+DocumentImporter::DocumentImporter(bContext *C, const ImportSettings *import_settings) :
+    import_settings(import_settings),
 	mImportStage(General),
-	mFilename(filename),
 	mContext(C),
 	armature_importer(&unit_converter, &mesh_importer, &anim_importer, CTX_data_scene(C)),
 	mesh_importer(&unit_converter, &armature_importer, CTX_data_scene(C)),
@@ -131,6 +131,7 @@ bool DocumentImporter::import()
 	// deselect all to select new objects
 	BKE_scene_base_deselect_all(CTX_data_scene(mContext));
 
+	std::string mFilename = std::string(this->import_settings->filepath);
 	const std::string encodedFilename = bc_url_encode(mFilename);
 	if (!root.loadDocument(encodedFilename)) {
 		fprintf(stderr, "COLLADAFW::Root::loadDocument() returned false on 1st pass\n");
@@ -188,30 +189,42 @@ void DocumentImporter::finish()
 		Scene *sce = CTX_data_scene(mContext);
 		
 		// for scene unit settings: system, scale_length
+
 		RNA_id_pointer_create(&sce->id, &sceneptr);
 		unit_settings = RNA_pointer_get(&sceneptr, "unit_settings");
 		system = RNA_struct_find_property(&unit_settings, "system");
 		scale = RNA_struct_find_property(&unit_settings, "scale_length");
-		
-		switch (unit_converter.isMetricSystem()) {
-			case UnitConverter::Metric:
-				RNA_property_enum_set(&unit_settings, system, USER_UNIT_METRIC);
-				break;
-			case UnitConverter::Imperial:
-				RNA_property_enum_set(&unit_settings, system, USER_UNIT_IMPERIAL);
-				break;
-			default:
-				RNA_property_enum_set(&unit_settings, system, USER_UNIT_NONE);
-				break;
-		}
-		RNA_property_float_set(&unit_settings, scale, unit_converter.getLinearMeter());
-		
-		const COLLADAFW::NodePointerArray& roots = (*it)->getRootNodes();
 
+		if (this->import_settings->import_units) {
+			
+			switch (unit_converter.isMetricSystem()) {
+				case UnitConverter::Metric:
+					RNA_property_enum_set(&unit_settings, system, USER_UNIT_METRIC);
+					break;
+				case UnitConverter::Imperial:
+					RNA_property_enum_set(&unit_settings, system, USER_UNIT_IMPERIAL);
+					break;
+				default:
+					RNA_property_enum_set(&unit_settings, system, USER_UNIT_NONE);
+					break;
+			}
+			float unit_factor = unit_converter.getLinearMeter();
+			RNA_property_float_set(&unit_settings, scale, unit_factor);
+			fprintf(stdout, "Collada: Adjusting Blender units to Importset units: %f.\n", unit_factor);
+
+		}
+		else {
+			// TODO: add automatic scaling for the case when Blender units 
+			//       and import units are set to different values.
+		}
+
+		// Write nodes to scene
+		const COLLADAFW::NodePointerArray& roots = (*it)->getRootNodes();
 		for (unsigned int i = 0; i < roots.getCount(); i++) {
 			write_node(roots[i], NULL, sce, NULL, false);
 		}
 
+		// update scene
 		Main *bmain = CTX_data_main(mContext);
 		DAG_scene_sort(bmain, sce);
 		DAG_ids_flush_update(bmain, 0);
@@ -974,7 +987,7 @@ bool DocumentImporter::writeImage(const COLLADAFW::Image *image)
 		
 	// XXX maybe it is necessary to check if the path is absolute or relative
 	const std::string& filepath = image->getImageURI().toNativePath();
-	const char *filename = (const char *)mFilename.c_str();
+	const char *filename = (const char *)filepath.c_str();
 	char dir[FILE_MAX];
 	char full_path[FILE_MAX];
 	
