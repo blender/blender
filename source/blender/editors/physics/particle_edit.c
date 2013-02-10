@@ -3397,7 +3397,7 @@ static int brush_add(PEData *data, short number)
 					weight[w] = 0.0f;
 				}
 
-				if(totw > 0.0f) {
+				if (totw > 0.0f) {
 					for (w=0; w<maxw; w++)
 						weight[w] /= totw;
 				}
@@ -4151,7 +4151,7 @@ int PE_minmax(Scene *scene, float min[3], float max[3])
 		BKE_object_minmax(ob, min, max, TRUE);
 		ok= 1;
 	}
-  
+
 	return ok;
 }
 

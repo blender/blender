@@ -168,6 +168,19 @@ class CyclesRender_PT_film(CyclesButtonsPanel, Panel):
         if cscene.filter_type != 'BOX':
             sub.prop(cscene, "filter_width", text="Width")
 
+        layout.separator()
+
+        rd = scene.render
+        col = layout.column()
+
+        split = col.split(percentage=0.40)
+        split.prop(rd, "use_antialiasing", "OpenGL AA")
+        row = split.row()
+        row.active = rd.use_antialiasing
+        row.prop(rd, "antialiasing_samples", expand=True)
+
+        col.prop(rd, "alpha_mode", text="OpenGL Alpha")
+
 
 class CyclesRender_PT_performance(CyclesButtonsPanel, Panel):
     bl_label = "Performance"
@@ -552,6 +565,19 @@ def panel_node_draw(layout, id_data, output_type, input_name):
     return True
 
 
+class CyclesLamp_PT_preview(CyclesButtonsPanel, Panel):
+    bl_label = "Preview"
+    bl_context = "data"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.lamp and CyclesButtonsPanel.poll(context)
+
+    def draw(self, context):
+        self.layout.template_preview(context.lamp)
+
+
 class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
     bl_label = "Lamp"
     bl_context = "data"
@@ -590,6 +616,8 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
 
         col = split.column()
         col.prop(clamp, "cast_shadow")
+
+        layout.prop(clamp, "use_multiple_importance_sampling")
 
         if lamp.type == 'HEMI':
             layout.label(text="Not supported, interpreted as sun lamp.")
@@ -634,6 +662,19 @@ class CyclesLamp_PT_spot(CyclesButtonsPanel, Panel):
 
         col = split.column()
         col.prop(lamp, "show_cone")
+
+
+class CyclesWorld_PT_preview(CyclesButtonsPanel, Panel):
+    bl_label = "Preview"
+    bl_context = "world"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.world and CyclesButtonsPanel.poll(context)
+
+    def draw(self, context):
+        self.layout.template_preview(context.world)
 
 
 class CyclesWorld_PT_surface(CyclesButtonsPanel, Panel):
@@ -722,6 +763,19 @@ class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
             sub.prop(cworld, "samples")
 
 
+class CyclesMaterial_PT_preview(CyclesButtonsPanel, Panel):
+    bl_label = "Preview"
+    bl_context = "material"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.material and CyclesButtonsPanel.poll(context)
+
+    def draw(self, context):
+        self.layout.template_preview(context.material)
+
+
 class CyclesMaterial_PT_surface(CyclesButtonsPanel, Panel):
     bl_label = "Surface"
     bl_context = "material"
@@ -798,8 +852,9 @@ class CyclesMaterial_PT_settings(CyclesButtonsPanel, Panel):
         col.prop(mat, "diffuse_color", text="Viewport Color")
 
         col = split.column()
-        col.prop(cmat, "sample_as_light")
         col.prop(mat, "pass_index")
+
+        layout.prop(cmat, "sample_as_light")
 
 
 class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
@@ -838,24 +893,8 @@ class CyclesTexture_PT_context(CyclesButtonsPanel, Panel):
                 split = layout.split(percentage=0.2)
                 split.label(text="Type:")
                 split.prop(tex, "type", text="")
-
-
-class CyclesTexture_PT_nodes(CyclesButtonsPanel, Panel):
-    bl_label = "Nodes"
-    bl_context = "texture"
-
-    @classmethod
-    def poll(cls, context):
-        tex = context.texture
-        return (tex and tex.use_nodes) and CyclesButtonsPanel.poll(context)
-
-    def draw(self, context):
-        layout = self.layout
-
-        tex = context.texture
-        panel_node_draw(layout, tex, 'OUTPUT_TEXTURE', 'Color')
-
-
+                
+                
 class CyclesTexture_PT_node(CyclesButtonsPanel, Panel):
     bl_label = "Node"
     bl_context = "texture"
@@ -879,14 +918,12 @@ class CyclesTexture_PT_mapping(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        tex = context.texture
         node = context.texture_node
-        return (node or (tex and tex.use_nodes)) and CyclesButtonsPanel.poll(context)
+        return node and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
-
-        # tex = context.texture
+        
         node = context.texture_node
 
         mapping = node.texture_mapping
@@ -912,15 +949,13 @@ class CyclesTexture_PT_colors(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        # tex = context.texture
         # node = context.texture_node
         return False
-        #return (node or (tex and tex.use_nodes)) and CyclesButtonsPanel.poll(context)
+        #return node and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
-
-        # tex = context.texture
+        
         node = context.texture_node
 
         mapping = node.color_mapping
@@ -1141,12 +1176,14 @@ def get_panels():
         types.RENDER_PT_stamp,
         types.SCENE_PT_scene,
         types.SCENE_PT_color_management,
+        types.SCENE_PT_custom_props,
         types.SCENE_PT_audio,
         types.SCENE_PT_unit,
         types.SCENE_PT_keying_sets,
         types.SCENE_PT_keying_set_paths,
         types.SCENE_PT_physics,
         types.WORLD_PT_context_world,
+        types.WORLD_PT_custom_props,
         types.DATA_PT_context_mesh,
         types.DATA_PT_context_camera,
         types.DATA_PT_context_lamp,
@@ -1169,6 +1206,11 @@ def get_panels():
         types.DATA_PT_custom_props_camera,
         types.DATA_PT_custom_props_lamp,
         types.DATA_PT_custom_props_speaker,
+        types.DATA_PT_custom_props_arm,
+        types.DATA_PT_custom_props_curve,
+        types.DATA_PT_custom_props_lattice,
+        types.DATA_PT_custom_props_metaball,
+        types.TEXTURE_PT_custom_props,
         types.TEXTURE_PT_clouds,
         types.TEXTURE_PT_wood,
         types.TEXTURE_PT_marble,
@@ -1188,6 +1230,7 @@ def get_panels():
         types.TEXTURE_PT_influence,
         types.TEXTURE_PT_colors,
         types.PARTICLE_PT_context_particles,
+        types.PARTICLE_PT_custom_props,
         types.PARTICLE_PT_emission,
         types.PARTICLE_PT_hair_dynamics,
         types.PARTICLE_PT_cache,
@@ -1204,10 +1247,9 @@ def get_panels():
         types.PARTICLE_PT_field_weights,
         types.PARTICLE_PT_force_fields,
         types.PARTICLE_PT_vertexgroups,
-        types.PARTICLE_PT_custom_props,
-        types.MATERIAL_PT_preview,
-        types.DATA_PT_preview,
-        types.WORLD_PT_preview,
+        types.MATERIAL_PT_custom_props,
+        types.BONE_PT_custom_props,
+        types.OBJECT_PT_custom_props,
         )
 
 

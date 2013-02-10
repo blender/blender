@@ -15,9 +15,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor: 
- *		Jeroen Bakker 
+ * Contributor:
+ *		Jeroen Bakker
  *		Monique Dewanchand
+ *		Thomas Beck (plasmasolutions.de)
  */
 
 #include "COM_TranslateOperation.h"
@@ -33,6 +34,8 @@ TranslateOperation::TranslateOperation() : NodeOperation()
 	this->m_inputXOperation = NULL;
 	this->m_inputYOperation = NULL;
 	this->m_isDeltaSet = false;
+	this->m_factorX = 1.0f;
+	this->m_factorY = 1.0f;
 }
 void TranslateOperation::initExecution()
 {
@@ -40,6 +43,7 @@ void TranslateOperation::initExecution()
 	this->m_inputXOperation = this->getInputSocketReader(1);
 	this->m_inputYOperation = this->getInputSocketReader(2);
 
+	ensureDelta();
 }
 
 void TranslateOperation::deinitExecution()
@@ -53,18 +57,30 @@ void TranslateOperation::deinitExecution()
 void TranslateOperation::executePixel(float output[4], float x, float y, PixelSampler sampler)
 {
 	ensureDelta();
-	this->m_inputOperation->read(output, x - this->getDeltaX(), y - this->getDeltaY(), sampler);
+
+	float originalXPos = x - this->getDeltaX();
+	float originalYPos = y - this->getDeltaY();
+
+	this->m_inputOperation->read(output, originalXPos, originalYPos, sampler);
 }
 
 bool TranslateOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
-	ensureDelta();
 	rcti newInput;
-	
-	newInput.xmax = input->xmax - this->getDeltaX();
+
+	ensureDelta();
+
 	newInput.xmin = input->xmin - this->getDeltaX();
-	newInput.ymax = input->ymax - this->getDeltaY();
+	newInput.xmax = input->xmax - this->getDeltaX();
 	newInput.ymin = input->ymin - this->getDeltaY();
-	
+	newInput.ymax = input->ymax - this->getDeltaY();
+
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+void TranslateOperation::setFactorXY(float factorX, float factorY)
+{
+	m_factorX = factorX;
+	m_factorY = factorY;
+}
+

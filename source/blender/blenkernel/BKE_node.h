@@ -299,7 +299,7 @@ struct bNodeTreeType *ntreeGetType(int type);
 struct bNodeType *ntreeGetNodeType(struct bNodeTree *ntree);
 struct bNodeSocketType *ntreeGetSocketType(int type);
 
-struct bNodeTree *ntreeAddTree(const char *name, int type, int nodetype);
+struct bNodeTree *ntreeAddTree(struct Main *bmain, const char *name, int type, int nodetype);
 void              ntreeInitTypes(struct bNodeTree *ntree);
 
 /* copy/free funcs, need to manage ID users */

@@ -359,6 +359,17 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			/* Last point of loop 2 */
 			v4 = get_outer_vert(bm, ee2[clamp_index(-1, BLI_array_count(ee2))]);
 
+			/* ugh, happens when bridging single edges, user could just make a face
+			 * but better support it for sake of completeness */
+			if (v1 == v2) {
+				BLI_assert(BLI_array_count(ee1) == 1);
+				v2 = (vv1[0] == v2) ? vv1[1] : vv1[0];
+			}
+			if (v3 == v4) {
+				BLI_assert(BLI_array_count(ee2) == 1);
+				v4 = (vv2[0] == v4) ? vv2[1] : vv2[0];
+			}
+
 			/* If v1 is a better match for v4 than v3, AND v2 is a better match
 			 * for v3 than v4, the loops are in opposite directions, so reverse
 			 * the order of reads from vv1. We can avoid sqrt for comparison */

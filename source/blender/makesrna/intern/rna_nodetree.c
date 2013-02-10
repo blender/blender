@@ -4225,6 +4225,33 @@ static void def_cmp_trackpos(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_cmp_translate(StructRNA *srna)
+{
+	static EnumPropertyItem translate_items[] = {
+		{CMP_NODE_WRAP_NONE, "NONE",  0, "None",       "No wrapping on X and Y"},
+		{CMP_NODE_WRAP_X,    "XAXIS", 0, "X Axis",     "Wrap all pixels on the X axis"},
+		{CMP_NODE_WRAP_Y,    "YAXIS", 0, "Y Axis",     "Wrap all pixels on the Y axis"},
+		{CMP_NODE_WRAP_XY,   "BOTH",  0, "Both Axes",  "Wrap all pixels on both axes"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	PropertyRNA *prop;
+
+	RNA_def_struct_sdna_from(srna, "NodeTranslateData", "storage");
+
+	prop = RNA_def_property(srna, "use_relative", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "relative", 1);
+	RNA_def_property_ui_text(prop, "Relative", "Use relative (percent) values to define blur radius");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "wrap_axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "wrap_axis");
+	RNA_def_property_enum_items(prop, translate_items);
+	RNA_def_property_ui_text(prop, "Wrapping", "Wrap image on a specific axis");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+
 /* -- Texture Nodes --------------------------------------------------------- */
 
 static void def_tex_output(StructRNA *srna)

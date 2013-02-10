@@ -271,6 +271,9 @@ mark_as_advanced(WITH_CXX_GUARDEDALLOC)
 option(WITH_ASSERT_ABORT "Call abort() when raising an assertion through BLI_assert()" OFF)
 mark_as_advanced(WITH_ASSERT_ABORT)
 
+option(WITH_BOOST					"Enable features depending no boost" ON)
+
+
 if(APPLE)
 	cmake_minimum_required(VERSION 2.8.8)
 	cmake_policy(VERSION 2.8.8)
@@ -398,9 +401,22 @@ if(WITH_CYCLES)
 	set(WITH_OPENIMAGEIO ON)
 endif()
 
-# auto enable boost for cycles, booleans, audaspace or i18n
-if(WITH_CYCLES OR WITH_MOD_BOOLEAN OR WITH_AUDASPACE OR WITH_INTERNATIONAL)
-	set(WITH_BOOST ON)
+# enable boost for cycles, booleans, audaspace or i18n
+# otherwise if the user disabled
+if(NOT WITH_BOOST)
+	# Explicitly disabled. so disable all deps.
+	set(WITH_CYCLES         OFF)
+	set(WITH_MOD_BOOLEAN    OFF)
+	set(WITH_AUDASPACE      OFF)
+	set(WITH_INTERNATIONAL  OFF)
+
+	set(WITH_OPENAL         OFF)  # depends on AUDASPACE
+	set(WITH_GAMEENGINE     OFF)  # depends on AUDASPACE
+elseif(WITH_CYCLES OR WITH_MOD_BOOLEAN OR WITH_AUDASPACE OR WITH_INTERNATIONAL)
+	# Keep enabled
+else()
+	# Enabled but we don't need it
+	set(WITH_BOOST OFF)
 endif()
 
 # auto enable llvm for cycles_osl
@@ -800,7 +816,11 @@ if(UNIX AND NOT APPLE)
 		set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} ${X11_X11_LIB}")
 
 		if(WITH_X11_XINPUT)
-			set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} ${X11_Xinput_LIB}")
+			if(X11_Xinput_LIB)
+				set(PLATFORM_LINKLIBS "${PLATFORM_LINKLIBS} ${X11_Xinput_LIB}")
+			else()
+				set(WITH_X11_XINPUT OFF)
+			endif()
 		endif()
 
 		if(WITH_X11_XF86VMODE)
@@ -1139,11 +1159,16 @@ elseif(WIN32)
 				debug libboost_date_time-${BOOST_DEBUG_POSTFIX} debug libboost_filesystem-${BOOST_DEBUG_POSTFIX}
 				debug libboost_regex-${BOOST_DEBUG_POSTFIX}
 				debug libboost_system-${BOOST_DEBUG_POSTFIX} debug libboost_thread-${BOOST_DEBUG_POSTFIX})
+			if(WITH_CYCLES_OSL)
+				set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
+					optimized libboost_wave-${BOOST_POSTFIX}
+					debug libboost_wave-${BOOST_DEBUG_POSTFIX})
+			endif()
 			if(WITH_INTERNATIONAL)
 				set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
 					optimized libboost_locale-${BOOST_POSTFIX}
 					debug libboost_locale-${BOOST_DEBUG_POSTFIX})
-			endif(WITH_INTERNATIONAL)
+			endif()
 			set(BOOST_DEFINITIONS "-DBOOST_ALL_NO_LIB")
 		endif()
 			
@@ -1449,11 +1474,11 @@ elseif(APPLE)
 			# module must be compiled against Python framework
 
 			# normally cached but not since we include them with blender
-			set(PYTHON_VERSION 3.2)
+			set(PYTHON_VERSION 3.3)
 			set(PYTHON_INCLUDE_DIR "/Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}/include/python${PYTHON_VERSION}m")
 			set(PYTHON_BINARY "/Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}/bin/python${PYTHON_VERSION}")
 			#set(PYTHON_LIBRARY python${PYTHON_VERSION})
-			set(PYTHON_LIBPATH "/Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}/lib/python${PYTHON_VERSION}/config-3.2m")
+			set(PYTHON_LIBPATH "/Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}/lib/python${PYTHON_VERSION}/config-${PYTHON_VERSION}m")
 			#set(PYTHON_LINKFLAGS "-u _PyMac_Error -framework Python")  # won't  build with this enabled
 		endif()
 		
@@ -2167,12 +2192,10 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_MOD_FLUID)
 	info_cfg_option(WITH_MOD_OCEANSIM)
 
+	# debug
+	message(STATUS "HAVE_STDBOOL_H = ${HAVE_STDBOOL_H}")
+
 	info_cfg_text("")
 
 	message("${_config_msg}")
 endif()
-
-# debug
-message(
-    STATUS "HAVE_STDBOOL_H = ${HAVE_STDBOOL_H}"
-)

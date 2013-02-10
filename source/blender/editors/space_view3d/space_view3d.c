@@ -146,7 +146,7 @@ RegionView3D *ED_view3d_context_rv3d(bContext *C)
 	if (rv3d == NULL) {
 		ScrArea *sa = CTX_wm_area(C);
 		if (sa && sa->spacetype == SPACE_VIEW3D) {
-			ARegion *ar = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+			ARegion *ar = BKE_area_find_region_active_win(sa);
 			if (ar) {
 				rv3d = ar->regiondata;
 			}

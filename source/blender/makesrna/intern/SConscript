@@ -70,7 +70,7 @@ if env['WITH_BF_SMOKE']:
 
 if env['WITH_BF_BULLET']:
     defs.append('WITH_BULLET')
-    incs += ' ../../rigidbody'
+    incs += ' #/intern/rigidbody'
 
 if env['WITH_BF_OPENEXR']:
     defs.append('WITH_OPENEXR')

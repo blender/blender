@@ -258,10 +258,10 @@ static void usage(const char* program, bool isBlenderPlayer)
 static void get_filename(int argc, char **argv, char *filename)
 {
 #ifdef __APPLE__
-/* On Mac we park the game file (called game.blend) in the application bundle.
-* The executable is located in the bundle as well.
-* Therefore, we can locate the game relative to the executable.
-	*/
+	/* On Mac we park the game file (called game.blend) in the application bundle.
+	 * The executable is located in the bundle as well.
+	 * Therefore, we can locate the game relative to the executable.
+	 */
 	int srclen = ::strlen(argv[0]);
 	int len = 0;
 	char *gamefile = NULL;
@@ -471,7 +471,7 @@ int main(int argc, char** argv)
 			break;
 		case SCREEN_SAVER_MODE_PASSWORD:
 			/* This is W95 only, which we currently do not support.
-			   Fall-back to normal screen saver behavior in that case... */
+			 * Fall-back to normal screen saver behavior in that case... */
 		case SCREEN_SAVER_MODE_SAVER:
 			fullScreen = true;
 			fullScreenParFound = true;
@@ -907,7 +907,7 @@ int main(int argc, char** argv)
 							if (domeWarp)
 							{
 								//XXX to do: convert relative to absolute path
-								domeText= BKE_text_load(domeWarp, "");
+								domeText= BKE_text_load(G.main, domeWarp, "");
 								if (!domeText)
 									printf("error: invalid warpdata text file - %s\n", domeWarp);
 								else

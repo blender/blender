@@ -117,7 +117,7 @@ typedef struct BlenderDefRNA {
 	ListBase structs;
 	ListBase allocs;
 	struct StructRNA *laststruct;
-	int error, silent, preprocess, verify;
+	int error, silent, preprocess, verify, animate;
 } BlenderDefRNA;
 
 extern BlenderDefRNA DefRNA;
@@ -403,6 +403,8 @@ PointerRNA rna_pointer_inherit_refine(struct PointerRNA *ptr, struct StructRNA *
 
 int rna_parameter_size(struct PropertyRNA *parm);
 int rna_parameter_size_alloc(struct PropertyRNA *parm);
+
+struct Mesh *rna_Main_meshes_new_from_object(struct Main *bmain, struct ReportList *reports, struct Scene *sce, struct Object *ob, int apply_modifiers, int settings);
 
 /* XXX, these should not need to be defined here~! */
 struct MTex *rna_mtex_texture_slots_add(struct ID *self, struct bContext *C, struct ReportList *reports);

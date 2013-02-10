@@ -661,11 +661,12 @@ static int reports_to_text_poll(bContext *C)
 static int reports_to_text_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ReportList *reports = CTX_wm_reports(C);
+	Main *bmain = CTX_data_main(C);
 	Text *txt;
 	char *str;
 	
 	/* create new text-block to write to */
-	txt = BKE_text_add("Recent Reports");
+	txt = BKE_text_add(bmain, "Recent Reports");
 	
 	/* convert entire list to a display string, and add this to the text-block
 	 *	- if commandline debug option enabled, show debug reports too
@@ -803,7 +804,7 @@ static int editsource_text_edit(bContext *C, wmOperator *op,
 	}
 
 	if (text == NULL) {
-		text = BKE_text_load(filepath, bmain->name);
+		text = BKE_text_load(bmain, filepath, bmain->name);
 	}
 
 	if (text == NULL) {

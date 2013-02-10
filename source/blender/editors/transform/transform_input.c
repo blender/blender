@@ -180,7 +180,7 @@ void setCustomPoints(TransInfo *UNUSED(t), MouseInput *mi, const int start[2], c
 	data[3] = end[1];
 }
 
-static void InputCustomRatio(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], float output[3])
+static void InputCustomRatioFlip(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], float output[3])
 {
 	double length;
 	double distance;
@@ -213,6 +213,12 @@ static void InputCustomRatio(TransInfo *UNUSED(t), MouseInput *mi, const int mva
 	}
 }
 
+static void InputCustomRatio(TransInfo *t, MouseInput *mi, const int mval[2], float output[3])
+{
+	InputCustomRatioFlip(t, mi, mval, output);
+	output[0] = -output[0];
+}
+
 static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], float output[3])
 {
 	double dx2 = mval[0] - mi->center[0];
@@ -232,7 +238,7 @@ static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], 
 	double deler = (((dx1 * dx1 + dy1 * dy1) +
 	                 (dx2 * dx2 + dy2 * dy2) -
 	                 (dx3 * dx3 + dy3 * dy3)) / (2.0 * ((A * B) ? (A * B) : 1.0)));
-	/* ((A*B)?(A*B):1.0) this takes care of potential divide by zero errors */
+	/* ((A * B) ? (A * B) : 1.0) this takes care of potential divide by zero errors */
 
 	float dphi;
 
@@ -356,6 +362,10 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 			break;
 		case INPUT_CUSTOM_RATIO:
 			mi->apply = InputCustomRatio;
+			t->helpline = HLP_NONE;
+			break;
+		case INPUT_CUSTOM_RATIO_FLIP:
+			mi->apply = InputCustomRatioFlip;
 			t->helpline = HLP_NONE;
 			break;
 		case INPUT_NONE:

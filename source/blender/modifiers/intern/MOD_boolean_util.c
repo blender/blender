@@ -46,6 +46,7 @@
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_depsgraph.h"
+#include "BKE_global.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
@@ -295,7 +296,7 @@ static Object *AddNewBlenderMesh(Scene *scene, Base *base)
 	basen->flag &= ~SELECT;
 				
 	/* Initialize the mesh data associated with this object. */
-	ob_new->data = BKE_mesh_add("Mesh");
+	ob_new->data = BKE_mesh_add(G.main, "Mesh");
 
 	/* Finally assign the object type. */
 	ob_new->type = OB_MESH;

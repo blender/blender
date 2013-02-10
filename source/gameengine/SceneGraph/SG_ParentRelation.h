@@ -29,7 +29,7 @@
 /** \file SG_ParentRelation.h
  *  \ingroup bgesg
  * \page SG_ParentRelationPage SG_ParentRelation   
-
+ *
  * \section SG_ParentRelationSection SG_ParentRelation
  * 
  * This is an abstract interface class to the Scene Graph library. 
@@ -48,7 +48,7 @@
  * should not be value types and should be allocated on the heap.
  *
  */
- 
+
 #ifndef __SG_PARENTRELATION_H__
 #define __SG_PARENTRELATION_H__
 

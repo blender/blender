@@ -933,7 +933,7 @@ static RAS_MaterialBucket *material_from_mesh(Material *ma, MFace *mface, MTFace
 		if (ma) {
 			alpha_blend = ma->game.alpha_blend;
 			/* Commented out for now. If we ever get rid of
-				* "Texture Face/Singletexture" we can then think about it */
+			 * "Texture Face/Singletexture" we can then think about it */
 
 			/* Texture Face mode ignores texture but requires "Face Textures to be True "*/
 	#if 0
@@ -1982,7 +1982,7 @@ static KX_GameObject *gameobject_from_blenderobject(
 		for (int i=0;i<mesh->totcol;i++) {
 			mat=mesh->mat[i];
 			if (!mat) break;
-			if ((mat->shade_flag &= MA_OBCOLOR)) {
+			if ((mat->shade_flag & MA_OBCOLOR)) {
 				bUseObjectColor = true;
 				break;
 			}

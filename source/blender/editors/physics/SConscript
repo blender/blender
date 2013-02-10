@@ -33,7 +33,7 @@ incs = '../include ../../blenfont ../../blenlib ../../blenkernel ../../makesdna 
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../gpu ../../blenloader ../../bmesh'
 incs += ' ../../makesrna ../../render/extern/include  #/intern/elbeem/extern'
-incs += ' ../../rigidbody'
+incs += ' #/intern/rigidbody'
 
 defs = []
 

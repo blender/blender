@@ -479,11 +479,11 @@ static void put_imbuf_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, i
 /*********************** common functions *************************/
 
 /* only image block itself */
-static MovieClip *movieclip_alloc(const char *name)
+static MovieClip *movieclip_alloc(Main *bmain, const char *name)
 {
 	MovieClip *clip;
 
-	clip = BKE_libblock_alloc(&G.main->movieclip, ID_MC, name);
+	clip = BKE_libblock_alloc(&bmain->movieclip, ID_MC, name);
 
 	clip->aspx = clip->aspy = 1.0f;
 
@@ -542,7 +542,7 @@ static void detect_clip_source(MovieClip *clip)
  * otherwise creates new.
  * does not load ibuf itself
  * pass on optional frame for #name images */
-MovieClip *BKE_movieclip_file_add(const char *name)
+MovieClip *BKE_movieclip_file_add(Main *bmain, const char *name)
 {
 	MovieClip *clip;
 	int file, len;
@@ -550,7 +550,7 @@ MovieClip *BKE_movieclip_file_add(const char *name)
 	char str[FILE_MAX], strtest[FILE_MAX];
 
 	BLI_strncpy(str, name, sizeof(str));
-	BLI_path_abs(str, G.main->name);
+	BLI_path_abs(str, bmain->name);
 
 	/* exists? */
 	file = BLI_open(str, O_BINARY | O_RDONLY, 0);
@@ -559,7 +559,7 @@ MovieClip *BKE_movieclip_file_add(const char *name)
 	close(file);
 
 	/* ** first search an identical clip ** */
-	for (clip = G.main->movieclip.first; clip; clip = clip->id.next) {
+	for (clip = bmain->movieclip.first; clip; clip = clip->id.next) {
 		BLI_strncpy(strtest, clip->name, sizeof(clip->name));
 		BLI_path_abs(strtest, G.main->name);
 
@@ -580,7 +580,7 @@ MovieClip *BKE_movieclip_file_add(const char *name)
 		len--;
 	libname = name + len;
 
-	clip = movieclip_alloc(libname);
+	clip = movieclip_alloc(bmain, libname);
 	BLI_strncpy(clip->name, name, sizeof(clip->name));
 
 	detect_clip_source(clip);

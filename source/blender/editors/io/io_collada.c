@@ -308,18 +308,47 @@ void WM_OT_collada_export(wmOperatorType *ot)
 static int wm_collada_import_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
+	int import_units;
 
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
 		return OPERATOR_CANCELLED;
 	}
 
+	/* Options panel */
+	import_units = RNA_boolean_get(op->ptr, "import_units");
+
 	RNA_string_get(op->ptr, "filepath", filename);
-	if (collada_import(C, filename)) return OPERATOR_FINISHED;
-
+	if (collada_import( C,
+						filename,
+						import_units))	{
+			return OPERATOR_FINISHED;
+	}
+	else {
 	BKE_report(op->reports, RPT_ERROR, "Errors found during parsing COLLADA document (see console for details)");
+	return OPERATOR_CANCELLED;
+	}
+}
 
-	return OPERATOR_FINISHED;
+static void uiCollada_importSettings(uiLayout *layout, PointerRNA *imfptr)
+{
+	uiLayout *box, *row;
+
+	/* Import Options: */
+	box = uiLayoutBox(layout);
+	row = uiLayoutRow(box, FALSE);
+	uiItemL(row, IFACE_("Import Data Options:"), ICON_MESH_DATA);
+
+	row = uiLayoutRow(box, FALSE);
+	uiItemR(row, imfptr, "import_units", 0, NULL, ICON_NONE);
+}
+
+static void wm_collada_import_draw(bContext *UNUSED(C), wmOperator *op)
+{
+	PointerRNA ptr;
+
+	RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+	uiCollada_importSettings(op->layout, &ptr);
 }
 
 void WM_OT_collada_import(wmOperatorType *ot)
@@ -332,7 +361,15 @@ void WM_OT_collada_import(wmOperatorType *ot)
 	ot->exec = wm_collada_import_exec;
 	ot->poll = WM_operator_winactive;
 
+	//ot->flag |= OPTYPE_PRESET;
+
+	ot->ui = wm_collada_import_draw;
+
 	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_OPENFILE,
 	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
+
+	RNA_def_boolean(ot->srna, "import_units", 0, "Import Units",
+	                "If enabled use Units as defined in Collada Import, else keep Blender's current Units settings");
+
 }
 #endif

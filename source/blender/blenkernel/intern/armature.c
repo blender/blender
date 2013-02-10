@@ -74,11 +74,11 @@
 
 /* **************** Generic Functions, data level *************** */
 
-bArmature *BKE_armature_add(const char *name)
+bArmature *BKE_armature_add(Main *bmain, const char *name)
 {
 	bArmature *arm;
 
-	arm = BKE_libblock_alloc(&G.main->armature, ID_AR, name);
+	arm = BKE_libblock_alloc(&bmain->armature, ID_AR, name);
 	arm->deformflag = ARM_DEF_VGROUP | ARM_DEF_ENVELOPE;
 	arm->flag = ARM_COL_CUSTOM; /* custom bone-group colors */
 	arm->layer = 1;
@@ -1655,7 +1655,8 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 		else {
 			/* always copy custom shape */
 			pchan->custom = pchanp->custom;
-			pchan->custom_tx = pchanp->custom_tx;
+			if (pchanp->custom_tx)
+				pchan->custom_tx = BKE_pose_channel_find_name(pose, pchanp->custom_tx->name);
 
 			/* ID-Property Syncing */
 			{

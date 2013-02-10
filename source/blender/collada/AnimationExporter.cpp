@@ -84,9 +84,9 @@ void AnimationExporter::operator()(Object *ob)
 		}
 
 	}
-    
-    export_object_constraint_animation(ob);
-    
+
+	export_object_constraint_animation(ob);
+
 	//This needs to be handled by extra profiles, so postponed for now
 	//export_morph_animation(ob);
 		
@@ -149,11 +149,11 @@ void AnimationExporter::operator()(Object *ob)
 void AnimationExporter::export_object_constraint_animation(Object *ob)
 {
 	std::vector<float> fra;
-    //Takes frames of target animations
+	//Takes frames of target animations
 	make_anim_frames_from_targets(ob, fra);
-    
+
 	if (fra.size())
-	dae_baked_object_animation(fra, ob);
+		dae_baked_object_animation(fra, ob);
 }
 
 void AnimationExporter::export_morph_animation(Object *ob)
@@ -274,8 +274,8 @@ void AnimationExporter::dae_animation(Object *ob, FCurve *fcu, char *transformNa
 
 	//axis names for colors
 	else if (!strcmp(transformName, "color") ||
-			 !strcmp(transformName, "specular_color") ||
-			 !strcmp(transformName, "diffuse_color") ||
+	         !strcmp(transformName, "specular_color") ||
+	         !strcmp(transformName, "diffuse_color") ||
 	         !strcmp(transformName, "alpha"))
 	{
 		const char *axis_names[] = {"R", "G", "B"};
@@ -285,9 +285,9 @@ void AnimationExporter::dae_animation(Object *ob, FCurve *fcu, char *transformNa
 
 	//axis names for transforms
 	else if (!strcmp(transformName, "location") ||
-			 !strcmp(transformName, "scale") ||
+	         !strcmp(transformName, "scale") ||
 	         !strcmp(transformName, "rotation_euler") ||
-			 !strcmp(transformName, "rotation_quaternion"))
+	         !strcmp(transformName, "rotation_quaternion"))
 	{
 		const char *axis_names[] = {"X", "Y", "Z"};
 		if (fcu->array_index < 3)
@@ -439,11 +439,11 @@ void AnimationExporter::sample_and_write_bone_animation_matrix(Object *ob_arm, B
 	std::vector<float> fra;
 	//char prefix[256];
 
-	FCurve *fcu = (FCurve *)ob_arm->adt->action->curves.first;
-
 	//Check if there is a fcurve in the armature for the bone in param
 	//when baking this check is not needed, solve every bone for every frame.
-	/*while (fcu) {
+	/*FCurve *fcu = (FCurve *)ob_arm->adt->action->curves.first;
+
+	while (fcu) {
 		std::string bone_name = getObjectBoneName(ob_arm, fcu);
 		int val = BLI_strcasecmp((char *)bone_name.c_str(), bone->name);
 		if (val == 0) break;
@@ -526,7 +526,7 @@ void AnimationExporter::dae_baked_object_animation(std::vector<float> &fra, Obje
 		return;
 
 	BLI_snprintf(anim_id, sizeof(anim_id), "%s_%s", (char*)translate_id(ob_name).c_str(),
-		 "object_matrix");
+	             "object_matrix");
 
 	openAnimation(anim_id, COLLADABU::Utils::EMPTY_STRING);
 
@@ -730,7 +730,6 @@ void AnimationExporter::get_source_values(BezTriple *bezt, COLLADASW::InputSeman
 				values[1] = bezt->vec[2][1];
 			}
 			break;
-			break;
 		default:
 			*length = 0;
 			break;
@@ -898,11 +897,10 @@ std::string AnimationExporter::create_4x4_source(std::vector<float> &frames, Obj
 	add_source_parameters(param, semantic, false, NULL, true);
 
 	source.prepareToAppendValues();
-    
+
 	bPoseChannel *parchan = NULL;
 	bPoseChannel *pchan = NULL;
-	bPoseChannel *rootchan = NULL;
-		
+
 	if (ob->type == OB_ARMATURE ){
 		bPose *pose = ob->pose;
 		pchan = BKE_pose_channel_find_name(pose, bone->name);
@@ -918,7 +916,7 @@ std::string AnimationExporter::create_4x4_source(std::vector<float> &frames, Obj
 	int j = 0;
 	for (it = frames.begin(); it != frames.end(); it++) {
 		float mat[4][4], ipar[4][4];
-        
+
 		float ctime = BKE_scene_frame_get_from_ctime(scene, *it);
 		CFRA = BKE_scene_frame_get_from_ctime(scene, *it);
 		//BKE_scene_update_for_newframe(G.main,scene,scene->lay);

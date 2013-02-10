@@ -571,7 +571,8 @@ typedef enum eUserpref_UI_Flag {
 /* uiflag2 */
 typedef enum eUserpref_UI_Flag2 {
 	USER_KEEP_SESSION		= (1 << 0),
-	USER_REGION_OVERLAP		= (1 << 1)
+	USER_REGION_OVERLAP		= (1 << 1),
+	USER_TRACKPAD_NATURAL	= (1 << 2)
 } eUserpref_UI_Flag2;
 	
 /* Auto-Keying mode */

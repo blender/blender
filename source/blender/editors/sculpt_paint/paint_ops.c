@@ -62,11 +62,12 @@ static int brush_add_exec(bContext *C, wmOperator *UNUSED(op))
 	/*int type = RNA_enum_get(op->ptr, "type");*/
 	Paint *paint = paint_get_active_from_context(C);
 	struct Brush *br = paint_brush(paint);
+	Main *bmain = CTX_data_main(C);
 
 	if (br)
 		br = BKE_brush_copy(br);
 	else
-		br = BKE_brush_add("Brush");
+		br = BKE_brush_add(bmain, "Brush");
 
 	paint_brush_set(paint, br);
 
@@ -272,7 +273,7 @@ static int brush_generic_tool_set(Main *bmain, Paint *paint, const int tool,
 		brush = brush_tool_cycle(bmain, brush_orig, tool, tool_offset, ob_mode);
 
 	if (!brush && brush_tool(brush_orig, tool_offset) != tool && create_missing) {
-		brush = BKE_brush_add(tool_name);
+		brush = BKE_brush_add(bmain, tool_name);
 		brush_tool_set(brush, tool_offset, tool);
 		brush->ob_mode = ob_mode;
 		brush->toggle_brush = brush_orig;

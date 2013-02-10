@@ -230,7 +230,7 @@ int ccg_gridsize(int level)
 {
 	BLI_assert(level > 0);
 	BLI_assert(level <= 31);
-         
+
 	return (1 << (level - 1)) + 1;
 }
 

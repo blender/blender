@@ -61,9 +61,13 @@ bool    BM_edge_is_wire(BMEdge *e);
 bool    BM_vert_is_manifold(BMVert *v);
 bool    BM_edge_is_manifold(BMEdge *e);
 bool    BM_edge_is_boundary(BMEdge *e);
+bool    BM_edge_is_contiguous(BMEdge *e);
+
+bool    BM_loop_is_convex(BMLoop *l);
 
 float   BM_loop_calc_face_angle(BMLoop *l);
 void    BM_loop_calc_face_normal(BMLoop *l, float r_normal[3]);
+void    BM_loop_calc_face_direction(BMLoop *l, float r_normal[3]);
 void    BM_loop_calc_face_tangent(BMLoop *l, float r_tangent[3]);
 
 float   BM_edge_calc_face_angle(BMEdge *e);

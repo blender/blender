@@ -143,7 +143,7 @@ bAction *verify_adt_action(ID *id, short add)
 	if ((adt->action == NULL) && (add)) {
 		char actname[sizeof(id->name) - 2];
 		BLI_snprintf(actname, sizeof(actname), "%sAction", id->name + 2);
-		adt->action = add_empty_action(actname);
+		adt->action = add_empty_action(G.main, actname);
 	}
 		
 	/* return the action */

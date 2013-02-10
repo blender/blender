@@ -154,7 +154,7 @@ static void escape_uri_string(const char *string, char *escaped_string, int len,
 			*q++ = *p;
 		}
 	}
-  
+
 	*q = '\0';
 }
 

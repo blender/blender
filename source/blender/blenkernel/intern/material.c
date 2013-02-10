@@ -209,11 +209,11 @@ void init_material(Material *ma)
 	ma->preview = NULL;
 }
 
-Material *BKE_material_add(const char *name)
+Material *BKE_material_add(Main *bmain, const char *name)
 {
 	Material *ma;
 
-	ma = BKE_libblock_alloc(&G.main->mat, ID_MA, name);
+	ma = BKE_libblock_alloc(&bmain->mat, ID_MA, name);
 	
 	init_material(ma);
 	
@@ -1781,7 +1781,7 @@ static short convert_tfacenomaterial(Main *main, Mesh *me, MTFace *tf, int flag)
 	}
 	/* create a new material */
 	else {
-		ma = BKE_material_add(idname + 2);
+		ma = BKE_material_add(main, idname + 2);
 
 		if (ma) {
 			printf("TexFace Convert: Material \"%s\" created.\n", idname + 2);

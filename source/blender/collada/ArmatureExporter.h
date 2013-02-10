@@ -67,7 +67,7 @@ public:
 
 	//void export_controllers(Scene *sce);*/
 
-	void operator()(Object *ob);
+	//void operator()(Object *ob);
 
 private:
 	Scene *scene;

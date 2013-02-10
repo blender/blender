@@ -527,14 +527,15 @@ int wm_homefile_read(bContext *C, ReportList *UNUSED(reports), short from_memory
 	/* put aside screens to match with persistent windows later */
 	wm_window_match_init(C, &wmbase); 
 	
-	if (!from_memory && BLI_exists(startstr)) {
-		success = (BKE_read_file(C, startstr, NULL) != BKE_READ_FILE_FAIL);
-		
-	}
-	
-	if (U.themes.first == NULL) {
-		printf("\nNote: No (valid) "STRINGIFY (BLENDER_STARTUP_FILE)" found, fall back to built-in default.\n\n");
-		success = 0;
+	if (!from_memory) {
+		if (BLI_exists(startstr)) {
+			success = (BKE_read_file(C, startstr, NULL) != BKE_READ_FILE_FAIL);
+		}
+
+		if (U.themes.first == NULL) {
+			printf("\nNote: No (valid) '%s' found, fall back to built-in default.\n\n", startstr);
+			success = 0;
+		}
 	}
 
 	if (success == 0) {

@@ -318,9 +318,9 @@ void RNA_api_image(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Delay the image from being cleaned from the cache due inactivity");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_int(func, "filter", GL_LINEAR_MIPMAP_NEAREST, -INT_MAX, INT_MAX, "Filter",
-	            "The texture minifying function to use if the image wan't loaded", -INT_MAX, INT_MAX);
+	            "The texture minifying function to use if the image wasn't loaded", -INT_MAX, INT_MAX);
 	RNA_def_int(func, "mag", GL_LINEAR, -INT_MAX, INT_MAX, "Magnification",
-	            "The texture magnification function to use if the image wan't loaded", -INT_MAX, INT_MAX);
+	            "The texture magnification function to use if the image wasn't loaded", -INT_MAX, INT_MAX);
 	/* return value */
 	parm = RNA_def_int(func, "error", 0, -INT_MAX, INT_MAX, "Error", "OpenGL error value", -INT_MAX, INT_MAX);
 	RNA_def_function_return(func, parm);

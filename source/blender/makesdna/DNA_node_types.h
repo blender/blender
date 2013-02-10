@@ -711,6 +711,13 @@ typedef struct NodeTrackPosData {
 	char track_name[64];
 } NodeTrackPosData;
 
+typedef struct NodeTranslateData {
+	char wrap_axis;
+	char relative;
+	char pad[6];
+} NodeTranslateData;
+
+
 typedef struct NodeShaderScript {
 	int mode;
 	int flag;
@@ -836,6 +843,12 @@ typedef struct NodeShaderNormalMap {
 #define CMP_NODE_BLUR_ASPECT_NONE		0
 #define CMP_NODE_BLUR_ASPECT_Y			1
 #define CMP_NODE_BLUR_ASPECT_X			2
+
+/* wrapping */
+#define CMP_NODE_WRAP_NONE		0
+#define CMP_NODE_WRAP_X			1
+#define CMP_NODE_WRAP_Y			2
+#define CMP_NODE_WRAP_XY		3
 
 #define CMP_NODE_MASK_MBLUR_SAMPLES_MAX 64
 

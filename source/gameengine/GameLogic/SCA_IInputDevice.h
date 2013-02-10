@@ -269,7 +269,7 @@ public:
 
 		KX_MAX_KEYS
 		
-	} ; // enum  
+	}; // enum
 
 
 protected:
@@ -301,17 +301,18 @@ public:
 	
 	virtual void		HookEscape();
 	
-	/* Next frame: we calculate the new key states. This goes as follows:
-	*
-	* KX_NO_INPUTSTATUS -> KX_NO_INPUTSTATUS
-	* KX_JUSTACTIVATED  -> KX_ACTIVE
-	* KX_ACTIVE         -> KX_ACTIVE
-	* KX_JUSTRELEASED   -> KX_NO_INPUTSTATUS
-	*
-	* Getting new events provides the
-	* KX_NO_INPUTSTATUS->KX_JUSTACTIVATED and
-	* KX_ACTIVE->KX_JUSTRELEASED transitions.
-	*/
+	/**
+	 * Next frame: we calculate the new key states. This goes as follows:
+	 *
+	 * KX_NO_INPUTSTATUS -> KX_NO_INPUTSTATUS
+	 * KX_JUSTACTIVATED  -> KX_ACTIVE
+	 * KX_ACTIVE         -> KX_ACTIVE
+	 * KX_JUSTRELEASED   -> KX_NO_INPUTSTATUS
+	 *
+	 * Getting new events provides the
+	 * KX_NO_INPUTSTATUS->KX_JUSTACTIVATED and
+	 * KX_ACTIVE->KX_JUSTRELEASED transitions.
+	 */
 	virtual void	NextFrame();
 
 

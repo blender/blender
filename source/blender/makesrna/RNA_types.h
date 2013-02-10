@@ -134,7 +134,7 @@ typedef enum PropertySubType {
 	PROP_AXISANGLE = 28,
 	PROP_XYZ = 29,
 	PROP_XYZ_LENGTH = 29 | PROP_UNIT_LENGTH,
-	PROP_COLOR_GAMMA = 30,
+	PROP_COLOR_GAMMA = 30, /* used for colors which would be color managed before display */
 	PROP_COORDS = 31, /* generic array, no units applied, only that x/y/z/w are used (python vec) */
 
 	/* booleans */
@@ -143,7 +143,7 @@ typedef enum PropertySubType {
 } PropertySubType;
 
 /* Make sure enums are updated with thses */
-/* HIGHEST FLAG IN USE: 1 << 29 */
+/* HIGHEST FLAG IN USE: 1 << 28 */
 typedef enum PropertyFlag {
 	/* editable means the property is editable in the user
 	 * interface, properties are editable by default except
@@ -199,11 +199,6 @@ typedef enum PropertyFlag {
 	 * note: these can't be animated so use with care.
 	 */
 	PROP_ENUM_FLAG = (1 << 21),
-
-	/* A string which should be translated when converting from py string to RNA prop.
-	 * Should only be used in some functions' properties (currently only "text" one of funcs in UI API).
-	 */
-	PROP_STRING_PY_TRANSLATE = (1 << 28),
 
 	/* need context for update function */
 	PROP_CONTEXT_UPDATE = (1 << 22),

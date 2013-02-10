@@ -39,6 +39,7 @@ extern "C" {
 #include "DNA_vec_types.h"
 
 struct Camera;
+struct Main;
 struct Object;
 struct RegionView3D;
 struct RenderData;
@@ -48,7 +49,7 @@ struct View3D;
 
 /* Camera Datablock */
 
-void *BKE_camera_add(const char *name);
+void *BKE_camera_add(struct Main *bmain, const char *name);
 struct Camera *BKE_camera_copy(struct Camera *cam);
 void BKE_camera_make_local(struct Camera *cam);
 void BKE_camera_free(struct Camera *ca);

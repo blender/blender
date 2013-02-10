@@ -117,8 +117,9 @@ protected:
 	/** Stores the caching information for the last material activated. */
 	RAS_IPolyMaterial::TCachingInfo m_materialCachingInfo;
 
-	/** Making use of a Strategy desing pattern for storage behavior.
-	    Examples of concrete strategies: Vertex Arrays, VBOs, Immediate Mode*/
+	/**
+	 * Making use of a Strategy desing pattern for storage behavior.
+	 * Examples of concrete strategies: Vertex Arrays, VBOs, Immediate Mode*/
 	int				m_storage_type;
 	RAS_IStorage*	m_storage;
 	RAS_IStorage*	m_failsafe_storage; //So derived mesh can use immediate mode

@@ -319,7 +319,7 @@ int id_copy(ID *id, ID **newid, int test)
 			if (!test) *newid = (ID *)BKE_texture_copy((Tex *)id);
 			return 1;
 		case ID_IM:
-			if (!test) *newid = (ID *)BKE_image_copy((Image *)id);
+			if (!test) *newid = (ID *)BKE_image_copy(G.main, (Image *)id);
 			return 1;
 		case ID_LT:
 			if (!test) *newid = (ID *)BKE_lattice_copy((Lattice *)id);
@@ -766,13 +766,13 @@ void BKE_libblock_copy_data(ID *id, const ID *id_from, const short do_action)
 }
 
 /* used everywhere in blenkernel */
-void *BKE_libblock_copy(ID *id)
+void *BKE_libblock_copy_ex(Main *bmain, ID *id)
 {
 	ID *idn;
 	ListBase *lb;
 	size_t idn_len;
 
-	lb = which_libbase(G.main, GS(id->name));
+	lb = which_libbase(bmain, GS(id->name));
 	idn = BKE_libblock_alloc(lb, GS(id->name), id->name + 2);
 
 	assert(idn != NULL);
@@ -791,6 +791,11 @@ void *BKE_libblock_copy(ID *id)
 	BKE_libblock_copy_data(idn, id, FALSE);
 	
 	return idn;
+}
+
+void *BKE_libblock_copy(ID *id)
+{
+	return BKE_libblock_copy_ex(G.main, id);
 }
 
 static void BKE_library_free(Library *lib)

@@ -101,22 +101,33 @@ static void view3d_panel_operator_redo_operator(const bContext *C, Panel *pa, wm
 static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 {
 	wmOperator *op = WM_operator_last_redo(C);
-	uiBlock *block;
-	
-	if (op == NULL)
-		return;
-	if (WM_operator_poll((bContext *)C, op->type) == 0)
-		return;
-	
-	block = uiLayoutGetBlock(pa->layout);
-	
-	if (!WM_operator_check_ui_enabled(C, op->type->name))
-		uiLayoutSetEnabled(pa->layout, FALSE);
+	ARegion *ar;
+	ARegion *ar1;
 
-	/* note, blockfunc is a default but->func, use Handle func to allow button callbacks too */
-	uiBlockSetHandleFunc(block, ED_undo_operator_repeat_cb_evt, op);
-	
-	view3d_panel_operator_redo_operator(C, pa, op);
+	if (op == NULL) {
+		return;
+	}
+
+	/* keep in sync with logic in ED_undo_operator_repeat() */
+	ar = CTX_wm_region(C);
+	ar1 = BKE_area_find_region_active_win(CTX_wm_area(C));
+	if (ar1)
+		CTX_wm_region_set((bContext *)C, ar1);
+
+	if (WM_operator_poll((bContext *)C, op->type)) {
+		uiBlock *block = uiLayoutGetBlock(pa->layout);
+
+		if (!WM_operator_check_ui_enabled(C, op->type->name))
+			uiLayoutSetEnabled(pa->layout, FALSE);
+
+		/* note, blockfunc is a default but->func, use Handle func to allow button callbacks too */
+		uiBlockSetHandleFunc(block, ED_undo_operator_repeat_cb_evt, op);
+
+		view3d_panel_operator_redo_operator(C, pa, op);
+	}
+
+	/* set region back */
+	CTX_wm_region_set((bContext *)C, ar);
 }
 
 /* ******************* */

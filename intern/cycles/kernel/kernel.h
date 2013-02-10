@@ -44,11 +44,18 @@ void kernel_cpu_shader(KernelGlobals *kg, uint4 *input, float4 *output,
 	int type, int i);
 
 #ifdef WITH_OPTIMIZED_KERNEL
-void kernel_cpu_optimized_path_trace(KernelGlobals *kg, float *buffer, unsigned int *rng_state,
+void kernel_cpu_sse2_path_trace(KernelGlobals *kg, float *buffer, unsigned int *rng_state,
 	int sample, int x, int y, int offset, int stride);
-void kernel_cpu_optimized_tonemap(KernelGlobals *kg, uchar4 *rgba, float *buffer,
+void kernel_cpu_sse2_tonemap(KernelGlobals *kg, uchar4 *rgba, float *buffer,
 	int sample, int resolution, int x, int y, int offset, int stride);
-void kernel_cpu_optimized_shader(KernelGlobals *kg, uint4 *input, float4 *output,
+void kernel_cpu_sse2_shader(KernelGlobals *kg, uint4 *input, float4 *output,
+	int type, int i);
+
+void kernel_cpu_sse3_path_trace(KernelGlobals *kg, float *buffer, unsigned int *rng_state,
+	int sample, int x, int y, int offset, int stride);
+void kernel_cpu_sse3_tonemap(KernelGlobals *kg, uchar4 *rgba, float *buffer,
+	int sample, int resolution, int x, int y, int offset, int stride);
+void kernel_cpu_sse3_shader(KernelGlobals *kg, uint4 *input, float4 *output,
 	int type, int i);
 #endif
 

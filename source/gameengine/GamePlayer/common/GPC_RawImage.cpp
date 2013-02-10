@@ -29,7 +29,6 @@
  *  \ingroup player
  */
 
-   
 #include <iostream>
 #include <string.h>
 

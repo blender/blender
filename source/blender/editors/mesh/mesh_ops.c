@@ -203,7 +203,7 @@ void ED_operatormacros_mesh(void)
 	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_loopcut");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_edge_slide");
-	RNA_struct_idprops_unset(otmacro->ptr, "release_confirm");
+	RNA_boolean_set(otmacro->ptr, "release_confirm", false);
 
 	ot = WM_operatortype_append_macro("MESH_OT_duplicate_move", "Add Duplicate", "Duplicate mesh and move",
 	                                  OPTYPE_UNDO | OPTYPE_REGISTER);

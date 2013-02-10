@@ -1983,7 +1983,7 @@ static void node_composit_buts_distance_matte(uiLayout *layout, bContext *UNUSED
 	uiLayout *col, *row;
 	
 	col = uiLayoutColumn(layout, TRUE);
-   
+
 	uiItemL(layout, IFACE_("Color Space:"), ICON_NONE);
 	row = uiLayoutRow(layout, FALSE);
 	uiItemR(row, ptr, "channel", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
@@ -2377,6 +2377,12 @@ static void node_composit_buts_stabilize2d(uiLayout *layout, bContext *C, Pointe
 		return;
 
 	uiItemR(layout, ptr, "filter_type", 0, "", ICON_NONE);
+}
+
+static void node_composit_buts_translate(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "use_relative", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "wrap_axis", 0, NULL, ICON_NONE);
 }
 
 static void node_composit_buts_transform(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -2931,6 +2937,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_TRANSFORM:
 			ntype->uifunc = node_composit_buts_transform;
 			break;
+		case CMP_NODE_TRANSLATE:
+			ntype->uifunc = node_composit_buts_translate;
+			break;
 		case CMP_NODE_MOVIEDISTORTION:
 			ntype->uifunc = node_composit_buts_moviedistortion;
 			break;
@@ -3283,17 +3292,9 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 				else {
 					glPixelZoom(snode->zoom, snode->zoom);
 
-					glEnable(GL_BLEND);
-					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-					glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
-					glRecti(x, y, x + ibuf->x * snode->zoom, y + ibuf->y * snode->zoom);
-
 					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, display_buffer);
 					
 					glPixelZoom(1.0f, 1.0f);
-
-					glDisable(GL_BLEND);
 				}
 			}
 

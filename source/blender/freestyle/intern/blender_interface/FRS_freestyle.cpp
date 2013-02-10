@@ -227,7 +227,7 @@ static Text *create_lineset_handler(char *layer_name, char *lineset_name)
 {
 	char *s1 = escape_quotes(layer_name);
 	char *s2 = escape_quotes(lineset_name);
-	Text *text = BKE_text_add(lineset_name);
+	Text *text = BKE_text_add(G.main, lineset_name);
 	BKE_text_write(text, "import parameter_editor; parameter_editor.process('");
 	BKE_text_write(text, s1);
 	BKE_text_write(text, "', '");

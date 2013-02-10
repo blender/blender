@@ -58,9 +58,7 @@ extern "C" {
 	extern void wm_draw_update(bContext *C);
 };*/
 @interface CocoaWindowDelegate : NSObject
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
 <NSWindowDelegate>
-#endif
 {
 	GHOST_SystemCocoa *systemCocoa;
 	GHOST_WindowCocoa *associatedWindow;
@@ -998,9 +996,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				//Show the new window
 				[tmpWindow makeKeyAndOrderFront:m_openGLView];
 				//Close and release old window
-				[m_window setDelegate:nil]; // To avoid the notification of "window closed" event
 				[m_window close];
-				[m_window release];
 				m_window = tmpWindow;
 #endif
 			
@@ -1057,9 +1053,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setState(GHOST_TWindowState state)
 				//Show the new window
 				[tmpWindow makeKeyAndOrderFront:nil];
 				//Close and release old window
-				[m_window setDelegate:nil]; // To avoid the notification of "window closed" event
 				[m_window close];
-				[m_window release];
 				m_window = tmpWindow;
 #endif
 			

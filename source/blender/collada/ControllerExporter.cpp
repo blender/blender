@@ -96,7 +96,7 @@ bool ControllerExporter::add_instance_controller(Object *ob)
 	for (bone = (Bone *)arm->bonebase.first; bone; bone = bone->next) {
 		write_bone_URLs(ins, ob_arm, bone);
 	}
-    
+
 	InstanceWriter::add_material_bindings(ins.getBindMaterial(), ob, this->export_settings->active_uv_only);
 		
 	ins.add();
@@ -246,10 +246,13 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 			float sumw = 0.0f;
 
 			for (j = 0; j < vert->totweight; j++) {
-				int joint_index = joint_index_by_def_index[vert->dw[j].def_nr];
-				if (joint_index != -1 && vert->dw[j].weight > 0.0f) {
-					jw[joint_index] += vert->dw[j].weight;
-					sumw += vert->dw[j].weight;
+				int idx = vert->dw[j].def_nr;
+				if (idx >= 0) {
+					int joint_index = joint_index_by_def_index[idx];
+					if (joint_index != -1 && vert->dw[j].weight > 0.0f) {
+						jw[joint_index] += vert->dw[j].weight;
+						sumw += vert->dw[j].weight;
+					}
 				}
 			}
 
@@ -302,7 +305,7 @@ void ControllerExporter::export_morph_controller(Object *ob, Key *key)
 
 	openMorph(controller_id, controller_name,
 	         COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, get_geometry_id(ob, use_instantiation)));
-    
+
 	std::string targets_id = add_morph_targets(key, ob);
 	std::string morph_weights_id = add_morph_weights(key, ob);
 	
@@ -320,7 +323,7 @@ void ControllerExporter::export_morph_controller(Object *ob, Key *key)
 	{
 		BKE_libblock_free_us(&(G.main->mesh), me);
 	}
-    
+
 	//support for animations
 	//can also try the base element and param alternative
 	add_weight_extras(key);
@@ -337,7 +340,7 @@ std::string ControllerExporter::add_morph_targets(Key *key, Object *ob)
 	source.setArrayId(source_id + ARRAY_ID_SUFFIX);
 	source.setAccessorCount(key->totkey - 1);
 	source.setAccessorStride(1);
-    
+
 	COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
 	param.push_back("IDREF");
 
@@ -366,7 +369,7 @@ std::string ControllerExporter::add_morph_weights(Key *key, Object *ob)
 	source.setArrayId(source_id + ARRAY_ID_SUFFIX);
 	source.setAccessorCount(key->totkey - 1);
 	source.setAccessorStride(1);
-    
+
 	COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
 	param.push_back("MORPH_WEIGHT");
 	
@@ -393,6 +396,7 @@ void ControllerExporter::add_weight_extras(Key *key){
 	//skip the basis
 	kb = kb->next;
 	for (; kb; kb = kb->next) {
+		// XXX why is the weight not used here and set to 0.0?
 		float weight = kb->curval;
 		extra.addExtraTechniqueParameter ("KHR", "morph_weights" , 0.000, "MORPH_WEIGHT_TO_TARGET");
 	}

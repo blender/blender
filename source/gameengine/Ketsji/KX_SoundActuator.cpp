@@ -132,10 +132,13 @@ void KX_SoundActuator::play()
 		handle3d->setConeVolumeOuter(m_3d.cone_outer_gain);
 	}
 
-	if (loop)
-		m_handle->setLoopCount(-1);
-	m_handle->setPitch(m_pitch);
-	m_handle->setVolume(m_volume);
+	if (m_handle.get()) {
+		if (loop)
+			m_handle->setLoopCount(-1);
+		m_handle->setPitch(m_pitch);
+		m_handle->setVolume(m_volume);
+	}
+
 	m_isplaying = true;
 }
 

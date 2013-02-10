@@ -80,9 +80,9 @@ EnumPropertyItem space_type_items[] = {
 };
 
 static EnumPropertyItem draw_channels_items[] = {
-	{0, "COLOR", ICON_IMAGE_RGB, "Color", "Draw image with RGB colors"},
 	{SI_USE_ALPHA, "COLOR_ALPHA", ICON_IMAGE_RGB_ALPHA, "Color and Alpha",
 	               "Draw image with RGB colors and alpha transparency"},
+	{0, "COLOR", ICON_IMAGE_RGB, "Color", "Draw image with RGB colors"},
 	{SI_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Draw alpha transparency channel"},
 	{SI_SHOW_ZBUF, "Z_BUFFER", ICON_IMAGE_ZDEPTH, "Z-Buffer",
 	               "Draw Z-buffer associated with image (mapped from camera clip start to end)"},
@@ -633,14 +633,17 @@ static EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *UNUS
 	if (alpha && zbuf)
 		return draw_channels_items;
 
-	RNA_enum_items_add_value(&item, &totitem, draw_channels_items, 0);
-
 	if (alpha) {
 		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_USE_ALPHA);
+		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, 0);
 		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_SHOW_ALPHA);
 	}
 	else if (zbuf) {
+		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, 0);
 		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, SI_SHOW_ZBUF);
+	}
+	else {
+		RNA_enum_items_add_value(&item, &totitem, draw_channels_items, 0);
 	}
 
 	RNA_enum_item_end(&item, &totitem);
@@ -1547,6 +1550,14 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 		{ICON_MATCAP_14, "14", ICON_MATCAP_14, "", ""},
 		{ICON_MATCAP_15, "15", ICON_MATCAP_15, "", ""},
 		{ICON_MATCAP_16, "16", ICON_MATCAP_16, "", ""},
+		{ICON_MATCAP_17, "17", ICON_MATCAP_17, "", ""},
+		{ICON_MATCAP_18, "18", ICON_MATCAP_18, "", ""},
+		{ICON_MATCAP_19, "19", ICON_MATCAP_19, "", ""},
+		{ICON_MATCAP_20, "20", ICON_MATCAP_20, "", ""},
+		{ICON_MATCAP_21, "21", ICON_MATCAP_21, "", ""},
+		{ICON_MATCAP_22, "22", ICON_MATCAP_22, "", ""},
+		{ICON_MATCAP_23, "23", ICON_MATCAP_23, "", ""},
+		{ICON_MATCAP_24, "24", ICON_MATCAP_24, "", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
@@ -2043,7 +2054,7 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 	/* note: custom set function is ONLY to avoid rna setting a user for this. */
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceProperties_pin_id_set",
 	                               "rna_SpaceProperties_pin_id_typef", NULL);
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_PROPERTIES, "rna_SpaceProperties_pin_id_update");
 
 	prop = RNA_def_property(srna, "use_pin_id", PROP_BOOLEAN, PROP_NONE);
@@ -3063,9 +3074,9 @@ static void rna_def_space_node(BlenderRNA *brna)
 	};
 
 	static EnumPropertyItem backdrop_channels_items[] = {
-		{0, "COLOR", ICON_IMAGE_RGB, "Color", "Draw image with RGB colors"},
 		{SNODE_USE_ALPHA, "COLOR_ALPHA", ICON_IMAGE_RGB_ALPHA, "Color and Alpha",
 		                  "Draw image with RGB colors and alpha transparency"},
+		{0, "COLOR", ICON_IMAGE_RGB, "Color", "Draw image with RGB colors"},
 		{SNODE_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Draw alpha transparency channel"},
 		{SNODE_SHOW_R, "RED",   ICON_COLOR_RED, "Red", ""},
 		{SNODE_SHOW_G, "GREEN", ICON_COLOR_GREEN, "Green", ""},

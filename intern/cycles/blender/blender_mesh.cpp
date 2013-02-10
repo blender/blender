@@ -313,7 +313,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 			std = (active_render)? ATTR_STD_UV_TANGENT: ATTR_STD_NONE;
 			name = ustring((string(l->name().c_str()) + ".tangent").c_str());
 
-			if(mesh->need_attribute(scene, name) || mesh->need_attribute(scene, std)) {
+			if(mesh->need_attribute(scene, name) || (active_render && mesh->need_attribute(scene, std))) {
 				std = (active_render)? ATTR_STD_UV_TANGENT_SIGN: ATTR_STD_NONE;
 				name = ustring((string(l->name().c_str()) + ".tangent_sign").c_str());
 				bool need_sign = (mesh->need_attribute(scene, name) || mesh->need_attribute(scene, std));
@@ -435,7 +435,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated, bool hide_tri
 	mesh_synced.insert(mesh);
 
 	/* create derived mesh */
-	BL::Mesh b_mesh = object_to_mesh(b_ob, b_scene, true, !preview);
+	BL::Mesh b_mesh = object_to_mesh(b_data, b_ob, b_scene, true, !preview);
 	PointerRNA cmesh = RNA_pointer_get(&b_ob_data.ptr, "cycles");
 
 	vector<Mesh::Triangle> oldtriangle = mesh->triangles;
@@ -507,7 +507,7 @@ void BlenderSync::sync_mesh_motion(BL::Object b_ob, Mesh *mesh, int motion)
 		return;
 
 	/* get derived mesh */
-	BL::Mesh b_mesh = object_to_mesh(b_ob, b_scene, true, !preview);
+	BL::Mesh b_mesh = object_to_mesh(b_data, b_ob, b_scene, true, !preview);
 
 	if(b_mesh) {
 		BL::Mesh::vertices_iterator v;

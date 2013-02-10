@@ -149,7 +149,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count) : Str
 	freestyle_scene->camera = object_camera;
 
 	// Material
-	material = BKE_material_add("stroke_material");
+	material = BKE_material_add(G.main, "stroke_material");
 	material->mode |= MA_VERTEXCOLP;
 	material->mode |= MA_TRANSP;
 	material->mode |= MA_SHLESS;
@@ -476,9 +476,9 @@ Object *BlenderStrokeRenderer::NewMesh() const
 	static unsigned int mesh_id = 0xffffffff;
 
 	BLI_snprintf(name, MAX_ID_NAME, "0%08xOB", mesh_id);
-	ob = BKE_object_add_only_object(OB_MESH, name);
+	ob = BKE_object_add_only_object(G.main, OB_MESH, name);
 	BLI_snprintf(name, MAX_ID_NAME, "0%08xME", mesh_id);
-	ob->data = BKE_mesh_add(name);
+	ob->data = BKE_mesh_add(G.main, name);
 	ob->lay = 1;
 
 	base = BKE_scene_base_add(freestyle_scene, ob);

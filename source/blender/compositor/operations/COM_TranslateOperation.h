@@ -33,6 +33,10 @@ private:
 	float m_deltaX;
 	float m_deltaY;
 	bool m_isDeltaSet;
+	float m_relativeOffsetX;
+	float m_relativeOffsetY;
+	float m_factorX;
+	float m_factorY;
 public:
 	TranslateOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
@@ -41,8 +45,8 @@ public:
 	void initExecution();
 	void deinitExecution();
 
-	float getDeltaX() { return this->m_deltaX; }
-	float getDeltaY() { return this->m_deltaY; }
+	float getDeltaX() { return this->m_deltaX * this->m_factorX; }
+	float getDeltaY() { return this->m_deltaY * this->m_factorY; }
 	
 	inline void ensureDelta() {
 		if (!this->m_isDeltaSet) {
@@ -54,6 +58,8 @@ public:
 			this->m_isDeltaSet = true;
 		}
 	}
+
+	void setFactorXY(float factorX, float factorY);
 };
 
 #endif

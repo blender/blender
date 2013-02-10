@@ -235,7 +235,11 @@ void *BLI_mempool_calloc(BLI_mempool *pool)
 	return retval;
 }
 
-/* doesnt protect against double frees, don't be stupid! */
+/**
+ * Free an element from the mempool.
+ *
+ * \note doesnt protect against double frees, don't be stupid!
+ */
 void BLI_mempool_free(BLI_mempool *pool, void *addr)
 {
 	BLI_freenode *newhead = addr;
@@ -325,6 +329,16 @@ void BLI_mempool_as_array(BLI_mempool *pool, void **data)
 	BLI_assert((p - data) == pool->totused);
 }
 
+/**
+ * Allocate an array from the mempool.
+ */
+void *BLI_mempool_as_arrayN(BLI_mempool *pool, const char *allocstr)
+{
+	void *data = MEM_mallocN(BLI_mempool_count(pool) * pool->esize, allocstr);
+	BLI_mempool_as_array(pool, data);
+	return data;
+}
+
 void BLI_mempool_iternew(BLI_mempool *pool, BLI_mempool_iter *iter)
 {
 	BLI_assert(pool->flag & BLI_MEMPOOL_ALLOW_ITER);
@@ -397,6 +411,9 @@ void *BLI_mempool_iterstep(BLI_mempool_iter *iter)
 
 #endif
 
+/**
+ * Free the mempool its self (and all elements).
+ */
 void BLI_mempool_destroy(BLI_mempool *pool)
 {
 	BLI_mempool_chunk *mpchunk = NULL;

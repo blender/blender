@@ -893,7 +893,7 @@ void ui_searchbox_apply(uiBut *but, ARegion *ar)
 	}
 }
 
-void ui_searchbox_event(bContext *C, ARegion *ar, uiBut *but, wmEvent *event)
+void ui_searchbox_event(bContext *C, ARegion *ar, uiBut *but, const wmEvent *event)
 {
 	uiSearchboxData *data = ar->regiondata;
 	int type = event->type, val = event->val;
@@ -1532,7 +1532,7 @@ static void ui_block_region_draw(const bContext *C, ARegion *ar)
 static void ui_popup_block_clip(wmWindow *window, uiBlock *block)
 {
 	uiBut *bt;
-	int width = UI_ThemeMenuShadowWidth();
+	int width = UI_SCREEN_MARGIN;
 	int winx, winy;
 
 	if (block->flag & UI_BLOCK_NO_WIN_CLIP) {
@@ -2195,7 +2195,7 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 }
 
 
-static int ui_picker_small_wheel_cb(const bContext *UNUSED(C), uiBlock *block, wmEvent *event)
+static int ui_picker_small_wheel_cb(const bContext *UNUSED(C), uiBlock *block, const wmEvent *event)
 {
 	float add = 0.0f;
 	

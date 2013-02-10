@@ -162,7 +162,10 @@ extern char build_system[];
 #endif
 
 /*	Local Function prototypes */
-#ifndef WITH_PYTHON_MODULE
+#ifdef WITH_PYTHON_MODULE
+int  main_python_enter(int argc, const char **argv);
+void main_python_exit(void);
+#else
 static int print_help(int argc, const char **argv, void *data);
 static int print_version(int argc, const char **argv, void *data);
 #endif
@@ -177,9 +180,9 @@ static int print_version(int argc, const char **argv, void *data);
 /* Initialize callbacks for the modules that need them */
 static void setCallbacks(void); 
 
-static bool use_crash_handler = true;
-
 #ifndef WITH_PYTHON_MODULE
+
+static bool use_crash_handler = true;
 
 /* set breakpoints here when running in debug mode, useful to catch floating point errors */
 #if defined(__linux__) || defined(_WIN32) || defined(OSX_SSE_FPE)
@@ -549,10 +552,10 @@ static void blender_crash_handler(int signum)
 	char fname[FILE_MAX];
 
 	if (!G.main->name[0]) {
-		BLI_make_file_string("/", fname, BLI_temporary_dir(), "blender.crash.txt");
+		BLI_join_dirfile(fname, sizeof(fname), BLI_temporary_dir(), "blender.crash.txt");
 	}
 	else {
-		BLI_strncpy(fname, G.main->name, sizeof(fname));
+		BLI_join_dirfile(fname, sizeof(fname), BLI_temporary_dir(), BLI_path_basename(G.main->name));
 		BLI_replace_extension(fname, sizeof(fname), ".crash.txt");
 	}
 
@@ -925,7 +928,7 @@ static int set_ge_parameters(int argc, const char **argv, void *data)
 			}
 
 
-		} /* if (*(argv[a+1]) == '=') */
+		} /* if (*(argv[a + 1]) == '=') */
 	}
 
 	return a;
@@ -1478,12 +1481,15 @@ int main(int argc, const char **argv)
 	setupArguments(C, ba, &syshandle);
 
 	BLI_argsParse(ba, 1, NULL, NULL);
-#endif
 
 	if (use_crash_handler) {
 		/* after parsing args */
 		signal(SIGSEGV, blender_crash_handler);
 	}
+#else
+	G.factory_startup = true;  /* using preferences or user startup makes no sense for py-as-module */
+	(void)syshandle;
+#endif
 
 	/* after level 1 args, this is so playanim skips RNA init */
 	RNA_init();
@@ -1494,10 +1500,12 @@ int main(int argc, const char **argv)
 
 
 #if defined(WITH_PYTHON_MODULE) || defined(WITH_HEADLESS)
-	G.background = 1; /* python module mode ALWAYS runs in background mode (for now) */
+	G.background = true; /* python module mode ALWAYS runs in background mode (for now) */
 #else
 	/* for all platforms, even windos has it! */
-	if (G.background) signal(SIGINT, blender_esc);  /* ctrl c out bg render */
+	if (G.background) {
+		signal(SIGINT, blender_esc);  /* ctrl c out bg render */
+	}
 #endif
 
 	/* background render uses this font too */

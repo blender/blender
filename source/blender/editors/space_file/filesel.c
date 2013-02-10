@@ -95,7 +95,7 @@ FileSelectParams *ED_fileselect_get_params(struct SpaceFile *sfile)
 }
 
 /**
- * \note RNA_struct_property_is_set_ex is used here because we wan't
+ * \note RNA_struct_property_is_set_ex is used here because we want
  *       the previously used settings to be used here rather then overriding them */
 short ED_fileselect_set_params(SpaceFile *sfile)
 {
@@ -244,8 +244,10 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		params->display = FILE_SHORTDISPLAY;
 		params->filter = 0;
 		params->filter_glob[0] = '\0';
-		params->sort = FILE_SORT_ALPHA;
 	}
+
+	/* operator has no setting for this */
+	params->sort = FILE_SORT_ALPHA;
 
 
 	/* initialize the list with previous folders */

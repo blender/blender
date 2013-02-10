@@ -46,6 +46,7 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -113,7 +114,7 @@ void ED_rigidbody_ob_add(wmOperator *op, Scene *scene, Object *ob, int type)
 		scene->rigidbody_world = rbw;
 	}
 	if (rbw->group == NULL) {
-		rbw->group = add_group("RigidBodyWorld");
+		rbw->group = add_group(G.main, "RigidBodyWorld");
 	}
 
 	/* make rigidbody object settings */
@@ -337,12 +338,14 @@ static int rigidbody_obs_shape_change_exec(bContext *C, wmOperator *op)
 			/* use RNA-system to change the property and perform all necessary changes */
 			RNA_pointer_create(&ob->id, &RNA_RigidBodyObject, ob->rigidbody_object, &ptr);
 			RNA_enum_set(&ptr, "collision_shape", shape);
+
+			DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 		}
 	}
 	CTX_DATA_END;
 
 	/* send updates */
-	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL); // XXX: wrong notifiers for now, but these also do the job...
+	WM_event_add_notifier(C, NC_OBJECT | ND_POINTCACHE, NULL);
 
 	/* done */
 	return OPERATOR_FINISHED;
@@ -583,12 +586,14 @@ static int rigidbody_obs_calc_mass_exec(bContext *C, wmOperator *op)
 			/* use RNA-system to change the property and perform all necessary changes */
 			RNA_pointer_create(&ob->id, &RNA_RigidBodyObject, ob->rigidbody_object, &ptr);
 			RNA_float_set(&ptr, "mass", mass);
+
+			DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 		}
 	}
 	CTX_DATA_END;
 
 	/* send updates */
-	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL); // XXX: wrong notifiers for now, but these also do the job...
+	WM_event_add_notifier(C, NC_OBJECT | ND_POINTCACHE, NULL);
 
 	/* done */
 	return OPERATOR_FINISHED;

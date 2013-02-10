@@ -3310,7 +3310,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	}
 	
 	/* origindex currently only used when baking to vertex colors */
-	if(re->flag & R_BAKING && re->r.bake_flag & R_BAKE_VCOL)
+	if (re->flag & R_BAKING && re->r.bake_flag & R_BAKE_VCOL)
 		need_origindex= 1;
 
 	/* check autosmooth and displacement, we then have to skip only-verts optimize */

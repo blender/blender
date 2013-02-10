@@ -167,11 +167,11 @@ void BKE_curve_free(Curve *cu)
 		MEM_freeN(cu->tb);
 }
 
-Curve *BKE_curve_add(const char *name, int type)
+Curve *BKE_curve_add(Main *bmain, const char *name, int type)
 {
 	Curve *cu;
 
-	cu = BKE_libblock_alloc(&G.main->curve, ID_CU, name);
+	cu = BKE_libblock_alloc(&bmain->curve, ID_CU, name);
 	copy_v3_fl(cu->size, 1.0f);
 	cu->flag = CU_FRONT | CU_BACK | CU_DEFORM_BOUNDS_OFF | CU_PATH_RADIUS;
 	cu->pathlen = 100;
@@ -3436,7 +3436,9 @@ int BKE_curve_center_median(Curve *cu, float cent[3])
 		}
 	}
 
-	mul_v3_fl(cent, 1.0f / (float)total);
+	if (total) {
+		mul_v3_fl(cent, 1.0f / (float)total);
+	}
 
 	return (total != 0);
 }

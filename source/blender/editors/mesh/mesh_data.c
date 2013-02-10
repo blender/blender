@@ -575,13 +575,19 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	Base *base = ED_view3d_give_base_under_cursor(C, event->mval);
+	Base *base;
 	Image *ima = NULL;
 	Mesh *me;
 	Object *obedit;
 	int exitmode = 0;
-	char name[MAX_ID_NAME - 2];
 	
+	if (v3d == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No 3D View Available");
+		return OPERATOR_CANCELLED;
+	}
+
+	base = ED_view3d_give_base_under_cursor(C, event->mval);
+
 	/* Check context */
 	if (base == NULL || base->object->type != OB_MESH) {
 		BKE_report(op->reports, RPT_ERROR, "Not an object or mesh");
@@ -596,6 +602,7 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		ima = BKE_image_load_exists(path);
 	}
 	else {
+		char name[MAX_ID_NAME - 2];
 		RNA_string_get(op->ptr, "name", name);
 		ima = (Image *)BKE_libblock_find_name(ID_IM, name);
 	}
@@ -641,7 +648,7 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void MESH_OT_drop_named_image(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Assign Image to UV Map";
+	ot->name = "Drop Image to Mesh UV Map";
 	ot->description = "Assign Image to active UV Map, or create an UV Map";
 	ot->idname = "MESH_OT_drop_named_image";
 	
@@ -650,7 +657,7 @@ void MESH_OT_drop_named_image(wmOperatorType *ot)
 	ot->invoke = drop_named_image_invoke;
 	
 	/* flags */
-	ot->flag = OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
 	
 	/* properties */
 	RNA_def_string(ot->srna, "name", "Image", MAX_ID_NAME - 2, "Name", "Image name to assign");

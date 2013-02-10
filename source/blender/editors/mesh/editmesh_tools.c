@@ -3314,9 +3314,12 @@ static int edbm_fill_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
+	int use_beauty = RNA_boolean_get(op->ptr, "use_beauty");
 	BMOperator bmop;
 	
-	if (!EDBM_op_init(em, &bmop, op, "triangle_fill edges=%he", BM_ELEM_SELECT)) {
+	if (!EDBM_op_init(em, &bmop, op,
+	                  "triangle_fill edges=%he use_beauty=%b",
+	                  BM_ELEM_SELECT, use_beauty)) {
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -3348,6 +3351,8 @@ void MESH_OT_fill(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "use_beauty", true, "Beauty", "Use best triangulation division");
 }
 
 static int edbm_beautify_fill_exec(bContext *C, wmOperator *op)
@@ -3355,7 +3360,7 @@ static int edbm_beautify_fill_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 
-	if (!EDBM_op_callf(em, op, "beautify_fill faces=%hf", BM_ELEM_SELECT))
+	if (!EDBM_op_callf(em, op, "beautify_fill faces=%hf edges=ae", BM_ELEM_SELECT))
 		return OPERATOR_CANCELLED;
 
 	EDBM_update_generic(em, TRUE, TRUE);
@@ -3384,10 +3389,22 @@ static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMOperator bmop;
 	int use_beauty = RNA_boolean_get(op->ptr, "use_beauty");
 
-	if (!EDBM_op_callf(em, op, "triangulate faces=%hf use_beauty=%b", BM_ELEM_SELECT, use_beauty))
+	EDBM_op_init(em, &bmop, op, "triangulate faces=%hf use_beauty=%b", BM_ELEM_SELECT, use_beauty);
+	BMO_op_exec(em->bm, &bmop);
+
+	/* now call beauty fill */
+	if (use_beauty) {
+		EDBM_op_callf(em, op,
+		              "beautify_fill faces=%S edges=%S",
+		              &bmop, "faces.out", &bmop, "edges.out");
+	}
+
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
 		return OPERATOR_CANCELLED;
+	}
 
 	EDBM_update_generic(em, TRUE, TRUE);
 
@@ -3408,7 +3425,7 @@ void MESH_OT_quads_convert_to_tris(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "use_beauty", 1, "Beauty", "Use best triangulation division (currently quads only)");
+	RNA_def_boolean(ot->srna, "use_beauty", 1, "Beauty", "Use best triangulation division");
 }
 
 static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
@@ -3955,9 +3972,11 @@ static int edbm_select_mirror_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 	int extend = RNA_boolean_get(op->ptr, "extend");
 
-	EDBM_select_mirrored(obedit, em, extend);
-	EDBM_selectmode_flush(em);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+	if (em->bm->totvert && em->bm->totvertsel) {
+		EDBM_select_mirrored(obedit, em, extend);
+		EDBM_selectmode_flush(em);
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+	}
 
 	return OPERATOR_FINISHED;
 }

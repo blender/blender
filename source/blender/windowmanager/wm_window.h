@@ -40,6 +40,7 @@ void		wm_ghost_init			(bContext *C);
 void		wm_ghost_exit(void);
 
 void wm_get_screensize(int *width_r, int *height_r);
+void wm_get_screensize_all(int *width_r, int *height_r);
 
 wmWindow	*wm_window_new			(bContext *C);
 void		wm_window_free			(bContext *C, wmWindowManager *wm, wmWindow *win);
@@ -67,6 +68,12 @@ void		wm_window_testbreak		(void);
 /* *************** window operators ************** */
 int			wm_window_duplicate_exec(bContext *C, struct wmOperator *op);
 int			wm_window_fullscreen_toggle_exec(bContext *C, struct wmOperator *op);
+
+/* Initial (unmaximized) size to start with for
+ * systems that can't find it for themselves (X11).
+ * Clamped by real desktop limits */
+#define WM_WIN_INIT_SIZE_X 1800
+#define WM_WIN_INIT_SIZE_Y 1000
 
 #endif /* __WM_WINDOW_H__ */
 

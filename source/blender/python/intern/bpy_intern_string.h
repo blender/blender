@@ -30,6 +30,7 @@ void bpy_intern_string_exit(void);
 extern PyObject *bpy_intern_str_register;
 extern PyObject *bpy_intern_str_unregister;
 extern PyObject *bpy_intern_str_bl_rna;
+extern PyObject *bpy_intern_str_bl_property;
 extern PyObject *bpy_intern_str_order;
 extern PyObject *bpy_intern_str_attr;
 extern PyObject *bpy_intern_str___slots__;

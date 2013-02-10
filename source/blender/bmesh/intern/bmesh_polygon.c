@@ -297,7 +297,6 @@ static void scale_edge_v3f(float v1[3], float v2[3], const float fac)
 	add_v3_v3v3(v2, v2, mid);
 }
 
-
 /**
  * \brief POLY ROTATE PLANE
  *
@@ -306,30 +305,14 @@ static void scale_edge_v3f(float v1[3], float v2[3], const float fac)
  */
 void poly_rotate_plane(const float normal[3], float (*verts)[3], const int nverts)
 {
-
-	float up[3] = {0.0f, 0.0f, 1.0f}, axis[3], q[4];
 	float mat[3][3];
-	float angle;
-	int i;
 
-	cross_v3_v3v3(axis, normal, up);
-
-	angle = saacos(dot_v3v3(normal, up));
-
-	if (angle < FLT_EPSILON)
-		return;
-
-	if (len_squared_v3(axis) < FLT_EPSILON) {
-		axis[0] = 0.0f;
-		axis[1] = 1.0f;
-		axis[2] = 0.0f;
+	if (axis_dominant_v3_to_m3(mat, normal)) {
+		int i;
+		for (i = 0; i < nverts; i++) {
+			mul_m3_v3(mat, verts[i]);
+		}
 	}
-
-	axis_angle_to_quat(q, axis, angle);
-	quat_to_mat3(mat, q);
-
-	for (i = 0; i < nverts; i++)
-		mul_m3_v3(mat, verts[i]);
 }
 
 /**
@@ -614,16 +597,16 @@ bool BM_face_point_inside_test(BMFace *f, const float co[3])
 	return crosses % 2 != 0;
 }
 
-static bool bm_face_goodline(float const (*projectverts)[3], BMFace *f, int v1i, int v2i, int v3i)
+static bool bm_face_goodline(float const (*projectverts)[2], BMFace *f, int v1i, int v2i, int v3i)
 {
 	BMLoop *l_iter;
 	BMLoop *l_first;
-	float v1[3], v2[3], v3[3], pv1[3];
-	int i;
 
-	copy_v3_v3(v1, projectverts[v1i]);
-	copy_v3_v3(v2, projectverts[v2i]);
-	copy_v3_v3(v3, projectverts[v3i]);
+	float pv1[2];
+	const float *v1 = projectverts[v1i];
+	const float *v2 = projectverts[v2i];
+	const float *v3 = projectverts[v3i];
+	int i;
 
 	/* v3 must be on the left side of [v1, v2] line, else we know [v1, v3] is outside of f! */
 	if (testedgesidef(v1, v2, v3)) {
@@ -633,7 +616,7 @@ static bool bm_face_goodline(float const (*projectverts)[3], BMFace *f, int v1i,
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
 		i = BM_elem_index_get(l_iter->v);
-		copy_v3_v3(pv1, projectverts[i]);
+		copy_v2_v2(pv1, projectverts[i]);
 
 		if (ELEM3(i, v1i, v2i, v3i)) {
 #if 0
@@ -659,13 +642,14 @@ static bool bm_face_goodline(float const (*projectverts)[3], BMFace *f, int v1i,
  * \brief Find Ear
  *
  * Used by tessellator to find the next triangle to 'clip off' of a polygon while tessellating.
+ *
  * \param f The face to search.
- * \param verts an array of face vert coords.
+ * \param projectverts an array of face vert coords.
  * \param use_beauty Currently only applies to quads, can be extended later on.
  * \param abscoss Must be allocated by caller, and at least f->len length
  *        (allow to avoid allocating a new one for each tri!).
  */
-static BMLoop *find_ear(BMFace *f, float (*verts)[3], const bool use_beauty, float *abscoss)
+static BMLoop *poly_find_ear(BMFace *f, float (*projectverts)[2], const bool use_beauty, float *abscoss)
 {
 	BMLoop *bestear = NULL;
 
@@ -711,7 +695,7 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3], const bool use_beauty, flo
 		/* Last check we do not get overlapping triangles
 		 * (as much as possible, there are some cases with no good solution!) */
 		i4 = (i + 3) % 4;
-		if (!bm_face_goodline((float const (*)[3])verts, f, BM_elem_index_get(larr[i4]->v),
+		if (!bm_face_goodline((float const (*)[2])projectverts, f, BM_elem_index_get(larr[i4]->v),
 		                      BM_elem_index_get(larr[i]->v), BM_elem_index_get(larr[i + 1]->v)))
 		{
 			i = !i;
@@ -721,73 +705,38 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3], const bool use_beauty, flo
 
 	}
 	else {
-		BMVert *v1, *v2, *v3;
-
 		/* float angle, bestangle = 180.0f; */
-		float cos, tcos, bestcos = 1.0f;
-		float *tcoss;
-		bool is_ear;
-		int i = 0, j, len;
+		float cos, bestcos = 1.0f;
+		int i, j, len;
 
 		/* Compute cos of all corners! */
+		i = 0;
 		l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 		len = l_iter->f->len;
-		tcoss = abscoss;
 		do {
-			v1 = l_iter->prev->v;
-			v2 = l_iter->v;
-			v3 = l_iter->next->v;
+			const BMVert *v1 = l_iter->prev->v;
+			const BMVert *v2 = l_iter->v;
+			const BMVert *v3 = l_iter->next->v;
 
-			*tcoss = fabsf(cos_v3v3v3(v1->co, v2->co, v3->co));
+			abscoss[i] = fabsf(cos_v3v3v3(v1->co, v2->co, v3->co));
 /*			printf("tcoss: %f\n", *tcoss);*/
-			tcoss++;
+			i++;
 		} while ((l_iter = l_iter->next) != l_first);
 
+		i = 0;
 		l_iter = l_first;
-		tcoss = abscoss;
 		do {
-			is_ear = true;
+			const BMVert *v1 = l_iter->prev->v;
+			const BMVert *v2 = l_iter->v;
+			const BMVert *v3 = l_iter->next->v;
 
-			v1 = l_iter->prev->v;
-			v2 = l_iter->v;
-			v3 = l_iter->next->v;
-
-			/* We may have already internal edges... */
-			if (BM_edge_exists(v1, v3)) {
-				is_ear = false;
-			}
-			else if (!bm_face_goodline((float const (*)[3])verts, f, BM_elem_index_get(v1),
-			                           BM_elem_index_get(v2), BM_elem_index_get(v3)))
+			if (bm_face_goodline((float const (*)[2])projectverts, f,
+			                     BM_elem_index_get(v1), BM_elem_index_get(v2), BM_elem_index_get(v3)))
 			{
-#if 0
-				printf("(%d, %d, %d) would not be a valid tri!\n",
-				       BM_elem_index_get(v1), BM_elem_index_get(v2), BM_elem_index_get(v3));
-#endif
-				is_ear = false;
-			}
-
-			if (is_ear) {
-#if 0 /* Old, already commented code */
-				/* if this code comes back, it needs to be converted to radians */
-				angle = angle_v3v3v3(verts[v1->head.eflag2], verts[v2->head.eflag2], verts[v3->head.eflag2]);
-				if (!bestear || ABS(angle - 45.0f) < bestangle) {
-					bestear = l;
-					bestangle = ABS(45.0f - angle);
-				}
-
-				if (angle > 20 && angle < 90) break;
-				if (angle < 100 && i > 5) break;
-				i += 1;
-#endif
-
 				/* Compute highest cos (i.e. narrowest angle) of this tri. */
-				cos = *tcoss;
-				tcos = fabsf(cos_v3v3v3(v2->co, v3->co, v1->co));
-				if (tcos > cos)
-					cos = tcos;
-				tcos = fabsf(cos_v3v3v3(v3->co, v1->co, v2->co));
-				if (tcos > cos)
-					cos = tcos;
+				cos = max_fff(abscoss[i],
+				              fabsf(cos_v3v3v3(v2->co, v3->co, v1->co)),
+				              fabsf(cos_v3v3v3(v3->co, v1->co, v2->co)));
 
 				/* Compare to prev best (i.e. lowest) cos. */
 				if (cos < bestcos) {
@@ -816,7 +765,6 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3], const bool use_beauty, flo
 #endif
 				}
 			}
-			tcoss++;
 			i++;
 		} while ((l_iter = l_iter->next) != l_first);
 	}
@@ -827,129 +775,71 @@ static BMLoop *find_ear(BMFace *f, float (*verts)[3], const bool use_beauty, flo
 /**
  * \brief BMESH TRIANGULATE FACE
  *
- * --- Prev description (wasn’t correct, ear clipping was currently simply picking the first tri in the loop!)
- * Triangulates a face using a simple 'ear clipping' algorithm that tries to
- * favor non-skinny triangles (angles less than 90 degrees).
- *
- * If the triangulator has bits left over (or cannot triangulate at all)
- * it uses a simple fan triangulation,
- * --- End of prev description
- *
- * Currently tries to repeatedly find the best triangle (i.e. the most "open" one), provided it does not
+ * Currently repeatedly find the best triangle (i.e. the most "open" one), provided it does not
  * produces a "remaining" face with too much wide/narrow angles
  * (using cos (i.e. dot product of normalized vectors) of angles).
  *
- * newfaces, if non-null, must be an array of BMFace pointers,
- * with a length equal to f->len. It will be filled with the new
- * triangles, and will be NULL-terminated.
+ * \param r_faces_new if non-null, must be an array of BMFace pointers,
+ * with a length equal to (f->len - 2). It will be filled with the new
+ * triangles.
  *
- * \note newedgeflag sets a flag layer flag, obviously not the header flag.
+ * \note use_tag tags new flags and edges.
  */
-void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3], const short newedge_oflag,
-                         const short newface_oflag, BMFace **newfaces, const bool use_beauty)
+void BM_face_triangulate(BMesh *bm, BMFace *f,
+                         BMFace **r_faces_new,
+                         const bool use_beauty, const bool use_tag)
 {
-	int i, nvert, nf_i = 0;
-	bool done;
-	BMLoop *newl;
+	const float f_len_orig = f->len;
+	int i, nf_i = 0;
+	BMLoop *l_new;
 	BMLoop *l_iter;
 	BMLoop *l_first;
 	/* BM_face_triangulate: temp absolute cosines of face corners */
-	float *abscoss = BLI_array_alloca(abscoss, f->len);
+	float (*projectverts)[2] = BLI_array_alloca(projectverts, f_len_orig);
+	float *abscoss = BLI_array_alloca(abscoss, f_len_orig);
+	float mat[3][3];
+
+	axis_dominant_v3_to_m3(mat, f->no);
 
 	/* copy vertex coordinates to vertspace area */
 	i = 0;
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
-		copy_v3_v3(projectverts[i], l_iter->v->co);
-		BM_elem_index_set(l_iter->v, i); /* set dirty! */
-		i++;
+		mul_v2_m3v3(projectverts[i], mat, l_iter->v->co);
+		BM_elem_index_set(l_iter->v, i++); /* set dirty! */
 	} while ((l_iter = l_iter->next) != l_first);
 
 	bm->elem_index_dirty |= BM_VERT; /* see above */
 
-	/* bmesh_face_normal_update(bm, f, f->no, projectverts); */
-
-	calc_poly_normal(f->no, projectverts, f->len);
-	poly_rotate_plane(f->no, projectverts, i);
-
-	nvert = f->len;
-
-	/* calc_poly_plane(projectverts, i); */
-	for (i = 0; i < nvert; i++) {
-		projectverts[i][2] = 0.0f;
-	}
-
-	done = false;
-	while (!done && f->len > 3) {
-		done = true;
-		l_iter = find_ear(f, projectverts, use_beauty, abscoss);
+	while (f->len > 3) {
+		l_iter = poly_find_ear(f, projectverts, use_beauty, abscoss);
 
 		/* force triangulation - if we can't find an ear the face is degenerate */
 		if (l_iter == NULL) {
 			l_iter = BM_FACE_FIRST_LOOP(f);
 		}
 
-		{
-			done = false;
-/*			printf("Subdividing face...\n");*/
-			f = BM_face_split(bm, l_iter->f, l_iter->prev->v, l_iter->next->v, &newl, NULL, true);
+/*		printf("Subdividing face...\n");*/
+		f = BM_face_split(bm, l_iter->f, l_iter->prev->v, l_iter->next->v, &l_new, NULL, true);
 
-			if (UNLIKELY(!f)) {
-				fprintf(stderr, "%s: triangulator failed to split face! (bmesh internal error)\n", __func__);
-				break;
-			}
+		if (UNLIKELY(!f)) {
+			fprintf(stderr, "%s: triangulator failed to split face! (bmesh internal error)\n", __func__);
+			break;
+		}
 
-			copy_v3_v3(f->no, l_iter->f->no);
-			BMO_elem_flag_enable(bm, newl->e, newedge_oflag);
-			BMO_elem_flag_enable(bm, f, newface_oflag);
-			
-			if (newfaces)
-				newfaces[nf_i++] = f;
+		copy_v3_v3(f->no, l_iter->f->no);
 
-#if 0
-			l = f->loopbase;
-			do {
-				if (l->v == v) {
-					f->loopbase = l;
-					break;
-				}
-				l = l->next;
-			} while (l != f->loopbase);
-#endif
+		if (use_tag) {
+			BM_elem_flag_enable(l_new->e, BM_ELEM_TAG);
+			BM_elem_flag_enable(f, BM_ELEM_TAG);
+		}
 
+		if (r_faces_new) {
+			r_faces_new[nf_i++] = f;
 		}
 	}
 
 	BLI_assert(f->len == 3);
-
-#if 0 /* XXX find_ear should now always return a corner, so no more need for this piece of code... */
-	if (f->len > 3) {
-		l_iter = BM_FACE_FIRST_LOOP(f);
-		while (l_iter->f->len > 3) {
-			nextloop = l_iter->next->next;
-			f = BM_face_split(bm, l_iter->f, l_iter->v, nextloop->v,
-			                  &newl, NULL, true);
-			if (!f) {
-				printf("triangle fan step of triangulator failed.\n");
-
-				/* NULL-terminate */
-				if (newfaces) newfaces[nf_i] = NULL;
-				return;
-			}
-
-			if (newfaces) newfaces[nf_i++] = f;
-			
-			BMO_elem_flag_enable(bm, newl->e, newedge_oflag);
-			BMO_elem_flag_enable(bm, f, newface_oflag);
-			l_iter = nextloop;
-		}
-	}
-#endif
-
-	/* NULL-terminate */
-	if (newfaces) {
-		newfaces[nf_i] = NULL;
-	}
 }
 
 /**

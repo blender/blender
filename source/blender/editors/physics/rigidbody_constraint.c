@@ -45,6 +45,7 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -87,7 +88,7 @@ void ED_rigidbody_con_add(wmOperator *op, Scene *scene, Object *ob, int type)
 	}
 	/* create constraint group if it doesn't already exits */
 	if (rbw->constraints == NULL) {
-		rbw->constraints = add_group("RigidBodyConstraints");
+		rbw->constraints = add_group(G.main, "RigidBodyConstraints");
 	}
 	/* make rigidbody constraint settings */
 	ob->rigidbody_constraint = BKE_rigidbody_create_constraint(scene, ob, type);

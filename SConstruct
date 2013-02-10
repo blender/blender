@@ -592,6 +592,14 @@ data_to_c_simple("release/datafiles/matcaps/mc13.jpg")
 data_to_c_simple("release/datafiles/matcaps/mc14.jpg")
 data_to_c_simple("release/datafiles/matcaps/mc15.jpg")
 data_to_c_simple("release/datafiles/matcaps/mc16.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc17.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc18.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc19.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc20.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc21.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc22.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc23.jpg")
+data_to_c_simple("release/datafiles/matcaps/mc24.jpg")
 
 ##### END DATAFILES ##########
 

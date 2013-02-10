@@ -162,7 +162,11 @@ char BM_mesh_cd_flag_from_bmesh(BMesh *bm)
 	return cd_flag;
 }
 
-/* Mesh -> BMesh */
+/**
+ * \brief Mesh -> BMesh
+ *
+ * \warning This function doesn't calculate face normals.
+ */
 void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, bool set_key, int act_key_nr)
 {
 	MVert *mvert;
@@ -465,7 +469,9 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, bool set_key, int act_key_nr)
 }
 
 
-/* BMesh -> Mesh */
+/**
+ * \brief BMesh -> Mesh
+ */
 static BMVert **bm_to_mesh_vertex_map(BMesh *bm, int ototvert)
 {
 	BMVert **vertMap = NULL;

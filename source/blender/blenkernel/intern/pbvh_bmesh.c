@@ -770,7 +770,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 	BM_edge_kill(bvh->bm, e);
 
 	/* For all remaining faces of v2, create a new face that is the
-	   same except it uses v1 instead of v2 */
+	 * same except it uses v1 instead of v2 */
 	/* Note: this could be done with BM_vert_splice(), but that
 	 * requires handling other issues like duplicate edges, so doesn't
 	 * really buy anything. */

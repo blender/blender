@@ -1022,7 +1022,7 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 				AVFrame * input = m_frame;
 
 				/* This means the data wasnt read properly, 
-				this check stops crashing */
+				 * this check stops crashing */
 				if (   input->data[0]==0 && input->data[1]==0 
 					&& input->data[2]==0 && input->data[3]==0)
 				{

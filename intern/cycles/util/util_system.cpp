@@ -136,7 +136,7 @@ struct CPUCapabilities {
 	bool fma4;
 };
 
-bool system_cpu_support_optimized()
+static CPUCapabilities& system_cpu_capabilities()
 {
 	static CPUCapabilities caps;
 	static bool caps_init = false;
@@ -182,7 +182,18 @@ bool system_cpu_support_optimized()
 		caps_init = true;
 	}
 
-	/* optimization flags use these */
+	return caps;
+}
+
+bool system_cpu_support_sse2()
+{
+	CPUCapabilities& caps = system_cpu_capabilities();
+	return caps.sse && caps.sse2;
+}
+
+bool system_cpu_support_sse3()
+{
+	CPUCapabilities& caps = system_cpu_capabilities();
 	return caps.sse && caps.sse2 && caps.sse3;
 }
 

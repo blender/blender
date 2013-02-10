@@ -135,7 +135,7 @@ static void modifier_apply_threaded(ImBuf *ibuf, ImBuf *mask, modifier_apply_thr
 	init_data.apply_callback = apply_callback;
 
 	IMB_processor_apply_threaded(ibuf->y, sizeof(ModifierThread), &init_data,
-                                 modifier_init_handle, modifier_do_thread);
+	                             modifier_init_handle, modifier_do_thread);
 }
 
 /* **** Color Balance Modifier **** */

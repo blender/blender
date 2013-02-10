@@ -61,15 +61,10 @@ if env['WITH_BF_OPENEXR']:
 if env['WITH_BF_QUICKTIME']:
     SConscript (['quicktime/SConscript'])
 
-if env['WITH_BF_BULLET']:
-    SConscript (['rigidbody/SConscript'])
-
 if env['WITH_BF_COLLADA']:
     SConscript (['collada/SConscript'])
     
 if env['WITH_BF_COMPOSITOR']:
-    SConscript (['compositor/SConscript',
-                 'opencl/SConscript'])
-
+    SConscript (['compositor/SConscript'])
 if env['WITH_BF_FREESTYLE']:
     SConscript (['freestyle/SConscript'])

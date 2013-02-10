@@ -656,7 +656,7 @@ void nodeDetachNode(struct bNode *node)
 	}
 }
 
-bNodeTree *ntreeAddTree(const char *name, int type, int nodetype)
+bNodeTree *ntreeAddTree(Main *bmain, const char *name, int type, int nodetype)
 {
 	bNodeTree *ntree;
 	bNodeType *ntype;
@@ -670,7 +670,7 @@ bNodeTree *ntreeAddTree(const char *name, int type, int nodetype)
 		BLI_strncpy(ntree->id.name + 2, name, sizeof(ntree->id.name));
 	}
 	else
-		ntree = BKE_libblock_alloc(&G.main->nodetree, ID_NT, name);
+		ntree = BKE_libblock_alloc(&bmain->nodetree, ID_NT, name);
 	
 	ntree->type = type;
 	ntree->nodetype = nodetype;
@@ -1634,7 +1634,7 @@ void BKE_node_clipboard_add_node(bNode *node)
 {
 #ifdef USE_NODE_CB_VALIDATE
 	/* add extra info */
-	bNodeClipboardExtraInfo *node_info = MEM_mallocN(sizeof(bNodeClipboardExtraInfo), STRINGIFY(bNodeClipboardExtraInfo));
+	bNodeClipboardExtraInfo *node_info = MEM_mallocN(sizeof(bNodeClipboardExtraInfo), "bNodeClipboardExtraInfo");
 
 	node_info->id = node->id;
 	if (node->id) {

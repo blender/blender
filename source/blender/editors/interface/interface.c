@@ -319,6 +319,7 @@ static void ui_popup_bounds_block(const bContext *C, uiBlock *block, eBlockBound
 	wmWindow *window = CTX_wm_window(C);
 	int startx, starty, endx, endy, width, height, oldwidth, oldheight;
 	int oldbounds, xmax, ymax;
+	const int margin = UI_SCREEN_MARGIN;
 
 	oldbounds = block->bounds;
 
@@ -356,20 +357,20 @@ static void ui_popup_bounds_block(const bContext *C, uiBlock *block, eBlockBound
 	startx = window->eventstate->x + block->rect.xmin + (block->mx * width) / oldwidth;
 	starty = window->eventstate->y + block->rect.ymin + (block->my * height) / oldheight;
 
-	if (startx < 10)
-		startx = 10;
-	if (starty < 10)
-		starty = 10;
+	if (startx < margin)
+		startx = margin;
+	if (starty < margin)
+		starty = margin;
 
 	endx = startx + width;
 	endy = starty + height;
 
 	if (endx > xmax) {
-		endx = xmax - 10;
+		endx = xmax - margin;
 		startx = endx - width;
 	}
-	if (endy > ymax - 20) {
-		endy = ymax - 20;
+	if (endy > ymax - margin) {
+		endy = ymax - margin;
 		starty = endy - height;
 	}
 
@@ -927,6 +928,8 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 		block->auto_open = block->oldblock->auto_open;
 		block->auto_open_last = block->oldblock->auto_open_last;
 		block->tooltipdisabled = block->oldblock->tooltipdisabled;
+		copy_v3_v3(ui_block_hsv_get(block),
+		           ui_block_hsv_get(block->oldblock));
 
 		block->oldblock = NULL;
 	}
@@ -997,7 +1000,7 @@ void ui_fontscale(short *points, float aspect)
 /* project button or block (but==NULL) to pixels in regionspace */
 static void ui_but_to_pixelrect(rcti *rect, const ARegion *ar, uiBlock *block, uiBut *but)
 {
-	rctf rectf = (but)? but->rect: block->rect;
+	rctf rectf = (but) ? but->rect : block->rect;
 	
 	ui_block_to_window_fl(ar, block, &rectf.xmin, &rectf.ymin);
 	ui_block_to_window_fl(ar, block, &rectf.xmax, &rectf.ymax);

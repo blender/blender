@@ -32,6 +32,7 @@
  *  \since March 2001
  *  \author nzc
  */
+struct Main;
 struct MetaBall;
 struct Object;
 struct Scene;
@@ -39,7 +40,7 @@ struct MetaElem;
 
 void BKE_mball_unlink(struct MetaBall *mb);
 void BKE_mball_free(struct MetaBall *mb);
-struct MetaBall *BKE_mball_add(const char *name);
+struct MetaBall *BKE_mball_add(struct Main *bmain, const char *name);
 struct MetaBall *BKE_mball_copy(struct MetaBall *mb);
 
 void BKE_mball_make_local(struct MetaBall *mb);

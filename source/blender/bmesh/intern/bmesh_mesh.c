@@ -245,7 +245,7 @@ void BM_mesh_free(BMesh *bm)
 	BM_mesh_data_free(bm);
 
 	if (bm->py_handle) {
-		/* keep this out of 'BM_mesh_data_free' because we wan't python
+		/* keep this out of 'BM_mesh_data_free' because we want python
 		 * to be able to clear the mesh and maintain access. */
 		extern void bpy_bm_generic_invalidate(void *self);
 

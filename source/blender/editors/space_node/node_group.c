@@ -457,8 +457,10 @@ static int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 		/* ensure unique node name in the nodee tree */
 		nodeUniqueName(ntree, node);
 
-		node->locx += gnode->locx;
-		node->locy += gnode->locy;
+		if (!node->parent) {
+			node->locx += gnode->locx;
+			node->locy += gnode->locy;
+		}
 
 		node->flag |= NODE_SELECT;
 	}
@@ -673,8 +675,10 @@ static int node_group_separate_selected(bNodeTree *ntree, bNode *gnode, int make
 			/* ensure unique node name in the node tree */
 			nodeUniqueName(ntree, newnode);
 			
-			newnode->locx += gnode->locx;
-			newnode->locy += gnode->locy;
+			if (!newnode->parent) {
+				newnode->locx += gnode->locx;
+				newnode->locy += gnode->locy;
+			}
 		}
 		else {
 			/* ensure valid parent pointers, detach if child stays inside the group */
@@ -865,12 +869,14 @@ static int node_group_make_test(bNodeTree *ntree, bNode *gnode)
 static void node_get_selected_minmax(bNodeTree *ntree, bNode *gnode, float *min, float *max)
 {
 	bNode *node;
+	float loc[2];
 	INIT_MINMAX2(min, max);
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node == gnode)
 			continue;
 		if (node->flag & NODE_SELECT) {
-			minmax_v2v2_v2(min, max, &node->locx);
+			nodeToView(node, 0.0f, 0.0f, &loc[0], &loc[1]);
+			minmax_v2v2_v2(min, max, loc);
 		}
 	}
 }
@@ -921,8 +927,10 @@ static int node_group_make_insert_selected(bNodeTree *ntree, bNode *gnode)
 			/* ensure unique node name in the ngroup */
 			nodeUniqueName(ngroup, node);
 
-			node->locx -= 0.5f * (min[0] + max[0]);
-			node->locy -= 0.5f * (min[1] + max[1]);
+			if (!node->parent) {
+				node->locx -= 0.5f * (min[0] + max[0]);
+				node->locy -= 0.5f * (min[1] + max[1]);
+			}
 		}
 		else {
 			/* if the parent is to be inserted but not the child, detach properly */
@@ -1039,7 +1047,7 @@ static bNode *node_group_make_from_selected(bNodeTree *ntree)
 	node_get_selected_minmax(ntree, NULL, min, max);
 
 	/* new nodetree */
-	ngroup = ntreeAddTree("NodeGroup", ntree->type, NODE_GROUP);
+	ngroup = ntreeAddTree(G.main, "NodeGroup", ntree->type, NODE_GROUP);
 
 	/* make group node */
 	ntemp.type = NODE_GROUP;

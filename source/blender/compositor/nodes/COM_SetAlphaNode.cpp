@@ -27,7 +27,11 @@
 void SetAlphaNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	SetAlphaOperation *operation = new SetAlphaOperation();
-	
+
+	if (!this->getInputSocket(0)->isConnected() && this->getInputSocket(1)->isConnected()) {
+		operation->setResolutionInputSocketIndex(1);
+	}
+
 	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
 	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());

@@ -49,6 +49,7 @@ extern "C" {
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_object.h"
+#include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_scene.h"
 #include "BKE_DerivedMesh.h"
@@ -115,16 +116,19 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA;
 	par->recalc |= OB_RECALC_OB;
 
+	/** done once after import
 	DAG_scene_sort(bmain, sce);
 	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
+    */
+
 
 	return true;
 }
 
 Object *bc_add_object(Scene *scene, int type, const char *name)
 {
-	Object *ob = BKE_object_add_only_object(type, name);
+	Object *ob = BKE_object_add_only_object(G.main, type, name);
 
 	ob->data = BKE_object_obdata_add_from_type(type);
 	ob->lay = scene->lay;
@@ -151,7 +155,7 @@ Mesh *bc_to_mesh_apply_modifiers(Scene *scene, Object *ob, BC_export_mesh_type e
 		}
 	}
 
-	tmpmesh = BKE_mesh_add("ColladaMesh"); // name is not important here
+	tmpmesh = BKE_mesh_add(G.main, "ColladaMesh"); // name is not important here
 	DM_to_mesh(dm, tmpmesh, ob);
 	dm->release(dm);
 	return tmpmesh;
@@ -281,4 +285,21 @@ int bc_get_active_UVLayer(Object *ob)
 {
 	Mesh *me = (Mesh *)ob->data;
 	return CustomData_get_active_layer_index(&me->fdata, CD_MTFACE);
+}
+
+std::string bc_url_encode(std::string data) {
+	/* XXX We probably do not need to do a full encoding.
+	   But in case that is necessary,then it can be added here.
+	*/
+	return bc_replace_string(data,"#", "%23");
+}
+
+std::string bc_replace_string(std::string data, const std::string& pattern,
+                          const std::string& replacement) {
+    size_t pos = 0;
+    while((pos = data.find(pattern, pos)) != std::string::npos) {
+         data.replace(pos, pattern.length(), replacement);
+         pos += replacement.length();
+    }
+    return data;
 }

@@ -425,11 +425,11 @@ static void sima_draw_alpha_pixelsf(float x1, float y1, int rectx, int recty, fl
 	MEM_freeN(trectf);
 	/* ogl trick below is slower... (on ATI 9600) */
 //	glColorMask(1, 0, 0, 0);
-//	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_RGBA, GL_FLOAT, rectf+3);
+//	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_RGBA, GL_FLOAT, rectf + 3);
 //	glColorMask(0, 1, 0, 0);
-//	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_RGBA, GL_FLOAT, rectf+2);
+//	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_RGBA, GL_FLOAT, rectf + 2);
 //	glColorMask(0, 0, 1, 0);
-//	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_RGBA, GL_FLOAT, rectf+1);
+//	glaDrawPixelsSafe(x1, y1, rectx, recty, rectx, GL_RGBA, GL_FLOAT, rectf + 1);
 //	glColorMask(1, 1, 1, 1);
 }
 
@@ -514,15 +514,11 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 		unsigned char *display_buffer;
 		void *cache_handle;
 
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 		if (sima->flag & SI_USE_ALPHA) {
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 			fdrawcheckerboard(x, y, x + ibuf->x * zoomx, y + ibuf->y * zoomy);
-		}
-		else {
-			glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
-			glRecti(x, y, x + ibuf->x * zoomx, y + ibuf->y * zoomy);
 		}
 
 		display_buffer = IMB_display_buffer_acquire_ctx(C, ibuf, &cache_handle);
@@ -536,7 +532,8 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 
 		IMB_display_buffer_release(cache_handle);
 
-		glDisable(GL_BLEND);
+		if (sima->flag & SI_USE_ALPHA)
+			glDisable(GL_BLEND);
 	}
 
 	/* reset zoom */

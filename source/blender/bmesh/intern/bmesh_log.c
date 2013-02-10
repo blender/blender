@@ -252,8 +252,22 @@ static void bm_log_faces_unmake(BMesh *bm, BMLog *log, GHash *faces)
 		void *key = BLI_ghashIterator_getKey(&gh_iter);
 		unsigned int id = GET_INT_FROM_POINTER(key);
 		BMFace *f = bm_log_face_from_id(log, id);
+		BMEdge *e_tri[3];
+		BMLoop *l_iter;
+		int i;
 
+		l_iter = BM_FACE_FIRST_LOOP(f);
+		for (i = 0; i < 3; i++, l_iter = l_iter->next) {
+			e_tri[i] = l_iter->e;
+		}
+
+		/* Remove any unused edges */
 		BM_face_kill(bm, f);
+		for (i = 0; i < 3; i++) {
+			if (BM_edge_is_wire(e_tri[i])) {
+				BM_edge_kill(bm, e_tri[i]);
+			}
+		}
 	}
 }
 
@@ -722,7 +736,7 @@ void BM_log_redo(BMesh *bm, BMLog *log)
  * vertex in the map of added vertices.
  *
  * If the vertex already existed prior to the current log entry, a
- * seperate key/value map of modified vertices is used (using the
+ * separate key/value map of modified vertices is used (using the
  * vertex's ID as the key). The values stored in that case are
  * the vertex's original state so that an undo can restore the
  * previous state.

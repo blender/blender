@@ -1337,13 +1337,14 @@ int ED_screen_area_active(const bContext *C)
 /* Do NOT call in area/region queues! */
 void ED_screen_set(bContext *C, bScreen *sc)
 {
+	Main *bmain = CTX_data_main(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = CTX_wm_window(C);
 	bScreen *oldscreen = CTX_wm_screen(C);
 	ID *id;
 	
 	/* validate screen, it's called with notifier reference */
-	for (id = CTX_data_main(C)->screen.first; id; id = id->next)
+	for (id = bmain->screen.first; id; id = id->next)
 		if (sc == (bScreen *)id)
 			break;
 	if (id == NULL)
@@ -1355,7 +1356,7 @@ void ED_screen_set(bContext *C, bScreen *sc)
 	
 	if (sc->full) {             /* find associated full */
 		bScreen *sc1;
-		for (sc1 = CTX_data_main(C)->screen.first; sc1; sc1 = sc1->id.next) {
+		for (sc1 = bmain->screen.first; sc1; sc1 = sc1->id.next) {
 			ScrArea *sa = sc1->areabase.first;
 			if (sa->full == sc) {
 				sc = sc1;

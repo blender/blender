@@ -123,7 +123,14 @@ void GHOST_GetMainDisplayDimensions(GHOST_SystemHandle systemhandle,
 	system->getMainDisplayDimensions(*width, *height);
 }
 
+void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
+                                    GHOST_TUns32 *width,
+                                    GHOST_TUns32 *height)
+{
+	GHOST_ISystem *system = (GHOST_ISystem *) systemhandle;
 
+	system->getAllDisplayDimensions(*width, *height);
+}
 
 GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                       const char *title,

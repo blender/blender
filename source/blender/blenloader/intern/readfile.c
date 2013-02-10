@@ -2682,15 +2682,15 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 				data->prop = newdataadr(fd, data->prop);
 				if (data->prop)
 					IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
-			}
 				break;
+			}
 			case CONSTRAINT_TYPE_SPLINEIK:
 			{
 				bSplineIKConstraint *data= con->data;
-				
+
 				data->points= newdataadr(fd, data->points);
-			}
 				break;
+			}
 			case CONSTRAINT_TYPE_KINEMATIC:
 			{
 				bKinematicConstraint *data = con->data;
@@ -2700,14 +2700,15 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 
 				/* version patch for runtime flag, was not cleared in some case */
 				data->flag &= ~CONSTRAINT_IK_AUTO;
+				break;
 			}
 			case CONSTRAINT_TYPE_CHILDOF:
 			{
 				/* XXX version patch, in older code this flag wasn't always set, and is inherent to type */
 				if (con->ownspace == CONSTRAINT_SPACE_POSE)
 					con->flag |= CONSTRAINT_SPACEONCE;
-			}
 				break;
+			}
 		}
 	}
 }
@@ -6031,6 +6032,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 		
 		sa->handlers.first = sa->handlers.last = NULL;
 		sa->type = NULL;	/* spacetype callbacks */
+		sa->region_active_win = -1;
 		
 		for (ar = sa->regionbase.first; ar; ar = ar->next)
 			direct_link_region(fd, ar, sa->spacetype);
@@ -7549,6 +7551,17 @@ static void do_version_node_cleanup_dynamic_sockets_264(void *UNUSED(data), ID *
 	}
 }
 
+static void do_version_node_fix_translate_wrapping(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
+{
+	bNode *node;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == CMP_NODE_TRANSLATE && node->storage == NULL) {
+			node->storage = MEM_callocN(sizeof(NodeTranslateData), "node translate data");
+		}
+	}
+}
+
 static void do_version_node_fix_internal_links_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
 {
 	bNode *node;
@@ -8840,11 +8853,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 5)) {
 		Scene *scene;
-		Image *image;
-		Tex *tex;
+		Image *image, *nimage;
+		Tex *tex, *otex;
 
 		for (scene = main->scene.first; scene; scene = scene->id.next) {
 			Sequence *seq;
+			bool set_premul = false;
 
 			SEQ_BEGIN (scene->ed, seq)
 			{
@@ -8855,21 +8869,85 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			if (scene->r.bake_samples == 0)
 				scene->r.bake_samples = 256;
+
+			if (scene->world) {
+				World *world = blo_do_versions_newlibadr(fd, scene->id.lib, scene->world);
+
+				if (is_zero_v3(&world->horr)) {
+					if ((world->skytype & WO_SKYBLEND) == 0 || is_zero_v3(&world->zenr)) {
+						set_premul = true;
+					}
+				}
+			}
+			else
+				set_premul = true;
+
+			if (set_premul) {
+				printf("2.66 versioning fix: replacing black sky with premultiplied alpha for scene %s\n", scene->id.name + 2);
+				scene->r.alphamode = R_ALPHAPREMUL;
+			}
 		}
 
 		for (image = main->image.first; image; image = image->id.next) {
 			if (image->flag & IMA_DO_PREMUL)
 				image->alpha_mode = IMA_ALPHA_STRAIGHT;
-	}
 
+			image->flag &= ~IMA_DONE_TAG;
+		}
+
+		/* use alpha flag moved from texture to image datablock */
 		for (tex = main->tex.first; tex; tex = tex->id.next) {
 			if (tex->type == TEX_IMAGE && (tex->imaflag & TEX_USEALPHA) == 0) {
 				image = blo_do_versions_newlibadr(fd, tex->id.lib, tex->ima);
 
-				if (image)
+				/* skip if no image or already tested */
+				if (!image || (image->flag & (IMA_DONE_TAG|IMA_IGNORE_ALPHA)))
+					continue;
+
+				image->flag |= IMA_DONE_TAG;
+
+				/* we might have some textures using alpha and others not, so we check if
+				 * they exist and duplicate the image datablock if necessary */
+				for (otex = main->tex.first; otex; otex = otex->id.next)
+					if (otex->type == TEX_IMAGE && (otex->imaflag & TEX_USEALPHA))
+						if (image == blo_do_versions_newlibadr(fd, otex->id.lib, otex->ima))
+							break;
+
+				if (otex) {
+					/* copy image datablock */
+					nimage = BKE_image_copy(main, image);
+					nimage->flag |= IMA_IGNORE_ALPHA|IMA_DONE_TAG;
+					nimage->id.us--;
+
+					/* we need to do some trickery to make file loading think
+					 * this new datablock is part of file we're loading */
+					blo_do_versions_oldnewmap_insert(fd->libmap, nimage, nimage, 0);
+					nimage->id.lib = image->id.lib;
+					nimage->id.flag |= (image->id.flag & LIB_NEED_LINK);
+
+					/* assign new image, and update the users counts accordingly */
+					for (otex = main->tex.first; otex; otex = otex->id.next) {
+						if (otex->type == TEX_IMAGE && (otex->imaflag & TEX_USEALPHA) == 0) {
+							if (image == blo_do_versions_newlibadr(fd, otex->id.lib, otex->ima)) {
+								if (!(otex->id.flag & LIB_NEED_LINK)) {
+									image->id.us--;
+									nimage->id.us++;
+								}
+								otex->ima = nimage;
+								break;
+							}
+						}
+					}
+				}
+				else {
+					/* no other textures using alpha, just set the flag */
 					image->flag |= IMA_IGNORE_ALPHA;
+				}
 			}
 		}
+
+		for (image = main->image.first; image; image = image->id.next)
+			image->flag &= ~IMA_DONE_TAG;
 	}
 
 	if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 7)) {
@@ -8922,6 +9000,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+
+	// add storage for compositor translate nodes when not existing
+	if (!MAIN_VERSION_ATLEAST(main, 265, 10)) {
+		bNodeTreeType *ntreetype;
+
+		ntreetype = ntreeGetType(NTREE_COMPOSIT);
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_node_fix_translate_wrapping);
+	}
+
+
 
 	// if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 7)) {
 
@@ -9208,7 +9297,7 @@ static void sort_bhead_old_map(FileData *fd)
 	fd->tot_bheadmap = tot;
 	if (tot == 0) return;
 	
-	bhs = fd->bheadmap = MEM_mallocN(tot*sizeof(struct BHeadSort), STRINGIFY(BHeadSort));
+	bhs = fd->bheadmap = MEM_mallocN(tot * sizeof(struct BHeadSort), "BHeadSort");
 	
 	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead), bhs++) {
 		bhs->bhead = bhead;
@@ -10295,7 +10384,7 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 			Base *base;
 			
 			/* BKE_object_add(...) messes with the selection */
-			Object *ob = BKE_object_add_only_object(OB_EMPTY, group->id.name+2);
+			Object *ob = BKE_object_add_only_object(mainvar, OB_EMPTY, group->id.name+2);
 			ob->type = OB_EMPTY;
 			ob->lay = scene->lay;
 			

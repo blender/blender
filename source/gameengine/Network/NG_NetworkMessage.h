@@ -123,8 +123,8 @@ public:
 	}
 
 	/**
-	  * get the unique Network Message ID
-	  */
+	 * get the unique Network Message ID
+	 */
 	int GetMessageID() {
 		return m_uniqueMessageID;
 	}

@@ -271,6 +271,9 @@ elseif(UNIX)
 
 	if(WITH_X11_XINPUT)
 		add_definitions(-DWITH_X11_XINPUT)
+		list(APPEND INC_SYS
+			${X11_Xinput_INCLUDE_PATH}
+		)
 	endif()
 
 elseif(WIN32)

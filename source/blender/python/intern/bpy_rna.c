@@ -1624,10 +1624,6 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 				}
 				else {
 					/* Unicode String */
-#ifdef WITH_INTERNATIONAL
-					bool do_translate = RNA_property_flag(prop) & PROP_STRING_PY_TRANSLATE;
-#endif  /* WITH_INTERNATIONAL */
-
 #ifdef USE_STRING_COERCE
 					PyObject *value_coerce = NULL;
 					if (ELEM3(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_FILENAME)) {
@@ -1640,13 +1636,6 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 #else  /* USE_STRING_COERCE */
 					param = _PyUnicode_AsString(value);
 #endif  /* USE_STRING_COERCE */
-
-					/* Any half-brained compiler should be able to optimize this out when WITH_INTERNATIONAL is off */
-#ifdef WITH_INTERNATIONAL
-					if (do_translate) {
-						param = IFACE_(param);
-					}
-#endif
 
 					if (param == NULL) {
 						if (PyUnicode_Check(value)) {
@@ -4527,7 +4516,7 @@ PyDoc_STRVAR(pyrna_prop_collection_foreach_get_doc,
 "\n"
 "   .. code-block:: python\n"
 "\n"
-"      collection.foreach_get(someseq, attr)\n"
+"      collection.foreach_get(attr, someseq)\n"
 "\n"
 "      # Python equivalent\n"
 "      for i in range(len(seq)): someseq[i] = getattr(collection, attr)\n"
@@ -4547,7 +4536,7 @@ PyDoc_STRVAR(pyrna_prop_collection_foreach_set_doc,
 "\n"
 "   .. code-block:: python\n"
 "\n"
-"      collection.foreach_set(seq, attr)\n"
+"      collection.foreach_set(attr, seq)\n"
 "\n"
 "      # Python equivalent\n"
 "      for i in range(len(seq)): setattr(collection[i], attr, seq[i])\n"
@@ -6542,6 +6531,9 @@ static PyObject *pyrna_basetype_dir(BPy_BaseTypeRNA *self)
 
 static PyTypeObject pyrna_basetype_Type = BLANK_PYTHON_TYPE;
 
+/**
+ * Accessed from Python as 'bpy.types'
+ */
 PyObject *BPY_rna_types(void)
 {
 	BPy_BaseTypeRNA *self;

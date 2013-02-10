@@ -413,7 +413,7 @@ static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 	/* fix all the animation data which may link to this */
 
 	/* don't rename everywhere because these are per scene */
-	/* BKE_all_animdata_fix_paths_rename(NULL, "sequence_editor.sequences_all", oldname, seq->name+2); */
+	/* BKE_all_animdata_fix_paths_rename(NULL, "sequence_editor.sequences_all", oldname, seq->name + 2); */
 	adt = BKE_animdata_from_id(&scene->id);
 	if (adt)
 		BKE_animdata_fix_paths_rename(&scene->id, adt, NULL, "sequence_editor.sequences_all", oldname, seq->name + 2, 0, 0, 1);
@@ -2111,7 +2111,7 @@ static void rna_def_solid_color(StructRNA *srna)
 
 	RNA_def_struct_sdna_from(srna, "SolidColorVars", "effectdata");
 
-	prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
+	prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "col");
 	RNA_def_property_ui_text(prop, "Color", "");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");

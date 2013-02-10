@@ -180,11 +180,11 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 	MEM_freeN(vertexCos);
 }
 
-Lattice *BKE_lattice_add(const char *name)
+Lattice *BKE_lattice_add(Main *bmain, const char *name)
 {
 	Lattice *lt;
 	
-	lt = BKE_libblock_alloc(&G.main->latt, ID_LT, name);
+	lt = BKE_libblock_alloc(&bmain->latt, ID_LT, name);
 	
 	lt->flag = LT_GRID;
 	
@@ -1003,3 +1003,66 @@ struct MDeformVert *BKE_lattice_deform_verts_get(struct Object *oblatt)
 	if (lt->editlatt) lt = lt->editlatt->latt;
 	return lt->dvert;
 }
+
+void BKE_lattice_center_median(struct Lattice *lt, float cent[3])
+{
+	int i, numVerts;
+
+	if (lt->editlatt) lt = lt->editlatt->latt;
+	numVerts = lt->pntsu * lt->pntsv * lt->pntsw;
+
+	zero_v3(cent);
+
+	for (i = 0; i < numVerts; i++)
+		add_v3_v3(cent, lt->def[i].vec);
+
+	mul_v3_fl(cent, 1.0f / (float)numVerts);
+}
+
+void BKE_lattice_minmax(struct Lattice *lt, float min[3], float max[3])
+{
+	int i, numVerts;
+
+	if (lt->editlatt) lt = lt->editlatt->latt;
+	numVerts = lt->pntsu * lt->pntsv * lt->pntsw;
+
+	for (i = 0; i < numVerts; i++)
+		minmax_v3v3_v3(min, max, lt->def[i].vec);
+}
+
+void BKE_lattice_center_bounds(struct Lattice *lt, float cent[3])
+{
+	float min[3], max[3];
+
+	INIT_MINMAX(min, max);
+
+	BKE_lattice_minmax(lt, min, max);
+	mid_v3_v3v3(cent, min, max);
+}
+
+void BKE_lattice_translate(Lattice *lt, float offset[3], int do_keys)
+{
+	int i, numVerts;
+
+	numVerts = lt->pntsu * lt->pntsv * lt->pntsw;
+
+	if (lt->def)
+		for (i = 0; i < numVerts; i++)
+			add_v3_v3(lt->def[i].vec, offset);
+
+	if (lt->editlatt)
+		for (i = 0; i < numVerts; i++)
+			add_v3_v3(lt->editlatt->latt->def[i].vec, offset);
+
+	if (do_keys && lt->key) {
+		KeyBlock *kb;
+
+		for (kb = lt->key->block.first; kb; kb = kb->next) {
+			float *fp = kb->data;
+			for (i = kb->totelem; i--; fp += 3) {
+				add_v3_v3(fp, offset);
+			}
+		}
+	}
+}
+

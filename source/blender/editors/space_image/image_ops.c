@@ -1716,6 +1716,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	Scene *scene;
 	Object *obedit;
 	Image *ima;
+	Main *bmain;
 	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
 	char name[MAX_ID_NAME - 2];
@@ -1726,6 +1727,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	sima = CTX_wm_space_image(C);
 	scene = CTX_data_scene(C);
 	obedit = CTX_data_edit_object(C);
+	bmain = CTX_data_main(C);
 
 	RNA_string_get(op->ptr, "name", name);
 	width = RNA_int_get(op->ptr, "width");
@@ -1735,15 +1737,10 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	RNA_float_get_array(op->ptr, "color", color);
 	alpha = RNA_boolean_get(op->ptr, "alpha");
 	
-	if (!floatbuf) {
-		/* OCIO_TODO: perhaps we need to convert to display space, not just to sRGB */
-		linearrgb_to_srgb_v3_v3(color, color);
-	}
-
 	if (!alpha)
 		color[3] = 1.0f;
 
-	ima = BKE_image_add_generated(width, height, name, alpha ? 32 : 24, floatbuf, gen_type, color);
+	ima = BKE_image_add_generated(bmain, width, height, name, alpha ? 32 : 24, floatbuf, gen_type, color);
 
 	if (!ima)
 		return OPERATOR_CANCELLED;
@@ -1806,6 +1803,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "width", 1024, 1, INT_MAX, "Width", "Image width", 1, 16384);
 	RNA_def_int(ot->srna, "height", 1024, 1, INT_MAX, "Height", "Image height", 1, 16384);
 	prop = RNA_def_float_color(ot->srna, "color", 4, NULL, 0.0f, FLT_MAX, "Color", "Default fill color", 0.0f, 1.0f);
+	RNA_def_property_subtype(prop, PROP_COLOR_GAMMA);
 	RNA_def_property_float_array_default(prop, default_color);
 	RNA_def_boolean(ot->srna, "alpha", 1, "Alpha", "Create an image with an alpha channel");
 	RNA_def_enum(ot->srna, "generated_type", image_generated_type_items, IMA_GENTYPE_BLANK,

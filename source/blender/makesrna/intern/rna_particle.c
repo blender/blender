@@ -289,8 +289,8 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle, ParticleSystemMod
 	}
 }
 
-static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *object, ParticleSystemModifierData *modifier, int particle_no, int step,
-                                       float n_co[3])
+static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *object, ParticleSystemModifierData *modifier,
+                                       int particle_no, int step, float n_co[3])
 {
 	ParticleSettings *part = 0;
 	ParticleData *pars = 0;
@@ -299,6 +299,7 @@ static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *o
 	int path_nbr = 0;
 	int totpart;
 	int max_k = 0;
+	int step_nbr = 0;
 
 	if (particlesystem == NULL)
 		return;
@@ -306,13 +307,20 @@ static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *o
 	part = particlesystem->part;
 	pars = particlesystem->particles;
 
+	if (particlesystem->renderdata) {
+		step_nbr = part->ren_step;
+		totchild = particlesystem->totchild;
+	}
+	else {
+		step_nbr = part->draw_step;
+		totchild = (int)((float)particlesystem->totchild * (float)(part->disp) / 100.0f);
+	}
+
 	if (part == NULL || pars == NULL || !psys_check_enabled(object, particlesystem))
 		return;
 	
 	if (part->ren_as == PART_DRAW_OB || part->ren_as == PART_DRAW_GR || part->ren_as == PART_DRAW_NOT)
 		return;
-
-	totchild = particlesystem->totchild * part->disp / 100;
 
 	/* can happen for disconnected/global hair */
 	if (part->type == PART_HAIR && !particlesystem->childcache)
@@ -324,7 +332,7 @@ static void rna_ParticleSystem_co_hair(ParticleSystem *particlesystem, Object *o
 		return;
 
 	if (part->ren_as == PART_DRAW_PATH && particlesystem->pathcache)
-		path_nbr = (int)pow(2.0, part->draw_step);
+		path_nbr = (int)pow(2.0, step_nbr);
 
 	if (particle_no < totpart) {
 
@@ -373,7 +381,12 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Par
 
 	part = particlesystem->part;
 
+	if (particlesystem->renderdata) {
 		totchild = particlesystem->totchild;
+	}
+	else {
+		totchild = (int)((float)particlesystem->totchild * (float)(part->disp) / 100.0f);
+	}
 
 	/* can happen for disconnected/global hair */
 	if (part->type == PART_HAIR && !particlesystem->childcache)
@@ -419,7 +432,7 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Par
 			if (n_uv && ELEM(PART_FROM_FACE, PART_FROM_FACE, PART_FROM_VOLUME)) {
 				if (cpa->num != DMCACHE_NOTFOUND) {
 					MFace *mface = modifier->dm->getTessFaceData(modifier->dm, cpa->num, CD_MFACE);
-					MTFace *mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, 0);
+					MTFace *mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, uv_no);
 					mtface += cpa->num;
 					
 					psys_interpolate_uvs(mtface, mface->v4, cpa->fuv, n_uv);
@@ -441,7 +454,7 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Par
 			if (n_uv && ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
 				if (num != DMCACHE_NOTFOUND) {
 					MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
-					MTFace *mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, 0);
+					MTFace *mtface = (MTFace *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MTFACE, uv_no);
 					mtface += num;
 					
 					psys_interpolate_uvs(mtface, mface->v4, parent->fuv, n_uv);
@@ -455,10 +468,11 @@ static void rna_ParticleSystem_uv_on_emitter(ParticleSystem *particlesystem, Par
 	}
 }
 
-static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, ParticleSystemModifierData *modifier, ParticleData *particle, int particle_no, int vcol_no,
-                                             float n_mcol[3])
+static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, ParticleSystemModifierData *modifier,
+                                               ParticleData *particle, int particle_no, int vcol_no,
+                                               float n_mcol[3])
 {
-	ParticleSettings *part = 0;
+	ParticleSettings *part;
 	int totpart;
 	int totchild = 0;
 	int num;
@@ -470,7 +484,12 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, P
 
 	part = particlesystem->part;
 
+	if (particlesystem->renderdata) {
 		totchild = particlesystem->totchild;
+	}
+	else {
+		totchild = (int)((float)particlesystem->totchild * (float)(part->disp) / 100.0f);
+	}
 
 	/* can happen for disconnected/global hair */
 	if (part->type == PART_HAIR && !particlesystem->childcache)
@@ -481,7 +500,7 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, P
 	if (particle_no >= totpart + totchild)
 		return;
 
-/* 3. start creating renderable things */
+	/* 3. start creating renderable things */
 	/* setup per particle individual stuff */
 	if (particle_no < totpart) {
 
@@ -520,7 +539,7 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, P
 			if (n_mcol && ELEM(PART_FROM_FACE, PART_FROM_FACE, PART_FROM_VOLUME)) {
 				if (cpa->num != DMCACHE_NOTFOUND) {
 					MFace *mface = modifier->dm->getTessFaceData(modifier->dm, cpa->num, CD_MFACE);
-					MCol *mc = (MCol *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MCOL, 0);
+					MCol *mc = (MCol *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MCOL, vcol_no);
 					mc += cpa->num * 4;
 
 					psys_interpolate_mcol(mc, mface->v4, cpa->fuv, &mcol);
@@ -546,7 +565,7 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, P
 			if (n_mcol && ELEM(part->from, PART_FROM_FACE, PART_FROM_VOLUME)) {
 				if (num != DMCACHE_NOTFOUND) {
 					MFace *mface = modifier->dm->getTessFaceData(modifier->dm, num, CD_MFACE);
-					MCol *mc = (MCol *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MCOL, 0);
+					MCol *mc = (MCol *)CustomData_get_layer_n(&modifier->dm->faceData, CD_MCOL, vcol_no);
 					mc += num * 4;
 
 					psys_interpolate_mcol(mc, mface->v4, parent->fuv, &mcol);
@@ -561,6 +580,24 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, P
 				}
 			}
 		}
+	}
+}
+
+static void rna_ParticleSystem_set_resolution(ParticleSystem *particlesystem, Scene *scene, Object *object, int resolution)
+{
+	if (resolution == eModifierMode_Render) {
+		ParticleSystemModifierData *psmd = psys_get_modifier(object, particlesystem);
+		float mat[4][4];
+
+		unit_m4(mat);
+
+		psys_render_set(object, particlesystem, mat, mat, 1, 1, 0.f);
+		psmd->flag &= ~eParticleSystemFlag_psys_updated;
+		particle_system_update(scene, object, particlesystem);
+	}
+	else {
+		if (particlesystem->renderdata)
+			psys_render_restore(object, particlesystem);
 	}
 }
 
@@ -3047,6 +3084,12 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	PropertyRNA *prop;
 	FunctionRNA *func;
 
+	static EnumPropertyItem resolution_items[] = {
+		{eModifierMode_Realtime, "PREVIEW", 0, "Preview", "Apply modifier preview settings"},
+		{eModifierMode_Render, "RENDER", 0, "Render", "Apply modifier render settings"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "ParticleSystem", NULL);
 	RNA_def_struct_ui_text(srna, "Particle System", "Particle system in an object");
 	RNA_def_struct_ui_icon(srna, ICON_PARTICLE_DATA);
@@ -3344,6 +3387,13 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	RNA_def_struct_path_func(srna, "rna_ParticleSystem_path");
+
+	/* set viewport or render resolution */
+	func = RNA_def_function(srna, "set_resolution", "rna_ParticleSystem_set_resolution");
+	RNA_def_function_ui_description(func, "Set the resolution to use for the number of particles");
+	prop = RNA_def_pointer(func, "scene", "Scene", "", "Scene");
+	prop = RNA_def_pointer(func, "object", "Object", "", "Object");
+	prop = RNA_def_enum(func, "resolution", resolution_items, 0, "", "Resolution settings to apply");
 
 	/* extract cached hair location data */
 	func = RNA_def_function(srna, "co_hair", "rna_ParticleSystem_co_hair");

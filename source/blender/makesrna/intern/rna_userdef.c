@@ -3563,7 +3563,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	                         "Draw tool/property regions over the main region, when using Triple Buffer");
 	RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
 	
-
 #ifdef WITH_CYCLES
 	prop = RNA_def_property(srna, "compute_device_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
@@ -3769,6 +3768,11 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 32);
 	RNA_def_property_ui_text(prop, "Wheel Scroll Lines", "Number of lines scrolled at a time with the mouse wheel");
 	
+	prop = RNA_def_property(srna, "use_trackpad_natural", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag2", USER_TRACKPAD_NATURAL);
+	RNA_def_property_ui_text(prop, "Trackpad Natural",
+	                         "If your system uses 'natural' scrolling, this option keeps consistent trackpad usage throughout the UI");
+
 	prop = RNA_def_property(srna, "active_keyconfig", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "keyconfigstr");
 	RNA_def_property_ui_text(prop, "Key Config", "The name of the active key configuration");

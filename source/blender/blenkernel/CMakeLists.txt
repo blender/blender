@@ -264,7 +264,7 @@ if(WITH_BULLET)
 		${BULLET_INCLUDE_DIRS}
 	)
 	list(APPEND INC
-		../rigidbody
+		../../../intern/rigidbody
 	)
 	add_definitions(-DWITH_BULLET)
 endif()

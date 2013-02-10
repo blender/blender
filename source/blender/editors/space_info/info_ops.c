@@ -266,10 +266,10 @@ static int unpack_item_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	ID *id;
-	char idname[BKE_ST_MAXNAME];
+	char idname[MAX_ID_NAME - 2];
 	int type = RNA_int_get(op->ptr, "id_type");
 	int method = RNA_enum_get(op->ptr, "method");
-	
+
 	RNA_string_get(op->ptr, "id_name", idname);
 	id = BKE_libblock_find_name(type, idname);
 
@@ -319,7 +319,7 @@ void FILE_OT_unpack_item(wmOperatorType *ot)
 	/* properties */
 	RNA_def_enum(ot->srna, "method", unpack_item_method_items, PF_USE_LOCAL, "Method", "How to unpack");
 	RNA_def_string(ot->srna, "id_name", "", BKE_ST_MAXNAME, "ID name", "Name of ID block to unpack");
-	RNA_def_int(ot->srna, "id_type", 0, 0, INT_MAX, "ID Type", "Identifier type of ID block", 0, INT_MAX);
+	RNA_def_int(ot->srna, "id_type", ID_IM, 0, INT_MAX, "ID Type", "Identifier type of ID block", 0, INT_MAX);
 }
 
 

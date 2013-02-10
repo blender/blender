@@ -310,10 +310,32 @@ void BPY_python_start(int argc, const char **argv)
 	(void)argv;
 
 	/* must run before python initializes */
-	PyImport_ExtendInittab(bpy_internal_modules);
+	/* broken in py3.3, load explicitly below */
+	// PyImport_ExtendInittab(bpy_internal_modules);
 #endif
 
 	bpy_intern_string_init();
+
+
+#ifdef WITH_PYTHON_MODULE
+	{
+		/* Manually load all modules */
+		struct _inittab *inittab_item;
+		PyObject *sys_modules = PyImport_GetModuleDict();
+
+		for (inittab_item = bpy_internal_modules; inittab_item->name; inittab_item++) {
+			PyObject *mod = inittab_item->initfunc();
+			if (mod) {
+				PyDict_SetItemString(sys_modules, inittab_item->name, mod);
+			}
+			else {
+				PyErr_Print();
+				PyErr_Clear();
+			}
+			// Py_DECREF(mod); /* ideally would decref, but in this case we never want to free */
+		}
+	}
+#endif
 
 	/* bpy.* and lets us import it */
 	BPy_init_modules();
@@ -743,6 +765,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 
 		//result->ptr = ((BPy_StructRNA *)item)->ptr;
 		CTX_data_pointer_set(result, ptr->id.data, ptr->type, ptr->data);
+		CTX_data_type_set(result, CTX_DATA_TYPE_POINTER);
 		done = true;
 	}
 	else if (PySequence_Check(item)) {
@@ -773,12 +796,12 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 
 			}
 			Py_DECREF(seq_fast);
-
+			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 			done = true;
 		}
 	}
 
-	if (done == 0) {
+	if (done == false) {
 		if (item) printf("PyContext '%s' not a valid type\n", member);
 		else      printf("PyContext '%s' not found\n", member);
 	}

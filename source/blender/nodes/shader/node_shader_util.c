@@ -277,7 +277,7 @@ void ntreeExecGPUNodes(bNodeTreeExec *exec, GPUMaterial *mat, int do_outputs)
 	bNodeStack *stack;
 	bNodeStack *nsin[MAX_SOCKET];	/* arbitrary... watch this */
 	bNodeStack *nsout[MAX_SOCKET];	/* arbitrary... watch this */
-	GPUNodeStack gpuin[MAX_SOCKET+1], gpuout[MAX_SOCKET+1];
+	GPUNodeStack gpuin[MAX_SOCKET + 1], gpuout[MAX_SOCKET + 1];
 	int do_it;
 
 	stack= exec->stack;

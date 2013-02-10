@@ -1682,7 +1682,6 @@ class VIEW3D_MT_edit_mesh(Menu):
         layout.operator("view3d.edit_mesh_extrude_individual_move", text="Extrude Individual")
         layout.operator("mesh.duplicate_move")
         layout.menu("VIEW3D_MT_edit_mesh_delete")
-        layout.menu("VIEW3D_MT_edit_mesh_dissolve")
 
         layout.separator()
 
@@ -1957,21 +1956,12 @@ class VIEW3D_MT_edit_mesh_delete(Menu):
         layout.separator()
 
         layout.operator("mesh.dissolve")
-        layout.operator("mesh.edge_collapse")
-        layout.operator("mesh.delete_edgeloop", text="Edge Loop")
-
-
-class VIEW3D_MT_edit_mesh_dissolve(Menu):
-    bl_label = "Dissolve"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.operator("mesh.dissolve")
+        layout.operator("mesh.dissolve_limited")
 
         layout.separator()
 
-        layout.operator("mesh.dissolve_limited")
+        layout.operator("mesh.edge_collapse")
+        layout.operator("mesh.delete_edgeloop", text="Edge Loop")
 
 
 class VIEW3D_MT_edit_mesh_showhide(ShowHideMenu, Menu):

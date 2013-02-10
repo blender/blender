@@ -933,7 +933,7 @@ endif()
 	if(WITH_COMPOSITOR)
 		# added for opencl compositor
 		list_insert_before(BLENDER_SORTED_LIBS "bf_blenkernel" "bf_compositor")
-		list_insert_after(BLENDER_SORTED_LIBS "bf_compositor" "bf_opencl")
+		list_insert_after(BLENDER_SORTED_LIBS "bf_compositor" "bf_intern_opencl")
 	endif()
 
 	if(WITH_LIBMV)
@@ -986,7 +986,7 @@ endif()
 	endif()
 
 	if(WITH_BULLET)
-		list_insert_after(BLENDER_SORTED_LIBS "bf_blenkernel" "bf_rigidbody")
+		list_insert_after(BLENDER_SORTED_LIBS "bf_blenkernel" "bf_intern_rigidbody")
 	endif()
 
 	if(WITH_BULLET AND NOT WITH_BULLET_SYSTEM)

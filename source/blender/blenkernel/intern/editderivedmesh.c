@@ -248,6 +248,7 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *em)
 
 			totfilltri = BLI_scanfill_calc_ex(&sf_ctx, 0, efa->no);
 			BLI_assert(totfilltri <= efa->len - 2);
+			(void)totfilltri;
 
 			for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
 				BMLoop **l_ptr = looptris[i++];

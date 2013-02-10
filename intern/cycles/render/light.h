@@ -52,6 +52,7 @@ public:
 	float spot_smooth;
 
 	bool cast_shadow;
+	bool use_mis;
 
 	int shader;
 	int samples;

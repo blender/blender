@@ -119,7 +119,7 @@ static SpaceLink *node_new(const bContext *UNUSED(C))
 	snode = MEM_callocN(sizeof(SpaceNode), "initnode");
 	snode->spacetype = SPACE_NODE;
 
-	snode->flag = SNODE_SHOW_GPENCIL;
+	snode->flag = SNODE_SHOW_GPENCIL | SNODE_USE_ALPHA;
 
 	/* backdrop */
 	snode->zoom = 1.0f;

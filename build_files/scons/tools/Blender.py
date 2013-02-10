@@ -29,6 +29,7 @@ from SCons.Script.SConscript import SConsEnvironment
 import SCons.Action
 import SCons.Util
 import SCons.Builder
+import SCons.Subst
 import SCons.Tool
 import bcolors
 bc = bcolors.bcolors()
@@ -234,10 +235,6 @@ def setup_staticlibs(lenv):
         if lenv['WITH_BF_STATICLLVM']:
             statlibs += Split(lenv['BF_LLVM_LIB_STATIC'])
 
-    # setting this last so any overriding of manually libs could be handled
-    if lenv['OURPLATFORM'] not in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross', 'win64-mingw'):
-        libincs.append('/usr/lib')
-
     if lenv['WITH_BF_JEMALLOC']:
         libincs += Split(lenv['BF_JEMALLOC_LIBPATH'])
         if lenv['WITH_BF_STATICJEMALLOC']:
@@ -248,6 +245,12 @@ def setup_staticlibs(lenv):
             libincs += Split(lenv['BF_3DMOUSE_LIBPATH'])
             if lenv['WITH_BF_STATIC3DMOUSE']:
                 statlibs += Split(lenv['BF_3DMOUSE_LIB_STATIC'])
+
+    # setting this last so any overriding of manually libs could be handled
+    if lenv['OURPLATFORM'] not in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross', 'win64-mingw'):
+        # We must remove any previous items defining this path, for same reason stated above!
+        libincs = [e for e in libincs if SCons.Subst.scons_subst(e, lenv, gvars=lenv.Dictionary()) != "/usr/lib"]
+        libincs.append('/usr/lib')
 
     return statlibs, libincs
 

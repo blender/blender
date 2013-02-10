@@ -85,6 +85,9 @@ typedef struct uiLayout uiLayout;
 #define UI_MAX_DRAW_STR 400
 #define UI_MAX_NAME_STR 128
 
+/* use for clamping popups within the screen */
+#define UI_SCREEN_MARGIN 10
+
 /* uiBlock->dt */
 #define UI_EMBOSS       0   /* use widget style for drawing */
 #define UI_EMBOSSN      1   /* Nothing, only icon and/or text */
@@ -219,7 +222,7 @@ typedef enum {
 	NUMSLI        = (14 << 9),
 	COLOR         = (15 << 9),
 	IDPOIN        = (16 << 9),
-	HSVSLI        = (17 << 9),
+	HSVSLI        = (17 << 9),  /* UNUSED, but code still references */
 	SCROLL        = (18 << 9),
 	BLOCK         = (19 << 9),
 	BUTM          = (20 << 9),

@@ -196,11 +196,11 @@ void BKE_mball_free(MetaBall *mb)
 	if (mb->disp.first) BKE_displist_free(&mb->disp);
 }
 
-MetaBall *BKE_mball_add(const char *name)
+MetaBall *BKE_mball_add(Main *bmain, const char *name)
 {
 	MetaBall *mb;
 	
-	mb = BKE_libblock_alloc(&G.main->mball, ID_MB, name);
+	mb = BKE_libblock_alloc(&bmain->mball, ID_MB, name);
 	
 	mb->size[0] = mb->size[1] = mb->size[2] = 1.0;
 	mb->texflag = MB_AUTOSPACE;

@@ -78,6 +78,9 @@ BlenderBulletCharacterController::BlenderBulletCharacterController(btMotionState
 
 void BlenderBulletCharacterController::updateAction(btCollisionWorld *collisionWorld, btScalar dt)
 {
+	if (onGround())
+		m_jumps = 0;
+
 	btKinematicCharacterController::updateAction(collisionWorld,dt);
 	m_motionState->setWorldTransform(getGhostObject()->getWorldTransform());
 }
@@ -104,15 +107,17 @@ bool BlenderBulletCharacterController::canJump() const
 
 void BlenderBulletCharacterController::jump()
 {
-	if (onGround())
-		m_jumps = 0;
-
 	if (!canJump())
 		return;
 		
 	m_verticalVelocity = m_jumpSpeed;
 	m_wasJumping = true;
 	m_jumps++;
+}
+
+const btVector3& BlenderBulletCharacterController::getWalkDirection()
+{
+	return m_walkDirection;
 }
 
 CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
@@ -670,9 +675,9 @@ CcdPhysicsController::~CcdPhysicsController()
 }
 
 
-		/**
-			SynchronizeMotionStates ynchronizes dynas, kinematic and deformable entities (and do 'late binding')
-		*/
+/**
+ * SynchronizeMotionStates ynchronizes dynas, kinematic and deformable entities (and do 'late binding')
+ */
 bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 {
 	//sync non-static to motionstate, and static from motionstate (todo: add kinematic etc.)
@@ -755,8 +760,8 @@ bool		CcdPhysicsController::SynchronizeMotionStates(float time)
 }
 
 		/**
-			WriteMotionStateToDynamics synchronizes dynas, kinematic and deformable entities (and do 'late binding')
-		*/
+		 * WriteMotionStateToDynamics synchronizes dynas, kinematic and deformable entities (and do 'late binding')
+		 */
 		
 void		CcdPhysicsController::WriteMotionStateToDynamics(bool nondynaonly)
 {
@@ -926,18 +931,25 @@ void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dloc
 		if (local)
 			dloc = xform.getBasis()*dloc;
 
-		if (m_characterController)
-		{
-			m_characterController->setWalkDirection(dloc/GetPhysicsEnvironment()->getNumTimeSubSteps());
-		}
-		else
-		{
-
-			xform.setOrigin(xform.getOrigin() + dloc);
-			SetCenterOfMassTransform(xform);
-		}
+		xform.setOrigin(xform.getOrigin() + dloc);
+		SetCenterOfMassTransform(xform);
 	}
 
+}
+
+void		CcdPhysicsController::SetWalkDirection(float dirX,float dirY,float dirZ,bool local)
+{
+
+	if (m_object && m_characterController)
+	{
+		btVector3 dir(dirX,dirY,dirZ);
+		btTransform xform = m_object->getWorldTransform();
+
+		if (local)
+			dir = xform.getBasis()*dir;
+
+		m_characterController->setWalkDirection(dir/GetPhysicsEnvironment()->getNumTimeSubSteps());
+	}
 }
 
 void		CcdPhysicsController::RelativeRotate(const float rotval[9],bool local)
@@ -1267,6 +1279,13 @@ void		CcdPhysicsController::applyImpulse(float attachX,float attachY,float attac
 	}
 
 }
+
+void		CcdPhysicsController::Jump()
+{
+	if (m_object && m_characterController)
+		m_characterController->jump();
+}
+
 void		CcdPhysicsController::SetActive(bool active)
 {
 }
@@ -1323,6 +1342,24 @@ void		CcdPhysicsController::GetVelocity(const float posX,const float posY,const 
 		linvZ = 0.f;
 	}
 }
+
+void		CcdPhysicsController::GetWalkDirection(float& dirX,float& dirY,float& dirZ)
+{
+	if (m_object && m_characterController)
+	{
+		const btVector3 dir = m_characterController->getWalkDirection();
+		dirX = dir.x();
+		dirY = dir.y();
+		dirZ = dir.z();
+	}
+	else
+	{
+		dirX = 0.f;
+		dirY = 0.f;
+		dirZ = 0.f;
+	}
+}
+
 void		CcdPhysicsController::getReactionForce(float& forceX,float& forceY,float& forceZ)
 {
 }

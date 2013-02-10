@@ -4890,6 +4890,45 @@ static void len_v3_ensure(float v[3], const float length)
 }
 
 /**
+ * Find the closest point on the ngon on the opposite side.
+ * used to set the edge slide distance for ngons.
+ */
+static bool bm_loop_calc_opposite_co(BMLoop *l_tmp,
+                                     const float plane_no[3],
+                                     float r_co[3])
+{
+	/* skip adjacent edges */
+	BMLoop *l_first = l_tmp->next;
+	BMLoop *l_last  = l_tmp->prev;
+	BMLoop *l_iter;
+	float dist = FLT_MAX;
+
+	l_iter = l_first;
+	do {
+		float tvec[3];
+		if (isect_line_plane_v3(tvec,
+		                        l_iter->v->co, l_iter->next->v->co,
+		                        l_tmp->v->co, plane_no, false))
+		{
+			const float fac = line_point_factor_v3(tvec, l_iter->v->co, l_iter->next->v->co);
+			/* allow some overlap to avoid missing the intersection because of float precision */
+			if ((fac > -FLT_EPSILON) && (fac < 1.0f + FLT_EPSILON)) {
+				/* likelyhood of multiple intersections per ngon is quite low,
+				 * it would have to loop back on its self, but better support it
+				 * so check for the closest opposite edge */
+				const float tdist = len_v3v3(l_tmp->v->co, tvec);
+				if (tdist < dist) {
+					copy_v3_v3(r_co, tvec);
+					dist = tdist;
+				}
+			}
+		}
+	} while ((l_iter = l_iter->next) != l_last);
+
+	return (dist != FLT_MAX);
+}
+
+/**
  * Given 2 edges and a loop, step over the loops
  * and calculate a direction to slide along.
  *
@@ -4919,21 +4958,39 @@ static BMLoop *get_next_loop(BMVert *v, BMLoop *l,
 			else {
 				/* When there is no edge to slide along,
 				 * we must slide along the vector defined by the face we're attach to */
-				float e_dir_prev[3], e_dir_next[3], tvec[3];
+				BMLoop *l_tmp = BM_face_vert_share_loop(l_first->f, v);
 
-				sub_v3_v3v3(e_dir_prev, BM_edge_other_vert(e_prev, v)->co, v->co);
-				sub_v3_v3v3(e_dir_next, BM_edge_other_vert(e_next, v)->co, v->co);
+				BLI_assert(ELEM(l_tmp->e, e_prev, e_next) && ELEM(l_tmp->prev->e, e_prev, e_next));
 
-				cross_v3_v3v3(tvec, l->f->no, e_dir_prev);
-				cross_v3_v3v3(vec_accum, e_dir_next, l->f->no);
+				if (l_tmp->f->len == 4) {
+					/* we could use code below, but in this case
+					 * sliding diagonally across the quad works well */
+					sub_v3_v3v3(vec_accum, l_tmp->next->next->v->co, v->co);
+				}
+				else {
+					float tdir[3];
+					BM_loop_calc_face_direction(l_tmp, tdir);
+					cross_v3_v3v3(vec_accum, l_tmp->f->no, tdir);
+#if 0
+					/* rough guess, we can  do better! */
+					len_v3_ensure(vec_accum, (BM_edge_calc_length(e_prev) + BM_edge_calc_length(e_next)) / 2.0f);
+#else
+					/* be clever, check the opposite ngon edge to slide into.
+					 * this gives best results */
+					{
+						float tvec[3];
+						float dist;
 
-				mid_v3_v3v3(vec_accum, vec_accum, tvec);
+						if (bm_loop_calc_opposite_co(l_tmp, tdir, tvec)) {
+							dist = len_v3v3(l_tmp->v->co, tvec);
+						}
+						else {
+							dist = (BM_edge_calc_length(e_prev) + BM_edge_calc_length(e_next)) / 2.0f;
+						}
 
-				/* check if we need to flip
-				 * (compare the normal defines by the edges with the face normal) */
-				cross_v3_v3v3(tvec, e_dir_prev, e_dir_next);
-				if (dot_v3v3(tvec, l->f->no) > 0.0f) {
-					negate_v3(vec_accum);
+						len_v3_ensure(vec_accum, dist);
+					}
+#endif
 				}
 			}
 
@@ -5025,6 +5082,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	BMEdge *e, *e1;
 	BMVert *v, *v2;
 	TransDataEdgeSlideVert *sv_array;
+	int sv_tot;
 	BMBVHTree *btree;
 	SmallHash table;
 	EdgeSlideData *sld = MEM_callocN(sizeof(*sld), "sld");
@@ -5124,10 +5182,10 @@ static int createEdgeSlideVerts(TransInfo *t)
 		return 0;
 	}
 
-	sv_array = MEM_callocN(sizeof(TransDataEdgeSlideVert) * j, "sv_array");
+	sv_tot = j;
+	sv_array = MEM_callocN(sizeof(TransDataEdgeSlideVert) * sv_tot, "sv_array");
 	loop_nr = 0;
 
-	j = 0;
 	while (1) {
 		BMLoop *l, *l1, *l2;
 		BMVert *v_first;
@@ -5187,10 +5245,10 @@ static int createEdgeSlideVerts(TransInfo *t)
 		/*iterate over the loop*/
 		v_first = v;
 		do {
-			TransDataEdgeSlideVert *sv = sv_array + j;
+			TransDataEdgeSlideVert *sv;
 
-			BLI_assert(j < MEM_allocN_len(sv_array) / sizeof(*sv));
-
+			/* XXX, 'sv' will initialize multiple times, this is suspicious. see [#34024] */
+			sv = sv_array + GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
 			sv->v = v;
 			sv->origvert = *v;
 			sv->loop_nr = loop_nr;
@@ -5212,11 +5270,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 			e1 = e;
 			e = get_other_edge(v, e);
 			if (!e) {
-				//v2=v, v = BM_edge_other_vert(l1->e, v);
-
-				BLI_assert(j + 1 < MEM_allocN_len(sv_array) / sizeof(*sv));
-
-				sv = sv_array + j + 1;
+				sv = sv_array + GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
 				sv->v = v;
 				sv->origvert = *v;
 				sv->loop_nr = loop_nr;
@@ -5233,15 +5287,12 @@ static int createEdgeSlideVerts(TransInfo *t)
 
 				BM_elem_flag_disable(v, BM_ELEM_TAG);
 				BM_elem_flag_disable(v2, BM_ELEM_TAG);
-				
-				j += 2;
+
 				break;
 			}
 
 			l1 = get_next_loop(v, l1, e1, e, vec);
 			l2 = l2 ? get_next_loop(v, l2, e1, e, vec2) : NULL;
-
-			j += 1;
 
 			BM_elem_flag_disable(v, BM_ELEM_TAG);
 			BM_elem_flag_disable(v2, BM_ELEM_TAG);
@@ -5253,7 +5304,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 	/* EDBM_flag_disable_all(em, BM_ELEM_SELECT); */
 
 	sld->sv = sv_array;
-	sld->totsv = j;
+	sld->totsv = sv_tot;
 	
 	/* find mouse vectors, the global one, and one per loop in case we have
 	 * multiple loops selected, in case they are oriented different */
@@ -5628,7 +5679,7 @@ void initEdgeSlide(TransInfo *t)
 
 	/* set custom point first if you want value to be initialized by init */
 	setCustomPoints(t, &t->mouse, sld->end, sld->start);
-	initMouseInputMode(t, &t->mouse, INPUT_CUSTOM_RATIO);
+	initMouseInputMode(t, &t->mouse, INPUT_CUSTOM_RATIO_FLIP);
 	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
@@ -5879,19 +5930,14 @@ static void calcVertSlideCustomPoints(struct TransInfo *t)
 	TransDataVertSlideVert *sv = &sld->sv[sld->curr_sv_index];
 	float *co_orig = sv->co_orig_2d;
 	float *co_curr = sv->co_link_orig_2d[sv->co_link_curr];
-	float  co_curr_flip[2];
+	const int start[2] = {co_orig[0], co_orig[1]};
+	const int end[2]   = {co_curr[0], co_curr[1]};
 
-	flip_v2_v2v2(co_curr_flip, co_orig, co_curr);
-
-	{
-		const int start[2] = {co_orig[0], co_orig[1]};
-		const int end[2]   = {co_curr_flip[0], co_curr_flip[1]};
-		if (!sld->flipped_vtx) {
-			setCustomPoints(t, &t->mouse, end, start);
-		}
-		else {
-			setCustomPoints(t, &t->mouse, start, end);
-		}
+	if (sld->flipped_vtx && sld->is_proportional == false) {
+		setCustomPoints(t, &t->mouse, start, end);
+	}
+	else {
+		setCustomPoints(t, &t->mouse, end, start);
 	}
 }
 
@@ -5977,7 +6023,7 @@ static int createVertSlideVerts(TransInfo *t)
 	if (t->spacetype == SPACE_VIEW3D) {
 		/* background mode support */
 //		v3d = t->sa ? t->sa->spacedata.first : NULL;
-		rv3d = t->ar ? t->ar->regiondata : NULL;
+		rv3d = ar ? ar->regiondata : NULL;
 	}
 
 	sld->is_proportional = true;
@@ -6043,18 +6089,30 @@ static int createVertSlideVerts(TransInfo *t)
 				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
 					BMVert *v_other = BM_edge_other_vert(e, v);
 					copy_v3_v3(sv_array[j].co_link_orig_3d[k], v_other->co);
-					ED_view3d_project_float_v2_m4(ar,
-					                              sv_array[j].co_link_orig_3d[k],
-					                              sv_array[j].co_link_orig_2d[k],
-					                              projectMat);
+					if (ar) {
+						ED_view3d_project_float_v2_m4(ar,
+						                              sv_array[j].co_link_orig_3d[k],
+						                              sv_array[j].co_link_orig_2d[k],
+						                              projectMat);
+					}
+					else {
+						copy_v2_v2(sv_array[j].co_link_orig_2d[k],
+						           sv_array[j].co_link_orig_3d[k]);
+					}
 					k++;
 				}
 			}
 
-			ED_view3d_project_float_v2_m4(ar,
-			                              sv_array[j].co_orig_3d,
-			                              sv_array[j].co_orig_2d,
-			                              projectMat);
+			if (ar) {
+				ED_view3d_project_float_v2_m4(ar,
+				                              sv_array[j].co_orig_3d,
+				                              sv_array[j].co_orig_2d,
+				                              projectMat);
+			}
+			else {
+				copy_v2_v2(sv_array[j].co_orig_2d,
+				           sv_array[j].co_orig_3d);
+			}
 
 			j++;
 		}
@@ -6147,16 +6205,17 @@ int handleEventVertSlide(struct TransInfo *t, struct wmEvent *event)
 				case EKEY:
 					if (event->val == KM_PRESS) {
 						sld->is_proportional = !sld->is_proportional;
+						if (sld->flipped_vtx) {
+							calcVertSlideCustomPoints(t);
+						}
 						return 1;
 					}
 					break;
 				case FKEY:
 				{
 					if (event->val == KM_PRESS) {
-						if (sld->is_proportional == FALSE) {
-							sld->flipped_vtx = !sld->flipped_vtx;
-							calcVertSlideCustomPoints(t);
-						}
+						sld->flipped_vtx = !sld->flipped_vtx;
+						calcVertSlideCustomPoints(t);
 						return 1;
 					}
 					break;

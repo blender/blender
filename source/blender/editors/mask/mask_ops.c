@@ -36,6 +36,7 @@
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_main.h"
 #include "BKE_mask.h"
 
 #include "DNA_scene_types.h"
@@ -261,9 +262,10 @@ int ED_mask_feather_find_nearest(const bContext *C, Mask *mask, float normal_co[
 Mask *ED_mask_new(bContext *C, const char *name)
 {
 	ScrArea *sa = CTX_wm_area(C);
+	Main *bmain = CTX_data_main(C);
 	Mask *mask;
 
-	mask = BKE_mask_new(name);
+	mask = BKE_mask_new(bmain, name);
 
 	if (sa && sa->spacedata.first) {
 		switch (sa->spacetype) {

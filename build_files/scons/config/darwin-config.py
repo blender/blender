@@ -137,7 +137,7 @@ else:
     BF_PYTHON_INC = '${BF_PYTHON}${BF_PYTHON_VERSION}/include/python${BF_PYTHON_VERSION}m'
     BF_PYTHON_BINARY = '${BF_PYTHON}${BF_PYTHON_VERSION}/bin/python${BF_PYTHON_VERSION}'
     #BF_PYTHON_LIB = ''
-    BF_PYTHON_LIBPATH = '${BF_PYTHON}${BF_PYTHON_VERSION}/lib/python${BF_PYTHON_VERSION}/config-3.2m'
+    BF_PYTHON_LIBPATH = '${BF_PYTHON}${BF_PYTHON_VERSION}/lib/python${BF_PYTHON_VERSION}/config-${BF_PYTHON_VERSION}m'
 
 WITH_BF_OPENAL = True
 #different lib must be used  following version of gcc

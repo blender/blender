@@ -1,5 +1,3 @@
-#!/usr/bin/python
-# $Id: SConscript $
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -14,29 +12,31 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# The Original Code is Copyright (C) 2010, Blender Foundation
+# The Original Code is Copyright (C) 2006, Blender Foundation
 # All rights reserved.
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Joshua Leung
+# Contributor(s): Jacques Beaurain.
 #
 # ***** END GPL LICENSE BLOCK *****
 
-Import('env')
+set(INC
+	.
+)
 
-# XXX: we need a contingency plan for when not compiling with Bullet,
-# since this module will always get included... 
-# This problem will also apply to other engines at a later date too...
-sources = env.Glob('*.cpp')
+set(INC_SYS
 
-incs = [
-    '.',
-    '../../../extern/bullet2/src',
-    ]
+)
 
-env.BlenderLib('bf_rigidbody', sources=sources,
-               includes=incs, defines=[],
-               libtype=['core', 'player'], priority=[180, 30])
+set(SRC
+	OCL_opencl.h
+	intern/clew.h
+	intern/clew.c
+	intern/OCL_opencl.c
+)
+
+
+blender_add_lib(bf_intern_opencl "${SRC}" "${INC}" "${INC_SYS}")

@@ -52,7 +52,7 @@ void BKE_material_free_ex(struct Material *ma, int do_id_user);
 void test_object_materials(struct ID *id);
 void resize_object_material(struct Object *ob, const short totcol);
 void init_material(struct Material *ma);
-struct Material *BKE_material_add(const char *name);
+struct Material *BKE_material_add(struct Main *bmain, const char *name);
 struct Material *BKE_material_copy(struct Material *ma);
 struct Material *localize_material(struct Material *ma);
 struct Material *give_node_material(struct Material *ma); /* returns node material or self */

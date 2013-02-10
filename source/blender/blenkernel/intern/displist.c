@@ -63,6 +63,7 @@
 #include "BLO_sys_types.h" // for intptr_t support
 
 static void boundbox_displist(Object *ob);
+static void boundbox_dispbase(BoundBox *bb, ListBase *dispbase);
 
 void BKE_displist_elem_free(DispList *dl)
 {
@@ -506,7 +507,7 @@ void BKE_displist_fill(ListBase *dispbase, ListBase *to, int flipnormal)
 			dl = dl->next;
 		}
 
-		/* XXX (obedit && obedit->actcol)?(obedit->actcol-1):0)) { */
+		/* XXX (obedit && obedit->actcol) ? (obedit->actcol-1) : 0)) { */
 		if (totvert && (tot = BLI_scanfill_calc(&sf_ctx, BLI_SCANFILL_CALC_REMOVE_DOUBLES | BLI_SCANFILL_CALC_HOLES))) {
 			if (tot) {
 				dlnew = MEM_callocN(sizeof(DispList), "filldisplist");
@@ -758,7 +759,7 @@ static ModifierData *curve_get_tessellate_point(Scene *scene, Object *ob, int fo
 
 			/* this modifiers are moving point of tessellation automatically
 			 * (some of them even can't be applied on tessellated curve), set flag
-			 * for incformation button in modifier's header
+			 * for information button in modifier's header
 			 */
 			md->mode |= eModifierMode_ApplyOnSpline;
 		}
@@ -1598,15 +1599,15 @@ void BKE_displist_make_curveTypes(Scene *scene, Object *ob, int forOrco)
 
 	if (ob->derivedFinal) {
 		DM_set_object_boundbox(ob, ob->derivedFinal);
+
+		/* always keep curve's  BB in sync with non-deformed displist */
+		if (cu->bb == NULL)
+			cu->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
+
+		boundbox_dispbase(cu->bb, &cu->disp);
 	}
 	else {
 		boundbox_displist(ob);
-
-		/* if there is no derivedMesh, object's boundbox is unneeded */
-		if (ob->bb) {
-			MEM_freeN(ob->bb);
-			ob->bb = NULL;
-		}
 	}
 }
 
@@ -1642,42 +1643,50 @@ float *BKE_displist_make_orco(Scene *scene, Object *ob, DerivedMesh *derivedFina
 	return orco;
 }
 
-/* this is confusing, there's also min_max_object, appplying the obmat... */
-static void boundbox_displist(Object *ob)
+static void boundbox_dispbase(BoundBox *bb, ListBase *dispbase)
 {
-	BoundBox *bb = NULL;
 	float min[3], max[3];
 	DispList *dl;
 	float *vert;
 	int a, tot = 0;
+	int doit = 0;
 
 	INIT_MINMAX(min, max);
 
-	if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-		Curve *cu = ob->data;
-		int doit = 0;
-
-		if (cu->bb == NULL) cu->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
-		bb = cu->bb;
-
-		for (dl = ob->disp.first; dl; dl = dl->next) {
-			tot = (dl->type == DL_INDEX3) ? dl->nr : dl->nr * dl->parts;
-			vert = dl->verts;
-			for (a = 0; a < tot; a++, vert += 3) {
-				minmax_v3v3_v3(min, max, vert);
-			}
-			doit = (tot != 0);
+	for (dl = dispbase->first; dl; dl = dl->next) {
+		tot = (dl->type == DL_INDEX3) ? dl->nr : dl->nr * dl->parts;
+		vert = dl->verts;
+		for (a = 0; a < tot; a++, vert += 3) {
+			minmax_v3v3_v3(min, max, vert);
 		}
-
-		if (!doit) {
-			/* there's no geometry in displist, use zero-sized boundbox */
-			zero_v3(min);
-			zero_v3(max);
-		}
-
+		doit |= (tot != 0);
 	}
 
-	if (bb) {
-		BKE_boundbox_init_from_minmax(bb, min, max);
+	if (!doit) {
+		/* there's no geometry in displist, use zero-sized boundbox */
+		zero_v3(min);
+		zero_v3(max);
+	}
+
+	BKE_boundbox_init_from_minmax(bb, min, max);
+}
+
+/* this is confusing, there's also min_max_object, appplying the obmat... */
+static void boundbox_displist(Object *ob)
+{
+	if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+		Curve *cu = ob->data;
+
+		/* calculate curve's BB based on non-deformed displist */
+		if (cu->bb == NULL)
+			cu->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
+
+		boundbox_dispbase(cu->bb, &cu->disp);
+
+		/* object's BB is calculated from final displist */
+		if (ob->bb == NULL)
+			ob->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
+
+		boundbox_dispbase(ob->bb, &ob->disp);
 	}
 }

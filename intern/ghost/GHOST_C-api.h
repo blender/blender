@@ -149,6 +149,20 @@ extern void GHOST_GetMainDisplayDimensions(GHOST_SystemHandle systemhandle,
                                            GHOST_TUns32 *height);
 
 /**
+ * Returns the dimensions of all displays combine
+ * (the current workspace).
+ * No need to worrky about overlapping monitors.
+ * \param systemhandle The handle to the system
+ * \param width A pointer the width gets put in
+ * \param height A pointer the height gets put in
+ * \return void.
+ */
+extern void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
+                                           GHOST_TUns32 *width,
+                                           GHOST_TUns32 *height);
+
+
+/**
  * Create a new window.
  * The new window is added to the list of windows managed. 
  * Never explicitly delete the window, use disposeWindow() instead.

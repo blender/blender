@@ -19,24 +19,17 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Jacques Beaurain.
-#
 # ***** END GPL LICENSE BLOCK *****
 
-set(INC
+SET(INC
 	.
-)
-
-set(INC_SYS
-
+	../../extern/bullet2/src
 )
 
 set(SRC
-	OCL_opencl.h
-	intern/clew.h
-	intern/clew.c
-	intern/OCL_opencl.c
+	rb_bullet_api.cpp
+	
+	RBI_api.h
 )
 
-
-blender_add_lib(bf_opencl "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_intern_rigidbody "${SRC}" "${INC}" "${INC_SYS}")

@@ -306,6 +306,10 @@ PYTHON3_EXEC = "python3"
 # The Blender executable!
 # This is just an example, you’ll most likely have to edit it in your user_settings.py!
 BLENDER_EXEC = os.path.abspath(os.path.join(TOOLS_DIR, "..", "..", "..", "..", "blender"))
+# check for blender.bin
+if not os.path.exists(BLENDER_EXEC):
+    if os.path.exists(BLENDER_EXEC + ".bin"):
+        BLENDER_EXEC = BLENDER_EXEC + ".bin"
 
 # The xgettext tool. You’ll likely have to edit it in your user_settings.py if you’re under Windows.
 GETTEXT_XGETTEXT_EXECUTABLE = "xgettext"

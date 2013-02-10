@@ -23,7 +23,9 @@ set(SRC
 )
 
 if(WITH_NETWORK)
-	list(APPEND SRC device_network.cpp)
+	list(APPEND SRC
+		device_network.cpp
+	)
 endif()
 
 set(SRC_HEADERS

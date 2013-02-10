@@ -84,12 +84,20 @@ void Object::apply_transform()
 {
 	if(!mesh || tfm == transform_identity())
 		return;
-	
+
+	float3 c0 = transform_get_column(&tfm, 0);
+	float3 c1 = transform_get_column(&tfm, 1);
+	float3 c2 = transform_get_column(&tfm, 2);
+	float scalar = pow(fabsf(dot(cross(c0, c1), c2)), 1.0f/3.0f);
+
 	for(size_t i = 0; i < mesh->verts.size(); i++)
 		mesh->verts[i] = transform_point(&tfm, mesh->verts[i]);
 
-	for(size_t i = 0; i < mesh->curve_keys.size(); i++)
+	for(size_t i = 0; i < mesh->curve_keys.size(); i++) {
 		mesh->curve_keys[i].co = transform_point(&tfm, mesh->curve_keys[i].co);
+		/* scale for strand radius - only correct for uniform transforms*/
+		mesh->curve_keys[i].radius *= scalar;
+	}
 
 	/* store matrix to transform later. when accessing these as attributes we
 	 * do not want the transform to be applied for consistency between static

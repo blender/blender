@@ -97,7 +97,8 @@ class InputKeyMapPanel:
                 subcol = self.indented_layout(col, level + 1)
                 subrow = subcol.row()
                 subrow.prop(km, "show_expanded_items", text="", emboss=False)
-                subrow.label(text="%s " % km.name + "(Global)")
+                pgettext = bpy.app.translations.pgettext
+                subrow.label(text=pgettext("%s (Global)") % km.name, translate=False)
             else:
                 km.show_expanded_items = True
 
@@ -172,17 +173,17 @@ class InputKeyMapPanel:
         if kmi.show_expanded:
             box = col.box()
 
+            split = box.split(percentage=0.4)
+            sub = split.row()
+
+            if km.is_modal:
+                sub.prop(kmi, "propvalue", text="")
+            else:
+                # One day...
+                #~ sub.prop_search(kmi, "idname", bpy.context.window_manager, "operators_all", text="")
+                sub.prop(kmi, "idname", text="")
+
             if map_type not in {'TEXTINPUT', 'TIMER'}:
-                split = box.split(percentage=0.4)
-                sub = split.row()
-
-                if km.is_modal:
-                    sub.prop(kmi, "propvalue", text="")
-                else:
-                    # One day...
-                    #~ sub.prop_search(kmi, "idname", bpy.context.window_manager, "operators_all", text="")
-                    sub.prop(kmi, "idname", text="")
-
                 sub = split.column()
                 subrow = sub.row(align=True)
 

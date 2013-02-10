@@ -64,7 +64,9 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
 
         if fluid.type == 'DOMAIN':
             # odd formatting here so translation script can extract string
-            layout.operator("fluid.bake", text="Bake (Req. Memory:" + " %s)" % fluid.memory_estimate, icon='MOD_FLUIDSIM')
+            pgettext = bpy.app.translations.pgettext
+            layout.operator("fluid.bake", text=pgettext("Bake (Req. Memory: %s)") % fluid.memory_estimate,
+                            translate=False, icon='MOD_FLUIDSIM')
             split = layout.split()
 
             col = split.column()

@@ -180,7 +180,10 @@ void BL_ConvertActuators(const char* maggiename,
 				bitLocalFlag.LinearVelocity = bool((obact->flag & ACT_LIN_VEL_LOCAL)!=0);
 				bitLocalFlag.AngularVelocity = bool((obact->flag & ACT_ANG_VEL_LOCAL)!=0);
 				bitLocalFlag.ServoControl = bool(obact->type == ACT_OBJECT_SERVO);
+				bitLocalFlag.CharacterMotion = bool(obact->type == ACT_OBJECT_CHARACTER);
+				bitLocalFlag.CharacterJump = bool((obact->flag & ACT_CHAR_JUMP)!=0);
 				bitLocalFlag.AddOrSetLinV = bool((obact->flag & ACT_ADD_LIN_VEL)!=0);
+				bitLocalFlag.AddOrSetCharLoc = bool((obact->flag & ACT_ADD_CHAR_LOC)!=0);
 				if (obact->reference && bitLocalFlag.ServoControl)
 				{
 					obref = converter->FindGameObject(obact->reference);

@@ -31,7 +31,6 @@ typedef struct LightSample {
 	int prim;			/* primitive id for triangle/curve ligths */
 	int shader;			/* shader id */
 	int lamp;			/* lamp id */
-	int use_mis;		/* for lamps with size zero */
 	LightType type;		/* type of light */
 } LightSample;
 
@@ -218,11 +217,10 @@ __device void lamp_light_sample(KernelGlobals *kg, int lamp,
 
 	LightType type = (LightType)__float_as_int(data0.x);
 	ls->type = type;
-#ifdef __LAMP_MIS__
-	ls->use_mis = true;
-#else
-	ls->use_mis = false;
-#endif
+	ls->shader = __float_as_int(data1.x);
+	ls->object = ~0;
+	ls->prim = ~0;
+	ls->lamp = lamp;
 
 	if(type == LIGHT_DISTANT) {
 		/* distant light */
@@ -233,10 +231,6 @@ __device void lamp_light_sample(KernelGlobals *kg, int lamp,
 
 		if(radius > 0.0f)
 			D = distant_light_sample(D, radius, randu, randv);
-#ifdef __LAMP_MIS__
-		else
-			ls->use_mis = false;
-#endif
 
 		ls->P = D;
 		ls->Ng = D;
@@ -257,9 +251,6 @@ __device void lamp_light_sample(KernelGlobals *kg, int lamp,
 		ls->D = -D;
 		ls->t = FLT_MAX;
 		ls->eval_fac = 1.0f;
-#ifndef __LAMP_MIS__
-		ls->use_mis = true;
-#endif
 	}
 #endif
 	else {
@@ -271,10 +262,6 @@ __device void lamp_light_sample(KernelGlobals *kg, int lamp,
 			if(radius > 0.0f)
 				/* sphere light */
 				ls->P += sphere_light_sample(P, ls->P, radius, randu, randv);
-#ifdef __LAMP_MIS__
-			else
-				ls->use_mis = false;
-#endif
 
 			ls->D = normalize_len(ls->P - P, &ls->t);
 			ls->Ng = -ls->D;
@@ -304,13 +291,6 @@ __device void lamp_light_sample(KernelGlobals *kg, int lamp,
 
 			float invarea = data2.x;
 
-			if(invarea == 0.0f) {
-#ifdef __LAMP_MIS__
-				ls->use_mis = false;
-#endif
-				invarea = 1.0f;
-			}
-
 			ls->eval_fac = 0.25f*invarea;
 			ls->pdf = invarea;
 		}
@@ -318,11 +298,6 @@ __device void lamp_light_sample(KernelGlobals *kg, int lamp,
 		ls->eval_fac *= kernel_data.integrator.inv_pdf_lights;
 		ls->pdf *= lamp_light_pdf(kg, ls->Ng, -ls->D, ls->t);
 	}
-
-	ls->shader = __float_as_int(data1.x);
-	ls->object = ~0;
-	ls->prim = ~0;
-	ls->lamp = lamp;
 }
 
 __device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D, float t, LightSample *ls)
@@ -336,7 +311,9 @@ __device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D, f
 	ls->object = ~0;
 	ls->prim = ~0;
 	ls->lamp = lamp;
-	ls->use_mis = false; /* flag not used for eval */
+
+	if(!(ls->shader & SHADER_USE_MIS))
+		return false;
 
 	if(type == LIGHT_DISTANT) {
 		/* distant light */
@@ -475,7 +452,7 @@ __device void triangle_light_sample(KernelGlobals *kg, int prim, int object,
 	ls->object = object;
 	ls->prim = prim;
 	ls->lamp = ~0;
-	ls->use_mis = true;
+	ls->shader |= SHADER_USE_MIS;
 	ls->t = 0.0f;
 	ls->type = LIGHT_AREA;
 	ls->eval_fac = 1.0f;
@@ -529,11 +506,10 @@ __device void curve_segment_light_sample(KernelGlobals *kg, int prim, int object
 	ls->object = object;
 	ls->prim = prim;
 	ls->lamp = ~0;
-	ls->use_mis = true;
 	ls->t = 0.0f;
 	ls->type = LIGHT_STRAND;
 	ls->eval_fac = 1.0f;
-	ls->shader = __float_as_int(v00.z);
+	ls->shader = __float_as_int(v00.z) | SHADER_USE_MIS;
 
 	object_transform_light_sample(kg, ls, object, time);
 }

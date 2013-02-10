@@ -148,11 +148,11 @@ void		WM_event_remove_keymap_handler(ListBase *handlers, wmKeyMap *keymap);
 
 struct wmEventHandler *WM_event_add_ui_handler(
 		const struct bContext *C, ListBase *handlers,
-		int (*func)(struct bContext *C, struct wmEvent *event, void *userdata),
+		int (*func)(struct bContext *C, const struct wmEvent *event, void *userdata),
 		void (*remove)(struct bContext *C, void *userdata), void *userdata);
 
 void		WM_event_remove_ui_handler(ListBase *handlers,
-                                       int (*func)(struct bContext *C, struct wmEvent *event, void *userdata),
+                                       int (*func)(struct bContext *C, const struct wmEvent *event, void *userdata),
                                        void (*remove)(struct bContext *C, void *userdata),
                                        void *userdata, int postpone);
 void		WM_event_remove_area_handler(struct ListBase *handlers, void *area);
@@ -310,6 +310,8 @@ void		WM_event_fileselect_event(struct bContext *C, void *ophandle, int eventval
 #ifndef NDEBUG
 void		WM_event_print(struct wmEvent *event);
 #endif
+
+void		WM_operator_region_active_win_set(struct bContext *C);
 
 			/* drag and drop */
 struct wmDrag		*WM_event_start_drag(struct bContext *C, int icon, int type, void *poin, double value);

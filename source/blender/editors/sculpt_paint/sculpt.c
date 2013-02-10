@@ -654,7 +654,6 @@ static int sculpt_brush_test_cyl(SculptBrushTest *test, float co[3], float locat
 /* ===== Sculpting =====
  *
  */
-  
 
 static float overlapped_curve(Brush *br, float x)
 {
@@ -4527,7 +4526,7 @@ static void SCULPT_OT_set_persistent_base(wmOperatorType *ot)
 
 static void sculpt_dynamic_topology_triangulate(BMesh *bm)
 {
-	BMO_op_callf(bm, BMO_FLAG_DEFAULTS, "triangulate faces=%af");
+	BM_mesh_triangulate(bm, false, false, NULL, NULL);
 }
 
 void sculpt_pbvh_clear(Object *ob)
@@ -4571,6 +4570,7 @@ void sculpt_dynamic_topology_enable(bContext *C)
 	ss->bm = BM_mesh_create(&bm_mesh_allocsize_default);
 
 	BM_mesh_bm_from_me(ss->bm, me, TRUE, ob->shapenr);
+	BM_mesh_normals_update(ss->bm, false);
 	sculpt_dynamic_topology_triangulate(ss->bm);
 	BM_data_layer_add(ss->bm, &ss->bm->vdata, CD_PAINT_MASK);
 	BM_mesh_normals_update(ss->bm, TRUE);

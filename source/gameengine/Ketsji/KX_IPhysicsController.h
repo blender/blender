@@ -70,11 +70,14 @@ public:
 	virtual void	RelativeRotate(const MT_Matrix3x3& drot,bool local)=0;
 	virtual void	ApplyTorque(const MT_Vector3& torque,bool local)=0;
 	virtual void	ApplyForce(const MT_Vector3& force,bool local)=0;
+	virtual void	SetWalkDirection(const MT_Vector3& dir,bool local)=0;
 	virtual MT_Vector3 GetLinearVelocity()=0;
 	virtual MT_Vector3 GetAngularVelocity()=0;
 	virtual MT_Vector3 GetVelocity(const MT_Point3& pos)=0;
+	virtual MT_Vector3 GetWalkDirection()=0;
 	virtual void	SetAngularVelocity(const MT_Vector3& ang_vel,bool local)=0;
 	virtual void	SetLinearVelocity(const MT_Vector3& lin_vel,bool local)=0;
+	virtual void	Jump()=0;
 	virtual void	resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ) = 0;
 
 	virtual	void	getOrientation(MT_Quaternion& orn)=0;

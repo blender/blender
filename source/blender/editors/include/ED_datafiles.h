@@ -206,6 +206,30 @@ extern char datatoc_mc15_jpg[];
 extern int datatoc_mc16_jpg_size;
 extern char datatoc_mc16_jpg[];
 
+extern int datatoc_mc17_jpg_size;
+extern char datatoc_mc17_jpg[];
+
+extern int datatoc_mc18_jpg_size;
+extern char datatoc_mc18_jpg[];
+
+extern int datatoc_mc19_jpg_size;
+extern char datatoc_mc19_jpg[];
+
+extern int datatoc_mc20_jpg_size;
+extern char datatoc_mc20_jpg[];
+
+extern int datatoc_mc21_jpg_size;
+extern char datatoc_mc21_jpg[];
+
+extern int datatoc_mc22_jpg_size;
+extern char datatoc_mc22_jpg[];
+
+extern int datatoc_mc23_jpg_size;
+extern char datatoc_mc23_jpg[];
+
+extern int datatoc_mc24_jpg_size;
+extern char datatoc_mc24_jpg[];
+
 
 
 #endif /* __ED_DATAFILES_H__ */

@@ -1035,7 +1035,7 @@ static void do_material_tex(GPUShadeInput *shi)
 				GPU_link(mat, "mtex_image", texco, GPU_image(tex->ima, &tex->iuser, FALSE), &tin, &trgb);
 				rgbnor= TEX_RGB;
 
-				talpha= 1;
+				talpha = (tex->ima->flag & IMA_IGNORE_ALPHA) == 0;
 			}
 			else {
 				continue;

@@ -32,7 +32,7 @@ class MASK_UL_layers(UIList):
         mask = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             split = layout.split()
-            split.label(mask.name, icon_value=icon)
+            split.label(text=mask.name, translate=False, icon_value=icon)
             row = split.row(align=True)
             row.prop(mask, "alpha", text="", emboss=False)
             row.prop(mask, "hide", text="", emboss=False)
@@ -40,7 +40,7 @@ class MASK_UL_layers(UIList):
             row.prop(mask, "hide_render", text="", emboss=False)
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
-            layout.label("", icon_value=icon)
+            layout.label(text="", icon_value=icon)
 
 
 class MASK_PT_mask:

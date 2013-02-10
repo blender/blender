@@ -26,7 +26,8 @@ CCL_NAMESPACE_BEGIN
 int system_cpu_thread_count();
 string system_cpu_brand_string();
 int system_cpu_bits();
-bool system_cpu_support_optimized();
+bool system_cpu_support_sse2();
+bool system_cpu_support_sse3();
 
 CCL_NAMESPACE_END
 

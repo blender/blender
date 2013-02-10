@@ -68,6 +68,7 @@ void closest_to_line_segment_v2(float closest[2], const float p[2], const float 
 float dist_to_plane_normalized_v3(const float p[3], const float plane_co[3], const float plane_no_unit[3]);
 float dist_to_plane_v3(const float p[3], const float plane_co[3], const float plane_no[3]);
 float dist_to_line_segment_v3(const float p[3], const float l1[3], const float l2[3]);
+float dist_to_line_v3(const float p[3], const float l1[3], const float l2[3]);
 float closest_to_line_v3(float r[3], const float p[3], const float l1[3], const float l2[3]);
 float closest_to_line_v2(float r[2], const float p[2], const float l1[2], const float l2[2]);
 void closest_to_line_segment_v3(float r[3], const float p[3], const float l1[3], const float l2[3]);
@@ -130,7 +131,7 @@ int isect_ray_tri_epsilon_v3(const float p1[3], const float d[3],
 /* point in polygon */
 int isect_point_quad_v2(const float p[2], const float a[2], const float b[2], const float c[2], const float d[2]);
 
-int isect_point_tri_v2(const float v1[2], const float v2[2], const float v3[2], const float pt[2]);
+int isect_point_tri_v2(const float pt[2], const float v1[2], const float v2[2], const float v3[2]);
 int isect_point_tri_v2_cw(const float pt[2], const float v1[2], const float v2[2], const float v3[2]);
 int isect_point_tri_v2_int(const int x1, const int y1, const int x2, const int y2, const int a, const int b);
 int isect_point_tri_prism_v3(const float p[3], const float v1[3], const float v2[3], const float v3[3]);
@@ -261,6 +262,7 @@ MINLINE void madd_sh_shfl(float r[9], const float sh[3], const float f);
 float form_factor_hemi_poly(float p[3], float n[3],
                             float v1[3], float v2[3], float v3[3], float v4[3]);
 
+bool  axis_dominant_v3_to_m3(float r_mat[3][3], const float normal[3]);
 void  axis_dominant_v3(int *r_axis_a, int *r_axis_b, const float axis[3]);
 float axis_dominant_v3_max(int *r_axis_a, int *r_axis_b, const float axis[3])
 #ifdef __GNUC__

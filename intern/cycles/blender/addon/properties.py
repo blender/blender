@@ -66,9 +66,11 @@ enum_panorama_types = (
 
 enum_curve_presets = (
     ('CUSTOM', "Custom", "Set general parameters"),
-    ('TANGENT_SHADING', "Tangent Normal", "Use planar geometry and tangent normals"),
-    ('TRUE_NORMAL', "True Normal", "Use true normals (good for thin strands)"),
-    ('ACCURATE_PRESET', "Accurate", "Use best settings (suitable for glass materials)"),
+    ('FAST_PLANES', "Fast Planes", "Use camera facing triangles (fast but memory intensive)"),
+    ('TANGENT_SHADING', "Tangent Normal", "Use planar line segments and tangent normals"),
+    ('TRUE_NORMAL', "True Normal", "Use true normals with line segments(good for thin strands)"),
+    ('ACCURATE_PRESET', "Accurate", "Use best line segment settings (suitable for glass materials)"),
+    ('SMOOTH_CURVES', "Smooth Curves", "Use smooth cardinal curves (slowest)"),
     )
 
 enum_curve_primitives = (
@@ -462,8 +464,8 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
                 type=cls,
                 )
         cls.sample_as_light = BoolProperty(
-                name="Sample as Lamp",
-                description="Use direct light sampling for this material, "
+                name="Multiple Importance Sample",
+                description="Use multiple importance sampling for this material, "
                             "disabling may reduce overall noise for large "
                             "objects that emit little light compared to other light sources",
                 default=True,
@@ -499,6 +501,12 @@ class CyclesLampSettings(bpy.types.PropertyGroup):
                 min=1, max=10000,
                 default=1,
                 )
+        cls.use_multiple_importance_sampling = BoolProperty(
+                name="Multiple Importance Sample",
+                description="Use multiple importance sampling for the lamp, "
+                            "reduces noise for area lamps and sharp glossy materials",
+                default=False,
+                )
 
     @classmethod
     def unregister(cls):
@@ -514,8 +522,8 @@ class CyclesWorldSettings(bpy.types.PropertyGroup):
                 type=cls,
                 )
         cls.sample_as_light = BoolProperty(
-                name="Sample as Lamp",
-                description="Use direct light sampling for the environment, "
+                name="Multiple Importance Sample",
+                description="Use multiple importance sampling for the environment, "
                             "enabling for non-solid colors is recommended",
                 default=False,
                 )

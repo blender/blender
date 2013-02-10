@@ -36,7 +36,7 @@
 #include "../node_composite_util.h"
 
 /* **************** Bokeh image Tools  ******************** */
-  
+
 static bNodeSocketTemplate cmp_node_bokehimage_out[] = {
 	{	SOCK_RGBA, 0, N_("Image"),			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}

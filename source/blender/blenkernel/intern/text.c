@@ -171,9 +171,8 @@ void BKE_text_free(Text *text)
 #endif
 }
 
-Text *BKE_text_add(const char *name) 
+Text *BKE_text_add(Main *bmain, const char *name) 
 {
-	Main *bmain = G.main;
 	Text *ta;
 	TextLine *tmp;
 	
@@ -363,9 +362,8 @@ int BKE_text_reload(Text *text)
 	return 1;
 }
 
-Text *BKE_text_load(const char *file, const char *relpath)
+Text *BKE_text_load(Main *bmain, const char *file, const char *relpath)
 {
-	Main *bmain = G.main;
 	FILE *fp;
 	int i, llen, len;
 	unsigned char *buffer;

@@ -114,7 +114,7 @@ static void rna_Material_update_previews(Main *bmain, Scene *scene, PointerRNA *
 	if (ma->nodetree)
 		ntreeClearPreview(ma->nodetree);
 		
-	rna_Material_update(bmain, scene, ptr);
+	WM_main_add_notifier(NC_MATERIAL | ND_SHADING, ma);
 }
 
 

@@ -43,6 +43,7 @@
 
 #include "GHOST_C-api.h"
 
+#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
@@ -110,6 +111,17 @@ void wm_get_screensize(int *width_r, int *height_r)
 	unsigned int uiheight;
 	
 	GHOST_GetMainDisplayDimensions(g_system, &uiwidth, &uiheight);
+	*width_r = uiwidth;
+	*height_r = uiheight;
+}
+
+/* size of all screens, useful since the mouse is bound by this */
+void wm_get_screensize_all(int *width_r, int *height_r)
+{
+	unsigned int uiwidth;
+	unsigned int uiheight;
+
+	GHOST_GetAllDisplayDimensions(g_system, &uiwidth, &uiheight);
 	*width_r = uiwidth;
 	*height_r = uiheight;
 }
@@ -425,10 +437,19 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 			wm_set_apple_prefsize(wm_init_state.size_x, wm_init_state.size_y);
 		}
 #else
+		/* note!, this isnt quite correct, active screen maybe offset 1000s if PX,
+		 * we'd need a wm_get_screensize like function that gives offset,
+		 * in practice the window manager will likely move to the correct monitor */
 		wm_init_state.start_x = 0;
 		wm_init_state.start_y = 0;
-		
 #endif
+
+#if !defined(__APPLE__) && !defined(WIN32)  /* X11 */
+		/* X11, start maximized but use default same size */
+		wm_init_state.size_x = min_ii(wm_init_state.size_x, WM_WIN_INIT_SIZE_X);
+		wm_init_state.size_y = min_ii(wm_init_state.size_y, WM_WIN_INIT_SIZE_Y);
+#endif
+
 	}
 	
 	for (win = wm->windows.first; win; win = win->next) {
@@ -439,8 +460,18 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 				win->sizex = wm_init_state.size_x;
 				win->sizey = wm_init_state.size_y;
 
-				/* we can't properly resize a maximized window */
+#if !defined(__APPLE__) && !defined(WIN32)  /* X11 */
+				if (wm_init_state.override_flag & WIN_OVERRIDE_GEOM) {
+					/* we can't properly resize a maximized window */
+					win->windowstate = GHOST_kWindowStateNormal;
+				}
+				else {
+					/* loading without userpref, default to maximized */
+					win->windowstate = GHOST_kWindowStateMaximized;
+				}
+#else
 				win->windowstate = GHOST_kWindowStateNormal;
+#endif
 
 				wm_init_state.override_flag &= ~WIN_OVERRIDE_GEOM;
 			}
@@ -820,7 +851,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 					
 					GHOST_DisposeRectangle(client_rect);
 					
-					wm_get_screensize(&scr_w, &scr_h);
+					wm_get_screensize_all(&scr_w, &scr_h);
 					sizex = r - l;
 					sizey = b - t;
 					posx = l;

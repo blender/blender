@@ -76,6 +76,9 @@ extern "C" {
 
 #include "MEM_guardedalloc.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 }
 
 #include "ExtraHandler.h"
@@ -96,9 +99,9 @@ extern "C" {
 // creates empties for each imported bone on layer 2, for debugging
 // #define ARMATURE_TEST
 
-DocumentImporter::DocumentImporter(bContext *C, const char *filename) :
+DocumentImporter::DocumentImporter(bContext *C, const ImportSettings *import_settings) :
+    import_settings(import_settings),
 	mImportStage(General),
-	mFilename(filename),
 	mContext(C),
 	armature_importer(&unit_converter, &mesh_importer, &anim_importer, CTX_data_scene(C)),
 	mesh_importer(&unit_converter, &armature_importer, CTX_data_scene(C)),
@@ -128,7 +131,9 @@ bool DocumentImporter::import()
 	// deselect all to select new objects
 	BKE_scene_base_deselect_all(CTX_data_scene(mContext));
 
-	if (!root.loadDocument(mFilename)) {
+	std::string mFilename = std::string(this->import_settings->filepath);
+	const std::string encodedFilename = bc_url_encode(mFilename);
+	if (!root.loadDocument(encodedFilename)) {
 		fprintf(stderr, "COLLADAFW::Root::loadDocument() returned false on 1st pass\n");
 		return false;
 	}
@@ -143,7 +148,7 @@ bool DocumentImporter::import()
 	COLLADASaxFWL::Loader loader2;
 	COLLADAFW::Root root2(&loader2, this);
 	
-	if (!root2.loadDocument(mFilename)) {
+	if (!root2.loadDocument(encodedFilename)) {
 		fprintf(stderr, "COLLADAFW::Root::loadDocument() returned false on 2nd pass\n");
 		return false;
 	}
@@ -184,29 +189,47 @@ void DocumentImporter::finish()
 		Scene *sce = CTX_data_scene(mContext);
 		
 		// for scene unit settings: system, scale_length
+
 		RNA_id_pointer_create(&sce->id, &sceneptr);
 		unit_settings = RNA_pointer_get(&sceneptr, "unit_settings");
 		system = RNA_struct_find_property(&unit_settings, "system");
 		scale = RNA_struct_find_property(&unit_settings, "scale_length");
-		
-		switch (unit_converter.isMetricSystem()) {
-			case UnitConverter::Metric:
-				RNA_property_enum_set(&unit_settings, system, USER_UNIT_METRIC);
-				break;
-			case UnitConverter::Imperial:
-				RNA_property_enum_set(&unit_settings, system, USER_UNIT_IMPERIAL);
-				break;
-			default:
-				RNA_property_enum_set(&unit_settings, system, USER_UNIT_NONE);
-				break;
-		}
-		RNA_property_float_set(&unit_settings, scale, unit_converter.getLinearMeter());
-		
-		const COLLADAFW::NodePointerArray& roots = (*it)->getRootNodes();
 
+		if (this->import_settings->import_units) {
+			
+			switch (unit_converter.isMetricSystem()) {
+				case UnitConverter::Metric:
+					RNA_property_enum_set(&unit_settings, system, USER_UNIT_METRIC);
+					break;
+				case UnitConverter::Imperial:
+					RNA_property_enum_set(&unit_settings, system, USER_UNIT_IMPERIAL);
+					break;
+				default:
+					RNA_property_enum_set(&unit_settings, system, USER_UNIT_NONE);
+					break;
+			}
+			float unit_factor = unit_converter.getLinearMeter();
+			RNA_property_float_set(&unit_settings, scale, unit_factor);
+			fprintf(stdout, "Collada: Adjusting Blender units to Importset units: %f.\n", unit_factor);
+
+		}
+		else {
+			// TODO: add automatic scaling for the case when Blender units 
+			//       and import units are set to different values.
+		}
+
+		// Write nodes to scene
+		const COLLADAFW::NodePointerArray& roots = (*it)->getRootNodes();
 		for (unsigned int i = 0; i < roots.getCount(); i++) {
 			write_node(roots[i], NULL, sce, NULL, false);
 		}
+
+		// update scene
+		Main *bmain = CTX_data_main(mContext);
+		DAG_scene_sort(bmain, sce);
+		DAG_ids_flush_update(bmain, 0);
+		WM_event_add_notifier(mContext, NC_OBJECT | ND_TRANSFORM, NULL);
+
 	}
 
 
@@ -414,7 +437,7 @@ void DocumentImporter::create_constraints(ExtraTags *et, Object *ob){
 		std::string name;
 		short* type = 0;
 		et->setData("type", type);
-		bConstraint * con = BKE_add_ob_constraint(ob, "Test_con", *type);
+		BKE_add_ob_constraint(ob, "Test_con", *type);
 		
 	}
 }
@@ -424,11 +447,16 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 	Object *ob = NULL;
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
 	bool read_transform = true;
-
-	ExtraTags *et = getExtraTags(node->getUniqueId());
+	std::string id   = node->getOriginalId();
+	std::string name = node->getName();
 
 	std::vector<Object *> *objects_done = new std::vector<Object *>();
-    
+
+	fprintf(stderr,
+			"Writing node id='%s', name='%s'\n",
+			id.c_str(),
+			name.c_str());
+
 	if (is_joint) {
 		armature_importer.add_joint(node, parent_node == NULL || parent_node->getType() != COLLADAFW::Node::JOINT, par, sce);
 	}
@@ -450,13 +478,21 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 		while (geom_done < geom.getCount()) {
 			ob = mesh_importer.create_mesh_object(node, geom[geom_done], false, uid_material_map,
 			                                      material_texture_mapping_map);
-			objects_done->push_back(ob);
+			if (ob == NULL) {
+				fprintf(stderr,
+						"<node id=\"%s\", name=\"%s\" >...contains a reference to an unknown instance_mesh.\n",
+						id.c_str(),
+						name.c_str());
+			}
+			else {
+				objects_done->push_back(ob);
+			}
 			++geom_done;
 		}
 		while (camera_done < camera.getCount()) {
 			ob = create_camera_object(camera[camera_done], sce);
 			if (ob == NULL) {
-				std::string id = node->getOriginalId();
+				std::string id   = node->getOriginalId();
 				std::string name = node->getName();
 				fprintf(stderr, "<node id=\"%s\", name=\"%s\" >...contains a reference to an unknown instance_camera.\n", id.c_str(), name.c_str());
 			}
@@ -539,8 +575,11 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 	}
 	// if node has child nodes write them
 	COLLADAFW::NodePointerArray &child_nodes = node->getChildNodes();
-	for (unsigned int i = 0; i < child_nodes.getCount(); i++) {
-		write_node(child_nodes[i], node, sce, ob, is_library_node);
+	if (objects_done->size() > 0) {
+		ob = *objects_done->begin();
+		for (unsigned int i = 0; i < child_nodes.getCount(); i++) {
+			write_node(child_nodes[i], node, sce, ob, is_library_node);
+		}
 	}
 }
 
@@ -603,7 +642,7 @@ bool DocumentImporter::writeMaterial(const COLLADAFW::Material *cmat)
 		return true;
 		
 	const std::string& str_mat_id = cmat->getName().size() ? cmat->getName() : cmat->getOriginalId();
-	Material *ma = BKE_material_add((char *)str_mat_id.c_str());
+	Material *ma = BKE_material_add(G.main, (char *)str_mat_id.c_str());
 	
 	this->uid_effect_map[cmat->getInstantiatedEffect()] = ma;
 	this->uid_material_map[cmat->getUniqueId()] = ma;
@@ -627,7 +666,7 @@ MTex *DocumentImporter::create_texture(COLLADAFW::EffectCommon *ef, COLLADAFW::T
 	
 	ma->mtex[i] = add_mtex();
 	ma->mtex[i]->texco = TEXCO_UV;
-	ma->mtex[i]->tex = add_texture("Texture");
+	ma->mtex[i]->tex = add_texture(G.main, "Texture");
 	ma->mtex[i]->tex->type = TEX_IMAGE;
 	ma->mtex[i]->tex->ima = uid_image_map[ima_uid];
 	
@@ -833,8 +872,8 @@ bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
 	
 	cam_id = camera->getOriginalId();
 	cam_name = camera->getName();
-	if (cam_name.size()) cam = (Camera *)BKE_camera_add((char *)cam_name.c_str());
-	else cam = (Camera *)BKE_camera_add((char *)cam_id.c_str());
+	if (cam_name.size()) cam = (Camera *)BKE_camera_add(G.main, (char *)cam_name.c_str());
+	else cam = (Camera *)BKE_camera_add(G.main, (char *)cam_id.c_str());
 	
 	if (!cam) {
 		fprintf(stderr, "Cannot create camera.\n");
@@ -948,7 +987,7 @@ bool DocumentImporter::writeImage(const COLLADAFW::Image *image)
 		
 	// XXX maybe it is necessary to check if the path is absolute or relative
 	const std::string& filepath = image->getImageURI().toNativePath();
-	const char *filename = (const char *)mFilename.c_str();
+	const char *filename = (const char *)filepath.c_str();
 	char dir[FILE_MAX];
 	char full_path[FILE_MAX];
 	
@@ -983,8 +1022,8 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 
 	la_id = light->getOriginalId();
 	la_name = light->getName();
-	if (la_name.size()) lamp = (Lamp *)BKE_lamp_add((char *)la_name.c_str());
-	else lamp = (Lamp *)BKE_lamp_add((char *)la_id.c_str());
+	if (la_name.size()) lamp = (Lamp *)BKE_lamp_add(G.main, (char *)la_name.c_str());
+	else lamp = (Lamp *)BKE_lamp_add(G.main, (char *)la_id.c_str());
 
 	if (!lamp) {
 		fprintf(stderr, "Cannot create lamp.\n");
@@ -1205,8 +1244,9 @@ bool DocumentImporter::is_armature(COLLADAFW::Node *node){
 		if(child_nodes[i]->getType() == COLLADAFW::Node::JOINT) return true;
 		else continue;
 	}
-    
+
 	//no child is JOINT
 	return false;
 
 }
+

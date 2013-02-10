@@ -1595,11 +1595,12 @@ static uiBlock *icon_view_menu(bContext *C, ARegion *ar, void *arg_litem)
 	for (a = 0; item[a].identifier; a++) {
 		int x, y;
 		
-		x = (a % 8) * UI_UNIT_X * 6;
-		y = (a / 8) * UI_UNIT_X * 6;
+		/* XXX hardcoded size to 5 x unit */
+		x = (a % 8) * UI_UNIT_X * 5;
+		y = (a / 8) * UI_UNIT_X * 5;
 		
 		icon = item[a].icon;
-		but = uiDefIconButR_prop(block, ROW, 0, icon, x, y, UI_UNIT_X * 6, UI_UNIT_Y * 6, &cb.ptr, cb.prop, -1, 0, icon, -1, -1, NULL);
+		but = uiDefIconButR_prop(block, ROW, 0, icon, x, y, UI_UNIT_X * 5, UI_UNIT_Y * 5, &cb.ptr, cb.prop, -1, 0, icon, -1, -1, NULL);
 		uiButSetFlag(but, UI_HAS_ICON | UI_ICON_PREVIEW);
 	}
 

@@ -41,6 +41,7 @@ struct FModifier;
 struct ChannelDriver;
 struct DriverVar;
 struct DriverTarget;
+struct FCM_EnvelopeData;
 
 struct bAction;
 struct BezTriple;
@@ -180,6 +181,8 @@ float evaluate_time_fmodifiers(ListBase *modifiers, struct FCurve *fcu, float cv
 void evaluate_value_fmodifiers(ListBase *modifiers, struct FCurve *fcu, float *cvalue, float evaltime);
 
 void fcurve_bake_modifiers(struct FCurve *fcu, int start, int end);
+
+int BKE_fcm_envelope_find_index(struct FCM_EnvelopeData *array, float frame, int arraylen, short *exists);
 
 /* ************** F-Curves API ******************** */
 

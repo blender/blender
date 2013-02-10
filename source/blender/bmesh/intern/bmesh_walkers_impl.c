@@ -858,7 +858,7 @@ static void *bmw_EdgeringWalker_step(BMWalker *walker)
 	if (!EDGE_CHECK(e)) {
 		/* walker won't traverse to a non-manifold edge, but may
 		 * be started on one, and should not traverse *away* from
-		 * a non-manfold edge (non-manifold edges are never in an
+		 * a non-manifold edge (non-manifold edges are never in an
 		 * edge ring with manifold edges */
 		return e;
 	}

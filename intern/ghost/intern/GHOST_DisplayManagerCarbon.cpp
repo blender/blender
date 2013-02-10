@@ -150,7 +150,7 @@ GHOST_TSuccess GHOST_DisplayManagerCarbon::setCurrentDisplaySetting(GHOST_TUns8 
 #endif // GHOST_DEBUG
 
 	CGDisplayErr err = ::CGDisplaySwitchToMode(m_displayIDs[display], displayModeValues);
-        
+
 	return err == CGDisplayNoErr ? GHOST_kSuccess : GHOST_kFailure;
 }
 
@@ -158,19 +158,18 @@ GHOST_TSuccess GHOST_DisplayManagerCarbon::setCurrentDisplaySetting(GHOST_TUns8 
 long GHOST_DisplayManagerCarbon::getValue(CFDictionaryRef values, CFStringRef key) const
 {
 	CFNumberRef numberValue = (CFNumberRef) CFDictionaryGetValue(values, key);
-    
+
 	if (!numberValue)
 	{
 		return -1;
 	}
-    
+
 	long intValue;
-    
+
 	if (!CFNumberGetValue(numberValue, kCFNumberLongType, &intValue))
 	{
 		return -1;
 	}
-    
+
 	return intValue;
 }
-

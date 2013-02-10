@@ -57,6 +57,7 @@
 #include "BKE_tessmesh.h"
 #include "BKE_multires.h"
 #include "BKE_armature.h"
+#include "BKE_lattice.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -699,9 +700,11 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 			}
 			else {
 				if (around == V3D_CENTROID) {
-					const float total_div = 1.0f / (float)em->bm->totvert;
-					BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-						madd_v3_v3fl(cent, eve->co, total_div);
+					if (em->bm->totvert) {
+						const float total_div = 1.0f / (float)em->bm->totvert;
+						BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+							madd_v3_v3fl(cent, eve->co, total_div);
+						}
 					}
 				}
 				else {
@@ -898,6 +901,20 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					}
 					break;
 				}
+			}
+			else if (ob->type == OB_LATTICE) {
+				Lattice *lt = ob->data;
+
+				if (centermode == ORIGIN_TO_CURSOR) { /* done */ }
+				else if (around == V3D_CENTROID) { BKE_lattice_center_median(lt, cent); }
+				else { BKE_lattice_center_bounds(lt, cent); }
+
+				negate_v3_v3(cent_neg, cent);
+				BKE_lattice_translate(lt, cent_neg, 1);
+
+				tot_change++;
+				lt->id.flag |= LIB_DOIT;
+				do_inverse_offset = TRUE;
 			}
 
 			/* offset other selected objects */

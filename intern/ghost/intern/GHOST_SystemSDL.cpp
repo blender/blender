@@ -114,6 +114,20 @@ GHOST_SystemSDL::init() {
 	return GHOST_kFailure;
 }
 
+/**
+ * Returns the dimensions of the main display on this system.
+ * \return The dimension of the main display.
+ */
+void
+GHOST_SystemSDL::getAllDisplayDimensions(GHOST_TUns32& width,
+                                         GHOST_TUns32& height) const
+{
+	SDL_DisplayMode mode;
+	SDL_GetDesktopDisplayMode(0, &mode); /* note, always 0 display */
+	width = mode.w;
+	height = mode.h;
+}
+
 void
 GHOST_SystemSDL::getMainDisplayDimensions(GHOST_TUns32& width,
                                           GHOST_TUns32& height) const

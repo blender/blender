@@ -90,7 +90,7 @@ public:
 		int status = BPY_filepath_exec(_context, fn, reports);
 #else
 		int status;
-		Text *text = BKE_text_load(fn, G.main->name);
+		Text *text = BKE_text_load(G.main, fn, G.main->name);
 		if (text) {
 			status = BPY_text_exec(_context, text, reports, false);
 			BKE_text_unlink(G.main, text);
@@ -167,7 +167,7 @@ private:
 		vector<string> pathnames;
 		StringUtils::getPathName(_path, "", pathnames);
 
-		struct Text *text = BKE_text_add("tmp_freestyle_initpath.txt");
+		struct Text *text = BKE_text_add(G.main, "tmp_freestyle_initpath.txt");
 		string cmd = "import sys\n";
 		txt_insert_buf(text, const_cast<char*>(cmd.c_str()));
 

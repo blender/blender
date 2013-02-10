@@ -100,7 +100,13 @@ public:
 	 * \return The dimension of the main display.
 	 */
 	virtual void getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const;
-	
+
+	/**
+	 * Returns the dimensions of all displays on this system.
+	 * \return The dimension of the main display.
+	 */
+	virtual void getAllDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const;
+
 	/**
 	 * Create a new window.
 	 * The new window is added to the list of windows managed. 

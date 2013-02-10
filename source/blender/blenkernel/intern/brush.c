@@ -109,11 +109,11 @@ static void brush_defaults(Brush *brush)
 
 /* Datablock add/copy/free/make_local */
 
-Brush *BKE_brush_add(const char *name)
+Brush *BKE_brush_add(Main *bmain, const char *name)
 {
 	Brush *brush;
 
-	brush = BKE_libblock_alloc(&G.main->brush, ID_BR, name);
+	brush = BKE_libblock_alloc(&bmain->brush, ID_BR, name);
 
 	/* enable fake user by default */
 	brush->id.flag |= LIB_FAKEUSER;
@@ -419,7 +419,7 @@ int BKE_brush_texture_set_nr(Brush *brush, int nr)
 	idtest = (ID *)BLI_findlink(&G.main->tex, nr - 1);
 	if (idtest == NULL) { /* new tex */
 		if (id) idtest = (ID *)BKE_texture_copy((Tex *)id);
-		else idtest = (ID *)add_texture("Tex");
+		else idtest = (ID *)add_texture(G.main, "Tex");
 		idtest->us--;
 	}
 	if (idtest != id) {
@@ -656,7 +656,7 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
  * available.  my ussual solution to this is to use the
  * ratio of change of the size to change the unprojected
  * radius.  Not completely convinced that is correct.
- * In anycase, a better solution is needed to prevent
+ * In any case, a better solution is needed to prevent
  * inconsistency. */
 
 void BKE_brush_size_set(Scene *scene, Brush *brush, int size)

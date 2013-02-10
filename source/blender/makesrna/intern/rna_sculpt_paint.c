@@ -676,12 +676,15 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 
 void RNA_def_sculpt_paint(BlenderRNA *brna)
 {
+	/* *** Non-Animated *** */
+	RNA_define_animate_sdna(false);
 	rna_def_paint(brna);
 	rna_def_sculpt(brna);
 	rna_def_uv_sculpt(brna);
 	rna_def_vertex_paint(brna);
 	rna_def_image_paint(brna);
 	rna_def_particle_edit(brna);
+	RNA_define_animate_sdna(true);
 }
 
 #endif

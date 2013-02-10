@@ -128,7 +128,6 @@ protected:
 	
 	int m_iterations;
 	
-	float *m_cached_buffer;
 public:
 	DilateStepOperation();
 	
@@ -147,6 +146,7 @@ public:
 	 * Deinitialize the execution
 	 */
 	void deinitExecution();
+	void deinitializeTileData(rcti *rect, void *data);
 	
 	void setIterations(int iterations) { this->m_iterations = iterations; }
 	

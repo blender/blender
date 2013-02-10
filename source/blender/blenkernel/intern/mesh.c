@@ -445,11 +445,11 @@ static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)
 	mesh->totface = 0;
 }
 
-Mesh *BKE_mesh_add(const char *name)
+Mesh *BKE_mesh_add(Main *bmain, const char *name)
 {
 	Mesh *me;
 	
-	me = BKE_libblock_alloc(&G.main->mesh, ID_ME, name);
+	me = BKE_libblock_alloc(&bmain->mesh, ID_ME, name);
 	
 	me->size[0] = me->size[1] = me->size[2] = 1.0;
 	me->smoothresh = 30;
@@ -466,7 +466,7 @@ Mesh *BKE_mesh_add(const char *name)
 	return me;
 }
 
-Mesh *BKE_mesh_copy(Mesh *me)
+Mesh *BKE_mesh_copy_ex(Main *bmain, Mesh *me)
 {
 	Mesh *men;
 	MTFace *tface;
@@ -474,7 +474,7 @@ Mesh *BKE_mesh_copy(Mesh *me)
 	int a, i;
 	const int do_tessface = ((me->totface != 0) && (me->totpoly == 0)); /* only do tessface if we have no polys */
 	
-	men = BKE_libblock_copy(&me->id);
+	men = BKE_libblock_copy_ex(bmain, &me->id);
 	
 	men->mat = MEM_dupallocN(me->mat);
 	for (a = 0; a < men->totcol; a++) {
@@ -525,6 +525,11 @@ Mesh *BKE_mesh_copy(Mesh *me)
 	if (men->key) men->key->from = (ID *)men;
 
 	return men;
+}
+
+Mesh *BKE_mesh_copy(Mesh *me)
+{
+	return BKE_mesh_copy_ex(G.main, me);
 }
 
 BMesh *BKE_mesh_to_bmesh(Mesh *me, Object *ob)
@@ -1489,7 +1494,7 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, int use_orco_u
 	if (dm == NULL) {
 		if (BKE_mesh_nurbs_displist_to_mdata(ob, dispbase, &allvert, &totvert,
 		                                     &alledge, &totedge, &allloop,
-		                                     &allpoly, (use_orco_uv)? &alluv: NULL,
+		                                     &allpoly, (use_orco_uv) ? &alluv : NULL,
 		                                     &totloop, &totpoly) != 0)
 		{
 			/* Error initializing */
@@ -1497,7 +1502,7 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, int use_orco_u
 		}
 
 		/* make mesh */
-		me = BKE_mesh_add("Mesh");
+		me = BKE_mesh_add(G.main, "Mesh");
 		me->totvert = totvert;
 		me->totedge = totedge;
 		me->totloop = totloop;
@@ -1519,7 +1524,7 @@ void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, int use_orco_u
 		BKE_mesh_calc_edges(me, TRUE);
 	}
 	else {
-		me = BKE_mesh_add("Mesh");
+		me = BKE_mesh_add(G.main, "Mesh");
 		DM_to_mesh(dm, me, ob);
 	}
 
@@ -1635,7 +1640,7 @@ void BKE_mesh_from_curve(Scene *scene, Object *ob)
 	BLI_edgehash_free(eh, NULL);
 
 	if (edges.first) {
-		Curve *cu = BKE_curve_add(ob->id.name + 2, OB_CURVE);
+		Curve *cu = BKE_curve_add(G.main, ob->id.name + 2, OB_CURVE);
 		cu->flag |= CU_3D;
 
 		while (edges.first) {
@@ -2574,6 +2579,7 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 			
 			totfilltri = BLI_scanfill_calc(&sf_ctx, 0);
 			BLI_assert(totfilltri <= mp->totloop - 2);
+			(void)totfilltri;
 
 			for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next, mf++) {
 				mface_to_poly_map[mface_index] = poly_index;

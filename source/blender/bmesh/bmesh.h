@@ -268,8 +268,9 @@ extern "C" {
 
 #include "intern/bmesh_inline.h"
 
-#include "tools/bmesh_decimate.h"
 #include "tools/bmesh_bevel.h"
+#include "tools/bmesh_decimate.h"
+#include "tools/bmesh_triangulate.h"
 
 #ifdef __cplusplus
 }

@@ -384,6 +384,7 @@ static void offset_in_two_planes(EdgeHalf *e1, EdgeHalf *e2, EdgeHalf *emid,
 	int iret;
 
 	BLI_assert(f1 != NULL && f2 != NULL);
+	(void)f1, (void)f2;  /* UNUSED */
 
 	/* get direction vectors for two offset lines */
 	sub_v3_v3v3(dir1, v->co, BM_edge_other_vert(e1->e, v)->co);
@@ -518,7 +519,7 @@ static int bev_ccw_test(BMEdge *a, BMEdge *b, BMFace *f)
  * We want M to make M*A=B where A has the left side above, as columns
  * and B has the right side as columns - both extended into homogeneous coords.
  * So M = B*(Ainverse).  Doing Ainverse by hand gives the code below.
-*/
+ */
 static int make_unit_square_map(const float va[3], const float vmid[3], const float vb[3],
                                 float r_mat[4][4])
 {
@@ -1304,7 +1305,7 @@ static void fix_vmesh_tangents(VMesh *vm, BevVert *bv)
 
 		/* Also want (i, 1, k) snapped to plane of adjacent face for
 		 * 1 < k < ns - 1, but current initial cage and subdiv rules
-		  * ensure this, so nothing to do */
+		 * ensure this, so nothing to do */
 	} while ((bndv = bndv->next) != vm->boundstart);
 }
 
@@ -1654,7 +1655,13 @@ static void build_vmesh(BevelParams *bp, BMesh *bm, BevVert *bv)
 		if (v->ebev) {
 			va = mesh_vert(vm, i, 0, 0)->co;
 			vb = mesh_vert(vm, i, 0, ns)->co;
-			project_to_edge(v->ebev->e, va, vb, midco);
+			if (bv->edgecount == 3 && bv->selcount == 1) {
+				/* special case: profile cuts the third face, so line it up with that */
+				copy_v3_v3(midco, bv->v->co);
+			}
+			else {
+				project_to_edge(v->ebev->e, va, vb, midco);
+			}
 			for (k = 1; k < ns; k++) {
 				get_point_on_round_edge(v->ebev, k, va, midco, vb, co);
 				copy_v3_v3(mesh_vert(vm, i, 0, k)->co, co);

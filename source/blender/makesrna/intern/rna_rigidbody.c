@@ -64,13 +64,13 @@ EnumPropertyItem rigidbody_ob_shape_items[] = {
 
 /* collision shapes of constraints in rigid body sim */
 EnumPropertyItem rigidbody_con_type_items[] = {
-	{RBC_TYPE_FIXED, "FIXED", ICON_FORCE_FORCE, "Fixed", "Glue rigid bodies together"},
-	{RBC_TYPE_POINT, "POINT", ICON_FORCE_FORCE, "Point", "Constrain rigid bodies to move around common pivot point"},
-	{RBC_TYPE_HINGE, "HINGE", ICON_FORCE_FORCE, "Hinge", "Restrict rigid body rotation to one axis"},
-	{RBC_TYPE_SLIDER, "SLIDER", ICON_FORCE_FORCE, "Slider", "Restrict rigid body translation to one axis"},
-	{RBC_TYPE_PISTON, "PISTON", ICON_FORCE_FORCE, "Piston", "Restrict rigid body translation and rotation to one axis"},
-	{RBC_TYPE_6DOF, "GENERIC", ICON_FORCE_FORCE, "Generic", "Restrict translation and rotation to specified axes"},
-	{RBC_TYPE_6DOF_SPRING, "GENERIC_SPRING", ICON_FORCE_FORCE, "Generic Spring",
+	{RBC_TYPE_FIXED, "FIXED", ICON_NONE, "Fixed", "Glue rigid bodies together"},
+	{RBC_TYPE_POINT, "POINT", ICON_NONE, "Point", "Constrain rigid bodies to move around common pivot point"},
+	{RBC_TYPE_HINGE, "HINGE", ICON_NONE, "Hinge", "Restrict rigid body rotation to one axis"},
+	{RBC_TYPE_SLIDER, "SLIDER", ICON_NONE, "Slider", "Restrict rigid body translation to one axis"},
+	{RBC_TYPE_PISTON, "PISTON", ICON_NONE, "Piston", "Restrict rigid body translation and rotation to one axis"},
+	{RBC_TYPE_6DOF, "GENERIC", ICON_NONE, "Generic", "Restrict translation and rotation to specified axes"},
+	{RBC_TYPE_6DOF_SPRING, "GENERIC_SPRING", ICON_NONE, "Generic Spring",
 	                       "Restrict translation and rotation to specified axes with springs"},
 	{0, NULL, 0, NULL, NULL}};
 
@@ -187,25 +187,6 @@ static void rna_RigidBodyOb_disabled_set(PointerRNA *ptr, int value)
 	}
 #endif
 }
-
-static void rna_RigidBodyOb_shape_set(PointerRNA *ptr, int value)
-{
-	RigidBodyOb *rbo = (RigidBodyOb *)ptr->data;
-	Object *ob = (Object *)ptr->id.data;
-	
-	rbo->shape = value;
-	
-	/* force creation of new collision shape reflecting this */
-	BKE_rigidbody_validate_sim_shape(ob, TRUE);
-
-#ifdef WITH_BULLET
-	/* now tell RB sim about it */
-	if (rbo->physics_object && rbo->physics_shape) {
-		RB_body_set_collision_shape(rbo->physics_object, rbo->physics_shape);
-	}
-#endif
-}
-
 
 static void rna_RigidBodyOb_mass_set(PointerRNA *ptr, float value)
 {
@@ -642,8 +623,8 @@ static void rna_def_rigidbody_object(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "collision_shape", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "shape");
 	RNA_def_property_enum_items(prop, rigidbody_ob_shape_items);
-	RNA_def_property_enum_funcs(prop, NULL, "rna_RigidBodyOb_shape_set", NULL);
 	RNA_def_property_ui_text(prop, "Collision Shape", "Collision Shape of object in Rigid Body Simulations");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_reset");
 	
 	prop = RNA_def_property(srna, "kinematic", PROP_BOOLEAN, PROP_NONE);
@@ -970,7 +951,7 @@ static void rna_def_rigidbody_constraint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Upper Z Angle Limit", "Upper limit of Z axis rotation");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_RigidBodyOb_reset");
 
-	prop = RNA_def_property(srna, "spring_stiffness_x", PROP_FLOAT, PROP_UNIT_LENGTH);
+	prop = RNA_def_property(srna, "spring_stiffness_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spring_stiffness_x");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);
@@ -979,7 +960,7 @@ static void rna_def_rigidbody_constraint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "X Axis Stiffness", "Stiffness on the X axis");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
 
-	prop = RNA_def_property(srna, "spring_stiffness_y", PROP_FLOAT, PROP_UNIT_LENGTH);
+	prop = RNA_def_property(srna, "spring_stiffness_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spring_stiffness_y");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);
@@ -988,7 +969,7 @@ static void rna_def_rigidbody_constraint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Y Axis Stiffness", "Stiffness on the Y axis");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
 
-	prop = RNA_def_property(srna, "spring_stiffness_z", PROP_FLOAT, PROP_UNIT_LENGTH);
+	prop = RNA_def_property(srna, "spring_stiffness_z", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spring_stiffness_z");
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);

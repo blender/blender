@@ -47,6 +47,7 @@
 #include "ArmatureImporter.h"
 #include "ControllerExporter.h"
 #include "MeshImporter.h"
+#include "ImportSettings.h"
 
 
 
@@ -63,7 +64,7 @@ public:
 		Controller,		//!< Second pass to collect controller data
 	};
 	/** Constructor */
-	DocumentImporter(bContext *C, const char *filename);
+	DocumentImporter(bContext *C, const ImportSettings *import_settings);
 
 	/** Destructor */
 	~DocumentImporter();
@@ -137,10 +138,10 @@ public:
 
 
 private:
+	const ImportSettings *import_settings;
 
 	/** Current import stage we're in. */
 	ImportStage mImportStage;
-	std::string mFilename;
 
 	bContext *mContext;
 

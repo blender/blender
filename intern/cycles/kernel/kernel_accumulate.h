@@ -220,7 +220,7 @@ __device_inline void path_radiance_accum_ao(PathRadiance *L, float3 throughput, 
 #endif
 }
 
-__device_inline void path_radiance_accum_light(PathRadiance *L, float3 throughput, BsdfEval *bsdf_eval, float3 shadow, int bounce, bool is_lamp)
+__device_inline void path_radiance_accum_light(PathRadiance *L, float3 throughput, BsdfEval *bsdf_eval, float3 shadow, float shadow_fac, int bounce, bool is_lamp)
 {
 #ifdef __PASSES__
 	if(L->use_light_pass) {
@@ -233,9 +233,9 @@ __device_inline void path_radiance_accum_light(PathRadiance *L, float3 throughpu
 			if(is_lamp) {
 				float3 sum = throughput*(bsdf_eval->diffuse + bsdf_eval->glossy + bsdf_eval->transmission);
 
-				L->shadow.x += shadow.x;
-				L->shadow.y += shadow.y;
-				L->shadow.z += shadow.z;
+				L->shadow.x += shadow.x*shadow_fac;
+				L->shadow.y += shadow.y*shadow_fac;
+				L->shadow.z += shadow.z*shadow_fac;
 				L->shadow.w += average(sum);
 			}
 		}

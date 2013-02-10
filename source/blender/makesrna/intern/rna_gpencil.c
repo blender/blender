@@ -118,7 +118,7 @@ static void rna_GPencil_stroke_point_add(bGPDstroke *stroke, int count)
 		if (stroke->points == NULL)
 			stroke->points = MEM_callocN(sizeof(bGPDspoint) * count, "gp_stroke_points");
 		else
-			stroke->points = MEM_reallocN(stroke->points, sizeof(bGPDspoint) * (stroke->totpoints + count));
+			stroke->points = MEM_recallocN(stroke->points, sizeof(bGPDspoint) * (stroke->totpoints + count));
 
 		stroke->totpoints += count;
 	}

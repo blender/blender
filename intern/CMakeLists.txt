@@ -69,6 +69,14 @@ if(WITH_INTERNATIONAL)
 	add_subdirectory(locale)
 endif()
 
+if(WITH_BULLET)
+	add_subdirectory(rigidbody)
+endif()
+
+if(WITH_COMPOSITOR)
+	add_subdirectory(opencl)
+endif()
+
 # only windows needs utf16 converter
 if(WIN32)
 	add_subdirectory(utfconv)

@@ -19,7 +19,6 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
-import os
 
 
 def ui_style_items(col, context):
@@ -183,6 +182,7 @@ class USERPREF_PT_interface(Panel):
         return (userpref.active_section == 'INTERFACE')
 
     def draw(self, context):
+        import sys
         layout = self.layout
 
         userpref = context.user_preferences
@@ -268,7 +268,7 @@ class USERPREF_PT_interface(Panel):
 
         col.prop(view, "show_splash")
 
-        if os.name == "nt":
+        if sys.platform[:3] == "win":
             col.prop(view, "use_quit_dialog")
 
 
@@ -403,6 +403,7 @@ class USERPREF_PT_system(Panel):
         return (userpref.active_section == 'SYSTEM')
 
     def draw(self, context):
+        import sys
         layout = self.layout
 
         userpref = context.user_preferences
@@ -466,6 +467,9 @@ class USERPREF_PT_system(Panel):
         col.label(text="Window Draw Method:")
         col.prop(system, "window_draw_method", text="")
         col.prop(system, "multi_sample", text="")
+        if sys.platform == "linux" and system.multi_sample != 'NONE':
+            col.label(text="Might fail for Mesh editing selection!")
+            col.separator()
         col.prop(system, "use_region_overlap")
         col.label(text="Text Draw Options:")
         col.prop(system, "use_text_antialiasing")
@@ -774,9 +778,10 @@ class USERPREF_PT_theme(Panel):
             layout.separator()
         elif theme.theme_area == 'BONE_COLOR_SETS':
             col = split.column()
+            pgettext = bpy.app.translations.pgettext
 
             for i, ui in enumerate(theme.bone_color_sets):
-                col.label(text="Color Set" + " %d:" % (i + 1))  # i starts from 0
+                col.label(text=pgettext("Color Set %d:") % (i + 1), translate=False)  # i starts from 0
 
                 row = col.row()
 
@@ -963,6 +968,8 @@ class USERPREF_PT_input(Panel, InputKeyMapPanel):
         return (userpref.active_section == 'INPUT')
 
     def draw_input_prefs(self, inputs, layout):
+        import sys
+
         # General settings
         row = layout.row()
         col = row.column()
@@ -1014,6 +1021,11 @@ class USERPREF_PT_input(Panel, InputKeyMapPanel):
         sub.label(text="Mouse Wheel:")
         sub.prop(inputs, "invert_zoom_wheel", text="Invert Wheel Zoom Direction")
         #sub.prop(view, "wheel_scroll_lines", text="Scroll Lines")
+
+        if sys.platform == "darwin":
+            sub = col.column()
+            sub.label(text="Trackpad:")
+            sub.prop(inputs, "use_trackpad_natural")
 
         col.separator()
         sub = col.column()
@@ -1077,6 +1089,8 @@ class USERPREF_PT_addons(Panel):
 
     @staticmethod
     def is_user_addon(mod, user_addon_paths):
+        import os
+
         if not user_addon_paths:
             for path in (bpy.utils.script_path_user(),
                          bpy.utils.script_path_pref()):
@@ -1099,6 +1113,7 @@ class USERPREF_PT_addons(Panel):
             box.label(l)
 
     def draw(self, context):
+        import os
         import addon_utils
 
         layout = self.layout
@@ -1203,15 +1218,15 @@ class USERPREF_PT_addons(Panel):
                     if mod:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="File:")
-                        split.label(text=mod.__file__)
+                        split.label(text=mod.__file__, translate=False)
                     if info["author"]:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Author:")
-                        split.label(text=info["author"])
+                        split.label(text=info["author"], translate=False)
                     if info["version"]:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Version:")
-                        split.label(text='.'.join(str(x) for x in info["version"]))
+                        split.label(text='.'.join(str(x) for x in info["version"]), translate=False)
                     if info["warning"]:
                         split = colsub.row().split(percentage=0.15)
                         split.label(text="Warning:")
@@ -1268,7 +1283,7 @@ class USERPREF_PT_addons(Panel):
                 colsub = box.column()
                 row = colsub.row()
 
-                row.label(text=module_name, icon='ERROR')
+                row.label(text=module_name, translate=False, icon='ERROR')
 
                 if is_enabled:
                     row.operator("wm.addon_disable", icon='CHECKBOX_HLT', text="", emboss=False).module = module_name

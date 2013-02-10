@@ -261,6 +261,7 @@ void            BKE_area_region_free(struct SpaceType *st, struct ARegion *ar);
 void            BKE_screen_area_free(struct ScrArea *sa);
 
 struct ARegion *BKE_area_find_region_type(struct ScrArea *sa, int type);
+struct ARegion *BKE_area_find_region_active_win(struct ScrArea *sa);
 struct ScrArea *BKE_screen_find_big_area(struct bScreen *sc, const int spacetype, const short min);
 
 void BKE_screen_view3d_sync(struct View3D *v3d, struct Scene *scene);

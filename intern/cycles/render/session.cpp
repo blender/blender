@@ -381,7 +381,7 @@ bool Session::acquire_tile(Device *tile_device, RenderTile& rtile)
 
 	buffer_params.get_offset_stride(rtile.offset, rtile.stride);
 
-	RenderBuffers *tilebuffers = new RenderBuffers(tile_device);
+	RenderBuffers *tilebuffers;
 
 	/* allocate buffers */
 	if(params.progressive_refine) {
@@ -552,7 +552,7 @@ void Session::run_cpu()
 			}
 			else if(need_tonemap) {
 				/* tonemap only if we do not reset, we don't we don't
-				 * wan't to show the result of an incomplete sample*/
+				 * want to show the result of an incomplete sample*/
 				tonemap();
 			}
 

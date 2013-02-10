@@ -763,6 +763,19 @@ int BM_edge_is_manifold(BMEdge *e)
 #endif
 
 /**
+ * Tests that the edge is manifold and
+ * that both its faces point the same way.
+ */
+bool BM_edge_is_contiguous(BMEdge *e)
+{
+	const BMLoop *l = e->l;
+	const BMLoop *l_other = l->radial_next;
+	return (l && (l_other != l) &&               /* not 0 or 1 face users */
+	             (l_other->radial_next == l) &&  /* 2 face users */
+	             (l_other->v != l->v));
+}
+
+/**
  * Tests whether or not an edge is on the boundary
  * of a shell (has one face associated with it)
  */
@@ -1007,6 +1020,22 @@ void BM_edge_ordered_verts(BMEdge *edge, BMVert **r_v1, BMVert **r_v2)
 }
 
 /**
+ * Check if the loop is convex or concave
+ * (depends on face normal)
+ */
+bool BM_loop_is_convex(BMLoop *l)
+{
+	float e_dir_prev[3];
+	float e_dir_next[3];
+	float l_no[3];
+
+	sub_v3_v3v3(e_dir_prev, l->prev->v->co, l->v->co);
+	sub_v3_v3v3(e_dir_next, l->next->v->co, l->v->co);
+	cross_v3_v3v3(l_no, e_dir_next, e_dir_prev);
+	return dot_v3v3(l_no, l->f->no) > 0.0f;
+}
+
+/**
  * Calculates the angle between the previous and next loops
  * (angle at this loops face corner).
  *
@@ -1034,11 +1063,34 @@ void BM_loop_calc_face_normal(BMLoop *l, float r_normal[3])
 	                  l->v->co,
 	                  l->next->v->co) != 0.0f)
 	{
-		return;
+		/* pass */
 	}
 	else {
 		copy_v3_v3(r_normal, l->f->no);
 	}
+}
+
+/**
+ * \brief BM_loop_calc_face_direction
+ *
+ * Calculate the direction a loop is pointing.
+ *
+ * \param l The loop to calculate the direction at
+ * \param r_dir Resulting direction
+ */
+void BM_loop_calc_face_direction(BMLoop *l, float r_dir[3])
+{
+	float v_prev[3];
+	float v_next[3];
+
+	sub_v3_v3v3(v_prev, l->v->co, l->prev->v->co);
+	sub_v3_v3v3(v_next, l->next->v->co, l->v->co);
+
+	normalize_v3(v_prev);
+	normalize_v3(v_next);
+
+	add_v3_v3v3(r_dir, v_prev, v_next);
+	normalize_v3(r_dir);
 }
 
 /**
@@ -1054,23 +1106,27 @@ void BM_loop_calc_face_tangent(BMLoop *l, float r_tangent[3])
 {
 	float v_prev[3];
 	float v_next[3];
+	float dir[3];
 
 	sub_v3_v3v3(v_prev, l->prev->v->co, l->v->co);
 	sub_v3_v3v3(v_next, l->v->co, l->next->v->co);
 
 	normalize_v3(v_prev);
 	normalize_v3(v_next);
+	add_v3_v3v3(dir, v_prev, v_next);
 
-	if (compare_v3v3(v_prev, v_next, FLT_EPSILON) == false) {
-		float dir[3];
+	if (compare_v3v3(v_prev, v_next, FLT_EPSILON * 10.0f) == false) {
 		float nor[3]; /* for this purpose doesn't need to be normalized */
-		add_v3_v3v3(dir, v_prev, v_next);
 		cross_v3_v3v3(nor, v_prev, v_next);
+		/* concave face check */
+		if (UNLIKELY(dot_v3v3(nor, l->f->no) < 0.0f)) {
+			negate_v3(nor);
+		}
 		cross_v3_v3v3(r_tangent, dir, nor);
 	}
 	else {
 		/* prev/next are the same - compare with face normal since we don't have one */
-		cross_v3_v3v3(r_tangent, v_next, l->f->no);
+		cross_v3_v3v3(r_tangent, dir, l->f->no);
 	}
 
 	normalize_v3(r_tangent);

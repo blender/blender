@@ -45,8 +45,8 @@ public:
 	virtual ~NG_LoopBackNetworkDeviceInterface();
 
 	/**
-	  * Clear message buffer
-	  */
+	 * Clear message buffer
+	 */
 	virtual void NextFrame();
 
 	bool Connect(char *address, unsigned int port, char *password,

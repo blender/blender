@@ -529,11 +529,11 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 					int scene_frame = b_scene.frame_current();
 					int image_frame = image_user_frame_number(b_image_node.image_user(), scene_frame);
 					image->filename = b_image.name() + "@" + string_printf("%d", image_frame);
-					image->is_builtin = true;
+					image->builtin_data = b_image.ptr.data;
 				}
 				else {
 					image->filename = image_user_file_path(b_image_node.image_user(), b_image, b_scene.frame_current());
-					image->is_builtin = false;
+					image->builtin_data = NULL;
 				}
 
 				image->animated = b_image_node.image_user().use_auto_refresh();
@@ -558,11 +558,12 @@ static ShaderNode *add_node(Scene *scene, BL::BlendData b_data, BL::Scene b_scen
 					int scene_frame = b_scene.frame_current();
 					int image_frame = image_user_frame_number(b_env_node.image_user(), scene_frame);
 					env->filename = b_image.name() + "@" + string_printf("%d", image_frame);
-					env->is_builtin = true;
+					env->builtin_data = b_image.ptr.data;
 				}
 				else {
 					env->filename = image_user_file_path(b_env_node.image_user(), b_image, b_scene.frame_current());
 					env->animated = b_env_node.image_user().use_auto_refresh();
+					env->builtin_data = NULL;
 				}
 			}
 			env->color_space = EnvironmentTextureNode::color_space_enum[(int)b_env_node.color_space()];

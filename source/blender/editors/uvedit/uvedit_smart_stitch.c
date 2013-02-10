@@ -650,7 +650,7 @@ static void stitch_uv_edge_generate_linked_edges(GHash *edge_hash, StitchState *
 						edge2 = BLI_ghash_lookup(edge_hash, &edgetmp);
 
 						/* here I am taking care of non manifold case, assuming more than two matching edges.
-							 * I am not too sure we want this though */
+						 * I am not too sure we want this though */
 						last_set->next = edge2;
 						last_set = edge2;
 						/* set first, similarly to uv elements. Now we can iterate among common edges easily */

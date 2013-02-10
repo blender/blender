@@ -734,8 +734,8 @@ static void bake_single_vertex(BakeShade *bs, VertRen *vert, float u, float v)
 }
 
 /* Bake all vertices of a face. Actually, this still works on a face-by-face
-   basis, and each vertex on each face is shaded. Vertex colors are a property
-   of loops, not vertices. */
+ * basis, and each vertex on each face is shaded. Vertex colors are a property
+ * of loops, not vertices. */
 static void shade_verts(BakeShade *bs)
 {
 	VlakRen *vlr = bs->vlr;
@@ -756,7 +756,7 @@ static void shade_verts(BakeShade *bs)
 	zero_v3(bs->dyco);
 
 	/* Shade each vertex of the face. u and v are barycentric coordinates; since
-	   we're only interested in vertices, these will be 0 or 1. */
+	 * we're only interested in vertices, these will be 0 or 1. */
 	if ((vlr->flag & R_FACE_SPLIT) == 0) {
 		/* Processing triangle face, whole quad, or first half of split quad. */
 
@@ -818,10 +818,13 @@ static void shade_tface(BakeShade *bs)
 			BLI_lock_thread(LOCK_CUSTOM1);
 			userdata = bs->ibuf->userdata;
 			if (userdata == NULL) /* since the thread was locked, its possible another thread alloced the value */
-				userdata = MEM_callocN(sizeof(BakeImBufuserData), "BakeMask");
+				userdata = MEM_callocN(sizeof(BakeImBufuserData), "BakeImBufuserData");
 
-			if (bs->use_mask)
-				userdata->mask_buffer = MEM_callocN(sizeof(char) * bs->rectx * bs->recty, "BakeMask");
+			if (bs->use_mask) {
+				if (userdata->mask_buffer == NULL) {
+					userdata->mask_buffer = MEM_callocN(sizeof(char) * bs->rectx * bs->recty, "BakeMask");
+				}
+			}
 
 			if (bs->use_displacement_buffer)
 				userdata->displacement_buffer = MEM_callocN(sizeof(float) * bs->rectx * bs->recty, "BakeDisp");
@@ -1069,12 +1072,14 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 				if (!ibuf)
 					continue;
 
-				userdata = (BakeImBufuserData *) ibuf->userdata;
-				RE_bake_ibuf_filter(ibuf, userdata->mask_buffer, re->r.bake_filter);
+				userdata = (BakeImBufuserData *)ibuf->userdata;
+				if (userdata) {
+					RE_bake_ibuf_filter(ibuf, userdata->mask_buffer, re->r.bake_filter);
 
-				if (use_displacement_buffer) {
-					RE_bake_ibuf_normalize_displacement(ibuf, userdata->displacement_buffer, userdata->mask_buffer,
-					                                    displacement_min, displacement_max);
+					if (use_displacement_buffer) {
+						RE_bake_ibuf_normalize_displacement(ibuf, userdata->displacement_buffer, userdata->mask_buffer,
+						                                    displacement_min, displacement_max);
+					}
 				}
 
 				ibuf->userflags |= IB_BITMAPDIRTY;

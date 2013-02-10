@@ -76,11 +76,11 @@ typedef struct RigidBodyWorld {
 /* Flags for RigidBodyWorld */
 typedef enum eRigidBodyWorld_Flag {
 	/* should sim world be skipped when evaluating (user setting) */
-	RBW_FLAG_MUTED				= (1<<0),
+	RBW_FLAG_MUTED				= (1 << 0),
 	/* sim data needs to be rebuilt */
-	RBW_FLAG_NEEDS_REBUILD		= (1<<1),
+	RBW_FLAG_NEEDS_REBUILD		= (1 << 1),
 	/* usse split impulse when stepping the simulation */
-	RBW_FLAG_USE_SPLIT_IMPULSE	= (1<<2)
+	RBW_FLAG_USE_SPLIT_IMPULSE	= (1 << 2)
 } eRigidBodyWorld_Flag;
 
 /* ******************************** */

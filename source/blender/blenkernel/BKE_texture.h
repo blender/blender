@@ -44,6 +44,7 @@ struct EnvMap;
 struct HaloRen;
 struct Lamp;
 struct LampRen;
+struct Main;
 struct Material;
 struct MTex;
 struct OceanTex;
@@ -69,7 +70,7 @@ int colorband_element_remove(struct ColorBand *coba, int index);
 void colorband_update_sort(struct ColorBand *coba);
 
 void default_tex(struct Tex *tex);
-struct Tex *add_texture(const char *name);
+struct Tex *add_texture(struct Main *bmain, const char *name);
 void tex_set_type(struct Tex *tex, int type);
 void default_mtex(struct MTex *mtex);
 struct MTex *add_mtex(void);

@@ -75,6 +75,11 @@ void  KX_BulletPhysicsController::SetLinVelocityMin(float val)
 	CcdPhysicsController::SetLinVelocityMin(val);
 }
 
+void KX_BulletPhysicsController::Jump()
+{
+	CcdPhysicsController::Jump();
+}
+
 float KX_BulletPhysicsController::GetLinVelocityMax()
 {
 	return (float)CcdPhysicsController::GetLinVelocityMax();
@@ -119,6 +124,11 @@ void	KX_BulletPhysicsController::RelativeTranslate(const MT_Vector3& dloc,bool l
 
 }
 
+void	KX_BulletPhysicsController::SetWalkDirection(const MT_Vector3& dloc,bool local)
+{
+	CcdPhysicsController::SetWalkDirection(dloc[0],dloc[1],dloc[2],local);
+}
+
 void	KX_BulletPhysicsController::RelativeRotate(const MT_Matrix3x3& drot,bool local)
 {
 	float	rotval[9];
@@ -153,6 +163,13 @@ MT_Vector3 KX_BulletPhysicsController::GetVelocity(const MT_Point3& pos)
 	float linVel[3];
 	CcdPhysicsController::GetVelocity(pos[0], pos[1], pos[2], linVel[0],linVel[1],linVel[2]);
 	return MT_Vector3(linVel[0],linVel[1],linVel[2]);
+}
+
+MT_Vector3 KX_BulletPhysicsController::GetWalkDirection()
+{
+	float dir[3];
+	CcdPhysicsController::GetWalkDirection(dir[0], dir[1], dir[2]);
+	return MT_Vector3(dir[0], dir[1], dir[2]);
 }
 
 void	KX_BulletPhysicsController::SetAngularVelocity(const MT_Vector3& ang_vel,bool local)

@@ -71,12 +71,13 @@ class TEXT_HT_header(Header):
 
             row = layout.row()
             if text.filepath:
+                pgettext = bpy.app.translations.pgettext
                 if text.is_dirty:
-                    row.label(text="File" + ": *%r " %
-                              text.filepath + "(unsaved)")
+                    row.label(text=pgettext("File: *%r (unsaved)") %
+                              text.filepath, translate=False)
                 else:
-                    row.label(text="File" + ": %r" %
-                              text.filepath)
+                    row.label(text=pgettext("File: %r") %
+                              text.filepath, translate=False)
             else:
                 row.label(text="Text: External"
                           if text.library

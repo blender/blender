@@ -20,7 +20,8 @@ class MATERIAL_UL_matslots_example(bpy.types.UIList):
             # You should always start your row layout by a label (icon + text), this will also make the row easily
             # selectable in the list!
             # We use icon_value of label, as our given icon is an integer value, not an enum ID.
-            layout.label(ma.name if ma else "", icon_value=icon)
+            # Note "data" names should never be translated!
+            layout.label(text=ma.name if ma else "", translate=False, icon_value=icon)
             # And now we can add other UI stuff...
             # Here, we add nodes info if this material uses (old!) shading nodes.
             if ma and not context.scene.render.use_shading_nodes:
@@ -28,15 +29,15 @@ class MATERIAL_UL_matslots_example(bpy.types.UIList):
                 if manode:
                     # The static method UILayout.icon returns the integer value of the icon ID "computed" for the given
                     # RNA object.
-                    layout.label("Node %s" % manode.name, icon_value=layout.icon(manode))
+                    layout.label(text="Node %s" % manode.name, translate=False, icon_value=layout.icon(manode))
                 elif ma.use_nodes:
-                    layout.label("Node <none>")
+                    layout.label(text="Node <none>", translate=False)
                 else:
-                    layout.label("")
+                    layout.label(text="")
         # 'GRID' layout type should be as compact as possible (typically a single icon!).
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
-            layout.label("", icon_value=icon)
+            layout.label(text="", icon_value=icon)
 
 
 # And now we can use this list everywhere in Blender. Here is a small example panel.

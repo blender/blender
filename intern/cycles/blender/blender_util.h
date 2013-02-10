@@ -39,9 +39,9 @@ float *BKE_image_get_float_pixels_for_frame(void *image, int frame);
 
 CCL_NAMESPACE_BEGIN
 
-static inline BL::Mesh object_to_mesh(BL::Object self, BL::Scene scene, bool apply_modifiers, bool render)
+static inline BL::Mesh object_to_mesh(BL::BlendData data, BL::Object object, BL::Scene scene, bool apply_modifiers, bool render)
 {
-	return self.to_mesh(scene, apply_modifiers, (render)? 2: 1);
+	return data.meshes.new_from_object(scene, object, apply_modifiers, (render)? 2: 1);
 }
 
 static inline void colorramp_to_array(BL::ColorRamp ramp, float4 *data, int size)

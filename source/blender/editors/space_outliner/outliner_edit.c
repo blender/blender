@@ -1309,8 +1309,8 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 						 * for now, we don't supply one, and just let this use the KeyingSet name */
 						BKE_keyingset_add_path(ks, id, NULL, path, array_index, flag, groupmode);
 						ks->active_path = BLI_countlist(&ks->paths);
+						break;
 					}
-					break;
 					case KEYINGSET_EDITMODE_REMOVE:
 					{
 						/* find the relevant path, then remove it from the KeyingSet */
@@ -1322,8 +1322,8 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 
 							ks->active_path = 0;
 						}
+						break;
 					}
-					break;
 				}
 				
 				/* free path, since it had to be generated */
@@ -1637,7 +1637,7 @@ void OUTLINER_OT_parent_drop(wmOperatorType *ot)
 	ot->poll = ED_operator_outliner_active;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* properties */
 	RNA_def_string(ot->srna, "child", "Object", MAX_ID_NAME, "Child", "Child Object");
@@ -1726,7 +1726,7 @@ void OUTLINER_OT_parent_clear(wmOperatorType *ot)
 	ot->poll = ED_operator_outliner_active;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* properties */
 	RNA_def_string(ot->srna, "dragged_obj", "Object", MAX_ID_NAME, "Child", "Child Object");
@@ -1819,7 +1819,7 @@ void OUTLINER_OT_scene_drop(wmOperatorType *ot)
 	ot->poll = ED_operator_outliner_active;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* properties */
 	RNA_def_string(ot->srna, "object", "Object", MAX_ID_NAME, "Object", "Target Object");
@@ -1883,7 +1883,7 @@ void OUTLINER_OT_material_drop(wmOperatorType *ot)
 	ot->poll = ED_operator_outliner_active;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* properties */
 	RNA_def_string(ot->srna, "object", "Object", MAX_ID_NAME, "Object", "Target Object");

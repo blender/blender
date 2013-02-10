@@ -78,11 +78,11 @@
 
 /* ***************** Library data level operations on action ************** */
 
-bAction *add_empty_action(const char name[])
+bAction *add_empty_action(Main *bmain, const char name[])
 {
 	bAction *act;
 	
-	act = BKE_libblock_alloc(&G.main->action, ID_AC, name);
+	act = BKE_libblock_alloc(&bmain->action, ID_AC, name);
 	
 	return act;
 }	

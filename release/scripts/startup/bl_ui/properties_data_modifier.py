@@ -265,7 +265,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             layout.prop(md, "angle_limit")
             layout.prop(md, "use_dissolve_boundaries")
 
-        layout.label(text="Face Count" + ": %d" % md.face_count)
+        pgettext = bpy.app.translations.pgettext
+        layout.label(text=pgettext("Face Count: %d") % md.face_count, translate=False)
 
     def DISPLACE(self, layout, ob, md):
         has_texture = (md.texture is not None)
