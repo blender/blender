@@ -1710,7 +1710,6 @@ def copy_handwritten_rsts(basepath):
 
     # TODO put this docs in blender's code and use import as per modules above
     handwritten_modules = [
-        "bge.types",
         "bge.logic",
         "bge.render",
         "bge.texture",
@@ -1728,6 +1727,14 @@ def copy_handwritten_rsts(basepath):
         if mod_name not in EXCLUDE_MODULES:
             # copy2 keeps time/date stamps
             shutil.copy2(os.path.join(RST_DIR, "%s.rst" % mod_name), basepath)
+
+    if "bge.types" not in EXCLUDE_MODULES:
+        shutil.copy2(os.path.join(RST_DIR, "bge.types.rst"), basepath)
+
+        bge_types_dir = os.path.join(RST_DIR, "bge_types")
+
+        for i in os.listdir(bge_types_dir):
+            shutil.copy2(os.path.join(bge_types_dir, i), basepath)
 
     # changelog
     shutil.copy2(os.path.join(RST_DIR, "change_log.rst"), basepath)
