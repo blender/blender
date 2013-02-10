@@ -297,7 +297,7 @@
             <gradients>
               <ThemeGradientColors show_grad="FALSE"
                                    gradient="#000000"
-                                   high_gradient="#393939">
+                                   high_gradient="#757575">
               </ThemeGradientColors>
             </gradients>
           </ThemeSpaceGradient>
