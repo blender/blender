@@ -21,6 +21,8 @@ import bpy
 from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
 
+_ = bpy.app.translations.pgettext
+
 
 def active_node_mat(mat):
     # TODO, 2.4x has a pipeline section, for 2.5 we need to communicate
@@ -80,8 +82,7 @@ class MATERIAL_UL_matslots(UIList):
             if ma and not context.scene.render.use_shading_nodes:
                 manode = ma.active_node_material
                 if manode:
-                    pgettext = bpy.app.translations.pgettext
-                    layout.label(text=pgettext("Node %s") % manode.name, translate=False, icon_value=layout.icon(manode))
+                    layout.label(text=_("Node %s") % manode.name, translate=False, icon_value=layout.icon(manode))
                 elif ma.use_nodes:
                     layout.label(text="Node <none>")
                 else:

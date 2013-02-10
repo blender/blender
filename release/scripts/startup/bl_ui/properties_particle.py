@@ -21,6 +21,8 @@ import bpy
 from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 
+_ = bpy.app.translations.pgettext
+
 from bl_ui.properties_physics_common import (point_cache_ui,
                                              effector_weights_ui,
                                              basic_force_field_settings_ui,
@@ -148,8 +150,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
             #row.label(text="Render")
 
             if part.is_fluid:
-                pgettext = bpy.app.translations.pgettext
-                layout.label(text=pgettext("%d fluid particles for this frame") % part.count, translate=False)
+                layout.label(text=_("%d fluid particles for this frame") % part.count, translate=False)
                 return
 
             row = col.row()

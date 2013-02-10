@@ -20,6 +20,8 @@
 import bpy
 from bpy.types import Header, Menu, Panel
 
+_ = bpy.app.translations.pgettext
+
 
 def ui_style_items(col, context):
     """ UI Style settings """
@@ -778,10 +780,9 @@ class USERPREF_PT_theme(Panel):
             layout.separator()
         elif theme.theme_area == 'BONE_COLOR_SETS':
             col = split.column()
-            pgettext = bpy.app.translations.pgettext
 
             for i, ui in enumerate(theme.bone_color_sets):
-                col.label(text=pgettext("Color Set %d:") % (i + 1), translate=False)  # i starts from 0
+                col.label(text=_("Color Set %d:") % (i + 1), translate=False)  # i starts from 0
 
                 row = col.row()
 

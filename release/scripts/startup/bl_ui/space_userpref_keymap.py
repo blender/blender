@@ -20,6 +20,8 @@
 import bpy
 from bpy.types import Menu
 
+_ = bpy.app.translations.pgettext
+
 
 class USERPREF_MT_keyconfigs(Menu):
     bl_label = "KeyPresets"
@@ -97,8 +99,7 @@ class InputKeyMapPanel:
                 subcol = self.indented_layout(col, level + 1)
                 subrow = subcol.row()
                 subrow.prop(km, "show_expanded_items", text="", emboss=False)
-                pgettext = bpy.app.translations.pgettext
-                subrow.label(text=pgettext("%s (Global)") % km.name, translate=False)
+                subrow.label(text=_("%s (Global)") % km.name, translate=False)
             else:
                 km.show_expanded_items = True
 

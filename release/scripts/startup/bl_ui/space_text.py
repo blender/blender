@@ -20,6 +20,8 @@
 import bpy
 from bpy.types import Header, Menu, Panel
 
+_ = bpy.app.translations.pgettext
+
 
 class TEXT_HT_header(Header):
     bl_space_type = 'TEXT_EDITOR'
@@ -71,9 +73,8 @@ class TEXT_HT_header(Header):
 
             row = layout.row()
             if text.filepath:
-                pgettext = bpy.app.translations.pgettext
                 if text.is_dirty:
-                    row.label(text=pgettext("File: *%r (unsaved)") %
+                    row.label(text=_("File: *%r (unsaved)") %
                               text.filepath, translate=False)
                 else:
                     row.label(text=pgettext("File: %r") %

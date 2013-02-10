@@ -20,6 +20,8 @@
 import bpy
 from bpy.types import Panel, Menu
 
+_ = bpy.app.translations.pgettext
+
 
 class FLUID_MT_presets(Menu):
     bl_label = "Fluid Presets"
@@ -64,8 +66,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
 
         if fluid.type == 'DOMAIN':
             # odd formatting here so translation script can extract string
-            pgettext = bpy.app.translations.pgettext
-            layout.operator("fluid.bake", text=pgettext("Bake (Req. Memory: %s)") % fluid.memory_estimate,
+            layout.operator("fluid.bake", text=_("Bake (Req. Memory: %s)") % fluid.memory_estimate,
                             translate=False, icon='MOD_FLUIDSIM')
             split = layout.split()
 
