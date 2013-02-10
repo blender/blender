@@ -19,8 +19,7 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Panel
-
-from bpy.app.translations import pgettext as _
+from bpy.app.translations import pgettext_iface as iface_
 
 
 class ModifierButtonsPanel():
@@ -267,7 +266,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             layout.prop(md, "angle_limit")
             layout.prop(md, "use_dissolve_boundaries")
 
-        layout.label(text=_("Face Count: %d") % md.face_count, translate=False)
+        layout.label(text=iface_("Face Count: %d") % md.face_count, translate=False)
 
     def DISPLACE(self, layout, ob, md):
         has_texture = (md.texture is not None)

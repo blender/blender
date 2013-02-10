@@ -19,8 +19,7 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
-
-from bpy.app.translations import pgettext as _
+from bpy.app.translations import pgettext_iface as iface_
 
 
 def ui_style_items(col, context):
@@ -782,7 +781,7 @@ class USERPREF_PT_theme(Panel):
             col = split.column()
 
             for i, ui in enumerate(theme.bone_color_sets):
-                col.label(text=_("Color Set %d:") % (i + 1), translate=False)  # i starts from 0
+                col.label(text=iface_("Color Set %d:") % (i + 1), translate=False)  # i starts from 0
 
                 row = col.row()
 

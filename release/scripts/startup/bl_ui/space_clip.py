@@ -20,8 +20,7 @@
 
 import bpy
 from bpy.types import Panel, Header, Menu, UIList
-
-from bpy.app.translations import pgettext as _
+from bpy.app.translations import pgettext_iface as iface_
 
 
 class CLIP_UL_tracking_objects(UIList):
@@ -913,9 +912,11 @@ class CLIP_MT_view(Menu):
 
             ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
 
-            text = _("Zoom %d:%d")
+            text = iface_("Zoom %d:%d")
             for a, b in ratios:
-                layout.operator("clip.view_zoom_ratio", text=text % (a, b), translate=False).ratio = a / b
+                layout.operator("clip.view_zoom_ratio",
+                                text=text % (a, b),
+                                translate=False).ratio = a / b
         else:
             if sc.view == 'GRAPH':
                 layout.operator_context = 'INVOKE_REGION_PREVIEW'

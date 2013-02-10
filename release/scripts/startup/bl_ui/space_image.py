@@ -20,8 +20,7 @@
 import bpy
 from bpy.types import Header, Menu, Panel
 from bl_ui.properties_paint_common import UnifiedPaintPanel, brush_texture_settings
-
-from bpy.app.translations import pgettext as _
+from bpy.app.translations import pgettext_iface as iface_
 
 
 class ImagePaintPanel(UnifiedPaintPanel):
@@ -73,7 +72,7 @@ class IMAGE_MT_view(Menu):
         ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
 
         for a, b in ratios:
-            layout.operator("image.view_zoom_ratio", text=_("Zoom %d:%d") % (a, b), translate=False).ratio = a / b
+            layout.operator("image.view_zoom_ratio", text=iface_("Zoom %d:%d") % (a, b), translate=False).ratio = a / b
 
         layout.separator()
 
