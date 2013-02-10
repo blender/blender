@@ -1196,6 +1196,11 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
+
+	if (ob->mode & OB_MODE_SCULPT) {
+		/* ensure that grid paint mask layer is created */
+		ED_sculpt_mask_layers_ensure(ob, mmd);
+	}
 	
 	return OPERATOR_FINISHED;
 }
