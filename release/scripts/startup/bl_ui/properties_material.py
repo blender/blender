@@ -21,7 +21,7 @@ import bpy
 from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
 
-_ = bpy.app.translations.pgettext
+from bpy.app.translations import pgettext as _
 
 
 def active_node_mat(mat):

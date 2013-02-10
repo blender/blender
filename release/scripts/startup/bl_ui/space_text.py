@@ -20,7 +20,7 @@
 import bpy
 from bpy.types import Header, Menu, Panel
 
-_ = bpy.app.translations.pgettext
+from bpy.app.translations import pgettext as _
 
 
 class TEXT_HT_header(Header):

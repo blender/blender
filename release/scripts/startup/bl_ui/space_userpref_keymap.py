@@ -20,7 +20,7 @@
 import bpy
 from bpy.types import Menu
 
-_ = bpy.app.translations.pgettext
+from bpy.app.translations import pgettext as _
 
 
 class USERPREF_MT_keyconfigs(Menu):

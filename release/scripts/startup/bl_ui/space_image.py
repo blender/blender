@@ -19,10 +19,9 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
-from bl_ui.properties_paint_common import UnifiedPaintPanel
-from bl_ui.properties_paint_common import brush_texture_settings
+from bl_ui.properties_paint_common import UnifiedPaintPanel, brush_texture_settings
 
-_ = bpy.app.translations.pgettext
+from bpy.app.translations import pgettext as _
 
 
 class ImagePaintPanel(UnifiedPaintPanel):

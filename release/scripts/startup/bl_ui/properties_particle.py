@@ -21,7 +21,7 @@ import bpy
 from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
 
-_ = bpy.app.translations.pgettext
+from bpy.app.translations import pgettext as _
 
 from bl_ui.properties_physics_common import (point_cache_ui,
                                              effector_weights_ui,

@@ -21,7 +21,7 @@
 import bpy
 from bpy.types import Panel, Header, Menu, UIList
 
-_ = bpy.app.translations.pgettext
+from bpy.app.translations import pgettext as _
 
 
 class CLIP_UL_tracking_objects(UIList):

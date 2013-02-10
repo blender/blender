@@ -20,7 +20,7 @@
 import bpy
 from bpy.types import Panel, Menu
 
-_ = bpy.app.translations.pgettext
+from bpy.app.translations import pgettext as _
 
 
 class FLUID_MT_presets(Menu):
