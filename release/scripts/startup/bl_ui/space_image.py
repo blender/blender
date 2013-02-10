@@ -22,6 +22,7 @@ from bpy.types import Header, Menu, Panel
 from bl_ui.properties_paint_common import UnifiedPaintPanel
 from bl_ui.properties_paint_common import brush_texture_settings
 
+
 class ImagePaintPanel(UnifiedPaintPanel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
@@ -722,7 +723,7 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, Panel):
 
         col = layout.column()
         col.template_ID_preview(brush, "texture", new="texture.new", rows=3, cols=8)
-        
+
         brush_texture_settings(col, brush, 0)
 
 

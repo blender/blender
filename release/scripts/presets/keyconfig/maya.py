@@ -218,7 +218,7 @@ kmi.properties.use = True
 kmi = km.keymap_items.new('transform.mirror', 'M', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('wm.context_toggle', 'TAB', 'PRESS', shift=True)
 kmi.properties.data_path = 'tool_settings.use_snap'
-kmi = km.keymap_items.new('WM_OT_context_menu_enum', 'TAB', 'PRESS', shift=True, ctrl=True);
+kmi = km.keymap_items.new('WM_OT_context_menu_enum', 'TAB', 'PRESS', shift=True, ctrl=True)
 kmi.properties.data_path = 'tool_settings.snap_element'
 
 kmi = km.keymap_items.new('view3d.enable_manipulator', 'W', 'PRESS')

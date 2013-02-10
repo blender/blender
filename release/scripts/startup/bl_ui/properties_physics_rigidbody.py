@@ -32,22 +32,22 @@ class PHYSICS_PT_rigid_body(PHYSICS_PT_rigidbody_panel, Panel):
 
     @classmethod
     def poll(cls, context):
-        ob = context.object
-        rd = context.scene.render
-        return (ob and ob.rigid_body and (not rd.use_game_engine))
+        obj = context.object
+        return (obj and obj.rigid_body and
+                (not context.scene.render.use_game_engine))
 
     def draw_header(self, context):
         obj = context.object
         rbo = obj.rigid_body
         if rbo is not None:
-            self.layout.prop(rbo, "enabled", text="");
+            self.layout.prop(rbo, "enabled", text="")
 
     def draw(self, context):
         layout = self.layout
 
         ob = context.object
         rbo = ob.rigid_body
-        
+
         if rbo is not None:
             layout.prop(rbo, "type", text="Type")
             layout.prop(rbo, "kinematic", text="Animated")
@@ -61,34 +61,35 @@ class PHYSICS_PT_rigid_body_collisions(PHYSICS_PT_rigidbody_panel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.object and context.object.rigid_body and 
+        obj = context.object
+        return (obj and obj.rigid_body and
                 (not context.scene.render.use_game_engine))
-        
+
     def draw(self, context):
         layout = self.layout
 
         ob = context.object
         rbo = ob.rigid_body
-        
+
         layout.prop(rbo, "collision_shape", text="Shape")
-        
+
         split = layout.split()
-        
+
         col = split.column()
         col.label(text="Surface Response:")
         col.prop(rbo, "friction")
         col.prop(rbo, "restitution", text="Bounciness")
-        
+
         col = split.column()
         col.label(text="Sensitivity:")
         if rbo.collision_shape in {'MESH', 'CONE'}:
             col.prop(rbo, "collision_margin", text="Margin")
         else:
-            col.prop(rbo, "use_margin");
+            col.prop(rbo, "use_margin")
             sub = col.column()
             sub.active = rbo.use_margin
             sub.prop(rbo, "collision_margin", text="Margin")
-            
+
         layout.prop(rbo, "collision_groups")
 
 
@@ -98,22 +99,23 @@ class PHYSICS_PT_rigid_body_dynamics(PHYSICS_PT_rigidbody_panel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.object and context.object.rigid_body and
-                context.object.rigid_body.type == 'ACTIVE' and
+        obj = context.object
+        return (obj and obj.rigid_body and
+                obj.rigid_body.type == 'ACTIVE' and
                 (not context.scene.render.use_game_engine))
-        
+
     def draw(self, context):
         layout = self.layout
 
         ob = context.object
         rbo = ob.rigid_body
-        
+
         #col = layout.column(align=1)
         #col.label(text="Activation:")
         # XXX: settings such as activate on collison/etc. 
-        
-        split = layout.split();
-        
+
+        split = layout.split()
+
         col = split.column()
         col.label(text="Deactivation:")
         col.prop(rbo, "use_deactivation")
@@ -123,7 +125,7 @@ class PHYSICS_PT_rigid_body_dynamics(PHYSICS_PT_rigidbody_panel, Panel):
         sub.prop(rbo, "deactivate_linear_velocity", text="Linear Vel")
         sub.prop(rbo, "deactivate_angular_velocity", text="Angular Vel")
         # TODO: other params such as time?
-        
+
         col = split.column()
         col.label(text="Damping:")
         col.prop(rbo, "linear_damping", text="Translation")

@@ -2695,7 +2695,7 @@ class VIEW3D_PT_etch_a_ton(Panel):
 
             colsub = col.column(align=True)
             colsub.prop(toolsettings, "use_etch_autoname")
-            sub = colsub.column() 
+            sub = colsub.column()
             sub.enabled = not toolsettings.use_etch_autoname
             sub.prop(toolsettings, "etch_number")
             sub.prop(toolsettings, "etch_side")

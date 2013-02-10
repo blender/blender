@@ -543,7 +543,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
                     # spacing between particles when the fluid is at rest. This
                     # makes it easier to set stable initial conditions.
                     particle_volume = part.mass / fluid.rest_density
-                    spacing = pow(particle_volume, 1/3)
+                    spacing = pow(particle_volume, 1.0 / 3.0)
                     sub = col.row()
                     sub.label(text="Spacing: %g" % spacing)
 

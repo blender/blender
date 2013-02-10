@@ -44,12 +44,14 @@ def physics_add(self, layout, md, name, type, typeicon, toggles):
     else:
         sub.operator("object.modifier_add", text=name, icon=typeicon).type = type
 
+
 def physics_add_special(self, layout, data, name, addop, removeop, typeicon):
     sub = layout.row(align=True)
     if data:
         sub.operator(removeop, text=name, icon='X')
     else:
         sub.operator(addop, text=name, icon=typeicon)
+
 
 class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
     bl_label = ""
@@ -86,13 +88,13 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
             physics_add_special(self, col, ob.rigid_body, "Rigid Body",
                                 "rigidbody.object_add",
                                 "rigidbody.object_remove",
-                                'MESH_ICOSPHERE') # XXX: need dedicated icon
+                                'MESH_ICOSPHERE')  # XXX: need dedicated icon
 
         # all types of objects can have rigid body constraint
         physics_add_special(self, col, ob.rigid_body_constraint, "Rigid Body Constraint",
                             "rigidbody.constraint_add",
                             "rigidbody.constraint_remove",
-                            'CONSTRAINT') # RB_TODO needs better icon
+                            'CONSTRAINT')  # RB_TODO needs better icon
 
 
 # cache-type can be 'PSYS' 'HAIR' 'SMOKE' etc
