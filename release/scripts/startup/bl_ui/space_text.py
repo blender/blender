@@ -73,13 +73,15 @@ class TEXT_HT_header(Header):
             if text.filepath:
                 pgettext = bpy.app.translations.pgettext
                 if text.is_dirty:
-                    row.label(text=pgettext("File: *%r (unsaved)") % text.filepath, translate=False)
+                    row.label(text=pgettext("File: *%r (unsaved)") %
+                              text.filepath, translate=False)
                 else:
-                    row.label(text=pgettext("File: %r") % text.filepath, translate=False)
-            elif text.library:
-                row.label(text="Text: External")
+                    row.label(text=pgettext("File: %r") %
+                              text.filepath, translate=False)
             else:
-                row.label(text="Text: Internal")
+                row.label(text="Text: External"
+                          if text.library
+                          else "Text: Internal")
 
 
 class TEXT_PT_properties(Panel):

@@ -313,11 +313,9 @@ class CLIP_PT_tools_solve(CLIP_PT_tracking_panel, Panel):
 
         col = layout.column(align=True)
 
-        # Note: avoid complex code in "text" values, they can't be handled right by i18n messages extractor script!
-        if tracking_object.is_camera:
-            col.operator("clip.solve_camera", text="Camera Motion")
-        else:
-            col.operator("clip.solve_camera", text="Object Motion")
+        col.operator("clip.solve_camera",
+                     text="Camera Motion" if tracking_object.is_camera
+                     else "Object Motion")
         col.operator("clip.clear_solution")
 
         col = layout.column()
@@ -911,7 +909,9 @@ class CLIP_MT_view(Menu):
 
             text = bpy.app.translations.pgettext("Zoom %d:%d")
             for a, b in ratios:
-                layout.operator("clip.view_zoom_ratio", text=text % (a, b), translate=False).ratio = a / b
+                layout.operator("clip.view_zoom_ratio",
+                                text=text % (a, b),
+                                translate=False).ratio = a / b
         else:
             if sc.view == 'GRAPH':
                 layout.operator_context = 'INVOKE_REGION_PREVIEW'
