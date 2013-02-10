@@ -2656,12 +2656,12 @@ static void node_composit_buts_ellipsemask(uiLayout *layout, bContext *UNUSED(C)
 
 static void node_composit_buts_composite(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-	uiItemR(layout, ptr, "use_straight_alpha", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "use_alpha", 0, NULL, ICON_NONE);
 }
 
 static void node_composit_buts_viewer(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
-	uiItemR(layout, ptr, "use_straight_alpha", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "use_alpha", 0, NULL, ICON_NONE);
 }
 
 static void node_composit_buts_viewer_but(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

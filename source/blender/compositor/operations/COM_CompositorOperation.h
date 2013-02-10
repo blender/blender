@@ -66,8 +66,8 @@ private:
 	 */
 	SocketReader *m_depthInput;
 
-	/* node input has got straight alpha which shall be premultiplied */
-	bool m_straightAlpha;
+	/* Ignore any alpha input */
+	bool m_ignoreAlpha;
 
 public:
 	CompositorOperation();
@@ -79,6 +79,6 @@ public:
 	void deinitExecution();
 	const CompositorPriority getRenderPriority() const { return COM_PRIORITY_MEDIUM; }
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
-	void setStraightAlpha(bool value) { this->m_straightAlpha = value; }
+	void setIgnoreAlpha(bool value) { this->m_ignoreAlpha = value; }
 };
 #endif
