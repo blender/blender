@@ -361,27 +361,58 @@ def dump_py_messages_from_files(messages, check_ctxt, files):
     bpy_struct = bpy.types.ID.__base__
 
     # Helper function
-    def extract_strings(node):
+    def extract_strings_ex(node, is_split=False):
         """
         Recursively get strings, needed in case we have "Blah" + "Blah", passed as an argument in that case it won't
         evaluate to a string. However, break on some kind of stopper nodes, like e.g. Subscript.
         """
+
         if type(node) == ast.Str:
             eval_str = ast.literal_eval(node)
             if eval_str:
-                return eval_str, (node,)
-            return None, ()
+                yield (is_split, eval_str, (node,))
+        else:
+            is_split = (type(node) in separate_nodes)
+            for nd in ast.iter_child_nodes(node):
+                if type(nd) not in stopper_nodes:
+                    yield from extract_strings_ex(nd, is_split=is_split)
 
-        eval_str = []
-        nodes = []
-        for nd in ast.iter_child_nodes(node):
-            if type(nd) not in stopper_nodes:
-                estr, nds = extract_strings(nd)
-                eval_str.append(estr)
-                nodes += nds
-        if eval_str:
-            return "".join(s for s in eval_str if s is not None), tuple(n for n in nodes if n is not None)
-        return None, ()
+    def _extract_string_merge(estr_ls, nds_ls):
+        return "".join(s for s in estr_ls if s is not None), tuple(n for n in nds_ls if n is not None)
+
+    def extract_strings(node):
+        estr_ls = []
+        nds_ls = []
+        for is_split, estr, nds in extract_strings_ex(node):
+            estr_ls.append(estr)
+            nds_ls.extend(nds)
+        ret = _extract_string_merge(estr_ls, nds_ls)
+        print(ret)
+        return ret
+    
+    def extract_strings_split(node):
+        """
+        Returns a list args as returned by 'extract_strings()',
+        But split into groups based on separate_nodes, this way
+        expressions like ("A" if test else "B") wont be merged but
+        "A" + "B" will.
+        """
+        estr_ls = []
+        nds_ls = []
+        bag = []
+        for is_split, estr, nds in extract_strings_ex(node):
+            if is_split:
+                bag.append((estr_ls, nds_ls))
+                estr_ls = []
+                nds_ls = []
+
+            estr_ls.append(estr)
+            nds_ls.extend(nds)
+
+        bag.append((estr_ls, nds_ls))
+
+        return [_extract_string_merge(estr_ls, nds_ls) for estr_ls, nds_ls in bag]
+
 
     def _ctxt_to_ctxt(node):
         return extract_strings(node)[0]
@@ -427,6 +458,8 @@ def dump_py_messages_from_files(messages, check_ctxt, files):
     # Break recursive nodes look up on some kind of nodes.
     # E.g. we don’t want to get strings inside subscripts (blah["foo"])!
     stopper_nodes = {ast.Subscript, }
+    # Consider strings separate: ("a" if test else "b")
+    separate_nodes = {ast.IfExp, }
 
     # For now only consider functions from UILayout...
     for func_id, func in bpy.types.UILayout.bl_rna.functions.items():
@@ -490,24 +523,25 @@ def dump_py_messages_from_files(messages, check_ctxt, files):
                 #print(translate_args)
                 # do nothing if not found
                 for arg_kw, arg_pos in translate_args:
-                    estr, nds = None, ()
+                    estr_lst = [(None, ())]
                     if arg_pos < len(node.args):
-                        estr, nds = extract_strings(node.args[arg_pos])
+                        estr_lst = extract_strings_split(node.args[arg_pos])
                         #print(estr, nds)
                     else:
                         for kw in node.keywords:
                             if kw.arg == arg_kw:
-                                estr, nds = extract_strings(kw.value)
+                                estr_lst = extract_strings_split(kw.value)
                                 break
                         #print(estr, nds)
-                    if estr:
-                        key = (context, estr)
-                        if nds:
-                            msgsrc = ["{}:{}".format(fp_rel, sorted({nd.lineno for nd in nds})[0])]
-                        else:
-                            msgsrc = ["{}:???".format(fp_rel)]
-                        check(check_ctxt_py, messages, key, msgsrc)
-                        messages.setdefault(key, []).extend(msgsrc)
+                    for estr, nds in estr_lst:
+                        if estr:
+                            key = (context, estr)
+                            if nds:
+                                msgsrc = ["{}:{}".format(fp_rel, sorted({nd.lineno for nd in nds})[0])]
+                            else:
+                                msgsrc = ["{}:???".format(fp_rel)]
+                            check(check_ctxt_py, messages, key, msgsrc)
+                            messages.setdefault(key, []).extend(msgsrc)
 
 
 def dump_py_messages(messages, check_ctxt, addons):
