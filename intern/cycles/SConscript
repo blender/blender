@@ -43,6 +43,8 @@ incs = []
 defs = []
 cxxflags = Split(env['CXXFLAGS'])
 
+defs.append('GLEW_STATIC')
+
 defs.append('CCL_NAMESPACE_BEGIN=namespace ccl {')
 defs.append('CCL_NAMESPACE_END=}')
 
