@@ -39,6 +39,7 @@ protected:
 	OrderOfChunks m_chunkOrder;
 	bool m_doDepthBuffer;
 	ImBuf *m_ibuf;
+	bool m_straightAlpha;
 
 	const ColorManagedViewSettings *m_viewSettings;
 	const ColorManagedDisplaySettings *m_displaySettings;
@@ -59,6 +60,7 @@ public:
 	OrderOfChunks getChunkOrder() { return this->m_chunkOrder; }
 	const CompositorPriority getRenderPriority() const;
 	bool isViewerOperation() { return true; }
+	void setStraightAlpha(bool value) { this->m_straightAlpha = value; }
 
 	void setViewSettings(const ColorManagedViewSettings *viewSettings) { this->m_viewSettings = viewSettings; }
 	void setDisplaySettings(const ColorManagedDisplaySettings *displaySettings) { this->m_displaySettings = displaySettings; }

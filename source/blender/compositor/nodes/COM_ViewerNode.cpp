@@ -47,6 +47,7 @@ void ViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	viewerOperation->setChunkOrder((OrderOfChunks)editorNode->custom1);
 	viewerOperation->setCenterX(editorNode->custom3);
 	viewerOperation->setCenterY(editorNode->custom4);
+	viewerOperation->setStraightAlpha(editorNode->custom2 & 1);
 
 	viewerOperation->setViewSettings(context->getViewSettings());
 	viewerOperation->setDisplaySettings(context->getDisplaySettings());

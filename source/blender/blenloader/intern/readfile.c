@@ -8795,13 +8795,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	// add storage for compositor translate nodes when not existing
 	if (!MAIN_VERSION_ATLEAST(main, 265, 10)) {
 		bNodeTreeType *ntreetype;
+		bNodeTree *ntree;
 
 		ntreetype = ntreeGetType(NTREE_COMPOSIT);
 		if (ntreetype && ntreetype->foreach_nodetree)
 			ntreetype->foreach_nodetree(main, NULL, do_version_node_fix_translate_wrapping);
+
+		for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next)
+			do_version_node_fix_translate_wrapping(NULL, NULL, ntree);
 	}
-
-
 
 	// if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 7)) {
 

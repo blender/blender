@@ -98,6 +98,9 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 				depthbuffer[offset] = depth[0];
 			}
 
+			if (this->m_straightAlpha)
+				straight_to_premul_v4(buffer + offset4);
+
 			offset ++;
 			offset4 += 4;
 		}

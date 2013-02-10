@@ -4083,6 +4083,21 @@ static void def_cmp_viewer(StructRNA *srna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Y", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "use_straight_alpha", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "custom2", 1);
+	RNA_def_property_ui_text(prop, "Straight Alpha", "Treat alpha input of this node as straight");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_cmp_composite(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_property(srna, "use_straight_alpha", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "custom2", 1);
+	RNA_def_property_ui_text(prop, "Straight Alpha", "Treat alpha input of this node as straight");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
 static void def_cmp_keyingscreen(StructRNA *srna)

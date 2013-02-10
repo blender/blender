@@ -49,6 +49,8 @@ CompositorOperation::CompositorOperation() : NodeOperation()
 	this->m_alphaInput = NULL;
 	this->m_depthInput = NULL;
 
+	this->m_straightAlpha = false;
+
 	this->m_sceneName[0] = '\0';
 }
 
@@ -141,6 +143,10 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber)
 			if (this->m_alphaInput != NULL) {
 				this->m_alphaInput->read(&(color[3]), x, y, COM_PS_NEAREST);
 			}
+
+			if (this->m_straightAlpha)
+				straight_to_premul_v4(color);
+
 			copy_v4_v4(buffer + offset4, color);
 
 			if (this->m_depthInput != NULL) {

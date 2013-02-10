@@ -124,7 +124,7 @@ DefNode( CompositorNode, CMP_NODE_SETALPHA,       0,                      "SETAL
 DefNode( CompositorNode, CMP_NODE_HUE_SAT,        def_cmp_hue_saturation, "HUE_SAT",        HueSat,           "Hue Saturation Value",""            )
 DefNode( CompositorNode, CMP_NODE_IMAGE,          def_cmp_image,          "IMAGE",          Image,            "Image",             ""              )
 DefNode( CompositorNode, CMP_NODE_R_LAYERS,       def_cmp_render_layers,  "R_LAYERS",       RLayers,          "Render Layers",     ""              )
-DefNode( CompositorNode, CMP_NODE_COMPOSITE,      0,                      "COMPOSITE",      Composite,        "Composite",         ""              )
+DefNode( CompositorNode, CMP_NODE_COMPOSITE,      def_cmp_composite,      "COMPOSITE",      Composite,        "Composite",         ""              )
 DefNode( CompositorNode, CMP_NODE_OUTPUT_FILE,    def_cmp_output_file,    "OUTPUT_FILE",    OutputFile,       "File Output",       ""              )
 DefNode( CompositorNode, CMP_NODE_TEXTURE,        def_texture,            "TEXTURE",        Texture,          "Texture",           ""              )
 DefNode( CompositorNode, CMP_NODE_TRANSLATE,      def_cmp_translate,      "TRANSLATE",      Translate,        "Translate",         ""              )
