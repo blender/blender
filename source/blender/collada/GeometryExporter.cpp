@@ -53,7 +53,8 @@ extern "C" {
 #include "collada_utils.h"
 
 // TODO: optimize UV sets by making indexed list with duplicates removed
-GeometryExporter::GeometryExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryGeometries(sw), export_settings(export_settings) {
+GeometryExporter::GeometryExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryGeometries(sw), export_settings(export_settings)
+{
 }
 
 
@@ -160,7 +161,7 @@ void GeometryExporter::operator()(Object *ob)
 
 	if (this->export_settings->include_shapekeys) {
 		Key * key = BKE_key_from_object(ob);
-		if(key) {
+		if (key) {
 			KeyBlock * kb = (KeyBlock*)key->block.first;
 			//skip the basis
 			kb = kb->next;
@@ -175,7 +176,8 @@ void GeometryExporter::operator()(Object *ob)
 #endif
 }
 
-void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb){
+void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
+{
 	std::string geom_id = get_geometry_id(ob, false) + "_morph_" + translate_id(kb->name);
 	std::vector<Normal> nor;
 	std::vector<Face> norind;

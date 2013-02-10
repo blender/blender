@@ -319,14 +319,13 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 	import_units = RNA_boolean_get(op->ptr, "import_units");
 
 	RNA_string_get(op->ptr, "filepath", filename);
-	if (collada_import( C,
-						filename,
-						import_units))	{
-			return OPERATOR_FINISHED;
+	if (collada_import(C, filename, import_units)) {
+		return OPERATOR_FINISHED;
 	}
 	else {
-	BKE_report(op->reports, RPT_ERROR, "Errors found during parsing COLLADA document (see console for details)");
-	return OPERATOR_CANCELLED;
+		BKE_report(op->reports, RPT_ERROR,
+		           "Errors found during parsing COLLADA document (see console for details)");
+		return OPERATOR_CANCELLED;
 	}
 }
 

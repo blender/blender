@@ -133,7 +133,7 @@ private:
 
 	CustomData create_edge_custom_data(EdgeHash *eh);
 
-    void allocate_face_data(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris);
+	void allocate_face_data(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris);
 
 	// TODO: import uv set names
 	void read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris);

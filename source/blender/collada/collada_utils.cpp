@@ -295,11 +295,11 @@ std::string bc_url_encode(std::string data) {
 }
 
 std::string bc_replace_string(std::string data, const std::string& pattern,
-                          const std::string& replacement) {
-    size_t pos = 0;
-    while((pos = data.find(pattern, pos)) != std::string::npos) {
-         data.replace(pos, pattern.length(), replacement);
-         pos += replacement.length();
-    }
-    return data;
+                              const std::string& replacement) {
+	size_t pos = 0;
+	while ((pos = data.find(pattern, pos)) != std::string::npos) {
+		data.replace(pos, pattern.length(), replacement);
+		pos += replacement.length();
+	}
+	return data;
 }

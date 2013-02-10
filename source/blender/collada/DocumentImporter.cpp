@@ -100,7 +100,7 @@ extern "C" {
 // #define ARMATURE_TEST
 
 DocumentImporter::DocumentImporter(bContext *C, const ImportSettings *import_settings) :
-    import_settings(import_settings),
+	import_settings(import_settings),
 	mImportStage(General),
 	mContext(C),
 	armature_importer(&unit_converter, &mesh_importer, &anim_importer, CTX_data_scene(C)),
@@ -432,8 +432,9 @@ Object *DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 
 // to create constraints off node <extra> tags. Assumes only constraint data in
 // current <extra> with blender profile.
-void DocumentImporter::create_constraints(ExtraTags *et, Object *ob){
-	if ( et && et->isProfile("blender")){
+void DocumentImporter::create_constraints(ExtraTags *et, Object *ob)
+{
+	if (et && et->isProfile("blender")) {
 		std::string name;
 		short* type = 0;
 		et->setData("type", type);
@@ -536,9 +537,12 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 		// XXX empty node may not mean it is empty object, not sure about this
 		if ( (geom_done + camera_done + lamp_done + controller_done + inst_done) < 1) {
 			//Check if Object is armature, by checking if immediate child is a JOINT node.
-			if(is_armature(node))
+			if (is_armature(node)) {
 				ob = bc_add_object(sce, OB_ARMATURE, NULL);
-			else ob = bc_add_object(sce, OB_EMPTY, NULL);
+			}
+			else {
+				ob = bc_add_object(sce, OB_EMPTY, NULL);
+			}
 
 			objects_done->push_back(ob);
 		}
@@ -1238,15 +1242,18 @@ bool DocumentImporter::addExtraTags(const COLLADAFW::UniqueId &uid, ExtraTags *e
 	return true;
 }
 
-bool DocumentImporter::is_armature(COLLADAFW::Node *node){
+bool DocumentImporter::is_armature(COLLADAFW::Node *node)
+{
 	COLLADAFW::NodePointerArray &child_nodes = node->getChildNodes();
-	for (unsigned int i = 0; i < child_nodes.getCount(); i++) {	
-		if(child_nodes[i]->getType() == COLLADAFW::Node::JOINT) return true;
-		else continue;
+	for (unsigned int i = 0; i < child_nodes.getCount(); i++) {
+		if (child_nodes[i]->getType() == COLLADAFW::Node::JOINT) {
+			return true;
+		}
+		else {
+			continue;
+		}
 	}
 
 	//no child is JOINT
 	return false;
-
 }
-

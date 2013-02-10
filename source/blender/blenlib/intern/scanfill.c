@@ -325,7 +325,9 @@ static short addedgetoscanvert(ScanFillVertLink *sc, ScanFillEdge *eed)
 		fac1 = 1.0e10f * (eed->v2->xy[0] - x);
 
 	}
-	else fac1 = (x - eed->v2->xy[0]) / fac1;
+	else {
+		fac1 = (x - eed->v2->xy[0]) / fac1;
+	}
 
 	for (ed = sc->edge_first; ed; ed = ed->next) {
 
@@ -649,7 +651,9 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 				if (ed1->v1->h > 1) ed1->v1->h--;
 				if (ed1->v2->h > 1) ed1->v2->h--;
 			}
-			else ed1->v2->f = SF_VERT_UNKNOWN;
+			else {
+				ed1->v2->f = SF_VERT_UNKNOWN;
+			}
 
 			ed1 = nexted;
 		}
@@ -682,7 +686,6 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 				if (v1 == v2 || v2 == v3) break;
 				/* printf("test verts %x %x %x\n", v1, v2, v3); */
 				miny = min_ff(v1->xy[1], v3->xy[1]);
-				/*  miny = min_ff(v1->xy[1], v3->xy[1]); */
 				sc1 = sc + 1;
 				test = 0;
 

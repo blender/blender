@@ -2478,7 +2478,7 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
 				cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
 
 			partial_buffer_update_rect(ibuf, display_buffer, linear_buffer, byte_buffer, buffer_width, stride,
-									   offset_x, offset_y, cm_processor, xmin, ymin, xmax, ymax);
+			                           offset_x, offset_y, cm_processor, xmin, ymin, xmax, ymax);
 
 			if (cm_processor)
 				IMB_colormanagement_processor_free(cm_processor);
