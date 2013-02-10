@@ -97,14 +97,15 @@ static void do_buttons_buttons(bContext *C, void *UNUSED(arg), int event)
 	sbuts->mainbuser = sbuts->mainb;
 }
 
-#define BUT_UNIT_X (UI_UNIT_X + 2)
+#define BUT_UNIT_X (UI_UNIT_X + 2*U.pixelsize)
 
 void buttons_header_buttons(const bContext *C, ARegion *ar)
 {
 	SpaceButs *sbuts = CTX_wm_space_buts(C);
 	uiBlock *block;
 	uiBut *but;
-	int xco, yco = 2;
+	int headery = ED_area_headersize();
+	int xco, yco = 0.5f*(headery - UI_UNIT_Y);
 
 	buttons_context_compute(C, sbuts);
 	
