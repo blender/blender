@@ -213,15 +213,17 @@ void DocumentImporter::finish()
 			fprintf(stdout, "Collada: Adjusting Blender units to Importset units: %f.\n", unit_factor);
 
 		}
-		else {
-			// TODO: add automatic scaling for the case when Blender units 
-			//       and import units are set to different values.
-		}
 
 		// Write nodes to scene
 		const COLLADAFW::NodePointerArray& roots = (*it)->getRootNodes();
 		for (unsigned int i = 0; i < roots.getCount(); i++) {
-			write_node(roots[i], NULL, sce, NULL, false);
+			std::vector<Object *> *objects_done;
+			objects_done = write_node(roots[i], NULL, sce, NULL, false);
+			
+			if (!this->import_settings->import_units) {
+				// Match incoming scene with current unit settings
+				bc_match_scale(objects_done, *sce, unit_converter);
+			}
 		}
 
 		// update scene
@@ -443,7 +445,7 @@ void DocumentImporter::create_constraints(ExtraTags *et, Object *ob)
 	}
 }
 
-void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent_node, Scene *sce, Object *par, bool is_library_node)
+std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent_node, Scene *sce, Object *par, bool is_library_node)
 {
 	Object *ob = NULL;
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
@@ -549,7 +551,8 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 		
 		// XXX: if there're multiple instances, only one is stored
 
-		if (!ob) return;
+		if (!ob) return objects_done;
+
 		for (std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end(); ++it) {
 			ob = *it;
 			std::string nodename = node->getName().size() ? node->getName() : node->getOriginalId();
@@ -560,6 +563,7 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 			if (is_library_node)
 				libnode_ob.push_back(ob);
 		}
+
 
 		//create_constraints(et,ob);
 
@@ -585,6 +589,8 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 			write_node(child_nodes[i], node, sce, ob, is_library_node);
 		}
 	}
+
+	return objects_done;
 }
 
 /** When this method is called, the writer must write the entire visual scene.

@@ -319,12 +319,11 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 	import_units = RNA_boolean_get(op->ptr, "import_units");
 
 	RNA_string_get(op->ptr, "filepath", filename);
-	if (collada_import(C, filename, import_units)) {
+	if (collada_import( C, filename, import_units)) {
 		return OPERATOR_FINISHED;
 	}
 	else {
-		BKE_report(op->reports, RPT_ERROR,
-		           "Errors found during parsing COLLADA document (see console for details)");
+		BKE_report(op->reports, RPT_ERROR, "Errors found during parsing COLLADA document (see console for details)");
 		return OPERATOR_CANCELLED;
 	}
 }
@@ -367,8 +366,9 @@ void WM_OT_collada_import(wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_OPENFILE,
 	                               WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 
-	RNA_def_boolean(ot->srna, "import_units", 0, "Import Units",
-	                "If enabled use Units as defined in Collada Import, else keep Blender's current Units settings");
+	RNA_def_boolean(ot->srna,
+					"import_units", 0, "Import Units",
+					"If disabled match import to Blender's current Unit settings. Otherwise use the settings from the Imported scene.");
 
 }
 #endif
