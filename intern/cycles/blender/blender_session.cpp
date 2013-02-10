@@ -410,8 +410,10 @@ void BlenderSession::do_write_update_render_result(BL::RenderResult b_rr, BL::Re
 			int components = b_pass.channels();
 
 			/* copy pixels */
-			if(buffers->get_pass_rect(pass_type, exposure, rtile.sample, components, &pixels[0]))
-				b_pass.rect(&pixels[0]);
+			if(!buffers->get_pass_rect(pass_type, exposure, rtile.sample, components, &pixels[0]))
+				memset(&pixels[0], 0, pixels.size()*sizeof(float));
+
+			b_pass.rect(&pixels[0]);
 		}
 	}
 
