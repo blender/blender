@@ -171,7 +171,7 @@ int			WM_modal_tweak_exit(struct wmEvent *evt, int tweak_event);
 void		WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference);
 void		WM_main_add_notifier(unsigned int type, void *reference);
 
-void		wm_event_add		(struct wmWindow *win, struct wmEvent *event_to_add); /* XXX only for warning */
+void		wm_event_add(struct wmWindow *win, const struct wmEvent *event_to_add);
 
 			/* at maximum, every timestep seconds it triggers event_type events */
 struct wmTimer *WM_event_add_timer(struct wmWindowManager *wm, struct wmWindow *win, int event_type, double timestep);

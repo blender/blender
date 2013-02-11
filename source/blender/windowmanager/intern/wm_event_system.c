@@ -91,9 +91,9 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 
 /* ************ event management ************** */
 
-void wm_event_add(wmWindow *win, wmEvent *event_to_add)
+void wm_event_add(wmWindow *win, const wmEvent *event_to_add)
 {
-	wmEvent *event = MEM_callocN(sizeof(wmEvent), "wmEvent");
+	wmEvent *event = MEM_mallocN(sizeof(wmEvent), "wmEvent");
 	
 	*event = *event_to_add;
 
