@@ -1204,8 +1204,13 @@ void WM_operator_properties_gesture_straightline(wmOperatorType *ot, int cursor)
 	RNA_def_int(ot->srna, "ystart", 0, INT_MIN, INT_MAX, "Y Start", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "yend", 0, INT_MIN, INT_MAX, "Y End", "", INT_MIN, INT_MAX);
 	
-	if (cursor)
-		RNA_def_int(ot->srna, "cursor", cursor, 0, INT_MAX, "Cursor", "Mouse cursor style to use during the modal operator", 0, INT_MAX);
+	if (cursor) {
+		PropertyRNA *prop;
+
+		prop = RNA_def_int(ot->srna, "cursor", cursor, 0, INT_MAX,
+		                   "Cursor", "Mouse cursor style to use during the modal operator", 0, INT_MAX);
+		RNA_def_property_flag(prop, PROP_HIDDEN);
+	}
 }
 
 

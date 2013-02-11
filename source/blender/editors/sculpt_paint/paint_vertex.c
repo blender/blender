@@ -3201,6 +3201,7 @@ static int paint_weight_gradient_modal(bContext *C, wmOperator *op, wmEvent *eve
 static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 {
 	wmGesture *gesture = op->customdata;
+	DMGradient_vertStore *vert_cache;
 	struct ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
@@ -3211,24 +3212,31 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 	int y_end = RNA_int_get(op->ptr, "yend");
 	float sco_start[2] = {x_start, y_start};
 	float sco_end[2] = {x_end, y_end};
-
+	const bool is_interactive = (gesture != NULL);
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, scene->customdata_mask);
 
 	DMGradient_userData data = {0};
 
-	if (gesture->userdata == NULL) {
-		VPaint *wp = scene->toolsettings->wpaint;
+	if (is_interactive) {
+		if (gesture->userdata == NULL) {
+			VPaint *wp = scene->toolsettings->wpaint;
 
-		gesture->userdata = MEM_mallocN(sizeof(DMGradient_vertStore) * me->totvert, __func__);
-		data.is_init = TRUE;
+			gesture->userdata = MEM_mallocN(sizeof(DMGradient_vertStore) * me->totvert, __func__);
+			data.is_init = true;
 
-		copy_wpaint_prev(wp, me->dvert, me->totvert);
+			copy_wpaint_prev(wp, me->dvert, me->totvert);
 
-		/* on init only, convert face -> vert sel  */
-		if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
-			BKE_mesh_flush_select_from_polys(me);
+			/* on init only, convert face -> vert sel  */
+			if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
+				BKE_mesh_flush_select_from_polys(me);
+			}
 		}
 
+		vert_cache = gesture->userdata;
+	}
+	else {
+		data.is_init = true;
+		vert_cache = MEM_mallocN(sizeof(DMGradient_vertStore) * me->totvert, __func__);
 	}
 
 	data.ar = ar;
@@ -3239,7 +3247,7 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 	data.sco_line_div = 1.0f / len_v2v2(sco_start, sco_end);
 	data.def_nr = ob->actdef - 1;
 	data.use_select = (me->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL));
-	data.vert_cache = gesture->userdata;
+	data.vert_cache = vert_cache;
 	data.type = RNA_enum_get(op->ptr, "type");
 
 	{
@@ -3254,6 +3262,10 @@ static int paint_weight_gradient_exec(bContext *C, wmOperator *op)
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+
+	if (is_interactive == false) {
+		MEM_freeN(vert_cache);
+	}
 
 	return OPERATOR_FINISHED;
 }
