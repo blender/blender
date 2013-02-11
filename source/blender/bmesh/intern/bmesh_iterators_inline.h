@@ -35,7 +35,7 @@
 /**
  * \brief Iterator Step
  *
- * Calls an iterators step fucntion to return the next element.
+ * Calls an iterators step function to return the next element.
  */
 BLI_INLINE void *BM_iter_step(BMIter *iter)
 {

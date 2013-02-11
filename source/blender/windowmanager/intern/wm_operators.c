@@ -1341,7 +1341,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *ar, void *userData)
 	block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
 
-	/* intentionally don't use 'UI_BLOCK_MOVEMOUSE_QUIT', some dialogs have many items
+	/* intentionally don't use 'UI_BLOCK_MOVEMOUSE_QUIT', some dialogues have many items
 	 * where quitting by accident is very annoying */
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
 
@@ -1998,7 +1998,7 @@ static int wm_link_append_poll(bContext *C)
 	if (WM_operator_winactive(C)) {
 		/* linking changes active object which is pretty useful in general,
 		 * but which totally confuses edit mode (i.e. it becoming not so obvious
-		 * to leave from edit mode and inwalid tools in toolbar might be displayed)
+		 * to leave from edit mode and invalid tools in toolbar might be displayed)
 		 * so disable link/append when in edit mode (sergey) */
 		if (CTX_data_edit_object(C))
 			return 0;

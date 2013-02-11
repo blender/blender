@@ -291,7 +291,8 @@ static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent 
 		for (win = CTX_wm_manager(C)->windows.first; win; win = win->next) {
 			bScreen *sc = win->screen;
 			if ((sc->temp && ((ScrArea *)sc->areabase.first)->spacetype == SPACE_IMAGE) ||
-					(win == winshow && winshow != wincur)) {
+			    (win == winshow && winshow != wincur))
+			{
 				wm_window_raise(win);
 				return OPERATOR_FINISHED;
 			}

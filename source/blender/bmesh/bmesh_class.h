@@ -45,7 +45,7 @@ struct Object;
  * pointers. this is a requirement of mempool's method of
  * iteration.
  *
- * hrm. it doesn't but stull works ok, remove the comment above? - campbell.
+ * hrm. it doesn't but still works ok, remove the comment above? - campbell.
  */
 
 // #pragma GCC diagnostic error "-Wpadded"

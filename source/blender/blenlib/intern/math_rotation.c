@@ -1662,7 +1662,7 @@ void quat_apply_track(float quat[4], short axis, short upflag)
 		axis = axis - 3;
 
 	/* there are 2 possible up-axis for each axis used, the 'quat_track' applies so the first
-	 * up axis is used X->Y, Y->X, Z->X, if this first up axis isn used then rotate 90d
+	 * up axis is used X->Y, Y->X, Z->X, if this first up axis isn't used then rotate 90d
 	 * the strange bit shift below just find the low axis {X:Y, Y:X, Z:X} */
 	if (upflag != (2 - axis) >> 1) {
 		float q[4] = {M_SQRT1_2, 0.0, 0.0, 0.0}; /* assign 90d rotation axis */

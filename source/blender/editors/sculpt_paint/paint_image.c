@@ -904,7 +904,7 @@ static int project_paint_occlude_ptv_clip(const ProjPaintState *ps, const MFace 
 
 /* Check if a screenspace location is occluded by any other faces
  * check, pixelScreenCo must be in screenspace, its Z-Depth only needs to be used for comparison
- * and dosn't need to be correct in relation to X and Y coords (this is the case in perspective view) */
+ * and doesn't need to be correct in relation to X and Y coords (this is the case in perspective view) */
 static int project_bucket_point_occluded(const ProjPaintState *ps, LinkNode *bucketFace, const int orig_face, float pixelScreenCo[4])
 {
 	MFace *mf;

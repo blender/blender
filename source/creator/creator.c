@@ -499,8 +499,7 @@ static void blender_crash_handler_backtrace(FILE *fp)
 	symbolinfo->MaxNameLen = MAXSYMBOL - 1;
 	symbolinfo->SizeOfStruct = sizeof(SYMBOL_INFO);
 
-	for( i = 0; i < nframes; i++ )
-	{
+	for (i = 0; i < nframes; i++) {
 		SymFromAddr(process, ( DWORD64 )( stack[ i ] ), 0, symbolinfo);
 
 		fprintf(fp, "%u: %s - 0x%0X\n", nframes - i - 1, symbolinfo->Name, symbolinfo->Address);

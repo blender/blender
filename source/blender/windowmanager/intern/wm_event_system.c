@@ -3042,7 +3042,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				event.keymodifier = 0;
 						
 			/* this case happened with an external numpad, it's not really clear
-			 * why, but it's also impossible to map a key modifier to an unknwon
+			 * why, but it's also impossible to map a key modifier to an unknown
 			 * key, so it shouldn't harm */
 			if (event.keymodifier == UNKNOWNKEY)
 				event.keymodifier = 0;

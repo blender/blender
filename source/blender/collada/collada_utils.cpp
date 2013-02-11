@@ -329,15 +329,18 @@ void bc_match_scale(std::vector<Object *> *objects_done,
 
 	float bl_scale;
 	
-	switch(type) {
-		case USER_UNIT_NONE :	bl_scale = 1.0; // map 1 Blender unit to 1 Meter
-								break;
-		case USER_UNIT_METRIC : bl_scale = RNA_property_float_get(&unit_settings, scale_ptr);
-								break;
-		default :				bl_scale = RNA_property_float_get(&unit_settings, scale_ptr);
-								// it looks like the conversion to Imperial is done implicitly.
-								// So nothing to do here.
-								break;
+	switch (type) {
+		case USER_UNIT_NONE:
+			bl_scale = 1.0; // map 1 Blender unit to 1 Meter
+			break;
+		case USER_UNIT_METRIC:
+			bl_scale = RNA_property_float_get(&unit_settings, scale_ptr);
+			break;
+		default:
+			bl_scale = RNA_property_float_get(&unit_settings, scale_ptr);
+			// it looks like the conversion to Imperial is done implicitly.
+			// So nothing to do here.
+			break;
 	}
 	
 	float size_mat3[3][3];
