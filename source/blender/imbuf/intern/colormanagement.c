@@ -57,6 +57,7 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
+#include "BLI_rect.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -1823,6 +1824,18 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 		colormanage_view_settings_to_cache(&cache_view_settings, applied_view_settings);
 		colormanage_display_settings_to_cache(&cache_display_settings, display_settings);
 
+		if (ibuf->invalid_rect.xmin != ibuf->invalid_rect.xmax) {
+			if ((ibuf->userflags & IB_DISPLAY_BUFFER_INVALID) == 0) {
+				IMB_partial_display_buffer_update(ibuf, ibuf->rect_float, (unsigned char *) ibuf->rect,
+				                                  ibuf->x, 0, 0, applied_view_settings, display_settings,
+				                                  ibuf->invalid_rect.xmin, ibuf->invalid_rect.ymin,
+				                                  ibuf->invalid_rect.xmax, ibuf->invalid_rect.ymax,
+				                                  FALSE);
+			}
+
+			BLI_rcti_init(&ibuf->invalid_rect, 0, 0, 0, 0);
+		}
+
 		BLI_lock_thread(LOCK_COLORMANAGE);
 
 		/* ensure color management bit fields exists */
@@ -2485,6 +2498,18 @@ void IMB_partial_display_buffer_update(ImBuf *ibuf, const float *linear_buffer, 
 
 			IMB_display_buffer_release(cache_handle);
 		}
+	}
+}
+
+void IMB_partial_display_buffer_update_delayed(ImBuf *ibuf, int xmin, int ymin, int xmax, int ymax)
+{
+	if (ibuf->invalid_rect.xmin == ibuf->invalid_rect.xmax) {
+		BLI_rcti_init(&ibuf->invalid_rect, xmin, xmax, ymin, ymax);
+	}
+	else {
+		rcti rect;
+		BLI_rcti_init(&rect, xmin, xmax, ymin, ymax);
+		BLI_rcti_union(&ibuf->invalid_rect, &rect);
 	}
 }
 

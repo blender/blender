@@ -133,6 +133,8 @@ void IMB_partial_display_buffer_update(struct ImBuf *ibuf, const float *linear_b
                                        int xmin, int ymin, int xmax, int ymax,
                                        int update_orig_byte_buffer);
 
+void IMB_partial_display_buffer_update_delayed(struct ImBuf *ibuf, int xmin, int ymin, int xmax, int ymax);
+
 /* ** Pixel processor functions ** */
 struct ColormanageProcessor *IMB_colormanagement_display_processor_new(const struct ColorManagedViewSettings *view_settings,
                                                                        const struct ColorManagedDisplaySettings *display_settings);

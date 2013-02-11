@@ -140,7 +140,7 @@ BLI_INLINE unsigned char f_to_char(const float val)
 #define IMAPAINT_TILE_SIZE          (1 << IMAPAINT_TILE_BITS)
 #define IMAPAINT_TILE_NUMBER(size)  (((size) + IMAPAINT_TILE_SIZE - 1) >> IMAPAINT_TILE_BITS)
 
-static void imapaint_image_update(Scene *scene, SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint);
+static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint);
 
 
 typedef struct ImagePaintState {
@@ -3656,7 +3656,7 @@ static int project_image_refresh_tagged(ProjPaintState *ps)
 				pr = &(projIma->partRedrawRect[i]);
 				if (pr->x2 != -1) { /* TODO - use 'enabled' ? */
 					imapaintpartial = *pr;
-					imapaint_image_update(NULL, NULL, projIma->ima, projIma->ibuf, 1); /*last 1 is for texpaint*/
+					imapaint_image_update(NULL, projIma->ima, projIma->ibuf, 1); /*last 1 is for texpaint*/
 					redraw = 1;
 				}
 			}
@@ -4417,16 +4417,13 @@ static void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, 
 		IMB_freeImBuf(tmpibuf);
 }
 
-static void imapaint_image_update(Scene *scene, SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint)
+static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint)
 {
-	if (scene) {
-		IMB_partial_display_buffer_update(ibuf, ibuf->rect_float, (unsigned char *) ibuf->rect, ibuf->x, 0, 0,
-		                                  &scene->view_settings, &scene->display_settings,
-		                                  imapaintpartial.x1, imapaintpartial.y1,
-		                                  imapaintpartial.x2, imapaintpartial.y2, FALSE);
-	}
-	else {
-		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+	if (imapaintpartial.x1 != imapaintpartial.x2 &&
+	    imapaintpartial.y1 != imapaintpartial.y2)
+	{
+		IMB_partial_display_buffer_update_delayed(ibuf, imapaintpartial.x1, imapaintpartial.y1,
+		                                          imapaintpartial.x2, imapaintpartial.y2);
 	}
 	
 	if (ibuf->mipmap[0])
@@ -4790,7 +4787,7 @@ static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, 
 	 */
 	if (BKE_brush_painter_paint(painter, imapaint_paint_op, pos, time, pressure, s, is_data == FALSE)) {
 		if (update)
-			imapaint_image_update(s->scene, s->sima, image, ibuf, texpaint);
+			imapaint_image_update(s->sima, image, ibuf, texpaint);
 		BKE_image_release_ibuf(image, ibuf, NULL);
 		return 1;
 	}

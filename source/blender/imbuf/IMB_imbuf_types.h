@@ -28,6 +28,8 @@
 #ifndef __IMB_IMBUF_TYPES_H__
 #define __IMB_IMBUF_TYPES_H__
 
+#include "DNA_vec_types.h"  /* for rcti */
+
 /**
  * \file IMB_imbuf_types.h
  * \ingroup imbuf
@@ -132,6 +134,7 @@ typedef struct ImBuf {
 	unsigned int *display_buffer_flags;          /* array of per-display display buffers dirty flags */
 	struct ColormanageCache *colormanage_cache;  /* cache used by color management */
 	int colormanage_flag;
+	rcti invalid_rect;
 
 	/* information for compressed textures */
 	struct DDSData dds_data;
