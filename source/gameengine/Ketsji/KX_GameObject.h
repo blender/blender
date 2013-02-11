@@ -923,6 +923,8 @@ public:
 	CListValue* GetChildren();
 	CListValue* GetChildrenRecursive();
 
+	KX_Scene*	GetScene();
+
 #ifdef WITH_PYTHON
 	/**
 	 * \section Python interface functions.

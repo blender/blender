@@ -1400,6 +1400,14 @@ CListValue* KX_GameObject::GetChildrenRecursive()
 	return list;
 }
 
+KX_Scene* KX_GameObject::GetScene()
+{
+	SG_Node* node = this->GetSGNode();
+	KX_Scene* scene = static_cast<KX_Scene*>(node->GetSGClientInfo());
+
+	return scene;
+}
+
 /* ---------------------------------------------------------------------
  * Some stuff taken from the header
  * --------------------------------------------------------------------- */
@@ -1754,8 +1762,7 @@ PyObject *KX_GameObject::PyReplaceMesh(PyObject *args)
 
 PyObject *KX_GameObject::PyEndObject()
 {
-	SG_Node* node = this->GetSGNode();
-	KX_Scene* scene = static_cast<KX_Scene*>(node->GetSGClientInfo());
+	KX_Scene* scene = GetScene();
 	
 	scene->DelayedRemoveObject(this);
 	
@@ -2003,8 +2010,7 @@ PyObject *KX_GameObject::pyattr_get_group_members(void *self_v, const KX_PYATTRI
 PyObject* KX_GameObject::pyattr_get_scene(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject *self = static_cast<KX_GameObject*>(self_v);
-	SG_Node *node = self->GetSGNode();
-	KX_Scene *scene = static_cast<KX_Scene *>(node->GetSGClientInfo());
+	KX_Scene *scene = self->GetScene();
 	if (scene) {
 		return scene->GetProxy();
 	}
@@ -3056,7 +3062,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCastTo,
 	if (dist != 0.0f)
 		toPoint = fromPoint + dist * (toPoint-fromPoint).safe_normalized();
 	
-	PHY_IPhysicsEnvironment* pe = KX_GetActiveScene()->GetPhysicsEnvironment();
+	PHY_IPhysicsEnvironment* pe = GetScene()->GetPhysicsEnvironment();
 	KX_IPhysicsController *spc = GetPhysicsController();
 	KX_GameObject *parent = GetParent();
 	if (!spc && parent)
@@ -3202,7 +3208,7 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 		return none_tuple_3();
 	}
 	
-	PHY_IPhysicsEnvironment* pe = KX_GetActiveScene()->GetPhysicsEnvironment();
+	PHY_IPhysicsEnvironment* pe = GetScene()->GetPhysicsEnvironment();
 	KX_IPhysicsController *spc = GetPhysicsController();
 	KX_GameObject *parent = GetParent();
 	if (!spc && parent)
