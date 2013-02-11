@@ -109,36 +109,37 @@ GHOST_SystemX11(
 	m_xim = NULL;
 #endif
 
-	m_delete_window_atom 
-	    = XInternAtom(m_display, "WM_DELETE_WINDOW", True);
+#define GHOST_INTERN_ATOM_IF_EXISTS(atom) { m_atom.atom = XInternAtom(m_display, #atom , True);  } (void)0
+#define GHOST_INTERN_ATOM(atom)           { m_atom.atom = XInternAtom(m_display, #atom , False); } (void)0
 
-	m_wm_protocols = XInternAtom(m_display, "WM_PROTOCOLS", False);
-	m_wm_take_focus = XInternAtom(m_display, "WM_TAKE_FOCUS", False);
-	m_wm_state = XInternAtom(m_display, "WM_STATE", False);
-	m_wm_change_state = XInternAtom(m_display, "WM_CHANGE_STATE", False);
-	m_net_state = XInternAtom(m_display, "_NET_WM_STATE", False);
-	m_net_max_horz = XInternAtom(m_display,
-	                             "_NET_WM_STATE_MAXIMIZED_HORZ", False);
-	m_net_max_vert = XInternAtom(m_display,
-	                             "_NET_WM_STATE_MAXIMIZED_VERT", False);
-	m_net_fullscreen = XInternAtom(m_display,
-	                               "_NET_WM_STATE_FULLSCREEN", False);
-	m_motif = XInternAtom(m_display, "_MOTIF_WM_HINTS", False);
-	m_targets = XInternAtom(m_display, "TARGETS", False);
-	m_string = XInternAtom(m_display, "STRING", False);
-	m_compound_text = XInternAtom(m_display, "COMPOUND_TEXT", False);
-	m_text = XInternAtom(m_display, "TEXT", False);
-	m_clipboard = XInternAtom(m_display, "CLIPBOARD", False);
-	m_primary = XInternAtom(m_display, "PRIMARY", False);
-	m_xclip_out = XInternAtom(m_display, "XCLIP_OUT", False);
-	m_incr = XInternAtom(m_display, "INCR", False);
-	m_utf8_string = XInternAtom(m_display, "UTF8_STRING", False);
+	GHOST_INTERN_ATOM_IF_EXISTS(WM_DELETE_WINDOW);
+	GHOST_INTERN_ATOM(WM_PROTOCOLS);
+	GHOST_INTERN_ATOM(WM_TAKE_FOCUS);
+	GHOST_INTERN_ATOM(WM_STATE);
+	GHOST_INTERN_ATOM(WM_CHANGE_STATE);
+	GHOST_INTERN_ATOM(_NET_WM_STATE);
+	GHOST_INTERN_ATOM(_NET_WM_STATE_MAXIMIZED_HORZ);
+	GHOST_INTERN_ATOM(_NET_WM_STATE_MAXIMIZED_VERT);
+
+	GHOST_INTERN_ATOM(_NET_WM_STATE_FULLSCREEN);
+	GHOST_INTERN_ATOM(_MOTIF_WM_HINTS);
+	GHOST_INTERN_ATOM(TARGETS);
+	GHOST_INTERN_ATOM(STRING);
+	GHOST_INTERN_ATOM(COMPOUND_TEXT);
+	GHOST_INTERN_ATOM(TEXT);
+	GHOST_INTERN_ATOM(CLIPBOARD);
+	GHOST_INTERN_ATOM(PRIMARY);
+	GHOST_INTERN_ATOM(XCLIP_OUT);
+	GHOST_INTERN_ATOM(INCR);
+	GHOST_INTERN_ATOM(UTF8_STRING);
 #ifdef WITH_X11_XINPUT
-	m_xi_tablet = XInternAtom(m_display, XI_TABLET, False);
+	m_atom.TABLET = XInternAtom(m_display, XI_TABLET, False);
 #endif
 
-	m_last_warp = 0;
+#undef GHOST_INTERN_ATOM_IF_EXISTS
+#undef GHOST_INTERN_ATOM
 
+	m_last_warp = 0;
 
 	/* compute the initial time */
 	timeval tv;
@@ -963,7 +964,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		{
 			XClientMessageEvent & xcme = xe->xclient;
 
-			if (((Atom)xcme.data.l[0]) == m_delete_window_atom) {
+			if (((Atom)xcme.data.l[0]) == m_atom.WM_DELETE_WINDOW) {
 				g_event = new 
 				          GHOST_Event(
 				    getMilliSeconds(),
@@ -971,7 +972,7 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 				    window
 				    );
 			}
-			else if (((Atom)xcme.data.l[0]) == m_wm_take_focus) {
+			else if (((Atom)xcme.data.l[0]) == m_atom.WM_TAKE_FOCUS) {
 				XWindowAttributes attr;
 				Window fwin;
 				int revert_to;
@@ -1524,7 +1525,7 @@ void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 			}
 
 			/* Send a selection request */
-			XConvertSelection(m_display, sel, target, m_xclip_out, win, CurrentTime);
+			XConvertSelection(m_display, sel, target, m_atom.XCLIP_OUT, win, CurrentTime);
 			*context = XCLIB_XCOUT_SENTCONVSEL;
 			return;
 
@@ -1532,28 +1533,28 @@ void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 			if (evt.type != SelectionNotify)
 				return;
 
-			if (target == m_utf8_string && evt.xselection.property == None) {
+			if (target == m_atom.UTF8_STRING && evt.xselection.property == None) {
 				*context = XCLIB_XCOUT_FALLBACK_UTF8;
 				return;
 			}
-			else if (target == m_compound_text && evt.xselection.property == None) {
+			else if (target == m_atom.COMPOUND_TEXT && evt.xselection.property == None) {
 				*context = XCLIB_XCOUT_FALLBACK_COMP;
 				return;
 			}
-			else if (target == m_text && evt.xselection.property == None) {
+			else if (target == m_atom.TEXT && evt.xselection.property == None) {
 				*context = XCLIB_XCOUT_FALLBACK_TEXT;
 				return;
 			}
 
 			/* find the size and format of the data in property */
-			XGetWindowProperty(m_display, win, m_xclip_out, 0, 0, False,
+			XGetWindowProperty(m_display, win, m_atom.XCLIP_OUT, 0, 0, False,
 			                   AnyPropertyType, &pty_type, &pty_format,
 			                   &pty_items, &pty_size, &buffer);
 			XFree(buffer);
 
-			if (pty_type == m_incr) {
+			if (pty_type == m_atom.INCR) {
 				/* start INCR mechanism by deleting property */
-				XDeleteProperty(m_display, win, m_xclip_out);
+				XDeleteProperty(m_display, win, m_atom.XCLIP_OUT);
 				XFlush(m_display);
 				*context = XCLIB_XCOUT_INCR;
 				return;
@@ -1568,12 +1569,12 @@ void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 			}
 
 			// not using INCR mechanism, just read the property
-			XGetWindowProperty(m_display, win, m_xclip_out, 0, (long) pty_size,
+			XGetWindowProperty(m_display, win, m_atom.XCLIP_OUT, 0, (long) pty_size,
 			                   False, AnyPropertyType, &pty_type,
 			                   &pty_format, &pty_items, &pty_size, &buffer);
 
 			/* finished with property, delete it */
-			XDeleteProperty(m_display, win, m_xclip_out);
+			XDeleteProperty(m_display, win, m_atom.XCLIP_OUT);
 
 			/* copy the buffer to the pointer for returned data */
 			ltxt = (unsigned char *) malloc(pty_items);
@@ -1606,7 +1607,7 @@ void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 				return;
 
 			/* check size and format of the property */
-			XGetWindowProperty(m_display, win, m_xclip_out, 0, 0, False,
+			XGetWindowProperty(m_display, win, m_atom.XCLIP_OUT, 0, 0, False,
 			                   AnyPropertyType, &pty_type, &pty_format,
 			                   &pty_items, &pty_size, &buffer);
 
@@ -1615,14 +1616,14 @@ void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 				 * to tell the other X client that we have read
 				 * it and to send the next property */
 				XFree(buffer);
-				XDeleteProperty(m_display, win, m_xclip_out);
+				XDeleteProperty(m_display, win, m_atom.XCLIP_OUT);
 				return;
 			}
 
 			if (pty_size == 0) {
 				/* no more data, exit from loop */
 				XFree(buffer);
-				XDeleteProperty(m_display, win, m_xclip_out);
+				XDeleteProperty(m_display, win, m_atom.XCLIP_OUT);
 				*context = XCLIB_XCOUT_NONE;
 
 				/* this means that an INCR transfer is now
@@ -1634,7 +1635,7 @@ void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 
 			/* if we have come this far, the property contains
 			 * text, we know the size. */
-			XGetWindowProperty(m_display, win, m_xclip_out, 0, (long) pty_size,
+			XGetWindowProperty(m_display, win, m_atom.XCLIP_OUT, 0, (long) pty_size,
 			                   False, AnyPropertyType, &pty_type, &pty_format,
 			                   &pty_items, &pty_size, &buffer);
 
@@ -1655,7 +1656,7 @@ void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 			XFree(buffer);
 
 			/* delete property to get the next item */
-			XDeleteProperty(m_display, win, m_xclip_out);
+			XDeleteProperty(m_display, win, m_atom.XCLIP_OUT);
 			XFlush(m_display);
 			return;
 	}
@@ -1665,7 +1666,7 @@ void GHOST_SystemX11::getClipboard_xcout(XEvent evt,
 GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
 {
 	Atom sseln;
-	Atom target = m_utf8_string;
+	Atom target = m_atom.UTF8_STRING;
 	Window owner;
 
 	/* from xclip.c doOut() v0.11 */
@@ -1675,9 +1676,9 @@ GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
 	unsigned int context = XCLIB_XCOUT_NONE;
 
 	if (selection == True)
-		sseln = m_primary;
+		sseln = m_atom.PRIMARY;
 	else
-		sseln = m_clipboard;
+		sseln = m_atom.CLIPBOARD;
 
 	vector<GHOST_IWindow *> & win_vec = m_windowManager->getWindows();
 	vector<GHOST_IWindow *>::iterator win_it = win_vec.begin();
@@ -1687,7 +1688,7 @@ GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
 	/* check if we are the owner. */
 	owner = XGetSelectionOwner(m_display, sseln);
 	if (owner == win) {
-		if (sseln == m_clipboard) {
+		if (sseln == m_atom.CLIPBOARD) {
 			sel_buf = (unsigned char *)malloc(strlen(txt_cut_buffer) + 1);
 			strcpy((char *)sel_buf, txt_cut_buffer);
 			return sel_buf;
@@ -1712,19 +1713,19 @@ GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
 		/* fallback is needed. set XA_STRING to target and restart the loop. */
 		if (context == XCLIB_XCOUT_FALLBACK) {
 			context = XCLIB_XCOUT_NONE;
-			target = m_string;
+			target = m_atom.STRING;
 			continue;
 		}
 		else if (context == XCLIB_XCOUT_FALLBACK_UTF8) {
 			/* utf8 fail, move to compouned text. */
 			context = XCLIB_XCOUT_NONE;
-			target = m_compound_text;
+			target = m_atom.COMPOUND_TEXT;
 			continue;
 		}
 		else if (context == XCLIB_XCOUT_FALLBACK_COMP) {
 			/* compouned text faile, move to text. */
 			context = XCLIB_XCOUT_NONE;
-			target = m_text;
+			target = m_atom.TEXT;
 			continue;
 		}
 
@@ -1741,7 +1742,7 @@ GHOST_TUns8 *GHOST_SystemX11::getClipboard(bool selection) const
 		memcpy((char *)tmp_data, (char *)sel_buf, sel_len);
 		tmp_data[sel_len] = '\0';
 		
-		if (sseln == m_string)
+		if (sseln == m_atom.STRING)
 			XFree(sel_buf);
 		else
 			free(sel_buf);
@@ -1762,8 +1763,8 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 
 	if (buffer) {
 		if (selection == False) {
-			XSetSelectionOwner(m_display, m_clipboard, m_window, CurrentTime);
-			owner = XGetSelectionOwner(m_display, m_clipboard);
+			XSetSelectionOwner(m_display, m_atom.CLIPBOARD, m_window, CurrentTime);
+			owner = XGetSelectionOwner(m_display, m_atom.CLIPBOARD);
 			if (txt_cut_buffer)
 				free((void *)txt_cut_buffer);
 
@@ -1771,8 +1772,8 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 			strcpy(txt_cut_buffer, buffer);
 		}
 		else {
-			XSetSelectionOwner(m_display, m_primary, m_window, CurrentTime);
-			owner = XGetSelectionOwner(m_display, m_primary);
+			XSetSelectionOwner(m_display, m_atom.PRIMARY, m_window, CurrentTime);
+			owner = XGetSelectionOwner(m_display, m_atom.PRIMARY);
 			if (txt_select_buffer)
 				free((void *)txt_select_buffer);
 
@@ -1944,7 +1945,7 @@ void GHOST_SystemX11::initXInputDevices()
 
 
 				if ((m_xtablet.StylusDevice == NULL) &&
-				    (is_stylus(device_info[i].name, device_type) || (device_info[i].type == m_xi_tablet)))
+				    (is_stylus(device_info[i].name, device_type) || (device_info[i].type == m_atom.TABLET)))
 				{
 //					printf("\tfound stylus\n");
 					m_xtablet.StylusID = device_info[i].id;
