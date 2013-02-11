@@ -5899,7 +5899,7 @@ int EdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 		             &c[0], !is_proportional ? "ON" : "OFF", flipped ? "ON" : "OFF");
 	}
 	else {
-		BLI_snprintf(str, sizeof(str), "Edge Slide: %.2f (E)ven: %s, (F)lipped: %s",
+		BLI_snprintf(str, sizeof(str), "Edge Slide: %.4f (E)ven: %s, (F)lipped: %s",
 		             final, !is_proportional ? "ON" : "OFF", flipped ? "ON" : "OFF");
 	}
 
@@ -6027,6 +6027,7 @@ static int createVertSlideVerts(TransInfo *t)
 	}
 
 	sld->is_proportional = true;
+	sld->is_clamp = true;
 	sld->curr_sv_index = 0;
 	sld->flipped_vtx = false;
 
@@ -6220,6 +6221,16 @@ int handleEventVertSlide(struct TransInfo *t, struct wmEvent *event)
 					}
 					break;
 				}
+				case CKEY:
+				{
+					/* use like a modifier key */
+					if (event->val == KM_PRESS) {
+						sld->is_clamp = !sld->is_clamp;
+						calcVertSlideCustomPoints(t);
+						return 1;
+					}
+					break;
+				}
 #if 0
 				case EVT_MODAL_MAP:
 				{
@@ -6240,7 +6251,7 @@ int handleEventVertSlide(struct TransInfo *t, struct wmEvent *event)
 				case MOUSEMOVE:
 				{
 					/* don't recalculat the best edge */
-					if (!(t->flag & T_ALT_TRANSFORM)) {
+					if (sld->is_clamp) {
 						calcVertSlideMouseActiveEdges(t, event->mval);
 					}
 					calcVertSlideCustomPoints(t);
@@ -6266,7 +6277,6 @@ static void drawVertSlide(const struct bContext *C, TransInfo *t)
 			const float line_size = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.5f;
 			const int alpha_shade = -30;
 			int i;
-			bool is_constrained = !(t->flag & T_ALT_TRANSFORM);
 
 			if (v3d && v3d->zbuf)
 				glDisable(GL_DEPTH_TEST);
@@ -6282,7 +6292,7 @@ static void drawVertSlide(const struct bContext *C, TransInfo *t)
 			glLineWidth(line_size);
 			UI_ThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
 			glBegin(GL_LINES);
-			if (is_constrained) {
+			if (sld->is_clamp) {
 				sv = sld->sv;
 				for (i = 0; i < sld->totsv; i++, sv++) {
 					glVertex3fv(sv->co_orig_3d);
@@ -6370,11 +6380,12 @@ static int doVertSlide(TransInfo *t, float perc)
 int VertSlide(TransInfo *t, const int UNUSED(mval[2]))
 {
 	char str[128];
+	char *str_p;
 	float final;
 	VertSlideData *sld =  t->customData;
 	const bool flipped = sld->flipped_vtx;
 	const bool is_proportional = sld->is_proportional;
-	const bool is_constrained = !((t->flag & T_ALT_TRANSFORM) || hasNumInput(&t->num));
+	const bool is_constrained = !(sld->is_clamp == false || hasNumInput(&t->num));
 
 	final = t->values[0];
 
@@ -6385,20 +6396,23 @@ int VertSlide(TransInfo *t, const int UNUSED(mval[2]))
 		CLAMP(final, 0.0f, 1.0f);
 	}
 
+	/* header string */
+	str_p = str;
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
-
 		applyNumInput(&t->num, &final);
-
 		outputNumInput(&(t->num), c);
-
-		BLI_snprintf(str, sizeof(str), "Vert Slide: %s (E)ven: %s, (F)lipped: %s, Alt Hold: %s",
-		             &c[0], !is_proportional ? "ON" : "OFF", flipped ? "ON" : "OFF", (t->flag & T_ALT_TRANSFORM) ? "ON" : "OFF");
+		str_p += BLI_snprintf(str, sizeof(str), "Vert Slide: %s", &c[0]);
 	}
 	else {
-		BLI_snprintf(str, sizeof(str), "Vert Slide: %.2f (E)ven: %s, (F)lipped: %s, Alt Hold: %s",
-		             final, !is_proportional ? "ON" : "OFF", flipped ? "ON" : "OFF", (t->flag & T_ALT_TRANSFORM) ? "ON" : "OFF");
+		str_p += BLI_snprintf(str_p, sizeof(str), "Vert Slide: %.4f ", final);
 	}
+	str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), "(E)ven: %s, ", !is_proportional ? "ON" : "OFF");
+	if (!is_proportional) {
+		str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), "(F)lipped: %s, ", flipped ? "ON" : "OFF");
+	}
+	str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), "(C)lamp: %s", sld->is_clamp ? "ON" : "OFF");
+	/* done with header string */
 
 	if (is_constrained) {
 		CLAMP(final, 0.0f, 1.0f);
