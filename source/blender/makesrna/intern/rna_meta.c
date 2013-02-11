@@ -351,6 +351,8 @@ static void rna_def_metaball(BlenderRNA *brna)
 	
 	/* anim */
 	rna_def_animdata_common(srna);
+
+	RNA_api_meta(srna);
 }
 
 void RNA_def_meta(BlenderRNA *brna)

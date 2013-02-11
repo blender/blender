@@ -67,6 +67,7 @@
 
 #include "ED_armature.h"
 #include "ED_keyframing.h"
+#include "ED_mball.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -407,6 +408,12 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 				change = 0;
 			}
 		}
+		else if (ob->type == OB_MBALL) {
+			if (ID_REAL_USERS(ob->data) > 1) {
+				BKE_report(reports, RPT_ERROR, "Cannot apply to a multi user metaball, doing nothing");
+				change = 0;
+			}
+		}
 		else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 			Curve *cu;
 
@@ -515,6 +522,10 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 				mul_m4_v3(mat, bp->vec);
 				bp++;
 			}
+		}
+		else if (ob->type == OB_MBALL) {
+			MetaBall *mb = ob->data;
+			ED_mball_transform(mb, (float *)mat);
 		}
 		else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 			Curve *cu = ob->data;

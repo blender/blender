@@ -586,3 +586,27 @@ void undo_push_mball(bContext *C, const char *name)
 	undo_editmode_push(C, name, get_data, free_undoMball, undoMball_to_editMball, editMball_to_undoMball, NULL);
 }
 
+/* matrix is 4x4 */
+void ED_mball_transform(MetaBall *mb, float *mat)
+{
+	MetaElem *me;
+	float quat[4];
+	const float scale = mat4_to_scale((float (*)[4])mat);
+	const float scale_sqrt = sqrtf(scale);
+
+	mat4_to_quat(quat, (float (*)[4])mat);
+
+	for (me = mb->elems.first; me; me = me->next) {
+		mul_m4_v3((float (*)[4])mat, &me->x);
+		mul_qt_qtqt(me->quat, quat, me->quat);
+		me->rad *= scale;
+		/* hrmf, probably elems shouldn't be
+		 * treating scale differently - campbell */
+		if (ELEM3(me->type, MB_CUBE, MB_PLANE, MB_TUBE)) {
+			mul_v3_fl(&me->expx, scale);
+		}
+		else {
+			mul_v3_fl(&me->expx, scale_sqrt);
+		}
+	}
+}

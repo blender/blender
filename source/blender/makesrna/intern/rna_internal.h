@@ -264,6 +264,7 @@ void RNA_api_keymapitems(struct StructRNA *srna);
 void RNA_api_main(struct StructRNA *srna);
 void RNA_api_material(StructRNA *srna);
 void RNA_api_mesh(struct StructRNA *srna);
+void RNA_api_meta(struct StructRNA *srna);
 void RNA_api_object(struct StructRNA *srna);
 void RNA_api_object_base(struct StructRNA *srna);
 void RNA_api_pose(struct StructRNA *srna);
