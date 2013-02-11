@@ -1591,6 +1591,7 @@ BLI_INLINE void apply_inflow_fields(SmokeFlowSettings *sfs, float emission_value
 		if (value > react[index]) {
 			float f = fuel_flow / fuel[index];
 			react[index] = value * f + (1.0f - f) * react[index];
+			CLAMP(react[index], 0.0f, value);
 		}
 	}
 }
