@@ -373,6 +373,8 @@ int ED_space_image_check_show_maskedit(struct Scene *scene, struct SpaceImage *s
 
 void ED_nurb_set_spline_type(struct Nurb *nu, int type) {}
 
+void ED_mball_transform(struct MetaBall *mb, float *mat) {}
+
 void make_editLatt(struct Object *obedit) {}
 void load_editLatt(struct Object *obedit) {}
 
