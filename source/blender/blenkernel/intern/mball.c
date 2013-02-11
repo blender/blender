@@ -1791,14 +1791,15 @@ static float init_meta(Scene *scene, Object *ob)    /* return totsize */
 						}
 
 						/* untransformed Bounding Box of MetaElem */
+						/* TODO, its possible the elem type has been changed and the exp* values can use a fallback */
 						copy_v3_fl3(G_mb.mainb[a]->bb->vec[0], -expx, -expy, -expz);  /* 0 */
 						copy_v3_fl3(G_mb.mainb[a]->bb->vec[1], +expx, -expy, -expz);  /* 1 */
 						copy_v3_fl3(G_mb.mainb[a]->bb->vec[2], +expx, +expy, -expz);  /* 2 */
 						copy_v3_fl3(G_mb.mainb[a]->bb->vec[3], -expx, +expy, -expz);  /* 3 */
 						copy_v3_fl3(G_mb.mainb[a]->bb->vec[4], -expx, -expy, +expz);  /* 4 */
 						copy_v3_fl3(G_mb.mainb[a]->bb->vec[5], +expx, -expy, +expz);  /* 5 */
-						copy_v3_fl3(G_mb.mainb[a]->bb->vec[5], +expx, +expy, +expz);  /* 6 */
-						copy_v3_fl3(G_mb.mainb[a]->bb->vec[5], -expx, +expy, +expz);  /* 7 */
+						copy_v3_fl3(G_mb.mainb[a]->bb->vec[6], +expx, +expy, +expz);  /* 6 */
+						copy_v3_fl3(G_mb.mainb[a]->bb->vec[7], -expx, +expy, +expz);  /* 7 */
 
 						/* transformation of Metalem bb */
 						for (i = 0; i < 8; i++)
