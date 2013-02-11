@@ -368,8 +368,8 @@ void WM_OT_collada_import(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna,
 	                "import_units", 0, "Import Units",
-	                "If disabled match import to Blender's current Unit settings. "
-	                "Otherwise use the settings from the Imported scene");
+	                "If disabled match import to Blender's current Unit settings, "
+	                "otherwise use the settings from the Imported scene");
 
 }
 #endif
