@@ -3182,6 +3182,7 @@ static int paint_weight_gradient_modal(bContext *C, wmOperator *op, wmEvent *eve
 		VPaint *wp = ts->wpaint;
 		Object *ob = CTX_data_active_object(C);
 		Mesh *me = ob->data;
+		BKE_defvert_array_free_elems(me->dvert, me->totvert);
 		BKE_defvert_array_copy(me->dvert, wp->wpaint_prev, me->totvert);
 		free_wpaint_prev(wp);
 

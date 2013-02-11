@@ -809,7 +809,7 @@ void BKE_defvert_array_copy(MDeformVert *dst, const MDeformVert *src, int copyco
 
 }
 
-void BKE_defvert_array_free(MDeformVert *dvert, int totvert)
+void BKE_defvert_array_free_elems(MDeformVert *dvert, int totvert)
 {
 	/* Instead of freeing the verts directly,
 	 * call this function to delete any special
@@ -823,6 +823,18 @@ void BKE_defvert_array_free(MDeformVert *dvert, int totvert)
 	for (i = 0; i < totvert; i++) {
 		if (dvert[i].dw) MEM_freeN(dvert[i].dw);
 	}
-	MEM_freeN(dvert);
 }
 
+void BKE_defvert_array_free(MDeformVert *dvert, int totvert)
+{
+	/* Instead of freeing the verts directly,
+	 * call this function to delete any special
+	 * vert data */
+	if (!dvert)
+		return;
+
+	/* Free any special data from the verts */
+	BKE_defvert_array_free_elems(dvert, totvert);
+
+	MEM_freeN(dvert);
+}
