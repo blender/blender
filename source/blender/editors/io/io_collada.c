@@ -319,7 +319,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 	import_units = RNA_boolean_get(op->ptr, "import_units");
 
 	RNA_string_get(op->ptr, "filepath", filename);
-	if (collada_import( C, filename, import_units)) {
+	if (collada_import(C, filename, import_units)) {
 		return OPERATOR_FINISHED;
 	}
 	else {

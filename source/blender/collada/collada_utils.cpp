@@ -307,13 +307,13 @@ std::string bc_replace_string(std::string data, const std::string& pattern,
 /**
 	Calculate a rescale factor such that the imported scene's scale
 	is preserved. I.e. 1 meter in the import will also be
-	1 meter in the curretn scene.
+	1 meter in the current scene.
 	XXX : I am not sure if it is correct to map 1 Blender Unit
 	to 1 Meter for unit type NONE. But it looks reasonable to me.
 */
 void bc_match_scale(std::vector<Object *> *objects_done, 
 					Scene &sce, 
-					UnitConverter &unit_converter) {
+					UnitConverter &bc_unit) {
 
 	Object *ob = NULL;
 
@@ -333,33 +333,32 @@ void bc_match_scale(std::vector<Object *> *objects_done,
 		case USER_UNIT_NONE:
 			bl_scale = 1.0; // map 1 Blender unit to 1 Meter
 			break;
+
 		case USER_UNIT_METRIC:
 			bl_scale = RNA_property_float_get(&unit_settings, scale_ptr);
 			break;
-		default:
+
+		default :
 			bl_scale = RNA_property_float_get(&unit_settings, scale_ptr);
 			// it looks like the conversion to Imperial is done implicitly.
 			// So nothing to do here.
 			break;
 	}
 	
-	float size_mat3[3][3];
-	float size_mat4[4][4];
-
-	float scale_conv = unit_converter.getLinearMeter() / bl_scale;
+	float scale_conv = bc_unit.getLinearMeter() / bl_scale;
 
 	float rescale[3];
 	rescale[0] = rescale[1] = rescale[2] = scale_conv;
 
-	size_to_mat3(size_mat3, rescale);
-	copy_m4_m3(size_mat4, size_mat3);
+	float size_mat4[4][4];
+	size_to_mat4(size_mat4, rescale);
 
-	for (std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end(); ++it) {
+	for (std::vector<Object *>::iterator it = objects_done->begin();
+			it != objects_done->end();
+			++it) 
+	{
 		ob = *it;
-		mult_m4_m4m4(ob->obmat, ob->obmat, size_mat4);
-		ob->obmat[3][0] = ob->loc[0] * rescale[0];
-		ob->obmat[3][1] = ob->loc[1] * rescale[1];
-		ob->obmat[3][2] = ob->loc[2] * rescale[2];
+		mult_m4_m4m4(ob->obmat, size_mat4, ob->obmat);
 		BKE_object_apply_mat4(ob, ob->obmat, 0, 0);
 	}
 
