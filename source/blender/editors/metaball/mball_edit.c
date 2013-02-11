@@ -602,7 +602,7 @@ void ED_mball_transform(MetaBall *mb, float *mat)
 		me->rad *= scale;
 		/* hrmf, probably elems shouldn't be
 		 * treating scale differently - campbell */
-		if (ELEM3(me->type, MB_CUBE, MB_PLANE, MB_TUBE)) {
+		if (!MB_TYPE_SIZE_SQUARED(me->type)) {
 			mul_v3_fl(&me->expx, scale);
 		}
 		else {

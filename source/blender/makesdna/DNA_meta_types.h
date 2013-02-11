@@ -121,6 +121,8 @@ typedef struct MetaBall {
 #define MB_ELIPSOID	6
 #define MB_CUBE 	7
 
+#define MB_TYPE_SIZE_SQUARED(type)  (type == MB_ELIPSOID)
+
 /* ml->flag */
 #define MB_NEGATIVE	2
 #define MB_HIDE		8
