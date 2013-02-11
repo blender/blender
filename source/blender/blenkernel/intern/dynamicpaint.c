@@ -2379,7 +2379,8 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 						dot11 = d2[0] * d2[0] + d2[1] * d2[1];
 						dot12 = d2[0] * d3[0] + d2[1] * d3[1];
 
-						invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+						invDenom = (dot00 * dot11 - dot01 * dot01);
+						invDenom = invDenom ? 1.0f / invDenom : 1.0f;
 						u = (dot11 * dot02 - dot01 * dot12) * invDenom;
 						v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
@@ -2399,7 +2400,8 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 							dot11 = d2[0] * d2[0] + d2[1] * d2[1];
 							dot12 = d2[0] * d3[0] + d2[1] * d3[1];
 
-							invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+							invDenom = (dot00 * dot11 - dot01 * dot01);
+							invDenom = invDenom ? 1.0f / invDenom : 1.0f;
 							u = (dot11 * dot02 - dot01 * dot12) * invDenom;
 							v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
