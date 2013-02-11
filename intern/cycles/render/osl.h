@@ -36,7 +36,7 @@ class Device;
 class DeviceScene;
 class ImageManager;
 class OSLRenderServices;
-class OSLGlobals;
+struct OSLGlobals;
 class Scene;
 class ShaderGraph;
 class ShaderNode;

@@ -53,7 +53,7 @@ __device_noinline void shader_setup_object_transforms(KernelGlobals *kg, ShaderD
 }
 #endif
 
-__device void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
+__device_noinline void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 	const Intersection *isect, const Ray *ray)
 {
 #ifdef __INSTANCING__
@@ -160,7 +160,7 @@ __device void shader_setup_from_ray(KernelGlobals *kg, ShaderData *sd,
 
 /* ShaderData setup from position sampled on mesh */
 
-__device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
+__device_noinline void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 	const float3 P, const float3 Ng, const float3 I,
 	int shader, int object, int prim, float u, float v, float t, float time, int segment = ~0)
 {
@@ -283,7 +283,7 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 
 /* ShaderData setup for displacement */
 
-__device void shader_setup_from_displace(KernelGlobals *kg, ShaderData *sd,
+__device_noinline void shader_setup_from_displace(KernelGlobals *kg, ShaderData *sd,
 	int object, int prim, float u, float v)
 {
 	/* Note: no OSLShader::init call here, this is done in shader_setup_from_sample! */

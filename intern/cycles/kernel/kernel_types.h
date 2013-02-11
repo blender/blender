@@ -299,6 +299,7 @@ typedef enum LightType {
 	LIGHT_AREA,
 	LIGHT_AO,
 	LIGHT_SPOT,
+	LIGHT_TRIANGLE,
 	LIGHT_STRAND
 } LightType;
 
