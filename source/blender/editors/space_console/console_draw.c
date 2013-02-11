@@ -158,9 +158,9 @@ static int console_textview_line_color(struct TextViewContext *tvc, unsigned cha
 	if (tvc->iter_index == 0) {
 		const SpaceConsole *sc = (SpaceConsole *)tvc->arg1;
 		const ConsoleLine *cl = (ConsoleLine *)sc->history.last;
-		const int prompt_len = strlen(sc->prompt);
-		const int cursor_loc = cl->cursor + prompt_len;
-		const int line_len = cl->len + prompt_len;
+		const int prompt_len = BLI_strlen_utf8(sc->prompt);
+		const int cursor_loc = BLI_strnlen_utf8(cl->line, cl->cursor) + prompt_len;
+		const int line_len = BLI_strlen_utf8(cl->line) + prompt_len;
 		int xy[2] = {CONSOLE_DRAW_MARGIN, CONSOLE_DRAW_MARGIN};
 		int pen[2];
 		xy[1] += tvc->lheight / 6;

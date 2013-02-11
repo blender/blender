@@ -36,6 +36,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string_cursor_utf8.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string.h"
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
@@ -393,15 +394,26 @@ static int console_insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	// if (!RNA_struct_property_is_set(op->ptr, "text")) { /* always set from keymap XXX */
 	if (!RNA_string_length(op->ptr, "text")) {
-		/* if alt/ctrl/super are pressed pass through */
-		if (event->ctrl || event->oskey) {
+		/* if alt/ctrl/super are pressed pass through except for utf8 character event
+		 * (when input method are used for utf8 inputs, the user may assign key event
+		 * including alt/ctrl/super like ctrl+m to commit utf8 string.  in such case,
+		 * the modifiers in the utf8 character event make no sense.) */
+		if ((event->ctrl || event->oskey) && !event->utf8_buf[0]) {
 			return OPERATOR_PASS_THROUGH;
 		}
 		else {
-			char str[2];
-			str[0] = event->ascii;
-			str[1] = '\0';
-
+			char str[BLI_UTF8_MAX + 1];
+			size_t len;
+			
+			if (event->utf8_buf[0]) {
+				len = BLI_str_utf8_size_safe(event->utf8_buf);
+				memcpy(str, event->utf8_buf, len);
+			}
+			else {
+				/* in theory, ghost can set value to extended ascii here */
+				len = BLI_str_utf8_from_unicode(event->ascii, str);
+			}
+			str[len] = '\0';
 			RNA_string_set(op->ptr, "text", str);
 		}
 	}
