@@ -196,7 +196,7 @@ static struct bUnitDef buMetricMassDef[] = {
 	{"ton", "tonnes",           "ton", "t",  "1000 Kilograms", UN_SC_MTON, 0.0,  B_UNIT_DEF_NONE},
 	{"quintal", "quintals",     "ql",  "q",  "100 Kilograms", UN_SC_QL, 0.0,     B_UNIT_DEF_NONE},
 	{"kilogram", "kilograms",   "kg",  NULL, "Kilograms", UN_SC_KG, 0.0,         B_UNIT_DEF_NONE}, /* base unit */
-	{"hectogram", "hectograms", "hg",  NULL, "Hectograms", UN_SC_HG, 0.0,        B_UNIT_DEF_NONE},
+	{"hectogram", "hectograms", "hg",  NULL, "Hectograms", UN_SC_HG, 0.0,        B_UNIT_DEF_SUPPRESS},
 	{"dekagram", "dekagrams",   "dag", NULL, "10 Grams", UN_SC_DAG, 0.0,         B_UNIT_DEF_SUPPRESS},
 	{"gram", "grams",           "g",   NULL, "Grams", UN_SC_G, 0.0,              B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL,  NULL, NULL, 0.0, 0.0}
