@@ -133,6 +133,10 @@ GHOST_SystemX11(
 	m_xclip_out = XInternAtom(m_display, "XCLIP_OUT", False);
 	m_incr = XInternAtom(m_display, "INCR", False);
 	m_utf8_string = XInternAtom(m_display, "UTF8_STRING", False);
+#ifdef WITH_X11_XINPUT
+	m_xi_tablet = XInternAtom(m_display, XI_TABLET, False);
+#endif
+
 	m_last_warp = 0;
 
 
@@ -1939,7 +1943,9 @@ void GHOST_SystemX11::initXInputDevices()
 //				printf("Tablet type:'%s', name:'%s', index:%d\n", device_type, device_info[i].name, i);
 
 
-				if (m_xtablet.StylusDevice == NULL && is_stylus(device_info[i].name, device_type)) {
+				if ((m_xtablet.StylusDevice == NULL) &&
+				    (is_stylus(device_info[i].name, device_type) || (device_info[i].type == m_xi_tablet)))
+				{
 //					printf("\tfound stylus\n");
 					m_xtablet.StylusID = device_info[i].id;
 					m_xtablet.StylusDevice = XOpenDevice(m_display, m_xtablet.StylusID);
@@ -1952,11 +1958,18 @@ void GHOST_SystemX11::initXInputDevices()
 //								printf("\t\tfound ValuatorClass\n");
 								XValuatorInfo *xvi = (XValuatorInfo *)ici;
 								m_xtablet.PressureLevels = xvi->axes[2].max_value;
-							
-								/* this is assuming that the tablet has the same tilt resolution in both
-								 * positive and negative directions. It would be rather weird if it didn't.. */
-								m_xtablet.XtiltLevels = xvi->axes[3].max_value;
-								m_xtablet.YtiltLevels = xvi->axes[4].max_value;
+
+								if (xvi->num_axes > 3) {
+									/* this is assuming that the tablet has the same tilt resolution in both
+									 * positive and negative directions. It would be rather weird if it didn't.. */
+									m_xtablet.XtiltLevels = xvi->axes[3].max_value;
+									m_xtablet.YtiltLevels = xvi->axes[4].max_value;
+								}
+								else {
+									m_xtablet.XtiltLevels = 0;
+									m_xtablet.YtiltLevels = 0;
+								}
+
 								break;
 							}
 						
@@ -1967,7 +1980,9 @@ void GHOST_SystemX11::initXInputDevices()
 						m_xtablet.StylusID = 0;
 					}
 				}
-				else if (m_xtablet.EraserDevice == NULL && is_eraser(device_info[i].name, device_type)) {
+				else if ((m_xtablet.EraserDevice == NULL) &&
+				         (is_eraser(device_info[i].name, device_type)))
+				{
 //					printf("\tfound eraser\n");
 					m_xtablet.EraserID = device_info[i].id;
 					m_xtablet.EraserDevice = XOpenDevice(m_display, m_xtablet.EraserID);

@@ -301,6 +301,9 @@ public:
 	Atom m_xclip_out;
 	Atom m_incr;
 	Atom m_utf8_string;
+#ifdef WITH_X11_XINPUT
+	Atom m_xi_tablet;
+#endif
 
 #ifdef WITH_X11_XINPUT
 	typedef struct GHOST_TabletX11 {
