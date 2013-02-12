@@ -65,7 +65,7 @@ class INFO_HT_header(Header):
 
         row = layout.row(align=True)
         row.operator("wm.splash", text="", icon='BLENDER', emboss=False)
-        row.label(text=scene.statistics())
+        row.label(text=scene.statistics(), translate=False)
 
         # XXX: BEFORE RELEASE, MOVE FILE MENU OUT OF INFO!!!
         """
