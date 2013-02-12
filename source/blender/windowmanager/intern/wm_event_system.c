@@ -590,6 +590,9 @@ static void wm_operator_finished(bContext *C, wmOperator *op, int repeat)
 		}
 
 		if (wm_operator_register_check(wm, op->type)) {
+			/* take ownership of reports (in case python provided own) */
+			op->reports->flag |= RPT_FREE;
+
 			wm_operator_register(C, op);
 			WM_operator_region_active_win_set(C);
 		}
@@ -935,6 +938,9 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event,
 			wm_operator_finished(C, op, 0);
 		}
 		else if (retval & OPERATOR_RUNNING_MODAL) {
+			/* take ownership of reports (in case python provided own) */
+			op->reports->flag |= RPT_FREE;
+
 			/* grab cursor during blocking modal ops (X11)
 			 * Also check for macro
 			 */
@@ -1170,13 +1176,6 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, short context,
 	
 	if (!is_undo && wm && (wm == CTX_wm_manager(C))) wm->op_undo_depth--;
 
-	/* keep the reports around if needed later */
-	if ((retval & OPERATOR_RUNNING_MODAL) ||
-	    ((retval & OPERATOR_FINISHED) && wm_operator_register_check(CTX_wm_manager(C), ot)))
-	{
-		reports->flag |= RPT_FREE; /* let blender manage freeing */
-	}
-	
 	return retval;
 }
 
