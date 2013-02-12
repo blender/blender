@@ -21,6 +21,7 @@
 # Some misc utilities...
 
 import collections
+import concurrent.futures
 import copy
 import os
 import re
@@ -59,6 +60,35 @@ def stripeol(s):
 _valid_po_path_re = re.compile(r"^\S+:[0-9]+$")
 def is_valid_po_path(path):
     return bool(_valid_po_path_re.match(path))
+
+
+def get_best_similar(data):
+    import difflib
+    key, use_similar, similar_pool = data
+
+    # try to find some close key in existing messages...
+    # Optimized code inspired by difflib.get_close_matches (as we only need the best match).
+    # We also consider to never make a match when len differs more than -len_key / 2, +len_key * 2 (which is valid
+    # as long as use_similar is not below ~0.7).
+    # Gives an overall ~20% of improvement!
+    #tmp = difflib.get_close_matches(key[1], similar_pool, n=1, cutoff=use_similar)
+    #if tmp:
+        #tmp = tmp[0]
+    tmp = None
+    s = difflib.SequenceMatcher()
+    s.set_seq2(key[1])
+    len_key = len(key[1])
+    min_len = len_key // 2
+    max_len = len_key * 2
+    for x in similar_pool:
+        if min_len < len(x) < max_len:
+            s.set_seq1(x)
+            if s.real_quick_ratio() >= use_similar and s.quick_ratio() >= use_similar:
+                sratio = s.ratio()
+                if sratio >= use_similar:
+                    tmp = x
+                    use_similar = sratio
+    return key, tmp
 
 
 class I18nMessage:
@@ -233,40 +263,73 @@ class I18nMessages:
         existing one. Messages no more found in ref will be marked as commented if keep_old_commented is True,
         or removed.
         """
-        import difflib
         similar_pool = {}
         if use_similar > 0.0:
             for key, msg in self.msgs.items():
                 if msg.msgstr:  # No need to waste time with void translations!
                     similar_pool.setdefault(key[1], set()).add(key)
 
-        msgs = self._new_messages()
-        for (key, msg) in ref.msgs.items():
-            if key in self.msgs:
-                msgs[key] = self.msgs[key]
-                msgs[key].sources = msg.sources
-            else:
-                skey = None
-                if use_similar > 0.0:
-                    # try to find some close key in existing messages...
-                    tmp = difflib.get_close_matches(key[1], similar_pool, n=1, cutoff=use_similar)
-                    if tmp:
-                        tmp = tmp[0]
+        msgs = self._new_messages().fromkeys(ref.msgs.keys())
+        ref_keys = set(ref.msgs.keys())
+        org_keys = set(self.msgs.keys())
+        new_keys = ref_keys - org_keys
+        removed_keys = org_keys - ref_keys
+
+        print(new_keys, "\n\n", removed_keys)
+
+        # First process keys present in both org and ref messages.
+        for key in ref_keys - new_keys:
+            msg, refmsg = self.msgs[key], ref.msgs[key]
+            msg.sources = refmsg.sources
+            msg.is_commented = refmsg.is_commented
+            msg.is_fuzzy = refmsg.is_fuzzy
+            msgs[key] = msg
+
+        # Next process new keys.
+        if use_similar > 0.0:
+            with concurrent.futures.ProcessPoolExecutor() as exctr:
+                for key, msgid in exctr.map(get_best_similar,
+                                            tuple((nk, use_similar, tuple(similar_pool.keys())) for nk in new_keys)):
+                    if msgid:
                         # Try to get the same context, else just get one...
-                        skey = (key[0], tmp)
-                        if skey not in similar_pool[tmp]:
-                            skey = tuple(similar_pool[tmp])[0]
-                msgs[key] = msg
-                if skey:
-                    msgs[key].msgstr = self.msgs[skey].msgstr
-                    msgs[key].is_fuzzy = True
+                        skey = (key[0], msgid)
+                        if skey not in similar_pool[msgid]:
+                            skey = tuple(similar_pool[msgid])[0]
+                        # We keep org translation and comments, and mark message as fuzzy.
+                        msg, refmsg = copy.deepcopy(self.msgs[skey]), ref.msgs[key]
+                        msg.msgctxt = refmsg.msgctxt
+                        msg.msgid = refmsg.msgid
+                        msg.sources = refmsg.sources
+                        msg.is_fuzzy = True
+                        msg.is_commented = refmsg.is_commented
+                        msgs[key] = msg
+                    else:
+                        msgs[key] = ref.msgs[key]
+        else:
+            for key in new_keys:
+                msgs[key] = ref.msgs[key]
+
         # Add back all "old" and already commented messages as commented ones, if required
         # (and translation was not void!).
         if keep_old_commented:
-            for key, msg in self.msgs.items():
-                if key not in msgs and msg.msgstr:
-                    msgs[key] = msg
-                    msgs[key].is_commented = True
+            for key in removed_keys:
+                msgs[key] = self.msgs[key]
+                msgs[key].is_commented = True
+                msgs[key].sources = []
+
+        # Special 'meta' message, change project ID version and pot creation date...
+        key = ("", "")
+        rep = []
+        markers = ("Project-Id-Version:", "POT-Creation-Date:")
+        for mrk in markers:
+            for rl in ref.msgs[key].msgstr_lines:
+                if rl.startswith(mrk):
+                    for idx, ml in enumerate(msgs[key].msgstr_lines):
+                        if ml.startswith(mrk):
+                            rep.append((idx, rl))
+        for idx, txt in rep:
+            msgs[key].msgstr_lines[idx] = txt
+
         # And finalize the update!
         self.msgs = msgs
 
