@@ -1,4 +1,4 @@
-/**
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -23,6 +23,10 @@
  * Contributor(s): Matt Ebb
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/modifiers/intern/MOD_ocean.c
+ *  \ingroup modifiers
  */
 
 #include "MEM_guardedalloc.h"

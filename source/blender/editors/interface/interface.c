@@ -1800,9 +1800,9 @@ int ui_set_but_string_eval_num(bContext *C, uiBut *but, const char *str, double 
 #ifdef WITH_PYTHON
 
 	if (str[0] != '\0') {
-		int is_unit_but = ui_is_but_unit(but);
+		bool is_unit_but = (ui_is_but_float(but) && ui_is_but_unit(but));
 		/* only enable verbose if we won't run again with units */
-		if (BPY_button_exec(C, str, value, is_unit_but == FALSE) != -1) {
+		if (BPY_button_exec(C, str, value, is_unit_but == false) != -1) {
 			/* if the value parsed ok without unit conversion this button may still need a unit multiplier */
 			if (is_unit_but) {
 				char str_new[128];
