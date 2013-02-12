@@ -340,6 +340,10 @@ void BVH::pack_primitives()
 			Object *ob = objects[tob];
 			pack.prim_visibility[i] = ob->visibility;
 		}
+		else {
+			memset(&pack.tri_woop[i * nsize], 0, sizeof(float4)*3);
+			pack.prim_visibility[i] = 0;
+		}
 	}
 }
 
@@ -476,7 +480,7 @@ void BVH::pack_instances(size_t nodes_size)
 		}
 
 		/* merge nodes */
-		if( bvh->pack.nodes.size()) {
+		if(bvh->pack.nodes.size()) {
 			size_t nsize_bbox = (use_qbvh)? nsize-2: nsize-1;
 			int4 *bvh_nodes = &bvh->pack.nodes[0];
 			size_t bvh_nodes_size = bvh->pack.nodes.size(); 
