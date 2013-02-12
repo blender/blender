@@ -1765,6 +1765,10 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 								break;
 							}
 							else {
+								if (action & WM_HANDLER_HANDLED)
+									if (G.debug & (G_DEBUG_EVENTS | G_DEBUG_HANDLERS))
+										printf("%s:       handled - and pass on! '%s'\n", __func__, kmi->idname);
+								
 #ifndef NDEBUG
 								if (do_debug_handler) {
 									printf("%s:       un-handled '%s'...", __func__, kmi->idname);
