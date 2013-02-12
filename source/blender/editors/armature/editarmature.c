@@ -2268,7 +2268,7 @@ EditBone *ED_armature_edit_bone_add(bArmature *arm, const char *name)
 	
 	BLI_addtail(arm->edbo, bone);
 	
-	bone->flag |= BONE_TIPSEL | BONE_RELATIVE_PARENTING;
+	bone->flag |= BONE_TIPSEL;
 	bone->weight = 1.0f;
 	bone->dist = 0.25f;
 	bone->xwidth = 0.1f;
@@ -3422,7 +3422,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 						copy_v3_v3(newbone->tail, ebone->head);
 						newbone->parent = ebone->parent;
 						
-						newbone->flag = BONE_TIPSEL | BONE_RELATIVE_PARENTING;
+						newbone->flag = BONE_TIPSEL;
 						
 						if (newbone->parent && (ebone->flag & BONE_CONNECTED)) {
 							newbone->flag |= BONE_CONNECTED;
