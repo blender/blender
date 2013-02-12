@@ -952,6 +952,13 @@ Mesh *MeshImporter::get_mesh_by_geom_uid(const COLLADAFW::UniqueId& mesh_uid)
 	return NULL;
 }
 
+std::string *MeshImporter::get_geometry_name(const std::string &mesh_name)
+{
+	if (this->mesh_geom_map.find(mesh_name) != this->mesh_geom_map.end())
+		return &this->mesh_geom_map[mesh_name];
+	return NULL;
+}
+
 MTex *MeshImporter::assign_textures_to_uvlayer(COLLADAFW::TextureCoordinateBinding &ctexture,
                                                Mesh *me, TexIndexTextureArrayMap& texindex_texarray_map,
                                                MTex *color_texture)
@@ -1300,7 +1307,9 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry *geom)
 
 	// store the Mesh pointer to link it later with an Object
 	this->uid_mesh_map[mesh->getUniqueId()] = me;
-	
+	// needed to map mesh to its geometry name (needed for shape key naming)
+	this->mesh_geom_map[std::string(me->id.name)] = str_geom_id;
+
 	int new_tris = 0;
 	
 	read_vertices(mesh, me);

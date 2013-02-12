@@ -187,7 +187,7 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
 		return;
 	}
 
-	std::string geom_name =  id_name(ob) + "_morph_" + kb->name;
+	std::string geom_name = kb->name;
 
 	exportedGeometry.insert(geom_id);
 

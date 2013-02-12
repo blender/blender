@@ -60,6 +60,7 @@ class MeshImporterBase
 public:
 	virtual Object *get_object_by_geom_uid(const COLLADAFW::UniqueId& geom_uid) = 0;
 	virtual Mesh *get_mesh_by_geom_uid(const COLLADAFW::UniqueId& mesh_uid) = 0;
+	virtual std::string *get_geometry_name(const std::string &mesh_name) = 0;
 };
 
 class UVDataWrapper
@@ -84,6 +85,7 @@ private:
 	Scene *scene;
 	ArmatureImporter *armature_importer;
 
+	std::map<std::string, std::string> mesh_geom_map; // needed for correct shape key naming
 	std::map<COLLADAFW::UniqueId, Mesh*> uid_mesh_map; // geometry unique id-to-mesh map
 	std::map<COLLADAFW::UniqueId, Object*> uid_object_map; // geom uid-to-object
 	std::vector<Object*> imported_objects; // list of imported objects
@@ -175,7 +177,7 @@ public:
 
 	// create a mesh storing a pointer in a map so it can be retrieved later by geometry UID
 	bool write_geometry(const COLLADAFW::Geometry* geom);
-
+	std::string *MeshImporter::get_geometry_name(const std::string &mesh_name);
 };
 
 #endif

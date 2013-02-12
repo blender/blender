@@ -673,11 +673,14 @@ void ArmatureImporter::make_shape_keys()
 		for (int i = 0 ; i < morphTargetIds.getCount() ; i++ ) {
 			//better to have a seperate map of morph objects, 
 			//This'll do for now since only mesh morphing is imported
+
 			Mesh *me = this->mesh_importer->get_mesh_by_geom_uid(morphTargetIds[i]);
 			
 			if (me) {
 				me->key = key;
-				kb = BKE_keyblock_add_ctime(key, me->id.name, FALSE);
+				std::string morph_name = *this->mesh_importer->get_geometry_name(me->id.name);
+
+				kb = BKE_keyblock_add_ctime(key, morph_name.c_str(), FALSE);
 				BKE_key_convert_from_mesh(me, kb);
 				
 				//apply weights
