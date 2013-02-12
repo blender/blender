@@ -118,9 +118,14 @@ typedef struct MLoopUV {
 #define MLOOPUV_VERTSEL	2
 #define MLOOPUV_PINNED	4
 
-/* at the moment alpha is abused for vertex painting
- * and not used for transparency,
- * note that red and blue are _not_ swapped, as they are with #MCol */
+/**
+ * at the moment alpha is abused for vertex painting,
+ * otherwise it should _always_ be initialized to 255
+ * Mostly its not used for transparency...
+ * (except for blender-internal rendering, see [#34096]).
+ *
+ * \note red and blue are _not_ swapped, as they are with #MCol
+ */
 typedef struct MLoopCol {
 	char r, g, b, a;
 } MLoopCol;
