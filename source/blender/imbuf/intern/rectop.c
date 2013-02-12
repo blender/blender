@@ -595,12 +595,8 @@ void IMB_rectfill_alpha(ImBuf *ibuf, const float value)
 {
 	int i;
 
-	if (ibuf->rect_float) {
-		float *fbuf;
-
-		if (ibuf->channels != 4) return;
-
-		fbuf = ibuf->rect_float + 3;
+	if (ibuf->rect_float && (ibuf->channels == 4)) {
+		float *fbuf = ibuf->rect_float + 3;
 		for (i = ibuf->x * ibuf->y; i > 0; i--, fbuf += 4) { *fbuf = value; }
 	}
 
