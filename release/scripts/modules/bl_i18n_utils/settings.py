@@ -93,7 +93,7 @@ LANGUAGES_FILE = "languages"
 IMPORT_MIN_LEVEL = -1
 
 # Languages in /branches we do not want to import in /trunk currently...
-IMPORT_LANGUAGES_SKIP = {'am', 'bg', 'fi', 'el', 'et', 'ko', 'ne', 'pl', 'ro', 'uz', 'uz@cyrillic'}
+IMPORT_LANGUAGES_SKIP = {'am', 'bg', 'fi', 'el', 'et', 'ne', 'pl', 'ro', 'uz', 'uz@cyrillic'}
 
 # The comment prefix used in generated messages.txt file.
 MSG_COMMENT_PREFIX = "#~ "
