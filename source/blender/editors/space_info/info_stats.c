@@ -395,7 +395,7 @@ static void stats_string(Scene *scene)
 		s += sprintf(s, "Verts:%d | Tris:%d", stats->totvert, stats->tottri);
 	}
 	else {
-		s += sprintf(s, "Verts:%d | Faces:%d| Tris:%d | Objects:%d/%d | Lamps:%d/%d%s",
+		s += sprintf(s, "Verts:%d | Faces:%d | Tris:%d | Objects:%d/%d | Lamps:%d/%d%s",
 		             stats->totvert, stats->totface, stats->tottri, stats->totobjsel, stats->totobj, stats->totlampsel, stats->totlamp, memstr);
 	}
 
