@@ -154,7 +154,6 @@ static int rigidbody_ob_add_exec(bContext *C, wmOperator *op)
 	DAG_ids_flush_update(CTX_data_main(C), 0);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
-	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
 
 	/* done */
 	return OPERATOR_FINISHED;
@@ -201,7 +200,6 @@ static int rigidbody_ob_remove_exec(bContext *C, wmOperator *op)
 	DAG_ids_flush_update(CTX_data_main(C), 0);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
-	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
 
 	/* done */
 	return OPERATOR_FINISHED;
@@ -247,7 +245,7 @@ static int rigidbody_obs_add_exec(bContext *C, wmOperator *op)
 	DAG_ids_flush_update(CTX_data_main(C), 0);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
-	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
+	WM_event_add_notifier(C, NC_OBJECT | ND_POINTCACHE, NULL);
 
 	/* done */
 	return OPERATOR_FINISHED;
@@ -293,8 +291,7 @@ static int rigidbody_obs_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	/* send updates */
 	DAG_ids_flush_update(CTX_data_main(C), 0);
 
-	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
-	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
+	WM_event_add_notifier(C, NC_OBJECT | ND_POINTCACHE, NULL);
 
 	/* done */
 	return OPERATOR_FINISHED;

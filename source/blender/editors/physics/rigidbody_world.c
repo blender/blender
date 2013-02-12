@@ -128,9 +128,6 @@ static int rigidbody_world_remove_exec(bContext *C, wmOperator *op)
 	BKE_rigidbody_free_world(rbw);
 	scene->rigidbody_world = NULL;
 
-	/* send updates */
-	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
-
 	/* done */
 	return OPERATOR_FINISHED;
 }
