@@ -1,6 +1,7 @@
 BF_BUILDDIR = '../blender-build/linux-glibc211-i686'
 BF_INSTALLDIR = '../blender-install/linux-glibc211-i686'
 BF_NUMJOBS = 4
+WITHOUT_BF_OVERWRITE_INSTALL = True
 
 # Python configuration
 BF_PYTHON_VERSION = '3.3'
@@ -109,9 +110,7 @@ BF_JACK_LIB_STATIC = '${BF_ZLIB}/lib/libjack.a'
 
 # Cycles
 WITH_BF_CYCLES = True
-WITH_BF_CYCLES_CUDA_BINARIES = True
-#BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_13', 'sm_20', 'sm_21', 'sm_30']
-BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_20', 'sm_21', 'sm_30']
+WITH_BF_CYCLES_CUDA_BINARIES = False
 
 WITH_BF_OIIO = True
 WITH_BF_STATICOIIO = True

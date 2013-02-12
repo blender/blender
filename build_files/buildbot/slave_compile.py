@@ -63,14 +63,14 @@ else:
         configs = []
         if builder.endswith('linux_glibc211_x86_64_scons'):
             configs = ['user-config-player-glibc211-x86_64.py',
-                       #'user-config-cuda-glibc211-x86_64.py',
+                       'user-config-cuda-glibc211-x86_64.py',
                        'user-config-glibc211-x86_64.py'
                        ]
             chroot_name = 'buildbot_squeeze_x86_64'
             cuda_chroot = 'buildbot_squeeze_x86_64'
         elif builder.endswith('linux_glibc211_i386_scons'):
             configs = ['user-config-player-glibc211-i686.py',
-                       #'user-config-cuda-glibc211-i686.py',
+                       'user-config-cuda-glibc211-i686.py',
                        'user-config-glibc211-i686.py']
             chroot_name = 'buildbot_squeeze_i686'
 
