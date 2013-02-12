@@ -1019,6 +1019,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 		sp->pr_method = PR_ICON_RENDER;
 		sp->pr_rect = cur_size->rect;
 		sp->id = ip->id;
+		sp->pr_main = pr_main;
 
 		common_preview_startjob(sp, stop, do_update, progress);
 		shader_preview_free(sp);
