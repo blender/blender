@@ -500,12 +500,12 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *ar)
 	layout->textheight = textheight;
 
 	if (params->display == FILE_IMGDISPLAY) {
-		layout->prv_w = 96;
-		layout->prv_h = 96;
-		layout->tile_border_x = 6;
-		layout->tile_border_y = 6;
-		layout->prv_border_x = 6;
-		layout->prv_border_y = 6;
+		layout->prv_w = 4.8f*UI_UNIT_X;
+		layout->prv_h = 4.8f*UI_UNIT_Y;
+		layout->tile_border_x = 0.3f*UI_UNIT_X;
+		layout->tile_border_y = 0.3f*UI_UNIT_X;
+		layout->prv_border_x = 0.3f*UI_UNIT_X;
+		layout->prv_border_y = 0.3f*UI_UNIT_Y;
 		layout->tile_w = layout->prv_w + 2 * layout->prv_border_x;
 		layout->tile_h = layout->prv_h + 2 * layout->prv_border_y + textheight;
 		layout->width = (int)(BLI_rctf_size_x(&v2d->cur) - 2 * layout->tile_border_x);
@@ -520,10 +520,13 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *ar)
 		layout->flag = FILE_LAYOUT_VER;
 	}
 	else {
+		int column_space = 0.6f*UI_UNIT_X;
+		int column_icon_space = 0.2f*UI_UNIT_X;
+
 		layout->prv_w = 0;
 		layout->prv_h = 0;
-		layout->tile_border_x = 8;
-		layout->tile_border_y = 2;
+		layout->tile_border_x = 0.4f*UI_UNIT_X;
+		layout->tile_border_y = 0.1f*UI_UNIT_Y;
 		layout->prv_border_x = 0;
 		layout->prv_border_y = 0;
 		layout->tile_h = textheight * 3 / 2;
@@ -533,22 +536,22 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, ARegion *ar)
 		column_widths(sfile->files, layout);
 
 		if (params->display == FILE_SHORTDISPLAY) {
-			maxlen = ICON_DEFAULT_WIDTH_SCALE + 4 +
-			         (int)layout->column_widths[COLUMN_NAME] + 12 +
-			         (int)layout->column_widths[COLUMN_SIZE] + 12;
+			maxlen = ICON_DEFAULT_WIDTH_SCALE + column_icon_space +
+			         (int)layout->column_widths[COLUMN_NAME] + column_space +
+			         (int)layout->column_widths[COLUMN_SIZE] + column_space;
 		}
 		else {
-			maxlen = ICON_DEFAULT_WIDTH_SCALE + 4 +
-			         (int)layout->column_widths[COLUMN_NAME] + 12 +
+			maxlen = ICON_DEFAULT_WIDTH_SCALE + column_icon_space +
+			         (int)layout->column_widths[COLUMN_NAME] + column_space +
 #ifndef WIN32
-			         (int)layout->column_widths[COLUMN_MODE1] + 12 +
-			         (int)layout->column_widths[COLUMN_MODE2] + 12 +
-			         (int)layout->column_widths[COLUMN_MODE3] + 12 +
-			         (int)layout->column_widths[COLUMN_OWNER] + 12 +
+			         (int)layout->column_widths[COLUMN_MODE1] + column_space +
+			         (int)layout->column_widths[COLUMN_MODE2] + column_space +
+			         (int)layout->column_widths[COLUMN_MODE3] + column_space +
+			         (int)layout->column_widths[COLUMN_OWNER] + column_space +
 #endif
-			         (int)layout->column_widths[COLUMN_DATE] + 12 +
-			         (int)layout->column_widths[COLUMN_TIME] + 12 +
-			         (int)layout->column_widths[COLUMN_SIZE] + 12;
+			         (int)layout->column_widths[COLUMN_DATE] + column_space +
+			         (int)layout->column_widths[COLUMN_TIME] + column_space +
+			         (int)layout->column_widths[COLUMN_SIZE] + column_space;
 
 		}
 		layout->tile_w = maxlen;
