@@ -594,11 +594,17 @@ void IMB_rectfill_area(struct ImBuf *ibuf, const float col[4], int x1, int y1, i
 void IMB_rectfill_alpha(ImBuf *ibuf, const float value)
 {
 	int i;
+
 	if (ibuf->rect_float) {
-		float *fbuf = ibuf->rect_float + 3;
+		float *fbuf;
+
+		if (ibuf->channels != 4) return;
+
+		fbuf = ibuf->rect_float + 3;
 		for (i = ibuf->x * ibuf->y; i > 0; i--, fbuf += 4) { *fbuf = value; }
 	}
-	else {
+
+	if (ibuf->rect) {
 		const unsigned char cvalue = value * 255;
 		unsigned char *cbuf = ((unsigned char *)ibuf->rect) + 3;
 		for (i = ibuf->x * ibuf->y; i > 0; i--, cbuf += 4) { *cbuf = cvalue; }
