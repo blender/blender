@@ -2781,21 +2781,21 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, const char *str,
 	return but;
 }
 
-/* ui_def_but_rna_propname and ui_def_but_rna
+static void ui_def_but_rna__disable(uiBut *but)
+{
+	but->flag |= UI_BUT_DISABLED;
+	but->lock = true;
+	but->lockstr = "";
+}
+
+/**
+ * ui_def_but_rna_propname and ui_def_but_rna
  * both take the same args except for propname vs prop, this is done so we can
  * avoid an extra lookup on 'prop' when its already available.
  *
  * When this kind of change won't disrupt branches, best look into making more
  * of our UI functions take prop rather then propname.
  */
-
-#define UI_DEF_BUT_RNA_DISABLE(but)  { \
-		but->flag |= UI_BUT_DISABLED;  \
-		but->lock = TRUE;              \
-		but->lockstr = "";             \
-	} (void)0
-
-
 static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *str,
                              int x, int y, short width, short height,
                              PointerRNA *ptr, PropertyRNA *prop, int index,
@@ -2932,7 +2932,7 @@ static uiBut *ui_def_but_rna(uiBlock *block, int type, int retval, const char *s
 	}
 	
 	if (!RNA_property_editable(&but->rnapoin, prop)) {
-		UI_DEF_BUT_RNA_DISABLE(but);
+		ui_def_but_rna__disable(but);
 	}
 
 	if (but->flag & UI_BUT_UNDO && (ui_but_is_rna_undo(but) == FALSE)) {
@@ -2962,7 +2962,7 @@ static uiBut *ui_def_but_rna_propname(uiBlock *block, int type, int retval, cons
 	else {
 		but = ui_def_but(block, type, retval, propname, x, y, width, height, NULL, min, max, a1, a2, tip);
 
-		UI_DEF_BUT_RNA_DISABLE(but);
+		ui_def_but_rna__disable(but);
 	}
 
 	return but;

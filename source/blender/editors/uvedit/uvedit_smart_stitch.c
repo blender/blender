@@ -429,13 +429,18 @@ static void stitch_calculate_island_snapping(StitchState *state, PreviewPosition
 			}
 
 			island_stitch_data[i].medianPoint[1] /= state->aspect;
-			if ((island_stitch_data[i].rotation + island_stitch_data[i].rotation_neg < M_PI_2) ||
-				island_stitch_data[i].num_rot_elements == 0 || island_stitch_data[i].num_rot_elements_neg == 0)
-				rotation = (island_stitch_data[i].rotation*island_stitch_data[i].num_rot_elements -
-							island_stitch_data[i].rotation_neg*island_stitch_data[i].num_rot_elements_neg)/totelem;
-			else
-				rotation = (island_stitch_data[i].rotation*island_stitch_data[i].num_rot_elements +
-							(2*M_PI - island_stitch_data[i].rotation_neg)*island_stitch_data[i].num_rot_elements_neg)/totelem;
+			if ((island_stitch_data[i].rotation + island_stitch_data[i].rotation_neg < (float)M_PI_2) ||
+			    island_stitch_data[i].num_rot_elements == 0 || island_stitch_data[i].num_rot_elements_neg == 0)
+			{
+				rotation = (island_stitch_data[i].rotation * island_stitch_data[i].num_rot_elements -
+				            island_stitch_data[i].rotation_neg *
+				            island_stitch_data[i].num_rot_elements_neg) / totelem;
+			}
+			else {
+				rotation = (island_stitch_data[i].rotation * island_stitch_data[i].num_rot_elements +
+				            (2.0f * (float)M_PI - island_stitch_data[i].rotation_neg) *
+				            island_stitch_data[i].num_rot_elements_neg) / totelem;
+			}
 
 			rotate_m2(rotation_mat, rotation);
 			numOfIslandUVs = getNumOfIslandUvs(state->element_map, i);
@@ -521,7 +526,8 @@ static void stitch_island_calculate_edge_rotation(UvEdge *edge, StitchState *sta
 	if (edgesin > 0.0f) {
 		island_stitch_data[element1->island].num_rot_elements++;
 		island_stitch_data[element1->island].rotation += rotation;
-	} else {
+	}
+	else {
 		island_stitch_data[element1->island].num_rot_elements_neg++;
 		island_stitch_data[element1->island].rotation_neg += rotation;
 	}
