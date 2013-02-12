@@ -171,26 +171,7 @@ public:
 			int end_sample = tile.start_sample + tile.num_samples;
 
 #ifdef WITH_OPTIMIZED_KERNEL
-			if(system_cpu_support_sse2()) {
-				for(int sample = start_sample; sample < end_sample; sample++) {
-					if (task.get_cancel() || task_pool.cancelled()) {
-						if(task.need_finish_queue == false)
-							break;
-					}
-
-					for(int y = tile.y; y < tile.y + tile.h; y++) {
-						for(int x = tile.x; x < tile.x + tile.w; x++) {
-							kernel_cpu_sse2_path_trace(&kg, render_buffer, rng_state,
-								sample, x, y, tile.offset, tile.stride);
-						}
-					}
-
-					tile.sample = sample + 1;
-
-					task.update_progress(tile);
-				}
-			}
-			else if(system_cpu_support_sse3()) {
+			if(system_cpu_support_sse3()) {
 				for(int sample = start_sample; sample < end_sample; sample++) {
 					if (task.get_cancel() || task_pool.cancelled()) {
 						if(task.need_finish_queue == false)
@@ -200,6 +181,25 @@ public:
 					for(int y = tile.y; y < tile.y + tile.h; y++) {
 						for(int x = tile.x; x < tile.x + tile.w; x++) {
 							kernel_cpu_sse3_path_trace(&kg, render_buffer, rng_state,
+								sample, x, y, tile.offset, tile.stride);
+						}
+					}
+
+					tile.sample = sample + 1;
+
+					task.update_progress(tile);
+				}
+			}
+			else if(system_cpu_support_sse2()) {
+				for(int sample = start_sample; sample < end_sample; sample++) {
+					if (task.get_cancel() || task_pool.cancelled()) {
+						if(task.need_finish_queue == false)
+							break;
+					}
+
+					for(int y = tile.y; y < tile.y + tile.h; y++) {
+						for(int x = tile.x; x < tile.x + tile.w; x++) {
+							kernel_cpu_sse2_path_trace(&kg, render_buffer, rng_state,
 								sample, x, y, tile.offset, tile.stride);
 						}
 					}
@@ -247,16 +247,16 @@ public:
 	void thread_tonemap(DeviceTask& task)
 	{
 #ifdef WITH_OPTIMIZED_KERNEL
-		if(system_cpu_support_sse2()) {
-			for(int y = task.y; y < task.y + task.h; y++)
-				for(int x = task.x; x < task.x + task.w; x++)
-					kernel_cpu_sse2_tonemap(&kernel_globals, (uchar4*)task.rgba, (float*)task.buffer,
-						task.sample, task.resolution, x, y, task.offset, task.stride);
-		}
-		else if(system_cpu_support_sse3()) {
+		if(system_cpu_support_sse3()) {
 			for(int y = task.y; y < task.y + task.h; y++)
 				for(int x = task.x; x < task.x + task.w; x++)
 					kernel_cpu_sse3_tonemap(&kernel_globals, (uchar4*)task.rgba, (float*)task.buffer,
+						task.sample, task.resolution, x, y, task.offset, task.stride);
+		}
+		else if(system_cpu_support_sse2()) {
+			for(int y = task.y; y < task.y + task.h; y++)
+				for(int x = task.x; x < task.x + task.w; x++)
+					kernel_cpu_sse2_tonemap(&kernel_globals, (uchar4*)task.rgba, (float*)task.buffer,
 						task.sample, task.resolution, x, y, task.offset, task.stride);
 		}
 		else
@@ -278,17 +278,17 @@ public:
 #endif
 
 #ifdef WITH_OPTIMIZED_KERNEL
-		if(system_cpu_support_sse2()) {
+		if(system_cpu_support_sse3()) {
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
-				kernel_cpu_sse2_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x);
+				kernel_cpu_sse3_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x);
 
 				if(task_pool.cancelled())
 					break;
 			}
 		}
-		else if(system_cpu_support_sse3()) {
+		else if(system_cpu_support_sse2()) {
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
-				kernel_cpu_sse3_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x);
+				kernel_cpu_sse2_shader(&kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x);
 
 				if(task_pool.cancelled())
 					break;
