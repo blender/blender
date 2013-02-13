@@ -177,7 +177,7 @@ public:
 
 	// create a mesh storing a pointer in a map so it can be retrieved later by geometry UID
 	bool write_geometry(const COLLADAFW::Geometry* geom);
-	std::string *MeshImporter::get_geometry_name(const std::string &mesh_name);
+	std::string *get_geometry_name(const std::string &mesh_name);
 };
 
 #endif
