@@ -74,7 +74,7 @@ typedef struct GHashKey {
 static GHashKey *_ghashutil_keyalloc(const void *msgctxt, const void *msgid)
 {
 	GHashKey *key = MEM_mallocN(sizeof(GHashKey), "Py i18n GHashKey");
-	key->msgctxt = BLI_strdup(msgctxt ? msgctxt : BLF_I18NCONTEXT_DEFAULT_BPY_INTERN);
+	key->msgctxt = BLI_strdup(msgctxt ? msgctxt : BLF_I18NCONTEXT_DEFAULT_BPY);
 	key->msgid = BLI_strdup(msgid);
 	return key;
 }
@@ -195,7 +195,7 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
 				else {
 					PyObject *tmp = PyTuple_GET_ITEM(pykey, 0);
 					if (tmp == Py_None) {
-						msgctxt = BLF_I18NCONTEXT_DEFAULT;
+						msgctxt = BLF_I18NCONTEXT_DEFAULT_BPY;
 					}
 					else if (PyUnicode_Check(tmp)) {
 						msgctxt = _PyUnicode_AsString(tmp);
@@ -288,9 +288,7 @@ const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *ms
 
 	_ghashutil_keyfree((void *)key);
 
-	if (tmp)
-		return tmp;
-	return msgid;
+	return tmp ? tmp : msgid;
 
 #undef STATIC_LOCALE_SIZE
 }
@@ -435,8 +433,8 @@ static PyObject *app_translations_contexts_make(void)
 
 PyDoc_STRVAR(app_translations_contexts_doc,
 	"A named tuple containing all pre-defined translation contexts.\n"
-	"WARNING: do not use the \"" BLF_I18NCONTEXT_DEFAULT_BPY_INTERN "\" context, it is internally assimilated as the "
-	"default one!\n"
+	"WARNING: Never use a (new) context starting with \"" BLF_I18NCONTEXT_DEFAULT_BPY "\", it would be internally "
+	"assimilated as the default one!\n"
 );
 
 PyDoc_STRVAR(app_translations_contexts_C_to_py_doc,
@@ -503,8 +501,7 @@ static PyObject *_py_pgettext(PyObject *args, PyObject *kw, const char *(*_pgett
 #ifdef WITH_INTERNATIONAL
 	char *msgid, *msgctxt = NULL;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|z:bpy.app.translations.pgettext", (char **)kwlist,
-	                                 &msgid, &msgctxt))
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|z:bpy.app.translations.pgettext", (char **)kwlist, &msgid, &msgctxt))
 	{
 		return NULL;
 	}
@@ -514,8 +511,7 @@ static PyObject *_py_pgettext(PyObject *args, PyObject *kw, const char *(*_pgett
 	PyObject *msgid, *msgctxt;
 	(void)_pgettext;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "O|O:bpy.app.translations.pgettext", (char **)kwlist,
-	                                 &msgid, &msgctxt))
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "O|O:bpy.app.translations.pgettext", (char **)kwlist, &msgid, &msgctxt))
 	{
 		return NULL;
 	}
