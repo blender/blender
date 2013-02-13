@@ -48,11 +48,13 @@
 static int bpy_bm_op_as_py_error(BMesh *bm)
 {
 	if (BMO_error_occurred(bm)) {
+		/* note: we could have multiple errors */
 		const char *errmsg;
 		if (BMO_error_get(bm, &errmsg, NULL)) {
 			PyErr_Format(PyExc_RuntimeError,
 			             "bmesh operator: %.200s",
 			             errmsg);
+			BMO_error_clear(bm);
 			return -1;
 		}
 	}
@@ -692,6 +694,9 @@ PyObject *BPy_BMO_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw)
 	{
 		BPY_BM_CHECK_OBJ(py_bm);
 		bm = py_bm->bm;
+
+		/* could complain about entering with exceptions... */
+		BMO_error_clear(bm);
 	}
 	else {
 		PyErr_SetString(PyExc_TypeError,
