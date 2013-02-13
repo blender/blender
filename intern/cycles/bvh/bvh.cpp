@@ -30,6 +30,7 @@
 #include "util_foreach.h"
 #include "util_map.h"
 #include "util_progress.h"
+#include "util_system.h"
 #include "util_types.h"
 
 CCL_NAMESPACE_BEGIN
@@ -71,6 +72,7 @@ BVH *BVH::create(const BVHParams& params, const vector<Object*>& objects)
 
 bool BVH::cache_read(CacheData& key)
 {
+	key.add(system_cpu_bits());
 	key.add(&params, sizeof(params));
 
 	foreach(Object *ob, objects) {
