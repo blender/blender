@@ -275,8 +275,6 @@ class I18nMessages:
         new_keys = ref_keys - org_keys
         removed_keys = org_keys - ref_keys
 
-        print(new_keys, "\n\n", removed_keys)
-
         # First process keys present in both org and ref messages.
         for key in ref_keys - new_keys:
             msg, refmsg = self.msgs[key], ref.msgs[key]
