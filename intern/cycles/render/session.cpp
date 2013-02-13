@@ -210,7 +210,12 @@ void Session::run_gpu()
 			 * wait for pause condition notify to wake up again */
 			thread_scoped_lock pause_lock(pause_mutex);
 
-			if(pause || no_tiles) {
+			if(!pause && !tile_manager.done()) {
+				/* reset could have happened after no_tiles was set, before this lock.
+				 * in this case we shall not wait for pause condition
+				 */
+			}
+			else if(pause || no_tiles) {
 				update_status_time(pause, no_tiles);
 
 				while(1) {
