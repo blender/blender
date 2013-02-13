@@ -865,6 +865,8 @@ if env['OURPLATFORM']=='linux':
         td, tf = os.path.split(targetdir)
         iconinstall.append(env.Install(dir=td, source=srcfile))
 
+    scriptinstall.append(env.Install(dir=env['BF_INSTALLDIR'], source='release/bin/blender-thumbnailer.py'))
+
 # dlls for linuxcross
 # TODO - add more libs, for now this lets blenderlite run
 if env['OURPLATFORM']=='linuxcross':
