@@ -955,11 +955,13 @@ public:
 	CurvePiece *subdivide()
 	{
 		StrokeInternal::StrokeVertexIterator it = _begin;
-		int actualSize = (size > 1) ? size / 2 : 1;
-		for (int i = 0; i <= actualSize; ++it, ++i);
+		int ns = size - 1; // number of segments (ns > 1)
+		int ns1 = ns / 2;
+		int ns2 = ns - ns1;
+		for (int i = 0; i < ns1; ++it, ++i);
 
-		CurvePiece *second = new CurvePiece(it, _last, size - actualSize + 1);
-		size = actualSize;
+		CurvePiece *second = new CurvePiece(it, _last, ns2 + 1);
+		size = ns1 + 1;
 		_last = it;
 		B = Vec2d((_last)->x(), (_last)->y());
 		return second;
@@ -984,7 +986,7 @@ int PolygonalizationShader::shade(Stroke& stroke) const
 	while (!_pieces.empty()) {
 		piece = _pieces.back();
 		_pieces.pop_back();
-		if (piece->error() > _error) {
+		if (piece->size > 2 && piece->error() > _error) {
 			CurvePiece *second = piece->subdivide();
 			_pieces.push_back(second);
 			_pieces.push_back(piece);
