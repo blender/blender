@@ -109,11 +109,11 @@ public:
 		}
 	}
 
-#ifdef NDEBUG
+/*#ifdef NDEBUG
 #define cuda_abort()
 #else
 #define cuda_abort() abort()
-#endif
+#endif*/
 
 #define cuda_assert(stmt) \
 	{ \

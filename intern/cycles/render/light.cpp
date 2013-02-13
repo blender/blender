@@ -143,6 +143,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 
 	/* count */
 	size_t num_lights = scene->lights.size();
+	size_t num_background_lights = 0;
 	size_t num_triangles = 0;
 	size_t num_curve_segments = 0;
 
@@ -306,6 +307,8 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 
 		if(light->size > 0.0f && light->use_mis)
 			use_lamp_mis = true;
+		if(light->type == LIGHT_BACKGROUND)
+			num_background_lights++;
 	}
 
 	/* normalize cumulative distribution functions */
@@ -324,6 +327,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 
 	/* update device */
 	KernelIntegrator *kintegrator = &dscene->data.integrator;
+	KernelFilm *kfilm = &dscene->data.film;
 	kintegrator->use_direct_light = (totarea > 0.0f);
 
 	if(kintegrator->use_direct_light) {
@@ -354,6 +358,16 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 
 		kintegrator->use_lamp_mis = use_lamp_mis;
 
+		/* bit of an ugly hack to compensate for emitting triangles influencing
+		 * amount of samples we get for this pass */
+		if(scene->integrator->progressive && kintegrator->pdf_triangles != 0.0f)
+			kfilm->pass_shadow_scale = 0.5f;
+		else
+			kfilm->pass_shadow_scale = 1.0f;
+
+		if(num_background_lights < num_lights)
+			kfilm->pass_shadow_scale *= (float)(num_lights - num_background_lights)/(float)num_lights;
+
 		/* CDF */
 		device->tex_alloc("__light_distribution", dscene->light_distribution);
 	}
@@ -366,6 +380,7 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 		kintegrator->pdf_lights = 0.0f;
 		kintegrator->inv_pdf_lights = 0.0f;
 		kintegrator->use_lamp_mis = false;
+		kfilm->pass_shadow_scale = 1.0f;
 	}
 }
 

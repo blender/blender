@@ -141,7 +141,7 @@ __device_noinline bool direct_emission(KernelGlobals *kg, ShaderData *sd, int li
 	}
 
 	/* return if it's a lamp for shadow pass */
-	*is_lamp = (ls.prim == ~0);
+	*is_lamp = (ls.prim == ~0 && ls.type != LIGHT_BACKGROUND);
 
 	return true;
 }
