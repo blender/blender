@@ -54,6 +54,7 @@ extern "C" {
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
+#include "BLI_fileops.h"
 
 #include "BKE_camera.h"
 #include "BKE_main.h"
@@ -1000,17 +1001,29 @@ bool DocumentImporter::writeImage(const COLLADAFW::Image *image)
 	if (mImportStage != General)
 		return true;
 		
-	// XXX maybe it is necessary to check if the path is absolute or relative
-	const std::string& filepath = image->getImageURI().toNativePath();
-	const char *filename = (const char *)filepath.c_str();
+	const std::string& imagepath = image->getImageURI().toNativePath();
+
 	char dir[FILE_MAX];
-	char full_path[FILE_MAX];
-	
-	BLI_split_dir_part(filename, dir, sizeof(dir));
-	BLI_join_dirfile(full_path, sizeof(full_path), dir, filepath.c_str());
-	Image *ima = BKE_image_load_exists(full_path);
+	char absolute_path[FILE_MAX];
+	const char *workpath;
+
+	BLI_split_dir_part(this->import_settings->filepath, dir, sizeof(dir));
+	BLI_join_dirfile(absolute_path, sizeof(absolute_path), dir, imagepath.c_str());
+	if (BLI_exists(absolute_path)) {
+		workpath = absolute_path;
+	} 
+	else {
+		// Maybe imagepath was already absolute ?
+		if (!BLI_exists(imagepath.c_str())) {
+			fprintf(stderr, "Image not found: %s.\n", imagepath.c_str() );
+			return true;
+		}
+		workpath = imagepath.c_str();
+	}
+
+	Image *ima = BKE_image_load_exists(workpath);
 	if (!ima) {
-		fprintf(stderr, "Cannot create image.\n");
+		fprintf(stderr, "Cannot create image: %s\n", workpath);
 		return true;
 	}
 	this->uid_image_map[image->getUniqueId()] = ima;
