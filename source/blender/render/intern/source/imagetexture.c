@@ -1043,8 +1043,9 @@ static void image_mipmap_test(Tex *tex, ImBuf *ibuf)
 				BLI_unlock_thread(LOCK_IMAGE);
 			}
 			/* if no mipmap could be made, fall back on non-mipmap render */
-			if (ibuf->mipmap[0] == NULL)
-				if (tex->imaflag &= ~TEX_MIPMAP);
+			if (ibuf->mipmap[0] == NULL) {
+				tex->imaflag &= ~TEX_MIPMAP;
+			}
 		}
 	}
 	
