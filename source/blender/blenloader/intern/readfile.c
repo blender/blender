@@ -8881,6 +8881,10 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	
 	bfd->user = user= read_struct(fd, bhead, "user def");
 	
+	/* User struct has separate do-version handling */
+	user->versionfile = bfd->main->versionfile;
+	user->subversionfile = bfd->main->subversionfile;
+	
 	/* read all data into fd->datamap */
 	bhead = read_data_into_oldnewmap(fd, bhead, "user def");
 	
