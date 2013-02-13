@@ -133,49 +133,49 @@ kmi = km.keymap_items.new('wm.context_toggle_enum', 'Z', 'PRESS', alt=True)
 kmi.properties.data_path = 'space_data.viewport_shade'
 kmi.properties.value_1 = 'TEXTURED'
 kmi.properties.value_2 = 'SOLID'
-kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'CLICK')
+kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'RELEASE')
 kmi.properties.extend = False
 kmi.properties.center = False
 kmi.properties.object = False
 kmi.properties.enumerate = False
 kmi.properties.toggle = False
-kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'CLICK', shift=True)
+kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'RELEASE', shift=True)
 kmi.properties.extend = False
 kmi.properties.center = False
 kmi.properties.object = False
 kmi.properties.enumerate = False
 kmi.properties.toggle = True
-kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'CLICK', ctrl=True)
+kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'RELEASE', ctrl=True)
 kmi.properties.extend = False
 kmi.properties.center = True
 kmi.properties.object = False
 kmi.properties.enumerate = False
 kmi.properties.toggle = False
-kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'CLICK', alt=True)
+kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'RELEASE', alt=True)
 kmi.properties.extend = False
 kmi.properties.center = False
 kmi.properties.object = False
 kmi.properties.enumerate = True
 kmi.properties.toggle = False
-kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'CLICK', shift=True, ctrl=True)
+kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'RELEASE', shift=True, ctrl=True)
 kmi.properties.extend = True
 kmi.properties.center = True
 kmi.properties.object = False
 kmi.properties.enumerate = False
 kmi.properties.toggle = True
-kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'CLICK', ctrl=True, alt=True)
+kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'RELEASE', ctrl=True, alt=True)
 kmi.properties.extend = False
 kmi.properties.center = True
 kmi.properties.object = False
 kmi.properties.enumerate = True
 kmi.properties.toggle = False
-kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'CLICK', shift=True, alt=True)
+kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'RELEASE', shift=True, alt=True)
 kmi.properties.extend = True
 kmi.properties.center = False
 kmi.properties.object = False
 kmi.properties.enumerate = True
 kmi.properties.toggle = True
-kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'CLICK', shift=True, ctrl=True, alt=True)
+kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'RELEASE', shift=True, ctrl=True, alt=True)
 kmi.properties.extend = True
 kmi.properties.center = True
 kmi.properties.object = False
@@ -318,10 +318,8 @@ kmi = km.keymap_items.new('object.subdivision_set', 'FOUR', 'PRESS', ctrl=True)
 kmi.properties.level = 4
 kmi = km.keymap_items.new('object.subdivision_set', 'FIVE', 'PRESS', ctrl=True)
 kmi.properties.level = 5
-# TODO: only used to de-seletc everything when click outside of object,
-#       and that's not best way to do this and this way is completely unpredictable
-#kmi = km.keymap_items.new('object.select_all', 'SELECTMOUSE', 'CLICK')
-#kmi.properties.action = 'DESELECT'
+kmi = km.keymap_items.new('object.select_all', 'SELECTMOUSE', 'CLICK')
+kmi.properties.action = 'DESELECT'
 
 # Map Mesh
 km = kc.keymaps.new('Mesh', space_type='EMPTY', region_type='WINDOW', modal=False)
@@ -407,10 +405,8 @@ kmi = km.keymap_items.new('wm.context_toggle_enum', 'O', 'PRESS', alt=True)
 kmi.properties.data_path = 'tool_settings.proportional_edit'
 kmi.properties.value_1 = 'DISABLED'
 kmi.properties.value_2 = 'CONNECTED'
-# TODO: only used to de-seletc everything when click outside of object,
-#       and that's not best way to do this and this way is completely unpredictable
-#kmi = km.keymap_items.new('mesh.select_all', 'SELECTMOUSE', 'CLICK')
-#kmi.properties.action = 'DESELECT'
+kmi = km.keymap_items.new('mesh.select_all', 'SELECTMOUSE', 'CLICK')
+kmi.properties.action = 'DESELECT'
 kmi = km.keymap_items.new('object.subdivision_set', 'ZERO', 'PRESS', ctrl=True)
 kmi.properties.level = 0
 kmi = km.keymap_items.new('object.subdivision_set', 'ONE', 'PRESS', ctrl=True)
