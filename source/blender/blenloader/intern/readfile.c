@@ -8664,7 +8664,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if (scene->world) {
 				World *world = blo_do_versions_newlibadr(fd, scene->id.lib, scene->world);
 
-				if (is_zero_v3(&world->horr)) {
+				if (world && is_zero_v3(&world->horr)) {
 					if ((world->skytype & WO_SKYBLEND) == 0 || is_zero_v3(&world->zenr)) {
 						set_premul = true;
 					}
