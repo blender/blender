@@ -185,29 +185,28 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 
 	/* noisy, high contrast make impossible to read if lower alpha is used. */
 	glColor4ub(0, 0, 0, 190);
-	glRecti(0.0, 0.0, BLI_rcti_size_x(&ar->winrct) + 1, 20);
+	glRecti(0.0, 0.0, BLI_rcti_size_x(&ar->winrct) + 1, UI_UNIT_Y);
 	glDisable(GL_BLEND);
 
-	BLF_size(blf_mono_font, 11, 72);
+	BLF_size(blf_mono_font, 11 * U.pixelsize, U.dpi);
 
 	glColor3ub(255, 255, 255);
 	BLI_snprintf(str, sizeof(str), "X:%-4d  Y:%-4d |", x, y);
-	// UI_DrawString(6, 6, str); // works ok but fixed width is nicer.
-	BLF_position(blf_mono_font, dx, 6, 0);
+	BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_Y, 0);
 	BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 	dx += BLF_width(blf_mono_font, str);
 
 	if (zp) {
 		glColor3ub(255, 255, 255);
 		BLI_snprintf(str, sizeof(str), " Z:%-.4f |", 0.5f + 0.5f * (((float)*zp) / (float)0x7fffffff));
-		BLF_position(blf_mono_font, dx, 6, 0);
+		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str);
 	}
 	if (zpf) {
 		glColor3ub(255, 255, 255);
 		BLI_snprintf(str, sizeof(str), " Z:%-.3f |", *zpf);
-		BLF_position(blf_mono_font, dx, 6, 0);
+		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str);
 	}
@@ -220,7 +219,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 			BLI_snprintf(str, sizeof(str), "  R:%-3d", cp[0]);
 		else
 			BLI_snprintf(str, sizeof(str), "  R:-");
-		BLF_position(blf_mono_font, dx, 6, 0);
+		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str);
 		
@@ -231,7 +230,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 			BLI_snprintf(str, sizeof(str), "  G:%-3d", cp[1]);
 		else
 			BLI_snprintf(str, sizeof(str), "  G:-");
-		BLF_position(blf_mono_font, dx, 6, 0);
+		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str);
 		
@@ -242,7 +241,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 			BLI_snprintf(str, sizeof(str), "  B:%-3d", cp[2]);
 		else
 			BLI_snprintf(str, sizeof(str), "  B:-");
-		BLF_position(blf_mono_font, dx, 6, 0);
+		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str);
 		
@@ -254,7 +253,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 				BLI_snprintf(str, sizeof(str), "  A:%-3d", cp[3]);
 			else
 				BLI_snprintf(str, sizeof(str), "- ");
-			BLF_position(blf_mono_font, dx, 6, 0);
+			BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
 			BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 			dx += BLF_width(blf_mono_font, str);
 		}
@@ -268,7 +267,7 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 				IMB_colormanagement_pixel_to_display_space_v4(pixel, fp,  &scene->view_settings, &scene->display_settings);
 
 			BLI_snprintf(str, sizeof(str), "  |  CM  R:%-.4f  G:%-.4f  B:%-.4f", pixel[0], pixel[1], pixel[2]);
-			BLF_position(blf_mono_font, dx, 6, 0);
+			BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
 			BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 			dx += BLF_width(blf_mono_font, str);
 		}
@@ -326,24 +325,24 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 
 	glDisable(GL_BLEND);
 	glColor3fv(finalcol);
-	dx += 5;
+	dx += 0.25f * UI_UNIT_X;
 	glBegin(GL_QUADS);
-	glVertex2f(dx, 3);
-	glVertex2f(dx, 17);
-	glVertex2f(dx + 30, 17);
-	glVertex2f(dx + 30, 3);
+	glVertex2f(dx, 0.15f * UI_UNIT_Y);
+	glVertex2f(dx, 0.85f * UI_UNIT_Y);
+	glVertex2f(dx + 1.5f * UI_UNIT_X, 0.85 * UI_UNIT_Y);
+	glVertex2f(dx + 1.5f * UI_UNIT_X, 0.15f * UI_UNIT_Y);
 	glEnd();
 
 	/* draw outline */
 	glColor3ub(128, 128, 128);
 	glBegin(GL_LINE_LOOP);
-	glVertex2f(dx, 3);
-	glVertex2f(dx, 17);
-	glVertex2f(dx + 30, 17);
-	glVertex2f(dx + 30, 3);
+	glVertex2f(dx, 0.15f * UI_UNIT_Y);
+	glVertex2f(dx, 0.85f * UI_UNIT_Y);
+	glVertex2f(dx + 1.5f * UI_UNIT_X, 0.85f * UI_UNIT_Y);
+	glVertex2f(dx + 1.5f * UI_UNIT_X, 0.15f * UI_UNIT_Y);
 	glEnd();
 
-	dx += 35;
+	dx += 1.75f * UI_UNIT_X;
 
 	glColor3ub(255, 255, 255);
 	if (channels == 1) {
@@ -357,12 +356,12 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 		}
 		
 		BLI_snprintf(str, sizeof(str), "V:%-.4f", val);
-		BLF_position(blf_mono_font, dx, 6, 0);
+		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str);
 
 		BLI_snprintf(str, sizeof(str), "   L:%-.4f", lum);
-		BLF_position(blf_mono_font, dx, 6, 0);
+		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str);
 	}
@@ -377,22 +376,22 @@ void ED_image_draw_info(Scene *scene, ARegion *ar, int color_manage, int use_def
 		}
 
 		BLI_snprintf(str, sizeof(str), "H:%-.4f", hue);
-		BLF_position(blf_mono_font, dx, 6, 0);
+		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str);
 
 		BLI_snprintf(str, sizeof(str), "  S:%-.4f", sat);
-		BLF_position(blf_mono_font, dx, 6, 0);
+		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str);
 
 		BLI_snprintf(str, sizeof(str), "  V:%-.4f", val);
-		BLF_position(blf_mono_font, dx, 6, 0);
+		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str);
 
 		BLI_snprintf(str, sizeof(str), "   L:%-.4f", lum);
-		BLF_position(blf_mono_font, dx, 6, 0);
+		BLF_position(blf_mono_font, dx, 0.3f * UI_UNIT_X, 0);
 		BLF_draw_ascii(blf_mono_font, str, sizeof(str));
 		dx += BLF_width(blf_mono_font, str);
 	}
