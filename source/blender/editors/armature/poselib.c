@@ -663,7 +663,7 @@ static int poselib_rename_exec(bContext *C, wmOperator *op)
 	}
 	
 	/* get index (and pointer) of pose to remove */
-	marker = BLI_findlink(&act->markers, RNA_int_get(op->ptr, "pose"));
+	marker = BLI_findlink(&act->markers, RNA_enum_get(op->ptr, "pose"));
 	if (marker == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Invalid index for pose");
 		return OPERATOR_CANCELLED;

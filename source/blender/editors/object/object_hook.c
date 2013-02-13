@@ -798,7 +798,7 @@ static int object_hook_assign_exec(bContext *C, wmOperator *op)
 		ob = CTX_data_edit_object(C);
 		hmd = (HookModifierData *)BLI_findlink(&ob->modifiers, num);
 	}
-	if (!ob || !hmd) {
+	if (!ob || !hmd || (hmd->modifier.type != eModifierType_Hook)) {
 		BKE_report(op->reports, RPT_ERROR, "Could not find hook modifier");
 		return OPERATOR_CANCELLED;
 	}
