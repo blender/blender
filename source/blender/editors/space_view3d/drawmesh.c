@@ -1071,7 +1071,7 @@ void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d,
 		draw_mesh_face_select(rv3d, me, dm);
 	}
 	else if ((do_light == FALSE) || (ob->dtx & OB_DRAWWIRE)) {
-		const int use_depth = (v3d->flag & V3D_ZBUF_SELECT);
+		const int use_depth = (v3d->flag & V3D_ZBUF_SELECT) || !(ob->mode & OB_MODE_WEIGHT_PAINT);
 
 		/* weight paint in solid mode, special case. focus on making the weights clear
 		 * rather than the shading, this is also forced in wire view */
