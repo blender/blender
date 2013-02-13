@@ -138,41 +138,49 @@ kmi.properties.extend = False
 kmi.properties.center = False
 kmi.properties.object = False
 kmi.properties.enumerate = False
+kmi.properties.toggle = False
 kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'CLICK', shift=True)
-kmi.properties.extend = True
+kmi.properties.extend = False
 kmi.properties.center = False
 kmi.properties.object = False
 kmi.properties.enumerate = False
+kmi.properties.toggle = True
 kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'CLICK', ctrl=True)
 kmi.properties.extend = False
 kmi.properties.center = True
 kmi.properties.object = False
 kmi.properties.enumerate = False
+kmi.properties.toggle = False
 kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'CLICK', alt=True)
 kmi.properties.extend = False
 kmi.properties.center = False
 kmi.properties.object = False
 kmi.properties.enumerate = True
+kmi.properties.toggle = False
 kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'CLICK', shift=True, ctrl=True)
 kmi.properties.extend = True
 kmi.properties.center = True
 kmi.properties.object = False
 kmi.properties.enumerate = False
+kmi.properties.toggle = True
 kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'CLICK', ctrl=True, alt=True)
 kmi.properties.extend = False
 kmi.properties.center = True
 kmi.properties.object = False
 kmi.properties.enumerate = True
+kmi.properties.toggle = False
 kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'CLICK', shift=True, alt=True)
 kmi.properties.extend = True
 kmi.properties.center = False
 kmi.properties.object = False
 kmi.properties.enumerate = True
+kmi.properties.toggle = True
 kmi = km.keymap_items.new('view3d.select', 'SELECTMOUSE', 'CLICK', shift=True, ctrl=True, alt=True)
 kmi.properties.extend = True
 kmi.properties.center = True
 kmi.properties.object = False
 kmi.properties.enumerate = True
+kmi.properties.toggle = True
 kmi = km.keymap_items.new('view3d.select_border', 'EVT_TWEAK_S', 'ANY')
 kmi.properties.extend = False
 kmi = km.keymap_items.new('view3d.select_lasso', 'EVT_TWEAK_A', 'ANY', ctrl=True)
