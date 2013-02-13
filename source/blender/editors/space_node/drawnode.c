@@ -2668,7 +2668,7 @@ static void node_composit_buts_viewer_but(uiLayout *layout, bContext *UNUSED(C),
 {
 	uiLayout *col;
 	
-	uiItemR(layout, ptr, "use_straight_alpha", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "use_alpha", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "tile_order", 0, NULL, ICON_NONE);
 	if (RNA_enum_get(ptr, "tile_order") == 0) {
 		col = uiLayoutColumn(layout, TRUE);
