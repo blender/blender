@@ -3583,8 +3583,12 @@ int is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], c
 
 	/* define projection, do both trias apart, quad is undefined! */
 
-	normal_tri_v3(nor1, v1, v2, v3);
-	normal_tri_v3(nor2, v1, v3, v4);
+	/* check normal length incase one size is zero area */
+	if (UNLIKELY((normal_tri_v3(nor1, v1, v2, v3) <= FLT_EPSILON) ||
+	             (normal_tri_v3(nor2, v1, v3, v4) <= FLT_EPSILON)))
+	{
+		return false;
+	}
 
 	/* when the face is folded over as 2 tris we probably don't want to create
 	 * a quad from it, but go ahead with the intersection test since this
@@ -3606,12 +3610,12 @@ int is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], c
 	mul_v2_m3v3(vec[3], mat, v4);
 
 	/* linetests, the 2 diagonals have to instersect to be convex */
-	return (isect_line_line_v2(vec[0], vec[2], vec[1], vec[3]) > 0) ? TRUE : FALSE;
+	return (isect_line_line_v2(vec[0], vec[2], vec[1], vec[3]) == ISECT_LINE_LINE_CROSS);
 }
 
 int is_quad_convex_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
 {
 	/* linetests, the 2 diagonals have to instersect to be convex */
-	return (isect_line_line_v2(v1, v3, v2, v4) > 0) ? TRUE : FALSE;
+	return (isect_line_line_v2(v1, v3, v2, v4) == ISECT_LINE_LINE_CROSS);
 }
 
