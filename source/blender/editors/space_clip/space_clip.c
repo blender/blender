@@ -1282,6 +1282,9 @@ static void clip_channels_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
 
+	/* ensure the 2d view sync works - main region has bottom scroller */
+	ar->v2d.scroll = V2D_SCROLL_BOTTOM;
+
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 
 	keymap = WM_keymap_find(wm->defaultconf, "Clip Dopesheet Editor", SPACE_CLIP, 0);
@@ -1293,7 +1296,6 @@ static void clip_channels_area_draw(const bContext *C, ARegion *ar)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	View2D *v2d = &ar->v2d;
-	View2DScrollers *scrollers;
 
 	if (clip)
 		BKE_tracking_dopesheet_update(&clip->tracking);
@@ -1309,11 +1311,6 @@ static void clip_channels_area_draw(const bContext *C, ARegion *ar)
 
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
-
-	/* scrollers */
-	scrollers = UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
-	UI_view2d_scrollers_draw(C, v2d, scrollers);
-	UI_view2d_scrollers_free(scrollers);
 }
 
 static void clip_channels_area_listener(ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn))
