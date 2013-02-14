@@ -362,7 +362,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 				}
 				else {
 					/* use current scene world to light sphere */
-					if (ma->pr_type == MA_SPHERE_A)
+					if (mat->pr_type == MA_SPHERE_A)
 						sce->world = scene->world;
 				}
 				

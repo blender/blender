@@ -110,6 +110,8 @@ public:
 	static ShaderManager *create(Scene *scene, int shadingsystem);
 	virtual ~ShaderManager();
 
+	virtual void reset(Scene *scene) = 0;
+
 	virtual bool use_osl() { return false; }
 
 	/* device update */

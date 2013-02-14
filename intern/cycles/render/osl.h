@@ -64,6 +64,8 @@ public:
 	OSLShaderManager();
 	~OSLShaderManager();
 
+	void reset(Scene *scene);
+
 	bool use_osl() { return true; }
 
 	void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
