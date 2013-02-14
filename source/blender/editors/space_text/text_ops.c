@@ -1312,9 +1312,11 @@ void TEXT_OT_select_line(wmOperatorType *ot)
 static int text_select_word_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Text *text = CTX_data_edit_text(C);
+	/* don't advance cursor before stepping */
+	const bool use_init_step = false;
 
-	txt_jump_left(text, 0);
-	txt_jump_right(text, 1);
+	txt_jump_left(text, false, use_init_step);
+	txt_jump_right(text, true, use_init_step);
 
 	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
@@ -1816,11 +1818,11 @@ static int text_move_cursor(bContext *C, int type, int select)
 			break;
 
 		case PREV_WORD:
-			txt_jump_left(text, select);
+			txt_jump_left(text, select, true);
 			break;
 
 		case NEXT_WORD:
-			txt_jump_right(text, select);
+			txt_jump_right(text, select, true);
 			break;
 
 		case PREV_CHAR:

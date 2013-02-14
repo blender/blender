@@ -34,12 +34,12 @@
 
 #include "DNA_userdef_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 #include "BLI_string_cursor_utf8.h"
 #include "BLI_string_utf8.h"
 #include "BLI_string.h"
 #include "BLI_dynstr.h"
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
 
 #include "BKE_context.h"
@@ -284,28 +284,28 @@ static int console_move_exec(bContext *C, wmOperator *op)
 			pos = ci->cursor;
 			BLI_str_cursor_step_utf8(ci->line, ci->len,
 			                         &pos, STRCUR_DIR_PREV,
-			                         STRCUR_JUMP_ALL);
+			                         STRCUR_JUMP_ALL, true);
 			done = console_line_cursor_set(ci, pos);
 			break;
 		case LINE_END:
 			pos = ci->cursor;
 			BLI_str_cursor_step_utf8(ci->line, ci->len,
 			                         &pos, STRCUR_DIR_NEXT,
-			                         STRCUR_JUMP_ALL);
+			                         STRCUR_JUMP_ALL, true);
 			done = console_line_cursor_set(ci, pos);
 			break;
 		case PREV_CHAR:
 			pos = ci->cursor;
 			BLI_str_cursor_step_utf8(ci->line, ci->len,
 			                         &pos, STRCUR_DIR_PREV,
-			                         STRCUR_JUMP_NONE);
+			                         STRCUR_JUMP_NONE, true);
 			done = console_line_cursor_set(ci, pos);
 			break;
 		case NEXT_CHAR:
 			pos = ci->cursor;
 			BLI_str_cursor_step_utf8(ci->line, ci->len,
 			                         &pos, STRCUR_DIR_NEXT,
-			                         STRCUR_JUMP_NONE);
+			                         STRCUR_JUMP_NONE, true);
 			done = console_line_cursor_set(ci, pos);
 			break;
 
@@ -315,14 +315,14 @@ static int console_move_exec(bContext *C, wmOperator *op)
 			pos = ci->cursor;
 			BLI_str_cursor_step_utf8(ci->line, ci->len,
 			                         &pos, STRCUR_DIR_PREV,
-			                         STRCUR_JUMP_DELIM);
+			                         STRCUR_JUMP_DELIM, true);
 			done = console_line_cursor_set(ci, pos);
 			break;
 		case NEXT_WORD:
 			pos = ci->cursor;
 			BLI_str_cursor_step_utf8(ci->line, ci->len,
 			                         &pos, STRCUR_DIR_NEXT,
-			                         STRCUR_JUMP_DELIM);
+			                         STRCUR_JUMP_DELIM, true);
 			done = console_line_cursor_set(ci, pos);
 			break;
 	}
@@ -562,7 +562,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 				pos = ci->cursor;
 				BLI_str_cursor_step_utf8(ci->line, ci->len,
 				                         &pos, STRCUR_DIR_NEXT,
-				                         (type == DEL_NEXT_CHAR) ? STRCUR_JUMP_NONE : STRCUR_JUMP_DELIM);
+				                         (type == DEL_NEXT_CHAR) ? STRCUR_JUMP_NONE : STRCUR_JUMP_DELIM, true);
 				stride = pos - ci->cursor;
 				if (stride) {
 					memmove(ci->line + ci->cursor, ci->line + ci->cursor + stride, (ci->len - ci->cursor) + 1);
@@ -578,7 +578,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 				pos = ci->cursor;
 				BLI_str_cursor_step_utf8(ci->line, ci->len,
 				                         &pos, STRCUR_DIR_PREV,
-				                         (type == DEL_PREV_CHAR) ? STRCUR_JUMP_NONE : STRCUR_JUMP_DELIM);
+				                         (type == DEL_PREV_CHAR) ? STRCUR_JUMP_NONE : STRCUR_JUMP_DELIM, true);
 				stride = ci->cursor - pos;
 				if (stride) {
 					ci->cursor -= stride; /* same as above */

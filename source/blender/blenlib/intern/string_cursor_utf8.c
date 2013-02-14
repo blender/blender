@@ -139,12 +139,15 @@ int BLI_str_cursor_step_prev_utf8(const char *str, size_t UNUSED(maxlen), int *p
 
 void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
                               int *pos, strCursorJumpDirection direction,
-                              strCursorJumpType jump)
+                              strCursorJumpType jump, bool use_init_step)
 {
 	const int pos_prev = *pos;
 
 	if (direction == STRCUR_DIR_NEXT) {
-		BLI_str_cursor_step_next_utf8(str, maxlen, pos);
+		if (use_init_step) {
+			BLI_assert(jump == STRCUR_JUMP_DELIM);
+			BLI_str_cursor_step_next_utf8(str, maxlen, pos);
+		}
 
 		if (jump != STRCUR_JUMP_NONE) {
 			const strCursorDelimType delim_type = (*pos) < maxlen ? cursor_delim_type(&str[*pos]) : STRCUR_DELIM_NONE;
@@ -163,7 +166,10 @@ void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
 		}
 	}
 	else if (direction == STRCUR_DIR_PREV) {
-		BLI_str_cursor_step_prev_utf8(str, maxlen, pos);
+		if (use_init_step) {
+			BLI_assert(jump == STRCUR_JUMP_DELIM);
+			BLI_str_cursor_step_prev_utf8(str, maxlen, pos);
+		}
 
 		if (jump != STRCUR_JUMP_NONE) {
 			const strCursorDelimType delim_type = (*pos) > 1 ? cursor_delim_type(&str[(*pos) - 1]) : STRCUR_DELIM_NONE;

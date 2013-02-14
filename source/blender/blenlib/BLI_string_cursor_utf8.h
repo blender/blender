@@ -46,6 +46,6 @@ int BLI_str_cursor_step_prev_utf8(const char *str, size_t maxlen, int *pos);
 
 void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
                               int *pos, strCursorJumpDirection direction,
-                              strCursorJumpType jump);
+                              strCursorJumpType jump, bool use_init_step);
 
 #endif /* __BLI_STRING_CURSOR_UTF8_H__ */
