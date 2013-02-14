@@ -912,7 +912,7 @@ void outside_lattice(Lattice *lt)
 						bp->vec[1] += (1.0f - fac1) * bp1->vec[1] + fac1 * bp2->vec[1];
 						bp->vec[2] += (1.0f - fac1) * bp1->vec[2] + fac1 * bp2->vec[2];
 						
-						mul_v3_fl(bp->vec, 0.3333333f);
+						mul_v3_fl(bp->vec, 1.0f / 3.0f);
 						
 					}
 				}

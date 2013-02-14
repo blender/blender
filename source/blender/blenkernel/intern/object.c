@@ -2013,7 +2013,7 @@ static void ob_parvert3(Object *ob, Object *par, float mat[4][4])
 		else {
 			add_v3_v3v3(mat[3], v1, v2);
 			add_v3_v3(mat[3], v3);
-			mul_v3_fl(mat[3], 0.3333333f);
+			mul_v3_fl(mat[3], 1.0f / 3.0f);
 		}
 	}
 }

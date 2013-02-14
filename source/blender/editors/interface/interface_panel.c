@@ -447,8 +447,8 @@ static void ui_draw_panel_dragwidget(const rctf *rect)
 	ymin = rect->ymin;
 	ymax = rect->ymax;
 	
-	dx = 0.333f * (xmax - xmin);
-	dy = 0.333f * (ymax - ymin);
+	dx = (xmax - xmin) / 3.0f;
+	dy = (ymax - ymin) / 3.0f;
 	
 	glEnable(GL_BLEND);
 	glColor4ub(255, 255, 255, 50);

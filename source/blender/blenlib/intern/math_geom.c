@@ -39,9 +39,9 @@
 
 void cent_tri_v3(float cent[3], const float v1[3], const float v2[3], const float v3[3])
 {
-	cent[0] = 0.33333f * (v1[0] + v2[0] + v3[0]);
-	cent[1] = 0.33333f * (v1[1] + v2[1] + v3[1]);
-	cent[2] = 0.33333f * (v1[2] + v2[2] + v3[2]);
+	cent[0] = (v1[0] + v2[0] + v3[0]) / 3.0f;
+	cent[1] = (v1[1] + v2[1] + v3[1]) / 3.0f;
+	cent[2] = (v1[2] + v2[2] + v3[2]) / 3.0f;
 }
 
 void cent_quad_v3(float cent[3], const float v1[3], const float v2[3], const float v3[3], const float v4[3])
