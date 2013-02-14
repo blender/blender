@@ -145,8 +145,10 @@ void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
 
 	if (direction == STRCUR_DIR_NEXT) {
 		if (use_init_step) {
-			BLI_assert(jump == STRCUR_JUMP_DELIM);
 			BLI_str_cursor_step_next_utf8(str, maxlen, pos);
+		}
+		else {
+			BLI_assert(jump == STRCUR_JUMP_DELIM);
 		}
 
 		if (jump != STRCUR_JUMP_NONE) {
@@ -167,8 +169,10 @@ void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
 	}
 	else if (direction == STRCUR_DIR_PREV) {
 		if (use_init_step) {
-			BLI_assert(jump == STRCUR_JUMP_DELIM);
 			BLI_str_cursor_step_prev_utf8(str, maxlen, pos);
+		}
+		else {
+			BLI_assert(jump == STRCUR_JUMP_DELIM);
 		}
 
 		if (jump != STRCUR_JUMP_NONE) {

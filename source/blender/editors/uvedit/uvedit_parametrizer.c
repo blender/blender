@@ -3131,8 +3131,8 @@ static PBool p_chart_lscm_solve(PHandle *handle, PChart *chart)
 
 		if (flip_faces) {
 			SWAP(float, a2, a3);
-			SWAP(PEdge*, e2, e3);
-			SWAP(PVert*, v2, v3);
+			SWAP(PEdge *, e2, e3);
+			SWAP(PVert *, v2, v3);
 		}
 
 		sina1 = sin(a1);
