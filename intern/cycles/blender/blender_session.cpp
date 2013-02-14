@@ -128,7 +128,8 @@ void BlenderSession::reset_session(BL::BlendData b_data_, BL::Scene b_scene_)
 	height = b_engine.resolution_y();
 
 	if(scene->params.modified(scene_params) ||
-	   session->params.modified(session_params))
+	   session->params.modified(session_params) ||
+	   !scene_params.persistent_data)
 	{
 		/* if scene or session parameters changed, it's easier to simply re-create
 		 * them rather than trying to distinguish which settings need to be updated

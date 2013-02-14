@@ -106,7 +106,7 @@ void Scene::free_memory(bool final)
 		particle_system_manager->device_free(device, &dscene);
 		curve_system_manager->device_free(device, &dscene);
 
-		if(!params.persistent_images || final)
+		if(!params.persistent_data || final)
 			image_manager->device_free(device, &dscene);
 	}
 
