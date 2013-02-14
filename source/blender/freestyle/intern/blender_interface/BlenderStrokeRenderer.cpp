@@ -154,6 +154,9 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count) : Str
 	material->mode |= MA_TRANSP;
 	material->mode |= MA_SHLESS;
 	material->vcol_alpha = 1;
+
+	// Reset serial mesh ID (used for BlenderStrokeRenderer::NewMesh())
+	_mesh_id = 0xffffffff;
 }
 
 BlenderStrokeRenderer::~BlenderStrokeRenderer()
@@ -209,6 +212,14 @@ float BlenderStrokeRenderer::get_stroke_vertex_z(void) const
 		self->_z_delta *= 10.0f;
 	self->_z += _z_delta;
 	return -z;
+}
+
+unsigned int BlenderStrokeRenderer::get_stroke_mesh_id(void) const
+{
+	unsigned mesh_id = _mesh_id;
+	BlenderStrokeRenderer *self = const_cast<BlenderStrokeRenderer *>(this);
+	self->_mesh_id--;
+	return mesh_id;
 }
 
 void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const
@@ -473,7 +484,7 @@ Object *BlenderStrokeRenderer::NewMesh() const
 	Object *ob;
 	Base *base;
 	char name[MAX_ID_NAME];
-	static unsigned int mesh_id = 0xffffffff;
+	unsigned int mesh_id = get_stroke_mesh_id();
 
 	BLI_snprintf(name, MAX_ID_NAME, "0%08xOB", mesh_id);
 	ob = BKE_object_add_only_object(G.main, OB_MESH, name);
@@ -489,8 +500,6 @@ Object *BlenderStrokeRenderer::NewMesh() const
 	(void)base;
 #endif
 	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
-
-	--mesh_id;
 
 	return ob;
 }

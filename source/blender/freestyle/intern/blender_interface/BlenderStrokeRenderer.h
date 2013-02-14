@@ -69,8 +69,10 @@ protected:
 	Material *material;
 	float _width, _height;
 	float _z, _z_delta;
+	unsigned int _mesh_id;
 
 	float get_stroke_vertex_z(void) const;
+	unsigned int get_stroke_mesh_id(void) const;
 };
 
 #endif // __BLENDER_STROKE_RENDERER_H__
