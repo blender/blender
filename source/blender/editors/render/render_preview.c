@@ -360,7 +360,11 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 						}
 					}
 				}
-
+				else {
+					/* use current scene world to light sphere */
+					if (ma->pr_type == MA_SPHERE_A)
+						sce->world = scene->world;
+				}
 				
 				if (sp->pr_method == PR_ICON_RENDER) {
 					if (mat->material_type == MA_TYPE_HALO) {
