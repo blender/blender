@@ -13,22 +13,22 @@ extern "C" {
 //-------------------MODULE INITIALIZATION--------------------------------
 int FrsMaterial_Init( PyObject *module )
 {
-	if( module == NULL )
+	if (module == NULL)
 		return -1;
 
-	if( PyType_Ready( &FrsMaterial_Type ) < 0 )
+	if (PyType_Ready( &FrsMaterial_Type ) < 0)
 		return -1;
-
 	Py_INCREF( &FrsMaterial_Type );
 	PyModule_AddObject(module, "Material", (PyObject *)&FrsMaterial_Type);
 
 	FrsMaterial_mathutils_register_callback();
+
 	return 0;
 }
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char FrsMaterial___doc__[] =
+PyDoc_STRVAR(FrsMaterial_doc,
 "Class defining a material.\n"
 "\n"
 ".. method:: __init__()\n"
@@ -56,31 +56,31 @@ static char FrsMaterial___doc__[] =
 "   :arg iEmission: The emissive color.\n"
 "   :type iEmission: :class:`mathutils.Vector`, list or tuple of 4 float values\n"
 "   :arg iShininess: The shininess coefficient.\n"
-"   :type iShininess: :class:float\n";
+"   :type iShininess: :class:float");
 
-static int FrsMaterial___init__(BPy_FrsMaterial *self, PyObject *args, PyObject *kwds)
+static int FrsMaterial_init(BPy_FrsMaterial *self, PyObject *args, PyObject *kwds)
 {
 	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0, *obj4 = 0;
 	float f1[4], f2[4], f3[4], f4[4], f5 = 0.;
 
-    if (! PyArg_ParseTuple(args, "|OOOOf", &obj1, &obj2, &obj3, &obj4, &f5) )
-        return -1;
+	if (!PyArg_ParseTuple(args, "|OOOOf", &obj1, &obj2, &obj3, &obj4, &f5))
+		return -1;
 
-	if( !obj1 ){
+	if (!obj1) {
 		self->m = new FrsMaterial();
 
-	} else if( BPy_FrsMaterial_Check(obj1) && !obj2 ) {
+	} else if (BPy_FrsMaterial_Check(obj1) && !obj2) {
 		FrsMaterial *m = ((BPy_FrsMaterial *) obj1)->m;
-		if( !m ) {
+		if (!m) {
 			PyErr_SetString(PyExc_RuntimeError, "invalid FrsMaterial object");
 			return -1;
 		}
 		self->m = new FrsMaterial( *m );
 
-	} else if( float_array_from_PyObject(obj1, f1, 4) && obj2 &&
+	} else if (float_array_from_PyObject(obj1, f1, 4) && obj2 &&
 		       float_array_from_PyObject(obj2, f2, 4) && obj3 &&
 		       float_array_from_PyObject(obj3, f3, 4) && obj4 &&
-		       float_array_from_PyObject(obj4, f4, 4) ) {
+		       float_array_from_PyObject(obj4, f4, 4)) {
 		self->m = new FrsMaterial(f1, f2, f3, f4, f5);
 
 	} else {
@@ -92,17 +92,17 @@ static int FrsMaterial___init__(BPy_FrsMaterial *self, PyObject *args, PyObject 
 	return 0;
 }
 
-static void FrsMaterial___dealloc__( BPy_FrsMaterial* self)
+static void FrsMaterial_dealloc(BPy_FrsMaterial* self)
 {
-	if( self->m && !self->borrowed )
+	if (self->m && !self->borrowed)
 		delete self->m;
-    Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 
-static PyObject * FrsMaterial___repr__( BPy_FrsMaterial* self)
+static PyObject * FrsMaterial_repr(BPy_FrsMaterial* self)
 {
-    return PyUnicode_FromFormat("Material - address: %p", self->m );
+	return PyUnicode_FromFormat("Material - address: %p", self->m);
 }
 
 /*----------------------FrsMaterial instance definitions ----------------------------*/
@@ -384,12 +384,12 @@ PyTypeObject FrsMaterial_Type = {
 	"Material",                     /* tp_name */
 	sizeof(BPy_FrsMaterial),        /* tp_basicsize */
 	0,                              /* tp_itemsize */
-	(destructor)FrsMaterial___dealloc__, /* tp_dealloc */
+	(destructor)FrsMaterial_dealloc, /* tp_dealloc */
 	0,                              /* tp_print */
 	0,                              /* tp_getattr */
 	0,                              /* tp_setattr */
 	0,                              /* tp_reserved */
-	(reprfunc)FrsMaterial___repr__, /* tp_repr */
+	(reprfunc)FrsMaterial_repr,     /* tp_repr */
 	0,                              /* tp_as_number */
 	0,                              /* tp_as_sequence */
 	0,                              /* tp_as_mapping */
@@ -400,7 +400,7 @@ PyTypeObject FrsMaterial_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	FrsMaterial___doc__,            /* tp_doc */
+	FrsMaterial_doc,                /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -415,7 +415,7 @@ PyTypeObject FrsMaterial_Type = {
 	0,                              /* tp_descr_get */
 	0,                              /* tp_descr_set */
 	0,                              /* tp_dictoffset */
-	(initproc)FrsMaterial___init__, /* tp_init */
+	(initproc)FrsMaterial_init,     /* tp_init */
 	0,                              /* tp_alloc */
 	PyType_GenericNew,              /* tp_new */
 };

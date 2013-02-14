@@ -14,7 +14,7 @@ extern "C" {
 
 //------------------------ MODULE FUNCTIONS ----------------------------------
 
-static char Integrator_integrate___doc__[] =
+PyDoc_STRVAR(Integrator_integrate_doc,
 ".. function:: integrate(fun, it, it_end, integration_type)\n"
 "\n"
 "   Returns a single value from a set of values evaluated at each 0D\n"
@@ -37,56 +37,56 @@ static char Integrator_integrate___doc__[] =
 "      value type is float if fun is of the :class:`UnaryFunction0DDouble`\n"
 "      or :class:`UnaryFunction0DFloat` type, and int if fun is of the\n"
 "      :class:`UnaryFunction0DUnsigned` type.\n"
-"   :rtype: int or float\n";
+"   :rtype: int or float");
 
-static PyObject * Integrator_integrate( PyObject *self, PyObject *args )
+static PyObject * Integrator_integrate(PyObject *self, PyObject *args)
 {
 	PyObject *obj1, *obj4 = 0;
 	BPy_Interface0DIterator *obj2, *obj3;
 
 #if 1
-	if(!( PyArg_ParseTuple(args, "O!O!O!|O!", &UnaryFunction0D_Type, &obj1,
+	if (!PyArg_ParseTuple(args, "O!O!O!|O!", &UnaryFunction0D_Type, &obj1,
 		&Interface0DIterator_Type, &obj2, &Interface0DIterator_Type, &obj3,
-		&IntegrationType_Type, &obj4) ))
+		&IntegrationType_Type, &obj4))
 		return NULL;
 #else
-	if(!( PyArg_ParseTuple(args, "OOO|O", &obj1, &obj2, &obj3, &obj4) ))
+	if (!PyArg_ParseTuple(args, "OOO|O", &obj1, &obj2, &obj3, &obj4))
 		return NULL;
-	if(!BPy_UnaryFunction0D_Check(obj1)) {
+	if (!BPy_UnaryFunction0D_Check(obj1)) {
 		PyErr_SetString(PyExc_TypeError, "argument 1 must be a UnaryFunction0D object");
 		return NULL;
 	}
-	if(!BPy_Interface0DIterator_Check(obj2)) {
+	if (!BPy_Interface0DIterator_Check(obj2)) {
 		PyErr_SetString(PyExc_TypeError, "argument 2 must be a Interface0DIterator object");
 		return NULL;
 	}
-	if(!BPy_Interface0DIterator_Check(obj3)) {
+	if (!BPy_Interface0DIterator_Check(obj3)) {
 		PyErr_SetString(PyExc_TypeError, "argument 3 must be a Interface0DIterator object");
 		return NULL;
 	}
-	if(obj4 && !BPy_IntegrationType_Check(obj4)) {
+	if (obj4 && !BPy_IntegrationType_Check(obj4)) {
 		PyErr_SetString(PyExc_TypeError, "argument 4 must be a IntegrationType object");
 		return NULL;
 	}
 #endif
 
 	Interface0DIterator it(*(obj2->if0D_it)), it_end(*(obj3->if0D_it));
-	IntegrationType t = ( obj4 ) ? IntegrationType_from_BPy_IntegrationType( obj4 ) : MEAN;
+	IntegrationType t = (obj4) ? IntegrationType_from_BPy_IntegrationType(obj4) : MEAN;
 
-	if( BPy_UnaryFunction0DDouble_Check(obj1) ) {
+	if (BPy_UnaryFunction0DDouble_Check(obj1)) {
 		UnaryFunction0D<double> *fun = ((BPy_UnaryFunction0DDouble *)obj1)->uf0D_double;
-		double res = integrate( *fun, it, it_end, t );
-		return PyFloat_FromDouble( res );
+		double res = integrate(*fun, it, it_end, t);
+		return PyFloat_FromDouble(res);
 
-	} else if( BPy_UnaryFunction0DFloat_Check(obj1) ) {
+	} else if (BPy_UnaryFunction0DFloat_Check(obj1)) {
 		UnaryFunction0D<float> *fun = ((BPy_UnaryFunction0DFloat *)obj1)->uf0D_float;
-		float res = integrate( *fun, it, it_end, t );
-		return PyFloat_FromDouble( res );
+		float res = integrate(*fun, it, it_end, t);
+		return PyFloat_FromDouble(res);
 
-	} else if( BPy_UnaryFunction0DUnsigned_Check(obj1) ) {
+	} else if (BPy_UnaryFunction0DUnsigned_Check(obj1)) {
 		UnaryFunction0D<unsigned int> *fun = ((BPy_UnaryFunction0DUnsigned *)obj1)->uf0D_unsigned;
-		unsigned int res = integrate( *fun, it, it_end, t );
-		return PyLong_FromLong( res );
+		unsigned int res = integrate(*fun, it, it_end, t);
+		return PyLong_FromLong(res);
 
 	} else {
 		string msg("unsupported function type: " + string(obj1->ob_type->tp_name));
@@ -97,13 +97,13 @@ static PyObject * Integrator_integrate( PyObject *self, PyObject *args )
 
 /*-----------------------Integrator module docstring---------------------------------------*/
 
-static char module_docstring[] = "The Blender Freestyle.Integrator submodule\n\n";
+PyDoc_STRVAR(module_docstring, "The Blender Freestyle.Integrator submodule\n\n");
 
 /*-----------------------Integrator module functions definitions---------------------------*/
 
 static PyMethodDef module_functions[] = {
-  {"integrate", (PyCFunction) Integrator_integrate, METH_VARARGS, Integrator_integrate___doc__},
-  {NULL, NULL, 0, NULL}
+	{"integrate", (PyCFunction) Integrator_integrate, METH_VARARGS, Integrator_integrate_doc},
+	{NULL, NULL, 0, NULL}
 };
 
 /*-----------------------Integrator module definition--------------------------------------*/
@@ -118,7 +118,7 @@ static PyModuleDef module_definition = {
 
 /*-----------------------BPy_IntegrationType type definition ------------------------------*/
 
-static char IntegrationType___doc__[] =
+PyDoc_STRVAR(IntegrationType_doc,
 "Class hierarchy: int > :class:`IntegrationType`\n"
 "\n"
 "Different integration methods that can be invoked to integrate into a\n"
@@ -134,7 +134,7 @@ static char IntegrationType___doc__[] =
 "* IntegrationType.FIRST: The value computed for the 1D element is the\n"
 "  first of the values obtained for the 0D elements.\n"
 "* IntegrationType.LAST: The value computed for the 1D element is the\n"
-"  last of the values obtained for the 0D elements.\n";
+"  last of the values obtained for the 0D elements.");
 
 PyTypeObject IntegrationType_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
@@ -157,7 +157,7 @@ PyTypeObject IntegrationType_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT,             /* tp_flags */
-	IntegrationType___doc__,        /* tp_doc */
+	IntegrationType_doc,            /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -207,27 +207,27 @@ static PyLongObject _IntegrationType_LAST = {
 #define BPy_IntegrationType_LAST  ((PyObject *)&_IntegrationType_LAST)
 
 //-------------------MODULE INITIALIZATION--------------------------------
-int IntegrationType_Init( PyObject *module )
-{	
+int IntegrationType_Init(PyObject *module)
+{
 	PyObject *m, *d, *f;
 	
-	if( module == NULL )
+	if (module == NULL)
 		return -1;
 
-	if( PyType_Ready( &IntegrationType_Type ) < 0 )
+	if (PyType_Ready(&IntegrationType_Type) < 0)
 		return -1;
-	Py_INCREF( &IntegrationType_Type );
+	Py_INCREF(&IntegrationType_Type);
 	PyModule_AddObject(module, "IntegrationType", (PyObject *)&IntegrationType_Type);
 
-	PyDict_SetItemString( IntegrationType_Type.tp_dict, "MEAN", BPy_IntegrationType_MEAN);
-	PyDict_SetItemString( IntegrationType_Type.tp_dict, "MIN", BPy_IntegrationType_MIN);
-	PyDict_SetItemString( IntegrationType_Type.tp_dict, "MAX", BPy_IntegrationType_MAX);
-	PyDict_SetItemString( IntegrationType_Type.tp_dict, "FIRST", BPy_IntegrationType_FIRST);
-	PyDict_SetItemString( IntegrationType_Type.tp_dict, "LAST", BPy_IntegrationType_LAST);
+	PyDict_SetItemString(IntegrationType_Type.tp_dict, "MEAN", BPy_IntegrationType_MEAN);
+	PyDict_SetItemString(IntegrationType_Type.tp_dict, "MIN", BPy_IntegrationType_MIN);
+	PyDict_SetItemString(IntegrationType_Type.tp_dict, "MAX", BPy_IntegrationType_MAX);
+	PyDict_SetItemString(IntegrationType_Type.tp_dict, "FIRST", BPy_IntegrationType_FIRST);
+	PyDict_SetItemString(IntegrationType_Type.tp_dict, "LAST", BPy_IntegrationType_LAST);
 	
-    m = PyModule_Create(&module_definition);
-    if (m == NULL)
-        return -1;
+	m = PyModule_Create(&module_definition);
+	if (m == NULL)
+		return -1;
 	Py_INCREF(m);
 	PyModule_AddObject(module, "Integrator", m);
 
@@ -247,4 +247,3 @@ int IntegrationType_Init( PyObject *module )
 #ifdef __cplusplus
 }
 #endif
-

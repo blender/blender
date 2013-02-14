@@ -15,7 +15,7 @@ extern "C" {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char StrokeVertex___doc__[] =
+PyDoc_STRVAR(StrokeVertex_doc,
 "Class hierarchy: :class:`Interface0D` > :class:`CurvePoint` > :class:`StrokeVertex`\n"
 "\n"
 "Class to define a stroke vertex.\n"
@@ -64,40 +64,40 @@ static char StrokeVertex___doc__[] =
 "   :arg iSVertex: An SVertex object.\n"
 "   :type iSVertex: :class:`SVertex`\n"
 "   :arg iAttribute: A StrokeAttribute object.\n"
-"   :type iAttribute: :class:`StrokeAttribute`\n";
+"   :type iAttribute: :class:`StrokeAttribute`");
 
-static int StrokeVertex___init__(BPy_StrokeVertex *self, PyObject *args, PyObject *kwds)
+static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *kwds)
 {
 
 	PyObject *obj1 = 0, *obj2 = 0 , *obj3 = 0;
 
-    if (! PyArg_ParseTuple(args, "|OOO!", &obj1, &obj2, &PyFloat_Type, &obj3) )
-        return -1;
+	if (!PyArg_ParseTuple(args, "|OOO!", &obj1, &obj2, &PyFloat_Type, &obj3))
+		return -1;
 
-	if( !obj1 ){
+	if (!obj1){
 		self->sv = new StrokeVertex();
 		
-	} else if( !obj2 && BPy_StrokeVertex_Check(obj1) && ((BPy_StrokeVertex *) obj1)->sv ) {
+	} else if (!obj2 && BPy_StrokeVertex_Check(obj1) && ((BPy_StrokeVertex *) obj1)->sv) {
 		self->sv = new StrokeVertex( *(((BPy_StrokeVertex *) obj1)->sv) );
 
-	} else if( !obj2 && BPy_CurvePoint_Check(obj1) && ((BPy_CurvePoint *) obj1)->cp ) {
+	} else if (!obj2 && BPy_CurvePoint_Check(obj1) && ((BPy_CurvePoint *) obj1)->cp) {
 		self->sv = new StrokeVertex( ((BPy_CurvePoint *) obj1)->cp );
 	
-	} else if( !obj2 && BPy_SVertex_Check(obj1) && ((BPy_SVertex *) obj1)->sv ) {
+	} else if (!obj2 && BPy_SVertex_Check(obj1) && ((BPy_SVertex *) obj1)->sv) {
 		self->sv = new StrokeVertex( ((BPy_SVertex *) obj1)->sv );
 	
-	} else if( obj3 && BPy_StrokeVertex_Check(obj1) && BPy_StrokeVertex_Check(obj2) ) {
+	} else if (obj3 && BPy_StrokeVertex_Check(obj1) && BPy_StrokeVertex_Check(obj2)) {
 		StrokeVertex *sv1 = ((BPy_StrokeVertex *) obj1)->sv;
 		StrokeVertex *sv2 = ((BPy_StrokeVertex *) obj2)->sv;
-		if( !sv1 || ( sv1->A() == 0 && sv1->B() == 0 ) ) {
+		if (!sv1 || (sv1->A() == 0 && sv1->B() == 0)) {
 			PyErr_SetString(PyExc_TypeError, "argument 1 is an invalid StrokeVertex object");
 			return -1;
 		}
-		if( !sv2 || ( sv2->A() == 0 && sv2->B() == 0 ) ) {
+		if (!sv2 || (sv2->A() == 0 && sv2->B() == 0)) {
 			PyErr_SetString(PyExc_TypeError, "argument 2 is an invalid StrokeVertex object");
 			return -1;
 		}
-		self->sv = new StrokeVertex( sv1, sv2, PyFloat_AsDouble( obj3 ) );
+		self->sv = new StrokeVertex(sv1, sv2, PyFloat_AsDouble(obj3));
 
 	} else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
@@ -311,7 +311,7 @@ PyTypeObject StrokeVertex_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	StrokeVertex___doc__,           /* tp_doc */
+	StrokeVertex_doc,               /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -326,7 +326,7 @@ PyTypeObject StrokeVertex_Type = {
 	0,                              /* tp_descr_get */
 	0,                              /* tp_descr_set */
 	0,                              /* tp_dictoffset */
-	(initproc)StrokeVertex___init__, /* tp_init */
+	(initproc)StrokeVertex_init,    /* tp_init */
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };

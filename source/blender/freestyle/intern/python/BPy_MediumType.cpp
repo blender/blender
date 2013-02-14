@@ -10,7 +10,7 @@ extern "C" {
 
 /*-----------------------BPy_MediumType type definition ------------------------------*/
 
-static char MediumType___doc__[] =
+PyDoc_STRVAR(MediumType_doc,
 "Class hierarchy: int > :class:`MediumType`\n"
 "\n"
 "The different blending modes available to similate the interaction\n"
@@ -18,7 +18,7 @@ static char MediumType___doc__[] =
 "\n"
 "* Stroke.DRY_MEDIUM: To simulate a dry medium such as Pencil or Charcoal.\n"
 "* Stroke.HUMID_MEDIUM: To simulate ink painting (color substraction blending).\n"
-"* Stroke.OPAQUE_MEDIUM: To simulate an opaque medium (oil, spray...).\n";
+"* Stroke.OPAQUE_MEDIUM: To simulate an opaque medium (oil, spray...).");
 
 PyTypeObject MediumType_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
@@ -41,7 +41,7 @@ PyTypeObject MediumType_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT,             /* tp_flags */
-	MediumType___doc__,             /* tp_doc */
+	MediumType_doc,                 /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -96,4 +96,3 @@ int MediumType_Init( PyObject *module )
 #ifdef __cplusplus
 }
 #endif
-

@@ -8,9 +8,9 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-static PyObject *BPy_Nature___and__(PyObject *a, PyObject *b);
-static PyObject *BPy_Nature___xor__(PyObject *a, PyObject *b);
-static PyObject *BPy_Nature___or__(PyObject *a, PyObject *b);
+static PyObject *BPy_Nature_and(PyObject *a, PyObject *b);
+static PyObject *BPy_Nature_xor(PyObject *a, PyObject *b);
+static PyObject *BPy_Nature_or(PyObject *a, PyObject *b);
 static int BPy_Nature_bool(PyObject *v);
 
 /*-----------------------BPy_Nature number method definitions --------------------*/
@@ -29,9 +29,9 @@ PyNumberMethods nature_as_number = {
 	0,                              /* unaryfunc nb_invert */
 	0,                              /* binaryfunc nb_lshift */
 	0,                              /* binaryfunc nb_rshift */
-	(binaryfunc)BPy_Nature___and__, /* binaryfunc nb_and */
-	(binaryfunc)BPy_Nature___xor__, /* binaryfunc nb_xor */
-	(binaryfunc)BPy_Nature___or__,  /* binaryfunc nb_or */
+	(binaryfunc)BPy_Nature_and,     /* binaryfunc nb_and */
+	(binaryfunc)BPy_Nature_xor,     /* binaryfunc nb_xor */
+	(binaryfunc)BPy_Nature_or,      /* binaryfunc nb_or */
 	0,                              /* unaryfunc nb_int */
 	0,                              /* void *nb_reserved */
 	0,                              /* unaryfunc nb_float */
@@ -54,7 +54,7 @@ PyNumberMethods nature_as_number = {
 
 /*-----------------------BPy_Nature docstring ------------------------------------*/
 
-static char Nature___doc__[] =
+PyDoc_STRVAR(Nature_doc,
 "Class hierarchy: int > :class:`Nature`\n"
 "\n"
 "Different possible natures of 0D and 1D elements of the ViewMap.\n"
@@ -79,7 +79,7 @@ static char Nature___doc__[] =
 "* Nature.VALLEY: True for valleys.\n"
 "* Nature.SUGGESTIVE_CONTOUR: True for suggestive contours.\n"
 "* Nature.MATERIAL_BOUNDARY: True for edges at material boundaries.\n"
-"* Nature.EDGE_MARK: True for edges having user-defined edge marks.\n";
+"* Nature.EDGE_MARK: True for edges having user-defined edge marks.");
 
 /*-----------------------BPy_Nature type definition ------------------------------*/
 
@@ -104,7 +104,7 @@ PyTypeObject Nature_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT,             /* tp_flags */
-	Nature___doc__,                 /* tp_doc */
+	Nature_doc,                     /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -204,40 +204,39 @@ static PyLongObject _Nature_EDGE_MARK = {
 #define BPy_Nature_EDGE_MARK           ((PyObject *)&_Nature_EDGE_MARK)
 
 //-------------------MODULE INITIALIZATION--------------------------------
-int Nature_Init( PyObject *module )
-{	
-	if( module == NULL )
+int Nature_Init(PyObject *module)
+{
+	if (module == NULL)
 		return -1;
 
-	if( PyType_Ready( &Nature_Type ) < 0 )
+	if (PyType_Ready(&Nature_Type) < 0)
 		return -1;
-	Py_INCREF( &Nature_Type );
+	Py_INCREF(&Nature_Type);
 	PyModule_AddObject(module, "Nature", (PyObject *)&Nature_Type);
 
 	// VertexNature
-	PyDict_SetItemString( Nature_Type.tp_dict, "POINT", BPy_Nature_POINT);
-	PyDict_SetItemString( Nature_Type.tp_dict, "S_VERTEX", BPy_Nature_S_VERTEX);
-	PyDict_SetItemString( Nature_Type.tp_dict, "VIEW_VERTEX", BPy_Nature_VIEW_VERTEX );
-	PyDict_SetItemString( Nature_Type.tp_dict, "NON_T_VERTEX", BPy_Nature_NON_T_VERTEX );
-	PyDict_SetItemString( Nature_Type.tp_dict, "T_VERTEX", BPy_Nature_T_VERTEX );
-	PyDict_SetItemString( Nature_Type.tp_dict, "CUSP", BPy_Nature_CUSP );
+	PyDict_SetItemString(Nature_Type.tp_dict, "POINT", BPy_Nature_POINT);
+	PyDict_SetItemString(Nature_Type.tp_dict, "S_VERTEX", BPy_Nature_S_VERTEX);
+	PyDict_SetItemString(Nature_Type.tp_dict, "VIEW_VERTEX", BPy_Nature_VIEW_VERTEX);
+	PyDict_SetItemString(Nature_Type.tp_dict, "NON_T_VERTEX", BPy_Nature_NON_T_VERTEX);
+	PyDict_SetItemString(Nature_Type.tp_dict, "T_VERTEX", BPy_Nature_T_VERTEX);
+	PyDict_SetItemString(Nature_Type.tp_dict, "CUSP", BPy_Nature_CUSP);
 	
 	// EdgeNature
-	PyDict_SetItemString( Nature_Type.tp_dict, "NO_FEATURE", BPy_Nature_NO_FEATURE );
-	PyDict_SetItemString( Nature_Type.tp_dict, "SILHOUETTE", BPy_Nature_SILHOUETTE );
-	PyDict_SetItemString( Nature_Type.tp_dict, "BORDER", BPy_Nature_BORDER );
-	PyDict_SetItemString( Nature_Type.tp_dict, "CREASE", BPy_Nature_CREASE );
-	PyDict_SetItemString( Nature_Type.tp_dict, "RIDGE", BPy_Nature_RIDGE );
-	PyDict_SetItemString( Nature_Type.tp_dict, "VALLEY", BPy_Nature_VALLEY );
-	PyDict_SetItemString( Nature_Type.tp_dict, "SUGGESTIVE_CONTOUR", BPy_Nature_SUGGESTIVE_CONTOUR );
-	PyDict_SetItemString( Nature_Type.tp_dict, "MATERIAL_BOUNDARY", BPy_Nature_MATERIAL_BOUNDARY );
-	PyDict_SetItemString( Nature_Type.tp_dict, "EDGE_MARK", BPy_Nature_EDGE_MARK );
+	PyDict_SetItemString(Nature_Type.tp_dict, "NO_FEATURE", BPy_Nature_NO_FEATURE);
+	PyDict_SetItemString(Nature_Type.tp_dict, "SILHOUETTE", BPy_Nature_SILHOUETTE);
+	PyDict_SetItemString(Nature_Type.tp_dict, "BORDER", BPy_Nature_BORDER);
+	PyDict_SetItemString(Nature_Type.tp_dict, "CREASE", BPy_Nature_CREASE);
+	PyDict_SetItemString(Nature_Type.tp_dict, "RIDGE", BPy_Nature_RIDGE);
+	PyDict_SetItemString(Nature_Type.tp_dict, "VALLEY", BPy_Nature_VALLEY);
+	PyDict_SetItemString(Nature_Type.tp_dict, "SUGGESTIVE_CONTOUR", BPy_Nature_SUGGESTIVE_CONTOUR);
+	PyDict_SetItemString(Nature_Type.tp_dict, "MATERIAL_BOUNDARY", BPy_Nature_MATERIAL_BOUNDARY);
+	PyDict_SetItemString(Nature_Type.tp_dict, "EDGE_MARK", BPy_Nature_EDGE_MARK);
 
 	return 0;
 }
 
-static PyObject *
-BPy_Nature_bitwise(PyObject *a, int op, PyObject *b)
+static PyObject *BPy_Nature_bitwise(PyObject *a, int op, PyObject *b)
 {
 	BPy_Nature *result;
 
@@ -280,26 +279,22 @@ BPy_Nature_bitwise(PyObject *a, int op, PyObject *b)
 	return (PyObject *)result;
 }
 
-static PyObject *
-BPy_Nature___and__(PyObject *a, PyObject *b)
+static PyObject *BPy_Nature_and(PyObject *a, PyObject *b)
 {
 	return BPy_Nature_bitwise(a, '&', b);
 }
 
-static PyObject *
-BPy_Nature___xor__(PyObject *a, PyObject *b)
+static PyObject *BPy_Nature_xor(PyObject *a, PyObject *b)
 {
 	return BPy_Nature_bitwise(a, '^', b);
 }
 
-static PyObject *
-BPy_Nature___or__(PyObject *a, PyObject *b)
+static PyObject *BPy_Nature_or(PyObject *a, PyObject *b)
 {
 	return BPy_Nature_bitwise(a, '|', b);
 }
 
-static int
-BPy_Nature_bool(PyObject *v)
+static int BPy_Nature_bool(PyObject *v)
 {
 	return ((PyLongObject *)v)->ob_digit[0] != 0;
 }
@@ -309,4 +304,3 @@ BPy_Nature_bool(PyObject *v)
 #ifdef __cplusplus
 }
 #endif
-

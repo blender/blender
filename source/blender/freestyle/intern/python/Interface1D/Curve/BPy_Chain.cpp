@@ -10,9 +10,9 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-//------------------------INSTANCE METHODS ----------------------------------
+/*----------------------Chain methods ----------------------------*/
 
-static char Chain___doc__[] =
+PyDoc_STRVAR(Chain_doc,
 "Class hierarchy: :class:`Interface1D` > :class:`Curve` > :class:`Chain`\n"
 "\n"
 "Class to represent a 1D elements issued from the chaining process.  A\n"
@@ -35,25 +35,25 @@ static char Chain___doc__[] =
 "   Builds a chain from its Id.\n"
 "\n"
 "   :arg id: An Id object.\n"
-"   :type id: :class:`Id`\n";
+"   :type id: :class:`Id`");
 
-static int Chain___init__(BPy_Chain *self, PyObject *args, PyObject *kwds)
+static int Chain_init(BPy_Chain *self, PyObject *args, PyObject *kwds)
 {
 
 	PyObject *obj = 0;
 
-    if (! PyArg_ParseTuple(args, "|O", &obj) )
-        return -1;
+	if (!PyArg_ParseTuple(args, "|O", &obj))
+		return -1;
 
-	if( !obj ){
+	if (!obj) {
 		self->c = new Chain();
-		
-	} else if( BPy_Chain_Check(obj) ) {
-		self->c = new Chain(*( ((BPy_Chain *) obj)->c ));
-		
-	} else if( BPy_Id_Check(obj) ) {
-		self->c = new Chain(*( ((BPy_Id *) obj)->id ));
-			
+
+	} else if (BPy_Chain_Check(obj)) {
+		self->c = new Chain(*(((BPy_Chain *)obj)->c));
+
+	} else if (BPy_Id_Check(obj)) {
+		self->c = new Chain(*(((BPy_Id *)obj)->id));
+
 	} else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument");
 		return -1;
@@ -66,7 +66,7 @@ static int Chain___init__(BPy_Chain *self, PyObject *args, PyObject *kwds)
 	return 0;
 }
 
-static char Chain_push_viewedge_back___doc__[] =
+PyDoc_STRVAR(Chain_push_viewedge_back_doc,
 ".. method:: push_viewedge_back(iViewEdge, orientation)\n"
 "\n"
 "   Adds a ViewEdge at the end of the Chain.\n"
@@ -75,7 +75,7 @@ static char Chain_push_viewedge_back___doc__[] =
 "   :type iViewEdge: :class:`ViewEdge`\n"
 "   :arg orientation: The orientation with which the ViewEdge must be\n"
 "      processed.\n"
-"   :type orientation: bool\n";
+"   :type orientation: bool");
 
 static PyObject * Chain_push_viewedge_back( BPy_Chain *self, PyObject *args ) {
 	PyObject *obj1 = 0, *obj2 = 0;
@@ -90,7 +90,7 @@ static PyObject * Chain_push_viewedge_back( BPy_Chain *self, PyObject *args ) {
 	Py_RETURN_NONE;
 }
 
-static char Chain_push_viewedge_front___doc__[] =
+PyDoc_STRVAR(Chain_push_viewedge_front_doc,
 ".. method:: push_viewedge_front(iViewEdge, orientation)\n"
 "\n"
 "   Adds a ViewEdge at the beginning of the Chain.\n"
@@ -99,7 +99,7 @@ static char Chain_push_viewedge_front___doc__[] =
 "   :type iViewEdge: :class:`ViewEdge`\n"
 "   :arg orientation: The orientation with which the ViewEdge must be\n"
 "      processed.\n"
-"   :type orientation: bool\n";
+"   :type orientation: bool");
 
 static PyObject * Chain_push_viewedge_front( BPy_Chain *self, PyObject *args ) {
 	PyObject *obj1 = 0, *obj2 = 0;
@@ -114,10 +114,9 @@ static PyObject * Chain_push_viewedge_front( BPy_Chain *self, PyObject *args ) {
 	Py_RETURN_NONE;
 }
 
-/*----------------------Chain instance definitions ----------------------------*/
 static PyMethodDef BPy_Chain_methods[] = {	
-	{"push_viewedge_back", ( PyCFunction ) Chain_push_viewedge_back, METH_VARARGS, Chain_push_viewedge_back___doc__},
-	{"push_viewedge_front", ( PyCFunction ) Chain_push_viewedge_front, METH_VARARGS, Chain_push_viewedge_front___doc__},
+	{"push_viewedge_back", (PyCFunction)Chain_push_viewedge_back, METH_VARARGS, Chain_push_viewedge_back_doc},
+	{"push_viewedge_front", (PyCFunction)Chain_push_viewedge_front, METH_VARARGS, Chain_push_viewedge_front_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -144,7 +143,7 @@ PyTypeObject Chain_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	Chain___doc__,                  /* tp_doc */
+	Chain_doc,                      /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -159,7 +158,7 @@ PyTypeObject Chain_Type = {
 	0,                              /* tp_descr_get */
 	0,                              /* tp_descr_set */
 	0,                              /* tp_dictoffset */
-	(initproc)Chain___init__,       /* tp_init */
+	(initproc)Chain_init,           /* tp_init */
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };
