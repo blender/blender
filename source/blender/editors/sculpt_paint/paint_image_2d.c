@@ -197,8 +197,7 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf,
 
 			for (x = origx; x < w; x++, bf += 4, mf += 4, tf += 4) {
 				if (dotexold) {
-					copy_v3_v3(tf, otf);
-					tf[3] = otf[3];
+					copy_v4_v4(tf, otf);
 					otf += 4;
 				}
 				else {
@@ -249,7 +248,7 @@ static void brush_painter_do_partial(BrushPainter *painter, ImBuf *oldtexibuf,
 	}
 }
 
-static void brush_painter_fixed_tex_partial_update(BrushPainter *painter, const float pos[2])
+static void brush_painter_tiled_tex_partial_update(BrushPainter *painter, const float pos[2])
 {
 	const Scene *scene = painter->scene;
 	Brush *brush = painter->brush;
@@ -265,7 +264,6 @@ static void brush_painter_fixed_tex_partial_update(BrushPainter *painter, const 
 
 	oldtexibuf = cache->texibuf;
 	cache->texibuf = IMB_allocImBuf(diameter, diameter, 32, imbflag);
-
 	if (oldtexibuf) {
 		srcx = srcy = 0;
 		destx = (int)painter->lastpaintpos[0] - (int)pos[0];
@@ -334,7 +332,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, const float pos[2
 
 		if (do_tiled) {
 			BKE_brush_imbuf_new(scene, brush, flt, 3, size, &cache->maskibuf, use_color_correction);
-			brush_painter_fixed_tex_partial_update(painter, pos);
+			brush_painter_tiled_tex_partial_update(painter, pos);
 		}
 		else
 			BKE_brush_imbuf_new(scene, brush, flt, 2, size, &cache->ibuf, use_color_correction);
@@ -348,7 +346,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, const float pos[2
 		int dy = (int)painter->lastpaintpos[1] - (int)pos[1];
 
 		if ((dx != 0) || (dy != 0))
-			brush_painter_fixed_tex_partial_update(painter, pos);
+			brush_painter_tiled_tex_partial_update(painter, pos);
 	}
 }
 
