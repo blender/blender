@@ -9,9 +9,9 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-//------------------------INSTANCE METHODS ----------------------------------
+/*----------------------FEdgeSmooth methods ----------------------------*/
 
-static char FEdgeSmooth___doc__[] =
+PyDoc_STRVAR(FEdgeSmooth_doc,
 "Class hierarchy: :class:`Interface1D` > :class:`FEdge` > :class:`FEdgeSmooth`\n"
 "\n"
 "Class defining a smooth edge.  This kind of edge typically runs across\n"
@@ -36,23 +36,23 @@ static char FEdgeSmooth___doc__[] =
 "   :arg vA: The first SVertex object.\n"
 "   :type vA: :class:`SVertex`\n"
 "   :arg vB: The second SVertex object.\n"
-"   :type vB: :class:`SVertex`\n";
+"   :type vB: :class:`SVertex`");
 
-static int FEdgeSmooth___init__(BPy_FEdgeSmooth *self, PyObject *args, PyObject *kwds)
+static int FEdgeSmooth_init(BPy_FEdgeSmooth *self, PyObject *args, PyObject *kwds)
 {
 	PyObject *obj1 = 0, *obj2 = 0;
 
-    if (! PyArg_ParseTuple(args, "|OO", &obj1, &obj2) )
-        return -1;
+	if (!PyArg_ParseTuple(args, "|OO", &obj1, &obj2))
+		return -1;
 
-	if( !obj1 ){
+	if (!obj1) {
 		self->fes = new FEdgeSmooth();
-		
-	} else if( !obj2 && BPy_FEdgeSmooth_Check(obj1) ) {
-		self->fes = new FEdgeSmooth(*( ((BPy_FEdgeSmooth *) obj1)->fes ));
-		
-	} else if( obj2 && BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2) ) {
-		self->fes = new FEdgeSmooth( ((BPy_SVertex *) obj1)->sv, ((BPy_SVertex *) obj2)->sv );
+
+	} else if (!obj2 && BPy_FEdgeSmooth_Check(obj1)) {
+		self->fes = new FEdgeSmooth(*(((BPy_FEdgeSmooth *)obj1)->fes));
+
+	} else if (obj2 && BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2)) {
+		self->fes = new FEdgeSmooth(((BPy_SVertex *)obj1)->sv, ((BPy_SVertex *)obj2)->sv);
 
 	} else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
@@ -66,128 +66,148 @@ static int FEdgeSmooth___init__(BPy_FEdgeSmooth *self, PyObject *args, PyObject 
 	return 0;
 }
 
-static char FEdgeSmooth_normal___doc__[] =
-".. method:: normal()\n"
-"\n"
-"   Returns the normal to the Face it is running accross.\n"
-"\n"
-"   :return: The normal to the Face it is running accross.\n"
-"   :rtype: :class:`mathutils.Vector`\n";
+static PyMethodDef BPy_FEdgeSmooth_methods[] = {
+	{NULL, NULL, 0, NULL}
+};
 
-static PyObject * FEdgeSmooth_normal( BPy_FEdgeSmooth *self ) {
-	Vec3r v( self->fes->normal() );
-	return Vector_from_Vec3r( v );
+/*----------------------mathutils callbacks ----------------------------*/
+
+static int FEdgeSmooth_mathutils_check(BaseMathObject *bmo)
+{
+	if (!BPy_FEdgeSmooth_Check(bmo->cb_user))
+		return -1;
+	return 0;
 }
 
-static char FEdgeSmooth_materialIndex___doc__[] =
-".. method:: materialIndex()\n"
-"\n"
-"   Returns the index of the material of the face it is running accross.\n"
-"\n"
-"   :return: The index of the material of the face it is running accross.\n"
-"   :rtype: int\n";
-
-static PyObject * FEdgeSmooth_materialIndex( BPy_FEdgeSmooth *self ) {
-	return PyLong_FromLong( self->fes->frs_materialIndex() );
+static int FEdgeSmooth_mathutils_get(BaseMathObject *bmo, int subtype)
+{
+	BPy_FEdgeSmooth *self = (BPy_FEdgeSmooth *)bmo->cb_user;
+	Vec3r p(self->fes->normal());
+	bmo->data[0] = p[0];
+	bmo->data[1] = p[1];
+	bmo->data[2] = p[2];
+	return 0;
 }
 
-static char FEdgeSmooth_material___doc__[] =
-".. method:: material()\n"
-"\n"
-"   Returns the material of the face it is running accross.\n"
-"\n"
-"   :return: The material of the face it is running accross.\n"
-"   :rtype: :class:`Material`\n";
+static int FEdgeSmooth_mathutils_set(BaseMathObject *bmo, int subtype)
+{
+	BPy_FEdgeSmooth *self = (BPy_FEdgeSmooth *)bmo->cb_user;
+	Vec3r p(bmo->data[0], bmo->data[1], bmo->data[2]);
+	self->fes->setNormal(p);
+	return 0;
+}
 
-static PyObject * FEdgeSmooth_material( BPy_FEdgeSmooth *self ) {
-	FrsMaterial m( self->fes->frs_material() );
+static int FEdgeSmooth_mathutils_get_index(BaseMathObject *bmo, int subtype, int index)
+{
+	BPy_FEdgeSmooth *self = (BPy_FEdgeSmooth *)bmo->cb_user;
+	Vec3r p(self->fes->normal());
+	bmo->data[index] = p[index];
+	return 0;
+}
+
+static int FEdgeSmooth_mathutils_set_index(BaseMathObject *bmo, int subtype, int index)
+{
+	BPy_FEdgeSmooth *self = (BPy_FEdgeSmooth *)bmo->cb_user;
+	Vec3r p(self->fes->normal());
+	p[index] = bmo->data[index];
+	self->fes->setNormal(p);
+	return 0;
+}
+
+static Mathutils_Callback FEdgeSmooth_mathutils_cb = {
+	FEdgeSmooth_mathutils_check,
+	FEdgeSmooth_mathutils_get,
+	FEdgeSmooth_mathutils_set,
+	FEdgeSmooth_mathutils_get_index,
+	FEdgeSmooth_mathutils_set_index
+};
+
+static unsigned char FEdgeSmooth_mathutils_cb_index = -1;
+
+void FEdgeSmooth_mathutils_register_callback()
+{
+	FEdgeSmooth_mathutils_cb_index = Mathutils_RegisterCallback(&FEdgeSmooth_mathutils_cb);
+}
+
+/*----------------------FEdgeSmooth get/setters ----------------------------*/
+
+PyDoc_STRVAR(FEdgeSmooth_normal_doc,
+"The normal of the face that this FEdge is running across.\n"
+"\n"
+":type: :class:`mathutils.Vector`");
+
+static PyObject *FEdgeSmooth_normal_get(BPy_FEdgeSmooth *self, void *UNUSED(closure))
+{
+	return Vector_CreatePyObject_cb((PyObject *)self, 3, FEdgeSmooth_mathutils_cb_index, 0);
+}
+
+static int FEdgeSmooth_normal_set(BPy_FEdgeSmooth *self, PyObject *value, void *UNUSED(closure))
+{
+	float v[3];
+	if (!float_array_from_PyObject(value, v, 3)) {
+		PyErr_SetString(PyExc_ValueError, "value must be a 3-dimensional vector");
+		return -1;
+	}
+	Vec3r p(v[0], v[1], v[2]);
+	self->fes->setNormal(p);
+	return 0;
+}
+
+PyDoc_STRVAR(FEdgeSmooth_material_index_doc,
+"The index of the material of the face that this FEdge is running across.\n"
+"\n"
+":type: int");
+
+static PyObject *FEdgeSmooth_material_index_get(BPy_FEdgeSmooth *self, void *UNUSED(closure))
+{
+	return PyLong_FromLong(self->fes->frs_materialIndex());
+}
+
+static int FEdgeSmooth_material_index_set(BPy_FEdgeSmooth *self, PyObject *value, void *UNUSED(closure))
+{
+	unsigned int i = PyLong_AsUnsignedLong(value);
+	if(PyErr_Occurred())
+		return -1;
+	self->fes->setFrsMaterialIndex(i);
+	return 0;
+}
+
+PyDoc_STRVAR(FEdgeSmooth_material_doc,
+"The material of the face that this FEdge is running across.\n"
+"\n"
+":type: :class:`Material`");
+
+static PyObject *FEdgeSmooth_material_get(BPy_FEdgeSmooth *self, void *UNUSED(closure))
+{
+	// FIXME frs_material() returns a const reference.
+	FrsMaterial m(self->fes->frs_material());
 	return BPy_FrsMaterial_from_FrsMaterial(m);
 }
 
-static char FEdgeSmooth_faceMark___doc__[] =
-".. method:: faceMark()\n"
+PyDoc_STRVAR(FEdgeSmooth_face_mark_doc,
+"The face mark of the face that this FEdge is running across.\n"
 "\n"
-"   Returns the face mark of the face it is running across.\n"
-"\n"
-"   :return: The face mark of the face it is running across.\n"
-"   :rtype: bool\n";
+":type: bool");
 
-static PyObject * FEdgeSmooth_faceMark( BPy_FEdgeSmooth *self ) {
-	return PyBool_from_bool( self->fes->faceMark() );
+static PyObject *FEdgeSmooth_face_mark_get(BPy_FEdgeSmooth *self, void *UNUSED(closure))
+{
+	return PyBool_from_bool(self->fes->faceMark());
 }
 
-static char FEdgeSmooth_setNormal___doc__[] =
-".. method:: setNormal(iNormal)\n"
-"\n"
-"   Sets the normal to the Face it is running accross.\n"
-"\n"
-"   :arg iNormal: A three-dimensional vector.\n"
-"   :type iNormal: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n";
-
-static PyObject * FEdgeSmooth_setNormal( BPy_FEdgeSmooth *self, PyObject *args ) {
-	PyObject *obj = 0;
-
-	if(!( PyArg_ParseTuple(args, "O", &obj) ))
-		return NULL;
-	Vec3r *v = Vec3r_ptr_from_PyObject(obj);
-	if( !v ) {
-		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
-		return NULL;
-	}
-	self->fes->setNormal( *v );
-	delete v;
-
-	Py_RETURN_NONE;
+static int FEdgeSmooth_face_mark_set(BPy_FEdgeSmooth *self, PyObject *value, void *UNUSED(closure))
+{
+	if(!PyBool_Check(value))
+		return -1;
+	self->fes->setFaceMark(bool_from_PyBool(value));
+	return 0;
 }
 
-static char FEdgeSmooth_setMaterialIndex___doc__[] =
-".. method:: setMaterialIndex(i)\n"
-"\n"
-"   Sets the index of the material of the face it is running accross.\n"
-"\n"
-"   :arg i: The index of the material of the face it is running accross.\n"
-"   :type i: int\n";
-
-static PyObject * FEdgeSmooth_setMaterialIndex( BPy_FEdgeSmooth *self, PyObject *args ) {
-	unsigned int i;
-
-	if(!( PyArg_ParseTuple(args, "I", &i) ))
-		return NULL;
-	
-	self->fes->setFrsMaterialIndex( i );
-
-	Py_RETURN_NONE;
-}
-
-static char FEdgeSmooth_setFaceMark___doc__[] =
-".. method:: setFaceMark(i)\n"
-"\n"
-"   Sets the face mark of the face it is running across.\n"
-"\n"
-"   :arg i: A face mark.\n"
-"   :type i: bool\n";
-
-static PyObject * FEdgeSmooth_setFaceMark( BPy_FEdgeSmooth *self, PyObject *args ) {
-	PyObject *obj;
-
-	if(!( PyArg_ParseTuple(args, "O", &obj) ))
-		return NULL;
-	
-	self->fes->setFaceMark( bool_from_PyBool(obj) );
-
-	Py_RETURN_NONE;
-}
-
-/*----------------------FEdgeSmooth instance definitions ----------------------------*/
-static PyMethodDef BPy_FEdgeSmooth_methods[] = {	
-	{"normal", ( PyCFunction ) FEdgeSmooth_normal, METH_NOARGS, FEdgeSmooth_normal___doc__},
-	{"materialIndex", ( PyCFunction ) FEdgeSmooth_materialIndex, METH_NOARGS, FEdgeSmooth_materialIndex___doc__},
-	{"material", ( PyCFunction ) FEdgeSmooth_material, METH_NOARGS, FEdgeSmooth_material___doc__},
-	{"faceMark", ( PyCFunction ) FEdgeSmooth_faceMark, METH_NOARGS, FEdgeSmooth_faceMark___doc__},
-	{"setNormal", ( PyCFunction ) FEdgeSmooth_setNormal, METH_VARARGS, FEdgeSmooth_setNormal___doc__},
-	{"setMaterialIndex", ( PyCFunction ) FEdgeSmooth_setMaterialIndex, METH_VARARGS, FEdgeSmooth_setMaterialIndex___doc__},
-	{"setFaceMark", ( PyCFunction ) FEdgeSmooth_setFaceMark, METH_VARARGS, FEdgeSmooth_setFaceMark___doc__},
-	{NULL, NULL, 0, NULL}
+static PyGetSetDef BPy_FEdgeSmooth_getseters[] = {
+	{(char *)"normal", (getter)FEdgeSmooth_normal_get, (setter)FEdgeSmooth_normal_set, (char *)FEdgeSmooth_normal_doc, NULL},
+	{(char *)"material_index", (getter)FEdgeSmooth_material_index_get, (setter)FEdgeSmooth_material_index_set, (char *)FEdgeSmooth_material_index_doc, NULL},
+	{(char *)"material", (getter)FEdgeSmooth_material_get, (setter)NULL, (char *)FEdgeSmooth_material_doc, NULL},
+	{(char *)"face_mark", (getter)FEdgeSmooth_face_mark_get, (setter)FEdgeSmooth_face_mark_set, (char *)FEdgeSmooth_face_mark_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_FEdgeSmooth type definition ------------------------------*/
@@ -213,7 +233,7 @@ PyTypeObject FEdgeSmooth_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	FEdgeSmooth___doc__,            /* tp_doc */
+	FEdgeSmooth_doc,                /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -222,13 +242,13 @@ PyTypeObject FEdgeSmooth_Type = {
 	0,                              /* tp_iternext */
 	BPy_FEdgeSmooth_methods,        /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_FEdgeSmooth_getseters,      /* tp_getset */
 	&FEdge_Type,                    /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */
 	0,                              /* tp_descr_set */
 	0,                              /* tp_dictoffset */
-	(initproc)FEdgeSmooth___init__, /* tp_init */
+	(initproc)FEdgeSmooth_init,     /* tp_init */
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };

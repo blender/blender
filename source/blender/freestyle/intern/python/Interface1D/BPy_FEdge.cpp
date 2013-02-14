@@ -12,9 +12,9 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-//------------------------INSTANCE METHODS ----------------------------------
-	
-static char FEdge___doc__[] =
+/*----------------------FEdge methods ----------------------------*/
+
+PyDoc_STRVAR(FEdge_doc,
 "Class hierarchy: :class:`Interface1D` > :class:`FEdge`\n"
 "\n"
 "Base Class for feature edges.  This FEdge can represent a silhouette,\n"
@@ -45,23 +45,23 @@ static char FEdge___doc__[] =
 "   :arg vA: The first SVertex.\n"
 "   :type vA: :class:`SVertex`\n"
 "   :arg vB: The second SVertex.\n"
-"   :type vB: :class:`SVertex`\n";
+"   :type vB: :class:`SVertex`");
 
-static int FEdge___init__(BPy_FEdge *self, PyObject *args, PyObject *kwds)
+static int FEdge_init(BPy_FEdge *self, PyObject *args, PyObject *kwds)
 {
 	PyObject *obj1 = 0, *obj2 = 0;
 
-    if (! PyArg_ParseTuple(args, "|OO", &obj1, &obj2) )
-        return -1;
+	if (!PyArg_ParseTuple(args, "|OO", &obj1, &obj2))
+		return -1;
 
-	if( !obj1 ){
+	if (!obj1) {
 		self->fe = new FEdge();
 
-	} else if( !obj2 && BPy_FEdge_Check(obj1) ) {
-		self->fe = new FEdge(*( ((BPy_FEdge *) obj1)->fe ));
-		
-	} else if( obj2 && BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2) ) {
-		self->fe = new FEdge( ((BPy_SVertex *) obj1)->sv, ((BPy_SVertex *) obj2)->sv );
+	} else if(!obj2 && BPy_FEdge_Check(obj1)) {
+		self->fe = new FEdge(*(((BPy_FEdge *)obj1)->fe));
+
+	} else if(obj2 && BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2)) {
+		self->fe = new FEdge(((BPy_SVertex *)obj1)->sv, ((BPy_SVertex *)obj2)->sv);
 
 	} else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
@@ -74,296 +74,234 @@ static int FEdge___init__(BPy_FEdge *self, PyObject *args, PyObject *kwds)
 	return 0;
 }
 
-static char FEdge_vertexA___doc__[] =
-".. method:: vertexA()\n"
-"\n"
-"   Returns the first SVertex.\n"
-"\n"
-"   :return: The first SVertex.\n"
-"   :rtype: :class:`SVertex`\n";
+static PyMethodDef BPy_FEdge_methods[] = {
+	{NULL, NULL, 0, NULL}
+};
 
-static PyObject * FEdge_vertexA( BPy_FEdge *self ) {	
-	SVertex *A = self->fe->vertexA();
-	if( A ){
-		return BPy_SVertex_from_SVertex( *A );
-	}
-		
-	Py_RETURN_NONE;
+/*----------------------FEdge sequence protocol ----------------------------*/
+
+static Py_ssize_t FEdge_sq_length(BPy_FEdge *self)
+{
+	return 2;
 }
 
-static char FEdge_vertexB___doc__[] =
-".. method:: vertexB()\n"
-"\n"
-"   Returns the second SVertex.\n"
-"\n"
-"   :return: The second SVertex.\n"
-"   :rtype: :class:`SVertex`\n";
-
-static PyObject * FEdge_vertexB( BPy_FEdge *self ) {
-	SVertex *B = self->fe->vertexB();
-	if( B ){
-		return BPy_SVertex_from_SVertex( *B );
-	}
-		
-	Py_RETURN_NONE;
-}
-
-
-static PyObject * FEdge___getitem__( BPy_FEdge *self, PyObject *args ) {
-	int i;
-
-	if(!( PyArg_ParseTuple(args, "i", &i) ))
-		return NULL;
-	if(!(i == 0 || i == 1)) {
-		PyErr_SetString(PyExc_IndexError, "index must be either 0 or 1");
-		return NULL;
-	}
-	
-	SVertex *v = self->fe->operator[](i);
-	if( v )
-		return BPy_SVertex_from_SVertex( *v );
-
-	Py_RETURN_NONE;
-}
-
-static char FEdge_nextEdge___doc__[] =
-".. method:: nextEdge()\n"
-"\n"
-"   Returns the FEdge following this one in the ViewEdge.  If this FEdge\n"
-"   is the last of the ViewEdge, None is returned.\n"
-"\n"
-"   :return: The edge following this one in the ViewEdge.\n"
-"   :rtype: :class:`FEdge`\n";
-
-static PyObject * FEdge_nextEdge( BPy_FEdge *self ) {
-	FEdge *fe = self->fe->nextEdge();
-	if( fe )
-		return Any_BPy_FEdge_from_FEdge( *fe );
-
-	Py_RETURN_NONE;
-}
-
-static char FEdge_previousEdge___doc__[] =
-".. method:: previousEdge()\n"
-"\n"
-"   Returns the FEdge preceding this one in the ViewEdge.  If this FEdge\n"
-"   is the first one of the ViewEdge, None is returned.\n"
-"\n"
-"   :return: The edge preceding this one in the ViewEdge.\n"
-"   :rtype: :class:`FEdge`\n";
-
-static PyObject * FEdge_previousEdge( BPy_FEdge *self ) {
-	FEdge *fe = self->fe->previousEdge();
-	if( fe )
-		return Any_BPy_FEdge_from_FEdge( *fe );
-
-	Py_RETURN_NONE;
-}
-
-static char FEdge_viewedge___doc__[] =
-".. method:: viewedge()\n"
-"\n"
-"   Returns the ViewEdge to which this FEdge belongs to.\n"
-"\n"
-"   :return: The ViewEdge to which this FEdge belongs to.\n"
-"   :rtype: :class:`ViewEdge`\n";
-
-static PyObject * FEdge_viewedge( BPy_FEdge *self ) {
-	ViewEdge *ve = self->fe->viewedge();
-	if( ve )
-		return BPy_ViewEdge_from_ViewEdge( *ve );
-
-	Py_RETURN_NONE;
-}
-
-static char FEdge_isSmooth___doc__[] =
-".. method:: isSmooth()\n"
-"\n"
-"   Returns true if this FEdge is a smooth FEdge.\n"
-"\n"
-"   :return: True if this FEdge is a smooth FEdge.\n"
-"   :rtype: bool\n";
-
-static PyObject * FEdge_isSmooth( BPy_FEdge *self ) {
-	return PyBool_from_bool( self->fe->isSmooth() );
-}
-	
-static char FEdge_setVertexA___doc__[] =
-".. method:: setVertexA(vA)\n"
-"\n"
-"   Sets the first SVertex.\n"
-"\n"
-"   :arg vA: An SVertex object.\n"
-"   :type vA: :class:`SVertex`\n";
-
-static PyObject *FEdge_setVertexA( BPy_FEdge *self , PyObject *args) {
-	PyObject *py_sv;
-
-	if(!( PyArg_ParseTuple(args, "O!", &SVertex_Type, &py_sv) ))
-		return NULL;
-
-	self->fe->setVertexA( ((BPy_SVertex *) py_sv)->sv );
-
-	Py_RETURN_NONE;
-}
-
-static char FEdge_setVertexB___doc__[] =
-".. method:: setVertexB(vB)\n"
-"\n"
-"   Sets the second SVertex.\n"
-"\n"
-"   :arg vB: An SVertex object.\n"
-"   :type vB: :class:`SVertex`\n";
-
-static PyObject *FEdge_setVertexB( BPy_FEdge *self , PyObject *args) {
-	PyObject *py_sv;
-
-	if(!( PyArg_ParseTuple(args, "O", &py_sv) && BPy_SVertex_Check(py_sv) )) {
-		cout << "ERROR: FEdge_setVertexB" << endl;
+static PyObject *FEdge_sq_item(BPy_FEdge *self, int keynum)
+{
+	if (keynum < 0)
+		keynum += FEdge_sq_length(self);
+	if (keynum == 0 || keynum == 1) {
+		SVertex *v = self->fe->operator[](keynum);
+		if (v)
+			return BPy_SVertex_from_SVertex(*v);
 		Py_RETURN_NONE;
 	}
+	PyErr_Format(PyExc_IndexError, "FEdge[index]: index %d out of range", keynum);
+	return NULL;
+}
 
-	self->fe->setVertexB( ((BPy_SVertex *) py_sv)->sv );
+static PySequenceMethods BPy_FEdge_as_sequence = {
+	(lenfunc)FEdge_sq_length,     /* sq_length */
+	NULL,                         /* sq_concat */
+	NULL,                         /* sq_repeat */
+	(ssizeargfunc)FEdge_sq_item,  /* sq_item */
+	NULL,                         /* sq_slice */
+	NULL,                         /* sq_ass_item */
+	NULL,                         /* *was* sq_ass_slice */
+	NULL,                         /* sq_contains */
+	NULL,                         /* sq_inplace_concat */
+	NULL,                         /* sq_inplace_repeat */
+};
 
+/*----------------------FEdge get/setters ----------------------------*/
+
+PyDoc_STRVAR(FEdge_first_svertex_doc,
+"The first SVertex constituting this FEdge.\n"
+"\n"
+":type: :class:`SVertex`");
+
+static PyObject *FEdge_first_svertex_get(BPy_FEdge *self, void *UNUSED(closure))
+{
+	SVertex *A = self->fe->vertexA();
+	if (A)
+		return BPy_SVertex_from_SVertex(*A);
 	Py_RETURN_NONE;
 }
 
-static char FEdge_setId___doc__[] =
-".. method:: setId(id)\n"
+static int FEdge_first_svertex_set(BPy_FEdge *self, PyObject *value, void *UNUSED(closure))
+{
+	if (!BPy_SVertex_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be an SVertex");
+		return -1;
+	}
+	self->fe->setVertexA(((BPy_SVertex *)value)->sv);
+	return 0;
+}
+
+PyDoc_STRVAR(FEdge_second_svertex_doc,
+"The second SVertex constituting this FEdge.\n"
 "\n"
-"   Sets the Id of this FEdge.\n"
-"\n"
-"   :arg id: An Id object.\n"
-"   :type id: :class:`Id`\n";
+":type: :class:`SVertex`");
 
-static PyObject *FEdge_setId( BPy_FEdge *self , PyObject *args) {
-	PyObject *py_id;
-
-	if(!( PyArg_ParseTuple(args, "O!", &Id_Type, &py_id) ))
-		return NULL;
-
-	self->fe->setId(*( ((BPy_Id *) py_id)->id ));
-
+static PyObject *FEdge_second_svertex_get(BPy_FEdge *self, void *UNUSED(closure))
+{
+	SVertex *B = self->fe->vertexB();
+	if (B)
+		return BPy_SVertex_from_SVertex(*B);
 	Py_RETURN_NONE;
 }
 
-static char FEdge_setNextEdge___doc__[] =
-".. method:: setNextEdge(iEdge)\n"
+static int FEdge_second_svertex_set(BPy_FEdge *self, PyObject *value, void *UNUSED(closure))
+{
+	if (!BPy_SVertex_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be an SVertex");
+		return -1;
+	}
+	self->fe->setVertexB(((BPy_SVertex *)value)->sv);
+	return 0;
+}
+
+PyDoc_STRVAR(FEdge_next_fedge_doc,
+"The FEdge following this one in the ViewEdge.  The value is None if\n"
+"this FEdge is the last of the ViewEdge.\n"
 "\n"
-"   Sets the pointer to the next FEdge.\n"
-"\n"
-"   :arg iEdge: An FEdge object.\n"
-"   :type iEdge: :class:`FEdge`\n";
+":type: :class:`FEdge`");
 
-static PyObject *FEdge_setNextEdge( BPy_FEdge *self , PyObject *args) {
-	PyObject *py_fe;
-
-	if(!( PyArg_ParseTuple(args, "O!", &FEdge_Type, &py_fe) ))
-		return NULL;
-
-	self->fe->setNextEdge( ((BPy_FEdge *) py_fe)->fe );
-
+static PyObject *FEdge_next_fedge_get(BPy_FEdge *self, void *UNUSED(closure))
+{
+	FEdge *fe = self->fe->nextEdge();
+	if (fe)
+		return Any_BPy_FEdge_from_FEdge(*fe);
 	Py_RETURN_NONE;
 }
 
-static char FEdge_setPreviousEdge___doc__[] =
-".. method:: setPreviousEdge(iEdge)\n"
+static int FEdge_next_fedge_set(BPy_FEdge *self, PyObject *value, void *UNUSED(closure))
+{
+	if (!BPy_FEdge_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be an FEdge");
+		return -1;
+	}
+	self->fe->setNextEdge(((BPy_FEdge *)value)->fe);
+	return 0;
+}
+
+PyDoc_STRVAR(FEdge_previous_fedge_doc,
+"The FEdge preceding this one in the ViewEdge.  The value is None if\n"
+"this FEdge is the first one of the ViewEdge.\n"
 "\n"
-"   Sets the pointer to the previous FEdge.\n"
-"\n"
-"   :arg iEdge: An FEdge object.\n"
-"   :type iEdge: :class:`FEdge`\n";
+":type: :class:`FEdge`");
 
-static PyObject *FEdge_setPreviousEdge( BPy_FEdge *self , PyObject *args) {
-	PyObject *py_fe;
-
-	if(!( PyArg_ParseTuple(args, "O!", &FEdge_Type, &py_fe) ))
-		return NULL;
-
-	self->fe->setPreviousEdge( ((BPy_FEdge *) py_fe)->fe );
-
+static PyObject *FEdge_previous_fedge_get(BPy_FEdge *self, void *UNUSED(closure))
+{
+	FEdge *fe = self->fe->previousEdge();
+	if (fe)
+		return Any_BPy_FEdge_from_FEdge(*fe);
 	Py_RETURN_NONE;
 }
 
-static char FEdge_setNature___doc__[] =
-".. method:: setNature(iNature)\n"
+static int FEdge_previous_fedge_set(BPy_FEdge *self, PyObject *value, void *UNUSED(closure))
+{
+	if (!BPy_FEdge_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be an FEdge");
+		return -1;
+	}
+	self->fe->setPreviousEdge(((BPy_FEdge *)value)->fe);
+	return 0;
+}
+
+PyDoc_STRVAR(FEdge_viewedge_doc,
+"The ViewEdge to which this FEdge belongs to.\n"
 "\n"
-"   Sets the nature of this FEdge.\n"
-"\n"
-"   :arg iNature: A Nature object.\n"
-"   :type iNature: :class:`Nature`\n";
+":type: :class:`ViewEdge`");
 
-static PyObject * FEdge_setNature( BPy_FEdge *self, PyObject *args ) {
-	PyObject *py_n;
-
-	if(!( PyArg_ParseTuple(args, "O!", &Nature_Type, &py_n) ))
-		return NULL;
-	
-	PyObject *i = (PyObject *) &( ((BPy_Nature *) py_n)->i );
-	self->fe->setNature( PyLong_AsLong(i) );
-
+static PyObject *FEdge_viewedge_get(BPy_FEdge *self, void *UNUSED(closure))
+{
+	ViewEdge *ve = self->fe->viewedge();
+	if (ve)
+		return BPy_ViewEdge_from_ViewEdge(*ve);
 	Py_RETURN_NONE;
 }
 
-static char FEdge_setViewEdge___doc__[] =
-".. method:: setViewEdge(iViewEdge)\n"
-"\n"
-"   Sets the ViewEdge to which this FEdge belongs to.\n"
-"\n"
-"   :arg iViewEdge: A ViewEdge object.\n"
-"   :type iViewEdge: :class:`ViewEdge`\n";
-
-static PyObject * FEdge_setViewEdge( BPy_FEdge *self, PyObject *args ) {
-	PyObject *py_ve;
-
-	if(!( PyArg_ParseTuple(args, "O!", &ViewEdge_Type, &py_ve) ))
-		return NULL;
-
-	ViewEdge *ve = ((BPy_ViewEdge *) py_ve)->ve;
-	self->fe->setViewEdge( ve );
-
-	Py_RETURN_NONE;
+static int FEdge_viewedge_set(BPy_FEdge *self, PyObject *value, void *UNUSED(closure))
+{
+	if (!BPy_ViewEdge_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be an ViewEdge");
+		return -1;
+	}
+	self->fe->setViewEdge(((BPy_ViewEdge *)value)->ve);
+	return 0;
 }
 
-static char FEdge_setSmooth___doc__[] =
-".. method:: setSmooth(iFlag)\n"
+PyDoc_STRVAR(FEdge_is_smooth_doc,
+"True if this FEdge is a smooth FEdge.\n"
 "\n"
-"   Sets the flag telling whether this FEdge is smooth or sharp.  True\n"
-"   for Smooth, false for Sharp.\n"
-"\n"
-"   :arg iFlag: True for Smooth, false for Sharp.\n"
-"   :type iFlag: bool\n";
+":type: bool");
 
-static PyObject *FEdge_setSmooth( BPy_FEdge *self , PyObject *args) {
-	PyObject *py_b;
-
-	if(!( PyArg_ParseTuple(args, "O", &py_b) ))
-		return NULL;
-
-	self->fe->setSmooth( bool_from_PyBool(py_b) );
-
-	Py_RETURN_NONE;
+static PyObject *FEdge_is_smooth_get(BPy_FEdge *self, void *UNUSED(closure))
+{
+	return PyBool_from_bool(self->fe->isSmooth());
 }
 
-/*----------------------FEdge instance definitions ----------------------------*/
+static int FEdge_is_smooth_set(BPy_FEdge *self, PyObject *value, void *UNUSED(closure))
+{
+	if (!PyBool_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be boolean");
+		return -1;
+	}
+	self->fe->setSmooth(bool_from_PyBool(value));
+	return 0;
+}
 
-static PyMethodDef BPy_FEdge_methods[] = {	
-	{"vertexA", ( PyCFunction ) FEdge_vertexA, METH_NOARGS, FEdge_vertexA___doc__},
-	{"vertexB", ( PyCFunction ) FEdge_vertexB, METH_NOARGS, FEdge_vertexB___doc__},
-	{"__getitem__", ( PyCFunction ) FEdge___getitem__, METH_VARARGS, "(int i) Returns the first SVertex if i=0, the seccond SVertex if i=1."},
-	{"nextEdge", ( PyCFunction ) FEdge_nextEdge, METH_NOARGS, FEdge_nextEdge___doc__},
-	{"previousEdge", ( PyCFunction ) FEdge_previousEdge, METH_NOARGS, FEdge_previousEdge___doc__},
-	{"viewedge", ( PyCFunction ) FEdge_viewedge, METH_NOARGS, FEdge_viewedge___doc__},
-	{"isSmooth", ( PyCFunction ) FEdge_isSmooth, METH_NOARGS, FEdge_isSmooth___doc__},
-	{"setVertexA", ( PyCFunction ) FEdge_setVertexA, METH_VARARGS, FEdge_setVertexA___doc__},
-	{"setVertexB", ( PyCFunction ) FEdge_setVertexB, METH_VARARGS, FEdge_setVertexB___doc__},
-	{"setId", ( PyCFunction ) FEdge_setId, METH_VARARGS, FEdge_setId___doc__},
-	{"setNextEdge", ( PyCFunction ) FEdge_setNextEdge, METH_VARARGS, FEdge_setNextEdge___doc__},
-	{"setPreviousEdge", ( PyCFunction ) FEdge_setPreviousEdge, METH_VARARGS, FEdge_setPreviousEdge___doc__},
-	{"setSmooth", ( PyCFunction ) FEdge_setSmooth, METH_VARARGS, FEdge_setSmooth___doc__},
-	{"setViewEdge", ( PyCFunction ) FEdge_setViewEdge, METH_VARARGS, FEdge_setViewEdge___doc__},
-	{"setNature", ( PyCFunction ) FEdge_setNature, METH_VARARGS, FEdge_setNature___doc__},
-	{NULL, NULL, 0, NULL}
+PyDoc_STRVAR(FEdge_id_doc,
+"The Id of this FEdge.\n"
+"\n"
+":type: :class:`Id`");
+
+static PyObject *FEdge_id_get(BPy_FEdge *self, void *UNUSED(closure))
+{
+	Id id(self->fe->getId());
+	return BPy_Id_from_Id(id); // return a copy
+}
+
+static int FEdge_id_set(BPy_FEdge *self, PyObject *value, void *UNUSED(closure))
+{
+	if (!BPy_Id_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be an Id");
+		return -1;
+	}
+	self->fe->setId(*(((BPy_Id *)value)->id));
+	return 0;
+}
+
+PyDoc_STRVAR(FEdge_nature_doc,
+"The nature of this FEdge.\n"
+"\n"
+":type: :class:`Nature`");
+
+static PyObject *FEdge_nature_get(BPy_FEdge *self, void *UNUSED(closure))
+{
+	return BPy_Nature_from_Nature(self->fe->getNature());
+}
+
+static int FEdge_nature_set(BPy_FEdge *self, PyObject *value, void *UNUSED(closure))
+{
+	if (!BPy_Nature_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be a Nature");
+		return -1;
+	}
+	self->fe->setNature(PyLong_AsLong((PyObject *)&((BPy_Nature *)value)->i));
+	return 0;
+}
+
+static PyGetSetDef BPy_FEdge_getseters[] = {
+	{(char *)"first_svertex", (getter)FEdge_first_svertex_get, (setter)FEdge_first_svertex_set, (char *)FEdge_first_svertex_doc, NULL},
+	{(char *)"second_svertex", (getter)FEdge_second_svertex_get, (setter)FEdge_second_svertex_set, (char *)FEdge_second_svertex_doc, NULL},
+	{(char *)"next_fedge", (getter)FEdge_next_fedge_get, (setter)FEdge_next_fedge_set, (char *)FEdge_next_fedge_doc, NULL},
+	{(char *)"previous_fedge", (getter)FEdge_previous_fedge_get, (setter)FEdge_previous_fedge_set, (char *)FEdge_previous_fedge_doc, NULL},
+	{(char *)"viewedge", (getter)FEdge_viewedge_get, (setter)FEdge_viewedge_set, (char *)FEdge_viewedge_doc, NULL},
+	{(char *)"is_smooth", (getter)FEdge_is_smooth_get, (setter)FEdge_is_smooth_set, (char *)FEdge_is_smooth_doc, NULL},
+	{(char *)"id", (getter)FEdge_id_get, (setter)FEdge_id_set, (char *)FEdge_id_doc, NULL},
+	{(char *)"nature", (getter)FEdge_nature_get, (setter)FEdge_nature_set, (char *)FEdge_nature_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_FEdge type definition ------------------------------*/
@@ -380,7 +318,7 @@ PyTypeObject FEdge_Type = {
 	0,                              /* tp_reserved */
 	0,                              /* tp_repr */
 	0,                              /* tp_as_number */
-	0,                              /* tp_as_sequence */
+	&BPy_FEdge_as_sequence,         /* tp_as_sequence */
 	0,                              /* tp_as_mapping */
 	0,                              /* tp_hash  */
 	0,                              /* tp_call */
@@ -389,7 +327,7 @@ PyTypeObject FEdge_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	FEdge___doc__,                  /* tp_doc */
+	FEdge_doc,                      /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -398,13 +336,13 @@ PyTypeObject FEdge_Type = {
 	0,                              /* tp_iternext */
 	BPy_FEdge_methods,              /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_FEdge_getseters,            /* tp_getset */
 	&Interface1D_Type,              /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */
 	0,                              /* tp_descr_set */
 	0,                              /* tp_dictoffset */
-	(initproc)FEdge___init__,       /* tp_init */
+	(initproc)FEdge_init,           /* tp_init */
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };

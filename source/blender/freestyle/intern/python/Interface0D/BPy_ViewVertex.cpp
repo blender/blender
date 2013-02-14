@@ -10,9 +10,9 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-//------------------------INSTANCE METHODS ----------------------------------
+/*----------------------ViewVertex methods----------------------------*/
 
-static char ViewVertex___doc__[] =
+PyDoc_STRVAR(ViewVertex_doc,
 "Class hierarchy: :class:`Interface0D` > :class:`ViewVertex`\n"
 "\n"
 "Class to define a view vertex.  A view vertex is a feature vertex\n"
@@ -34,43 +34,20 @@ static char ViewVertex___doc__[] =
 "   Copy constructor.\n"
 "\n"
 "   :arg iBrother: A ViewVertex object.\n"
-"   :type iBrother: :class:`ViewVertex`\n";
+"   :type iBrother: :class:`ViewVertex`");
 
-static int ViewVertex___init__( BPy_ViewVertex *self, PyObject *args, PyObject *kwds )
-{	
-    if( !PyArg_ParseTuple(args, "") )
-        return -1;
+static int ViewVertex_init(BPy_ViewVertex *self, PyObject *args, PyObject *kwds)
+{
+	if (!PyArg_ParseTuple(args, ""))
+		return -1;
 	self->vv = 0; // ViewVertex is abstract
 	self->py_if0D.if0D = self->vv;
 	self->py_if0D.borrowed = 0;
 	return 0;
 }
 
-static char ViewVertex_setNature___doc__[] =
-".. method:: setNature(iNature)\n"
-"\n"
-"   Sets the nature of the vertex.\n"
-"\n"
-"   :arg iNature: A Nature object.\n"
-"   :type iNature: :class:`Nature`\n";
-
-static PyObject * ViewVertex_setNature( BPy_ViewVertex *self, PyObject *args ) {
-	PyObject *py_n;
-
-	if( !self->vv )
-		Py_RETURN_NONE;
-		
-	if(!( PyArg_ParseTuple(args, "O!", &Nature_Type, &py_n) ))
-		return NULL;
-	
-	PyObject *i = (PyObject *) &( ((BPy_Nature *) py_n)->i );
-	((ViewVertex *) self->py_if0D.if0D)->setNature( PyLong_AsLong(i) );
-
-	Py_RETURN_NONE;
-}
-
-static char ViewVertex_edgesBegin___doc__[] =
-".. method:: edgesBegin()\n"
+PyDoc_STRVAR(ViewVertex_edges_begin_doc,
+".. method:: edges_begin()\n"
 "\n"
 "   Returns an iterator over the ViewEdges that goes to or comes from\n"
 "   this ViewVertex pointing to the first ViewEdge of the list. The\n"
@@ -79,40 +56,40 @@ static char ViewVertex_edgesBegin___doc__[] =
 "   (incoming/outgoing).\n"
 "\n"
 "   :return: An orientedViewEdgeIterator pointing to the first ViewEdge.\n"
-"   :rtype: :class:`orientedViewEdgeIterator`\n";
+"   :rtype: :class:`orientedViewEdgeIterator`");
 
-static PyObject * ViewVertex_edgesBegin( BPy_ViewVertex *self ) {
-	if( !self->vv )
+static PyObject * ViewVertex_edges_begin(BPy_ViewVertex *self)
+{
+	if (!self->vv)
 		Py_RETURN_NONE;
-		
-	ViewVertexInternal::orientedViewEdgeIterator ove_it( self->vv->edgesBegin() );
-	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ove_it, 0 );
+	ViewVertexInternal::orientedViewEdgeIterator ove_it(self->vv->edgesBegin());
+	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator(ove_it, 0);
 }
 
-static char ViewVertex_edgesEnd___doc__[] =
-".. method:: edgesEnd()\n"
+PyDoc_STRVAR(ViewVertex_edges_end_doc,
+".. method:: edges_end()\n"
 "\n"
 "   Returns an orientedViewEdgeIterator over the ViewEdges around this\n"
 "   ViewVertex, pointing after the last ViewEdge.\n"
 "\n"
 "   :return: An orientedViewEdgeIterator pointing after the last ViewEdge.\n"
-"   :rtype: :class:`orientedViewEdgeIterator`\n";
+"   :rtype: :class:`orientedViewEdgeIterator`");
 
-static PyObject * ViewVertex_edgesEnd( BPy_ViewVertex *self ) {
+static PyObject * ViewVertex_edges_end(BPy_ViewVertex *self)
+{
 #if 0
-	if( !self->vv )
+	if (!self->vv)
 		Py_RETURN_NONE;
-		
-	ViewVertexInternal::orientedViewEdgeIterator ove_it( self->vv->edgesEnd() );
-	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ove_it, 1 );
+	ViewVertexInternal::orientedViewEdgeIterator ove_it(self->vv->edgesEnd());
+	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator(ove_it, 1);
 #else
-	PyErr_SetString(PyExc_NotImplementedError, "edgesEnd method currently disabled");
+	PyErr_SetString(PyExc_NotImplementedError, "edges_end method currently disabled");
 	return NULL;
 #endif
 }
 
-static char ViewVertex_edgesIterator___doc__[] =
-".. method:: edgesIterator(iEdge)\n"
+PyDoc_STRVAR(ViewVertex_edges_iterator_doc,
+".. method:: edges_iterator(iEdge)\n"
 "\n"
 "   Returns an orientedViewEdgeIterator pointing to the ViewEdge given\n"
 "   as argument.\n"
@@ -120,29 +97,56 @@ static char ViewVertex_edgesIterator___doc__[] =
 "   :arg iEdge: A ViewEdge object.\n"
 "   :type iEdge: :class:`ViewEdge`\n"
 "   :return: An orientedViewEdgeIterator pointing to the given ViewEdge.\n"
-"   :rtype: :class:`orientedViewEdgeIterator`\n";
+"   :rtype: :class:`orientedViewEdgeIterator`");
 
-static PyObject * ViewVertex_edgesIterator( BPy_ViewVertex *self, PyObject *args ) {
+static PyObject * ViewVertex_edges_iterator(BPy_ViewVertex *self, PyObject *args)
+{
 	PyObject *py_ve;
 
-	if( !self->vv )
+	if (!self->vv)
 		Py_RETURN_NONE;
-
-	if(!( PyArg_ParseTuple(args, "O!", &ViewEdge_Type, &py_ve) ))
+	if (!PyArg_ParseTuple(args, "O!", &ViewEdge_Type, &py_ve))
 		return NULL;
-	
-	ViewEdge *ve = ((BPy_ViewEdge *) py_ve)->ve;
-	ViewVertexInternal::orientedViewEdgeIterator ove_it( self->vv->edgesIterator( ve ) );
-	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator( ove_it, 0 );
+	ViewEdge *ve = ((BPy_ViewEdge *)py_ve)->ve;
+	ViewVertexInternal::orientedViewEdgeIterator ove_it(self->vv->edgesIterator(ve));
+	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator(ove_it, 0);
 }
 
-/*----------------------ViewVertex instance definitions ----------------------------*/
 static PyMethodDef BPy_ViewVertex_methods[] = {
-	{"setNature", ( PyCFunction ) ViewVertex_setNature, METH_VARARGS, ViewVertex_setNature___doc__},
-	{"edgesBegin", ( PyCFunction ) ViewVertex_edgesBegin, METH_NOARGS, ViewVertex_edgesBegin___doc__},
-	{"edgesEnd", ( PyCFunction ) ViewVertex_edgesEnd, METH_NOARGS, ViewVertex_edgesEnd___doc__},
-	{"edgesIterator", ( PyCFunction ) ViewVertex_edgesIterator, METH_VARARGS, ViewVertex_edgesIterator___doc__},
+	{"edges_begin", (PyCFunction)ViewVertex_edges_begin, METH_NOARGS, ViewVertex_edges_begin_doc},
+	{"edges_end", (PyCFunction)ViewVertex_edges_end, METH_NOARGS, ViewVertex_edges_end_doc},
+	{"edges_iterator", (PyCFunction)ViewVertex_edges_iterator, METH_VARARGS, ViewVertex_edges_iterator_doc},
 	{NULL, NULL, 0, NULL}
+};
+
+/*----------------------ViewVertex get/setters ----------------------------*/
+
+PyDoc_STRVAR(ViewVertex_nature_doc,
+"The nature of this ViewVertex.\n"
+"\n"
+":type: :class:`Nature`");
+
+static PyObject *ViewVertex_nature_get(BPy_ViewVertex *self, void *UNUSED(closure))
+{
+	Nature::VertexNature nature = self->vv->getNature();
+	if (PyErr_Occurred())
+		return NULL;
+	return BPy_Nature_from_Nature(nature); // return a copy
+}
+
+static int ViewVertex_nature_set(BPy_ViewVertex *self, PyObject *value, void *UNUSED(closure))
+{
+	if (!BPy_Nature_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be a Nature");
+		return -1;
+	}
+	self->vv->setNature(PyLong_AsLong((PyObject *)&((BPy_Nature *)value)->i));
+	return 0;
+}
+
+static PyGetSetDef BPy_ViewVertex_getseters[] = {
+	{(char *)"nature", (getter)ViewVertex_nature_get, (setter)ViewVertex_nature_set, (char *)ViewVertex_nature_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_ViewVertex type definition ------------------------------*/
@@ -167,7 +171,7 @@ PyTypeObject ViewVertex_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	ViewVertex___doc__,             /* tp_doc */
+	ViewVertex_doc,                 /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -176,13 +180,13 @@ PyTypeObject ViewVertex_Type = {
 	0,                              /* tp_iternext */
 	BPy_ViewVertex_methods,         /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_ViewVertex_getseters,       /* tp_getset */
 	&Interface0D_Type,              /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */
 	0,                              /* tp_descr_set */
 	0,                              /* tp_dictoffset */
-	(initproc)ViewVertex___init__,  /* tp_init */
+	(initproc)ViewVertex_init,      /* tp_init */
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };

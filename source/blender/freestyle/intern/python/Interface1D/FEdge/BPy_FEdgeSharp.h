@@ -22,6 +22,10 @@ typedef struct {
 	FEdgeSharp *fes;
 } BPy_FEdgeSharp;
 
+/*---------------------------Python BPy_FEdgeSharp visible prototypes-----------*/
+
+void FEdgeSharp_mathutils_register_callback();
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus

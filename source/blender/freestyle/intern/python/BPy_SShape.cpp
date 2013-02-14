@@ -13,22 +13,22 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //-------------------MODULE INITIALIZATION--------------------------------
-int SShape_Init( PyObject *module )
+int SShape_Init(PyObject *module)
 {
-	if( module == NULL )
+	if (module == NULL)
 		return -1;
 
-	if( PyType_Ready( &SShape_Type ) < 0 )
+	if (PyType_Ready(&SShape_Type) < 0)
 		return -1;
-
 	Py_INCREF( &SShape_Type );
 	PyModule_AddObject(module, "SShape", (PyObject *)&SShape_Type);
+
 	return 0;
 }
 
-//------------------------INSTANCE METHODS ----------------------------------
+/*----------------------SShape methods ----------------------------*/
 
-static char SShape___doc__[] =
+PyDoc_STRVAR(SShape_doc,
 "Class to define a feature shape.  It is the gathering of feature\n"
 "elements from an identified input shape.\n"
 "\n"
@@ -41,222 +41,82 @@ static char SShape___doc__[] =
 "   Copy constructor.\n"
 "\n"
 "   :arg iBrother: An SShape object.\n"
-"   :type iBrother: :class:`SShape`\n";
+"   :type iBrother: :class:`SShape`");
 
-static int SShape___init__(BPy_SShape *self, PyObject *args, PyObject *kwds)
+static int SShape_init(BPy_SShape *self, PyObject *args, PyObject *kwds)
 {
 	PyObject *obj = NULL;
 
-    if (! PyArg_ParseTuple(args, "|O!", &SShape_Type, &obj) )
-        return -1;
+	if (!PyArg_ParseTuple(args, "|O!", &SShape_Type, &obj))
+		return -1;
 
-	if( !obj ) {
+	if (!obj) {
 		self->ss = new SShape();
-	
 	} else {
-		self->ss = new SShape(*( ((BPy_SShape *) obj)->ss ));
+		self->ss = new SShape(*(((BPy_SShape *)obj)->ss));
 	}
 	self->borrowed = 0;
 
-    return 0;
+	return 0;
 }
 
-static void SShape___dealloc__(BPy_SShape *self)
+static void SShape_dealloc(BPy_SShape *self)
 {
-	if( self->ss && !self->borrowed )
+	if (self->ss && !self->borrowed)
 		delete self->ss;
-    Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-static PyObject * SShape___repr__(BPy_SShape *self)
+static PyObject * SShape_repr(BPy_SShape *self)
 {
-    return PyUnicode_FromFormat("SShape - address: %p", self->ss );
+	return PyUnicode_FromFormat("SShape - address: %p", self->ss);
 }
 
-static char SShape_AddEdge___doc__[] =
-".. method:: AddEdge(iEdge)\n"
+static char SShape_add_edge_doc[] =
+".. method:: add_edge(iEdge)\n"
 "\n"
 "   Adds an FEdge to the list of FEdges.\n"
 "\n"
 "   :arg iEdge: An FEdge object.\n"
 "   :type iEdge: :class:`FEdge`\n";
 
-static PyObject * SShape_AddEdge( BPy_SShape *self , PyObject *args) {
+static PyObject * SShape_add_edge(BPy_SShape *self , PyObject *args)
+{
 	PyObject *py_fe = 0;
 
-	if(!( PyArg_ParseTuple(args, "O!", &FEdge_Type, &py_fe) ))
+	if (!PyArg_ParseTuple(args, "O!", &FEdge_Type, &py_fe))
 		return NULL;
-	
-	self->ss->AddEdge( ((BPy_FEdge *) py_fe)->fe );
-
+	self->ss->AddEdge(((BPy_FEdge *)py_fe)->fe);
 	Py_RETURN_NONE;
 }
 
-static char SShape_AddNewVertex___doc__[] =
-".. method:: AddNewVertex(iv)\n"
+PyDoc_STRVAR(SShape_add_vertex_doc,
+".. method:: add_vertex(iv)\n"
 "\n"
 "   Adds an SVertex to the list of SVertex of this Shape.  The SShape\n"
 "   attribute of the SVertex is also set to this SShape.\n"
 "\n"
 "   :arg iv: An SVertex object.\n"
-"   :type iv: :class:`SVertex`\n";
+"   :type iv: :class:`SVertex`");
 
-static PyObject * SShape_AddNewVertex( BPy_SShape *self , PyObject *args) {
+static PyObject * SShape_add_vertex(BPy_SShape *self , PyObject *args)
+{
 	PyObject *py_sv = 0;
 
-	if(!( PyArg_ParseTuple(args, "O!", &SVertex_Type, &py_sv) ))
+	if (!PyArg_ParseTuple(args, "O!", &SVertex_Type, &py_sv))
 		return NULL;
-	
-	self->ss->AddNewVertex( ((BPy_SVertex *) py_sv)->sv );
-
+	self->ss->AddNewVertex(((BPy_SVertex *)py_sv)->sv);
 	Py_RETURN_NONE;
 }
 
-static char SShape_setBBox___doc__[] =
-".. method:: setBBox(iBBox)\n"
+PyDoc_STRVAR(SShape_compute_bbox_doc,
+".. method:: compute_bbox()\n"
 "\n"
-"   Sets the bounding box of the SShape.\n"
-"\n"
-"   :arg iBBox: The bounding box of the SShape.\n"
-"   :type iBBox: :class:`BBox`\n";
+"   Compute the bbox of the SShape.");
 
-static PyObject * SShape_setBBox( BPy_SShape *self , PyObject *args) {
-	PyObject *py_bb = 0;
-
-	if(!( PyArg_ParseTuple(args, "O!", &BBox_Type, &py_bb) ))
-		return NULL;
-	
-	self->ss->setBBox(*( ((BPy_BBox*) py_bb)->bb ));
-
-	Py_RETURN_NONE;
-}
-
-static char SShape_ComputeBBox___doc__[] =
-".. method:: ComputeBBox()\n"
-"\n"
-"   Compute the bbox of the SShape.\n";
-
-static PyObject * SShape_ComputeBBox( BPy_SShape *self ) {
+static PyObject * SShape_compute_bbox(BPy_SShape *self)
+{
 	self->ss->ComputeBBox();
-
-	Py_RETURN_NONE;
-}
-
-static char SShape_bbox___doc__[] =
-".. method:: bbox()\n"
-"\n"
-"   Returns the bounding box of the SShape.\n"
-"\n"
-"   :return: the bounding box of the SShape.\n"
-"   :rtype: :class:`BBox`\n";
-
-static PyObject * SShape_bbox( BPy_SShape *self ) {
-	BBox<Vec3r> bb( self->ss->bbox() );
-	return BPy_BBox_from_BBox( bb );
-}
-
-static char SShape_getVertexList___doc__[] =
-".. method:: getVertexList()\n"
-"\n"
-"   Returns the list of vertices of the SShape.\n"
-"\n"
-"   :return: The list of vertices objects.\n"
-"   :rtype: List of :class:`SVertex` objects\n";
-
-static PyObject * SShape_getVertexList( BPy_SShape *self ) {
-	PyObject *py_vertices = PyList_New(0);
-
-	vector< SVertex * > vertices = self->ss->getVertexList();
-	vector< SVertex * >::iterator it;
-	
-	for( it = vertices.begin(); it != vertices.end(); it++ ) {
-		PyList_Append( py_vertices, BPy_SVertex_from_SVertex(*( *it )) );
-	}
-	
-	return py_vertices;
-}
-
-static char SShape_getEdgeList___doc__[] =
-".. method:: getEdgeList()\n"
-"\n"
-"   Returns the list of edges of the SShape.\n"
-"\n"
-"   :return: The list of edges of the SShape.\n"
-"   :rtype: List of :class:`FEdge` objects\n";
-
-static PyObject * SShape_getEdgeList( BPy_SShape *self ) {
-	PyObject *py_edges = PyList_New(0);
-
-	vector< FEdge * > edges = self->ss->getEdgeList();
-	vector< FEdge * >::iterator it;
-	
-	for( it = edges.begin(); it != edges.end(); it++ ) {
-		PyList_Append( py_edges, Any_BPy_FEdge_from_FEdge(*( *it )) );
-	}
-	
-	return py_edges;
-}
-
-static char SShape_getId___doc__[] =
-".. method:: getId()\n"
-"\n"
-"   Returns the Id of the SShape.\n"
-"\n"
-"   :return: The Id of the SShape.\n"
-"   :rtype: :class:`Id`\n";
-
-static PyObject * SShape_getId( BPy_SShape *self ) {
-	Id id( self->ss->getId() );
-	return BPy_Id_from_Id( id );
-}
-
-static char SShape_setId___doc__[] =
-".. method:: setId(id)\n"
-"\n"
-"   Sets the Id of the SShape.\n"
-"\n"
-"   :arg id: The Id of the SShape.\n"
-"   :type id: :class:`Id`\n";
-
-static PyObject * SShape_setId( BPy_SShape *self , PyObject *args) {
-	PyObject *py_id;
-
-	if(!( PyArg_ParseTuple(args, "O!", &Id_Type, &py_id) ))
-		return NULL;
-
-	self->ss->setId(*( ((BPy_Id *) py_id)->id ));
-
-	Py_RETURN_NONE;
-}
-
-static char SShape_getName___doc__[] =
-".. method:: getName()\n"
-"\n"
-"   Returns the name of the SShape.\n"
-"\n"
-"   :return: The name string.\n"
-"   :rtype: str\n";
-
-static PyObject * SShape_getName( BPy_SShape *self ) {
-	return PyUnicode_FromString( self->ss->getName().c_str() );
-}
-
-static char SShape_setName___doc__[] =
-".. method:: setName(name)\n"
-"\n"
-"   Sets the name of the SShape.\n"
-"\n"
-"   :arg name: A name string.\n"
-"   :type name: str\n";
-
-static PyObject * SShape_setName( BPy_SShape *self , PyObject *args) {
-	char *s;
-
-	if(!( PyArg_ParseTuple(args, "s", &s) ))
-		return NULL;
-
-	self->ss->setName(s);
-
 	Py_RETURN_NONE;
 }
 
@@ -264,20 +124,123 @@ static PyObject * SShape_setName( BPy_SShape *self , PyObject *args) {
 // const vector< Material > & 	materials () const
 // void 	SetMaterials (const vector< Material > &iMaterials)
 
-/*----------------------SShape instance definitions ----------------------------*/
 static PyMethodDef BPy_SShape_methods[] = {
-	{"AddEdge", ( PyCFunction ) SShape_AddEdge, METH_VARARGS, SShape_AddEdge___doc__},
-	{"AddNewVertex", ( PyCFunction ) SShape_AddNewVertex, METH_VARARGS, SShape_AddNewVertex___doc__},
-	{"setBBox", ( PyCFunction ) SShape_setBBox, METH_VARARGS, SShape_setBBox___doc__},
-	{"ComputeBBox", ( PyCFunction ) SShape_ComputeBBox, METH_NOARGS, SShape_ComputeBBox___doc__},
-	{"bbox", ( PyCFunction ) SShape_bbox, METH_NOARGS, SShape_bbox___doc__},
-	{"getVertexList", ( PyCFunction ) SShape_getVertexList, METH_NOARGS, SShape_getVertexList___doc__},
-	{"getEdgeList", ( PyCFunction ) SShape_getEdgeList, METH_NOARGS, SShape_getEdgeList___doc__},
-	{"getId", ( PyCFunction ) SShape_getId, METH_NOARGS, SShape_getId___doc__},
-	{"setId", ( PyCFunction ) SShape_setId, METH_VARARGS, SShape_setId___doc__},
-	{"getName", ( PyCFunction ) SShape_getName, METH_NOARGS, SShape_getName___doc__},
-	{"setName", ( PyCFunction ) SShape_setName, METH_VARARGS, SShape_setName___doc__},
+	{"add_edge", (PyCFunction)SShape_add_edge, METH_VARARGS, SShape_add_edge_doc},
+	{"add_vertex", (PyCFunction)SShape_add_vertex, METH_VARARGS, SShape_add_vertex_doc},
+	{"compute_bbox", (PyCFunction)SShape_compute_bbox, METH_NOARGS, SShape_compute_bbox_doc},
 	{NULL, NULL, 0, NULL}
+};
+
+/*----------------------SShape get/setters ----------------------------*/
+
+PyDoc_STRVAR(SShape_id_doc,
+"The Id of this SShape.\n"
+"\n"
+":type: :class:`Id`");
+
+static PyObject *SShape_id_get(BPy_SShape *self, void *UNUSED(closure))
+{
+	Id id(self->ss->getId());
+	return BPy_Id_from_Id(id); // return a copy
+}
+
+static int SShape_id_set(BPy_SShape *self, PyObject *value, void *UNUSED(closure))
+{
+	if (!BPy_Id_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be an Id");
+		return -1;
+	}
+	self->ss->setId(*(((BPy_Id *)value)->id));
+	return 0;
+}
+
+PyDoc_STRVAR(SShape_name_doc,
+"The name of the SShape.\n"
+"\n"
+":type: str");
+
+static PyObject *SShape_name_get(BPy_SShape *self, void *UNUSED(closure))
+{
+	return PyUnicode_FromString(self->ss->getName().c_str());
+}
+
+static int SShape_name_set(BPy_SShape *self, PyObject *value, void *UNUSED(closure))
+{
+	if (!PyUnicode_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be a string");
+		return -1;
+	}
+	const string name = _PyUnicode_AsString(value);
+	self->ss->setName(name);
+	return 0;
+}
+
+PyDoc_STRVAR(SShape_bbox_doc,
+"The bounding box of the SShape.\n"
+"\n"
+":type: :class:`BBox`");
+
+static PyObject *SShape_bbox_get(BPy_SShape *self, void *UNUSED(closure))
+{
+	BBox<Vec3r> bb(self->ss->bbox());
+	return BPy_BBox_from_BBox(bb); // return a copy
+}
+
+static int SShape_bbox_set(BPy_SShape *self, PyObject *value, void *UNUSED(closure))
+{
+	if (!BPy_BBox_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be a BBox");
+		return -1;
+	}
+	self->ss->setBBox(*(((BPy_BBox*)value)->bb));
+	return 0;
+}
+
+PyDoc_STRVAR(SShape_vertices_doc,
+"The list of vertices constituting this SShape.\n"
+"\n"
+":type: List of :class:`SVertex` objects");
+
+static PyObject *SShape_vertices_get(BPy_SShape *self, void *UNUSED(closure))
+{
+	PyObject *py_vertices = PyList_New(0);
+
+	vector< SVertex * > vertices = self->ss->getVertexList();
+	vector< SVertex * >::iterator it;
+	
+	for (it = vertices.begin(); it != vertices.end(); it++) {
+		PyList_Append(py_vertices, BPy_SVertex_from_SVertex(*(*it)));
+	}
+	
+	return py_vertices;
+}
+
+PyDoc_STRVAR(SShape_edges_doc,
+"The list of edges constituting this SShape.\n"
+"\n"
+":type: List of :class:`FEdge` objects");
+
+static PyObject *SShape_edges_get(BPy_SShape *self, void *UNUSED(closure))
+{
+	PyObject *py_edges = PyList_New(0);
+
+	vector< FEdge * > edges = self->ss->getEdgeList();
+	vector< FEdge * >::iterator it;
+	
+	for (it = edges.begin(); it != edges.end(); it++) {
+		PyList_Append(py_edges, Any_BPy_FEdge_from_FEdge(*(*it)));
+	}
+	
+	return py_edges;
+}
+
+static PyGetSetDef BPy_SShape_getseters[] = {
+	{(char *)"id", (getter)SShape_id_get, (setter)SShape_id_set, (char *)SShape_id_doc, NULL},
+	{(char *)"name", (getter)SShape_name_get, (setter)SShape_name_set, (char *)SShape_name_doc, NULL},
+	{(char *)"bbox", (getter)SShape_bbox_get, (setter)SShape_bbox_set, (char *)SShape_bbox_doc, NULL},
+	{(char *)"edges", (getter)SShape_edges_get, (setter)NULL, (char *)SShape_edges_doc, NULL},
+	{(char *)"vertices", (getter)SShape_vertices_get, (setter)NULL, (char *)SShape_vertices_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_SShape type definition ------------------------------*/
@@ -287,12 +250,12 @@ PyTypeObject SShape_Type = {
 	"SShape",                       /* tp_name */
 	sizeof(BPy_SShape),             /* tp_basicsize */
 	0,                              /* tp_itemsize */
-	(destructor)SShape___dealloc__, /* tp_dealloc */
+	(destructor)SShape_dealloc,     /* tp_dealloc */
 	0,                              /* tp_print */
 	0,                              /* tp_getattr */
 	0,                              /* tp_setattr */
 	0,                              /* tp_reserved */
-	(reprfunc)SShape___repr__,      /* tp_repr */
+	(reprfunc)SShape_repr,          /* tp_repr */
 	0,                              /* tp_as_number */
 	0,                              /* tp_as_sequence */
 	0,                              /* tp_as_mapping */
@@ -303,7 +266,7 @@ PyTypeObject SShape_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	SShape___doc__,                 /* tp_doc */
+	SShape_doc,                     /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -312,13 +275,13 @@ PyTypeObject SShape_Type = {
 	0,                              /* tp_iternext */
 	BPy_SShape_methods,             /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_SShape_getseters,           /* tp_getset */
 	0,                              /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */
 	0,                              /* tp_descr_set */
 	0,                              /* tp_dictoffset */
-	(initproc)SShape___init__,      /* tp_init */
+	(initproc)SShape_init,          /* tp_init */
 	0,                              /* tp_alloc */
 	PyType_GenericNew,              /* tp_new */
 };

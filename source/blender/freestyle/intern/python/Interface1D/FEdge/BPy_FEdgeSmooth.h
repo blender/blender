@@ -22,6 +22,10 @@ typedef struct {
 	FEdgeSmooth *fes;
 } BPy_FEdgeSmooth;
 
+/*---------------------------Python BPy_FEdgeSmooth visible prototypes-----------*/
+
+void FEdgeSmooth_mathutils_register_callback();
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus

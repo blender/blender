@@ -12,9 +12,9 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-//------------------------INSTANCE METHODS ----------------------------------
+/*----------------------TVertex methods ----------------------------*/
 
-static char TVertex___doc__[] =
+PyDoc_STRVAR(TVertex_doc,
 "Class hierarchy: :class:`Interface0D` > :class:`ViewVertex` > :class:`TVertex`\n"
 "\n"
 "Class to define a T vertex, i.e. an intersection between two edges.\n"
@@ -32,138 +32,43 @@ static char TVertex___doc__[] =
 "   Copy constructor.\n"
 "\n"
 "   :arg iBrother: A TVertex object.\n"
-"   :type iBrother: :class:`TVertex`\n";
+"   :type iBrother: :class:`TVertex`");
 
-static int TVertex___init__(BPy_TVertex *self, PyObject *args, PyObject *kwds)
+static int TVertex_init(BPy_TVertex *self, PyObject *args, PyObject *kwds)
 {
-    if( !PyArg_ParseTuple(args, "") )
-        return -1;
+	if (!PyArg_ParseTuple(args, ""))
+		return -1;
 	self->tv = new TVertex();
 	self->py_vv.vv = self->tv;
 	self->py_vv.py_if0D.if0D = self->tv;
 	self->py_vv.py_if0D.borrowed = 0;
-
 	return 0;
 }
 
-static char TVertex_frontSVertex___doc__[] =
-".. method:: frontSVertex()\n"
-"\n"
-"   Returns the SVertex that is closer to the viewpoint.\n"
-"\n"
-"   :return: The SVertex that is closer to the viewpoint.\n"
-"   :rtype: :class:`SVertex`\n";
-
-static PyObject * TVertex_frontSVertex( BPy_TVertex *self ) {
-	SVertex *v = self->tv->frontSVertex();
-	if( v ){
-		return BPy_SVertex_from_SVertex( *v );
-	}
-
-	Py_RETURN_NONE;
-}
-
-static char TVertex_backSVertex___doc__[] =
-".. method:: backSVertex()\n"
-"\n"
-"   Returns the SVertex that is further away from the viewpoint.\n"
-"\n"
-"   :return: The SVertex that is further away from the viewpoint.\n"
-"   :rtype: :class:`SVertex`\n";
-
-static PyObject * TVertex_backSVertex( BPy_TVertex *self ) {
-	SVertex *v = self->tv->backSVertex();
-	if( v ){
-		return BPy_SVertex_from_SVertex( *v );
-	}
-
-	Py_RETURN_NONE;
-}
-
-static char TVertex_setFrontSVertex___doc__[] =
-".. method:: setFrontSVertex(iFrontSVertex)\n"
-"\n"
-"   Sets the SVertex that is closer to the viewpoint.\n"
-"\n"
-"   :arg iFrontSVertex: An SVertex object.\n"
-"   :type iFrontSVertex: :class:`SVertex`\n";
-
-static PyObject * TVertex_setFrontSVertex( BPy_TVertex *self, PyObject *args) {
-	PyObject *py_sv;
-
-	if(!( PyArg_ParseTuple(args, "O!", &SVertex_Type, &py_sv) ))
-		return NULL;
-
-	self->tv->setFrontSVertex( ((BPy_SVertex *) py_sv)->sv );
-
-	Py_RETURN_NONE;
-}
-
-static char TVertex_setBackSVertex___doc__[] =
-".. method:: setBackSVertex(iBackSVertex)\n"
-"\n"
-"   Sets the SVertex that is further away from the viewpoint.\n"
-"\n"
-"   :arg iBackSVertex: An SVertex object.\n"
-"   :type iBackSVertex: :class:`SVertex`\n";
-
-static PyObject * TVertex_setBackSVertex( BPy_TVertex *self, PyObject *args) {
-	PyObject *py_sv;
-
-	if(!( PyArg_ParseTuple(args, "O", &SVertex_Type, &py_sv) ))
-		return NULL;
-
-	self->tv->setBackSVertex( ((BPy_SVertex *) py_sv)->sv );
-
-	Py_RETURN_NONE;
-}
-
-static char TVertex_setId___doc__[] =
-".. method:: setId(iId)\n"
-"\n"
-"   Sets the Id.\n"
-"\n"
-"   :arg iId: An Id object.\n"
-"   :type iId: :class:`Id`\n";
-
-static PyObject * TVertex_setId( BPy_TVertex *self, PyObject *args) {
-	PyObject *py_id;
-
-	if(!( PyArg_ParseTuple(args, "O!", &Id_Type, &py_id) ))
-		return NULL;
-
-	if( ((BPy_Id *) py_id)->id )
-		self->tv->setId(*( ((BPy_Id *) py_id)->id ));
-
-	Py_RETURN_NONE;
-}
-
-static char TVertex_getSVertex___doc__[] =
-".. method:: getSVertex(iFEdge)\n"
+PyDoc_STRVAR(TVertex_get_svertex_doc,
+".. method:: get_svertex(iFEdge)\n"
 "\n"
 "   Returns the SVertex (among the 2) belonging to the given FEdge.\n"
 "\n"
 "   :arg iFEdge: An FEdge object.\n"
 "   :type iFEdge: :class:`FEdge`\n"
 "   :return: The SVertex belonging to the given FEdge.\n"
-"   :rtype: :class:`SVertex`\n";
+"   :rtype: :class:`SVertex`");
 
-static PyObject * TVertex_getSVertex( BPy_TVertex *self, PyObject *args) {
+static PyObject * TVertex_get_svertex( BPy_TVertex *self, PyObject *args)
+{
 	PyObject *py_fe;
 
-	if(!( PyArg_ParseTuple(args, "O!", &FEdge_Type, &py_fe) ))
+	if (!PyArg_ParseTuple(args, "O!", &FEdge_Type, &py_fe))
 		return NULL;
-
-	SVertex *sv = self->tv->getSVertex( ((BPy_FEdge *) py_fe)->fe );
-	if( sv ){
-		return BPy_SVertex_from_SVertex( *sv );
-	}
-
+	SVertex *sv = self->tv->getSVertex(((BPy_FEdge *)py_fe)->fe);
+	if (sv)
+		return BPy_SVertex_from_SVertex(*sv);
 	Py_RETURN_NONE;
 }
 
-static char TVertex_mate___doc__[] =
-".. method:: mate(iEdgeA)\n"
+PyDoc_STRVAR(TVertex_get_mate_doc,
+".. method:: get_mate(iEdgeA)\n"
 "\n"
 "   Returns the mate edge of the ViewEdge given as argument.  If the\n"
 "   ViewEdge is frontEdgeA, frontEdgeB is returned.  If the ViewEdge is\n"
@@ -172,32 +77,100 @@ static char TVertex_mate___doc__[] =
 "   :arg iEdgeA: A ViewEdge object.\n"
 "   :type iEdgeA: :class:`ViewEdge`\n"
 "   :return: The mate edge of the given ViewEdge.\n"
-"   :rtype: :class:`ViewEdge`\n";
+"   :rtype: :class:`ViewEdge`");
 
-static PyObject * TVertex_mate( BPy_TVertex *self, PyObject *args) {
+static PyObject * TVertex_get_mate( BPy_TVertex *self, PyObject *args)
+{
 	PyObject *py_ve;
 
-	if(!( PyArg_ParseTuple(args, "O!", &ViewEdge_Type, &py_ve) ))
+	if (!PyArg_ParseTuple(args, "O!", &ViewEdge_Type, &py_ve))
 		return NULL;
-
-	ViewEdge *ve = self->tv->mate( ((BPy_ViewEdge *) py_ve)->ve );
-	if( ve ){
-		return BPy_ViewEdge_from_ViewEdge( *ve );
-	}
-
+	ViewEdge *ve = self->tv->mate(((BPy_ViewEdge *)py_ve)->ve);
+	if (ve)
+		return BPy_ViewEdge_from_ViewEdge(*ve);
 	Py_RETURN_NONE;
 }
 
-/*----------------------TVertex instance definitions ----------------------------*/
-static PyMethodDef BPy_TVertex_methods[] = {	
-	{"frontSVertex", ( PyCFunction ) TVertex_frontSVertex, METH_NOARGS, TVertex_frontSVertex___doc__},
-	{"backSVertex", ( PyCFunction ) TVertex_backSVertex, METH_NOARGS, TVertex_backSVertex___doc__},
-	{"setFrontSVertex", ( PyCFunction ) TVertex_setFrontSVertex, METH_VARARGS, TVertex_setFrontSVertex___doc__},
-	{"setBackSVertex", ( PyCFunction ) TVertex_setBackSVertex, METH_VARARGS, TVertex_setBackSVertex___doc__},
-	{"setId", ( PyCFunction ) TVertex_setId, METH_VARARGS, TVertex_setId___doc__},
-	{"getSVertex", ( PyCFunction ) TVertex_getSVertex, METH_VARARGS, TVertex_getSVertex___doc__},
-	{"mate", ( PyCFunction ) TVertex_mate, METH_VARARGS, TVertex_mate___doc__},
+static PyMethodDef BPy_TVertex_methods[] = {
+	{"get_svertex", (PyCFunction)TVertex_get_svertex, METH_VARARGS, TVertex_get_svertex_doc},
+	{"get_mate", (PyCFunction)TVertex_get_mate, METH_VARARGS, TVertex_get_mate_doc},
 	{NULL, NULL, 0, NULL}
+};
+
+/*----------------------TVertex get/setters ----------------------------*/
+
+PyDoc_STRVAR(TVertex_front_svertex_doc,
+"The SVertex that is closer to the viewpoint.\n"
+"\n"
+":type: :class:`SVertex`");
+
+static PyObject *TVertex_front_svertex_get(BPy_TVertex *self, void *UNUSED(closure))
+{
+	SVertex *v = self->tv->frontSVertex();
+	if (v)
+		return BPy_SVertex_from_SVertex(*v);
+	Py_RETURN_NONE;
+}
+
+static int TVertex_front_svertex_set(BPy_TVertex *self, PyObject *value, void *UNUSED(closure))
+{
+	if (!BPy_SVertex_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be an SVertex");
+		return -1;
+	}
+	self->tv->setFrontSVertex(((BPy_SVertex *)value)->sv);
+	return 0;
+}
+
+PyDoc_STRVAR(TVertex_back_svertex_doc,
+"The SVertex that is further away from the viewpoint.\n"
+"\n"
+":type: :class:`SVertex`");
+
+static PyObject *TVertex_back_svertex_get(BPy_TVertex *self, void *UNUSED(closure))
+{
+	SVertex *v = self->tv->backSVertex();
+	if (v)
+		return BPy_SVertex_from_SVertex(*v);
+	Py_RETURN_NONE;
+}
+
+static int TVertex_back_svertex_set(BPy_TVertex *self, PyObject *value, void *UNUSED(closure))
+{
+	if (!BPy_SVertex_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be an SVertex");
+		return -1;
+	}
+	self->tv->setBackSVertex(((BPy_SVertex *)value)->sv);
+	return 0;
+}
+
+PyDoc_STRVAR(TVertex_id_doc,
+"The Id of this TVertex.\n"
+"\n"
+":type: :class:`Id`");
+
+static PyObject *TVertex_id_get(BPy_TVertex *self, void *UNUSED(closure))
+{
+	Id id(self->tv->getId());
+	return BPy_Id_from_Id(id); // return a copy
+}
+
+static int TVertex_id_set(BPy_TVertex *self, PyObject *value, void *UNUSED(closure))
+{
+	if (!BPy_Id_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be an Id");
+		return -1;
+	}
+	self->tv->setId(*(((BPy_Id *)value)->id));
+	return 0;
+}
+
+static PyGetSetDef BPy_TVertex_getseters[] = {
+	{(char *)"front_svertex", (getter)TVertex_front_svertex_get, (setter)TVertex_front_svertex_set, (char *)TVertex_front_svertex_doc, NULL},
+	{(char *)"back_svertex", (getter)TVertex_back_svertex_get, (setter)TVertex_back_svertex_set, (char *)TVertex_back_svertex_doc, NULL},
+	{(char *)"id", (getter)TVertex_id_get, (setter)TVertex_id_set, (char *)TVertex_id_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_TVertex type definition ------------------------------*/
@@ -222,7 +195,7 @@ PyTypeObject TVertex_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	TVertex___doc__,                /* tp_doc */
+	TVertex_doc,                    /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -231,13 +204,13 @@ PyTypeObject TVertex_Type = {
 	0,                              /* tp_iternext */
 	BPy_TVertex_methods,            /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_TVertex_getseters,          /* tp_getset */
 	&ViewVertex_Type,               /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */
 	0,                              /* tp_descr_set */
 	0,                              /* tp_dictoffset */
-	(initproc)TVertex___init__,     /* tp_init */
+	(initproc)TVertex_init,         /* tp_init */
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };

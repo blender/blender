@@ -9,9 +9,9 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-//------------------------INSTANCE METHODS ----------------------------------
+/*----------------------NonTVertex methods ----------------------------*/
 
-static char NonTVertex___doc__[] =
+PyDoc_STRVAR(NonTVertex_doc,
 "Class hierarchy: :class:`Interface0D` > :class:`ViewVertex` > :class:`NonTVertex`\n"
 "\n"
 "View vertex for corners, cusps, etc. associated to a single SVertex.\n"
@@ -33,21 +33,20 @@ static char NonTVertex___doc__[] =
 "   Builds a NonTVertex from a SVertex.\n"
 "\n"
 "   :arg iSVertex: An SVertex object.\n"
-"   :type iSVertex: :class:`SVertex`\n";
+"   :type iSVertex: :class:`SVertex`");
 
-static int NonTVertex___init__(BPy_NonTVertex *self, PyObject *args, PyObject *kwds)
+static int NonTVertex_init(BPy_NonTVertex *self, PyObject *args, PyObject *kwds)
 {
-
 	PyObject *obj = 0;
 
-    if (! PyArg_ParseTuple(args, "|O!", &SVertex_Type, &obj) )
-        return -1;
+	if (!PyArg_ParseTuple(args, "|O!", &SVertex_Type, &obj))
+		return -1;
 
-	if( !obj ){
+	if (!obj) {
 		self->ntv = new NonTVertex();
 
-	} else if( ((BPy_SVertex *) obj)->sv ) {
-		self->ntv = new NonTVertex( ((BPy_SVertex *) obj)->sv );
+	} else if(((BPy_SVertex *)obj)->sv) {
+		self->ntv = new NonTVertex(((BPy_SVertex *)obj)->sv);
 
 	} else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument");
@@ -61,47 +60,38 @@ static int NonTVertex___init__(BPy_NonTVertex *self, PyObject *args, PyObject *k
 	return 0;
 }
 
-static char NonTVertex_svertex___doc__[] =
-".. method:: svertex()\n"
-"\n"
-"   Returns the SVertex on top of which this NonTVertex is built.\n"
-"\n"
-"   :return: The SVertex on top of which this NonTVertex is built.\n"
-"   :rtype: :class:`SVertex`\n";
-
-static PyObject * NonTVertex_svertex( BPy_NonTVertex *self ) {
-	SVertex *v = self->ntv->svertex();
-	if( v ){
-		return BPy_SVertex_from_SVertex( *v );
-	}
-
-	Py_RETURN_NONE;
-}
-
-static char NonTVertex_setSVertex___doc__[] =
-".. method:: setSVertex(iSVertex)\n"
-"\n"
-"   Sets the SVertex on top of which this NonTVertex is built.\n"
-"\n"
-"   :arg iSVertex: The SVertex on top of which this NonTVertex is built.\n"
-"   :type iSVertex: :class:`SVertex`\n";
-
-static PyObject * NonTVertex_setSVertex( BPy_NonTVertex *self, PyObject *args) {
-	PyObject *py_sv;
-
-	if(!( PyArg_ParseTuple(args, "O!", &SVertex_Type, &py_sv) ))
-		return NULL;
-
-	self->ntv->setSVertex( ((BPy_SVertex *) py_sv)->sv );
-
-	Py_RETURN_NONE;
-}
-
-/*----------------------NonTVertex instance definitions ----------------------------*/
 static PyMethodDef BPy_NonTVertex_methods[] = {	
-	{"svertex", ( PyCFunction ) NonTVertex_svertex, METH_NOARGS, NonTVertex_svertex___doc__},
-	{"setSVertex", ( PyCFunction ) NonTVertex_setSVertex, METH_VARARGS, NonTVertex_setSVertex___doc__},
 	{NULL, NULL, 0, NULL}
+};
+
+/*----------------------NonTVertex get/setters ----------------------------*/
+
+PyDoc_STRVAR(NonTVertex_svertex_doc,
+"The SVertex on top of which this NonTVertex is built.\n"
+"\n"
+":type: :class:`SVertex`");
+
+static PyObject *NonTVertex_svertex_get(BPy_NonTVertex *self, void *UNUSED(closure))
+{
+	SVertex *v = self->ntv->svertex();
+	if (v)
+		return BPy_SVertex_from_SVertex(*v);
+	Py_RETURN_NONE;
+}
+
+static int NonTVertex_svertex_set(BPy_NonTVertex *self, PyObject *value, void *UNUSED(closure))
+{
+	if (!BPy_SVertex_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be an SVertex");
+		return -1;
+	}
+	self->ntv->setSVertex(((BPy_SVertex *)value)->sv);
+	return 0;
+}
+
+static PyGetSetDef BPy_NonTVertex_getseters[] = {
+	{(char *)"svertex", (getter)NonTVertex_svertex_get, (setter)NonTVertex_svertex_set, (char *)NonTVertex_svertex_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_NonTVertex type definition ------------------------------*/
@@ -126,7 +116,7 @@ PyTypeObject NonTVertex_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	NonTVertex___doc__,             /* tp_doc */
+	NonTVertex_doc,                 /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -135,13 +125,13 @@ PyTypeObject NonTVertex_Type = {
 	0,                              /* tp_iternext */
 	BPy_NonTVertex_methods,         /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_NonTVertex_getseters,       /* tp_getset */
 	&ViewVertex_Type,               /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */
 	0,                              /* tp_descr_set */
 	0,                              /* tp_dictoffset */
-	(initproc)NonTVertex___init__,  /* tp_init */
+	(initproc)NonTVertex_init,      /* tp_init */
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };

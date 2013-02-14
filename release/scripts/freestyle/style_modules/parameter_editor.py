@@ -93,19 +93,19 @@ class ThicknessModifierMixIn:
         scene = Freestyle.getCurrentScene()
         self.__persp_camera = (scene.camera.data.type == "PERSP")
     def set_thickness(self, sv, outer, inner):
-        fe = sv.A().getFEdge(sv.B())
-        nature = fe.getNature()
+        fe = sv.first_svertex.get_fedge(sv.second_svertex)
+        nature = fe.nature
         if (nature & Nature.BORDER):
             if self.__persp_camera:
-                point = -sv.getPoint3D()
+                point = -sv.point_3d.copy()
                 point.normalize()
-                dir = point.dot(fe.normalB())
+                dir = point.dot(fe.normal_left)
             else:
-                dir = fe.normalB().z
+                dir = fe.normal_left.z
             if dir < 0.0: # the back side is visible
                 outer, inner = inner, outer
         elif (nature & Nature.SILHOUETTE):
-            if fe.isSmooth(): # TODO more tests needed
+            if fe.is_smooth: # TODO more tests needed
                 outer, inner = inner, outer
         else:
             outer = inner = (outer + inner) / 2
@@ -158,7 +158,7 @@ class BaseThicknessShader(StrokeShader, ThicknessModifierMixIn):
     def getName(self):
         return "BaseThicknessShader"
     def shade(self, stroke):
-        it = stroke.strokeVerticesBegin()
+        it = stroke.stroke_vertices_begin()
         while it.isEnd() == 0:
             sv = it.getObject()
             self.set_thickness(sv, self.__outer, self.__inner)
@@ -167,9 +167,9 @@ class BaseThicknessShader(StrokeShader, ThicknessModifierMixIn):
 # Along Stroke modifiers
 
 def iter_t2d_along_stroke(stroke):
-    total = stroke.getLength2D()
+    total = stroke.length_2d
     distance = 0.0
-    it = stroke.strokeVerticesBegin()
+    it = stroke.stroke_vertices_begin()
     while not it.isEnd():
         p = it.getObject().point
         if not it.isBegin():
@@ -220,9 +220,9 @@ class ThicknessAlongStrokeShader(ThicknessBlenderMixIn, CurveMappingModifier):
 
 def iter_distance_from_camera(stroke, range_min, range_max):
     normfac = range_max - range_min # normalization factor
-    it = stroke.strokeVerticesBegin()
+    it = stroke.stroke_vertices_begin()
     while not it.isEnd():
-        p = it.getObject().getPoint3D() # in the camera coordinate
+        p = it.getObject().point_3d # in the camera coordinate
         distance = p.length
         if distance < range_min:
             t = 0.0
@@ -288,9 +288,9 @@ def iter_distance_from_object(stroke, object, range_min, range_max):
     mv.invert()
     loc = mv * object.location # loc in the camera coordinate
     normfac = range_max - range_min # normalization factor
-    it = stroke.strokeVerticesBegin()
+    it = stroke.stroke_vertices_begin()
     while not it.isEnd():
-        p = it.getObject().getPoint3D() # in the camera coordinate
+        p = it.getObject().point_3d # in the camera coordinate
         distance = (p - loc).length
         if distance < range_min:
             t = 0.0
@@ -361,7 +361,7 @@ class ThicknessDistanceFromObjectShader(ThicknessBlenderMixIn, CurveMappingModif
 
 def iter_material_color(stroke, material_attr):
     func = CurveMaterialF0D()
-    it = stroke.strokeVerticesBegin()
+    it = stroke.stroke_vertices_begin()
     while not it.isEnd():
         material = func(it.castToInterface0DIterator())
         if material_attr == "DIFF":
@@ -379,7 +379,7 @@ def iter_material_color(stroke, material_attr):
 
 def iter_material_value(stroke, material_attr):
     func = CurveMaterialF0D()
-    it = stroke.strokeVerticesBegin()
+    it = stroke.stroke_vertices_begin()
     while not it.isEnd():
         material = func(it.castToInterface0DIterator())
         if material_attr == "DIFF":
@@ -405,7 +405,7 @@ def iter_material_value(stroke, material_attr):
         elif material_attr == "SPEC_B":
             t = material.specular[2]
         elif material_attr == "SPEC_HARDNESS":
-            t = material.shininess()
+            t = material.shininess
         elif material_attr == "ALPHA":
             t = material.diffuse[3]
         else:
@@ -476,7 +476,7 @@ class CalligraphicThicknessShader(ThicknessBlenderMixIn, ScalarBlendModifier):
         self.__max_thickness = max_thickness
     def shade(self, stroke):
         func = VertexOrientation2DF0D()
-        it = stroke.strokeVerticesBegin()
+        it = stroke.stroke_vertices_begin()
         while not it.isEnd():
             dir = func(it.castToInterface0DIterator())
             orthDir = mathutils.Vector((-dir.y, dir.x))
@@ -494,7 +494,7 @@ class CalligraphicThicknessShader(ThicknessBlenderMixIn, ScalarBlendModifier):
 
 def iter_distance_along_stroke(stroke):
     distance = 0.0
-    it = stroke.strokeVerticesBegin()
+    it = stroke.stroke_vertices_begin()
     while not it.isEnd():
         p = it.getObject().point
         if not it.isBegin():
@@ -518,7 +518,7 @@ class SinusDisplacementShader(StrokeShader):
             n = self._getNormal(it.castToInterface0DIterator())
             n = n * self._amplitude * math.cos(distance / self._wavelength * 2 * math.pi + self._phase)
             v.point = v.point + n
-        stroke.UpdateLength()
+        stroke.update_length()
 
 class PerlinNoise1DShader(StrokeShader):
     def __init__(self, freq = 10, amp = 10, oct = 4, angle = math.radians(45), seed = -1):
@@ -531,14 +531,14 @@ class PerlinNoise1DShader(StrokeShader):
     def getName(self):
         return "PerlinNoise1DShader"
     def shade(self, stroke):
-        length = stroke.getLength2D()
-        it = stroke.strokeVerticesBegin()
+        length = stroke.length_2d
+        it = stroke.stroke_vertices_begin()
         while not it.isEnd():
             v = it.getObject()
             nres = self.__noise.turbulence1(length * v.u, self.__freq, self.__amp, self.__oct)
             v.point = v.point + nres * self.__dir
             it.increment()
-        stroke.UpdateLength()
+        stroke.update_length()
 
 class PerlinNoise2DShader(StrokeShader):
     def __init__(self, freq = 10, amp = 10, oct = 4, angle = math.radians(45), seed = -1):
@@ -551,14 +551,14 @@ class PerlinNoise2DShader(StrokeShader):
     def getName(self):
         return "PerlinNoise2DShader"
     def shade(self, stroke):
-        it = stroke.strokeVerticesBegin()
+        it = stroke.stroke_vertices_begin()
         while not it.isEnd():
             v = it.getObject()
-            vec = Vector([v.getProjectedX(), v.getProjectedY()]) # FIXME
+            vec = Vector([v.projected_x, v.projected_y])
             nres = self.__noise.turbulence2(vec, self.__freq, self.__amp, self.__oct)
             v.point = v.point + nres * self.__dir
             it.increment()
-        stroke.UpdateLength()
+        stroke.update_length()
 
 class Offset2DShader(StrokeShader):
     def __init__(self, start, end, x, y):
@@ -570,7 +570,7 @@ class Offset2DShader(StrokeShader):
     def getName(self):
         return "Offset2DShader"
     def shade(self, stroke):
-        it = stroke.strokeVerticesBegin()
+        it = stroke.stroke_vertices_begin()
         while not it.isEnd():
             v = it.getObject()
             u = v.u
@@ -579,7 +579,7 @@ class Offset2DShader(StrokeShader):
             n = n * a
             v.point = v.point + n + self.__xy
             it.increment()
-        stroke.UpdateLength()
+        stroke.update_length()
 
 class Transform2DShader(StrokeShader):
     def __init__(self, pivot, scale_x, scale_y, angle, pivot_u, pivot_x, pivot_y):
@@ -596,15 +596,15 @@ class Transform2DShader(StrokeShader):
     def shade(self, stroke):
         # determine the pivot of scaling and rotation operations
         if self.__pivot == "START":
-            it = stroke.strokeVerticesBegin()
+            it = stroke.stroke_vertices_begin()
             pivot = it.getObject().point
         elif self.__pivot == "END":
-            it = stroke.strokeVerticesEnd()
+            it = stroke.stroke_vertices_end()
             it.decrement()
             pivot = it.getObject().point
         elif self.__pivot == "PARAM":
             p = None
-            it = stroke.strokeVerticesBegin()
+            it = stroke.stroke_vertices_begin()
             while not it.isEnd():
                 prev = p
                 v = it.getObject()
@@ -621,7 +621,7 @@ class Transform2DShader(StrokeShader):
         elif self.__pivot == "CENTER":
             pivot = Vector([0.0, 0.0])
             n = 0
-            it = stroke.strokeVerticesBegin()
+            it = stroke.stroke_vertices_begin()
             while not it.isEnd():
                 p = it.getObject().point
                 pivot = pivot + p
@@ -634,7 +634,7 @@ class Transform2DShader(StrokeShader):
         # apply scaling and rotation operations
         cos_theta = math.cos(self.__angle)
         sin_theta = math.sin(self.__angle)
-        it = stroke.strokeVerticesBegin()
+        it = stroke.stroke_vertices_begin()
         while not it.isEnd():
             v = it.getObject()
             p = v.point
@@ -645,7 +645,7 @@ class Transform2DShader(StrokeShader):
             p.y = x * sin_theta + y * cos_theta
             v.point = p + pivot
             it.increment()
-        stroke.UpdateLength()
+        stroke.update_length()
 
 # Predicates and helper functions
 
@@ -677,7 +677,7 @@ class ObjectNamesUP1D(UnaryPredicate1D):
     def getName(self):
         return "ObjectNamesUP1D"
     def __call__(self, viewEdge):
-        found = viewEdge.viewShape().getName() in self._names
+        found = viewEdge.viewshape.name in self._names
         if self._negative:
             return not found
         return found
@@ -685,7 +685,7 @@ class ObjectNamesUP1D(UnaryPredicate1D):
 # Stroke caps
 
 def iter_stroke_vertices(stroke):
-    it = stroke.strokeVerticesBegin()
+    it = stroke.stroke_vertices_begin()
     prev_p = None
     while not it.isEnd():
         sv = it.getObject()
@@ -715,7 +715,7 @@ class RoundCapShader(StrokeShader):
         caplen_end = (R + L) / 2.0
         nverts_end = max(5, int(R + L))
         # adjust the total number of stroke vertices
-        stroke.Resample(nverts + nverts_beg + nverts_end)
+        stroke.resample(nverts + nverts_beg + nverts_end)
         # restore the location and attribute of the original vertices
         for i in range(nverts):
             p, attr = buffer[i]
@@ -748,7 +748,7 @@ class RoundCapShader(StrokeShader):
             stroke[-i-1].attribute = attr
             stroke[-i-1].attribute.thickness = (R * r, L * r)
         # update the curvilinear 2D length of each vertex
-        stroke.UpdateLength()
+        stroke.update_length()
 
 class SquareCapShader(StrokeShader):
     def shade(self, stroke):
@@ -767,7 +767,7 @@ class SquareCapShader(StrokeShader):
         caplen_end = (R + L) / 2.0
         nverts_end = 1
         # adjust the total number of stroke vertices
-        stroke.Resample(nverts + nverts_beg + nverts_end)
+        stroke.resample(nverts + nverts_beg + nverts_end)
         # restore the location and attribute of the original vertices
         for i in range(nverts):
             p, attr = buffer[i]
@@ -786,7 +786,7 @@ class SquareCapShader(StrokeShader):
         stroke[-1].point = p + d / d.length * caplen_beg
         stroke[-1].attribute = attr
         # update the curvilinear 2D length of each vertex
-        stroke.UpdateLength()
+        stroke.update_length()
 
 # Split by dashed line pattern
 
@@ -847,7 +847,7 @@ class DashedLineShader(StrokeShader):
         start = 0.0 # 2D curvilinear length
         visible = True
         sampling = 1.0
-        it = stroke.strokeVerticesBegin(sampling)
+        it = stroke.stroke_vertices_begin(sampling)
         while not it.isEnd():
             pos = it.t()
             # The extra 'sampling' term is added below, because the
@@ -872,14 +872,10 @@ class AngleLargerThanBP1D(BinaryPredicate1D):
     def getName(self):
         return "AngleLargerThanBP1D"
     def __call__(self, i1, i2):
-        fe1a = i1.fedgeA()
-        fe1b = i1.fedgeB()
-        fe2a = i2.fedgeA()
-        fe2b = i2.fedgeB()
-        sv1a = fe1a.vertexA().getPoint2D()
-        sv1b = fe1b.vertexB().getPoint2D()
-        sv2a = fe2a.vertexA().getPoint2D()
-        sv2b = fe2b.vertexB().getPoint2D()
+        sv1a = i1.first_fedge.first_svertex.point_2d
+        sv1b = i1.last_fedge.second_svertex.point_2d
+        sv2a = i2.first_fedge.first_svertex.point_2d
+        sv2b = i2.last_fedge.second_svertex.point_2d
         if (sv1a - sv2a).length < 1e-6:
             dir1 = sv1a - sv1b
             dir2 = sv2b - sv2a
@@ -920,7 +916,7 @@ class LengthThresholdUP1D(UnaryPredicate1D):
     def getName(self):
         return "LengthThresholdUP1D"
     def __call__(self, inter):
-        length = inter.getLength2D()
+        length = inter.length_2d
         if self._min_length is not None and length < self._min_length:
             return False
         if self._max_length is not None and length > self._max_length:
@@ -929,28 +925,28 @@ class LengthThresholdUP1D(UnaryPredicate1D):
 
 class FaceMarkBothUP1D(UnaryPredicate1D):
     def __call__(self, inter): # ViewEdge
-        fe = inter.fedgeA()
+        fe = inter.first_fedge
         while fe is not None:
-            if fe.isSmooth():
-                if fe.faceMark():
+            if fe.is_smooth:
+                if fe.face_mark:
                     return True
             else:
-                if fe.aFaceMark() and fe.bFaceMark():
+                if fe.face_mark_right and fe.face_mark_left:
                     return True
-            fe = fe.nextEdge()
+            fe = fe.next_fedge
         return False
 
 class FaceMarkOneUP1D(UnaryPredicate1D):
     def __call__(self, inter): # ViewEdge
-        fe = inter.fedgeA()
+        fe = inter.first_fedge
         while fe is not None:
-            if fe.isSmooth():
-                if fe.faceMark():
+            if fe.is_smooth:
+                if fe.face_mark:
                     return True
             else:
-                if fe.aFaceMark() or fe.bFaceMark():
+                if fe.face_mark_right or fe.face_mark_left:
                     return True
-            fe = fe.nextEdge()
+            fe = fe.next_fedge
         return False
 
 # predicates for splitting
@@ -967,10 +963,10 @@ class MaterialBoundaryUP0D(UnaryPredicate0D):
         it.increment()
         if it.isEnd():
             return False
-        fe = v.getFEdge(it_prev.getObject())
-        idx1 = fe.materialIndex() if fe.isSmooth() else fe.bMaterialIndex()
-        fe = v.getFEdge(it.getObject())
-        idx2 = fe.materialIndex() if fe.isSmooth() else fe.bMaterialIndex()
+        fe = v.get_fedge(it_prev.getObject())
+        idx1 = fe.material_index if fe.is_smooth else fe.material_index_left
+        fe = v.get_fedge(it.getObject())
+        idx2 = fe.material_index if fe.is_smooth else fe.material_index_left
         return idx1 != idx2
 
 class Curvature2DAngleThresholdUP0D(UnaryPredicate0D):

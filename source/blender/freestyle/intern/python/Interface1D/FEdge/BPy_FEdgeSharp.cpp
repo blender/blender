@@ -9,9 +9,9 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-//------------------------INSTANCE METHODS ----------------------------------
+/*----------------------FEdgeSharp methods ----------------------------*/
 
-static char FEdgeSharp___doc__[] =
+PyDoc_STRVAR(FEdgeSharp_doc,
 "Class hierarchy: :class:`Interface1D` > :class:`FEdge` > :class:`FEdgeSharp`\n"
 "\n"
 "Class defining a sharp FEdge.  A Sharp FEdge corresponds to an initial\n"
@@ -39,288 +39,320 @@ static char FEdgeSharp___doc__[] =
 "   :arg vA: The first SVertex object.\n"
 "   :type vA: :class:`SVertex`\n"
 "   :arg vB: The second SVertex object.\n"
-"   :type vB: :class:`SVertex`\n";
+"   :type vB: :class:`SVertex`");
 
-static int FEdgeSharp___init__(BPy_FEdgeSharp *self, PyObject *args, PyObject *kwds)
+static int FEdgeSharp_init(BPy_FEdgeSharp *self, PyObject *args, PyObject *kwds)
 {
 	PyObject *obj1 = 0, *obj2 = 0;
 
-    if (! PyArg_ParseTuple(args, "|OO", &obj1, &obj2) )
-        return -1;
+	if (!PyArg_ParseTuple(args, "|OO", &obj1, &obj2))
+		return -1;
 
-	if( !obj1 ){
+	if (!obj1) {
 		self->fes = new FEdgeSharp();
-		
-	} else if( !obj2 && BPy_FEdgeSharp_Check(obj1) ) {
-		self->fes = new FEdgeSharp(*( ((BPy_FEdgeSharp *) obj1)->fes ));
-		
-	} else if( obj2 && BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2) ) {
-		self->fes = new FEdgeSharp( ((BPy_SVertex *) obj1)->sv, ((BPy_SVertex *) obj2)->sv );
+
+	} else if (!obj2 && BPy_FEdgeSharp_Check(obj1)) {
+		self->fes = new FEdgeSharp(*(((BPy_FEdgeSharp *)obj1)->fes));
+
+	} else if (obj2 && BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2)) {
+		self->fes = new FEdgeSharp(((BPy_SVertex *)obj1)->sv, ((BPy_SVertex *)obj2)->sv);
 
 	} else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
-
 	self->py_fe.fe = self->fes;
 	self->py_fe.py_if1D.if1D = self->fes;
 	self->py_fe.py_if1D.borrowed = 0;
-
 	return 0;
 }
 
-static char FEdgeSharp_normalA___doc__[] =
-".. method:: normalA()\n"
-"\n"
-"   Returns the normal to the face lying on the right of the FEdge.  If\n"
-"   this FEdge is a border, it has no Face on its right and therefore, no\n"
-"   normal.\n"
-"\n"
-"   :return: The normal to the face lying on the right of the FEdge.\n"
-"   :rtype: :class:`mathutils.Vector`\n";
-
-static PyObject * FEdgeSharp_normalA( BPy_FEdgeSharp *self ) {
-	Vec3r v( self->fes->normalA() );
-	return Vector_from_Vec3r( v );
-}
-
-static char FEdgeSharp_normalB___doc__[] =
-".. method:: normalB()\n"
-"\n"
-"   Returns the normal to the face lying on the left of the FEdge.\n"
-"\n"
-"   :return: The normal to the face lying on the left of the FEdge.\n"
-"   :rtype: :class:`mathutils.Vector`\n";
-
-static PyObject * FEdgeSharp_normalB( BPy_FEdgeSharp *self ) {
-	Vec3r v( self->fes->normalB() );
-	return Vector_from_Vec3r( v );
-}
-
-static char FEdgeSharp_aMaterialIndex___doc__[] =
-".. method:: aMaterialIndex()\n"
-"\n"
-"   Returns the index of the material of the face lying on the right of\n"
-"   the FEdge. If this FEdge is a border, it has no Face on its right and\n"
-"   therefore, no material.\n"
-"\n"
-"   :return: The index of the material of the face lying on the right of\n"
-"      the FEdge.\n"
-"   :rtype: int\n";
-
-static PyObject * FEdgeSharp_aMaterialIndex( BPy_FEdgeSharp *self ) {
-	return PyLong_FromLong( self->fes->aFrsMaterialIndex() );
-}
-
-static char FEdgeSharp_bMaterialIndex___doc__[] =
-".. method:: bMaterialIndex()\n"
-"\n"
-"   Returns the index of the material of the face lying on the left of\n"
-"   the FEdge.\n"
-"\n"
-"   :return: The index of the material of the face lying on the left of\n"
-"      the FEdge.\n"
-"   :rtype: int\n";
-
-static PyObject * FEdgeSharp_bMaterialIndex( BPy_FEdgeSharp *self ) {
-	return PyLong_FromLong( self->fes->bFrsMaterialIndex() );
-}
-
-static char FEdgeSharp_aMaterial___doc__[] =
-".. method:: aMaterial()\n"
-"\n"
-"   Returns the material of the face lying on the right of the FEdge.  If\n"
-"   this FEdge is a border, it has no Face on its right and therefore, no\n"
-"   material.\n"
-"\n"
-"   :return: The material of the face lying on the right of the FEdge.\n"
-"   :rtype: :class:`Material`\n";
-
-static PyObject * FEdgeSharp_aMaterial( BPy_FEdgeSharp *self ) {
-	FrsMaterial m( self->fes->aFrsMaterial() );
-	return BPy_FrsMaterial_from_FrsMaterial(m);
-}
-
-static char FEdgeSharp_bMaterial___doc__[] =
-".. method:: bMaterial()\n"
-"\n"
-"   Returns the material of the face lying on the left of the FEdge.\n"
-"\n"
-"   :return: The material of the face lying on the left of the FEdge.\n"
-"   :rtype: :class:`Material`\n";
-
-static PyObject * FEdgeSharp_bMaterial( BPy_FEdgeSharp *self ) {
-	FrsMaterial m( self->fes->aFrsMaterial() );
-	return BPy_FrsMaterial_from_FrsMaterial(m);
-}
-
-static char FEdgeSharp_aFaceMark___doc__[] =
-".. method:: aFaceMark()\n"
-"\n"
-"   Returns the face mark of the face lying on the right of the FEdge.\n"
-"   If this FEdge is a border, it has no face on the right, and thus\n"
-"   false is returned.\n"
-"\n"
-"   :return: The face mark of the face lying on the right of the FEdge.\n"
-"   :rtype: bool\n";
-
-static PyObject * FEdgeSharp_aFaceMark( BPy_FEdgeSharp *self ) {
-	return PyBool_from_bool( self->fes->aFaceMark() );
-}
-
-static char FEdgeSharp_bFaceMark___doc__[] =
-".. method:: bFaceMark()\n"
-"\n"
-"   Returns the face mark of the face lying on the left of the FEdge.\n"
-"\n"
-"   :return: The face mark of the face lying on the left of the FEdge.\n"
-"   :rtype: bool\n";
-
-static PyObject * FEdgeSharp_bFaceMark( BPy_FEdgeSharp *self ) {
-	return PyBool_from_bool( self->fes->bFaceMark() );
-}
-
-static char FEdgeSharp_setNormalA___doc__[] =
-".. method:: setNormalA(iNormal)\n"
-"\n"
-"   Sets the normal to the face lying on the right of the FEdge.\n"
-"\n"
-"   :arg iNormal: A three-dimensional vector.\n"
-"   :type iNormal: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n";
-
-static PyObject * FEdgeSharp_setNormalA( BPy_FEdgeSharp *self, PyObject *args ) {
-	PyObject *obj = 0;
-
-	if(!( PyArg_ParseTuple(args, "O", &obj) ))
-		return NULL;
-	Vec3r *v = Vec3r_ptr_from_PyObject(obj);
-	if( !v ) {
-		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
-		return NULL;
-	}
-	self->fes->setNormalA( *v );
-	delete v;
-
-	Py_RETURN_NONE;
-}
-
-static char FEdgeSharp_setNormalB___doc__[] =
-".. method:: setNormalB(iNormal)\n"
-"\n"
-"   Sets the normal to the face lying on the left of the FEdge.\n"
-"\n"
-"   :arg iNormal: A three-dimensional vector.\n"
-"   :type iNormal: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n";
-
-static PyObject * FEdgeSharp_setNormalB( BPy_FEdgeSharp *self, PyObject *args ) {
-	PyObject *obj = 0;
-
-	if(!( PyArg_ParseTuple(args, "O", &obj) ))
-		return NULL;
-	Vec3r *v = Vec3r_ptr_from_PyObject(obj);
-	if( !v ) {
-		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
-		return NULL;
-	}
-	self->fes->setNormalB( *v );
-	delete v;
-
-	Py_RETURN_NONE;
-}
-
-static char FEdgeSharp_setaMaterialIndex___doc__[] =
-".. method:: setaMaterialIndex(i)\n"
-"\n"
-"   Sets the index of the material lying on the right of the FEdge.\n"
-"\n"
-"   :arg i: A material index.\n"
-"   :type i: int\n";
-
-static PyObject * FEdgeSharp_setaMaterialIndex( BPy_FEdgeSharp *self, PyObject *args ) {
-	unsigned int i;
-
-	if(!( PyArg_ParseTuple(args, "I", &i) ))
-		return NULL;
-	
-	self->fes->setaFrsMaterialIndex( i );
-
-	Py_RETURN_NONE;
-}
-
-static char FEdgeSharp_setbMaterialIndex___doc__[] =
-".. method:: setbMaterialIndex(i)\n"
-"\n"
-"   Sets the index of the material lying on the left of the FEdge.\n"
-"\n"
-"   :arg i: A material index.\n"
-"   :type i: int\n";
-
-static PyObject * FEdgeSharp_setbMaterialIndex( BPy_FEdgeSharp *self, PyObject *args ) {
-	unsigned int i;
-
-	if(!( PyArg_ParseTuple(args, "I", &i) ))
-		return NULL;
-	
-	self->fes->setbFrsMaterialIndex( i );
-
-	Py_RETURN_NONE;
-}
-
-static char FEdgeSharp_setaFaceMark___doc__[] =
-".. method:: setaFaceMark(i)\n"
-"\n"
-"   Sets the face mark of the face lying on the right of the FEdge.\n"
-"\n"
-"   :arg i: A face mark.\n"
-"   :type i: bool\n";
-
-static PyObject * FEdgeSharp_setaFaceMark( BPy_FEdgeSharp *self, PyObject *args ) {
-	PyObject *obj;
-
-	if(!( PyArg_ParseTuple(args, "O", &obj) ))
-		return NULL;
-	
-	self->fes->setaFaceMark( bool_from_PyBool(obj) );
-
-	Py_RETURN_NONE;
-}
-
-static char FEdgeSharp_setbFaceMark___doc__[] =
-".. method:: setbFaceMark(i)\n"
-"\n"
-"   Sets the face mark of the face lying on the left of the FEdge.\n"
-"\n"
-"   :arg i: A face mark.\n"
-"   :type i: bool\n";
-
-static PyObject * FEdgeSharp_setbFaceMark( BPy_FEdgeSharp *self, PyObject *args ) {
-	PyObject *obj;
-
-	if(!( PyArg_ParseTuple(args, "O", &obj) ))
-		return NULL;
-	
-	self->fes->setbFaceMark( bool_from_PyBool(obj) );
-
-	Py_RETURN_NONE;
-}
-
-/*----------------------FEdgeSharp instance definitions ----------------------------*/
 static PyMethodDef BPy_FEdgeSharp_methods[] = {	
-	{"normalA", ( PyCFunction ) FEdgeSharp_normalA, METH_NOARGS, FEdgeSharp_normalA___doc__},
-	{"normalB", ( PyCFunction ) FEdgeSharp_normalB, METH_NOARGS, FEdgeSharp_normalB___doc__},
-	{"aMaterialIndex", ( PyCFunction ) FEdgeSharp_aMaterialIndex, METH_NOARGS, FEdgeSharp_aMaterialIndex___doc__},
-	{"bMaterialIndex", ( PyCFunction ) FEdgeSharp_bMaterialIndex, METH_NOARGS, FEdgeSharp_bMaterialIndex___doc__},
-	{"aMaterial", ( PyCFunction ) FEdgeSharp_aMaterial, METH_NOARGS, FEdgeSharp_aMaterial___doc__},
-	{"bMaterial", ( PyCFunction ) FEdgeSharp_bMaterial, METH_NOARGS, FEdgeSharp_bMaterial___doc__},
-	{"aFaceMark", ( PyCFunction ) FEdgeSharp_aFaceMark, METH_NOARGS, FEdgeSharp_aFaceMark___doc__},
-	{"bFaceMark", ( PyCFunction ) FEdgeSharp_bFaceMark, METH_NOARGS, FEdgeSharp_bFaceMark___doc__},
-	{"setNormalA", ( PyCFunction ) FEdgeSharp_setNormalA, METH_VARARGS, FEdgeSharp_setNormalA___doc__},
-	{"setNormalB", ( PyCFunction ) FEdgeSharp_setNormalB, METH_VARARGS, FEdgeSharp_setNormalB___doc__},
-	{"setaMaterialIndex", ( PyCFunction ) FEdgeSharp_setaMaterialIndex, METH_VARARGS, FEdgeSharp_setaMaterialIndex___doc__},
-	{"setbMaterialIndex", ( PyCFunction ) FEdgeSharp_setbMaterialIndex, METH_VARARGS, FEdgeSharp_setbMaterialIndex___doc__},
-	{"setaFaceMark", ( PyCFunction ) FEdgeSharp_setaFaceMark, METH_NOARGS, FEdgeSharp_setaFaceMark___doc__},
-	{"setbFaceMark", ( PyCFunction ) FEdgeSharp_setbFaceMark, METH_NOARGS, FEdgeSharp_setbFaceMark___doc__},
 	{NULL, NULL, 0, NULL}
+};
+
+/*----------------------mathutils callbacks ----------------------------*/
+
+/* subtype */
+#define MATHUTILS_SUBTYPE_NORMAL_A  1
+#define MATHUTILS_SUBTYPE_NORMAL_B  2
+
+static int FEdgeSharp_mathutils_check(BaseMathObject *bmo)
+{
+	if (!BPy_FEdgeSharp_Check(bmo->cb_user))
+		return -1;
+	return 0;
+}
+
+static int FEdgeSharp_mathutils_get(BaseMathObject *bmo, int subtype)
+{
+	BPy_FEdgeSharp *self = (BPy_FEdgeSharp *)bmo->cb_user;
+	switch (subtype) {
+	case MATHUTILS_SUBTYPE_NORMAL_A:
+		{
+			Vec3r p(self->fes->normalA());
+			bmo->data[0] = p[0];
+			bmo->data[1] = p[1];
+			bmo->data[2] = p[2];
+		}
+		break;
+	case MATHUTILS_SUBTYPE_NORMAL_B:
+		{
+			Vec3r p(self->fes->normalB());
+			bmo->data[0] = p[0];
+			bmo->data[1] = p[1];
+			bmo->data[2] = p[2];
+		}
+		break;
+	default:
+		return -1;
+	}
+	return 0;
+}
+
+static int FEdgeSharp_mathutils_set(BaseMathObject *bmo, int subtype)
+{
+	BPy_FEdgeSharp *self = (BPy_FEdgeSharp *)bmo->cb_user;
+	switch (subtype) {
+	case MATHUTILS_SUBTYPE_NORMAL_A:
+		{
+			Vec3r p(bmo->data[0], bmo->data[1], bmo->data[2]);
+			self->fes->setNormalA(p);
+		}
+		break;
+	case MATHUTILS_SUBTYPE_NORMAL_B:
+		{
+			Vec3r p(bmo->data[0], bmo->data[1], bmo->data[2]);
+			self->fes->setNormalB(p);
+		}
+		break;
+	default:
+		return -1;
+	}
+	return 0;
+}
+
+static int FEdgeSharp_mathutils_get_index(BaseMathObject *bmo, int subtype, int index)
+{
+	BPy_FEdgeSharp *self = (BPy_FEdgeSharp *)bmo->cb_user;
+	switch (subtype) {
+	case MATHUTILS_SUBTYPE_NORMAL_A:
+		{
+			Vec3r p(self->fes->normalA());
+			bmo->data[index] = p[index];
+		}
+		break;
+	case MATHUTILS_SUBTYPE_NORMAL_B:
+		{
+			Vec3r p(self->fes->normalB());
+			bmo->data[index] = p[index];
+		}
+		break;
+	default:
+		return -1;
+	}
+	return 0;
+}
+
+static int FEdgeSharp_mathutils_set_index(BaseMathObject *bmo, int subtype, int index)
+{
+	BPy_FEdgeSharp *self = (BPy_FEdgeSharp *)bmo->cb_user;
+	switch (subtype) {
+	case MATHUTILS_SUBTYPE_NORMAL_A:
+		{
+			Vec3r p(self->fes->normalA());
+			p[index] = bmo->data[index];
+			self->fes->setNormalA(p);
+		}
+		break;
+	case MATHUTILS_SUBTYPE_NORMAL_B:
+		{
+			Vec3r p(self->fes->normalB());
+			p[index] = bmo->data[index];
+			self->fes->setNormalB(p);
+		}
+		break;
+	default:
+		return -1;
+	}
+	return 0;
+}
+
+static Mathutils_Callback FEdgeSharp_mathutils_cb = {
+	FEdgeSharp_mathutils_check,
+	FEdgeSharp_mathutils_get,
+	FEdgeSharp_mathutils_set,
+	FEdgeSharp_mathutils_get_index,
+	FEdgeSharp_mathutils_set_index
+};
+
+static unsigned char FEdgeSharp_mathutils_cb_index = -1;
+
+void FEdgeSharp_mathutils_register_callback()
+{
+	FEdgeSharp_mathutils_cb_index = Mathutils_RegisterCallback(&FEdgeSharp_mathutils_cb);
+}
+
+/*----------------------FEdgeSharp get/setters ----------------------------*/
+
+PyDoc_STRVAR(FEdgeSharp_normal_right_doc,
+"The normal to the face lying on the right of the FEdge.  If this FEdge\n"
+"is a border, it has no Face on its right and therefore no normal.\n"
+"\n"
+":type: :class:`mathutils.Vector`");
+
+static PyObject *FEdgeSharp_normal_right_get(BPy_FEdgeSharp *self, void *UNUSED(closure))
+{
+	return Vector_CreatePyObject_cb((PyObject *)self, 3, FEdgeSharp_mathutils_cb_index, MATHUTILS_SUBTYPE_NORMAL_A);
+}
+
+static int FEdgeSharp_normal_right_set(BPy_FEdgeSharp *self, PyObject *value, void *UNUSED(closure))
+{
+	float v[3];
+	if (!float_array_from_PyObject(value, v, 3)) {
+		PyErr_SetString(PyExc_ValueError, "value must be a 3-dimensional vector");
+		return -1;
+	}
+	Vec3r p(v[0], v[1], v[2]);
+	self->fes->setNormalA(p);
+	return 0;
+}
+
+PyDoc_STRVAR(FEdgeSharp_normal_left_doc,
+"The normal to the face lying on the left of the FEdge.\n"
+"\n"
+":type: :class:`mathutils.Vector`");
+
+static PyObject *FEdgeSharp_normal_left_get(BPy_FEdgeSharp *self, void *UNUSED(closure))
+{
+	return Vector_CreatePyObject_cb((PyObject *)self, 3, FEdgeSharp_mathutils_cb_index, MATHUTILS_SUBTYPE_NORMAL_B);
+}
+
+static int FEdgeSharp_normal_left_set(BPy_FEdgeSharp *self, PyObject *value, void *UNUSED(closure))
+{
+	float v[3];
+	if (!float_array_from_PyObject(value, v, 3)) {
+		PyErr_SetString(PyExc_ValueError, "value must be a 3-dimensional vector");
+		return -1;
+	}
+	Vec3r p(v[0], v[1], v[2]);
+	self->fes->setNormalB(p);
+	return 0;
+}
+
+PyDoc_STRVAR(FEdgeSharp_material_index_right_doc,
+"The index of the material of the face lying on the right of the FEdge.\n"
+"If this FEdge is a border, it has no Face on its right and therefore\n"
+"no material.\n"
+"\n"
+":type: int");
+
+static PyObject *FEdgeSharp_material_index_right_get(BPy_FEdgeSharp *self, void *UNUSED(closure))
+{
+	return PyLong_FromLong(self->fes->aFrsMaterialIndex());
+}
+
+static int FEdgeSharp_material_index_right_set(BPy_FEdgeSharp *self, PyObject *value, void *UNUSED(closure))
+{
+	unsigned int i = PyLong_AsUnsignedLong(value);
+	if(PyErr_Occurred())
+		return -1;
+	self->fes->setaFrsMaterialIndex(i);
+	return 0;
+}
+
+PyDoc_STRVAR(FEdgeSharp_material_index_left_doc,
+"The index of the material of the face lying on the left of the FEdge.\n"
+"\n"
+":type: int");
+
+static PyObject *FEdgeSharp_material_index_left_get(BPy_FEdgeSharp *self, void *UNUSED(closure))
+{
+	return PyLong_FromLong(self->fes->aFrsMaterialIndex());
+}
+
+static int FEdgeSharp_material_index_left_set(BPy_FEdgeSharp *self, PyObject *value, void *UNUSED(closure))
+{
+	unsigned int i = PyLong_AsUnsignedLong(value);
+	if(PyErr_Occurred())
+		return -1;
+	self->fes->setbFrsMaterialIndex(i);
+	return 0;
+}
+
+PyDoc_STRVAR(FEdgeSharp_material_right_doc,
+"The material of the face lying on the right of the FEdge.  If this FEdge\n"
+"is a border, it has no Face on its right and therefore no material.\n"
+"\n"
+":type: :class:`Material`");
+
+static PyObject *FEdgeSharp_material_right_get(BPy_FEdgeSharp *self, void *UNUSED(closure))
+{
+	// FIXME aFrsMaterial() returns a const reference.
+	FrsMaterial m(self->fes->aFrsMaterial());
+	return BPy_FrsMaterial_from_FrsMaterial(m);
+}
+
+PyDoc_STRVAR(FEdgeSharp_material_left_doc,
+"The material of the face lying on the left of the FEdge.\n"
+"\n"
+":type: :class:`Material`");
+
+static PyObject *FEdgeSharp_material_left_get(BPy_FEdgeSharp *self, void *UNUSED(closure))
+{
+	// FIXME bFrsMaterial() returns a const reference.
+	FrsMaterial m(self->fes->bFrsMaterial());
+	return BPy_FrsMaterial_from_FrsMaterial(m);
+}
+
+PyDoc_STRVAR(FEdgeSharp_face_mark_right_doc,
+"The face mark of the face lying on the right of the FEdge.  If this FEdge\n"
+"is a border, it has no face on the right and thus this property is set to\n"
+"false.\n"
+"\n"
+":type: bool");
+
+static PyObject *FEdgeSharp_face_mark_right_get(BPy_FEdgeSharp *self, void *UNUSED(closure))
+{
+	return PyBool_from_bool(self->fes->aFaceMark());
+}
+
+static int FEdgeSharp_face_mark_right_set(BPy_FEdgeSharp *self, PyObject *value, void *UNUSED(closure))
+{
+	if(!PyBool_Check(value))
+		return -1;
+	self->fes->setaFaceMark(bool_from_PyBool(value));
+	return 0;
+}
+
+PyDoc_STRVAR(FEdgeSharp_face_mark_left_doc,
+"The face mark of the face lying on the left of the FEdge.\n"
+"\n"
+":type: bool");
+
+static PyObject *FEdgeSharp_face_mark_left_get(BPy_FEdgeSharp *self, void *UNUSED(closure))
+{
+	return PyBool_from_bool(self->fes->bFaceMark());
+}
+
+static int FEdgeSharp_face_mark_left_set(BPy_FEdgeSharp *self, PyObject *value, void *UNUSED(closure))
+{
+	if(!PyBool_Check(value))
+		return -1;
+	self->fes->setbFaceMark(bool_from_PyBool(value));
+	return 0;
+}
+
+static PyGetSetDef BPy_FEdgeSharp_getseters[] = {
+	{(char *)"normal_right", (getter)FEdgeSharp_normal_right_get, (setter)FEdgeSharp_normal_right_set, (char *)FEdgeSharp_normal_right_doc, NULL},
+	{(char *)"normal_left", (getter)FEdgeSharp_normal_left_get, (setter)FEdgeSharp_normal_left_set, (char *)FEdgeSharp_normal_left_doc, NULL},
+	{(char *)"material_index_right", (getter)FEdgeSharp_material_index_right_get, (setter)FEdgeSharp_material_index_right_set, (char *)FEdgeSharp_material_index_right_doc, NULL},
+	{(char *)"material_index_left", (getter)FEdgeSharp_material_index_left_get, (setter)FEdgeSharp_material_index_left_set, (char *)FEdgeSharp_material_index_left_doc, NULL},
+	{(char *)"material_right", (getter)FEdgeSharp_material_right_get, (setter)NULL, (char *)FEdgeSharp_material_right_doc, NULL},
+	{(char *)"material_left", (getter)FEdgeSharp_material_left_get, (setter)NULL, (char *)FEdgeSharp_material_left_doc, NULL},
+	{(char *)"face_mark_right", (getter)FEdgeSharp_face_mark_right_get, (setter)FEdgeSharp_face_mark_right_set, (char *)FEdgeSharp_face_mark_right_doc, NULL},
+	{(char *)"face_mark_left", (getter)FEdgeSharp_face_mark_left_get, (setter)FEdgeSharp_face_mark_left_set, (char *)FEdgeSharp_face_mark_left_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_FEdgeSharp type definition ------------------------------*/
@@ -346,7 +378,7 @@ PyTypeObject FEdgeSharp_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	FEdgeSharp___doc__,             /* tp_doc */
+	FEdgeSharp_doc,                 /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -355,13 +387,13 @@ PyTypeObject FEdgeSharp_Type = {
 	0,                              /* tp_iternext */
 	BPy_FEdgeSharp_methods,         /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_FEdgeSharp_getseters,       /* tp_getset */
 	&FEdge_Type,                    /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */
 	0,                              /* tp_descr_set */
 	0,                              /* tp_dictoffset */
-	(initproc)FEdgeSharp___init__,  /* tp_init */
+	(initproc)FEdgeSharp_init,      /* tp_init */
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };

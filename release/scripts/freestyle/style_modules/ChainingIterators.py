@@ -44,10 +44,10 @@ class pyChainSilhouetteIterator(ChainingIterator):
 		it = AdjacencyIterator(iter)
 		tvertex = self.getVertex()
 		if type(tvertex) is TVertex:
-			mateVE = tvertex.mate(self.getCurrentEdge())
-			while(it.isEnd() == 0):
+			mateVE = tvertex.get_mate(self.getCurrentEdge())
+			while not it.isEnd():
 				ve = it.getObject()
-				if(ve.getId() == mateVE.getId() ):
+				if ve.id == mateVE.id:
 					winner = ve
 					break
 				it.increment()
@@ -55,24 +55,24 @@ class pyChainSilhouetteIterator(ChainingIterator):
 			## case of NonTVertex
 			natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
 			for i in range(len(natures)):
-				currentNature = self.getCurrentEdge().getNature()
-				if(natures[i] & currentNature):
+				currentNature = self.getCurrentEdge().nature
+				if (natures[i] & currentNature) != 0:
 					count=0
-					while(it.isEnd() == 0):
+					while not it.isEnd():
 						visitNext = 0
-						oNature = it.getObject().getNature()
-						if(oNature & natures[i] != 0):
-							if(natures[i] != oNature):
+						oNature = it.getObject().nature
+						if (oNature & natures[i]) != 0:
+							if natures[i] != oNature:
 								for j in range(i):
-									if(natures[j] & oNature != 0):
+									if (natures[j] & oNature) != 0:
 										visitNext = 1
 										break
-								if(visitNext != 0):
+								if visitNext != 0:
 									break	 
 							count = count+1
 							winner = it.getObject()
 						it.increment()
-					if(count != 1):
+					if count != 1:
 						winner = None
 					break
 		return winner
@@ -96,10 +96,10 @@ class pyChainSilhouetteGenericIterator(ChainingIterator):
 		it = AdjacencyIterator(iter)
 		tvertex = self.getVertex()
 		if type(tvertex) is TVertex:
-			mateVE = tvertex.mate(self.getCurrentEdge())
-			while(it.isEnd() == 0):
+			mateVE = tvertex.get_mate(self.getCurrentEdge())
+			while not it.isEnd():
 				ve = it.getObject()
-				if(ve.getId() == mateVE.getId() ):
+				if ve.id == mateVE.id:
 					winner = ve
 					break
 				it.increment()
@@ -107,28 +107,28 @@ class pyChainSilhouetteGenericIterator(ChainingIterator):
 			## case of NonTVertex
 			natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
 			for i in range(len(natures)):
-				currentNature = self.getCurrentEdge().getNature()
-				if(natures[i] & currentNature):
+				currentNature = self.getCurrentEdge().nature
+				if (natures[i] & currentNature) != 0:
 					count=0
-					while(it.isEnd() == 0):
+					while not it.isEnd():
 						visitNext = 0
-						oNature = it.getObject().getNature()
+						oNature = it.getObject().nature
 						ve = it.getObject()
-						if(ve.getId() == self.getCurrentEdge().getId()):
+						if ve.id == self.getCurrentEdge().id:
 							it.increment()
 							continue
-						if(oNature & natures[i] != 0):
-							if(natures[i] != oNature):
+						if (oNature & natures[i]) != 0:
+							if natures[i] != oNature:
 								for j in range(i):
-									if(natures[j] & oNature != 0):
+									if (natures[j] & oNature) != 0:
 										visitNext = 1
 										break
-								if(visitNext != 0):
+								if visitNext != 0:
 									break	 
 							count = count+1
 							winner = ve
 						it.increment()
-					if(count != 1):
+					if count != 1:
 						winner = None
 					break
 		return winner
@@ -146,14 +146,14 @@ class pyExternalContourChainingIterator(ChainingIterator):
 		self._isInSelection = 1
 
 	def checkViewEdge(self, ve, orientation):
-		if(orientation != 0):
-			vertex = ve.B()
+		if orientation != 0:
+			vertex = ve.second_svertex()
 		else:
-			vertex = ve.A()
+			vertex = ve.first_svertex()
 		it = AdjacencyIterator(vertex,1,1)
-		while(it.isEnd() == 0):
+		while not it.isEnd():
 			ave = it.getObject()
-			if(self._isExternalContour(ave)):
+			if self._isExternalContour(ave):
 				return 1
 			it.increment()
 		print("pyExternlContourChainingIterator : didn't find next edge")
@@ -161,23 +161,23 @@ class pyExternalContourChainingIterator(ChainingIterator):
 	def traverse(self, iter):
 		winner = None
 		it = AdjacencyIterator(iter)
-		while(it.isEnd() == 0):
+		while not it.isEnd():
 			ve = it.getObject()
-			if(self._isExternalContour(ve)):
-				if (ve.getTimeStamp() == GetTimeStampCF()):
+			if self._isExternalContour(ve):
+				if ve.time_stamp == GetTimeStampCF():
 					winner = ve
 			it.increment()
 		
 		self._nEdges = self._nEdges+1
-		if(winner == None):
+		if winner is None:
 			orient = 1
 			it = AdjacencyIterator(iter)
-			while(it.isEnd() == 0):
+			while not it.isEnd():
 				ve = it.getObject()
-				if(it.isIncoming() != 0):
+				if it.isIncoming() != 0: # FIXME
 					orient = 0
 				good = self.checkViewEdge(ve,orient)
-				if(good != 0):
+				if good != 0:
 					winner = ve
 				it.increment()
 		return winner
@@ -198,10 +198,10 @@ class pySketchyChainSilhouetteIterator(ChainingIterator):
 		it = AdjacencyIterator(iter)
 		tvertex = self.getVertex()
 		if type(tvertex) is TVertex:
-			mateVE = tvertex.mate(self.getCurrentEdge())
-			while(it.isEnd() == 0):
+			mateVE = tvertex.get_mate(self.getCurrentEdge())
+			while not it.isEnd():
 				ve = it.getObject()
-				if(ve.getId() == mateVE.getId() ):
+				if ve.id == mateVE.id:
 					winner = ve
 					break
 				it.increment()
@@ -209,33 +209,33 @@ class pySketchyChainSilhouetteIterator(ChainingIterator):
 			## case of NonTVertex
 			natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
 			for i in range(len(natures)):
-				currentNature = self.getCurrentEdge().getNature()
-				if(natures[i] & currentNature):
+				currentNature = self.getCurrentEdge().nature
+				if (natures[i] & currentNature) != 0:
 					count=0
-					while(it.isEnd() == 0):
+					while not it.isEnd():
 						visitNext = 0
-						oNature = it.getObject().getNature()
+						oNature = it.getObject().nature
 						ve = it.getObject()
-						if(ve.getId() == self.getCurrentEdge().getId()):
+						if ve.id == self.getCurrentEdge().id:
 							it.increment()
 							continue
-						if(oNature & natures[i] != 0):
-							if(natures[i] != oNature):
+						if (oNature & natures[i]) != 0:
+							if (natures[i] != oNature) != 0:
 								for j in range(i):
-									if(natures[j] & oNature != 0):
+									if (natures[j] & oNature) != 0:
 										visitNext = 1
 										break
-								if(visitNext != 0):
+								if visitNext != 0:
 									break	 
 							count = count+1
 							winner = ve
 						it.increment()
-					if(count != 1):
+					if count != 1:
 						winner = None
 					break
-		if(winner == None):
+		if winner is None:
 			winner = self.getCurrentEdge()
-		if(winner.getChainingTimeStamp() == self._timeStamp):
+		if winner.chaining_time_stamp == self._timeStamp:
 			winner = None
 		return winner
 
@@ -257,16 +257,16 @@ class pySketchyChainingIterator(ChainingIterator):
 	def traverse(self, iter):
 		winner = None
 		it = AdjacencyIterator(iter)
-		while(it.isEnd() == 0):
+		while not it.isEnd():
 			ve = it.getObject()
-			if(ve.getId() == self.getCurrentEdge().getId()):
+			if ve.id == self.getCurrentEdge().id:
 				it.increment()
 				continue
 			winner = ve
 			it.increment()
-		if(winner == None):
+		if winner is None:
 			winner = self.getCurrentEdge()
-		if(winner.getChainingTimeStamp() == self._timeStamp):
+		if winner.chaining_time_stamp == self._timeStamp:
 			return None
 		return winner
 
@@ -290,16 +290,16 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 	def traverse(self, iter):
 		winner = None
 		winnerOrientation = 0
-		print(self.getCurrentEdge().getId().getFirst(), self.getCurrentEdge().getId().getSecond())
+		print(self.getCurrentEdge().id.first, self.getCurrentEdge().id.second)
 		it = AdjacencyIterator(iter)
 		tvertex = self.getVertex()
 		if type(tvertex) is TVertex:
-			mateVE = tvertex.mate(self.getCurrentEdge())
-			while(it.isEnd() == 0):
+			mateVE = tvertex.get_mate(self.getCurrentEdge())
+			while not it.isEnd():
 				ve = it.getObject()
-				if(ve.getId() == mateVE.getId() ):
+				if ve.id == mateVE.id:
 					winner = ve
-					if(it.isIncoming() == 0):
+					if it.isIncoming() == 0: # FIXME
 						winnerOrientation = 1
 					else:
 						winnerOrientation = 0
@@ -309,52 +309,52 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 			## case of NonTVertex
 			natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
 			for nat in natures:
-				if(self.getCurrentEdge().getNature() & nat != 0):
+				if (self.getCurrentEdge().nature & nat) != 0:
 					count=0
-					while(it.isEnd() == 0):
+					while not it.isEnd():
 						ve = it.getObject()
-						if(ve.getNature() & nat != 0):
+						if (ve.nature & nat) != 0:
 							count = count+1
 							winner = ve
-							if(it.isIncoming() == 0):
+							if it.isIncoming() == 0: # FIXME
 								winnerOrientation = 1
 							else:
 								winnerOrientation = 0
 						it.increment()
-					if(count != 1):
+					if count != 1:
 						winner = None
 					break
-		if(winner != None):
+		if winner is not None:
 			# check whether this edge was part of the selection
-			if(winner.getTimeStamp() != GetTimeStampCF()):
-				#print("---", winner.getId().getFirst(), winner.getId().getSecond())
+			if winner.time_stamp != GetTimeStampCF():
+				#print("---", winner.id.first, winner.id.second)
 				# if not, let's check whether it's short enough with
 				# respect to the chain made without staying in the selection
 				#------------------------------------------------------------
 				# Did we compute the prospective chain length already ?
-				if(self._length == 0):
+				if self._length == 0:
 					#if not, let's do it
 					_it = pyChainSilhouetteGenericIterator(0,0)
 					_it.setBegin(winner)
 					_it.setCurrentEdge(winner)
 					_it.setOrientation(winnerOrientation)
 					_it.init()
-					while(_it.isEnd() == 0):
+					while not _it.isEnd():
 						ve = _it.getObject()
-						#print("--------", ve.getId().getFirst(), ve.getId().getSecond())
-						self._length = self._length + ve.getLength2D()
+						#print("--------", ve.id.first, ve.id.second)
+						self._length = self._length + ve.length_2d
 						_it.increment()
-						if(_it.isBegin() != 0):
+						if _it.isBegin():
 							break;
 					_it.setBegin(winner)
 					_it.setCurrentEdge(winner)
 					_it.setOrientation(winnerOrientation)
-					if(_it.isBegin() == 0):
+					if not _it.isBegin():
 						_it.decrement()
-						while ((_it.isEnd() == 0) and (_it.isBegin() == 0)):
+						while (not _it.isEnd()) and (not _it.isBegin()):
 							ve = _it.getObject()
-							#print("--------", ve.getId().getFirst(), ve.getId().getSecond())
-							self._length = self._length + ve.getLength2D()
+							#print("--------", ve.id.first, ve.id.second)
+							self._length = self._length + ve.length_2d
 							_it.decrement()
 
 				# let's do the comparison:
@@ -365,12 +365,12 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 				_cit.setCurrentEdge(winner)
 				_cit.setOrientation(winnerOrientation)
 				_cit.init()
-				while((_cit.isEnd() == 0) and (_cit.getObject().getTimeStamp() != GetTimeStampCF())):
+				while _cit.isEnd() == 0 and _cit.getObject().time_stamp != GetTimeStampCF():
 					ve = _cit.getObject()
-					#print("-------- --------", ve.getId().getFirst(), ve.getId().getSecond())
-					connexl = connexl + ve.getLength2D()
+					#print("-------- --------", ve.id.first, ve.id.second)
+					connexl = connexl + ve.length_2d
 					_cit.increment()
-				if(connexl > self._percent * self._length):
+				if connexl > self._percent * self._length:
 					winner = None
 		return winner
 
@@ -389,16 +389,16 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
 	def traverse(self, iter):
 		winner = None
 		winnerOrientation = 0
-		#print(self.getCurrentEdge().getId().getFirst(), self.getCurrentEdge().getId().getSecond())
+		#print(self.getCurrentEdge().id.first, self.getCurrentEdge().id.second)
 		it = AdjacencyIterator(iter)
 		tvertex = self.getVertex()
 		if type(tvertex) is TVertex:
-			mateVE = tvertex.mate(self.getCurrentEdge())
-			while(it.isEnd() == 0):
+			mateVE = tvertex.get_mate(self.getCurrentEdge())
+			while not it.isEnd():
 				ve = it.getObject()
-				if(ve.getId() == mateVE.getId() ):
+				if ve.id == mateVE.id:
 					winner = ve
-					if(it.isIncoming() == 0):
+					if it.isIncoming() == 0: # FIXME
 						winnerOrientation = 1
 					else:
 						winnerOrientation = 0
@@ -408,25 +408,25 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
 			## case of NonTVertex
 			natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
 			for nat in natures:
-				if(self.getCurrentEdge().getNature() & nat != 0):
+				if (self.getCurrentEdge().nature & nat) != 0:
 					count=0
-					while(it.isEnd() == 0):
+					while not it.isEnd():
 						ve = it.getObject()
-						if(ve.getNature() & nat != 0):
+						if (ve.nature & nat) != 0:
 							count = count+1
 							winner = ve
-							if(it.isIncoming() == 0):
+							if it.isIncoming() == 0: # FIXME
 								winnerOrientation = 1
 							else:
 								winnerOrientation = 0
 						it.increment()
-					if(count != 1):
+					if count != 1:
 						winner = None
 					break
-		if(winner != None):
+		if winner is not None:
 			# check whether this edge was part of the selection
-			if(winner.getTimeStamp() != GetTimeStampCF()):
-				#print("---", winner.getId().getFirst(), winner.getId().getSecond())
+			if winner.time_stamp != GetTimeStampCF():
+				#print("---", winner.id.first, winner.id.second)
 				# nw let's compute the length of this connex non selected part:
 				connexl = 0
 				_cit = pyChainSilhouetteGenericIterator(0,0)
@@ -434,12 +434,12 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
 				_cit.setCurrentEdge(winner)
 				_cit.setOrientation(winnerOrientation)
 				_cit.init()
-				while((_cit.isEnd() == 0) and (_cit.getObject().getTimeStamp() != GetTimeStampCF())):
+				while _cit.isEnd() == 0 and _cit.getObject().time_stamp != GetTimeStampCF():
 					ve = _cit.getObject()
-					#print("-------- --------", ve.getId().getFirst(), ve.getId().getSecond())
-					connexl = connexl + ve.getLength2D()
+					#print("-------- --------", ve.id.first, ve.id.second)
+					connexl = connexl + ve.length_2d
 					_cit.increment()
-				if(connexl > self._length):
+				if connexl > self._length:
 					winner = None
 		return winner
 
@@ -464,16 +464,16 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 	def traverse(self, iter):
 		winner = None
 		winnerOrientation = 0
-		print(self.getCurrentEdge().getId().getFirst(), self.getCurrentEdge().getId().getSecond())
+		print(self.getCurrentEdge().id.first, self.getCurrentEdge().id.second)
 		it = AdjacencyIterator(iter)
 		tvertex = self.getVertex()
 		if type(tvertex) is TVertex:
-			mateVE = tvertex.mate(self.getCurrentEdge())
-			while(it.isEnd() == 0):
+			mateVE = tvertex.get_mate(self.getCurrentEdge())
+			while not it.isEnd():
 				ve = it.getObject()
-				if(ve.getId() == mateVE.getId() ):
+				if ve.id == mateVE.id:
 					winner = ve
-					if(it.isIncoming() == 0):
+					if it.isIncoming() == 0: # FIXME
 						winnerOrientation = 1
 					else:
 						winnerOrientation = 0
@@ -483,52 +483,52 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 			## case of NonTVertex
 			natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
 			for nat in natures:
-				if(self.getCurrentEdge().getNature() & nat != 0):
+				if (self.getCurrentEdge().nature & nat) != 0:
 					count=0
-					while(it.isEnd() == 0):
+					while not it.isEnd():
 						ve = it.getObject()
-						if(ve.getNature() & nat != 0):
+						if (ve.nature & nat) != 0:
 							count = count+1
 							winner = ve
-							if(it.isIncoming() == 0):
+							if it.isIncoming() == 0: # FIXME
 								winnerOrientation = 1
 							else:
 								winnerOrientation = 0
 						it.increment()
-					if(count != 1):
+					if count != 1:
 						winner = None
 					break
-		if(winner != None):
+		if winner is not None:
 			# check whether this edge was part of the selection
-			if(winner.getTimeStamp() != GetTimeStampCF()):
-				#print("---", winner.getId().getFirst(), winner.getId().getSecond())
+			if winner.time_stamp != GetTimeStampCF():
+				#print("---", winner.id.first, winner.id.second)
 				# if not, let's check whether it's short enough with
 				# respect to the chain made without staying in the selection
 				#------------------------------------------------------------
 				# Did we compute the prospective chain length already ?
-				if(self._length == 0):
+				if self._length == 0:
 					#if not, let's do it
 					_it = pyChainSilhouetteGenericIterator(0,0)
 					_it.setBegin(winner)
 					_it.setCurrentEdge(winner)
 					_it.setOrientation(winnerOrientation)
 					_it.init()
-					while(_it.isEnd() == 0):
+					while not _it.isEnd():
 						ve = _it.getObject()
-						#print("--------", ve.getId().getFirst(), ve.getId().getSecond())
-						self._length = self._length + ve.getLength2D()
+						#print("--------", ve.id.first, ve.id.second)
+						self._length = self._length + ve.length_2d
 						_it.increment()
-						if(_it.isBegin() != 0):
+						if _it.isBegin():
 							break;
 					_it.setBegin(winner)
 					_it.setCurrentEdge(winner)
 					_it.setOrientation(winnerOrientation)
-					if(_it.isBegin() == 0):
+					if not _it.isBegin():
 						_it.decrement()
-						while ((_it.isEnd() == 0) and (_it.isBegin() == 0)):
+						while (not _it.isEnd()) and (not _it.isBegin()):
 							ve = _it.getObject()
-							#print("--------", ve.getId().getFirst(), ve.getId().getSecond())
-							self._length = self._length + ve.getLength2D()
+							#print("--------", ve.id.first, ve.id.second)
+							self._length = self._length + ve.length_2d
 							_it.decrement()
 
 				# let's do the comparison:
@@ -539,12 +539,12 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 				_cit.setCurrentEdge(winner)
 				_cit.setOrientation(winnerOrientation)
 				_cit.init()
-				while((_cit.isEnd() == 0) and (_cit.getObject().getTimeStamp() != GetTimeStampCF())):
+				while _cit.isEnd() == 0 and _cit.getObject().time_stamp != GetTimeStampCF():
 					ve = _cit.getObject()
-					#print("-------- --------", ve.getId().getFirst(), ve.getId().getSecond())
-					connexl = connexl + ve.getLength2D()
+					#print("-------- --------", ve.id.first, ve.id.second)
+					connexl = connexl + ve.length_2d
 					_cit.increment()
-				if((connexl > self._percent * self._length) or (connexl > self._absLength)):
+				if (connexl > self._percent * self._length) or (connexl > self._absLength):
 					winner = None
 		return winner
 
@@ -569,16 +569,16 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
 	def traverse(self, iter):
 		winner = None
 		winnerOrientation = 0
-		print(self.getCurrentEdge().getId().getFirst(), self.getCurrentEdge().getId().getSecond())
+		print(self.getCurrentEdge().id.first, self.getCurrentEdge().id.second)
 		it = AdjacencyIterator(iter)
 		tvertex = self.getVertex()
 		if type(tvertex) is TVertex:
-			mateVE = tvertex.mate(self.getCurrentEdge())
-			while(it.isEnd() == 0):
+			mateVE = tvertex.get_mate(self.getCurrentEdge())
+			while not it.isEnd():
 				ve = it.getObject()
-				if(ve.getId() == mateVE.getId() ):
+				if ve.id == mateVE.id:
 					winner = ve
-					if(it.isIncoming() == 0):
+					if it.isIncoming() == 0: # FIXME
 						winnerOrientation = 1
 					else:
 						winnerOrientation = 0
@@ -588,52 +588,52 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
 			## case of NonTVertex
 			natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
 			for nat in natures:
-				if(self.getCurrentEdge().getNature() & nat != 0):
+				if (self.getCurrentEdge().nature & nat) != 0:
 					count=0
-					while(it.isEnd() == 0):
+					while not it.isEnd():
 						ve = it.getObject()
-						if(ve.getNature() & nat != 0):
+						if (ve.nature & nat) != 0:
 							count = count+1
 							winner = ve
-							if(it.isIncoming() == 0):
+							if it.isIncoming() == 0: # FIXME
 								winnerOrientation = 1
 							else:
 								winnerOrientation = 0
 						it.increment()
-					if(count != 1):
+					if count != 1:
 						winner = None
 					break
-		if(winner != None):
+		if winner is not None:
 			# check whether this edge was part of the selection
-			if(winner.qi() != 0):
-				#print("---", winner.getId().getFirst(), winner.getId().getSecond())
+			if winner.qi != 0:
+				#print("---", winner.id.first, winner.id.second)
 				# if not, let's check whether it's short enough with
 				# respect to the chain made without staying in the selection
 				#------------------------------------------------------------
 				# Did we compute the prospective chain length already ?
-				if(self._length == 0):
+				if self._length == 0:
 					#if not, let's do it
 					_it = pyChainSilhouetteGenericIterator(0,0)
 					_it.setBegin(winner)
 					_it.setCurrentEdge(winner)
 					_it.setOrientation(winnerOrientation)
 					_it.init()
-					while(_it.isEnd() == 0):
+					while not _it.isEnd():
 						ve = _it.getObject()
-						#print("--------", ve.getId().getFirst(), ve.getId().getSecond())
-						self._length = self._length + ve.getLength2D()
+						#print("--------", ve.id.first, ve.id.second)
+						self._length = self._length + ve.length_2d
 						_it.increment()
-						if(_it.isBegin() != 0):
+						if _it.isBegin():
 							break;
 					_it.setBegin(winner)
 					_it.setCurrentEdge(winner)
 					_it.setOrientation(winnerOrientation)
-					if(_it.isBegin() == 0):
+					if not _it.isBegin():
 						_it.decrement()
-						while ((_it.isEnd() == 0) and (_it.isBegin() == 0)):
+						while (not _it.isEnd()) and (not _it.isBegin()):
 							ve = _it.getObject()
-							#print("--------", ve.getId().getFirst(), ve.getId().getSecond())
-							self._length = self._length + ve.getLength2D()
+							#print("--------", ve.id.first, ve.id.second)
+							self._length = self._length + ve.length_2d
 							_it.decrement()
 
 				# let's do the comparison:
@@ -644,12 +644,12 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
 				_cit.setCurrentEdge(winner)
 				_cit.setOrientation(winnerOrientation)
 				_cit.init()
-				while((_cit.isEnd() == 0) and (_cit.getObject().qi() != 0)):
+				while not _cit.isEnd() and _cit.getObject().qi != 0:
 					ve = _cit.getObject()
-					#print("-------- --------", ve.getId().getFirst(), ve.getId().getSecond())
-					connexl = connexl + ve.getLength2D()
+					#print("-------- --------", ve.id.first, ve.id.second)
+					connexl = connexl + ve.length_2d
 					_cit.increment()
-				if((connexl > self._percent * self._length) or (connexl > self._absLength)):
+				if (connexl > self._percent * self._length) or (connexl > self._absLength):
 					winner = None
 		return winner
 
@@ -671,35 +671,35 @@ class pyNoIdChainSilhouetteIterator(ChainingIterator):
 		it = AdjacencyIterator(iter)
 		tvertex = self.getVertex()
 		if type(tvertex) is TVertex:
-			mateVE = tvertex.mate(self.getCurrentEdge())
-			while(it.isEnd() == 0):
+			mateVE = tvertex.get_mate(self.getCurrentEdge())
+			while not it.isEnd():
 				ve = it.getObject()
-				feB = self.getCurrentEdge().fedgeB()
-				feA = ve.fedgeA()
-				vB = feB.vertexB()
-				vA = feA.vertexA()
-				if vA.getId().getFirst() == vB.getId().getFirst():
+				feB = self.getCurrentEdge().last_fedge
+				feA = ve.first_fedge
+				vB = feB.second_svertex
+				vA = feA.first_svertex
+				if vA.id.first == vB.id.first:
 					winner = ve
 					break
-				feA = self.getCurrentEdge().fedgeA()
-				feB = ve.fedgeB()
-				vB = feB.vertexB()
-				vA = feA.vertexA()
-				if vA.getId().getFirst() == vB.getId().getFirst():
+				feA = self.getCurrentEdge().first_fedge
+				feB = ve.last_fedge
+				vB = feB.second_svertex
+				vA = feA.first_svertex
+				if vA.id.first == vB.id.first:
 					winner = ve
 					break
-				feA = self.getCurrentEdge().fedgeB()
-				feB = ve.fedgeB()
-				vB = feB.vertexB()
-				vA = feA.vertexB()
-				if vA.getId().getFirst() == vB.getId().getFirst():
+				feA = self.getCurrentEdge().last_fedge
+				feB = ve.last_fedge
+				vB = feB.second_svertex
+				vA = feA.second_svertex
+				if vA.id.first == vB.id.first:
 					winner = ve
 					break
-				feA = self.getCurrentEdge().fedgeA()
-				feB = ve.fedgeA()
-				vB = feB.vertexA()
-				vA = feA.vertexA()
-				if vA.getId().getFirst() == vB.getId().getFirst():
+				feA = self.getCurrentEdge().first_fedge
+				feB = ve.first_fedge
+				vB = feB.first_svertex
+				vA = feA.first_svertex
+				if vA.id.first == vB.id.first:
 					winner = ve
 					break
 				it.increment()
@@ -707,24 +707,24 @@ class pyNoIdChainSilhouetteIterator(ChainingIterator):
 			## case of NonTVertex
 			natures = [Nature.SILHOUETTE,Nature.BORDER,Nature.CREASE,Nature.SUGGESTIVE_CONTOUR,Nature.VALLEY,Nature.RIDGE]
 			for i in range(len(natures)):
-				currentNature = self.getCurrentEdge().getNature()
-				if(natures[i] & currentNature):
+				currentNature = self.getCurrentEdge().nature
+				if (natures[i] & currentNature) != 0:
 					count=0
-					while(it.isEnd() == 0):
+					while not it.isEnd():
 						visitNext = 0
-						oNature = it.getObject().getNature()
-						if(oNature & natures[i] != 0):
-							if(natures[i] != oNature):
+						oNature = it.getObject().nature
+						if (oNature & natures[i]) != 0:
+							if natures[i] != oNature:
 								for j in range(i):
-									if(natures[j] & oNature != 0):
+									if (natures[j] & oNature) != 0:
 										visitNext = 1
 										break
-								if(visitNext != 0):
+								if visitNext != 0:
 									break	 
 							count = count+1
 							winner = it.getObject()
 						it.increment()
-					if(count != 1):
+					if count != 1:
 						winner = None
 					break
 		return winner

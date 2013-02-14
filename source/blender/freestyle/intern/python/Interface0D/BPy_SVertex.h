@@ -23,6 +23,10 @@ typedef struct {
 	SVertex *sv;
 } BPy_SVertex;
 
+/*---------------------------Python BPy_SVertex visible prototypes-----------*/
+
+void SVertex_mathutils_register_callback();
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef __cplusplus

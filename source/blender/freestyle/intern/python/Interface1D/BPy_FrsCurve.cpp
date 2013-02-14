@@ -11,9 +11,9 @@ extern "C" {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-//------------------------INSTANCE METHODS ----------------------------------
+/*----------------------CurvePoint methods ----------------------------*/
 
-static char FrsCurve___doc__[] =
+PyDoc_STRVAR(FrsCurve_doc,
 "Class hierarchy: :class:`Interface1D` > :class:`Curve`\n"
 "\n"
 "Base class for curves made of CurvePoints.  :class:`SVertex` is the\n"
@@ -36,25 +36,25 @@ static char FrsCurve___doc__[] =
 "   Builds a Curve from its Id.\n"
 "\n"
 "   :arg iId: An Id object.\n"
-"   :type iId: :class:`Id`\n";
+"   :type iId: :class:`Id`");
 
-static int FrsCurve___init__(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
+static int FrsCurve_init(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 {
 
 	PyObject *obj = 0;
 
-    if (! PyArg_ParseTuple(args, "|O", &obj) )
-        return -1;
+	if (!PyArg_ParseTuple(args, "|O", &obj))
+		return -1;
 
-	if( !obj ){
+	if (!obj) {
 		self->c = new Curve();
-		
-	} else if( BPy_FrsCurve_Check(obj) ) {
+
+	} else if (BPy_FrsCurve_Check(obj)) {
 		self->c = new Curve(*( ((BPy_FrsCurve *) obj)->c ));
-		
-	} else if( BPy_Id_Check(obj) ) {
+
+	} else if (BPy_Id_Check(obj)) {
 		self->c = new Curve(*( ((BPy_Id *) obj)->id ));
-			
+
 	} else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument");
 		return -1;
@@ -66,24 +66,25 @@ static int FrsCurve___init__(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 	return 0;
 }
 
-static char FrsCurve_push_vertex_back___doc__[] =
+PyDoc_STRVAR(FrsCurve_push_vertex_back_doc,
 ".. method:: push_vertex_back(iVertex)\n"
 "\n"
 "   Adds a single vertex at the end of the Curve.\n"
 "\n"
 "   :arg iVertex: A vertex object.\n"
-"   :type iVertex: :class:`SVertex` or :class:`CurvePoint`\n";
+"   :type iVertex: :class:`SVertex` or :class:`CurvePoint`");
 
-static PyObject * FrsCurve_push_vertex_back( BPy_FrsCurve *self, PyObject *args ) {
+static PyObject * FrsCurve_push_vertex_back( BPy_FrsCurve *self, PyObject *args )
+{
 	PyObject *obj;
 
-	if(!( PyArg_ParseTuple(args, "O", &obj) ))
+	if (!PyArg_ParseTuple(args, "O", &obj))
 		return NULL;
 
-	if( BPy_CurvePoint_Check(obj) ) {
-		self->c->push_vertex_back( ((BPy_CurvePoint *) obj)->cp );
-	} else if( BPy_SVertex_Check(obj) ) {
-		self->c->push_vertex_back( ((BPy_SVertex *) obj)->sv );
+	if (BPy_CurvePoint_Check(obj)) {
+		self->c->push_vertex_back(((BPy_CurvePoint *)obj)->cp);
+	} else if (BPy_SVertex_Check(obj)) {
+		self->c->push_vertex_back(((BPy_SVertex *)obj)->sv);
 	} else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument");
 		return NULL;
@@ -92,24 +93,25 @@ static PyObject * FrsCurve_push_vertex_back( BPy_FrsCurve *self, PyObject *args 
 	Py_RETURN_NONE;
 }
 
-static char FrsCurve_push_vertex_front___doc__[] =
+PyDoc_STRVAR(FrsCurve_push_vertex_front_doc,
 ".. method:: push_vertex_front(iVertex)\n"
 "\n"
 "   Adds a single vertex at the front of the Curve.\n"
 "\n"
 "   :arg iVertex: A vertex object.\n"
-"   :type iVertex: :class:`SVertex` or :class:`CurvePoint`\n";
+"   :type iVertex: :class:`SVertex` or :class:`CurvePoint`");
 
-static PyObject * FrsCurve_push_vertex_front( BPy_FrsCurve *self, PyObject *args ) {
+static PyObject * FrsCurve_push_vertex_front( BPy_FrsCurve *self, PyObject *args )
+{
 	PyObject *obj;
 
-	if(!( PyArg_ParseTuple(args, "O", &obj) ))
+	if (!PyArg_ParseTuple(args, "O", &obj))
 		return NULL;
 
-	if( BPy_CurvePoint_Check(obj) ) {
-		self->c->push_vertex_front( ((BPy_CurvePoint *) obj)->cp );
-	} else if( BPy_SVertex_Check(obj) ) {
-		self->c->push_vertex_front( ((BPy_SVertex *) obj)->sv );
+	if (BPy_CurvePoint_Check(obj)) {
+		self->c->push_vertex_front(((BPy_CurvePoint *)obj)->cp);
+	} else if( BPy_SVertex_Check(obj)) {
+		self->c->push_vertex_front(((BPy_SVertex *)obj)->sv);
 	} else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument");
 		return NULL;
@@ -118,38 +120,38 @@ static PyObject * FrsCurve_push_vertex_front( BPy_FrsCurve *self, PyObject *args
 	Py_RETURN_NONE;
 }
 
-static char FrsCurve_empty___doc__[] =
-".. method:: empty()\n"
-"\n"
-"   Returns true if the Curve doesn't have any Vertex yet.\n"
-"\n"
-"   :return: True if the Curve has no vertices.\n"
-"   :rtype: bool\n";
-
-static PyObject * FrsCurve_empty( BPy_FrsCurve *self ) {
-	return PyBool_from_bool( self->c->empty() );
-}
-
-static char FrsCurve_nSegments___doc__[] =
-".. method:: nSegments()\n"
-"\n"
-"   Returns the number of segments in the polyline constituing the\n"
-"   Curve.\n"
-"\n"
-"   :return: The number of segments.\n"
-"   :rtype: int\n";
-
-static PyObject * FrsCurve_nSegments( BPy_FrsCurve *self ) {
-	return PyLong_FromLong( self->c->nSegments() );
-}
-
-/*----------------------FrsCurve instance definitions ----------------------------*/
 static PyMethodDef BPy_FrsCurve_methods[] = {	
-	{"push_vertex_back", ( PyCFunction ) FrsCurve_push_vertex_back, METH_VARARGS, FrsCurve_push_vertex_back___doc__},
-	{"push_vertex_front", ( PyCFunction ) FrsCurve_push_vertex_front, METH_VARARGS, FrsCurve_push_vertex_front___doc__},
-	{"empty", ( PyCFunction ) FrsCurve_empty, METH_NOARGS, FrsCurve_empty___doc__},
-	{"nSegments", ( PyCFunction ) FrsCurve_nSegments, METH_NOARGS, FrsCurve_nSegments___doc__},
+	{"push_vertex_back", (PyCFunction)FrsCurve_push_vertex_back, METH_VARARGS, FrsCurve_push_vertex_back_doc},
+	{"push_vertex_front", (PyCFunction)FrsCurve_push_vertex_front, METH_VARARGS, FrsCurve_push_vertex_front_doc},
 	{NULL, NULL, 0, NULL}
+};
+
+/*----------------------CurvePoint get/setters ----------------------------*/
+
+PyDoc_STRVAR(FrsCurve_is_empty_doc,
+"True if the Curve doesn't have any Vertex yet.\n"
+"\n"
+":type: bool");
+
+static PyObject *FrsCurve_is_empty_get(BPy_FrsCurve *self, void *UNUSED(closure))
+{
+	return PyBool_from_bool(self->c->empty());
+}
+
+PyDoc_STRVAR(FrsCurve_segments_size_doc,
+"The number of segments in the polyline constituing the Curve.\n"
+"\n"
+":type: int");
+
+static PyObject *FrsCurve_segments_size_get(BPy_FrsCurve *self, void *UNUSED(closure))
+{
+	return PyLong_FromLong(self->c->nSegments());
+}
+
+static PyGetSetDef BPy_FrsCurve_getseters[] = {
+	{(char *)"is_empty", (getter)FrsCurve_is_empty_get, (setter)NULL, (char *)FrsCurve_is_empty_doc, NULL},
+	{(char *)"segments_size", (getter)FrsCurve_segments_size_get, (setter)NULL, (char *)FrsCurve_segments_size_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_FrsCurve type definition ------------------------------*/
@@ -175,7 +177,7 @@ PyTypeObject FrsCurve_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	FrsCurve___doc__,               /* tp_doc */
+	FrsCurve_doc,                   /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -184,13 +186,13 @@ PyTypeObject FrsCurve_Type = {
 	0,                              /* tp_iternext */
 	BPy_FrsCurve_methods,           /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_FrsCurve_getseters,         /* tp_getset */
 	&Interface1D_Type,              /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */
 	0,                              /* tp_descr_set */
 	0,                              /* tp_dictoffset */
-	(initproc)FrsCurve___init__,    /* tp_init */
+	(initproc)FrsCurve_init,        /* tp_init */
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };

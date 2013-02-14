@@ -76,68 +76,6 @@ static PyObject * Id___repr__(BPy_Id* self)
     return PyUnicode_FromFormat("[ first: %i, second: %i ](BPy_Id)", self->id->getFirst(), self->id->getSecond() );
 }
 
-static char Id_getFirst___doc__[] =
-".. method:: getFirst()\n"
-"\n"
-"   Returns the first Id number.\n"
-"\n"
-"   :return: The first Id number.\n"
-"   :rtype: int\n";
-
-static PyObject *Id_getFirst( BPy_Id *self ) {
-	return PyLong_FromLong( self->id->getFirst() );
-}
-
-static char Id_getSecond___doc__[] =
-".. method:: getSecond()\n"
-"\n"
-"   Returns the second Id number.\n"
-"\n"
-"   :return: The second Id number.\n"
-"   :rtype: int\n";
-
-static PyObject *Id_getSecond( BPy_Id *self) {
-	return PyLong_FromLong( self->id->getSecond() );
-}
-
-static char Id_setFirst___doc__[] =
-".. method:: setFirst(iFirst)\n"
-"\n"
-"   Sets the first number constituting the Id.\n"
-"\n"
-"   :arg iFirst: The first number constituting the Id.\n"
-"   :type iFirst: int\n";
-
-static PyObject *Id_setFirst( BPy_Id *self , PyObject *args) {
-	unsigned int i;
-
-	if( !PyArg_ParseTuple(args, "i", &i) )
-		return NULL;
-
-	self->id->setFirst( i );
-
-	Py_RETURN_NONE;
-}
-
-static char Id_setSecond___doc__[] =
-".. method:: setSecond(iSecond)\n"
-"\n"
-"   Sets the second number constituting the Id.\n"
-"\n"
-"   :arg iSecond: The second number constituting the Id.\n"
-"   :type iSecond: int\n";
-
-static PyObject *Id_setSecond( BPy_Id *self , PyObject *args) {
-	unsigned int i;
-
-	if( !PyArg_ParseTuple(args, "i", &i) )
-		return NULL;
-
-	self->id->setSecond( i );
-
-	Py_RETURN_NONE;
-}
-
 static PyObject * Id_RichCompare(BPy_Id *o1, BPy_Id *o2, int opid) {
 	switch(opid){
 		case Py_LT:
@@ -165,11 +103,59 @@ static PyObject * Id_RichCompare(BPy_Id *o1, BPy_Id *o2, int opid) {
 
 /*----------------------Id instance definitions ----------------------------*/
 static PyMethodDef BPy_Id_methods[] = {
-	{"getFirst", ( PyCFunction ) Id_getFirst, METH_NOARGS, Id_getFirst___doc__},
-	{"getSecond", ( PyCFunction ) Id_getSecond, METH_NOARGS, Id_getSecond___doc__},
-	{"setFirst", ( PyCFunction ) Id_setFirst, METH_VARARGS, Id_setFirst___doc__},
-	{"setSecond", ( PyCFunction ) Id_setSecond, METH_VARARGS, Id_setSecond___doc__},
 	{NULL, NULL, 0, NULL}
+};
+
+/*----------------------Id get/setters ----------------------------*/
+
+PyDoc_STRVAR(Id_first_doc,
+"The first number constituting the Id.\n"
+"\n"
+":type: int"
+);
+
+static PyObject *Id_first_get(BPy_Id *self, void *UNUSED(closure))
+{
+	return PyLong_FromLong(self->id->getFirst());
+}
+
+static int Id_first_set(BPy_Id *self, PyObject *value, void *UNUSED(closure))
+{
+	int scalar;
+	if ((scalar = PyLong_AsLong(value)) == -1 && PyErr_Occurred()) {
+		PyErr_SetString(PyExc_TypeError, "value must be an integer");
+		return -1;
+	}
+	self->id->setFirst(scalar);
+	return 0;
+}
+
+PyDoc_STRVAR(Id_second_doc,
+"The second number constituting the Id.\n"
+"\n"
+":type: int"
+);
+
+static PyObject *Id_second_get(BPy_Id *self, void *UNUSED(closure))
+{
+	return PyLong_FromLong(self->id->getSecond());
+}
+
+static int Id_second_set(BPy_Id *self, PyObject *value, void *UNUSED(closure))
+{
+	int scalar;
+	if ((scalar = PyLong_AsLong(value)) == -1 && PyErr_Occurred()) {
+		PyErr_SetString(PyExc_TypeError, "value must be an integer");
+		return -1;
+	}
+	self->id->setSecond(scalar);
+	return 0;
+}
+
+static PyGetSetDef BPy_Id_getseters[] = {
+	{(char *)"first", (getter)Id_first_get, (setter)Id_first_set, (char *)Id_first_doc, NULL},
+	{(char *)"second", (getter)Id_second_get, (setter)Id_second_set, (char *)Id_second_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_Id type definition ------------------------------*/
@@ -204,7 +190,7 @@ PyTypeObject Id_Type = {
 	0,                              /* tp_iternext */
 	BPy_Id_methods,                 /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_Id_getseters,               /* tp_getset */
 	0,                              /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */

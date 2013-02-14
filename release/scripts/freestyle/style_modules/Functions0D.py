@@ -8,9 +8,9 @@ class CurveMaterialF0D(UnaryFunction0DMaterial):
 	def __call__(self, inter):
 		cp = inter.getObject()
 		assert(isinstance(cp, CurvePoint))
-		fe = cp.A().getFEdge(cp.B())
+		fe = cp.first_svertex.get_fedge(cp.second_svertex)
 		assert(fe is not None)
-		return fe.material() if fe.isSmooth() else fe.bMaterial()
+		return fe.material if fe.is_smooth else fe.material_left
 
 class pyInverseCurvature2DAngleF0D(UnaryFunction0DDouble):
 	def getName(self):
@@ -26,13 +26,9 @@ class pyCurvilinearLengthF0D(UnaryFunction0DDouble):
 		return "CurvilinearLengthF0D"
 
 	def __call__(self, inter):
-		i0d = inter.getObject()
-		s = i0d.getExactTypeName()
-		if (string.find(s, "CurvePoint") == -1):
-			print("CurvilinearLengthF0D: not implemented yet for", s)
-			return -1
-		cp = castToCurvePoint(i0d)
-		return cp.t2d()
+		cp = inter.getObject()		
+		assert(isinstance(cp, CurvePoint))
+		return cp.t2d
 
 ## estimate anisotropy of density
 class pyDensityAnisotropyF0D(UnaryFunction0DDouble):
@@ -51,13 +47,13 @@ class pyDensityAnisotropyF0D(UnaryFunction0DDouble):
 		c_1 = self.d1Density(inter) 
 		c_2 = self.d2Density(inter) 
 		c_3 = self.d3Density(inter) 
-		cMax = max( max(c_0,c_1), max(c_2,c_3))
-		cMin = min( min(c_0,c_1), min(c_2,c_3))
-		if ( c_iso == 0 ):
+		cMax = max(max(c_0,c_1), max(c_2,c_3))
+		cMin = min(min(c_0,c_1), min(c_2,c_3))
+		if c_iso == 0:
 			v = 0
 		else:
 			v = (cMax-cMin)/c_iso
-		return (v)
+		return v
 
 ## Returns the gradient vector for a pixel 
 ## 	l
@@ -70,9 +66,9 @@ class pyViewMapGradientVectorF0D(UnaryFunction0DVec2f):
 	def getName(self):
 		return "pyViewMapGradientVectorF0D"
 	def __call__(self, iter):
-		p = iter.getObject().getPoint2D()
-		gx = ReadCompleteViewMapPixelCF(self._l, int(p.x()+self._step), int(p.y()))- ReadCompleteViewMapPixelCF(self._l, int(p.x()), int(p.y()))
-		gy = ReadCompleteViewMapPixelCF(self._l, int(p.x()), int(p.y()+self._step))- ReadCompleteViewMapPixelCF(self._l, int(p.x()), int(p.y()))
+		p = iter.getObject().point_2d
+		gx = ReadCompleteViewMapPixelCF(self._l, int(p.x+self._step), int(p.y))- ReadCompleteViewMapPixelCF(self._l, int(p.x), int(p.y))
+		gy = ReadCompleteViewMapPixelCF(self._l, int(p.x), int(p.y+self._step))- ReadCompleteViewMapPixelCF(self._l, int(p.x), int(p.y))
 		return Vector([gx, gy])
 
 class pyViewMapGradientNormF0D(UnaryFunction0DDouble):
@@ -83,9 +79,9 @@ class pyViewMapGradientNormF0D(UnaryFunction0DDouble):
 	def getName(self):
 		return "pyViewMapGradientNormF0D"
 	def __call__(self, iter):
-		p = iter.getObject().getPoint2D()
-		gx = ReadCompleteViewMapPixelCF(self._l, int(p.x()+self._step), int(p.y()))- ReadCompleteViewMapPixelCF(self._l, int(p.x()), int(p.y()))
-		gy = ReadCompleteViewMapPixelCF(self._l, int(p.x()), int(p.y()+self._step))- ReadCompleteViewMapPixelCF(self._l, int(p.x()), int(p.y()))
+		p = iter.getObject().point_2d
+		gx = ReadCompleteViewMapPixelCF(self._l, int(p.x+self._step), int(p.y))- ReadCompleteViewMapPixelCF(self._l, int(p.x), int(p.y))
+		gy = ReadCompleteViewMapPixelCF(self._l, int(p.x), int(p.y+self._step))- ReadCompleteViewMapPixelCF(self._l, int(p.x), int(p.y))
 		grad = Vector([gx, gy])
 		return grad.length
 
