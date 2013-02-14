@@ -894,6 +894,10 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					t->redraw |= TREDRAW_HARD;
 					WM_event_add_mousemove(t->context);
 				}
+				else if (t->mode == TFM_SEQ_SLIDE) {
+					t->flag ^= T_ALT_TRANSFORM;
+					t->redraw |= TREDRAW_HARD;
+				}
 				else {
 					if (t->obedit && t->obedit->type == OB_MESH) {
 						if ((t->mode == TFM_TRANSLATION) && (t->spacetype == SPACE_VIEW3D)) {
@@ -4083,14 +4087,18 @@ int ShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 		str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), " %.4f", distance);
 	}
 
-	str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), " %s, (", t->proptext);
+	if (t->proptext[0]) {
+		str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), " %s", t->proptext);
+	}
+	str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), ", (");
+
 	{
 		wmKeyMapItem *kmi = WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_RESIZE);
 		if (kmi) {
 			str_p += WM_keymap_item_to_string(kmi, str_p, sizeof(str) - (str_p - str));
 		}
 	}
-	str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), ") Even Thickness %s",
+	str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), " or Alt) Even Thickness %s",
 	                      (t->flag & T_ALT_TRANSFORM) ? "ON" : "OFF");
 	/* done with header string */
 
@@ -6752,9 +6760,10 @@ void initSeqSlide(TransInfo *t)
 	t->num.increment = t->snap[1];
 }
 
-static void headerSeqSlide(TransInfo *t, float val[2], char *str)
+static void headerSeqSlide(TransInfo *t, float val[2], char *str, size_t str_len)
 {
 	char tvec[NUM_STR_REP_LEN * 3];
+	char *str_p;
 
 	if (hasNumInput(&t->num)) {
 		outputNumInput(&(t->num), tvec);
@@ -6763,7 +6772,17 @@ static void headerSeqSlide(TransInfo *t, float val[2], char *str)
 		sprintf(&tvec[0], "%.0f, %.0f", val[0], val[1]);
 	}
 
-	sprintf(str, "Sequence Slide: %s%s", &tvec[0], t->con.text);
+	str_p = str;
+	str_p += BLI_snprintf(str, str_len, "Sequence Slide: %s%s, (", &tvec[0], t->con.text);
+
+	{
+		wmKeyMapItem *kmi = WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_TRANSLATE);
+		if (kmi) {
+			str_p += WM_keymap_item_to_string(kmi, str_p, str_len - (str_p - str));
+		}
+	}
+	str_p += BLI_snprintf(str_p, str_len - (str_p - str), " or Alt) Expand to fit %s",
+	                      (t->flag & T_ALT_TRANSFORM) ? "ON" : "OFF");
 }
 
 static void applySeqSlide(TransInfo *t, float val[2])
@@ -6807,7 +6826,7 @@ int SeqSlide(TransInfo *t, const int UNUSED(mval[2]))
 	t->values[0] = floor(t->values[0] + 0.5f);
 	t->values[1] = floor(t->values[1] + 0.5f);
 
-	headerSeqSlide(t, t->values, str);
+	headerSeqSlide(t, t->values, str, sizeof(str));
 	applySeqSlide(t, t->values);
 
 	recalcData(t);
