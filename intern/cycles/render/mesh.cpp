@@ -967,6 +967,7 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 	dscene->attributes_float.clear();
 	dscene->attributes_float3.clear();
 
+#ifdef WITH_OSL
 	OSLGlobals *og = (OSLGlobals*)device->osl_memory();
 
 	if(og) {
@@ -974,6 +975,7 @@ void MeshManager::device_free(Device *device, DeviceScene *dscene)
 		og->attribute_map.clear();
 		og->object_names.clear();
 	}
+#endif
 }
 
 void MeshManager::tag_update(Scene *scene)
