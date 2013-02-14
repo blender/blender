@@ -83,6 +83,7 @@ LANGUAGES = (
     (37, "Amharic (አማርኛ)", "am_ET"),
     (38, "Uzbek (Oʻzbek)", "uz_UZ"),
     (39, "Uzbek Cyrillic (Ўзбек)", "uz_UZ@cyrillic"),
+    (40, "Hindi (मानक हिन्दी)", "hi_IN"),
 )
 
 # Name of language file used by Blender to generate translations' menu.
@@ -93,7 +94,7 @@ LANGUAGES_FILE = "languages"
 IMPORT_MIN_LEVEL = -1
 
 # Languages in /branches we do not want to import in /trunk currently...
-IMPORT_LANGUAGES_SKIP = {'am', 'bg', 'fi', 'el', 'et', 'ne', 'pl', 'ro', 'uz', 'uz@cyrillic'}
+IMPORT_LANGUAGES_SKIP = {'am', 'bg', 'fi', 'el', 'et', 'hi', 'ne', 'pl', 'ro', 'uz', 'uz@cyrillic'}
 
 # The comment prefix used in generated messages.txt file.
 MSG_COMMENT_PREFIX = "#~ "
