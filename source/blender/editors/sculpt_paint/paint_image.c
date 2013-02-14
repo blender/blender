@@ -5016,22 +5016,28 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 {
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *settings = scene->toolsettings;
-	Brush *brush = paint_brush(&settings->imapaint.paint);
 
 	/* brush */
-	ps->brush = brush;
-	ps->tool = brush->imagepaint_tool;
-	ps->blend = brush->blend;
+	ps->brush = paint_brush(&settings->imapaint.paint);
+	if (ps->brush) {
+		Brush *brush = ps->brush;
+		ps->tool = brush->imagepaint_tool;
+		ps->blend = brush->blend;
+
+		/* disable for 3d mapping also because painting on mirrored mesh can create "stripes" */
+		ps->do_masking = (brush->flag & BRUSH_AIRBRUSH || brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW ||
+		                  brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) ? false : true;
+		ps->is_texbrush = (brush->mtex.tex) ? 1 : 0;
+	}
+	else {
+		/* brush may be NULL*/
+		ps->do_masking = false;
+		ps->is_texbrush = false;
+	}
 
 	/* sizeof ProjPixel, since we alloc this a _lot_ */
 	ps->pixel_sizeof = project_paint_pixel_sizeof(ps->tool);
 	BLI_assert(ps->pixel_sizeof >= sizeof(ProjPixel));
-
-	/* disable for 3d mapping also because painting on mirrored mesh can create "stripes" */
-	ps->do_masking = (brush->flag & BRUSH_AIRBRUSH || brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW ||
-	                  brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) ? false : true;
-	ps->is_texbrush = (brush->mtex.tex) ? 1 : 0;
-
 
 	/* these can be NULL */
 	ps->v3d = CTX_wm_view3d(C);
