@@ -28,10 +28,6 @@
  *  \ingroup edmeta
  */
 
-
-#include "WM_api.h"
-#include "WM_types.h"
-
 #include "RNA_access.h"
 
 #include "ED_mball.h"
@@ -39,6 +35,9 @@
 #include "ED_object.h"
 
 #include "BLI_utildefines.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
 
 #include "mball_intern.h"
 

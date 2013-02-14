@@ -64,7 +64,7 @@ wmKeyMapItem *WM_keymap_add_menu(struct wmKeyMap *keymap, const char *idname, in
                                  int val, int modifier, int keymodifier);
 
 int			WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
-char		*WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, int len);
+int         WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, const int len);
 
 wmKeyMap	*WM_keymap_list_find(ListBase *lb, const char *idname, int spaceid, int regionid);
 wmKeyMap	*WM_keymap_find(struct wmKeyConfig *keyconf, const char *idname, int spaceid, int regionid);
@@ -81,6 +81,7 @@ wmKeyMap	*WM_modalkeymap_add(struct wmKeyConfig *keyconf, const char *idname, st
 wmKeyMap	*WM_modalkeymap_get(struct wmKeyConfig *keyconf, const char *idname);
 wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value);
 wmKeyMapItem *WM_modalkeymap_add_item_str(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, const char *value);
+wmKeyMapItem *WM_modalkeymap_find_propvalue(wmKeyMap *km, const int propvalue);
 void		WM_modalkeymap_assign(struct wmKeyMap *km, const char *opname);
 
 /* Keymap Editor */

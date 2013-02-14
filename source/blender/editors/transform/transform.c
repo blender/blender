@@ -958,6 +958,10 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					initSnapping(t, NULL); // need to reinit after mode change
 					t->redraw |= TREDRAW_HARD;
 				}
+				else if (t->mode == TFM_SHRINKFATTEN) {
+					t->flag ^= T_ALT_TRANSFORM;
+					t->redraw |= TREDRAW_HARD;
+				}
 				else if (t->mode == TFM_RESIZE) {
 					if (t->options & CTX_MOVIECLIP) {
 						restoreTransObjects(t);
@@ -1919,6 +1923,8 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		}
 
 	}
+
+	t->keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
 
 	initSnapping(t, op); // Initialize snapping data AFTER mode flags
 
@@ -4054,7 +4060,8 @@ int ShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 {
 	float distance;
 	int i;
-	char str[64];
+	char str[128];
+	char *str_p;
 	TransData *td = t->data;
 
 	distance = -t->values[0];
@@ -4064,17 +4071,29 @@ int ShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 	applyNumInput(&t->num, &distance);
 
 	/* header print for NumInput */
+	str_p = str;
+	str_p += BLI_snprintf(str_p, sizeof(str), "Shrink/Fatten:");
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
-
 		outputNumInput(&(t->num), c);
-
-		sprintf(str, "Shrink/Fatten: %s %s", c, t->proptext);
+		str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), " %s", c);
 	}
 	else {
 		/* default header print */
-		sprintf(str, "Shrink/Fatten: %.4f %s", distance, t->proptext);
+		str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), " %.4f", distance);
 	}
+
+	str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), " %s, (", t->proptext);
+	{
+		wmKeyMapItem *kmi = WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_RESIZE);
+		if (kmi) {
+			str_p += WM_keymap_item_to_string(kmi, str_p, sizeof(str) - (str_p - str));
+		}
+	}
+	str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), ") Even Thickness %s",
+	                      (t->flag & T_ALT_TRANSFORM) ? "ON" : "OFF");
+	/* done with header string */
+
 
 	t->values[0] = -distance;
 
@@ -6398,14 +6417,15 @@ int VertSlide(TransInfo *t, const int UNUSED(mval[2]))
 
 	/* header string */
 	str_p = str;
+	str_p += BLI_snprintf(str_p, sizeof(str), "Vert Slide: ");
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
 		applyNumInput(&t->num, &final);
 		outputNumInput(&(t->num), c);
-		str_p += BLI_snprintf(str, sizeof(str), "Vert Slide: %s", &c[0]);
+		str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), "%s", &c[0]);
 	}
 	else {
-		str_p += BLI_snprintf(str_p, sizeof(str), "Vert Slide: %.4f ", final);
+		str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), "%.4f ", final);
 	}
 	str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), "(E)ven: %s, ", !is_proportional ? "ON" : "OFF");
 	if (!is_proportional) {

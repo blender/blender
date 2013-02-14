@@ -737,6 +737,24 @@ wmKeyMapItem *WM_modalkeymap_add_item_str(wmKeyMap *km, int type, int val, int m
 	return kmi;
 }
 
+wmKeyMapItem *WM_modalkeymap_find_propvalue(wmKeyMap *km, const int propvalue)
+{
+
+	if (km->flag & KEYMAP_MODAL) {
+		wmKeyMapItem *kmi;
+		for (kmi = km->items.first; kmi; kmi = kmi->next) {
+			if (kmi->propvalue == propvalue) {
+				return kmi;
+			}
+		}
+	}
+	else {
+		BLI_assert(!"called with non modal keymap");
+	}
+
+	return NULL;
+}
+
 void WM_modalkeymap_assign(wmKeyMap *km, const char *opname)
 {
 	wmOperatorType *ot = WM_operatortype_find(opname, 0);
@@ -785,7 +803,7 @@ const char *WM_key_event_string(short type)
 	return "";
 }
 
-char *WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, int len)
+int WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, int len)
 {
 	char buf[128];
 
@@ -818,9 +836,7 @@ char *WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, int len)
 	}
 
 	strcat(buf, WM_key_event_string(kmi->type));
-	BLI_strncpy(str, buf, len);
-
-	return str;
+	return BLI_snprintf(str, len, "%s", buf);
 }
 
 static wmKeyMapItem *wm_keymap_item_find_handlers(
