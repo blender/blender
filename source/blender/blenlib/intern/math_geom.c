@@ -129,6 +129,22 @@ float area_tri_v3(const float v1[3], const float v2[3], const float v3[3])
 	return (len / 2.0f);
 }
 
+float area_tri_signed_v3(const float v1[3], const float v2[3], const float v3[3], const float normal[3])
+{
+	float area, vec1[3], vec2[3], n[3];
+
+	sub_v3_v3v3(vec1, v3, v2);
+	sub_v3_v3v3(vec2, v1, v2);
+	cross_v3_v3v3(n, vec1, vec2);
+	area = len_v3(n) / 2.0f;
+
+	/* negate area for flipped triangles */
+	if (dot_v3v3(n, normal) < 0.0f)
+		area = -area;
+
+	return area;
+}
+
 float area_poly_v3(int nr, float verts[][3], const float normal[3])
 {
 	int a, px, py;
