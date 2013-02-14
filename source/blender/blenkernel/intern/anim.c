@@ -967,7 +967,7 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 		dm = editbmesh_get_derived_cage(scene, par, em, CD_MASK_BAREMESH);
 	}
 	else
-		dm = mesh_get_derived_deform(scene, par, CD_MASK_BAREMESH);
+		dm = mesh_get_derived_final(scene, par, CD_MASK_BAREMESH);
 	
 	if (flag & DUPLILIST_FOR_RENDER) {
 		vdd.orco = (float(*)[3])BKE_mesh_orco_verts_get(par);
@@ -1094,7 +1094,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 		dm = editbmesh_get_derived_cage(scene, par, em, CD_MASK_BAREMESH);
 	}
 	else {
-		dm = mesh_get_derived_deform(scene, par, CD_MASK_BAREMESH);
+		dm = mesh_get_derived_final(scene, par, CD_MASK_BAREMESH);
 	}
 
 	totface = dm->getNumPolys(dm);
