@@ -126,10 +126,13 @@ static int wm_keymap_item_equals(wmKeyMapItem *a, wmKeyMapItem *b)
 /* properties can be NULL, otherwise the arg passed is used and ownership is given to the kmi */
 void WM_keymap_properties_reset(wmKeyMapItem *kmi, struct IDProperty *properties)
 {
-	WM_operator_properties_free(kmi->ptr);
-	MEM_freeN(kmi->ptr);
+	if (LIKELY(kmi->ptr)) {
+		WM_operator_properties_free(kmi->ptr);
+		MEM_freeN(kmi->ptr);
 
-	kmi->ptr = NULL;
+		kmi->ptr = NULL;
+	}
+
 	kmi->properties = properties;
 
 	wm_keymap_item_properties_set(kmi);

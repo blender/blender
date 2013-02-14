@@ -236,7 +236,7 @@ static void rna_Sculpt_ShowDiffuseColor_update(Main *UNUSED(bmain), Scene *scene
 {
 	Object *ob = (scene->basact) ? scene->basact->object : NULL;
 
-	if (ob) {
+	if (ob && ob->sculpt) {
 		Sculpt *sd = scene->toolsettings->sculpt;
 		ob->sculpt->show_diffuse_color = sd->flags & SCULPT_SHOW_DIFFUSE;
 
