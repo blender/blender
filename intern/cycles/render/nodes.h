@@ -69,6 +69,7 @@ public:
 	ImageManager *image_manager;
 	int slot;
 	int is_float;
+	bool is_linear;
 	string filename;
 	void *builtin_data;
 	ustring color_space;
@@ -89,6 +90,7 @@ public:
 	ImageManager *image_manager;
 	int slot;
 	int is_float;
+	bool is_linear;
 	string filename;
 	void *builtin_data;
 	ustring color_space;
