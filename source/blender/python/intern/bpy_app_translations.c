@@ -501,7 +501,9 @@ static PyObject *_py_pgettext(PyObject *args, PyObject *kw, const char *(*_pgett
 #ifdef WITH_INTERNATIONAL
 	char *msgid, *msgctxt = NULL;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|z:bpy.app.translations.pgettext", (char **)kwlist, &msgid, &msgctxt))
+	if (!PyArg_ParseTupleAndKeywords(args, kw,
+	                                 "s|z:bpy.app.translations.pgettext",
+	                                 (char **)kwlist, &msgid, &msgctxt))
 	{
 		return NULL;
 	}
@@ -511,7 +513,9 @@ static PyObject *_py_pgettext(PyObject *args, PyObject *kw, const char *(*_pgett
 	PyObject *msgid, *msgctxt;
 	(void)_pgettext;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "O|O:bpy.app.translations.pgettext", (char **)kwlist, &msgid, &msgctxt))
+	if (!PyArg_ParseTupleAndKeywords(args, kw,
+	                                 "O|O:bpy.app.translations.pgettext",
+	                                 (char **)kwlist, &msgid, &msgctxt))
 	{
 		return NULL;
 	}

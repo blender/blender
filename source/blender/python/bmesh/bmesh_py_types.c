@@ -3658,7 +3658,7 @@ static void bm_dealloc_editmode_warn(BPy_BMesh *self)
 		/* likely editmesh */
 		BMesh *bm = self->bm;
 		Scene *scene;
-		for(scene = G.main->scene.first; scene; scene = scene->id.next) {
+		for (scene = G.main->scene.first; scene; scene = scene->id.next) {
 			Base *base = scene->basact;
 			if (base && base->object->type == OB_MESH) {
 				Mesh *me = base->object->data;

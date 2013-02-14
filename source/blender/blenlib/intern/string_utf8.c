@@ -114,7 +114,7 @@ int BLI_utf8_invalid_byte(const char *str, int length)
 
 		/* Check for valid bytes after the 2nd, if any; all must start 10 */
 		while (--ab > 0) {
-			if ((*(p+1) & 0xc0) != 0x80) goto utf8_error;
+			if ((*(p + 1) & 0xc0) != 0x80) goto utf8_error;
 			p++; /* do this after so we get usable offset - campbell */
 		}
 	}

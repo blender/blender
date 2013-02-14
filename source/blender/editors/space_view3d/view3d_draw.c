@@ -871,7 +871,7 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect)
 static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 {
 	char info[256], *markern;
-	short offset = 1.5f*UI_UNIT_X + rect->xmin;
+	short offset = 1.5f * UI_UNIT_X + rect->xmin;
 	
 	/* get name of marker on current frame (if available) */
 	markern = BKE_scene_find_marker_name(scene, CFRA);

@@ -3100,7 +3100,7 @@ static PBool p_chart_lscm_solve(PHandle *handle, PChart *chart)
 		if ((v1->flag & PVERT_PIN) && (v2->flag & PVERT_PIN) && (v3->flag & PVERT_PIN)) {
 			float area = p_face_uv_area_signed(f);
 
-			if(area > 0.0f)
+			if (area > 0.0f)
 				area_pinned_up += area;
 			else
 				area_pinned_down -= area;
