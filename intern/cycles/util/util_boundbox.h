@@ -61,15 +61,17 @@ public:
 
 	__forceinline void grow(const float3& pt)  
 	{
-		min = ccl::min(min, pt);
-		max = ccl::max(max, pt);
+		/* the order of arguments to min is such that if pt is nan, it will not
+		 * influence the resulting bounding box */
+		min = ccl::min(pt, min);
+		max = ccl::max(pt, max);
 	}
 
 	__forceinline void grow(const float3& pt, float border)  
 	{
 		float3 shift = {border, border, border, 0.0f};
-		min = ccl::min(min, pt - shift);
-		max = ccl::max(max, pt + shift);
+		min = ccl::min(pt - shift, min);
+		max = ccl::max(pt + shift, max);
 	}
 
 	__forceinline void grow(const BoundBox& bbox)
