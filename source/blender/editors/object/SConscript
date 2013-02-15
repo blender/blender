@@ -29,7 +29,7 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
-incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
+incs = '../include ../../blenlib ../../blenfont ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc ../../blenloader'
 incs += ' ../../makesrna ../../python ../../ikplugin ../../bmesh'
 incs += ' ../../render/extern/include ../../gpu' # for object_bake.c
@@ -49,5 +49,8 @@ if env['WITH_BF_PYTHON']:
   
 if env['WITH_BF_GAMEENGINE']:
     defs.append('WITH_GAMEENGINE')
+
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
 
 env.BlenderLib ( 'bf_editors_object', sources, Split(incs), defs, libtype=['core'], priority=[35] )

@@ -56,6 +56,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_action.h"
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
@@ -801,7 +803,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	Object *ob = ED_object_active_context(C);
-	uiPopupMenu *pup = uiPupMenuBegin(C, "Set Parent To", ICON_NONE);
+	uiPopupMenu *pup = uiPupMenuBegin(C, IFACE_("Set Parent To"), ICON_NONE);
 	uiLayout *layout = uiPupMenuLayout(pup);
 
 	wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_parent_set", TRUE);
@@ -810,11 +812,12 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSE
 #if 0
 	uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_OBJECT);
 #else
-	opptr = uiItemFullO_ptr(layout, ot, "Object", ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	opptr = uiItemFullO_ptr(layout, ot, IFACE_("Object"), ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 	RNA_enum_set(&opptr, "type", PAR_OBJECT);
 	RNA_boolean_set(&opptr, "keep_transform", FALSE);
 
-	opptr = uiItemFullO_ptr(layout, ot, "Object (Keep Transform)", ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	opptr = uiItemFullO_ptr(layout, ot, IFACE_("Object (Keep Transform)"), ICON_NONE, NULL, WM_OP_EXEC_DEFAULT,
+	                        UI_ITEM_O_RETURN_PROPS);
 	RNA_enum_set(&opptr, "type", PAR_OBJECT);
 	RNA_boolean_set(&opptr, "keep_transform", TRUE);
 #endif
