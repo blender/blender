@@ -682,7 +682,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 				ScanFillVertLink *best_sc = NULL;
 				float best_angle = 3.14f;
 				float miny;
-				int firsttime = 0;
+				bool firsttime = false;
 				
 				v1 = ed1->v2;
 				v2 = ed1->v1;
@@ -706,15 +706,20 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 									/* because multiple points can be inside triangle (concave holes) */
 									/* we continue searching and pick the one with sharpest corner */
 									
-									if (best_sc == NULL)
+									if (best_sc == NULL) {
 										best_sc = sc1;
+										/* only need to continue checking with holes */
+										if ((flag & BLI_SCANFILL_CALC_HOLES) == 0) {
+											break;
+										}
+									}
 									else {
 										float angle;
 										
 										/* prevent angle calc for the simple cases only 1 vertex is found */
-										if (firsttime == 0) {
+										if (firsttime == false) {
 											best_angle = angle_v2v2v2(v2->co, v1->co, best_sc->vert->co);
-											firsttime = 1;
+											firsttime = true;
 										}
 
 										angle = angle_v2v2v2(v2->co, v1->co, sc1->vert->co);

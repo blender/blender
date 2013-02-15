@@ -43,7 +43,7 @@ static bNodeSocketTemplate sh_node_brightcontrast_out[] = {
 	{	-1, 0, ""	}
 };
 
-static int gpu_shader_brightcontrast(GPUMaterial *mat, bNode *node, GPUNodeStack *in, GPUNodeStack *out)
+static int gpu_shader_brightcontrast(GPUMaterial *mat, bNode *UNUSED(node), GPUNodeStack *in, GPUNodeStack *out)
 {
 	return GPU_stack_link(mat, "brightness_contrast", in, out);
 }
