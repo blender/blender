@@ -61,7 +61,7 @@ void register_node_type_tex_compose(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 	
-	node_type_base(ttype, &ntype, TEX_NODE_COMPOSE, "Compose RGBA", NODE_CLASS_OP_COLOR, 0);
+	node_type_base(ttype, &ntype, TEX_NODE_COMPOSE, "Combine RGBA", NODE_CLASS_OP_COLOR, 0);
 	node_type_socket_templates(&ntype, inputs, outputs);
 	node_type_size(&ntype, 100, 60, 150);
 	node_type_exec(&ntype, exec);

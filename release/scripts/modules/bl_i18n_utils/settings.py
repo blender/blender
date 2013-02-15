@@ -368,7 +368,10 @@ FILE_NAME_POT = os.path.join(TRUNK_PO_DIR, ".".join((DOMAIN, "pot")))
 
 # Other py files that should be searched for ui strings, relative to SOURCE_DIR.
 # Needed for Cycles, currently...
-CUSTOM_PY_UI_FILES = [os.path.join("intern", "cycles", "blender", "addon", "ui.py"),]
+CUSTOM_PY_UI_FILES = [
+    os.path.join("intern", "cycles", "blender", "addon", "ui.py"),
+    os.path.join("release", "scripts", "modules", "rna_prop_ui.py"),
+]
 
 
 # A cache storing validated msgids, to avoid re-spellchecking them.

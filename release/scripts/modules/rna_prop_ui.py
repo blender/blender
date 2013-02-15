@@ -148,7 +148,7 @@ def draw(layout, context, context_member, property_type, use_edit=True):
 
         if use_edit:
             row = split.row(align=True)
-            props = row.operator("wm.properties_edit", text="edit")
+            props = row.operator("wm.properties_edit", text="Edit")
             assign_props(props, val_draw, key)
 
             props = row.operator("wm.properties_remove", text="", icon='ZOOMOUT')
