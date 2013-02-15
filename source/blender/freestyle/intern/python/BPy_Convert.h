@@ -78,7 +78,7 @@ PyObject * Any_BPy_Interface1D_from_Interface1D( Interface1D& if1D );
 PyObject * Any_BPy_FEdge_from_FEdge( FEdge& fe );
 PyObject * Any_BPy_ViewVertex_from_ViewVertex( ViewVertex& vv );
 
-PyObject * BPy_BBox_from_BBox( BBox< Vec3r > &bb );
+PyObject * BPy_BBox_from_BBox(const BBox< Vec3r > &bb);
 PyObject * BPy_CurvePoint_from_CurvePoint( CurvePoint& cp );
 PyObject * BPy_directedViewEdge_from_directedViewEdge( ViewVertex::directedViewEdge& dve );
 PyObject * BPy_FEdge_from_FEdge( FEdge& fe );

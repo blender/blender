@@ -281,7 +281,7 @@ PyObject * BPy_TVertex_from_TVertex( TVertex& tv ) {
 	return py_tv;
 }
 
-PyObject * BPy_BBox_from_BBox( BBox< Vec3r > &bb ) {
+PyObject * BPy_BBox_from_BBox(const BBox< Vec3r > &bb) {
 	PyObject *py_bb = BBox_Type.tp_new( &BBox_Type, 0, 0 );
 	((BPy_BBox *) py_bb)->bb = new BBox< Vec3r >( bb );
 
