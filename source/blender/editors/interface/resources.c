@@ -690,6 +690,7 @@ void ui_theme_init_default(void)
 	ui_widget_color_init(&btheme->tui);
 	
 	btheme->tui.iconfile[0] = 0;
+	btheme->tui.panel.show_back = FALSE;
 	btheme->tui.panel.show_header = FALSE;
 	rgba_char_args_set(btheme->tui.panel.header, 0, 0, 0, 25);
 	
@@ -707,6 +708,8 @@ void ui_theme_init_default(void)
 	ui_theme_init_new(btheme);
 	
 	/* space view3d */
+	btheme->tv3d.panelcolors.show_back = FALSE;
+	btheme->tv3d.panelcolors.show_header = FALSE;
 	rgba_char_args_set_fl(btheme->tv3d.back,       0.225, 0.225, 0.225, 1.0);
 	rgba_char_args_set(btheme->tv3d.text,       0, 0, 0, 255);
 	rgba_char_args_set(btheme->tv3d.text_hi, 255, 255, 255, 255);
