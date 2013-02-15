@@ -1431,7 +1431,7 @@ static void cdDM_drawMappedFacesMat(DerivedMesh *dm,
 	 */
 	if (cddm->pbvh && cddm->pbvh_draw && BKE_pbvh_type(cddm->pbvh) == PBVH_BMESH) {
 		if (dm->numTessFaceData) {
-			setMaterial(userData, 1, NULL);
+			setMaterial(userData, 1, &gattribs);
 			BKE_pbvh_draw(cddm->pbvh, NULL, NULL, NULL, FALSE);
 		}
 
