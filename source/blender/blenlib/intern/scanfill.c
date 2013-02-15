@@ -511,7 +511,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 	ScanFillVert *eve, *v1, *v2, *v3;
 	ScanFillEdge *eed, *nexted, *ed1, *ed2, *ed3;
 	int a, b, verts, maxface, totface;
-	short nr, test, twoconnected = 0;
+	short nr, twoconnected = 0;
 
 	nr = pf->nr;
 
@@ -567,6 +567,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 				verts++;
 				eve->f = 0;  /* flag for connectedges later on */
 				sc->vert = eve;
+				/* if (even->tmp.v == NULL) eve->tmp.u = verts; */ /* Note, debug print only will work for curve polyfill, union is in use for mesh */
 				sc++;
 			}
 		}
@@ -641,7 +642,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 
 	sc = sf_ctx->_scdata;
 	for (a = 0; a < verts; a++) {
-		/* printf("VERTEX %d %x\n", a, sc->v1); */
+		/* printf("VERTEX %d index %d\n", a, sc->vert->tmp.u); */
 		ed1 = sc->edge_first;
 		while (ed1) {   /* set connectflags  */
 			nexted = ed1->next;
@@ -678,38 +679,62 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 			}
 			else {
 				/* test rest of vertices */
+				ScanFillVertLink *best_sc = NULL;
+				float best_angle = 3.14f;
 				float miny;
+				int firsttime = 0;
+				
 				v1 = ed1->v2;
 				v2 = ed1->v1;
 				v3 = ed2->v2;
+				
 				/* this happens with a serial of overlapping edges */
 				if (v1 == v2 || v2 == v3) break;
-				/* printf("test verts %x %x %x\n", v1, v2, v3); */
+				
+				/* printf("test verts %d %d %d\n", v1->tmp.u, v2->tmp.u, v3->tmp.u); */
 				miny = min_ff(v1->xy[1], v3->xy[1]);
 				sc1 = sc + 1;
-				test = 0;
 
-				for (b = a + 1; b < verts; b++) {
+				for (b = a + 1; b < verts; b++, sc1++) {
 					if (sc1->vert->f == 0) {
 						if (sc1->vert->xy[1] <= miny) break;
 						if (testedgeside(v1->xy, v2->xy, sc1->vert->xy)) {
 							if (testedgeside(v2->xy, v3->xy, sc1->vert->xy)) {
 								if (testedgeside(v3->xy, v1->xy, sc1->vert->xy)) {
-									/* point in triangle */
+									/* point is in triangle */
+									
+									/* because multiple points can be inside triangle (concave holes) */
+									/* we continue searching and pick the one with sharpest corner */
+									
+									if (best_sc == NULL)
+										best_sc = sc1;
+									else {
+										float angle;
+										
+										/* prevent angle calc for the simple cases only 1 vertex is found */
+										if (firsttime == 0) {
+											best_angle = angle_v2v2v2(v2->co, v1->co, best_sc->vert->co);
+											firsttime = 1;
+										}
 
-									test = 1;
-									break;
+										angle = angle_v2v2v2(v2->co, v1->co, sc1->vert->co);
+										if (angle < best_angle) {
+											best_sc = sc1;
+											best_angle = angle;
+										}
+									}
+										
 								}
 							}
 						}
 					}
-					sc1++;
 				}
-				if (test) {
+					
+				if (best_sc) {
 					/* make new edge, and start over */
-					/* printf("add new edge %x %x and start again\n", v2, sc1->vert); */
+					/* printf("add new edge %d %d and start again\n", v2->tmp.u, best_sc->vert->tmp.u); */
 
-					ed3 = BLI_scanfill_edge_add(sf_ctx, v2, sc1->vert);
+					ed3 = BLI_scanfill_edge_add(sf_ctx, v2, best_sc->vert);
 					BLI_remlink(&sf_ctx->filledgebase, ed3);
 					BLI_insertlinkbefore((ListBase *)&(sc->edge_first), ed2, ed3);
 					ed3->v2->f = SF_VERT_UNKNOWN;
@@ -719,7 +744,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 				}
 				else {
 					/* new triangle */
-					/* printf("add face %x %x %x\n", v1, v2, v3); */
+					/* printf("add face %d %d %d\n", v1->tmp.u, v2->tmp.u, v3->tmp.u); */
 					addfillface(sf_ctx, v1, v2, v3);
 					totface++;
 					BLI_remlink((ListBase *)&(sc->edge_first), ed1);
@@ -765,7 +790,6 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
 							ed3 = ed3->next;
 						}
 					}
-
 				}
 			}
 			/* test for loose edges */
