@@ -756,7 +756,6 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 				GHOST_TEventKeyData kdata;
 				wmEvent event;
 				int wx, wy;
-				bool is_key;
 				
 				wm->winactive = win; /* no context change! c->wm->windrawable is drawable, or for area queues */
 				
@@ -764,23 +763,26 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr
 //				window_handle(win, INPUTCHANGE, win->active);
 				
 				/* bad ghost support for modifier keys... so on activate we set the modifiers again */
+
+				/* TODO: This is not correct since a modifier may be held when a window is activated...
+				 * better solve this at ghost level. attempted fix r54450 but it caused bug [#34255] */
 				kdata.ascii = '\0';
 				kdata.utf8_buf[0] = '\0';
-				if ((win->eventstate->shift != 0) != ((is_key = query_qual(SHIFT)) != 0)) {
+				if (win->eventstate->shift && !query_qual(SHIFT)) {
 					kdata.key = GHOST_kKeyLeftShift;
-					wm_event_add_ghostevent(wm, win, is_key ? GHOST_kEventKeyDown : GHOST_kEventKeyUp, time, &kdata);
+					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 				}
-				if ((win->eventstate->ctrl != 0) != ((is_key = query_qual(CONTROL)) != 0)) {
+				if (win->eventstate->ctrl && !query_qual(CONTROL)) {
 					kdata.key = GHOST_kKeyLeftControl;
-					wm_event_add_ghostevent(wm, win, is_key ? GHOST_kEventKeyDown : GHOST_kEventKeyUp, time, &kdata);
+					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 				}
-				if ((win->eventstate->alt != 0) != ((is_key = query_qual(ALT)) != 0)) {
+				if (win->eventstate->alt && !query_qual(ALT)) {
 					kdata.key = GHOST_kKeyLeftAlt;
-					wm_event_add_ghostevent(wm, win, is_key ? GHOST_kEventKeyDown : GHOST_kEventKeyUp, time, &kdata);
+					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 				}
-				if ((win->eventstate->oskey != 0) != ((is_key = query_qual(OS)) != 0)) {
+				if (win->eventstate->oskey && !query_qual(OS)) {
 					kdata.key = GHOST_kKeyOS;
-					wm_event_add_ghostevent(wm, win, is_key ? GHOST_kEventKeyDown : GHOST_kEventKeyUp, time, &kdata);
+					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 				}
 				/* keymodifier zero, it hangs on hotkeys that open windows otherwise */
 				win->eventstate->keymodifier = 0;
