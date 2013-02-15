@@ -351,6 +351,10 @@ void bc_match_scale(std::vector<Object *> *objects_done,
 	rescale[0] = rescale[1] = rescale[2] = scale_conv;
 
 	float size_mat4[4][4];
+
+	float axis_mat4[4][4];
+	unit_m4(axis_mat4);
+
 	size_to_mat4(size_mat4, rescale);
 
 	for (std::vector<Object *>::iterator it = objects_done->begin();
@@ -359,6 +363,7 @@ void bc_match_scale(std::vector<Object *> *objects_done,
 	{
 		ob = *it;
 		mult_m4_m4m4(ob->obmat, size_mat4, ob->obmat);
+		mult_m4_m4m4(ob->obmat, bc_unit.get_rotation(), ob->obmat);
 		BKE_object_apply_mat4(ob, ob->obmat, 0, 0);
 	}
 

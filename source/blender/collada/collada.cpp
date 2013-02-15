@@ -40,7 +40,6 @@ extern "C"
 
 /* make dummy file */
 #include "BLI_fileops.h"
-#include "BLI_path_util.h"
 #include "BLI_linklist.h"
 
 int collada_import(bContext *C,
