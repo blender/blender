@@ -520,6 +520,9 @@ bool BlenderSession::draw(int w, int h)
 			session->reset(buffer_params, session_params.samples);
 		}
 	}
+	else {
+		tag_update();
+	}
 
 	/* update status and progress for 3d view draw */
 	update_status_progress();
