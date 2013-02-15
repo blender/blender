@@ -1089,6 +1089,15 @@ static void scene_depsgraph_hack(Scene *scene, Scene *scene_parent)
 
 }
 
+static void scene_flag_rbw_recursive(Scene *scene)
+{
+	if (scene->set)
+		scene_flag_rbw_recursive(scene->set);
+
+	if (BKE_scene_check_rigidbody_active(scene))
+		scene->rigidbody_world->flag |= RBW_FLAG_FRAME_UPDATE;
+}
+
 static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scene_parent)
 {
 	Base *base;
@@ -1106,8 +1115,7 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 	 */
 	// XXX: this position may still change, objects not being updated correctly before simulation is run
 	// NOTE: current position is so that rigidbody sim affects other objects
-	// FIXME: this now gets executed on every update, not just frame change now!!!
-	if (BKE_scene_check_rigidbody_active(scene)) {
+	if (BKE_scene_check_rigidbody_active(scene) && scene->rigidbody_world->flag & RBW_FLAG_FRAME_UPDATE) {
 		/* we use frame time of parent (this is "scene" itself for top-level of sets recursion), 
 		 * as that is the active scene controlling all timing in file at the moment
 		 */
@@ -1229,6 +1237,9 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	 */
 	tag_main_idcode(bmain, ID_MA, FALSE);
 	tag_main_idcode(bmain, ID_LA, FALSE);
+
+	/* flag rigid body worlds for update */
+	scene_flag_rbw_recursive(sce);
 
 	/* BKE_object_handle_update() on all objects, groups and sets */
 	scene_update_tagged_recursive(bmain, sce, sce);

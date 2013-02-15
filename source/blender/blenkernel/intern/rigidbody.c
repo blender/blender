@@ -1223,6 +1223,8 @@ void BKE_rigidbody_do_simulation(Scene *scene, float ctime)
 	BKE_ptcache_id_time(&pid, scene, ctime, &startframe, &endframe, NULL);
 	cache = rbw->pointcache;
 
+	rbw->flag &= ~RBW_FLAG_FRAME_UPDATE;
+
 	/* flag cache as outdated if we don't have a world or number of objects in the simulation has changed */
 	if (rbw->physics_world == NULL || rbw->numbodies != BLI_countlist(&rbw->group->gobject)) {
 		cache->flag |= PTCACHE_OUTDATED;
