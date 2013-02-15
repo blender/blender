@@ -2141,7 +2141,8 @@ void BKE_object_where_is_calc_time(Scene *scene, Object *ob, float ctime)
 	else {
 		BKE_object_to_mat4(ob, ob->obmat);
 	}
-	
+
+	/* read values pushed into RBO from sim/cache... */
 	BKE_rigidbody_sync_transforms(scene, ob, ctime);
 	
 	/* solve constraints */
@@ -2617,6 +2618,11 @@ int BKE_object_parent_loop_check(const Object *par, const Object *ob)
 
 /* the main object update call, for object matrix, constraints, keys and displist (modifiers) */
 /* requires flags to be set! */
+
+/* WARNING: "scene" here may not be the scene object actually resides in. 
+ * When dealing with background-sets, "scene" is actually the active scene.
+ * e.g. "scene" <-- set 1 <-- set 2 ("ob" lives here) <-- set 3 <-- ... <-- set n
+ */
 void BKE_object_handle_update(Scene *scene, Object *ob)
 {
 	if (ob->recalc & OB_RECALC_ALL) {

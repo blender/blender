@@ -1093,13 +1093,29 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 {
 	Base *base;
 	
-	
 	scene->customdata_mask = scene_parent->customdata_mask;
 
 	/* sets first, we allow per definition current scene to have
 	 * dependencies on sets, but not the other way around. */
 	if (scene->set)
 		scene_update_tagged_recursive(bmain, scene->set, scene_parent);
+	
+	/* run rigidbody sim 
+	 * - calculate/read values from cache into RBO's, to get flushed 
+	 *   later when objects are evaluated (if they're tagged for eval)
+	 */
+	// XXX: this position may still change, objects not being updated correctly before simulation is run
+	// NOTE: current position is so that rigidbody sim affects other objects
+	// FIXME: this now gets executed on every update, not just frame change now!!!
+	if (BKE_scene_check_rigidbody_active(scene)) {
+		/* we use frame time of parent (this is "scene" itself for top-level of sets recursion), 
+		 * as that is the active scene controlling all timing in file at the moment
+		 */
+		float ctime = BKE_scene_frame_get(scene_parent);
+		
+		/* however, "scene" contains the rigidbody world needed for eval... */
+		BKE_rigidbody_do_simulation(scene, ctime);
+	}
 	
 	/* scene objects */
 	for (base = scene->base.first; base; base = base->next) {
@@ -1206,13 +1222,7 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	 * such as Scene->World->MTex/Texture) can still get correctly overridden.
 	 */
 	BKE_animsys_evaluate_all_animation(bmain, sce, ctime);
-	/*...done with recusrive funcs */
-
-	/* run rigidbody sim */
-	// XXX: this position may still change, objects not being updated correctly before simulation is run
-	// NOTE: current position is so that rigidbody sim affects other objects
-	if (BKE_scene_check_rigidbody_active(sce))
-		BKE_rigidbody_do_simulation(sce, ctime);
+	/*...done with recursive funcs */
 
 	/* clear "LIB_DOIT" flag from all materials, to prevent infinite recursion problems later 
 	 * when trying to find materials with drivers that need evaluating [#32017] 

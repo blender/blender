@@ -1136,18 +1136,24 @@ void BKE_rigidbody_sync_transforms(Scene *scene, Object *ob, float ctime)
 {
 	RigidBodyWorld *rbw = scene->rigidbody_world;
 	RigidBodyOb *rbo = ob->rigidbody_object;
+	bool world_ok = true;
 
 	/* keep original transform for kinematic and passive objects */
-	if (ELEM(NULL, rbw, rbo) || rbo->flag & RBO_FLAG_KINEMATIC || rbo->type == RBO_TYPE_PASSIVE)
+	if ((rbo == NULL) || (rbo->flag & RBO_FLAG_KINEMATIC) || (rbo->type == RBO_TYPE_PASSIVE))
 		return;
+		
+	/* "scene" may not be the one where object + rigidbody sim actually reside
+	 * due to the quirks of how background-sets eval works [#33970]
+	 */
+	if (rbw) {
+		/* 1) no cache exists before startframe */
+		/* 2) keep original transform when simulation is muted */
+		world_ok = (ctime > rbw->pointcache->startframe) && !(rbw->flag & RBW_FLAG_MUTED);
+	}
 
 	/* use rigid body transform after cache start frame if objects is not being transformed */
-	if (ctime > rbw->pointcache->startframe && !(ob->flag & SELECT && G.moving & G_TRANSFORM_OBJ)) {
+	if (world_ok && !((ob->flag & SELECT) && (G.moving & G_TRANSFORM_OBJ))) {
 		float mat[4][4], size_mat[4][4], size[3];
-
-		/* keep original transform when the simulation is muted */
-		if (rbw->flag & RBW_FLAG_MUTED)
-			return;
 
 		normalize_qt(rbo->orn); // RB_TODO investigate why quaternion isn't normalized at this point
 		quat_to_mat4(mat, rbo->orn);
@@ -1165,6 +1171,7 @@ void BKE_rigidbody_sync_transforms(Scene *scene, Object *ob, float ctime)
 	}
 }
 
+/* Used when cancelling transforms - return rigidbody and object to initial states */
 void BKE_rigidbody_aftertrans_update(Object *ob, float loc[3], float rot[3], float quat[4], float rotAxis[3], float rotAngle)
 {
 	RigidBodyOb *rbo = ob->rigidbody_object;
