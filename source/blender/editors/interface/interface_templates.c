@@ -512,7 +512,8 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 		                                 BLF_I18NCONTEXT_ID_CAMERA,
 		                                 BLF_I18NCONTEXT_ID_WORLD,
 		                                 BLF_I18NCONTEXT_ID_SCREEN,
-		                                 BLF_I18NCONTEXT_ID_TEXT);
+		                                 BLF_I18NCONTEXT_ID_TEXT,
+		);
 		BLF_I18N_MSGID_MULTI_CTXT("New", BLF_I18NCONTEXT_ID_SPEAKER,
 		                                 BLF_I18NCONTEXT_ID_SOUND,
 		                                 BLF_I18NCONTEXT_ID_ARMATURE,
@@ -520,7 +521,8 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 		                                 BLF_I18NCONTEXT_ID_NODETREE,
 		                                 BLF_I18NCONTEXT_ID_BRUSH,
 		                                 BLF_I18NCONTEXT_ID_PARTICLESETTINGS,
-		                                 BLF_I18NCONTEXT_ID_GPENCIL);
+		                                 BLF_I18NCONTEXT_ID_GPENCIL,
+		);
 		
 		if (newop) {
 			but = uiDefIconTextButO(block, BUT, newop, WM_OP_INVOKE_DEFAULT, ICON_ZOOMIN,

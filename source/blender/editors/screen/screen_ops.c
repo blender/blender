@@ -2963,7 +2963,7 @@ static int header_toolbox_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *U
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
-	pup = uiPupMenuBegin(C, N_("Header"), ICON_NONE);
+	pup = uiPupMenuBegin(C, IFACE_("Header"), ICON_NONE);
 	layout = uiPupMenuLayout(pup);
 
 	ED_screens_header_tools_menu_create(C, layout, NULL);

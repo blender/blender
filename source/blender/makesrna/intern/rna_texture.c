@@ -1842,7 +1842,7 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "file_format", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "file_format");
 	RNA_def_property_enum_items(prop, file_format_items);
-	RNA_def_property_ui_text(prop, "File Format", "Format of the source data set to render	");
+	RNA_def_property_ui_text(prop, "File Format", "Format of the source data set to render");
 	RNA_def_property_update(prop, 0, "rna_Texture_voxeldata_update");
 	
 	prop = RNA_def_property(srna, "filepath", PROP_STRING, PROP_FILEPATH);
