@@ -11,7 +11,7 @@ extern "C" {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char AdjacencyIterator___doc__[] =
+PyDoc_STRVAR(AdjacencyIterator_doc,
 "Class hierarchy: :class:`Iterator` > :class:`AdjacencyIterator`\n"
 "\n"
 "Class for representing adjacency iterators used in the chaining\n"
@@ -37,27 +37,27 @@ static char AdjacencyIterator___doc__[] =
 "   Copy constructor.\n"
 "\n"
 "   :arg it: An AdjacencyIterator object.\n"
-"   :type it: :class:`AdjacencyIterator`\n";
+"   :type it: :class:`AdjacencyIterator`");
 
-static int AdjacencyIterator___init__(BPy_AdjacencyIterator *self, PyObject *args )
-{	
+static int AdjacencyIterator_init(BPy_AdjacencyIterator *self, PyObject *args)
+{
 	PyObject *obj1 = 0, *obj2 = 0 , *obj3 = 0;
 
-	if (! PyArg_ParseTuple(args, "|OOO", &obj1, &obj2, &obj3) )
-	    return -1;
+	if (!PyArg_ParseTuple(args, "|OOO", &obj1, &obj2, &obj3))
+		return -1;
 
-	if( !obj1 && !obj2 && !obj3 ){
+	if (!obj1) {
 		self->a_it = new AdjacencyIterator();
+
+	} else if (BPy_AdjacencyIterator_Check(obj1) && !obj2) {
+		self->a_it = new AdjacencyIterator(*(((BPy_AdjacencyIterator *)obj1)->a_it));
+
+	} else if (BPy_ViewVertex_Check(obj1) && (!obj2 || PyBool_Check(obj2)) && (!obj3 || PyBool_Check(obj3))) {
+		bool restrictToSelection = (obj2) ? bool_from_PyBool(obj2) : true;
+		bool restrictToUnvisited = (obj3) ? bool_from_PyBool(obj3) : true;
 		
-	} else if( BPy_AdjacencyIterator_Check(obj1) ) {
-		self->a_it = new AdjacencyIterator(*( ((BPy_AdjacencyIterator *) obj1)->a_it ));
-	
-	} else if( BPy_ViewVertex_Check(obj1) ) {
-		bool restrictToSelection = ( obj2 ) ? bool_from_PyBool(obj2) : true;
-		bool restrictToUnvisited = ( obj3 ) ? bool_from_PyBool(obj3) : true;
-		
-		self->a_it = new AdjacencyIterator( ((BPy_ViewVertex *) obj1)->vv, restrictToSelection, restrictToUnvisited );
-			
+		self->a_it = new AdjacencyIterator(((BPy_ViewVertex *)obj1)->vv, restrictToSelection, restrictToUnvisited);
+
 	} else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
@@ -66,55 +66,54 @@ static int AdjacencyIterator___init__(BPy_AdjacencyIterator *self, PyObject *arg
 	self->py_it.it = self->a_it;
 	
 	return 0;
-
 }
 
-static PyObject * AdjacencyIterator_iternext(BPy_AdjacencyIterator *self) {
+static PyObject * AdjacencyIterator_iternext(BPy_AdjacencyIterator *self)
+{
 	if (self->a_it->isEnd()) {
 		PyErr_SetNone(PyExc_StopIteration);
 		return NULL;
 	}
 	ViewEdge *ve = self->a_it->operator*();
 	self->a_it->increment();
-	return BPy_ViewEdge_from_ViewEdge( *ve );
+	return BPy_ViewEdge_from_ViewEdge(*ve);
 }
 
-static char AdjacencyIterator_isIncoming___doc__[] =
-".. method:: isIncoming()\n"
-"\n"
-"   Returns true if the current ViewEdge is coming towards the\n"
-"   iteration vertex.  False otherwise.\n"
-"\n"
-"   :return: True if the current ViewEdge is coming towards the\n"
-"      iteration vertex\n"
-"   :rtype: bool\n";
+static PyMethodDef BPy_AdjacencyIterator_methods[] = {
+	{NULL, NULL, 0, NULL}
+};
 
-static PyObject * AdjacencyIterator_isIncoming(BPy_AdjacencyIterator *self) {
-	return PyBool_from_bool(self->a_it->isIncoming());
-}
+/*----------------------AdjacencyIterator get/setters ----------------------------*/
 
-static char AdjacencyIterator_getObject___doc__[] =
-".. method:: getObject()\n"
+PyDoc_STRVAR(AdjacencyIterator_object_doc,
+"The ViewEdge object currently pointed by this iterator.\n"
 "\n"
-"   Returns the pointed ViewEdge.\n"
-"\n"
-"   :return: The pointed ViewEdge.\n"
-"   :rtype: :class:`ViewEdge`\n";
+":type: :class:`ViewEdge`");
 
-static PyObject * AdjacencyIterator_getObject(BPy_AdjacencyIterator *self) {
-	
+static PyObject *AdjacencyIterator_object_get(BPy_AdjacencyIterator *self, void *UNUSED(closure))
+{
 	ViewEdge *ve = self->a_it->operator*();
-	if( ve )
-		return BPy_ViewEdge_from_ViewEdge( *ve );
+	if (ve)
+		return BPy_ViewEdge_from_ViewEdge(*ve);
 
 	Py_RETURN_NONE;
 }
 
-/*----------------------AdjacencyIterator instance definitions ----------------------------*/
-static PyMethodDef BPy_AdjacencyIterator_methods[] = {
-	{"isIncoming", ( PyCFunction ) AdjacencyIterator_isIncoming, METH_NOARGS, AdjacencyIterator_isIncoming___doc__},
-	{"getObject", ( PyCFunction ) AdjacencyIterator_getObject, METH_NOARGS, AdjacencyIterator_getObject___doc__},
-	{NULL, NULL, 0, NULL}
+PyDoc_STRVAR(AdjacencyIterator_is_incoming_doc,
+"True if the current ViewEdge is coming towards the iteration vertex, and\n"
+"False otherwise.\n"
+"\n"
+":type: bool");
+
+static PyObject *AdjacencyIterator_is_incoming_get(BPy_AdjacencyIterator *self, void *UNUSED(closure))
+{
+	return PyBool_from_bool(self->a_it->isIncoming());
+}
+
+static PyGetSetDef BPy_AdjacencyIterator_getseters[] = {
+	{(char *)"is_incoming", (getter)AdjacencyIterator_is_incoming_get, (setter)NULL, (char *)AdjacencyIterator_is_incoming_doc, NULL},
+	{(char *)"object", (getter)AdjacencyIterator_object_get, (setter)NULL, (char *)AdjacencyIterator_object_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_AdjacencyIterator type definition ------------------------------*/
@@ -140,7 +139,7 @@ PyTypeObject AdjacencyIterator_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	AdjacencyIterator___doc__,      /* tp_doc */
+	AdjacencyIterator_doc,          /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -149,13 +148,13 @@ PyTypeObject AdjacencyIterator_Type = {
 	(iternextfunc)AdjacencyIterator_iternext, /* tp_iternext */
 	BPy_AdjacencyIterator_methods,  /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_AdjacencyIterator_getseters, /* tp_getset */
 	&Iterator_Type,                 /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */
 	0,                              /* tp_descr_set */
 	0,                              /* tp_dictoffset */
-	(initproc)AdjacencyIterator___init__, /* tp_init */
+	(initproc)AdjacencyIterator_init, /* tp_init */
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };

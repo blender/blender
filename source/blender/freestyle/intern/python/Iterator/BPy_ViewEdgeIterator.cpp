@@ -12,7 +12,7 @@ extern "C" {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char ViewEdgeIterator___doc__[] =
+PyDoc_STRVAR(ViewEdgeIterator_doc,
 "Class hierarchy: :class:`Iterator` > :class:`ViewEdgeIterator`\n"
 "\n"
 "Base class for iterators over ViewEdges of the :class:`ViewMap` Graph.\n"
@@ -38,182 +38,148 @@ static char ViewEdgeIterator___doc__[] =
 "   Copy constructor.\n"
 "\n"
 "   :arg it: A ViewEdgeIterator object.\n"
-"   :type it: :class:`ViewEdgeIterator`\n";
+"   :type it: :class:`ViewEdgeIterator`");
 
-static int ViewEdgeIterator___init__(BPy_ViewEdgeIterator *self, PyObject *args )
-{	
+static int ViewEdgeIterator_init(BPy_ViewEdgeIterator *self, PyObject *args)
+{
 	PyObject *obj1 = 0, *obj2 = 0;
 
-	if (!( PyArg_ParseTuple(args, "O|O", &obj1, &obj2) ))
-	    return -1;
+	if (!PyArg_ParseTuple(args, "O|O", &obj1, &obj2))
+		return -1;
 
-	if( obj1 && BPy_ViewEdgeIterator_Check(obj1)  ) {
-		self->ve_it = new ViewEdgeInternal::ViewEdgeIterator(*( ((BPy_ViewEdgeIterator *) obj1)->ve_it ));
-	
+	if (BPy_ViewEdgeIterator_Check(obj1)) {
+		self->ve_it = new ViewEdgeInternal::ViewEdgeIterator(*(((BPy_ViewEdgeIterator *)obj1)->ve_it));
+
 	} else {
 		ViewEdge *begin;
-		if ( !obj1 || obj1 == Py_None )
+		if (obj1 == Py_None)
 			begin = NULL;
-		else if ( BPy_ViewEdge_Check(obj1) )
-			begin = ((BPy_ViewEdge *) obj1)->ve;
+		else if (BPy_ViewEdge_Check(obj1))
+			begin = ((BPy_ViewEdge *)obj1)->ve;
 		else {
 			PyErr_SetString(PyExc_TypeError, "1st argument must be either a ViewEdge object or None");
 			return -1;
 		}
-		bool orientation = ( obj2 ) ? bool_from_PyBool(obj2) : true;
-		
-		self->ve_it = new ViewEdgeInternal::ViewEdgeIterator( begin, orientation);
-		
+		bool orientation = (obj2) ? bool_from_PyBool(obj2) : true;
+
+		self->ve_it = new ViewEdgeInternal::ViewEdgeIterator(begin, orientation);
 	}
-		
+
 	self->py_it.it = self->ve_it;
 
 	return 0;
 }
 
-static char ViewEdgeIterator_getCurrentEdge___doc__[] =
-".. method:: getCurrentEdge()\n"
+PyDoc_STRVAR(ViewEdgeIterator_change_orientation_doc,
+".. method:: change_orientation()\n"
 "\n"
-"   Returns the current pointed ViewEdge.\n"
-"\n"
-"   :return: The current pointed ViewEdge.\n"
-"   :rtype: :class:`ViewEdge`\n";
+"   Changes the current orientation.");
 
-static PyObject *ViewEdgeIterator_getCurrentEdge( BPy_ViewEdgeIterator *self ) {
-	ViewEdge *ve = self->ve_it->getCurrentEdge();
-	if( ve )
-		return BPy_ViewEdge_from_ViewEdge( *ve );
-		
-	Py_RETURN_NONE;
-}
-
-static char ViewEdgeIterator_setCurrentEdge___doc__[] =
-".. method:: setCurrentEdge(edge)\n"
-"\n"
-"   Sets the current pointed ViewEdge.\n"
-"\n"
-"   :arg edge: The current pointed ViewEdge.\n"
-"   :type edge: :class:`ViewEdge`\n";
-
-static PyObject *ViewEdgeIterator_setCurrentEdge( BPy_ViewEdgeIterator *self, PyObject *args ) {
-	PyObject *py_ve;
-
-	if(!( PyArg_ParseTuple(args, "O!", &ViewEdge_Type, &py_ve) ))
-		return NULL;
-
-	self->ve_it->setCurrentEdge( ((BPy_ViewEdge *) py_ve)->ve );
-		
-	Py_RETURN_NONE;
-}
-
-static char ViewEdgeIterator_getBegin___doc__[] =
-".. method:: getBegin()\n"
-"\n"
-"   Returns the first ViewEdge used for the iteration.\n"
-"\n"
-"   :return: The first ViewEdge used for the iteration.\n"
-"   :rtype: :class:`ViewEdge`\n";
-
-static PyObject *ViewEdgeIterator_getBegin( BPy_ViewEdgeIterator *self ) {
-	ViewEdge *ve = self->ve_it->getBegin();
-	if( ve )
-		return BPy_ViewEdge_from_ViewEdge( *ve );
-		
-	Py_RETURN_NONE;
-}
-
-static char ViewEdgeIterator_setBegin___doc__[] =
-".. method:: setBegin(begin)\n"
-"\n"
-"   Sets the first ViewEdge used for the iteration.\n"
-"\n"
-"   :arg begin: The first ViewEdge used for the iteration.\n"
-"   :type begin: :class:`ViewEdge`\n";
-
-static PyObject *ViewEdgeIterator_setBegin( BPy_ViewEdgeIterator *self, PyObject *args ) {
-	PyObject *py_ve;
-
-	if(!( PyArg_ParseTuple(args, "O!", &ViewEdge_Type, &py_ve) ))
-		return NULL;
-
-	self->ve_it->setBegin( ((BPy_ViewEdge *) py_ve)->ve );
-		
-	Py_RETURN_NONE;
-}
-
-static char ViewEdgeIterator_getOrientation___doc__[] =
-".. method:: getOrientation()\n"
-"\n"
-"   Returns the orientation of the pointed ViewEdge in the iteration.\n"
-"\n"
-"   :return: The orientation of the pointed ViewEdge in the iteration.\n"
-"   :rtype: bool\n";
-
-static PyObject *ViewEdgeIterator_getOrientation( BPy_ViewEdgeIterator *self ) {
-	return PyBool_from_bool( self->ve_it->getOrientation() );
-}
-
-static char ViewEdgeIterator_setOrientation___doc__[] =
-".. method:: setOrientation(orientation)\n"
-"\n"
-"   Sets the orientation of the pointed ViewEdge in the iteration.\n"
-"\n"
-"   :arg orientation: If true, we'll look for the next ViewEdge among\n"
-"      the ViewEdges that surround the ending ViewVertex of begin.  If\n"
-"      false, we'll search over the ViewEdges surrounding the ending\n"
-"      ViewVertex of begin.\n"
-"   :type orientation: bool\n";
-
-static PyObject *ViewEdgeIterator_setOrientation( BPy_ViewEdgeIterator *self, PyObject *args ) {
-	PyObject *py_b;
-
-	if(!( PyArg_ParseTuple(args, "O", &py_b) ))
-		return NULL;
-
-	self->ve_it->setOrientation( bool_from_PyBool(py_b) );
-		
-	Py_RETURN_NONE;
-}
-
-static char ViewEdgeIterator_changeOrientation___doc__[] =
-".. method:: changeOrientation()\n"
-"\n"
-"   Changes the current orientation.\n";
-
-static PyObject *ViewEdgeIterator_changeOrientation( BPy_ViewEdgeIterator *self ) {
+static PyObject *ViewEdgeIterator_change_orientation(BPy_ViewEdgeIterator *self)
+{
 	self->ve_it->changeOrientation();
 	
 	Py_RETURN_NONE;
 }
 
-static char ViewEdgeIterator_getObject___doc__[] =
-".. method:: getObject()\n"
-"\n"
-"   Returns the pointed ViewEdge.\n"
-"\n"
-"   :return: The pointed ViewEdge.\n"
-"   :rtype: :class:`ViewEdge`\n";
+static PyMethodDef BPy_ViewEdgeIterator_methods[] = {
+	{"change_orientation", (PyCFunction) ViewEdgeIterator_change_orientation, METH_NOARGS, ViewEdgeIterator_change_orientation_doc},
+	{NULL, NULL, 0, NULL}
+};
 
-static PyObject * ViewEdgeIterator_getObject( BPy_ViewEdgeIterator *self) {
+/*----------------------ViewEdgeIterator get/setters ----------------------------*/
 
+PyDoc_STRVAR(ViewEdgeIterator_object_doc,
+"The ViewEdge object currently pointed by this iterator.\n"
+"\n"
+":type: :class:`ViewEdge`");
+
+static PyObject *ViewEdgeIterator_object_get(BPy_ViewEdgeIterator *self, void *UNUSED(closure))
+{
 	ViewEdge *ve = self->ve_it->operator*();
-	if( ve )
-		return BPy_ViewEdge_from_ViewEdge( *ve );
+	if (ve)
+		return BPy_ViewEdge_from_ViewEdge(*ve);
 
 	Py_RETURN_NONE;
 }
 
-/*----------------------ViewEdgeIterator instance definitions ----------------------------*/
-static PyMethodDef BPy_ViewEdgeIterator_methods[] = {
-	{"getCurrentEdge", ( PyCFunction ) ViewEdgeIterator_getCurrentEdge, METH_NOARGS, ViewEdgeIterator_getCurrentEdge___doc__},
-	{"setCurrentEdge", ( PyCFunction ) ViewEdgeIterator_setCurrentEdge, METH_VARARGS, ViewEdgeIterator_setCurrentEdge___doc__},
-	{"getBegin", ( PyCFunction ) ViewEdgeIterator_getBegin, METH_NOARGS, ViewEdgeIterator_getBegin___doc__},
-	{"setBegin", ( PyCFunction ) ViewEdgeIterator_setBegin, METH_VARARGS, ViewEdgeIterator_setBegin___doc__},
-	{"getOrientation", ( PyCFunction ) ViewEdgeIterator_getOrientation, METH_NOARGS, ViewEdgeIterator_getOrientation___doc__},
-	{"setOrientation", ( PyCFunction ) ViewEdgeIterator_setOrientation, METH_VARARGS, ViewEdgeIterator_setOrientation___doc__},
-	{"changeOrientation", ( PyCFunction ) ViewEdgeIterator_changeOrientation, METH_NOARGS, ViewEdgeIterator_changeOrientation___doc__},
-	{"getObject", ( PyCFunction ) ViewEdgeIterator_getObject, METH_NOARGS, ViewEdgeIterator_getObject___doc__},
-	{NULL, NULL, 0, NULL}
+PyDoc_STRVAR(ViewEdgeIterator_current_edge_doc,
+"The ViewEdge object currently pointed by this iterator.\n"
+"\n"
+":type: :class:`ViewEdge`");
+
+static PyObject *ViewEdgeIterator_current_edge_get(BPy_ViewEdgeIterator *self, void *UNUSED(closure))
+{
+	ViewEdge *ve = self->ve_it->getCurrentEdge();
+	if (ve)
+		return BPy_ViewEdge_from_ViewEdge(*ve);
+
+	Py_RETURN_NONE;}
+
+static int ViewEdgeIterator_current_edge_set(BPy_ViewEdgeIterator *self, PyObject *value, void *UNUSED(closure))
+{
+	if (!BPy_ViewEdge_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be a ViewEdge");
+		return -1;
+	}
+	self->ve_it->setCurrentEdge(((BPy_ViewEdge *)value)->ve);
+	return 0;
+}
+
+PyDoc_STRVAR(ViewEdgeIterator_orientation_doc,
+"The orientation of the pointed ViewEdge in the iteration.\n"
+"If true, the iterator looks for the next ViewEdge among those ViewEdges\n"
+"that surround the ending ViewVertex of the \"begin\" ViewEdge.  If false,\n"
+"the iterator searches over the ViewEdges surrounding the ending ViewVertex\n"
+"of the \"begin\" ViewEdge.\n"
+"\n"
+":type: bool");
+
+static PyObject *ViewEdgeIterator_orientation_get(BPy_ViewEdgeIterator *self, void *UNUSED(closure))
+{
+	return PyBool_from_bool(self->ve_it->getOrientation());
+}
+
+static int ViewEdgeIterator_orientation_set(BPy_ViewEdgeIterator *self, PyObject *value, void *UNUSED(closure))
+{
+	if (!PyBool_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be a boolean");
+		return -1;
+	}
+	self->ve_it->setOrientation(bool_from_PyBool(value));
+	return 0;
+}
+
+PyDoc_STRVAR(ViewEdgeIterator_begin_doc,
+"The first ViewEdge used for the iteration.\n"
+"\n"
+":type: :class:`ViewEdge`");
+
+static PyObject *ViewEdgeIterator_begin_get(BPy_ViewEdgeIterator *self, void *UNUSED(closure))
+{
+	ViewEdge *ve = self->ve_it->getBegin();
+	if (ve)
+		return BPy_ViewEdge_from_ViewEdge(*ve);
+
+	Py_RETURN_NONE;
+}
+
+static int ViewEdgeIterator_begin_set(BPy_ViewEdgeIterator *self, PyObject *value, void *UNUSED(closure))
+{
+	if(!BPy_ViewEdge_Check(value)) {
+		PyErr_SetString(PyExc_TypeError, "value must be a ViewEdge");
+		return -1;
+	}
+	self->ve_it->setBegin(((BPy_ViewEdge *)value)->ve);
+	return 0;
+}
+
+static PyGetSetDef BPy_ViewEdgeIterator_getseters[] = {
+	{(char *)"object", (getter)ViewEdgeIterator_object_get, (setter)NULL, (char *)ViewEdgeIterator_object_doc, NULL},
+	{(char *)"current_edge", (getter)ViewEdgeIterator_current_edge_get, (setter)ViewEdgeIterator_current_edge_set, (char *)ViewEdgeIterator_current_edge_doc, NULL},
+	{(char *)"orientation", (getter)ViewEdgeIterator_orientation_get, (setter)ViewEdgeIterator_orientation_set, (char *)ViewEdgeIterator_orientation_doc, NULL},
+	{(char *)"begin", (getter)ViewEdgeIterator_begin_get, (setter)ViewEdgeIterator_begin_set, (char *)ViewEdgeIterator_begin_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_ViewEdgeIterator type definition ------------------------------*/
@@ -239,7 +205,7 @@ PyTypeObject ViewEdgeIterator_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	ViewEdgeIterator___doc__,       /* tp_doc */
+	ViewEdgeIterator_doc,           /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -248,13 +214,13 @@ PyTypeObject ViewEdgeIterator_Type = {
 	0,                              /* tp_iternext */
 	BPy_ViewEdgeIterator_methods,   /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_ViewEdgeIterator_getseters, /* tp_getset */
 	&Iterator_Type,                 /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */
 	0,                              /* tp_descr_set */
 	0,                              /* tp_dictoffset */
-	(initproc)ViewEdgeIterator___init__, /* tp_init */
+	(initproc)ViewEdgeIterator_init, /* tp_init */
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };

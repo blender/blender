@@ -13,7 +13,7 @@ extern "C" {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char ChainingIterator___doc__[] =
+PyDoc_STRVAR(ChainingIterator_doc,
 "Class hierarchy: :class:`Iterator` > :class:`ViewEdgeIterator` > :class:`ChainingIterator`\n"
 "\n"
 "Base class for chaining iterators.  This class is designed to be\n"
@@ -47,52 +47,53 @@ static char ChainingIterator___doc__[] =
 "   Copy constructor.\n"
 "\n"
 "   :arg brother: \n"
-"   :type brother: ChainingIterator\n";
+"   :type brother: ChainingIterator");
 
-static int ChainingIterator___init__(BPy_ChainingIterator *self, PyObject *args )
-{	
+static int ChainingIterator___init__(BPy_ChainingIterator *self, PyObject *args)
+{
 	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0, *obj4 = 0;
 
-	if (!( PyArg_ParseTuple(args, "|OOOO", &obj1, &obj2, &obj3, &obj4) ))
-	    return -1;
+	if (!PyArg_ParseTuple(args, "|OOOO", &obj1, &obj2, &obj3, &obj4))
+		return -1;
 
-	if( obj1 && BPy_ChainingIterator_Check(obj1)  ) {
-		self->c_it = new ChainingIterator(*( ((BPy_ChainingIterator *) obj1)->c_it ));
-	
+	if (obj1 && BPy_ChainingIterator_Check(obj1)) {
+		self->c_it = new ChainingIterator(*(((BPy_ChainingIterator *)obj1)->c_it));
+
 	} else {
-		bool restrictToSelection = ( obj1 ) ? bool_from_PyBool(obj1) : true;
-		bool restrictToUnvisited = ( obj2 ) ? bool_from_PyBool(obj2) : true;
+		bool restrictToSelection = (obj1) ? bool_from_PyBool(obj1) : true;
+		bool restrictToUnvisited = (obj2) ? bool_from_PyBool(obj2) : true;
 		ViewEdge *begin;
-		if ( !obj3 || obj3 == Py_None )
+		if (!obj3 || obj3 == Py_None)
 			begin = NULL;
-		else if ( BPy_ViewEdge_Check(obj3) )
-			begin = ((BPy_ViewEdge *) obj3)->ve;
+		else if (BPy_ViewEdge_Check(obj3))
+			begin = ((BPy_ViewEdge *)obj3)->ve;
 		else {
 			PyErr_SetString(PyExc_TypeError, "3rd argument must be either a ViewEdge object or None");
 			return -1;
 		}
-		bool orientation = ( obj4 ) ? bool_from_PyBool(obj4) : true;
-		
-		self->c_it = new ChainingIterator( restrictToSelection, restrictToUnvisited, begin, orientation);	
+		bool orientation = (obj4) ? bool_from_PyBool(obj4) : true;
+
+		self->c_it = new ChainingIterator(restrictToSelection, restrictToUnvisited, begin, orientation);
 	}
-	
+
 	self->py_ve_it.ve_it = self->c_it;
 	self->py_ve_it.py_it.it = self->c_it;
-	
-	self->c_it->py_c_it = (PyObject *) self;
-	
+
+	self->c_it->py_c_it = (PyObject *)self;
+
 	return 0;
 }
 
-static char ChainingIterator_init___doc__[] =
+PyDoc_STRVAR(ChainingIterator_init_doc,
 ".. method:: init()\n"
 "\n"
 "   Initializes the iterator context.  This method is called each\n"
 "   time a new chain is started.  It can be used to reset some\n"
-"   history information that you might want to keep.\n";
+"   history information that you might want to keep.");
 
-static PyObject *ChainingIterator_init( BPy_ChainingIterator *self ) {
-	if( typeid(*(self->c_it)) == typeid(ChainingIterator) ) {
+static PyObject *ChainingIterator_init(BPy_ChainingIterator *self)
+{
+	if (typeid(*(self->c_it)) == typeid(ChainingIterator)) {
 		PyErr_SetString(PyExc_TypeError, "init() method not properly overridden");
 		return NULL;
 	}
@@ -101,7 +102,7 @@ static PyObject *ChainingIterator_init( BPy_ChainingIterator *self ) {
 	Py_RETURN_NONE;
 }
 
-static char ChainingIterator_traverse___doc__[] =
+PyDoc_STRVAR(ChainingIterator_traverse_doc,
 ".. method:: traverse(it)\n"
 "\n"
 "   This method iterates over the potential next ViewEdges and returns\n"
@@ -113,77 +114,77 @@ static char ChainingIterator_traverse___doc__[] =
 "      restriction rules by only iterating over the valid ViewEdges.\n"
 "   :type it: :class:`AdjacencyIterator`\n"
 "   :return: Returns the next ViewEdge to follow, or None if chaining ends.\n"
-"   :rtype: :class:`ViewEdge` or None\n";
+"   :rtype: :class:`ViewEdge` or None");
 
-static PyObject *ChainingIterator_traverse( BPy_ChainingIterator *self, PyObject *args ) {
+static PyObject *ChainingIterator_traverse(BPy_ChainingIterator *self, PyObject *args)
+{
 	PyObject *py_a_it;
 
-	if(!( PyArg_ParseTuple(args, "O!", &AdjacencyIterator_Type, &py_a_it) ))
+	if(!(PyArg_ParseTuple(args, "O!", &AdjacencyIterator_Type, &py_a_it)))
 		return NULL;
-	
-	if( typeid(*(self->c_it)) == typeid(ChainingIterator) ) {
+
+	if (typeid(*(self->c_it)) == typeid(ChainingIterator)) {
 		PyErr_SetString(PyExc_TypeError, "traverse() method not properly overridden");
 		return NULL;
 	}
-	if( ((BPy_AdjacencyIterator *) py_a_it)->a_it )
-		self->c_it->traverse(*( ((BPy_AdjacencyIterator *) py_a_it)->a_it ));
-		
-	Py_RETURN_NONE;
-}
-
-static char ChainingIterator_getVertex___doc__[] =
-".. method:: getVertex()\n"
-"\n"
-"   Returns the vertex which is the next crossing.\n"
-"\n"
-"   :return: The vertex which is the next crossing.\n"
-"   :rtype: :class:`ViewVertex`\n";
-
-static PyObject *ChainingIterator_getVertex( BPy_ChainingIterator *self ) {
-	ViewVertex *v = self->c_it->getVertex();
-	if( v )
-		return Any_BPy_ViewVertex_from_ViewVertex( *v );
-		
-	Py_RETURN_NONE;
-}
-
-static char ChainingIterator_isIncrementing___doc__[] =
-".. method:: isIncrementing()\n"
-"\n"
-"   Returns true if the current iteration is an incrementation.\n"
-"\n"
-"   :return: True if the current iteration is an incrementation.\n"
-"   :rtype: bool\n";
-
-static PyObject *ChainingIterator_isIncrementing( BPy_ChainingIterator *self ) {
-	return PyBool_from_bool( self->c_it->isIncrementing() );
-}
-
-static char ChainingIterator_getObject___doc__[] =
-".. method:: getObject()\n"
-"\n"
-"   Returns the pointed ViewEdge.\n"
-"\n"
-"   :return: The pointed ViewEdge.\n"
-"   :rtype: :class:`ViewEdge`\n";
-
-static PyObject * ChainingIterator_getObject( BPy_ChainingIterator *self) {
-	
-	ViewEdge *ve = self->c_it->operator*();
-	if( ve )
-		return BPy_ViewEdge_from_ViewEdge( *ve );
+	if (((BPy_AdjacencyIterator *)py_a_it)->a_it)
+		self->c_it->traverse(*(((BPy_AdjacencyIterator *)py_a_it)->a_it));
 
 	Py_RETURN_NONE;
 }
 
-/*----------------------ChainingIterator instance definitions ----------------------------*/
+
 static PyMethodDef BPy_ChainingIterator_methods[] = {
-	{"init", ( PyCFunction ) ChainingIterator_init, METH_NOARGS, ChainingIterator_init___doc__},
-	{"traverse", ( PyCFunction ) ChainingIterator_traverse, METH_VARARGS, ChainingIterator_traverse___doc__},
-	{"getVertex", ( PyCFunction ) ChainingIterator_getVertex, METH_NOARGS, ChainingIterator_getVertex___doc__},
-	{"isIncrementing", ( PyCFunction ) ChainingIterator_isIncrementing, METH_NOARGS, ChainingIterator_isIncrementing___doc__},
-	{"getObject", ( PyCFunction ) ChainingIterator_getObject, METH_NOARGS, ChainingIterator_getObject___doc__},
+	{"init", (PyCFunction) ChainingIterator_init, METH_NOARGS, ChainingIterator_init_doc},
+	{"traverse", (PyCFunction) ChainingIterator_traverse, METH_VARARGS, ChainingIterator_traverse_doc},
 	{NULL, NULL, 0, NULL}
+};
+
+/*----------------------ChainingIterator get/setters ----------------------------*/
+
+PyDoc_STRVAR(ChainingIterator_object_doc,
+"The ViewEdge object currently pointed by this iterator.\n"
+"\n"
+":type: :class:`ViewEdge`");
+
+static PyObject *ChainingIterator_object_get(BPy_ChainingIterator *self, void *UNUSED(closure))
+{
+	ViewEdge *ve = self->c_it->operator*();
+	if (ve)
+		return BPy_ViewEdge_from_ViewEdge(*ve);
+
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(ChainingIterator_next_vertex_doc,
+"The ViewVertex that is the next crossing.\n"
+"\n"
+":type: :class:`ViewVertex`");
+
+static PyObject *ChainingIterator_next_vertex_get(BPy_ChainingIterator *self, void *UNUSED(closure))
+{
+	ViewVertex *v = self->c_it->getVertex();
+	if (v)
+		return Any_BPy_ViewVertex_from_ViewVertex(*v);
+
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(ChainingIterator_is_incrementing_doc,
+"True if the current iteration is an incrementation.\n"
+"\n"
+":type: bool");
+
+static PyObject *ChainingIterator_is_incrementing_get(BPy_ChainingIterator *self, void *UNUSED(closure))
+{
+	return PyBool_from_bool(self->c_it->isIncrementing());
+}
+
+static PyGetSetDef BPy_ChainingIterator_getseters[] = {
+	{(char *)"object", (getter)ChainingIterator_object_get, (setter)NULL, (char *)ChainingIterator_object_doc, NULL},
+	{(char *)"next_vertex", (getter)ChainingIterator_next_vertex_get, (setter)NULL, (char *)ChainingIterator_next_vertex_doc, NULL},
+	{(char *)"is_incrementing", (getter)ChainingIterator_is_incrementing_get, (setter)NULL, (char *)ChainingIterator_is_incrementing_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_ChainingIterator type definition ------------------------------*/
@@ -209,7 +210,7 @@ PyTypeObject ChainingIterator_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	ChainingIterator___doc__,       /* tp_doc */
+	ChainingIterator_doc,       /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -218,7 +219,7 @@ PyTypeObject ChainingIterator_Type = {
 	0,                              /* tp_iternext */
 	BPy_ChainingIterator_methods,   /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_ChainingIterator_getseters, /* tp_getset */
 	&ViewEdgeIterator_Type,         /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */

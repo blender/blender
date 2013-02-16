@@ -33,24 +33,6 @@ from PredicatesU1D import *
 from PredicatesU0D import *
 from Functions0D import *
 
-## Predicate to tell whether a TVertex
-## corresponds to a change from 0 to 1 or not.
-class pyBackTVertexUP0D(UnaryPredicate0D):
-	def __init__(self):
-		UnaryPredicate0D.__init__(self)
-		self._getQI = QuantitativeInvisibilityF0D()
-	def getName(self):
-		return "pyBackTVertexUP0D"
-	def __call__(self, iter):
-		v = iter.getObject()
-		nat = v.getNature()
-		if(nat & Nature.T_VERTEX == 0):
-			return 0
-		if(self._getQI(iter) != 0):
-			return 1
-		return 0
-
-
 upred = QuantitativeInvisibilityUP1D(0)
 Operators.select(upred)
 Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(upred))

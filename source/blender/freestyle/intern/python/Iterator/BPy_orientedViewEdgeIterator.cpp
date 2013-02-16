@@ -10,7 +10,7 @@ extern "C" {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char orientedViewEdgeIterator___doc__[] =
+PyDoc_STRVAR(orientedViewEdgeIterator_doc,
 "Class hierarchy: :class:`Iterator` > :class:`orientedViewEdgeIterator`\n"
 "\n"
 "Class representing an iterator over oriented ViewEdges around a\n"
@@ -27,32 +27,34 @@ static char orientedViewEdgeIterator___doc__[] =
 "   Copy constructor.\n"
 "\n"
 "   :arg iBrother: An orientedViewEdgeIterator object.\n"
-"   :type iBrother: :class:`orientedViewEdgeIterator`\n";
+"   :type iBrother: :class:`orientedViewEdgeIterator`");
 
-static int orientedViewEdgeIterator___init__(BPy_orientedViewEdgeIterator *self, PyObject *args )
-{	
+static int orientedViewEdgeIterator_init(BPy_orientedViewEdgeIterator *self, PyObject *args)
+{
 	PyObject *obj = 0;
 
-	if (!( PyArg_ParseTuple(args, "|O", &obj) ))
-	    return -1;
+	if (!PyArg_ParseTuple(args, "|O", &obj))
+		return -1;
 
-	if( !obj )
+	if (!obj)
 		self->ove_it = new ViewVertexInternal::orientedViewEdgeIterator();
-	else if( BPy_orientedViewEdgeIterator_Check(obj) )
-		self->ove_it = new ViewVertexInternal::orientedViewEdgeIterator(*( ((BPy_orientedViewEdgeIterator *) obj)->ove_it ));
+	else if (BPy_orientedViewEdgeIterator_Check(obj))
+		self->ove_it = new ViewVertexInternal::orientedViewEdgeIterator(*(((BPy_orientedViewEdgeIterator *)obj)->ove_it));
 	else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument");
 		return -1;
 	}
-	
+
 	self->py_it.it = self->ove_it;
 	self->reversed = 0;
-	
+
 	return 0;
 }
 
-static PyObject * orientedViewEdgeIterator_iternext( BPy_orientedViewEdgeIterator *self ) {
+static PyObject * orientedViewEdgeIterator_iternext(BPy_orientedViewEdgeIterator *self)
+{
 	ViewVertex::directedViewEdge *dve;
+
 	if (self->reversed) {
 		if (self->ove_it->isBegin()) {
 			PyErr_SetNone(PyExc_StopIteration);
@@ -68,26 +70,31 @@ static PyObject * orientedViewEdgeIterator_iternext( BPy_orientedViewEdgeIterato
 		dve = self->ove_it->operator->();
 		self->ove_it->increment();
 	}
-	return BPy_directedViewEdge_from_directedViewEdge( *dve );
+	return BPy_directedViewEdge_from_directedViewEdge(*dve);
 }
 
-static char orientedViewEdgeIterator_getObject___doc__[] =
-".. method:: getObject()\n"
-"\n"
-"   Returns the pointed oriented ViewEdge.\n"
-"\n"
-"   :return: A tuple of the pointed ViewEdge and a boolean value.  If\n"
-"      the boolean value is true, the ViewEdge is incoming.\n"
-"   :rtype: (:class:`directedViewEdge`, bool)\n";
-
-static PyObject * orientedViewEdgeIterator_getObject( BPy_orientedViewEdgeIterator *self) {
-	return BPy_directedViewEdge_from_directedViewEdge( self->ove_it->operator*() );
-}
-
-/*----------------------orientedViewEdgeIterator instance definitions ----------------------------*/
 static PyMethodDef BPy_orientedViewEdgeIterator_methods[] = {
-	{"getObject", ( PyCFunction ) orientedViewEdgeIterator_getObject, METH_NOARGS, orientedViewEdgeIterator_getObject___doc__},
 	{NULL, NULL, 0, NULL}
+};
+
+/*----------------------orientedViewEdgeIterator get/setters ----------------------------*/
+
+PyDoc_STRVAR(orientedViewEdgeIterator_object_doc,
+"The oriented ViewEdge (i.e., a tuple of the pointed ViewEdge and a boolean\n"
+"value) currently pointed by this iterator. If the boolean value is true,\n"
+"the ViewEdge is incoming.\n"
+"\n"
+":type: (:class:`directedViewEdge`, bool)");
+
+static PyObject *orientedViewEdgeIterator_object_get(BPy_orientedViewEdgeIterator *self, void *UNUSED(closure))
+{
+	return BPy_directedViewEdge_from_directedViewEdge(self->ove_it->operator*());
+
+}
+
+static PyGetSetDef BPy_orientedViewEdgeIterator_getseters[] = {
+	{(char *)"object", (getter)orientedViewEdgeIterator_object_get, (setter)NULL, (char *)orientedViewEdgeIterator_object_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_orientedViewEdgeIterator type definition ------------------------------*/
@@ -113,7 +120,7 @@ PyTypeObject orientedViewEdgeIterator_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	orientedViewEdgeIterator___doc__, /* tp_doc */
+	orientedViewEdgeIterator_doc, /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -122,13 +129,13 @@ PyTypeObject orientedViewEdgeIterator_Type = {
 	(iternextfunc)orientedViewEdgeIterator_iternext, /* tp_iternext */
 	BPy_orientedViewEdgeIterator_methods, /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_orientedViewEdgeIterator_getseters, /* tp_getset */
 	&Iterator_Type,                 /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */
 	0,                              /* tp_descr_set */
 	0,                              /* tp_dictoffset */
-	(initproc)orientedViewEdgeIterator___init__, /* tp_init */
+	(initproc)orientedViewEdgeIterator_init, /* tp_init */
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };

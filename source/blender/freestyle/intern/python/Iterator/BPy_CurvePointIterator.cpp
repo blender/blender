@@ -11,7 +11,7 @@ extern "C" {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char CurvePointIterator___doc__[] =
+PyDoc_STRVAR(CurvePointIterator_doc,
 "Class hierarchy: :class:`Iterator` > :class:`CurvePointIterator`\n"
 "\n"
 "Class representing an iterator on a curve.  Allows an iterating\n"
@@ -32,24 +32,24 @@ static char CurvePointIterator___doc__[] =
 "   Copy constructor.\n"
 "\n"
 "   :arg brother: A CurvePointIterator object.\n"
-"   :type brother: :class:`CurvePointIterator`\n";
+"   :type brother: :class:`CurvePointIterator`");
 
-static int CurvePointIterator___init__(BPy_CurvePointIterator *self, PyObject *args )
-{	
+static int CurvePointIterator_init(BPy_CurvePointIterator *self, PyObject *args)
+{
 	PyObject *obj = 0;
 
-	if (! PyArg_ParseTuple(args, "|O", &obj) )
-	    return -1;
+	if (!PyArg_ParseTuple(args, "|O", &obj))
+		return -1;
 
-	if( !obj ){
+	if (!obj) {
 		self->cp_it = new CurveInternal::CurvePointIterator();
-		
-	} else if( BPy_CurvePointIterator_Check(obj) ) {
-		self->cp_it = new CurveInternal::CurvePointIterator(*( ((BPy_CurvePointIterator *) obj)->cp_it ));
-	
-	} else if( PyFloat_Check(obj) ) {
-		self->cp_it = new CurveInternal::CurvePointIterator( PyFloat_AsDouble(obj) );
-			
+
+	} else if (BPy_CurvePointIterator_Check(obj)) {
+		self->cp_it = new CurveInternal::CurvePointIterator(*(((BPy_CurvePointIterator *)obj)->cp_it));
+
+	} else if (PyFloat_Check(obj)) {
+		self->cp_it = new CurveInternal::CurvePointIterator(PyFloat_AsDouble(obj));
+
 	} else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument");
 		return -1;
@@ -60,32 +60,8 @@ static int CurvePointIterator___init__(BPy_CurvePointIterator *self, PyObject *a
 	return 0;
 }
 
-static char CurvePointIterator_t___doc__[] =
-".. method:: t()\n"
-"\n"
-"   Returns the curvilinear abscissa.\n"
-"\n"
-"   :return: The curvilinear abscissa.\n"
-"   :rtype: float\n";
-
-static PyObject * CurvePointIterator_t( BPy_CurvePointIterator *self ) {
-	return PyFloat_FromDouble( self->cp_it->t() );
-}
-
-static char CurvePointIterator_u___doc__[] =
-".. method:: u()\n"
-"\n"
-"   Returns the point parameter in the curve (0<=u<=1).\n"
-"\n"
-"   :return: The point parameter.\n"
-"   :rtype: float\n";
-
-static PyObject * CurvePointIterator_u( BPy_CurvePointIterator *self ) {
-	return PyFloat_FromDouble( self->cp_it->u() );
-}
-
-static char CurvePointIterator_castToInterface0DIterator___doc__[] =
-".. method:: castToInterface0DIterator()\n"
+PyDoc_STRVAR(CurvePointIterator_cast_to_interface0diterator_doc,
+".. method:: cast_to_interface0diterator()\n"
 "\n"
 "   Returns an Interface0DIterator converted from this\n"
 "   CurvePointIterator.  Useful for any call to a function of the\n"
@@ -93,32 +69,56 @@ static char CurvePointIterator_castToInterface0DIterator___doc__[] =
 "\n"
 "   :return: An Interface0DIterator object converted from the\n"
 "      iterator.\n"
-"   :rtype: :class:`Interface0DIterator`\n";
+"   :rtype: :class:`Interface0DIterator`");
 
-static PyObject * CurvePointIterator_castToInterface0DIterator( BPy_CurvePointIterator *self ) {
-	Interface0DIterator it( self->cp_it->castToInterface0DIterator() );
-	return BPy_Interface0DIterator_from_Interface0DIterator( it, 0 );
+static PyObject * CurvePointIterator_cast_to_interface0diterator(BPy_CurvePointIterator *self)
+{
+	Interface0DIterator it(self->cp_it->castToInterface0DIterator());
+	return BPy_Interface0DIterator_from_Interface0DIterator(it, 0);
 }
 
-static char CurvePointIterator_getObject___doc__[] =
-".. method:: getObject()\n"
-"\n"
-"   Returns a CurvePoint pointed by the iterator.\n"
-"\n"
-"   :return: \n"
-"   :rtype: :class:`CurvePoint`\n";
-
-static PyObject * CurvePointIterator_getObject(BPy_CurvePointIterator *self) {
-	return BPy_CurvePoint_from_CurvePoint( self->cp_it->operator*() );
-}
-
-/*----------------------CurvePointIterator instance definitions ----------------------------*/
 static PyMethodDef BPy_CurvePointIterator_methods[] = {
-	{"t", ( PyCFunction ) CurvePointIterator_t, METH_NOARGS, CurvePointIterator_t___doc__},
-	{"u", ( PyCFunction ) CurvePointIterator_u, METH_NOARGS, CurvePointIterator_u___doc__},
-	{"castToInterface0DIterator", ( PyCFunction ) CurvePointIterator_castToInterface0DIterator, METH_NOARGS, CurvePointIterator_castToInterface0DIterator___doc__},
-	{"getObject", ( PyCFunction ) CurvePointIterator_getObject, METH_NOARGS, CurvePointIterator_getObject___doc__},
+	{"cast_to_interface0diterator", (PyCFunction) CurvePointIterator_cast_to_interface0diterator, METH_NOARGS, CurvePointIterator_cast_to_interface0diterator_doc},
 	{NULL, NULL, 0, NULL}
+};
+
+/*----------------------CurvePointIterator get/setters ----------------------------*/
+
+PyDoc_STRVAR(CurvePointIterator_object_doc,
+"The CurvePoint object currently pointed by this iterator.\n"
+"\n"
+":type: :class:`CurvePoint`");
+
+static PyObject *CurvePointIterator_object_get(BPy_CurvePointIterator *self, void *UNUSED(closure))
+{
+	return BPy_CurvePoint_from_CurvePoint(self->cp_it->operator*());
+}
+
+PyDoc_STRVAR(CurvePointIterator_t_doc,
+"The curvilinear abscissa of the current point.\n"
+"\n"
+":type: float");
+
+static PyObject *CurvePointIterator_t_get(BPy_CurvePointIterator *self, void *UNUSED(closure))
+{
+	return PyFloat_FromDouble(self->cp_it->t());
+}
+
+PyDoc_STRVAR(CurvePointIterator_u_doc,
+"The point parameter at the current point in the stroke (0 <= u <= 1).\n"
+"\n"
+":type: float");
+
+static PyObject *CurvePointIterator_u_get(BPy_CurvePointIterator *self, void *UNUSED(closure))
+{
+	return PyFloat_FromDouble(self->cp_it->u());
+}
+
+static PyGetSetDef BPy_CurvePointIterator_getseters[] = {
+	{(char *)"object", (getter)CurvePointIterator_object_get, (setter)NULL, (char *)CurvePointIterator_object_doc, NULL},
+	{(char *)"t", (getter)CurvePointIterator_t_get, (setter)NULL, (char *)CurvePointIterator_t_doc, NULL},
+	{(char *)"u", (getter)CurvePointIterator_u_get, (setter)NULL, (char *)CurvePointIterator_u_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_CurvePointIterator type definition ------------------------------*/
@@ -144,7 +144,7 @@ PyTypeObject CurvePointIterator_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	CurvePointIterator___doc__,     /* tp_doc */
+	CurvePointIterator_doc,         /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -153,13 +153,13 @@ PyTypeObject CurvePointIterator_Type = {
 	0,                              /* tp_iternext */
 	BPy_CurvePointIterator_methods, /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_CurvePointIterator_getseters, /* tp_getset */
 	&Iterator_Type,                 /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */
 	0,                              /* tp_descr_set */
 	0,                              /* tp_dictoffset */
-	(initproc)CurvePointIterator___init__, /* tp_init */
+	(initproc)CurvePointIterator_init, /* tp_init */
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };

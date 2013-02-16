@@ -159,8 +159,8 @@ class BaseThicknessShader(StrokeShader, ThicknessModifierMixIn):
         return "BaseThicknessShader"
     def shade(self, stroke):
         it = stroke.stroke_vertices_begin()
-        while it.isEnd() == 0:
-            sv = it.getObject()
+        while not it.is_end:
+            sv = it.object
             self.set_thickness(sv, self.__outer, self.__inner)
             it.increment()
 
@@ -170,9 +170,9 @@ def iter_t2d_along_stroke(stroke):
     total = stroke.length_2d
     distance = 0.0
     it = stroke.stroke_vertices_begin()
-    while not it.isEnd():
-        p = it.getObject().point
-        if not it.isBegin():
+    while not it.is_end:
+        p = it.object.point
+        if not it.is_begin:
             distance += (prev - p).length
         prev = p
         t = min(distance / total, 1.0)
@@ -184,7 +184,7 @@ class ColorAlongStrokeShader(ColorRampModifier):
         return "ColorAlongStrokeShader"
     def shade(self, stroke):
         for it, t in iter_t2d_along_stroke(stroke):
-            sv = it.getObject()
+            sv = it.object
             a = sv.attribute.color
             b = self.evaluate(t)
             sv.attribute.color = self.blend_ramp(a, b)
@@ -194,7 +194,7 @@ class AlphaAlongStrokeShader(CurveMappingModifier):
         return "AlphaAlongStrokeShader"
     def shade(self, stroke):
         for it, t in iter_t2d_along_stroke(stroke):
-            sv = it.getObject()
+            sv = it.object
             a = sv.attribute.alpha
             b = self.evaluate(t)
             sv.attribute.alpha = self.blend(a, b)
@@ -210,7 +210,7 @@ class ThicknessAlongStrokeShader(ThicknessBlenderMixIn, CurveMappingModifier):
         return "ThicknessAlongStrokeShader"
     def shade(self, stroke):
         for it, t in iter_t2d_along_stroke(stroke):
-            sv = it.getObject()
+            sv = it.object
             a = sv.attribute.thickness
             b = self.__value_min + self.evaluate(t) * (self.__value_max - self.__value_min)
             c = self.blend_thickness(a[0], a[1], b)
@@ -221,8 +221,8 @@ class ThicknessAlongStrokeShader(ThicknessBlenderMixIn, CurveMappingModifier):
 def iter_distance_from_camera(stroke, range_min, range_max):
     normfac = range_max - range_min # normalization factor
     it = stroke.stroke_vertices_begin()
-    while not it.isEnd():
-        p = it.getObject().point_3d # in the camera coordinate
+    while not it.is_end:
+        p = it.object.point_3d # in the camera coordinate
         distance = p.length
         if distance < range_min:
             t = 0.0
@@ -242,7 +242,7 @@ class ColorDistanceFromCameraShader(ColorRampModifier):
         return "ColorDistanceFromCameraShader"
     def shade(self, stroke):
         for it, t in iter_distance_from_camera(stroke, self.__range_min, self.__range_max):
-            sv = it.getObject()
+            sv = it.object
             a = sv.attribute.color
             b = self.evaluate(t)
             sv.attribute.color = self.blend_ramp(a, b)
@@ -256,7 +256,7 @@ class AlphaDistanceFromCameraShader(CurveMappingModifier):
         return "AlphaDistanceFromCameraShader"
     def shade(self, stroke):
         for it, t in iter_distance_from_camera(stroke, self.__range_min, self.__range_max):
-            sv = it.getObject()
+            sv = it.object
             a = sv.attribute.alpha
             b = self.evaluate(t)
             sv.attribute.alpha = self.blend(a, b)
@@ -274,7 +274,7 @@ class ThicknessDistanceFromCameraShader(ThicknessBlenderMixIn, CurveMappingModif
         return "ThicknessDistanceFromCameraShader"
     def shade(self, stroke):
         for it, t in iter_distance_from_camera(stroke, self.__range_min, self.__range_max):
-            sv = it.getObject()
+            sv = it.object
             a = sv.attribute.thickness
             b = self.__value_min + self.evaluate(t) * (self.__value_max - self.__value_min)
             c = self.blend_thickness(a[0], a[1], b)
@@ -289,8 +289,8 @@ def iter_distance_from_object(stroke, object, range_min, range_max):
     loc = mv * object.location # loc in the camera coordinate
     normfac = range_max - range_min # normalization factor
     it = stroke.stroke_vertices_begin()
-    while not it.isEnd():
-        p = it.getObject().point_3d # in the camera coordinate
+    while not it.is_end:
+        p = it.object.point_3d # in the camera coordinate
         distance = (p - loc).length
         if distance < range_min:
             t = 0.0
@@ -313,7 +313,7 @@ class ColorDistanceFromObjectShader(ColorRampModifier):
         if self.__target is None:
             return
         for it, t in iter_distance_from_object(stroke, self.__target, self.__range_min, self.__range_max):
-            sv = it.getObject()
+            sv = it.object
             a = sv.attribute.color
             b = self.evaluate(t)
             sv.attribute.color = self.blend_ramp(a, b)
@@ -330,7 +330,7 @@ class AlphaDistanceFromObjectShader(CurveMappingModifier):
         if self.__target is None:
             return
         for it, t in iter_distance_from_object(stroke, self.__target, self.__range_min, self.__range_max):
-            sv = it.getObject()
+            sv = it.object
             a = sv.attribute.alpha
             b = self.evaluate(t)
             sv.attribute.alpha = self.blend(a, b)
@@ -351,7 +351,7 @@ class ThicknessDistanceFromObjectShader(ThicknessBlenderMixIn, CurveMappingModif
         if self.__target is None:
             return
         for it, t in iter_distance_from_object(stroke, self.__target, self.__range_min, self.__range_max):
-            sv = it.getObject()
+            sv = it.object
             a = sv.attribute.thickness
             b = self.__value_min + self.evaluate(t) * (self.__value_max - self.__value_min)
             c = self.blend_thickness(a[0], a[1], b)
@@ -362,8 +362,8 @@ class ThicknessDistanceFromObjectShader(ThicknessBlenderMixIn, CurveMappingModif
 def iter_material_color(stroke, material_attr):
     func = CurveMaterialF0D()
     it = stroke.stroke_vertices_begin()
-    while not it.isEnd():
-        material = func(it.castToInterface0DIterator())
+    while not it.is_end:
+        material = func(it.cast_to_interface0diterator())
         if material_attr == "DIFF":
             color = (material.diffuse[0],
                      material.diffuse[1],
@@ -380,8 +380,8 @@ def iter_material_color(stroke, material_attr):
 def iter_material_value(stroke, material_attr):
     func = CurveMaterialF0D()
     it = stroke.stroke_vertices_begin()
-    while not it.isEnd():
-        material = func(it.castToInterface0DIterator())
+    while not it.is_end:
+        material = func(it.cast_to_interface0diterator())
         if material_attr == "DIFF":
             r = material.diffuse[0]
             g = material.diffuse[1]
@@ -423,12 +423,12 @@ class ColorMaterialShader(ColorRampModifier):
     def shade(self, stroke):
         if self.__material_attr in ["DIFF", "SPEC"] and not self.__use_ramp:
             for it, b in iter_material_color(stroke, self.__material_attr):
-                sv = it.getObject()
+                sv = it.object
                 a = sv.attribute.color
                 sv.attribute.color = self.blend_ramp(a, b)
         else:
             for it, t in iter_material_value(stroke, self.__material_attr):
-                sv = it.getObject()
+                sv = it.object
                 a = sv.attribute.color
                 b = self.evaluate(t)
                 sv.attribute.color = self.blend_ramp(a, b)
@@ -441,7 +441,7 @@ class AlphaMaterialShader(CurveMappingModifier):
         return "AlphaMaterialShader"
     def shade(self, stroke):
         for it, t in iter_material_value(stroke, self.__material_attr):
-            sv = it.getObject()
+            sv = it.object
             a = sv.attribute.alpha
             b = self.evaluate(t)
             sv.attribute.alpha = self.blend(a, b)
@@ -458,7 +458,7 @@ class ThicknessMaterialShader(ThicknessBlenderMixIn, CurveMappingModifier):
         return "ThicknessMaterialShader"
     def shade(self, stroke):
         for it, t in iter_material_value(stroke, self.__material_attr):
-            sv = it.getObject()
+            sv = it.object
             a = sv.attribute.thickness
             b = self.__value_min + self.evaluate(t) * (self.__value_max - self.__value_min)
             c = self.blend_thickness(a[0], a[1], b)
@@ -477,12 +477,12 @@ class CalligraphicThicknessShader(ThicknessBlenderMixIn, ScalarBlendModifier):
     def shade(self, stroke):
         func = VertexOrientation2DF0D()
         it = stroke.stroke_vertices_begin()
-        while not it.isEnd():
-            dir = func(it.castToInterface0DIterator())
+        while not it.is_end:
+            dir = func(it.cast_to_interface0diterator())
             orthDir = mathutils.Vector((-dir.y, dir.x))
             orthDir.normalize()
             fac = abs(orthDir * self.__orientation)
-            sv = it.getObject()
+            sv = it.object
             a = sv.attribute.thickness
             b = self.__min_thickness + fac * (self.__max_thickness - self.__min_thickness)
             b = max(b, 0.0)
@@ -495,9 +495,9 @@ class CalligraphicThicknessShader(ThicknessBlenderMixIn, ScalarBlendModifier):
 def iter_distance_along_stroke(stroke):
     distance = 0.0
     it = stroke.stroke_vertices_begin()
-    while not it.isEnd():
-        p = it.getObject().point
-        if not it.isBegin():
+    while not it.is_end:
+        p = it.object.point
+        if not it.is_begin:
             distance += (prev - p).length
         prev = p
         yield it, distance
@@ -514,8 +514,8 @@ class SinusDisplacementShader(StrokeShader):
         return "SinusDisplacementShader"
     def shade(self, stroke):
         for it, distance in iter_distance_along_stroke(stroke):
-            v = it.getObject()
-            n = self._getNormal(it.castToInterface0DIterator())
+            v = it.object
+            n = self._getNormal(it.cast_to_interface0diterator())
             n = n * self._amplitude * math.cos(distance / self._wavelength * 2 * math.pi + self._phase)
             v.point = v.point + n
         stroke.update_length()
@@ -533,8 +533,8 @@ class PerlinNoise1DShader(StrokeShader):
     def shade(self, stroke):
         length = stroke.length_2d
         it = stroke.stroke_vertices_begin()
-        while not it.isEnd():
-            v = it.getObject()
+        while not it.is_end:
+            v = it.object
             nres = self.__noise.turbulence1(length * v.u, self.__freq, self.__amp, self.__oct)
             v.point = v.point + nres * self.__dir
             it.increment()
@@ -552,8 +552,8 @@ class PerlinNoise2DShader(StrokeShader):
         return "PerlinNoise2DShader"
     def shade(self, stroke):
         it = stroke.stroke_vertices_begin()
-        while not it.isEnd():
-            v = it.getObject()
+        while not it.is_end:
+            v = it.object
             vec = Vector([v.projected_x, v.projected_y])
             nres = self.__noise.turbulence2(vec, self.__freq, self.__amp, self.__oct)
             v.point = v.point + nres * self.__dir
@@ -571,11 +571,11 @@ class Offset2DShader(StrokeShader):
         return "Offset2DShader"
     def shade(self, stroke):
         it = stroke.stroke_vertices_begin()
-        while not it.isEnd():
-            v = it.getObject()
+        while not it.is_end:
+            v = it.object
             u = v.u
             a = self.__start + u * (self.__end - self.__start)
-            n = self.__getNormal(it.castToInterface0DIterator())
+            n = self.__getNormal(it.cast_to_interface0diterator())
             n = n * a
             v.point = v.point + n + self.__xy
             it.increment()
@@ -597,17 +597,17 @@ class Transform2DShader(StrokeShader):
         # determine the pivot of scaling and rotation operations
         if self.__pivot == "START":
             it = stroke.stroke_vertices_begin()
-            pivot = it.getObject().point
+            pivot = it.object.point
         elif self.__pivot == "END":
             it = stroke.stroke_vertices_end()
             it.decrement()
-            pivot = it.getObject().point
+            pivot = it.object.point
         elif self.__pivot == "PARAM":
             p = None
             it = stroke.stroke_vertices_begin()
-            while not it.isEnd():
+            while not it.is_end:
                 prev = p
-                v = it.getObject()
+                v = it.object
                 p = v.point
                 u = v.u
                 if self.__pivot_u < u:
@@ -622,8 +622,8 @@ class Transform2DShader(StrokeShader):
             pivot = Vector([0.0, 0.0])
             n = 0
             it = stroke.stroke_vertices_begin()
-            while not it.isEnd():
-                p = it.getObject().point
+            while not it.is_end:
+                p = it.object.point
                 pivot = pivot + p
                 n = n + 1
                 it.increment()
@@ -635,8 +635,8 @@ class Transform2DShader(StrokeShader):
         cos_theta = math.cos(self.__angle)
         sin_theta = math.sin(self.__angle)
         it = stroke.stroke_vertices_begin()
-        while not it.isEnd():
-            v = it.getObject()
+        while not it.is_end:
+            v = it.object
             p = v.point
             p = p - pivot
             x = p.x * self.__scale_x
@@ -687,8 +687,8 @@ class ObjectNamesUP1D(UnaryPredicate1D):
 def iter_stroke_vertices(stroke):
     it = stroke.stroke_vertices_begin()
     prev_p = None
-    while not it.isEnd():
-        sv = it.getObject()
+    while not it.is_end:
+        sv = it.object
         p = sv.point
         if prev_p is None or (prev_p - p).length > 1e-6:
             yield sv
@@ -848,8 +848,8 @@ class DashedLineShader(StrokeShader):
         visible = True
         sampling = 1.0
         it = stroke.stroke_vertices_begin(sampling)
-        while not it.isEnd():
-            pos = it.t()
+        while not it.is_end:
+            pos = it.t # curvilinear abscissa
             # The extra 'sampling' term is added below, because the
             # visibility attribute of the i-th vertex refers to the
             # visibility of the stroke segment between the i-th and
@@ -860,7 +860,7 @@ class DashedLineShader(StrokeShader):
                 if index == len(self._pattern):
                     index = 0
                 visible = not visible
-            it.getObject().attribute.visible = visible
+            it.object.attribute.visible = visible
             it.increment()
 
 # predicates for chaining
@@ -955,17 +955,17 @@ class MaterialBoundaryUP0D(UnaryPredicate0D):
     def getName(self):
         return "MaterialBoundaryUP0D"
     def __call__(self, it):
-        if it.isBegin():
+        if it.is_begin:
             return False
         it_prev = Interface0DIterator(it) 
         it_prev.decrement()
-        v = it.getObject()
+        v = it.object
         it.increment()
-        if it.isEnd():
+        if it.is_end:
             return False
-        fe = v.get_fedge(it_prev.getObject())
+        fe = v.get_fedge(it_prev.object)
         idx1 = fe.material_index if fe.is_smooth else fe.material_index_left
-        fe = v.get_fedge(it.getObject())
+        fe = v.get_fedge(it.object)
         idx2 = fe.material_index if fe.is_smooth else fe.material_index_left
         return idx1 != idx2
 
@@ -993,7 +993,7 @@ class Length2DThresholdUP0D(UnaryPredicate0D):
     def getName(self):
         return "Length2DThresholdUP0D"
     def __call__(self, inter):
-        t = inter.t() # curvilinear abscissa
+        t = inter.t # curvilinear abscissa
         if t < self._t:
             self._t = 0.0
             return False

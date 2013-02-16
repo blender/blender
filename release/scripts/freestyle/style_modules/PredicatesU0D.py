@@ -31,7 +31,7 @@ class pyVertexNatureUP0D(UnaryPredicate0D):
 	def getName(self):
 		return "pyVertexNatureUP0D"
 	def __call__(self, inter):
-		v = inter.getObject()
+		v = inter.object
 		return (v.nature & self._nature) != 0
 
 ## check whether an Interface0DIterator
@@ -44,14 +44,11 @@ class pyBackTVertexUP0D(UnaryPredicate0D):
 	def getName(self):
 		return "pyBackTVertexUP0D"
 	def __call__(self, iter):
-		v = iter.getObject()
-		nat = v.nature
-		if (nat & Nature.T_VERTEX) == 0:
+		if (iter.object.nature & Nature.T_VERTEX) == 0:
 			return 0
-		next = iter
-		if next.isEnd():
+		if iter.is_end:
 			return 0
-		if self._getQI(next) != 0:
+		if self._getQI(iter) != 0:
 			return 1
 		return 0
 
@@ -65,7 +62,7 @@ class pyParameterUP0DGoodOne(UnaryPredicate0D):
 		return "pyCurvilinearAbscissaHigherThanUP0D"
 	def __call__(self, inter):
 		#s = self.getCurvilinearAbscissa(inter)
-		u = inter.u() # FIXME
+		u = inter.u
 		#print(u)
 		return ((u>=self._m) and (u<=self._M))
 
@@ -82,7 +79,7 @@ class pyParameterUP0D(UnaryPredicate0D):
 		c = func(inter)
 		b1 = (c>0.1)
 		#s = self.getCurvilinearAbscissa(inter)
-		u = inter.u() # FIXME
+		u = inter.u
 		#print(u)
 		b = ((u>=self._m) and (u<=self._M))
 		return b and b1

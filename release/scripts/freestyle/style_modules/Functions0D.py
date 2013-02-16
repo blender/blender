@@ -6,7 +6,7 @@ class CurveMaterialF0D(UnaryFunction0DMaterial):
 	def getName(self):
 		return "CurveMaterialF0D"
 	def __call__(self, inter):
-		cp = inter.getObject()
+		cp = inter.object
 		assert(isinstance(cp, CurvePoint))
 		fe = cp.first_svertex.get_fedge(cp.second_svertex)
 		assert(fe is not None)
@@ -26,7 +26,7 @@ class pyCurvilinearLengthF0D(UnaryFunction0DDouble):
 		return "CurvilinearLengthF0D"
 
 	def __call__(self, inter):
-		cp = inter.getObject()		
+		cp = inter.object		
 		assert(isinstance(cp, CurvePoint))
 		return cp.t2d
 
@@ -66,7 +66,7 @@ class pyViewMapGradientVectorF0D(UnaryFunction0DVec2f):
 	def getName(self):
 		return "pyViewMapGradientVectorF0D"
 	def __call__(self, iter):
-		p = iter.getObject().point_2d
+		p = iter.object.point_2d
 		gx = ReadCompleteViewMapPixelCF(self._l, int(p.x+self._step), int(p.y))- ReadCompleteViewMapPixelCF(self._l, int(p.x), int(p.y))
 		gy = ReadCompleteViewMapPixelCF(self._l, int(p.x), int(p.y+self._step))- ReadCompleteViewMapPixelCF(self._l, int(p.x), int(p.y))
 		return Vector([gx, gy])
@@ -79,7 +79,7 @@ class pyViewMapGradientNormF0D(UnaryFunction0DDouble):
 	def getName(self):
 		return "pyViewMapGradientNormF0D"
 	def __call__(self, iter):
-		p = iter.getObject().point_2d
+		p = iter.object.point_2d
 		gx = ReadCompleteViewMapPixelCF(self._l, int(p.x+self._step), int(p.y))- ReadCompleteViewMapPixelCF(self._l, int(p.x), int(p.y))
 		gy = ReadCompleteViewMapPixelCF(self._l, int(p.x), int(p.y+self._step))- ReadCompleteViewMapPixelCF(self._l, int(p.x), int(p.y))
 		grad = Vector([gx, gy])

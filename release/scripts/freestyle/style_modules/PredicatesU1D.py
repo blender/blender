@@ -45,7 +45,7 @@ class pyHigherNumberOfTurnsUP1D(UnaryPredicate1D):
 		count = 0
 		func = Curvature2DAngleF0D()
 		it = inter.vertices_begin()
-		while not it.isEnd():
+		while not it.is_end:
 			if func(it) > self._a:
 				count = count+1
 			if count > self._n:
@@ -198,14 +198,14 @@ class pyIsOccludedByUP1D(UnaryPredicate1D):
 		it = inter.vertices_begin()
 		itlast = inter.vertices_end()
 		itlast.decrement()
-		v =  it.getObject()
-		vlast = itlast.getObject()
+		v =  it.object
+		vlast = itlast.object
 		tvertex = v.viewvertex
 		if type(tvertex) is TVertex:
 			print("TVertex: [ ", tvertex.id.first, ",",  tvertex.id.second," ]")
 			eit = tvertex.edges_begin()
-			while not eit.isEnd():
-				ve, incoming = eit.getObject()
+			while not eit.is_end:
+				ve, incoming = eit.object
 				if ve.id == self._id:
 					return 1
 				print("-------", ve.id.first, "-", ve.id.second)
@@ -214,8 +214,8 @@ class pyIsOccludedByUP1D(UnaryPredicate1D):
 		if type(tvertex) is TVertex:
 			print("TVertex: [ ", tvertex.id.first, ",",  tvertex.id.second," ]")
 			eit = tvertex.edges_begin()
-			while not eit.isEnd():
-				ve, incoming = eit.getObject()
+			while not eit.is_end:
+				ve, incoming = eit.object
 				if ve.id == self._id:
 					return 1
 				print("-------", ve.id.first, "-", ve.id.second)
@@ -349,8 +349,8 @@ class pyClosedCurveUP1D(UnaryPredicate1D):
 		it = inter.vertices_begin()
 		itlast = inter.vertices_end()
 		itlast.decrement()	
-		vlast = itlast.getObject()
-		v = it.getObject()
+		vlast = itlast.object
+		v = it.object
 		print(v.id.first, v.id.second)
 		print(vlast.id.first, vlast.id.second)
 		if v.id == vlast.id:
