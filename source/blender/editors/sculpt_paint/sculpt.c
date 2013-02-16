@@ -3158,7 +3158,7 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
 			PBVHVertexIter vd;
 			PBVHProxyNode *proxies;
 			int proxy_count;
-			float (*orco)[3];
+			float (*orco)[3] = NULL;
 
 			if (use_orco && !ss->bm)
 				orco = sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS)->co;
