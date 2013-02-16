@@ -441,7 +441,12 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
 		SculptUndoType type = (brush->sculpt_tool == SCULPT_TOOL_MASK ?
 							   SCULPT_UNDO_MASK : SCULPT_UNDO_COORDS);
 
-		unode = sculpt_undo_push_node(ob, nodes[n], type);
+		if (ss->bm) {
+			unode = sculpt_undo_push_node(ob, nodes[n], type);
+		}
+		else {
+			unode = sculpt_undo_get_node(nodes[n]);
+		}
 		if (unode) {
 			PBVHVertexIter vd;
 			SculptOrigVertData orig_data;
