@@ -2803,7 +2803,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GAME_NO_MATERIAL_CACHING);
 	RNA_def_property_ui_text(prop, "Use Material Caching",
 	                         "Cache materials in the converter (this is faster, but can cause problems with older "
-	                         "Singletexture and Multitexture games");
+	                         "Singletexture and Multitexture games)");
 
 	/* obstacle simulation */
 	prop = RNA_def_property(srna, "obstacle_simulation", PROP_ENUM, PROP_NONE);
