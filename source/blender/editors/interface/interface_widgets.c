@@ -646,8 +646,8 @@ static void widget_verts_to_quad_strip_open(uiWidgetBase *wtb, const int totvert
 	for (a = 0; a < totvert; a++) {
 		quad_strip[a * 2][0] = wtb->outer_v[a][0];
 		quad_strip[a * 2][1] = wtb->outer_v[a][1];
-		quad_strip[a * 2 + 1][0] = wtb->inner_v[a][0];
-		quad_strip[a * 2 + 1][1] = wtb->inner_v[a][1];
+		quad_strip[a * 2 + 1][0] = wtb->outer_v[a][0];
+		quad_strip[a * 2 + 1][1] = wtb->outer_v[a][1] - 1.0f;
 	}
 }
 
@@ -1900,12 +1900,12 @@ static void ui_hsv_cursor(float x, float y)
 	glTranslatef(x, y, 0.0f);
 	
 	glColor3f(1.0f, 1.0f, 1.0f);
-	glutil_draw_filled_arc(0.0f, M_PI * 2.0, 3.0f, 8);
+	glutil_draw_filled_arc(0.0f, M_PI * 2.0, 3.0f * U.pixelsize, 8);
 	
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
 	glColor3f(0.0f, 0.0f, 0.0f);
-	glutil_draw_lined_arc(0.0f, M_PI * 2.0, 3.0f, 12);
+	glutil_draw_lined_arc(0.0f, M_PI * 2.0, 3.0f * U.pixelsize, 12);
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH);
 	
@@ -1929,7 +1929,7 @@ void ui_hsvcircle_vals_from_pos(float *val_rad, float *val_dist, const rcti *rec
 
 static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 {
-	const int tot = 32;
+	const int tot = 64;
 	const float radstep = 2.0f * (float)M_PI / (float)tot;
 
 	const float centx = BLI_rcti_cent_x_fl(rect);

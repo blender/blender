@@ -36,7 +36,7 @@ class Device;
 class DeviceScene;
 class ImageManager;
 class OSLRenderServices;
-class OSLGlobals;
+struct OSLGlobals;
 class Scene;
 class ShaderGraph;
 class ShaderNode;
@@ -63,6 +63,8 @@ class OSLShaderManager : public ShaderManager {
 public:
 	OSLShaderManager();
 	~OSLShaderManager();
+
+	void reset(Scene *scene);
 
 	bool use_osl() { return true; }
 

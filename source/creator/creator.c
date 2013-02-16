@@ -88,6 +88,7 @@
 #include "BKE_depsgraph.h" /* for DAG_on_visible_update */
 #include "BKE_font.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_packedFile.h"
@@ -306,6 +307,7 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	printf("\n");
 
 	BLI_argsPrintArgDoc(ba, "--python");
+	BLI_argsPrintArgDoc(ba, "--python-text");
 	BLI_argsPrintArgDoc(ba, "--python-console");
 	BLI_argsPrintArgDoc(ba, "--addons");
 
@@ -503,8 +505,7 @@ static void blender_crash_handler_backtrace(FILE *fp)
 	symbolinfo->MaxNameLen = MAXSYMBOL - 1;
 	symbolinfo->SizeOfStruct = sizeof(SYMBOL_INFO);
 
-	for( i = 0; i < nframes; i++ )
-	{
+	for (i = 0; i < nframes; i++) {
 		SymFromAddr(process, ( DWORD64 )( stack[ i ] ), 0, symbolinfo);
 
 		fprintf(fp, "%u: %s - 0x%0X\n", nframes - i - 1, symbolinfo->Name, symbolinfo->Address);
@@ -1094,11 +1095,11 @@ static int set_skip_frame(int argc, const char **argv, void *data)
 			_cmd;                                                             \
 		}                                                                     \
 		CTX_data_scene_set(C, prevscene);                                     \
-	}                                                                         \
+	} (void)0                                                                 \
 
 #endif /* WITH_PYTHON */
 
-static int run_python(int argc, const char **argv, void *data)
+static int run_python_file(int argc, const char **argv, void *data)
 {
 #ifdef WITH_PYTHON
 	bContext *C = data;
@@ -1110,12 +1111,42 @@ static int run_python(int argc, const char **argv, void *data)
 		BLI_strncpy(filename, argv[1], sizeof(filename));
 		BLI_path_cwd(filename);
 
-		BPY_CTX_SETUP(BPY_filepath_exec(C, filename, NULL))
+		BPY_CTX_SETUP(BPY_filepath_exec(C, filename, NULL));
 
 		return 1;
 	}
 	else {
-		printf("\nError: you must specify a Python script after '-P / --python'.\n");
+		printf("\nError: you must specify a filepath after '%s'.\n", argv[0]);
+		return 0;
+	}
+#else
+	(void)argc; (void)argv; (void)data; /* unused */
+	printf("This blender was built without python support\n");
+	return 0;
+#endif /* WITH_PYTHON */
+}
+
+static int run_python_text(int argc, const char **argv, void *data)
+{
+#ifdef WITH_PYTHON
+	bContext *C = data;
+
+	/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
+	if (argc > 1) {
+		/* Make the path absolute because its needed for relative linked blends to be found */
+		struct Text *text = (struct Text *)BKE_libblock_find_name(ID_TXT, argv[1]);
+
+		if (text) {
+			BPY_CTX_SETUP(BPY_text_exec(C, text, NULL, false));
+			return 1;
+		}
+		else {
+			printf("\nError: text block not found %s.\n", argv[1]);
+			return 1;
+		}
+	}
+	else {
+		printf("\nError: you must specify a text block after '%s'.\n", argv[0]);
 		return 0;
 	}
 #else
@@ -1130,7 +1161,7 @@ static int run_python_console(int UNUSED(argc), const char **argv, void *data)
 #ifdef WITH_PYTHON
 	bContext *C = data;
 
-	BPY_CTX_SETUP(BPY_string_exec(C, "__import__('code').interact()"))
+	BPY_CTX_SETUP(BPY_string_exec(C, "__import__('code').interact()"));
 
 	return 0;
 #else
@@ -1344,7 +1375,7 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 2, "-p", "--window-geometry", "<sx> <sy> <w> <h>\n\tOpen with lower left corner at <sx>, <sy> and width and height as <w>, <h>", prefsize, NULL);
 	BLI_argsAdd(ba, 2, "-w", "--window-border", "\n\tForce opening with borders (default)", with_borders, NULL);
 	BLI_argsAdd(ba, 2, "-W", "--window-borderless", "\n\tForce opening without borders", without_borders, NULL);
-	BLI_argsAdd(ba, 2, "-con", "--start-console", "\n\tStart with the console window open (ignored if -b is set)", start_with_console, NULL);
+	BLI_argsAdd(ba, 2, "-con", "--start-console", "\n\tStart with the console window open (ignored if -b is set), (Windows only)", start_with_console, NULL);
 	BLI_argsAdd(ba, 2, "-R", NULL, "\n\tRegister .blend extension, then exit (Windows only)", register_extension, NULL);
 	BLI_argsAdd(ba, 2, "-r", NULL, "\n\tSilently register .blend extension, then exit (Windows only)", register_extension, ba);
 	BLI_argsAdd(ba, 2, NULL, "--no-native-pixels", "\n\tDo not use native pixel size, for high resolution displays (MacBook 'Retina')", native_pixels, ba);
@@ -1363,7 +1394,8 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 4, "-s", "--frame-start", "<frame>\n\tSet start to frame <frame> (use before the -a argument)", set_start_frame, C);
 	BLI_argsAdd(ba, 4, "-e", "--frame-end", "<frame>\n\tSet end to frame <frame> (use before the -a argument)", set_end_frame, C);
 	BLI_argsAdd(ba, 4, "-j", "--frame-jump", "<frames>\n\tSet number of frames to step forward after each rendered frame", set_skip_frame, C);
-	BLI_argsAdd(ba, 4, "-P", "--python", "<filename>\n\tRun the given Python script (filename or Blender Text)", run_python, C);
+	BLI_argsAdd(ba, 4, "-P", "--python", "<filename>\n\tRun the given Python script file", run_python_file, C);
+	BLI_argsAdd(ba, 4, NULL, "--python-text", "<name>\n\tRun the given Python script text block", run_python_text, C);
 	BLI_argsAdd(ba, 4, NULL, "--python-console", "\n\tRun blender with an interactive console", run_python_console, C);
 	BLI_argsAdd(ba, 4, NULL, "--addons", "\n\tComma separated list of addons (no spaces)", set_addons, C);
 

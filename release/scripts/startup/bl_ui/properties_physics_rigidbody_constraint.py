@@ -173,7 +173,7 @@ class PHYSICS_PT_rigid_body_constraint(PHYSICS_PT_rigidbody_constraint_panel, Pa
             sub.prop(rbc, "limit_ang_z_lower", text="Lower")
             sub.prop(rbc, "limit_ang_z_upper", text="Upper")
 
-            if rbc.type == 'GENERIC_SPRING':                  
+            if rbc.type == 'GENERIC_SPRING':
                 col = layout.column(align=True)
                 col.label("Springs:")
 

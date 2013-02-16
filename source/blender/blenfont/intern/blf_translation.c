@@ -94,9 +94,9 @@ const char *BLF_pgettext(const char *msgctxt, const char *msgid)
 		const char *ret;
 
 		/*if (msgctxt && !strcmp(msgctxt, BLF_I18NCONTEXT_DEFAULT_BPY_INTERN)) { */
-		if (msgctxt && !msgctxt[0]) {
-			/* BLF_I18NCONTEXT_DEFAULT_BPY_INTERN context is reserved and considered the same as default NULL one. */
-			msgctxt = NULL;
+		if (msgctxt && msgctxt[0] == BLF_I18NCONTEXT_DEFAULT_BPY[0]) {
+			/* BLF_I18NCONTEXT_DEFAULT_BPY context is reserved and considered the same as default NULL one. */
+			msgctxt = BLF_I18NCONTEXT_DEFAULT;
 		}
 		ret = bl_locale_pgettext(msgctxt, msgid);
 		/* We assume if the returned string is the same (memory level) as the msgid, no translation was found,

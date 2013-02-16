@@ -267,6 +267,7 @@ void RNA_api_keymapitems(struct StructRNA *srna);
 void RNA_api_main(struct StructRNA *srna);
 void RNA_api_material(StructRNA *srna);
 void RNA_api_mesh(struct StructRNA *srna);
+void RNA_api_meta(struct StructRNA *srna);
 void RNA_api_object(struct StructRNA *srna);
 void RNA_api_object_base(struct StructRNA *srna);
 void RNA_api_pose(struct StructRNA *srna);
@@ -404,7 +405,9 @@ PointerRNA rna_pointer_inherit_refine(struct PointerRNA *ptr, struct StructRNA *
 int rna_parameter_size(struct PropertyRNA *parm);
 int rna_parameter_size_alloc(struct PropertyRNA *parm);
 
-struct Mesh *rna_Main_meshes_new_from_object(struct Main *bmain, struct ReportList *reports, struct Scene *sce, struct Object *ob, int apply_modifiers, int settings);
+struct Mesh *rna_Main_meshes_new_from_object(
+        struct Main *bmain, struct ReportList *reports, struct Scene *sce,
+        struct Object *ob, int apply_modifiers, int settings, int calc_tessface);
 
 /* XXX, these should not need to be defined here~! */
 struct MTex *rna_mtex_texture_slots_add(struct ID *self, struct bContext *C, struct ReportList *reports);

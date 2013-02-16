@@ -32,6 +32,7 @@
 #define __ED_MBALL_H__
 
 struct bContext;
+struct MetaBall;
 struct Object;
 struct wmKeyConfig;
 
@@ -48,5 +49,6 @@ void load_editMball(struct Object *obedit);
 
 void undo_push_mball(struct bContext *C, const char *name);
 
-#endif
+void ED_mball_transform(struct MetaBall *mb, float *mat);
 
+#endif  /* __ED_MBALL_H__ */

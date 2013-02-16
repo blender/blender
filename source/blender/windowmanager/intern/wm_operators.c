@@ -1204,8 +1204,13 @@ void WM_operator_properties_gesture_straightline(wmOperatorType *ot, int cursor)
 	RNA_def_int(ot->srna, "ystart", 0, INT_MIN, INT_MAX, "Y Start", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "yend", 0, INT_MIN, INT_MAX, "Y End", "", INT_MIN, INT_MAX);
 	
-	if (cursor)
-		RNA_def_int(ot->srna, "cursor", cursor, 0, INT_MAX, "Cursor", "Mouse cursor style to use during the modal operator", 0, INT_MAX);
+	if (cursor) {
+		PropertyRNA *prop;
+
+		prop = RNA_def_int(ot->srna, "cursor", cursor, 0, INT_MAX,
+		                   "Cursor", "Mouse cursor style to use during the modal operator", 0, INT_MAX);
+		RNA_def_property_flag(prop, PROP_HIDDEN);
+	}
 }
 
 
@@ -1341,7 +1346,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *ar, void *userData)
 	block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	uiBlockClearFlag(block, UI_BLOCK_LOOP);
 
-	/* intentionally don't use 'UI_BLOCK_MOVEMOUSE_QUIT', some dialogs have many items
+	/* intentionally don't use 'UI_BLOCK_MOVEMOUSE_QUIT', some dialogues have many items
 	 * where quitting by accident is very annoying */
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN);
 
@@ -1998,7 +2003,7 @@ static int wm_link_append_poll(bContext *C)
 	if (WM_operator_winactive(C)) {
 		/* linking changes active object which is pretty useful in general,
 		 * but which totally confuses edit mode (i.e. it becoming not so obvious
-		 * to leave from edit mode and inwalid tools in toolbar might be displayed)
+		 * to leave from edit mode and invalid tools in toolbar might be displayed)
 		 * so disable link/append when in edit mode (sergey) */
 		if (CTX_data_edit_object(C))
 			return 0;
@@ -3256,6 +3261,7 @@ static void radial_control_set_initial_mouse(RadialControl *rc, wmEvent *event)
 	rc->initial_mouse[1] = event->y;
 
 	switch (rc->subtype) {
+		case PROP_NONE:
 		case PROP_DISTANCE:
 			d[0] = rc->initial_value;
 			break;
@@ -3355,6 +3361,7 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 	float zoom[2], col[3] = {1, 1, 1};
 
 	switch (rc->subtype) {
+		case PROP_NONE:
 		case PROP_DISTANCE:
 			r1 = rc->current_value;
 			r2 = rc->initial_value;
@@ -3593,8 +3600,8 @@ static int radial_control_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* get subtype of property */
 	rc->subtype = RNA_property_subtype(rc->prop);
-	if (!ELEM3(rc->subtype, PROP_DISTANCE, PROP_FACTOR, PROP_ANGLE)) {
-		BKE_report(op->reports, RPT_ERROR, "Property must be a distance, a factor, or an angle");
+	if (!ELEM4(rc->subtype, PROP_NONE, PROP_DISTANCE, PROP_FACTOR, PROP_ANGLE)) {
+		BKE_report(op->reports, RPT_ERROR, "Property must be a none, distance, a factor, or an angle");
 		MEM_freeN(rc);
 		return OPERATOR_CANCELLED;
 	}
@@ -3678,6 +3685,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 			/* calculate new value and apply snapping  */
 			switch (rc->subtype) {
+				case PROP_NONE:
 				case PROP_DISTANCE:
 					new_value = dist;
 					if (snap) new_value = ((int)new_value + 5) / 10 * 10;

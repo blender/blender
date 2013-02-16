@@ -34,6 +34,8 @@
 #include <string.h>
 #include <time.h>
 
+#include "BLI_utildefines.h"
+
 #include "RNA_define.h"
 
 #include "DNA_constraint_types.h"
@@ -109,9 +111,11 @@ static void rna_Scene_mat_convert_space(Object *ob, ReportList *reports, bPoseCh
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */
 /* settings: 0 - preview, 1 - render */
-static Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_modifiers, int settings)
+static Mesh *rna_Object_to_mesh(
+        Object *ob, ReportList *reports, Scene *sce,
+        int apply_modifiers, int settings, int calc_tessface)
 {
-	return rna_Main_meshes_new_from_object(G.main, reports, sce, ob, apply_modifiers, settings);
+	return rna_Main_meshes_new_from_object(G.main, reports, sce, ob, apply_modifiers, settings, calc_tessface);
 }
 
 /* mostly a copy from convertblender.c */
@@ -442,6 +446,7 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Modifier settings to apply");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_boolean(func, "calc_tessface", true, "Calculate Tessellation", "Calculate tessellation faces");
 	parm = RNA_def_pointer(func, "mesh", "Mesh", "",
 	                       "Mesh created from object, remove it if it is only used for export");
 	RNA_def_function_return(func, parm);

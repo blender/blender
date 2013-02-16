@@ -48,6 +48,7 @@ ViewerBaseOperation::ViewerBaseOperation() : NodeOperation()
 	this->m_doDepthBuffer = false;
 	this->m_viewSettings = NULL;
 	this->m_displaySettings = NULL;
+	this->m_ignoreAlpha = false;
 }
 
 void ViewerBaseOperation::initExecution()

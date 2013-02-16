@@ -26,6 +26,11 @@
 import bpy
 import sys
 
+USE_ATTRSET = False
+USE_RANDOM = False
+RANDOM_SEED = [1]  # so we can redo crashes
+RANDOM_RESET = 0.1  # 10% chance of resetting on each mew operator
+
 op_blacklist = (
     "script.reload",
     "export*.*",
@@ -36,18 +41,40 @@ op_blacklist = (
     "*.link_append",
     "render.render",
     "render.play_rendered_anim",
+    "sound.bake_animation",    # OK but slow
+    "sound.mixdown",           # OK but slow
+    "object.bake_image",       # OK but slow
+    "object.paths_calculate",  # OK but slow
+    "object.paths_update",     # OK but slow
+    "ptcache.bake_all",        # OK but slow
+    "nla.bake",                # OK but slow
     "*.*_export",
     "*.*_import",
+    "ed.undo_push",
     "wm.blenderplayer_start",
     "wm.url_open",
     "wm.doc_view",
+    "wm.doc_edit",
+    "wm.doc_view_manual",
     "wm.path_open",
     "wm.theme_install",
     "wm.context_*",
+    "wm.properties_add",
+    "wm.properties_remove",
+    "wm.properties_edit",
+    "wm.properties_context_change",
     "wm.operator_cheat_sheet",
-    "wm.keyconfig_test",     # just annoying - but harmless
-    "wm.memory_statistics",  # another annoying one
-    "console.*",             # just annoying - but harmless
+    "wm.interface_theme_*",
+    "wm.appconfig_*",           # just annoying - but harmless
+    "wm.keyitem_add",           # just annoying - but harmless
+    "wm.keyconfig_activate",    # just annoying - but harmless
+    "wm.keyconfig_preset_add",  # just annoying - but harmless
+    "wm.keyconfig_test",        # just annoying - but harmless
+    "wm.memory_statistics",     # another annoying one
+    "wm.dependency_relations",  # another annoying one
+    "wm.keymap_restore",        # another annoying one
+    "wm.addon_*",               # harmless, but dont change state
+    "console.*",                # just annoying - but harmless
     )
 
 
@@ -64,8 +91,112 @@ def filter_op_list(operators):
     operators[:] = [op for op in operators if is_op_ok(op[0])]
 
 
+def reset_blend():
+    bpy.ops.wm.read_factory_settings()
+    for scene in bpy.data.scenes:
+        # reduce range so any bake action doesnt take too long
+        scene.frame_start = 1
+        scene.frame_end = 5
+
+
+if USE_ATTRSET:
+    def build_property_typemap(skip_classes):
+
+        property_typemap = {}
+
+        for attr in dir(bpy.types):
+            cls = getattr(bpy.types, attr)
+            if issubclass(cls, skip_classes):
+                continue
+
+            ## to support skip-save we cant get all props
+            # properties = cls.bl_rna.properties.keys()
+            properties = []
+            for prop_id, prop in cls.bl_rna.properties.items():
+                if not prop.is_skip_save:
+                    properties.append(prop_id)
+
+            properties.remove("rna_type")
+            property_typemap[attr] = properties
+
+        return property_typemap
+    CLS_BLACKLIST = (
+        bpy.types.BrushTextureSlot,
+        bpy.types.Brush,
+        )
+    property_typemap = build_property_typemap(CLS_BLACKLIST)
+    bpy_struct_type = bpy.types.Struct.__base__
+
+    def id_walk(value, parent):
+        value_type = type(value)
+        value_type_name = value_type.__name__
+
+        value_id = getattr(value, "id_data", Ellipsis)
+        value_props = property_typemap.get(value_type_name, ())
+
+        for prop in value_props:
+            subvalue = getattr(value, prop)
+
+            if subvalue == parent:
+                continue
+
+            subvalue_type = type(subvalue)
+            yield value, prop, subvalue_type
+            subvalue_id = getattr(subvalue, "id_data", Ellipsis)
+
+            if value_id == subvalue_id:
+                if subvalue_type == float:
+                    pass
+                elif subvalue_type == int:
+                    pass
+                elif subvalue_type == bool:
+                    pass
+                elif subvalue_type == str:
+                    pass
+                elif hasattr(subvalue, "__len__"):
+                    for sub_item in subvalue[:]:
+                        if isinstance(sub_item, bpy_struct_type):
+                            subitem_id = getattr(sub_item, "id_data", Ellipsis)
+                            if subitem_id == subvalue_id:
+                                yield from id_walk(sub_item, value)
+
+                if subvalue_type.__name__ in property_typemap:
+                    yield from id_walk(subvalue, value)
+
+    # main function
+    _random_values = (
+        None, object,
+        1, 0.1, -1,
+        "", "test", b"", b"test",
+        (), [], {},
+        (10,), (10, 20), (0, 0, 0),
+        {},
+        )
+
+    def attrset_data():
+        for attr in dir(bpy.data):
+            if attr == "window_managers":
+                continue
+            seq = getattr(bpy.data, attr)
+            if seq.__class__.__name__ == 'bpy_prop_collection':
+                for id_data in seq:
+                    for val, prop, tp in id_walk(id_data, bpy.data):
+                        # print(id_data)
+                        for val_rnd in _random_values:
+                            try:
+                                setattr(val, prop, val_rnd)
+                            except:
+                                pass
+
+
 def run_ops(operators, setup_func=None, reset=True):
     print("\ncontext:", setup_func.__name__)
+
+    if USE_RANDOM:
+        import random
+        if random.random() < (1.0 - RANDOM_RESET):
+            reset = False
+
     # first invoke
     for op_id, op in operators:
         if op.poll():
@@ -74,9 +205,16 @@ def run_ops(operators, setup_func=None, reset=True):
 
             # disable will get blender in a bad state and crash easy!
             if reset:
-                bpy.ops.wm.read_factory_settings()
+                reset_blend()
 
-            setup_func()
+            if USE_RANDOM:
+                # we can't be sure it will work
+                try:
+                    setup_func()
+                except:
+                    pass
+            else:
+                setup_func()
 
             for mode in {'EXEC_DEFAULT', 'INVOKE_DEFAULT'}:
                 try:
@@ -86,11 +224,21 @@ def run_ops(operators, setup_func=None, reset=True):
                     #traceback.print_exc()
                     pass
 
+                if USE_ATTRSET:
+                    attrset_data()
+
     if not operators:
         # run test
         if reset:
-            bpy.ops.wm.read_factory_settings()
-        setup_func()
+            reset_blend()
+        if USE_RANDOM:
+            # we can't be sure it will work
+            try:
+                setup_func()
+            except:
+                pass
+        else:
+            setup_func()
 
 
 # contexts
@@ -217,7 +365,7 @@ def main():
 
     bpy_check_type_duplicates()
 
-    # bpy.ops.wm.read_factory_settings()
+    # reset_blend()
     import bpy
     operators = []
     for mod_name in dir(bpy.ops):
@@ -233,8 +381,10 @@ def main():
     # for testing, mix the list up.
     #operators.reverse()
 
-    #import random
-    #random.shuffle(operators)
+    if USE_RANDOM:
+        import random
+        random.seed(RANDOM_SEED[0])
+        random.shuffle(operators)
 
     # 2 passes, first just run setup_func to make sure they are ok
     for operators_test in ((), operators):
@@ -270,4 +420,7 @@ def main():
     print("Finished %r" % __file__)
 
 if __name__ == "__main__":
+    #~ for i in range(200):
+        #~ RANDOM_SEED[0] += 1
+        #~ main()
     main()

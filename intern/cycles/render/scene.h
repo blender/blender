@@ -125,7 +125,7 @@ public:
 	bool use_bvh_cache;
 	bool use_bvh_spatial_split;
 	bool use_qbvh;
-	bool persistent_images;
+	bool persistent_data;
 
 	SceneParams()
 	{
@@ -146,7 +146,7 @@ public:
 		&& use_bvh_cache == params.use_bvh_cache
 		&& use_bvh_spatial_split == params.use_bvh_spatial_split
 		&& use_qbvh == params.use_qbvh
-		&& persistent_images == params.persistent_images); }
+		&& persistent_data == params.persistent_data); }
 };
 
 /* Scene */

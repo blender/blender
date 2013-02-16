@@ -128,7 +128,8 @@ void BlenderSession::reset_session(BL::BlendData b_data_, BL::Scene b_scene_)
 	height = b_engine.resolution_y();
 
 	if(scene->params.modified(scene_params) ||
-	   session->params.modified(session_params))
+	   session->params.modified(session_params) ||
+	   !scene_params.persistent_data)
 	{
 		/* if scene or session parameters changed, it's easier to simply re-create
 		 * them rather than trying to distinguish which settings need to be updated
@@ -410,8 +411,10 @@ void BlenderSession::do_write_update_render_result(BL::RenderResult b_rr, BL::Re
 			int components = b_pass.channels();
 
 			/* copy pixels */
-			if(buffers->get_pass_rect(pass_type, exposure, rtile.sample, components, &pixels[0]))
-				b_pass.rect(&pixels[0]);
+			if(!buffers->get_pass_rect(pass_type, exposure, rtile.sample, components, &pixels[0]))
+				memset(&pixels[0], 0, pixels.size()*sizeof(float));
+
+			b_pass.rect(&pixels[0]);
 		}
 	}
 
@@ -516,6 +519,9 @@ bool BlenderSession::draw(int w, int h)
 
 			session->reset(buffer_params, session_params.samples);
 		}
+	}
+	else {
+		tag_update();
 	}
 
 	/* update status and progress for 3d view draw */

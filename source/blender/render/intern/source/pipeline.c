@@ -1338,6 +1338,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	resc->main = re->main;
 	resc->scene = sce;
 	resc->lay = sce->lay;
+	resc->scene_color_manage = BKE_scene_check_color_management_enabled(sce);
 	
 	/* ensure scene has depsgraph, base flags etc OK */
 	BKE_scene_set_background(re->main, sce);

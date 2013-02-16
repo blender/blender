@@ -1,4 +1,4 @@
-.TH "BLENDER" "1" "December 04, 2012" "Blender Blender 2\&.65"
+.TH "BLENDER" "1" "February 14, 2013" "Blender Blender 2\&.66"
 
 .SH NAME
 blender \- a 3D modelling and rendering package
@@ -15,7 +15,7 @@ Use Blender to create TV commercials, to make technical visualizations, business
 http://www.blender.org
 .SH OPTIONS
 
-Blender 2.65
+Blender 2.66
 Usage: blender [args ...] [file] [args ...]
 .br
 .SS "Render Options:"
@@ -218,6 +218,12 @@ Turn debugging on
 Enable floating point exceptions
 .br
 
+.TP
+.B \-\-disable\-crash\-handler
+.br
+Disable the crash handler
+.br
+
 .IP
 
 .TP
@@ -301,7 +307,13 @@ Disable automatic python script execution (pydrivers & startup scripts)
 .TP
 .B \-P or \-\-python <filename>
 .br
-Run the given Python script (filename or Blender Text)
+Run the given Python script file
+.br
+
+.TP
+.B \-\-python\-text <name>
+.br
+Run the given Python script text block
 .br
 
 .TP
@@ -396,6 +408,12 @@ Register .blend extension, then exit (Windows only)
 .B \-r
 .br
 Silently register .blend extension, then exit (Windows only)
+.br
+
+.TP
+.B \-\-no\-native\-pixels
+.br
+Do not use native pixel size, for high resolution displays (MacBook 'Retina')
 .br
 
 .SS "Argument Parsing:"

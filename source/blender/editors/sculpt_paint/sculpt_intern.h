@@ -73,7 +73,7 @@ void sculpt_pbvh_clear(Object *ob);
 void sculpt_update_after_dynamic_topology_toggle(bContext *C);
 void sculpt_dynamic_topology_enable(struct bContext *C);
 void sculpt_dynamic_topology_disable(struct bContext *C,
-									 struct SculptUndoNode *unode);
+                                     struct SculptUndoNode *unode);
 
 /* Undo */
 

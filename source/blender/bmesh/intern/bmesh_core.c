@@ -2103,7 +2103,7 @@ bool bmesh_edge_separate(BMesh *bm, BMEdge *e, BMLoop *l_sep)
 }
 
 /**
- * \brief Unglue Region Make Vert (URMV)
+ * \brief Un-glue Region Make Vert (URMV)
  *
  * Disconnects a face from its vertex fan at loop \a sl
  *

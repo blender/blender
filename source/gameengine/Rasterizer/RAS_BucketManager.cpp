@@ -148,7 +148,8 @@ void RAS_BucketManager::RenderAlphaBuckets(
 	// Having depth masks disabled/enabled gives different artifacts in
 	// case no sorting is done or is done inexact. For compatibility, we
 	// disable it.
-	rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_DISABLED);
+	if (rasty->GetDrawingMode() != RAS_IRasterizer::KX_SHADOW)
+		rasty->SetDepthMask(RAS_IRasterizer::KX_DEPTHMASK_DISABLED);
 
 	OrderBuckets(cameratrans, m_AlphaBuckets, slots, true);
 	

@@ -335,7 +335,9 @@ static void file_draw_preview(uiBlock *block, struct direntry *file, int sx, int
 		float scale;
 		int ex, ey;
 		
-		if ( (imb->x > layout->prv_w) || (imb->y > layout->prv_h) ) {
+		if ((imb->x * UI_DPI_FAC > layout->prv_w) ||
+		    (imb->y * UI_DPI_FAC > layout->prv_h))
+		{
 			if (imb->x > imb->y) {
 				scaledx = (float)layout->prv_w;
 				scaledy =  ( (float)imb->y / (float)imb->x) * layout->prv_w;
@@ -348,10 +350,11 @@ static void file_draw_preview(uiBlock *block, struct direntry *file, int sx, int
 			}
 		}
 		else {
-			scaledx = (float)imb->x;
-			scaledy = (float)imb->y;
-			scale = 1.0;
+			scaledx = (float)imb->x * UI_DPI_FAC;
+			scaledy = (float)imb->y * UI_DPI_FAC;
+			scale = UI_DPI_FAC;
 		}
+
 		ex = (int)scaledx;
 		ey = (int)scaledy;
 		fx = ((float)layout->prv_w - (float)ex) / 2.0f;
@@ -461,7 +464,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	int i;
 	short is_icon;
 	short align;
-
+	int column_space = 0.6f * UI_UNIT_X;
 
 	numfiles = filelist_numfiles(files);
 	
@@ -492,7 +495,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 	for (i = offset; (i < numfiles) && (i < offset + numfiles_layout); i++) {
 		ED_fileselect_layout_tilepos(layout, i, &sx, &sy);
-		sx += (int)(v2d->tot.xmin + 2.0f);
+		sx += (int)(v2d->tot.xmin + 0.1f * UI_UNIT_X);
 		sy = (int)(v2d->tot.ymax - sy);
 
 		file = filelist_file(files, i);
@@ -521,13 +524,13 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		}
 		else {
 			file_draw_icon(block, file->path, sx, sy - (UI_UNIT_Y / 6), get_file_icon(file), ICON_DEFAULT_WIDTH_SCALE, ICON_DEFAULT_HEIGHT_SCALE);
-			sx += ICON_DEFAULT_WIDTH_SCALE + 4;
+			sx += ICON_DEFAULT_WIDTH_SCALE + 0.2f * UI_UNIT_X;
 		}
 
 		UI_ThemeColor4(TH_TEXT);
 
 		if (file->selflag & EDITING_FILE) {
-			uiBut *but = uiDefBut(block, TEX, 1, "", sx, sy - layout->tile_h - 3,
+			uiBut *but = uiDefBut(block, TEX, 1, "", sx, sy - layout->tile_h - 0.15f * UI_UNIT_X,
 			                      textwidth, textheight, sfile->params->renameedit, 1.0f, (float)sizeof(sfile->params->renameedit), 0, 0, "");
 			uiButSetRenameFunc(but, renamebutton_cb, file);
 			uiButSetFlag(but, UI_BUT_NO_UTF8); /* allow non utf8 names */
@@ -543,39 +546,39 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		}
 
 		if (params->display == FILE_SHORTDISPLAY) {
-			sx += (int)layout->column_widths[COLUMN_NAME] + 12;
+			sx += (int)layout->column_widths[COLUMN_NAME] + column_space;
 			if (!(file->type & S_IFDIR)) {
 				file_draw_string(sx, sy, file->size, layout->column_widths[COLUMN_SIZE], layout->tile_h, align);
-				sx += (int)layout->column_widths[COLUMN_SIZE] + 12;
+				sx += (int)layout->column_widths[COLUMN_SIZE] + column_space;
 			}
 		}
 		else if (params->display == FILE_LONGDISPLAY) {
-			sx += (int)layout->column_widths[COLUMN_NAME] + 12;
+			sx += (int)layout->column_widths[COLUMN_NAME] + column_space;
 
 #ifndef WIN32
 			/* rwx rwx rwx */
 			file_draw_string(sx, sy, file->mode1, layout->column_widths[COLUMN_MODE1], layout->tile_h, align); 
-			sx += layout->column_widths[COLUMN_MODE1] + 12;
+			sx += layout->column_widths[COLUMN_MODE1] + column_space;
 
 			file_draw_string(sx, sy, file->mode2, layout->column_widths[COLUMN_MODE2], layout->tile_h, align);
-			sx += layout->column_widths[COLUMN_MODE2] + 12;
+			sx += layout->column_widths[COLUMN_MODE2] + column_space;
 
 			file_draw_string(sx, sy, file->mode3, layout->column_widths[COLUMN_MODE3], layout->tile_h, align);
-			sx += layout->column_widths[COLUMN_MODE3] + 12;
+			sx += layout->column_widths[COLUMN_MODE3] + column_space;
 
 			file_draw_string(sx, sy, file->owner, layout->column_widths[COLUMN_OWNER], layout->tile_h, align);
-			sx += layout->column_widths[COLUMN_OWNER] + 12;
+			sx += layout->column_widths[COLUMN_OWNER] + column_space;
 #endif
 
 			file_draw_string(sx, sy, file->date, layout->column_widths[COLUMN_DATE], layout->tile_h, align);
-			sx += (int)layout->column_widths[COLUMN_DATE] + 12;
+			sx += (int)layout->column_widths[COLUMN_DATE] + column_space;
 
 			file_draw_string(sx, sy, file->time, layout->column_widths[COLUMN_TIME], layout->tile_h, align);
-			sx += (int)layout->column_widths[COLUMN_TIME] + 12;
+			sx += (int)layout->column_widths[COLUMN_TIME] + column_space;
 
 			if (!(file->type & S_IFDIR)) {
 				file_draw_string(sx, sy, file->size, layout->column_widths[COLUMN_SIZE], layout->tile_h, align);
-				sx += (int)layout->column_widths[COLUMN_SIZE] + 12;
+				sx += (int)layout->column_widths[COLUMN_SIZE] + column_space;
 			}
 		}
 	}

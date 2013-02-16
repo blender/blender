@@ -41,6 +41,7 @@ void CompositorNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 	compositorOperation->setSceneName(editorNode->id->name);
 	compositorOperation->setRenderData(context->getRenderData());
 	compositorOperation->setbNodeTree(context->getbNodeTree());
+	compositorOperation->setIgnoreAlpha(editorNode->custom2 & 1);
 	imageSocket->relinkConnections(compositorOperation->getInputSocket(0), 0, graph);
 	alphaSocket->relinkConnections(compositorOperation->getInputSocket(1));
 	depthSocket->relinkConnections(compositorOperation->getInputSocket(2));

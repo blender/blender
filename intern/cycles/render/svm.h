@@ -45,6 +45,8 @@ public:
 	SVMShaderManager();
 	~SVMShaderManager();
 
+	void reset(Scene *scene);
+
 	void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
 	void device_free(Device *device, DeviceScene *dscene);
 };

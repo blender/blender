@@ -1677,7 +1677,7 @@ void draw_outliner(const bContext *C)
 		 *				 (OL_RNA_COL_X), whichever is wider...
 		 *	- column 2 is fixed at OL_RNA_COL_SIZEX
 		 *
-		 *  (*) XXX max width for now is a fixed factor of UI_UNIT_X*(max_indention+100)
+		 *  (*) XXX max width for now is a fixed factor of (UI_UNIT_X * (max_indention + 100))
 		 */
 		 
 		/* get actual width of column 1 */

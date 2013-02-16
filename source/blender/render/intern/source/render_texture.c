@@ -171,9 +171,9 @@ static void tex_normal_derivate(Tex *tex, TexResult *texres)
 			do_colorband(tex->coba, texres->nor[2], col);
 			fac3= (col[0]+col[1]+col[2]);
 			
-			texres->nor[0]= 0.3333f*(fac0 - fac1);
-			texres->nor[1]= 0.3333f*(fac0 - fac2);
-			texres->nor[2]= 0.3333f*(fac0 - fac3);
+			texres->nor[0]= (fac0 - fac1) / 3.0f;
+			texres->nor[1]= (fac0 - fac2) / 3.0f;
+			texres->nor[2]= (fac0 - fac3) / 3.0f;
 			
 			return;
 		}
@@ -1754,7 +1754,7 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 	/* center, main return value */
 	texco_mapping(shi, tex, mtex, co, dx, dy, texvec, dxt, dyt);
 	rgbnor = multitex_mtex(shi, mtex, texvec, dxt, dyt, texres, pool);
-	cd = fromrgb ? (texres->tr + texres->tg + texres->tb)*0.33333333f : texres->tin;
+	cd = fromrgb ? (texres->tr + texres->tg + texres->tb) / 3.0f : texres->tin;
 
 	if (mtex->texco == TEXCO_UV) {
 		/* for the uv case, use the same value for both du/dv,
@@ -1768,7 +1768,7 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 		tco[2] = 0.f;
 		texco_mapping(shi, tex, mtex, tco, dx, dy, texv, dxt, dyt);
 		multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr, pool);
-		ud = idu*(cd - (fromrgb ? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f : ttexr.tin));
+		ud = idu*(cd - (fromrgb ? (ttexr.tr + ttexr.tg + ttexr.tb) / 3.0f : ttexr.tin));
 
 		/* +v val */
 		tco[0] = co[0] + compat_bump->dudnv*du;
@@ -1776,7 +1776,7 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 		tco[2] = 0.f;
 		texco_mapping(shi, tex, mtex, tco, dx, dy, texv, dxt, dyt);
 		multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr, pool);
-		vd = idu*(cd - (fromrgb ? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f : ttexr.tin));
+		vd = idu*(cd - (fromrgb ? (ttexr.tr + ttexr.tg + ttexr.tb) / 3.0f : ttexr.tin));
 	}
 	else {
 		float tu[3], tv[3];
@@ -1810,7 +1810,7 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 		tco[2] = co[2] + tu[2]*du;
 		texco_mapping(shi, tex, mtex, tco, dx, dy, texv, dxt, dyt);
 		multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr, pool);
-		ud = idu*(cd - (fromrgb ? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f : ttexr.tin));
+		ud = idu*(cd - (fromrgb ? (ttexr.tr + ttexr.tg + ttexr.tb) / 3.0f : ttexr.tin));
 
 		/* +v val */
 		tco[0] = co[0] + tv[0]*dv;
@@ -1818,7 +1818,7 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 		tco[2] = co[2] + tv[2]*dv;
 		texco_mapping(shi, tex, mtex, tco, dx, dy, texv, dxt, dyt);
 		multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr, pool);
-		vd = idv*(cd - (fromrgb ? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f : ttexr.tin));
+		vd = idv*(cd - (fromrgb ? (ttexr.tr + ttexr.tg + ttexr.tb) / 3.0f : ttexr.tin));
 	}
 
 	/* bumped normal */

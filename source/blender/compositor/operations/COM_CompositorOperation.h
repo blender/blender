@@ -65,6 +65,10 @@ private:
 	 * @brief local reference to the depth operation
 	 */
 	SocketReader *m_depthInput;
+
+	/* Ignore any alpha input */
+	bool m_ignoreAlpha;
+
 public:
 	CompositorOperation();
 	void executeRegion(rcti *rect, unsigned int tileNumber);
@@ -75,5 +79,6 @@ public:
 	void deinitExecution();
 	const CompositorPriority getRenderPriority() const { return COM_PRIORITY_MEDIUM; }
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
+	void setIgnoreAlpha(bool value) { this->m_ignoreAlpha = value; }
 };
 #endif

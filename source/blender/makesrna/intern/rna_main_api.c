@@ -37,6 +37,7 @@
 #include "DNA_modifier_types.h"
 
 #include "BLI_path_util.h"
+#include "BLI_utildefines.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -266,7 +267,9 @@ static Mesh *rna_Main_meshes_new(Main *bmain, const char *name)
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */
 /* settings: 1 - preview, 2 - render */
-Mesh *rna_Main_meshes_new_from_object(Main *bmain, ReportList *reports, Scene *sce, Object *ob, int apply_modifiers, int settings)
+Mesh *rna_Main_meshes_new_from_object(
+        Main *bmain, ReportList *reports, Scene *sce,
+        Object *ob, int apply_modifiers, int settings, int calc_tessface)
 {
 	Mesh *tmpmesh;
 	Curve *tmpcu = NULL, *copycu;
@@ -449,8 +452,10 @@ Mesh *rna_Main_meshes_new_from_object(Main *bmain, ReportList *reports, Scene *s
 			break;
 	} /* end copy materials */
 
-	/* cycles and exporters rely on this still */
-	BKE_mesh_tessface_ensure(tmpmesh);
+	if (calc_tessface) {
+		/* cycles and exporters rely on this still */
+		BKE_mesh_tessface_ensure(tmpmesh);
+	}
 
 	/* make sure materials get updated in objects */
 	test_object_materials(&tmpmesh->id);
@@ -1163,6 +1168,7 @@ void RNA_def_main_meshes(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Modifier settings to apply");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_boolean(func, "calc_tessface", true, "Calculate Tessellation", "Calculate tessellation faces");
 	parm = RNA_def_pointer(func, "mesh", "Mesh", "",
 	                       "Mesh created from object, remove it if it is only used for export");
 	RNA_def_function_return(func, parm);

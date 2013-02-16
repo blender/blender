@@ -47,15 +47,25 @@ OSLShaderManager::OSLShaderManager()
 {
 	services = new OSLRenderServices();
 
-	shading_system_init();
 	texture_system_init();
+	shading_system_init();
 }
 
 OSLShaderManager::~OSLShaderManager()
 {
 	OSL::ShadingSystem::destroy(ss);
 	OSL::TextureSystem::destroy(ts);
+
 	delete services;
+}
+
+void OSLShaderManager::reset(Scene *scene)
+{
+	OSL::ShadingSystem::destroy(ss);
+	delete services;
+
+	services = new OSLRenderServices();
+	shading_system_init();
 }
 
 void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
@@ -88,6 +98,7 @@ void OSLShaderManager::device_update(Device *device, DeviceScene *dscene, Scene 
 	og->ss = ss;
 	og->ts = ts;
 	og->services = services;
+
 	int background_id = scene->shader_manager->get_shader_id(scene->default_background);
 	og->background_state = og->surface_state[background_id & SHADER_MASK];
 	og->use = true;

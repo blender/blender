@@ -971,6 +971,14 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 		{
 			IntPropertyRNA *iprop = (IntPropertyRNA *)prop;
 
+#ifndef RNA_RUNTIME
+			if (subtype == PROP_DISTANCE) {
+				fprintf(stderr, "%s: subtype does not apply to 'PROP_INT' \"%s.%s\"\n", __func__,
+				        CONTAINER_RNA_ID(cont), identifier);
+				DefRNA.error = 1;
+			}
+#endif
+
 			iprop->hardmin = (subtype == PROP_UNSIGNED) ? 0 : INT_MIN;
 			iprop->hardmax = INT_MAX;
 

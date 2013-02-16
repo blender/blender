@@ -245,6 +245,10 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 	BLI_freenode *newhead = addr;
 
 	if (pool->flag & BLI_MEMPOOL_ALLOW_ITER) {
+#ifndef NDEBUG
+		/* this will detect double free's */
+		BLI_assert(newhead->freeword != FREEWORD);
+#endif
 		newhead->freeword = FREEWORD;
 	}
 

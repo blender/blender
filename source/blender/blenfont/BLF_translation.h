@@ -112,9 +112,13 @@ const char *BLF_translate_do_tooltip(const char *msgctxt, const char *msgid);
 
 /* Default, void context.
  * WARNING! The "" context is not the same as no (NULL) context at mo/boost::locale level!
+ * NOTE: We translate BLF_I18NCONTEXT_DEFAULT as BLF_I18NCONTEXT_DEFAULT_BPY in Python, as we can’t use "natural"
+ *       None value in rna string properties... :/
+ *       For perf reason, we only use the first char to detect this context, so other contexts should never start
+ *       with the same char!
  */
-#define BLF_I18NCONTEXT_DEFAULT NULL  /* Translated as None in Python. */
-#define BLF_I18NCONTEXT_DEFAULT_BPY_INTERN ""  /* Only used in code, never exposed to user! */
+#define BLF_I18NCONTEXT_DEFAULT NULL
+#define BLF_I18NCONTEXT_DEFAULT_BPY "*"
 
 /* Default context for operator names/labels. */
 #define BLF_I18NCONTEXT_OPERATOR_DEFAULT "Operator"
@@ -168,7 +172,8 @@ typedef struct
 #define BLF_I18NCONTEXTS_ITEM(ctxt_id, py_id) {#ctxt_id, py_id, ctxt_id}
 
 #define BLF_I18NCONTEXTS_DESC {                                                                                        \
-	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_DEFAULT, "default"),                                                         \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_DEFAULT, "default_real"),                                                    \
+	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_DEFAULT_BPY, "default"),                                                     \
 	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "operator_default"),                                       \
 	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_ACTION, "id_action"),                                                     \
 	BLF_I18NCONTEXTS_ITEM(BLF_I18NCONTEXT_ID_ARMATURE, "id_armature"),                                                 \

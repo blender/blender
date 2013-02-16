@@ -1,4 +1,4 @@
-/**
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -23,6 +23,10 @@
  * Contributor(s): Matt Ebb
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/modifiers/intern/MOD_ocean.c
+ *  \ingroup modifiers
  */
 
 #include "MEM_guardedalloc.h"
@@ -486,7 +490,8 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 
 						mlcol = &mloopcols[mp->loopstart + j];
 						mlcol->r = mlcol->g = mlcol->b = (char)(foam * 255);
-						/* mc->a = 255; */ /* no need to set */
+						/* This needs to be set (render engine uses) */
+						mlcol->a = 255;
 					} while (j--);
 				}
 			}

@@ -802,7 +802,7 @@ static void distribute_threads_exec(ParticleThread *thread, ParticleData *pa, Ch
 				if (mface->v4)
 					psys_uv_to_w(0.5f, 0.5f, mface->v4, pa->fuv);
 				else
-					psys_uv_to_w(0.33333f, 0.33333f, mface->v4, pa->fuv);
+					psys_uv_to_w(1.0f / 3.0f, 1.0f / 3.0f, mface->v4, pa->fuv);
 			}
 			else {
 				ctx->jitoff[i] = fmod(ctx->jitoff[i],(float)ctx->jitlevel);

@@ -80,7 +80,9 @@ typedef enum eRigidBodyWorld_Flag {
 	/* sim data needs to be rebuilt */
 	RBW_FLAG_NEEDS_REBUILD		= (1 << 1),
 	/* usse split impulse when stepping the simulation */
-	RBW_FLAG_USE_SPLIT_IMPULSE	= (1 << 2)
+	RBW_FLAG_USE_SPLIT_IMPULSE	= (1 << 2),
+	/* need to step simulation after frame update */
+	RBW_FLAG_FRAME_UPDATE		= (1 << 3)
 } eRigidBodyWorld_Flag;
 
 /* ******************************** */

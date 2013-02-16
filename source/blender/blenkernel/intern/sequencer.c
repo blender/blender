@@ -1820,8 +1820,6 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float cfra,
 		StripCrop c = {0};
 		StripTransform t = {0};
 		int sx, sy, dx, dy;
-		double xscale = 1.0;
-		double yscale = 1.0;
 
 		if (is_proxy_image) {
 			double f = seq_rendersize_to_scale_factor(context.preview_render_size);
@@ -1838,21 +1836,23 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float cfra,
 			t = *seq->strip->transform;
 		}
 
-		xscale = context.scene->r.xsch ? ((double)context.rectx / (double)context.scene->r.xsch) : 1.0;
-		yscale = context.scene->r.ysch ? ((double)context.recty / (double)context.scene->r.ysch) : 1.0;
-
-		xscale /= (double)context.rectx / (double)ibuf->x;
-		yscale /= (double)context.recty / (double)ibuf->y;
-
-		c.left *= xscale; c.right *= xscale;
-		c.top *= yscale; c.bottom *= yscale;
-
-		t.xofs *= xscale; t.yofs *= yscale;
+		if (is_preprocessed) {
+			double xscale = context.scene->r.xsch ? ((double)context.rectx / (double)context.scene->r.xsch) : 1.0;
+			double yscale = context.scene->r.ysch ? ((double)context.recty / (double)context.scene->r.ysch) : 1.0;
+			if (seq->flag & SEQ_USE_TRANSFORM) {
+				t.xofs *= xscale;
+				t.yofs *= yscale;
+			}
+			if (seq->flag & SEQ_USE_CROP) {
+				c.left *= xscale;
+				c.right *= xscale;
+				c.top *= yscale;
+				c.bottom *= yscale;
+			}
+		}
 
 		sx = ibuf->x - c.left - c.right;
 		sy = ibuf->y - c.top - c.bottom;
-		dx = sx;
-		dy = sy;
 
 		if (seq->flag & SEQ_USE_TRANSFORM) {
 			if (is_preprocessed) {
@@ -1863,6 +1863,10 @@ static ImBuf *input_preprocess(SeqRenderData context, Sequence *seq, float cfra,
 				dx = context.scene->r.xsch;
 				dy = context.scene->r.ysch;
 			}
+		}
+		else {
+			dx = sx;
+			dy = sy;
 		}
 
 		if (c.top  + c.bottom >= ibuf->y ||

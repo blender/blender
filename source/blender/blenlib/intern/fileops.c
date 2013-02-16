@@ -111,7 +111,7 @@ int BLI_file_gzip(const char *from, const char *to)
 	return rval;
 }
 
-/* gzip the file in from_file and write it to memery to_mem, at most size bytes.
+/* gzip the file in from_file and write it to memory to_mem, at most size bytes.
  * return the unziped size
  */
 char *BLI_file_ungzip_to_mem(const char *from_file, int *size_r)
@@ -283,7 +283,7 @@ int BLI_move(const char *file, const char *to)
 {
 	int err;
 
-	/* windows doesn't support moveing to a directory
+	/* windows doesn't support moving to a directory
 	 * it has to be 'mv filename filename' and not
 	 * 'mv filename destdir' */
 

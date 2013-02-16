@@ -51,10 +51,10 @@ void TransformWriter::add_node_transform(COLLADASW::Node& node, float mat[4][4],
 	converter->mat4_to_dae_double(dmat, local);
 
 	TransformBase::decompose(local, loc, rot, NULL, scale);
-	if (node.getType() == COLLADASW::Node::JOINT)
+	//if (node.getType() == COLLADASW::Node::JOINT)
 	node.addMatrix("transform", dmat);
-	else
-	add_transform(node, loc, rot, scale);
+	//else
+	//add_transform(node, loc, rot, scale);
 }
 
 void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob)
@@ -115,7 +115,7 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob)
 	double d_obmat[4][4];	
 	converter.mat4_to_dae_double(d_obmat, ob->obmat);
 	node.addMatrix("transform",d_obmat);
-	add_transform(node, ob->loc, ob->rot, ob->size);
+	//add_transform(node, ob->loc, ob->rot, ob->size);
 }
 
 void TransformWriter::add_node_transform_identity(COLLADASW::Node& node)
@@ -131,10 +131,10 @@ void TransformWriter::add_transform(COLLADASW::Node& node, float loc[3], float r
 	node.addRotateY("rotationY", COLLADABU::Math::Utils::radToDegF(rot[1]));
 	node.addRotateX("rotationX", COLLADABU::Math::Utils::radToDegF(rot[0]));
 #endif
+	node.addTranslate("location", loc[0], loc[1], loc[2]);
 	node.addRotateZ("rotationZ", RAD2DEGF(rot[2]));
 	node.addRotateY("rotationY", RAD2DEGF(rot[1]));
 	node.addRotateX("rotationX", RAD2DEGF(rot[0]));
 	node.addScale("scale", scale[0], scale[1], scale[2]);
-	node.addTranslate("location", loc[0], loc[1], loc[2]);
 
 }

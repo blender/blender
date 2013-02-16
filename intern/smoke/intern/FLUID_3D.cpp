@@ -1654,7 +1654,7 @@ void FLUID_3D::processBurn(float *fuel, float *smoke, float *react, float *flame
 		fuel[index] -= burning_rate * dt;
 		if (fuel[index] < 0.0f) fuel[index] = 0.0f;
 		/* process reaction coordinate */
-		if (orig_fuel) {
+		if (orig_fuel > FLT_EPSILON) {
 			react[index] *= fuel[index]/orig_fuel;
 			react_coord = react[index];
 		}
@@ -1681,7 +1681,7 @@ void FLUID_3D::processBurn(float *fuel, float *smoke, float *react, float *flame
 			heat[index] = (1.0f-flame[index])*ignition_point + flame[index]*temp_max;
 
 		/* mix new color */
-		if (r && smoke_emit) {
+		if (r && smoke_emit > FLT_EPSILON) {
 			float smoke_factor = smoke[index]/(orig_smoke+smoke_emit);
 			r[index] = (r[index] + _flame_smoke_color[0] * smoke_emit) * smoke_factor;
 			g[index] = (g[index] + _flame_smoke_color[1] * smoke_emit) * smoke_factor;

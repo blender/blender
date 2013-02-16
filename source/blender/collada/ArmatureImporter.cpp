@@ -106,13 +106,14 @@ void ArmatureImporter::create_bone(SkinInfo* skin, COLLADAFW::Node *node, EditBo
 	else {
 		// bone-space
 		get_node_mat(obmat, node, NULL, NULL);
-        		
+
 		// get world-space
-		if (parent){
+		if (parent) {
 			mult_m4_m4m4(mat, parent_mat, obmat);
 		}
-		else
+		else {
 			copy_m4_m4(mat, obmat);
+		}
 	}
 
 	if (parent) bone->parent = parent;
@@ -645,7 +646,8 @@ bool ArmatureImporter::write_controller(const COLLADAFW::Controller *controller)
 	return true;
 }
 
-void ArmatureImporter::make_shape_keys(){
+void ArmatureImporter::make_shape_keys()
+{
 	std::vector<COLLADAFW::MorphController *>::iterator mc;
 	float weight;
 
@@ -668,22 +670,26 @@ void ArmatureImporter::make_shape_keys(){
 		BKE_key_convert_from_mesh(source_me, kb);
 
 		//insert other shape keys
-		for ( int i = 0 ; i < morphTargetIds.getCount() ; i++ ){
+		for (int i = 0 ; i < morphTargetIds.getCount() ; i++ ) {
 			//better to have a seperate map of morph objects, 
 			//This'll do for now since only mesh morphing is imported
+
 			Mesh *me = this->mesh_importer->get_mesh_by_geom_uid(morphTargetIds[i]);
 			
-			if(me){
+			if (me) {
 				me->key = key;
-				kb = BKE_keyblock_add_ctime(key, me->id.name, FALSE);
+				std::string morph_name = *this->mesh_importer->get_geometry_name(me->id.name);
+
+				kb = BKE_keyblock_add_ctime(key, morph_name.c_str(), FALSE);
 				BKE_key_convert_from_mesh(me, kb);
 				
 				//apply weights
 				weight =  morphWeights.getFloatValues()->getData()[i];
 				kb->curval = weight;
 			}
-			else 
+			else {
 				fprintf(stderr, "Morph target geometry not found.\n");
+			}
 		}
 	}
 }

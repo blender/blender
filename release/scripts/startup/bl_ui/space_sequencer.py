@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
+from bpy.app.translations import pgettext_iface as iface_
 
 
 def act_strip(context):
@@ -420,19 +421,17 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
         sub.prop(strip, "frame_start")
         sub.prop(strip, "frame_final_duration")
 
-        pgettext = bpy.app.translations.pgettext
         col = layout.column(align=True)
         row = col.row()
-        row.label(text=pgettext("Final Length: %s") % bpy.utils.smpte_from_frame(strip.frame_final_duration),
+        row.label(text=iface_("Final Length: %s") % bpy.utils.smpte_from_frame(strip.frame_final_duration),
                   translate=False)
         row = col.row()
         row.active = (frame_current >= strip.frame_start and frame_current <= strip.frame_start + strip.frame_duration)
-        row.label(text=pgettext("Playhead: %d") % (frame_current - strip.frame_start), translate=False)
+        row.label(text=iface_("Playhead: %d") % (frame_current - strip.frame_start), translate=False)
 
-        col.label(text=pgettext("Frame Offset %d:%d") % (strip.frame_offset_start, strip.frame_offset_end),
+        col.label(text=iface_("Frame Offset %d:%d") % (strip.frame_offset_start, strip.frame_offset_end),
                   translate=False)
-        col.label(text=pgettext("Frame Still %d:%d") % (strip.frame_still_start, strip.frame_still_end),
-                  translate=False)
+        col.label(text=iface_("Frame Still %d:%d") % (strip.frame_still_start, strip.frame_still_end), translate=False)
 
         elem = False
 
@@ -442,7 +441,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
             elem = strip.elements[0]
 
         if elem and elem.orig_width > 0 and elem.orig_height > 0:
-            col.label(text=pgettext("Original Dimension: %dx%d") % (elem.orig_width, elem.orig_height), translate=False)
+            col.label(text=iface_("Original Dimension: %dx%d") % (elem.orig_width, elem.orig_height), translate=False)
         else:
             col.label(text="Original Dimension: None")
 
@@ -719,8 +718,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
         if scene:
             sta = scene.frame_start
             end = scene.frame_end
-            pgettext = bpy.app.translations.pgettext
-            layout.label(text=pgettext("Original frame range: %d-%d (%d)") % (sta, end, end - sta + 1), translate=False)
+            layout.label(text=iface_("Original frame range: %d-%d (%d)") % (sta, end, end - sta + 1), translate=False)
 
 
 class SEQUENCER_PT_mask(SequencerButtonsPanel, Panel):
@@ -749,8 +747,7 @@ class SEQUENCER_PT_mask(SequencerButtonsPanel, Panel):
         if mask:
             sta = mask.frame_start
             end = mask.frame_end
-            pgettext = bpy.app.translations.pgettext
-            layout.label(text=pgettext("Original frame range: %d-%d (%d)") % (sta, end, end - sta + 1), translate=False)
+            layout.label(text=iface_("Original frame range: %d-%d (%d)") % (sta, end, end - sta + 1), translate=False)
 
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):

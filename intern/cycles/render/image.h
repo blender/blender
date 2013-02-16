@@ -51,9 +51,9 @@ public:
 	ImageManager();
 	~ImageManager();
 
-	int add_image(const string& filename, void *builtin_data, bool animated, bool& is_float);
+	int add_image(const string& filename, void *builtin_data, bool animated, bool& is_float, bool& is_linear);
 	void remove_image(const string& filename, void *builtin_data);
-	bool is_float_image(const string& filename, void *builtin_data);
+	bool is_float_image(const string& filename, void *builtin_data, bool& is_linear);
 
 	void device_update(Device *device, DeviceScene *dscene, Progress& progress);
 	void device_free(Device *device, DeviceScene *dscene);

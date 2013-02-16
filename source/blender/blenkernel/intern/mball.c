@@ -1654,6 +1654,14 @@ static void polygonize(PROCESS *mbproc, MetaBall *mb)
 	}
 }
 
+/* could move to math api */
+BLI_INLINE void copy_v3_fl3(float v[3], float x, float y, float z)
+{
+	v[0] = x;
+	v[1] = y;
+	v[2] = z;
+}
+
 static float init_meta(Scene *scene, Object *ob)    /* return totsize */
 {
 	Scene *sce_iter = scene;
@@ -1730,6 +1738,7 @@ static float init_meta(Scene *scene, Object *ob)    /* return totsize */
 						float temp1[4][4], temp2[4][4], temp3[4][4];
 						float (*mat)[4] = NULL, (*imat)[4] = NULL;
 						float max_x, max_y, max_z, min_x, min_y, min_z;
+						float expx, expy, expz;
 
 						max_x = max_y = max_z = -3.4e38;
 						min_x = min_y = min_z =  3.4e38;
@@ -1770,39 +1779,27 @@ static float init_meta(Scene *scene, Object *ob)    /* return totsize */
 						G_mb.mainb[a]->mat = (float *) mat;
 						G_mb.mainb[a]->imat = (float *) imat;
 
+						if (!MB_TYPE_SIZE_SQUARED(ml->type)) {
+							expx = ml->expx;
+							expy = ml->expy;
+							expz = ml->expz;
+						}
+						else {
+							expx = ml->expx * ml->expx;
+							expy = ml->expy * ml->expy;
+							expz = ml->expz * ml->expz;
+						}
+
 						/* untransformed Bounding Box of MetaElem */
-						/* 0 */
-						G_mb.mainb[a]->bb->vec[0][0] = -ml->expx;
-						G_mb.mainb[a]->bb->vec[0][1] = -ml->expy;
-						G_mb.mainb[a]->bb->vec[0][2] = -ml->expz;
-						/* 1 */
-						G_mb.mainb[a]->bb->vec[1][0] =  ml->expx;
-						G_mb.mainb[a]->bb->vec[1][1] = -ml->expy;
-						G_mb.mainb[a]->bb->vec[1][2] = -ml->expz;
-						/* 2 */
-						G_mb.mainb[a]->bb->vec[2][0] =  ml->expx;
-						G_mb.mainb[a]->bb->vec[2][1] =  ml->expy;
-						G_mb.mainb[a]->bb->vec[2][2] = -ml->expz;
-						/* 3 */
-						G_mb.mainb[a]->bb->vec[3][0] = -ml->expx;
-						G_mb.mainb[a]->bb->vec[3][1] =  ml->expy;
-						G_mb.mainb[a]->bb->vec[3][2] = -ml->expz;
-						/* 4 */
-						G_mb.mainb[a]->bb->vec[4][0] = -ml->expx;
-						G_mb.mainb[a]->bb->vec[4][1] = -ml->expy;
-						G_mb.mainb[a]->bb->vec[4][2] =  ml->expz;
-						/* 5 */
-						G_mb.mainb[a]->bb->vec[5][0] =  ml->expx;
-						G_mb.mainb[a]->bb->vec[5][1] = -ml->expy;
-						G_mb.mainb[a]->bb->vec[5][2] =  ml->expz;
-						/* 6 */
-						G_mb.mainb[a]->bb->vec[6][0] =  ml->expx;
-						G_mb.mainb[a]->bb->vec[6][1] =  ml->expy;
-						G_mb.mainb[a]->bb->vec[6][2] =  ml->expz;
-						/* 7 */
-						G_mb.mainb[a]->bb->vec[7][0] = -ml->expx;
-						G_mb.mainb[a]->bb->vec[7][1] =  ml->expy;
-						G_mb.mainb[a]->bb->vec[7][2] =  ml->expz;
+						/* TODO, its possible the elem type has been changed and the exp* values can use a fallback */
+						copy_v3_fl3(G_mb.mainb[a]->bb->vec[0], -expx, -expy, -expz);  /* 0 */
+						copy_v3_fl3(G_mb.mainb[a]->bb->vec[1], +expx, -expy, -expz);  /* 1 */
+						copy_v3_fl3(G_mb.mainb[a]->bb->vec[2], +expx, +expy, -expz);  /* 2 */
+						copy_v3_fl3(G_mb.mainb[a]->bb->vec[3], -expx, +expy, -expz);  /* 3 */
+						copy_v3_fl3(G_mb.mainb[a]->bb->vec[4], -expx, -expy, +expz);  /* 4 */
+						copy_v3_fl3(G_mb.mainb[a]->bb->vec[5], +expx, -expy, +expz);  /* 5 */
+						copy_v3_fl3(G_mb.mainb[a]->bb->vec[6], +expx, +expy, +expz);  /* 6 */
+						copy_v3_fl3(G_mb.mainb[a]->bb->vec[7], -expx, +expy, +expz);  /* 7 */
 
 						/* transformation of Metalem bb */
 						for (i = 0; i < 8; i++)

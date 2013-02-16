@@ -601,22 +601,24 @@ void KX_BlenderSceneConverter::RegisterPolyMaterial(RAS_IPolyMaterial *polymat)
 
 void KX_BlenderSceneConverter::CachePolyMaterial(struct Material *mat, RAS_IPolyMaterial *polymat)
 {
-	m_polymat_cache[mat] = polymat;
+	if (m_use_mat_cache)
+		m_polymat_cache[mat] = polymat;
 }
 
 RAS_IPolyMaterial *KX_BlenderSceneConverter::FindCachedPolyMaterial(struct Material *mat)
 {
-	return m_polymat_cache[mat];
+	return (m_use_mat_cache) ? m_polymat_cache[mat] : NULL;
 }
 
 void KX_BlenderSceneConverter::CacheBlenderMaterial(struct Material *mat, BL_Material *blmat)
 {
-	m_mat_cache[mat] = blmat;
+	if (m_use_mat_cache)
+		m_mat_cache[mat] = blmat;
 }
 
 BL_Material *KX_BlenderSceneConverter::FindCachedBlenderMaterial(struct Material *mat)
 {
-	return m_mat_cache[mat];
+	return (m_use_mat_cache) ? m_mat_cache[mat] : NULL;
 }
 
 void KX_BlenderSceneConverter::RegisterInterpolatorList(

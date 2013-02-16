@@ -696,6 +696,7 @@ void ui_theme_init_default(void)
 	ui_widget_color_init(&btheme->tui);
 	
 	btheme->tui.iconfile[0] = 0;
+	btheme->tui.panel.show_back = FALSE;
 	btheme->tui.panel.show_header = FALSE;
 	rgba_char_args_set(btheme->tui.panel.header, 0, 0, 0, 25);
 	
@@ -713,6 +714,8 @@ void ui_theme_init_default(void)
 	ui_theme_init_new(btheme);
 	
 	/* space view3d */
+	btheme->tv3d.panelcolors.show_back = FALSE;
+	btheme->tv3d.panelcolors.show_header = FALSE;
 	rgba_char_args_set_fl(btheme->tv3d.back,       0.225, 0.225, 0.225, 1.0);
 	rgba_char_args_set(btheme->tv3d.text,       0, 0, 0, 255);
 	rgba_char_args_set(btheme->tv3d.text_hi, 255, 255, 255, 255);
@@ -1332,7 +1335,6 @@ void UI_make_axis_color(const unsigned char src_col[3], unsigned char dst_col[3]
 void init_userdef_do_versions(void)
 {
 	Main *bmain = G.main;
-//	countall();
 	
 	/* the UserDef struct is not corrected with do_versions() .... ugh! */
 	if (U.wheellinescroll == 0) U.wheellinescroll = 3;
@@ -2121,7 +2123,8 @@ void init_userdef_do_versions(void)
 		}
 	}
 
-	if (bmain->versionfile < 266) {
+	/* NOTE!! from now on use U.versionfile and U.subversionfile */
+	if (U.versionfile < 266) {
 		bTheme *btheme;
 		
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
@@ -2133,7 +2136,7 @@ void init_userdef_do_versions(void)
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(bmain, 265, 4)) {
+	if (U.versionfile < 265 || (U.versionfile == 265 && U.subversionfile < 4)) {
 		bTheme *btheme;
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			rgba_char_args_set(btheme->text.syntaxd,    50, 0, 140, 255);   /* Decorator/Preprocessor Dir.  Blue-purple */
@@ -2142,14 +2145,14 @@ void init_userdef_do_versions(void)
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(bmain, 265, 6)) {
+	if (U.versionfile < 265 || (U.versionfile == 265 && U.subversionfile < 6)) {
 		bTheme *btheme;
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			copy_v4_v4_char(btheme->tv3d.gradients.high_gradient, btheme->tv3d.back);
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(bmain, 265, 9)) {
+	if (U.versionfile < 265 || (U.versionfile == 265 && U.subversionfile < 9)) {
 		bTheme *btheme;
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			rgba_char_args_test_set(btheme->tnode.syntaxs, 151, 116, 116, 255);  /* matte nodes */
@@ -2157,6 +2160,9 @@ void init_userdef_do_versions(void)
 		}
 	}
 
+	/* NOTE!! from now on use U.versionfile and U.subversionfile */
+	
+	
 	if (U.pixelsize == 0.0f)
 		U.pixelsize = 1.0f;
 	

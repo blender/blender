@@ -26,6 +26,7 @@ from bl_ui.properties_physics_common import (
     effector_weights_ui,
     )
 
+
 class SCENE_UL_keying_set_paths(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         # assert(isinstance(item, bpy.types.KeyingSetPath)

@@ -83,6 +83,7 @@ RenderTile::RenderTile()
 	w = 0;
 	h = 0;
 
+	sample = 0;
 	start_sample = 0;
 	num_samples = 0;
 	resolution = 0;

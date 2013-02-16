@@ -159,7 +159,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 		MovieTrackingDopesheetChannel *channel;
 		float y, xscale, yscale;
 		float strip[4], selected_strip[4];
-		float height = (dopesheet->tot_channel * CHANNEL_STEP) + (CHANNEL_HEIGHT * 2);
+		float height = (dopesheet->tot_channel * CHANNEL_STEP) + (CHANNEL_HEIGHT);
 
 		/* don't use totrect set, as the width stays the same
 		 * (NOTE: this is ok here, the configuration is pretty straightforward)
@@ -272,7 +272,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 
 	tracking = &clip->tracking;
 	dopesheet = &tracking->dopesheet;
-	height = (dopesheet->tot_channel * CHANNEL_STEP) + (CHANNEL_HEIGHT * 2);
+	height = (dopesheet->tot_channel * CHANNEL_STEP) + (CHANNEL_HEIGHT);
 
 	if (height > BLI_rcti_size_y(&v2d->mask)) {
 		/* don't use totrect set, as the width stays the same

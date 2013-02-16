@@ -91,9 +91,9 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, PointerRNA
 
 /* ************ event management ************** */
 
-void wm_event_add(wmWindow *win, wmEvent *event_to_add)
+void wm_event_add(wmWindow *win, const wmEvent *event_to_add)
 {
-	wmEvent *event = MEM_callocN(sizeof(wmEvent), "wmEvent");
+	wmEvent *event = MEM_mallocN(sizeof(wmEvent), "wmEvent");
 	
 	*event = *event_to_add;
 
@@ -590,6 +590,9 @@ static void wm_operator_finished(bContext *C, wmOperator *op, int repeat)
 		}
 
 		if (wm_operator_register_check(wm, op->type)) {
+			/* take ownership of reports (in case python provided own) */
+			op->reports->flag |= RPT_FREE;
+
 			wm_operator_register(C, op);
 			WM_operator_region_active_win_set(C);
 		}
@@ -935,6 +938,9 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event,
 			wm_operator_finished(C, op, 0);
 		}
 		else if (retval & OPERATOR_RUNNING_MODAL) {
+			/* take ownership of reports (in case python provided own) */
+			op->reports->flag |= RPT_FREE;
+
 			/* grab cursor during blocking modal ops (X11)
 			 * Also check for macro
 			 */
@@ -1170,13 +1176,6 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, short context,
 	
 	if (!is_undo && wm && (wm == CTX_wm_manager(C))) wm->op_undo_depth--;
 
-	/* keep the reports around if needed later */
-	if ((retval & OPERATOR_RUNNING_MODAL) ||
-	    ((retval & OPERATOR_FINISHED) && wm_operator_register_check(CTX_wm_manager(C), ot)))
-	{
-		reports->flag |= RPT_FREE; /* let blender manage freeing */
-	}
-	
 	return retval;
 }
 
@@ -1766,6 +1765,10 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 								break;
 							}
 							else {
+								if (action & WM_HANDLER_HANDLED)
+									if (G.debug & (G_DEBUG_EVENTS | G_DEBUG_HANDLERS))
+										printf("%s:       handled - and pass on! '%s'\n", __func__, kmi->idname);
+								
 #ifndef NDEBUG
 								if (do_debug_handler) {
 									printf("%s:       un-handled '%s'...", __func__, kmi->idname);
@@ -3042,7 +3045,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 				event.keymodifier = 0;
 						
 			/* this case happened with an external numpad, it's not really clear
-			 * why, but it's also impossible to map a key modifier to an unknwon
+			 * why, but it's also impossible to map a key modifier to an unknown
 			 * key, so it shouldn't harm */
 			if (event.keymodifier == UNKNOWNKEY)
 				event.keymodifier = 0;

@@ -234,7 +234,7 @@ static void node_menu_add(const bContext *C, Menu *menu)
 		uiLayoutSetActive(layout, FALSE);
 	
 	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
-	uiItemO(layout, "Search ...", 0, "NODE_OT_add_search");
+	uiItemO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Search ..."), 0, "NODE_OT_add_search");
 	
 	if (ntreetype && ntreetype->foreach_nodeclass)
 		ntreetype->foreach_nodeclass(scene, layout, node_menu_add_foreach_cb);

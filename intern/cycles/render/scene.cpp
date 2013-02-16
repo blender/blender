@@ -85,6 +85,12 @@ void Scene::free_memory(bool final)
 	foreach(ParticleSystem *p, particle_systems)
 		delete p;
 
+	shaders.clear();
+	meshes.clear();
+	objects.clear();
+	lights.clear();
+	particle_systems.clear();
+
 	if(device) {
 		camera->device_free(device, &dscene);
 		filter->device_free(device, &dscene);
@@ -100,7 +106,7 @@ void Scene::free_memory(bool final)
 		particle_system_manager->device_free(device, &dscene);
 		curve_system_manager->device_free(device, &dscene);
 
-		if(!params.persistent_images || final)
+		if(!params.persistent_data || final)
 			image_manager->device_free(device, &dscene);
 	}
 
@@ -117,13 +123,6 @@ void Scene::free_memory(bool final)
 		delete particle_system_manager;
 		delete curve_system_manager;
 		delete image_manager;
-	}
-	else {
-		shaders.clear();
-		meshes.clear();
-		objects.clear();
-		lights.clear();
-		particle_systems.clear();
 	}
 }
 
@@ -257,6 +256,7 @@ bool Scene::need_reset()
 
 void Scene::reset()
 {
+	shader_manager->reset(this);
 	shader_manager->add_default(this);
 
 	/* ensure all objects are updated */

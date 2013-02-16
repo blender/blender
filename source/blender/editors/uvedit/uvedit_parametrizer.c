@@ -60,12 +60,14 @@
 			{ /*printf("Assertion %s:%d\n", __FILE__, __LINE__); abort();*/ } (void)0
 	#define param_warning(message) \
 		{ /*printf("Warning %s:%d: %s\n", __FILE__, __LINE__, message);*/ } (void)0
+#if 0
 	#define param_test_equals_ptr(str, a, b) \
 		if (a != b) \
 			{ /*printf("Equals %s => %p != %p\n", str, a, b);*/ } (void)0
 	#define param_test_equals_int(str, a, b) \
 		if (a != b) \
 			{ /*printf("Equals %s => %d != %d\n", str, a, b);*/ } (void)0
+#endif
 #endif
 typedef enum PBool {
 	P_TRUE = 1,
@@ -3047,6 +3049,8 @@ static PBool p_chart_lscm_solve(PHandle *handle, PChart *chart)
 	PVert *v, *pin1 = chart->u.lscm.pin1, *pin2 = chart->u.lscm.pin2;
 	PFace *f;
 	float *alpha = chart->u.lscm.abf_alpha;
+	float area_pinned_up, area_pinned_down;
+	bool flip_faces;
 	int row;
 
 	nlMakeCurrent(chart->u.lscm.context);
@@ -3085,6 +3089,26 @@ static PBool p_chart_lscm_solve(PHandle *handle, PChart *chart)
 		}
 	}
 
+	/* detect up direction based on pinned vertices */
+	area_pinned_up = 0.0f;
+	area_pinned_down = 0.0f;
+
+	for (f = chart->faces; f; f = f->nextlink) {
+		PEdge *e1 = f->edge, *e2 = e1->next, *e3 = e2->next;
+		PVert *v1 = e1->vert, *v2 = e2->vert, *v3 = e3->vert;
+
+		if ((v1->flag & PVERT_PIN) && (v2->flag & PVERT_PIN) && (v3->flag & PVERT_PIN)) {
+			float area = p_face_uv_area_signed(f);
+
+			if (area > 0.0f)
+				area_pinned_up += area;
+			else
+				area_pinned_down -= area;
+		}
+	}
+
+	flip_faces = (area_pinned_down > area_pinned_up);
+
 	/* construct matrix */
 
 	nlBegin(NL_MATRIX);
@@ -3104,6 +3128,12 @@ static PBool p_chart_lscm_solve(PHandle *handle, PChart *chart)
 		}
 		else
 			p_face_angles(f, &a1, &a2, &a3);
+
+		if (flip_faces) {
+			SWAP(float, a2, a3);
+			SWAP(PEdge *, e2, e3);
+			SWAP(PVert *, v2, v3);
+		}
 
 		sina1 = sin(a1);
 		sina2 = sin(a2);

@@ -588,9 +588,14 @@ void BKE_brush_imbuf_new(const Scene *scene, Brush *brush, short flt, short texf
 				else if (texfall == 1) {
 					BKE_brush_sample_tex_2D(scene, brush, xy, dstf, 0);
 				}
-				else {
+				else if (texfall == 2) {
 					BKE_brush_sample_tex_2D(scene, brush, xy, rgba, 0);
 					mul_v3_v3v3(dstf, rgba, brush_rgb);
+					dstf[3] = rgba[3] * alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
+				}
+				else {
+					BKE_brush_sample_tex_2D(scene, brush, xy, rgba, 0);
+					copy_v3_v3(dstf, brush_rgb);
 					dstf[3] = rgba[3] * alpha * BKE_brush_curve_strength_clamp(brush, len_v2(xy), radius);
 				}
 			}

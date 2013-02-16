@@ -2737,6 +2737,14 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	if (rres.have_combined && layer == 0) {
 		/* pass */
 	}
+	else if (rect && layer == 0) {
+		/* rect32 is set when there's a Sequence pass, this pass seems
+		 * to have layer=0 (this is from image_buttons.c)
+		 * in this case we ignore float buffer, because it could have
+		 * hung from previous pass which was float
+		 */
+		rectf = NULL;
+	}
 	else if (rres.layers.first) {
 		RenderLayer *rl = BLI_findlink(&rres.layers, layer - (rres.have_combined ? 1 : 0));
 		if (rl) {

@@ -344,6 +344,15 @@ void mul_v3_m4v3(float in[3], float mat[4][4], const float vec[3])
 	in[2] = x * mat[0][2] + y * mat[1][2] + mat[2][2] * vec[2] + mat[3][2];
 }
 
+void mul_v2_m2v2(float r[2], float mat[2][2], const float vec[2])
+{
+	float x;
+
+	x = vec[0];
+	r[0] = mat[0][0] * x + mat[1][0] * vec[1];
+	r[1] = mat[0][1] * x + mat[1][1] * vec[1];
+}
+
 /* same as mul_m4_v3() but doesnt apply translation component */
 void mul_mat3_m4_v3(float mat[4][4], float vec[3])
 {
@@ -1302,6 +1311,13 @@ void rotate_m4(float mat[4][4], const char axis, const float angle)
 			}
 			break;
 	}
+}
+
+void rotate_m2(float mat[2][2], const float angle)
+{
+	mat[0][0] = mat[1][1] = cosf(angle);
+	mat[0][1] = sinf(angle);
+	mat[1][0] = -mat[0][1];
 }
 
 void blend_m3_m3m3(float out[3][3], float dst[3][3], float src[3][3], const float srcweight)

@@ -46,7 +46,7 @@ void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)
 		if (ns->sockettype==SOCK_FLOAT)
 			*in= *from;
 		else 
-			*in= 0.333333f*(from[0]+from[1]+from[2]);
+			*in= (from[0]+from[1]+from[2]) / 3.0f;
 	}
 	else if (type_in==SOCK_VECTOR) {
 		if (ns->sockettype==SOCK_FLOAT) {

@@ -189,7 +189,7 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
 
 	int iter_step;
 
-	/* if tag_only is set, we assyme the caller knows what verts to tag
+	/* if tag_only is set, we assume the caller knows what verts to tag
 	 * needed for the operator */
 	if (tag_only == false) {
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {

@@ -34,11 +34,12 @@
 
 #include "DNA_userdef_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 #include "BLI_string_cursor_utf8.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string.h"
 #include "BLI_dynstr.h"
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
 
 #include "BKE_context.h"
@@ -283,28 +284,28 @@ static int console_move_exec(bContext *C, wmOperator *op)
 			pos = ci->cursor;
 			BLI_str_cursor_step_utf8(ci->line, ci->len,
 			                         &pos, STRCUR_DIR_PREV,
-			                         STRCUR_JUMP_ALL);
+			                         STRCUR_JUMP_ALL, true);
 			done = console_line_cursor_set(ci, pos);
 			break;
 		case LINE_END:
 			pos = ci->cursor;
 			BLI_str_cursor_step_utf8(ci->line, ci->len,
 			                         &pos, STRCUR_DIR_NEXT,
-			                         STRCUR_JUMP_ALL);
+			                         STRCUR_JUMP_ALL, true);
 			done = console_line_cursor_set(ci, pos);
 			break;
 		case PREV_CHAR:
 			pos = ci->cursor;
 			BLI_str_cursor_step_utf8(ci->line, ci->len,
 			                         &pos, STRCUR_DIR_PREV,
-			                         STRCUR_JUMP_NONE);
+			                         STRCUR_JUMP_NONE, true);
 			done = console_line_cursor_set(ci, pos);
 			break;
 		case NEXT_CHAR:
 			pos = ci->cursor;
 			BLI_str_cursor_step_utf8(ci->line, ci->len,
 			                         &pos, STRCUR_DIR_NEXT,
-			                         STRCUR_JUMP_NONE);
+			                         STRCUR_JUMP_NONE, true);
 			done = console_line_cursor_set(ci, pos);
 			break;
 
@@ -314,14 +315,14 @@ static int console_move_exec(bContext *C, wmOperator *op)
 			pos = ci->cursor;
 			BLI_str_cursor_step_utf8(ci->line, ci->len,
 			                         &pos, STRCUR_DIR_PREV,
-			                         STRCUR_JUMP_DELIM);
+			                         STRCUR_JUMP_DELIM, true);
 			done = console_line_cursor_set(ci, pos);
 			break;
 		case NEXT_WORD:
 			pos = ci->cursor;
 			BLI_str_cursor_step_utf8(ci->line, ci->len,
 			                         &pos, STRCUR_DIR_NEXT,
-			                         STRCUR_JUMP_DELIM);
+			                         STRCUR_JUMP_DELIM, true);
 			done = console_line_cursor_set(ci, pos);
 			break;
 	}
@@ -393,15 +394,26 @@ static int console_insert_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	// if (!RNA_struct_property_is_set(op->ptr, "text")) { /* always set from keymap XXX */
 	if (!RNA_string_length(op->ptr, "text")) {
-		/* if alt/ctrl/super are pressed pass through */
-		if (event->ctrl || event->oskey) {
+		/* if alt/ctrl/super are pressed pass through except for utf8 character event
+		 * (when input method are used for utf8 inputs, the user may assign key event
+		 * including alt/ctrl/super like ctrl+m to commit utf8 string.  in such case,
+		 * the modifiers in the utf8 character event make no sense.) */
+		if ((event->ctrl || event->oskey) && !event->utf8_buf[0]) {
 			return OPERATOR_PASS_THROUGH;
 		}
 		else {
-			char str[2];
-			str[0] = event->ascii;
-			str[1] = '\0';
-
+			char str[BLI_UTF8_MAX + 1];
+			size_t len;
+			
+			if (event->utf8_buf[0]) {
+				len = BLI_str_utf8_size_safe(event->utf8_buf);
+				memcpy(str, event->utf8_buf, len);
+			}
+			else {
+				/* in theory, ghost can set value to extended ascii here */
+				len = BLI_str_utf8_from_unicode(event->ascii, str);
+			}
+			str[len] = '\0';
 			RNA_string_set(op->ptr, "text", str);
 		}
 	}
@@ -550,7 +562,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 				pos = ci->cursor;
 				BLI_str_cursor_step_utf8(ci->line, ci->len,
 				                         &pos, STRCUR_DIR_NEXT,
-				                         (type == DEL_NEXT_CHAR) ? STRCUR_JUMP_NONE : STRCUR_JUMP_DELIM);
+				                         (type == DEL_NEXT_CHAR) ? STRCUR_JUMP_NONE : STRCUR_JUMP_DELIM, true);
 				stride = pos - ci->cursor;
 				if (stride) {
 					memmove(ci->line + ci->cursor, ci->line + ci->cursor + stride, (ci->len - ci->cursor) + 1);
@@ -566,7 +578,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 				pos = ci->cursor;
 				BLI_str_cursor_step_utf8(ci->line, ci->len,
 				                         &pos, STRCUR_DIR_PREV,
-				                         (type == DEL_PREV_CHAR) ? STRCUR_JUMP_NONE : STRCUR_JUMP_DELIM);
+				                         (type == DEL_PREV_CHAR) ? STRCUR_JUMP_NONE : STRCUR_JUMP_DELIM, true);
 				stride = ci->cursor - pos;
 				if (stride) {
 					ci->cursor -= stride; /* same as above */

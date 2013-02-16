@@ -33,6 +33,7 @@ extern "C" {
 #endif
 
 #include "BLI_linklist.h"
+#include "BLI_path_util.h"
 #include "RNA_types.h"
 
 typedef enum BC_export_mesh_type {

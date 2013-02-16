@@ -75,9 +75,7 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 		stop = 1;
 		
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-			float v1_xy[2], v2_xy[2], v3_xy[2], v4_xy[2];
-			float no[3];
-			float axis_mat[3][3];
+			BMVert *v1, *v2, *v3, *v4;
 			
 			if (!BM_edge_is_manifold(e) || !BMO_elem_flag_test(bm, e, EDGE_MARK)) {
 				continue;
@@ -88,45 +86,31 @@ void bmo_beautify_fill_exec(BMesh *bm, BMOperator *op)
 			{
 				continue;
 			}
-			
-			{
-				float *v1, *v2, *v3, *v4;
-				float no_a[3], no_b[3];
-				v1 = e->l->prev->v->co;
-				v2 = e->l->v->co;
-				v3 = e->l->radial_next->prev->v->co;
-				v4 = e->l->next->v->co;
 
-				normal_tri_v3(no_a, v1, v2, v3);
-				normal_tri_v3(no_b, v1, v3, v4);
-				add_v3_v3v3(no, no_a, no_b);
-				normalize_v3(no);
-				axis_dominant_v3_to_m3(axis_mat, no);
-				mul_v2_m3v3(v1_xy, axis_mat, v1);
-				mul_v2_m3v3(v2_xy, axis_mat, v2);
-				mul_v2_m3v3(v3_xy, axis_mat, v3);
-				mul_v2_m3v3(v4_xy, axis_mat, v4);
-			}
+			v1 = e->l->prev->v;
+			v2 = e->l->v;
+			v3 = e->l->radial_next->prev->v;
+			v4 = e->l->next->v;
 
-			if (is_quad_convex_v2(v1_xy, v2_xy, v3_xy, v4_xy)) {
+			if (is_quad_convex_v3(v1->co, v2->co, v3->co, v4->co)) {
 				float len1, len2, len3, len4, len5, len6, opp1, opp2, fac1, fac2;
 				/* testing rule:
 				 * the area divided by the total edge lengths
 				 */
-				len1 = len_v2v2(v1_xy, v2_xy);
-				len2 = len_v2v2(v2_xy, v3_xy);
-				len3 = len_v2v2(v3_xy, v4_xy);
-				len4 = len_v2v2(v4_xy, v1_xy);
-				len5 = len_v2v2(v1_xy, v3_xy);
-				len6 = len_v2v2(v2_xy, v4_xy);
+				len1 = len_v3v3(v1->co, v2->co);
+				len2 = len_v3v3(v2->co, v3->co);
+				len3 = len_v3v3(v3->co, v4->co);
+				len4 = len_v3v3(v4->co, v1->co);
+				len5 = len_v3v3(v1->co, v3->co);
+				len6 = len_v3v3(v2->co, v4->co);
 
-				opp1 = area_tri_v2(v1_xy, v2_xy, v3_xy);
-				opp2 = area_tri_v2(v1_xy, v3_xy, v4_xy);
+				opp1 = area_tri_v3(v1->co, v2->co, v3->co);
+				opp2 = area_tri_v3(v1->co, v3->co, v4->co);
 
 				fac1 = opp1 / (len1 + len2 + len5) + opp2 / (len3 + len4 + len5);
 
-				opp1 = area_tri_v2(v2_xy, v3_xy, v4_xy);
-				opp2 = area_tri_v2(v2_xy, v4_xy, v1_xy);
+				opp1 = area_tri_v3(v2->co, v3->co, v4->co);
+				opp2 = area_tri_v3(v2->co, v4->co, v1->co);
 
 				fac2 = opp1 / (len2 + len3 + len6) + opp2 / (len4 + len1 + len6);
 				

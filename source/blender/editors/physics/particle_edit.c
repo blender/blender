@@ -1112,7 +1112,7 @@ static void recalc_emitter_field(Object *ob, ParticleSystem *psys)
 			mul_v3_fl(vec, 0.25);
 		}
 		else
-			mul_v3_fl(vec, 0.3333f);
+			mul_v3_fl(vec, 1.0f / 3.0f);
 
 		normalize_v3(nor);
 

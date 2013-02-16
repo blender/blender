@@ -54,6 +54,7 @@ extern "C" {
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
+#include "BLI_fileops.h"
 
 #include "BKE_camera.h"
 #include "BKE_main.h"
@@ -100,7 +101,7 @@ extern "C" {
 // #define ARMATURE_TEST
 
 DocumentImporter::DocumentImporter(bContext *C, const ImportSettings *import_settings) :
-    import_settings(import_settings),
+	import_settings(import_settings),
 	mImportStage(General),
 	mContext(C),
 	armature_importer(&unit_converter, &mesh_importer, &anim_importer, CTX_data_scene(C)),
@@ -213,15 +214,17 @@ void DocumentImporter::finish()
 			fprintf(stdout, "Collada: Adjusting Blender units to Importset units: %f.\n", unit_factor);
 
 		}
-		else {
-			// TODO: add automatic scaling for the case when Blender units 
-			//       and import units are set to different values.
-		}
 
 		// Write nodes to scene
 		const COLLADAFW::NodePointerArray& roots = (*it)->getRootNodes();
 		for (unsigned int i = 0; i < roots.getCount(); i++) {
-			write_node(roots[i], NULL, sce, NULL, false);
+			std::vector<Object *> *objects_done;
+			objects_done = write_node(roots[i], NULL, sce, NULL, false);
+			
+			if (!this->import_settings->import_units) {
+				// Match incoming scene with current unit settings
+				bc_match_scale(objects_done, *sce, unit_converter);
+			}
 		}
 
 		// update scene
@@ -432,8 +435,9 @@ Object *DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 
 // to create constraints off node <extra> tags. Assumes only constraint data in
 // current <extra> with blender profile.
-void DocumentImporter::create_constraints(ExtraTags *et, Object *ob){
-	if ( et && et->isProfile("blender")){
+void DocumentImporter::create_constraints(ExtraTags *et, Object *ob)
+{
+	if (et && et->isProfile("blender")) {
 		std::string name;
 		short* type = 0;
 		et->setData("type", type);
@@ -442,7 +446,7 @@ void DocumentImporter::create_constraints(ExtraTags *et, Object *ob){
 	}
 }
 
-void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent_node, Scene *sce, Object *par, bool is_library_node)
+std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent_node, Scene *sce, Object *par, bool is_library_node)
 {
 	Object *ob = NULL;
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
@@ -536,16 +540,20 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 		// XXX empty node may not mean it is empty object, not sure about this
 		if ( (geom_done + camera_done + lamp_done + controller_done + inst_done) < 1) {
 			//Check if Object is armature, by checking if immediate child is a JOINT node.
-			if(is_armature(node))
+			if (is_armature(node)) {
 				ob = bc_add_object(sce, OB_ARMATURE, NULL);
-			else ob = bc_add_object(sce, OB_EMPTY, NULL);
+			}
+			else {
+				ob = bc_add_object(sce, OB_EMPTY, NULL);
+			}
 
 			objects_done->push_back(ob);
 		}
 		
 		// XXX: if there're multiple instances, only one is stored
 
-		if (!ob) return;
+		if (!ob) return objects_done;
+
 		for (std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end(); ++it) {
 			ob = *it;
 			std::string nodename = node->getName().size() ? node->getName() : node->getOriginalId();
@@ -556,6 +564,7 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 			if (is_library_node)
 				libnode_ob.push_back(ob);
 		}
+
 
 		//create_constraints(et,ob);
 
@@ -575,12 +584,19 @@ void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent
 	}
 	// if node has child nodes write them
 	COLLADAFW::NodePointerArray &child_nodes = node->getChildNodes();
+
 	if (objects_done->size() > 0) {
 		ob = *objects_done->begin();
-		for (unsigned int i = 0; i < child_nodes.getCount(); i++) {
-			write_node(child_nodes[i], node, sce, ob, is_library_node);
-		}
 	}
+	else {
+		ob = NULL;
+	}
+
+	for (unsigned int i = 0; i < child_nodes.getCount(); i++) {
+		write_node(child_nodes[i], node, sce, ob, is_library_node);
+	}
+
+	return objects_done;
 }
 
 /** When this method is called, the writer must write the entire visual scene.
@@ -985,17 +1001,29 @@ bool DocumentImporter::writeImage(const COLLADAFW::Image *image)
 	if (mImportStage != General)
 		return true;
 		
-	// XXX maybe it is necessary to check if the path is absolute or relative
-	const std::string& filepath = image->getImageURI().toNativePath();
-	const char *filename = (const char *)filepath.c_str();
+	const std::string& imagepath = image->getImageURI().toNativePath();
+
 	char dir[FILE_MAX];
-	char full_path[FILE_MAX];
-	
-	BLI_split_dir_part(filename, dir, sizeof(dir));
-	BLI_join_dirfile(full_path, sizeof(full_path), dir, filepath.c_str());
-	Image *ima = BKE_image_load_exists(full_path);
+	char absolute_path[FILE_MAX];
+	const char *workpath;
+
+	BLI_split_dir_part(this->import_settings->filepath, dir, sizeof(dir));
+	BLI_join_dirfile(absolute_path, sizeof(absolute_path), dir, imagepath.c_str());
+	if (BLI_exists(absolute_path)) {
+		workpath = absolute_path;
+	} 
+	else {
+		// Maybe imagepath was already absolute ?
+		if (!BLI_exists(imagepath.c_str())) {
+			fprintf(stderr, "Image not found: %s.\n", imagepath.c_str() );
+			return true;
+		}
+		workpath = imagepath.c_str();
+	}
+
+	Image *ima = BKE_image_load_exists(workpath);
 	if (!ima) {
-		fprintf(stderr, "Cannot create image.\n");
+		fprintf(stderr, "Cannot create image: %s\n", workpath);
 		return true;
 	}
 	this->uid_image_map[image->getUniqueId()] = ima;
@@ -1238,15 +1266,18 @@ bool DocumentImporter::addExtraTags(const COLLADAFW::UniqueId &uid, ExtraTags *e
 	return true;
 }
 
-bool DocumentImporter::is_armature(COLLADAFW::Node *node){
+bool DocumentImporter::is_armature(COLLADAFW::Node *node)
+{
 	COLLADAFW::NodePointerArray &child_nodes = node->getChildNodes();
-	for (unsigned int i = 0; i < child_nodes.getCount(); i++) {	
-		if(child_nodes[i]->getType() == COLLADAFW::Node::JOINT) return true;
-		else continue;
+	for (unsigned int i = 0; i < child_nodes.getCount(); i++) {
+		if (child_nodes[i]->getType() == COLLADAFW::Node::JOINT) {
+			return true;
+		}
+		else {
+			continue;
+		}
 	}
 
 	//no child is JOINT
 	return false;
-
 }
-

@@ -109,11 +109,11 @@ public:
 		}
 	}
 
-#ifdef NDEBUG
+/*#ifdef NDEBUG
 #define cuda_abort()
 #else
 #define cuda_abort() abort()
-#endif
+#endif*/
 
 #define cuda_assert(stmt) \
 	{ \
@@ -128,19 +128,21 @@ public:
 		} \
 	}
 
-	bool cuda_error(CUresult result)
+	bool cuda_error_(CUresult result, const string& stmt)
 	{
 		if(result == CUDA_SUCCESS)
 			return false;
 
-		string message = string_printf("CUDA error: %s", cuda_error_string(result));
+		string message = string_printf("CUDA error at %s: %s", stmt.c_str(), cuda_error_string(result));
 		if(error_msg == "")
 			error_msg = message;
 		fprintf(stderr, "%s\n", message.c_str());
 		return true;
 	}
 
-	void cuda_error(const string& message)
+#define cuda_error(stmt) cuda_error_(stmt, #stmt)
+
+	void cuda_error_message(const string& message)
 	{
 		if(error_msg == "")
 			error_msg = message;
@@ -187,7 +189,7 @@ public:
 			}
 		}
 
-		if(cuda_error(result))
+		if(cuda_error_(result, "cuCtxCreate"))
 			return;
 
 		cuda_pop_context();
@@ -208,7 +210,7 @@ public:
 			cuDeviceComputeCapability(&major, &minor, cuDevId);
 
 			if(major <= 1 && minor <= 2) {
-				cuda_error(string_printf("CUDA device supported only with compute capability 1.3 or up, found %d.%d.", major, minor));
+				cuda_error_message(string_printf("CUDA device supported only with compute capability 1.3 or up, found %d.%d.", major, minor));
 				return false;
 			}
 		}
@@ -241,9 +243,9 @@ public:
 #ifdef _WIN32
 		if(cuHavePrecompiledKernels()) {
 			if(major <= 1 && minor <= 2)
-				cuda_error(string_printf("CUDA device requires compute capability 1.3 or up, found %d.%d. Your GPU is not supported.", major, minor));
+				cuda_error_message(string_printf("CUDA device requires compute capability 1.3 or up, found %d.%d. Your GPU is not supported.", major, minor));
 			else
-				cuda_error(string_printf("CUDA binary kernel for this graphics card compute capability (%d.%d) not found.", major, minor));
+				cuda_error_message(string_printf("CUDA binary kernel for this graphics card compute capability (%d.%d) not found.", major, minor));
 			return "";
 		}
 #endif
@@ -252,7 +254,7 @@ public:
 		string nvcc = cuCompilerPath();
 
 		if(nvcc == "") {
-			cuda_error("CUDA nvcc compiler not found. Install CUDA toolkit in default location.");
+			cuda_error_message("CUDA nvcc compiler not found. Install CUDA toolkit in default location.");
 			return "";
 		}
 
@@ -272,13 +274,13 @@ public:
 			nvcc.c_str(), major, minor, machine, kernel.c_str(), cubin.c_str(), maxreg, include.c_str());
 
 		if(system(command.c_str()) == -1) {
-			cuda_error("Failed to execute compilation command, see console for details.");
+			cuda_error_message("Failed to execute compilation command, see console for details.");
 			return "";
 		}
 
 		/* verify if compilation succeeded */
 		if(!path_exists(cubin)) {
-			cuda_error("CUDA kernel compilation failed, see console for details.");
+			cuda_error_message("CUDA kernel compilation failed, see console for details.");
 			return "";
 		}
 
@@ -306,8 +308,8 @@ public:
 		cuda_push_context();
 
 		CUresult result = cuModuleLoad(&cuModule, cubin.c_str());
-		if(cuda_error(result))
-			cuda_error(string_printf("Failed loading CUDA kernel %s.", cubin.c_str()));
+		if(cuda_error_(result, "cuModuleLoad"))
+			cuda_error_message(string_printf("Failed loading CUDA kernel %s.", cubin.c_str()));
 
 		cuda_pop_context();
 
@@ -737,7 +739,7 @@ public:
 			
 			CUresult result = cuGraphicsGLRegisterBuffer(&pmem.cuPBOresource, pmem.cuPBO, CU_GRAPHICS_MAP_RESOURCE_FLAGS_NONE);
 
-			if(!cuda_error(result)) {
+			if(result == CUDA_SUCCESS) {
 				cuda_pop_context();
 
 				mem.device_pointer = pmem.cuTexId;

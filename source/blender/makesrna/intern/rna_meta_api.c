@@ -15,37 +15,46 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2011 Blender Foundation.
+ * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
  *
- * Contributor(s): Campbell Barton
+ *
+ * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BLI_STRING_CURSOR_UTF8_H__
-#define __BLI_STRING_CURSOR_UTF8_H__
-
-/** \file BLI_string_cursor_utf8.h
- *  \ingroup bli
+/** \file blender/makesrna/intern/rna_meta_api.c
+ *  \ingroup RNA
  */
 
-typedef enum strCursorJumpType {
-	STRCUR_JUMP_NONE,
-	STRCUR_JUMP_DELIM,
-	STRCUR_JUMP_ALL
-} strCursorJumpType;
 
-typedef enum strCursorJumpDirection {
-	STRCUR_DIR_PREV,
-	STRCUR_DIR_NEXT
-} strCursorJumpDirection;
+#include <stdlib.h>
+#include <stdio.h>
 
-int BLI_str_cursor_step_next_utf8(const char *str, size_t maxlen, int *pos);
-int BLI_str_cursor_step_prev_utf8(const char *str, size_t maxlen, int *pos);
+#include "RNA_define.h"
 
-void BLI_str_cursor_step_utf8(const char *str, size_t maxlen,
-                              int *pos, strCursorJumpDirection direction,
-                              strCursorJumpType jump, bool use_init_step);
+#include "BLO_sys_types.h"
 
-#endif /* __BLI_STRING_CURSOR_UTF8_H__ */
+#include "BLI_utildefines.h"
+
+#include "ED_mball.h"
+
+#include "rna_internal.h"  /* own include */
+
+#ifdef RNA_RUNTIME
+/* none */
+#else
+
+void RNA_api_meta(StructRNA *srna)
+{
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	func = RNA_def_function(srna, "transform", "ED_mball_transform");
+	RNA_def_function_ui_description(func, "Transform meta elements by a matrix");
+	parm = RNA_def_float_matrix(func, "matrix", 4, 4, NULL, 0.0f, 0.0f, "", "Matrix", 0.0f, 0.0f);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+}
+
+#endif

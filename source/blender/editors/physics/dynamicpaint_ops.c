@@ -304,7 +304,9 @@ static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surf
 		if (blender_test_break()) return 0;
 
 		/* Update progress bar cursor */
-		WM_cursor_time(win, (int)progress);
+		if (!G.background) {
+			WM_cursor_time(win, (int)progress);
+		}
 
 		/* calculate a frame */
 		scene->r.cfra = (int)frame;
@@ -346,6 +348,7 @@ static int dynamicPaint_bakeImageSequence(bContext *C, DynamicPaintSurface *surf
  */
 static int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
 {
+	wmWindow *win = CTX_wm_window(C);
 	DynamicPaintModifierData *pmd = NULL;
 	DynamicPaintCanvasSettings *canvas;
 	Object *ob = ED_object_context(C);
@@ -379,7 +382,9 @@ static int dynamicPaint_initBake(struct bContext *C, struct wmOperator *op)
 	status = dynamicPaint_bakeImageSequence(C, surface, ob);
 	/* Clear bake */
 	canvas->flags &= ~MOD_DPAINT_BAKING;
-	WM_cursor_restore(CTX_wm_window(C));
+	if (!G.background) {
+		WM_cursor_restore(win);
+	}
 	dynamicPaint_freeSurfaceData(surface);
 
 	/* Bake was successful:

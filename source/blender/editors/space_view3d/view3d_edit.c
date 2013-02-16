@@ -83,6 +83,9 @@
 
 #include "view3d_intern.h"  /* own include */
 
+/* for ndof prints */
+// #define DEBUG_NDOF_MOTION
+
 /* ********************** view3d_edit: view manipulations ********************* */
 
 int ED_view3d_camera_lock_check(View3D *v3d, RegionView3D *rv3d)
@@ -1043,11 +1046,10 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			float view_inv[4];
 			invert_qt_qt(view_inv, rv3d->viewquat);
 
-			/* #define DEBUG_NDOF_MOTION */
-			#ifdef DEBUG_NDOF_MOTION
+#ifdef DEBUG_NDOF_MOTION
 			printf("ndof: T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f delivered to 3D view\n",
 			       ndof->tx, ndof->ty, ndof->tz, ndof->rx, ndof->ry, ndof->rz, ndof->dt);
-			#endif
+#endif
 
 			if (rv3d->viewlock == RV3D_LOCKED) {
 				/* rotation not allowed -- explore panning options instead */
@@ -1204,11 +1206,10 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			float view_inv[4];
 			invert_qt_qt(view_inv, rv3d->viewquat);
 
-			/* #define DEBUG_NDOF_MOTION */
-			#ifdef DEBUG_NDOF_MOTION
+#ifdef DEBUG_NDOF_MOTION
 			printf("ndof: T=(%.2f,%.2f,%.2f) R=(%.2f,%.2f,%.2f) dt=%.3f delivered to 3D view\n",
 			       ndof->tx, ndof->ty, ndof->tz, ndof->rx, ndof->ry, ndof->rz, ndof->dt);
-			#endif
+#endif
 
 			if (ndof->tz) {
 				/* Zoom!

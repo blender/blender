@@ -8873,7 +8873,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if (scene->world) {
 				World *world = blo_do_versions_newlibadr(fd, scene->id.lib, scene->world);
 
-				if (is_zero_v3(&world->horr)) {
+				if (world && is_zero_v3(&world->horr)) {
 					if ((world->skytype & WO_SKYBLEND) == 0 || is_zero_v3(&world->zenr)) {
 						set_premul = true;
 					}
@@ -9004,13 +9004,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	// add storage for compositor translate nodes when not existing
 	if (!MAIN_VERSION_ATLEAST(main, 265, 10)) {
 		bNodeTreeType *ntreetype;
+		bNodeTree *ntree;
 
 		ntreetype = ntreeGetType(NTREE_COMPOSIT);
 		if (ntreetype && ntreetype->foreach_nodetree)
 			ntreetype->foreach_nodetree(main, NULL, do_version_node_fix_translate_wrapping);
+
+		for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next)
+			do_version_node_fix_translate_wrapping(NULL, NULL, ntree);
 	}
-
-
 
 	// if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 7)) {
 
@@ -9131,6 +9133,10 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 	bAddon *addon;
 	
 	bfd->user = user= read_struct(fd, bhead, "user def");
+	
+	/* User struct has separate do-version handling */
+	user->versionfile = bfd->main->versionfile;
+	user->subversionfile = bfd->main->subversionfile;
 	
 	/* read all data into fd->datamap */
 	bhead = read_data_into_oldnewmap(fd, bhead, "user def");

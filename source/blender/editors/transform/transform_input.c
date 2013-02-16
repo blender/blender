@@ -307,15 +307,8 @@ static void calcSpringFactor(MouseInput *mi)
 
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 {
-	/* may have been allocated previously */
-	/* TODO, holding R-key can cause mem leak, but this causes [#28903]
-	 * disable for now. */
-#if 0
-	if (mi->data) {
-		MEM_freeN(mi->data);
-		mi->data = NULL;
-	}
-#endif
+	/* incase we allocate a new value */
+	void *mi_data_prev = mi->data;
 
 	switch (mode) {
 		case INPUT_VECTOR:
@@ -372,6 +365,12 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 		default:
 			mi->apply = NULL;
 			break;
+	}
+
+	/* if we've allocated new data, free the old data
+	 * less hassle then checking before every alloc above */
+	if (mi_data_prev && (mi_data_prev != mi->data)) {
+		MEM_freeN(mi_data_prev);
 	}
 
 	/* bootstrap mouse input with initial values */

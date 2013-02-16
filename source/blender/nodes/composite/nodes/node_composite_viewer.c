@@ -56,7 +56,7 @@ void register_node_type_cmp_viewer(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 
-	node_type_base(ttype, &ntype, CMP_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT, NODE_PREVIEW);
+	node_type_base(ttype, &ntype, CMP_NODE_VIEWER, "Viewer", NODE_CLASS_OUTPUT, NODE_OPTIONS | NODE_PREVIEW);
 	node_type_socket_templates(&ntype, cmp_node_viewer_in, NULL);
 	node_type_size(&ntype, 80, 60, 200);
 	node_type_init(&ntype, node_composit_init_viewer);

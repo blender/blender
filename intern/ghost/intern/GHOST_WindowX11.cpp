@@ -395,16 +395,16 @@ GHOST_WindowX11(
 	XFree(xclasshint);
 
 	/* The basic for a good ICCCM "work" */
-	if (m_system->m_wm_protocols) {
+	if (m_system->m_atom.WM_PROTOCOLS) {
 		natom = 0;
 
-		if (m_system->m_delete_window_atom) {
-			atoms[natom] = m_system->m_delete_window_atom;
+		if (m_system->m_atom.WM_DELETE_WINDOW) {
+			atoms[natom] = m_system->m_atom.WM_DELETE_WINDOW;
 			natom++;
 		}
 
-		if (m_system->m_wm_take_focus) {
-			atoms[natom] = m_system->m_wm_take_focus;
+		if (m_system->m_atom.WM_TAKE_FOCUS) {
+			atoms[natom] = m_system->m_atom.WM_TAKE_FOCUS;
 			natom++;
 		}
 
@@ -744,7 +744,7 @@ void GHOST_WindowX11::icccmSetState(int state)
 	xev.xclient.display = m_display;
 	xev.xclient.window = m_window;
 	xev.xclient.format = 32;
-	xev.xclient.message_type = m_system->m_wm_change_state;
+	xev.xclient.message_type = m_system->m_atom.WM_CHANGE_STATE;
 	xev.xclient.data.l[0] = state;
 	XSendEvent(m_display, RootWindow(m_display, DefaultScreen(m_display)),
 	           False, SubstructureNotifyMask | SubstructureRedirectMask, &xev);
@@ -758,8 +758,8 @@ int GHOST_WindowX11::icccmGetState(void) const
 	int format_ret, st;
 
 	prop_ret = NULL;
-	st = XGetWindowProperty(m_display, m_window, m_system->m_wm_state, 0,
-	                        0x7fffffff, False, m_system->m_wm_state, &type_ret,
+	st = XGetWindowProperty(m_display, m_window, m_system->m_atom.WM_STATE, 0,
+	                        0x7fffffff, False, m_system->m_atom.WM_STATE, &type_ret,
 	                        &format_ret, &num_ret, &bytes_after, &prop_ret);
 
 	if ((st == Success) && (prop_ret) && (num_ret == 2))
@@ -780,7 +780,7 @@ void GHOST_WindowX11::netwmMaximized(bool set)
 	xev.xclient.serial = 0;
 	xev.xclient.send_event = True;
 	xev.xclient.window = m_window;
-	xev.xclient.message_type = m_system->m_net_state;
+	xev.xclient.message_type = m_system->m_atom._NET_WM_STATE;
 	xev.xclient.format = 32;
 
 	if (set == True)
@@ -788,8 +788,8 @@ void GHOST_WindowX11::netwmMaximized(bool set)
 	else
 		xev.xclient.data.l[0] = _NET_WM_STATE_REMOVE;
 
-	xev.xclient.data.l[1] = m_system->m_net_max_horz;
-	xev.xclient.data.l[2] = m_system->m_net_max_vert;
+	xev.xclient.data.l[1] = m_system->m_atom._NET_WM_STATE_MAXIMIZED_HORZ;
+	xev.xclient.data.l[2] = m_system->m_atom._NET_WM_STATE_MAXIMIZED_VERT;
 	xev.xclient.data.l[3] = 0;
 	xev.xclient.data.l[4] = 0;
 	XSendEvent(m_display, RootWindow(m_display, DefaultScreen(m_display)),
@@ -806,15 +806,15 @@ bool GHOST_WindowX11::netwmIsMaximized(void) const
 
 	prop_ret = NULL;
 	st = False;
-	ret = XGetWindowProperty(m_display, m_window, m_system->m_net_state, 0,
+	ret = XGetWindowProperty(m_display, m_window, m_system->m_atom._NET_WM_STATE, 0,
 	                         0x7fffffff, False, XA_ATOM, &type_ret, &format_ret,
 	                         &num_ret, &bytes_after, &prop_ret);
 	if ((ret == Success) && (prop_ret) && (format_ret == 32)) {
 		count = 0;
 		for (i = 0; i < num_ret; i++) {
-			if (((unsigned long *) prop_ret)[i] == m_system->m_net_max_horz)
+			if (((unsigned long *) prop_ret)[i] == m_system->m_atom._NET_WM_STATE_MAXIMIZED_HORZ)
 				count++;
-			if (((unsigned long *) prop_ret)[i] == m_system->m_net_max_vert)
+			if (((unsigned long *) prop_ret)[i] == m_system->m_atom._NET_WM_STATE_MAXIMIZED_VERT)
 				count++;
 			if (count == 2) {
 				st = True;
@@ -836,7 +836,7 @@ void GHOST_WindowX11::netwmFullScreen(bool set)
 	xev.xclient.serial = 0;
 	xev.xclient.send_event = True;
 	xev.xclient.window = m_window;
-	xev.xclient.message_type = m_system->m_net_state;
+	xev.xclient.message_type = m_system->m_atom._NET_WM_STATE;
 	xev.xclient.format = 32;
 
 	if (set == True)
@@ -844,7 +844,7 @@ void GHOST_WindowX11::netwmFullScreen(bool set)
 	else
 		xev.xclient.data.l[0] = _NET_WM_STATE_REMOVE;
 
-	xev.xclient.data.l[1] = m_system->m_net_fullscreen;
+	xev.xclient.data.l[1] = m_system->m_atom._NET_WM_STATE_FULLSCREEN;
 	xev.xclient.data.l[2] = 0;
 	xev.xclient.data.l[3] = 0;
 	xev.xclient.data.l[4] = 0;
@@ -862,12 +862,12 @@ bool GHOST_WindowX11::netwmIsFullScreen(void) const
 
 	prop_ret = NULL;
 	st = False;
-	ret = XGetWindowProperty(m_display, m_window, m_system->m_net_state, 0,
+	ret = XGetWindowProperty(m_display, m_window, m_system->m_atom._NET_WM_STATE, 0,
 	                         0x7fffffff, False, XA_ATOM, &type_ret, &format_ret,
 	                         &num_ret, &bytes_after, &prop_ret);
 	if ((ret == Success) && (prop_ret) && (format_ret == 32)) {
 		for (i = 0; i < num_ret; i++) {
-			if (((unsigned long *) prop_ret)[i] == m_system->m_net_fullscreen) {
+			if (((unsigned long *) prop_ret)[i] == m_system->m_atom._NET_WM_STATE_FULLSCREEN) {
 				st = True;
 				break;
 			}
@@ -889,8 +889,8 @@ void GHOST_WindowX11::motifFullScreen(bool set)
 	else
 		hints.decorations = 1;
 
-	XChangeProperty(m_display, m_window, m_system->m_motif,
-	                m_system->m_motif, 32, PropModeReplace,
+	XChangeProperty(m_display, m_window, m_system->m_atom._MOTIF_WM_HINTS,
+	                m_system->m_atom._MOTIF_WM_HINTS, 32, PropModeReplace,
 	                (unsigned char *) &hints, 4);
 }
 
@@ -905,8 +905,8 @@ bool GHOST_WindowX11::motifIsFullScreen(void) const
 
 	prop_ret = NULL;
 	state = False;
-	st = XGetWindowProperty(m_display, m_window, m_system->m_motif, 0,
-	                        0x7fffffff, False, m_system->m_motif,
+	st = XGetWindowProperty(m_display, m_window, m_system->m_atom._MOTIF_WM_HINTS, 0,
+	                        0x7fffffff, False, m_system->m_atom._MOTIF_WM_HINTS,
 	                        &type_ret, &format_ret, &num_ret,
 	                        &bytes_after, &prop_ret);
 	if ((st == Success) && (prop_ret)) {

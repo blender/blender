@@ -2999,6 +2999,36 @@ float BKE_mesh_calc_poly_area(MPoly *mpoly, MLoop *loopstart,
 	}
 }
 
+/* note, results won't be correct if polygon is non-planar */
+static float mesh_calc_poly_planar_area_centroid(MPoly *mpoly, MLoop *loopstart, MVert *mvarray, float cent[3])
+{
+	int i;
+	float tri_area;
+	float total_area = 0.0f;
+	float v1[3], v2[3], v3[3], normal[3], tri_cent[3];
+
+	BKE_mesh_calc_poly_normal(mpoly, loopstart, mvarray, normal);
+	copy_v3_v3(v1, mvarray[loopstart[0].v].co);
+	copy_v3_v3(v2, mvarray[loopstart[1].v].co);
+	zero_v3(cent);
+
+	for (i = 2; i < mpoly->totloop; i++) {
+		copy_v3_v3(v3, mvarray[loopstart[i].v].co);
+
+		tri_area = area_tri_signed_v3(v1, v2, v3, normal);
+		total_area += tri_area;
+
+		cent_tri_v3(tri_cent, v1, v2, v3);
+		madd_v3_v3fl(cent, tri_cent, tri_area);
+
+		copy_v3_v3(v2, v3);
+	}
+
+	mul_v3_fl(cent, 1.0f / total_area);
+
+	return total_area;
+}
+
 /**
  * This function takes the difference between 2 vertex-coord-arrays
  * (\a vert_cos_src, \a vert_cos_dst),
@@ -3292,9 +3322,8 @@ int BKE_mesh_center_centroid(Mesh *me, float cent[3])
 	
 	/* calculate a weighted average of polygon centroids */
 	for (mpoly = me->mpoly; i--; mpoly++) {
-		BKE_mesh_calc_poly_center(mpoly, me->mloop + mpoly->loopstart, me->mvert, poly_cent);
-		poly_area = BKE_mesh_calc_poly_area(mpoly, me->mloop + mpoly->loopstart, me->mvert, NULL);
-		
+		poly_area = mesh_calc_poly_planar_area_centroid(mpoly, me->mloop + mpoly->loopstart, me->mvert, poly_cent);
+
 		madd_v3_v3fl(cent, poly_cent, poly_area);
 		total_area += poly_area;
 	}

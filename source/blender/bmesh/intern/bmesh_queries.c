@@ -472,7 +472,7 @@ BMLoop *BM_vert_step_fan_loop(BMLoop *l, BMEdge **e_step)
  * The function takes a vertex at the center of a fan and returns the opposite edge in the fan.
  * All edges in the fan must be manifold, otherwise return NULL.
  *
- * \note This could (probably) be done more effieiently.
+ * \note This could (probably) be done more efficiently.
  */
 BMEdge *BM_vert_other_disk_edge(BMVert *v, BMEdge *e_first)
 {

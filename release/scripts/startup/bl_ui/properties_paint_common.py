@@ -82,7 +82,7 @@ def brush_texture_settings(layout, brush, sculpt):
     else:
         layout.row().prop(tex_slot, "tex_paint_map_mode", text="")
         layout.separator()
-        
+
     # angle and texture_angle_source
     col = layout.column()
     if sculpt:
@@ -101,7 +101,7 @@ def brush_texture_settings(layout, brush, sculpt):
     split = layout.split()
     split.prop(tex_slot, "offset")
     split.prop(tex_slot, "scale")
-    
+
     if sculpt:
         # texture_sample_bias
         col = layout.column(align=True)

@@ -360,7 +360,11 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 						}
 					}
 				}
-
+				else {
+					/* use current scene world to light sphere */
+					if (mat->pr_type == MA_SPHERE_A)
+						sce->world = scene->world;
+				}
 				
 				if (sp->pr_method == PR_ICON_RENDER) {
 					if (mat->material_type == MA_TYPE_HALO) {
@@ -926,8 +930,10 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
 		 * already there. Very expensive for large images. Need to find a way to 
 		 * only get existing ibuf */
 		ibuf = BKE_image_acquire_ibuf(ima, &iuser, NULL);
-		if (ibuf == NULL || ibuf->rect == NULL)
+		if (ibuf == NULL || ibuf->rect == NULL) {
+			BKE_image_release_ibuf(ima, ibuf, NULL);
 			return;
+		}
 		
 		icon_copy_rect(ibuf, sp->sizex, sp->sizey, sp->pr_rect);
 
@@ -1019,6 +1025,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 		sp->pr_method = PR_ICON_RENDER;
 		sp->pr_rect = cur_size->rect;
 		sp->id = ip->id;
+		sp->pr_main = pr_main;
 
 		common_preview_startjob(sp, stop, do_update, progress);
 		shader_preview_free(sp);

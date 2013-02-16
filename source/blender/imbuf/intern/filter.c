@@ -506,6 +506,10 @@ void IMB_makemipmap(ImBuf *ibuf, int use_filter)
 
 	imb_freemipmapImBuf(ibuf);
 	
+	/* no mipmap for non RGBA images */
+	if (ibuf->rect_float && ibuf->channels < 4)
+		return;
+	
 	ibuf->miptot = 1;
 
 	while (curmap < IB_MIPMAP_LEVELS) {

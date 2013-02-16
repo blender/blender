@@ -74,7 +74,7 @@ void RAS_StorageIM::TexCoord(const RAS_TexVert &tv)
 
 	if (GLEW_ARB_multitexture) {
 		for (unit = 0; unit < *m_texco_num; unit++) {
-			switch(m_texco[unit]) {
+			switch (m_texco[unit]) {
 				case RAS_IRasterizer::RAS_TEXCO_ORCO:
 				case RAS_IRasterizer::RAS_TEXCO_GLOB:
 					glMultiTexCoord3fvARB(GL_TEXTURE0_ARB + unit, tv.getXYZ());
@@ -97,7 +97,7 @@ void RAS_StorageIM::TexCoord(const RAS_TexVert &tv)
 	if (GLEW_ARB_vertex_program) {
 		int uv = 0;
 		for (unit = 0; unit < *m_attrib_num; unit++) {
-			switch(m_attrib[unit]) {
+			switch (m_attrib[unit]) {
 				case RAS_IRasterizer::RAS_TEXCO_ORCO:
 				case RAS_IRasterizer::RAS_TEXCO_GLOB:
 					glVertexAttrib3fvARB(unit, tv.getXYZ());

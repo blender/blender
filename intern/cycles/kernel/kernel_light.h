@@ -454,7 +454,7 @@ __device void triangle_light_sample(KernelGlobals *kg, int prim, int object,
 	ls->lamp = ~0;
 	ls->shader |= SHADER_USE_MIS;
 	ls->t = 0.0f;
-	ls->type = LIGHT_AREA;
+	ls->type = LIGHT_TRIANGLE;
 	ls->eval_fac = 1.0f;
 
 	object_transform_light_sample(kg, ls, object, time);

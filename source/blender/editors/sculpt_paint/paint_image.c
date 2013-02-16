@@ -140,7 +140,7 @@ BLI_INLINE unsigned char f_to_char(const float val)
 #define IMAPAINT_TILE_SIZE          (1 << IMAPAINT_TILE_BITS)
 #define IMAPAINT_TILE_NUMBER(size)  (((size) + IMAPAINT_TILE_SIZE - 1) >> IMAPAINT_TILE_BITS)
 
-static void imapaint_image_update(Scene *scene, SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint);
+static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint);
 
 
 typedef struct ImagePaintState {
@@ -904,7 +904,7 @@ static int project_paint_occlude_ptv_clip(const ProjPaintState *ps, const MFace 
 
 /* Check if a screenspace location is occluded by any other faces
  * check, pixelScreenCo must be in screenspace, its Z-Depth only needs to be used for comparison
- * and dosn't need to be correct in relation to X and Y coords (this is the case in perspective view) */
+ * and doesn't need to be correct in relation to X and Y coords (this is the case in perspective view) */
 static int project_bucket_point_occluded(const ProjPaintState *ps, LinkNode *bucketFace, const int orig_face, float pixelScreenCo[4])
 {
 	MFace *mf;
@@ -3656,7 +3656,7 @@ static int project_image_refresh_tagged(ProjPaintState *ps)
 				pr = &(projIma->partRedrawRect[i]);
 				if (pr->x2 != -1) { /* TODO - use 'enabled' ? */
 					imapaintpartial = *pr;
-					imapaint_image_update(NULL, NULL, projIma->ima, projIma->ibuf, 1); /*last 1 is for texpaint*/
+					imapaint_image_update(NULL, projIma->ima, projIma->ibuf, 1); /*last 1 is for texpaint*/
 					redraw = 1;
 				}
 			}
@@ -4417,16 +4417,13 @@ static void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, 
 		IMB_freeImBuf(tmpibuf);
 }
 
-static void imapaint_image_update(Scene *scene, SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint)
+static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint)
 {
-	if (scene) {
-		IMB_partial_display_buffer_update(ibuf, ibuf->rect_float, (unsigned char *) ibuf->rect, ibuf->x, 0, 0,
-		                                  &scene->view_settings, &scene->display_settings,
-		                                  imapaintpartial.x1, imapaintpartial.y1,
-		                                  imapaintpartial.x2, imapaintpartial.y2, FALSE);
-	}
-	else {
-		ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+	if (imapaintpartial.x1 != imapaintpartial.x2 &&
+	    imapaintpartial.y1 != imapaintpartial.y2)
+	{
+		IMB_partial_display_buffer_update_delayed(ibuf, imapaintpartial.x1, imapaintpartial.y1,
+		                                          imapaintpartial.x2, imapaintpartial.y2);
 	}
 	
 	if (ibuf->mipmap[0])
@@ -4790,7 +4787,7 @@ static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, 
 	 */
 	if (BKE_brush_painter_paint(painter, imapaint_paint_op, pos, time, pressure, s, is_data == FALSE)) {
 		if (update)
-			imapaint_image_update(s->scene, s->sima, image, ibuf, texpaint);
+			imapaint_image_update(s->sima, image, ibuf, texpaint);
 		BKE_image_release_ibuf(image, ibuf, NULL);
 		return 1;
 	}
@@ -5019,22 +5016,28 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 {
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *settings = scene->toolsettings;
-	Brush *brush = paint_brush(&settings->imapaint.paint);
 
 	/* brush */
-	ps->brush = brush;
-	ps->tool = brush->imagepaint_tool;
-	ps->blend = brush->blend;
+	ps->brush = paint_brush(&settings->imapaint.paint);
+	if (ps->brush) {
+		Brush *brush = ps->brush;
+		ps->tool = brush->imagepaint_tool;
+		ps->blend = brush->blend;
+
+		/* disable for 3d mapping also because painting on mirrored mesh can create "stripes" */
+		ps->do_masking = (brush->flag & BRUSH_AIRBRUSH || brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW ||
+		                  brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) ? false : true;
+		ps->is_texbrush = (brush->mtex.tex) ? 1 : 0;
+	}
+	else {
+		/* brush may be NULL*/
+		ps->do_masking = false;
+		ps->is_texbrush = false;
+	}
 
 	/* sizeof ProjPixel, since we alloc this a _lot_ */
 	ps->pixel_sizeof = project_paint_pixel_sizeof(ps->tool);
 	BLI_assert(ps->pixel_sizeof >= sizeof(ProjPixel));
-
-	/* disable for 3d mapping also because painting on mirrored mesh can create "stripes" */
-	ps->do_masking = (brush->flag & BRUSH_AIRBRUSH || brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW ||
-	                  brush->mtex.brush_map_mode == MTEX_MAP_MODE_3D) ? false : true;
-	ps->is_texbrush = (brush->mtex.tex) ? 1 : 0;
-
 
 	/* these can be NULL */
 	ps->v3d = CTX_wm_view3d(C);

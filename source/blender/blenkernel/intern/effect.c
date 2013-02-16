@@ -562,7 +562,7 @@ int closest_point_on_surface(SurfaceModifierData *surmd, const float co[3], floa
 			if (mface->v4)
 				add_v3_v3(surface_vel, surmd->v[mface->v4].co);
 
-			mul_v3_fl(surface_vel, mface->v4 ? 0.25f : 0.333f);
+			mul_v3_fl(surface_vel, mface->v4 ? 0.25f : (1.0f / 3.0f));
 		}
 		return 1;
 	}

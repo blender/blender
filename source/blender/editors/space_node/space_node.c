@@ -498,6 +498,7 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_SCENE:
 		case NC_MATERIAL:
 		case NC_TEXTURE:
+		case NC_WORLD:
 		case NC_NODE:
 			ED_region_tag_redraw(ar);
 			break;

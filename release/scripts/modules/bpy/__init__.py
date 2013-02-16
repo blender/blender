@@ -58,6 +58,7 @@ def main():
     #   from bpy.types import Panel
     sys.modules["bpy.app"] = app
     sys.modules["bpy.app.handlers"] = app.handlers
+    sys.modules["bpy.app.translations"] = app.translations
     sys.modules["bpy.types"] = types
 
     #~ if "-d" in sys.argv: # Enable this to measure start up speed

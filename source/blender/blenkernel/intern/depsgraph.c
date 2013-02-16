@@ -2353,6 +2353,7 @@ static void dag_object_time_update_flags(Scene *scene, Object *ob)
 	if (object_modifiers_use_time(ob)) ob->recalc |= OB_RECALC_DATA;
 	if ((ob->pose) && (ob->pose->flag & POSE_CONSTRAINTS_TIMEDEPEND)) ob->recalc |= OB_RECALC_DATA;
 	
+	// XXX: scene here may not be the scene that contains the rigidbody world affecting this!
 	if (ob->rigidbody_object && BKE_scene_check_rigidbody_active(scene))
 		ob->recalc |= OB_RECALC_OB;
 	
@@ -2440,7 +2441,11 @@ void DAG_scene_update_flags(Main *bmain, Scene *scene, unsigned int lay, const s
 		if (do_time) {
 			/* now if DagNode were part of base, the node->lay could be checked... */
 			/* we do all now, since the scene_flush checks layers and clears recalc flags even */
-			dag_object_time_update_flags(scene, ob);
+			
+			/* NOTE: "sce_iter" not "scene" so that rigidbodies in background scenes work 
+			 * (i.e. muting + rbw availability can be checked and tagged properly) [#33970] 
+			 */
+			dag_object_time_update_flags(sce_iter, ob);
 		}
 
 		/* handled in next loop */

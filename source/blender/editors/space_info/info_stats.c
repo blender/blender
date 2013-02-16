@@ -41,6 +41,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_anim.h"
 #include "BKE_blender.h"
 #include "BKE_curve.h"
@@ -166,8 +168,11 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 			if (ebo->flag & BONE_SELECTED) stats->totbonesel++;
 
 			/* if this is a connected child and it's parent is being moved, remove our root */
-			if ((ebo->flag & BONE_CONNECTED) && (ebo->flag & BONE_ROOTSEL) && ebo->parent && (ebo->parent->flag & BONE_TIPSEL))
+			if ((ebo->flag & BONE_CONNECTED) && (ebo->flag & BONE_ROOTSEL) &&
+			    ebo->parent && (ebo->parent->flag & BONE_TIPSEL))
+			{
 				stats->totvertsel--;
+			}
 
 			stats->totvert += 2;
 		}
@@ -362,9 +367,9 @@ static void stats_string(Scene *scene)
 	mmap_in_use = MEM_get_mapped_memory_in_use();
 
 	/* get memory statistics */
-	s = memstr + sprintf(memstr, " | Mem:%.2fM", (double)((mem_in_use - mmap_in_use) >> 10) / 1024.0);
+	s = memstr + sprintf(memstr, IFACE_(" | Mem:%.2fM"), (double)((mem_in_use - mmap_in_use) >> 10) / 1024.0);
 	if (mmap_in_use)
-		sprintf(s, " (%.2fM)", (double)((mmap_in_use) >> 10) / 1024.0);
+		sprintf(s, IFACE_(" (%.2fM)"), (double)((mmap_in_use) >> 10) / 1024.0);
 
 	s = stats->infostr;
 	
@@ -372,31 +377,34 @@ static void stats_string(Scene *scene)
 
 	if (scene->obedit) {
 		if (BKE_keyblock_from_object(scene->obedit))
-			s += sprintf(s, "(Key) ");
+			s += sprintf(s, IFACE_("(Key) "));
 
 		if (scene->obedit->type == OB_MESH) {
-			s += sprintf(s, "Verts:%d/%d | Edges:%d/%d | Faces:%d/%d | Tris:%d",
-		             stats->totvertsel, stats->totvert, stats->totedgesel, stats->totedge, stats->totfacesel, stats->totface, stats->tottri);
+			s += sprintf(s, IFACE_("Verts:%d/%d | Edges:%d/%d | Faces:%d/%d | Tris:%d"),
+		                 stats->totvertsel, stats->totvert, stats->totedgesel, stats->totedge, stats->totfacesel,
+		                 stats->totface, stats->tottri);
 		}
 		else if (scene->obedit->type == OB_ARMATURE) {
-			s += sprintf(s, "Verts:%d/%d | Bones:%d/%d", stats->totvertsel, stats->totvert, stats->totbonesel, stats->totbone);
+			s += sprintf(s, IFACE_("Verts:%d/%d | Bones:%d/%d"), stats->totvertsel, stats->totvert, stats->totbonesel,
+			             stats->totbone);
 		}
 		else {
-			s += sprintf(s, "Verts:%d/%d", stats->totvertsel, stats->totvert);
+			s += sprintf(s, IFACE_("Verts:%d/%d"), stats->totvertsel, stats->totvert);
 		}
 
 		strcat(s, memstr);
 	}
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
-		s += sprintf(s, "Bones:%d/%d %s",
+		s += sprintf(s, IFACE_("Bones:%d/%d %s"),
 		             stats->totbonesel, stats->totbone, memstr);
 	}
 	else if (stats_is_object_dynamic_topology_sculpt(ob)) {
-		s += sprintf(s, "Verts:%d | Tris:%d", stats->totvert, stats->tottri);
+		s += sprintf(s, IFACE_("Verts:%d | Tris:%d"), stats->totvert, stats->tottri);
 	}
 	else {
-		s += sprintf(s, "Verts:%d | Faces:%d| Tris:%d | Objects:%d/%d | Lamps:%d/%d%s",
-		             stats->totvert, stats->totface, stats->tottri, stats->totobjsel, stats->totobj, stats->totlampsel, stats->totlamp, memstr);
+		s += sprintf(s, IFACE_("Verts:%d | Faces:%d | Tris:%d | Objects:%d/%d | Lamps:%d/%d%s"),
+		             stats->totvert, stats->totface, stats->tottri, stats->totobjsel, stats->totobj, stats->totlampsel,
+		             stats->totlamp, memstr);
 	}
 
 	if (ob)
@@ -419,4 +427,3 @@ const char *ED_info_stats_string(Scene *scene)
 
 	return scene->stats->infostr;
 }
-

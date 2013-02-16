@@ -40,6 +40,10 @@ SVMShaderManager::~SVMShaderManager()
 {
 }
 
+void SVMShaderManager::reset(Scene *scene)
+{
+}
+
 void SVMShaderManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
 	if(!need_update)

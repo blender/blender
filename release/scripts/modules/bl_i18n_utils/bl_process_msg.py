@@ -387,7 +387,7 @@ def dump_py_messages_from_files(messages, check_ctxt, files):
             estr_ls.append(estr)
             nds_ls.extend(nds)
         ret = _extract_string_merge(estr_ls, nds_ls)
-        print(ret)
+        #print(ret)
         return ret
     
     def extract_strings_split(node):

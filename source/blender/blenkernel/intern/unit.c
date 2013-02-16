@@ -142,7 +142,7 @@ static struct bUnitCollection buImperialLenCollecton = {buImperialLenDef, 4, 0, 
 /* Areas */
 static struct bUnitDef buMetricAreaDef[] = {
 	{"square kilometer",  "square kilometers",  "km²", "km2",   "Square Kilometers", UN_SC_KM * UN_SC_KM, 0.0,    B_UNIT_DEF_NONE},
-	{"square hectometer", "square hectometers", "hm²", "hm2",   "Square Hectometers", UN_SC_HM * UN_SC_HM, 0.0,   B_UNIT_DEF_NONE},   /* hectare */
+	{"square hectometer", "square hectometers", "hm²", "hm2",   "Square Hectometers", UN_SC_HM * UN_SC_HM, 0.0,   B_UNIT_DEF_SUPPRESS},   /* hectare */
 	{"square dekameter",  "square dekameters",  "dam²", "dam2",  "Square Dekameters", UN_SC_DAM * UN_SC_DAM, 0.0, B_UNIT_DEF_SUPPRESS},  /* are */
 	{"square meter",      "square meters",      "m²",  "m2",    "Square Meters", UN_SC_M * UN_SC_M, 0.0,          B_UNIT_DEF_NONE},   /* base unit */
 	{"square decimeter",  "square decimetees",  "dm²", "dm2",   "Square Decimeters", UN_SC_DM * UN_SC_DM, 0.0,    B_UNIT_DEF_SUPPRESS},
@@ -168,7 +168,7 @@ static struct bUnitCollection buImperialAreaCollecton = {buImperialAreaDef, 4, 0
 /* Volumes */
 static struct bUnitDef buMetricVolDef[] = {
 	{"cubic kilometer",  "cubic kilometers",  "km³",  "km3",  "Cubic Kilometers", UN_SC_KM * UN_SC_KM * UN_SC_KM, 0.0,    B_UNIT_DEF_NONE},
-	{"cubic hectometer", "cubic hectometers", "hm³",  "hm3",  "Cubic Hectometers", UN_SC_HM * UN_SC_HM * UN_SC_HM, 0.0,   B_UNIT_DEF_NONE},
+	{"cubic hectometer", "cubic hectometers", "hm³",  "hm3",  "Cubic Hectometers", UN_SC_HM * UN_SC_HM * UN_SC_HM, 0.0,   B_UNIT_DEF_SUPPRESS},
 	{"cubic dekameter",  "cubic dekameters",  "dam³", "dam3", "Cubic Dekameters", UN_SC_DAM * UN_SC_DAM * UN_SC_DAM, 0.0, B_UNIT_DEF_SUPPRESS},
 	{"cubic meter",      "cubic meters",      "m³",   "m3",   "Cubic Meters", UN_SC_M * UN_SC_M * UN_SC_M, 0.0,           B_UNIT_DEF_NONE}, /* base unit */
 	{"cubic decimeter",  "cubic decimeters",  "dm³",  "dm3",  "Cubic Decimeters", UN_SC_DM * UN_SC_DM * UN_SC_DM, 0.0,    B_UNIT_DEF_SUPPRESS},
@@ -194,9 +194,9 @@ static struct bUnitCollection buImperialVolCollecton = {buImperialVolDef, 4, 0, 
 /* Mass */
 static struct bUnitDef buMetricMassDef[] = {
 	{"ton", "tonnes",           "ton", "t",  "1000 Kilograms", UN_SC_MTON, 0.0,  B_UNIT_DEF_NONE},
-	{"quintal", "quintals",     "ql",  "q",  "100 Kilograms", UN_SC_QL, 0.0,     B_UNIT_DEF_NONE},
+	{"quintal", "quintals",     "ql",  "q",  "100 Kilograms", UN_SC_QL, 0.0,     B_UNIT_DEF_SUPPRESS},
 	{"kilogram", "kilograms",   "kg",  NULL, "Kilograms", UN_SC_KG, 0.0,         B_UNIT_DEF_NONE}, /* base unit */
-	{"hectogram", "hectograms", "hg",  NULL, "Hectograms", UN_SC_HG, 0.0,        B_UNIT_DEF_NONE},
+	{"hectogram", "hectograms", "hg",  NULL, "Hectograms", UN_SC_HG, 0.0,        B_UNIT_DEF_SUPPRESS},
 	{"dekagram", "dekagrams",   "dag", NULL, "10 Grams", UN_SC_DAG, 0.0,         B_UNIT_DEF_SUPPRESS},
 	{"gram", "grams",           "g",   NULL, "Grams", UN_SC_G, 0.0,              B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL,  NULL, NULL, 0.0, 0.0}

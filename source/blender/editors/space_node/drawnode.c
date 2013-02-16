@@ -2654,10 +2654,21 @@ static void node_composit_buts_ellipsemask(uiLayout *layout, bContext *UNUSED(C)
 	uiItemR(layout, ptr, "mask_type", 0, NULL, ICON_NONE);
 }
 
+static void node_composit_buts_composite(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "use_alpha", 0, NULL, ICON_NONE);
+}
+
+static void node_composit_buts_viewer(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "use_alpha", 0, NULL, ICON_NONE);
+}
+
 static void node_composit_buts_viewer_but(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiLayout *col;
 	
+	uiItemR(layout, ptr, "use_alpha", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "tile_order", 0, NULL, ICON_NONE);
 	if (RNA_enum_get(ptr, "tile_order") == 0) {
 		col = uiLayoutColumn(layout, TRUE);
@@ -2965,9 +2976,12 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			ntype->uifunc = node_composit_buts_bokehblur;
 			break;
 		case CMP_NODE_VIEWER:
-			ntype->uifunc = NULL;
+			ntype->uifunc = node_composit_buts_viewer;
 			ntype->uifuncbut = node_composit_buts_viewer_but;
 			ntype->uibackdropfunc = node_composit_backdrop_viewer;
+			break;
+		case CMP_NODE_COMPOSITE:
+			ntype->uifunc = node_composit_buts_composite;
 			break;
 		case CMP_NODE_MASK:
 			ntype->uifunc = node_composit_buts_mask;

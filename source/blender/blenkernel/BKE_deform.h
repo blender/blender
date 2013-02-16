@@ -56,6 +56,7 @@ void                     defvert_remove_group(struct MDeformVert *dvert, struct 
 void                     defvert_clear(struct MDeformVert *dvert);
 int                      defvert_find_shared(const struct MDeformVert *dvert_a, const struct MDeformVert *dvert_b);
 
+void BKE_defvert_array_free_elems(struct MDeformVert *dvert, int totvert);
 void BKE_defvert_array_free(struct MDeformVert *dvert, int totvert);
 void BKE_defvert_array_copy(struct MDeformVert *dst, const struct MDeformVert *src, int totvert);
 

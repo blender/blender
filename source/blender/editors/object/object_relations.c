@@ -35,6 +35,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_group_types.h"
@@ -54,6 +55,8 @@
 #include "BLI_linklist.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
+
+#include "BLF_translation.h"
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
@@ -578,6 +581,7 @@ EnumPropertyItem prop_make_parent_types[] = {
 	{PAR_ARMATURE_AUTO, "ARMATURE_AUTO", 0, "   With Automatic Weights", ""},
 	{PAR_ARMATURE_ENVELOPE, "ARMATURE_ENVELOPE", 0, "   With Envelope Weights", ""},
 	{PAR_BONE, "BONE", 0, "Bone", ""},
+	{PAR_BONE_RELATIVE, "BONE_RELATIVE", 0, "Bone Relative", ""},
 	{PAR_CURVE, "CURVE", 0, "Curve Deform", ""},
 	{PAR_FOLLOW, "FOLLOW", 0, "Follow Path", ""},
 	{PAR_PATH_CONST, "PATH_CONST", 0, "Path Constraint", ""},
@@ -624,7 +628,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 				partype = PAR_OBJECT;
 		}
 	}
-	else if (partype == PAR_BONE) {
+	else if (ELEM(partype, PAR_BONE, PAR_BONE_RELATIVE)) {
 		pchan = BKE_pose_channel_active(par);
 		
 		if (pchan == NULL) {
@@ -705,8 +709,16 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 					}
 				}
 			}
-			else if (partype == PAR_BONE)
+			else if (partype == PAR_BONE) {
 				ob->partype = PARBONE;  /* note, dna define, not operator property */
+				if (pchan->bone)
+					pchan->bone->flag &= ~BONE_RELATIVE_PARENTING;
+			}
+			else if (partype == PAR_BONE_RELATIVE) {
+				ob->partype = PARBONE;  /* note, dna define, not operator property */
+				if (pchan->bone)
+					pchan->bone->flag |= BONE_RELATIVE_PARENTING;
+			}
 			else
 				ob->partype = PAROBJECT;  /* note, dna define, not operator property */
 			
@@ -791,7 +803,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
 	Object *ob = ED_object_active_context(C);
-	uiPopupMenu *pup = uiPupMenuBegin(C, "Set Parent To", ICON_NONE);
+	uiPopupMenu *pup = uiPupMenuBegin(C, IFACE_("Set Parent To"), ICON_NONE);
 	uiLayout *layout = uiPupMenuLayout(pup);
 
 	wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_parent_set", TRUE);
@@ -800,11 +812,12 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSE
 #if 0
 	uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_OBJECT);
 #else
-	opptr = uiItemFullO_ptr(layout, ot, "Object", ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	opptr = uiItemFullO_ptr(layout, ot, IFACE_("Object"), ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 	RNA_enum_set(&opptr, "type", PAR_OBJECT);
 	RNA_boolean_set(&opptr, "keep_transform", FALSE);
 
-	opptr = uiItemFullO_ptr(layout, ot, "Object (Keep Transform)", ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	opptr = uiItemFullO_ptr(layout, ot, IFACE_("Object (Keep Transform)"), ICON_NONE, NULL, WM_OP_EXEC_DEFAULT,
+	                        UI_ITEM_O_RETURN_PROPS);
 	RNA_enum_set(&opptr, "type", PAR_OBJECT);
 	RNA_boolean_set(&opptr, "keep_transform", TRUE);
 #endif
@@ -815,6 +828,7 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSE
 		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE_ENVELOPE);
 		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_ARMATURE_AUTO);
 		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_BONE);
+		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_BONE_RELATIVE);
 	}
 	else if (ob->type == OB_CURVE) {
 		uiItemEnumO_ptr(layout, ot, NULL, 0, "type", PAR_CURVE);

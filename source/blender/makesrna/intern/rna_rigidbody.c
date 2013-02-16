@@ -163,13 +163,6 @@ static void rna_RigidBodyOb_type_set(PointerRNA *ptr, int value)
 	
 	rbo->type = value;
 	rbo->flag |= RBO_FLAG_NEEDS_VALIDATE;
-	
-#ifdef WITH_BULLET
-	/* do physics sim updates */
-	if (rbo->physics_object) {
-		RB_body_set_mass(rbo->physics_object, RBO_GET_MASS(rbo));
-	}
-#endif
 }
 
 static void rna_RigidBodyOb_disabled_set(PointerRNA *ptr, int value)

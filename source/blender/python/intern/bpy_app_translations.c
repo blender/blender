@@ -74,7 +74,7 @@ typedef struct GHashKey {
 static GHashKey *_ghashutil_keyalloc(const void *msgctxt, const void *msgid)
 {
 	GHashKey *key = MEM_mallocN(sizeof(GHashKey), "Py i18n GHashKey");
-	key->msgctxt = BLI_strdup(msgctxt ? msgctxt : BLF_I18NCONTEXT_DEFAULT_BPY_INTERN);
+	key->msgctxt = BLI_strdup(msgctxt ? msgctxt : BLF_I18NCONTEXT_DEFAULT_BPY);
 	key->msgid = BLI_strdup(msgid);
 	return key;
 }
@@ -195,7 +195,7 @@ static void _build_translations_cache(PyObject *py_messages, const char *locale)
 				else {
 					PyObject *tmp = PyTuple_GET_ITEM(pykey, 0);
 					if (tmp == Py_None) {
-						msgctxt = BLF_I18NCONTEXT_DEFAULT;
+						msgctxt = BLF_I18NCONTEXT_DEFAULT_BPY;
 					}
 					else if (PyUnicode_Check(tmp)) {
 						msgctxt = _PyUnicode_AsString(tmp);
@@ -288,9 +288,7 @@ const char *BPY_app_translations_py_pgettext(const char *msgctxt, const char *ms
 
 	_ghashutil_keyfree((void *)key);
 
-	if (tmp)
-		return tmp;
-	return msgid;
+	return tmp ? tmp : msgid;
 
 #undef STATIC_LOCALE_SIZE
 }
@@ -435,8 +433,8 @@ static PyObject *app_translations_contexts_make(void)
 
 PyDoc_STRVAR(app_translations_contexts_doc,
 	"A named tuple containing all pre-defined translation contexts.\n"
-	"WARNING: do not use the \"" BLF_I18NCONTEXT_DEFAULT_BPY_INTERN "\" context, it is internally assimilated as the "
-	"default one!\n"
+	"WARNING: Never use a (new) context starting with \"" BLF_I18NCONTEXT_DEFAULT_BPY "\", it would be internally "
+	"assimilated as the default one!\n"
 );
 
 PyDoc_STRVAR(app_translations_contexts_C_to_py_doc,
@@ -495,6 +493,39 @@ PyGetSetDef app_translations_getseters[] = {
 	{NULL}
 };
 
+/* pgettext helper. */
+static PyObject *_py_pgettext(PyObject *args, PyObject *kw, const char *(*_pgettext)(const char *, const char *))
+{
+	static const char *kwlist[] = {"msgid", "msgctxt", NULL};
+
+#ifdef WITH_INTERNATIONAL
+	char *msgid, *msgctxt = NULL;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kw,
+	                                 "s|z:bpy.app.translations.pgettext",
+	                                 (char **)kwlist, &msgid, &msgctxt))
+	{
+		return NULL;
+	}
+
+	return PyUnicode_FromString((*_pgettext)(msgctxt ? msgctxt : BLF_I18NCONTEXT_DEFAULT, msgid));
+#else
+	PyObject *msgid, *msgctxt;
+	(void)_pgettext;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kw,
+	                                 "O|O:bpy.app.translations.pgettext",
+	                                 (char **)kwlist, &msgid, &msgctxt))
+	{
+		return NULL;
+	}
+
+	Py_INCREF(msgid);
+
+	return msgid;
+#endif
+}
+
 PyDoc_STRVAR(app_translations_pgettext_doc,
 ".. method:: pgettext(msgid, msgctxt)\n"
 "\n"
@@ -502,7 +533,8 @@ PyDoc_STRVAR(app_translations_pgettext_doc,
 "   NOTE: The (msgid, msgctxt) parameter orders has been switched compared to gettext function, to allow\n"
 "         single-parameter calls (context then defaults to BLF_I18NCONTEXT_DEFAULT).\n"
 "   NOTE: You should really rarely need to use this function in regular addon code, as all translation should be\n"
-"         handled by Blender internal code.\n"
+"         handled by Blender internal code. The only exception are string containing formatting (like \"File: %r\"),\n"
+"         but you should rather use pgettext_iface/_tip in those cases!\n"
 "   Note: Does nothing when Blender is built without internationalization support (hence always returns msgid).\n"
 "\n"
 "   :arg msgid: The string to translate.\n"
@@ -515,26 +547,45 @@ PyDoc_STRVAR(app_translations_pgettext_doc,
 );
 static PyObject *app_translations_pgettext(BlenderAppTranslations *UNUSED(self), PyObject *args, PyObject *kw)
 {
-	/* Note we could optimize this a bit when WITH_INTERNATIONAL is not defined, but don't think "code complexity" would
-	 * be worth it, as this func should not often be used!
-	 */
-	/* XXX This code fails with scons when WITH_INTERNATIONAL is not defined, at link time, stating that BLF_pgettext
-	 * is undefined... So using #ifdef after all, rather than removing scons from blender trunk!
-	 */
- 	static const char *kwlist[] = {"msgid", "msgctxt", NULL};
-	char *msgid, *msgctxt = NULL;
+	return _py_pgettext(args, kw, BLF_pgettext);
+}
 
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|z:bpy.app.translations.pgettext", (char **)kwlist,
-	                                 &msgid, &msgctxt))
-	{
-		return NULL;
-	}
+PyDoc_STRVAR(app_translations_pgettext_iface_doc,
+".. method:: pgettext_iface(msgid, msgctxt)\n"
+"\n"
+"   Try to translate the given msgid (with optional msgctxt), if labels' translation is enabled.\n"
+"   NOTE: See pgettext notes.\n"
+"\n"
+"   :arg msgid: The string to translate.\n"
+"   :type msgid: string\n"
+"   :arg msgctxt: The translation context.\n"
+"   :type msgctxt: string or None\n"
+"   :default msgctxt: BLF_I18NCONTEXT_DEFAULT value.\n"
+"   :return: The translated string (or msgid if no translation was found).\n"
+"\n"
+);
+static PyObject *app_translations_pgettext_iface(BlenderAppTranslations *UNUSED(self), PyObject *args, PyObject *kw)
+{
+	return _py_pgettext(args, kw, BLF_translate_do_iface);
+}
 
-#ifdef WITH_INTERNATIONAL
-	return PyUnicode_FromString(BLF_pgettext(msgctxt ? msgctxt : BLF_I18NCONTEXT_DEFAULT, msgid));
-#else
-	return PyUnicode_FromString(msgid);
-#endif
+PyDoc_STRVAR(app_translations_pgettext_tip_doc,
+".. method:: pgettext(msgid, msgctxt)\n"
+"\n"
+"   Try to translate the given msgid (with optional msgctxt), if tooltips' translation is enabled.\n"
+"   NOTE: See pgettext notes.\n"
+"\n"
+"   :arg msgid: The string to translate.\n"
+"   :type msgid: string\n"
+"   :arg msgctxt: The translation context.\n"
+"   :type msgctxt: string or None\n"
+"   :default msgctxt: BLF_I18NCONTEXT_DEFAULT value.\n"
+"   :return: The translated string (or msgid if no translation was found).\n"
+"\n"
+);
+static PyObject *app_translations_pgettext_tip(BlenderAppTranslations *UNUSED(self), PyObject *args, PyObject *kw)
+{
+	return _py_pgettext(args, kw, BLF_translate_do_tooltip);
 }
 
 PyDoc_STRVAR(app_translations_locale_explode_doc,
@@ -575,6 +626,10 @@ PyMethodDef app_translations_methods[] = {
 	                       app_translations_py_messages_unregister_doc},
 	{(char *)"pgettext", (PyCFunction)app_translations_pgettext, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
 	                     app_translations_pgettext_doc},
+	{(char *)"pgettext_iface", (PyCFunction)app_translations_pgettext_iface, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+	                           app_translations_pgettext_iface_doc},
+	{(char *)"pgettext_tip", (PyCFunction)app_translations_pgettext_tip, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+	                         app_translations_pgettext_tip_doc},
 	{(char *)"locale_explode", (PyCFunction)app_translations_locale_explode, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
 	                           app_translations_locale_explode_doc},
 	{NULL}

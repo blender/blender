@@ -800,7 +800,7 @@ void wm_draw_update(bContext *C)
 
 		if (state == GHOST_kWindowStateMinimized) {
 			/* do not update minimized windows, it gives issues on intel drivers (see [#33223])
-			 * anyway, it seems logical to skip update for invisile windows
+			 * anyway, it seems logical to skip update for invisible windows
 			 */
 			continue;
 		}

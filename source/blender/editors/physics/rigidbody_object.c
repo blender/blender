@@ -93,11 +93,6 @@ void ED_rigidbody_ob_add(wmOperator *op, Scene *scene, Object *ob, int type)
 {
 	RigidBodyWorld *rbw = BKE_rigidbody_get_world(scene);
 
-	/* check that object doesn't already belong to the current simulation */
-	if (ob->rigidbody_object) {
-		BKE_reportf(op->reports, RPT_INFO, "Object '%s' already has a Rigid Body", ob->id.name + 2);
-		return;
-	}
 	if (ob->type != OB_MESH) {
 		BKE_report(op->reports, RPT_ERROR, "Can't add Rigid Body to non mesh object");
 		return;
@@ -118,11 +113,16 @@ void ED_rigidbody_ob_add(wmOperator *op, Scene *scene, Object *ob, int type)
 	}
 
 	/* make rigidbody object settings */
-	ob->rigidbody_object = BKE_rigidbody_create_object(scene, ob, type);
+	if (ob->rigidbody_object == NULL) {
+		ob->rigidbody_object = BKE_rigidbody_create_object(scene, ob, type);
+	}
+	ob->rigidbody_object->type = type;
 	ob->rigidbody_object->flag |= RBO_FLAG_NEEDS_VALIDATE;
 
 	/* add object to rigid body group */
 	add_to_group(rbw->group, ob, scene, NULL);
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 }
 
 void ED_rigidbody_ob_remove(Scene *scene, Object *ob)
@@ -154,7 +154,6 @@ static int rigidbody_ob_add_exec(bContext *C, wmOperator *op)
 	DAG_ids_flush_update(CTX_data_main(C), 0);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
-	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
 
 	/* done */
 	return OPERATOR_FINISHED;
@@ -201,7 +200,6 @@ static int rigidbody_ob_remove_exec(bContext *C, wmOperator *op)
 	DAG_ids_flush_update(CTX_data_main(C), 0);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
-	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
 
 	/* done */
 	return OPERATOR_FINISHED;
@@ -247,7 +245,7 @@ static int rigidbody_obs_add_exec(bContext *C, wmOperator *op)
 	DAG_ids_flush_update(CTX_data_main(C), 0);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
-	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
+	WM_event_add_notifier(C, NC_OBJECT | ND_POINTCACHE, NULL);
 
 	/* done */
 	return OPERATOR_FINISHED;
@@ -293,8 +291,7 @@ static int rigidbody_obs_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	/* send updates */
 	DAG_ids_flush_update(CTX_data_main(C), 0);
 
-	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
-	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
+	WM_event_add_notifier(C, NC_OBJECT | ND_POINTCACHE, NULL);
 
 	/* done */
 	return OPERATOR_FINISHED;

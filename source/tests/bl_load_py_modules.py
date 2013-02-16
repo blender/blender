@@ -26,6 +26,12 @@ import addon_utils
 import sys
 import os
 
+BLACKLIST = {
+    "bl_i18n_utils",
+    "cycles",
+    "io_export_dxf",  # TODO, check on why this fails
+    }
+
 
 def source_list(path, filename_check=None):
     from os.path import join
@@ -73,20 +79,26 @@ def load_modules():
     for script_path in paths:
         for mod_dir in sys.path:
             if mod_dir.startswith(script_path):
-                module_paths.append(mod_dir)
+                if mod_dir not in module_paths:
+                    if os.path.exists(mod_dir):
+                        module_paths.append(mod_dir)
 
     #
     # collect modules from our paths.
-    module_names = set()
+    module_names = {}
     for mod_dir in module_paths:
         # print("mod_dir", mod_dir)
         for mod, mod_full in bpy.path.module_names(mod_dir):
+            if mod in BLACKLIST:
+                continue
             if mod in module_names:
-                raise Exception("Module found twice %r" % mod)
+                mod_dir_prev, mod_full_prev = module_names[mod]
+                raise Exception("Module found twice %r.\n    (%r -> %r, %r -> %r)" %
+                                (mod, mod_dir, mod_full, mod_dir_prev, mod_full_prev))
 
             modules.append(__import__(mod))
 
-            module_names.add(mod)
+            module_names[mod] = mod_dir, mod_full
     del module_names
 
     #
@@ -128,7 +140,7 @@ def load_modules():
     ignore_paths = [
         os.sep + "presets" + os.sep,
         os.sep + "templates" + os.sep,
-    ]
+    ] + [(os.sep + f + os.sep) for f in BLACKLIST]
 
     for f in source_files:
         ok = False

@@ -1028,8 +1028,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 	if (!validWindow(window)) {
 		return GHOST_kFailure;
 	}
-		switch(eventType) 
-		{
+		switch (eventType) {
 			case GHOST_kEventWindowClose:
 				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowClose, window) );
 				break;
@@ -1086,8 +1085,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 	if (!validWindow(window)) {
 		return GHOST_kFailure;
 	}
-	switch(eventType) 
-	{
+	switch (eventType) {
 		case GHOST_kEventDraggingEntered:
 		case GHOST_kEventDraggingUpdated:
 		case GHOST_kEventDraggingExited:

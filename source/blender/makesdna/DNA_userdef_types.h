@@ -367,6 +367,9 @@ typedef struct SolidLight {
 } SolidLight;
 
 typedef struct UserDef {
+	/* UserDef has separate do-version handling, and can be read from other files */
+	int versionfile, subversionfile;
+	
 	int flag, dupflag;
 	int savetime;
 	char tempdir[768];	/* FILE_MAXDIR length */

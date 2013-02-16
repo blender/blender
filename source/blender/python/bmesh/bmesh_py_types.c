@@ -50,6 +50,8 @@
 #include "bmesh_py_types_customdata.h"
 #include "bmesh_py_types_meshdata.h"
 
+static void bm_dealloc_editmode_warn(BPy_BMesh *self);
+
 /* Common Flags
  * ************ */
 
@@ -846,6 +848,8 @@ static PyObject *bpy_bmesh_free(BPy_BMesh *self)
 {
 	if (self->bm) {
 		BMesh *bm = self->bm;
+
+		bm_dealloc_editmode_warn(self);
 
 		if ((self->flag & BPY_BMFLAG_IS_WRAPPED) == 0) {
 			BM_mesh_free(bm);
@@ -2828,6 +2832,8 @@ static void bpy_bmesh_dealloc(BPy_BMesh *self)
 
 	/* have have been freed by bmesh */
 	if (bm) {
+		bm_dealloc_editmode_warn(self);
+
 		BM_data_layer_free(bm, &bm->vdata, CD_BM_ELEM_PYPTR);
 		BM_data_layer_free(bm, &bm->edata, CD_BM_ELEM_PYPTR);
 		BM_data_layer_free(bm, &bm->pdata, CD_BM_ELEM_PYPTR);
@@ -3637,4 +3643,52 @@ char *BPy_BMElem_StringFromHType(const char htype)
 	/* zero to ensure string is always NULL terminated */
 	static char ret[32];
 	return BPy_BMElem_StringFromHType_ex(htype, ret);
+}
+
+
+/* -------------------------------------------------------------------- */
+/* keep at bottom */
+/* BAD INCLUDES */
+
+#include "BKE_global.h"
+#include "BKE_main.h"
+#include "BKE_tessmesh.h"
+#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
+#include "MEM_guardedalloc.h"
+
+/* there are cases where this warning isnt needed, otherwise it could be made into an error */
+static void bm_dealloc_warn(const char *mesh_name)
+{
+	PySys_WriteStdout("Modified BMesh '%.200s' from a wrapped editmesh is freed without a call "
+	                  "to bmesh.update_edit_mesh(mesh, destructive=True), this is will likely cause a crash\n",
+	                  mesh_name);
+}
+
+/* this function is called on free, it should stay quite fast */
+static void bm_dealloc_editmode_warn(BPy_BMesh *self)
+{
+	if (self->flag & BPY_BMFLAG_IS_WRAPPED) {
+		/* likely editmesh */
+		BMesh *bm = self->bm;
+		Scene *scene;
+		for (scene = G.main->scene.first; scene; scene = scene->id.next) {
+			Base *base = scene->basact;
+			if (base && base->object->type == OB_MESH) {
+				Mesh *me = base->object->data;
+				BMEditMesh *em = me->edit_btmesh;
+				if (em && em->bm == bm) {
+					/* not foolproof, scripter may have added/removed verts */
+					if (((em->vert_index && (MEM_allocN_len(em->vert_index) / sizeof(*em->vert_index)) != bm->totvert)) ||
+					    ((em->edge_index && (MEM_allocN_len(em->edge_index) / sizeof(*em->edge_index)) != bm->totedge)) ||
+					    ((em->face_index && (MEM_allocN_len(em->face_index) / sizeof(*em->face_index)) != bm->totface)))
+					{
+						bm_dealloc_warn(me->id.name + 2);
+						break;
+					}
+				}
+			}
+		}
+	}
 }

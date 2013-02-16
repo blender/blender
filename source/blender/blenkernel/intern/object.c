@@ -58,6 +58,7 @@
 #include "DNA_world_types.h"
 #include "DNA_object_types.h"
 #include "DNA_property_types.h"
+#include "DNA_rigidbody_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -2027,7 +2028,7 @@ static void ob_parvert3(Object *ob, Object *par, float mat[4][4])
 		else {
 			add_v3_v3v3(mat[3], v1, v2);
 			add_v3_v3(mat[3], v3);
-			mul_v3_fl(mat[3], 0.3333333f);
+			mul_v3_fl(mat[3], 1.0f / 3.0f);
 		}
 	}
 }
@@ -2130,7 +2131,8 @@ static int where_is_object_parslow(Object *ob, float obmat[4][4], float slowmat[
 	return 1;
 }
 
-void BKE_object_where_is_calc_time(Scene *scene, Object *ob, float ctime)
+/* note, scene is the active scene while actual_scene is the scene the object resides in */
+void BKE_object_where_is_calc_time_ex(Scene *scene,  RigidBodyWorld *rbw, Object *ob, float ctime)
 {
 	if (ob == NULL) return;
 	
@@ -2155,8 +2157,9 @@ void BKE_object_where_is_calc_time(Scene *scene, Object *ob, float ctime)
 	else {
 		BKE_object_to_mat4(ob, ob->obmat);
 	}
-	
-	BKE_rigidbody_sync_transforms(scene, ob, ctime);
+
+	/* read values pushed into RBO from sim/cache... */
+	BKE_rigidbody_sync_transforms(rbw, ob, ctime);
 	
 	/* solve constraints */
 	if (ob->constraints.first && !(ob->transflag & OB_NO_CONSTRAINTS)) {
@@ -2170,6 +2173,11 @@ void BKE_object_where_is_calc_time(Scene *scene, Object *ob, float ctime)
 	/* set negative scale flag in object */
 	if (is_negative_m4(ob->obmat)) ob->transflag |= OB_NEG_SCALE;
 	else ob->transflag &= ~OB_NEG_SCALE;
+}
+
+void BKE_object_where_is_calc_time(Scene *scene, Object *ob, float ctime)
+{
+	BKE_object_where_is_calc_time_ex(scene, NULL, ob, ctime);
 }
 
 /* get object transformation matrix without recalculating dependencies and
@@ -2193,9 +2201,13 @@ void BKE_object_where_is_calc_mat4(Scene *scene, Object *ob, float obmat[4][4])
 	}
 }
 
-void BKE_object_where_is_calc(struct Scene *scene, Object *ob)
+void BKE_object_where_is_calc_ex(Scene *scene, RigidBodyWorld *rbw, Object *ob)
 {
-	BKE_object_where_is_calc_time(scene, ob, BKE_scene_frame_get(scene));
+	BKE_object_where_is_calc_time_ex(scene, rbw, ob, BKE_scene_frame_get(scene));
+}
+void BKE_object_where_is_calc(Scene *scene, Object *ob)
+{
+	BKE_object_where_is_calc_time_ex(scene, NULL, ob, BKE_scene_frame_get(scene));
 }
 
 void BKE_object_where_is_calc_simul(Scene *scene, Object *ob)
@@ -2631,7 +2643,8 @@ int BKE_object_parent_loop_check(const Object *par, const Object *ob)
 
 /* the main object update call, for object matrix, constraints, keys and displist (modifiers) */
 /* requires flags to be set! */
-void BKE_object_handle_update(Scene *scene, Object *ob)
+/* Ideally we shouldn't have to pass the rigid body world, but need bigger restructuring to avoid id */
+void BKE_object_handle_update_ex(Scene *scene, RigidBodyWorld *rbw, Object *ob)
 {
 	if (ob->recalc & OB_RECALC_ALL) {
 		/* speed optimization for animation lookups */
@@ -2672,7 +2685,7 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 					copy_m4_m4(ob->obmat, ob->proxy_from->obmat);
 			}
 			else
-				BKE_object_where_is_calc(scene, ob);
+				BKE_object_where_is_calc_ex(scene, rbw, ob);
 		}
 		
 		if (ob->recalc & OB_RECALC_DATA) {
@@ -2825,6 +2838,15 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 		ob->proxy->proxy_from = ob;
 		// printf("set proxy pointer for later group stuff %s\n", ob->id.name);
 	}
+}
+/* WARNING: "scene" here may not be the scene object actually resides in. 
+ * When dealing with background-sets, "scene" is actually the active scene.
+ * e.g. "scene" <-- set 1 <-- set 2 ("ob" lives here) <-- set 3 <-- ... <-- set n
+ * rigid bodies depend on their world so use BKE_object_handle_update_ex() to also pass along the corrent rigid body world
+ */
+void BKE_object_handle_update(Scene *scene, Object *ob)
+{
+	BKE_object_handle_update_ex(scene, NULL, ob);
 }
 
 void BKE_object_sculpt_modifiers_changed(Object *ob)

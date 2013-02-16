@@ -289,7 +289,10 @@ static int render_view_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent 
 		
 		/* is there another window showing result? */
 		for (win = CTX_wm_manager(C)->windows.first; win; win = win->next) {
-			if (win->screen->temp || (win == winshow && winshow != wincur)) {
+			bScreen *sc = win->screen;
+			if ((sc->temp && ((ScrArea *)sc->areabase.first)->spacetype == SPACE_IMAGE) ||
+			    (win == winshow && winshow != wincur))
+			{
 				wm_window_raise(win);
 				return OPERATOR_FINISHED;
 			}

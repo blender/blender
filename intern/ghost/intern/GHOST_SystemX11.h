@@ -274,34 +274,6 @@ public:
 		return 0;
 	}
 
-	/**
-	 * Atom used for ICCCM, WM-spec and Motif.
-	 * We only need get this atom at the start, it's relative
-	 * to the display not the window and are public for every
-	 * window that need it.
-	 */
-	Atom m_wm_state;
-	Atom m_wm_change_state;
-	Atom m_net_state;
-	Atom m_net_max_horz;
-	Atom m_net_max_vert;
-	Atom m_net_fullscreen;
-	Atom m_motif;
-	Atom m_wm_take_focus;
-	Atom m_wm_protocols;
-	Atom m_delete_window_atom;
-
-	/* Atoms for Selection, copy & paste. */
-	Atom m_targets;
-	Atom m_string;
-	Atom m_compound_text;
-	Atom m_text;
-	Atom m_clipboard;
-	Atom m_primary;
-	Atom m_xclip_out;
-	Atom m_incr;
-	Atom m_utf8_string;
-
 #ifdef WITH_X11_XINPUT
 	typedef struct GHOST_TabletX11 {
 		XDevice *StylusDevice;
@@ -322,6 +294,39 @@ public:
 		return m_xtablet;
 	}
 #endif // WITH_X11_XINPUT
+
+	struct {
+		/**
+		 * Atom used for ICCCM, WM-spec and Motif.
+		 * We only need get this atom at the start, it's relative
+		 * to the display not the window and are public for every
+		 * window that need it.
+		 */
+		Atom WM_STATE;
+		Atom WM_CHANGE_STATE;
+		Atom _NET_WM_STATE;
+		Atom _NET_WM_STATE_MAXIMIZED_HORZ;
+		Atom _NET_WM_STATE_MAXIMIZED_VERT;
+		Atom _NET_WM_STATE_FULLSCREEN;
+		Atom _MOTIF_WM_HINTS;
+		Atom WM_TAKE_FOCUS;
+		Atom WM_PROTOCOLS;
+		Atom WM_DELETE_WINDOW;
+
+		/* Atoms for Selection, copy & paste. */
+		Atom TARGETS;
+		Atom STRING;
+		Atom COMPOUND_TEXT;
+		Atom TEXT;
+		Atom CLIPBOARD;
+		Atom PRIMARY;
+		Atom XCLIP_OUT;
+		Atom INCR;
+		Atom UTF8_STRING;
+#ifdef WITH_X11_XINPUT
+		Atom TABLET;
+#endif
+	} m_atom;
 
 private:
 

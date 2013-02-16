@@ -225,6 +225,7 @@ dict_uimsgs = {
     "loc", "rot", "pos",
     "lorem",
     "luma",
+    "mem",
     "multicam",
     "num",
     "ok",

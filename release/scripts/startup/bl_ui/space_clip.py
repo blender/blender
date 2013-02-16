@@ -20,6 +20,7 @@
 
 import bpy
 from bpy.types import Panel, Header, Menu, UIList
+from bpy.app.translations import pgettext_iface as iface_
 
 
 class CLIP_UL_tracking_objects(UIList):
@@ -28,10 +29,14 @@ class CLIP_UL_tracking_objects(UIList):
         # assert(isinstance(item, bpy.types.MovieTrackingObject)
         tobj = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.label(text=tobj.name, translate=False, icon='CAMERA_DATA' if tobj.is_camera else 'OBJECT_DATA')
+            layout.label(text=tobj.name, translate=False,
+                         icon='CAMERA_DATA' if tobj.is_camera
+                         else 'OBJECT_DATA')
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
-            layout.label(text="", icon='CAMERA_DATA' if tobj.is_camera else 'OBJECT_DATA')
+            layout.label(text="",
+                         icon='CAMERA_DATA' if tobj.is_camera
+                         else 'OBJECT_DATA')
 
 
 class CLIP_HT_header(Header):
@@ -907,7 +912,7 @@ class CLIP_MT_view(Menu):
 
             ratios = ((1, 8), (1, 4), (1, 2), (1, 1), (2, 1), (4, 1), (8, 1))
 
-            text = bpy.app.translations.pgettext("Zoom %d:%d")
+            text = iface_("Zoom %d:%d")
             for a, b in ratios:
                 layout.operator("clip.view_zoom_ratio",
                                 text=text % (a, b),

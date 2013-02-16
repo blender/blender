@@ -39,7 +39,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "BLI_math.h"
-#include "BLI_math.h"
 #include "BLI_linklist.h"
 
 class UnitConverter
@@ -47,6 +46,10 @@ class UnitConverter
 private:
 	COLLADAFW::FileInfo::Unit unit;
 	COLLADAFW::FileInfo::UpAxisType up_axis;
+
+	float x_up_mat4[4][4];
+	float y_up_mat4[4][4];
+	float z_up_mat4[4][4];
 
 public:
 
@@ -74,6 +77,10 @@ public:
 	void mat4_to_dae(float out[4][4], float in[4][4]);
 
 	void mat4_to_dae_double(double out[4][4], float in[4][4]);
+
+	float(&get_rotation())[4][4];
+
+
 };
 
 class TransformBase

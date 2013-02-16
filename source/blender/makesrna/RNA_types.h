@@ -120,6 +120,7 @@ typedef enum PropertySubType {
 	PROP_FACTOR = 15,
 	PROP_ANGLE = 16 | PROP_UNIT_ROTATION,
 	PROP_TIME = 17 | PROP_UNIT_TIME,
+	/* distance in 3d space, don't use for pixel distance for eg. */
 	PROP_DISTANCE = 18 | PROP_UNIT_LENGTH,
 
 	/* number arrays */

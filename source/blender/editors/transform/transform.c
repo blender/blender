@@ -894,6 +894,10 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					t->redraw |= TREDRAW_HARD;
 					WM_event_add_mousemove(t->context);
 				}
+				else if (t->mode == TFM_SEQ_SLIDE) {
+					t->flag ^= T_ALT_TRANSFORM;
+					t->redraw |= TREDRAW_HARD;
+				}
 				else {
 					if (t->obedit && t->obedit->type == OB_MESH) {
 						if ((t->mode == TFM_TRANSLATION) && (t->spacetype == SPACE_VIEW3D)) {
@@ -956,6 +960,10 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					restoreTransObjects(t);
 					initResize(t);
 					initSnapping(t, NULL); // need to reinit after mode change
+					t->redraw |= TREDRAW_HARD;
+				}
+				else if (t->mode == TFM_SHRINKFATTEN) {
+					t->flag ^= T_ALT_TRANSFORM;
 					t->redraw |= TREDRAW_HARD;
 				}
 				else if (t->mode == TFM_RESIZE) {
@@ -1919,6 +1927,8 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		}
 
 	}
+
+	t->keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
 
 	initSnapping(t, op); // Initialize snapping data AFTER mode flags
 
@@ -4054,7 +4064,8 @@ int ShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 {
 	float distance;
 	int i;
-	char str[64];
+	char str[128];
+	char *str_p;
 	TransData *td = t->data;
 
 	distance = -t->values[0];
@@ -4064,17 +4075,33 @@ int ShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 	applyNumInput(&t->num, &distance);
 
 	/* header print for NumInput */
+	str_p = str;
+	str_p += BLI_snprintf(str_p, sizeof(str), "Shrink/Fatten:");
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
-
 		outputNumInput(&(t->num), c);
-
-		sprintf(str, "Shrink/Fatten: %s %s", c, t->proptext);
+		str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), " %s", c);
 	}
 	else {
 		/* default header print */
-		sprintf(str, "Shrink/Fatten: %.4f %s", distance, t->proptext);
+		str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), " %.4f", distance);
 	}
+
+	if (t->proptext[0]) {
+		str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), " %s", t->proptext);
+	}
+	str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), ", (");
+
+	{
+		wmKeyMapItem *kmi = WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_RESIZE);
+		if (kmi) {
+			str_p += WM_keymap_item_to_string(kmi, str_p, sizeof(str) - (str_p - str));
+		}
+	}
+	str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), " or Alt) Even Thickness %s",
+	                      (t->flag & T_ALT_TRANSFORM) ? "ON" : "OFF");
+	/* done with header string */
+
 
 	t->values[0] = -distance;
 
@@ -5899,7 +5926,7 @@ int EdgeSlide(TransInfo *t, const int UNUSED(mval[2]))
 		             &c[0], !is_proportional ? "ON" : "OFF", flipped ? "ON" : "OFF");
 	}
 	else {
-		BLI_snprintf(str, sizeof(str), "Edge Slide: %.2f (E)ven: %s, (F)lipped: %s",
+		BLI_snprintf(str, sizeof(str), "Edge Slide: %.4f (E)ven: %s, (F)lipped: %s",
 		             final, !is_proportional ? "ON" : "OFF", flipped ? "ON" : "OFF");
 	}
 
@@ -6027,6 +6054,7 @@ static int createVertSlideVerts(TransInfo *t)
 	}
 
 	sld->is_proportional = true;
+	sld->is_clamp = true;
 	sld->curr_sv_index = 0;
 	sld->flipped_vtx = false;
 
@@ -6220,6 +6248,16 @@ int handleEventVertSlide(struct TransInfo *t, struct wmEvent *event)
 					}
 					break;
 				}
+				case CKEY:
+				{
+					/* use like a modifier key */
+					if (event->val == KM_PRESS) {
+						sld->is_clamp = !sld->is_clamp;
+						calcVertSlideCustomPoints(t);
+						return 1;
+					}
+					break;
+				}
 #if 0
 				case EVT_MODAL_MAP:
 				{
@@ -6240,7 +6278,7 @@ int handleEventVertSlide(struct TransInfo *t, struct wmEvent *event)
 				case MOUSEMOVE:
 				{
 					/* don't recalculat the best edge */
-					if (!(t->flag & T_ALT_TRANSFORM)) {
+					if (sld->is_clamp) {
 						calcVertSlideMouseActiveEdges(t, event->mval);
 					}
 					calcVertSlideCustomPoints(t);
@@ -6266,7 +6304,6 @@ static void drawVertSlide(const struct bContext *C, TransInfo *t)
 			const float line_size = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.5f;
 			const int alpha_shade = -30;
 			int i;
-			bool is_constrained = !(t->flag & T_ALT_TRANSFORM);
 
 			if (v3d && v3d->zbuf)
 				glDisable(GL_DEPTH_TEST);
@@ -6282,7 +6319,7 @@ static void drawVertSlide(const struct bContext *C, TransInfo *t)
 			glLineWidth(line_size);
 			UI_ThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
 			glBegin(GL_LINES);
-			if (is_constrained) {
+			if (sld->is_clamp) {
 				sv = sld->sv;
 				for (i = 0; i < sld->totsv; i++, sv++) {
 					glVertex3fv(sv->co_orig_3d);
@@ -6370,11 +6407,12 @@ static int doVertSlide(TransInfo *t, float perc)
 int VertSlide(TransInfo *t, const int UNUSED(mval[2]))
 {
 	char str[128];
+	char *str_p;
 	float final;
 	VertSlideData *sld =  t->customData;
 	const bool flipped = sld->flipped_vtx;
 	const bool is_proportional = sld->is_proportional;
-	const bool is_constrained = !((t->flag & T_ALT_TRANSFORM) || hasNumInput(&t->num));
+	const bool is_constrained = !(sld->is_clamp == false || hasNumInput(&t->num));
 
 	final = t->values[0];
 
@@ -6385,20 +6423,24 @@ int VertSlide(TransInfo *t, const int UNUSED(mval[2]))
 		CLAMP(final, 0.0f, 1.0f);
 	}
 
+	/* header string */
+	str_p = str;
+	str_p += BLI_snprintf(str_p, sizeof(str), "Vert Slide: ");
 	if (hasNumInput(&t->num)) {
 		char c[NUM_STR_REP_LEN];
-
 		applyNumInput(&t->num, &final);
-
 		outputNumInput(&(t->num), c);
-
-		BLI_snprintf(str, sizeof(str), "Vert Slide: %s (E)ven: %s, (F)lipped: %s, Alt Hold: %s",
-		             &c[0], !is_proportional ? "ON" : "OFF", flipped ? "ON" : "OFF", (t->flag & T_ALT_TRANSFORM) ? "ON" : "OFF");
+		str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), "%s", &c[0]);
 	}
 	else {
-		BLI_snprintf(str, sizeof(str), "Vert Slide: %.2f (E)ven: %s, (F)lipped: %s, Alt Hold: %s",
-		             final, !is_proportional ? "ON" : "OFF", flipped ? "ON" : "OFF", (t->flag & T_ALT_TRANSFORM) ? "ON" : "OFF");
+		str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), "%.4f ", final);
 	}
+	str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), "(E)ven: %s, ", !is_proportional ? "ON" : "OFF");
+	if (!is_proportional) {
+		str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), "(F)lipped: %s, ", flipped ? "ON" : "OFF");
+	}
+	str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), "(C)lamp: %s", sld->is_clamp ? "ON" : "OFF");
+	/* done with header string */
 
 	if (is_constrained) {
 		CLAMP(final, 0.0f, 1.0f);
@@ -6718,9 +6760,10 @@ void initSeqSlide(TransInfo *t)
 	t->num.increment = t->snap[1];
 }
 
-static void headerSeqSlide(TransInfo *t, float val[2], char *str)
+static void headerSeqSlide(TransInfo *t, float val[2], char *str, size_t str_len)
 {
 	char tvec[NUM_STR_REP_LEN * 3];
+	char *str_p;
 
 	if (hasNumInput(&t->num)) {
 		outputNumInput(&(t->num), tvec);
@@ -6729,7 +6772,17 @@ static void headerSeqSlide(TransInfo *t, float val[2], char *str)
 		sprintf(&tvec[0], "%.0f, %.0f", val[0], val[1]);
 	}
 
-	sprintf(str, "Sequence Slide: %s%s", &tvec[0], t->con.text);
+	str_p = str;
+	str_p += BLI_snprintf(str, str_len, "Sequence Slide: %s%s, (", &tvec[0], t->con.text);
+
+	{
+		wmKeyMapItem *kmi = WM_modalkeymap_find_propvalue(t->keymap, TFM_MODAL_TRANSLATE);
+		if (kmi) {
+			str_p += WM_keymap_item_to_string(kmi, str_p, str_len - (str_p - str));
+		}
+	}
+	str_p += BLI_snprintf(str_p, str_len - (str_p - str), " or Alt) Expand to fit %s",
+	                      (t->flag & T_ALT_TRANSFORM) ? "ON" : "OFF");
 }
 
 static void applySeqSlide(TransInfo *t, float val[2])
@@ -6773,7 +6826,7 @@ int SeqSlide(TransInfo *t, const int UNUSED(mval[2]))
 	t->values[0] = floor(t->values[0] + 0.5f);
 	t->values[1] = floor(t->values[1] + 0.5f);
 
-	headerSeqSlide(t, t->values, str);
+	headerSeqSlide(t, t->values, str, sizeof(str));
 	applySeqSlide(t, t->values);
 
 	recalcData(t);

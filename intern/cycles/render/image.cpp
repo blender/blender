@@ -85,15 +85,19 @@ bool ImageManager::set_animation_frame_update(int frame)
 	return false;
 }
 
-bool ImageManager::is_float_image(const string& filename, void *builtin_data)
+bool ImageManager::is_float_image(const string& filename, void *builtin_data, bool& is_linear)
 {
 	bool is_float = false;
+	is_linear = false;
 
 	if(builtin_data) {
 		if(builtin_image_info_cb) {
 			int width, height, channels;
 			builtin_image_info_cb(filename, builtin_data, is_float, width, height, channels);
 		}
+
+		if(is_float)
+			is_linear = true;
 
 		return is_float;
 	}
@@ -106,13 +110,29 @@ bool ImageManager::is_float_image(const string& filename, void *builtin_data)
 		if(in->open(filename, spec)) {
 			/* check the main format, and channel formats;
 			 * if any take up more than one byte, we'll need a float texture slot */
-			if(spec.format.basesize() > 1)
+			if(spec.format.basesize() > 1) {
 				is_float = true;
+				is_linear = true;
+			}
 
 			for(size_t channel = 0; channel < spec.channelformats.size(); channel++) {
-				if(spec.channelformats[channel].basesize() > 1)
+				if(spec.channelformats[channel].basesize() > 1) {
 					is_float = true;
+					is_linear = true;
+				}
 			}
+
+			/* basic color space detection, not great but better than nothing
+			 * before we do OpenColorIO integration */
+			if(is_float) {
+				string colorspace = spec.get_string_attribute("oiio:ColorSpace");
+
+				is_linear = !(colorspace == "sRGB" ||
+				              colorspace == "GammaCorrected" ||
+							  strcmp(in->format_name(), "png") == 0);
+			}
+			else
+				is_linear = false;
 
 			in->close();
 		}
@@ -123,13 +143,13 @@ bool ImageManager::is_float_image(const string& filename, void *builtin_data)
 	return is_float;
 }
 
-int ImageManager::add_image(const string& filename, void *builtin_data, bool animated, bool& is_float)
+int ImageManager::add_image(const string& filename, void *builtin_data, bool animated, bool& is_float, bool& is_linear)
 {
 	Image *img;
 	size_t slot;
 
 	/* load image info and find out if we need a float texture */
-	is_float = (pack_images)? false: is_float_image(filename, builtin_data);
+	is_float = (pack_images)? false: is_float_image(filename, builtin_data, is_linear);
 
 	if(is_float) {
 		/* find existing image */

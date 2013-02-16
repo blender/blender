@@ -20,6 +20,7 @@
 import bpy
 from bpy.types import Panel
 from rna_prop_ui import PropertyPanel
+from bpy.app.translations import pgettext_iface as iface_
 
 from bl_ui.properties_physics_common import (point_cache_ui,
                                              effector_weights_ui,
@@ -148,8 +149,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
             #row.label(text="Render")
 
             if part.is_fluid:
-                pgettext = bpy.app.translations.pgettext
-                layout.label(text=pgettext("%d fluid particles for this frame") % part.count, translate=False)
+                layout.label(text=iface_("%d fluid particles for this frame") % part.count, translate=False)
                 return
 
             row = col.row()
@@ -543,7 +543,7 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
                     # spacing between particles when the fluid is at rest. This
                     # makes it easier to set stable initial conditions.
                     particle_volume = part.mass / fluid.rest_density
-                    spacing = pow(particle_volume, 1/3)
+                    spacing = pow(particle_volume, 1.0 / 3.0)
                     sub = col.row()
                     sub.label(text="Spacing: %g" % spacing)
 

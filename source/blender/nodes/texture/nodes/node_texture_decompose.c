@@ -82,7 +82,7 @@ void register_node_type_tex_decompose(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;
 	
-	node_type_base(ttype, &ntype, TEX_NODE_DECOMPOSE, "Decompose RGBA", NODE_CLASS_OP_COLOR, 0);
+	node_type_base(ttype, &ntype, TEX_NODE_DECOMPOSE, "Separate RGBA", NODE_CLASS_OP_COLOR, 0);
 	node_type_socket_templates(&ntype, inputs, outputs);
 	node_type_size(&ntype, 100, 60, 150);
 	node_type_exec(&ntype, exec);

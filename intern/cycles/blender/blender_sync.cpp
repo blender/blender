@@ -307,7 +307,10 @@ SceneParams BlenderSync::get_scene_params(BL::Scene b_scene, bool background)
 	params.use_bvh_spatial_split = RNA_boolean_get(&cscene, "debug_use_spatial_splits");
 	params.use_bvh_cache = (background)? RNA_boolean_get(&cscene, "use_cache"): false;
 
-	params.persistent_images = (background)? r.use_persistent_data(): false;
+	if(background && params.shadingsystem != SceneParams::OSL)
+		params.persistent_data = r.use_persistent_data();
+	else
+		params.persistent_data = false;
 
 	return params;
 }

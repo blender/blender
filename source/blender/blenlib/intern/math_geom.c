@@ -39,9 +39,9 @@
 
 void cent_tri_v3(float cent[3], const float v1[3], const float v2[3], const float v3[3])
 {
-	cent[0] = 0.33333f * (v1[0] + v2[0] + v3[0]);
-	cent[1] = 0.33333f * (v1[1] + v2[1] + v3[1]);
-	cent[2] = 0.33333f * (v1[2] + v2[2] + v3[2]);
+	cent[0] = (v1[0] + v2[0] + v3[0]) / 3.0f;
+	cent[1] = (v1[1] + v2[1] + v3[1]) / 3.0f;
+	cent[2] = (v1[2] + v2[2] + v3[2]) / 3.0f;
 }
 
 void cent_quad_v3(float cent[3], const float v1[3], const float v2[3], const float v3[3], const float v4[3])
@@ -127,6 +127,22 @@ float area_tri_v3(const float v1[3], const float v2[3], const float v3[3])
 	len = normalize_v3(n);
 
 	return (len / 2.0f);
+}
+
+float area_tri_signed_v3(const float v1[3], const float v2[3], const float v3[3], const float normal[3])
+{
+	float area, vec1[3], vec2[3], n[3];
+
+	sub_v3_v3v3(vec1, v3, v2);
+	sub_v3_v3v3(vec2, v1, v2);
+	cross_v3_v3v3(n, vec1, vec2);
+	area = len_v3(n) / 2.0f;
+
+	/* negate area for flipped triangles */
+	if (dot_v3v3(n, normal) < 0.0f)
+		area = -area;
+
+	return area;
 }
 
 float area_poly_v3(int nr, float verts[][3], const float normal[3])
@@ -3578,25 +3594,42 @@ float form_factor_hemi_poly(float p[3], float n[3], float v1[3], float v2[3], fl
 /* evaluate if entire quad is a proper convex quad */
 int is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3])
 {
-	float nor[3], nor1[3], nor2[3], vec[4][2];
+	float nor[3], nor_a[3], nor_b[3], vec[4][2];
 	float mat[3][3];
+	const bool is_ok_a = (normal_tri_v3(nor_a, v1, v2, v3) > FLT_EPSILON);
+	const bool is_ok_b = (normal_tri_v3(nor_b, v1, v3, v4) > FLT_EPSILON);
 
 	/* define projection, do both trias apart, quad is undefined! */
 
-	normal_tri_v3(nor1, v1, v2, v3);
-	normal_tri_v3(nor2, v1, v3, v4);
+	/* check normal length incase one size is zero area */
+	if (is_ok_a) {
+		if (is_ok_b) {
+			/* use both, most common outcome */
 
-	/* when the face is folded over as 2 tris we probably don't want to create
-	 * a quad from it, but go ahead with the intersection test since this
-	 * isn't a function for degenerate faces */
-	if (UNLIKELY(dot_v3v3(nor1, nor2) < 0.0f)) {
-		/* flip so adding normals in the opposite direction
-		 * doesnt give a zero length vector */
-		negate_v3(nor2);
+			/* when the face is folded over as 2 tris we probably don't want to create
+			 * a quad from it, but go ahead with the intersection test since this
+			 * isn't a function for degenerate faces */
+			if (UNLIKELY(dot_v3v3(nor_a, nor_b) < 0.0f)) {
+				/* flip so adding normals in the opposite direction
+				 * doesn't give a zero length vector */
+				negate_v3(nor_b);
+			}
+
+			add_v3_v3v3(nor, nor_a, nor_b);
+			normalize_v3(nor);
+		}
+		else {
+			copy_v3_v3(nor, nor_a);  /* only 'a' */
+		}
 	}
-
-	add_v3_v3v3(nor, nor1, nor2);
-	normalize_v3(nor);
+	else {
+		if (is_ok_b) {
+			copy_v3_v3(nor, nor_b);  /* only 'b' */
+		}
+		else {
+			return false;  /* both zero, we can't do anything useful here */
+		}
+	}
 
 	axis_dominant_v3_to_m3(mat, nor);
 
@@ -3606,12 +3639,12 @@ int is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], c
 	mul_v2_m3v3(vec[3], mat, v4);
 
 	/* linetests, the 2 diagonals have to instersect to be convex */
-	return (isect_line_line_v2(vec[0], vec[2], vec[1], vec[3]) > 0) ? TRUE : FALSE;
+	return (isect_line_line_v2(vec[0], vec[2], vec[1], vec[3]) > 0);
 }
 
 int is_quad_convex_v2(const float v1[2], const float v2[2], const float v3[2], const float v4[2])
 {
 	/* linetests, the 2 diagonals have to instersect to be convex */
-	return (isect_line_line_v2(v1, v3, v2, v4) > 0) ? TRUE : FALSE;
+	return (isect_line_line_v2(v1, v3, v2, v4) > 0);
 }
 

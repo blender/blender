@@ -161,9 +161,9 @@ void AnimationExporter::export_morph_animation(Object *ob)
 	FCurve *fcu;
 	char *transformName;
 	Key *key = BKE_key_from_object(ob);
-	if(!key) return;
+	if (!key) return;
 
-	if(key->adt && key->adt->action){
+	if (key->adt && key->adt->action) {
 		fcu = (FCurve *)key->adt->action->curves.first;
 		
 		while (fcu) {
@@ -177,17 +177,17 @@ void AnimationExporter::export_morph_animation(Object *ob)
 
 }
 
-void AnimationExporter::make_anim_frames_from_targets(Object *ob, std::vector<float> &frames ){
-	
+void AnimationExporter::make_anim_frames_from_targets(Object *ob, std::vector<float> &frames )
+{
 	ListBase *conlist = get_active_constraints(ob);
-	if(conlist == NULL) return;
+	if (conlist == NULL) return;
 	bConstraint *con;
 	for (con = (bConstraint*)conlist->first; con; con = con->next) {
 		ListBase targets = {NULL, NULL};
 		
 		bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
 		
-		if(!validateConstraints(con)) continue;
+		if (!validateConstraints(con)) continue;
 
 		if (cti && cti->get_constraint_targets) {
 			bConstraintTarget *ct;
@@ -197,8 +197,8 @@ void AnimationExporter::make_anim_frames_from_targets(Object *ob, std::vector<fl
 			 *	- ct->matrix members have not yet been calculated here! 
 			 */
 			cti->get_constraint_targets(con, &targets);
-			if(cti){
-				for (ct = (bConstraintTarget*)targets.first; ct; ct = ct->next){
+			if (cti) {
+				for (ct = (bConstraintTarget*)targets.first; ct; ct = ct->next) {
 					obtar = ct->tar;
 					find_frames(obtar, frames);
 				}
@@ -901,7 +901,7 @@ std::string AnimationExporter::create_4x4_source(std::vector<float> &frames, Obj
 	bPoseChannel *parchan = NULL;
 	bPoseChannel *pchan = NULL;
 
-	if (ob->type == OB_ARMATURE ){
+	if (ob->type == OB_ARMATURE ) {
 		bPose *pose = ob->pose;
 		pchan = BKE_pose_channel_find_name(pose, bone->name);
 		if (!pchan)
@@ -922,15 +922,15 @@ std::string AnimationExporter::create_4x4_source(std::vector<float> &frames, Obj
 		//BKE_scene_update_for_newframe(G.main,scene,scene->lay);
 		BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, ctime, ADT_RECALC_ALL);
 				
-		if (bone){
-			if( pchan->flag & POSE_CHAIN)
-			{
+		if (bone) {
+			if (pchan->flag & POSE_CHAIN) {
 				enable_fcurves(ob->adt->action, NULL);
 				BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, ctime, ADT_RECALC_ALL);
 				BKE_pose_where_is(scene, ob);
 			}
-			else
-			BKE_pose_where_is_bone(scene, ob, pchan, ctime, 1);
+			else {
+				BKE_pose_where_is_bone(scene, ob, pchan, ctime, 1);
+			}
 			
 			// compute bone local mat
 			if (bone->parent) {
@@ -1324,9 +1324,9 @@ bool AnimationExporter::hasAnimations(Scene *sce)
 		}
 
 		//check shape key animation
-		if(!fcu){
+		if (!fcu) {
 			Key *key = BKE_key_from_object(ob);
-			if(key && key->adt && key->adt->action)
+			if (key && key->adt && key->adt->action)
 				fcu = (FCurve *)key->adt->action->curves.first;
 		}
 		if (fcu)
@@ -1497,8 +1497,8 @@ void AnimationExporter::sample_animation(float *v, std::vector<float> &frames, i
 	enable_fcurves(ob_arm->adt->action, NULL);
 }
 
-bool AnimationExporter::validateConstraints(bConstraint *con){
-	
+bool AnimationExporter::validateConstraints(bConstraint *con)
+{
 	bool valid = true;
 	bConstraintTypeInfo *cti = BKE_constraint_get_typeinfo(con);
 	/* these we can skip completely (invalid constraints...) */
@@ -1512,7 +1512,8 @@ bool AnimationExporter::validateConstraints(bConstraint *con){
 	return valid;
 }
 
-void AnimationExporter::calc_ob_mat_at_time(Object *ob, float ctime , float mat[][4]){ 
+void AnimationExporter::calc_ob_mat_at_time(Object *ob, float ctime , float mat[][4])
+{
 	ListBase *conlist = get_active_constraints(ob);
 	bConstraint *con;
 	for (con = (bConstraint*)conlist->first; con; con = con->next) {
@@ -1524,7 +1525,7 @@ void AnimationExporter::calc_ob_mat_at_time(Object *ob, float ctime , float mat[
 			bConstraintTarget *ct;
 			Object *obtar;
 			cti->get_constraint_targets(con, &targets);
-			for (ct = (bConstraintTarget*)targets.first; ct; ct = ct->next){
+			for (ct = (bConstraintTarget*)targets.first; ct; ct = ct->next) {
 				obtar = ct->tar;
 				BKE_animsys_evaluate_animdata(scene, &obtar->id, obtar->adt, ctime, ADT_RECALC_ANIM);
 				BKE_object_where_is_calc_time(scene, obtar, ctime);

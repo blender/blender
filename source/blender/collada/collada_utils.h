@@ -42,15 +42,19 @@ extern "C" {
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 
+#include "RNA_access.h"
+
 #include "BLI_linklist.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_object.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_scene.h"
 }
 
 #include "ExportSettings.h"
+#include "collada_internal.h"
 
 typedef std::map<COLLADAFW::TextureMapId, std::vector<MTex *> > TexIndexTextureArrayMap;
 
@@ -79,5 +83,5 @@ extern int  bc_get_active_UVLayer(Object *ob);
 
 extern std::string bc_replace_string(std::string data, const std::string& pattern, const std::string& replacement); 
 extern std::string bc_url_encode(std::string data); 
-
+extern void bc_match_scale(std::vector<Object *> *objects_done, Scene &sce, UnitConverter &unit_converter);
 #endif

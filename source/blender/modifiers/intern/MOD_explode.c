@@ -161,7 +161,7 @@ static void createFacepa(ExplodeModifierData *emd,
 			mul_v3_fl(center, 0.25);
 		}
 		else
-			mul_v3_fl(center, 0.3333f);
+			mul_v3_fl(center, 1.0f / 3.0f);
 
 		p = BLI_kdtree_find_nearest(tree, center, NULL, NULL);
 

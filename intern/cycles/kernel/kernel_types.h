@@ -299,6 +299,7 @@ typedef enum LightType {
 	LIGHT_AREA,
 	LIGHT_AO,
 	LIGHT_SPOT,
+	LIGHT_TRIANGLE,
 	LIGHT_STRAND
 } LightType;
 
@@ -609,9 +610,9 @@ typedef struct KernelFilm {
 	int pass_ao;
 
 	int pass_shadow;
+	float pass_shadow_scale;
 	int pass_pad1;
 	int pass_pad2;
-	int pass_pad3;
 } KernelFilm;
 
 typedef struct KernelBackground {

@@ -97,10 +97,13 @@ def main():
             if os.path.exists(po):
                 pool_data.append((po, lang, pot_msgs))
 
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        for r in executor.map(process_po, pool_data, timeout=600):
-            if r != 0:
-                ret = r
+    for r in map(process_po, pool_data):
+        if r != 0:
+            ret = r
+    #with concurrent.futures.ProcessPoolExecutor() as executor:
+        #for r in executor.map(process_po, pool_data, timeout=600):
+            #if r != 0:
+                #ret = r
 
     return ret
 

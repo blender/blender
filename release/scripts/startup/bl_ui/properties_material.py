@@ -20,6 +20,7 @@
 import bpy
 from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
+from bpy.app.translations import pgettext_iface as iface_
 
 
 def active_node_mat(mat):
@@ -80,8 +81,7 @@ class MATERIAL_UL_matslots(UIList):
             if ma and not context.scene.render.use_shading_nodes:
                 manode = ma.active_node_material
                 if manode:
-                    pgettext = bpy.app.translations.pgettext
-                    layout.label(text=pgettext("Node %s") % manode.name, translate=False, icon_value=layout.icon(manode))
+                    layout.label(text=iface_("Node %s") % manode.name, translate=False, icon_value=layout.icon(manode))
                 elif ma.use_nodes:
                     layout.label(text="Node <none>")
                 else:

@@ -273,7 +273,7 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
 	}
 
 	// SECOND_LIFE_COMPATIBILITY
-    if (export_settings->second_life) {
+	if (export_settings->second_life) {
 		// Remove rotations vs armature from transform
 		// parent_rest_rot * mat * irest_rot
 		float temp[4][4];
