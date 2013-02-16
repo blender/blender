@@ -322,10 +322,9 @@ PyObject * BPy_ViewShape_from_ViewShape( ViewShape& vs ) {
 	return py_vs;
 }
 
-PyObject * BPy_FrsMaterial_from_FrsMaterial( FrsMaterial& m ){
+PyObject * BPy_FrsMaterial_from_FrsMaterial(const FrsMaterial& m) {
 	PyObject *py_m = FrsMaterial_Type.tp_new( &FrsMaterial_Type, 0, 0 );
-	((BPy_FrsMaterial*) py_m)->m = &m;
-	((BPy_FrsMaterial*) py_m)->borrowed = 1;
+	((BPy_FrsMaterial*) py_m)->m = new FrsMaterial( m );
 
 	return py_m;
 }

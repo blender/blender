@@ -19,7 +19,6 @@ extern PyTypeObject FrsMaterial_Type;
 typedef struct {
 	PyObject_HEAD
 	FrsMaterial *m;
-	int borrowed; /* non-zero if *m is a borrowed object */
 } BPy_FrsMaterial;
 
 /*---------------------------Python BPy_FrsMaterial visible prototypes-----------*/

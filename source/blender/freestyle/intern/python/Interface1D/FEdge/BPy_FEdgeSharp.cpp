@@ -288,9 +288,7 @@ PyDoc_STRVAR(FEdgeSharp_material_right_doc,
 
 static PyObject *FEdgeSharp_material_right_get(BPy_FEdgeSharp *self, void *UNUSED(closure))
 {
-	// FIXME aFrsMaterial() returns a const reference.
-	FrsMaterial m(self->fes->aFrsMaterial());
-	return BPy_FrsMaterial_from_FrsMaterial(m);
+	return BPy_FrsMaterial_from_FrsMaterial(self->fes->aFrsMaterial());
 }
 
 PyDoc_STRVAR(FEdgeSharp_material_left_doc,
@@ -300,9 +298,7 @@ PyDoc_STRVAR(FEdgeSharp_material_left_doc,
 
 static PyObject *FEdgeSharp_material_left_get(BPy_FEdgeSharp *self, void *UNUSED(closure))
 {
-	// FIXME bFrsMaterial() returns a const reference.
-	FrsMaterial m(self->fes->bFrsMaterial());
-	return BPy_FrsMaterial_from_FrsMaterial(m);
+	return BPy_FrsMaterial_from_FrsMaterial(self->fes->bFrsMaterial());
 }
 
 PyDoc_STRVAR(FEdgeSharp_face_mark_right_doc,

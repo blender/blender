@@ -179,9 +179,7 @@ PyDoc_STRVAR(FEdgeSmooth_material_doc,
 
 static PyObject *FEdgeSmooth_material_get(BPy_FEdgeSmooth *self, void *UNUSED(closure))
 {
-	// FIXME frs_material() returns a const reference.
-	FrsMaterial m(self->fes->frs_material());
-	return BPy_FrsMaterial_from_FrsMaterial(m);
+	return BPy_FrsMaterial_from_FrsMaterial(self->fes->frs_material());
 }
 
 PyDoc_STRVAR(FEdgeSmooth_face_mark_doc,

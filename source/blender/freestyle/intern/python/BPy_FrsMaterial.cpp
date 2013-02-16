@@ -75,7 +75,7 @@ static int FrsMaterial_init(BPy_FrsMaterial *self, PyObject *args, PyObject *kwd
 			PyErr_SetString(PyExc_RuntimeError, "invalid FrsMaterial object");
 			return -1;
 		}
-		self->m = new FrsMaterial( *m );
+		self->m = new FrsMaterial(*m);
 
 	} else if (float_array_from_PyObject(obj1, f1, 4) && obj2 &&
 		       float_array_from_PyObject(obj2, f2, 4) && obj3 &&
@@ -87,15 +87,13 @@ static int FrsMaterial_init(BPy_FrsMaterial *self, PyObject *args, PyObject *kwd
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
-	self->borrowed = 0;
 
 	return 0;
 }
 
 static void FrsMaterial_dealloc(BPy_FrsMaterial* self)
 {
-	if (self->m && !self->borrowed)
-		delete self->m;
+	delete self->m;
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 

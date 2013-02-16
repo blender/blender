@@ -88,7 +88,7 @@ PyObject * BPy_Id_from_Id( Id& id );
 PyObject * BPy_Interface0D_from_Interface0D( Interface0D& if0D );
 PyObject * BPy_Interface1D_from_Interface1D( Interface1D& if1D );
 PyObject * BPy_IntegrationType_from_IntegrationType( IntegrationType i );
-PyObject * BPy_FrsMaterial_from_FrsMaterial( FrsMaterial& m );
+PyObject * BPy_FrsMaterial_from_FrsMaterial(const FrsMaterial& m);
 PyObject * BPy_Nature_from_Nature( unsigned short n );
 PyObject * BPy_MediumType_from_MediumType( Stroke::MediumType n );
 PyObject * BPy_SShape_from_SShape( SShape& ss );
