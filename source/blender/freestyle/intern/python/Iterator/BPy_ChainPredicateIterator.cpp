@@ -13,7 +13,7 @@ extern "C" {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char ChainPredicateIterator___doc__[] =
+PyDoc_STRVAR(ChainPredicateIterator_doc,
 "Class hierarchy: :class:`Iterator` > :class:`ViewEdgeIterator` > :class:`ChainingIterator` > :class:`ChainPredicateIterator`\n"
 "\n"
 "A \"generic\" user-controlled ViewEdge iterator.  This iterator is in\n"
@@ -74,84 +74,82 @@ static char ChainPredicateIterator___doc__[] =
 "   Copy constructor.\n"
 "\n"
 "   :arg brother: A ChainPredicateIterator object.\n"
-"   :type brother: :class:`ChainPredicateIterator`\n";
+"   :type brother: :class:`ChainPredicateIterator`");
 
-static int ChainPredicateIterator___init__(BPy_ChainPredicateIterator *self, PyObject *args )
-{	
+static int ChainPredicateIterator_init(BPy_ChainPredicateIterator *self, PyObject *args)
+{
 	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0, *obj4 = 0, *obj5 = 0, *obj6 = 0;
 
-	if (!( PyArg_ParseTuple(args, "|OOOOOO", &obj1, &obj2, &obj3, &obj4, &obj5, &obj6) ))
-	    return -1;
+	if (!(PyArg_ParseTuple(args, "|OOOOOO", &obj1, &obj2, &obj3, &obj4, &obj5, &obj6)))
+		return -1;
 
-	if( obj1 && BPy_ChainPredicateIterator_Check(obj1)  ) { 
-		self->cp_it = new ChainPredicateIterator(*( ((BPy_ChainPredicateIterator *) obj1)->cp_it ));
+	if (obj1 && BPy_ChainPredicateIterator_Check(obj1)) {
+		self->cp_it = new ChainPredicateIterator(*(((BPy_ChainPredicateIterator *)obj1)->cp_it));
 		self->upred = NULL;
 		self->bpred = NULL;
 	
-	} else if( 	obj1 && BPy_UnaryPredicate1D_Check(obj1) &&
-	  			obj2 && BPy_BinaryPredicate1D_Check(obj2) ) {
-				
-		if (!((BPy_UnaryPredicate1D *) obj1)->up1D) {
+	} else if (	obj1 && BPy_UnaryPredicate1D_Check(obj1) &&
+				obj2 && BPy_BinaryPredicate1D_Check(obj2)) {
+
+		if (!((BPy_UnaryPredicate1D *)obj1)->up1D) {
 			PyErr_SetString(PyExc_TypeError, "1st argument: invalid UnaryPredicate1D object");
 			return -1;
 		}
-		if (!((BPy_BinaryPredicate1D *) obj2)->bp1D) {
+		if (!((BPy_BinaryPredicate1D *)obj2)->bp1D) {
 			PyErr_SetString(PyExc_TypeError, "2nd argument: invalid BinaryPredicate1D object");
 			return -1;
 		}
-		UnaryPredicate1D *up1D = ((BPy_UnaryPredicate1D *) obj1)->up1D;
-		BinaryPredicate1D *bp1D = ((BPy_BinaryPredicate1D *) obj2)->bp1D;
-		bool restrictToSelection = ( obj3 ) ? bool_from_PyBool(obj3) : true;
-		bool restrictToUnvisited = ( obj4 ) ? bool_from_PyBool(obj4) : true;
+		UnaryPredicate1D *up1D = ((BPy_UnaryPredicate1D *)obj1)->up1D;
+		BinaryPredicate1D *bp1D = ((BPy_BinaryPredicate1D *)obj2)->bp1D;
+		bool restrictToSelection = (obj3) ? bool_from_PyBool(obj3) : true;
+		bool restrictToUnvisited = (obj4) ? bool_from_PyBool(obj4) : true;
 		ViewEdge *begin;
-		if ( !obj5 || obj5 == Py_None )
+		if (!obj5 || obj5 == Py_None)
 			begin = NULL;
-		else if ( BPy_ViewEdge_Check(obj5) )
-			begin = ((BPy_ViewEdge *) obj5)->ve;
+		else if (BPy_ViewEdge_Check(obj5))
+			begin = ((BPy_ViewEdge *)obj5)->ve;
 		else {
 			PyErr_SetString(PyExc_TypeError, "5th argument must be either a ViewEdge object or None");
 			return -1;
 		}
-		bool orientation = ( obj6 ) ? bool_from_PyBool(obj6) : true;
-	
-		self->cp_it = new ChainPredicateIterator( *up1D, *bp1D, restrictToSelection, restrictToUnvisited, begin, orientation);
+		bool orientation = (obj6) ? bool_from_PyBool(obj6) : true;
+
+		self->cp_it = new ChainPredicateIterator(*up1D, *bp1D, restrictToSelection, restrictToUnvisited, begin, orientation);
 		self->upred = obj1;
 		self->bpred = obj2;
-		Py_INCREF( self->upred );
-		Py_INCREF( self->bpred );
-	
+		Py_INCREF(self->upred);
+		Py_INCREF(self->bpred);
+
 	} else {
-		bool restrictToSelection = ( obj1 ) ? bool_from_PyBool(obj1) : true;
-		bool restrictToUnvisited = ( obj2 ) ? bool_from_PyBool(obj2) : true;
+		bool restrictToSelection = (obj1) ? bool_from_PyBool(obj1) : true;
+		bool restrictToUnvisited = (obj2) ? bool_from_PyBool(obj2) : true;
 		ViewEdge *begin;
-		if ( !obj3 || obj3 == Py_None )
+		if (!obj3 || obj3 == Py_None)
 			begin = NULL;
-		else if ( BPy_ViewEdge_Check(obj3) )
-			begin = ((BPy_ViewEdge *) obj3)->ve;
+		else if (BPy_ViewEdge_Check(obj3))
+			begin = ((BPy_ViewEdge *)obj3)->ve;
 		else {
 			PyErr_SetString(PyExc_TypeError, "3rd argument must be either a ViewEdge object or None");
 			return -1;
 		}
-		bool orientation = ( obj4 ) ? bool_from_PyBool(obj4) : true;
-		
-		self->cp_it = new ChainPredicateIterator( restrictToSelection, restrictToUnvisited, begin, orientation);	
+		bool orientation = (obj4) ? bool_from_PyBool(obj4) : true;
+
+		self->cp_it = new ChainPredicateIterator(restrictToSelection, restrictToUnvisited, begin, orientation);	
 		self->upred = NULL;
 		self->bpred = NULL;
 	}
-	
+
 	self->py_c_it.c_it = self->cp_it;
 	self->py_c_it.py_ve_it.ve_it = self->cp_it;
 	self->py_c_it.py_ve_it.py_it.it = self->cp_it;
-	
-	
+
 	return 0;
-	
 }
 
-static void ChainPredicateIterator___dealloc__(BPy_ChainPredicateIterator *self)
+static void ChainPredicateIterator_dealloc(BPy_ChainPredicateIterator *self)
 {
-	Py_XDECREF( self->upred );
-	Py_XDECREF( self->bpred );
+	Py_XDECREF(self->upred);
+	Py_XDECREF(self->bpred);
 	ChainingIterator_Type.tp_dealloc((PyObject *)self);
 }
 
@@ -162,7 +160,7 @@ PyTypeObject ChainPredicateIterator_Type = {
 	"ChainPredicateIterator",       /* tp_name */
 	sizeof(BPy_ChainPredicateIterator), /* tp_basicsize */
 	0,                              /* tp_itemsize */
-	(destructor)ChainPredicateIterator___dealloc__, /* tp_dealloc */
+	(destructor)ChainPredicateIterator_dealloc, /* tp_dealloc */
 	0,                              /* tp_print */
 	0,                              /* tp_getattr */
 	0,                              /* tp_setattr */
@@ -178,7 +176,7 @@ PyTypeObject ChainPredicateIterator_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	ChainPredicateIterator___doc__, /* tp_doc */
+	ChainPredicateIterator_doc,     /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -193,7 +191,7 @@ PyTypeObject ChainPredicateIterator_Type = {
 	0,                              /* tp_descr_get */
 	0,                              /* tp_descr_set */
 	0,                              /* tp_dictoffset */
-	(initproc)ChainPredicateIterator___init__, /* tp_init */
+	(initproc)ChainPredicateIterator_init, /* tp_init */
 	0,                              /* tp_alloc */
 	0,                              /* tp_new */
 };

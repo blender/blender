@@ -126,7 +126,7 @@ static PyMethodDef BPy_Interface0D_methods[] = {
 /*----------------------Interface1D get/setters ----------------------------*/
 
 PyDoc_STRVAR(Interface0D_exact_type_name_doc,
-"The string of the the name of this 0D element.\n"
+"The string of the name of this 0D element.\n"
 "\n"
 ":type: str");
 
