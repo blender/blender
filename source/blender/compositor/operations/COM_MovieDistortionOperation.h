@@ -162,6 +162,8 @@ public:
 	
 	void setMovieClip(MovieClip *clip) { this->m_movieClip = clip; }
 	void setFramenumber(int framenumber) { this->m_framenumber = framenumber; }
+	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+
 };
 
 void deintializeDistortionCache(void);

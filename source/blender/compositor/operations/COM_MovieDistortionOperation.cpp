@@ -112,3 +112,16 @@ void MovieDistortionOperation::executePixel(float output[4], float x, float y, P
 		this->m_inputOperation->read(output, x, y, COM_PS_BILINEAR);
 	}
 }
+
+bool MovieDistortionOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
+	const int marginX = this->m_width*0.15;
+	const int marginY = this->m_height*0.15;
+
+	rcti newInput;
+	newInput.xmin = input->xmin - marginX;
+	newInput.ymin = input->ymin - marginY;
+	newInput.xmax = input->xmax + marginX;
+	newInput.ymax = input->ymax + marginY;
+	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+}
