@@ -173,6 +173,7 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		scen->obedit = NULL;
 		scen->stats = NULL;
 		scen->fps_info = NULL;
+		scen->rigidbody_world = NULL; /* RB_TODO figure out a way of copying the rigid body world */
 
 		BLI_duplicatelist(&(scen->markers), &(sce->markers));
 		BLI_duplicatelist(&(scen->transform_spaces), &(sce->transform_spaces));
