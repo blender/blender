@@ -378,7 +378,7 @@ void BKE_scene_free(Scene *sce)
 	BKE_color_managed_view_settings_free(&sce->view_settings);
 }
 
-static Scene *scene_add(Main *bmain, const char *name)
+Scene *BKE_scene_add(Main *bmain, const char *name)
 {
 	Scene *sce;
 	ParticleEditSettings *pset;
@@ -611,11 +611,6 @@ static Scene *scene_add(Main *bmain, const char *name)
 	            sizeof(sce->sequencer_colorspace_settings.name));
 
 	return sce;
-}
-
-Scene *BKE_scene_add(Main *bmain, const char *name)
-{
-	return scene_add(bmain, name);
 }
 
 Base *BKE_scene_base_find(Scene *scene, Object *ob)
