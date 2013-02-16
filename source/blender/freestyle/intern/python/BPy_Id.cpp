@@ -9,22 +9,22 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //-------------------MODULE INITIALIZATION--------------------------------
-int Id_Init( PyObject *module )
+int Id_Init(PyObject *module)
 {
-	if( module == NULL )
+	if (module == NULL)
 		return -1;
 
-	if( PyType_Ready( &Id_Type ) < 0 )
+	if (PyType_Ready(&Id_Type) < 0)
 		return -1;
 
-	Py_INCREF( &Id_Type );
+	Py_INCREF(&Id_Type);
 	PyModule_AddObject(module, "Id", (PyObject *)&Id_Type);
 	return 0;
 }
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char Id___doc__[] =
+PyDoc_STRVAR(Id_doc,
 ".. method:: __init__()\n"
 "\n"
 "   Default constructor.\n"
@@ -50,58 +50,58 @@ static char Id___doc__[] =
 "   :arg iFirst: The first Id number.\n"
 "   :type iFirst: int\n"
 "   :arg iSecond: The second Id number.\n"
-"   :type iSecond: int\n";
+"   :type iSecond: int\n");
 
-static int Id___init__(BPy_Id *self, PyObject *args, PyObject *kwds)
+static int Id_init(BPy_Id *self, PyObject *args, PyObject *kwds)
 {
-    int first = 0, second = 0;
-    static const char *kwlist[] = {"first", "second", NULL};
+	int first = 0, second = 0;
+	static const char *kwlist[] = {"first", "second", NULL};
 
-    if (! PyArg_ParseTupleAndKeywords(args, kwds, "|ii", (char**)kwlist, &first, &second) )
-        return -1;
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ii", (char**)kwlist, &first, &second))
+		return -1;
 
-	self->id = new Id( first, second );
+	self->id = new Id(first, second);
 
-    return 0;
+	return 0;
 }
 
-static void Id___dealloc__(BPy_Id* self)
+static void Id_dealloc(BPy_Id* self)
 {
 	delete self->id;
-    Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-static PyObject * Id___repr__(BPy_Id* self)
+static PyObject * Id_repr(BPy_Id* self)
 {
-    return PyUnicode_FromFormat("[ first: %i, second: %i ](BPy_Id)", self->id->getFirst(), self->id->getSecond() );
+	return PyUnicode_FromFormat("[ first: %i, second: %i ](BPy_Id)", self->id->getFirst(), self->id->getSecond());
 }
 
-static PyObject * Id_RichCompare(BPy_Id *o1, BPy_Id *o2, int opid) {
+static PyObject * Id_RichCompare(BPy_Id *o1, BPy_Id *o2, int opid)
+{
 	switch(opid){
 		case Py_LT:
-			return PyBool_from_bool( o1->id->operator<(*(o2->id)) );
+			return PyBool_from_bool(o1->id->operator<(*(o2->id)));
 			break;
 		case Py_LE:
-			return PyBool_from_bool( o1->id->operator<(*(o2->id)) || o1->id->operator<(*(o2->id)) );
+			return PyBool_from_bool(o1->id->operator<(*(o2->id)) || o1->id->operator==(*(o2->id)));
 			break;
 		case Py_EQ:
-			return PyBool_from_bool( o1->id->operator==(*(o2->id)) );
+			return PyBool_from_bool(o1->id->operator==(*(o2->id)));
 			break;
 		case Py_NE:
-			return PyBool_from_bool( o1->id->operator!=(*(o2->id)) );
+			return PyBool_from_bool(o1->id->operator!=(*(o2->id)));
 			break;
 		case Py_GT:
-			return PyBool_from_bool(!( o1->id->operator<(*(o2->id)) || o1->id->operator<(*(o2->id)) ));
+			return PyBool_from_bool(!(o1->id->operator<(*(o2->id)) || o1->id->operator==(*(o2->id))));
 			break;
 		case Py_GE:
-			return PyBool_from_bool(!( o1->id->operator<(*(o2->id)) ));
+			return PyBool_from_bool(!(o1->id->operator<(*(o2->id))));
 			break;
 	}
 	
 	Py_RETURN_NONE;
 }
 
-/*----------------------Id instance definitions ----------------------------*/
 static PyMethodDef BPy_Id_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
@@ -111,8 +111,7 @@ static PyMethodDef BPy_Id_methods[] = {
 PyDoc_STRVAR(Id_first_doc,
 "The first number constituting the Id.\n"
 "\n"
-":type: int"
-);
+":type: int");
 
 static PyObject *Id_first_get(BPy_Id *self, void *UNUSED(closure))
 {
@@ -133,8 +132,7 @@ static int Id_first_set(BPy_Id *self, PyObject *value, void *UNUSED(closure))
 PyDoc_STRVAR(Id_second_doc,
 "The second number constituting the Id.\n"
 "\n"
-":type: int"
-);
+":type: int");
 
 static PyObject *Id_second_get(BPy_Id *self, void *UNUSED(closure))
 {
@@ -165,12 +163,12 @@ PyTypeObject Id_Type = {
 	"Id",                           /* tp_name */
 	sizeof(BPy_Id),                 /* tp_basicsize */
 	0,                              /* tp_itemsize */
-	(destructor)Id___dealloc__,     /* tp_dealloc */
+	(destructor)Id_dealloc,         /* tp_dealloc */
 	0,                              /* tp_print */
 	0,                              /* tp_getattr */
 	0,                              /* tp_setattr */
 	0,                              /* tp_reserved */
-	(reprfunc)Id___repr__,          /* tp_repr */
+	(reprfunc)Id_repr,              /* tp_repr */
 	0,                              /* tp_as_number */
 	0,                              /* tp_as_sequence */
 	0,                              /* tp_as_mapping */
@@ -181,7 +179,7 @@ PyTypeObject Id_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	Id___doc__,                     /* tp_doc */
+	Id_doc,                         /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	(richcmpfunc)Id_RichCompare,    /* tp_richcompare */
@@ -196,7 +194,7 @@ PyTypeObject Id_Type = {
 	0,                              /* tp_descr_get */
 	0,                              /* tp_descr_set */
 	0,                              /* tp_dictoffset */
-	(initproc)Id___init__,          /* tp_init */
+	(initproc)Id_init,              /* tp_init */
 	0,                              /* tp_alloc */
 	PyType_GenericNew,              /* tp_new */
 };
