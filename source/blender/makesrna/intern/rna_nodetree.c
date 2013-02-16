@@ -4971,6 +4971,10 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NTREE_COM_OPENCL);
 	RNA_def_property_ui_text(prop, "OpenCL", "Enable GPU calculations");
 
+	prop = RNA_def_property(srna, "use_groupnode_buffer", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NTREE_COM_GROUPNODE_BUFFER);
+	RNA_def_property_ui_text(prop, "Buffer Groups", "Enable buffering of group nodes");
+
 	prop = RNA_def_property(srna, "two_pass", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NTREE_TWO_PASS);
 	RNA_def_property_ui_text(prop, "Two Pass", "Use two pass execution during editing: first calculate fast nodes, "
