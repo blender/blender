@@ -4053,7 +4053,7 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_average_islands_scale);
 	WM_operatortype_append(UV_OT_cube_project);
 	WM_operatortype_append(UV_OT_cylinder_project);
-	WM_operatortype_append(UV_OT_from_view);
+	WM_operatortype_append(UV_OT_project_from_view);
 	WM_operatortype_append(UV_OT_minimize_stretch);
 	WM_operatortype_append(UV_OT_pack_islands);
 	WM_operatortype_append(UV_OT_reset);
