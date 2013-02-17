@@ -120,7 +120,8 @@ class BakeToKeyframes(Operator):
 
         if objects:
             # store transformation data
-            for f in list(range(self.frame_start, self.frame_end + 1)):
+            # need to start at scene start frame so simulation is run from the beginning
+            for f in list(range(scene.frame_start, self.frame_end + 1)):
                 scene.frame_set(f)
                 if f in frames:
                     mat = {}
