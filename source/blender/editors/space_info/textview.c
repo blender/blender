@@ -74,15 +74,12 @@ static void console_draw_sel(const int sel[2], const int xy[2], const int str_le
 		const int sta = max_ii(sel[0], 0);
 		const int end = min_ii(sel[1], str_len_draw);
 
-		glEnable(GL_POLYGON_STIPPLE);
-		glPolygonStipple(stipple_halftone);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glColor4ub(255, 255, 255, 48);
 
 		glRecti(xy[0] + (cwidth * sta), xy[1] - 2 + lheight, xy[0] + (cwidth * end), xy[1] - 2);
 
-		glDisable(GL_POLYGON_STIPPLE);
 		glDisable(GL_BLEND);
 	}
 }
