@@ -103,7 +103,8 @@ struct Object *BKE_object_pose_armature_get(struct Object *ob);
 void BKE_object_where_is_calc(struct Scene *scene, struct Object *ob);
 void BKE_object_where_is_calc_ex(struct Scene *scene, struct RigidBodyWorld *rbw, struct Object *ob);
 void BKE_object_where_is_calc_time(struct Scene *scene, struct Object *ob, float ctime);
-void BKE_object_where_is_calc_time_ex(struct Scene *scene, struct RigidBodyWorld *rbw, struct Object *ob, float ctime);
+void BKE_object_where_is_calc_time_ex(struct Scene *scene, struct Object *ob, float ctime,
+                                      struct RigidBodyWorld *rbw);
 void BKE_object_where_is_calc_simul(struct Scene *scene, struct Object *ob);
 void BKE_object_where_is_calc_mat4(struct Scene *scene, struct Object *ob, float obmat[4][4]);
 

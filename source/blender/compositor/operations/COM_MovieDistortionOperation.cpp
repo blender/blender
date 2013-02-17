@@ -115,8 +115,8 @@ void MovieDistortionOperation::executePixel(float output[4], float x, float y, P
 
 bool MovieDistortionOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
-	const int marginX = this->m_width*0.15;
-	const int marginY = this->m_height*0.15;
+	const int marginX = this->m_width * 0.15;
+	const int marginY = this->m_height * 0.15;
 
 	rcti newInput;
 	newInput.xmin = input->xmin - marginX;

@@ -2118,7 +2118,8 @@ static int where_is_object_parslow(Object *ob, float obmat[4][4], float slowmat[
 }
 
 /* note, scene is the active scene while actual_scene is the scene the object resides in */
-void BKE_object_where_is_calc_time_ex(Scene *scene,  RigidBodyWorld *rbw, Object *ob, float ctime)
+void BKE_object_where_is_calc_time_ex(Scene *scene, Object *ob, float ctime,
+                                      RigidBodyWorld *rbw)
 {
 	if (ob == NULL) return;
 	
@@ -2163,7 +2164,7 @@ void BKE_object_where_is_calc_time_ex(Scene *scene,  RigidBodyWorld *rbw, Object
 
 void BKE_object_where_is_calc_time(Scene *scene, Object *ob, float ctime)
 {
-	BKE_object_where_is_calc_time_ex(scene, NULL, ob, ctime);
+	BKE_object_where_is_calc_time_ex(scene, ob, ctime, NULL);
 }
 
 /* get object transformation matrix without recalculating dependencies and
@@ -2189,17 +2190,17 @@ void BKE_object_where_is_calc_mat4(Scene *scene, Object *ob, float obmat[4][4])
 
 void BKE_object_where_is_calc_ex(Scene *scene, RigidBodyWorld *rbw, Object *ob)
 {
-	BKE_object_where_is_calc_time_ex(scene, rbw, ob, BKE_scene_frame_get(scene));
+	BKE_object_where_is_calc_time_ex(scene, ob, BKE_scene_frame_get(scene), rbw);
 }
 void BKE_object_where_is_calc(Scene *scene, Object *ob)
 {
-	BKE_object_where_is_calc_time_ex(scene, NULL, ob, BKE_scene_frame_get(scene));
+	BKE_object_where_is_calc_time_ex(scene, ob, BKE_scene_frame_get(scene), NULL);
 }
 
-void BKE_object_where_is_calc_simul(Scene *scene, Object *ob)
 /* was written for the old game engine (until 2.04) */
 /* It seems that this function is only called
  * for a lamp that is the child of another object */
+void BKE_object_where_is_calc_simul(Scene *scene, Object *ob)
 {
 	Object *par;
 	float *fp1, *fp2;

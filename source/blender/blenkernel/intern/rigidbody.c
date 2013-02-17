@@ -1308,7 +1308,7 @@ struct RigidBodyCon *BKE_rigidbody_create_constraint(Scene *scene, Object *ob, s
 struct RigidBodyWorld *BKE_rigidbody_get_world(Scene *scene) { return NULL; }
 void BKE_rigidbody_remove_object(Scene *scene, Object *ob) {}
 void BKE_rigidbody_remove_constraint(Scene *scene, Object *ob) {}
-void BKE_rigidbody_sync_transforms(Scene *scene, Object *ob, float ctime) {}
+void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime) {}
 void BKE_rigidbody_aftertrans_update(Object *ob, float loc[3], float rot[3], float quat[4], float rotAxis[3], float rotAngle) {}
 void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw) {}
 void BKE_rigidbody_do_simulation(Scene *scene, float ctime) {}
