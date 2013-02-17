@@ -817,40 +817,56 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence *seq, int cutframe)
 
 
 /* like duplicate, but only duplicate and cut overlapping strips,
- * strips to the left of the cutframe are ignored and strips to the right are moved into the new list */
-static int cut_seq_list(Scene *scene, ListBase *old, ListBase *new, int cutframe,
+ * strips to the left of the cutframe are ignored and strips to the right 
+ * are moved to the end of slist
+ * we have to work on the same slist (not using a seperate list), since
+ * otherwise dupli_seq can't check for duplicate names properly and
+ * may generate strips with the same name (which will mess up animdata)
+ */
+
+static int cut_seq_list(Scene *scene, ListBase *slist, int cutframe,
                         Sequence * (*cut_seq)(Scene *, Sequence *, int))
 {
 	int did_something = FALSE;
 	Sequence *seq, *seq_next_iter;
 	
-	seq = old->first;
-	
-	while (seq) {
-		seq_next_iter = seq->next; /* we need this because we may remove seq */
-		
+	for (seq = slist->first; seq; seq = seq->next) {
 		seq->tmp = NULL;
+	}
+	
+	seq = slist->first;
+
+	while (seq && !seq->tmp) {
+		seq_next_iter = seq->next; /* we need this because we may remove seq */
+		/* only handle strips not marked as new */
 		if (seq->flag & SELECT) {
 			if (cutframe > seq->startdisp && 
 			    cutframe < seq->enddisp)
 			{
 				Sequence *seqn = cut_seq(scene, seq, cutframe);
 				if (seqn) {
-					BLI_addtail(new, seqn);
+					BLI_addtail(slist, seqn);
+					seqn->tmp = seq; /* mark as new */
+					did_something = TRUE;
 				}
-				did_something = TRUE;
 			}
 			else if (seq->enddisp <= cutframe) {
 				/* do nothing */
 			}
 			else if (seq->startdisp >= cutframe) {
-				/* move into new list */
-				BLI_remlink(old, seq);
-				BLI_addtail(new, seq);
+				/* move to tail and mark as new */
+				BLI_remlink(slist, seq);
+				BLI_addtail(slist, seq);
+				seq->tmp = seq;
 			}
 		}
 		seq = seq_next_iter;
 	}
+
+	for (; seq; seq = seq->next) {
+		seq->tmp = NULL;
+	}
+
 	return did_something;
 }
 
@@ -1488,25 +1504,21 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	int cut_side, cut_hard, cut_frame;
 
-	ListBase newlist;
 	int changed;
 
 	cut_frame = RNA_int_get(op->ptr, "frame");
 	cut_hard = RNA_enum_get(op->ptr, "type");
 	cut_side = RNA_enum_get(op->ptr, "side");
 	
-	newlist.first = newlist.last = NULL;
-
 	if (cut_hard == SEQ_CUT_HARD) {
-		changed = cut_seq_list(scene, ed->seqbasep, &newlist, cut_frame, cut_seq_hard);
+		changed = cut_seq_list(scene, ed->seqbasep, cut_frame, cut_seq_hard);
 	}
 	else {
-		changed = cut_seq_list(scene, ed->seqbasep, &newlist, cut_frame, cut_seq_soft);
+		changed = cut_seq_list(scene, ed->seqbasep, cut_frame, cut_seq_soft);
 	}
 	
-	if (newlist.first) { /* got new strips ? */
+	if (changed) { /* got new strips ? */
 		Sequence *seq;
-		BLI_movelisttolist(ed->seqbasep, &newlist);
 
 		if (cut_side != SEQ_SIDE_BOTH) {
 			SEQP_BEGIN (ed, seq)
