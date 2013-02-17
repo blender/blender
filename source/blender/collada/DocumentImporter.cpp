@@ -180,14 +180,16 @@ void DocumentImporter::finish()
 {
 	if (mImportStage != General)
 		return;
-		
+
+	Main *bmain = CTX_data_main(mContext);
+	// TODO: create a new scene except the selected <visual_scene> - use current blender scene for it
+	Scene *sce = CTX_data_scene(mContext);
+
 	/** TODO Break up and put into 2-pass parsing of DAE */
 	std::vector<const COLLADAFW::VisualScene *>::iterator it;
 	for (it = vscenes.begin(); it != vscenes.end(); it++) {
 		PointerRNA sceneptr, unit_settings;
 		PropertyRNA *system, *scale;
-		// TODO: create a new scene except the selected <visual_scene> - use current blender scene for it
-		Scene *sce = CTX_data_scene(mContext);
 		
 		// for scene unit settings: system, scale_length
 
@@ -228,7 +230,6 @@ void DocumentImporter::finish()
 		}
 
 		// update scene
-		Main *bmain = CTX_data_main(mContext);
 		DAG_scene_sort(bmain, sce);
 		DAG_ids_flush_update(bmain, 0);
 		WM_event_add_notifier(mContext, NC_OBJECT | ND_TRANSFORM, NULL);
@@ -241,6 +242,8 @@ void DocumentImporter::finish()
 	armature_importer.set_tags_map(this->uid_tags_map);
 	armature_importer.make_armatures(mContext);
 	armature_importer.make_shape_keys();
+	DAG_scene_sort(bmain, sce);
+	DAG_ids_flush_update(bmain, 0);
 
 #if 0
 	armature_importer.fix_animation();
@@ -273,8 +276,8 @@ void DocumentImporter::finish()
 		}
 		libnode_ob.clear();
 
-		DAG_scene_sort(CTX_data_main(mContext), sce);
-		DAG_ids_flush_update(CTX_data_main(mContext), 0);
+		DAG_scene_sort(bmain, sce);
+		DAG_ids_flush_update(bmain, 0);
 	}
 }
 
@@ -541,13 +544,13 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 		if ( (geom_done + camera_done + lamp_done + controller_done + inst_done) < 1) {
 			//Check if Object is armature, by checking if immediate child is a JOINT node.
 			if (is_armature(node)) {
-				ob = bc_add_object(sce, OB_ARMATURE, NULL);
+				ob = bc_add_object(sce, OB_ARMATURE, name.c_str());
 			}
 			else {
 				ob = bc_add_object(sce, OB_EMPTY, NULL);
 			}
-
 			objects_done->push_back(ob);
+
 		}
 		
 		// XXX: if there're multiple instances, only one is stored

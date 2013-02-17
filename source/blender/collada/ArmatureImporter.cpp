@@ -415,10 +415,23 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 			break;
 	}
 
-	if (shared)
+	if (!shared && this->joint_parent_map.size() > 0) {
+		// All armatures have been created while creating the Node tree. 
+		// The Collada exporter currently does not create a 
+		// strict relationship between geometries and armatures
+		// So when we reimport a Blender collada file, then we have
+		// to guess what is meant.
+		// XXX This is not safe when we have more than one armatures
+		// in the import.
+		shared = this->joint_parent_map.begin()->second;
+	}
+
+	if (shared) {
 		ob_arm = skin.set_armature(shared);
-	else
+	}
+	else {
 		ob_arm = skin.create_armature(scene);  //once for every armature
+	}
 
 	// enter armature edit mode
 	ED_armature_to_edit(ob_arm);
@@ -659,37 +672,43 @@ void ArmatureImporter::make_shape_keys()
 		//Prereq: all the geometries must be imported and mesh objects must be made
 		Object *source_ob = this->mesh_importer->get_object_by_geom_uid((*mc)->getSource());
 		
-		Mesh *source_me = (Mesh*) source_ob->data;
-		//insert key to source mesh
-		Key *key = source_me->key = BKE_key_add((ID *)source_me);
-		key->type = KEY_RELATIVE;
-		KeyBlock *kb;
-		
-		//insert basis key
-		kb = BKE_keyblock_add_ctime(key, "Basis", FALSE);
-		BKE_key_convert_from_mesh(source_me, kb);
+		if (source_ob) {
 
-		//insert other shape keys
-		for (int i = 0 ; i < morphTargetIds.getCount() ; i++ ) {
-			//better to have a seperate map of morph objects, 
-			//This'll do for now since only mesh morphing is imported
-
-			Mesh *me = this->mesh_importer->get_mesh_by_geom_uid(morphTargetIds[i]);
+			Mesh *source_me = (Mesh*) source_ob->data;
+			//insert key to source mesh
+			Key *key = source_me->key = BKE_key_add((ID *)source_me);
+			key->type = KEY_RELATIVE;
+			KeyBlock *kb;
 			
-			if (me) {
-				me->key = key;
-				std::string morph_name = *this->mesh_importer->get_geometry_name(me->id.name);
+			//insert basis key
+			kb = BKE_keyblock_add_ctime(key, "Basis", FALSE);
+			BKE_key_convert_from_mesh(source_me, kb);
 
-				kb = BKE_keyblock_add_ctime(key, morph_name.c_str(), FALSE);
-				BKE_key_convert_from_mesh(me, kb);
+			//insert other shape keys
+			for (int i = 0 ; i < morphTargetIds.getCount() ; i++ ) {
+				//better to have a seperate map of morph objects, 
+				//This'll do for now since only mesh morphing is imported
+
+				Mesh *me = this->mesh_importer->get_mesh_by_geom_uid(morphTargetIds[i]);
 				
-				//apply weights
-				weight =  morphWeights.getFloatValues()->getData()[i];
-				kb->curval = weight;
+				if (me) {
+					me->key = key;
+					std::string morph_name = *this->mesh_importer->get_geometry_name(me->id.name);
+
+					kb = BKE_keyblock_add_ctime(key, morph_name.c_str(), FALSE);
+					BKE_key_convert_from_mesh(me, kb);
+					
+					//apply weights
+					weight =  morphWeights.getFloatValues()->getData()[i];
+					kb->curval = weight;
+				}
+				else {
+					fprintf(stderr, "Morph target geometry not found.\n");
+				}
 			}
-			else {
-				fprintf(stderr, "Morph target geometry not found.\n");
-			}
+		}
+		else {
+			fprintf(stderr, "Morph target object not found.\n");
 		}
 	}
 }
