@@ -2631,7 +2631,8 @@ int BKE_object_parent_loop_check(const Object *par, const Object *ob)
 /* the main object update call, for object matrix, constraints, keys and displist (modifiers) */
 /* requires flags to be set! */
 /* Ideally we shouldn't have to pass the rigid body world, but need bigger restructuring to avoid id */
-void BKE_object_handle_update_ex(Scene *scene, RigidBodyWorld *rbw, Object *ob)
+void BKE_object_handle_update_ex(Scene *scene, Object *ob,
+                                 RigidBodyWorld *rbw)
 {
 	if (ob->recalc & OB_RECALC_ALL) {
 		/* speed optimization for animation lookups */
@@ -2833,7 +2834,7 @@ void BKE_object_handle_update_ex(Scene *scene, RigidBodyWorld *rbw, Object *ob)
  */
 void BKE_object_handle_update(Scene *scene, Object *ob)
 {
-	BKE_object_handle_update_ex(scene, NULL, ob);
+	BKE_object_handle_update_ex(scene, ob, NULL);
 }
 
 void BKE_object_sculpt_modifiers_changed(Object *ob)
