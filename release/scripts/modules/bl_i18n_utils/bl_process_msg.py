@@ -435,41 +435,71 @@ def dump_py_messages_from_files(messages, check_ctxt, files):
     # -------------------------------------------------------------------------
     # Gather function names
 
-    # so far only 'text' keywords, but we may want others translated later
-    translate_kw = ("text", )
+    # In addition of UI func, also parse pgettext ones...
+    # Tuples of (module name, (short names, ...)).
+    pgettext_variants = (
+        ("pgettext", ("_",)),
+        ("pgettext_iface", ("iface_",)),
+        ("pgettext_tip", ("tip_",))
+    )
+    pgettext_variants_args = {"msgid": (0, {"msgctxt": 1})}
 
-    # key: func_id
-    # val: [(arg_kw, arg_pos), (arg_kw, arg_pos), ...]
+    # key: msgid keywords.
+    # val: tuples of ((keywords,), context_getter_func) to get a context for that msgid.
+    #      Note: order is important, first one wins!
+    translate_kw = {
+        "text": ((("text_ctxt",), _ctxt_to_ctxt),
+                 (("operator",), _op_to_ctxt),
+                ),
+        "msgid": ((("msgctxt",), _ctxt_to_ctxt),
+                 ),
+    }
+
+    context_kw_set = {}
+    for k, ctxts in translate_kw.items():
+        s = set()
+        for c, _ in ctxts:
+            s |= set(c)
+        context_kw_set[k] = s
+
+    # {func_id: {msgid: (arg_pos,
+    #                    {msgctxt: arg_pos,
+    #                     ...
+    #                    }
+    #                   ),
+    #            ...
+    #           },
+    #  ...
+    # }
     func_translate_args = {}
 
-    # as we only have one translate keyword, no need for complex context extraction setup for now...
-    # And it's already enough complex like that!
-    # Note: order is important, first one wins!
-    context_kw = ((("text_ctxt",), _ctxt_to_ctxt),
-                  (("operator",), _op_to_ctxt),
-                 )
-    context_kw_set = set()
-    for c, _ in context_kw:
-        context_kw_set |= set(c)
-
-    # Like func_translate_args.
-    func_context_args = {}
+    # First, functions from UILayout
+    # First loop is for msgid args, second one is for msgctxt args.
+    for func_id, func in bpy.types.UILayout.bl_rna.functions.items():
+        # check it has one or more arguments as defined in translate_kw
+        for arg_pos, (arg_kw, arg) in enumerate(func.parameters.items()):
+            if ((arg_kw in translate_kw) and (not arg.is_output) and (arg.type == 'STRING')):
+                func_translate_args.setdefault(func_id, {})[arg_kw] = (arg_pos, {})
+    for func_id, func in bpy.types.UILayout.bl_rna.functions.items():
+        if func_id not in func_translate_args:
+            continue
+        for arg_pos, (arg_kw, arg) in enumerate(func.parameters.items()):
+            if (not arg.is_output) and (arg.type == 'STRING'):
+                for msgid, msgctxts in context_kw_set.items():
+                    if arg_kw in msgctxts:
+                        func_translate_args[func_id][msgid][1][arg_kw] = arg_pos
+    # We manually add funcs from bpy.app.translations
+    for func_id, func_ids in pgettext_variants:
+        func_translate_args[func_id] = pgettext_variants_args
+        for func_id in func_ids:
+            func_translate_args[func_id] = pgettext_variants_args
+    #print(func_translate_args)
 
     # Break recursive nodes look up on some kind of nodes.
     # E.g. we don’t want to get strings inside subscripts (blah["foo"])!
-    stopper_nodes = {ast.Subscript, }
+    stopper_nodes = {ast.Subscript}
     # Consider strings separate: ("a" if test else "b")
-    separate_nodes = {ast.IfExp, }
-
-    # For now only consider functions from UILayout...
-    for func_id, func in bpy.types.UILayout.bl_rna.functions.items():
-        # check it has one or more arguments as defined in translate_kw
-        for (arg_pos, (arg_kw, arg)) in enumerate(func.parameters.items()):
-            if ((arg_kw in translate_kw) and (not arg.is_output) and (arg.type == 'STRING')):
-                func_translate_args.setdefault(func_id, []).append((arg_kw, arg_pos))
-            elif ((arg_kw in context_kw_set) and (not arg.is_output) and (arg.type == 'STRING')):
-                func_context_args.setdefault(func_id, []).append((arg_kw, arg_pos))
-    #print(func_context_args)
+    separate_nodes = {ast.IfExp}
 
     check_ctxt_py = None
     if check_ctxt:
@@ -489,40 +519,42 @@ def dump_py_messages_from_files(messages, check_ctxt, files):
                 # print("found function at")
                 # print("%s:%d" % (fp, node.lineno))
 
-                # lambda's
+                # We can't skip such situations! from blah import foo\nfoo("bar") would also be an ast.Name func!
                 if type(node.func) == ast.Name:
+                    func_id = node.func.id
+                elif hasattr(node.func, "attr"):
+                    func_id = node.func.attr
+                # Ugly things like getattr(self, con.type)(context, box, con)
+                else:
                     continue
 
-                # getattr(self, con.type)(context, box, con)
-                if not hasattr(node.func, "attr"):
-                    continue
+                func_args = func_translate_args.get(func_id, {})
 
-                # First try to get i18n context.
-                context_args = func_context_args.get(node.func.attr, ())
-                context = ""
-                context_elements = {}
-                for arg_kw, arg_pos in context_args:
-                    if arg_pos < len(node.args):
-                        context_elements[arg_kw] = node.args[arg_pos]
-                    else:
-                        for kw in node.keywords:
-                            if kw.arg == arg_kw:
-                                context_elements[arg_kw] = kw.value
+                # First try to get i18n contexts, for every possible msgid id.
+                contexts = dict.fromkeys(func_args.keys(), "")
+                for msgid, (_, context_args) in func_args.items():
+                    context_elements = {}
+                    for arg_kw, arg_pos in context_args.items():
+                        if arg_pos < len(node.args):
+                            context_elements[arg_kw] = node.args[arg_pos]
+                        else:
+                            for kw in node.keywords:
+                                if kw.arg == arg_kw:
+                                    context_elements[arg_kw] = kw.value
+                                    break
+                    #print(context_elements)
+                    for kws, proc in translate_kw[msgid]:
+                        if set(kws) <= context_elements.keys():
+                            args = tuple(context_elements[k] for k in kws)
+                            #print("running ", proc, " with ", args)
+                            ctxt = proc(*args)
+                            if ctxt:
+                                contexts[msgid] = ctxt
                                 break
-                #print(context_elements)
-                for kws, proc in context_kw:
-                    if set(kws) <= context_elements.keys():
-                        args = tuple(context_elements[k] for k in kws)
-                        #print("running ", proc, " with ", args)
-                        ctxt = proc(*args)
-                        if ctxt:
-                            context = ctxt
-                            break
 
-                translate_args = func_translate_args.get(node.func.attr, ())
                 #print(translate_args)
                 # do nothing if not found
-                for arg_kw, arg_pos in translate_args:
+                for arg_kw, (arg_pos, _) in func_args.items():
                     estr_lst = [(None, ())]
                     if arg_pos < len(node.args):
                         estr_lst = extract_strings_split(node.args[arg_pos])
@@ -535,7 +567,7 @@ def dump_py_messages_from_files(messages, check_ctxt, files):
                         #print(estr, nds)
                     for estr, nds in estr_lst:
                         if estr:
-                            key = (context, estr)
+                            key = (contexts[arg_kw], estr)
                             if nds:
                                 msgsrc = ["{}:{}".format(fp_rel, sorted({nd.lineno for nd in nds})[0])]
                             else:
