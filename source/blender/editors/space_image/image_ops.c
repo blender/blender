@@ -1084,7 +1084,7 @@ void IMAGE_OT_match_movie_length(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Match Movie Length";
-	ot->description = "Set image's users length to the one of this video";
+	ot->description = "Set image's user's length to the one of this video";
 	ot->idname = "IMAGE_OT_match_movie_length";
 	
 	/* api callbacks */

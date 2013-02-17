@@ -33,10 +33,14 @@
 
 #include "DNA_windowmanager_types.h"
 
+#include "RNA_access.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+
+#include "BLF_translation.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
@@ -197,16 +201,16 @@ static void clip_panel_operator_redo_header(const bContext *C, Panel *pa)
 	wmOperator *op = WM_operator_last_redo(C);
 
 	if (op)
-		BLI_strncpy(pa->drawname, op->type->name, sizeof(pa->drawname));
+		BLI_strncpy(pa->drawname, RNA_struct_ui_name(op->type->srna), sizeof(pa->drawname));
 	else
-		BLI_strncpy(pa->drawname, "Operator", sizeof(pa->drawname));
+		BLI_strncpy(pa->drawname, IFACE_("Operator"), sizeof(pa->drawname));
 }
 
 static void clip_panel_operator_redo_operator(const bContext *C, Panel *pa, wmOperator *op)
 {
 	if (op->type->flag & OPTYPE_MACRO) {
 		for (op = op->macro.first; op; op = op->next) {
-			uiItemL(pa->layout, op->type->name, ICON_NONE);
+			uiItemL(pa->layout, RNA_struct_ui_name(op->type->srna), ICON_NONE);
 			clip_panel_operator_redo_operator(C, pa, op);
 		}
 	}

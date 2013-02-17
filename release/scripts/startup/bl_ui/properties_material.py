@@ -566,7 +566,7 @@ class MATERIAL_PT_halo(MaterialButtonsPanel, Panel):
             row.prop(halo, toggle, text="")
             sub = row.column()
             sub.active = getattr(halo, toggle)
-            sub.prop(halo, number, text=name)
+            sub.prop(halo, number, text=name, translate=False)
             if not color == "":
                 sub.prop(mat, color, text="")
 
@@ -593,9 +593,9 @@ class MATERIAL_PT_halo(MaterialButtonsPanel, Panel):
         col.prop(halo, "use_soft")
 
         col = split.column()
-        number_but(col, "use_ring", "ring_count", "Rings", "mirror_color")
-        number_but(col, "use_lines", "line_count", "Lines", "specular_color")
-        number_but(col, "use_star", "star_tip_count", "Star tips", "")
+        number_but(col, "use_ring", "ring_count", iface_("Rings"), "mirror_color")
+        number_but(col, "use_lines", "line_count", iface_("Lines"), "specular_color")
+        number_but(col, "use_star", "star_tip_count", iface_("Star Tips"), "")
 
 
 class MATERIAL_PT_flare(MaterialButtonsPanel, Panel):
