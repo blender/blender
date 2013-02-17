@@ -3391,6 +3391,11 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 			break;
 	}
 
+	/* adjust for DPI, like BKE_brush_size_get */
+	r1 *= U.pixelsize;
+	r2 *= U.pixelsize;
+	tex_radius *= U.pixelsize;
+
 	/* Keep cursor in the original place */
 	x = rc->initial_mouse[0] - ar->winrct.xmin;
 	y = rc->initial_mouse[1] - ar->winrct.ymin;
