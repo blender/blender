@@ -6444,15 +6444,11 @@ int VertSlide(TransInfo *t, const int UNUSED(mval[2]))
 	str_p += BLI_snprintf(str_p, sizeof(str) - (str_p - str), "Alt or (C)lamp: %s", is_clamp ? "ON" : "OFF");
 	/* done with header string */
 
-	if (is_constrained) {
-		CLAMP(final, 0.0f, 1.0f);
-	}
-
-	t->values[0] = final;
 
 	/*do stuff here*/
-	if (t->customData)
+	if (t->customData) {
 		doVertSlide(t, final);
+	}
 	else {
 		strcpy(str, "Invalid Vert Selection");
 		t->state = TRANS_CANCEL;
