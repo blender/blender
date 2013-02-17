@@ -239,7 +239,6 @@ typedef struct VertSlideData {
 	float perc;
 
 	bool is_proportional;
-	bool is_clamp;
 	bool flipped_vtx;
 
 	int curr_sv_index;
