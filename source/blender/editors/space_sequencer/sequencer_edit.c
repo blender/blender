@@ -827,18 +827,14 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence *seq, int cutframe)
 static int cut_seq_list(Scene *scene, ListBase *slist, int cutframe,
                         Sequence * (*cut_seq)(Scene *, Sequence *, int))
 {
-	int did_something = FALSE;
 	Sequence *seq, *seq_next_iter;
-	
-	for (seq = slist->first; seq; seq = seq->next) {
-		seq->tmp = NULL;
-	}
+	Sequence *seq_first_new = NULL;
 	
 	seq = slist->first;
 
-	while (seq && !seq->tmp) {
+	while (seq && seq != seq_first_new) {
 		seq_next_iter = seq->next; /* we need this because we may remove seq */
-		/* only handle strips not marked as new */
+		seq->tmp = NULL;
 		if (seq->flag & SELECT) {
 			if (cutframe > seq->startdisp && 
 			    cutframe < seq->enddisp)
@@ -846,28 +842,24 @@ static int cut_seq_list(Scene *scene, ListBase *slist, int cutframe,
 				Sequence *seqn = cut_seq(scene, seq, cutframe);
 				if (seqn) {
 					BLI_addtail(slist, seqn);
-					seqn->tmp = seq; /* mark as new */
-					did_something = TRUE;
+					seq_first_new = seq_first_new ?: seqn;
 				}
 			}
 			else if (seq->enddisp <= cutframe) {
 				/* do nothing */
 			}
 			else if (seq->startdisp >= cutframe) {
-				/* move to tail and mark as new */
+				/* move to tail */
 				BLI_remlink(slist, seq);
 				BLI_addtail(slist, seq);
-				seq->tmp = seq;
+
+				seq_first_new = seq_first_new ?: seq;
 			}
 		}
 		seq = seq_next_iter;
 	}
 
-	for (; seq; seq = seq->next) {
-		seq->tmp = NULL;
-	}
-
-	return did_something;
+	return (seq_first_new != NULL);
 }
 
 static int insert_gap(Scene *scene, int gap, int cfra)
