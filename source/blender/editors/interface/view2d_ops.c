@@ -1034,14 +1034,17 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, wmEvent *event)
 		}
 		else {
 			/* 'continuous' or 'dolly' */
-			float fac;
+			float fac, zoomfac = 0.001f * v2d->maxzoom;
+			
+			/* some view2d's (graph) don't have min/max zoom, or extreme ones */
+			CLAMP (zoomfac, 0.001f, 0.01f);
 			
 			/* x-axis transform */
-			fac = 0.01f * (event->x - vzd->lastx);
+			fac = zoomfac * (event->x - vzd->lastx);
 			dx = fac * BLI_rctf_size_x(&v2d->cur);
 			
 			/* y-axis transform */
-			fac = 0.01f * (event->y - vzd->lasty);
+			fac = zoomfac * (event->y - vzd->lasty);
 			dy = fac * BLI_rctf_size_y(&v2d->cur);
 			
 		}
