@@ -162,23 +162,28 @@ static GHash *text_autocomplete_build(Text *text)
 		gh = BLI_ghash_str_new(__func__);
 
 		for (linep = text->lines.first; linep; linep = linep->next) {
-			int i_start = 0;
-			int i_end = 0;
+			size_t i_start = 0;
+			size_t i_end = 0;
+			size_t i_step = 0;
 
 			while (i_start < linep->len) {
 				/* seek identifier beginning */
-				while (i_start < linep->len && !text_check_identifier_nodigit(linep->line[i_start])) {
-					i_start++;
+				while ((i_start < linep->len) &&
+				       (!text_check_identifier_nodigit(BLI_str_utf8_as_unicode_step(&linep->line[i_start], &i_step))))
+				{
+					i_start = i_step;
 				}
 				i_end = i_start;
-				while (i_end < linep->len && text_check_identifier(linep->line[i_end])) {
-					i_end++;
+				while ((i_end < linep->len) &&
+				       (!text_check_identifier(BLI_str_utf8_as_unicode_step(&linep->line[i_end], &i_step))))
+				{
+					i_end = i_step;
 				}
 
 				if ((i_start != i_end) &&
 				    /* check we're at the beginning of a line or that the previous char is not an identifier
-					 * this prevents digits from being added */
-				    ((i_start < 1) || !text_check_identifier(linep->line[i_start - 1])))
+				     * this prevents digits from being added */
+				    ((i_start < 1) || !text_check_identifier(BLI_str_utf8_as_unicode(&linep->line[i_start - 1]))))
 				{
 					char *str_sub = &linep->line[i_start];
 					const int choice_len = i_end - i_start;
