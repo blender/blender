@@ -345,7 +345,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 				CLAMP(blend_fac, 0.3f, 1.0f);
 
 
-				UI_ThemeColorBlend(TH_BACK, TH_GRID, blend_fac);
+				UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, blend_fac);
 
 				drawgrid_draw(ar, wx, wy, x, y, dx_scalar);
 			}
@@ -374,7 +374,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 					}
 				}
 				else {  /* start blending out */
-					UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
+					UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
 					drawgrid_draw(ar, wx, wy, x, y, dx);
 
 					UI_ThemeColor(TH_GRID);
@@ -382,7 +382,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 				}
 			}
 			else {  /* start blending out (GRID_MIN_PX < dx < (GRID_MIN_PX * 10)) */
-				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
+				UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
 				drawgrid_draw(ar, wx, wy, x, y, dx);
 
 				UI_ThemeColor(TH_GRID);
@@ -401,21 +401,21 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 						drawgrid_draw(ar, wx, wy, x, y, dx);
 					}
 					else {
-						UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
+						UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
 						drawgrid_draw(ar, wx, wy, x, y, dx);
 						UI_ThemeColor(TH_GRID);
 						drawgrid_draw(ar, wx, wy, x, y, dx * sublines);
 					}
 				}
 				else {
-					UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
+					UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
 					drawgrid_draw(ar, wx, wy, x, y, dx);
 					UI_ThemeColor(TH_GRID);
 					drawgrid_draw(ar, wx, wy, x, y, dx * sublines);
 				}
 			}
 			else {
-				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
+				UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
 				drawgrid_draw(ar, wx, wy, x, y, dx);
 				UI_ThemeColor(TH_GRID);
 				drawgrid_draw(ar, wx, wy, x, y, dx * sublines);
