@@ -842,7 +842,9 @@ static int cut_seq_list(Scene *scene, ListBase *slist, int cutframe,
 				Sequence *seqn = cut_seq(scene, seq, cutframe);
 				if (seqn) {
 					BLI_addtail(slist, seqn);
-					seq_first_new = seq_first_new ?: seqn;
+					if (seq_first_new == NULL) {
+						seq_first_new = seqn;
+					}
 				}
 			}
 			else if (seq->enddisp <= cutframe) {
@@ -853,7 +855,9 @@ static int cut_seq_list(Scene *scene, ListBase *slist, int cutframe,
 				BLI_remlink(slist, seq);
 				BLI_addtail(slist, seq);
 
-				seq_first_new = seq_first_new ?: seq;
+				if (seq_first_new == NULL) {
+					seq_first_new = seq;
+				}
 			}
 		}
 		seq = seq_next_iter;
