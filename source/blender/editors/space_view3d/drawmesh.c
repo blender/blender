@@ -236,8 +236,9 @@ static struct TextureDrawState {
 	Object *ob;
 	int is_lit, is_tex;
 	int color_profile;
+	bool use_backface_culling;
 	unsigned char obcol[4];
-} Gtexdraw = {NULL, 0, 0, 0, {0, 0, 0, 0}};
+} Gtexdraw = {NULL, 0, 0, 0, false, {0, 0, 0, 0}};
 
 static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *ma, struct TextureDrawState gtexdraw)
 {
@@ -250,7 +251,7 @@ static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *m
 	static int c_has_texface;
 
 	Object *litob = NULL;  /* to get mode to turn off mipmap in painting mode */
-	int backculled = GEMAT_BACKCULL;
+	int backculled = GEMAT_BACKCULL || gtexdraw.use_backface_culling;
 	int alphablend = 0;
 	int textured = 0;
 	int lit = 0;
@@ -274,7 +275,7 @@ static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *m
 	if (ma) {
 		alphablend = ma->game.alpha_blend;
 		if (ma->mode & MA_SHLESS) lit = 0;
-		backculled = ma->game.flag & GEMAT_BACKCULL;
+		backculled = (ma->game.flag & GEMAT_BACKCULL) || gtexdraw.use_backface_culling;
 	}
 
 	if (texface) {
@@ -375,17 +376,12 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 	Gtexdraw.is_tex = is_tex;
 
 	Gtexdraw.color_profile = BKE_scene_check_color_management_enabled(scene);
+	Gtexdraw.use_backface_culling = (v3d->flag2 & V3D_BACKFACE_CULLING) != 0;
 
 	memcpy(Gtexdraw.obcol, obcol, sizeof(obcol));
 	set_draw_settings_cached(1, NULL, NULL, Gtexdraw);
 	glShadeModel(GL_SMOOTH);
-	if (v3d->flag2 & V3D_BACKFACE_CULLING) {
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-	}
-	else {
-		glDisable(GL_CULL_FACE);
-	}
+	glCullFace(GL_BACK);
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, (me->flag & ME_TWOSIDED) ? GL_TRUE : GL_FALSE);
 }
 
