@@ -75,6 +75,8 @@ ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags, char co
 		if (type->load) {
 			ibuf = type->load(mem, size, flags, effective_colorspace);
 			if (ibuf) {
+				int alpha_flags;
+
 				if (colorspace) {
 					if (ibuf->rect) {
 						/* byte buffer is never internally converted to some standard space,
@@ -86,11 +88,16 @@ ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags, char co
 					BLI_strncpy(colorspace, effective_colorspace, IM_MAX_SPACE);
 				}
 
+				if (flags & IB_alphamode_detect)
+					alpha_flags = ibuf->flags & IB_alphamode_premul;
+				else
+					alpha_flags = flags & IB_alphamode_premul;
+
 				if (flags & IB_ignore_alpha) {
 					IMB_rectfill_alpha(ibuf, 1.0f);
 				}
 				else {
-					if (flags & IB_alphamode_premul) {
+					if (alpha_flags & IB_alphamode_premul) {
 						if (ibuf->rect) {
 							IMB_unpremultiply_alpha(ibuf);
 						}
