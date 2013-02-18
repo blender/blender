@@ -104,6 +104,16 @@ static int doVertSlide(TransInfo *t, float perc);
 static void drawEdgeSlide(const struct bContext *C, TransInfo *t);
 static void drawVertSlide(const struct bContext *C, TransInfo *t);
 
+static bool transdata_check_local_center(TransInfo *t)
+{
+	return ((t->around == V3D_LOCAL) && (
+	            (t->flag & (T_OBJECT | T_POSE)) ||
+	            (t->obedit && t->obedit->type == OB_MESH && (t->settings->selectmode & (SCE_SELECT_EDGE | SCE_SELECT_FACE))) ||
+	            (t->obedit && t->obedit->type == OB_ARMATURE) ||
+	            (t->spacetype == SPACE_IPO))
+	        );
+}
+
 /* ************************** SPACE DEPENDANT CODE **************************** */
 
 void setTransformViewMatrices(TransInfo *t)
@@ -3005,12 +3015,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3])
 	}
 	
 	/* local constraint shouldn't alter center */
-	if ((t->around == V3D_LOCAL) &&
-	    (   (t->flag & (T_OBJECT | T_POSE)) ||
-	        ((t->flag & T_EDIT) && (t->settings->selectmode & (SCE_SELECT_EDGE | SCE_SELECT_FACE))) ||
-	        (t->obedit && t->obedit->type == OB_ARMATURE))
-	    )
-	{
+	if (transdata_check_local_center(t)) {
 		copy_v3_v3(center, td->center);
 	}
 	else if (t->options & CTX_MOVIECLIP) {
@@ -3387,20 +3392,16 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 {
 	float vec[3], totmat[3][3], smat[3][3];
 	float eul[3], fmat[3][3], quat[4];
-	float *center = t->center;
+	const float *center;
 
 	/* local constraint shouldn't alter center */
-	if (around == V3D_LOCAL) {
-		if (    (t->flag & (T_OBJECT | T_POSE)) ||
-		        (t->settings->selectmode & (SCE_SELECT_EDGE | SCE_SELECT_FACE)) ||
-		        (t->obedit && t->obedit->type == OB_ARMATURE))
-		{
-			center = td->center;
-		}
-
-		if (t->options & CTX_MOVIECLIP) {
-			center = td->center;
-		}
+	if (transdata_check_local_center(t) ||
+	    ((around == V3D_LOCAL) && (t->options & CTX_MOVIECLIP)))
+	{
+		center = td->center;
+	}
+	else {
+		center = t->center;
 	}
 
 	if (t->flag & T_POINTS) {

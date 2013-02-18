@@ -152,8 +152,7 @@ def edge_face_count_dict(mesh):
        faces using each edge.
     :rtype: dict
     """
-    
-    #face_edge_keys = [face.edge_keys for face in ]
+
     face_edge_count = {}
     loops = mesh.loops
     edges = mesh.edges
