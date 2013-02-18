@@ -84,8 +84,6 @@ class MATERIAL_UL_matslots(UIList):
                     layout.label(text=iface_("Node %s") % manode.name, translate=False, icon_value=layout.icon(manode))
                 elif ma.use_nodes:
                     layout.label(text="Node <none>")
-                else:
-                    layout.label(text="")
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label(text="", icon_value=icon)
