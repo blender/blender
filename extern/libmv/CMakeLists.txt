@@ -26,6 +26,8 @@
 #       If you're doing changes in this file, please update template
 #       in that script too
 
+add_subdirectory(third_party)
+
 set(INC
 	.
 	../colamd/Include
@@ -243,5 +245,3 @@ add_definitions(
 )
 
 blender_add_lib(extern_libmv "${SRC}" "${INC}" "${INC_SYS}")
-
-add_subdirectory(third_party)
