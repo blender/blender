@@ -123,6 +123,7 @@
 
 #include "BLO_sys_types.h" // for intptr_t support
 
+
 /* local function prototype - for Object/Bone Constraints */
 static short constraints_list_needinv(TransInfo *t, ListBase *list);
 
@@ -3530,7 +3531,9 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 	int count = 0, i;
 	float cfra;
 	float mtx[3][3], smtx[3][3];
-	const short use_handle = !(sipo->flag & SIPO_NOHANDLES);
+	const bool use_handle = !(sipo->flag & SIPO_NOHANDLES);
+	const bool use_local_center = checkUseLocalCenter_GraphEdit(t);
+	const short anim_map_flag = ANIM_UNITCONV_ONLYSEL | ANIM_UNITCONV_SELVERTS;
 	
 	/* determine what type of data we are operating on */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -3662,7 +3665,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		if (fcu->bezt == NULL)
 			continue;
 		
-		ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYSEL | ANIM_UNITCONV_SELVERTS);
+		ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, anim_map_flag);
 		
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse (if applicable) */
 		for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
@@ -3697,7 +3700,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				}
 				
 				/* only include main vert if selected */
-				if (sel2 && (sipo->around != V3D_LOCAL || ELEM3(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE))) {
+				if (sel2 && (use_local_center == false)) {
 
 					/* move handles relative to center */
 					if (ELEM3(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE)) {
@@ -3733,6 +3736,13 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		
 		/* Sets handles based on the selection */
 		testhandles_fcurve(fcu, use_handle);
+
+		/* even though transform values are written back right after during transform,
+		 * using individual center's with rotation means the center point wont
+		 * be touched again see: [#34303] */
+		if (use_local_center) {
+			ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, anim_map_flag | ANIM_UNITCONV_RESTORE);
+		}
 	}
 	
 	/* cleanup temp list */

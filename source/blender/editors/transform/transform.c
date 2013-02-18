@@ -7388,3 +7388,10 @@ void BIF_TransformSetUndo(const char *UNUSED(str))
 	// TRANSFORM_FIX_ME
 	//Trans.undostr = str;
 }
+
+
+/* TODO, move to: transform_queries.c */
+bool checkUseLocalCenter_GraphEdit(TransInfo *t)
+{
+	return ((t->around == V3D_LOCAL) && !ELEM3(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE));
+}

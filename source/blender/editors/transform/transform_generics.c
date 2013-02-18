@@ -130,6 +130,7 @@ void getViewVector(TransInfo *t, float coord[3], float vec[3])
 
 /* ************************** GENERICS **************************** */
 
+
 static void clipMirrorModifier(TransInfo *t, Object *ob)
 {
 	ModifierData *md = ob->modifiers.first;
@@ -407,7 +408,9 @@ static void recalcData_graphedit(TransInfo *t)
 			continue;
 		
 		// fixme: only do this for selected verts...
-		ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYSEL | ANIM_UNITCONV_SELVERTS | ANIM_UNITCONV_RESTORE);
+		ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data,
+		                               ANIM_UNITCONV_ONLYSEL | ANIM_UNITCONV_SELVERTS | ANIM_UNITCONV_RESTORE |
+		                               (checkUseLocalCenter_GraphEdit(t) ? ANIM_UNITCONV_SKIPKNOTS : 0));
 		
 		
 		/* watch it: if the time is wrong: do not correct handles yet */
