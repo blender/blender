@@ -94,7 +94,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, Panel):
         row = layout.row()
 
         col = row.column()
-        col.template_list("UI_UL_list", "", scene, "keying_sets", scene.keying_sets, "active_index", rows=2)
+        col.template_list("UI_UL_list", "keying_sets", scene, "keying_sets", scene.keying_sets, "active_index", rows=2)
 
         col = row.column(align=True)
         col.operator("anim.keying_set_add", icon='ZOOMIN', text="")

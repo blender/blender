@@ -184,7 +184,8 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
         if poselib:
             # list of poses in pose library
             row = layout.row()
-            row.template_list("UI_UL_list", "", poselib, "pose_markers", poselib.pose_markers, "active_index", rows=5)
+            row.template_list("UI_UL_list", "pose_markers", poselib, "pose_markers",
+                              poselib.pose_markers, "active_index", rows=5)
 
             # column of operators for active pose
             # - goes beside list
