@@ -148,6 +148,7 @@ private:
 	DistortionCache *m_cache;
 	SocketReader *m_inputOperation;
 	MovieClip *m_movieClip;
+	int m_margin[2];
 
 protected:
 	bool m_distortion;

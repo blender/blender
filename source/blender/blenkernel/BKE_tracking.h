@@ -46,6 +46,7 @@ struct MovieDistortion;
 struct Camera;
 struct Object;
 struct Scene;
+struct rcti;
 
 /* **** Common functions **** */
 
@@ -155,6 +156,8 @@ struct ImBuf *BKE_tracking_undistort_frame(struct MovieTracking *tracking, struc
                                            int calibration_width, int calibration_height, float overscan);
 struct ImBuf *BKE_tracking_distort_frame(struct MovieTracking *tracking, struct ImBuf *ibuf,
                                          int calibration_width, int calibration_height, float overscan);
+
+void BKE_tracking_max_undistortion_delta_across_bound(struct MovieTracking *tracking, struct rcti *rect, float delta[2]);
 
 /* **** Image sampling **** */
 struct ImBuf *BKE_tracking_sample_pattern(int frame_width, int frame_height,
