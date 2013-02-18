@@ -193,6 +193,10 @@ static int console_textview_line_color(struct TextViewContext *tvc, unsigned cha
 	return TVC_LINE_FG;
 }
 
+static void console_textview_const_colors(TextViewContext *UNUSED(tvc), unsigned char bg_sel[4])
+{
+	UI_GetThemeColor4ubv(TH_CONSOLE_SELECT, bg_sel);
+}
 
 static int console_textview_main__internal(struct SpaceConsole *sc, ARegion *ar, int draw,
                                            int mval[2], void **mouse_pick, int *pos_pick)
@@ -210,6 +214,7 @@ static int console_textview_main__internal(struct SpaceConsole *sc, ARegion *ar,
 	tvc.step = console_textview_step;
 	tvc.line_get = console_textview_line_get;
 	tvc.line_color = console_textview_line_color;
+	tvc.const_colors = console_textview_const_colors;
 
 	tvc.arg1 = sc;
 	tvc.arg2 = NULL;

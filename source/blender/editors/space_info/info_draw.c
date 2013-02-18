@@ -251,7 +251,8 @@ static int report_textview_line_color(struct TextViewContext *tvc, unsigned char
 
 #undef USE_INFO_NEWLINE
 
-static int info_textview_main__internal(struct SpaceInfo *sinfo, ARegion *ar, ReportList *reports, int draw, int mval[2], void **mouse_pick, int *pos_pick)
+static int info_textview_main__internal(struct SpaceInfo *sinfo, ARegion *ar, ReportList *reports,
+                                        int draw, int mval[2], void **mouse_pick, int *pos_pick)
 {
 	int ret = 0;
 	
@@ -264,6 +265,7 @@ static int info_textview_main__internal(struct SpaceInfo *sinfo, ARegion *ar, Re
 	tvc.step = report_textview_step;
 	tvc.line_get = report_textview_line_get;
 	tvc.line_color = report_textview_line_color;
+	tvc.const_colors = NULL;
 
 	tvc.arg1 = sinfo;
 	tvc.arg2 = reports;

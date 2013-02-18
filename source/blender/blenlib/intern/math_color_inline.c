@@ -174,7 +174,8 @@ MINLINE void srgb_to_linearrgb_uchar4_predivide(float linear[4], const unsigned 
 }
 
 /* color macros for themes */
-#define rgba_char_args_set_fl(col, r, g, b, a)  rgba_char_args_set(col, r * 255, g * 255, b * 255, a * 255)
+#define rgba_char_args_set_fl(col, r, g, b, a) \
+	rgba_char_args_set(col, (r) * 255, (g) * 255, (b) * 255, (a) * 255)
 
 MINLINE void rgba_char_args_set(char col[4], const char r, const char g, const char b, const char a)
 {

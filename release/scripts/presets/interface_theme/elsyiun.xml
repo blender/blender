@@ -800,7 +800,8 @@
                     line_input="#ffffff"
                     line_info="#00aa00"
                     line_error="#dc6060"
-                    cursor="#dc6060">
+                    cursor="#dc6060"
+                    select="#4e4e8f80">
         <space>
           <ThemeSpaceGeneric back="#202020"
                              title="#000000"
