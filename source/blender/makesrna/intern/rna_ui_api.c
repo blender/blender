@@ -771,8 +771,8 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm = RNA_def_string(func, "listtype_name", "", 0, "", "Identifier of the list type to use");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_string(func, "list_id", "", 0, "",
-	                      "Identifier of this list widget (should be systematically used with default UI_UL_list "
-	                      "class). "
+	                      "Identifier of this list widget (mandatory when using default \"" UI_UL_DEFAULT_CLASS_NAME
+	                      "\" class). "
 	                      "If this is set, the uilist gets a custom ID, otherwise it takes the "
 	                      "name of the class used to define the uilist (for example, if the "
 	                      "class name is \"OBJECT_UL_vgroups\", and list_id is not set by the "

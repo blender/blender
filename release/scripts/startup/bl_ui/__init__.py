@@ -137,6 +137,7 @@ def unregister():
 
 
 # Define a default UIList, when a list does not need any custom drawing...
+# Keep in sync with its #defined name in UI_interface.h
 class UI_UL_list(bpy.types.UIList):
     pass
 
