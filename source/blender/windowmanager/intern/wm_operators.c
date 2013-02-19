@@ -1243,7 +1243,7 @@ wmOperator *WM_operator_last_redo(const bContext *C)
 	return op;
 }
 
-static void wm_block_redo_cb(bContext *C, void *arg_op, int UNUSED(arg_event))
+static void wm_block_redo_cb(bContext *C, void *arg_op, int arg_event)
 {
 	wmOperator *op = arg_op;
 
@@ -1258,6 +1258,15 @@ static void wm_block_redo_cb(bContext *C, void *arg_op, int UNUSED(arg_event))
 
 		WM_operator_repeat(C, op);
 	}
+}
+
+static void wm_block_redo_cancel_cb(bContext *C, void *arg_op)
+{
+	wmOperator *op = arg_op;
+
+	/* if operator never got executed, free it */
+	if (op != WM_operator_last_redo(C))
+		WM_operator_free(op);
 }
 
 static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
@@ -1402,7 +1411,7 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *ar, void *userData)
 	return block;
 }
 
-static void wm_operator_ui_popup_cancel(void *userData)
+static void wm_operator_ui_popup_cancel(struct bContext *UNUSED(C), void *userData)
 {
 	wmOpPopUp *data = userData;
 	if (data->free_op && data->op) {
@@ -1452,7 +1461,7 @@ static int wm_operator_props_popup_ex(bContext *C, wmOperator *op, const int do_
 	if (!(U.uiflag & USER_GLOBALUNDO))
 		return WM_operator_props_dialog_popup(C, op, 15 * UI_UNIT_X, UI_UNIT_Y);
 
-	uiPupBlock(C, wm_block_create_redo, op);
+	uiPupBlockEx(C, wm_block_create_redo, NULL, wm_block_redo_cancel_cb, op);
 
 	if (do_call)
 		wm_block_redo_cb(C, op, 0);

@@ -429,7 +429,7 @@ struct uiPopupBlockHandle {
 
 	int popup;
 	void (*popup_func)(struct bContext *C, void *arg, int event);
-	void (*cancel_func)(void *arg);
+	void (*cancel_func)(struct bContext *C, void *arg);
 	void *popup_arg;
 	
 	struct wmTimer *scrolltimer;

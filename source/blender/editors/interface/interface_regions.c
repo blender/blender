@@ -2574,7 +2574,7 @@ static void operator_cb(bContext *C, void *arg, int retval)
 		WM_operator_free(op);
 }
 
-static void confirm_cancel_operator(void *opv)
+static void confirm_cancel_operator(bContext *UNUSED(C), void *opv)
 {
 	WM_operator_free(opv);
 }
