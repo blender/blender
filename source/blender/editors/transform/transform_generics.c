@@ -809,6 +809,7 @@ static void recalcData_view3d(TransInfo *t)
 					if (td->extra) {
 						float vec[3], up_axis[3];
 						float qrot[4];
+						bool ztrans_hack = false;
 						
 						ebo = td->extra;
 						copy_v3_v3(up_axis, td->axismtx[2]);
@@ -823,7 +824,25 @@ static void recalcData_view3d(TransInfo *t)
 							mul_m3_v3(t->mat, up_axis);
 						}
 						
-						ebo->roll = ED_rollBoneToVector(ebo, up_axis, TRUE);
+						/* "ztrans_hack" is a hacky compromise fix for two bug reports
+						 *  - [#33974] : When extruding/translating bones vertically, 
+						 *               the roll of each bone in such vertical chains would
+						 *               flip between z-axis forward and z-axis backwards
+						 *  - [#34283] : For "normal" transforms, the original fix for [#33974]
+						 *               would cause manually-set roll values on horizontal and
+						 *               diagonal bones to constantly get reset to values the system
+						 *               deems "correct" (usually 180 degree flips of the manual version)
+						 */
+						if (t->mode == TFM_TRANSLATION) {
+							const float ZAXIS_REF[3] = {0.0f, 0.0f, 1.0f};
+							float tdelta[3];
+							
+							/* tdelta is the translation - enable this hack when it is z-axis movement */
+							normalize_v3_v3(tdelta, t->values);
+							ztrans_hack = compare_v3v3(tdelta, ZAXIS_REF, 0.1f);
+						}
+						
+						ebo->roll = ED_rollBoneToVector(ebo, up_axis, ztrans_hack);
 					}
 				}
 			}
