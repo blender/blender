@@ -222,6 +222,9 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 				}
 			}
 		}
+		else {
+			totedgedata = bm->totedgesel;
+		}
 
 		/* check for defgroups */
 		if (evedef)
@@ -427,26 +430,16 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		/* Meshes... */
 		if (meshdata) {
 			if (totedgedata) {
-				Mesh *me = ob->data;
-				BMEditMesh *em = me->edit_btmesh;
-				BMesh *bm = em->bm;
-
-				const int cd_edge_bweight_offset = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
-				const int cd_edge_crease_offset  = CustomData_get_offset(&bm->edata, CD_CREASE);
-
-				if (cd_edge_crease_offset != -1) {
-					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN,
-					          totedgedata == 1 ? IFACE_("Crease:") : IFACE_("Mean Crease:"),
-					          0, yi -= buth + but_margin, 200, buth,
-					          &(tfp->ve_median[M_CREASE]), 0.0, 1.0, 1, 3, TIP_("Weight used by SubSurf modifier"));
-				}
-
-				if (cd_edge_bweight_offset != -1) {
-					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN,
-					          totedgedata == 1 ? IFACE_("Bevel Weight:") : IFACE_("Mean Bevel Weight:"),
-					          0, yi -= buth + but_margin, 200, buth,
-					          &(tfp->ve_median[M_WEIGHT]), 0.0, 1.0, 1, 3, TIP_("Weight used by Bevel modifier"));
-				}
+				/* customdata layer added on demand */
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN,
+				          totedgedata == 1 ? IFACE_("Crease:") : IFACE_("Mean Crease:"),
+				          0, yi -= buth + but_margin, 200, buth,
+				          &(tfp->ve_median[M_CREASE]), 0.0, 1.0, 1, 3, TIP_("Weight used by SubSurf modifier"));
+				/* customdata layer added on demand */
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN,
+				          totedgedata == 1 ? IFACE_("Bevel Weight:") : IFACE_("Mean Bevel Weight:"),
+				          0, yi -= buth + but_margin, 200, buth,
+				          &(tfp->ve_median[M_WEIGHT]), 0.0, 1.0, 1, 3, TIP_("Weight used by Bevel modifier"));
 			}
 			if (totskinradius) {
 				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN,
@@ -529,7 +522,8 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			}
 
 			if (median[M_CREASE] != 0.0f) {
-				const int cd_edge_crease_offset  = CustomData_get_offset(&bm->edata, CD_CREASE);
+				const int cd_edge_crease_offset  = (BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_CREASE),
+				                                    CustomData_get_offset(&bm->edata, CD_CREASE));
 				const float sca = compute_scale_factor(ve_median[M_CREASE], median[M_CREASE]);
 				BMEdge *eed;
 
@@ -561,7 +555,8 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			}
 
 			if (median[M_WEIGHT] != 0.0f) {
-				const int cd_edge_bweight_offset  = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
+				const int cd_edge_bweight_offset = (BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_BWEIGHT),
+				                                    CustomData_get_offset(&bm->edata, CD_BWEIGHT));
 				const float sca = compute_scale_factor(ve_median[M_WEIGHT], median[M_WEIGHT]);
 				BMEdge *eed;
 
