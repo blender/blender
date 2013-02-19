@@ -56,6 +56,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "RNA_access.h"
 
 #include "BIF_gl.h"
@@ -1768,25 +1770,25 @@ void calculatePropRatio(TransInfo *t)
 		}
 		switch (t->prop_mode) {
 			case PROP_SHARP:
-				strcpy(t->proptext, "(Sharp)");
+				strcpy(t->proptext, IFACE_("(Sharp)"));
 				break;
 			case PROP_SMOOTH:
-				strcpy(t->proptext, "(Smooth)");
+				strcpy(t->proptext, IFACE_("(Smooth)"));
 				break;
 			case PROP_ROOT:
-				strcpy(t->proptext, "(Root)");
+				strcpy(t->proptext, IFACE_("(Root)"));
 				break;
 			case PROP_LIN:
-				strcpy(t->proptext, "(Linear)");
+				strcpy(t->proptext, IFACE_("(Linear)"));
 				break;
 			case PROP_CONST:
-				strcpy(t->proptext, "(Constant)");
+				strcpy(t->proptext, IFACE_("(Constant)"));
 				break;
 			case PROP_SPHERE:
-				strcpy(t->proptext, "(Sphere)");
+				strcpy(t->proptext, IFACE_("(Sphere)"));
 				break;
 			case PROP_RANDOM:
-				strcpy(t->proptext, "(Random)");
+				strcpy(t->proptext, IFACE_("(Random)"));
 				break;
 			default:
 				t->proptext[0] = '\0';

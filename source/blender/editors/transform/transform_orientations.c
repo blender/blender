@@ -493,25 +493,25 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 	switch (t->current_orientation) {
 		case V3D_MANIP_GLOBAL:
 			unit_m3(t->spacemtx);
-			strcpy(t->spacename, "global");
+			strcpy(t->spacename, IFACE_("global"));
 			break;
 
 		case V3D_MANIP_GIMBAL:
 			unit_m3(t->spacemtx);
 			if (gimbal_axis(ob, t->spacemtx)) {
-				strcpy(t->spacename, "gimbal");
+				strcpy(t->spacename, IFACE_("gimbal"));
 				break;
 			}
 		/* no gimbal fallthrough to normal */
 		case V3D_MANIP_NORMAL:
 			if (obedit || (ob && ob->mode & OB_MODE_POSE)) {
-				strcpy(t->spacename, "normal");
+				strcpy(t->spacename, IFACE_("normal"));
 				ED_getTransformOrientationMatrix(C, t->spacemtx, (v3d->around == V3D_ACTIVE));
 				break;
 			}
 		/* no break we define 'normal' as 'local' in Object mode */
 		case V3D_MANIP_LOCAL:
-			strcpy(t->spacename, "local");
+			strcpy(t->spacename, IFACE_("local"));
 		
 			if (ob) {
 				copy_m3_m4(t->spacemtx, ob->obmat);
@@ -528,7 +528,7 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 				RegionView3D *rv3d = t->ar->regiondata;
 				float mat[3][3];
 
-				strcpy(t->spacename, "view");
+				strcpy(t->spacename, IFACE_("view"));
 				copy_m3_m4(mat, rv3d->viewinv);
 				normalize_m3(mat);
 				copy_m3_m3(t->spacemtx, mat);

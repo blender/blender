@@ -47,6 +47,8 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_material.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -4673,9 +4675,10 @@ typedef struct {
 static void edbm_bevel_update_header(wmOperator *op, bContext *C)
 {
 #ifdef NEW_BEVEL
-	static char str[] = "Confirm: Enter/LClick, Cancel: (Esc/RMB), offset: %s, segments: %d";
+	const char *str = IFACE_("Confirm: Enter/LClick, Cancel: (Esc/RMB), Offset: %s, Segments: %d");
 #else
-	static char str[] = "Confirm: Enter/LClick, Cancel: (Esc/RMB), factor: %s, Use Dist (D): %s: Use Even (E): %s";
+	const char *str = IFACE_("Confirm: Enter/LClick, Cancel: (Esc/RMB), Factor: %s, Use Dist (D): %s, "
+	                         "Use Even (E): %s");
 	BevelData *opdata = op->customdata;
 #endif
 
@@ -4698,8 +4701,8 @@ static void edbm_bevel_update_header(wmOperator *op, bContext *C)
 			BLI_snprintf(factor_str, NUM_STR_REP_LEN, "%f", RNA_float_get(op->ptr, "percent"));
 		BLI_snprintf(msg, HEADER_LENGTH, str,
 		             factor_str,
-		             RNA_boolean_get(op->ptr, "use_dist") ? "On" : "Off",
-		             RNA_boolean_get(op->ptr, "use_even") ? "On" : "Off"
+		             RNA_boolean_get(op->ptr, "use_dist") ? IFACE_("On") : IFACE_("Off"),
+		             RNA_boolean_get(op->ptr, "use_even") ? IFACE_("On") : IFACE_("Off")
 		            );
 #endif
 
@@ -5212,12 +5215,8 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
 {
 	InsetData *opdata = op->customdata;
 
-	static const char str[] = "Confirm: Enter/LClick, "
-	                          "Cancel: (Esc/RClick), "
-	                          "thickness: %s, "
-	                          "depth (Ctrl to tweak): %s (%s), "
-	                          "Outset (O): (%s), "
-	                          "Boundary (B): (%s)";
+	const char *str = IFACE_("Confirm: Enter/LClick, Cancel: (Esc/RClick), Thickness: %s, "
+	                         "Depth (Ctrl to tweak): %s (%s), Outset (O): (%s), Boundary (B): (%s)");
 
 	char msg[HEADER_LENGTH];
 	ScrArea *sa = CTX_wm_area(C);
@@ -5233,9 +5232,9 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
 		BLI_snprintf(msg, HEADER_LENGTH, str,
 		             flts_str,
 		             flts_str + NUM_STR_REP_LEN,
-		             opdata->modify_depth ? "On" : "Off",
-		             RNA_boolean_get(op->ptr, "use_outset") ? "On" : "Off",
-		             RNA_boolean_get(op->ptr, "use_boundary") ? "On" : "Off"
+		             opdata->modify_depth ? IFACE_("On") : IFACE_("Off"),
+		             RNA_boolean_get(op->ptr, "use_outset") ? IFACE_("On") : IFACE_("Off"),
+		             RNA_boolean_get(op->ptr, "use_boundary") ? IFACE_("On") : IFACE_("Off")
 		            );
 
 		ED_area_headerprint(sa, msg);

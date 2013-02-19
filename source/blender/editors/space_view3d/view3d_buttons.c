@@ -403,28 +403,28 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		uiBlockBeginAlign(block);
 
 		/* Should be no need to translate these. */
-		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "X:", 0, yi -= buth, 200, buth,
+		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("X:"), 0, yi -= buth, 200, buth,
 		                &(tfp->ve_median[LOC_X]), -lim, lim, 10, RNA_TRANSLATION_PREC_DEFAULT, "");
 		uiButSetUnitType(but, PROP_UNIT_LENGTH);
-		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Y:", 0, yi -= buth, 200, buth,
+		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Y:"), 0, yi -= buth, 200, buth,
 		                &(tfp->ve_median[LOC_Y]), -lim, lim, 10, RNA_TRANSLATION_PREC_DEFAULT, "");
 		uiButSetUnitType(but, PROP_UNIT_LENGTH);
-		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Z:", 0, yi -= buth, 200, buth,
+		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("Z:"), 0, yi -= buth, 200, buth,
 		                &(tfp->ve_median[LOC_Z]), -lim, lim, 10, RNA_TRANSLATION_PREC_DEFAULT, "");
 		uiButSetUnitType(but, PROP_UNIT_LENGTH);
 
 		if (totcurvebweight == tot) {
-			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "W:", 0, yi -= buth, 200, buth,
+			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, IFACE_("W:"), 0, yi -= buth, 200, buth,
 			          &(tfp->ve_median[C_BWEIGHT]), 0.01, 100.0, 1, 3, "");
 		}
 
 		uiBlockBeginAlign(block);
 		uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, B_REDR, IFACE_("Global"),
 		             0, yi -= buth + but_margin, 100, buth,
-		             &v3d->flag, 0, 0, 0, 0, "Displays global values");
+		             &v3d->flag, 0, 0, 0, 0, TIP_("Displays global values"));
 		uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, B_REDR, IFACE_("Local"),
 		             100, yi, 100, buth,
-		             &v3d->flag, 0, 0, 0, 0, "Displays local values");
+		             &v3d->flag, 0, 0, 0, 0, TIP_("Displays local values"));
 		uiBlockEndAlign(block);
 
 		/* Meshes... */
@@ -454,11 +454,11 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		}
 		/* Curve... */
 		else if (totcurvedata == 1) {
-			uiDefButR(block, NUM, 0, "Weight", 0, yi -= buth + but_margin, 200, buth,
+			uiDefButR(block, NUM, 0, IFACE_("Weight"), 0, yi -= buth + but_margin, 200, buth,
 			          &data_ptr, "weight_softbody", 0, 0.0, 1.0, 1, 3, NULL);
-			uiDefButR(block, NUM, 0, "Radius", 0, yi -= buth + but_margin, 200, buth,
+			uiDefButR(block, NUM, 0, IFACE_("Radius"), 0, yi -= buth + but_margin, 200, buth,
 			          &data_ptr, "radius", 0, 0.0, 100.0, 1, 3, NULL);
-			uiDefButR(block, NUM, 0, "Tilt", 0, yi -= buth + but_margin, 200, buth,
+			uiDefButR(block, NUM, 0, IFACE_("Tilt"), 0, yi -= buth + but_margin, 200, buth,
 			          &data_ptr, "tilt", 0, -FLT_MAX, FLT_MAX, 1, 3, NULL);
 		}
 		else if (totcurvedata > 1) {
@@ -476,7 +476,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		}
 		/* Lattice... */
 		else if (totlattdata == 1) {
-			uiDefButR(block, NUM, 0, "Weight", 0, yi -= buth + but_margin, 200, buth,
+			uiDefButR(block, NUM, 0, IFACE_("Weight"), 0, yi -= buth + but_margin, 200, buth,
 			          &data_ptr, "weight_softbody", 0, 0.0, 1.0, 1, 3, NULL);
 		}
 		else if (totlattdata > 1) {
@@ -1269,20 +1269,20 @@ void view3d_buttons_register(ARegionType *art)
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype view3d panel object");
 	strcpy(pt->idname, "VIEW3D_PT_object");
-	strcpy(pt->label, "Transform");
+	strcpy(pt->label, N_("Transform"));  /* XXX C panels not  available through RNA (bpy.types)! */
 	pt->draw = view3d_panel_object;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype view3d panel gpencil");
 	strcpy(pt->idname, "VIEW3D_PT_gpencil");
-	strcpy(pt->label, "Grease Pencil");
+	strcpy(pt->label, N_("Grease Pencil"));  /* XXX C panels are not available through RNA (bpy.types)! */
 	pt->draw_header = gpencil_panel_standard_header;
 	pt->draw = gpencil_panel_standard;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype view3d panel vgroup");
 	strcpy(pt->idname, "VIEW3D_PT_vgroup");
-	strcpy(pt->label, "Vertex Groups");
+	strcpy(pt->label, N_("Vertex Groups"));  /* XXX C panels are not available through RNA (bpy.types)! */
 	pt->draw = view3d_panel_vgroup;
 	pt->poll = view3d_panel_vgroup_poll;
 	BLI_addtail(&art->paneltypes, pt);

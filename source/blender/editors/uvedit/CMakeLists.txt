@@ -22,6 +22,7 @@ set(INC
 	../include
 	../../blenkernel
 	../../blenlib
+	../../blenfont
 	../../blenloader
 	../../bmesh
 	../../makesdna
@@ -46,5 +47,9 @@ set(SRC
 	uvedit_intern.h
 	uvedit_parametrizer.h
 )
+
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
+endif()
 
 blender_add_lib(bf_editor_uvedit "${SRC}" "${INC}" "${INC_SYS}")

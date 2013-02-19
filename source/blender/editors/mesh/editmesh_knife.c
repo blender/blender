@@ -41,6 +41,8 @@
 #include "BLI_smallhash.h"
 #include "BLI_memarena.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_DerivedMesh.h"
 #include "BKE_context.h"
 
@@ -215,12 +217,13 @@ static void knife_update_header(bContext *C, KnifeTool_OpData *kcd)
 	#define HEADER_LENGTH 190
 	char header[HEADER_LENGTH];
 
-	BLI_snprintf(header, HEADER_LENGTH, "LMB: define cut lines, Return/Spacebar: confirm, Esc or RMB: cancel, E: new cut, Ctrl: midpoint snap (%s), "
-	             "Shift: ignore snap (%s), C: angle constrain (%s), Z: cut through (%s)",
-	             kcd->snap_midpoints ? "On" : "Off",
-	             kcd->ignore_edge_snapping ?  "On" : "Off",
-	             kcd->angle_snapping ? "On" : "Off",
-	             kcd->cut_through ? "On" : "Off");
+	BLI_snprintf(header, HEADER_LENGTH, IFACE_("LMB: define cut lines, Return/Spacebar: confirm, Esc or RMB: cancel, "
+	                                           "E: new cut, Ctrl: midpoint snap (%s), Shift: ignore snap (%s), "
+	                                           "C: angle constrain (%s), Z: cut through (%s)"),
+	             kcd->snap_midpoints ? IFACE_("On") : IFACE_("Off"),
+	             kcd->ignore_edge_snapping ?  IFACE_("On") : IFACE_("Off"),
+	             kcd->angle_snapping ? IFACE_("On") : IFACE_("Off"),
+	             kcd->cut_through ? IFACE_("On") : IFACE_("Off"));
 
 	ED_area_headerprint(CTX_wm_area(C), header);
 }

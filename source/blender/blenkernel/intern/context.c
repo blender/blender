@@ -48,6 +48,8 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
@@ -851,7 +853,7 @@ void CTX_wm_operator_poll_msg_set(bContext *C, const char *msg)
 
 const char *CTX_wm_operator_poll_msg_get(bContext *C)
 {
-	return C->wm.operator_poll_msg;
+	return IFACE_(C->wm.operator_poll_msg);
 }
 
 /* data context */

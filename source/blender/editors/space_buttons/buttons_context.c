@@ -36,6 +36,8 @@
 #include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_armature_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
@@ -1028,7 +1030,8 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 
 	block = uiLayoutGetBlock(row);
 	uiBlockSetEmboss(block, UI_EMBOSSN);
-	but = uiDefIconButBitC(block, ICONTOG, SB_PIN_CONTEXT, 0, ICON_UNPINNED, 0, 0, UI_UNIT_X, UI_UNIT_Y, &sbuts->flag, 0, 0, 0, 0, "Follow context or keep fixed datablock displayed");
+	but = uiDefIconButBitC(block, ICONTOG, SB_PIN_CONTEXT, 0, ICON_UNPINNED, 0, 0, UI_UNIT_X, UI_UNIT_Y, &sbuts->flag,
+	                       0, 0, 0, 0, IFACE_("Follow context or keep fixed datablock displayed"));
 	uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
 	uiButSetFunc(but, pin_cb, NULL, NULL);
 
@@ -1068,7 +1071,7 @@ void buttons_context_register(ARegionType *art)
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype buttons panel context");
 	strcpy(pt->idname, "BUTTONS_PT_context");
-	strcpy(pt->label, "Context");
+	strcpy(pt->label, N_("Context"));  /* XXX C panels are not available through RNA (bpy.types)! */
 	pt->draw = buttons_panel_context;
 	pt->flag = PNL_NO_HEADER;
 	BLI_addtail(&art->paneltypes, pt);
