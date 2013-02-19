@@ -1243,7 +1243,7 @@ wmOperator *WM_operator_last_redo(const bContext *C)
 	return op;
 }
 
-static void wm_block_redo_cb(bContext *C, void *arg_op, int arg_event)
+static void wm_block_redo_cb(bContext *C, void *arg_op, int UNUSED(arg_event))
 {
 	wmOperator *op = arg_op;
 
