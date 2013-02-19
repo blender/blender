@@ -433,6 +433,22 @@ unsigned int BLI_str_utf8_as_unicode_and_size(const char *__restrict p, size_t *
 	return result;
 }
 
+unsigned int BLI_str_utf8_as_unicode_and_size_safe(const char *__restrict p, size_t *__restrict index)
+{
+	int i, mask = 0, len;
+	unsigned int result;
+	const unsigned char c = (unsigned char) *p;
+
+	UTF8_COMPUTE (c, mask, len, -1);
+	if (len == -1) {
+		*index += 1;
+		return c;
+	}
+	UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
+	*index += len;
+	return result;
+}
+
 /* another variant that steps over the index,
  * note, currently this also falls back to latin1 for text drawing. */
 unsigned int BLI_str_utf8_as_unicode_step(const char *__restrict p, size_t *__restrict index)
