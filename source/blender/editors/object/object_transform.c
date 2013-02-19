@@ -424,7 +424,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 
 			cu = ob->data;
 
-			if (!(cu->flag & CU_3D) && (apply_rot || apply_loc)) {
+			if (((ob->type == OB_CURVE) && !(cu->flag & CU_3D)) && (apply_rot || apply_loc)) {
 				BKE_report(reports, RPT_ERROR,
 				           "Neither rotation nor location could be applied to a 2D curve, doing nothing");
 				change = 0;
