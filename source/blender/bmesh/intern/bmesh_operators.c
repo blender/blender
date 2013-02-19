@@ -595,13 +595,13 @@ void BMO_mesh_flag_disable_all(BMesh *bm, BMOperator *UNUSED(op), const char hty
 
 	const char flag_types[3] = {BM_VERT, BM_EDGE, BM_FACE};
 
-	BMIter iter;
 	BMElemF *ele;
 	int i;
 
 #pragma omp parallel for schedule(dynamic) if (bm->totvert + bm->totedge + bm->totface >= BM_OMP_LIMIT)
 	for (i = 0; i < 3; i++) {
 		if (htype & flag_types[i]) {
+			BMIter iter;
 			BM_ITER_MESH (ele, &iter, bm, iter_types[i]) {
 				BMO_elem_flag_disable(bm, ele, oflag);
 			}
