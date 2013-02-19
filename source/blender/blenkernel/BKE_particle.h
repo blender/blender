@@ -220,7 +220,10 @@ typedef struct ParticleCollision {
 
 	ParticleCollisionElement pce;
 
-	float total_time, inv_timestep;
+	/* total_time is the amount of time in this subframe
+	 * inv_total_time is the opposite
+	 * inv_timestep is the inverse of the amount of time in this frame */
+	float total_time, inv_total_time, inv_timestep;
 
 	float radius;
 	float co1[3], co2[3];

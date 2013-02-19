@@ -3028,13 +3028,20 @@ static void basic_rotate(ParticleSettings *part, ParticleData *pa, float dfra, f
 	normalize_qt(pa->state.rot);
 }
 
-/************************************************/
-/*			Collisions							*/
-/************************************************/
+/************************************************
+ *			Collisions
+ *
+ * The algorithm is roughly:
+ *  1. Use a BVH tree to search for faces that a particle may collide with.
+ *  2. Use Newton's method to find the exact time at which the collision occurs.
+ *     http://en.wikipedia.org/wiki/Newton's_method
+ *
+ ************************************************/
 #define COLLISION_MAX_COLLISIONS	10
 #define COLLISION_MIN_RADIUS 0.001f
 #define COLLISION_MIN_DISTANCE 0.0001f
 #define COLLISION_ZERO 0.00001f
+#define COLLISION_INIT_STEP 0.00008f
 typedef float (*NRDistanceFunc)(float *p, float radius, ParticleCollisionElement *pce, float *nor);
 static float nr_signed_distance_to_plane(float *p, float radius, ParticleCollisionElement *pce, float *nor)
 {
@@ -3189,16 +3196,20 @@ static void collision_point_on_surface(float p[3], ParticleCollisionElement *pce
 /* find first root in range [0-1] starting from 0 */
 static float collision_newton_rhapson(ParticleCollision *col, float radius, ParticleCollisionElement *pce, NRDistanceFunc distance_func)
 {
-	float t0, t1, d0, d1, dd, n[3];
+	float t0, t1, dt_init, d0, d1, dd, n[3];
 	int iter;
 
 	pce->inv_nor = -1;
+
+	/* Initial step size should be small, but not too small or floating point
+	 * precision errors will appear. - z0r */
+	dt_init = COLLISION_INIT_STEP * col->inv_total_time;
 
 	/* start from the beginning */
 	t0 = 0.f;
 	collision_interpolate_element(pce, t0, col->f, col);
 	d0 = distance_func(col->co1, radius, pce, n);
-	t1 = 0.001f;
+	t1 = dt_init;
 	d1 = 0.f;
 
 	for (iter=0; iter<10; iter++) {//, itersum++) {
@@ -3208,11 +3219,6 @@ static float collision_newton_rhapson(ParticleCollision *col, float radius, Part
 
 		d1 = distance_func(pce->p, radius, pce, n);
 
-		/* no movement, so no collision */
-		if (d1 == d0) {
-			return -1.f;
-		}
-
 		/* particle already inside face, so report collision */
 		if (iter == 0 && d0 < 0.f && d0 > -radius) {
 			copy_v3_v3(pce->p, col->co1);
@@ -3220,7 +3226,24 @@ static float collision_newton_rhapson(ParticleCollision *col, float radius, Part
 			pce->inside = 1;
 			return 0.f;
 		}
-		
+
+		/* Zero gradient (no movement relative to element). Can't step from
+		 * here. */
+		if (d1 == d0) {
+			/* If first iteration, try from other end where the gradient may be
+			 * greater. Note: code duplicated below. */
+			if (iter == 0) {
+				t0 = 1.f;
+				collision_interpolate_element(pce, t0, col->f, col);
+				d0 = distance_func(col->co2, radius, pce, n);
+				t1 = 1.0f - dt_init;
+				d1 = 0.f;
+				continue;
+			}
+			else
+				return -1.f;
+		}
+
 		dd = (t1-t0)/(d1-d0);
 
 		t0 = t1;
@@ -3228,14 +3251,14 @@ static float collision_newton_rhapson(ParticleCollision *col, float radius, Part
 
 		t1 -= d1*dd;
 
-		/* particle movin away from plane could also mean a strangely rotating face, so check from end */
+		/* Particle moving away from plane could also mean a strangely rotating
+		 * face, so check from end. Note: code duplicated above. */
 		if (iter == 0 && t1 < 0.f) {
 			t0 = 1.f;
 			collision_interpolate_element(pce, t0, col->f, col);
 			d0 = distance_func(col->co2, radius, pce, n);
-			t1 = 0.999f;
+			t1 = 1.0f - dt_init;
 			d1 = 0.f;
-
 			continue;
 		}
 		else if (iter == 1 && (t1 < -COLLISION_ZERO || t1 > 1.f))
@@ -3683,6 +3706,7 @@ static void collision_check(ParticleSimulationData *sim, int p, float dfra, floa
 	memset(&col, 0, sizeof(ParticleCollision));
 
 	col.total_time = timestep * dfra;
+	col.inv_total_time = 1.0f/col.total_time;
 	col.inv_timestep = 1.0f/timestep;
 
 	col.cfra = cfra;
