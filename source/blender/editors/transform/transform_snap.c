@@ -303,6 +303,9 @@ void applyProject(TransInfo *t)
 			
 			if (td->flag & TD_SKIP)
 				continue;
+
+			if ((t->flag & T_PROP_EDIT) && (td->factor == 0.0f))
+				continue;
 			
 			copy_v3_v3(iloc, td->loc);
 			if (t->flag & (T_EDIT | T_POSE)) {
@@ -325,7 +328,14 @@ void applyProject(TransInfo *t)
 
 					mul_m3_v3(td->smtx, tvec);
 
-					add_v3_v3(td->loc, tvec);
+					if ((t->flag & T_PROP_EDIT) == 0) {
+						add_v3_v3(td->loc, tvec);
+					}
+					else {
+						add_v3_v3(tvec, td->loc);
+						interp_v3_v3v3(td->loc, td->loc, tvec, td->factor);
+					}
+
 				}
 			}
 			
