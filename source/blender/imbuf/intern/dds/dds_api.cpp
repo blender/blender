@@ -96,7 +96,7 @@ struct ImBuf *imb_load_dds(unsigned char *mem, size_t size, int flags, char colo
 	Color32 pixel;
 	Color32 *pixels = 0;
 
-	/* OCIO_TODO: never was able to save DDS, so can'ttest loading
+	/* OCIO_TODO: never was able to save DDS, so can't test loading
 	 *            but profile used to be set to sRGB and can't see rect_float here, so
 	 *            default byte space should work fine
 	 */

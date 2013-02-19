@@ -674,7 +674,7 @@ static BMLoop *poly_find_ear(BMFace *f, float (*projectverts)[2], const bool use
 		i = (((len_squared_v3v3(larr[0]->v->co, larr[2]->v->co) >
 		     len_squared_v3v3(larr[1]->v->co, larr[3]->v->co) * bias)) != use_beauty);
 		i4 = (i + 3) % 4;
-		/* Check produced tris aren’t too flat/narrow...
+		/* Check produced tris aren't too flat/narrow...
 		 * Probably not the best test, but is quite efficient and should at least avoid null-area faces! */
 		cos1 = fabsf(cos_v3v3v3(larr[i4]->v->co, larr[i]->v->co, larr[i + 1]->v->co));
 		cos2 = fabsf(cos_v3v3v3(larr[i4]->v->co, larr[i + 2]->v->co, larr[i + 1]->v->co));
@@ -741,7 +741,8 @@ static BMLoop *poly_find_ear(BMFace *f, float (*projectverts)[2], const bool use
 				/* Compare to prev best (i.e. lowest) cos. */
 				if (cos < bestcos) {
 					/* We must check this tri would not leave a (too much) degenerated remaining face! */
-					/* For now just assume if the average of cos of all "remaining face"'s corners is below a given threshold, it’s OK. */
+					/* For now just assume if the average of cos of all
+					 * "remaining face"'s corners is below a given threshold, it's OK. */
 					float avgcos = fabsf(cos_v3v3v3(v1->co, v3->co, l_iter->next->next->v->co));
 					const int i_limit = (i - 1 + len) % len;
 					avgcos += fabsf(cos_v3v3v3(l_iter->prev->prev->v->co, v1->co, v3->co));

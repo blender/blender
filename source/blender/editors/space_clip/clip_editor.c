@@ -618,7 +618,7 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf, const unsign
 	context->last_texture = glaGetOneInteger(GL_TEXTURE_2D);
 
 	/* image texture need to be rebinded if displaying another image buffer
-	 * assuming displaying happens of footage frames only on which painting doesn't heppen.
+	 * assuming displaying happens of footage frames only on which painting doesn't happen.
 	 * so not changed image buffer pointer means unchanged image content */
 	need_rebind |= context->texture_ibuf != ibuf;
 	need_rebind |= context->display_buffer != display_buffer;
