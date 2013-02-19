@@ -809,6 +809,7 @@ static void recalcData_view3d(TransInfo *t)
 					if (td->extra) {
 						float vec[3], up_axis[3];
 						float qrot[4];
+						float roll;
 						bool ztrans_hack = false;
 						
 						ebo = td->extra;
@@ -842,7 +843,8 @@ static void recalcData_view3d(TransInfo *t)
 							ztrans_hack = compare_v3v3(tdelta, ZAXIS_REF, 0.1f);
 						}
 						
-						ebo->roll = ED_rollBoneToVector(ebo, up_axis, ztrans_hack);
+						roll = ED_rollBoneToVector(ebo, up_axis, ztrans_hack);
+						ebo->roll = angle_compat_rad(roll, ebo->roll);
 					}
 				}
 			}

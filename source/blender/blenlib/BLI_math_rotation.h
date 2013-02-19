@@ -186,6 +186,8 @@ float fov_to_focallength(float fov, float sensor);
 float angle_wrap_rad(float angle);
 float angle_wrap_deg(float angle);
 
+float angle_compat_rad(float angle, float angle_compat);
+
 int mat3_from_axis_conversion(int from_forward, int from_up, int to_forward, int to_up,
                               float r_mat[3][3]);
 
