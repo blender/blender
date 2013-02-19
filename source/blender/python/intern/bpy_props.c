@@ -2796,12 +2796,17 @@ static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject
 }
 
 PyDoc_STRVAR(BPy_RemoveProperty_doc,
-".. function:: RemoveProperty(attr)\n"
+".. function:: RemoveProperty(cls, attr)\n"
 "\n"
 "   Removes a dynamically defined property.\n"
 "\n"
+"   :arg cls: The class containing the property.\n"
+"   :type cls: type\n"
 "   :arg attr: Property name.\n"
 "   :type attr: string\n"
+"\n"
+".. note:: Typically this function doesn't need to be accessed directly.\n"
+"   Instead use ``del cls.attr``\n"
 );
 static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
