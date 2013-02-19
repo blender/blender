@@ -227,7 +227,8 @@ PYGETTEXT_KEYWORDS = (() +
           for it in ("CTX_IFACE_", "CTX_TIP_", "CTX_N_")) + 
 
     tuple(("{}\\((?:[^\"',]+,){{1,2}}\\s*" + _msg_re + r"\s*(?:\)|,)").format(it)
-          for it in ("BKE_report", "BKE_reportf", "BKE_reports_prepend", "BKE_reports_prependf")) +
+          for it in ("BKE_report", "BKE_reportf", "BKE_reports_prepend", "BKE_reports_prependf",
+                     "CTX_wm_operator_poll_msg_set")) +
 
     tuple(("{}\\((?:[^\"',]+,){{3}}\\s*" + _msg_re + r"\s*\)").format(it)
           for it in ("BMO_error_raise",)) +
