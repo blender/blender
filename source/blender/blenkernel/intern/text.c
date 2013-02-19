@@ -2938,6 +2938,18 @@ int text_check_identifier_nodigit(const char ch)
 	return 0;
 }
 
+#ifndef WITH_PYTHON
+int text_check_identifier_unicode(const unsigned int ch)
+{
+	return (ch < 255 && text_check_identifier((char)ch));
+}
+
+int text_check_identifier_nodigit_unicode(const unsigned int ch)
+{
+	return (ch < 255 && text_check_identifier_nodigit((char)ch));
+}
+#endif  /* WITH_PYTHON */
+
 int text_check_whitespace(const char ch)
 {
 	if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n')
