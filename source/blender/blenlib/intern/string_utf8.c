@@ -369,7 +369,7 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w, const char *__rest
 int BLI_str_utf8_size(const char *p)
 {
 	int mask = 0, len;
-	unsigned char c = (unsigned char) *p;
+	const unsigned char c = (unsigned char) *p;
 
 	UTF8_COMPUTE (c, mask, len, -1);
 
@@ -382,7 +382,7 @@ int BLI_str_utf8_size(const char *p)
 int BLI_str_utf8_size_safe(const char *p)
 {
 	int mask = 0, len;
-	unsigned char c = (unsigned char) *p;
+	const unsigned char c = (unsigned char) *p;
 
 	UTF8_COMPUTE (c, mask, len, 1);
 
@@ -408,10 +408,10 @@ unsigned int BLI_str_utf8_as_unicode(const char *p)
 {
 	int i, mask = 0, len;
 	unsigned int result;
-	unsigned char c = (unsigned char) *p;
+	const unsigned char c = (unsigned char) *p;
 
 	UTF8_COMPUTE (c, mask, len, -1);
-	if (len == -1)
+	if (UNLIKELY(len == -1))
 		return BLI_UTF8_ERR;
 	UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
 
@@ -423,10 +423,10 @@ unsigned int BLI_str_utf8_as_unicode_and_size(const char *__restrict p, size_t *
 {
 	int i, mask = 0, len;
 	unsigned int result;
-	unsigned char c = (unsigned char) *p;
+	const unsigned char c = (unsigned char) *p;
 
 	UTF8_COMPUTE (c, mask, len, -1);
-	if (len == -1)
+	if (UNLIKELY(len == -1))
 		return BLI_UTF8_ERR;
 	UTF8_GET (result, p, i, mask, len, BLI_UTF8_ERR);
 	*index += len;
@@ -440,7 +440,7 @@ unsigned int BLI_str_utf8_as_unicode_and_size_safe(const char *__restrict p, siz
 	const unsigned char c = (unsigned char) *p;
 
 	UTF8_COMPUTE (c, mask, len, -1);
-	if (len == -1) {
+	if (UNLIKELY(len == -1)) {
 		*index += 1;
 		return c;
 	}
@@ -461,7 +461,7 @@ unsigned int BLI_str_utf8_as_unicode_step(const char *__restrict p, size_t *__re
 	c = (unsigned char) *p;
 
 	UTF8_COMPUTE (c, mask, len, -1);
-	if (len == -1) {
+	if (UNLIKELY(len == -1)) {
 		/* when called with NULL end, result will never be NULL,
 		 * checks for a NULL character */
 		char *p_next = BLI_str_find_next_char_utf8(p, NULL);
