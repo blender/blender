@@ -8653,8 +8653,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			SEQ_BEGIN (scene->ed, seq)
 			{
-				if (seq->flag & SEQ_MAKE_PREMUL)
+				if (seq->flag & SEQ_MAKE_PREMUL) {
 					seq->alpha_mode = SEQ_ALPHA_STRAIGHT;
+				}
+				else {
+					BKE_sequence_alpha_mode_from_extension(seq);
+				}
 			}
 			SEQ_END
 
@@ -8680,8 +8684,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 
 		for (image = main->image.first; image; image = image->id.next) {
-			if (image->flag & IMA_DO_PREMUL)
+			if (image->flag & IMA_DO_PREMUL) {
 				image->alpha_mode = IMA_ALPHA_STRAIGHT;
+			}
+			else {
+				BKE_image_alpha_mode_from_extension(image);
+			}
 
 			image->flag &= ~IMA_DONE_TAG;
 		}
