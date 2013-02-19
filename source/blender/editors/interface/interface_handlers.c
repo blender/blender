@@ -3404,6 +3404,19 @@ static int ui_do_but_NORMAL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 	return WM_UI_HANDLER_CONTINUE;
 }
 
+/* scales a vector so no axis exceeds max
+ * (could become BLI_math func) */
+static void clamp_axis_max_v3(float v[3], const float max)
+{
+	const float v_max = max_fff(v[0], v[1], v[2]);
+	if (v_max > max) {
+		mul_v3_fl(v, max / v_max);
+		if (v[0] > max) v[0] = max;
+		if (v[1] > max) v[1] = max;
+		if (v[2] > max) v[2] = max;
+	}
+}
+
 static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, int my, const short shift)
 {
 	float rgb[3];
@@ -3479,6 +3492,11 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 
 	if (color_profile && ((int)but->a1 != UI_GRAD_SV))
 		ui_block_to_scene_linear_v3(but->block, rgb);
+
+	/* clamp because with color conversion we can exceed range [#34295] */
+	if ((int)but->a1 == UI_GRAD_V_ALT) {
+		clamp_axis_max_v3(rgb, but->softmax);
+	}
 
 	copy_v3_v3(data->vec, rgb);
 
