@@ -2001,10 +2001,7 @@ bool axis_dominant_v3_to_m3(float r_mat[3][3], const float normal[3])
 	float angle;
 
 	/* double check they are normalized */
-#ifdef DEBUG
-	float test;
-	BLI_assert(fabsf((test = len_squared_v3(normal)) - 1.0f) < 0.0001f || fabsf(test) < 0.0001f);
-#endif
+	BLI_ASSERT_UNIT_V3(normal);
 
 	cross_v3_v3v3(axis, normal, up);
 	angle = saacos(dot_v3v3(normal, up));
