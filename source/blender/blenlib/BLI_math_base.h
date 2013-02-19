@@ -221,7 +221,8 @@ double double_round(double x, int ndigits);
  * check the vector is unit length, or zero length (which can't be helped in some cases).
  */
 #ifdef DEBUG
-#  define BLI_ASSERT_UNIT_EPSILON 0.0001f
+/* note: 0.0001 is too small becaues normals may be converted from short's: see [#34322] */
+#  define BLI_ASSERT_UNIT_EPSILON 0.0002f
 #  define BLI_ASSERT_UNIT_V3(v)  {                                            \
 	const float _test_unit = len_squared_v3(v);                               \
 	BLI_assert((fabsf(_test_unit - 1.0f) < BLI_ASSERT_UNIT_EPSILON) ||        \
