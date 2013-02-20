@@ -1,3 +1,4 @@
 #!/usr/bin/python
 
+SConscript(['ssba/SConscript'])
 SConscript(['ceres/SConscript'])

@@ -26,8 +26,6 @@
 #       If you're doing changes in this file, please update template
 #       in that script too
 
-add_subdirectory(third_party)
-
 set(INC
 	.
 	../colamd/Include
@@ -86,8 +84,6 @@ set(SRC
 	third_party/gflags/gflags_completions.cc
 	third_party/gflags/gflags_reporting.cc
 	third_party/ldl/Source/ldl.c
-	third_party/ssba/Geometry/v3d_metricbundle.cpp
-	third_party/ssba/Math/v3d_optimization.cpp
 
 	libmv-capi.h
 	libmv/base/id_generator.h
@@ -148,13 +144,6 @@ set(SRC
 	third_party/ldl/Include/ldl.h
 	third_party/msinttypes/inttypes.h
 	third_party/msinttypes/stdint.h
-	third_party/ssba/Geometry/v3d_cameramatrix.h
-	third_party/ssba/Geometry/v3d_distortion.h
-	third_party/ssba/Geometry/v3d_metricbundle.h
-	third_party/ssba/Math/v3d_linear.h
-	third_party/ssba/Math/v3d_linear_utils.h
-	third_party/ssba/Math/v3d_mathutilities.h
-	third_party/ssba/Math/v3d_optimization.h
 )
 
 if(WIN32)
@@ -192,14 +181,6 @@ if(WIN32)
 		list(APPEND INC
 			third_party/msinttypes
 		)
-	endif()
-
-	if(MSVC)
-		set(MSVC_OFLAGS O1 O2 Ox)
-		foreach(FLAG ${MSVC_OFLAGS})
-			string(REPLACE "${FLAG}" "Od" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-			string(REPLACE "${FLAG}" "Od" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
-		endforeach()
 	endif()
 else()
 	list(APPEND SRC
@@ -245,3 +226,5 @@ add_definitions(
 )
 
 blender_add_lib(extern_libmv "${SRC}" "${INC}" "${INC_SYS}")
+
+add_subdirectory(third_party)

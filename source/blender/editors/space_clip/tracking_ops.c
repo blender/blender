@@ -1105,7 +1105,7 @@ static void track_markers_startjob(void *tmv, short *stop, short *do_update, flo
 {
 	TrackMarkersJob *tmj = (TrackMarkersJob *)tmv;
 	int framenr = tmj->sfra;
-	//double t = PIL_check_seconds_timer();
+	// double t = PIL_check_seconds_timer();
 
 	while (framenr != tmj->efra) {
 		if (tmj->delay > 0) {
@@ -1141,7 +1141,7 @@ static void track_markers_startjob(void *tmv, short *stop, short *do_update, flo
 			break;
 	}
 
-	//printf("Tracking time: %lf\n", PIL_check_seconds_timer()-t);
+	// printf("Tracking time: %lf\n", PIL_check_seconds_timer()-t);
 }
 
 static void track_markers_updatejob(void *tmv)

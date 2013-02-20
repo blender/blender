@@ -11,10 +11,6 @@ Import('env')
 
 defs = []
 
-cflags_libmv = Split(env['CFLAGS'])
-ccflags_libmv = Split(env['CCFLAGS'])
-cxxflags_libmv = Split(env['CXXFLAGS'])
-
 defs.append('V3DLIB_ENABLE_SUITESPARSE')
 defs.append('GOOGLE_GLOG_DLL_DECL=')
 
@@ -27,8 +23,6 @@ src += env.Glob('libmv/tracking/*.cc')
 src += env.Glob('third_party/fast/*.c')
 src += env.Glob('third_party/gflags/*.cc')
 src += env.Glob('third_party/ldl/Source/*.c')
-src += env.Glob('third_party/ssba/Geometry/*.cpp')
-src += env.Glob('third_party/ssba/Math/*.cpp')
 
 incs = '. ../Eigen3 third_party/ceres/include'
 incs += ' ' + env['BF_PNG_INC']
@@ -41,19 +35,6 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', '
 
     src += ['./third_party/glog/src/logging.cc', './third_party/glog/src/raw_logging.cc', './third_party/glog/src/utilities.cc', './third_party/glog/src/vlog_is_on.cc']
     src += ['./third_party/glog/src/windows/port.cc']
-
-    if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
-        cflags_libmv.append('/Od')
-        ccflags_libmv.append('/Od')
-        cxxflags_libmv.append('/Od')
-
-        if not env['BF_DEBUG']:
-            defs.append('NDEBUG')
-    else:
-        if not env['BF_DEBUG']:
-            cflags_libmv += Split(env['REL_CFLAGS'])
-            ccflags_libmv += Split(env['REL_CCFLAGS'])
-            cxxflags_libmv += Split(env['REL_CXXFLAGS'])
 else:
     src += env.Glob("third_party/glog/src/*.cc")
     incs += ' ./third_party/glog/src'
@@ -64,6 +45,6 @@ else:
 
 incs += ' ./third_party/ssba ./third_party/ldl/Include ../colamd/Include'
 
-env.BlenderLib ( libname = 'extern_libmv', sources=src, includes=Split(incs), defines=defs, libtype=['extern', 'player'], priority=[20,137], compileflags=cflags_libmv, cc_compileflags=ccflags_libmv, cxx_compileflags=cxxflags_libmv )
+env.BlenderLib ( libname = 'extern_libmv', sources=src, includes=Split(incs), defines=defs, libtype=['extern', 'player'], priority=[20,137] )
 
 SConscript(['third_party/SConscript'])
