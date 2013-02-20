@@ -32,8 +32,7 @@ blender_version_char=$(grep BLENDER_VERSION_CHAR $blender_srcdir/source/blender/
 blender_version_cycle=$(grep BLENDER_VERSION_CYCLE $blender_srcdir/source/blender/blenkernel/BKE_blender.h | awk '{print $3}')
 blender_subversion=$(grep BLENDER_SUBVERSION $blender_srcdir/source/blender/blenkernel/BKE_blender.h | awk '{print $3}')
 
-if [ "$blender_version_cycle" == "release" ]
-then
+if [ "$blender_version_cycle" == "release" ] ; then
 	BLENDER_VERSION=$(expr $blender_version / 100)_$(expr $blender_version % 100)$blender_version_char"_release"
 else
 	BLENDER_VERSION=$(expr $blender_version / 100)_$(expr $blender_version % 100)_$blender_subversion
@@ -108,6 +107,11 @@ if $DO_UPLOAD ; then
 
 	# better redirect
 	ssh $SSH_USER@emo.blender.org 'echo "<html><head><title>Redirecting...</title><meta http-equiv=\"REFRESH\" content=\"0;url=../blender_python_api_'$BLENDER_VERSION'/\"></head><body>Redirecting...</body></html>" > '$SSH_UPLOAD'/250PythonDoc/index.html'
+
+	# redirect for release only so wiki can point here
+	if [ "$blender_version_cycle" == "release" ] ; then
+		ssh $SSH_USER@emo.blender.org 'echo "<html><head><title>Redirecting...</title><meta http-equiv=\"REFRESH\" content=\"0;url=../blender_python_api_'$BLENDER_VERSION'/\"></head><body>Redirecting...</body></html>" > '$SSH_UPLOAD'/blender_python_api/index.html'
+	fi
 
 	if $DO_OUT_PDF ; then
 		# rename so local PDF has matching name.

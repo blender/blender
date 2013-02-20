@@ -1483,7 +1483,9 @@ def write_sphinx_conf_py(basepath):
 
 def execfile(filepath):
     global_namespace = {"__file__": filepath, "__name__": "__main__"}
-    exec(compile(open(filepath).read(), filepath, 'exec'), global_namespace)
+    file_handle = open(filepath)
+    exec(compile(file_handle.read(), filepath, 'exec'), global_namespace)
+    file_handle.close()
 
 
 def write_rst_contents(basepath):
