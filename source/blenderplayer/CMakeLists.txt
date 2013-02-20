@@ -167,6 +167,7 @@ endif()
 
 	if(WITH_LIBMV)
 		list(APPEND BLENDER_SORTED_LIBS extern_libmv)
+		list(APPEND BLENDER_SORTED_LIBS extern_ssba)
 		list(APPEND BLENDER_SORTED_LIBS extern_ceres)
 	endif()
 
