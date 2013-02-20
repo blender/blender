@@ -328,14 +328,7 @@ void applyProject(TransInfo *t)
 
 					mul_m3_v3(td->smtx, tvec);
 
-					if ((t->flag & T_PROP_EDIT) == 0) {
-						add_v3_v3(td->loc, tvec);
-					}
-					else {
-						add_v3_v3(tvec, td->loc);
-						interp_v3_v3v3(td->loc, td->loc, tvec, td->factor);
-					}
-
+					add_v3_v3(td->loc, tvec);
 				}
 			}
 			
