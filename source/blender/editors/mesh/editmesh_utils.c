@@ -136,8 +136,10 @@ void EDBM_mesh_clear(BMEditMesh *em)
 	
 	/* free tessellation data */
 	em->tottri = 0;
-	if (em->looptris) 
+	if (em->looptris) {
 		MEM_freeN(em->looptris);
+		em->looptris = NULL;
+	}
 }
 
 void EDBM_stats_update(BMEditMesh *em)
