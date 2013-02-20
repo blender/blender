@@ -319,6 +319,9 @@ void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node, COLLADAFW
 	anim_importer.translate_Animations(node, root_map, object_map, FW_object_map);
 
 	if (node->getType() == COLLADAFW::Node::JOINT && par == NULL) {
+		// For Skeletons without root node we have to simulate the
+		// root node here and recursively enter the same function
+		// XXX: maybe this can be made more elegant.
 		translate_anim_recursive(node, node, parob);
 	}
 	else {
@@ -473,8 +476,9 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 
 	if (is_joint) {
 		if (parent_node == NULL) {
+			// A Joint on root level is a skeleton without root node.
+			// Here we add the armature "on the fly":
 			par = bc_add_object(sce, OB_ARMATURE, std::string("Armature").c_str());
-			//anim_importer.read_node_transform(node, par);
 			objects_done->push_back(par);
 			object_map.insert(std::make_pair<COLLADAFW::UniqueId, Object *>(node->getUniqueId(), par));
 			node_map[node->getUniqueId()] = node;
@@ -482,6 +486,8 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 		armature_importer.add_joint(node, parent_node == NULL || parent_node->getType() != COLLADAFW::Node::JOINT, par, sce);
 
 		if (parent_node == NULL) {
+			// for skeletons without root node all has been done above.
+			// Skeletons with root node are handled further down.
 			return objects_done;
 		}
 	}
