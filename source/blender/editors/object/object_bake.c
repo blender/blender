@@ -257,11 +257,18 @@ static DerivedMesh *multiresbake_create_hiresdm(Scene *scene, Object *ob, int *l
 	return dm;
 }
 
-static void clear_images(MTFace *mtface, int totface)
+typedef enum ClearFlag {
+	CLEAR_NORMAL = 1
+} ClearFlag;
+
+
+static void clear_images(MTFace *mtface, int totface, ClearFlag flag)
 {
 	int a;
 	const float vec_alpha[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	const float vec_solid[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+	const float nor_alpha[4] = {0.5f, 0.5f, 1.0f, 0.0f};
+	const float nor_solid[4] = {0.5f, 0.5f, 1.0f, 1.0f};
 
 	for (a = 0; a < totface; a++)
 		mtface[a].tpage->id.flag &= ~LIB_DOIT;
@@ -272,7 +279,11 @@ static void clear_images(MTFace *mtface, int totface)
 		if ((ima->id.flag & LIB_DOIT) == 0) {
 			ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 
-			IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
+			if (flag == CLEAR_NORMAL)
+				IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? nor_alpha : nor_solid);
+			else
+				IMB_rectfill(ibuf, (ibuf->planes == R_IMF_PLANES_RGBA) ? vec_alpha : vec_solid);
+
 			ima->id.flag |= LIB_DOIT;
 
 			BKE_image_release_ibuf(ima, ibuf, NULL);
@@ -300,7 +311,10 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 			ob = base->object;
 			me = (Mesh *)ob->data;
 
-			clear_images(me->mtface, me->totface);
+			if (scene->r.bake_mode == RE_BAKE_NORMALS && scene->r.bake_normal_space == R_BAKE_SPACE_TANGENT)
+				clear_images(me->mtface, me->totface, CLEAR_NORMAL);
+			else
+				clear_images(me->mtface, me->totface, 0);
 		}
 		CTX_DATA_END;
 	}
@@ -395,7 +409,10 @@ static void multiresbake_startjob(void *bkv, short *stop, short *do_update, floa
 			DerivedMesh *dm = data->lores_dm;
 			MTFace *mtface = CustomData_get_layer(&dm->faceData, CD_MTFACE);
 
-			clear_images(mtface, dm->getNumTessFaces(dm));
+			if (bkj->mode == RE_BAKE_NORMALS)
+				clear_images(mtface, dm->getNumTessFaces(dm), CLEAR_NORMAL);
+			else
+				clear_images(mtface, dm->getNumTessFaces(dm), 0);
 		}
 	}
 
