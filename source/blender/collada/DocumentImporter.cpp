@@ -252,8 +252,9 @@ void DocumentImporter::finish()
 	for (std::vector<const COLLADAFW::VisualScene *>::iterator it = vscenes.begin(); it != vscenes.end(); it++) {
 		const COLLADAFW::NodePointerArray& roots = (*it)->getRootNodes();
 
-		for (unsigned int i = 0; i < roots.getCount(); i++)
+		for (unsigned int i = 0; i < roots.getCount(); i++) {
 			translate_anim_recursive(roots[i], NULL, NULL);
+		}
 	}
 
 	if (libnode_ob.size()) {
@@ -312,13 +313,19 @@ void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node, COLLADAFW
 #endif
 	unsigned int i;
 
+
 	//for (i = 0; i < 4; i++)
 	//    ob =
 	anim_importer.translate_Animations(node, root_map, object_map, FW_object_map);
 
-	COLLADAFW::NodePointerArray &children = node->getChildNodes();
-	for (i = 0; i < children.getCount(); i++) {
-		translate_anim_recursive(children[i], node, NULL);
+	if (node->getType() == COLLADAFW::Node::JOINT && par == NULL) {
+		translate_anim_recursive(node, node, parob);
+	}
+	else {
+		COLLADAFW::NodePointerArray &children = node->getChildNodes();
+		for (i = 0; i < children.getCount(); i++) {
+			translate_anim_recursive(children[i], node, NULL);
+		}
 	}
 }
 
@@ -465,7 +472,18 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 			name.c_str());
 
 	if (is_joint) {
+		if (parent_node == NULL) {
+			par = bc_add_object(sce, OB_ARMATURE, std::string("Armature").c_str());
+			//anim_importer.read_node_transform(node, par);
+			objects_done->push_back(par);
+			object_map.insert(std::make_pair<COLLADAFW::UniqueId, Object *>(node->getUniqueId(), par));
+			node_map[node->getUniqueId()] = node;
+		}
 		armature_importer.add_joint(node, parent_node == NULL || parent_node->getType() != COLLADAFW::Node::JOINT, par, sce);
+
+		if (parent_node == NULL) {
+			return objects_done;
+		}
 	}
 	else {
 		COLLADAFW::InstanceGeometryPointerArray &geom = node->getInstanceGeometries();
