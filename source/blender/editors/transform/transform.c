@@ -1686,7 +1686,11 @@ static void drawAutoKeyWarning(TransInfo *UNUSED(t), ARegion *ar)
 	 * - original color was red to match the icon, but that clashes badly with a less nasty border
 	 */
 	UI_ThemeColorShade(TH_TEXT_HI, -50);
+#ifdef WITH_INTERNATIONAL
+	BLF_draw_default(xco, ar->winy - 17, 0.0f, printable, sizeof(printable));
+#else
 	BLF_draw_default_ascii(xco, ar->winy - 17, 0.0f, printable, sizeof(printable));
+#endif
 	
 	/* autokey recording icon... */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

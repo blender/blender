@@ -854,8 +854,13 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	const char *name = view3d_get_name(v3d, rv3d);
+	/* XXX 24 may be a bit small for unicode languages (Chinese in utf-8...) */
+#ifdef WITH_INTERNATIONAL
+	char tmpstr[32];
+#else
 	char tmpstr[24];
-	
+#endif
+
 	if (v3d->localvd) {
 		BLI_snprintf(tmpstr, sizeof(tmpstr), IFACE_("%s (Local)"), name);
 		name = tmpstr;
@@ -863,7 +868,11 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect)
 
 	if (name) {
 		UI_ThemeColor(TH_TEXT_HI);
+#ifdef WITH_INTERNATIONAL
+		BLF_draw_default(U.widget_unit + rect->xmin,  rect->ymax - U.widget_unit, 0.0f, name, sizeof(tmpstr));
+#else
 		BLF_draw_default_ascii(U.widget_unit + rect->xmin,  rect->ymax - U.widget_unit, 0.0f, name, sizeof(tmpstr));
+#endif
 	}
 }
 
@@ -2854,8 +2863,12 @@ static void draw_viewport_fps(Scene *scene, rcti *rect)
 		UI_ThemeColor(TH_TEXT_HI);
 		BLI_snprintf(printable, sizeof(printable), IFACE_("fps: %i"), (int)(fps + 0.5f));
 	}
-	
+
+#ifdef WITH_INTERNATIONAL
+	BLF_draw_default(rect->xmin + U.widget_unit,  rect->ymax - U.widget_unit, 0.0f, printable, sizeof(printable));
+#else
 	BLF_draw_default_ascii(rect->xmin + U.widget_unit,  rect->ymax - U.widget_unit, 0.0f, printable, sizeof(printable));
+#endif
 }
 
 static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const char **grid_unit);
