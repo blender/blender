@@ -15,6 +15,7 @@ defs.append('V3DLIB_ENABLE_SUITESPARSE')
 
 src = env.Glob('Geometry/*.cpp')
 src += env.Glob('Math/*.cpp')
+src += env.Glob('../ldl/Source/*.c')
 
 incs = '. ../ldl/Include ../../../colamd/Include'
 

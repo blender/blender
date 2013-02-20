@@ -42,6 +42,9 @@ set(SRC
 	Math/v3d_linear_utils.h
 	Math/v3d_mathutilities.h
 	Math/v3d_optimization.h
+
+	../ldl/Source/ldl.c
+	../ldl/Include/ldl.h
 )
 
 if(WIN32)

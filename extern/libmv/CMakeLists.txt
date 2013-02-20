@@ -35,7 +35,6 @@ set(INC
 set(INC_SYS
 	../Eigen3
 	third_party/ssba
-	third_party/ldl/Include
 	${PNG_INCLUDE_DIR}
 	${ZLIB_INCLUDE_DIRS}
 )
@@ -83,7 +82,6 @@ set(SRC
 	third_party/gflags/gflags.cc
 	third_party/gflags/gflags_completions.cc
 	third_party/gflags/gflags_reporting.cc
-	third_party/ldl/Source/ldl.c
 
 	libmv-capi.h
 	libmv/base/id_generator.h
@@ -141,7 +139,6 @@ set(SRC
 	third_party/gflags/gflags/gflags.h
 	third_party/gflags/mutex.h
 	third_party/gflags/util.h
-	third_party/ldl/Include/ldl.h
 	third_party/msinttypes/inttypes.h
 	third_party/msinttypes/stdint.h
 )
