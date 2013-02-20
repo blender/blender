@@ -1581,7 +1581,8 @@ static uiBlock *icon_view_menu(bContext *C, ARegion *ar, void *arg_litem)
 	/* arg_litem is malloced, can be freed by parent button */
 	cb = *((RNAUpdateCb *)arg_litem);
 	
-	icon = RNA_property_enum_get(&cb.ptr, cb.prop);
+	/* unused */
+	// icon = RNA_property_enum_get(&cb.ptr, cb.prop);
 	
 	block = uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP | UI_BLOCK_REDRAW);
