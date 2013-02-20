@@ -635,6 +635,9 @@ void BKE_rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, shor
 					break;
 			}
 		}
+		else { /* can't create constraint without both rigid bodies */
+			return;
+		}
 
 		RB_constraint_set_enabled(rbc->physics_constraint, rbc->flag & RBC_FLAG_ENABLED);
 
