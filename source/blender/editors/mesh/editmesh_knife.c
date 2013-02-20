@@ -214,7 +214,7 @@ static void knife_input_ray_segment(KnifeTool_OpData *kcd, const float mval[2], 
 
 static void knife_update_header(bContext *C, KnifeTool_OpData *kcd)
 {
-	#define HEADER_LENGTH 190
+	#define HEADER_LENGTH 256
 	char header[HEADER_LENGTH];
 
 	BLI_snprintf(header, HEADER_LENGTH, IFACE_("LMB: define cut lines, Return/Spacebar: confirm, Esc or RMB: cancel, "
