@@ -25,18 +25,15 @@ PyDoc_STRVAR(TVertex_doc,
 "\n"
 ".. method:: __init__()\n"
 "\n"
-"   Default constructor.\n"
-"\n"
-".. method:: __init__(iBrother)\n"
-"\n"
-"   Copy constructor.\n"
-"\n"
-"   :arg iBrother: A TVertex object.\n"
-"   :type iBrother: :class:`TVertex`");
+"   Default constructor.");
+
+/* Note: No copy constructor in Python because the C++ copy constructor is 'protected'. */
 
 static int TVertex_init(BPy_TVertex *self, PyObject *args, PyObject *kwds)
 {
-	if (!PyArg_ParseTuple(args, ""))
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
 		return -1;
 	self->tv = new TVertex();
 	self->py_vv.vv = self->tv;

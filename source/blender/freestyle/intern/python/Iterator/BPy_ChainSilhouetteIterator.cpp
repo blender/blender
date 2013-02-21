@@ -11,7 +11,7 @@ extern "C" {
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-// ChainSilhouetteIterator (bool iRestrictToSelection=true, ViewEdge *begin=NULL, bool orientation=true)
+// ChainSilhouetteIterator (bool restrict_to_selection=true, ViewEdge *begin=NULL, bool orientation=true)
 // ChainSilhouetteIterator (const ChainSilhouetteIterator &brother)
 
 PyDoc_STRVAR(ChainSilhouetteIterator_doc,
@@ -24,14 +24,14 @@ PyDoc_STRVAR(ChainSilhouetteIterator_doc,
 "ViewEdge that are both Silhouette and Crease, there will be a\n"
 "precedence of the silhouette over the crease criterion.\n"
 "\n"
-".. method:: __init__(iRestrictToSelection=True, begin=None, orientation=True)\n"
+".. method:: __init__(restrict_to_selection=True, begin=None, orientation=True)\n"
 "\n"
 "   Builds a ChainSilhouetteIterator from the first ViewEdge used for\n"
 "   iteration and its orientation.\n"
 "\n"
-"   :arg iRestrictToSelection: Indicates whether to force the chaining\n"
+"   :arg restrict_to_selection: Indicates whether to force the chaining\n"
 "      to stay within the set of selected ViewEdges or not.\n"
-"   :type iRestrictToSelection: bool\n"
+"   :type restrict_to_selection: bool\n"
 "   :arg begin: The ViewEdge from where to start the iteration.\n"
 "   :type begin: :class:`ViewEdge` or None\n"
 "   :arg orientation: If true, we'll look for the next ViewEdge among\n"
@@ -47,36 +47,39 @@ PyDoc_STRVAR(ChainSilhouetteIterator_doc,
 "   :arg brother: A ChainSilhouetteIterator object.\n"
 "   :type brother: :class:`ChainSilhouetteIterator`");
 
-static int ChainSilhouetteIterator_init(BPy_ChainSilhouetteIterator *self, PyObject *args)
+static int check_begin(PyObject *obj, void *v)
 {
+	if (obj != 0 && obj != Py_None && !BPy_ViewEdge_Check(obj))
+		return 0;
+	*((PyObject **)v) = obj;
+	return 1;
+}
+
+static int ChainSilhouetteIterator_init(BPy_ChainSilhouetteIterator *self, PyObject *args, PyObject *kwds)
+{
+	static const char *kwlist_1[] = {"brother", NULL};
+	static const char *kwlist_2[] = {"restrict_to_selection", "begin", "orientation", NULL};
 	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0;
 
-	if (!(PyArg_ParseTuple(args, "|OOO", &obj1, &obj2, &obj3)))
-		return -1;
-
-	if (obj1 && BPy_ChainSilhouetteIterator_Check(obj1)) { 
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist_1, &ChainSilhouetteIterator_Type, &obj1)) {
 		self->cs_it = new ChainSilhouetteIterator(*(((BPy_ChainSilhouetteIterator *)obj1)->cs_it));
-
-	} else {
-		bool restrictToSelection = (obj1) ? bool_from_PyBool(obj1) : true;
-		ViewEdge *begin;
-		if (!obj2 || obj2 == Py_None)
-			begin = NULL;
-		else if (BPy_ViewEdge_Check(obj2))
-			begin = ((BPy_ViewEdge *)obj2)->ve;
-		else {
-			PyErr_SetString(PyExc_TypeError, "2nd argument must be either a ViewEdge object or None");
-			return -1;
-		}
-		bool orientation = (obj3) ? bool_from_PyBool(obj3) : true;
-
-		self->cs_it = new ChainSilhouetteIterator(restrictToSelection, begin, orientation);	
 	}
-
+	else if (PyErr_Clear(), (obj1 = obj2 = obj3 = 0),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "|O!O&O!", (char **)kwlist_2,
+	                                     &PyBool_Type, &obj1, check_begin, &obj2, &PyBool_Type, &obj3))
+	{
+		bool restrict_to_selection = (!obj1) ? true : bool_from_PyBool(obj1);
+		ViewEdge *begin = (!obj2 || obj2 == Py_None) ? NULL : ((BPy_ViewEdge *)obj2)->ve;
+		bool orientation = (!obj3) ? true : bool_from_PyBool(obj3);
+		self->cs_it = new ChainSilhouetteIterator(restrict_to_selection, begin, orientation);	
+	}
+	else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
+		return -1;
+	}
 	self->py_c_it.c_it = self->cs_it;
 	self->py_c_it.py_ve_it.ve_it = self->cs_it;
 	self->py_c_it.py_ve_it.py_it.it = self->cs_it;
-
 	return 0;
 }
 

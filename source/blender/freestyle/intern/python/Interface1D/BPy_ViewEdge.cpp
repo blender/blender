@@ -27,18 +27,24 @@ PyDoc_STRVAR(ViewEdge_doc,
 "\n"
 "   Default constructor.\n"
 "\n"
-".. method:: __init__(iBrother)\n"
+".. method:: __init__(brother)\n"
 "\n"
 "   Copy constructor.\n"
 "\n"
-"   :arg iBrother: A ViewEdge object.\n"
-"   :type iBrother: :class:`ViewEdge`");
+"   :arg brother: A ViewEdge object.\n"
+"   :type brother: :class:`ViewEdge`");
 
 static int ViewEdge_init(BPy_ViewEdge *self, PyObject *args, PyObject *kwds)
 {
-	if (!PyArg_ParseTuple(args, ""))
+	static const char *kwlist[] = {"brother", NULL};
+	PyObject *brother = 0;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &ViewEdge_Type, &brother))
 		return -1;
-	self->ve = new ViewEdge();
+	if (!brother)
+		self->ve = new ViewEdge();
+	else
+		self->ve = new ViewEdge(*(((BPy_ViewEdge *)brother)->ve));
 	self->py_if1D.if1D = self->ve;
 	self->py_if1D.borrowed = 0;
 	return 0;

@@ -23,62 +23,62 @@ PyDoc_STRVAR(SVertexIterator_doc,
 "\n"
 "   Default constructor.\n"
 "\n"
-".. method:: __init__(it)\n"
+".. method:: __init__(brother)\n"
 "\n"
 "   Copy constructor.\n"
 "\n"
-"   :arg it: An SVertexIterator object.\n"
-"   :type it: :class:`SVertexIterator`\n"
+"   :arg brother: An SVertexIterator object.\n"
+"   :type brother: :class:`SVertexIterator`\n"
 "\n"
-".. method:: __init__(v, begin, prev, next, t)\n"
+".. method:: __init__(vertex, begin, previous_edge, next_edge, t)\n"
 "\n"
-"   Builds an SVertexIterator that starts iteration from an SVertex\n"
+"   Build an SVertexIterator that starts iteration from an SVertex\n"
 "   object v.\n"
 "\n"
-"   :arg v: The SVertex from which the iterator starts iteration.\n"
-"   :type v: :class:`SVertex`\n"
-"   :arg begin: The first vertex of a view edge.\n"
+"   :arg vertex: The SVertex from which the iterator starts iteration.\n"
+"   :type vertex: :class:`SVertex`\n"
+"   :arg begin: The first SVertex of a ViewEdge.\n"
 "   :type begin: :class:`SVertex`\n"
-"   :arg prev: The previous FEdge coming to v.\n"
-"   :type prev: :class:`FEdge`\n"
-"   :arg next: The next FEdge going out from v.\n"
-"   :type next: :class:`FEdge`\n"
-"   :arg t: The curvilinear abscissa at v.\n"
+"   :arg previous_edge: The previous FEdge coming to vertex.\n"
+"   :type previous_edge: :class:`FEdge`\n"
+"   :arg next_edge: The next FEdge going out from vertex.\n"
+"   :type next_edge: :class:`FEdge`\n"
+"   :arg t: The curvilinear abscissa at vertex.\n"
 "   :type t: float");
 
-static int SVertexIterator_init(BPy_SVertexIterator *self, PyObject *args)
+static int SVertexIterator_init(BPy_SVertexIterator *self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist_1[] = {"brother", NULL};
+	static const char *kwlist_2[] = {"vertex", "begin", "previous_edge", "next_edge", "t", NULL};
 	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0, *obj4 = 0;
-	float f = 0;
+	float t;
 
-	if (!PyArg_ParseTuple(args, "|OOOOf", &obj1, &obj2, &obj3, &obj4, f))
-		return -1;
-
-	if (!obj1) {
-		self->sv_it = new ViewEdgeInternal::SVertexIterator();
-
-	} else if (BPy_SVertexIterator_Check(obj1)) {
-		self->sv_it = new ViewEdgeInternal::SVertexIterator(*(((BPy_SVertexIterator *)obj1)->sv_it));
-
-	} else if (obj1 && BPy_SVertex_Check(obj1) &&
-	           obj2 && BPy_SVertex_Check(obj2) &&
-	           obj3 && BPy_FEdge_Check(obj3) &&
-	           obj4 && BPy_FEdge_Check(obj4)) {
-
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &SVertexIterator_Type, &obj1)) {
+		if (!obj1)
+			self->sv_it = new ViewEdgeInternal::SVertexIterator();
+		else
+			self->sv_it = new ViewEdgeInternal::SVertexIterator(*(((BPy_SVertexIterator *)obj1)->sv_it));
+	}
+	else if (PyErr_Clear(),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "O!O!O!O!f", (char **)kwlist_2,
+	                                     &SVertex_Type, &obj1,
+	                                     &SVertex_Type, &obj2,
+	                                     &FEdge_Type, &obj3,
+	                                     &FEdge_Type, &obj4,
+	                                     &t))
+	{
 		self->sv_it = new ViewEdgeInternal::SVertexIterator(
-			((BPy_SVertex *)obj1)->sv,
-			((BPy_SVertex *)obj2)->sv,
-			((BPy_FEdge *)obj3)->fe,
-			((BPy_FEdge *)obj4)->fe,
-			f);
-
-	} else {
+		    ((BPy_SVertex *)obj1)->sv,
+		    ((BPy_SVertex *)obj2)->sv,
+		    ((BPy_FEdge *)obj3)->fe,
+		    ((BPy_FEdge *)obj4)->fe,
+		    t);
+	}
+	else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
-
 	self->py_it.it = self->sv_it;
-
 	return 0;
 }
 

@@ -6,19 +6,17 @@
 extern "C" {
 #endif
 
-#include "BLI_math.h"
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //-------------------MODULE INITIALIZATION--------------------------------
-int FrsMaterial_Init( PyObject *module )
+int FrsMaterial_Init(PyObject *module)
 {
 	if (module == NULL)
 		return -1;
 
-	if (PyType_Ready( &FrsMaterial_Type ) < 0)
+	if (PyType_Ready(&FrsMaterial_Type) < 0)
 		return -1;
-	Py_INCREF( &FrsMaterial_Type );
+	Py_INCREF(&FrsMaterial_Type);
 	PyModule_AddObject(module, "Material", (PyObject *)&FrsMaterial_Type);
 
 	FrsMaterial_mathutils_register_callback();
@@ -35,59 +33,67 @@ PyDoc_STRVAR(FrsMaterial_doc,
 "\n"
 "   Default constructor.\n"
 "\n"
-".. method:: __init__(m)\n"
+".. method:: __init__(brother)\n"
 "\n"
 "   Copy constructor.\n"
 "\n"
-"   :arg m: A Material object.\n"
-"   :type m: :class:`Material`\n"
+"   :arg brother: A Material object.\n"
+"   :type brother: :class:`Material`\n"
 "\n"
-".. method:: __init__(iDiffuse, iAmbiant, iSpecular, iEmission, iShininess)\n"
+".. method:: __init__(diffuse, ambient, specular, emission, shininess)\n"
 "\n"
-"   Builds a Material from its diffuse, ambiant, specular, emissive\n"
+"   Builds a Material from its diffuse, ambient, specular, emissive\n"
 "   colors and a shininess coefficient.\n"
 "\n"
-"   :arg iDiffuse: The diffuse color.\n"
-"   :type iDiffuse: :class:`mathutils.Vector`, list or tuple of 4 float values\n"
-"   :arg iAmbiant: The ambiant color.\n"
-"   :type iAmbiant: :class:`mathutils.Vector`, list or tuple of 4 float values\n"
-"   :arg iSpecular: The specular color.\n"
-"   :type iSpecular: :class:`mathutils.Vector`, list or tuple of 4 float values\n"
-"   :arg iEmission: The emissive color.\n"
-"   :type iEmission: :class:`mathutils.Vector`, list or tuple of 4 float values\n"
-"   :arg iShininess: The shininess coefficient.\n"
-"   :type iShininess: :class:float");
+"   :arg diffuse: The diffuse color.\n"
+"   :type diffuse: :class:`mathutils.Vector`, list or tuple of 4 float values\n"
+"   :arg ambient: The ambient color.\n"
+"   :type ambient: :class:`mathutils.Vector`, list or tuple of 4 float values\n"
+"   :arg specular: The specular color.\n"
+"   :type specular: :class:`mathutils.Vector`, list or tuple of 4 float values\n"
+"   :arg emission: The emissive color.\n"
+"   :type emission: :class:`mathutils.Vector`, list or tuple of 4 float values\n"
+"   :arg shininess: The shininess coefficient.\n"
+"   :type shininess: :class:float");
+
+static int convert_v4(PyObject *obj, void *v)
+{
+	return float_array_from_PyObject(obj, (float *)v, 4);
+}
 
 static int FrsMaterial_init(BPy_FrsMaterial *self, PyObject *args, PyObject *kwds)
 {
-	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0, *obj4 = 0;
-	float f1[4], f2[4], f3[4], f4[4], f5 = 0.;
+	static const char *kwlist_1[] = {"brother", NULL};
+	static const char *kwlist_2[] = {"diffuse", "ambient", "specular", "emission", "shininess", NULL};
+	PyObject *brother = 0;
+	float diffuse[4], ambient[4], specular[4], emission[4], shininess;
 
-	if (!PyArg_ParseTuple(args, "|OOOOf", &obj1, &obj2, &obj3, &obj4, &f5))
-		return -1;
-
-	if (!obj1) {
-		self->m = new FrsMaterial();
-
-	} else if (BPy_FrsMaterial_Check(obj1) && !obj2) {
-		FrsMaterial *m = ((BPy_FrsMaterial *) obj1)->m;
-		if (!m) {
-			PyErr_SetString(PyExc_RuntimeError, "invalid FrsMaterial object");
-			return -1;
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &FrsMaterial_Type, &brother)) {
+		if (!brother) {
+			self->m = new FrsMaterial();
+		} else {
+			FrsMaterial *m = ((BPy_FrsMaterial *)brother)->m;
+			if (!m) {
+				PyErr_SetString(PyExc_RuntimeError, "invalid Material object");
+				return -1;
+			}
+			self->m = new FrsMaterial(*m);
 		}
-		self->m = new FrsMaterial(*m);
-
-	} else if (float_array_from_PyObject(obj1, f1, 4) && obj2 &&
-		       float_array_from_PyObject(obj2, f2, 4) && obj3 &&
-		       float_array_from_PyObject(obj3, f3, 4) && obj4 &&
-		       float_array_from_PyObject(obj4, f4, 4)) {
-		self->m = new FrsMaterial(f1, f2, f3, f4, f5);
-
-	} else {
+	}
+	else if (PyErr_Clear(),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "O&O&O&O&f", (char **)kwlist_2,
+	                                     convert_v4, diffuse,
+	                                     convert_v4, ambient,
+	                                     convert_v4, specular,
+	                                     convert_v4, emission,
+	                                     &shininess))
+	{
+		self->m = new FrsMaterial(diffuse, ambient, specular, emission, shininess);
+	}
+	else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
-
 	return 0;
 }
 
@@ -96,7 +102,6 @@ static void FrsMaterial_dealloc(BPy_FrsMaterial* self)
 	delete self->m;
 	Py_TYPE(self)->tp_free((PyObject*)self);
 }
-
 
 static PyObject * FrsMaterial_repr(BPy_FrsMaterial* self)
 {

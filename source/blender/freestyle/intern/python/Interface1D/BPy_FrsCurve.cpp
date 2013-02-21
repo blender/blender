@@ -24,45 +24,43 @@ PyDoc_STRVAR(FrsCurve_doc,
 "\n"
 "   Default Constructor.\n"
 "\n"
-".. method:: __init__(iBrother)\n"
+".. method:: __init__(brother)\n"
 "\n"
 "   Copy Constructor.\n"
 "\n"
-"   :arg iBrother: A Curve object.\n"
-"   :type iBrother: :class:`Curve`\n"
+"   :arg brother: A Curve object.\n"
+"   :type brother: :class:`Curve`\n"
 "\n"
-".. method:: __init__(iId)\n"
+".. method:: __init__(id)\n"
 "\n"
 "   Builds a Curve from its Id.\n"
 "\n"
-"   :arg iId: An Id object.\n"
-"   :type iId: :class:`Id`");
+"   :arg id: An Id object.\n"
+"   :type id: :class:`Id`");
 
 static int FrsCurve_init(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 {
-
+	static const char *kwlist_1[] = {"brother", NULL};
+	static const char *kwlist_2[] = {"id", NULL};
 	PyObject *obj = 0;
 
-	if (!PyArg_ParseTuple(args, "|O", &obj))
-		return -1;
-
-	if (!obj) {
-		self->c = new Curve();
-
-	} else if (BPy_FrsCurve_Check(obj)) {
-		self->c = new Curve(*( ((BPy_FrsCurve *) obj)->c ));
-
-	} else if (BPy_Id_Check(obj)) {
-		self->c = new Curve(*( ((BPy_Id *) obj)->id ));
-
-	} else {
-		PyErr_SetString(PyExc_TypeError, "invalid argument");
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &FrsCurve_Type, &obj)) {
+		if (!obj)
+			self->c = new Curve();
+		else
+			self->c = new Curve(*(((BPy_FrsCurve *)obj)->c));
+	}
+	else if (PyErr_Clear(),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist_2, &Id_Type, &obj))
+	{
+		self->c = new Curve(*(((BPy_Id *)obj)->id));
+	}
+	else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
-
 	self->py_if1D.if1D = self->c;
 	self->py_if1D.borrowed = 0;
-
 	return 0;
 }
 

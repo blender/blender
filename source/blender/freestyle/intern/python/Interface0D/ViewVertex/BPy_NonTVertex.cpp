@@ -21,42 +21,29 @@ PyDoc_STRVAR(NonTVertex_doc,
 "\n"
 "   Default constructor.\n"
 "\n"
-".. method:: __init__(iBrother)\n"
+".. method:: __init__(svertex)\n"
 "\n"
-"   Copy constructor.\n"
+"   Build a NonTVertex from a SVertex.\n"
 "\n"
-"   :arg iBrother: A NonTVertex object.\n"
-"   :type iBrother: :class:`NonTVertex`\n"
-"\n"
-".. method:: __init__(iSVertex)\n"
-"\n"
-"   Builds a NonTVertex from a SVertex.\n"
-"\n"
-"   :arg iSVertex: An SVertex object.\n"
-"   :type iSVertex: :class:`SVertex`");
+"   :arg svertex: An SVertex object.\n"
+"   :type svertex: :class:`SVertex`");
+
+/* Note: No copy constructor in Python because the C++ copy constructor is 'protected'. */
 
 static int NonTVertex_init(BPy_NonTVertex *self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"svertex", NULL};
 	PyObject *obj = 0;
 
-	if (!PyArg_ParseTuple(args, "|O!", &SVertex_Type, &obj))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &SVertex_Type, &obj))
 		return -1;
-
-	if (!obj) {
+	if (!obj)
 		self->ntv = new NonTVertex();
-
-	} else if(((BPy_SVertex *)obj)->sv) {
+	else
 		self->ntv = new NonTVertex(((BPy_SVertex *)obj)->sv);
-
-	} else {
-		PyErr_SetString(PyExc_TypeError, "invalid argument");
-		return -1;
-	}
-
 	self->py_vv.vv = self->ntv;
 	self->py_vv.py_if0D.if0D = self->ntv;
 	self->py_vv.py_if0D.borrowed = 0;
-
 	return 0;
 }
 

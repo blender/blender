@@ -31,46 +31,46 @@ PyDoc_STRVAR(FEdge_doc,
 "\n"
 "   Default constructor.\n"
 "\n"
-".. method:: FEdge(iBrother)\n"
+".. method:: FEdge(brother)\n"
 "\n"
 "   Copy constructor.\n"
 "\n"
-"   :arg iBrother: An FEdge object.\n"
-"   :type iBrother: :class:`FEdge`\n"
+"   :arg brother: An FEdge object.\n"
+"   :type brother: :class:`FEdge`\n"
 "\n"
-".. method:: FEdge(vA, vB)\n"
+".. method:: FEdge(first_vertex, second_vertex)\n"
 "\n"
-"   Builds an FEdge going from vA to vB.\n"
+"   Builds an FEdge going from the first vertex to the second.\n"
 "\n"
-"   :arg vA: The first SVertex.\n"
-"   :type vA: :class:`SVertex`\n"
-"   :arg vB: The second SVertex.\n"
-"   :type vB: :class:`SVertex`");
+"   :arg first_vertex: The first SVertex.\n"
+"   :type first_vertex: :class:`SVertex`\n"
+"   :arg second_vertex: The second SVertex.\n"
+"   :type second_vertex: :class:`SVertex`");
 
 static int FEdge_init(BPy_FEdge *self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist_1[] = {"brother", NULL};
+	static const char *kwlist_2[] = {"first_vertex", "second_vertex", NULL};
 	PyObject *obj1 = 0, *obj2 = 0;
 
-	if (!PyArg_ParseTuple(args, "|OO", &obj1, &obj2))
-		return -1;
-
-	if (!obj1) {
-		self->fe = new FEdge();
-
-	} else if(!obj2 && BPy_FEdge_Check(obj1)) {
-		self->fe = new FEdge(*(((BPy_FEdge *)obj1)->fe));
-
-	} else if(obj2 && BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2)) {
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &FEdge_Type, &obj1)) {
+		if (!obj1)
+			self->fe = new FEdge();
+		else
+			self->fe = new FEdge(*(((BPy_FEdge *)obj1)->fe));
+	}
+	else if (PyErr_Clear(),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "O!O!", (char **)kwlist_2,
+	                                     &SVertex_Type, &obj1, &SVertex_Type, &obj2))
+	{
 		self->fe = new FEdge(((BPy_SVertex *)obj1)->sv, ((BPy_SVertex *)obj2)->sv);
-
-	} else {
+	}
+	else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
-
 	self->py_if1D.if1D = self->fe;
 	self->py_if1D.borrowed = 0;
-
 	return 0;
 }
 

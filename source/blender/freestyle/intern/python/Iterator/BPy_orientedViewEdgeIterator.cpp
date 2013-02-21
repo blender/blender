@@ -29,25 +29,19 @@ PyDoc_STRVAR(orientedViewEdgeIterator_doc,
 "   :arg iBrother: An orientedViewEdgeIterator object.\n"
 "   :type iBrother: :class:`orientedViewEdgeIterator`");
 
-static int orientedViewEdgeIterator_init(BPy_orientedViewEdgeIterator *self, PyObject *args)
+static int orientedViewEdgeIterator_init(BPy_orientedViewEdgeIterator *self, PyObject *args, PyObject *kwds)
 {
-	PyObject *obj = 0;
+	static const char *kwlist[] = {"brother", NULL};
+	PyObject *brother = 0;
 
-	if (!PyArg_ParseTuple(args, "|O", &obj))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &orientedViewEdgeIterator_Type, &brother))
 		return -1;
-
-	if (!obj)
+	if (!brother)
 		self->ove_it = new ViewVertexInternal::orientedViewEdgeIterator();
-	else if (BPy_orientedViewEdgeIterator_Check(obj))
-		self->ove_it = new ViewVertexInternal::orientedViewEdgeIterator(*(((BPy_orientedViewEdgeIterator *)obj)->ove_it));
-	else {
-		PyErr_SetString(PyExc_TypeError, "invalid argument");
-		return -1;
-	}
-
+	else
+		self->ove_it = new ViewVertexInternal::orientedViewEdgeIterator(*(((BPy_orientedViewEdgeIterator *)brother)->ove_it));
 	self->py_it.it = self->ove_it;
 	self->reversed = 0;
-
 	return 0;
 }
 

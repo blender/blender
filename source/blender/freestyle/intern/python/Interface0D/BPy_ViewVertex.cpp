@@ -23,27 +23,12 @@ PyDoc_STRVAR(ViewVertex_doc,
 ":class:`NonTVertex` when it corresponds to a vertex of the initial\n"
 "input mesh (it is the case for vertices such as corners for example).\n"
 "Thus, this class can be specialized into two classes, the\n"
-":class:`TVertex` class and the :class:`NonTVertex` class.\n"
-"\n"
-".. method:: __init__()\n"
-"\n"
-"   Default constructor.\n"
-"\n"
-".. method:: __init__(iBrother)\n"
-"\n"
-"   Copy constructor.\n"
-"\n"
-"   :arg iBrother: A ViewVertex object.\n"
-"   :type iBrother: :class:`ViewVertex`");
+":class:`TVertex` class and the :class:`NonTVertex` class.");
 
 static int ViewVertex_init(BPy_ViewVertex *self, PyObject *args, PyObject *kwds)
 {
-	if (!PyArg_ParseTuple(args, ""))
-		return -1;
-	self->vv = 0; // ViewVertex is abstract
-	self->py_if0D.if0D = self->vv;
-	self->py_if0D.borrowed = 0;
-	return 0;
+	PyErr_SetString(PyExc_TypeError, "cannot instantiate abstract class");
+	return -1;
 }
 
 PyDoc_STRVAR(ViewVertex_edges_begin_doc,

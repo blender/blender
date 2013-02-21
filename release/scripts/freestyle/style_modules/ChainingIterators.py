@@ -33,8 +33,8 @@ from freestyle_init import *
 ## then suggestive contours, then everything else. It doesn't chain the same ViewEdge twice
 ## You can specify whether to stay in the selection or not.
 class pyChainSilhouetteIterator(ChainingIterator):
-	def __init__(self, stayInSelection=1):
-		ChainingIterator.__init__(self, stayInSelection, 1,None,1)
+	def __init__(self, stayInSelection=True):
+		ChainingIterator.__init__(self, stayInSelection, True, None, True)
 	def getExactTypeName(self):
 		return "pyChainSilhouetteIterator"
 	def init(self):
@@ -85,8 +85,8 @@ class pyChainSilhouetteIterator(ChainingIterator):
 ## You can specify whether to chain iterate over edges that were 
 ## already visited or not.
 class pyChainSilhouetteGenericIterator(ChainingIterator):
-	def __init__(self, stayInSelection=1, stayInUnvisited=1):
-		ChainingIterator.__init__(self, stayInSelection, stayInUnvisited,None,1)
+	def __init__(self, stayInSelection=True, stayInUnvisited=True):
+		ChainingIterator.__init__(self, stayInSelection, stayInUnvisited, None, True)
 	def getExactTypeName(self):
 		return "pyChainSilhouetteGenericIterator"
 	def init(self):
@@ -135,7 +135,7 @@ class pyChainSilhouetteGenericIterator(ChainingIterator):
 			
 class pyExternalContourChainingIterator(ChainingIterator):
 	def __init__(self):
-		ChainingIterator.__init__(self, 0, 1,None,1)
+		ChainingIterator.__init__(self, False, True, None, True)
 		self._isExternalContour = ExternalContourUP1D()
 	def getExactTypeName(self):
 		return "pyExternalContourIterator"
@@ -182,8 +182,8 @@ class pyExternalContourChainingIterator(ChainingIterator):
 ## the natural chaining iterator
 ## with a sketchy multiple touch
 class pySketchyChainSilhouetteIterator(ChainingIterator):
-	def __init__(self, nRounds=3,stayInSelection=1):
-		ChainingIterator.__init__(self, stayInSelection, 0,None,1)
+	def __init__(self, nRounds=3,stayInSelection=True):
+		ChainingIterator.__init__(self, stayInSelection, False, None, True)
 		self._timeStamp = GetTimeStampCF()+nRounds
 		self._nRounds = nRounds
 	def getExactTypeName(self):
@@ -241,8 +241,8 @@ class pySketchyChainSilhouetteIterator(ChainingIterator):
 # can chain several times the same ViewEdge
 # in order to produce multiple strokes per ViewEdge.
 class pySketchyChainingIterator(ChainingIterator):
-	def __init__(self, nRounds=3, stayInSelection=1):
-		ChainingIterator.__init__(self, stayInSelection, 0,None,1)
+	def __init__(self, nRounds=3, stayInSelection=True):
+		ChainingIterator.__init__(self, stayInSelection, False, None, True)
 		self._timeStamp = GetTimeStampCF()+nRounds
 		self._nRounds = nRounds
 	def getExactTypeName(self):
@@ -272,7 +272,7 @@ class pySketchyChainingIterator(ChainingIterator):
 ##		expressed in % of the total chain length
 class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 	def __init__(self, percent):
-		ChainingIterator.__init__(self, 0, 1,None,1)
+		ChainingIterator.__init__(self, False, True, None, True)
 		self._length = 0
 		self._percent = float(percent)
 	def getExactTypeName(self):
@@ -375,7 +375,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 ##		expressed in pixels
 class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
 	def __init__(self, length):
-		ChainingIterator.__init__(self, 0, 1,None,1)
+		ChainingIterator.__init__(self, False, True, None, True)
 		self._length = float(length)
 	def getExactTypeName(self):
 		return "pySmallFillOcclusionsChainingIterator"
@@ -445,7 +445,7 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
 ##		expressed in % of the total chain length
 class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 	def __init__(self, percent, l):
-		ChainingIterator.__init__(self, 0, 1,None,1)
+		ChainingIterator.__init__(self, False, True, None, True)
 		self._length = 0
 		self._absLength = l
 		self._percent = float(percent)
@@ -550,7 +550,7 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 ##		expressed in % of the total chain length
 class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
 	def __init__(self, percent, l):
-		ChainingIterator.__init__(self, 0, 1,None,1)
+		ChainingIterator.__init__(self, False, True, None, True)
 		self._length = 0
 		self._absLength = l
 		self._percent = float(percent)
@@ -655,8 +655,8 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
 ## then suggestive contours, then everything else. It doesn't chain the same ViewEdge twice
 ## You can specify whether to stay in the selection or not.
 class pyNoIdChainSilhouetteIterator(ChainingIterator):
-	def __init__(self, stayInSelection=1):
-		ChainingIterator.__init__(self, stayInSelection, 1,None,1)
+	def __init__(self, stayInSelection=True):
+		ChainingIterator.__init__(self, stayInSelection, True, None, True)
 	def getExactTypeName(self):
 		return "pyChainSilhouetteIterator"
 	def init(self):

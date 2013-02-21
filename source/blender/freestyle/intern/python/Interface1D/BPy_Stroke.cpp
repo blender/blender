@@ -16,7 +16,7 @@ extern "C" {
 /*----------------------Stroke methods ----------------------------*/
 
 // Stroke ()
-// template<class InputVertexIterator> Stroke (InputVertexIterator iBegin, InputVertexIterator iEnd)
+// template<class InputVertexIterator> Stroke (InputVertexIterator begin, InputVertexIterator end)
 //
 // pb: - need to be able to switch representation: InputVertexIterator <=> position
 //     - is it even used ? not even in SWIG version
@@ -33,50 +33,23 @@ PyDoc_STRVAR(Stroke_doc,
 "\n"
 "   Default constructor\n"
 "\n"
-".. method:: Stroke(iBrother)\n"
+".. method:: Stroke(brother)\n"
 "\n"
-"   Copy constructor\n"
-"\n"
-"   :arg iBrother: \n"
-"   :type iBrother: :class:`Stroke`\n"
-"\n"
-".. method:: Stroke(iBegin, iEnd)\n"
-"\n"
-"   Builds a stroke from a set of StrokeVertex.  This constructor is\n"
-"   templated by an iterator type.  This iterator type must allow the\n"
-"   vertices parsing using the ++ operator.\n"
-"\n"
-"   :arg iBegin: The iterator pointing to the first vertex.\n"
-"   :type iBegin: InputVertexIterator\n"
-"   :arg iEnd: The iterator pointing to the end of the vertex list.\n"
-"   :type iEnd: InputVertexIterator");
+"   Copy constructor");
 
 static int Stroke_init(BPy_Stroke *self, PyObject *args, PyObject *kwds)
 {
-	PyObject *obj1 = NULL, *obj2 = NULL;
+	static const char *kwlist[] = {"brother", NULL};
+	PyObject *brother = 0;
 
-	if (!PyArg_ParseTuple(args, "|OO", &obj1, &obj2))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &Stroke_Type, &brother))
 		return -1;
-
-	if (!obj1) {
+	if (!brother)
 		self->s = new Stroke();
-
-	} else if (!obj2 && BPy_Stroke_Check(obj1)) {
-		self->s = new Stroke(*(((BPy_Stroke *)obj1)->s));
-
-	} else if (obj2) {
-		PyErr_SetString(PyExc_TypeError,
-			"Stroke(InputVertexIterator iBegin, InputVertexIterator iEnd) not implemented");
-		return -1;
-
-	} else {
-		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
-		return -1;
-	}
-
+	else
+		self->s = new Stroke(*(((BPy_Stroke *)brother)->s));
 	self->py_if1D.if1D = self->s;
 	self->py_if1D.borrowed = 0;
-
 	return 0;
 }
 

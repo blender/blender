@@ -36,6 +36,10 @@ PyDoc_STRVAR(ViewMap_doc,
 
 static int ViewMap_init(BPy_ViewMap *self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+		return -1;
 	self->vm = new ViewMap();
 	return 0;
 }

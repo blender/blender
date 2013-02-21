@@ -25,17 +25,17 @@ PyDoc_STRVAR(ChainingIterator_doc,
 "they will be included in the adjacency iterator (i.e, the adjacent\n"
 "iterator will only stop on \"valid\" edges).\n"
 "\n"
-".. method:: __init__(iRestrictToSelection=True, iRestrictToUnvisited=True, begin=None, orientation=True)\n"
+".. method:: __init__(restrict_to_selection=True, restrict_to_unvisited=True, begin=None, orientation=True)\n"
 "\n"
 "   Builds a Chaining Iterator from the first ViewEdge used for\n"
 "   iteration and its orientation.\n"
 "\n"
-"   :arg iRestrictToSelection: Indicates whether to force the chaining\n"
+"   :arg restrict_to_selection: Indicates whether to force the chaining\n"
 "      to stay within the set of selected ViewEdges or not.\n"
-"   :type iRestrictToSelection: bool\n"
-"   :arg iRestrictToUnvisited: Indicates whether a ViewEdge that has\n"
+"   :type restrict_to_selection: bool\n"
+"   :arg restrict_to_unvisited: Indicates whether a ViewEdge that has\n"
 "      already been chained must be ignored ot not.\n"
-"   :type iRestrictToUnvisited: bool\n"
+"   :type restrict_to_unvisited: bool\n"
 "   :arg begin: The ViewEdge from which to start the chain.\n"
 "   :type begin: :class:`ViewEdge` or None\n"
 "   :arg orientation: The direction to follow to explore the graph.  If\n"
@@ -49,33 +49,38 @@ PyDoc_STRVAR(ChainingIterator_doc,
 "   :arg brother: \n"
 "   :type brother: ChainingIterator");
 
-static int ChainingIterator___init__(BPy_ChainingIterator *self, PyObject *args)
+static int check_begin(PyObject *obj, void *v)
 {
+	if (obj != 0 && obj != Py_None && !BPy_ViewEdge_Check(obj))
+		return 0;
+	*((PyObject **)v) = obj;
+	return 1;
+}
+
+static int ChainingIterator___init__(BPy_ChainingIterator *self, PyObject *args, PyObject *kwds)
+{
+	static const char *kwlist_1[] = {"brother", NULL};
+	static const char *kwlist_2[] = {"restrict_to_selection", "restrict_to_unvisited", "begin", "orientation", NULL};
 	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0, *obj4 = 0;
 
-	if (!PyArg_ParseTuple(args, "|OOOO", &obj1, &obj2, &obj3, &obj4))
-		return -1;
-
-	if (obj1 && BPy_ChainingIterator_Check(obj1)) {
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist_1, &ChainingIterator_Type, &obj1)) {
 		self->c_it = new ChainingIterator(*(((BPy_ChainingIterator *)obj1)->c_it));
-
-	} else {
-		bool restrictToSelection = (obj1) ? bool_from_PyBool(obj1) : true;
-		bool restrictToUnvisited = (obj2) ? bool_from_PyBool(obj2) : true;
-		ViewEdge *begin;
-		if (!obj3 || obj3 == Py_None)
-			begin = NULL;
-		else if (BPy_ViewEdge_Check(obj3))
-			begin = ((BPy_ViewEdge *)obj3)->ve;
-		else {
-			PyErr_SetString(PyExc_TypeError, "3rd argument must be either a ViewEdge object or None");
-			return -1;
-		}
-		bool orientation = (obj4) ? bool_from_PyBool(obj4) : true;
-
-		self->c_it = new ChainingIterator(restrictToSelection, restrictToUnvisited, begin, orientation);
 	}
-
+	else if (PyErr_Clear(), (obj1 = obj2 = obj3 = obj4 = 0),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "|O!O!O&O!", (char **)kwlist_2,
+	                                     &PyBool_Type, &obj1, &PyBool_Type, &obj2, check_begin, &obj3,
+	                                     &PyBool_Type, &obj4))
+	{
+		bool restrict_to_selection = (!obj1) ? true : bool_from_PyBool(obj1);
+		bool restrict_to_unvisited = (!obj2) ? true : bool_from_PyBool(obj2);
+		ViewEdge *begin = (!obj3 || obj3 == Py_None) ? NULL : ((BPy_ViewEdge *)obj3)->ve;
+		bool orientation = (!obj4) ? true : bool_from_PyBool(obj4);
+		self->c_it = new ChainingIterator(restrict_to_selection, restrict_to_unvisited, begin, orientation);
+	}
+	else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
+		return -1;
+	}
 	self->py_ve_it.ve_it = self->c_it;
 	self->py_ve_it.py_it.it = self->c_it;
 

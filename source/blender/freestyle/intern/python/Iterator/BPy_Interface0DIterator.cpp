@@ -16,24 +16,54 @@ PyDoc_STRVAR(Interface0DIterator_doc,
 "Class defining an iterator over Interface0D elements.  An instance of\n"
 "this iterator is always obtained from a 1D element.\n"
 "\n"
-".. method:: __init__(it)\n"
+".. method:: __init__(brother)\n"
 "\n"
 "   Copy constructor.\n"
 "\n"
-"   :arg it: An Interface0DIterator object.\n"
-"   :type it: :class:`Interface0DIterator`");
+"   :arg brother: An Interface0DIterator object.\n"
+"   :type brother: :class:`Interface0DIterator`\n"
+"\n"
+".. method:: __init__(it)\n"
+"\n"
+"   Construct a nested Interface0DIterator that can be the argument of\n"
+"   a Function0D.\n"
+"\n"
+"   :arg it: An iterator object to be nested.\n"
+"   :type it: :class:`SVertexIterator`, :class:`CurvePointIterator`, or\n"
+"      :class:`StrokeVertexIterator`");
 
-static int Interface0DIterator_init(BPy_Interface0DIterator *self, PyObject *args)
+static int convert_nested_it(PyObject *obj, void *v)
 {
-	PyObject *obj = 0;
+	if (!obj || !BPy_Iterator_Check(obj))
+		return 0;
+	Interface0DIteratorNested *nested_it = dynamic_cast<Interface0DIteratorNested *>(((BPy_Iterator *)obj)->it);
+	if (!nested_it)
+		return 0;
+	*((Interface0DIteratorNested **)v) = nested_it;
+	return 1;
+}
 
-	if (!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj))
+static int Interface0DIterator_init(BPy_Interface0DIterator *self, PyObject *args, PyObject *kwds)
+{
+	static const char *kwlist_1[] = {"it", NULL};
+	static const char *kwlist_2[] = {"brother", NULL};
+	Interface0DIteratorNested *nested_it;
+	PyObject *brother;
+
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "O&", (char **)kwlist_1, convert_nested_it, &nested_it)) {
+		self->if0D_it = new Interface0DIterator(nested_it->copy());
+	}
+	else if (PyErr_Clear(),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist_2, &Interface0DIterator_Type, &brother))
+	{
+		self->if0D_it = new Interface0DIterator(*(((BPy_Interface0DIterator *)brother)->if0D_it));
+	}
+	else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
-
-	self->if0D_it = new Interface0DIterator(*(((BPy_Interface0DIterator *)obj)->if0D_it));
+	}
 	self->py_it.it = self->if0D_it;
 	self->reversed = 0;
-
 	return 0;
 }
 

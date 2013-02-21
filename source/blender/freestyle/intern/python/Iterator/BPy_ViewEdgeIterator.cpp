@@ -33,40 +33,43 @@ PyDoc_STRVAR(ViewEdgeIterator_doc,
 "      ViewVertex of begin.\n"
 "   :type orientation: bool\n"
 "\n"
-".. method:: __init__(it)\n"
+".. method:: __init__(brother)\n"
 "\n"
 "   Copy constructor.\n"
 "\n"
-"   :arg it: A ViewEdgeIterator object.\n"
-"   :type it: :class:`ViewEdgeIterator`");
+"   :arg brother: A ViewEdgeIterator object.\n"
+"   :type brother: :class:`ViewEdgeIterator`");
 
-static int ViewEdgeIterator_init(BPy_ViewEdgeIterator *self, PyObject *args)
+static int check_begin(PyObject *obj, void *v)
 {
+	if (obj != 0 && obj != Py_None && !BPy_ViewEdge_Check(obj))
+		return 0;
+	*((PyObject **)v) = obj;
+	return 1;
+}
+
+static int ViewEdgeIterator_init(BPy_ViewEdgeIterator *self, PyObject *args, PyObject *kwds)
+{
+	static const char *kwlist_1[] = {"brother", NULL};
+	static const char *kwlist_2[] = {"begin", "orientation", NULL};
 	PyObject *obj1 = 0, *obj2 = 0;
 
-	if (!PyArg_ParseTuple(args, "O|O", &obj1, &obj2))
-		return -1;
-
-	if (BPy_ViewEdgeIterator_Check(obj1)) {
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist_1, &ViewEdgeIterator_Type, &obj1)) {
 		self->ve_it = new ViewEdgeInternal::ViewEdgeIterator(*(((BPy_ViewEdgeIterator *)obj1)->ve_it));
-
-	} else {
-		ViewEdge *begin;
-		if (obj1 == Py_None)
-			begin = NULL;
-		else if (BPy_ViewEdge_Check(obj1))
-			begin = ((BPy_ViewEdge *)obj1)->ve;
-		else {
-			PyErr_SetString(PyExc_TypeError, "1st argument must be either a ViewEdge object or None");
-			return -1;
-		}
-		bool orientation = (obj2) ? bool_from_PyBool(obj2) : true;
-
+	}
+	else if (PyErr_Clear(), (obj1 = obj2 = 0),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "|O&O!", (char **)kwlist_2,
+	                                     check_begin, &obj1, &PyBool_Type, &obj2))
+	{
+		ViewEdge *begin = (!obj1 || obj1 == Py_None) ? NULL : ((BPy_ViewEdge *)obj1)->ve;
+		bool orientation = (!obj2) ? true : bool_from_PyBool(obj2);
 		self->ve_it = new ViewEdgeInternal::ViewEdgeIterator(begin, orientation);
 	}
-
+	else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
+		return -1;
+	}
 	self->py_it.it = self->ve_it;
-
 	return 0;
 }
 

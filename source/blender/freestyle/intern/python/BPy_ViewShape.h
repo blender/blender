@@ -5,6 +5,8 @@
 
 #include "../view_map/ViewMap.h"
 
+#include "BPy_SShape.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,6 +22,7 @@ typedef struct {
 	PyObject_HEAD
 	ViewShape *vs;
 	int borrowed; /* non-zero if *vs a borrowed object */
+	BPy_SShape *py_ss;
 } BPy_ViewShape;
 
 /*---------------------------Python BPy_ViewShape visible prototypes-----------*/

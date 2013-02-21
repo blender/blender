@@ -30,34 +30,26 @@ PyDoc_STRVAR(StrokeVertexIterator_doc,
 "\n"
 "   Default constructor.\n"
 "\n"
-".. method:: __init__(it)\n"
+".. method:: __init__(brother)\n"
 "\n"
 "   Copy constructor.\n"
 "\n"
-"   :arg it: A StrokeVertexIterator object.\n"
-"   :type it: :class:`StrokeVertexIterator`");
+"   :arg brother: A StrokeVertexIterator object.\n"
+"   :type brother: :class:`StrokeVertexIterator`");
 
-static int StrokeVertexIterator_init(BPy_StrokeVertexIterator *self, PyObject *args)
+static int StrokeVertexIterator_init(BPy_StrokeVertexIterator *self, PyObject *args, PyObject *kwds)
 {
-	PyObject *obj = 0;
+	static const char *kwlist[] = {"brother", NULL};
+	PyObject *brother = 0;
 
-	if (!PyArg_ParseTuple(args, "|O", &obj))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &StrokeVertexIterator_Type, &brother))
 		return -1;
-
-	if (!obj) {
+	if (!brother)
 		self->sv_it = new StrokeInternal::StrokeVertexIterator();
-
-	} else if (BPy_StrokeVertexIterator_Check(obj)) {
-		self->sv_it = new StrokeInternal::StrokeVertexIterator(*(((BPy_StrokeVertexIterator *)obj)->sv_it));
-
-	} else {
-		PyErr_SetString(PyExc_TypeError, "invalid argument");
-		return -1;
-	}
-
+	else
+		self->sv_it = new StrokeInternal::StrokeVertexIterator(*(((BPy_StrokeVertexIterator *)brother)->sv_it));
 	self->py_it.it = self->sv_it;
 	self->reversed = 0;
-
 	return 0;
 }
 
@@ -83,24 +75,7 @@ static PyObject * StrokeVertexIterator_iternext(BPy_StrokeVertexIterator *self)
 	return BPy_StrokeVertex_from_StrokeVertex(*sv);
 }
 
-PyDoc_STRVAR(StrokeVertexIterator_cast_to_interface0diterator_doc,
-".. method:: cast_to_interface0diterator()\n"
-"\n"
-"   Returns an Interface0DIterator converted from this\n"
-"   StrokeVertexIterator.  Useful for any call to a function of the\n"
-"   UnaryFunction0D type.\n"
-"\n"
-"   :return: An Interface0DIterator converted from the StrokeVertexIterator.\n"
-"   :rtype: :class:`Interface0DIterator`");
-
-static PyObject * StrokeVertexIterator_cast_to_interface0diterator(BPy_StrokeVertexIterator *self)
-{
-	Interface0DIterator it(self->sv_it->castToInterface0DIterator());
-	return BPy_Interface0DIterator_from_Interface0DIterator(it, 0);
-}
-
 static PyMethodDef BPy_StrokeVertexIterator_methods[] = {
-	{"cast_to_interface0diterator", (PyCFunction) StrokeVertexIterator_cast_to_interface0diterator, METH_NOARGS, StrokeVertexIterator_cast_to_interface0diterator_doc},
 	{NULL, NULL, 0, NULL}
 };
 

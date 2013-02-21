@@ -85,7 +85,21 @@ int Iterator_Init(PyObject *module)
 //------------------------INSTANCE METHODS ----------------------------------
 
 PyDoc_STRVAR(Iterator_doc,
-"Base class to define iterators.");
+"Base class to define iterators.\n"
+"\n"
+".. method:: __init__()\n"
+"\n"
+"   Default constructor.");
+
+static int Iterator_init(BPy_Iterator *self, PyObject *args, PyObject *kwds)
+{
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+		return -1;
+	self->it = new Iterator();
+	return 0;
+}
 
 static void Iterator_dealloc(BPy_Iterator* self)
 {
@@ -212,7 +226,7 @@ PyTypeObject Iterator_Type = {
 	0,                              /* tp_descr_get */
 	0,                              /* tp_descr_set */
 	0,                              /* tp_dictoffset */
-	0,                              /* tp_init */
+	(initproc)Iterator_init,        /* tp_init */
 	0,                              /* tp_alloc */
 	PyType_GenericNew,              /* tp_new */
 };

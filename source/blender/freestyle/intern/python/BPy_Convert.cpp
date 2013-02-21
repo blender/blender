@@ -318,6 +318,7 @@ PyObject * BPy_ViewShape_from_ViewShape( ViewShape& vs ) {
 	PyObject *py_vs = ViewShape_Type.tp_new( &ViewShape_Type, 0, 0 );
 	((BPy_ViewShape *) py_vs)->vs = &vs;
 	((BPy_ViewShape *) py_vs)->borrowed = 1;
+	((BPy_ViewShape *) py_vs)->py_ss = NULL;
 
 	return py_vs;
 }

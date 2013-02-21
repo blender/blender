@@ -9,8 +9,6 @@
 extern "C" {
 #endif
 
-#include "../../../python/mathutils/mathutils.h" /* for Vector callbacks */
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //------------------------INSTANCE METHODS ----------------------------------
@@ -24,71 +22,74 @@ PyDoc_STRVAR(StrokeVertex_doc,
 "\n"
 "   Default constructor.\n"
 "\n"
-".. method:: __init__(iBrother)\n"
+".. method:: __init__(brother)\n"
 "\n"
 "   Copy constructor.\n"
 "\n"
-"   :arg iBrother: A StrokeVertex object.\n"
-"   :type iBrother: :class:`StrokeVertex`\n"
+"   :arg brother: A StrokeVertex object.\n"
+"   :type brother: :class:`StrokeVertex`\n"
 "\n"
-".. method:: __init__(iA, iB, t3)\n"
+".. method:: __init__(first_vertex, second_vertex, t3d)\n"
 "\n"
-"   Builds a stroke vertex from 2 stroke vertices and an interpolation\n"
+"   Build a stroke vertex from 2 stroke vertices and an interpolation\n"
 "   parameter.\n"
 "\n"
-"   :arg iA: The first StrokeVertex.\n"
-"   :type iA: :class:`StrokeVertex`\n"
-"   :arg iB: The second StrokeVertex.\n"
-"   :type iB: :class:`StrokeVertex`\n"
-"   :arg t3: An interpolation parameter.\n"
-"   :type t3: float\n"
+"   :arg first_vertex: The first StrokeVertex.\n"
+"   :type first_vertex: :class:`StrokeVertex`\n"
+"   :arg second_vertex: The second StrokeVertex.\n"
+"   :type second_vertex: :class:`StrokeVertex`\n"
+"   :arg t3d: An interpolation parameter.\n"
+"   :type t3d: float\n"
 "\n"
-".. method:: __init__(iPoint)\n"
+".. method:: __init__(point)\n"
 "\n"
-"   Builds a stroke vertex from a CurvePoint\n"
+"   Build a stroke vertex from a CurvePoint\n"
 "\n"
-"   :arg iPoint: A CurvePoint object.\n"
-"   :type iPoint: :class:`CurvePoint`\n"
+"   :arg point: A CurvePoint object.\n"
+"   :type point: :class:`CurvePoint`\n"
 "\n"
-".. method:: __init__(iSVertex)\n"
+".. method:: __init__(svertex)\n"
 "\n"
-"   Builds a stroke vertex from a SVertex\n"
+"   Build a stroke vertex from a SVertex\n"
 "\n"
-"   :arg iSVertex: An SVertex object.\n"
-"   :type iSVertex: :class:`SVertex`\n"
+"   :arg svertex: An SVertex object.\n"
+"   :type svertex: :class:`SVertex`\n"
 "\n"
-".. method:: __init__(iSVertex, iAttribute)\n"
+".. method:: __init__(svertex, attribute)\n"
 "\n"
-"   Builds a stroke vertex from an SVertex and a StrokeAttribute object.\n"
+"   Build a stroke vertex from an SVertex and a StrokeAttribute object.\n"
 "\n"
-"   :arg iSVertex: An SVertex object.\n"
-"   :type iSVertex: :class:`SVertex`\n"
-"   :arg iAttribute: A StrokeAttribute object.\n"
-"   :type iAttribute: :class:`StrokeAttribute`");
+"   :arg svertex: An SVertex object.\n"
+"   :type svertex: :class:`SVertex`\n"
+"   :arg attribute: A StrokeAttribute object.\n"
+"   :type attribute: :class:`StrokeAttribute`");
 
 static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist_1[] = {"brother", NULL};
+	static const char *kwlist_2[] = {"first_vertex", "second_vertex", "t3d", NULL};
+	static const char *kwlist_3[] = {"point", NULL};
+	static const char *kwlist_4[] = {"svertex", "attribute", NULL};
+	PyObject *obj1 = 0, *obj2 = 0;
+	float t3d;
 
-	PyObject *obj1 = 0, *obj2 = 0 , *obj3 = 0;
-
-	if (!PyArg_ParseTuple(args, "|OOO!", &obj1, &obj2, &PyFloat_Type, &obj3))
-		return -1;
-
-	if (!obj1){
-		self->sv = new StrokeVertex();
-		
-	} else if (!obj2 && BPy_StrokeVertex_Check(obj1) && ((BPy_StrokeVertex *) obj1)->sv) {
-		self->sv = new StrokeVertex( *(((BPy_StrokeVertex *) obj1)->sv) );
-
-	} else if (!obj2 && BPy_CurvePoint_Check(obj1) && ((BPy_CurvePoint *) obj1)->cp) {
-		self->sv = new StrokeVertex( ((BPy_CurvePoint *) obj1)->cp );
-	
-	} else if (!obj2 && BPy_SVertex_Check(obj1) && ((BPy_SVertex *) obj1)->sv) {
-		self->sv = new StrokeVertex( ((BPy_SVertex *) obj1)->sv );
-	
-	} else if (obj3 && BPy_StrokeVertex_Check(obj1) && BPy_StrokeVertex_Check(obj2)) {
-		StrokeVertex *sv1 = ((BPy_StrokeVertex *) obj1)->sv;
-		StrokeVertex *sv2 = ((BPy_StrokeVertex *) obj2)->sv;
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &StrokeVertex_Type, &obj1)) {
+		if (!obj1) {
+			self->sv = new StrokeVertex();
+		} else {
+			if (!((BPy_StrokeVertex *)obj1)->sv) {
+				PyErr_SetString(PyExc_TypeError, "argument 1 is an invalid StrokeVertex object");
+				return -1;
+			}
+			self->sv = new StrokeVertex(*(((BPy_StrokeVertex *)obj1)->sv));
+		}
+	}
+	else if (PyErr_Clear(),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "O!O!f", (char **)kwlist_2,
+	                                     &StrokeVertex_Type, &obj1, &StrokeVertex_Type, &obj2, &t3d))
+	{
+		StrokeVertex *sv1 = ((BPy_StrokeVertex *)obj1)->sv;
+		StrokeVertex *sv2 = ((BPy_StrokeVertex *)obj2)->sv;
 		if (!sv1 || (sv1->A() == 0 && sv1->B() == 0)) {
 			PyErr_SetString(PyExc_TypeError, "argument 1 is an invalid StrokeVertex object");
 			return -1;
@@ -97,17 +98,34 @@ static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *k
 			PyErr_SetString(PyExc_TypeError, "argument 2 is an invalid StrokeVertex object");
 			return -1;
 		}
-		self->sv = new StrokeVertex(sv1, sv2, PyFloat_AsDouble(obj3));
-
-	} else {
+		self->sv = new StrokeVertex(sv1, sv2, t3d);
+	}
+	else if (PyErr_Clear(),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist_3, &CurvePoint_Type, &obj1))
+	{
+		CurvePoint *cp = ((BPy_CurvePoint *)obj1)->cp;
+		if (!cp || cp->A() == 0 || cp->B() == 0) {
+			PyErr_SetString(PyExc_TypeError, "argument 1 is an invalid CurvePoint object");
+			return -1;
+		}
+		self->sv = new StrokeVertex(cp);
+	}
+	else if (PyErr_Clear(), (obj2 = 0),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "O!|O!", (char **)kwlist_4,
+	                                     &SVertex_Type, &obj1, &StrokeAttribute_Type, &obj2))
+	{
+		if (!obj2)
+			self->sv = new StrokeVertex(((BPy_SVertex *)obj1)->sv);
+		else
+			self->sv = new StrokeVertex(((BPy_SVertex *)obj1)->sv, *(((BPy_StrokeAttribute *)obj2)->sa));
+	}
+	else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
-
 	self->py_cp.cp = self->sv;
 	self->py_cp.py_if0D.if0D = self->sv;
 	self->py_cp.py_if0D.borrowed = 0;
-
 	return 0;
 }
 

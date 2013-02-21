@@ -25,43 +25,43 @@ int Id_Init(PyObject *module)
 //------------------------INSTANCE METHODS ----------------------------------
 
 PyDoc_STRVAR(Id_doc,
-".. method:: __init__()\n"
+"Class for representing an object Id.\n"
 "\n"
-"   Default constructor.\n"
+".. method:: __init__(first=0, second=0)\n"
 "\n"
-".. method:: __init__(iBrother)\n"
+"   Build the Id from two numbers.\n"
+"\n"
+"   :arg first: The first number.\n"
+"   :type first: int\n"
+"   :arg iSecond: The second number.\n"
+"   :type iSecond: int\n"
+"\n"
+".. method:: __init__(brother)\n"
 "\n"
 "   Copy constructor.\n"
 "\n"
-"   :arg iBrother: An Id object.\n"
-"   :type iBrother: :class:`Id`\n"
-"\n"
-".. method:: __init__(iFirst)\n"
-"\n"
-"   Builds an Id from an integer. The second number is set to 0.\n"
-"\n"
-"   :arg iFirst: The first Id number.\n"
-"   :type iFirst: int\n"
-"\n"
-".. method:: __init__(iFirst, iSecond)\n"
-"\n"
-"   Builds the Id from the two numbers.\n"
-"\n"
-"   :arg iFirst: The first Id number.\n"
-"   :type iFirst: int\n"
-"   :arg iSecond: The second Id number.\n"
-"   :type iSecond: int\n");
+"   :arg brother: An Id object.\n"
+"   :type brother: :class:`Id`");
 
 static int Id_init(BPy_Id *self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist_1[] = {"brother", NULL};
+	static const char *kwlist_2[] = {"first", "second", NULL};
+	PyObject *brother;
 	int first = 0, second = 0;
-	static const char *kwlist[] = {"first", "second", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|ii", (char**)kwlist, &first, &second))
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist_1, &Id_Type, &brother)) {
+		self->id = new Id(*(((BPy_Id *)brother)->id));
+	}
+	else if (PyErr_Clear(),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "|ii", (char**)kwlist_2, &first, &second))
+	{
+		self->id = new Id(first, second);
+	}
+	else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
-
-	self->id = new Id(first, second);
-
+	}
 	return 0;
 }
 

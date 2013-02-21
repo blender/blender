@@ -36,47 +36,57 @@ PyDoc_STRVAR(ViewShape_doc,
 "\n"
 "   Default constructor.\n"
 "\n"
-".. method:: __init__(iBrother)\n"
+".. method:: __init__(brother)\n"
 "\n"
 "   Copy constructor.\n"
 "\n"
-"   :arg iBrother: A ViewShape object.\n"
-"   :type iBrother: :class:`ViewShape`\n"
+"   :arg brother: A ViewShape object.\n"
+"   :type brother: :class:`ViewShape`\n"
 "\n"
-".. method:: __init__(iSShape)\n"
+".. method:: __init__(sshape)\n"
 "\n"
 "   Builds a ViewShape from an SShape.\n"
 "\n"
-"   :arg iSShape: An SShape object.\n"
-"   :type iSShape: :class:`SShape`");
+"   :arg sshape: An SShape object.\n"
+"   :type sshape: :class:`SShape`");
 
 static int ViewShape_init(BPy_ViewShape *self, PyObject *args, PyObject *kwds)
 {
-	PyObject *obj;
+	static const char *kwlist_1[] = {"brother", NULL};
+	static const char *kwlist_2[] = {"sshape", NULL};
+	PyObject *obj = 0;
 
-	if (!PyArg_ParseTuple(args, "|O", &obj))
-		return -1;
-
-	if (!obj) {
-		self->vs = new ViewShape();
-
-	} else if (BPy_SShape_Check(obj)) {
-		self->vs = new ViewShape(((BPy_SShape *)obj)->ss);
-
-	} else if (BPy_ViewShape_Check(obj)) {
-		self->vs = new ViewShape(*(((BPy_ViewShape *)obj)->vs));
-
-	} else {
-		PyErr_SetString(PyExc_TypeError, "invalid argument");
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &ViewShape_Type, &obj)) {
+		if (!obj) {
+			self->vs = new ViewShape();
+			self->py_ss = NULL;
+		} else {
+			self->vs = new ViewShape(*(((BPy_ViewShape *)obj)->vs));
+			self->py_ss = ((BPy_ViewShape *)obj)->py_ss;
+		}
+	}
+	else if (PyErr_Clear(),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist_2, &SShape_Type, &obj))
+	{
+		BPy_SShape *py_ss = (BPy_SShape *)obj;
+		self->vs = new ViewShape(py_ss->ss);
+		self->py_ss = (!py_ss->borrowed) ? py_ss : NULL;
+	}
+	else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
 	self->borrowed = 0;
-	
+	Py_XINCREF(self->py_ss);
 	return 0;
 }
 
 static void ViewShape_dealloc(BPy_ViewShape *self)
 {
+	if (self->py_ss) {
+		self->vs->setSShape((SShape *)0);
+		Py_DECREF(self->py_ss);
+	}
 	if (self->vs && !self->borrowed)
 		delete self->vs;
 	Py_TYPE(self)->tp_free((PyObject*)self);
@@ -140,7 +150,10 @@ PyDoc_STRVAR(ViewShape_sshape_doc,
 
 static PyObject *ViewShape_sshape_get(BPy_ViewShape *self, void *UNUSED(closure))
 {
-	return BPy_SShape_from_SShape(*(self->vs->sshape()));
+	SShape *ss = self->vs->sshape();
+	if (!ss)
+		Py_RETURN_NONE;
+	return BPy_SShape_from_SShape(*ss);
 }
 
 static int ViewShape_sshape_set(BPy_ViewShape *self, PyObject *value, void *UNUSED(closure))
@@ -149,7 +162,14 @@ static int ViewShape_sshape_set(BPy_ViewShape *self, PyObject *value, void *UNUS
 		PyErr_SetString(PyExc_TypeError, "value must be an SShape");
 		return -1;
 	}
-	self->vs->setSShape(((BPy_SShape *)value)->ss);
+	BPy_SShape *py_ss = (BPy_SShape *)value;
+	self->vs->setSShape(py_ss->ss);
+	if (self->py_ss)
+		Py_DECREF(self->py_ss);
+	if (!py_ss->borrowed) {
+		self->py_ss = py_ss;
+		Py_INCREF(self->py_ss);
+	}
 	return 0;
 }
 

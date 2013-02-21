@@ -20,7 +20,7 @@ int SShape_Init(PyObject *module)
 
 	if (PyType_Ready(&SShape_Type) < 0)
 		return -1;
-	Py_INCREF( &SShape_Type );
+	Py_INCREF(&SShape_Type);
 	PyModule_AddObject(module, "SShape", (PyObject *)&SShape_Type);
 
 	return 0;
@@ -36,27 +36,25 @@ PyDoc_STRVAR(SShape_doc,
 "\n"
 "   Default constructor.\n"
 "\n"
-".. method:: __init__(iBrother)\n"
+".. method:: __init__(brother)\n"
 "\n"
 "   Copy constructor.\n"
 "\n"
-"   :arg iBrother: An SShape object.\n"
-"   :type iBrother: :class:`SShape`");
+"   :arg brother: An SShape object.\n"
+"   :type brother: :class:`SShape`");
 
 static int SShape_init(BPy_SShape *self, PyObject *args, PyObject *kwds)
 {
-	PyObject *obj = NULL;
+	static const char *kwlist[] = {"brother", NULL};
+	PyObject *brother = 0;
 
-	if (!PyArg_ParseTuple(args, "|O!", &SShape_Type, &obj))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &SShape_Type, &brother))
 		return -1;
-
-	if (!obj) {
+	if (!brother)
 		self->ss = new SShape();
-	} else {
-		self->ss = new SShape(*(((BPy_SShape *)obj)->ss));
-	}
+	else
+		self->ss = new SShape(*(((BPy_SShape *)brother)->ss));
 	self->borrowed = 0;
-
 	return 0;
 }
 

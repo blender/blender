@@ -23,12 +23,12 @@ PyDoc_STRVAR(Chain_doc,
 "\n"
 "   Defult constructor.\n"
 "\n"
-".. method:: __init__(iBrother)\n"
+".. method:: __init__(brother)\n"
 "\n"
 "   Copy constructor.\n"
 "\n"
-"   :arg iBrother: A Chain object.\n"
-"   :type iBrother: :class:`Chain`\n"
+"   :arg brother: A Chain object.\n"
+"   :type brother: :class:`Chain`\n"
 "\n"
 ".. method:: __init__(id)\n"
 "\n"
@@ -39,30 +39,28 @@ PyDoc_STRVAR(Chain_doc,
 
 static int Chain_init(BPy_Chain *self, PyObject *args, PyObject *kwds)
 {
-
+	static const char *kwlist_1[] = {"brother", NULL};
+	static const char *kwlist_2[] = {"id", NULL};
 	PyObject *obj = 0;
 
-	if (!PyArg_ParseTuple(args, "|O", &obj))
-		return -1;
-
-	if (!obj) {
-		self->c = new Chain();
-
-	} else if (BPy_Chain_Check(obj)) {
-		self->c = new Chain(*(((BPy_Chain *)obj)->c));
-
-	} else if (BPy_Id_Check(obj)) {
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &Chain_Type, &obj)) {
+		if (!obj)
+			self->c = new Chain();
+		else
+			self->c = new Chain(*(((BPy_Chain *)obj)->c));
+	}
+	else if (PyErr_Clear(),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist_2, &Id_Type, &obj))
+	{
 		self->c = new Chain(*(((BPy_Id *)obj)->id));
-
-	} else {
-		PyErr_SetString(PyExc_TypeError, "invalid argument");
+	}
+	else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
-
 	self->py_c.c = self->c;
 	self->py_c.py_if1D.if1D = self->c;
 	self->py_c.py_if1D.borrowed = 0;
-
 	return 0;
 }
 

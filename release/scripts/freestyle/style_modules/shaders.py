@@ -25,7 +25,7 @@ class pyDepthDiscontinuityThicknessShader(StrokeShader):
 		b = (self.__min*z_max-self.__max*z_min)/(z_max-z_min)
 		it = stroke.stroke_vertices_begin()
 		while not it.is_end:
-			z = self.__func(it.cast_to_interface0diterator())
+			z = self.__func(Interface0DIterator(it))
 			thickness = a*z+b
 			it.object.attribute.thickness = (thickness, thickness)
 			it.increment()
@@ -72,8 +72,7 @@ class pyFXSVaryingThicknessWithDensityShader(StrokeShader):
 		it = stroke.stroke_vertices_begin()
 		func = DensityF0D(self.wsize)
 		while not it.is_end:
-			toto = it.cast_to_interface0diterator()
-			c= func(toto)
+			c = func(Interface0DIterator(it))
 			if c < self.threshold_min:
 				c = self.threshold_min
 			if c > self.threshold_max:
@@ -332,7 +331,7 @@ class pyZDependingThicknessShader(StrokeShader):
 		z_min = 1
 		z_max = 0
 		while not it.is_end:
-			z = self.__func(it.cast_to_interface0diterator())
+			z = self.__func(Interface0DIterator(it))
 			if z < z_min:
 				z_min = z
 			if z > z_max:
@@ -341,7 +340,7 @@ class pyZDependingThicknessShader(StrokeShader):
 		z_diff = 1 / (z_max - z_min)
 		it = stroke.stroke_vertices_begin()
 		while not it.is_end:
-			z = (self.__func(it.cast_to_interface0diterator()) - z_min) * z_diff
+			z = (self.__func(Interface0DIterator(it)) - z_min) * z_diff
 			thickness = (1 - z) * self.__max + z * self.__min
 			it.object.attribute.thickness = (thickness, thickness)
 			it.increment()
@@ -428,8 +427,7 @@ class pyMaterialColorShader(StrokeShader):
 		un = 4.* xn/ ( -2.*xn + 12.*yn + 3. )
 		vn= 9.* yn/ ( -2.*xn + 12.*yn +3. )	
 		while not it.is_end:
-			toto = it.cast_to_interface0diterator()
-			mat = func(toto)
+			mat = func(Interface0DIterator(it))
 			
 			r = mat.diffuse[0]
 			g = mat.diffuse[1]
@@ -499,7 +497,7 @@ class py2DCurvatureColorShader(StrokeShader):
 		it = stroke.stroke_vertices_begin()
 		func = Curvature2DAngleF0D()
 		while not it.is_end:
-			c = func(it.cast_to_interface0diterator())
+			c = func(Interface0DIterator(it))
 			if c < 0:
 				print("negative 2D curvature")
 			color = 10.0 * c/3.1415
@@ -680,7 +678,7 @@ class pyDiffusion2Shader(StrokeShader):
 			while not it.is_end:
 				v = it.object
 				p1 = v.point
-				p2 = self._normalInfo(it.cast_to_interface0diterator())*self._lambda*self._curvatureInfo(it.cast_to_interface0diterator())
+				p2 = self._normalInfo(Interface0DIterator(it))*self._lambda*self._curvatureInfo(Interface0DIterator(it))
 				v.point = p1+p2
 				it.increment()
 		stroke.update_length()
@@ -869,7 +867,7 @@ class pySinusDisplacementShader(StrokeShader):
 		while not it.is_end:
 			v = it.object
 			#print(self._getNormal.getName())
-			n = self._getNormal(it.cast_to_interface0diterator())
+			n = self._getNormal(Interface0DIterator(it))
 			p = v.point
 			u = v.u
 			a = self._a*(1-2*(fabs(u-0.5)))
@@ -1265,7 +1263,7 @@ class pyDummyShader(StrokeShader):
 	def shade(self, stroke):
 		it = stroke.stroke_vertices_begin()
 		while not it.is_end:
-			toto = it.cast_to_interface0diterator()
+			toto = Interface0DIterator(it)
 			att = it.object.attribute
 			att.color = (0.3, 0.4, 0.4)
 			att.thickness = (0, 5)

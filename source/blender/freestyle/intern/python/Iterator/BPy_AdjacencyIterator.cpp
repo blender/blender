@@ -19,52 +19,55 @@ PyDoc_STRVAR(AdjacencyIterator_doc,
 "decrement() methods of a :class:`ChainingIterator` and passed to the\n"
 "traverse() method of the ChainingIterator.\n"
 "\n"
-".. method:: __init__(iVertex, iRestrictToSelection=True, iRestrictToUnvisited=True)\n"
+".. method:: __init__()\n"
 "\n"
-"   Builds a AdjacencyIterator object.\n"
+"   Default constructor.\n"
 "\n"
-"   :arg iVertex: The vertex which is the next crossing.\n"
-"   :type iVertex: :class:`ViewVertex`\n"
-"   :arg iRestrictToSelection: Indicates whether to force the chaining\n"
-"      to stay within the set of selected ViewEdges or not.\n"
-"   :type iRestrictToSelection: bool\n"
-"   :arg iRestrictToUnvisited: Indicates whether a ViewEdge that has\n"
-"      already been chained must be ignored ot not.\n"
-"   :type iRestrictToUnvisited: bool\n"
-"\n"
-".. method:: __init__(it)\n"
+".. method:: __init__(brother)\n"
 "\n"
 "   Copy constructor.\n"
 "\n"
-"   :arg it: An AdjacencyIterator object.\n"
-"   :type it: :class:`AdjacencyIterator`");
+"   :arg brother: An AdjacencyIterator object.\n"
+"   :type brother: :class:`AdjacencyIterator`\n"
+"\n"
+".. method:: __init__(vertex, restrict_to_selection=True, restrict_to_unvisited=True)\n"
+"\n"
+"   Builds a AdjacencyIterator object.\n"
+"\n"
+"   :arg vertex: The vertex which is the next crossing.\n"
+"   :type vertex: :class:`ViewVertex`\n"
+"   :arg restrict_to_selection: Indicates whether to force the chaining\n"
+"      to stay within the set of selected ViewEdges or not.\n"
+"   :type restrict_to_selection: bool\n"
+"   :arg restrict_to_unvisited: Indicates whether a ViewEdge that has\n"
+"      already been chained must be ignored ot not.\n"
+"   :type restrict_to_unvisited: bool");
 
-static int AdjacencyIterator_init(BPy_AdjacencyIterator *self, PyObject *args)
+static int AdjacencyIterator_init(BPy_AdjacencyIterator *self, PyObject *args, PyObject *kwds)
 {
-	PyObject *obj1 = 0, *obj2 = 0 , *obj3 = 0;
+	static const char *kwlist_1[] = {"brother", NULL};
+	static const char *kwlist_2[] = {"vertex", "restrict_to_selection", "restrict_to_unvisited", NULL};
+	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0;
 
-	if (!PyArg_ParseTuple(args, "|OOO", &obj1, &obj2, &obj3))
-		return -1;
-
-	if (!obj1) {
-		self->a_it = new AdjacencyIterator();
-
-	} else if (BPy_AdjacencyIterator_Check(obj1) && !obj2) {
-		self->a_it = new AdjacencyIterator(*(((BPy_AdjacencyIterator *)obj1)->a_it));
-
-	} else if (BPy_ViewVertex_Check(obj1) && (!obj2 || PyBool_Check(obj2)) && (!obj3 || PyBool_Check(obj3))) {
-		bool restrictToSelection = (obj2) ? bool_from_PyBool(obj2) : true;
-		bool restrictToUnvisited = (obj3) ? bool_from_PyBool(obj3) : true;
-		
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &AdjacencyIterator_Type, &obj1)) {
+		if (!obj1)
+			self->a_it = new AdjacencyIterator();
+		else 
+			self->a_it = new AdjacencyIterator(*(((BPy_AdjacencyIterator *)obj1)->a_it));
+	}
+	else if (PyErr_Clear(), (obj2 = obj3 = 0),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "O!|O!O!", (char **)kwlist_2,
+	                                     &ViewVertex_Type, &obj1, &PyBool_Type, &obj2, &PyBool_Type, &obj3))
+	{
+		bool restrictToSelection = (!obj2) ? true : bool_from_PyBool(obj2);
+		bool restrictToUnvisited = (!obj3) ? true : bool_from_PyBool(obj3);
 		self->a_it = new AdjacencyIterator(((BPy_ViewVertex *)obj1)->vv, restrictToSelection, restrictToUnvisited);
-
-	} else {
+	}
+	else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
-
 	self->py_it.it = self->a_it;
-	
 	return 0;
 }
 

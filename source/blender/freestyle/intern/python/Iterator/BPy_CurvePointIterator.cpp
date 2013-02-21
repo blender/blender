@@ -16,7 +16,18 @@ PyDoc_STRVAR(CurvePointIterator_doc,
 "\n"
 "Class representing an iterator on a curve.  Allows an iterating\n"
 "outside initial vertices.  A CurvePoint is instanciated and returned\n"
-"by getObject().\n"
+"through the .object attribute.\n"
+"\n"
+".. method:: __init__()\n"
+"\n"
+"   Default constructor.\n"
+"\n"
+".. method:: __init__(brother)\n"
+"\n"
+"   Copy constructor.\n"
+"\n"
+"   :arg brother: A CurvePointIterator object.\n"
+"   :type brother: :class:`CurvePointIterator`\n"
 "\n"
 ".. method:: __init__(step=0.0)\n"
 "\n"
@@ -26,59 +37,35 @@ PyDoc_STRVAR(CurvePointIterator_doc,
 "      If zero, no resampling is done (i.e., the iterator iterates over\n"
 "      initial vertices).\n"
 "   :type step: float\n"
-"\n"
-".. method:: __init__(brother)\n"
-"\n"
-"   Copy constructor.\n"
-"\n"
-"   :arg brother: A CurvePointIterator object.\n"
-"   :type brother: :class:`CurvePointIterator`");
+);
 
-static int CurvePointIterator_init(BPy_CurvePointIterator *self, PyObject *args)
+static int CurvePointIterator_init(BPy_CurvePointIterator *self, PyObject *args, PyObject *kwds)
 {
-	PyObject *obj = 0;
+	static const char *kwlist_1[] = {"brother", NULL};
+	static const char *kwlist_2[] = {"step", NULL};
+	PyObject *brother = 0;
+	float step;
 
-	if (!PyArg_ParseTuple(args, "|O", &obj))
-		return -1;
-
-	if (!obj) {
-		self->cp_it = new CurveInternal::CurvePointIterator();
-
-	} else if (BPy_CurvePointIterator_Check(obj)) {
-		self->cp_it = new CurveInternal::CurvePointIterator(*(((BPy_CurvePointIterator *)obj)->cp_it));
-
-	} else if (PyFloat_Check(obj)) {
-		self->cp_it = new CurveInternal::CurvePointIterator(PyFloat_AsDouble(obj));
-
-	} else {
-		PyErr_SetString(PyExc_TypeError, "invalid argument");
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &CurvePointIterator_Type, &brother)) {
+		if (!brother)
+			self->cp_it = new CurveInternal::CurvePointIterator();
+		else
+			self->cp_it = new CurveInternal::CurvePointIterator(*(((BPy_CurvePointIterator *)brother)->cp_it));
+	}
+	else if (PyErr_Clear(),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "f", (char **)kwlist_2, &step))
+	{
+		self->cp_it = new CurveInternal::CurvePointIterator(step);
+	}
+	else {
+		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
-
 	self->py_it.it = self->cp_it;
-
 	return 0;
 }
 
-PyDoc_STRVAR(CurvePointIterator_cast_to_interface0diterator_doc,
-".. method:: cast_to_interface0diterator()\n"
-"\n"
-"   Returns an Interface0DIterator converted from this\n"
-"   CurvePointIterator.  Useful for any call to a function of the\n"
-"   UnaryFunction0D type.\n"
-"\n"
-"   :return: An Interface0DIterator object converted from the\n"
-"      iterator.\n"
-"   :rtype: :class:`Interface0DIterator`");
-
-static PyObject * CurvePointIterator_cast_to_interface0diterator(BPy_CurvePointIterator *self)
-{
-	Interface0DIterator it(self->cp_it->castToInterface0DIterator());
-	return BPy_Interface0DIterator_from_Interface0DIterator(it, 0);
-}
-
 static PyMethodDef BPy_CurvePointIterator_methods[] = {
-	{"cast_to_interface0diterator", (PyCFunction) CurvePointIterator_cast_to_interface0diterator, METH_NOARGS, CurvePointIterator_cast_to_interface0diterator_doc},
 	{NULL, NULL, 0, NULL}
 };
 

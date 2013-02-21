@@ -363,7 +363,7 @@ def iter_material_color(stroke, material_attr):
     func = CurveMaterialF0D()
     it = stroke.stroke_vertices_begin()
     while not it.is_end:
-        material = func(it.cast_to_interface0diterator())
+        material = func(Interface0DIterator(it))
         if material_attr == "DIFF":
             color = (material.diffuse[0],
                      material.diffuse[1],
@@ -381,7 +381,7 @@ def iter_material_value(stroke, material_attr):
     func = CurveMaterialF0D()
     it = stroke.stroke_vertices_begin()
     while not it.is_end:
-        material = func(it.cast_to_interface0diterator())
+        material = func(Interface0DIterator(it))
         if material_attr == "DIFF":
             r = material.diffuse[0]
             g = material.diffuse[1]
@@ -478,7 +478,7 @@ class CalligraphicThicknessShader(ThicknessBlenderMixIn, ScalarBlendModifier):
         func = VertexOrientation2DF0D()
         it = stroke.stroke_vertices_begin()
         while not it.is_end:
-            dir = func(it.cast_to_interface0diterator())
+            dir = func(Interface0DIterator(it))
             orthDir = mathutils.Vector((-dir.y, dir.x))
             orthDir.normalize()
             fac = abs(orthDir * self.__orientation)
@@ -515,7 +515,7 @@ class SinusDisplacementShader(StrokeShader):
     def shade(self, stroke):
         for it, distance in iter_distance_along_stroke(stroke):
             v = it.object
-            n = self._getNormal(it.cast_to_interface0diterator())
+            n = self._getNormal(Interface0DIterator(it))
             n = n * self._amplitude * math.cos(distance / self._wavelength * 2 * math.pi + self._phase)
             v.point = v.point + n
         stroke.update_length()
@@ -575,7 +575,7 @@ class Offset2DShader(StrokeShader):
             v = it.object
             u = v.u
             a = self.__start + u * (self.__end - self.__start)
-            n = self.__getNormal(it.cast_to_interface0diterator())
+            n = self.__getNormal(Interface0DIterator(it))
             n = n * a
             v.point = v.point + n + self.__xy
             it.increment()

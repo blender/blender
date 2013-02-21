@@ -27,78 +27,80 @@ PyDoc_STRVAR(CurvePoint_doc,
 "\n"
 "   Defult constructor.\n"
 "\n"
-".. method:: __init__(iBrother)\n"
+".. method:: __init__(brother)\n"
 "\n"
 "   Copy constructor.\n"
 "\n"
-"   :arg iBrother: A CurvePoint object.\n"
-"   :type iBrother: :class:`CurvePoint`\n"
+"   :arg brother: A CurvePoint object.\n"
+"   :type brother: :class:`CurvePoint`\n"
 "\n"
-".. method:: __init__(iA, iB, t2d)\n"
+".. method:: __init__(first_vertex, second_vertex, t2d)\n"
 "\n"
-"   Builds a CurvePoint from two SVertex and an interpolation parameter.\n"
+"   Builds a CurvePoint from two SVertex objects and an interpolation parameter.\n"
 "\n"
-"   :arg iA: The first SVertex.\n"
-"   :type iA: :class:`SVertex`\n"
-"   :arg iB: The second SVertex.\n"
-"   :type iB: :class:`SVertex`\n"
+"   :arg first_vertex: The first SVertex.\n"
+"   :type first_vertex: :class:`SVertex`\n"
+"   :arg second_vertex: The second SVertex.\n"
+"   :type second_vertex: :class:`SVertex`\n"
 "   :arg t2d: A 2D interpolation parameter used to linearly interpolate\n"
-"             iA and iB.\n"
+"             first_vertex and second_vertex.\n"
 "   :type t2d: float\n"
 "\n"
-".. method:: __init__(iA, iB, t2d)\n"
+".. method:: __init__(first_point, second_point, t2d)\n"
 "\n"
-"   Builds a CurvePoint from two CurvePoint and an interpolation\n"
+"   Builds a CurvePoint from two CurvePoint objects and an interpolation\n"
 "   parameter.\n"
 "\n"
-"   :arg iA: The first CurvePoint.\n"
-"   :type iA: :class:`CurvePoint`\n"
-"   :arg iB: The second CurvePoint.\n"
-"   :type iB: :class:`CurvePoint`\n"
-"   :arg t2d: The 2D interpolation parameter used to linearly\n"
-"             interpolate iA and iB.\n"
+"   :arg first_point: The first CurvePoint.\n"
+"   :type first_point: :class:`CurvePoint`\n"
+"   :arg second_point: The second CurvePoint.\n"
+"   :type second_point: :class:`CurvePoint`\n"
+"   :arg t2d: The 2D interpolation parameter used to linearly interpolate\n"
+"             first_point and second_point.\n"
 "   :type t2d: float");
 
 static int CurvePoint_init(BPy_CurvePoint *self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist_1[] = {"brother", NULL};
+	static const char *kwlist_2[] = {"first_vertex", "second_vertex", "t2d", NULL};
+	static const char *kwlist_3[] = {"first_point", "second_point", "t2d", NULL};
+	PyObject *obj1 = 0, *obj2 = 0;
+	float t2d;
 
-	PyObject *obj1 = 0, *obj2 = 0 , *obj3 = 0;
-
-	if (! PyArg_ParseTuple(args, "|OOO!", &obj1, &obj2, &PyFloat_Type, &obj3) )
-		return -1;
-
-	if( !obj1 ){
-		self->cp = new CurvePoint();
-
-	} else if( !obj2 && BPy_CurvePoint_Check(obj1) ) {
-		self->cp = new CurvePoint( *(((BPy_CurvePoint *) obj1)->cp) );
-
-	} else if( obj3 && BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2) ) {
-		self->cp = new CurvePoint(  ((BPy_SVertex *) obj1)->sv,
-									((BPy_SVertex *) obj2)->sv,
-									PyFloat_AsDouble( obj3 ) );
-
-	} else if( obj3 && BPy_CurvePoint_Check(obj1) && BPy_CurvePoint_Check(obj2) ) {
-		CurvePoint *cp1 = ((BPy_CurvePoint *) obj1)->cp;
-		CurvePoint *cp2 = ((BPy_CurvePoint *) obj2)->cp;
-		if( !cp1 || cp1->A() == 0 || cp1->B() == 0 ) {
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &CurvePoint_Type, &obj1)) {
+		if (!obj1)
+			self->cp = new CurvePoint();
+		else
+			self->cp = new CurvePoint(*(((BPy_CurvePoint *)obj1)->cp));
+	}
+	else if (PyErr_Clear(),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "O!O!f", (char **)kwlist_2,
+	                                     &SVertex_Type, &obj1, &SVertex_Type, &obj2, &t2d))
+	{
+		self->cp = new CurvePoint(((BPy_SVertex *)obj1)->sv, ((BPy_SVertex *)obj2)->sv, t2d);
+	}
+	else if (PyErr_Clear(),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "O!O!f", (char **)kwlist_3,
+	                                     &CurvePoint_Type, &obj1, &CurvePoint_Type, &obj2, &t2d))
+	{
+		CurvePoint *cp1 = ((BPy_CurvePoint *)obj1)->cp;
+		CurvePoint *cp2 = ((BPy_CurvePoint *)obj2)->cp;
+		if (!cp1 || cp1->A() == 0 || cp1->B() == 0) {
 			PyErr_SetString(PyExc_TypeError, "argument 1 is an invalid CurvePoint object");
 			return -1;
 		}
-		if( !cp2 || cp2->A() == 0 || cp2->B() == 0 ) {
+		if (!cp2 || cp2->A() == 0 || cp2->B() == 0) {
 			PyErr_SetString(PyExc_TypeError, "argument 2 is an invalid CurvePoint object");
 			return -1;
 		}
-		self->cp = new CurvePoint( cp1, cp2, PyFloat_AsDouble( obj3 ) );
-
-	} else {
+		self->cp = new CurvePoint(cp1, cp2, t2d);
+	}
+	else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
-
 	self->py_if0D.if0D = self->cp;
 	self->py_if0D.borrowed = 0;
-
 	return 0;
 }
 

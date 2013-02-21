@@ -84,7 +84,9 @@ PyDoc_STRVAR(Interface1D_doc,
 
 static int Interface1D_init(BPy_Interface1D *self, PyObject *args, PyObject *kwds)
 {
-	if (!PyArg_ParseTuple(args, ""))
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
 		return -1;
 	self->if1D = new Interface1D();
 	self->borrowed = 0;

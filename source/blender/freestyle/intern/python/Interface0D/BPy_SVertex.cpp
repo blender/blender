@@ -21,53 +21,52 @@ PyDoc_STRVAR(SVertex_doc,
 "\n"
 "   Default constructor.\n"
 "\n"
-".. method:: __init__(iBrother)\n"
+".. method:: __init__(brother)\n"
 "\n"
 "   Copy constructor.\n"
 "\n"
-"   :arg iBrother: A SVertex object.\n"
-"   :type iBrother: :class:`SVertex`\n"
+"   :arg brother: A SVertex object.\n"
+"   :type brother: :class:`SVertex`\n"
 "\n"
-".. method:: __init__(iPoint3D, id)\n"
+".. method:: __init__(point_3d, id)\n"
 "\n"
 "   Builds a SVertex from 3D coordinates and an Id.\n"
 "\n"
-"   :arg iPoint3D: A three-dimensional vector.\n"
-"   :type iPoint3D: :class:`mathutils.Vector`\n"
+"   :arg point_3d: A three-dimensional vector.\n"
+"   :type point_3d: :class:`mathutils.Vector`\n"
 "   :arg id: An Id object.\n"
 "   :type id: :class:`Id`");
 
+static int convert_v3(PyObject *obj, void *v)
+{
+	return float_array_from_PyObject(obj, (float *)v, 3);
+}
+
 static int SVertex_init(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 {
-	PyObject *py_point = 0;
-	BPy_Id *py_id = 0;
+	static const char *kwlist_1[] = {"brother", NULL};
+	static const char *kwlist_2[] = {"point_3d", "id", NULL};
+	PyObject *obj = 0;
+	float v[3];
 
-	if (!PyArg_ParseTuple(args, "|OO!", &py_point, &Id_Type, &py_id))
-		return -1;
-	
-	if (!py_point) {
-		self->sv = new SVertex();
-
-	} else if (!py_id && BPy_SVertex_Check(py_point)) {
-		self->sv = new SVertex( *(((BPy_SVertex *)py_point)->sv) );
-
-	} else if (py_point && py_id) {
-		Vec3r *v = Vec3r_ptr_from_PyObject(py_point);
-		if (!v) {
-			PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
-			return -1;
-		}
-		self->sv = new SVertex(*v, *(py_id->id));
-		delete v;
-
-	} else {
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &SVertex_Type, &obj)) {
+		if (!obj)
+			self->sv = new SVertex();
+		else
+			self->sv = new SVertex(*(((BPy_SVertex *)obj)->sv));
+	}
+	else if (PyErr_Clear(),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "O&O!", (char **)kwlist_2, convert_v3, v, &Id_Type, &obj))
+	{
+		Vec3r point_3d(v[0], v[1], v[2]);
+		self->sv = new SVertex(point_3d, *(((BPy_Id *)obj)->id));
+	}
+	else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
-
 	self->py_if0D.if0D = self->sv;
 	self->py_if0D.borrowed = 0;
-
 	return 0;
 }
 
@@ -115,7 +114,7 @@ static PyObject *SVertex_add_fedge( BPy_SVertex *self , PyObject *args) {
 	Py_RETURN_NONE;
 }
 
-// virtual bool 	operator== (const SVertex &iBrother)
+// virtual bool 	operator== (const SVertex &brother)
 
 static PyMethodDef BPy_SVertex_methods[] = {
 	{"add_normal", (PyCFunction)SVertex_add_normal, METH_VARARGS, SVertex_add_normal_doc},

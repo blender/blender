@@ -25,39 +25,41 @@ PyDoc_STRVAR(FEdgeSharp_doc,
 "\n"
 "   Default constructor.\n"
 "\n"
-".. method:: __init__(iBrother)\n"
+".. method:: __init__(brother)\n"
 "\n"
 "   Copy constructor.\n"
 "\n"
-"   :arg iBrother: An FEdgeSharp object.\n"
-"   :type iBrother: :class:`FEdgeSharp`\n"
+"   :arg brother: An FEdgeSharp object.\n"
+"   :type brother: :class:`FEdgeSharp`\n"
 "\n"
-".. method:: __init__(vA, vB)\n"
+".. method:: __init__(first_vertex, second_vertex)\n"
 "\n"
-"   Builds an FEdgeSharp going from vA to vB.\n"
+"   Builds an FEdgeSharp going from the first vertex to the second.\n"
 "\n"
-"   :arg vA: The first SVertex object.\n"
-"   :type vA: :class:`SVertex`\n"
-"   :arg vB: The second SVertex object.\n"
-"   :type vB: :class:`SVertex`");
+"   :arg first_vertex: The first SVertex object.\n"
+"   :type first_vertex: :class:`SVertex`\n"
+"   :arg second_vertex: The second SVertex object.\n"
+"   :type second_vertex: :class:`SVertex`");
 
 static int FEdgeSharp_init(BPy_FEdgeSharp *self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist_1[] = {"brother", NULL};
+	static const char *kwlist_2[] = {"first_vertex", "second_vertex", NULL};
 	PyObject *obj1 = 0, *obj2 = 0;
 
-	if (!PyArg_ParseTuple(args, "|OO", &obj1, &obj2))
-		return -1;
-
-	if (!obj1) {
-		self->fes = new FEdgeSharp();
-
-	} else if (!obj2 && BPy_FEdgeSharp_Check(obj1)) {
-		self->fes = new FEdgeSharp(*(((BPy_FEdgeSharp *)obj1)->fes));
-
-	} else if (obj2 && BPy_SVertex_Check(obj1) && BPy_SVertex_Check(obj2)) {
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &FEdgeSharp_Type, &obj1)) {
+		if (!obj1)
+			self->fes = new FEdgeSharp();
+		else
+			self->fes = new FEdgeSharp(*(((BPy_FEdgeSharp *)obj1)->fes));
+	}
+	else if (PyErr_Clear(),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "O!O!", (char **)kwlist_2,
+	                                     &SVertex_Type, &obj1, &SVertex_Type, &obj2))
+	{
 		self->fes = new FEdgeSharp(((BPy_SVertex *)obj1)->sv, ((BPy_SVertex *)obj2)->sv);
-
-	} else {
+	}
+	else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument(s)");
 		return -1;
 	}
