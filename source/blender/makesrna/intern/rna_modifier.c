@@ -749,6 +749,12 @@ static void rna_BevelModifier_angle_limit_set(PointerRNA *ptr, float value)
 	md->bevel_angle = (int)value;
 }
 
+static void rna_BevelModifier_defgrp_name_set(PointerRNA *ptr, const char *value)
+{
+	BevelModifierData *md = (BevelModifierData *)ptr->data;
+	rna_object_vgroup_name_set(ptr, value, md->defgrp_name, sizeof(md->defgrp_name));
+}
+
 static void rna_UVWarpModifier_vgroup_set(PointerRNA *ptr, const char *value)
 {
 	UVWarpModifierData *umd = (UVWarpModifierData *)ptr->data;
@@ -2291,11 +2297,13 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 		{0, "NONE", 0, "None", "Bevel the entire mesh by a constant amount"},
 		{BME_BEVEL_ANGLE, "ANGLE", 0, "Angle", "Only bevel edges with sharp enough angles between faces"},
 		{BME_BEVEL_WEIGHT, "WEIGHT", 0, "Weight",
-		                   "Use bevel weights to determine how much bevel is applied; "
-		                   "apply them separately in vert/edge select mode"},
+		                   "Use bevel weights to determine how much bevel is applied in edge mode"},
+		{BME_BEVEL_VGROUP, "VGROUP", 0, "Vertex Group",
+		                   "Use vertex group weights to determine how much bevel is applied in vertex mode"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	/* TO BE DEPRECATED */
 	static EnumPropertyItem prop_edge_weight_method_items[] = {
 		{0, "AVERAGE", 0, "Average", ""},
 		{BME_BEVEL_EMIN, "SHARPEST", 0, "Sharpest", ""},
@@ -2315,6 +2323,12 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Width", "Bevel value/amount");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	prop = RNA_def_property(srna, "segments", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "res");
+	RNA_def_property_range(prop, 1, 100);
+	RNA_def_property_ui_text(prop, "Segments", "Number of segments for round edges/verts");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
 	prop = RNA_def_property(srna, "use_only_vertices", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", BME_BEVEL_VERT);
 	RNA_def_property_ui_text(prop, "Only Vertices", "Bevel verts/corners, not edges");
@@ -2326,6 +2340,7 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Limit Method", "");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+	/* TO BE DEPRECATED */
 	prop = RNA_def_property(srna, "edge_weight_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "e_flags");
 	RNA_def_property_enum_items(prop, prop_edge_weight_method_items);
@@ -2348,15 +2363,10 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 #ifdef USE_BM_BEVEL_OP_AS_MOD
-	prop = RNA_def_property(srna, "use_even_offset", PROP_BOOLEAN, PROP_NONE); /* name matches solidify */
-	RNA_def_property_boolean_sdna(prop, NULL, "flags", BME_BEVEL_EVEN);
-	RNA_def_property_ui_text(prop, "Even", "Use even bevel distance correction");
-	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-
-	prop = RNA_def_property(srna, "use_distance_offset", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flags", BME_BEVEL_DIST);
-	RNA_def_property_ui_text(prop, "Distance",
-	                         "Use the width as a distance in rather then a factor of the face size");
+	prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
+	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_BevelModifier_defgrp_name_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 #endif
 

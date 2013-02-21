@@ -30,11 +30,15 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_object_types.h"
+#include "DNA_meshdata_types.h"
+
 #include "BLI_array.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
 
 #include "BKE_customdata.h"
+#include "BKE_deform.h"
 
 #include "bmesh.h"
 #include "./intern/bmesh_private.h"
@@ -104,6 +108,7 @@ typedef struct BevVert {
 	BMVert *v;          /* original mesh vertex */
 	int edgecount;          /* total number of edges around the vertex */
 	int selcount;           /* number of selected edges around the vertex */
+	float offset;           /* offset for this vertex, if vertex_only bevel */
 	EdgeHalf *edges;        /* array of size edgecount; CCW order from vertex normal side */
 	VMesh *vmesh;           /* mesh structure for replacing vertex */
 } BevVert;
@@ -117,7 +122,10 @@ typedef struct BevelParams {
 
 	float offset;           /* blender units to offset each side of a beveled edge */
 	int seg;                /* number of segments in beveled edge profile */
-	int vertex_only;	/* bevel vertices only */
+	bool vertex_only;       /* bevel vertices only */
+	bool use_weights;       /* bevel amount affected by weights on edges or verts */
+	const struct MDeformVert *dvert; /* vertex group array, maybe set if vertex_only */
+	int vertex_group;       /* vertex group index, maybe set if vertex_only */
 } BevelParams;
 
 // #pragma GCC diagnostic ignored "-Wpadded"
@@ -665,7 +673,7 @@ static void build_boundary(BevelParams *bp, BevVert *bv)
 		return;
 	}
 
-	lastd = bp->vertex_only ? bp->offset : e->offset;
+	lastd = bp->vertex_only? bv->offset : e->offset;
 	vm->boundstart = NULL;
 	do {
 		if (e->is_bev) {
@@ -1722,6 +1730,7 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 	BMFace *f;
 	BMIter iter, iter2;
 	EdgeHalf *e;
+	float weight;
 	int i, found_shared_face, ccw_test_sum;
 	int nsel = 0;
 	int ntot = 0;
@@ -1760,10 +1769,23 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 	bv->v = v;
 	bv->edgecount = ntot;
 	bv->selcount = nsel;
+	bv->offset = bp->offset;
 	bv->edges = (EdgeHalf *)BLI_memarena_alloc(bp->mem_arena, ntot * sizeof(EdgeHalf));
 	bv->vmesh = (VMesh *)BLI_memarena_alloc(bp->mem_arena, sizeof(VMesh));
 	bv->vmesh->seg = bp->seg;
 	BLI_ghash_insert(bp->vert_hash, v, bv);
+
+	if (bp->vertex_only) {
+		/* if weighted, modify offset by weight */
+		if (bp->dvert != NULL && bp->vertex_group != -1) {
+			weight = defvert_find_weight(bp->dvert + BM_elem_index_get(v), bp->vertex_group);
+			if (weight <= 0.0f) {
+				BM_elem_flag_disable(v, BM_ELEM_TAG);
+				return;
+			}
+			bv->offset *= weight;
+		}
+	}
 
 	/* add edges to bv->edges in order that keeps adjacent edges sharing
 	 * a face, if possible */
@@ -1815,7 +1837,16 @@ static void bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
 			e->seg = 0;
 		}
 		e->is_rev = (bme->v2 == v);
-		e->offset = e->is_bev ? bp->offset : 0.0f;
+		if (e->is_bev) {
+			e->offset = bp->offset;
+			if (bp->use_weights) {
+				weight = BM_elem_float_data_get(&bm->edata, bme, CD_BWEIGHT);
+				e->offset *= weight;
+			}
+		}
+		else {
+			e->offset = 0.0f;
+		}
 	}
 	/* find wrap-around shared face */
 	BM_ITER_ELEM (f, &iter2, bme, BM_FACES_OF_EDGE) {
@@ -2034,7 +2065,9 @@ static void bevel_build_edge_polygons(BMesh *bm, BevelParams *bp, BMEdge *bme)
  *
  * \warning all tagged edges _must_ be manifold.
  */
-void BM_mesh_bevel(BMesh *bm, const float offset, const float segments, const int vertex_only)
+void BM_mesh_bevel(BMesh *bm, const float offset, const float segments,
+                   const bool vertex_only, const bool use_weights,
+                   const struct MDeformVert *dvert, const int vertex_group)
 {
 	BMIter iter;
 	BMVert *v;
@@ -2044,6 +2077,9 @@ void BM_mesh_bevel(BMesh *bm, const float offset, const float segments, const in
 	bp.offset = offset;
 	bp.seg    = segments;
 	bp.vertex_only = vertex_only;
+	bp.use_weights = use_weights;
+	bp.dvert = dvert;
+	bp.vertex_group = vertex_group;
 
 	if (bp.offset > 0) {
 		/* primary alloc */

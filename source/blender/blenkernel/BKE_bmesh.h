@@ -38,7 +38,7 @@
 /*NOTE: this is the bmesh 1.0 code.  it's completely outdated.*/
 
 /* uncomment to use the new bevel operator as a modifier */
-// #define USE_BM_BEVEL_OP_AS_MOD
+#define USE_BM_BEVEL_OP_AS_MOD
 
 /* bevel tool defines */
 /* element flags */
@@ -53,6 +53,7 @@
 #define BME_BEVEL_RADIUS        (1 << 2)
 #define BME_BEVEL_ANGLE         (1 << 3)
 #define BME_BEVEL_WEIGHT        (1 << 4)
+#define BME_BEVEL_VGROUP        (1 << 5)
 //~ #define BME_BEVEL_EWEIGHT		(1<<4)
 //~ #define BME_BEVEL_VWEIGHT		(1<<5)
 #define BME_BEVEL_PERCENT       (1 << 6)

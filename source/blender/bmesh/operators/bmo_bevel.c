@@ -55,7 +55,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 
-		BM_mesh_bevel(bm, offset, seg, vonly);
+		BM_mesh_bevel(bm, offset, seg, vonly, false, NULL, -1);
 
 		BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faces.out", BM_FACE, BM_ELEM_TAG);
 	}
