@@ -2202,6 +2202,70 @@ static void make_bevel_list_segment_3D(BevList *bl)
 	copy_qt_qt(bevp2->quat, bevp1->quat);
 }
 
+/* only for 2 points */
+static void make_bevel_list_segment_2D(BevList *bl)
+{
+	BevPoint *bevp2 = (BevPoint *)(bl + 1);
+	BevPoint *bevp1 = bevp2 + 1;
+
+	const float x1 = bevp1->vec[0] - bevp2->vec[0];
+	const float y1 = bevp1->vec[1] - bevp2->vec[1];
+
+	calc_bevel_sin_cos(x1, y1, -x1, -y1, &(bevp1->sina), &(bevp1->cosa));
+	bevp2->sina = bevp1->sina;
+	bevp2->cosa = bevp1->cosa;
+
+	/* fill in dir & quat */
+	make_bevel_list_segment_3D(bl);
+}
+
+static void make_bevel_list_2D(BevList *bl)
+{
+	/* note: bevp->dir and bevp->quat are not needed for beveling but are
+	 * used when making a path from a 2D curve, therefor they need to be set - Campbell */
+
+	BevPoint *bevp2 = (BevPoint *)(bl + 1);
+	BevPoint *bevp1 = bevp2 + (bl->nr - 1);
+	BevPoint *bevp0 = bevp1 - 1;
+	int nr;
+
+	nr = bl->nr;
+	while (nr--) {
+		const float x1 = bevp1->vec[0] - bevp0->vec[0];
+		const float x2 = bevp1->vec[0] - bevp2->vec[0];
+		const float y1 = bevp1->vec[1] - bevp0->vec[1];
+		const float y2 = bevp1->vec[1] - bevp2->vec[1];
+
+		calc_bevel_sin_cos(x1, y1, x2, y2, &(bevp1->sina), &(bevp1->cosa));
+
+		/* from: make_bevel_list_3D_zup, could call but avoid a second loop.
+		 * no need for tricky tilt calculation as with 3D curves */
+		bisect_v3_v3v3v3(bevp1->dir, bevp0->vec, bevp1->vec, bevp2->vec);
+		vec_to_quat(bevp1->quat, bevp1->dir, 5, 1);
+		/* done with inline make_bevel_list_3D_zup */
+
+		bevp0 = bevp1;
+		bevp1 = bevp2;
+		bevp2++;
+	}
+
+	/* correct non-cyclic cases */
+	if (bl->poly == -1) {
+		BevPoint *bevp = (BevPoint *)(bl + 1);
+		bevp1 = bevp + 1;
+		bevp->sina = bevp1->sina;
+		bevp->cosa = bevp1->cosa;
+		bevp = (BevPoint *)(bl + 1);
+		bevp += (bl->nr - 1);
+		bevp1 = bevp - 1;
+		bevp->sina = bevp1->sina;
+		bevp->cosa = bevp1->cosa;
+
+		/* correct for the dir/quat, see above why its needed */
+		bevel_list_cyclic_fix_3D(bl);
+	}
+}
+
 void BKE_curve_bevelList_make(Object *ob)
 {
 	/*
@@ -2216,7 +2280,7 @@ void BKE_curve_bevelList_make(Object *ob)
 	BPoint *bp;
 	BevList *bl, *blnew, *blnext;
 	BevPoint *bevp, *bevp2, *bevp1 = NULL, *bevp0;
-	float min, inp, x1, x2, y1, y2;
+	float min, inp;
 	struct bevelsort *sortdata, *sd, *sd1;
 	int a, b, nr, poly, resolu = 0, len = 0;
 	int do_tilt, do_radius, do_weight;
@@ -2534,76 +2598,22 @@ void BKE_curve_bevelList_make(Object *ob)
 
 	/* STEP 4: 2D-COSINES or 3D ORIENTATION */
 	if ((cu->flag & CU_3D) == 0) {
-		/* note: bevp->dir and bevp->quat are not needed for beveling but are
-		 * used when making a path from a 2D curve, therefor they need to be set - Campbell */
-		bl = cu->bev.first;
-		while (bl) {
-
+		/* 2D Curves */
+		for (bl = cu->bev.first; bl; bl = bl->next) {
 			if (bl->nr < 2) {
 				/* do nothing */
 			}
 			else if (bl->nr == 2) {   /* 2 pnt, treat separate */
-				bevp2 = (BevPoint *)(bl + 1);
-				bevp1 = bevp2 + 1;
-
-				x1 = bevp1->vec[0] - bevp2->vec[0];
-				y1 = bevp1->vec[1] - bevp2->vec[1];
-
-				calc_bevel_sin_cos(x1, y1, -x1, -y1, &(bevp1->sina), &(bevp1->cosa));
-				bevp2->sina = bevp1->sina;
-				bevp2->cosa = bevp1->cosa;
-
-				/* fill in dir & quat */
-				make_bevel_list_segment_3D(bl);
+				make_bevel_list_segment_2D(bl);
 			}
 			else {
-				bevp2 = (BevPoint *)(bl + 1);
-				bevp1 = bevp2 + (bl->nr - 1);
-				bevp0 = bevp1 - 1;
-
-				nr = bl->nr;
-				while (nr--) {
-					x1 = bevp1->vec[0] - bevp0->vec[0];
-					x2 = bevp1->vec[0] - bevp2->vec[0];
-					y1 = bevp1->vec[1] - bevp0->vec[1];
-					y2 = bevp1->vec[1] - bevp2->vec[1];
-
-					calc_bevel_sin_cos(x1, y1, x2, y2, &(bevp1->sina), &(bevp1->cosa));
-
-					/* from: make_bevel_list_3D_zup, could call but avoid a second loop.
-					 * no need for tricky tilt calculation as with 3D curves */
-					bisect_v3_v3v3v3(bevp1->dir, bevp0->vec, bevp1->vec, bevp2->vec);
-					vec_to_quat(bevp1->quat, bevp1->dir, 5, 1);
-					/* done with inline make_bevel_list_3D_zup */
-
-					bevp0 = bevp1;
-					bevp1 = bevp2;
-					bevp2++;
-				}
-
-				/* correct non-cyclic cases */
-				if (bl->poly == -1) {
-					bevp = (BevPoint *)(bl + 1);
-					bevp1 = bevp + 1;
-					bevp->sina = bevp1->sina;
-					bevp->cosa = bevp1->cosa;
-					bevp = (BevPoint *)(bl + 1);
-					bevp += (bl->nr - 1);
-					bevp1 = bevp - 1;
-					bevp->sina = bevp1->sina;
-					bevp->cosa = bevp1->cosa;
-
-					/* correct for the dir/quat, see above why its needed */
-					bevel_list_cyclic_fix_3D(bl);
-				}
+				make_bevel_list_2D(bl);
 			}
-			bl = bl->next;
 		}
 	}
-	else { /* 3D Curves */
-		bl = cu->bev.first;
-		while (bl) {
-
+	else {
+		/* 3D Curves */
+		for (bl = cu->bev.first; bl; bl = bl->next) {
 			if (bl->nr < 2) {
 				/* do nothing */
 			}
@@ -2613,7 +2623,6 @@ void BKE_curve_bevelList_make(Object *ob)
 			else {
 				make_bevel_list_3D(bl, (int)(resolu * cu->twist_smooth), cu->twist_mode);
 			}
-			bl = bl->next;
 		}
 	}
 }
