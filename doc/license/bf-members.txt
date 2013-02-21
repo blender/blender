@@ -35,7 +35,7 @@ Eric Van Hensbergen
 Christian Reichlin 
 brian moore 
 Anthony Walker 
-Carsten Höfer 
+Carsten H√∂fer 
 Raymond Fordham 
 David Megginson 
 Jason Schmidt 
@@ -78,7 +78,7 @@ Ken Payne
 DEBEUX Sylvain 
 Douglas Philips 
 Lai Che Hung
-Johan Bolmsjö 
+Johan Bolmsj√∂ 
 Aaron Mitchell 
 Teinye Horsfall 
 Martin Marbach 
@@ -98,7 +98,7 @@ lukas schroeder
 Dan Lyke 
 Mark Thorpe 
 A.D. Arul Nirai Selvan 
-Herbert Pötzl 
+Herbert P√∂tzl 
 Andy Payne 
 LAFFITTE Benoit (KenjForce)
 James Ertle 
@@ -148,7 +148,7 @@ Kendall Dugger
 Brice Due 
 Simon Vogl 
 Bernd Koestler 
-clément CORDIER 
+cl√©ment CORDIER 
 CreationAnimation.com
 Pete Carss 
 HERSEN Antoine 
@@ -197,9 +197,9 @@ cadic jean-yves
 Ralf Pietersz 
 KAZY
 serge Jadot 
-Hervé LOUINET 
+Herv√© LOUINET 
 Tom Houtman 
-Magnus Kööhler 
+Magnus K√∂√∂hler 
 Martin Sinnaeve 
 Kevin Yank 
 Tomoichi Iriyama 
@@ -221,12 +221,12 @@ Gianluigi Belli
 Naoki Abe 
 NOTTE Jean-Pierre 
 Jack Way 
-Björn Westlin 
+Bj√∂rn Westlin 
 Mitch Magee 
 wizoptic
 Jake Edge 
 David Hoover 
-Xabier Goñi 
+Xabier Go√±i 
 Daniel Fort 
 Erik Noteboom 
 Pavel Vostatek 
@@ -234,7 +234,7 @@ Javier Belanche Alonso
 Jeffrey Blank 
 Nathan Ryan 
 Peter Wrangell 
-Josef Sieß 
+Josef Sie√ü 
 Timm Krumnack 
 Steve Martin 
 Shigeru Matsumoto 
@@ -261,7 +261,7 @@ Colin Foster
 Sascha Adler 
 Stuart Duncan 
 Brendon Smith 
-Sébastien COLLETTE 
+S√©bastien COLLETTE 
 Clemens Auer 
 Kay Fricke 
 Fabian Fagerholm 
@@ -282,7 +282,7 @@ STEMax
 Jeff Cox 
 Trevor Ratliff 
 Matt Henley 
-François VALETTE 
+Fran√ßois VALETTE 
 Rob Saunders 
 Mike Luethi 
 Rami Aubourg-Kaires 
@@ -290,9 +290,9 @@ Matthew Thomas
 Allan Jacobsen 
 Adam Lowe 
 David Hostetler 
-Loïc Vigneras 
+Lo√Øc Vigneras 
 Dan Reiland 
-Pedro Díaz del Arco 
+Pedro D√≠az del Arco 
 Pierre Beyssac 
 Chris Davey 
 YOSHIAKI Nishino 
@@ -385,7 +385,7 @@ Kiernan Holland
 Holger Malessa 
 Masanori Okuda 
 Andrea Maracci 
-Kai-Peter Bäckman 
+Kai-Peter B√§ckman 
 Gregg Patton 
 Luis M Ibarra
 Julian Green 
@@ -394,7 +394,7 @@ Mark Winkelman
 Ebbe L. Nielsen
 Carlos Orozco 
 magnetHead
-Krückel Oliver 
+Kr√ºckel Oliver 
 Thomas Ingham 
 Wes Devauld 
 Uwe Steinmann 
@@ -417,7 +417,7 @@ Steve Mackay
 NDNWarrior
 Christopher Gray 
 Darius Clarke (Socinian)
-Jean-Sébastien SEVESTRE 
+Jean-S√©bastien SEVESTRE 
 Douglas Fellows 
 Craig Symons 
 Quincin Gonjon 
@@ -447,7 +447,7 @@ Markus Q. Roberts
 Christoher Bartak 
 Peter Truog 
 Eric Dynowski 
-Philipp Gühring 
+Philipp G√ºhring 
 Pierre-Yves RANNO 
 Jason Nollan (Cluh)
 Launay Jean-Claude 
@@ -465,7 +465,7 @@ TROJANI Cedric
 David Polston 
 Patrick Mullen 
 Tetsuya Okuno 
-Bodo Jäger 
+Bodo J√§ger 
 Leon Brooks 
 Cedric Adjih 
 Michael L. Fisher
@@ -521,7 +521,7 @@ Vincent Stoessel
 Adrian Virnig 
 Chris Dixon 
 Travis Cole 
-Mårten Mårtensson 
+M√•rten M√•rtensson 
 Evan Scott 
 Mark Coletti 
 Ken Burke 
@@ -541,7 +541,7 @@ Iain Russell
 Thomas Bleicher 
 Anthony Zishka 
 Jefferson Dubrule 
-Esa Piirilä 
+Esa Piiril√§ 
 Bill Thiede 
 William Anderson 
 Alexander Kittel 
@@ -561,7 +561,7 @@ John DiLauro
 John Miller 
 Frederic Crozat 
 Matt Welland 
-Paul Calcé 
+Paul Calc√© 
 Joe Prochilo 
 Justin Shafer 
 Joe Croft 
@@ -571,7 +571,7 @@ Alain Gallo
 Phuoc Ngo 
 Krabat
 Derek Harmison 
-Sébastien Devine 
+S√©bastien Devine 
 Kenneth P. Stox
 Wade Felde 
 Kai Groshert 
@@ -603,7 +603,7 @@ Martin Forisch
 Guillermina Manon 
 Randal D. Adams
 Kevin Reagh (kevin3D)
-Wolfgang Kühn 
+Wolfgang K√ºhn 
 BEAUSOLEIL Arnaud 
 Stan Jakubek 
 Klaus Brand 
@@ -628,7 +628,7 @@ Samuel Seay
 Mike Schaudies 
 Robert Sherwood 
 Fernando Villalon Panzano
-Jörg Roschke 
+J√∂rg Roschke 
 Carl Symons 
 Peter Pichler 
 Alan Heckart 
@@ -714,7 +714,7 @@ Rau, Bernhard
 Stephen Uithoven 
 Ken Beyer 
 Matjaz Jakopec 
-Eckhard M. Jäger
+Eckhard M. J√§ger
 Mike Siebach 
 John Harger 
 Justin W. Carper
@@ -747,7 +747,7 @@ Karl Bartel
 Ralph Howes 
 Matthew J. Stott
 Omar Priego 
-Åke Westerström 
+√Öke Westerstr√∂m 
 Imago Viva 
 James E Hill
 Rune Myrland 
@@ -785,7 +785,7 @@ Claude Bilat
 Mario Palomo 
 Neipi
 Grethus Bode 
-Jan Müller 
+Jan M√ºller 
 Mark Pearson 
 Stanislav Osicka 
 DataCare Solutions AG
@@ -804,9 +804,9 @@ Aaron Bredon
 Hideki Suzuki 
 josef radinger 
 Robert Friemer 
-Jörg Zastrau 
+J√∂rg Zastrau 
 Burton Bicksler 
-Kimmo Mösö 
+Kimmo M√∂s√∂ 
 Robert F Johnson
 Mark Johnson 
 Avi Bercovich 
@@ -821,21 +821,21 @@ Duffaud
 Marco Ardito 
 Simon Suter 
 Tobias Huelsdau 
-Winfried Engländer 
+Winfried Engl√§nder 
 Stephen Groundwater 
 Joel Ray Holveck
 Mag. Tibor Rudas
 Hartmut Wolf 
 Douglas Jones 
 brett hartshorn 
-Beat Mägert 
+Beat M√§gert 
 Javon Prince 
 bri
 James Klicman 
 Harvey Fong 
 jeroen v.d. Meulen
 Wim Vandersmissen 
-Carlos Moreno Rodríguez
+Carlos Moreno Rodr√≠guez
 Trausti Kristjansson 
 Larry Snyder 
 olivier
@@ -887,7 +887,7 @@ Fred Roberts
 Njin-Zu Chen 
 GUILLON Marc 
 Felix Klock 
-Ernesto Salas Rodríguez
+Ernesto Salas Rodr√≠guez
 Pavel Roskin 
 Jaap
 Stefan Maass 
@@ -911,7 +911,7 @@ delerue
 Dirk Behrens 
 Doc Holiday 
 Wouter Kerkhoven 
-Andreas Büttner 
+Andreas B√ºttner 
 James Black 
 Nicholas Ward 
 David Oberbeck 
@@ -940,7 +940,7 @@ Ian Whitworth
 Ruud H.G. van Tol 
 Pierre Lo Cicero
 Srinivas Digumarty 
-digitalvelocity®
+digitalvelocity¬Æ
 Alan J Booth
 Tony OBrien 
 Douglas Toltzman 
@@ -957,12 +957,12 @@ Craig Spitzer
 Jeffrey Van Ness
 Lucas Vergnettes 
 Wolfgang Michaelis 
-Luis Jiménez Linares
+Luis Jim√©nez Linares
 Julian Eden 
 Ms Lilo von Hanffstengel 
 Kurt B. Kaiser
 Mark Ping 
-Combée
+Comb√©e
 Diego Matho 
 MELIN Philippe 
 Damian Sobieralski 
@@ -1028,7 +1028,7 @@ evolutie
 Stephane Portha 
 Robert Gentner 
 David B. Camhy
-René Foucart 
+Ren√© Foucart 
 Coyok Drio 
 Mark Ng 
 klein michael 
@@ -1094,14 +1094,14 @@ Stuart MacKinnon
 Dietrich Dietz - the IMaGiNation project (IMGN)
 Tina Hirsch 
 John R Thorp
-Frédéric Bouvier 
+Fr√©d√©ric Bouvier 
 LINETTE
 Felix Rabe 
 Chay Adamou 
 nick harron 
 stephen john ford
 Kino
-Daniel Sjölie 
+Daniel Sj√∂lie 
 Matthias Derer 
 Alain VALLETON 
 Kervin Pierre 
@@ -1142,13 +1142,13 @@ Satoshi Yamasaki
 Rolf-Dieter Klein 
 J. Deetman 
 Helge Walter 
-Roland Strålberg 
+Roland Str√•lberg 
 Nicolas Morenas (Caronte)
 Simon Clarke 
 Maigrot Michel 
 Rod Robinson 
 Kevin Cozens 
-Germán Alonso (taz)
+Germ√°n Alonso (taz)
 Martin Stegeman 
 Henrik Jordfald Olsen
 Mitchell Skinner 
@@ -1157,7 +1157,7 @@ Spiridon G. Kontarakis
 Bas Denissen 
 Loic Dachary 
 Michael Rutter 
-Thorsten Schlüter 
+Thorsten Schl√ºter 
 hijothema
 Andreas Hauser 
 Holger Haase 
@@ -1232,9 +1232,9 @@ Starr Kline
 John Lullie 
 Chiffi Cosimo 
 Morgan McMillian 
-Stefan Hübner 
+Stefan H√ºbner 
 Loic de MONTAIGNAC
-Andrés Castillo 
+Andr√©s Castillo 
 Francesco Anselmo 
 Ingo Guenther 
 James C. Davis, Jr. 
@@ -1314,7 +1314,7 @@ Luke Titley
 marinus meijers 
 Henry Kaminski 
 Alistair Riddoch 
-Daniel Nümm 
+Daniel N√ºmm 
 Matthew Meadows 
 Bjoern Paschen 
 Paul Fredrickson 
@@ -1325,7 +1325,7 @@ Thomas Muldowney
 Cheyenne Cloud, LLC
 Helmut A. Goettl
 Martin A. Boegelund
-Benoît Cousson 
+Beno√Æt Cousson 
 Scott Brooks 
 Ferlet Patrice 
 Aaron Porterfield 
@@ -1335,13 +1335,13 @@ Rui Paulo Sanguinheira Diogo
 Jason Saville 
 Active-Websight GbR 
 Bryon Roche 
-Gustavo Muñoz 
+Gustavo Mu√±oz 
 Christopher Gillanders 
 Phil Frost Tate
 Gilles Gonon 
 Kay
 James C. Franklin
-Luis Enrique Caamaño Navas 
+Luis Enrique Caama√±o Navas 
 Alexander "estartu" Felder
 Marc Ledermann 
 vrijschrift.org
@@ -1371,7 +1371,7 @@ Maurizio Sibaud
 Ron Bolger 
 Nathan Parton 
 Andrew Fry 
-VINCENT Stéphane 
+VINCENT St√©phane 
 Yan Yan 
 Justin L Graham
 Wade Beasley 
