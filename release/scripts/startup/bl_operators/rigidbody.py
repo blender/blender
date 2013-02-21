@@ -192,8 +192,7 @@ class BakeToKeyframes(Operator):
 
 
 class ConnectRigidBodies(Operator):
-    """Create rigid body constraints between """ \
-    """selected and active rigid bodies"""
+    '''Create rigid body constraints between selected rigid bodies'''
     bl_idname = "rigidbody.connect"
     bl_label = "Connect Rigid Bodies"
     bl_options = {'REGISTER', 'UNDO'}
@@ -214,42 +213,72 @@ class ConnectRigidBodies(Operator):
                ('SELECTED', "Selected", "Pivot location is at the selected object position")),
         default='CENTER',)
 
+    connection_pattern = EnumProperty(
+        name="Connection Pattern",
+        description="Pattern used to connect objects",
+        items=(('SELECTED_TO_ACTIVE', "Selected to Active", "Connects selected objects to the active object"),
+               ('CHAIN_DISTANCE', "Chain by Distance", "Connects objects as a chain based on distance, starting at the active object")),
+        default='SELECTED_TO_ACTIVE',)
+
     @classmethod
     def poll(cls, context):
         obj = context.object
         return (obj and obj.rigid_body)
 
-    def execute(self, context):
+    def _add_constraint(self, context, object1, object2):
+        if object1 == object2:
+            return False
 
+        if self.pivot_type == 'ACTIVE':
+            loc = object1.location
+        elif self.pivot_type == 'SELECTED':
+            loc = object2.location
+        else:
+            loc = (object1.location + object2.location) / 2.0
+
+        ob = bpy.data.objects.new("Constraint", object_data=None)
+        ob.location = loc
+        context.scene.objects.link(ob)
+        context.scene.objects.active = ob
+        ob.select = True
+
+        bpy.ops.rigidbody.constraint_add()
+        con_obj = context.active_object
+        con_obj.empty_draw_type = 'ARROWS'
+        con = con_obj.rigid_body_constraint
+        con.type = self.con_type
+
+        con.object1 = object1
+        con.object2 = object2
+
+        return True
+
+    def execute(self, context):
         scene = context.scene
         objects = context.selected_objects
         obj_act = context.active_object
         change = False
 
-        for obj in objects:
-            if obj == obj_act:
-                continue
-            if self.pivot_type == 'ACTIVE':
-                loc = obj_act.location
-            elif self.pivot_type == 'SELECTED':
-                loc = obj.location
-            else:
-                loc = (obj_act.location + obj.location) / 2.0
+        if self.connection_pattern == 'CHAIN_DISTANCE':
+            objs_sorted = [obj_act]
+            objects_tmp = context.selected_objects
+            if obj_act.select:
+                objects_tmp.remove(obj_act)
+            objects_tmp.sort(key=lambda o: (obj_act.location - o.location).length)
+            last_obj = obj_act
 
-            ob = bpy.data.objects.new("Constraint", object_data=None)
-            ob.location = loc
-            context.scene.objects.link(ob)
-            context.scene.objects.active = ob
-            ob.select = True
+            while (len(objects_tmp)):
+                objects_tmp.sort(key=lambda o: (last_obj.location - o.location).length)
+                objs_sorted.append(objects_tmp[0])
+                last_obj = objects_tmp[0]
+                objects_tmp.remove(objects_tmp[0])
 
-            bpy.ops.rigidbody.constraint_add()
-            con_obj = context.active_object
-            con_obj.empty_draw_type = 'ARROWS'
-            con = con_obj.rigid_body_constraint
-            con.type = self.con_type
-            con.object1 = obj_act
-            con.object2 = obj
-            change = True
+            for i in range(1, len(objs_sorted)):
+                change = self._add_constraint(context, objs_sorted[i-1], objs_sorted[i])
+
+        else: # SELECTED_TO_ACTIVE
+            for obj in objects:
+                change = self._add_constraint(context, obj_act, obj)
 
         if change:
             # restore selection
