@@ -1093,13 +1093,9 @@ class CyclesScene_PT_simplify(CyclesButtonsPanel, Panel):
 
         layout.active = rd.use_simplify
 
-        split = layout.split()
-
-        col = split.column()
-        col.prop(rd, "simplify_subdivision", text="Subdivision")
-
-        col = split.column()
-        col.prop(rd, "simplify_child_particles", text="Child Particles")
+        row = layout.row()
+        row.prop(rd, "simplify_subdivision", text="Subdivision")
+        row.prop(rd, "simplify_child_particles", text="Child Particles")
 
 
 def draw_device(self, context):
