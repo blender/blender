@@ -109,7 +109,8 @@ class BakeToKeyframes(Operator):
         objects = []
         scene = context.scene
         frame_orig = scene.frame_current
-        frames = list(range(self.frame_start, self.frame_end + 1, self.step))
+        frames_step = range(self.frame_start, self.frame_end + 1, self.step)
+        frames_full = range(self.frame_start, self.frame_end + 1)
 
         # filter objects selection
         for obj in context.selected_objects:
@@ -121,16 +122,16 @@ class BakeToKeyframes(Operator):
         if objects:
             # store transformation data
             # need to start at scene start frame so simulation is run from the beginning
-            for f in list(range(scene.frame_start, self.frame_end + 1)):
+            for f in frames_full:
                 scene.frame_set(f)
-                if f in frames:
+                if f in frames_step:
                     mat = {}
                     for i, obj in enumerate(objects):
                         mat[i] = obj.matrix_world.copy()
                     bake.append(mat)
 
             # apply transformations as keyframes
-            for i, f in enumerate(frames):
+            for i, f in enumerate(frames_step):
                 scene.frame_set(f)
                 obj_prev = objects[0]
                 for j, obj in enumerate(objects):
