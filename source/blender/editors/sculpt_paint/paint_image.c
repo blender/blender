@@ -5035,7 +5035,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 		ps->is_texbrush = false;
 	}
 
-	/* sizeof ProjPixel, since we alloc this a _lot_ */
+	/* sizeof(ProjPixel), since we alloc this a _lot_ */
 	ps->pixel_sizeof = project_paint_pixel_sizeof(ps->tool);
 	BLI_assert(ps->pixel_sizeof >= sizeof(ProjPixel));
 

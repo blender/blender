@@ -39,7 +39,7 @@ GHOST_DisplayManagerSDL::GHOST_DisplayManagerSDL(GHOST_SystemSDL *system)
       GHOST_DisplayManager(),
       m_system(system)
 {
-	memset(&m_mode, 0, sizeof m_mode);
+	memset(&m_mode, 0, sizeof(m_mode));
 }
 
 GHOST_TSuccess

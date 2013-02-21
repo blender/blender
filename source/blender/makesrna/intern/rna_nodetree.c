@@ -1308,7 +1308,7 @@ static void reg_node(int ID, int category, const char *enum_name, const char *st
 
 static void init(void)
 {
-	memset(nodes, 0, sizeof nodes);
+	memset(nodes, 0, sizeof(nodes));
 	
 	#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
 		reg_node(ID, Category_##Category, EnumName, STRINGIFY_ARG(Category##StructName), #Category, UIName, UIDesc);

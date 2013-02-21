@@ -709,7 +709,7 @@ static void p_face_restore_uvs(PFace *f)
 
 static PVert *p_vert_add(PHandle *handle, PHashKey key, const float co[3], PEdge *e)
 {
-	PVert *v = (PVert *)BLI_memarena_alloc(handle->arena, sizeof *v);
+	PVert *v = (PVert *)BLI_memarena_alloc(handle->arena, sizeof(*v));
 	copy_v3_v3(v->co, co);
 	v->u.key = key;
 	v->edge = e;
@@ -732,7 +732,7 @@ static PVert *p_vert_lookup(PHandle *handle, PHashKey key, const float co[3], PE
 
 static PVert *p_vert_copy(PChart *chart, PVert *v)
 {
-	PVert *nv = (PVert *)BLI_memarena_alloc(chart->handle->arena, sizeof *nv);
+	PVert *nv = (PVert *)BLI_memarena_alloc(chart->handle->arena, sizeof(*nv));
 
 	copy_v3_v3(nv->co, v->co);
 	nv->uv[0] = v->uv[0];
@@ -786,7 +786,7 @@ static int p_face_exists(ParamHandle *phandle, ParamKey *pvkeys, int i1, int i2,
 
 static PChart *p_chart_new(PHandle *handle)
 {
-	PChart *chart = (PChart *)MEM_callocN(sizeof *chart, "PChart");
+	PChart *chart = (PChart *)MEM_callocN(sizeof(*chart), "PChart");
 	chart->handle = handle;
 
 	return chart;
@@ -904,7 +904,7 @@ static PBool p_edge_connect_pair(PHandle *handle, PEdge *e, PEdge ***stack, PBoo
 
 static int p_connect_pairs(PHandle *handle, PBool impl)
 {
-	PEdge **stackbase = MEM_mallocN(sizeof *stackbase * phash_size(handle->hash_faces), "Pstackbase");
+	PEdge **stackbase = MEM_mallocN(sizeof(*stackbase) * phash_size(handle->hash_faces), "Pstackbase");
 	PEdge **stack = stackbase;
 	PFace *f, *first;
 	PEdge *e, *e1, *e2;
@@ -999,7 +999,7 @@ static void p_split_vert(PChart *chart, PEdge *e)
 
 static PChart **p_split_charts(PHandle *handle, PChart *chart, int ncharts)
 {
-	PChart **charts = MEM_mallocN(sizeof *charts * ncharts, "PCharts"), *nchart;
+	PChart **charts = MEM_mallocN(sizeof(*charts) * ncharts, "PCharts"), *nchart;
 	PFace *f, *nextf;
 	int i;
 
@@ -1041,12 +1041,12 @@ static PFace *p_face_add(PHandle *handle)
 	PEdge *e1, *e2, *e3;
 
 	/* allocate */
-	f = (PFace *)BLI_memarena_alloc(handle->arena, sizeof *f);
+	f = (PFace *)BLI_memarena_alloc(handle->arena, sizeof(*f));
 	f->flag = 0;  /* init ! */
 
-	e1 = (PEdge *)BLI_memarena_alloc(handle->arena, sizeof *e1);
-	e2 = (PEdge *)BLI_memarena_alloc(handle->arena, sizeof *e2);
-	e3 = (PEdge *)BLI_memarena_alloc(handle->arena, sizeof *e3);
+	e1 = (PEdge *)BLI_memarena_alloc(handle->arena, sizeof(*e1));
+	e2 = (PEdge *)BLI_memarena_alloc(handle->arena, sizeof(*e2));
+	e3 = (PEdge *)BLI_memarena_alloc(handle->arena, sizeof(*e3));
 
 	/* set up edges */
 	f->edge = e1;
@@ -3674,7 +3674,7 @@ static PBool p_triangle_inside(SmoothTriangle *t, float co[2])
 
 static SmoothNode *p_node_new(MemArena *arena, SmoothTriangle **tri, int ntri, float *bmin, float *bmax, int depth)
 {
-	SmoothNode *node = BLI_memarena_alloc(arena, sizeof *node);
+	SmoothNode *node = BLI_memarena_alloc(arena, sizeof(*node));
 	int axis, i, t1size = 0, t2size = 0;
 	float split, /* mi, */ /* UNUSED */ mx;
 	SmoothTriangle **t1, **t2, *t;
@@ -4114,7 +4114,7 @@ static void p_smooth(PChart *chart)
 
 ParamHandle *param_construct_begin(void)
 {
-	PHandle *handle = MEM_callocN(sizeof *handle, "PHandle");
+	PHandle *handle = MEM_callocN(sizeof(*handle), "PHandle");
 	handle->construction_chart = p_chart_new(handle);
 	handle->state = PHANDLE_STATE_ALLOCATED;
 	handle->arena = BLI_memarena_new((1 << 16), "param construct arena");

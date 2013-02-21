@@ -167,7 +167,7 @@ HeapNode *BLI_heap_insert(Heap *heap, float value, void *ptr)
 		heap->freenodes = (HeapNode *)(((HeapNode *)heap->freenodes)->ptr);
 	}
 	else {
-		node = (HeapNode *)BLI_memarena_alloc(heap->arena, sizeof *node);
+		node = (HeapNode *)BLI_memarena_alloc(heap->arena, sizeof(*node));
 	}
 
 	node->value = value;
