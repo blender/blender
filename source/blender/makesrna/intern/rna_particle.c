@@ -1937,14 +1937,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	};
 
 	/*TODO: names, tooltips */
-#if 0
-	static EnumPropertyItem rot_from_items[] = {
-		{PART_ROT_KEYS, "KEYS", 0, "keys", ""},
-		{PART_ROT_ZINCR, "ZINCR", 0, "zincr", ""},
-		{PART_ROT_IINCR, "IINCR", 0, "iincr", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-#endif
 	static EnumPropertyItem integrator_type_items[] = {
 		{PART_INT_EULER, "EULER", 0, "Euler", ""},
 		{PART_INT_VERLET, "VERLET", 0, "Verlet", ""},
@@ -2345,15 +2337,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, 32767);
 	RNA_def_property_ui_text(prop, "Material", "Material used for the particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
-
-
-	/* not used anywhere, why is this in DNA??? */
-#if 0
-	prop = RNA_def_property(srna, "rotate_from", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "rotfrom");
-	RNA_def_property_enum_items(prop, rot_from_items);
-	RNA_def_property_ui_text(prop, "Rotate From", "");
-#endif
 
 	prop = RNA_def_property(srna, "integrator", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, integrator_type_items);
