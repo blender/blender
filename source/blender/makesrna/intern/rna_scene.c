@@ -2441,10 +2441,6 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 
 	static EnumPropertyItem physics_engine_items[] = {
 		{WOPHY_NONE, "NONE", 0, "None", "Don't use a physics engine"},
-		/*{WOPHY_ENJI, "ENJI", 0, "Enji", ""}, */
-		/*{WOPHY_SUMO, "SUMO", 0, "Sumo (Deprecated)", ""}, */
-		/*{WOPHY_DYNAMO, "DYNAMO", 0, "Dynamo", ""}, */
-		/*{WOPHY_ODE, "ODE", 0, "ODE", ""}, */
 		{WOPHY_BULLET, "BULLET", 0, "Bullet", "Use the Bullet physics engine"},
 		{0, NULL, 0, NULL, NULL}
 	};
