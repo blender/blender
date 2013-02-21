@@ -151,10 +151,10 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 				ob->pd = object_add_collision_fields(0);
 			
 			ob->pd->deflect = 1;
-			DAG_scene_sort(bmain, scene);
+			DAG_relations_tag_update(bmain);
 		}
 		else if (type == eModifierType_Surface)
-			DAG_scene_sort(bmain, scene);
+			DAG_relations_tag_update(bmain);
 		else if (type == eModifierType_Multires) {
 			/* set totlvl from existing MDISPS layer if object already had it */
 			multiresModifier_set_levels_from_disps((MultiresModifierData *)new_md, ob);
@@ -343,10 +343,7 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Ob
 	}
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-
-	/* sorting has to be done after the update so that dynamic systems can react properly */
-	if (sort_depsgraph)
-		DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 
 	return 1;
 }
@@ -370,10 +367,7 @@ void ED_object_modifier_clear(Main *bmain, Scene *scene, Object *ob)
 	}
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-
-	/* sorting has to be done after the update so that dynamic systems can react properly */
-	if (sort_depsgraph)
-		DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 }
 
 int ED_object_modifier_move_up(ReportList *reports, Object *ob, ModifierData *md)
@@ -522,7 +516,7 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 		}
 	}
 
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 
 	return 1;
 }
@@ -1831,7 +1825,7 @@ static int skin_armature_create_exec(bContext *C, wmOperator *op)
 
 		arm_md->object = arm_ob;
 		arm_md->deformflag = ARM_DEF_VGROUP | ARM_DEF_QUATERNION;
-		DAG_scene_sort(bmain, scene);
+		DAG_relations_tag_update(bmain);
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 

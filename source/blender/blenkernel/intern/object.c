@@ -74,6 +74,7 @@
 #include "BKE_bullet.h"
 #include "BKE_colortools.h"
 #include "BKE_deform.h"
+#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_animsys.h"
 #include "BKE_anim.h"
@@ -406,7 +407,8 @@ static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Objec
 
 	if (*obpoin == unlinkOb) {
 		*obpoin = NULL;
-		ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME; // XXX: should this just be OB_RECALC_DATA?
+		// XXX: should this just be OB_RECALC_DATA?
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 	}
 }
 
@@ -440,14 +442,14 @@ void BKE_object_unlink(Object *ob)
 			obt->proxy = NULL;
 		if (obt->proxy_from == ob) {
 			obt->proxy_from = NULL;
-			obt->recalc |= OB_RECALC_OB;
+			DAG_id_tag_update(&obt->id, OB_RECALC_OB);
 		}
 		if (obt->proxy_group == ob)
 			obt->proxy_group = NULL;
 		
 		if (obt->parent == ob) {
 			obt->parent = NULL;
-			obt->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+			DAG_id_tag_update(&obt->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 		}
 		
 		modifiers_foreachObjectLink(obt, unlink_object__unlinkModifierLinks, ob);
@@ -457,15 +459,15 @@ void BKE_object_unlink(Object *ob)
 
 			if (cu->bevobj == ob) {
 				cu->bevobj = NULL;
-				obt->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+				DAG_id_tag_update(&obt->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 			}
 			if (cu->taperobj == ob) {
 				cu->taperobj = NULL;
-				obt->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+				DAG_id_tag_update(&obt->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 			}
 			if (cu->textoncurve == ob) {
 				cu->textoncurve = NULL;
-				obt->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+				DAG_id_tag_update(&obt->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 			}
 		}
 		else if (obt->type == OB_ARMATURE && obt->pose) {
@@ -483,7 +485,7 @@ void BKE_object_unlink(Object *ob)
 							if (ct->tar == ob) {
 								ct->tar = NULL;
 								ct->subtarget[0] = '\0';
-								obt->recalc |= OB_RECALC_DATA;
+								DAG_id_tag_update(&obt->id, OB_RECALC_DATA);
 							}
 						}
 						
@@ -497,7 +499,7 @@ void BKE_object_unlink(Object *ob)
 		}
 		else if (ELEM(OB_MBALL, ob->type, obt->type)) {
 			if (BKE_mball_is_basis_for(obt, ob))
-				obt->recalc |= OB_RECALC_DATA;
+				DAG_id_tag_update(&obt->id, OB_RECALC_DATA);
 		}
 		
 		sca_remove_ob_poin(obt, ob);
@@ -514,7 +516,7 @@ void BKE_object_unlink(Object *ob)
 					if (ct->tar == ob) {
 						ct->tar = NULL;
 						ct->subtarget[0] = '\0';
-						obt->recalc |= OB_RECALC_DATA;
+						DAG_id_tag_update(&obt->id, OB_RECALC_DATA);
 					}
 				}
 				
@@ -526,12 +528,12 @@ void BKE_object_unlink(Object *ob)
 		/* object is deflector or field */
 		if (ob->pd) {
 			if (obt->soft)
-				obt->recalc |= OB_RECALC_DATA;
+				DAG_id_tag_update(&obt->id, OB_RECALC_DATA);
 
 			/* cloth */
 			for (md = obt->modifiers.first; md; md = md->next)
 				if (md->type == eModifierType_Cloth)
-					obt->recalc |= OB_RECALC_DATA;
+					DAG_id_tag_update(&obt->id, OB_RECALC_DATA);
 		}
 		
 		/* strips */
@@ -560,14 +562,14 @@ void BKE_object_unlink(Object *ob)
 				for (; pt; pt = pt->next) {
 					if (pt->ob == ob) {
 						pt->ob = NULL;
-						obt->recalc |= OB_RECALC_DATA;
+						DAG_id_tag_update(&obt->id, OB_RECALC_DATA);
 						break;
 					}
 				}
 
 				if (tpsys->target_ob == ob) {
 					tpsys->target_ob = NULL;
-					obt->recalc |= OB_RECALC_DATA;
+					DAG_id_tag_update(&obt->id, OB_RECALC_DATA);
 				}
 
 				if (tpsys->part->dup_ob == ob)
@@ -602,7 +604,7 @@ void BKE_object_unlink(Object *ob)
 				}
 			}
 			if (ob->pd)
-				obt->recalc |= OB_RECALC_DATA;
+				DAG_id_tag_update(&obt->id, OB_RECALC_DATA);
 		}
 
 		obt = obt->id.next;
@@ -970,7 +972,7 @@ Object *BKE_object_add(struct Scene *scene, int type)
 	base = BKE_scene_base_add(scene, ob);
 	BKE_scene_base_deselect_all(scene);
 	BKE_scene_base_select(scene, base);
-	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
 	return ob;
 }
@@ -1480,7 +1482,8 @@ void BKE_object_make_proxy(Object *ob, Object *target, Object *gob)
 	ob->proxy_group = gob;
 	id_lib_extern(&target->id);
 	
-	ob->recalc = target->recalc = OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+	DAG_id_tag_update(&target->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 	
 	/* copy transform
 	 * - gob means this proxy comes from a group, just apply the matrix

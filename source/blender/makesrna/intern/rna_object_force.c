@@ -547,7 +547,7 @@ static void rna_FieldSettings_dependency_update(Main *bmain, Scene *scene, Point
 
 		rna_FieldSettings_shape_update(bmain, scene, ptr);
 
-		DAG_scene_sort(bmain, scene);
+		DAG_relations_tag_update(bmain);
 
 		if (ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE)
 			DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
@@ -590,9 +590,9 @@ static void rna_EffectorWeight_update(Main *UNUSED(bmain), Scene *UNUSED(scene),
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 }
 
-static void rna_EffectorWeight_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_EffectorWeight_dependency_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 
 	DAG_id_tag_update((ID *)ptr->id.data, OB_RECALC_DATA | PSYS_RECALC_RESET);
 

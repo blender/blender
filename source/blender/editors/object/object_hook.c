@@ -516,7 +516,7 @@ static int add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *ob
 	mul_serie_m4(hmd->parentinv, ob->imat, obedit->obmat, NULL,
 	             NULL, NULL, NULL, NULL, NULL);
 	
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 
 	return TRUE;
 }

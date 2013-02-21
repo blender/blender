@@ -320,7 +320,7 @@ static void motionpaths_calc_optimise_depsgraph(Scene *scene, ListBase *targets)
 	}
 	
 	/* "brew me a list that's sorted a bit faster now depsy" */
-	DAG_scene_sort(G.main, scene);
+	DAG_scene_relations_rebuild(G.main, scene);
 }
 
 /* update scene for current frame */

@@ -1215,7 +1215,6 @@ static int modify_key_op_poll(bContext *C)
 
 static int insert_key_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	KeyingSet *ks = NULL;
 	int type = RNA_enum_get(op->ptr, "type");
@@ -1260,9 +1259,6 @@ static int insert_key_exec(bContext *C, wmOperator *op)
 	}
 	else
 		BKE_report(op->reports, RPT_WARNING, "Keying set failed to insert any keyframes");
-	
-	/* send updates */
-	DAG_ids_flush_update(bmain, 0);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1371,7 +1367,6 @@ void ANIM_OT_keyframe_insert_menu(wmOperatorType *ot)
 
 static int delete_key_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	KeyingSet *ks = NULL;
 	int type = RNA_enum_get(op->ptr, "type");
@@ -1417,9 +1412,6 @@ static int delete_key_exec(bContext *C, wmOperator *op)
 	else
 		BKE_report(op->reports, RPT_WARNING, "Keying set failed to remove any keyframes");
 	
-	/* send updates */
-	DAG_ids_flush_update(bmain, 0);
-	
 	return OPERATOR_FINISHED;
 }
 
@@ -1459,8 +1451,6 @@ void ANIM_OT_keyframe_delete(wmOperatorType *ot)
  
 static int clear_anim_v3d_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Main *bmain = CTX_data_main(C);
-	
 	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
 	{
 		/* just those in active action... */
@@ -1505,12 +1495,11 @@ static int clear_anim_v3d_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 		
 		/* update... */
-		ob->recalc |= OB_RECALC_OB;
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 	}
 	CTX_DATA_END;
 	
 	/* send updates */
-	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -1536,7 +1525,6 @@ void ANIM_OT_keyframe_clear_v3d(wmOperatorType *ot)
 
 static int delete_key_v3d_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	float cfra = (float)CFRA;
 	
@@ -1563,12 +1551,11 @@ static int delete_key_v3d_exec(bContext *C, wmOperator *op)
 		
 		/* report success (or failure) */
 		BKE_reportf(op->reports, RPT_INFO, "Object '%s' successfully had %d keyframes removed", id->name + 2, success);
-		ob->recalc |= OB_RECALC_OB;
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 	}
 	CTX_DATA_END;
 	
 	/* send updates */
-	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -1596,7 +1583,6 @@ void ANIM_OT_keyframe_delete_v3d(wmOperatorType *ot)
 
 static int insert_key_button_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	PointerRNA ptr = {{NULL}};
 	PropertyRNA *prop = NULL;
@@ -1655,8 +1641,6 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 		/* send updates */
 		uiContextAnimUpdate(C);
 		
-		DAG_ids_flush_update(bmain, 0);
-		
 		/* send notifiers that keyframes have been changed */
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	}
@@ -1686,7 +1670,6 @@ void ANIM_OT_keyframe_insert_button(wmOperatorType *ot)
 
 static int delete_key_button_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	PointerRNA ptr = {{NULL}};
 	PropertyRNA *prop = NULL;
@@ -1728,8 +1711,6 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
 		/* send updates */
 		uiContextAnimUpdate(C);
 		
-		DAG_ids_flush_update(bmain, 0);
-		
 		/* send notifiers that keyframes have been changed */
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 	}
@@ -1760,7 +1741,6 @@ void ANIM_OT_keyframe_delete_button(wmOperatorType *ot)
 
 static int clear_key_button_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain = CTX_data_main(C);
 	PointerRNA ptr = {{NULL}};
 	PropertyRNA *prop = NULL;
 	char *path;
@@ -1799,8 +1779,6 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
 	if (success) {
 		/* send updates */
 		uiContextAnimUpdate(C);
-		
-		DAG_ids_flush_update(bmain, 0);
 		
 		/* send notifiers that keyframes have been changed */
 		WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);

@@ -172,8 +172,8 @@ static int type_toggle_exec(bContext *C, wmOperator *op)
 	
 	/* update dependency */
 	DAG_id_tag_update(&cObject->id, OB_RECALC_DATA);
+	DAG_relations_tag_update(CTX_data_main(C));
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, cObject);
-	DAG_scene_sort(CTX_data_main(C), scene);
 
 	return OPERATOR_FINISHED;
 }

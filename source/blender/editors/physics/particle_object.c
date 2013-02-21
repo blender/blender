@@ -151,7 +151,6 @@ static int psys_poll(bContext *C)
 
 static int new_particle_settings_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Scene *scene = CTX_data_scene(C);
 	Main *bmain= CTX_data_main(C);
 	ParticleSystem *psys;
 	ParticleSettings *part = NULL;
@@ -177,7 +176,7 @@ static int new_particle_settings_exec(bContext *C, wmOperator *UNUSED(op))
 
 	psys_check_boid_data(psys);
 
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
@@ -205,7 +204,6 @@ void PARTICLE_OT_new(wmOperatorType *ot)
 static int new_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
 	Object *ob = ptr.id.data;
@@ -226,7 +224,7 @@ static int new_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BLI_addtail(&psys->targets, pt);
 
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
@@ -251,7 +249,6 @@ void PARTICLE_OT_new_target(wmOperatorType *ot)
 static int remove_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem);
 	ParticleSystem *psys= ptr.data;
 	Object *ob = ptr.id.data;
@@ -275,7 +272,7 @@ static int remove_particle_target_exec(bContext *C, wmOperator *UNUSED(op))
 	if (pt)
 		pt->flag |= PTARGET_CURRENT;
 
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);

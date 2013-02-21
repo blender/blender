@@ -152,7 +152,7 @@ static void rna_DynamicPaintSurfaces_changeFormat(Main *bmain, Scene *scene, Poi
 static void rna_DynamicPaint_resetDependancy(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	rna_DynamicPaintSurface_reset(bmain, scene, ptr);
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 }
 
 static PointerRNA rna_PaintSurface_active_get(PointerRNA *ptr)

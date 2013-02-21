@@ -1004,7 +1004,7 @@ int join_armature_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	CTX_DATA_END;
 	
-	DAG_scene_sort(bmain, scene);  /* because we removed object(s) */
+	DAG_relations_tag_update(bmain);  /* because we removed object(s) */
 
 	ED_armature_from_edit(ob);
 	ED_armature_edit_free(ob);
@@ -1217,7 +1217,7 @@ static int separate_armature_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	/* 2) duplicate base */
 	newbase = ED_object_add_duplicate(bmain, scene, oldbase, USER_DUP_ARM); /* only duplicate linked armature */
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 
 	newob = newbase->object;
 	newbase->flag &= ~SELECT;

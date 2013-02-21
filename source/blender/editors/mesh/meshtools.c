@@ -559,7 +559,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	}
 
 
-	DAG_scene_sort(bmain, scene);   // removed objects, need to rebuild dag before editmode call
+	DAG_relations_tag_update(bmain);   // removed objects, need to rebuild dag
 
 #if 0
 	ED_object_enter_editmode(C, EM_WAITCURSOR);

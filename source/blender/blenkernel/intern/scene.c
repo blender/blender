@@ -649,12 +649,11 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 	}
 
 	/* sort baselist */
-	DAG_scene_sort(bmain, scene);
+	DAG_scene_relations_rebuild(bmain, scene);
 	
 	/* ensure dags are built for sets */
-	for (sce = scene->set; sce; sce = sce->set)
-		if (sce->theDag == NULL)
-			DAG_scene_sort(bmain, sce);
+	for (sce = scene; sce; sce = sce->set)
+		DAG_scene_relations_update(bmain, sce);
 
 	/* copy layers and flags from bases to objects */
 	for (base = scene->base.first; base; base = base->next) {
@@ -1150,8 +1149,14 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 /* this is called in main loop, doing tagged updates before redraw */
 void BKE_scene_update_tagged(Main *bmain, Scene *scene)
 {
+	Scene *sce_iter;
+	
 	/* keep this first */
 	BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
+
+	/* (re-)build dependency graph if needed */
+	for (sce_iter = scene; sce_iter; sce_iter = sce_iter->set)
+		DAG_scene_relations_update(bmain, sce_iter);
 
 	/* flush recalc flags to dependencies */
 	DAG_ids_flush_tagged(bmain);
@@ -1203,10 +1208,8 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	/* clear animation overrides */
 	/* XXX TODO... */
 
-	for (sce_iter = sce; sce_iter; sce_iter = sce_iter->set) {
-		if (sce_iter->theDag == NULL)
-			DAG_scene_sort(bmain, sce_iter);
-	}
+	for (sce_iter = sce; sce_iter; sce_iter = sce_iter->set)
+		DAG_scene_relations_update(bmain, sce_iter);
 
 	/* flush recalc flags to dependencies, if we were only changing a frame
 	 * this would not be necessary, but if a user or a script has modified

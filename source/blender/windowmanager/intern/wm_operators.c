@@ -2174,8 +2174,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	flag_all_listbases_ids(LIB_PRE_EXISTING, 0);
 
 	/* recreate dependency graph to include new objects */
-	DAG_scene_sort(bmain, scene);
-	DAG_ids_flush_update(bmain, 0);
+	DAG_scene_relations_rebuild(bmain, scene);
 
 	BLO_blendhandle_close(bh);
 

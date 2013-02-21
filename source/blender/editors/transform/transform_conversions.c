@@ -4743,6 +4743,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 	}
 
 	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
+	DAG_scene_relations_update(G.main, t->scene);
 	DAG_scene_flush_update(G.main, t->scene, -1, 0);
 
 	/* and we store them temporal in base (only used for transform code) */
@@ -4820,6 +4821,7 @@ static int count_proportional_objects(TransInfo *t)
 	
 
 	/* all recalc flags get flushed to all layers, so a layer flip later on works fine */
+	DAG_scene_relations_update(G.main, t->scene);
 	DAG_scene_flush_update(G.main, t->scene, -1, 0);
 
 	/* and we store them temporal in base (only used for transform code) */

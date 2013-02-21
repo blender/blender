@@ -381,10 +381,10 @@ static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *report
 	if (scene == scene_act)
 		ob->lay = base->lay;
 
-	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
 	/* slows down importers too much, run scene.update() */
-	/* DAG_scene_sort(G.main, scene); */
+	/* DAG_srelations_tag_update(G.main); */
 
 	WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
 
@@ -412,8 +412,7 @@ static void rna_Scene_object_unlink(Scene *scene, ReportList *reports, Object *o
 	ob->id.us--;
 
 	/* needed otherwise the depgraph will contain freed objects which can crash, see [#20958] */
-	DAG_scene_sort(G.main, scene);
-	DAG_ids_flush_update(G.main, 0);
+	DAG_relations_tag_update(G.main);
 
 	WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
 }
@@ -1260,7 +1259,6 @@ static void rna_Scene_use_simplify_update(Main *bmain, Scene *UNUSED(scene), Poi
 	for (SETLOOPER(sce, sce_iter, base))
 		object_simplify_update(base->object);
 	
-	DAG_ids_flush_update(bmain, 0);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, NULL);
 }
 

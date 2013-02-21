@@ -1432,8 +1432,7 @@ static int parent_drop_exec(bContext *C, wmOperator *op)
 
 	ED_object_parent_set(op->reports, bmain, scene, ob, par, partype, FALSE, FALSE);
 
-	DAG_scene_sort(bmain, scene);
-	DAG_ids_flush_update(bmain, 0);
+	DAG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARENT, NULL);
 
@@ -1522,8 +1521,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		if ((par->type != OB_ARMATURE) && (par->type != OB_CURVE) && (par->type != OB_LATTICE)) {
 			if (ED_object_parent_set(op->reports, bmain, scene, ob, par, partype, FALSE, FALSE)) {
-				DAG_scene_sort(bmain, scene);
-				DAG_ids_flush_update(bmain, 0);
+				DAG_relations_tag_update(bmain);
 				WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 				WM_event_add_notifier(C, NC_OBJECT | ND_PARENT, NULL);
 			}
@@ -1706,8 +1704,7 @@ static int parent_clear_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 
 	ED_object_parent_clear(ob, RNA_enum_get(op->ptr, "type"));
 
-	DAG_scene_sort(bmain, scene);
-	DAG_ids_flush_update(bmain, 0);
+	DAG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARENT, NULL);
 	return OPERATOR_FINISHED;
@@ -1795,8 +1792,7 @@ static int scene_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			ED_base_object_select(base, BA_SELECT);
 		}
 
-		DAG_scene_sort(bmain, scene);
-		DAG_ids_flush_update(bmain, 0);
+		DAG_relations_tag_update(bmain);
 
 		WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
 
@@ -1828,7 +1824,6 @@ void OUTLINER_OT_scene_drop(wmOperatorType *ot)
 
 static int material_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	Main *bmain = CTX_data_main(C);
 	Material *ma = NULL;
 	Object *ob = NULL;
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -1860,7 +1855,6 @@ static int material_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		assign_material(ob, ma, ob->totcol + 1, BKE_MAT_ASSIGN_USERPREF);
 
-		DAG_ids_flush_update(bmain, 0);
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
 		WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, ma);
 

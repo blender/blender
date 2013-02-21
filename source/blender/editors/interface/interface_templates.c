@@ -1048,9 +1048,8 @@ static void do_constraint_panels(bContext *C, void *ob_pt, int event)
 		case B_CONSTRAINT_CHANGETARGET:
 		{
 			Main *bmain = CTX_data_main(C);
-			Scene *scene = CTX_data_scene(C);
 			if (ob->pose) ob->pose->flag |= POSE_RECALC;  /* checks & sorts pose channels */
-			DAG_scene_sort(bmain, scene);
+			DAG_relations_tag_update(bmain);
 			break;
 		}
 #endif

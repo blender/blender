@@ -96,6 +96,8 @@ void ED_rigidbody_con_add(wmOperator *op, Scene *scene, Object *ob, int type)
 
 	/* add constraint to rigid body constraint group */
 	add_to_group(rbw->constraints, ob, scene, NULL);
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 }
 
 void ED_rigidbody_con_remove(Scene *scene, Object *ob)
@@ -130,8 +132,6 @@ static int rigidbody_con_add_exec(bContext *C, wmOperator *op)
 	ED_rigidbody_con_add(op, scene, ob, type);
 
 	/* send updates */
-	DAG_ids_flush_update(CTX_data_main(C), 0);
-
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 
 	/* done */
@@ -177,8 +177,6 @@ static int rigidbody_con_remove_exec(bContext *C, wmOperator *op)
 	}
 
 	/* send updates */
-	DAG_ids_flush_update(CTX_data_main(C), 0);
-
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 
 	/* done */

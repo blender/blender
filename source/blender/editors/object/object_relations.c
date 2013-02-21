@@ -223,7 +223,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
 		if (ob != obedit) {
-			ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+			DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 			par = obedit->parent;
 			
 			while (par) {
@@ -260,7 +260,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 
 	WM_event_add_notifier(C, NC_OBJECT, NULL);
 
@@ -364,7 +364,7 @@ static int make_proxy_exec(bContext *C, wmOperator *op)
 		BKE_object_make_proxy(newob, ob, gob);
 		
 		/* depsgraph flushes are needed for the new data */
-		DAG_scene_sort(bmain, scene);
+		DAG_relations_tag_update(bmain);
 		DAG_id_tag_update(&newob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, newob);
 	}
@@ -512,14 +512,13 @@ void ED_object_parent_clear(Object *ob, int type)
 		break;
 	}
 	
-	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 }
 
 /* note, poll should check for editable scene */
 static int parent_clear_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
 	int type = RNA_enum_get(op->ptr, "type");
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
@@ -528,8 +527,7 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	DAG_scene_sort(bmain, scene);
-	DAG_ids_flush_update(bmain, 0);
+	DAG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARENT, NULL);
 	return OPERATOR_FINISHED;
@@ -597,7 +595,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 	bPoseChannel *pchan = NULL;
 	int pararm = ELEM4(partype, PAR_ARMATURE, PAR_ARMATURE_NAME, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO);
 	
-	par->recalc |= OB_RECALC_OB;
+	DAG_id_tag_update(&par->id, OB_RECALC_OB);
 	
 	/* preconditions */
 	if (partype == PAR_FOLLOW || partype == PAR_PATH_CONST) {
@@ -762,7 +760,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 				invert_m4_m4(ob->parentinv, workob.obmat);
 			}
 			
-			ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA;
+			DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
 		}
 	}
 
@@ -791,8 +789,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 	if (!ok)
 		return OPERATOR_CANCELLED;
 
-	DAG_scene_sort(bmain, scene);
-	DAG_ids_flush_update(bmain, 0);
+	DAG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARENT, NULL);
 
@@ -903,7 +900,7 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Object *par = ED_object_active_context(C);
 	
-	par->recalc |= OB_RECALC_OB;
+	DAG_id_tag_update(&par->id, OB_RECALC_OB);
 	
 	/* context iterator */
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
@@ -918,7 +915,7 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
 				memset(ob->loc, 0, 3 * sizeof(float));
 				
 				/* set recalc flags */
-				ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA;
+				DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
 				
 				/* set parenting type for object - object only... */
 				ob->parent = par;
@@ -928,8 +925,7 @@ static int parent_noinv_set_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	DAG_scene_sort(bmain, CTX_data_scene(C));
-	DAG_ids_flush_update(bmain, 0);
+	DAG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -955,7 +951,6 @@ void OBJECT_OT_parent_no_inverse_set(wmOperatorType *ot)
 
 static int object_slow_parent_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
@@ -965,13 +960,12 @@ static int object_slow_parent_clear_exec(bContext *C, wmOperator *UNUSED(op))
 				ob->partype -= PARSLOW;
 				BKE_object_where_is_calc(scene, ob);
 				ob->partype |= PARSLOW;
-				ob->recalc |= OB_RECALC_OB;
+				DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 			}
 		}
 	}
 	CTX_DATA_END;
 
-	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_SCENE, scene);
 	
 	return OPERATOR_FINISHED;
@@ -998,7 +992,6 @@ void OBJECT_OT_slow_parent_clear(wmOperatorType *ot)
 
 static int object_slow_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
@@ -1006,12 +999,11 @@ static int object_slow_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 		if (ob->parent)
 			ob->partype |= PARSLOW;
 
-		ob->recalc |= OB_RECALC_OB;
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 		
 	}
 	CTX_DATA_END;
 
-	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_SCENE, scene);
 	
 	return OPERATOR_FINISHED;
@@ -1046,7 +1038,6 @@ static EnumPropertyItem prop_clear_track_types[] = {
 static int object_track_clear_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
 	int type = RNA_enum_get(op->ptr, "type");
 
 	if (CTX_data_edit_object(C)) {
@@ -1059,7 +1050,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 		
 		/* remove track-object for old track */
 		ob->track = NULL;
-		ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+		DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 		
 		/* also remove all tracking constraints */
 		for (con = ob->constraints.last; con; con = pcon) {
@@ -1073,8 +1064,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	DAG_ids_flush_update(bmain, 0);
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 
 	return OPERATOR_FINISHED;
@@ -1111,7 +1101,6 @@ static EnumPropertyItem prop_make_track_types[] = {
 static int track_set_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
 	Object *obact = ED_object_active_context(C);
 	
 	int type = RNA_enum_get(op->ptr, "type");
@@ -1127,7 +1116,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 
 				data = con->data;
 				data->tar = obact;
-				ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+				DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 				
 				/* Lamp, Camera and Speaker track differently by default */
 				if (ob->type == OB_LAMP || ob->type == OB_CAMERA || ob->type == OB_SPEAKER)
@@ -1147,7 +1136,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 
 				data = con->data;
 				data->tar = obact;
-				ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+				DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 				
 				/* Lamp, Camera and Speaker track differently by default */
 				if (ob->type == OB_LAMP || ob->type == OB_CAMERA || ob->type == OB_SPEAKER) {
@@ -1169,7 +1158,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 
 				data = con->data;
 				data->tar = obact;
-				ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+				DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 				
 				/* Lamp, Camera and Speaker track differently by default */
 				if (ob->type == OB_LAMP || ob->type == OB_CAMERA || ob->type == OB_SPEAKER) {
@@ -1181,8 +1170,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 	
-	DAG_scene_sort(bmain, scene);
-	DAG_ids_flush_update(bmain, 0);
+	DAG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -1297,7 +1285,7 @@ static int move_to_layer_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, scene);
 	WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 
 	return OPERATOR_FINISHED;
 }
@@ -1360,7 +1348,6 @@ Base *ED_object_scene_link(Scene *scene, Object *ob)
 
 static int make_links_scene_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain = CTX_data_main(C);
 	Scene *scene_to = BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "scene"));
 
 	if (scene_to == NULL) {
@@ -1383,8 +1370,6 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 		ED_object_scene_link(scene_to, base->object);
 	}
 	CTX_DATA_END;
-
-	DAG_ids_flush_update(bmain, 0);
 
 	/* redraw the 3D view because the object center points are colored differently */
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
@@ -1476,7 +1461,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						/* if amount of material indices changed: */
 						test_object_materials(ob_dst->data);
 
-						ob_dst->recalc |= OB_RECALC_DATA;
+						DAG_id_tag_update(&ob_dst->id, OB_RECALC_DATA);
 						break;
 					case MAKE_LINKS_MATERIALS:
 						/* new approach, using functions from kernel */
@@ -1515,7 +1500,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						break;
 					case MAKE_LINKS_MODIFIERS:
 						BKE_object_link_modifiers(ob_dst, ob_src);
-						ob_dst->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+						DAG_id_tag_update(&ob_dst->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 						break;
 					case MAKE_LINKS_FONTS:
 					{
@@ -1535,7 +1520,7 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						cu_dst->vfontbi = cu_src->vfontbi;
 						id_us_plus((ID *)cu_dst->vfontbi);
 
-						ob_dst->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+						DAG_id_tag_update(&ob_dst->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 						break;
 					}
 				}
@@ -1554,10 +1539,9 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	DAG_scene_sort(bmain, scene);
-	
-	DAG_ids_flush_update(bmain, 0);
+	DAG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
+
 	return OPERATOR_FINISHED;
 }
 
@@ -1706,7 +1690,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 			id = ob->data;
 			
 			if (id && id->us > 1 && id->lib == NULL) {
-				ob->recalc = OB_RECALC_DATA;
+				DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 				
 				BKE_copy_animdata_id_action(id);
 				
@@ -1742,7 +1726,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 						ob->data = BKE_lattice_copy(ob->data);
 						break;
 					case OB_ARMATURE:
-						ob->recalc |= OB_RECALC_DATA;
+						DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 						ob->data = BKE_armature_copy(ob->data);
 						BKE_pose_rebuild(ob, ob->data);
 						break;
@@ -1778,7 +1762,7 @@ static void single_object_action_users(Scene *scene, int flag)
 	for (base = FIRSTBASE; base; base = base->next) {
 		ob = base->object;
 		if (ob->id.lib == NULL && (flag == 0 || (base->flag & SELECT)) ) {
-			ob->recalc = OB_RECALC_DATA;
+			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			BKE_copy_animdata_id_action(&ob->id);
 		}
 	}
@@ -2148,7 +2132,6 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 
 static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	Main *bmain = CTX_data_main(C);
 	Base *base = ED_view3d_give_base_under_cursor(C, event->mval);
 	Material *ma;
 	char name[MAX_ID_NAME - 2];
@@ -2160,7 +2143,6 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *even
 	
 	assign_material(base->object, ma, 1, BKE_MAT_ASSIGN_USERPREF);
 	
-	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
 	WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, ma);
 	

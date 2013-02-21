@@ -1888,7 +1888,7 @@ Object *AnimationImporter::get_joint_object(COLLADAFW::Node *root, COLLADAFW::No
 		job->lay = BKE_scene_base_find(scene, job)->lay = 2;
 
 		mul_v3_fl(job->size, 0.5f);
-		job->recalc |= OB_RECALC_OB;
+		DAG_id_tag_update(&job->id, OB_RECALC_OB);
 
 		verify_adt_action((ID *)&job->id, 1);
 
@@ -1909,14 +1909,14 @@ Object *AnimationImporter::get_joint_object(COLLADAFW::Node *root, COLLADAFW::No
 		if (par_job) {
 			job->parent = par_job;
 
-			par_job->recalc |= OB_RECALC_OB;
+			DAG_id_tag_update(&par_job->id, OB_RECALC_OB);
 			job->parsubstr[0] = 0;
 		}
 
 		BKE_object_where_is_calc(scene, job);
 
 		// after parenting and layer change
-		DAG_scene_sort(CTX_data_main(C), scene);
+		DAG_relations_tag_update(CTX_data_main(C));
 
 		joint_objects[node->getUniqueId()] = job;
 	}

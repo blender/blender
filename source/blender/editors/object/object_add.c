@@ -381,7 +381,7 @@ Object *ED_object_add_type(bContext *C, int type, const float loc[3], const floa
 	ED_object_base_init_transform(C, BASACT, loc, rot);
 
 	DAG_id_type_tag(bmain, ID_OB);
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 	if (ob->data) {
 		ED_render_id_flush_update(bmain, ob->data);
 	}
@@ -469,7 +469,7 @@ static int effector_add_exec(bContext *C, wmOperator *op)
 
 	ob->pd = object_add_collision_fields(type);
 
-	DAG_scene_sort(CTX_data_main(C), CTX_data_scene(C));
+	DAG_relations_tag_update(CTX_data_main(C));
 
 	return OPERATOR_FINISHED;
 }
@@ -835,9 +835,9 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 		id_lib_extern(&group->id);
 
 		/* works without this except if you try render right after, see: 22027 */
-		DAG_scene_sort(bmain, scene);
+		DAG_relations_tag_update(bmain);
 
-		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, CTX_data_scene(C));
+		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 
 		return OPERATOR_FINISHED;
 	}
@@ -993,13 +993,12 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 		if (scene->id.flag & LIB_DOIT) {
 			scene->id.flag &= ~LIB_DOIT;
 			
-			DAG_scene_sort(bmain, scene);
+			DAG_relations_tag_update(bmain);
 
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 			WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
 		}
 	}
-	DAG_ids_flush_update(bmain, 0);
 
 	return OPERATOR_FINISHED;
 }
@@ -1260,8 +1259,7 @@ static int object_duplicates_make_real_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	DAG_scene_sort(bmain, scene);
-	DAG_ids_flush_update(bmain, 0);
+	DAG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_SCENE, scene);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 
@@ -1325,7 +1323,7 @@ static Base *duplibase_for_convert(Scene *scene, Base *base, Object *ob)
 	}
 
 	obn = BKE_object_copy(ob);
-	obn->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
 	basen = MEM_mallocN(sizeof(Base), "duplibase");
 	*basen = *base;
@@ -1427,7 +1425,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			}
 			else {
 				newob = ob;
-				ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+				DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 			}
 
 			/* make new mesh data from the original copy */
@@ -1492,7 +1490,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 					for (ob1 = bmain->object.first; ob1; ob1 = ob1->id.next) {
 						if (ob1->data == ob->data) {
 							ob1->type = OB_CURVE;
-							ob1->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+							DAG_id_tag_update(&ob1->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 						}
 					}
 				}
@@ -1623,7 +1621,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 		}
 
 		/* delete object should renew depsgraph */
-		DAG_scene_sort(bmain, scene);
+		DAG_relations_tag_update(bmain);
 	}
 
 // XXX	ED_object_enter_editmode(C, 0);
@@ -1639,7 +1637,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_OBJECT | ND_DATA, BASACT->object);
 	}
 
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, scene);
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 
@@ -1691,7 +1689,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 	}
 	else {
 		obn = BKE_object_copy(ob);
-		obn->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+		DAG_id_tag_update(&obn->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
 		basen = MEM_mallocN(sizeof(Base), "duplibase");
 		*basen = *base;
@@ -1816,7 +1814,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				}
 				break;
 			case OB_ARMATURE:
-				obn->recalc |= OB_RECALC_DATA;
+				DAG_id_tag_update(&obn->id, OB_RECALC_DATA);
 				if (obn->pose)
 					obn->pose->flag |= POSE_RECALC;
 				if (dupflag & USER_DUP_ARM) {
@@ -1906,7 +1904,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 /* single object duplicate, if dupflag==0, fully linked, else it uses the flags given */
 /* leaves selection of base/object unaltered.
  * note: don't call this within a loop since clear_* funcs loop over the entire database.
- * note: caller must do DAG_scene_sort(bmain, scene);
+ * note: caller must do DAG_relations_tag_update(bmain);
  *       this is not done automatic since we may duplicate many objects in a batch */
 Base *ED_object_add_duplicate(Main *bmain, Scene *scene, Base *base, int dupflag)
 {
@@ -1927,7 +1925,7 @@ Base *ED_object_add_duplicate(Main *bmain, Scene *scene, Base *base, int dupflag
 	BKE_object_relink(ob);
 	set_sca_new_poins_ob(ob);
 
-	/* DAG_scene_sort(bmain, scene); */ /* caller must do */
+	/* DAG_relations_tag_update(bmain); */ /* caller must do */
 
 	if (ob->data) {
 		ED_render_id_flush_update(bmain, ob->data);
@@ -1971,8 +1969,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 
 	copy_object_set_idnew(C, dupflag);
 
-	DAG_scene_sort(bmain, scene);
-	DAG_ids_flush_update(bmain, 0);
+	DAG_relations_tag_update(bmain);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 
@@ -2047,8 +2044,7 @@ static int add_named_exec(bContext *C, wmOperator *op)
 
 	copy_object_set_idnew(C, dupflag);
 
-	DAG_scene_sort(bmain, scene);
-	DAG_ids_flush_update(bmain, 0);
+	DAG_relations_tag_update(bmain);
 
 	MEM_freeN(base);
 

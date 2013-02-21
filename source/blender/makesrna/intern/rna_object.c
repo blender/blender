@@ -293,12 +293,10 @@ static void rna_Object_active_shape_update(Main *bmain, Scene *scene, PointerRNA
 	rna_Object_internal_update_data(bmain, scene, ptr);
 }
 
-static void rna_Object_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Object_dependency_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	DAG_id_tag_update(ptr->id.data, OB_RECALC_OB);
-	if (scene) {
-		DAG_scene_sort(bmain, scene);
-	}
+	DAG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_OBJECT | ND_PARENT, ptr->id.data);
 }
 
@@ -332,7 +330,7 @@ static void rna_Object_layer_update__internal(Main *bmain, Scene *scene, Base *b
 		/* pass */
 	}
 	else {
-		DAG_scene_sort(bmain, scene);
+		DAG_relations_tag_update(bmain);
 	}
 
 	DAG_id_type_tag(bmain, ID_OB);

@@ -619,7 +619,7 @@ static int outliner_object_operation_exec(bContext *C, wmOperator *op)
 		 *      cleanup tree here to prevent such cases. */
 		outliner_cleanup_tree(soops);
 
-		DAG_scene_sort(bmain, scene);
+		DAG_relations_tag_update(bmain);
 		str = "Delete Objects";
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
 	}
@@ -712,10 +712,8 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 	
 
 	if (event == 3) { /* instance */
-		Main *bmain = CTX_data_main(C);
-
 		/* works without this except if you try render right after, see: 22027 */
-		DAG_scene_sort(bmain, scene);
+		DAG_relations_tag_update(CTX_data_main(C));
 	}
 	
 	ED_undo_push(C, prop_group_op_types[event].name);
@@ -1110,14 +1108,8 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
 	
 	/* update dependencies */
 	if (updateDeps) {
-		Main *bmain = CTX_data_main(C);
-		Scene *scene = CTX_data_scene(C);
-		
 		/* rebuild depsgraph for the new deps */
-		DAG_scene_sort(bmain, scene);
-		
-		/* force an update of depsgraph */
-		DAG_ids_flush_update(bmain, 0);
+		DAG_relations_tag_update(CTX_data_main(C));
 	}
 	
 	return OPERATOR_FINISHED;

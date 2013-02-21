@@ -2389,7 +2389,7 @@ static void shape_propagate(BMEditMesh *em, wmOperator *op)
 	//TAG Mesh Objects that share this data
 	for (base = scene->base.first; base; base = base->next) {
 		if (base->object && base->object->data == me) {
-			base->object->recalc = OB_RECALC_DATA;
+			DAG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 		}
 	}
 #endif
@@ -3042,7 +3042,7 @@ static int mesh_separate_tagged(Main *bmain, Scene *scene, Base *base_old, BMesh
 	CustomData_bmesh_init_pool(&bm_new->pdata, bm_mesh_allocsize_default.totface, BM_FACE);
 
 	base_new = ED_object_add_duplicate(bmain, scene, base_old, USER_DUP_MESH);
-	/* DAG_scene_sort(bmain, scene); */ /* normally would call directly after but in this case delay recalc */
+	/* DAG_relations_tag_update(bmain); */ /* normally would call directly after but in this case delay recalc */
 	assign_matarar(base_new->object, give_matarar(obedit), *give_totcolp(obedit)); /* new in 2.5 */
 
 	ED_base_object_select(base_new, BA_SELECT);
@@ -3276,7 +3276,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 
 	if (retval) {
 		/* delay depsgraph recalc until all objects are duplicated */
-		DAG_scene_sort(bmain, scene);
+		DAG_relations_tag_update(bmain);
 
 		return OPERATOR_FINISHED;
 	}

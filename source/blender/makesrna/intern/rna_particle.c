@@ -622,7 +622,7 @@ static void rna_Particle_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Particle_redo_dependency(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 	rna_Particle_redo(bmain, scene, ptr);
 }
 
@@ -659,7 +659,7 @@ static ParticleSystem *rna_particle_system_for_target(Object *ob, ParticleTarget
 	return NULL;
 }
 
-static void rna_Particle_target_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Particle_target_reset(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	if (ptr->type == &RNA_ParticleTarget) {
 		Object *ob = (Object *)ptr->id.data;
@@ -687,7 +687,7 @@ static void rna_Particle_target_reset(Main *bmain, Scene *scene, PointerRNA *ptr
 		psys->recalc = PSYS_RECALC_RESET;
 
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		DAG_scene_sort(bmain, scene);
+		DAG_relations_tag_update(bmain);
 	}
 
 	WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);

@@ -1395,7 +1395,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 	
 	/* 1. duplicate the object and data */
 	newbase = ED_object_add_duplicate(bmain, scene, oldbase, 0); /* 0 = fully linked */
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 
 	ED_base_object_select(newbase, BA_DESELECT);
 	newob = newbase->object;
@@ -6218,7 +6218,7 @@ int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
 	cu = ob->data;
 	BLI_movelisttolist(&cu->nurb, &tempbase);
 	
-	DAG_scene_sort(bmain, scene);   // because we removed object(s), call before editmode!
+	DAG_relations_tag_update(bmain);   // because we removed object(s), call before editmode!
 	
 	ED_object_enter_editmode(C, EM_WAITCURSOR);
 	ED_object_exit_editmode(C, EM_FREEDATA | EM_WAITCURSOR | EM_DO_UNDO);

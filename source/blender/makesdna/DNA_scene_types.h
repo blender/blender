@@ -1140,11 +1140,8 @@ typedef struct Scene {
 	
 	/* none of the dependency graph  vars is mean to be saved */
 	struct  DagForest *theDag;
-	short dagisvalid, dagflags;
+	short dagflags;
 	short recalc;				/* recalc = counterpart of ob->recalc */
-
-	short pad6;
-	int pad5;
 
 	/* User-Defined KeyingSets */
 	int active_keyingset;			/* index of the active KeyingSet. first KeyingSet has index 1, 'none' active is 0, 'add new' is -1 */
