@@ -20,69 +20,9 @@ subject to the following restrictions:
 #ifndef __PHY_DYNAMICTYPES_H__
 #define __PHY_DYNAMICTYPES_H__
 
-
+#include "MT_Vector3.h"
 
 struct KX_ClientObjectInfo;
-class PHY_Shape;
-
-struct	PHY__Vector2
-{
-	float	m_vec[2];
-
-	operator const float* () const 
-	{ 
-		return &m_vec[0];
-	}
-	operator float* () 
-	{ 
-		return &m_vec[0];
-	}
-};
-
-struct	PHY__Vector3
-{
-	float	m_vec[4];
-
-	operator const float* () const 
-	{ 
-		return &m_vec[0];
-	}
-	operator float* () 
-	{ 
-		return &m_vec[0];
-	}
-};
-
-struct	PHY__Vector4
-{
-	float	m_vec[4];
-	PHY__Vector4() {}
-	void setValue(const float *value)
-	{
-		m_vec[0] = *value++;
-		m_vec[1] = *value++;
-		m_vec[2] = *value++;
-		m_vec[3] = *value++;
-	}
-	void setValue(const double *value)
-	{
-		m_vec[0] = (float)(*value++);
-		m_vec[1] = (float)(*value++);
-		m_vec[2] = (float)(*value++);
-		m_vec[3] = (float)(*value++);
-	}
-
-	operator const float* () const 
-	{ 
-		return &m_vec[0];
-	}
-	operator float* () 
-	{ 
-		return &m_vec[0];
-	}
-};
-
-//typedef 	float	PHY__Vector3[4];
 
 enum
 {
@@ -97,9 +37,9 @@ enum
 };
 
 typedef struct PHY_CollData {
-	PHY__Vector3 m_point1;               /* Point in object1 in world coordinates */
-	PHY__Vector3 m_point2;               /* Point in object2 in world coordinates */
-	PHY__Vector3 m_normal;               /* point2 - point1 */
+	MT_Vector3 m_point1;               /* Point in object1 in world coordinates */
+	MT_Vector3 m_point2;               /* Point in object2 in world coordinates */
+	MT_Vector3 m_normal;               /* point2 - point1 */
 } PHY_CollData;
 
 
@@ -147,8 +87,5 @@ typedef enum PHY_ShapeType {
 	PHY_SHAPE_COMPOUND,
 	PHY_SHAPE_PROXY
 } PHY_ShapeType;
-
-
-typedef float	PHY_Vector3[3];
 
 #endif  /* __PHY_DYNAMICTYPES_H__ */

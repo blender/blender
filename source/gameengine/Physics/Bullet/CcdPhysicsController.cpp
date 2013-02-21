@@ -1092,7 +1092,7 @@ void		CcdPhysicsController::resolveCombinedVelocities(float linvelX,float linvel
 {
 }
 
-void 		CcdPhysicsController::getPosition(PHY__Vector3&	pos) const
+void 		CcdPhysicsController::getPosition(MT_Vector3&	pos) const
 {
 	const btTransform& xform = m_object->getWorldTransform();
 	pos[0] = xform.getOrigin().x();

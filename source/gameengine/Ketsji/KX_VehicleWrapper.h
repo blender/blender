@@ -7,7 +7,6 @@
 #define __KX_VEHICLEWRAPPER_H__
 
 #include "Value.h"
-#include "PHY_DynamicTypes.h"
 class PHY_IVehicle;
 class PHY_IMotionState;
 

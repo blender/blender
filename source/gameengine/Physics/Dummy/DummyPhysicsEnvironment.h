@@ -56,7 +56,7 @@ public:
 	virtual	float		getFixedTimeStep();
 
 	virtual	void		setGravity(float x,float y,float z);
-	virtual	void		getGravity(PHY__Vector3& grav);
+	virtual	void		getGravity(class MT_Vector3& grav);
 
 	virtual int			createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
 			float pivotX,float pivotY,float pivotZ,
@@ -80,7 +80,7 @@ public:
 	}
 
 	virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ);
-	virtual bool cullingTest(PHY_CullingCallback callback, void* userData, PHY__Vector4* planes, int nplanes, int occlusionRes, const int *viewport, double modelview[16], double projection[16]) { return false; }
+	virtual bool cullingTest(PHY_CullingCallback callback, void* userData, class MT_Vector4* planes, int nplanes, int occlusionRes, const int *viewport, double modelview[16], double projection[16]) { return false; }
 
 
 	//gamelogic callbacks
@@ -91,7 +91,7 @@ public:
 		}
 		virtual bool requestCollisionCallback(PHY_IPhysicsController* ctrl) { return false; }
 		virtual bool removeCollisionCallback(PHY_IPhysicsController* ctrl) { return false;}
-		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position) {return 0;}
+		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const class MT_Vector3& position) {return 0;}
 		virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight) { return 0;}
 
 		virtual void	setConstraintParam(int constraintId,int param,float value,float value1)

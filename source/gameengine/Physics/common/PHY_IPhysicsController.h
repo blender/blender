@@ -66,7 +66,7 @@ class PHY_IPhysicsController : public PHY_IController
 		virtual	void		getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal)=0;
 		virtual	void		setOrientation(float quatImag0,float quatImag1,float quatImag2,float quatReal)=0;
 		virtual	void		setPosition(float posX,float posY,float posZ)=0;
-		virtual	void 		getPosition(PHY__Vector3&	pos) const=0;
+		virtual	void 		getPosition(class MT_Vector3&	pos) const=0;
 		virtual	void		setScaling(float scaleX,float scaleY,float scaleZ)=0;
 		
 		// physics methods
@@ -100,7 +100,7 @@ class PHY_IPhysicsController : public PHY_IController
 		virtual float GetLinVelocityMax() const=0;
 		virtual void  SetLinVelocityMax(float val) = 0;
 		
-		PHY__Vector3	GetWorldPosition(PHY__Vector3& localpos);
+		class MT_Vector3	GetWorldPosition(class MT_Vector3& localpos);
 
 
 #ifdef WITH_CXX_GUARDEDALLOC

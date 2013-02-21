@@ -1490,7 +1490,7 @@ void KX_Scene::CalculateVisibleMeshes(RAS_IRasterizer* rasty,KX_Camera* cam, int
 	if (m_dbvt_culling) 
 	{
 		// test culling through Bullet
-		PHY__Vector4 planes[6];
+		MT_Vector4 planes[6];
 		// get the clip planes
 		MT_Vector4* cplanes = cam->GetNormalizedClipPlanes();
 		// and convert
@@ -1711,13 +1711,11 @@ void	KX_Scene::SetGravity(const MT_Vector3& gravity)
 
 MT_Vector3 KX_Scene::GetGravity()
 {
-	PHY__Vector3 gravity;
-	MT_Vector3 vec;
+	MT_Vector3 gravity;
 
 	GetPhysicsEnvironment()->getGravity(gravity);
-	vec = gravity.m_vec;
 
-	return vec;
+	return gravity;
 }
 
 void KX_Scene::SetSceneConverter(class KX_BlenderSceneConverter* sceneConverter)

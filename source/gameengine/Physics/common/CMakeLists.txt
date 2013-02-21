@@ -26,6 +26,7 @@
 set(INC
 	.
 	../Dummy
+	../../../../intern/moto/include
 )
 
 set(INC_SYS
