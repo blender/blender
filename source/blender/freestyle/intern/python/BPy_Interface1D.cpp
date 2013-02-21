@@ -193,14 +193,14 @@ static PyMethodDef BPy_Interface1D_methods[] = {
 
 /*----------------------Interface1D get/setters ----------------------------*/
 
-PyDoc_STRVAR(Interface1D_exact_type_name_doc,
+PyDoc_STRVAR(Interface1D_name_doc,
 "The string of the name of the 1D element.\n"
 "\n"
 ":type: str");
 
-static PyObject *Interface1D_exact_type_name_get(BPy_Interface1D *self, void *UNUSED(closure))
+static PyObject *Interface1D_name_get(BPy_Interface1D *self, void *UNUSED(closure))
 {
-	return PyUnicode_FromString(self->if1D->getExactTypeName().c_str());
+	return PyUnicode_FromString(((PyObject *)self)->ob_type->tp_name);
 }
 
 PyDoc_STRVAR(Interface1D_id_doc,
@@ -265,7 +265,7 @@ static int Interface1D_time_stamp_set(BPy_Interface1D *self, PyObject *value, vo
 }
 
 static PyGetSetDef BPy_Interface1D_getseters[] = {
-	{(char *)"exact_type_name", (getter)Interface1D_exact_type_name_get, (setter)NULL, (char *)Interface1D_exact_type_name_doc, NULL},
+	{(char *)"name", (getter)Interface1D_name_get, (setter)NULL, (char *)Interface1D_name_doc, NULL},
 	{(char *)"id", (getter)Interface1D_id_get, (setter)NULL, (char *)Interface1D_id_doc, NULL},
 	{(char *)"nature", (getter)Interface1D_nature_get, (setter)NULL, (char *)Interface1D_nature_doc, NULL},
 	{(char *)"length_2d", (getter)Interface1D_length_2d_get, (setter)NULL, (char *)Interface1D_length_2d_doc, NULL},

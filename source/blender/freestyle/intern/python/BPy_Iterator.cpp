@@ -151,14 +151,14 @@ static PyMethodDef BPy_Iterator_methods[] = {
 
 /*----------------------Iterator get/setters ----------------------------*/
 
-PyDoc_STRVAR(Iterator_exact_type_name_doc,
+PyDoc_STRVAR(Iterator_name_doc,
 "The string of the name of this iterator.\n"
 "\n"
 ":type: str");
 
-static PyObject *Iterator_exact_type_name_get(BPy_Iterator *self, void *UNUSED(closure))
+static PyObject *Iterator_name_get(BPy_Iterator *self, void *UNUSED(closure))
 {
-	return PyUnicode_FromString(self->it->getExactTypeName().c_str());
+	return PyUnicode_FromString(((PyObject *)self)->ob_type->tp_name);
 }
 
 PyDoc_STRVAR(Iterator_is_begin_doc,
@@ -182,7 +182,7 @@ static PyObject *Iterator_is_end_get(BPy_Iterator *self, void *UNUSED(closure))
 }
 
 static PyGetSetDef BPy_Iterator_getseters[] = {
-	{(char *)"exact_type_name", (getter)Iterator_exact_type_name_get, (setter)NULL, (char *)Iterator_exact_type_name_doc, NULL},
+	{(char *)"name", (getter)Iterator_name_get, (setter)NULL, (char *)Iterator_name_doc, NULL},
 	{(char *)"is_begin", (getter)Iterator_is_begin_get, (setter)NULL, (char *)Iterator_is_begin_doc, NULL},
 	{(char *)"is_end", (getter)Iterator_is_end_get, (setter)NULL, (char *)Iterator_is_end_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */

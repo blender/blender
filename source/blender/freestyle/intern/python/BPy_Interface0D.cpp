@@ -127,14 +127,14 @@ static PyMethodDef BPy_Interface0D_methods[] = {
 
 /*----------------------Interface1D get/setters ----------------------------*/
 
-PyDoc_STRVAR(Interface0D_exact_type_name_doc,
+PyDoc_STRVAR(Interface0D_name_doc,
 "The string of the name of this 0D element.\n"
 "\n"
 ":type: str");
 
-static PyObject *Interface0D_exact_type_name_get(BPy_Interface0D *self, void *UNUSED(closure))
+static PyObject *Interface0D_name_get(BPy_Interface0D *self, void *UNUSED(closure))
 {
-	return PyUnicode_FromString(self->if0D->getExactTypeName().c_str());
+	return PyUnicode_FromString(((PyObject *)self)->ob_type->tp_name);
 }
 
 PyDoc_STRVAR(Interface0D_point_3d_doc,
@@ -229,7 +229,7 @@ static PyObject *Interface0D_nature_get(BPy_Interface0D *self, void *UNUSED(clos
 }
 
 static PyGetSetDef BPy_Interface0D_getseters[] = {
-	{(char *)"exact_type_name", (getter)Interface0D_exact_type_name_get, (setter)NULL, (char *)Interface0D_exact_type_name_doc, NULL},
+	{(char *)"name", (getter)Interface0D_name_get, (setter)NULL, (char *)Interface0D_name_doc, NULL},
 	{(char *)"point_3d", (getter)Interface0D_point_3d_get, (setter)NULL, (char *)Interface0D_point_3d_doc, NULL},
 	{(char *)"projected_x", (getter)Interface0D_projected_x_get, (setter)NULL, (char *)Interface0D_projected_x_doc, NULL},
 	{(char *)"projected_y", (getter)Interface0D_projected_y_get, (setter)NULL, (char *)Interface0D_projected_y_doc, NULL},
