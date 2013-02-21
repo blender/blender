@@ -673,6 +673,10 @@ static void *do_part_thread(void *pa_v)
 		else
 			zbufshade_tile(pa);
 		
+		/* we do actually write pixels, but don't allocate/deallocate anything,
+		 * so it is safe with other threads reading at the same time */
+		BLI_rw_mutex_lock(&R.resultmutex, THREAD_LOCK_READ);
+		
 		/* merge too on break! */
 		if (R.result->do_exr_tile) {
 			render_result_exr_file_merge(R.result, pa->result);
@@ -686,6 +690,8 @@ static void *do_part_thread(void *pa_v)
 				render_result_merge(R.result, pa->result);
 			}
 		}
+		
+		BLI_rw_mutex_unlock(&R.resultmutex);
 	}
 	
 	pa->status = PART_STATUS_READY;
@@ -719,24 +725,33 @@ float panorama_pixel_rot(Render *re)
 	return phi;
 }
 
-/* call when all parts stopped rendering, to find the next Y slice */
-/* if slice found, it rotates the dbase */
-static RenderPart *find_next_pano_slice(Render *re, int *minx, rctf *viewplane)
+/* for panorama, we render per Y slice, and update
+ * camera parameters when we go the next slice */
+static bool find_next_pano_slice(Render *re, int *slice, int *minx, rctf *viewplane)
 {
 	RenderPart *pa, *best = NULL;
+	bool found = false;
 	
 	*minx = re->winx;
 	
+	if (!(re->r.mode & R_PANORAMA)) {
+		/* for regular render, just one 'slice' */
+		found = (*slice == 0);
+		(*slice)++;
+		return found;
+	}
+
 	/* most left part of the non-rendering parts */
 	for (pa = re->parts.first; pa; pa = pa->next) {
 		if (pa->status == PART_STATUS_NONE && pa->nr == 0) {
 			if (pa->disprect.xmin < *minx) {
+				found = true;
 				best = pa;
 				*minx = pa->disprect.xmin;
 			}
 		}
 	}
-			
+	
 	if (best) {
 		float phi = panorama_pixel_rot(re);
 
@@ -754,7 +769,10 @@ static RenderPart *find_next_pano_slice(Render *re, int *minx, rctf *viewplane)
 		R.panosi = sin(R.panodxp * phi);
 		R.panoco = cos(R.panodxp * phi);
 	}
-	return best;
+	
+	(*slice)++;
+	
+	return found;
 }
 
 static RenderPart *find_next_part(Render *re, int minx)
@@ -809,26 +827,53 @@ static void print_part_stats(Render *re, RenderPart *pa)
 	re->i.infostr = NULL;
 }
 
+typedef struct RenderThread {
+	ThreadQueue *workqueue;
+	ThreadQueue *donequeue;
+	
+	int number;
+} RenderThread;
+
+static void *do_render_thread(void *thread_v)
+{
+	RenderThread *thread = thread_v;
+	RenderPart *pa;
+	
+	while ((pa = BLI_thread_queue_pop(thread->workqueue))) {
+		pa->thread = thread->number;
+		do_part_thread(pa);
+		BLI_thread_queue_push(thread->donequeue, pa);
+		
+		if(R.test_break(R.tbh))
+			break;
+	}
+	
+	return NULL;
+}
+
 static void threaded_tile_processor(Render *re)
 {
+	RenderThread thread[BLENDER_MAX_THREADS];
+	ThreadQueue *workqueue, *donequeue;
 	ListBase threads;
-	RenderPart *pa, *nextpa;
+	RenderPart *pa;
 	rctf viewplane = re->viewplane;
-	int rendering = 1, counter = 1, drawtimer = 0, hasdrawn, minx = 0;
+	double lastdraw, elapsed, redrawtime = 1.0f;
+	int totpart = 0, minx = 0, slice = 0, a, wait;
 	
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 
 	/* first step; free the entire render result, make new, and/or prepare exr buffer saving */
 	if (re->result == NULL || !(re->r.scemode & R_PREVIEWBUTS)) {
 		render_result_free(re->result);
-	
+
 		if (re->sss_points && render_display_draw_enabled(re))
 			re->result = render_result_new(re, &re->disprect, 0, RR_USE_MEM, RR_ALL_LAYERS);
 		else if (re->r.scemode & R_FULL_SAMPLE)
 			re->result = render_result_new_full_sample(re, &re->fullresult, &re->disprect, 0, RR_USE_EXR);
 		else
 			re->result = render_result_new(re, &re->disprect, 0,
-			                               (re->r.scemode & R_EXR_TILE_FILE) ? RR_USE_EXR : RR_USE_MEM, RR_ALL_LAYERS);
+				(re->r.scemode & R_EXR_TILE_FILE) ? RR_USE_EXR : RR_USE_MEM, RR_ALL_LAYERS);
 	}
 
 	BLI_rw_mutex_unlock(&re->resultmutex);
@@ -843,53 +888,46 @@ static void threaded_tile_processor(Render *re)
 	if (re->result->do_exr_tile)
 		render_result_exr_file_begin(re);
 	
-	BLI_init_threads(&threads, do_part_thread, re->r.threads);
-	
 	/* assuming no new data gets added to dbase... */
 	R = *re;
 	
 	/* set threadsafe break */
 	R.test_break = thread_break;
 	
-	/* timer loop demands to sleep when no parts are left, so we enter loop with a part */
-	if (re->r.mode & R_PANORAMA)
-		nextpa = find_next_pano_slice(re, &minx, &viewplane);
-	else
-		nextpa = find_next_part(re, 0);
+	/* create and fill work queue */
+	workqueue = BLI_thread_queue_init();
+	donequeue = BLI_thread_queue_init();
 	
-	while (rendering) {
-		
-		if (re->test_break(re->tbh))
-			PIL_sleep_ms(50);
-		else if (nextpa && BLI_available_threads(&threads)) {
-			drawtimer = 0;
-			nextpa->nr = counter++;  /* for nicest part, and for stats */
-			nextpa->thread = BLI_available_thread_index(&threads);   /* sample index */
-			BLI_insert_thread(&threads, nextpa);
-
-			nextpa = find_next_part(re, minx);
-		}
-		else if (re->r.mode & R_PANORAMA) {
-			if (nextpa == NULL && BLI_available_threads(&threads) == re->r.threads)
-				nextpa = find_next_pano_slice(re, &minx, &viewplane);
-			else {
-				PIL_sleep_ms(50);
-				drawtimer++;
-			}
-		}
-		else {
-			PIL_sleep_ms(50);
-			drawtimer++;
+	/* for panorama we loop over slices */
+	while (find_next_pano_slice(re, &slice, &minx, &viewplane)) {
+		/* gather parts into queue */
+		while ((pa = find_next_part(re, minx))) {
+			pa->nr = totpart + 1; /* for nicest part, and for stats */
+			totpart++;
+			BLI_thread_queue_push(workqueue, pa);
 		}
 		
-		/* check for ready ones to display, and if we need to continue */
-		rendering = 0;
-		hasdrawn = 0;
-		for (pa = re->parts.first; pa; pa = pa->next) {
-			if (pa->status == PART_STATUS_READY) {
-				
-				BLI_remove_thread(&threads, pa);
-				
+		BLI_thread_queue_nowait(workqueue);
+		
+		/* start all threads */
+		BLI_init_threads(&threads, do_render_thread, re->r.threads);
+		
+		for (a = 0; a < re->r.threads; a++) {
+			thread[a].workqueue = workqueue;
+			thread[a].donequeue = donequeue;
+			thread[a].number = a;
+			BLI_insert_thread(&threads, &thread[a]);
+		}
+		
+		/* wait for results to come back */
+		lastdraw = PIL_check_seconds_timer();
+		
+		while (1) {
+			elapsed = PIL_check_seconds_timer() - lastdraw;
+			wait = (redrawtime - elapsed)*1000;
+			
+			/* handle finished part */
+			if ((pa=BLI_thread_queue_pop_timeout(donequeue, wait))) {
 				if (pa->result) {
 					if (render_display_draw_enabled(re))
 						re->display_draw(re->ddh, pa->result, NULL);
@@ -899,26 +937,39 @@ static void threaded_tile_processor(Render *re)
 					pa->result = NULL;
 					re->i.partsdone++;
 					re->progress(re->prh, re->i.partsdone / (float)re->i.totpart);
-					hasdrawn = 1;
 				}
+				
+				totpart--;
 			}
-			else {
-				rendering = 1;
-				if (pa->nr && pa->result && drawtimer > 20) {
-					if (render_display_draw_enabled(re))
-						re->display_draw(re->ddh, pa->result, &pa->result->renrect);
-					hasdrawn = 1;
-				}
+			
+			/* check for render cancel */
+			if ((g_break=re->test_break(re->tbh)))
+				break;
+			
+			/* or done with parts */
+			if (totpart == 0)
+				break;
+			
+			/* redraw in progress parts */
+			elapsed = PIL_check_seconds_timer() - lastdraw;
+			if (elapsed > redrawtime) {
+				if (render_display_draw_enabled(re))
+					for (pa = re->parts.first; pa; pa = pa->next)
+						if ((pa->status == PART_STATUS_IN_PROGRESS) && pa->nr && pa->result)
+							re->display_draw(re->ddh, pa->result, &pa->result->renrect);
+				
+				lastdraw = PIL_check_seconds_timer();
 			}
 		}
-		if (hasdrawn)
-			drawtimer = 0;
-
-		/* on break, wait for all slots to get freed */
-		if ( (g_break = re->test_break(re->tbh)) && BLI_available_threads(&threads) == re->r.threads)
-			rendering = 0;
 		
+		BLI_end_threads(&threads);
+		
+		if ((g_break=re->test_break(re->tbh)))
+			break;
 	}
+	
+	BLI_thread_queue_free(donequeue);
+	BLI_thread_queue_free(workqueue);
 	
 	if (re->result->do_exr_tile) {
 		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
@@ -929,7 +980,6 @@ static void threaded_tile_processor(Render *re)
 	/* unset threadsafety */
 	g_break = 0;
 	
-	BLI_end_threads(&threads);
 	RE_parts_free(re);
 	re->viewplane = viewplane; /* restore viewplane, modified by pano render */
 }
