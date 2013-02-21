@@ -28,11 +28,7 @@
 #include "kernel_curve.h"
 #include "kernel_primitive.h"
 #include "kernel_projection.h"
-#ifdef __QBVH__
-#include "kernel_qbvh.h"
-#else
 #include "kernel_bvh.h"
-#endif
 #include "kernel_accumulate.h"
 #include "kernel_camera.h"
 #include "kernel_shader.h"
