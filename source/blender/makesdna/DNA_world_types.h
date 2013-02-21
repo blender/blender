@@ -59,10 +59,7 @@ typedef struct World {
 	float horr, horg, horb;
 	float zenr, zeng, zenb;
 	float ambr, ambg, ambb;
-	float pad2;
 
-	unsigned int fastcol;
-	
 	/**
 	 * Exposure= mult factor. unused now, but maybe back later. Kept in to be upward compat.
 	 * New is exp/range control. linfac & logfac are constants... don't belong in

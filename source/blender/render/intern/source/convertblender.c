@@ -4015,18 +4015,10 @@ static void set_renderlayer_lightgroups(Render *re, Scene *sce)
 void init_render_world(Render *re)
 {
 	int a;
-	char *cp;
 	
 	if (re->scene && re->scene->world) {
 		re->wrld= *(re->scene->world);
-		
-		cp= (char *)&re->wrld.fastcol;
-		
-		cp[0]= 255.0f*re->wrld.horr;
-		cp[1]= 255.0f*re->wrld.horg;
-		cp[2]= 255.0f*re->wrld.horb;
-		cp[3]= 1;
-		
+
 		copy_v3_v3(re->grvec, re->viewmat[2]);
 		normalize_v3(re->grvec);
 		copy_m3_m4(re->imat, re->viewinv);
