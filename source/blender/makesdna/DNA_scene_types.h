@@ -389,15 +389,19 @@ typedef struct RenderData {
 	short filtertype;	/* filter is box, tent, gauss, mitch, etc */
 
 	short size, maximsize;	/* size in %, max in Kb */
+
+	short pad6;
+
 	/* from buttons: */
 	/**
 	 * The desired number of pixels in the x direction
 	 */
-	short xsch;
+	int xsch;
 	/**
 	 * The desired number of pixels in the y direction
 	 */
-	short ysch;
+	int ysch;
+
 	/**
 	 * The number of part to use in the x direction
 	 */
@@ -410,7 +414,7 @@ typedef struct RenderData {
 	/**
 	 * render tile dimensions
 	 */
-	short tilex, tiley;
+	int tilex, tiley;
 
 	short planes  DNA_DEPRECATED, imtype  DNA_DEPRECATED, subimtype  DNA_DEPRECATED, quality  DNA_DEPRECATED; /*deprecated!*/
 	
@@ -418,6 +422,7 @@ typedef struct RenderData {
 	 * Render to image editor, fullscreen or to new window.
 	 */
 	short displaymode;
+	short pad7;
 
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.
@@ -457,8 +462,6 @@ typedef struct RenderData {
 	short osa;
 
 	short frs_sec, edgeint;
-
-	int pad;
 
 	
 	/* safety, border and display rect */
