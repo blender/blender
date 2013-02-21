@@ -815,7 +815,7 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 		if (0 == RNA_struct_property_is_set(op->ptr, "location")) {
 			wmEvent *event = CTX_wm_window(C)->eventstate;
 			ED_object_location_from_view(C, loc);
-			ED_view3d_cursor3d_position(C, loc, event->x, event->y);
+			ED_view3d_cursor3d_position(C, loc, event->mval);
 			RNA_float_set_array(op->ptr, "location", loc);
 		}
 	}
@@ -2040,7 +2040,7 @@ static int add_named_exec(bContext *C, wmOperator *op)
 
 	if (event) {
 		ED_object_location_from_view(C, basen->object->loc);
-		ED_view3d_cursor3d_position(C, basen->object->loc, event->x, event->y);
+		ED_view3d_cursor3d_position(C, basen->object->loc, event->mval);
 	}
 	
 	ED_base_object_activate(C, basen);
