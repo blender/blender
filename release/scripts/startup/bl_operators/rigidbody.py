@@ -146,7 +146,7 @@ class BakeToKeyframes(Operator):
                         # this is a little roundabout but there's no better way right now
                         aa = mat.to_quaternion().to_axis_angle()
                         obj.rotation_axis_angle = (aa[1], ) + aa[0][:]
-                    else:  # euler
+                    else: # euler
                         # make sure euler rotation is compatible to previous frame
                         obj.rotation_euler = mat.to_euler(rot_mode, obj_prev.rotation_euler)
 
@@ -235,11 +235,13 @@ class ConnectRigidBodies(Operator):
                 loc = obj.location
             else:
                 loc = (obj_act.location + obj.location) / 2.0
-            # TODO: use bpy.data.objects.new(...)
-            bpy.ops.object.add(type='EMPTY',
-                               view_align=False,
-                               enter_editmode=False,
-                               location=loc)
+
+            ob = bpy.data.objects.new("Constraint", object_data=None)
+            ob.location = loc
+            context.scene.objects.link(ob)
+            context.scene.objects.active = ob
+            ob.select = True
+
             bpy.ops.rigidbody.constraint_add()
             con_obj = context.active_object
             con_obj.empty_draw_type = 'ARROWS'
