@@ -166,7 +166,7 @@ typedef struct FontBLF {
 	/* initial position for draw the text. */
 	float pos[3];
 
-	/* angle in degrees. */
+	/* angle in radians. */
 	float angle;
 	
 	/* blur: 3 or 5 large kernel */
