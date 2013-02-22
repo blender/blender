@@ -385,7 +385,7 @@ int ED_object_modifier_move_up(ReportList *reports, Object *ob, ModifierData *md
 		}
 
 		BLI_remlink(&ob->modifiers, md);
-		BLI_insertlink(&ob->modifiers, md->prev->prev, md);
+		BLI_insertlinkbefore(&ob->modifiers, md->prev, md);
 	}
 
 	return 1;
@@ -406,7 +406,7 @@ int ED_object_modifier_move_down(ReportList *reports, Object *ob, ModifierData *
 		}
 
 		BLI_remlink(&ob->modifiers, md);
-		BLI_insertlink(&ob->modifiers, md->next, md);
+		BLI_insertlinkafter(&ob->modifiers, md->next, md);
 	}
 
 	return 1;
@@ -722,7 +722,7 @@ int ED_object_modifier_copy(ReportList *UNUSED(reports), Object *ob, ModifierDat
 	
 	nmd = modifier_new(md->type);
 	modifier_copyData(md, nmd);
-	BLI_insertlink(&ob->modifiers, md, nmd);
+	BLI_insertlinkafter(&ob->modifiers, md, nmd);
 	modifier_unique_name(&ob->modifiers, nmd);
 
 	return 1;

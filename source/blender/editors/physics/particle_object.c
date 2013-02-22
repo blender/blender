@@ -310,7 +310,7 @@ static int target_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 	for (; pt; pt=pt->next) {
 		if (pt->flag & PTARGET_CURRENT && pt->prev) {
 			BLI_remlink(&psys->targets, pt);
-			BLI_insertlink(&psys->targets, pt->prev->prev, pt);
+			BLI_insertlinkbefore(&psys->targets, pt->prev, pt);
 
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
@@ -348,7 +348,7 @@ static int target_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 	for (; pt; pt=pt->next) {
 		if (pt->flag & PTARGET_CURRENT && pt->next) {
 			BLI_remlink(&psys->targets, pt);
-			BLI_insertlink(&psys->targets, pt->next, pt);
+			BLI_insertlinkafter(&psys->targets, pt->next, pt);
 
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, ob);
@@ -387,7 +387,7 @@ static int dupliob_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 	for (dw=part->dupliweights.first; dw; dw=dw->next) {
 		if (dw->flag & PART_DUPLIW_CURRENT && dw->prev) {
 			BLI_remlink(&part->dupliweights, dw);
-			BLI_insertlink(&part->dupliweights, dw->prev->prev, dw);
+			BLI_insertlinkbefore(&part->dupliweights, dw->prev, dw);
 
 			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, NULL);
 			break;
@@ -509,7 +509,7 @@ static int dupliob_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 	for (dw=part->dupliweights.first; dw; dw=dw->next) {
 		if (dw->flag & PART_DUPLIW_CURRENT && dw->next) {
 			BLI_remlink(&part->dupliweights, dw);
-			BLI_insertlink(&part->dupliweights, dw->next, dw);
+			BLI_insertlinkafter(&part->dupliweights, dw->next, dw);
 
 			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE, NULL);
 			break;

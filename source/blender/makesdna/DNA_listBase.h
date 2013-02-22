@@ -31,6 +31,9 @@
  *  \ingroup DNA
  *  \brief These structs are the foundation for all linked lists in the
  *         library system.
+ *
+ * Doubly-linked lists start from a ListBase and contain elements beginning
+ * with Link.
  */
 
 #ifndef __DNA_LISTBASE_H__
@@ -40,13 +43,13 @@
 extern "C" {
 #endif
 
-/* generic - all structs which are used in linked-lists used this */
+/* generic - all structs which are put into linked lists begin with this */
 typedef struct Link {
 	struct Link *next, *prev;
 } Link;
 
 
-/* use this when it is not worth defining a custom one... */
+/* simple subclass of Link--use this when it is not worth defining a custom one... */
 typedef struct LinkData {
 	struct LinkData *next, *prev;
 	void *data;

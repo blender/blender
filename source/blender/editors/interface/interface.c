@@ -636,7 +636,7 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 			
 				/* move button over from oldblock to new block */
 				BLI_remlink(&oldblock->buttons, oldbut);
-				BLI_insertlink(&block->buttons, but, oldbut);
+				BLI_insertlinkafter(&block->buttons, but, oldbut);
 				oldbut->block = block;
 				*butpp = oldbut;
 				

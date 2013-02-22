@@ -180,13 +180,13 @@ static int strip_modifier_move_exec(bContext *C, wmOperator *op)
 	if (direction == SEQ_MODIFIER_MOVE_UP) {
 		if (smd->prev) {
 			BLI_remlink(&seq->modifiers, smd);
-			BLI_insertlink(&seq->modifiers, smd->prev->prev, smd);
+			BLI_insertlinkbefore(&seq->modifiers, smd->prev, smd);
 		}
 	}
 	else if (direction == SEQ_MODIFIER_MOVE_DOWN) {
 		if (smd->next) {
 			BLI_remlink(&seq->modifiers, smd);
-			BLI_insertlink(&seq->modifiers, smd->next, smd);
+			BLI_insertlinkafter(&seq->modifiers, smd->next, smd);
 		}
 	}
 

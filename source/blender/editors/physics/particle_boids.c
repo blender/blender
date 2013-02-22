@@ -157,7 +157,7 @@ static int rule_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 	for (rule = state->rules.first; rule; rule=rule->next) {
 		if (rule->flag & BOIDRULE_CURRENT && rule->prev) {
 			BLI_remlink(&state->rules, rule);
-			BLI_insertlink(&state->rules, rule->prev->prev, rule);
+			BLI_insertlinkbefore(&state->rules, rule->prev, rule);
 
 			DAG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 			break;
@@ -193,7 +193,7 @@ static int rule_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 	for (rule = state->rules.first; rule; rule=rule->next) {
 		if (rule->flag & BOIDRULE_CURRENT && rule->next) {
 			BLI_remlink(&state->rules, rule);
-			BLI_insertlink(&state->rules, rule->next, rule);
+			BLI_insertlinkafter(&state->rules, rule->next, rule);
 
 			DAG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 			break;
@@ -314,7 +314,7 @@ static int state_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 	for (state = boids->states.first; state; state=state->next) {
 		if (state->flag & BOIDSTATE_CURRENT && state->prev) {
 			BLI_remlink(&boids->states, state);
-			BLI_insertlink(&boids->states, state->prev->prev, state);
+			BLI_insertlinkbefore(&boids->states, state->prev, state);
 			break;
 		}
 	}
@@ -349,7 +349,7 @@ static int state_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 	for (state = boids->states.first; state; state=state->next) {
 		if (state->flag & BOIDSTATE_CURRENT && state->next) {
 			BLI_remlink(&boids->states, state);
-			BLI_insertlink(&boids->states, state->next, state);
+			BLI_insertlinkafter(&boids->states, state->next, state);
 			DAG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 			break;
 		}

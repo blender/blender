@@ -246,7 +246,7 @@ void BKE_key_sort(Key *key)
 		/* find the right location and insert before */
 		for (kb2 = key->block.first; kb2; kb2 = kb2->next) {
 			if (kb2->pos > kb->pos) {
-				BLI_insertlink(&key->block, kb2->prev, kb);
+				BLI_insertlinkafter(&key->block, kb2->prev, kb);
 				break;
 			}
 		}

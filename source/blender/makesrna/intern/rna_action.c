@@ -159,7 +159,7 @@ static TimeMarker *rna_Action_pose_markers_new(bAction *act, const char name[])
 static void rna_Action_pose_markers_remove(bAction *act, ReportList *reports, PointerRNA *marker_ptr)
 {
 	TimeMarker *marker = marker_ptr->data;
-	if (BLI_remlink_safe(&act->markers, marker) == FALSE) {
+	if (!BLI_remlink_safe(&act->markers, marker)) {
 		BKE_reportf(reports, RPT_ERROR, "Timeline marker '%s' not found in action '%s'", marker->name, act->id.name + 2);
 		return;
 	}
