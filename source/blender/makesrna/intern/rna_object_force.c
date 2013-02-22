@@ -521,7 +521,7 @@ static void rna_FieldSettings_shape_update(Main *bmain, Scene *scene, PointerRNA
 		}
 		else {
 			if (!pd || pd->shape != PFIELD_SHAPE_SURFACE)
-				ED_object_modifier_remove(NULL, bmain, scene, ob, md);
+				ED_object_modifier_remove(NULL, bmain, ob, md);
 		}
 
 		WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
@@ -669,7 +669,7 @@ static void rna_CollisionSettings_dependency_update(Main *bmain, Scene *scene, P
 	if (ob->pd->deflect && !md)
 		ED_object_modifier_add(NULL, bmain, scene, ob, NULL, eModifierType_Collision);
 	else if (!ob->pd->deflect && md)
-		ED_object_modifier_remove(NULL, bmain, scene, ob, md);
+		ED_object_modifier_remove(NULL, bmain, ob, md);
 
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }

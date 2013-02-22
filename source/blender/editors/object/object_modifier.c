@@ -330,7 +330,7 @@ static int object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
 	return 1;
 }
 
-int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Object *ob, ModifierData *md)
+int ED_object_modifier_remove(ReportList *reports, Main *bmain, Object *ob, ModifierData *md)
 {
 	int sort_depsgraph = 0;
 	int ok;
@@ -348,7 +348,7 @@ int ED_object_modifier_remove(ReportList *reports, Main *bmain, Scene *scene, Ob
 	return 1;
 }
 
-void ED_object_modifier_clear(Main *bmain, Scene *scene, Object *ob)
+void ED_object_modifier_clear(Main *bmain, Object *ob)
 {
 	ModifierData *md = ob->modifiers.first;
 	int sort_depsgraph = 0;
@@ -878,7 +878,7 @@ static int modifier_remove_exec(bContext *C, wmOperator *op)
 	ModifierData *md = edit_modifier_property_get(op, ob, 0);
 	int mode_orig = ob ? ob->mode : 0;
 	
-	if (!ob || !md || !ED_object_modifier_remove(op->reports, bmain, scene, ob, md))
+	if (!ob || !md || !ED_object_modifier_remove(op->reports, bmain, ob, md))
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);

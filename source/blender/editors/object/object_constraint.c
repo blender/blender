@@ -1146,7 +1146,7 @@ void ED_object_constraint_update(Object *ob)
 		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 }
 
-void ED_object_constraint_dependency_update(Main *bmain, Scene *scene, Object *ob)
+void ED_object_constraint_dependency_update(Main *bmain, Object *ob)
 {
 	ED_object_constraint_update(ob);
 
