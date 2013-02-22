@@ -32,6 +32,6 @@ objs = []
 o = SConscript('intern/SConscript')
 objs += o
 
-incs = '#/intern/guardedalloc .'
+incs = '#/intern/guardedalloc . ../blenlib'
 
 env.BlenderLib ( 'bf_dna', objs, Split(incs), [], libtype=['core','player'], priority = [215,200] )
