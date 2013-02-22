@@ -133,6 +133,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 
 	bool is_16bit  = (ibuf->ftype & PNG_16BIT);
 	bool has_float = (ibuf->rect_float != NULL);
+	int channels_in_float = ibuf->channels ? ibuf->channels : 4;
 
 	float (*chanel_colormanage_cb)(float);
 
@@ -156,7 +157,7 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 
 	bytesperpixel = (ibuf->planes + 7) >> 3;
 	if ((bytesperpixel > 4) || (bytesperpixel == 2)) {
-		printf("imb_savepng: Cunsupported bytes per pixel: %d for file: '%s'\n", bytesperpixel, name);
+		printf("imb_savepng: Unsupported bytes per pixel: %d for file: '%s'\n", bytesperpixel, name);
 		return (0);
 	}
 
@@ -203,13 +204,32 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 			color_type = PNG_COLOR_TYPE_RGBA;
 			if (is_16bit) {
 				if (has_float) {
-					for (i = ibuf->x * ibuf->y; i > 0; i--) {
-						premul_to_straight_v4_v4(from_straight, from_float);
-						to16[0] = ftoshort(chanel_colormanage_cb(from_straight[0]));
-						to16[1] = ftoshort(chanel_colormanage_cb(from_straight[1]));
-						to16[2] = ftoshort(chanel_colormanage_cb(from_straight[2]));
-						to16[3] = ftoshort(chanel_colormanage_cb(from_straight[3]));
-						to16 += 4; from_float += 4;
+					if (channels_in_float == 4) {
+						for (i = ibuf->x * ibuf->y; i > 0; i--) {
+							premul_to_straight_v4_v4(from_straight, from_float);
+							to16[0] = ftoshort(chanel_colormanage_cb(from_straight[0]));
+							to16[1] = ftoshort(chanel_colormanage_cb(from_straight[1]));
+							to16[2] = ftoshort(chanel_colormanage_cb(from_straight[2]));
+							to16[3] = ftoshort(chanel_colormanage_cb(from_straight[3]));
+							to16 += 4; from_float += 4;
+						}
+					}
+					else if (channels_in_float == 3) {
+						for (i = ibuf->x * ibuf->y; i > 0; i--) {
+							to16[0] = ftoshort(chanel_colormanage_cb(from_float[0]));
+							to16[1] = ftoshort(chanel_colormanage_cb(from_float[1]));
+							to16[2] = ftoshort(chanel_colormanage_cb(from_float[2]));
+							to16[3] = 65535;
+							to16 += 4; from_float += 3;
+						}
+					}
+					else {
+						for (i = ibuf->x * ibuf->y; i > 0; i--) {
+							to16[0] = ftoshort(chanel_colormanage_cb(from_float[0]));
+							to16[2] = to16[1] = to16[0];
+							to16[3] = 65535;
+							to16 += 4; from_float++;
+						}
 					}
 				}
 				else {
@@ -236,12 +256,29 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 			color_type = PNG_COLOR_TYPE_RGB;
 			if (is_16bit) {
 				if (has_float) {
-					for (i = ibuf->x * ibuf->y; i > 0; i--) {
-						premul_to_straight_v4_v4(from_straight, from_float);
-						to16[0] = ftoshort(chanel_colormanage_cb(from_straight[0]));
-						to16[1] = ftoshort(chanel_colormanage_cb(from_straight[1]));
-						to16[2] = ftoshort(chanel_colormanage_cb(from_straight[2]));
-						to16 += 3; from_float += 4;
+					if (channels_in_float == 4) {
+						for (i = ibuf->x * ibuf->y; i > 0; i--) {
+							premul_to_straight_v4_v4(from_straight, from_float);
+							to16[0] = ftoshort(chanel_colormanage_cb(from_straight[0]));
+							to16[1] = ftoshort(chanel_colormanage_cb(from_straight[1]));
+							to16[2] = ftoshort(chanel_colormanage_cb(from_straight[2]));
+							to16 += 3; from_float += 4;
+						}
+					}
+					else if (channels_in_float == 3) {
+						for (i = ibuf->x * ibuf->y; i > 0; i--) {
+							to16[0] = ftoshort(chanel_colormanage_cb(from_float[0]));
+							to16[1] = ftoshort(chanel_colormanage_cb(from_float[1]));
+							to16[2] = ftoshort(chanel_colormanage_cb(from_float[2]));
+							to16 += 3; from_float += 3;
+						}
+					}
+					else {
+						for (i = ibuf->x * ibuf->y; i > 0; i--) {
+							to16[0] = ftoshort(chanel_colormanage_cb(from_float[0]));
+							to16[2] = to16[1] = to16[0];
+							to16 += 3; from_float++;
+						}
 					}
 				}
 				else {
@@ -266,10 +303,31 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 			color_type = PNG_COLOR_TYPE_GRAY;
 			if (is_16bit) {
 				if (has_float) {
-					for (i = ibuf->x * ibuf->y; i > 0; i--) {
-						premul_to_straight_v4_v4(from_straight, from_float);
-						to16[0] = ftoshort(chanel_colormanage_cb(from_straight[0]));
-						to16++; from_float += 4;
+					float rgb[3];
+					if (channels_in_float == 4) {
+						for (i = ibuf->x * ibuf->y; i > 0; i--) {
+							premul_to_straight_v4_v4(from_straight, from_float);
+							rgb[0] = chanel_colormanage_cb(from_straight[0]);
+							rgb[1] = chanel_colormanage_cb(from_straight[1]);
+							rgb[2] = chanel_colormanage_cb(from_straight[2]);
+							to16[0] = ftoshort(rgb_to_bw(rgb));
+							to16++; from_float += 4;
+						}
+					}
+					else if (channels_in_float == 3) {
+						for (i = ibuf->x * ibuf->y; i > 0; i--) {
+							rgb[0] = chanel_colormanage_cb(from_float[0]);
+							rgb[1] = chanel_colormanage_cb(from_float[1]);
+							rgb[2] = chanel_colormanage_cb(from_float[2]);
+							to16[0] = ftoshort(rgb_to_bw(rgb));
+							to16++; from_float += 3;
+						}
+					}
+					else {
+						for (i = ibuf->x * ibuf->y; i > 0; i--) {
+							to16[0] = ftoshort(chanel_colormanage_cb(from_float[0]));
+							to16++; from_float++;
+						}
 					}
 				}
 				else {
