@@ -36,8 +36,9 @@ KX_LibLoadStatus::KX_LibLoadStatus(class KX_BlenderSceneConverter* kx_converter,
 			m_mergescene(merge_scene),
 			m_data(NULL),
 			m_libname(path),
-			m_progress(0.f),
+			m_progress(0.f)
 #ifdef WITH_PYTHON
+			,
 			m_finish_cb(NULL),
 			m_progress_cb(NULL)
 #endif
