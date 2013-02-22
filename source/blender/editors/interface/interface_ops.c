@@ -1279,7 +1279,7 @@ static void UI_OT_drag_toggle(wmOperatorType *ot)
 	ot->cancel = ui_drag_toggle_cancel;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+	ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "state", true, "State", "");
