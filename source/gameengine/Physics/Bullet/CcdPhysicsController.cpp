@@ -32,7 +32,7 @@ subject to the following restrictions:
 #include "KX_GameObject.h"
 
 #include "BulletSoftBody/btSoftBody.h"
-#include "BulletSoftBody//btSoftBodyInternals.h"
+#include "BulletSoftBody/btSoftBodyInternals.h"
 #include "BulletSoftBody/btSoftBodyHelpers.h"
 #include "LinearMath/btConvexHull.h"
 #include "BulletCollision/Gimpact/btGImpactShape.h"
