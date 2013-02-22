@@ -158,7 +158,7 @@ PyDoc_STRVAR(Iterator_name_doc,
 
 static PyObject *Iterator_name_get(BPy_Iterator *self, void *UNUSED(closure))
 {
-	return PyUnicode_FromString(((PyObject *)self)->ob_type->tp_name);
+	return PyUnicode_FromString(Py_TYPE(self)->tp_name);
 }
 
 PyDoc_STRVAR(Iterator_is_begin_doc,

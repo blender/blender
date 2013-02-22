@@ -134,7 +134,7 @@ PyDoc_STRVAR(Interface0D_name_doc,
 
 static PyObject *Interface0D_name_get(BPy_Interface0D *self, void *UNUSED(closure))
 {
-	return PyUnicode_FromString(((PyObject *)self)->ob_type->tp_name);
+	return PyUnicode_FromString(Py_TYPE(self)->tp_name);
 }
 
 PyDoc_STRVAR(Interface0D_point_3d_doc,
