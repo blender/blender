@@ -15,16 +15,16 @@ extern "C" {
 static char LocalAverageDepthF1D___doc__[] =
 "Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DDouble` > :class:`LocalAverageDepthF1D`\n"
 "\n"
-".. method:: __init__(sigma, iType=IntegrationType.MEAN)\n"
+".. method:: __init__(sigma, integration_type=IntegrationType.MEAN)\n"
 "\n"
 "   Builds a LocalAverageDepthF1D object.\n"
 "\n"
 "   :arg sigma: The sigma used in DensityF0D and determining the window\n"
 "      size used in each density query.\n"
 "   :type sigma: float\n"
-"   :arg iType: The integration method used to compute a single value\n"
+"   :arg integration_type: The integration method used to compute a single value\n"
 "      from a set of values.\n"
-"   :type iType: :class:`IntegrationType`\n"
+"   :type integration_type: :class:`IntegrationType`\n"
 "\n"
 ".. method:: __call__(inter)\n"
 "\n"
@@ -39,18 +39,19 @@ static char LocalAverageDepthF1D___doc__[] =
 "   :return: The average depth evaluated for the Interface1D.\n"
 "   :rtype: float\n";
 
-static int LocalAverageDepthF1D___init__( BPy_LocalAverageDepthF1D* self, PyObject *args)
+static int LocalAverageDepthF1D___init__(BPy_LocalAverageDepthF1D* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"sigma", "integration_type", NULL};
 	PyObject *obj = 0;
 	double d;
 
-	if( !PyArg_ParseTuple(args, "d|O!", &d, &IntegrationType_Type, &obj) )
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|O!", (char **)kwlist, &d, &IntegrationType_Type, &obj))
 		return -1;
-	
-	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
+	IntegrationType t = (obj) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
 	self->py_uf1D_double.uf1D_double = new Functions1D::LocalAverageDepthF1D(d,t);
 	return 0;
 }
+
 /*-----------------------BPy_LocalAverageDepthF1D type definition ------------------------------*/
 
 PyTypeObject LocalAverageDepthF1D_Type = {

@@ -37,9 +37,11 @@ static char MaterialF0D___doc__[] =
 "      Interface0D.\n"
 "   :rtype: :class:`Material`\n";
 
-static int MaterialF0D___init__( BPy_MaterialF0D* self, PyObject *args )
+static int MaterialF0D___init__(BPy_MaterialF0D* self, PyObject *args, PyObject *kwds)
 {
-	if( !PyArg_ParseTuple(args, "") )
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
 		return -1;
 	self->py_uf0D_material.uf0D_material = new Functions0D::MaterialF0D();
 	self->py_uf0D_material.uf0D_material->py_uf0D = (PyObject *)self;

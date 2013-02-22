@@ -13,12 +13,12 @@ extern "C" {
 static char LocalAverageDepthF0D___doc__[] =
 "Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DDouble` > :class:`LocalAverageDepthF0D`\n"
 "\n"
-".. method:: __init__(maskSize=5.0)\n"
+".. method:: __init__(mask_size=5.0)\n"
 "\n"
 "   Builds a LocalAverageDepthF0D object.\n"
 "\n"
-"   :arg maskSize: The size of the mask.\n"
-"   :type maskSize: float\n"
+"   :arg mask_size: The size of the mask.\n"
+"   :type mask_size: float\n"
 "\n"
 ".. method:: __call__(it)\n"
 "\n"
@@ -31,11 +31,12 @@ static char LocalAverageDepthF0D___doc__[] =
 "   :return: The average depth around the pointed Interface0D.\n"
 "   :rtype: float\n";
 
-static int LocalAverageDepthF0D___init__( BPy_LocalAverageDepthF0D* self, PyObject *args)
+static int LocalAverageDepthF0D___init__(BPy_LocalAverageDepthF0D* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"mask_size", NULL};
 	double d = 5.0;
 
-	if( !PyArg_ParseTuple(args, "|d", &d) )
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|d", (char **)kwlist, &d))
 		return -1;
 	self->py_uf0D_double.uf0D_double = new Functions0D::LocalAverageDepthF0D(d);
 	self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;

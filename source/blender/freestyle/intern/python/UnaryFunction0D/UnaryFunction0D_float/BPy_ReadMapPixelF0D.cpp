@@ -13,12 +13,12 @@ extern "C" {
 static char ReadMapPixelF0D___doc__[] =
 "Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DFloat` > :class:`ReadMapPixelF0D`\n"
 "\n"
-".. method:: __init__(iMapName, level)\n"
+".. method:: __init__(map_name, level)\n"
 "\n"
 "   Builds a ReadMapPixelF0D object.\n"
 "\n"
-"   :arg iMapName: The name of the map to be read.\n"
-"   :type iMapName: str\n"
+"   :arg map_name: The name of the map to be read.\n"
+"   :type map_name: str\n"
 "   :arg level: The level of the pyramid from which the pixel must be\n"
 "      read.\n"
 "   :type level: int\n"
@@ -32,12 +32,13 @@ static char ReadMapPixelF0D___doc__[] =
 "   :return: A pixel in a map.\n"
 "   :rtype: float\n";
 
-static int ReadMapPixelF0D___init__( BPy_ReadMapPixelF0D* self, PyObject *args)
+static int ReadMapPixelF0D___init__(BPy_ReadMapPixelF0D* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"map_name", "level", NULL};
 	const char *s;
 	int i;
 
-	if( !PyArg_ParseTuple(args, "si", &s, &i) )
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "si", (char **)kwlist, &s, &i))
 		return -1;
 	self->py_uf0D_float.uf0D_float = new Functions0D::ReadMapPixelF0D(s,i);
 	self->py_uf0D_float.uf0D_float->py_uf0D = (PyObject *)self;

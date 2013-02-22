@@ -27,9 +27,11 @@ static char GetParameterF0D___doc__[] =
 "   :return: The parameter of an Interface0D.\n"
 "   :rtype: float\n";
 
-static int GetParameterF0D___init__( BPy_GetParameterF0D* self, PyObject *args )
+static int GetParameterF0D___init__(BPy_GetParameterF0D* self, PyObject *args, PyObject *kwds)
 {
-	if( !PyArg_ParseTuple(args, "") )
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
 		return -1;
 	self->py_uf0D_float.uf0D_float = new Functions0D::GetParameterF0D();
 	self->py_uf0D_float.uf0D_float->py_uf0D = (PyObject *)self;

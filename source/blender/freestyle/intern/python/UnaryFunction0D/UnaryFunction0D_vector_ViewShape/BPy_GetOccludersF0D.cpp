@@ -28,9 +28,11 @@ static char GetOccludersF0D___doc__[] =
 "      Interface0D.\n"
 "   :rtype: list of :class:`ViewShape` objects\n";
 
-static int GetOccludersF0D___init__( BPy_GetOccludersF0D* self, PyObject *args )
+static int GetOccludersF0D___init__(BPy_GetOccludersF0D* self, PyObject *args, PyObject *kwds)
 {
-	if( !PyArg_ParseTuple(args, "") )
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
 		return -1;
 	self->py_uf0D_vectorviewshape.uf0D_vectorviewshape = new Functions0D::GetOccludersF0D();
 	self->py_uf0D_vectorviewshape.uf0D_vectorviewshape->py_uf0D = (PyObject *)self;

@@ -19,26 +19,26 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //-------------------MODULE INITIALIZATION--------------------------------
-int UnaryFunction0D_Init( PyObject *module )
+int UnaryFunction0D_Init(PyObject *module)
 {
-	if( module == NULL )
+	if (module == NULL)
 		return -1;
 
-	if( PyType_Ready( &UnaryFunction0D_Type ) < 0 )
+	if (PyType_Ready(&UnaryFunction0D_Type) < 0)
 		return -1;
-	Py_INCREF( &UnaryFunction0D_Type );
+	Py_INCREF(&UnaryFunction0D_Type);
 	PyModule_AddObject(module, "UnaryFunction0D", (PyObject *)&UnaryFunction0D_Type);
 
-	UnaryFunction0DDouble_Init( module );
-	UnaryFunction0DEdgeNature_Init( module );
-	UnaryFunction0DFloat_Init( module );
-	UnaryFunction0DId_Init( module );
-	UnaryFunction0DMaterial_Init( module );
-	UnaryFunction0DUnsigned_Init( module );
-	UnaryFunction0DVec2f_Init( module );
-	UnaryFunction0DVec3f_Init( module );
-	UnaryFunction0DVectorViewShape_Init( module );
-	UnaryFunction0DViewShape_Init( module );
+	UnaryFunction0DDouble_Init(module);
+	UnaryFunction0DEdgeNature_Init(module);
+	UnaryFunction0DFloat_Init(module);
+	UnaryFunction0DId_Init(module);
+	UnaryFunction0DMaterial_Init(module);
+	UnaryFunction0DUnsigned_Init(module);
+	UnaryFunction0DVec2f_Init(module);
+	UnaryFunction0DVec3f_Init(module);
+	UnaryFunction0DVectorViewShape_Init(module);
+	UnaryFunction0DViewShape_Init(module);
 	
 	return 0;
 }
@@ -67,14 +67,30 @@ static char UnaryFunction0D___doc__[] =
 
 static void UnaryFunction0D___dealloc__(BPy_UnaryFunction0D* self)
 {
-    Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
-
 
 static PyObject * UnaryFunction0D___repr__(BPy_UnaryFunction0D* self)
 {
-    return PyUnicode_FromString("UnaryFunction0D");
+	return PyUnicode_FromString("UnaryFunction0D");
 }
+
+/*----------------------UnaryFunction0D get/setters ----------------------------*/
+
+PyDoc_STRVAR(UnaryFunction0D_name_doc,
+"The name of the unary 0D function.\n"
+"\n"
+":type: str");
+
+static PyObject *UnaryFunction0D_name_get(BPy_UnaryFunction0D *self, void *UNUSED(closure))
+{
+	return PyUnicode_FromString(Py_TYPE(self)->tp_name);
+}
+
+static PyGetSetDef BPy_UnaryFunction0D_getseters[] = {
+	{(char *)"name", (getter)UnaryFunction0D_name_get, (setter)NULL, (char *)UnaryFunction0D_name_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
+};
 
 /*-----------------------BPy_UnaryFunction0D type definition ------------------------------*/
 
@@ -108,7 +124,7 @@ PyTypeObject UnaryFunction0D_Type = {
 	0,                              /* tp_iternext */
 	0,                              /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_UnaryFunction0D_getseters,  /* tp_getset */
 	0,                              /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */

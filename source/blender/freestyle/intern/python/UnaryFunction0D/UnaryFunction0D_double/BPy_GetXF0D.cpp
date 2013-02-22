@@ -27,9 +27,11 @@ static char GetXF0D___doc__[] =
 "   :return: The X 3D coordinate of the pointed Interface0D.\n"
 "   :rtype: float\n";
 
-static int GetXF0D___init__( BPy_GetXF0D* self, PyObject *args )
+static int GetXF0D___init__(BPy_GetXF0D* self, PyObject *args, PyObject *kwds)
 {
-	if( !PyArg_ParseTuple(args, "") )
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
 		return -1;
 	self->py_uf0D_double.uf0D_double = new Functions0D::GetXF0D();
 	self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;

@@ -13,13 +13,13 @@ extern "C" {
 static char ReadSteerableViewMapPixelF0D___doc__[] =
 "Class hierarchy: :class:`UnaryFunction0D` > :class:`UnaryFunction0DFloat` > :class:`ReadSteerableViewMapPixelF0D`\n"
 "\n"
-".. method:: __init__(nOrientation, level)\n"
+".. method:: __init__(orientation, level)\n"
 "\n"
 "   Builds a ReadSteerableViewMapPixelF0D object.\n"
 "\n"
-"   :arg nOrientation: The integer belonging to [0, 4] indicating the\n"
+"   :arg orientation: The integer belonging to [0, 4] indicating the\n"
 "      orientation (E, NE, N, NW) we are interested in.\n"
-"   :type nOrientation: int\n"
+"   :type orientation: int\n"
 "   :arg level: The level of the pyramid from which the pixel must be\n"
 "      read.\n"
 "   :type level: int\n"
@@ -33,12 +33,13 @@ static char ReadSteerableViewMapPixelF0D___doc__[] =
 "   :return: A pixel in one of the level of one of the steerable viewmaps.\n"
 "   :rtype: float\n";
 
-static int ReadSteerableViewMapPixelF0D___init__( BPy_ReadSteerableViewMapPixelF0D* self, PyObject *args)
+static int ReadSteerableViewMapPixelF0D___init__(BPy_ReadSteerableViewMapPixelF0D* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"orientation", "level", NULL};
 	unsigned int u;
 	int i;
 
-	if( !PyArg_ParseTuple(args, "Ii", &u, &i) )
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "Ii", (char **)kwlist, &u, &i))
 		return -1;
 	self->py_uf0D_float.uf0D_float = new Functions0D::ReadSteerableViewMapPixelF0D(u,i);
 	self->py_uf0D_float.uf0D_float->py_uf0D = (PyObject *)self;

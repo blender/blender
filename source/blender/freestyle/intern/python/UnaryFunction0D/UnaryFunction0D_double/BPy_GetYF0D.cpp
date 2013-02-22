@@ -27,9 +27,11 @@ static char GetYF0D___doc__[] =
 "   :return: The Y 3D coordinate of the pointed Interface0D.\n"
 "   :rtype: float\n";
 
-static int GetYF0D___init__( BPy_GetYF0D* self, PyObject *args )
+static int GetYF0D___init__(BPy_GetYF0D* self, PyObject *args, PyObject *kwds)
 {
-	if( !PyArg_ParseTuple(args, "") )
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
 		return -1;
 	self->py_uf0D_double.uf0D_double = new Functions0D::GetYF0D();
 	self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;

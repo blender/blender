@@ -28,9 +28,11 @@ static char GetCurvilinearAbscissaF0D___doc__[] =
 "   :return: The curvilinear abscissa of the pointed Interface0D.\n"
 "   :rtype: float\n";
 
-static int GetCurvilinearAbscissaF0D___init__( BPy_GetCurvilinearAbscissaF0D* self, PyObject *args )
+static int GetCurvilinearAbscissaF0D___init__(BPy_GetCurvilinearAbscissaF0D* self, PyObject *args, PyObject *kwds)
 {
-	if( !PyArg_ParseTuple(args, "") )
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
 		return -1;
 	self->py_uf0D_float.uf0D_float = new Functions0D::GetCurvilinearAbscissaF0D();
 	self->py_uf0D_float.uf0D_float->py_uf0D = (PyObject *)self;

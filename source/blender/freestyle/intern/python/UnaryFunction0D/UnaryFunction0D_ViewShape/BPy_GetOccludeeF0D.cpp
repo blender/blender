@@ -27,9 +27,11 @@ static char GetOccludeeF0D___doc__[] =
 "   :return: The ViewShape occluded by the pointed Interface0D.\n"
 "   :rtype: :class:`ViewShape`\n";
 
-static int GetOccludeeF0D___init__( BPy_GetOccludeeF0D* self, PyObject *args )
+static int GetOccludeeF0D___init__(BPy_GetOccludeeF0D* self, PyObject *args, PyObject *kwds)
 {
-	if( !PyArg_ParseTuple(args, "") )
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
 		return -1;
 	self->py_uf0D_viewshape.uf0D_viewshape = new Functions0D::GetOccludeeF0D();
 	self->py_uf0D_viewshape.uf0D_viewshape->py_uf0D = (PyObject *)self;

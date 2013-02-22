@@ -33,9 +33,11 @@ static char ShapeIdF0D___doc__[] =
 "   :return: The Id of the Shape the pointed Interface0D belongs to.\n"
 "   :rtype: :class:`Id`\n";
 
-static int ShapeIdF0D___init__( BPy_ShapeIdF0D* self, PyObject *args )
+static int ShapeIdF0D___init__(BPy_ShapeIdF0D* self, PyObject *args, PyObject *kwds)
 {
-	if( !PyArg_ParseTuple(args, "") )
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
 		return -1;
 	self->py_uf0D_id.uf0D_id = new Functions0D::ShapeIdF0D();
 	self->py_uf0D_id.uf0D_id->py_uf0D = (PyObject *)self;

@@ -13,19 +13,19 @@ extern "C" {
 
 //-------------------MODULE INITIALIZATION--------------------------------
 
-int UnaryFunction0DEdgeNature_Init( PyObject *module ) {
-
-	if( module == NULL )
+int UnaryFunction0DEdgeNature_Init(PyObject *module)
+{
+	if (module == NULL)
 		return -1;
 
-	if( PyType_Ready( &UnaryFunction0DEdgeNature_Type ) < 0 )
+	if (PyType_Ready(&UnaryFunction0DEdgeNature_Type) < 0)
 		return -1;
-	Py_INCREF( &UnaryFunction0DEdgeNature_Type );
+	Py_INCREF(&UnaryFunction0DEdgeNature_Type);
 	PyModule_AddObject(module, "UnaryFunction0DEdgeNature", (PyObject *)&UnaryFunction0DEdgeNature_Type);
 	
-	if( PyType_Ready( &CurveNatureF0D_Type ) < 0 )
+	if (PyType_Ready(&CurveNatureF0D_Type) < 0)
 		return -1;
-	Py_INCREF( &CurveNatureF0D_Type );
+	Py_INCREF(&CurveNatureF0D_Type);
 	PyModule_AddObject(module, "CurveNatureF0D", (PyObject *)&CurveNatureF0D_Type);
 
 	return 0;
@@ -45,8 +45,10 @@ static char UnaryFunction0DEdgeNature___doc__[] =
 
 static int UnaryFunction0DEdgeNature___init__(BPy_UnaryFunction0DEdgeNature* self, PyObject *args, PyObject *kwds)
 {
-    if ( !PyArg_ParseTuple(args, "") )
-        return -1;
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+		return -1;
 	self->uf0D_edgenature = new UnaryFunction0D<Nature::EdgeNature>();
 	self->uf0D_edgenature->py_uf0D = (PyObject *)self;
 	return 0;
@@ -61,51 +63,32 @@ static void UnaryFunction0DEdgeNature___dealloc__(BPy_UnaryFunction0DEdgeNature*
 
 static PyObject * UnaryFunction0DEdgeNature___repr__(BPy_UnaryFunction0DEdgeNature* self)
 {
-	return PyUnicode_FromFormat("type: %s - address: %p", self->uf0D_edgenature->getName().c_str(), self->uf0D_edgenature );
+	return PyUnicode_FromFormat("type: %s - address: %p", self->uf0D_edgenature->getName().c_str(), self->uf0D_edgenature);
 }
 
-static char UnaryFunction0DEdgeNature_getName___doc__[] =
-".. method:: getName()\n"
-"\n"
-"   Returns the name of the unary 0D predicate.\n"
-"\n"
-"   :return: The name of the unary 0D predicate.\n"
-"   :rtype: str\n";
-
-static PyObject * UnaryFunction0DEdgeNature_getName( BPy_UnaryFunction0DEdgeNature *self )
+static PyObject * UnaryFunction0DEdgeNature___call__(BPy_UnaryFunction0DEdgeNature *self, PyObject *args, PyObject *kwds)
 {
-	return PyUnicode_FromString( self->uf0D_edgenature->getName().c_str() );
-}
-
-static PyObject * UnaryFunction0DEdgeNature___call__( BPy_UnaryFunction0DEdgeNature *self, PyObject *args, PyObject *kwds)
-{
+	static const char *kwlist[] = {"it", NULL};
 	PyObject *obj;
 
-	if( kwds != NULL ) {
-		PyErr_SetString(PyExc_TypeError, "keyword argument(s) not supported");
-		return NULL;
-	}
-	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj))
 		return NULL;
 	
-	if( typeid(*(self->uf0D_edgenature)) == typeid(UnaryFunction0D<Nature::EdgeNature>) ) {
+	if (typeid(*(self->uf0D_edgenature)) == typeid(UnaryFunction0D<Nature::EdgeNature>)) {
 		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
 	}
-	if (self->uf0D_edgenature->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it )) < 0) {
+	if (self->uf0D_edgenature->operator()(*(((BPy_Interface0DIterator *)obj)->if0D_it)) < 0) {
 		if (!PyErr_Occurred()) {
-			string msg(self->uf0D_edgenature->getName() + " __call__ method failed");
-			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+			string class_name(Py_TYPE(self)->tp_name);
+			PyErr_SetString(PyExc_RuntimeError, (class_name + " __call__ method failed").c_str());
 		}
 		return NULL;
 	}
-	return BPy_Nature_from_Nature( self->uf0D_edgenature->result );
-
+	return BPy_Nature_from_Nature(self->uf0D_edgenature->result);
 }
 
-/*----------------------UnaryFunction0DEdgeNature instance definitions ----------------------------*/
 static PyMethodDef BPy_UnaryFunction0DEdgeNature_methods[] = {
-	{"getName", ( PyCFunction ) UnaryFunction0DEdgeNature_getName, METH_NOARGS, UnaryFunction0DEdgeNature_getName___doc__},
 	{NULL, NULL, 0, NULL}
 };
 

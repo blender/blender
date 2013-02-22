@@ -26,9 +26,11 @@ static char ChainingTimeStampF1D___doc__[] =
 "   :arg inter: An Interface1D object.\n"
 "   :type inter: :class:`Interface1D`\n";
 
-static int ChainingTimeStampF1D___init__( BPy_ChainingTimeStampF1D* self, PyObject *args )
+static int ChainingTimeStampF1D___init__(BPy_ChainingTimeStampF1D* self, PyObject *args, PyObject *kwds)
 {
-	if( !PyArg_ParseTuple(args, "") )
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
 		return -1;
 	self->py_uf1D_void.uf1D_void = new Functions1D::ChainingTimeStampF1D();
 	return 0;

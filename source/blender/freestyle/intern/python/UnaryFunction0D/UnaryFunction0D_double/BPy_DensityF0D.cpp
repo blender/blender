@@ -35,11 +35,12 @@ static char DensityF0D___doc__[] =
 "      Interface0D.\n"
 "   :rtype: float\n";
 
-static int DensityF0D___init__( BPy_DensityF0D* self, PyObject *args)
+static int DensityF0D___init__(BPy_DensityF0D* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"sigma", NULL};
 	double d = 2;
 
-	if( !PyArg_ParseTuple(args, "|d", &d) )
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|d", (char **)kwlist, &d))
 		return -1;
 	self->py_uf0D_double.uf0D_double = new Functions0D::DensityF0D(d);
 	self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;

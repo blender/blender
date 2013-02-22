@@ -16,24 +16,24 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //-------------------MODULE INITIALIZATION--------------------------------
-int UnaryFunction1D_Init( PyObject *module )
+int UnaryFunction1D_Init(PyObject *module)
 {
-	if( module == NULL )
+	if (module == NULL)
 		return -1;
 
-	if( PyType_Ready( &UnaryFunction1D_Type ) < 0 )
+	if (PyType_Ready(&UnaryFunction1D_Type) < 0)
 		return -1;
-	Py_INCREF( &UnaryFunction1D_Type );
+	Py_INCREF(&UnaryFunction1D_Type);
 	PyModule_AddObject(module, "UnaryFunction1D", (PyObject *)&UnaryFunction1D_Type);
 
-	UnaryFunction1DDouble_Init( module );
-	UnaryFunction1DEdgeNature_Init( module );
-	UnaryFunction1DFloat_Init( module );
-	UnaryFunction1DUnsigned_Init( module );
-	UnaryFunction1DVec2f_Init( module );
-	UnaryFunction1DVec3f_Init( module );
-	UnaryFunction1DVectorViewShape_Init( module );
-	UnaryFunction1DVoid_Init( module );
+	UnaryFunction1DDouble_Init(module);
+	UnaryFunction1DEdgeNature_Init(module);
+	UnaryFunction1DFloat_Init(module);
+	UnaryFunction1DUnsigned_Init(module);
+	UnaryFunction1DVec2f_Init(module);
+	UnaryFunction1DVec3f_Init(module);
+	UnaryFunction1DVectorViewShape_Init(module);
+	UnaryFunction1DVoid_Init(module);
 	return 0;
 }
 
@@ -59,13 +59,30 @@ static char UnaryFunction1D___doc__[] =
 
 static void UnaryFunction1D___dealloc__(BPy_UnaryFunction1D* self)
 {
-    Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static PyObject * UnaryFunction1D___repr__(BPy_UnaryFunction1D* self)
 {
-    return PyUnicode_FromString("UnaryFunction1D");
+	return PyUnicode_FromString("UnaryFunction1D");
 }
+
+/*----------------------UnaryFunction1D get/setters ----------------------------*/
+
+PyDoc_STRVAR(UnaryFunction1D_name_doc,
+"The name of the unary 1D function.\n"
+"\n"
+":type: str");
+
+static PyObject *UnaryFunction1D_name_get(BPy_UnaryFunction1D *self, void *UNUSED(closure))
+{
+	return PyUnicode_FromString(Py_TYPE(self)->tp_name);
+}
+
+static PyGetSetDef BPy_UnaryFunction1D_getseters[] = {
+	{(char *)"name", (getter)UnaryFunction1D_name_get, (setter)NULL, (char *)UnaryFunction1D_name_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
+};
 
 /*-----------------------BPy_UnaryFunction1D type definition ------------------------------*/
 
@@ -99,7 +116,7 @@ PyTypeObject UnaryFunction1D_Type = {
 	0,                              /* tp_iternext */
 	0,                              /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_UnaryFunction1D_getseters,  /* tp_getset */
 	0,                              /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */

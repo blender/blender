@@ -15,13 +15,13 @@ extern "C" {
 static char GetXF1D___doc__[] =
 "Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DDouble` > :class:`GetXF1D`\n"
 "\n"
-".. method:: __init__(iType)\n"
+".. method:: __init__(integration_type=IntegrationType.MEAN)\n"
 "\n"
 "   Builds a GetXF1D object.\n"
 "\n"
-"   :arg iType: The integration method used to compute a single value\n"
+"   :arg integration_type: The integration method used to compute a single value\n"
 "      from a set of values.\n"
-"   :type iType: :class:`IntegrationType`\n"
+"   :type integration_type: :class:`IntegrationType`\n"
 "\n"
 ".. method:: __call__(inter)\n"
 "\n"
@@ -32,14 +32,14 @@ static char GetXF1D___doc__[] =
 "   :return: The X 3D coordinate of the Interface1D.\n"
 "   :rtype: float\n";
 
-static int GetXF1D___init__( BPy_GetXF1D* self, PyObject *args )
+static int GetXF1D___init__(BPy_GetXF1D* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"integration_type", NULL};
 	PyObject *obj = 0;
 
-	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) )
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj))
 		return -1;
-	
-	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
+	IntegrationType t = (obj) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
 	self->py_uf1D_double.uf1D_double = new Functions1D::GetXF1D(t);
 	return 0;
 }

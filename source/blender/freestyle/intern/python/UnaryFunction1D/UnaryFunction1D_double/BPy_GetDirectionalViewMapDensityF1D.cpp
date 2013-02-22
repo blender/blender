@@ -15,23 +15,23 @@ extern "C" {
 static char GetDirectionalViewMapDensityF1D___doc__[] =
 "Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DDouble` > :class:`GetDirectionalViewMapDensityF1D`\n"
 "\n"
-".. method:: __init__(iOrientation, level, iType=IntegrationType.MEAN, sampling=2.0)\n"
+".. method:: __init__(orientation, level, integration_type=IntegrationType.MEAN, sampling=2.0)\n"
 "\n"
 "   Builds a GetDirectionalViewMapDensityF1D object.\n"
 "\n"
-"   :arg iOrientation: The number of the directional map we must work\n"
+"   :arg orientation: The number of the directional map we must work\n"
 "      with.\n"
-"   :type iOrientation: int\n"
+"   :type orientation: int\n"
 "   :arg level: The level of the pyramid from which the pixel must be\n"
 "      read.\n"
 "   :type level: int\n"
-"   :arg iType: The integration method used to compute a single value\n"
+"   :arg integration_type: The integration method used to compute a single value\n"
 "      from a set of values.\n"
-"   :type iType: :class:`IntegrationType`\n"
+"   :type integration_type: :class:`IntegrationType`\n"
 "   :arg sampling: The resolution used to sample the chain: the\n"
 "      corresponding 0D function is evaluated at each sample point and\n"
 "      the result is obtained by combining the resulting values into a\n"
-"      single one, following the method specified by iType.\n"
+"      single one, following the method specified by integration_type.\n"
 "   :type sampling: float\n"
 "\n"
 ".. method:: __call__(inter)\n"
@@ -49,19 +49,18 @@ static char GetDirectionalViewMapDensityF1D___doc__[] =
 "      steerable viewmaps image.\n"
 "   :rtype: float\n";
 
-static int GetDirectionalViewMapDensityF1D___init__( BPy_GetDirectionalViewMapDensityF1D* self, PyObject *args)
+static int GetDirectionalViewMapDensityF1D___init__(BPy_GetDirectionalViewMapDensityF1D* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"orientation", "level", "integration_type", "sampling", NULL};
 	PyObject *obj = 0;
 	unsigned int u1, u2;
 	float f = 2.0;
 
-	if( !PyArg_ParseTuple(args, "II|O!f", &u1, &u2, &IntegrationType_Type, &obj, &f) )
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "II|O!f", (char **)kwlist, &u1, &u2, &IntegrationType_Type, &obj, &f))
 		return -1;
-	
-	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
+	IntegrationType t = (obj) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
 	self->py_uf1D_double.uf1D_double = new Functions1D::GetDirectionalViewMapDensityF1D(u1, u2, t, f);
 	return 0;
-
 }
 
 /*-----------------------BPy_GetDirectionalViewMapDensityF1D type definition ------------------------------*/

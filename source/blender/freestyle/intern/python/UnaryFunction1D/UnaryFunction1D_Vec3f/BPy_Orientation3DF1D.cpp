@@ -15,13 +15,13 @@ extern "C" {
 static char Orientation3DF1D___doc__[] =
 "Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DVec3f` > :class:`Orientation3DF1D`\n"
 "\n"
-".. method:: __init__(iType=IntegrationType.MEAN)\n"
+".. method:: __init__(integration_type=IntegrationType.MEAN)\n"
 "\n"
 "   Builds an Orientation3DF1D object.\n"
 "\n"
-"   :arg iType: The integration method used to compute a single value\n"
+"   :arg integration_type: The integration method used to compute a single value\n"
 "      from a set of values.\n"
-"   :type iType: :class:`IntegrationType`\n"
+"   :type integration_type: :class:`IntegrationType`\n"
 "\n"
 ".. method:: __call__(inter)\n"
 "\n"
@@ -32,14 +32,14 @@ static char Orientation3DF1D___doc__[] =
 "   :return: The 3D orientation of the Interface1D.\n"
 "   :rtype: :class:`mathutils.Vector`\n";
 
-static int Orientation3DF1D___init__( BPy_Orientation3DF1D* self, PyObject *args)
+static int Orientation3DF1D___init__(BPy_Orientation3DF1D* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"integration_type", NULL};
 	PyObject *obj = 0;
 
-	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) )
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj))
 		return -1;
-
-	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
+	IntegrationType t = (obj) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
 	self->py_uf1D_vec3f.uf1D_vec3f = new Functions1D::Orientation3DF1D(t);
 	return 0;
 }

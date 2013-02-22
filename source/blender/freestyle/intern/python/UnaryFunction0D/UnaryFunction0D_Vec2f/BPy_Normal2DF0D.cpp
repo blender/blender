@@ -30,9 +30,11 @@ static char Normal2DF0D___doc__[] =
 "      Interface0D.\n"
 "   :rtype: :class:`mathutils.Vector`\n";
 
-static int Normal2DF0D___init__( BPy_Normal2DF0D* self, PyObject *args )
+static int Normal2DF0D___init__(BPy_Normal2DF0D* self, PyObject *args, PyObject *kwds)
 {
-	if( !PyArg_ParseTuple(args, "") )
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
 		return -1;
 	self->py_uf0D_vec2f.uf0D_vec2f = new Functions0D::Normal2DF0D();
 	self->py_uf0D_vec2f.uf0D_vec2f->py_uf0D = (PyObject *)self;

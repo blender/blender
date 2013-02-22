@@ -15,20 +15,20 @@ extern "C" {
 static char DensityF1D___doc__[] =
 "Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DDouble` > :class:`DensityF1D`\n"
 "\n"
-".. method:: __init__(sigma=2.0, iType=IntegrationType.MEAN, sampling=2.0)\n"
+".. method:: __init__(sigma=2.0, integration_type=IntegrationType.MEAN, sampling=2.0)\n"
 "\n"
 "   Builds a DensityF1D object.\n"
 "\n"
 "   :arg sigma: The sigma used in DensityF0D and determining the window size\n"
 "      used in each density query.\n"
 "   :type sigma: float\n"
-"   :arg iType: The integration method used to compute a single value\n"
+"   :arg integration_type: The integration method used to compute a single value\n"
 "      from a set of values.\n"
-"   :type iType: :class:`IntegrationType`\n"
+"   :type integration_type: :class:`IntegrationType`\n"
 "   :arg sampling: The resolution used to sample the chain: the\n"
 "      corresponding 0D function is evaluated at each sample point and\n"
 "      the result is obtained by combining the resulting values into a\n"
-"      single one, following the method specified by iType.\n"
+"      single one, following the method specified by integration_type.\n"
 "   :type sampling: float\n"
 "\n"
 ".. method:: __call__(inter)\n"
@@ -44,16 +44,16 @@ static char DensityF1D___doc__[] =
 "   :return: The density evaluated for an Interface1D.\n"
 "   :rtype: float\n";
 
-static int DensityF1D___init__( BPy_DensityF1D* self, PyObject *args)
+static int DensityF1D___init__(BPy_DensityF1D* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"sigma", "integration_type", "sampling", NULL};
 	PyObject *obj = 0;
 	double d = 2.0;
 	float f = 2.0;
 
-	if( !PyArg_ParseTuple(args, "|dO!f", &d, &IntegrationType_Type, &obj, &f) )
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|dO!f", (char **)kwlist, &d, &IntegrationType_Type, &obj, &f))
 		return -1;
-	
-	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
+	IntegrationType t = (obj) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
 	self->py_uf1D_double.uf1D_double = new Functions1D::DensityF1D(d,t,f);
 	return 0;
 

@@ -33,9 +33,11 @@ static char QuantitativeInvisibilityF0D___doc__[] =
 "   :return: The quantitative invisibility of the pointed Interface0D.\n"
 "   :rtype: int\n";
 
-static int QuantitativeInvisibilityF0D___init__( BPy_QuantitativeInvisibilityF0D* self, PyObject *args )
+static int QuantitativeInvisibilityF0D___init__(BPy_QuantitativeInvisibilityF0D* self, PyObject *args, PyObject *kwds)
 {
-	if( !PyArg_ParseTuple(args, "") )
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
 		return -1;
 	self->py_uf0D_unsigned.uf0D_unsigned = new Functions0D::QuantitativeInvisibilityF0D();
 	self->py_uf0D_unsigned.uf0D_unsigned->py_uf0D = (PyObject *)self;

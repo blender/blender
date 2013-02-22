@@ -95,8 +95,8 @@ static PyObject * UnaryFunction0DVectorViewShape___call__( BPy_UnaryFunction0DVe
 	}
 	if (self->uf0D_vectorviewshape->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it )) < 0) {
 		if (!PyErr_Occurred()) {
-			string msg(self->uf0D_vectorviewshape->getName() + " __call__ method failed");
-			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+			string class_name(Py_TYPE(self)->tp_name);
+			PyErr_SetString(PyExc_RuntimeError, (class_name + " __call__ method failed").c_str());
 		}
 		return NULL;
 	}

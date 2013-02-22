@@ -27,9 +27,11 @@ static char GetProjectedXF0D___doc__[] =
 "   :return: The X 3D projected coordinate of the pointed Interface0D.\n"
 "   :rtype: float\n";
 
-static int GetProjectedXF0D___init__( BPy_GetProjectedXF0D* self, PyObject *args )
+static int GetProjectedXF0D___init__(BPy_GetProjectedXF0D* self, PyObject *args, PyObject *kwds)
 {
-	if( !PyArg_ParseTuple(args, "") )
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
 		return -1;
 	self->py_uf0D_double.uf0D_double = new Functions0D::GetProjectedXF0D();
 	self->py_uf0D_double.uf0D_double->py_uf0D = (PyObject *)self;

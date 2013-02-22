@@ -15,13 +15,13 @@ extern "C" {
 static char ZDiscontinuityF1D___doc__[] =
 "Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DDouble` > :class:`ZDiscontinuityF1D`\n"
 "\n"
-".. method:: __init__(iType=IntegrationType.MEAN)\n"
+".. method:: __init__(integration_type=IntegrationType.MEAN)\n"
 "\n"
 "   Builds a ZDiscontinuityF1D object.\n"
 "\n"
-"   :arg iType: The integration method used to compute a single value\n"
+"   :arg integration_type: The integration method used to compute a single value\n"
 "      from a set of values.\n"
-"   :type iType: :class:`IntegrationType`\n"
+"   :type integration_type: :class:`IntegrationType`\n"
 "\n"
 ".. method:: __call__(inter)\n"
 "\n"
@@ -36,14 +36,14 @@ static char ZDiscontinuityF1D___doc__[] =
 "   :return: The normalized distance between the Interface1D and the occludee.\n"
 "   :rtype: float\n";
 
-static int ZDiscontinuityF1D___init__( BPy_ZDiscontinuityF1D* self, PyObject *args )
+static int ZDiscontinuityF1D___init__(BPy_ZDiscontinuityF1D* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"integration_type", NULL};
 	PyObject *obj = 0;
 
-	if( !PyArg_ParseTuple(args, "|O!", &IntegrationType_Type, &obj) )
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj))
 		return -1;
-	
-	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
+	IntegrationType t = (obj) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
 	self->py_uf1D_double.uf1D_double = new Functions1D::ZDiscontinuityF1D(t);
 	return 0;
 }
