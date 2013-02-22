@@ -162,23 +162,29 @@ SG_Controller *BL_CreateIPO(struct bAction *action, KX_GameObject* gameobj, KX_B
 		}
 	}
 		
-	{
-		KX_ObColorIpoSGController* ipocontr_obcol=NULL;
-			
-		for (int i=0; i<4; i++) {
-			if ((interp = adtList->GetScalarInterpolator("color", i))) {
-				if (!ipocontr_obcol) {
-					ipocontr_obcol = new KX_ObColorIpoSGController();
-					gameobj->GetSGNode()->AddSGController(ipocontr_obcol);
-					ipocontr_obcol->SetObject(gameobj->GetSGNode());
-				}
-				interpolator= new KX_ScalarInterpolator(&ipocontr_obcol->m_rgba[i], interp);
-				ipocontr_obcol->AddInterpolator(interpolator);
+
+	return ipocontr;
+}
+
+
+SG_Controller *BL_CreateObColorIPO(struct bAction *action, KX_GameObject* gameobj, KX_BlenderSceneConverter *converter)
+{
+	KX_ObColorIpoSGController* ipocontr_obcol=NULL;
+	KX_IInterpolator *interpolator;
+	KX_IScalarInterpolator *interp;
+	BL_InterpolatorList *adtList= GetAdtList(action, converter);
+
+	for (int i=0; i<4; i++) {
+		if ((interp = adtList->GetScalarInterpolator("color", i))) {
+			if (!ipocontr_obcol) {
+				ipocontr_obcol = new KX_ObColorIpoSGController();
 			}
+			interpolator= new KX_ScalarInterpolator(&ipocontr_obcol->m_rgba[i], interp);
+			ipocontr_obcol->AddInterpolator(interpolator);
 		}
 	}
 
-	return ipocontr;
+	return ipocontr_obcol;
 }
 
 void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_BlenderSceneConverter *converter)
@@ -187,6 +193,12 @@ void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_Blend
 		SG_Controller *ipocontr = BL_CreateIPO(blenderobject->adt->action, gameobj, converter);
 		gameobj->GetSGNode()->AddSGController(ipocontr);
 		ipocontr->SetObject(gameobj->GetSGNode());
+
+		SG_Controller *ipocontr_obcol = BL_CreateObColorIPO(blenderobject->adt->action, gameobj, converter);
+		if (ipocontr_obcol) {
+			gameobj->GetSGNode()->AddSGController(ipocontr_obcol);
+			ipocontr_obcol->SetObject(gameobj->GetSGNode());
+		}
 	}
 }
 

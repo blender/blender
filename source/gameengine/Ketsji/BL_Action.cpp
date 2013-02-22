@@ -162,6 +162,14 @@ bool BL_Action::Play(const char* name,
 		m_obj->GetSGNode()->AddSGController(sg_contr);
 		sg_contr->SetObject(m_obj->GetSGNode());
 
+		// Try obcolor
+		sg_contr = BL_CreateObColorIPO(m_action, m_obj, KX_GetActiveScene()->GetSceneConverter());
+		if (sg_contr) {
+			m_sg_contr_list.push_back(sg_contr);
+			m_obj->GetSGNode()->AddSGController(sg_contr);
+			sg_contr->SetObject(m_obj->GetSGNode());
+		}
+
 		// Extra controllers
 		if (m_obj->GetGameObjectType() == SCA_IObject::OBJ_LIGHT)
 		{

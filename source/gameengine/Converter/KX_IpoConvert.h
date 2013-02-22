@@ -37,7 +37,9 @@ struct Object;
 class SG_Controller *BL_CreateIPO(struct bAction *action,
 	class KX_GameObject* gameobj,
 	class KX_BlenderSceneConverter *converter);
-
+class SG_Controller *BL_CreateObColorIPO(struct bAction *action,
+		class KX_GameObject* gameobj,
+		class KX_BlenderSceneConverter *converter);
 void BL_ConvertIpos(struct Object* blenderobject,
 	class KX_GameObject* gameobj, 
 	class KX_BlenderSceneConverter *converter);
