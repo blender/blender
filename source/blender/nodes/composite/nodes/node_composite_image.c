@@ -324,7 +324,6 @@ void register_node_type_cmp_image(bNodeTreeType *ttype)
 	static bNodeType ntype;
 
 	node_type_base(ttype, &ntype, CMP_NODE_IMAGE, "Image", NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS);
-	node_type_size(&ntype, 120, 80, 300);
 	node_type_init(&ntype, node_composit_init_image);
 	node_type_storage(&ntype, "ImageUser", node_composit_free_image, node_composit_copy_image);
 	node_type_update(&ntype, cmp_node_image_update, NULL);
@@ -341,7 +340,6 @@ void register_node_type_cmp_rlayers(bNodeTreeType *ttype)
 
 	node_type_base(ttype, &ntype, CMP_NODE_R_LAYERS, "Render Layers", NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS);
 	node_type_socket_templates(&ntype, NULL, cmp_node_rlayers_out);
-	node_type_size(&ntype, 150, 100, 300);
 
 	nodeRegisterType(ttype, &ntype);
 }

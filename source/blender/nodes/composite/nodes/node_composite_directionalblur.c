@@ -56,7 +56,6 @@ void register_node_type_cmp_dblur(bNodeTreeType *ttype)
 
 	node_type_base(ttype, &ntype, CMP_NODE_DBLUR, "Directional Blur", NODE_CLASS_OP_FILTER, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_dblur_in, cmp_node_dblur_out);
-	node_type_size(&ntype, 150, 120, 200);
 	node_type_init(&ntype, node_composit_init_dblur);
 	node_type_storage(&ntype, "NodeDBlurData", node_free_standard_storage, node_copy_standard_storage);
 

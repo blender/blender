@@ -58,7 +58,6 @@ void register_node_type_cmp_bokehimage(bNodeTreeType *ttype)
 	
 	node_type_base(ttype, &ntype, CMP_NODE_BOKEHIMAGE, "Bokeh Image", NODE_CLASS_INPUT, NODE_PREVIEW|NODE_OPTIONS);
 	node_type_socket_templates(&ntype, NULL, cmp_node_bokehimage_out);
-	node_type_size(&ntype, 140, 100, 320);
 	node_type_init(&ntype, node_composit_init_bokehimage);
 	node_type_storage(&ntype, "NodeBokehImage", node_free_standard_storage, node_copy_standard_storage);
 

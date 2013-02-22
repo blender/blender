@@ -231,7 +231,6 @@ void register_node_type_cmp_output_file(bNodeTreeType *ttype)
 
 	node_type_base(ttype, &ntype, CMP_NODE_OUTPUT_FILE, "File Output", NODE_CLASS_OUTPUT, NODE_OPTIONS|NODE_PREVIEW);
 	node_type_socket_templates(&ntype, NULL, NULL);
-	node_type_size(&ntype, 140, 80, 300);
 	node_type_init(&ntype, init_output_file);
 	node_type_storage(&ntype, "NodeImageMultiFile", free_output_file, copy_output_file);
 	node_type_update(&ntype, update_output_file, NULL);

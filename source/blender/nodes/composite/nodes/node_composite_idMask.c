@@ -50,7 +50,6 @@ void register_node_type_cmp_idmask(bNodeTreeType *ttype)
 
 	node_type_base(ttype, &ntype, CMP_NODE_ID_MASK, "ID Mask", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_idmask_in, cmp_node_idmask_out);
-	node_type_size(&ntype, 140, 100, 320);
 
 	nodeRegisterType(ttype, &ntype);
 }
