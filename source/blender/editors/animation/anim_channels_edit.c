@@ -2440,7 +2440,7 @@ static int mouse_anim_channels(bAnimContext *ac, float UNUSED(x), int channel_in
 			}
 			
 			notifierFlags |= (ND_ANIMCHAN | NA_SELECTED);
-	}
+		}
 		break;
 		
 		case ANIMTYPE_GROUP: 
