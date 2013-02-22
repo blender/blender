@@ -296,6 +296,9 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
 
 		// Process all the events waiting for us
 		while (::PeekMessageW(&msg, 0, 0, 0, PM_REMOVE) != 0) {
+			// TranslateMessage doesn't alter the message, and doesn't change our raw keyboard data.
+			// Needed for MapVirtualKey or if we ever need to get chars from wm_ime_char or similar.
+			::TranslateMessage(&msg);
 			::DispatchMessageW(&msg);
 			anyProcessed = true;
 		}
@@ -729,13 +732,17 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_IWindow *window, RAWINP
 		int r;
 		GetKeyboardState((PBYTE)state);
 
-		if ((r = ToUnicodeEx(vk, 0, state, utf16, 2, 0, system->m_keylayout))) {
-			if ((r > 0 && r < 3)) {
-				utf16[r] = 0;
-				conv_utf_16_to_8(utf16, utf8_char, 6);
-			}
-			else if (r == -1) {
-				utf8_char[0] = '\0';
+		// don't call ToUnicodeEx on dead keys as it clears the buffer and so won't allow diacritical composition.
+		if (MapVirtualKeyW(vk,2) != 0) {
+			// todo: ToUnicodeEx can respond with up to 4 utf16 chars (only 2 here). Could be up to 24 utf8 bytes.
+			if ((r = ToUnicodeEx(vk, raw.data.keyboard.MakeCode, state, utf16, 2, 0, system->m_keylayout))) {
+				if ((r > 0 && r < 3)) {
+					utf16[r] = 0;
+					conv_utf_16_to_8(utf16, utf8_char, 6);
+				}
+				else if (r == -1) {
+					utf8_char[0] = '\0';
+				}
 			}
 		}
 
