@@ -241,6 +241,10 @@ class DOPESHEET_MT_channel(Menu):
         layout.operator("anim.channels_delete")
 
         layout.separator()
+        layout.operator("anim.channels_group")
+        layout.operator("anim.channels_ungroup")
+
+        layout.separator()
         layout.operator_menu_enum("anim.channels_setting_toggle", "type")
         layout.operator_menu_enum("anim.channels_setting_enable", "type")
         layout.operator_menu_enum("anim.channels_setting_disable", "type")
