@@ -88,10 +88,6 @@ static PyObject * UnaryFunction0DEdgeNature___call__(BPy_UnaryFunction0DEdgeNatu
 	return BPy_Nature_from_Nature(self->uf0D_edgenature->result);
 }
 
-static PyMethodDef BPy_UnaryFunction0DEdgeNature_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
-
 /*-----------------------BPy_UnaryFunction0DEdgeNature type definition ------------------------------*/
 
 PyTypeObject UnaryFunction0DEdgeNature_Type = {
@@ -122,7 +118,7 @@ PyTypeObject UnaryFunction0DEdgeNature_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_UnaryFunction0DEdgeNature_methods, /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	0,                              /* tp_getset */
 	&UnaryFunction0D_Type,          /* tp_base */

@@ -131,10 +131,6 @@ static PyObject * UnaryFunction1DVectorViewShape___call__(BPy_UnaryFunction1DVec
 	return list;
 }
 
-static PyMethodDef BPy_UnaryFunction1DVectorViewShape_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
-
 /*----------------------UnaryFunction1DVectorViewShape get/setters ----------------------------*/
 
 PyDoc_STRVAR(integration_type_doc,
@@ -192,7 +188,7 @@ PyTypeObject UnaryFunction1DVectorViewShape_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_UnaryFunction1DVectorViewShape_methods, /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_UnaryFunction1DVectorViewShape_getseters, /* tp_getset */
 	&UnaryFunction1D_Type,          /* tp_base */

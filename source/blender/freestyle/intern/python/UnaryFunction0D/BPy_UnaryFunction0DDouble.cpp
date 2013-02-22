@@ -144,10 +144,6 @@ static PyObject * UnaryFunction0DDouble___call__(BPy_UnaryFunction0DDouble *self
 	return PyFloat_FromDouble(self->uf0D_double->result);
 }
 
-static PyMethodDef BPy_UnaryFunction0DDouble_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
-
 /*-----------------------BPy_UnaryFunction0DDouble type definition ------------------------------*/
 
 PyTypeObject UnaryFunction0DDouble_Type = {
@@ -178,7 +174,7 @@ PyTypeObject UnaryFunction0DDouble_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_UnaryFunction0DDouble_methods, /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	0,                              /* tp_getset */
 	&UnaryFunction0D_Type,          /* tp_base */

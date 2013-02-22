@@ -88,10 +88,6 @@ static PyObject * UnaryFunction0DId___call__(BPy_UnaryFunction0DId *self, PyObje
 	return BPy_Id_from_Id(self->uf0D_id->result);
 }
 
-static PyMethodDef BPy_UnaryFunction0DId_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
-
 /*-----------------------BPy_UnaryFunction0DId type definition ------------------------------*/
 
 PyTypeObject UnaryFunction0DId_Type = {
@@ -122,7 +118,7 @@ PyTypeObject UnaryFunction0DId_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_UnaryFunction0DId_methods,  /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	0,                              /* tp_getset */
 	&UnaryFunction0D_Type,          /* tp_base */

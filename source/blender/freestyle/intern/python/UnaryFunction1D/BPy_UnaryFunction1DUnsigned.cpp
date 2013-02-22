@@ -103,12 +103,7 @@ static PyObject * UnaryFunction1DUnsigned___call__(BPy_UnaryFunction1DUnsigned *
 		return NULL;
 	}
 	return PyLong_FromLong(self->uf1D_unsigned->result);
-
 }
-
-static PyMethodDef BPy_UnaryFunction1DUnsigned_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
 
 /*----------------------UnaryFunction1DUnsigned get/setters ----------------------------*/
 
@@ -167,7 +162,7 @@ PyTypeObject UnaryFunction1DUnsigned_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_UnaryFunction1DUnsigned_methods, /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_UnaryFunction1DUnsigned_getseters, /* tp_getset */
 	&UnaryFunction1D_Type,          /* tp_base */

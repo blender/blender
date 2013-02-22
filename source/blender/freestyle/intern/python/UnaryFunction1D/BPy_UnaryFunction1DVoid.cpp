@@ -118,10 +118,6 @@ static PyObject * UnaryFunction1DVoid___call__(BPy_UnaryFunction1DVoid *self, Py
 	Py_RETURN_NONE;
 }
 
-static PyMethodDef BPy_UnaryFunction1DVoid_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
-
 /*----------------------UnaryFunction1DVoid get/setters ----------------------------*/
 
 PyDoc_STRVAR(integration_type_doc,
@@ -179,7 +175,7 @@ PyTypeObject UnaryFunction1DVoid_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_UnaryFunction1DVoid_methods, /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_UnaryFunction1DVoid_getseters, /* tp_getset */
 	&UnaryFunction1D_Type,          /* tp_base */

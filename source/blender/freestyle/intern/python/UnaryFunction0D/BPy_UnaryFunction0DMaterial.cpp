@@ -61,7 +61,6 @@ static void UnaryFunction0DMaterial___dealloc__(BPy_UnaryFunction0DMaterial* sel
 	UnaryFunction0D_Type.tp_dealloc((PyObject*)self);
 }
 
-
 static PyObject * UnaryFunction0DMaterial___repr__(BPy_UnaryFunction0DMaterial* self)
 {
 	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->uf0D_material);
@@ -88,10 +87,6 @@ static PyObject * UnaryFunction0DMaterial___call__(BPy_UnaryFunction0DMaterial *
 	}
 	return BPy_FrsMaterial_from_FrsMaterial(self->uf0D_material->result);
 }
-
-static PyMethodDef BPy_UnaryFunction0DMaterial_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
 
 /*-----------------------BPy_UnaryFunction0DMaterial type definition ------------------------------*/
 
@@ -123,7 +118,7 @@ PyTypeObject UnaryFunction0DMaterial_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_UnaryFunction0DMaterial_methods, /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	0,                              /* tp_getset */
 	&UnaryFunction0D_Type,          /* tp_base */

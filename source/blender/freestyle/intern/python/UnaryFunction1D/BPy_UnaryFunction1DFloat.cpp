@@ -96,12 +96,7 @@ static PyObject * UnaryFunction1DFloat___call__(BPy_UnaryFunction1DFloat *self, 
 		return NULL;
 	}
 	return PyFloat_FromDouble(self->uf1D_float->result);
-
 }
-
-static PyMethodDef BPy_UnaryFunction1DFloat_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
 
 /*----------------------UnaryFunction1DFloat get/setters ----------------------------*/
 
@@ -160,7 +155,7 @@ PyTypeObject UnaryFunction1DFloat_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_UnaryFunction1DFloat_methods, /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_UnaryFunction1DFloat_getseters, /* tp_getset */
 	&UnaryFunction1D_Type,          /* tp_base */

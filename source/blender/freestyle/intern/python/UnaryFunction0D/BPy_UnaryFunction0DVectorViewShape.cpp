@@ -102,10 +102,6 @@ static PyObject * UnaryFunction0DVectorViewShape___call__(BPy_UnaryFunction0DVec
 	return list;
 }
 
-static PyMethodDef BPy_UnaryFunction0DVectorViewShape_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
-
 /*-----------------------BPy_UnaryFunction0DVectorViewShape type definition ------------------------------*/
 
 PyTypeObject UnaryFunction0DVectorViewShape_Type = {
@@ -136,7 +132,7 @@ PyTypeObject UnaryFunction0DVectorViewShape_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_UnaryFunction0DVectorViewShape_methods, /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	0,                              /* tp_getset */
 	&UnaryFunction0D_Type,          /* tp_base */

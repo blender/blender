@@ -109,12 +109,7 @@ static PyObject * UnaryFunction1DVec2f___call__(BPy_UnaryFunction1DVec2f *self, 
 		return NULL;
 	}
 	return Vector_from_Vec2f(self->uf1D_vec2f->result);
-
 }
-
-static PyMethodDef BPy_UnaryFunction1DVec2f_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
 
 /*----------------------UnaryFunction1DVec2f get/setters ----------------------------*/
 
@@ -173,7 +168,7 @@ PyTypeObject UnaryFunction1DVec2f_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_UnaryFunction1DVec2f_methods, /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_UnaryFunction1DVec2f_getseters, /* tp_getset */
 	&UnaryFunction1D_Type,          /* tp_base */

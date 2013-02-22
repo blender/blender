@@ -70,6 +70,7 @@ static int UnaryFunction1DVec3f___init__(BPy_UnaryFunction1DVec3f* self, PyObjec
 	
 	return 0;
 }
+
 static void UnaryFunction1DVec3f___dealloc__(BPy_UnaryFunction1DVec3f* self)
 {
 	if (self->uf1D_vec3f)
@@ -103,12 +104,7 @@ static PyObject * UnaryFunction1DVec3f___call__(BPy_UnaryFunction1DVec3f *self, 
 		return NULL;
 	}
 	return Vector_from_Vec3f(self->uf1D_vec3f->result);
-
 }
-
-static PyMethodDef BPy_UnaryFunction1DVec3f_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
 
 /*----------------------UnaryFunction1DVec3f get/setters ----------------------------*/
 
@@ -167,7 +163,7 @@ PyTypeObject UnaryFunction1DVec3f_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_UnaryFunction1DVec3f_methods, /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_UnaryFunction1DVec3f_getseters, /* tp_getset */
 	&UnaryFunction1D_Type,          /* tp_base */

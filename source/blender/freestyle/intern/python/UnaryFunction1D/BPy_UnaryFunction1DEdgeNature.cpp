@@ -103,12 +103,7 @@ static PyObject * UnaryFunction1DEdgeNature___call__(BPy_UnaryFunction1DEdgeNatu
 		return NULL;
 	}
 	return BPy_Nature_from_Nature(self->uf1D_edgenature->result);
-
 }
-
-static PyMethodDef BPy_UnaryFunction1DEdgeNature_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
 
 /*----------------------UnaryFunction1DEdgeNature get/setters ----------------------------*/
 
@@ -167,7 +162,7 @@ PyTypeObject UnaryFunction1DEdgeNature_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_UnaryFunction1DEdgeNature_methods, /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_UnaryFunction1DEdgeNature_getseters, /* tp_getset */
 	&UnaryFunction1D_Type,          /* tp_base */

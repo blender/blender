@@ -94,10 +94,6 @@ static PyObject * UnaryFunction0DViewShape___call__(BPy_UnaryFunction0DViewShape
 	return BPy_ViewShape_from_ViewShape(*(self->uf0D_viewshape->result));
 }
 
-static PyMethodDef BPy_UnaryFunction0DViewShape_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
-
 /*-----------------------BPy_UnaryFunction0DViewShape type definition ------------------------------*/
 
 PyTypeObject UnaryFunction0DViewShape_Type = {
@@ -128,7 +124,7 @@ PyTypeObject UnaryFunction0DViewShape_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_UnaryFunction0DViewShape_methods, /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	0,                              /* tp_getset */
 	&UnaryFunction0D_Type,          /* tp_base */
