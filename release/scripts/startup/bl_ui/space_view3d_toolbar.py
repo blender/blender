@@ -264,6 +264,8 @@ class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
         col.operator("curve.cyclic_toggle")
         col.operator("curve.switch_direction")
         col.operator("curve.spline_type_set")
+        col.operator("curve.radius_set")
+        col.operator("curve.smooth_radius")
 
         col = layout.column(align=True)
         col.label(text="Handles:")
@@ -278,6 +280,7 @@ class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
         col.label(text="Modeling:")
         col.operator("curve.extrude_move", text="Extrude")
         col.operator("curve.subdivide")
+        col.operator("curve.smooth")
 
         draw_repeat_tools(context, layout)
 
