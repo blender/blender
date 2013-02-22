@@ -41,14 +41,13 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_deform.h"
-
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_deform.h"  /* own include */
 
 void defgroup_copy_list(ListBase *outbase, ListBase *inbase)
 {
@@ -785,6 +784,24 @@ int defvert_find_shared(const MDeformVert *dvert_a, const MDeformVert *dvert_b)
 	}
 
 	return -1;
+}
+
+/**
+ * return true if has no weights
+ */
+bool defvert_is_weight_zero(const struct MDeformVert *dvert, const int defgroup_tot)
+{
+	MDeformWeight *dw = dvert->dw;
+	unsigned int i;
+	for (i = dvert->totweight; i != 0; i--, dw++) {
+		if (dw->weight != 0.0f) {
+			/* check the group is in-range, happens on rare situations */
+			if (LIKELY(dw->def_nr < defgroup_tot)) {
+				return false;
+			}
+		}
+	}
+	return true;
 }
 
 /* -------------------------------------------------------------------- */

@@ -1036,10 +1036,11 @@ typedef struct ToolSettings {
 	short proportional, prop_mode;
 	char proportional_objects; /* proportional edit, object mode */
 	char proportional_mask; /* proportional edit, object mode */
-	char pad4[2];
+	char pad4[1];
 
 	char auto_normalize; /*auto normalizing mode in wpaint*/
 	char multipaint; /* paint multiple bones in wpaint */
+	char weightuser;
 
 	/* UV painting */
 	int use_uv_sculpt;
@@ -1444,6 +1445,13 @@ typedef struct Scene {
 #define PROP_EDIT_OFF			0
 #define PROP_EDIT_ON			1
 #define PROP_EDIT_CONNECTED	2
+
+/* toolsettings->weightuser */
+enum {
+	OB_DRAW_GROUPUSER_NONE      = 0,
+	OB_DRAW_GROUPUSER_ACTIVE    = 1,
+	OB_DRAW_GROUPUSER_ALL       = 2
+};
 
 /* sce->flag */
 #define SCE_DS_SELECTED			(1<<0)

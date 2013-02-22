@@ -1528,6 +1528,13 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem draw_groupuser_items[] = {
+		{OB_DRAW_GROUPUSER_NONE, "NONE", 0, "None", ""},
+		{OB_DRAW_GROUPUSER_ACTIVE, "ACTIVE", 0, "Active", "Show vertices with no weights in the actuve group"},
+		{OB_DRAW_GROUPUSER_ALL, "ALL", 0, "All", "Show vertices with no weights in the any group"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "ToolSettings", NULL);
 	RNA_def_struct_path_func(srna, "rna_ToolSettings_path");
 	RNA_def_struct_ui_text(srna, "Tool Settings", "");
@@ -1549,6 +1556,13 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	                         "Paint across all selected bones while "
 	                         "weight painting");
 	RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");
+
+	prop = RNA_def_property(srna, "vertex_group_user", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "weightuser");
+	RNA_def_property_enum_items(prop, draw_groupuser_items);
+	RNA_def_property_ui_text(prop, "Mask Non-Group Vertices", "Display unweighted vertices (multi-paint overrides)");
+	RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");
+
 
 	prop = RNA_def_property(srna, "vertex_paint", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "vpaint");

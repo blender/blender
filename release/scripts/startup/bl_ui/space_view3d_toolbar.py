@@ -1057,6 +1057,11 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
 
         col.prop(wpaint, "input_samples")
 
+        col.label("Show Zero Weights:")
+        rowsub = col.row()
+        rowsub.active = (not tool_settings.use_multipaint)
+        rowsub.prop(tool_settings, "vertex_group_user", text="Show Group Use", expand=True)
+
         self.unified_paint_settings(col, context)
 
 # Commented out because the Apply button isn't an operator yet, making these settings useless
