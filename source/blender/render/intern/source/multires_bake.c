@@ -1258,12 +1258,12 @@ static void finish_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 		if (ibuf->x <= 0 || ibuf->y <= 0)
 			continue;
 
-		RE_bake_ibuf_filter(ibuf, userdata->mask_buffer, bkr->bake_filter);
-
 		if (use_displacement_buffer) {
 			RE_bake_ibuf_normalize_displacement(ibuf, userdata->displacement_buffer, userdata->mask_buffer,
 			                                    result->height_min, result->height_max);
 		}
+
+		RE_bake_ibuf_filter(ibuf, userdata->mask_buffer, bkr->bake_filter);
 
 		ibuf->userflags |= IB_BITMAPDIRTY | IB_DISPLAY_BUFFER_INVALID;
 
