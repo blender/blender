@@ -6450,6 +6450,7 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 
 	clip->tracking.dopesheet.ok = 0;
 	clip->tracking.dopesheet.channels.first = clip->tracking.dopesheet.channels.last = NULL;
+	clip->tracking.dopesheet.coverage_segments.first = clip->tracking.dopesheet.coverage_segments.last = NULL;
 
 	link_list(fd, &tracking->objects);
 	

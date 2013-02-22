@@ -145,6 +145,31 @@ static void draw_keyframe_shape(float x, float y, float xscale, float yscale, sh
 	glPopMatrix();
 }
 
+static void clip_draw_dopesheet_background(ARegion *ar, MovieClip *clip)
+{
+	View2D *v2d = &ar->v2d;
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
+	MovieTrackingDopesheetCoverageSegment *coverage_segment;
+
+	for (coverage_segment = dopesheet->coverage_segments.first;
+	     coverage_segment;
+	     coverage_segment = coverage_segment->next)
+	{
+		if (coverage_segment->coverage < TRACKING_COVERAGE_OK) {
+			int start_frame = BKE_movieclip_remap_clip_to_scene_frame(clip, coverage_segment->start_frame);
+			int end_frame = BKE_movieclip_remap_clip_to_scene_frame(clip, coverage_segment->end_frame);
+
+			if (coverage_segment->coverage == TRACKING_COVERAGE_BAD)
+				glColor4f(1.0f, 0.0f, 0.0f, 0.07f);
+			else
+				glColor4f(1.0f, 1.0f, 0.0f, 0.07f);
+
+			glRectf(start_frame, v2d->cur.ymin, end_frame, v2d->cur.ymax);
+		}
+	}
+}
+
 void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 {
 	MovieClip *clip = ED_space_clip_get_clip(sc);
@@ -178,6 +203,8 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 		selected_strip[3] = 1.0f;
 
 		glEnable(GL_BLEND);
+
+		clip_draw_dopesheet_background(ar, clip);
 
 		for (channel = dopesheet->channels.first; channel; channel = channel->next) {
 			float yminc = (float) (y - CHANNEL_HEIGHT_HALF);
