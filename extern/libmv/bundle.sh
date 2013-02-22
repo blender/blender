@@ -122,8 +122,6 @@ cat > CMakeLists.txt << EOF
 #       If you're doing changes in this file, please update template
 #       in that script too
 
-add_subdirectory(third_party)
-
 set(INC
 	.
 	../colamd/Include
@@ -186,14 +184,6 @@ if(WIN32)
 			third_party/msinttypes
 		)
 	endif()
-
-	if(MSVC)
-		set(MSVC_OFLAGS O1 O2 Ox)
-		foreach(FLAG \${MSVC_OFLAGS})
-			string(REPLACE "\${FLAG}" "Od" CMAKE_CXX_FLAGS_RELEASE "\${CMAKE_CXX_FLAGS_RELEASE}")
-			string(REPLACE "\${FLAG}" "Od" CMAKE_C_FLAGS_RELWITHDEBINFO "\${CMAKE_C_FLAGS_RELWITHDEBINFO}")
-		endforeach()
-	endif()
 else()
 	list(APPEND SRC
 ${third_glog_sources}
@@ -230,10 +220,6 @@ Import('env')
 
 defs = []
 
-cflags_libmv = Split(env['CFLAGS'])
-ccflags_libmv = Split(env['CCFLAGS'])
-cxxflags_libmv = Split(env['CXXFLAGS'])
-
 defs.append('V3DLIB_ENABLE_SUITESPARSE')
 defs.append('GOOGLE_GLOG_DLL_DECL=')
 
@@ -251,30 +237,13 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', '
 ${win_src}
     src += ['./third_party/glog/src/logging.cc', './third_party/glog/src/raw_logging.cc', './third_party/glog/src/utilities.cc', './third_party/glog/src/vlog_is_on.cc']
     src += ['./third_party/glog/src/windows/port.cc']
-
-    if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
-        cflags_libmv.append('/Od')
-        ccflags_libmv.append('/Od')
-        cxxflags_libmv.append('/Od')
-
-        if not env['BF_DEBUG']:
-            defs.append('NDEBUG')
-    else:
-        if not env['BF_DEBUG']:
-            cflags_libmv += Split(env['REL_CFLAGS'])
-            ccflags_libmv += Split(env['REL_CCFLAGS'])
-            cxxflags_libmv += Split(env['REL_CXXFLAGS'])
 else:
     src += env.Glob("third_party/glog/src/*.cc")
     incs += ' ./third_party/glog/src'
-    if not env['BF_DEBUG']:
-        cflags_libmv += Split(env['REL_CFLAGS'])
-        ccflags_libmv += Split(env['REL_CCFLAGS'])
-        cxxflags_libmv += Split(env['REL_CXXFLAGS'])
 
 incs += ' ./third_party/ssba ./third_party/ldl/Include ../colamd/Include'
 
-env.BlenderLib ( libname = 'extern_libmv', sources=src, includes=Split(incs), defines=defs, libtype=['extern', 'player'], priority=[20,137], compileflags=cflags_libmv, cc_compileflags=ccflags_libmv, cxx_compileflags=cxxflags_libmv )
+env.BlenderLib ( libname = 'extern_libmv', sources=src, includes=Split(incs), defines=defs, libtype=['extern', 'player'], priority=[20,137] )
 
 SConscript(['third_party/SConscript'])
 EOF
