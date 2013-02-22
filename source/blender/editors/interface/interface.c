@@ -713,6 +713,12 @@ int uiButActiveOnly(const bContext *C, uiBlock *block, uiBut *but)
 	return 1;
 }
 
+/* simulate button click */
+void uiButExecute(const bContext *C, uiBut *but)
+{
+	ui_button_execute_do((bContext *)C, CTX_wm_region(C), but);
+}
+
 /* use to check if we need to disable undo, but don't make any changes
  * returns FALSE if undo needs to be disabled. */
 static int ui_but_is_rna_undo(uiBut *but)
@@ -1393,6 +1399,18 @@ int ui_is_but_float(uiBut *but)
 	
 	return 0;
 }
+
+int ui_is_but_bool(uiBut *but)
+{
+	if (ELEM5(but->type, TOG, TOGN, TOGR, ICONTOG, ICONTOGN))
+		return 1;
+
+	if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_BOOLEAN)
+		return 1;
+
+	return 0;
+}
+
 
 int ui_is_but_unit(uiBut *but)
 {

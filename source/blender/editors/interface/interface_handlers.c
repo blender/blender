@@ -85,6 +85,7 @@
 /* proto */
 static void ui_add_smart_controller(bContext *C, uiBut *from, uiBut *to);
 static void ui_add_link(bContext *C, uiBut *from, uiBut *to);
+static int ui_do_but_EXIT(bContext *C, uiBut *but, struct uiHandleButtonData *data, const wmEvent *event);
 
 /***************** structs and defines ****************/
 
@@ -761,14 +762,27 @@ static int ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data, 
 	WM_gestures_remove(C);
 
 	if (ABS(data->dragstartx - event->x) + ABS(data->dragstarty - event->y) > U.dragthreshold) {
-		wmDrag *drag;
-		
+
 		button_activate_state(C, but, BUTTON_STATE_EXIT);
 		data->cancel = TRUE;
 		
-		drag = WM_event_start_drag(C, but->icon, but->dragtype, but->dragpoin, ui_get_but_val(but));
-		if (but->imb)
-			WM_event_drag_image(drag, but->imb, but->imb_scale, BLI_rctf_size_x(&but->rect), BLI_rctf_size_y(&but->rect));
+		if (ui_is_but_bool(but)) {
+			const bool is_set = (ui_get_but_val(but) != 0.0);
+			PointerRNA ptr;
+			WM_operator_properties_create(&ptr, "UI_OT_drag_toggle");
+			RNA_boolean_set(&ptr, "state", !is_set);
+			RNA_int_set(&ptr, "last_x", data->dragstartx);
+			RNA_int_set(&ptr, "last_y", data->dragstarty);
+			WM_operator_name_call(C, "UI_OT_drag_toggle", WM_OP_INVOKE_DEFAULT, &ptr);
+			WM_operator_properties_free(&ptr);
+		}
+		else {
+			wmDrag *drag;
+
+			drag = WM_event_start_drag(C, but->icon, but->dragtype, but->dragpoin, ui_get_but_val(but));
+			if (but->imb)
+				WM_event_drag_image(drag, but->imb, but->imb_scale, BLI_rctf_size_x(&but->rect), BLI_rctf_size_y(&but->rect));
+		}
 		return 1;
 	}
 	
@@ -2472,12 +2486,23 @@ static int ui_do_but_SEARCH_UNLINK(bContext *C, uiBlock *block, uiBut *but, uiHa
 static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
+		if (event->type == LEFTMOUSE && event->val == KM_PRESS && ui_is_but_bool(but)) {
+			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
+			data->dragstartx = event->x;
+			data->dragstarty = event->y;
+			return WM_UI_HANDLER_CONTINUE;
+		}
+
 		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
 			data->togdual = event->ctrl;
 			data->togonly = !event->shift;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
-			return WM_UI_HANDLER_BREAK;
+			return WM_UI_HANDLER_CONTINUE;
 		}
+	}
+	else if (data->state == BUTTON_STATE_WAIT_DRAG) {
+		/* note: the 'BUTTON_STATE_WAIT_DRAG' part of 'ui_do_but_EXIT' could be refactored into its own function */
+		return ui_do_but_EXIT(C, but, data, event);
 	}
 	return WM_UI_HANDLER_CONTINUE;
 }
@@ -2498,6 +2523,12 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, con
 				data->dragstarty = event->y;
 				return WM_UI_HANDLER_CONTINUE;
 			}
+		}
+		if (event->type == LEFTMOUSE && ui_is_but_bool(but)) {
+			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
+			data->dragstartx = event->x;
+			data->dragstarty = event->y;
+			return WM_UI_HANDLER_CONTINUE;
 		}
 		
 		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
@@ -3214,6 +3245,12 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, co
 				data->dragstarty = event->y;
 				return WM_UI_HANDLER_BREAK;
 			}
+		}
+		if (event->type == LEFTMOUSE && ui_is_but_bool(but)) {
+			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
+			data->dragstartx = event->x;
+			data->dragstarty = event->y;
+			return WM_UI_HANDLER_BREAK;
 		}
 		
 		/* regular open menu */
@@ -5415,7 +5452,7 @@ static int ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y)
 	return 1;
 }
 
-static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
+uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 {
 	uiBlock *block;
 	uiBut *but, *butover = NULL;
@@ -5784,8 +5821,10 @@ static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *b
 	ED_region_tag_redraw(data->region);
 	
 	/* clean up button */
-	MEM_freeN(but->active);
-	but->active = NULL;
+	if (but->active) {
+		MEM_freeN(but->active);
+		but->active = NULL;
+	}
 	but->flag &= ~(UI_ACTIVE | UI_SELECT);
 	but->flag |= UI_BUT_LAST_ACTIVE;
 	if (!onfree)
@@ -6032,6 +6071,20 @@ void ui_button_activate_do(bContext *C, ARegion *ar, uiBut *but)
 	event.customdatafree = FALSE;
 	
 	ui_do_button(C, but->block, but, &event);
+}
+
+void ui_button_execute_do(struct bContext *C, struct ARegion *ar, uiBut *but)
+{
+	/* note: ideally we would not have to change 'but->active' howevwer
+	 * some functions we call don't use data (as they should be doing) */
+	void *active_back = but->active;
+	uiHandleButtonData *data = MEM_callocN(sizeof(uiHandleButtonData), "uiHandleButtonData_Fake");
+	but->active = data;
+	data->region = ar;
+	ui_apply_button(C, but->block, but, data, true);
+	/* use onfree event so undo is handled by caller and apply is already done above */
+	button_activate_exit((bContext *)C, data, but, false, true);
+	but->active = active_back;
 }
 
 static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiButtonActivateType type)

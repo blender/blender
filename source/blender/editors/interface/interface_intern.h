@@ -406,6 +406,7 @@ extern void ui_set_but_soft_range(uiBut *but, double value);
 
 extern void ui_check_but(uiBut *but);
 extern int  ui_is_but_float(uiBut *but);
+extern int  ui_is_but_bool(uiBut *but);
 extern int  ui_is_but_unit(uiBut *but);
 extern int  ui_is_but_rna_valid(uiBut *but);
 extern int  ui_is_but_utf8(uiBut *but);
@@ -509,6 +510,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, struct uiWidgetColors *wc
 /* interface_handlers.c */
 extern void ui_pan_to_scroll(const struct wmEvent *event, int *type, int *val);
 extern void ui_button_activate_do(struct bContext *C, struct ARegion *ar, uiBut *but);
+extern void ui_button_execute_do(struct bContext *C, struct ARegion *ar, uiBut *but);
 extern void ui_button_active_free(const struct bContext *C, uiBut *but);
 extern int ui_button_is_active(struct ARegion *ar);
 extern int ui_button_open_menu_direction(uiBut *but);
