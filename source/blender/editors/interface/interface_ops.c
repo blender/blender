@@ -1246,13 +1246,7 @@ static int ui_drag_toggle_modal(bContext *C, wmOperator *op, wmEvent *event)
 		}
 		case MOUSEMOVE:
 		{
-			ARegion *ar = CTX_wm_region(C);
-			if (!BLI_rcti_isect_pt_v(&ar->winrct, &event->x)) {
-				done = true;
-			}
-			else {
-				ui_drag_but_set(C, op, &event->x);
-			}
+			ui_drag_but_set(C, op, &event->x);
 			break;
 		}
 	}
