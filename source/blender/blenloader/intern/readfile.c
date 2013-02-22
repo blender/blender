@@ -41,6 +41,7 @@
 #include <math.h> // for fabs
 #include <stdarg.h> /* for va_start/end */
 
+#include "BLI_utildefines.h"
 #ifndef WIN32
 #  include <unistd.h> // for read close
 #else
@@ -829,7 +830,7 @@ static int read_file_dna(FileData *fd)
 	
 	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
 		if (bhead->code == DNA1) {
-			int do_endian_swap = (fd->flags & FD_FLAGS_SWITCH_ENDIAN) ? 1 : 0;
+			const bool do_endian_swap = (fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0;
 			
 			fd->filesdna = DNA_sdna_from_data(&bhead[1], bhead->len, do_endian_swap);
 			if (fd->filesdna) {
@@ -952,11 +953,11 @@ static FileData *filedata_new(void)
 	fd->filedes = -1;
 	fd->gzfiledes = NULL;
 	
-		/* XXX, this doesn't need to be done all the time,
-		 * but it keeps us re-entrant,  remove once we have
-		 * a lib that provides a nice lock. - zr
-		 */
-	fd->memsdna = DNA_sdna_from_data(DNAstr,  DNAlen,  0);
+	/* XXX, this doesn't need to be done all the time,
+	 * but it keeps us re-entrant,  remove once we have
+	 * a lib that provides a nice lock. - zr
+	 */
+	fd->memsdna = DNA_sdna_from_data(DNAstr, DNAlen, false);
 	
 	fd->datamap = oldnewmap_new();
 	fd->globmap = oldnewmap_new();

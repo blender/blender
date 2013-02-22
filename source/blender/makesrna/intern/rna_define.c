@@ -33,6 +33,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "BLI_utildefines.h"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_genfile.h"
@@ -465,7 +466,7 @@ BlenderRNA *RNA_create(void)
 
 	brna = MEM_callocN(sizeof(BlenderRNA), "BlenderRNA");
 
-	DefRNA.sdna = DNA_sdna_from_data(DNAstr,  DNAlen, 0);
+	DefRNA.sdna = DNA_sdna_from_data(DNAstr,  DNAlen, false);
 	DefRNA.structs.first = DefRNA.structs.last = NULL;
 	DefRNA.error = 0;
 	DefRNA.preprocess = 1;

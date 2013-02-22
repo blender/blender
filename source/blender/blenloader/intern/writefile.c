@@ -89,6 +89,8 @@
 #  include "BLI_winstuff.h"
 #endif
 
+#include "BLI_utildefines.h"
+
 /* allow writefile to use deprecated functionality (for forward compatibility code) */
 #define DNA_DEPRECATED_ALLOW
 
@@ -198,7 +200,7 @@ static WriteData *writedata_new(int file)
 
 	if (wd == NULL) return NULL;
 
-	wd->sdna = DNA_sdna_from_data(DNAstr, DNAlen, 0);
+	wd->sdna = DNA_sdna_from_data(DNAstr, DNAlen, false);
 
 	wd->file= file;
 
