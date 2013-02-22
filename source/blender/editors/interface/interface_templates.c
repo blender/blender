@@ -1679,7 +1679,7 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, const char *propname
 
 	hist = (Histogram *)cptr.data;
 
-	hist->height = (hist->height <= UI_UNIT_Y) ? UI_UNIT_Y : hist->height;
+	hist->height = (hist->height <= 20) ? 20 : hist->height;
 
 	bt = uiDefBut(block, HISTOGRAM, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect), UI_DPI_FAC * hist->height,
 	              hist, 0, 0, 0, 0, "");
@@ -1718,7 +1718,7 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	
 	block = uiLayoutAbsoluteBlock(layout);
 	
-	scopes->wavefrm_height = (scopes->wavefrm_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->wavefrm_height;
+	scopes->wavefrm_height = (scopes->wavefrm_height <= 20) ? 20 : scopes->wavefrm_height;
 
 	bt = uiDefBut(block, WAVEFORM, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect), UI_DPI_FAC * scopes->wavefrm_height,
 	              scopes, 0, 0, 0, 0, "");
@@ -1756,7 +1756,7 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, const char *propna
 	
 	block = uiLayoutAbsoluteBlock(layout);
 
-	scopes->vecscope_height = (scopes->vecscope_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->vecscope_height;
+	scopes->vecscope_height = (scopes->vecscope_height <= 20) ? 20 : scopes->vecscope_height;
 	
 	bt = uiDefBut(block, VECTORSCOPE, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect),
 	              UI_DPI_FAC * scopes->vecscope_height, scopes, 0, 0, 0, 0, "");
