@@ -63,7 +63,7 @@ static void UnaryFunction0DUnsigned___dealloc__(BPy_UnaryFunction0DUnsigned* sel
 
 static PyObject * UnaryFunction0DUnsigned___repr__(BPy_UnaryFunction0DUnsigned* self)
 {
-	return PyUnicode_FromFormat("type: %s - address: %p", self->uf0D_unsigned->getName().c_str(), self->uf0D_unsigned);
+	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->uf0D_unsigned);
 }
 
 static PyObject * UnaryFunction0DUnsigned___call__(BPy_UnaryFunction0DUnsigned *self, PyObject *args, PyObject *kwds)
@@ -73,7 +73,7 @@ static PyObject * UnaryFunction0DUnsigned___call__(BPy_UnaryFunction0DUnsigned *
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj))
 		return NULL;
-	
+
 	if (typeid(*(self->uf0D_unsigned)) == typeid(UnaryFunction0D<unsigned int>)) {
 		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
@@ -86,7 +86,6 @@ static PyObject * UnaryFunction0DUnsigned___call__(BPy_UnaryFunction0DUnsigned *
 		return NULL;
 	}
 	return PyLong_FromLong(self->uf0D_unsigned->result);
-
 }
 
 static PyMethodDef BPy_UnaryFunction0DUnsigned_methods[] = {

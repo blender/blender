@@ -14,24 +14,24 @@ extern "C" {
 
 //-------------------MODULE INITIALIZATION--------------------------------
 
-int UnaryFunction0DVec2f_Init( PyObject *module ) {
+int UnaryFunction0DVec2f_Init(PyObject *module) {
 
-	if( module == NULL )
+	if (module == NULL)
 		return -1;
 
-	if( PyType_Ready( &UnaryFunction0DVec2f_Type ) < 0 )
+	if (PyType_Ready(&UnaryFunction0DVec2f_Type) < 0)
 		return -1;
-	Py_INCREF( &UnaryFunction0DVec2f_Type );
+	Py_INCREF(&UnaryFunction0DVec2f_Type);
 	PyModule_AddObject(module, "UnaryFunction0DVec2f", (PyObject *)&UnaryFunction0DVec2f_Type);
 	
-	if( PyType_Ready( &Normal2DF0D_Type ) < 0 )
+	if (PyType_Ready(&Normal2DF0D_Type) < 0)
 		return -1;
-	Py_INCREF( &Normal2DF0D_Type );
+	Py_INCREF(&Normal2DF0D_Type);
 	PyModule_AddObject(module, "Normal2DF0D", (PyObject *)&Normal2DF0D_Type);
 	
-	if( PyType_Ready( &VertexOrientation2DF0D_Type ) < 0 )
+	if (PyType_Ready(&VertexOrientation2DF0D_Type) < 0)
 		return -1;
-	Py_INCREF( &VertexOrientation2DF0D_Type );
+	Py_INCREF(&VertexOrientation2DF0D_Type);
 	PyModule_AddObject(module, "VertexOrientation2DF0D", (PyObject *)&VertexOrientation2DF0D_Type);
 
 	return 0;
@@ -51,8 +51,10 @@ static char UnaryFunction0DVec2f___doc__[] =
 
 static int UnaryFunction0DVec2f___init__(BPy_UnaryFunction0DVec2f* self, PyObject *args, PyObject *kwds)
 {
-    if ( !PyArg_ParseTuple(args, "") )
-        return -1;
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+		return -1;
 	self->uf0D_vec2f = new UnaryFunction0D<Vec2f>();
 	self->uf0D_vec2f->py_uf0D = (PyObject *)self;
 	return 0;
@@ -67,51 +69,32 @@ static void UnaryFunction0DVec2f___dealloc__(BPy_UnaryFunction0DVec2f* self)
 
 static PyObject * UnaryFunction0DVec2f___repr__(BPy_UnaryFunction0DVec2f* self)
 {
-	return PyUnicode_FromFormat("type: %s - address: %p", self->uf0D_vec2f->getName().c_str(), self->uf0D_vec2f );
+	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->uf0D_vec2f);
 }
 
-static char UnaryFunction0DVec2f_getName___doc__[] =
-".. method:: getName()\n"
-"\n"
-"   Returns the name of the unary 0D predicate.\n"
-"\n"
-"   :return: The name of the unary 0D predicate.\n"
-"   :rtype: str\n";
-
-static PyObject * UnaryFunction0DVec2f_getName( BPy_UnaryFunction0DVec2f *self )
+static PyObject * UnaryFunction0DVec2f___call__(BPy_UnaryFunction0DVec2f *self, PyObject *args, PyObject *kwds)
 {
-	return PyUnicode_FromString( self->uf0D_vec2f->getName().c_str() );
-}
-
-static PyObject * UnaryFunction0DVec2f___call__( BPy_UnaryFunction0DVec2f *self, PyObject *args, PyObject *kwds)
-{
+	static const char *kwlist[] = {"it", NULL};
 	PyObject *obj;
 
-	if( kwds != NULL ) {
-		PyErr_SetString(PyExc_TypeError, "keyword argument(s) not supported");
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj))
 		return NULL;
-	}
-	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj))
-		return NULL;
-	
-	if( typeid(*(self->uf0D_vec2f)) == typeid(UnaryFunction0D<Vec2f>) ) {
+
+	if (typeid(*(self->uf0D_vec2f)) == typeid(UnaryFunction0D<Vec2f>)) {
 		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
 	}
-	if (self->uf0D_vec2f->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it )) < 0) {
+	if (self->uf0D_vec2f->operator()(*(((BPy_Interface0DIterator *)obj)->if0D_it)) < 0) {
 		if (!PyErr_Occurred()) {
 			string class_name(Py_TYPE(self)->tp_name);
 			PyErr_SetString(PyExc_RuntimeError, (class_name + " __call__ method failed").c_str());
 		}
 		return NULL;
 	}
-	return Vector_from_Vec2f( self->uf0D_vec2f->result );
-
+	return Vector_from_Vec2f(self->uf0D_vec2f->result);
 }
 
-/*----------------------UnaryFunction0DVec2f instance definitions ----------------------------*/
 static PyMethodDef BPy_UnaryFunction0DVec2f_methods[] = {
-	{"getName", ( PyCFunction ) UnaryFunction0DVec2f_getName, METH_NOARGS, UnaryFunction0DVec2f_getName___doc__},
 	{NULL, NULL, 0, NULL}
 };
 

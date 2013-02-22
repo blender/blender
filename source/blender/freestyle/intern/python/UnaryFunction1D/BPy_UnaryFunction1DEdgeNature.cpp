@@ -80,7 +80,7 @@ static void UnaryFunction1DEdgeNature___dealloc__(BPy_UnaryFunction1DEdgeNature*
 
 static PyObject * UnaryFunction1DEdgeNature___repr__(BPy_UnaryFunction1DEdgeNature* self)
 {
-	return PyUnicode_FromFormat("type: %s - address: %p", self->uf1D_edgenature->getName().c_str(), self->uf1D_edgenature);
+	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->uf1D_edgenature);
 }
 
 static PyObject * UnaryFunction1DEdgeNature___call__(BPy_UnaryFunction1DEdgeNature *self, PyObject *args, PyObject *kwds)

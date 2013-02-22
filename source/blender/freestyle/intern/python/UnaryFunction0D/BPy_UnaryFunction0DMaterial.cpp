@@ -64,7 +64,7 @@ static void UnaryFunction0DMaterial___dealloc__(BPy_UnaryFunction0DMaterial* sel
 
 static PyObject * UnaryFunction0DMaterial___repr__(BPy_UnaryFunction0DMaterial* self)
 {
-	return PyUnicode_FromFormat("type: %s - address: %p", self->uf0D_material->getName().c_str(), self->uf0D_material);
+	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->uf0D_material);
 }
 
 static PyObject * UnaryFunction0DMaterial___call__(BPy_UnaryFunction0DMaterial *self, PyObject *args, PyObject *kwds)
@@ -74,7 +74,7 @@ static PyObject * UnaryFunction0DMaterial___call__(BPy_UnaryFunction0DMaterial *
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj))
 		return NULL;
-	
+
 	if (typeid(*(self->uf0D_material)) == typeid(UnaryFunction0D<FrsMaterial>)) {
 		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
@@ -87,7 +87,6 @@ static PyObject * UnaryFunction0DMaterial___call__(BPy_UnaryFunction0DMaterial *
 		return NULL;
 	}
 	return BPy_FrsMaterial_from_FrsMaterial(self->uf0D_material->result);
-
 }
 
 static PyMethodDef BPy_UnaryFunction0DMaterial_methods[] = {

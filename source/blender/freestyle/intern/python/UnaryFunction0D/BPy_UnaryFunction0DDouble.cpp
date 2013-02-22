@@ -119,7 +119,7 @@ static void UnaryFunction0DDouble___dealloc__(BPy_UnaryFunction0DDouble* self)
 
 static PyObject * UnaryFunction0DDouble___repr__(BPy_UnaryFunction0DDouble* self)
 {
-	return PyUnicode_FromFormat("type: %s - address: %p", self->uf0D_double->getName().c_str(), self->uf0D_double);
+	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->uf0D_double);
 }
 
 static PyObject * UnaryFunction0DDouble___call__(BPy_UnaryFunction0DDouble *self, PyObject *args, PyObject *kwds)

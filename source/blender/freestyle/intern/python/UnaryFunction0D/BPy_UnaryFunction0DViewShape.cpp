@@ -14,24 +14,24 @@ extern "C" {
 
 //-------------------MODULE INITIALIZATION--------------------------------
 
-int UnaryFunction0DViewShape_Init( PyObject *module ) {
+int UnaryFunction0DViewShape_Init(PyObject *module) {
 
-	if( module == NULL )
+	if (module == NULL)
 		return -1;
 
-	if( PyType_Ready( &UnaryFunction0DViewShape_Type ) < 0 )
+	if (PyType_Ready(&UnaryFunction0DViewShape_Type) < 0)
 		return -1;
-	Py_INCREF( &UnaryFunction0DViewShape_Type );
+	Py_INCREF(&UnaryFunction0DViewShape_Type);
 	PyModule_AddObject(module, "UnaryFunction0DViewShape", (PyObject *)&UnaryFunction0DViewShape_Type);
 
-	if( PyType_Ready( &GetOccludeeF0D_Type ) < 0 )
+	if (PyType_Ready(&GetOccludeeF0D_Type) < 0)
 		return -1;
-	Py_INCREF( &GetOccludeeF0D_Type );
+	Py_INCREF(&GetOccludeeF0D_Type);
 	PyModule_AddObject(module, "GetOccludeeF0D", (PyObject *)&GetOccludeeF0D_Type);
 	
-	if( PyType_Ready( &GetShapeF0D_Type ) < 0 )
+	if (PyType_Ready(&GetShapeF0D_Type) < 0)
 		return -1;
-	Py_INCREF( &GetShapeF0D_Type );
+	Py_INCREF(&GetShapeF0D_Type);
 	PyModule_AddObject(module, "GetShapeF0D", (PyObject *)&GetShapeF0D_Type);
 
 	return 0;
@@ -51,8 +51,10 @@ static char UnaryFunction0DViewShape___doc__[] =
 
 static int UnaryFunction0DViewShape___init__(BPy_UnaryFunction0DViewShape* self, PyObject *args, PyObject *kwds)
 {
-    if ( !PyArg_ParseTuple(args, "") )
-        return -1;
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+		return -1;
 	self->uf0D_viewshape = new UnaryFunction0D<ViewShape*>();
 	self->uf0D_viewshape->py_uf0D = (PyObject *)self;
 	return 0;
@@ -67,51 +69,32 @@ static void UnaryFunction0DViewShape___dealloc__(BPy_UnaryFunction0DViewShape* s
 
 static PyObject * UnaryFunction0DViewShape___repr__(BPy_UnaryFunction0DViewShape* self)
 {
-	return PyUnicode_FromFormat("type: %s - address: %p", self->uf0D_viewshape->getName().c_str(), self->uf0D_viewshape );
+	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->uf0D_viewshape);
 }
 
-static char UnaryFunction0DViewShape_getName___doc__[] =
-".. method:: getName()\n"
-"\n"
-"   Returns the name of the unary 0D predicate.\n"
-"\n"
-"   :return: The name of the unary 0D predicate.\n"
-"   :rtype: str\n";
-
-static PyObject * UnaryFunction0DViewShape_getName( BPy_UnaryFunction0DViewShape *self )
+static PyObject * UnaryFunction0DViewShape___call__(BPy_UnaryFunction0DViewShape *self, PyObject *args, PyObject *kwds)
 {
-	return PyUnicode_FromString( self->uf0D_viewshape->getName().c_str() );
-}
-
-static PyObject * UnaryFunction0DViewShape___call__( BPy_UnaryFunction0DViewShape *self, PyObject *args, PyObject *kwds)
-{
+	static const char *kwlist[] = {"it", NULL};
 	PyObject *obj;
 
-	if( kwds != NULL ) {
-		PyErr_SetString(PyExc_TypeError, "keyword argument(s) not supported");
-		return NULL;
-	}
-	if(!PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &obj))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj))
 		return NULL;
 
-	if( typeid(*(self->uf0D_viewshape)) == typeid(UnaryFunction0D<ViewShape*>) ) {
+	if (typeid(*(self->uf0D_viewshape)) == typeid(UnaryFunction0D<ViewShape*>)) {
 		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
 	}
-	if (self->uf0D_viewshape->operator()(*( ((BPy_Interface0DIterator *) obj)->if0D_it )) < 0) {
+	if (self->uf0D_viewshape->operator()(*(((BPy_Interface0DIterator *)obj)->if0D_it)) < 0) {
 		if (!PyErr_Occurred()) {
 			string class_name(Py_TYPE(self)->tp_name);
 			PyErr_SetString(PyExc_RuntimeError, (class_name + " __call__ method failed").c_str());
 		}
 		return NULL;
 	}
-	return BPy_ViewShape_from_ViewShape( *(self->uf0D_viewshape->result) );
-
+	return BPy_ViewShape_from_ViewShape(*(self->uf0D_viewshape->result));
 }
 
-/*----------------------UnaryFunction0DViewShape instance definitions ----------------------------*/
 static PyMethodDef BPy_UnaryFunction0DViewShape_methods[] = {
-	{"getName", ( PyCFunction ) UnaryFunction0DViewShape_getName, METH_NOARGS, UnaryFunction0DViewShape_getName___doc__},
 	{NULL, NULL, 0, NULL}
 };
 

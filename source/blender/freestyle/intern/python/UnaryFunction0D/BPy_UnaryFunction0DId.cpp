@@ -63,7 +63,7 @@ static void UnaryFunction0DId___dealloc__(BPy_UnaryFunction0DId* self)
 
 static PyObject * UnaryFunction0DId___repr__(BPy_UnaryFunction0DId* self)
 {
-	return PyUnicode_FromFormat("type: %s - address: %p", self->uf0D_id->getName().c_str(), self->uf0D_id);
+	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->uf0D_id);
 }
 
 static PyObject * UnaryFunction0DId___call__(BPy_UnaryFunction0DId *self, PyObject *args, PyObject *kwds)
@@ -73,7 +73,7 @@ static PyObject * UnaryFunction0DId___call__(BPy_UnaryFunction0DId *self, PyObje
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj))
 		return NULL;
-	
+
 	if (typeid(*(self->uf0D_id)) == typeid(UnaryFunction0D<Id>)) {
 		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;

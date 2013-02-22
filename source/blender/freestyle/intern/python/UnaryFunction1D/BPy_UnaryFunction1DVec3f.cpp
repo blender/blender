@@ -80,7 +80,7 @@ static void UnaryFunction1DVec3f___dealloc__(BPy_UnaryFunction1DVec3f* self)
 
 static PyObject * UnaryFunction1DVec3f___repr__(BPy_UnaryFunction1DVec3f* self)
 {
-	return PyUnicode_FromFormat("type: %s - address: %p", self->uf1D_vec3f->getName().c_str(), self->uf1D_vec3f);
+	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->uf1D_vec3f);
 }
 
 static PyObject * UnaryFunction1DVec3f___call__(BPy_UnaryFunction1DVec3f *self, PyObject *args, PyObject *kwds)

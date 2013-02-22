@@ -63,7 +63,7 @@ static void UnaryFunction0DEdgeNature___dealloc__(BPy_UnaryFunction0DEdgeNature*
 
 static PyObject * UnaryFunction0DEdgeNature___repr__(BPy_UnaryFunction0DEdgeNature* self)
 {
-	return PyUnicode_FromFormat("type: %s - address: %p", self->uf0D_edgenature->getName().c_str(), self->uf0D_edgenature);
+	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->uf0D_edgenature);
 }
 
 static PyObject * UnaryFunction0DEdgeNature___call__(BPy_UnaryFunction0DEdgeNature *self, PyObject *args, PyObject *kwds)
@@ -73,7 +73,7 @@ static PyObject * UnaryFunction0DEdgeNature___call__(BPy_UnaryFunction0DEdgeNatu
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &obj))
 		return NULL;
-	
+
 	if (typeid(*(self->uf0D_edgenature)) == typeid(UnaryFunction0D<Nature::EdgeNature>)) {
 		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
