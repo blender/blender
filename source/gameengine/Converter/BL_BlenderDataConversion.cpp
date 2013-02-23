@@ -691,44 +691,49 @@ static bool ConvertMaterial(
 #endif
 					/// --------------------------------
 					// mapping methods
-					material->mapping[i].mapping |= ( mttmp->texco  & TEXCO_REFL	)?USEREFL:0;
-					
-					if (mttmp->texco & TEXCO_OBJECT) {
-						material->mapping[i].mapping |= USEOBJ;
-						if (mttmp->object)
-							material->mapping[i].objconame = mttmp->object->id.name;
-					}
-					else if (mttmp->texco &TEXCO_REFL)
-						material->mapping[i].mapping |= USEREFL;
-					else if (mttmp->texco &(TEXCO_ORCO|TEXCO_GLOB))
-						material->mapping[i].mapping |= USEORCO;
-					else if (mttmp->texco &TEXCO_UV)
-					{
-						STR_String uvName = mttmp->uvname;
+					if (mat->septex & (1 << i)) {
+						// If this texture slot isn't in use, set it to disabled to prevent multi-uv problems
+						material->mapping[i].mapping = DISABLE;
+					} else {
+						material->mapping[i].mapping |= ( mttmp->texco  & TEXCO_REFL	)?USEREFL:0;
 
-						if (!uvName.IsEmpty())
-							material->mapping[i].uvCoName = mttmp->uvname;
+						if (mttmp->texco & TEXCO_OBJECT) {
+							material->mapping[i].mapping |= USEOBJ;
+							if (mttmp->object)
+								material->mapping[i].objconame = mttmp->object->id.name;
+						}
+						else if (mttmp->texco &TEXCO_REFL)
+							material->mapping[i].mapping |= USEREFL;
+						else if (mttmp->texco &(TEXCO_ORCO|TEXCO_GLOB))
+							material->mapping[i].mapping |= USEORCO;
+						else if (mttmp->texco &TEXCO_UV)
+						{
+							STR_String uvName = mttmp->uvname;
+
+							if (!uvName.IsEmpty())
+								material->mapping[i].uvCoName = mttmp->uvname;
+							else
+								material->mapping[i].uvCoName = "";
+							material->mapping[i].mapping |= USEUV;
+						}
+						else if (mttmp->texco &TEXCO_NORM)
+							material->mapping[i].mapping |= USENORM;
+						else if (mttmp->texco &TEXCO_TANGENT)
+							material->mapping[i].mapping |= USETANG;
 						else
-							material->mapping[i].uvCoName = "";
-						material->mapping[i].mapping |= USEUV;
-					}
-					else if (mttmp->texco &TEXCO_NORM)
-						material->mapping[i].mapping |= USENORM;
-					else if (mttmp->texco &TEXCO_TANGENT)
-						material->mapping[i].mapping |= USETANG;
-					else
-						material->mapping[i].mapping |= DISABLE;
-					
-					material->mapping[i].scale[0] = mttmp->size[0];
-					material->mapping[i].scale[1] = mttmp->size[1];
-					material->mapping[i].scale[2] = mttmp->size[2];
-					material->mapping[i].offsets[0] = mttmp->ofs[0];
-					material->mapping[i].offsets[1] = mttmp->ofs[1];
-					material->mapping[i].offsets[2] = mttmp->ofs[2];
+							material->mapping[i].mapping |= DISABLE;
 
-					material->mapping[i].projplane[0] = mttmp->projx;
-					material->mapping[i].projplane[1] = mttmp->projy;
-					material->mapping[i].projplane[2] = mttmp->projz;
+						material->mapping[i].scale[0] = mttmp->size[0];
+						material->mapping[i].scale[1] = mttmp->size[1];
+						material->mapping[i].scale[2] = mttmp->size[2];
+						material->mapping[i].offsets[0] = mttmp->ofs[0];
+						material->mapping[i].offsets[1] = mttmp->ofs[1];
+						material->mapping[i].offsets[2] = mttmp->ofs[2];
+
+						material->mapping[i].projplane[0] = mttmp->projx;
+						material->mapping[i].projplane[1] = mttmp->projy;
+						material->mapping[i].projplane[2] = mttmp->projz;
+					}
 					/// --------------------------------
 					
 					switch (mttmp->blendtype) {
