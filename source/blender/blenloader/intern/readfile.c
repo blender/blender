@@ -8714,7 +8714,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						if (image == blo_do_versions_newlibadr(fd, otex->id.lib, otex->ima))
 							break;
 
-				if (otex) {
+				/* no duplication for packed files */
+				if (otex && image->packedfile == NULL) {
 					/* copy image datablock */
 					nimage = BKE_image_copy(main, image);
 					nimage->flag |= IMA_IGNORE_ALPHA|IMA_DONE_TAG;
