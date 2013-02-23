@@ -204,22 +204,22 @@ ThicknessVariationPatternShader::ThicknessVariationPatternShader(const string pa
 	_stretch = stretch;
 	_minThickness = iMinThickness;
 	_maxThickness = iMaxThickness;
-	ImBuf *image = NULL; //soc
+	ImBuf *image = NULL;
 	vector<string> pathnames;
 	StringUtils::getPathName(TextureManager::Options::getPatternsPath(), pattern_name, pathnames);
 	for (vector<string>::const_iterator j = pathnames.begin(); j != pathnames.end(); ++j) {
 		ifstream ifs(j->c_str());
 		if (ifs.is_open()) {
-			//soc image.load(j->c_str());
 			/* OCIO_TODO: support different input color space */
 			image = IMB_loadiffname(j->c_str(), 0, NULL);
 			break;
 		}
 	}
-	if (image == NULL) //soc
+	if (image == NULL)
 		cerr << "Error: cannot find pattern \"" << pattern_name << "\" - check the path in the Options" << endl;
 	else
 		convert(image, &_aThickness, _size);
+	IMB_freeImBuf(image);
 }
 
 
@@ -336,7 +336,7 @@ int IncreasingColorShader::shade(Stroke& stroke) const
 ColorVariationPatternShader::ColorVariationPatternShader(const string pattern_name, bool stretch) : StrokeShader()
 {
 	_stretch = stretch;
-	ImBuf *image = NULL; //soc
+	ImBuf *image = NULL;
 	vector<string> pathnames;
 	StringUtils::getPathName(TextureManager::Options::getPatternsPath(), pattern_name, pathnames);
 	for (vector<string>::const_iterator j = pathnames.begin(); j != pathnames.end(); ++j) {
@@ -347,10 +347,11 @@ ColorVariationPatternShader::ColorVariationPatternShader(const string pattern_na
 			break;
 		}
 	}
-	if (image == NULL) //soc
+	if (image == NULL)
 		cerr << "Error: cannot find pattern \"" << pattern_name << "\" - check the path in the Options" << endl;
 	else
 		convert(image, &_aVariation, _size);
+	IMB_freeImBuf(image);
 }
 
 int ColorVariationPatternShader::shade(Stroke& stroke) const
