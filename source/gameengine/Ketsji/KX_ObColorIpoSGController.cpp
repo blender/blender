@@ -45,19 +45,16 @@ bool KX_ObColorIpoSGController::Update(double currentTime)
 {
 	if (m_modified)
 	{
-		m_rgba[0]=0;
-		m_rgba[1]=0;
-		m_rgba[2]=0;
-		m_rgba[3]=0;
+		SG_Spatial* ob = (SG_Spatial*)m_pObject;
+		KX_GameObject* kxgameobj= (KX_GameObject*) ob->GetSGClientObject();
+
+		m_rgba = kxgameobj->GetObjectColor();
 
 		T_InterpolatorList::iterator i;
 		for (i = m_interpolators.begin(); !(i == m_interpolators.end()); ++i) {
 			(*i)->Execute(m_ipotime);
 		}
 		
-
-		SG_Spatial* ob = (SG_Spatial*)m_pObject;
-		KX_GameObject* kxgameobj= (KX_GameObject*) ob->GetSGClientObject();
 
 		kxgameobj->SetObjectColor(m_rgba);
 		
