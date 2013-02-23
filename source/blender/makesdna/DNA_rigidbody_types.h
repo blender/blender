@@ -221,6 +221,12 @@ typedef struct RigidBodyCon {
 	float spring_damping_y;
 	float spring_damping_z;
 
+	/* motor settings */
+	float motor_lin_target_velocity;	/* linear velocity the motor tries to hold */
+	float motor_ang_target_velocity;	/* angular velocity the motor tries to hold */
+	float motor_lin_max_impulse;		/* maximum force used to reach linear target velocity */
+	float motor_ang_max_impulse;		/* maximum force used to reach angular target velocity */
+
 	/* References to Physics Sim object. Exist at runtime only */
 	void *physics_constraint;	/* Physics object representation (i.e. btTypedConstraint) */
 } RigidBodyCon;
@@ -249,7 +255,9 @@ typedef enum eRigidBodyCon_Type {
 	/* similar to slider but also allows rotation around slider axis */
 	RBC_TYPE_PISTON,
 	/* Simplified spring constraint with only once axis that's automatically placed between the connected bodies */
-	RBC_TYPE_SPRING
+	RBC_TYPE_SPRING,
+	/* dirves bodies by applying linear and angular forces */
+	RBC_TYPE_MOTOR
 } eRigidBodyCon_Type;
 
 /* Flags for RigidBodyCon */
@@ -274,7 +282,10 @@ typedef enum eRigidBodyCon_Flag {
 	/* springs */
 	RBC_FLAG_USE_SPRING_X				= (1 << 11),
 	RBC_FLAG_USE_SPRING_Y				= (1 << 12),
-	RBC_FLAG_USE_SPRING_Z				= (1 << 13)
+	RBC_FLAG_USE_SPRING_Z				= (1 << 13),
+	/* motors */
+	RBC_FLAG_USE_MOTOR_LIN				= (1 << 14),
+	RBC_FLAG_USE_MOTOR_ANG				= (1 << 15)
 } eRigidBodyCon_Flag;
 
 /* ******************************** */
