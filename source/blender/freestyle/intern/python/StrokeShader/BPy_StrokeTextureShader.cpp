@@ -17,7 +17,7 @@ static char StrokeTextureShader___doc__[] =
 "\n"
 "[Texture shader]\n"
 "\n"
-".. method:: __init__(texture_file, medium_type=MediumType.OPAQUE_MEDIUM, tips=False)\n"
+".. method:: __init__(texture_file, medium_type=Stroke.OPAQUE_MEDIUM, tips=False)\n"
 "\n"
 "   Builds a StrokeTextureShader object.\n"
 "\n"

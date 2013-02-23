@@ -432,6 +432,7 @@ static char module_docstring[] =
 "  - :class:`QuantitativeInvisibilityUP1D`\n"
 "  - :class:`ShapeUP1D`\n"
 "  - :class:`TrueUP1D`\n"
+"  - :class:`WithinImageBoundaryUP1D`\n"
 "\n"
 "- :class:`ViewMap`\n"
 "- :class:`ViewShape`\n"
