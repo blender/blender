@@ -81,9 +81,9 @@ getNumDisplaySettings(
 		return GHOST_kFailure;
 	}
 
-	/* The X11 man page says vidmodes needs to be freed, but doing so causes a
-	 * segfault. - z0r */
-	XF86VidModeGetAllModeLines(dpy, DefaultScreen(dpy), &numSettings, &vidmodes);
+	if (XF86VidModeGetAllModeLines(dpy, DefaultScreen(dpy), &numSettings, &vidmodes)) {
+		XFree(vidmodes);
+	}
 
 #else
 	/* We only have one X11 setting at the moment. */
@@ -112,50 +112,46 @@ getDisplaySetting(
 		GHOST_TInt32 index,
 		GHOST_DisplaySetting& setting) const
 {
-
-#ifdef WITH_X11_XF86VMODE
-	int majorVersion, minorVersion;
-	XF86VidModeModeInfo **vidmodes;
 	Display *dpy = m_system->getXDisplay();
-	int numSettings;
-
-	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");
 
 	if (dpy == NULL)
 		return GHOST_kFailure;
 
+#ifdef WITH_X11_XF86VMODE
+	int majorVersion, minorVersion;
+
+	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");
+
 	majorVersion = minorVersion = 0;
-	if (!XF86VidModeQueryVersion(dpy, &majorVersion, &minorVersion)) {
-		fprintf(stderr, "Error: XF86VidMode extension missing!\n");
-		return GHOST_kFailure;
+	if (XF86VidModeQueryVersion(dpy, &majorVersion, &minorVersion)) {
+		XF86VidModeModeInfo **vidmodes;
+		int numSettings;
+
+		if (XF86VidModeGetAllModeLines(dpy, DefaultScreen(dpy), &numSettings, &vidmodes)) {
+			GHOST_ASSERT(index < numSettings, "Requested setting outside of valid range.\n");
+
+			setting.xPixels = vidmodes[index]->hdisplay;
+			setting.yPixels = vidmodes[index]->vdisplay;
+			setting.bpp = DefaultDepth(dpy, DefaultScreen(dpy));
+			setting.frequency = calculate_rate(vidmodes[index]);
+			XFree(vidmodes);
+
+			return GHOST_kSuccess;
+		}
 	}
+	else {
+		fprintf(stderr, "Warning: XF86VidMode extension missing!\n");
+		/* fallback to non xf86vmode below */
+	}
+#endif  /* WITH_X11_XF86VMODE */
 
-	/* The X11 man page says vidmodes needs to be freed, but doing so causes a
-	 * segfault. - z0r */
-	XF86VidModeGetAllModeLines(dpy, DefaultScreen(dpy), &numSettings, &vidmodes);
-	GHOST_ASSERT(index < numSettings, "Requested setting outside of valid range.\n");
-
-	setting.xPixels = vidmodes[index]->hdisplay;
-	setting.yPixels = vidmodes[index]->vdisplay;
-	setting.bpp = DefaultDepth(dpy, DefaultScreen(dpy));
-	setting.frequency = (float)calculate_rate(vidmodes[index]);
-
-#else
 	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");
 	GHOST_ASSERT(index < 1, "Requested setting outside of valid range.\n");
-	
-	Display *x_display = m_system->getXDisplay();
 
-	if (x_display == NULL) {
-		return GHOST_kFailure;
-	}
-
-	setting.xPixels  = DisplayWidth(x_display, DefaultScreen(x_display));
-	setting.yPixels = DisplayHeight(x_display, DefaultScreen(x_display));
-	setting.bpp = DefaultDepth(x_display, DefaultScreen(x_display));
+	setting.xPixels  = DisplayWidth(dpy, DefaultScreen(dpy));
+	setting.yPixels = DisplayHeight(dpy, DefaultScreen(dpy));
+	setting.bpp = DefaultDepth(dpy, DefaultScreen(dpy));
 	setting.frequency = 60.0f;
-#endif
-
 
 	return GHOST_kSuccess;
 }
@@ -180,9 +176,8 @@ setCurrentDisplaySetting(
 		const GHOST_DisplaySetting& setting)
 {
 #ifdef WITH_X11_XF86VMODE
-	/* Mode switching code ported from Quake 2:
-	 * ftp: ftp.idsoftware.com/idstuff/source/q2source-3.21.zip
-	 * See linux/gl_glx.c:GLimp_SetMode
+	/* Mode switching code ported from SDL:
+	 * See: src/video/x11/SDL_x11modes.c:set_best_resolution
 	 */
 	int majorVersion, minorVersion;
 	XF86VidModeModeInfo **vidmodes;
