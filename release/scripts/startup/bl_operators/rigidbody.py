@@ -227,7 +227,7 @@ class ConnectRigidBodies(Operator):
 
     def _add_constraint(self, context, object1, object2):
         if object1 == object2:
-            return False
+            return
 
         if self.pivot_type == 'ACTIVE':
             loc = object1.location
@@ -251,8 +251,6 @@ class ConnectRigidBodies(Operator):
         con.object1 = object1
         con.object2 = object2
 
-        return True
-
     def execute(self, context):
         scene = context.scene
         objects = context.selected_objects
@@ -274,11 +272,13 @@ class ConnectRigidBodies(Operator):
                 objects_tmp.remove(objects_tmp[0])
 
             for i in range(1, len(objs_sorted)):
-                change = self._add_constraint(context, objs_sorted[i-1], objs_sorted[i])
+                self._add_constraint(context, objs_sorted[i-1], objs_sorted[i])
+                change = True
 
         else: # SELECTED_TO_ACTIVE
             for obj in objects:
-                change = self._add_constraint(context, obj_act, obj)
+                self._add_constraint(context, obj_act, obj)
+                change = True;
 
         if change:
             # restore selection
