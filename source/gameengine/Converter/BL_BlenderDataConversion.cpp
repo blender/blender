@@ -2233,8 +2233,6 @@ static void bl_ConvertBlenderObject_Single(
 	gameobj->NodeSetLocalScale(scale);
 	gameobj->NodeUpdateGS(0);
 
-	BL_ConvertMaterialIpos(blenderobject, gameobj, converter);
-
 	sumolist->Add(gameobj->AddRef());
 
 	BL_ConvertProperties(blenderobject,gameobj,timemgr,kxscene,isInActiveLayer);

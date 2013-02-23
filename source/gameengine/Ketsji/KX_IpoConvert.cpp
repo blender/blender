@@ -187,21 +187,6 @@ SG_Controller *BL_CreateObColorIPO(struct bAction *action, KX_GameObject* gameob
 	return ipocontr_obcol;
 }
 
-void BL_ConvertIpos(struct Object* blenderobject,KX_GameObject* gameobj,KX_BlenderSceneConverter *converter)
-{
-	if (blenderobject->adt) {
-		SG_Controller *ipocontr = BL_CreateIPO(blenderobject->adt->action, gameobj, converter);
-		gameobj->GetSGNode()->AddSGController(ipocontr);
-		ipocontr->SetObject(gameobj->GetSGNode());
-
-		SG_Controller *ipocontr_obcol = BL_CreateObColorIPO(blenderobject->adt->action, gameobj, converter);
-		if (ipocontr_obcol) {
-			gameobj->GetSGNode()->AddSGController(ipocontr_obcol);
-			ipocontr_obcol->SetObject(gameobj->GetSGNode());
-		}
-	}
-}
-
 SG_Controller *BL_CreateLampIPO(struct bAction *action, KX_GameObject*  lightobj, KX_BlenderSceneConverter *converter)
 {
 	KX_LightIpoSGController* ipocontr = new KX_LightIpoSGController();
@@ -245,19 +230,6 @@ SG_Controller *BL_CreateLampIPO(struct bAction *action, KX_GameObject*  lightobj
 	return ipocontr;
 }
 
-void BL_ConvertLampIpos(struct Lamp* blenderlamp, KX_GameObject *lightobj,KX_BlenderSceneConverter *converter)
-{
-
-	if (blenderlamp->adt) {
-
-		SG_Controller* ipocontr = BL_CreateLampIPO(blenderlamp->adt->action, lightobj, converter);
-		lightobj->GetSGNode()->AddSGController(ipocontr);
-		ipocontr->SetObject(lightobj->GetSGNode());
-		
-		
-	}
-}
-
 SG_Controller *BL_CreateCameraIPO(struct bAction *action, KX_GameObject*  cameraobj, KX_BlenderSceneConverter *converter)
 {
 	KX_CameraIpoSGController* ipocontr = new KX_CameraIpoSGController();
@@ -296,17 +268,6 @@ SG_Controller *BL_CreateCameraIPO(struct bAction *action, KX_GameObject*  camera
 
 	return ipocontr;
 }
-
-void BL_ConvertCameraIpos(struct Camera* blendercamera, KX_GameObject *cameraobj,KX_BlenderSceneConverter *converter)
-{
-
-	if (blendercamera->adt) {
-		SG_Controller* ipocontr = BL_CreateCameraIPO(blendercamera->adt->action, cameraobj, converter);
-		cameraobj->GetSGNode()->AddSGController(ipocontr);
-		ipocontr->SetObject(cameraobj->GetSGNode());
-	}
-}
-
 
 void BL_ConvertWorldIpos(struct World* blenderworld,KX_BlenderSceneConverter *converter)
 {
@@ -356,21 +317,82 @@ void BL_ConvertWorldIpos(struct World* blenderworld,KX_BlenderSceneConverter *co
 	}
 }
 
-static void ConvertMaterialIpos(
+SG_Controller *BL_CreateMaterialIpo(
+	struct bAction *action,
 	Material* blendermaterial,
 	dword matname_hash,
 	KX_GameObject* gameobj,  
 	KX_BlenderSceneConverter *converter
 	)
 {
-	if (blendermaterial->adt) {
-		KX_MaterialIpoController* ipocontr = new KX_MaterialIpoController(matname_hash);
-		gameobj->GetSGNode()->AddSGController(ipocontr);
-		ipocontr->SetObject(gameobj->GetSGNode());
-		
-		BL_InterpolatorList *adtList= GetAdtList(blendermaterial->adt->action, converter);
+	KX_MaterialIpoController* ipocontr = NULL;
 
+	BL_InterpolatorList *adtList= GetAdtList(action, converter);
+	KX_IInterpolator *interpolator;
+	KX_IScalarInterpolator *sinterp;
 
+	// --
+	for (int i=0; i<3; i++) {
+		if ((sinterp = adtList->GetScalarInterpolator("diffuse_color", i))) {
+			if (!ipocontr) {
+				ipocontr = new KX_MaterialIpoController(matname_hash);
+			}
+			interpolator= new KX_ScalarInterpolator(&ipocontr->m_rgba[i], sinterp);
+			ipocontr->AddInterpolator(interpolator);
+		}
+	}
+
+	if ((sinterp = adtList->GetScalarInterpolator("alpha", 0))) {
+		if (!ipocontr) {
+			ipocontr = new KX_MaterialIpoController(matname_hash);
+		}
+		interpolator= new KX_ScalarInterpolator(&ipocontr->m_rgba[3], sinterp);
+		ipocontr->AddInterpolator(interpolator);
+	}
+
+	for (int i=0; i<3; i++) {
+		if ((sinterp = adtList->GetScalarInterpolator("specular_color", i))) {
+			if (!ipocontr) {
+				ipocontr = new KX_MaterialIpoController(matname_hash);
+			}
+			interpolator= new KX_ScalarInterpolator(&ipocontr->m_specrgb[i], sinterp);
+			ipocontr->AddInterpolator(interpolator);
+		}
+	}
+
+	if ((sinterp = adtList->GetScalarInterpolator("specular_hardness", 0))) {
+		if (!ipocontr) {
+			ipocontr = new KX_MaterialIpoController(matname_hash);
+		}
+		interpolator= new KX_ScalarInterpolator(&ipocontr->m_hard, sinterp);
+		ipocontr->AddInterpolator(interpolator);
+	}
+
+	if ((sinterp = adtList->GetScalarInterpolator("specularity", 0))) {
+		if (!ipocontr) {
+			ipocontr = new KX_MaterialIpoController(matname_hash);
+		}
+		interpolator= new KX_ScalarInterpolator(&ipocontr->m_spec, sinterp);
+		ipocontr->AddInterpolator(interpolator);
+	}
+
+	if ((sinterp = adtList->GetScalarInterpolator("diffuse_reflection", 0))) {
+		if (!ipocontr) {
+			ipocontr = new KX_MaterialIpoController(matname_hash);
+		}
+		interpolator= new KX_ScalarInterpolator(&ipocontr->m_ref, sinterp);
+		ipocontr->AddInterpolator(interpolator);
+	}
+
+	if ((sinterp = adtList->GetScalarInterpolator("emit", 0))) {
+		if (!ipocontr) {
+			ipocontr = new KX_MaterialIpoController(matname_hash);
+		}
+		interpolator= new KX_ScalarInterpolator(&ipocontr->m_emit, sinterp);
+		ipocontr->AddInterpolator(interpolator);
+	}
+
+	if (ipocontr) {
 		ipocontr->m_rgba[0]	= blendermaterial->r;
 		ipocontr->m_rgba[1]	= blendermaterial->g;
 		ipocontr->m_rgba[2]	= blendermaterial->b;
@@ -379,118 +401,13 @@ static void ConvertMaterialIpos(
 		ipocontr->m_specrgb[0]	= blendermaterial->specr;
 		ipocontr->m_specrgb[1]	= blendermaterial->specg;
 		ipocontr->m_specrgb[2]	= blendermaterial->specb;
-		
+
 		ipocontr->m_hard		= blendermaterial->har;
 		ipocontr->m_spec		= blendermaterial->spec;
 		ipocontr->m_ref			= blendermaterial->ref;
 		ipocontr->m_emit		= blendermaterial->emit;
 		ipocontr->m_alpha		= blendermaterial->alpha;
-		
-		KX_IInterpolator *interpolator;
-		KX_IScalarInterpolator *sinterp;
-		
-		// --
-		for (int i=0; i<3; i++) {
-			if ((sinterp = adtList->GetScalarInterpolator("diffuse_color", i))) {
-				if (!ipocontr) {
-					ipocontr = new KX_MaterialIpoController(matname_hash);
-					gameobj->GetSGNode()->AddSGController(ipocontr);
-					ipocontr->SetObject(gameobj->GetSGNode());
-				}
-				interpolator= new KX_ScalarInterpolator(&ipocontr->m_rgba[i], sinterp);
-				ipocontr->AddInterpolator(interpolator);
-			}
-		}
-		
-		if ((sinterp = adtList->GetScalarInterpolator("alpha", 0))) {
-			if (!ipocontr) {
-				ipocontr = new KX_MaterialIpoController(matname_hash);
-				gameobj->GetSGNode()->AddSGController(ipocontr);
-				ipocontr->SetObject(gameobj->GetSGNode());
-			}
-			interpolator= new KX_ScalarInterpolator(&ipocontr->m_rgba[3], sinterp);
-			ipocontr->AddInterpolator(interpolator);
-		}
-
-		for (int i=0; i<3; i++) {
-			if ((sinterp = adtList->GetScalarInterpolator("specular_color", i))) {
-				if (!ipocontr) {
-					ipocontr = new KX_MaterialIpoController(matname_hash);
-					gameobj->GetSGNode()->AddSGController(ipocontr);
-					ipocontr->SetObject(gameobj->GetSGNode());
-				}
-				interpolator= new KX_ScalarInterpolator(&ipocontr->m_specrgb[i], sinterp);
-				ipocontr->AddInterpolator(interpolator);
-			}
-		}
-		
-		if ((sinterp = adtList->GetScalarInterpolator("specular_hardness", 0))) {
-			if (!ipocontr) {
-				ipocontr = new KX_MaterialIpoController(matname_hash);
-				gameobj->GetSGNode()->AddSGController(ipocontr);
-				ipocontr->SetObject(gameobj->GetSGNode());
-			}
-			interpolator= new KX_ScalarInterpolator(&ipocontr->m_hard, sinterp);
-			ipocontr->AddInterpolator(interpolator);
-		}
-
-		if ((sinterp = adtList->GetScalarInterpolator("specularity", 0))) {
-			if (!ipocontr) {
-				ipocontr = new KX_MaterialIpoController(matname_hash);
-				gameobj->GetSGNode()->AddSGController(ipocontr);
-				ipocontr->SetObject(gameobj->GetSGNode());
-			}
-			interpolator= new KX_ScalarInterpolator(&ipocontr->m_spec, sinterp);
-			ipocontr->AddInterpolator(interpolator);
-		}
-		
-		if ((sinterp = adtList->GetScalarInterpolator("diffuse_reflection", 0))) {
-			if (!ipocontr) {
-				ipocontr = new KX_MaterialIpoController(matname_hash);
-				gameobj->GetSGNode()->AddSGController(ipocontr);
-				ipocontr->SetObject(gameobj->GetSGNode());
-			}
-			interpolator= new KX_ScalarInterpolator(&ipocontr->m_ref, sinterp);
-			ipocontr->AddInterpolator(interpolator);
-		}
-		
-		if ((sinterp = adtList->GetScalarInterpolator("emit", 0))) {
-			if (!ipocontr) {
-				ipocontr = new KX_MaterialIpoController(matname_hash);
-				gameobj->GetSGNode()->AddSGController(ipocontr);
-				ipocontr->SetObject(gameobj->GetSGNode());
-			}
-			interpolator= new KX_ScalarInterpolator(&ipocontr->m_emit, sinterp);
-			ipocontr->AddInterpolator(interpolator);
-		}
 	}
+
+	return ipocontr;
 }
-
-void BL_ConvertMaterialIpos(
-	struct Object* blenderobject,
-	KX_GameObject* gameobj,  
-	KX_BlenderSceneConverter *converter
-	)
-{
-	if (blenderobject->totcol==1)
-	{
-		Material *mat = give_current_material(blenderobject, 1);
-		// if there is only one material attached to the mesh then set material_index in BL_ConvertMaterialIpos to NULL
-		// --> this makes the UpdateMaterialData function in KX_GameObject.cpp use the old hack of using SetObjectColor
-		// because this yields a better performance as not all the vertex colors need to be edited
-		if (mat) ConvertMaterialIpos(mat, 0, gameobj, converter);
-	}
-	else
-	{
-		for (int material_index=1; material_index <= blenderobject->totcol; material_index++)
-		{
-			Material *mat = give_current_material(blenderobject, material_index);
-			STR_HashedString matname;
-			if (mat) {
-				matname= mat->id.name; // who is using this name? can we remove the MA here?
-				ConvertMaterialIpos(mat, matname.hash(), gameobj, converter);
-			}
-		}
-	}
-}
-
