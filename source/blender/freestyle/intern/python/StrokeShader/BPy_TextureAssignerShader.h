@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_TEXTUREASSIGNERSHADER_H
-#define FREESTYLE_PYTHON_TEXTUREASSIGNERSHADER_H
+#ifndef __FREESTYLE_PYTHON_TEXTUREASSIGNERSHADER_H__
+#define __FREESTYLE_PYTHON_TEXTUREASSIGNERSHADER_H__
 
 #include "../BPy_StrokeShader.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject TextureAssignerShader_Type;
 
-#define BPy_TextureAssignerShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &TextureAssignerShader_Type)  )
+#define BPy_TextureAssignerShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&TextureAssignerShader_Type))
 
 /*---------------------------Python BPy_TextureAssignerShader structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_TEXTUREASSIGNERSHADER_H */
+#endif /* __FREESTYLE_PYTHON_TEXTUREASSIGNERSHADER_H__ */

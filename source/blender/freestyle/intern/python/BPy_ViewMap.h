@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_VIEWMAP_H
-#define FREESTYLE_PYTHON_VIEWMAP_H
+#ifndef __FREESTYLE_PYTHON_VIEWMAP_H__
+#define __FREESTYLE_PYTHON_VIEWMAP_H__
 
 #include <Python.h>
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject ViewMap_Type;
 
-#define BPy_ViewMap_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ViewMap_Type)  )
+#define BPy_ViewMap_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ViewMap_Type))
 
 /*---------------------------Python BPy_ViewMap structure definition----------*/
 typedef struct {
@@ -54,7 +54,7 @@ typedef struct {
 
 /*---------------------------Python BPy_ViewMap visible prototypes-----------*/
 
-int ViewMap_Init( PyObject *module );
+int ViewMap_Init(PyObject *module);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -62,4 +62,4 @@ int ViewMap_Init( PyObject *module );
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_VIEWMAP_H */
+#endif /* __FREESTYLE_PYTHON_VIEWMAP_H__ */

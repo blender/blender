@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_CHAINPREDICATEITERATOR_H
-#define FREESTYLE_PYTHON_CHAINPREDICATEITERATOR_H
+#ifndef __FREESTYLE_PYTHON_CHAINPREDICATEITERATOR_H__
+#define __FREESTYLE_PYTHON_CHAINPREDICATEITERATOR_H__
 
 
 #include "../../stroke/ChainingIterators.h"
@@ -47,7 +47,7 @@ extern "C" {
 
 extern PyTypeObject ChainPredicateIterator_Type;
 
-#define BPy_ChainPredicateIterator_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ChainPredicateIterator_Type)  )
+#define BPy_ChainPredicateIterator_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ChainPredicateIterator_Type))
 
 /*---------------------------Python BPy_ChainPredicateIterator structure definition----------*/
 typedef struct {
@@ -63,4 +63,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_CHAINPREDICATEITERATOR_H */
+#endif /* __FREESTYLE_PYTHON_CHAINPREDICATEITERATOR_H__ */

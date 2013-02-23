@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_FRSCURVE_H
-#define FREESTYLE_PYTHON_FRSCURVE_H
+#ifndef __FREESTYLE_PYTHON_FRSCURVE_H__
+#define __FREESTYLE_PYTHON_FRSCURVE_H__
 
 #include "../BPy_Interface1D.h"
 #include "../../stroke/Curve.h"
@@ -45,7 +45,7 @@ extern "C" {
 
 extern PyTypeObject FrsCurve_Type;
 
-#define BPy_FrsCurve_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &FrsCurve_Type)  )
+#define BPy_FrsCurve_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&FrsCurve_Type))
 
 /*---------------------------Python BPy_FrsCurve structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_FRSCURVE_H */
+#endif /* __FREESTYLE_PYTHON_FRSCURVE_H__ */

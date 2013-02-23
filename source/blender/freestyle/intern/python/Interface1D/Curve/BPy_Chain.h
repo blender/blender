@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_CHAIN_H
-#define FREESTYLE_PYTHON_CHAIN_H
+#ifndef __FREESTYLE_PYTHON_CHAIN_H__
+#define __FREESTYLE_PYTHON_CHAIN_H__
 
 #include "../BPy_FrsCurve.h"
 #include "../../../stroke/Chain.h"
@@ -45,7 +45,7 @@ extern "C" {
 
 extern PyTypeObject Chain_Type;
 
-#define BPy_Chain_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &Chain_Type)  )
+#define BPy_Chain_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&Chain_Type))
 
 /*---------------------------Python BPy_Chain structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_CHAIN_H */
+#endif /* __FREESTYLE_PYTHON_CHAIN_H__ */

@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_OPERATORS_H
-#define FREESTYLE_PYTHON_OPERATORS_H
+#ifndef __FREESTYLE_PYTHON_OPERATORS_H__
+#define __FREESTYLE_PYTHON_OPERATORS_H__
 
 #include <Python.h>
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject Operators_Type;
 
-#define BPy_Operators_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &Operators_Type)  )
+#define BPy_Operators_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&Operators_Type))
 
 /*---------------------------Python BPy_Operators structure definition----------*/
 typedef struct {
@@ -53,7 +53,7 @@ typedef struct {
 
 /*---------------------------Python BPy_Operators visible prototypes-----------*/
 
-int Operators_Init( PyObject *module );
+int Operators_Init(PyObject *module);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -62,4 +62,4 @@ int Operators_Init( PyObject *module );
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_OPERATORS_H */
+#endif /* __FREESTYLE_PYTHON_OPERATORS_H__ */

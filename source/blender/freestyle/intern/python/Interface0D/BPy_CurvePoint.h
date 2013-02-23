@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_CURVEPOINT_H
-#define FREESTYLE_PYTHON_CURVEPOINT_H
+#ifndef __FREESTYLE_PYTHON_CURVEPOINT_H__
+#define __FREESTYLE_PYTHON_CURVEPOINT_H__
 
 #include "../BPy_Interface0D.h"
 #include "../../stroke/Curve.h"
@@ -45,7 +45,7 @@ extern "C" {
 
 extern PyTypeObject CurvePoint_Type;
 
-#define BPy_CurvePoint_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &CurvePoint_Type)  )
+#define BPy_CurvePoint_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&CurvePoint_Type))
 
 /*---------------------------Python BPy_CurvePoint structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_CURVEPOINT_H */
+#endif /* __FREESTYLE_PYTHON_CURVEPOINT_H__ */

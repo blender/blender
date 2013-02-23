@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_BACKBONESTRETCHERSHADER_H
-#define FREESTYLE_PYTHON_BACKBONESTRETCHERSHADER_H
+#ifndef __FREESTYLE_PYTHON_BACKBONESTRETCHERSHADER_H__
+#define __FREESTYLE_PYTHON_BACKBONESTRETCHERSHADER_H__
 
 #include "../BPy_StrokeShader.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject BackboneStretcherShader_Type;
 
-#define BPy_BackboneStretcherShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &BackboneStretcherShader_Type)  )
+#define BPy_BackboneStretcherShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&BackboneStretcherShader_Type))
 
 /*---------------------------Python BPy_BackboneStretcherShader structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_BACKBONESTRETCHERSHADER_H */
+#endif /* __FREESTYLE_PYTHON_BACKBONESTRETCHERSHADER_H__ */

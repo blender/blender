@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_VIEWEDGEITERATOR_H
-#define FREESTYLE_PYTHON_VIEWEDGEITERATOR_H
+#ifndef __FREESTYLE_PYTHON_VIEWEDGEITERATOR_H__
+#define __FREESTYLE_PYTHON_VIEWEDGEITERATOR_H__
 
 
 #include "../../view_map/ViewMapIterators.h"
@@ -47,7 +47,7 @@ extern "C" {
 
 extern PyTypeObject ViewEdgeIterator_Type;
 
-#define BPy_ViewEdgeIterator_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ViewEdgeIterator_Type)  )
+#define BPy_ViewEdgeIterator_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ViewEdgeIterator_Type))
 
 /*---------------------------Python BPy_ViewEdgeIterator structure definition----------*/
 typedef struct {
@@ -61,4 +61,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_VIEWEDGEITERATOR_H */
+#endif /* __FREESTYLE_PYTHON_VIEWEDGEITERATOR_H__ */

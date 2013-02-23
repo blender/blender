@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_FRSNOISE_H
-#define FREESTYLE_PYTHON_FRSNOISE_H
+#ifndef __FREESTYLE_PYTHON_FRSNOISE_H__
+#define __FREESTYLE_PYTHON_FRSNOISE_H__
 
 #include <Python.h>
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject FrsNoise_Type;
 
-#define BPy_FrsNoise_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &FrsNoise_Type)  )
+#define BPy_FrsNoise_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&FrsNoise_Type))
 
 /*---------------------------Python BPy_FrsNoise structure definition----------*/
 typedef struct {
@@ -54,7 +54,7 @@ typedef struct {
 
 /*---------------------------Python BPy_FrsNoise visible prototypes-----------*/
 
-int FrsNoise_Init( PyObject *module );
+int FrsNoise_Init(PyObject *module);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -64,4 +64,4 @@ int FrsNoise_Init( PyObject *module );
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_FRSNOISE_H */
+#endif /* __FREESTYLE_PYTHON_FRSNOISE_H__ */

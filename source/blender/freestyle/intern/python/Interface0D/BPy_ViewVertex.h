@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_VIEWVERTEX_H
-#define FREESTYLE_PYTHON_VIEWVERTEX_H
+#ifndef __FREESTYLE_PYTHON_VIEWVERTEX_H__
+#define __FREESTYLE_PYTHON_VIEWVERTEX_H__
 
 #include "../../view_map/ViewMap.h"
 #include "../BPy_Interface0D.h"
@@ -45,7 +45,7 @@ extern "C" {
 
 extern PyTypeObject ViewVertex_Type;
 
-#define BPy_ViewVertex_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ViewVertex_Type)  )
+#define BPy_ViewVertex_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ViewVertex_Type))
 
 /*---------------------------Python BPy_ViewVertex structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_VIEWVERTEX_H */
+#endif /* __FREESTYLE_PYTHON_VIEWVERTEX_H__ */

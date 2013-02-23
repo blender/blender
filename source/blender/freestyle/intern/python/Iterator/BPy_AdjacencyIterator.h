@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_ADJACENCYITERATOR_H
-#define FREESTYLE_PYTHON_ADJACENCYITERATOR_H
+#ifndef __FREESTYLE_PYTHON_ADJACENCYITERATOR_H__
+#define __FREESTYLE_PYTHON_ADJACENCYITERATOR_H__
 
 #include "../../stroke/ChainingIterators.h"
 #include "../BPy_Iterator.h"
@@ -46,7 +46,7 @@ extern "C" {
 
 extern PyTypeObject AdjacencyIterator_Type;
 
-#define BPy_AdjacencyIterator_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &AdjacencyIterator_Type)  )
+#define BPy_AdjacencyIterator_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&AdjacencyIterator_Type))
 
 /*---------------------------Python BPy_AdjacencyIterator structure definition----------*/
 typedef struct {
@@ -60,4 +60,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_ADJACENCYITERATOR_H */
+#endif /* __FREESTYLE_PYTHON_ADJACENCYITERATOR_H__ */

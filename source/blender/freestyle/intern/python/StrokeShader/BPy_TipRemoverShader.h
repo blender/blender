@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_TIPREMOVERSHADER_H
-#define FREESTYLE_PYTHON_TIPREMOVERSHADER_H
+#ifndef __FREESTYLE_PYTHON_TIPREMOVERSHADER_H__
+#define __FREESTYLE_PYTHON_TIPREMOVERSHADER_H__
 
 #include "../BPy_StrokeShader.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject TipRemoverShader_Type;
 
-#define BPy_TipRemoverShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &TipRemoverShader_Type)  )
+#define BPy_TipRemoverShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&TipRemoverShader_Type))
 
 /*---------------------------Python BPy_TipRemoverShader structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_TIPREMOVERSHADER_H */
+#endif /* __FREESTYLE_PYTHON_TIPREMOVERSHADER_H__ */

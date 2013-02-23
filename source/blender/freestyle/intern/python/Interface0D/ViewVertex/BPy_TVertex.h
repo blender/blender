@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_TVERTEX_H
-#define FREESTYLE_PYTHON_TVERTEX_H
+#ifndef __FREESTYLE_PYTHON_TVERTEX_H__
+#define __FREESTYLE_PYTHON_TVERTEX_H__
 
 #include "../BPy_ViewVertex.h"
 #include "../../../view_map/ViewMap.h"
@@ -45,7 +45,7 @@ extern "C" {
 
 extern PyTypeObject TVertex_Type;
 
-#define BPy_TVertex_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &TVertex_Type)  )
+#define BPy_TVertex_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&TVertex_Type))
 
 /*---------------------------Python BPy_TVertex structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_TVERTEX_H */
+#endif /* __FREESTYLE_PYTHON_TVERTEX_H__ */

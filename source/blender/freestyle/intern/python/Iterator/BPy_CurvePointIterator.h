@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_CURVEPOINTITERATOR_H
-#define FREESTYLE_PYTHON_CURVEPOINTITERATOR_H
+#ifndef __FREESTYLE_PYTHON_CURVEPOINTITERATOR_H__
+#define __FREESTYLE_PYTHON_CURVEPOINTITERATOR_H__
 
 #include "../../stroke/CurveIterators.h"
 
@@ -46,7 +46,7 @@ extern "C" {
 
 extern PyTypeObject CurvePointIterator_Type;
 
-#define BPy_CurvePointIterator_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &CurvePointIterator_Type)  )
+#define BPy_CurvePointIterator_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&CurvePointIterator_Type))
 
 /*---------------------------Python BPy_CurvePointIterator structure definition----------*/
 typedef struct {
@@ -60,4 +60,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_CURVEPOINTITERATOR_H */
+#endif /* __FREESTYLE_PYTHON_CURVEPOINTITERATOR_H__ */

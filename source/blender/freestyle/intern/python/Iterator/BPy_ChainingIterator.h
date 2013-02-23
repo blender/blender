@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_CHAININGITERATOR_H
-#define FREESTYLE_PYTHON_CHAININGITERATOR_H
+#ifndef __FREESTYLE_PYTHON_CHAININGITERATOR_H__
+#define __FREESTYLE_PYTHON_CHAININGITERATOR_H__
 
 
 #include "../../stroke/ChainingIterators.h"
@@ -47,7 +47,7 @@ extern "C" {
 
 extern PyTypeObject ChainingIterator_Type;
 
-#define BPy_ChainingIterator_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ChainingIterator_Type)  )
+#define BPy_ChainingIterator_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ChainingIterator_Type))
 
 /*---------------------------Python BPy_ChainingIterator structure definition----------*/
 typedef struct {
@@ -61,4 +61,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_CHAININGITERATOR_H */
+#endif /* __FREESTYLE_PYTHON_CHAININGITERATOR_H__ */

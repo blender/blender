@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_UNARYFUNCTION1DVECTORVIEWSHAPE_H
-#define FREESTYLE_PYTHON_UNARYFUNCTION1DVECTORVIEWSHAPE_H
+#ifndef __FREESTYLE_PYTHON_UNARYFUNCTION1DVECTORVIEWSHAPE_H__
+#define __FREESTYLE_PYTHON_UNARYFUNCTION1DVECTORVIEWSHAPE_H__
 
 #include "../BPy_UnaryFunction1D.h"
 
@@ -47,7 +47,7 @@ extern "C" {
 
 extern PyTypeObject UnaryFunction1DVectorViewShape_Type;
 
-#define BPy_UnaryFunction1DVectorViewShape_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &UnaryFunction1DVectorViewShape_Type)  )
+#define BPy_UnaryFunction1DVectorViewShape_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction1DVectorViewShape_Type))
 
 /*---------------------------Python BPy_UnaryFunction1DVectorViewShape structure definition----------*/
 typedef struct {
@@ -56,7 +56,7 @@ typedef struct {
 } BPy_UnaryFunction1DVectorViewShape;
 
 /*---------------------------Python BPy_UnaryFunction1DVectorViewShape visible prototypes-----------*/
-int UnaryFunction1DVectorViewShape_Init( PyObject *module );
+int UnaryFunction1DVectorViewShape_Init(PyObject *module);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -65,4 +65,4 @@ int UnaryFunction1DVectorViewShape_Init( PyObject *module );
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_UNARYFUNCTION1DVECTORVIEWSHAPE_H */
+#endif /* __FREESTYLE_PYTHON_UNARYFUNCTION1DVECTORVIEWSHAPE_H__ */

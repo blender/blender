@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_FEDGE_H
-#define FREESTYLE_PYTHON_FEDGE_H
+#ifndef __FREESTYLE_PYTHON_FEDGE_H__
+#define __FREESTYLE_PYTHON_FEDGE_H__
 
 #include "../BPy_Interface1D.h"
 #include "../../view_map/Silhouette.h"
@@ -45,7 +45,7 @@ extern "C" {
 
 extern PyTypeObject FEdge_Type;
 
-#define BPy_FEdge_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &FEdge_Type)  )
+#define BPy_FEdge_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&FEdge_Type))
 
 /*---------------------------Python BPy_FEdge structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_FEDGE_H */
+#endif /* __FREESTYLE_PYTHON_FEDGE_H__ */

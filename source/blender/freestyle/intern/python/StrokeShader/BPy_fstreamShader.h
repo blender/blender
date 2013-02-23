@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_FSTREAMSHADER_H
-#define FREESTYLE_PYTHON_FSTREAMSHADER_H
+#ifndef __FREESTYLE_PYTHON_FSTREAMSHADER_H__
+#define __FREESTYLE_PYTHON_FSTREAMSHADER_H__
 
 #include "../BPy_StrokeShader.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject fstreamShader_Type;
 
-#define BPy_fstreamShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &fstreamShader_Type)  )
+#define BPy_fstreamShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&fstreamShader_Type))
 
 /*---------------------------Python BPy_fstreamShader structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_FSTREAMSHADER_H */
+#endif /* __FREESTYLE_PYTHON_FSTREAMSHADER_H__ */

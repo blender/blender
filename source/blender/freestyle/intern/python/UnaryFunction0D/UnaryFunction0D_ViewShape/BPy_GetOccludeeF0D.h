@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_GETOCCLUDEEF0D_H
-#define FREESTYLE_PYTHON_GETOCCLUDEEF0D_H
+#ifndef __FREESTYLE_PYTHON_GETOCCLUDEEF0D_H__
+#define __FREESTYLE_PYTHON_GETOCCLUDEEF0D_H__
 
 #include "../BPy_UnaryFunction0DViewShape.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject GetOccludeeF0D_Type;
 
-#define BPy_GetOccludeeF0D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &GetOccludeeF0D_Type)  )
+#define BPy_GetOccludeeF0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetOccludeeF0D_Type))
 
 /*---------------------------Python BPy_GetOccludeeF0D structure definition----------*/
 typedef struct {
@@ -58,4 +58,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_GETOCCLUDEEF0D_H */
+#endif /* __FREESTYLE_PYTHON_GETOCCLUDEEF0D_H__ */

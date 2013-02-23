@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_BINARYPREDICATE0D_H
-#define FREESTYLE_PYTHON_BINARYPREDICATE0D_H
+#ifndef __FREESTYLE_PYTHON_BINARYPREDICATE0D_H__
+#define __FREESTYLE_PYTHON_BINARYPREDICATE0D_H__
 
 #include <Python.h>
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject BinaryPredicate0D_Type;
 
-#define BPy_BinaryPredicate0D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &BinaryPredicate0D_Type)  )
+#define BPy_BinaryPredicate0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&BinaryPredicate0D_Type))
 
 /*---------------------------Python BPy_BinaryPredicate0D structure definition----------*/
 typedef struct {
@@ -54,7 +54,7 @@ typedef struct {
 
 /*---------------------------Python BPy_BinaryPredicate0D visible prototypes-----------*/
 
-int BinaryPredicate0D_Init( PyObject *module );
+int BinaryPredicate0D_Init(PyObject *module);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -64,4 +64,4 @@ int BinaryPredicate0D_Init( PyObject *module );
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_BINARYPREDICATE0D_H */
+#endif /* __FREESTYLE_PYTHON_BINARYPREDICATE0D_H__ */

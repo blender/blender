@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_UNARYFUNCTION1DEDGENATURE_H
-#define FREESTYLE_PYTHON_UNARYFUNCTION1DEDGENATURE_H
+#ifndef __FREESTYLE_PYTHON_UNARYFUNCTION1DEDGENATURE_H__
+#define __FREESTYLE_PYTHON_UNARYFUNCTION1DEDGENATURE_H__
 
 #include "../BPy_UnaryFunction1D.h"
 
@@ -46,7 +46,7 @@ extern "C" {
 
 extern PyTypeObject UnaryFunction1DEdgeNature_Type;
 
-#define BPy_UnaryFunction1DEdgeNature_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &UnaryFunction1DEdgeNature_Type)  )
+#define BPy_UnaryFunction1DEdgeNature_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction1DEdgeNature_Type))
 
 /*---------------------------Python BPy_UnaryFunction1DEdgeNature structure definition----------*/
 typedef struct {
@@ -55,7 +55,7 @@ typedef struct {
 } BPy_UnaryFunction1DEdgeNature;
 
 /*---------------------------Python BPy_UnaryFunction1DEdgeNature visible prototypes-----------*/
-int UnaryFunction1DEdgeNature_Init( PyObject *module );
+int UnaryFunction1DEdgeNature_Init(PyObject *module);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -64,4 +64,4 @@ int UnaryFunction1DEdgeNature_Init( PyObject *module );
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_UNARYFUNCTION1DEDGENATURE_H */
+#endif /* __FREESTYLE_PYTHON_UNARYFUNCTION1DEDGENATURE_H__ */

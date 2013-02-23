@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_UNARYFUNCTION1DVEC2F_H
-#define FREESTYLE_PYTHON_UNARYFUNCTION1DVEC2F_H
+#ifndef __FREESTYLE_PYTHON_UNARYFUNCTION1DVEC2F_H__
+#define __FREESTYLE_PYTHON_UNARYFUNCTION1DVEC2F_H__
 
 #include "../BPy_UnaryFunction1D.h"
 
@@ -47,7 +47,7 @@ extern "C" {
 
 extern PyTypeObject UnaryFunction1DVec2f_Type;
 
-#define BPy_UnaryFunction1DVec2f_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &UnaryFunction1DVec2f_Type)  )
+#define BPy_UnaryFunction1DVec2f_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction1DVec2f_Type))
 
 /*---------------------------Python BPy_UnaryFunction1DVec2f structure definition----------*/
 typedef struct {
@@ -56,7 +56,7 @@ typedef struct {
 } BPy_UnaryFunction1DVec2f;
 
 /*---------------------------Python BPy_UnaryFunction1DVec2f visible prototypes-----------*/
-int UnaryFunction1DVec2f_Init( PyObject *module );
+int UnaryFunction1DVec2f_Init(PyObject *module);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -65,4 +65,4 @@ int UnaryFunction1DVec2f_Init( PyObject *module );
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_UNARYFUNCTION1DVEC2F_H */
+#endif /* __FREESTYLE_PYTHON_UNARYFUNCTION1DVEC2F_H__ */

@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_CONTEXTFUNCTIONS_H
-#define FREESTYLE_PYTHON_CONTEXTFUNCTIONS_H
+#ifndef __FREESTYLE_PYTHON_CONTEXTFUNCTIONS_H__
+#define __FREESTYLE_PYTHON_CONTEXTFUNCTIONS_H__
 
 #include <Python.h>
 
@@ -40,10 +40,10 @@ extern "C" {
 
 /*---------------------------Python BPy_ContextFunctions visible prototypes-----------*/
 
-int ContextFunctions_Init( PyObject *module );
+int ContextFunctions_Init(PyObject *module);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_CONTEXTFUNCTIONS_H */
+#endif /* __FREESTYLE_PYTHON_CONTEXTFUNCTIONS_H__ */

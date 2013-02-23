@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_TRUEUP0D_H
-#define FREESTYLE_PYTHON_TRUEUP0D_H
+#ifndef __FREESTYLE_PYTHON_TRUEUP0D_H__
+#define __FREESTYLE_PYTHON_TRUEUP0D_H__
 
 #include "../BPy_UnaryPredicate0D.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject TrueUP0D_Type;
 
-#define BPy_TrueUP0D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &TrueUP0D_Type)  )
+#define BPy_TrueUP0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&TrueUP0D_Type))
 
 /*---------------------------Python BPy_TrueUP0D structure definition----------*/
 typedef struct {
@@ -57,4 +57,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_TRUEUP0D_H */
+#endif /* __FREESTYLE_PYTHON_TRUEUP0D_H__ */

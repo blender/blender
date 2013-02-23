@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_THICKNESSVARIATIONPATTERNSHADER_H
-#define FREESTYLE_PYTHON_THICKNESSVARIATIONPATTERNSHADER_H
+#ifndef __FREESTYLE_PYTHON_THICKNESSVARIATIONPATTERNSHADER_H__
+#define __FREESTYLE_PYTHON_THICKNESSVARIATIONPATTERNSHADER_H__
 
 #include "../BPy_StrokeShader.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject ThicknessVariationPatternShader_Type;
 
-#define BPy_ThicknessVariationPatternShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ThicknessVariationPatternShader_Type)  )
+#define BPy_ThicknessVariationPatternShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ThicknessVariationPatternShader_Type))
 
 /*---------------------------Python BPy_ThicknessVariationPatternShader structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_THICKNESSVARIATIONPATTERNSHADER_H */
+#endif /* __FREESTYLE_PYTHON_THICKNESSVARIATIONPATTERNSHADER_H__ */

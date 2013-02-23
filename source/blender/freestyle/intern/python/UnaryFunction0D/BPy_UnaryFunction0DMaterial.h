@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_UNARYFUNCTION0DMATERIAL_H
-#define FREESTYLE_PYTHON_UNARYFUNCTION0DMATERIAL_H
+#ifndef __FREESTYLE_PYTHON_UNARYFUNCTION0DMATERIAL_H__
+#define __FREESTYLE_PYTHON_UNARYFUNCTION0DMATERIAL_H__
 
 #include "../BPy_UnaryFunction0D.h"
 
@@ -46,7 +46,7 @@ extern "C" {
 
 extern PyTypeObject UnaryFunction0DMaterial_Type;
 
-#define BPy_UnaryFunction0DMaterial_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &UnaryFunction0DMaterial_Type)  )
+#define BPy_UnaryFunction0DMaterial_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction0DMaterial_Type))
 
 /*---------------------------Python BPy_UnaryFunction0DMaterial structure definition----------*/
 typedef struct {
@@ -55,7 +55,7 @@ typedef struct {
 } BPy_UnaryFunction0DMaterial;
 
 /*---------------------------Python BPy_UnaryFunction0DMaterial visible prototypes-----------*/
-int UnaryFunction0DMaterial_Init( PyObject *module );
+int UnaryFunction0DMaterial_Init(PyObject *module);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -64,4 +64,4 @@ int UnaryFunction0DMaterial_Init( PyObject *module );
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_UNARYFUNCTION0DMATERIAL_H */
+#endif /* __FREESTYLE_PYTHON_UNARYFUNCTION0DMATERIAL_H__ */

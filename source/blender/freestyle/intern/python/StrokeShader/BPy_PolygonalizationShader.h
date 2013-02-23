@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_POLYGONALIZATIONSHADER_H
-#define FREESTYLE_PYTHON_POLYGONALIZATIONSHADER_H
+#ifndef __FREESTYLE_PYTHON_POLYGONALIZATIONSHADER_H__
+#define __FREESTYLE_PYTHON_POLYGONALIZATIONSHADER_H__
 
 #include "../BPy_StrokeShader.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject PolygonalizationShader_Type;
 
-#define BPy_PolygonalizationShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &PolygonalizationShader_Type)  )
+#define BPy_PolygonalizationShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&PolygonalizationShader_Type))
 
 /*---------------------------Python BPy_PolygonalizationShader structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_POLYGONALIZATIONSHADER_H */
+#endif /* __FREESTYLE_PYTHON_POLYGONALIZATIONSHADER_H__ */

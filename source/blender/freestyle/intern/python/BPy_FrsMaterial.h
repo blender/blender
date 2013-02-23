@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_FRSMATERIAL_H
-#define FREESTYLE_PYTHON_FRSMATERIAL_H
+#ifndef __FREESTYLE_PYTHON_FRSMATERIAL_H__
+#define __FREESTYLE_PYTHON_FRSMATERIAL_H__
 
 #include <Python.h>
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject FrsMaterial_Type;
 
-#define BPy_FrsMaterial_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &FrsMaterial_Type)  )
+#define BPy_FrsMaterial_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&FrsMaterial_Type))
 
 /*---------------------------Python BPy_FrsMaterial structure definition----------*/
 typedef struct {
@@ -54,7 +54,7 @@ typedef struct {
 
 /*---------------------------Python BPy_FrsMaterial visible prototypes-----------*/
 
-int FrsMaterial_Init( PyObject *module );
+int FrsMaterial_Init(PyObject *module);
 void FrsMaterial_mathutils_register_callback();
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -64,4 +64,4 @@ void FrsMaterial_mathutils_register_callback();
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_FRSMATERIAL_H */
+#endif /* __FREESTYLE_PYTHON_FRSMATERIAL_H__ */

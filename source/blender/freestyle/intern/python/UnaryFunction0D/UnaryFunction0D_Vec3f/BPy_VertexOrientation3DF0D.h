@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_VERTEXORIENTATION3DF0D_H
-#define FREESTYLE_PYTHON_VERTEXORIENTATION3DF0D_H
+#ifndef __FREESTYLE_PYTHON_VERTEXORIENTATION3DF0D_H__
+#define __FREESTYLE_PYTHON_VERTEXORIENTATION3DF0D_H__
 
 #include "../BPy_UnaryFunction0DVec3f.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject VertexOrientation3DF0D_Type;
 
-#define BPy_VertexOrientation3DF0D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &VertexOrientation3DF0D_Type)  )
+#define BPy_VertexOrientation3DF0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&VertexOrientation3DF0D_Type))
 
 /*---------------------------Python BPy_VertexOrientation3DF0D structure definition----------*/
 typedef struct {
@@ -58,4 +58,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_VERTEXORIENTATION3DF0D_H */
+#endif /* __FREESTYLE_PYTHON_VERTEXORIENTATION3DF0D_H__ */

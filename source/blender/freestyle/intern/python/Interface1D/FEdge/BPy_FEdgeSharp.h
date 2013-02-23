@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_FEDGESHARP_H
-#define FREESTYLE_PYTHON_FEDGESHARP_H
+#ifndef __FREESTYLE_PYTHON_FEDGESHARP_H__
+#define __FREESTYLE_PYTHON_FEDGESHARP_H__
 
 #include "../BPy_FEdge.h"
 #include "../../../view_map/Silhouette.h"
@@ -45,7 +45,7 @@ extern "C" {
 
 extern PyTypeObject FEdgeSharp_Type;
 
-#define BPy_FEdgeSharp_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &FEdgeSharp_Type)  )
+#define BPy_FEdgeSharp_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&FEdgeSharp_Type))
 
 /*---------------------------Python BPy_FEdgeSharp structure definition----------*/
 typedef struct {
@@ -63,4 +63,4 @@ void FEdgeSharp_mathutils_register_callback();
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_FEDGESHARP_H */
+#endif /* __FREESTYLE_PYTHON_FEDGESHARP_H__ */

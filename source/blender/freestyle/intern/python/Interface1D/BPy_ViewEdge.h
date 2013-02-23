@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_VIEWEDGE_H
-#define FREESTYLE_PYTHON_VIEWEDGE_H
+#ifndef __FREESTYLE_PYTHON_VIEWEDGE_H__
+#define __FREESTYLE_PYTHON_VIEWEDGE_H__
 
 #include "../../view_map/ViewMap.h"
 
@@ -46,7 +46,7 @@ extern "C" {
 
 extern PyTypeObject ViewEdge_Type;
 
-#define BPy_ViewEdge_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ViewEdge_Type)  )
+#define BPy_ViewEdge_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ViewEdge_Type))
 
 /*---------------------------Python BPy_ViewEdge structure definition----------*/
 typedef struct {
@@ -60,4 +60,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_VIEWEDGE_H */
+#endif /* __FREESTYLE_PYTHON_VIEWEDGE_H__ */

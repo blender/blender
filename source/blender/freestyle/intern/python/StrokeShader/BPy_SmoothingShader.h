@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHONSMOOTHINGSHADER_H
-#define FREESTYLE_PYTHONSMOOTHINGSHADER_H
+#ifndef __FREESTYLE_PYTHONSMOOTHINGSHADER_H__
+#define __FREESTYLE_PYTHONSMOOTHINGSHADER_H__
 
 #include "../BPy_StrokeShader.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject SmoothingShader_Type;
 
-#define BPy_SmoothingShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &SmoothingShader_Type)  )
+#define BPy_SmoothingShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&SmoothingShader_Type))
 
 /*---------------------------Python BPy_SmoothingShader structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 #endif
 
 
-#endif /* FREESTYLE_PYTHONSMOOTHINGSHADER_H */
+#endif /* __FREESTYLE_PYTHONSMOOTHINGSHADER_H__ */

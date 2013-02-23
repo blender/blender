@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_CALLIGRAPHICSHADER_H
-#define FREESTYLE_PYTHON_CALLIGRAPHICSHADER_H
+#ifndef __FREESTYLE_PYTHON_CALLIGRAPHICSHADER_H__
+#define __FREESTYLE_PYTHON_CALLIGRAPHICSHADER_H__
 
 #include "../BPy_StrokeShader.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject CalligraphicShader_Type;
 
-#define BPy_CalligraphicShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &CalligraphicShader_Type)
+#define BPy_CalligraphicShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&CalligraphicShader_Type)
 
 /*---------------------------Python BPy_CalligraphicShader structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_CALLIGRAPHICSHADER_H */
+#endif /* __FREESTYLE_PYTHON_CALLIGRAPHICSHADER_H__ */

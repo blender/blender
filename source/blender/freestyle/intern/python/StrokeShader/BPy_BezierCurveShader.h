@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_BEZIERCURVESHADER_H
-#define FREESTYLE_PYTHON_BEZIERCURVESHADER_H
+#ifndef __FREESTYLE_PYTHON_BEZIERCURVESHADER_H__
+#define __FREESTYLE_PYTHON_BEZIERCURVESHADER_H__
 
 #include "../BPy_StrokeShader.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject BezierCurveShader_Type;
 
-#define BPy_BezierCurveShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &BezierCurveShader_Type)  )
+#define BPy_BezierCurveShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&BezierCurveShader_Type))
 
 /*---------------------------Python BPy_BezierCurveShader structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_BEZIERCURVESHADER_H */
+#endif /* __FREESTYLE_PYTHON_BEZIERCURVESHADER_H__ */

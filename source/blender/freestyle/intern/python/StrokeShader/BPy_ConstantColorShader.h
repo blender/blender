@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_CONSTANTCOLORSHADER_H
-#define FREESTYLE_PYTHON_CONSTANTCOLORSHADER_H
+#ifndef __FREESTYLE_PYTHON_CONSTANTCOLORSHADER_H__
+#define __FREESTYLE_PYTHON_CONSTANTCOLORSHADER_H__
 
 #include "../BPy_StrokeShader.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject ConstantColorShader_Type;
 
-#define BPy_ConstantColorShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ConstantColorShader_Type)  )
+#define BPy_ConstantColorShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ConstantColorShader_Type))
 
 /*---------------------------Python BPy_ConstantColorShader structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_CONSTANTCOLORSHADER_H */
+#endif /* __FREESTYLE_PYTHON_CONSTANTCOLORSHADER_H__ */

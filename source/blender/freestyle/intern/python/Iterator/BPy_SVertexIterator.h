@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_SVERTEXITERATOR_H
-#define FREESTYLE_PYTHON_SVERTEXITERATOR_H
+#ifndef __FREESTYLE_PYTHON_SVERTEXITERATOR_H__
+#define __FREESTYLE_PYTHON_SVERTEXITERATOR_H__
 
 #include "../../view_map/ViewMapIterators.h"
 
@@ -47,7 +47,7 @@ extern "C" {
 
 extern PyTypeObject SVertexIterator_Type;
 
-#define BPy_SVertexIterator_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &SVertexIterator_Type)  )
+#define BPy_SVertexIterator_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&SVertexIterator_Type))
 
 /*---------------------------Python BPy_SVertexIterator structure definition----------*/
 typedef struct {
@@ -61,4 +61,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_SVERTEXITERATOR_H */
+#endif /* __FREESTYLE_PYTHON_SVERTEXITERATOR_H__ */

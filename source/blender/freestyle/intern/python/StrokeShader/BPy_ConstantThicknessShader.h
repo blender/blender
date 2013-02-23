@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_CONSTANTTHICKNESSSHADER_H
-#define FREESTYLE_PYTHON_CONSTANTTHICKNESSSHADER_H
+#ifndef __FREESTYLE_PYTHON_CONSTANTTHICKNESSSHADER_H__
+#define __FREESTYLE_PYTHON_CONSTANTTHICKNESSSHADER_H__
 
 #include "../BPy_StrokeShader.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject ConstantThicknessShader_Type;
 
-#define BPy_ConstantThicknessShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ConstantThicknessShader_Type)  )
+#define BPy_ConstantThicknessShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ConstantThicknessShader_Type))
 
 /*---------------------------Python BPy_ConstantThicknessShader structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_CONSTANTTHICKNESSSHADER_H */
+#endif /* __FREESTYLE_PYTHON_CONSTANTTHICKNESSSHADER_H__ */

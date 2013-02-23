@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_ITERATOR_H
-#define FREESTYLE_PYTHON_ITERATOR_H
+#ifndef __FREESTYLE_PYTHON_ITERATOR_H__
+#define __FREESTYLE_PYTHON_ITERATOR_H__
 
 #include <Python.h>
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject Iterator_Type;
 
-#define BPy_Iterator_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &Iterator_Type)  )
+#define BPy_Iterator_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&Iterator_Type))
 
 /*---------------------------Python BPy_Iterator structure definition----------*/
 typedef struct {
@@ -54,7 +54,7 @@ typedef struct {
 
 /*---------------------------Python BPy_Iterator visible prototypes-----------*/
 
-int Iterator_Init( PyObject *module );
+int Iterator_Init(PyObject *module);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -63,4 +63,4 @@ int Iterator_Init( PyObject *module );
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_ITERATOR_H */
+#endif /* __FREESTYLE_PYTHON_ITERATOR_H__ */

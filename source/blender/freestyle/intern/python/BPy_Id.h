@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_ID_H
-#define FREESTYLE_PYTHON_ID_H
+#ifndef __FREESTYLE_PYTHON_ID_H__
+#define __FREESTYLE_PYTHON_ID_H__
 
 #include <Python.h>
 #include <iostream>
@@ -46,7 +46,7 @@ extern "C" {
 
 extern PyTypeObject Id_Type;
 
-#define BPy_Id_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &Id_Type)  )
+#define BPy_Id_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&Id_Type))
 
 /*---------------------------Python BPy_Id structure definition----------*/
 typedef struct {
@@ -56,7 +56,7 @@ typedef struct {
 
 /*---------------------------Python BPy_Id visible prototypes-----------*/
 
-int Id_Init( PyObject *module );
+int Id_Init(PyObject *module);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -64,4 +64,4 @@ int Id_Init( PyObject *module );
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_ID_H */
+#endif /* __FREESTYLE_PYTHON_ID_H__ */

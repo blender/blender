@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_MEDIUMTYPE_H
-#define FREESTYLE_PYTHON_MEDIUMTYPE_H
+#ifndef __FREESTYLE_PYTHON_MEDIUMTYPE_H__
+#define __FREESTYLE_PYTHON_MEDIUMTYPE_H__
 
 #include <Python.h>
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject MediumType_Type;
 
-#define BPy_MediumType_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &MediumType_Type)  )
+#define BPy_MediumType_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&MediumType_Type))
 
 /*---------------------------Python BPy_MediumType structure definition----------*/
 typedef struct {
@@ -53,7 +53,7 @@ typedef struct {
 
 /*---------------------------Python BPy_MediumType visible prototypes-----------*/
 
-int MediumType_Init( PyObject *module );
+int MediumType_Init(PyObject *module);
 
 // internal constants
 extern PyLongObject _BPy_MediumType_DRY_MEDIUM;
@@ -70,4 +70,4 @@ extern PyLongObject _BPy_MediumType_OPAQUE_MEDIUM;
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_MEDIUMTYPE_H */
+#endif /* __FREESTYLE_PYTHON_MEDIUMTYPE_H__ */

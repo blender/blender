@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_FREESTYLE_H
-#define FREESTYLE_PYTHON_FREESTYLE_H
+#ifndef __FREESTYLE_PYTHON_FREESTYLE_H__
+#define __FREESTYLE_PYTHON_FREESTYLE_H__
 
 #include <Python.h>
 
@@ -42,7 +42,7 @@ extern "C" {
 
 /*---------------------------Python BPy_Freestyle visible prototypes-----------*/
 
-PyObject *Freestyle_Init( void );
+PyObject *Freestyle_Init(void);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -50,4 +50,4 @@ PyObject *Freestyle_Init( void );
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_FREESTYLE_H */
+#endif /* __FREESTYLE_PYTHON_FREESTYLE_H__ */

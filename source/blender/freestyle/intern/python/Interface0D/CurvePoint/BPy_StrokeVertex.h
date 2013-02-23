@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_STROKEVERTEX_H
-#define FREESTYLE_PYTHON_STROKEVERTEX_H
+#ifndef __FREESTYLE_PYTHON_STROKEVERTEX_H__
+#define __FREESTYLE_PYTHON_STROKEVERTEX_H__
 
 #include "../BPy_CurvePoint.h"
 #include "../../../stroke/Stroke.h"
@@ -45,7 +45,7 @@ extern "C" {
 
 extern PyTypeObject StrokeVertex_Type;
 
-#define BPy_StrokeVertex_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &StrokeVertex_Type)  )
+#define BPy_StrokeVertex_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&StrokeVertex_Type))
 
 /*---------------------------Python BPy_StrokeVertex structure definition----------*/
 typedef struct {
@@ -63,4 +63,4 @@ void StrokeVertex_mathutils_register_callback();
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_STROKEVERTEX_H */
+#endif /* __FREESTYLE_PYTHON_STROKEVERTEX_H__ */

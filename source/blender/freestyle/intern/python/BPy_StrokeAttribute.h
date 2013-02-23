@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_STROKEATTRIBUTE_H
-#define FREESTYLE_PYTHON_STROKEATTRIBUTE_H
+#ifndef __FREESTYLE_PYTHON_STROKEATTRIBUTE_H__
+#define __FREESTYLE_PYTHON_STROKEATTRIBUTE_H__
 
 #include <Python.h>
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject StrokeAttribute_Type;
 
-#define BPy_StrokeAttribute_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &StrokeAttribute_Type)  )
+#define BPy_StrokeAttribute_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&StrokeAttribute_Type))
 
 /*---------------------------Python BPy_StrokeAttribute structure definition----------*/
 typedef struct {
@@ -55,7 +55,7 @@ typedef struct {
 
 /*---------------------------Python BPy_StrokeAttribute visible prototypes-----------*/
 
-int StrokeAttribute_Init( PyObject *module );
+int StrokeAttribute_Init(PyObject *module);
 void StrokeAttribute_mathutils_register_callback();
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -64,4 +64,4 @@ void StrokeAttribute_mathutils_register_callback();
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_STROKEATTRIBUTE_H */
+#endif /* __FREESTYLE_PYTHON_STROKEATTRIBUTE_H__ */

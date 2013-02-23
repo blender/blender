@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_UNARYFUNCTION1DUNSIGNED_H
-#define FREESTYLE_PYTHON_UNARYFUNCTION1DUNSIGNED_H
+#ifndef __FREESTYLE_PYTHON_UNARYFUNCTION1DUNSIGNED_H__
+#define __FREESTYLE_PYTHON_UNARYFUNCTION1DUNSIGNED_H__
 
 #include "../BPy_UnaryFunction1D.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject UnaryFunction1DUnsigned_Type;
 
-#define BPy_UnaryFunction1DUnsigned_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &UnaryFunction1DUnsigned_Type)  )
+#define BPy_UnaryFunction1DUnsigned_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction1DUnsigned_Type))
 
 /*---------------------------Python BPy_UnaryFunction1DUnsigned structure definition----------*/
 typedef struct {
@@ -53,7 +53,7 @@ typedef struct {
 } BPy_UnaryFunction1DUnsigned;
 
 /*---------------------------Python BPy_UnaryFunction1DUnsigned visible prototypes-----------*/
-int UnaryFunction1DUnsigned_Init( PyObject *module );
+int UnaryFunction1DUnsigned_Init(PyObject *module);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -62,4 +62,4 @@ int UnaryFunction1DUnsigned_Init( PyObject *module );
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_UNARYFUNCTION1DUNSIGNED_H */
+#endif /* __FREESTYLE_PYTHON_UNARYFUNCTION1DUNSIGNED_H__ */

@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_UNARYFUNCTION1D_H
-#define FREESTYLE_PYTHON_UNARYFUNCTION1D_H
+#ifndef __FREESTYLE_PYTHON_UNARYFUNCTION1D_H__
+#define __FREESTYLE_PYTHON_UNARYFUNCTION1D_H__
 
 #include <Python.h>
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject UnaryFunction1D_Type;
 
-#define BPy_UnaryFunction1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &UnaryFunction1D_Type)  )
+#define BPy_UnaryFunction1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction1D_Type))
 
 /*---------------------------Python BPy_UnaryFunction1D structure definition----------*/
 typedef struct {
@@ -54,7 +54,7 @@ typedef struct {
 
 /*---------------------------Python BPy_UnaryFunction1D visible prototypes-----------*/
 
-int UnaryFunction1D_Init( PyObject *module );
+int UnaryFunction1D_Init(PyObject *module);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -62,4 +62,4 @@ int UnaryFunction1D_Init( PyObject *module );
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_UNARYFUNCTION1D_H */
+#endif /* __FREESTYLE_PYTHON_UNARYFUNCTION1D_H__ */

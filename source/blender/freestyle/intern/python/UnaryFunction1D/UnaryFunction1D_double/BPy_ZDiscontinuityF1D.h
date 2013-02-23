@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_ZDISCONTINUITYF1D_H
-#define FREESTYLE_PYTHON_ZDISCONTINUITYF1D_H
+#ifndef __FREESTYLE_PYTHON_ZDISCONTINUITYF1D_H__
+#define __FREESTYLE_PYTHON_ZDISCONTINUITYF1D_H__
 
 #include "../BPy_UnaryFunction1DDouble.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject ZDiscontinuityF1D_Type;
 
-#define BPy_ZDiscontinuityF1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ZDiscontinuityF1D_Type)  )
+#define BPy_ZDiscontinuityF1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ZDiscontinuityF1D_Type))
 
 /*---------------------------Python BPy_ZDiscontinuityF1D structure definition----------*/
 typedef struct {
@@ -58,4 +58,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_ZDISCONTINUITYF1D_H */
+#endif /* __FREESTYLE_PYTHON_ZDISCONTINUITYF1D_H__ */

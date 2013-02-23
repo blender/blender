@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_SAMESHAPEIDBP1D_H
-#define FREESTYLE_PYTHON_SAMESHAPEIDBP1D_H
+#ifndef __FREESTYLE_PYTHON_SAMESHAPEIDBP1D_H__
+#define __FREESTYLE_PYTHON_SAMESHAPEIDBP1D_H__
 
 #include "../BPy_BinaryPredicate1D.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject SameShapeIdBP1D_Type;
 
-#define BPy_SameShapeIdBP1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &SameShapeIdBP1D_Type)  )
+#define BPy_SameShapeIdBP1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&SameShapeIdBP1D_Type))
 
 /*---------------------------Python BPy_SameShapeIdBP1D structure definition----------*/
 typedef struct {
@@ -57,4 +57,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_SAMESHAPEIDBP1D_H */
+#endif /* __FREESTYLE_PYTHON_SAMESHAPEIDBP1D_H__ */

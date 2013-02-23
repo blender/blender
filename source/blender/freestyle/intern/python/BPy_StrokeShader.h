@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_STROKESHADER_H
-#define FREESTYLE_PYTHON_STROKESHADER_H
+#ifndef __FREESTYLE_PYTHON_STROKESHADER_H__
+#define __FREESTYLE_PYTHON_STROKESHADER_H__
 
 #include <Python.h>
 
@@ -48,7 +48,7 @@ extern "C" {
 
 extern PyTypeObject StrokeShader_Type;
 
-#define BPy_StrokeShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &StrokeShader_Type)  )
+#define BPy_StrokeShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&StrokeShader_Type))
 
 /*---------------------------Python BPy_StrokeShader structure definition----------*/
 typedef struct {
@@ -58,7 +58,7 @@ typedef struct {
 
 /*---------------------------Python BPy_StrokeShader visible prototypes-----------*/
 
-int StrokeShader_Init( PyObject *module );
+int StrokeShader_Init(PyObject *module);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -68,4 +68,4 @@ int StrokeShader_Init( PyObject *module );
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_STROKESHADER_H */
+#endif /* __FREESTYLE_PYTHON_STROKESHADER_H__ */

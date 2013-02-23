@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_LENGTH2DBP1D_H
-#define FREESTYLE_PYTHON_LENGTH2DBP1D_H
+#ifndef __FREESTYLE_PYTHON_LENGTH2DBP1D_H__
+#define __FREESTYLE_PYTHON_LENGTH2DBP1D_H__
 
 #include "../BPy_BinaryPredicate1D.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject Length2DBP1D_Type;
 
-#define BPy_Length2DBP1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &Length2DBP1D_Type)  )
+#define BPy_Length2DBP1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&Length2DBP1D_Type))
 
 /*---------------------------Python BPy_Length2DBP1D structure definition----------*/
 typedef struct {
@@ -57,4 +57,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_LENGTH2DBP1D_H */
+#endif /* __FREESTYLE_PYTHON_LENGTH2DBP1D_H__ */

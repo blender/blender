@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_INTERFACE1D_H
-#define FREESTYLE_PYTHON_INTERFACE1D_H
+#ifndef __FREESTYLE_PYTHON_INTERFACE1D_H__
+#define __FREESTYLE_PYTHON_INTERFACE1D_H__
 
 #include <Python.h>
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject Interface1D_Type;
 
-#define BPy_Interface1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &Interface1D_Type)  )
+#define BPy_Interface1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&Interface1D_Type))
 
 /*---------------------------Python BPy_Interface1D structure definition----------*/
 typedef struct {
@@ -55,7 +55,7 @@ typedef struct {
 
 /*---------------------------Python BPy_Interface1D visible prototypes-----------*/
 
-int Interface1D_Init( PyObject *module );
+int Interface1D_Init(PyObject *module);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -64,4 +64,4 @@ int Interface1D_Init( PyObject *module );
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_INTERFACE1D_H */
+#endif /* __FREESTYLE_PYTHON_INTERFACE1D_H__ */

@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_BBOX_H
-#define FREESTYLE_PYTHON_BBOX_H
+#ifndef __FREESTYLE_PYTHON_BBOX_H__
+#define __FREESTYLE_PYTHON_BBOX_H__
 
 #include <Python.h>
 
@@ -46,7 +46,7 @@ extern "C" {
 
 extern PyTypeObject BBox_Type;
 
-#define BPy_BBox_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &BBox_Type)  )
+#define BPy_BBox_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&BBox_Type))
 
 /*---------------------------Python BPy_BBox structure definition----------*/
 typedef struct {
@@ -56,7 +56,7 @@ typedef struct {
 
 /*---------------------------Python BPy_BBox visible prototypes-----------*/
 
-int BBox_Init( PyObject *module );
+int BBox_Init(PyObject *module);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -66,4 +66,4 @@ int BBox_Init( PyObject *module );
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_BBOX_H */
+#endif /* __FREESTYLE_PYTHON_BBOX_H__ */

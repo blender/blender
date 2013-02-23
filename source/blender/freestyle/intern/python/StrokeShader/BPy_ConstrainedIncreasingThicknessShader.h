@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_CONSTRAINEDINCREASINGTHICKNESSSHADER_H
-#define FREESTYLE_PYTHON_CONSTRAINEDINCREASINGTHICKNESSSHADER_H
+#ifndef __FREESTYLE_PYTHON_CONSTRAINEDINCREASINGTHICKNESSSHADER_H__
+#define __FREESTYLE_PYTHON_CONSTRAINEDINCREASINGTHICKNESSSHADER_H__
 
 #include "../BPy_StrokeShader.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject ConstrainedIncreasingThicknessShader_Type;
 
-#define BPy_ConstrainedIncreasingThicknessShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ConstrainedIncreasingThicknessShader_Type)  )
+#define BPy_ConstrainedIncreasingThicknessShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ConstrainedIncreasingThicknessShader_Type))
 
 /*---------------------------Python BPy_ConstrainedIncreasingThicknessShader structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_CONSTRAINEDINCREASINGTHICKNESSSHADER_H */
+#endif /* __FREESTYLE_PYTHON_CONSTRAINEDINCREASINGTHICKNESSSHADER_H__ */

@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_GUIDINGLINESSHADER_H
-#define FREESTYLE_PYTHON_GUIDINGLINESSHADER_H
+#ifndef __FREESTYLE_PYTHON_GUIDINGLINESSHADER_H__
+#define __FREESTYLE_PYTHON_GUIDINGLINESSHADER_H__
 
 #include "../BPy_StrokeShader.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject GuidingLinesShader_Type;
 
-#define BPy_GuidingLinesShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &GuidingLinesShader_Type)  )
+#define BPy_GuidingLinesShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&GuidingLinesShader_Type))
 
 /*---------------------------Python BPy_GuidingLinesShader structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_GUIDINGLINESSHADER_H */
+#endif /* __FREESTYLE_PYTHON_GUIDINGLINESSHADER_H__ */

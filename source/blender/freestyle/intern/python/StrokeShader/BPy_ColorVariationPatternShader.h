@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_COLORVARIATIONPATTERNSHADER_H
-#define FREESTYLE_PYTHON_COLORVARIATIONPATTERNSHADER_H
+#ifndef __FREESTYLE_PYTHON_COLORVARIATIONPATTERNSHADER_H__
+#define __FREESTYLE_PYTHON_COLORVARIATIONPATTERNSHADER_H__
 
 #include "../BPy_StrokeShader.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject ColorVariationPatternShader_Type;
 
-#define BPy_ColorVariationPatternShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ColorVariationPatternShader_Type)  )
+#define BPy_ColorVariationPatternShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ColorVariationPatternShader_Type))
 
 /*---------------------------Python BPy_ColorVariationPatternShader structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_COLORVARIATIONPATTERNSHADER_H */
+#endif /* __FREESTYLE_PYTHON_COLORVARIATIONPATTERNSHADER_H__ */

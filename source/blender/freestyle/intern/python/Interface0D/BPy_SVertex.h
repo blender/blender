@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_SVERTEX_H
-#define FREESTYLE_PYTHON_SVERTEX_H
+#ifndef __FREESTYLE_PYTHON_SVERTEX_H__
+#define __FREESTYLE_PYTHON_SVERTEX_H__
 
 #include "../../view_map/Silhouette.h"
 #include "../BPy_Interface0D.h"
@@ -46,7 +46,7 @@ extern "C" {
 
 extern PyTypeObject SVertex_Type;
 
-#define BPy_SVertex_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &SVertex_Type)  )
+#define BPy_SVertex_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&SVertex_Type))
 
 /*---------------------------Python BPy_SVertex structure definition----------*/
 typedef struct {
@@ -64,4 +64,4 @@ void SVertex_mathutils_register_callback();
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_SVERTEX_H */
+#endif /* __FREESTYLE_PYTHON_SVERTEX_H__ */

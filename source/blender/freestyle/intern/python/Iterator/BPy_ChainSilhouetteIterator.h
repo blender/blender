@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_CHAINSILHOUETTEITERATOR_H
-#define FREESTYLE_PYTHON_CHAINSILHOUETTEITERATOR_H
+#ifndef __FREESTYLE_PYTHON_CHAINSILHOUETTEITERATOR_H__
+#define __FREESTYLE_PYTHON_CHAINSILHOUETTEITERATOR_H__
 
 
 #include "../../stroke/ChainingIterators.h"
@@ -47,7 +47,7 @@ extern "C" {
 
 extern PyTypeObject ChainSilhouetteIterator_Type;
 
-#define BPy_ChainSilhouetteIterator_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ChainSilhouetteIterator_Type)  )
+#define BPy_ChainSilhouetteIterator_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ChainSilhouetteIterator_Type))
 
 /*---------------------------Python BPy_ChainSilhouetteIterator structure definition----------*/
 typedef struct {
@@ -61,4 +61,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_CHAINSILHOUETTEITERATOR_H */
+#endif /* __FREESTYLE_PYTHON_CHAINSILHOUETTEITERATOR_H__ */

@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_VIEWSHAPE_H
-#define FREESTYLE_PYTHON_VIEWSHAPE_H
+#ifndef __FREESTYLE_PYTHON_VIEWSHAPE_H__
+#define __FREESTYLE_PYTHON_VIEWSHAPE_H__
 
 #include <Python.h>
 
@@ -46,7 +46,7 @@ extern "C" {
 
 extern PyTypeObject ViewShape_Type;
 
-#define BPy_ViewShape_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ViewShape_Type)  )
+#define BPy_ViewShape_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ViewShape_Type))
 
 /*---------------------------Python BPy_ViewShape structure definition----------*/
 typedef struct {
@@ -58,7 +58,7 @@ typedef struct {
 
 /*---------------------------Python BPy_ViewShape visible prototypes-----------*/
 
-int ViewShape_Init( PyObject *module );
+int ViewShape_Init(PyObject *module);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -66,4 +66,4 @@ int ViewShape_Init( PyObject *module );
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_VIEWSHAPE_H */
+#endif /* __FREESTYLE_PYTHON_VIEWSHAPE_H__ */

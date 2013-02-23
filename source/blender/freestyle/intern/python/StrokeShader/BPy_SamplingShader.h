@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_SAMPLINGSHADER_H
-#define FREESTYLE_PYTHON_SAMPLINGSHADER_H
+#ifndef __FREESTYLE_PYTHON_SAMPLINGSHADER_H__
+#define __FREESTYLE_PYTHON_SAMPLINGSHADER_H__
 
 #include "../BPy_StrokeShader.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject SamplingShader_Type;
 
-#define BPy_SamplingShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &SamplingShader_Type)  )
+#define BPy_SamplingShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&SamplingShader_Type))
 
 /*---------------------------Python BPy_SamplingShader structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_SAMPLINGSHADER_H */
+#endif /* __FREESTYLE_PYTHON_SAMPLINGSHADER_H__ */

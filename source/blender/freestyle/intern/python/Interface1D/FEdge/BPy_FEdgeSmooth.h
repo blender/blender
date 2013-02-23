@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_FEDGESMOOTH_H
-#define FREESTYLE_PYTHON_FEDGESMOOTH_H
+#ifndef __FREESTYLE_PYTHON_FEDGESMOOTH_H__
+#define __FREESTYLE_PYTHON_FEDGESMOOTH_H__
 
 #include "../BPy_FEdge.h"
 #include "../../../view_map/Silhouette.h"
@@ -45,7 +45,7 @@ extern "C" {
 
 extern PyTypeObject FEdgeSmooth_Type;
 
-#define BPy_FEdgeSmooth_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &FEdgeSmooth_Type)  )
+#define BPy_FEdgeSmooth_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&FEdgeSmooth_Type))
 
 /*---------------------------Python BPy_FEdgeSmooth structure definition----------*/
 typedef struct {
@@ -63,4 +63,4 @@ void FEdgeSmooth_mathutils_register_callback();
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_FEDGESMOOTH_H */
+#endif /* __FREESTYLE_PYTHON_FEDGESMOOTH_H__ */

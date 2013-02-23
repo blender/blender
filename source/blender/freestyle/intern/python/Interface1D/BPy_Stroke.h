@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_STROKE_H
-#define FREESTYLE_PYTHON_STROKE_H
+#ifndef __FREESTYLE_PYTHON_STROKE_H__
+#define __FREESTYLE_PYTHON_STROKE_H__
 
 #include "../BPy_Interface1D.h"
 #include "../../stroke/Stroke.h"
@@ -45,7 +45,7 @@ extern "C" {
 
 extern PyTypeObject Stroke_Type;
 
-#define BPy_Stroke_Check(v)	(( (PyObject *) v)->ob_type == &Stroke_Type)
+#define BPy_Stroke_Check(v)	(((PyObject *)v)->ob_type == &Stroke_Type)
 
 /*---------------------------Python BPy_Stroke structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_STROKE_H */
+#endif /* __FREESTYLE_PYTHON_STROKE_H__ */

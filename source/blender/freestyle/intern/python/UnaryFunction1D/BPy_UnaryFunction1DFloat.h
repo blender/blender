@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_UNARYFUNCTION1DFLOAT_H
-#define FREESTYLE_PYTHON_UNARYFUNCTION1DFLOAT_H
+#ifndef __FREESTYLE_PYTHON_UNARYFUNCTION1DFLOAT_H__
+#define __FREESTYLE_PYTHON_UNARYFUNCTION1DFLOAT_H__
 
 #include "../BPy_UnaryFunction1D.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject UnaryFunction1DFloat_Type;
 
-#define BPy_UnaryFunction1DFloat_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &UnaryFunction1DFloat_Type)  )
+#define BPy_UnaryFunction1DFloat_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction1DFloat_Type))
 
 /*---------------------------Python BPy_UnaryFunction1DFloat structure definition----------*/
 typedef struct {
@@ -53,7 +53,7 @@ typedef struct {
 } BPy_UnaryFunction1DFloat;
 
 /*---------------------------Python BPy_UnaryFunction1DFloat visible prototypes-----------*/
-int UnaryFunction1DFloat_Init( PyObject *module );
+int UnaryFunction1DFloat_Init(PyObject *module);
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -62,4 +62,4 @@ int UnaryFunction1DFloat_Init( PyObject *module );
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_UNARYFUNCTION1DFLOAT_H */
+#endif /* __FREESTYLE_PYTHON_UNARYFUNCTION1DFLOAT_H__ */

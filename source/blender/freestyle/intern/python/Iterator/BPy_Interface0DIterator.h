@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_INTERFACE0DITERATOR_H
-#define FREESTYLE_PYTHON_INTERFACE0DITERATOR_H
+#ifndef __FREESTYLE_PYTHON_INTERFACE0DITERATOR_H__
+#define __FREESTYLE_PYTHON_INTERFACE0DITERATOR_H__
 
 #include "../../view_map/Interface0D.h"
 #include "../BPy_Iterator.h"
@@ -46,7 +46,7 @@ extern "C" {
 
 extern PyTypeObject Interface0DIterator_Type;
 
-#define BPy_Interface0DIterator_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &Interface0DIterator_Type)  )
+#define BPy_Interface0DIterator_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&Interface0DIterator_Type))
 
 /*---------------------------Python BPy_Interface0DIterator structure definition----------*/
 typedef struct {
@@ -61,4 +61,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_INTERFACE0DITERATOR_H */
+#endif /* __FREESTYLE_PYTHON_INTERFACE0DITERATOR_H__ */

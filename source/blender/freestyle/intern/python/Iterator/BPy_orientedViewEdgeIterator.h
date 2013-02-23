@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_ORIENTEDVIEWEDGEITERATOR_H
-#define FREESTYLE_PYTHON_ORIENTEDVIEWEDGEITERATOR_H
+#ifndef __FREESTYLE_PYTHON_ORIENTEDVIEWEDGEITERATOR_H__
+#define __FREESTYLE_PYTHON_ORIENTEDVIEWEDGEITERATOR_H__
 
 #include "../../stroke/Stroke.h"
 #include "../../view_map/ViewMapIterators.h"
@@ -47,7 +47,7 @@ extern "C" {
 
 extern PyTypeObject orientedViewEdgeIterator_Type;
 
-#define BPy_orientedViewEdgeIterator_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &orientedViewEdgeIterator_Type)  )
+#define BPy_orientedViewEdgeIterator_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&orientedViewEdgeIterator_Type))
 
 /*---------------------------Python BPy_orientedViewEdgeIterator structure definition----------*/
 typedef struct {
@@ -62,4 +62,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_ORIENTEDVIEWEDGEITERATOR_H */
+#endif /* __FREESTYLE_PYTHON_ORIENTEDVIEWEDGEITERATOR_H__ */

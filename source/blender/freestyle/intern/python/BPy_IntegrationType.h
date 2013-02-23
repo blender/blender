@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_INTEGRATIONTYPE_H
-#define FREESTYLE_PYTHON_INTEGRATIONTYPE_H
+#ifndef __FREESTYLE_PYTHON_INTEGRATIONTYPE_H__
+#define __FREESTYLE_PYTHON_INTEGRATIONTYPE_H__
 
 #include <Python.h>
 
@@ -44,11 +44,11 @@ extern "C" {
 
 extern PyTypeObject IntegrationType_Type;
 
-#define BPy_IntegrationType_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &IntegrationType_Type)  )
+#define BPy_IntegrationType_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&IntegrationType_Type))
 
 /*---------------------------Python BPy_IntegrationType visible prototypes-----------*/
 
-int IntegrationType_Init( PyObject *module );
+int IntegrationType_Init(PyObject *module);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -56,4 +56,4 @@ int IntegrationType_Init( PyObject *module );
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_INTEGRATIONTYPE_H */
+#endif /* __FREESTYLE_PYTHON_INTEGRATIONTYPE_H__ */

@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_SPATIALNOISESHADER_H
-#define FREESTYLE_PYTHON_SPATIALNOISESHADER_H
+#ifndef __FREESTYLE_PYTHON_SPATIALNOISESHADER_H__
+#define __FREESTYLE_PYTHON_SPATIALNOISESHADER_H__
 
 #include "../BPy_StrokeShader.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject SpatialNoiseShader_Type;
 
-#define BPy_SpatialNoiseShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &SpatialNoiseShader_Type)  )
+#define BPy_SpatialNoiseShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&SpatialNoiseShader_Type))
 
 /*---------------------------Python BPy_SpatialNoiseShader structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_SPATIALNOISESHADER_H */
+#endif /* __FREESTYLE_PYTHON_SPATIALNOISESHADER_H__ */

@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_SSHAPE_H
-#define FREESTYLE_PYTHON_SSHAPE_H
+#ifndef __FREESTYLE_PYTHON_SSHAPE_H__
+#define __FREESTYLE_PYTHON_SSHAPE_H__
 
 #include <Python.h>
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject SShape_Type;
 
-#define BPy_SShape_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &SShape_Type)  )
+#define BPy_SShape_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&SShape_Type))
 
 /*---------------------------Python BPy_SShape structure definition----------*/
 typedef struct {
@@ -55,7 +55,7 @@ typedef struct {
 
 /*---------------------------Python BPy_SShape visible prototypes-----------*/
 
-int SShape_Init( PyObject *module );
+int SShape_Init(PyObject *module);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -63,4 +63,4 @@ int SShape_Init( PyObject *module );
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_SSHAPE_H */
+#endif /* __FREESTYLE_PYTHON_SSHAPE_H__ */

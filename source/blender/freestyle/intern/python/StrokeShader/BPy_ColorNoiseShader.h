@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_COLORNOISESHADER_H
-#define FREESTYLE_PYTHON_COLORNOISESHADER_H
+#ifndef __FREESTYLE_PYTHON_COLORNOISESHADER_H__
+#define __FREESTYLE_PYTHON_COLORNOISESHADER_H__
 
 #include "../BPy_StrokeShader.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject ColorNoiseShader_Type;
 
-#define BPy_ColorNoiseShader_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &ColorNoiseShader_Type)  )
+#define BPy_ColorNoiseShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ColorNoiseShader_Type))
 
 /*---------------------------Python BPy_ColorNoiseShader structure definition----------*/
 typedef struct {
@@ -59,4 +59,4 @@ typedef struct {
 #endif
 
 
-#endif /* FREESTYLE_PYTHON_COLORNOISESHADER_H */
+#endif /* __FREESTYLE_PYTHON_COLORNOISESHADER_H__ */

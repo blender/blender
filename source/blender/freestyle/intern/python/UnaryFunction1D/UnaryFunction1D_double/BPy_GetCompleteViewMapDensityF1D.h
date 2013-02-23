@@ -29,8 +29,8 @@
  *  \ingroup freestyle
  */
 
-#ifndef FREESTYLE_PYTHON_GETCOMPLETEVIEWMAPDENSITYF1D_H
-#define FREESTYLE_PYTHON_GETCOMPLETEVIEWMAPDENSITYF1D_H
+#ifndef __FREESTYLE_PYTHON_GETCOMPLETEVIEWMAPDENSITYF1D_H__
+#define __FREESTYLE_PYTHON_GETCOMPLETEVIEWMAPDENSITYF1D_H__
 
 #include "../BPy_UnaryFunction1DDouble.h"
 
@@ -44,7 +44,7 @@ extern "C" {
 
 extern PyTypeObject GetCompleteViewMapDensityF1D_Type;
 
-#define BPy_GetCompleteViewMapDensityF1D_Check(v)	(  PyObject_IsInstance( (PyObject *) v, (PyObject *) &GetCompleteViewMapDensityF1D_Type)  )
+#define BPy_GetCompleteViewMapDensityF1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetCompleteViewMapDensityF1D_Type))
 
 /*---------------------------Python BPy_GetCompleteViewMapDensityF1D structure definition----------*/
 typedef struct {
@@ -58,4 +58,4 @@ typedef struct {
 }
 #endif
 
-#endif /* FREESTYLE_PYTHON_GETCOMPLETEVIEWMAPDENSITYF1D_H */
+#endif /* __FREESTYLE_PYTHON_GETCOMPLETEVIEWMAPDENSITYF1D_H__ */
