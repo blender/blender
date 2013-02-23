@@ -618,14 +618,9 @@ static bool ConvertMaterial(
 					else
 					{
 						mttmp = getImageFromMaterial( mat, i );
-						if (mttmp && mttmp->texco &TEXCO_UV)
-						{
-							STR_String uvName = mttmp->uvname;
-
-							if (!uvName.IsEmpty())
-								material->mapping[i].uvCoName = mttmp->uvname;
-							else
-								material->mapping[i].uvCoName = "";
+						if (mttmp && (mttmp->texco & TEXCO_UV)) {
+							/* string may be "" but thats detected as empty after */
+							material->mapping[i].uvCoName = mttmp->uvname;
 						}
 						material->mapping[i].mapping |= USEUV;
 					}
@@ -706,14 +701,9 @@ static bool ConvertMaterial(
 							material->mapping[i].mapping |= USEREFL;
 						else if (mttmp->texco &(TEXCO_ORCO|TEXCO_GLOB))
 							material->mapping[i].mapping |= USEORCO;
-						else if (mttmp->texco &TEXCO_UV)
-						{
-							STR_String uvName = mttmp->uvname;
-
-							if (!uvName.IsEmpty())
-								material->mapping[i].uvCoName = mttmp->uvname;
-							else
-								material->mapping[i].uvCoName = "";
+						else if (mttmp->texco & TEXCO_UV) {
+							/* string may be "" but thats detected as empty after */
+							material->mapping[i].uvCoName = mttmp->uvname;
 							material->mapping[i].mapping |= USEUV;
 						}
 						else if (mttmp->texco &TEXCO_NORM)
