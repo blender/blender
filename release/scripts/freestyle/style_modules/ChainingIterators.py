@@ -35,8 +35,6 @@ from freestyle_init import *
 class pyChainSilhouetteIterator(ChainingIterator):
 	def __init__(self, stayInSelection=True):
 		ChainingIterator.__init__(self, stayInSelection, True, None, True)
-	def getExactTypeName(self):
-		return "pyChainSilhouetteIterator"
 	def init(self):
 		pass
 	def traverse(self, iter):
@@ -87,8 +85,6 @@ class pyChainSilhouetteIterator(ChainingIterator):
 class pyChainSilhouetteGenericIterator(ChainingIterator):
 	def __init__(self, stayInSelection=True, stayInUnvisited=True):
 		ChainingIterator.__init__(self, stayInSelection, stayInUnvisited, None, True)
-	def getExactTypeName(self):
-		return "pyChainSilhouetteGenericIterator"
 	def init(self):
 		pass
 	def traverse(self, iter):
@@ -137,8 +133,6 @@ class pyExternalContourChainingIterator(ChainingIterator):
 	def __init__(self):
 		ChainingIterator.__init__(self, False, True, None, True)
 		self._isExternalContour = ExternalContourUP1D()
-	def getExactTypeName(self):
-		return "pyExternalContourIterator"
 	def init(self):
 		self._nEdges = 0
 		self._isInSelection = 1
@@ -186,8 +180,6 @@ class pySketchyChainSilhouetteIterator(ChainingIterator):
 		ChainingIterator.__init__(self, stayInSelection, False, None, True)
 		self._timeStamp = GetTimeStampCF()+nRounds
 		self._nRounds = nRounds
-	def getExactTypeName(self):
-		return "pySketchyChainSilhouetteIterator"
 	def init(self):
 		self._timeStamp = GetTimeStampCF()+self._nRounds
 	def traverse(self, iter):
@@ -245,8 +237,6 @@ class pySketchyChainingIterator(ChainingIterator):
 		ChainingIterator.__init__(self, stayInSelection, False, None, True)
 		self._timeStamp = GetTimeStampCF()+nRounds
 		self._nRounds = nRounds
-	def getExactTypeName(self):
-		return "pySketchyChainingIterator"
 	def init(self):
 		self._timeStamp = GetTimeStampCF()+self._nRounds
 	def traverse(self, iter):
@@ -275,8 +265,6 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 		ChainingIterator.__init__(self, False, True, None, True)
 		self._length = 0
 		self._percent = float(percent)
-	def getExactTypeName(self):
-		return "pyFillOcclusionsChainingIterator"
 	def init(self):
 		# each time we're evaluating a chain length 
 		# we try to do it once. Thus we reinit 
@@ -377,8 +365,6 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
 	def __init__(self, length):
 		ChainingIterator.__init__(self, False, True, None, True)
 		self._length = float(length)
-	def getExactTypeName(self):
-		return "pySmallFillOcclusionsChainingIterator"
 	def init(self):
 		pass
 	def traverse(self, iter):
@@ -449,8 +435,6 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 		self._length = 0
 		self._absLength = l
 		self._percent = float(percent)
-	def getExactTypeName(self):
-		return "pyFillOcclusionsChainingIterator"
 	def init(self):
 		# each time we're evaluating a chain length 
 		# we try to do it once. Thus we reinit 
@@ -554,8 +538,6 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
 		self._length = 0
 		self._absLength = l
 		self._percent = float(percent)
-	def getExactTypeName(self):
-		return "pyFillOcclusionsChainingIterator"
 	def init(self):
 		# each time we're evaluating a chain length 
 		# we try to do it once. Thus we reinit 
@@ -657,8 +639,6 @@ class pyFillQi0AbsoluteAndRelativeChainingIterator(ChainingIterator):
 class pyNoIdChainSilhouetteIterator(ChainingIterator):
 	def __init__(self, stayInSelection=True):
 		ChainingIterator.__init__(self, stayInSelection, True, None, True)
-	def getExactTypeName(self):
-		return "pyChainSilhouetteIterator"
 	def init(self):
 		pass
 	def traverse(self, iter):

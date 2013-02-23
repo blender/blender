@@ -134,8 +134,7 @@ class ThicknessBlenderMixIn(ThicknessModifierMixIn):
         return outer, inner
 
 class BaseColorShader(ConstantColorShader):
-    def getName(self):
-        return "BaseColorShader"
+    pass
 
 class BaseThicknessShader(StrokeShader, ThicknessModifierMixIn):
     def __init__(self, thickness, position, ratio):
@@ -155,8 +154,6 @@ class BaseThicknessShader(StrokeShader, ThicknessModifierMixIn):
             self.__inner = thickness * (1 - ratio)
         else:
             raise ValueError("unknown thickness position: " + self.position)
-    def getName(self):
-        return "BaseThicknessShader"
     def shade(self, stroke):
         it = stroke.stroke_vertices_begin()
         while not it.is_end:
@@ -180,8 +177,6 @@ def iter_t2d_along_stroke(stroke):
         it.increment()
 
 class ColorAlongStrokeShader(ColorRampModifier):
-    def getName(self):
-        return "ColorAlongStrokeShader"
     def shade(self, stroke):
         for it, t in iter_t2d_along_stroke(stroke):
             sv = it.object
@@ -190,8 +185,6 @@ class ColorAlongStrokeShader(ColorRampModifier):
             sv.attribute.color = self.blend_ramp(a, b)
 
 class AlphaAlongStrokeShader(CurveMappingModifier):
-    def getName(self):
-        return "AlphaAlongStrokeShader"
     def shade(self, stroke):
         for it, t in iter_t2d_along_stroke(stroke):
             sv = it.object
@@ -206,8 +199,6 @@ class ThicknessAlongStrokeShader(ThicknessBlenderMixIn, CurveMappingModifier):
         CurveMappingModifier.__init__(self, blend, influence, mapping, invert, curve)
         self.__value_min = value_min
         self.__value_max = value_max
-    def getName(self):
-        return "ThicknessAlongStrokeShader"
     def shade(self, stroke):
         for it, t in iter_t2d_along_stroke(stroke):
             sv = it.object
@@ -238,8 +229,6 @@ class ColorDistanceFromCameraShader(ColorRampModifier):
         ColorRampModifier.__init__(self, blend, influence, ramp)
         self.__range_min = range_min
         self.__range_max = range_max
-    def getName(self):
-        return "ColorDistanceFromCameraShader"
     def shade(self, stroke):
         for it, t in iter_distance_from_camera(stroke, self.__range_min, self.__range_max):
             sv = it.object
@@ -252,8 +241,6 @@ class AlphaDistanceFromCameraShader(CurveMappingModifier):
         CurveMappingModifier.__init__(self, blend, influence, mapping, invert, curve)
         self.__range_min = range_min
         self.__range_max = range_max
-    def getName(self):
-        return "AlphaDistanceFromCameraShader"
     def shade(self, stroke):
         for it, t in iter_distance_from_camera(stroke, self.__range_min, self.__range_max):
             sv = it.object
@@ -270,8 +257,6 @@ class ThicknessDistanceFromCameraShader(ThicknessBlenderMixIn, CurveMappingModif
         self.__range_max = range_max
         self.__value_min = value_min
         self.__value_max = value_max
-    def getName(self):
-        return "ThicknessDistanceFromCameraShader"
     def shade(self, stroke):
         for it, t in iter_distance_from_camera(stroke, self.__range_min, self.__range_max):
             sv = it.object
@@ -307,8 +292,6 @@ class ColorDistanceFromObjectShader(ColorRampModifier):
         self.__target = target
         self.__range_min = range_min
         self.__range_max = range_max
-    def getName(self):
-        return "ColorDistanceFromObjectShader"
     def shade(self, stroke):
         if self.__target is None:
             return
@@ -324,8 +307,6 @@ class AlphaDistanceFromObjectShader(CurveMappingModifier):
         self.__target = target
         self.__range_min = range_min
         self.__range_max = range_max
-    def getName(self):
-        return "AlphaDistanceFromObjectShader"
     def shade(self, stroke):
         if self.__target is None:
             return
@@ -345,8 +326,6 @@ class ThicknessDistanceFromObjectShader(ThicknessBlenderMixIn, CurveMappingModif
         self.__range_max = range_max
         self.__value_min = value_min
         self.__value_max = value_max
-    def getName(self):
-        return "ThicknessDistanceFromObjectShader"
     def shade(self, stroke):
         if self.__target is None:
             return
@@ -418,8 +397,6 @@ class ColorMaterialShader(ColorRampModifier):
         ColorRampModifier.__init__(self, blend, influence, ramp)
         self.__material_attr = material_attr
         self.__use_ramp = use_ramp
-    def getName(self):
-        return "ColorMaterialShader"
     def shade(self, stroke):
         if self.__material_attr in ["DIFF", "SPEC"] and not self.__use_ramp:
             for it, b in iter_material_color(stroke, self.__material_attr):
@@ -437,8 +414,6 @@ class AlphaMaterialShader(CurveMappingModifier):
     def __init__(self, blend, influence, mapping, invert, curve, material_attr):
         CurveMappingModifier.__init__(self, blend, influence, mapping, invert, curve)
         self.__material_attr = material_attr
-    def getName(self):
-        return "AlphaMaterialShader"
     def shade(self, stroke):
         for it, t in iter_material_value(stroke, self.__material_attr):
             sv = it.object
@@ -454,8 +429,6 @@ class ThicknessMaterialShader(ThicknessBlenderMixIn, CurveMappingModifier):
         self.__material_attr = material_attr
         self.__value_min = value_min
         self.__value_max = value_max
-    def getName(self):
-        return "ThicknessMaterialShader"
     def shade(self, stroke):
         for it, t in iter_material_value(stroke, self.__material_attr):
             sv = it.object
@@ -510,8 +483,6 @@ class SinusDisplacementShader(StrokeShader):
         self._amplitude = amplitude
         self._phase = phase / wavelength * 2 * math.pi
         self._getNormal = Normal2DF0D()
-    def getName(self):
-        return "SinusDisplacementShader"
     def shade(self, stroke):
         for it, distance in iter_distance_along_stroke(stroke):
             v = it.object
@@ -528,8 +499,6 @@ class PerlinNoise1DShader(StrokeShader):
         self.__amp = amp
         self.__oct = oct
         self.__dir = Vector([cos(angle), sin(angle)])
-    def getName(self):
-        return "PerlinNoise1DShader"
     def shade(self, stroke):
         length = stroke.length_2d
         it = stroke.stroke_vertices_begin()
@@ -548,8 +517,6 @@ class PerlinNoise2DShader(StrokeShader):
         self.__amp = amp
         self.__oct = oct
         self.__dir = Vector([cos(angle), sin(angle)])
-    def getName(self):
-        return "PerlinNoise2DShader"
     def shade(self, stroke):
         it = stroke.stroke_vertices_begin()
         while not it.is_end:
@@ -567,8 +534,6 @@ class Offset2DShader(StrokeShader):
         self.__end = end
         self.__xy = Vector([x, y])
         self.__getNormal = Normal2DF0D()
-    def getName(self):
-        return "Offset2DShader"
     def shade(self, stroke):
         it = stroke.stroke_vertices_begin()
         while not it.is_end:
@@ -591,8 +556,6 @@ class Transform2DShader(StrokeShader):
         self.__pivot_u = pivot_u
         self.__pivot_x = pivot_x
         self.__pivot_y = pivot_y
-    def getName(self):
-        return "Transform2DShader"
     def shade(self, stroke):
         # determine the pivot of scaling and rotation operations
         if self.__pivot == "START":
@@ -655,8 +618,6 @@ class QuantitativeInvisibilityRangeUP1D(UnaryPredicate1D):
         self.__getQI = QuantitativeInvisibilityF1D()
         self.__qi_start = qi_start
         self.__qi_end = qi_end
-    def getName(self):
-        return "QuantitativeInvisibilityRangeUP1D"
     def __call__(self, inter):
         qi = self.__getQI(inter)
         return self.__qi_start <= qi <= self.__qi_end
@@ -674,8 +635,6 @@ class ObjectNamesUP1D(UnaryPredicate1D):
         UnaryPredicate1D.__init__(self)
         self._names = names
         self._negative = negative
-    def getName(self):
-        return "ObjectNamesUP1D"
     def __call__(self, viewEdge):
         found = viewEdge.viewshape.name in self._names
         if self._negative:
@@ -840,8 +799,6 @@ class DashedLineShader(StrokeShader):
     def __init__(self, pattern):
         StrokeShader.__init__(self)
         self._pattern = pattern
-    def getName(self):
-        return "DashedLineShader"
     def shade(self, stroke):
         index = 0 # pattern index
         start = 0.0 # 2D curvilinear length
@@ -869,8 +826,6 @@ class AngleLargerThanBP1D(BinaryPredicate1D):
     def __init__(self, angle):
         BinaryPredicate1D.__init__(self)
         self._angle = angle
-    def getName(self):
-        return "AngleLargerThanBP1D"
     def __call__(self, i1, i2):
         sv1a = i1.first_fedge.first_svertex.point_2d
         sv1b = i1.last_fedge.second_svertex.point_2d
@@ -901,8 +856,6 @@ class AndBP1D(BinaryPredicate1D):
         BinaryPredicate1D.__init__(self)
         self.__pred1 = pred1
         self.__pred2 = pred2
-    def getName(self):
-        return "AndBP1D"
     def __call__(self, i1, i2):
         return self.__pred1(i1, i2) and self.__pred2(i1, i2)
 
@@ -913,8 +866,6 @@ class LengthThresholdUP1D(UnaryPredicate1D):
         UnaryPredicate1D.__init__(self)
         self._min_length = min_length
         self._max_length = max_length
-    def getName(self):
-        return "LengthThresholdUP1D"
     def __call__(self, inter):
         length = inter.length_2d
         if self._min_length is not None and length < self._min_length:
@@ -952,8 +903,6 @@ class FaceMarkOneUP1D(UnaryPredicate1D):
 # predicates for splitting
 
 class MaterialBoundaryUP0D(UnaryPredicate0D):
-    def getName(self):
-        return "MaterialBoundaryUP0D"
     def __call__(self, it):
         if it.is_begin:
             return False
@@ -975,8 +924,6 @@ class Curvature2DAngleThresholdUP0D(UnaryPredicate0D):
         self._min_angle = min_angle
         self._max_angle = max_angle
         self._func = Curvature2DAngleF0D()
-    def getName(self):
-        return "Curvature2DAngleThresholdUP0D"
     def __call__(self, inter):
         angle = math.pi - self._func(inter)
         if self._min_angle is not None and angle < self._min_angle:
@@ -990,8 +937,6 @@ class Length2DThresholdUP0D(UnaryPredicate0D):
         UnaryPredicate0D.__init__(self)
         self._length_limit = length_limit
         self._t = 0.0
-    def getName(self):
-        return "Length2DThresholdUP0D"
     def __call__(self, inter):
         t = inter.t # curvilinear abscissa
         if t < self._t:

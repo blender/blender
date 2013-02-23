@@ -110,7 +110,7 @@ static void Iterator_dealloc(BPy_Iterator* self)
 
 static PyObject * Iterator_repr(BPy_Iterator* self)
 {
-	return PyUnicode_FromFormat("type: %s - address: %p", self->it->getExactTypeName().c_str(), self->it);
+	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->it);
 }
 
 PyDoc_STRVAR(Iterator_increment_doc,

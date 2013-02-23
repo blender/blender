@@ -3,8 +3,6 @@ from freestyle_init import *
 class CurveMaterialF0D(UnaryFunction0DMaterial):
 	# A replacement of the built-in MaterialF0D for stroke creation.
 	# MaterialF0D does not work with Curves and Strokes.
-	def getName(self):
-		return "CurveMaterialF0D"
 	def __call__(self, inter):
 		cp = inter.object
 		assert(isinstance(cp, CurvePoint))
@@ -13,18 +11,12 @@ class CurveMaterialF0D(UnaryFunction0DMaterial):
 		return fe.material if fe.is_smooth else fe.material_left
 
 class pyInverseCurvature2DAngleF0D(UnaryFunction0DDouble):
-	def getName(self):
-		return "InverseCurvature2DAngleF0D"
-
 	def __call__(self, inter):
 		func = Curvature2DAngleF0D()
 		c = func(inter)
 		return (3.1415 - c)
 
 class pyCurvilinearLengthF0D(UnaryFunction0DDouble):
-	def getName(self):
-		return "CurvilinearLengthF0D"
-
 	def __call__(self, inter):
 		cp = inter.object		
 		assert(isinstance(cp, CurvePoint))
@@ -39,8 +31,6 @@ class pyDensityAnisotropyF0D(UnaryFunction0DDouble):
 		self.d1Density = ReadSteerableViewMapPixelF0D(1, level)
 		self.d2Density = ReadSteerableViewMapPixelF0D(2, level)
 		self.d3Density = ReadSteerableViewMapPixelF0D(3, level)
-	def getName(self):
-		return "pyDensityAnisotropyF0D"
 	def __call__(self, inter):
 		c_iso = self.IsoDensity(inter) 
 		c_0 = self.d0Density(inter) 
@@ -63,8 +53,6 @@ class pyViewMapGradientVectorF0D(UnaryFunction0DVec2f):
 		UnaryFunction0DVec2f.__init__(self)
 		self._l = l
 		self._step = pow(2,self._l)
-	def getName(self):
-		return "pyViewMapGradientVectorF0D"
 	def __call__(self, iter):
 		p = iter.object.point_2d
 		gx = ReadCompleteViewMapPixelCF(self._l, int(p.x+self._step), int(p.y))- ReadCompleteViewMapPixelCF(self._l, int(p.x), int(p.y))
@@ -76,8 +64,6 @@ class pyViewMapGradientNormF0D(UnaryFunction0DDouble):
 		UnaryFunction0DDouble.__init__(self)
 		self._l = l
 		self._step = pow(2,self._l)
-	def getName(self):
-		return "pyViewMapGradientNormF0D"
 	def __call__(self, iter):
 		p = iter.object.point_2d
 		gx = ReadCompleteViewMapPixelCF(self._l, int(p.x+self._step), int(p.y))- ReadCompleteViewMapPixelCF(self._l, int(p.x), int(p.y))

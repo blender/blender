@@ -197,7 +197,7 @@ static void StrokeShader___dealloc__(BPy_StrokeShader* self)
 
 static PyObject * StrokeShader___repr__(BPy_StrokeShader* self)
 {
-	return PyUnicode_FromFormat("type: %s - address: %p", self->ss->getName().c_str(), self->ss);
+	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->ss);
 }
 
 static char StrokeShader_shade___doc__[] =

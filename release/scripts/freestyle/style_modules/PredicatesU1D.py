@@ -17,8 +17,6 @@ class pyHigherLengthUP1D(UnaryPredicate1D):
 	def __init__(self,l):
 		UnaryPredicate1D.__init__(self)
 		self._l = l
-	def getName(self):
-		return "HigherLengthUP1D"
 	def __call__(self, inter):
 		return (inter.length_2d > self._l)
 
@@ -27,8 +25,6 @@ class pyNatureUP1D(UnaryPredicate1D):
 		UnaryPredicate1D.__init__(self)
 		self._nature = nature
 		self._getNature = CurveNatureF1D()
-	def getName(self):
-		return "pyNatureUP1D"
 	def __call__(self, inter):
 		if(self._getNature(inter) & self._nature):
 			return 1
@@ -39,8 +35,6 @@ class pyHigherNumberOfTurnsUP1D(UnaryPredicate1D):
 		UnaryPredicate1D.__init__(self)
 		self._n = n
 		self._a = a
-	def getName(self):
-		return "HigherNumberOfTurnsUP1D"
 	def __call__(self, inter):
 		count = 0
 		func = Curvature2DAngleF0D()
@@ -60,8 +54,6 @@ class pyDensityUP1D(UnaryPredicate1D):
 		self._threshold = threshold
 		self._integration = integration
 		self._func = DensityF1D(self._wsize, self._integration, sampling)
-	def getName(self):
-		return "pyDensityUP1D"
 	def __call__(self, inter):
 		if self._func(inter) < self._threshold:
 			return 1
@@ -73,8 +65,6 @@ class pyLowSteerableViewMapDensityUP1D(UnaryPredicate1D):
 		self._threshold = threshold
 		self._level = level
 		self._integration = integration
-	def getName(self):
-		return "pyLowSteerableViewMapDensityUP1D"
 	def __call__(self, inter):
 		func = GetSteerableViewMapDensityF1D(self._level, self._integration)
 		v = func(inter)
@@ -90,8 +80,6 @@ class pyLowDirectionalViewMapDensityUP1D(UnaryPredicate1D):
 		self._orientation = orientation
 		self._level = level
 		self._integration = integration
-	def getName(self):
-		return "pyLowDirectionalViewMapDensityUP1D"
 	def __call__(self, inter):
 		func = GetDirectionalViewMapDensityF1D(self._orientation, self._level, self._integration)
 		v = func(inter)
@@ -107,8 +95,6 @@ class pyHighSteerableViewMapDensityUP1D(UnaryPredicate1D):
 		self._level = level
 		self._integration = integration
 		self._func = GetSteerableViewMapDensityF1D(self._level, self._integration)	
-	def getName(self):
-		return "pyHighSteerableViewMapDensityUP1D"
 	def __call__(self, inter):
 		v = self._func(inter)
 		if v > self._threshold:
@@ -123,8 +109,6 @@ class pyHighDirectionalViewMapDensityUP1D(UnaryPredicate1D):
 		self._level = level
 		self._integration = integration
 		self._sampling = sampling		
-	def getName(self):
-		return "pyLowDirectionalViewMapDensityUP1D"
 	def __call__(self, inter):
 		func = GetDirectionalViewMapDensityF1D(self._orientation, self._level, self._integration, self._sampling)
 		v = func(inter)
@@ -140,12 +124,10 @@ class pyHighViewMapDensityUP1D(UnaryPredicate1D):
 		self._integration = integration
 		self._sampling = sampling
 		self._func = GetCompleteViewMapDensityF1D(self._level, self._integration, self._sampling) # 2.0 is the smpling
-	def getName(self):
-		return "pyHighViewMapDensityUP1D"
 	def __call__(self, inter):
 		#print("toto")
-		#print(func.getName())
-		#print(inter.getExactTypeName())
+		#print(func.name)
+		#print(inter.name)
 		v= self._func(inter)
 		if v > self._threshold:
 			return 1
@@ -160,8 +142,6 @@ class pyDensityFunctorUP1D(UnaryPredicate1D):
 		self._funcmin = float(funcmin)
 		self._funcmax = float(funcmax)
 		self._integration = integration
-	def getName(self):
-		return "pyDensityFunctorUP1D"
 	def __call__(self, inter):
 		func = DensityF1D(self._wsize, self._integration)
 		res = self._functor(inter)
@@ -175,8 +155,6 @@ class pyZSmallerUP1D(UnaryPredicate1D):
 		UnaryPredicate1D.__init__(self)
 		self._z = z
 		self._integration = integration
-	def getName(self):
-		return "pyZSmallerUP1D"
 	def __call__(self, inter):
 		func = GetProjectedZF1D(self._integration)
 		if func(inter) < self._z:
@@ -187,8 +165,6 @@ class pyIsOccludedByUP1D(UnaryPredicate1D):
 	def __init__(self,id):
 		UnaryPredicate1D.__init__(self)
 		self._id = id
-	def getName(self):
-		return "pyIsOccludedByUP1D"
 	def __call__(self, inter):
 		func = GetShapeF1D()
 		shapes = func(inter)
@@ -226,8 +202,6 @@ class pyIsInOccludersListUP1D(UnaryPredicate1D):
 	def __init__(self,id):
 		UnaryPredicate1D.__init__(self)
 		self._id = id
-	def getName(self):
-		return "pyIsInOccludersListUP1D"
 	def __call__(self, inter):
 		func = GetOccludersF1D()
 		occluders = func(inter)
@@ -241,8 +215,6 @@ class pyIsOccludedByItselfUP1D(UnaryPredicate1D):
 		UnaryPredicate1D.__init__(self)
 		self.__func1 = GetOccludersF1D()
 		self.__func2 = GetShapeF1D()
-	def getName(self):
-		return "pyIsOccludedByItselfUP1D"
 	def __call__(self, inter):
 		lst1 = self.__func1(inter)
 		lst2 = self.__func2(inter)
@@ -257,8 +229,6 @@ class pyIsOccludedByIdListUP1D(UnaryPredicate1D):
 		UnaryPredicate1D.__init__(self)
 		self._idlist = idlist
 		self.__func1 = GetOccludersF1D()
-	def getName(self):
-		return "pyIsOccludedByIdListUP1D"
 	def __call__(self, inter):
 		lst1 = self.__func1(inter)
 		for vs1 in lst1:
@@ -274,8 +244,6 @@ class pyShapeIdListUP1D(UnaryPredicate1D):
 		self._funcs = []
 		for _id in idlist :
 			self._funcs.append(ShapeUP1D(_id.first, _id.second))
-	def getName(self):
-		return "pyShapeIdUP1D"
 	def __call__(self, inter):
 		for func in self._funcs :
 			if func(inter) == 1:
@@ -287,8 +255,6 @@ class pyShapeIdUP1D(UnaryPredicate1D):
 	def __init__(self, _id):
 		UnaryPredicate1D.__init__(self)
 		self._id = _id
-	def getName(self):
-		return "pyShapeIdUP1D"
 	def __call__(self, inter):
 		func = GetShapeF1D()
 		shapes = func(inter)
@@ -302,8 +268,6 @@ class pyHighDensityAnisotropyUP1D(UnaryPredicate1D):
 		UnaryPredicate1D.__init__(self)
 		self._l = threshold
 		self.func = pyDensityAnisotropyF1D(level, IntegrationType.MEAN, sampling)
-	def getName(self):
-		return "pyHighDensityAnisotropyUP1D"
 	def __call__(self, inter):
 		return (self.func(inter) > self._l)
 
@@ -312,8 +276,6 @@ class pyHighViewMapGradientNormUP1D(UnaryPredicate1D):
 		UnaryPredicate1D.__init__(self)
 		self._threshold = threshold
 		self._GetGradient = pyViewMapGradientNormF1D(l, IntegrationType.MEAN)
-	def getName(self):
-		return "pyHighViewMapGradientNormUP1D"
 	def __call__(self, inter):
 		gn = self._GetGradient(inter)
 		#print(gn)
@@ -331,8 +293,6 @@ class pyDensityVariableSigmaUP1D(UnaryPredicate1D):
 		self._tmax = tmax
 		self._integration = integration
 		self._sampling = sampling
-	def getName(self):
-		return "pyDensityUP1D"
 	def __call__(self, inter):
 		sigma = (self._sigmaMax-self._sigmaMin)/(self._lmax-self._lmin)*(self._functor(inter)-self._lmin) + self._sigmaMin
 		t = (self._tmax-self._tmin)/(self._lmax-self._lmin)*(self._functor(inter)-self._lmin) + self._tmin

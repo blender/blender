@@ -93,8 +93,8 @@ static PyObject * UnaryPredicate0D___call__(BPy_UnaryPredicate0D *self, PyObject
 	Interface0DIterator *if0D_it = ((BPy_Interface0DIterator *)py_if0D_it)->if0D_it;
 
 	if (!if0D_it) {
-		string msg(self->up0D->getName() + " has no Interface0DIterator");
-		PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+		string class_name(Py_TYPE(self)->tp_name);
+		PyErr_SetString(PyExc_RuntimeError, (class_name + " has no Interface0DIterator").c_str());
 		return NULL;
 	}
 	if (typeid(*(self->up0D)) == typeid(UnaryPredicate0D)) {
