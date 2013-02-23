@@ -196,24 +196,27 @@ typedef struct RigidBodyCon {
 	float pad;
 
 	/* limits */
-	float limit_lin_x_lower;	/* lower limit for x axis translation */
-	float limit_lin_x_upper;	/* upper limit for x axis translation */
-	float limit_lin_y_lower;	/* lower limit for y axis translation */
-	float limit_lin_y_upper;	/* upper limit for y axis translation */
-	float limit_lin_z_lower;	/* lower limit for z axis translation */
-	float limit_lin_z_upper;	/* upper limit for z axis translation */
-	float limit_ang_x_lower;	/* lower limit for x axis rotation */
-	float limit_ang_x_upper;	/* upper limit for x axis rotation */
-	float limit_ang_y_lower;	/* lower limit for y axis rotation */
-	float limit_ang_y_upper;	/* upper limit for y axis rotation */
-	float limit_ang_z_lower;	/* lower limit for z axis rotation */
-	float limit_ang_z_upper;	/* upper limit for z axis rotation */
+	/* translation limits */
+	float limit_lin_x_lower;
+	float limit_lin_x_upper;
+	float limit_lin_y_lower;
+	float limit_lin_y_upper;
+	float limit_lin_z_lower;
+	float limit_lin_z_upper;
+	/* rotation limits */
+	float limit_ang_x_lower;
+	float limit_ang_x_upper;
+	float limit_ang_y_lower;
+	float limit_ang_y_upper;
+	float limit_ang_z_lower;
+	float limit_ang_z_upper;
 
 	/* spring settings */
-	/* RB_TODO document spring properties */
+	/* resistance to deformation */
 	float spring_stiffness_x;
 	float spring_stiffness_y;
 	float spring_stiffness_z;
+	/* amount of velocity lost over time */
 	float spring_damping_x;
 	float spring_damping_y;
 	float spring_damping_z;
