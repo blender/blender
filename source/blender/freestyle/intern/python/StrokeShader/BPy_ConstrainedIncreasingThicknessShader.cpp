@@ -15,33 +15,33 @@ static char ConstrainedIncreasingThicknessShader___doc__[] =
 "\n"
 "[Thickness shader]\n"
 "\n"
-".. method:: __init__(iThicknessMin, iThicknessMax, iRatio)\n"
+".. method:: __init__(thickness_min, thickness_max, ratio)\n"
 "\n"
 "   Builds a ConstrainedIncreasingThicknessShader object.\n"
 "\n"
-"   :arg iThicknessMin: The minimum thickness.\n"
-"   :type iThicknessMin: float\n"
-"   :arg iThicknessMax: The maximum thickness.\n"
-"   :type iThicknessMax: float\n"
-"   :arg iRatio: The thickness/length ratio that we don't want to exceed. \n"
-"   :type iRatio: float\n"
+"   :arg thickness_min: The minimum thickness.\n"
+"   :type thickness_min: float\n"
+"   :arg thickness_max: The maximum thickness.\n"
+"   :type thickness_max: float\n"
+"   :arg ratio: The thickness/length ratio that we don't want to exceed. \n"
+"   :type ratio: float\n"
 "\n"
-".. method:: shade(s)\n"
+".. method:: shade(stroke)\n"
 "\n"
 "   Same as the :class:`IncreasingThicknessShader`, but here we allow\n"
 "   the user to control the thickness/length ratio so that we don't get\n"
 "   fat short lines.\n"
 "\n"
-"   :arg s: A Stroke object.\n"
-"   :type s: :class:`Stroke`\n";
+"   :arg stroke: A Stroke object.\n"
+"   :type stroke: :class:`Stroke`\n";
 
-static int ConstrainedIncreasingThicknessShader___init__( BPy_ConstrainedIncreasingThicknessShader* self, PyObject *args)
+static int ConstrainedIncreasingThicknessShader___init__(BPy_ConstrainedIncreasingThicknessShader* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"thickness_min", "thickness_max", "ratio", NULL};
 	float f1, f2, f3;
 
-	if(!( PyArg_ParseTuple(args, "fff", &f1, &f2, &f3) ))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "fff", (char **)kwlist, &f1, &f2, &f3))
 		return -1;
-
 	self->py_ss.ss = new StrokeShaders::ConstrainedIncreasingThicknessShader(f1, f2, f3);
 	return 0;
 }

@@ -19,16 +19,18 @@ static char streamShader___doc__[] =
 "\n"
 "   Builds a streamShader object.\n"
 "\n"
-".. method:: shade(s)\n"
+".. method:: shade(stroke)\n"
 "\n"
 "   Streams the Stroke into stdout.\n"
 "\n"
-"   :arg s: A Stroke object.\n"
-"   :type s: :class:`Stroke`\n";
+"   :arg stroke: A Stroke object.\n"
+"   :type stroke: :class:`Stroke`\n";
 
-static int streamShader___init__( BPy_streamShader* self, PyObject *args)
+static int streamShader___init__(BPy_streamShader* self, PyObject *args, PyObject *kwds)
 {
-	if(!( PyArg_ParseTuple(args, "") ))
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
 		return -1;
 	self->py_ss.ss = new StrokeShaders::streamShader();
 	return 0;

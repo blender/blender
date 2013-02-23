@@ -16,6 +16,22 @@ extern "C" {
 static char ViewMapGradientNormBP1D___doc__[] =
 "Class hierarchy: :class:`BinaryPredicate1D` > :class:`ViewMapGradientNormBP1D`\n"
 "\n"
+".. method:: __init__(level, integration_type=IntegrationType.MEAN, sampling=2.0)\n"
+"\n"
+"   Builds a ViewMapGradientNormBP1D object.\n"
+"\n"
+"   :arg level: The level of the pyramid from which the pixel must be\n"
+"      read.\n"
+"   :type level: int\n"
+"   :arg integration_type: The integration method used to compute a single value\n"
+"      from a set of values.\n"
+"   :type integration_type: :class:`IntegrationType`\n"
+"   :arg sampling: The resolution used to sample the chain:\n"
+"      GetViewMapGradientNormF0D is evaluated at each sample point and\n"
+"      the result is obtained by combining the resulting values into a\n"
+"      single one, following the method specified by integration_type.\n"
+"   :type sampling: float\n"
+"\n"
 ".. method:: __call__(inter1, inter2)\n"
 "\n"
 "   Returns true if the evaluation of the Gradient norm Function is\n"
@@ -28,17 +44,17 @@ static char ViewMapGradientNormBP1D___doc__[] =
 "   :return: True or false.\n"
 "   :rtype: bool\n";
 
-static int ViewMapGradientNormBP1D___init__( BPy_ViewMapGradientNormBP1D* self, PyObject *args )
+static int ViewMapGradientNormBP1D___init__(BPy_ViewMapGradientNormBP1D* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"level", "integration_type", "sampling", NULL};
+	PyObject *obj = 0;
 	int i;
-	PyObject *obj;
 	float f = 2.0;
 
-	if(!( PyArg_ParseTuple(args, "i|O!f", &i, &IntegrationType_Type, &obj, &f) ))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "i|O!f", (char **)kwlist, &i, &IntegrationType_Type, &obj, &f))
 		return -1;
-	
-	IntegrationType t = ( obj ) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
-	self->py_bp1D.bp1D = new Predicates1D::ViewMapGradientNormBP1D(i,t,f);
+	IntegrationType t = (obj) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
+	self->py_bp1D.bp1D = new Predicates1D::ViewMapGradientNormBP1D(i, t, f);
 	return 0;
 }
 

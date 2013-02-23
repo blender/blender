@@ -23,9 +23,11 @@ static char Length2DBP1D___doc__[] =
 "   :return: True or false.\n"
 "   :rtype: bool\n";
 
-static int Length2DBP1D___init__( BPy_Length2DBP1D* self, PyObject *args )
+static int Length2DBP1D___init__(BPy_Length2DBP1D* self, PyObject *args, PyObject *kwds)
 {
-	if(!( PyArg_ParseTuple(args, "") ))
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
 		return -1;
 	self->py_bp1D.bp1D = new Predicates1D::Length2DBP1D();
 	return 0;

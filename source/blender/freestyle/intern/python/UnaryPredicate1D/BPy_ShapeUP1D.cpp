@@ -11,14 +11,14 @@ extern "C" {
 static char ShapeUP1D___doc__[] =
 "Class hierarchy: :class:`UnaryPredicate1D` > :class:`ShapeUP1D`\n"
 "\n"
-".. method:: __init__(idFirst, idSecond=0)\n"
+".. method:: __init__(first, second=0)\n"
 "\n"
 "   Builds a ShapeUP1D object.\n"
 "\n"
-"   :arg idFirst: The first Id component.\n"
-"   :type idFirst: int\n"
-"   :arg idSecond: The second Id component.\n"
-"   :type idSecond: int\n"
+"   :arg first: The first Id component.\n"
+"   :type first: int\n"
+"   :arg second: The second Id component.\n"
+"   :type second: int\n"
 "\n"
 ".. method:: __call__(inter)\n"
 "\n"
@@ -31,14 +31,14 @@ static char ShapeUP1D___doc__[] =
 "      user-specified Id.\n"
 "   :rtype: bool\n";
 
-static int ShapeUP1D___init__( BPy_ShapeUP1D* self, PyObject *args )
+static int ShapeUP1D___init__(BPy_ShapeUP1D* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"first", "second", NULL};
 	unsigned u1, u2 = 0;
 
-	if( !PyArg_ParseTuple(args, "I|I", &u1, &u2) )
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "I|I", (char **)kwlist, &u1, &u2))
 		return -1;
-
-	self->py_up1D.up1D = new Predicates1D::ShapeUP1D(u1,u2);
+	self->py_up1D.up1D = new Predicates1D::ShapeUP1D(u1, u2);
 	return 0;
 }
 

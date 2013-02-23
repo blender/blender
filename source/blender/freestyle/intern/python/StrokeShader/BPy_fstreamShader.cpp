@@ -15,27 +15,27 @@ static char fstreamShader___doc__[] =
 "\n"
 "[Output shader]\n"
 "\n"
-".. method:: __init__(iFileName)\n"
+".. method:: __init__(filename)\n"
 "\n"
 "   Builds a fstreamShader object.\n"
 "\n"
-"   :arg iFileName: The output file name.\n"
-"   :type iFileName: str\n"
+"   :arg filename: The output file name.\n"
+"   :type filename: str\n"
 "\n"
-".. method:: shade(s)\n"
+".. method:: shade(stroke)\n"
 "\n"
 "   Streams the Stroke in a file.\n"
 "\n"
-"   :arg s: A Stroke object.\n"
-"   :type s: :class:`Stroke`\n";
+"   :arg stroke: A Stroke object.\n"
+"   :type stroke: :class:`Stroke`\n";
 
-static int fstreamShader___init__( BPy_fstreamShader* self, PyObject *args)
+static int fstreamShader___init__(BPy_fstreamShader* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"filename", NULL};
 	const char *s;
 
-	if(!( PyArg_ParseTuple(args, "s", &s)  ))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "s", (char **)kwlist, &s))
 		return -1;
-
 	self->py_ss.ss = new StrokeShaders::fstreamShader(s);
 	return 0;
 }

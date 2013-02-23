@@ -38,7 +38,7 @@ Operators.select(upred)
 Operators.bidirectionalChain(pySketchyChainSilhouetteIterator(3,1))
 shaders_list = 	[
 		SamplingShader(4),
-		SpatialNoiseShader(20, 220, 2, 1, 1), 
+		SpatialNoiseShader(20, 220, 2, True, True),
 		IncreasingThicknessShader(4, 8), 
 		SmoothingShader(300, 0.05, 0, 0.2, 0, 0, 0, 0.5),
 		ConstantColorShader(0.6,0.2,0.0),

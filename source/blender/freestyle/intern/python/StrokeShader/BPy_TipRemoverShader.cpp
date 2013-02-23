@@ -15,28 +15,28 @@ static char TipRemoverShader___doc__[] =
 "\n"
 "[Geometry shader]\n"
 "\n"
-".. method:: __init__(tipLength)\n"
+".. method:: __init__(tip_length)\n"
 "\n"
 "   Builds a TipRemoverShader object.\n"
 "\n"
-"   :arg tipLength: The length of the piece of stroke we want to remove\n"
+"   :arg tip_length: The length of the piece of stroke we want to remove\n"
 "      at each extremity.\n"
-"   :type tipLength: float\n"
+"   :type tip_length: float\n"
 "\n"
-".. method:: shade(s)\n"
+".. method:: shade(stroke)\n"
 "\n"
 "   Removes the stroke's extremities.\n"
 "\n"
-"   :arg s: A Stroke object.\n"
-"   :type s: :class:`Stroke`\n";
+"   :arg stroke: A Stroke object.\n"
+"   :type stroke: :class:`Stroke`\n";
 
-static int TipRemoverShader___init__( BPy_TipRemoverShader* self, PyObject *args)
+static int TipRemoverShader___init__(BPy_TipRemoverShader* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"tip_length", NULL};
 	double d;
 
-	if(!( PyArg_ParseTuple(args, "d", &d) ))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "d", (char **)kwlist, &d))
 		return -1;
-
 	self->py_ss.ss = new StrokeShaders::TipRemoverShader(d);
 	return 0;
 }

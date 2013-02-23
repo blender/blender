@@ -16,51 +16,53 @@ static char CalligraphicShader___doc__[] =
 "\n"
 "[Thickness Shader]\n"
 "\n"
-".. method:: __init__(iMinThickness, iMaxThickness, iOrientation, iClamp)\n"
+".. method:: __init__(thickness_min, thickness_max, orientation, clamp)\n"
 "\n"
 "   Builds a CalligraphicShader object.\n"
 "\n"
-"   :arg iMinThickness: The minimum thickness in the direction\n"
+"   :arg thickness_min: The minimum thickness in the direction\n"
 "      perpendicular to the main direction.\n"
-"   :type iMinThickness: float\n"
-"   :arg iMaxThickness: The maximum thickness in the main direction.\n"
-"   :type iMaxThickness: float\n"
-"   :arg iOrientation: The 2D vector giving the main direction.\n"
-"   :type iOrientation: :class:`mathutils.Vector`\n"
-"   :arg iClamp: If true, the strokes are drawn in black when the stroke\n"
+"   :type thickness_min: float\n"
+"   :arg thickness_max: The maximum thickness in the main direction.\n"
+"   :type thickness_max: float\n"
+"   :arg orientation: The 2D vector giving the main direction.\n"
+"   :type orientation: :class:`mathutils.Vector`\n"
+"   :arg clamp: If true, the strokes are drawn in black when the stroke\n"
 "      direction is between -90 and 90 degrees with respect to the main\n"
 "      direction and drawn in white otherwise.  If false, the strokes\n"
 "      are always drawn in black.\n"
-"   :type iClamp: bool\n"
+"   :type clamp: bool\n"
 "\n"
-".. method:: shade(s)\n"
+".. method:: shade(stroke)\n"
 "\n"
 "   Assigns thicknesses to the stroke vertices so that the stroke looks\n"
 "   like made with a calligraphic tool, i.e. the stroke will be the\n"
 "   thickest in a main direction, and the thinest in the direction\n"
 "   perpendicular to this one, and an interpolation inbetween.\n"
 "\n"
-"   :arg s: A Stroke object.\n"
-"   :type s: :class:`Stroke`\n";
+"   :arg stroke: A Stroke object.\n"
+"   :type stroke: :class:`Stroke`\n";
 
-static int CalligraphicShader___init__( BPy_CalligraphicShader* self, PyObject *args)
+static int convert_v2(PyObject *obj, void *v)
 {
-	double d1, d2;
-	PyObject *obj3 = 0, *obj4 = 0;
-	
+	return float_array_from_PyObject(obj, (float *)v, 2);
+}
 
-	if(!( PyArg_ParseTuple(args, "ddOO", &d1, &d2, &obj3, &obj4) ))
-		return -1;
-	Vec2f *v = Vec2f_ptr_from_PyObject(obj3);
-	if( !v ) {
-		PyErr_SetString(PyExc_TypeError, "argument 3 must be a 2D vector (either a list of 2 elements or Vector)");
+static int CalligraphicShader___init__(BPy_CalligraphicShader* self, PyObject *args, PyObject *kwds)
+{
+	static const char *kwlist[] = {"thickness_min", "thickness_max", "orientation", "clamp", NULL};
+	double d1, d2;
+	float f3[2];
+	PyObject *obj4 = 0;
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "ddO&O!", (char **)kwlist,
+	                                 &d1, &d2, convert_v2, f3, &PyBool_Type, &obj4))
+	{
 		return -1;
 	}
-	self->py_ss.ss = new CalligraphicShader(d1, d2, *v, bool_from_PyBool(obj4) );
-	delete v;
-
+	Vec2f v(f3[0], f3[1]);
+	self->py_ss.ss = new CalligraphicShader(d1, d2, v, bool_from_PyBool(obj4));
 	return 0;
-
 }
 
 /*-----------------------BPy_CalligraphicShader type definition ------------------------------*/

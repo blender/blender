@@ -15,17 +15,17 @@ static char PolygonalizationShader___doc__[] =
 "\n"
 "[Geometry shader]\n"
 "\n"
-".. method:: __init__(iError)\n"
+".. method:: __init__(error)\n"
 "\n"
 "   Builds a PolygonalizationShader object.\n"
 "\n"
-"   :arg iError: The error we want our polygonal approximation to have\n"
+"   :arg error: The error we want our polygonal approximation to have\n"
 "      with respect to the original geometry.  The smaller, the closer\n"
 "      the new stroke is to the orinal one.  This error corresponds to\n"
 "      the maximum distance between the new stroke and the old one.\n"
-"   :type iError: float\n"
+"   :type error: float\n"
 "\n"
-".. method:: shade(s)\n"
+".. method:: shade(stroke)\n"
 "\n"
 "   Modifies the Stroke geometry so that it looks more \"polygonal\".\n"
 "   The basic idea is to start from the minimal stroke approximation\n"
@@ -33,16 +33,16 @@ static char PolygonalizationShader___doc__[] =
 "   to subdivide using the original stroke vertices until a certain\n"
 "   error is reached.\n"
 "\n"
-"   :arg s: A Stroke object.\n"
-"   :type s: :class:`Stroke`\n";
+"   :arg stroke: A Stroke object.\n"
+"   :type stroke: :class:`Stroke`\n";
 
-static int PolygonalizationShader___init__( BPy_PolygonalizationShader* self, PyObject *args)
+static int PolygonalizationShader___init__(BPy_PolygonalizationShader* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"error", NULL};
 	float f;
 
-	if(!( PyArg_ParseTuple(args, "f", &f) ))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "f", (char **)kwlist, &f))
 		return -1;
-
 	self->py_ss.ss = new StrokeShaders::PolygonalizationShader(f);
 	return 0;
 }

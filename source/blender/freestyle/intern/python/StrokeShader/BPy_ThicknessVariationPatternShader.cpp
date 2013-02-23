@@ -16,39 +16,39 @@ static char ThicknessVariationPatternShader___doc__[] =
 "\n"
 "[Thickness shader]\n"
 "\n"
-".. method:: __init__(pattern_name, iMinThickness, iMaxThickness, stretch)\n"
+".. method:: __init__(pattern_name, thickness_min=1.0, thickness_max=5.0, stretch=True)\n"
 "\n"
 "   Builds a ThicknessVariationPatternShader object.\n"
 "\n"
 "   :arg pattern_name: The texture file name.\n"
 "   :type pattern_name: str\n"
-"   :arg iMinThickness: The minimum thickness we don't want to exceed.\n"
-"   :type iMinThickness: float\n"
-"   :arg iMaxThickness: The maximum thickness we don't want to exceed.\n"
-"   :type iMaxThickness: float\n"
+"   :arg thickness_min: The minimum thickness we don't want to exceed.\n"
+"   :type thickness_min: float\n"
+"   :arg thickness_max: The maximum thickness we don't want to exceed.\n"
+"   :type thickness_max: float\n"
 "   :arg stretch: Tells whether the pattern texture must be stretched\n"
-"      or repeted to fit the stroke.\n"
+"      or repeated to fit the stroke.\n"
 "   :type stretch: bool\n"
 "\n"
-".. method:: shade(s)\n"
+".. method:: shade(stroke)\n"
 "\n"
 "   Applies a pattern (texture) to vary thickness. The new thicknesses\n"
 "   are the result of the multiplication of the pattern and the\n"
 "   original thickness.\n"
 "\n"
-"   :arg s: A Stroke object.\n"
-"   :type s: :class:`Stroke`\n";
+"   :arg stroke: A Stroke object.\n"
+"   :type stroke: :class:`Stroke`\n";
 
-static int ThicknessVariationPatternShader___init__( BPy_ThicknessVariationPatternShader* self, PyObject *args)
+static int ThicknessVariationPatternShader___init__(BPy_ThicknessVariationPatternShader* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"pattern_name", "thickness_min", "thickness_max", "stretch", NULL};
 	const char *s1;
 	float f2 = 1.0, f3 = 5.0;
 	PyObject *obj4 = 0;
 
-	if(!( PyArg_ParseTuple(args, "s|ffO", &s1, &f2, &f3, &obj4) ))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "s|ffO!", (char **)kwlist, &s1, &f2, &f3, &PyBool_Type, &obj4))
 		return -1;
-
-	bool b = (obj4) ? bool_from_PyBool(obj4) : true;
+	bool b = (!obj4) ? true : bool_from_PyBool(obj4);
 	self->py_ss.ss = new StrokeShaders::ThicknessVariationPatternShader(s1, f2, f3, b);
 	return 0;
 }

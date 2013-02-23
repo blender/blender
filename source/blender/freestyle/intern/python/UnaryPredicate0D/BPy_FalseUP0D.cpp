@@ -20,9 +20,11 @@ static char FalseUP0D___doc__[] =
 "   :return: False.\n"
 "   :rtype: bool\n";
 
-static int FalseUP0D___init__( BPy_FalseUP0D* self, PyObject *args)
+static int FalseUP0D___init__(BPy_FalseUP0D* self, PyObject *args, PyObject *kwds)
 {
-	if(!( PyArg_ParseTuple(args, "") ))
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
 		return -1;
 	self->py_up0D.up0D = new Predicates0D::FalseUP0D();
 	return 0;

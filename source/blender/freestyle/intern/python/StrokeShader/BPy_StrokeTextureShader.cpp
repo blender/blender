@@ -17,18 +17,18 @@ static char StrokeTextureShader___doc__[] =
 "\n"
 "[Texture shader]\n"
 "\n"
-".. method:: __init__(textureFile, mediumType=MediumType.OPAQUE_MEDIUM, iTips=False)\n"
+".. method:: __init__(texture_file, medium_type=MediumType.OPAQUE_MEDIUM, tips=False)\n"
 "\n"
 "   Builds a StrokeTextureShader object.\n"
 "\n"
-"   :arg textureFile: \n"
-"   :type textureFile: str\n"
-"   :arg mediumType: The medium type and therefore, the blending mode\n"
+"   :arg texture_file: \n"
+"   :type texture_file: str\n"
+"   :arg medium_type: The medium type and therefore, the blending mode\n"
 "      that must be used for the rendering of this stroke.\n"
-"   :type mediumType: :class:`MediumType`\n"
-"   :arg iTips: Tells whether the texture includes tips or not.  If it\n"
+"   :type medium_type: :class:`MediumType`\n"
+"   :arg tips: Tells whether the texture includes tips or not.  If it\n"
 "      is the case, the texture image must respect the following format.\n"
-"   :type iTips: bool\n"
+"   :type tips: bool\n"
 "\n"
 "   The format of a texture image including tips::\n"
 "\n"
@@ -44,26 +44,28 @@ static char StrokeTextureShader___doc__[] =
 "   * B : The stroke's left extremity texture.\n"
 "   * C : The stroke's right extremity texture.\n"
 "\n"
-".. method:: shade(s)\n"
+".. method:: shade(stroke)\n"
 "\n"
 "   Assigns a texture and a blending mode to the stroke in order to\n"
 "   simulate its marks system.\n"
 "\n"
-"   :arg s: A Stroke object.\n"
-"   :type s: :class:`Stroke`\n";
+"   :arg stroke: A Stroke object.\n"
+"   :type stroke: :class:`Stroke`\n";
 
-static int StrokeTextureShader___init__( BPy_StrokeTextureShader* self, PyObject *args)
+static int StrokeTextureShader___init__(BPy_StrokeTextureShader* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"texture_file", "medium_type", "tips", NULL};
 	const char *s1;
 	PyObject *obj2 = 0, *obj3 = 0;
-	
-	if(!( PyArg_ParseTuple(args, "s|O!O", &s1, &MediumType_Type, &obj2, &obj3) ))
-		return -1;
 
-	Stroke::MediumType mt = (obj2) ? MediumType_from_BPy_MediumType(obj2) : Stroke::OPAQUE_MEDIUM; 
-	bool b = (obj3) ? bool_from_PyBool(obj3) : true;
-	
-	self->py_ss.ss = new StrokeShaders::StrokeTextureShader(s1,mt,b);
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "s|O!O!", (char **)kwlist,
+	                                 &s1, &MediumType_Type, &obj2, &PyBool_Type, &obj3))
+	{
+		return -1;
+	}
+	Stroke::MediumType mt = (!obj2) ? Stroke::OPAQUE_MEDIUM : MediumType_from_BPy_MediumType(obj2);
+	bool b = (!obj3) ? false : bool_from_PyBool(obj3);
+	self->py_ss.ss = new StrokeShaders::StrokeTextureShader(s1, mt, b);
 	return 0;
 }
 

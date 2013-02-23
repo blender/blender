@@ -39,7 +39,7 @@ bpred = TrueBP1D()
 Operators.bidirectionalChain(ChainPredicateIterator(upred, bpred), NotUP1D(upred) )
 shaders_list = [
     ConstantThicknessShader(4),
-    StrokeTextureShader("smoothAlpha.bmp", Stroke.OPAQUE_MEDIUM, 0),
+    StrokeTextureShader("smoothAlpha.bmp", Stroke.OPAQUE_MEDIUM, False),
     SamplingShader(2),
     pyDiffusion2Shader(offset, nbIter), 
     IncreasingColorShader(1, 0, 0, 1, 0, 1, 0, 1)

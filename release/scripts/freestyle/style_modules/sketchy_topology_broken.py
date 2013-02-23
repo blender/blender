@@ -38,7 +38,7 @@ Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectionalChain(pySketchyChainingIterator(3))
 shaders_list = [
     SamplingShader(4),
-    SpatialNoiseShader(6, 120, 2, 1, 1), 
+    SpatialNoiseShader(6, 120, 2, True, True), 
     IncreasingThicknessShader(4, 10), 
     SmoothingShader(100, 0.1, 0, 0.2, 0, 0, 0, 1),
     pyBackboneStretcherNoCuspShader(20),

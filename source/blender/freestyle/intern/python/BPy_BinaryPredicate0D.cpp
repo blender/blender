@@ -10,15 +10,15 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //-------------------MODULE INITIALIZATION--------------------------------
-int BinaryPredicate0D_Init( PyObject *module )
+int BinaryPredicate0D_Init(PyObject *module)
 {
-	if( module == NULL )
+	if (module == NULL)
 		return -1;
 
-	if( PyType_Ready( &BinaryPredicate0D_Type ) < 0 )
+	if (PyType_Ready(&BinaryPredicate0D_Type) < 0)
 		return -1;
 
-	Py_INCREF( &BinaryPredicate0D_Type );
+	Py_INCREF(&BinaryPredicate0D_Type);
 	PyModule_AddObject(module, "BinaryPredicate0D", (PyObject *)&BinaryPredicate0D_Type);
 	return 0;
 }
@@ -50,11 +50,12 @@ static char BinaryPredicate0D___doc__[] =
 
 static int BinaryPredicate0D___init__(BPy_BinaryPredicate0D *self, PyObject *args, PyObject *kwds)
 {
-    if ( !PyArg_ParseTuple(args, "") )
-        return -1;
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+		return -1;
 	self->bp0D = new BinaryPredicate0D();
-	self->bp0D->py_bp0D = (PyObject *) self;
-	
+	self->bp0D->py_bp0D = (PyObject *)self;
 	return 0;
 }
 
@@ -62,58 +63,53 @@ static void BinaryPredicate0D___dealloc__(BPy_BinaryPredicate0D* self)
 {
 	if (self->bp0D)
 		delete self->bp0D;
-    Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
-
 
 static PyObject * BinaryPredicate0D___repr__(BPy_BinaryPredicate0D* self)
 {
-    return PyUnicode_FromFormat("type: %s - address: %p", self->bp0D->getName().c_str(), self->bp0D );
+	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->bp0D);
 }
 
-static char BinaryPredicate0D_getName___doc__[] =
-".. method:: getName()\n"
-"\n"
-"   Returns the name of the binary 0D predicate.\n"
-"\n"
-"   :return: The name of the binary 0D predicate.\n"
-"   :rtype: str\n";
-
-static PyObject * BinaryPredicate0D_getName( BPy_BinaryPredicate0D *self, PyObject *args)
+static PyObject * BinaryPredicate0D___call__(BPy_BinaryPredicate0D *self, PyObject *args, PyObject *kwds)
 {
-	return PyUnicode_FromString( self->bp0D->getName().c_str() );
-}
-
-static PyObject * BinaryPredicate0D___call__( BPy_BinaryPredicate0D *self, PyObject *args, PyObject *kwds)
-{
+	static const char *kwlist[] = {"inter1", "inter2", NULL};
 	BPy_Interface0D *obj1, *obj2;
 
-	if( kwds != NULL ) {
-		PyErr_SetString(PyExc_TypeError, "keyword argument(s) not supported");
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!O!", (char **)kwlist,
+	                                 &Interface0D_Type, &obj1, &Interface0D_Type, &obj2))
+	{
 		return NULL;
 	}
-	if( !PyArg_ParseTuple(args, "O!O!", &Interface0D_Type, &obj1, &Interface0D_Type, &obj2) )
-		return NULL;
-	
-	if( typeid(*(self->bp0D)) == typeid(BinaryPredicate0D) ) {
+	if (typeid(*(self->bp0D)) == typeid(BinaryPredicate0D)) {
 		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
 	}
-	if (self->bp0D->operator()( *(obj1->if0D) , *(obj2->if0D) ) < 0) {
+	if (self->bp0D->operator()(*(obj1->if0D) , *(obj2->if0D)) < 0) {
 		if (!PyErr_Occurred()) {
-			string msg(self->bp0D->getName() + " __call__ method failed");
-			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+			string class_name(Py_TYPE(self)->tp_name);
+			PyErr_SetString(PyExc_RuntimeError, (class_name + " __call__ method failed").c_str());
 		}
 		return NULL;
 	}
-	return PyBool_from_bool( self->bp0D->result );
-
+	return PyBool_from_bool(self->bp0D->result);
 }
 
-/*----------------------BinaryPredicate0D instance definitions ----------------------------*/
-static PyMethodDef BPy_BinaryPredicate0D_methods[] = {
-	{"getName", ( PyCFunction ) BinaryPredicate0D_getName, METH_NOARGS, BinaryPredicate0D_getName___doc__},
-	{NULL, NULL, 0, NULL}
+/*----------------------BinaryPredicate0D get/setters ----------------------------*/
+
+PyDoc_STRVAR(BinaryPredicate0D_name_doc,
+"The name of the binary 0D predicate.\n"
+"\n"
+":type: str");
+
+static PyObject *BinaryPredicate0D_name_get(BPy_BinaryPredicate0D *self, void *UNUSED(closure))
+{
+	return PyUnicode_FromString(Py_TYPE(self)->tp_name);
+}
+
+static PyGetSetDef BPy_BinaryPredicate0D_getseters[] = {
+	{(char *)"name", (getter)BinaryPredicate0D_name_get, (setter)NULL, (char *)BinaryPredicate0D_name_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_BinaryPredicate0D type definition ------------------------------*/
@@ -146,9 +142,9 @@ PyTypeObject BinaryPredicate0D_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_BinaryPredicate0D_methods,  /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_BinaryPredicate0D_getseters, /* tp_getset */
 	0,                              /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */

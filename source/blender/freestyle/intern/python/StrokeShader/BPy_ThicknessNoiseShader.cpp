@@ -15,29 +15,29 @@ static char ThicknessNoiseShader___doc__[] =
 "\n"
 "[Thickness shader]\n"
 "\n"
-".. method:: __init__(iAmplitude, iPeriod)\n"
+".. method:: __init__(amplitude, period)\n"
 "\n"
 "   Builds a ThicknessNoiseShader object.\n"
 "\n"
-"   :arg iAmplitude: The amplitude of the noise signal.\n"
-"   :type iAmplitude: float\n"
-"   :arg iPeriod: The period of the noise signal.\n"
-"   :type iPeriod: float\n"
+"   :arg amplitude: The amplitude of the noise signal.\n"
+"   :type amplitude: float\n"
+"   :arg period: The period of the noise signal.\n"
+"   :type period: float\n"
 "\n"
-".. method:: shade(s)\n"
+".. method:: shade(stroke)\n"
 "\n"
 "   Adds some noise to the stroke thickness.\n"
 "\n"
-"   :arg s: A Stroke object.\n"
-"   :type s: :class:`Stroke`\n";
+"   :arg stroke: A Stroke object.\n"
+"   :type stroke: :class:`Stroke`\n";
 
-static int ThicknessNoiseShader___init__( BPy_ThicknessNoiseShader* self, PyObject *args)
+static int ThicknessNoiseShader___init__(BPy_ThicknessNoiseShader* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"amplitude", "period", NULL};
 	float f1, f2;
-	
-	if(!( PyArg_ParseTuple(args, "ff", &f1, &f2) ))
-		return -1;
 
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "ff", (char **)kwlist, &f1, &f2))
+		return -1;
 	self->py_ss.ss = new StrokeShaders::ThicknessNoiseShader(f1, f2);
 	return 0;
 }

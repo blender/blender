@@ -15,14 +15,14 @@ static char TextureAssignerShader___doc__[] =
 "\n"
 "[Texture shader]\n"
 "\n"
-".. method:: __init__(id)\n"
+".. method:: __init__(preset)\n"
 "\n"
 "   Builds a TextureAssignerShader object.\n"
 "\n"
-"   :arg id: The preset number to use.\n"
-"   :type id: int\n"
+"   :arg preset: The preset number to use.\n"
+"   :type preset: int\n"
 "\n"
-".. method:: shade(s)\n"
+".. method:: shade(stroke)\n"
 "\n"
 "   Assigns a texture to the stroke in order to simulate its marks\n"
 "   system.  This shader takes as input an integer value telling which\n"
@@ -42,16 +42,16 @@ static char TextureAssignerShader___doc__[] =
 "\n"
 "   * Default: `/brushes/smoothAlpha.bmp`, `MediumType.OPAQUE_MEDIUM`\n"
 "\n"
-"   :arg s: A Stroke object.\n"
-"   :type s: :class:`Stroke`\n";
+"   :arg stroke: A Stroke object.\n"
+"   :type stroke: :class:`Stroke`\n";
 
-static int TextureAssignerShader___init__( BPy_TextureAssignerShader* self, PyObject *args)
+static int TextureAssignerShader___init__(BPy_TextureAssignerShader* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"preset", NULL};
 	int i;
 
-	if(!( PyArg_ParseTuple(args, "i", &i) ))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", (char **)kwlist, &i))
 		return -1;
-
 	self->py_ss.ss = new StrokeShaders::TextureAssignerShader(i);
 	return 0;
 }

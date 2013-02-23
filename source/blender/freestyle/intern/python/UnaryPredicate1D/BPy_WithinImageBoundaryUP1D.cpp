@@ -28,11 +28,12 @@ static char WithinImageBoundaryUP1D___doc__[] =
 "\n"
 "   Returns true if the Interface1D intersects with image boundary.\n";
 
-static int WithinImageBoundaryUP1D___init__( BPy_WithinImageBoundaryUP1D* self, PyObject *args )
+static int WithinImageBoundaryUP1D___init__(BPy_WithinImageBoundaryUP1D* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"xmin", "ymin", "xmax", "ymax", NULL};
 	double xmin, ymin, xmax, ymax;
 
-	if(!( PyArg_ParseTuple(args, "dddd", &xmin, &ymin, &xmax, &ymax) ))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "dddd", (char **)kwlist, &xmin, &ymin, &xmax, &ymax))
 		return -1;
 	self->py_up1D.up1D = new Predicates1D::WithinImageBoundaryUP1D(xmin, ymin, xmax, ymax);
 	return 0;

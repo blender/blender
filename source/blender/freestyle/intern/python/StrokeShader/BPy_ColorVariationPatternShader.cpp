@@ -27,24 +27,24 @@ static char ColorVariationPatternShader___doc__[] =
 "      repeted to fit the stroke.\n"
 "   :type stretch: bool\n"
 "\n"
-".. method:: shade(s)\n"
+".. method:: shade(stroke)\n"
 "\n"
 "   Applies a pattern to vary the original color.  The new color is the\n"
 "   result of the multiplication of the pattern and the original color.\n"
 "\n"
-"   :arg s: A Stroke object.\n"
-"   :type s: :class:`Stroke`\n";
+"   :arg stroke: A Stroke object.\n"
+"   :type stroke: :class:`Stroke`\n";
 
-static int ColorVariationPatternShader___init__( BPy_ColorVariationPatternShader* self, PyObject *args)
+static int ColorVariationPatternShader___init__(BPy_ColorVariationPatternShader* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"pattern_name", "stretch", NULL};
 	const char *s;
 	PyObject *obj = 0;
-	
-	if(!( PyArg_ParseTuple(args, "s|O", &s, &obj) ))
-		return -1;
 
-	bool b = (obj) ? bool_from_PyBool(obj) : true;
-	self->py_ss.ss = new StrokeShaders::ColorVariationPatternShader(s,b);
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "s|O!", (char **)kwlist, &s, &PyBool_Type, &obj))
+		return -1;
+	bool b = (!obj) ? true : bool_from_PyBool(obj);
+	self->py_ss.ss = new StrokeShaders::ColorVariationPatternShader(s, b);
 	return 0;
 }
 

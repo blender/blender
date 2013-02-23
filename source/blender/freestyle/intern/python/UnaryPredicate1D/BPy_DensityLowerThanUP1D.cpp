@@ -34,14 +34,14 @@ static char DensityLowerThanUP1D___doc__[] =
 "   :return: True if the density is lower than a threshold.\n"
 "   :rtype: bool\n";
 
-static int DensityLowerThanUP1D___init__( BPy_DensityLowerThanUP1D* self, PyObject *args )
+static int DensityLowerThanUP1D___init__(BPy_DensityLowerThanUP1D* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"threshold", "sigma", NULL};
 	double d1, d2 = 2.0;
 
-	if( !PyArg_ParseTuple(args, "d|d", &d1, &d2) )
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|d", (char **)kwlist, &d1, &d2))
 		return -1;
-	
-	self->py_up1D.up1D = new Predicates1D::DensityLowerThanUP1D(d1,d2);
+	self->py_up1D.up1D = new Predicates1D::DensityLowerThanUP1D(d1, d2);
 	return 0;
 }
 

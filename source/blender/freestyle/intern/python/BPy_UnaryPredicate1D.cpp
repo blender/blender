@@ -21,64 +21,64 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //-------------------MODULE INITIALIZATION--------------------------------
-int UnaryPredicate1D_Init( PyObject *module )
+int UnaryPredicate1D_Init(PyObject *module)
 {
-	if( module == NULL )
+	if (module == NULL)
 		return -1;
 
-	if( PyType_Ready( &UnaryPredicate1D_Type ) < 0 )
+	if (PyType_Ready(&UnaryPredicate1D_Type) < 0)
 		return -1;
-	Py_INCREF( &UnaryPredicate1D_Type );
+	Py_INCREF(&UnaryPredicate1D_Type);
 	PyModule_AddObject(module, "UnaryPredicate1D", (PyObject *)&UnaryPredicate1D_Type);
 	
-	if( PyType_Ready( &ContourUP1D_Type ) < 0 )
+	if (PyType_Ready(&ContourUP1D_Type) < 0)
 		return -1;
-	Py_INCREF( &ContourUP1D_Type );
+	Py_INCREF(&ContourUP1D_Type);
 	PyModule_AddObject(module, "ContourUP1D", (PyObject *)&ContourUP1D_Type);
 	
-	if( PyType_Ready( &DensityLowerThanUP1D_Type ) < 0 )
+	if (PyType_Ready(&DensityLowerThanUP1D_Type) < 0)
 		return -1;
-	Py_INCREF( &DensityLowerThanUP1D_Type );
+	Py_INCREF(&DensityLowerThanUP1D_Type);
 	PyModule_AddObject(module, "DensityLowerThanUP1D", (PyObject *)&DensityLowerThanUP1D_Type);
 	
-	if( PyType_Ready( &EqualToChainingTimeStampUP1D_Type ) < 0 )
+	if (PyType_Ready(&EqualToChainingTimeStampUP1D_Type) < 0)
 		return -1;
-	Py_INCREF( &EqualToChainingTimeStampUP1D_Type );
+	Py_INCREF(&EqualToChainingTimeStampUP1D_Type);
 	PyModule_AddObject(module, "EqualToChainingTimeStampUP1D", (PyObject *)&EqualToChainingTimeStampUP1D_Type);
 
-	if( PyType_Ready( &EqualToTimeStampUP1D_Type ) < 0 )
+	if (PyType_Ready(&EqualToTimeStampUP1D_Type) < 0)
 		return -1;
-	Py_INCREF( &EqualToTimeStampUP1D_Type );
+	Py_INCREF(&EqualToTimeStampUP1D_Type);
 	PyModule_AddObject(module, "EqualToTimeStampUP1D", (PyObject *)&EqualToTimeStampUP1D_Type);
 	
-	if( PyType_Ready( &ExternalContourUP1D_Type ) < 0 )
+	if (PyType_Ready(&ExternalContourUP1D_Type) < 0)
 		return -1;
-	Py_INCREF( &ExternalContourUP1D_Type );
+	Py_INCREF(&ExternalContourUP1D_Type);
 	PyModule_AddObject(module, "ExternalContourUP1D", (PyObject *)&ExternalContourUP1D_Type);
 	
-	if( PyType_Ready( &FalseUP1D_Type ) < 0 )
+	if (PyType_Ready(&FalseUP1D_Type) < 0)
 		return -1;
-	Py_INCREF( &FalseUP1D_Type );
+	Py_INCREF(&FalseUP1D_Type);
 	PyModule_AddObject(module, "FalseUP1D", (PyObject *)&FalseUP1D_Type);
 	
-	if( PyType_Ready( &QuantitativeInvisibilityUP1D_Type ) < 0 )
+	if (PyType_Ready(&QuantitativeInvisibilityUP1D_Type) < 0)
 		return -1;
-	Py_INCREF( &QuantitativeInvisibilityUP1D_Type );
+	Py_INCREF(&QuantitativeInvisibilityUP1D_Type);
 	PyModule_AddObject(module, "QuantitativeInvisibilityUP1D", (PyObject *)&QuantitativeInvisibilityUP1D_Type);
 	
-	if( PyType_Ready( &ShapeUP1D_Type ) < 0 )
+	if (PyType_Ready(&ShapeUP1D_Type) < 0)
 		return -1;
-	Py_INCREF( &ShapeUP1D_Type );
+	Py_INCREF(&ShapeUP1D_Type);
 	PyModule_AddObject(module, "ShapeUP1D", (PyObject *)&ShapeUP1D_Type);
 	
-	if( PyType_Ready( &TrueUP1D_Type ) < 0 )
+	if (PyType_Ready(&TrueUP1D_Type) < 0)
 		return -1;
-	Py_INCREF( &TrueUP1D_Type );
+	Py_INCREF(&TrueUP1D_Type);
 	PyModule_AddObject(module, "TrueUP1D", (PyObject *)&TrueUP1D_Type);
 
-	if( PyType_Ready( &WithinImageBoundaryUP1D_Type ) < 0 )
+	if (PyType_Ready(&WithinImageBoundaryUP1D_Type) < 0)
 		return -1;
-	Py_INCREF( &WithinImageBoundaryUP1D_Type );
+	Py_INCREF(&WithinImageBoundaryUP1D_Type);
 	PyModule_AddObject(module, "WithinImageBoundaryUP1D", (PyObject *)&WithinImageBoundaryUP1D_Type);
 	
 	return 0;
@@ -109,10 +109,12 @@ static char UnaryPredicate1D___doc__[] =
 
 static int UnaryPredicate1D___init__(BPy_UnaryPredicate1D *self, PyObject *args, PyObject *kwds)
 {
-	if( !PyArg_ParseTuple(args, "") )	
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
 		return -1;
 	self->up1D = new UnaryPredicate1D();
-	self->up1D->py_up1D = (PyObject *) self;
+	self->up1D->py_up1D = (PyObject *)self;
 	return 0;
 }
 
@@ -120,67 +122,58 @@ static void UnaryPredicate1D___dealloc__(BPy_UnaryPredicate1D* self)
 {
 	if (self->up1D)
 		delete self->up1D;
-    Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static PyObject * UnaryPredicate1D___repr__(BPy_UnaryPredicate1D* self)
 {
-    return PyUnicode_FromFormat("type: %s - address: %p", self->up1D->getName().c_str(), self->up1D );
+	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->up1D);
 }
 
-static char UnaryPredicate1D_getName___doc__[] =
-".. method:: getName()\n"
-"\n"
-"   Returns the string of the name of the UnaryPredicate1D.\n"
-"\n"
-"   Reimplemented in TrueUP1D, FalseUP1D, QuantitativeInvisibilityUP1D,\n"
-"   ContourUP1D, ExternalContourUP1D, EqualToTimeStampUP1D,\n"
-"   EqualToChainingTimeStampUP1D, ShapeUP1D, and DensityLowerThanUP1D.\n"
-"\n"
-"   :return: \n"
-"   :rtype: str\n";
-
-static PyObject * UnaryPredicate1D_getName( BPy_UnaryPredicate1D *self, PyObject *args)
+static PyObject * UnaryPredicate1D___call__(BPy_UnaryPredicate1D *self, PyObject *args, PyObject *kwds)
 {
-	return PyUnicode_FromString( self->up1D->getName().c_str() );
-}
-
-static PyObject * UnaryPredicate1D___call__( BPy_UnaryPredicate1D *self, PyObject *args, PyObject *kwds)
-{
+	static const char *kwlist[] = {"inter", NULL};
 	PyObject *py_if1D;
 
-	if( kwds != NULL ) {
-		PyErr_SetString(PyExc_TypeError, "keyword argument(s) not supported");
-		return NULL;
-	}
-	if( !PyArg_ParseTuple(args, "O!", &Interface1D_Type, &py_if1D) )
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface1D_Type, &py_if1D))
 		return NULL;
 	
-	Interface1D *if1D = ((BPy_Interface1D *) py_if1D)->if1D;
+	Interface1D *if1D = ((BPy_Interface1D *)py_if1D)->if1D;
 	
-	if( !if1D ) {
+	if (!if1D) {
 		string msg(self->up1D->getName() + " has no Interface0DIterator");
 		PyErr_SetString(PyExc_RuntimeError, msg.c_str());
 		return NULL;
 	}
-	if( typeid(*(self->up1D)) == typeid(UnaryPredicate1D) ) {
+	if (typeid(*(self->up1D)) == typeid(UnaryPredicate1D)) {
 		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
 	}
-	if( self->up1D->operator()(*if1D) < 0 ) {
+	if (self->up1D->operator()(*if1D) < 0) {
 		if (!PyErr_Occurred()) {
-			string msg(self->up1D->getName() + " __call__ method failed");
-			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+			string class_name(Py_TYPE(self)->tp_name);
+			PyErr_SetString(PyExc_RuntimeError, (class_name + " __call__ method failed").c_str());
 		}
 		return NULL;
 	}
-	return PyBool_from_bool( self->up1D->result );
+	return PyBool_from_bool(self->up1D->result);
 }
 
-/*----------------------UnaryPredicate1D instance definitions ----------------------------*/
-static PyMethodDef BPy_UnaryPredicate1D_methods[] = {
-	{"getName", ( PyCFunction ) UnaryPredicate1D_getName, METH_NOARGS, UnaryPredicate1D_getName___doc__},
-	{NULL, NULL, 0, NULL}
+/*----------------------UnaryPredicate1D get/setters ----------------------------*/
+
+PyDoc_STRVAR(UnaryPredicate1D_name_doc,
+"The name of the unary 1D predicate.\n"
+"\n"
+":type: str");
+
+static PyObject *UnaryPredicate1D_name_get(BPy_UnaryPredicate1D *self, void *UNUSED(closure))
+{
+	return PyUnicode_FromString(Py_TYPE(self)->tp_name);
+}
+
+static PyGetSetDef BPy_UnaryPredicate1D_getseters[] = {
+	{(char *)"name", (getter)UnaryPredicate1D_name_get, (setter)NULL, (char *)UnaryPredicate1D_name_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_UnaryPredicate1D type definition ------------------------------*/
@@ -213,9 +206,9 @@ PyTypeObject UnaryPredicate1D_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_UnaryPredicate1D_methods,   /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_UnaryPredicate1D_getseters, /* tp_getset */
 	0,                              /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */
@@ -231,6 +224,3 @@ PyTypeObject UnaryPredicate1D_Type = {
 #ifdef __cplusplus
 }
 #endif
-
-
-

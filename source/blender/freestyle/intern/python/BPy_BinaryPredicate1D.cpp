@@ -16,39 +16,39 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //-------------------MODULE INITIALIZATION--------------------------------
-int BinaryPredicate1D_Init( PyObject *module )
+int BinaryPredicate1D_Init(PyObject *module)
 {
-	if( module == NULL )
+	if (module == NULL)
 		return -1;
 
-	if( PyType_Ready( &BinaryPredicate1D_Type ) < 0 )
+	if (PyType_Ready(&BinaryPredicate1D_Type) < 0)
 		return -1;
-	Py_INCREF( &BinaryPredicate1D_Type );
+	Py_INCREF(&BinaryPredicate1D_Type);
 	PyModule_AddObject(module, "BinaryPredicate1D", (PyObject *)&BinaryPredicate1D_Type);
 	
-	if( PyType_Ready( &FalseBP1D_Type ) < 0 )
+	if (PyType_Ready(&FalseBP1D_Type) < 0)
 		return -1;
-	Py_INCREF( &FalseBP1D_Type );
+	Py_INCREF(&FalseBP1D_Type);
 	PyModule_AddObject(module, "FalseBP1D", (PyObject *)&FalseBP1D_Type);
 	
-	if( PyType_Ready( &Length2DBP1D_Type ) < 0 )
+	if (PyType_Ready(&Length2DBP1D_Type) < 0)
 		return -1;
-	Py_INCREF( &Length2DBP1D_Type );
+	Py_INCREF(&Length2DBP1D_Type);
 	PyModule_AddObject(module, "Length2DBP1D", (PyObject *)&Length2DBP1D_Type);
 	
-	if( PyType_Ready( &SameShapeIdBP1D_Type ) < 0 )
+	if (PyType_Ready(&SameShapeIdBP1D_Type) < 0)
 		return -1;
-	Py_INCREF( &SameShapeIdBP1D_Type );
+	Py_INCREF(&SameShapeIdBP1D_Type);
 	PyModule_AddObject(module, "SameShapeIdBP1D", (PyObject *)&SameShapeIdBP1D_Type);
 	
-	if( PyType_Ready( &TrueBP1D_Type ) < 0 )
+	if (PyType_Ready(&TrueBP1D_Type) < 0)
 		return -1;
-	Py_INCREF( &TrueBP1D_Type );
+	Py_INCREF(&TrueBP1D_Type);
 	PyModule_AddObject(module, "TrueBP1D", (PyObject *)&TrueBP1D_Type);
 	
-	if( PyType_Ready( &ViewMapGradientNormBP1D_Type ) < 0 )
+	if (PyType_Ready(&ViewMapGradientNormBP1D_Type) < 0)
 		return -1;
-	Py_INCREF( &ViewMapGradientNormBP1D_Type );
+	Py_INCREF(&ViewMapGradientNormBP1D_Type);
 	PyModule_AddObject(module, "ViewMapGradientNormBP1D", (PyObject *)&ViewMapGradientNormBP1D_Type);
 	
 	return 0;
@@ -81,10 +81,12 @@ static char BinaryPredicate1D___doc__[] =
 
 static int BinaryPredicate1D___init__(BPy_BinaryPredicate1D *self, PyObject *args, PyObject *kwds)
 {
-    if ( !PyArg_ParseTuple(args, "") )
-        return -1;
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+		return -1;
 	self->bp1D = new BinaryPredicate1D();
-	self->bp1D->py_bp1D = (PyObject *) self;	
+	self->bp1D->py_bp1D = (PyObject *)self;
 	return 0;
 }
 
@@ -92,56 +94,53 @@ static void BinaryPredicate1D___dealloc__(BPy_BinaryPredicate1D* self)
 {
 	if (self->bp1D)
 		delete self->bp1D;
-    Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static PyObject * BinaryPredicate1D___repr__(BPy_BinaryPredicate1D* self)
 {
-    return PyUnicode_FromFormat("type: %s - address: %p", self->bp1D->getName().c_str(), self->bp1D );
+	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->bp1D);
 }
 
-static char BinaryPredicate1D_getName___doc__[] =
-".. method:: getName()\n"
-"\n"
-"   Returns the name of the binary 1D predicate.\n"
-"\n"
-"   :return: The name of the binary 1D predicate.\n"
-"   :rtype: str\n";
-
-static PyObject *BinaryPredicate1D_getName( BPy_BinaryPredicate1D *self, PyObject *args)
+static PyObject *BinaryPredicate1D___call__(BPy_BinaryPredicate1D *self, PyObject *args, PyObject *kwds)
 {
-	return PyUnicode_FromString( self->bp1D->getName().c_str() );
-}
-
-static PyObject *BinaryPredicate1D___call__( BPy_BinaryPredicate1D *self, PyObject *args, PyObject *kwds)
-{
+	static const char *kwlist[] = {"inter1", "inter2", NULL};
 	BPy_Interface1D *obj1, *obj2;
-	
-	if( kwds != NULL ) {
-		PyErr_SetString(PyExc_TypeError, "keyword argument(s) not supported");
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!O!", (char **)kwlist,
+	                                 &Interface1D_Type, &obj1, &Interface1D_Type, &obj2))
+	{
 		return NULL;
 	}
-	if( !PyArg_ParseTuple(args, "O!O!", &Interface1D_Type, &obj1, &Interface1D_Type, &obj2) )
-		return NULL;
-	
-	if( typeid(*(self->bp1D)) == typeid(BinaryPredicate1D) ) {
+	if (typeid(*(self->bp1D)) == typeid(BinaryPredicate1D)) {
 		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
 	}
-	if (self->bp1D->operator()( *(obj1->if1D) , *(obj2->if1D) ) < 0) {
+	if (self->bp1D->operator()(*(obj1->if1D) , *(obj2->if1D)) < 0) {
 		if (!PyErr_Occurred()) {
-			string msg(self->bp1D->getName() + " __call__ method failed");
-			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+			string class_name(Py_TYPE(self)->tp_name);
+			PyErr_SetString(PyExc_RuntimeError, (class_name + " __call__ method failed").c_str());
 		}
 		return NULL;
 	}
-	return PyBool_from_bool( self->bp1D->result );
+	return PyBool_from_bool(self->bp1D->result);
 }
 
-/*----------------------BinaryPredicate1D instance definitions ----------------------------*/
-static PyMethodDef BPy_BinaryPredicate1D_methods[] = {
-	{"getName", ( PyCFunction ) BinaryPredicate1D_getName, METH_NOARGS, BinaryPredicate1D_getName___doc__},
-	{NULL, NULL, 0, NULL}
+/*----------------------BinaryPredicate0D get/setters ----------------------------*/
+
+PyDoc_STRVAR(BinaryPredicate1D_name_doc,
+"The name of the binary 1D predicate.\n"
+"\n"
+":type: str");
+
+static PyObject *BinaryPredicate1D_name_get(BPy_BinaryPredicate1D *self, void *UNUSED(closure))
+{
+	return PyUnicode_FromString(Py_TYPE(self)->tp_name);
+}
+
+static PyGetSetDef BPy_BinaryPredicate1D_getseters[] = {
+	{(char *)"name", (getter)BinaryPredicate1D_name_get, (setter)NULL, (char *)BinaryPredicate1D_name_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_BinaryPredicate1D type definition ------------------------------*/
@@ -173,9 +172,9 @@ PyTypeObject BinaryPredicate1D_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_BinaryPredicate1D_methods,  /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_BinaryPredicate1D_getseters, /* tp_getset */
 	0,                              /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */

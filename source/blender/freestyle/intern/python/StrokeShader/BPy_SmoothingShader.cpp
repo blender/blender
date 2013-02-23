@@ -15,45 +15,53 @@ static char SmoothingShader___doc__[] =
 "\n"
 "[Geometry shader]\n"
 "\n"
-".. method:: __init__(iNbIteration, iFactorPoint, ifactorCurvature, iFactorCurvatureDifference, iAnisoPoint, iAnisNormal, iAnisoCurvature, icarricatureFactor)\n"
+".. method:: __init__(num_iterations=100, factor_point=0.1,\n"
+"      factor_curvature=0.0, factor_curvature_difference=0.2,\n"
+"      aniso_point=0.0, aniso_normal=0.0, aniso_curvature=0.0,\n"
+"      carricature_factor=1.0)\n"
 "\n"
 "   Builds a SmoothingShader object.\n"
 "\n"
-"   :arg iNbIteration: The number of iterations (400).\n"
-"   :type iNbIteration: int\n"
-"   :arg iFactorPoint: 0.0\n"
-"   :type iFactorPoint: float\n"
-"   :arg ifactorCurvature: 0.0\n"
-"   :type ifactorCurvature: float\n"
-"   :arg iFactorCurvatureDifference: 0.2\n"
-"   :type iFactorCurvatureDifference: float\n"
-"   :arg iAnisoPoint: \n"
-"   :type iAnisoPoint: float\n"
-"   :arg iAnisNormal: 0.0\n"
-"   :type iAnisNormal: float\n"
-"   :arg iAnisoCurvature: 0.0\n"
-"   :type iAnisoCurvature: float\n"
-"   :arg icarricatureFactor: 1.0\n"
-"   :type icarricatureFactor: float\n"
+"   :arg num_iterations: The number of iterations.\n"
+"   :type num_iterations: int\n"
+"   :arg factor_point: 0.1\n"
+"   :type factor_point: float\n"
+"   :arg factor_curvature: 0.0\n"
+"   :type factor_curvature: float\n"
+"   :arg factor_curvature_difference: 0.2\n"
+"   :type factor_curvature_difference: float\n"
+"   :arg aniso_point: 0.0\n"
+"   :type aniso_point: float\n"
+"   :arg aniso_normal: 0.0\n"
+"   :type aniso_normal: float\n"
+"   :arg aniso_curvature: 0.0\n"
+"   :type aniso_curvature: float\n"
+"   :arg carricature_factor: 1.0\n"
+"   :type carricature_factor: float\n"
 "\n"
-".. method:: shade(s)\n"
+".. method:: shade(stroke)\n"
 "\n"
 "   Smoothes the stroke by moving the vertices to make the stroke\n"
 "   smoother.  Uses curvature flow to converge towards a curve of\n"
 "   constant curvature.  The diffusion method we use is anisotropic to\n"
 "   prevent the diffusion accross corners.\n"
 "\n"
-"   :arg s: A Stroke object.\n"
-"   :type s: :class:`Stroke`\n";
+"   :arg stroke: A Stroke object.\n"
+"   :type stroke: :class:`Stroke`\n";
 
-static int SmoothingShader___init__( BPy_SmoothingShader* self, PyObject *args)
+static int SmoothingShader___init__(BPy_SmoothingShader* self, PyObject *args, PyObject *kwds)
 {
-	int i1;
-	double d2, d3, d4, d5, d6, d7, d8;
+	static const char *kwlist[] = {"num_iterations", "factor_point", "factor_curvature",
+	                               "factor_curvature_difference", "aniso_point", "aniso_normal",
+	                               "aniso_curvature", "carricature_factor", NULL};
+	int i1 = 100;
+	double d2 = 0.1, d3 = 0.0, d4 = 0.2, d5 = 0.0, d6 = 0.0, d7 = 0.0, d8 = 1.0;
 
-	if(!( PyArg_ParseTuple(args, "iddddddd", &i1, &d2, &d3, &d4, &d5, &d6, &d7, &d8) ))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|iddddddd", (char **)kwlist,
+	                                 &i1, &d2, &d3, &d4, &d5, &d6, &d7, &d8))
+	{
 		return -1;
-
+	}
 	self->py_ss.ss = new SmoothingShader(i1, d2, d3, d4, d5, d6, d7, d8);
 	return 0;
 }

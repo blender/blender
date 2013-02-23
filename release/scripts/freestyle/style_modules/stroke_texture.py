@@ -36,7 +36,7 @@ Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvi
 shaders_list = 	[
 		SamplingShader(3),
 		BezierCurveShader(4),
-		StrokeTextureShader("washbrushAlpha.bmp", Stroke.DRY_MEDIUM, 1),
+		StrokeTextureShader("washbrushAlpha.bmp", Stroke.DRY_MEDIUM, True),
 		ConstantThicknessShader(40),
 		ConstantColorShader(0,0,0,1),
 		]

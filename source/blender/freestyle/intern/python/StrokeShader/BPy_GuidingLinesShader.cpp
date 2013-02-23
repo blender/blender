@@ -15,17 +15,17 @@ static char GuidingLinesShader___doc__[] =
 "\n"
 "[Geometry shader]\n"
 "\n"
-".. method:: __init__(iOffset)\n"
+".. method:: __init__(offset)\n"
 "\n"
 "   Builds a GuidingLinesShader object.\n"
 "\n"
-"   :arg iOffset: The line that replaces the stroke is initially in the\n"
-"      middle of the initial stroke bounding box.  iOffset is the value\n"
+"   :arg offset: The line that replaces the stroke is initially in the\n"
+"      middle of the initial stroke bounding box.  offset is the value\n"
 "      of the displacement which is applied to this line along its\n"
 "      normal.\n"
-"   :type iOffset: float\n"
+"   :type offset: float\n"
 "\n"
-".. method:: shade(s)\n"
+".. method:: shade(stroke)\n"
 "\n"
 "   Shader to modify the Stroke geometry so that it corresponds to its\n"
 "   main direction line.  This shader must be used together with the\n"
@@ -34,16 +34,16 @@ static char GuidingLinesShader___doc__[] =
 "   stroke's pieces.  The bigger the pieces are, the rougher the\n"
 "   approximation is.\n"
 "\n"
-"   :arg s: A Stroke object.\n"
-"   :type s: :class:`Stroke`\n";
+"   :arg stroke: A Stroke object.\n"
+"   :type stroke: :class:`Stroke`\n";
 
-static int GuidingLinesShader___init__( BPy_GuidingLinesShader* self, PyObject *args)
+static int GuidingLinesShader___init__(BPy_GuidingLinesShader* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"offset", NULL};
 	float f;
 
-	if(!( PyArg_ParseTuple(args, "f", &f) ))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "f", (char **)kwlist, &f))
 		return -1;
-
 	self->py_ss.ss = new StrokeShaders::GuidingLinesShader(f);
 	return 0;
 }

@@ -12,24 +12,24 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //-------------------MODULE INITIALIZATION--------------------------------
-int UnaryPredicate0D_Init( PyObject *module )
+int UnaryPredicate0D_Init(PyObject *module)
 {
-	if( module == NULL )
+	if (module == NULL)
 		return -1;
 
-	if( PyType_Ready( &UnaryPredicate0D_Type ) < 0 )
+	if (PyType_Ready(&UnaryPredicate0D_Type) < 0)
 		return -1;
-	Py_INCREF( &UnaryPredicate0D_Type );
+	Py_INCREF(&UnaryPredicate0D_Type);
 	PyModule_AddObject(module, "UnaryPredicate0D", (PyObject *)&UnaryPredicate0D_Type);
 	
-	if( PyType_Ready( &FalseUP0D_Type ) < 0 )
+	if (PyType_Ready(&FalseUP0D_Type) < 0)
 		return -1;
-	Py_INCREF( &FalseUP0D_Type );
+	Py_INCREF(&FalseUP0D_Type);
 	PyModule_AddObject(module, "FalseUP0D", (PyObject *)&FalseUP0D_Type);
 	
-	if( PyType_Ready( &TrueUP0D_Type ) < 0 )
+	if (PyType_Ready(&TrueUP0D_Type) < 0)
 		return -1;
-	Py_INCREF( &TrueUP0D_Type );
+	Py_INCREF(&TrueUP0D_Type);
 	PyModule_AddObject(module, "TrueUP0D", (PyObject *)&TrueUP0D_Type);
 	
 	return 0;
@@ -61,10 +61,12 @@ static char UnaryPredicate0D___doc__[] =
 
 static int UnaryPredicate0D___init__(BPy_UnaryPredicate0D *self, PyObject *args, PyObject *kwds)
 {
-    if ( !PyArg_ParseTuple(args, "") )
-        return -1;
+	static const char *kwlist[] = {NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "", (char **)kwlist))
+		return -1;
 	self->up0D = new UnaryPredicate0D();
-	self->up0D->py_up0D = (PyObject *) self;
+	self->up0D->py_up0D = (PyObject *)self;
 	return 0;
 }
 
@@ -72,63 +74,58 @@ static void UnaryPredicate0D___dealloc__(BPy_UnaryPredicate0D* self)
 {
 	if (self->up0D)
 		delete self->up0D;
-    Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 static PyObject * UnaryPredicate0D___repr__(BPy_UnaryPredicate0D* self)
 {
-    return PyUnicode_FromFormat("type: %s - address: %p", self->up0D->getName().c_str(), self->up0D );
+	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->up0D);
 }
 
-static char UnaryPredicate0D_getName___doc__[] =
-".. method:: getName()\n"
-"\n"
-"   Returns the name of the UnaryPredicate0D.\n"
-"\n"
-"   :return: The name of the UnaryPredicate0D.\n"
-"   :rtype: str\n";
-
-static PyObject * UnaryPredicate0D_getName( BPy_UnaryPredicate0D *self )
+static PyObject * UnaryPredicate0D___call__(BPy_UnaryPredicate0D *self, PyObject *args, PyObject *kwds)
 {
-	return PyUnicode_FromString( self->up0D->getName().c_str() );
-}
-
-static PyObject * UnaryPredicate0D___call__( BPy_UnaryPredicate0D *self, PyObject *args, PyObject *kwds)
-{
+	static const char *kwlist[] = {"it", NULL};
 	PyObject *py_if0D_it;
 
-	if( kwds != NULL ) {
-		PyErr_SetString(PyExc_TypeError, "keyword argument(s) not supported");
-		return NULL;
-	}
-	if( !PyArg_ParseTuple(args, "O!", &Interface0DIterator_Type, &py_if0D_it) )
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface0DIterator_Type, &py_if0D_it))
 		return NULL;
 
-	Interface0DIterator *if0D_it = ((BPy_Interface0DIterator *) py_if0D_it)->if0D_it;
+	Interface0DIterator *if0D_it = ((BPy_Interface0DIterator *)py_if0D_it)->if0D_it;
 
-	if( !if0D_it ) {
+	if (!if0D_it) {
 		string msg(self->up0D->getName() + " has no Interface0DIterator");
 		PyErr_SetString(PyExc_RuntimeError, msg.c_str());
 		return NULL;
 	}
-	if( typeid(*(self->up0D)) == typeid(UnaryPredicate0D) ) {
+	if (typeid(*(self->up0D)) == typeid(UnaryPredicate0D)) {
 		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
 	}
 	if (self->up0D->operator()(*if0D_it) < 0) {
 		if (!PyErr_Occurred()) {
-			string msg(self->up0D->getName() + " __call__ method failed");
-			PyErr_SetString(PyExc_RuntimeError, msg.c_str());
+			string class_name(Py_TYPE(self)->tp_name);
+			PyErr_SetString(PyExc_RuntimeError, (class_name + " __call__ method failed").c_str());
 		}
 		return NULL;
 	}
-	return PyBool_from_bool( self->up0D->result );
+	return PyBool_from_bool(self->up0D->result);
 }
 
-/*----------------------UnaryPredicate0D instance definitions ----------------------------*/
-static PyMethodDef BPy_UnaryPredicate0D_methods[] = {
-	{"getName", ( PyCFunction ) UnaryPredicate0D_getName, METH_NOARGS, UnaryPredicate0D_getName___doc__},
-	{NULL, NULL, 0, NULL}
+/*----------------------UnaryPredicate0D get/setters ----------------------------*/
+
+PyDoc_STRVAR(UnaryPredicate0D_name_doc,
+"The name of the unary 0D predicate.\n"
+"\n"
+":type: str");
+
+static PyObject *UnaryPredicate0D_name_get(BPy_UnaryPredicate0D *self, void *UNUSED(closure))
+{
+	return PyUnicode_FromString(Py_TYPE(self)->tp_name);
+}
+
+static PyGetSetDef BPy_UnaryPredicate0D_getseters[] = {
+	{(char *)"name", (getter)UnaryPredicate0D_name_get, (setter)NULL, (char *)UnaryPredicate0D_name_doc, NULL},
+	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 
 /*-----------------------BPy_UnaryPredicate0D type definition ------------------------------*/
@@ -161,9 +158,9 @@ PyTypeObject UnaryPredicate0D_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_UnaryPredicate0D_methods,   /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
-	0,                              /* tp_getset */
+	BPy_UnaryPredicate0D_getseters, /* tp_getset */
 	0,                              /* tp_base */
 	0,                              /* tp_dict */
 	0,                              /* tp_descr_get */
@@ -179,6 +176,3 @@ PyTypeObject UnaryPredicate0D_Type = {
 #ifdef __cplusplus
 }
 #endif
-
-
-

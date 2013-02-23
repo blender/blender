@@ -12,7 +12,7 @@ Operators.bidirectionalChain(ChainSilhouetteIterator())
 #Operators.sequentialSplit(pyVertexNatureUP0D(Nature.VIEW_VERTEX), 2)
 Operators.sort(pyZBP1D())
 shaders_list = 	[
-		StrokeTextureShader("smoothAlpha.bmp", Stroke.OPAQUE_MEDIUM, 0),
+		StrokeTextureShader("smoothAlpha.bmp", Stroke.OPAQUE_MEDIUM, False),
 		ConstantThicknessShader(3), 
 		SamplingShader(5.0),
 		ConstantColorShader(0,0,0,1)

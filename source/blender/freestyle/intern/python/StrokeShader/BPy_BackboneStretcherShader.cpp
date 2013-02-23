@@ -15,28 +15,28 @@ static char BackboneStretcherShader___doc__[] =
 "\n"
 "[Geometry shader]\n"
 "\n"
-".. method:: __init__(iAmount=2.0)\n"
+".. method:: __init__(amount=2.0)\n"
 "\n"
 "   Builds a BackboneStretcherShader object.\n"
 "\n"
-"   :arg iAmount: The stretching amount value.\n"
-"   :type iAmount: float\n"
+"   :arg amount: The stretching amount value.\n"
+"   :type amount: float\n"
 "\n"
-".. method:: shade(s)\n"
+".. method:: shade(stroke)\n"
 "\n"
 "   Stretches the stroke at its two extremities and following the\n"
 "   respective directions: v(1)v(0) and v(n-1)v(n).\n"
 "\n"
-"   :arg s: A Stroke object.\n"
-"   :type s: :class:`Stroke`\n";
+"   :arg stroke: A Stroke object.\n"
+"   :type stroke: :class:`Stroke`\n";
 
-static int BackboneStretcherShader___init__( BPy_BackboneStretcherShader* self, PyObject *args)
+static int BackboneStretcherShader___init__(BPy_BackboneStretcherShader* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"amount", NULL};
 	float f = 2.0;
 
-	if(!( PyArg_ParseTuple(args, "|f", &f) ))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|f", (char **)kwlist, &f))
 		return -1;
-
 	self->py_ss.ss = new StrokeShaders::BackboneStretcherShader(f);
 	return 0;
 }

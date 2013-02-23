@@ -24,21 +24,21 @@ static char BezierCurveShader___doc__[] =
 "     original geometry.\n"
 "   :type error: float\n"
 "\n"
-".. method:: shade(s)\n"
+".. method:: shade(stroke)\n"
 "\n"
 "   Transforms the stroke backbone geometry so that it corresponds to a\n"
 "   Bezier Curve approximation of the original backbone geometry.\n"
 "\n"
-"   :arg s: A Stroke object.\n"
-"   :type s: :class:`Stroke`\n";
+"   :arg stroke: A Stroke object.\n"
+"   :type stroke: :class:`Stroke`\n";
 
-static int BezierCurveShader___init__( BPy_BezierCurveShader* self, PyObject *args)
+static int BezierCurveShader___init__(BPy_BezierCurveShader* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"error", NULL};
 	float f = 4.0;
 
-	if(!( PyArg_ParseTuple(args, "|f", &f) ))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|f", (char **)kwlist, &f))
 		return -1;
-
 	self->py_ss.ss = new StrokeShaders::BezierCurveShader(f);
 	return 0;
 }

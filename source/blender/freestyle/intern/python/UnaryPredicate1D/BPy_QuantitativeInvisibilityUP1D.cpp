@@ -31,13 +31,13 @@ static char QuantitativeInvisibilityUP1D___doc__[] =
 "      value.\n"
 "   :rtype: bool\n";
 
-static int QuantitativeInvisibilityUP1D___init__( BPy_QuantitativeInvisibilityUP1D* self, PyObject *args )
+static int QuantitativeInvisibilityUP1D___init__(BPy_QuantitativeInvisibilityUP1D* self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"qi", NULL};
 	int i = 0;
 
-	if( !PyArg_ParseTuple(args, "|i", &i) )
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|i", (char **)kwlist, &i))
 		return -1;
-	
 	self->py_up1D.up1D = new Predicates1D::QuantitativeInvisibilityUP1D(i);
 	return 0;
 }
