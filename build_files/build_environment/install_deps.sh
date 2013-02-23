@@ -1970,7 +1970,7 @@ print_info() {
     INFO "  $_2"
     _buildargs="$_buildargs $_1 $_2"
   elif $ALL_STATIC; then
-    _1="-D Boost_USE_ICU=ON"
+    _1="-D WITH_BOOST_ICU=ON"
     INFO "  $_1"
     _buildargs="$_buildargs $_1"
   fi
