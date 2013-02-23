@@ -36,7 +36,6 @@
 
 // These three are for getting the action from the logic manager
 #include "KX_Scene.h"
-#include "KX_PythonInit.h"
 #include "SCA_LogicManager.h"
 
 extern "C" {
@@ -132,8 +131,10 @@ bool BL_Action::Play(const char* name,
 	m_priority = priority;
 	bAction* prev_action = m_action;
 
+	KX_Scene* kxscene = m_obj->GetScene();
+
 	// First try to load the action
-	m_action = (bAction*)KX_GetActiveScene()->GetLogicManager()->GetActionByName(name);
+	m_action = (bAction*)kxscene->GetLogicManager()->GetActionByName(name);
 	if (!m_action)
 	{
 		printf("Failed to load action: %s\n", name);
@@ -157,13 +158,13 @@ bool BL_Action::Play(const char* name,
 		ClearControllerList();
 
 		// Create an SG_Controller
-		SG_Controller *sg_contr = BL_CreateIPO(m_action, m_obj, KX_GetActiveScene()->GetSceneConverter());
+		SG_Controller *sg_contr = BL_CreateIPO(m_action, m_obj, kxscene->GetSceneConverter());
 		m_sg_contr_list.push_back(sg_contr);
 		m_obj->GetSGNode()->AddSGController(sg_contr);
 		sg_contr->SetObject(m_obj->GetSGNode());
 
 		// Try obcolor
-		sg_contr = BL_CreateObColorIPO(m_action, m_obj, KX_GetActiveScene()->GetSceneConverter());
+		sg_contr = BL_CreateObColorIPO(m_action, m_obj, kxscene->GetSceneConverter());
 		if (sg_contr) {
 			m_sg_contr_list.push_back(sg_contr);
 			m_obj->GetSGNode()->AddSGController(sg_contr);
@@ -173,14 +174,14 @@ bool BL_Action::Play(const char* name,
 		// Extra controllers
 		if (m_obj->GetGameObjectType() == SCA_IObject::OBJ_LIGHT)
 		{
-			sg_contr = BL_CreateLampIPO(m_action, m_obj, KX_GetActiveScene()->GetSceneConverter());
+			sg_contr = BL_CreateLampIPO(m_action, m_obj, kxscene->GetSceneConverter());
 			m_sg_contr_list.push_back(sg_contr);
 			m_obj->GetSGNode()->AddSGController(sg_contr);
 			sg_contr->SetObject(m_obj->GetSGNode());
 		}
 		else if (m_obj->GetGameObjectType() == SCA_IObject::OBJ_CAMERA)
 		{
-			sg_contr = BL_CreateCameraIPO(m_action, m_obj, KX_GetActiveScene()->GetSceneConverter());
+			sg_contr = BL_CreateCameraIPO(m_action, m_obj, kxscene->GetSceneConverter());
 			m_sg_contr_list.push_back(sg_contr);
 			m_obj->GetSGNode()->AddSGController(sg_contr);
 			sg_contr->SetObject(m_obj->GetSGNode());
