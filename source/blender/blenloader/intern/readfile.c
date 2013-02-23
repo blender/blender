@@ -2712,7 +2712,7 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 	}
 }
 
-static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
+static void lib_link_pose(FileData *fd, Main *bmain, Object *ob, bPose *pose)
 {
 	bPoseChannel *pchan;
 	bArmature *arm = ob->data;
@@ -2756,7 +2756,7 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 	}
 	
 	if (rebuild) {
-		DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+		DAG_id_tag_update_ex(bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 		pose->flag |= POSE_RECALC;
 	}
 }
@@ -4221,7 +4221,7 @@ static void lib_link_object(FileData *fd, Main *main)
 			/* if id.us==0 a new base will be created later on */
 			
 			/* WARNING! Also check expand_object(), should reflect the stuff below. */
-			lib_link_pose(fd, ob, ob->pose);
+			lib_link_pose(fd, main, ob, ob->pose);
 			lib_link_constraints(fd, &ob->id, &ob->constraints);
 			
 // XXX deprecated - old animation system <<<

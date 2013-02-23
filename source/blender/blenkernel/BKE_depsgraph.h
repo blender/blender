@@ -118,6 +118,7 @@ void    DAG_scene_flush_update(struct Main *bmain, struct Scene *sce, unsigned i
 void    DAG_on_visible_update(struct Main *bmain, const short do_time);
 
 /* tag datablock to get updated for the next redraw */
+void    DAG_id_tag_update_ex(struct Main *bmain, struct ID *id, short flag);
 void    DAG_id_tag_update(struct ID *id, short flag);
 /* flush all tagged updates */
 void    DAG_ids_flush_tagged(struct Main *bmain);

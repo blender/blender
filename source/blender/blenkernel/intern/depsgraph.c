@@ -2914,12 +2914,10 @@ void DAG_ids_clear_recalc(Main *bmain)
 	memset(bmain->id_tag_update, 0, sizeof(bmain->id_tag_update));
 }
 
-void DAG_id_tag_update(ID *id, short flag)
+void DAG_id_tag_update_ex(Main *bmain, ID *id, short flag)
 {
-	Main *bmain = G.main;
-
 	if (id == NULL) return;
-	
+
 	/* tag ID for update */
 	if (flag) {
 		if (flag & OB_RECALC_OB)
@@ -2972,6 +2970,11 @@ void DAG_id_tag_update(ID *id, short flag)
 			/* BLI_assert(!"invalid flag for this 'idtype'"); */
 		}
 	}
+}
+
+void DAG_id_tag_update(ID *id, short flag)
+{
+	DAG_id_tag_update_ex(G.main, id, flag);
 }
 
 void DAG_id_type_tag(Main *bmain, short idtype)
