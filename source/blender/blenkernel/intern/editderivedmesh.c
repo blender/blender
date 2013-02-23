@@ -997,6 +997,31 @@ static void emDM_drawMappedFacesTex(DerivedMesh *dm,
 	emDM_drawFacesTex_common(dm, NULL, setDrawOptions, compareDrawOptions, userData);
 }
 
+static void emdm_draw_attrib_vertex_glsl(DMVertexAttribs *attribs, BMesh *bm, BMLoop *loop, BMVert *eve, int vert)
+{
+	int i;
+	if (attribs->totorco) {
+		float *orco = attribs->orco.array[BM_elem_index_get(eve)];
+		glVertexAttrib3fvARB(attribs->orco.gl_index, orco);
+	}
+	for (i = 0; i < attribs->tottface; i++) {
+		MLoopUV *_luv = CustomData_bmesh_get_n(&bm->ldata, loop->head.data,
+		                                       CD_MLOOPUV, i);
+		glVertexAttrib2fvARB(attribs->tface[i].gl_index, _luv->uv);
+	}
+	for (i = 0; i < attribs->totmcol; i++) {
+		MLoopCol *_cp = CustomData_bmesh_get_n(&bm->ldata, loop->head.data,
+		                                       CD_MLOOPCOL, i);
+		GLubyte _col[4];
+		_col[0] = _cp->b; _col[1] = _cp->g; _col[2] = _cp->r; _col[3] = _cp->a;
+		glVertexAttrib4ubvARB(attribs->mcol[i].gl_index, _col);
+	}
+	if (attribs->tottang) {
+		float *tang = attribs->tang.array[i * 4 + vert];
+		glVertexAttrib3fvARB(attribs->tang.gl_index, tang);
+	}
+}
+
 static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
                                      DMSetMaterial setMaterial,
                                      DMSetDrawOptions setDrawOptions,
@@ -1012,7 +1037,7 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	DMVertexAttribs attribs;
 	GPUVertexAttribs gattribs;
 
-	int i, b, matnr, new_matnr, do_draw;
+	int i, matnr, new_matnr, do_draw;
 
 	do_draw = FALSE;
 	matnr = -1;
@@ -1022,30 +1047,6 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	/* always use smooth shading even for flat faces, else vertex colors wont interpolate */
 	glShadeModel(GL_SMOOTH);
 	BM_mesh_elem_index_ensure(bm, BM_VERT | BM_FACE);
-
-#define PASSATTRIB(loop, eve, vert) {                                               \
-		if (attribs.totorco) {                                                      \
-			float *orco = attribs.orco.array[BM_elem_index_get(eve)];               \
-			glVertexAttrib3fvARB(attribs.orco.gl_index, orco);                      \
-		}                                                                           \
-		for (b = 0; b < attribs.tottface; b++) {                                    \
-			MLoopUV *_luv = CustomData_bmesh_get_n(&bm->ldata, loop->head.data,     \
-			                                       CD_MLOOPUV, b);                  \
-			glVertexAttrib2fvARB(attribs.tface[b].gl_index, _luv->uv);              \
-		}                                                                           \
-		for (b = 0; b < attribs.totmcol; b++) {                                     \
-			MLoopCol *_cp = CustomData_bmesh_get_n(&bm->ldata, loop->head.data,     \
-			                                       CD_MLOOPCOL, b);                 \
-			GLubyte _col[4];                                                        \
-			_col[0] = _cp->b; _col[1] = _cp->g; _col[2] = _cp->r; _col[3] = _cp->a; \
-			glVertexAttrib4ubvARB(attribs.mcol[b].gl_index, _col);                  \
-		}                                                                           \
-		if (attribs.tottang) {                                                      \
-			float *tang = attribs.tang.array[i * 4 + vert];                         \
-			glVertexAttrib3fvARB(attribs.tang.gl_index, tang);                      \
-		}                                                                           \
-	} (void)0
-
 
 	for (i = 0, ltri = em->looptris[0]; i < em->tottri; i++, ltri += 3) {
 		int drawSmooth;
@@ -1069,20 +1070,20 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 				if (vertexCos) glNormal3fv(bmdm->polyNos[BM_elem_index_get(efa)]);
 				else glNormal3fv(efa->no);
 
-				PASSATTRIB(ltri[0], ltri[0]->v, 0);
+				emdm_draw_attrib_vertex_glsl(&attribs, bm, ltri[0], ltri[0]->v, 0);
 				if (vertexCos) glVertex3fv(vertexCos[BM_elem_index_get(ltri[0]->v)]);
 				else glVertex3fv(ltri[0]->v->co);
 
-				PASSATTRIB(ltri[1], ltri[1]->v, 1);
+				emdm_draw_attrib_vertex_glsl(&attribs, bm, ltri[1], ltri[1]->v, 1);
 				if (vertexCos) glVertex3fv(vertexCos[BM_elem_index_get(ltri[1]->v)]);
 				else glVertex3fv(ltri[1]->v->co);
 
-				PASSATTRIB(ltri[2], ltri[2]->v, 2);
+				emdm_draw_attrib_vertex_glsl(&attribs, bm, ltri[2], ltri[2]->v, 2);
 				if (vertexCos) glVertex3fv(vertexCos[BM_elem_index_get(ltri[2]->v)]);
 				else glVertex3fv(ltri[2]->v->co);
 			}
 			else {
-				PASSATTRIB(ltri[0], ltri[0]->v, 0);
+				emdm_draw_attrib_vertex_glsl(&attribs, bm, ltri[0], ltri[0]->v, 0);
 				if (vertexCos) {
 					glNormal3fv(vertexNos[BM_elem_index_get(ltri[0]->v)]);
 					glVertex3fv(vertexCos[BM_elem_index_get(ltri[0]->v)]);
@@ -1092,7 +1093,7 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 					glVertex3fv(ltri[0]->v->co);
 				}
 
-				PASSATTRIB(ltri[1], ltri[1]->v, 1);
+				emdm_draw_attrib_vertex_glsl(&attribs, bm, ltri[1], ltri[1]->v, 1);
 				if (vertexCos) {
 					glNormal3fv(vertexNos[BM_elem_index_get(ltri[1]->v)]);
 					glVertex3fv(vertexCos[BM_elem_index_get(ltri[1]->v)]);
@@ -1102,7 +1103,7 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 					glVertex3fv(ltri[1]->v->co);
 				}
 
-				PASSATTRIB(ltri[2], ltri[2]->v, 2);
+				emdm_draw_attrib_vertex_glsl(&attribs, bm, ltri[2], ltri[2]->v, 2);
 				if (vertexCos) {
 					glNormal3fv(vertexNos[BM_elem_index_get(ltri[2]->v)]);
 					glVertex3fv(vertexCos[BM_elem_index_get(ltri[2]->v)]);
@@ -1115,13 +1116,43 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 			glEnd();
 		}
 	}
-#undef PASSATTRIB
 }
 
 static void emDM_drawFacesGLSL(DerivedMesh *dm,
                                int (*setMaterial)(int, void *attribs))
 {
 	dm->drawMappedFacesGLSL(dm, setMaterial, NULL, NULL);
+}
+
+static void emdm_draw_attrib_vertex_mat(DMVertexAttribs *attribs, BMesh *bm, BMLoop *loop, BMVert *eve, int vert)
+{
+	int i;
+	if (attribs->totorco) {
+		float *orco = attribs->orco.array[BM_elem_index_get(eve)];
+		if (attribs->orco.gl_texco)
+			glTexCoord3fv(orco);
+		else
+			glVertexAttrib3fvARB(attribs->orco.gl_index, orco);
+	}
+	for (i = 0; i < attribs->tottface; i++) {
+		MLoopUV *_luv = CustomData_bmesh_get_n(&bm->ldata, loop->head.data,
+		                                       CD_MLOOPUV, i);
+		if (attribs->tface[i].gl_texco)
+			glTexCoord2fv(_luv->uv);
+		else
+			glVertexAttrib2fvARB(attribs->tface[i].gl_index, _luv->uv);
+	}
+	for (i = 0; i < attribs->totmcol; i++) {
+		MLoopCol *_cp = CustomData_bmesh_get_n(&bm->ldata, loop->head.data,
+		                                       CD_MLOOPCOL, i);
+		GLubyte _col[4];
+		_col[0] = _cp->b; _col[1] = _cp->g; _col[2] = _cp->r; _col[3] = _cp->a;
+		glVertexAttrib4ubvARB(attribs->mcol[i].gl_index, _col);
+	}
+	if (attribs->tottang) {
+		float *tang = attribs->tang.array[i * 4 + vert];
+		glVertexAttrib4fvARB(attribs->tang.gl_index, tang);
+	}
 }
 
 static void emDM_drawMappedFacesMat(DerivedMesh *dm,
@@ -1137,7 +1168,7 @@ static void emDM_drawMappedFacesMat(DerivedMesh *dm,
 	BMLoop **ltri;
 	DMVertexAttribs attribs = {{{0}}};
 	GPUVertexAttribs gattribs;
-	int i, b, matnr, new_matnr;
+	int i, matnr, new_matnr;
 
 	matnr = -1;
 
@@ -1145,35 +1176,6 @@ static void emDM_drawMappedFacesMat(DerivedMesh *dm,
 	glShadeModel(GL_SMOOTH);
 
 	BM_mesh_elem_index_ensure(bm, BM_VERT | BM_FACE);
-
-#define PASSATTRIB(loop, eve, vert) {                                               \
-		if (attribs.totorco) {                                                      \
-			float *orco = attribs.orco.array[BM_elem_index_get(eve)];               \
-			if (attribs.orco.gl_texco)                                              \
-				glTexCoord3fv(orco);                                                \
-			else                                                                    \
-				glVertexAttrib3fvARB(attribs.orco.gl_index, orco);                  \
-		}                                                                           \
-		for (b = 0; b < attribs.tottface; b++) {                                    \
-			MLoopUV *_luv = CustomData_bmesh_get_n(&bm->ldata, loop->head.data,     \
-			                                       CD_MLOOPUV, b);                  \
-			if (attribs.tface[b].gl_texco)                                          \
-				glTexCoord2fv(_luv->uv);                                            \
-			else                                                                    \
-				glVertexAttrib2fvARB(attribs.tface[b].gl_index, _luv->uv);          \
-		}                                                                           \
-		for (b = 0; b < attribs.totmcol; b++) {                                     \
-			MLoopCol *_cp = CustomData_bmesh_get_n(&bm->ldata, loop->head.data,     \
-			                                       CD_MLOOPCOL, b);                 \
-			GLubyte _col[4];                                                        \
-			_col[0] = _cp->b; _col[1] = _cp->g; _col[2] = _cp->r; _col[3] = _cp->a; \
-			glVertexAttrib4ubvARB(attribs.mcol[b].gl_index, _col);                  \
-		}                                                                           \
-		if (attribs.tottang) {                                                      \
-			float *tang = attribs.tang.array[i * 4 + vert];                         \
-			glVertexAttrib4fvARB(attribs.tang.gl_index, tang);                      \
-		}                                                                           \
-	} (void)0
 
 	for (i = 0, ltri = em->looptris[0]; i < em->tottri; i++, ltri += 3) {
 		int drawSmooth;
@@ -1198,21 +1200,21 @@ static void emDM_drawMappedFacesMat(DerivedMesh *dm,
 			if (vertexCos) glNormal3fv(bmdm->polyNos[BM_elem_index_get(efa)]);
 			else glNormal3fv(efa->no);
 
-			PASSATTRIB(ltri[0], ltri[0]->v, 0);
+			emdm_draw_attrib_vertex_mat(&attribs, bm, ltri[0], ltri[0]->v, 0);
 			if (vertexCos) glVertex3fv(vertexCos[BM_elem_index_get(ltri[0]->v)]);
 			else glVertex3fv(ltri[0]->v->co);
 
-			PASSATTRIB(ltri[1], ltri[1]->v, 1);
+			emdm_draw_attrib_vertex_mat(&attribs, bm, ltri[1], ltri[1]->v, 1);
 			if (vertexCos) glVertex3fv(vertexCos[BM_elem_index_get(ltri[1]->v)]);
 			else glVertex3fv(ltri[1]->v->co);
 
-			PASSATTRIB(ltri[2], ltri[2]->v, 2);
+			emdm_draw_attrib_vertex_mat(&attribs, bm, ltri[2], ltri[2]->v, 2);
 			if (vertexCos) glVertex3fv(vertexCos[BM_elem_index_get(ltri[2]->v)]);
 			else glVertex3fv(ltri[2]->v->co);
 
 		}
 		else {
-			PASSATTRIB(ltri[0], ltri[0]->v, 0);
+			emdm_draw_attrib_vertex_mat(&attribs, bm, ltri[0], ltri[0]->v, 0);
 			if (vertexCos) {
 				glNormal3fv(vertexNos[BM_elem_index_get(ltri[0]->v)]);
 				glVertex3fv(vertexCos[BM_elem_index_get(ltri[0]->v)]);
@@ -1222,7 +1224,7 @@ static void emDM_drawMappedFacesMat(DerivedMesh *dm,
 				glVertex3fv(ltri[0]->v->co);
 			}
 
-			PASSATTRIB(ltri[1], ltri[1]->v, 1);
+			emdm_draw_attrib_vertex_mat(&attribs, bm, ltri[1], ltri[1]->v, 1);
 			if (vertexCos) {
 				glNormal3fv(vertexNos[BM_elem_index_get(ltri[1]->v)]);
 				glVertex3fv(vertexCos[BM_elem_index_get(ltri[1]->v)]);
@@ -1232,7 +1234,7 @@ static void emDM_drawMappedFacesMat(DerivedMesh *dm,
 				glVertex3fv(ltri[1]->v->co);
 			}
 
-			PASSATTRIB(ltri[2], ltri[2]->v, 2);
+			emdm_draw_attrib_vertex_mat(&attribs, bm, ltri[2], ltri[2]->v, 2);
 			if (vertexCos) {
 				glNormal3fv(vertexNos[BM_elem_index_get(ltri[2]->v)]);
 				glVertex3fv(vertexCos[BM_elem_index_get(ltri[2]->v)]);
@@ -1244,7 +1246,6 @@ static void emDM_drawMappedFacesMat(DerivedMesh *dm,
 		}
 		glEnd();
 	}
-#undef PASSATTRIB
 }
 
 static void emDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
