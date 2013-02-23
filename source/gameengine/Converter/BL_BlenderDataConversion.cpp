@@ -1129,6 +1129,16 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 	MT_Vector3 no[4];
 	MT_Vector4 tan[4];
 
+	/* ugh, if there is a less annoying way to do this please use that.
+	 * since these are converted from floats to floats, theres no real
+	 * advantage to use MT_ types - campbell */
+	for (unsigned int i = 0; i < 4; i++) {
+		const float zero_vec[4] = {0.0f};
+		pt[i].setValue(zero_vec);
+		no[i].setValue(zero_vec);
+		tan[i].setValue(zero_vec);
+	}
+
 	for (int f=0;f<totface;f++,mface++)
 	{
 		/* get coordinates, normals and tangents */
