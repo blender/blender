@@ -613,11 +613,11 @@ static bool ConvertMaterial(
 					material->flag[i] |= ( mat->game.alpha_blend & GEMAT_ALPHA )?USEALPHA:0;
 					material->flag[i] |= ( mat->game.alpha_blend & GEMAT_ADD )?CALCALPHA:0;
 
-					if (material->img[i]->flag & IMA_REFLECT)
+					if (material->img[i]->flag & IMA_REFLECT) {
 						material->mapping[i].mapping |= USEREFL;
-					else
-					{
-						mttmp = getImageFromMaterial( mat, i );
+					}
+					else {
+						mttmp = getMTexFromMaterial(mat, i);
 						if (mttmp && (mttmp->texco & TEXCO_UV)) {
 							/* string may be "" but thats detected as empty after */
 							material->mapping[i].uvCoName = mttmp->uvname;
@@ -634,9 +634,9 @@ static bool ConvertMaterial(
 				continue;
 			}
 
-			mttmp = getImageFromMaterial( mat, i );
-			if ( mttmp ) {
-				if ( mttmp->tex ) {
+			mttmp = getMTexFromMaterial(mat, i);
+			if (mttmp) {
+				if (mttmp->tex) {
 					if ( mttmp->tex->type == TEX_IMAGE ) {
 						material->mtexname[i] = mttmp->tex->id.name;
 						material->img[i] = mttmp->tex->ima;

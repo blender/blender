@@ -10,14 +10,14 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-MTex* getImageFromMaterial(Material *mat, int index)
+MTex* getMTexFromMaterial(Material *mat, int index)
 {
-	if (!mat) return 0;
-	
-	if (!(index >=0 && index < MAX_MTEX) ) return 0;
-	
-	MTex *m = mat->mtex[index];
-	return m?m:0;
+	if (mat && (index >= 0) && (index < MAX_MTEX)) {
+		return mat->mtex[index];
+	}
+	else {
+		return NULL;
+	}
 }
 
 BL_Material::BL_Material()
