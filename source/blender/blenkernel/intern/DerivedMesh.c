@@ -2743,7 +2743,7 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 					a = attribs->tottface++;
 
 					attribs->tface[a].array = tfdata->layers[layer].data;
-					attribs->tface[a].em_offset = tfdata->layers[layer].offset;
+					attribs->tface[a].em_offset = ldata->layers[layer].offset;
 					attribs->tface[a].gl_index = gattribs->layer[b].glindex;
 					attribs->tface[a].gl_texco = gattribs->layer[b].gltexco;
 				}
@@ -2780,7 +2780,8 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 					a = attribs->totmcol++;
 
 					attribs->mcol[a].array = tfdata->layers[layer].data;
-					attribs->mcol[a].em_offset = tfdata->layers[layer].offset;
+					/* odd, store the offset for a different layer type here, but editmode draw code expects it */
+					attribs->mcol[a].em_offset = ldata->layers[layer].offset;
 					attribs->mcol[a].gl_index = gattribs->layer[b].glindex;
 				}
 			}
@@ -2796,6 +2797,7 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 					a = attribs->totmcol++;
 
 					attribs->mcol[a].array = tfdata->layers[layer].data;
+					/* odd, store the offset for a different layer type here, but editmode draw code expects it */
 					attribs->mcol[a].em_offset = tfdata->layers[layer].offset;
 					attribs->mcol[a].gl_index = gattribs->layer[b].glindex;
 				}
