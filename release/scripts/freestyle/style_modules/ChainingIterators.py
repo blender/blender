@@ -1,13 +1,4 @@
-#
-#  Filename : ChainingIterators.py
-#  Author   : Stephane Grabli
-#  Date     : 04/08/2005
-#  Purpose  : Chaining Iterators to be used with chaining operators
-#
-#############################################################################  
-#
-#  Copyright (C) : Please refer to the COPYRIGHT file distributed 
-#  with this source distribution. 
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -20,12 +11,17 @@
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software
-#  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-#############################################################################
+# ##### END GPL LICENSE BLOCK #####
 
-from freestyle_init import *
+#  Filename : ChainingIterators.py
+#  Author   : Stephane Grabli
+#  Date     : 04/08/2005
+#  Purpose  : Chaining Iterators to be used with chaining operators
+
+from Freestyle import AdjacencyIterator, ChainingIterator, ExternalContourUP1D, Nature, TVertex
 from Freestyle import ContextFunctions as CF
 
 ## the natural chaining iterator

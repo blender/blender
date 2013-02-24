@@ -1,13 +1,4 @@
-#
-#  Filename : stroke_texture.py
-#  Author   : Stephane Grabli
-#  Date     : 04/08/2005
-#  Purpose  : Draws textured strokes (illustrate the StrokeTextureShader shader)
-#
-#############################################################################  
-#
-#  Copyright (C) : Please refer to the COPYRIGHT file distributed 
-#  with this source distribution. 
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -20,24 +11,28 @@
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software
-#  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-#############################################################################
+# ##### END GPL LICENSE BLOCK #####
 
-from freestyle_init import *
-from logical_operators import *
-from PredicatesB1D import *
-from shaders import *
-from ChainingIterators import *
+#  Filename : stroke_texture.py
+#  Author   : Stephane Grabli
+#  Date     : 04/08/2005
+#  Purpose  : Draws textured strokes (illustrate the StrokeTextureShader shader)
+
+from Freestyle import BezierCurveShader, ChainSilhouetteIterator, ConstantColorShader, \
+    ConstantThicknessShader, Operators, QuantitativeInvisibilityUP1D, SamplingShader, \
+    Stroke, StrokeTextureShader, TrueUP1D
+from logical_operators import NotUP1D
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))
-shaders_list = 	[
-		SamplingShader(3),
-		BezierCurveShader(4),
-		StrokeTextureShader("washbrushAlpha.bmp", Stroke.DRY_MEDIUM, True),
-		ConstantThicknessShader(40),
-		ConstantColorShader(0,0,0,1),
-		]
+shaders_list = [
+    SamplingShader(3),
+    BezierCurveShader(4),
+    StrokeTextureShader("washbrushAlpha.bmp", Stroke.DRY_MEDIUM, True),
+    ConstantThicknessShader(40),
+    ConstantColorShader(0, 0, 0, 1),
+    ]
 Operators.create(TrueUP1D(), shaders_list)

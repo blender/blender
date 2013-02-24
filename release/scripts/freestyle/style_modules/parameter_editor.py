@@ -21,10 +21,17 @@ import math
 import mathutils
 import time
 
-from freestyle_init import *
-from logical_operators import *
-from ChainingIterators import *
-from shaders import *
+from ChainingIterators import pySketchyChainSilhouetteIterator, pySketchyChainingIterator
+from Freestyle import BackboneStretcherShader, BezierCurveShader, BinaryPredicate1D, ChainPredicateIterator, \
+    ChainSilhouetteIterator, ConstantColorShader, ContourUP1D, Curvature2DAngleF0D, ExternalContourUP1D, \
+    FalseBP1D, FalseUP1D, GuidingLinesShader, Interface0DIterator, Nature, Noise, Normal2DF0D, Operators, \
+    PolygonalizationShader, QuantitativeInvisibilityF1D, QuantitativeInvisibilityUP1D, SamplingShader, \
+    SpatialNoiseShader, StrokeAttribute, StrokeShader, TipRemoverShader, TrueBP1D, TrueUP1D, UnaryPredicate0D, \
+    UnaryPredicate1D, VertexOrientation2DF0D, WithinImageBoundaryUP1D
+from Functions0D import CurveMaterialF0D
+from PredicatesU1D import pyNatureUP1D
+from logical_operators import AndUP1D, NotUP1D, OrUP1D
+from shaders import pyBluePrintCirclesShader, pyBluePrintEllipsesShader, pyBluePrintSquaresShader
 
 class ColorRampModifier(StrokeShader):
     def __init__(self, blend, influence, ramp):
@@ -498,7 +505,7 @@ class PerlinNoise1DShader(StrokeShader):
         self.__freq = freq
         self.__amp = amp
         self.__oct = oct
-        self.__dir = Vector([cos(angle), sin(angle)])
+        self.__dir = mathutils.Vector([math.cos(angle), math.sin(angle)])
     def shade(self, stroke):
         length = stroke.length_2d
         it = stroke.stroke_vertices_begin()
@@ -516,12 +523,12 @@ class PerlinNoise2DShader(StrokeShader):
         self.__freq = freq
         self.__amp = amp
         self.__oct = oct
-        self.__dir = Vector([cos(angle), sin(angle)])
+        self.__dir = mathutils.Vector([math.cos(angle), math.sin(angle)])
     def shade(self, stroke):
         it = stroke.stroke_vertices_begin()
         while not it.is_end:
             v = it.object
-            vec = Vector([v.projected_x, v.projected_y])
+            vec = mathutils.Vector([v.projected_x, v.projected_y])
             nres = self.__noise.turbulence2(vec, self.__freq, self.__amp, self.__oct)
             v.point = v.point + nres * self.__dir
             it.increment()
@@ -532,7 +539,7 @@ class Offset2DShader(StrokeShader):
         StrokeShader.__init__(self)
         self.__start = start
         self.__end = end
-        self.__xy = Vector([x, y])
+        self.__xy = mathutils.Vector([x, y])
         self.__getNormal = Normal2DF0D()
     def shade(self, stroke):
         it = stroke.stroke_vertices_begin()
@@ -582,7 +589,7 @@ class Transform2DShader(StrokeShader):
                 delta = u - self.__pivot_u
                 pivot = p + delta * (prev - p)
         elif self.__pivot == "CENTER":
-            pivot = Vector([0.0, 0.0])
+            pivot = mathutils.Vector([0.0, 0.0])
             n = 0
             it = stroke.stroke_vertices_begin()
             while not it.is_end:
@@ -593,7 +600,7 @@ class Transform2DShader(StrokeShader):
             pivot.x = pivot.x / n
             pivot.y = pivot.y / n
         elif self.__pivot == "ABSOLUTE":
-            pivot = Vector([self.__pivot_x, self.__pivot_y])
+            pivot = mathutils.Vector([self.__pivot_x, self.__pivot_y])
         # apply scaling and rotation operations
         cos_theta = math.cos(self.__angle)
         sin_theta = math.sin(self.__angle)
@@ -662,7 +669,7 @@ class RoundCapShader(StrokeShader):
         # save the location and attribute of stroke vertices
         buffer = []
         for sv in iter_stroke_vertices(stroke):
-            buffer.append((Vector(sv.point), StrokeAttribute(sv.attribute)))
+            buffer.append((mathutils.Vector(sv.point), StrokeAttribute(sv.attribute)))
         nverts = len(buffer)
         if nverts < 2:
             return
@@ -714,7 +721,7 @@ class SquareCapShader(StrokeShader):
         # save the location and attribute of stroke vertices
         buffer = []
         for sv in iter_stroke_vertices(stroke):
-            buffer.append((Vector(sv.point), StrokeAttribute(sv.attribute)))
+            buffer.append((mathutils.Vector(sv.point), StrokeAttribute(sv.attribute)))
         nverts = len(buffer)
         if nverts < 2:
             return

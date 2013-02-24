@@ -1,13 +1,4 @@
-#
-#  Filename : contour.py
-#  Author   : Stephane Grabli
-#  Date     : 04/08/2005
-#  Purpose  : Draws each object's visible contour
-#
-#############################################################################  
-#
-#  Copyright (C) : Please refer to the COPYRIGHT file distributed 
-#  with this source distribution. 
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -20,23 +11,27 @@
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software
-#  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-#############################################################################
+# ##### END GPL LICENSE BLOCK #####
 
-from freestyle_init import *
-from logical_operators import *
-from PredicatesB1D import *
-from PredicatesU1D import *
-from shaders import *
+#  Filename : contour.py
+#  Author   : Stephane Grabli
+#  Date     : 04/08/2005
+#  Purpose  : Draws each object's visible contour
 
-Operators.select(AndUP1D(QuantitativeInvisibilityUP1D(0), ContourUP1D() ) )
-bpred = SameShapeIdBP1D();
+from Freestyle import BezierCurveShader, ChainSilhouetteIterator, ConstantThicknessShader, \
+    Operators, QuantitativeInvisibilityUP1D, TrueUP1D
+from logical_operators import NotUP1D
+from shaders import pyMaterialColorShader
+
+Operators.select(AndUP1D(QuantitativeInvisibilityUP1D(0), ContourUP1D()))
+bpred = SameShapeIdBP1D()
 upred = AndUP1D(QuantitativeInvisibilityUP1D(0), ContourUP1D())
 Operators.bidirectional_chain(ChainPredicateIterator(upred, bpred), NotUP1D(QuantitativeInvisibilityUP1D(0)))
-shaders_list =	 [
-		ConstantThicknessShader(5.0),
-		IncreasingColorShader(0.8,0,0,1,0.1,0,0,1)
-		]
+shaders_list = [
+    ConstantThicknessShader(5.0),
+    IncreasingColorShader(0.8,0,0,1,0.1,0,0,1),
+    ]
 Operators.create(TrueUP1D(), shaders_list)

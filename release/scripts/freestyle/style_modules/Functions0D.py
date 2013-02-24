@@ -1,5 +1,28 @@
-from freestyle_init import *
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+from Freestyle import Curvature2DAngleF0D, CurvePoint, ReadCompleteViewMapPixelF0D, \
+    ReadSteerableViewMapPixelF0D, UnaryFunction0DDouble, UnaryFunction0DMaterial, \
+    UnaryFunction0DVec2f
 from Freestyle import ContextFunctions as CF
+
+import math
+import mathutils
 
 class CurveMaterialF0D(UnaryFunction0DMaterial):
 	# A replacement of the built-in MaterialF0D for stroke creation.
@@ -53,23 +76,25 @@ class pyViewMapGradientVectorF0D(UnaryFunction0DVec2f):
 	def __init__(self, l):
 		UnaryFunction0DVec2f.__init__(self)
 		self._l = l
-		self._step = pow(2,self._l)
+		self._step = math.pow(2,self._l)
 	def __call__(self, iter):
 		p = iter.object.point_2d
-		gx = CF.read_complete_view_map_pixel(self._l, int(p.x+self._step), int(p.y))- CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
-		gy = CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y+self._step))- CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
-		return Vector([gx, gy])
+		gx = CF.read_complete_view_map_pixel(self._l, int(p.x+self._step), int(p.y)) - \
+		    CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
+		gy = CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y+self._step)) - \
+		    CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
+		return mathutils.Vector([gx, gy])
 
 class pyViewMapGradientNormF0D(UnaryFunction0DDouble):
 	def __init__(self, l):
 		UnaryFunction0DDouble.__init__(self)
 		self._l = l
-		self._step = pow(2,self._l)
+		self._step = math.pow(2,self._l)
 	def __call__(self, iter):
 		p = iter.object.point_2d
-		gx = CF.read_complete_view_map_pixel(self._l, int(p.x+self._step), int(p.y))- CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
-		gy = CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y+self._step))- CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
-		grad = Vector([gx, gy])
+		gx = CF.read_complete_view_map_pixel(self._l, int(p.x+self._step), int(p.y)) - \
+		    CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
+		gy = CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y+self._step)) - \
+		    CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
+		grad = mathutils.Vector([gx, gy])
 		return grad.length
-
-

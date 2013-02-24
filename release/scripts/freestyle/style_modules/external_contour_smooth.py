@@ -1,13 +1,4 @@
-#
-#  Filename : external_contour_smooth.py
-#  Author   : Stephane Grabli
-#  Date     : 04/08/2005
-#  Purpose  : Draws a smooth external contour
-#
-#############################################################################  
-#
-#  Copyright (C) : Please refer to the COPYRIGHT file distributed 
-#  with this source distribution. 
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -20,25 +11,29 @@
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software
-#  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-#############################################################################
-from freestyle_init import *
-from logical_operators import *
-from PredicatesB1D import *
-from PredicatesU1D import *
-from shaders import *
-from ChainingIterators import *
+# ##### END GPL LICENSE BLOCK #####
+
+#  Filename : external_contour_smooth.py
+#  Author   : Stephane Grabli
+#  Date     : 04/08/2005
+#  Purpose  : Draws a smooth external contour
+
+from Freestyle import ChainPredicateIterator, ExternalContourUP1D, IncreasingColorShader, \
+    IncreasingThicknessShader, Operators, QuantitativeInvisibilityUP1D, SamplingShader, \
+    SmoothingShader, TrueBP1D, TrueUP1D
+from logical_operators import AndUP1D, NotUP1D
 
 upred = AndUP1D(QuantitativeInvisibilityUP1D(0), ExternalContourUP1D())
 Operators.select(upred)
-bpred = TrueBP1D();
+bpred = TrueBP1D()
 Operators.bidirectional_chain(ChainPredicateIterator(upred, bpred), NotUP1D(upred))
-shaders_list = 	[
-		SamplingShader(2),
-		IncreasingThicknessShader(4,20), 
-		IncreasingColorShader(1.0, 0.0, 0.5,1, 0.5,1, 0.3, 1),
-		SmoothingShader(100, 0.05, 0, 0.2, 0, 0, 0, 1)
-		]
+shaders_list = [
+    SamplingShader(2),
+    IncreasingThicknessShader(4,20),
+    IncreasingColorShader(1.0, 0.0, 0.5,1, 0.5,1, 0.3, 1),
+    SmoothingShader(100, 0.05, 0, 0.2, 0, 0, 0, 1),
+    ]
 Operators.create(TrueUP1D(), shaders_list)

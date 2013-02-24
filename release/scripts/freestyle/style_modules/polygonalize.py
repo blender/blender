@@ -1,13 +1,4 @@
-#
-#  Filename : polygonalize.py
-#  Author   : Stephane Grabli
-#  Date     : 04/08/2005
-#  Purpose  : Make the strokes more "polygonal"
-#
-#############################################################################  
-#
-#  Copyright (C) : Please refer to the COPYRIGHT file distributed 
-#  with this source distribution. 
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -20,21 +11,26 @@
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software
-#  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-#############################################################################
-from freestyle_init import *
-from logical_operators import *
-from ChainingIterators import *
-from shaders import *
+# ##### END GPL LICENSE BLOCK #####
+
+#  Filename : polygonalize.py
+#  Author   : Stephane Grabli
+#  Date     : 04/08/2005
+#  Purpose  : Make the strokes more "polygonal"
+
+from Freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, \
+    Operators, PolygonalizationShader, QuantitativeInvisibilityUP1D, SamplingShader, TrueUP1D
+from logical_operators import NotUP1D
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
-Operators.bidirectional_chain(ChainSilhouetteIterator(),NotUP1D(QuantitativeInvisibilityUP1D(0)))
-shaders_list = 	[
-		SamplingShader(2.0),
-		ConstantThicknessShader(3), 
-		ConstantColorShader(0.0,0.0,0.0),
-		PolygonalizationShader(8)
-		]
+Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))
+shaders_list = [
+    SamplingShader(2.0),
+    ConstantThicknessShader(3),
+    ConstantColorShader(0.0, 0.0, 0.0),
+    PolygonalizationShader(8),
+    ]
 Operators.create(TrueUP1D(), shaders_list)

@@ -1,6 +1,25 @@
-from freestyle_init import *
-from Functions1D import *
-from random import *
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+from Freestyle import BinaryPredicate1D, GetZF1D, IntegrationType, Nature, SameShapeIdBP1D, ZDiscontinuityF1D
+from Functions1D import pyViewMapGradientNormF1D
+
+import random
 
 class pyZBP1D(BinaryPredicate1D):
 	def __call__(self, i1, i2):
@@ -42,8 +61,8 @@ class pyViewMapGradientNormBP1D(BinaryPredicate1D):
 class pyShuffleBP1D(BinaryPredicate1D):
 	def __init__(self):
 		BinaryPredicate1D.__init__(self)
-		seed(1)
+		random.seed(1)
 	def __call__(self, inter1, inter2):
-		r1 = uniform(0,1)
-		r2 = uniform(0,1)
+		r1 = random.uniform(0,1)
+		r2 = random.uniform(0,1)
 		return (r1<r2)

@@ -1,14 +1,4 @@
-#
-#  Filename : near_lines.py
-#  Author   : Stephane Grabli
-#  Date     : 04/08/2005
-#  Purpose  : Draws the lines that are "closer" than a threshold 
-#             (between 0 and 1)
-#
-#############################################################################  
-#
-#  Copyright (C) : Please refer to the COPYRIGHT file distributed 
-#  with this source distribution. 
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -21,24 +11,28 @@
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software
-#  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-#############################################################################
+# ##### END GPL LICENSE BLOCK #####
 
+#  Filename : near_lines.py
+#  Author   : Stephane Grabli
+#  Date     : 04/08/2005
+#  Purpose  : Draws the lines that are "closer" than a threshold 
+#             (between 0 and 1)
 
-from freestyle_init import *
-from logical_operators import *
-from PredicatesB1D import *
-from PredicatesU1D import *
-from shaders import *
+from Freestyle import ChainSilhouetteIterator, ConstantColorShader, ConstantThicknessShader, \
+    IntegrationType, Operators, QuantitativeInvisibilityUP1D, TextureAssignerShader, TrueUP1D
+from PredicatesU1D import pyZSmallerUP1D
+from logical_operators import AndUP1D, NotUP1D
 
-upred = AndUP1D(QuantitativeInvisibilityUP1D(0), pyZSmallerUP1D(0.5, IntegrationType.MEAN)) 
+upred = AndUP1D(QuantitativeInvisibilityUP1D(0), pyZSmallerUP1D(0.5, IntegrationType.MEAN))
 Operators.select(upred)
 Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(upred))
-shaders_list = 	[
-		TextureAssignerShader(-1),
-		ConstantThicknessShader(5), 
-		ConstantColorShader(0.0, 0.0, 0.0)
-		]
+shaders_list = [
+    TextureAssignerShader(-1),
+    ConstantThicknessShader(5),
+    ConstantColorShader(0.0, 0.0, 0.0),
+    ]
 Operators.create(TrueUP1D(), shaders_list)

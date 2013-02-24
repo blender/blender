@@ -1,13 +1,4 @@
-#
-#  Filename : split_at_tvertices.py
-#  Author   : Stephane Grabli
-#  Date     : 04/08/2005
-#  Purpose  : Draws strokes that starts and stops at Tvertices (visible or not)
-#
-#############################################################################  
-#
-#  Copyright (C) : Please refer to the COPYRIGHT file distributed 
-#  with this source distribution. 
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -20,23 +11,30 @@
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software
-#  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-#############################################################################
+# ##### END GPL LICENSE BLOCK #####
 
-from freestyle_init import *
-from logical_operators import *
-from PredicatesU1D import *
-from PredicatesU0D import *
-from Functions0D import *
+#  Filename : split_at_tvertices.py
+#  Author   : Stephane Grabli
+#  Date     : 04/08/2005
+#  Purpose  : Draws strokes that starts and stops at Tvertices (visible or not)
+
+from Freestyle import ChainSilhouetteIterator, ConstantThicknessShader, IncreasingColorShader, \
+    Nature, Operators, QuantitativeInvisibilityUP1D, TextureAssignerShader, TrueUP1D
+from PredicatesU0D import pyVertexNatureUP0D
+from logical_operators import NotUP1D
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))
 start = pyVertexNatureUP0D(Nature.T_VERTEX)
-## use the same predicate to decide where to start and where to stop 
+## use the same predicate to decide where to start and where to stop
 ## the strokes:
 Operators.sequential_split(start, start, 10)
-shaders_list = [ConstantThicknessShader(5), IncreasingColorShader(1,0,0,1,0,1,0,1), TextureAssignerShader(3)]
+shaders_list = [
+    ConstantThicknessShader(5),
+    IncreasingColorShader(1, 0, 0, 1, 0, 1, 0, 1),
+    TextureAssignerShader(3),
+    ]
 Operators.create(TrueUP1D(), shaders_list)
-
