@@ -3260,7 +3260,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 			if (ale->type == ANIMTYPE_FCURVE)
 				tooltip = TIP_("Channel is visible in Graph Editor for editing");
 			else
-				tooltip = TIP_("Channel(s) are visible in Graph Editor for editing");
+				tooltip = TIP_("Channels are visible in Graph Editor for editing");
 			break;
 			
 		case ACHANNEL_SETTING_EXPAND: /* expanded triangle */

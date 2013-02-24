@@ -964,13 +964,13 @@ static void rna_def_rigidbody_constraint(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_motor_lin", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", RBC_FLAG_USE_MOTOR_LIN);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_RigidBodyCon_use_motor_lin_set");
-	RNA_def_property_ui_text(prop, "Linear Motor", "Enables linear motor");
+	RNA_def_property_ui_text(prop, "Linear Motor", "Enable linear motor");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
 
 	prop = RNA_def_property(srna, "use_motor_ang", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", RBC_FLAG_USE_MOTOR_ANG);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_RigidBodyCon_use_motor_ang_set");
-	RNA_def_property_ui_text(prop, "Angular Motor", "Enables angular motor");
+	RNA_def_property_ui_text(prop, "Angular Motor", "Enable angular motor");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
 
 	prop = RNA_def_property(srna, "limit_lin_x_lower", PROP_FLOAT, PROP_UNIT_LENGTH);
