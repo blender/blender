@@ -1967,11 +1967,11 @@ void ED_region_visible_rect(ARegion *ar, rcti *rect)
 			if (BLI_rcti_isect(rect, &arn->winrct, NULL)) {
 				
 				/* overlap left, also check 1 pixel offset (2 regions on one side) */
-				if ( ABS(rect->xmin - arn->winrct.xmin) < 2)
+				if (ABS(rect->xmin - arn->winrct.xmin) < 2)
 					rect->xmin = arn->winrct.xmax;
 
 				/* overlap right */
-				if ( ABS(rect->xmax - arn->winrct.xmax) < 2)
+				if (ABS(rect->xmax - arn->winrct.xmax) < 2)
 					rect->xmax = arn->winrct.xmin;
 			}
 		}

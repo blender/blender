@@ -4253,7 +4253,7 @@ static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx
 
 	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
 		/* resize histogram widget itself */
-		hist->height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my))/UI_DPI_FAC;
+		hist->height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my)) / UI_DPI_FAC;
 	}
 	else {
 		/* scale histogram values (dy / 10 for better control) */
@@ -4337,7 +4337,7 @@ static int ui_numedit_but_WAVEFORM(uiBut *but, uiHandleButtonData *data, int mx,
 
 	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
 		/* resize waveform widget itself */
-		scopes->wavefrm_height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my))/UI_DPI_FAC;
+		scopes->wavefrm_height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my)) / UI_DPI_FAC;
 	}
 	else {
 		/* scale waveform values */
@@ -4419,7 +4419,7 @@ static int ui_numedit_but_VECTORSCOPE(uiBut *but, uiHandleButtonData *data, int 
 
 	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
 		/* resize vectorscope widget itself */
-		scopes->vecscope_height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my))/UI_DPI_FAC;
+		scopes->vecscope_height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my)) / UI_DPI_FAC;
 	}
 
 	data->draglastx = mx;
@@ -4622,7 +4622,7 @@ static int ui_numedit_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonDa
 
 	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
 		/* resize preview widget itself */
-		scopes->track_preview_height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my))/UI_DPI_FAC;
+		scopes->track_preview_height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my)) / UI_DPI_FAC;
 	}
 	else {
 		if (!scopes->track_locked) {

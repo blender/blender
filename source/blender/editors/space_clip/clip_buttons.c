@@ -407,7 +407,7 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 		if (track->flag & TRACK_LOCKED) {
 			uiLayoutSetActive(layout, FALSE);
 			block = uiLayoutAbsoluteBlock(layout);
-			uiDefBut(block, LABEL, 0, IFACE_("Track is locked"), 0, 0, UI_UNIT_X*15.0f, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, IFACE_("Track is locked"), 0, 0, UI_UNIT_X * 15.0f, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 
 			return;
 		}
