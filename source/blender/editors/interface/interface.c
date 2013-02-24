@@ -3929,15 +3929,20 @@ void uiButGetStrInfo(bContext *C, uiBut *but, ...)
 			}
 		}
 		else if (type == BUT_GET_RNA_LABEL_CONTEXT) {
+			const char *_tmp = NULL;
 			if (but->rnaprop)
-				tmp = BLI_strdup(RNA_property_translation_context(but->rnaprop));
+				_tmp = RNA_property_translation_context(but->rnaprop);
 			else if (but->optype)
-				tmp = BLI_strdup(RNA_struct_translation_context(but->optype->srna));
+				_tmp = RNA_struct_translation_context(but->optype->srna);
 			else if (ELEM(but->type, MENU, PULLDOWN)) {
 				MenuType *mt = uiButGetMenuType(but);
 				if (mt)
-					tmp = BLI_strdup(RNA_struct_translation_context(mt->ext.srna));
+					_tmp = RNA_struct_translation_context(mt->ext.srna);
 			}
+			if (!_tmp) {  /* _tmp == BLF_I18NCONTEXT_DEFAULT */
+				_tmp = BLF_I18NCONTEXT_DEFAULT_BPY;
+			}
+			tmp = BLI_strdup(_tmp);
 		}
 		else if (ELEM3(type, BUT_GET_RNAENUM_IDENTIFIER, BUT_GET_RNAENUM_LABEL, BUT_GET_RNAENUM_TIP)) {
 			PointerRNA *ptr = NULL;
