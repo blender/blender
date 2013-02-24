@@ -884,7 +884,6 @@ endif()
 		extern_colamd
 		ge_logic_ketsji
 		extern_recastnavigation
-		ge_phys_common
 		ge_logic
 		ge_rasterizer
 		ge_oglrasterizer

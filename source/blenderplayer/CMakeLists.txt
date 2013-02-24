@@ -103,7 +103,6 @@ endif()
 		ge_logic_ketsji 
 		ge_phys_bullet 
 		ge_phys_dummy
-		ge_phys_common 
 		ge_logic 
 		ge_rasterizer 
 		ge_oglrasterizer 
