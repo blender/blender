@@ -130,11 +130,11 @@ GHOST_TSuccess GHOST_WindowManager::beginFullScreen(GHOST_IWindow *window,
 		m_fullScreenWindow = window;
 		m_activeWindowBeforeFullScreen = getActiveWindow();
 		setActiveWindow(m_fullScreenWindow);
+		m_fullScreenWindow->beginFullScreen();
 		success = GHOST_kSuccess;
 	}
 	return success;
 }
-
 
 GHOST_TSuccess GHOST_WindowManager::endFullScreen(void)
 {
@@ -143,6 +143,7 @@ GHOST_TSuccess GHOST_WindowManager::endFullScreen(void)
 		if (m_fullScreenWindow != 0) {
 			//GHOST_PRINT("GHOST_WindowManager::endFullScreen(): deleting full-screen window\n");
 			setWindowInactive(m_fullScreenWindow);
+			m_fullScreenWindow->endFullScreen();
 			delete m_fullScreenWindow;
 			//GHOST_PRINT("GHOST_WindowManager::endFullScreen(): done\n");
 			m_fullScreenWindow = 0;

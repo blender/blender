@@ -87,6 +87,7 @@ public:
 	    const GHOST_TEmbedderWindowID parentWindow,
 	    GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
 	    const bool stereoVisual = false,
+	    const bool exclusive = false,
 	    const GHOST_TUns16 numOfAASamples = 0
 	    );
 
@@ -307,6 +308,12 @@ protected:
 	    int fg_color,
 	    int bg_color
 	    );
+
+	GHOST_TSuccess
+	beginFullScreen() const;
+
+	GHOST_TSuccess
+	endFullScreen() const;
 
 private:
 

@@ -278,6 +278,8 @@ getAllDisplayDimensions(
  * \param	state	The state of the window when opened.
  * \param	type	The type of drawing context installed in this window.
  * \param	stereoVisual	Stereo visual for quad buffered stereo.
+ * \param	exclusive	Use to show the window ontop and ignore others
+ *						(used fullscreen).
  * \param	numOfAASamples	Number of samples used for AA (zero if no AA)
  * \param	parentWindow    Parent (embedder) window
  * \return	The new window (or 0 if creation failed).
@@ -292,7 +294,8 @@ createWindow(
 		GHOST_TUns32 height,
 		GHOST_TWindowState state,
 		GHOST_TDrawingContextType type,
-		bool stereoVisual,
+		const bool stereoVisual,
+		const bool exclusive,
 		const GHOST_TUns16 numOfAASamples,
 		const GHOST_TEmbedderWindowID parentWindow)
 {
@@ -305,7 +308,9 @@ createWindow(
 
 	window = new GHOST_WindowX11(this, m_display, title,
 	                             left, top, width, height,
-	                             state, parentWindow, type, stereoVisual, numOfAASamples);
+	                             state, parentWindow, type,
+	                             stereoVisual, exclusive,
+	                             numOfAASamples);
 
 	if (window) {
 		/* Both are now handle in GHOST_WindowX11.cpp

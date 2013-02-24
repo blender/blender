@@ -386,6 +386,7 @@ bool GPG_Application::startFullScreen(
 
 	fSystem->beginFullScreen(setting, &m_mainWindow, stereoVisual, samples);
 	m_mainWindow->setCursorVisibility(false);
+	/* note that X11 ignores this (it uses a window internally for fullscreen) */
 	m_mainWindow->setState(GHOST_kWindowStateFullScreen);
 
 	success = initEngine(m_mainWindow, stereoMode);

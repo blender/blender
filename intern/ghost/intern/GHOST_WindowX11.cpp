@@ -165,9 +165,10 @@ GHOST_WindowX11(
     const GHOST_TEmbedderWindowID parentWindow,
     GHOST_TDrawingContextType type,
     const bool stereoVisual,
+    const bool exclusive,
     const GHOST_TUns16 numOfAASamples
     ) :
-	GHOST_Window(width, height, state, type, stereoVisual, numOfAASamples),
+	GHOST_Window(width, height, state, type, stereoVisual, exclusive, numOfAASamples),
 	m_context(NULL),
 	m_display(display),
 	m_normal_state(GHOST_kWindowStateNormal),
@@ -254,6 +255,7 @@ GHOST_WindowX11(
 	 * This seems pretty much a legacy feature as we are in rgba mode anyway. */
 
 	XSetWindowAttributes xattributes;
+	unsigned int xattributes_valuemask = (CWBorderPixel | CWColormap | CWEventMask);
 	memset(&xattributes, 0, sizeof(xattributes));
 
 	xattributes.colormap = XCreateColormap(m_display,
@@ -274,6 +276,11 @@ GHOST_WindowX11(
 	        PointerMotionMask | FocusChangeMask |
 	        PropertyChangeMask | KeymapStateMask;
 
+	if (exclusive) {
+		xattributes_valuemask |= CWOverrideRedirect;
+		xattributes.override_redirect = True;
+	}
+
 	/* create the window! */
 	if (parentWindow == 0) {
 		m_window =  XCreateWindow(m_display,
@@ -286,7 +293,7 @@ GHOST_WindowX11(
 		                          m_visual->depth,
 		                          InputOutput,
 		                          m_visual->visual,
-		                          CWBorderPixel | CWColormap | CWEventMask,
+		                          xattributes_valuemask,
 		                          &xattributes
 		                          );
 	}
@@ -315,7 +322,7 @@ GHOST_WindowX11(
 		                         m_visual->depth,
 		                         InputOutput,
 		                         m_visual->visual,
-		                         CWBorderPixel | CWColormap | CWEventMask,
+		                         xattributes_valuemask,
 		                         &xattributes
 		                         );
 
@@ -486,7 +493,12 @@ GHOST_WindowX11(
 		GHOST_PRINT("Created window\n");
 	}
 
-	XMapWindow(m_display, m_window);
+	if (exclusive) {
+		XMapRaised(m_display, m_window);
+	}
+	else {
+		XMapWindow(m_display, m_window);
+	}
 	GHOST_PRINT("Mapped window\n");
 
 	XFlush(m_display);
@@ -1495,6 +1507,47 @@ setWindowCustomCursorShape(
 
 	XFreeColors(m_display, colormap, &fg.pixel, 1, 0L);
 	XFreeColors(m_display, colormap, &bg.pixel, 1, 0L);
+
+	return GHOST_kSuccess;
+}
+
+
+GHOST_TSuccess
+GHOST_WindowX11::
+beginFullScreen() const
+{
+	{
+		Window root_return;
+		int x_return, y_return;
+		unsigned int w_return, h_return, border_w_return, depth_return;
+
+		XGetGeometry(m_display, m_window, &root_return, &x_return, &y_return,
+		             &w_return, &h_return, &border_w_return, &depth_return);
+
+		m_system->setCursorPosition(w_return / 2, h_return / 2);
+	}
+
+
+	/* Grab Keyboard & Mouse */
+	int err;
+
+	err = XGrabKeyboard(m_display, m_window, False,
+	                    GrabModeAsync, GrabModeAsync, CurrentTime);
+	if (err != GrabSuccess) printf("XGrabKeyboard failed %d\n", err);
+
+	err = XGrabPointer(m_display, m_window, False,  PointerMotionMask | ButtonPressMask | ButtonReleaseMask,
+	                   GrabModeAsync, GrabModeAsync, m_window, None, CurrentTime);
+	if (err != GrabSuccess) printf("XGrabPointer failed %d\n", err);
+
+	return GHOST_kSuccess;
+}
+
+GHOST_TSuccess
+GHOST_WindowX11::
+endFullScreen() const
+{
+	XUngrabKeyboard(m_display, CurrentTime);
+	XUngrabPointer(m_display, CurrentTime);
 
 	return GHOST_kSuccess;
 }
