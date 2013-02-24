@@ -36,4 +36,7 @@ incs += '../../makesdna ../../makesrna ../../windowmanager ../../collada'
 if env['WITH_BF_COLLADA']:
     defs += ['WITH_COLLADA']
 
+if env['WITH_BF_INTERNATIONAL']:
+    defs += ['WITH_INTERNATIONAL']
+
 env.BlenderLib ( 'bf_editor_io', sources, Split(incs), defines=defs, libtype=['core','player'], priority=[330,210] )

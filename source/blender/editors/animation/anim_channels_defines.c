@@ -36,6 +36,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
@@ -3256,21 +3258,21 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 			icon = ICON_VISIBLE_IPO_OFF;
 			
 			if (ale->type == ANIMTYPE_FCURVE)
-				tooltip = "Channel is visible in Graph Editor for editing";
+				tooltip = TIP_("Channel is visible in Graph Editor for editing");
 			else
-				tooltip = "Channel(s) are visible in Graph Editor for editing";
+				tooltip = TIP_("Channel(s) are visible in Graph Editor for editing");
 			break;
 			
 		case ACHANNEL_SETTING_EXPAND: /* expanded triangle */
 			//icon = ((enabled)? ICON_TRIA_DOWN : ICON_TRIA_RIGHT);
 			icon = ICON_TRIA_RIGHT;
-			tooltip = "Make channels grouped under this channel visible";
+			tooltip = TIP_("Make channels grouped under this channel visible");
 			break;
 			
 		case ACHANNEL_SETTING_SOLO: /* NLA Tracks only */
 			//icon = ((enabled)? ICON_LAYER_ACTIVE : ICON_LAYER_USED);
 			icon = ICON_LAYER_USED;
-			tooltip = "NLA Track is the only one evaluated for the AnimData block it belongs to";
+			tooltip = TIP_("NLA Track is the only one evaluated for the AnimData block it belongs to");
 			break;
 		
 		/* --- */
@@ -3279,7 +3281,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 			// TODO: what about when there's no protect needed?
 			//icon = ((enabled)? ICON_LOCKED : ICON_UNLOCKED);
 			icon = ICON_UNLOCKED;
-			tooltip = "Editability of keyframes for this channel";
+			tooltip = TIP_("Editability of keyframes for this channel");
 			break;
 			
 		case ACHANNEL_SETTING_MUTE: /* muted speaker */
@@ -3287,9 +3289,9 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 			icon = ICON_MUTE_IPO_OFF;
 			
 			if (ale->type == ALE_FCURVE) 
-				tooltip = "Does F-Curve contribute to result";
+				tooltip = TIP_("Does F-Curve contribute to result");
 			else
-				tooltip = "Do channels contribute to result";
+				tooltip = TIP_("Do channels contribute to result");
 			break;
 			
 		default:

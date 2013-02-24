@@ -584,9 +584,9 @@ void ANIM_uiTemplate_fmodifier_draw(uiLayout *layout, ID *id, ListBase *modifier
 		
 		/* name */
 		if (fmi)
-			uiItemL(sub, fmi->name, ICON_NONE);
+			uiItemL(sub, IFACE_(fmi->name), ICON_NONE);
 		else
-			uiItemL(sub, "<Unknown Modifier>", ICON_NONE);
+			uiItemL(sub, IFACE_("<Unknown Modifier>"), ICON_NONE);
 		
 		/* right-align ------------------------------------------- */
 		sub = uiLayoutRow(row, TRUE);

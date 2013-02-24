@@ -37,6 +37,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_brush_types.h"
 #include "DNA_ID.h"
 #include "DNA_lamp_types.h"
@@ -397,7 +399,7 @@ void uiTemplateTextureUser(uiLayout *layout, bContext *C)
 	user = ct->user;
 
 	if (!user) {
-		uiItemL(layout, "No textures in context.", ICON_NONE);
+		uiItemL(layout, IFACE_("No textures in context"), ICON_NONE);
 		return;
 	}
 

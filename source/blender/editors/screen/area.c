@@ -1586,14 +1586,14 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 		                       ICON_DISCLOSURE_TRI_RIGHT,
 		                       xco, yco, U.widget_unit, U.widget_unit * 0.9f,
 		                       &(sa->flag), 0, 0, 0, 0,
-		                       "Show pulldown menus");
+		                       TIP_("Show pulldown menus"));
 	}
 	else {
 		but = uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0,
 		                       ICON_DISCLOSURE_TRI_DOWN,
 		                       xco, yco, U.widget_unit, U.widget_unit * 0.9f,
 		                       &(sa->flag), 0, 0, 0, 0,
-		                       "Hide pulldown menus");
+		                       TIP_("Hide pulldown menus"));
 	}
 
 	uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */

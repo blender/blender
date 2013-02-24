@@ -29,9 +29,14 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
+defs = []
+
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
 incs += ' ../../bmesh ../../gpu ../../blenloader'
 incs += ' ../../makesrna ../../render/extern/include  #/intern/elbeem/extern'
 
-env.BlenderLib ( 'bf_editors_curve', sources, Split(incs), [], libtype=['core'], priority=[45] )
+if env['WITH_BF_INTERNATIONAL']:
+    defs.append('WITH_INTERNATIONAL')
+
+env.BlenderLib ( 'bf_editors_curve', sources, Split(incs), defs, libtype=['core'], priority=[45] )

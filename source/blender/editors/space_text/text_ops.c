@@ -3110,27 +3110,31 @@ static int text_resolve_conflict_invoke(bContext *C, wmOperator *op, wmEvent *UN
 		case 1:
 			if (text->flags & TXT_ISDIRTY) {
 				/* modified locally and externally, ahhh. offer more possibilites. */
-				pup = uiPupMenuBegin(C, "File Modified Outside and Inside Blender", ICON_NONE);
+				pup = uiPupMenuBegin(C, IFACE_("File Modified Outside and Inside Blender"), ICON_NONE);
 				layout = uiPupMenuLayout(pup);
-				uiItemEnumO_ptr(layout, op->type, "Reload from disk (ignore local changes)", 0, "resolution", RESOLVE_RELOAD);
-				uiItemEnumO_ptr(layout, op->type, "Save to disk (ignore outside changes)", 0, "resolution", RESOLVE_SAVE);
-				uiItemEnumO_ptr(layout, op->type, "Make text internal (separate copy)", 0, "resolution", RESOLVE_MAKE_INTERNAL);
+				uiItemEnumO_ptr(layout, op->type, IFACE_("Reload from disk (ignore local changes)"),
+				                0, "resolution", RESOLVE_RELOAD);
+				uiItemEnumO_ptr(layout, op->type, IFACE_("Save to disk (ignore outside changes)"),
+				                0, "resolution", RESOLVE_SAVE);
+				uiItemEnumO_ptr(layout, op->type, IFACE_("Make text internal (separate copy)"),
+				                0, "resolution", RESOLVE_MAKE_INTERNAL);
 				uiPupMenuEnd(C, pup);
 			}
 			else {
-				pup = uiPupMenuBegin(C, "File Modified Outside Blender", ICON_NONE);
+				pup = uiPupMenuBegin(C, IFACE_("File Modified Outside Blender"), ICON_NONE);
 				layout = uiPupMenuLayout(pup);
-				uiItemEnumO_ptr(layout, op->type, "Reload from disk", 0, "resolution", RESOLVE_RELOAD);
-				uiItemEnumO_ptr(layout, op->type, "Make text internal (separate copy)", 0, "resolution", RESOLVE_MAKE_INTERNAL);
-				uiItemEnumO_ptr(layout, op->type, "Ignore", 0, "resolution", RESOLVE_IGNORE);
+				uiItemEnumO_ptr(layout, op->type, IFACE_("Reload from disk"), 0, "resolution", RESOLVE_RELOAD);
+				uiItemEnumO_ptr(layout, op->type, IFACE_("Make text internal (separate copy)"),
+				                0, "resolution", RESOLVE_MAKE_INTERNAL);
+				uiItemEnumO_ptr(layout, op->type, IFACE_("Ignore"), 0, "resolution", RESOLVE_IGNORE);
 				uiPupMenuEnd(C, pup);
 			}
 			break;
 		case 2:
-			pup = uiPupMenuBegin(C, "File Deleted Outside Blender", ICON_NONE);
+			pup = uiPupMenuBegin(C, IFACE_("File Deleted Outside Blender"), ICON_NONE);
 			layout = uiPupMenuLayout(pup);
-			uiItemEnumO_ptr(layout, op->type, "Make text internal", 0, "resolution", RESOLVE_MAKE_INTERNAL);
-			uiItemEnumO_ptr(layout, op->type, "Recreate file", 0, "resolution", RESOLVE_SAVE);
+			uiItemEnumO_ptr(layout, op->type, IFACE_("Make text internal"), 0, "resolution", RESOLVE_MAKE_INTERNAL);
+			uiItemEnumO_ptr(layout, op->type, IFACE_("Recreate file"), 0, "resolution", RESOLVE_SAVE);
 			uiPupMenuEnd(C, pup);
 			break;
 	}

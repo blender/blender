@@ -304,7 +304,7 @@ static int make_proxy_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 
 	}
 	else if (ob->id.lib) {
-		uiPopupMenu *pup = uiPupMenuBegin(C, "OK?", ICON_QUESTION);
+		uiPopupMenu *pup = uiPupMenuBegin(C, IFACE_("OK?"), ICON_QUESTION);
 		uiLayout *layout = uiPupMenuLayout(pup);
 		
 		/* create operator menu item with relevant properties filled in */

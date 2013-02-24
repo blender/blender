@@ -308,7 +308,7 @@ static void nla_panel_properties(const bContext *C, Panel *pa)
 	
 	/* strip extents */
 	column = uiLayoutColumn(layout, TRUE);
-	uiItemL(column, "Strip Extents:", ICON_NONE);
+	uiItemL(column, IFACE_("Strip Extents:"), ICON_NONE);
 	uiItemR(column, &strip_ptr, "frame_start", 0, NULL, ICON_NONE);
 	uiItemR(column, &strip_ptr, "frame_end", 0, NULL, ICON_NONE);
 	
@@ -343,7 +343,7 @@ static void nla_panel_properties(const bContext *C, Panel *pa)
 		/* settings */
 		column = uiLayoutColumn(layout, TRUE);
 		uiLayoutSetActive(column, !(RNA_boolean_get(&strip_ptr, "use_animated_influence") || RNA_boolean_get(&strip_ptr, "use_animated_time")));
-		uiItemL(column, "Playback Settings:", ICON_NONE);
+		uiItemL(column, IFACE_("Playback Settings:"), ICON_NONE);
 		uiItemR(column, &strip_ptr, "mute", 0, NULL, ICON_NONE);
 		uiItemR(column, &strip_ptr, "use_reverse", 0, NULL, ICON_NONE);
 	}
@@ -373,15 +373,15 @@ static void nla_panel_actclip(const bContext *C, Panel *pa)
 	/* action extents */
 	// XXX custom names were used here (to avoid the prefixes)... probably not necessary in future?
 	column = uiLayoutColumn(layout, TRUE);
-	uiItemL(column, "Action Extents:", ICON_NONE);
-	uiItemR(column, &strip_ptr, "action_frame_start", 0, "Start Frame", ICON_NONE);
-	uiItemR(column, &strip_ptr, "action_frame_end", 0, "End Frame", ICON_NONE);
+	uiItemL(column, IFACE_("Action Extents:"), ICON_NONE);
+	uiItemR(column, &strip_ptr, "action_frame_start", 0, IFACE_("Start Frame"), ICON_NONE);
+	uiItemR(column, &strip_ptr, "action_frame_end", 0, IFACE_("End Frame"), ICON_NONE);
 	uiItemO(column, NULL, ICON_NONE, "NLA_OT_action_sync_length");
 		
 	/* action usage */
 	column = uiLayoutColumn(layout, TRUE);
 	uiLayoutSetActive(column, RNA_boolean_get(&strip_ptr, "use_animated_time") == FALSE);
-	uiItemL(column, "Playback Settings:", ICON_NONE);
+	uiItemL(column, IFACE_("Playback Settings:"), ICON_NONE);
 	uiItemR(column, &strip_ptr, "scale", 0, NULL, ICON_NONE);
 	uiItemR(column, &strip_ptr, "repeat", 0, NULL, ICON_NONE);
 }

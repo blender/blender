@@ -1612,6 +1612,8 @@ class BoneOptions:
     def draw(self, context):
         layout = self.layout
 
+        default_context = bpy.app.translations.contexts.default
+
         options = [
             "show_wire",
             "use_deform",
@@ -1631,7 +1633,8 @@ class BoneOptions:
             opt_suffix = "bone."
 
         for opt in options:
-            props = layout.operator("wm.context_collection_boolean_set", text=bone_props[opt].name)
+            props = layout.operator("wm.context_collection_boolean_set", text=bone_props[opt].name,
+                                    text_ctxt=default_context)
             props.data_path_iter = data_path_iter
             props.data_path_item = opt_suffix + opt
             props.type = self.type
