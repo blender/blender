@@ -36,18 +36,6 @@ import sys
 import ctypes
 import re
 
-try:
-    import settings
-    import utils
-except:
-    from . import (settings, utils)
-
-
-FRIBIDI_LIB = settings.FRIBIDI_LIB
-
-###### Import C library and recreate "defines". #####
-fbd = ctypes.CDLL(FRIBIDI_LIB)
-
 
 #define FRIBIDI_MASK_NEUTRAL	0x00000040L	/* Is neutral */
 FRIBIDI_PAR_ON = 0x00000040
@@ -80,12 +68,9 @@ FRIBIDI_FLAG_REMOVE_SPECIALS = 0x00040000
 FRIBIDI_FLAG_SHAPE_ARAB_PRES = 0x00000100
 FRIBIDI_FLAG_SHAPE_ARAB_LIGA = 0x00000200
 
-FRIBIDI_FLAGS_DEFAULT = FRIBIDI_FLAG_SHAPE_MIRRORING | \
-                        FRIBIDI_FLAG_REORDER_NSM | \
-                        FRIBIDI_FLAG_REMOVE_SPECIALS
+FRIBIDI_FLAGS_DEFAULT = FRIBIDI_FLAG_SHAPE_MIRRORING | FRIBIDI_FLAG_REORDER_NSM | FRIBIDI_FLAG_REMOVE_SPECIALS
 
-FRIBIDI_FLAGS_ARABIC = FRIBIDI_FLAG_SHAPE_ARAB_PRES | \
-                       FRIBIDI_FLAG_SHAPE_ARAB_LIGA
+FRIBIDI_FLAGS_ARABIC = FRIBIDI_FLAG_SHAPE_ARAB_PRES | FRIBIDI_FLAG_SHAPE_ARAB_LIGA
 
 
 MENU_DETECT_REGEX = re.compile("%x\\d+\\|")
@@ -158,11 +143,13 @@ def protect_format_seq(msg):
     return "".join(ret)
 
 
-def log2vis(msgs):
+def log2vis(msgs, settings):
     """
     Globally mimics deprecated fribidi_log2vis.
     msgs should be an iterable of messages to rtl-process.
     """
+    fbd = ctypes.CDLL(settings.FRIBIDI_LIB)
+
     for msg in msgs:
         msg = protect_format_seq(msg)
 
@@ -206,52 +193,3 @@ def log2vis(msgs):
 #        print(*(ord(c) for c in fbc_str))
 
         yield fbc_str.value
-
-
-##### Command line stuff. #####
-def main():
-    import argparse
-    parser = argparse.ArgumentParser(description="" \
-                    "Preprocesses right-to-left languages.\n" \
-                    "You can use it either standalone, or through " \
-                    "import_po_from_branches or update_trunk.\n\n" \
-                    "Note: This has been tested on Linux, not 100% it will " \
-                    "work nicely on Windows or OsX.\n" \
-                    "Note: This uses ctypes, as there is no py3 binding for " \
-                    "fribidi currently. This implies you only need the " \
-                    "compiled C library to run it.\n" \
-                    "Note: It handles some formating/escape codes (like " \
-                    "\\\", %s, %x12, %.4f, etc.), protecting them from ugly " \
-                    "(evil) fribidi, which seems completely unaware of such " \
-                    "things (as unicode is...).")
-    parser.add_argument('dst', metavar='dst.po',
-                        help="The dest po into which write the " \
-                             "pre-processed messages.")
-    parser.add_argument('src', metavar='src.po',
-                        help="The po's to pre-process messages.")
-    args = parser.parse_args()
-
-    msgs, state, u1 = utils.parse_messages(args.src)
-    if state["is_broken"]:
-        print("Source po is BROKEN, aborting.")
-        return 1
-
-    keys = []
-    trans = []
-    for key, val in msgs.items():
-        keys.append(key)
-        trans.append("".join(val["msgstr_lines"]))
-    trans = log2vis(trans)
-    for key, trn in zip(keys, trans):
-        # Mono-line for now...
-        msgs[key]["msgstr_lines"] = [trn]
-
-    utils.write_messages(args.dst, msgs, state["comm_msg"], state["fuzzy_msg"])
-
-    print("RTL pre-process completed.")
-    return 0
-
-
-if __name__ == "__main__":
-    print("\n\n *** Running {} *** \n".format(__file__))
-    sys.exit(main())
