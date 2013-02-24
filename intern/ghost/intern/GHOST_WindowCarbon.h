@@ -220,6 +220,11 @@ public:
 	{
 		return m_tablet;
 	}
+	
+	GHOST_TSuccess beginFullScreen() const {};
+
+	GHOST_TSuccess endFullScreen() const {};
+
 protected:
 	/**
 	 * Tries to install a rendering context in this window.

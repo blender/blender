@@ -231,6 +231,10 @@ public:
 	bool m_post_init;
 	GHOST_TWindowState m_post_state;
 
+	GHOST_TSuccess beginFullScreen() const;
+
+	GHOST_TSuccess endFullScreen() const;
+
 protected:
 	/**
 	 * Tries to install a rendering context in this window.
@@ -308,12 +312,6 @@ protected:
 	    int fg_color,
 	    int bg_color
 	    );
-
-	GHOST_TSuccess
-	beginFullScreen() const;
-
-	GHOST_TSuccess
-	endFullScreen() const;
 
 private:
 

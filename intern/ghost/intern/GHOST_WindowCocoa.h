@@ -266,6 +266,10 @@ public:
 	
 	virtual void setNativePixelSize(void);
 
+	GHOST_TSuccess beginFullScreen() const {};
+
+	GHOST_TSuccess endFullScreen() const {};
+
 	
 protected:
 	/**
