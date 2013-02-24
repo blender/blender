@@ -74,7 +74,7 @@ private:
 	 * @brief does this system have active opencl devices?
 	 */
 	bool m_hasActiveOpenCLDevices;
-	
+
 	/**
 	 * @brief Skip slow nodes
 	 */
@@ -178,6 +178,7 @@ public:
 	
 	void setFastCalculation(bool fastCalculation) {this->m_fastCalculation = fastCalculation;}
 	bool isFastCalculation() {return this->m_fastCalculation;}
+	inline bool isGroupnodeBufferEnabled() {return this->getbNodeTree()->flag & NTREE_COM_GROUPNODE_BUFFER;}
 };
 
 

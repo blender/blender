@@ -62,7 +62,6 @@ void register_node_type_cmp_normal(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_normal_in, cmp_node_normal_out);
 	node_type_init(&ntype, init);
-	node_type_size(&ntype, 100, 60, 200);
 
 	nodeRegisterType(ttype, &ntype);
 }

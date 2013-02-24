@@ -127,8 +127,8 @@ void OBJECT_OT_join_shapes(struct wmOperatorType *ot);
 void OBJECT_OT_convert(struct wmOperatorType *ot);
 
 /* object_hook.c */
-void OBJECT_OT_hook_add_selobj(struct wmOperatorType *ot);
-void OBJECT_OT_hook_add_newobj(struct wmOperatorType *ot);
+void OBJECT_OT_hook_add_selob(struct wmOperatorType *ot);
+void OBJECT_OT_hook_add_newob(struct wmOperatorType *ot);
 void OBJECT_OT_hook_remove(struct wmOperatorType *ot);
 void OBJECT_OT_hook_select(struct wmOperatorType *ot);
 void OBJECT_OT_hook_assign(struct wmOperatorType *ot);

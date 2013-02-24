@@ -41,6 +41,7 @@
 #include <math.h> // for fabs
 #include <stdarg.h> /* for va_start/end */
 
+#include "BLI_utildefines.h"
 #ifndef WIN32
 #  include <unistd.h> // for read close
 #else
@@ -120,6 +121,7 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_deform.h"
+#include "BKE_depsgraph.h"
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h" // for G
@@ -831,7 +833,7 @@ static int read_file_dna(FileData *fd)
 	
 	for (bhead = blo_firstbhead(fd); bhead; bhead = blo_nextbhead(fd, bhead)) {
 		if (bhead->code == DNA1) {
-			int do_endian_swap = (fd->flags & FD_FLAGS_SWITCH_ENDIAN) ? 1 : 0;
+			const bool do_endian_swap = (fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0;
 			
 			fd->filesdna = DNA_sdna_from_data(&bhead[1], bhead->len, do_endian_swap);
 			if (fd->filesdna) {
@@ -954,11 +956,11 @@ static FileData *filedata_new(void)
 	fd->filedes = -1;
 	fd->gzfiledes = NULL;
 	
-		/* XXX, this doesn't need to be done all the time,
-		 * but it keeps us re-entrant,  remove once we have
-		 * a lib that provides a nice lock. - zr
-		 */
-	fd->memsdna = DNA_sdna_from_data(DNAstr,  DNAlen,  0);
+	/* XXX, this doesn't need to be done all the time,
+	 * but it keeps us re-entrant,  remove once we have
+	 * a lib that provides a nice lock. - zr
+	 */
+	fd->memsdna = DNA_sdna_from_data(DNAstr, DNAlen, false);
 	
 	fd->datamap = oldnewmap_new();
 	fd->globmap = oldnewmap_new();
@@ -2713,7 +2715,7 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 	}
 }
 
-static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
+static void lib_link_pose(FileData *fd, Main *bmain, Object *ob, bPose *pose)
 {
 	bPoseChannel *pchan;
 	bArmature *arm = ob->data;
@@ -2757,7 +2759,7 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 	}
 	
 	if (rebuild) {
-		ob->recalc = (OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+		DAG_id_tag_update_ex(bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 		pose->flag |= POSE_RECALC;
 	}
 }
@@ -4222,7 +4224,7 @@ static void lib_link_object(FileData *fd, Main *main)
 			/* if id.us==0 a new base will be created later on */
 			
 			/* WARNING! Also check expand_object(), should reflect the stuff below. */
-			lib_link_pose(fd, ob, ob->pose);
+			lib_link_pose(fd, main, ob, ob->pose);
 			lib_link_constraints(fd, &ob->id, &ob->constraints);
 			
 // XXX deprecated - old animation system <<<
@@ -5128,7 +5130,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	RigidBodyWorld *rbw;
 	
 	sce->theDag = NULL;
-	sce->dagisvalid = 0;
 	sce->obedit = NULL;
 	sce->stats = NULL;
 	sce->fps_info = NULL;
@@ -6476,6 +6477,7 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 
 	clip->tracking.dopesheet.ok = 0;
 	clip->tracking.dopesheet.channels.first = clip->tracking.dopesheet.channels.last = NULL;
+	clip->tracking.dopesheet.coverage_segments.first = clip->tracking.dopesheet.coverage_segments.last = NULL;
 
 	link_list(fd, &tracking->objects);
 	
@@ -8862,8 +8864,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			SEQ_BEGIN (scene->ed, seq)
 			{
-				if (seq->flag & SEQ_MAKE_PREMUL)
+				if (seq->flag & SEQ_MAKE_PREMUL) {
 					seq->alpha_mode = SEQ_ALPHA_STRAIGHT;
+				}
+				else {
+					BKE_sequence_alpha_mode_from_extension(seq);
+				}
 			}
 			SEQ_END
 
@@ -8889,8 +8895,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 
 		for (image = main->image.first; image; image = image->id.next) {
-			if (image->flag & IMA_DO_PREMUL)
+			if (image->flag & IMA_DO_PREMUL) {
 				image->alpha_mode = IMA_ALPHA_STRAIGHT;
+			}
+			else {
+				BKE_image_alpha_mode_from_extension(image);
+			}
 
 			image->flag &= ~IMA_DONE_TAG;
 		}
@@ -8913,7 +8923,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						if (image == blo_do_versions_newlibadr(fd, otex->id.lib, otex->ima))
 							break;
 
-				if (otex) {
+				/* no duplication if the texture and image datablock are not
+				 * from the same .blend file, the image datablock may not have
+				 * been loaded from a library file otherwise */
+				if (otex && (tex->id.lib == image->id.lib)) {
 					/* copy image datablock */
 					nimage = BKE_image_copy(main, image);
 					nimage->flag |= IMA_IGNORE_ALPHA|IMA_DONE_TAG;
@@ -10398,7 +10411,7 @@ static void give_base_to_groups(Main *mainvar, Scene *scene)
 			base = BKE_scene_base_add(scene, ob);
 			base->flag |= SELECT;
 			base->object->flag= base->flag;
-			ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
+			DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 			scene->basact = base;
 			
 			/* assign the group */

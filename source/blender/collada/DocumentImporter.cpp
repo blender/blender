@@ -180,14 +180,16 @@ void DocumentImporter::finish()
 {
 	if (mImportStage != General)
 		return;
-		
+
+	Main *bmain = CTX_data_main(mContext);
+	// TODO: create a new scene except the selected <visual_scene> - use current blender scene for it
+	Scene *sce = CTX_data_scene(mContext);
+
 	/** TODO Break up and put into 2-pass parsing of DAE */
 	std::vector<const COLLADAFW::VisualScene *>::iterator it;
 	for (it = vscenes.begin(); it != vscenes.end(); it++) {
 		PointerRNA sceneptr, unit_settings;
 		PropertyRNA *system, *scale;
-		// TODO: create a new scene except the selected <visual_scene> - use current blender scene for it
-		Scene *sce = CTX_data_scene(mContext);
 		
 		// for scene unit settings: system, scale_length
 
@@ -228,9 +230,7 @@ void DocumentImporter::finish()
 		}
 
 		// update scene
-		Main *bmain = CTX_data_main(mContext);
-		DAG_scene_sort(bmain, sce);
-		DAG_ids_flush_update(bmain, 0);
+		DAG_relations_tag_update(bmain);
 		WM_event_add_notifier(mContext, NC_OBJECT | ND_TRANSFORM, NULL);
 
 	}
@@ -241,6 +241,7 @@ void DocumentImporter::finish()
 	armature_importer.set_tags_map(this->uid_tags_map);
 	armature_importer.make_armatures(mContext);
 	armature_importer.make_shape_keys();
+	DAG_relations_tag_update(bmain);
 
 #if 0
 	armature_importer.fix_animation();
@@ -249,8 +250,9 @@ void DocumentImporter::finish()
 	for (std::vector<const COLLADAFW::VisualScene *>::iterator it = vscenes.begin(); it != vscenes.end(); it++) {
 		const COLLADAFW::NodePointerArray& roots = (*it)->getRootNodes();
 
-		for (unsigned int i = 0; i < roots.getCount(); i++)
+		for (unsigned int i = 0; i < roots.getCount(); i++) {
 			translate_anim_recursive(roots[i], NULL, NULL);
+		}
 	}
 
 	if (libnode_ob.size()) {
@@ -273,8 +275,7 @@ void DocumentImporter::finish()
 		}
 		libnode_ob.clear();
 
-		DAG_scene_sort(CTX_data_main(mContext), sce);
-		DAG_ids_flush_update(CTX_data_main(mContext), 0);
+		DAG_relations_tag_update(bmain);
 	}
 }
 
@@ -309,13 +310,22 @@ void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node, COLLADAFW
 #endif
 	unsigned int i;
 
+
 	//for (i = 0; i < 4; i++)
 	//    ob =
 	anim_importer.translate_Animations(node, root_map, object_map, FW_object_map);
 
-	COLLADAFW::NodePointerArray &children = node->getChildNodes();
-	for (i = 0; i < children.getCount(); i++) {
-		translate_anim_recursive(children[i], node, NULL);
+	if (node->getType() == COLLADAFW::Node::JOINT && par == NULL) {
+		// For Skeletons without root node we have to simulate the
+		// root node here and recursively enter the same function
+		// XXX: maybe this can be made more elegant.
+		translate_anim_recursive(node, node, parob);
+	}
+	else {
+		COLLADAFW::NodePointerArray &children = node->getChildNodes();
+		for (i = 0; i < children.getCount(); i++) {
+			translate_anim_recursive(children[i], node, NULL);
+		}
 	}
 }
 
@@ -376,7 +386,7 @@ Object *DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 	fprintf(stderr, "create <instance_node> under node id=%s from node id=%s\n", instance_node ? instance_node->getOriginalId().c_str() : NULL, source_node ? source_node->getOriginalId().c_str() : NULL);
 
 	Object *obn = BKE_object_copy(source_ob);
-	obn->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+	DAG_id_tag_update(&obn->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 	BKE_scene_base_add(sce, obn);
 
 	if (instance_node) {
@@ -403,8 +413,7 @@ Object *DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 		anim_importer.read_node_transform(source_node, obn);
 	}
 
-	/*DAG_scene_sort(CTX_data_main(mContext), sce);
-	DAG_ids_flush_update(CTX_data_main(mContext), 0);*/
+	/*DAG_relations_tag_update(CTX_data_main(mContext));*/
 
 	COLLADAFW::NodePointerArray &children = source_node->getChildNodes();
 	if (children.getCount()) {
@@ -462,7 +471,21 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 			name.c_str());
 
 	if (is_joint) {
+		if (parent_node == NULL) {
+			// A Joint on root level is a skeleton without root node.
+			// Here we add the armature "on the fly":
+			par = bc_add_object(sce, OB_ARMATURE, std::string("Armature").c_str());
+			objects_done->push_back(par);
+			object_map.insert(std::make_pair<COLLADAFW::UniqueId, Object *>(node->getUniqueId(), par));
+			node_map[node->getUniqueId()] = node;
+		}
 		armature_importer.add_joint(node, parent_node == NULL || parent_node->getType() != COLLADAFW::Node::JOINT, par, sce);
+
+		if (parent_node == NULL) {
+			// for skeletons without root node all has been done above.
+			// Skeletons with root node are handled further down.
+			return objects_done;
+		}
 	}
 	else {
 		COLLADAFW::InstanceGeometryPointerArray &geom = node->getInstanceGeometries();
@@ -541,13 +564,13 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 		if ( (geom_done + camera_done + lamp_done + controller_done + inst_done) < 1) {
 			//Check if Object is armature, by checking if immediate child is a JOINT node.
 			if (is_armature(node)) {
-				ob = bc_add_object(sce, OB_ARMATURE, NULL);
+				ob = bc_add_object(sce, OB_ARMATURE, name.c_str());
 			}
 			else {
 				ob = bc_add_object(sce, OB_EMPTY, NULL);
 			}
-
 			objects_done->push_back(ob);
+
 		}
 		
 		// XXX: if there're multiple instances, only one is stored

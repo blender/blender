@@ -124,20 +124,17 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         split.prop(md, "width")
         split.prop(md, "use_only_vertices")
 
-        # -- new modifier only, this may be reverted in favor of 2.62 mod.
-        '''
-        split = layout.split()
-        split.prop(md, "use_even_offset")
-        split.prop(md, "use_distance_offset")
-        '''
-        # -- end
+        layout.prop(md, "segments")
 
         layout.label(text="Limit Method:")
         layout.row().prop(md, "limit_method", expand=True)
         if md.limit_method == 'ANGLE':
             layout.prop(md, "angle_limit")
-        elif md.limit_method == 'WEIGHT':
-            layout.row().prop(md, "edge_weight_method", expand=True)
+        elif md.limit_method == 'VGROUP':
+            layout.label(text="Vertex Group:")
+            layout.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+        # elif md.limit_method == 'WEIGHT':
+        #    layout.row().prop(md, "edge_weight_method", expand=True)
 
     def BOOLEAN(self, layout, ob, md):
         split = layout.split()

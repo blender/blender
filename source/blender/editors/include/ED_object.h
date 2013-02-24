@@ -161,7 +161,7 @@ void object_test_constraints(struct Object *ob);
 
 void ED_object_constraint_set_active(struct Object *ob, struct bConstraint *con);
 void ED_object_constraint_update(struct Object *ob);
-void ED_object_constraint_dependency_update(struct Main *bmain, struct Scene *scene, struct Object *ob);
+void ED_object_constraint_dependency_update(struct Main *bmain, struct Object *ob);
 
 /* object_lattice.c */
 int  mouse_lattice(struct bContext *C, const int mval[2], int extend, int deselect, int toggle);
@@ -179,9 +179,9 @@ enum {
 
 struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Main *bmain, struct Scene *scene,
                                             struct Object *ob, const char *name, int type);
-int ED_object_modifier_remove(struct ReportList *reports, struct Main *bmain, struct Scene *scene,
+int ED_object_modifier_remove(struct ReportList *reports, struct Main *bmain,
                               struct Object *ob, struct ModifierData *md);
-void ED_object_modifier_clear(struct Main *bmain, struct Scene *scene, struct Object *ob);
+void ED_object_modifier_clear(struct Main *bmain, struct Object *ob);
 int ED_object_modifier_move_down(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_up(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_convert(struct ReportList *reports, struct Main *bmain, struct Scene *scene,

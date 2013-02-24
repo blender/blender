@@ -1308,7 +1308,7 @@ static void reg_node(int ID, int category, const char *enum_name, const char *st
 
 static void init(void)
 {
-	memset(nodes, 0, sizeof nodes);
+	memset(nodes, 0, sizeof(nodes));
 	
 	#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
 		reg_node(ID, Category_##Category, EnumName, STRINGIFY_ARG(Category##StructName), #Category, UIName, UIDesc);
@@ -3800,7 +3800,8 @@ static void def_cmp_bokehblur(StructRNA *srna)
 	/* duplicated in def_cmp_blur */
 	prop = RNA_def_property(srna, "use_variable_size", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "custom1", CMP_NODEFLAG_BLUR_VARIABLE_SIZE);
-	RNA_def_property_ui_text(prop, "Variable Size", "Support variable blue per-pixel when using an image for size input");
+	RNA_def_property_ui_text(prop, "Variable Size",
+	                         "Support variable blur per-pixel when using an image for size input");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 #if 0
@@ -4970,6 +4971,10 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_opencl", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NTREE_COM_OPENCL);
 	RNA_def_property_ui_text(prop, "OpenCL", "Enable GPU calculations");
+
+	prop = RNA_def_property(srna, "use_groupnode_buffer", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NTREE_COM_GROUPNODE_BUFFER);
+	RNA_def_property_ui_text(prop, "Buffer Groups", "Enable buffering of group nodes");
 
 	prop = RNA_def_property(srna, "two_pass", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NTREE_TWO_PASS);

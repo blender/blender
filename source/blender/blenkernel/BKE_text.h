@@ -109,6 +109,10 @@ int text_check_identifier_nodigit(const char ch);
 int text_check_whitespace(const char ch);
 int text_find_identifier_start(const char *str, int i);
 
+/* defined in bpy_interface.c */
+extern int text_check_identifier_unicode(const unsigned int ch);
+extern int text_check_identifier_nodigit_unicode(const unsigned int ch);
+
 enum {
 	TXT_MOVE_LINE_UP   = -1,
 	TXT_MOVE_LINE_DOWN =  1

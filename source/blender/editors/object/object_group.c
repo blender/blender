@@ -137,7 +137,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 				BKE_report(op->reports, RPT_WARNING, "Skipped some groups because of cycle detected");
 			}
 
-			DAG_scene_sort(bmain, scene);
+			DAG_relations_tag_update(bmain);
 			WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
 
 			return OPERATOR_FINISHED;
@@ -197,7 +197,7 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 	
 	if (!ok) BKE_report(op->reports, RPT_ERROR, "Active object contains no groups");
 	
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -229,7 +229,7 @@ static int group_objects_remove_all_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	CTX_DATA_END;
 
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -269,7 +269,7 @@ static int group_objects_remove_exec(bContext *C, wmOperator *op)
 			}
 			CTX_DATA_END;
 
-			DAG_scene_sort(bmain, scene);
+			DAG_relations_tag_update(bmain);
 			WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
 
 			return OPERATOR_FINISHED;
@@ -319,7 +319,7 @@ static int group_create_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;

@@ -55,6 +55,7 @@ void                     defvert_add_index_notest(struct MDeformVert *dv, int de
 void                     defvert_remove_group(struct MDeformVert *dvert, struct MDeformWeight *dw);
 void                     defvert_clear(struct MDeformVert *dvert);
 int                      defvert_find_shared(const struct MDeformVert *dvert_a, const struct MDeformVert *dvert_b);
+bool                     defvert_is_weight_zero(const struct MDeformVert *dvert, const int defgroup_tot);
 
 void BKE_defvert_array_free_elems(struct MDeformVert *dvert, int totvert);
 void BKE_defvert_array_free(struct MDeformVert *dvert, int totvert);

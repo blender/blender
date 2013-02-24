@@ -100,7 +100,7 @@ static void rna_Boids_reset(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRN
 
 	WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
 }
-static void rna_Boids_reset_deps(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Boids_reset_deps(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	if (ptr->type == &RNA_ParticleSystem) {
 		ParticleSystem *psys = (ParticleSystem *)ptr->data;
@@ -112,7 +112,7 @@ static void rna_Boids_reset_deps(Main *bmain, Scene *scene, PointerRNA *ptr)
 	else
 		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA | PSYS_RECALC_RESET);
 
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 
 	WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
 }

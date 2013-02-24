@@ -43,6 +43,8 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
+#include "BLI_math.h"
+
 #include "BIF_gl.h"
 #include "BLF_api.h"
 
@@ -516,8 +518,8 @@ static void blf_draw__start(FontBLF *font, GLint *mode, GLint *param)
 	if (font->flags & BLF_ASPECT)
 		glScalef(font->aspect[0], font->aspect[1], font->aspect[2]);
 
-	if (font->flags & BLF_ROTATION)
-		glRotatef(font->angle, 0.0f, 0.0f, 1.0f);
+	if (font->flags & BLF_ROTATION)  /* radians -> degrees */
+		glRotatef(font->angle * (float)(180.0 / M_PI), 0.0f, 0.0f, 1.0f);
 
 	if (font->shadow || font->blur)
 		glGetFloatv(GL_CURRENT_COLOR, font->orig_col);

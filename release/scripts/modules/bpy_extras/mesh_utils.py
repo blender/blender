@@ -152,10 +152,13 @@ def edge_face_count_dict(mesh):
        faces using each edge.
     :rtype: dict
     """
-    face_edge_keys = [face.edge_keys for face in mesh.tessfaces]
+
     face_edge_count = {}
-    for face_keys in face_edge_keys:
-        for key in face_keys:
+    loops = mesh.loops
+    edges = mesh.edges
+    for poly in mesh.polygons:
+        for i in poly.loop_indices:
+            key = edges[loops[i].edge_index].key
             try:
                 face_edge_count[key] += 1
             except:

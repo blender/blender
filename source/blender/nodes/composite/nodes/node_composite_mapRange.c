@@ -52,7 +52,6 @@ void register_node_type_cmp_map_range(bNodeTreeType *ttype)
 
 	node_type_base(ttype, &ntype, CMP_NODE_MAP_RANGE, "Map Range", NODE_CLASS_OP_VECTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_map_range_in, cmp_node_map_range_out);
-	node_type_size(&ntype, 120, 60, 150);
 
 	nodeRegisterType(ttype, &ntype);
 }

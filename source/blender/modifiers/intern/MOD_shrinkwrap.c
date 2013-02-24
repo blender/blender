@@ -161,6 +161,15 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 		                 DAG_RL_OB_DATA | DAG_RL_DATA_DATA, "Shrinkwrap Modifier");
 }
 
+static int dependsOnNormals(ModifierData *md)
+{
+	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
+
+	if (smd->target && smd->shrinkType == MOD_SHRINKWRAP_PROJECT)
+		return (smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL);
+	
+	return false;
+}
 
 ModifierTypeInfo modifierType_Shrinkwrap = {
 	/* name */              "Shrinkwrap",
@@ -185,7 +194,7 @@ ModifierTypeInfo modifierType_Shrinkwrap = {
 	/* isDisabled */        isDisabled,
 	/* updateDepgraph */    updateDepgraph,
 	/* dependsOnTime */     NULL,
-	/* dependsOnNormals */  NULL,
+	/* dependsOnNormals */  dependsOnNormals,
 	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,

@@ -388,10 +388,10 @@ static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *report
 	if (scene == scene_act)
 		ob->lay = base->lay;
 
-	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
 	/* slows down importers too much, run scene.update() */
-	/* DAG_scene_sort(G.main, scene); */
+	/* DAG_srelations_tag_update(G.main); */
 
 	WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
 
@@ -419,8 +419,7 @@ static void rna_Scene_object_unlink(Scene *scene, ReportList *reports, Object *o
 	ob->id.us--;
 
 	/* needed otherwise the depgraph will contain freed objects which can crash, see [#20958] */
-	DAG_scene_sort(G.main, scene);
-	DAG_ids_flush_update(G.main, 0);
+	DAG_relations_tag_update(G.main);
 
 	WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
 }
@@ -1267,7 +1266,6 @@ static void rna_Scene_use_simplify_update(Main *bmain, Scene *UNUSED(scene), Poi
 	for (SETLOOPER(sce, sce_iter, base))
 		object_simplify_update(base->object);
 	
-	DAG_ids_flush_update(bmain, 0);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, NULL);
 }
 
@@ -1586,6 +1584,13 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem draw_groupuser_items[] = {
+		{OB_DRAW_GROUPUSER_NONE, "NONE", 0, "None", ""},
+		{OB_DRAW_GROUPUSER_ACTIVE, "ACTIVE", 0, "Active", "Show vertices with no weights in the actuve group"},
+		{OB_DRAW_GROUPUSER_ALL, "ALL", 0, "All", "Show vertices with no weights in the any group"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "ToolSettings", NULL);
 	RNA_def_struct_path_func(srna, "rna_ToolSettings_path");
 	RNA_def_struct_ui_text(srna, "Tool Settings", "");
@@ -1607,6 +1612,13 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	                         "Paint across all selected bones while "
 	                         "weight painting");
 	RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");
+
+	prop = RNA_def_property(srna, "vertex_group_user", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "weightuser");
+	RNA_def_property_enum_items(prop, draw_groupuser_items);
+	RNA_def_property_ui_text(prop, "Mask Non-Group Vertices", "Display unweighted vertices (multi-paint overrides)");
+	RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");
+
 
 	prop = RNA_def_property(srna, "vertex_paint", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "vpaint");
@@ -2917,10 +2929,6 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 
 	static EnumPropertyItem physics_engine_items[] = {
 		{WOPHY_NONE, "NONE", 0, "None", "Don't use a physics engine"},
-		/*{WOPHY_ENJI, "ENJI", 0, "Enji", ""}, */
-		/*{WOPHY_SUMO, "SUMO", 0, "Sumo (Deprecated)", ""}, */
-		/*{WOPHY_DYNAMO, "DYNAMO", 0, "Dynamo", ""}, */
-		/*{WOPHY_ODE, "ODE", 0, "ODE", ""}, */
 		{WOPHY_BULLET, "BULLET", 0, "Bullet", "Use the Bullet physics engine"},
 		{0, NULL, 0, NULL, NULL}
 	};
@@ -3956,14 +3964,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "resolution_x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "xsch");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_range(prop, 4, 10000);
+	RNA_def_property_range(prop, 4, 65536);
 	RNA_def_property_ui_text(prop, "Resolution X", "Number of horizontal pixels in the rendered image");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneCamera_update");
 	
 	prop = RNA_def_property(srna, "resolution_y", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ysch");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_range(prop, 4, 10000);
+	RNA_def_property_range(prop, 4, 65536);
 	RNA_def_property_ui_text(prop, "Resolution Y", "Number of vertical pixels in the rendered image");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_SceneCamera_update");
 	
@@ -3977,13 +3985,13 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "tile_x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "tilex");
-	RNA_def_property_range(prop, 8, 10000);
+	RNA_def_property_range(prop, 8, 65536);
 	RNA_def_property_ui_text(prop, "Tile X", "Horizontal tile size to use while rendering");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 	
 	prop = RNA_def_property(srna, "tile_y", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "tiley");
-	RNA_def_property_range(prop, 8, 10000);
+	RNA_def_property_range(prop, 8, 65536);
 	RNA_def_property_ui_text(prop, "Tile Y", "Vertical tile size to use while rendering");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 	

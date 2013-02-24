@@ -33,8 +33,6 @@
 
 #include "DNA_listBase.h"
 
-#define BCM_CONFIG_FILE "config.ocio"
-
 struct OCIO_ConstProcessorRcPtr;
 struct ImBuf;
 

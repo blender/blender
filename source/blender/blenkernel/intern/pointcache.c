@@ -52,6 +52,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "PIL_time.h"
 
 #include "WM_api.h"
@@ -3505,11 +3507,11 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 
 		/* smoke doesn't use frame 0 as info frame so can't check based on totpoint */
 		if (pid->type == PTCACHE_TYPE_SMOKE_DOMAIN && totframes)
-			BLI_snprintf(cache->info, sizeof(cache->info), "%i frames found!", totframes);
+			BLI_snprintf(cache->info, sizeof(cache->info), IFACE_("%i frames found!"), totframes);
 		else if (totframes && cache->totpoint)
-			BLI_snprintf(cache->info, sizeof(cache->info), "%i points found!", cache->totpoint);
+			BLI_snprintf(cache->info, sizeof(cache->info), IFACE_("%i points found!"), cache->totpoint);
 		else
-			BLI_snprintf(cache->info, sizeof(cache->info), "No valid data to read!");
+			BLI_snprintf(cache->info, sizeof(cache->info), IFACE_("No valid data to read!"));
 		return;
 	}
 
@@ -3518,9 +3520,9 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 			int totpoint = pid->totpoint(pid->calldata, 0);
 
 			if (cache->totpoint > totpoint)
-				BLI_snprintf(mem_info, sizeof(mem_info), "%i cells + High Resolution cached", totpoint);
+				BLI_snprintf(mem_info, sizeof(mem_info), IFACE_("%i cells + High Resolution cached"), totpoint);
 			else
-				BLI_snprintf(mem_info, sizeof(mem_info), "%i cells cached", totpoint);
+				BLI_snprintf(mem_info, sizeof(mem_info), IFACE_("%i cells cached"), totpoint);
 		}
 		else {
 			int cfra = cache->startframe;
@@ -3530,7 +3532,7 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 					totframes++;
 			}
 
-			BLI_snprintf(mem_info, sizeof(mem_info), "%i frames on disk", totframes);
+			BLI_snprintf(mem_info, sizeof(mem_info), IFACE_("%i frames on disk"), totframes);
 		}
 	}
 	else {
@@ -3554,17 +3556,18 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 
 		mb = (bytes > 1024.0f * 1024.0f);
 
-		BLI_snprintf(mem_info, sizeof(mem_info), "%i frames in memory (%.1f %s)",
+		BLI_snprintf(mem_info, sizeof(mem_info), IFACE_("%i frames in memory (%.1f %s)"),
 		             totframes,
 		             bytes / (mb ? 1024.0f * 1024.0f : 1024.0f),
-		             mb ? "Mb" : "kb");
+		             mb ? IFACE_("Mb") : IFACE_("kb"));
 	}
 
 	if (cache->flag & PTCACHE_OUTDATED) {
-		BLI_snprintf(cache->info, sizeof(cache->info), "%s, cache is outdated!", mem_info);
+		BLI_snprintf(cache->info, sizeof(cache->info), IFACE_("%s, cache is outdated!"), mem_info);
 	}
 	else if (cache->flag & PTCACHE_FRAMES_SKIPPED) {
-		BLI_snprintf(cache->info, sizeof(cache->info), "%s, not exact since frame %i.", mem_info, cache->last_exact);
+		BLI_snprintf(cache->info, sizeof(cache->info), IFACE_("%s, not exact since frame %i."),
+		             mem_info, cache->last_exact);
 	}
 	else {
 		BLI_snprintf(cache->info, sizeof(cache->info), "%s.", mem_info);
@@ -3586,4 +3589,3 @@ void BKE_ptcache_invalidate(PointCache *cache)
 		cache->last_exact = MIN2(cache->startframe, 0);
 	}
 }
-

@@ -571,6 +571,20 @@ static void image_init_color_management(Image *ima)
 	}
 }
 
+void BKE_image_alpha_mode_from_extension(Image *image)
+{
+	if (BLI_testextensie(image->name, ".exr") ||
+	    BLI_testextensie(image->name, ".cin") ||
+	    BLI_testextensie(image->name, ".dpx") ||
+	    BLI_testextensie(image->name, ".hdr"))
+	{
+		image->alpha_mode = IMA_ALPHA_PREMUL;
+	}
+	else {
+		image->alpha_mode = IMA_ALPHA_STRAIGHT;
+	}
+}
+
 Image *BKE_image_load(Main *bmain, const char *filepath)
 {
 	Image *ima;

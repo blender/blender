@@ -257,6 +257,7 @@ extern rbConstraint *RB_constraint_new_slider(float pivot[3], float orn[4], rbRi
 extern rbConstraint *RB_constraint_new_piston(float pivot[3], float orn[4], rbRigidBody *rb1, rbRigidBody *rb2);
 extern rbConstraint *RB_constraint_new_6dof(float pivot[3], float orn[4], rbRigidBody *rb1, rbRigidBody *rb2);
 extern rbConstraint *RB_constraint_new_6dof_spring(float pivot[3], float orn[4], rbRigidBody *rb1, rbRigidBody *rb2);
+extern rbConstraint *RB_constraint_new_motor(float pivot[3], float orn[4], rbRigidBody *rb1, rbRigidBody *rb2);
 
 /* ............ */
 
@@ -291,6 +292,11 @@ extern void RB_constraint_set_stiffness_6dof_spring(rbConstraint *con, int axis,
 extern void RB_constraint_set_damping_6dof_spring(rbConstraint *con, int axis, float damping);
 extern void RB_constraint_set_spring_6dof_spring(rbConstraint *con, int axis, int enable);
 extern void RB_constraint_set_equilibrium_6dof_spring(rbConstraint *con);
+
+/* motors */
+extern void RB_constraint_set_enable_motor(rbConstraint *con, int enable_lin, int enable_ang);
+extern void RB_constraint_set_max_impulse_motor(rbConstraint *con, float max_impulse_lin, float max_impulse_ang);
+extern void RB_constraint_set_target_velocity_motor(rbConstraint *con, float velocity_lin, float velocity_ang);
 
 /* Set number of constraint solver iterations made per step, this overrided world setting
  * To use default set it to -1 */

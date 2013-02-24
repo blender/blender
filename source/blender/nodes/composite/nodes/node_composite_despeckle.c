@@ -54,7 +54,6 @@ void register_node_type_cmp_despeckle(bNodeTreeType *ttype)
 
 	node_type_base(ttype, &ntype, CMP_NODE_DESPECKLE, "Despeckle", NODE_CLASS_OP_FILTER, NODE_PREVIEW|NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_despeckle_in, cmp_node_despeckle_out);
-	node_type_size(&ntype, 80, 40, 120);
 	node_type_init(&ntype, node_composit_init_despeckle);
 
 	nodeRegisterType(ttype, &ntype);

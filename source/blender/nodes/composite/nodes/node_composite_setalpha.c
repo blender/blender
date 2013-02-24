@@ -49,7 +49,6 @@ void register_node_type_cmp_setalpha(bNodeTreeType *ttype)
 
 	node_type_base(ttype, &ntype, CMP_NODE_SETALPHA, "Set Alpha", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_setalpha_in, cmp_node_setalpha_out);
-	node_type_size(&ntype, 120, 40, 140);
 
 	nodeRegisterType(ttype, &ntype);
 }

@@ -85,6 +85,7 @@
 /* proto */
 static void ui_add_smart_controller(bContext *C, uiBut *from, uiBut *to);
 static void ui_add_link(bContext *C, uiBut *from, uiBut *to);
+static int ui_do_but_EXIT(bContext *C, uiBut *but, struct uiHandleButtonData *data, const wmEvent *event);
 
 /***************** structs and defines ****************/
 
@@ -761,14 +762,27 @@ static int ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data, 
 	WM_gestures_remove(C);
 
 	if (ABS(data->dragstartx - event->x) + ABS(data->dragstarty - event->y) > U.dragthreshold) {
-		wmDrag *drag;
-		
+
 		button_activate_state(C, but, BUTTON_STATE_EXIT);
 		data->cancel = TRUE;
 		
-		drag = WM_event_start_drag(C, but->icon, but->dragtype, but->dragpoin, ui_get_but_val(but));
-		if (but->imb)
-			WM_event_drag_image(drag, but->imb, but->imb_scale, BLI_rctf_size_x(&but->rect), BLI_rctf_size_y(&but->rect));
+		if (ui_is_but_bool(but)) {
+			const bool is_set = (ui_get_but_val(but) != 0.0);
+			PointerRNA ptr;
+			WM_operator_properties_create(&ptr, "UI_OT_drag_toggle");
+			RNA_boolean_set(&ptr, "state", !is_set);
+			RNA_int_set(&ptr, "last_x", data->dragstartx);
+			RNA_int_set(&ptr, "last_y", data->dragstarty);
+			WM_operator_name_call(C, "UI_OT_drag_toggle", WM_OP_INVOKE_DEFAULT, &ptr);
+			WM_operator_properties_free(&ptr);
+		}
+		else {
+			wmDrag *drag;
+
+			drag = WM_event_start_drag(C, but->icon, but->dragtype, but->dragpoin, ui_get_but_val(but));
+			if (but->imb)
+				WM_event_drag_image(drag, but->imb, but->imb_scale, BLI_rctf_size_x(&but->rect), BLI_rctf_size_y(&but->rect));
+		}
 		return 1;
 	}
 	
@@ -2472,12 +2486,23 @@ static int ui_do_but_SEARCH_UNLINK(bContext *C, uiBlock *block, uiBut *but, uiHa
 static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
+		if (event->type == LEFTMOUSE && event->val == KM_PRESS && ui_is_but_bool(but)) {
+			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
+			data->dragstartx = event->x;
+			data->dragstarty = event->y;
+			return WM_UI_HANDLER_CONTINUE;
+		}
+
 		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
 			data->togdual = event->ctrl;
 			data->togonly = !event->shift;
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
-			return WM_UI_HANDLER_BREAK;
+			return WM_UI_HANDLER_CONTINUE;
 		}
+	}
+	else if (data->state == BUTTON_STATE_WAIT_DRAG) {
+		/* note: the 'BUTTON_STATE_WAIT_DRAG' part of 'ui_do_but_EXIT' could be refactored into its own function */
+		return ui_do_but_EXIT(C, but, data, event);
 	}
 	return WM_UI_HANDLER_CONTINUE;
 }
@@ -2498,6 +2523,12 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, con
 				data->dragstarty = event->y;
 				return WM_UI_HANDLER_CONTINUE;
 			}
+		}
+		if (event->type == LEFTMOUSE && ui_is_but_bool(but)) {
+			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
+			data->dragstartx = event->x;
+			data->dragstarty = event->y;
+			return WM_UI_HANDLER_CONTINUE;
 		}
 		
 		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
@@ -3215,6 +3246,12 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, co
 				return WM_UI_HANDLER_BREAK;
 			}
 		}
+		if (event->type == LEFTMOUSE && ui_is_but_bool(but)) {
+			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
+			data->dragstartx = event->x;
+			data->dragstarty = event->y;
+			return WM_UI_HANDLER_BREAK;
+		}
 		
 		/* regular open menu */
 		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
@@ -3404,6 +3441,19 @@ static int ui_do_but_NORMAL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 	return WM_UI_HANDLER_CONTINUE;
 }
 
+/* scales a vector so no axis exceeds max
+ * (could become BLI_math func) */
+static void clamp_axis_max_v3(float v[3], const float max)
+{
+	const float v_max = max_fff(v[0], v[1], v[2]);
+	if (v_max > max) {
+		mul_v3_fl(v, max / v_max);
+		if (v[0] > max) v[0] = max;
+		if (v[1] > max) v[1] = max;
+		if (v[2] > max) v[2] = max;
+	}
+}
+
 static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, int my, const short shift)
 {
 	float rgb[3];
@@ -3479,6 +3529,11 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 
 	if (color_profile && ((int)but->a1 != UI_GRAD_SV))
 		ui_block_to_scene_linear_v3(but->block, rgb);
+
+	/* clamp because with color conversion we can exceed range [#34295] */
+	if ((int)but->a1 == UI_GRAD_V_ALT) {
+		clamp_axis_max_v3(rgb, but->softmax);
+	}
 
 	copy_v3_v3(data->vec, rgb);
 
@@ -4198,7 +4253,7 @@ static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx
 
 	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
 		/* resize histogram widget itself */
-		hist->height = BLI_rctf_size_y(&but->rect) + (data->dragstarty - my);
+		hist->height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my))/UI_DPI_FAC;
 	}
 	else {
 		/* scale histogram values (dy / 10 for better control) */
@@ -4282,7 +4337,7 @@ static int ui_numedit_but_WAVEFORM(uiBut *but, uiHandleButtonData *data, int mx,
 
 	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
 		/* resize waveform widget itself */
-		scopes->wavefrm_height = BLI_rctf_size_y(&but->rect) + (data->dragstarty - my);
+		scopes->wavefrm_height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my))/UI_DPI_FAC;
 	}
 	else {
 		/* scale waveform values */
@@ -4364,7 +4419,7 @@ static int ui_numedit_but_VECTORSCOPE(uiBut *but, uiHandleButtonData *data, int 
 
 	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
 		/* resize vectorscope widget itself */
-		scopes->vecscope_height = BLI_rctf_size_y(&but->rect) + (data->dragstarty - my);
+		scopes->vecscope_height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my))/UI_DPI_FAC;
 	}
 
 	data->draglastx = mx;
@@ -4567,7 +4622,7 @@ static int ui_numedit_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonDa
 
 	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
 		/* resize preview widget itself */
-		scopes->track_preview_height = BLI_rctf_size_y(&but->rect) + (data->dragstarty - my);
+		scopes->track_preview_height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my))/UI_DPI_FAC;
 	}
 	else {
 		if (!scopes->track_locked) {
@@ -5397,7 +5452,7 @@ static int ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y)
 	return 1;
 }
 
-static uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
+uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 {
 	uiBlock *block;
 	uiBut *but, *butover = NULL;
@@ -5711,7 +5766,8 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 		button_activate_state(C, but, BUTTON_STATE_WAIT_FLASH);
 }
 
-static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *but, int mousemove, int onfree)
+static void button_activate_exit(bContext *C, uiBut *but, uiHandleButtonData *data,
+                                 const bool mousemove, const bool onfree)
 {
 	uiBlock *block = but->block;
 	uiBut *bt;
@@ -5766,8 +5822,10 @@ static void button_activate_exit(bContext *C, uiHandleButtonData *data, uiBut *b
 	ED_region_tag_redraw(data->region);
 	
 	/* clean up button */
-	MEM_freeN(but->active);
-	but->active = NULL;
+	if (but->active) {
+		MEM_freeN(but->active);
+		but->active = NULL;
+	}
 	but->flag &= ~(UI_ACTIVE | UI_SELECT);
 	but->flag |= UI_BUT_LAST_ACTIVE;
 	if (!onfree)
@@ -5790,7 +5848,7 @@ void ui_button_active_free(const bContext *C, uiBut *but)
 	if (but->active) {
 		data = but->active;
 		data->cancel = TRUE;
-		button_activate_exit((bContext *)C, data, but, 0, 1);
+		button_activate_exit((bContext *)C, but, data, false, true);
 	}
 }
 
@@ -6016,6 +6074,20 @@ void ui_button_activate_do(bContext *C, ARegion *ar, uiBut *but)
 	ui_do_button(C, but->block, but, &event);
 }
 
+void ui_button_execute_do(struct bContext *C, struct ARegion *ar, uiBut *but)
+{
+	/* note: ideally we would not have to change 'but->active' howevwer
+	 * some functions we call don't use data (as they should be doing) */
+	void *active_back = but->active;
+	uiHandleButtonData *data = MEM_callocN(sizeof(uiHandleButtonData), "uiHandleButtonData_Fake");
+	but->active = data;
+	data->region = ar;
+	ui_apply_button(C, but->block, but, data, true);
+	/* use onfree event so undo is handled by caller and apply is already done above */
+	button_activate_exit((bContext *)C, but, data, false, true);
+	but->active = active_back;
+}
+
 static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiButtonActivateType type)
 {
 	uiBut *oldbut;
@@ -6025,7 +6097,7 @@ static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiBu
 	if (oldbut) {
 		data = oldbut->active;
 		data->cancel = TRUE;
-		button_activate_exit(C, data, oldbut, 0, 0);
+		button_activate_exit(C, oldbut, data, false, false);
 	}
 
 	button_activate_init(C, ar, but, type);
@@ -6197,7 +6269,7 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 		postbut = data->postbut;
 		posttype = data->posttype;
 
-		button_activate_exit(C, data, but, (postbut == NULL), 0);
+		button_activate_exit(C, but, data, (postbut == NULL), false);
 
 		/* for jumping to the next button with tab while text editing */
 		if (postbut)
@@ -6326,7 +6398,7 @@ static void ui_handle_button_return_submenu(bContext *C, const wmEvent *event, u
 		if (menu->menuretval != UI_RETURN_OK)
 			data->cancel = TRUE;
 
-		button_activate_exit(C, data, but, 1, 0);
+		button_activate_exit(C, but, data, true, false);
 	}
 	else if (menu->menuretval & UI_RETURN_OUT) {
 		if (event->type == MOUSEMOVE && ui_mouse_inside_button(data->region, but, event->x, event->y)) {
@@ -6340,7 +6412,7 @@ static void ui_handle_button_return_submenu(bContext *C, const wmEvent *event, u
 			}
 			else {
 				data->cancel = TRUE;
-				button_activate_exit(C, data, but, 1, 0);
+				button_activate_exit(C, but, data, true, false);
 			}
 		}
 	}
@@ -7141,7 +7213,7 @@ static int ui_handler_popup(bContext *C, const wmEvent *event, void *userdata)
 				WM_operator_name_call(C, temp.optype->idname, temp.opcontext, NULL);
 		}
 		else if (temp.cancel_func)
-			temp.cancel_func(temp.popup_arg);
+			temp.cancel_func(C, temp.popup_arg);
 	}
 	else {
 		/* re-enable tooltips */

@@ -1084,7 +1084,7 @@ void IMAGE_OT_match_movie_length(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Match Movie Length";
-	ot->description = "Set image's users length to the one of this video";
+	ot->description = "Set image's user's length to the one of this video";
 	ot->idname = "IMAGE_OT_match_movie_length";
 	
 	/* api callbacks */
@@ -1777,7 +1777,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 /* XXX Note: the WM_operator_props_dialog_popup() doesn't work for uiIDContextProperty(), image is not being that way */
 static int image_new_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	return WM_operator_props_dialog_popup(C, op, 300, 100);
+	return WM_operator_props_dialog_popup(C, op, 15 * UI_UNIT_X, 5 * UI_UNIT_Y);
 
 }
 

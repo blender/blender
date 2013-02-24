@@ -72,7 +72,6 @@ void register_node_type_cmp_moviedistortion(bNodeTreeType *ttype)
 
 	node_type_base(ttype, &ntype, CMP_NODE_MOVIEDISTORTION, "Movie Distortion", NODE_CLASS_DISTORT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_moviedistortion_in, cmp_node_moviedistortion_out);
-	node_type_size(&ntype, 140, 100, 320);
 	node_type_label(&ntype, label);
 
 	node_type_storage(&ntype, NULL, storage_free, storage_copy);

@@ -4261,7 +4261,7 @@ static void con_unlink_refs_cb(bConstraint *UNUSED(con), ID **idpoin, short isRe
 
 /* Free data of a specific constraint if it has any info.
  * be sure to run BIK_clear_data() when freeing an IK constraint,
- * unless DAG_scene_sort is called. 
+ * unless DAG_relations_tag_update is called. 
  */
 void BKE_free_constraint_data(bConstraint *con)
 {

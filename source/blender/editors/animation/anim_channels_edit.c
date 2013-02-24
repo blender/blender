@@ -1159,6 +1159,218 @@ static void ANIM_OT_channels_move(wmOperatorType *ot)
 	ot->prop = RNA_def_enum(ot->srna, "direction", prop_animchannel_rearrange_types, REARRANGE_ANIMCHAN_DOWN, "Direction", "");
 }
 
+/* ******************** Group Channel Operator ************************ */
+
+static int animchannels_grouping_poll(bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	SpaceLink *sl;
+
+	/* channels region test */
+	/* TODO: could enhance with actually testing if channels region? */
+	if (ELEM(NULL, sa, CTX_wm_region(C)))
+		return 0;
+		
+	/* animation editor test - must be suitable modes only */
+	sl = CTX_wm_space_data(C);
+	
+	switch (sa->spacetype) {
+		/* supported... */
+		case SPACE_ACTION:
+		{
+			SpaceAction *saction = (SpaceAction *)sl;
+			
+			/* dopesheet and action only - all others are for other datatypes or have no groups */
+			if (ELEM(saction->mode, SACTCONT_ACTION, SACTCONT_DOPESHEET) == 0)
+				return 0;
+		}
+			break;
+			
+		case SPACE_IPO:
+		{
+			SpaceIpo *sipo = (SpaceIpo *)sl;
+			
+			/* drivers can't have groups... */
+			if (sipo->mode != SIPO_MODE_ANIMATION)
+				return 0;
+		}
+			break;
+			
+		/* unsupported... */
+		default:
+			return 0;
+	}
+	
+	return 1;
+}
+
+/* ----------------------------------------------------------- */
+
+static void animchannels_group_channels(bAnimContext *ac, bAnimListElem *adt_ref, const char name[])
+{	
+	AnimData *adt = adt_ref->adt;
+	bAction *act = adt->action;
+	
+	if (act) {
+		ListBase anim_data = {NULL, NULL};
+		int filter;
+		
+		/* find selected F-Curves to re-group */
+		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL);
+		ANIM_animdata_filter(ac, &anim_data, filter, adt_ref, ANIMCONT_CHANNEL);
+		
+		if (anim_data.first) {
+			bActionGroup *agrp;
+			bAnimListElem *ale;
+			
+			/* create new group, which should now be part of the action */
+			agrp = action_groups_add_new(act, name);
+			BLI_assert(agrp != NULL);
+			
+			/* transfer selected F-Curves across to new group  */
+			for (ale = anim_data.first; ale; ale = ale->next) {
+				FCurve *fcu = (FCurve *)ale->data;
+				bActionGroup *grp = fcu->grp;
+				
+				/* remove F-Curve from group, then group too if it is now empty */
+				action_groups_remove_channel(act, fcu);
+				
+				if ((grp) && (grp->channels.first == NULL)) {
+					BLI_freelinkN(&act->groups, grp);
+				}
+				
+				/* add F-Curve to group */
+				action_groups_add_channel(act, agrp, fcu);
+			}
+		}
+		
+		/* cleanup */
+		BLI_freelistN(&anim_data);
+	}
+}
+
+static int animchannels_group_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	char name[MAX_NAME];
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* get name for new group */
+	RNA_string_get(op->ptr, "name", name);
+	
+	/* XXX: name for group should never be empty... */
+	if (name[0]) {
+		ListBase anim_data = {NULL, NULL};
+		bAnimListElem *ale;
+		int filter;
+		
+		/* handle each animdata block separately, so that the regrouping doesn't flow into blocks  */
+		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ANIMDATA | ANIMFILTER_NODUPLIS);
+		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+		
+		for (ale = anim_data.first; ale; ale = ale->next) {
+			animchannels_group_channels(&ac, ale, name);
+		}
+		
+		/* free temp data */
+		BLI_freelistN(&anim_data);
+		
+		/* updatss */
+		WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+	}
+	
+	return OPERATOR_FINISHED;
+}
+
+static void ANIM_OT_channels_group(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Group Channels";
+	ot->idname = "ANIM_OT_channels_group";
+	ot->description = "Add selected F-Curves to a new group";
+	
+	/* callbacks */
+	ot->invoke = WM_operator_props_popup;
+	ot->exec = animchannels_group_exec;
+	ot->poll = animchannels_grouping_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* props */
+	ot->prop = RNA_def_string(ot->srna, "name", "New Group", 
+	                          sizeof(((bActionGroup *)NULL)->name), 
+	                          "Name", "Name of newly created group");
+	/* RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE); */ /* XXX: still not too sure about this - keeping same text is confusing... */
+}
+
+/* ----------------------------------------------------------- */
+
+static int animchannels_ungroup_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* just selected F-Curves... */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_NODUPLIS);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	for (ale = anim_data.first; ale; ale = ale->next) {
+		/* find action for this F-Curve... */
+		if (ale->adt && ale->adt->action) {
+			FCurve  *fcu = (FCurve *)ale->data;
+			bAction *act = ale->adt->action;
+			
+			/* only proceed to remove if F-Curve is in a group... */
+			if (fcu->grp) { 
+				bActionGroup *agrp = fcu->grp;
+				
+				/* remove F-Curve from group and add at tail (ungrouped) */
+				action_groups_remove_channel(act, fcu);
+				BLI_addtail(&act->curves, fcu);
+				
+				/* delete group if it is now empty */
+				if (agrp->channels.first == NULL) {
+					BLI_freelinkN(&act->groups, agrp);
+				}
+			}
+		}
+	}
+	
+	/* cleanup */
+	BLI_freelistN(&anim_data);
+	
+	/* updates */
+	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+static void ANIM_OT_channels_ungroup(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Ungroup Channels";
+	ot->idname = "ANIM_OT_channels_ungroup";
+	ot->description = "Remove selected F-Curves from their current groups";
+	
+	/* callbacks */
+	ot->exec = animchannels_ungroup_exec;
+	ot->poll = animchannels_grouping_poll;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /* ******************** Delete Channel Operator *********************** */
 
 static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1245,13 +1457,13 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 				BLI_freelinkN(&gpd->layers, gpl);
 			}
 			break;
-
+			
 			case ANIMTYPE_MASKLAYER:
 			{
 				/* Mask layer */
 				Mask *mask = (Mask *)ale->id;
 				MaskLayer *masklay = (MaskLayer *)ale->data;
-
+				
 				/* try to delete the layer's data and the layer itself */
 				BKE_mask_layer_remove(mask, masklay);
 			}
@@ -1342,10 +1554,10 @@ static int animchannels_visibility_set_exec(bContext *C, wmOperator *UNUSED(op))
 		/* TODO: find out why this is the case, and fix that */
 		if (ale->type == ANIMTYPE_OBJECT)
 			continue;
-
+		
 		/* enable the setting */
 		ANIM_channel_setting_set(&ac, ale, ACHANNEL_SETTING_VISIBLE, ACHANNEL_SETFLAG_ADD);
-
+		
 		/* now, also flush selection status up/down as appropriate */
 		ANIM_flush_setting_anim_channels(&ac, &all_data, ale, ACHANNEL_SETTING_VISIBLE, 1);
 	}
@@ -1419,10 +1631,10 @@ static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *UNUSED(o
 		/* TODO: find out why this is the case, and fix that */
 		if (ale->type == ANIMTYPE_OBJECT)
 			continue;
-
+		
 		/* change the setting */
 		ANIM_channel_setting_set(&ac, ale, ACHANNEL_SETTING_VISIBLE, vis);
-
+		
 		/* now, also flush selection status up/down as appropriate */
 		ANIM_flush_setting_anim_channels(&ac, &all_data, ale, ACHANNEL_SETTING_VISIBLE, (vis == ACHANNEL_SETFLAG_ADD));
 	}
@@ -2243,7 +2455,7 @@ static int mouse_anim_channels(bAnimContext *ac, float UNUSED(x), int channel_in
 			}
 			
 			notifierFlags |= (ND_ANIMCHAN | NA_SELECTED);
-	}
+		}
 		break;
 		
 		case ANIMTYPE_GROUP: 
@@ -2495,6 +2707,9 @@ void ED_operatortypes_animchannels(void)
 	WM_operatortype_append(ANIM_OT_channels_visibility_set);
 	
 	WM_operatortype_append(ANIM_OT_channels_fcurves_enable);
+	
+	WM_operatortype_append(ANIM_OT_channels_group);
+	WM_operatortype_append(ANIM_OT_channels_ungroup);
 }
 
 // TODO: check on a poll callback for this, to get hotkeys into menus
@@ -2547,6 +2762,10 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_move", PAGEDOWNKEY, KM_PRESS, 0, 0)->ptr, "direction", REARRANGE_ANIMCHAN_DOWN);
 	RNA_enum_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_move", PAGEUPKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "direction", REARRANGE_ANIMCHAN_TOP);
 	RNA_enum_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_move", PAGEDOWNKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "direction", REARRANGE_ANIMCHAN_BOTTOM);
+	
+	/* grouping */
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_group", GKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_ungroup", GKEY, KM_PRESS, KM_ALT, 0);
 	
 	/* Graph Editor only */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_visibility_set", VKEY, KM_PRESS, 0, 0);

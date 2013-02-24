@@ -62,7 +62,7 @@ static void rna_Smoke_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 static void rna_Smoke_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	rna_Smoke_update(bmain, scene, ptr);
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 }
 
 static void rna_Smoke_resetCache(Main *bmain, Scene *scene, PointerRNA *ptr)

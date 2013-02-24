@@ -239,7 +239,6 @@ typedef struct VertSlideData {
 	float perc;
 
 	bool is_proportional;
-	bool is_clamp;
 	bool flipped_vtx;
 
 	int curr_sv_index;
@@ -745,5 +744,9 @@ void freeEdgeSlideVerts(TransInfo *t);
 void projectEdgeSlideData(TransInfo *t, bool is_final);
 
 void freeVertSlideVerts(TransInfo *t);
+
+
+/* TODO. transform_queries.c */
+bool checkUseLocalCenter_GraphEdit(TransInfo *t);
 
 #endif

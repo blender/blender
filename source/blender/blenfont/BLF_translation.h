@@ -112,7 +112,7 @@ const char *BLF_translate_do_tooltip(const char *msgctxt, const char *msgid);
 
 /* Default, void context.
  * WARNING! The "" context is not the same as no (NULL) context at mo/boost::locale level!
- * NOTE: We translate BLF_I18NCONTEXT_DEFAULT as BLF_I18NCONTEXT_DEFAULT_BPY in Python, as we can’t use "natural"
+ * NOTE: We translate BLF_I18NCONTEXT_DEFAULT as BLF_I18NCONTEXT_DEFAULT_BPY in Python, as we can't use "natural"
  *       None value in rna string properties... :/
  *       For perf reason, we only use the first char to detect this context, so other contexts should never start
  *       with the same char!

@@ -40,7 +40,6 @@
 #include "GHOST_SystemX11.h"
 
 
-
 GHOST_DisplayManagerX11::
 GHOST_DisplayManagerX11(
     GHOST_SystemX11 *system
@@ -82,9 +81,9 @@ getNumDisplaySettings(
 		return GHOST_kFailure;
 	}
 
-	/* The X11 man page says vidmodes needs to be freed, but doing so causes a
-	 * segfault. - z0r */
-	XF86VidModeGetAllModeLines(dpy, DefaultScreen(dpy), &numSettings, &vidmodes);
+	if (XF86VidModeGetAllModeLines(dpy, DefaultScreen(dpy), &numSettings, &vidmodes)) {
+		XFree(vidmodes);
+	}
 
 #else
 	/* We only have one X11 setting at the moment. */
@@ -95,6 +94,17 @@ getNumDisplaySettings(
 	return GHOST_kSuccess;
 }
 
+/* from SDL2 */
+#ifdef WITH_X11_XF86VMODE
+static int
+calculate_rate(XF86VidModeModeInfo *info)
+{
+	return (info->htotal
+	        && info->vtotal) ? (1000 * info->dotclock / (info->htotal *
+	                                                     info->vtotal)) : 0;
+}
+#endif
+
 GHOST_TSuccess
 GHOST_DisplayManagerX11::
 getDisplaySetting(
@@ -102,51 +112,46 @@ getDisplaySetting(
 		GHOST_TInt32 index,
 		GHOST_DisplaySetting& setting) const
 {
-
-#ifdef WITH_X11_XF86VMODE
-	int majorVersion, minorVersion;
-	XF86VidModeModeInfo **vidmodes;
 	Display *dpy = m_system->getXDisplay();
-	int numSettings;
-
-	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");
 
 	if (dpy == NULL)
 		return GHOST_kFailure;
 
+#ifdef WITH_X11_XF86VMODE
+	int majorVersion, minorVersion;
+
+	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");
+
 	majorVersion = minorVersion = 0;
-	if (!XF86VidModeQueryVersion(dpy, &majorVersion, &minorVersion)) {
-		fprintf(stderr, "Error: XF86VidMode extension missing!\n");
-		return GHOST_kFailure;
+	if (XF86VidModeQueryVersion(dpy, &majorVersion, &minorVersion)) {
+		XF86VidModeModeInfo **vidmodes;
+		int numSettings;
+
+		if (XF86VidModeGetAllModeLines(dpy, DefaultScreen(dpy), &numSettings, &vidmodes)) {
+			GHOST_ASSERT(index < numSettings, "Requested setting outside of valid range.\n");
+
+			setting.xPixels = vidmodes[index]->hdisplay;
+			setting.yPixels = vidmodes[index]->vdisplay;
+			setting.bpp = DefaultDepth(dpy, DefaultScreen(dpy));
+			setting.frequency = calculate_rate(vidmodes[index]);
+			XFree(vidmodes);
+
+			return GHOST_kSuccess;
+		}
 	}
+	else {
+		fprintf(stderr, "Warning: XF86VidMode extension missing!\n");
+		/* fallback to non xf86vmode below */
+	}
+#endif  /* WITH_X11_XF86VMODE */
 
-	/* The X11 man page says vidmodes needs to be freed, but doing so causes a
-	 * segfault. - z0r */
-	XF86VidModeGetAllModeLines(dpy, DefaultScreen(dpy), &numSettings, &vidmodes);
-	GHOST_ASSERT(index < numSettings, "Requested setting outside of valid range.\n");
-
-	setting.xPixels = vidmodes[index]->hdisplay;
-	setting.yPixels = vidmodes[index]->vdisplay;
-	setting.bpp = DefaultDepth(dpy, DefaultScreen(dpy));
-
-#else
 	GHOST_ASSERT(display < 1, "Only single display systems are currently supported.\n");
 	GHOST_ASSERT(index < 1, "Requested setting outside of valid range.\n");
-	
-	Display *x_display = m_system->getXDisplay();
 
-	if (x_display == NULL) {
-		return GHOST_kFailure;
-	}
-
-	setting.xPixels  = DisplayWidth(x_display, DefaultScreen(x_display));
-	setting.yPixels = DisplayHeight(x_display, DefaultScreen(x_display));
-	setting.bpp = DefaultDepth(x_display, DefaultScreen(x_display));
-#endif
-
-	/* Don't think it's possible to get this value from X!
-	 * So let's guess!! */
-	setting.frequency = 60;
+	setting.xPixels  = DisplayWidth(dpy, DefaultScreen(dpy));
+	setting.yPixels = DisplayHeight(dpy, DefaultScreen(dpy));
+	setting.bpp = DefaultDepth(dpy, DefaultScreen(dpy));
+	setting.frequency = 60.0f;
 
 	return GHOST_kSuccess;
 }
@@ -171,15 +176,13 @@ setCurrentDisplaySetting(
 		const GHOST_DisplaySetting& setting)
 {
 #ifdef WITH_X11_XF86VMODE
-	/* Mode switching code ported from Quake 2:
-	 * ftp: ftp.idsoftware.com/idstuff/source/q2source-3.21.zip
-	 * See linux/gl_glx.c:GLimp_SetMode
+	/* Mode switching code ported from SDL:
+	 * See: src/video/x11/SDL_x11modes.c:set_best_resolution
 	 */
 	int majorVersion, minorVersion;
 	XF86VidModeModeInfo **vidmodes;
 	Display *dpy = m_system->getXDisplay();
 	int scrnum, num_vidmodes;
-	int best_fit, best_dist, dist, x, y;
 
 	if (dpy == NULL)
 		return GHOST_kFailure;
@@ -197,41 +200,62 @@ setCurrentDisplaySetting(
 	       majorVersion, minorVersion);
 #  endif
 
-	/* The X11 man page says vidmodes needs to be freed, but doing so causes a
-	 * segfault. - z0r */
-	XF86VidModeGetAllModeLines(dpy, scrnum, &num_vidmodes, &vidmodes);
+	if (XF86VidModeGetAllModeLines(dpy, scrnum, &num_vidmodes, &vidmodes)) {
+		int best_fit = -1;
 
-	best_dist = 9999999;
-	best_fit = -1;
+		for (int i = 0; i < num_vidmodes; i++) {
+			if (vidmodes[i]->hdisplay < setting.xPixels ||
+			    vidmodes[i]->vdisplay < setting.yPixels)
+			{
+				continue;
+			}
 
-	for (int i = 0; i < num_vidmodes; i++) {
-		if (setting.xPixels > vidmodes[i]->hdisplay ||
-		    setting.yPixels > vidmodes[i]->vdisplay)
-			continue;
+			if (best_fit == -1 ||
+			    (vidmodes[i]->hdisplay < vidmodes[best_fit]->hdisplay) ||
+			    (vidmodes[i]->hdisplay == vidmodes[best_fit]->hdisplay &&
+			     vidmodes[i]->vdisplay < vidmodes[best_fit]->vdisplay))
+			{
+				best_fit = i;
+				continue;
+			}
 
-		x = setting.xPixels - vidmodes[i]->hdisplay;
-		y = setting.yPixels - vidmodes[i]->vdisplay;
-		dist = (x * x) + (y * y);
-		if (dist < best_dist) {
-			best_dist = dist;
-			best_fit = i;
+			if ((vidmodes[i]->hdisplay == vidmodes[best_fit]->hdisplay) &&
+			    (vidmodes[i]->vdisplay == vidmodes[best_fit]->vdisplay))
+			{
+				if (!setting.frequency) {
+					/* Higher is better, right? */
+					if (calculate_rate(vidmodes[i]) >
+					    calculate_rate(vidmodes[best_fit]))
+					{
+						best_fit = i;
+					}
+				}
+				else {
+					if (abs(calculate_rate(vidmodes[i]) - (int)setting.frequency) <
+					    abs(calculate_rate(vidmodes[best_fit]) - (int)setting.frequency))
+					{
+						best_fit = i;
+					}
+				}
+			}
 		}
-	}
 
-	if (best_fit != -1) {
-#  ifdef _DEBUG
-		int actualWidth, actualHeight;
-		actualWidth = vidmodes[best_fit]->hdisplay;
-		actualHeight = vidmodes[best_fit]->vdisplay;
-		printf("Switching to video mode %dx%d\n",
-		       actualWidth, actualHeight);
-#  endif
+		if (best_fit != -1) {
+	#  ifdef _DEBUG
+			printf("Switching to video mode %dx%d %dx%d %d\n",
+			       vidmodes[best_fit]->hdisplay, vidmodes[best_fit]->vdisplay,
+			       vidmodes[best_fit]->htotal, vidmodes[best_fit]->vtotal,
+			       calculate_rate(vidmodes[best_fit]));
+	#  endif
 
-		/* change to the mode */
-		XF86VidModeSwitchToMode(dpy, scrnum, vidmodes[best_fit]);
+			/* change to the mode */
+			XF86VidModeSwitchToMode(dpy, scrnum, vidmodes[best_fit]);
 
-		/* Move the viewport to top left */
-		XF86VidModeSetViewPort(dpy, scrnum, 0, 0);
+			/* Move the viewport to top left */
+			XF86VidModeSetViewPort(dpy, scrnum, 0, 0);
+		}
+
+		XFree(vidmodes);
 	}
 	else {
 		return GHOST_kFailure;
@@ -245,7 +269,3 @@ setCurrentDisplaySetting(
 	return GHOST_kSuccess;
 #endif
 }
-
-
-
-

@@ -32,8 +32,10 @@
 #ifndef __PHY_IPHYSICSENVIRONMENT_H__
 #define __PHY_IPHYSICSENVIRONMENT_H__
 
-#include <vector>
 #include "PHY_DynamicTypes.h"
+#include "MT_Vector2.h"
+#include "MT_Vector3.h"
+#include "MT_Vector4.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"
@@ -50,13 +52,13 @@ class PHY_IPhysicsController;
 struct PHY_RayCastResult
 {
 	PHY_IPhysicsController* m_controller;
-	PHY__Vector3			m_hitPoint;
-	PHY__Vector3			m_hitNormal;
+	MT_Vector3			m_hitPoint;
+	MT_Vector3			m_hitNormal;
 	const RAS_MeshObject*	m_meshObject;	// !=NULL for mesh object (only for Bullet controllers) 
 	int						m_polygon;		// index of the polygon hit by the ray,
 											// only if m_meshObject != NULL
 	int                     m_hitUVOK;		// !=0 if UV coordinate in m_hitUV is valid
-	PHY__Vector2			m_hitUV;		// UV coordinates of hit point
+	MT_Vector2			m_hitUV;		// UV coordinates of hit point
 };
 
 /**
@@ -144,7 +146,7 @@ class PHY_IPhysicsEnvironment
 		virtual void		setUseEpa(bool epa) {}
 
 		virtual	void		setGravity(float x,float y,float z)=0;
-		virtual	void		getGravity(PHY__Vector3& grav) = 0;
+		virtual	void		getGravity(MT_Vector3& grav) = 0;
 
 		virtual int			createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
 			float pivotX,float pivotY,float pivotZ,
@@ -167,7 +169,7 @@ class PHY_IPhysicsEnvironment
 		//culling based on physical broad phase
 		// the plane number must be set as follow: near, far, left, right, top, botton
 		// the near plane must be the first one and must always be present, it is used to get the direction of the view
-		virtual bool cullingTest(PHY_CullingCallback callback, void *userData, PHY__Vector4* planeNormals, int planeNumber, int occlusionRes, const int *viewport, double modelview[16], double projection[16]) = 0;
+		virtual bool cullingTest(PHY_CullingCallback callback, void *userData, MT_Vector4* planeNormals, int planeNumber, int occlusionRes, const int *viewport, double modelview[16], double projection[16]) = 0;
 
 		//Methods for gamelogic collision/physics callbacks
 		//todo:
@@ -177,7 +179,7 @@ class PHY_IPhysicsEnvironment
 		virtual bool requestCollisionCallback(PHY_IPhysicsController* ctrl)=0;
 		virtual bool removeCollisionCallback(PHY_IPhysicsController* ctrl)=0;
 		//These two methods are *solely* used to create controllers for sensor! Don't use for anything else
-		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position) =0;
+		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const MT_Vector3& position) =0;
 		virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight)=0;
 		
 		virtual void	setConstraintParam(int constraintId,int param,float value,float value1) = 0;

@@ -103,7 +103,8 @@ struct Object *BKE_object_pose_armature_get(struct Object *ob);
 void BKE_object_where_is_calc(struct Scene *scene, struct Object *ob);
 void BKE_object_where_is_calc_ex(struct Scene *scene, struct RigidBodyWorld *rbw, struct Object *ob);
 void BKE_object_where_is_calc_time(struct Scene *scene, struct Object *ob, float ctime);
-void BKE_object_where_is_calc_time_ex(struct Scene *scene, struct RigidBodyWorld *rbw, struct Object *ob, float ctime);
+void BKE_object_where_is_calc_time_ex(struct Scene *scene, struct Object *ob, float ctime,
+                                      struct RigidBodyWorld *rbw);
 void BKE_object_where_is_calc_simul(struct Scene *scene, struct Object *ob);
 void BKE_object_where_is_calc_mat4(struct Scene *scene, struct Object *ob, float obmat[4][4]);
 
@@ -149,7 +150,8 @@ void BKE_object_tfm_protected_restore(struct Object *ob,
                                       const short protectflag);
 
 void BKE_object_handle_update(struct Scene *scene, struct Object *ob);
-void BKE_object_handle_update_ex(struct Scene *scene, struct RigidBodyWorld *rbw, struct Object *ob);
+void BKE_object_handle_update_ex(struct Scene *scene, struct Object *ob,
+                                 struct RigidBodyWorld *rbw);
 void BKE_object_sculpt_modifiers_changed(struct Object *ob);
 
 int BKE_object_obdata_texspace_get(struct Object *ob, short **r_texflag, float **r_loc, float **r_size, float **r_rot);

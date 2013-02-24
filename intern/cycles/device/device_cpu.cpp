@@ -67,11 +67,6 @@ public:
 		task_pool.stop();
 	}
 
-	bool support_advanced_shading()
-	{
-		return true;
-	}
-
 	void mem_alloc(device_memory& mem, MemoryType type)
 	{
 		mem.device_pointer = mem.data_pointer;

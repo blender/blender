@@ -220,7 +220,7 @@ dict_uimsgs = {
     "grless",
     "http",
     "init",
-    "kbit",
+    "kbit", "kb",
     "lensdist",
     "loc", "rot", "pos",
     "lorem",

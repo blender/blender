@@ -151,8 +151,6 @@ static int rigidbody_ob_add_exec(bContext *C, wmOperator *op)
 	ED_rigidbody_ob_add(op, scene, ob, type);
 
 	/* send updates */
-	DAG_ids_flush_update(CTX_data_main(C), 0);
-
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 
 	/* done */
@@ -197,8 +195,6 @@ static int rigidbody_ob_remove_exec(bContext *C, wmOperator *op)
 		ED_rigidbody_ob_remove(scene, ob);
 
 	/* send updates */
-	DAG_ids_flush_update(CTX_data_main(C), 0);
-
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 
 	/* done */
@@ -242,8 +238,6 @@ static int rigidbody_obs_add_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	/* send updates */
-	DAG_ids_flush_update(CTX_data_main(C), 0);
-
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 	WM_event_add_notifier(C, NC_OBJECT | ND_POINTCACHE, NULL);
 
@@ -289,8 +283,6 @@ static int rigidbody_obs_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	CTX_DATA_END;
 
 	/* send updates */
-	DAG_ids_flush_update(CTX_data_main(C), 0);
-
 	WM_event_add_notifier(C, NC_OBJECT | ND_POINTCACHE, NULL);
 
 	/* done */

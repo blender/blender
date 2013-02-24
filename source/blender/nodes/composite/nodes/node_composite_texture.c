@@ -50,7 +50,6 @@ void register_node_type_cmp_texture(bNodeTreeType *ttype)
 
 	node_type_base(ttype, &ntype, CMP_NODE_TEXTURE, "Texture", NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW);
 	node_type_socket_templates(&ntype, cmp_node_texture_in, cmp_node_texture_out);
-	node_type_size(&ntype, 120, 80, 240);
 
 	nodeRegisterType(ttype, &ntype);
 }

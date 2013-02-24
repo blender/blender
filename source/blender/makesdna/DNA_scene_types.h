@@ -399,15 +399,19 @@ typedef struct RenderData {
 	short filtertype;	/* filter is box, tent, gauss, mitch, etc */
 
 	short size, maximsize;	/* size in %, max in Kb */
+
+	short pad6;
+
 	/* from buttons: */
 	/**
 	 * The desired number of pixels in the x direction
 	 */
-	short xsch;
+	int xsch;
 	/**
 	 * The desired number of pixels in the y direction
 	 */
-	short ysch;
+	int ysch;
+
 	/**
 	 * The number of part to use in the x direction
 	 */
@@ -420,7 +424,7 @@ typedef struct RenderData {
 	/**
 	 * render tile dimensions
 	 */
-	short tilex, tiley;
+	int tilex, tiley;
 
 	short planes  DNA_DEPRECATED, imtype  DNA_DEPRECATED, subimtype  DNA_DEPRECATED, quality  DNA_DEPRECATED; /*deprecated!*/
 	
@@ -428,6 +432,7 @@ typedef struct RenderData {
 	 * Render to image editor, fullscreen or to new window.
 	 */
 	short displaymode;
+	short pad7;
 
 	/**
 	 * Flags for render settings. Use bit-masking to access the settings.
@@ -467,8 +472,6 @@ typedef struct RenderData {
 	short osa;
 
 	short frs_sec, edgeint;
-
-	int pad;
 
 	
 	/* safety, border and display rect */
@@ -1049,10 +1052,11 @@ typedef struct ToolSettings {
 	short proportional, prop_mode;
 	char proportional_objects; /* proportional edit, object mode */
 	char proportional_mask; /* proportional edit, object mode */
-	char pad4[2];
+	char pad4[1];
 
 	char auto_normalize; /*auto normalizing mode in wpaint*/
 	char multipaint; /* paint multiple bones in wpaint */
+	char weightuser;
 
 	/* UV painting */
 	int use_uv_sculpt;
@@ -1153,11 +1157,8 @@ typedef struct Scene {
 	
 	/* none of the dependency graph  vars is mean to be saved */
 	struct  DagForest *theDag;
-	short dagisvalid, dagflags;
+	short dagflags;
 	short recalc;				/* recalc = counterpart of ob->recalc */
-
-	short pad6;
-	int pad5;
 
 	/* User-Defined KeyingSets */
 	int active_keyingset;			/* index of the active KeyingSet. first KeyingSet has index 1, 'none' active is 0, 'add new' is -1 */
@@ -1466,6 +1467,13 @@ typedef struct Scene {
 #define PROP_EDIT_OFF			0
 #define PROP_EDIT_ON			1
 #define PROP_EDIT_CONNECTED	2
+
+/* toolsettings->weightuser */
+enum {
+	OB_DRAW_GROUPUSER_NONE      = 0,
+	OB_DRAW_GROUPUSER_ACTIVE    = 1,
+	OB_DRAW_GROUPUSER_ALL       = 2
+};
 
 /* sce->flag */
 #define SCE_DS_SELECTED			(1<<0)

@@ -33,37 +33,36 @@
 #define __KX_IPOCONVERT_H__
 
 struct Object;
+struct bAction;
+class SG_Controller;
+class KX_GameObject;
+class KX_BlenderSceneConverter;
 
-class SG_Controller *BL_CreateIPO(struct bAction *action,
-	class KX_GameObject* gameobj,
-	class KX_BlenderSceneConverter *converter);
+SG_Controller *BL_CreateIPO(bAction *action,
+	KX_GameObject* gameobj,
+	KX_BlenderSceneConverter *converter);
 
-void BL_ConvertIpos(struct Object* blenderobject,
-	class KX_GameObject* gameobj, 
-	class KX_BlenderSceneConverter *converter);
+SG_Controller *BL_CreateObColorIPO(bAction *action,
+	KX_GameObject* gameobj,
+	KX_BlenderSceneConverter *converter);
 
-class SG_Controller *BL_CreateLampIPO(struct bAction *action,
-	class KX_GameObject* lightobj,
-	class KX_BlenderSceneConverter *converter);
-
-void BL_ConvertLampIpos(struct Lamp* blenderlight,
-	class KX_GameObject* lightobj, 
-	class KX_BlenderSceneConverter *converter);
+SG_Controller *BL_CreateLampIPO(bAction *action,
+	KX_GameObject* lightobj,
+	KX_BlenderSceneConverter *converter);
 
 void BL_ConvertWorldIpos(struct World* blenderworld, 
-	class KX_BlenderSceneConverter *converter);
+	KX_BlenderSceneConverter *converter);
 
-class SG_Controller *BL_CreateCameraIPO(struct bAction *action,
-	class KX_GameObject* cameraobj,
-	class KX_BlenderSceneConverter *converter);
+SG_Controller *BL_CreateCameraIPO(bAction *action,
+	KX_GameObject* cameraobj,
+	KX_BlenderSceneConverter *converter);
 
-void BL_ConvertCameraIpos(struct Camera* blendercamera,
-	class KX_GameObject* cameraobj, 
-	class KX_BlenderSceneConverter *converter);
-
-void BL_ConvertMaterialIpos(struct Object* blenderobject,
-	class KX_GameObject* materialobj, 
-	class KX_BlenderSceneConverter *converter);
+SG_Controller *BL_CreateMaterialIpo(
+	bAction *action,
+	class Material* blendermaterial,
+	dword matname_hash,
+	KX_GameObject* gameobj,
+	KX_BlenderSceneConverter *converter);
 
 
 #endif  /* __KX_IPOCONVERT_H__ */

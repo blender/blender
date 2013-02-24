@@ -850,6 +850,27 @@ rbConstraint *RB_constraint_new_6dof_spring(float pivot[3], float orn[4], rbRigi
 	return (rbConstraint *)con;
 }
 
+rbConstraint *RB_constraint_new_motor(float pivot[3], float orn[4], rbRigidBody *rb1, rbRigidBody *rb2)
+{
+	btRigidBody *body1 = rb1->body;
+	btRigidBody *body2 = rb2->body;
+	btTransform transform1;
+	btTransform transform2;
+	
+	make_constraint_transforms(transform1, transform2, body1, body2, pivot, orn);
+	
+	btGeneric6DofConstraint *con = new btGeneric6DofConstraint(*body1, *body2, transform1, transform2, true);
+	
+	/* unlock constraint axes */
+	for (int i = 0; i < 6; i++) {
+		con->setLimit(i, 0.0f, -1.0f);
+	}
+	/* unlock motor axes */
+	con->getTranslationalLimitMotor()->m_upperLimit.setValue(-1.0f, -1.0f, -1.0f);
+	
+	return (rbConstraint*)con;
+}
+
 /* Cleanup ----------------------------- */
 
 void RB_constraint_delete(rbConstraint *con)
@@ -945,6 +966,30 @@ void RB_constraint_set_breaking_threshold(rbConstraint *con, float threshold)
 	btTypedConstraint *constraint = reinterpret_cast<btTypedConstraint*>(con);
 	
 	constraint->setBreakingImpulseThreshold(threshold);
+}
+
+void RB_constraint_set_enable_motor(rbConstraint *con, int enable_lin, int enable_ang)
+{
+	btGeneric6DofConstraint *constraint = reinterpret_cast<btGeneric6DofConstraint*>(con);
+	
+	constraint->getTranslationalLimitMotor()->m_enableMotor[0] = enable_lin;
+	constraint->getRotationalLimitMotor(0)->m_enableMotor = enable_ang;
+}
+
+void RB_constraint_set_max_impulse_motor(rbConstraint *con, float max_impulse_lin, float max_impulse_ang)
+{
+	btGeneric6DofConstraint *constraint = reinterpret_cast<btGeneric6DofConstraint*>(con);
+	
+	constraint->getTranslationalLimitMotor()->m_maxMotorForce.setX(max_impulse_lin);
+	constraint->getRotationalLimitMotor(0)->m_maxMotorForce = max_impulse_ang;
+}
+
+void RB_constraint_set_target_velocity_motor(rbConstraint *con, float velocity_lin, float velocity_ang)
+{
+	btGeneric6DofConstraint *constraint = reinterpret_cast<btGeneric6DofConstraint*>(con);
+	
+	constraint->getTranslationalLimitMotor()->m_targetVelocity.setX(velocity_lin);
+	constraint->getRotationalLimitMotor(0)->m_targetVelocity = velocity_ang;
 }
 
 /* ********************************** */

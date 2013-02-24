@@ -57,7 +57,7 @@ void register_node_type_cmp_rgb(bNodeTreeType *ttype)
 	node_type_base(ttype, &ntype, CMP_NODE_RGB, "RGB", NODE_CLASS_INPUT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, NULL, cmp_node_rgb_out);
 	node_type_init(&ntype, node_composit_init_rgb);
-	node_type_size(&ntype, 140, 80, 140);
+	node_type_size_preset(&ntype, NODE_SIZE_SMALL);
 
 	nodeRegisterType(ttype, &ntype);
 }

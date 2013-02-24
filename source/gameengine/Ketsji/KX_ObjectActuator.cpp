@@ -221,10 +221,14 @@ bool KX_ObjectActuator::Update()
 
 			if (m_bitLocalFlag.AddOrSetCharLoc) {
 				MT_Vector3 old_dir = parent->GetPhysicsController()->GetWalkDirection();
-				MT_Scalar mag = old_dir.length();
-				if (mag < MT_EPSILON)
-					mag = dir.length();
-				dir = (dir + old_dir).normalized() * mag;
+
+				if (!old_dir.fuzzyZero()) {
+					MT_Scalar mag = old_dir.length();
+
+					dir = dir + old_dir;
+					if (!dir.fuzzyZero())
+						dir = dir.normalized() * mag;
+				}
 			}
 
 			// We always want to set the walk direction since a walk direction of (0, 0, 0) should stop the character

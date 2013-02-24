@@ -47,6 +47,8 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_material.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -2387,7 +2389,7 @@ static void shape_propagate(BMEditMesh *em, wmOperator *op)
 	//TAG Mesh Objects that share this data
 	for (base = scene->base.first; base; base = base->next) {
 		if (base->object && base->object->data == me) {
-			base->object->recalc = OB_RECALC_DATA;
+			DAG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 		}
 	}
 #endif
@@ -3040,7 +3042,7 @@ static int mesh_separate_tagged(Main *bmain, Scene *scene, Base *base_old, BMesh
 	CustomData_bmesh_init_pool(&bm_new->pdata, bm_mesh_allocsize_default.totface, BM_FACE);
 
 	base_new = ED_object_add_duplicate(bmain, scene, base_old, USER_DUP_MESH);
-	/* DAG_scene_sort(bmain, scene); */ /* normally would call directly after but in this case delay recalc */
+	/* DAG_relations_tag_update(bmain); */ /* normally would call directly after but in this case delay recalc */
 	assign_matarar(base_new->object, give_matarar(obedit), *give_totcolp(obedit)); /* new in 2.5 */
 
 	ED_base_object_select(base_new, BA_SELECT);
@@ -3274,7 +3276,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 
 	if (retval) {
 		/* delay depsgraph recalc until all objects are duplicated */
-		DAG_scene_sort(bmain, scene);
+		DAG_relations_tag_update(bmain);
 
 		return OPERATOR_FINISHED;
 	}
@@ -4651,15 +4653,9 @@ void MESH_OT_noise(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "factor", 0.1f, -FLT_MAX, FLT_MAX, "Factor", "", 0.0f, 1.0f);
 }
 
-#define NEW_BEVEL 1
-
 typedef struct {
 	BMEditMesh *em;
 	BMBackup mesh_backup;
-#ifndef NEW_BEVEL
-	float *weights;
-	int li;
-#endif
 	int mcenter[2];
 	float initial_length;
 	float pixel_size;  /* use when mouse input is interpreted as spatial distance */
@@ -4672,104 +4668,34 @@ typedef struct {
 
 static void edbm_bevel_update_header(wmOperator *op, bContext *C)
 {
-#ifdef NEW_BEVEL
-	static char str[] = "Confirm: Enter/LClick, Cancel: (Esc/RMB), offset: %s, segments: %d";
-#else
-	static char str[] = "Confirm: Enter/LClick, Cancel: (Esc/RMB), factor: %s, Use Dist (D): %s: Use Even (E): %s";
-	BevelData *opdata = op->customdata;
-#endif
+	const char *str = IFACE_("Confirm: Enter/LClick, Cancel: (Esc/RMB), Offset: %s, Segments: %d");
 
 	char msg[HEADER_LENGTH];
 	ScrArea *sa = CTX_wm_area(C);
 
 	if (sa) {
-#ifdef NEW_BEVEL
 		char offset_str[NUM_STR_REP_LEN];
 		BLI_snprintf(offset_str, NUM_STR_REP_LEN, "%f", RNA_float_get(op->ptr, "offset"));
 		BLI_snprintf(msg, HEADER_LENGTH, str,
 		             offset_str,
 		             RNA_int_get(op->ptr, "segments")
 		            );
-#else
-		char factor_str[NUM_STR_REP_LEN];
-		if (hasNumInput(&opdata->num_input))
-			outputNumInput(&opdata->num_input, factor_str);
-		else
-			BLI_snprintf(factor_str, NUM_STR_REP_LEN, "%f", RNA_float_get(op->ptr, "percent"));
-		BLI_snprintf(msg, HEADER_LENGTH, str,
-		             factor_str,
-		             RNA_boolean_get(op->ptr, "use_dist") ? "On" : "Off",
-		             RNA_boolean_get(op->ptr, "use_even") ? "On" : "Off"
-		            );
-#endif
 
 		ED_area_headerprint(sa, msg);
 	}
 }
 
-#ifndef NEW_BEVEL
-static void edbm_bevel_recalc_weights(wmOperator *op)
-{
-	float df, s, ftot;
-	int i;
-	int recursion = 1; /* RNA_int_get(op->ptr, "recursion"); */ /* temp removed, see comment below */
-	BevelData *opdata = op->customdata;
-
-	if (opdata->weights) {
-		/* TODO should change to free only when new recursion is greater than old */
-		MEM_freeN(opdata->weights);
-	}
-	opdata->weights = MEM_mallocN(sizeof(float) * recursion, "bevel weights");
-
-	/* ugh, stupid math depends somewhat on angles!*/
-	/* dfac = 1.0/(float)(recursion + 1); */ /* UNUSED */
-	df = 1.0;
-	for (i = 0, ftot = 0.0f; i < recursion; i++) {
-		s = powf(df, 1.25f);
-
-		opdata->weights[i] = s;
-		ftot += s;
-
-		df *= 2.0f;
-	}
-
-	mul_vn_fl(opdata->weights, recursion, 1.0f / (float)ftot);
-}
-#endif
-
 static int edbm_bevel_init(bContext *C, wmOperator *op, int is_modal)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
-#ifdef NEW_BEVEL
 	BevelData *opdata;
-#else
-	BMIter iter;
-	BMEdge *eed;
-	BevelData *opdata;
-	int li;
-#endif
 	
 	if (em == NULL) {
 		return 0;
 	}
 
 	op->customdata = opdata = MEM_mallocN(sizeof(BevelData), "beveldata_mesh_operator");
-
-#ifndef NEW_BEVEL
-	BM_data_layer_add(em->bm, &em->bm->edata, CD_PROP_FLT);
-	li = CustomData_number_of_layers(&em->bm->edata, CD_PROP_FLT) - 1;
-	
-	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-		float d = len_v3v3(eed->v1->co, eed->v2->co);
-		float *dv = CustomData_bmesh_get_n(&em->bm->edata, eed->head.data, CD_PROP_FLT, li);
-		
-		*dv = d;
-	}
-
-	opdata->li = li;
-	opdata->weights = NULL;
-#endif
 	
 	opdata->em = em;
 	opdata->is_modal = is_modal;
@@ -4781,9 +4707,6 @@ static int edbm_bevel_init(bContext *C, wmOperator *op, int is_modal)
 	/* avoid the cost of allocating a bm copy */
 	if (is_modal)
 		opdata->mesh_backup = EDBM_redo_state_store(em);
-#ifndef NEW_BEVEL
-	edbm_bevel_recalc_weights(op);
-#endif
 
 	return 1;
 }
@@ -4793,7 +4716,6 @@ static int edbm_bevel_calc(wmOperator *op)
 	BevelData *opdata = op->customdata;
 	BMEditMesh *em = opdata->em;
 	BMOperator bmop;
-#ifdef NEW_BEVEL
 	float offset = RNA_float_get(op->ptr, "offset");
 	int segments = RNA_int_get(op->ptr, "segments");
 	int vertex_only = RNA_boolean_get(op->ptr, "vertex_only");
@@ -4822,35 +4744,6 @@ static int edbm_bevel_calc(wmOperator *op)
 	/* no need to de-select existing geometry */
 	if (!EDBM_op_finish(em, &bmop, op, TRUE))
 		return 0;
-#else
-	int i;
-
-	float factor = RNA_float_get(op->ptr, "percent") /*, dfac */ /* UNUSED */;
-	int recursion = 1; /* RNA_int_get(op->ptr, "recursion"); */ /* temp removed, see comment below */
-	const int use_even = RNA_boolean_get(op->ptr, "use_even");
-	const int use_dist = RNA_boolean_get(op->ptr, "use_dist");
-
-	/* revert to original mesh */
-	if (opdata->is_modal) {
-		EDBM_redo_state_restore(opdata->mesh_backup, em, FALSE);
-	}
-
-	for (i = 0; i < recursion; i++) {
-		float fac = opdata->weights[recursion - i - 1] * factor;
-
-
-		if (!EDBM_op_init(em, &bmop, op,
-		                  "bevel geom=%hev percent=%f lengthlayer=%i use_lengths=%b use_even=%b use_dist=%b",
-		                  BM_ELEM_SELECT, fac, opdata->li, TRUE, use_even, use_dist))
-		{
-			return 0;
-		}
-		
-		BMO_op_exec(em->bm, &bmop);
-		if (!EDBM_op_finish(em, &bmop, op, TRUE))
-			return 0;
-	}
-#endif
 	
 	EDBM_mesh_normals_update(opdata->em);
 	
@@ -4868,12 +4761,7 @@ static void edbm_bevel_exit(bContext *C, wmOperator *op)
 	if (sa) {
 		ED_area_headerprint(sa, NULL);
 	}
-#ifndef NEW_BEVEL
-	BM_data_layer_free_n(opdata->em->bm, &opdata->em->bm->edata, CD_PROP_FLT, opdata->li);
 
-	if (opdata->weights)
-		MEM_freeN(opdata->weights);
-#endif
 	if (opdata->is_modal) {
 		EDBM_redo_state_free(&opdata->mesh_backup, NULL, FALSE);
 	}
@@ -4954,11 +4842,7 @@ static int edbm_bevel_invoke(bContext *C, wmOperator *op, wmEvent *event)
 static float edbm_bevel_mval_factor(wmOperator *op, wmEvent *event)
 {
 	BevelData *opdata = op->customdata;
-#ifdef NEW_BEVEL
 	int use_dist = TRUE;
-#else
-	int use_dist =  RNA_boolean_get(op->ptr, "use_dist");
-#endif
 	float mdiff[2];
 	float factor;
 
@@ -4976,11 +4860,7 @@ static float edbm_bevel_mval_factor(wmOperator *op, wmEvent *event)
 	/* Fake shift-transform... */
 	if (event->shift) {
 		if (opdata->shift_factor < 0.0f) {
-#ifdef NEW_BEVEL
 			opdata->shift_factor = RNA_float_get(op->ptr, "offset");
-#else
-			opdata->shift_factor = RNA_float_get(op->ptr, "factor");
-#endif
 		}
 		factor = (factor - opdata->shift_factor) * 0.1f + opdata->shift_factor;
 	}
@@ -5005,7 +4885,6 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	if (event->val == KM_PRESS) {
 		/* Try to handle numeric inputs... */
-#ifdef NEW_BEVEL
 
 		if (handleNumInput(&opdata->num_input, event)) {
 			float value = RNA_float_get(op->ptr, "offset");
@@ -5015,18 +4894,6 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 			edbm_bevel_update_header(op, C);
 			return OPERATOR_RUNNING_MODAL;
 		}
-#else
-		if (handleNumInput(&opdata->num_input, event)) {
-			float factor = RNA_float_get(op->ptr, "percent");
-			applyNumInput(&opdata->num_input, &factor);
-			CLAMP(factor, 0.0f, 1.0f);
-			RNA_float_set(op->ptr, "percent", factor);
-
-			edbm_bevel_calc(C, op);
-			edbm_bevel_update_header(op, C);
-			return OPERATOR_RUNNING_MODAL;
-		}
-#endif
 	}
 
 	switch (event->type) {
@@ -5038,11 +4905,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MOUSEMOVE:
 			if (!hasNumInput(&opdata->num_input)) {
 				const float factor = edbm_bevel_mval_factor(op, event);
-#ifdef NEW_BEVEL
 				RNA_float_set(op->ptr, "offset", factor);
-#else
-				RNA_float_set(op->ptr, "percent", factor);
-#endif
 
 				edbm_bevel_calc(op);
 				edbm_bevel_update_header(op, C);
@@ -5056,7 +4919,6 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 			edbm_bevel_exit(C, op);
 			return OPERATOR_FINISHED;
 
-#ifdef NEW_BEVEL
 		case WHEELUPMOUSE:  /* change number of segments */
 		case PAGEUPKEY:
 			if (event->val == KM_RELEASE)
@@ -5078,33 +4940,6 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, wmEvent *event)
 			edbm_bevel_calc(op);
 			edbm_bevel_update_header(op, C);
 			break;
-
-#else
-		case EKEY:
-			if (event->val == KM_PRESS) {
-				int use_even =  RNA_boolean_get(op->ptr, "use_even");
-				RNA_boolean_set(op->ptr, "use_even", !use_even);
-
-				edbm_bevel_calc(C, op);
-				edbm_bevel_update_header(op, C);
-			}
-			break;
-
-		case DKEY:
-			if (event->val == KM_PRESS) {
-				int use_dist =  RNA_boolean_get(op->ptr, "use_dist");
-				RNA_boolean_set(op->ptr, "use_dist", !use_dist);
-
-				{
-					const float factor = edbm_bevel_mval_factor(op, event);
-					RNA_float_set(op->ptr, "percent", factor);
-				}
-
-				edbm_bevel_calc(C, op);
-				edbm_bevel_update_header(op, C);
-			}
-			break;
-#endif
 	}
 
 	return OPERATOR_RUNNING_MODAL;
@@ -5127,20 +4962,9 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_GRAB_POINTER | OPTYPE_BLOCKING;
 
-#ifdef NEW_BEVEL
 	RNA_def_float(ot->srna, "offset", 0.0f, -FLT_MAX, FLT_MAX, "Offset", "", 0.0f, 1.0f);
 	RNA_def_int(ot->srna, "segments", 1, 1, 50, "Segments", "Segments for curved edge", 1, 8);
 	RNA_def_boolean(ot->srna, "vertex_only", FALSE, "Vertex only", "Bevel only vertices");
-#else
-	/* take note, used as a factor _and_ a distance depending on 'use_dist' */
-	RNA_def_float(ot->srna, "percent", 0.0f, -FLT_MAX, FLT_MAX, "Percentage", "", 0.0f, 1.0f);
-	/* XXX, disabled for 2.63 release, needs to work much better without overlap before we can give to users. */
-/*	RNA_def_int(ot->srna, "recursion", 1, 1, 50, "Recursion Level", "Recursion Level", 1, 8); */
-
-	RNA_def_boolean(ot->srna, "use_even", FALSE, "Even",     "Calculate evenly spaced bevel");
-	RNA_def_boolean(ot->srna, "use_dist", FALSE, "Distance", "Interpret the percent in blender units");
-#endif
-
 }
 
 static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
@@ -5212,12 +5036,8 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
 {
 	InsetData *opdata = op->customdata;
 
-	static const char str[] = "Confirm: Enter/LClick, "
-	                          "Cancel: (Esc/RClick), "
-	                          "thickness: %s, "
-	                          "depth (Ctrl to tweak): %s (%s), "
-	                          "Outset (O): (%s), "
-	                          "Boundary (B): (%s)";
+	const char *str = IFACE_("Confirm: Enter/LClick, Cancel: (Esc/RClick), Thickness: %s, "
+	                         "Depth (Ctrl to tweak): %s (%s), Outset (O): (%s), Boundary (B): (%s)");
 
 	char msg[HEADER_LENGTH];
 	ScrArea *sa = CTX_wm_area(C);
@@ -5233,9 +5053,9 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
 		BLI_snprintf(msg, HEADER_LENGTH, str,
 		             flts_str,
 		             flts_str + NUM_STR_REP_LEN,
-		             opdata->modify_depth ? "On" : "Off",
-		             RNA_boolean_get(op->ptr, "use_outset") ? "On" : "Off",
-		             RNA_boolean_get(op->ptr, "use_boundary") ? "On" : "Off"
+		             opdata->modify_depth ? IFACE_("On") : IFACE_("Off"),
+		             RNA_boolean_get(op->ptr, "use_outset") ? IFACE_("On") : IFACE_("Off"),
+		             RNA_boolean_get(op->ptr, "use_boundary") ? IFACE_("On") : IFACE_("Off")
 		            );
 
 		ED_area_headerprint(sa, msg);

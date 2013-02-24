@@ -264,7 +264,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 		/* sequencer has got tricker ocnversion happened above */
 
 		IMB_buffer_float_from_float(rr->rectf, rr->rectf,
-		                            4, IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB, FALSE,
+		                            4, IB_PROFILE_LINEAR_RGB, IB_PROFILE_SRGB, TRUE,
 		                            oglrender->sizex, oglrender->sizey, oglrender->sizex, oglrender->sizex);
 	}
 

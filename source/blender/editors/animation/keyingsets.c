@@ -289,7 +289,6 @@ void ANIM_OT_keying_set_path_remove(wmOperatorType *ot)
 
 static int add_keyingset_button_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	KeyingSet *ks = NULL;
 	PropertyRNA *prop = NULL;
@@ -360,7 +359,6 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		DAG_ids_flush_update(bmain, 0);
 		WM_event_add_notifier(C, NC_SCENE | ND_KEYINGSET, NULL);
 		
 		/* show notification/report header, so that users notice that something changed */
@@ -392,7 +390,6 @@ void ANIM_OT_keyingset_button_add(wmOperatorType *ot)
 
 static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	KeyingSet *ks = NULL;
 	PropertyRNA *prop = NULL;
@@ -442,7 +439,6 @@ static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		DAG_ids_flush_update(bmain, 0);
 		WM_event_add_notifier(C, NC_SCENE | ND_KEYINGSET, NULL);
 		
 		/* show warning */
@@ -1006,7 +1002,8 @@ int ANIM_apply_keyingset(bContext *C, ListBase *dsources, bAction *act, KeyingSe
 			{
 				Object *ob = (Object *)ksp->id;
 				
-				ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME; // XXX: only object transforms only?
+				// XXX: only object transforms?
+				DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 			}
 			break;
 		}

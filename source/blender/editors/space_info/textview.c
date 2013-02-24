@@ -68,31 +68,28 @@ BLI_INLINE void console_step_sel(ConsoleDrawContext *cdc, const int step)
 	cdc->sel[1] += step;
 }
 
-static void console_draw_sel(const int sel[2], const int xy[2], const int str_len_draw, int cwidth, int lheight)
+static void console_draw_sel(const int sel[2], const int xy[2], const int str_len_draw, int cwidth, int lheight,
+                             const unsigned char bg_sel[4])
 {
 	if (sel[0] <= str_len_draw && sel[1] >= 0) {
 		const int sta = max_ii(sel[0], 0);
 		const int end = min_ii(sel[1], str_len_draw);
 
-		glEnable(GL_POLYGON_STIPPLE);
-		glPolygonStipple(stipple_halftone);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glColor4ub(255, 255, 255, 48);
+		glColor4ubv(bg_sel);
 
 		glRecti(xy[0] + (cwidth * sta), xy[1] - 2 + lheight, xy[0] + (cwidth * end), xy[1] - 2);
 
-		glDisable(GL_POLYGON_STIPPLE);
 		glDisable(GL_BLEND);
 	}
 }
-
 
 /* return 0 if the last line is off the screen
  * should be able to use this for any string type */
 
 static int console_draw_string(ConsoleDrawContext *cdc, const char *str, const int str_len,
-                               const unsigned char *fg, const unsigned char *bg)
+                               const unsigned char fg[3], const unsigned char bg[3], const unsigned char bg_sel[4])
 {
 	int rct_ofs = cdc->lheight / 4;
 	int tot_lines = (str_len / cdc->console_width) + 1; /* total number of lines for wrapping */
@@ -108,7 +105,8 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, const i
 
 					/* wrap */
 					if (str_len > cdc->console_width)
-						ofs += (cdc->console_width * ((int)((((float)(y_next - cdc->mval[1]) / (float)(y_next - cdc->xy[1])) * tot_lines))));
+						ofs += cdc->console_width * ((int)((((float)(y_next - cdc->mval[1]) /
+						                                     (float)(y_next - cdc->xy[1])) * tot_lines)));
 	
 					CLAMP(ofs, 0, str_len);
 					*cdc->pos_pick += str_len - ofs;
@@ -158,7 +156,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, const i
 		if (cdc->sel[0] != cdc->sel[1]) {
 			console_step_sel(cdc, -initial_offset);
 			// glColor4ub(255, 0, 0, 96); // debug
-			console_draw_sel(cdc->sel, cdc->xy, str_len % cdc->console_width, cdc->cwidth, cdc->lheight);
+			console_draw_sel(cdc->sel, cdc->xy, str_len % cdc->console_width, cdc->cwidth, cdc->lheight, bg_sel);
 			console_step_sel(cdc, cdc->console_width);
 			glColor3ubv(fg);
 		}
@@ -173,7 +171,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, const i
 			
 			if (cdc->sel[0] != cdc->sel[1]) {
 				// glColor4ub(0, 255, 0, 96); // debug
-				console_draw_sel(cdc->sel, cdc->xy, cdc->console_width, cdc->cwidth, cdc->lheight);
+				console_draw_sel(cdc->sel, cdc->xy, cdc->console_width, cdc->cwidth, cdc->lheight, bg_sel);
 				console_step_sel(cdc, cdc->console_width);
 				glColor3ubv(fg);
 			}
@@ -207,7 +205,7 @@ static int console_draw_string(ConsoleDrawContext *cdc, const char *str, const i
 			isel[1] = str_len - cdc->sel[0];
 
 			// glColor4ub(255, 255, 0, 96); // debug
-			console_draw_sel(isel, cdc->xy, str_len, cdc->cwidth, cdc->lheight);
+			console_draw_sel(isel, cdc->xy, str_len, cdc->cwidth, cdc->lheight, bg_sel);
 			console_step_sel(cdc, -(str_len + 1));
 		}
 
@@ -269,6 +267,11 @@ int textview_draw(TextViewContext *tvc, const int draw, int mval[2], void **mous
 	}
 
 	if (tvc->begin(tvc)) {
+		unsigned char bg_sel[4] = {0};
+
+		if (draw && tvc->const_colors) {
+			tvc->const_colors(tvc, bg_sel);
+		}
 
 		do {
 			const char *ext_line;
@@ -282,7 +285,11 @@ int textview_draw(TextViewContext *tvc, const int draw, int mval[2], void **mous
 
 			tvc->line_get(tvc, &ext_line, &ext_len);
 
-			if (!console_draw_string(&cdc, ext_line, ext_len, (color_flag & TVC_LINE_FG) ? fg : NULL, (color_flag & TVC_LINE_BG) ? bg : NULL)) {
+			if (!console_draw_string(&cdc, ext_line, ext_len,
+			                         (color_flag & TVC_LINE_FG) ? fg : NULL,
+			                         (color_flag & TVC_LINE_BG) ? bg : NULL,
+			                         bg_sel))
+			{
 				/* when drawing, if we pass v2d->cur.ymax, then quit */
 				if (draw) {
 					break; /* past the y limits */

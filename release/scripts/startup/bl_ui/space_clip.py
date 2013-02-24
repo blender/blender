@@ -746,7 +746,7 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
         layout.active = stab.use_2d_stabilization
 
         row = layout.row()
-        row.template_list("UI_UL_list", "", stab, "tracks",
+        row.template_list("UI_UL_list", "stabilization_tracks", stab, "tracks",
                           stab, "active_track_index", rows=3)
 
         sub = row.column(align=True)

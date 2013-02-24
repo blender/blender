@@ -217,5 +217,26 @@ extern double round(double x);
 
 double double_round(double x, int ndigits);
 
-#endif /* __BLI_MATH_BASE_H__ */
+/* asserts, some math functions expect normalized inputs
+ * check the vector is unit length, or zero length (which can't be helped in some cases).
+ */
+#ifdef DEBUG
+/* note: 0.0001 is too small becaues normals may be converted from short's: see [#34322] */
+#  define BLI_ASSERT_UNIT_EPSILON 0.0002f
+#  define BLI_ASSERT_UNIT_V3(v)  {                                            \
+	const float _test_unit = len_squared_v3(v);                               \
+	BLI_assert((fabsf(_test_unit - 1.0f) < BLI_ASSERT_UNIT_EPSILON) ||        \
+	           (fabsf(_test_unit)        < BLI_ASSERT_UNIT_EPSILON));         \
+} (void)0
 
+#  define BLI_ASSERT_UNIT_V2(v)  {                                            \
+	const float _test_unit = len_squared_v2(v);                               \
+	BLI_assert((fabsf(_test_unit - 1.0f) < BLI_ASSERT_UNIT_EPSILON) ||        \
+	           (fabsf(_test_unit)        < BLI_ASSERT_UNIT_EPSILON));         \
+} (void)0
+#else
+#  define BLI_ASSERT_UNIT_V2(v) (void)0
+#  define BLI_ASSERT_UNIT_V3(v) (void)0
+#endif
+
+#endif /* __BLI_MATH_BASE_H__ */

@@ -360,10 +360,10 @@ void LightManager::device_update_distribution(Device *device, DeviceScene *dscen
 
 		/* bit of an ugly hack to compensate for emitting triangles influencing
 		 * amount of samples we get for this pass */
-		if(scene->integrator->progressive && kintegrator->pdf_triangles != 0.0f)
-			kfilm->pass_shadow_scale = 0.5f;
-		else
-			kfilm->pass_shadow_scale = 1.0f;
+		kfilm->pass_shadow_scale = 1.0f;
+
+		if(kintegrator->pdf_triangles != 0.0f)
+			kfilm->pass_shadow_scale *= 0.5f;
 
 		if(num_background_lights < num_lights)
 			kfilm->pass_shadow_scale *= (float)(num_lights - num_background_lights)/(float)num_lights;

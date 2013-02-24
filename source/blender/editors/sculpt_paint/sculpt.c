@@ -441,7 +441,12 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
 		SculptUndoType type = (brush->sculpt_tool == SCULPT_TOOL_MASK ?
 							   SCULPT_UNDO_MASK : SCULPT_UNDO_COORDS);
 
-		unode = sculpt_undo_push_node(ob, nodes[n], type);
+		if (ss->bm) {
+			unode = sculpt_undo_push_node(ob, nodes[n], type);
+		}
+		else {
+			unode = sculpt_undo_get_node(nodes[n]);
+		}
 		if (unode) {
 			PBVHVertexIter vd;
 			SculptOrigVertData orig_data;
@@ -878,7 +883,7 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather)
 
 /* Return a multiplier for brush strength on a particular vertex. */
 static float tex_strength(SculptSession *ss, Brush *br,
-						  const float point[3],
+                          const float point[3],
                           const float len,
                           const float sculpt_normal[3],
                           const short vno[3],
@@ -1406,8 +1411,8 @@ static float bmesh_neighbor_average_mask(BMesh *bm, BMVert *v)
 		for (i = 0; i < 3; i++) {
 			BMVert *v2 = adj_v[i];
 			float *vmask = CustomData_bmesh_get(&bm->vdata,
-												v2->head.data,
-												CD_PAINT_MASK);
+			                                    v2->head.data,
+			                                    CD_PAINT_MASK);
 			avg += (*vmask);
 			total++;
 		}
@@ -1418,8 +1423,8 @@ static float bmesh_neighbor_average_mask(BMesh *bm, BMVert *v)
 	}
 	else {
 		float *vmask = CustomData_bmesh_get(&bm->vdata,
-											v->head.data,
-											CD_PAINT_MASK);
+			                                v->head.data,
+			                                CD_PAINT_MASK);
 		return (*vmask);
 	}
 }
@@ -1933,11 +1938,11 @@ static void do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
 			if (sculpt_brush_test(&test, orig_data.co)) {
 				const float fade = bstrength * tex_strength(ss, brush,
-															orig_data.co,
-															test.dist,
+				                                            orig_data.co,
+				                                            test.dist,
 				                                            ss->cache->sculpt_normal_symm,
-															orig_data.no,
-															NULL, vd.mask ? *vd.mask : 0.0f);
+				                                            orig_data.no,
+				                                            NULL, vd.mask ? *vd.mask : 0.0f);
 
 				mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
 
@@ -2072,11 +2077,11 @@ static void do_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
 			if (sculpt_brush_test(&test, orig_data.co)) {
 				const float fade = bstrength * tex_strength(ss, brush,
-															orig_data.co,
-															test.dist,
+				                                            orig_data.co,
+				                                            test.dist,
 				                                            ss->cache->sculpt_normal_symm,
 				                                            orig_data.no,
-															NULL, vd.mask ? *vd.mask : 0.0f);
+				                                            NULL, vd.mask ? *vd.mask : 0.0f);
 
 				mul_v3_v3fl(proxy[vd.i], cono, fade);
 
@@ -2130,7 +2135,7 @@ static void do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 				                                            test.dist,
 				                                            ss->cache->sculpt_normal_symm,
 				                                            orig_data.no,
-		                                                    NULL, vd.mask ? *vd.mask : 0.0f);
+				                                            NULL, vd.mask ? *vd.mask : 0.0f);
 
 				mul_v3_m4v3(proxy[vd.i], m, orig_data.co);
 				sub_v3_v3(proxy[vd.i], orig_data.co);
@@ -3000,7 +3005,7 @@ static void sculpt_topology_update(Sculpt *sd, Object *ob, Brush *brush)
 
 		if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
 			BKE_pbvh_bmesh_update_topology(ss->pbvh, mode,
-										   ss->cache->location,
+			                               ss->cache->location,
 			                               ss->cache->radius);
 		}
 
@@ -3153,7 +3158,7 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
 			PBVHVertexIter vd;
 			PBVHProxyNode *proxies;
 			int proxy_count;
-			float (*orco)[3];
+			float (*orco)[3] = NULL;
 
 			if (use_orco && !ss->bm)
 				orco = sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS)->co;
@@ -3308,7 +3313,7 @@ static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm,
 typedef void (*BrushActionFunc)(Sculpt *sd, Object *ob, Brush *brush);
 
 static void do_radial_symmetry(Sculpt *sd, Object *ob, Brush *brush,
-							   BrushActionFunc action,
+                               BrushActionFunc action,
                                const char symm, const int axis,
                                const float feather)
 {
@@ -4072,7 +4077,7 @@ static void sculpt_raycast_cb(PBVHNode *node, void *data_v, float *tmin)
 		}
 
 		if (BKE_pbvh_node_raycast(srd->ss->pbvh, node, origco, use_origco,
-								  srd->ray_start, srd->ray_normal, &srd->dist))
+		                          srd->ray_start, srd->ray_normal, &srd->dist))
 		{
 			srd->hit = 1;
 			*tmin = srd->dist;
@@ -4660,24 +4665,25 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator *UNUSED(o
 }
 
 static int sculpt_dynamic_topology_toggle_invoke(bContext *C, wmOperator *op,
-												 wmEvent *UNUSED(event))
+                                                 wmEvent *UNUSED(event))
 {
 	Object *ob = CTX_data_active_object(C);
 	Mesh *me = ob->data;
 	SculptSession *ss = ob->sculpt;
 	const char *msg = "Dynamic-topology sculpting will not preserve"
-		              "vertex colors, UVs, or other customdata";
+	                  "vertex colors, UVs, or other customdata";
 
 	if (!ss->bm) {
 		int i;
 
 		for (i = 0; i < CD_NUMTYPES; i++) {
 			if (!ELEM7(i, CD_MVERT, CD_MEDGE, CD_MFACE,
-					   CD_MLOOP, CD_MPOLY, CD_PAINT_MASK,
-					   CD_ORIGINDEX) &&
-				(CustomData_has_layer(&me->vdata, i) ||
-				 CustomData_has_layer(&me->edata, i) ||
-				 CustomData_has_layer(&me->fdata, i))) {
+			           CD_MLOOP, CD_MPOLY, CD_PAINT_MASK,
+			           CD_ORIGINDEX) &&
+			    (CustomData_has_layer(&me->vdata, i) ||
+			     CustomData_has_layer(&me->edata, i) ||
+			     CustomData_has_layer(&me->fdata, i)))
+			{
 				/* The mesh has customdata that will be lost, let the
 				 * user confirm this is OK */
 				return WM_operator_confirm_message(C, op, msg);
@@ -4758,8 +4764,8 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* Symmetrize and re-triangulate */
 	BMO_op_callf(ss->bm, BMO_FLAG_DEFAULTS,
-				 "symmetrize input=%avef direction=%i",
-				 sd->symmetrize_direction);
+	             "symmetrize input=%avef direction=%i",
+	             sd->symmetrize_direction);
 	sculpt_dynamic_topology_triangulate(ss->bm);
 
 	/* Finish undo */

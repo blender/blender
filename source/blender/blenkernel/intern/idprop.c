@@ -454,7 +454,7 @@ void IDP_ReplaceGroupInGroup(IDProperty *dest, IDProperty *src)
 			if (strcmp(loop->name, prop->name) == 0) {
 				IDProperty *copy = IDP_CopyProperty(prop);
 
-				BLI_insertlink(&dest->data.group, loop, copy);
+				BLI_insertlinkafter(&dest->data.group, loop, copy);
 
 				BLI_remlink(&dest->data.group, loop);
 				IDP_FreeProperty(loop);
@@ -479,7 +479,7 @@ void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
 {
 	IDProperty *loop;
 	if ((loop = IDP_GetPropertyFromGroup(group, prop->name))) {
-		BLI_insertlink(&group->data.group, loop, prop);
+		BLI_insertlinkafter(&group->data.group, loop, prop);
 		
 		BLI_remlink(&group->data.group, loop);
 		IDP_FreeProperty(loop);
@@ -532,7 +532,7 @@ int IDP_InsertToGroup(IDProperty *group, IDProperty *previous, IDProperty *pnew)
 {
 	if (IDP_GetPropertyFromGroup(group, pnew->name) == NULL) {
 		group->len++;
-		BLI_insertlink(&group->data.group, previous, pnew);
+		BLI_insertlinkafter(&group->data.group, previous, pnew);
 		return 1;
 	}
 

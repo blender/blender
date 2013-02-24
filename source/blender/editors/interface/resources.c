@@ -433,6 +433,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->console_error; break;
 				case TH_CONSOLE_CURSOR:
 					cp = ts->console_cursor; break;
+				case TH_CONSOLE_SELECT:
+					cp = ts->console_select; break;
 
 				case TH_HANDLE_VERTEX:
 					cp = ts->handle_vertex;
@@ -947,6 +949,7 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tconsole.console_info, 0, 170, 0, 255);
 	rgba_char_args_set(btheme->tconsole.console_error, 220, 96, 96, 255);
 	rgba_char_args_set(btheme->tconsole.console_cursor, 220, 96, 96, 255);
+	rgba_char_args_set(btheme->tconsole.console_select, 255, 255, 255, 48);
 	
 	/* space time */
 	btheme->ttime = btheme->tv3d;
@@ -2157,6 +2160,13 @@ void init_userdef_do_versions(void)
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
 			rgba_char_args_test_set(btheme->tnode.syntaxs, 151, 116, 116, 255);  /* matte nodes */
 			rgba_char_args_test_set(btheme->tnode.syntaxd, 116, 151, 151, 255);  /* distort nodes */
+		}
+	}
+
+	if (U.versionfile < 265 || (U.versionfile == 265 && U.subversionfile < 11)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			rgba_char_args_test_set(btheme->tconsole.console_select, 255, 255, 255, 48);
 		}
 	}
 

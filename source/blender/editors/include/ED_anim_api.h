@@ -558,7 +558,8 @@ typedef enum eAnimUnitConv_Flags {
 	/* only touch selected BezTriples */
 	ANIM_UNITCONV_ONLYSEL   = (1 << 2),
 	/* only touch selected vertices */
-	ANIM_UNITCONV_SELVERTS  = (1 << 3)
+	ANIM_UNITCONV_SELVERTS  = (1 << 3),
+	ANIM_UNITCONV_SKIPKNOTS  = (1 << 4),
 } eAnimUnitConv_Flags;
 
 /* Get unit conversion factor for given ID + F-Curve */

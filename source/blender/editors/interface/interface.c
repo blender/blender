@@ -636,7 +636,7 @@ static int ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBut
 			
 				/* move button over from oldblock to new block */
 				BLI_remlink(&oldblock->buttons, oldbut);
-				BLI_insertlink(&block->buttons, but, oldbut);
+				BLI_insertlinkafter(&block->buttons, but, oldbut);
 				oldbut->block = block;
 				*butpp = oldbut;
 				
@@ -711,6 +711,12 @@ int uiButActiveOnly(const bContext *C, uiBlock *block, uiBut *but)
 	}
 	
 	return 1;
+}
+
+/* simulate button click */
+void uiButExecute(const bContext *C, uiBut *but)
+{
+	ui_button_execute_do((bContext *)C, CTX_wm_region(C), but);
 }
 
 /* use to check if we need to disable undo, but don't make any changes
@@ -1393,6 +1399,18 @@ int ui_is_but_float(uiBut *but)
 	
 	return 0;
 }
+
+int ui_is_but_bool(uiBut *but)
+{
+	if (ELEM5(but->type, TOG, TOGN, TOGR, ICONTOG, ICONTOGN))
+		return 1;
+
+	if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_BOOLEAN)
+		return 1;
+
+	return 0;
+}
+
 
 int ui_is_but_unit(uiBut *but)
 {

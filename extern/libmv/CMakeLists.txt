@@ -191,14 +191,6 @@ if(WIN32)
 			third_party/msinttypes
 		)
 	endif()
-
-	if(MSVC)
-		set(MSVC_OFLAGS O1 O2 Ox)
-		foreach(FLAG ${MSVC_OFLAGS})
-			string(REPLACE "${FLAG}" "Od" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
-			string(REPLACE "${FLAG}" "Od" CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}")
-		endforeach()
-	endif()
 else()
 	list(APPEND SRC
 		third_party/glog/src/demangle.cc

@@ -113,10 +113,8 @@ PyObject *KX_CharacterWrapper::pyattr_get_jump_count(void *self_v, const KX_PYAT
 PyObject *KX_CharacterWrapper::pyattr_get_walk_dir(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_CharacterWrapper* self = static_cast<KX_CharacterWrapper*>(self_v);
-	PHY__Vector3 vec = self->m_character->GetWalkDirection();
-	MT_Vector3 retval = MT_Vector3(vec[0], vec[1], vec[2]);
 
-	return PyObjectFrom(retval);
+	return PyObjectFrom(self->m_character->GetWalkDirection());
 }
 
 int KX_CharacterWrapper::pyattr_set_walk_dir(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
@@ -128,12 +126,7 @@ int KX_CharacterWrapper::pyattr_set_walk_dir(void *self_v, const KX_PYATTRIBUTE_
 		return PY_SET_ATTR_FAIL;
 	}
 
-	PHY__Vector3 vec;
-	vec[0] = dir[0];
-	vec[1] = dir[1];
-	vec[2] = dir[2];
-
-	self->m_character->SetWalkDirection(vec);
+	self->m_character->SetWalkDirection(dir);
 	return PY_SET_ATTR_SUCCESS;
 }
 

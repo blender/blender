@@ -217,8 +217,8 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_group_link);
 	WM_operatortype_append(OBJECT_OT_group_remove);
 
-	WM_operatortype_append(OBJECT_OT_hook_add_selobj);
-	WM_operatortype_append(OBJECT_OT_hook_add_newobj);
+	WM_operatortype_append(OBJECT_OT_hook_add_selob);
+	WM_operatortype_append(OBJECT_OT_hook_add_newob);
 	WM_operatortype_append(OBJECT_OT_hook_remove);
 	WM_operatortype_append(OBJECT_OT_hook_select);
 	WM_operatortype_append(OBJECT_OT_hook_assign);

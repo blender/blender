@@ -309,9 +309,11 @@ typedef struct bNodeTree {
 #define NTREE_TYPE_INIT		1
 
 /* ntree->flag */
-#define NTREE_DS_EXPAND		1	/* for animation editors */
-#define NTREE_COM_OPENCL	2	/* use opencl */
-#define NTREE_TWO_PASS		4	/* two pass */
+#define NTREE_DS_EXPAND				1	/* for animation editors */
+#define NTREE_COM_OPENCL			2	/* use opencl */
+#define NTREE_TWO_PASS				4	/* two pass */
+#define NTREE_COM_GROUPNODE_BUFFER	8	/* use groupnode buffers */
+
 /* XXX not nice, but needed as a temporary flags
  * for group updates after library linking.
  */

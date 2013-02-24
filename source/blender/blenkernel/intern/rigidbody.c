@@ -633,7 +633,17 @@ void BKE_rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, shor
 					else
 						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_ANG_Z, 0.0f, -1.0f);
 					break;
+				case RBC_TYPE_MOTOR:
+				    rbc->physics_constraint = RB_constraint_new_motor(loc, rot, rb1, rb2);
+
+				    RB_constraint_set_enable_motor(rbc->physics_constraint, rbc->flag & RBC_FLAG_USE_MOTOR_LIN, rbc->flag & RBC_FLAG_USE_MOTOR_ANG);
+					RB_constraint_set_max_impulse_motor(rbc->physics_constraint, rbc->motor_lin_max_impulse, rbc->motor_ang_max_impulse);
+					RB_constraint_set_target_velocity_motor(rbc->physics_constraint, rbc->motor_lin_target_velocity, rbc->motor_ang_target_velocity);
+				    break;
 			}
+		}
+		else { /* can't create constraint without both rigid bodies */
+			return;
 		}
 
 		RB_constraint_set_enabled(rbc->physics_constraint, rbc->flag & RBC_FLAG_ENABLED);
@@ -812,6 +822,11 @@ RigidBodyCon *BKE_rigidbody_create_constraint(Scene *scene, Object *ob, short ty
 	rbc->spring_stiffness_x = 10.0f;
 	rbc->spring_stiffness_y = 10.0f;
 	rbc->spring_stiffness_z = 10.0f;
+
+	rbc->motor_lin_max_impulse = 1.0f;
+	rbc->motor_lin_target_velocity = 1.0f;
+	rbc->motor_ang_max_impulse = 1.0f;
+	rbc->motor_ang_target_velocity = 1.0f;
 
 	/* flag cache as outdated */
 	BKE_rigidbody_cache_reset(rbw);
@@ -1259,7 +1274,7 @@ void BKE_rigidbody_do_simulation(Scene *scene, float ctime)
 	}
 
 	/* advance simulation, we can only step one frame forward */
-	if (ctime == rbw->ltime + 1) {
+	if (ctime == rbw->ltime + 1 && !(cache->flag & PTCACHE_BAKED)) {
 		/* write cache for first frame when on second frame */
 		if (rbw->ltime == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact == 0)) {
 			BKE_ptcache_write(&pid, startframe);
@@ -1308,7 +1323,7 @@ struct RigidBodyCon *BKE_rigidbody_create_constraint(Scene *scene, Object *ob, s
 struct RigidBodyWorld *BKE_rigidbody_get_world(Scene *scene) { return NULL; }
 void BKE_rigidbody_remove_object(Scene *scene, Object *ob) {}
 void BKE_rigidbody_remove_constraint(Scene *scene, Object *ob) {}
-void BKE_rigidbody_sync_transforms(Scene *scene, Object *ob, float ctime) {}
+void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime) {}
 void BKE_rigidbody_aftertrans_update(Object *ob, float loc[3], float rot[3], float quat[4], float rotAxis[3], float rotAngle) {}
 void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw) {}
 void BKE_rigidbody_do_simulation(Scene *scene, float ctime) {}

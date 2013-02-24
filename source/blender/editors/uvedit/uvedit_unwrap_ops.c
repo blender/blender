@@ -1387,7 +1387,7 @@ static int uv_from_view_poll(bContext *C)
 	return (rv3d != NULL);
 }
 
-void UV_OT_from_view(wmOperatorType *ot)
+void UV_OT_project_from_view(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Project From View";

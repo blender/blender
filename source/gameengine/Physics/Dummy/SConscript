@@ -29,7 +29,7 @@ Import ('env')
 
 sources = 'DummyPhysicsEnvironment.cpp'
 
-incs = '. ../common'
+incs = '. ../common ../../../../intern/moto/include'
 
 defs = []
 

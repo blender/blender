@@ -2391,6 +2391,10 @@ static size_t animdata_filter_animchan(bAnimContext *ac, ListBase *anim_data, bD
 			items += animdata_filter_dopesheet_ob(ac, anim_data, ads, channel->data, filter_mode);
 			break;
 			
+		case ANIMTYPE_ANIMDATA:
+			items += animfilter_block_data(ac, anim_data, ads, channel->id, filter_mode);
+			break;
+			
 		default:
 			printf("ERROR: Unsupported channel type (%d) in animdata_filter_animchan()\n", channel->type);
 			break;

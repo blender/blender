@@ -150,7 +150,7 @@ static int object_hide_view_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	if (changed) {
 		DAG_id_type_tag(bmain, ID_OB);
-		DAG_scene_sort(bmain, scene);
+		DAG_relations_tag_update(bmain);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 	}
 
@@ -207,7 +207,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 
 	if (changed) {
 		DAG_id_type_tag(bmain, ID_OB);
-		DAG_scene_sort(bmain, scene);
+		DAG_relations_tag_update(bmain);
 		
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, CTX_data_scene(C));
 		
@@ -771,7 +771,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 	Base *base;
 	Curve *cu, *cu1;
 	Nurb *nu;
-	int do_scene_sort = FALSE;
+	bool do_depgraph_update = false;
 	
 	if (scene->id.lib) return;
 
@@ -798,7 +798,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 	for (base = FIRSTBASE; base; base = base->next) {
 		if (base != BASACT) {
 			if (TESTBASELIB(v3d, base)) {
-				base->object->recalc |= OB_RECALC_OB;
+				DAG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 				
 				if (event == 1) {  /* loc */
 					copy_v3_v3(base->object->loc, ob->loc);
@@ -897,7 +897,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 						
 						BLI_strncpy(cu1->family, cu->family, sizeof(cu1->family));
 						
-						base->object->recalc |= OB_RECALC_DATA;
+						DAG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 					}
 				}
 				else if (event == 19) {   /* bevel settings */
@@ -913,7 +913,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 						cu1->ext1 = cu->ext1;
 						cu1->ext2 = cu->ext2;
 						
-						base->object->recalc |= OB_RECALC_DATA;
+						DAG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 					}
 				}
 				else if (event == 25) {   /* curve resolution */
@@ -932,7 +932,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 							nu = nu->next;
 						}
 						
-						base->object->recalc |= OB_RECALC_DATA;
+						DAG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 					}
 				}
 				else if (event == 21) {
@@ -948,7 +948,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 							}
 
 							modifier_copyData(md, tmd);
-							base->object->recalc |= OB_RECALC_DATA;
+							DAG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 						}
 					}
 				}
@@ -956,7 +956,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 					/* Copy the constraint channels over */
 					BKE_copy_constraints(&base->object->constraints, &ob->constraints, TRUE);
 					
-					do_scene_sort = TRUE;
+					do_depgraph_update = true;
 				}
 				else if (event == 23) {
 					base->object->softflag = ob->softflag;
@@ -1008,10 +1008,8 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 		}
 	}
 	
-	if (do_scene_sort)
-		DAG_scene_sort(bmain, scene);
-
-	DAG_ids_flush_update(bmain, 0);
+	if (do_depgraph_update)
+		DAG_relations_tag_update(bmain);
 }
 
 static void UNUSED_FUNCTION(copy_attr_menu) (Main * bmain, Scene * scene, View3D * v3d)
@@ -1151,7 +1149,7 @@ static int object_calculate_paths_invoke(bContext *C, wmOperator *op, wmEvent *U
 	
 	/* show popup dialog to allow editing of range... */
 	/* FIXME: hardcoded dimensions here are just arbitrary */
-	return WM_operator_props_dialog_popup(C, op, 200, 200);
+	return WM_operator_props_dialog_popup(C, op, 10 * UI_UNIT_X, 10 * UI_UNIT_Y);
 }
 
 /* Calculate/recalculate whole paths (avs.path_sf to avs.path_ef) */

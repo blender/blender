@@ -213,7 +213,6 @@ static void object_clear_scale(Object *ob)
 static int object_clear_transform_generic_exec(bContext *C, wmOperator *op, 
                                                void (*clear_func)(Object *), const char default_ksName[])
 {
-	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	KeyingSet *ks;
 	
@@ -244,8 +243,6 @@ static int object_clear_transform_generic_exec(bContext *C, wmOperator *op,
 	CTX_DATA_END;
 	
 	/* this is needed so children are also updated */
-	DAG_ids_flush_update(bmain, 0);
-
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 
 	return OPERATOR_FINISHED;
@@ -318,7 +315,6 @@ void OBJECT_OT_scale_clear(wmOperatorType *ot)
 
 static int object_origin_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Main *bmain = CTX_data_main(C);
 	float *v1, *v3;
 	float mat[3][3];
 
@@ -338,8 +334,6 @@ static int object_origin_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	CTX_DATA_END;
 
-	DAG_ids_flush_update(bmain, 0);
-	
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -424,7 +418,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 
 			cu = ob->data;
 
-			if (!(cu->flag & CU_3D) && (apply_rot || apply_loc)) {
+			if (((ob->type == OB_CURVE) && !(cu->flag & CU_3D)) && (apply_rot || apply_loc)) {
 				BKE_report(reports, RPT_ERROR,
 				           "Neither rotation nor location could be applied to a 2D curve, doing nothing");
 				change = 0;
@@ -991,7 +985,6 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 			DAG_id_tag_update(&tob->id, OB_RECALC_OB | OB_RECALC_DATA);
 
 	if (tot_change) {
-		DAG_ids_flush_update(bmain, 0);
 		WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 	}
 

@@ -1071,6 +1071,222 @@ static void UI_OT_reloadtranslation(wmOperatorType *ot)
 	ot->exec = reloadtranslation_exec;
 }
 
+
+/* -------------------------------------------------------------------- */
+/* Toggle Drag Operator */
+
+typedef struct DragOpInfo {
+	bool xy_lock[2];
+	float but_cent_start[2];
+	eButType but_type_start;
+} DragOpInfo;
+
+typedef struct DragOpPlotData {
+	bContext *C;
+	ARegion *ar;
+	bool is_set;
+	eButType but_type_start;
+	bool do_draw;
+	const uiBut *but_prev;
+} DragOpPlotData;
+
+static const uiBut *ui_but_set_xy(bContext *C, ARegion *ar, const bool is_set, const eButType but_type_start,
+                                  const int xy[2], const uiBut *but_prev)
+{
+	uiBut *but = ui_but_find_mouse_over(ar, xy[0], xy[1]);
+
+	if (but_prev == but) {
+		return but_prev;
+	}
+
+	if (but && ui_is_but_bool(but) && but->type == but_type_start) {
+		/* is it pressed? */
+		bool is_set_but = (ui_get_but_val(but) != 0.0);
+		BLI_assert(ui_is_but_bool(but) == true);
+		if (is_set_but != is_set) {
+			uiButExecute(C, but);
+			return but;
+		}
+	}
+
+	return but_prev;
+}
+
+static int ui_but_set_cb(int x, int y, void *data_v)
+{
+	DragOpPlotData *data = data_v;
+	int xy[2] = {x, y};
+	data->but_prev = ui_but_set_xy(data->C, data->ar, data->is_set, data->but_type_start, xy, data->but_prev);
+	return 1;  /* keep going */
+}
+
+/* operates on buttons between 2 mouse-points */
+static bool ui_but_set_xy_xy(bContext *C, ARegion *ar, const bool is_set, const eButType but_type_start,
+                             const int xy_src[2], const int xy_dst[2])
+{
+	DragOpPlotData data;
+	data.C = C;
+	data.ar = ar;
+	data.is_set = is_set;
+	data.but_type_start = but_type_start;
+	data.do_draw = false;
+	data.but_prev = NULL;
+
+
+	/* prevent dragging too fast loosing buttons */
+	plot_line_v2v2i(xy_src, xy_dst, ui_but_set_cb, &data);
+
+	return data.do_draw;
+}
+
+static void ui_drag_but_set(bContext *C, wmOperator *op, const int xy_input[2])
+{
+	ARegion *ar = CTX_wm_region(C);
+	DragOpInfo *drag_info = op->customdata;
+	bool do_draw = false;
+
+	const bool is_set = RNA_boolean_get(op->ptr, "state");
+	const int xy_last[2] = {RNA_int_get(op->ptr, "last_x"),
+	                        RNA_int_get(op->ptr, "last_y")};
+
+	int xy[2];
+
+	/**
+	 * Initialize Locking:
+	 *
+	 * Check if we need to initialize the lock axis by finding if the first
+	 * button we mouse over is X or Y aligned, then lock the mouse to that axis after.
+	 */
+	if (drag_info->xy_lock[0] == false && drag_info->xy_lock[1] == false) {
+		ARegion *ar = CTX_wm_region(C);
+
+		/* first store the buttons original coords */
+		uiBut *but = ui_but_find_mouse_over(ar, xy_input[0], xy_input[1]);
+		if (but) {
+			const float but_cent_new[2] = {BLI_rctf_cent_x(&but->rect),
+			                               BLI_rctf_cent_y(&but->rect)};
+
+			/* check if this is a different button, chances are high the button wont move about :) */
+			if (len_manhattan_v2v2(drag_info->but_cent_start, but_cent_new) > 1.0f) {
+				if (fabsf(drag_info->but_cent_start[0] - but_cent_new[0]) <
+				    fabsf(drag_info->but_cent_start[1] - but_cent_new[1]))
+				{
+					drag_info->xy_lock[0] = true;
+				}
+				else {
+					drag_info->xy_lock[1] = true;
+				}
+			}
+		}
+	}
+	/* done with axis locking */
+
+
+	xy[0] = (drag_info->xy_lock[0] == false) ? xy_input[0] : xy_last[0];
+	xy[1] = (drag_info->xy_lock[1] == false) ? xy_input[1] : xy_last[1];
+
+
+	/* touch all buttons between last mouse coord and this one */
+	do_draw = ui_but_set_xy_xy(C, ar, is_set, drag_info->but_type_start, xy_last, xy);
+
+	if (do_draw) {
+		ED_region_tag_redraw(ar);
+	}
+
+	RNA_int_set(op->ptr, "last_x", xy[0]);
+	RNA_int_set(op->ptr, "last_y", xy[1]);
+}
+
+static int ui_drag_toggle_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	int xy_last[2] = {RNA_int_get(op->ptr, "last_x"),
+	                  RNA_int_get(op->ptr, "last_y")};
+
+	float but_cent_start[2];
+	eButType but_type_start;
+	DragOpInfo *drag_info;
+
+	{
+		/* find the button where we started dragging */
+		ARegion *ar = CTX_wm_region(C);
+		uiBut *but = ui_but_find_mouse_over(ar, xy_last[0], xy_last[1]);
+		if (but) {
+			but_cent_start[0] = BLI_rctf_cent_x(&but->rect);
+			but_cent_start[1] = BLI_rctf_cent_y(&but->rect);
+			but_type_start = but->type;
+		}
+		else {
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	drag_info = op->customdata = MEM_callocN(sizeof(DragOpInfo), __func__);
+	copy_v2_v2(drag_info->but_cent_start, but_cent_start);
+	drag_info->but_type_start = but_type_start;
+
+	/* set the initial button */
+	ui_drag_but_set(C, op, xy_last);
+	ui_drag_but_set(C, op, &event->x);
+
+	WM_event_add_modal_handler(C, op);
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int ui_drag_toggle_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	bool done = false;
+
+	switch (event->type) {
+		case LEFTMOUSE:
+		{
+			if (event->val != KM_PRESS) {
+				done = true;
+			}
+			break;
+		}
+		case MOUSEMOVE:
+		{
+			ui_drag_but_set(C, op, &event->x);
+			break;
+		}
+	}
+
+	if (done) {
+		MEM_freeN(op->customdata);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_RUNNING_MODAL;
+	}
+}
+
+static int ui_drag_toggle_cancel(bContext *UNUSED(C), wmOperator *op)
+{
+	MEM_freeN(op->customdata);
+	return OPERATOR_CANCELLED;
+}
+
+static void UI_OT_drag_toggle(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Button Drag Toggle";
+	ot->description = "";
+	ot->idname = "UI_OT_drag_toggle";
+
+	/* api callbacks */
+	ot->invoke = ui_drag_toggle_invoke;
+	ot->modal = ui_drag_toggle_modal;
+	ot->cancel = ui_drag_toggle_cancel;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO | OPTYPE_INTERNAL;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "state", true, "State", "");
+	RNA_def_int(ot->srna, "last_x", 0, 0, INT_MAX, "X", "", 0, INT_MAX);
+	RNA_def_int(ot->srna, "last_y", 0, 0, INT_MAX, "Y", "", 0, INT_MAX);
+}
+
 /* ********************************************************* */
 /* Registration */
 
@@ -1088,5 +1304,6 @@ void UI_buttons_operatortypes(void)
 	WM_operatortype_append(UI_OT_edittranslation_init);
 #endif
 	WM_operatortype_append(UI_OT_reloadtranslation);
+	WM_operatortype_append(UI_OT_drag_toggle);
 }
 

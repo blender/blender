@@ -22,7 +22,7 @@
 
 #ifdef _WIN32
 
-#include <Windows.h>
+#include <windows.h>
 
 CCL_NAMESPACE_BEGIN
 

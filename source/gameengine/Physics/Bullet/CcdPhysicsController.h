@@ -524,7 +524,7 @@ protected:
 		virtual	void		getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal);
 		virtual	void		setOrientation(float quatImag0,float quatImag1,float quatImag2,float quatReal);
 		virtual	void		setPosition(float posX,float posY,float posZ);
-		virtual	void 		getPosition(PHY__Vector3&	pos) const;
+		virtual	void 		getPosition(MT_Vector3&	pos) const;
 
 		virtual	void		setScaling(float scaleX,float scaleY,float scaleZ);
 		

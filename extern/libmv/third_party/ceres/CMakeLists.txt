@@ -31,6 +31,7 @@ set(INC
 	include
 	internal
 	../gflags
+	../../
 )
 
 set(INC_SYS

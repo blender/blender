@@ -187,13 +187,13 @@ static void rna_Pose_ik_solver_set(struct PointerRNA *ptr, int value)
 	}
 }
 
-static void rna_Pose_ik_solver_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Pose_ik_solver_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob = ptr->id.data;
 	bPose *pose = ptr->data;
 
 	pose->flag |= POSE_RECALC;  /* checks & sorts pose channels */
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 	
 	BKE_pose_update_constraint_flags(pose);
 	

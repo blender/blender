@@ -196,27 +196,36 @@ typedef struct RigidBodyCon {
 	float pad;
 
 	/* limits */
-	float limit_lin_x_lower;	/* lower limit for x axis translation */
-	float limit_lin_x_upper;	/* upper limit for x axis translation */
-	float limit_lin_y_lower;	/* lower limit for y axis translation */
-	float limit_lin_y_upper;	/* upper limit for y axis translation */
-	float limit_lin_z_lower;	/* lower limit for z axis translation */
-	float limit_lin_z_upper;	/* upper limit for z axis translation */
-	float limit_ang_x_lower;	/* lower limit for x axis rotation */
-	float limit_ang_x_upper;	/* upper limit for x axis rotation */
-	float limit_ang_y_lower;	/* lower limit for y axis rotation */
-	float limit_ang_y_upper;	/* upper limit for y axis rotation */
-	float limit_ang_z_lower;	/* lower limit for z axis rotation */
-	float limit_ang_z_upper;	/* upper limit for z axis rotation */
+	/* translation limits */
+	float limit_lin_x_lower;
+	float limit_lin_x_upper;
+	float limit_lin_y_lower;
+	float limit_lin_y_upper;
+	float limit_lin_z_lower;
+	float limit_lin_z_upper;
+	/* rotation limits */
+	float limit_ang_x_lower;
+	float limit_ang_x_upper;
+	float limit_ang_y_lower;
+	float limit_ang_y_upper;
+	float limit_ang_z_lower;
+	float limit_ang_z_upper;
 
 	/* spring settings */
-	/* RB_TODO document spring properties */
+	/* resistance to deformation */
 	float spring_stiffness_x;
 	float spring_stiffness_y;
 	float spring_stiffness_z;
+	/* amount of velocity lost over time */
 	float spring_damping_x;
 	float spring_damping_y;
 	float spring_damping_z;
+
+	/* motor settings */
+	float motor_lin_target_velocity;	/* linear velocity the motor tries to hold */
+	float motor_ang_target_velocity;	/* angular velocity the motor tries to hold */
+	float motor_lin_max_impulse;		/* maximum force used to reach linear target velocity */
+	float motor_ang_max_impulse;		/* maximum force used to reach angular target velocity */
 
 	/* References to Physics Sim object. Exist at runtime only */
 	void *physics_constraint;	/* Physics object representation (i.e. btTypedConstraint) */
@@ -246,7 +255,9 @@ typedef enum eRigidBodyCon_Type {
 	/* similar to slider but also allows rotation around slider axis */
 	RBC_TYPE_PISTON,
 	/* Simplified spring constraint with only once axis that's automatically placed between the connected bodies */
-	RBC_TYPE_SPRING
+	RBC_TYPE_SPRING,
+	/* dirves bodies by applying linear and angular forces */
+	RBC_TYPE_MOTOR
 } eRigidBodyCon_Type;
 
 /* Flags for RigidBodyCon */
@@ -271,7 +282,10 @@ typedef enum eRigidBodyCon_Flag {
 	/* springs */
 	RBC_FLAG_USE_SPRING_X				= (1 << 11),
 	RBC_FLAG_USE_SPRING_Y				= (1 << 12),
-	RBC_FLAG_USE_SPRING_Z				= (1 << 13)
+	RBC_FLAG_USE_SPRING_Z				= (1 << 13),
+	/* motors */
+	RBC_FLAG_USE_MOTOR_LIN				= (1 << 14),
+	RBC_FLAG_USE_MOTOR_ANG				= (1 << 15)
 } eRigidBodyCon_Flag;
 
 /* ******************************** */

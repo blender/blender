@@ -43,6 +43,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_mesh.h"
@@ -152,8 +154,10 @@ static void uvedit_vertex_buttons(const bContext *C, uiBlock *block)
 		}
 		
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_UVEDIT_VERTEX, "X:",    10, 10, 145, 19, &uvedit_old_center[0], -10 * imx, 10.0 * imx, step, digits, "");
-		uiDefButF(block, NUM, B_UVEDIT_VERTEX, "Y:",    165, 10, 145, 19, &uvedit_old_center[1], -10 * imy, 10.0 * imy, step, digits, "");
+		uiDefButF(block, NUM, B_UVEDIT_VERTEX, IFACE_("X:"), 10, 10, 145, 19, &uvedit_old_center[0],
+		          -10 * imx, 10.0 * imx, step, digits, "");
+		uiDefButF(block, NUM, B_UVEDIT_VERTEX, IFACE_("Y:"), 165, 10, 145, 19, &uvedit_old_center[1],
+		          -10 * imy, 10.0 * imy, step, digits, "");
 		uiBlockEndAlign(block);
 	}
 }
@@ -214,7 +218,7 @@ void ED_uvedit_buttons_register(ARegionType *art)
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype image panel uv");
 	strcpy(pt->idname, "IMAGE_PT_uv");
-	strcpy(pt->label, "UV Vertex");
+	strcpy(pt->label, N_("UV Vertex"));  /* XXX C panels are not available through RNA (bpy.types)! */
 	pt->draw = image_panel_uv;
 	pt->poll = image_panel_uv_poll;
 	BLI_addtail(&art->paneltypes, pt);

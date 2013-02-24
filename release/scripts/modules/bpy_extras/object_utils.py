@@ -124,8 +124,9 @@ def object_data_add(context, obdata, operator=None, use_active_layer=True):
         else:
             base.layers = [True if i == scene.active_layer
                            else False for i in range(len(scene.layers))]
-    if v3d:
-        base.layers_from_view(context.space_data)
+    else:
+        if v3d:
+            base.layers_from_view(context.space_data)
 
     obj_new.matrix_world = add_object_align_init(context, operator)
 

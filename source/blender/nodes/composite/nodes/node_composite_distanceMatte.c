@@ -60,7 +60,6 @@ void register_node_type_cmp_distance_matte(bNodeTreeType *ttype)
 
 	node_type_base(ttype, &ntype, CMP_NODE_DIST_MATTE, "Distance Key", NODE_CLASS_MATTE, NODE_PREVIEW|NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_distance_matte_in, cmp_node_distance_matte_out);
-	node_type_size(&ntype, 200, 80, 250);
 	node_type_init(&ntype, node_composit_init_distance_matte);
 	node_type_storage(&ntype, "NodeChroma", node_free_standard_storage, node_copy_standard_storage);
 

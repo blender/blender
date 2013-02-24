@@ -52,7 +52,6 @@ void register_node_type_cmp_sephsva(bNodeTreeType *ttype)
 
 	node_type_base(ttype, &ntype, CMP_NODE_SEPHSVA, "Separate HSVA", NODE_CLASS_CONVERTOR, 0);
 	node_type_socket_templates(&ntype, cmp_node_sephsva_in, cmp_node_sephsva_out);
-	node_type_size(&ntype, 80, 40, 140);
 
 	nodeRegisterType(ttype, &ntype);
 }
@@ -77,7 +76,6 @@ void register_node_type_cmp_combhsva(bNodeTreeType *ttype)
 
 	node_type_base(ttype, &ntype, CMP_NODE_COMBHSVA, "Combine HSVA", NODE_CLASS_CONVERTOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_combhsva_in, cmp_node_combhsva_out);
-	node_type_size(&ntype, 80, 40, 140);
 
 	nodeRegisterType(ttype, &ntype);
 }

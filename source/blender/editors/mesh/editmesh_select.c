@@ -2678,7 +2678,7 @@ void MESH_OT_select_nth(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Checker Deselect";
 	ot->idname = "MESH_OT_select_nth";
-	ot->description = "Deselect every Nth element starting from a selected vertex, edge or face";
+	ot->description = "Deselect every Nth element starting from the active vertex, edge or face";
 
 	/* api callbacks */
 	ot->exec = edbm_select_nth_exec;

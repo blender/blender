@@ -141,8 +141,10 @@ static void tracking_dopesheet_free(MovieTrackingDopesheet *dopesheet)
 	}
 
 	BLI_freelistN(&dopesheet->channels);
+	BLI_freelistN(&dopesheet->coverage_segments);
 
 	dopesheet->channels.first = dopesheet->channels.last = NULL;
+	dopesheet->coverage_segments.first = dopesheet->coverage_segments.last = NULL;
 	dopesheet->tot_channel = 0;
 }
 
@@ -1603,6 +1605,67 @@ ImBuf *BKE_tracking_distort_frame(MovieTracking *tracking, ImBuf *ibuf, int cali
 
 	return BKE_tracking_distortion_exec(camera->intrinsics, tracking, ibuf, calibration_width,
 	                                    calibration_height, overscan, FALSE);
+}
+
+void BKE_tracking_max_undistortion_delta_across_bound(MovieTracking *tracking, rcti *rect, float delta[2])
+{
+	int a;
+	float pos[2], warped_pos[2];
+	const int coord_delta = 5;
+
+	delta[0] = delta[1] = -FLT_MAX;
+
+	for (a = rect->xmin; a <= rect->xmax + coord_delta; a += coord_delta) {
+		if (a > rect->xmax)
+			a = rect->xmax;
+
+		/* bottom edge */
+		pos[0] = a;
+		pos[1] = rect->ymin;
+
+		BKE_tracking_undistort_v2(tracking, pos, warped_pos);
+
+		delta[0] = max_ff(delta[0], fabs(pos[0] - warped_pos[0]));
+		delta[1] = max_ff(delta[1], fabs(pos[1] - warped_pos[1]));
+
+		/* top edge */
+		pos[0] = a;
+		pos[1] = rect->ymax;
+
+		BKE_tracking_undistort_v2(tracking, pos, warped_pos);
+
+		delta[0] = max_ff(delta[0], fabs(pos[0] - warped_pos[0]));
+		delta[1] = max_ff(delta[1], fabs(pos[1] - warped_pos[1]));
+
+		if (a >= rect->xmax)
+			break;
+	}
+
+	for (a = rect->ymin; a <= rect->ymax + coord_delta; a += coord_delta) {
+		if (a > rect->ymax)
+			a = rect->ymax;
+
+		/* left edge */
+		pos[0] = rect->xmin;
+		pos[1] = a;
+
+		BKE_tracking_undistort_v2(tracking, pos, warped_pos);
+
+		delta[0] = max_ff(delta[0], fabs(pos[0] - warped_pos[0]));
+		delta[1] = max_ff(delta[1], fabs(pos[1] - warped_pos[1]));
+
+		/* right edge */
+		pos[0] = rect->xmax;
+		pos[1] = a;
+
+		BKE_tracking_undistort_v2(tracking, pos, warped_pos);
+
+		delta[0] = max_ff(delta[0], fabs(pos[0] - warped_pos[0]));
+		delta[1] = max_ff(delta[1], fabs(pos[1] - warped_pos[1]));
+
+		if (a >= rect->ymax)
+			break;
+	}
 }
 
 /*********************** Image sampling *************************/
@@ -3723,6 +3786,88 @@ static void tracking_dopesheet_sort(MovieTracking *tracking, int sort_method, in
 	}
 }
 
+static int coverage_from_count(int count)
+{
+	if (count < 8)
+		return TRACKING_COVERAGE_BAD;
+	else if (count < 16)
+		return TRACKING_COVERAGE_ACCEPTABLE;
+	return TRACKING_COVERAGE_OK;
+}
+
+static void tracking_dopesheet_calc_coverage(MovieTracking *tracking)
+{
+	MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
+	MovieTrackingObject *object = BKE_tracking_object_get_active(tracking);
+	ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
+	MovieTrackingTrack *track;
+	int frames, start_frame = INT_MAX, end_frame = -INT_MAX;
+	int *per_frame_counter;
+	int prev_coverage, last_segment_frame;
+	int i;
+
+	/* find frame boundaries */
+	for (track = tracksbase->first; track; track = track->next) {
+		start_frame = min_ii(start_frame, track->markers[0].framenr);
+		end_frame = max_ii(end_frame, track->markers[track->markersnr - 1].framenr);
+	}
+
+	frames = end_frame - start_frame + 1;
+
+	/* this is a per-frame counter of markers (how many markers belongs to the same frame) */
+	per_frame_counter = MEM_callocN(sizeof(int) * frames, "per frame track counter");
+
+	/* find per-frame markers count */
+	for (track = tracksbase->first; track; track = track->next) {
+		int i;
+
+		for (i = 0; i < track->markersnr; i++) {
+			MovieTrackingMarker *marker = &track->markers[i];
+
+			/* TODO: perhaps we need to add check for non-single-frame track here */
+			if ((marker->flag & MARKER_DISABLED) == 0)
+				per_frame_counter[marker->framenr - start_frame]++;
+		}
+	}
+
+	/* convert markers count to coverage and detect segments with the same coverage */
+	prev_coverage = coverage_from_count(per_frame_counter[0]);
+	last_segment_frame = start_frame;
+
+	/* means only disabled tracks in the beginning, could be ignored */
+	if (!per_frame_counter[0])
+		prev_coverage = TRACKING_COVERAGE_OK;
+
+	for (i = 1; i < frames; i++) {
+		int coverage = coverage_from_count(per_frame_counter[i]);
+
+		/* means only disabled tracks in the end, could be ignored */
+		if (i == frames - 1 && !per_frame_counter[i])
+			coverage = TRACKING_COVERAGE_OK;
+
+		if (coverage != prev_coverage || i == frames - 1) {
+			MovieTrackingDopesheetCoverageSegment *coverage_segment;
+			int end_segment_frame = i - 1 + start_frame;
+
+			if (end_segment_frame == last_segment_frame)
+				end_segment_frame++;
+
+			coverage_segment = MEM_callocN(sizeof(MovieTrackingDopesheetCoverageSegment), "tracking coverage segment");
+			coverage_segment->coverage = prev_coverage;
+			coverage_segment->start_frame = last_segment_frame;
+			coverage_segment->end_frame = end_segment_frame;
+
+			BLI_addtail(&dopesheet->coverage_segments, coverage_segment);
+
+			last_segment_frame = end_segment_frame;
+		}
+
+		prev_coverage = coverage;
+	}
+
+	MEM_freeN(per_frame_counter);
+}
+
 void BKE_tracking_dopesheet_tag_update(MovieTracking *tracking)
 {
 	MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
@@ -3750,6 +3895,7 @@ void BKE_tracking_dopesheet_update(MovieTracking *tracking)
 
 	reconstruction = BKE_tracking_object_get_reconstruction(tracking, object);
 
+	/* channels */
 	for (track = tracksbase->first; track; track = track->next) {
 		MovieTrackingDopesheetChannel *channel;
 
@@ -3776,6 +3922,9 @@ void BKE_tracking_dopesheet_update(MovieTracking *tracking)
 	}
 
 	tracking_dopesheet_sort(tracking, sort_method, inverse);
+
+	/* frame coverage */
+	tracking_dopesheet_calc_coverage(tracking);
 
 	dopesheet->ok = TRUE;
 }

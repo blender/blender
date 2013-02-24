@@ -199,12 +199,15 @@ char *BLI_str_quoted_substrN(const char *__restrict str, const char *__restrict 
 	
 	/* get the starting point (i.e. where prefix starts, and add prefixLen+1 to it to get be after the first " */
 	startMatch = strstr(str, prefix) + prefixLen + 1;
-	
-	/* get the end point (i.e. where the next occurance of " is after the starting point) */
-	endMatch = strchr(startMatch, '"'); /* "  NOTE: this comment here is just so that my text editor still shows the functions ok... */
-
-	/* return the slice indicated */
-	return BLI_strdupn(startMatch, (size_t)(endMatch - startMatch));
+	if (startMatch) {
+		/* get the end point (i.e. where the next occurance of " is after the starting point) */
+		endMatch = strchr(startMatch, '"'); /* "  NOTE: this comment here is just so that my text editor still shows the functions ok... */
+		
+		if (endMatch)
+			/* return the slice indicated */
+			return BLI_strdupn(startMatch, (size_t)(endMatch - startMatch));
+	}
+	return BLI_strdupn("", 0);
 }
 
 /* Replaces all occurrences of oldText with newText in str, returning a new string that doesn't 

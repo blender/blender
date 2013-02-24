@@ -75,7 +75,9 @@
 #include "BIF_glutil.h"
 
 #include "WM_api.h"
+
 #include "BLF_api.h"
+#include "BLF_translation.h"
 
 #include "ED_armature.h"
 #include "ED_keyframing.h"
@@ -345,7 +347,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 				CLAMP(blend_fac, 0.3f, 1.0f);
 
 
-				UI_ThemeColorBlend(TH_BACK, TH_GRID, blend_fac);
+				UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, blend_fac);
 
 				drawgrid_draw(ar, wx, wy, x, y, dx_scalar);
 			}
@@ -374,7 +376,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 					}
 				}
 				else {  /* start blending out */
-					UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
+					UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
 					drawgrid_draw(ar, wx, wy, x, y, dx);
 
 					UI_ThemeColor(TH_GRID);
@@ -382,7 +384,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 				}
 			}
 			else {  /* start blending out (GRID_MIN_PX < dx < (GRID_MIN_PX * 10)) */
-				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
+				UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
 				drawgrid_draw(ar, wx, wy, x, y, dx);
 
 				UI_ThemeColor(TH_GRID);
@@ -401,21 +403,21 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 						drawgrid_draw(ar, wx, wy, x, y, dx);
 					}
 					else {
-						UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
+						UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
 						drawgrid_draw(ar, wx, wy, x, y, dx);
 						UI_ThemeColor(TH_GRID);
 						drawgrid_draw(ar, wx, wy, x, y, dx * sublines);
 					}
 				}
 				else {
-					UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
+					UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
 					drawgrid_draw(ar, wx, wy, x, y, dx);
 					UI_ThemeColor(TH_GRID);
 					drawgrid_draw(ar, wx, wy, x, y, dx * sublines);
 				}
 			}
 			else {
-				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
+				UI_ThemeColorBlend(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
 				drawgrid_draw(ar, wx, wy, x, y, dx);
 				UI_ThemeColor(TH_GRID);
 				drawgrid_draw(ar, wx, wy, x, y, dx * sublines);
@@ -804,28 +806,28 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 	
 	switch (rv3d->view) {
 		case RV3D_VIEW_FRONT:
-			if (rv3d->persp == RV3D_ORTHO) name = "Front Ortho";
-			else name = "Front Persp";
+			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Front Ortho");
+			else name = IFACE_("Front Persp");
 			break;
 		case RV3D_VIEW_BACK:
-			if (rv3d->persp == RV3D_ORTHO) name = "Back Ortho";
-			else name = "Back Persp";
+			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Back Ortho");
+			else name = IFACE_("Back Persp");
 			break;
 		case RV3D_VIEW_TOP:
-			if (rv3d->persp == RV3D_ORTHO) name = "Top Ortho";
-			else name = "Top Persp";
+			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Top Ortho");
+			else name = IFACE_("Top Persp");
 			break;
 		case RV3D_VIEW_BOTTOM:
-			if (rv3d->persp == RV3D_ORTHO) name = "Bottom Ortho";
-			else name = "Bottom Persp";
+			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Bottom Ortho");
+			else name = IFACE_("Bottom Persp");
 			break;
 		case RV3D_VIEW_RIGHT:
-			if (rv3d->persp == RV3D_ORTHO) name = "Right Ortho";
-			else name = "Right Persp";
+			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Right Ortho");
+			else name = IFACE_("Right Persp");
 			break;
 		case RV3D_VIEW_LEFT:
-			if (rv3d->persp == RV3D_ORTHO) name = "Left Ortho";
-			else name = "Left Persp";
+			if (rv3d->persp == RV3D_ORTHO) name = IFACE_("Left Ortho");
+			else name = IFACE_("Left Persp");
 			break;
 			
 		default:
@@ -833,14 +835,14 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 				if ((v3d->camera) && (v3d->camera->type == OB_CAMERA)) {
 					Camera *cam;
 					cam = v3d->camera->data;
-					name = (cam->type != CAM_ORTHO) ? "Camera Persp" : "Camera Ortho";
+					name = (cam->type != CAM_ORTHO) ? IFACE_("Camera Persp") : IFACE_("Camera Ortho");
 				}
 				else {
-					name = "Object as Camera";
+					name = IFACE_("Object as Camera");
 				}
 			}
 			else {
-				name = (rv3d->persp == RV3D_ORTHO) ? "User Ortho" : "User Persp";
+				name = (rv3d->persp == RV3D_ORTHO) ? IFACE_("User Ortho") : IFACE_("User Persp");
 			}
 			break;
 	}
@@ -852,16 +854,25 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d, rcti *rect)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	const char *name = view3d_get_name(v3d, rv3d);
+	/* XXX 24 may be a bit small for unicode languages (Chinese in utf-8...) */
+#ifdef WITH_INTERNATIONAL
+	char tmpstr[32];
+#else
 	char tmpstr[24];
-	
+#endif
+
 	if (v3d->localvd) {
-		BLI_snprintf(tmpstr, sizeof(tmpstr), "%s (Local)", name);
+		BLI_snprintf(tmpstr, sizeof(tmpstr), IFACE_("%s (Local)"), name);
 		name = tmpstr;
 	}
 
 	if (name) {
 		UI_ThemeColor(TH_TEXT_HI);
+#ifdef WITH_INTERNATIONAL
+		BLF_draw_default(U.widget_unit + rect->xmin,  rect->ymax - U.widget_unit, 0.0f, name, sizeof(tmpstr));
+#else
 		BLF_draw_default_ascii(U.widget_unit + rect->xmin,  rect->ymax - U.widget_unit, 0.0f, name, sizeof(tmpstr));
+#endif
 	}
 }
 
@@ -918,7 +929,7 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 				if (kb) {
 					BLI_snprintf(shapes, sizeof(shapes), ": %s ", kb->name);
 					if (ob->shapeflag == OB_SHAPE_LOCK) {
-						strcat(shapes, " (Pinned)");
+						strcat(shapes, IFACE_(" (Pinned)"));
 					}
 				}
 			}
@@ -2846,14 +2857,18 @@ static void draw_viewport_fps(Scene *scene, rcti *rect)
 	/* is this more then half a frame behind? */
 	if (fps + 0.5f < (float)(FPS)) {
 		UI_ThemeColor(TH_REDALERT);
-		BLI_snprintf(printable, sizeof(printable), "fps: %.2f", fps);
+		BLI_snprintf(printable, sizeof(printable), IFACE_("fps: %.2f"), fps);
 	}
 	else {
 		UI_ThemeColor(TH_TEXT_HI);
-		BLI_snprintf(printable, sizeof(printable), "fps: %i", (int)(fps + 0.5f));
+		BLI_snprintf(printable, sizeof(printable), IFACE_("fps: %i"), (int)(fps + 0.5f));
 	}
-	
+
+#ifdef WITH_INTERNATIONAL
+	BLF_draw_default(rect->xmin + U.widget_unit,  rect->ymax - U.widget_unit, 0.0f, printable, sizeof(printable));
+#else
 	BLF_draw_default_ascii(rect->xmin + U.widget_unit,  rect->ymax - U.widget_unit, 0.0f, printable, sizeof(printable));
+#endif
 }
 
 static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const char **grid_unit);

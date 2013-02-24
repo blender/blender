@@ -51,7 +51,6 @@ void register_node_type_cmp_stabilize2d(bNodeTreeType *ttype)
 
 	node_type_base(ttype, &ntype, CMP_NODE_STABILIZE2D, "Stabilize 2D", NODE_CLASS_DISTORT, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_stabilize2d_in, cmp_node_stabilize2d_out);
-	node_type_size(&ntype, 140, 100, 320);
 
 	nodeRegisterType(ttype, &ntype);
 }

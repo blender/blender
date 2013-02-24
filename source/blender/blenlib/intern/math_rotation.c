@@ -1740,6 +1740,12 @@ float angle_wrap_deg(float angle)
 	return mod_inline(angle + 180.0f, 360.0f) - 180.0f;
 }
 
+/* returns an angle compatible with angle_compat */
+float angle_compat_rad(float angle, float angle_compat)
+{
+	return angle + (floorf(((angle_compat - angle) / (float)M_PI) + 0.5f)) * (float)M_PI;
+}
+
 /* axis conversion */
 static float _axis_convert_matrix[23][3][3] = {
 	{{-1.0, 0.0, 0.0}, {0.0, -1.0, 0.0}, {0.0, 0.0, 1.0}},

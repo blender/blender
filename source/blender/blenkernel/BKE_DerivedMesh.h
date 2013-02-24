@@ -95,7 +95,7 @@ struct BMEditMesh;
 struct ListBase;
 struct PBVH;
 
-#define DM_OMP_LIMIT 0  /* setting zero so we can catch bugs in OpenMP/BMesh */
+#define DM_OMP_LIMIT 10000  /* setting zero so we can catch bugs in OpenMP/BMesh */
 
 /* number of sub-elements each mesh element has (for interpolation) */
 #define SUB_ELEMS_VERT 0

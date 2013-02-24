@@ -364,6 +364,9 @@ void RAS_OpenGLRasterizer::SetDrawingMode(int drawingmode)
 		glDisable(GL_CULL_FACE);
 
 	m_storage->SetDrawingMode(drawingmode);
+	if (m_failsafe_storage && m_failsafe_storage != m_storage) {
+		m_failsafe_storage->SetDrawingMode(drawingmode);
+	}
 }
 
 int RAS_OpenGLRasterizer::GetDrawingMode()

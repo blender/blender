@@ -1410,18 +1410,6 @@ static BMOpDefine bmo_bevel_def = {
 	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}}, /* output faces */
 	 {{'\0'}},
 	},
-/* old bevel*/
-//	{{"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}}, /* input edges and vertices */
-//	 {"face_spans", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}}, /* new geometry */
-//	 {"face_holes", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}}, /* new geometry */
-//	 {"use_lengths", BMO_OP_SLOT_BOOL}, /* grab edge lengths from a PROP_FLT customdata layer */
-//	 {"use_even", BMO_OP_SLOT_BOOL}, /* corner vert placement: use shell/angle calculations  */
-//	 {"use_dist", BMO_OP_SLOT_BOOL}, /* corner vert placement: evaluate percent as a distance,
-//	                                  * modifier uses this. We could do this as another float setting */
-//	 {"lengthlayer", BMO_OP_SLOT_INT}, /* which PROP_FLT layer to us */
-//	 {"percent", BMO_OP_SLOT_FLT}, /* percentage to expand beveled edge */
-//	 {{'\0'}},
-//	},
 
 	bmo_bevel_exec,
 	BMO_OP_FLAG_UNTAN_MULTIRES

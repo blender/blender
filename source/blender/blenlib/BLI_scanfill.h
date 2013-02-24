@@ -72,7 +72,8 @@ typedef struct ScanFillVert {
 	float xy[2]; /* 2D copy of vertex location (using dominant axis) */
 	unsigned int keyindex; /* original index #, for restoring  key information */
 	short poly_nr;
-	unsigned char f, h;
+	unsigned char edge_tot;  /* number of edges using this vertex */
+	unsigned char f;
 } ScanFillVert;
 
 typedef struct ScanFillEdge {

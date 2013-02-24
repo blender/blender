@@ -521,7 +521,7 @@ static void rna_FieldSettings_shape_update(Main *bmain, Scene *scene, PointerRNA
 		}
 		else {
 			if (!pd || pd->shape != PFIELD_SHAPE_SURFACE)
-				ED_object_modifier_remove(NULL, bmain, scene, ob, md);
+				ED_object_modifier_remove(NULL, bmain, ob, md);
 		}
 
 		WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
@@ -547,7 +547,7 @@ static void rna_FieldSettings_dependency_update(Main *bmain, Scene *scene, Point
 
 		rna_FieldSettings_shape_update(bmain, scene, ptr);
 
-		DAG_scene_sort(bmain, scene);
+		DAG_relations_tag_update(bmain);
 
 		if (ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE)
 			DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
@@ -590,9 +590,9 @@ static void rna_EffectorWeight_update(Main *UNUSED(bmain), Scene *UNUSED(scene),
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 }
 
-static void rna_EffectorWeight_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_EffectorWeight_dependency_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 
 	DAG_id_tag_update((ID *)ptr->id.data, OB_RECALC_DATA | PSYS_RECALC_RESET);
 
@@ -669,7 +669,7 @@ static void rna_CollisionSettings_dependency_update(Main *bmain, Scene *scene, P
 	if (ob->pd->deflect && !md)
 		ED_object_modifier_add(NULL, bmain, scene, ob, NULL, eModifierType_Collision);
 	else if (!ob->pd->deflect && md)
-		ED_object_modifier_remove(NULL, bmain, scene, ob, md);
+		ED_object_modifier_remove(NULL, bmain, ob, md);
 
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
@@ -764,7 +764,7 @@ static void rna_def_pointcache(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "startframe");
 	RNA_def_property_range(prop, -MAXFRAME, MAXFRAME);
-	RNA_def_property_ui_range(prop, -1000, MAXFRAME, 1, 1);
+	RNA_def_property_ui_range(prop, 1, MAXFRAME, 1, 1);
 	RNA_def_property_ui_text(prop, "Start", "Frame on which the simulation starts");
 	
 	prop = RNA_def_property(srna, "frame_end", PROP_INT, PROP_TIME);

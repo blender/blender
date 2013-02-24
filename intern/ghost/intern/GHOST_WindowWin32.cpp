@@ -470,38 +470,22 @@ void GHOST_WindowWin32::getWindowBounds(GHOST_Rect& bounds) const
 void GHOST_WindowWin32::getClientBounds(GHOST_Rect& bounds) const
 {
 	RECT rect;
-	GHOST_TWindowState state = this->getState();
-	LONG_PTR result = ::GetWindowLongPtr(m_hWnd, GWL_STYLE);
-	int sm_cysizeframe = GetSystemMetrics(SM_CYSIZEFRAME);
-	::GetWindowRect(m_hWnd, &rect);
+	POINT coord;
+	::GetClientRect(m_hWnd, &rect);
 
-	if ((result & (WS_POPUP | WS_MAXIMIZE)) != (WS_POPUP | WS_MAXIMIZE)) {
-		if (state == GHOST_kWindowStateMaximized) {
-			// in maximized state we don't have borders on the window
-			bounds.m_b = rect.bottom - GetSystemMetrics(SM_CYCAPTION) - sm_cysizeframe * 2;
-			bounds.m_l = rect.left + sm_cysizeframe;
-			bounds.m_r = rect.right - sm_cysizeframe;
-			bounds.m_t = rect.top;
-		}
-		else if (state == GHOST_kWindowStateEmbedded) {
-			bounds.m_b = rect.bottom;
-			bounds.m_l = rect.left;
-			bounds.m_r = rect.right;
-			bounds.m_t = rect.top;
-		}
-		else {
-			bounds.m_b = rect.bottom - GetSystemMetrics(SM_CYCAPTION) - sm_cysizeframe * 2;
-			bounds.m_l = rect.left;
-			bounds.m_r = rect.right - sm_cysizeframe * 2;
-			bounds.m_t = rect.top;
-		}
-	}
-	else {
-		bounds.m_b = rect.bottom;
-		bounds.m_l = rect.left;
-		bounds.m_r = rect.right;
-		bounds.m_t = rect.top;
-	}
+	coord.x = rect.left;
+	coord.y = rect.top;
+	::ClientToScreen(m_hWnd, &coord);
+
+	bounds.m_l = coord.x;
+	bounds.m_t = coord.y;
+
+	coord.x = rect.right;
+	coord.y = rect.bottom;
+	::ClientToScreen(m_hWnd, &coord);
+
+	bounds.m_r = coord.x;
+	bounds.m_b = coord.y;
 }
 
 
@@ -712,6 +696,7 @@ GHOST_TSuccess GHOST_WindowWin32::initMultisample(PIXELFORMATDESCRIPTOR pfd)
 		WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
 		WGL_COLOR_BITS_ARB, pfd.cColorBits,
 		WGL_DEPTH_BITS_ARB, pfd.cDepthBits,
+		WGL_ALPHA_BITS_ARB, pfd.cAlphaBits,
 		WGL_STENCIL_BITS_ARB, pfd.cStencilBits,
 		WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
 		WGL_SAMPLE_BUFFERS_ARB, GL_TRUE,
@@ -1320,6 +1305,9 @@ static int WeightPixelFormat(PIXELFORMATDESCRIPTOR& pfd)
 	weight += pfd.cDepthBits - 16;
 
 	weight += pfd.cColorBits - 8;
+
+	if (pfd.cAlphaBits > 0)
+		weight ++;
 
 	/* want swap copy capability -- it matters a lot */
 	if (pfd.dwFlags & PFD_SWAP_COPY) weight += 16;

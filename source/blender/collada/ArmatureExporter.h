@@ -70,7 +70,6 @@ public:
 	//void operator()(Object *ob);
 
 private:
-	Scene *scene;
 	UnitConverter converter;
 	const ExportSettings *export_settings;
 

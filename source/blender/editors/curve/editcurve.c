@@ -1395,7 +1395,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 	
 	/* 1. duplicate the object and data */
 	newbase = ED_object_add_duplicate(bmain, scene, oldbase, 0); /* 0 = fully linked */
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 
 	ED_base_object_select(newbase, BA_DESELECT);
 	newob = newbase->object;
@@ -2034,11 +2034,12 @@ static int switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 	EditNurb *editnurb = cu->editnurb;
 	Nurb *nu;
 
-	for (nu = editnurb->nurbs.first; nu; nu = nu->next)
+	for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
 		if (isNurbsel(nu)) {
 			BKE_nurb_direction_switch(nu);
 			keyData_switchDirectionNurb(cu, nu);
 		}
+	}
 
 	if (ED_curve_updateAnimPaths(obedit->data))
 		WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
@@ -2481,10 +2482,11 @@ static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short
 
 /**************** select start/end operators **************/
 
-/* (de)selects first or last of visible part of each Nurb depending on selFirst     */
-/* selFirst: defines the end of which to select					    */
-/* doswap: defines if selection state of each first/last control point is swapped   */
-/* selstatus: selection status in case doswap is false				    */
+/* (de)selects first or last of visible part of each Nurb depending on selFirst
+ * selFirst: defines the end of which to select
+ * doswap: defines if selection state of each first/last control point is swapped
+ * selstatus: selection status in case doswap is false
+ */
 void selectend_nurb(Object *obedit, short selfirst, short doswap, short selstatus)
 {
 	ListBase *editnurb = object_editcurve_get(obedit);
@@ -2558,7 +2560,7 @@ void CURVE_OT_de_select_first(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "(De)select First";
 	ot->idname = "CURVE_OT_de_select_first";
-	ot->description = "(De)select first of visible part of each Nurb";
+	ot->description = "(De)select first of visible part of each NURBS";
 	
 	/* api cfirstbacks */
 	ot->exec = de_select_first_exec;
@@ -2583,7 +2585,7 @@ void CURVE_OT_de_select_last(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "(De)select Last";
 	ot->idname = "CURVE_OT_de_select_last";
-	ot->description = "(De)select last of visible part of each Nurb";
+	ot->description = "(De)select last of visible part of each NURBS";
 	
 	/* api clastbacks */
 	ot->exec = de_select_last_exec;
@@ -6216,7 +6218,7 @@ int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
 	cu = ob->data;
 	BLI_movelisttolist(&cu->nurb, &tempbase);
 	
-	DAG_scene_sort(bmain, scene);   // because we removed object(s), call before editmode!
+	DAG_relations_tag_update(bmain);   // because we removed object(s), call before editmode!
 	
 	ED_object_enter_editmode(C, EM_WAITCURSOR);
 	ED_object_exit_editmode(C, EM_FREEDATA | EM_WAITCURSOR | EM_DO_UNDO);

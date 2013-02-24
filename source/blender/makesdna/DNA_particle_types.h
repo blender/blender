@@ -173,7 +173,8 @@ typedef struct ParticleSettings {
 	/* adaptive path rendering */
 	short adapt_angle, adapt_pix;
 
-	short disp, omat, interpolation, rotfrom, integrator;
+	short disp, omat, interpolation, integrator;
+	short rotfrom DNA_DEPRECATED;
 	short kink, kink_axis;
 
 	/* billboards */
@@ -358,11 +359,6 @@ typedef struct ParticleSystem {
 #define PART_CHILD_GUIDE		(1<<30)
 
 #define PART_SELF_EFFECT	(1<<22)
-
-/* part->rotfrom */
-#define PART_ROT_KEYS		0	/* interpolate directly from keys */
-#define PART_ROT_ZINCR		1	/* same as zdir but done incrementally from previous position */
-#define PART_ROT_IINCR		2	/* same as idir but done incrementally from previous position */
 
 /* part->from */
 #define PART_FROM_VERT		0

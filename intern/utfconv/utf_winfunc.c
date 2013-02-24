@@ -29,7 +29,7 @@
 
 #include "utf_winfunc.h"
 #include <io.h>
-#include <Windows.h>
+#include <windows.h>
 #include <wchar.h>
 
 

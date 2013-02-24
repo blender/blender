@@ -63,7 +63,6 @@ void register_node_type_cmp_glare(bNodeTreeType *ttype)
 
 	node_type_base(ttype, &ntype, CMP_NODE_GLARE, "Glare", NODE_CLASS_OP_FILTER, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_glare_in, cmp_node_glare_out);
-	node_type_size(&ntype, 150, 120, 200);
 	node_type_init(&ntype, node_composit_init_glare);
 	node_type_storage(&ntype, "NodeGlare", node_free_standard_storage, node_copy_standard_storage);
 

@@ -3021,8 +3021,7 @@ void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float 
 	else
 		offset = 0;
 		
-	/* calculate appropriate y-coordinates for icon buttons 
-	 */
+	/* calculate appropriate y-coordinates for icon buttons */
 	y = (ymaxc - yminc) / 2 + yminc;
 	ymid = y - 0.5f * ICON_WIDTH;
 	/* y-coordinates for text is only 4 down from middle */

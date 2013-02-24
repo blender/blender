@@ -50,7 +50,6 @@ void register_node_type_cmp_inpaint(bNodeTreeType *ttype)
 	
 	node_type_base(ttype, &ntype, CMP_NODE_INPAINT, "Inpaint", NODE_CLASS_OP_FILTER, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_inpaint_in, cmp_node_inpaint_out);
-	node_type_size(&ntype, 130, 100, 320);
 
 	nodeRegisterType(ttype, &ntype);
 }

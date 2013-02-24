@@ -97,9 +97,9 @@ public:
 
 	virtual void	AddWheel(
 		PHY_IMotionState*	motionState,
-		PHY__Vector3	connectionPoint,
-		PHY__Vector3	downDirection,
-		PHY__Vector3	axleDirection,
+		MT_Vector3	connectionPoint,
+		MT_Vector3	downDirection,
+		MT_Vector3	axleDirection,
 		float	suspensionRestLength,
 		float wheelRadius,
 		bool hasSteering
@@ -311,20 +311,16 @@ public:
 		return m_controller->getJumpCount();
 	}
 
-	virtual void SetWalkDirection(PHY__Vector3 dir)
+	virtual void SetWalkDirection(const MT_Vector3& dir)
 	{
 		btVector3 vec = btVector3(dir[0], dir[1], dir[2]);
 		m_controller->setWalkDirection(vec);
 	}
 
-	virtual PHY__Vector3 GetWalkDirection()
+	virtual MT_Vector3 GetWalkDirection()
 	{
 		btVector3 vec = m_controller->getWalkDirection();
-		PHY__Vector3 retval;
-		retval[0] = vec[0];
-		retval[1] = vec[1];
-		retval[2] = vec[2];
-		return retval;
+		return MT_Vector3(vec[0], vec[1], vec[2]);
 	}
 };
 
@@ -951,7 +947,7 @@ void		CcdPhysicsEnvironment::setSolverType(int solverType)
 
 
 
-void		CcdPhysicsEnvironment::getGravity(PHY__Vector3& grav)
+void		CcdPhysicsEnvironment::getGravity(MT_Vector3& grav)
 {
 		const btVector3& gravity = m_dynamicsWorld->getGravity();
 		grav[0] = gravity.getX();
@@ -1851,7 +1847,7 @@ struct	DbvtCullingCallback : btDbvt::ICollide
 };
 
 static OcclusionBuffer gOcb;
-bool CcdPhysicsEnvironment::cullingTest(PHY_CullingCallback callback, void* userData, PHY__Vector4 *planes, int nplanes, int occlusionRes, const int *viewport, double modelview[16], double projection[16])
+bool CcdPhysicsEnvironment::cullingTest(PHY_CullingCallback callback, void* userData, MT_Vector4 *planes, int nplanes, int occlusionRes, const int *viewport, double modelview[16], double projection[16])
 {
 	if (!m_cullingTree)
 		return false;
@@ -2362,7 +2358,7 @@ int numController = 0;
 
 
 
-PHY_IPhysicsController*	CcdPhysicsEnvironment::CreateSphereController(float radius,const PHY__Vector3& position)
+PHY_IPhysicsController*	CcdPhysicsEnvironment::CreateSphereController(float radius,const MT_Vector3& position)
 {
 	
 	CcdConstructionInfo	cinfo;

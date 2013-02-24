@@ -446,7 +446,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 		glClear(GL_COLOR_BUFFER_BIT);
 		
 		UI_ThemeColor(TH_TEXT);
-		BLF_draw_default(20, 8, 0.0f, ar->headerstr, BLF_DRAW_STR_DUMMY_MAX);
+		BLF_draw_default(UI_UNIT_X, 0.4f * UI_UNIT_Y, 0.0f, ar->headerstr, BLF_DRAW_STR_DUMMY_MAX);
 	}
 	else if (at->draw) {
 		at->draw(C, ar);
@@ -1965,11 +1965,13 @@ void ED_region_visible_rect(ARegion *ar, rcti *rect)
 	for (; arn; arn = arn->next) {
 		if (ar != arn && arn->overlap) {
 			if (BLI_rcti_isect(rect, &arn->winrct, NULL)) {
-				/* overlap left */
-				if (rect->xmin == arn->winrct.xmin)
+				
+				/* overlap left, also check 1 pixel offset (2 regions on one side) */
+				if ( ABS(rect->xmin - arn->winrct.xmin) < 2)
 					rect->xmin = arn->winrct.xmax;
+
 				/* overlap right */
-				if (rect->xmax == arn->winrct.xmax)
+				if ( ABS(rect->xmax - arn->winrct.xmax) < 2)
 					rect->xmax = arn->winrct.xmin;
 			}
 		}

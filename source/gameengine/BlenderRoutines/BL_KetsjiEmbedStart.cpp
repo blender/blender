@@ -438,7 +438,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				ketsjiengine->SetCameraOverrideViewMatrix(MT_CmMatrix4x4(rv3d->viewmat));
 				if (rv3d->persp == RV3D_ORTHO)
 				{
-					ketsjiengine->SetCameraOverrideClipping(-v3d->far, v3d->far);
+					ketsjiengine->SetCameraOverrideClipping(v3d->near, v3d->far);
 				}
 				else
 				{

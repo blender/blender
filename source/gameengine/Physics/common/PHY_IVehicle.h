@@ -22,9 +22,9 @@ public:
 	
 	virtual void	AddWheel(
 			PHY_IMotionState* motionState,
-			PHY__Vector3	connectionPoint,
-			PHY__Vector3	downDirection,
-			PHY__Vector3	axleDirection,
+			MT_Vector3	connectionPoint,
+			MT_Vector3	downDirection,
+			MT_Vector3	axleDirection,
 			float	suspensionRestLength,
 			float wheelRadius,
 			bool hasSteering

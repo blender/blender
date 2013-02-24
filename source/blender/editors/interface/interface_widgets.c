@@ -1804,7 +1804,7 @@ static void widget_state_menu_item(uiWidgetType *wt, int state)
 	}
 	/* regular disabled */
 	else if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
-		widget_state_blend(wt->wcol.text, wt->wcol.text_sel, 0.5f);
+		widget_state_blend(wt->wcol.text, wt->wcol.inner, 0.5f);
 	}
 	/* regular active */
 	else if (state & UI_ACTIVE) {

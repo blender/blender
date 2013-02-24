@@ -1070,21 +1070,13 @@ void FONT_OT_change_character(wmOperatorType *ot)
 
 /******************* line break operator ********************/
 
-static int line_break_exec(bContext *C, wmOperator *op)
+static int line_break_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Curve *cu = obedit->data;
-	EditFont *ef = cu->editfont;
-	const int ctrl = RNA_boolean_get(op->ptr, "ctrl");
 
-	if (ctrl) {
-		insert_into_textbuf(obedit, 1);
-		if (ef->textbuf[cu->pos] != '\n')
-			insert_into_textbuf(obedit, '\n');
-	}
-	else
-		insert_into_textbuf(obedit, '\n');
+	insert_into_textbuf(obedit, '\n');
 
 	cu->selstart = cu->selend = 0;
 
@@ -1106,9 +1098,6 @@ void FONT_OT_line_break(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	/* properties */
-	RNA_def_boolean(ot->srna, "ctrl", 0, "Ctrl", ""); // XXX what is this?
 }
 
 /******************* delete operator **********************/

@@ -39,6 +39,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -1805,7 +1806,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			/* draw vertical steps */
 			if (dfac > 0.0f) {
 				
-				BLF_rotation_default(90.0f);
+				BLF_rotation_default(M_PI / 2);
 				BLF_enable_default(BLF_ROTATION);
 
 				for (; fac < vert.ymax - 10; fac += dfac, val += grid->dy) {

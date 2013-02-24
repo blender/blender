@@ -3858,18 +3858,14 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 
 /* cursor position in vec, result in vec, mval in region coords */
 /* note: cannot use event->mval here (called by object_add() */
-void ED_view3d_cursor3d_position(bContext *C, float *fp, int mx, int my)
+void ED_view3d_cursor3d_position(bContext *C, float fp[3], const int mval[2])
 {
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	float mval_fl[2];
-	int mval[2];
 	int flip;
-
-	mval[0] = mx - ar->winrct.xmin;
-	mval[1] = my - ar->winrct.ymin;
 	
 	flip = initgrabz(rv3d, fp[0], fp[1], fp[2]);
 	
@@ -3917,7 +3913,7 @@ static int view3d_cursor3d_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *
 	View3D *v3d = CTX_wm_view3d(C);
 	float *fp = give_cursor(scene, v3d);
 
-	ED_view3d_cursor3d_position(C, fp, event->x, event->y);
+	ED_view3d_cursor3d_position(C, fp, event->mval);
 	
 	if (v3d && v3d->localvd)
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);

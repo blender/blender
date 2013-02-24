@@ -494,18 +494,6 @@ void RNA_def_world(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-#if 0
-	static EnumPropertyItem physics_engine_items[] = {
-		{WOPHY_NONE, "NONE", 0, "None", ""},
-		/*{WOPHY_ENJI, "ENJI", 0, "Enji", ""}, */
-		/*{WOPHY_SUMO, "SUMO", 0, "Sumo (Deprecated)", ""}, */
-		/*{WOPHY_DYNAMO, "DYNAMO", 0, "Dynamo", ""}, */
-		/*{WOPHY_ODE, "ODE", 0, "ODE", ""}, */
-		{WOPHY_BULLET, "BULLET", 0, "Bullet", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-#endif
-
 	srna = RNA_def_struct(brna, "World", "ID");
 	RNA_def_struct_ui_text(srna, "World",
 	                       "World datablock describing the environment and ambient lighting of a scene");

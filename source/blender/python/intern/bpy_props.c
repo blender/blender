@@ -2796,12 +2796,17 @@ static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject
 }
 
 PyDoc_STRVAR(BPy_RemoveProperty_doc,
-".. function:: RemoveProperty(attr)\n"
+".. function:: RemoveProperty(cls, attr="")\n"
 "\n"
 "   Removes a dynamically defined property.\n"
 "\n"
-"   :arg attr: Property name.\n"
+"   :arg cls: The class containing the property (must be a positional argument).\n"
+"   :type cls: type\n"
+"   :arg attr: Property name (must be passed as a keyword).\n"
 "   :type attr: string\n"
+"\n"
+".. note:: Typically this function doesn't need to be accessed directly.\n"
+"   Instead use ``del cls.attr``\n"
 );
 static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
@@ -2816,7 +2821,7 @@ static PyObject *BPy_RemoveProperty(PyObject *self, PyObject *args, PyObject *kw
 		return ret;
 	}
 	else if (PyTuple_GET_SIZE(args) > 1) {
-		PyErr_SetString(PyExc_ValueError, "all args must be keywords");
+		PyErr_SetString(PyExc_ValueError, "expected one positional arg, one keyword arg");
 		return NULL;
 	}
 

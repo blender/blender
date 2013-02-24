@@ -613,19 +613,14 @@ static bool ConvertMaterial(
 					material->flag[i] |= ( mat->game.alpha_blend & GEMAT_ALPHA )?USEALPHA:0;
 					material->flag[i] |= ( mat->game.alpha_blend & GEMAT_ADD )?CALCALPHA:0;
 
-					if (material->img[i]->flag & IMA_REFLECT)
+					if (material->img[i]->flag & IMA_REFLECT) {
 						material->mapping[i].mapping |= USEREFL;
-					else
-					{
-						mttmp = getImageFromMaterial( mat, i );
-						if (mttmp && mttmp->texco &TEXCO_UV)
-						{
-							STR_String uvName = mttmp->uvname;
-
-							if (!uvName.IsEmpty())
-								material->mapping[i].uvCoName = mttmp->uvname;
-							else
-								material->mapping[i].uvCoName = "";
+					}
+					else {
+						mttmp = getMTexFromMaterial(mat, i);
+						if (mttmp && (mttmp->texco & TEXCO_UV)) {
+							/* string may be "" but thats detected as empty after */
+							material->mapping[i].uvCoName = mttmp->uvname;
 						}
 						material->mapping[i].mapping |= USEUV;
 					}
@@ -639,9 +634,9 @@ static bool ConvertMaterial(
 				continue;
 			}
 
-			mttmp = getImageFromMaterial( mat, i );
-			if ( mttmp ) {
-				if ( mttmp->tex ) {
+			mttmp = getMTexFromMaterial(mat, i);
+			if (mttmp) {
+				if (mttmp->tex) {
 					if ( mttmp->tex->type == TEX_IMAGE ) {
 						material->mtexname[i] = mttmp->tex->id.name;
 						material->img[i] = mttmp->tex->ima;
@@ -691,44 +686,44 @@ static bool ConvertMaterial(
 #endif
 					/// --------------------------------
 					// mapping methods
-					material->mapping[i].mapping |= ( mttmp->texco  & TEXCO_REFL	)?USEREFL:0;
-					
-					if (mttmp->texco & TEXCO_OBJECT) {
-						material->mapping[i].mapping |= USEOBJ;
-						if (mttmp->object)
-							material->mapping[i].objconame = mttmp->object->id.name;
-					}
-					else if (mttmp->texco &TEXCO_REFL)
-						material->mapping[i].mapping |= USEREFL;
-					else if (mttmp->texco &(TEXCO_ORCO|TEXCO_GLOB))
-						material->mapping[i].mapping |= USEORCO;
-					else if (mttmp->texco &TEXCO_UV)
-					{
-						STR_String uvName = mttmp->uvname;
+					if (mat->septex & (1 << i)) {
+						// If this texture slot isn't in use, set it to disabled to prevent multi-uv problems
+						material->mapping[i].mapping = DISABLE;
+					} else {
+						material->mapping[i].mapping |= ( mttmp->texco  & TEXCO_REFL	)?USEREFL:0;
 
-						if (!uvName.IsEmpty())
+						if (mttmp->texco & TEXCO_OBJECT) {
+							material->mapping[i].mapping |= USEOBJ;
+							if (mttmp->object)
+								material->mapping[i].objconame = mttmp->object->id.name;
+						}
+						else if (mttmp->texco &TEXCO_REFL)
+							material->mapping[i].mapping |= USEREFL;
+						else if (mttmp->texco &(TEXCO_ORCO|TEXCO_GLOB))
+							material->mapping[i].mapping |= USEORCO;
+						else if (mttmp->texco & TEXCO_UV) {
+							/* string may be "" but thats detected as empty after */
 							material->mapping[i].uvCoName = mttmp->uvname;
+							material->mapping[i].mapping |= USEUV;
+						}
+						else if (mttmp->texco &TEXCO_NORM)
+							material->mapping[i].mapping |= USENORM;
+						else if (mttmp->texco &TEXCO_TANGENT)
+							material->mapping[i].mapping |= USETANG;
 						else
-							material->mapping[i].uvCoName = "";
-						material->mapping[i].mapping |= USEUV;
-					}
-					else if (mttmp->texco &TEXCO_NORM)
-						material->mapping[i].mapping |= USENORM;
-					else if (mttmp->texco &TEXCO_TANGENT)
-						material->mapping[i].mapping |= USETANG;
-					else
-						material->mapping[i].mapping |= DISABLE;
-					
-					material->mapping[i].scale[0] = mttmp->size[0];
-					material->mapping[i].scale[1] = mttmp->size[1];
-					material->mapping[i].scale[2] = mttmp->size[2];
-					material->mapping[i].offsets[0] = mttmp->ofs[0];
-					material->mapping[i].offsets[1] = mttmp->ofs[1];
-					material->mapping[i].offsets[2] = mttmp->ofs[2];
+							material->mapping[i].mapping |= DISABLE;
 
-					material->mapping[i].projplane[0] = mttmp->projx;
-					material->mapping[i].projplane[1] = mttmp->projy;
-					material->mapping[i].projplane[2] = mttmp->projz;
+						material->mapping[i].scale[0] = mttmp->size[0];
+						material->mapping[i].scale[1] = mttmp->size[1];
+						material->mapping[i].scale[2] = mttmp->size[2];
+						material->mapping[i].offsets[0] = mttmp->ofs[0];
+						material->mapping[i].offsets[1] = mttmp->ofs[1];
+						material->mapping[i].offsets[2] = mttmp->ofs[2];
+
+						material->mapping[i].projplane[0] = mttmp->projx;
+						material->mapping[i].projplane[1] = mttmp->projy;
+						material->mapping[i].projplane[2] = mttmp->projz;
+					}
 					/// --------------------------------
 					
 					switch (mttmp->blendtype) {
@@ -1123,6 +1118,16 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 	MT_Point3 pt[4];
 	MT_Vector3 no[4];
 	MT_Vector4 tan[4];
+
+	/* ugh, if there is a less annoying way to do this please use that.
+	 * since these are converted from floats to floats, theres no real
+	 * advantage to use MT_ types - campbell */
+	for (unsigned int i = 0; i < 4; i++) {
+		const float zero_vec[4] = {0.0f};
+		pt[i].setValue(zero_vec);
+		no[i].setValue(zero_vec);
+		tan[i].setValue(zero_vec);
+	}
 
 	for (int f=0;f<totface;f++,mface++)
 	{
@@ -2232,8 +2237,6 @@ static void bl_ConvertBlenderObject_Single(
 	gameobj->NodeSetLocalOrientation(rotation);
 	gameobj->NodeSetLocalScale(scale);
 	gameobj->NodeUpdateGS(0);
-
-	BL_ConvertMaterialIpos(blenderobject, gameobj, converter);
 
 	sumolist->Add(gameobj->AddRef());
 

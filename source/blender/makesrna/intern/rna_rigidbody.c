@@ -72,6 +72,7 @@ EnumPropertyItem rigidbody_con_type_items[] = {
 	{RBC_TYPE_6DOF, "GENERIC", ICON_NONE, "Generic", "Restrict translation and rotation to specified axes"},
 	{RBC_TYPE_6DOF_SPRING, "GENERIC_SPRING", ICON_NONE, "Generic Spring",
 	                       "Restrict translation and rotation to specified axes with springs"},
+	{RBC_TYPE_MOTOR, "MOTOR", ICON_NONE, "Motor", "Drive rigid body around or along an axis"},
 	{0, NULL, 0, NULL, NULL}};
 
 
@@ -501,6 +502,85 @@ static void rna_RigidBodyCon_spring_damping_z_set(PointerRNA *ptr, float value)
 #endif
 }
 
+static void rna_RigidBodyCon_motor_lin_max_impulse_set(PointerRNA *ptr, float value)
+{
+	RigidBodyCon *rbc = (RigidBodyCon *)ptr->data;
+
+	rbc->motor_lin_max_impulse = value;
+
+#ifdef WITH_BULLET
+	if (rbc->physics_constraint && rbc->type == RBC_TYPE_MOTOR) {
+		RB_constraint_set_max_impulse_motor(rbc->physics_constraint, value, rbc->motor_ang_max_impulse);
+	}
+#endif
+}
+
+static void rna_RigidBodyCon_use_motor_lin_set(PointerRNA *ptr, int value)
+{
+	RigidBodyCon *rbc = (RigidBodyCon *)ptr->data;
+
+	RB_FLAG_SET(rbc->flag, value, RBC_FLAG_USE_MOTOR_LIN);
+
+#ifdef WITH_BULLET
+	if (rbc->physics_constraint) {
+		RB_constraint_set_enable_motor(rbc->physics_constraint, rbc->flag & RBC_FLAG_USE_MOTOR_LIN, rbc->flag & RBC_FLAG_USE_MOTOR_ANG);
+	}
+#endif
+}
+
+static void rna_RigidBodyCon_use_motor_ang_set(PointerRNA *ptr, int value)
+{
+	RigidBodyCon *rbc = (RigidBodyCon *)ptr->data;
+
+	RB_FLAG_SET(rbc->flag, value, RBC_FLAG_USE_MOTOR_ANG);
+
+#ifdef WITH_BULLET
+	if (rbc->physics_constraint) {
+		RB_constraint_set_enable_motor(rbc->physics_constraint, rbc->flag & RBC_FLAG_USE_MOTOR_LIN, rbc->flag & RBC_FLAG_USE_MOTOR_ANG);
+	}
+#endif
+}
+
+static void rna_RigidBodyCon_motor_lin_target_velocity_set(PointerRNA *ptr, float value)
+{
+	RigidBodyCon *rbc = (RigidBodyCon *)ptr->data;
+
+	rbc->motor_lin_target_velocity = value;
+
+#ifdef WITH_BULLET
+	if (rbc->physics_constraint && rbc->type == RBC_TYPE_MOTOR) {
+		RB_constraint_set_target_velocity_motor(rbc->physics_constraint, value, rbc->motor_ang_target_velocity);
+	}
+#endif
+}
+
+static void rna_RigidBodyCon_motor_ang_max_impulse_set(PointerRNA *ptr, float value)
+{
+	RigidBodyCon *rbc = (RigidBodyCon *)ptr->data;
+
+	rbc->motor_ang_max_impulse = value;
+
+#ifdef WITH_BULLET
+	if (rbc->physics_constraint && rbc->type == RBC_TYPE_MOTOR) {
+		RB_constraint_set_max_impulse_motor(rbc->physics_constraint, rbc->motor_lin_max_impulse, value);
+	}
+#endif
+}
+
+static void rna_RigidBodyCon_motor_ang_target_velocity_set(PointerRNA *ptr, float value)
+{
+	RigidBodyCon *rbc = (RigidBodyCon *)ptr->data;
+
+	rbc->motor_ang_target_velocity = value;
+
+#ifdef WITH_BULLET
+	if (rbc->physics_constraint && rbc->type == RBC_TYPE_MOTOR) {
+		RB_constraint_set_target_velocity_motor(rbc->physics_constraint, rbc->motor_lin_target_velocity, value);
+	}
+#endif
+}
+
+
 #else
 
 static void rna_def_rigidbody_world(BlenderRNA *brna)
@@ -866,6 +946,18 @@ static void rna_def_rigidbody_constraint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Z Spring", "Enable spring on Z axis");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
 
+	prop = RNA_def_property(srna, "use_motor_lin", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", RBC_FLAG_USE_MOTOR_LIN);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_RigidBodyCon_use_motor_lin_set");
+	RNA_def_property_ui_text(prop, "Linear Motor", "Enables linear motor");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "use_motor_ang", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", RBC_FLAG_USE_MOTOR_ANG);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_RigidBodyCon_use_motor_ang_set");
+	RNA_def_property_ui_text(prop, "Angular Motor", "Enables angular motor");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
+
 	prop = RNA_def_property(srna, "limit_lin_x_lower", PROP_FLOAT, PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "limit_lin_x_lower");
 	RNA_def_property_float_default(prop, -1.0f);
@@ -993,6 +1085,42 @@ static void rna_def_rigidbody_constraint(BlenderRNA *brna)
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_float_funcs(prop, NULL, "rna_RigidBodyCon_spring_damping_z_set", NULL);
 	RNA_def_property_ui_text(prop, "Damping Z", "Damping on the Z axis");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "motor_lin_target_velocity", PROP_FLOAT, PROP_UNIT_VELOCITY);
+	RNA_def_property_float_sdna(prop, NULL, "motor_lin_target_velocity");
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+	RNA_def_property_ui_range(prop, -100.0f, 100.0f, 1, 3);
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_float_funcs(prop, NULL, "rna_RigidBodyCon_motor_lin_target_velocity_set", NULL);
+	RNA_def_property_ui_text(prop, "Target Velocity", "Target linear motor velocity");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "motor_lin_max_impulse", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "motor_lin_max_impulse");
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_float_funcs(prop, NULL, "rna_RigidBodyCon_motor_lin_max_impulse_set", NULL);
+	RNA_def_property_ui_text(prop, "Max Impulse", "Maximum linear motor impulse");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "motor_ang_target_velocity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "motor_ang_target_velocity");
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+	RNA_def_property_ui_range(prop, -100.0f, 100.0f, 1, 3);
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_float_funcs(prop, NULL, "rna_RigidBodyCon_motor_ang_target_velocity_set", NULL);
+	RNA_def_property_ui_text(prop, "Target Velocity", "Target angular motor velocity");
+	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
+
+	prop = RNA_def_property(srna, "motor_ang_max_impulse", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "motor_ang_max_impulse");
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_float_funcs(prop, NULL, "rna_RigidBodyCon_motor_ang_max_impulse_set", NULL);
+	RNA_def_property_ui_text(prop, "Max Impulse", "Maximum angular motor impulse");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
 }
 

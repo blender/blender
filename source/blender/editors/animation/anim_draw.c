@@ -399,20 +399,23 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short rest
 static short bezt_unit_mapping_apply(KeyframeEditData *ked, BezTriple *bezt)
 {
 	/* mapping factor is stored in f1, flags are stored in i1 */
-	short only_keys = (ked->i1 & ANIM_UNITCONV_ONLYKEYS);
-	short sel_vs = (ked->i1 & ANIM_UNITCONV_SELVERTS);
+	const bool only_keys = (ked->i1 & ANIM_UNITCONV_ONLYKEYS);
+	const bool sel_vs = (ked->i1 & ANIM_UNITCONV_SELVERTS);
+	const bool skip_knot = (ked->i1 & ANIM_UNITCONV_SKIPKNOTS);
 	float fac = ked->f1;
 	
 	/* adjust BezTriple handles only if allowed to */
-	if (only_keys == 0) {
-		if ((sel_vs == 0) || (bezt->f1 & SELECT))
+	if (only_keys == false) {
+		if ((sel_vs == false) || (bezt->f1 & SELECT))
 			bezt->vec[0][1] *= fac;
-		if ((sel_vs == 0) || (bezt->f3 & SELECT))
+		if ((sel_vs == false) || (bezt->f3 & SELECT))
 			bezt->vec[2][1] *= fac;
 	}
 	
-	if ((sel_vs == 0) || (bezt->f2 & SELECT))
-		bezt->vec[1][1] *= fac;
+	if (skip_knot == false) {
+		if ((sel_vs == false) || (bezt->f2 & SELECT))
+			bezt->vec[1][1] *= fac;
+	}
 	
 	return 0;
 }

@@ -837,7 +837,6 @@ DagForest *build_dag(Main *bmain, Scene *sce, short mask)
 	DagAdjList *itA;
 
 	dag = sce->theDag;
-	sce->dagisvalid = 1;
 	if (dag)
 		free_forest(dag);
 	else {
@@ -1846,8 +1845,18 @@ static void scene_sort_groups(Main *bmain, Scene *sce)
 	}
 }
 
+/* free the depency graph */
+static void dag_scene_free(Scene *sce)
+{
+	if (sce->theDag) {
+		free_forest(sce->theDag);
+		MEM_freeN(sce->theDag);
+		sce->theDag = NULL;
+	}
+}
+
 /* sort the base list on dependency order */
-void DAG_scene_sort(Main *bmain, Scene *sce)
+static void dag_scene_build(Main *bmain, Scene *sce)
 {
 	DagNode *node, *rootnode;
 	DagNodeQueue *nqueue;
@@ -1856,7 +1865,7 @@ void DAG_scene_sort(Main *bmain, Scene *sce)
 	int skip = 0;
 	ListBase tempbase;
 	Base *base;
-	
+
 	tempbase.first = tempbase.last = NULL;
 	
 	build_dag(bmain, sce, DAG_RL_ALL_BUT_DATA);
@@ -1936,8 +1945,32 @@ void DAG_scene_sort(Main *bmain, Scene *sce)
 			printf(" %s\n", base->object->id.name);
 		}
 	}
+
 	/* temporal...? */
 	sce->recalc |= SCE_PRV_CHANGED; /* test for 3d preview */
+}
+
+/* clear all dependency graphs */
+void DAG_relations_tag_update(Main *bmain)
+{
+	Scene *sce;
+
+	for (sce = bmain->scene.first; sce; sce = sce->id.next)
+		dag_scene_free(sce);
+}
+
+/* rebuild dependency graph only for a given scene */
+void DAG_scene_relations_rebuild(Main *bmain, Scene *sce)
+{
+	dag_scene_free(sce);
+	DAG_scene_relations_update(bmain, sce);
+}
+
+/* create dependency graph if it was cleared or didn't exist yet */
+void DAG_scene_relations_update(Main *bmain, Scene *sce)
+{
+	if (!sce->theDag)
+		dag_scene_build(bmain, sce);
 }
 
 static void lib_id_recalc_tag(Main *bmain, ID *id)
@@ -2177,7 +2210,7 @@ void DAG_scene_flush_update(Main *bmain, Scene *sce, unsigned int lay, const sho
 	
 	if (sce->theDag == NULL) {
 		printf("DAG zero... not allowed to happen!\n");
-		DAG_scene_sort(bmain, sce);
+		DAG_scene_relations_update(bmain, sce);
 	}
 	
 	firstnode = sce->theDag->DagNode.first;  /* always scene node */
@@ -2545,20 +2578,6 @@ static void dag_current_scene_layers(Main *bmain, ListBase *lb)
 	}
 }
 
-void DAG_ids_flush_update(Main *bmain, int time)
-{
-	ListBase listbase;
-	DagSceneLayer *dsl;
-	
-	/* get list of visible scenes and layers */
-	dag_current_scene_layers(bmain, &listbase);
-
-	for (dsl = listbase.first; dsl; dsl = dsl->next)
-		DAG_scene_flush_update(bmain, dsl->scene, dsl->layer, time);
-	
-	BLI_freelistN(&listbase);
-}
-
 void DAG_on_visible_update(Main *bmain, const short do_time)
 {
 	ListBase listbase;
@@ -2895,12 +2914,10 @@ void DAG_ids_clear_recalc(Main *bmain)
 	memset(bmain->id_tag_update, 0, sizeof(bmain->id_tag_update));
 }
 
-void DAG_id_tag_update(ID *id, short flag)
+void DAG_id_tag_update_ex(Main *bmain, ID *id, short flag)
 {
-	Main *bmain = G.main;
-
 	if (id == NULL) return;
-	
+
 	/* tag ID for update */
 	if (flag) {
 		if (flag & OB_RECALC_OB)
@@ -2953,6 +2970,11 @@ void DAG_id_tag_update(ID *id, short flag)
 			/* BLI_assert(!"invalid flag for this 'idtype'"); */
 		}
 	}
+}
+
+void DAG_id_tag_update(ID *id, short flag)
+{
+	DAG_id_tag_update_ex(G.main, id, flag);
 }
 
 void DAG_id_type_tag(Main *bmain, short idtype)
@@ -3169,7 +3191,7 @@ void DAG_print_dependencies(Main *bmain, Scene *scene, Object *ob)
 	}
 	else {
 		printf("\nDEPENDENCY RELATIONS for %s\n\n", scene->id.name + 2);
-		DAG_scene_sort(bmain, scene);
+		DAG_scene_relations_rebuild(bmain, scene);
 	}
 	
 	dag_print_dependencies = 0;

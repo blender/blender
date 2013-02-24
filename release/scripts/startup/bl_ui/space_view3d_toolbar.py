@@ -264,6 +264,8 @@ class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
         col.operator("curve.cyclic_toggle")
         col.operator("curve.switch_direction")
         col.operator("curve.spline_type_set")
+        col.operator("curve.radius_set")
+        col.operator("curve.smooth_radius")
 
         col = layout.column(align=True)
         col.label(text="Handles:")
@@ -278,6 +280,7 @@ class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
         col.label(text="Modeling:")
         col.operator("curve.extrude_move", text="Extrude")
         col.operator("curve.subdivide")
+        col.operator("curve.smooth")
 
         draw_repeat_tools(context, layout)
 
@@ -1054,6 +1057,11 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
 
         col.prop(wpaint, "input_samples")
 
+        col.label("Show Zero Weights:")
+        rowsub = col.row()
+        rowsub.active = (not tool_settings.use_multipaint)
+        rowsub.prop(tool_settings, "vertex_group_user", expand=True)
+
         self.unified_paint_settings(col, context)
 
 # Commented out because the Apply button isn't an operator yet, making these settings useless
@@ -1222,7 +1230,7 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, Panel):
         if pe.type == 'PARTICLES':
             if ob.particle_systems:
                 if len(ob.particle_systems) > 1:
-                    layout.template_list("UI_UL_list", "", ob, "particle_systems",
+                    layout.template_list("UI_UL_list", "particle_systems", ob, "particle_systems",
                                          ob.particle_systems, "active_index", rows=2, maxrows=3)
 
                 ptcache = ob.particle_systems.active.point_cache
@@ -1232,8 +1240,8 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, Panel):
                     ptcache = md.point_cache
 
         if ptcache and len(ptcache.point_caches) > 1:
-            layout.template_list("UI_UL_list", "", ptcache, "point_caches", ptcache.point_caches, "active_index",
-                                 rows=2, maxrows=3)
+            layout.template_list("UI_UL_list", "particles_point_caches", ptcache, "point_caches",
+                                 ptcache.point_caches, "active_index", rows=2, maxrows=3)
 
         if not pe.is_editable:
             layout.label(text="Point cache must be baked")

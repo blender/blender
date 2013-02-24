@@ -54,6 +54,9 @@
 
 #define FREEWORD MAKE_ID('f', 'r', 'e', 'e')
 
+/* currently totalloc isnt used */
+// #define USE_TOTALLOC
+
 typedef struct BLI_freenode {
 	struct BLI_freenode *next;
 	int freeword; /* used to identify this as a freed node */
@@ -110,6 +113,7 @@ BLI_mempool *BLI_mempool_create(int esize, int totelem, int pchunk, int flag)
 	pool->pchunk = pchunk;
 	pool->csize = esize * pchunk;
 	pool->chunks.first = pool->chunks.last = NULL;
+	pool->totalloc = 0;
 	pool->totused = 0;
 
 	maxchunks = totelem / pchunk + 1;
@@ -159,10 +163,11 @@ BLI_mempool *BLI_mempool_create(int esize, int totelem, int pchunk, int flag)
 			}
 		}
 
-		/* set the end of this chunks memoryy to the new tail for next iteration */
+		/* set the end of this chunks memory to the new tail for next iteration */
 		lasttail = curnode;
-
+#ifdef USE_TOTALLOC
 		pool->totalloc += pool->pchunk;
+#endif
 	}
 	/* terminate the list */
 	curnode->next = NULL;
@@ -213,8 +218,9 @@ void *BLI_mempool_alloc(BLI_mempool *pool)
 			}
 		}
 		curnode->next = NULL; /* terminate the list */
-
+#ifdef USE_TOTALLOC
 		pool->totalloc += pool->pchunk;
+#endif
 	}
 
 	retval = pool->free;
@@ -282,7 +288,9 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 		}
 
 		BLI_addtail(&pool->chunks, first);
+#ifdef USE_TOTALLOC
 		pool->totalloc = pool->pchunk;
+#endif
 
 		pool->free = first->data; /* start of the list */
 		for (tmpaddr = first->data, i = 0; i < pool->pchunk; i++) {

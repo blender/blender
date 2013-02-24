@@ -37,6 +37,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_modifier.h"
 #include "BKE_report.h"
@@ -411,10 +413,8 @@ static int ringcut_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 		lcd->eed = edge;
 		ringsel_find_edge(lcd, 1);
 	}
-	ED_area_headerprint(sa,
-	                    "Select a ring to be cut, "
-	                    "use mouse-wheel or page-up/down for number of cuts, "
-	                    "Hold Alt for smooth");
+	ED_area_headerprint(sa, IFACE_("Select a ring to be cut, use mouse-wheel or page-up/down for number of cuts, "
+	                               "hold Alt for smooth"));
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -543,7 +543,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, wmEvent *event)
 	
 	if (show_cuts) {
 		char buf[64];
-		BLI_snprintf(buf, sizeof(buf), "Number of Cuts: %d, Smooth: %.2f (Alt)", cuts, smoothness);
+		BLI_snprintf(buf, sizeof(buf), IFACE_("Number of Cuts: %d, Smooth: %.2f (Alt)"), cuts, smoothness);
 		ED_area_headerprint(CTX_wm_area(C), buf);
 	}
 	

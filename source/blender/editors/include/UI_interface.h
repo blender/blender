@@ -361,7 +361,7 @@ void uiPupMenuInvoke(struct bContext *C, const char *idname); /* popup registere
  * but allow using all button types and creating an own layout. */
 
 typedef uiBlock * (*uiBlockCreateFunc)(struct bContext *C, struct ARegion *ar, void *arg1);
-typedef void (*uiBlockCancelFunc)(void *arg1);
+typedef void (*uiBlockCancelFunc)(struct bContext *C, void *arg1);
 
 void uiPupBlock(struct bContext *C, uiBlockCreateFunc func, void *arg);
 void uiPupBlockO(struct bContext *C, uiBlockCreateFunc func, void *arg, const char *opname, int opcontext);
@@ -437,6 +437,7 @@ void    uiButSetDragValue(uiBut *but);
 void    uiButSetDragImage(uiBut *but, const char *path, int icon, struct ImBuf *ima, float scale);
 
 int     UI_but_active_drop_name(struct bContext *C);
+struct uiBut  *ui_but_find_mouse_over(struct ARegion *ar, int x, int y);
 
 void    uiButSetFlag(uiBut *but, int flag);
 void    uiButClearFlag(uiBut *but, int flag);
@@ -446,6 +447,8 @@ void    uiButClearDrawFlag(uiBut *but, int flag);
 
 /* special button case, only draw it when used actively, for outliner etc */
 int     uiButActiveOnly(const struct bContext *C, uiBlock *block, uiBut *but);
+
+void    uiButExecute(const struct bContext *C, uiBut *but);
 
 
 /* Buttons
@@ -832,6 +835,8 @@ void uiTemplateTextureImage(uiLayout *layout, struct bContext *C, struct Tex *te
 void uiTemplateReportsBanner(uiLayout *layout, struct bContext *C);
 void uiTemplateKeymapItemProperties(uiLayout *layout, struct PointerRNA *ptr);
 
+/* Default UIList class name, keep in sync with its declaration in bl_ui/__init__.py */
+#define UI_UL_DEFAULT_CLASS_NAME "UI_UL_list"
 void uiTemplateList(uiLayout *layout, struct bContext *C, const char *listtype_name, const char *list_id,
                     struct PointerRNA *dataptr, const char *propname, struct PointerRNA *active_dataptr,
                     const char *active_propname, int rows, int maxrows, int layout_type);

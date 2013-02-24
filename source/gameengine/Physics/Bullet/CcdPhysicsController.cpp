@@ -24,7 +24,6 @@ subject to the following restrictions:
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionDispatch/btGhostObject.h"
 #include "BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.h"
-#include "BulletCollision/Gimpact/btCompoundFromGimpact.h"
 #include "BulletCollision/CollisionShapes/btTriangleIndexVertexArray.h"
 
 #include "PHY_IMotionState.h"
@@ -33,10 +32,9 @@ subject to the following restrictions:
 #include "KX_GameObject.h"
 
 #include "BulletSoftBody/btSoftBody.h"
-#include "BulletSoftBody//btSoftBodyInternals.h"
+#include "BulletSoftBody/btSoftBodyInternals.h"
 #include "BulletSoftBody/btSoftBodyHelpers.h"
 #include "LinearMath/btConvexHull.h"
-#include "BulletCollision/Gimpact/btGImpactShape.h"
 #include "BulletCollision/Gimpact/btGImpactShape.h"
 
 
@@ -1092,7 +1090,7 @@ void		CcdPhysicsController::resolveCombinedVelocities(float linvelX,float linvel
 {
 }
 
-void 		CcdPhysicsController::getPosition(PHY__Vector3&	pos) const
+void 		CcdPhysicsController::getPosition(MT_Vector3&	pos) const
 {
 	const btTransform& xform = m_object->getWorldTransform();
 	pos[0] = xform.getOrigin().x();
@@ -2232,13 +2230,7 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin, b
 				btGImpactMeshShape* gimpactShape =  new btGImpactMeshShape(indexVertexArrays);
 				gimpactShape->setMargin(margin);
 				gimpactShape->updateBound();
-
-				//the depth value is how far along the triangle normal, the centroid is moved inwards
-				//to create surface tetrahedra for the btCompoundShape
-				//would be nice to expose this in the Blender user interfaceb
-				btScalar depth=btScalar(0.2);
-				collisionShape = btCreateCompoundFromGimpactShape(gimpactShape,depth);
-				delete gimpactShape;
+				collisionShape = gimpactShape;
 				
 
 		} else

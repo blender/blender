@@ -140,7 +140,7 @@ protected:
 		virtual void		setDebugMode(int debugMode);
 
 		virtual	void		setGravity(float x,float y,float z);
-		virtual	void		getGravity(PHY__Vector3& grav);
+		virtual	void		getGravity(MT_Vector3& grav);
 
 
 		virtual int			createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,
@@ -190,7 +190,7 @@ protected:
 		btTypedConstraint*	getConstraintById(int constraintId);
 
 		virtual PHY_IPhysicsController* rayTest(PHY_IRayCastFilterCallback &filterCallback, float fromX,float fromY,float fromZ, float toX,float toY,float toZ);
-		virtual bool cullingTest(PHY_CullingCallback callback, void* userData, PHY__Vector4* planes, int nplanes, int occlusionRes, const int *viewport, double modelview[16], double projection[16]);
+		virtual bool cullingTest(PHY_CullingCallback callback, void* userData, MT_Vector4* planes, int nplanes, int occlusionRes, const int *viewport, double modelview[16], double projection[16]);
 
 
 		//Methods for gamelogic collision/physics callbacks
@@ -200,7 +200,7 @@ protected:
 		virtual bool requestCollisionCallback(PHY_IPhysicsController* ctrl);
 		virtual bool removeCollisionCallback(PHY_IPhysicsController* ctrl);
 		//These two methods are used *solely* to create controllers for Near/Radar sensor! Don't use for anything else
-		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const PHY__Vector3& position);
+		virtual PHY_IPhysicsController*	CreateSphereController(float radius,const MT_Vector3& position);
 		virtual PHY_IPhysicsController* CreateConeController(float coneradius,float coneheight);
 	
 

@@ -64,11 +64,12 @@ void GroupNode::ungroup(ExecutionSystem &system)
 		}
 	}
 
+	const bool groupnodeBuffering = system.getContext().isGroupnodeBufferEnabled();
 	for (index = 0; index < outputsockets.size(); index++) {
 		OutputSocket *outputSocket = outputsockets[index];
 		bNodeSocket *editorOutput = outputSocket->getbNodeSocket();
 		if (editorOutput->groupsock) {
-			SocketProxyNode *proxy = new SocketProxyNode(bnode, editorOutput->groupsock, editorOutput, true);
+			SocketProxyNode *proxy = new SocketProxyNode(bnode, editorOutput->groupsock, editorOutput, groupnodeBuffering);
 			outputSocket->relinkConnections(proxy->getOutputSocket(0));
 			ExecutionSystemHelper::addNode(system.getNodes(), proxy);
 		}

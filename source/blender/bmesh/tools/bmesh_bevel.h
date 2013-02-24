@@ -27,6 +27,10 @@
  *  \ingroup bmesh
  */
 
-void BM_mesh_bevel(BMesh *bm, const float offset, const float segments, const int vertex_only);
+struct MDeformVert;
+
+void BM_mesh_bevel(BMesh *bm, const float offset, const float segments,
+                   const bool vertex_only, const bool use_weights,
+                   const struct MDeformVert *dvert, const int vertex_group);
 
 #endif /* __BMESH_BEVEL_H__ */

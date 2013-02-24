@@ -1260,6 +1260,15 @@ static void wm_block_redo_cb(bContext *C, void *arg_op, int UNUSED(arg_event))
 	}
 }
 
+static void wm_block_redo_cancel_cb(bContext *C, void *arg_op)
+{
+	wmOperator *op = arg_op;
+
+	/* if operator never got executed, free it */
+	if (op != WM_operator_last_redo(C))
+		WM_operator_free(op);
+}
+
 static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 {
 	wmOperator *op = arg_op;
@@ -1402,7 +1411,7 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *ar, void *userData)
 	return block;
 }
 
-static void wm_operator_ui_popup_cancel(void *userData)
+static void wm_operator_ui_popup_cancel(struct bContext *UNUSED(C), void *userData)
 {
 	wmOpPopUp *data = userData;
 	if (data->free_op && data->op) {
@@ -1452,7 +1461,7 @@ static int wm_operator_props_popup_ex(bContext *C, wmOperator *op, const int do_
 	if (!(U.uiflag & USER_GLOBALUNDO))
 		return WM_operator_props_dialog_popup(C, op, 15 * UI_UNIT_X, UI_UNIT_Y);
 
-	uiPupBlock(C, wm_block_create_redo, op);
+	uiPupBlockEx(C, wm_block_create_redo, NULL, wm_block_redo_cancel_cb, op);
 
 	if (do_call)
 		wm_block_redo_cb(C, op, 0);
@@ -1681,18 +1690,26 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	
 	split = uiLayoutSplit(layout, 0.0f, FALSE);
 	col = uiLayoutColumn(split, FALSE);
-	uiItemL(col, "Links", ICON_NONE);
-	uiItemStringO(col, IFACE_("Donations"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/blenderorg/blender-foundation/donation-payment");
-	uiItemStringO(col, IFACE_("Credits"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/credits");
-	uiItemStringO(col, IFACE_("Release Log"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/release-logs/blender-266");
-	uiItemStringO(col, IFACE_("Manual"), ICON_URL, "WM_OT_url_open", "url", "http://wiki.blender.org/index.php/Doc:2.6/Manual");
+	uiItemL(col, IFACE_("Links"), ICON_NONE);
+	uiItemStringO(col, IFACE_("Donations"), ICON_URL, "WM_OT_url_open", "url",
+	              "http://www.blender.org/blenderorg/blender-foundation/donation-payment");
+	uiItemStringO(col, IFACE_("Credits"), ICON_URL, "WM_OT_url_open", "url",
+	              "http://www.blender.org/development/credits");
+	uiItemStringO(col, IFACE_("Release Log"), ICON_URL, "WM_OT_url_open", "url",
+	              "http://www.blender.org/development/release-logs/blender-266");
+	uiItemStringO(col, IFACE_("Manual"), ICON_URL, "WM_OT_url_open", "url",
+	              "http://wiki.blender.org/index.php/Doc:2.6/Manual");
 	uiItemStringO(col, IFACE_("Blender Website"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org");
-	uiItemStringO(col, IFACE_("User Community"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/community/user-community");
+	uiItemStringO(col, IFACE_("User Community"), ICON_URL, "WM_OT_url_open", "url",
+	              "http://www.blender.org/community/user-community");
 	if (strcmp(STRINGIFY(BLENDER_VERSION_CYCLE), "release") == 0) {
-		BLI_snprintf(url, sizeof(url), "http://www.blender.org/documentation/blender_python_api_%d_%d" STRINGIFY(BLENDER_VERSION_CHAR) "_release", BLENDER_VERSION / 100, BLENDER_VERSION % 100);
+		BLI_snprintf(url, sizeof(url), "http://www.blender.org/documentation/blender_python_api_%d_%d"
+		                               STRINGIFY(BLENDER_VERSION_CHAR) "_release",
+		             BLENDER_VERSION / 100, BLENDER_VERSION % 100);
 	}
 	else {
-		BLI_snprintf(url, sizeof(url), "http://www.blender.org/documentation/blender_python_api_%d_%d_%d", BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION);
+		BLI_snprintf(url, sizeof(url), "http://www.blender.org/documentation/blender_python_api_%d_%d_%d",
+		             BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION);
 	}
 	uiItemStringO(col, IFACE_("Python API Reference"), ICON_URL, "WM_OT_url_open", "url", url);
 	uiItemL(col, "", ICON_NONE);
@@ -2157,8 +2174,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	flag_all_listbases_ids(LIB_PRE_EXISTING, 0);
 
 	/* recreate dependency graph to include new objects */
-	DAG_scene_sort(bmain, scene);
-	DAG_ids_flush_update(bmain, 0);
+	DAG_scene_relations_rebuild(bmain, scene);
 
 	BLO_blendhandle_close(bh);
 
@@ -3382,6 +3398,11 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 			alpha = 0.75;
 			break;
 	}
+
+	/* adjust for DPI, like BKE_brush_size_get */
+	r1 *= U.pixelsize;
+	r2 *= U.pixelsize;
+	tex_radius *= U.pixelsize;
 
 	/* Keep cursor in the original place */
 	x = rc->initial_mouse[0] - ar->winrct.xmin;

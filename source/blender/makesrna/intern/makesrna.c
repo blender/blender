@@ -1798,7 +1798,7 @@ static const char *rna_parameter_type_cpp_name(PropertyRNA *prop)
 	}
 }
 
-static void rna_def_struct_function_prototype_cpp(FILE *f, StructRNA *srna, FunctionDefRNA *dfunc,
+static void rna_def_struct_function_prototype_cpp(FILE *f, StructRNA *UNUSED(srna), FunctionDefRNA *dfunc,
                                                   const char *namespace, int close_prototype)
 {
 	PropertyDefRNA *dp;

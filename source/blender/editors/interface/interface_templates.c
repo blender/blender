@@ -551,8 +551,8 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	/* Due to space limit in UI - skip the "open" icon for packed data, and allow to unpack.
 	   Only for images, sound and fonts */
 	if (id && BKE_pack_check(id)) {
-
-		but = uiDefIconButO(block, BUT, "FILE_OT_unpack_item", WM_OP_INVOKE_REGION_WIN, ICON_PACKAGE, 0, 0, UI_UNIT_X, UI_UNIT_Y, "Packed File");
+		but = uiDefIconButO(block, BUT, "FILE_OT_unpack_item", WM_OP_INVOKE_REGION_WIN, ICON_PACKAGE, 0, 0,
+		                    UI_UNIT_X, UI_UNIT_Y, TIP_("Packed File, click to unpack"));
 		uiButGetOperatorPtrRNA(but);
 		
 		RNA_string_set(but->opptr, "id_name", id->name + 2);
@@ -700,7 +700,7 @@ void uiTemplateAnyID(uiLayout *layout, PointerRNA *ptr, const char *propname, co
 			uiItemL(row, text, ICON_NONE);
 	}
 	else
-		uiItemL(row, "ID-Block:", ICON_NONE);
+		uiItemL(row, IFACE_("ID-Block:"), ICON_NONE);
 	
 	/* ID-Type Selector - just have a menu of icons */
 	/* FIXME: the icon-only setting doesn't work when we supply a blank name */
@@ -744,7 +744,7 @@ void uiTemplatePathBuilder(uiLayout *layout, PointerRNA *ptr, const char *propna
 
 /************************ Modifier Template *************************/
 
-#define ERROR_LIBDATA_MESSAGE "Can't edit external libdata"
+#define ERROR_LIBDATA_MESSAGE IFACE_("Can't edit external libdata")
 
 static void modifiers_setOnCage(bContext *C, void *ob_v, void *md_v)
 {
@@ -844,8 +844,8 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 		block = uiLayoutGetBlock(row);
 		/* VIRTUAL MODIFIER */
 		/* XXX this is not used now, since these cannot be accessed via RNA */
-		BLI_snprintf(str, sizeof(str), "%s parent deform", md->name);
-		uiDefBut(block, LABEL, 0, str, 0, 0, 185, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Modifier name"); 
+		BLI_snprintf(str, sizeof(str), IFACE_("%s parent deform"), md->name);
+		uiDefBut(block, LABEL, 0, str, 0, 0, 185, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Modifier name"));
 		
 		but = uiDefBut(block, BUT, 0, IFACE_("Make Real"), 0, 0, 80, 16, NULL, 0.0, 0.0, 0.0, 0.0,
 		               TIP_("Convert virtual modifier to a real modifier"));
@@ -952,18 +952,22 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 				
 				if (!(ob->mode & OB_MODE_PARTICLE_EDIT) && psys->pathcache) {
 					if (ELEM(psys->part->ren_as, PART_DRAW_GR, PART_DRAW_OB))
-						uiItemO(row, "Convert", ICON_NONE, "OBJECT_OT_duplicates_make_real");
+						uiItemO(row, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Convert"), ICON_NONE,
+						        "OBJECT_OT_duplicates_make_real");
 					else if (psys->part->ren_as == PART_DRAW_PATH)
-						uiItemO(row, "Convert", ICON_NONE, "OBJECT_OT_modifier_convert");
+						uiItemO(row, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Convert"), ICON_NONE,
+						        "OBJECT_OT_modifier_convert");
 				}
 			}
 			else {
 				uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);
-				uiItemEnumO(row, "OBJECT_OT_modifier_apply", IFACE_("Apply"), 0, "apply_as", MODIFIER_APPLY_DATA);
+				uiItemEnumO(row, "OBJECT_OT_modifier_apply", CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
+				            0, "apply_as", MODIFIER_APPLY_DATA);
 				
 				if (modifier_isSameTopology(md) && !modifier_isNonGeometrical(md)) {
-					uiItemEnumO(row, "OBJECT_OT_modifier_apply", IFACE_("Apply as Shape Key"), 0,
-					            "apply_as", MODIFIER_APPLY_SHAPE);
+					uiItemEnumO(row, "OBJECT_OT_modifier_apply",
+					            CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Apply as Shape Key"),
+					            0, "apply_as", MODIFIER_APPLY_SHAPE);
 				}
 			}
 			
@@ -973,7 +977,8 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 			if (!ELEM5(md->type, eModifierType_Fluidsim, eModifierType_Softbody, eModifierType_ParticleSystem,
 			           eModifierType_Cloth, eModifierType_Smoke))
 			{
-				uiItemO(row, IFACE_("Copy"), ICON_NONE, "OBJECT_OT_modifier_copy");
+				uiItemO(row, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Copy"), ICON_NONE,
+				        "OBJECT_OT_modifier_copy");
 			}
 		}
 		
@@ -1052,9 +1057,8 @@ static void do_constraint_panels(bContext *C, void *ob_pt, int event)
 		case B_CONSTRAINT_CHANGETARGET:
 		{
 			Main *bmain = CTX_data_main(C);
-			Scene *scene = CTX_data_scene(C);
 			if (ob->pose) ob->pose->flag |= POSE_RECALC;  /* checks & sorts pose channels */
-			DAG_scene_sort(bmain, scene);
+			DAG_relations_tag_update(bmain);
 			break;
 		}
 #endif
@@ -1095,10 +1099,10 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	cti = BKE_constraint_get_typeinfo(con);
 	if (cti == NULL) {
 		/* exception for 'Null' constraint - it doesn't have constraint typeinfo! */
-		BLI_strncpy(typestr, (con->type == CONSTRAINT_TYPE_NULL) ? "Null" : "Unknown", sizeof(typestr));
+		BLI_strncpy(typestr, (con->type == CONSTRAINT_TYPE_NULL) ? IFACE_("Null") : IFACE_("Unknown"), sizeof(typestr));
 	}
 	else
-		BLI_strncpy(typestr, cti->name, sizeof(typestr));
+		BLI_strncpy(typestr, IFACE_(cti->name), sizeof(typestr));
 		
 	/* determine whether constraint is proxy protected or not */
 	if (BKE_proxylocked_constraints_owner(ob, pchan))
@@ -1203,7 +1207,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 
 	/* Set but-locks for protected settings (magic numbers are used here!) */
 	if (proxy_protected)
-		uiBlockSetButLock(block, 1, "Cannot edit Proxy-Protected Constraint");
+		uiBlockSetButLock(block, 1, IFACE_("Cannot edit Proxy-Protected Constraint"));
 
 	/* Draw constraint data */
 	if ((con->flag & CONSTRAINT_EXPAND) == 0) {
@@ -1487,7 +1491,7 @@ static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand 
 		RNA_pointer_create(cb->ptr.id.data, &RNA_ColorRampElement, cbd, &ptr);
 		row = uiLayoutRow(layout, FALSE);
 
-		uiItemR(row, &ptr, "position", 0, "Pos", ICON_NONE);
+		uiItemR(row, &ptr, "position", 0, IFACE_("Pos"), ICON_NONE);
 		bt = block->buttons.last;
 		uiButSetFunc(bt, colorband_update_cb, bt, coba);
 
@@ -1585,7 +1589,8 @@ static uiBlock *icon_view_menu(bContext *C, ARegion *ar, void *arg_litem)
 	/* arg_litem is malloced, can be freed by parent button */
 	cb = *((RNAUpdateCb *)arg_litem);
 	
-	icon = RNA_property_enum_get(&cb.ptr, cb.prop);
+	/* unused */
+	// icon = RNA_property_enum_get(&cb.ptr, cb.prop);
 	
 	block = uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP | UI_BLOCK_REDRAW);
@@ -1683,7 +1688,7 @@ void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, const char *propname
 
 	hist = (Histogram *)cptr.data;
 
-	hist->height = (hist->height <= UI_UNIT_Y) ? UI_UNIT_Y : hist->height;
+	hist->height = (hist->height <= 20) ? 20 : hist->height;
 
 	bt = uiDefBut(block, HISTOGRAM, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect), UI_DPI_FAC * hist->height,
 	              hist, 0, 0, 0, 0, "");
@@ -1722,7 +1727,7 @@ void uiTemplateWaveform(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	
 	block = uiLayoutAbsoluteBlock(layout);
 	
-	scopes->wavefrm_height = (scopes->wavefrm_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->wavefrm_height;
+	scopes->wavefrm_height = (scopes->wavefrm_height <= 20) ? 20 : scopes->wavefrm_height;
 
 	bt = uiDefBut(block, WAVEFORM, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect), UI_DPI_FAC * scopes->wavefrm_height,
 	              scopes, 0, 0, 0, 0, "");
@@ -1760,7 +1765,7 @@ void uiTemplateVectorscope(uiLayout *layout, PointerRNA *ptr, const char *propna
 	
 	block = uiLayoutAbsoluteBlock(layout);
 
-	scopes->vecscope_height = (scopes->vecscope_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->vecscope_height;
+	scopes->vecscope_height = (scopes->vecscope_height <= 20) ? 20 : scopes->vecscope_height;
 	
 	bt = uiDefBut(block, VECTORSCOPE, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect),
 	              UI_DPI_FAC * scopes->vecscope_height, scopes, 0, 0, 0, 0, "");
@@ -2487,6 +2492,13 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 	int min, max;
 
 	/* validate arguments */
+	/* Forbid default UI_UL_DEFAULT_CLASS_NAME list class without a custom list_id! */
+	if (!strcmp(UI_UL_DEFAULT_CLASS_NAME, listtype_name) && !(list_id && list_id[0])) {
+		RNA_warning("template_list using default '%s' UIList class must provide a custom list_id",
+		            UI_UL_DEFAULT_CLASS_NAME);
+		return;
+	}
+
 	block = uiLayoutGetBlock(layout);
 
 	if (!active_dataptr->data) {
@@ -3010,7 +3022,7 @@ void uiTemplateColorspaceSettings(uiLayout *layout, PointerRNA *ptr, const char 
 
 	colorspace_settings_ptr = RNA_property_pointer_get(ptr, prop);
 
-	uiItemL(layout, "Input Color Space:", ICON_NONE);
+	uiItemL(layout, IFACE_("Input Color Space:"), ICON_NONE);
 	uiItemR(layout, &colorspace_settings_ptr, "name", 0, "", ICON_NONE);
 }
 

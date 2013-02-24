@@ -2549,7 +2549,7 @@ static void rna_def_space_graph(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 		
-	/* this is basically the same as the one for the 3D-View, but with some entries ommitted */
+	/* this is basically the same as the one for the 3D-View, but with some entries omitted */
 	static EnumPropertyItem gpivot_items[] = {
 		{V3D_CENTER, "BOUNDING_BOX_CENTER", ICON_ROTATE, "Bounding Box Center", ""},
 		{V3D_CURSOR, "CURSOR", ICON_CURSOR, "2D Cursor", ""},

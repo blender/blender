@@ -188,7 +188,7 @@ OCIO_VERSION_MIN="1.0"
 OCIO_FORCE_REBUILD=false
 OCIO_SKIP=false
 
-OIIO_VERSION="1.1.1"
+OIIO_VERSION="1.1.7"
 OIIO_SOURCE="https://github.com/OpenImageIO/oiio/tarball/Release-$OIIO_VERSION"
 OIIO_VERSION_MIN="1.1"
 OIIO_FORCE_REBUILD=false
@@ -203,8 +203,8 @@ LLVM_FORCE_REBUILD=false
 LLVM_SKIP=false
 
 # OSL needs to be compiled for now!
-OSL_VERSION="1.2.0"
-OSL_SOURCE="https://github.com/mont29/OpenShadingLanguage/archive/blender-fixes.tar.gz"
+OSL_VERSION="1.3.0"
+OSL_SOURCE="https://github.com/imageworks/OpenShadingLanguage/archive/Release-1.3.0.tar.gz"
 OSL_FORCE_REBUILD=false
 OSL_SKIP=false
 
@@ -779,27 +779,6 @@ compile_OIIO() {
       INFO "Unpacking OpenImageIO-$OIIO_VERSION"
       tar -C $SRC --transform "s,(.*/?)OpenImageIO-oiio[^/]*(.*),\1OpenImageIO-$OIIO_VERSION\2,x" \
           -xf $_src.tar.gz
-
-      cd $_src
-
-      # XXX Ugly patching hack!
-      cat << EOF | patch -p1
-diff --git a/src/libutil/SHA1.cpp b/src/libutil/SHA1.cpp
-index b9e6c8b..c761185 100644
---- a/src/libutil/SHA1.cpp
-+++ b/src/libutil/SHA1.cpp
-@@ -8,9 +8,9 @@
- 
- // If compiling with MFC, you might want to add #include "StdAfx.h"
- 
-+#include "SHA1.h"
- #include "hash.h"
- #include "dassert.h"
--#include "SHA1.h"
- 
- #ifdef SHA1_UTILITY_FUNCTIONS
- #define SHA1_MAX_FILE_BUFFER 8000
-EOF
 
       cd $CWD
 
@@ -1991,7 +1970,7 @@ print_info() {
     INFO "  $_2"
     _buildargs="$_buildargs $_1 $_2"
   elif $ALL_STATIC; then
-    _1="-D Boost_USE_ICU=ON"
+    _1="-D WITH_BOOST_ICU=ON"
     INFO "  $_1"
     _buildargs="$_buildargs $_1"
   fi
@@ -2052,6 +2031,10 @@ print_info() {
 
   if [ -d $INST/oiio ]; then
     INFO "BF_OIIO = '$INST/oiio'"
+  fi
+
+  if [ -d $INST/osl ]; then
+    INFO "BF_OSL = '$INST/osl'"
   fi
 
   if [ -d $INST/boost ]; then

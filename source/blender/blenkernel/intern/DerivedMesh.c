@@ -1017,8 +1017,12 @@ void weight_to_rgb(float r_rgb[3], const float weight)
 
 /* draw_flag's for calc_weightpaint_vert_color */
 enum {
-	CALC_WP_MULTIPAINT = (1 << 0),
-	CALC_WP_AUTO_NORMALIZE = (1 << 1)
+	/* only one of these should be set, keep first (for easy bit-shifting) */
+	CALC_WP_GROUP_USER_ACTIVE   = (1 << 1),
+	CALC_WP_GROUP_USER_ALL      = (1 << 2),
+
+	CALC_WP_MULTIPAINT          = (1 << 3),
+	CALC_WP_AUTO_NORMALIZE      = (1 << 4)
 };
 
 static void weightpaint_color(unsigned char r_col[4], ColorBand *coba, const float input)
@@ -1050,7 +1054,7 @@ static void calc_weightpaint_vert_color(
 {
 	float input = 0.0f;
 	
-	int make_black = FALSE;
+	bool make_black = false;
 
 	if ((defbase_sel_tot > 1) && (draw_flag & CALC_WP_MULTIPAINT)) {
 		int was_a_nonzero = FALSE;
@@ -1072,7 +1076,7 @@ static void calc_weightpaint_vert_color(
 
 		/* make it black if the selected groups have no weight on a vertex */
 		if (was_a_nonzero == FALSE) {
-			make_black = TRUE;
+			make_black = true;
 		}
 		else if ((draw_flag & CALC_WP_AUTO_NORMALIZE) == FALSE) {
 			input /= defbase_sel_tot; /* get the average */
@@ -1081,6 +1085,17 @@ static void calc_weightpaint_vert_color(
 	else {
 		/* default, non tricky behavior */
 		input = defvert_find_weight(dv, defbase_act);
+
+		if (draw_flag & CALC_WP_GROUP_USER_ACTIVE) {
+			if (input == 0.0f) {
+				make_black = true;
+			}
+		}
+		else if (draw_flag & CALC_WP_GROUP_USER_ALL) {
+			if (input == 0.0f) {
+				make_black = defvert_is_weight_zero(dv, defbase_tot);
+			}
+		}
 	}
 
 	if (make_black) { /* TODO, theme color */
@@ -1138,7 +1153,12 @@ static unsigned char *calc_weightpaint_vert_array(Object *ob, DerivedMesh *dm, i
 	}
 	else {
 		int col_i;
-		weightpaint_color((unsigned char *)&col_i, coba, 0.0f);
+		if (draw_flag & (CALC_WP_GROUP_USER_ACTIVE | CALC_WP_GROUP_USER_ALL)) {
+			col_i = 0;
+		}
+		else {
+			weightpaint_color((unsigned char *)&col_i, coba, 0.0f);
+		}
 		fill_vn_i((int *)wtcol_v, numVerts, col_i);
 	}
 
@@ -1354,8 +1374,11 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	int sculpt_mode = ob->mode & OB_MODE_SCULPT && ob->sculpt;
 	int sculpt_dyntopo = (sculpt_mode && ob->sculpt->bm);
 
-	const int draw_flag = ((scene->toolsettings->multipaint ? CALC_WP_MULTIPAINT : 0) |
+	const int draw_flag = ((scene->toolsettings->multipaint ? CALC_WP_MULTIPAINT :
+	                                                          /* CALC_WP_GROUP_USER_ACTIVE or CALC_WP_GROUP_USER_ALL*/
+	                                                          (1 << scene->toolsettings->weightuser)) |
 	                       (scene->toolsettings->auto_normalize ? CALC_WP_AUTO_NORMALIZE : 0));
+
 	/* Generic preview only in object mode! */
 	const int do_mod_mcol = (ob->mode == OB_MODE_OBJECT);
 #if 0 /* XXX Will re-enable this when we have global mod stack options. */
@@ -2720,7 +2743,7 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 					a = attribs->tottface++;
 
 					attribs->tface[a].array = tfdata->layers[layer].data;
-					attribs->tface[a].em_offset = tfdata->layers[layer].offset;
+					attribs->tface[a].em_offset = ldata->layers[layer].offset;
 					attribs->tface[a].gl_index = gattribs->layer[b].glindex;
 					attribs->tface[a].gl_texco = gattribs->layer[b].gltexco;
 				}
@@ -2757,7 +2780,8 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 					a = attribs->totmcol++;
 
 					attribs->mcol[a].array = tfdata->layers[layer].data;
-					attribs->mcol[a].em_offset = tfdata->layers[layer].offset;
+					/* odd, store the offset for a different layer type here, but editmode draw code expects it */
+					attribs->mcol[a].em_offset = ldata->layers[layer].offset;
 					attribs->mcol[a].gl_index = gattribs->layer[b].glindex;
 				}
 			}
@@ -2773,6 +2797,7 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 					a = attribs->totmcol++;
 
 					attribs->mcol[a].array = tfdata->layers[layer].data;
+					/* odd, store the offset for a different layer type here, but editmode draw code expects it */
 					attribs->mcol[a].em_offset = tfdata->layers[layer].offset;
 					attribs->mcol[a].gl_index = gattribs->layer[b].glindex;
 				}

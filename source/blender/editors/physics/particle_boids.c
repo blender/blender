@@ -100,7 +100,6 @@ void BOID_OT_rule_add(wmOperatorType *ot)
 static int rule_del_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_settings", &RNA_ParticleSettings);
 	ParticleSettings *part = ptr.data;
 	BoidRule *rule;
@@ -123,7 +122,7 @@ static int rule_del_exec(bContext *C, wmOperator *UNUSED(op))
 	if (rule)
 		rule->flag |= BOIDRULE_CURRENT;
 
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 	DAG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
 	return OPERATOR_FINISHED;
@@ -158,7 +157,7 @@ static int rule_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 	for (rule = state->rules.first; rule; rule=rule->next) {
 		if (rule->flag & BOIDRULE_CURRENT && rule->prev) {
 			BLI_remlink(&state->rules, rule);
-			BLI_insertlink(&state->rules, rule->prev->prev, rule);
+			BLI_insertlinkbefore(&state->rules, rule->prev, rule);
 
 			DAG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 			break;
@@ -194,7 +193,7 @@ static int rule_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 	for (rule = state->rules.first; rule; rule=rule->next) {
 		if (rule->flag & BOIDRULE_CURRENT && rule->next) {
 			BLI_remlink(&state->rules, rule);
-			BLI_insertlink(&state->rules, rule->next, rule);
+			BLI_insertlinkafter(&state->rules, rule->next, rule);
 
 			DAG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 			break;
@@ -254,7 +253,6 @@ void BOID_OT_state_add(wmOperatorType *ot)
 static int state_del_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "particle_settings", &RNA_ParticleSettings);
 	ParticleSettings *part = ptr.data;
 	BoidState *state;
@@ -280,7 +278,7 @@ static int state_del_exec(bContext *C, wmOperator *UNUSED(op))
 
 	state->flag |= BOIDSTATE_CURRENT;
 
-	DAG_scene_sort(bmain, scene);
+	DAG_relations_tag_update(bmain);
 	DAG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 	
 	return OPERATOR_FINISHED;
@@ -316,7 +314,7 @@ static int state_move_up_exec(bContext *C, wmOperator *UNUSED(op))
 	for (state = boids->states.first; state; state=state->next) {
 		if (state->flag & BOIDSTATE_CURRENT && state->prev) {
 			BLI_remlink(&boids->states, state);
-			BLI_insertlink(&boids->states, state->prev->prev, state);
+			BLI_insertlinkbefore(&boids->states, state->prev, state);
 			break;
 		}
 	}
@@ -351,7 +349,7 @@ static int state_move_down_exec(bContext *C, wmOperator *UNUSED(op))
 	for (state = boids->states.first; state; state=state->next) {
 		if (state->flag & BOIDSTATE_CURRENT && state->next) {
 			BLI_remlink(&boids->states, state);
-			BLI_insertlink(&boids->states, state->next, state);
+			BLI_insertlinkafter(&boids->states, state->next, state);
 			DAG_id_tag_update(&part->id, OB_RECALC_DATA|PSYS_RECALC_RESET);
 			break;
 		}

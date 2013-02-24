@@ -34,6 +34,8 @@
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 
+#include "BLF_translation.h"
+
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -429,7 +431,7 @@ void seam_mark_clear_tface(Scene *scene, short mode)
 	if (me == 0 ||  me->totpoly == 0) return;
 
 	if (mode == 0)
-		mode = pupmenu("Seams %t|Mark Border Seam %x1|Clear Seam %x2");
+		mode = pupmenu(IFACE_("Seams %t|Mark Border Seam %x1|Clear Seam %x2"));
 
 	if (mode != 1 && mode != 2)
 		return;

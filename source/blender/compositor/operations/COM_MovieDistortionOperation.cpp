@@ -75,9 +75,31 @@ void MovieDistortionOperation::initExecution()
 		                                            calibration_width, calibration_height, this->m_distortion);
 		s_cache.push_back(newC);
 		this->m_cache = newC;
+
+		if (this->m_distortion) {
+			float delta[2];
+			rcti full_frame;
+			full_frame.xmin = full_frame.ymin = 0;
+			full_frame.xmax = this->m_width;
+			full_frame.ymax = this->m_height;
+			BKE_tracking_max_undistortion_delta_across_bound(&this->m_movieClip->tracking, &full_frame, delta);
+
+			/* 5 is just in case we didn't hit real max of distortion in
+			 * BKE_tracking_max_undistortion_delta_across_bound
+			 */
+			m_margin[0] = delta[0] + 5;
+			m_margin[1] = delta[1] + 5;
+		}
+		else {
+			/* undistortion with sane distortion coefficients would be mapped inside
+			 * of each tile, should be no need in margin in this case
+			 */
+			m_margin[0] = m_margin[1] = 0;
+		}
 	}
 	else {
 		this->m_cache = NULL;
+		m_margin[0] = m_margin[1] = 0;
 	}
 }
 
@@ -111,4 +133,14 @@ void MovieDistortionOperation::executePixel(float output[4], float x, float y, P
 	else {
 		this->m_inputOperation->read(output, x, y, COM_PS_BILINEAR);
 	}
+}
+
+bool MovieDistortionOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
+	rcti newInput;
+	newInput.xmin = input->xmin - m_margin[0];
+	newInput.ymin = input->ymin - m_margin[1];
+	newInput.xmax = input->xmax + m_margin[0];
+	newInput.ymax = input->ymax + m_margin[1];
+	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }

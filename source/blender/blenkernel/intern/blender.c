@@ -1000,8 +1000,7 @@ int BKE_copybuffer_paste(bContext *C, char *libname, ReportList *reports)
 	flag_all_listbases_ids(LIB_PRE_EXISTING, 0);
 	
 	/* recreate dependency graph to include new objects */
-	DAG_scene_sort(bmain, scene);
-	DAG_ids_flush_update(bmain, 0);
+	DAG_relations_tag_update(bmain);
 	
 	BLO_blendhandle_close(bh);
 	/* remove library... */

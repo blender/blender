@@ -51,7 +51,6 @@ void register_node_type_cmp_pixelate(bNodeTreeType *ttype)
 
 	node_type_base(ttype, &ntype, CMP_NODE_PIXELATE, "Pixelate", NODE_CLASS_OP_FILTER, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_pixelate_in, cmp_node_pixelate_out);
-	node_type_size(&ntype, 130, 100, 130);
 
 	nodeRegisterType(ttype, &ntype);
 }

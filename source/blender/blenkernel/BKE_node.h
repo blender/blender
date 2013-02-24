@@ -261,6 +261,12 @@ typedef struct bNodeType {
 #define SOCK_IN		1
 #define SOCK_OUT	2
 
+typedef enum eNodeSizePreset {
+	NODE_SIZE_DEFAULT,
+	NODE_SIZE_SMALL,
+	NODE_SIZE_LARGE
+} eNodeSizePreset;
+
 struct bNodeTreeExec;
 
 typedef void (*bNodeTreeCallback)(void *calldata, struct ID *owner_id, struct bNodeTree *ntree);
@@ -419,6 +425,7 @@ void            node_type_base(struct bNodeTreeType *ttype, struct bNodeType *nt
                                const char *name, short nclass, short flag);
 void            node_type_socket_templates(struct bNodeType *ntype, struct bNodeSocketTemplate *inputs, struct bNodeSocketTemplate *outputs);
 void            node_type_size(struct bNodeType *ntype, int width, int minwidth, int maxwidth);
+void            node_type_size_preset(struct bNodeType *ntype, eNodeSizePreset size);
 void            node_type_init(struct bNodeType *ntype, void (*initfunc)(struct bNodeTree *ntree, struct bNode *node, struct bNodeTemplate *ntemp));
 void            node_type_valid(struct bNodeType *ntype, int (*validfunc)(struct bNodeTree *ntree, struct bNodeTemplate *ntemp));
 void            node_type_storage(struct bNodeType *ntype,

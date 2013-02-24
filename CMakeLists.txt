@@ -124,6 +124,10 @@ mark_as_advanced(WITH_PYTHON_SECURITY)  # some distributions see this as a secur
 
 option(WITH_PYTHON_SAFETY "Enable internal API error checking to track invalid data to prevent crash on access (at the expense of some effeciency, only enable for development)." OFF)
 option(WITH_PYTHON_MODULE "Enable building as a python module which runs without a user interface, like running regular blender in background mode (experimental, only enable for development)" OFF)
+if (APPLE)
+	option(WITH_PYTHON_FRAMEWORK "Enable building using the Python available in the framework (OSX only)" OFF)
+endif()
+
 option(WITH_BUILDINFO     "Include extra build details (only disable for development & faster builds)" ON)
 option(WITH_IK_ITASC      "Enable ITASC IK solver (only disable for development & for incompatible C++ compilers)" ON)
 option(WITH_IK_SOLVER     "Enable Legacy IK solver (only disable for development)" ON)
@@ -242,6 +246,10 @@ option(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the rayt
 if(UNIX AND NOT APPLE)
 	option(WITH_INSTALL_PORTABLE "Install redistributeable runtime, otherwise install into CMAKE_INSTALL_PREFIX" ON)
 	option(WITH_STATIC_LIBS "Try to link with static libraries, as much as possible, to make blender more portable across distributions" OFF)
+	if(WITH_STATIC_LIBS)
+		option(WITH_BOOST_ICU "Boost uses ICU library (required for linking with static Boost built with libicu)." OFF)
+		mark_as_advanced(WITH_BOOST_ICU)
+	endif()
 endif()
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
 option(WITH_PYTHON_INSTALL_NUMPY "Copy system numpy into the blender install folder"  ON)
@@ -253,7 +261,7 @@ option(WITH_CYCLES					"Enable cycles Render Engine" ON)
 option(WITH_CYCLES_TEST				"Build cycles test application" OFF)
 option(WITH_CYCLES_OSL				"Build Cycles with OSL support" OFF)
 option(WITH_CYCLES_CUDA_BINARIES	"Build cycles CUDA binaries" OFF)
-set(CYCLES_CUDA_BINARIES_ARCH sm_13 sm_20 sm_21 sm_30 CACHE STRING "CUDA architectures to build binaries for")
+set(CYCLES_CUDA_BINARIES_ARCH sm_20 sm_21 sm_30 CACHE STRING "CUDA architectures to build binaries for")
 mark_as_advanced(CYCLES_CUDA_BINARIES_ARCH)
 unset(PLATFORM_DEFAULT)
 
@@ -682,7 +690,7 @@ if(UNIX AND NOT APPLE)
 				list(APPEND __boost_packages locale)
 			endif()
 			find_package(Boost 1.48 COMPONENTS ${__boost_packages})
-			if(Boost_USE_STATIC_LIBS AND Boost_USE_ICU)
+			if(Boost_USE_STATIC_LIBS AND WITH_BOOST_ICU)
 				find_package(IcuLinux)
 			endif()
 			mark_as_advanced(Boost_DIR)  # why doesnt boost do this?
@@ -1460,11 +1468,10 @@ elseif(APPLE)
 	endif()
 
 	if(WITH_PYTHON)
-		if(NOT WITH_PYTHON_MODULE)
-			# we use precompiled libraries for py 3.3 and up by default
-
+		# we use precompiled libraries for py 3.3 and up by default
+		set(PYTHON_VERSION 3.3)
+		if(NOT WITH_PYTHON_MODULE AND NOT WITH_PYTHON_FRAMEWORK)
 			# normally cached but not since we include them with blender
-			set(PYTHON_VERSION 3.3)
 			set(PYTHON_INCLUDE_DIR "${LIBDIR}/python/include/python${PYTHON_VERSION}m")
 			# set(PYTHON_BINARY "${LIBDIR}/python/bin/python${PYTHON_VERSION}") # not used yet
 			set(PYTHON_LIBRARY python${PYTHON_VERSION}m)
@@ -1472,9 +1479,6 @@ elseif(APPLE)
 			# set(PYTHON_LINKFLAGS "-u _PyMac_Error")  # won't  build with this enabled
 		else()
 			# module must be compiled against Python framework
-
-			# normally cached but not since we include them with blender
-			set(PYTHON_VERSION 3.3)
 			set(PYTHON_INCLUDE_DIR "/Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}/include/python${PYTHON_VERSION}m")
 			set(PYTHON_BINARY "/Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}/bin/python${PYTHON_VERSION}")
 			#set(PYTHON_LIBRARY python${PYTHON_VERSION})
@@ -1576,8 +1580,8 @@ elseif(APPLE)
 		set(WITH_INPUT_NDOF OFF)  # unsupported
 	endif()
 	
-	if(WITH_PYTHON_MODULE)
-		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} /Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}/python")# force cmake to link right framework
+	if(WITH_PYTHON_MODULE OR WITH_PYTHON_FRAMEWORK)
+		set(PLATFORM_LINKFLAGS "${PLATFORM_LINKFLAGS} /Library/Frameworks/Python.framework/Versions/${PYTHON_VERSION}/Python")# force cmake to link right framework
 	endif()
 	
 	if(WITH_OPENCOLLADA)
@@ -2185,6 +2189,9 @@ if(FIRST_RUN)
 	info_cfg_option(WITH_PYTHON_INSTALL_NUMPY)
 	info_cfg_option(WITH_PYTHON_MODULE)
 	info_cfg_option(WITH_PYTHON_SAFETY)
+	if(APPLE)
+		info_cfg_option(WITH_PYTHON_FRAMEWORK)
+	endif()
 
 	info_cfg_text("Modifiers:")
 	info_cfg_option(WITH_MOD_BOOLEAN)

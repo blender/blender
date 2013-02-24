@@ -383,10 +383,7 @@ static void do_graph_region_driver_buttons(bContext *C, void *UNUSED(arg), int e
 		case B_IPO_DEPCHANGE:
 		{
 			/* rebuild depsgraph for the new deps */
-			DAG_scene_sort(bmain, scene);
-			
-			/* force an update of depsgraph */
-			DAG_ids_flush_update(bmain, 0);
+			DAG_relations_tag_update(bmain);
 		}
 		break;
 	}

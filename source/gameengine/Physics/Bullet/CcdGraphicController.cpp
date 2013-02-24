@@ -55,7 +55,7 @@ void CcdGraphicController::setLocalAabb(const MT_Point3& aabbMin,const MT_Point3
 	SetGraphicTransform();
 }
 
-void CcdGraphicController::setLocalAabb(const PHY__Vector3& aabbMin,const PHY__Vector3& aabbMax)
+void CcdGraphicController::setLocalAabb(const MT_Vector3& aabbMin,const MT_Vector3& aabbMax)
 {
 	m_localAabbMin.setValue(aabbMin[0],aabbMin[1],aabbMin[2]);
 	m_localAabbMax.setValue(aabbMax[0],aabbMax[1],aabbMax[2]);
