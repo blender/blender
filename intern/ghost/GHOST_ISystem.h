@@ -249,13 +249,13 @@ public:
 	 * \return  The new window (or 0 if creation failed).
 	 */
 	virtual GHOST_IWindow *createWindow(
-	    const STR_String& title,
-	    GHOST_TInt32 left, GHOST_TInt32 top, GHOST_TUns32 width, GHOST_TUns32 height,
-	    GHOST_TWindowState state, GHOST_TDrawingContextType type,
-	    const bool stereoVisual = false,
-	    const bool exclusive = false,
-	    const GHOST_TUns16 numOfAASamples = 0,
-	    const GHOST_TEmbedderWindowID parentWindow = 0) = 0;
+	        const STR_String& title,
+	        GHOST_TInt32 left, GHOST_TInt32 top, GHOST_TUns32 width, GHOST_TUns32 height,
+	        GHOST_TWindowState state, GHOST_TDrawingContextType type,
+	        const bool stereoVisual = false,
+	        const bool exclusive = false,
+	        const GHOST_TUns16 numOfAASamples = 0,
+	        const GHOST_TEmbedderWindowID parentWindow = 0) = 0;
 
 	/**
 	 * Dispose a window.
@@ -278,8 +278,9 @@ public:
 	 *                  This window is invalid after full screen has been ended.
 	 * \return  Indication of success.
 	 */
-	virtual GHOST_TSuccess beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow **window,
-	                                       const bool stereoVisual, const GHOST_TUns16 numOfAASamples = 0) = 0;
+	virtual GHOST_TSuccess beginFullScreen(
+	        const GHOST_DisplaySetting& setting, GHOST_IWindow **window,
+	        const bool stereoVisual, const GHOST_TUns16 numOfAASamples = 0) = 0;
 
 	/**
 	 * Updates the resolution while in fullscreen mode.
@@ -288,7 +289,8 @@ public:
 	 *
 	 * \return  Indication of success.
 	 */
-	virtual GHOST_TSuccess updateFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow **window) = 0;
+	virtual GHOST_TSuccess updateFullScreen(
+	        const GHOST_DisplaySetting& setting, GHOST_IWindow **window) = 0;
 
 	/**
 	 * Ends full screen mode.

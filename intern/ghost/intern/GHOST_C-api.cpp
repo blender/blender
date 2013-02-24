@@ -152,7 +152,8 @@ GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
 		bstereoVisual = false;
 
 	return (GHOST_WindowHandle) system->createWindow(title, left, top, width, height,
-	                                                 state, type, bstereoVisual, numOfAASamples);
+	                                                 state, type, bstereoVisual, false,
+	                                                 numOfAASamples);
 }
 
 GHOST_TUserDataPtr GHOST_GetWindowUserData(GHOST_WindowHandle windowhandle)

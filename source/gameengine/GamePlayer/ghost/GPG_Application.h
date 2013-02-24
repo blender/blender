@@ -61,23 +61,32 @@ public:
 	GPG_Application(GHOST_ISystem* system);
 	~GPG_Application(void);
 
-			bool SetGameEngineData(struct Main* maggie, struct Scene* scene, GlobalSettings* gs, int argc, char** argv);
-			bool startWindow(STR_String& title, int windowLeft, int windowTop, int windowWidth, int windowHeight,
-			const bool stereoVisual, const int stereoMode, const GHOST_TUns16 samples=0);
-			bool startFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode, const GHOST_TUns16 samples=0, bool useDesktop=false);
-			bool startEmbeddedWindow(STR_String& title, const GHOST_TEmbedderWindowID parent_window, const bool stereoVisual, const int stereoMode, const GHOST_TUns16 samples=0);
+	bool SetGameEngineData(struct Main* maggie, struct Scene* scene, GlobalSettings* gs, int argc, char** argv);
+	bool startWindow(STR_String& title,
+	                 int windowLeft, int windowTop,
+	                 int windowWidth, int windowHeight,
+	                 const bool stereoVisual, const int stereoMode, const GHOST_TUns16 samples=0);
+	bool startFullScreen(int width, int height,
+	                     int bpp, int frequency,
+	                     const bool stereoVisual, const int stereoMode,
+	                     const GHOST_TUns16 samples=0, bool useDesktop=false);
+	bool startEmbeddedWindow(STR_String& title, const GHOST_TEmbedderWindowID parent_window,
+	                         const bool stereoVisual, const int stereoMode, const GHOST_TUns16 samples=0);
 #ifdef WIN32
-			bool startScreenSaverFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode, const GHOST_TUns16 samples=0);
-			bool startScreenSaverPreview(HWND parentWindow,	const bool stereoVisual, const int stereoMode, const GHOST_TUns16 samples=0);
+	bool startScreenSaverFullScreen(int width, int height,
+	                                int bpp, int frequency,
+	                                const bool stereoVisual, const int stereoMode, const GHOST_TUns16 samples=0);
+	bool startScreenSaverPreview(HWND parentWindow,
+	                             const bool stereoVisual, const int stereoMode, const GHOST_TUns16 samples=0);
 #endif
 
 	virtual	bool processEvent(GHOST_IEvent* event);
-			int getExitRequested(void);
-			const STR_String& getExitString(void);
-			GlobalSettings* getGlobalSettings(void);
-			bool StartGameEngine(int stereoMode);
-			void StopGameEngine();
-			void EngineNextFrame();
+	int getExitRequested(void);
+	const STR_String& getExitString(void);
+	GlobalSettings* getGlobalSettings(void);
+	bool StartGameEngine(int stereoMode);
+	void StopGameEngine();
+	void EngineNextFrame();
 
 protected:
 	bool	handleWheel(GHOST_IEvent* event);
@@ -165,4 +174,3 @@ protected:
 	int		m_argc;
 	char**	m_argv;
 };
-
