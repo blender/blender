@@ -221,9 +221,9 @@ public:
 		return m_tablet;
 	}
 	
-	GHOST_TSuccess beginFullScreen() const {};
+	GHOST_TSuccess beginFullScreen() const {return GHOST_kFailure;}
 
-	GHOST_TSuccess endFullScreen() const {};
+	GHOST_TSuccess endFullScreen() const {return GHOST_kFailure;}
 
 protected:
 	/**

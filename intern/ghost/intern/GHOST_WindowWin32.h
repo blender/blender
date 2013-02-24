@@ -276,9 +276,9 @@ public:
 	void processWin32TabletEvent(WPARAM wParam, LPARAM lParam);
 	void bringTabletContextToFront();
 
-	GHOST_TSuccess beginFullScreen() const {};
+	GHOST_TSuccess beginFullScreen() const {return GHOST_kFailure;}
 
-	GHOST_TSuccess endFullScreen() const {};
+	GHOST_TSuccess endFullScreen() const {return GHOST_kFailure;}
 
 protected:
 	GHOST_TSuccess initMultisample(PIXELFORMATDESCRIPTOR pfd);
