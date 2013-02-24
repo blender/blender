@@ -234,6 +234,20 @@ static void rna_RigidBodyOb_collision_margin_set(PointerRNA *ptr, float value)
 #endif
 }
 
+static void rna_RigidBodyOb_collision_groups_set(PointerRNA *ptr, const int *values)
+{
+	RigidBodyOb *rbo = (RigidBodyOb *)ptr->data;
+	int i;
+
+	for (i = 0; i < 20; i++) {
+		if (values[i])
+			rbo->col_groups |= (1 << i);
+		else
+			rbo->col_groups &= ~(1 << i);
+	}
+	rbo->flag |= RBO_FLAG_NEEDS_VALIDATE;
+}
+
 static void rna_RigidBodyOb_kinematic_state_set(PointerRNA *ptr, int value)
 {
 	RigidBodyOb *rbo = (RigidBodyOb *)ptr->data;
@@ -812,6 +826,7 @@ static void rna_def_rigidbody_object(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "collision_groups", PROP_BOOLEAN, PROP_LAYER_MEMBER);
 	RNA_def_property_boolean_sdna(prop, NULL, "col_groups", 1);
 	RNA_def_property_array(prop, 20);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_RigidBodyOb_collision_groups_set");
 	RNA_def_property_ui_text(prop, "Collision Groups", "Collision Groups Rigid Body belongs to");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_reset");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
