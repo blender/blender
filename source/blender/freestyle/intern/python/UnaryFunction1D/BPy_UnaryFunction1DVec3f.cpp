@@ -54,7 +54,7 @@ int UnaryFunction1DVec3f_Init(PyObject *module)
 		return -1;
 	Py_INCREF(&UnaryFunction1DVec3f_Type);
 	PyModule_AddObject(module, "UnaryFunction1DVec3f", (PyObject *)&UnaryFunction1DVec3f_Type);
-	
+
 	if (PyType_Ready(&Orientation3DF1D_Type) < 0)
 		return -1;
 	Py_INCREF(&Orientation3DF1D_Type);
@@ -108,7 +108,6 @@ static void UnaryFunction1DVec3f___dealloc__(BPy_UnaryFunction1DVec3f* self)
 		delete self->uf1D_vec3f;
 	UnaryFunction1D_Type.tp_dealloc((PyObject*)self);
 }
-
 
 static PyObject * UnaryFunction1DVec3f___repr__(BPy_UnaryFunction1DVec3f* self)
 {

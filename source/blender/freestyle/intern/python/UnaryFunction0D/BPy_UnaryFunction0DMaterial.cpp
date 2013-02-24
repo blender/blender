@@ -53,7 +53,7 @@ int UnaryFunction0DMaterial_Init(PyObject *module)
 		return -1;
 	Py_INCREF(&UnaryFunction0DMaterial_Type);
 	PyModule_AddObject(module, "UnaryFunction0DMaterial", (PyObject *)&UnaryFunction0DMaterial_Type);
-	
+
 	if (PyType_Ready(&MaterialF0D_Type) < 0)
 		return -1;
 	Py_INCREF(&MaterialF0D_Type);

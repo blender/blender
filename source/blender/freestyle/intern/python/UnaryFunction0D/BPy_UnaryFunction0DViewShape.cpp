@@ -45,8 +45,8 @@ extern "C" {
 
 //-------------------MODULE INITIALIZATION--------------------------------
 
-int UnaryFunction0DViewShape_Init(PyObject *module) {
-
+int UnaryFunction0DViewShape_Init(PyObject *module)
+{
 	if (module == NULL)
 		return -1;
 
@@ -59,7 +59,7 @@ int UnaryFunction0DViewShape_Init(PyObject *module) {
 		return -1;
 	Py_INCREF(&GetOccludeeF0D_Type);
 	PyModule_AddObject(module, "GetOccludeeF0D", (PyObject *)&GetOccludeeF0D_Type);
-	
+
 	if (PyType_Ready(&GetShapeF0D_Type) < 0)
 		return -1;
 	Py_INCREF(&GetShapeF0D_Type);

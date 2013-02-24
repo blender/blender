@@ -55,12 +55,12 @@ int UnaryFunction1DVec2f_Init(PyObject *module)
 		return -1;
 	Py_INCREF(&UnaryFunction1DVec2f_Type);
 	PyModule_AddObject(module, "UnaryFunction1DVec2f", (PyObject *)&UnaryFunction1DVec2f_Type);
-	
+
 	if (PyType_Ready(&Normal2DF1D_Type) < 0)
 		return -1;
 	Py_INCREF(&Normal2DF1D_Type);
 	PyModule_AddObject(module, "Normal2DF1D", (PyObject *)&Normal2DF1D_Type);
-	
+
 	if (PyType_Ready(&Orientation2DF1D_Type) < 0)
 		return -1;
 	Py_INCREF(&Orientation2DF1D_Type);

@@ -78,10 +78,6 @@ static int NonTVertex_init(BPy_NonTVertex *self, PyObject *args, PyObject *kwds)
 	return 0;
 }
 
-static PyMethodDef BPy_NonTVertex_methods[] = {	
-	{NULL, NULL, 0, NULL}
-};
-
 /*----------------------NonTVertex get/setters ----------------------------*/
 
 PyDoc_STRVAR(NonTVertex_svertex_doc,
@@ -141,7 +137,7 @@ PyTypeObject NonTVertex_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_NonTVertex_methods,         /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_NonTVertex_getseters,       /* tp_getset */
 	&ViewVertex_Type,               /* tp_base */

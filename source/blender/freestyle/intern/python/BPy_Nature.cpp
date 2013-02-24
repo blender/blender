@@ -252,7 +252,7 @@ int Nature_Init(PyObject *module)
 	PyDict_SetItemString(Nature_Type.tp_dict, "NON_T_VERTEX", BPy_Nature_NON_T_VERTEX);
 	PyDict_SetItemString(Nature_Type.tp_dict, "T_VERTEX", BPy_Nature_T_VERTEX);
 	PyDict_SetItemString(Nature_Type.tp_dict, "CUSP", BPy_Nature_CUSP);
-	
+
 	// EdgeNature
 	PyDict_SetItemString(Nature_Type.tp_dict, "NO_FEATURE", BPy_Nature_NO_FEATURE);
 	PyDict_SetItemString(Nature_Type.tp_dict, "SILHOUETTE", BPy_Nature_SILHOUETTE);

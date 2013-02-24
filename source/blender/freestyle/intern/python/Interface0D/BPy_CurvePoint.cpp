@@ -137,10 +137,6 @@ static int CurvePoint_init(BPy_CurvePoint *self, PyObject *args, PyObject *kwds)
 
 ///bool 	operator== (const CurvePoint &b)
 
-static PyMethodDef BPy_CurvePoint_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
-
 /*----------------------CurvePoint get/setters ----------------------------*/
 
 PyDoc_STRVAR(CurvePoint_first_svertex_doc,
@@ -259,7 +255,7 @@ PyTypeObject CurvePoint_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_CurvePoint_methods,         /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_CurvePoint_getseters,       /* tp_getset */
 	&Interface0D_Type,              /* tp_base */

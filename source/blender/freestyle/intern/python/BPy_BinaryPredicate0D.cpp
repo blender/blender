@@ -48,9 +48,9 @@ int BinaryPredicate0D_Init(PyObject *module)
 
 	if (PyType_Ready(&BinaryPredicate0D_Type) < 0)
 		return -1;
-
 	Py_INCREF(&BinaryPredicate0D_Type);
 	PyModule_AddObject(module, "BinaryPredicate0D", (PyObject *)&BinaryPredicate0D_Type);
+
 	return 0;
 }
 

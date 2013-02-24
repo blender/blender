@@ -113,10 +113,6 @@ static PyObject * AdjacencyIterator_iternext(BPy_AdjacencyIterator *self)
 	return BPy_ViewEdge_from_ViewEdge(*ve);
 }
 
-static PyMethodDef BPy_AdjacencyIterator_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
-
 /*----------------------AdjacencyIterator get/setters ----------------------------*/
 
 PyDoc_STRVAR(AdjacencyIterator_object_doc,
@@ -129,7 +125,6 @@ static PyObject *AdjacencyIterator_object_get(BPy_AdjacencyIterator *self, void 
 	ViewEdge *ve = self->a_it->operator*();
 	if (ve)
 		return BPy_ViewEdge_from_ViewEdge(*ve);
-
 	Py_RETURN_NONE;
 }
 
@@ -180,7 +175,7 @@ PyTypeObject AdjacencyIterator_Type = {
 	0,                              /* tp_weaklistoffset */
 	PyObject_SelfIter,              /* tp_iter */
 	(iternextfunc)AdjacencyIterator_iternext, /* tp_iternext */
-	BPy_AdjacencyIterator_methods,  /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_AdjacencyIterator_getseters, /* tp_getset */
 	&Iterator_Type,                 /* tp_base */

@@ -139,11 +139,6 @@ static PyObject * FrsMaterial_repr(BPy_FrsMaterial* self)
 	return PyUnicode_FromFormat("Material - address: %p", self->m);
 }
 
-/*----------------------FrsMaterial instance definitions ----------------------------*/
-static PyMethodDef BPy_FrsMaterial_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
-
 /*----------------------mathutils callbacks ----------------------------*/
 
 /* subtype */
@@ -441,7 +436,7 @@ PyTypeObject FrsMaterial_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_FrsMaterial_methods,        /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_FrsMaterial_getseters,      /* tp_getset */
 	0,                              /* tp_base */

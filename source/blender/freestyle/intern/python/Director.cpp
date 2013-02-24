@@ -67,9 +67,9 @@
 #include "UnaryFunction1D/BPy_UnaryFunction1DVec3f.h"
 #include "UnaryFunction1D/BPy_UnaryFunction1DVectorViewShape.h"
 
-
-//   BinaryPredicate0D: __call__
-int Director_BPy_BinaryPredicate0D___call__( BinaryPredicate0D *bp0D, Interface0D& i1, Interface0D& i2 ) {
+// BinaryPredicate0D: __call__
+int Director_BPy_BinaryPredicate0D___call__(BinaryPredicate0D *bp0D, Interface0D& i1, Interface0D& i2)
+{
 	if (!bp0D->py_bp0D) { // internal error
 		PyErr_SetString(PyExc_RuntimeError, "Reference to Python object (py_bp0D) not initialized");
 		return -1;
@@ -81,7 +81,7 @@ int Director_BPy_BinaryPredicate0D___call__( BinaryPredicate0D *bp0D, Interface0
 		Py_XDECREF(arg2);
 		return -1;
 	}
-	PyObject *result = PyObject_CallMethod( bp0D->py_bp0D, (char*)"__call__", (char*)"OO", arg1, arg2 );
+	PyObject *result = PyObject_CallMethod(bp0D->py_bp0D, (char *)"__call__", (char *)"OO", arg1, arg2);
 	Py_DECREF(arg1);
 	Py_DECREF(arg2);
 	if (!result)
@@ -94,9 +94,9 @@ int Director_BPy_BinaryPredicate0D___call__( BinaryPredicate0D *bp0D, Interface0
 	return 0;
 }
 
-
-//   BinaryPredicate1D: __call__
-int Director_BPy_BinaryPredicate1D___call__( BinaryPredicate1D *bp1D, Interface1D& i1, Interface1D& i2 ) {
+// BinaryPredicate1D: __call__
+int Director_BPy_BinaryPredicate1D___call__(BinaryPredicate1D *bp1D, Interface1D& i1, Interface1D& i2)
+{
 	if (!bp1D->py_bp1D) { // internal error
 		PyErr_SetString(PyExc_RuntimeError, "Reference to Python object (py_bp1D) not initialized");
 		return -1;
@@ -108,7 +108,7 @@ int Director_BPy_BinaryPredicate1D___call__( BinaryPredicate1D *bp1D, Interface1
 		Py_XDECREF(arg2);
 		return -1;
 	}
-	PyObject *result = PyObject_CallMethod( bp1D->py_bp1D, (char*)"__call__", (char*)"OO", arg1, arg2 );
+	PyObject *result = PyObject_CallMethod(bp1D->py_bp1D, (char *)"__call__", (char *)"OO", arg1, arg2);
 	Py_DECREF(arg1);
 	Py_DECREF(arg2);
 	if (!result)
@@ -121,9 +121,9 @@ int Director_BPy_BinaryPredicate1D___call__( BinaryPredicate1D *bp1D, Interface1
 	return 0;
 }
 
-
-//   UnaryPredicate0D: __call__
-int Director_BPy_UnaryPredicate0D___call__( UnaryPredicate0D *up0D, Interface0DIterator& if0D_it ) {
+// UnaryPredicate0D: __call__
+int Director_BPy_UnaryPredicate0D___call__(UnaryPredicate0D *up0D, Interface0DIterator& if0D_it)
+{
 	if (!up0D->py_up0D) { // internal error
 		PyErr_SetString(PyExc_RuntimeError, "Reference to Python object (py_up0D) not initialized");
 		return -1;
@@ -131,7 +131,7 @@ int Director_BPy_UnaryPredicate0D___call__( UnaryPredicate0D *up0D, Interface0DI
 	PyObject *arg = BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, 0);
 	if (!arg)
 		return -1;
-	PyObject *result = PyObject_CallMethod( up0D->py_up0D, (char*)"__call__", (char*)"O", arg );
+	PyObject *result = PyObject_CallMethod(up0D->py_up0D, (char *)"__call__", (char *)"O", arg);
 	Py_DECREF(arg);
 	if (!result)
 		return -1;
@@ -143,9 +143,9 @@ int Director_BPy_UnaryPredicate0D___call__( UnaryPredicate0D *up0D, Interface0DI
 	return 0;
 }
 
-
-//   UnaryPredicate1D: __call__
-int Director_BPy_UnaryPredicate1D___call__( UnaryPredicate1D *up1D, Interface1D& if1D ) {
+// UnaryPredicate1D: __call__
+int Director_BPy_UnaryPredicate1D___call__(UnaryPredicate1D *up1D, Interface1D& if1D)
+{
 	if (!up1D->py_up1D) { // internal error
 		PyErr_SetString(PyExc_RuntimeError, "Reference to Python object (py_up1D) not initialized");
 		return -1;
@@ -153,7 +153,7 @@ int Director_BPy_UnaryPredicate1D___call__( UnaryPredicate1D *up1D, Interface1D&
 	PyObject *arg = Any_BPy_Interface1D_from_Interface1D(if1D);
 	if (!arg)
 		return -1;
-	PyObject *result = PyObject_CallMethod( up1D->py_up1D, (char*)"__call__", (char*)"O", arg );
+	PyObject *result = PyObject_CallMethod(up1D->py_up1D, (char *)"__call__", (char *)"O", arg);
 	Py_DECREF(arg);
 	if (!result)
 		return -1;
@@ -165,9 +165,9 @@ int Director_BPy_UnaryPredicate1D___call__( UnaryPredicate1D *up1D, Interface1D&
 	return 0;
 }
 
-
-//   StrokeShader: shade
-int Director_BPy_StrokeShader_shade( StrokeShader *ss, Stroke& s ) {
+// StrokeShader: shade
+int Director_BPy_StrokeShader_shade(StrokeShader *ss, Stroke& s)
+{
 	if (!ss->py_ss) { // internal error
 		PyErr_SetString(PyExc_RuntimeError, "Reference to Python object (py_ss) not initialized");
 		return -1;
@@ -175,7 +175,7 @@ int Director_BPy_StrokeShader_shade( StrokeShader *ss, Stroke& s ) {
 	PyObject *arg = BPy_Stroke_from_Stroke(s);
 	if (!arg)
 		return -1;
-	PyObject *result = PyObject_CallMethod( ss->py_ss, (char*)"shade", (char*)"O", arg );
+	PyObject *result = PyObject_CallMethod(ss->py_ss, (char *)"shade", (char *)"O", arg);
 	Py_DECREF(arg);
 	if (!result)
 		return -1;
@@ -183,20 +183,22 @@ int Director_BPy_StrokeShader_shade( StrokeShader *ss, Stroke& s ) {
 	return 0;
 }
 
-//   ChainingIterator: init, traverse
-int Director_BPy_ChainingIterator_init( ChainingIterator *c_it ) {
+// ChainingIterator: init, traverse
+int Director_BPy_ChainingIterator_init(ChainingIterator *c_it)
+{
 	if (!c_it->py_c_it) { // internal error
 		PyErr_SetString(PyExc_RuntimeError, "Reference to Python object (py_c_it) not initialized");
 		return -1;
 	}
-	PyObject *result = PyObject_CallMethod( c_it->py_c_it, (char*)"init", NULL);
+	PyObject *result = PyObject_CallMethod(c_it->py_c_it, (char *)"init", NULL);
 	if (!result)
 		return -1;
 	Py_DECREF(result);
 	return 0;
 }
 
-int Director_BPy_ChainingIterator_traverse( ChainingIterator *c_it, AdjacencyIterator& a_it ) {
+int Director_BPy_ChainingIterator_traverse(ChainingIterator *c_it, AdjacencyIterator& a_it)
+{
 	if (!c_it->py_c_it) { // internal error
 		PyErr_SetString(PyExc_RuntimeError, "Reference to Python object (py_c_it) not initialized");
 		return -1;
@@ -204,12 +206,12 @@ int Director_BPy_ChainingIterator_traverse( ChainingIterator *c_it, AdjacencyIte
 	PyObject *arg = BPy_AdjacencyIterator_from_AdjacencyIterator(a_it);
 	if (!arg)
 		return -1;
-	PyObject *result = PyObject_CallMethod( c_it->py_c_it, (char*)"traverse", (char*)"O", arg );
+	PyObject *result = PyObject_CallMethod(c_it->py_c_it, (char *)"traverse", (char *)"O", arg);
 	Py_DECREF(arg);
 	if (!result)
 		return -1;
 	if (BPy_ViewEdge_Check(result)) {
-		c_it->result = ((BPy_ViewEdge *) result)->ve;
+		c_it->result = ((BPy_ViewEdge *)result)->ve;
 	} else if (result == Py_None) {
 		c_it->result = NULL;
 	} else {
@@ -221,10 +223,9 @@ int Director_BPy_ChainingIterator_traverse( ChainingIterator *c_it, AdjacencyIte
 	return 0;
 }
 
-
 // BPy_UnaryFunction{0D,1D}: __call__
-int Director_BPy_UnaryFunction0D___call__( void *uf0D, PyObject *obj, Interface0DIterator& if0D_it) {
-
+int Director_BPy_UnaryFunction0D___call__(void *uf0D, PyObject *obj, Interface0DIterator& if0D_it)
+{
 	if (!obj) { // internal error
 		PyErr_SetString(PyExc_RuntimeError, "Reference to Python object (py_uf0D) not initialized");
 		return -1;
@@ -232,59 +233,55 @@ int Director_BPy_UnaryFunction0D___call__( void *uf0D, PyObject *obj, Interface0
 	PyObject *arg = BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, 0);
 	if (!arg)
 		return -1;
-	PyObject *result = PyObject_CallMethod( obj, (char*)"__call__", (char*)"O", arg );
+	PyObject *result = PyObject_CallMethod(obj, (char *)"__call__", (char *)"O", arg);
 	Py_DECREF(arg);
 	if (!result)
 		return -1;
-	
-	if( BPy_UnaryFunction0DDouble_Check(obj) ) {	
-		((UnaryFunction0D<double> *) uf0D)->result = PyFloat_AsDouble(result);
-
-	} else if ( BPy_UnaryFunction0DEdgeNature_Check(obj) ) {
-		((UnaryFunction0D<Nature::EdgeNature> *) uf0D)->result = EdgeNature_from_BPy_Nature(result);
-	
-	} else if ( BPy_UnaryFunction0DFloat_Check(obj) ) {
-		((UnaryFunction0D<float> *) uf0D)->result = PyFloat_AsDouble(result);
-	
-	} else if ( BPy_UnaryFunction0DId_Check(obj) ) {
-		((UnaryFunction0D<Id> *) uf0D)->result = *( ((BPy_Id *) result)->id );
-	
-	} else if ( BPy_UnaryFunction0DMaterial_Check(obj) ) {
-		((UnaryFunction0D<FrsMaterial> *) uf0D)->result = *( ((BPy_FrsMaterial *) result)->m );
-	
-	} else if ( BPy_UnaryFunction0DUnsigned_Check(obj) ) {
-		((UnaryFunction0D<unsigned> *) uf0D)->result = PyLong_AsLong(result);
-	
-	} else if ( BPy_UnaryFunction0DVec2f_Check(obj) ) {
-		Vec2f *v = Vec2f_ptr_from_Vector( result );
-		((UnaryFunction0D<Vec2f> *) uf0D)->result = *v;
+	if (BPy_UnaryFunction0DDouble_Check(obj)) {
+		((UnaryFunction0D<double> *)uf0D)->result = PyFloat_AsDouble(result);
+	}
+	else if (BPy_UnaryFunction0DEdgeNature_Check(obj)) {
+		((UnaryFunction0D<Nature::EdgeNature> *)uf0D)->result = EdgeNature_from_BPy_Nature(result);
+	}
+	else if (BPy_UnaryFunction0DFloat_Check(obj)) {
+		((UnaryFunction0D<float> *)uf0D)->result = PyFloat_AsDouble(result);
+	}
+	else if (BPy_UnaryFunction0DId_Check(obj)) {
+		((UnaryFunction0D<Id> *)uf0D)->result = *(((BPy_Id *)result)->id);
+	}
+	else if (BPy_UnaryFunction0DMaterial_Check(obj)) {
+		((UnaryFunction0D<FrsMaterial> *)uf0D)->result = *(((BPy_FrsMaterial *)result)->m);
+	}
+	else if (BPy_UnaryFunction0DUnsigned_Check(obj)) {
+		((UnaryFunction0D<unsigned> *)uf0D)->result = PyLong_AsLong(result);
+	}
+	else if (BPy_UnaryFunction0DVec2f_Check(obj)) {
+		Vec2f *v = Vec2f_ptr_from_Vector(result);
+		((UnaryFunction0D<Vec2f> *)uf0D)->result = *v;
 		delete v; 
-	
-	} else if ( BPy_UnaryFunction0DVec3f_Check(obj) ) {
-		Vec3f *v = Vec3f_ptr_from_Vector( result );
-		((UnaryFunction0D<Vec3f> *) uf0D)->result = *v;
+	}
+	else if (BPy_UnaryFunction0DVec3f_Check(obj)) {
+		Vec3f *v = Vec3f_ptr_from_Vector(result);
+		((UnaryFunction0D<Vec3f> *)uf0D)->result = *v;
 		delete v;
-	
-	} else if ( BPy_UnaryFunction0DVectorViewShape_Check(obj) ) {
+	}
+	else if (BPy_UnaryFunction0DVectorViewShape_Check(obj)) {
 		vector<ViewShape*> vec;
-		for( int i = 0; i < PyList_Size(result); i++) {
-			ViewShape *b = ( (BPy_ViewShape *) PyList_GetItem(result, i) )->vs;
-			vec.push_back( b );
+		for(int i = 0; i < PyList_Size(result); i++) {
+			ViewShape *b = ((BPy_ViewShape *)PyList_GetItem(result, i))->vs;
+			vec.push_back(b);
 		}
-			
-		((UnaryFunction0D< vector<ViewShape*> > *) uf0D)->result = vec;
-	
-	} else if ( BPy_UnaryFunction0DViewShape_Check(obj) ) {
-		((UnaryFunction0D<ViewShape*> *) uf0D)->result = ((BPy_ViewShape *) result)->vs;
-	
-	}	
-
+		((UnaryFunction0D< vector<ViewShape*> > *)uf0D)->result = vec;
+	}
+	else if (BPy_UnaryFunction0DViewShape_Check(obj)) {
+		((UnaryFunction0D<ViewShape*> *)uf0D)->result = ((BPy_ViewShape *)result)->vs;
+	}
 	Py_DECREF(result);
 	return 0;
 }
 
-int Director_BPy_UnaryFunction1D___call__( void *uf1D, PyObject *obj, Interface1D& if1D) {
-
+int Director_BPy_UnaryFunction1D___call__(void *uf1D, PyObject *obj, Interface1D& if1D)
+{
 	if (!obj) { // internal error
 		PyErr_SetString(PyExc_RuntimeError, "Reference to Python object (py_uf1D) not initialized");
 		return -1;
@@ -292,44 +289,40 @@ int Director_BPy_UnaryFunction1D___call__( void *uf1D, PyObject *obj, Interface1
 	PyObject *arg = Any_BPy_Interface1D_from_Interface1D(if1D);
 	if (!arg)
 		return -1;
-	PyObject *result = PyObject_CallMethod( obj, (char*)"__call__", (char*)"O", arg );
+	PyObject *result = PyObject_CallMethod(obj, (char *)"__call__", (char *)"O", arg);
 	Py_DECREF(arg);
 	if (!result)
 		return -1;
-	
-	if( BPy_UnaryFunction1DDouble_Check(obj) ) {	
-		((UnaryFunction1D<double> *) uf1D)->result = PyFloat_AsDouble(result);
-
-	} else if ( BPy_UnaryFunction1DEdgeNature_Check(obj) ) {
-		((UnaryFunction1D<Nature::EdgeNature> *) uf1D)->result = EdgeNature_from_BPy_Nature(result);
-	
-	} else if ( BPy_UnaryFunction1DFloat_Check(obj) ) {
-		((UnaryFunction1D<float> *) uf1D)->result = PyFloat_AsDouble(result);
-	
-	} else if ( BPy_UnaryFunction1DUnsigned_Check(obj) ) {
-		((UnaryFunction1D<unsigned> *) uf1D)->result = PyLong_AsLong(result);
-	
-	} else if ( BPy_UnaryFunction1DVec2f_Check(obj) ) {
-		Vec2f *v = Vec2f_ptr_from_Vector( result );
-		((UnaryFunction1D<Vec2f> *) uf1D)->result = *v;
+	if (BPy_UnaryFunction1DDouble_Check(obj)) {
+		((UnaryFunction1D<double> *)uf1D)->result = PyFloat_AsDouble(result);
+	}
+	else if (BPy_UnaryFunction1DEdgeNature_Check(obj)) {
+		((UnaryFunction1D<Nature::EdgeNature> *)uf1D)->result = EdgeNature_from_BPy_Nature(result);
+	}
+	else if (BPy_UnaryFunction1DFloat_Check(obj)) {
+		((UnaryFunction1D<float> *)uf1D)->result = PyFloat_AsDouble(result);
+	}
+	else if (BPy_UnaryFunction1DUnsigned_Check(obj)) {
+		((UnaryFunction1D<unsigned> *)uf1D)->result = PyLong_AsLong(result);
+	}
+	else if (BPy_UnaryFunction1DVec2f_Check(obj)) {
+		Vec2f *v = Vec2f_ptr_from_Vector(result);
+		((UnaryFunction1D<Vec2f> *)uf1D)->result = *v;
 		delete v; 
-	
-	} else if ( BPy_UnaryFunction1DVec3f_Check(obj) ) {
-		Vec3f *v = Vec3f_ptr_from_Vector( result );
-		((UnaryFunction1D<Vec3f> *) uf1D)->result = *v;
+	}
+	else if (BPy_UnaryFunction1DVec3f_Check(obj)) {
+		Vec3f *v = Vec3f_ptr_from_Vector(result);
+		((UnaryFunction1D<Vec3f> *)uf1D)->result = *v;
 		delete v;
-	
-	} else if ( BPy_UnaryFunction1DVectorViewShape_Check(obj) ) {
+	}
+	else if (BPy_UnaryFunction1DVectorViewShape_Check(obj)) {
 		vector<ViewShape*> vec;
-		for( int i = 1; i < PyList_Size(result); i++) {
-			ViewShape *b = ( (BPy_ViewShape *) PyList_GetItem(result, i) )->vs;
-			vec.push_back( b );
+		for(int i = 1; i < PyList_Size(result); i++) {
+			ViewShape *b = ((BPy_ViewShape *)PyList_GetItem(result, i))->vs;
+			vec.push_back(b);
 		}
-			
-		((UnaryFunction1D< vector<ViewShape*> > *) uf1D)->result = vec;
-	
+		((UnaryFunction1D< vector<ViewShape*> > *)uf1D)->result = vec;
 	} 
-
 	Py_DECREF(result);
 	return 0;
 }

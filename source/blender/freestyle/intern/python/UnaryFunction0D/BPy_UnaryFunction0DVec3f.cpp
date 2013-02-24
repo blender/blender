@@ -44,8 +44,8 @@ extern "C" {
 
 //-------------------MODULE INITIALIZATION--------------------------------
 
-int UnaryFunction0DVec3f_Init(PyObject *module) {
-
+int UnaryFunction0DVec3f_Init(PyObject *module)
+{
 	if (module == NULL)
 		return -1;
 
@@ -53,7 +53,7 @@ int UnaryFunction0DVec3f_Init(PyObject *module) {
 		return -1;
 	Py_INCREF(&UnaryFunction0DVec3f_Type);
 	PyModule_AddObject(module, "UnaryFunction0DVec3f", (PyObject *)&UnaryFunction0DVec3f_Type);
-	
+
 	if (PyType_Ready(&VertexOrientation3DF0D_Type) < 0)
 		return -1;
 	Py_INCREF(&VertexOrientation3DF0D_Type);

@@ -65,6 +65,7 @@ int UnaryFunction1D_Init(PyObject *module)
 	UnaryFunction1DVec3f_Init(module);
 	UnaryFunction1DVectorViewShape_Init(module);
 	UnaryFunction1DVoid_Init(module);
+
 	return 0;
 }
 

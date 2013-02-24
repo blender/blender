@@ -109,7 +109,8 @@ static PyObject * Interface0DIterator_iternext(BPy_Interface0DIterator *self)
 		}
 		self->if0D_it->decrement();
 		if0D = self->if0D_it->operator->();
-	} else {
+	}
+	else {
 		if (self->if0D_it->isEnd()) {
 			PyErr_SetNone(PyExc_StopIteration);
 			return NULL;
@@ -119,10 +120,6 @@ static PyObject * Interface0DIterator_iternext(BPy_Interface0DIterator *self)
 	}
 	return Any_BPy_Interface0D_from_Interface0D(*if0D);
 }
-
-static PyMethodDef BPy_Interface0DIterator_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
 
 /*----------------------Interface0DIterator get/setters ----------------------------*/
 
@@ -193,7 +190,7 @@ PyTypeObject Interface0DIterator_Type = {
 	0,                              /* tp_weaklistoffset */
 	PyObject_SelfIter,              /* tp_iter */
 	(iternextfunc)Interface0DIterator_iternext, /* tp_iternext */
-	BPy_Interface0DIterator_methods, /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_Interface0DIterator_getseters, /* tp_getset */
 	&Iterator_Type,                 /* tp_base */

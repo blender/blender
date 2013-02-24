@@ -34,7 +34,6 @@
 #include "../BPy_Convert.h"
 #include "../Interface1D/BPy_ViewEdge.h"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -112,7 +111,6 @@ PyDoc_STRVAR(ViewEdgeIterator_change_orientation_doc,
 static PyObject *ViewEdgeIterator_change_orientation(BPy_ViewEdgeIterator *self)
 {
 	self->ve_it->changeOrientation();
-	
 	Py_RETURN_NONE;
 }
 
@@ -133,7 +131,6 @@ static PyObject *ViewEdgeIterator_object_get(BPy_ViewEdgeIterator *self, void *U
 	ViewEdge *ve = self->ve_it->operator*();
 	if (ve)
 		return BPy_ViewEdge_from_ViewEdge(*ve);
-
 	Py_RETURN_NONE;
 }
 
@@ -147,7 +144,6 @@ static PyObject *ViewEdgeIterator_current_edge_get(BPy_ViewEdgeIterator *self, v
 	ViewEdge *ve = self->ve_it->getCurrentEdge();
 	if (ve)
 		return BPy_ViewEdge_from_ViewEdge(*ve);
-
 	Py_RETURN_NONE;}
 
 static int ViewEdgeIterator_current_edge_set(BPy_ViewEdgeIterator *self, PyObject *value, void *UNUSED(closure))
@@ -194,7 +190,6 @@ static PyObject *ViewEdgeIterator_begin_get(BPy_ViewEdgeIterator *self, void *UN
 	ViewEdge *ve = self->ve_it->getBegin();
 	if (ve)
 		return BPy_ViewEdge_from_ViewEdge(*ve);
-
 	Py_RETURN_NONE;
 }
 

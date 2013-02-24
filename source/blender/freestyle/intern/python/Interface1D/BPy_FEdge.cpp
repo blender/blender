@@ -105,10 +105,6 @@ static int FEdge_init(BPy_FEdge *self, PyObject *args, PyObject *kwds)
 	return 0;
 }
 
-static PyMethodDef BPy_FEdge_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
-
 /*----------------------FEdge sequence protocol ----------------------------*/
 
 static Py_ssize_t FEdge_sq_length(BPy_FEdge *self)
@@ -365,7 +361,7 @@ PyTypeObject FEdge_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_FEdge_methods,              /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_FEdge_getseters,            /* tp_getset */
 	&Interface1D_Type,              /* tp_base */

@@ -129,13 +129,8 @@ static PyObject * Id_RichCompare(BPy_Id *o1, BPy_Id *o2, int opid)
 			return PyBool_from_bool(!(o1->id->operator<(*(o2->id))));
 			break;
 	}
-	
 	Py_RETURN_NONE;
 }
-
-static PyMethodDef BPy_Id_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
 
 /*----------------------Id get/setters ----------------------------*/
 
@@ -217,7 +212,7 @@ PyTypeObject Id_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_Id_methods,                 /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_Id_getseters,               /* tp_getset */
 	0,                              /* tp_base */

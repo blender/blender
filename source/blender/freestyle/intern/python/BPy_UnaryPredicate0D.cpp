@@ -52,17 +52,17 @@ int UnaryPredicate0D_Init(PyObject *module)
 		return -1;
 	Py_INCREF(&UnaryPredicate0D_Type);
 	PyModule_AddObject(module, "UnaryPredicate0D", (PyObject *)&UnaryPredicate0D_Type);
-	
+
 	if (PyType_Ready(&FalseUP0D_Type) < 0)
 		return -1;
 	Py_INCREF(&FalseUP0D_Type);
 	PyModule_AddObject(module, "FalseUP0D", (PyObject *)&FalseUP0D_Type);
-	
+
 	if (PyType_Ready(&TrueUP0D_Type) < 0)
 		return -1;
 	Py_INCREF(&TrueUP0D_Type);
 	PyModule_AddObject(module, "TrueUP0D", (PyObject *)&TrueUP0D_Type);
-	
+
 	return 0;
 }
 

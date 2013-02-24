@@ -53,7 +53,7 @@ int UnaryFunction0DUnsigned_Init(PyObject *module)
 		return -1;
 	Py_INCREF(&UnaryFunction0DUnsigned_Type);
 	PyModule_AddObject(module, "UnaryFunction0DUnsigned", (PyObject *)&UnaryFunction0DUnsigned_Type);
-	
+
 	if (PyType_Ready(&QuantitativeInvisibilityF0D_Type) < 0)
 		return -1;
 	Py_INCREF(&QuantitativeInvisibilityF0D_Type);

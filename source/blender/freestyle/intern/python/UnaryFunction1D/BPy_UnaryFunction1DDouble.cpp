@@ -50,7 +50,6 @@
 #include "UnaryFunction1D_double/BPy_LocalAverageDepthF1D.h"
 #include "UnaryFunction1D_double/BPy_ZDiscontinuityF1D.h"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -98,7 +97,7 @@ int UnaryFunction1DDouble_Init(PyObject *module)
 		return -1;
 	Py_INCREF(&GetProjectedYF1D_Type);
 	PyModule_AddObject(module, "GetProjectedYF1D", (PyObject *)&GetProjectedYF1D_Type);
-	
+
 	if (PyType_Ready(&GetProjectedZF1D_Type) < 0)
 		return -1;
 	Py_INCREF(&GetProjectedZF1D_Type);

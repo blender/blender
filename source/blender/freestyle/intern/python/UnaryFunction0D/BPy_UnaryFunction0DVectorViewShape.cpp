@@ -44,8 +44,8 @@ extern "C" {
 
 //-------------------MODULE INITIALIZATION--------------------------------
 
-int UnaryFunction0DVectorViewShape_Init(PyObject *module) {
-
+int UnaryFunction0DVectorViewShape_Init(PyObject *module)
+{
 	if (module == NULL)
 		return -1;
 
@@ -53,7 +53,7 @@ int UnaryFunction0DVectorViewShape_Init(PyObject *module) {
 		return -1;
 	Py_INCREF(&UnaryFunction0DVectorViewShape_Type);
 	PyModule_AddObject(module, "UnaryFunction0DVectorViewShape", (PyObject *)&UnaryFunction0DVectorViewShape_Type);
-	
+
 	if (PyType_Ready(&GetOccludersF0D_Type) < 0)
 		return -1;
 	Py_INCREF(&GetOccludersF0D_Type);

@@ -42,7 +42,6 @@
 #include "UnaryFunction0D/BPy_UnaryFunction0DVectorViewShape.h"
 #include "UnaryFunction0D/BPy_UnaryFunction0DViewShape.h"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -70,7 +69,7 @@ int UnaryFunction0D_Init(PyObject *module)
 	UnaryFunction0DVec3f_Init(module);
 	UnaryFunction0DVectorViewShape_Init(module);
 	UnaryFunction0DViewShape_Init(module);
-	
+
 	return 0;
 }
 

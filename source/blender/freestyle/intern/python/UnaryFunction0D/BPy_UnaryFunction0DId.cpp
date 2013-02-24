@@ -53,7 +53,7 @@ int UnaryFunction0DId_Init(PyObject *module)
 		return -1;
 	Py_INCREF(&UnaryFunction0DId_Type);
 	PyModule_AddObject(module, "UnaryFunction0DId", (PyObject *)&UnaryFunction0DId_Type);
-	
+
 	if (PyType_Ready(&ShapeIdF0D_Type) < 0)
 		return -1;
 	Py_INCREF(&ShapeIdF0D_Type);

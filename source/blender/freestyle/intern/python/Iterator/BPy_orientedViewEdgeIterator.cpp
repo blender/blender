@@ -87,7 +87,8 @@ static PyObject * orientedViewEdgeIterator_iternext(BPy_orientedViewEdgeIterator
 		}
 		self->ove_it->decrement();
 		dve = self->ove_it->operator->();
-	} else {
+	}
+	else {
 		if (self->ove_it->isEnd()) {
 			PyErr_SetNone(PyExc_StopIteration);
 			return NULL;
@@ -97,10 +98,6 @@ static PyObject * orientedViewEdgeIterator_iternext(BPy_orientedViewEdgeIterator
 	}
 	return BPy_directedViewEdge_from_directedViewEdge(*dve);
 }
-
-static PyMethodDef BPy_orientedViewEdgeIterator_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
 
 /*----------------------orientedViewEdgeIterator get/setters ----------------------------*/
 
@@ -114,7 +111,6 @@ PyDoc_STRVAR(orientedViewEdgeIterator_object_doc,
 static PyObject *orientedViewEdgeIterator_object_get(BPy_orientedViewEdgeIterator *self, void *UNUSED(closure))
 {
 	return BPy_directedViewEdge_from_directedViewEdge(self->ove_it->operator*());
-
 }
 
 static PyGetSetDef BPy_orientedViewEdgeIterator_getseters[] = {
@@ -145,14 +141,14 @@ PyTypeObject orientedViewEdgeIterator_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	orientedViewEdgeIterator_doc, /* tp_doc */
+	orientedViewEdgeIterator_doc,   /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
 	0,                              /* tp_weaklistoffset */
 	PyObject_SelfIter,              /* tp_iter */
 	(iternextfunc)orientedViewEdgeIterator_iternext, /* tp_iternext */
-	BPy_orientedViewEdgeIterator_methods, /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_orientedViewEdgeIterator_getseters, /* tp_getset */
 	&Iterator_Type,                 /* tp_base */

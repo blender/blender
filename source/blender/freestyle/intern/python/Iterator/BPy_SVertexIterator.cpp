@@ -113,10 +113,6 @@ static int SVertexIterator_init(BPy_SVertexIterator *self, PyObject *args, PyObj
 	return 0;
 }
 
-static PyMethodDef BPy_SVertexIterator_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
-
 /*----------------------SVertexIterator get/setters ----------------------------*/
 
 PyDoc_STRVAR(SVertexIterator_object_doc,
@@ -127,10 +123,8 @@ PyDoc_STRVAR(SVertexIterator_object_doc,
 static PyObject *SVertexIterator_object_get(BPy_SVertexIterator *self, void *UNUSED(closure))
 {
 	SVertex *sv = self->sv_it->operator->();
-
 	if (sv)
 		return BPy_SVertex_from_SVertex(*sv);
-
 	Py_RETURN_NONE;
 }
 
@@ -191,7 +185,7 @@ PyTypeObject SVertexIterator_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_SVertexIterator_methods,    /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_SVertexIterator_getseters,  /* tp_getset */
 	&Iterator_Type,                 /* tp_base */

@@ -67,8 +67,7 @@ PyDoc_STRVAR(CurvePointIterator_doc,
 "   :arg step: A resampling resolution with which the curve is resampled.\n"
 "      If zero, no resampling is done (i.e., the iterator iterates over\n"
 "      initial vertices).\n"
-"   :type step: float\n"
-);
+"   :type step: float");
 
 static int CurvePointIterator_init(BPy_CurvePointIterator *self, PyObject *args, PyObject *kwds)
 {
@@ -95,10 +94,6 @@ static int CurvePointIterator_init(BPy_CurvePointIterator *self, PyObject *args,
 	self->py_it.it = self->cp_it;
 	return 0;
 }
-
-static PyMethodDef BPy_CurvePointIterator_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
 
 /*----------------------CurvePointIterator get/setters ----------------------------*/
 
@@ -169,7 +164,7 @@ PyTypeObject CurvePointIterator_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_CurvePointIterator_methods, /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_CurvePointIterator_getseters, /* tp_getset */
 	&Iterator_Type,                 /* tp_base */

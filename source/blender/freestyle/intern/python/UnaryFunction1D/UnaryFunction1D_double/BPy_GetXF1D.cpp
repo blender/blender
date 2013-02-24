@@ -75,7 +75,6 @@ static int GetXF1D___init__(BPy_GetXF1D* self, PyObject *args, PyObject *kwds)
 	return 0;
 }
 
-
 /*-----------------------BPy_GetXF1D type definition ------------------------------*/
 
 PyTypeObject GetXF1D_Type = {

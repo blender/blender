@@ -77,7 +77,7 @@ static char Freestyle_getCurrentScene___doc__[] =
 "   :return: The current scene.\n"
 "   :rtype: :class:`bpy.types.Scene`\n";
 
-static PyObject *Freestyle_getCurrentScene( PyObject *self )
+static PyObject *Freestyle_getCurrentScene(PyObject *self)
 {
 	if (!freestyle_scene) {
 		PyErr_SetString(PyExc_TypeError, "current scene not available");
@@ -131,7 +131,7 @@ static char Freestyle_blendRamp___doc__[] =
 "   :return: Blended color in RGB format.\n"
 "   :rtype: :class:`mathutils.Vector`\n";
 
-static PyObject *Freestyle_blendRamp( PyObject *self, PyObject *args )
+static PyObject *Freestyle_blendRamp(PyObject *self, PyObject *args)
 {
 	PyObject *obj1, *obj2;
 	char *s;
@@ -162,7 +162,7 @@ static PyObject *Freestyle_blendRamp( PyObject *self, PyObject *args )
 	ramp_blend(type, a, fac, b);
 	delete v1;
 	delete v2;
-	return Vector_CreatePyObject( a, 3, Py_NEW, NULL);
+	return Vector_CreatePyObject(a, 3, Py_NEW, NULL);
 
 error:
 	if (v1) delete v1;
@@ -184,15 +184,15 @@ static char Freestyle_evaluateColorRamp___doc__[] =
 "   :return: color in RGBA format.\n"
 "   :rtype: :class:`mathutils.Vector`\n";
 
-static PyObject *Freestyle_evaluateColorRamp( PyObject *self, PyObject *args )
+static PyObject *Freestyle_evaluateColorRamp(PyObject *self, PyObject *args)
 {
 	BPy_StructRNA *py_srna;
 	ColorBand *coba;
 	float in, out[4];
 
-	if(!( PyArg_ParseTuple(args, "O!f", &pyrna_struct_Type, &py_srna, &in) ))
+	if (!(PyArg_ParseTuple(args, "O!f", &pyrna_struct_Type, &py_srna, &in)))
 		return NULL;
-	if(!RNA_struct_is_a(py_srna->ptr.type, &RNA_ColorRamp)) {
+	if (!RNA_struct_is_a(py_srna->ptr.type, &RNA_ColorRamp)) {
 		PyErr_SetString(PyExc_TypeError, "1st argument is not a ColorRamp object");
 		return NULL;
 	}
@@ -201,7 +201,7 @@ static PyObject *Freestyle_evaluateColorRamp( PyObject *self, PyObject *args )
 		PyErr_SetString(PyExc_ValueError, "failed to evaluate the color ramp");
 		return NULL;
 	}
-	return Vector_CreatePyObject( out, 4, Py_NEW, NULL);
+	return Vector_CreatePyObject(out, 4, Py_NEW, NULL);
 }
 
 #include "DNA_color_types.h"
@@ -221,16 +221,16 @@ static char Freestyle_evaluateCurveMappingF___doc__[] =
 "   :return: Mapped output value.\n"
 "   :rtype: float\n";
 
-static PyObject *Freestyle_evaluateCurveMappingF( PyObject *self, PyObject *args )
+static PyObject *Freestyle_evaluateCurveMappingF(PyObject *self, PyObject *args)
 {
 	BPy_StructRNA *py_srna;
 	CurveMapping *cumap;
 	int cur;
 	float value;
 
-	if(!( PyArg_ParseTuple(args, "O!if", &pyrna_struct_Type, &py_srna, &cur, &value) ))
+	if (!(PyArg_ParseTuple(args, "O!if", &pyrna_struct_Type, &py_srna, &cur, &value)))
 		return NULL;
-	if(!RNA_struct_is_a(py_srna->ptr.type, &RNA_CurveMapping)) {
+	if (!RNA_struct_is_a(py_srna->ptr.type, &RNA_CurveMapping)) {
 		PyErr_SetString(PyExc_TypeError, "1st argument is not a CurveMapping object");
 		return NULL;
 	}
@@ -242,7 +242,7 @@ static PyObject *Freestyle_evaluateCurveMappingF( PyObject *self, PyObject *args
 	curvemapping_initialize(cumap);
 	/* disable extrapolation if enabled */
 	if ((cumap->cm[cur].flag & CUMA_EXTEND_EXTRAPOLATE)) {
-		cumap->cm[cur].flag &= ~( CUMA_EXTEND_EXTRAPOLATE );
+		cumap->cm[cur].flag &= ~(CUMA_EXTEND_EXTRAPOLATE);
 		curvemapping_changed(cumap, 0);
 	}
 	return PyFloat_FromDouble(curvemapping_evaluateF(cumap, cur, value));
@@ -475,10 +475,10 @@ static char module_docstring[] =
 /*-----------------------Freestyle module method def---------------------------*/
 
 static PyMethodDef module_functions[] = {
-	{"getCurrentScene", ( PyCFunction ) Freestyle_getCurrentScene, METH_NOARGS, Freestyle_getCurrentScene___doc__},
-	{"blendRamp", ( PyCFunction ) Freestyle_blendRamp, METH_VARARGS, Freestyle_blendRamp___doc__},
-	{"evaluateColorRamp", ( PyCFunction ) Freestyle_evaluateColorRamp, METH_VARARGS, Freestyle_evaluateColorRamp___doc__},
-	{"evaluateCurveMappingF", ( PyCFunction ) Freestyle_evaluateCurveMappingF, METH_VARARGS, Freestyle_evaluateCurveMappingF___doc__},
+	{"getCurrentScene", (PyCFunction) Freestyle_getCurrentScene, METH_NOARGS, Freestyle_getCurrentScene___doc__},
+	{"blendRamp", (PyCFunction) Freestyle_blendRamp, METH_VARARGS, Freestyle_blendRamp___doc__},
+	{"evaluateColorRamp", (PyCFunction) Freestyle_evaluateColorRamp, METH_VARARGS, Freestyle_evaluateColorRamp___doc__},
+	{"evaluateCurveMappingF", (PyCFunction) Freestyle_evaluateCurveMappingF, METH_VARARGS, Freestyle_evaluateCurveMappingF___doc__},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -493,43 +493,43 @@ static PyModuleDef module_definition = {
 };
 
 //-------------------MODULE INITIALIZATION--------------------------------
-PyObject *Freestyle_Init( void )
+PyObject *Freestyle_Init(void)
 {
 	PyObject *module;
 	
 	// initialize modules
 	module = PyModule_Create(&module_definition);
-    if (!module)
+	if (!module)
 		return NULL;
 	PyDict_SetItemString(PySys_GetObject("modules"), module_definition.m_name, module);
 	
 	// attach its classes (adding the object types to the module)
 	
 	// those classes have to be initialized before the others
-	MediumType_Init( module );
-	Nature_Init( module );
-	
-	BBox_Init( module );
-	BinaryPredicate0D_Init( module );
-	BinaryPredicate1D_Init( module );
-	ContextFunctions_Init( module );
-	FrsMaterial_Init( module );
-	FrsNoise_Init( module );
-	Id_Init( module );
-	IntegrationType_Init( module );
-	Interface0D_Init( module );
-	Interface1D_Init( module );
-	Iterator_Init( module );
-	Operators_Init( module );
-	SShape_Init( module );
-	StrokeAttribute_Init( module );
-	StrokeShader_Init( module );
-	UnaryFunction0D_Init( module );
-	UnaryFunction1D_Init( module );
-	UnaryPredicate0D_Init( module );
-	UnaryPredicate1D_Init( module );
-	ViewMap_Init( module );
-	ViewShape_Init( module );
+	MediumType_Init(module);
+	Nature_Init(module);
+
+	BBox_Init(module);
+	BinaryPredicate0D_Init(module);
+	BinaryPredicate1D_Init(module);
+	ContextFunctions_Init(module);
+	FrsMaterial_Init(module);
+	FrsNoise_Init(module);
+	Id_Init(module);
+	IntegrationType_Init(module);
+	Interface0D_Init(module);
+	Interface1D_Init(module);
+	Iterator_Init(module);
+	Operators_Init(module);
+	SShape_Init(module);
+	StrokeAttribute_Init(module);
+	StrokeShader_Init(module);
+	UnaryFunction0D_Init(module);
+	UnaryFunction1D_Init(module);
+	UnaryPredicate0D_Init(module);
+	UnaryPredicate1D_Init(module);
+	ViewMap_Init(module);
+	ViewShape_Init(module);
 
 	return module;
 }

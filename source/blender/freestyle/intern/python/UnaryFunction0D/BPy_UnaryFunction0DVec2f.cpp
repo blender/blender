@@ -45,8 +45,8 @@ extern "C" {
 
 //-------------------MODULE INITIALIZATION--------------------------------
 
-int UnaryFunction0DVec2f_Init(PyObject *module) {
-
+int UnaryFunction0DVec2f_Init(PyObject *module)
+{
 	if (module == NULL)
 		return -1;
 
@@ -54,12 +54,12 @@ int UnaryFunction0DVec2f_Init(PyObject *module) {
 		return -1;
 	Py_INCREF(&UnaryFunction0DVec2f_Type);
 	PyModule_AddObject(module, "UnaryFunction0DVec2f", (PyObject *)&UnaryFunction0DVec2f_Type);
-	
+
 	if (PyType_Ready(&Normal2DF0D_Type) < 0)
 		return -1;
 	Py_INCREF(&Normal2DF0D_Type);
 	PyModule_AddObject(module, "Normal2DF0D", (PyObject *)&Normal2DF0D_Type);
-	
+
 	if (PyType_Ready(&VertexOrientation2DF0D_Type) < 0)
 		return -1;
 	Py_INCREF(&VertexOrientation2DF0D_Type);

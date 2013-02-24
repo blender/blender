@@ -54,7 +54,7 @@ int UnaryFunction1DEdgeNature_Init(PyObject *module)
 		return -1;
 	Py_INCREF(&UnaryFunction1DEdgeNature_Type);
 	PyModule_AddObject(module, "UnaryFunction1DEdgeNature", (PyObject *)&UnaryFunction1DEdgeNature_Type);
-	
+
 	if (PyType_Ready(&CurveNatureF1D_Type) < 0)
 		return -1;
 	Py_INCREF(&CurveNatureF1D_Type);

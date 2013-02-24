@@ -79,7 +79,6 @@ static int ZDiscontinuityF1D___init__(BPy_ZDiscontinuityF1D* self, PyObject *arg
 	return 0;
 }
 
-
 /*-----------------------BPy_ZDiscontinuityF1D type definition ------------------------------*/
 
 PyTypeObject ZDiscontinuityF1D_Type = {

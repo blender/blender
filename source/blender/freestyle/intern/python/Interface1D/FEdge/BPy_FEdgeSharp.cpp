@@ -100,10 +100,6 @@ static int FEdgeSharp_init(BPy_FEdgeSharp *self, PyObject *args, PyObject *kwds)
 	return 0;
 }
 
-static PyMethodDef BPy_FEdgeSharp_methods[] = {	
-	{NULL, NULL, 0, NULL}
-};
-
 /*----------------------mathutils callbacks ----------------------------*/
 
 /* subtype */
@@ -414,7 +410,7 @@ PyTypeObject FEdgeSharp_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_FEdgeSharp_methods,         /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_FEdgeSharp_getseters,       /* tp_getset */
 	&FEdge_Type,                    /* tp_base */

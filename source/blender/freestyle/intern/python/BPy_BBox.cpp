@@ -81,10 +81,6 @@ static PyObject * BBox_repr(BPy_BBox* self)
 	return PyUnicode_FromFormat("BBox - address: %p", self->bb);
 }
 
-static PyMethodDef BPy_BBox_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
-
 /*-----------------------BPy_BBox type definition ------------------------------*/
 
 PyTypeObject BBox_Type = {
@@ -115,7 +111,7 @@ PyTypeObject BBox_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_BBox_methods,               /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	0,                              /* tp_getset */
 	0,                              /* tp_base */

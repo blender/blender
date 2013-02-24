@@ -95,7 +95,8 @@ static PyObject * StrokeVertexIterator_iternext(BPy_StrokeVertexIterator *self)
 		}
 		self->sv_it->decrement();
 		sv = self->sv_it->operator->();
-	} else {
+	}
+	else {
 		if (self->sv_it->isEnd()) {
 			PyErr_SetNone(PyExc_StopIteration);
 			return NULL;
@@ -105,10 +106,6 @@ static PyObject * StrokeVertexIterator_iternext(BPy_StrokeVertexIterator *self)
 	}
 	return BPy_StrokeVertex_from_StrokeVertex(*sv);
 }
-
-static PyMethodDef BPy_StrokeVertexIterator_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
 
 /*----------------------StrokeVertexIterator get/setters ----------------------------*/
 
@@ -121,11 +118,9 @@ static PyObject *StrokeVertexIterator_object_get(BPy_StrokeVertexIterator *self,
 {
 	if (!self->reversed && self->sv_it->isEnd())
 		Py_RETURN_NONE;
-
 	StrokeVertex *sv = self->sv_it->operator->();
 	if (sv)
 		return BPy_StrokeVertex_from_StrokeVertex(*sv);
-
 	Py_RETURN_NONE;
 }
 
@@ -186,7 +181,7 @@ PyTypeObject StrokeVertexIterator_Type = {
 	0,                              /* tp_weaklistoffset */
 	PyObject_SelfIter,              /* tp_iter */
 	(iternextfunc)StrokeVertexIterator_iternext, /* tp_iternext */
-	BPy_StrokeVertexIterator_methods, /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_StrokeVertexIterator_getseters, /* tp_getset */
 	&Iterator_Type,                 /* tp_base */

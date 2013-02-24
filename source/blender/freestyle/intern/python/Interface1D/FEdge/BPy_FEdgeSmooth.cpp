@@ -97,10 +97,6 @@ static int FEdgeSmooth_init(BPy_FEdgeSmooth *self, PyObject *args, PyObject *kwd
 	return 0;
 }
 
-static PyMethodDef BPy_FEdgeSmooth_methods[] = {
-	{NULL, NULL, 0, NULL}
-};
-
 /*----------------------mathutils callbacks ----------------------------*/
 
 static int FEdgeSmooth_mathutils_check(BaseMathObject *bmo)
@@ -269,7 +265,7 @@ PyTypeObject FEdgeSmooth_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_FEdgeSmooth_methods,        /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_FEdgeSmooth_getseters,      /* tp_getset */
 	&FEdge_Type,                    /* tp_base */

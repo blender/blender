@@ -107,7 +107,8 @@ static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *k
 	if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &StrokeVertex_Type, &obj1)) {
 		if (!obj1) {
 			self->sv = new StrokeVertex();
-		} else {
+		}
+		else {
 			if (!((BPy_StrokeVertex *)obj1)->sv) {
 				PyErr_SetString(PyExc_TypeError, "argument 1 is an invalid StrokeVertex object");
 				return -1;
@@ -162,11 +163,6 @@ static int StrokeVertex_init(BPy_StrokeVertex *self, PyObject *args, PyObject *k
 
 // real 	operator[] (const int i) const
 // real & 	operator[] (const int i)
-
-/*----------------------StrokeVertex instance definitions ----------------------------*/
-static PyMethodDef BPy_StrokeVertex_methods[] = {	
-	{NULL, NULL, 0, NULL}
-};
 
 /*----------------------mathutils callbacks ----------------------------*/
 
@@ -367,7 +363,7 @@ PyTypeObject StrokeVertex_Type = {
 	0,                              /* tp_weaklistoffset */
 	0,                              /* tp_iter */
 	0,                              /* tp_iternext */
-	BPy_StrokeVertex_methods,       /* tp_methods */
+	0,                              /* tp_methods */
 	0,                              /* tp_members */
 	BPy_StrokeVertex_getseters,     /* tp_getset */
 	&CurvePoint_Type,               /* tp_base */

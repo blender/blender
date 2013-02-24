@@ -57,17 +57,17 @@ int UnaryFunction1DVoid_Init(PyObject *module)
 		return -1;
 	Py_INCREF(&UnaryFunction1DVoid_Type);
 	PyModule_AddObject(module, "UnaryFunction1DVoid", (PyObject *)&UnaryFunction1DVoid_Type);
-	
+
 	if (PyType_Ready(&ChainingTimeStampF1D_Type) < 0)
 		return -1;
 	Py_INCREF(&ChainingTimeStampF1D_Type);
 	PyModule_AddObject(module, "ChainingTimeStampF1D", (PyObject *)&ChainingTimeStampF1D_Type);
-	
+
 	if (PyType_Ready(&IncrementChainingTimeStampF1D_Type) < 0)
 		return -1;
 	Py_INCREF(&IncrementChainingTimeStampF1D_Type);
 	PyModule_AddObject(module, "IncrementChainingTimeStampF1D", (PyObject *)&IncrementChainingTimeStampF1D_Type);
-	
+
 	if (PyType_Ready(&TimeStampF1D_Type) < 0)
 		return -1;
 	Py_INCREF(&TimeStampF1D_Type);

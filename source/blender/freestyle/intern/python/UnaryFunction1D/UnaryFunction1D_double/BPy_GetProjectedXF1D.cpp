@@ -75,7 +75,6 @@ static int GetProjectedXF1D___init__(BPy_GetProjectedXF1D* self, PyObject *args,
 	return 0;
 }
 
-
 /*-----------------------BPy_GetProjectedXF1D type definition ------------------------------*/
 
 PyTypeObject GetProjectedXF1D_Type = {
