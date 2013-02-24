@@ -1057,25 +1057,25 @@ def process(layer_name, lineset_name):
     if linestyle.use_chaining:
         if linestyle.chaining == "PLAIN":
             if linestyle.same_object:
-                Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(upred))
+                Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(upred))
             else:
-                Operators.bidirectionalChain(ChainPredicateIterator(upred, TrueBP1D()), NotUP1D(upred))
+                Operators.bidirectional_chain(ChainPredicateIterator(upred, TrueBP1D()), NotUP1D(upred))
         elif linestyle.chaining == "SKETCHY":
             if linestyle.same_object:
-                Operators.bidirectionalChain(pySketchyChainSilhouetteIterator(linestyle.rounds))
+                Operators.bidirectional_chain(pySketchyChainSilhouetteIterator(linestyle.rounds))
             else:
-                Operators.bidirectionalChain(pySketchyChainingIterator(linestyle.rounds))
+                Operators.bidirectional_chain(pySketchyChainingIterator(linestyle.rounds))
     else:
         Operators.chain(ChainPredicateIterator(FalseUP1D(), FalseBP1D()), NotUP1D(upred))
     # split chains
     if linestyle.material_boundary:
-        Operators.sequentialSplit(MaterialBoundaryUP0D())
+        Operators.sequential_split(MaterialBoundaryUP0D())
     if linestyle.use_min_angle or linestyle.use_max_angle:
         min_angle = linestyle.min_angle if linestyle.use_min_angle else None
         max_angle = linestyle.max_angle if linestyle.use_max_angle else None
-        Operators.sequentialSplit(Curvature2DAngleThresholdUP0D(min_angle, max_angle))
+        Operators.sequential_split(Curvature2DAngleThresholdUP0D(min_angle, max_angle))
     if linestyle.use_split_length:
-        Operators.sequentialSplit(Length2DThresholdUP0D(linestyle.split_length), 1.0)
+        Operators.sequential_split(Length2DThresholdUP0D(linestyle.split_length), 1.0)
     if linestyle.use_split_pattern:
         pattern = []
         if linestyle.split_dash1 > 0 and linestyle.split_gap1 > 0:
@@ -1090,9 +1090,9 @@ def process(layer_name, lineset_name):
         if len(pattern) > 0:
             sampling = 1.0
             controller = SplitPatternController(pattern, sampling)
-            Operators.sequentialSplit(SplitPatternStartingUP0D(controller),
-                                      SplitPatternStoppingUP0D(controller),
-                                      sampling)
+            Operators.sequential_split(SplitPatternStartingUP0D(controller),
+                                       SplitPatternStoppingUP0D(controller),
+                                       sampling)
     # select chains
     if linestyle.use_min_length or linestyle.use_max_length:
         min_length = linestyle.min_length if linestyle.use_min_length else None

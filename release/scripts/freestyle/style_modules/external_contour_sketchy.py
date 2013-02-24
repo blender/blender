@@ -36,7 +36,7 @@ from shaders import *
 
 upred = AndUP1D(QuantitativeInvisibilityUP1D(0), ExternalContourUP1D()) 
 Operators.select(upred)
-Operators.bidirectionalChain(pySketchyChainingIterator(), NotUP1D(upred))
+Operators.bidirectional_chain(pySketchyChainingIterator(), NotUP1D(upred))
 shaders_list = 	[
 		SamplingShader(4),
 		SpatialNoiseShader(10, 150, 2, 1, 1), 

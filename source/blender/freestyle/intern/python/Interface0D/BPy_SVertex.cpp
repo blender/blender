@@ -102,18 +102,20 @@ static int SVertex_init(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 }
 
 PyDoc_STRVAR(SVertex_add_normal_doc,
-".. method:: add_normal(n)\n"
+".. method:: add_normal(normal)\n"
 "\n"
 "   Adds a normal to the SVertex's set of normals.  If the same normal\n"
 "   is already in the set, nothing changes.\n"
 "\n"
-"   :arg n: A three-dimensional vector.\n"
-"   :type n: :class:`mathutils.Vector`, list or tuple of 3 real numbers");
+"   :arg normal: A three-dimensional vector.\n"
+"   :type normal: :class:`mathutils.Vector`, list or tuple of 3 real numbers");
 
-static PyObject *SVertex_add_normal( BPy_SVertex *self , PyObject *args) {
+static PyObject *SVertex_add_normal(BPy_SVertex *self , PyObject *args, PyObject *kwds)
+{
+	static const char *kwlist[] = {"normal", NULL};
 	PyObject *py_normal;
 
-	if (!PyArg_ParseTuple(args, "O", &py_normal))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &py_normal))
 		return NULL;
 	Vec3r *n = Vec3r_ptr_from_PyObject(py_normal);
 	if (!n) {
@@ -127,29 +129,29 @@ static PyObject *SVertex_add_normal( BPy_SVertex *self , PyObject *args) {
 }
 
 PyDoc_STRVAR(SVertex_add_fedge_doc,
-".. method:: add_fedge(fe)\n"
+".. method:: add_fedge(fedge)\n"
 "\n"
 "   Add an FEdge to the list of edges emanating from this SVertex.\n"
 "\n"
-"   :arg fe: An FEdge.\n"
-"   :type fe: :class:`FEdge`");
+"   :arg fedge: An FEdge.\n"
+"   :type fedge: :class:`FEdge`");
 
-static PyObject *SVertex_add_fedge( BPy_SVertex *self , PyObject *args) {
+static PyObject *SVertex_add_fedge(BPy_SVertex *self , PyObject *args, PyObject *kwds)
+{
+	static const char *kwlist[] = {"fedge", NULL};
 	PyObject *py_fe;
 
-	if (!PyArg_ParseTuple(args, "O!", &FEdge_Type, &py_fe))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &FEdge_Type, &py_fe))
 		return NULL;
-	
 	self->sv->AddFEdge(((BPy_FEdge *)py_fe)->fe);
-
 	Py_RETURN_NONE;
 }
 
 // virtual bool 	operator== (const SVertex &brother)
 
 static PyMethodDef BPy_SVertex_methods[] = {
-	{"add_normal", (PyCFunction)SVertex_add_normal, METH_VARARGS, SVertex_add_normal_doc},
-	{"add_fedge", (PyCFunction)SVertex_add_fedge, METH_VARARGS, SVertex_add_fedge_doc},
+	{"add_normal", (PyCFunction)SVertex_add_normal, METH_VARARGS | METH_KEYWORDS, SVertex_add_normal_doc},
+	{"add_fedge", (PyCFunction)SVertex_add_fedge, METH_VARARGS | METH_KEYWORDS, SVertex_add_fedge_doc},
 	{NULL, NULL, 0, NULL}
 };
 

@@ -1,4 +1,5 @@
 from freestyle_init import *
+from Freestyle import ContextFunctions as CF
 from PredicatesU0D import *
 from PredicatesB1D import *
 from PredicatesU1D import *
@@ -1192,7 +1193,7 @@ class pyDummyShader(StrokeShader):
 
 class pyDebugShader(StrokeShader):
 	def shade(self, stroke):
-		fe = GetSelectedFEdgeCF()
+		fe = CF.get_selected_fedge()
 		id1 = fe.first_svertex.id
 		id2 = fe.second_svertex.id
 		#print(id1.first, id1.second)

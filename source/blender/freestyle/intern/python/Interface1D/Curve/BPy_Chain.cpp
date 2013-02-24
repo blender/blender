@@ -52,7 +52,7 @@ PyDoc_STRVAR(Chain_doc,
 "\n"
 ".. method:: __init__()\n"
 "\n"
-"   Defult constructor.\n"
+"   Default constructor.\n"
 "\n"
 ".. method:: __init__(brother)\n"
 "\n"
@@ -96,56 +96,62 @@ static int Chain_init(BPy_Chain *self, PyObject *args, PyObject *kwds)
 }
 
 PyDoc_STRVAR(Chain_push_viewedge_back_doc,
-".. method:: push_viewedge_back(iViewEdge, orientation)\n"
+".. method:: push_viewedge_back(viewedge, orientation)\n"
 "\n"
 "   Adds a ViewEdge at the end of the Chain.\n"
 "\n"
-"   :arg iViewEdge: The ViewEdge that must be added.\n"
-"   :type iViewEdge: :class:`ViewEdge`\n"
+"   :arg viewedge: The ViewEdge that must be added.\n"
+"   :type viewedge: :class:`ViewEdge`\n"
 "   :arg orientation: The orientation with which the ViewEdge must be\n"
 "      processed.\n"
 "   :type orientation: bool");
 
-static PyObject * Chain_push_viewedge_back( BPy_Chain *self, PyObject *args ) {
+static PyObject * Chain_push_viewedge_back(BPy_Chain *self, PyObject *args, PyObject *kwds)
+{
+	static const char *kwlist[] = {"viewedge", "orientation", NULL};
 	PyObject *obj1 = 0, *obj2 = 0;
 
-	if(!( PyArg_ParseTuple(args, "O!O", &ViewEdge_Type, &obj1, &obj2) ))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!O!", (char **)kwlist,
+	                                 &ViewEdge_Type, &obj1, &PyBool_Type, &obj2))
+	{
 		return NULL;
-
-	ViewEdge *ve = ((BPy_ViewEdge *) obj1)->ve;
-	bool orientation = bool_from_PyBool( obj2 );
-	self->c->push_viewedge_back( ve, orientation);
-
+	}
+	ViewEdge *ve = ((BPy_ViewEdge *)obj1)->ve;
+	bool orientation = bool_from_PyBool(obj2);
+	self->c->push_viewedge_back(ve, orientation);
 	Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(Chain_push_viewedge_front_doc,
-".. method:: push_viewedge_front(iViewEdge, orientation)\n"
+".. method:: push_viewedge_front(viewedge, orientation)\n"
 "\n"
 "   Adds a ViewEdge at the beginning of the Chain.\n"
 "\n"
-"   :arg iViewEdge: The ViewEdge that must be added.\n"
-"   :type iViewEdge: :class:`ViewEdge`\n"
+"   :arg viewedge: The ViewEdge that must be added.\n"
+"   :type viewedge: :class:`ViewEdge`\n"
 "   :arg orientation: The orientation with which the ViewEdge must be\n"
 "      processed.\n"
 "   :type orientation: bool");
 
-static PyObject * Chain_push_viewedge_front( BPy_Chain *self, PyObject *args ) {
+static PyObject * Chain_push_viewedge_front(BPy_Chain *self, PyObject *args, PyObject *kwds)
+{
+	static const char *kwlist[] = {"viewedge", "orientation", NULL};
 	PyObject *obj1 = 0, *obj2 = 0;
 
-	if(!( PyArg_ParseTuple(args, "O!O", &ViewEdge_Type, &obj1, &obj2) ))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!O!", (char **)kwlist,
+	                                 &ViewEdge_Type, &obj1, &PyBool_Type, &obj2))
+	{
 		return NULL;
-
-	ViewEdge *ve = ((BPy_ViewEdge *) obj1)->ve;
-	bool orientation = bool_from_PyBool( obj2 );
+	}
+	ViewEdge *ve = ((BPy_ViewEdge *)obj1)->ve;
+	bool orientation = bool_from_PyBool(obj2);
 	self->c->push_viewedge_front(ve, orientation);
-
 	Py_RETURN_NONE;
 }
 
 static PyMethodDef BPy_Chain_methods[] = {	
-	{"push_viewedge_back", (PyCFunction)Chain_push_viewedge_back, METH_VARARGS, Chain_push_viewedge_back_doc},
-	{"push_viewedge_front", (PyCFunction)Chain_push_viewedge_front, METH_VARARGS, Chain_push_viewedge_front_doc},
+	{"push_viewedge_back", (PyCFunction)Chain_push_viewedge_back, METH_VARARGS | METH_KEYWORDS, Chain_push_viewedge_back_doc},
+	{"push_viewedge_front", (PyCFunction)Chain_push_viewedge_front, METH_VARARGS | METH_KEYWORDS, Chain_push_viewedge_front_doc},
 	{NULL, NULL, 0, NULL}
 };
 

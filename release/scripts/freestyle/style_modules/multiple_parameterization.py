@@ -39,7 +39,7 @@ from shaders import *
 Operators.select(QuantitativeInvisibilityUP1D(0))
 ## Chain following the same nature, but without the restriction
 ## of staying inside the selection (0).
-Operators.bidirectionalChain(ChainSilhouetteIterator(0))
+Operators.bidirectional_chain(ChainSilhouetteIterator(0))
 shaders_list = 	[
 		SamplingShader(20),
 		IncreasingThicknessShader(1.5, 30), 

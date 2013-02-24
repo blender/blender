@@ -134,7 +134,6 @@ static PyObject *ChainingIterator_init(BPy_ChainingIterator *self)
 		return NULL;
 	}
 	self->c_it->init();
-	
 	Py_RETURN_NONE;
 }
 
@@ -152,27 +151,25 @@ PyDoc_STRVAR(ChainingIterator_traverse_doc,
 "   :return: Returns the next ViewEdge to follow, or None if chaining ends.\n"
 "   :rtype: :class:`ViewEdge` or None");
 
-static PyObject *ChainingIterator_traverse(BPy_ChainingIterator *self, PyObject *args)
+static PyObject *ChainingIterator_traverse(BPy_ChainingIterator *self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"it", NULL};
 	PyObject *py_a_it;
-
-	if(!(PyArg_ParseTuple(args, "O!", &AdjacencyIterator_Type, &py_a_it)))
-		return NULL;
 
 	if (typeid(*(self->c_it)) == typeid(ChainingIterator)) {
 		PyErr_SetString(PyExc_TypeError, "traverse() method not properly overridden");
 		return NULL;
 	}
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &AdjacencyIterator_Type, &py_a_it))
+		return NULL;
 	if (((BPy_AdjacencyIterator *)py_a_it)->a_it)
 		self->c_it->traverse(*(((BPy_AdjacencyIterator *)py_a_it)->a_it));
-
 	Py_RETURN_NONE;
 }
 
-
 static PyMethodDef BPy_ChainingIterator_methods[] = {
 	{"init", (PyCFunction) ChainingIterator_init, METH_NOARGS, ChainingIterator_init_doc},
-	{"traverse", (PyCFunction) ChainingIterator_traverse, METH_VARARGS, ChainingIterator_traverse_doc},
+	{"traverse", (PyCFunction) ChainingIterator_traverse, METH_VARARGS | METH_KEYWORDS, ChainingIterator_traverse_doc},
 	{NULL, NULL, 0, NULL}
 };
 

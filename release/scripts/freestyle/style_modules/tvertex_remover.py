@@ -32,7 +32,7 @@ from PredicatesB1D import *
 from shaders import *
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
-Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))
+Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))
 shaders_list = 	[
 		IncreasingThicknessShader(3, 5), 
 		ConstantColorShader(0.2,0.2,0.2, 1),

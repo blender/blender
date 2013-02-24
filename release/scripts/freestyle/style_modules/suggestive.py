@@ -35,7 +35,7 @@ from shaders import *
 
 upred = AndUP1D(pyNatureUP1D(Nature.SUGGESTIVE_CONTOUR), QuantitativeInvisibilityUP1D(0))
 Operators.select(upred)
-Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(upred))
+Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(upred))
 shaders_list = 	[
 		IncreasingThicknessShader(1, 3), 
 		ConstantColorShader(0.2,0.2,0.2, 1)

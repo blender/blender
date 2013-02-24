@@ -31,7 +31,7 @@ from logical_operators import *
 
 upred = AndUP1D(QuantitativeInvisibilityUP1D(0), ExternalContourUP1D())
 Operators.select(upred)
-Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(upred))
+Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(upred))
 shaders_list = 	[
 		SamplingShader(4),
 		SpatialNoiseShader(4, 150, 2, True, True), 

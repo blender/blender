@@ -31,6 +31,6 @@ from PredicatesB1D import *
 from shaders import *
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
-Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))
+Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))
 shaders_list = [TextureAssignerShader(4), ConstantColorShader(0.5, 0.5, 0.5), BackboneStretcherShader(20)]
 Operators.create(TrueUP1D(), shaders_list)

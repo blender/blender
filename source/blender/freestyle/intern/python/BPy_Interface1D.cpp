@@ -180,11 +180,12 @@ PyDoc_STRVAR(Interface1D_points_begin_doc,
 "   :return: An Interface0DIterator pointing to the first point.\n"
 "   :rtype: :class:`Interface0DIterator`");
 
-static PyObject * Interface1D_points_begin(BPy_Interface1D *self, PyObject *args)
+static PyObject * Interface1D_points_begin(BPy_Interface1D *self, PyObject *args, PyObject *kwds)
 {
-	float f = 0;
+	static const char *kwlist[] = {"t", NULL};
+	float f = 0.0f;
 
-	if(!(PyArg_ParseTuple(args, "|f", &f)))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|f", (char **)kwlist, &f))
 		return NULL;
 	Interface0DIterator if0D_it(self->if1D->pointsBegin(f));
 	return BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, 0);
@@ -204,11 +205,12 @@ PyDoc_STRVAR(Interface1D_points_end_doc,
 "   :return: An Interface0DIterator pointing after the last point.\n"
 "   :rtype: :class:`Interface0DIterator`");
 
-static PyObject * Interface1D_points_end(BPy_Interface1D *self, PyObject *args)
+static PyObject * Interface1D_points_end(BPy_Interface1D *self, PyObject *args, PyObject *kwds)
 {
-	float f = 0;
+	static const char *kwlist[] = {"t", NULL};
+	float f = 0.0f;
 
-	if (!PyArg_ParseTuple(args, "|f", &f))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|f", (char **)kwlist, &f))
 		return NULL;
 	Interface0DIterator if0D_it(self->if1D->pointsEnd(f));
 	return BPy_Interface0DIterator_from_Interface0DIterator(if0D_it, 1);
@@ -217,8 +219,8 @@ static PyObject * Interface1D_points_end(BPy_Interface1D *self, PyObject *args)
 static PyMethodDef BPy_Interface1D_methods[] = {
 	{"vertices_begin", (PyCFunction)Interface1D_vertices_begin, METH_NOARGS, Interface1D_vertices_begin_doc},
 	{"vertices_end", (PyCFunction)Interface1D_vertices_end, METH_NOARGS, Interface1D_vertices_end_doc},
-	{"points_begin", (PyCFunction)Interface1D_points_begin, METH_VARARGS, Interface1D_points_begin_doc},
-	{"points_end", (PyCFunction)Interface1D_points_end, METH_VARARGS, Interface1D_points_end_doc},
+	{"points_begin", (PyCFunction)Interface1D_points_begin, METH_VARARGS | METH_KEYWORDS, Interface1D_points_begin_doc},
+	{"points_end", (PyCFunction)Interface1D_points_end, METH_VARARGS | METH_KEYWORDS, Interface1D_points_end_doc},
 	{NULL, NULL, 0, NULL}
 };
 

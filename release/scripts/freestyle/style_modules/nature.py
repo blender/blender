@@ -35,7 +35,7 @@ from PredicatesB1D import *
 from shaders import *
 
 Operators.select(pyNatureUP1D(Nature.SILHOUETTE))
-Operators.bidirectionalChain(ChainSilhouetteIterator(),NotUP1D( pyNatureUP1D( Nature.SILHOUETTE) ) )
+Operators.bidirectional_chain(ChainSilhouetteIterator(),NotUP1D( pyNatureUP1D( Nature.SILHOUETTE) ) )
 shaders_list = 	[
 		IncreasingThicknessShader(3, 10), 
 		IncreasingColorShader(0.0,0.0,0.0, 1, 0.8,0,0,1)

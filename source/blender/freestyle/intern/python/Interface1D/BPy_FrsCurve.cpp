@@ -96,62 +96,66 @@ static int FrsCurve_init(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 }
 
 PyDoc_STRVAR(FrsCurve_push_vertex_back_doc,
-".. method:: push_vertex_back(iVertex)\n"
+".. method:: push_vertex_back(vertex)\n"
 "\n"
 "   Adds a single vertex at the end of the Curve.\n"
 "\n"
-"   :arg iVertex: A vertex object.\n"
-"   :type iVertex: :class:`SVertex` or :class:`CurvePoint`");
+"   :arg vertex: A vertex object.\n"
+"   :type vertex: :class:`SVertex` or :class:`CurvePoint`");
 
-static PyObject * FrsCurve_push_vertex_back( BPy_FrsCurve *self, PyObject *args )
+static PyObject * FrsCurve_push_vertex_back(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 {
-	PyObject *obj;
+	static const char *kwlist[] = {"vertex", NULL};
+	PyObject *obj = 0;
 
-	if (!PyArg_ParseTuple(args, "O", &obj))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj))
 		return NULL;
 
 	if (BPy_CurvePoint_Check(obj)) {
 		self->c->push_vertex_back(((BPy_CurvePoint *)obj)->cp);
-	} else if (BPy_SVertex_Check(obj)) {
+	}
+	else if (BPy_SVertex_Check(obj)) {
 		self->c->push_vertex_back(((BPy_SVertex *)obj)->sv);
-	} else {
+	}
+	else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument");
 		return NULL;
 	}
-
 	Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(FrsCurve_push_vertex_front_doc,
-".. method:: push_vertex_front(iVertex)\n"
+".. method:: push_vertex_front(vertex)\n"
 "\n"
 "   Adds a single vertex at the front of the Curve.\n"
 "\n"
-"   :arg iVertex: A vertex object.\n"
-"   :type iVertex: :class:`SVertex` or :class:`CurvePoint`");
+"   :arg vertex: A vertex object.\n"
+"   :type vertex: :class:`SVertex` or :class:`CurvePoint`");
 
-static PyObject * FrsCurve_push_vertex_front( BPy_FrsCurve *self, PyObject *args )
+static PyObject * FrsCurve_push_vertex_front(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 {
-	PyObject *obj;
+	static const char *kwlist[] = {"vertex", NULL};
+	PyObject *obj = 0;
 
-	if (!PyArg_ParseTuple(args, "O", &obj))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj))
 		return NULL;
 
 	if (BPy_CurvePoint_Check(obj)) {
 		self->c->push_vertex_front(((BPy_CurvePoint *)obj)->cp);
-	} else if( BPy_SVertex_Check(obj)) {
+	}
+	else if (BPy_SVertex_Check(obj)) {
 		self->c->push_vertex_front(((BPy_SVertex *)obj)->sv);
-	} else {
+	}
+	else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument");
 		return NULL;
 	}
-
 	Py_RETURN_NONE;
 }
 
 static PyMethodDef BPy_FrsCurve_methods[] = {	
-	{"push_vertex_back", (PyCFunction)FrsCurve_push_vertex_back, METH_VARARGS, FrsCurve_push_vertex_back_doc},
-	{"push_vertex_front", (PyCFunction)FrsCurve_push_vertex_front, METH_VARARGS, FrsCurve_push_vertex_front_doc},
+	{"push_vertex_back", (PyCFunction)FrsCurve_push_vertex_back, METH_VARARGS | METH_KEYWORDS, FrsCurve_push_vertex_back_doc},
+	{"push_vertex_front", (PyCFunction)FrsCurve_push_vertex_front, METH_VARARGS | METH_KEYWORDS, FrsCurve_push_vertex_front_doc},
 	{NULL, NULL, 0, NULL}
 };
 

@@ -31,8 +31,8 @@ from ChainingIterators import *
 from shaders import *
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
-#Operators.bidirectionalChain(pyFillOcclusionsChainingIterator(0.1))
-Operators.bidirectionalChain(pyFillOcclusionsAbsoluteChainingIterator(12))
+#Operators.bidirectional_chain(pyFillOcclusionsChainingIterator(0.1))
+Operators.bidirectional_chain(pyFillOcclusionsAbsoluteChainingIterator(12))
 shaders_list = 	[
 		SamplingShader(5.0),
 		ConstantThicknessShader(3), 

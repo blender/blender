@@ -99,11 +99,12 @@ PyDoc_STRVAR(ViewMap_get_closest_viewedge_doc,
 "   :return: The ViewEdge nearest to the specified 2D point.\n"
 "   :rtype: :class:`ViewEdge`");
 
-static PyObject * ViewMap_get_closest_viewedge(BPy_ViewMap *self , PyObject *args)
+static PyObject * ViewMap_get_closest_viewedge(BPy_ViewMap *self , PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"x", "y", NULL};
 	double x, y;
 
-	if (!PyArg_ParseTuple(args, "dd", &x, &y))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "dd", (char **)kwlist, &x, &y))
 		return NULL;
 	ViewEdge *ve = const_cast<ViewEdge *>(self->vm->getClosestViewEdge(x,y));
 	if (ve)
@@ -123,11 +124,12 @@ PyDoc_STRVAR(ViewMap_get_closest_fedge_doc,
 "   :return: The FEdge nearest to the specified 2D point.\n"
 "   :rtype: :class:`FEdge`");
 
-static PyObject * ViewMap_get_closest_fedge(BPy_ViewMap *self , PyObject *args)
+static PyObject * ViewMap_get_closest_fedge(BPy_ViewMap *self , PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"x", "y", NULL};
 	double x, y;
 
-	if (!PyArg_ParseTuple(args, "dd", &x, &y))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "dd", (char **)kwlist, &x, &y))
 		return NULL;
 	FEdge *fe = const_cast<FEdge *>(self->vm->getClosestFEdge(x,y));
 	if (fe)
@@ -138,8 +140,8 @@ static PyObject * ViewMap_get_closest_fedge(BPy_ViewMap *self , PyObject *args)
 // static ViewMap *getInstance ();
 
 static PyMethodDef BPy_ViewMap_methods[] = {
-	{"get_closest_viewedge", (PyCFunction)ViewMap_get_closest_viewedge, METH_VARARGS, ViewMap_get_closest_viewedge_doc},
-	{"get_closest_fedge", (PyCFunction)ViewMap_get_closest_fedge, METH_VARARGS, ViewMap_get_closest_fedge_doc},
+	{"get_closest_viewedge", (PyCFunction)ViewMap_get_closest_viewedge, METH_VARARGS | METH_KEYWORDS, ViewMap_get_closest_viewedge_doc},
+	{"get_closest_fedge", (PyCFunction)ViewMap_get_closest_fedge, METH_VARARGS | METH_KEYWORDS, ViewMap_get_closest_fedge_doc},
 	{NULL, NULL, 0, NULL}
 };
 

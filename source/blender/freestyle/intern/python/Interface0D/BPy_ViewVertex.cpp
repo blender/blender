@@ -76,8 +76,6 @@ PyDoc_STRVAR(ViewVertex_edges_begin_doc,
 
 static PyObject * ViewVertex_edges_begin(BPy_ViewVertex *self)
 {
-	if (!self->vv)
-		Py_RETURN_NONE;
 	ViewVertexInternal::orientedViewEdgeIterator ove_it(self->vv->edgesBegin());
 	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator(ove_it, 0);
 }
@@ -94,8 +92,6 @@ PyDoc_STRVAR(ViewVertex_edges_end_doc,
 static PyObject * ViewVertex_edges_end(BPy_ViewVertex *self)
 {
 #if 0
-	if (!self->vv)
-		Py_RETURN_NONE;
 	ViewVertexInternal::orientedViewEdgeIterator ove_it(self->vv->edgesEnd());
 	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator(ove_it, 1);
 #else
@@ -105,23 +101,22 @@ static PyObject * ViewVertex_edges_end(BPy_ViewVertex *self)
 }
 
 PyDoc_STRVAR(ViewVertex_edges_iterator_doc,
-".. method:: edges_iterator(iEdge)\n"
+".. method:: edges_iterator(edge)\n"
 "\n"
 "   Returns an orientedViewEdgeIterator pointing to the ViewEdge given\n"
 "   as argument.\n"
 "\n"
-"   :arg iEdge: A ViewEdge object.\n"
-"   :type iEdge: :class:`ViewEdge`\n"
+"   :arg edge: A ViewEdge object.\n"
+"   :type edge: :class:`ViewEdge`\n"
 "   :return: An orientedViewEdgeIterator pointing to the given ViewEdge.\n"
 "   :rtype: :class:`orientedViewEdgeIterator`");
 
-static PyObject * ViewVertex_edges_iterator(BPy_ViewVertex *self, PyObject *args)
+static PyObject * ViewVertex_edges_iterator(BPy_ViewVertex *self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"edge", NULL};
 	PyObject *py_ve;
 
-	if (!self->vv)
-		Py_RETURN_NONE;
-	if (!PyArg_ParseTuple(args, "O!", &ViewEdge_Type, &py_ve))
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &ViewEdge_Type, &py_ve))
 		return NULL;
 	ViewEdge *ve = ((BPy_ViewEdge *)py_ve)->ve;
 	ViewVertexInternal::orientedViewEdgeIterator ove_it(self->vv->edgesIterator(ve));
@@ -131,7 +126,7 @@ static PyObject * ViewVertex_edges_iterator(BPy_ViewVertex *self, PyObject *args
 static PyMethodDef BPy_ViewVertex_methods[] = {
 	{"edges_begin", (PyCFunction)ViewVertex_edges_begin, METH_NOARGS, ViewVertex_edges_begin_doc},
 	{"edges_end", (PyCFunction)ViewVertex_edges_end, METH_NOARGS, ViewVertex_edges_end_doc},
-	{"edges_iterator", (PyCFunction)ViewVertex_edges_iterator, METH_VARARGS, ViewVertex_edges_iterator_doc},
+	{"edges_iterator", (PyCFunction)ViewVertex_edges_iterator, METH_VARARGS | METH_KEYWORDS, ViewVertex_edges_iterator_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -212,4 +207,3 @@ PyTypeObject ViewVertex_Type = {
 #ifdef __cplusplus
 }
 #endif
-

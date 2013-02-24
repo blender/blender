@@ -36,7 +36,7 @@ nbIter = 30
 upred = AndUP1D(QuantitativeInvisibilityUP1D(0), ExternalContourUP1D())
 Operators.select( upred )
 bpred = TrueBP1D()
-Operators.bidirectionalChain(ChainPredicateIterator(upred, bpred), NotUP1D(upred) )
+Operators.bidirectional_chain(ChainPredicateIterator(upred, bpred), NotUP1D(upred) )
 shaders_list = [
     ConstantThicknessShader(4),
     StrokeTextureShader("smoothAlpha.bmp", Stroke.OPAQUE_MEDIUM, False),

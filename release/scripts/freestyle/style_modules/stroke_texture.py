@@ -32,7 +32,7 @@ from shaders import *
 from ChainingIterators import *
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
-Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))
+Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))
 shaders_list = 	[
 		SamplingShader(3),
 		BezierCurveShader(4),

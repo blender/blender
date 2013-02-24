@@ -102,37 +102,39 @@ static PyObject * SShape_repr(BPy_SShape *self)
 }
 
 static char SShape_add_edge_doc[] =
-".. method:: add_edge(iEdge)\n"
+".. method:: add_edge(edge)\n"
 "\n"
 "   Adds an FEdge to the list of FEdges.\n"
 "\n"
-"   :arg iEdge: An FEdge object.\n"
-"   :type iEdge: :class:`FEdge`\n";
+"   :arg edge: An FEdge object.\n"
+"   :type edge: :class:`FEdge`\n";
 
-static PyObject * SShape_add_edge(BPy_SShape *self , PyObject *args)
+static PyObject * SShape_add_edge(BPy_SShape *self , PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"edge", NULL};
 	PyObject *py_fe = 0;
 
-	if (!PyArg_ParseTuple(args, "O!", &FEdge_Type, &py_fe))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &FEdge_Type, &py_fe))
 		return NULL;
 	self->ss->AddEdge(((BPy_FEdge *)py_fe)->fe);
 	Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(SShape_add_vertex_doc,
-".. method:: add_vertex(iv)\n"
+".. method:: add_vertex(vertex)\n"
 "\n"
 "   Adds an SVertex to the list of SVertex of this Shape.  The SShape\n"
 "   attribute of the SVertex is also set to this SShape.\n"
 "\n"
-"   :arg iv: An SVertex object.\n"
-"   :type iv: :class:`SVertex`");
+"   :arg vertex: An SVertex object.\n"
+"   :type vertex: :class:`SVertex`");
 
-static PyObject * SShape_add_vertex(BPy_SShape *self , PyObject *args)
+static PyObject * SShape_add_vertex(BPy_SShape *self , PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"edge", NULL};
 	PyObject *py_sv = 0;
 
-	if (!PyArg_ParseTuple(args, "O!", &SVertex_Type, &py_sv))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &SVertex_Type, &py_sv))
 		return NULL;
 	self->ss->AddNewVertex(((BPy_SVertex *)py_sv)->sv);
 	Py_RETURN_NONE;
@@ -154,8 +156,8 @@ static PyObject * SShape_compute_bbox(BPy_SShape *self)
 // void 	SetMaterials (const vector< Material > &iMaterials)
 
 static PyMethodDef BPy_SShape_methods[] = {
-	{"add_edge", (PyCFunction)SShape_add_edge, METH_VARARGS, SShape_add_edge_doc},
-	{"add_vertex", (PyCFunction)SShape_add_vertex, METH_VARARGS, SShape_add_vertex_doc},
+	{"add_edge", (PyCFunction)SShape_add_edge, METH_VARARGS | METH_KEYWORDS, SShape_add_edge_doc},
+	{"add_vertex", (PyCFunction)SShape_add_vertex, METH_VARARGS | METH_KEYWORDS, SShape_add_vertex_doc},
 	{"compute_bbox", (PyCFunction)SShape_compute_bbox, METH_NOARGS, SShape_compute_bbox_doc},
 	{NULL, NULL, 0, NULL}
 };

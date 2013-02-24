@@ -125,40 +125,42 @@ static void ViewShape_dealloc(BPy_ViewShape *self)
 
 static PyObject * ViewShape_repr(BPy_ViewShape *self)
 {
-	return PyUnicode_FromFormat("ViewShape - address: %p", self->vs );
+	return PyUnicode_FromFormat("ViewShape - address: %p", self->vs);
 }
 
 PyDoc_STRVAR(ViewShape_add_edge_doc,
-".. method:: add_edge(iEdge)\n"
+".. method:: add_edge(edge)\n"
 "\n"
 "   Adds a ViewEdge to the list of ViewEdge objects.\n"
 "\n"
-"   :arg iEdge: A ViewEdge object.\n"
-"   :type iEdge: :class:`ViewEdge`\n");
+"   :arg edge: A ViewEdge object.\n"
+"   :type edge: :class:`ViewEdge`\n");
 
-static PyObject * ViewShape_add_edge(BPy_ViewShape *self , PyObject *args)
+static PyObject * ViewShape_add_edge(BPy_ViewShape *self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"edge", NULL};
 	PyObject *py_ve = 0;
 
-	if (!PyArg_ParseTuple(args, "O!", &ViewEdge_Type, &py_ve))
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &ViewEdge_Type, &py_ve))
 		return NULL;
 	self->vs->AddEdge(((BPy_ViewEdge *)py_ve)->ve);
 	Py_RETURN_NONE;
 }
 
 PyDoc_STRVAR(ViewShape_add_vertex_doc,
-".. method:: add_vertex(iVertex)\n"
+".. method:: add_vertex(vertex)\n"
 "\n"
 "   Adds a ViewVertex to the list of the ViewVertex objects.\n"
 "\n"
-"   :arg iVertex: A ViewVertex object.\n"
-"   :type iVertex: :class:`ViewVertex`");
+"   :arg vertex: A ViewVertex object.\n"
+"   :type vertex: :class:`ViewVertex`");
 
-static PyObject * ViewShape_add_vertex(BPy_ViewShape *self , PyObject *args)
+static PyObject * ViewShape_add_vertex(BPy_ViewShape *self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"vertex", NULL};
 	PyObject *py_vv = 0;
 
-	if (!PyArg_ParseTuple(args, "O!", &ViewVertex_Type, &py_vv))
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &ViewVertex_Type, &py_vv))
 		return NULL;
 	self->vs->AddVertex(((BPy_ViewVertex *)py_vv)->vv);
 	Py_RETURN_NONE;
@@ -167,8 +169,8 @@ static PyObject * ViewShape_add_vertex(BPy_ViewShape *self , PyObject *args)
 // virtual ViewShape *duplicate()
 
 static PyMethodDef BPy_ViewShape_methods[] = {
-	{"add_edge", (PyCFunction)ViewShape_add_edge, METH_VARARGS, ViewShape_add_edge_doc},
-	{"add_vertex", (PyCFunction)ViewShape_add_vertex, METH_VARARGS, ViewShape_add_vertex_doc},
+	{"add_edge", (PyCFunction)ViewShape_add_edge, METH_VARARGS | METH_KEYWORDS, ViewShape_add_edge_doc},
+	{"add_vertex", (PyCFunction)ViewShape_add_vertex, METH_VARARGS | METH_KEYWORDS, ViewShape_add_vertex_doc},
 	{NULL, NULL, 0, NULL}
 };
 

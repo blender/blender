@@ -36,7 +36,7 @@ id = Id(3,0)
 upred = AndUP1D(NotUP1D(QuantitativeInvisibilityUP1D(0)),
 pyIsInOccludersListUP1D(id))
 Operators.select(upred)
-Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(upred))
+Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(upred))
 shaders_list = 	[
 		SamplingShader(5),
 		ConstantThicknessShader(3), 

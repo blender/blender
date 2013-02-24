@@ -35,7 +35,7 @@ from shaders import *
 Operators.select(QuantitativeInvisibilityUP1D(0))
 ## Chain 3 times each ViewEdge indpendantly from the 
 ## initial objects topology
-Operators.bidirectionalChain(pySketchyChainingIterator(3))
+Operators.bidirectional_chain(pySketchyChainingIterator(3))
 shaders_list = [
     SamplingShader(4),
     SpatialNoiseShader(6, 120, 2, True, True), 

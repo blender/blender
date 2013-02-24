@@ -107,59 +107,66 @@ static PyObject *Stroke_sq_item(BPy_Stroke *self, int keynum)
 }
 
 PyDoc_STRVAR(Stroke_compute_sampling_doc,
-".. method:: compute_sampling(iNVertices)\n"
+".. method:: compute_sampling(n)\n"
 "\n"
-"   Compute the sampling needed to get iNVertices vertices.  If the\n"
+"   Compute the sampling needed to get N vertices.  If the\n"
 "   specified number of vertices is less than the actual number of\n"
 "   vertices, the actual sampling value is returned. (To remove Vertices,\n"
 "   use the RemoveVertex() method of this class.)\n"
 "\n"
-"   :arg iNVertices: The number of stroke vertices we eventually want\n"
+"   :arg n: The number of stroke vertices we eventually want\n"
 "      in our Stroke.\n"
-"   :type iNVertices: int\n"
+"   :type n: int\n"
 "   :return: The sampling that must be used in the Resample(float)\n"
 "      method.\n"
 "   :rtype: float");
 
-static PyObject * Stroke_compute_sampling(BPy_Stroke *self, PyObject *args)
+static PyObject * Stroke_compute_sampling(BPy_Stroke *self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"n", NULL};
 	int i;
 
-	if (!PyArg_ParseTuple(args, "i", &i))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "i", (char **)kwlist, &i))
 		return NULL;
 	return PyFloat_FromDouble(self->s->ComputeSampling(i));
 }
 
 PyDoc_STRVAR(Stroke_resample_doc,
-".. method:: resample(iNPoints)\n"
+".. method:: resample(n)\n"
 "\n"
-"   Resamples the stroke so that it eventually has iNPoints.  That means\n"
-"   it is going to add iNPoints-vertices_size, if vertices_size is the\n"
-"   number of points we already have.  If vertices_size >= iNPoints, no\n"
+"   Resamples the stroke so that it eventually has N points.  That means\n"
+"   it is going to add N-vertices_size, where vertices_size is the\n"
+"   number of points we already have.  If vertices_size >= N, no\n"
 "   resampling is done.\n"
 "\n"
-"   :arg iNPoints: The number of vertices we eventually want in our stroke.\n"
-"   :type iNPoints: int\n"
+"   :arg n: The number of vertices we eventually want in our stroke.\n"
+"   :type n: int\n"
 "\n"
-".. method:: resample(iSampling)\n"
+".. method:: resample(sampling)\n"
 "\n"
 "   Resamples the stroke with a given sampling.  If the sampling is\n"
 "   smaller than the actual sampling value, no resampling is done.\n"
 "\n"
-"   :arg iSampling: The new sampling value.\n"
-"   :type iSampling: float");
+"   :arg sampling: The new sampling value.\n"
+"   :type sampling: float");
 
-static PyObject * Stroke_resample(BPy_Stroke *self, PyObject *args)
+static PyObject * Stroke_resample(BPy_Stroke *self, PyObject *args, PyObject *kwds)
 {
-	PyObject *obj;
+	static const char *kwlist_1[] = {"n", NULL};
+	static const char *kwlist_2[] = {"sampling", NULL};
+	int i;
+	float f;
 
-	if (!PyArg_ParseTuple(args, "O", &obj))
-		return NULL;
-	if (PyLong_Check(obj)) {
-		self->s->Resample((int)PyLong_AsLong(obj));
-	} else if (PyFloat_Check(obj)) {
-		self->s->Resample((float)PyFloat_AsDouble(obj));
-	} else {
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "i", (char **)kwlist_1, &i))
+	{
+		self->s->Resample(i);
+	}
+	else if (PyErr_Clear(),
+	         PyArg_ParseTupleAndKeywords(args, kwds, "f", (char **)kwlist_2, &f))
+	{
+		self->s->Resample(f);
+	}
+	else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument");
 		return NULL;
 	}
@@ -167,23 +174,28 @@ static PyObject * Stroke_resample(BPy_Stroke *self, PyObject *args)
 }
 
 PyDoc_STRVAR(Stroke_insert_vertex_doc,
-".. method:: insert_vertex(iVertex, next)\n"
+".. method:: insert_vertex(vertex, next)\n"
 "\n"
-"   Inserts the stroke vertex iVertex in the stroke before next.  The\n"
-"   length, curvilinear abscissa are updated consequently.\n"
+"   Inserts the StrokeVertex given as argument into the Stroke before the\n"
+"   point specified by next.  The length and curvilinear abscissa are\n"
+"   updated consequently.\n"
 "\n"
-"   :arg iVertex: The StrokeVertex to insert in the Stroke.\n"
-"   :type iVertex: :class:`StrokeVertex`\n"
+"   :arg vertex: The StrokeVertex to insert in the Stroke.\n"
+"   :type vertex: :class:`StrokeVertex`\n"
 "   :arg next: A StrokeVertexIterator pointing to the StrokeVertex\n"
-"      before which iVertex must be inserted.\n"
+"      before which vertex must be inserted.\n"
 "   :type next: :class:`StrokeVertexIterator`");
 
-static PyObject * Stroke_insert_vertex(BPy_Stroke *self, PyObject *args)
+static PyObject * Stroke_insert_vertex(BPy_Stroke *self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"vertex", "next", NULL};
 	PyObject *py_sv = 0, *py_sv_it = 0;
 
-	if (!PyArg_ParseTuple(args, "O!O!", &StrokeVertex_Type, &py_sv, &StrokeVertexIterator_Type, &py_sv_it))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!O!", (char **)kwlist,
+	                                 &StrokeVertex_Type, &py_sv, &StrokeVertexIterator_Type, &py_sv_it))
+	{
 		return NULL;
+	}
 	StrokeVertex *sv = ((BPy_StrokeVertex *)py_sv)->sv;
 	StrokeInternal::StrokeVertexIterator sv_it(*(((BPy_StrokeVertexIterator *)py_sv_it)->sv_it));
 	self->s->InsertVertex(sv, sv_it);
@@ -191,19 +203,20 @@ static PyObject * Stroke_insert_vertex(BPy_Stroke *self, PyObject *args)
 }
 
 PyDoc_STRVAR(Stroke_remove_vertex_doc,
-".. method:: remove_vertex(iVertex)\n"
+".. method:: remove_vertex(vertex)\n"
 "\n"
-"   Removes the stroke vertex iVertex from the stroke. The length and\n"
-"   curvilinear abscissa are updated consequently.\n"
+"   Removes the StrokeVertex given as argument from the Stroke. The length\n"
+"   and curvilinear abscissa are updated consequently.\n"
 "\n"
-"   :arg iVertex: \n"
-"   :type iVertex: :class:`StrokeVertex`");
+"   :arg vertex: the StrokeVertex to remove from the Stroke.\n"
+"   :type vertex: :class:`StrokeVertex`");
 
-static PyObject * Stroke_remove_vertex( BPy_Stroke *self, PyObject *args )
+static PyObject * Stroke_remove_vertex( BPy_Stroke *self, PyObject *args, PyObject *kwds)
 {
-	PyObject *py_sv;
+	static const char *kwlist[] = {"vertex", NULL};
+	PyObject *py_sv = 0;
 
-	if (!PyArg_ParseTuple(args, "O!", &StrokeVertex_Type, &py_sv))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &StrokeVertex_Type, &py_sv))
 		return NULL;
 	if (((BPy_StrokeVertex *)py_sv)->sv) {
 		self->s->RemoveVertex(((BPy_StrokeVertex *)py_sv)->sv);
@@ -238,11 +251,12 @@ PyDoc_STRVAR(Stroke_stroke_vertices_begin_doc,
 "   :return: A StrokeVertexIterator pointing on the first StrokeVertex.\n"
 "   :rtype: :class:`StrokeVertexIterator`");
 
-static PyObject * Stroke_stroke_vertices_begin( BPy_Stroke *self , PyObject *args)
+static PyObject * Stroke_stroke_vertices_begin( BPy_Stroke *self , PyObject *args, PyObject *kwds)
 {
-	float f = 0;
+	static const char *kwlist[] = {"t", NULL};
+	float f = 0.0f;
 
-	if (!PyArg_ParseTuple(args, "|f", &f))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|f", (char **)kwlist, &f))
 		return NULL;
 	StrokeInternal::StrokeVertexIterator sv_it(self->s->strokeVerticesBegin(f));
 	return BPy_StrokeVertexIterator_from_StrokeVertexIterator(sv_it, 0);
@@ -277,12 +291,12 @@ static PyObject * Stroke_stroke_vertices_size(BPy_Stroke *self)
 }
 
 static PyMethodDef BPy_Stroke_methods[] = {	
-	{"compute_sampling", (PyCFunction)Stroke_compute_sampling, METH_VARARGS, Stroke_compute_sampling_doc},
-	{"resample", (PyCFunction)Stroke_resample, METH_VARARGS, Stroke_resample_doc},
-	{"remove_vertex", (PyCFunction)Stroke_remove_vertex, METH_VARARGS, Stroke_remove_vertex_doc},
-	{"insert_vertex", (PyCFunction)Stroke_insert_vertex, METH_VARARGS, Stroke_insert_vertex_doc},
+	{"compute_sampling", (PyCFunction)Stroke_compute_sampling, METH_VARARGS | METH_KEYWORDS, Stroke_compute_sampling_doc},
+	{"resample", (PyCFunction)Stroke_resample, METH_VARARGS | METH_KEYWORDS, Stroke_resample_doc},
+	{"remove_vertex", (PyCFunction)Stroke_remove_vertex, METH_VARARGS | METH_KEYWORDS, Stroke_remove_vertex_doc},
+	{"insert_vertex", (PyCFunction)Stroke_insert_vertex, METH_VARARGS | METH_KEYWORDS, Stroke_insert_vertex_doc},
 	{"update_length", (PyCFunction)Stroke_update_length, METH_NOARGS, Stroke_update_length_doc},
-	{"stroke_vertices_begin", (PyCFunction)Stroke_stroke_vertices_begin, METH_VARARGS, Stroke_stroke_vertices_begin_doc},
+	{"stroke_vertices_begin", (PyCFunction)Stroke_stroke_vertices_begin, METH_VARARGS | METH_KEYWORDS, Stroke_stroke_vertices_begin_doc},
 	{"stroke_vertices_end", (PyCFunction)Stroke_stroke_vertices_end, METH_NOARGS, Stroke_stroke_vertices_end_doc},
 	{"stroke_vertices_size", (PyCFunction)Stroke_stroke_vertices_size, METH_NOARGS, Stroke_stroke_vertices_size_doc},
 	{NULL, NULL, 0, NULL}

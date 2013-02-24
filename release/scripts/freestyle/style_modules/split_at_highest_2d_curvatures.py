@@ -33,9 +33,9 @@ from PredicatesU1D import *
 from Functions0D import *
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
-Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))
+Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))
 func = pyInverseCurvature2DAngleF0D()
-Operators.recursiveSplit(func,  pyParameterUP0D(0.4,0.6), NotUP1D(pyHigherLengthUP1D(100)), 2)
+Operators.recursive_split(func,  pyParameterUP0D(0.4,0.6), NotUP1D(pyHigherLengthUP1D(100)), 2)
 shaders_list = [ConstantThicknessShader(10), IncreasingColorShader(1,0,0,1,0,1,0,1), TextureAssignerShader(3)]
 Operators.create(TrueUP1D(), shaders_list)
 

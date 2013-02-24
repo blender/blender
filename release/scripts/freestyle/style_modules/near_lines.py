@@ -35,7 +35,7 @@ from shaders import *
 
 upred = AndUP1D(QuantitativeInvisibilityUP1D(0), pyZSmallerUP1D(0.5, IntegrationType.MEAN)) 
 Operators.select(upred)
-Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(upred))
+Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(upred))
 shaders_list = 	[
 		TextureAssignerShader(-1),
 		ConstantThicknessShader(5), 

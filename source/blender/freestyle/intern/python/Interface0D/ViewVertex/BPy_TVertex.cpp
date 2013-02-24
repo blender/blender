@@ -74,20 +74,21 @@ static int TVertex_init(BPy_TVertex *self, PyObject *args, PyObject *kwds)
 }
 
 PyDoc_STRVAR(TVertex_get_svertex_doc,
-".. method:: get_svertex(iFEdge)\n"
+".. method:: get_svertex(fedge)\n"
 "\n"
 "   Returns the SVertex (among the 2) belonging to the given FEdge.\n"
 "\n"
-"   :arg iFEdge: An FEdge object.\n"
-"   :type iFEdge: :class:`FEdge`\n"
+"   :arg fedge: An FEdge object.\n"
+"   :type fedge: :class:`FEdge`\n"
 "   :return: The SVertex belonging to the given FEdge.\n"
 "   :rtype: :class:`SVertex`");
 
-static PyObject * TVertex_get_svertex( BPy_TVertex *self, PyObject *args)
+static PyObject * TVertex_get_svertex( BPy_TVertex *self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"fedge", NULL};
 	PyObject *py_fe;
 
-	if (!PyArg_ParseTuple(args, "O!", &FEdge_Type, &py_fe))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &FEdge_Type, &py_fe))
 		return NULL;
 	SVertex *sv = self->tv->getSVertex(((BPy_FEdge *)py_fe)->fe);
 	if (sv)
@@ -96,22 +97,23 @@ static PyObject * TVertex_get_svertex( BPy_TVertex *self, PyObject *args)
 }
 
 PyDoc_STRVAR(TVertex_get_mate_doc,
-".. method:: get_mate(iEdgeA)\n"
+".. method:: get_mate(viewedge)\n"
 "\n"
 "   Returns the mate edge of the ViewEdge given as argument.  If the\n"
 "   ViewEdge is frontEdgeA, frontEdgeB is returned.  If the ViewEdge is\n"
 "   frontEdgeB, frontEdgeA is returned.  Same for back edges.\n"
 "\n"
-"   :arg iEdgeA: A ViewEdge object.\n"
-"   :type iEdgeA: :class:`ViewEdge`\n"
+"   :arg viewedge: A ViewEdge object.\n"
+"   :type viewedge: :class:`ViewEdge`\n"
 "   :return: The mate edge of the given ViewEdge.\n"
 "   :rtype: :class:`ViewEdge`");
 
-static PyObject * TVertex_get_mate( BPy_TVertex *self, PyObject *args)
+static PyObject * TVertex_get_mate( BPy_TVertex *self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"viewedge", NULL};
 	PyObject *py_ve;
 
-	if (!PyArg_ParseTuple(args, "O!", &ViewEdge_Type, &py_ve))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &ViewEdge_Type, &py_ve))
 		return NULL;
 	ViewEdge *ve = self->tv->mate(((BPy_ViewEdge *)py_ve)->ve);
 	if (ve)
@@ -120,8 +122,8 @@ static PyObject * TVertex_get_mate( BPy_TVertex *self, PyObject *args)
 }
 
 static PyMethodDef BPy_TVertex_methods[] = {
-	{"get_svertex", (PyCFunction)TVertex_get_svertex, METH_VARARGS, TVertex_get_svertex_doc},
-	{"get_mate", (PyCFunction)TVertex_get_mate, METH_VARARGS, TVertex_get_mate_doc},
+	{"get_svertex", (PyCFunction)TVertex_get_svertex, METH_VARARGS | METH_KEYWORDS, TVertex_get_svertex_doc},
+	{"get_mate", (PyCFunction)TVertex_get_mate, METH_VARARGS | METH_KEYWORDS, TVertex_get_mate_doc},
 	{NULL, NULL, 0, NULL}
 };
 

@@ -35,7 +35,7 @@ from shaders import *
 Operators.select(AndUP1D(QuantitativeInvisibilityUP1D(0), pyHighViewMapDensityUP1D(0.1,5)))
 bpred = TrueBP1D()
 upred = AndUP1D(QuantitativeInvisibilityUP1D(0), pyHighViewMapDensityUP1D(0.0007,5))
-Operators.bidirectionalChain(ChainPredicateIterator(upred, bpred), NotUP1D(QuantitativeInvisibilityUP1D(0)))
+Operators.bidirectional_chain(ChainPredicateIterator(upred, bpred), NotUP1D(QuantitativeInvisibilityUP1D(0)))
 shaders_list = 	[
 		ConstantThicknessShader(2), 
 		ConstantColorShader(0.0, 0.0, 0.0,1)

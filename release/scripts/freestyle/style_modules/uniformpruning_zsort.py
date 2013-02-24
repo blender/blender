@@ -8,8 +8,8 @@ from Functions1D import *
 from shaders import *
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
-Operators.bidirectionalChain(ChainSilhouetteIterator())
-#Operators.sequentialSplit(pyVertexNatureUP0D(Nature.VIEW_VERTEX), 2)
+Operators.bidirectional_chain(ChainSilhouetteIterator())
+#Operators.sequential_split(pyVertexNatureUP0D(Nature.VIEW_VERTEX), 2)
 Operators.sort(pyZBP1D())
 shaders_list = 	[
 		StrokeTextureShader("smoothAlpha.bmp", Stroke.OPAQUE_MEDIUM, False),

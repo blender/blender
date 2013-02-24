@@ -35,7 +35,7 @@ from shaders import *
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
 ## 0: don't restrict to selection
-Operators.bidirectionalChain(pySketchyChainSilhouetteIterator(3,0))
+Operators.bidirectional_chain(pySketchyChainSilhouetteIterator(3,0))
 shaders_list = 	[
 		SamplingShader(2),
 		SpatialNoiseShader(15, 120, 2, True, True),

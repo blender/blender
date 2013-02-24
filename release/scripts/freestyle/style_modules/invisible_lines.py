@@ -33,7 +33,7 @@ from shaders import *
 
 upred = NotUP1D(QuantitativeInvisibilityUP1D(0))
 Operators.select(upred)
-Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(upred))
+Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(upred))
 shaders_list = 	[
 		SamplingShader(5.0),
 		ConstantThicknessShader(3.0), 

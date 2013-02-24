@@ -26,6 +26,7 @@
 #############################################################################
 
 from freestyle_init import *
+from Freestyle import ContextFunctions as CF
 
 ## the natural chaining iterator
 ## It follows the edges of same nature following the topology of
@@ -155,7 +156,7 @@ class pyExternalContourChainingIterator(ChainingIterator):
 		while not it.is_end:
 			ve = it.object
 			if self._isExternalContour(ve):
-				if ve.time_stamp == GetTimeStampCF():
+				if ve.time_stamp == CF.get_time_stamp():
 					winner = ve
 			it.increment()
 		
@@ -178,10 +179,10 @@ class pyExternalContourChainingIterator(ChainingIterator):
 class pySketchyChainSilhouetteIterator(ChainingIterator):
 	def __init__(self, nRounds=3,stayInSelection=True):
 		ChainingIterator.__init__(self, stayInSelection, False, None, True)
-		self._timeStamp = GetTimeStampCF()+nRounds
+		self._timeStamp = CF.get_time_stamp()+nRounds
 		self._nRounds = nRounds
 	def init(self):
-		self._timeStamp = GetTimeStampCF()+self._nRounds
+		self._timeStamp = CF.get_time_stamp()+self._nRounds
 	def traverse(self, iter):
 		winner = None
 		it = AdjacencyIterator(iter)
@@ -235,10 +236,10 @@ class pySketchyChainSilhouetteIterator(ChainingIterator):
 class pySketchyChainingIterator(ChainingIterator):
 	def __init__(self, nRounds=3, stayInSelection=True):
 		ChainingIterator.__init__(self, stayInSelection, False, None, True)
-		self._timeStamp = GetTimeStampCF()+nRounds
+		self._timeStamp = CF.get_time_stamp()+nRounds
 		self._nRounds = nRounds
 	def init(self):
-		self._timeStamp = GetTimeStampCF()+self._nRounds
+		self._timeStamp = CF.get_time_stamp()+self._nRounds
 	def traverse(self, iter):
 		winner = None
 		it = AdjacencyIterator(iter)
@@ -309,7 +310,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 					break
 		if winner is not None:
 			# check whether this edge was part of the selection
-			if winner.time_stamp != GetTimeStampCF():
+			if winner.time_stamp != CF.get_time_stamp():
 				#print("---", winner.id.first, winner.id.second)
 				# if not, let's check whether it's short enough with
 				# respect to the chain made without staying in the selection
@@ -348,7 +349,7 @@ class pyFillOcclusionsRelativeChainingIterator(ChainingIterator):
 				_cit.current_edge = winner
 				_cit.orientation = winnerOrientation
 				_cit.init()
-				while _cit.is_end == 0 and _cit.object.time_stamp != GetTimeStampCF():
+				while _cit.is_end == 0 and _cit.object.time_stamp != CF.get_time_stamp():
 					ve = _cit.object
 					#print("-------- --------", ve.id.first, ve.id.second)
 					connexl = connexl + ve.length_2d
@@ -406,7 +407,7 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
 					break
 		if winner is not None:
 			# check whether this edge was part of the selection
-			if winner.time_stamp != GetTimeStampCF():
+			if winner.time_stamp != CF.get_time_stamp():
 				#print("---", winner.id.first, winner.id.second)
 				# nw let's compute the length of this connex non selected part:
 				connexl = 0
@@ -415,7 +416,7 @@ class pyFillOcclusionsAbsoluteChainingIterator(ChainingIterator):
 				_cit.current_edge = winner
 				_cit.orientation = winnerOrientation
 				_cit.init()
-				while _cit.is_end == 0 and _cit.object.time_stamp != GetTimeStampCF():
+				while _cit.is_end == 0 and _cit.object.time_stamp != CF.get_time_stamp():
 					ve = _cit.object
 					#print("-------- --------", ve.id.first, ve.id.second)
 					connexl = connexl + ve.length_2d
@@ -479,7 +480,7 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 					break
 		if winner is not None:
 			# check whether this edge was part of the selection
-			if winner.time_stamp != GetTimeStampCF():
+			if winner.time_stamp != CF.get_time_stamp():
 				#print("---", winner.id.first, winner.id.second)
 				# if not, let's check whether it's short enough with
 				# respect to the chain made without staying in the selection
@@ -518,7 +519,7 @@ class pyFillOcclusionsAbsoluteAndRelativeChainingIterator(ChainingIterator):
 				_cit.current_edge = winner
 				_cit.orientation = winnerOrientation
 				_cit.init()
-				while _cit.is_end == 0 and _cit.object.time_stamp != GetTimeStampCF():
+				while _cit.is_end == 0 and _cit.object.time_stamp != CF.get_time_stamp():
 					ve = _cit.object
 					#print("-------- --------", ve.id.first, ve.id.second)
 					connexl = connexl + ve.length_2d

@@ -31,7 +31,7 @@ from logical_operators import *
 from shaders import *
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
-Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))
+Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(QuantitativeInvisibilityUP1D(0)))
 shaders_list = [
     StrokeTextureShader("smoothAlpha.bmp", Stroke.OPAQUE_MEDIUM, False),
     ConstantThicknessShader(5),

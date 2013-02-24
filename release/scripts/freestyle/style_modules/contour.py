@@ -34,7 +34,7 @@ from shaders import *
 Operators.select(AndUP1D(QuantitativeInvisibilityUP1D(0), ContourUP1D() ) )
 bpred = SameShapeIdBP1D();
 upred = AndUP1D(QuantitativeInvisibilityUP1D(0), ContourUP1D())
-Operators.bidirectionalChain(ChainPredicateIterator(upred, bpred), NotUP1D(QuantitativeInvisibilityUP1D(0)))
+Operators.bidirectional_chain(ChainPredicateIterator(upred, bpred), NotUP1D(QuantitativeInvisibilityUP1D(0)))
 shaders_list =	 [
 		ConstantThicknessShader(5.0),
 		IncreasingColorShader(0.8,0,0,1,0.1,0,0,1)

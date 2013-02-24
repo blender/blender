@@ -1,4 +1,5 @@
 from freestyle_init import *
+from Freestyle import ContextFunctions as CF
 
 class CurveMaterialF0D(UnaryFunction0DMaterial):
 	# A replacement of the built-in MaterialF0D for stroke creation.
@@ -55,8 +56,8 @@ class pyViewMapGradientVectorF0D(UnaryFunction0DVec2f):
 		self._step = pow(2,self._l)
 	def __call__(self, iter):
 		p = iter.object.point_2d
-		gx = ReadCompleteViewMapPixelCF(self._l, int(p.x+self._step), int(p.y))- ReadCompleteViewMapPixelCF(self._l, int(p.x), int(p.y))
-		gy = ReadCompleteViewMapPixelCF(self._l, int(p.x), int(p.y+self._step))- ReadCompleteViewMapPixelCF(self._l, int(p.x), int(p.y))
+		gx = CF.read_complete_view_map_pixel(self._l, int(p.x+self._step), int(p.y))- CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
+		gy = CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y+self._step))- CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
 		return Vector([gx, gy])
 
 class pyViewMapGradientNormF0D(UnaryFunction0DDouble):
@@ -66,8 +67,8 @@ class pyViewMapGradientNormF0D(UnaryFunction0DDouble):
 		self._step = pow(2,self._l)
 	def __call__(self, iter):
 		p = iter.object.point_2d
-		gx = ReadCompleteViewMapPixelCF(self._l, int(p.x+self._step), int(p.y))- ReadCompleteViewMapPixelCF(self._l, int(p.x), int(p.y))
-		gy = ReadCompleteViewMapPixelCF(self._l, int(p.x), int(p.y+self._step))- ReadCompleteViewMapPixelCF(self._l, int(p.x), int(p.y))
+		gx = CF.read_complete_view_map_pixel(self._l, int(p.x+self._step), int(p.y))- CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
+		gy = CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y+self._step))- CF.read_complete_view_map_pixel(self._l, int(p.x), int(p.y))
 		grad = Vector([gx, gy])
 		return grad.length
 

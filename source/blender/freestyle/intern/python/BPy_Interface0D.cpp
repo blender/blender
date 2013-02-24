@@ -57,32 +57,32 @@ int Interface0D_Init(PyObject *module)
 		return -1;
 	Py_INCREF(&Interface0D_Type);
 	PyModule_AddObject(module, "Interface0D", (PyObject *)&Interface0D_Type);
-	
+
 	if (PyType_Ready(&CurvePoint_Type) < 0)
 		return -1;
 	Py_INCREF(&CurvePoint_Type);
 	PyModule_AddObject(module, "CurvePoint", (PyObject *)&CurvePoint_Type);
-	
+
 	if (PyType_Ready(&SVertex_Type) < 0)
 		return -1;
 	Py_INCREF(&SVertex_Type);
 	PyModule_AddObject(module, "SVertex", (PyObject *)&SVertex_Type);	
-	
+
 	if (PyType_Ready(&ViewVertex_Type) < 0)
 		return -1;
 	Py_INCREF(&ViewVertex_Type);
 	PyModule_AddObject(module, "ViewVertex", (PyObject *)&ViewVertex_Type);
-	
+
 	if (PyType_Ready(&StrokeVertex_Type) < 0)
 		return -1;
 	Py_INCREF(&StrokeVertex_Type);
 	PyModule_AddObject(module, "StrokeVertex", (PyObject *)&StrokeVertex_Type);
-	
+
 	if (PyType_Ready(&NonTVertex_Type) < 0)
 		return -1;
 	Py_INCREF(&NonTVertex_Type);
 	PyModule_AddObject(module, "NonTVertex", (PyObject *)&NonTVertex_Type);
-	
+
 	if (PyType_Ready(&TVertex_Type) < 0)
 		return -1;
 	Py_INCREF(&TVertex_Type);
@@ -137,11 +137,12 @@ PyDoc_STRVAR(Interface0D_get_fedge_doc,
 "   :return: The FEdge lying between the two 0D elements.\n"
 "   :rtype: :class:`FEdge`");
 
-static PyObject *Interface0D_get_fedge(BPy_Interface0D *self, PyObject *args)
+static PyObject *Interface0D_get_fedge(BPy_Interface0D *self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"inter", NULL};
 	PyObject *py_if0D;
 
-	if (!PyArg_ParseTuple(args, "O!", &Interface0D_Type, &py_if0D))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char **)kwlist, &Interface0D_Type, &py_if0D))
 		return NULL;
 	FEdge *fe = self->if0D->getFEdge(*(((BPy_Interface0D *)py_if0D)->if0D));
 	if (PyErr_Occurred())
@@ -152,7 +153,7 @@ static PyObject *Interface0D_get_fedge(BPy_Interface0D *self, PyObject *args)
 }
 
 static PyMethodDef BPy_Interface0D_methods[] = {
-	{"get_fedge", (PyCFunction)Interface0D_get_fedge, METH_VARARGS, Interface0D_get_fedge_doc},
+	{"get_fedge", (PyCFunction)Interface0D_get_fedge, METH_VARARGS | METH_KEYWORDS, Interface0D_get_fedge_doc},
 	{NULL, NULL, 0, NULL}
 };
 

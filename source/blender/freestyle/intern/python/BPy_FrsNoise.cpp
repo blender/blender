@@ -41,22 +41,22 @@ extern "C" {
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 //-------------------MODULE INITIALIZATION--------------------------------
-int FrsNoise_Init( PyObject *module )
+int FrsNoise_Init(PyObject *module)
 {
-	if( module == NULL )
+	if (module == NULL)
 		return -1;
 
-	if( PyType_Ready( &FrsNoise_Type ) < 0 )
+	if (PyType_Ready(&FrsNoise_Type) < 0)
 		return -1;
-
-	Py_INCREF( &FrsNoise_Type );
+	Py_INCREF(&FrsNoise_Type);
 	PyModule_AddObject(module, "Noise", (PyObject *)&FrsNoise_Type);
+
 	return 0;
 }
 
 //------------------------INSTANCE METHODS ----------------------------------
 
-static char FrsNoise___doc__[] =
+PyDoc_STRVAR(FrsNoise_doc,
 "Class to provide Perlin noise functionalities.\n"
 "\n"
 ".. method:: __init__(seed = -1)\n"
@@ -66,30 +66,31 @@ static char FrsNoise___doc__[] =
 "   otherwise, time is used as a seed.\n"
 "\n"
 "   :arg seed: Seed for random number generation.\n"
-"   :type seed: int\n";
+"   :type seed: int");
 
-static int FrsNoise___init__(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
+static int FrsNoise_init(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
 {
+	static const char *kwlist[] = {"seed", NULL};
 	long seed = -1;
-	if(!( PyArg_ParseTuple(args, "|l", &seed) ))
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|l", (char **)kwlist, &seed))
 		return -1;
 	self->n = new Noise(seed);
 	return 0;
 }
 
-static void FrsNoise___dealloc__(BPy_FrsNoise* self)
+static void FrsNoise_dealloc(BPy_FrsNoise* self)
 {
 	delete self->n;
-    Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-
-static PyObject * FrsNoise___repr__(BPy_FrsNoise* self)
+static PyObject * FrsNoise_repr(BPy_FrsNoise* self)
 {
-    return PyUnicode_FromFormat("Noise - address: %p", self->n );
+	return PyUnicode_FromFormat("Noise - address: %p", self->n);
 }
 
-static char FrsNoise_turbulence1___doc__[] =
+PyDoc_STRVAR(FrsNoise_turbulence1_doc,
 ".. method:: turbulence1(v, freq, amp, oct=4)\n"
 "\n"
 "   Returns a noise value for a 1D element.\n"
@@ -103,19 +104,20 @@ static char FrsNoise_turbulence1___doc__[] =
 "   :arg oct: Number of octaves.\n"
 "   :type oct: int\n"
 "   :return: A noise value.\n"
-"   :rtype: float\n";
+"   :rtype: float");
 
-static PyObject * FrsNoise_turbulence1( BPy_FrsNoise *self , PyObject *args) {
+static PyObject * FrsNoise_turbulence1(BPy_FrsNoise *self , PyObject *args, PyObject *kwds)
+{
+	static const char *kwlist[] = {"v", "freq", "amp", "oct", NULL};
 	float f1, f2, f3;
 	unsigned int i = 4;
 
-	if(!( PyArg_ParseTuple(args, "fff|I", &f1, &f2, &f3, &i) ))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "fff|I", (char **)kwlist, &f1, &f2, &f3, &i))
 		return NULL;
-
-	return PyFloat_FromDouble( self->n->turbulence1(f1, f2, f3, i) );
+	return PyFloat_FromDouble(self->n->turbulence1(f1, f2, f3, i));
 }
 
-static char FrsNoise_turbulence2___doc__[] =
+PyDoc_STRVAR(FrsNoise_turbulence2_doc,
 ".. method:: turbulence2(v, freq, amp, oct=4)\n"
 "\n"
 "   Returns a noise value for a 2D element.\n"
@@ -129,26 +131,28 @@ static char FrsNoise_turbulence2___doc__[] =
 "   :arg oct: Number of octaves.\n"
 "   :type oct: int\n"
 "   :return: A noise value.\n"
-"   :rtype: float\n";
+"   :rtype: float");
 
-static PyObject * FrsNoise_turbulence2( BPy_FrsNoise *self , PyObject *args) {
+static PyObject * FrsNoise_turbulence2(BPy_FrsNoise *self , PyObject *args, PyObject *kwds)
+{
+	static const char *kwlist[] = {"v", "freq", "amp", "oct", NULL};
 	PyObject *obj1;
 	float f2, f3;
 	unsigned int i = 4;
 
-	if(!( PyArg_ParseTuple(args, "Off|I", &obj1, &f2, &f3, &i) ))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "Off|I", (char **)kwlist, &obj1, &f2, &f3, &i))
 		return NULL;
 	Vec2f *v = Vec2f_ptr_from_PyObject(obj1);
-	if( !v ) {
+	if (!v) {
 		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 2D vector (either a list of 2 elements or Vector)");
 		return NULL;
 	}
 	float t = self->n->turbulence2(*v, f2, f3, i);
 	delete v;
-	return PyFloat_FromDouble( t );
+	return PyFloat_FromDouble(t);
 }
 
-static char FrsNoise_turbulence3___doc__[] =
+PyDoc_STRVAR(FrsNoise_turbulence3_doc,
 ".. method:: turbulence3(v, freq, amp, oct=4)\n"
 "\n"
 "   Returns a noise value for a 3D element.\n"
@@ -162,26 +166,28 @@ static char FrsNoise_turbulence3___doc__[] =
 "   :arg oct: Number of octaves.\n"
 "   :type oct: int\n"
 "   :return: A noise value.\n"
-"   :rtype: float\n";
+"   :rtype: float");
 
-static PyObject * FrsNoise_turbulence3( BPy_FrsNoise *self , PyObject *args) {
+static PyObject * FrsNoise_turbulence3(BPy_FrsNoise *self , PyObject *args, PyObject *kwds)
+{
+	static const char *kwlist[] = {"v", "freq", "amp", "oct", NULL};
 	PyObject *obj1;
 	float f2, f3;
 	unsigned int i = 4;
 
-	if(!( PyArg_ParseTuple(args, "Off|I", &obj1, &f2, &f3, &i) ))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "Off|I", (char **)kwlist, &obj1, &f2, &f3, &i))
 		return NULL;
 	Vec3f *v = Vec3f_ptr_from_PyObject(obj1);
-	if( !v ) {
+	if (!v) {
 		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
 		return NULL;
 	}
 	float t = self->n->turbulence3(*v, f2, f3, i);
 	delete v;
-	return PyFloat_FromDouble( t );
+	return PyFloat_FromDouble(t);
 }
 
-static char FrsNoise_smoothNoise1___doc__[] =
+PyDoc_STRVAR(FrsNoise_smoothNoise1_doc,
 ".. method:: smoothNoise1(v)\n"
 "\n"
 "   Returns a smooth noise value for a 1D element.\n"
@@ -189,18 +195,19 @@ static char FrsNoise_smoothNoise1___doc__[] =
 "   :arg v: One-dimensional sample point.\n"
 "   :type v: float\n"
 "   :return: A smooth noise value.\n"
-"   :rtype: float\n";
+"   :rtype: float");
 
-static PyObject * FrsNoise_smoothNoise1( BPy_FrsNoise *self , PyObject *args) {
+static PyObject * FrsNoise_smoothNoise1(BPy_FrsNoise *self , PyObject *args, PyObject *kwds)
+{
+	static const char *kwlist[] = {"v", NULL};
 	float f;
 
-	if(!( PyArg_ParseTuple(args, "f", &f) ))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "f", (char **)kwlist, &f))
 		return NULL;
-
-	return PyFloat_FromDouble( self->n->smoothNoise1(f) );
+	return PyFloat_FromDouble(self->n->smoothNoise1(f));
 }
 
-static char FrsNoise_smoothNoise2___doc__[] =
+PyDoc_STRVAR(FrsNoise_smoothNoise2_doc,
 ".. method:: smoothNoise2(v)\n"
 "\n"
 "   Returns a smooth noise value for a 2D element.\n"
@@ -208,24 +215,26 @@ static char FrsNoise_smoothNoise2___doc__[] =
 "   :arg v: Two-dimensional sample point.\n"
 "   :type v: :class:`mathutils.Vector`, list or tuple of 2 real numbers\n"
 "   :return: A smooth noise value.\n"
-"   :rtype: float\n";
+"   :rtype: float");
 
-static PyObject * FrsNoise_smoothNoise2( BPy_FrsNoise *self , PyObject *args) {
+static PyObject * FrsNoise_smoothNoise2(BPy_FrsNoise *self , PyObject *args, PyObject *kwds)
+{
+	static const char *kwlist[] = {"v", NULL};
 	PyObject *obj;
 
-	if(!( PyArg_ParseTuple(args, "O", &obj) ))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj))
 		return NULL;
 	Vec2f *v = Vec2f_ptr_from_PyObject(obj);
-	if( !v ) {
+	if (!v) {
 		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 2D vector (either a list of 2 elements or Vector)");
 		return NULL;
 	}
 	float t = self->n->smoothNoise2(*v);
 	delete v;
-	return PyFloat_FromDouble( t );
+	return PyFloat_FromDouble(t);
 }
 
-static char FrsNoise_smoothNoise3___doc__[] =
+PyDoc_STRVAR(FrsNoise_smoothNoise3_doc,
 ".. method:: smoothNoise3(v)\n"
 "\n"
 "   Returns a smooth noise value for a 3D element.\n"
@@ -233,31 +242,32 @@ static char FrsNoise_smoothNoise3___doc__[] =
 "   :arg v: Three-dimensional sample point.\n"
 "   :type v: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n"
 "   :return: A smooth noise value.\n"
-"   :rtype: float\n";
+"   :rtype: float");
 
-static PyObject * FrsNoise_smoothNoise3( BPy_FrsNoise *self , PyObject *args) {
+static PyObject * FrsNoise_smoothNoise3(BPy_FrsNoise *self , PyObject *args, PyObject *kwds)
+{
+	static const char *kwlist[] = {"v", NULL};
 	PyObject *obj;
 
-	if(!( PyArg_ParseTuple(args, "O", &obj) ))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", (char **)kwlist, &obj))
 		return NULL;
 	Vec3f *v = Vec3f_ptr_from_PyObject(obj);
-	if( !v ) {
+	if (!v) {
 		PyErr_SetString(PyExc_TypeError, "argument 1 must be a 3D vector (either a list of 3 elements or Vector)");
 		return NULL;
 	}
 	float t = self->n->smoothNoise3(*v);
 	delete v;
-	return PyFloat_FromDouble( t );
+	return PyFloat_FromDouble(t);
 }
 
-/*----------------------FrsNoise instance definitions ----------------------------*/
 static PyMethodDef BPy_FrsNoise_methods[] = {
-	{"turbulence1", ( PyCFunction ) FrsNoise_turbulence1, METH_VARARGS, FrsNoise_turbulence1___doc__},
-	{"turbulence2", ( PyCFunction ) FrsNoise_turbulence2, METH_VARARGS, FrsNoise_turbulence2___doc__},
-	{"turbulence3", ( PyCFunction ) FrsNoise_turbulence3, METH_VARARGS, FrsNoise_turbulence3___doc__},
-	{"smoothNoise1", ( PyCFunction ) FrsNoise_smoothNoise1, METH_VARARGS, FrsNoise_smoothNoise1___doc__},
-	{"smoothNoise2", ( PyCFunction ) FrsNoise_smoothNoise2, METH_VARARGS, FrsNoise_smoothNoise2___doc__},
-	{"smoothNoise3", ( PyCFunction ) FrsNoise_smoothNoise3, METH_VARARGS, FrsNoise_smoothNoise3___doc__},
+	{"turbulence1", (PyCFunction)FrsNoise_turbulence1, METH_VARARGS | METH_KEYWORDS, FrsNoise_turbulence1_doc},
+	{"turbulence2", (PyCFunction)FrsNoise_turbulence2, METH_VARARGS | METH_KEYWORDS, FrsNoise_turbulence2_doc},
+	{"turbulence3", (PyCFunction)FrsNoise_turbulence3, METH_VARARGS | METH_KEYWORDS, FrsNoise_turbulence3_doc},
+	{"smoothNoise1", (PyCFunction)FrsNoise_smoothNoise1, METH_VARARGS | METH_KEYWORDS, FrsNoise_smoothNoise1_doc},
+	{"smoothNoise2", (PyCFunction)FrsNoise_smoothNoise2, METH_VARARGS | METH_KEYWORDS, FrsNoise_smoothNoise2_doc},
+	{"smoothNoise3", (PyCFunction)FrsNoise_smoothNoise3, METH_VARARGS | METH_KEYWORDS, FrsNoise_smoothNoise3_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -268,12 +278,12 @@ PyTypeObject FrsNoise_Type = {
 	"Noise",                        /* tp_name */
 	sizeof(BPy_FrsNoise),           /* tp_basicsize */
 	0,                              /* tp_itemsize */
-	(destructor)FrsNoise___dealloc__, /* tp_dealloc */
+	(destructor)FrsNoise_dealloc,   /* tp_dealloc */
 	0,                              /* tp_print */
 	0,                              /* tp_getattr */
 	0,                              /* tp_setattr */
 	0,                              /* tp_reserved */
-	(reprfunc)FrsNoise___repr__,    /* tp_repr */
+	(reprfunc)FrsNoise_repr,        /* tp_repr */
 	0,                              /* tp_as_number */
 	0,                              /* tp_as_sequence */
 	0,                              /* tp_as_mapping */
@@ -284,7 +294,7 @@ PyTypeObject FrsNoise_Type = {
 	0,                              /* tp_setattro */
 	0,                              /* tp_as_buffer */
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /* tp_flags */
-	FrsNoise___doc__,               /* tp_doc */
+	FrsNoise_doc,                   /* tp_doc */
 	0,                              /* tp_traverse */
 	0,                              /* tp_clear */
 	0,                              /* tp_richcompare */
@@ -299,7 +309,7 @@ PyTypeObject FrsNoise_Type = {
 	0,                              /* tp_descr_get */
 	0,                              /* tp_descr_set */
 	0,                              /* tp_dictoffset */
-	(initproc)FrsNoise___init__,    /* tp_init */
+	(initproc)FrsNoise_init,        /* tp_init */
 	0,                              /* tp_alloc */
 	PyType_GenericNew,              /* tp_new */
 };

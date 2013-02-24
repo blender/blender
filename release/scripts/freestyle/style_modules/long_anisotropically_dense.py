@@ -61,7 +61,7 @@ class pyDensityUP1D(UnaryPredicate1D):
 		return 0
 
 Operators.select(QuantitativeInvisibilityUP1D(0))
-Operators.bidirectionalChain(ChainSilhouetteIterator(),NotUP1D(QuantitativeInvisibilityUP1D(0)))
+Operators.bidirectional_chain(ChainSilhouetteIterator(),NotUP1D(QuantitativeInvisibilityUP1D(0)))
 Operators.select(pyHigherLengthUP1D(40))
 ## selects lines having a high anisotropic a priori density
 Operators.select(pyHighDensityAnisotropyUP1D(0.3,4))

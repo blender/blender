@@ -39,7 +39,7 @@ from shaders import *
 id = Id(3,0)
 upred = AndUP1D(QuantitativeInvisibilityUP1D(0) , pyIsOccludedByUP1D(id))
 Operators.select(upred)
-Operators.bidirectionalChain(ChainSilhouetteIterator(), NotUP1D(upred))
+Operators.bidirectional_chain(ChainSilhouetteIterator(), NotUP1D(upred))
 shaders_list = 	[
 		IncreasingThicknessShader(3, 5), 
 		IncreasingColorShader(1,0,0, 1,0,1,0,1),
