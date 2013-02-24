@@ -45,6 +45,7 @@ class PHY_IPhysicsController : public PHY_IController
 {
 
 	public:
+		virtual ~PHY_IPhysicsController(){};
 		/**
 		 * SynchronizeMotionStates ynchronizes dynas, kinematic and deformable entities (and do 'late binding')
 		 */
