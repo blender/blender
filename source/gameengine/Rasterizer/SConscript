@@ -47,7 +47,10 @@ incs = [
 defs = ['GLEW_STATIC']
 
 if env['WITH_BF_PYTHON']:
-    incs.append(env['BF_PYTHON_INC'])
+    if type(env['BF_PYTHON_INC']) == str:
+      incs.append(env['BF_PYTHON_INC'].split(' '))
+    else:
+      incs.append(env['BF_PYTHON_INC'])
     defs.append('WITH_PYTHON')
 
 if env['WITH_BF_CXX_GUARDEDALLOC']:
