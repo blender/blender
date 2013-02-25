@@ -406,9 +406,9 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 	}
 }
 
-static void ui_apply_autokey_undo(bContext *C, uiBut *but)
+/* typically call ui_apply_undo(), ui_apply_autokey() */
+static void ui_apply_undo(uiBut *but)
 {
-	Scene *scene = CTX_data_scene(C);
 	uiAfterFunc *after;
 
 	if (but->flag & UI_BUT_UNDO) {
@@ -430,6 +430,11 @@ static void ui_apply_autokey_undo(bContext *C, uiBut *but)
 		BLI_strncpy(after->undostr, str, sizeof(after->undostr));
 		BLI_addtail(&UIAfterFuncs, after);
 	}
+}
+
+static void ui_apply_autokey(bContext *C, uiBut *but)
+{
+	Scene *scene = CTX_data_scene(C);
 
 	/* try autokey */
 	ui_but_anim_autokey(C, but, scene, scene->r.cfra);
@@ -770,6 +775,8 @@ static int ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data, 
 			/* assumes button has already been pressed */
 			const bool is_set = (ui_get_but_val(but) == 0.0);
 			PointerRNA ptr;
+			/* auto-key is typically called on mouse-up, but we'r leaving the button so call here */
+			ui_apply_autokey(C, but);
 			WM_operator_properties_create(&ptr, "UI_OT_drag_toggle");
 			RNA_boolean_set(&ptr, "state", !is_set);
 			RNA_int_set(&ptr, "last_x", data->dragstartx);
@@ -2504,12 +2511,11 @@ static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, cons
 	}
 	else if (data->state == BUTTON_STATE_WAIT_DRAG) {
 		/* note: the 'BUTTON_STATE_WAIT_DRAG' part of 'ui_do_but_EXIT' could be refactored into its own function */
-		data->cancel = true;
 		data->applied = false;
 		return ui_do_but_EXIT(C, but, data, event);
 	}
 
-	return WM_UI_HANDLER_BREAK;
+	return WM_UI_HANDLER_CONTINUE;
 }
 
 static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
@@ -5800,7 +5806,8 @@ static void button_activate_exit(bContext *C, uiBut *but, uiHandleButtonData *da
 
 	if (!onfree && !data->cancel) {
 		/* autokey & undo push */
-		ui_apply_autokey_undo(C, but);
+		ui_apply_undo(but);
+		ui_apply_autokey(C, but);
 
 		/* popup menu memory */
 		if (block->flag & UI_BLOCK_POPUP_MEMORY)
@@ -6089,6 +6096,7 @@ void ui_button_execute_do(struct bContext *C, struct ARegion *ar, uiBut *but)
 	data->region = ar;
 	ui_apply_button(C, but->block, but, data, true);
 	/* use onfree event so undo is handled by caller and apply is already done above */
+	ui_apply_autokey(C, but);
 	button_activate_exit((bContext *)C, but, data, false, true);
 	but->active = active_back;
 }
