@@ -38,8 +38,6 @@
 #include "glog/logging.h"
 #include "libmv/logging/logging.h"
 
-#include "Math/v3d_optimization.h"
-
 #include "libmv/numeric/numeric.h"
 
 #include "libmv/tracking/esm_region_tracker.h"
@@ -96,7 +94,6 @@ void libmv_initLogging(const char *argv0)
 	google::SetCommandLineOption("v", "0");
 	google::SetCommandLineOption("stderrthreshold", "7");
 	google::SetCommandLineOption("minloglevel", "7");
-	V3D::optimizerVerbosenessLevel = 0;
 }
 
 void libmv_startDebugLogging(void)
@@ -105,7 +102,6 @@ void libmv_startDebugLogging(void)
 	google::SetCommandLineOption("v", "2");
 	google::SetCommandLineOption("stderrthreshold", "1");
 	google::SetCommandLineOption("minloglevel", "0");
-	V3D::optimizerVerbosenessLevel = 1;
 }
 
 void libmv_setLoggingVerbosity(int verbosity)
@@ -114,7 +110,6 @@ void libmv_setLoggingVerbosity(int verbosity)
 	snprintf(val, sizeof(val), "%d", verbosity);
 
 	google::SetCommandLineOption("v", val);
-	V3D::optimizerVerbosenessLevel = verbosity;
 }
 
 /* ************ Utility ************ */

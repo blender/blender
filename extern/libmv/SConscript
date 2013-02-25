@@ -22,9 +22,6 @@ src += env.Glob('libmv/simple_pipeline/*.cc')
 src += env.Glob('libmv/tracking/*.cc')
 src += env.Glob('third_party/fast/*.c')
 src += env.Glob('third_party/gflags/*.cc')
-src += env.Glob('third_party/ldl/Source/*.c')
-src += env.Glob('third_party/ssba/Geometry/*.cpp')
-src += env.Glob('third_party/ssba/Math/*.cpp')
 
 incs = '. ../Eigen3 third_party/ceres/include'
 incs += ' ' + env['BF_PNG_INC']
@@ -40,8 +37,6 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', '
 else:
     src += env.Glob("third_party/glog/src/*.cc")
     incs += ' ./third_party/glog/src'
-
-incs += ' ./third_party/ssba ./third_party/ldl/Include ../colamd/Include'
 
 env.BlenderLib ( libname = 'extern_libmv', sources=src, includes=Split(incs), defines=defs, libtype=['extern', 'player'], priority=[20,137] )
 
