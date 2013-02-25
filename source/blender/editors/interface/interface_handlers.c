@@ -81,6 +81,8 @@
 
 /* place the mouse at the scaled down location when un-grabbing */
 #define USE_CONT_MOUSE_CORRECT
+/* support dragging toggle buttons */
+#define USE_DRAG_TOGGLE
 
 /* proto */
 static void ui_add_smart_controller(bContext *C, uiBut *from, uiBut *to);
@@ -770,7 +772,7 @@ static int ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data, 
 
 		button_activate_state(C, but, BUTTON_STATE_EXIT);
 		data->cancel = TRUE;
-		
+#ifdef USE_DRAG_TOGGLE
 		if (ui_is_but_bool(but)) {
 			/* assumes button has already been pressed */
 			const bool is_set = (ui_get_but_val(but) == 0.0);
@@ -784,7 +786,9 @@ static int ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data, 
 			WM_operator_name_call(C, "UI_OT_drag_toggle", WM_OP_INVOKE_DEFAULT, &ptr);
 			WM_operator_properties_free(&ptr);
 		}
-		else {
+		else
+#endif
+		{
 			wmDrag *drag;
 
 			drag = WM_event_start_drag(C, but->icon, but->dragtype, but->dragpoin, ui_get_but_val(but));
@@ -2493,19 +2497,15 @@ static int ui_do_but_SEARCH_UNLINK(bContext *C, uiBlock *block, uiBut *but, uiHa
 
 static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
+#ifdef USE_DRAG_TOGGLE
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		if (event->type == LEFTMOUSE && event->val == KM_PRESS && ui_is_but_bool(but)) {
+			data->togdual = event->ctrl;
+			data->togonly = !event->shift;
 			ui_apply_button(C, but->block, but, data, true);
 			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
 			data->dragstartx = event->x;
 			data->dragstarty = event->y;
-			return WM_UI_HANDLER_CONTINUE;
-		}
-
-		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
-			data->togdual = event->ctrl;
-			data->togonly = !event->shift;
-			button_activate_state(C, but, BUTTON_STATE_EXIT);
 			return WM_UI_HANDLER_CONTINUE;
 		}
 	}
@@ -2514,7 +2514,15 @@ static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, cons
 		data->applied = false;
 		return ui_do_but_EXIT(C, but, data, event);
 	}
-
+#endif
+	if (data->state == BUTTON_STATE_HIGHLIGHT) {
+		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
+			data->togdual = event->ctrl;
+			data->togonly = !event->shift;
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			return WM_UI_HANDLER_BREAK;
+		}
+	}
 	return WM_UI_HANDLER_CONTINUE;
 }
 
@@ -2535,13 +2543,15 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, con
 				return WM_UI_HANDLER_CONTINUE;
 			}
 		}
+#ifdef USE_DRAG_TOGGLE
 		if (event->type == LEFTMOUSE && ui_is_but_bool(but)) {
 			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
 			data->dragstartx = event->x;
 			data->dragstarty = event->y;
 			return WM_UI_HANDLER_CONTINUE;
 		}
-		
+#endif
+
 		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
 			int ret = WM_UI_HANDLER_BREAK;
 			/* XXX (a bit ugly) Special case handling for filebrowser drag button */
@@ -3257,13 +3267,14 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, co
 				return WM_UI_HANDLER_BREAK;
 			}
 		}
+#ifdef USE_DRAG_TOGGLE
 		if (event->type == LEFTMOUSE && ui_is_but_bool(but)) {
 			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
 			data->dragstartx = event->x;
 			data->dragstarty = event->y;
 			return WM_UI_HANDLER_BREAK;
 		}
-		
+#endif
 		/* regular open menu */
 		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);
