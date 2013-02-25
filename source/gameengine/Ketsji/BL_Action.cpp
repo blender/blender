@@ -176,11 +176,13 @@ bool BL_Action::Play(const char* name,
 	// Now try materials
 	if (m_obj->GetBlenderObject()->totcol==1) {
 		Material *mat = give_current_material(m_obj->GetBlenderObject(), 1);
-		sg_contr = BL_CreateMaterialIpo(m_action, mat, 0, m_obj, kxscene->GetSceneConverter());
-		if (sg_contr) {
-			m_sg_contr_list.push_back(sg_contr);
-			m_obj->GetSGNode()->AddSGController(sg_contr);
-			sg_contr->SetObject(m_obj->GetSGNode());
+		if (mat) {
+			sg_contr = BL_CreateMaterialIpo(m_action, mat, 0, m_obj, kxscene->GetSceneConverter());
+			if (sg_contr) {
+				m_sg_contr_list.push_back(sg_contr);
+				m_obj->GetSGNode()->AddSGController(sg_contr);
+				sg_contr->SetObject(m_obj->GetSGNode());
+			}
 		}
 	} else {
 		Material *mat;
@@ -188,12 +190,14 @@ bool BL_Action::Play(const char* name,
 
 		for (int matidx = 1; matidx <= m_obj->GetBlenderObject()->totcol; ++matidx) {
 			mat = give_current_material(m_obj->GetBlenderObject(), matidx);
-			matname = mat->id.name;
-			sg_contr = BL_CreateMaterialIpo(m_action, mat, matname.hash(), m_obj, kxscene->GetSceneConverter());
-			if (sg_contr) {
-				m_sg_contr_list.push_back(sg_contr);
-				m_obj->GetSGNode()->AddSGController(sg_contr);
-				sg_contr->SetObject(m_obj->GetSGNode());
+			if (mat) {
+				matname = mat->id.name;
+				sg_contr = BL_CreateMaterialIpo(m_action, mat, matname.hash(), m_obj, kxscene->GetSceneConverter());
+				if (sg_contr) {
+					m_sg_contr_list.push_back(sg_contr);
+					m_obj->GetSGNode()->AddSGController(sg_contr);
+					sg_contr->SetObject(m_obj->GetSGNode());
+				}
 			}
 		}
 	}
