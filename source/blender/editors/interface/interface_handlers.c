@@ -767,7 +767,8 @@ static int ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data, 
 		data->cancel = TRUE;
 		
 		if (ui_is_but_bool(but)) {
-			const bool is_set = (ui_get_but_val(but) != 0.0);
+			/* assumes button has already been pressed */
+			const bool is_set = (ui_get_but_val(but) == 0.0);
 			PointerRNA ptr;
 			WM_operator_properties_create(&ptr, "UI_OT_drag_toggle");
 			RNA_boolean_set(&ptr, "state", !is_set);
@@ -2487,6 +2488,7 @@ static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, cons
 {
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		if (event->type == LEFTMOUSE && event->val == KM_PRESS && ui_is_but_bool(but)) {
+			ui_apply_button(C, but->block, but, data, true);
 			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
 			data->dragstartx = event->x;
 			data->dragstarty = event->y;
@@ -2502,9 +2504,12 @@ static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, cons
 	}
 	else if (data->state == BUTTON_STATE_WAIT_DRAG) {
 		/* note: the 'BUTTON_STATE_WAIT_DRAG' part of 'ui_do_but_EXIT' could be refactored into its own function */
+		data->cancel = true;
+		data->applied = false;
 		return ui_do_but_EXIT(C, but, data, event);
 	}
-	return WM_UI_HANDLER_CONTINUE;
+
+	return WM_UI_HANDLER_BREAK;
 }
 
 static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event)

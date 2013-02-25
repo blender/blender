@@ -1252,6 +1252,7 @@ static int ui_drag_toggle_modal(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if (done) {
+		WM_event_add_mousemove(C);
 		MEM_freeN(op->customdata);
 		return OPERATOR_FINISHED;
 	}
