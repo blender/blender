@@ -28,15 +28,23 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
+#include <algorithm>
+#include <cctype>
 #include <string>
 #include "ceres/types.h"
+#include "glog/logging.h"
 
 namespace ceres {
 
 #define CASESTR(x) case x: return #x
+#define STRENUM(x) if (value == #x) { *type = x; return true;}
 
-const char* LinearSolverTypeToString(LinearSolverType solver_type) {
-  switch (solver_type) {
+static void UpperCase(string* input) {
+  std::transform(input->begin(), input->end(), input->begin(), ::toupper);
+}
+
+const char* LinearSolverTypeToString(LinearSolverType type) {
+  switch (type) {
     CASESTR(DENSE_NORMAL_CHOLESKY);
     CASESTR(DENSE_QR);
     CASESTR(SPARSE_NORMAL_CHOLESKY);
@@ -49,9 +57,20 @@ const char* LinearSolverTypeToString(LinearSolverType solver_type) {
   }
 }
 
-const char* PreconditionerTypeToString(
-    PreconditionerType preconditioner_type) {
-  switch (preconditioner_type) {
+bool StringToLinearSolverType(string value, LinearSolverType* type) {
+  UpperCase(&value);
+  STRENUM(DENSE_NORMAL_CHOLESKY);
+  STRENUM(DENSE_QR);
+  STRENUM(SPARSE_NORMAL_CHOLESKY);
+  STRENUM(DENSE_SCHUR);
+  STRENUM(SPARSE_SCHUR);
+  STRENUM(ITERATIVE_SCHUR);
+  STRENUM(CGNR);
+  return false;
+}
+
+const char* PreconditionerTypeToString(PreconditionerType type) {
+  switch (type) {
     CASESTR(IDENTITY);
     CASESTR(JACOBI);
     CASESTR(SCHUR_JACOBI);
@@ -62,9 +81,19 @@ const char* PreconditionerTypeToString(
   }
 }
 
+bool StringToPreconditionerType(string value, PreconditionerType* type) {
+  UpperCase(&value);
+  STRENUM(IDENTITY);
+  STRENUM(JACOBI);
+  STRENUM(SCHUR_JACOBI);
+  STRENUM(CLUSTER_JACOBI);
+  STRENUM(CLUSTER_TRIDIAGONAL);
+  return false;
+}
+
 const char* SparseLinearAlgebraLibraryTypeToString(
-    SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type) {
-  switch (sparse_linear_algebra_library_type) {
+    SparseLinearAlgebraLibraryType type) {
+  switch (type) {
     CASESTR(SUITE_SPARSE);
     CASESTR(CX_SPARSE);
     default:
@@ -72,19 +101,121 @@ const char* SparseLinearAlgebraLibraryTypeToString(
   }
 }
 
-const char* OrderingTypeToString(OrderingType ordering_type) {
-  switch (ordering_type) {
-    CASESTR(NATURAL);
-    CASESTR(USER);
-    CASESTR(SCHUR);
+
+bool StringToSparseLinearAlgebraLibraryType(
+    string value,
+    SparseLinearAlgebraLibraryType* type) {
+  UpperCase(&value);
+  STRENUM(SUITE_SPARSE);
+  STRENUM(CX_SPARSE);
+  return false;
+}
+
+const char* TrustRegionStrategyTypeToString(TrustRegionStrategyType type) {
+  switch (type) {
+    CASESTR(LEVENBERG_MARQUARDT);
+    CASESTR(DOGLEG);
     default:
       return "UNKNOWN";
   }
 }
 
-const char* SolverTerminationTypeToString(
-    SolverTerminationType termination_type) {
-  switch (termination_type) {
+bool StringToTrustRegionStrategyType(string value,
+                                     TrustRegionStrategyType* type) {
+  UpperCase(&value);
+  STRENUM(LEVENBERG_MARQUARDT);
+  STRENUM(DOGLEG);
+  return false;
+}
+
+const char* DoglegTypeToString(DoglegType type) {
+  switch (type) {
+    CASESTR(TRADITIONAL_DOGLEG);
+    CASESTR(SUBSPACE_DOGLEG);
+    default:
+      return "UNKNOWN";
+  }
+}
+
+bool StringToDoglegType(string value, DoglegType* type) {
+  UpperCase(&value);
+  STRENUM(TRADITIONAL_DOGLEG);
+  STRENUM(SUBSPACE_DOGLEG);
+  return false;
+}
+
+const char* MinimizerTypeToString(MinimizerType type) {
+  switch (type) {
+    CASESTR(TRUST_REGION);
+    CASESTR(LINE_SEARCH);
+    default:
+      return "UNKNOWN";
+  }
+}
+
+bool StringToMinimizerType(string value, MinimizerType* type) {
+  UpperCase(&value);
+  STRENUM(TRUST_REGION);
+  STRENUM(LINE_SEARCH);
+  return false;
+}
+
+const char* LineSearchDirectionTypeToString(LineSearchDirectionType type) {
+  switch (type) {
+    CASESTR(STEEPEST_DESCENT);
+    CASESTR(NONLINEAR_CONJUGATE_GRADIENT);
+    CASESTR(LBFGS);
+    default:
+      return "UNKNOWN";
+  }
+}
+
+bool StringToLineSearchDirectionType(string value,
+                                     LineSearchDirectionType* type) {
+  UpperCase(&value);
+  STRENUM(STEEPEST_DESCENT);
+  STRENUM(NONLINEAR_CONJUGATE_GRADIENT);
+  STRENUM(LBFGS);
+  return false;
+}
+
+const char* LineSearchTypeToString(LineSearchType type) {
+  switch (type) {
+    CASESTR(ARMIJO);
+    default:
+      return "UNKNOWN";
+  }
+}
+
+bool StringToLineSearchType(string value, LineSearchType* type) {
+  UpperCase(&value);
+  STRENUM(ARMIJO);
+  return false;
+}
+
+const char* NonlinearConjugateGradientTypeToString(
+    NonlinearConjugateGradientType type) {
+  switch (type) {
+    CASESTR(FLETCHER_REEVES);
+    CASESTR(POLAK_RIBIRERE);
+    CASESTR(HESTENES_STIEFEL);
+    default:
+      return "UNKNOWN";
+  }
+}
+
+bool StringToNonlinearConjugateGradientType(
+    string value,
+    NonlinearConjugateGradientType* type) {
+  UpperCase(&value);
+  STRENUM(FLETCHER_REEVES);
+  STRENUM(POLAK_RIBIRERE);
+  STRENUM(HESTENES_STIEFEL);
+  return false;
+}
+
+const char* SolverTerminationTypeToString(SolverTerminationType type) {
+  switch (type) {
     CASESTR(NO_CONVERGENCE);
     CASESTR(FUNCTION_TOLERANCE);
     CASESTR(GRADIENT_TOLERANCE);
@@ -98,34 +229,47 @@ const char* SolverTerminationTypeToString(
   }
 }
 
-#if 0  /* UNUSED */
-static const char* SparseLinearAlgebraTypeToString(
-    SparseLinearAlgebraLibraryType sparse_linear_algebra_library_type) {
-  switch (sparse_linear_algebra_library_type) {
-    CASESTR(CX_SPARSE);
-    CASESTR(SUITE_SPARSE);
-    default:
-      return "UNKNOWN";
-  }
-}
-#endif
-
-const char* TrustRegionStrategyTypeToString(
-    TrustRegionStrategyType trust_region_strategy_type) {
-  switch (trust_region_strategy_type) {
-    CASESTR(LEVENBERG_MARQUARDT);
-    CASESTR(DOGLEG);
+const char* LinearSolverTerminationTypeToString(
+    LinearSolverTerminationType type) {
+  switch (type) {
+    CASESTR(TOLERANCE);
+    CASESTR(MAX_ITERATIONS);
+    CASESTR(STAGNATION);
+    CASESTR(FAILURE);
     default:
       return "UNKNOWN";
   }
 }
 
 #undef CASESTR
+#undef STRENUM
 
 bool IsSchurType(LinearSolverType type) {
   return ((type == SPARSE_SCHUR) ||
           (type == DENSE_SCHUR)  ||
           (type == ITERATIVE_SCHUR));
+}
+
+bool IsSparseLinearAlgebraLibraryTypeAvailable(
+    SparseLinearAlgebraLibraryType type) {
+  if (type == SUITE_SPARSE) {
+#ifdef CERES_NO_SUITESPARSE
+    return false;
+#else
+    return true;
+#endif
+  }
+
+  if (type == CX_SPARSE) {
+#ifdef CERES_NO_CXSPARSE
+    return false;
+#else
+    return true;
+#endif
+  }
+
+  LOG(WARNING) << "Unknown sparse linear algebra library " << type;
+  return false;
 }
 
 }  // namespace ceres

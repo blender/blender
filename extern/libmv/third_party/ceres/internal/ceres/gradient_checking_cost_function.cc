@@ -154,8 +154,8 @@ class GradientCheckingCostFunction : public CostFunction {
                     "Jacobian for " "block %d: (%ld by %ld)) "
                     "==========\n",
                     k,
-                    term_jacobians[k].rows(),
-                    term_jacobians[k].cols());
+                    static_cast<long>(term_jacobians[k].rows()),
+                    static_cast<long>(term_jacobians[k].cols()));
       // The funny spacing creates appropriately aligned column headers.
       m += " block  row  col        user dx/dy    num diff dx/dy         "
            "abs error    relative error         parameter          residual\n";

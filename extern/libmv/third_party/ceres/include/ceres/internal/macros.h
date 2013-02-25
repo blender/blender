@@ -132,16 +132,16 @@ char (&ArraySizeHelper(const T (&array)[N]))[N];
 // - wan 2005-11-16
 //
 // Starting with Visual C++ 2005, WinNT.h includes ARRAYSIZE. However,
-// the definition comes from the over-broad windows.h header that 
+// the definition comes from the over-broad windows.h header that
 // introduces a macro, ERROR, that conflicts with the logging framework
 // that Ceres uses. Instead, rename ARRAYSIZE to CERES_ARRAYSIZE.
-#define CERES_ARRAYSIZE(a) \
-  ((sizeof(a) / sizeof(*(a))) / \
+#define CERES_ARRAYSIZE(a)                              \
+  ((sizeof(a) / sizeof(*(a))) /                         \
    static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
 
-// Tell the compiler to warn about unused return values for functions declared
-// with this macro.  The macro should be used on function declarations
-// following the argument list:
+// Tell the compiler to warn about unused return values for functions
+// declared with this macro.  The macro should be used on function
+// declarations following the argument list:
 //
 //   Sprocket* AllocateSprocket() MUST_USE_RESULT;
 //

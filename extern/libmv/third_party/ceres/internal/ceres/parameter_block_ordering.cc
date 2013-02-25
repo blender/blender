@@ -28,7 +28,7 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 
-#include "ceres/schur_ordering.h"
+#include "ceres/parameter_block_ordering.h"
 
 #include "ceres/graph.h"
 #include "ceres/graph_algorithms.h"
@@ -46,8 +46,7 @@ int ComputeSchurOrdering(const Program& program,
                          vector<ParameterBlock*>* ordering) {
   CHECK_NOTNULL(ordering)->clear();
 
-  scoped_ptr<Graph< ParameterBlock*> > graph(
-      CHECK_NOTNULL(CreateHessianGraph(program)));
+  scoped_ptr<Graph< ParameterBlock*> > graph(CreateHessianGraph(program));
   int independent_set_size = IndependentSetOrdering(*graph, ordering);
   const vector<ParameterBlock*>& parameter_blocks = program.parameter_blocks();
 
@@ -62,9 +61,31 @@ int ComputeSchurOrdering(const Program& program,
   return independent_set_size;
 }
 
+void ComputeRecursiveIndependentSetOrdering(const Program& program,
+                                            ParameterBlockOrdering* ordering) {
+  CHECK_NOTNULL(ordering)->Clear();
+  const vector<ParameterBlock*> parameter_blocks = program.parameter_blocks();
+  scoped_ptr<Graph< ParameterBlock*> > graph(CreateHessianGraph(program));
+
+  int num_covered = 0;
+  int round = 0;
+  while (num_covered < parameter_blocks.size()) {
+    vector<ParameterBlock*> independent_set_ordering;
+    const int independent_set_size =
+        IndependentSetOrdering(*graph, &independent_set_ordering);
+    for (int i = 0; i < independent_set_size; ++i) {
+      ParameterBlock* parameter_block = independent_set_ordering[i];
+      ordering->AddElementToGroup(parameter_block->mutable_user_state(), round);
+      graph->RemoveVertex(parameter_block);
+    }
+    num_covered += independent_set_size;
+    ++round;
+  }
+}
+
 Graph<ParameterBlock*>*
 CreateHessianGraph(const Program& program) {
-  Graph<ParameterBlock*>* graph = new Graph<ParameterBlock*>;
+  Graph<ParameterBlock*>* graph = CHECK_NOTNULL(new Graph<ParameterBlock*>);
   const vector<ParameterBlock*>& parameter_blocks = program.parameter_blocks();
   for (int i = 0; i < parameter_blocks.size(); ++i) {
     ParameterBlock* parameter_block = parameter_blocks[i];

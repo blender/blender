@@ -2,7 +2,7 @@
 // Author: keir@google.com (Keir Mierle)
 
 #ifndef CERES_INTERNAL_SPLIT_H_
-#define VISION_OPTIMIZATION_LEAST_SQUARES_INTERNAL_SPLIT_H_
+#define CERES_INTERNAL_SPLIT_H_
 
 #include <string>
 #include <vector>

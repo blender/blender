@@ -41,6 +41,8 @@
 #include <float.h>
 #endif
 
+#include <limits>
+
 namespace ceres {
 
 #if defined(_MSC_VER)

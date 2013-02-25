@@ -37,6 +37,8 @@
 #ifndef CERES_PUBLIC_TYPES_H_
 #define CERES_PUBLIC_TYPES_H_
 
+#include "ceres/internal/port.h"
+
 namespace ceres {
 
 // Basic integer types. These typedefs are in the Ceres namespace to avoid
@@ -99,8 +101,7 @@ enum PreconditionerType {
   JACOBI,
 
   // Block diagonal of the Schur complement. This preconditioner may
-  // only be used with the ITERATIVE_SCHUR solver. Requires
-  // SuiteSparse/CHOLMOD.
+  // only be used with the ITERATIVE_SCHUR solver.
   SCHUR_JACOBI,
 
   // Visibility clustering based preconditioners.
@@ -143,23 +144,60 @@ enum LinearSolverTerminationType {
   FAILURE
 };
 
-enum OrderingType {
-  // The order in which the parameter blocks were defined.
-  NATURAL,
-
-  // Use the ordering specificed in the vector ordering.
-  USER,
-
-  // Automatically figure out the best ordering to use the schur
-  // complement based solver.
-  SCHUR
-};
-
 // Logging options
 // The options get progressively noisier.
 enum LoggingType {
   SILENT,
   PER_MINIMIZER_ITERATION
+};
+
+enum MinimizerType {
+  LINE_SEARCH,
+  TRUST_REGION
+};
+
+enum LineSearchDirectionType {
+  // Negative of the gradient.
+  STEEPEST_DESCENT,
+
+  // A generalization of the Conjugate Gradient method to non-linear
+  // functions. The generalization can be performed in a number of
+  // different ways, resulting in a variety of search directions. The
+  // precise choice of the non-linear conjugate gradient algorithm
+  // used is determined by NonlinerConjuateGradientType.
+  NONLINEAR_CONJUGATE_GRADIENT,
+
+  // A limited memory approximation to the inverse Hessian is
+  // maintained and used to compute a quasi-Newton step.
+  //
+  // For more details see
+  //
+  // Nocedal, J. (1980). "Updating Quasi-Newton Matrices with Limited
+  // Storage". Mathematics of Computation 35 (151): 773–782.
+  //
+  // Byrd, R. H.; Nocedal, J.; Schnabel, R. B. (1994).
+  // "Representations of Quasi-Newton Matrices and their use in
+  // Limited Memory Methods". Mathematical Programming 63 (4):
+  // 129–156.
+  LBFGS,
+};
+
+// Nonliner conjugate gradient methods are a generalization of the
+// method of Conjugate Gradients for linear systems. The
+// generalization can be carried out in a number of different ways
+// leading to number of different rules for computing the search
+// direction. Ceres provides a number of different variants. For more
+// details see Numerical Optimization by Nocedal & Wright.
+enum NonlinearConjugateGradientType {
+  FLETCHER_REEVES,
+  POLAK_RIBIRERE,
+  HESTENES_STIEFEL,
+};
+
+enum LineSearchType {
+  // Backtracking line search with polynomial interpolation or
+  // bisection.
+  ARMIJO,
 };
 
 // Ceres supports different strategies for computing the trust region
@@ -296,18 +334,54 @@ enum DimensionType {
   DYNAMIC = -1
 };
 
+enum NumericDiffMethod {
+  CENTRAL,
+  FORWARD
+};
+
 const char* LinearSolverTypeToString(LinearSolverType type);
+bool StringToLinearSolverType(string value, LinearSolverType* type);
+
 const char* PreconditionerTypeToString(PreconditionerType type);
+bool StringToPreconditionerType(string value, PreconditionerType* type);
+
 const char* SparseLinearAlgebraLibraryTypeToString(
     SparseLinearAlgebraLibraryType type);
+bool StringToSparseLinearAlgebraLibraryType(
+    string value,
+    SparseLinearAlgebraLibraryType* type);
+
+const char* TrustRegionStrategyTypeToString(TrustRegionStrategyType type);
+bool StringToTrustRegionStrategyType(string value,
+                                     TrustRegionStrategyType* type);
+
+const char* DoglegTypeToString(DoglegType type);
+bool StringToDoglegType(string value, DoglegType* type);
+
+const char* MinimizerTypeToString(MinimizerType type);
+bool StringToMinimizerType(string value, MinimizerType* type);
+
+const char* LineSearchDirectionTypeToString(LineSearchDirectionType type);
+bool StringToLineSearchDirectionType(string value,
+                                     LineSearchDirectionType* type);
+
+const char* LineSearchTypeToString(LineSearchType type);
+bool StringToLineSearchType(string value, LineSearchType* type);
+
+const char* NonlinearConjugateGradientTypeToString(
+    NonlinearConjugateGradientType type);
+bool StringToNonlinearConjugateGradientType(
+    string value, NonlinearConjugateGradientType* type);
+
 const char* LinearSolverTerminationTypeToString(
     LinearSolverTerminationType type);
-const char* OrderingTypeToString(OrderingType type);
+
 const char* SolverTerminationTypeToString(SolverTerminationType type);
-const char* SparseLinearAlgebraLibraryTypeToString(
-    SparseLinearAlgebraLibraryType type);
-const char* TrustRegionStrategyTypeToString( TrustRegionStrategyType type);
+
 bool IsSchurType(LinearSolverType type);
+bool IsSparseLinearAlgebraLibraryTypeAvailable(
+    SparseLinearAlgebraLibraryType type);
+
 
 }  // namespace ceres
 

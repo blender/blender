@@ -9,7 +9,8 @@ fi
 
 repo="https://ceres-solver.googlesource.com/ceres-solver"
 branch="master"
-tag="1.3.0"
+#tag="1.4.0"
+tag=""
 tmp=`mktemp -d`
 checkout="$tmp/ceres"
 
@@ -120,7 +121,7 @@ set(INC
 	include
 	internal
 	../gflags
-	../..
+	../../
 )
 
 set(INC_SYS

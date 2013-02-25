@@ -57,6 +57,7 @@ class DenseSparseMatrix : public SparseMatrix {
 #endif
 
   DenseSparseMatrix(int num_rows, int num_cols);
+  DenseSparseMatrix(int num_rows, int num_cols, bool reserve_diagonal);
 
   virtual ~DenseSparseMatrix() {}
 

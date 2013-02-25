@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
+// Copyright 2013 Google Inc. All rights reserved.
 // http://code.google.com/p/ceres-solver/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,48 +27,64 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
-//
-// Compute a parameter block ordering for use with the Schur
-// complement based algorithms.
 
-#ifndef CERES_INTERNAL_SCHUR_ORDERING_H_
-#define CERES_INTERNAL_SCHUR_ORDERING_H_
+#ifndef CERES_INTERNAL_EXECUTION_SUMMARY_H_
+#define CERES_INTERNAL_EXECUTION_SUMMARY_H_
 
-#include <vector>
-#include "ceres/graph.h"
-#include "ceres/types.h"
+#include <map>
+#include <string>
+
+#include "ceres/internal/port.h"
+#include "ceres/wall_time.h"
+#include "ceres/mutex.h"
 
 namespace ceres {
 namespace internal {
 
-class Program;
-class ParameterBlock;
+// Struct used by various objects to report statistics and other
+// information about their execution. e.g., ExecutionSummary::times
+// can be used for reporting times associated with various activities.
+class ExecutionSummary {
+ public:
+  void IncrementTimeBy(const string& name, const double value) {
+    CeresMutexLock l(&times_mutex_);
+    times_[name] += value;
+  }
 
-// Uses an approximate independent set ordering to order the parameter
-// blocks of a problem so that it is suitable for use with Schur
-// complement based solvers. The output variable ordering contains an
-// ordering of the parameter blocks and the return value is size of
-// the independent set or the number of e_blocks (see
-// schur_complement_solver.h for an explanation). Constant parameters
-// are added to the end.
-//
-// The ordering vector has the structure
-//
-// ordering = [independent set,
-//             complement of the independent set,
-//             fixed blocks]
-int ComputeSchurOrdering(const Program& program,
-                         vector<ParameterBlock* >* ordering);
+  void IncrementCall(const string& name) {
+    CeresMutexLock l(&calls_mutex_);
+    calls_[name] += 1;
+  }
 
+  const map<string, double>& times() const { return times_; }
+  const map<string, int>& calls() const { return calls_; }
 
-// Builds a graph on the parameter blocks of a Problem, whose
-// structure reflects the sparsity structure of the Hessian. Each
-// vertex corresponds to a parameter block in the Problem except for
-// parameter blocks that are marked constant. An edge connects two
-// parameter blocks, if they co-occur in a residual block.
-Graph<ParameterBlock*>* CreateHessianGraph(const Program& program);
+ private:
+  Mutex times_mutex_;
+  map<string, double> times_;
+
+  Mutex calls_mutex_;
+  map<string, int> calls_;
+};
+
+class ScopedExecutionTimer {
+ public:
+  ScopedExecutionTimer(const string& name, ExecutionSummary* summary)
+      : start_time_(WallTimeInSeconds()),
+        name_(name),
+        summary_(summary) {}
+
+  ~ScopedExecutionTimer() {
+    summary_->IncrementTimeBy(name_, WallTimeInSeconds() - start_time_);
+  }
+
+ private:
+  const double start_time_;
+  const string name_;
+  ExecutionSummary* summary_;
+};
 
 }  // namespace internal
 }  // namespace ceres
 
-#endif  // CERES_INTERNAL_SCHUR_ORDERING_H_
+#endif  // CERES_INTERNAL_EXECUTION_SUMMARY_H_

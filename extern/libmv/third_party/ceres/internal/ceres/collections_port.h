@@ -37,7 +37,7 @@
 #  include <map>
 #  include <set>
 #else
-#  if defined(_MSC_VER) && _MSC_VER <= 1600
+#  if defined(_MSC_VER)
 #    include <unordered_map>
 #    include <unordered_set>
 #  else

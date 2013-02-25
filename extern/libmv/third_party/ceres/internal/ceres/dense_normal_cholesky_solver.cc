@@ -34,10 +34,11 @@
 
 #include "Eigen/Dense"
 #include "ceres/dense_sparse_matrix.h"
-#include "ceres/linear_solver.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/scoped_ptr.h"
+#include "ceres/linear_solver.h"
 #include "ceres/types.h"
+#include "ceres/wall_time.h"
 
 namespace ceres {
 namespace internal {
@@ -51,6 +52,8 @@ LinearSolver::Summary DenseNormalCholeskySolver::SolveImpl(
     const double* b,
     const LinearSolver::PerSolveOptions& per_solve_options,
     double* x) {
+  EventLogger event_logger("DenseNormalCholeskySolver::Solve");
+
   const int num_rows = A->num_rows();
   const int num_cols = A->num_cols();
 
@@ -58,6 +61,7 @@ LinearSolver::Summary DenseNormalCholeskySolver::SolveImpl(
   Matrix lhs(num_cols, num_cols);
   lhs.setZero();
 
+  event_logger.AddEvent("Setup");
   //   lhs += A'A
   //
   // Using rankUpdate instead of GEMM, exposes the fact that its the
@@ -73,12 +77,13 @@ LinearSolver::Summary DenseNormalCholeskySolver::SolveImpl(
     lhs += D.array().square().matrix().asDiagonal();
   }
 
-  VectorRef(x, num_cols) =
-      lhs.selfadjointView<Eigen::Upper>().ldlt().solve(rhs);
-
   LinearSolver::Summary summary;
   summary.num_iterations = 1;
   summary.termination_type = TOLERANCE;
+  VectorRef(x, num_cols) =
+      lhs.selfadjointView<Eigen::Upper>().ldlt().solve(rhs);
+  event_logger.AddEvent("Solve");
+
   return summary;
 }
 

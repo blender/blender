@@ -72,9 +72,8 @@ class CXSparse {
   // The returned matrix should be deallocated with Free when not used anymore.
   cs_dis* AnalyzeCholesky(cs_di* A);
 
-  // Deallocates the memory of a matrix obtained from AnalyzeCholesky.
-  void Free(cs_di* factor);
-  void Free(cs_dis* factor);
+  void Free(cs_di* sparse_matrix);
+  void Free(cs_dis* symbolic_factorization);
 
  private:
   // Cached scratch space

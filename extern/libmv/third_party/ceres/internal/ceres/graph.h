@@ -32,12 +32,13 @@
 #define CERES_INTERNAL_GRAPH_H_
 
 #include <limits>
-#include <glog/logging.h>
+#include <utility>
 #include "ceres/integral_types.h"
 #include "ceres/map_util.h"
 #include "ceres/collections_port.h"
 #include "ceres/internal/macros.h"
 #include "ceres/types.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
@@ -63,6 +64,28 @@ class Graph {
   // 1.0.
   void AddVertex(const Vertex& vertex) {
     AddVertex(vertex, 1.0);
+  }
+
+  bool RemoveVertex(const Vertex& vertex) {
+    if (vertices_.find(vertex) == vertices_.end()) {
+      return false;
+    }
+
+    vertices_.erase(vertex);
+    vertex_weights_.erase(vertex);
+    const HashSet<Vertex>& sinks = edges_[vertex];
+    for (typename HashSet<Vertex>::const_iterator it = sinks.begin();
+         it != sinks.end(); ++it) {
+      if (vertex < *it) {
+        edge_weights_.erase(make_pair(vertex, *it));
+      } else {
+        edge_weights_.erase(make_pair(*it, vertex));
+      }
+      edges_[*it].erase(vertex);
+    }
+
+    edges_.erase(vertex);
+    return true;
   }
 
   // Add a weighted edge between the vertex1 and vertex2. Calling

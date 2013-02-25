@@ -28,7 +28,7 @@
 //
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 //
-// Utility routines for validating arrays. 
+// Utility routines for validating arrays.
 //
 // These are useful for detecting two common class of errors.
 //

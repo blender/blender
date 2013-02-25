@@ -113,12 +113,19 @@ void Corrector::CorrectJacobian(int nrow, int ncol,
                                 double* residuals, double* jacobian) {
   DCHECK(residuals != NULL);
   DCHECK(jacobian != NULL);
-  ConstVectorRef r_ref(residuals, nrow);
-  MatrixRef j_ref(jacobian, nrow, ncol);
 
-  // Equation 11 in BANS.
-  j_ref = sqrt_rho1_ * (j_ref - alpha_sq_norm_ *
-                        r_ref * (r_ref.transpose() * j_ref));
+  if (nrow == 1) {
+    // Specialization for the case where the residual is a scalar.
+    VectorRef j_ref(jacobian, ncol);
+    j_ref *= sqrt_rho1_ * (1.0 - alpha_sq_norm_ * pow(*residuals, 2));
+  } else {
+    ConstVectorRef r_ref(residuals, nrow);
+    MatrixRef j_ref(jacobian, nrow, ncol);
+
+    // Equation 11 in BANS.
+    j_ref = sqrt_rho1_ * (j_ref - alpha_sq_norm_ *
+                          r_ref * (r_ref.transpose() * j_ref));
+  }
 }
 
 }  // namespace internal

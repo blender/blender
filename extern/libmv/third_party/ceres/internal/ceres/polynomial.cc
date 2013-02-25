@@ -27,11 +27,14 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 // Author: moll.markus@arcor.de (Markus Moll)
+//         sameeragarwal@google.com (Sameer Agarwal)
 
-#include "ceres/polynomial_solver.h"
+#include "ceres/polynomial.h"
 
 #include <cmath>
 #include <cstddef>
+#include <vector>
+
 #include "Eigen/Dense"
 #include "ceres/internal/port.h"
 #include "glog/logging.h"
@@ -159,8 +162,7 @@ bool FindPolynomialRoots(const Vector& polynomial_in,
   BalanceCompanionMatrix(&companion_matrix);
 
   // Find its (complex) eigenvalues.
-  Eigen::EigenSolver<Matrix> solver(companion_matrix,
-                                    Eigen::EigenvaluesOnly);
+  Eigen::EigenSolver<Matrix> solver(companion_matrix, false);
   if (solver.info() != Eigen::Success) {
     LOG(ERROR) << "Failed to extract eigenvalues from companion matrix.";
     return false;
@@ -178,6 +180,139 @@ bool FindPolynomialRoots(const Vector& polynomial_in,
     *imaginary = solver.eigenvalues().imag();
   }
   return true;
+}
+
+Vector DifferentiatePolynomial(const Vector& polynomial) {
+  const int degree = polynomial.rows() - 1;
+  CHECK_GE(degree, 0);
+
+  // Degree zero polynomials are constants, and their derivative does
+  // not result in a smaller degree polynomial, just a degree zero
+  // polynomial with value zero.
+  if (degree == 0) {
+    return Eigen::VectorXd::Zero(1);
+  }
+
+  Vector derivative(degree);
+  for (int i = 0; i < degree; ++i) {
+    derivative(i) = (degree - i) * polynomial(i);
+  }
+
+  return derivative;
+}
+
+void MinimizePolynomial(const Vector& polynomial,
+                        const double x_min,
+                        const double x_max,
+                        double* optimal_x,
+                        double* optimal_value) {
+  // Find the minimum of the polynomial at the two ends.
+  //
+  // We start by inspecting the middle of the interval. Technically
+  // this is not needed, but we do this to make this code as close to
+  // the minFunc package as possible.
+  *optimal_x = (x_min + x_max) / 2.0;
+  *optimal_value = EvaluatePolynomial(polynomial, *optimal_x);
+
+  const double x_min_value = EvaluatePolynomial(polynomial, x_min);
+  if (x_min_value < *optimal_value) {
+    *optimal_value = x_min_value;
+    *optimal_x = x_min;
+  }
+
+  const double x_max_value = EvaluatePolynomial(polynomial, x_max);
+  if (x_max_value < *optimal_value) {
+    *optimal_value = x_max_value;
+    *optimal_x = x_max;
+  }
+
+  // If the polynomial is linear or constant, we are done.
+  if (polynomial.rows() <= 2) {
+    return;
+  }
+
+  const Vector derivative = DifferentiatePolynomial(polynomial);
+  Vector roots_real;
+  if (!FindPolynomialRoots(derivative, &roots_real, NULL)) {
+    LOG(WARNING) << "Unable to find the critical points of "
+                 << "the interpolating polynomial.";
+    return;
+  }
+
+  // This is a bit of an overkill, as some of the roots may actually
+  // have a complex part, but its simpler to just check these values.
+  for (int i = 0; i < roots_real.rows(); ++i) {
+    const double root = roots_real(i);
+    if ((root < x_min) || (root > x_max)) {
+      continue;
+    }
+
+    const double value = EvaluatePolynomial(polynomial, root);
+    if (value < *optimal_value) {
+      *optimal_value = value;
+      *optimal_x = root;
+    }
+  }
+}
+
+Vector FindInterpolatingPolynomial(const vector<FunctionSample>& samples) {
+  const int num_samples = samples.size();
+  int num_constraints = 0;
+  for (int i = 0; i < num_samples; ++i) {
+    if (samples[i].value_is_valid) {
+      ++num_constraints;
+    }
+    if (samples[i].gradient_is_valid) {
+      ++num_constraints;
+    }
+  }
+
+  const int degree = num_constraints - 1;
+  Matrix lhs = Matrix::Zero(num_constraints, num_constraints);
+  Vector rhs = Vector::Zero(num_constraints);
+
+  int row = 0;
+  for (int i = 0; i < num_samples; ++i) {
+    const FunctionSample& sample = samples[i];
+    if (sample.value_is_valid) {
+      for (int j = 0; j <= degree; ++j) {
+        lhs(row, j) = pow(sample.x, degree - j);
+      }
+      rhs(row) = sample.value;
+      ++row;
+    }
+
+    if (sample.gradient_is_valid) {
+      for (int j = 0; j < degree; ++j) {
+        lhs(row, j) = (degree - j) * pow(sample.x, degree - j - 1);
+      }
+      rhs(row) = sample.gradient;
+      ++row;
+    }
+  }
+
+  return lhs.fullPivLu().solve(rhs);
+}
+
+void MinimizeInterpolatingPolynomial(const vector<FunctionSample>& samples,
+                                     double x_min,
+                                     double x_max,
+                                     double* optimal_x,
+                                     double* optimal_value) {
+  const Vector polynomial = FindInterpolatingPolynomial(samples);
+  MinimizePolynomial(polynomial, x_min, x_max, optimal_x, optimal_value);
+  for (int i = 0; i < samples.size(); ++i) {
+    const FunctionSample& sample = samples[i];
+    if ((sample.x < x_min) || (sample.x > x_max)) {
+      continue;
+    }
+
+    const double value = EvaluatePolynomial(polynomial, sample.x);
+    if (value < *optimal_value) {
+      *optimal_x = sample.x;
+      *optimal_value = value;
+    }
+  }
 }
 
 }  // namespace internal

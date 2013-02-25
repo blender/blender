@@ -42,7 +42,7 @@
 namespace ceres {
 namespace internal {
 
-class CompressedRowBlockStructure;
+struct CompressedRowBlockStructure;
 
 // Given a compressed row block structure, computes the set of
 // e_blocks "visible" to each f_block. If an e_block co-occurs with an

@@ -37,6 +37,8 @@
 namespace ceres {
 namespace internal {
 
+class Preconditioner;
+
 class BlockJacobiPreconditioner;
 
 // A conjugate gradients on the normal equations solver. This directly solves
@@ -46,17 +48,18 @@ class BlockJacobiPreconditioner;
 //
 // as required for solving for x in the least squares sense. Currently only
 // block diagonal preconditioning is supported.
-class CgnrSolver : public LinearSolver {
+class CgnrSolver : public BlockSparseMatrixBaseSolver {
  public:
   explicit CgnrSolver(const LinearSolver::Options& options);
-  virtual Summary Solve(LinearOperator* A,
-                        const double* b,
-                        const LinearSolver::PerSolveOptions& per_solve_options,
-                        double* x);
+  virtual Summary SolveImpl(
+      BlockSparseMatrixBase* A,
+      const double* b,
+      const LinearSolver::PerSolveOptions& per_solve_options,
+      double* x);
 
  private:
   const LinearSolver::Options options_;
-  scoped_ptr<BlockJacobiPreconditioner> jacobi_preconditioner_;
+  scoped_ptr<Preconditioner> preconditioner_;
   CERES_DISALLOW_COPY_AND_ASSIGN(CgnrSolver);
 };
 

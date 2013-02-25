@@ -32,38 +32,33 @@
 #define CERES_INTERNAL_BLOCK_JACOBI_PRECONDITIONER_H_
 
 #include <vector>
-#include "ceres/linear_operator.h"
+#include "ceres/preconditioner.h"
 
 namespace ceres {
 namespace internal {
 
-class CompressedRowBlockStructure;
+class BlockSparseMatrixBase;
+struct CompressedRowBlockStructure;
 class LinearOperator;
-class SparseMatrix;
 
-// A block Jacobi preconditioner. This is intended for use with conjugate
-// gradients, or other iterative symmetric solvers. To use the preconditioner,
-// create one by passing a BlockSparseMatrix as the linear operator "A" to the
-// constructor. This fixes the sparsity pattern to the pattern of the matrix
-// A^TA.
+// A block Jacobi preconditioner. This is intended for use with
+// conjugate gradients, or other iterative symmetric solvers. To use
+// the preconditioner, create one by passing a BlockSparseMatrix "A"
+// to the constructor. This fixes the sparsity pattern to the pattern
+// of the matrix A^TA.
 //
 // Before each use of the preconditioner in a solve with conjugate gradients,
 // update the matrix by running Update(A, D). The values of the matrix A are
 // inspected to construct the preconditioner. The vector D is applied as the
 // D^TD diagonal term.
-class BlockJacobiPreconditioner : public LinearOperator {
+class BlockJacobiPreconditioner : public Preconditioner {
  public:
   // A must remain valid while the BlockJacobiPreconditioner is.
-  BlockJacobiPreconditioner(const LinearOperator& A);
+  explicit BlockJacobiPreconditioner(const BlockSparseMatrixBase& A);
   virtual ~BlockJacobiPreconditioner();
 
-  // Update the preconditioner with the values found in A. The sparsity pattern
-  // must match that of the A passed to the constructor. D is a vector that
-  // must have the same number of rows as A, and is applied as a diagonal in
-  // addition to the block diagonals of A.
-  void Update(const LinearOperator& A, const double* D);
-
-  // LinearOperator interface.
+  // Preconditioner interface
+  virtual bool Update(const BlockSparseMatrixBase& A, const double* D);
   virtual void RightMultiply(const double* x, double* y) const;
   virtual void LeftMultiply(const double* x, double* y) const;
   virtual int num_rows() const { return num_rows_; }

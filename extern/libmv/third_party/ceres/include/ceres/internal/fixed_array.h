@@ -168,11 +168,11 @@ inline FixedArray<T, S>::FixedArray(typename FixedArray<T, S>::size_type n)
       array_((n <= kInlineElements
               ? reinterpret_cast<InnerContainer*>(inline_space_)
               : new InnerContainer[n])) {
-  DCHECK_GE(n, 0);
+  DCHECK_GE(n, size_t(0));
 
   // Construct only the elements actually used.
   if (array_ == reinterpret_cast<InnerContainer*>(inline_space_)) {
-    for (int i = 0; i != size_; ++i) {
+    for (size_t i = 0; i != size_; ++i) {
       inline_space_[i].Init();
     }
   }
@@ -183,7 +183,7 @@ inline FixedArray<T, S>::~FixedArray() {
   if (array_ != reinterpret_cast<InnerContainer*>(inline_space_)) {
     delete[] array_;
   } else {
-    for (int i = 0; i != size_; ++i) {
+    for (size_t i = 0; i != size_; ++i) {
       inline_space_[i].Destroy();
     }
   }

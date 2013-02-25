@@ -33,6 +33,7 @@
 #define CERES_INTERNAL_DENSE_QR_SOLVER_H_
 
 #include "ceres/linear_solver.h"
+#include "ceres/internal/eigen.h"
 #include "ceres/internal/macros.h"
 
 namespace ceres {
@@ -90,6 +91,7 @@ class DenseQRSolver: public DenseSparseMatrixSolver {
       double* x);
 
   const LinearSolver::Options options_;
+  Vector rhs_;
   CERES_DISALLOW_COPY_AND_ASSIGN(DenseQRSolver);
 };
 

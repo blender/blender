@@ -107,10 +107,12 @@
 #     define _WIN32_WINNT 0x0400
 #   endif
 # endif
+// Unfortunately, windows.h defines a bunch of macros with common
+// names. Two in particular need avoiding: ERROR and min/max.
 // To avoid macro definition of ERROR.
-# define CERES_NOGDI
+# define NOGDI
 // To avoid macro definition of min/max.
-# define CERES_NOMINMAX
+# define NOMINMAX
 # include <windows.h>
   typedef CRITICAL_SECTION MutexType;
 #elif defined(CERES_HAVE_PTHREAD) && defined(CERES_HAVE_RWLOCK)

@@ -39,12 +39,13 @@
 #endif
 
 #include "ceres/compressed_row_sparse_matrix.h"
+#include "ceres/internal/eigen.h"
+#include "ceres/internal/scoped_ptr.h"
 #include "ceres/linear_solver.h"
 #include "ceres/suitesparse.h"
 #include "ceres/triplet_sparse_matrix.h"
-#include "ceres/internal/eigen.h"
-#include "ceres/internal/scoped_ptr.h"
 #include "ceres/types.h"
+#include "ceres/wall_time.h"
 
 namespace ceres {
 namespace internal {
@@ -103,6 +104,8 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingCXSparse(
     const double* b,
     const LinearSolver::PerSolveOptions& per_solve_options,
     double * x) {
+  EventLogger event_logger("SparseNormalCholeskySolver::CXSparse::Solve");
+
   LinearSolver::Summary summary;
   summary.num_iterations = 1;
   const int num_cols = A->num_cols();
@@ -129,17 +132,22 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingCXSparse(
   // off of Jt to compute the Cholesky factorization of the normal
   // equations.
   cs_di* A2 = cs_transpose(&At, 1);
-  cs_di* AtA = cs_multiply(&At,A2);
+  cs_di* AtA = cs_multiply(&At, A2);
 
   cxsparse_.Free(A2);
   if (per_solve_options.D != NULL) {
     A->DeleteRows(num_cols);
   }
 
+  event_logger.AddEvent("Setup");
+
   // Compute symbolic factorization if not available.
   if (cxsparse_factor_ == NULL) {
     cxsparse_factor_ = CHECK_NOTNULL(cxsparse_.AnalyzeCholesky(AtA));
   }
+
+  event_logger.AddEvent("Analysis");
+
 
   // Solve the linear system.
   if (cxsparse_.SolveCholesky(AtA, cxsparse_factor_, Atb.data())) {
@@ -147,7 +155,11 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingCXSparse(
     summary.termination_type = TOLERANCE;
   }
 
+  event_logger.AddEvent("Solve");
+
   cxsparse_.Free(AtA);
+
+  event_logger.AddEvent("Teardown");
   return summary;
 }
 #else
@@ -169,9 +181,9 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingSuiteSparse(
     const double* b,
     const LinearSolver::PerSolveOptions& per_solve_options,
     double * x) {
-  const time_t start_time = time(NULL);
-  const int num_cols = A->num_cols();
+  EventLogger event_logger("SparseNormalCholeskySolver::SuiteSparse::Solve");
 
+  const int num_cols = A->num_cols();
   LinearSolver::Summary summary;
   Vector Atb = Vector::Zero(num_cols);
   A->LeftMultiply(b, Atb.data());
@@ -189,7 +201,7 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingSuiteSparse(
   CHECK_NOTNULL(lhs.get());
 
   cholmod_dense* rhs = ss_.CreateDenseVector(Atb.data(), num_cols, num_cols);
-  const time_t init_time = time(NULL);
+  event_logger.AddEvent("Setup");
 
   if (factor_ == NULL) {
     if (options_.use_block_amd) {
@@ -206,11 +218,10 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingSuiteSparse(
   }
 
   CHECK_NOTNULL(factor_);
-
-  const time_t symbolic_time = time(NULL);
+  event_logger.AddEvent("Analysis");
 
   cholmod_dense* sol = ss_.SolveCholesky(lhs.get(), factor_, rhs);
-  const time_t solve_time = time(NULL);
+  event_logger.AddEvent("Solve");
 
   ss_.Free(rhs);
   rhs = NULL;
@@ -228,12 +239,7 @@ LinearSolver::Summary SparseNormalCholeskySolver::SolveImplUsingSuiteSparse(
     summary.termination_type = TOLERANCE;
   }
 
-  const time_t cleanup_time = time(NULL);
-  VLOG(2) << "time (sec) total: " << (cleanup_time - start_time)
-          << " init: " << (init_time - start_time)
-          << " symbolic: " << (symbolic_time - init_time)
-          << " solve: " << (solve_time - symbolic_time)
-          << " cleanup: " << (cleanup_time - solve_time);
+  event_logger.AddEvent("Teardown");
   return summary;
 }
 #else

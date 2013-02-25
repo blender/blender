@@ -29,25 +29,19 @@
 // Author: sameeragarwal@google.com (Sameer Agarwal)
 //
 // Preconditioners for linear systems that arise in Structure from
-// Motion problems. VisibilityBasedPreconditioner implements three
-// preconditioners:
+// Motion problems. VisibilityBasedPreconditioner implements:
 //
-//  SCHUR_JACOBI
 //  CLUSTER_JACOBI
 //  CLUSTER_TRIDIAGONAL
 //
 // Detailed descriptions of these preconditions beyond what is
 // documented here can be found in
 //
-// Bundle Adjustment in the Large
-// S. Agarwal, N. Snavely, S. Seitz & R. Szeliski, ECCV 2010
-// http://www.cs.washington.edu/homes/sagarwal/bal.pdf
-//
 // Visibility Based Preconditioning for Bundle Adjustment
 // A. Kushal & S. Agarwal, submitted to CVPR 2012
 // http://www.cs.washington.edu/homes/sagarwal/vbp.pdf
 //
-// The three preconditioners share enough code that its most efficient
+// The two preconditioners share enough code that its most efficient
 // to implement them as part of the same code base.
 
 #ifndef CERES_INTERNAL_VISIBILITY_BASED_PRECONDITIONER_H_
@@ -58,35 +52,25 @@
 #include <utility>
 #include "ceres/collections_port.h"
 #include "ceres/graph.h"
-#include "ceres/linear_solver.h"
-#include "ceres/linear_operator.h"
-#include "ceres/suitesparse.h"
 #include "ceres/internal/macros.h"
 #include "ceres/internal/scoped_ptr.h"
+#include "ceres/preconditioner.h"
+#include "ceres/suitesparse.h"
 
 namespace ceres {
 namespace internal {
 
 class BlockRandomAccessSparseMatrix;
 class BlockSparseMatrixBase;
-class CompressedRowBlockStructure;
+struct CompressedRowBlockStructure;
 class SchurEliminatorBase;
 
-// This class implements three preconditioners for Structure from
-// Motion/Bundle Adjustment problems. The name
+// This class implements visibility based preconditioners for
+// Structure from Motion/Bundle Adjustment problems. The name
 // VisibilityBasedPreconditioner comes from the fact that the sparsity
 // structure of the preconditioner matrix is determined by analyzing
 // the visibility structure of the scene, i.e. which cameras see which
 // points.
-//
-// Strictly speaking, SCHUR_JACOBI is not a visibility based
-// preconditioner but it is an extreme case of CLUSTER_JACOBI, where
-// every cluster contains exactly one camera block. Treating it as a
-// special case of CLUSTER_JACOBI makes it easy to implement as part
-// of the same code base with no significant loss of performance.
-//
-// In the following, we will only discuss CLUSTER_JACOBI and
-// CLUSTER_TRIDIAGONAL.
 //
 // The key idea of visibility based preconditioning is to identify
 // cameras that we expect have strong interactions, and then using the
@@ -130,15 +114,15 @@ class SchurEliminatorBase;
 //
 //   LinearSolver::Options options;
 //   options.preconditioner_type = CLUSTER_JACOBI;
-//   options.num_eliminate_blocks = num_points;
+//   options.elimination_groups.push_back(num_points);
+//   options.elimination_groups.push_back(num_cameras);
 //   VisibilityBasedPreconditioner preconditioner(
 //      *A.block_structure(), options);
 //   preconditioner.Update(A, NULL);
 //   preconditioner.RightMultiply(x, y);
 //
-
 #ifndef CERES_NO_SUITESPARSE
-class VisibilityBasedPreconditioner : public LinearOperator {
+class VisibilityBasedPreconditioner : public Preconditioner {
  public:
   // Initialize the symbolic structure of the preconditioner. bs is
   // the block structure of the linear system to be solved. It is used
@@ -146,48 +130,17 @@ class VisibilityBasedPreconditioner : public LinearOperator {
   //
   // It has the same structural requirement as other Schur complement
   // based solvers. Please see schur_eliminator.h for more details.
-  //
-  // LinearSolver::Options::num_eliminate_blocks should be set to the
-  // number of e_blocks in the block structure.
-  //
-  // TODO(sameeragarwal): The use of LinearSolver::Options should
-  // ultimately be replaced with Preconditioner::Options and some sort
-  // of preconditioner factory along the lines of
-  // LinearSolver::CreateLinearSolver. I will wait to do this till I
-  // create a general purpose block Jacobi preconditioner for general
-  // sparse problems along with a CGLS solver.
   VisibilityBasedPreconditioner(const CompressedRowBlockStructure& bs,
-                                const LinearSolver::Options& options);
+                                const Preconditioner::Options& options);
   virtual ~VisibilityBasedPreconditioner();
 
-  // Update the numerical value of the preconditioner for the linear
-  // system:
-  //
-  //  |   A   | x = |b|
-  //  |diag(D)|     |0|
-  //
-  // for some vector b. It is important that the matrix A have the
-  // same block structure as the one used to construct this object.
-  //
-  // D can be NULL, in which case its interpreted as a diagonal matrix
-  // of size zero.
-  bool Update(const BlockSparseMatrixBase& A, const double* D);
-
-
-  // LinearOperator interface. Since the operator is symmetric,
-  // LeftMultiply and num_cols are just calls to RightMultiply and
-  // num_rows respectively. Update() must be called before
-  // RightMultiply can be called.
+  // Preconditioner interface
+  virtual bool Update(const BlockSparseMatrixBase& A, const double* D);
   virtual void RightMultiply(const double* x, double* y) const;
-  virtual void LeftMultiply(const double* x, double* y) const {
-    RightMultiply(x, y);
-  }
   virtual int num_rows() const;
-  virtual int num_cols() const { return num_rows(); }
 
   friend class VisibilityBasedPreconditionerTest;
  private:
-  void ComputeSchurJacobiSparsity(const CompressedRowBlockStructure& bs);
   void ComputeClusterJacobiSparsity(const CompressedRowBlockStructure& bs);
   void ComputeClusterTridiagonalSparsity(const CompressedRowBlockStructure& bs);
   void InitStorage(const CompressedRowBlockStructure& bs);
@@ -207,7 +160,7 @@ class VisibilityBasedPreconditioner : public LinearOperator {
   bool IsBlockPairInPreconditioner(int block1, int block2) const;
   bool IsBlockPairOffDiagonal(int block1, int block2) const;
 
-  LinearSolver::Options options_;
+  Preconditioner::Options options_;
 
   // Number of parameter blocks in the schur complement.
   int num_blocks_;
@@ -249,10 +202,10 @@ class VisibilityBasedPreconditioner : public LinearOperator {
 #else  // SuiteSparse
 // If SuiteSparse is not compiled in, the preconditioner is not
 // available.
-class VisibilityBasedPreconditioner : public LinearOperator {
+class VisibilityBasedPreconditioner : public Preconditioner {
  public:
   VisibilityBasedPreconditioner(const CompressedRowBlockStructure& bs,
-                                const LinearSolver::Options& options) {
+                                const Preconditioner::Options& options) {
     LOG(FATAL) << "Visibility based preconditioning is not available. Please "
         "build Ceres with SuiteSparse.";
   }

@@ -34,11 +34,13 @@
 #ifndef CERES_INTERNAL_RESIDUAL_BLOCK_H_
 #define CERES_INTERNAL_RESIDUAL_BLOCK_H_
 
+#include <string>
 #include <vector>
 
 #include "ceres/cost_function.h"
 #include "ceres/internal/port.h"
 #include "ceres/internal/scoped_ptr.h"
+#include "ceres/stringprintf.h"
 #include "ceres/types.h"
 
 namespace ceres {
@@ -64,9 +66,13 @@ class ParameterBlock;
 // loss functions, and parameter blocks.
 class ResidualBlock {
  public:
+  // Construct the residual block with the given cost/loss functions. Loss may
+  // be null. The index is the index of the residual block in the Program's
+  // residual_blocks array.
   ResidualBlock(const CostFunction* cost_function,
                 const LossFunction* loss_function,
-                const vector<ParameterBlock*>& parameter_blocks);
+                const vector<ParameterBlock*>& parameter_blocks,
+                int index);
 
   // Evaluates the residual term, storing the scalar cost in *cost, the residual
   // components in *residuals, and the jacobians between the parameters and
@@ -112,10 +118,23 @@ class ResidualBlock {
   // The minimum amount of scratch space needed to pass to Evaluate().
   int NumScratchDoublesForEvaluate() const;
 
+  // This residual block's index in an array.
+  int index() const { return index_; }
+  void set_index(int index) { index_ = index; }
+
+  string ToString() {
+    return StringPrintf("{residual block; index=%d}", index_);
+  }
+
  private:
   const CostFunction* cost_function_;
   const LossFunction* loss_function_;
   scoped_array<ParameterBlock*> parameter_blocks_;
+
+  // The index of the residual, typically in a Program. This is only to permit
+  // switching from a ResidualBlock* to an index in the Program's array, needed
+  // to do efficient removals.
+  int32 index_;
 };
 
 }  // namespace internal

@@ -146,6 +146,7 @@
 #include "ceres/jet.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/fixed_array.h"
+#include "ceres/internal/variadic_evaluate.h"
 
 namespace ceres {
 namespace internal {
@@ -191,134 +192,71 @@ inline void Take1stOrderPart(const int M, const JetT *src, T *dst) {
   DCHECK(src);
   DCHECK(dst);
   for (int i = 0; i < M; ++i) {
-    Eigen::Map<Eigen::Matrix<T, N, 1> >(dst + N * i, N) = src[i].v.template segment<N>(N0);
+    Eigen::Map<Eigen::Matrix<T, N, 1> >(dst + N * i, N) =
+        src[i].v.template segment<N>(N0);
   }
 }
 
-// This block of quasi-repeated code calls the user-supplied functor, which may
-// take a variable number of arguments. This is accomplished by specializing the
-// struct based on the size of the trailing parameters; parameters with 0 size
-// are assumed missing.
-//
-// Supporting variadic functions is the primary source of complexity in the
-// autodiff implementation.
-
-template<typename Functor, typename T,
-         int N0, int N1, int N2, int N3, int N4, int N5>
-struct VariadicEvaluate {
-  static bool Call(const Functor& functor, T const *const *input, T* output) {
-    return functor(input[0],
-                   input[1],
-                   input[2],
-                   input[3],
-                   input[4],
-                   input[5],
-                   output);
-  }
-};
-
-template<typename Functor, typename T,
-         int N0, int N1, int N2, int N3, int N4>
-struct VariadicEvaluate<Functor, T, N0, N1, N2, N3, N4, 0> {
-  static bool Call(const Functor& functor, T const *const *input, T* output) {
-    return functor(input[0],
-                   input[1],
-                   input[2],
-                   input[3],
-                   input[4],
-                   output);
-  }
-};
-
-template<typename Functor, typename T,
-         int N0, int N1, int N2, int N3>
-struct VariadicEvaluate<Functor, T, N0, N1, N2, N3, 0, 0> {
-  static bool Call(const Functor& functor, T const *const *input, T* output) {
-    return functor(input[0],
-                   input[1],
-                   input[2],
-                   input[3],
-                   output);
-  }
-};
-
-template<typename Functor, typename T,
-         int N0, int N1, int N2>
-struct VariadicEvaluate<Functor, T, N0, N1, N2, 0, 0, 0> {
-  static bool Call(const Functor& functor, T const *const *input, T* output) {
-    return functor(input[0],
-                   input[1],
-                   input[2],
-                   output);
-  }
-};
-
-template<typename Functor, typename T,
-         int N0, int N1>
-struct VariadicEvaluate<Functor, T, N0, N1, 0, 0, 0, 0> {
-  static bool Call(const Functor& functor, T const *const *input, T* output) {
-    return functor(input[0],
-                   input[1],
-                   output);
-  }
-};
-
-template<typename Functor, typename T, int N0>
-struct VariadicEvaluate<Functor, T, N0, 0, 0, 0, 0, 0> {
-  static bool Call(const Functor& functor, T const *const *input, T* output) {
-    return functor(input[0],
-                   output);
-  }
-};
-
-// This is in a struct because default template parameters on a function are not
-// supported in C++03 (though it is available in C++0x). N0 through N5 are the
-// dimension of the input arguments to the user supplied functor.
+// This is in a struct because default template parameters on a
+// function are not supported in C++03 (though it is available in
+// C++0x). N0 through N5 are the dimension of the input arguments to
+// the user supplied functor.
 template <typename Functor, typename T,
-          int N0 = 0, int N1 = 0, int N2 = 0, int N3 = 0, int N4 = 0, int N5=0>
+          int N0 = 0, int N1 = 0, int N2 = 0, int N3 = 0, int N4 = 0,
+          int N5 = 0, int N6 = 0, int N7 = 0, int N8 = 0, int N9 = 0>
 struct AutoDiff {
   static bool Differentiate(const Functor& functor,
                             T const *const *parameters,
                             int num_outputs,
                             T *function_value,
                             T **jacobians) {
-    typedef Jet<T, N0 + N1 + N2 + N3 + N4 + N5> JetT;
-
-    DCHECK_GT(N0, 0)
-        << "Cost functions must have at least one parameter block.";
-    DCHECK((!N1 && !N2 && !N3 && !N4 && !N5) ||
-           ((N1 > 0) && !N2 && !N3 && !N4 && !N5) ||
-           ((N1 > 0) && (N2 > 0) && !N3 && !N4 && !N5) ||
-           ((N1 > 0) && (N2 > 0) && (N3 > 0) && !N4 && !N5) ||
-           ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && !N5) ||
-           ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0)))
+    // This block breaks the 80 column rule to keep it somewhat readable.
+    DCHECK_GT(num_outputs, 0);
+    CHECK((!N1 && !N2 && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
+          ((N1 > 0) && !N2 && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
+          ((N1 > 0) && (N2 > 0) && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
+          ((N1 > 0) && (N2 > 0) && (N3 > 0) && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
+          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && !N5 && !N6 && !N7 && !N8 && !N9) ||
+          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && !N6 && !N7 && !N8 && !N9) ||
+          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && !N7 && !N8 && !N9) ||
+          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && (N7 > 0) && !N8 && !N9) ||
+          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && (N7 > 0) && (N8 > 0) && !N9) ||
+          ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && (N7 > 0) && (N8 > 0) && (N9 > 0)))
         << "Zero block cannot precede a non-zero block. Block sizes are "
         << "(ignore trailing 0s): " << N0 << ", " << N1 << ", " << N2 << ", "
-        << N3 << ", " << N4 << ", " << N5;
+        << N3 << ", " << N4 << ", " << N5 << ", " << N6 << ", " << N7 << ", "
+        << N8 << ", " << N9;
 
-    DCHECK_GT(num_outputs, 0);
-
+    typedef Jet<T, N0 + N1 + N2 + N3 + N4 + N5 + N6 + N7 + N8 + N9> JetT;
     FixedArray<JetT, (256 * 7) / sizeof(JetT)> x(
-        N0 + N1 + N2 + N3 + N4 + N5 + num_outputs);
+        N0 + N1 + N2 + N3 + N4 + N5 + N6 + N7 + N8 + N9 + num_outputs);
 
-    // It's ugly, but it works.
-    const int jet0 = 0;
-    const int jet1 = N0;
-    const int jet2 = N0 + N1;
-    const int jet3 = N0 + N1 + N2;
-    const int jet4 = N0 + N1 + N2 + N3;
-    const int jet5 = N0 + N1 + N2 + N3 + N4;
-    const int jet6 = N0 + N1 + N2 + N3 + N4 + N5;
+    // These are the positions of the respective jets in the fixed array x.
+    const int jet0  = 0;
+    const int jet1  = N0;
+    const int jet2  = N0 + N1;
+    const int jet3  = N0 + N1 + N2;
+    const int jet4  = N0 + N1 + N2 + N3;
+    const int jet5  = N0 + N1 + N2 + N3 + N4;
+    const int jet6  = N0 + N1 + N2 + N3 + N4 + N5;
+    const int jet7  = N0 + N1 + N2 + N3 + N4 + N5 + N6;
+    const int jet8  = N0 + N1 + N2 + N3 + N4 + N5 + N6 + N7;
+    const int jet9  = N0 + N1 + N2 + N3 + N4 + N5 + N6 + N7 + N8;
 
-    const JetT *unpacked_parameters[6] = {
+    const JetT *unpacked_parameters[10] = {
         x.get() + jet0,
         x.get() + jet1,
         x.get() + jet2,
         x.get() + jet3,
         x.get() + jet4,
         x.get() + jet5,
+        x.get() + jet6,
+        x.get() + jet7,
+        x.get() + jet8,
+        x.get() + jet9,
     };
-    JetT *output = x.get() + jet6;
+
+    JetT* output = x.get() + N0 + N1 + N2 + N3 + N4 + N5 + N6 + N7 + N8 + N9;
 
 #define CERES_MAKE_1ST_ORDER_PERTURBATION(i) \
     if (N ## i) { \
@@ -333,10 +271,14 @@ struct AutoDiff {
     CERES_MAKE_1ST_ORDER_PERTURBATION(3);
     CERES_MAKE_1ST_ORDER_PERTURBATION(4);
     CERES_MAKE_1ST_ORDER_PERTURBATION(5);
+    CERES_MAKE_1ST_ORDER_PERTURBATION(6);
+    CERES_MAKE_1ST_ORDER_PERTURBATION(7);
+    CERES_MAKE_1ST_ORDER_PERTURBATION(8);
+    CERES_MAKE_1ST_ORDER_PERTURBATION(9);
 #undef CERES_MAKE_1ST_ORDER_PERTURBATION
 
     if (!VariadicEvaluate<Functor, JetT,
-                          N0, N1, N2, N3, N4, N5>::Call(
+                          N0, N1, N2, N3, N4, N5, N6, N7, N8, N9>::Call(
         functor, unpacked_parameters, output)) {
       return false;
     }
@@ -359,6 +301,10 @@ struct AutoDiff {
     CERES_TAKE_1ST_ORDER_PERTURBATION(3);
     CERES_TAKE_1ST_ORDER_PERTURBATION(4);
     CERES_TAKE_1ST_ORDER_PERTURBATION(5);
+    CERES_TAKE_1ST_ORDER_PERTURBATION(6);
+    CERES_TAKE_1ST_ORDER_PERTURBATION(7);
+    CERES_TAKE_1ST_ORDER_PERTURBATION(8);
+    CERES_TAKE_1ST_ORDER_PERTURBATION(9);
 #undef CERES_TAKE_1ST_ORDER_PERTURBATION
     return true;
   }

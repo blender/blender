@@ -35,7 +35,7 @@
 #include "ceres/array_utils.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/linear_solver.h"
-#include "ceres/polynomial_solver.h"
+#include "ceres/polynomial.h"
 #include "ceres/sparse_matrix.h"
 #include "ceres/trust_region_strategy.h"
 #include "ceres/types.h"
@@ -87,7 +87,7 @@ TrustRegionStrategy::Summary DoglegStrategy::ComputeStep(
     // Gauss-Newton and gradient vectors are always available, only a
     // new interpolant need to be computed. For the subspace case,
     // the subspace and the two-dimensional model are also still valid.
-    switch(dogleg_type_) {
+    switch (dogleg_type_) {
       case TRADITIONAL_DOGLEG:
         ComputeTraditionalDoglegStep(step);
         break;
@@ -135,7 +135,7 @@ TrustRegionStrategy::Summary DoglegStrategy::ComputeStep(
   summary.termination_type = linear_solver_summary.termination_type;
 
   if (linear_solver_summary.termination_type != FAILURE) {
-    switch(dogleg_type_) {
+    switch (dogleg_type_) {
       // Interpolate the Cauchy point and the Gauss-Newton step.
       case TRADITIONAL_DOGLEG:
         ComputeTraditionalDoglegStep(step);
@@ -415,15 +415,15 @@ Vector DoglegStrategy::MakePolynomialForBoundaryConstrainedProblem() const {
   const double trB = subspace_B_.trace();
   const double r2 = radius_ * radius_;
   Matrix2d B_adj;
-  B_adj <<  subspace_B_(1,1) , -subspace_B_(0,1),
-            -subspace_B_(1,0) ,  subspace_B_(0,0);
+  B_adj <<  subspace_B_(1, 1) , -subspace_B_(0, 1),
+            -subspace_B_(1, 0) ,  subspace_B_(0, 0);
 
   Vector polynomial(5);
   polynomial(0) = r2;
   polynomial(1) = 2.0 * r2 * trB;
-  polynomial(2) = r2 * ( trB * trB + 2.0 * detB ) - subspace_g_.squaredNorm();
-  polynomial(3) = -2.0 * ( subspace_g_.transpose() * B_adj * subspace_g_
-      - r2 * detB * trB );
+  polynomial(2) = r2 * (trB * trB + 2.0 * detB) - subspace_g_.squaredNorm();
+  polynomial(3) = -2.0 * (subspace_g_.transpose() * B_adj * subspace_g_
+      - r2 * detB * trB);
   polynomial(4) = r2 * detB * detB - (B_adj * subspace_g_).squaredNorm();
 
   return polynomial;
@@ -598,7 +598,7 @@ void DoglegStrategy::StepAccepted(double step_quality) {
   // Reduce the regularization multiplier, in the hope that whatever
   // was causing the rank deficiency has gone away and we can return
   // to doing a pure Gauss-Newton solve.
-  mu_ = max(min_mu_, 2.0 * mu_ / mu_increase_factor_ );
+  mu_ = max(min_mu_, 2.0 * mu_ / mu_increase_factor_);
   reuse_ = false;
 }
 

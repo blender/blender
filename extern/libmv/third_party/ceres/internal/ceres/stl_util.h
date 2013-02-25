@@ -31,6 +31,8 @@
 #ifndef CERES_INTERNAL_STL_UTIL_H_
 #define CERES_INTERNAL_STL_UTIL_H_
 
+#include <algorithm>
+
 namespace ceres {
 
 // STLDeleteContainerPointers()
@@ -47,6 +49,20 @@ template <class ForwardIterator>
 void STLDeleteContainerPointers(ForwardIterator begin,
                                 ForwardIterator end) {
   while (begin != end) {
+    ForwardIterator temp = begin;
+    ++begin;
+    delete *temp;
+  }
+}
+
+// Variant of STLDeleteContainerPointers which allows the container to
+// contain duplicates.
+template <class ForwardIterator>
+void STLDeleteUniqueContainerPointers(ForwardIterator begin,
+                                      ForwardIterator end) {
+  sort(begin, end);
+  ForwardIterator new_end = unique(begin, end);
+  while (begin != new_end) {
     ForwardIterator temp = begin;
     ++begin;
     delete *temp;

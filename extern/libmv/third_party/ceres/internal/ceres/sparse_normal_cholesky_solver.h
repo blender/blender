@@ -35,8 +35,8 @@
 #define CERES_INTERNAL_SPARSE_NORMAL_CHOLESKY_SOLVER_H_
 
 #include "ceres/cxsparse.h"
-#include "ceres/linear_solver.h"
 #include "ceres/internal/macros.h"
+#include "ceres/linear_solver.h"
 #include "ceres/suitesparse.h"
 
 namespace ceres {

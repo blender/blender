@@ -39,8 +39,7 @@ namespace ceres {
 namespace internal {
 
 // Generic trust region minimization algorithm. The heavy lifting is
-// done by a TrustRegionStrategy object passed in as one of the
-// arguments to the Minimize method.
+// done by a TrustRegionStrategy object passed in as part of options.
 //
 // For example usage, see SolverImpl::Minimize.
 class TrustRegionMinimizer : public Minimizer {
@@ -53,11 +52,10 @@ class TrustRegionMinimizer : public Minimizer {
  private:
   void Init(const Minimizer::Options& options);
   void EstimateScale(const SparseMatrix& jacobian, double* scale) const;
-  CallbackReturnType RunCallbacks(const IterationSummary& iteration_summary);
-  bool MaybeDumpLinearLeastSquaresProblem( const int iteration,
-                                           const SparseMatrix* jacobian,
-                                           const double* residuals,
-                                           const double* step) const;
+  bool MaybeDumpLinearLeastSquaresProblem(const int iteration,
+                                          const SparseMatrix* jacobian,
+                                          const double* residuals,
+                                          const double* step) const;
 
   Minimizer::Options options_;
 };
