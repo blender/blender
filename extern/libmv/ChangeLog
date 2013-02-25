@@ -1,3 +1,101 @@
+commit 575336f794841ada90aacd783285014081b8318c
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Mon Jan 7 15:58:40 2013 +0600
+
+    Fixed for keyframe selection
+    
+    - Calculate residuals for GRIC in pixel space rather than
+      in normalized space.
+    
+      This seems to be how it's intended to be used.
+    
+      Algebraic H and F will still use normalized coordinates which
+      are more stable, after this matrices are converted to pixel
+      space and Ceres refinement happens in pixel space.
+    
+    - Standard deviation calculation was wrong in GRIC. It shouldn't
+      be deviation of residuals, but as per Torr it should be deviation
+      of measurement error, which is constant (in our case 0.1)
+    
+      Not sure if using squared cost function is correct for GRIC,
+      but cost function is indeed squared and in most papers cost
+      function is used for GRIC. After some further tests we could
+      switch GRIC residuals to non-squared distance.
+    
+    - Bring back rho part of GRIC, in unit tests it doesn't make
+      sense whether it's enabled or not, lets see how it'll behave
+      in real-life footage.
+    
+    - Added one more unit test based on elevator scene and manual
+      keyframe selection.
+
+commit 24117f3c3fc5531beb6497d79bb6f1780a998081
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sun Jan 6 19:07:06 2013 +0600
+
+    Added test for keyframe selection based on manual selection
+    
+    Additional changes:
+    
+    - Reduce minimal correspondence to match real-world manually
+      tracked footage
+    
+    - Returned back squares to SymmetricEpipolarDistance and
+      SymmetricGeometricDistance -- this is actually a cost
+      functions, not distances and they shall be squared.
+
+commit 770eb0293b881c4c419c587a6cdb062c47ab6e44
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Dec 21 00:43:30 2012 +0600
+
+    Improvements for keyframe selection
+    
+    - Changed main keyframe selection cycle, so in cases there're no
+      more next keyframes for current keyframe could be found in the
+      image sequence, current keyframe would be moved forward and
+      search continues.
+    
+      This helps in cases when there's poor motion in the beginning
+      of the sequence, then markers becomes occluded. There could be
+      good keyframes in the middle of the shot still.
+    
+    - Extended keyframe_selection_test with real world cases.
+    
+    - Moved correspondences constraint to the top, so no H/F estimation
+      happens if there's bad correspondence. Makes algorithm go a bit
+      faster.
+    
+    Strangely, but using non-squared distances makes neighbor frames
+    test fail, using squared distances makes this tests pass.
+    
+    However, using non-squared distances seems to be working better
+    in real tests i've been doing. So this requires more investigation/
+
+commit 7415c62fbda36c5bd1c291bc94d535a66da896d0
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Dec 20 18:46:09 2012 +0600
+
+    Cosmetic change to correspondences reports in keyframe selection
+
+commit ceaf80c987ec0338e7e83965bc808411453eb755
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Thu Dec 20 18:08:03 2012 +0600
+
+    Various fixes:
+    
+    - That was a typo in symmetric geometric cost functor, which
+      computed inverse distance in a wrong way.
+    
+    - Fixed compilation of unit tests
+    
+    - Added simple test for keyframe selection. Currently only
+      covers case that neighbor frames with only translation
+      (homography should be better than fundamental) are not
+      considered a keyframes.
+    
+      Still need to be investigated why it only works if tracks
+      are in pixel space and why doesn't work in normalized space.
+
 commit cfabdfe48df2add3d1f30cf4370efd0b31990ab0
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu Dec 20 05:46:53 2012 +0600
@@ -690,35 +788,3 @@ Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Fri Feb 17 21:32:05 2012 +0600
 
     Picky edits: corrected EOL
-
-commit 3f2a4205ec5adadcdfa306b161c705c868a7be93
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 21:30:07 2012 +0600
-
-    Fixed incorrect access to ucontext on linux. Caused by incorrect merge conflict resolve.
-
-commit d360a21a5aa125cf9e83dd26b302508688ff7007
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 20:54:13 2012 +0600
-
-    More Windows -> Unix EOL conversions
-
-commit 18aeda58bec9556140ba617724e31ada6f5b67c0
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 20:15:42 2012 +0600
-
-    Looks like this debug output was removed accidentally.
-
-commit 189dc0cacdee3c1eab68c43263ecb038ed244c09
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 20:11:56 2012 +0600
-
-    Made V3D verbose again by default
-
-commit 8b3422d3eec5e450d76243886bf07fb0a3e83a81
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 20:08:01 2012 +0600
-
-    SAD tracker now can deal with pattern size any size,
-    Very quick implementation came from Blender before Hybrid tracker was added.
-    Better to be replaced with brute tracker.

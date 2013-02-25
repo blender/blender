@@ -264,4 +264,19 @@ bool Homography3DFromCorrespondencesLinear(const Mat &x1,
     return false;
   }
 }
+
+double SymmetricGeometricDistance(Mat3 &H, Vec2 &x1, Vec2 &x2) {
+  Vec3 x(x1(0), x1(1), 1.0);
+  Vec3 y(x2(0), x2(1), 1.0);
+
+  Vec3 H_x = H * x;
+  Vec3 Hinv_y = H.inverse() * y;
+
+  H_x /= H_x(2);
+  Hinv_y /= Hinv_y(2);
+
+  return (H_x.head<2>() - y.head<2>()).squaredNorm() +
+         (Hinv_y.head<2>() - x.head<2>()).squaredNorm();
+}
+
 }  // namespace libmv

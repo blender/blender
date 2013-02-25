@@ -79,6 +79,14 @@ bool Homography3DFromCorrespondencesLinear(const Mat &x1,
                                            Mat4 *H,
                                            double expected_precision = 
                                              EigenDouble::dummy_precision());
+
+/**
+ * Calculate symmetric geometric cost:
+ *
+ * D(H * x1, x2)^2 + D(H^-1 * x2, x1)
+ */
+double SymmetricGeometricDistance(Mat3 &H, Vec2 &x1, Vec2 &x2);
+
 } // namespace libmv
 
 #endif  // LIBMV_MULTIVIEW_HOMOGRAPHY_H_
