@@ -1,4 +1,4 @@
-// Copyright (c) 2011 libmv authors.
+// Copyright (c) 2011, 2012, 2013 libmv authors.
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -18,10 +18,11 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#define V3DLIB_ENABLE_SUITESPARSE 1
-
 #include <map>
 
+#include "ceres/ceres.h"
+#include "ceres/rotation.h"
+#include "libmv/base/scoped_ptr.h"
 #include "libmv/base/vector.h"
 #include "libmv/logging/logging.h"
 #include "libmv/multiview/fundamental.h"
@@ -31,12 +32,188 @@
 #include "libmv/simple_pipeline/bundle.h"
 #include "libmv/simple_pipeline/reconstruction.h"
 #include "libmv/simple_pipeline/tracks.h"
-#include "third_party/ssba/Geometry/v3d_cameramatrix.h"
-#include "third_party/ssba/Geometry/v3d_metricbundle.h"
-#include "third_party/ssba/Math/v3d_linear.h"
-#include "third_party/ssba/Math/v3d_linear_utils.h"
 
 namespace libmv {
+
+// The intrinsics need to get combined into a single parameter block; use these
+// enums to index instead of numeric constants.
+enum {
+  OFFSET_FOCAL_LENGTH,
+  OFFSET_PRINCIPAL_POINT_X,
+  OFFSET_PRINCIPAL_POINT_Y,
+  OFFSET_K1,
+  OFFSET_K2,
+  OFFSET_K3,
+  OFFSET_P1,
+  OFFSET_P2,
+};
+
+namespace {
+
+struct OpenCVReprojectionError {
+  OpenCVReprojectionError(double observed_x, double observed_y)
+      : observed_x(observed_x), observed_y(observed_y) {}
+
+  template <typename T>
+  bool operator()(const T* const intrinsics,
+                  const T* const R,  // Rotation 3x3 column-major.
+                  const T* const t,  // Translation 3x1.
+                  const T* const X,  // Point coordinates 3x1.
+                  T* residuals) const {
+    // Unpack the intrinsics.
+    const T& focal_length      = intrinsics[OFFSET_FOCAL_LENGTH];
+    const T& principal_point_x = intrinsics[OFFSET_PRINCIPAL_POINT_X];
+    const T& principal_point_y = intrinsics[OFFSET_PRINCIPAL_POINT_Y];
+    const T& k1                = intrinsics[OFFSET_K1];
+    const T& k2                = intrinsics[OFFSET_K2];
+    const T& k3                = intrinsics[OFFSET_K3];
+    const T& p1                = intrinsics[OFFSET_P1];
+    const T& p2                = intrinsics[OFFSET_P2];
+
+    // Compute projective coordinates: x = RX + t.
+    T x[3];
+    x[0] = R[0]*X[0] + R[3]*X[1] + R[6]*X[2] + t[0];
+    x[1] = R[1]*X[0] + R[4]*X[1] + R[7]*X[2] + t[1];
+    x[2] = R[2]*X[0] + R[5]*X[1] + R[8]*X[2] + t[2];
+
+    // Compute normalized coordinates: x /= x[2].
+    T xn = x[0] / x[2];
+    T yn = x[1] / x[2];
+
+    T predicted_x, predicted_y;
+
+    // EuclideanBundle uses empty intrinsics, which breaks undistortion code;
+    // so use an implied focal length of 1.0 if the focal length is exactly
+    // zero.
+    // TODO(keir): Figure out a better way to do this.
+    if (focal_length != T(0)) {
+      // Apply distortion to the normalized points to get (xd, yd).
+      // TODO(keir): Do early bailouts for zero distortion; these are expensive
+      // jet operations.
+      T r2 = xn*xn + yn*yn;
+      T r4 = r2 * r2;
+      T r6 = r4 * r2;
+      T r_coeff = T(1) + k1*r2 + k2*r4 + k3*r6;
+      T xd = xn * r_coeff + T(2)*p1*xn*yn + p2*(r2 + T(2)*xn*xn);
+      T yd = yn * r_coeff + T(2)*p2*xn*yn + p1*(r2 + T(2)*yn*yn);
+
+      // Apply focal length and principal point to get the final
+      // image coordinates.
+      predicted_x = focal_length * xd + principal_point_x;
+      predicted_y = focal_length * yd + principal_point_y;
+    } else {
+      predicted_x = xn;
+      predicted_y = yn;
+    }
+
+    // The error is the difference between the predicted and observed position.
+    residuals[0] = predicted_x - T(observed_x);
+    residuals[1] = predicted_y - T(observed_y);
+
+    return true;
+  }
+
+  double observed_x;
+  double observed_y;
+};
+
+// TODO(keir): Get rid of the parameterization! Ceres will work much faster if
+// the rotation block is angle-axis and also the translation is merged into a
+// single parameter block.
+struct RotationMatrixPlus {
+  template<typename T>
+  bool operator()(const T* R_array, // Rotation 3x3 col-major.
+                  const T* delta,   // Angle-axis delta
+                  T* R_plus_delta_array) const {
+    T angle_axis[3];
+
+    ceres::RotationMatrixToAngleAxis(R_array, angle_axis);
+
+    angle_axis[0] += delta[0];
+    angle_axis[1] += delta[1];
+    angle_axis[2] += delta[2];
+
+    ceres::AngleAxisToRotationMatrix(angle_axis, R_plus_delta_array);
+
+    return true;
+  }
+};
+
+// TODO(sergey): would be nice to have this in Ceres upstream
+template<typename PlusFunctor, int kGlobalSize, int kLocalSize>
+class AutodiffParameterization : public ceres::LocalParameterization {
+ public:
+  AutodiffParameterization(const PlusFunctor &plus_functor)
+    : plus_functor_(plus_functor) {}
+
+  virtual ~AutodiffParameterization() {}
+
+  virtual bool Plus(const double* x,
+                    const double* delta,
+                    double* x_plus_delta) const {
+    return plus_functor_(x, delta, x_plus_delta);
+  }
+
+  virtual bool ComputeJacobian(const double* x, double* jacobian) const {
+    double zero_delta[kLocalSize] = { 0.0 };
+    double x_plus_delta[kGlobalSize];
+    const double* parameters[2] = { x, zero_delta };
+    double* jacobians_array[2] = { NULL, jacobian };
+
+    Plus(x, zero_delta, x_plus_delta);
+
+    return ceres::internal::AutoDiff<PlusFunctor,
+                              double,
+                              kGlobalSize, kLocalSize>
+        ::Differentiate(plus_functor_,
+                        parameters,
+                        kGlobalSize,
+                        x_plus_delta,
+                        jacobians_array);
+
+    return true;
+  }
+
+  virtual int GlobalSize() const { return kGlobalSize; }
+  virtual int LocalSize() const { return kLocalSize; }
+
+ private:
+  const PlusFunctor &plus_functor_;
+};
+
+void BundleIntrinsicsLogMessage(int bundle_intrinsics) {
+  if (bundle_intrinsics == BUNDLE_NO_INTRINSICS) {
+    LG << "Bundling only camera positions.";
+  } else if (bundle_intrinsics == BUNDLE_FOCAL_LENGTH) {
+    LG << "Bundling f.";
+  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
+                                   BUNDLE_PRINCIPAL_POINT)) {
+    LG << "Bundling f, px, py.";
+  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
+                                   BUNDLE_PRINCIPAL_POINT |
+                                   BUNDLE_RADIAL)) {
+    LG << "Bundling f, px, py, k1, k2.";
+  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
+                                   BUNDLE_PRINCIPAL_POINT |
+                                   BUNDLE_RADIAL |
+                                   BUNDLE_TANGENTIAL)) {
+    LG << "Bundling f, px, py, k1, k2, p1, p2.";
+  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
+                                   BUNDLE_RADIAL |
+                                   BUNDLE_TANGENTIAL)) {
+    LG << "Bundling f, px, py, k1, k2, p1, p2.";
+  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
+                                   BUNDLE_RADIAL)) {
+    LG << "Bundling f, k1, k2.";
+  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
+                                   BUNDLE_RADIAL_K1)) {
+    LG << "Bundling f, k1.";
+  } else {
+    LOG(FATAL) << "Unsupported bundle combination.";
+  }
+}
+
+}  // namespace
 
 void EuclideanBundle(const Tracks &tracks,
                      EuclideanReconstruction *reconstruction) {
@@ -54,195 +231,125 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
   LG << "Original intrinsics: " << *intrinsics;
   vector<Marker> markers = tracks.AllMarkers();
 
-  // "index" in this context is the index that V3D's optimizer will see. The
-  // V3D index must be dense in that the cameras are numbered 0...n-1, which is
-  // not the case for the "image" numbering that arises from the tracks
-  // structure. The complicated mapping is necessary to convert between the two
-  // representations.
-  std::map<EuclideanCamera *, int> camera_to_index;
-  std::map<EuclideanPoint *, int> point_to_index;
-  vector<EuclideanCamera *> index_to_camera;
-  vector<EuclideanPoint *> index_to_point;
-  int num_cameras = 0;
-  int num_points = 0;
+  ceres::Problem::Options problem_options;
+  problem_options.local_parameterization_ownership =
+    ceres::DO_NOT_TAKE_OWNERSHIP;
+
+  ceres::Problem problem(problem_options);
+
+  // Residual blocks with 10 parameters are unwieldly with Ceres, so pack the
+  // intrinsics into a single block and rely on local parameterizations to
+  // control which intrinsics are allowed to vary.
+  double ceres_intrinsics[8];
+  ceres_intrinsics[OFFSET_FOCAL_LENGTH]       = intrinsics->focal_length();
+  ceres_intrinsics[OFFSET_PRINCIPAL_POINT_X]  = intrinsics->principal_point_x();
+  ceres_intrinsics[OFFSET_PRINCIPAL_POINT_Y]  = intrinsics->principal_point_y();
+  ceres_intrinsics[OFFSET_K1]                 = intrinsics->k1();
+  ceres_intrinsics[OFFSET_K2]                 = intrinsics->k2();
+  ceres_intrinsics[OFFSET_K3]                 = intrinsics->k3();
+  ceres_intrinsics[OFFSET_P1]                 = intrinsics->p1();
+  ceres_intrinsics[OFFSET_P2]                 = intrinsics->p2();
+
+  RotationMatrixPlus rotation_matrix_plus;
+  AutodiffParameterization<RotationMatrixPlus, 9, 3>
+      rotation_parameterization(rotation_matrix_plus);
+
+  int num_residuals = 0;
   for (int i = 0; i < markers.size(); ++i) {
     const Marker &marker = markers[i];
     EuclideanCamera *camera = reconstruction->CameraForImage(marker.image);
     EuclideanPoint *point = reconstruction->PointForTrack(marker.track);
-    if (camera && point) {
-      if (camera_to_index.find(camera) == camera_to_index.end()) {
-        camera_to_index[camera] = num_cameras;
-        index_to_camera.push_back(camera);
-        num_cameras++;
-      }
-      if (point_to_index.find(point) == point_to_index.end()) {
-        point_to_index[point] = num_points;
-        index_to_point.push_back(point);
-        num_points++;
-      }
-    }
-  }
-
-  // Convert libmv's K matrix to V3d's K matrix.
-  V3D::Matrix3x3d v3d_K;
-  for (int i = 0; i < 3; ++i) {
-    for (int j = 0; j < 3; ++j) {
-      v3d_K[i][j] = intrinsics->K()(i, j);
-    }
-  }
-
-  // Convert libmv's distortion to v3d distortion.
-  V3D::StdDistortionFunction v3d_distortion;
-  v3d_distortion.k1 = intrinsics->k1();
-  v3d_distortion.k2 = intrinsics->k2();
-  v3d_distortion.p1 = intrinsics->p1();
-  v3d_distortion.p2 = intrinsics->p2();
-
-  // Convert libmv's cameras to V3D's cameras.
-  std::vector<V3D::CameraMatrix> v3d_cameras(index_to_camera.size());
-  for (int k = 0; k < index_to_camera.size(); ++k) {
-    V3D::Matrix3x3d R;
-    V3D::Vector3d t;
-
-    // Libmv's rotation matrix type.
-    const Mat3 &R_libmv = index_to_camera[k]->R;
-    const Vec3 &t_libmv = index_to_camera[k]->t;
-
-    for (int i = 0; i < 3; ++i) {
-      for (int j = 0; j < 3; ++j) {
-        R[i][j] = R_libmv(i, j);
-      }
-      t[i] = t_libmv(i);
-    }
-    v3d_cameras[k].setIntrinsic(v3d_K);
-    v3d_cameras[k].setRotation(R);
-    v3d_cameras[k].setTranslation(t);
-  }
-  LG << "Number of cameras: " << index_to_camera.size();
-
-  // Convert libmv's points to V3D's points.
-  std::vector<V3D::Vector3d> v3d_points(index_to_point.size());
-  for (int i = 0; i < index_to_point.size(); i++) {
-    v3d_points[i][0] = index_to_point[i]->X(0);
-    v3d_points[i][1] = index_to_point[i]->X(1);
-    v3d_points[i][2] = index_to_point[i]->X(2);
-  }
-  LG << "Number of points: " << index_to_point.size();
-
-  // Convert libmv's measurements to v3d measurements.
-  int num_residuals = 0;
-  std::vector<V3D::Vector2d> v3d_measurements;
-  std::vector<int> v3d_camera_for_measurement;
-  std::vector<int> v3d_point_for_measurement;
-  for (int i = 0; i < markers.size(); ++i) {
-    EuclideanCamera *camera = reconstruction->CameraForImage(markers[i].image);
-    EuclideanPoint *point = reconstruction->PointForTrack(markers[i].track);
     if (!camera || !point) {
       continue;
     }
-    V3D::Vector2d v3d_point;
-    v3d_point[0] = markers[i].x;
-    v3d_point[1] = markers[i].y;
-    v3d_measurements.push_back(v3d_point);
-    v3d_camera_for_measurement.push_back(camera_to_index[camera]);
-    v3d_point_for_measurement.push_back(point_to_index[point]);
+
+    problem.AddResidualBlock(new ceres::AutoDiffCostFunction<
+        OpenCVReprojectionError, 2, 8, 9 /* 3 */, 3, 3>(
+            new OpenCVReprojectionError(
+                marker.x,
+                marker.y)),
+        NULL,
+        ceres_intrinsics,
+        &camera->R(0, 0),
+        &camera->t(0),
+        &point->X(0));
+
+    // It's fine if the parameterization for one camera is set repeatedly.
+    problem.SetParameterization(&camera->R(0, 0),
+                                &rotation_parameterization);
+
     num_residuals++;
   }
   LG << "Number of residuals: " << num_residuals;
-  
-  // Convert from libmv's specification for which intrinsics to bundle to V3D's.
-  int v3d_bundle_intrinsics;
+
+  if(!num_residuals) {
+    LG << "Skipping running minimizer with zero residuals";
+    return;
+  }
+
+  BundleIntrinsicsLogMessage(bundle_intrinsics);
+
+  scoped_ptr<ceres::SubsetParameterization>
+      subset_parameterization(NULL);
+
   if (bundle_intrinsics == BUNDLE_NO_INTRINSICS) {
-    LG << "Bundling only camera positions.";
-    v3d_bundle_intrinsics = V3D::FULL_BUNDLE_METRIC;
-  } else if (bundle_intrinsics == BUNDLE_FOCAL_LENGTH) {
-    LG << "Bundling f.";
-    v3d_bundle_intrinsics = V3D::FULL_BUNDLE_FOCAL_LENGTH;
-  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
-                                   BUNDLE_PRINCIPAL_POINT)) {
-    LG << "Bundling f, px, py.";
-    v3d_bundle_intrinsics = V3D::FULL_BUNDLE_FOCAL_LENGTH_PP;
-  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
-                                   BUNDLE_PRINCIPAL_POINT |
-                                   BUNDLE_RADIAL)) {
-    LG << "Bundling f, px, py, k1, k2.";
-    v3d_bundle_intrinsics = V3D::FULL_BUNDLE_RADIAL;
-  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
-                                   BUNDLE_PRINCIPAL_POINT |
-                                   BUNDLE_RADIAL |
-                                   BUNDLE_TANGENTIAL)) {
-    LG << "Bundling f, px, py, k1, k2, p1, p2.";
-    v3d_bundle_intrinsics = V3D::FULL_BUNDLE_RADIAL_TANGENTIAL;
-  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
-                                   BUNDLE_RADIAL |
-                                   BUNDLE_TANGENTIAL)) {
-    LG << "Bundling f, px, py, k1, k2, p1, p2.";
-    v3d_bundle_intrinsics = V3D::FULL_BUNDLE_RADIAL_TANGENTIAL;
-  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
-                                   BUNDLE_RADIAL)) {
-    LG << "Bundling f, k1, k2.";
-    v3d_bundle_intrinsics = V3D::FULL_BUNDLE_FOCAL_AND_RADIAL;
-  } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
-                                   BUNDLE_RADIAL_K1)) {
-    LG << "Bundling f, k1.";
-    v3d_bundle_intrinsics = V3D::FULL_BUNDLE_FOCAL_AND_RADIAL_K1;
+    // No camera intrinsics are refining,
+    // set the whole parameter block as constant for best performance
+    problem.SetParameterBlockConstant(ceres_intrinsics);
   } else {
-    LOG(FATAL) << "Unsupported bundle combination.";
-  }
+    // Set intrinsics not being bundles as constant
 
-  // Ignore any outliers; assume supervised tracking.
-  double v3d_inlier_threshold = 500000.0;
-
-  // Finally, run the bundle adjustment.
-  V3D::CommonInternalsMetricBundleOptimizer opt(v3d_bundle_intrinsics,
-                                                v3d_inlier_threshold,
-                                                v3d_K,
-                                                v3d_distortion,
-                                                v3d_cameras,
-                                                v3d_points,
-                                                v3d_measurements,
-                                                v3d_camera_for_measurement,
-                                                v3d_point_for_measurement);
-  opt.maxIterations = 500;
-  opt.minimize();
-  if (opt.status == V3D::LEVENBERG_OPTIMIZER_TIMEOUT) {
-    LG << "Bundle status: Timed out.";
-  } else if (opt.status == V3D::LEVENBERG_OPTIMIZER_SMALL_UPDATE) {
-    LG << "Bundle status: Small update.";
-  } else if (opt.status == V3D::LEVENBERG_OPTIMIZER_CONVERGED) {
-    LG << "Bundle status: Converged.";
-  }
-
-  // Convert V3D's K matrix back to libmv's K matrix.
-  Mat3 K;
-  for (int i = 0; i < 3; ++i) {
-    for (int j = 0; j < 3; ++j) {
-      K(i, j) = v3d_K[i][j];
+    std::vector<int> constant_intrinsics;
+#define MAYBE_SET_CONSTANT(bundle_enum, offset) \
+    if (!(bundle_intrinsics & bundle_enum)) { \
+      constant_intrinsics.push_back(offset); \
     }
-  }
-  intrinsics->SetK(K);
+    MAYBE_SET_CONSTANT(BUNDLE_FOCAL_LENGTH,    OFFSET_FOCAL_LENGTH);
+    MAYBE_SET_CONSTANT(BUNDLE_PRINCIPAL_POINT, OFFSET_PRINCIPAL_POINT_X);
+    MAYBE_SET_CONSTANT(BUNDLE_PRINCIPAL_POINT, OFFSET_PRINCIPAL_POINT_Y);
+    MAYBE_SET_CONSTANT(BUNDLE_RADIAL_K1,       OFFSET_K1);
+    MAYBE_SET_CONSTANT(BUNDLE_RADIAL_K2,       OFFSET_K2);
+    MAYBE_SET_CONSTANT(BUNDLE_TANGENTIAL_P1,   OFFSET_P1);
+    MAYBE_SET_CONSTANT(BUNDLE_TANGENTIAL_P2,   OFFSET_P2);
+#undef MAYBE_SET_CONSTANT
 
-  // Convert V3D's distortion back to libmv's distortion.
-  intrinsics->SetRadialDistortion(v3d_distortion.k1, v3d_distortion.k2, 0.0);
-  intrinsics->SetTangentialDistortion(v3d_distortion.p1, v3d_distortion.p2);
+    // Always set K3 constant, it's not used at the moment.
+    constant_intrinsics.push_back(OFFSET_K3);
 
-  // Convert V3D's cameras back to libmv's cameras.
-  for (int k = 0; k < num_cameras; k++) {
-    V3D::Matrix3x4d const Rt = v3d_cameras[k].getOrientation();
-    for (int i = 0; i < 3; ++i) {
-      for (int j = 0; j < 3; ++j) {
-        index_to_camera[k]->R(i, j) = Rt[i][j];
-      }
-      index_to_camera[k]->t(i) = Rt[i][3];
-    }
+    subset_parameterization.reset(
+        new ceres::SubsetParameterization(8, constant_intrinsics));
+
+    problem.SetParameterization(ceres_intrinsics, subset_parameterization.get());
   }
 
-  // Convert V3D's points back to libmv's points.
-  for (int k = 0; k < num_points; k++) {
-    for (int i = 0; i < 3; ++i) {
-      index_to_point[k]->X(i) = v3d_points[k][i];
-    }
+  ceres::Solver::Options options;
+  options.use_nonmonotonic_steps = true;
+  options.preconditioner_type = ceres::SCHUR_JACOBI;
+  options.linear_solver_type = ceres::ITERATIVE_SCHUR;
+  options.use_inner_iterations = true;
+  options.max_num_iterations = 100;
+
+  ceres::Solver::Summary summary;
+  ceres::Solve(options, &problem, &summary);
+
+  LG << "Final report:\n" << summary.FullReport();
+
+  // Copy intrinsics back.
+  if (bundle_intrinsics != BUNDLE_NO_INTRINSICS) {
+    intrinsics->SetFocalLength(ceres_intrinsics[OFFSET_FOCAL_LENGTH],
+                               ceres_intrinsics[OFFSET_FOCAL_LENGTH]);
+
+    intrinsics->SetPrincipalPoint(ceres_intrinsics[OFFSET_PRINCIPAL_POINT_X],
+                                  ceres_intrinsics[OFFSET_PRINCIPAL_POINT_Y]);
+
+    intrinsics->SetRadialDistortion(ceres_intrinsics[OFFSET_K1],
+                                    ceres_intrinsics[OFFSET_K2],
+                                    ceres_intrinsics[OFFSET_K3]);
+
+    intrinsics->SetTangentialDistortion(ceres_intrinsics[OFFSET_P1],
+                                        ceres_intrinsics[OFFSET_P2]);
   }
+
   LG << "Final intrinsics: " << *intrinsics;
 }
 
