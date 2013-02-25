@@ -430,7 +430,6 @@ class I18nMessages:
             msg, refmsg = self.msgs[key], ref.msgs[key]
             msg.sources = refmsg.sources
             msg.is_commented = refmsg.is_commented
-            msg.is_fuzzy = refmsg.is_fuzzy
             msgs[key] = msg
 
         # Next process new keys.
@@ -438,8 +437,6 @@ class I18nMessages:
             with concurrent.futures.ProcessPoolExecutor() as exctr:
                 for key, msgid in exctr.map(get_best_similar,
                                             tuple((nk, use_similar, tuple(similar_pool.keys())) for nk in new_keys)):
-                #for key, msgid in map(get_best_similar,
-                                      #tuple((nk, use_similar, tuple(similar_pool.keys())) for nk in new_keys)):
                     if msgid:
                         # Try to get the same context, else just get one...
                         skey = (key[0], msgid)
