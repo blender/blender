@@ -771,13 +771,17 @@ static int empty_drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *e
 	else {
 		/* add new empty */
 		unsigned int layer;
-		float loc[3], rot[3];
+		float rot[3];
 
-		if (!ED_object_add_generic_get_opts(C, op, loc, rot, NULL, &layer, NULL))
+		if (!ED_object_add_generic_get_opts(C, op, NULL, rot, NULL, &layer, NULL))
 			return OPERATOR_CANCELLED;
 
-		ob = ED_object_add_type(C, OB_EMPTY, loc, rot, FALSE, layer);
+		ob = ED_object_add_type(C, OB_EMPTY, NULL, rot, FALSE, layer);
 		ob->empty_drawtype = OB_EMPTY_IMAGE;
+
+		/* add under the mouse */
+		ED_object_location_from_view(C, ob->loc);
+		ED_view3d_cursor3d_position(C, ob->loc, event->mval);
 	}
 
 	ob->data = ima;
@@ -2110,8 +2114,11 @@ static int add_named_exec(bContext *C, wmOperator *op)
 	basen->lay = basen->object->lay = scene->lay;
 
 	if (event) {
+		ARegion *ar = CTX_wm_region(C);
+		const int mval[2] = {event->x - ar->winrct.xmin,
+		                     event->y - ar->winrct.ymin};
 		ED_object_location_from_view(C, basen->object->loc);
-		ED_view3d_cursor3d_position(C, basen->object->loc, event->mval);
+		ED_view3d_cursor3d_position(C, basen->object->loc, mval);
 	}
 	
 	ED_base_object_activate(C, basen);
