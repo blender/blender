@@ -86,28 +86,40 @@ void libmv_tracksInsert(struct libmv_Tracks *libmv_tracks, int image, int track,
 void libmv_tracksDestroy(struct libmv_Tracks *libmv_tracks);
 
 /* Reconstruction solver */
-#define LIBMV_REFINE_FOCAL_LENGTH	(1<<0)
-#define LIBMV_REFINE_PRINCIPAL_POINT	(1<<1)
-#define LIBMV_REFINE_RADIAL_DISTORTION_K1 (1<<2)
-#define LIBMV_REFINE_RADIAL_DISTORTION_K2 (1<<4)
 
-/* TODO: make keyframes/distortion model a part of options? */
-struct libmv_reconstructionOptions {
+#define LIBMV_REFINE_FOCAL_LENGTH          (1 << 0)
+#define LIBMV_REFINE_PRINCIPAL_POINT       (1 << 1)
+#define LIBMV_REFINE_RADIAL_DISTORTION_K1  (1 << 2)
+#define LIBMV_REFINE_RADIAL_DISTORTION_K2  (1 << 4)
+
+typedef struct libmv_cameraIntrinsicsOptions {
+	double focal_length;
+	double principal_point_x, principal_point_y;
+	double k1, k2, k3;
+	double p1, p2;
+} libmv_cameraIntrinsicsOptions;
+
+typedef struct libmv_reconstructionOptions {
+	int keyframe1, keyframe2;
+	int refine_intrinsics;
+
 	double success_threshold;
 	int use_fallback_reconstruction;
-};
+} libmv_reconstructionOptions;
 
 typedef void (*reconstruct_progress_update_cb) (void *customdata, double progress, const char *message);
 
 int libmv_refineParametersAreValid(int parameters);
 
-struct libmv_Reconstruction *libmv_solveReconstruction(struct libmv_Tracks *tracks, int keyframe1, int keyframe2,
-			int refine_intrinsics, double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
-			struct libmv_reconstructionOptions *options, reconstruct_progress_update_cb progress_update_callback,
+struct libmv_Reconstruction *libmv_solveReconstruction(struct libmv_Tracks *libmv_tracks,
+			libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
+			libmv_reconstructionOptions *libmv_reconstruction_options,
+			reconstruct_progress_update_cb progress_update_callback,
 			void *callback_customdata);
-struct libmv_Reconstruction *libmv_solveModal(struct libmv_Tracks *tracks, double focal_length,
-			double principal_x, double principal_y, double k1, double k2, double k3,
-			reconstruct_progress_update_cb progress_update_callback, void *callback_customdata);
+struct libmv_Reconstruction *libmv_solveModal(struct libmv_Tracks *libmv_tracks,
+			libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
+			reconstruct_progress_update_cb progress_update_callback,
+			void *callback_customdata);
 int libmv_reporojectionPointForTrack(struct libmv_Reconstruction *libmv_reconstruction, int track, double pos[3]);
 double libmv_reporojectionErrorForTrack(struct libmv_Reconstruction *libmv_reconstruction, int track);
 double libmv_reporojectionErrorForImage(struct libmv_Reconstruction *libmv_reconstruction, int image);
