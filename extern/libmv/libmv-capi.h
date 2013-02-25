@@ -97,6 +97,7 @@ typedef struct libmv_cameraIntrinsicsOptions {
 	double principal_point_x, principal_point_y;
 	double k1, k2, k3;
 	double p1, p2;
+	int image_width, image_height;
 } libmv_cameraIntrinsicsOptions;
 
 typedef struct libmv_reconstructionOptions {
@@ -139,46 +140,45 @@ void libmv_destroyFeatures(struct libmv_Features *libmv_features);
 /* camera intrinsics */
 struct libmv_CameraIntrinsics *libmv_ReconstructionExtractIntrinsics(struct libmv_Reconstruction *libmv_Reconstruction);
 
-struct libmv_CameraIntrinsics *libmv_CameraIntrinsicsNew(double focal_length, double principal_x, double principal_y,
-			double k1, double k2, double k3, int width, int height);
+struct libmv_CameraIntrinsics *libmv_CameraIntrinsicsNew(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options);
 
-struct libmv_CameraIntrinsics *libmv_CameraIntrinsicsCopy(struct libmv_CameraIntrinsics *libmvIntrinsics);
+struct libmv_CameraIntrinsics *libmv_CameraIntrinsicsCopy(struct libmv_CameraIntrinsics *libmv_intrinsics);
 
-void libmv_CameraIntrinsicsDestroy(struct libmv_CameraIntrinsics *libmvIntrinsics);
+void libmv_CameraIntrinsicsDestroy(struct libmv_CameraIntrinsics *libmv_intrinsics);
 
-void libmv_CameraIntrinsicsUpdate(struct libmv_CameraIntrinsics *libmvIntrinsics, double focal_length,
-			double principal_x, double principal_y, double k1, double k2, double k3, int width, int height);
+void libmv_CameraIntrinsicsUpdate(struct libmv_CameraIntrinsics *libmv_intrinsics,
+                                  libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options);
 
-void libmv_CameraIntrinsicsExtract(struct libmv_CameraIntrinsics *libmvIntrinsics, double *focal_length,
+void libmv_CameraIntrinsicsExtract(struct libmv_CameraIntrinsics *libmv_intrinsics, double *focal_length,
 			double *principal_x, double *principal_y, double *k1, double *k2, double *k3, int *width, int *height);
 
-void libmv_CameraIntrinsicsUndistortByte(struct libmv_CameraIntrinsics *libmvIntrinsics,
+void libmv_CameraIntrinsicsUndistortByte(struct libmv_CameraIntrinsics *libmv_intrinsics,
 			unsigned char *src, unsigned char *dst, int width, int height, float overscan, int channels);
 
-void libmv_CameraIntrinsicsUndistortFloat(struct libmv_CameraIntrinsics *libmvIntrinsics,
+void libmv_CameraIntrinsicsUndistortFloat(struct libmv_CameraIntrinsics *libmv_intrinsics,
 			float *src, float *dst, int width, int height, float overscan, int channels);
 
-void libmv_CameraIntrinsicsDistortByte(struct libmv_CameraIntrinsics *libmvIntrinsics,
+void libmv_CameraIntrinsicsDistortByte(struct libmv_CameraIntrinsics *libmv_intrinsics,
 			unsigned char *src, unsigned char *dst, int width, int height, float overscan, int channels);
 
-void libmv_CameraIntrinsicsDistortFloat(struct libmv_CameraIntrinsics *libmvIntrinsics,
+void libmv_CameraIntrinsicsDistortFloat(struct libmv_CameraIntrinsics *libmv_intrinsics,
 			float *src, float *dst, int width, int height, float overscan, int channels);
 
 /* dsitortion */
-void libmv_undistortByte(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+void libmv_undistortByte(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
 			unsigned char *src, unsigned char *dst, int width, int height, float overscan, int channels);
-void libmv_undistortFloat(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+void libmv_undistortFloat(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
 			float *src, float *dst, int width, int height, float overscan, int channels);
 
-void libmv_distortByte(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+void libmv_distortByte(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
 			unsigned char *src, unsigned char *dst, int width, int height, float overscan, int channels);
-void libmv_distortFloat(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+void libmv_distortFloat(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
 			float *src, float *dst, int width, int height, float overscan, int channels);
 
 /* utils */
-void libmv_applyCameraIntrinsics(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+void libmv_applyCameraIntrinsics(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
 			double x, double y, double *x1, double *y1);
-void libmv_InvertIntrinsics(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+void libmv_InvertIntrinsics(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
 			double x, double y, double *x1, double *y1);
 
 /* point clouds */
