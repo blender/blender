@@ -239,6 +239,7 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 				joint_index_by_def_index.push_back(-1);
 		}
 
+		int oob_counter = 0;
 		for (i = 0; i < me->totvert; i++) {
 			MDeformVert *vert = &me->dvert[i];
 			std::map<int, float> jw;
@@ -248,11 +249,18 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 
 			for (j = 0; j < vert->totweight; j++) {
 				int idx = vert->dw[j].def_nr;
-				if (idx >= 0) {
-					int joint_index = joint_index_by_def_index[idx];
-					if (joint_index != -1 && vert->dw[j].weight > 0.0f) {
-						jw[joint_index] += vert->dw[j].weight;
-						sumw += vert->dw[j].weight;
+				if (idx >= joint_index_by_def_index.size()) {
+					// XXX: Maybe better find out where and 
+					//      why the Out Of Bound indexes get created ?
+					oob_counter += 1;
+				}
+				else {
+					if (idx >= 0) {
+						int joint_index = joint_index_by_def_index[idx];
+						if (joint_index != -1 && vert->dw[j].weight > 0.0f) {
+							jw[joint_index] += vert->dw[j].weight;
+							sumw += vert->dw[j].weight;
+						}
 					}
 				}
 			}
@@ -273,6 +281,10 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 				weights.push_back(1.0f);
 #endif
 			}
+		}
+
+		if (oob_counter > 0) {
+			fprintf(stderr, "Ignored %d Vertex weigths which use index to non existing VGroup.\n", oob_counter, joint_index_by_def_index.size());
 		}
 	}
 
