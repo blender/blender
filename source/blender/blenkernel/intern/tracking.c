@@ -2663,6 +2663,8 @@ typedef struct MovieReconstructContext {
 	float principal_point[2];
 	float k1, k2, k3;
 
+	int width, height;
+
 	float reprojection_error;
 
 	TracksMap *tracks_map;
@@ -2723,11 +2725,13 @@ static void reconstruct_retrieve_libmv_intrinscis(MovieReconstructContext *conte
 	                              &k1, &k2, &k3, &width, &height);
 
 	tracking->camera.focal = focal_length;
-	tracking->camera.principal[0] = principal_x;
 
+	tracking->camera.principal[0] = principal_x;
 	tracking->camera.principal[1] = principal_y / aspy;
+
 	tracking->camera.k1 = k1;
 	tracking->camera.k2 = k2;
+	tracking->camera.k3 = k3;
 }
 
 static int reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context, MovieTracking *tracking)
@@ -2935,6 +2939,9 @@ MovieReconstructContext *BKE_tracking_reconstruction_context_new(MovieTracking *
 	context->principal_point[0] = camera->principal[0];
 	context->principal_point[1] = camera->principal[1] * aspy;
 
+	context->width = width;
+	context->height = height;
+
 	context->k1 = camera->k1;
 	context->k2 = camera->k2;
 	context->k3 = camera->k3;
@@ -3030,8 +3037,8 @@ static void camraIntrincicsOptionsFromContext(libmv_cameraIntrinsicsOptions *cam
 	camera_intrinsics_options->k2 = context->k2;
 	camera_intrinsics_options->k3 = context->k3;
 
-	camera_intrinsics_options->image_width = 0;
-	camera_intrinsics_options->image_height = 0;
+	camera_intrinsics_options->image_width = context->width;
+	camera_intrinsics_options->image_height = context->height;
 }
 
 static void reconstructionOptionsFromContext(libmv_reconstructionOptions *reconstruction_options,
