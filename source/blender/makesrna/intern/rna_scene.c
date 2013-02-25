@@ -1530,8 +1530,8 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 
 	static EnumPropertyItem draw_groupuser_items[] = {
 		{OB_DRAW_GROUPUSER_NONE, "NONE", 0, "None", ""},
-		{OB_DRAW_GROUPUSER_ACTIVE, "ACTIVE", 0, "Active", "Show vertices with no weights in the actuve group"},
-		{OB_DRAW_GROUPUSER_ALL, "ALL", 0, "All", "Show vertices with no weights in the any group"},
+		{OB_DRAW_GROUPUSER_ACTIVE, "ACTIVE", 0, "Active", "Show vertices with no weights in the active group"},
+		{OB_DRAW_GROUPUSER_ALL, "ALL", 0, "All", "Show vertices with no weights in any group"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
