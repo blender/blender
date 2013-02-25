@@ -10158,7 +10158,8 @@ static ID *append_named_part(Main *mainl, FileData *fd, const char *idname, cons
 				}
 				else {
 					/* already linked */
-					printf("append: already linked\n");
+					if (G.debug)
+						printf("append: already linked\n");
 					oldnewmap_insert(fd->libmap, bhead->old, id, bhead->code);
 					if (id->flag & LIB_INDIRECT) {
 						id->flag -= LIB_INDIRECT;
