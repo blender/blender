@@ -629,7 +629,7 @@ class VIEW3D_MT_select_edit_curve(Menu):
         layout.operator("curve.select_all").action = 'TOGGLE'
         layout.operator("curve.select_all", text="Inverse").action = 'INVERT'
         layout.operator("curve.select_random")
-        layout.operator("curve.select_nth", text="Every Nth Number of Points")
+        layout.operator("curve.select_nth")
         layout.operator("curve.select_linked", text="Select Linked")
 
         layout.separator()
@@ -659,7 +659,7 @@ class VIEW3D_MT_select_edit_surface(Menu):
         layout.operator("curve.select_all").action = 'TOGGLE'
         layout.operator("curve.select_all", text="Inverse").action = 'INVERT'
         layout.operator("curve.select_random")
-        layout.operator("curve.select_nth", text="Every Nth Number of Points")
+        layout.operator("curve.select_nth")
         layout.operator("curve.select_linked", text="Select Linked")
 
         layout.separator()
