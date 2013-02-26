@@ -153,6 +153,7 @@ typedef struct uiHandleButtonData {
 	int maxlen, selextend, selstartx;
 
 	/* number editing / dragging */
+	/* coords are Window/uiBlock relative (depends on the button) */
 	int draglastx, draglasty;
 	int dragstartx, dragstarty;
 	int dragchange, draglock, dragsel;
@@ -5474,6 +5475,24 @@ static int ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y)
 	return 1;
 }
 
+/**
+ * Can we mouse over the button or is it hidden/disabled/layout.
+ */
+bool ui_is_but_interactive(uiBut *but)
+{
+	/* note, LABEL is included for highlights, this allows drags */
+	if (but->type == LABEL && but->dragpoin == NULL)
+		return false;
+	if (ELEM3(but->type, ROUNDBOX, SEPR, LISTBOX))
+		return false;
+	if (but->flag & UI_HIDDEN)
+		return false;
+	if (but->flag & UI_SCROLLED)
+		return false;
+
+	return true;
+}
+
 uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 {
 	uiBlock *block;
@@ -5491,17 +5510,11 @@ uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 		ui_window_to_block(ar, block, &mx, &my);
 
 		for (but = block->buttons.first; but; but = but->next) {
-			/* note, LABEL is included for highlights, this allows drags */
-			if (but->type == LABEL && but->dragpoin == NULL)
-				continue;
-			if (ELEM3(but->type, ROUNDBOX, SEPR, LISTBOX))
-				continue;
-			if (but->flag & UI_HIDDEN)
-				continue;
-			if (but->flag & UI_SCROLLED)
-				continue;
-			if (ui_but_contains_pt(but, mx, my))
-				butover = but;
+			if (ui_is_but_interactive(but)) {
+				if (ui_but_contains_pt(but, mx, my)) {
+					butover = but;
+				}
+			}
 		}
 
 		/* CLIP_EVENTS prevents the event from reaching other blocks */
@@ -5843,12 +5856,13 @@ static void button_activate_exit(bContext *C, uiBut *but, uiHandleButtonData *da
 
 	/* redraw (data is but->active!) */
 	ED_region_tag_redraw(data->region);
-	
+
 	/* clean up button */
 	if (but->active) {
 		MEM_freeN(but->active);
 		but->active = NULL;
 	}
+
 	but->flag &= ~(UI_ACTIVE | UI_SELECT);
 	but->flag |= UI_BUT_LAST_ACTIVE;
 	if (!onfree)

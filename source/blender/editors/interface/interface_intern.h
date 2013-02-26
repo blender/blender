@@ -171,8 +171,8 @@ struct uiBut {
 	char *str;
 	char strdata[UI_MAX_NAME_STR];
 	char drawstr[UI_MAX_DRAW_STR];
-	
-	rctf rect;
+
+	rctf rect;  /* block relative coords */
 
 	char *poin;
 	float hardmin, hardmax, softmin, softmax;
@@ -225,7 +225,7 @@ struct uiBut {
 	void *rename_orig;
 
 	uiLink *link;
-	short linkto[2];
+	short linkto[2];  /* region relative coords */
 	
 	const char *tip, *lockstr;
 
@@ -410,6 +410,7 @@ extern int  ui_is_but_bool(uiBut *but);
 extern int  ui_is_but_unit(uiBut *but);
 extern int  ui_is_but_rna_valid(uiBut *but);
 extern int  ui_is_but_utf8(uiBut *but);
+extern bool ui_is_but_interactive(uiBut *but);
 
 extern void ui_bounds_block(uiBlock *block);
 extern void ui_block_translate(uiBlock *block, int x, int y);

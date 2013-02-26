@@ -1081,63 +1081,45 @@ typedef struct DragOpInfo {
 	eButType but_type_start;
 } DragOpInfo;
 
-typedef struct DragOpPlotData {
-	bContext *C;
-	ARegion *ar;
-	bool is_set;
-	eButType but_type_start;
-	bool do_draw;
-	const uiBut *but_prev;
-} DragOpPlotData;
-
-static const uiBut *ui_but_set_xy(bContext *C, ARegion *ar, const bool is_set, const eButType but_type_start,
-                                  const int xy[2], const uiBut *but_prev)
-{
-	uiBut *but = ui_but_find_mouse_over(ar, xy[0], xy[1]);
-
-	if (but_prev == but) {
-		return but_prev;
-	}
-
-	if (but && ui_is_but_bool(but) && but->type == but_type_start) {
-		/* is it pressed? */
-		bool is_set_but = (ui_get_but_val(but) != 0.0);
-		BLI_assert(ui_is_but_bool(but) == true);
-		if (is_set_but != is_set) {
-			uiButExecute(C, but);
-			return but;
-		}
-	}
-
-	return but_prev;
-}
-
-static int ui_but_set_cb(int x, int y, void *data_v)
-{
-	DragOpPlotData *data = data_v;
-	int xy[2] = {x, y};
-	data->but_prev = ui_but_set_xy(data->C, data->ar, data->is_set, data->but_type_start, xy, data->but_prev);
-	return 1;  /* keep going */
-}
-
-/* operates on buttons between 2 mouse-points */
 static bool ui_but_set_xy_xy(bContext *C, ARegion *ar, const bool is_set, const eButType but_type_start,
                              const int xy_src[2], const int xy_dst[2])
 {
-	DragOpPlotData data;
-	data.C = C;
-	data.ar = ar;
-	data.is_set = is_set;
-	data.but_type_start = but_type_start;
-	data.do_draw = false;
-	data.but_prev = NULL;
+	bool change = false;
+	uiBlock *block;
 
+	for (block = ar->uiblocks.first; block; block = block->next) {
+		uiBut *but;
 
-	/* prevent dragging too fast loosing buttons */
-	plot_line_v2v2i(xy_src, xy_dst, ui_but_set_cb, &data);
+		float xy_a_block[2] = {UNPACK2(xy_src)};
+		float xy_b_block[2] = {UNPACK2(xy_dst)};
 
-	return data.do_draw;
+		ui_window_to_block_fl(ar, block, &xy_a_block[0], &xy_a_block[1]);
+		ui_window_to_block_fl(ar, block, &xy_b_block[0], &xy_b_block[1]);
+
+		for (but = block->buttons.first; but; but = but->next) {
+			if (ui_is_but_interactive(but)) {
+				if (BLI_rctf_isect_segment(&but->rect, xy_a_block, xy_b_block)) {
+
+					/* execute the button */
+					if (ui_is_but_bool(but) && but->type == but_type_start) {
+						/* is it pressed? */
+						bool is_set_but = (ui_get_but_val(but) != 0.0);
+						BLI_assert(ui_is_but_bool(but) == true);
+						if (is_set_but != is_set) {
+							uiButExecute(C, but);
+							change = true;
+						}
+					}
+					/* done */
+
+				}
+			}
+		}
+	}
+
+	return change;
 }
+
 
 static void ui_drag_but_set(bContext *C, wmOperator *op, const int xy_input[2])
 {
@@ -1307,4 +1289,3 @@ void UI_buttons_operatortypes(void)
 	WM_operatortype_append(UI_OT_reloadtranslation);
 	WM_operatortype_append(UI_OT_drag_toggle);
 }
-
