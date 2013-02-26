@@ -25,33 +25,48 @@ from bpy_extras import keyconfig_utils
 
 
 def check_maps():
-    maps = set()
+    maps = {}
 
     def fill_maps(ls):
-        for entry in ls:
-            maps.add(entry[0])
-            fill_maps(entry[3])
+        for km_name, km_space_type, km_region_type, km_sub in ls:
+            maps[km_name] = (km_space_type, km_region_type)
+            fill_maps(km_sub)
 
     fill_maps(keyconfig_utils.KM_HIERARCHY)
 
     import bpy
-    maps_bl = set(bpy.context.window_manager.keyconfigs.active.keymaps.keys())
+    keyconf = bpy.context.window_manager.keyconfigs.active
+    maps_bl = set(keyconf.keymaps.keys())
+    maps_py = set(maps.keys())
 
     err = False
     # Check keyconfig contains only maps that exist in blender
-    test = maps - maps_bl
+    test = maps_py - maps_bl
     if test:
         print("Keymaps that are in 'keyconfig_utils' but not blender")
         for km_id in sorted(test):
             print("\t%s" % km_id)
         err = True
 
-    test = maps_bl - maps
+    test = maps_bl - maps_py
     if test:
         print("Keymaps that are in blender but not in 'keyconfig_utils'")
         for km_id in sorted(test):
-            print("\t%s" % km_id)
+            km = keyconf.keymaps[km_id]
+            print("    ('%s', '%s', '%s', [])," % (km_id, km.space_type, km.region_type))
         err = True
+
+    # Check space/region's are OK
+    print("Comparing keymap space/region types...")
+    for km_id, km in keyconf.keymaps.items():
+        km_py = maps.get(km_id)
+        if km_py is not None:
+            km_space_type, km_region_type = km_py
+            if km_space_type != km.space_type or km_region_type != km.region_type:
+                print("  Error:")
+                print("    expected -- ('%s', '%s', '%s', [])," % (km_id, km.space_type, km.region_type))
+                print("    got      -- ('%s', '%s', '%s', [])," % (km_id, km_space_type, km_region_type))
+    print("done!")
 
     return err
 
@@ -59,6 +74,7 @@ def check_maps():
 def main():
     err = check_maps()
 
+    import bpy
     if err and bpy.app.background:
         # alert CTest we failed
         import sys
