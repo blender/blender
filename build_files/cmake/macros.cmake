@@ -143,7 +143,9 @@ macro(blender_source_group
 
 	foreach(_SRC ${sources})
 		get_filename_component(_SRC_EXT ${_SRC} EXT)
-		if((${_SRC_EXT} MATCHES ".h") OR (${_SRC_EXT} MATCHES ".hpp"))
+		if((${_SRC_EXT} MATCHES ".h") OR
+		   (${_SRC_EXT} MATCHES ".hpp") OR
+		   (${_SRC_EXT} MATCHES ".hh"))
 			source_group("Header Files" FILES ${_SRC})
 		else()
 			source_group("Source Files" FILES ${_SRC})

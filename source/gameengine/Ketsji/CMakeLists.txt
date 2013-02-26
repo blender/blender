@@ -222,6 +222,18 @@ set(SRC
 	KX_VisibilityActuator.h
 	KX_WorldInfo.h
 	KX_WorldIpoController.h
+
+	# orphan headers (not apart of a library)
+	../Physics/common/PHY_DynamicTypes.h
+	../Physics/common/PHY_ICharacter.h
+	../Physics/common/PHY_IController.h
+	../Physics/common/PHY_IGraphicController.h
+	../Physics/common/PHY_IMotionState.h
+	../Physics/common/PHY_IPhysicsController.h
+	../Physics/common/PHY_IPhysicsEnvironment.h
+	../Physics/common/PHY_IVehicle.h
+	../Physics/common/PHY_Pro.h
+
 )
 
 add_definitions(-DGLEW_STATIC)

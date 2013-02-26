@@ -64,7 +64,7 @@ char *fsmenu_get_entry(struct FSMenu *fsmenu, FSMenuCategory category, int index
 
 /** Inserts a new fsmenu entry with the given \a path.
  * Duplicate entries are not added.
- * \param sorted Should entry be inserted in sorted order?
+ * \param flag Options for inserting the entry.
  */
 void    fsmenu_insert_entry(struct FSMenu *fsmenu, FSMenuCategory category, const char *path, const FSMenuInsert flag);
 
