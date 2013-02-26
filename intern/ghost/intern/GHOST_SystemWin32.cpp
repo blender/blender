@@ -217,8 +217,8 @@ void GHOST_SystemWin32::getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUns
 
 void GHOST_SystemWin32::getAllDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const
 {
-	width = ::GetSystemMetrics(SM_XVIRTUALSCREEN);
-	height = ::GetSystemMetrics(SM_YVIRTUALSCREEN);
+	width = ::GetSystemMetrics(SM_CXVIRTUALSCREEN);
+	height = ::GetSystemMetrics(SM_CYVIRTUALSCREEN);
 }
 
 GHOST_IWindow *GHOST_SystemWin32::createWindow(
