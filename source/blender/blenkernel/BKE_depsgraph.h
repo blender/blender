@@ -30,114 +30,93 @@
  *  \ingroup bke
  */
 
+/* Dependency Graph
+ *
+ * The dependency graph tracks relations between datablocks, and is used to
+ * determine which datablocks need to be update based on dependencies and
+ * visibility.
+ *
+ * It does not itself execute changes in objects, but rather sorts the objects
+ * in the appropriate order and sets flags indicating they should be updated.
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// #define DEPS_DEBUG
-
-struct DagForest;
-struct DagNode;
-struct DagNodeQueue;
-struct GHash;
 struct ID;
 struct Main;
 struct Object;
 struct Scene;
 
-/* **** DAG relation types *** */
+/* Build and Update
+ *
+ * DAG_scene_relations_update will rebuild the dependency graph for a given
+ * scene if needed, and sort objects in the scene.
+ *
+ * DAG_relations_tag_update will clear all dependency graphs and mark them to
+ * be rebuilt later. The graph is not rebuilt immediately to avoid slowdowns
+ * when this function is call multiple times from different operators.
+ *
+ * DAG_scene_relations_rebuild forces an immediaterebuild of the dependency
+ * graph, this is only needed in rare cases
+ */
 
-/* scene link to object */
-#define DAG_RL_SCENE        (1 << 0)
-/* object link to data */
-#define DAG_RL_DATA         (1 << 1)
+void DAG_scene_relations_update(struct Main *bmain, struct Scene *sce);
+void DAG_relations_tag_update(struct Main *bmain);
+void DAG_scene_relations_rebuild(struct Main *bmain, struct Scene *scene);
 
-/* object changes object (parent, track, constraints) */
-#define DAG_RL_OB_OB        (1 << 2)
-/* object changes obdata (hooks, constraints) */
-#define DAG_RL_OB_DATA      (1 << 3)
-/* data changes object (vertex parent) */
-#define DAG_RL_DATA_OB      (1 << 4)
-/* data changes data (deformers) */
-#define DAG_RL_DATA_DATA    (1 << 5)
+/* Update Tagging
+ *
+ * DAG_scene_update_flags will mark all objects that depend on time (animation,
+ * physics, ..) to be recalculated, used when changing the current frame.
+ * 
+ * DAG_on_visible_update will mark all objects that are visible for the first
+ * time to be updated, for example on file load or changing layer visibility.
+ *
+ * DAG_id_tag_update will mark a given datablock to be updated. The flag indicates
+ * a specific subset to be update (only object transform and data for now).
+ *
+ * DAG_id_type_tag marks a particular datablock type as having changing. This does
+ * not cause any updates but is used by external render engines to detect if for
+ * example a datablock was removed. */
 
-#define DAG_NO_RELATION     (1 << 6)
+void DAG_scene_update_flags(struct Main *bmain, struct Scene *sce, unsigned int lay, const short do_time);
+void DAG_on_visible_update(struct Main *bmain, const short do_time);
 
-#define DAG_RL_ALL_BUT_DATA (DAG_RL_SCENE | DAG_RL_OB_OB | DAG_RL_OB_DATA | DAG_RL_DATA_OB | DAG_RL_DATA_DATA)
-#define DAG_RL_ALL          (DAG_RL_ALL_BUT_DATA | DAG_RL_DATA)
+void DAG_id_tag_update(struct ID *id, short flag);
+void DAG_id_tag_update_ex(struct Main *bmain, struct ID *id, short flag);
+void DAG_id_type_tag(struct Main *bmain, short idtype);
+int  DAG_id_type_tagged(struct Main *bmain, short idtype);
 
+/* Flushing Tags
+ *
+ * DAG_scene_flush_update flushes object recalculation flags immediately to other
+ * dependencies. Do not use outside of depsgraph.c, this will be removed.
+ *
+ * DAG_ids_flush_tagged will flush datablock update flags flags to dependencies,
+ * use this right before updating to mark all the needed datablocks for update.
+ *
+ * DAG_ids_check_recalc and DAG_ids_clear_recalc are used for external render
+ * engines to detect changes. */
 
-typedef void (*graph_action_func)(void *ob, void **data);
+void DAG_scene_flush_update(struct Main *bmain, struct Scene *sce, unsigned int lay, const short do_time);
+void DAG_ids_flush_tagged(struct Main *bmain);
+void DAG_ids_check_recalc(struct Main *bmain, struct Scene *scene, int time);
+void DAG_ids_clear_recalc(struct Main *bmain);
 
-// queues are returned by all BFS & DFS queries
-// opaque type
-void    *pop_ob_queue(struct DagNodeQueue *queue);
-int     queue_count(struct DagNodeQueue *queue);
-void    queue_delete(struct DagNodeQueue *queue);
+/* Armature: sorts the bones according to dependencies between them */
 
-// queries
-struct DagForest    *build_dag(struct Main *bmain, struct Scene *sce, short mask);
-void                free_forest(struct DagForest *Dag);
+void DAG_pose_sort(struct Object *ob);
 
-// note :
-// the meanings of the 2 returning values is a bit different :
-// BFS return 1 for cross-edges and back-edges. the latter are considered harmfull, not the former
-// DFS return 1 only for back-edges
-int pre_and_post_BFS(struct DagForest *dag, short mask, graph_action_func pre_func, graph_action_func post_func, void **data);
-int pre_and_post_DFS(struct DagForest *dag, short mask, graph_action_func pre_func, graph_action_func post_func, void **data);
+/* Editors: callbacks to notify editors of datablock changes */
 
-int pre_and_post_source_BFS(struct DagForest *dag, short mask, struct DagNode *source, graph_action_func pre_func, graph_action_func post_func, void **data);
-int pre_and_post_source_DFS(struct DagForest *dag, short mask, struct DagNode *source, graph_action_func pre_func, graph_action_func post_func, void **data);
+void DAG_editors_update_cb(void (*id_func)(struct Main *bmain, struct ID *id),
+                           void (*scene_func)(struct Main *bmain, struct Scene *scene, int updated));
 
-struct DagNodeQueue *get_obparents(struct DagForest *dag, void *ob);
-struct DagNodeQueue *get_first_ancestors(struct DagForest   *dag, void *ob);
-struct DagNodeQueue *get_all_childs(struct DagForest    *dag, void *ob);
-short  are_obs_related(struct DagForest    *dag, void *ob1, void *ob2);
-int    is_acyclic(struct DagForest *dag);
-//int					get_cycles(struct DagForest	*dag, struct DagNodeQueue **queues, int *count); //
+/* Debugging: print dependency graph for scene or armature object to console */
 
-/* ********** API *************** */
-/* Note that the DAG never executes changes in Objects, only sets flags in Objects */
-
-/* clear all dependency graphs, call this when changing relations between objects.
- * the dependency graphs will be rebuilt just before they are used to avoid them
- * getting rebuild many times during operators */
-void    DAG_relations_tag_update(struct Main *bmain);
-
-/* (re)-create the dependency graph before using it */
-void    DAG_scene_relations_update(struct Main *bmain, struct Scene *sce);
-
-/* force an immediate rebuild of the dependency graph, only needed in rare cases */
-void    DAG_scene_relations_rebuild(struct Main *bmain, struct Scene *scene);
-
-/* flag all objects that need recalc because they're animated */
-void    DAG_scene_update_flags(struct Main *bmain, struct Scene *sce, unsigned int lay, const short do_time);
-/* flushes all recalc flags in objects down the dependency tree */
-void    DAG_scene_flush_update(struct Main *bmain, struct Scene *sce, unsigned int lay, const short do_time);
-/* tag objects for update on file load */
-void    DAG_on_visible_update(struct Main *bmain, const short do_time);
-
-/* tag datablock to get updated for the next redraw */
-void    DAG_id_tag_update_ex(struct Main *bmain, struct ID *id, short flag);
-void    DAG_id_tag_update(struct ID *id, short flag);
-/* flush all tagged updates */
-void    DAG_ids_flush_tagged(struct Main *bmain);
-/* check and clear ID recalc flags */
-void    DAG_ids_check_recalc(struct Main *bmain, struct Scene *scene, int time);
-void    DAG_ids_clear_recalc(struct Main *bmain);
-/* test if any of this id type is tagged for update */
-void    DAG_id_type_tag(struct Main *bmain, short idtype);
-int     DAG_id_type_tagged(struct Main *bmain, short idtype);
-
-/* (re)-create dependency graph for armature pose */
-void    DAG_pose_sort(struct Object *ob);
-
-/* callback for editors module to do updates */
-void    DAG_editors_update_cb(void (*id_func)(struct Main *bmain, struct ID *id),
-                              void (*scene_func)(struct Main *bmain, struct Scene *scene, int updated));
-
-/* debugging */
-void    DAG_print_dependencies(struct Main *bmain, struct Scene *scene, struct Object *ob);
+void DAG_print_dependencies(struct Main *bmain, struct Scene *scene, struct Object *ob);
 
 #ifdef __cplusplus
 }
