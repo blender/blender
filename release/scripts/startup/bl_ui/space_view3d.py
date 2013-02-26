@@ -209,7 +209,7 @@ class VIEW3D_MT_transform_object(VIEW3D_MT_transform_base):
         layout.operator("object.origin_set", text="Geometry to Origin").type = 'GEOMETRY_ORIGIN'
         layout.operator("object.origin_set", text="Origin to Geometry").type = 'ORIGIN_GEOMETRY'
         layout.operator("object.origin_set", text="Origin to 3D Cursor").type = 'ORIGIN_CURSOR'
-
+        layout.operator("object.origin_set", text="Origin to Center of Mass").type = 'ORIGIN_TO_CENTER_OF_MASS'
         layout.separator()
 
         layout.operator("object.randomize_transform")
