@@ -2864,10 +2864,10 @@ static int reconstruct_refine_intrinsics_get_flags(MovieTracking *tracking, Movi
 		flags |= LIBMV_REFINE_PRINCIPAL_POINT;
 
 	if (refine & REFINE_RADIAL_DISTORTION_K1)
-		flags |= REFINE_RADIAL_DISTORTION_K1;
+		flags |= LIBMV_REFINE_RADIAL_DISTORTION_K1;
 
 	if (refine & REFINE_RADIAL_DISTORTION_K2)
-		flags |= REFINE_RADIAL_DISTORTION_K2;
+		flags |= LIBMV_REFINE_RADIAL_DISTORTION_K2;
 
 	return flags;
 }

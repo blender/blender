@@ -208,6 +208,9 @@ void BundleIntrinsicsLogMessage(int bundle_intrinsics) {
   } else if (bundle_intrinsics == (BUNDLE_FOCAL_LENGTH |
                                    BUNDLE_RADIAL_K1)) {
     LG << "Bundling f, k1.";
+  } else if (bundle_intrinsics == (BUNDLE_RADIAL_K1 |
+                                   BUNDLE_RADIAL_K2)) {
+    LG << "Bundling k1, k2.";
   } else {
     LOG(FATAL) << "Unsupported bundle combination.";
   }

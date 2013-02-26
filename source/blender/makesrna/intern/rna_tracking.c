@@ -579,6 +579,9 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 		{REFINE_FOCAL_LENGTH |
 		 REFINE_PRINCIPAL_POINT, "FOCAL_LENGTH_PRINCIPAL_POINT", 0, "Focal Length, Optical Center",
 		 "Refine focal length and optical center"},
+		{REFINE_RADIAL_DISTORTION_K1 |
+		 REFINE_RADIAL_DISTORTION_K2, "RADIAL_K1_K2", 0, "K1, K2",
+		 "Refine radial distortion K1 and K2"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

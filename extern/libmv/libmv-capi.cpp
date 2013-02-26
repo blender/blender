@@ -437,7 +437,9 @@ int libmv_refineParametersAreValid(int parameters) {
 	                       LIBMV_REFINE_RADIAL_DISTORTION_K1   |
 	                       LIBMV_REFINE_RADIAL_DISTORTION_K2)) ||
 	       (parameters == (LIBMV_REFINE_FOCAL_LENGTH           |
-	                       LIBMV_REFINE_RADIAL_DISTORTION_K1));
+	                       LIBMV_REFINE_RADIAL_DISTORTION_K1)) ||
+	       (parameters == (LIBMV_REFINE_RADIAL_DISTORTION_K1   |
+	                       LIBMV_REFINE_RADIAL_DISTORTION_K2));
 }
 
 static void libmv_solveRefineIntrinsics(libmv::Tracks *tracks, libmv::CameraIntrinsics *intrinsics,
