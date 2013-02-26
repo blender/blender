@@ -195,7 +195,6 @@ ${third_glog_headers}
 endif()
 
 add_definitions(
-	-DV3DLIB_ENABLE_SUITESPARSE
 	-DGOOGLE_GLOG_DLL_DECL=
 )
 
@@ -218,7 +217,6 @@ Import('env')
 
 defs = []
 
-defs.append('V3DLIB_ENABLE_SUITESPARSE')
 defs.append('GOOGLE_GLOG_DLL_DECL=')
 
 src = env.Glob("*.cpp")

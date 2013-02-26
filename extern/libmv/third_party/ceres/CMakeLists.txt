@@ -261,7 +261,14 @@ add_definitions(
 	-DCERES_NO_CXSPARSE
 	-DCERES_NO_PROTOCOL_BUFFERS
 	-DCERES_RESTRICT_SCHUR_SPECIALIZATION
+	-DCERES_HAVE_RWLOCK
 )
+
+if(WITH_OPENMP)
+	add_definitions(
+		-DCERES_USE_OPENMP
+	)
+endif()
 
 if(MSVC10)
 	add_definitions(

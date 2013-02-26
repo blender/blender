@@ -216,7 +216,6 @@ else()
 endif()
 
 add_definitions(
-	-DV3DLIB_ENABLE_SUITESPARSE
 	-DGOOGLE_GLOG_DLL_DECL=
 )
 
