@@ -107,6 +107,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		subsurf_flags |= SUBSURF_IN_EDIT_MODE;
 	
 	result = subsurf_make_derived_from_derived(derivedData, smd, NULL, subsurf_flags);
+	result->cd_flag = derivedData->cd_flag;
 	
 	if (useRenderParams || !isFinalCalc) {
 		DerivedMesh *cddm = CDDM_copy(result);
