@@ -44,7 +44,13 @@ class VIEW3D_HT_header(Header):
             sub.menu("VIEW3D_MT_view")
 
             # Select Menu
-            if mode_string not in {'EDIT_TEXT', 'SCULPT', 'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
+            if mode_string in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
+                mesh = obj.data
+                if mesh.use_paint_mask:
+                    sub.menu("VIEW3D_MT_select_paint_mask")
+                elif mesh.use_paint_mask_vertex and mode_string == 'PAINT_WEIGHT':
+                    sub.menu("VIEW3D_MT_select_paint_mask_vertex")
+            elif mode_string not in {'EDIT_TEXT', 'SCULPT'}:
                 sub.menu("VIEW3D_MT_select_%s" % mode_string.lower())
 
             if edit_object:
@@ -673,6 +679,7 @@ class VIEW3D_MT_select_edit_metaball(Menu):
         layout = self.layout
 
         layout.operator("view3d.select_border")
+        layout.operator("view3d.select_circle")
 
         layout.separator()
 
@@ -730,15 +737,39 @@ class VIEW3D_MT_select_edit_armature(Menu):
         layout.operator("object.select_pattern", text="Select Pattern...")
 
 
-class VIEW3D_MT_select_face(Menu):  # XXX no matching enum
+class VIEW3D_MT_select_paint_mask(Menu):
     bl_label = "Select"
 
     def draw(self, context):
-        # layout = self.layout
+        layout = self.layout
 
-        # TODO
-        # see view3d_select_faceselmenu
-        pass
+        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_circle")
+
+        layout.separator()
+
+        layout.operator("paint.face_select_all").action = 'TOGGLE'
+        layout.operator("paint.face_select_all", text="Inverse").action = 'INVERT'
+
+        layout.separator()
+
+        layout.operator("paint.face_select_linked", text="Linked")
+
+
+class VIEW3D_MT_select_paint_mask_vertex(Menu):
+    bl_label = "Select"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_circle")
+
+        layout.separator()
+
+        layout.operator("paint.vert_select_all").action = 'TOGGLE'
+        layout.operator("paint.vert_select_all", text="Inverse").action = 'INVERT'
+
 
 # ********** Object menu **********
 
