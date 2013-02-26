@@ -5285,6 +5285,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 			TransDataEdgeSlideVert *sv;
 
 			/* XXX, 'sv' will initialize multiple times, this is suspicious. see [#34024] */
+			BLI_assert(BLI_smallhash_haskey(&table, (uintptr_t)v) != false);
 			sv = sv_array + GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
 			sv->v = v;
 			sv->origvert = *v;
@@ -5307,6 +5308,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 			e1 = e;
 			e = get_other_edge(v, e);
 			if (!e) {
+				BLI_assert(BLI_smallhash_haskey(&table, (uintptr_t)v) != false);
 				sv = sv_array + GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
 				sv->v = v;
 				sv->origvert = *v;
@@ -5330,6 +5332,12 @@ static int createEdgeSlideVerts(TransInfo *t)
 
 			l1 = get_next_loop(v, l1, e1, e, vec);
 			l2 = l2 ? get_next_loop(v, l2, e1, e, vec2) : NULL;
+
+			if (UNLIKELY(l1 == NULL && l2 != NULL)) {
+				l1 = l2;
+				l2 = NULL;
+				swap_v3_v3(vec, vec2);
+			}
 
 			BM_elem_flag_disable(v, BM_ELEM_TAG);
 			BM_elem_flag_disable(v2, BM_ELEM_TAG);
@@ -5372,6 +5380,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 						continue;
 					}
 
+					BLI_assert(BLI_smallhash_haskey(&table, (uintptr_t)v) != false);
 					j = GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
 
 					if (sv_array[j].down) {
