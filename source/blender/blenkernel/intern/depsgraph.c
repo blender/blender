@@ -1429,6 +1429,15 @@ void DAG_scene_relations_update(Main *bmain, Scene *sce)
 		dag_scene_build(bmain, sce);
 }
 
+void DAG_scene_free(Scene *sce)
+{
+	if (sce->theDag) {
+		free_forest(sce->theDag);
+		MEM_freeN(sce->theDag);
+		sce->theDag = NULL;
+	}
+}
+
 static void lib_id_recalc_tag(Main *bmain, ID *id)
 {
 	id->flag |= LIB_ID_RECALC;

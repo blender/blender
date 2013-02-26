@@ -359,10 +359,7 @@ void BKE_scene_free(Scene *sce)
 		sce->toolsettings = NULL;
 	}
 	
-	if (sce->theDag) {
-		free_forest(sce->theDag);
-		MEM_freeN(sce->theDag);
-	}
+	DAG_scene_free(sce);
 	
 	if (sce->nodetree) {
 		ntreeFreeTree(sce->nodetree);
