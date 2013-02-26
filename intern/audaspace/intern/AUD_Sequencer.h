@@ -100,7 +100,7 @@ public:
 	 * \param muted Whether the whole scene is muted.
 	 */
 	AUD_Sequencer(AUD_Specs specs, float fps, bool muted);
-	~AUD_Sequencer();
+	virtual ~AUD_Sequencer();
 
 	/**
 	 * Locks the sequence.

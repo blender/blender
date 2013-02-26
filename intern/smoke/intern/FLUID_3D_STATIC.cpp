@@ -200,13 +200,15 @@ void FLUID_3D::setZeroZ(float* field, Vec3Int res, int zBegin, int zEnd)
 	const int totalCells = res[0] * res[1] * res[2];
 
 	int index = 0;
-	if ((zBegin == 0))
-	for (int y = 0; y < res[1]; y++)
-		for (int x = 0; x < res[0]; x++, index++)
-		{
-			// front slab
-			field[index] = 0.0f;
-    }
+	if (zBegin == 0)
+	{
+		for (int y = 0; y < res[1]; y++)
+			for (int x = 0; x < res[0]; x++, index++)
+			{
+				// front slab
+				field[index] = 0.0f;
+		}
+	}
 
 	if (zEnd == res[2])
 	{
@@ -265,27 +267,29 @@ void FLUID_3D::copyBorderZ(float* field, Vec3Int res, int zBegin, int zEnd)
 	const int totalCells = res[0] * res[1] * res[2];
 	int index=0;
 
-	if ((zBegin == 0))
-	for (int y = 0; y < res[1]; y++)
-		for (int x = 0; x < res[0]; x++, index++)
-		{
-			field[index] = field[index + slabSize]; 
-		}
+	if (zBegin == 0)
+	{
+		for (int y = 0; y < res[1]; y++)
+			for (int x = 0; x < res[0]; x++, index++)
+			{
+				field[index] = field[index + slabSize]; 
+			}
+	}
 
-	if ((zEnd == res[2]))
+	if (zEnd == res[2])
 	{
 
-	index=0;
-	int indexx=0;
-	const int cellsslab = totalCells - slabSize;
+		index=0;
+		int indexx=0;
+		const int cellsslab = totalCells - slabSize;
 
-	for (int y = 0; y < res[1]; y++)
-		for (int x = 0; x < res[0]; x++, index++)
-		{
-			// back slab
-			indexx = index + cellsslab;
-			field[indexx] = field[indexx - slabSize];
-		}
+		for (int y = 0; y < res[1]; y++)
+			for (int x = 0; x < res[0]; x++, index++)
+			{
+				// back slab
+				indexx = index + cellsslab;
+				field[indexx] = field[indexx - slabSize];
+			}
 	}
 }
 

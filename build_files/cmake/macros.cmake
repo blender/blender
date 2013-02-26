@@ -499,6 +499,7 @@ macro(remove_strict_flags)
 	if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 		remove_cc_flag("-Wunused-parameter")
 		remove_cc_flag("-Wunused-variable")
+		remove_cc_flag("-Werror=[^ ]+")
 		remove_cc_flag("-Werror")
 	endif()
 

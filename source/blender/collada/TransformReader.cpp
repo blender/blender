@@ -46,30 +46,28 @@ void TransformReader::get_node_mat(float mat[4][4], COLLADAFW::Node *node, std::
 		COLLADAFW::Transformation *tm = node->getTransformations()[i];
 		COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
 
-		if (type == COLLADAFW::Transformation::MATRIX) {
-			// XXX why does this return and discard all following transformations?
-			dae_matrix_to_mat4(tm, mat);
-			return;
+		switch (type) {
+			case COLLADAFW::Transformation::MATRIX:
+				// XXX why does this return and discard all following transformations?
+				dae_matrix_to_mat4(tm, mat);
+				return;
+			case COLLADAFW::Transformation::TRANSLATE:
+				dae_translate_to_mat4(tm, cur);
+				break;
+			case COLLADAFW::Transformation::ROTATE:
+				dae_rotate_to_mat4(tm, cur);
+				break;
+			case COLLADAFW::Transformation::SCALE:
+				dae_scale_to_mat4(tm, cur);
+				break;
+			case COLLADAFW::Transformation::LOOKAT:
+			case COLLADAFW::Transformation::SKEW:
+				fprintf(stderr, "LOOKAT and SKEW transformations are not supported yet.\n");
+				break;
 		}
-		else {
-			switch (type) {
-				case COLLADAFW::Transformation::TRANSLATE:
-					dae_translate_to_mat4(tm, cur);
-					break;
-				case COLLADAFW::Transformation::ROTATE:
-					dae_rotate_to_mat4(tm, cur);
-					break;
-				case COLLADAFW::Transformation::SCALE:
-					dae_scale_to_mat4(tm, cur);
-					break;
-				case COLLADAFW::Transformation::LOOKAT:
-				case COLLADAFW::Transformation::SKEW:
-					fprintf(stderr, "LOOKAT and SKEW transformations are not supported yet.\n");
-					break;
-			}
-			copy_m4_m4(copy, mat);
-			mult_m4_m4m4(mat, copy, cur);
-		}
+
+		copy_m4_m4(copy, mat);
+		mult_m4_m4m4(mat, copy, cur);
 		
 		if (animation_map) {
 			// AnimationList that drives this Transformation

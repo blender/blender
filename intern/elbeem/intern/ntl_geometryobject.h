@@ -223,7 +223,7 @@ class ntlGeometryObject : public ntlGeometryClass
 		vector<ntlVec3Gfx> mCachedMovPoints;
 		vector<ntlVec3Gfx> mCachedMovNormals;
 		/*! precomputed triangle divisions */
-		vector<int> mTriangleDivs1,mTriangleDivs2,mTriangleDivs3;
+		vector<int> mTriangleDivs1,mTriangleDivs2;
 		/*! inited? */
 		float mMovPntsInited;
 		/*! point with max. distance from center */

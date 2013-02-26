@@ -32,7 +32,9 @@ Armature::Armature():
 	m_qCCh(-1),
 	m_qCTs(0),
 	m_yCCh(-1),
+#if 0
 	m_yCTs(0),
+#endif
 	m_qKdl(),
 	m_oldqKdl(),
 	m_newqKdl(),

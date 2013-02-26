@@ -25,13 +25,13 @@
 namespace KDL {
 
     Segment::Segment(const Joint& _joint, const Frame& _f_tip, const Inertia& _M):
-        joint(_joint),M(_M),
+        M(_M),joint(_joint),
         f_tip(_f_tip)
     {
     }
 
     Segment::Segment(const Segment& in):
-        joint(in.joint),M(in.M),
+        M(in.M),joint(in.joint),
         f_tip(in.f_tip)
     {
     }

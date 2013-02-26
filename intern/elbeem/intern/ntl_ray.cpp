@@ -677,7 +677,6 @@ const ntlColor ntlRay::shade() //const
 ntlScene::ntlScene( ntlRenderGlobals *glob, bool del ) :
 	mpGlob( glob ), mSceneDel(del),
 	mpTree( NULL ),
-	mDisplayListId( -1 ), 
 	mSceneBuilt( false ), mFirstInitDone( false )
 {
 }

@@ -59,7 +59,7 @@ SG_Controller *BL_CreateCameraIPO(bAction *action,
 
 SG_Controller *BL_CreateMaterialIpo(
 	bAction *action,
-	class Material* blendermaterial,
+	struct Material* blendermaterial,
 	dword matname_hash,
 	KX_GameObject* gameobj,
 	KX_BlenderSceneConverter *converter);

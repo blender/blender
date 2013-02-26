@@ -49,8 +49,8 @@ static const char *bc_get_joint_name(T *node)
 	return id.size() ? id.c_str() : node->getOriginalId().c_str();
 }
 
-ArmatureImporter::ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, AnimationImporterBase *anim, Scene *sce) :
-	TransformReader(conv), scene(sce), empty(NULL), mesh_importer(mesh), anim_importer(anim) {
+ArmatureImporter::ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, Scene *sce) :
+	TransformReader(conv), scene(sce), empty(NULL), mesh_importer(mesh) {
 }
 
 ArmatureImporter::~ArmatureImporter()

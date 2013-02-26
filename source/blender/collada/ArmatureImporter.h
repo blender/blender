@@ -96,7 +96,6 @@ private:
 	std::map<COLLADAFW::UniqueId, Object*> unskinned_armature_map;
 
 	MeshImporterBase *mesh_importer;
-	AnimationImporterBase *anim_importer;
 
 	// This is used to store data passed in write_controller_data.
 	// Arrays from COLLADAFW::SkinControllerData lose ownership, so do this class members
@@ -138,7 +137,7 @@ private:
 	TagsMap uid_tags_map;
 public:
 
-	ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, AnimationImporterBase *anim, Scene *sce);
+	ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, Scene *sce);
 	~ArmatureImporter();
 
 	void add_joint(COLLADAFW::Node *node, bool root, Object *parent, Scene *sce);

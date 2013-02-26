@@ -40,6 +40,8 @@
 class AUD_IDynamicIIRFilterCalculator
 {
 public:
+	virtual ~AUD_IDynamicIIRFilterCalculator() {}
+
 	/**
 	 * Recalculates the filter coefficients.
 	 * \param rate The sample rate of the audio data.

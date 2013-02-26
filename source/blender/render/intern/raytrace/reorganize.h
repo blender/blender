@@ -80,7 +80,6 @@ void reorganize_find_fittest_parent(Node *tree, Node *node, std::pair<float, Nod
 	}
 }
 
-static int tot_moves = 0;
 template<class Node>
 void reorganize(Node *root)
 {
@@ -109,8 +108,6 @@ void reorganize(Node *root)
 					
 					tmp->sibling =  best.second->child;
 					best.second->child = tmp;
-					
-					tot_moves++;
 				}
 			
 			
