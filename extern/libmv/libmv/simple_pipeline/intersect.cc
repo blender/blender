@@ -18,6 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include "libmv/simple_pipeline/intersect.h"
+
 #include "libmv/base/vector.h"
 #include "libmv/logging/logging.h"
 #include "libmv/multiview/projection.h"
@@ -26,39 +28,41 @@
 #include "libmv/multiview/projection.h"
 #include "libmv/numeric/numeric.h"
 #include "libmv/numeric/levenberg_marquardt.h"
-#include "libmv/simple_pipeline/intersect.h"
 #include "libmv/simple_pipeline/reconstruction.h"
 #include "libmv/simple_pipeline/tracks.h"
+
+#include "ceres/ceres.h"
 
 namespace libmv {
 
 namespace {
 
-struct EuclideanIntersectCostFunction {
+class EuclideanIntersectCostFunctor {
  public:
-  typedef Vec  FMatrixType;
-  typedef Vec3 XMatrixType;
+  EuclideanIntersectCostFunctor(const Marker &marker,
+                                const EuclideanCamera &camera)
+      : marker_(marker), camera_(camera) {}
 
-  EuclideanIntersectCostFunction(const vector<Marker> &markers,
-                                 const EuclideanReconstruction &reconstruction)
-    : markers(markers),
-      reconstruction(reconstruction) {}
+  template<typename T>
+  bool operator()(const T *X, T *residuals) const {
+    typedef Eigen::Matrix<T, 3, 3> Mat3;
+    typedef Eigen::Matrix<T, 3, 1> Vec3;
 
-  Vec operator()(const Vec3 &X) const {
-    Vec residuals(2 * markers.size());
-    residuals.setZero();
-    for (int i = 0; i < markers.size(); ++i) {
-      const EuclideanCamera &camera =
-          *reconstruction.CameraForImage(markers[i].image);
-      Vec3 projected = camera.R * X + camera.t;
-      projected /= projected(2);
-      residuals[2*i + 0] = projected(0) - markers[i].x;
-      residuals[2*i + 1] = projected(1) - markers[i].y;
-    }
-    return residuals;
+    Vec3 x(X);
+    Mat3 R(camera_.R.cast<T>());
+    Vec3 t(camera_.t.cast<T>());
+
+    Vec3 projected = R * x + t;
+    projected /= projected(2);
+
+    residuals[0] = projected(0) - T(marker_.x);
+    residuals[1] = projected(1) - T(marker_.y);
+
+    return true;
   }
-  const vector<Marker> &markers;
-  const EuclideanReconstruction &reconstruction;
+
+  const Marker &marker_;
+  const EuclideanCamera &camera_;
 };
 
 }  // namespace
@@ -95,13 +99,35 @@ bool EuclideanIntersect(const vector<Marker> &markers,
   Xp /= Xp(3);
   Vec3 X = Xp.head<3>();
 
-  typedef LevenbergMarquardt<EuclideanIntersectCostFunction> Solver;
+  ceres::Problem problem;
 
-  EuclideanIntersectCostFunction triangulate_cost(markers, *reconstruction);
-  Solver::SolverParameters params;
-  Solver solver(triangulate_cost);
+  for (int i = 0; i < markers.size(); ++i) {
+    const Marker &marker = markers[i];
+    const EuclideanCamera &camera =
+        *reconstruction->CameraForImage(marker.image);
 
-  Solver::Results results = solver.minimize(params, &X);
+    problem.AddResidualBlock(
+        new ceres::AutoDiffCostFunction<
+            EuclideanIntersectCostFunctor,
+            2, /* num_residuals */
+            3>(new EuclideanIntersectCostFunctor(marker, camera)),
+        NULL,
+        &X(0));
+  }
+
+  // Configure the solve.
+  ceres::Solver::Options solver_options;
+  solver_options.linear_solver_type = ceres::DENSE_NORMAL_CHOLESKY;
+  solver_options.max_num_iterations = 50;
+  solver_options.update_state_every_iteration = true;
+  solver_options.parameter_tolerance = 1e-16;
+  solver_options.function_tolerance = 1e-16;
+
+  // Run the solve.
+  ceres::Solver::Summary summary;
+  ceres::Solve(solver_options, &problem, &summary);
+
+  VLOG(1) << "Summary:\n" << summary.FullReport();
 
   // Try projecting the point; make sure it's in front of everyone.
   for (int i = 0; i < cameras.size(); ++i) {
