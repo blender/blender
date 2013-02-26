@@ -32,6 +32,8 @@
 #ifndef __GPU_EXTENSIONS_H__
 #define __GPU_EXTENSIONS_H__
 
+#include "BLI_utildefines.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -160,17 +162,17 @@ void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels);
  * - only for fragment shaders now
  * - must call texture bind before setting a texture as uniform! */
 
-GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const char *libcode); /*GPUShader *lib);*/
-/*GPUShader *GPU_shader_create_lib(const char *code);*/
+GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const char *libcode, const char *defines);
 void GPU_shader_free(GPUShader *shader);
 
 void GPU_shader_bind(GPUShader *shader);
-void GPU_shader_unbind(GPUShader *shader);
+void GPU_shader_unbind(void);
 
 int GPU_shader_get_uniform(GPUShader *shader, const char *name);
 void GPU_shader_uniform_vector(GPUShader *shader, int location, int length,
 	int arraysize, float *value);
 void GPU_shader_uniform_texture(GPUShader *shader, int location, GPUTexture *tex);
+void GPU_shader_uniform_int(GPUShader *shader, int location, int value);
 
 int GPU_shader_get_attribute(GPUShader *shader, const char *name);
 
@@ -198,6 +200,30 @@ typedef struct GPUVertexAttribs {
 
 	int totlayer;
 } GPUVertexAttribs;
+
+/* Fixed Function Materials */
+
+typedef enum GPUFixedMaterialOption {
+	GPU_FIXED_COLOR_MATERIAL = (1<<0),   /* replace diffuse with glcolor */
+	GPU_FIXED_SOLID_LIGHTING = (1<<1),   /* use solid lighting (only 3 directional lights) */
+	GPU_FIXED_SCENE_LIGHTING = (1<<2),   /* use scene lighting (up to 8 arbitrary lights) */
+	GPU_FIXED_TWO_SIDED = (1<<3),        /* flip normals towards viewer */
+	GPU_FIXED_TEXTURE_2D = (1<<4),       /* use 2D texture to replace diffuse color */
+
+	GPU_FIXED_OPTIONS_NUM = 5,
+	GPU_FIXED_OPTION_COMBINATIONS = (1<<GPU_FIXED_OPTIONS_NUM)
+} GPUFixedMaterialOption;
+
+void GPU_fixed_materials_init(void);
+void GPU_fixed_materials_exit(void);
+
+void GPU_fixed_material_shader_bind(int options);
+void GPU_fixed_material_shader_unbind(void);
+
+void GPU_fixed_material_colors(const float diffuse[3], const float specular[3],
+	int shininess, float alpha);
+
+bool GPU_fixed_material_need_normals(void);
 
 #ifdef __cplusplus
 }

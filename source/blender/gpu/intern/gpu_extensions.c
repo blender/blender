@@ -205,12 +205,15 @@ void GPU_extensions_init(void)
 #else
 	GG.os = GPU_OS_UNIX;
 #endif
+
+	GPU_fixed_materials_init();
 }
 
 void GPU_extensions_exit(void)
 {
 	gpu_extensions_init = 0;
 	GPU_codegen_exit();
+	GPU_fixed_materials_exit();
 }
 
 int GPU_glsl_support(void)
@@ -1006,7 +1009,7 @@ void GPU_framebuffer_blur(GPUFrameBuffer *fb, GPUTexture *tex, GPUFrameBuffer *b
 	glTexCoord2d(0, 1); glVertex2f(1, -1);
 	glEnd();
 
-	GPU_shader_unbind(blur_shader);
+	GPU_shader_unbind();
 }
 
 /* GPUOffScreen */
@@ -1124,13 +1127,11 @@ static void shader_print_errors(const char *task, char *log, const char *code)
 	fprintf(stderr, "%s\n", log);
 }
 
-GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, /*GPUShader *lib,*/ const char *libcode)
+GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, const char *libcode, const char *defines)
 {
 	GLint status;
 	GLcharARB log[5000];
-	const char *fragsource[2];
 	GLsizei length = 0;
-	GLint count;
 	GPUShader *shader;
 
 	if (!GLEW_ARB_vertex_shader || !GLEW_ARB_fragment_shader)
@@ -1154,8 +1155,14 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, /*GPU
 	}
 
 	if (vertexcode) {
+		const char *source[2];
+		int num_source = 0;
+
+		if (defines) source[num_source++] = defines;
+		if (vertexcode) source[num_source++] = vertexcode;
+
 		glAttachObjectARB(shader->object, shader->vertex);
-		glShaderSourceARB(shader->vertex, 1, (const char**)&vertexcode, NULL);
+		glShaderSourceARB(shader->vertex, num_source, source, NULL);
 
 		glCompileShaderARB(shader->vertex);
 		glGetObjectParameterivARB(shader->vertex, GL_OBJECT_COMPILE_STATUS_ARB, &status);
@@ -1170,12 +1177,15 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, /*GPU
 	}
 
 	if (fragcode) {
-		count = 0;
-		if (libcode) fragsource[count++] = libcode;
-		if (fragcode) fragsource[count++] = fragcode;
+		const char *source[3];
+		int num_source = 0;
+
+		if (defines) source[num_source++] = defines;
+		if (libcode) source[num_source++] = libcode;
+		if (fragcode) source[num_source++] = fragcode;
 
 		glAttachObjectARB(shader->object, shader->fragment);
-		glShaderSourceARB(shader->fragment, count, fragsource, NULL);
+		glShaderSourceARB(shader->fragment, num_source, source, NULL);
 
 		glCompileShaderARB(shader->fragment);
 		glGetObjectParameterivARB(shader->fragment, GL_OBJECT_COMPILE_STATUS_ARB, &status);
@@ -1254,7 +1264,7 @@ void GPU_shader_bind(GPUShader *shader)
 	GPU_print_error("Post Shader Bind");
 }
 
-void GPU_shader_unbind(GPUShader *UNUSED(shader))
+void GPU_shader_unbind()
 {
 	GPU_print_error("Pre Shader Unbind");
 	glUseProgramObjectARB(0);
@@ -1294,6 +1304,16 @@ void GPU_shader_uniform_vector(GPUShader *UNUSED(shader), int location, int leng
 	else if (length == 16) glUniformMatrix4fvARB(location, arraysize, 0, value);
 
 	GPU_print_error("Post Uniform Vector");
+}
+
+void GPU_shader_uniform_int(GPUShader *UNUSED(shader), int location, int value)
+{
+	if (location == -1)
+		return;
+
+	GPU_print_error("Pre Uniform Int");
+	glUniform1iARB(location, value);
+	GPU_print_error("Post Uniform Int");
 }
 
 void GPU_shader_uniform_texture(GPUShader *UNUSED(shader), int location, GPUTexture *tex)
@@ -1344,12 +1364,12 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 	switch (shader) {
 		case GPU_SHADER_VSM_STORE:
 			if (!GG.shaders.vsm_store)
-				GG.shaders.vsm_store = GPU_shader_create(datatoc_gpu_shader_vsm_store_vert_glsl, datatoc_gpu_shader_vsm_store_frag_glsl, NULL);
+				GG.shaders.vsm_store = GPU_shader_create(datatoc_gpu_shader_vsm_store_vert_glsl, datatoc_gpu_shader_vsm_store_frag_glsl, NULL, NULL);
 			retval = GG.shaders.vsm_store;
 			break;
 		case GPU_SHADER_SEP_GAUSSIAN_BLUR:
 			if (!GG.shaders.sep_gaussian_blur)
-				GG.shaders.sep_gaussian_blur = GPU_shader_create(datatoc_gpu_shader_sep_gaussian_blur_vert_glsl, datatoc_gpu_shader_sep_gaussian_blur_frag_glsl, NULL);
+				GG.shaders.sep_gaussian_blur = GPU_shader_create(datatoc_gpu_shader_sep_gaussian_blur_vert_glsl, datatoc_gpu_shader_sep_gaussian_blur_frag_glsl, NULL, NULL);
 			retval = GG.shaders.sep_gaussian_blur;
 			break;
 	}
