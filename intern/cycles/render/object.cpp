@@ -301,6 +301,8 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 	
 	device_free(device, dscene);
 
+	need_update = false;
+
 	if(scene->objects.size() == 0)
 		return;
 
@@ -322,8 +324,6 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 
 	/* allocate object flag */
 	device->tex_alloc("__object_flag", dscene->object_flag);
-
-	need_update = false;
 }
 
 void ObjectManager::device_free(Device *device, DeviceScene *dscene)
