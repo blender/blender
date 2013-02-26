@@ -453,6 +453,13 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	uiItemR(layout, &v3dptr, "viewport_shade", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
 	if (obedit == NULL && is_paint) {
+
+		if (ob->mode & OB_MODE_WEIGHT_PAINT) {
+			/* Only for Weight Paint. makes no sense in other paint modes. */
+			row = uiLayoutRow(layout, TRUE);
+			uiItemR(row, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+		}
+
 		/* Manipulators aren't used in paint modes */
 		if (!ELEM(ob->mode, OB_MODE_SCULPT, OB_MODE_PARTICLE_EDIT)) {
 			/* masks aren't used for sculpt and particle painting */
@@ -476,7 +483,9 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		uiItemR(row, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
 		/* pose/object only however we want to allow in weight paint mode too
-		 * so don't be totally strict and just check not-editmode for now */
+		 * so don't be totally strict and just check not-editmode for now 
+		 * XXX We never get here when we are in Weight Paint mode
+		 */
 		if (obedit == NULL) {
 			uiItemR(row, &v3dptr, "use_pivot_point_align", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 		}
