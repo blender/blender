@@ -391,7 +391,7 @@ static void separated_armature_fix_links(Object *origArm, Object *newArm)
 							}
 						}
 					}
-
+					
 					if (cti->flush_constraint_targets) {
 						cti->flush_constraint_targets(con, &targets, 0);
 					}

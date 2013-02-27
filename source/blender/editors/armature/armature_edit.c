@@ -241,13 +241,23 @@ float ED_rollBoneToVector(EditBone *bone, const float align_axis[3], const short
 }
 
 
+typedef enum eCalcRollTypes {
+	CALC_ROLL_X          = 0,
+	CALC_ROLL_Y          = 1,
+	CALC_ROLL_Z          = 2,
+	
+	CALC_ROLL_ACTIVE     = 5,
+	CALC_ROLL_VIEW       = 6,
+	CALC_ROLL_CURSOR     = 7
+} eCalcRollTypes;
+
 static EnumPropertyItem prop_calc_roll_types[] = {
-	{0, "X", 0, "X Axis", ""},
-	{1, "Y", 0, "Y Axis", ""},
-	{2, "Z", 0, "Z Axis", ""},
-	{5, "ACTIVE", 0, "Active Bone", ""},
-	{6, "VIEW", 0, "View Axis", ""},
-	{7, "CURSOR", 0, "Cursor", ""},
+	{CALC_ROLL_X, "X", 0, "X Axis", ""},
+	{CALC_ROLL_Y, "Y", 0, "Y Axis", ""},
+	{CALC_ROLL_Z, "Z", 0, "Z Axis", ""},
+	{CALC_ROLL_ACTIVE, "ACTIVE", 0, "Active Bone", ""},
+	{CALC_ROLL_VIEW, "VIEW", 0, "View Axis", ""},
+	{CALC_ROLL_CURSOR, "CURSOR", 0, "Cursor", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -267,7 +277,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 	copy_m3_m4(imat, ob->obmat);
 	invert_m3(imat);
 
-	if (type == 7) { /* Cursor */
+	if (type == CALC_ROLL_CURSOR) { /* Cursor */
 		Scene *scene = CTX_data_scene(C);
 		View3D *v3d = CTX_wm_view3d(C); /* can be NULL */
 		float cursor_local[3];
@@ -289,7 +299,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		float vec[3] = {0.0f, 0.0f, 0.0f};
-		if (type == 6) { /* View */
+		if (type == CALC_ROLL_VIEW) { /* View */
 			RegionView3D *rv3d = CTX_wm_region_view3d(C);
 			if (rv3d == NULL) {
 				BKE_report(op->reports, RPT_ERROR, "No region view3d available");
@@ -299,7 +309,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 			copy_v3_v3(vec, rv3d->viewinv[2]);
 			mul_m3_v3(imat, vec);
 		}
-		else if (type == 5) {
+		else if (type == CALC_ROLL_ACTIVE) {
 			float mat[3][3], nor[3];
 			ebone = (EditBone *)arm->act_edbone;
 			if (ebone == NULL) {
@@ -965,7 +975,6 @@ static void fix_connected_bone(EditBone *ebone)
 	sub_v3_v3v3(diff, ebone->parent->tail, ebone->head);
 	add_v3_v3(ebone->head, diff);
 	add_v3_v3(ebone->tail, diff);
-	return;
 }
 
 /* helper to recursively find chains of connected bones starting at ebone and fix their position */
@@ -979,7 +988,6 @@ static void fix_editbone_connected_children(ListBase *edbo, EditBone *ebone)
 			fix_editbone_connected_children(edbo, selbone);
 		}
 	}
-	return;
 }			
 
 static void bone_align_to_bone(ListBase *edbo, EditBone *selbone, EditBone *actbone)
@@ -1000,7 +1008,6 @@ static void bone_align_to_bone(ListBase *edbo, EditBone *selbone, EditBone *actb
 	 * according to their parent new position, otherwise they would be left
 	 * in an inconsistent state: connected but away from the parent*/
 	fix_editbone_connected_children(edbo, selbone);
-	return;
 }
 
 static int armature_align_bones_exec(bContext *C, wmOperator *op) 
@@ -1064,7 +1071,6 @@ static int armature_align_bones_exec(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 	
-
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob);
 	
@@ -1265,62 +1271,3 @@ void ARMATURE_OT_reveal(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 }
-#if 0 // remove this?
-static void hide_selected_armature_bones(Scene *scene)
-{
-	Object *obedit = scene->obedit; // XXX get from context
-	bArmature *arm = obedit->data;
-	EditBone *ebone;
-	
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (EBONE_VISIBLE(arm, ebone)) {
-			if (ebone->flag & BONE_SELECTED) {
-				ebone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
-				ebone->flag |= BONE_HIDDEN_A;
-			}
-		}
-	}
-	ED_armature_validate_active(arm);
-	ED_armature_sync_selection(arm->edbo);
-}
-
-static void hide_unselected_armature_bones(Scene *scene)
-{
-	Object *obedit = scene->obedit; // XXX get from context
-	bArmature *arm = obedit->data;
-	EditBone *ebone;
-	
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		bArmature *arm = obedit->data;
-		if (EBONE_VISIBLE(arm, ebone)) {
-			if (ebone->flag & (BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL)) {
-				/* pass */
-			}
-			else {
-				ebone->flag |= BONE_HIDDEN_A;
-			}
-		}
-	}
-
-	ED_armature_validate_active(arm);
-	ED_armature_sync_selection(arm->edbo);
-}
-
-void show_all_armature_bones(Scene *scene)
-{
-	Object *obedit = scene->obedit; // XXX get from context
-	bArmature *arm = obedit->data;
-	EditBone *ebone;
-	
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (arm->layer & ebone->layer) {
-			if (ebone->flag & BONE_HIDDEN_A) {
-				ebone->flag |= (BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
-				ebone->flag &= ~BONE_HIDDEN_A;
-			}
-		}
-	}
-	ED_armature_validate_active(arm);
-	ED_armature_sync_selection(arm->edbo);
-}
-#endif

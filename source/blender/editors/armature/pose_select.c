@@ -249,9 +249,6 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, wmEvent *ev
 	for (curBone = bone; curBone; curBone = next) {
 		/* ignore bone if cannot be selected */
 		if ((curBone->flag & BONE_UNSELECTABLE) == 0) {
-			// XXX old cruft! use notifiers instead
-			//select_actionchannel_by_name (ob->action, curBone->name, !(shift));
-			
 			if (extend)
 				curBone->flag &= ~BONE_SELECTED;
 			else
