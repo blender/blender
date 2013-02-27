@@ -237,9 +237,9 @@ static void curves_apply_threaded(int width, int height, unsigned char *rect, fl
 
 					rgb_uchar_to_float(t, mask_rect + pixel_index);
 
-					tempc[0] = pixel[0] * (1.0f - t[0]) + result[0] * t[0];
-					tempc[1] = pixel[1] * (1.0f - t[1]) + result[1] * t[1];
-					tempc[2] = pixel[2] * (1.0f - t[2]) + result[2] * t[2];
+					tempc[0] = tempc[0] * (1.0f - t[0]) + result[0] * t[0];
+					tempc[1] = tempc[1] * (1.0f - t[1]) + result[1] * t[1];
+					tempc[2] = tempc[2] * (1.0f - t[2]) + result[2] * t[2];
 				}
 				else {
 					tempc[0] = result[0];
@@ -438,7 +438,7 @@ static void brightcontrast_apply_threaded(int width, int height, unsigned char *
 						unsigned char *m = mask_rect + pixel_index;
 						float t = (float) m[c] / 255.0f;
 
-						v = (float) pixel[c] * (1.0f - t) + v * t;
+						v = (float) pixel[c] / 255.0f * (1.0f - t) + v * t;
 					}
 
 					pixel[c] = FTOCHAR(v);

@@ -1544,8 +1544,11 @@ static void color_balance_byte_byte(StripColorBalance *cb_, unsigned char *rect,
 		for (c = 0; c < 3; c++) {
 			float t = color_balance_fl(p[c], cb.lift[c], cb.gain[c], cb.gamma[c], mul);
 
-			if (m)
-				p[c] = p[c] * (1.0f - (float)m[c] / 255.0f) + t * m[c];
+			if (m) {
+				float m_normal = (float) m[c] / 255.0f;
+
+				p[c] = p[c] * (1.0f - m_normal) + t * m_normal;
+			}
 			else
 				p[c] = t;
 		}
