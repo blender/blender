@@ -513,13 +513,28 @@ static int view3d_ima_drop_poll(bContext *UNUSED(C), wmDrag *drag, wmEvent *UNUS
 	return 0;
 }
 
+static int view3d_ima_bg_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+	if (event->ctrl)
+		return false;
+
+	if (!ED_view3d_give_base_under_cursor(C, event->mval)) {
+		return view3d_ima_drop_poll(C, drag, event);
+	}
+	return 0;
+}
 
 static int view3d_ima_empty_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 {
-	Base *base = ED_view3d_give_base_under_cursor(C, event->mval);
+	Base *base;
 
-	if (!base || (base && base->object->type == OB_EMPTY))
+	if (!event->ctrl)
+		return false;
+
+	base = ED_view3d_give_base_under_cursor(C, event->mval);
+	if (!base || (base && base->object->type == OB_EMPTY)) {
 		return view3d_ima_drop_poll(C, drag, event);
+	}
 	return 0;
 }
 
@@ -574,6 +589,7 @@ static void view3d_dropboxes(void)
 	WM_dropbox_add(lb, "OBJECT_OT_drop_named_material", view3d_mat_drop_poll, view3d_id_drop_copy);
 	WM_dropbox_add(lb, "MESH_OT_drop_named_image", view3d_ima_mesh_drop_poll, view3d_id_path_drop_copy);
 	WM_dropbox_add(lb, "OBJECT_OT_drop_named_image", view3d_ima_empty_drop_poll, view3d_id_path_drop_copy);
+	WM_dropbox_add(lb, "VIEW3D_OT_background_image_add", view3d_ima_bg_drop_poll, view3d_id_path_drop_copy);
 	WM_dropbox_add(lb, "OBJECT_OT_group_instance_add", view3d_group_drop_poll, view3d_group_drop_copy);
 }
 
