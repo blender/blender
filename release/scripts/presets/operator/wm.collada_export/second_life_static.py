@@ -12,6 +12,7 @@ op.deform_bones_only = False
 op.active_uv_only = True
 op.include_uv_textures = True
 op.use_texture_copies = True
+op.use_ngons = False
 op.use_object_instantiation = False
 op.sort_by_name = True
 op.second_life = False
