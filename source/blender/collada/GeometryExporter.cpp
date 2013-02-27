@@ -77,6 +77,7 @@ void GeometryExporter::operator()(Object *ob)
 #endif
 
 	bool use_instantiation = this->export_settings->use_object_instantiation;
+	bool use_ngons         = this->export_settings->use_ngons;
 	Mesh *me;
 	if (this->export_settings->apply_modifiers) {
 		me = bc_to_mesh_apply_modifiers(mScene, ob, this->export_settings->export_mesh_type);
@@ -139,11 +140,11 @@ void GeometryExporter::operator()(Object *ob)
 		// XXX slow
 		if (ob->totcol) {
 			for (int a = 0; a < ob->totcol; a++) {
-				createPolylist(a, has_uvs, has_color, ob, me, geom_id, norind);
+				createPolylist(a, use_ngons, has_uvs, has_color, ob, me, geom_id, norind);
 			}
 		}
 		else {
-			createPolylist(0, has_uvs, has_color, ob, me, geom_id, norind);
+			createPolylist(0, use_ngons, has_uvs, has_color, ob, me, geom_id, norind);
 		}
 	}
 	
@@ -167,7 +168,7 @@ void GeometryExporter::operator()(Object *ob)
 			kb = kb->next;
 			for (; kb; kb = kb->next) {
 				BKE_key_convert_to_mesh(kb, me);
-				export_key_mesh(ob, me, kb);
+				export_key_mesh(ob, me, kb, use_ngons);
 			}
 		}
 	}
@@ -176,7 +177,7 @@ void GeometryExporter::operator()(Object *ob)
 #endif
 }
 
-void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
+void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb, bool use_ngons)
 {
 	std::string geom_id = get_geometry_id(ob, false) + "_morph_" + translate_id(kb->name);
 	std::vector<Normal> nor;
@@ -227,11 +228,11 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
 	// XXX slow		
 	if (ob->totcol) {
 		for (int a = 0; a < ob->totcol; a++) {
-			createPolylist(a, has_uvs, has_color, ob, me, geom_id, norind);
+			createPolylist(a, use_ngons, has_uvs, has_color, ob, me, geom_id, norind);
 		}
 	}
 	else {
-		createPolylist(0, has_uvs, has_color, ob, me, geom_id, norind);
+		createPolylist(0, use_ngons, has_uvs, has_color, ob, me, geom_id, norind);
 	}
 	
 	closeMesh();
@@ -296,7 +297,138 @@ void GeometryExporter::createLooseEdgeList(Object *ob,
 }
 
 // powerful because it handles both cases when there is material and when there's not
+// Call this function when ngons shall be exported unchanged
 void GeometryExporter::createPolylist(short material_index,
+									  bool use_ngons,
+                                      bool has_uvs,
+                                      bool has_color,
+                                      Object *ob,
+                                      Mesh *me,
+                                      std::string& geom_id,
+                                      std::vector<Face>& norind)
+{
+
+	if (!use_ngons) {
+		createTriangulatedPolylist(
+				material_index,
+				has_uvs,
+				has_color,
+				ob,
+				me,
+				geom_id,
+				norind);
+		return;
+	}
+
+	MPoly *mpolys = me->mpoly;
+	MLoop *mloops = me->mloop;
+	int totpolys  = me->totpoly;
+
+	// <vcount>
+	int i;
+	int faces_in_polylist = 0;
+	std::vector<unsigned long> vcount_list;
+
+	// count faces with this material
+	for (i = 0; i < totpolys; i++) {
+		MPoly *p = &mpolys[i];
+		
+		if (p->mat_nr == material_index) {
+			faces_in_polylist++;
+			vcount_list.push_back(p->totloop);
+		}
+	}
+
+	// no faces using this material
+	if (faces_in_polylist == 0) {
+		fprintf(stderr, "%s: material with index %d is not used.\n", id_name(ob).c_str(), material_index);
+		return;
+	}
+		
+	Material *ma = ob->totcol ? give_current_material(ob, material_index + 1) : NULL;
+	COLLADASW::Polylist polylist(mSW);
+		
+	// sets count attribute in <polylist>
+	polylist.setCount(faces_in_polylist);
+		
+	// sets material name
+	if (ma) {
+		std::string material_id = get_material_id(ma);
+		std::ostringstream ostr;
+		ostr << translate_id(material_id);
+		polylist.setMaterial(ostr.str());
+	}
+			
+	COLLADASW::InputList &til = polylist.getInputList();
+		
+	// creates <input> in <polylist> for vertices 
+	COLLADASW::Input input1(COLLADASW::InputSemantic::VERTEX, getUrlBySemantics(geom_id, COLLADASW::InputSemantic::VERTEX), 0);
+		
+	// creates <input> in <polylist> for normals
+	COLLADASW::Input input2(COLLADASW::InputSemantic::NORMAL, getUrlBySemantics(geom_id, COLLADASW::InputSemantic::NORMAL), 1);
+		
+	til.push_back(input1);
+	til.push_back(input2);
+		
+	// if mesh has uv coords writes <input> for TEXCOORD
+	int num_layers = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
+	int active_uv_index = CustomData_get_active_layer_index(&me->fdata, CD_MTFACE)-1;
+	for (i = 0; i < num_layers; i++) {
+		if (!this->export_settings->active_uv_only || i == active_uv_index) {
+
+			// char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, i);
+			COLLADASW::Input input3(COLLADASW::InputSemantic::TEXCOORD,
+									makeUrl(makeTexcoordSourceId(geom_id, i)),
+									2, // offset always 2, this is only until we have optimized UV sets
+									i  // set number equals UV map index
+									);
+			til.push_back(input3);
+		}
+	}
+
+	if (has_color) {
+		COLLADASW::Input input4(COLLADASW::InputSemantic::COLOR, getUrlBySemantics(geom_id, COLLADASW::InputSemantic::COLOR), has_uvs ? 3 : 2);
+		til.push_back(input4);
+	}
+		
+	// sets <vcount>
+	polylist.setVCountList(vcount_list);
+		
+	// performs the actual writing
+	polylist.prepareToAppendValues();
+	
+	// <p>
+	int texindex = 0;
+	unsigned int vi = 0;
+	unsigned int ni = 0;
+	for (i = 0; i < totpolys; i++) {
+		MPoly *p = &mpolys[i];
+		int loop_count = p->totloop;
+
+		if (p->mat_nr == material_index) {
+			MLoop *l = &mloops[p->loopstart];
+			unsigned int *n = &norind[i].v1;
+
+			for (int j = 0; j < loop_count; j++) {
+				polylist.appendValues(l[j].v);
+				polylist.appendValues(n[j]);
+				if (has_uvs)
+					polylist.appendValues(texindex + j);
+
+				if (has_color)
+					polylist.appendValues(texindex + j);
+			}
+		}
+
+		texindex += loop_count;
+	}
+		
+	polylist.finish();
+}
+
+// powerful because it handles both cases when there is material and when there's not
+// Call this function when ngons shall be exported as Tris or Quads
+void GeometryExporter::createTriangulatedPolylist(short material_index,
                                       bool has_uvs,
                                       bool has_color,
                                       Object *ob,

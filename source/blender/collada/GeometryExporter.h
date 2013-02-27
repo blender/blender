@@ -75,7 +75,16 @@ public:
 						     std::vector<Face>& norind);
 
 	// powerful because it handles both cases when there is material and when there's not
+	void createTriangulatedPolylist(short material_index,
+						bool has_uvs,
+						bool has_color,
+						Object *ob,
+						Mesh   *me,
+						std::string& geom_id,
+						std::vector<Face>& norind);
+	
 	void createPolylist(short material_index,
+						bool use_ngons,
 						bool has_uvs,
 						bool has_color,
 						Object *ob,
@@ -104,7 +113,7 @@ public:
 
 	COLLADASW::URI makeUrl(std::string id);
 
-	void export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb);
+	void export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb, bool use_ngons);
 	
 	/* int getTriCount(MFace *faces, int totface);*/
 private:

@@ -45,6 +45,7 @@ public:
 	bool include_material_textures;
 	bool use_texture_copies;
 
+	bool use_ngons;
 	bool use_object_instantiation;
 	bool sort_by_name;
 	bool second_life;
