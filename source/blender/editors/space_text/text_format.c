@@ -157,7 +157,7 @@ void text_format_fill(const char **str_p, char **fmt_p, const char type, const i
 		*fmt++ = type;
 
 		str += size;
-		i   += size;
+		i   += 1;
 	}
 
 	str--;
