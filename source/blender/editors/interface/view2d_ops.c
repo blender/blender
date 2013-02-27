@@ -1116,7 +1116,7 @@ static void VIEW2D_OT_zoom(wmOperatorType *ot)
 	ot->poll = view_zoom_poll;
 	
 	/* operator is repeatable */
-	// ot->flag = OPTYPE_BLOCKING;
+	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_POINTER;
 	
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_float(ot->srna, "deltax", 0, -FLT_MAX, FLT_MAX, "Delta X", "", -FLT_MAX, FLT_MAX);
