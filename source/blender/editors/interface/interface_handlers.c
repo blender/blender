@@ -2507,7 +2507,7 @@ static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, cons
 			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
 			data->dragstartx = event->x;
 			data->dragstarty = event->y;
-			return WM_UI_HANDLER_CONTINUE;
+			return WM_UI_HANDLER_BREAK;
 		}
 	}
 	else if (data->state == BUTTON_STATE_WAIT_DRAG) {
