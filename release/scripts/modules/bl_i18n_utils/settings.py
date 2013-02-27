@@ -384,11 +384,10 @@ MO_PATH_TEMPLATE_RELATIVE = os.path.join(MO_PATH_ROOT_RELATIVE, "{}", "LC_MESSAG
 # Mo file name.
 MO_FILE_NAME = DOMAIN + ".mo"
 
-# Where to search for py files that may contain ui strings (relative to SOURCE_DIR).
-REL_CUSTOM_PY_UI_FILES = [
-    os.path.join("release", "scripts", "startup", "bl_ui"),
-    os.path.join("intern", "cycles", "blender", "addon", "ui.py"),
-    os.path.join("release", "scripts", "modules", "rna_prop_ui.py"),
+# Where to search for py files that may contain ui strings (relative to one of the 'resource_path' of Blender).
+CUSTOM_PY_UI_FILES = [
+    os.path.join("scripts", "startup", "bl_ui"),
+    os.path.join("scripts", "modules", "rna_prop_ui.py"),
 ]
 
 # An optional text file listing files to force include/exclude from py_xgettext process.
@@ -503,7 +502,6 @@ class I18nSettings:
     FILE_NAME_POT = property(*(_gen_get_set_path("I18N_DIR", "REL_FILE_NAME_POT")))
     MO_PATH_ROOT = property(*(_gen_get_set_path("I18N_DIR", "REL_MO_PATH_ROOT")))
     MO_PATH_TEMPLATE = property(*(_gen_get_set_path("I18N_DIR", "REL_MO_PATH_TEMPLATE")))
-    CUSTOM_PY_UI_FILES = property(*(_gen_get_set_paths("SOURCE_DIR", "REL_CUSTOM_PY_UI_FILES")))
 
     def _get_py_sys_paths(self):
         return self.INTERN_PY_SYS_PATHS
