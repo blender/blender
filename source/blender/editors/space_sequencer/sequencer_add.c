@@ -126,7 +126,7 @@ static void sequencer_generic_invoke_path__internal(bContext *C, wmOperator *op,
 	}
 }
 
-static int sequencer_generic_invoke_xy_guess_channel(bContext * C, wmOperator *UNUSED(op), int type)
+static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
 {
 	Sequence *tgt = NULL;
 	Sequence *seq;
@@ -163,9 +163,7 @@ static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, i
 	
 	/* effect strips don't need a channel initialized from the mouse */
 	if (!(flag & SEQPROP_NOCHAN)) {
-		RNA_int_set(op->ptr, "channel", 
-			    sequencer_generic_invoke_xy_guess_channel(
-				    C, op, type));
+		RNA_int_set(op->ptr, "channel", sequencer_generic_invoke_xy_guess_channel(C, type));
 	}
 
 	RNA_int_set(op->ptr, "frame_start", cfra);
