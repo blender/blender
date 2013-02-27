@@ -37,17 +37,19 @@ struct wmOperatorType;
 struct bContext;
 struct Scene;
 struct Object;
+struct Base;
 struct bAction;
 struct bPoseChannel;
 
 struct bArmature;
 struct EditBone;
+struct Bone;
 
 struct ListBase;
 struct LinkData;
 
 /* ******************************************************* */
-/* editarmature.c operators */
+/* Armature EditMode Operators */
 void ARMATURE_OT_bone_primitive_add(struct wmOperatorType *ot);
 
 void ARMATURE_OT_align(struct wmOperatorType *ot);
@@ -131,7 +133,7 @@ void POSE_OT_armature_layers(struct wmOperatorType *ot);
 void POSE_OT_bone_layers(struct wmOperatorType *ot);
 
 /* ******************************************************* */
-/* Etch-A-Ton */
+/* Etch-A-Ton (Skeleton Sketching) Operators */
 
 void SKETCH_OT_gesture(struct wmOperatorType *ot);
 void SKETCH_OT_delete(struct wmOperatorType *ot);
@@ -203,7 +205,11 @@ void POSE_OT_breakdown(struct wmOperatorType *ot);
 void POSE_OT_propagate(struct wmOperatorType *ot);
 
 /* ******************************************************* */
-/* editarmature.c */
+/* Various Armature Edit/Pose Editing API's */
+
+/* Ideally, many of these defines would not be needed as everything would be strictly self-contained
+ * within each file, but some tools still have a bit of overlap which makes things messy -- Feb 2013
+ */
 
 EditBone *make_boneList(struct ListBase *edbo, struct ListBase *bones, struct EditBone *parent, struct Bone *actBone);
 void BIF_sk_selectStroke(struct bContext *C, const int mval[2], short extend);
@@ -213,13 +219,29 @@ void preEditBoneDuplicate(struct ListBase *editbones);
 struct EditBone *duplicateEditBone(struct EditBone *curBone, const char *name, struct ListBase *editbones, struct Object *ob);
 void updateDuplicateSubtarget(struct EditBone *dupBone, struct ListBase *editbones, struct Object *ob);
 
-/* duplicate method (cross objects */
-
+/* duplicate method (cross objects) */
 /* editbones is the target list */
 struct EditBone *duplicateEditBoneObjects(struct EditBone *curBone, const char *name, struct ListBase *editbones, struct Object *src_ob, struct Object *dst_ob);
 
 /* editbones is the source list */
 void updateDuplicateSubtargetObjects(struct EditBone *dupBone, struct ListBase *editbones, struct Object *src_ob, struct Object *dst_ob);
+
+
+EditBone *editbone_name_exists(struct ListBase *edbo, const char *name);
+
+EditBone *add_points_bone(struct Object *obedit, float head[3], float tail[3]);
+void bone_free(struct bArmature *arm, struct EditBone *bone);
+
+void armature_tag_select_mirrored(struct bArmature *arm);
+void armature_select_mirrored(struct bArmature *arm);
+void armature_tag_unselect(struct bArmature *arm);
+
+void *get_nearest_bone(struct bContext *C, short findunsel, int x, int y);
+void *get_bone_from_selectbuffer(struct Scene *scene, struct Base *base, unsigned int *buffer, short hits, short findunsel);
+
+int bone_looper(struct Object *ob, struct Bone *bone, void *data,
+                int (*bone_func)(struct Object *, struct Bone *, void *));
+
 
 #endif /* __ARMATURE_INTERN_H__ */
 
