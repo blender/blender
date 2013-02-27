@@ -2112,6 +2112,7 @@ static int add_named_exec(bContext *C, wmOperator *op)
 	}
 
 	basen->lay = basen->object->lay = scene->lay;
+	basen->object->restrictflag &= ~OB_RESTRICT_VIEW;
 
 	if (event) {
 		ARegion *ar = CTX_wm_region(C);
