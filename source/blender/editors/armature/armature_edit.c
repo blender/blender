@@ -138,7 +138,7 @@ void ED_armature_apply_transform(Object *ob, float mat[4][4])
 
 /* exported for use in editors/object/ */
 /* 0 == do center, 1 == center new, 2 == center cursor */
-void docenter_armature(Scene *scene, Object *ob, float cursor[3], int centermode, int around)
+void ED_armature_origin_set(Scene *scene, Object *ob, float cursor[3], int centermode, int around)
 {
 	Object *obedit = scene->obedit; // XXX get from context
 	EditBone *ebone;
