@@ -30,24 +30,13 @@
  *  \ingroup edarmature
  */
 
-
-#include <string.h>
-#include <math.h>
-#include <float.h>
-
-
 #include "DNA_scene_types.h"
 #include "DNA_armature_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_graph.h"
-#include "BLI_utildefines.h"
- 
-
 
 #include "ED_armature.h"
-#include "armature_intern.h"
 #include "BIF_generate.h"
 
 void setBoneRollFromNormal(EditBone *bone, const float no[3], float UNUSED(invmat[4][4]), float tmat[3][3])

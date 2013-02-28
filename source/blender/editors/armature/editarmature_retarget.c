@@ -25,12 +25,6 @@
  *  \ingroup edarmature
  */
 
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h> 
-#include <float.h>
-
 #include "MEM_guardedalloc.h"
 
 #include "PIL_time.h"
@@ -42,11 +36,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
-#include "BLI_ghash.h"
-#include "BLI_graph.h"
-#include "BLI_rand.h"
-#include "BLI_threads.h"
 
 #include "BKE_constraint.h"
 #include "BKE_armature.h"
@@ -56,8 +45,6 @@
 #include "ED_util.h"
 
 #include "BIF_retarget.h"
-
-#include "reeb.h" /* FIX ME */
 
 #include "armature_intern.h"
 

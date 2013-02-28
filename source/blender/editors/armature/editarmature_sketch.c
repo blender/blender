@@ -22,10 +22,6 @@
  *  \ingroup edarmature
  */
 
-#include <string.h>
-#include <math.h>
-#include <float.h>
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_object_types.h"
@@ -37,9 +33,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
-#include "BLI_graph.h"
-#include "BLI_ghash.h"
 
 #include "BLF_translation.h"
 
@@ -59,8 +52,6 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
-
-#include "reeb.h"
 
 typedef int (*GestureDetectFct)(bContext *, SK_Gesture *, SK_Sketch *);
 typedef void (*GestureApplyFct)(bContext *, SK_Gesture *, SK_Sketch *);

@@ -24,29 +24,14 @@
  *  \ingroup edarmature
  */
 
-#include <math.h>
-#include <string.h> /* for memcpy */
-#include <stdio.h>
-#include <stdlib.h> /* for qsort */
-#include <float.h>
-
-#include "DNA_scene_types.h"
-#include "DNA_object_types.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
 #include "BLI_edgehash.h"
 #include "BLI_ghash.h"
-#include "BLI_heap.h"
-
-#include "BKE_mesh.h"
-
-#include "ONL_opennl.h"
 
 #include "reeb.h"
 

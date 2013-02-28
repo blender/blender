@@ -29,46 +29,24 @@
  *  \ingroup edarmature
  */
 
-
-#include <ctype.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <string.h>
-#include <math.h> 
-#include <float.h> 
 #include <assert.h> 
 
-
-#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_modifier_types.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
-#include "BLI_ghash.h"
 
-#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
-#include "BKE_deform.h"
-#include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
-#include "BKE_idprop.h"
-#include "BKE_main.h"
-#include "BKE_object.h"
 #include "BKE_report.h"
-#include "BKE_modifier.h"
-
-#include "BIF_gl.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -77,14 +55,8 @@
 #include "WM_types.h"
 
 #include "ED_armature.h"
-#include "ED_keyframing.h"
-#include "ED_object.h"
 #include "ED_screen.h"
-#include "ED_util.h"
 #include "ED_view3d.h"
-
-#include "UI_interface.h"
-#include "UI_resources.h"
 
 #include "armature_intern.h"
 
