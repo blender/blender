@@ -146,7 +146,7 @@ void SKETCH_OT_select(struct wmOperatorType *ot);
 
 /* ******************************************************* */
 /* Pose Tool Utilities (for PoseLib, Pose Sliding, etc.) */
-/* poseUtils.c */
+/* pose_utils.c */
 
 /* Temporary data linking PoseChannels with the F-Curves they affect */
 typedef struct tPChanFCurveLink {
@@ -180,7 +180,7 @@ LinkData *poseAnim_mapping_getNextFCurve(ListBase *fcuLinks, LinkData *prev, con
 
 /* ******************************************************* */
 /* PoseLib */
-/* poselib.c */
+/* pose_lib.c */
 
 void POSELIB_OT_new(struct wmOperatorType *ot);
 void POSELIB_OT_unlink(struct wmOperatorType *ot);
@@ -196,7 +196,7 @@ void POSELIB_OT_apply_pose(struct wmOperatorType *ot);
 
 /* ******************************************************* */
 /* Pose Sliding Tools */
-/* poseSlide.c */
+/* pose_slide.c */
 
 void POSE_OT_push(struct wmOperatorType *ot);
 void POSE_OT_relax(struct wmOperatorType *ot);

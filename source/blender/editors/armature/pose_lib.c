@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/armature/poselib.c
+/** \file blender/editors/armature/pose_lib.c
  *  \ingroup edarmature
  */
 

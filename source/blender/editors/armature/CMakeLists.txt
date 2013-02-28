@@ -48,12 +48,12 @@ set(SRC
 	editarmature_sketch.c
 	meshlaplacian.c
 	pose_edit.c
+	pose_lib.c
 	pose_group.c
 	pose_select.c
+	pose_slide.c
 	pose_transform.c
-	poseSlide.c
-	poseUtils.c
-	poselib.c
+	pose_utils.c
 	reeb.c
 
 	BIF_generate.h
