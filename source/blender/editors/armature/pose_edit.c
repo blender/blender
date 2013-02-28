@@ -27,7 +27,7 @@
  * Pose Mode API's and Operators for Pose Mode armatures
  */
 
-/** \file blender/editors/armature/poseobject.c
+/** \file blender/editors/armature/pose_edit.c
  *  \ingroup edarmature
  */
 

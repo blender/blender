@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/armature/editarmature.c
+/** \file blender/editors/armature/armature_utils.c
  *  \ingroup edarmature
  */
 

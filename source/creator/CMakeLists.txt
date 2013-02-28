@@ -830,12 +830,12 @@ endif()
 		bf_editor_util
 		bf_editor_uvedit
 		bf_editor_curve
-		bf_editor_armature
 		bf_editor_gpencil
 		bf_editor_interface
 		bf_editor_mesh
 		bf_editor_metaball
 		bf_editor_object
+		bf_editor_armature
 		bf_editor_physics
 		bf_editor_render
 		bf_editor_screen

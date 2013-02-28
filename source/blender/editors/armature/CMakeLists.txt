@@ -42,6 +42,7 @@ set(SRC
 	armature_ops.c
 	armature_relations.c
 	armature_select.c
+	armature_skinning.c
 	armature_utils.c
 	editarmature_generate.c
 	editarmature_retarget.c
