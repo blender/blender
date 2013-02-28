@@ -227,9 +227,11 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip, MovieClipUser *user,
 	ibuf = IMB_loadiffname(name, loadflag, colorspace);
 
 #ifdef WITH_OPENEXR
-	if (ibuf->ftype == OPENEXR && ibuf->userdata) {
-		IMB_exr_close(ibuf->userdata);
-		ibuf->userdata = NULL;
+	if (ibuf) {
+		if (ibuf->ftype == OPENEXR && ibuf->userdata) {
+			IMB_exr_close(ibuf->userdata);
+			ibuf->userdata = NULL;
+		}
 	}
 #endif
 
