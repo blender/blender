@@ -284,15 +284,18 @@ typedef enum eDriverTarget_Flag {
 		/* used for targets that use the pchan_name instead of RNA path 
 		 * (i.e. rotation difference) 
 		 */
-	DTAR_FLAG_STRUCT_REF	= (1<<0),
+	DTAR_FLAG_STRUCT_REF	= (1 << 0),
 		/* idtype can only be 'Object' */
-	DTAR_FLAG_ID_OB_ONLY	= (1<<1),
+	DTAR_FLAG_ID_OB_ONLY	= (1 << 1),
 	
 	/* "localspace" flags */
 		/* base flag - basically "pre parent+constraints" */
-	DTAR_FLAG_LOCALSPACE	= (1<<2),
+	DTAR_FLAG_LOCALSPACE	= (1 << 2),
 		/* include constraints transformed to space including parents */
-	DTAR_FLAG_LOCAL_CONSTS	= (1<<3),
+	DTAR_FLAG_LOCAL_CONSTS	= (1 << 3),
+	
+	/* error flags */
+	DTAR_FLAG_INVALID		= (1 << 4),
 } eDriverTarget_Flag;
 
 /* Transform Channels for Driver Targets */
