@@ -239,11 +239,11 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 	}
 }
 
-void projectIntView(TransInfo *t, const float vec[3], int adr[2])
+void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DProjTest flag)
 {
 	if (t->spacetype == SPACE_VIEW3D) {
 		if (t->ar->regiontype == RGN_TYPE_WINDOW) {
-			if (ED_view3d_project_int_global(t->ar, vec, adr, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK) {
+			if (ED_view3d_project_int_global(t->ar, vec, adr, flag) != V3D_PROJ_RET_OK) {
 				adr[0] = (int)2140000000.0f;  /* this is what was done in 2.64, perhaps we can be smarter? */
 				adr[1] = (int)2140000000.0f;
 			}
@@ -361,15 +361,19 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 		UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], adr, adr + 1);
 	}
 }
+void projectIntView(TransInfo *t, const float vec[3], int adr[2])
+{
+	projectIntViewEx(t, vec, adr, V3D_PROJ_TEST_NOP);
+}
 
-void projectFloatView(TransInfo *t, const float vec[3], float adr[2])
+void projectFloatViewEx(TransInfo *t, const float vec[3], float adr[2], const eV3DProjTest flag)
 {
 	switch (t->spacetype) {
 		case SPACE_VIEW3D:
 		{
 			if (t->ar->regiontype == RGN_TYPE_WINDOW) {
 				/* allow points behind the view [#33643] */
-				if (ED_view3d_project_float_global(t->ar, vec, adr, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK) {
+				if (ED_view3d_project_float_global(t->ar, vec, adr, flag) != V3D_PROJ_RET_OK) {
 					/* XXX, 2.64 and prior did this, weak! */
 					adr[0] = t->ar->winx / 2.0f;
 					adr[1] = t->ar->winy / 2.0f;
@@ -392,6 +396,10 @@ void projectFloatView(TransInfo *t, const float vec[3], float adr[2])
 	}
 
 	zero_v2(adr);
+}
+void projectFloatView(TransInfo *t, const float vec[3], float adr[2])
+{
+	projectFloatViewEx(t, vec, adr, V3D_PROJ_TEST_NOP);
 }
 
 void applyAspectRatio(TransInfo *t, float vec[2])
@@ -1543,7 +1551,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 			if (ob) mul_m4_v3(ob->obmat, vecrot);
 		}
 
-		projectFloatView(t, vecrot, cent);  // no overflow in extreme cases
+		projectFloatViewEx(t, vecrot, cent, V3D_PROJ_TEST_CLIP_ZERO);
 
 		glPushMatrix();
 
