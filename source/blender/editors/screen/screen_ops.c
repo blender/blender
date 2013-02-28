@@ -206,7 +206,7 @@ int ED_operator_animview_active(bContext *C)
 			return TRUE;
 	}
 
-	CTX_wm_operator_poll_msg_set(C, "expected an timeline/animation area to be active");
+	CTX_wm_operator_poll_msg_set(C, "expected a timeline/animation area to be active");
 	return 0;
 }
 

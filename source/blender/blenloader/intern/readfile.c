@@ -7745,7 +7745,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					prop = BKE_bproperty_object_get(ob, "Text");
 					if (prop) {
 						BKE_reportf_wrap(fd->reports, RPT_WARNING,
-						                 TIP_("Game property name conflict in object '%s':\ntext objects reserve the "
+						                 TIP_("Game property name conflict in object '%s': text objects reserve the "
 						                      "['Text'] game property to change their content through logic bricks"),
 						                 ob->id.name + 2);
 					}

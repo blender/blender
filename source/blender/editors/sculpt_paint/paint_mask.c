@@ -127,13 +127,14 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 void PAINT_OT_mask_flood_fill(struct wmOperatorType *ot)
 {
 	static EnumPropertyItem mode_items[] = {
-		{PAINT_MASK_FLOOD_VALUE, "VALUE", 0, "Value", "Set mask to the level specified by the \"value\" property"},
+		{PAINT_MASK_FLOOD_VALUE, "VALUE", 0, "Value", "Set mask to the level specified by the 'value' property"},
 		{PAINT_MASK_INVERT, "INVERT", 0, "Invert", "Invert the mask"},
 		{0}};
 
 	/* identifiers */
 	ot->name = "Mask Flood Fill";
 	ot->idname = "PAINT_OT_mask_flood_fill";
+	ot->description = "Fill the whole mask with a given value, or invert its values";
 
 	/* api callbacks */
 	ot->exec = mask_flood_fill_exec;
@@ -143,5 +144,6 @@ void PAINT_OT_mask_flood_fill(struct wmOperatorType *ot)
 
 	/* rna */
 	RNA_def_enum(ot->srna, "mode", mode_items, PAINT_MASK_FLOOD_VALUE, "Mode", NULL);
-	RNA_def_float(ot->srna, "value", 0, 0, 1, "Value", "Mask level to use when mode is \"Value\"; zero means no masking and one is fully masked", 0, 1);
+	RNA_def_float(ot->srna, "value", 0, 0, 1, "Value",
+	              "Mask level to use when mode is 'Value'; zero means no masking and one is fully masked", 0, 1);
 }

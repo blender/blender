@@ -527,7 +527,7 @@ def panel_node_draw(layout, id_data, output_type, input_name):
 
     node = find_node(id_data, output_type)
     if not node:
-        layout.label(text="No output node.")
+        layout.label(text="No output node")
     else:
         input = find_node_input(node, input_name)
         layout.template_node_view(ntree, node, input)
@@ -590,7 +590,7 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
         layout.prop(clamp, "use_multiple_importance_sampling")
 
         if lamp.type == 'HEMI':
-            layout.label(text="Not supported, interpreted as sun lamp.")
+            layout.label(text="Not supported, interpreted as sun lamp")
 
 
 class CyclesLamp_PT_nodes(CyclesButtonsPanel, Panel):

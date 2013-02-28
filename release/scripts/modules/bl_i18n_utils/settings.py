@@ -262,43 +262,78 @@ WARN_MSGID_NOT_CAPITALIZED = True
 
 # Strings that should not raise above warning!
 WARN_MSGID_NOT_CAPITALIZED_ALLOWED = {
-    "",  # Simplifies things... :p
-    "sin(x) / x",
-    "fBM",
-    "sqrt(x*x+y*y+z*z)",
-    "iTaSC",
-    "bItasc",
-    "px",
-    "mm",
-    "fStop",
-    "sRGB",
-    "iso-8859-15",
-    "utf-8",
-    "ascii",
-    "re",
-    "y",
+    "",                              # Simplifies things... :p
     "ac3",
+    "along X",
+    "along Y",
+    "along Z",
+    "along %s X",
+    "along %s Y",
+    "along %s Z",
+    "along local Z",
+    "ascii",
+    "author",                        # Addons' field. :/
+    "bItasc",
+    "description",                   # Addons' field. :/
+    "dx",
+    "fBM",
     "flac",
+    "fps: %.2f",
+    "fps: %i",
+    "fStop",
+    "gimbal",
+    "global",
+    "iScale",
+    "iso-8859-15",
+    "iTaSC",
+    "iTaSC parameters",
+    "kb",
+    "local",
+    "location",                      # Addons' field. :/
+    "locking %s X",
+    "locking %s Y",
+    "locking %s Z",
     "mkv",
+    "mm",
     "mp2",
     "mp3",
+    "normal",
     "ogg",
-    "wav",
-    "iTaSC parameters",
-    "vBVH",
-    "rv",
-    "et_EE",
-    "eo",
-    "available with",                # Is part of multi-line msg.
-    "virtual parents",               # Is part of multi-line msg.
-    "description",                   # Addons' field. :/
-    "location",                      # Addons' field. :/
-    "author",                        # Addons' field. :/
-    "in memory to enable editing!",  # Is part of multi-line msg.
-    "iScale",
-    "dx",
     "p0",
+    "px",
+    "re",
     "res",
+    "rv",
+    "sin(x) / x",
+    "sqrt(x*x+y*y+z*z)",
+    "sRGB",
+    "utf-8",
+    "vBVH",
+    "view",
+    "wav",
+    "y",
+    # Sub-strings.
+    "available with",
+    "can't save image while rendering",
+    "expected a timeline/animation area to be active",
+    "expected a view3d region",
+    "expected a view3d region & editcurve",
+    "expected a view3d region & editmesh",
+    "image file not found",
+    "image path can't be written to",
+    "in memory to enable editing!",
+    "unable to load movie clip",
+    "unable to load text",
+    "unable to open the file",
+    "unknown error reading file",
+    "unknown error stating file",
+    "unknown error writing file",
+    "unsupported font format",
+    "unsupported format",
+    "unsupported image format",
+    "unsupported movie clip format",
+    "verts only",
+    "virtual parents",
 }
 WARN_MSGID_NOT_CAPITALIZED_ALLOWED |= set(lng[2] for lng in LANGUAGES)
 
@@ -307,6 +342,7 @@ WARN_MSGID_END_POINT_ALLOWED = {
     "Circle|Alt .",
     "Temp. Diff.",
     "Float Neg. Exp.",
+    "    RNA Path: bpy.types.",
 }
 
 PARSER_CACHE_HASH = 'sha1'

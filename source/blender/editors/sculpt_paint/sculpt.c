@@ -4784,6 +4784,7 @@ static void SCULPT_OT_symmetrize(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Symmetrize";
 	ot->idname = "SCULPT_OT_symmetrize";
+	ot->description = "Symmetrize the topology modifications";
 	
 	/* api callbacks */
 	ot->exec = sculpt_symmetrize_exec;
