@@ -299,19 +299,19 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	/* final render callbacks */
 	func = RNA_def_function(srna, "update", NULL);
 	RNA_def_function_ui_description(func, "Export scene data for render");
-	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	RNA_def_pointer(func, "data", "BlendData", "", "");
 	RNA_def_pointer(func, "scene", "Scene", "", "");
 
 	func = RNA_def_function(srna, "render", NULL);
 	RNA_def_function_ui_description(func, "Render scene into an image");
-	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	RNA_def_pointer(func, "scene", "Scene", "", "");
 
 	/* viewport render callbacks */
 	func = RNA_def_function(srna, "view_update", NULL);
 	RNA_def_function_ui_description(func, "Update on data changes for viewport render");
-	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	RNA_def_pointer(func, "context", "Context", "", "");
 
 	func = RNA_def_function(srna, "view_draw", NULL);
