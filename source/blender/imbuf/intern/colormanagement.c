@@ -1702,13 +1702,11 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf, int save_as_render, int 
 	int do_colormanagement;
 	int is_movie = BKE_imtype_is_movie(image_format_data->imtype);
 	int requires_linear_float = BKE_imtype_requires_linear_float(image_format_data->imtype);
+	int do_alpha_under = image_format_data->planes != R_IMF_PLANES_RGBA;
 
 	do_colormanagement = save_as_render && (is_movie || !requires_linear_float);
 
-	if (do_colormanagement) {
-		int make_byte = FALSE;
-		ImFileType *type;
-
+	if (do_colormanagement || do_alpha_under) {
 		if (allocate_result) {
 			colormanaged_ibuf = IMB_dupImBuf(ibuf);
 		}
@@ -1727,6 +1725,41 @@ ImBuf *IMB_colormanagement_imbuf_for_write(ImBuf *ibuf, int save_as_render, int 
 				ibuf->mall |= IB_rectfloat;
 			}
 		}
+	}
+
+	/* If we're saving from RGBA to RGB buffer then it's not
+	 * so much useful to just ignore alpha -- it leads to bad
+	 * artifacts especially when saving byte images.
+	 *
+	 * What we do here is we're overing our image on top of
+	 * background color (which is currently black).
+	 *
+	 * This is quite much the same as what Gimp does and it
+	 * seems to be what artists expects from saving.
+	 *
+	 * Do a conversion here, so image format writers could
+	 * happily assume all the alpha tricks were made already.
+	 * helps keep things locally here, not spreading it to
+	 * all possible image writers we've got.
+	 */
+	if (do_alpha_under) {
+		float color[3] = {0, 0, 0};
+
+		if (colormanaged_ibuf->rect_float && colormanaged_ibuf->channels == 4) {
+			IMB_alpha_under_color_float(colormanaged_ibuf->rect_float, colormanaged_ibuf->x,
+			                            colormanaged_ibuf->y, color);
+		}
+
+		if (colormanaged_ibuf->rect) {
+			IMB_alpha_under_color_byte((unsigned char *)colormanaged_ibuf->rect,
+			                           colormanaged_ibuf->x, colormanaged_ibuf->y,
+			                           color);
+		}
+	}
+
+	if (do_colormanagement) {
+		int make_byte = FALSE;
+		ImFileType *type;
 
 		/* for proper check whether byte buffer is required by a format or not
 		 * should be pretty safe since this image buffer is supposed to be used for
