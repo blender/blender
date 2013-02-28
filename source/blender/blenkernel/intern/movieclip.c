@@ -75,6 +75,7 @@
 #include "BKE_node.h"
 #include "BKE_image.h"  /* openanim */
 #include "BKE_tracking.h"
+#include "BKE_sequencer.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
@@ -1292,6 +1293,8 @@ void BKE_movieclip_build_proxy_frame(MovieClip *clip, int clip_flag, struct Movi
 
 void BKE_movieclip_free(MovieClip *clip)
 {
+	BKE_sequencer_clear_movieclip_in_clipboard(clip);
+
 	free_buffers(clip);
 
 	BKE_tracking_free(&clip->tracking);

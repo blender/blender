@@ -815,6 +815,33 @@ void BKE_sequencer_clear_scene_in_allseqs(Main *bmain, Scene *scene)
 			BKE_sequencer_base_recursive_apply(&scene_iter->ed->seqbase, clear_scene_in_allseqs_cb, scene);
 		}
 	}
+
+	/* also clear clipboard */
+	BKE_sequencer_base_recursive_apply(&seqbase_clipboard, clear_scene_in_allseqs_cb, scene);
+}
+
+static int clear_movieclip_in_clipboard_cb(Sequence *seq, void *arg_pt)
+{
+	if (seq->clip == (MovieClip *)arg_pt)
+		seq->clip = NULL;
+	return 1;
+}
+
+void BKE_sequencer_clear_movieclip_in_clipboard(MovieClip *clip)
+{
+	BKE_sequencer_base_recursive_apply(&seqbase_clipboard, clear_movieclip_in_clipboard_cb, clip);
+}
+
+static int clear_mask_in_clipboard_cb(Sequence *seq, void *arg_pt)
+{
+	if (seq->mask == (Mask *)arg_pt)
+		seq->mask = NULL;
+	return 1;
+}
+
+void BKE_sequencer_clear_mask_in_clipboard(Mask *mask)
+{
+	BKE_sequencer_base_recursive_apply(&seqbase_clipboard, clear_mask_in_clipboard_cb, mask);
 }
 
 typedef struct SeqUniqueInfo {

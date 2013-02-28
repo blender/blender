@@ -290,6 +290,9 @@ void BKE_scene_free(Scene *sce)
 {
 	Base *base;
 
+	/* check all sequences */
+	BKE_sequencer_clear_scene_in_allseqs(G.main, sce);
+
 	base = sce->base.first;
 	while (base) {
 		base->object->id.us--;
@@ -693,9 +696,6 @@ void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)
 		if (sce1->set == sce)
 			sce1->set = NULL;
 	
-	/* check all sequences */
-	BKE_sequencer_clear_scene_in_allseqs(bmain, sce);
-
 	/* check render layer nodes in other scenes */
 	clear_scene_in_nodes(bmain, sce);
 	
