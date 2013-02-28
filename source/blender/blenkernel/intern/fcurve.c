@@ -986,9 +986,9 @@ typedef struct DriverVarTypeInfo {
 	float (*get_value)(ChannelDriver *driver, DriverVar *dvar);
 	
 	/* allocation of target slots */
-	int num_targets;                        /* number of target slots required */
+	int num_targets;                        		/* number of target slots required */
 	const char *target_names[MAX_DRIVER_TARGETS];   /* UI names that should be given to the slots */
-	int target_flags[MAX_DRIVER_TARGETS];   /* flags defining the requirements for each slot */
+	short target_flags[MAX_DRIVER_TARGETS];   		/* flags defining the requirements for each slot */
 } DriverVarTypeInfo;
 
 /* Macro to begin definitions */
@@ -1497,7 +1497,7 @@ void driver_change_variable_type(DriverVar *dvar, int type)
 	 */
 	DRIVER_TARGETS_USED_LOOPER(dvar)
 	{
-		int flags = dvti->target_flags[tarIndex];
+		short flags = dvti->target_flags[tarIndex];
 		
 		/* store the flags */
 		dtar->flag = flags;
