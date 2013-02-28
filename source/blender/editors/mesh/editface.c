@@ -181,12 +181,11 @@ void paintface_reveal(Object *ob)
 
 static void hash_add_face(EdgeHash *ehash, MPoly *mp, MLoop *mloop)
 {
-	MLoop *ml;
-	MLoop *ml_next;
+	MLoop *ml, *ml_next;
 	int i = mp->totloop;
 
-	ml_next = mloop;
-	ml = &mloop[mp->totloop - 1];
+	ml_next = mloop;       /* first loop */
+	ml = &ml_next[i - 1];  /* last loop */
 
 	while (i-- != 0) {
 		BLI_edgehash_insert(ehash, ml->v, ml_next->v, NULL);
