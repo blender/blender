@@ -127,7 +127,7 @@ Variables
 
 .. data:: joysticks
 
-   A list of attached joysticks. The list size it he maximum number of supported joysticks. If no joystick is available for a given slot, the slot is set to None.
+   A list of attached :class:`~bge.types.SCA_PythonJoystick`s. The list size is the maximum number of supported joysticks. If no joystick is available for a given slot, the slot is set to None.
 
 *****************
 General functions
