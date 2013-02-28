@@ -541,7 +541,8 @@ static void graph_panel_driverVar__locDiff(uiLayout *layout, ID *id, DriverVar *
 		RNA_pointer_create(dtar->id, &RNA_Pose, ob1->pose, &tar_ptr);
 		uiItemPointerR(col, &dtar_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 	}
-		
+	
+	uiLayoutSetRedAlert(col, false); /* we can clear it again now - it's only needed when creating the ID/Bone fields */
 	uiItemR(col, &dtar_ptr, "transform_space", 0, NULL, ICON_NONE);
 	
 	col = uiLayoutColumn(layout, TRUE);
@@ -555,6 +556,7 @@ static void graph_panel_driverVar__locDiff(uiLayout *layout, ID *id, DriverVar *
 		uiItemPointerR(col, &dtar2_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 	}
 		
+	uiLayoutSetRedAlert(col, false); /* we can clear it again now - it's only needed when creating the ID/Bone fields */
 	uiItemR(col, &dtar2_ptr, "transform_space", 0, NULL, ICON_NONE);
 }
 
