@@ -1192,8 +1192,43 @@ static float dvar_eval_locDiff(ChannelDriver *driver, DriverVar *dvar)
 {
 	float loc1[3] = {0.0f, 0.0f, 0.0f};
 	float loc2[3] = {0.0f, 0.0f, 0.0f};
+	short valid_targets = 0;
 	
-	/* get two location values */
+	/* Perform two passes
+	 *
+	 * FIRST PASS - to just check that everything works... 
+	 * NOTE: we use loops here to reduce code duplication, though in practice, 
+	 *       there can only be 2 items or else we run into some problems later
+	 */
+	DRIVER_TARGETS_USED_LOOPER(dvar)
+	{
+		Object *ob = (Object *)dtar_id_ensure_proxy_from(dtar->id);
+		
+		/* check if this target has valid data */
+		if ((ob == NULL) || (GS(ob->id.name) != ID_OB)) {
+			/* invalid target, so will not have enough targets */
+			driver->flag |= DRIVER_FLAG_INVALID;
+			dtar->flag   |= DTAR_FLAG_INVALID;
+		}
+		else {
+			/* target seems to be OK now... */
+			dtar->flag &= ~DTAR_FLAG_INVALID;
+			valid_targets++;
+		}
+	}
+	DRIVER_TARGETS_LOOPER_END
+	
+	/* make sure we have enough valid targets to use - all or nothing for now... */
+	if (valid_targets < dvar->num_targets) {
+		if (G.debug & G_DEBUG) {
+			printf("LocDiff DVar: not enough valid targets (n = %d) (a = %p, b = %p)\n",
+			        valid_targets, dvar->targets[0].id, dvar->targets[1].id);
+		}
+		return 0.0f;
+	}
+	
+	
+	/* SECOND PASS: get two location values */
 	/* NOTE: for now, these are all just worldspace */
 	DRIVER_TARGETS_USED_LOOPER(dvar)
 	{
@@ -1202,17 +1237,8 @@ static float dvar_eval_locDiff(ChannelDriver *driver, DriverVar *dvar)
 		bPoseChannel *pchan;
 		float tmp_loc[3];
 		
-		/* check if this target has valid data */
-		if ((ob == NULL) || (GS(ob->id.name) != ID_OB)) {
-			/* invalid target, so will not have enough targets */
-			driver->flag |= DRIVER_FLAG_INVALID;
-			dtar->flag   |= DTAR_FLAG_INVALID;
-			return 0.0f;
-		}
-		else {
-			/* target seems to be OK now... */
-			dtar->flag &= ~DTAR_FLAG_INVALID;
-		}
+		/* after the checks above, the targets should be valid here... */
+		BLI_assert((ob != NULL) && (GS(ob->id.name) != ID_OB));
 		
 		/* try to get posechannel */
 		pchan = BKE_pose_channel_find_name(ob->pose, dtar->pchan_name);
