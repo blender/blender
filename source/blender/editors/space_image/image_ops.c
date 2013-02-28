@@ -2439,6 +2439,7 @@ void IMAGE_OT_curves_point_set(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "point", point_items, 0, "Point", "Set black point or white point for curves");
 }
 
+#if 0 /* Not ported to 2.5x yet */
 /******************** record composite operator *********************/
 
 typedef struct RecordCompositeData {
@@ -2589,6 +2590,8 @@ void IMAGE_OT_record_composite(wmOperatorType *ot)
 	ot->cancel = image_record_composite_cancel;
 	ot->poll = space_image_buffer_exists_poll;
 }
+
+#endif
 
 /********************* cycle render slot operator *********************/
 
