@@ -923,9 +923,13 @@ static int edbm_select_mode_exec(bContext *C, wmOperator *op)
 
 static int edbm_select_mode_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	// RNA_enum_set(op->ptr, "type");  /* type must be set already */
-	RNA_boolean_set(op->ptr, "use_extend", event->shift);
-	RNA_boolean_set(op->ptr, "use_expand", event->ctrl);
+	/* detecting these options based on shift/ctrl here is weak, but it's done
+	 * to make this work when clicking buttons or menus */
+	if (!RNA_struct_property_is_set(op->ptr, "use_extend"))
+		RNA_boolean_set(op->ptr, "use_extend", event->shift);
+	if (!RNA_struct_property_is_set(op->ptr, "use_expand"))
+		RNA_boolean_set(op->ptr, "use_expand", event->ctrl);
+
 	return edbm_select_mode_exec(C, op);
 }
 
