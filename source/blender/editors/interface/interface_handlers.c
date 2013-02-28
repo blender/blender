@@ -6145,14 +6145,12 @@ static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiBu
 
 static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 {
-	uiHandleButtonData *data;
+	uiHandleButtonData *data = but->active;
+	const uiButtonActivateType state_orig = data->state;
 	uiBlock *block;
 	ARegion *ar;
-	uiBut *postbut;
-	uiButtonActivateType posttype;
 	int retval;
 
-	data = but->active;
 	block = but->block;
 	ar = data->region;
 
@@ -6304,14 +6302,28 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 	}
 
 	if (data->state == BUTTON_STATE_EXIT) {
-		postbut = data->postbut;
-		posttype = data->posttype;
+		uiBut *post_but = data->postbut;
+		uiButtonActivateType post_type = data->posttype;
 
-		button_activate_exit(C, but, data, (postbut == NULL), false);
+		button_activate_exit(C, but, data, (post_but == NULL), false);
 
 		/* for jumping to the next button with tab while text editing */
-		if (postbut)
-			button_activate_init(C, ar, postbut, posttype);
+		if (post_but) {
+			button_activate_init(C, ar, post_but, post_type);
+		}
+		else {
+			/* XXX issue is because WM_event_add_mousemove(C) is a bad hack and not reliable,
+			 *if that gets coded better this bypass can go away too.
+			 *
+			 * This is needed to make sure if a button was active,
+			 * it stays active while the mouse is over it.
+			 * This avoids adding mousemoves, see: [#33466] */
+			if (ELEM(state_orig, BUTTON_ACTIVATE, BUTTON_ACTIVATE_OVER)) {
+				if (ui_but_find_mouse_over(ar, event->x, event->y) == but) {
+					button_activate_init(C, ar, but, state_orig);
+				}
+			}
+		}
 	}
 
 	return retval;
