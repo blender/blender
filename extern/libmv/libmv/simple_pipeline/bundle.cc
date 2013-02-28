@@ -94,17 +94,16 @@ struct OpenCVReprojectionError {
       // Apply distortion to the normalized points to get (xd, yd).
       // TODO(keir): Do early bailouts for zero distortion; these are expensive
       // jet operations.
-      T r2 = xn*xn + yn*yn;
-      T r4 = r2 * r2;
-      T r6 = r4 * r2;
-      T r_coeff = T(1) + k1*r2 + k2*r4 + k3*r6;
-      T xd = xn * r_coeff + T(2)*p1*xn*yn + p2*(r2 + T(2)*xn*xn);
-      T yd = yn * r_coeff + T(2)*p2*xn*yn + p1*(r2 + T(2)*yn*yn);
 
-      // Apply focal length and principal point to get the final
-      // image coordinates.
-      predicted_x = focal_length * xd + principal_point_x;
-      predicted_y = focal_length * yd + principal_point_y;
+      ApplyRadialDistortionCameraIntrinsics(focal_length,
+                                            focal_length,
+                                            principal_point_x,
+                                            principal_point_y,
+                                            k1, k2, k3,
+                                            p1, p2,
+                                            xn, yn,
+                                            &predicted_x,
+                                            &predicted_y);
     } else {
       predicted_x = xn;
       predicted_y = yn;
