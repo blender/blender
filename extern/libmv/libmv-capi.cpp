@@ -444,7 +444,8 @@ int libmv_refineParametersAreValid(int parameters) {
 
 static void libmv_solveRefineIntrinsics(libmv::Tracks *tracks, libmv::CameraIntrinsics *intrinsics,
 			libmv::EuclideanReconstruction *reconstruction, int refine_intrinsics,
-			reconstruct_progress_update_cb progress_update_callback, void *callback_customdata)
+			reconstruct_progress_update_cb progress_update_callback, void *callback_customdata,
+			int bundle_constraints = libmv::BUNDLE_NO_CONSTRAINTS)
 {
 	/* only a few combinations are supported but trust the caller */
 	int libmv_refine_flags = 0;
@@ -465,7 +466,7 @@ static void libmv_solveRefineIntrinsics(libmv::Tracks *tracks, libmv::CameraIntr
 	progress_update_callback(callback_customdata, 1.0, "Refining solution");
 
 	libmv::EuclideanBundleCommonIntrinsics(*(libmv::Tracks *)tracks, libmv_refine_flags,
-		reconstruction, intrinsics);
+		reconstruction, intrinsics, bundle_constraints);
 }
 
 static void cameraIntrinsicsFromOptions(libmv::CameraIntrinsics *camera_intrinsics,
@@ -568,6 +569,7 @@ libmv_Reconstruction *libmv_solveReconstruction(libmv_Tracks *libmv_tracks,
 
 struct libmv_Reconstruction *libmv_solveModal(struct libmv_Tracks *libmv_tracks,
 			libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
+			libmv_reconstructionOptions *libmv_reconstruction_options,
 			reconstruct_progress_update_cb progress_update_callback,
 			void *callback_customdata)
 {
@@ -582,13 +584,28 @@ struct libmv_Reconstruction *libmv_solveModal(struct libmv_Tracks *libmv_tracks,
 
 	cameraIntrinsicsFromOptions(camera_intrinsics, libmv_camera_intrinsics_options);
 
-	/* Invert the camera intrinsics */
+	/* Invert the camera intrinsics. */
 	libmv::Tracks normalized_tracks = getNormalizedTracks(tracks, camera_intrinsics);
 
-	/* actual reconstruction */
+	/* Actual reconstruction. */
 	libmv::ModalSolver(normalized_tracks, reconstruction, &update_callback);
 
-	/* finish reconstruction */
+	libmv::CameraIntrinsics empty_intrinsics;
+	libmv::EuclideanBundleCommonIntrinsics(normalized_tracks,
+	                                       libmv::BUNDLE_NO_INTRINSICS,
+	                                       reconstruction,
+	                                       &empty_intrinsics,
+	                                       libmv::BUNDLE_NO_TRANSLATION);
+
+	/* Refinement. */
+	if (libmv_reconstruction_options->refine_intrinsics) {
+		libmv_solveRefineIntrinsics((libmv::Tracks *)tracks, camera_intrinsics, reconstruction,
+			libmv_reconstruction_options->refine_intrinsics,
+			progress_update_callback, callback_customdata,
+			libmv::BUNDLE_NO_TRANSLATION);
+	}
+
+	/* Finish reconstruction. */
 	finishReconstruction(tracks, camera_intrinsics, libmv_reconstruction,
 	                     progress_update_callback, callback_customdata);
 

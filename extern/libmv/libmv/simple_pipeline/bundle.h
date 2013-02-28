@@ -67,6 +67,11 @@ void EuclideanBundle(const Tracks &tracks,
     BUNDLE_FOCAL_LENGTH | BUNDLE_PRINCIPAL_POINT
     BUNDLE_FOCAL_LENGTH | BUNDLE_PRINCIPAL_POINT | BUNDLE_RADIAL
     BUNDLE_FOCAL_LENGTH | BUNDLE_PRINCIPAL_POINT | BUNDLE_RADIAL | BUNDLE_TANGENTIAL
+    BUNDLE_RADIAL
+
+    Constraints denotes which blocks to keep constant during bundling.
+    For example it is useful to keep camera translations constant
+    when bundling tripod motions.
 
     \note This assumes an outlier-free set of markers.
 
@@ -83,10 +88,15 @@ enum BundleIntrinsics {
   BUNDLE_TANGENTIAL_P2 = 32,
   BUNDLE_TANGENTIAL = 48,
 };
+enum BundleConstraints {
+	BUNDLE_NO_CONSTRAINTS = 0,
+	BUNDLE_NO_TRANSLATION = 1,
+};
 void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
                                      int bundle_intrinsics,
                                      EuclideanReconstruction *reconstruction,
-                                     CameraIntrinsics *intrinsics);
+                                     CameraIntrinsics *intrinsics,
+                                     int bundle_constraints = BUNDLE_NO_CONSTRAINTS);
 
 /*!
     Refine camera poses and 3D coordinates using bundle adjustment.

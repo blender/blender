@@ -233,7 +233,8 @@ void EuclideanBundle(const Tracks &tracks,
 void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
                                      int bundle_intrinsics,
                                      EuclideanReconstruction *reconstruction,
-                                     CameraIntrinsics *intrinsics) {
+                                     CameraIntrinsics *intrinsics,
+                                     int bundle_constraints) {
   LG << "Original intrinsics: " << *intrinsics;
   vector<Marker> markers = tracks.AllMarkers();
 
@@ -270,7 +271,7 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
     }
 
     problem.AddResidualBlock(new ceres::AutoDiffCostFunction<
-        OpenCVReprojectionError, 2, 8, 9 /* 3 */, 3, 3>(
+        OpenCVReprojectionError, 2, 8, 9, 3, 3>(
             new OpenCVReprojectionError(
                 marker.x,
                 marker.y)),
@@ -283,6 +284,10 @@ void EuclideanBundleCommonIntrinsics(const Tracks &tracks,
     // It's fine if the parameterization for one camera is set repeatedly.
     problem.SetParameterization(&camera->R(0, 0),
                                 &rotation_parameterization);
+
+    if (bundle_constraints & BUNDLE_NO_TRANSLATION) {
+      problem.SetParameterBlockConstant(&camera->t(0));
+    }
 
     num_residuals++;
   }

@@ -110,6 +110,7 @@ struct libmv_Reconstruction *libmv_solveReconstruction(struct libmv_Tracks *libm
 			void *callback_customdata);
 struct libmv_Reconstruction *libmv_solveModal(struct libmv_Tracks *libmv_tracks,
 			libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
+			libmv_reconstructionOptions *libmv_reconstruction_options,
 			reconstruct_progress_update_cb progress_update_callback,
 			void *callback_customdata);
 int libmv_reporojectionPointForTrack(struct libmv_Reconstruction *libmv_reconstruction, int track, double pos[3]);

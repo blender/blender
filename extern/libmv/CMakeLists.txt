@@ -99,6 +99,7 @@ set(SRC
 	libmv/multiview/homography.h
 	libmv/multiview/homography_parameterization.h
 	libmv/multiview/nviewtriangulation.h
+	libmv/multiview/panography.h
 	libmv/multiview/projection.h
 	libmv/multiview/resection.h
 	libmv/multiview/triangulation.h

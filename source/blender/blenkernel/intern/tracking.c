@@ -3076,6 +3076,7 @@ void BKE_tracking_reconstruction_solve(MovieReconstructContext *context, short *
 	if (context->motion_flag & TRACKING_MOTION_MODAL) {
 		context->reconstruction = libmv_solveModal(context->tracks,
 		                                           &camera_intrinsics_options,
+		                                           &reconstruction_options,
 		                                           reconstruct_update_solve_cb, &progressdata);
 	}
 	else {
