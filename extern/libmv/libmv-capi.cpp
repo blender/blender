@@ -34,19 +34,8 @@
 
 #include "libmv-capi.h"
 
-#include "third_party/gflags/gflags/gflags.h"
-#include "glog/logging.h"
 #include "libmv/logging/logging.h"
 
-#include "libmv/numeric/numeric.h"
-
-#include "libmv/tracking/esm_region_tracker.h"
-#include "libmv/tracking/brute_region_tracker.h"
-#include "libmv/tracking/hybrid_region_tracker.h"
-#include "libmv/tracking/klt_region_tracker.h"
-#include "libmv/tracking/trklt_region_tracker.h"
-#include "libmv/tracking/lmicklt_region_tracker.h"
-#include "libmv/tracking/pyramid_region_tracker.h"
 #include "libmv/tracking/track_region.h"
 
 #include "libmv/simple_pipeline/callbacks.h"
