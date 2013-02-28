@@ -909,16 +909,13 @@ static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_codecType_itemf(bCon
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
 	QuicktimeCodecTypeDesc *codecTypeDesc;
 	int i = 1, totitem = 0;
-	char id[5];
-	
+
 	for (i = 0; i < quicktime_get_num_videocodecs(); i++) {
 		codecTypeDesc = quicktime_get_videocodecType_desc(i);
 		if (!codecTypeDesc) break;
-		
+
 		tmp.value = codecTypeDesc->rnatmpvalue;
-		*((int *)id) = codecTypeDesc->codecType;
-		id[4] = 0;
-		tmp.identifier = id;
+		tmp.identifier = codecTypeDesc->codecName;
 		tmp.name = codecTypeDesc->codecName;
 		RNA_enum_item_add(&item, &totitem, &tmp);
 	}
