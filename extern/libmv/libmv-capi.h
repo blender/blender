@@ -162,10 +162,6 @@ void libmv_applyCameraIntrinsics(libmv_cameraIntrinsicsOptions *libmv_camera_int
 void libmv_InvertIntrinsics(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
 			double x, double y, double *x1, double *y1);
 
-/* point clouds */
-void libmv_rigidRegistration(float (*reference_points)[3], float (*points)[3], int total_points,
-                             int use_scale, int use_translation, double M[4][4]);
-
 #ifdef __cplusplus
 }
 #endif
