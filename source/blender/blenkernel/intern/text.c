@@ -2560,6 +2560,7 @@ int txt_replace_char(Text *text, unsigned int add)
 	
 	memcpy(text->curl->line + text->curc, ch, add_size);
 	text->curc += add_size;
+	text->curl->len += add_size - del_size;
 	
 	txt_pop_sel(text);
 	txt_make_dirty(text);
