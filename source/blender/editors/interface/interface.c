@@ -1097,34 +1097,29 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 
 /* ************* EVENTS ************* */
 
-static void ui_is_but_sel(uiBut *but, double *value)
+int ui_is_but_push_ex(uiBut *but, double *value)
 {
-	short is_push = 0;  /* (0 == UNSELECT), (1 == SELECT), (2 == DO-NOHING) */
-	short is_true = TRUE;
-
-	if (ELEM3(but->type, TOGN, ICONTOGN, OPTIONN)) {
-		is_true = FALSE;
-	}
+	int is_push = false;  /* (0 == UNSELECT), (1 == SELECT), (-1 == DO-NOHING) */
 
 	if (but->bit) {
+		const bool state = ELEM3(but->type, TOGN, ICONTOGN, OPTIONN) ? false : true;
 		int lvalue;
 		UI_GET_BUT_VALUE_INIT(but, *value);
 		lvalue = (int)*value;
 		if (UI_BITBUT_TEST(lvalue, (but->bitnr))) {
-			is_push = is_true;
+			is_push = state;
 		}
 		else {
-			is_push = !is_true;
+			is_push = !state;
 		}
 	}
 	else {
 		switch (but->type) {
 			case BUT:
-				is_push = 2;
-				break;
 			case HOTKEYEVT:
 			case KEYEVT:
-				is_push = 2;
+			case COLOR:
+				is_push = -1;
 				break;
 			case TOGBUT:
 			case TOG:
@@ -1134,42 +1129,48 @@ static void ui_is_but_sel(uiBut *but, double *value)
 			case ICONTOG:
 			case OPTION:
 				UI_GET_BUT_VALUE_INIT(but, *value);
-				if (*value != (double)but->hardmin) is_push = 1;
+				if (*value != (double)but->hardmin) is_push = true;
 				break;
 			case ICONTOGN:
 			case TOGN:
 			case OPTIONN:
 				UI_GET_BUT_VALUE_INIT(but, *value);
-				if (*value == 0.0) is_push = 1;
+				if (*value == 0.0) is_push = true;
 				break;
 			case ROW:
 			case LISTROW:
 				UI_GET_BUT_VALUE_INIT(but, *value);
 				/* support for rna enum buts */
 				if (but->rnaprop && (RNA_property_flag(but->rnaprop) & PROP_ENUM_FLAG)) {
-					if ((int)*value & (int)but->hardmax) is_push = 1;
+					if ((int)*value & (int)but->hardmax) is_push = true;
 				}
 				else {
-					if (*value == (double)but->hardmax) is_push = 1;
+					if (*value == (double)but->hardmax) is_push = true;
 				}
 				break;
-			case COLOR:
-				is_push = 2;
-				break;
 			default:
-				is_push = 2;
+				is_push = -1;
 				break;
 		}
 	}
-	
-	if (is_push == 2) {
-		/* pass */
-	}
-	else if (is_push == 1) {
-		but->flag |= UI_SELECT;
-	}
-	else {
-		but->flag &= ~UI_SELECT;
+
+	return is_push;
+}
+int ui_is_but_push(uiBut *but)
+{
+	double value = UI_BUT_VALUE_UNSET;
+	return ui_is_but_push_ex(but, &value);
+}
+
+static void ui_check_but_select(uiBut *but, double *value)
+{
+	switch (ui_is_but_push_ex(but, value)) {
+		case true:
+			but->flag |= UI_SELECT;
+			break;
+		case false:
+			but->flag &= ~UI_SELECT;
+			break;
 	}
 }
 
@@ -1620,8 +1621,7 @@ void ui_set_but_val(uiBut *but, double value)
 			value = *((float *)but->poin) = (float)value;
 	}
 
-	/* update select flag */
-	ui_is_but_sel(but, &value);
+	ui_check_but_select(but, &value);
 }
 
 int ui_get_but_string_max_length(uiBut *but)
@@ -2256,7 +2256,7 @@ void ui_check_but(uiBut *but)
 	double value = UI_BUT_VALUE_UNSET;
 //	float okwidth; // UNUSED
 	
-	ui_is_but_sel(but, &value);
+	ui_check_but_select(but, &value);
 	
 	/* only update soft range while not editing */
 	if (but->rnaprop && !(but->editval || but->editstr || but->editvec)) {

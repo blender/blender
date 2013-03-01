@@ -412,6 +412,10 @@ extern int  ui_is_but_rna_valid(uiBut *but);
 extern int  ui_is_but_utf8(uiBut *but);
 extern bool ui_is_but_interactive(uiBut *but);
 
+extern int  ui_is_but_push_ex(uiBut *but, double *value);
+extern int  ui_is_but_push(uiBut *but);
+
+
 extern void ui_bounds_block(uiBlock *block);
 extern void ui_block_translate(uiBlock *block, int x, int y);
 extern void ui_block_do_align(uiBlock *block);
