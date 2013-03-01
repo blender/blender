@@ -77,10 +77,10 @@ class SCENE_PT_unit(SceneButtonsPanel, Panel):
         col.row().prop(unit, "system", expand=True)
         col.row().prop(unit, "system_rotation", expand=True)
 
-        row = layout.row()
-        row.active = (unit.system != 'NONE')
-        row.prop(unit, "scale_length", text="Scale")
-        row.prop(unit, "use_separate")
+        if unit.system != 'NONE':
+            row = layout.row()
+            row.prop(unit, "scale_length", text="Scale")
+            row.prop(unit, "use_separate")
 
 
 class SCENE_PT_keying_sets(SceneButtonsPanel, Panel):
