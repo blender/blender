@@ -1004,8 +1004,8 @@ typedef struct SpaceUserPref {
 	ListBase regionbase;        /* storage of regions for inactive spaces */
 	int spacetype;
 	
-	int pad;
-	
+	char pad[3];
+	char filter_type;
 	char filter[64];        /* search term for filtering in the UI */
 } SpaceUserPref;
 

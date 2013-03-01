@@ -3054,13 +3054,24 @@ static void rna_def_space_info(BlenderRNA *brna)
 
 static void rna_def_space_userpref(BlenderRNA *brna)
 {
+	static EnumPropertyItem filter_type_items[] = {
+	    {0,     "NAME",     0,      "Name",        "Filter based on the operator name"},
+	    {1,     "KEY",      0,      "Key-Binding", "Filter based on key bindings"},
+	    {0, NULL, 0, NULL, NULL}};
+
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "SpaceUserPreferences", "Space");
 	RNA_def_struct_sdna(srna, "SpaceUserPref");
 	RNA_def_struct_ui_text(srna, "Space User Preferences", "User preferences space data");
-	
+
+	prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "filter_type");
+	RNA_def_property_enum_items(prop, filter_type_items);
+	RNA_def_property_ui_text(prop, "Filter Type", "Filter method");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, NULL);
+
 	prop = RNA_def_property(srna, "filter_text", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "filter");
 	RNA_def_property_ui_text(prop, "Filter", "Search term for filtering in the UI");
