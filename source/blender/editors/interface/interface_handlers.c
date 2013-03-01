@@ -776,12 +776,12 @@ static int ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data, 
 #ifdef USE_DRAG_TOGGLE
 		if (ui_is_but_bool(but)) {
 			/* assumes button has already been pressed */
-			const bool is_set = (ui_get_but_val(but) == 0.0);
+			const bool is_set = ui_is_but_push(but);
 			PointerRNA ptr;
 			/* auto-key is typically called on mouse-up, but we'r leaving the button so call here */
 			ui_apply_autokey(C, but);
 			WM_operator_properties_create(&ptr, "UI_OT_drag_toggle");
-			RNA_boolean_set(&ptr, "state", !is_set);
+			RNA_boolean_set(&ptr, "state", is_set);
 			RNA_int_set(&ptr, "last_x", data->dragstartx);
 			RNA_int_set(&ptr, "last_y", data->dragstarty);
 			WM_operator_name_call(C, "UI_OT_drag_toggle", WM_OP_INVOKE_DEFAULT, &ptr);

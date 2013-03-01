@@ -1103,7 +1103,7 @@ static bool ui_but_set_xy_xy(bContext *C, ARegion *ar, const bool is_set, const 
 					/* execute the button */
 					if (ui_is_but_bool(but) && but->type == but_type_start) {
 						/* is it pressed? */
-						bool is_set_but = (ui_get_but_val(but) != 0.0);
+						bool is_set_but = ui_is_but_push(but);
 						BLI_assert(ui_is_but_bool(but) == true);
 						if (is_set_but != is_set) {
 							uiButExecute(C, but);
