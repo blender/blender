@@ -11,7 +11,6 @@ Import('env')
 
 defs = []
 
-defs.append('V3DLIB_ENABLE_SUITESPARSE')
 defs.append('GOOGLE_GLOG_DLL_DECL=')
 
 src = env.Glob("*.cpp")

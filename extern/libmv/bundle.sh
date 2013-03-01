@@ -124,7 +124,6 @@ cat > CMakeLists.txt << EOF
 
 set(INC
 	.
-	../colamd/Include
 	third_party/ceres/include
 )
 

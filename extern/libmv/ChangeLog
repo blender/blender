@@ -1,3 +1,158 @@
+commit 473996468a4e67e7c860169181a4ff31ce9b8c80
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Mar 1 17:44:54 2013 +0600
+
+    Fixed incorrect order of arguments passing
+    to EXPECT_EQ in keyframe selection tests.
+
+commit d38ebb74693fdf5b8f0fecf62a3d8c9c53b0b84a
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Mar 1 17:40:38 2013 +0600
+
+    Modal (aka tripod) solver rework
+    
+    Several major things are done in this commit:
+    
+    - First of all, logic of modal solver was changed.
+      We do not rely on only minimizer to take care of
+      guessing rotation for frame, but we're using
+      analytical rotation computation for point clouds
+      to obtain initial rotation.
+    
+      Then this rotation is being refined using Ceres
+      minimizer and now instead of minimizing average
+      distance between points of point of two clouds,
+      minimization of reprojection error of point
+      cloud onto frame happens.
+    
+      This gives quite a bit of precision improvement.
+    
+    - Second bigger improvement here is using bundle
+      adjustment for a result of first step when we're
+      only estimating rotation between neighbor images
+      and reprojecting markers.
+    
+      This averages error across the image sequence
+      avoiding error accumulation. Also, this will
+      tweak bundles themselves a bit for better match.
+    
+    - And last bigger improvement here is support of
+      camera intrinsics refirenment.
+    
+    This allowed to significantly improve solution
+    for real-life footage and results after such
+    refining are much more usable than it were before.
+    
+    Thanks to Keir for the help and code review!
+
+commit 5d6c2e7a27bdd1a1b23bf289d70a9b8f62514c9a
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Mar 1 17:37:35 2013 +0600
+
+    Increase verbosity level for reprojected markers info
+    
+    This information is useful, but in cases when you, say,
+    working on a bundler it's annoying to scroll all the
+    information up.
+
+commit ac252bb1250b3028b9c94736b644e7ab4e7b14b8
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Mar 1 17:36:19 2013 +0600
+
+    Move radial distortion code to own templated function
+    
+    This shall not lead to any functional changes, just
+    avoids radial distortion code duplicated in camera
+    intrinsics and bundling code.
+    
+    For fancier bundle adjustment support of  different
+    distortion models this is not actually enough and
+    would need to make some bigger changes, but this
+    changes makes code a bit easier to maintain already.
+
+commit c253b794612dd529e1d3a9bd7a7c41c32c9a9abb
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Mar 1 17:33:27 2013 +0600
+
+    Use threaded cost function, jacobian and linear solver
+    computation, so bundling is as fast as it could be with
+    current parameter block structure.
+
+commit 931fe37a10212b91b525d4f6eb753990a338b471
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Mar 1 17:29:21 2013 +0600
+
+    Fixed comment for euclidean bundling,
+    which is now supports raidal bundling independently
+    from other intrinsics.
+
+commit 217d8e6edc3de1a853fb84275d2d2dd898e7529c
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Feb 26 18:19:01 2013 +0600
+
+    Allow K1,K2 refirement combination
+    
+    It is now possible to refine only radial distortion
+    with new Ceres based bundler and this new combination
+    is already used in Blender.
+
+commit d8850addc944d400f7a9c358396c437d9e4acc70
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Feb 26 18:17:09 2013 +0600
+
+    Switch euclidean intersection code to use Ceres
+    
+    Would not expect any significant changes in solver
+    behavior, but it could be more accurate in some cases.
+    
+    Switching projective intersection to ceres is marked
+    as a TODO for now.
+
+commit 6990b7946ec96b3cb2dcfc8a1beaaba9538b0802
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Mon Feb 25 20:00:48 2013 +0000
+
+    Switch motion tracker bundle adjustment to Ceres.
+    
+    Patch originally written by me, then finished by Sergey. Big
+    thanks to Sergey for troopering through and fixing the many issues
+    with my original (not compilable) patch.
+    
+    The Ceres implementation uses 2 parameter blocks for each camera
+    (1 for rotation and 1 for translation), 1 parameter block for
+    common intrinsics (focal length etc) and 1 parameter block for
+    each track (e.g. bundle or 3D point).
+    
+    We turn on some fancy optimizer options to get better performance,
+    in particular:
+    
+      options.preconditioner_type = ceres::SCHUR_JACOBI;
+      options.linear_solver_type = ceres::ITERATIVE_SCHUR;
+      options.use_inner_iterations = true;
+      options.use_nonmonotonic_steps = true;
+      options.max_num_iterations = 100;
+    
+    Special thanks to Sameer Agarwal of Ceres fame for splitting out
+    the SCHUR_JACOBI preconditioner so that it didn't depend on
+    CHOLMOD.  Previously we could not use that preconditioner in
+    Blender because CHOLMOD is too large of a dependency for Blender.
+    
+    BundleIntrinsicsLogMessage:
+    - Moved bunch of if(foo) LG << "bar" into this function, to make
+      EuclideanBundleCommonIntrinsics a little bit easier to follow.
+    
+    EuclideanBundle:
+    - Fix RMSE logging.
+
+commit 1696342954614b54133780d74d6ee0fbcbe224f0
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Tue Feb 26 18:10:33 2013 +0600
+
+    Upgrade ceres to latest upstream version
+    
+    This is needed because of some features of new Ceres
+    for further development.
+
 commit 575336f794841ada90aacd783285014081b8318c
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Mon Jan 7 15:58:40 2013 +0600
@@ -643,148 +798,3 @@ Date:   Thu Apr 12 13:56:02 2012 +0600
     It projects markers onto sphere and uses rigid registration of rotation to
     find rotation angles which makes bundles from previous and current frame be
     as closest as it's possible.
-
-commit fa3842e472e3b9c789e47bf6d8f592aa40a84f16
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Apr 12 12:32:48 2012 +0600
-
-    implementation of some basic algorithms for point cloud orientation:
-    
-    - Implementation of rigid registration algorithm which searches transformation
-      form one point cloud to another assuming that points in this clouds are
-      already paired (points with the same index in different clouds belongs to
-      the same pair) which minimizes average distance between points in pairs.
-    
-      Algorithm uses Levenberg-Marquardt solver to find such transformation.
-    
-      Supports registration of rotation-scale-transform (which is probably most
-      common usage) and rotation only (which might be useful for basic modal
-      tripod solver).
-    
-    - Implementation of Iterative-Point-Clouds algorithm which searches
-      transformation from one arbitrary point cloud to another  making
-      points as closest to each other as possible.
-    
-      This algorithm doesn't require points be initially paired, but for
-      good result clouds should have rough initial orientation. If they're
-      arbitrary oriented from the very beginning, algorithm might fail
-      producing good resold.
-    
-      Iteration is based on building pairs of closest to each other points
-      and registering rigid transformation between them which incrementally
-      constructs final result.
-    
-    TODO: building pairs might be speedup a lot using data structures like
-          AABB trees, K-D trees or so.
-
-commit 9618d9a1d48bb3c28da605d9027f57a74f462785
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Wed Apr 11 14:17:14 2012 +0600
-
-    Added configuration file for glog to compile smooth on Hurd platform.
-    
-    Patch by Pino Toscano <pino@debian.org>, thanks!
-
-commit 63b2bd20237c8599fa73ce42556e4fb99b9f7cca
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Thu Mar 22 17:03:34 2012 +0600
-
-    Trackers refactoring:
-    - Deduplicate pattern sampling used in esm and lmicklt trackers
-      and move SamplePattern to image/sample.h
-    - Move computation of Pearson product-moment correlation into
-      own function in new file image/correlation.h so all trackers
-      can use it to check final correlation.
-    - Remove SAD tracker. It's almost the same as brute tracker,
-      with only two differences:
-      1. It does brute search of affine transformation which in some cases
-         helps to track rotating features
-      2. It didn't use common tracker api which probably gave some speed
-         advantage, but lead to a real headache to use it together with
-         other trackers leading to duplicated code in 3d-party software.
-
-commit 9fe49c32e990f28c83f2bbb1d18057aed8879af7
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Mon Mar 12 09:36:15 2012 +0600
-
-    Code cleanup: convert line endings to Unix style (native on my platform) so it
-    wouldn't confuse other versioning systems used for project where libmv is bundled to,
-    
-    Also change mode to +x for glog's windows-related script.
-
-commit fe74ae2b53769389b0ed9d7e604c8e60be81077d
-Author: Sergey I. Sharybin <g.ulairi@gmail.com>
-Date:   Sun Mar 11 20:34:15 2012 +0600
-
-    Replace "third_party/glog/src/glog/logging.h" with <glog/logging.h>
-    
-    It was needed because of how build systems is setup in Blender but think
-    this will be helpful change for other applications too because it makes
-    it's easier to move libraries around and even use libraries installed
-    on the operation system.
-
-commit 37fc726701479f2d321d6af878fa93f3176278d5
-Author: Sergey I. Sharybin <g.ulairi@gmail.com>
-Date:   Sun Mar 11 19:27:41 2012 +0600
-
-    Upgrade gflags and glog libraries - stage 2 (final)
-    
-    Changes to upstream code which are needed to make libmv compile smooth on all platforms
-    
-    * Replace <gflags/gflags.h> with "third_party/gflags/gflags/gflags.h" which is easier
-      to setup things in libmv and also helps with setting up building libmv into
-      external applications.
-    * Replace "glog/logging.h" and  "glog/logging.h" with <glog/logging.h> and  <glog/logging.h>
-      which is needed on Windows platform because otherwise files like logging.cc will be using
-      relative path which points to headers used by linux instead of headers need to be used
-      on Windows.
-    * Replace _asm int 3 with __debugbreak(). Such assembler code is obsolete and doesn't work
-      with 64bit versions of MSVC compilers.
-    * Do not use stacktrace for MinGW and FreeBSD because it leads into issues accessing
-      some specific data on this platforms.
-    * Define HAVE_LIB_GFLAGS for Windows builds.
-    * Do not define __declspec(dllimport) for MinGW platforms.
-    * Setup proper includes and datatypes for int32, uint32, int64 and uint64 for MinGW
-    * Do not define va_copy for MinGW platforms (it's already defined there).
-    * Patch localtime_r to be working fine with MinGW, disable strerror_r for MinGW because
-      of lack of needed functions.
-
-commit 8ed07abfa49d1e0511752021c972e0715e5a1383
-Author: Sergey I. Sharybin <g.ulairi@gmail.com>
-Date:   Sun Mar 11 19:06:33 2012 +0600
-
-    Upgrade gflags and glog libraries - stage 1
-    
-    This commit copies sources from latest original release of gflags and glog
-    over currently bundled versions of this libraries without any modifications.
-    
-    This revision can't b compiled, all needed changes to make new libraries working
-    fine will be done with next commit to make it clear which changes were necessary
-    for easier bundling further newer version and extract patches and put them to
-    gflags/glog upstream repo.
-    
-    Such upgrade of libraries is needed to make it able to compile libmv
-    with clang compilers. Currently used versions:
-    
-    - gflags is version 2.0
-    - glog is version 0.3.2
-
-commit 75b9af405964ff2c7d3f0a44500e27e63b37c91b
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 23:29:11 2012 +0600
-
-    _USE_MATH_DEFINES is needed to define constants like M_E when building with msvc
-    Occasionally was removed, but now added comment about this so hopefully it
-    wouldn't removed again.
-
-commit f85b1232a9b929f69443b5eed6e7a39908cd6551
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 21:34:40 2012 +0600
-
-    Picky edit: corrected mode for ssba readme file.
-
-commit f8c2b223f01551fd81a85f6d5221646165147035
-Author: Sergey Sharybin <sergey.vfx@gmail.com>
-Date:   Fri Feb 17 21:32:05 2012 +0600
-
-    Picky edits: corrected EOL
