@@ -39,11 +39,12 @@ extern "C"{
 	#include "BKE_DerivedMesh.h"
 }
 
-RAS_StorageIM::RAS_StorageIM(int *texco_num, RAS_IRasterizer::TexCoGen *texco, int *attrib_num, RAS_IRasterizer::TexCoGen *attrib) :
+RAS_StorageIM::RAS_StorageIM(int *texco_num, RAS_IRasterizer::TexCoGen *texco, int *attrib_num, RAS_IRasterizer::TexCoGen *attrib, int *attrib_layer) :
 	m_texco_num(texco_num),
 	m_attrib_num(attrib_num),
 	m_texco(texco),
-	m_attrib(attrib)
+	m_attrib(attrib),
+	m_attrib_layer(attrib_layer)
 {
 }
 RAS_StorageIM::~RAS_StorageIM()
@@ -95,7 +96,6 @@ void RAS_StorageIM::TexCoord(const RAS_TexVert &tv)
 	}
 
 	if (GLEW_ARB_vertex_program) {
-		int uv = 0;
 		for (unit = 0; unit < *m_attrib_num; unit++) {
 			switch (m_attrib[unit]) {
 				case RAS_IRasterizer::RAS_TEXCO_ORCO:
@@ -103,7 +103,7 @@ void RAS_StorageIM::TexCoord(const RAS_TexVert &tv)
 					glVertexAttrib3fvARB(unit, tv.getXYZ());
 					break;
 				case RAS_IRasterizer::RAS_TEXCO_UV:
-					glVertexAttrib2fvARB(unit, tv.getUV(uv++));
+					glVertexAttrib2fvARB(unit, tv.getUV(m_attrib_layer[unit]));
 					break;
 				case RAS_IRasterizer::RAS_TEXCO_NORM:
 					glVertexAttrib3fvARB(unit, tv.getNormal());

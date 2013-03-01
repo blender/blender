@@ -34,7 +34,7 @@
 class RAS_StorageIM : public RAS_IStorage
 {
 public:
-	RAS_StorageIM(int *texco_num, RAS_IRasterizer::TexCoGen *texco, int *attrib_num, RAS_IRasterizer::TexCoGen *attrib);
+	RAS_StorageIM(int *texco_num, RAS_IRasterizer::TexCoGen *texco, int *attrib_num, RAS_IRasterizer::TexCoGen *attrib, int *attrib_layer);
 	virtual ~RAS_StorageIM();
 
 	virtual bool	Init();
@@ -51,6 +51,7 @@ protected:
 	int*			m_attrib_num;
 	RAS_IRasterizer::TexCoGen*		m_texco;
 	RAS_IRasterizer::TexCoGen*		m_attrib;
+	int*			                m_attrib_layer;
 
 	void	TexCoord(const RAS_TexVert &tv);
 	void	SetCullFace(bool enable);

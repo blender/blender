@@ -101,10 +101,10 @@ void VBO::UpdateIndices()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, space, &data->m_index[0], GL_STATIC_DRAW);
 }
 
-void VBO::Draw(int texco_num, RAS_IRasterizer::TexCoGen* texco, int attrib_num, RAS_IRasterizer::TexCoGen* attrib, bool multi)
+void VBO::Draw(int texco_num, RAS_IRasterizer::TexCoGen* texco, int attrib_num, RAS_IRasterizer::TexCoGen* attrib, int *attrib_layer, bool multi)
 {
 	int unit;
-	
+
 	// Bind buffers
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, this->ibo);
 	glBindBufferARB(GL_ARRAY_BUFFER_ARB, this->vbo_id);
@@ -159,7 +159,6 @@ void VBO::Draw(int texco_num, RAS_IRasterizer::TexCoGen* texco, int attrib_num, 
 
 	if (GLEW_ARB_vertex_program)
 	{
-		int uv = 0;
 		for (unit = 0; unit < attrib_num; ++unit)
 		{
 			switch (attrib[unit]) {
@@ -169,8 +168,7 @@ void VBO::Draw(int texco_num, RAS_IRasterizer::TexCoGen* texco, int attrib_num, 
 					glEnableVertexAttribArrayARB(unit);
 					break;
 				case RAS_IRasterizer::RAS_TEXCO_UV:
-					glVertexAttribPointerARB(unit, 2, GL_FLOAT, GL_FALSE, this->stride, (void*)((intptr_t)this->uv_offset+uv));
-					uv += sizeof(GLfloat)*2;
+					glVertexAttribPointerARB(unit, 2, GL_FLOAT, GL_FALSE, this->stride, (void*)((intptr_t)this->uv_offset+attrib_layer[unit]*sizeof(GLfloat)*2));
 					glEnableVertexAttribArrayARB(unit);
 					break;
 				case RAS_IRasterizer::RAS_TEXCO_NORM:
@@ -204,11 +202,12 @@ void VBO::Draw(int texco_num, RAS_IRasterizer::TexCoGen* texco, int attrib_num, 
 	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 }
 
-RAS_StorageVBO::RAS_StorageVBO(int *texco_num, RAS_IRasterizer::TexCoGen *texco, int *attrib_num, RAS_IRasterizer::TexCoGen *attrib):
+RAS_StorageVBO::RAS_StorageVBO(int *texco_num, RAS_IRasterizer::TexCoGen *texco, int *attrib_num, RAS_IRasterizer::TexCoGen *attrib, int *attrib_layer):
 	m_texco_num(texco_num),
 	m_attrib_num(attrib_num),
 	m_texco(texco),
-	m_attrib(attrib)
+	m_attrib(attrib),
+	m_attrib_layer(attrib_layer)
 {
 }
 
@@ -240,7 +239,7 @@ void RAS_StorageVBO::IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi)
 {
 	RAS_MeshSlot::iterator it;
 	VBO *vbo;
-	
+
 	for (ms.begin(it); !ms.end(it); ms.next(it))
 	{
 		vbo = m_vbo_lookup[it.array];
@@ -254,6 +253,6 @@ void RAS_StorageVBO::IndexPrimitivesInternal(RAS_MeshSlot& ms, bool multi)
 			vbo->UpdateData();
 		}
 
-		vbo->Draw(*m_texco_num, m_texco, *m_attrib_num, m_attrib, multi);
+		vbo->Draw(*m_texco_num, m_texco, *m_attrib_num, m_attrib, m_attrib_layer, multi);
 	}
 }

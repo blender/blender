@@ -29,13 +29,14 @@
 
 #include "GL/glew.h"
 
-RAS_StorageVA::RAS_StorageVA(int *texco_num, RAS_IRasterizer::TexCoGen *texco, int *attrib_num, RAS_IRasterizer::TexCoGen *attrib) :
+RAS_StorageVA::RAS_StorageVA(int *texco_num, RAS_IRasterizer::TexCoGen *texco, int *attrib_num, RAS_IRasterizer::TexCoGen *attrib, int *attrib_layer) :
 	m_texco_num(texco_num),
 	m_attrib_num(attrib_num),
 	m_last_texco_num(0),
 	m_last_attrib_num(0),
 	m_texco(texco),
-	m_attrib(attrib)
+	m_attrib(attrib),
+	m_attrib_layer(attrib_layer)
 {
 }
 
@@ -214,7 +215,6 @@ void RAS_StorageVA::TexCoordPtr(const RAS_TexVert *tv)
 	}
 
 	if (GLEW_ARB_vertex_program) {
-		int uv = 0;
 		for (unit = 0; unit < *m_attrib_num; unit++) {
 			switch (m_attrib[unit]) {
 				case RAS_IRasterizer::RAS_TEXCO_ORCO:
@@ -222,7 +222,7 @@ void RAS_StorageVA::TexCoordPtr(const RAS_TexVert *tv)
 					glVertexAttribPointerARB(unit, 3, GL_FLOAT, GL_FALSE, sizeof(RAS_TexVert), tv->getXYZ());
 					break;
 				case RAS_IRasterizer::RAS_TEXCO_UV:
-					glVertexAttribPointerARB(unit, 2, GL_FLOAT, GL_FALSE, sizeof(RAS_TexVert), tv->getUV(uv++));
+					glVertexAttribPointerARB(unit, 2, GL_FLOAT, GL_FALSE, sizeof(RAS_TexVert), tv->getUV(m_attrib_layer[unit]));
 					break;
 				case RAS_IRasterizer::RAS_TEXCO_NORM:
 					glVertexAttribPointerARB(unit, 3, GL_FLOAT, GL_FALSE, sizeof(RAS_TexVert), tv->getNormal());

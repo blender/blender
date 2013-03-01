@@ -37,7 +37,7 @@ class RAS_StorageVA : public RAS_IStorage
 {
 
 public:
-	RAS_StorageVA(int *texco_num, RAS_IRasterizer::TexCoGen *texco, int *attrib_num, RAS_IRasterizer::TexCoGen *attrib);
+	RAS_StorageVA(int *texco_num, RAS_IRasterizer::TexCoGen *texco, int *attrib_num, RAS_IRasterizer::TexCoGen *attrib, int *attrib_layer);
 	virtual ~RAS_StorageVA();
 
 	virtual bool	Init();
@@ -59,6 +59,7 @@ protected:
 
 	RAS_IRasterizer::TexCoGen*		m_texco;
 	RAS_IRasterizer::TexCoGen*		m_attrib;
+	int*			                m_attrib_layer;
 
 	RAS_IRasterizer::TexCoGen		m_last_texco[RAS_MAX_TEXCO];
 	RAS_IRasterizer::TexCoGen		m_last_attrib[RAS_MAX_ATTRIB];
