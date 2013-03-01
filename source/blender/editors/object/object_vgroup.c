@@ -558,8 +558,10 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 			}
 
 			/* Loop through the vertices.*/
-			for (i = 0, dv_src = dv_array_src, dv_dst = dv_array_dst; i < me_dst->totvert;
-			     i++, dv_dst++, dv_src++, mv_src++, mv_dst++) {
+			for (i = 0, dv_src = dv_array_src, dv_dst = dv_array_dst;
+			     i < me_dst->totvert;
+			     i++, dv_dst++, dv_src++, mv_src++, mv_dst++)
+			{
 
 				if (*dv_dst == NULL) {
 					continue;

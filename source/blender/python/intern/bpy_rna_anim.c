@@ -156,7 +156,8 @@ static int pyrna_struct_keyframe_parse(
 
 	/* note, parse_str MUST start with 's|ifsO!' */
 	if (!PyArg_ParseTupleAndKeywords(args, kw, parse_str, (char **)kwlist, &path, index, cfra, group_name,
-	                                 &PySet_Type, &pyoptions)) {
+	                                 &PySet_Type, &pyoptions))
+	{
 		return -1;
 	}
 

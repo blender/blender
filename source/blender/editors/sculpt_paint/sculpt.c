@@ -3742,7 +3742,8 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	if (brush->sculpt_tool == SCULPT_TOOL_LAYER) {
 		/* not supported yet for multires or dynamic topology */
 		if (!ss->multires && !ss->bm && !ss->layer_co &&
-			(brush->flag & BRUSH_PERSISTENT)) {
+		    (brush->flag & BRUSH_PERSISTENT))
+		{
 			if (!ss->layer_co)
 				ss->layer_co = MEM_mallocN(sizeof(float) * 3 * ss->totvert,
 				                           "sculpt mesh vertices copy");

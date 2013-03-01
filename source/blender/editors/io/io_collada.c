@@ -145,7 +145,8 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	                   use_ngons,
 	                   use_object_instantiation,
 	                   sort_by_name,
-	                   second_life)) {
+	                   second_life))
+	{
 		return OPERATOR_FINISHED;
 	}
 	else {

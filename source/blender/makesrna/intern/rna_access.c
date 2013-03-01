@@ -4864,7 +4864,7 @@ static char *rna_pointer_as_string__bldata(PointerRNA *ptr)
 	}
 }
 
-char *RNA_pointer_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop_ptr, PointerRNA *ptr_prop)
+char *RNA_pointer_as_string(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *prop_ptr, PointerRNA *ptr_prop)
 {
 	if (RNA_property_flag(prop_ptr) & PROP_IDPROPERTY) {
 		return rna_pointer_as_string__idprop(C, ptr_prop);

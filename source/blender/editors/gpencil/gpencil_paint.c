@@ -931,7 +931,8 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 			
 			/* check that point segment of the boundbox of the eraser stroke */
 			if (((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) ||
-			    ((!ELEM(V2D_IS_CLIPPED, x1, y1)) && BLI_rcti_isect_pt(rect, x1, y1))) {
+			    ((!ELEM(V2D_IS_CLIPPED, x1, y1)) && BLI_rcti_isect_pt(rect, x1, y1)))
+			{
 				/* check if point segment of stroke had anything to do with
 				 * eraser region  (either within stroke painted, or on its lines)
 				 *  - this assumes that linewidth is irrelevant
