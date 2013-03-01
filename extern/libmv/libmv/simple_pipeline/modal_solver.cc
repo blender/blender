@@ -56,8 +56,8 @@ void ModalSolverLogProress(ProgressUpdateCallback *update_callback,
 }
 
 struct ModalReprojectionError {
-  ModalReprojectionError(Vec2 &marker, Vec3 &bundle)
-    : marker(marker), bundle(bundle) { }
+  ModalReprojectionError(double observed_x, double observed_y, Vec3 &bundle)
+    : observed_x(observed_x), observed_y(observed_y), bundle(bundle) { }
 
   template <typename T>
   bool operator()(const T* quaternion,   // Rotation quaternion
@@ -84,13 +84,14 @@ struct ModalReprojectionError {
 
     // The error is the difference between reprojected
     // and observed marker position.
-    residuals[0] = xn - T(marker(0));
-    residuals[1] = yn - T(marker(1));
+    residuals[0] = xn - T(observed_x);
+    residuals[1] = yn - T(observed_y);
 
     return true;
   }
 
-  Vec2 marker;
+  double observed_x;
+  double observed_y;
   Vec3 bundle;
 };
 }  // namespace
@@ -183,7 +184,7 @@ void ModalSolver(Tracks &tracks,
         problem.AddResidualBlock(new ceres::AutoDiffCostFunction<
             ModalReprojectionError,
             2, /* num_residuals */
-            4>(new ModalReprojectionError(Vec2(marker.x, marker.y),
+            4>(new ModalReprojectionError(marker.x, marker.y,
                                           point->X)),
             NULL,
             &quaternion(0));
