@@ -56,7 +56,7 @@ void ModalSolverLogProress(ProgressUpdateCallback *update_callback,
 }
 
 struct ModalReprojectionError {
-  ModalReprojectionError(Vec2 marker, Vec3 bundle)
+  ModalReprojectionError(Vec2 &marker, Vec3 &bundle)
     : marker(marker), bundle(bundle) { }
 
   template <typename T>
