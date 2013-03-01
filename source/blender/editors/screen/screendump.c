@@ -449,13 +449,21 @@ static void screenshot_endjob(void *sjv)
 
 static int screencast_exec(bContext *C, wmOperator *op)
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmWindow *win = CTX_wm_window(C);
 	bScreen *screen = CTX_wm_screen(C);
-	wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), screen, "Screencast", 0, WM_JOB_TYPE_SCREENCAST);
-	ScreenshotJob *sj = MEM_callocN(sizeof(ScreenshotJob), "screenshot job");
+	wmJob *wm_job;
+	ScreenshotJob *sj;
 
+	/* if called again, stop the running job */
+	if (WM_jobs_test(wm, screen, WM_JOB_TYPE_SCREENCAST))
+		WM_jobs_stop(wm, screen, screenshot_startjob);
+	
+	wm_job = WM_jobs_get(wm, win, screen, "Screencast", 0, WM_JOB_TYPE_SCREENCAST);
+	sj = MEM_callocN(sizeof(ScreenshotJob), "screenshot job");
+	
 	/* setup sj */
 	if (RNA_boolean_get(op->ptr, "full")) {
-		wmWindow *win = CTX_wm_window(C);
 		sj->x = 0;
 		sj->y = 0;
 		sj->dumpsx = WM_window_pixels_x(win);
@@ -470,7 +478,7 @@ static int screencast_exec(bContext *C, wmOperator *op)
 	}
 	sj->bmain = CTX_data_main(C);
 	sj->scene = CTX_data_scene(C);
-	sj->wm = CTX_wm_manager(C);
+	sj->wm = wm;
 	
 	BKE_reports_init(&sj->reports, RPT_PRINT);
 
