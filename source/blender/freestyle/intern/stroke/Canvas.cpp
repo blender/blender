@@ -140,7 +140,6 @@ void Canvas::postDraw()
 	update();
 }
 
-
 void Canvas::Clear()
 {
 	if (!_Layers.empty()) {
@@ -153,8 +152,10 @@ void Canvas::Clear()
 
 	if (!_StyleModules.empty()) {
 		for (deque<StyleModule*>::iterator s = _StyleModules.begin(), send = _StyleModules.end(); s != send; ++s) {
-			if (*s)
+			if (*s) {
+				(*s)->close();
 				delete (*s);
+			}
 		}
 		_StyleModules.clear();
 	}
@@ -233,7 +234,6 @@ void Canvas::RemoveStyleModule(unsigned index)
 		}
 	}
 }
-
 
 void Canvas::SwapStyleModules(unsigned i1, unsigned i2)
 {

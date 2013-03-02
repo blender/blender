@@ -98,6 +98,8 @@ public:
 		return sl;
 	}
 
+	virtual void close() {}
+
 protected:
 	virtual int interpret()
 	{

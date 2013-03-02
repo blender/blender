@@ -51,6 +51,10 @@ public:
 
 	virtual ~BlenderStyleModule()
 	{
+	}
+
+	virtual void close()
+	{
 		BKE_text_unlink(G.main, _text);
 		BKE_libblock_free(&G.main->text, _text);
 	}
