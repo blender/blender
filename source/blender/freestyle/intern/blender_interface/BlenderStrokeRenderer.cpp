@@ -175,8 +175,7 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 	for (Base *b = (Base*)freestyle_scene->base.first; b; b = b->next) {
 		Object *ob = b->object;
 		void *data = ob->data;
-		char name[24];
-		strcpy(name, ob->id.name);
+		char *name = ob->id.name;
 #if 0
 		if (G.debug & G_DEBUG_FREESTYLE) {
 			cout << "removing " << name[0] << name[1] << ":" << (name+2) << endl;
