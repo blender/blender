@@ -51,8 +51,6 @@ protected:
 	string _PatternsPath;
 	string _BrushesPath;
 	string _PythonPath;
-	string _BrowserCmd;
-	string _HelpIndexPath;
 	string _EnvMapDir;
 	string _MapsDir;
 	string _HomeDir;
@@ -70,8 +68,6 @@ public:
 	const string& getPatternsPath() const {return _PatternsPath;}
 	const string& getBrushesPath() const {return _BrushesPath;}
 	const string& getPythonPath() const {return _PythonPath;}
-	const string& getBrowserCmd() const {return _BrowserCmd;}
-	const string& getHelpIndexpath() const {return _HelpIndexPath;}
 	const string& getEnvMapDir() const {return _EnvMapDir;}
 	const string& getMapsDir() const {return _MapsDir;}
 	const string& getHomeDir() const {return _HomeDir;}

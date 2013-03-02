@@ -975,26 +975,6 @@ string Controller::getModulesDir() const
 	return dir;
 }
 
-void Controller::setHelpIndex(const string& index)
-{
-	_help_index = index;
-}
-
-string Controller::getHelpIndex() const
-{
-	return _help_index;
-}
-
-void Controller::setBrowserCmd(const string& cmd)
-{
-	_browser_cmd = cmd;
-}
-
-string Controller::getBrowserCmd() const
-{
-	return _browser_cmd;
-}
-
 void Controller::resetInterpreter()
 {
 	if (_inter)

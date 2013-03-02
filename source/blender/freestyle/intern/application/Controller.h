@@ -151,10 +151,6 @@ public:
 	string getModelsDir() const;
 	void setModulesDir(const string& dir);
 	string getModulesDir() const;
-	void setHelpIndex(const string& dir);
-	string getHelpIndex() const;
-	void setBrowserCmd(const string& cmd);
-	string getBrowserCmd() const;
 
 	void resetInterpreter();
 

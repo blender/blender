@@ -64,13 +64,6 @@ void Path::setRootDir(const string& iRootDir)
 	if (getenv("PYTHONPATH")) {
 		_PythonPath += string(PATH_SEP.c_str()) + string(getenv("PYTHONPATH"));
 	}
-#ifdef WIN32
-	_BrowserCmd = "C:\\Program Files\\Internet Explorer\\iexplore.exe %s";
-#else
-	_BrowserCmd = "mozilla %s";
-#endif
-	_HelpIndexPath = _ProjectDir + string(DIR_SEP.c_str()) + "doc" + string(DIR_SEP.c_str()) + "html" +
-	                 string(DIR_SEP.c_str()) + "index.html";
 	_EnvMapDir = _ProjectDir + string(DIR_SEP.c_str()) + "data" + string(DIR_SEP.c_str()) + "env_map" +
 	             string(DIR_SEP.c_str());
 	_MapsDir = _ProjectDir + string(DIR_SEP.c_str()) + "data" + string(DIR_SEP.c_str()) + "maps" +
