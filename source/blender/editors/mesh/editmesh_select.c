@@ -2951,7 +2951,7 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	/* props */
 	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f,
 	                         "Percent", "Percentage of elements to select randomly", 0.f, 100.0f);
- 	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
 static int edbm_select_next_loop_exec(bContext *C, wmOperator *UNUSED(op))

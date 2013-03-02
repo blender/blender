@@ -777,16 +777,16 @@ static int empty_drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *e
 			return OPERATOR_CANCELLED;
 
 		ob = ED_object_add_type(C, OB_EMPTY, NULL, rot, FALSE, layer);
-		ob->empty_drawtype = OB_EMPTY_IMAGE;
 
 		/* add under the mouse */
 		ED_object_location_from_view(C, ob->loc);
 		ED_view3d_cursor3d_position(C, ob->loc, event->mval);
 	}
 
+	ob->empty_drawtype = OB_EMPTY_IMAGE;
 	ob->data = ima;
 
- 	return OPERATOR_FINISHED;
+	return OPERATOR_FINISHED;
 }
 
 void OBJECT_OT_drop_named_image(wmOperatorType *ot)

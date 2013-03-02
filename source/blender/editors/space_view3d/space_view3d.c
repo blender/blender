@@ -526,15 +526,12 @@ static int view3d_ima_bg_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 
 static int view3d_ima_empty_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 {
-	Base *base;
+	Base *base = ED_view3d_give_base_under_cursor(C, event->mval);
 
-	if (!event->ctrl)
-		return false;
-
-	base = ED_view3d_give_base_under_cursor(C, event->mval);
-	if (!base || (base && base->object->type == OB_EMPTY)) {
+	/* either holding and ctrl and no object, or dropping to empty */
+	if ((event->ctrl && !base) || (base && base->object->type == OB_EMPTY))
 		return view3d_ima_drop_poll(C, drag, event);
-	}
+
 	return 0;
 }
 
@@ -543,8 +540,8 @@ static int view3d_ima_mesh_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 	Base *base = ED_view3d_give_base_under_cursor(C, event->mval);
 
 	if (base && base->object->type == OB_MESH)
- 		return view3d_ima_drop_poll(C, drag, event);
- 	return 0;
+		return view3d_ima_drop_poll(C, drag, event);
+	return 0;
 }
 
 static void view3d_ob_drop_copy(wmDrag *drag, wmDropBox *drop)
