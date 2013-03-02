@@ -16,6 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+import sys
 import bpy
 
 from bpy.props import (EnumProperty, StringProperty)
@@ -59,7 +60,7 @@ class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
         selection = [ob for ob in context.scene.objects if ob.select and ob.type == 'MESH' and ob.name != source.name]
         if len(selection) > 0:
             # Compute the min/max distance between selected mesh objects and the source
-            min_dist = float('inf')
+            min_dist = sys.float_info.max
             max_dist = -min_dist
             for ob in selection:
                 for vert in ob.data.vertices:
