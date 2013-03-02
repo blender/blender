@@ -194,15 +194,9 @@ static void init_camera(Render *re)
 	freestyle_viewpoint[1] = 0.0;
 	freestyle_viewpoint[2] = 0.0;
 
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 4; j++)
-			freestyle_mv[i][j] = (i == j) ? 1.0 : 0.0;
-	}
+	unit_m4(freestyle_mv);
 
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 4; j++)
-			freestyle_proj[i][j] = re->winmat[i][j];
-	}
+	copy_m4_m4(freestyle_proj, re->winmat);
 
 #if 0
 	print_m4("mv", freestyle_mv);
