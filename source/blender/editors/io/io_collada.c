@@ -92,7 +92,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	int use_texture_copies;
 	int active_uv_only;
 
-	int use_ngons;
+	int triangulate;
 	int use_object_instantiation;
 	int sort_by_name;
 	int second_life; 
@@ -119,7 +119,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	use_texture_copies       = RNA_boolean_get(op->ptr, "use_texture_copies");
 	active_uv_only           = RNA_boolean_get(op->ptr, "active_uv_only");
 
-	use_ngons                = RNA_boolean_get(op->ptr, "use_ngons");
+	triangulate              = RNA_boolean_get(op->ptr, "triangulate");
 	use_object_instantiation = RNA_boolean_get(op->ptr, "use_object_instantiation");
 	sort_by_name             = RNA_boolean_get(op->ptr, "sort_by_name");
 	second_life              = RNA_boolean_get(op->ptr, "second_life");
@@ -142,7 +142,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	                   include_material_textures,
 	                   use_texture_copies,
 
-	                   use_ngons,
+	                   triangulate,
 	                   use_object_instantiation,
 	                   sort_by_name,
 	                   second_life))
@@ -221,7 +221,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 	uiItemL(row, IFACE_("Collada Options:"), ICON_MODIFIER);
 
 	row = uiLayoutRow(box, FALSE);
-	uiItemR(row, imfptr, "use_ngons", 0, NULL, ICON_NONE);
+	uiItemR(row, imfptr, "triangulate", 0, NULL, ICON_NONE);
 	row = uiLayoutRow(box, FALSE);
 	uiItemR(row, imfptr, "use_object_instantiation", 0, NULL, ICON_NONE);
 	row = uiLayoutRow(box, FALSE);
@@ -299,8 +299,8 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	                "Copy textures to same folder where the .dae file is exported");
 
 
-	RNA_def_boolean(ot->srna, "use_ngons", 1, "Use NGons",
-	                "Export as NGons");
+	RNA_def_boolean(ot->srna, "triangulate", 1, "Triangulate",
+	                "Export Polygons (Quads & NGons) as Triangles");
 
 	RNA_def_boolean(ot->srna, "use_object_instantiation", 1, "Use Object Instances",
 	                "Instantiate multiple Objects from same Data");

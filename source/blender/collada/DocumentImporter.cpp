@@ -157,7 +157,8 @@ bool DocumentImporter::import()
 	
 	delete ehandler;
 
-	mesh_importer.bmeshConversion();
+	//XXX No longer needed (geometries are now created as bmesh)
+	//mesh_importer.bmeshConversion();
 
 	return true;
 }

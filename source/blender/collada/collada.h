@@ -67,7 +67,7 @@ int collada_export(Scene *sce,
 				   int include_material_textures,
 				   int use_texture_copies,
 
-                   int use_ngons,
+                   int triangulate,
                    int use_object_instantiation,
                    int sort_by_name,
                    int second_life);

@@ -31,6 +31,7 @@
 #include <vector>
 
 #include "COLLADAFWIndexList.h"
+#include "COLLADAFWPolygons.h"
 #include "COLLADAFWInstanceGeometry.h"
 #include "COLLADAFWMaterialBinding.h"
 #include "COLLADAFWMesh.h"
@@ -89,30 +90,28 @@ private:
 	std::map<COLLADAFW::UniqueId, Mesh*> uid_mesh_map; // geometry unique id-to-mesh map
 	std::map<COLLADAFW::UniqueId, Object*> uid_object_map; // geom uid-to-object
 	std::vector<Object*> imported_objects; // list of imported objects
-	// this structure is used to assign material indices to faces
+
+	// this structure is used to assign material indices to polygons
 	// it holds a portion of Mesh faces and corresponds to a DAE primitive list (<triangles>, <polylist>, etc.)
 	struct Primitive {
-		MFace *mface;
-		unsigned int totface;
+		MPoly *mpoly;
+		unsigned int totpoly;
 	};
 	typedef std::map<COLLADAFW::MaterialId, std::vector<Primitive> > MaterialIdPrimitiveArrayMap;
 	std::map<COLLADAFW::UniqueId, MaterialIdPrimitiveArrayMap> geom_uid_mat_mapping_map; // crazy name!
 	std::multimap<COLLADAFW::UniqueId, COLLADAFW::UniqueId> materials_mapped_to_geom; //< materials that have already been mapped to a geometry. A pair of geom uid and mat uid, one geometry can have several materials
 	
+	void set_poly_indices(MPoly *mpoly,
+						  MLoop *mloop,
+						  int loop_index,
+						  unsigned int *indices,
+						  int loop_count);
 
-	void set_face_indices(MFace *mface, unsigned int *indices, bool quad);
-
-	// not used anymore, test_index_face from blenkernel is better
-#if 0
-	// change face indices order so that v4 is not 0
-	void rotate_face_indices(MFace *mface);
-#endif
-	
-	void set_face_uv(MTFace *mtface, UVDataWrapper &uvs,
-					 COLLADAFW::IndexList& index_list, unsigned int *tris_indices);
-
-	void set_face_uv(MTFace *mtface, UVDataWrapper &uvs,
-					COLLADAFW::IndexList& index_list, int index, bool quad);
+	void set_face_uv(MLoopUV *mloopuv,
+					 UVDataWrapper &uvs,
+					 int loop_index,
+					 COLLADAFW::IndexList& index_list,
+					 int count);
 
 #ifdef COLLADA_DEBUG
 	void print_index_list(COLLADAFW::IndexList& index_list);
@@ -121,11 +120,7 @@ private:
 	bool is_nice_mesh(COLLADAFW::Mesh *mesh);
 
 	void read_vertices(COLLADAFW::Mesh *mesh, Mesh *me);
-	
-	int triangulate_poly(unsigned int *indices, int totvert, MVert *verts, std::vector<unsigned int>& tri);
-	
-	int count_new_tris(COLLADAFW::Mesh *mesh, Mesh *me);
-	
+			
 	bool primitive_has_useable_normals(COLLADAFW::MeshPrimitive *mp);
 	bool primitive_has_faces(COLLADAFW::MeshPrimitive *mp);
 
@@ -135,15 +130,16 @@ private:
 
 	CustomData create_edge_custom_data(EdgeHash *eh);
 
-	void allocate_face_data(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris);
+	void allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me);
 
 	// TODO: import uv set names
-	void read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris);
+	void read_polys(COLLADAFW::Mesh *mesh, Mesh *me);
 	void read_lines(COLLADAFW::Mesh *mesh, Mesh *me);
+	unsigned int get_vertex_count(COLLADAFW::Polygons *mp, int index);
 
 	void get_vector(float v[3], COLLADAFW::MeshVertexData& arr, int i, int stride);
 
-	bool flat_face(unsigned int *nind, COLLADAFW::MeshVertexData& nor, int count);
+	bool is_flat_face(unsigned int *nind, COLLADAFW::MeshVertexData& nor, int count);
 
 	std::vector<Object *> get_all_users_of(Mesh *reference_mesh);
 
@@ -166,7 +162,7 @@ public:
 	MTFace *assign_material_to_geom(COLLADAFW::MaterialBinding cmaterial,
 									std::map<COLLADAFW::UniqueId, Material*>& uid_material_map,
 									Object *ob, const COLLADAFW::UniqueId *geom_uid, 
-									MTex **color_texture, char *layername, MTFace *texture_face,
+									char *layername, MTFace *texture_face,
 									std::map<Material*, TexIndexTextureArrayMap>& material_texture_mapping_map, short mat_index);
 	
 	
