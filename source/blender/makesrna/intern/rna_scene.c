@@ -2501,9 +2501,9 @@ static void rna_def_freestyle_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	RNA_def_struct_name_property(srna, prop);
 
-	prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "show_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", FREESTYLE_LINESET_ENABLED);
-	RNA_def_property_ui_text(prop, "Use", "Enable or disable this line set during stroke rendering");
+	RNA_def_property_ui_text(prop, "Render", "Enable or disable this line set during stroke rendering");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	prop = RNA_def_property(srna, "select_by_visibility", PROP_BOOLEAN, PROP_NONE);

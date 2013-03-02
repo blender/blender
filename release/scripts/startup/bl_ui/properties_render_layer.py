@@ -78,7 +78,7 @@ class RENDERLAYER_UL_linesets(UIList):
         lineset = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.label(lineset.name, icon_value=icon)
-            layout.prop(lineset, "use", text="", index=index)
+            layout.prop(lineset, "show_render", text="", index=index)
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label("", icon_value=icon)
