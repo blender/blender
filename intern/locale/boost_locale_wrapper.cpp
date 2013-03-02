@@ -66,28 +66,7 @@ void bl_locale_set(const char *locale)
 		}
 		else {
 #ifdef __APPLE__
-			// workaround to get osx system locale from user defaults
-			FILE *fp;
-			std::string locale_osx = "";
-			char result[16];
-			int result_len = 0;
-
-			fp = popen("defaults read .GlobalPreferences AppleLocale", "r");
-
-			if (fp) {
-				result_len = fread(result, 1, sizeof(result) - 1, fp);
-
-				if (result_len > 0) {
-					result[result_len - 1] = '\0'; // \0 terminate and remove \n
-					locale_osx = std::string(result) + std::string(".UTF-8");
-				}
-
-				pclose(fp);
-			}
-
-			if (locale_osx == "")
-				fprintf(stderr, "Locale set: failed to read AppleLocale read from defaults\n");
-
+			std::string locale_osx = user_locale + std::string(".UTF-8");
 			_locale = gen(locale_osx.c_str());
 			std::locale::global(_locale);
 #else

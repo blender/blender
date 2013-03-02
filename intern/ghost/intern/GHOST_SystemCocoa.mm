@@ -542,6 +542,7 @@ int cocoa_request_qtcodec_settings(bContext *C, wmOperator *op)
 
 #pragma mark initialization/finalization
 
+const char *user_locale; // Global current user locale
 
 GHOST_SystemCocoa::GHOST_SystemCocoa()
 {
@@ -580,6 +581,12 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	rstring = NULL;
 	
 	m_ignoreWindowSizedMessages = false;
+	
+	//Get current locale
+	CFLocaleRef myCFLocale = CFLocaleCopyCurrent();
+	NSLocale *myNSLocale = (NSLocale *)CFBridgingRelease(myCFLocale);
+	NSString *nsIdentifier = [myNSLocale localeIdentifier];
+	user_locale = [nsIdentifier UTF8String];	
 }
 
 GHOST_SystemCocoa::~GHOST_SystemCocoa()

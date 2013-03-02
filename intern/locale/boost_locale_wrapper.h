@@ -42,7 +42,11 @@ void bl_locale_init(const char *messages_path, const char *default_domain);
 void bl_locale_set(const char *locale);
 const char *bl_locale_get(void);
 const char *bl_locale_pgettext(const char *msgctxt, const char *msgid);
-
+	
+#ifdef __APPLE__
+extern const char *user_locale; // pulled from Ghost_SystemCocoa
+#endif
+	
 #ifdef __cplusplus
 }
 #endif
