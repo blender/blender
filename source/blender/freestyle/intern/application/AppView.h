@@ -32,13 +32,6 @@
  *  \ingroup freestyle
  */
 
-#if !defined(WIN32) || defined(__GNUC__)
-#  include <algorithm>
-#  define __min(x,y) (min(x,y))
-#  define __max(x,y) (max(x,y))
-   using namespace std;
-#endif // WIN32
-
 #include "AppConfig.h"
 #include "../geometry/Geom.h"
 #include "../geometry/BBox.h"
@@ -92,13 +85,13 @@ public:
 		_ModelRootNode->AddChild(iModel);
 		_ModelRootNode->UpdateBBox();
 
-		_minBBox = __min(__min(_ModelRootNode->bbox().getMin()[0], _ModelRootNode->bbox().getMin()[1]),
-		                 _ModelRootNode->bbox().getMin()[2]);
-		_maxBBox = __max(__max(_ModelRootNode->bbox().getMax()[0], _ModelRootNode->bbox().getMax()[1]),
-		                 _ModelRootNode->bbox().getMax()[2]);
+		_minBBox = std::min(std::min(_ModelRootNode->bbox().getMin()[0], _ModelRootNode->bbox().getMin()[1]),
+		                    _ModelRootNode->bbox().getMin()[2]);
+		_maxBBox = std::max(std::max(_ModelRootNode->bbox().getMax()[0], _ModelRootNode->bbox().getMax()[1]),
+		                    _ModelRootNode->bbox().getMax()[2]);
 
-		_maxAbs = __max(rabs(_minBBox), rabs(_maxBBox));
-		_minAbs = __min(rabs(_minBBox), rabs(_maxBBox));
+		_maxAbs = std::max(rabs(_minBBox), rabs(_maxBBox));
+		_minAbs = std::min(rabs(_minBBox), rabs(_maxBBox));
 	}
 
 	inline void AddSilhouette(NodeGroup* iSilhouette)
@@ -136,13 +129,13 @@ public:
 		_ModelRootNode->DetachChild(iModel);
 		_ModelRootNode->UpdateBBox();
 
-		_minBBox = __min(__min(_ModelRootNode->bbox().getMin()[0], _ModelRootNode->bbox().getMin()[1]),
-		                 _ModelRootNode->bbox().getMin()[2]);
-		_maxBBox = __max(__max(_ModelRootNode->bbox().getMax()[0], _ModelRootNode->bbox().getMax()[1]),
-		                 _ModelRootNode->bbox().getMax()[2]);
+		_minBBox = std::min(std::min(_ModelRootNode->bbox().getMin()[0], _ModelRootNode->bbox().getMin()[1]),
+		                    _ModelRootNode->bbox().getMin()[2]);
+		_maxBBox = std::max(std::max(_ModelRootNode->bbox().getMax()[0], _ModelRootNode->bbox().getMax()[1]),
+		                    _ModelRootNode->bbox().getMax()[2]);
 
-		_maxAbs = __max(rabs(_minBBox), rabs(_maxBBox));
-		_minAbs = __min(rabs(_minBBox), rabs(_maxBBox));
+		_maxAbs = std::max(rabs(_minBBox), rabs(_maxBBox));
+		_minAbs = std::min(rabs(_minBBox), rabs(_maxBBox));
 	}
 
 	inline void DetachModel()

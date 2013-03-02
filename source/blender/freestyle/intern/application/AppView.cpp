@@ -84,13 +84,13 @@ AppView::AppView(const char *iName)
 
 	_RootNode.AddChild(_DebugRootNode);
 
-	_minBBox = __min(__min(_ModelRootNode->bbox().getMin()[0], _ModelRootNode->bbox().getMin()[1]),
-	                 _ModelRootNode->bbox().getMin()[2]);
-	_maxBBox = __max(__max(_ModelRootNode->bbox().getMax()[0], _ModelRootNode->bbox().getMax()[1]),
-	                 _ModelRootNode->bbox().getMax()[2]);
+	_minBBox = std::min(std::min(_ModelRootNode->bbox().getMin()[0], _ModelRootNode->bbox().getMin()[1]),
+	                    _ModelRootNode->bbox().getMin()[2]);
+	_maxBBox = std::max(std::max(_ModelRootNode->bbox().getMax()[0], _ModelRootNode->bbox().getMax()[1]),
+	                    _ModelRootNode->bbox().getMax()[2]);
 
-	_maxAbs = __max(rabs(_minBBox), rabs(_maxBBox));
-	_minAbs = __min(rabs(_minBBox), rabs(_maxBBox));
+	_maxAbs = std::max(rabs(_minBBox), rabs(_maxBBox));
+	_minAbs = std::min(rabs(_minBBox), rabs(_maxBBox));
 
 	_p2DSelectionNode = new NodeDrawingStyle;
 	_p2DSelectionNode->setLightingEnabled(false);
@@ -137,23 +137,23 @@ real AppView::znear()
 	Vec3r w7(u[0], v[1], v[2]);
 	Vec3r w8(v[0], v[1], v[2]);
 
-	real _znear = __min((w1 - cameraCenter).norm(),
-	                    __min((w2 - cameraCenter).norm(),
-	                          __min((w3 - cameraCenter).norm(),
-	                                __min((w4 - cameraCenter).norm(),
-	                                      __min((w5 - cameraCenter).norm(),
-	                                            __min((w6 - cameraCenter).norm(),
-	                                                  __min((w7 - cameraCenter).norm(),
-	                                                        (w8 - cameraCenter).norm()
-	                                                       )
+	real _znear = std::min((w1 - cameraCenter).norm(),
+	                       std::min((w2 - cameraCenter).norm(),
+	                                std::min((w3 - cameraCenter).norm(),
+	                                         std::min((w4 - cameraCenter).norm(),
+	                                                  std::min((w5 - cameraCenter).norm(),
+	                                                           std::min((w6 - cameraCenter).norm(),
+	                                                                    std::min((w7 - cameraCenter).norm(),
+	                                                                             (w8 - cameraCenter).norm()
+	                                                                            )
+	                                                                   )
+	                                                          )
 	                                                 )
-	                                           )
-	                                     )
+	                                        )
 	                               )
-	                         )
-	                   );
+	                      );
 
-	return __max(_znear, 0.001);
+	return std::max(_znear, 0.001);
 }
 
 real AppView::zfar()
@@ -172,27 +172,27 @@ real AppView::zfar()
 	Vec3r w7(u[0], v[1], v[2]);
 	Vec3r w8(v[0], v[1], v[2]);
 
-	real _zfar = __max((w1 - cameraCenter).norm(),
-	                   __max((w2 - cameraCenter).norm(),
-	                         __max((w3 - cameraCenter).norm(),
-	                               __max((w4 - cameraCenter).norm(),
-	                                     __max((w5 - cameraCenter).norm(),
-	                                           __max((w6 - cameraCenter).norm(),
-	                                                 __max((w7 - cameraCenter).norm(),
-	                                                       (w8 - cameraCenter).norm()
-	                                                      )
+	real _zfar = std::max((w1 - cameraCenter).norm(),
+	                      std::max((w2 - cameraCenter).norm(),
+	                               std::max((w3 - cameraCenter).norm(),
+	                                        std::max((w4 - cameraCenter).norm(),
+	                                                 std::max((w5 - cameraCenter).norm(),
+	                                                          std::max((w6 - cameraCenter).norm(),
+	                                                                   std::max((w7 - cameraCenter).norm(),
+	                                                                            (w8 - cameraCenter).norm()
+	                                                                           )
+	                                                                  )
+	                                                         )
 	                                                )
-	                                          )
-	                                    )
+	                                       )
 	                              )
-	                        )
-	                  );
+	                     );
 
 	return _zfar;
 }
 
 real AppView::GetFocalLength()
 {
-	real Near = __max(0.1, (real)(-2.0f * _maxAbs + distanceToSceneCenter()));
+	real Near = std::max(0.1, (real)(-2.0f * _maxAbs + distanceToSceneCenter()));
 	return Near;
 }
