@@ -27,6 +27,8 @@
 
 /** \file DNA_controller_types.h
  *  \ingroup DNA
+ *
+ * #bController type is specifically for use by Object logic-bricks in the game-engine.
  */
 
 #ifndef __DNA_CONTROLLER_TYPES_H__
@@ -89,5 +91,4 @@ typedef struct bController {
 #define CONT_PY_SCRIPT	0
 #define CONT_PY_MODULE	1
 
-#endif
-
+#endif  /* __DNA_CONTROLLER_TYPES_H__ */

@@ -28,6 +28,8 @@
  *  \ingroup DNA
  *  \since mar-2001
  *  \author nzc
+ *
+ * Structs for each of space type in the user interface.
  */
 
 #ifndef __DNA_SPACE_TYPES_H__
@@ -1133,4 +1135,4 @@ typedef enum eSpace_Type {
 
 #define IMG_SIZE_FALLBACK 256
 
-#endif
+#endif  /* __DNA_SPACE_TYPES_H__ */

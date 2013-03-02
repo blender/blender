@@ -31,6 +31,8 @@
  *  \author nzc
  *  \attention Renderrecipe and scene decription. The fact that there is a
  *             hierarchy here is a bit strange, and not desirable.
+ *
+ * #bProperty type is specifically for use by Objects game-logic.
  */
 
 #ifndef __DNA_PROPERTY_TYPES_H__
@@ -60,5 +62,4 @@ typedef struct bProperty {
 
 #define MAX_PROPSTRING	128
 
-#endif
-
+#endif  /* __DNA_PROPERTY_TYPES_H__ */

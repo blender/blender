@@ -27,6 +27,8 @@
 
 /** \file DNA_group_types.h
  *  \ingroup DNA
+ *
+ * \brief Object groups, one object can be in many groups at once.
  */
 
 #ifndef __DNA_GROUP_TYPES_H__
@@ -58,4 +60,4 @@ typedef struct Group {
 	float dupli_ofs[3];
 } Group;
 
-#endif
+#endif  /* __DNA_GROUP_TYPES_H__ */

@@ -424,7 +424,9 @@ ModifierData *modifiers_getLastPreview(struct Scene *scene, ModifierData *md, in
 	return tmp_md;
 }
 
-/* NOTE: these aren't used anymore */
+/* NOTE: This is to support old files from before Blender supported modifiers,
+ * in some cases versioning code updates these so for new files this will
+ * return an empty list. */
 ModifierData *modifiers_getVirtualModifierList(Object *ob)
 {
 	/* Kinda hacky, but should be fine since we are never

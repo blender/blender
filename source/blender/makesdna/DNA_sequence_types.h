@@ -28,6 +28,14 @@
  *  \ingroup DNA
  *  \since mar-2001
  *  \author nzc
+ *
+ * Structs for use by the 'Sequencer' (Video Editor)
+ *
+ * Note on terminology
+ * - #Sequence: video/effect/audio data you can select and manipulate in the sequencer.
+ * - #Sequence.machine: Strange name for the channel.
+ * - #Strip: The data referenced by the #Sequence
+ * - Meta Strip (SEQ_TYPE_META): Support for nesting Sequences.
  */
 
 #ifndef __DNA_SEQUENCE_TYPES_H__
@@ -441,4 +449,4 @@ enum {
 	SEQUENCE_MASK_INPUT_ID      = 1
 };
 
-#endif
+#endif  /* __DNA_SEQUENCE_TYPES_H__ */

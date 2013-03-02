@@ -29,6 +29,9 @@
  *  \ingroup DNA
  *  \since mar-2001
  *  \author nzc
+ *
+ * Vector Fonts used for text in the 3D view-port
+ * (unrelated to text used to render the GUI).
  */
 
 #ifndef __DNA_VFONT_TYPES_H__
@@ -63,5 +66,5 @@ typedef struct VFont {
 #define FO_SELCHANGE	10
 
 #define FO_BUILTIN_NAME "<builtin>"
-#endif
 
+#endif  /* __DNA_VFONT_TYPES_H__ */

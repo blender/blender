@@ -30,6 +30,9 @@
  *  \ingroup DNA
  *  \since march-2012
  *  \author Sergey Sharybin
+ *
+ * Mask data-blocks are collections of 2D curves to be used
+ * for image masking in the compositor and sequencer.
  */
 
 #ifndef __DNA_MASK_TYPES_H__
