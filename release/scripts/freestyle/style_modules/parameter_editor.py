@@ -174,11 +174,11 @@ def iter_t2d_along_stroke(stroke):
     total = stroke.length_2d
     distance = 0.0
     it = stroke.stroke_vertices_begin()
+    prev = it.object.point
     while not it.is_end:
         p = it.object.point
-        if not it.is_begin:
-            distance += (prev - p).length
-        prev = p
+        distance += (prev - p).length
+        prev = p.copy() # need a copy because the point can be altered
         t = min(distance / total, 1.0)
         yield it, t
         it.increment()
@@ -475,11 +475,11 @@ class CalligraphicThicknessShader(ThicknessBlenderMixIn, ScalarBlendModifier):
 def iter_distance_along_stroke(stroke):
     distance = 0.0
     it = stroke.stroke_vertices_begin()
+    prev = it.object.point
     while not it.is_end:
         p = it.object.point
-        if not it.is_begin:
-            distance += (prev - p).length
-        prev = p
+        distance += (prev - p).length
+        prev = p.copy() # need a copy because the point can be altered
         yield it, distance
         it.increment()
 
@@ -658,7 +658,7 @@ def iter_stroke_vertices(stroke):
         p = sv.point
         if prev_p is None or (prev_p - p).length > 1e-6:
             yield sv
-            prev_p = p
+            prev_p = p.copy()
         it.increment()
 
 class RoundCapShader(StrokeShader):
