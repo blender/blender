@@ -740,6 +740,153 @@ static void ui_apply_but_CHARTAB(bContext *C, uiBut *but, uiHandleButtonData *da
 
 /* ****************** drag drop code *********************** */
 
+#ifdef USE_DRAG_TOGGLE
+
+typedef struct uiDragToggleHandle {
+	/* init */
+	bool is_set;
+	float but_cent_start[2];
+	eButType but_type_start;
+
+	bool xy_lock[2];
+	int  xy_last[2];
+} uiDragToggleHandle;
+
+static bool ui_drag_toggle_set_xy_xy(bContext *C, ARegion *ar, const bool is_set, const eButType but_type_start,
+                                     const int xy_src[2], const int xy_dst[2])
+{
+	bool change = false;
+	uiBlock *block;
+
+	for (block = ar->uiblocks.first; block; block = block->next) {
+		uiBut *but;
+
+		float xy_a_block[2] = {UNPACK2(xy_src)};
+		float xy_b_block[2] = {UNPACK2(xy_dst)};
+
+		ui_window_to_block_fl(ar, block, &xy_a_block[0], &xy_a_block[1]);
+		ui_window_to_block_fl(ar, block, &xy_b_block[0], &xy_b_block[1]);
+
+		for (but = block->buttons.first; but; but = but->next) {
+			if (ui_is_but_interactive(but)) {
+				if (BLI_rctf_isect_segment(&but->rect, xy_a_block, xy_b_block)) {
+
+					/* execute the button */
+					if (ui_is_but_bool(but) && but->type == but_type_start) {
+						/* is it pressed? */
+						bool is_set_but = ui_is_but_push(but);
+						BLI_assert(ui_is_but_bool(but) == true);
+						if (is_set_but != is_set) {
+							uiButExecute(C, but);
+							change = true;
+						}
+					}
+					/* done */
+
+				}
+			}
+		}
+	}
+
+	return change;
+}
+
+static void ui_drag_toggle_set(bContext *C, uiDragToggleHandle *drag_info, const int xy_input[2])
+{
+	ARegion *ar = CTX_wm_region(C);
+	bool do_draw = false;
+	int xy[2];
+
+	/**
+	 * Initialize Locking:
+	 *
+	 * Check if we need to initialize the lock axis by finding if the first
+	 * button we mouse over is X or Y aligned, then lock the mouse to that axis after.
+	 */
+	if (drag_info->xy_lock[0] == false && drag_info->xy_lock[1] == false) {
+		ARegion *ar = CTX_wm_region(C);
+
+		/* first store the buttons original coords */
+		uiBut *but = ui_but_find_mouse_over(ar, xy_input[0], xy_input[1]);
+		if (but) {
+			const float but_cent_new[2] = {BLI_rctf_cent_x(&but->rect),
+			                               BLI_rctf_cent_y(&but->rect)};
+
+			/* check if this is a different button, chances are high the button wont move about :) */
+			if (len_manhattan_v2v2(drag_info->but_cent_start, but_cent_new) > 1.0f) {
+				if (fabsf(drag_info->but_cent_start[0] - but_cent_new[0]) <
+				    fabsf(drag_info->but_cent_start[1] - but_cent_new[1]))
+				{
+					drag_info->xy_lock[0] = true;
+				}
+				else {
+					drag_info->xy_lock[1] = true;
+				}
+			}
+		}
+	}
+	/* done with axis locking */
+
+
+	xy[0] = (drag_info->xy_lock[0] == false) ? xy_input[0] : drag_info->xy_last[0];
+	xy[1] = (drag_info->xy_lock[1] == false) ? xy_input[1] : drag_info->xy_last[1];
+
+
+	/* touch all buttons between last mouse coord and this one */
+	do_draw = ui_drag_toggle_set_xy_xy(C, ar, drag_info->is_set, drag_info->but_type_start, drag_info->xy_last, xy);
+
+	if (do_draw) {
+		ED_region_tag_redraw(ar);
+	}
+
+	copy_v2_v2_int(drag_info->xy_last, xy);
+}
+
+static void ui_handler_region_drag_toggle_remove(bContext *UNUSED(C), void *userdata)
+{
+	uiDragToggleHandle *drag_info = userdata;
+	MEM_freeN(drag_info);
+}
+
+static int ui_handler_region_drag_toggle(bContext *C, const wmEvent *event, void *userdata)
+{
+	uiDragToggleHandle *drag_info = userdata;
+	bool done = false;
+
+	switch (event->type) {
+		case LEFTMOUSE:
+		{
+			if (event->val != KM_PRESS) {
+				done = true;
+			}
+			break;
+		}
+		case MOUSEMOVE:
+		{
+			ui_drag_toggle_set(C, drag_info, &event->x);
+			break;
+		}
+	}
+
+	if (done) {
+		wmWindow *win = CTX_wm_window(C);
+		WM_event_remove_ui_handler(&win->modalhandlers,
+		                           ui_handler_region_drag_toggle,
+		                           ui_handler_region_drag_toggle_remove,
+		                           drag_info, false);
+		ui_handler_region_drag_toggle_remove(C, drag_info);
+
+		WM_event_add_mousemove(C);
+		return WM_UI_HANDLER_BREAK;
+	}
+	else {
+		return WM_UI_HANDLER_CONTINUE;
+	}
+}
+
+#endif  /* USE_DRAG_TOGGLE */
+
+
 static int ui_but_mouse_inside_icon(uiBut *but, ARegion *ar, const wmEvent *event)
 {
 	rcti rect;
@@ -775,17 +922,18 @@ static int ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data, 
 		data->cancel = TRUE;
 #ifdef USE_DRAG_TOGGLE
 		if (ui_is_but_bool(but)) {
-			/* assumes button has already been pressed */
-			const bool is_set = ui_is_but_push(but);
-			PointerRNA ptr;
-			/* auto-key is typically called on mouse-up, but we'r leaving the button so call here */
-			ui_apply_autokey(C, but);
-			WM_operator_properties_create(&ptr, "UI_OT_drag_toggle");
-			RNA_boolean_set(&ptr, "state", is_set);
-			RNA_int_set(&ptr, "last_x", data->dragstartx);
-			RNA_int_set(&ptr, "last_y", data->dragstarty);
-			WM_operator_name_call(C, "UI_OT_drag_toggle", WM_OP_INVOKE_DEFAULT, &ptr);
-			WM_operator_properties_free(&ptr);
+			uiDragToggleHandle *drag_info = MEM_callocN(sizeof(*drag_info), __func__);
+
+			drag_info->is_set = ui_is_but_push(but);
+			drag_info->but_cent_start[0] = BLI_rctf_cent_x(&but->rect);
+			drag_info->but_cent_start[1] = BLI_rctf_cent_y(&but->rect);
+			drag_info->but_type_start = but->type;
+			copy_v2_v2_int(drag_info->xy_last, &event->x);
+
+			WM_event_add_ui_handler(C, &data->window->modalhandlers,
+			                        ui_handler_region_drag_toggle,
+			                        ui_handler_region_drag_toggle_remove,
+			                        drag_info);
 		}
 		else
 #endif

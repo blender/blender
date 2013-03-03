@@ -472,7 +472,7 @@ void WM_operator_region_active_win_set(bContext *C)
 /* for debugging only, getting inspecting events manually is tedious */
 #ifndef NDEBUG
 
-void WM_event_print(wmEvent *event)
+void WM_event_print(const wmEvent *event)
 {
 	if (event) {
 		const char *unknown = "UNKNOWN";
