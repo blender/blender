@@ -584,7 +584,8 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	
 	//Get current locale
 	CFLocaleRef myCFLocale = CFLocaleCopyCurrent();
-	NSLocale *myNSLocale = (NSLocale *)CFBridgingRelease(myCFLocale);
+	NSLocale * myNSLocale = (NSLocale *) myCFLocale;
+	[myNSLocale autorelease];
 	NSString *nsIdentifier = [myNSLocale localeIdentifier];
 	user_locale = [nsIdentifier UTF8String];	
 }
