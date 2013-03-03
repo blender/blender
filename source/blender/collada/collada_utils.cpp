@@ -35,7 +35,6 @@
 #include "collada_utils.h"
 
 extern "C" {
-
 #include "DNA_modifier_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_object_types.h"
@@ -45,6 +44,7 @@ extern "C" {
 
 #include "BLI_math.h"
 #include "BLI_linklist.h"
+
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
@@ -56,9 +56,7 @@ extern "C" {
 
 #include "WM_api.h" // XXX hrm, see if we can do without this
 #include "WM_types.h"
-
-//#include "bmesh.h"
-
+#include "bmesh.h"
 }
 
 float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray& array, unsigned int index)
@@ -386,13 +384,10 @@ void bc_match_scale(std::vector<Object *> *objects_done,
 void bc_triangulate_mesh(Mesh *me) {
 	bool use_beauty = false;
 	bool tag_only   = false;
-
-/*
+	 
 	BMesh *bm = BM_mesh_create(&bm_mesh_allocsize_default);
 	BM_mesh_bm_from_me(bm, me, FALSE, 0);
 	BM_mesh_triangulate(bm, use_beauty, tag_only, NULL, NULL);
 	BM_mesh_bm_to_me(bm, me, FALSE);
 	BM_mesh_free(bm);
-*/
-
 }
