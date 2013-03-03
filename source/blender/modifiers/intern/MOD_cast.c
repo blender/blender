@@ -137,12 +137,12 @@ static void sphere_do(
 	int i, defgrp_index;
 	int has_radius = 0;
 	short flag, type;
-	float fac, facm, len = 0.0f;
+	float len = 0.0f;
+	float fac = cmd->fac;
+	float facm = 1.0f - fac;
+	const float fac_orig = fac;
 	float vec[3], center[3] = {0.0f, 0.0f, 0.0f};
 	float mat[4][4], imat[4][4];
-
-	fac = cmd->fac;
-	facm = 1.0f - fac;
 
 	flag = cmd->flag;
 	type = cmd->type; /* projection type: sphere or cylinder */
@@ -193,67 +193,6 @@ static void sphere_do(
 		if (len == 0.0f) len = 10.0f;
 	}
 
-	/* ready to apply the effect, one vertex at a time;
-	 * tiny optimization: the code is separated (with parts repeated)
-	 * in two possible cases:
-	 * with or w/o a vgroup. With lots of if's in the code below,
-	 * further optimization's are possible, if needed */
-	if (dvert) { /* with a vgroup */
-		MDeformVert *dv = dvert;
-		float fac_orig = fac;
-		for (i = 0; i < numVerts; i++, dv++) {
-			float tmp_co[3];
-			float weight;
-
-			copy_v3_v3(tmp_co, vertexCos[i]);
-			if (ctrl_ob) {
-				if (flag & MOD_CAST_USE_OB_TRANSFORM) {
-					mul_m4_v3(mat, tmp_co);
-				}
-				else {
-					sub_v3_v3(tmp_co, center);
-				}
-			}
-
-			copy_v3_v3(vec, tmp_co);
-
-			if (type == MOD_CAST_TYPE_CYLINDER)
-				vec[2] = 0.0f;
-
-			if (has_radius) {
-				if (len_v3(vec) > cmd->radius) continue;
-			}
-
-			weight = defvert_find_weight(dv, defgrp_index);
-			if (weight <= 0.0f) continue;
-
-			fac = fac_orig * weight;
-			facm = 1.0f - fac;
-
-			normalize_v3(vec);
-
-			if (flag & MOD_CAST_X)
-				tmp_co[0] = fac * vec[0] * len + facm * tmp_co[0];
-			if (flag & MOD_CAST_Y)
-				tmp_co[1] = fac * vec[1] * len + facm * tmp_co[1];
-			if (flag & MOD_CAST_Z)
-				tmp_co[2] = fac * vec[2] * len + facm * tmp_co[2];
-
-			if (ctrl_ob) {
-				if (flag & MOD_CAST_USE_OB_TRANSFORM) {
-					mul_m4_v3(imat, tmp_co);
-				}
-				else {
-					add_v3_v3(tmp_co, center);
-				}
-			}
-
-			copy_v3_v3(vertexCos[i], tmp_co);
-		}
-		return;
-	}
-
-	/* no vgroup */
 	for (i = 0; i < numVerts; i++) {
 		float tmp_co[3];
 
@@ -274,6 +213,16 @@ static void sphere_do(
 
 		if (has_radius) {
 			if (len_v3(vec) > cmd->radius) continue;
+		}
+
+		if (dvert) {
+			const float weight = defvert_find_weight(&dvert[i], defgrp_index);
+			if (weight == 0.0f) {
+				continue;
+			}
+
+			fac = fac_orig * weight;
+			facm = 1.0f - fac;
 		}
 
 		normalize_v3(vec);
@@ -308,13 +257,12 @@ static void cuboid_do(
 	int i, defgrp_index;
 	int has_radius = 0;
 	short flag;
-	float fac, facm;
+	float fac = cmd->fac;
+	float facm = 1.0f - fac;
+	const float fac_orig = fac;
 	float min[3], max[3], bb[8][3];
 	float center[3] = {0.0f, 0.0f, 0.0f};
 	float mat[4][4], imat[4][4];
-
-	fac = cmd->fac;
-	facm = 1.0f - fac;
 
 	flag = cmd->flag;
 
@@ -397,118 +345,10 @@ static void cuboid_do(
 	bb[0][2] = bb[1][2] = bb[2][2] = bb[3][2] = min[2];
 	bb[4][2] = bb[5][2] = bb[6][2] = bb[7][2] = max[2];
 
-	/* ready to apply the effect, one vertex at a time;
-	 * tiny optimization: the code is separated (with parts repeated)
-	 * in two possible cases:
-	 * with or w/o a vgroup. With lots of if's in the code below,
-	 * further optimization's are possible, if needed */
-	if (dvert) { /* with a vgroup */
-		float fac_orig = fac;
-		for (i = 0; i < numVerts; i++) {
-			MDeformWeight *dw = NULL;
-			int j, octant, coord;
-			float d[3], dmax, apex[3], fbb;
-			float tmp_co[3];
-
-			copy_v3_v3(tmp_co, vertexCos[i]);
-			if (ctrl_ob) {
-				if (flag & MOD_CAST_USE_OB_TRANSFORM) {
-					mul_m4_v3(mat, tmp_co);
-				}
-				else {
-					sub_v3_v3(tmp_co, center);
-				}
-			}
-
-			if (has_radius) {
-				if (fabsf(tmp_co[0]) > cmd->radius ||
-				    fabsf(tmp_co[1]) > cmd->radius ||
-				    fabsf(tmp_co[2]) > cmd->radius)
-				{
-					continue;
-				}
-			}
-
-			for (j = 0; j < dvert[i].totweight; ++j) {
-				if (dvert[i].dw[j].def_nr == defgrp_index) {
-					dw = &dvert[i].dw[j];
-					break;
-				}
-			}
-			if (!dw) continue;
-
-			fac = fac_orig * dw->weight;
-			facm = 1.0f - fac;
-
-			/* The algo used to project the vertices to their
-			 * bounding box (bb) is pretty simple:
-			 * for each vertex v:
-			 * 1) find in which octant v is in;
-			 * 2) find which outer "wall" of that octant is closer to v;
-			 * 3) calculate factor (var fbb) to project v to that wall;
-			 * 4) project. */
-
-			/* find in which octant this vertex is in */
-			octant = 0;
-			if (tmp_co[0] > 0.0f) octant += 1;
-			if (tmp_co[1] > 0.0f) octant += 2;
-			if (tmp_co[2] > 0.0f) octant += 4;
-
-			/* apex is the bb's vertex at the chosen octant */
-			copy_v3_v3(apex, bb[octant]);
-
-			/* find which bb plane is closest to this vertex ... */
-			d[0] = tmp_co[0] / apex[0];
-			d[1] = tmp_co[1] / apex[1];
-			d[2] = tmp_co[2] / apex[2];
-
-			/* ... (the closest has the higher (closer to 1) d value) */
-			dmax = d[0];
-			coord = 0;
-			if (d[1] > dmax) {
-				dmax = d[1];
-				coord = 1;
-			}
-			if (d[2] > dmax) {
-				/* dmax = d[2]; */ /* commented, we don't need it */
-				coord = 2;
-			}
-
-			/* ok, now we know which coordinate of the vertex to use */
-
-			if (fabsf(tmp_co[coord]) < FLT_EPSILON) /* avoid division by zero */
-				continue;
-
-			/* finally, this is the factor we wanted, to project the vertex
-			 * to its bounding box (bb) */
-			fbb = apex[coord] / tmp_co[coord];
-
-			/* calculate the new vertex position */
-			if (flag & MOD_CAST_X)
-				tmp_co[0] = facm * tmp_co[0] + fac * tmp_co[0] * fbb;
-			if (flag & MOD_CAST_Y)
-				tmp_co[1] = facm * tmp_co[1] + fac * tmp_co[1] * fbb;
-			if (flag & MOD_CAST_Z)
-				tmp_co[2] = facm * tmp_co[2] + fac * tmp_co[2] * fbb;
-
-			if (ctrl_ob) {
-				if (flag & MOD_CAST_USE_OB_TRANSFORM) {
-					mul_m4_v3(imat, tmp_co);
-				}
-				else {
-					add_v3_v3(tmp_co, center);
-				}
-			}
-
-			copy_v3_v3(vertexCos[i], tmp_co);
-		}
-		return;
-	}
-
-	/* no vgroup (check previous case for comments about the code) */
+	/* ready to apply the effect, one vertex at a time */
 	for (i = 0; i < numVerts; i++) {
 		int octant, coord;
-		float d[3], dmax, fbb, apex[3];
+		float d[3], dmax, apex[3], fbb;
 		float tmp_co[3];
 
 		copy_v3_v3(tmp_co, vertexCos[i]);
@@ -530,17 +370,39 @@ static void cuboid_do(
 			}
 		}
 
+		if (dvert) {
+			const float weight = defvert_find_weight(&dvert[i], defgrp_index);
+			if (weight == 0.0f) {
+				continue;
+			}
+
+			fac = fac_orig * weight;
+			facm = 1.0f - fac;
+		}
+
+		/* The algo used to project the vertices to their
+		 * bounding box (bb) is pretty simple:
+		 * for each vertex v:
+		 * 1) find in which octant v is in;
+		 * 2) find which outer "wall" of that octant is closer to v;
+		 * 3) calculate factor (var fbb) to project v to that wall;
+		 * 4) project. */
+
+		/* find in which octant this vertex is in */
 		octant = 0;
 		if (tmp_co[0] > 0.0f) octant += 1;
 		if (tmp_co[1] > 0.0f) octant += 2;
 		if (tmp_co[2] > 0.0f) octant += 4;
 
+		/* apex is the bb's vertex at the chosen octant */
 		copy_v3_v3(apex, bb[octant]);
 
+		/* find which bb plane is closest to this vertex ... */
 		d[0] = tmp_co[0] / apex[0];
 		d[1] = tmp_co[1] / apex[1];
 		d[2] = tmp_co[2] / apex[2];
 
+		/* ... (the closest has the higher (closer to 1) d value) */
 		dmax = d[0];
 		coord = 0;
 		if (d[1] > dmax) {
@@ -552,11 +414,16 @@ static void cuboid_do(
 			coord = 2;
 		}
 
-		if (fabsf(tmp_co[coord]) < FLT_EPSILON)
+		/* ok, now we know which coordinate of the vertex to use */
+
+		if (fabsf(tmp_co[coord]) < FLT_EPSILON) /* avoid division by zero */
 			continue;
 
+		/* finally, this is the factor we wanted, to project the vertex
+		 * to its bounding box (bb) */
 		fbb = apex[coord] / tmp_co[coord];
 
+		/* calculate the new vertex position */
 		if (flag & MOD_CAST_X)
 			tmp_co[0] = facm * tmp_co[0] + fac * tmp_co[0] * fbb;
 		if (flag & MOD_CAST_Y)
