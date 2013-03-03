@@ -183,7 +183,7 @@ static int BL_KetsjiNextFrame(KX_KetsjiEngine *ketsjiengine, bContext *C, wmWind
 }
 
 struct BL_KetsjiNextFrameState {
-	struct KX_KetsjiEngine* ketsjiengine;
+	class KX_KetsjiEngine* ketsjiengine;
 	struct bContext *C;
 	struct wmWindow* win;
 	struct Scene* scene;

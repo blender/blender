@@ -143,7 +143,9 @@ macro(blender_source_group
 
 	foreach(_SRC ${sources})
 		get_filename_component(_SRC_EXT ${_SRC} EXT)
-		if((${_SRC_EXT} MATCHES ".h") OR (${_SRC_EXT} MATCHES ".hpp"))
+		if((${_SRC_EXT} MATCHES ".h") OR
+		   (${_SRC_EXT} MATCHES ".hpp") OR
+		   (${_SRC_EXT} MATCHES ".hh"))
 			source_group("Header Files" FILES ${_SRC})
 		else()
 			source_group("Source Files" FILES ${_SRC})
@@ -499,6 +501,7 @@ macro(remove_strict_flags)
 	if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 		remove_cc_flag("-Wunused-parameter")
 		remove_cc_flag("-Wunused-variable")
+		remove_cc_flag("-Werror=[^ ]+")
 		remove_cc_flag("-Werror")
 	endif()
 

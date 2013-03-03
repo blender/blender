@@ -104,13 +104,14 @@ static PIXELFORMATDESCRIPTOR sPreferredFormat = {
  * can't be in multiple-devices configuration. */
 static int is_crappy_intel_card(void)
 {
-	int crappy = 0;
-	const char *vendor = (const char *)glGetString(GL_VENDOR);
+	static short is_crappy = -1;
 
-	if (strstr(vendor, "Intel"))
-		crappy = 1;
+	if (is_crappy == -1) {
+		const char *vendor = (const char *)glGetString(GL_VENDOR);
+		is_crappy = (strstr(vendor, "Intel") != NULL);
+	}
 
-	return crappy;
+	return is_crappy;
 }
 
 GHOST_WindowWin32::GHOST_WindowWin32(

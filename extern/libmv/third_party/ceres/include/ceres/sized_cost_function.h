@@ -45,25 +45,29 @@
 namespace ceres {
 
 template<int kNumResiduals,
-         int N0 = 0, int N1 = 0, int N2 = 0, int N3 = 0, int N4 = 0, int N5 = 0>
+         int N0 = 0, int N1 = 0, int N2 = 0, int N3 = 0, int N4 = 0,
+         int N5 = 0, int N6 = 0, int N7 = 0, int N8 = 0, int N9 = 0>
 class SizedCostFunction : public CostFunction {
  public:
   SizedCostFunction() {
-    // Sanity checking.
     CHECK(kNumResiduals > 0 || kNumResiduals == DYNAMIC)
         << "Cost functions must have at least one residual block.";
 
-    CHECK_GT(N0, 0)
-        << "Cost functions must have at least one parameter block.";
-    CHECK((!N1 && !N2 && !N3 && !N4 && !N5) ||
-           ((N1 > 0) && !N2 && !N3 && !N4 && !N5) ||
-           ((N1 > 0) && (N2 > 0) && !N3 && !N4 && !N5) ||
-           ((N1 > 0) && (N2 > 0) && (N3 > 0) && !N4 && !N5) ||
-           ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && !N5) ||
-           ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0)))
+    // This block breaks the 80 column rule to keep it somewhat readable.
+    CHECK((!N1 && !N2 && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
+           ((N1 > 0) && !N2 && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
+           ((N1 > 0) && (N2 > 0) && !N3 && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
+           ((N1 > 0) && (N2 > 0) && (N3 > 0) && !N4 && !N5 && !N6 && !N7 && !N8 && !N9) ||
+           ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && !N5 && !N6 && !N7 && !N8 && !N9) ||
+           ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && !N6 && !N7 && !N8 && !N9) ||
+           ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && !N7 && !N8 && !N9) ||
+           ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && (N7 > 0) && !N8 && !N9) ||
+           ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && (N7 > 0) && (N8 > 0) && !N9) ||
+           ((N1 > 0) && (N2 > 0) && (N3 > 0) && (N4 > 0) && (N5 > 0) && (N6 > 0) && (N7 > 0) && (N8 > 0) && (N9 > 0)))
         << "Zero block cannot precede a non-zero block. Block sizes are "
         << "(ignore trailing 0s): " << N0 << ", " << N1 << ", " << N2 << ", "
-        << N3 << ", " << N4 << ", " << N5;
+        << N3 << ", " << N4 << ", " << N5 << ", " << N6 << ", " << N7 << ", "
+        << N8 << ", " << N9;
 
     set_num_residuals(kNumResiduals);
 
@@ -75,6 +79,10 @@ class SizedCostFunction : public CostFunction {
     ADD_PARAMETER_BLOCK(N3);
     ADD_PARAMETER_BLOCK(N4);
     ADD_PARAMETER_BLOCK(N5);
+    ADD_PARAMETER_BLOCK(N6);
+    ADD_PARAMETER_BLOCK(N7);
+    ADD_PARAMETER_BLOCK(N8);
+    ADD_PARAMETER_BLOCK(N9);
 #undef ADD_PARAMETER_BLOCK
   }
 

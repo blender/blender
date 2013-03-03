@@ -803,7 +803,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 
 			case 16:
 				if (numcomps == 4) {
-					if (channels_in_float == 4){
+					if (channels_in_float == 4) {
 						PIXEL_LOOPER_BEGIN(rect_float)
 						{
 							premul_to_straight_v4_v4(from_straight, rect_float);

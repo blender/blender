@@ -38,6 +38,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <cstddef>
+#include <algorithm>
 
 namespace ceres {
 namespace internal {
@@ -49,18 +50,17 @@ template <class C> class scoped_array;
 template <class C>
 scoped_ptr<C> make_scoped_ptr(C *);
 
-// A scoped_ptr<T> is like a T*, except that the destructor of scoped_ptr<T>
-// automatically deletes the pointer it holds (if any). That is, scoped_ptr<T>
-// owns the T object that it points to. Like a T*, a scoped_ptr<T> may hold
-// either NULL or a pointer to a T object. Also like T*, scoped_ptr<T> is
-// thread-compatible, and once you dereference it, you get the threadsafety
-// guarantees of T.
+// A scoped_ptr<T> is like a T*, except that the destructor of
+// scoped_ptr<T> automatically deletes the pointer it holds (if
+// any). That is, scoped_ptr<T> owns the T object that it points
+// to. Like a T*, a scoped_ptr<T> may hold either NULL or a pointer to
+// a T object. Also like T*, scoped_ptr<T> is thread-compatible, and
+// once you dereference it, you get the threadsafety guarantees of T.
 //
 // The size of a scoped_ptr is small: sizeof(scoped_ptr<C>) == sizeof(C*)
 template <class C>
 class scoped_ptr {
  public:
-
   // The element type
   typedef C element_type;
 
@@ -193,7 +193,6 @@ scoped_ptr<C> make_scoped_ptr(C *p) {
 template <class C>
 class scoped_array {
  public:
-
   // The element type
   typedef C element_type;
 

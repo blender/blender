@@ -461,6 +461,7 @@ static void graph_panel_driverVar__singleProp(uiLayout *layout, ID *id, DriverVa
 	
 	/* Target ID */
 	row = uiLayoutRow(layout, FALSE);
+	uiLayoutSetRedAlert(row, ((dtar->flag & DTAR_FLAG_INVALID) && !dtar->id));
 	uiTemplateAnyID(row, &dtar_ptr, "id", "id_type", IFACE_("Prop:"));
 	
 	/* Target Property */
@@ -470,8 +471,9 @@ static void graph_panel_driverVar__singleProp(uiLayout *layout, ID *id, DriverVa
 		/* get pointer for resolving the property selected */
 		RNA_id_pointer_create(dtar->id, &root_ptr);
 		
-		col = uiLayoutColumn(layout, TRUE);
 		/* rna path */
+		col = uiLayoutColumn(layout, TRUE);
+		uiLayoutSetRedAlert(col, (dtar->flag & DTAR_FLAG_INVALID));
 		uiTemplatePathBuilder(col, &dtar_ptr, "data_path", &root_ptr, IFACE_("Path"));
 	}
 }
@@ -492,21 +494,23 @@ static void graph_panel_driverVar__rotDiff(uiLayout *layout, ID *id, DriverVar *
 	
 	/* Bone 1 */
 	col = uiLayoutColumn(layout, TRUE);
+	uiLayoutSetRedAlert(col, (dtar->flag & DTAR_FLAG_INVALID)); /* XXX: per field... */
 	uiTemplateAnyID(col, &dtar_ptr, "id", "id_type", IFACE_("Bone 1:"));
-		
+	
 	if (dtar->id && ob1->pose) {
 		PointerRNA tar_ptr;
-			
+		
 		RNA_pointer_create(dtar->id, &RNA_Pose, ob1->pose, &tar_ptr);
 		uiItemPointerR(col, &dtar_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 	}
 	
 	col = uiLayoutColumn(layout, TRUE);
+	uiLayoutSetRedAlert(col, (dtar2->flag & DTAR_FLAG_INVALID)); /* XXX: per field... */
 	uiTemplateAnyID(col, &dtar2_ptr, "id", "id_type", IFACE_("Bone 2:"));
 		
 	if (dtar2->id && ob2->pose) {
 		PointerRNA tar_ptr;
-			
+		
 		RNA_pointer_create(dtar2->id, &RNA_Pose, ob2->pose, &tar_ptr);
 		uiItemPointerR(col, &dtar2_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 	}
@@ -515,7 +519,7 @@ static void graph_panel_driverVar__rotDiff(uiLayout *layout, ID *id, DriverVar *
 /* settings for 'location difference' driver variable type */
 static void graph_panel_driverVar__locDiff(uiLayout *layout, ID *id, DriverVar *dvar)
 {
-	DriverTarget *dtar = &dvar->targets[0];
+	DriverTarget *dtar  = &dvar->targets[0];
 	DriverTarget *dtar2 = &dvar->targets[1];
 	Object *ob1 = (Object *)dtar->id;
 	Object *ob2 = (Object *)dtar2->id;
@@ -523,32 +527,36 @@ static void graph_panel_driverVar__locDiff(uiLayout *layout, ID *id, DriverVar *
 	uiLayout *col;
 	
 	/* initialize RNA pointer to the target */
-	RNA_pointer_create(id, &RNA_DriverTarget, dtar, &dtar_ptr); 
+	RNA_pointer_create(id, &RNA_DriverTarget, dtar,  &dtar_ptr); 
 	RNA_pointer_create(id, &RNA_DriverTarget, dtar2, &dtar2_ptr); 
 	
 	/* Bone 1 */
 	col = uiLayoutColumn(layout, TRUE);
+	uiLayoutSetRedAlert(col, (dtar->flag & DTAR_FLAG_INVALID)); /* XXX: per field... */
 	uiTemplateAnyID(col, &dtar_ptr, "id", "id_type", IFACE_("Ob/Bone 1:"));
 		
 	if (dtar->id && ob1->pose) {
 		PointerRNA tar_ptr;
-			
+		
 		RNA_pointer_create(dtar->id, &RNA_Pose, ob1->pose, &tar_ptr);
 		uiItemPointerR(col, &dtar_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 	}
-		
+	
+	uiLayoutSetRedAlert(col, false); /* we can clear it again now - it's only needed when creating the ID/Bone fields */
 	uiItemR(col, &dtar_ptr, "transform_space", 0, NULL, ICON_NONE);
 	
 	col = uiLayoutColumn(layout, TRUE);
+	uiLayoutSetRedAlert(col, (dtar2->flag & DTAR_FLAG_INVALID)); /* XXX: per field... */
 	uiTemplateAnyID(col, &dtar2_ptr, "id", "id_type", IFACE_("Ob/Bone 2:"));
 		
 	if (dtar2->id && ob2->pose) {
 		PointerRNA tar_ptr;
-			
+		
 		RNA_pointer_create(dtar2->id, &RNA_Pose, ob2->pose, &tar_ptr);
 		uiItemPointerR(col, &dtar2_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 	}
 		
+	uiLayoutSetRedAlert(col, false); /* we can clear it again now - it's only needed when creating the ID/Bone fields */
 	uiItemR(col, &dtar2_ptr, "transform_space", 0, NULL, ICON_NONE);
 }
 
@@ -565,11 +573,12 @@ static void graph_panel_driverVar__transChan(uiLayout *layout, ID *id, DriverVar
 	
 	/* properties */
 	col = uiLayoutColumn(layout, TRUE);
+	uiLayoutSetRedAlert(col, (dtar->flag & DTAR_FLAG_INVALID)); /* XXX: per field... */
 	uiTemplateAnyID(col, &dtar_ptr, "id", "id_type", IFACE_("Ob/Bone:"));
 		
 	if (dtar->id && ob->pose) {
 		PointerRNA tar_ptr;
-			
+		
 		RNA_pointer_create(dtar->id, &RNA_Pose, ob->pose, &tar_ptr);
 		uiItemPointerR(col, &dtar_ptr, "bone_target", &tar_ptr, "bones", "", ICON_BONE_DATA);
 	}
@@ -623,7 +632,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	if (driver->type == DRIVER_TYPE_PYTHON) {
 		/* expression */
 		uiItemR(col, &driver_ptr, "expression", 0, IFACE_("Expr"), ICON_NONE);
-
+		
 		/* errors? */
 		if (driver->flag & DRIVER_FLAG_INVALID)
 			uiItemL(col, IFACE_("ERROR: Invalid Python expression"), ICON_ERROR);
@@ -668,19 +677,19 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		box = uiLayoutBox(col);
 		/* first row context info for driver */
 		RNA_pointer_create(ale->id, &RNA_DriverVariable, dvar, &dvar_ptr);
-
+		
 		row = uiLayoutRow(box, FALSE);
 		block = uiLayoutGetBlock(row);
 		/* variable name */
 		uiItemR(row, &dvar_ptr, "name", 0, "", ICON_NONE);
-
+		
 		/* remove button */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		but = uiDefIconBut(block, BUT, B_IPO_DEPCHANGE, ICON_X, 290, 0, UI_UNIT_X, UI_UNIT_Y,
 		                   NULL, 0.0, 0.0, 0.0, 0.0, IFACE_("Delete target variable"));
 		uiButSetFunc(but, driver_delete_var_cb, driver, dvar);
 		uiBlockSetEmboss(block, UI_EMBOSS);
-
+		
 		/* variable type */
 		row = uiLayoutRow(box, FALSE);
 		uiItemR(row, &dvar_ptr, "type", 0, "", ICON_NONE);
@@ -721,7 +730,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 			else {
 				BLI_snprintf(valBuf, sizeof(valBuf), "%.3f", dvar->curval);
 			}
-
+			
 			uiItemL(row, valBuf, ICON_NONE);
 		}
 	}

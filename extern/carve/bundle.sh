@@ -91,7 +91,7 @@ if(WITH_BOOST)
 		-DCARVE_SYSTEM_BOOST
 	)
 
-	list(APPEND INC
+	list(APPEND INC_SYS
 		\${BOOST_INCLUDE_DIR}
 	)
 endif()

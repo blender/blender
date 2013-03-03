@@ -1170,7 +1170,6 @@ LbmFsgrSolver::standingFluidPreinit()
 	LbmFloat lcsmqo;
 #	if OPT3D==1 
 	LbmFloat lcsmqadd, lcsmeq[LBM_DFNUM], lcsmomega;
-	CellFlagType nbored=0;
 #	endif // OPT3D==true 
 
 	GRID_LOOP_START();

@@ -148,7 +148,7 @@ def expand(line, cursor, namespace, private=True):
 
     if prefix:
         line = line[:cursor] + prefix + line[cursor:]
-        cursor += len(prefix)
+        cursor += len(prefix.encode('utf-8'))
         if no_calltip and prefix.endswith('('):
             return expand(line, cursor, namespace, private)
     return line, cursor, scrollback

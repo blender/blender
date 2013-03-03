@@ -35,6 +35,8 @@
 #endif
 
 #include <math.h>
+#include <vector>
+#include <algorithm>
 
 #include "BL_BlenderDataConversion.h"
 #include "KX_BlenderGL.h"
@@ -506,11 +508,16 @@ static void GetUVs(BL_Material *material, MTF_localLayer *layers, MFace *mface, 
 		uvs[0][0] = uvs[1][0] = uvs[2][0] = uvs[3][0] = MT_Point2(0.f, 0.f);
 	}
 	
+	vector<STR_String> found_layers;
+
 	for (int vind = 0; vind<MAXTEX; vind++)
 	{
 		BL_Mapping &map = material->mapping[vind];
 
 		if (!(map.mapping & USEUV)) continue;
+
+		if (std::find(found_layers.begin(), found_layers.end(), map.uvCoName) != found_layers.end())
+			continue;
 
 		//If no UVSet is specified, try grabbing one from the UV/Image editor
 		if (map.uvCoName.IsEmpty() && tface)
@@ -544,6 +551,7 @@ static void GetUVs(BL_Material *material, MTF_localLayer *layers, MFace *mface, 
 					uvs[3][unit].setValue(0.0f, 0.0f);
 
 				++unit;
+				found_layers.push_back(map.uvCoName);
 				break;
 			}
 		}

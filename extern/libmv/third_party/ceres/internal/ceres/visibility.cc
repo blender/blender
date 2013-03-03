@@ -28,6 +28,8 @@
 //
 // Author: kushalav@google.com (Avanish Kushal)
 
+#include "ceres/visibility.h"
+
 #include <cmath>
 #include <ctime>
 #include <algorithm>
@@ -36,7 +38,6 @@
 #include <utility>
 #include "ceres/block_structure.h"
 #include "ceres/collections_port.h"
-#include "ceres/visibility.h"
 #include "ceres/graph.h"
 #include "glog/logging.h"
 

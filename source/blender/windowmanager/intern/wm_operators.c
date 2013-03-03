@@ -110,6 +110,8 @@
 
 static GHash *global_ops_hash = NULL;
 
+#define UNDOCUMENTED_OPERATOR_TIP N_("(undocumented operator)")
+
 /* ************ operator API, exported ********** */
 
 
@@ -163,7 +165,7 @@ void WM_operatortype_append(void (*opfunc)(wmOperatorType *))
 	}
 
 	/* XXX All ops should have a description but for now allow them not to. */
-	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description : N_("(undocumented operator)"));
+	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description : UNDOCUMENTED_OPERATOR_TIP);
 	RNA_def_struct_identifier(ot->srna, ot->idname);
 
 	BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
@@ -178,7 +180,7 @@ void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType *, void *), void *
 	/* Set the default i18n context now, so that opfunc can redefine it if needed! */
 	RNA_def_struct_translation_context(ot->srna, BLF_I18NCONTEXT_OPERATOR_DEFAULT);
 	opfunc(ot, userdata);
-	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description : N_("(undocumented operator)"));
+	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description : UNDOCUMENTED_OPERATOR_TIP);
 	RNA_def_struct_identifier(ot->srna, ot->idname);
 
 	BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
@@ -375,7 +377,7 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *nam
 	ot->poll = NULL;
 
 	if (!ot->description) /* XXX All ops should have a description but for now allow them not to. */
-		ot->description = N_("(undocumented operator)");
+		ot->description = UNDOCUMENTED_OPERATOR_TIP;
 	
 	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description);
 	RNA_def_struct_identifier(ot->srna, ot->idname);
@@ -401,7 +403,7 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *, void *), 
 	ot->poll = NULL;
 
 	if (!ot->description)
-		ot->description = N_("(undocumented operator)");
+		ot->description = UNDOCUMENTED_OPERATOR_TIP;
 
 	/* Set the default i18n context now, so that opfunc can redefine it if needed! */
 	RNA_def_struct_translation_context(ot->srna, BLF_I18NCONTEXT_OPERATOR_DEFAULT);
@@ -1846,6 +1848,7 @@ static void WM_OT_call_menu(wmOperatorType *ot)
 {
 	ot->name = "Call Menu";
 	ot->idname = "WM_OT_call_menu";
+	ot->description = "Call (draw) a pre-defined menu";
 
 	ot->exec = wm_call_menu_exec;
 	ot->poll = WM_operator_winactive;

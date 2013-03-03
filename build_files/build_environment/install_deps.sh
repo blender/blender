@@ -796,6 +796,11 @@ compile_OIIO() {
     cmake_d="$cmake_d -D CMAKE_PREFIX_PATH=$_inst"
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D BUILDSTATIC=ON"
+	
+    # Optional tests and cmd tools
+    cmake_d="$cmake_d -D USE_QT=OFF"
+    cmake_d="$cmake_d -D OIIO_BUILD_TOOLS=OFF"
+    cmake_d="$cmake_d -D OIIO_BUILD_TESTS=OFF"
 
     # linking statically could give issues on Debian/Ubuntu (and probably other distros
     # which doesn't like static linking) when linking shared oiio library due to missing

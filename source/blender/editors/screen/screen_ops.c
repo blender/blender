@@ -206,7 +206,7 @@ int ED_operator_animview_active(bContext *C)
 			return TRUE;
 	}
 
-	CTX_wm_operator_poll_msg_set(C, "expected an timeline/animation area to be active");
+	CTX_wm_operator_poll_msg_set(C, "expected a timeline/animation area to be active");
 	return 0;
 }
 
@@ -3427,8 +3427,8 @@ static int userpref_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *ev
 	rcti rect;
 	int sizex, sizey;
 	
-	sizex = 800;
-	sizey = 480;
+	sizex = 800 * UI_DPI_WINDOW_FAC;
+	sizey = 480 * UI_DPI_WINDOW_FAC;
 	
 	/* some magic to calculate postition */
 	/* pixelsize: mouse coords are in U.pixelsize units :/ */
@@ -3447,8 +3447,8 @@ static int userpref_show_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *ev
 static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Show/Hide User Preferences";
-	ot->description = "Show/hide user preferences";
+	ot->name = "Show User Preferences";
+	ot->description = "Show user preferences";
 	ot->idname = "SCREEN_OT_userpref_show";
 	
 	/* api callbacks */

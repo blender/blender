@@ -50,6 +50,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_group.h"
 #include "BKE_main.h"
@@ -606,7 +608,7 @@ static short select_grouped_group(bContext *C, Object *ob)  /* Select objects in
 	}
 
 	/* build the menu. */
-	pup = uiPupMenuBegin(C, "Select Group", ICON_NONE);
+	pup = uiPupMenuBegin(C, IFACE_("Select Group"), ICON_NONE);
 	layout = uiPupMenuLayout(pup);
 
 	for (i = 0; i < group_count; i++) {

@@ -332,8 +332,7 @@ class CLIP_PT_tools_solve(CLIP_PT_tracking_panel, Panel):
         col.prop(tracking_object, "keyframe_b")
 
         col = layout.column(align=True)
-        col.active = (tracking_object.is_camera and
-                      not settings.use_tripod_solver)
+        col.active = tracking_object.is_camera
         col.label(text="Refine:")
         col.prop(settings, "refine_intrinsics", text="")
 

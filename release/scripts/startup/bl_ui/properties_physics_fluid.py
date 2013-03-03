@@ -92,8 +92,9 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
 
             col = split.column()
             col.label()
-            col.prop(fluid, "use_speed_vectors")
-            col.prop(fluid, "use_reverse_frames")
+            sub = col.column(align=True)
+            sub.prop(fluid, "use_speed_vectors")
+            sub.prop(fluid, "use_reverse_frames")
             col.prop(fluid, "frame_offset", text="Offset")
 
             layout.prop(fluid, "filepath", text="")
@@ -295,9 +296,9 @@ class PHYSICS_PT_domain_particles(PhysicButtonsPanel, Panel):
 
         fluid = context.fluid.settings
 
-        col = layout.column(align=True)
-        col.prop(fluid, "tracer_particles")
-        col.prop(fluid, "generate_particles")
+        row = layout.row()
+        row.prop(fluid, "tracer_particles", text="Tracer")
+        row.prop(fluid, "generate_particles", text="Generate")
 
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

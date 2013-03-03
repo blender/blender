@@ -416,6 +416,7 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
                 default=0.0,
                 step=1,
                 precision=4,
+                subtype = 'DISTANCE'
                 )
         cls.aperture_blades = IntProperty(
                 name="Aperture Blades",

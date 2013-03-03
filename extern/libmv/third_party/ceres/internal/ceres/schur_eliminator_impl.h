@@ -50,7 +50,6 @@
 
 #include <algorithm>
 #include <map>
-#include <glog/logging.h>
 #include "Eigen/Dense"
 #include "ceres/block_random_access_matrix.h"
 #include "ceres/block_sparse_matrix.h"
@@ -60,6 +59,7 @@
 #include "ceres/stl_util.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/scoped_ptr.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {

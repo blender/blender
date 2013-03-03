@@ -101,10 +101,12 @@ typedef struct Image {
 	float lastupdate;
 	int lastused;
 	short animspeed;
+	short pad2;
 	
 	/* for generated images */
-	short gen_x, gen_y;
+	int gen_x, gen_y;
 	char gen_type, gen_flag;
+	char gen_pad[2];
 	
 	/* display aspect - for UV editing images resized for faster openGL display */
 	float aspx, aspy;

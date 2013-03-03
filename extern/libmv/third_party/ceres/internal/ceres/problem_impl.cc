@@ -37,7 +37,11 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include "ceres/casts.h"
+#include "ceres/compressed_row_sparse_matrix.h"
 #include "ceres/cost_function.h"
+#include "ceres/crs_matrix.h"
+#include "ceres/evaluator.h"
 #include "ceres/loss_function.h"
 #include "ceres/map_util.h"
 #include "ceres/parameter_block.h"
@@ -73,52 +77,101 @@ static void CheckForNoAliasing(double* existing_block,
       << "size " << new_block_size << ".";
 }
 
-static ParameterBlock* InternalAddParameterBlock(
-    double* values,
-    int size,
-    ParameterMap* parameter_map,
-    vector<ParameterBlock*>* parameter_blocks) {
-  CHECK(values) << "Null pointer passed to AddParameterBlock for a parameter "
-                << "with size " << size;
+ParameterBlock* ProblemImpl::InternalAddParameterBlock(double* values,
+                                                       int size) {
+  CHECK(values != NULL) << "Null pointer passed to AddParameterBlock "
+                        << "for a parameter with size " << size;
 
   // Ignore the request if there is a block for the given pointer already.
-  ParameterMap::iterator it = parameter_map->find(values);
-  if (it != parameter_map->end()) {
-    int existing_size = it->second->Size();
-    CHECK(size == existing_size)
-        << "Tried adding a parameter block with the same double pointer, "
-        << values << ", twice, but with different block sizes. Original "
-        << "size was " << existing_size << " but new size is "
-        << size;
+  ParameterMap::iterator it = parameter_block_map_.find(values);
+  if (it != parameter_block_map_.end()) {
+    if (!options_.disable_all_safety_checks) {
+      int existing_size = it->second->Size();
+      CHECK(size == existing_size)
+          << "Tried adding a parameter block with the same double pointer, "
+          << values << ", twice, but with different block sizes. Original "
+          << "size was " << existing_size << " but new size is "
+          << size;
+    }
     return it->second;
   }
-  // Before adding the parameter block, also check that it doesn't alias any
-  // other parameter blocks.
-  if (!parameter_map->empty()) {
-    ParameterMap::iterator lb = parameter_map->lower_bound(values);
 
-    // If lb is not the first block, check the previous block for aliasing.
-    if (lb != parameter_map->begin()) {
-      ParameterMap::iterator previous = lb;
-      --previous;
-      CheckForNoAliasing(previous->first,
-                         previous->second->Size(),
-                         values,
-                         size);
-    }
+  if (!options_.disable_all_safety_checks) {
+    // Before adding the parameter block, also check that it doesn't alias any
+    // other parameter blocks.
+    if (!parameter_block_map_.empty()) {
+      ParameterMap::iterator lb = parameter_block_map_.lower_bound(values);
 
-    // If lb is not off the end, check lb for aliasing.
-    if (lb != parameter_map->end()) {
-      CheckForNoAliasing(lb->first,
-                         lb->second->Size(),
-                         values,
-                         size);
+      // If lb is not the first block, check the previous block for aliasing.
+      if (lb != parameter_block_map_.begin()) {
+        ParameterMap::iterator previous = lb;
+        --previous;
+        CheckForNoAliasing(previous->first,
+                           previous->second->Size(),
+                           values,
+                           size);
+      }
+
+      // If lb is not off the end, check lb for aliasing.
+      if (lb != parameter_block_map_.end()) {
+        CheckForNoAliasing(lb->first,
+                           lb->second->Size(),
+                           values,
+                           size);
+      }
     }
   }
-  ParameterBlock* new_parameter_block = new ParameterBlock(values, size);
-  (*parameter_map)[values] = new_parameter_block;
-  parameter_blocks->push_back(new_parameter_block);
+
+  // Pass the index of the new parameter block as well to keep the index in
+  // sync with the position of the parameter in the program's parameter vector.
+  ParameterBlock* new_parameter_block =
+      new ParameterBlock(values, size, program_->parameter_blocks_.size());
+
+  // For dynamic problems, add the list of dependent residual blocks, which is
+  // empty to start.
+  if (options_.enable_fast_parameter_block_removal) {
+    new_parameter_block->EnableResidualBlockDependencies();
+  }
+  parameter_block_map_[values] = new_parameter_block;
+  program_->parameter_blocks_.push_back(new_parameter_block);
   return new_parameter_block;
+}
+
+// Deletes the residual block in question, assuming there are no other
+// references to it inside the problem (e.g. by another parameter). Referenced
+// cost and loss functions are tucked away for future deletion, since it is not
+// possible to know whether other parts of the problem depend on them without
+// doing a full scan.
+void ProblemImpl::DeleteBlock(ResidualBlock* residual_block) {
+  // The const casts here are legit, since ResidualBlock holds these
+  // pointers as const pointers but we have ownership of them and
+  // have the right to destroy them when the destructor is called.
+  if (options_.cost_function_ownership == TAKE_OWNERSHIP &&
+      residual_block->cost_function() != NULL) {
+    cost_functions_to_delete_.push_back(
+        const_cast<CostFunction*>(residual_block->cost_function()));
+  }
+  if (options_.loss_function_ownership == TAKE_OWNERSHIP &&
+      residual_block->loss_function() != NULL) {
+    loss_functions_to_delete_.push_back(
+        const_cast<LossFunction*>(residual_block->loss_function()));
+  }
+  delete residual_block;
+}
+
+// Deletes the parameter block in question, assuming there are no other
+// references to it inside the problem (e.g. by any residual blocks).
+// Referenced parameterizations are tucked away for future deletion, since it
+// is not possible to know whether other parts of the problem depend on them
+// without doing a full scan.
+void ProblemImpl::DeleteBlock(ParameterBlock* parameter_block) {
+  if (options_.local_parameterization_ownership == TAKE_OWNERSHIP &&
+      parameter_block->local_parameterization() != NULL) {
+    local_parameterizations_to_delete_.push_back(
+        parameter_block->mutable_local_parameterization());
+  }
+  parameter_block_map_.erase(parameter_block->mutable_user_state());
+  delete parameter_block;
 }
 
 ProblemImpl::ProblemImpl() : program_(new internal::Program) {}
@@ -128,48 +181,28 @@ ProblemImpl::ProblemImpl(const Problem::Options& options)
 
 ProblemImpl::~ProblemImpl() {
   // Collect the unique cost/loss functions and delete the residuals.
-  set<CostFunction*> cost_functions;
-  set<LossFunction*> loss_functions;
+  const int num_residual_blocks = program_->residual_blocks_.size();
+  cost_functions_to_delete_.reserve(num_residual_blocks);
+  loss_functions_to_delete_.reserve(num_residual_blocks);
   for (int i = 0; i < program_->residual_blocks_.size(); ++i) {
-    ResidualBlock* residual_block = program_->residual_blocks_[i];
-
-    // The const casts here are legit, since ResidualBlock holds these
-    // pointers as const pointers but we have ownership of them and
-    // have the right to destroy them when the destructor is called.
-    if (options_.cost_function_ownership == TAKE_OWNERSHIP) {
-      cost_functions.insert(
-          const_cast<CostFunction*>(residual_block->cost_function()));
-    }
-    if (options_.loss_function_ownership == TAKE_OWNERSHIP) {
-      loss_functions.insert(
-          const_cast<LossFunction*>(residual_block->loss_function()));
-    }
-
-    delete residual_block;
+    DeleteBlock(program_->residual_blocks_[i]);
   }
 
   // Collect the unique parameterizations and delete the parameters.
-  set<LocalParameterization*> local_parameterizations;
   for (int i = 0; i < program_->parameter_blocks_.size(); ++i) {
-    ParameterBlock* parameter_block = program_->parameter_blocks_[i];
-
-    if (options_.local_parameterization_ownership == TAKE_OWNERSHIP) {
-      local_parameterizations.insert(parameter_block->local_parameterization_);
-    }
-
-    delete parameter_block;
+    DeleteBlock(program_->parameter_blocks_[i]);
   }
 
   // Delete the owned cost/loss functions and parameterizations.
-  STLDeleteContainerPointers(local_parameterizations.begin(),
-                             local_parameterizations.end());
-  STLDeleteContainerPointers(cost_functions.begin(),
-                             cost_functions.end());
-  STLDeleteContainerPointers(loss_functions.begin(),
-                             loss_functions.end());
+  STLDeleteUniqueContainerPointers(local_parameterizations_to_delete_.begin(),
+                                   local_parameterizations_to_delete_.end());
+  STLDeleteUniqueContainerPointers(cost_functions_to_delete_.begin(),
+                                   cost_functions_to_delete_.end());
+  STLDeleteUniqueContainerPointers(loss_functions_to_delete_.begin(),
+                                   loss_functions_to_delete_.end());
 }
 
-const ResidualBlock* ProblemImpl::AddResidualBlock(
+ResidualBlock* ProblemImpl::AddResidualBlock(
     CostFunction* cost_function,
     LossFunction* loss_function,
     const vector<double*>& parameter_blocks) {
@@ -180,25 +213,28 @@ const ResidualBlock* ProblemImpl::AddResidualBlock(
   // Check the sizes match.
   const vector<int16>& parameter_block_sizes =
       cost_function->parameter_block_sizes();
-  CHECK_EQ(parameter_block_sizes.size(), parameter_blocks.size())
-      << "Number of blocks input is different than the number of blocks "
-      << "that the cost function expects.";
 
-  // Check for duplicate parameter blocks.
-  vector<double*> sorted_parameter_blocks(parameter_blocks);
-  sort(sorted_parameter_blocks.begin(), sorted_parameter_blocks.end());
-  vector<double*>::const_iterator duplicate_items =
-      unique(sorted_parameter_blocks.begin(),
-             sorted_parameter_blocks.end());
-  if (duplicate_items != sorted_parameter_blocks.end()) {
-    string blocks;
-    for (int i = 0; i < parameter_blocks.size(); ++i) {
-      blocks += internal::StringPrintf(" %p ", parameter_blocks[i]);
+  if (!options_.disable_all_safety_checks) {
+    CHECK_EQ(parameter_block_sizes.size(), parameter_blocks.size())
+        << "Number of blocks input is different than the number of blocks "
+        << "that the cost function expects.";
+
+    // Check for duplicate parameter blocks.
+    vector<double*> sorted_parameter_blocks(parameter_blocks);
+    sort(sorted_parameter_blocks.begin(), sorted_parameter_blocks.end());
+    vector<double*>::const_iterator duplicate_items =
+        unique(sorted_parameter_blocks.begin(),
+               sorted_parameter_blocks.end());
+    if (duplicate_items != sorted_parameter_blocks.end()) {
+      string blocks;
+      for (int i = 0; i < parameter_blocks.size(); ++i) {
+        blocks += StringPrintf(" %p ", parameter_blocks[i]);
+      }
+
+      LOG(FATAL) << "Duplicate parameter blocks in a residual parameter "
+                 << "are not allowed. Parameter block pointers: ["
+                 << blocks << "]";
     }
-
-    LOG(FATAL) << "Duplicate parameter blocks in a residual parameter "
-               << "are not allowed. Parameter block pointers: ["
-               << blocks << "]";
   }
 
   // Add parameter blocks and convert the double*'s to parameter blocks.
@@ -206,33 +242,42 @@ const ResidualBlock* ProblemImpl::AddResidualBlock(
   for (int i = 0; i < parameter_blocks.size(); ++i) {
     parameter_block_ptrs[i] =
         InternalAddParameterBlock(parameter_blocks[i],
-                                  parameter_block_sizes[i],
-                                  &parameter_block_map_,
-                                  &program_->parameter_blocks_);
+                                  parameter_block_sizes[i]);
   }
 
-  // Check that the block sizes match the block sizes expected by the
-  // cost_function.
-  for (int i = 0; i < parameter_block_ptrs.size(); ++i) {
-    CHECK_EQ(cost_function->parameter_block_sizes()[i],
-             parameter_block_ptrs[i]->Size())
-        << "The cost function expects parameter block " << i
-        << " of size " << cost_function->parameter_block_sizes()[i]
-        << " but was given a block of size "
-        << parameter_block_ptrs[i]->Size();
+  if (!options_.disable_all_safety_checks) {
+    // Check that the block sizes match the block sizes expected by the
+    // cost_function.
+    for (int i = 0; i < parameter_block_ptrs.size(); ++i) {
+      CHECK_EQ(cost_function->parameter_block_sizes()[i],
+               parameter_block_ptrs[i]->Size())
+          << "The cost function expects parameter block " << i
+          << " of size " << cost_function->parameter_block_sizes()[i]
+          << " but was given a block of size "
+          << parameter_block_ptrs[i]->Size();
+    }
   }
 
   ResidualBlock* new_residual_block =
       new ResidualBlock(cost_function,
                         loss_function,
-                        parameter_block_ptrs);
+                        parameter_block_ptrs,
+                        program_->residual_blocks_.size());
+
+  // Add dependencies on the residual to the parameter blocks.
+  if (options_.enable_fast_parameter_block_removal) {
+    for (int i = 0; i < parameter_blocks.size(); ++i) {
+      parameter_block_ptrs[i]->AddResidualBlock(new_residual_block);
+    }
+  }
+
   program_->residual_blocks_.push_back(new_residual_block);
   return new_residual_block;
 }
 
 // Unfortunately, macros don't help much to reduce this code, and var args don't
 // work because of the ambiguous case that there is no loss function.
-const ResidualBlock* ProblemImpl::AddResidualBlock(
+ResidualBlock* ProblemImpl::AddResidualBlock(
     CostFunction* cost_function,
     LossFunction* loss_function,
     double* x0) {
@@ -241,7 +286,7 @@ const ResidualBlock* ProblemImpl::AddResidualBlock(
   return AddResidualBlock(cost_function, loss_function, residual_parameters);
 }
 
-const ResidualBlock* ProblemImpl::AddResidualBlock(
+ResidualBlock* ProblemImpl::AddResidualBlock(
     CostFunction* cost_function,
     LossFunction* loss_function,
     double* x0, double* x1) {
@@ -251,7 +296,7 @@ const ResidualBlock* ProblemImpl::AddResidualBlock(
   return AddResidualBlock(cost_function, loss_function, residual_parameters);
 }
 
-const ResidualBlock* ProblemImpl::AddResidualBlock(
+ResidualBlock* ProblemImpl::AddResidualBlock(
     CostFunction* cost_function,
     LossFunction* loss_function,
     double* x0, double* x1, double* x2) {
@@ -262,7 +307,7 @@ const ResidualBlock* ProblemImpl::AddResidualBlock(
   return AddResidualBlock(cost_function, loss_function, residual_parameters);
 }
 
-const ResidualBlock* ProblemImpl::AddResidualBlock(
+ResidualBlock* ProblemImpl::AddResidualBlock(
     CostFunction* cost_function,
     LossFunction* loss_function,
     double* x0, double* x1, double* x2, double* x3) {
@@ -274,7 +319,7 @@ const ResidualBlock* ProblemImpl::AddResidualBlock(
   return AddResidualBlock(cost_function, loss_function, residual_parameters);
 }
 
-const ResidualBlock* ProblemImpl::AddResidualBlock(
+ResidualBlock* ProblemImpl::AddResidualBlock(
     CostFunction* cost_function,
     LossFunction* loss_function,
     double* x0, double* x1, double* x2, double* x3, double* x4) {
@@ -287,7 +332,7 @@ const ResidualBlock* ProblemImpl::AddResidualBlock(
   return AddResidualBlock(cost_function, loss_function, residual_parameters);
 }
 
-const ResidualBlock* ProblemImpl::AddResidualBlock(
+ResidualBlock* ProblemImpl::AddResidualBlock(
     CostFunction* cost_function,
     LossFunction* loss_function,
     double* x0, double* x1, double* x2, double* x3, double* x4, double* x5) {
@@ -301,12 +346,78 @@ const ResidualBlock* ProblemImpl::AddResidualBlock(
   return AddResidualBlock(cost_function, loss_function, residual_parameters);
 }
 
+ResidualBlock* ProblemImpl::AddResidualBlock(
+    CostFunction* cost_function,
+    LossFunction* loss_function,
+    double* x0, double* x1, double* x2, double* x3, double* x4, double* x5,
+    double* x6) {
+  vector<double*> residual_parameters;
+  residual_parameters.push_back(x0);
+  residual_parameters.push_back(x1);
+  residual_parameters.push_back(x2);
+  residual_parameters.push_back(x3);
+  residual_parameters.push_back(x4);
+  residual_parameters.push_back(x5);
+  residual_parameters.push_back(x6);
+  return AddResidualBlock(cost_function, loss_function, residual_parameters);
+}
+
+ResidualBlock* ProblemImpl::AddResidualBlock(
+    CostFunction* cost_function,
+    LossFunction* loss_function,
+    double* x0, double* x1, double* x2, double* x3, double* x4, double* x5,
+    double* x6, double* x7) {
+  vector<double*> residual_parameters;
+  residual_parameters.push_back(x0);
+  residual_parameters.push_back(x1);
+  residual_parameters.push_back(x2);
+  residual_parameters.push_back(x3);
+  residual_parameters.push_back(x4);
+  residual_parameters.push_back(x5);
+  residual_parameters.push_back(x6);
+  residual_parameters.push_back(x7);
+  return AddResidualBlock(cost_function, loss_function, residual_parameters);
+}
+
+ResidualBlock* ProblemImpl::AddResidualBlock(
+    CostFunction* cost_function,
+    LossFunction* loss_function,
+    double* x0, double* x1, double* x2, double* x3, double* x4, double* x5,
+    double* x6, double* x7, double* x8) {
+  vector<double*> residual_parameters;
+  residual_parameters.push_back(x0);
+  residual_parameters.push_back(x1);
+  residual_parameters.push_back(x2);
+  residual_parameters.push_back(x3);
+  residual_parameters.push_back(x4);
+  residual_parameters.push_back(x5);
+  residual_parameters.push_back(x6);
+  residual_parameters.push_back(x7);
+  residual_parameters.push_back(x8);
+  return AddResidualBlock(cost_function, loss_function, residual_parameters);
+}
+
+ResidualBlock* ProblemImpl::AddResidualBlock(
+    CostFunction* cost_function,
+    LossFunction* loss_function,
+    double* x0, double* x1, double* x2, double* x3, double* x4, double* x5,
+    double* x6, double* x7, double* x8, double* x9) {
+  vector<double*> residual_parameters;
+  residual_parameters.push_back(x0);
+  residual_parameters.push_back(x1);
+  residual_parameters.push_back(x2);
+  residual_parameters.push_back(x3);
+  residual_parameters.push_back(x4);
+  residual_parameters.push_back(x5);
+  residual_parameters.push_back(x6);
+  residual_parameters.push_back(x7);
+  residual_parameters.push_back(x8);
+  residual_parameters.push_back(x9);
+  return AddResidualBlock(cost_function, loss_function, residual_parameters);
+}
 
 void ProblemImpl::AddParameterBlock(double* values, int size) {
-  InternalAddParameterBlock(values,
-                            size,
-                            &parameter_block_map_,
-                            &program_->parameter_blocks_);
+  InternalAddParameterBlock(values, size);
 }
 
 void ProblemImpl::AddParameterBlock(
@@ -314,13 +425,81 @@ void ProblemImpl::AddParameterBlock(
     int size,
     LocalParameterization* local_parameterization) {
   ParameterBlock* parameter_block =
-      InternalAddParameterBlock(values,
-                                size,
-                                &parameter_block_map_,
-                                &program_->parameter_blocks_);
+      InternalAddParameterBlock(values, size);
   if (local_parameterization != NULL) {
     parameter_block->SetParameterization(local_parameterization);
   }
+}
+
+// Delete a block from a vector of blocks, maintaining the indexing invariant.
+// This is done in constant time by moving an element from the end of the
+// vector over the element to remove, then popping the last element. It
+// destroys the ordering in the interest of speed.
+template<typename Block>
+void ProblemImpl::DeleteBlockInVector(vector<Block*>* mutable_blocks,
+                                      Block* block_to_remove) {
+  CHECK_EQ((*mutable_blocks)[block_to_remove->index()], block_to_remove)
+      << "You found a Ceres bug! Block: " << block_to_remove->ToString();
+
+  // Prepare the to-be-moved block for the new, lower-in-index position by
+  // setting the index to the blocks final location.
+  Block* tmp = mutable_blocks->back();
+  tmp->set_index(block_to_remove->index());
+
+  // Overwrite the to-be-deleted residual block with the one at the end.
+  (*mutable_blocks)[block_to_remove->index()] = tmp;
+
+  DeleteBlock(block_to_remove);
+
+  // The block is gone so shrink the vector of blocks accordingly.
+  mutable_blocks->pop_back();
+}
+
+void ProblemImpl::RemoveResidualBlock(ResidualBlock* residual_block) {
+  CHECK_NOTNULL(residual_block);
+
+  // If needed, remove the parameter dependencies on this residual block.
+  if (options_.enable_fast_parameter_block_removal) {
+    const int num_parameter_blocks_for_residual =
+        residual_block->NumParameterBlocks();
+    for (int i = 0; i < num_parameter_blocks_for_residual; ++i) {
+      residual_block->parameter_blocks()[i]
+          ->RemoveResidualBlock(residual_block);
+    }
+  }
+  DeleteBlockInVector(program_->mutable_residual_blocks(), residual_block);
+}
+
+void ProblemImpl::RemoveParameterBlock(double* values) {
+  ParameterBlock* parameter_block = FindOrDie(parameter_block_map_, values);
+
+  if (options_.enable_fast_parameter_block_removal) {
+    // Copy the dependent residuals from the parameter block because the set of
+    // dependents will change after each call to RemoveResidualBlock().
+    vector<ResidualBlock*> residual_blocks_to_remove(
+        parameter_block->mutable_residual_blocks()->begin(),
+        parameter_block->mutable_residual_blocks()->end());
+    for (int i = 0; i < residual_blocks_to_remove.size(); ++i) {
+      RemoveResidualBlock(residual_blocks_to_remove[i]);
+    }
+  } else {
+    // Scan all the residual blocks to remove ones that depend on the parameter
+    // block. Do the scan backwards since the vector changes while iterating.
+    const int num_residual_blocks = NumResidualBlocks();
+    for (int i = num_residual_blocks - 1; i >= 0; --i) {
+      ResidualBlock* residual_block =
+          (*(program_->mutable_residual_blocks()))[i];
+      const int num_parameter_blocks = residual_block->NumParameterBlocks();
+      for (int j = 0; j < num_parameter_blocks; ++j) {
+        if (residual_block->parameter_blocks()[j] == parameter_block) {
+          RemoveResidualBlock(residual_block);
+          // The parameter blocks are guaranteed unique.
+          break;
+        }
+      }
+    }
+  }
+  DeleteBlockInVector(program_->mutable_parameter_blocks(), parameter_block);
 }
 
 void ProblemImpl::SetParameterBlockConstant(double* values) {
@@ -336,6 +515,164 @@ void ProblemImpl::SetParameterization(
     LocalParameterization* local_parameterization) {
   FindOrDie(parameter_block_map_, values)
       ->SetParameterization(local_parameterization);
+}
+
+bool ProblemImpl::Evaluate(const Problem::EvaluateOptions& evaluate_options,
+                           double* cost,
+                           vector<double>* residuals,
+                           vector<double>* gradient,
+                           CRSMatrix* jacobian) {
+  if (cost == NULL &&
+      residuals == NULL &&
+      gradient == NULL &&
+      jacobian == NULL) {
+    LOG(INFO) << "Nothing to do.";
+    return true;
+  }
+
+  // If the user supplied residual blocks, then use them, otherwise
+  // take the residual blocks from the underlying program.
+  Program program;
+  *program.mutable_residual_blocks() =
+      ((evaluate_options.residual_blocks.size() > 0)
+       ? evaluate_options.residual_blocks : program_->residual_blocks());
+
+  const vector<double*>& parameter_block_ptrs =
+      evaluate_options.parameter_blocks;
+
+  vector<ParameterBlock*> variable_parameter_blocks;
+  vector<ParameterBlock*>& parameter_blocks =
+      *program.mutable_parameter_blocks();
+
+  if (parameter_block_ptrs.size() == 0) {
+    // The user did not provide any parameter blocks, so default to
+    // using all the parameter blocks in the order that they are in
+    // the underlying program object.
+    parameter_blocks = program_->parameter_blocks();
+  } else {
+    // The user supplied a vector of parameter blocks. Using this list
+    // requires a number of steps.
+
+    // 1. Convert double* into ParameterBlock*
+    parameter_blocks.resize(parameter_block_ptrs.size());
+    for (int i = 0; i < parameter_block_ptrs.size(); ++i) {
+      parameter_blocks[i] =
+          FindOrDie(parameter_block_map_, parameter_block_ptrs[i]);
+    }
+
+    // 2. The user may have only supplied a subset of parameter
+    // blocks, so identify the ones that are not supplied by the user
+    // and are NOT constant. These parameter blocks are stored in
+    // variable_parameter_blocks.
+    //
+    // To ensure that the parameter blocks are not included in the
+    // columns of the jacobian, we need to make sure that they are
+    // constant during evaluation and then make them variable again
+    // after we are done.
+    vector<ParameterBlock*> all_parameter_blocks(program_->parameter_blocks());
+    vector<ParameterBlock*> included_parameter_blocks(
+        program.parameter_blocks());
+
+    vector<ParameterBlock*> excluded_parameter_blocks;
+    sort(all_parameter_blocks.begin(), all_parameter_blocks.end());
+    sort(included_parameter_blocks.begin(), included_parameter_blocks.end());
+    set_difference(all_parameter_blocks.begin(),
+                   all_parameter_blocks.end(),
+                   included_parameter_blocks.begin(),
+                   included_parameter_blocks.end(),
+                   back_inserter(excluded_parameter_blocks));
+
+    variable_parameter_blocks.reserve(excluded_parameter_blocks.size());
+    for (int i = 0; i < excluded_parameter_blocks.size(); ++i) {
+      ParameterBlock* parameter_block = excluded_parameter_blocks[i];
+      if (!parameter_block->IsConstant()) {
+        variable_parameter_blocks.push_back(parameter_block);
+        parameter_block->SetConstant();
+      }
+    }
+  }
+
+  // Setup the Parameter indices and offsets before an evaluator can
+  // be constructed and used.
+  program.SetParameterOffsetsAndIndex();
+
+  Evaluator::Options evaluator_options;
+
+  // Even though using SPARSE_NORMAL_CHOLESKY requires SuiteSparse or
+  // CXSparse, here it just being used for telling the evaluator to
+  // use a SparseRowCompressedMatrix for the jacobian. This is because
+  // the Evaluator decides the storage for the Jacobian based on the
+  // type of linear solver being used.
+  evaluator_options.linear_solver_type = SPARSE_NORMAL_CHOLESKY;
+  evaluator_options.num_threads = evaluate_options.num_threads;
+
+  string error;
+  scoped_ptr<Evaluator> evaluator(
+      Evaluator::Create(evaluator_options, &program, &error));
+  if (evaluator.get() == NULL) {
+    LOG(ERROR) << "Unable to create an Evaluator object. "
+               << "Error: " << error
+               << "This is a Ceres bug; please contact the developers!";
+
+    // Make the parameter blocks that were temporarily marked
+    // constant, variable again.
+    for (int i = 0; i < variable_parameter_blocks.size(); ++i) {
+      variable_parameter_blocks[i]->SetVarying();
+    }
+    return false;
+  }
+
+  if (residuals !=NULL) {
+    residuals->resize(evaluator->NumResiduals());
+  }
+
+  if (gradient != NULL) {
+    gradient->resize(evaluator->NumEffectiveParameters());
+  }
+
+  scoped_ptr<CompressedRowSparseMatrix> tmp_jacobian;
+  if (jacobian != NULL) {
+    tmp_jacobian.reset(
+        down_cast<CompressedRowSparseMatrix*>(evaluator->CreateJacobian()));
+  }
+
+  // Point the state pointers to the user state pointers. This is
+  // needed so that we can extract a parameter vector which is then
+  // passed to Evaluator::Evaluate.
+  program.SetParameterBlockStatePtrsToUserStatePtrs();
+
+  // Copy the value of the parameter blocks into a vector, since the
+  // Evaluate::Evaluate method needs its input as such. The previous
+  // call to SetParameterBlockStatePtrsToUserStatePtrs ensures that
+  // these values are the ones corresponding to the actual state of
+  // the parameter blocks, rather than the temporary state pointer
+  // used for evaluation.
+  Vector parameters(program.NumParameters());
+  program.ParameterBlocksToStateVector(parameters.data());
+
+  double tmp_cost = 0;
+  bool status = evaluator->Evaluate(parameters.data(),
+                                    &tmp_cost,
+                                    residuals != NULL ? &(*residuals)[0] : NULL,
+                                    gradient != NULL ? &(*gradient)[0] : NULL,
+                                    tmp_jacobian.get());
+
+  // Make the parameter blocks that were temporarirly marked
+  // constant, variable again.
+  for (int i = 0; i < variable_parameter_blocks.size(); ++i) {
+    variable_parameter_blocks[i]->SetVarying();
+  }
+
+  if (status) {
+    if (cost != NULL) {
+      *cost = tmp_cost;
+    }
+    if (jacobian != NULL) {
+      tmp_jacobian->ToCRSMatrix(jacobian);
+    }
+  }
+
+  return status;
 }
 
 int ProblemImpl::NumParameterBlocks() const {

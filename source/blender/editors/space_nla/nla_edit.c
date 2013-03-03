@@ -44,6 +44,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
@@ -1951,7 +1953,7 @@ static int nla_fmodifier_add_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent
 	uiLayout *layout;
 	int i;
 	
-	pup = uiPupMenuBegin(C, "Add F-Modifier", ICON_NONE);
+	pup = uiPupMenuBegin(C, IFACE_("Add F-Modifier"), ICON_NONE);
 	layout = uiPupMenuLayout(pup);
 	
 	/* start from 1 to skip the 'Invalid' modifier type */

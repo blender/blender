@@ -120,7 +120,7 @@ static SpaceLink *sequencer_new(const bContext *C)
 	sseq->chanshown = 0;
 	sseq->view = SEQ_VIEW_SEQUENCE;
 	sseq->mainb = SEQ_DRAW_IMG_IMBUF;
-	sseq->flag = SEQ_SHOW_GPENCIL;
+	sseq->flag = SEQ_SHOW_GPENCIL | SEQ_USE_ALPHA;
 
 	/* header */
 	ar = MEM_callocN(sizeof(ARegion), "header for sequencer");

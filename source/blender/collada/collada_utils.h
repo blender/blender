@@ -62,7 +62,7 @@ extern float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray& array, unsi
 extern int bc_test_parent_loop(Object *par, Object *ob);
 extern int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space = true);
 extern Object *bc_add_object(Scene *scene, int type, const char *name);
-extern Mesh *bc_to_mesh_apply_modifiers(Scene *scene, Object *ob, BC_export_mesh_type export_mesh_type);
+extern Mesh *bc_get_mesh_copy(Scene *scene, Object *ob, BC_export_mesh_type export_mesh_type, bool apply_modifiers, bool triangulate);
 
 extern Object *bc_get_assigned_armature(Object *ob);
 extern Object *bc_get_highest_selected_ancestor_or_self(LinkNode *export_set, Object *ob);
@@ -84,4 +84,24 @@ extern int  bc_get_active_UVLayer(Object *ob);
 extern std::string bc_replace_string(std::string data, const std::string& pattern, const std::string& replacement); 
 extern std::string bc_url_encode(std::string data); 
 extern void bc_match_scale(std::vector<Object *> *objects_done, Scene &sce, UnitConverter &unit_converter);
+
+extern void bc_triangulate_mesh(Mesh *me);
+
+
+class BCPolygonNormalsIndices
+{
+	std::vector<unsigned int> normal_indices;
+
+	public:
+
+	void add_index(unsigned int index) {
+		normal_indices.push_back(index);
+	}
+
+	unsigned int operator[](unsigned int i) { 
+		return normal_indices[i]; 
+	}
+
+};
+
 #endif

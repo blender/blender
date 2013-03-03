@@ -1057,10 +1057,10 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 					                           node->prim_indices,
 					                           node->totprim);
 					break;
- 				case PBVH_BMESH:
+				case PBVH_BMESH:
 					node->draw_buffers =
-						GPU_build_bmesh_buffers(bvh->flags &
-							                    PBVH_DYNTOPO_SMOOTH_SHADING);
+					    GPU_build_bmesh_buffers(bvh->flags &
+					                            PBVH_DYNTOPO_SMOOTH_SHADING);
 					break;
 			}
  
@@ -1089,12 +1089,12 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 					                        node->face_vert_indices,
 					                        bvh->show_diffuse_color);
 					break;
- 				case PBVH_BMESH:
+				case PBVH_BMESH:
 					GPU_update_bmesh_buffers(node->draw_buffers,
-		                                     bvh->bm,
-											 node->bm_faces,
-											 node->bm_unique_verts,
-											 node->bm_other_verts);
+					                         bvh->bm,
+					                         node->bm_faces,
+					                         node->bm_unique_verts,
+					                         node->bm_other_verts);
 					break;
 			}
 

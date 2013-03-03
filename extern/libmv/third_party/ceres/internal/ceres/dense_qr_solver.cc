@@ -34,10 +34,11 @@
 
 #include "Eigen/Dense"
 #include "ceres/dense_sparse_matrix.h"
-#include "ceres/linear_solver.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/scoped_ptr.h"
+#include "ceres/linear_solver.h"
 #include "ceres/types.h"
+#include "ceres/wall_time.h"
 
 namespace ceres {
 namespace internal {
@@ -50,10 +51,10 @@ LinearSolver::Summary DenseQRSolver::SolveImpl(
     const double* b,
     const LinearSolver::PerSolveOptions& per_solve_options,
     double* x) {
+  EventLogger event_logger("DenseQRSolver::Solve");
+
   const int num_rows = A->num_rows();
   const int num_cols = A->num_cols();
-  VLOG(2) << "DenseQRSolver: "
-          << num_rows << " x " << num_cols << " system.";
 
   if (per_solve_options.D != NULL) {
     // Temporarily append a diagonal block to the A matrix, but undo
@@ -62,18 +63,18 @@ LinearSolver::Summary DenseQRSolver::SolveImpl(
   }
 
   // rhs = [b;0] to account for the additional rows in the lhs.
-  Vector rhs(num_rows + ((per_solve_options.D != NULL) ? num_cols : 0));
-  rhs.setZero();
-  rhs.head(num_rows) = ConstVectorRef(b, num_rows);
+  const int augmented_num_rows =
+      num_rows + ((per_solve_options.D != NULL) ? num_cols : 0);
+  if (rhs_.rows() != augmented_num_rows) {
+    rhs_.resize(augmented_num_rows);
+    rhs_.setZero();
+  }
+  rhs_.head(num_rows) = ConstVectorRef(b, num_rows);
+  event_logger.AddEvent("Setup");
 
   // Solve the system.
-  VectorRef(x, num_cols) = A->matrix().colPivHouseholderQr().solve(rhs);
-
-  VLOG(3) << "A:\n" << A->matrix();
-  VLOG(3) << "x:\n" << VectorRef(x, num_cols);
-  VLOG(3) << "b:\n" << rhs;
-  VLOG(3) << "error: " << (A->matrix() * VectorRef(x, num_cols) - rhs).norm();
-
+  VectorRef(x, num_cols) = A->matrix().colPivHouseholderQr().solve(rhs_);
+  event_logger.AddEvent("Solve");
 
   if (per_solve_options.D != NULL) {
     // Undo the modifications to the matrix A.
@@ -86,6 +87,8 @@ LinearSolver::Summary DenseQRSolver::SolveImpl(
   LinearSolver::Summary summary;
   summary.num_iterations = 1;
   summary.termination_type = TOLERANCE;
+
+  event_logger.AddEvent("TearDown");
   return summary;
 }
 

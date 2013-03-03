@@ -42,7 +42,7 @@ ntlGeometryObject::ntlGeometryObject() :
 	mMovPoints(), mMovNormals(),
 	mHaveCachedMov(false),
 	mCachedMovPoints(), mCachedMovNormals(),
-	mTriangleDivs1(), mTriangleDivs2(), mTriangleDivs3(),
+	mTriangleDivs1(), mTriangleDivs2(),
 	mMovPntsInited(-100.0), mMaxMovPnt(-1),
 	mcGeoActive(1.),
 	mCpsTimeStart(0.), mCpsTimeEnd(1.0), mCpsQuality(10.),
@@ -434,7 +434,6 @@ void ntlGeometryObject::applyTransformation(double t, vector<ntlVec3Gfx> *verts,
 void ntlGeometryObject::calcTriangleDivs(vector<ntlVec3Gfx> &verts, vector<ntlTriangle> &tris, gfxReal fsTri) {
 	mTriangleDivs1.resize( tris.size() );
 	mTriangleDivs2.resize( tris.size() );
-	mTriangleDivs3.resize( tris.size() );
 
 	//fsTri *= 2.; // DEBUG! , wrong init!
 
@@ -444,14 +443,12 @@ void ntlGeometryObject::calcTriangleDivs(vector<ntlVec3Gfx> &verts, vector<ntlTr
 		const ntlVec3Gfx p2 = verts[ tris[i].getPoints()[2] ];
 		const ntlVec3Gfx side1 = p1 - p0;
 		const ntlVec3Gfx side2 = p2 - p0;
-		const ntlVec3Gfx side3 = p1 - p2;
-		int divs1=0, divs2=0, divs3=0;
+		int divs1=0, divs2=0;
 		if(normNoSqrt(side1) > fsTri*fsTri) { divs1 = (int)(norm(side1)/fsTri); }
 		if(normNoSqrt(side2) > fsTri*fsTri) { divs2 = (int)(norm(side2)/fsTri); }
 
 		mTriangleDivs1[i] = divs1;
 		mTriangleDivs2[i] = divs2;
-		mTriangleDivs3[i] = divs3;
 	}
 }
 

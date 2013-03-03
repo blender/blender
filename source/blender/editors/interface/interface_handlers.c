@@ -81,6 +81,8 @@
 
 /* place the mouse at the scaled down location when un-grabbing */
 #define USE_CONT_MOUSE_CORRECT
+/* support dragging toggle buttons */
+#define USE_DRAG_TOGGLE
 
 /* proto */
 static void ui_add_smart_controller(bContext *C, uiBut *from, uiBut *to);
@@ -151,6 +153,7 @@ typedef struct uiHandleButtonData {
 	int maxlen, selextend, selstartx;
 
 	/* number editing / dragging */
+	/* coords are Window/uiBlock relative (depends on the button) */
 	int draglastx, draglasty;
 	int dragstartx, dragstarty;
 	int dragchange, draglock, dragsel;
@@ -406,9 +409,9 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 	}
 }
 
-static void ui_apply_autokey_undo(bContext *C, uiBut *but)
+/* typically call ui_apply_undo(), ui_apply_autokey() */
+static void ui_apply_undo(uiBut *but)
 {
-	Scene *scene = CTX_data_scene(C);
 	uiAfterFunc *after;
 
 	if (but->flag & UI_BUT_UNDO) {
@@ -430,6 +433,11 @@ static void ui_apply_autokey_undo(bContext *C, uiBut *but)
 		BLI_strncpy(after->undostr, str, sizeof(after->undostr));
 		BLI_addtail(&UIAfterFuncs, after);
 	}
+}
+
+static void ui_apply_autokey(bContext *C, uiBut *but)
+{
+	Scene *scene = CTX_data_scene(C);
 
 	/* try autokey */
 	ui_but_anim_autokey(C, but, scene, scene->r.cfra);
@@ -732,6 +740,153 @@ static void ui_apply_but_CHARTAB(bContext *C, uiBut *but, uiHandleButtonData *da
 
 /* ****************** drag drop code *********************** */
 
+#ifdef USE_DRAG_TOGGLE
+
+typedef struct uiDragToggleHandle {
+	/* init */
+	bool is_set;
+	float but_cent_start[2];
+	eButType but_type_start;
+
+	bool xy_lock[2];
+	int  xy_last[2];
+} uiDragToggleHandle;
+
+static bool ui_drag_toggle_set_xy_xy(bContext *C, ARegion *ar, const bool is_set, const eButType but_type_start,
+                                     const int xy_src[2], const int xy_dst[2])
+{
+	bool change = false;
+	uiBlock *block;
+
+	for (block = ar->uiblocks.first; block; block = block->next) {
+		uiBut *but;
+
+		float xy_a_block[2] = {UNPACK2(xy_src)};
+		float xy_b_block[2] = {UNPACK2(xy_dst)};
+
+		ui_window_to_block_fl(ar, block, &xy_a_block[0], &xy_a_block[1]);
+		ui_window_to_block_fl(ar, block, &xy_b_block[0], &xy_b_block[1]);
+
+		for (but = block->buttons.first; but; but = but->next) {
+			if (ui_is_but_interactive(but)) {
+				if (BLI_rctf_isect_segment(&but->rect, xy_a_block, xy_b_block)) {
+
+					/* execute the button */
+					if (ui_is_but_bool(but) && but->type == but_type_start) {
+						/* is it pressed? */
+						bool is_set_but = ui_is_but_push(but);
+						BLI_assert(ui_is_but_bool(but) == true);
+						if (is_set_but != is_set) {
+							uiButExecute(C, but);
+							change = true;
+						}
+					}
+					/* done */
+
+				}
+			}
+		}
+	}
+
+	return change;
+}
+
+static void ui_drag_toggle_set(bContext *C, uiDragToggleHandle *drag_info, const int xy_input[2])
+{
+	ARegion *ar = CTX_wm_region(C);
+	bool do_draw = false;
+	int xy[2];
+
+	/**
+	 * Initialize Locking:
+	 *
+	 * Check if we need to initialize the lock axis by finding if the first
+	 * button we mouse over is X or Y aligned, then lock the mouse to that axis after.
+	 */
+	if (drag_info->xy_lock[0] == false && drag_info->xy_lock[1] == false) {
+		ARegion *ar = CTX_wm_region(C);
+
+		/* first store the buttons original coords */
+		uiBut *but = ui_but_find_mouse_over(ar, xy_input[0], xy_input[1]);
+		if (but) {
+			const float but_cent_new[2] = {BLI_rctf_cent_x(&but->rect),
+			                               BLI_rctf_cent_y(&but->rect)};
+
+			/* check if this is a different button, chances are high the button wont move about :) */
+			if (len_manhattan_v2v2(drag_info->but_cent_start, but_cent_new) > 1.0f) {
+				if (fabsf(drag_info->but_cent_start[0] - but_cent_new[0]) <
+				    fabsf(drag_info->but_cent_start[1] - but_cent_new[1]))
+				{
+					drag_info->xy_lock[0] = true;
+				}
+				else {
+					drag_info->xy_lock[1] = true;
+				}
+			}
+		}
+	}
+	/* done with axis locking */
+
+
+	xy[0] = (drag_info->xy_lock[0] == false) ? xy_input[0] : drag_info->xy_last[0];
+	xy[1] = (drag_info->xy_lock[1] == false) ? xy_input[1] : drag_info->xy_last[1];
+
+
+	/* touch all buttons between last mouse coord and this one */
+	do_draw = ui_drag_toggle_set_xy_xy(C, ar, drag_info->is_set, drag_info->but_type_start, drag_info->xy_last, xy);
+
+	if (do_draw) {
+		ED_region_tag_redraw(ar);
+	}
+
+	copy_v2_v2_int(drag_info->xy_last, xy);
+}
+
+static void ui_handler_region_drag_toggle_remove(bContext *UNUSED(C), void *userdata)
+{
+	uiDragToggleHandle *drag_info = userdata;
+	MEM_freeN(drag_info);
+}
+
+static int ui_handler_region_drag_toggle(bContext *C, const wmEvent *event, void *userdata)
+{
+	uiDragToggleHandle *drag_info = userdata;
+	bool done = false;
+
+	switch (event->type) {
+		case LEFTMOUSE:
+		{
+			if (event->val != KM_PRESS) {
+				done = true;
+			}
+			break;
+		}
+		case MOUSEMOVE:
+		{
+			ui_drag_toggle_set(C, drag_info, &event->x);
+			break;
+		}
+	}
+
+	if (done) {
+		wmWindow *win = CTX_wm_window(C);
+		WM_event_remove_ui_handler(&win->modalhandlers,
+		                           ui_handler_region_drag_toggle,
+		                           ui_handler_region_drag_toggle_remove,
+		                           drag_info, false);
+		ui_handler_region_drag_toggle_remove(C, drag_info);
+
+		WM_event_add_mousemove(C);
+		return WM_UI_HANDLER_BREAK;
+	}
+	else {
+		return WM_UI_HANDLER_CONTINUE;
+	}
+}
+
+#endif  /* USE_DRAG_TOGGLE */
+
+
 static int ui_but_mouse_inside_icon(uiBut *but, ARegion *ar, const wmEvent *event)
 {
 	rcti rect;
@@ -765,18 +920,24 @@ static int ui_but_start_drag(bContext *C, uiBut *but, uiHandleButtonData *data, 
 
 		button_activate_state(C, but, BUTTON_STATE_EXIT);
 		data->cancel = TRUE;
-		
+#ifdef USE_DRAG_TOGGLE
 		if (ui_is_but_bool(but)) {
-			const bool is_set = (ui_get_but_val(but) != 0.0);
-			PointerRNA ptr;
-			WM_operator_properties_create(&ptr, "UI_OT_drag_toggle");
-			RNA_boolean_set(&ptr, "state", !is_set);
-			RNA_int_set(&ptr, "last_x", data->dragstartx);
-			RNA_int_set(&ptr, "last_y", data->dragstarty);
-			WM_operator_name_call(C, "UI_OT_drag_toggle", WM_OP_INVOKE_DEFAULT, &ptr);
-			WM_operator_properties_free(&ptr);
+			uiDragToggleHandle *drag_info = MEM_callocN(sizeof(*drag_info), __func__);
+
+			drag_info->is_set = ui_is_but_push(but);
+			drag_info->but_cent_start[0] = BLI_rctf_cent_x(&but->rect);
+			drag_info->but_cent_start[1] = BLI_rctf_cent_y(&but->rect);
+			drag_info->but_type_start = but->type;
+			copy_v2_v2_int(drag_info->xy_last, &event->x);
+
+			WM_event_add_ui_handler(C, &data->window->modalhandlers,
+			                        ui_handler_region_drag_toggle,
+			                        ui_handler_region_drag_toggle_remove,
+			                        drag_info);
 		}
-		else {
+		else
+#endif
+		{
 			wmDrag *drag;
 
 			drag = WM_event_start_drag(C, but->icon, but->dragtype, but->dragpoin, ui_get_but_val(but));
@@ -2485,24 +2646,31 @@ static int ui_do_but_SEARCH_UNLINK(bContext *C, uiBlock *block, uiBut *but, uiHa
 
 static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
+#ifdef USE_DRAG_TOGGLE
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		if (event->type == LEFTMOUSE && event->val == KM_PRESS && ui_is_but_bool(but)) {
+			data->togdual = event->ctrl;
+			data->togonly = !event->shift;
+			ui_apply_button(C, but->block, but, data, true);
 			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
 			data->dragstartx = event->x;
 			data->dragstarty = event->y;
-			return WM_UI_HANDLER_CONTINUE;
-		}
-
-		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
-			data->togdual = event->ctrl;
-			data->togonly = !event->shift;
-			button_activate_state(C, but, BUTTON_STATE_EXIT);
-			return WM_UI_HANDLER_CONTINUE;
+			return WM_UI_HANDLER_BREAK;
 		}
 	}
 	else if (data->state == BUTTON_STATE_WAIT_DRAG) {
 		/* note: the 'BUTTON_STATE_WAIT_DRAG' part of 'ui_do_but_EXIT' could be refactored into its own function */
+		data->applied = false;
 		return ui_do_but_EXIT(C, but, data, event);
+	}
+#endif
+	if (data->state == BUTTON_STATE_HIGHLIGHT) {
+		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
+			data->togdual = event->ctrl;
+			data->togonly = !event->shift;
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			return WM_UI_HANDLER_BREAK;
+		}
 	}
 	return WM_UI_HANDLER_CONTINUE;
 }
@@ -2524,13 +2692,15 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, con
 				return WM_UI_HANDLER_CONTINUE;
 			}
 		}
+#ifdef USE_DRAG_TOGGLE
 		if (event->type == LEFTMOUSE && ui_is_but_bool(but)) {
 			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
 			data->dragstartx = event->x;
 			data->dragstarty = event->y;
 			return WM_UI_HANDLER_CONTINUE;
 		}
-		
+#endif
+
 		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
 			int ret = WM_UI_HANDLER_BREAK;
 			/* XXX (a bit ugly) Special case handling for filebrowser drag button */
@@ -3246,13 +3416,14 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, co
 				return WM_UI_HANDLER_BREAK;
 			}
 		}
+#ifdef USE_DRAG_TOGGLE
 		if (event->type == LEFTMOUSE && ui_is_but_bool(but)) {
 			button_activate_state(C, but, BUTTON_STATE_WAIT_DRAG);
 			data->dragstartx = event->x;
 			data->dragstarty = event->y;
 			return WM_UI_HANDLER_BREAK;
 		}
-		
+#endif
 		/* regular open menu */
 		if (ELEM3(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);
@@ -4253,7 +4424,7 @@ static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx
 
 	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
 		/* resize histogram widget itself */
-		hist->height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my))/UI_DPI_FAC;
+		hist->height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my)) / UI_DPI_FAC;
 	}
 	else {
 		/* scale histogram values (dy / 10 for better control) */
@@ -4337,7 +4508,7 @@ static int ui_numedit_but_WAVEFORM(uiBut *but, uiHandleButtonData *data, int mx,
 
 	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
 		/* resize waveform widget itself */
-		scopes->wavefrm_height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my))/UI_DPI_FAC;
+		scopes->wavefrm_height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my)) / UI_DPI_FAC;
 	}
 	else {
 		/* scale waveform values */
@@ -4419,7 +4590,7 @@ static int ui_numedit_but_VECTORSCOPE(uiBut *but, uiHandleButtonData *data, int 
 
 	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
 		/* resize vectorscope widget itself */
-		scopes->vecscope_height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my))/UI_DPI_FAC;
+		scopes->vecscope_height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my)) / UI_DPI_FAC;
 	}
 
 	data->draglastx = mx;
@@ -4622,7 +4793,7 @@ static int ui_numedit_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonDa
 
 	if (in_scope_resize_zone(but, data->dragstartx, data->dragstarty)) {
 		/* resize preview widget itself */
-		scopes->track_preview_height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my))/UI_DPI_FAC;
+		scopes->track_preview_height = (BLI_rctf_size_y(&but->rect) + (data->dragstarty - my)) / UI_DPI_FAC;
 	}
 	else {
 		if (!scopes->track_locked) {
@@ -5452,6 +5623,24 @@ static int ui_mouse_inside_button(ARegion *ar, uiBut *but, int x, int y)
 	return 1;
 }
 
+/**
+ * Can we mouse over the button or is it hidden/disabled/layout.
+ */
+bool ui_is_but_interactive(uiBut *but)
+{
+	/* note, LABEL is included for highlights, this allows drags */
+	if (but->type == LABEL && but->dragpoin == NULL)
+		return false;
+	if (ELEM3(but->type, ROUNDBOX, SEPR, LISTBOX))
+		return false;
+	if (but->flag & UI_HIDDEN)
+		return false;
+	if (but->flag & UI_SCROLLED)
+		return false;
+
+	return true;
+}
+
 uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 {
 	uiBlock *block;
@@ -5469,17 +5658,11 @@ uiBut *ui_but_find_mouse_over(ARegion *ar, int x, int y)
 		ui_window_to_block(ar, block, &mx, &my);
 
 		for (but = block->buttons.first; but; but = but->next) {
-			/* note, LABEL is included for highlights, this allows drags */
-			if (but->type == LABEL && but->dragpoin == NULL)
-				continue;
-			if (ELEM3(but->type, ROUNDBOX, SEPR, LISTBOX))
-				continue;
-			if (but->flag & UI_HIDDEN)
-				continue;
-			if (but->flag & UI_SCROLLED)
-				continue;
-			if (ui_but_contains_pt(but, mx, my))
-				butover = but;
+			if (ui_is_but_interactive(but)) {
+				if (ui_but_contains_pt(but, mx, my)) {
+					butover = but;
+				}
+			}
 		}
 
 		/* CLIP_EVENTS prevents the event from reaching other blocks */
@@ -5795,7 +5978,8 @@ static void button_activate_exit(bContext *C, uiBut *but, uiHandleButtonData *da
 
 	if (!onfree && !data->cancel) {
 		/* autokey & undo push */
-		ui_apply_autokey_undo(C, but);
+		ui_apply_undo(but);
+		ui_apply_autokey(C, but);
 
 		/* popup menu memory */
 		if (block->flag & UI_BLOCK_POPUP_MEMORY)
@@ -5820,12 +6004,13 @@ static void button_activate_exit(bContext *C, uiBut *but, uiHandleButtonData *da
 
 	/* redraw (data is but->active!) */
 	ED_region_tag_redraw(data->region);
-	
+
 	/* clean up button */
 	if (but->active) {
 		MEM_freeN(but->active);
 		but->active = NULL;
 	}
+
 	but->flag &= ~(UI_ACTIVE | UI_SELECT);
 	but->flag |= UI_BUT_LAST_ACTIVE;
 	if (!onfree)
@@ -6084,6 +6269,7 @@ void ui_button_execute_do(struct bContext *C, struct ARegion *ar, uiBut *but)
 	data->region = ar;
 	ui_apply_button(C, but->block, but, data, true);
 	/* use onfree event so undo is handled by caller and apply is already done above */
+	ui_apply_autokey(C, but);
 	button_activate_exit((bContext *)C, but, data, false, true);
 	but->active = active_back;
 }
@@ -6107,14 +6293,12 @@ static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiBu
 
 static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 {
-	uiHandleButtonData *data;
+	uiHandleButtonData *data = but->active;
+	const uiButtonActivateType state_orig = data->state;
 	uiBlock *block;
 	ARegion *ar;
-	uiBut *postbut;
-	uiButtonActivateType posttype;
 	int retval;
 
-	data = but->active;
 	block = but->block;
 	ar = data->region;
 
@@ -6266,14 +6450,28 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 	}
 
 	if (data->state == BUTTON_STATE_EXIT) {
-		postbut = data->postbut;
-		posttype = data->posttype;
+		uiBut *post_but = data->postbut;
+		uiButtonActivateType post_type = data->posttype;
 
-		button_activate_exit(C, but, data, (postbut == NULL), false);
+		button_activate_exit(C, but, data, (post_but == NULL), false);
 
 		/* for jumping to the next button with tab while text editing */
-		if (postbut)
-			button_activate_init(C, ar, postbut, posttype);
+		if (post_but) {
+			button_activate_init(C, ar, post_but, post_type);
+		}
+		else {
+			/* XXX issue is because WM_event_add_mousemove(C) is a bad hack and not reliable,
+			 *if that gets coded better this bypass can go away too.
+			 *
+			 * This is needed to make sure if a button was active,
+			 * it stays active while the mouse is over it.
+			 * This avoids adding mousemoves, see: [#33466] */
+			if (ELEM(state_orig, BUTTON_ACTIVATE, BUTTON_ACTIVATE_OVER)) {
+				if (ui_but_find_mouse_over(ar, event->x, event->y) == but) {
+					button_activate_init(C, ar, but, state_orig);
+				}
+			}
+		}
 	}
 
 	return retval;

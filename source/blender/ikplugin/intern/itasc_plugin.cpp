@@ -1519,7 +1519,8 @@ static IK_Scene *convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan, f
 	if (!ret ||
 	    !scene->addCache(ikscene->cache) ||
 	    !scene->addSolver(ikscene->solver) ||
-	    !scene->initialize()) {
+	    !scene->initialize())
+	{
 		delete ikscene;
 		ikscene = NULL;
 	}
@@ -1566,7 +1567,8 @@ static int init_scene(Object *ob)
 	if (ob->pose->ikdata) {
 		for (scene = ((IK_Data *)ob->pose->ikdata)->first;
 		     scene != NULL;
-		     scene = scene->next) {
+		     scene = scene->next)
+		{
 			if (fabs(scene->blScale - scale) > KDL::epsilon)
 				return 1;
 			scene->channels[0].pchan->flag |= POSE_IKTREE;

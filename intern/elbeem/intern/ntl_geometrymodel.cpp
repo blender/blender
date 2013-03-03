@@ -215,7 +215,6 @@ void ntlGeometryObjModel::calcTriangleDivs(vector<ntlVec3Gfx> &verts, vector<ntl
 	errMsg("ntlGeometryObjModel","calcTriangleDivs special!");
 	mTriangleDivs1.resize( tris.size() );
 	mTriangleDivs2.resize( tris.size() );
-	mTriangleDivs3.resize( tris.size() );
 	for(size_t i=0; i<tris.size(); i++) {
 		ntlVec3Gfx p0 = verts[ tris[i].getPoints()[0] ];
 		ntlVec3Gfx p1 = verts[ tris[i].getPoints()[1] ];
@@ -223,10 +222,9 @@ void ntlGeometryObjModel::calcTriangleDivs(vector<ntlVec3Gfx> &verts, vector<ntl
 		ntlVec3Gfx side1 = p1 - p0;
 		ntlVec3Gfx side2 = p2 - p0;
 		ntlVec3Gfx side3 = p1 - p2;
-		int divs1=0, divs2=0, divs3=0;
+		int divs1=0, divs2=0;
 		if(normNoSqrt(side1) > fsTri*fsTri) { divs1 = (int)(norm(side1)/fsTri); }
 		if(normNoSqrt(side2) > fsTri*fsTri) { divs2 = (int)(norm(side2)/fsTri); }
-		//if(normNoSqrt(side3) > fsTri*fsTri) { divs3 = (int)(norm(side3)/fsTri); }
 
 		// special handling
 		// warning, requires objmodel triangle treatment (no verts dups)
@@ -237,17 +235,15 @@ void ntlGeometryObjModel::calcTriangleDivs(vector<ntlVec3Gfx> &verts, vector<ntl
 				p1 = sverts[s].mVerts[ tris[i].getPoints()[1] ];
 				p2 = sverts[s].mVerts[ tris[i].getPoints()[2] ];
 				side1 = p1 - p0; side2 = p2 - p0; side3 = p1 - p2;
-				int tdivs1=0, tdivs2=0, tdivs3=0;
+				int tdivs1=0, tdivs2=0;
 				if(normNoSqrt(side1) > fsTri*fsTri) { tdivs1 = (int)(norm(side1)/fsTri); }
 				if(normNoSqrt(side2) > fsTri*fsTri) { tdivs2 = (int)(norm(side2)/fsTri); }
 				if(tdivs1>divs1) divs1=tdivs1;
 				if(tdivs2>divs2) divs2=tdivs2;
-				if(tdivs3>divs3) divs3=tdivs3;
 			}
 		} // */
 		mTriangleDivs1[i] = divs1;
 		mTriangleDivs2[i] = divs2;
-		mTriangleDivs3[i] = divs3;
 	}
 }
 

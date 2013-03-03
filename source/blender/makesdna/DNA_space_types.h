@@ -28,6 +28,8 @@
  *  \ingroup DNA
  *  \since mar-2001
  *  \author nzc
+ *
+ * Structs for each of space type in the user interface.
  */
 
 #ifndef __DNA_SPACE_TYPES_H__
@@ -498,6 +500,7 @@ typedef enum eSpaceSeq_Flag {
 	SEQ_DRAW_SAFE_MARGINS       = (1 << 3),
 	SEQ_SHOW_GPENCIL            = (1 << 4),
 	SEQ_NO_DRAW_CFRANUM         = (1 << 5),
+	SEQ_USE_ALPHA               = (1 << 6), /* use RGBA display mode for preview */
 } eSpaceSeq_Flag;
 
 /* sseq->view */
@@ -1004,8 +1007,8 @@ typedef struct SpaceUserPref {
 	ListBase regionbase;        /* storage of regions for inactive spaces */
 	int spacetype;
 	
-	int pad;
-	
+	char pad[3];
+	char filter_type;
 	char filter[64];        /* search term for filtering in the UI */
 } SpaceUserPref;
 
@@ -1133,4 +1136,4 @@ typedef enum eSpace_Type {
 
 #define IMG_SIZE_FALLBACK 256
 
-#endif
+#endif  /* __DNA_SPACE_TYPES_H__ */

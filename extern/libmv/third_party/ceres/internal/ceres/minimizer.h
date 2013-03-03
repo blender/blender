@@ -32,8 +32,9 @@
 #define CERES_INTERNAL_MINIMIZER_H_
 
 #include <vector>
-#include "ceres/solver.h"
+#include "ceres/internal/port.h"
 #include "ceres/iteration_callback.h"
+#include "ceres/solver.h"
 
 namespace ceres {
 namespace internal {
@@ -59,6 +60,7 @@ class Minimizer {
     }
 
     void Init(const Solver::Options& options) {
+      num_threads = options.num_threads;
       max_num_iterations = options.max_num_iterations;
       max_solver_time_in_seconds = options.max_solver_time_in_seconds;
       max_step_solver_retries = 5;
@@ -74,18 +76,24 @@ class Minimizer {
       lsqp_dump_directory = options.lsqp_dump_directory;
       lsqp_iterations_to_dump = options.lsqp_iterations_to_dump;
       lsqp_dump_format_type = options.lsqp_dump_format_type;
-      num_eliminate_blocks = options.num_eliminate_blocks;
       max_num_consecutive_invalid_steps =
           options.max_num_consecutive_invalid_steps;
       min_trust_region_radius = options.min_trust_region_radius;
+      line_search_direction_type = options.line_search_direction_type;
+      line_search_type = options.line_search_type;
+      nonlinear_conjugate_gradient_type =
+          options.nonlinear_conjugate_gradient_type;
+      max_lbfgs_rank = options.max_lbfgs_rank;
       evaluator = NULL;
       trust_region_strategy = NULL;
       jacobian = NULL;
       callbacks = options.callbacks;
+      inner_iteration_minimizer = NULL;
     }
 
     int max_num_iterations;
     double max_solver_time_in_seconds;
+    int num_threads;
 
     // Number of times the linear solver should be retried in case of
     // numerical failure. The retries are done by exponentially scaling up
@@ -104,9 +112,12 @@ class Minimizer {
     vector<int> lsqp_iterations_to_dump;
     DumpFormatType lsqp_dump_format_type;
     string lsqp_dump_directory;
-    int num_eliminate_blocks;
     int max_num_consecutive_invalid_steps;
     int min_trust_region_radius;
+    LineSearchDirectionType line_search_direction_type;
+    LineSearchType line_search_type;
+    NonlinearConjugateGradientType nonlinear_conjugate_gradient_type;
+    int max_lbfgs_rank;
 
     // List of callbacks that are executed by the Minimizer at the end
     // of each iteration.
@@ -128,10 +139,15 @@ class Minimizer {
     // and will remain constant for the life time of the
     // optimization. The Options struct does not own this pointer.
     SparseMatrix* jacobian;
+
+    Minimizer* inner_iteration_minimizer;
   };
 
-  virtual ~Minimizer() {}
+  static bool RunCallbacks(const vector<IterationCallback*> callbacks,
+                           const IterationSummary& iteration_summary,
+                           Solver::Summary* summary);
 
+  virtual ~Minimizer();
   // Note: The minimizer is expected to update the state of the
   // parameters array every iteration. This is required for the
   // StateUpdatingCallback to work.

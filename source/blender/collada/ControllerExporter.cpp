@@ -201,13 +201,12 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 	bool use_instantiation = this->export_settings->use_object_instantiation;
 	Mesh *me;
 
-	if (this->export_settings->apply_modifiers) 
-		me = bc_to_mesh_apply_modifiers(scene, ob, this->export_settings->export_mesh_type);
-	else 
-		me = (Mesh *)ob->data;
+	me = bc_get_mesh_copy(scene,
+				ob,
+				this->export_settings->export_mesh_type,
+				this->export_settings->apply_modifiers,
+				this->export_settings->triangulate);
 	
-	BKE_mesh_tessface_ensure(me);
-
 	if (!me->dvert) return;
 
 	std::string controller_name = id_name(ob_arm);
@@ -239,6 +238,7 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 				joint_index_by_def_index.push_back(-1);
 		}
 
+		int oob_counter = 0;
 		for (i = 0; i < me->totvert; i++) {
 			MDeformVert *vert = &me->dvert[i];
 			std::map<int, float> jw;
@@ -248,11 +248,18 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 
 			for (j = 0; j < vert->totweight; j++) {
 				int idx = vert->dw[j].def_nr;
-				if (idx >= 0) {
-					int joint_index = joint_index_by_def_index[idx];
-					if (joint_index != -1 && vert->dw[j].weight > 0.0f) {
-						jw[joint_index] += vert->dw[j].weight;
-						sumw += vert->dw[j].weight;
+				if (idx >= joint_index_by_def_index.size()) {
+					// XXX: Maybe better find out where and 
+					//      why the Out Of Bound indexes get created ?
+					oob_counter += 1;
+				}
+				else {
+					if (idx >= 0) {
+						int joint_index = joint_index_by_def_index[idx];
+						if (joint_index != -1 && vert->dw[j].weight > 0.0f) {
+							jw[joint_index] += vert->dw[j].weight;
+							sumw += vert->dw[j].weight;
+						}
 					}
 				}
 			}
@@ -274,16 +281,18 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 #endif
 			}
 		}
+
+		if (oob_counter > 0) {
+			fprintf(stderr, "Ignored %d Vertex weigths which use index to non existing VGroup %ld.\n", oob_counter, joint_index_by_def_index.size());
+		}
 	}
 
 	std::string weights_source_id = add_weights_source(me, controller_id, weights);
 	add_joints_element(&ob->defbase, joints_source_id, inv_bind_mat_source_id);
 	add_vertex_weights_element(weights_source_id, joints_source_id, vcounts, joints);
 
-	if (this->export_settings->apply_modifiers)
-	{
-		BKE_libblock_free_us(&(G.main->mesh), me);
-	}
+	BKE_libblock_free_us(&(G.main->mesh), me);
+
 	closeSkin();
 	closeController();
 }
@@ -293,13 +302,11 @@ void ControllerExporter::export_morph_controller(Object *ob, Key *key)
 	bool use_instantiation = this->export_settings->use_object_instantiation;
 	Mesh *me;
 
-	if (this->export_settings->apply_modifiers) {
-		me = bc_to_mesh_apply_modifiers(scene, ob, this->export_settings->export_mesh_type);
-	} 
-	else {
-		me = (Mesh *)ob->data;
-	}
-	BKE_mesh_tessface_ensure(me);
+	me = bc_get_mesh_copy(scene,
+				ob,
+				this->export_settings->export_mesh_type,
+				this->export_settings->apply_modifiers,
+				this->export_settings->triangulate);
 
 	std::string controller_name = id_name(ob) + "-morph";
 	std::string controller_id = get_controller_id(key, ob);
@@ -320,10 +327,8 @@ void ControllerExporter::export_morph_controller(Object *ob, Key *key)
 	                                 COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, morph_weights_id)));
 	targets.add();
 
-	if (this->export_settings->apply_modifiers)
-	{
-		BKE_libblock_free_us(&(G.main->mesh), me);
-	}
+	BKE_libblock_free_us(&(G.main->mesh), me);
+
 
 	//support for animations
 	//can also try the base element and param alternative

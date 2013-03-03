@@ -306,6 +306,9 @@ void BKE_scene_free(Scene *sce)
 {
 	Base *base;
 
+	/* check all sequences */
+	BKE_sequencer_clear_scene_in_allseqs(G.main, sce);
+
 	base = sce->base.first;
 	while (base) {
 		base->object->id.us--;
@@ -385,10 +388,7 @@ void BKE_scene_free(Scene *sce)
 		sce->toolsettings = NULL;
 	}
 	
-	if (sce->theDag) {
-		free_forest(sce->theDag);
-		MEM_freeN(sce->theDag);
-	}
+	DAG_scene_free(sce);
 	
 	if (sce->nodetree) {
 		ntreeFreeTree(sce->nodetree);
@@ -722,9 +722,6 @@ void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)
 		if (sce1->set == sce)
 			sce1->set = NULL;
 	
-	/* check all sequences */
-	BKE_sequencer_clear_scene_in_allseqs(bmain, sce);
-
 	/* check render layer nodes in other scenes */
 	clear_scene_in_nodes(bmain, sce);
 	
@@ -1110,13 +1107,22 @@ static void scene_depsgraph_hack(Scene *scene, Scene *scene_parent)
 
 }
 
-static void scene_flag_rbw_recursive(Scene *scene)
+static void scene_rebuild_rbw_recursive(Scene *scene, float ctime)
 {
 	if (scene->set)
-		scene_flag_rbw_recursive(scene->set);
+		scene_rebuild_rbw_recursive(scene->set, ctime);
 
 	if (BKE_scene_check_rigidbody_active(scene))
-		scene->rigidbody_world->flag |= RBW_FLAG_FRAME_UPDATE;
+		BKE_rigidbody_rebuild_world(scene, ctime);
+}
+
+static void scene_do_rb_simulation_recursive(Scene *scene, float ctime)
+{
+	if (scene->set)
+		scene_do_rb_simulation_recursive(scene->set, ctime);
+
+	if (BKE_scene_check_rigidbody_active(scene))
+		BKE_rigidbody_do_simulation(scene, ctime);
 }
 
 static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scene_parent)
@@ -1129,22 +1135,6 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 	 * dependencies on sets, but not the other way around. */
 	if (scene->set)
 		scene_update_tagged_recursive(bmain, scene->set, scene_parent);
-	
-	/* run rigidbody sim 
-	 * - calculate/read values from cache into RBO's, to get flushed 
-	 *   later when objects are evaluated (if they're tagged for eval)
-	 */
-	// XXX: this position may still change, objects not being updated correctly before simulation is run
-	// NOTE: current position is so that rigidbody sim affects other objects
-	if (BKE_scene_check_rigidbody_active(scene) && scene->rigidbody_world->flag & RBW_FLAG_FRAME_UPDATE) {
-		/* we use frame time of parent (this is "scene" itself for top-level of sets recursion), 
-		 * as that is the active scene controlling all timing in file at the moment
-		 */
-		float ctime = BKE_scene_frame_get(scene_parent);
-		
-		/* however, "scene" contains the rigidbody world needed for eval... */
-		BKE_rigidbody_do_simulation(scene, ctime);
-	}
 	
 	/* scene objects */
 	for (base = scene->base.first; base; base = base->next) {
@@ -1224,6 +1214,12 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 {
 	float ctime = BKE_scene_frame_get(sce);
 	Scene *sce_iter;
+	
+	/* rebuild rigid body worlds before doing the actual frame update
+	 * this needs to be done on start frame but animation playback usually starts one frame later
+	 * we need to do it here to avoid rebuilding the world on every simulation change, which can be very expensive
+	 */
+	scene_rebuild_rbw_recursive(sce, ctime);
 
 	/* keep this first */
 	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_PRE);
@@ -1263,8 +1259,9 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	tag_main_idcode(bmain, ID_MA, FALSE);
 	tag_main_idcode(bmain, ID_LA, FALSE);
 
-	/* flag rigid body worlds for update */
-	scene_flag_rbw_recursive(sce);
+	/* run rigidbody sim */
+	/* NOTE: current position is so that rigidbody sim affects other objects, might change in the future */
+	scene_do_rb_simulation_recursive(sce, ctime);
 
 	/* BKE_object_handle_update() on all objects, groups and sets */
 	scene_update_tagged_recursive(bmain, sce, sce);

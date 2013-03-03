@@ -135,7 +135,8 @@ SparseMatrix* CompressedRowJacobianWriter::CreateJacobian() const {
   // Populate the row and column block vectors for use by block
   // oriented ordering algorithms. This is useful when
   // Solver::Options::use_block_amd = true.
-  const vector<ParameterBlock*>& parameter_blocks = program_->parameter_blocks();
+  const vector<ParameterBlock*>& parameter_blocks =
+      program_->parameter_blocks();
   vector<int>& col_blocks = *(jacobian->mutable_col_blocks());
   col_blocks.resize(parameter_blocks.size());
   for (int i = 0; i <  parameter_blocks.size(); ++i) {

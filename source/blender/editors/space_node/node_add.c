@@ -307,6 +307,7 @@ void NODE_OT_add_reroute(wmOperatorType *ot)
 
 	ot->name = "Add Reroute";
 	ot->idname = "NODE_OT_add_reroute";
+	ot->description = "Add a reroute node";
 
 	ot->invoke = WM_gesture_lines_invoke;
 	ot->modal = WM_gesture_lines_modal;

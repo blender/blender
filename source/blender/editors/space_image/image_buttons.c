@@ -82,36 +82,36 @@ static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, 
 	if (ima == NULL) return;
 
 	if (ibuf == NULL) {
-		ofs += sprintf(str, "%s", IFACE_("Can't Load Image"));
+		ofs += sprintf(str, IFACE_("Can't Load Image"));
 	}
 	else {
 		if (ima->source == IMA_SRC_MOVIE) {
-			ofs += sprintf(str, "%s", IFACE_("Movie"));
+			ofs += sprintf(str, IFACE_("Movie"));
 			if (ima->anim)
-				ofs += sprintf(str + ofs, IFACE_("%d frs"), IMB_anim_get_duration(ima->anim, IMB_TC_RECORD_RUN));
+				ofs += sprintf(str + ofs, IFACE_(" %d frs"), IMB_anim_get_duration(ima->anim, IMB_TC_RECORD_RUN));
 		}
 		else
-			ofs += sprintf(str, "%s", IFACE_("Image"));
+			ofs += sprintf(str, IFACE_("Image"));
 
-		ofs += sprintf(str + ofs, ": %s %d x %d,", IFACE_("size"), ibuf->x, ibuf->y);
+		ofs += sprintf(str + ofs, IFACE_(": size %d x %d,"), ibuf->x, ibuf->y);
 
 		if (ibuf->rect_float) {
 			if (ibuf->channels != 4) {
-				ofs += sprintf(str + ofs, "%d %s", ibuf->channels, IFACE_("float channel(s)"));
+				ofs += sprintf(str + ofs, IFACE_("%d float channel(s)"), ibuf->channels);
 			}
 			else if (ibuf->planes == R_IMF_PLANES_RGBA)
-				ofs += sprintf(str + ofs, "%s", IFACE_(" RGBA float"));
+				ofs += sprintf(str + ofs, IFACE_(" RGBA float"));
 			else
-				ofs += sprintf(str + ofs, "%s", IFACE_(" RGB float"));
+				ofs += sprintf(str + ofs, IFACE_(" RGB float"));
 		}
 		else {
 			if (ibuf->planes == R_IMF_PLANES_RGBA)
-				ofs += sprintf(str + ofs, "%s", IFACE_(" RGBA byte"));
+				ofs += sprintf(str + ofs, IFACE_(" RGBA byte"));
 			else
-				ofs += sprintf(str + ofs, "%s", IFACE_(" RGB byte"));
+				ofs += sprintf(str + ofs, IFACE_(" RGB byte"));
 		}
 		if (ibuf->zbuf || ibuf->zbuf_float)
-			ofs += sprintf(str + ofs, "%s", IFACE_(" + Z"));
+			ofs += sprintf(str + ofs, IFACE_(" + Z"));
 
 		if (ima->source == IMA_SRC_SEQUENCE) {
 			char *file = BLI_last_slash(ibuf->name);

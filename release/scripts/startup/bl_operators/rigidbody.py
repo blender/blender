@@ -216,8 +216,8 @@ class ConnectRigidBodies(Operator):
     connection_pattern = EnumProperty(
         name="Connection Pattern",
         description="Pattern used to connect objects",
-        items=(('SELECTED_TO_ACTIVE', "Selected to Active", "Connects selected objects to the active object"),
-               ('CHAIN_DISTANCE', "Chain by Distance", "Connects objects as a chain based on distance, starting at the active object")),
+        items=(('SELECTED_TO_ACTIVE', "Selected to Active", "Connect selected objects to the active object"),
+               ('CHAIN_DISTANCE', "Chain by Distance", "Connect objects as a chain based on distance, starting at the active object")),
         default='SELECTED_TO_ACTIVE',)
 
     @classmethod

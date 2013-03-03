@@ -731,15 +731,15 @@ void LbmFsgrSolver::advanceParticles() {
 
 				if(mPartUsePhysModel) {
 					LbmFloat radius = p->getSize() * minDropSize;
-					LbmVec   velPart = vec2L(p->getVel()) *cellsize/timestep; // L2RW, lattice velocity
-					LbmVec   velWater = LbmVec(vx,vy,vz) *cellsize/timestep;// L2RW, fluid velocity
-					LbmVec   velRel = velWater - velPart;
+					//LbmVec   velPart = vec2L(p->getVel()) *cellsize/timestep; // L2RW, lattice velocity
+					//LbmVec   velWater = LbmVec(vx,vy,vz) *cellsize/timestep;// L2RW, fluid velocity
+					//LbmVec   velRel = velWater - velPart;
 					//LbmFloat velRelNorm = norm(velRel);
-					LbmFloat pvolume = rhoAir * 4.0/3.0 * M_PI* radius*radius*radius; // volume: 4/3 pi r^3
+					//LbmFloat pvolume = rhoAir * 4.0/3.0 * M_PI* radius*radius*radius; // volume: 4/3 pi r^3
 
-					LbmVec fb = -rwgrav* pvolume *rhoWater;
-					LbmVec fd = velRel*6.0*M_PI*radius* (1e-3); //viscWater;
-					LbmVec change = (fb+fd) *10.0*timestep  *(timestep/cellsize);
+					//LbmVec fb = -rwgrav* pvolume *rhoWater;
+					//LbmVec fd = velRel*6.0*M_PI*radius* (1e-3); //viscWater;
+					//LbmVec change = (fb+fd) *10.0*timestep  *(timestep/cellsize);
 					/*if(debugOutCounter<0) {
 						errMsg("PIT","BTEST1   vol="<<pvolume<<" radius="<<radius<<" vn="<<velRelNorm<<" velPart="<<velPart<<" velRel"<<velRel);
 						errMsg("PIT","BTEST2        cellsize="<<cellsize<<" timestep="<<timestep<<" viscW="<<viscWater<<" ss/mb="<<(timestep/(pvolume*rhoAir)));

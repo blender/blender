@@ -121,6 +121,7 @@ public:
 	    GHOST_TWindowState state,
 	    GHOST_TDrawingContextType type,
 	    const bool stereoVisual,
+		const bool exclusive = false,
 	    const GHOST_TUns16 numOfAASamples = 0,
 	    const GHOST_TEmbedderWindowID parentWindow = 0
 	    );

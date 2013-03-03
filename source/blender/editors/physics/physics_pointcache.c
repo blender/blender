@@ -90,6 +90,20 @@ static void bake_console_progress_end(void *UNUSED(arg))
 	printf("\rbake: done!\n");
 }
 
+static void ptcache_free_bake(PointCache *cache)
+{
+	if (cache->edit) {
+		if (!cache->edit->edited || 1) {// XXX okee("Lose changes done in particle mode?")) {
+			PE_free_ptcache_edit(cache->edit);
+			cache->edit = NULL;
+			cache->flag &= ~PTCACHE_BAKED;
+		}
+	}
+	else {
+		cache->flag &= ~PTCACHE_BAKED;
+	}
+}
+
 static int ptcache_bake_all_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
@@ -139,7 +153,7 @@ static int ptcache_free_bake_all_exec(bContext *C, wmOperator *UNUSED(op))
 		BKE_ptcache_ids_from_object(&pidlist, base->object, scene, MAX_DUPLI_RECUR);
 
 		for (pid=pidlist.first; pid; pid=pid->next) {
-			pid->cache->flag &= ~PTCACHE_BAKED;
+			ptcache_free_bake(pid->cache);
 		}
 		
 		BLI_freelistN(&pidlist);
@@ -241,15 +255,7 @@ static int ptcache_free_bake_exec(bContext *C, wmOperator *UNUSED(op))
 	PointCache *cache= ptr.data;
 	Object *ob= ptr.id.data;
 
-	if (cache->edit) {
-		if (!cache->edit->edited || 1) {// XXX okee("Lose changes done in particle mode?")) {
-			PE_free_ptcache_edit(cache->edit);
-			cache->edit = NULL;
-			cache->flag &= ~PTCACHE_BAKED;
-		}
-	}
-	else
-		cache->flag &= ~PTCACHE_BAKED;
+	ptcache_free_bake(cache);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
 

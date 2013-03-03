@@ -18,6 +18,11 @@
 
 # <pep8 compliant>
 
+# bpy.type.KeyMap: (km.name, km.space_type, km.region_type, [...])
+
+#    ('Script', 'EMPTY', 'WINDOW', []),
+
+
 KM_HIERARCHY = [
     ('Window', 'EMPTY', 'WINDOW', []),  # file save, window change, exit
     ('Screen', 'EMPTY', 'WINDOW', [     # full screen, undo, screenshot
@@ -42,6 +47,7 @@ KM_HIERARCHY = [
 
         ('Vertex Paint', 'EMPTY', 'WINDOW', []),
         ('Weight Paint', 'EMPTY', 'WINDOW', []),
+        ('Weight Paint Vertex Selection', 'EMPTY', 'WINDOW', []),
         ('Face Mask', 'EMPTY', 'WINDOW', []),
         ('Image Paint', 'EMPTY', 'WINDOW', []),  # image and view3d
         ('Sculpt', 'EMPTY', 'WINDOW', []),
@@ -49,9 +55,12 @@ KM_HIERARCHY = [
         ('Armature Sketch', 'EMPTY', 'WINDOW', []),
         ('Particle', 'EMPTY', 'WINDOW', []),
 
+        ('Knife Tool Modal Map', 'EMPTY', 'WINDOW', []),
+        ('Paint Stroke Modal', 'EMPTY', 'WINDOW', []),
+
         ('Object Non-modal', 'EMPTY', 'WINDOW', []),  # mode change
 
-        ('3D View Generic', 'VIEW_3D', 'WINDOW', [])    # toolbar and properties
+        ('3D View Generic', 'VIEW_3D', 'WINDOW', []),    # toolbar and properties
         ]),
 
     ('Frames', 'EMPTY', 'WINDOW', []),    # frame navigation (per region)
@@ -59,53 +68,65 @@ KM_HIERARCHY = [
     ('Animation', 'EMPTY', 'WINDOW', []),    # frame change on click, preview range (per region)
     ('Animation Channels', 'EMPTY', 'WINDOW', []),
     ('Graph Editor', 'GRAPH_EDITOR', 'WINDOW', [
-        ('Graph Editor Generic', 'GRAPH_EDITOR', 'WINDOW', [])
+        ('Graph Editor Generic', 'GRAPH_EDITOR', 'WINDOW', []),
         ]),
     ('Dopesheet', 'DOPESHEET_EDITOR', 'WINDOW', []),
     ('NLA Editor', 'NLA_EDITOR', 'WINDOW', [
         ('NLA Channels', 'NLA_EDITOR', 'WINDOW', []),
-        ('NLA Generic', 'NLA_EDITOR', 'WINDOW', [])
+        ('NLA Generic', 'NLA_EDITOR', 'WINDOW', []),
         ]),
 
     ('Image', 'IMAGE_EDITOR', 'WINDOW', [
         ('UV Editor', 'EMPTY', 'WINDOW', []),  # image (reverse order, UVEdit before Image
         ('Image Paint', 'EMPTY', 'WINDOW', []),  # image and view3d
         ('UV Sculpt', 'EMPTY', 'WINDOW', []),
-        ('Image Generic', 'IMAGE_EDITOR', 'WINDOW', [])
+        ('Image Generic', 'IMAGE_EDITOR', 'WINDOW', []),
         ]),
 
     ('Timeline', 'TIMELINE', 'WINDOW', []),
     ('Outliner', 'OUTLINER', 'WINDOW', []),
 
     ('Node Editor', 'NODE_EDITOR', 'WINDOW', [
-        ('Node Generic', 'NODE_EDITOR', 'WINDOW', [])
+        ('Node Generic', 'NODE_EDITOR', 'WINDOW', []),
         ]),
-    ('Sequencer', 'SEQUENCE_EDITOR', 'WINDOW', []),
+    ('Sequencer', 'SEQUENCE_EDITOR', 'WINDOW', [
+        ('SequencerCommon', 'SEQUENCE_EDITOR', 'WINDOW', []),
+        ('SequencerPreview', 'SEQUENCE_EDITOR', 'WINDOW', []),
+        ]),
     ('Logic Editor', 'LOGIC_EDITOR', 'WINDOW', []),
 
     ('File Browser', 'FILE_BROWSER', 'WINDOW', [
         ('File Browser Main', 'FILE_BROWSER', 'WINDOW', []),
-        ('File Browser Buttons', 'FILE_BROWSER', 'WINDOW', [])
+        ('File Browser Buttons', 'FILE_BROWSER', 'WINDOW', []),
         ]),
+
+    ('Info', 'INFO', 'WINDOW', []),
 
     ('Property Editor', 'PROPERTIES', 'WINDOW', []),  # align context menu
 
-    ('Text', 'TEXT_EDITOR', 'WINDOW', []),
+    ('Text', 'TEXT_EDITOR', 'WINDOW', [
+        ('Text Generic', 'TEXT_EDITOR', 'WINDOW', []),
+        ]),
     ('Console', 'CONSOLE', 'WINDOW', []),
     ('Clip', 'CLIP_EDITOR', 'WINDOW', [
         ('Clip Editor', 'CLIP_EDITOR', 'WINDOW', []),
         ('Clip Graph Editor', 'CLIP_EDITOR', 'WINDOW', []),
+        ('Clip Dopesheet Editor', 'CLIP_EDITOR', 'WINDOW', []),
         ('Mask Editing', 'EMPTY', 'WINDOW', []),  # image (reverse order, UVEdit before Image
         ]),
 
     ('View3D Gesture Circle', 'EMPTY', 'WINDOW', []),
+    ('Gesture Straight Line', 'EMPTY', 'WINDOW', []),
+    ('Gesture Zoom Border', 'EMPTY', 'WINDOW', []),
     ('Gesture Border', 'EMPTY', 'WINDOW', []),
+
     ('Standard Modal Map', 'EMPTY', 'WINDOW', []),
     ('Transform Modal Map', 'EMPTY', 'WINDOW', []),
     ('View3D Fly Modal', 'EMPTY', 'WINDOW', []),
     ('View3D Rotate Modal', 'EMPTY', 'WINDOW', []),
     ('View3D Move Modal', 'EMPTY', 'WINDOW', []),
     ('View3D Zoom Modal', 'EMPTY', 'WINDOW', []),
+    ('View3D Dolly Modal', 'EMPTY', 'WINDOW', []),
     ]
 
 

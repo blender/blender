@@ -42,6 +42,7 @@
 #include "DNA_key_types.h"
 
 #include "ExportSettings.h"
+#include "collada_utils.h"
 
 #include "BKE_key.h"
 
@@ -71,8 +72,7 @@ public:
 
 	void createLooseEdgeList(Object *ob,
 						     Mesh   *me,
-						     std::string& geom_id,
-						     std::vector<Face>& norind);
+						     std::string& geom_id);
 
 	// powerful because it handles both cases when there is material and when there's not
 	void createPolylist(short material_index,
@@ -81,7 +81,7 @@ public:
 						Object *ob,
 						Mesh   *me,
 						std::string& geom_id,
-						std::vector<Face>& norind);
+						std::vector<BCPolygonNormalsIndices>& norind);
 	
 	// creates <source> for positions
 	void createVertsSource(std::string geom_id, Mesh *me);
@@ -92,11 +92,12 @@ public:
 
 	//creates <source> for texcoords
 	void createTexcoordsSource(std::string geom_id, Mesh *me);
+	void createTesselatedTexcoordsSource(std::string geom_id, Mesh *me);
 
 	//creates <source> for normals
 	void createNormalsSource(std::string geom_id, Mesh *me, std::vector<Normal>& nor);
 
-	void create_normals(std::vector<Normal> &nor, std::vector<Face> &ind, Mesh *me);
+	void create_normals(std::vector<Normal> &nor, std::vector<BCPolygonNormalsIndices> &ind, Mesh *me);
 	
 	std::string getIdBySemantics(std::string geom_id, COLLADASW::InputSemantic::Semantics type, std::string other_suffix = "");
 	
@@ -106,7 +107,6 @@ public:
 
 	void export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb);
 	
-	/* int getTriCount(MFace *faces, int totface);*/
 private:
 	std::set<std::string> exportedGeometry;
 	

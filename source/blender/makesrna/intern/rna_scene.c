@@ -916,16 +916,13 @@ static EnumPropertyItem *rna_RenderSettings_qtcodecsettings_codecType_itemf(bCon
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
 	QuicktimeCodecTypeDesc *codecTypeDesc;
 	int i = 1, totitem = 0;
-	char id[5];
-	
+
 	for (i = 0; i < quicktime_get_num_videocodecs(); i++) {
 		codecTypeDesc = quicktime_get_videocodecType_desc(i);
 		if (!codecTypeDesc) break;
-		
+
 		tmp.value = codecTypeDesc->rnatmpvalue;
-		*((int *)id) = codecTypeDesc->codecType;
-		id[4] = 0;
-		tmp.identifier = id;
+		tmp.identifier = codecTypeDesc->codecName;
 		tmp.name = codecTypeDesc->codecName;
 		RNA_enum_item_add(&item, &totitem, &tmp);
 	}
@@ -1586,8 +1583,8 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 
 	static EnumPropertyItem draw_groupuser_items[] = {
 		{OB_DRAW_GROUPUSER_NONE, "NONE", 0, "None", ""},
-		{OB_DRAW_GROUPUSER_ACTIVE, "ACTIVE", 0, "Active", "Show vertices with no weights in the actuve group"},
-		{OB_DRAW_GROUPUSER_ALL, "ALL", 0, "All", "Show vertices with no weights in the any group"},
+		{OB_DRAW_GROUPUSER_ACTIVE, "ACTIVE", 0, "Active", "Show vertices with no weights in the active group"},
+		{OB_DRAW_GROUPUSER_ALL, "ALL", 0, "All", "Show vertices with no weights in any group"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

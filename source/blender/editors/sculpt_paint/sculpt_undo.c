@@ -567,6 +567,8 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node,
 
 		unode->totvert = totvert;
 	}
+	else
+		maxgrid = 0;
 	
 	/* we will use this while sculpting, is mapalloc slow to access then? */
 

@@ -40,9 +40,11 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BKE_bpath.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
+#include "BKE_bpath.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -218,9 +220,9 @@ static int unpack_all_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event)
 	}
 
 	if (count == 1)
-		strcpy(title, "Unpack 1 file");
+		strcpy(title, IFACE_("Unpack 1 File"));
 	else
-		BLI_snprintf(title, sizeof(title), "Unpack %d files", count);
+		BLI_snprintf(title, sizeof(title), IFACE_("Unpack %d Files"), count);
 	
 	pup = uiPupMenuBegin(C, title, ICON_NONE);
 	layout = uiPupMenuLayout(pup);
@@ -291,7 +293,7 @@ static int unpack_item_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event
 	uiPopupMenu *pup;
 	uiLayout *layout;
 	
-	pup = uiPupMenuBegin(C, "Unpack", ICON_NONE);
+	pup = uiPupMenuBegin(C, IFACE_("Unpack"), ICON_NONE);
 	layout = uiPupMenuLayout(pup);
 	
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);

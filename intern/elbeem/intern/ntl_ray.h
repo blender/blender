@@ -404,9 +404,6 @@ private:
 	/*! Tree to store quickly intersect triangles */
 	ntlTree *mpTree;
 
-	/*! id of dislpay list for raytracer stuff */
-	int mDisplayListId;
-
 	/*! was the scene successfully built? only then getObject(i) requests are valid */
 	bool mSceneBuilt;
 

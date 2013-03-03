@@ -412,7 +412,7 @@ static void pbvh_bmesh_face_remove(PBVH *bvh, BMFace *f)
 	do {
 		v = l_iter->v;
 		if (pbvh_bmesh_node_vert_use_count(bvh, f_node, v) == 1) {
-			if (BLI_ghash_lookup(f_node->bm_unique_verts, v)) {
+			if (BLI_ghash_haskey(f_node->bm_unique_verts, v)) {
 				/* Find a different node that uses 'v' */
 				PBVHNode *new_node;
 
@@ -805,7 +805,8 @@ static void pbvh_bmesh_collapse_edge(PBVH *bvh, BMEdge *e, BMVert *v1,
 
 			/* Ensure that v1 is in the new face's node */
 			if (!BLI_ghash_haskey(n->bm_unique_verts, v1) &&
-				!BLI_ghash_haskey(n->bm_other_verts, v1)) {
+			    !BLI_ghash_haskey(n->bm_other_verts,  v1))
+			{
 				BLI_ghash_insert(n->bm_other_verts, v1, NULL);
 			}
 		}

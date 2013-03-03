@@ -22,6 +22,8 @@
 
 /** \file DNA_defs.h
  *  \ingroup DNA
+ *
+ * Group generic defines for all DNA headers may use in this file.
  */
 
 #ifndef __DNA_DEFS_H__

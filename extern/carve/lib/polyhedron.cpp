@@ -233,7 +233,7 @@ namespace carve {
       }
 
       std::vector<mesh::Mesh<3> *> meshes;
-      mesh::Mesh<3>::create(mesh_faces.begin(), mesh_faces.end(), meshes);
+      mesh::Mesh<3>::create(mesh_faces.begin(), mesh_faces.end(), meshes, mesh::MeshOptions());
       mesh::MeshSet<3> *meshset = new mesh::MeshSet<3>(vertex_storage, meshes);
 
       manifold_is_closed.resize(meshset->meshes.size());

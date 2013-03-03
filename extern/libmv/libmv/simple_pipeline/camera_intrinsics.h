@@ -159,6 +159,37 @@ class CameraIntrinsics {
 std::ostream& operator <<(std::ostream &os,
                           const CameraIntrinsics &intrinsics);
 
+// Apply camera intrinsics to the normalized point to get image coordinates.
+// This applies the radial lens distortion to a point which is in normalized
+// camera coordinates (i.e. the principal point is at (0, 0)) to get image
+// coordinates in pixels. Templated for use with autodifferentiation.
+template <typename T>
+inline void ApplyRadialDistortionCameraIntrinsics(T focal_length_x,
+                                                  T focal_length_y,
+                                                  T principal_point_x,
+                                                  T principal_point_y,
+                                                  T k1, T k2, T k3,
+                                                  T p1, T p2,
+                                                  T normalized_x,
+                                                  T normalized_y,
+                                                  T *image_x,
+                                                  T *image_y) {
+  T x = normalized_x;
+  T y = normalized_y;
+
+  // Apply distortion to the normalized points to get (xd, yd).
+  T r2 = x*x + y*y;
+  T r4 = r2 * r2;
+  T r6 = r4 * r2;
+  T r_coeff = (T(1) + k1*r2 + k2*r4 + k3*r6);
+  T xd = x * r_coeff + T(2)*p1*x*y + p2*(r2 + T(2)*x*x);
+  T yd = y * r_coeff + T(2)*p2*x*y + p1*(r2 + T(2)*y*y);
+
+  // Apply focal length and principal point to get the final image coordinates.
+  *image_x = focal_length_x * xd + principal_point_x;
+  *image_y = focal_length_y * yd + principal_point_y;
+}
+
 }  // namespace libmv
 
 #endif  // LIBMV_SIMPLE_PIPELINE_CAMERA_INTRINSICS_H_

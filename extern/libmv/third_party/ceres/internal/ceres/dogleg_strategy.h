@@ -53,8 +53,8 @@ namespace internal {
 // This finds the exact optimum over the two-dimensional subspace
 // spanned by the two Dogleg vectors.
 class DoglegStrategy : public TrustRegionStrategy {
-public:
-  DoglegStrategy(const TrustRegionStrategy::Options& options);
+ public:
+  explicit DoglegStrategy(const TrustRegionStrategy::Options& options);
   virtual ~DoglegStrategy() {}
 
   // TrustRegionStrategy interface

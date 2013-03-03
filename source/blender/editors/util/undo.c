@@ -83,8 +83,8 @@ void ED_undo_push(bContext *C, const char *str)
 	Object *obact = CTX_data_active_object(C);
 
 	if (G.debug & G_DEBUG)
-		printf("undo push %s\n", str);
-	
+		printf("%s: %s\n", __func__, str);
+
 	if (obedit) {
 		if (U.undosteps == 0) return;
 		

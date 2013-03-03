@@ -542,6 +542,7 @@ int cocoa_request_qtcodec_settings(bContext *C, wmOperator *op)
 
 #pragma mark initialization/finalization
 
+const char *user_locale; // Global current user locale
 
 GHOST_SystemCocoa::GHOST_SystemCocoa()
 {
@@ -580,6 +581,12 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	rstring = NULL;
 	
 	m_ignoreWindowSizedMessages = false;
+	
+	//Get current locale
+	CFLocaleRef myCFLocale = CFLocaleCopyCurrent();
+	NSLocale *myNSLocale = (NSLocale *)CFBridgingRelease(myCFLocale);
+	NSString *nsIdentifier = [myNSLocale localeIdentifier];
+	user_locale = [nsIdentifier UTF8String];	
 }
 
 GHOST_SystemCocoa::~GHOST_SystemCocoa()
@@ -734,6 +741,7 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
 	GHOST_TWindowState state,
 	GHOST_TDrawingContextType type,
 	bool stereoVisual,
+	const bool exclusive,
 	const GHOST_TUns16 numOfAASamples,
 	const GHOST_TEmbedderWindowID parentWindow
 )
@@ -1772,7 +1780,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 				//printf("Key down rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c utf8=%s\n",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii, utf8_buf);
 			}
 			else {
-				pushEvent( new GHOST_EventKey([event timestamp] * 1000, GHOST_kEventKeyUp, window, keyCode, 0, '\0') );
+				pushEvent( new GHOST_EventKey([event timestamp] * 1000, GHOST_kEventKeyUp, window, keyCode, 0, NULL) );
 				//printf("Key up rawCode=0x%x charsIgnoringModifiers=%c keyCode=%u ascii=%i %c utf8=%s\n",[event keyCode],[charsIgnoringModifiers length]>0?[charsIgnoringModifiers characterAtIndex:0]:' ',keyCode,ascii,ascii, utf8_buf);
 			}
 			break;

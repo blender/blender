@@ -149,7 +149,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	/* remove tessface to ensure we don't old references to invalid faces */
+	/* remove tessface to ensure we don't hold references to invalid faces */
 	BKE_mesh_tessface_clear(me);
 
 	/* new material indices and material array */
@@ -309,6 +309,10 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 			me = base->object->data;
 			
 			if (me->totvert) {
+
+				/* merge customdata flag */
+				((Mesh *)ob->data)->cd_flag |= me->cd_flag;
+
 				/* standard data */
 				CustomData_merge(&me->vdata, &vdata, CD_MASK_MESH, CD_DEFAULT, totvert);
 				CustomData_copy_data(&me->vdata, &vdata, 0, vertofs, me->totvert);

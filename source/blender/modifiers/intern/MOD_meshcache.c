@@ -251,7 +251,7 @@ static void meshcache_do(
 	/* -------------------------------------------------------------------- */
 	/* Apply the transformation matrix (if needed) */
 	if (UNLIKELY(err_str)) {
-		modifier_setError(&mcmd->modifier, err_str);
+		modifier_setError(&mcmd->modifier, "%s", err_str);
 	}
 	else if (ok) {
 		bool use_matrix = false;

@@ -34,9 +34,27 @@
 #include "DNA_constraint_types.h"
 #include "BKE_constraint.h"
 
+/* **** DAG relation types *** */
 
-#define DEPSX   5.0f
-#define DEPSY   1.8f
+/* scene link to object */
+#define DAG_RL_SCENE        (1 << 0)
+/* object link to data */
+#define DAG_RL_DATA         (1 << 1)
+
+/* object changes object (parent, track, constraints) */
+#define DAG_RL_OB_OB        (1 << 2)
+/* object changes obdata (hooks, constraints) */
+#define DAG_RL_OB_DATA      (1 << 3)
+/* data changes object (vertex parent) */
+#define DAG_RL_DATA_OB      (1 << 4)
+/* data changes data (deformers) */
+#define DAG_RL_DATA_DATA    (1 << 5)
+
+#define DAG_NO_RELATION     (1 << 6)
+
+#define DAG_RL_ALL_BUT_DATA (DAG_RL_SCENE | DAG_RL_OB_OB | DAG_RL_OB_DATA | DAG_RL_DATA_OB | DAG_RL_DATA_DATA)
+#define DAG_RL_ALL          (DAG_RL_ALL_BUT_DATA | DAG_RL_DATA)
+
 
 #define DAGQUEUEALLOC 50
 
@@ -45,8 +63,6 @@ enum {
 	DAG_GRAY = 1,
 	DAG_BLACK = 2
 };
-
-
 
 typedef struct DagAdjList {
 	struct DagNode *node;
@@ -108,11 +124,13 @@ void push_queue(DagNodeQueue *queue, DagNode *node);
 void push_stack(DagNodeQueue *queue, DagNode *node);
 DagNode *pop_queue(DagNodeQueue *queue);
 DagNode *get_top_node_queue(DagNodeQueue *queue);
+int queue_count(DagNodeQueue *queue);
+void queue_delete(DagNodeQueue *queue);
 
 // Dag management
-DagForest *getMainDag(void);
-void setMainDag(DagForest *dag);
 DagForest *dag_init(void);
+DagForest *build_dag(struct Main *bmain, struct Scene *sce, short mask);
+void free_forest(struct DagForest *Dag);
 DagNode *dag_find_node(DagForest *forest, void *fob);
 DagNode *dag_add_node(DagForest *forest, void *fob);
 DagNode *dag_get_node(DagForest *forest, void *fob);
@@ -126,6 +144,6 @@ DagNodeQueue *graph_dfs(void);
 void set_node_xy(DagNode *node, float x, float y);
 void graph_print_queue(DagNodeQueue *nqueue);
 void graph_print_queue_dist(DagNodeQueue *nqueue);
-void graph_print_adj_list(void);
+void graph_print_adj_list(DagForest *dag);
 
 #endif /* __DEPSGRAPH_PRIVATE_H__ */

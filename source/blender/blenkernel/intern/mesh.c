@@ -887,12 +887,11 @@ static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *alll
                              int old, MEdge **alledge, int *_totedge)
 {
 	MPoly *mpoly;
-	MLoop *mloop;
 	MFace *mface;
 	MEdge *medge;
 	EdgeHash *hash = BLI_edgehash_new();
 	struct edgesort *edsort, *ed;
-	int a, b, totedge = 0, final = 0;
+	int a, totedge = 0, final = 0;
 
 	/* we put all edges in array, sort them, and detect doubles that way */
 
@@ -973,13 +972,16 @@ static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *alll
 	
 	mpoly = allpoly;
 	for (a = 0; a < totpoly; a++, mpoly++) {
-		mloop = allloop + mpoly->loopstart;
-		for (b = 0; b < mpoly->totloop; b++) {
-			int v1, v2;
-			
-			v1 = mloop[b].v;
-			v2 = ME_POLY_LOOP_NEXT(mloop, mpoly, b)->v;
-			mloop[b].e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(hash, v1, v2));
+		MLoop *ml, *ml_next;
+		int i = mpoly->totloop;
+
+		ml_next = allloop + mpoly->loopstart;  /* first loop */
+		ml = &ml_next[i - 1];                  /* last loop */
+
+		while (i-- != 0) {
+			ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(hash, ml->v, ml_next->v));
+			ml = ml_next;
+			ml_next++;
 		}
 	}
 	

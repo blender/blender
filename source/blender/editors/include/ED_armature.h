@@ -137,7 +137,7 @@ struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, const char *na
 void ED_armature_edit_bone_remove(struct bArmature *arm, EditBone *exBone);
 
 void transform_armature_mirror_update(struct Object *obedit);
-void docenter_armature(struct Scene *scene, struct Object *ob, float cursor[3], int centermode, int around);
+void ED_armature_origin_set(struct Scene *scene, struct Object *ob, float cursor[3], int centermode, int around);
 
 void ED_armature_apply_transform(struct Object *ob, float mat[4][4]);
 

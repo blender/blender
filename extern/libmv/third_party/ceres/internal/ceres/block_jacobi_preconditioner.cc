@@ -40,10 +40,10 @@
 namespace ceres {
 namespace internal {
 
-BlockJacobiPreconditioner::BlockJacobiPreconditioner(const LinearOperator& A)
+BlockJacobiPreconditioner::BlockJacobiPreconditioner(
+    const BlockSparseMatrixBase& A)
     : num_rows_(A.num_rows()),
-      block_structure_(
-        *(down_cast<const BlockSparseMatrix*>(&A)->block_structure())) {
+      block_structure_(*A.block_structure()) {
   // Calculate the amount of storage needed.
   int storage_needed = 0;
   for (int c = 0; c < block_structure_.cols.size(); ++c) {
@@ -64,11 +64,10 @@ BlockJacobiPreconditioner::BlockJacobiPreconditioner(const LinearOperator& A)
   }
 }
 
-BlockJacobiPreconditioner::~BlockJacobiPreconditioner() {
-}
+BlockJacobiPreconditioner::~BlockJacobiPreconditioner() {}
 
-void BlockJacobiPreconditioner::Update(const LinearOperator& matrix, const double* D) {
-  const BlockSparseMatrix& A = *(down_cast<const BlockSparseMatrix*>(&matrix));
+bool BlockJacobiPreconditioner::Update(const BlockSparseMatrixBase& A,
+                                       const double* D) {
   const CompressedRowBlockStructure* bs = A.block_structure();
 
   // Compute the diagonal blocks by block inner products.
@@ -107,16 +106,19 @@ void BlockJacobiPreconditioner::Update(const LinearOperator& matrix, const doubl
     MatrixRef block(blocks_[c], size, size);
 
     if (D != NULL) {
-      block.diagonal() += ConstVectorRef(D + position, size).array().square().matrix();
+      block.diagonal() +=
+          ConstVectorRef(D + position, size).array().square().matrix();
     }
 
     block = block.selfadjointView<Eigen::Upper>()
                  .ldlt()
                  .solve(Matrix::Identity(size, size));
   }
+  return true;
 }
 
-void BlockJacobiPreconditioner::RightMultiply(const double* x, double* y) const {
+void BlockJacobiPreconditioner::RightMultiply(const double* x,
+                                              double* y) const {
   for (int c = 0; c < block_structure_.cols.size(); ++c) {
     const int size = block_structure_.cols[c].size;
     const int position = block_structure_.cols[c].position;

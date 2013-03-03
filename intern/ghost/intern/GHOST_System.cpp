@@ -152,7 +152,7 @@ GHOST_TSuccess GHOST_System::beginFullScreen(const GHOST_DisplaySetting& setting
 			success = m_displayManager->setCurrentDisplaySetting(GHOST_DisplayManager::kMainDisplay, setting);
 			if (success == GHOST_kSuccess) {
 				//GHOST_PRINT("GHOST_System::beginFullScreen(): creating full-screen window\n");
-				success = createFullScreenWindow((GHOST_Window **)window, stereoVisual, numOfAASamples);
+				success = createFullScreenWindow((GHOST_Window **)window, setting, stereoVisual, numOfAASamples);
 				if (success == GHOST_kSuccess) {
 					m_windowManager->beginFullScreen(*window, stereoVisual);
 				}
@@ -347,26 +347,22 @@ GHOST_TSuccess GHOST_System::exit()
 	return GHOST_kSuccess;
 }
 
-
-GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window, const bool stereoVisual, const GHOST_TUns16 numOfAASamples)
+GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window, const GHOST_DisplaySetting &settings,
+                                                    const bool stereoVisual, const GHOST_TUns16 numOfAASamples)
 {
-	GHOST_TSuccess success;
+	/* note: don't use getCurrentDisplaySetting() because on X11 we may
+	 * be zoomed in and the desktop may be bigger then the viewport. */
 	GHOST_ASSERT(m_displayManager, "GHOST_System::createFullScreenWindow(): invalid display manager");
-	GHOST_DisplaySetting settings;
-
-	success = m_displayManager->getCurrentDisplaySetting(GHOST_DisplayManager::kMainDisplay, settings);
-	if (success) {
-		//GHOST_PRINT("GHOST_System::createFullScreenWindow(): creating full-screen window\n");
-		*window = (GHOST_Window *)createWindow(
-		    STR_String(""),
-		    0, 0, settings.xPixels, settings.yPixels,
-		    GHOST_kWindowStateFullScreen,
-		    GHOST_kDrawingContextTypeOpenGL,
-		    stereoVisual,
-		    numOfAASamples);
-		success = *window == 0 ? GHOST_kFailure : GHOST_kSuccess;
-	}
-	return success;
+	//GHOST_PRINT("GHOST_System::createFullScreenWindow(): creating full-screen window\n");
+	*window = (GHOST_Window *)createWindow(
+	    STR_String(""),
+	    0, 0, settings.xPixels, settings.yPixels,
+	    GHOST_kWindowStateNormal,
+	    GHOST_kDrawingContextTypeOpenGL,
+	    stereoVisual,
+	    true,  /* exclusive */
+	    numOfAASamples);
+	return (*window == NULL) ? GHOST_kFailure : GHOST_kSuccess;
 }
 
 

@@ -42,6 +42,23 @@ namespace ceres {
 // This struct describes the state of the optimizer after each
 // iteration of the minimization.
 struct IterationSummary {
+  IterationSummary()
+      : iteration(0),
+        step_is_valid(false),
+        step_is_nonmonotonic(false),
+        step_is_successful(false),
+        cost(0.0),
+        cost_change(0.0),
+        gradient_max_norm(0.0),
+        step_norm(0.0),
+        eta(0.0),
+        step_size(0.0),
+        line_search_function_evaluations(0),
+        linear_solver_iterations(0),
+        iteration_time_in_seconds(0.0),
+        step_solver_time_in_seconds(0.0),
+        cumulative_time_in_seconds(0.0) {}
+
   // Current iteration number.
   int32 iteration;
 
@@ -51,7 +68,22 @@ struct IterationSummary {
   // Note: step_is_valid is false when iteration = 0.
   bool step_is_valid;
 
-  // Whether or not the algorithm made progress in this iteration.
+  // Step did not reduce the value of the objective function
+  // sufficiently, but it was accepted because of the relaxed
+  // acceptance criterion used by the non-monotonic trust region
+  // algorithm.
+  //
+  // Note: step_is_nonmonotonic is false when iteration = 0;
+  bool step_is_nonmonotonic;
+
+  // Whether or not the minimizer accepted this step or not. If the
+  // ordinary trust region algorithm is used, this means that the
+  // relative reduction in the objective function value was greater
+  // than Solver::Options::min_relative_decrease. However, if the
+  // non-monotonic trust region algorithm is used
+  // (Solver::Options:use_nonmonotonic_steps = true), then even if the
+  // relative decrease is not sufficient, the algorithm may accept the
+  // step and the step is declared successful.
   //
   // Note: step_is_successful is false when iteration = 0.
   bool step_is_successful;
@@ -60,8 +92,7 @@ struct IterationSummary {
   double cost;
 
   // Change in the value of the objective function in this
-  // iteration. This can be positive or negative. Negative change
-  // means that the step was not successful.
+  // iteration. This can be positive or negative.
   double cost_change;
 
   // Infinity norm of the gradient vector.
@@ -86,6 +117,12 @@ struct IterationSummary {
   // linear systems inexactly. Factorization-based exact solvers
   // ignore it.
   double eta;
+
+  // Step sized computed by the line search algorithm.
+  double step_size;
+
+  // Number of function evaluations used by the line search algorithm.
+  int line_search_function_evaluations;
 
   // Number of iterations taken by the linear solver to solve for the
   // Newton step.

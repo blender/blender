@@ -39,9 +39,9 @@
 #include <string>
 #include <vector>
 
-#include <glog/logging.h>
-#include "cholmod.h"
 #include "ceres/internal/port.h"
+#include "cholmod.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {

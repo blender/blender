@@ -2281,7 +2281,7 @@ static void calc_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 		unode = sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
 		sculpt_brush_test_init(ss, &test);
 
-		if (ss->cache->original) {
+		if (ss->cache->original && unode->co) {
 			BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
 			{
 				if (sculpt_brush_test_fast(&test, unode->co[vd.i])) {
@@ -3742,7 +3742,8 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	if (brush->sculpt_tool == SCULPT_TOOL_LAYER) {
 		/* not supported yet for multires or dynamic topology */
 		if (!ss->multires && !ss->bm && !ss->layer_co &&
-			(brush->flag & BRUSH_PERSISTENT)) {
+		    (brush->flag & BRUSH_PERSISTENT))
+		{
 			if (!ss->layer_co)
 				ss->layer_co = MEM_mallocN(sizeof(float) * 3 * ss->totvert,
 				                           "sculpt mesh vertices copy");
@@ -4784,6 +4785,7 @@ static void SCULPT_OT_symmetrize(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Symmetrize";
 	ot->idname = "SCULPT_OT_symmetrize";
+	ot->description = "Symmetrize the topology modifications";
 	
 	/* api callbacks */
 	ot->exec = sculpt_symmetrize_exec;

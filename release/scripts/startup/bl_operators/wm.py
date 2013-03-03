@@ -820,25 +820,42 @@ def _wm_doc_get_id(doc_id, do_url=True, url_prefix=""):
     elif len(id_split) == 2:  # rna, class.prop
         class_name, class_prop = id_split
 
+        # an operator (common case - just button referencing an op)
         if hasattr(bpy.types, class_name.upper() + "_OT_" + class_prop):
             if do_url:
                 url = ("%s/bpy.ops.%s.html#bpy.ops.%s.%s" % (url_prefix, class_name, class_name, class_prop))
             else:
                 rna = "bpy.ops.%s.%s" % (class_name, class_prop)
         else:
-
-            # detect if this is a inherited member and use that name instead
-            rna_parent = getattr(bpy.types, class_name).bl_rna
-            rna_prop = rna_parent.properties[class_prop]
-            rna_parent = rna_parent.base
-            while rna_parent and rna_prop == rna_parent.properties.get(class_prop):
-                class_name = rna_parent.identifier
-                rna_parent = rna_parent.base
-
-            if do_url:
-                url = ("%s/bpy.types.%s.html#bpy.types.%s.%s" % (url_prefix, class_name, class_name, class_prop))
+            rna_class = getattr(bpy.types, class_name)
+            
+            # an operator setting (selected from a running operator), rare case
+            # note: Py defined operators are subclass of Operator,
+            #       C defined operators are subclass of OperatorProperties.
+            #       we may need to check on this at some point.
+            if issubclass(rna_class, (bpy.types.Operator, bpy.types.OperatorProperties)):
+                # note: ignore the prop name since we don't have a way to link into it
+                class_name, class_prop = class_name.split("_OT_", 1)
+                class_name = class_name.lower()
+                if do_url:
+                    url = ("%s/bpy.ops.%s.html#bpy.ops.%s.%s" % (url_prefix, class_name, class_name, class_prop))
+                else:
+                    rna = "bpy.ops.%s.%s" % (class_name, class_prop)
             else:
-                rna = ("bpy.types.%s.%s" % (class_name, class_prop))
+                # an RNA setting, common case
+
+                # detect if this is a inherited member and use that name instead
+                rna_parent = rna_class.bl_rna
+                rna_prop = rna_parent.properties[class_prop]
+                rna_parent = rna_parent.base
+                while rna_parent and rna_prop == rna_parent.properties.get(class_prop):
+                    class_name = rna_parent.identifier
+                    rna_parent = rna_parent.base
+
+                if do_url:
+                    url = ("%s/bpy.types.%s.html#bpy.types.%s.%s" % (url_prefix, class_name, class_name, class_prop))
+                else:
+                    rna = ("bpy.types.%s.%s" % (class_name, class_prop))
 
     return url if do_url else rna
 

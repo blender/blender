@@ -80,61 +80,61 @@ BLI_INLINE bool BM_iter_init(BMIter *iter, BMesh *bm, const char itype, void *da
 			BLI_assert(data != NULL);
 			iter->begin = bmiter__edge_of_vert_begin;
 			iter->step =  bmiter__edge_of_vert_step;
-			iter->vdata = data;
+			iter->vdata = (BMVert *)data;
 			break;
 		case BM_FACES_OF_VERT:
 			BLI_assert(data != NULL);
 			iter->begin = bmiter__face_of_vert_begin;
 			iter->step =  bmiter__face_of_vert_step;
-			iter->vdata = data;
+			iter->vdata = (BMVert *)data;
 			break;
 		case BM_LOOPS_OF_VERT:
 			BLI_assert(data != NULL);
 			iter->begin = bmiter__loop_of_vert_begin;
 			iter->step =  bmiter__loop_of_vert_step;
-			iter->vdata = data;
+			iter->vdata = (BMVert *)data;
 			break;
 		case BM_VERTS_OF_EDGE:
 			BLI_assert(data != NULL);
 			iter->begin = bmiter__vert_of_edge_begin;
 			iter->step =  bmiter__vert_of_edge_step;
-			iter->edata = data;
+			iter->edata = (BMEdge *)data;
 			break;
 		case BM_FACES_OF_EDGE:
 			BLI_assert(data != NULL);
 			iter->begin = bmiter__face_of_edge_begin;
 			iter->step =  bmiter__face_of_edge_step;
-			iter->edata = data;
+			iter->edata = (BMEdge *)data;
 			break;
 		case BM_VERTS_OF_FACE:
 			BLI_assert(data != NULL);
 			iter->begin = bmiter__vert_of_face_begin;
 			iter->step =  bmiter__vert_of_face_step;
-			iter->pdata = data;
+			iter->pdata = (BMFace *)data;
 			break;
 		case BM_EDGES_OF_FACE:
 			BLI_assert(data != NULL);
 			iter->begin = bmiter__edge_of_face_begin;
 			iter->step =  bmiter__edge_of_face_step;
-			iter->pdata = data;
+			iter->pdata = (BMFace *)data;
 			break;
 		case BM_LOOPS_OF_FACE:
 			BLI_assert(data != NULL);
 			iter->begin = bmiter__loop_of_face_begin;
 			iter->step =  bmiter__loop_of_face_step;
-			iter->pdata = data;
+			iter->pdata = (BMFace *)data;
 			break;
 		case BM_LOOPS_OF_LOOP:
 			BLI_assert(data != NULL);
 			iter->begin = bmiter__loops_of_loop_begin;
 			iter->step =  bmiter__loops_of_loop_step;
-			iter->ldata = data;
+			iter->ldata = (BMLoop *)data;
 			break;
 		case BM_LOOPS_OF_EDGE:
 			BLI_assert(data != NULL);
 			iter->begin = bmiter__loops_of_edge_begin;
 			iter->step =  bmiter__loops_of_edge_step;
-			iter->edata = data;
+			iter->edata = (BMEdge *)data;
 			break;
 		default:
 			/* should never happen */

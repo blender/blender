@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file gameengine/Converter/KX_IpoConvert.cpp
+/** \file gameengine/Ketsji/KX_IpoConvert.cpp
  *  \ingroup bgeconv
  */
 

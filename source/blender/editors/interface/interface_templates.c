@@ -2594,7 +2594,8 @@ void uiTemplateList(uiLayout *layout, bContext *C, const char *listtype_name, co
 
 		/* if list length changes and active is out of view, scroll to it */
 		if ((ui_list->list_last_len != len) &&
-		    (activei < ui_list->list_scroll || activei >= ui_list->list_scroll + items)) {
+		    (activei < ui_list->list_scroll || activei >= ui_list->list_scroll + items))
+		{
 			ui_list->list_scroll = activei;
 		}
 

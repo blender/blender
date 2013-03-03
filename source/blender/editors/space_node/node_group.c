@@ -42,6 +42,8 @@
 #include "BLI_rect.h"
 #include "BLI_math.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_action.h"
 #include "BKE_animsys.h"
 #include "BKE_context.h"
@@ -789,7 +791,7 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
 
 static int node_group_separate_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *UNUSED(event))
 {
-	uiPopupMenu *pup = uiPupMenuBegin(C, "Separate", ICON_NONE);
+	uiPopupMenu *pup = uiPupMenuBegin(C, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Separate"), ICON_NONE);
 	uiLayout *layout = uiPupMenuLayout(pup);
 
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
@@ -1148,7 +1150,7 @@ static int node_group_make_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *act = nodeGetActive(snode->edittree);
-	uiPopupMenu *pup = uiPupMenuBegin(C, "Make Group", ICON_NONE);
+	uiPopupMenu *pup = uiPupMenuBegin(C, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Make Group"), ICON_NONE);
 	uiLayout *layout = uiPupMenuLayout(pup);
 
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);

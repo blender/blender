@@ -104,7 +104,7 @@ DocumentImporter::DocumentImporter(bContext *C, const ImportSettings *import_set
 	import_settings(import_settings),
 	mImportStage(General),
 	mContext(C),
-	armature_importer(&unit_converter, &mesh_importer, &anim_importer, CTX_data_scene(C)),
+	armature_importer(&unit_converter, &mesh_importer, CTX_data_scene(C)),
 	mesh_importer(&unit_converter, &armature_importer, CTX_data_scene(C)),
 	anim_importer(&unit_converter, &armature_importer, CTX_data_scene(C))
 {
@@ -157,7 +157,8 @@ bool DocumentImporter::import()
 	
 	delete ehandler;
 
-	mesh_importer.bmeshConversion();
+	//XXX No longer needed (geometries are now created as bmesh)
+	//mesh_importer.bmeshConversion();
 
 	return true;
 }

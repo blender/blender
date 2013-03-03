@@ -29,6 +29,7 @@
  *  \ingroup modifiers
  */
 
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -597,6 +598,10 @@ static DerivedMesh *applyModifier(
 		int *origindex_edge;
 		int *orig_ed;
 		int j;
+
+		if (crease_rim || crease_outer || crease_inner) {
+			result->cd_flag |= ME_CDFLAG_EDGE_CREASE;
+		}
 
 		/* add faces & edges */
 		origindex_edge = result->getEdgeDataArray(result, CD_ORIGINDEX);

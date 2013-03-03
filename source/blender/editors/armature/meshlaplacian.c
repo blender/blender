@@ -30,18 +30,12 @@
  *  \ingroup edarmature
  */
 
-
-#include <math.h>
-#include <string.h>
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_memarena.h"
@@ -58,8 +52,6 @@
 #endif
 
 #include "ONL_opennl.h"
-
-#include "BLO_sys_types.h" // for intptr_t support
 
 #include "ED_mesh.h"
 #include "ED_armature.h"

@@ -52,7 +52,7 @@ class SparseMatrix;
 // radius to scale the damping term, which controls the step size, but
 // does not set a hard limit on its size.
 class TrustRegionStrategy {
-public:
+ public:
   struct Options {
     Options()
         : trust_region_strategy_type(LEVENBERG_MARQUARDT),

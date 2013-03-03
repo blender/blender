@@ -1178,11 +1178,10 @@ static void file_expand_directory(bContext *C)
 			get_default_root(sfile->params->dir);
 		}
 		/* change "C:" --> "C:\", [#28102] */
-		else if (   (isalpha(sfile->params->dir[0]) &&
-		             (sfile->params->dir[1] == ':')) &&
-		            (sfile->params->dir[2] == '\0')
-
-		            ) {
+		else if ((isalpha(sfile->params->dir[0]) &&
+		          (sfile->params->dir[1] == ':')) &&
+		         (sfile->params->dir[2] == '\0'))
+		{
 			sfile->params->dir[2] = '\\';
 			sfile->params->dir[3] = '\0';
 		}

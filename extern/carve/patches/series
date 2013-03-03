@@ -1,4 +1,3 @@
-strict_flags.patch
 includes.patch
 win32.patch
 mesh_iterator.patch

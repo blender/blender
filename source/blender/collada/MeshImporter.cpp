@@ -173,83 +173,30 @@ void UVDataWrapper::getUV(int uv_index, float *uv)
 	}
 }
 
-void MeshImporter::set_face_indices(MFace *mface, unsigned int *indices, bool quad)
-{
-	mface->v1 = indices[0];
-	mface->v2 = indices[1];
-	mface->v3 = indices[2];
-	if (quad) mface->v4 = indices[3];
-	else mface->v4 = 0;
-#ifdef COLLADA_DEBUG
-	// fprintf(stderr, "%u, %u, %u\n", indices[0], indices[1], indices[2]);
-#endif
+MeshImporter::MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Scene *sce) : unitconverter(unitconv), scene(sce), armature_importer(arm) {
 }
 
-// not used anymore, test_index_face from blenkernel is better
-#if 0
-// change face indices order so that v4 is not 0
-void MeshImporter::rotate_face_indices(MFace *mface)
+void MeshImporter::set_poly_indices(MPoly *mpoly, MLoop *mloop, int loop_index, unsigned int *indices, int loop_count)
 {
-	mface->v4 = mface->v1;
-	mface->v1 = mface->v2;
-	mface->v2 = mface->v3;
-	mface->v3 = 0;
-}
-#endif
+	mpoly->loopstart = loop_index;
+	mpoly->totloop   = loop_count;
 
-void MeshImporter::set_face_uv(MTFace *mtface, UVDataWrapper &uvs,
-                               COLLADAFW::IndexList& index_list, unsigned int *tris_indices)
+	for (int index=0; index < loop_count; index++) {
+		mloop->v = indices[index];
+		mloop++;
+	}
+}
+
+void MeshImporter::set_face_uv(MLoopUV *mloopuv, UVDataWrapper &uvs,
+                               int start_index, COLLADAFW::IndexList& index_list, int count)
 {
 	// per face vertex indices, this means for quad we have 4 indices, not 8
 	COLLADAFW::UIntValuesArray& indices = index_list.getIndices();
 
-	uvs.getUV(indices[tris_indices[0]], mtface->uv[0]);
-	uvs.getUV(indices[tris_indices[1]], mtface->uv[1]);
-	uvs.getUV(indices[tris_indices[2]], mtface->uv[2]);
-}
-
-void MeshImporter::set_face_uv(MTFace *mtface, UVDataWrapper &uvs,
-                               COLLADAFW::IndexList& index_list, int index, bool quad)
-{
-	// per face vertex indices, this means for quad we have 4 indices, not 8
-	COLLADAFW::UIntValuesArray& indices = index_list.getIndices();
-
-	uvs.getUV(indices[index + 0], mtface->uv[0]);
-	uvs.getUV(indices[index + 1], mtface->uv[1]);
-	uvs.getUV(indices[index + 2], mtface->uv[2]);
-
-	if (quad) uvs.getUV(indices[index + 3], mtface->uv[3]);
-
-#ifdef COLLADA_DEBUG
-	if (quad) {
-		fprintf(stderr, "face uv:\n"
-		        "((%d, %d, %d, %d))\n"
-		        "((%.1f, %.1f), (%.1f, %.1f), (%.1f, %.1f), (%.1f, %.1f))\n",
-
-		        indices[index + 0],
-		        indices[index + 1],
-		        indices[index + 2],
-		        indices[index + 3],
-
-		        mtface->uv[0][0], mtface->uv[0][1],
-		        mtface->uv[1][0], mtface->uv[1][1],
-		        mtface->uv[2][0], mtface->uv[2][1],
-		        mtface->uv[3][0], mtface->uv[3][1]);
+	for (int index = 0; index < count; index++) {
+		int uv_index = indices[index+start_index];
+		uvs.getUV(uv_index, mloopuv[index].uv);
 	}
-	else {
-		fprintf(stderr, "face uv:\n"
-		        "((%d, %d, %d))\n"
-		        "((%.1f, %.1f), (%.1f, %.1f), (%.1f, %.1f))\n",
-
-		        indices[index + 0],
-		        indices[index + 1],
-		        indices[index + 2],
-
-		        mtface->uv[0][0], mtface->uv[0][1],
-		        mtface->uv[1][0], mtface->uv[1][1],
-		        mtface->uv[2][0], mtface->uv[2][1]);
-	}
-#endif
 }
 
 #ifdef COLLADA_DEBUG
@@ -329,91 +276,6 @@ void MeshImporter::read_vertices(COLLADAFW::Mesh *mesh, Mesh *me)
 	}
 }
 
-int MeshImporter::triangulate_poly(unsigned int *indices, int totvert, MVert *verts, std::vector<unsigned int>& tri)
-{
-	ListBase dispbase;
-	DispList *dl;
-	float *vert;
-	int i = 0;
-	
-	dispbase.first = dispbase.last = NULL;
-	
-	dl = (DispList *)MEM_callocN(sizeof(DispList), "poly disp");
-	dl->nr = totvert;
-	dl->type = DL_POLY;
-	dl->parts = 1;
-	dl->verts = vert = (float *)MEM_callocN(totvert * 3 * sizeof(float), "poly verts");
-	dl->index = (int *)MEM_callocN(sizeof(int) * 3 * totvert, "dl index");
-
-	BLI_addtail(&dispbase, dl);
-	
-	for (i = 0; i < totvert; i++) {
-		copy_v3_v3(vert, verts[indices[i]].co);
-		vert += 3;
-	}
-	
-	BKE_displist_fill(&dispbase, &dispbase, 0);
-
-	int tottri = 0;
-	dl = (DispList *)dispbase.first;
-
-	if (dl->type == DL_INDEX3) {
-		tottri = dl->parts;
-
-		int *index = dl->index;
-		for (i = 0; i < tottri; i++) {
-			int t[3] = {*index, *(index + 1), *(index + 2)};
-
-			std::sort(t, t + 3);
-
-			tri.push_back(t[0]);
-			tri.push_back(t[1]);
-			tri.push_back(t[2]);
-
-			index += 3;
-		}
-	}
-
-	BKE_displist_free(&dispbase);
-
-	return tottri;
-}
-
-int MeshImporter::count_new_tris(COLLADAFW::Mesh *mesh, Mesh *me)
-{
-	COLLADAFW::MeshPrimitiveArray& prim_arr = mesh->getMeshPrimitives();
-	unsigned int i;
-	int tottri = 0;
-	
-	for (i = 0; i < prim_arr.getCount(); i++) {
-		
-		COLLADAFW::MeshPrimitive *mp = prim_arr[i];
-		int type = mp->getPrimitiveType();
-		size_t prim_totface = mp->getFaceCount();
-		unsigned int *indices = mp->getPositionIndices().getData();
-		
-		if (type == COLLADAFW::MeshPrimitive::POLYLIST ||
-		    type == COLLADAFW::MeshPrimitive::POLYGONS)
-		{
-			COLLADAFW::Polygons *mpvc = (COLLADAFW::Polygons *)mp;
-			COLLADAFW::Polygons::VertexCountArray& vcounta = mpvc->getGroupedVerticesVertexCountArray();
-			
-			for (unsigned int j = 0; j < prim_totface; j++) {
-				int vcount = vcounta[j];
-				
-				if (vcount > 4) {
-					std::vector<unsigned int> tri;
-					
-					// tottri += triangulate_poly(indices, vcount, me->mvert, tri) - 1; // XXX why - 1?!
-					tottri += triangulate_poly(indices, vcount, me->mvert, tri);
-				}
-
-				indices += vcount;
-			}
-		}
-	}
-	return tottri;
-}
 
 // =====================================================================
 // condition 1: The Primitive has normals
@@ -471,10 +333,11 @@ bool MeshImporter::primitive_has_faces(COLLADAFW::MeshPrimitive *mp) {
 // hint: This is done because mesh->getFacesCount() does
 // count loose edges as extra faces, which is not what we want here.
 // =================================================================
-void MeshImporter::allocate_face_data(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris)
+void MeshImporter::allocate_poly_data(COLLADAFW::Mesh *collada_mesh, Mesh *me)
 {
-	COLLADAFW::MeshPrimitiveArray& prim_arr = mesh->getMeshPrimitives();
-	int total_facecount = 0;
+	COLLADAFW::MeshPrimitiveArray& prim_arr = collada_mesh->getMeshPrimitives();
+	int total_poly_count = 0;
+	int total_loop_count = 0;
 
 	// collect edge_count and face_count from all parts
 	for (int i = 0; i < prim_arr.getCount(); i++) {
@@ -485,20 +348,76 @@ void MeshImporter::allocate_face_data(COLLADAFW::Mesh *mesh, Mesh *me, int new_t
 			case COLLADAFW::MeshPrimitive::TRIANGLE_FANS:
 			case COLLADAFW::MeshPrimitive::POLYLIST:
 			case COLLADAFW::MeshPrimitive::POLYGONS: {
-				size_t prim_totface = mp->getFaceCount();
-				total_facecount += prim_totface;
+
+				COLLADAFW::Polygons *mpvc = (COLLADAFW::Polygons *)mp;
+				size_t prim_poly_count    = mpvc->getFaceCount();
+
+				size_t prim_loop_count    = 0;
+				for(int index=0; index < prim_poly_count; index++) {
+					prim_loop_count += get_vertex_count(mpvc, index);
+				}
+
+				total_poly_count += prim_poly_count;
+				total_loop_count += prim_loop_count;
 				break;
 			}
 			default: break;
 		}
 	}
 
-	// allocate space for faces
-	if (total_facecount > 0) {
-		me->totface = total_facecount + new_tris;
-		me->mface   = (MFace *)CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, me->totface);
+	// Add the data containers
+	if (total_poly_count > 0) {
+		me->totpoly = total_poly_count;
+		me->totloop = total_loop_count;
+		me->mpoly   = (MPoly *)CustomData_add_layer(&me->pdata, CD_MPOLY, CD_CALLOC, NULL, me->totpoly);
+		me->mloop   = (MLoop *)CustomData_add_layer(&me->ldata, CD_MLOOP, CD_CALLOC, NULL, me->totloop);
+
+		unsigned int totuvset = collada_mesh->getUVCoords().getInputInfosArray().getCount();
+		for (int i = 0; i < totuvset; i++) {
+			if (collada_mesh->getUVCoords().getLength(i) == 0) {
+				totuvset = 0;
+				break;
+			}
+		}
+
+		if (totuvset > 0) {
+			for (int i = 0; i < totuvset; i++) {
+				COLLADAFW::MeshVertexData::InputInfos *info = collada_mesh->getUVCoords().getInputInfosArray()[i];
+				COLLADAFW::String &uvname = info->mName;
+				int x = 0;
+				// Allocate space for UV_data
+				CustomData_add_layer_named(&me->pdata, CD_MTEXPOLY, CD_DEFAULT, NULL, me->totpoly, uvname.c_str());
+				CustomData_add_layer_named(&me->ldata, CD_MLOOPUV, CD_DEFAULT, NULL, me->totloop, uvname.c_str());
+			}
+			// activate the first uv map
+			me->mtpoly  = (MTexPoly *)CustomData_get_layer_n(&me->pdata, CD_MTEXPOLY, 0);
+			me->mloopuv = (MLoopUV *) CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, 0);
+		}
 	}
 }
+
+unsigned int MeshImporter::get_vertex_count(COLLADAFW::Polygons *mp, int index) {
+	int type = mp->getPrimitiveType();
+	int result;
+	switch (type) {
+		case COLLADAFW::MeshPrimitive::TRIANGLES:
+		case COLLADAFW::MeshPrimitive::TRIANGLE_FANS: {
+			result = 3;
+			break;
+		}
+		case COLLADAFW::MeshPrimitive::POLYLIST:
+		case COLLADAFW::MeshPrimitive::POLYGONS: {
+			result = mp->getGroupedVerticesVertexCountArray()[index];
+			break;
+		}
+		default: {
+			result = -1;
+			break;
+		}
+	}
+	return result;
+}
+
 
 unsigned int MeshImporter::get_loose_edge_count(COLLADAFW::Mesh *mesh) {
 	COLLADAFW::MeshPrimitiveArray& prim_arr = mesh->getMeshPrimitives();
@@ -606,256 +525,118 @@ void MeshImporter::read_lines(COLLADAFW::Mesh *mesh, Mesh *me)
 //
 // TODO: import uv set names
 // ========================================================================
-void MeshImporter::read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris) //TODO:: Refactor. Possibly replace by iterators
+void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
 {
 	unsigned int i;
 	
-	allocate_face_data(mesh, me, new_tris);
-	
-	// allocate UV Maps
-	unsigned int totuvset = mesh->getUVCoords().getInputInfosArray().getCount();
+	allocate_poly_data(collada_mesh, me);
 
-	for (i = 0; i < totuvset; i++) {
-		if (mesh->getUVCoords().getLength(i) == 0) {
-			totuvset = 0;
-			break;
-		}
-	}
+	UVDataWrapper uvs(collada_mesh->getUVCoords());
 
-	for (i = 0; i < totuvset; i++) {
-		COLLADAFW::MeshVertexData::InputInfos *info = mesh->getUVCoords().getInputInfosArray()[i];
-		CustomData_add_layer_named(&me->fdata, CD_MTFACE, CD_CALLOC, NULL, me->totface, info->mName.c_str());
-		//this->set_layername_map[i] = CustomData_get_layer_name(&me->fdata, CD_MTFACE, i);
-	}
-
-	// activate the first uv map
-	if (totuvset) me->mtface = (MTFace *)CustomData_get_layer_n(&me->fdata, CD_MTFACE, 0);
-
-	UVDataWrapper uvs(mesh->getUVCoords());
-
-#ifdef COLLADA_DEBUG
-	// uvs.print();
-#endif
-
-	MFace *mface = me->mface;
+	MPoly *mpoly = me->mpoly;
+	MLoop *mloop = me->mloop;
+	int loop_index = 0;
 
 	MaterialIdPrimitiveArrayMap mat_prim_map;
 
-	int face_index = 0;
-
-	COLLADAFW::MeshPrimitiveArray& prim_arr = mesh->getMeshPrimitives();
-
-	COLLADAFW::MeshVertexData& nor = mesh->getNormals();
+	COLLADAFW::MeshPrimitiveArray& prim_arr = collada_mesh->getMeshPrimitives();
+	COLLADAFW::MeshVertexData& nor = collada_mesh->getNormals();
 
 	for (i = 0; i < prim_arr.getCount(); i++) {
 		
 		COLLADAFW::MeshPrimitive *mp = prim_arr[i];
 
 		// faces
-		size_t prim_totface = mp->getFaceCount();
-		unsigned int *indices = mp->getPositionIndices().getData();
-		unsigned int *nind    = mp->getNormalIndices().getData();
+		size_t prim_totpoly            = mp->getFaceCount();
+		unsigned int *position_indices = mp->getPositionIndices().getData();
+		unsigned int *normal_indices   = mp->getNormalIndices().getData();
 
 		bool mp_has_normals = primitive_has_useable_normals(mp);
 		bool mp_has_faces   = primitive_has_faces(mp);
 
-		int type = mp->getPrimitiveType();
-		int index = 0;
+		int collada_meshtype = mp->getPrimitiveType();
 		
-		// since we cannot set mface->mat_nr here, we store a portion of me->mface in Primitive
-		Primitive prim = {mface, 0};
+		// since we cannot set mpoly->mat_nr here, we store a portion of me->mface in Primitive
+		Primitive prim = {mpoly, 0};
 		COLLADAFW::IndexListArray& index_list_array = mp->getUVCoordIndicesArray();
-
-#ifdef COLLADA_DEBUG
-		/*
-		   fprintf(stderr, "Primitive %d:\n", i);
-		   for (unsigned int j = 0; j < totuvset; j++) {
-		    print_index_list(*index_list_array[j]);
-		   }
-		 */
-#endif
-		
-		if (type == COLLADAFW::MeshPrimitive::TRIANGLES) {
-			for (unsigned int j = 0; j < prim_totface; j++) {
-				
-				set_face_indices(mface, indices, false);
-				indices += 3;
-
-#if 0
-				for (unsigned int k = 0; k < totuvset; k++) {
-					if (!index_list_array.empty() && index_list_array[k]) {
-						// get mtface by face index and uv set index
-						MTFace *mtface = (MTFace *)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
-						set_face_uv(&mtface[face_index], uvs, k, *index_list_array[k], index, false);
-					}
-				}
-#else
-				for (unsigned int k = 0; k < index_list_array.getCount(); k++) {
-					// get mtface by face index and uv set index
-					MTFace *mtface = (MTFace *)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
-					set_face_uv(&mtface[face_index], uvs, *index_list_array[k], index, false);
-				}
-#endif
-
-				test_index_face(mface, &me->fdata, face_index, 3);
-
-				if (mp_has_normals) {
-					if (!flat_face(nind, nor, 3))
-						mface->flag |= ME_SMOOTH;
-
-					nind += 3;
-				}
-				
-				index += 3;
-				mface++;
-				face_index++;
-				prim.totface++;
-			}
-		}
 
 		// If MeshPrimitive is TRIANGLE_FANS we split it into triangles
 		// The first trifan vertex will be the first vertex in every triangle
-		if (type == COLLADAFW::MeshPrimitive::TRIANGLE_FANS) {
+		// XXX The proper function of TRIANGLE_FANS is not tested!!!
+		// XXX In particular the handling of the normal_indices looks very wrong to me
+		if (collada_meshtype == COLLADAFW::MeshPrimitive::TRIANGLE_FANS) {
 			unsigned grouped_vertex_count = mp->getGroupedVertexElementsCount();
 			for (unsigned int group_index = 0; group_index < grouped_vertex_count; group_index++) {
-				unsigned int first_vertex = indices[0]; // Store first trifan vertex
-				unsigned int first_normal = nind[0]; // Store first trifan vertex normal
+				unsigned int first_vertex = position_indices[0]; // Store first trifan vertex
+				unsigned int first_normal = normal_indices[0]; // Store first trifan vertex normal
 				unsigned int vertex_count = mp->getGroupedVerticesVertexCount(group_index);
 
 				for (unsigned int vertex_index = 0; vertex_index < vertex_count - 2; vertex_index++) {
 					// For each triangle store indeces of its 3 vertices
-					unsigned int triangle_vertex_indices[3] = {first_vertex, indices[1], indices[2]};
-					set_face_indices(mface, triangle_vertex_indices, false);
-					test_index_face(mface, &me->fdata, face_index, 3);
+					unsigned int triangle_vertex_indices[3] = {first_vertex, position_indices[1], position_indices[2]};
+					set_poly_indices(mpoly, mloop, loop_index, triangle_vertex_indices, 3);
 
 					if (mp_has_normals) {  // vertex normals, same inplementation as for the triangles
 						// the same for vertces normals
-						unsigned int vertex_normal_indices[3] = {first_normal, nind[1], nind[2]};
-						if (!flat_face(vertex_normal_indices, nor, 3))
-							mface->flag |= ME_SMOOTH;
-						nind++;
+						unsigned int vertex_normal_indices[3] = {first_normal, normal_indices[1], normal_indices[2]};
+						if (!is_flat_face(vertex_normal_indices, nor, 3))
+							mpoly->flag |= ME_SMOOTH;
+						normal_indices++;
 					}
 				
-					mface++;  // same inplementation as for the triangles
-					indices++;
-					face_index++;
-					prim.totface++;
+					mpoly++;
+					mloop += 3;
+					loop_index += 3;
+					prim.totpoly++;
+
 				}
 
 				// Moving cursor  to the next triangle fan.
 				if (mp_has_normals)
-					nind += 2;
+					normal_indices += 2;
 
-				indices +=  2;
+				position_indices +=  2;
 			}
 		}
-		else if (type == COLLADAFW::MeshPrimitive::POLYLIST || type == COLLADAFW::MeshPrimitive::POLYGONS) {
+
+		if (collada_meshtype == COLLADAFW::MeshPrimitive::POLYLIST ||
+			collada_meshtype == COLLADAFW::MeshPrimitive::POLYGONS ||
+			collada_meshtype == COLLADAFW::MeshPrimitive::TRIANGLES) {
 			COLLADAFW::Polygons *mpvc = (COLLADAFW::Polygons *)mp;
-			COLLADAFW::Polygons::VertexCountArray& vcounta = mpvc->getGroupedVerticesVertexCountArray();
-
-			for (unsigned int j = 0; j < prim_totface; j++) {
+			for (unsigned int j = 0; j < prim_totpoly; j++) {
 				
-				// face
-				int vcount = vcounta[j];
-				if (vcount == 3 || vcount == 4) {
-					
-					set_face_indices(mface, indices, vcount == 4);
-					
-					// set mtface for each uv set
-					// it is assumed that all primitives have equal number of UV sets
-
-#if 0
-					for (unsigned int k = 0; k < totuvset; k++) {
-						if (!index_list_array.empty() && index_list_array[k]) {
-							// get mtface by face index and uv set index
-							MTFace *mtface = (MTFace *)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
-							set_face_uv(&mtface[face_index], uvs, k, *index_list_array[k], index, mface->v4 != 0);
-						}
-					}
-#else
-					for (unsigned int k = 0; k < index_list_array.getCount(); k++) {
-						// get mtface by face index and uv set index
-						MTFace *mtface = (MTFace *)CustomData_get_layer_n(&me->fdata, CD_MTFACE, k);
-						set_face_uv(&mtface[face_index], uvs, *index_list_array[k], index, vcount == 4);
-					}
-#endif
-
-					test_index_face(mface, &me->fdata, face_index, vcount);
-
-					if (mp_has_normals) {
-						if (!flat_face(nind, nor, vcount))
-							mface->flag |= ME_SMOOTH;
-
-						nind += vcount;
-					}
-					
-					mface++;
-					face_index++;
-					prim.totface++;
-					
-				}
-				else {
-					std::vector<unsigned int> tri;
-					
-					triangulate_poly(indices, vcount, me->mvert, tri);
-
-					for (unsigned int k = 0; k < tri.size() / 3; k++) {
-						int v = k * 3;
-						unsigned int uv_indices[3] = {
-							index + tri[v],
-							index + tri[v + 1],
-							index + tri[v + 2]
-						};
-						unsigned int tri_indices[3] = {
-							indices[tri[v]],
-							indices[tri[v + 1]],
-							indices[tri[v + 2]]
-						};
-
-						set_face_indices(mface, tri_indices, false);
-						
-#if 0
-						for (unsigned int l = 0; l < totuvset; l++) {
-							if (!index_list_array.empty() && index_list_array[l]) {
-								// get mtface by face index and uv set index
-								MTFace *mtface = (MTFace *)CustomData_get_layer_n(&me->fdata, CD_MTFACE, l);
-								set_face_uv(&mtface[face_index], uvs, l, *index_list_array[l], uv_indices);
-							}
-						}
-#else
-						for (unsigned int l = 0; l < index_list_array.getCount(); l++) {
-							int uvset_index = index_list_array[l]->getSetIndex();
-
-							// get mtface by face index and uv set index
-							MTFace *mtface = (MTFace *)CustomData_get_layer_n(&me->fdata, CD_MTFACE, uvset_index);
-							set_face_uv(&mtface[face_index], uvs, *index_list_array[l], uv_indices);
-						}
-#endif
+				// Vertices in polygon:
+				int vcount = get_vertex_count(mpvc, j);
+				set_poly_indices(mpoly, mloop, loop_index, position_indices, vcount);
 
 
-						test_index_face(mface, &me->fdata, face_index, 3);
+				for (unsigned int l = 0; l < index_list_array.getCount(); l++) {
+					int uvset_index = index_list_array[l]->getSetIndex();
 
-						if (mp_has_normals) {
-							unsigned int ntri[3] = {nind[tri[v]], nind[tri[v + 1]], nind[tri[v + 2]]};
+					// get mtface by face index and uv set index
+					MLoopUV  *mloopuv = (MLoopUV  *)CustomData_get_layer_n(&me->ldata, CD_MLOOPUV, uvset_index);
 
-							if (!flat_face(ntri, nor, 3))
-								mface->flag |= ME_SMOOTH;
-						}
-						
-						mface++;
-						face_index++;
-						prim.totface++;
-					}
-
-					if (mp_has_normals)
-						nind += vcount;
+					set_face_uv(mloopuv+loop_index, uvs, loop_index, *index_list_array[l], vcount);
 				}
 
-				index += vcount;
-				indices += vcount;
+				if (mp_has_normals) {
+					if (!is_flat_face(normal_indices, nor, vcount))
+						mpoly->flag |= ME_SMOOTH;
+				}
+				
+				mpoly++;
+				mloop += vcount;
+				loop_index += vcount;
+				prim.totpoly++;
+
+				if (mp_has_normals)
+					normal_indices += vcount;
+
+				position_indices += vcount;
 			}
 		}
-		else if (type == COLLADAFW::MeshPrimitive::LINES) {
+
+		else if (collada_meshtype == COLLADAFW::MeshPrimitive::LINES) {
 			continue; // read the lines later after all the rest is done
 		}
 
@@ -863,7 +644,7 @@ void MeshImporter::read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris) //T
 			mat_prim_map[mp->getMaterialId()].push_back(prim);
 	}
 
-	geom_uid_mat_mapping_map[mesh->getUniqueId()] = mat_prim_map;
+	geom_uid_mat_mapping_map[collada_mesh->getUniqueId()] = mat_prim_map;
 }
 
 void MeshImporter::get_vector(float v[3], COLLADAFW::MeshVertexData& arr, int i, int stride)
@@ -896,8 +677,7 @@ void MeshImporter::get_vector(float v[3], COLLADAFW::MeshVertexData& arr, int i,
 			break;
 	}
 }
-
-bool MeshImporter::flat_face(unsigned int *nind, COLLADAFW::MeshVertexData& nor, int count)
+bool MeshImporter::is_flat_face(unsigned int *nind, COLLADAFW::MeshVertexData& nor, int count)
 {
 	float a[3], b[3];
 
@@ -919,8 +699,6 @@ bool MeshImporter::flat_face(unsigned int *nind, COLLADAFW::MeshVertexData& nor,
 	return true;
 }
 
-MeshImporter::MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Scene *sce) : unitconverter(unitconv), scene(sce), armature_importer(arm) {
-}
 
 void MeshImporter::bmeshConversion()
 {
@@ -929,10 +707,9 @@ void MeshImporter::bmeshConversion()
 	{
 		if ((*m).second) {
 			Mesh *me = (*m).second;
-			BKE_mesh_convert_mfaces_to_mpolys(me);
 			BKE_mesh_tessface_clear(me);
-
 			BKE_mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
+			//BKE_mesh_validate(me, 1);
 		}
 	}
 }
@@ -1137,9 +914,10 @@ void MeshImporter::optimize_material_assignements()
 MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmaterial,
                                               std::map<COLLADAFW::UniqueId, Material *>& uid_material_map,
                                               Object *ob, const COLLADAFW::UniqueId *geom_uid,
-                                              MTex **color_texture, char *layername, MTFace *texture_face,
+                                              char *layername, MTFace *texture_face,
                                               std::map<Material *, TexIndexTextureArrayMap>& material_texture_mapping_map, short mat_index)
 {
+	MTex *color_texture = NULL;
 	Mesh *me = (Mesh *)ob->data;
 	const COLLADAFW::UniqueId& ma_uid = cmaterial.getReferencedMaterial();
 	
@@ -1167,17 +945,17 @@ MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmateri
 	// loop through <bind_vertex_inputs>
 	for (i = 0; i < tex_array.getCount(); i++) {
 		
-		*color_texture = assign_textures_to_uvlayer(tex_array[i], me, texindex_texarray_map,
-		                                            *color_texture);
+		color_texture = assign_textures_to_uvlayer(tex_array[i], me, texindex_texarray_map,
+		                                            color_texture);
 	}
 	
 	// set texture face
-	if (*color_texture &&
-	    strlen((*color_texture)->uvname) &&
-	    strcmp(layername, (*color_texture)->uvname) != 0) {
+	if (color_texture &&
+	    strlen((color_texture)->uvname) &&
+	    strcmp(layername, color_texture->uvname) != 0) {
 		texture_face = (MTFace *)CustomData_get_layer_named(&me->fdata, CD_MTFACE,
-		                                                    (*color_texture)->uvname);
-		strcpy(layername, (*color_texture)->uvname);
+		                                                    color_texture->uvname);
+		strcpy(layername, color_texture->uvname);
 	}
 	
 	MaterialIdPrimitiveArrayMap& mat_prim_map = geom_uid_mat_mapping_map[*geom_uid];
@@ -1192,19 +970,18 @@ MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmateri
 		
 		for (it = prims.begin(); it != prims.end(); it++) {
 			Primitive& prim = *it;
-			MFace *mface = prim.mface;
+			MPoly *mpoly = prim.mpoly;
 
-			for (i = 0; i < prim.totface; i++, mface++) {
-				mface->mat_nr = mat_index;
+			for (i = 0; i < prim.totpoly; i++, mpoly++) {
+				mpoly->mat_nr = mat_index;
 				// bind texture images to faces
-				if (texture_face && (*color_texture)) {
-					texture_face->tpage = (Image *)(*color_texture)->tex->ima;
+				if (texture_face && color_texture) {
+					texture_face->tpage = (Image *)color_texture->tex->ima;
 					texture_face++;
 				}
 			}
 		}
-	}
-	
+	}	
 	return texture_face;
 }
 
@@ -1251,15 +1028,15 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 	
 	// replace ob->data freeing the old one
 	Mesh *old_mesh = (Mesh *)ob->data;
+	Mesh *new_mesh = uid_mesh_map[*geom_uid];
 
-	set_mesh(ob, uid_mesh_map[*geom_uid]);
+	set_mesh(ob, new_mesh);
 	
 	if (old_mesh->id.us == 0) BKE_libblock_free(&G.main->mesh, old_mesh);
 	
 	char layername[100];
 	layername[0] = '\0';
 	MTFace *texture_face = NULL;
-	MTex *color_texture = NULL;
 	
 	COLLADAFW::MaterialBindingArray& mat_array =
 	    geom->getMaterialBindings();
@@ -1269,7 +1046,7 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 		
 		if (mat_array[i].getReferencedMaterial().isValid()) {
 			texture_face = assign_material_to_geom(mat_array[i], uid_material_map, ob, geom_uid,
-			                                       &color_texture, layername, texture_face,
+			                                       layername, texture_face,
 			                                       material_texture_mapping_map, i);
 		}
 		else {
@@ -1283,11 +1060,7 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 // create a mesh storing a pointer in a map so it can be retrieved later by geometry UID
 bool MeshImporter::write_geometry(const COLLADAFW::Geometry *geom)
 {
-	// TODO: import also uvs, normals
-	// XXX what to do with normal indices?
-	// XXX num_normals may be != num verts, then what to do?
 
-	// check geometry->getType() first
 	if (geom->getType() != COLLADAFW::Geometry::GEO_TYPE_MESH) {
 		// TODO: report warning
 		fprintf(stderr, "Mesh type %s is not supported\n", bc_geomTypeToStr(geom->getType()));
@@ -1306,23 +1079,16 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry *geom)
 	me->id.us--; // is already 1 here, but will be set later in set_mesh
 
 	// store the Mesh pointer to link it later with an Object
+	// mesh_geom_map needed to map mesh to its geometry name (for shape key naming)
 	this->uid_mesh_map[mesh->getUniqueId()] = me;
-	// needed to map mesh to its geometry name (needed for shape key naming)
 	this->mesh_geom_map[std::string(me->id.name)] = str_geom_id;
-
-	int new_tris = 0;
 	
 	read_vertices(mesh, me);
-
-	new_tris = count_new_tris(mesh, me);
-	
-	read_faces(mesh, me, new_tris);
-
-	BKE_mesh_make_edges(me, 0);
+	read_polys(mesh, me);
+	BKE_mesh_calc_edges(me, 0);
 
 	// read_lines() must be called after the face edges have been generated.
 	// Oterwise the loose edges will be silently deleted again.
 	read_lines(mesh, me);
-
 	return true;
 }

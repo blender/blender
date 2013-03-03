@@ -25,6 +25,7 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_ImageOperation.h"
 #include "COM_MultilayerImageOperation.h"
+#include "COM_ConvertPremulToStraightOperation.h"
 #include "BKE_node.h"
 #include "BLI_utildefines.h"
 
@@ -72,6 +73,7 @@ void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 	ImageUser *imageuser = (ImageUser *)editorNode->storage;
 	int framenumber = context->getFramenumber();
 	int numberOfOutputs = this->getNumberOfOutputSockets();
+	bool outputStraightAlpha = editorNode->custom1 & CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT;
 	BKE_image_user_frame_calc(imageuser, context->getFramenumber(), 0);
 
 	/* force a load, we assume iuser index will be set OK anyway */
@@ -138,7 +140,15 @@ void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 		if (numberOfOutputs >  0) {
 			ImageOperation *operation = new ImageOperation();
 			if (outputImage->isConnected()) {
-				outputImage->relinkConnections(operation->getOutputSocket());
+				if (outputStraightAlpha) {
+					NodeOperation *alphaConvertOperation = new ConvertPremulToStraightOperation();
+					addLink(graph, operation->getOutputSocket(0), alphaConvertOperation->getInputSocket(0));
+					outputImage->relinkConnections(alphaConvertOperation->getOutputSocket());
+					graph->addOperation(alphaConvertOperation);
+				}
+				else {
+					outputImage->relinkConnections(operation->getOutputSocket());
+				}
 			}
 			operation->setImage(image);
 			operation->setImageUser(imageuser);

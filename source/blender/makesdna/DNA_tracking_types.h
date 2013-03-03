@@ -30,6 +30,8 @@
  *  \ingroup DNA
  *  \since may-2011
  *  \author Sergey Sharybin
+ *
+ * Structs used for camera tracking and the movie-clip editor.
  */
 
 #ifndef __DNA_TRACKING_TYPES_H__
@@ -431,4 +433,4 @@ enum {
 	TRACKING_COVERAGE_OK         = 2
 };
 
-#endif
+#endif  /* __DNA_TRACKING_TYPES_H__ */

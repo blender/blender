@@ -51,6 +51,31 @@
 
 namespace ceres {
 
+// Trivial wrapper to index linear arrays as matrices, given a fixed
+// column and row stride. When an array "T* array" is wrapped by a
+//
+//   (const) MatrixAdapter<T, row_stride, col_stride> M"
+//
+// the expression  M(i, j) is equivalent to
+//
+//   arrary[i * row_stride + j * col_stride]
+//
+// Conversion functions to and from rotation matrices accept
+// MatrixAdapters to permit using row-major and column-major layouts,
+// and rotation matrices embedded in larger matrices (such as a 3x4
+// projection matrix).
+template <typename T, int row_stride, int col_stride>
+struct MatrixAdapter;
+
+// Convenience functions to create a MatrixAdapter that treats the
+// array pointed to by "pointer" as a 3x3 (contiguous) column-major or
+// row-major matrix.
+template <typename T>
+MatrixAdapter<T, 1, 3> ColumnMajorAdapter3x3(T* pointer);
+
+template <typename T>
+MatrixAdapter<T, 3, 1> RowMajorAdapter3x3(T* pointer);
+
 // Convert a value in combined axis-angle representation to a quaternion.
 // The value angle_axis is a triple whose norm is an angle in radians,
 // and whose direction is aligned with the axis of rotation,
@@ -73,9 +98,20 @@ void QuaternionToAngleAxis(T const* quaternion, T* angle_axis);
 // axis-angle rotation representations.  Templated for use with
 // autodifferentiation.
 template <typename T>
-void RotationMatrixToAngleAxis(T const * R, T * angle_axis);
+void RotationMatrixToAngleAxis(T const* R, T* angle_axis);
+
+template <typename T, int row_stride, int col_stride>
+void RotationMatrixToAngleAxis(
+    const MatrixAdapter<const T, row_stride, col_stride>& R,
+    T* angle_axis);
+
 template <typename T>
-void AngleAxisToRotationMatrix(T const * angle_axis, T * R);
+void AngleAxisToRotationMatrix(T const* angle_axis, T* R);
+
+template <typename T, int row_stride, int col_stride>
+void AngleAxisToRotationMatrix(
+    T const* angle_axis,
+    const MatrixAdapter<T, row_stride, col_stride>& R);
 
 // Conversions between 3x3 rotation matrix (in row major order) and
 // Euler angle (in degrees) rotation representations.
@@ -85,6 +121,11 @@ void AngleAxisToRotationMatrix(T const * angle_axis, T * R);
 // total rotation R is Rz * Ry * Rx.
 template <typename T>
 void EulerAnglesToRotationMatrix(const T* euler, int row_stride, T* R);
+
+template <typename T, int row_stride, int col_stride>
+void EulerAnglesToRotationMatrix(
+    const T* euler,
+    const MatrixAdapter<T, row_stride, col_stride>& R);
 
 // Convert a 4-vector to a 3x3 scaled rotation matrix.
 //
@@ -108,10 +149,20 @@ void EulerAnglesToRotationMatrix(const T* euler, int row_stride, T* R);
 template <typename T> inline
 void QuaternionToScaledRotation(const T q[4], T R[3 * 3]);
 
+template <typename T, int row_stride, int col_stride> inline
+void QuaternionToScaledRotation(
+    const T q[4],
+    const MatrixAdapter<T, row_stride, col_stride>& R);
+
 // Same as above except that the rotation matrix is normalized by the
 // Frobenius norm, so that R * R' = I (and det(R) = 1).
 template <typename T> inline
 void QuaternionToRotation(const T q[4], T R[3 * 3]);
+
+template <typename T, int row_stride, int col_stride> inline
+void QuaternionToRotation(
+    const T q[4],
+    const MatrixAdapter<T, row_stride, col_stride>& R);
 
 // Rotates a point pt by a quaternion q:
 //
@@ -145,6 +196,28 @@ template<typename T> inline
 void AngleAxisRotatePoint(const T angle_axis[3], const T pt[3], T result[3]);
 
 // --- IMPLEMENTATION
+
+template<typename T, int row_stride, int col_stride>
+struct MatrixAdapter {
+  T* pointer_;
+  explicit MatrixAdapter(T* pointer)
+    : pointer_(pointer)
+  {}
+
+  T& operator()(int r, int c) const {
+    return pointer_[r * row_stride + c * col_stride];
+  }
+};
+
+template <typename T>
+MatrixAdapter<T, 1, 3> ColumnMajorAdapter3x3(T* pointer) {
+  return MatrixAdapter<T, 1, 3>(pointer);
+}
+
+template <typename T>
+MatrixAdapter<T, 3, 1> RowMajorAdapter3x3(T* pointer) {
+  return MatrixAdapter<T, 3, 1>(pointer);
+}
 
 template<typename T>
 inline void AngleAxisToQuaternion(const T* angle_axis, T* quaternion) {
@@ -228,17 +301,24 @@ inline void QuaternionToAngleAxis(const T* quaternion, T* angle_axis) {
 // to not perform division by a small number.
 template <typename T>
 inline void RotationMatrixToAngleAxis(const T * R, T * angle_axis) {
+  RotationMatrixToAngleAxis(ColumnMajorAdapter3x3(R), angle_axis);
+}
+
+template <typename T, int row_stride, int col_stride>
+void RotationMatrixToAngleAxis(
+    const MatrixAdapter<const T, row_stride, col_stride>& R,
+    T * angle_axis) {
   // x = k * 2 * sin(theta), where k is the axis of rotation.
-  angle_axis[0] = R[5] - R[7];
-  angle_axis[1] = R[6] - R[2];
-  angle_axis[2] = R[1] - R[3];
+  angle_axis[0] = R(2, 1) - R(1, 2);
+  angle_axis[1] = R(0, 2) - R(2, 0);
+  angle_axis[2] = R(1, 0) - R(0, 1);
 
   static const T kOne = T(1.0);
   static const T kTwo = T(2.0);
 
   // Since the right hand side may give numbers just above 1.0 or
   // below -1.0 leading to atan misbehaving, we threshold.
-  T costheta = std::min(std::max((R[0] + R[4] + R[8] - kOne) / kTwo,
+  T costheta = std::min(std::max((R(0, 0) + R(1, 1) + R(2, 2) - kOne) / kTwo,
                                  T(-1.0)),
                         kOne);
 
@@ -296,7 +376,7 @@ inline void RotationMatrixToAngleAxis(const T * R, T * angle_axis) {
   // with the sign of sin(theta). If they are the same, then
   // angle_axis[i] should be positive, otherwise negative.
   for (int i = 0; i < 3; ++i) {
-    angle_axis[i] = theta * sqrt((R[i*4] - costheta) * inv_one_minus_costheta);
+    angle_axis[i] = theta * sqrt((R(i, i) - costheta) * inv_one_minus_costheta);
     if (((sintheta < 0.0) && (angle_axis[i] > 0.0)) ||
         ((sintheta > 0.0) && (angle_axis[i] < 0.0))) {
       angle_axis[i] = -angle_axis[i];
@@ -306,6 +386,13 @@ inline void RotationMatrixToAngleAxis(const T * R, T * angle_axis) {
 
 template <typename T>
 inline void AngleAxisToRotationMatrix(const T * angle_axis, T * R) {
+  AngleAxisToRotationMatrix(angle_axis, ColumnMajorAdapter3x3(R));
+}
+
+template <typename T, int row_stride, int col_stride>
+void AngleAxisToRotationMatrix(
+    const T * angle_axis,
+    const MatrixAdapter<T, row_stride, col_stride>& R) {
   static const T kOne = T(1.0);
   const T theta2 = DotProduct(angle_axis, angle_axis);
   if (theta2 > 0.0) {
@@ -320,33 +407,41 @@ inline void AngleAxisToRotationMatrix(const T * angle_axis, T * R) {
     const T costheta = cos(theta);
     const T sintheta = sin(theta);
 
-    R[0] =     costheta   + wx*wx*(kOne -    costheta);
-    R[1] =  wz*sintheta   + wx*wy*(kOne -    costheta);
-    R[2] = -wy*sintheta   + wx*wz*(kOne -    costheta);
-    R[3] =  wx*wy*(kOne - costheta)     - wz*sintheta;
-    R[4] =     costheta   + wy*wy*(kOne -    costheta);
-    R[5] =  wx*sintheta   + wy*wz*(kOne -    costheta);
-    R[6] =  wy*sintheta   + wx*wz*(kOne -    costheta);
-    R[7] = -wx*sintheta   + wy*wz*(kOne -    costheta);
-    R[8] =     costheta   + wz*wz*(kOne -    costheta);
+    R(0, 0) =     costheta   + wx*wx*(kOne -    costheta);
+    R(1, 0) =  wz*sintheta   + wx*wy*(kOne -    costheta);
+    R(2, 0) = -wy*sintheta   + wx*wz*(kOne -    costheta);
+    R(0, 1) =  wx*wy*(kOne - costheta)     - wz*sintheta;
+    R(1, 1) =     costheta   + wy*wy*(kOne -    costheta);
+    R(2, 1) =  wx*sintheta   + wy*wz*(kOne -    costheta);
+    R(0, 2) =  wy*sintheta   + wx*wz*(kOne -    costheta);
+    R(1, 2) = -wx*sintheta   + wy*wz*(kOne -    costheta);
+    R(2, 2) =     costheta   + wz*wz*(kOne -    costheta);
   } else {
     // At zero, we switch to using the first order Taylor expansion.
-    R[0] =  kOne;
-    R[1] = -angle_axis[2];
-    R[2] =  angle_axis[1];
-    R[3] =  angle_axis[2];
-    R[4] =  kOne;
-    R[5] = -angle_axis[0];
-    R[6] = -angle_axis[1];
-    R[7] =  angle_axis[0];
-    R[8] = kOne;
+    R(0, 0) =  kOne;
+    R(1, 0) = -angle_axis[2];
+    R(2, 0) =  angle_axis[1];
+    R(0, 1) =  angle_axis[2];
+    R(1, 1) =  kOne;
+    R(2, 1) = -angle_axis[0];
+    R(0, 2) = -angle_axis[1];
+    R(1, 2) =  angle_axis[0];
+    R(2, 2) = kOne;
   }
 }
 
 template <typename T>
 inline void EulerAnglesToRotationMatrix(const T* euler,
-                                        const int row_stride,
+                                        const int row_stride_parameter,
                                         T* R) {
+  CHECK_EQ(row_stride_parameter, 3);
+  EulerAnglesToRotationMatrix(euler, RowMajorAdapter3x3(R));
+}
+
+template <typename T, int row_stride, int col_stride>
+void EulerAnglesToRotationMatrix(
+    const T* euler,
+    const MatrixAdapter<T, row_stride, col_stride>& R) {
   const double kPi = 3.14159265358979323846;
   const T degrees_to_radians(kPi / 180.0);
 
@@ -361,26 +456,28 @@ inline void EulerAnglesToRotationMatrix(const T* euler,
   const T c3 = cos(pitch);
   const T s3 = sin(pitch);
 
-  // Rows of the rotation matrix.
-  T* R1 = R;
-  T* R2 = R1 + row_stride;
-  T* R3 = R2 + row_stride;
+  R(0, 0) = c1*c2;
+  R(0, 1) = -s1*c3 + c1*s2*s3;
+  R(0, 2) = s1*s3 + c1*s2*c3;
 
-  R1[0] = c1*c2;
-  R1[1] = -s1*c3 + c1*s2*s3;
-  R1[2] = s1*s3 + c1*s2*c3;
+  R(1, 0) = s1*c2;
+  R(1, 1) = c1*c3 + s1*s2*s3;
+  R(1, 2) = -c1*s3 + s1*s2*c3;
 
-  R2[0] = s1*c2;
-  R2[1] = c1*c3 + s1*s2*s3;
-  R2[2] = -c1*s3 + s1*s2*c3;
-
-  R3[0] = -s2;
-  R3[1] = c2*s3;
-  R3[2] = c2*c3;
+  R(2, 0) = -s2;
+  R(2, 1) = c2*s3;
+  R(2, 2) = c2*c3;
 }
 
 template <typename T> inline
 void QuaternionToScaledRotation(const T q[4], T R[3 * 3]) {
+  QuaternionToScaledRotation(q, RowMajorAdapter3x3(R));
+}
+
+template <typename T, int row_stride, int col_stride> inline
+void QuaternionToScaledRotation(
+    const T q[4],
+    const MatrixAdapter<T, row_stride, col_stride>& R) {
   // Make convenient names for elements of q.
   T a = q[0];
   T b = q[1];
@@ -399,21 +496,29 @@ void QuaternionToScaledRotation(const T q[4], T R[3 * 3]) {
   T cd = c * d;
   T dd = d * d;
 
-  R[0] =  aa + bb - cc - dd; R[1] = T(2) * (bc - ad); R[2] = T(2) * (ac + bd);  // NOLINT
-  R[3] = T(2) * (ad + bc); R[4] =  aa - bb + cc - dd; R[5] = T(2) * (cd - ab);  // NOLINT
-  R[6] = T(2) * (bd - ac); R[7] = T(2) * (ab + cd); R[8] =  aa - bb - cc + dd;  // NOLINT
+  R(0, 0) = aa + bb - cc - dd; R(0, 1) = T(2) * (bc - ad);  R(0, 2) = T(2) * (ac + bd);  // NOLINT
+  R(1, 0) = T(2) * (ad + bc);  R(1, 1) = aa - bb + cc - dd; R(1, 2) = T(2) * (cd - ab);  // NOLINT
+  R(2, 0) = T(2) * (bd - ac);  R(2, 1) = T(2) * (ab + cd);  R(2, 2) = aa - bb - cc + dd; // NOLINT
 }
 
 template <typename T> inline
 void QuaternionToRotation(const T q[4], T R[3 * 3]) {
+  QuaternionToRotation(q, RowMajorAdapter3x3(R));
+}
+
+template <typename T, int row_stride, int col_stride> inline
+void QuaternionToRotation(const T q[4],
+                          const MatrixAdapter<T, row_stride, col_stride>& R) {
   QuaternionToScaledRotation(q, R);
 
   T normalizer = q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3];
   CHECK_NE(normalizer, T(0));
   normalizer = T(1) / normalizer;
 
-  for (int i = 0; i < 9; ++i) {
-    R[i] *= normalizer;
+  for (int i = 0; i < 3; ++i) {
+    for (int j = 0; j < 3; ++j) {
+      R(i, j) *= normalizer;
+    }
   }
 }
 
@@ -432,7 +537,6 @@ void UnitQuaternionRotatePoint(const T q[4], const T pt[3], T result[3]) {
   result[1] = T(2) * ((t4 + t6) * pt[0] + (t5 + t1) * pt[1] + (t9 - t2) * pt[2]) + pt[1];  // NOLINT
   result[2] = T(2) * ((t7 - t3) * pt[0] + (t2 + t9) * pt[1] + (t5 + t8) * pt[2]) + pt[2];  // NOLINT
 }
-
 
 template <typename T> inline
 void QuaternionRotatePoint(const T q[4], const T pt[3], T result[3]) {

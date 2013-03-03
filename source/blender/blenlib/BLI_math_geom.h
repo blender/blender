@@ -260,6 +260,11 @@ MINLINE void madd_sh_shfl(float r[9], const float sh[3], const float f);
 
 /********************************* Form Factor *******************************/
 
+float form_factor_quad(const float p[3], const float n[3],
+                       const float q0[3], const float q1[3], const float q2[3], const float q3[3]);
+int form_factor_visible_quad(const float p[3], const float n[3],
+                             const float v0[3], const float v1[3], const float v2[3],
+                             float q0[3], float q1[3], float q2[3], float q3[3]);
 float form_factor_hemi_poly(float p[3], float n[3],
                             float v1[3], float v2[3], float v3[3], float v4[3]);
 

@@ -83,11 +83,14 @@
 #include <omp.h>
 #endif
 
+#include <map>
+#include <vector>
+#include "ceres/execution_summary.h"
+#include "ceres/internal/eigen.h"
+#include "ceres/internal/scoped_ptr.h"
 #include "ceres/parameter_block.h"
 #include "ceres/program.h"
 #include "ceres/residual_block.h"
-#include "ceres/internal/eigen.h"
-#include "ceres/internal/scoped_ptr.h"
 
 namespace ceres {
 namespace internal {
@@ -122,6 +125,12 @@ class ProgramEvaluator : public Evaluator {
                 double* residuals,
                 double* gradient,
                 SparseMatrix* jacobian) {
+    ScopedExecutionTimer total_timer("Evaluator::Total", &execution_summary_);
+    ScopedExecutionTimer call_type_timer(gradient == NULL && jacobian == NULL
+                                         ? "Evaluator::Residual"
+                                         : "Evaluator::Jacobian",
+                                         &execution_summary_);
+
     // The parameters are stateful, so set the state before evaluating.
     if (!program_->StateVectorToParameterBlocks(state)) {
       return false;
@@ -129,7 +138,7 @@ class ProgramEvaluator : public Evaluator {
 
     if (residuals != NULL) {
       VectorRef(residuals, program_->NumResiduals()).setZero();
-    } 
+    }
 
     if (jacobian != NULL) {
       jacobian->SetZero();
@@ -138,6 +147,10 @@ class ProgramEvaluator : public Evaluator {
     // Each thread gets it's own cost and evaluate scratch space.
     for (int i = 0; i < options_.num_threads; ++i) {
       evaluate_scratch_[i].cost = 0.0;
+      if (gradient != NULL) {
+        VectorRef(evaluate_scratch_[i].gradient.get(),
+                  program_->NumEffectiveParameters()).setZero();
+      }
     }
 
     // This bool is used to disable the loop if an error is encountered
@@ -262,6 +275,14 @@ class ProgramEvaluator : public Evaluator {
     return program_->NumResiduals();
   }
 
+  virtual map<string, int> CallStatistics() const {
+    return execution_summary_.calls();
+  }
+
+  virtual map<string, double> TimeStatistics() const {
+    return execution_summary_.times();
+  }
+
  private:
   // Per-thread scratch space needed to evaluate and store each residual block.
   struct EvaluateScratch {
@@ -327,6 +348,7 @@ class ProgramEvaluator : public Evaluator {
   scoped_array<EvaluatePreparer> evaluate_preparers_;
   scoped_array<EvaluateScratch> evaluate_scratch_;
   vector<int> residual_layout_;
+  ::ceres::internal::ExecutionSummary execution_summary_;
 };
 
 }  // namespace internal

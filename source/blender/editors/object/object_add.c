@@ -67,6 +67,7 @@
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_group.h"
+#include "BKE_image.h"
 #include "BKE_lamp.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
@@ -732,6 +733,83 @@ void OBJECT_OT_empty_add(wmOperatorType *ot)
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", object_empty_drawtype_items, 0, "Type", "");
 
+	ED_object_add_generic_props(ot, FALSE);
+}
+
+static int empty_drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Base *base = NULL;
+	Image *ima = NULL;
+	Object *ob = NULL;
+
+	/* check image input variables */
+	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
+		char path[FILE_MAX];
+
+		RNA_string_get(op->ptr, "filepath", path);
+		ima = BKE_image_load_exists(path);
+	}
+	else if (RNA_struct_property_is_set(op->ptr, "name")) {
+		char name[MAX_ID_NAME - 2];
+
+		RNA_string_get(op->ptr, "name", name);
+		ima = (Image *)BKE_libblock_find_name(ID_IM, name);
+	}
+
+	if (ima == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Not an image");
+		return OPERATOR_CANCELLED;
+	}
+
+	base = ED_view3d_give_base_under_cursor(C, event->mval);
+
+	/* if empty under cursor, then set object */
+	if (base && base->object->type == OB_EMPTY) {
+		ob = base->object;
+		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, CTX_data_scene(C));
+	}
+	else {
+		/* add new empty */
+		unsigned int layer;
+		float rot[3];
+
+		if (!ED_object_add_generic_get_opts(C, op, NULL, rot, NULL, &layer, NULL))
+			return OPERATOR_CANCELLED;
+
+		ob = ED_object_add_type(C, OB_EMPTY, NULL, rot, FALSE, layer);
+
+		/* add under the mouse */
+		ED_object_location_from_view(C, ob->loc);
+		ED_view3d_cursor3d_position(C, ob->loc, event->mval);
+	}
+
+	ob->empty_drawtype = OB_EMPTY_IMAGE;
+	ob->data = ima;
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_drop_named_image(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name = "Add Empty Image/Drop Image To Empty";
+	ot->description = "Add an empty image type to scene with data";
+	ot->idname = "OBJECT_OT_drop_named_image";
+
+	/* api callbacks */
+	ot->invoke = empty_drop_named_image_invoke;
+	ot->poll = ED_operator_objectmode;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	prop = RNA_def_string(ot->srna, "filepath", "", FILE_MAX, "Filepath", "Path to image file");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+	prop = RNA_def_string(ot->srna, "name", "", MAX_ID_NAME - 2, "Name", "Image name to assign");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	ED_object_add_generic_props(ot, FALSE);
 }
 
@@ -2034,12 +2112,17 @@ static int add_named_exec(bContext *C, wmOperator *op)
 	}
 
 	basen->lay = basen->object->lay = scene->lay;
+	basen->object->restrictflag &= ~OB_RESTRICT_VIEW;
 
 	if (event) {
+		ARegion *ar = CTX_wm_region(C);
+		const int mval[2] = {event->x - ar->winrct.xmin,
+		                     event->y - ar->winrct.ymin};
 		ED_object_location_from_view(C, basen->object->loc);
-		ED_view3d_cursor3d_position(C, basen->object->loc, event->mval);
+		ED_view3d_cursor3d_position(C, basen->object->loc, mval);
 	}
 	
+	ED_base_object_select(basen, BA_SELECT);
 	ED_base_object_activate(C, basen);
 
 	copy_object_set_idnew(C, dupflag);

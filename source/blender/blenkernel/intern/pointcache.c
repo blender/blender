@@ -3566,7 +3566,7 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 		BLI_snprintf(cache->info, sizeof(cache->info), IFACE_("%s, cache is outdated!"), mem_info);
 	}
 	else if (cache->flag & PTCACHE_FRAMES_SKIPPED) {
-		BLI_snprintf(cache->info, sizeof(cache->info), IFACE_("%s, not exact since frame %i."),
+		BLI_snprintf(cache->info, sizeof(cache->info), IFACE_("%s, not exact since frame %i"),
 		             mem_info, cache->last_exact);
 	}
 	else {

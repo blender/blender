@@ -300,7 +300,7 @@ double InternalReprojectionError(const Tracks &image_tracks,
            ex,
            ey,
            sqrt(ex*ex + ey*ey));
-    LG << line;
+    VLOG(1) << line;
 
     total_error += sqrt(ex*ex + ey*ey);
   }

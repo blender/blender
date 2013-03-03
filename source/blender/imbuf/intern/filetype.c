@@ -26,6 +26,9 @@
 
 
 #include <stddef.h>
+
+#include "BLI_utildefines.h"
+
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_filetype.h"
@@ -56,7 +59,7 @@ static int imb_ftype_iris(ImFileType *type, ImBuf *ibuf)
 	return (ibuf->ftype == IMAGIC);
 }
 #ifdef WITH_QUICKTIME
-static int imb_ftype_quicktime(ImFileType *type, ImBuf *ibuf)
+static int imb_ftype_quicktime(ImFileType *UNUSED(type), ImBuf *UNUSED(ibuf))
 {
 	return 0; /* XXX */
 }

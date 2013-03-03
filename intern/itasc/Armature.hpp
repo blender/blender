@@ -111,7 +111,9 @@ private:
 	int m_qCCh;
 	CacheTS m_qCTs;
 	int m_yCCh;
+#if 0
 	CacheTS m_yCTs;
+#endif
     JntArray m_qKdl;
     JntArray m_oldqKdl;
     JntArray m_newqKdl;

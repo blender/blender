@@ -2892,7 +2892,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_PartSetting_linelentail_get", "rna_PartSetting_linelentail_set", NULL);
 	RNA_def_property_range(prop, 0.0f, 100000.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 10.0f, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Back", "Length of the line's tail");
+	RNA_def_property_ui_text(prop, "Tail", "Length of the line's tail");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
 	prop = RNA_def_property(srna, "line_length_head", PROP_FLOAT, PROP_NONE);

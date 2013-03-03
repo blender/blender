@@ -28,10 +28,11 @@
 //
 // Author: keir@google.com (Keir Mierle)
 
+#include "ceres/split.h"
+
 #include <string>
 #include <vector>
 #include <iterator>
-#include "ceres/split.h"
 #include "ceres/internal/port.h"
 
 namespace ceres {

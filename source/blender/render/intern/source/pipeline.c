@@ -1457,7 +1457,7 @@ static void tag_scenes_for_render(Render *re)
 						Scene *scene = (Scene*) node->id;
 
 						if (scene->r.alphamode != R_ALPHAPREMUL) {
-							BKE_reportf(re->reports, RPT_WARNING, "Setting scene %s alpha mode to Premul\n", scene->id.name + 2);
+							BKE_reportf(re->reports, RPT_WARNING, "Setting scene %s alpha mode to Premul", scene->id.name + 2);
 
 							/* also print, so feedback is immediate */
 							printf("2.66 versioning fix: setting scene %s alpha mode to Premul\n", scene->id.name + 2);

@@ -39,7 +39,7 @@
 namespace ceres {
 namespace internal {
 
-CXSparse::CXSparse() : scratch_size_(0), scratch_(NULL) {
+CXSparse::CXSparse() : scratch_(NULL), scratch_size_(0) {
 }
 
 CXSparse::~CXSparse() {
@@ -116,12 +116,12 @@ cs_di* CXSparse::CreateSparseMatrix(TripletSparseMatrix* tsm) {
   return cs_compress(&tsm_wrapper);
 }
 
-void CXSparse::Free(cs_di* factor) {
-  cs_free(factor);
+void CXSparse::Free(cs_di* sparse_matrix) {
+  cs_di_spfree(sparse_matrix);
 }
 
-void CXSparse::Free(cs_dis* factor) {
-  cs_sfree(factor);
+void CXSparse::Free(cs_dis* symbolic_factorization) {
+  cs_di_sfree(symbolic_factorization);
 }
 
 }  // namespace internal

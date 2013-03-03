@@ -89,6 +89,7 @@ class SEQUENCER_HT_header(Header):
                 layout.separator()
                 layout.operator("sequencer.refresh_all")
 
+            layout.prop(st, "preview_channels", expand=True, text="")
             layout.prop(st, "display_channel", text="Channel")
 
             ed = context.scene.sequence_editor

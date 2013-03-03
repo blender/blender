@@ -2892,7 +2892,7 @@ void CLIP_OT_set_solver_keyframe(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "keyframe", keyframe_items, 0, "Keyframe", "keyframe to set");
+	RNA_def_enum(ot->srna, "keyframe", keyframe_items, 0, "Keyframe", "Keyframe to set");
 }
 
 /********************** track copy color operator *********************/

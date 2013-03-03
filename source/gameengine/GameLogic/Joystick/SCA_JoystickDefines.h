@@ -37,10 +37,10 @@
 #endif
 
 #ifndef _DEBUG
-#  define ECHO(x)
+#  define JOYSTICK_ECHO(x)
 #else
 #  include <iostream>
-#  define ECHO(x) std::cout << x << std::endl;
+#  define JOYSTICK_ECHO(x) std::cout << x << std::endl;
 #endif
 
 #define JOYINDEX_MAX			8

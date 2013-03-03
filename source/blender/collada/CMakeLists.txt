@@ -38,7 +38,7 @@ set(INC
 	../../../intern/guardedalloc
 	../ikplugin
 	../../../intern/iksolver/extern
-	
+	../bmesh
 )
 
 set(INC_SYS

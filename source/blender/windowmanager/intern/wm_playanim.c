@@ -252,7 +252,14 @@ static void playanim_toscreen(PlayAnimPict *picture, struct ImBuf *ibuf, int fon
 
 	glRasterPos2f(0.0f, 0.0f);
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	fdrawcheckerboard(0.0f, 0.0f, ibuf->x, ibuf->y);
+
 	glDrawPixels(ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+
+	glDisable(GL_BLEND);
 
 	pupdate_time();
 

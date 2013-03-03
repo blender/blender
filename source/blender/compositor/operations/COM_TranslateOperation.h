@@ -33,8 +33,6 @@ private:
 	float m_deltaX;
 	float m_deltaY;
 	bool m_isDeltaSet;
-	float m_relativeOffsetX;
-	float m_relativeOffsetY;
 	float m_factorX;
 	float m_factorY;
 public:

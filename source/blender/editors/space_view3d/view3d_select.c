@@ -617,7 +617,8 @@ static void do_lasso_select_lattice__doSelect(void *userData, BPoint *bp, const 
 	LassoSelectUserData *data = userData;
 
 	if (BLI_rctf_isect_pt_v(data->rect_fl, screen_co) &&
-	    BLI_lasso_is_point_inside(data->mcords, data->moves, screen_co[0], screen_co[1], IS_CLIPPED)) {
+	    BLI_lasso_is_point_inside(data->mcords, data->moves, screen_co[0], screen_co[1], IS_CLIPPED))
+	{
 		bp->f1 = data->select ? (bp->f1 | SELECT) : (bp->f1 & ~SELECT);
 	}
 }
@@ -717,7 +718,8 @@ static void do_lasso_select_mball__doSelectElem(void *userData, struct MetaElem 
 	LassoSelectUserData *data = userData;
 
 	if (BLI_rctf_isect_pt_v(data->rect_fl, screen_co) &&
-	    BLI_lasso_is_point_inside(data->mcords, data->moves, screen_co[0], screen_co[1], INT_MAX)) {
+	    BLI_lasso_is_point_inside(data->mcords, data->moves, screen_co[0], screen_co[1], INT_MAX))
+	{
 		if (data->select) ml->flag |=  SELECT;
 		else              ml->flag &= ~SELECT;
 		data->is_change = TRUE;

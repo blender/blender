@@ -44,7 +44,13 @@ class VIEW3D_HT_header(Header):
             sub.menu("VIEW3D_MT_view")
 
             # Select Menu
-            if mode_string not in {'EDIT_TEXT', 'SCULPT', 'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
+            if mode_string in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
+                mesh = obj.data
+                if mesh.use_paint_mask:
+                    sub.menu("VIEW3D_MT_select_paint_mask")
+                elif mesh.use_paint_mask_vertex and mode_string == 'PAINT_WEIGHT':
+                    sub.menu("VIEW3D_MT_select_paint_mask_vertex")
+            elif mode_string not in {'EDIT_TEXT', 'SCULPT'}:
                 sub.menu("VIEW3D_MT_select_%s" % mode_string.lower())
 
             if edit_object:
@@ -203,7 +209,7 @@ class VIEW3D_MT_transform_object(VIEW3D_MT_transform_base):
         layout.operator("object.origin_set", text="Geometry to Origin").type = 'GEOMETRY_ORIGIN'
         layout.operator("object.origin_set", text="Origin to Geometry").type = 'ORIGIN_GEOMETRY'
         layout.operator("object.origin_set", text="Origin to 3D Cursor").type = 'ORIGIN_CURSOR'
-
+        layout.operator("object.origin_set", text="Origin to Center of Mass").type = 'ORIGIN_CENTER_OF_MASS'
         layout.separator()
 
         layout.operator("object.randomize_transform")
@@ -623,7 +629,7 @@ class VIEW3D_MT_select_edit_curve(Menu):
         layout.operator("curve.select_all").action = 'TOGGLE'
         layout.operator("curve.select_all", text="Inverse").action = 'INVERT'
         layout.operator("curve.select_random")
-        layout.operator("curve.select_nth", text="Every Nth Number of Points")
+        layout.operator("curve.select_nth")
         layout.operator("curve.select_linked", text="Select Linked")
 
         layout.separator()
@@ -653,7 +659,7 @@ class VIEW3D_MT_select_edit_surface(Menu):
         layout.operator("curve.select_all").action = 'TOGGLE'
         layout.operator("curve.select_all", text="Inverse").action = 'INVERT'
         layout.operator("curve.select_random")
-        layout.operator("curve.select_nth", text="Every Nth Number of Points")
+        layout.operator("curve.select_nth")
         layout.operator("curve.select_linked", text="Select Linked")
 
         layout.separator()
@@ -673,6 +679,7 @@ class VIEW3D_MT_select_edit_metaball(Menu):
         layout = self.layout
 
         layout.operator("view3d.select_border")
+        layout.operator("view3d.select_circle")
 
         layout.separator()
 
@@ -730,15 +737,39 @@ class VIEW3D_MT_select_edit_armature(Menu):
         layout.operator("object.select_pattern", text="Select Pattern...")
 
 
-class VIEW3D_MT_select_face(Menu):  # XXX no matching enum
+class VIEW3D_MT_select_paint_mask(Menu):
     bl_label = "Select"
 
     def draw(self, context):
-        # layout = self.layout
+        layout = self.layout
 
-        # TODO
-        # see view3d_select_faceselmenu
-        pass
+        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_circle")
+
+        layout.separator()
+
+        layout.operator("paint.face_select_all").action = 'TOGGLE'
+        layout.operator("paint.face_select_all", text="Inverse").action = 'INVERT'
+
+        layout.separator()
+
+        layout.operator("paint.face_select_linked", text="Linked")
+
+
+class VIEW3D_MT_select_paint_mask_vertex(Menu):
+    bl_label = "Select"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_circle")
+
+        layout.separator()
+
+        layout.operator("paint.vert_select_all").action = 'TOGGLE'
+        layout.operator("paint.vert_select_all", text="Inverse").action = 'INVERT'
+
 
 # ********** Object menu **********
 
@@ -1612,6 +1643,8 @@ class BoneOptions:
     def draw(self, context):
         layout = self.layout
 
+        default_context = bpy.app.translations.contexts.default
+
         options = [
             "show_wire",
             "use_deform",
@@ -1631,7 +1664,8 @@ class BoneOptions:
             opt_suffix = "bone."
 
         for opt in options:
-            props = layout.operator("wm.context_collection_boolean_set", text=bone_props[opt].name)
+            props = layout.operator("wm.context_collection_boolean_set", text=bone_props[opt].name,
+                                    text_ctxt=default_context)
             props.data_path_iter = data_path_iter
             props.data_path_item = opt_suffix + opt
             props.type = self.type
@@ -2497,25 +2531,37 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
 
         mesh = context.active_object.data
 
-        col = layout.column()
+        split = layout.split()
+        
+        col = split.column()
         col.label(text="Overlays:")
-        col.prop(mesh, "show_edges", text="Edges")
         col.prop(mesh, "show_faces", text="Faces")
+        col.prop(mesh, "show_edges", text="Edges")
         col.prop(mesh, "show_edge_crease", text="Creases")
-        col.prop(mesh, "show_edge_bevel_weight", text="Bevel Weights")
+        
+        col = split.column()
+        col.label()
         col.prop(mesh, "show_edge_seams", text="Seams")
         col.prop(mesh, "show_edge_sharp", text="Sharp")
+        col.prop(mesh, "show_edge_bevel_weight", text="Weights")
+        
         if context.scene and bpy.app.build_options.freestyle:
             col.prop(mesh, "show_freestyle_edge_marks", text="Freestyle Edge Marks")
             col.prop(mesh, "show_freestyle_face_marks", text="Freestyle Face Marks")
+        
+        col = layout.column()
 
         col.separator()
         col.label(text="Normals:")
         row = col.row()
+        
         sub = row.row(align=True)
         sub.prop(mesh, "show_normal_vertex", text="", icon='VERTEXSEL')
         sub.prop(mesh, "show_normal_face", text="", icon='FACESEL')
-        row.prop(context.scene.tool_settings, "normal_size", text="Size")
+        
+        sub = row.row(align=True)
+        sub.active = mesh.show_normal_vertex or mesh.show_normal_face
+        sub.prop(context.scene.tool_settings, "normal_size", text="Size")
 
         col.separator()
         col.label(text="Numerics:")

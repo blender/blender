@@ -28,6 +28,9 @@
  *  \ingroup DNA
  *  \since mar-2001
  *  \author nzc
+ *
+ * Text blocks used for Python-Scripts, OpenShadingLanguage
+ * and arbitrary text data to store in blend files.
  */
 
 #ifndef __DNA_TEXT_TYPES_H__
@@ -75,4 +78,4 @@ typedef struct Text {
 #define TXT_FOLLOW              0x0200 /* always follow cursor (console) */
 #define TXT_TABSTOSPACES        0x0400 /* use space instead of tabs */
 
-#endif
+#endif  /* __DNA_TEXT_TYPES_H__ */

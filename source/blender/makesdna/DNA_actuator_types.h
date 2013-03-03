@@ -27,6 +27,8 @@
 
 /** \file DNA_actuator_types.h
  *  \ingroup DNA
+ *
+ * #bActuator type is specifically for use by Object logic-bricks in the game-engine.
  */
 
 #ifndef __DNA_ACTUATOR_TYPES_H__
@@ -535,6 +537,4 @@ typedef struct bActuator {
 #define ACT_STEERING_AUTOMATICFACING   4
 #define ACT_STEERING_NORMALUP  8
 
-#endif
-
-
+#endif  /* __DNA_ACTUATOR_TYPES_H__ */

@@ -174,7 +174,7 @@ namespace carve {
 
       double scoreQuad(edge_map_t::iterator i, edge_map_t &edge_map) {
         if (!(*i).second.first || !(*i).second.second) return -1;
-        return 0;
+        return -1;
       }
 
       carve::mesh::MeshSet<3>::face_t *mergeQuad(edge_map_t::iterator i, edge_map_t &edge_map) {

@@ -39,11 +39,12 @@
 #include <set>
 #include <vector>
 
-#include <glog/logging.h>
 #include "ceres/internal/macros.h"
 #include "ceres/internal/port.h"
 #include "ceres/internal/scoped_ptr.h"
 #include "ceres/types.h"
+#include "glog/logging.h"
+
 
 namespace ceres {
 
@@ -51,6 +52,7 @@ class CostFunction;
 class LossFunction;
 class LocalParameterization;
 class Solver;
+struct CRSMatrix;
 
 namespace internal {
 class Preprocessor;
@@ -59,10 +61,9 @@ class ParameterBlock;
 class ResidualBlock;
 }  // namespace internal
 
-// A ResidualBlockId is a handle clients can use to delete residual
-// blocks after creating them. They are opaque for any purposes other
-// than that.
-typedef const internal::ResidualBlock* ResidualBlockId;
+// A ResidualBlockId is an opaque handle clients can use to remove residual
+// blocks from a Problem after adding them.
+typedef internal::ResidualBlock* ResidualBlockId;
 
 // A class to represent non-linear least squares problems. Such
 // problems have a cost function that is a sum of error terms (known
@@ -122,7 +123,9 @@ class Problem {
     Options()
         : cost_function_ownership(TAKE_OWNERSHIP),
           loss_function_ownership(TAKE_OWNERSHIP),
-          local_parameterization_ownership(TAKE_OWNERSHIP) {}
+          local_parameterization_ownership(TAKE_OWNERSHIP),
+          enable_fast_parameter_block_removal(false),
+          disable_all_safety_checks(false) {}
 
     // These flags control whether the Problem object owns the cost
     // functions, loss functions, and parameterizations passed into
@@ -134,6 +137,29 @@ class Problem {
     Ownership cost_function_ownership;
     Ownership loss_function_ownership;
     Ownership local_parameterization_ownership;
+
+    // If true, trades memory for a faster RemoveParameterBlock() operation.
+    //
+    // RemoveParameterBlock() takes time proportional to the size of the entire
+    // Problem. If you only remove parameter blocks from the Problem
+    // occassionaly, this may be acceptable. However, if you are modifying the
+    // Problem frequently, and have memory to spare, then flip this switch to
+    // make RemoveParameterBlock() take time proportional to the number of
+    // residual blocks that depend on it.  The increase in memory usage is an
+    // additonal hash set per parameter block containing all the residuals that
+    // depend on the parameter block.
+    bool enable_fast_parameter_block_removal;
+
+    // By default, Ceres performs a variety of safety checks when constructing
+    // the problem. There is a small but measurable performance penalty to
+    // these checks, typically around 5% of construction time. If you are sure
+    // your problem construction is correct, and 5% of the problem construction
+    // time is truly an overhead you want to avoid, then you can set
+    // disable_all_safety_checks to true.
+    //
+    // WARNING: Do not set this to true, unless you are absolutely sure of what
+    // you are doing.
+    bool disable_all_safety_checks;
   };
 
   // The default constructor is equivalent to the
@@ -208,6 +234,27 @@ class Problem {
                                    LossFunction* loss_function,
                                    double* x0, double* x1, double* x2,
                                    double* x3, double* x4, double* x5);
+  ResidualBlockId AddResidualBlock(CostFunction* cost_function,
+                                   LossFunction* loss_function,
+                                   double* x0, double* x1, double* x2,
+                                   double* x3, double* x4, double* x5,
+                                   double* x6);
+  ResidualBlockId AddResidualBlock(CostFunction* cost_function,
+                                   LossFunction* loss_function,
+                                   double* x0, double* x1, double* x2,
+                                   double* x3, double* x4, double* x5,
+                                   double* x6, double* x7);
+  ResidualBlockId AddResidualBlock(CostFunction* cost_function,
+                                   LossFunction* loss_function,
+                                   double* x0, double* x1, double* x2,
+                                   double* x3, double* x4, double* x5,
+                                   double* x6, double* x7, double* x8);
+  ResidualBlockId AddResidualBlock(CostFunction* cost_function,
+                                   LossFunction* loss_function,
+                                   double* x0, double* x1, double* x2,
+                                   double* x3, double* x4, double* x5,
+                                   double* x6, double* x7, double* x8,
+                                   double* x9);
 
   // Add a parameter block with appropriate size to the problem.
   // Repeated calls with the same arguments are ignored. Repeated
@@ -222,6 +269,33 @@ class Problem {
   void AddParameterBlock(double* values,
                          int size,
                          LocalParameterization* local_parameterization);
+
+  // Remove a parameter block from the problem. The parameterization of the
+  // parameter block, if it exists, will persist until the deletion of the
+  // problem (similar to cost/loss functions in residual block removal). Any
+  // residual blocks that depend on the parameter are also removed, as
+  // described above in RemoveResidualBlock().
+  //
+  // If Problem::Options::enable_fast_parameter_block_removal is true, then the
+  // removal is fast (almost constant time). Otherwise, removing a parameter
+  // block will incur a scan of the entire Problem object.
+  //
+  // WARNING: Removing a residual or parameter block will destroy the implicit
+  // ordering, rendering the jacobian or residuals returned from the solver
+  // uninterpretable. If you depend on the evaluated jacobian, do not use
+  // remove! This may change in a future release.
+  void RemoveParameterBlock(double* values);
+
+  // Remove a residual block from the problem. Any parameters that the residual
+  // block depends on are not removed. The cost and loss functions for the
+  // residual block will not get deleted immediately; won't happen until the
+  // problem itself is deleted.
+  //
+  // WARNING: Removing a residual or parameter block will destroy the implicit
+  // ordering, rendering the jacobian or residuals returned from the solver
+  // uninterpretable. If you depend on the evaluated jacobian, do not use
+  // remove! This may change in a future release.
+  void RemoveResidualBlock(ResidualBlockId residual_block);
 
   // Hold the indicated parameter block constant during optimization.
   void SetParameterBlockConstant(double* values);
@@ -253,6 +327,76 @@ class Problem {
   // The size of the residual vector obtained by summing over the
   // sizes of all of the residual blocks.
   int NumResiduals() const;
+
+  // Options struct to control Problem::Evaluate.
+  struct EvaluateOptions {
+    EvaluateOptions()
+        : num_threads(1) {
+    }
+
+    // The set of parameter blocks for which evaluation should be
+    // performed. This vector determines the order that parameter
+    // blocks occur in the gradient vector and in the columns of the
+    // jacobian matrix. If parameter_blocks is empty, then it is
+    // assumed to be equal to vector containing ALL the parameter
+    // blocks.  Generally speaking the parameter blocks will occur in
+    // the order in which they were added to the problem. But, this
+    // may change if the user removes any parameter blocks from the
+    // problem.
+    //
+    // NOTE: This vector should contain the same pointers as the ones
+    // used to add parameter blocks to the Problem. These parmeter
+    // block should NOT point to new memory locations. Bad things will
+    // happen otherwise.
+    vector<double*> parameter_blocks;
+
+    // The set of residual blocks to evaluate. This vector determines
+    // the order in which the residuals occur, and how the rows of the
+    // jacobian are ordered. If residual_blocks is empty, then it is
+    // assumed to be equal to the vector containing all the residual
+    // blocks. If this vector is empty, then it is assumed to be equal
+    // to a vector containing ALL the residual blocks. Generally
+    // speaking the residual blocks will occur in the order in which
+    // they were added to the problem. But, this may change if the
+    // user removes any residual blocks from the problem.
+    vector<ResidualBlockId> residual_blocks;
+    int num_threads;
+  };
+
+  // Evaluate Problem. Any of the output pointers can be NULL. Which
+  // residual blocks and parameter blocks are used is controlled by
+  // the EvaluateOptions struct above.
+  //
+  // Note 1: The evaluation will use the values stored in the memory
+  // locations pointed to by the parameter block pointers used at the
+  // time of the construction of the problem. i.e.,
+  //
+  //   Problem problem;
+  //   double x = 1;
+  //   problem.Add(new MyCostFunction, NULL, &x);
+  //
+  //   double cost = 0.0;
+  //   problem.Evaluate(Problem::EvaluateOptions(), &cost, NULL, NULL, NULL);
+  //
+  // The cost is evaluated at x = 1. If you wish to evaluate the
+  // problem at x = 2, then
+  //
+  //    x = 2;
+  //    problem.Evaluate(Problem::EvaluateOptions(), &cost, NULL, NULL, NULL);
+  //
+  // is the way to do so.
+  //
+  // Note 2: If no local parameterizations are used, then the size of
+  // the gradient vector (and the number of columns in the jacobian)
+  // is the sum of the sizes of all the parameter blocks. If a
+  // parameter block has a local parameterization, then it contributes
+  // "LocalSize" entries to the gradient vecto (and the number of
+  // columns in the jacobian).
+  bool Evaluate(const EvaluateOptions& options,
+                double* cost,
+                vector<double>* residuals,
+                vector<double>* gradient,
+                CRSMatrix* jacobian);
 
  private:
   friend class Solver;

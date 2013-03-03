@@ -908,6 +908,12 @@ int BKE_mesh_validate_dm(DerivedMesh *dm)
 	                                TRUE, FALSE);
 }
 
+/**
+ * Calculate edges from polygons
+ *
+ * \param mesh  The mesh to add edges into
+ * \param update  When true create new edges co-exist
+ */
 void BKE_mesh_calc_edges(Mesh *mesh, int update)
 {
 	CustomData edata;

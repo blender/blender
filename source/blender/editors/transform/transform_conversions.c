@@ -4560,7 +4560,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	short constinv;
 	short skip_invert = 0;
 
-	if (ob->rigidbody_object) {
+	if (t->mode != TFM_DUMMY && ob->rigidbody_object) {
 		float rot[3][3], scale[3];
 
 		/* save original object transform */

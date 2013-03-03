@@ -137,7 +137,9 @@ public:
 	 * \param	height		The height the window.
 	 * \param	state		The state of the window when opened.
 	 * \param	type		The type of drawing context installed in this window.
-	 * \param       stereoVisual    Create a stereo visual for quad buffered stereo.
+	 * \param	stereoVisual    Create a stereo visual for quad buffered stereo.
+	 * \param	exclusive	Use to show the window ontop and ignore others
+	 *						(used fullscreen).
 	 * \param	parentWindow    Parent (embedder) window
 	 * \return	The new window (or 0 if creation failed).
 	 */
@@ -151,6 +153,7 @@ public:
 	    GHOST_TWindowState state,
 	    GHOST_TDrawingContextType type,
 	    const bool stereoVisual,
+	    const bool exclusive = false,
 	    const GHOST_TUns16 numOfAASamples = 0,
 	    const GHOST_TEmbedderWindowID parentWindow = 0
 	    );

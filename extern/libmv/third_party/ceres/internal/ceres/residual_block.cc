@@ -49,12 +49,14 @@ namespace internal {
 
 ResidualBlock::ResidualBlock(const CostFunction* cost_function,
                              const LossFunction* loss_function,
-                             const vector<ParameterBlock*>& parameter_blocks)
+                             const vector<ParameterBlock*>& parameter_blocks,
+                             int index)
     : cost_function_(cost_function),
       loss_function_(loss_function),
       parameter_blocks_(
           new ParameterBlock* [
-              cost_function->parameter_block_sizes().size()]) {
+              cost_function->parameter_block_sizes().size()]),
+      index_(index) {
   std::copy(parameter_blocks.begin(),
             parameter_blocks.end(),
             parameter_blocks_.get());

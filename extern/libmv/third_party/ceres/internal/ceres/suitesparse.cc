@@ -135,10 +135,11 @@ cholmod_factor* SuiteSparse::BlockAnalyzeCholesky(
   return AnalyzeCholeskyWithUserOrdering(A, ordering);
 }
 
-cholmod_factor* SuiteSparse::AnalyzeCholeskyWithUserOrdering(cholmod_sparse* A,
-                                                             const vector<int>& ordering) {
+cholmod_factor* SuiteSparse::AnalyzeCholeskyWithUserOrdering(
+    cholmod_sparse* A,
+    const vector<int>& ordering) {
   CHECK_EQ(ordering.size(), A->nrow);
-  cc_.nmethods = 1 ;
+  cc_.nmethods = 1;
   cc_.method[0].ordering = CHOLMOD_GIVEN;
   cholmod_factor* factor  =
       cholmod_analyze_p(A, const_cast<int*>(&ordering[0]), NULL, 0, &cc_);

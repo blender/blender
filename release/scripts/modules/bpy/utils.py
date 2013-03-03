@@ -35,6 +35,7 @@ __all__ = (
     "register_module",
     "register_manual_map",
     "unregister_manual_map",
+    "make_rna_paths",
     "manual_map",
     "resource_path",
     "script_path_user",
@@ -640,3 +641,29 @@ def manual_map():
             continue
 
         yield prefix, url_manual_mapping
+
+
+# Build an RNA path from struct/property/enum names.
+def make_rna_paths(struct_name, prop_name, enum_name):
+    """
+    Create RNA "paths" from given names.
+
+    :arg struct_name: Name of a RNA struct (like e.g. "Scene").
+    :type struct_name: string
+    :arg prop_name: Name of a RNA struct's property.
+    :type prop_name: string
+    :arg enum_name: Name of a RNA enum identifier.
+    :type enum_name: string
+    :return: A triple of three "RNA paths" (most_complete_path, "struct.prop", "struct.prop:'enum'").
+             If no enum_name is given, the third element will always be void.
+    :rtype: tuple of strings
+    """
+    src = src_rna = src_enum = ""
+    if struct_name:
+        if prop_name:
+            src = src_rna = ".".join((struct_name, prop_name))
+            if enum_name:
+                src = src_enum = "{}:'{}'".format(src_rna, enum_name)
+        else:
+            src = src_rna = struct_name
+    return src, src_rna, src_enum

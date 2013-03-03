@@ -237,8 +237,6 @@ GPUFunction *GPU_lookup_function(const char *name)
 	if (!FUNCTION_HASH) {
 		FUNCTION_HASH = BLI_ghash_str_new("GPU_lookup_function gh");
 		gpu_parse_functions_string(FUNCTION_HASH, glsl_material_library);
-		/*FUNCTION_PROTOTYPES = gpu_generate_function_prototyps(FUNCTION_HASH);
-		FUNCTION_LIB = GPU_shader_create_lib(datatoc_gpu_shader_material_glsl);*/
 	}
 
 	return (GPUFunction*)BLI_ghash_lookup(FUNCTION_HASH, (void *)name);
@@ -758,7 +756,7 @@ static void GPU_nodes_extract_dynamic_inputs(GPUPass *pass, ListBase *nodes)
 		}
 	}
 
-	GPU_shader_unbind(shader);
+	GPU_shader_unbind();
 }
 
 void GPU_pass_bind(GPUPass *pass, double time, int mipmap)
@@ -820,7 +818,7 @@ void GPU_pass_unbind(GPUPass *pass)
 			input->tex = NULL;
 	}
 	
-	GPU_shader_unbind(shader);
+	GPU_shader_unbind();
 }
 
 /* Node Link Functions */
@@ -1368,7 +1366,7 @@ GPUPass *GPU_generate_pass(ListBase *nodes, GPUNodeLink *outlink, GPUVertexAttri
 	/* generate code and compile with opengl */
 	fragmentcode = code_generate_fragment(nodes, outlink->output, name);
 	vertexcode = code_generate_vertex(nodes);
-	shader = GPU_shader_create(vertexcode, fragmentcode, glsl_material_library); /*FUNCTION_LIB);*/
+	shader = GPU_shader_create(vertexcode, fragmentcode, glsl_material_library, NULL);
 
 	/* failed? */
 	if (!shader) {

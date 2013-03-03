@@ -348,6 +348,7 @@ float IK_SolverGetPoleAngle(IK_Solver *solver)
 	return qsolver->solver.GetPoleAngle();
 }
 
+#if 0
 static void IK_SolverAddCenterOfMass(IK_Solver *solver, IK_Segment *root, float goal[3], float weight)
 {
 	if (solver == NULL || root == NULL)
@@ -363,6 +364,7 @@ static void IK_SolverAddCenterOfMass(IK_Solver *solver, IK_Segment *root, float 
 	com->SetWeight(weight);
 	qsolver->tasks.push_back(com);
 }
+#endif
 
 int IK_Solve(IK_Solver *solver, float tolerance, int max_iterations)
 {

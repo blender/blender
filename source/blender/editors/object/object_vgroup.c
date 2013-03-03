@@ -558,8 +558,10 @@ static int ed_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGrou
 			}
 
 			/* Loop through the vertices.*/
-			for (i = 0, dv_src = dv_array_src, dv_dst = dv_array_dst; i < me_dst->totvert;
-			     i++, dv_dst++, dv_src++, mv_src++, mv_dst++) {
+			for (i = 0, dv_src = dv_array_src, dv_dst = dv_array_dst;
+			     i < me_dst->totvert;
+			     i++, dv_dst++, dv_src++, mv_src++, mv_dst++)
+			{
 
 				if (*dv_dst == NULL) {
 					continue;
@@ -2598,7 +2600,7 @@ static int vertex_group_poll(bContext *C)
 	return (ob && !ob->id.lib && OB_TYPE_SUPPORT_VGROUP(ob->type) && data && !data->lib);
 }
 
-static int UNUSED_FUNCTION(vertex_group_poll_edit) (bContext * C)
+static int UNUSED_FUNCTION(vertex_group_poll_edit) (bContext *C)
 {
 	Object *ob = ED_object_context(C);
 	ID *data = (ob) ? ob->data : NULL;

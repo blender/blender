@@ -133,6 +133,11 @@ void AUD_FFMPEGReader::init()
 	if(!aCodec)
 		AUD_THROW(AUD_ERROR_FFMPEG, nodecoder_error);
 
+#ifdef FFMPEG_SAMPLE_FMT_S16P_SUPPORTED
+	if(m_codecCtx->sample_fmt == AV_SAMPLE_FMT_S16P)
+		m_codecCtx->request_sample_fmt = AV_SAMPLE_FMT_S16;
+#endif
+
 	if(avcodec_open2(m_codecCtx, aCodec, NULL) < 0)
 		AUD_THROW(AUD_ERROR_FFMPEG, codecopen_error);
 

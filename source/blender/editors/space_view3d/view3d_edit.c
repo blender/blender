@@ -996,18 +996,96 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 /* NDOF utility functions
  * (should these functions live in this file?)
  */
-float ndof_to_axis_angle(struct wmNDOFMotionData *ndof, float axis[3])
+float ndof_to_axis_angle(const struct wmNDOFMotionData *ndof, float axis[3])
 {
 	return ndof->dt * normalize_v3_v3(axis, ndof->rvec);
 }
 
-void ndof_to_quat(struct wmNDOFMotionData *ndof, float q[4])
+void ndof_to_quat(const struct wmNDOFMotionData *ndof, float q[4])
 {
 	float axis[3];
 	float angle;
 
 	angle = ndof_to_axis_angle(ndof, axis);
 	axis_angle_to_quat(q, axis, angle);
+}
+
+static void view3d_ndof_orbit(const struct wmNDOFMotionData *ndof, RegionView3D *rv3d, const float view_inv[4],
+                              const float rot_sensitivity, const float dt,
+                              /* optional, can be NULL*/
+                              ViewOpsData *vod)
+{
+	if (U.ndof_flag & NDOF_TURNTABLE) {
+
+		/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
+		float angle, rot[4];
+		float xvec[3] = {1, 0, 0};
+
+		/* Determine the direction of the x vector (for rotating up and down) */
+		mul_qt_v3(view_inv, xvec);
+
+		/* Perform the up/down rotation */
+		angle = rot_sensitivity * dt * ndof->rx;
+		if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
+			angle = -angle;
+		rot[0] = cosf(angle);
+		mul_v3_v3fl(rot + 1, xvec, sin(angle));
+		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
+
+		/* Perform the orbital rotation */
+		angle = rot_sensitivity * dt * ndof->ry;
+		if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
+			angle = -angle;
+
+		/* update the onscreen doo-dad */
+		rv3d->rot_angle = angle;
+		rv3d->rot_axis[0] = 0;
+		rv3d->rot_axis[1] = 0;
+		rv3d->rot_axis[2] = 1;
+
+		rot[0] = cosf(angle);
+		rot[1] = rot[2] = 0.0;
+		rot[3] = sinf(angle);
+		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
+
+	}
+	else {
+		float rot[4];
+		float axis[3];
+		float angle = rot_sensitivity * ndof_to_axis_angle(ndof, axis);
+
+		if (U.ndof_flag & NDOF_ROLL_INVERT_AXIS)   axis[2] = -axis[2];
+		if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)   axis[0] = -axis[0];
+		if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS) axis[1] = -axis[1];
+
+
+		/* transform rotation axis from view to world coordinates */
+		mul_qt_v3(view_inv, axis);
+
+		/* update the onscreen doo-dad */
+		rv3d->rot_angle = angle;
+		copy_v3_v3(rv3d->rot_axis, axis);
+
+		axis_angle_to_quat(rot, axis, angle);
+
+		/* apply rotation */
+		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
+	}
+
+	/* rotate around custom center */
+	if (vod && vod->use_dyn_ofs) {
+		float q1[4];
+
+		/* compute the post multiplication quat, to rotate the offset correctly */
+		conjugate_qt_qt(q1, vod->oldquat);
+		mul_qt_qtqt(q1, q1, rv3d->viewquat);
+
+		conjugate_qt(q1); /* conj == inv for unit quat */
+		copy_v3_v3(rv3d->ofs, vod->ofs);
+		sub_v3_v3(rv3d->ofs, vod->dyn_ofs);
+		mul_qt_v3(q1, rv3d->ofs);
+		add_v3_v3(rv3d->ofs, vod->dyn_ofs);
+	}
 }
 
 /* -- "orbit" navigation (trackball/turntable)
@@ -1065,86 +1143,8 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			}
 
 			if (has_rotation) {
-
 				rv3d->view = RV3D_VIEW_USER;
-
-				if (U.ndof_flag & NDOF_TURNTABLE) {
-
-					/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
-					float angle, rot[4];
-					float xvec[3] = {1, 0, 0};
-
-					/* Determine the direction of the x vector (for rotating up and down) */
-					mul_qt_v3(view_inv, xvec);
-
-					/* Perform the up/down rotation */
-					angle = rot_sensitivity * dt * ndof->rx;
-					if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
-						angle = -angle;
-					rot[0] = cos(angle);
-					mul_v3_v3fl(rot + 1, xvec, sin(angle));
-					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
-
-					/* Perform the orbital rotation */
-					angle = rot_sensitivity * dt * ndof->ry;
-					if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
-						angle = -angle;
-
-					/* update the onscreen doo-dad */
-					rv3d->rot_angle = angle;
-					rv3d->rot_axis[0] = 0;
-					rv3d->rot_axis[1] = 0;
-					rv3d->rot_axis[2] = 1;
-
-					rot[0] = cos(angle);
-					rot[1] = rot[2] = 0.0;
-					rot[3] = sin(angle);
-					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
-					
-				}
-				else {
-					float rot[4];
-					float axis[3];
-					float angle = rot_sensitivity * ndof_to_axis_angle(ndof, axis);
-
-					if (U.ndof_flag & NDOF_ROLL_INVERT_AXIS)
-						axis[2] = -axis[2];
-
-					if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
-						axis[0] = -axis[0];
-
-					if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
-						axis[1] = -axis[1];
-					
-
-					/* transform rotation axis from view to world coordinates */
-					mul_qt_v3(view_inv, axis);
-
-					/* update the onscreen doo-dad */
-					rv3d->rot_angle = angle;
-					copy_v3_v3(rv3d->rot_axis, axis);
-
-					axis_angle_to_quat(rot, axis, angle);
-
-					/* apply rotation */
-					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
-					
-				}
-				
-				/* rotate around custom center */
-				if (vod && vod->use_dyn_ofs) {
-					float q1[4];
-					
-					/* compute the post multiplication quat, to rotate the offset correctly */
-					conjugate_qt_qt(q1, vod->oldquat);
-					mul_qt_qtqt(q1, q1, rv3d->viewquat);
-					
-					conjugate_qt(q1); /* conj == inv for unit quat */
-					copy_v3_v3(rv3d->ofs, vod->ofs);
-					sub_v3_v3(rv3d->ofs, vod->dyn_ofs);
-					mul_qt_v3(q1, rv3d->ofs);
-					add_v3_v3(rv3d->ofs, vod->dyn_ofs);
-				}
+				view3d_ndof_orbit(ndof, rv3d, view_inv, rot_sensitivity, dt, vod);
 			}
 		}
 
@@ -1239,86 +1239,8 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			}
 
 			if (has_rotation) {
-
 				rv3d->view = RV3D_VIEW_USER;
-
-				if (U.ndof_flag & NDOF_TURNTABLE) {
-
-					/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
-					float angle, rot[4];
-					float xvec[3] = {1, 0, 0};
-
-					/* Determine the direction of the x vector (for rotating up and down) */
-					mul_qt_v3(view_inv, xvec);
-
-					/* Perform the up/down rotation */
-					angle = rot_sensitivity * dt * ndof->rx;
-					if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
-						angle = -angle;
-					rot[0] = cos(angle);
-					mul_v3_v3fl(rot + 1, xvec, sin(angle));
-					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
-
-					/* Perform the orbital rotation */
-					angle = rot_sensitivity * dt * ndof->ry;
-					if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
-						angle = -angle;
-
-					/* update the onscreen doo-dad */
-					rv3d->rot_angle = angle;
-					rv3d->rot_axis[0] = 0;
-					rv3d->rot_axis[1] = 0;
-					rv3d->rot_axis[2] = 1;
-
-					rot[0] = cos(angle);
-					rot[1] = rot[2] = 0.0;
-					rot[3] = sin(angle);
-					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
-					
-				}
-				else {
-					float rot[4];
-					float axis[3];
-					float angle = rot_sensitivity * ndof_to_axis_angle(ndof, axis);
-
-					if (U.ndof_flag & NDOF_ROLL_INVERT_AXIS)
-						axis[2] = -axis[2];
-
-					if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
-						axis[0] = -axis[0];
-
-					if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
-						axis[1] = -axis[1];
-					
-
-					/* transform rotation axis from view to world coordinates */
-					mul_qt_v3(view_inv, axis);
-
-					/* update the onscreen doo-dad */
-					rv3d->rot_angle = angle;
-					copy_v3_v3(rv3d->rot_axis, axis);
-
-					axis_angle_to_quat(rot, axis, angle);
-
-					/* apply rotation */
-					mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
-					
-				}
-				
-				/* rotate around custom center */
-				if (vod && vod->use_dyn_ofs) {
-					float q1[4];
-					
-					/* compute the post multiplication quat, to rotate the offset correctly */
-					conjugate_qt_qt(q1, vod->oldquat);
-					mul_qt_qtqt(q1, q1, rv3d->viewquat);
-					
-					conjugate_qt(q1); /* conj == inv for unit quat */
-					copy_v3_v3(rv3d->ofs, vod->ofs);
-					sub_v3_v3(rv3d->ofs, vod->dyn_ofs);
-					mul_qt_v3(q1, rv3d->ofs);
-					add_v3_v3(rv3d->ofs, vod->dyn_ofs);
-				}
+				view3d_ndof_orbit(ndof, rv3d, view_inv, rot_sensitivity, dt, vod);
 			}
 		}
 
@@ -1502,84 +1424,8 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 			/* move center of view opposite of hand motion (this is camera mode, not object mode) */
 			sub_v3_v3(rv3d->ofs, pan_vec);
-			
-			if (U.ndof_flag & NDOF_TURNTABLE) {
-				/* turntable view code by John Aughey, adapted for 3D mouse by [mce] */
-				float angle, rot[4];
-				float xvec[3] = {1, 0, 0};
 
-				/* Determine the direction of the x vector (for rotating up and down) */
-				mul_qt_v3(view_inv, xvec);
-
-				/* Perform the up/down rotation */
-				angle = rot_sensitivity * dt * ndof->rx;
-				if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
-					angle = -angle;
-				rot[0] = cos(angle);
-				mul_v3_v3fl(rot + 1, xvec, sin(angle));
-				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
-
-				/* Perform the orbital rotation */
-				angle = rot_sensitivity * dt * ndof->ry;
-				if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
-					angle = -angle;
-
-				/* update the onscreen doo-dad */
-				rv3d->rot_angle = angle;
-				rv3d->rot_axis[0] = 0;
-				rv3d->rot_axis[1] = 0;
-				rv3d->rot_axis[2] = 1;
-
-				rot[0] = cos(angle);
-				rot[1] = rot[2] = 0.0;
-				rot[3] = sin(angle);
-				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
-
-			}
-			else {
-
-				float rot[4];
-				float axis[3];
-				float angle = rot_sensitivity * ndof_to_axis_angle(ndof, axis);
-
-				if (U.ndof_flag & NDOF_ROLL_INVERT_AXIS)
-					axis[2] = -axis[2];
-
-				if (U.ndof_flag & NDOF_TILT_INVERT_AXIS)
-					axis[0] = -axis[0];
-
-				if (U.ndof_flag & NDOF_ROTATE_INVERT_AXIS)
-					axis[1] = -axis[1];
-
-				/* transform rotation axis from view to world coordinates */
-				mul_qt_v3(view_inv, axis);
-
-				/* update the onscreen doo-dad */
-				rv3d->rot_angle = angle;
-				copy_v3_v3(rv3d->rot_axis, axis);
-
-				axis_angle_to_quat(rot, axis, angle);
-
-				/* apply rotation */
-				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, rot);
-				
-			}
-			
-			/* rotate around custom center */
-			if (vod->use_dyn_ofs) {
-				float q1[4];
-				
-				/* compute the post multiplication quat, to rotate the offset correctly */
-				conjugate_qt_qt(q1, vod->oldquat);
-				mul_qt_qtqt(q1, q1, rv3d->viewquat);
-				
-				conjugate_qt(q1); /* conj == inv for unit quat */
-				copy_v3_v3(rv3d->ofs, vod->ofs);
-				sub_v3_v3(rv3d->ofs, vod->dyn_ofs);
-				mul_qt_v3(q1, rv3d->ofs);
-				add_v3_v3(rv3d->ofs, vod->dyn_ofs);
-			}
-
+			view3d_ndof_orbit(ndof, rv3d, view_inv, rot_sensitivity, dt, vod);
 		}
 		
 		viewops_data_free(C, op);
@@ -3699,7 +3545,9 @@ static int background_image_add_invoke(bContext *C, wmOperator *op, wmEvent *UNU
 void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name   = "Add Background Image";
+	/* note: having key shortcut here is bad practice,
+	 * but for now keep because this displays when dragging an image over the 3D viewport */
+	ot->name   = "Add Background Image (Ctrl for Empty Object)";
 	ot->description = "Add a new background image";
 	ot->idname = "VIEW3D_OT_background_image_add";
 

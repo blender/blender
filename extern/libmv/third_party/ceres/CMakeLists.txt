@@ -54,6 +54,7 @@ set(SRC
 	internal/ceres/compressed_row_sparse_matrix.cc
 	internal/ceres/conditioned_cost_function.cc
 	internal/ceres/conjugate_gradients_solver.cc
+	internal/ceres/coordinate_descent_minimizer.cc
 	internal/ceres/corrector.cc
 	internal/ceres/cxsparse.cc
 	internal/ceres/dense_normal_cholesky_solver.cc
@@ -71,11 +72,18 @@ set(SRC
 	internal/ceres/linear_least_squares_problems.cc
 	internal/ceres/linear_operator.cc
 	internal/ceres/linear_solver.cc
+	internal/ceres/line_search.cc
+	internal/ceres/line_search_direction.cc
+	internal/ceres/line_search_minimizer.cc
 	internal/ceres/local_parameterization.cc
 	internal/ceres/loss_function.cc
+	internal/ceres/low_rank_inverse_hessian.cc
+	internal/ceres/minimizer.cc
 	internal/ceres/normal_prior.cc
+	internal/ceres/parameter_block_ordering.cc
 	internal/ceres/partitioned_matrix_view.cc
-	internal/ceres/polynomial_solver.cc
+	internal/ceres/polynomial.cc
+	internal/ceres/preconditioner.cc
 	internal/ceres/problem.cc
 	internal/ceres/problem_impl.cc
 	internal/ceres/program.cc
@@ -84,7 +92,7 @@ set(SRC
 	internal/ceres/runtime_numeric_diff_cost_function.cc
 	internal/ceres/schur_complement_solver.cc
 	internal/ceres/schur_eliminator.cc
-	internal/ceres/schur_ordering.cc
+	internal/ceres/schur_jacobi_preconditioner.cc
 	internal/ceres/scratch_evaluate_preparer.cc
 	internal/ceres/solver.cc
 	internal/ceres/solver_impl.cc
@@ -99,26 +107,34 @@ set(SRC
 	internal/ceres/types.cc
 	internal/ceres/visibility_based_preconditioner.cc
 	internal/ceres/visibility.cc
+	internal/ceres/wall_time.cc
 
 	include/ceres/autodiff_cost_function.h
 	include/ceres/ceres.h
 	include/ceres/conditioned_cost_function.h
 	include/ceres/cost_function.h
+	include/ceres/cost_function_to_functor.h
 	include/ceres/crs_matrix.h
+	include/ceres/dynamic_autodiff_cost_function.h
 	include/ceres/fpclassify.h
+	include/ceres/gradient_checker.h
 	include/ceres/internal/autodiff.h
 	include/ceres/internal/eigen.h
 	include/ceres/internal/fixed_array.h
 	include/ceres/internal/macros.h
 	include/ceres/internal/manual_constructor.h
+	include/ceres/internal/numeric_diff.h
 	include/ceres/internal/port.h
 	include/ceres/internal/scoped_ptr.h
+	include/ceres/internal/variadic_evaluate.h
 	include/ceres/iteration_callback.h
 	include/ceres/jet.h
 	include/ceres/local_parameterization.h
 	include/ceres/loss_function.h
 	include/ceres/normal_prior.h
 	include/ceres/numeric_diff_cost_function.h
+	include/ceres/numeric_diff_functor.h
+	include/ceres/ordered_groups.h
 	include/ceres/problem.h
 	include/ceres/rotation.h
 	include/ceres/sized_cost_function.h
@@ -141,6 +157,7 @@ set(SRC
 	internal/ceres/compressed_row_jacobian_writer.h
 	internal/ceres/compressed_row_sparse_matrix.h
 	internal/ceres/conjugate_gradients_solver.h
+	internal/ceres/coordinate_descent_minimizer.h
 	internal/ceres/corrector.h
 	internal/ceres/cxsparse.h
 	internal/ceres/dense_jacobian_writer.h
@@ -150,6 +167,7 @@ set(SRC
 	internal/ceres/detect_structure.h
 	internal/ceres/dogleg_strategy.h
 	internal/ceres/evaluator.h
+	internal/ceres/execution_summary.h
 	internal/ceres/file.h
 	internal/ceres/gradient_checking_cost_function.h
 	internal/ceres/graph_algorithms.h
@@ -161,13 +179,19 @@ set(SRC
 	internal/ceres/linear_least_squares_problems.h
 	internal/ceres/linear_operator.h
 	internal/ceres/linear_solver.h
+	internal/ceres/line_search_direction.h
+	internal/ceres/line_search.h
+	internal/ceres/line_search_minimizer.h
+	internal/ceres/low_rank_inverse_hessian.h
 	internal/ceres/map_util.h
 	internal/ceres/matrix_proto.h
 	internal/ceres/minimizer.h
 	internal/ceres/mutex.h
 	internal/ceres/parameter_block.h
+	internal/ceres/parameter_block_ordering.h
 	internal/ceres/partitioned_matrix_view.h
-	internal/ceres/polynomial_solver.h
+	internal/ceres/polynomial.h
+	internal/ceres/preconditioner.h
 	internal/ceres/problem_impl.h
 	internal/ceres/program_evaluator.h
 	internal/ceres/program.h
@@ -178,7 +202,7 @@ set(SRC
 	internal/ceres/schur_complement_solver.h
 	internal/ceres/schur_eliminator.h
 	internal/ceres/schur_eliminator_impl.h
-	internal/ceres/schur_ordering.h
+	internal/ceres/schur_jacobi_preconditioner.h
 	internal/ceres/scratch_evaluate_preparer.h
 	internal/ceres/solver_impl.h
 	internal/ceres/sparse_matrix.h
@@ -192,6 +216,7 @@ set(SRC
 	internal/ceres/trust_region_strategy.h
 	internal/ceres/visibility_based_preconditioner.h
 	internal/ceres/visibility.h
+	internal/ceres/wall_time.h
 )
 
 #if(FALSE)
@@ -236,7 +261,14 @@ add_definitions(
 	-DCERES_NO_CXSPARSE
 	-DCERES_NO_PROTOCOL_BUFFERS
 	-DCERES_RESTRICT_SCHUR_SPECIALIZATION
+	-DCERES_HAVE_RWLOCK
 )
+
+if(WITH_OPENMP)
+	add_definitions(
+		-DCERES_USE_OPENMP
+	)
+endif()
 
 if(MSVC10)
 	add_definitions(

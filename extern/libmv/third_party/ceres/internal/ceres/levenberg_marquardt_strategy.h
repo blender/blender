@@ -43,8 +43,9 @@ namespace internal {
 //
 // http://www2.imm.dtu.dk/pubdb/views/edoc_download.php/3215/pdf/imm3215.pdf
 class LevenbergMarquardtStrategy : public TrustRegionStrategy {
-public:
-  LevenbergMarquardtStrategy(const TrustRegionStrategy::Options& options);
+ public:
+  explicit LevenbergMarquardtStrategy(
+      const TrustRegionStrategy::Options& options);
   virtual ~LevenbergMarquardtStrategy();
 
   // TrustRegionStrategy interface

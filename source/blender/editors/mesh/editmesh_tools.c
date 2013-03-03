@@ -3321,7 +3321,8 @@ static int edbm_fill_exec(bContext *C, wmOperator *op)
 	
 	if (!EDBM_op_init(em, &bmop, op,
 	                  "triangle_fill edges=%he use_beauty=%b",
-	                  BM_ELEM_SELECT, use_beauty)) {
+	                  BM_ELEM_SELECT, use_beauty))
+	{
 		return OPERATOR_CANCELLED;
 	}
 	

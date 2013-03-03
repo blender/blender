@@ -45,6 +45,7 @@ GHOST_Window::GHOST_Window(
     GHOST_TWindowState state,
     GHOST_TDrawingContextType type,
     const bool stereoVisual,
+    const bool exclusive,
     const GHOST_TUns16 numOfAASamples)
 	:
 	m_drawingContextType(type),

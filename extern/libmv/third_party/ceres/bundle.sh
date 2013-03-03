@@ -9,7 +9,8 @@ fi
 
 repo="https://ceres-solver.googlesource.com/ceres-solver"
 branch="master"
-tag="1.3.0"
+#tag="1.4.0"
+tag=""
 tmp=`mktemp -d`
 checkout="$tmp/ceres"
 
@@ -120,7 +121,7 @@ set(INC
 	include
 	internal
 	../gflags
-	../..
+	../../
 )
 
 set(INC_SYS
@@ -161,7 +162,14 @@ add_definitions(
 	-DCERES_NO_CXSPARSE
 	-DCERES_NO_PROTOCOL_BUFFERS
 	-DCERES_RESTRICT_SCHUR_SPECIALIZATION
+	-DCERES_HAVE_RWLOCK
 )
+
+if(WITH_OPENMP)
+	add_definitions(
+		-DCERES_USE_OPENMP
+	)
+endif()
 
 if(MSVC10)
 	add_definitions(
@@ -212,6 +220,10 @@ defs.append('CERES_NO_SUITESPARSE')
 defs.append('CERES_NO_CXSPARSE')
 defs.append('CERES_NO_PROTOCOL_BUFFERS')
 defs.append('CERES_RESTRICT_SCHUR_SPECIALIZATION')
+defs.append('CERES_HAVE_RWLOCK')
+
+if env['WITH_BF_OPENMP']:
+    defs.append('CERES_USE_OPENMP')
 
 if 'Mac OS X 10.5' in env['MACOSX_SDK_CHECK']:
     defs.append('CERES_NO_TR1')

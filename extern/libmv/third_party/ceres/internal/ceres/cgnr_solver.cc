@@ -30,25 +30,28 @@
 
 #include "ceres/cgnr_solver.h"
 
-#include "glog/logging.h"
-#include "ceres/linear_solver.h"
+#include "ceres/block_jacobi_preconditioner.h"
 #include "ceres/cgnr_linear_operator.h"
 #include "ceres/conjugate_gradients_solver.h"
-#include "ceres/block_jacobi_preconditioner.h"
+#include "ceres/linear_solver.h"
+#include "ceres/wall_time.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
 
 CgnrSolver::CgnrSolver(const LinearSolver::Options& options)
   : options_(options),
-    jacobi_preconditioner_(NULL) {
+    preconditioner_(NULL) {
 }
 
-LinearSolver::Summary CgnrSolver::Solve(
-    LinearOperator* A,
+LinearSolver::Summary CgnrSolver::SolveImpl(
+    BlockSparseMatrixBase* A,
     const double* b,
     const LinearSolver::PerSolveOptions& per_solve_options,
     double* x) {
+  EventLogger event_logger("CgnrSolver::Solve");
+
   // Form z = Atb.
   scoped_array<double> z(new double[A->num_cols()]);
   std::fill(z.get(), z.get() + A->num_cols(), 0.0);
@@ -57,11 +60,11 @@ LinearSolver::Summary CgnrSolver::Solve(
   // Precondition if necessary.
   LinearSolver::PerSolveOptions cg_per_solve_options = per_solve_options;
   if (options_.preconditioner_type == JACOBI) {
-    if (jacobi_preconditioner_.get() == NULL) {
-      jacobi_preconditioner_.reset(new BlockJacobiPreconditioner(*A));
+    if (preconditioner_.get() == NULL) {
+      preconditioner_.reset(new BlockJacobiPreconditioner(*A));
     }
-    jacobi_preconditioner_->Update(*A, per_solve_options.D);
-    cg_per_solve_options.preconditioner = jacobi_preconditioner_.get();
+    preconditioner_->Update(*A, per_solve_options.D);
+    cg_per_solve_options.preconditioner = preconditioner_.get();
   } else if (options_.preconditioner_type != IDENTITY) {
     LOG(FATAL) << "CGNR only supports IDENTITY and JACOBI preconditioners.";
   }
@@ -69,11 +72,14 @@ LinearSolver::Summary CgnrSolver::Solve(
   // Solve (AtA + DtD)x = z (= Atb).
   std::fill(x, x + A->num_cols(), 0.0);
   CgnrLinearOperator lhs(*A, per_solve_options.D);
+  event_logger.AddEvent("Setup");
+
   ConjugateGradientsSolver conjugate_gradient_solver(options_);
-  return conjugate_gradient_solver.Solve(&lhs,
-                                         z.get(),
-                                         cg_per_solve_options,
-                                         x);
+  LinearSolver::Summary summary =
+      conjugate_gradient_solver.Solve(&lhs, z.get(), cg_per_solve_options, x);
+  event_logger.AddEvent("Solve");
+
+  return summary;
 }
 
 }  // namespace internal

@@ -29,6 +29,8 @@
  *  \ingroup DNA
  *  \since mar-2001
  *  \author nzc
+ *
+ * #bSensor type is specifically for use by Object logic-bricks in the game-engine.
  */
 
 #ifndef __DNA_SENSOR_TYPES_H__
@@ -324,5 +326,5 @@ typedef struct bJoystickSensor {
 #define SENS_DELAY_REPEAT		1
 // should match JOYINDEX_MAX in SCA_JoystickDefines.h */
 #define SENS_JOY_MAXINDEX		8
-#endif
 
+#endif  /* __DNA_SENSOR_TYPES_H__ */

@@ -653,8 +653,8 @@ bool EuclideanResectionEPnP(const Mat2X &x_camera,
   
   // Finally, with all three solutions, select the (R, t) with the best RMSE.
   VLOG(2) << "RMSE for solution 0: " << rmse(0);
-  VLOG(2) << "RMSE for solution 1: " << rmse(0);
-  VLOG(2) << "RMSE for solution 2: " << rmse(0);
+  VLOG(2) << "RMSE for solution 1: " << rmse(1);
+  VLOG(2) << "RMSE for solution 2: " << rmse(2);
   size_t n = 0;
   if (rmse(1) < rmse(0)) {
     n = 1;

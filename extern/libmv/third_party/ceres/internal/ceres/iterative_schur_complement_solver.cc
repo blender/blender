@@ -33,6 +33,7 @@
 #include <algorithm>
 #include <cstring>
 #include <vector>
+
 #include "Eigen/Dense"
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/block_structure.h"
@@ -41,9 +42,12 @@
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/scoped_ptr.h"
 #include "ceres/linear_solver.h"
+#include "ceres/preconditioner.h"
+#include "ceres/schur_jacobi_preconditioner.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "ceres/types.h"
 #include "ceres/visibility_based_preconditioner.h"
+#include "ceres/wall_time.h"
 #include "glog/logging.h"
 
 namespace ceres {
@@ -62,12 +66,14 @@ LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
     const double* b,
     const LinearSolver::PerSolveOptions& per_solve_options,
     double* x) {
+  EventLogger event_logger("IterativeSchurComplementSolver::Solve");
+
   CHECK_NOTNULL(A->block_structure());
 
   // Initialize a ImplicitSchurComplement object.
   if (schur_complement_ == NULL) {
     schur_complement_.reset(
-        new ImplicitSchurComplement(options_.num_eliminate_blocks,
+        new ImplicitSchurComplement(options_.elimination_groups[0],
                                     options_.preconditioner_type == JACOBI));
   }
   schur_complement_->Init(*A, per_solve_options.D, b);
@@ -89,44 +95,58 @@ LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
   cg_per_solve_options.r_tolerance = per_solve_options.r_tolerance;
   cg_per_solve_options.q_tolerance = per_solve_options.q_tolerance;
 
-  bool is_preconditioner_good = false;
+  Preconditioner::Options preconditioner_options;
+  preconditioner_options.type = options_.preconditioner_type;
+  preconditioner_options.sparse_linear_algebra_library =
+      options_.sparse_linear_algebra_library;
+  preconditioner_options.use_block_amd = options_.use_block_amd;
+  preconditioner_options.num_threads = options_.num_threads;
+  preconditioner_options.row_block_size = options_.row_block_size;
+  preconditioner_options.e_block_size = options_.e_block_size;
+  preconditioner_options.f_block_size = options_.f_block_size;
+  preconditioner_options.elimination_groups = options_.elimination_groups;
+
   switch (options_.preconditioner_type) {
     case IDENTITY:
-      is_preconditioner_good = true;
       break;
     case JACOBI:
-      // We need to strip the constness of the block_diagonal_FtF_inverse
-      // matrix here because the only other way to initialize the struct
-      // cg_solve_options would be to add a constructor to it. We know
-      // that the only method ever called on the preconditioner is the
-      // RightMultiply which is a const method so we don't need to worry
-      // about the object getting modified.
-      cg_per_solve_options.preconditioner =
-          const_cast<BlockSparseMatrix*>(
-              schur_complement_->block_diagonal_FtF_inverse());
-      is_preconditioner_good = true;
+      preconditioner_.reset(
+          new SparseMatrixPreconditionerWrapper(
+              schur_complement_->block_diagonal_FtF_inverse()));
       break;
     case SCHUR_JACOBI:
+      if (preconditioner_.get() == NULL) {
+        preconditioner_.reset(
+            new SchurJacobiPreconditioner(
+                *A->block_structure(), preconditioner_options));
+      }
+      break;
     case CLUSTER_JACOBI:
     case CLUSTER_TRIDIAGONAL:
-      if (visibility_based_preconditioner_.get() == NULL) {
-        visibility_based_preconditioner_.reset(
-            new VisibilityBasedPreconditioner(*A->block_structure(), options_));
+      if (preconditioner_.get() == NULL) {
+        preconditioner_.reset(
+            new VisibilityBasedPreconditioner(
+                *A->block_structure(), preconditioner_options));
       }
-      is_preconditioner_good =
-          visibility_based_preconditioner_->Update(*A, per_solve_options.D);
-      cg_per_solve_options.preconditioner =
-          visibility_based_preconditioner_.get();
       break;
     default:
       LOG(FATAL) << "Unknown Preconditioner Type";
   }
 
+  bool preconditioner_update_was_successful = true;
+  if (preconditioner_.get() != NULL) {
+    preconditioner_update_was_successful =
+        preconditioner_->Update(*A, per_solve_options.D);
+    cg_per_solve_options.preconditioner = preconditioner_.get();
+  }
+
+  event_logger.AddEvent("Setup");
+
   LinearSolver::Summary cg_summary;
   cg_summary.num_iterations = 0;
   cg_summary.termination_type = FAILURE;
 
-  if (is_preconditioner_good) {
+  if (preconditioner_update_was_successful) {
     cg_summary = cg_solver.Solve(schur_complement_.get(),
                                  schur_complement_->rhs().data(),
                                  cg_per_solve_options,
@@ -138,6 +158,8 @@ LinearSolver::Summary IterativeSchurComplementSolver::SolveImpl(
   }
 
   VLOG(2) << "CG Iterations : " << cg_summary.num_iterations;
+
+  event_logger.AddEvent("Solve");
   return cg_summary;
 }
 

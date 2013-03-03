@@ -124,20 +124,16 @@ void CameraIntrinsics::ApplyIntrinsics(double normalized_x,
                                        double normalized_y,
                                        double *image_x,
                                        double *image_y) const {
-  double x = normalized_x;
-  double y = normalized_y;
-
-  // Apply distortion to the normalized points to get (xd, yd).
-  double r2 = x*x + y*y;
-  double r4 = r2 * r2;
-  double r6 = r4 * r2;
-  double r_coeff = (1 + k1_*r2 + k2_*r4 + k3_*r6);
-  double xd = x * r_coeff + 2*p1_*x*y + p2_*(r2 + 2*x*x);
-  double yd = y * r_coeff + 2*p2_*x*y + p1_*(r2 + 2*y*y);
-
-  // Apply focal length and principal point to get the final image coordinates.
-  *image_x = focal_length_x() * xd + principal_point_x();
-  *image_y = focal_length_y() * yd + principal_point_y();
+  ApplyRadialDistortionCameraIntrinsics(focal_length_x(),
+                                        focal_length_y(),
+                                        principal_point_x(),
+                                        principal_point_y(),
+                                        k1(), k2(), k3(),
+                                        p1(), p2(),
+                                        normalized_x,
+                                        normalized_y,
+                                        image_x,
+                                        image_y);
 }
 
 struct InvertIntrinsicsCostFunction {

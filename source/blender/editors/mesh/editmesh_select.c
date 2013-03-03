@@ -933,9 +933,13 @@ static int edbm_select_mode_exec(bContext *C, wmOperator *op)
 
 static int edbm_select_mode_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	// RNA_enum_set(op->ptr, "type");  /* type must be set already */
-	RNA_boolean_set(op->ptr, "use_extend", event->shift);
-	RNA_boolean_set(op->ptr, "use_expand", event->ctrl);
+	/* detecting these options based on shift/ctrl here is weak, but it's done
+	 * to make this work when clicking buttons or menus */
+	if (!RNA_struct_property_is_set(op->ptr, "use_extend"))
+		RNA_boolean_set(op->ptr, "use_extend", event->shift);
+	if (!RNA_struct_property_is_set(op->ptr, "use_expand"))
+		RNA_boolean_set(op->ptr, "use_expand", event->ctrl);
+
 	return edbm_select_mode_exec(C, op);
 }
 
@@ -1358,6 +1362,22 @@ static int edgetag_context_check(Scene *scene, BMesh *bm, BMEdge *e)
 	return 0;
 }
 
+static void edgetag_ensure_cd_flag(Scene *scene, Mesh *me)
+{
+	BMesh *bm = me->edit_btmesh->bm;
+
+	switch (scene->toolsettings->edge_mode) {
+		case EDGE_MODE_TAG_CREASE:
+			BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_CREASE);
+			break;
+		case EDGE_MODE_TAG_BEVEL:
+			BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_BWEIGHT);
+			break;
+		default:
+			break;
+	}
+}
+
 static int edgetag_shortest_path(Scene *scene, BMesh *bm, BMEdge *e_src, BMEdge *e_dst)
 {
 	/* BM_ELEM_TAG flag is used to store visited edges */
@@ -1371,16 +1391,7 @@ static int edgetag_shortest_path(Scene *scene, BMesh *bm, BMEdge *e_src, BMEdge 
 	/* note, would pass BM_EDGE except we are looping over all edges anyway */
 	BM_mesh_elem_index_ensure(bm, BM_VERT /* | BM_EDGE */);
 
-	switch (scene->toolsettings->edge_mode) {
-		case EDGE_MODE_TAG_CREASE:
-			BM_mesh_cd_flag_ensure(bm, BKE_mesh_from_object(OBACT), ME_CDFLAG_EDGE_CREASE);
-			break;
-		case EDGE_MODE_TAG_BEVEL:
-			BM_mesh_cd_flag_ensure(bm, BKE_mesh_from_object(OBACT), ME_CDFLAG_EDGE_BWEIGHT);
-			break;
-		default:
-			break;
-	}
+	edgetag_ensure_cd_flag(scene, OBACT->data);
 
 	BM_ITER_MESH_INDEX (e, &eiter, bm, BM_EDGES_OF_MESH, i) {
 		if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) == FALSE) {
@@ -1470,7 +1481,7 @@ static int mouse_mesh_shortest_path_edge(ViewContext *vc)
 	e_dst = EDBM_edge_find_nearest(vc, &dist);
 	if (e_dst) {
 		Mesh *me = vc->obedit->data;
-		int path = 0;
+		bool is_path = false;
 		
 		if (em->bm->selected.last) {
 			BMEditSelection *ese = em->bm->selected.last;
@@ -1481,13 +1492,14 @@ static int mouse_mesh_shortest_path_edge(ViewContext *vc)
 				if (e_act != e_dst) {
 					if (edgetag_shortest_path(vc->scene, em->bm, e_act, e_dst)) {
 						BM_select_history_remove(em->bm, e_act);
-						path = 1;
+						is_path = true;
 					}
 				}
 			}
 		}
-		if (path == 0) {
+		if (is_path == false) {
 			int act = (edgetag_context_check(vc->scene, em->bm, e_dst) == 0);
+			edgetag_ensure_cd_flag(vc->scene, vc->obedit->data);
 			edgetag_context_set(em->bm, vc->scene, e_dst, act); /* switch the edge option */
 		}
 		
@@ -2963,7 +2975,7 @@ void MESH_OT_select_random(wmOperatorType *ot)
 	/* props */
 	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f,
 	                         "Percent", "Percentage of elements to select randomly", 0.f, 100.0f);
- 	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
+	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
 static int edbm_select_next_loop_exec(bContext *C, wmOperator *UNUSED(op))

@@ -53,6 +53,7 @@ namespace ceres {
 class CostFunction;
 class LossFunction;
 class LocalParameterization;
+struct CRSMatrix;
 
 namespace internal {
 
@@ -93,14 +94,46 @@ class ProblemImpl {
                                    LossFunction* loss_function,
                                    double* x0, double* x1, double* x2,
                                    double* x3, double* x4, double* x5);
+  ResidualBlockId AddResidualBlock(CostFunction* cost_function,
+                                   LossFunction* loss_function,
+                                   double* x0, double* x1, double* x2,
+                                   double* x3, double* x4, double* x5,
+                                   double* x6);
+  ResidualBlockId AddResidualBlock(CostFunction* cost_function,
+                                   LossFunction* loss_function,
+                                   double* x0, double* x1, double* x2,
+                                   double* x3, double* x4, double* x5,
+                                   double* x6, double* x7);
+  ResidualBlockId AddResidualBlock(CostFunction* cost_function,
+                                   LossFunction* loss_function,
+                                   double* x0, double* x1, double* x2,
+                                   double* x3, double* x4, double* x5,
+                                   double* x6, double* x7, double* x8);
+  ResidualBlockId AddResidualBlock(CostFunction* cost_function,
+                                   LossFunction* loss_function,
+                                   double* x0, double* x1, double* x2,
+                                   double* x3, double* x4, double* x5,
+                                   double* x6, double* x7, double* x8,
+                                   double* x9);
   void AddParameterBlock(double* values, int size);
   void AddParameterBlock(double* values,
                          int size,
                          LocalParameterization* local_parameterization);
+
+  void RemoveResidualBlock(ResidualBlock* residual_block);
+  void RemoveParameterBlock(double* values);
+
   void SetParameterBlockConstant(double* values);
   void SetParameterBlockVariable(double* values);
   void SetParameterization(double* values,
                            LocalParameterization* local_parameterization);
+
+  bool Evaluate(const Problem::EvaluateOptions& options,
+                double* cost,
+                vector<double>* residuals,
+                vector<double>* gradient,
+                CRSMatrix* jacobian);
+
   int NumParameterBlocks() const;
   int NumParameters() const;
   int NumResidualBlocks() const;
@@ -112,12 +145,41 @@ class ProblemImpl {
   const ParameterMap& parameter_map() const { return parameter_block_map_; }
 
  private:
+  ParameterBlock* InternalAddParameterBlock(double* values, int size);
+
+  bool InternalEvaluate(Program* program,
+                        double* cost,
+                        vector<double>* residuals,
+                        vector<double>* gradient,
+                        CRSMatrix* jacobian);
+
+  // Delete the arguments in question. These differ from the Remove* functions
+  // in that they do not clean up references to the block to delete; they
+  // merely delete them.
+  template<typename Block>
+  void DeleteBlockInVector(vector<Block*>* mutable_blocks,
+                           Block* block_to_remove);
+  void DeleteBlock(ResidualBlock* residual_block);
+  void DeleteBlock(ParameterBlock* parameter_block);
+
   const Problem::Options options_;
 
   // The mapping from user pointers to parameter blocks.
   map<double*, ParameterBlock*> parameter_block_map_;
 
+  // The actual parameter and residual blocks.
   internal::scoped_ptr<internal::Program> program_;
+
+  // When removing residual and parameter blocks, cost/loss functions and
+  // parameterizations have ambiguous ownership. Instead of scanning the entire
+  // problem to see if the cost/loss/parameterization is shared with other
+  // residual or parameter blocks, buffer them until destruction.
+  //
+  // TODO(keir): See if it makes sense to use sets instead.
+  vector<CostFunction*> cost_functions_to_delete_;
+  vector<LossFunction*> loss_functions_to_delete_;
+  vector<LocalParameterization*> local_parameterizations_to_delete_;
+
   CERES_DISALLOW_COPY_AND_ASSIGN(ProblemImpl);
 };
 

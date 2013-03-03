@@ -41,9 +41,9 @@
 
 using namespace std;
 using namespace BasicVector;
-class WTURBULENCE;
+struct WTURBULENCE;
 
-class FLUID_3D  
+struct FLUID_3D  
 {
 	public:
 		FLUID_3D(int *res, float dx, float dtdef, int init_heat, int init_fire, int init_colors);

@@ -3196,18 +3196,16 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 			return 0;
 		}
 
+		/* check item array */
+		itemlen = RNA_property_array_length(&itemptr, itemprop);
+
 		/* dynamic array? need to get length per item */
 		if (itemprop->getlength) {
 			itemprop = NULL;
 		}
 		/* try to access as raw array */
 		else if (RNA_property_collection_raw_array(ptr, prop, itemprop, &out)) {
-			int arraylen;
-
-			/* check item array */
-			itemlen = RNA_property_array_length(&itemptr, itemprop);
-
-			arraylen = (itemlen == 0) ? 1 : itemlen;
+			int arraylen = (itemlen == 0) ? 1 : itemlen;
 			if (in.len != arraylen * out.len) {
 				BKE_reportf(reports, RPT_ERROR, "Array length mismatch (expected %d, got %d)",
 				            out.len * arraylen, in.len);
@@ -4866,7 +4864,7 @@ static char *rna_pointer_as_string__bldata(PointerRNA *ptr)
 	}
 }
 
-char *RNA_pointer_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop_ptr, PointerRNA *ptr_prop)
+char *RNA_pointer_as_string(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *prop_ptr, PointerRNA *ptr_prop)
 {
 	if (RNA_property_flag(prop_ptr) & PROP_IDPROPERTY) {
 		return rna_pointer_as_string__idprop(C, ptr_prop);

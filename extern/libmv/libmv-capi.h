@@ -31,7 +31,6 @@
 extern "C" {
 #endif
 
-struct libmv_RegionTracker;
 struct libmv_Tracks;
 struct libmv_Reconstruction;
 struct libmv_Features;
@@ -41,14 +40,6 @@ struct libmv_CameraIntrinsics;
 void libmv_initLogging(const char *argv0);
 void libmv_startDebugLogging(void);
 void libmv_setLoggingVerbosity(int verbosity);
-
-/* RegionTracker */
-struct libmv_RegionTracker *libmv_pyramidRegionTrackerNew(int max_iterations, int pyramid_level, int half_window_size, double minimum_correlation);
-struct libmv_RegionTracker *libmv_hybridRegionTrackerNew(int max_iterations, int half_window_size, double minimum_correlation);
-struct libmv_RegionTracker *libmv_bruteRegionTrackerNew(int half_window_size, double minimum_correlation);
-int libmv_regionTrackerTrack(struct libmv_RegionTracker *libmv_tracker, const float *ima1, const float *ima2,
-			int width, int height, double  x1, double  y1, double *x2, double *y2);
-void libmv_regionTrackerDestroy(struct libmv_RegionTracker *libmv_tracker);
 
 /* TrackRegion (new planar tracker) */
 struct libmv_trackRegionOptions {
@@ -86,28 +77,42 @@ void libmv_tracksInsert(struct libmv_Tracks *libmv_tracks, int image, int track,
 void libmv_tracksDestroy(struct libmv_Tracks *libmv_tracks);
 
 /* Reconstruction solver */
-#define LIBMV_REFINE_FOCAL_LENGTH	(1<<0)
-#define LIBMV_REFINE_PRINCIPAL_POINT	(1<<1)
-#define LIBMV_REFINE_RADIAL_DISTORTION_K1 (1<<2)
-#define LIBMV_REFINE_RADIAL_DISTORTION_K2 (1<<4)
 
-/* TODO: make keyframes/distortion model a part of options? */
-struct libmv_reconstructionOptions {
+#define LIBMV_REFINE_FOCAL_LENGTH          (1 << 0)
+#define LIBMV_REFINE_PRINCIPAL_POINT       (1 << 1)
+#define LIBMV_REFINE_RADIAL_DISTORTION_K1  (1 << 2)
+#define LIBMV_REFINE_RADIAL_DISTORTION_K2  (1 << 4)
+
+typedef struct libmv_cameraIntrinsicsOptions {
+	double focal_length;
+	double principal_point_x, principal_point_y;
+	double k1, k2, k3;
+	double p1, p2;
+	int image_width, image_height;
+} libmv_cameraIntrinsicsOptions;
+
+typedef struct libmv_reconstructionOptions {
+	int keyframe1, keyframe2;
+	int refine_intrinsics;
+
 	double success_threshold;
 	int use_fallback_reconstruction;
-};
+} libmv_reconstructionOptions;
 
 typedef void (*reconstruct_progress_update_cb) (void *customdata, double progress, const char *message);
 
 int libmv_refineParametersAreValid(int parameters);
 
-struct libmv_Reconstruction *libmv_solveReconstruction(struct libmv_Tracks *tracks, int keyframe1, int keyframe2,
-			int refine_intrinsics, double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
-			struct libmv_reconstructionOptions *options, reconstruct_progress_update_cb progress_update_callback,
+struct libmv_Reconstruction *libmv_solveReconstruction(struct libmv_Tracks *libmv_tracks,
+			libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
+			libmv_reconstructionOptions *libmv_reconstruction_options,
+			reconstruct_progress_update_cb progress_update_callback,
 			void *callback_customdata);
-struct libmv_Reconstruction *libmv_solveModal(struct libmv_Tracks *tracks, double focal_length,
-			double principal_x, double principal_y, double k1, double k2, double k3,
-			reconstruct_progress_update_cb progress_update_callback, void *callback_customdata);
+struct libmv_Reconstruction *libmv_solveModal(struct libmv_Tracks *libmv_tracks,
+			libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
+			libmv_reconstructionOptions *libmv_reconstruction_options,
+			reconstruct_progress_update_cb progress_update_callback,
+			void *callback_customdata);
 int libmv_reporojectionPointForTrack(struct libmv_Reconstruction *libmv_reconstruction, int track, double pos[3]);
 double libmv_reporojectionErrorForTrack(struct libmv_Reconstruction *libmv_reconstruction, int track);
 double libmv_reporojectionErrorForImage(struct libmv_Reconstruction *libmv_reconstruction, int image);
@@ -127,51 +132,35 @@ void libmv_destroyFeatures(struct libmv_Features *libmv_features);
 /* camera intrinsics */
 struct libmv_CameraIntrinsics *libmv_ReconstructionExtractIntrinsics(struct libmv_Reconstruction *libmv_Reconstruction);
 
-struct libmv_CameraIntrinsics *libmv_CameraIntrinsicsNew(double focal_length, double principal_x, double principal_y,
-			double k1, double k2, double k3, int width, int height);
+struct libmv_CameraIntrinsics *libmv_CameraIntrinsicsNew(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options);
 
-struct libmv_CameraIntrinsics *libmv_CameraIntrinsicsCopy(struct libmv_CameraIntrinsics *libmvIntrinsics);
+struct libmv_CameraIntrinsics *libmv_CameraIntrinsicsCopy(struct libmv_CameraIntrinsics *libmv_intrinsics);
 
-void libmv_CameraIntrinsicsDestroy(struct libmv_CameraIntrinsics *libmvIntrinsics);
+void libmv_CameraIntrinsicsDestroy(struct libmv_CameraIntrinsics *libmv_intrinsics);
 
-void libmv_CameraIntrinsicsUpdate(struct libmv_CameraIntrinsics *libmvIntrinsics, double focal_length,
-			double principal_x, double principal_y, double k1, double k2, double k3, int width, int height);
+void libmv_CameraIntrinsicsUpdate(struct libmv_CameraIntrinsics *libmv_intrinsics,
+                                  libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options);
 
-void libmv_CameraIntrinsicsExtract(struct libmv_CameraIntrinsics *libmvIntrinsics, double *focal_length,
+void libmv_CameraIntrinsicsExtract(struct libmv_CameraIntrinsics *libmv_intrinsics, double *focal_length,
 			double *principal_x, double *principal_y, double *k1, double *k2, double *k3, int *width, int *height);
 
-void libmv_CameraIntrinsicsUndistortByte(struct libmv_CameraIntrinsics *libmvIntrinsics,
+void libmv_CameraIntrinsicsUndistortByte(struct libmv_CameraIntrinsics *libmv_intrinsics,
 			unsigned char *src, unsigned char *dst, int width, int height, float overscan, int channels);
 
-void libmv_CameraIntrinsicsUndistortFloat(struct libmv_CameraIntrinsics *libmvIntrinsics,
+void libmv_CameraIntrinsicsUndistortFloat(struct libmv_CameraIntrinsics *libmv_intrinsics,
 			float *src, float *dst, int width, int height, float overscan, int channels);
 
-void libmv_CameraIntrinsicsDistortByte(struct libmv_CameraIntrinsics *libmvIntrinsics,
+void libmv_CameraIntrinsicsDistortByte(struct libmv_CameraIntrinsics *libmv_intrinsics,
 			unsigned char *src, unsigned char *dst, int width, int height, float overscan, int channels);
 
-void libmv_CameraIntrinsicsDistortFloat(struct libmv_CameraIntrinsics *libmvIntrinsics,
-			float *src, float *dst, int width, int height, float overscan, int channels);
-
-/* dsitortion */
-void libmv_undistortByte(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
-			unsigned char *src, unsigned char *dst, int width, int height, float overscan, int channels);
-void libmv_undistortFloat(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
-			float *src, float *dst, int width, int height, float overscan, int channels);
-
-void libmv_distortByte(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
-			unsigned char *src, unsigned char *dst, int width, int height, float overscan, int channels);
-void libmv_distortFloat(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+void libmv_CameraIntrinsicsDistortFloat(struct libmv_CameraIntrinsics *libmv_intrinsics,
 			float *src, float *dst, int width, int height, float overscan, int channels);
 
 /* utils */
-void libmv_applyCameraIntrinsics(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+void libmv_applyCameraIntrinsics(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
 			double x, double y, double *x1, double *y1);
-void libmv_InvertIntrinsics(double focal_length, double principal_x, double principal_y, double k1, double k2, double k3,
+void libmv_InvertIntrinsics(libmv_cameraIntrinsicsOptions *libmv_camera_intrinsics_options,
 			double x, double y, double *x1, double *y1);
-
-/* point clouds */
-void libmv_rigidRegistration(float (*reference_points)[3], float (*points)[3], int total_points,
-                             int use_scale, int use_translation, double M[4][4]);
 
 #ifdef __cplusplus
 }

@@ -116,19 +116,19 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas, int storage)
 
 	if (m_storage_type == RAS_VBO /*|| m_storage_type == RAS_AUTO_STORAGE && GLEW_ARB_vertex_buffer_object*/)
 	{
-		m_storage = new RAS_StorageVBO(&m_texco_num, m_texco, &m_attrib_num, m_attrib);
-		m_failsafe_storage = new RAS_StorageIM(&m_texco_num, m_texco, &m_attrib_num, m_attrib);
+		m_storage = new RAS_StorageVBO(&m_texco_num, m_texco, &m_attrib_num, m_attrib, m_attrib_layer);
+		m_failsafe_storage = new RAS_StorageIM(&m_texco_num, m_texco, &m_attrib_num, m_attrib, m_attrib_layer);
 		m_storage_type = RAS_VBO;
 	}
 	else if ((m_storage_type == RAS_VA) || (m_storage_type == RAS_AUTO_STORAGE && GLEW_VERSION_1_1))
 	{
-		m_storage = new RAS_StorageVA(&m_texco_num, m_texco, &m_attrib_num, m_attrib);
-		m_failsafe_storage = new RAS_StorageIM(&m_texco_num, m_texco, &m_attrib_num, m_attrib);
+		m_storage = new RAS_StorageVA(&m_texco_num, m_texco, &m_attrib_num, m_attrib, m_attrib_layer);
+		m_failsafe_storage = new RAS_StorageIM(&m_texco_num, m_texco, &m_attrib_num, m_attrib, m_attrib_layer);
 		m_storage_type = RAS_VA;
 	}
 	else
 	{
-		m_storage = m_failsafe_storage = new RAS_StorageIM(&m_texco_num, m_texco, &m_attrib_num, m_attrib);
+		m_storage = m_failsafe_storage = new RAS_StorageIM(&m_texco_num, m_texco, &m_attrib_num, m_attrib, m_attrib_layer);
 		m_storage_type = RAS_IMMEDIATE;
 	}
 }
@@ -740,11 +740,13 @@ void RAS_OpenGLRasterizer::SetTexCoord(TexCoGen coords, int unit)
 		m_texco[unit] = coords;
 }
 
-void RAS_OpenGLRasterizer::SetAttrib(TexCoGen coords, int unit)
+void RAS_OpenGLRasterizer::SetAttrib(TexCoGen coords, int unit, int layer)
 {
 	// this changes from material to material
-	if (unit < RAS_MAX_ATTRIB)
+	if (unit < RAS_MAX_ATTRIB) {
 		m_attrib[unit] = coords;
+		m_attrib_layer[unit] = layer;
+	}
 }
 
 void RAS_OpenGLRasterizer::IndexPrimitives(RAS_MeshSlot& ms)

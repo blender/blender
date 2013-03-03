@@ -623,15 +623,16 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 
 	if ((dflag & DRAW_CONSTCOLOR) == 0) {
 		glColor3ubv(ob_wire_col);
-
-		/* Calculate the outline vertex positions */
-		glBegin(GL_LINE_LOOP);
-		glVertex2f(ofs_x, ofs_y);
-		glVertex2f(ofs_x + ima_x, ofs_y);
-		glVertex2f(ofs_x + ima_x, ofs_y + ima_y);
-		glVertex2f(ofs_x, ofs_y + ima_y);
-		glEnd();
 	}
+
+	/* Calculate the outline vertex positions */
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(ofs_x, ofs_y);
+	glVertex2f(ofs_x + ima_x, ofs_y);
+	glVertex2f(ofs_x + ima_x, ofs_y + ima_y);
+	glVertex2f(ofs_x, ofs_y + ima_y);
+	glEnd();
+
 
 	/* Reset GL settings */
 	glMatrixMode(GL_MODELVIEW);

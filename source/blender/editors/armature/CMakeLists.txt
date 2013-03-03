@@ -36,16 +36,25 @@ set(INC_SYS
 )
 
 set(SRC
+	armature_add.c
+	armature_edit.c
+	armature_naming.c
 	armature_ops.c
-	editarmature.c
+	armature_relations.c
+	armature_select.c
+	armature_skinning.c
+	armature_utils.c
 	editarmature_generate.c
 	editarmature_retarget.c
 	editarmature_sketch.c
 	meshlaplacian.c
-	poseSlide.c
-	poseUtils.c
-	poselib.c
-	poseobject.c
+	pose_edit.c
+	pose_lib.c
+	pose_group.c
+	pose_select.c
+	pose_slide.c
+	pose_transform.c
+	pose_utils.c
 	reeb.c
 
 	BIF_generate.h

@@ -1131,8 +1131,8 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 
 	/* skip if out of view */
 	if (node->totr.xmax < ar->v2d.cur.xmin || node->totr.xmin > ar->v2d.cur.xmax ||
-	    node->totr.ymax < ar->v2d.cur.ymin || node->totr.ymin > ar->v2d.cur.ymax) {
-
+	    node->totr.ymax < ar->v2d.cur.ymin || node->totr.ymin > ar->v2d.cur.ymax)
+	{
 		uiEndBlock(C, node->block);
 		node->block = NULL;
 		return;
@@ -1608,12 +1608,15 @@ static void node_composit_buts_image_details(uiLayout *layout, bContext *C, Poin
 
 	node_composit_buts_image(layout, C, ptr);
 
+	uiItemR(layout, ptr, "use_straight_alpha_output", 0, NULL, 0);
+
 	if (!node->id)
 		return;
 
 	imaptr = RNA_pointer_get(ptr, "image");
 
 	uiTemplateColorspaceSettings(layout, &imaptr, "colorspace_settings");
+	uiItemR(layout, &imaptr, "alpha_mode", 0, NULL, 0);
 }
 
 static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, PointerRNA *ptr)

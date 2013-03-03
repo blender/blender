@@ -32,14 +32,17 @@
 #ifndef CERES_INTERNAL_EVALUATOR_H_
 #define CERES_INTERNAL_EVALUATOR_H_
 
+#include <map>
 #include <string>
 #include <vector>
+
+#include "ceres/execution_summary.h"
 #include "ceres/internal/port.h"
 #include "ceres/types.h"
 
 namespace ceres {
 
-class CRSMatrix;
+struct CRSMatrix;
 
 namespace internal {
 
@@ -152,6 +155,18 @@ class Evaluator {
 
   // The number of residuals in the optimization problem.
   virtual int NumResiduals() const = 0;
+
+  // The following two methods return copies instead of references so
+  // that the base class implementation does not have to worry about
+  // life time issues. Further, these calls are not expected to be
+  // frequent or performance sensitive.
+  virtual map<string, int> CallStatistics() const {
+    return map<string, int>();
+  }
+
+  virtual map<string, double> TimeStatistics() const {
+    return map<string, double>();
+  }
 };
 
 }  // namespace internal

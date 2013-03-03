@@ -36,6 +36,7 @@ struct Editing;
 struct ImBuf;
 struct Main;
 struct Mask;
+struct MovieClip;
 struct Scene;
 struct Sequence;
 struct SequenceModifierData;
@@ -322,6 +323,8 @@ void BKE_sequence_base_dupli_recursive(struct Scene *scene, struct Scene *scene_
 int  BKE_sequence_is_valid_check(struct Sequence *seq);
 
 void BKE_sequencer_clear_scene_in_allseqs(struct Main *bmain, struct Scene *sce);
+void BKE_sequencer_clear_movieclip_in_clipboard(struct MovieClip *clip);
+void BKE_sequencer_clear_mask_in_clipboard(struct Mask *mask);
 
 struct Sequence *BKE_sequence_get_by_name(struct ListBase *seqbase, const char *name, int recursive);
 

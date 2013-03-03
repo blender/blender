@@ -35,14 +35,16 @@
 #define CERES_INTERNAL_LINEAR_SOLVER_H_
 
 #include <cstddef>
-
-#include <glog/logging.h>
+#include <map>
+#include <vector>
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/casts.h"
 #include "ceres/compressed_row_sparse_matrix.h"
 #include "ceres/dense_sparse_matrix.h"
+#include "ceres/execution_summary.h"
 #include "ceres/triplet_sparse_matrix.h"
 #include "ceres/types.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {
@@ -76,7 +78,6 @@ class LinearSolver {
           min_num_iterations(1),
           max_num_iterations(1),
           num_threads(1),
-          num_eliminate_blocks(0),
           residual_reset_period(10),
           row_block_size(Dynamic),
           e_block_size(Dynamic),
@@ -100,15 +101,23 @@ class LinearSolver {
     // If possible, how many threads can the solver use.
     int num_threads;
 
-    // Eliminate 0 to num_eliminate_blocks - 1 from the Normal
-    // equations to form a schur complement. Only used by the Schur
-    // complement based solver. The most common use for this parameter
-    // is in the case of structure from motion problems where we have
-    // camera blocks and point blocks. Then setting the
-    // num_eliminate_blocks to the number of points allows the solver
-    // to use the Schur complement trick. For more details see the
-    // description of this parameter in solver.h.
-    int num_eliminate_blocks;
+    // Hints about the order in which the parameter blocks should be
+    // eliminated by the linear solver.
+    //
+    // For example if elimination_groups is a vector of size k, then
+    // the linear solver is informed that it should eliminate the
+    // parameter blocks 0 - elimination_groups[0] - 1 first, and then
+    // elimination_groups[0] - elimination_groups[1] and so on. Within
+    // each elimination group, the linear solver is free to choose how
+    // the parameter blocks are ordered. Different linear solvers have
+    // differing requirements on elimination_groups.
+    //
+    // The most common use is for Schur type solvers, where there
+    // should be at least two elimination groups and the first
+    // elimination group must form an independent set in the normal
+    // equations. The first elimination group corresponds to the
+    // num_eliminate_blocks in the Schur type solvers.
+    vector<int> elimination_groups;
 
     // Iterative solvers, e.g. Preconditioned Conjugate Gradients
     // maintain a cheap estimate of the residual which may become
@@ -247,6 +256,18 @@ class LinearSolver {
                         const PerSolveOptions& per_solve_options,
                         double* x) = 0;
 
+  // The following two methods return copies instead of references so
+  // that the base class implementation does not have to worry about
+  // life time issues. Further, these calls are not expected to be
+  // frequent or performance sensitive.
+  virtual map<string, int> CallStatistics() const {
+    return map<string, int>();
+  }
+
+  virtual map<string, double> TimeStatistics() const {
+    return map<string, double>();
+  }
+
   // Factory
   static LinearSolver* Create(const Options& options);
 };
@@ -267,10 +288,19 @@ class TypedLinearSolver : public LinearSolver {
       const double* b,
       const LinearSolver::PerSolveOptions& per_solve_options,
       double* x) {
+    ScopedExecutionTimer total_time("LinearSolver::Solve", &execution_summary_);
     CHECK_NOTNULL(A);
     CHECK_NOTNULL(b);
     CHECK_NOTNULL(x);
     return SolveImpl(down_cast<MatrixType*>(A), b, per_solve_options, x);
+  }
+
+  virtual map<string, int> CallStatistics() const {
+    return execution_summary_.calls();
+  }
+
+  virtual map<string, double> TimeStatistics() const {
+    return execution_summary_.times();
   }
 
  private:
@@ -279,6 +309,8 @@ class TypedLinearSolver : public LinearSolver {
       const double* b,
       const LinearSolver::PerSolveOptions& per_solve_options,
       double* x) = 0;
+
+  ExecutionSummary execution_summary_;
 };
 
 // Linear solvers that depend on acccess to the low level structure of

@@ -42,7 +42,6 @@
 class PHY_IGraphicController : public PHY_IController
 {
 	public:
-		virtual ~PHY_IGraphicController();
 		/**
 		 * SynchronizeMotionStates ynchronizes dynas, kinematic and deformable entities (and do 'late binding')
 		 */

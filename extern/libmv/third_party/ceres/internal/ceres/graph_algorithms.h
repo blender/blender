@@ -33,10 +33,12 @@
 #ifndef CERES_INTERNAL_GRAPH_ALGORITHMS_H_
 #define CERES_INTERNAL_GRAPH_ALGORITHMS_H_
 
+#include <algorithm>
 #include <vector>
-#include <glog/logging.h>
+#include <utility>
 #include "ceres/collections_port.h"
 #include "ceres/graph.h"
+#include "glog/logging.h"
 
 namespace ceres {
 namespace internal {

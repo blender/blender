@@ -514,6 +514,8 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	pixelFormatAttrsWindow[i++] = NSOpenGLPFADepthSize;
 	pixelFormatAttrsWindow[i++] = (NSOpenGLPixelFormatAttribute) 32;
 	
+	pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccumSize;
+	pixelFormatAttrsWindow[i++] = (NSOpenGLPixelFormatAttribute) 32;
 	
 	if (stereoVisual) pixelFormatAttrsWindow[i++] = NSOpenGLPFAStereo;
 	
@@ -555,6 +557,9 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 		//pixelFormatAttrsWindow[i++] = NSOpenGLPFAAllowOfflineRenderers,;   // Removed to allow 10.4 builds, and 2 GPUs rendering is not used anyway
 		
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFADepthSize;
+		pixelFormatAttrsWindow[i++] = (NSOpenGLPixelFormatAttribute) 32;
+
+		pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccumSize;
 		pixelFormatAttrsWindow[i++] = (NSOpenGLPixelFormatAttribute) 32;
 		
 		if (stereoVisual) pixelFormatAttrsWindow[i++] = NSOpenGLPFAStereo;

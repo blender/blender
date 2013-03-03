@@ -27,6 +27,10 @@
 
 /** \file DNA_action_types.h
  *  \ingroup DNA
+ *
+ * Define actions data-block for the animation system.
+ * A collection of animation curves and drivers to be assigned to data-blocks
+ * or sequenced in the non-linear-editor (NLA).
  */
 
 #ifndef __DNA_ACTION_TYPES_H__
@@ -692,4 +696,4 @@ typedef enum ACHAN_FLAG {
 	ACHAN_MOVED     = (1 << 31)
 } ACHAN_FLAG; 
 
-#endif
+#endif  /* __DNA_ACTION_TYPES_H__ */

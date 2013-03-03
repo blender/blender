@@ -32,17 +32,18 @@
 #define CERES_INTERNAL_COMPRESSED_ROW_SPARSE_MATRIX_H_
 
 #include <vector>
-#include <glog/logging.h>
-#include "ceres/sparse_matrix.h"
-#include "ceres/triplet_sparse_matrix.h"
+
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/macros.h"
 #include "ceres/internal/port.h"
+#include "ceres/sparse_matrix.h"
+#include "ceres/triplet_sparse_matrix.h"
 #include "ceres/types.h"
+#include "glog/logging.h"
 
 namespace ceres {
 
-class CRSMatrix;
+struct CRSMatrix;
 
 namespace internal {
 

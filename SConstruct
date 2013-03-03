@@ -528,11 +528,13 @@ if B.targets != ['cudakernels']:
     data_to_c_simple("release/datafiles/preview_cycles.blend")
 
     # --- glsl ---
+    data_to_c_simple("source/blender/gpu/shaders/gpu_shader_fixed_fragment.glsl")
+    data_to_c_simple("source/blender/gpu/shaders/gpu_shader_fixed_vertex.glsl")
     data_to_c_simple("source/blender/gpu/shaders/gpu_shader_material.glsl")
-    data_to_c_simple("source/blender/gpu/shaders/gpu_shader_vertex.glsl")
+    data_to_c_simple("source/blender/gpu/shaders/gpu_shader_material.glsl")
     data_to_c_simple("source/blender/gpu/shaders/gpu_shader_sep_gaussian_blur_frag.glsl")
     data_to_c_simple("source/blender/gpu/shaders/gpu_shader_sep_gaussian_blur_vert.glsl")
-    data_to_c_simple("source/blender/gpu/shaders/gpu_shader_material.glsl")
+    data_to_c_simple("source/blender/gpu/shaders/gpu_shader_vertex.glsl")
     data_to_c_simple("source/blender/gpu/shaders/gpu_shader_vsm_store_frag.glsl")
     data_to_c_simple("source/blender/gpu/shaders/gpu_shader_vsm_store_vert.glsl")
 

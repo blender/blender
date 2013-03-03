@@ -47,4 +47,8 @@ if(WITH_OPENCOLLADA)
 	add_definitions(-DWITH_COLLADA)
 endif()
 
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
+endif()
+
 blender_add_lib(bf_editor_io "${SRC}" "${INC}" "${INC_SYS}")

@@ -124,14 +124,11 @@ cat > CMakeLists.txt << EOF
 
 set(INC
 	.
-	../colamd/Include
 	third_party/ceres/include
 )
 
 set(INC_SYS
 	../Eigen3
-	third_party/ssba
-	third_party/ldl/Include
 	\${PNG_INCLUDE_DIR}
 	\${ZLIB_INCLUDE_DIRS}
 )
@@ -197,7 +194,6 @@ ${third_glog_headers}
 endif()
 
 add_definitions(
-	-DV3DLIB_ENABLE_SUITESPARSE
 	-DGOOGLE_GLOG_DLL_DECL=
 )
 
@@ -220,7 +216,6 @@ Import('env')
 
 defs = []
 
-defs.append('V3DLIB_ENABLE_SUITESPARSE')
 defs.append('GOOGLE_GLOG_DLL_DECL=')
 
 src = env.Glob("*.cpp")
@@ -240,8 +235,6 @@ ${win_src}
 else:
     src += env.Glob("third_party/glog/src/*.cc")
     incs += ' ./third_party/glog/src'
-
-incs += ' ./third_party/ssba ./third_party/ldl/Include ../colamd/Include'
 
 env.BlenderLib ( libname = 'extern_libmv', sources=src, includes=Split(incs), defines=defs, libtype=['extern', 'player'], priority=[20,137] )
 

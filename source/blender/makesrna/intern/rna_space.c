@@ -2249,6 +2249,13 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem preview_channels_items[] = {
+		{SEQ_USE_ALPHA, "COLOR_ALPHA", ICON_IMAGE_RGB_ALPHA, "Color and Alpha",
+		                "Draw image with RGB colors and alpha transparency"},
+		{0, "COLOR", ICON_IMAGE_RGB, "Color", "Draw image with RGB colors"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "SpaceSequenceEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceSeq");
 	RNA_def_struct_ui_text(srna, "Space Sequence Editor", "Sequence editor space data");
@@ -2266,7 +2273,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, display_mode_items);
 	RNA_def_property_ui_text(prop, "Display Mode", "View mode to use for displaying sequencer output");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
-		
+
 	/* flags */
 	prop = RNA_def_property(srna, "show_frame_indicator", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SEQ_NO_DRAW_CFRANUM);
@@ -2311,7 +2318,13 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	                         "The channel number shown in the image preview. 0 is the result of all strips combined");
 	RNA_def_property_range(prop, -5, MAXSEQ);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
-	
+
+	prop = RNA_def_property(srna, "preview_channels", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, preview_channels_items);
+	RNA_def_property_ui_text(prop, "Draw Channels", "Channels of the preview to draw");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
+
 	prop = RNA_def_property(srna, "draw_overexposed", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "zebra");
 	RNA_def_property_ui_text(prop, "Show Overexposed", "Show overexposed areas with zebra stripes");
@@ -3042,13 +3055,24 @@ static void rna_def_space_info(BlenderRNA *brna)
 
 static void rna_def_space_userpref(BlenderRNA *brna)
 {
+	static EnumPropertyItem filter_type_items[] = {
+	    {0,     "NAME",     0,      "Name",        "Filter based on the operator name"},
+	    {1,     "KEY",      0,      "Key-Binding", "Filter based on key bindings"},
+	    {0, NULL, 0, NULL, NULL}};
+
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "SpaceUserPreferences", "Space");
 	RNA_def_struct_sdna(srna, "SpaceUserPref");
 	RNA_def_struct_ui_text(srna, "Space User Preferences", "User preferences space data");
-	
+
+	prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "filter_type");
+	RNA_def_property_enum_items(prop, filter_type_items);
+	RNA_def_property_ui_text(prop, "Filter Type", "Filter method");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, NULL);
+
 	prop = RNA_def_property(srna, "filter_text", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "filter");
 	RNA_def_property_ui_text(prop, "Filter", "Search term for filtering in the UI");

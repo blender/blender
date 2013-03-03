@@ -27,19 +27,109 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 // Author: keir@google.com (Keir Mierle)
+//         sameeragarwal@google.com (Sameer Agarwal)
 //
 // Create CostFunctions as needed by the least squares framework with jacobians
 // computed via numeric (a.k.a. finite) differentiation. For more details see
 // http://en.wikipedia.org/wiki/Numerical_differentiation.
 //
-// To get a numerically differentiated cost function, define a subclass of
-// CostFunction such that the Evaluate() function ignores the jacobian
-// parameter. The numeric differentiation wrapper will fill in the jacobian
-// parameter if nececssary by repeatedly calling the Evaluate() function with
-// small changes to the appropriate parameters, and computing the slope. For
-// performance, the numeric differentiation wrapper class is templated on the
-// concrete cost function, even though it could be implemented only in terms of
-// the virtual CostFunction interface.
+// To get an numerically differentiated cost function, you must define
+// a class with a operator() (a functor) that computes the residuals.
+//
+// The function must write the computed value in the last argument (the only
+// non-const one) and return true to indicate success.
+//
+// For example, consider a scalar error e = k - x'y, where both x and y are
+// two-dimensional column vector parameters, the prime sign indicates
+// transposition, and k is a constant. The form of this error, which is the
+// difference between a constant and an expression, is a common pattern in least
+// squares problems. For example, the value x'y might be the model expectation
+// for a series of measurements, where there is an instance of the cost function
+// for each measurement k.
+//
+// The actual cost added to the total problem is e^2, or (k - x'k)^2; however,
+// the squaring is implicitly done by the optimization framework.
+//
+// To write an numerically-differentiable cost function for the above model, first
+// define the object
+//
+//   class MyScalarCostFunctor {
+//     MyScalarCostFunctor(double k): k_(k) {}
+//
+//     bool operator()(const double* const x,
+//                     const double* const y,
+//                     double* residuals) const {
+//       residuals[0] = k_ - x[0] * y[0] + x[1] * y[1];
+//       return true;
+//     }
+//
+//    private:
+//     double k_;
+//   };
+//
+// Note that in the declaration of operator() the input parameters x
+// and y come first, and are passed as const pointers to arrays of
+// doubles. If there were three input parameters, then the third input
+// parameter would come after y. The output is always the last
+// parameter, and is also a pointer to an array. In the example above,
+// the residual is a scalar, so only residuals[0] is set.
+//
+// Then given this class definition, the numerically differentiated
+// cost function with central differences used for computing the
+// derivative can be constructed as follows.
+//
+//   CostFunction* cost_function
+//       = new NumericDiffCostFunction<MyScalarCostFunctor, CENTRAL, 1, 2, 2>(
+//           new MyScalarCostFunctor(1.0));                          ^  ^  ^
+//                                                               |   |  |  |
+//                                   Finite Differencing Scheme -+   |  |  |
+//                                   Dimension of residual ----------+  |  |
+//                                   Dimension of x --------------------+  |
+//                                   Dimension of y -----------------------+
+//
+// In this example, there is usually an instance for each measumerent of k.
+//
+// In the instantiation above, the template parameters following
+// "MyScalarCostFunctor", "1, 2, 2", describe the functor as computing
+// a 1-dimensional output from two arguments, both 2-dimensional.
+//
+// The framework can currently accommodate cost functions of up to 10
+// independent variables, and there is no limit on the dimensionality
+// of each of them.
+//
+// The central difference method is considerably more accurate at the cost of
+// twice as many function evaluations than forward difference. Consider using
+// central differences begin with, and only after that works, trying forward
+// difference to improve performance.
+//
+// TODO(sameeragarwal): Add support for dynamic number of residuals.
+//
+// WARNING #1: A common beginner's error when first using
+// NumericDiffCostFunction is to get the sizing wrong. In particular,
+// there is a tendency to set the template parameters to (dimension of
+// residual, number of parameters) instead of passing a dimension
+// parameter for *every parameter*. In the example above, that would
+// be <MyScalarCostFunctor, 1, 2>, which is missing the last '2'
+// argument. Please be careful when setting the size parameters.
+//
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+//
+// ALTERNATE INTERFACE
+//
+// For a variety of reason, including compatibility with legacy code,
+// NumericDiffCostFunction can also take CostFunction objects as
+// input. The following describes how.
+//
+// To get a numerically differentiated cost function, define a
+// subclass of CostFunction such that the Evaluate() function ignores
+// the jacobian parameter. The numeric differentiation wrapper will
+// fill in the jacobian parameter if nececssary by repeatedly calling
+// the Evaluate() function with small changes to the appropriate
+// parameters, and computing the slope. For performance, the numeric
+// differentiation wrapper class is templated on the concrete cost
+// function, even though it could be implemented only in terms of the
+// virtual CostFunction interface.
 //
 // The numerically differentiated version of a cost function for a cost function
 // can be constructed as follows:
@@ -51,233 +141,153 @@
 // where MyCostFunction has 1 residual and 2 parameter blocks with sizes 4 and 8
 // respectively. Look at the tests for a more detailed example.
 //
-// The central difference method is considerably more accurate at the cost of
-// twice as many function evaluations than forward difference. Consider using
-// central differences begin with, and only after that works, trying forward
-// difference to improve performance.
-//
 // TODO(keir): Characterize accuracy; mention pitfalls; provide alternatives.
 
 #ifndef CERES_PUBLIC_NUMERIC_DIFF_COST_FUNCTION_H_
 #define CERES_PUBLIC_NUMERIC_DIFF_COST_FUNCTION_H_
 
-#include <cstring>
 #include <glog/logging.h>
 #include "Eigen/Dense"
+#include "ceres/cost_function.h"
+#include "ceres/internal/numeric_diff.h"
 #include "ceres/internal/scoped_ptr.h"
 #include "ceres/sized_cost_function.h"
 #include "ceres/types.h"
 
 namespace ceres {
 
-enum NumericDiffMethod {
-  CENTRAL,
-  FORWARD
-};
-
-// This is split from the main class because C++ doesn't allow partial template
-// specializations for member functions. The alternative is to repeat the main
-// class for differing numbers of parameters, which is also unfortunate.
-template <typename CostFunctionNoJacobian,
-          int num_residuals,
-          int parameter_block_size,
-          int parameter_block,
-          NumericDiffMethod method>
-struct Differencer {
-  // Mutates parameters but must restore them before return.
-  static bool EvaluateJacobianForParameterBlock(
-      const CostFunctionNoJacobian *function,
-      double const* residuals_at_eval_point,
-      double **parameters,
-      double **jacobians) {
-    using Eigen::Map;
-    using Eigen::Matrix;
-    using Eigen::RowMajor;
-    using Eigen::ColMajor;
-
-    typedef Matrix<double, num_residuals, 1> ResidualVector;
-    typedef Matrix<double, parameter_block_size, 1> ParameterVector;
-    typedef Matrix<double, num_residuals, parameter_block_size,
-                   (parameter_block_size == 1 &&
-                    num_residuals > 1) ? ColMajor : RowMajor> JacobianMatrix;
-
-    Map<JacobianMatrix> parameter_jacobian(jacobians[parameter_block],
-                                           num_residuals,
-                                           parameter_block_size);
-
-    // Mutate 1 element at a time and then restore.
-    Map<ParameterVector> x_plus_delta(parameters[parameter_block],
-                                      parameter_block_size);
-    ParameterVector x(x_plus_delta);
-
-    // TODO(keir): Pick a smarter number! In theory a good choice is sqrt(eps) *
-    // x, which for doubles means about 1e-8 * x. However, I have found this
-    // number too optimistic. This number should be exposed for users to change.
-    const double kRelativeStepSize = 1e-6;
-
-    ParameterVector step_size = x.array().abs() * kRelativeStepSize;
-
-    // To handle cases where a parameter is exactly zero, instead use the mean
-    // step_size for the other dimensions.
-    double fallback_step_size = step_size.sum() / step_size.rows();
-    if (fallback_step_size == 0.0) {
-      // If all the parameters are zero, there's no good answer. Take
-      // kRelativeStepSize as a guess and hope for the best.
-      fallback_step_size = kRelativeStepSize;
-    }
-
-    // For each parameter in the parameter block, use finite differences to
-    // compute the derivative for that parameter.
-    for (int j = 0; j < parameter_block_size; ++j) {
-      if (step_size(j) == 0.0) {
-        // The parameter is exactly zero, so compromise and use the mean
-        // step_size from the other parameters. This can break in many cases,
-        // but it's hard to pick a good number without problem specific
-        // knowledge.
-        step_size(j) = fallback_step_size;
-      }
-      x_plus_delta(j) = x(j) + step_size(j);
-
-      double residuals[num_residuals];  // NOLINT
-      if (!function->Evaluate(parameters, residuals, NULL)) {
-        // Something went wrong; bail.
-        return false;
-      }
-
-      // Compute this column of the jacobian in 3 steps:
-      // 1. Store residuals for the forward part.
-      // 2. Subtract residuals for the backward (or 0) part.
-      // 3. Divide out the run.
-      parameter_jacobian.col(j) =
-          Map<const ResidualVector>(residuals, num_residuals);
-
-      double one_over_h = 1 / step_size(j);
-      if (method == CENTRAL) {
-        // Compute the function on the other side of x(j).
-        x_plus_delta(j) = x(j) - step_size(j);
-
-        if (!function->Evaluate(parameters, residuals, NULL)) {
-          // Something went wrong; bail.
-          return false;
-        }
-        parameter_jacobian.col(j) -=
-            Map<ResidualVector>(residuals, num_residuals, 1);
-        one_over_h /= 2;
-      } else {
-        // Forward difference only; reuse existing residuals evaluation.
-        parameter_jacobian.col(j) -=
-            Map<const ResidualVector>(residuals_at_eval_point, num_residuals);
-      }
-      x_plus_delta(j) = x(j);  // Restore x_plus_delta.
-
-      // Divide out the run to get slope.
-      parameter_jacobian.col(j) *= one_over_h;
-    }
-    return true;
-  }
-};
-
-// Prevent invalid instantiations.
-template <typename CostFunctionNoJacobian,
-          int num_residuals,
-          int parameter_block,
-          NumericDiffMethod method>
-struct Differencer<CostFunctionNoJacobian,
-                  num_residuals,
-                  0 /* parameter_block_size */,
-                  parameter_block,
-                  method> {
-  static bool EvaluateJacobianForParameterBlock(
-      const CostFunctionNoJacobian *function,
-      double const* residuals_at_eval_point,
-      double **parameters,
-      double **jacobians) {
-    LOG(FATAL) << "Shouldn't get here.";
-    return true;
-  }
-};
-
-template <typename CostFunctionNoJacobian,
-         NumericDiffMethod method = CENTRAL, int M = 0,
-         int N0 = 0, int N1 = 0, int N2 = 0, int N3 = 0, int N4 = 0, int N5 = 0>
+template <typename CostFunctor,
+          NumericDiffMethod method = CENTRAL,
+          int kNumResiduals = 0,  // Number of residuals, or ceres::DYNAMIC
+          int N0 = 0,   // Number of parameters in block 0.
+          int N1 = 0,   // Number of parameters in block 1.
+          int N2 = 0,   // Number of parameters in block 2.
+          int N3 = 0,   // Number of parameters in block 3.
+          int N4 = 0,   // Number of parameters in block 4.
+          int N5 = 0,   // Number of parameters in block 5.
+          int N6 = 0,   // Number of parameters in block 6.
+          int N7 = 0,   // Number of parameters in block 7.
+          int N8 = 0,   // Number of parameters in block 8.
+          int N9 = 0>   // Number of parameters in block 9.
 class NumericDiffCostFunction
-    : public SizedCostFunction<M, N0, N1, N2, N3, N4, N5> {
+    : public SizedCostFunction<kNumResiduals,
+                               N0, N1, N2, N3, N4,
+                               N5, N6, N7, N8, N9> {
  public:
-  NumericDiffCostFunction(CostFunctionNoJacobian* function,
-                          Ownership ownership)
-      : function_(function), ownership_(ownership) {}
+  NumericDiffCostFunction(CostFunctor* functor,
+                          const double relative_step_size = 1e-6)
+      :functor_(functor),
+       ownership_(TAKE_OWNERSHIP),
+       relative_step_size_(relative_step_size) {}
 
-  virtual ~NumericDiffCostFunction() {
+  NumericDiffCostFunction(CostFunctor* functor,
+                          Ownership ownership,
+                          const double relative_step_size = 1e-6)
+      : functor_(functor),
+        ownership_(ownership),
+        relative_step_size_(relative_step_size) {}
+
+  ~NumericDiffCostFunction() {
     if (ownership_ != TAKE_OWNERSHIP) {
-      function_.release();
+      functor_.release();
     }
   }
 
   virtual bool Evaluate(double const* const* parameters,
                         double* residuals,
                         double** jacobians) const {
+    using internal::FixedArray;
+    using internal::NumericDiff;
+
+    const int kNumParameters = N0 + N1 + N2 + N3 + N4 + N5 + N6 + N7 + N8 + N9;
+    const int kNumParameterBlocks =
+        (N0 > 0) + (N1 > 0) + (N2 > 0) + (N3 > 0) + (N4 > 0) +
+        (N5 > 0) + (N6 > 0) + (N7 > 0) + (N8 > 0) + (N9 > 0);
+
     // Get the function value (residuals) at the the point to evaluate.
-    bool success = function_->Evaluate(parameters, residuals, NULL);
-    if (!success) {
-      // Something went wrong; ignore the jacobian.
+    if (!internal::EvaluateImpl<CostFunctor,
+                                N0, N1, N2, N3, N4, N5, N6, N7, N8, N9>(
+                                    functor_.get(),
+                                    parameters,
+                                    residuals,
+                                    functor_.get())) {
       return false;
     }
+
     if (!jacobians) {
-      // Nothing to do; just forward.
       return true;
     }
 
     // Create a copy of the parameters which will get mutated.
-    const int kParametersSize = N0 + N1 + N2 + N3 + N4 + N5;
-    double parameters_copy[kParametersSize];
-    double *parameters_references_copy[6];
-    parameters_references_copy[0] = &parameters_copy[0];
-    parameters_references_copy[1] = &parameters_copy[0] + N0;
-    parameters_references_copy[2] = &parameters_copy[0] + N0 + N1;
-    parameters_references_copy[3] = &parameters_copy[0] + N0 + N1 + N2;
-    parameters_references_copy[4] = &parameters_copy[0] + N0 + N1 + N2 + N3;
-    parameters_references_copy[5] =
-        &parameters_copy[0] + N0 + N1 + N2 + N3 + N4;
+    FixedArray<double> parameters_copy(kNumParameters);
+    FixedArray<double*> parameters_reference_copy(kNumParameterBlocks);
 
-#define COPY_PARAMETER_BLOCK(block) \
-    if (N ## block) memcpy(parameters_references_copy[block], \
-                           parameters[block], \
-                           sizeof(double) * N ## block);  // NOLINT
+    parameters_reference_copy[0] = parameters_copy.get();
+    if (N1) parameters_reference_copy[1] = parameters_reference_copy[0] + N0;
+    if (N2) parameters_reference_copy[2] = parameters_reference_copy[1] + N1;
+    if (N3) parameters_reference_copy[3] = parameters_reference_copy[2] + N2;
+    if (N4) parameters_reference_copy[4] = parameters_reference_copy[3] + N3;
+    if (N5) parameters_reference_copy[5] = parameters_reference_copy[4] + N4;
+    if (N6) parameters_reference_copy[6] = parameters_reference_copy[5] + N5;
+    if (N7) parameters_reference_copy[7] = parameters_reference_copy[6] + N6;
+    if (N7) parameters_reference_copy[8] = parameters_reference_copy[7] + N7;
+    if (N8) parameters_reference_copy[9] = parameters_reference_copy[8] + N8;
+
+#define COPY_PARAMETER_BLOCK(block)                                     \
+  if (N ## block) memcpy(parameters_reference_copy[block],              \
+                         parameters[block],                             \
+                         sizeof(double) * N ## block);  // NOLINT
+
     COPY_PARAMETER_BLOCK(0);
     COPY_PARAMETER_BLOCK(1);
     COPY_PARAMETER_BLOCK(2);
     COPY_PARAMETER_BLOCK(3);
     COPY_PARAMETER_BLOCK(4);
     COPY_PARAMETER_BLOCK(5);
+    COPY_PARAMETER_BLOCK(6);
+    COPY_PARAMETER_BLOCK(7);
+    COPY_PARAMETER_BLOCK(8);
+    COPY_PARAMETER_BLOCK(9);
+
 #undef COPY_PARAMETER_BLOCK
 
-#define EVALUATE_JACOBIAN_FOR_BLOCK(block) \
-    if (N ## block && jacobians[block]) { \
-      if (!Differencer<CostFunctionNoJacobian, /* NOLINT */ \
-                       M, \
-                       N ## block, \
-                       block, \
-                       method>::EvaluateJacobianForParameterBlock( \
-          function_.get(), \
-          residuals, \
-          parameters_references_copy, \
-          jacobians)) { \
-        return false; \
-      } \
+#define EVALUATE_JACOBIAN_FOR_BLOCK(block)                              \
+    if (N ## block && jacobians[block] != NULL) {                       \
+      if (!NumericDiff<CostFunctor,                                     \
+                       method,                                          \
+                       kNumResiduals,                                   \
+                       N0, N1, N2, N3, N4, N5, N6, N7, N8, N9,          \
+                       block,                                           \
+                       N ## block >::EvaluateJacobianForParameterBlock( \
+                           functor_.get(),                              \
+                           residuals,                                   \
+                           relative_step_size_,                         \
+                           parameters_reference_copy.get(),             \
+                           jacobians[block])) {                         \
+        return false;                                                   \
+      }                                                                 \
     }
+
     EVALUATE_JACOBIAN_FOR_BLOCK(0);
     EVALUATE_JACOBIAN_FOR_BLOCK(1);
     EVALUATE_JACOBIAN_FOR_BLOCK(2);
     EVALUATE_JACOBIAN_FOR_BLOCK(3);
     EVALUATE_JACOBIAN_FOR_BLOCK(4);
     EVALUATE_JACOBIAN_FOR_BLOCK(5);
+    EVALUATE_JACOBIAN_FOR_BLOCK(6);
+    EVALUATE_JACOBIAN_FOR_BLOCK(7);
+    EVALUATE_JACOBIAN_FOR_BLOCK(8);
+    EVALUATE_JACOBIAN_FOR_BLOCK(9);
+
 #undef EVALUATE_JACOBIAN_FOR_BLOCK
+
     return true;
   }
 
  private:
-  internal::scoped_ptr<CostFunctionNoJacobian> function_;
+  internal::scoped_ptr<CostFunctor> functor_;
   Ownership ownership_;
+  const double relative_step_size_;
 };
 
 }  // namespace ceres

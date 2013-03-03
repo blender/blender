@@ -1320,8 +1320,8 @@ void carve::csg::CSG::calc(meshset_t *a,
   }
 #endif
 
-  checkFaceLoopIntegrity(a_face_loops);
-  checkFaceLoopIntegrity(b_face_loops);
+  // checkFaceLoopIntegrity(a_face_loops);
+  // checkFaceLoopIntegrity(b_face_loops);
 
 #if defined(CARVE_DEBUG)
   std::cerr << "classify" << std::endl;

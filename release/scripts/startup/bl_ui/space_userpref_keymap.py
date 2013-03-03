@@ -213,14 +213,97 @@ class InputKeyMapPanel:
                     self.draw_km(display_keymaps, kc, kmm, None, layout, level + 1)
                     layout.context_pointer_set("keymap", km)
 
-    def draw_filtered(self, display_keymaps, filter_text, layout):
+    _EVENT_TYPES = set()
+    _EVENT_TYPE_MAP = {}
+    def draw_filtered(self, display_keymaps, filter_type, filter_text, layout):
+
+        if filter_type == 'NAME':
+            def filter_func(kmi):
+                return (filter_text in kmi.idname.lower() or
+                        filter_text in kmi.name.lower())
+                
+        else:
+            if not self._EVENT_TYPES:
+                enum = bpy.types.Event.bl_rna.properties["type"].enum_items
+                self._EVENT_TYPES.update(enum.keys())
+                self._EVENT_TYPE_MAP.update({item.name.replace(" ", "_").upper(): key for key, item in enum.items()})
+
+                del enum
+                self._EVENT_TYPE_MAP.update({
+                    "*": 'NUMPAD_ASTERIX',
+                    "/": 'NUMPAD_SLASH',
+                    "RMB": 'RIGHTMOUSE',
+                    "LMB": 'LEFTMOUSE',
+                    "MMB": 'MIDDLEMOUSE',
+                    })
+            # done with once off init
+
+            filter_text_split = filter_text.strip()
+            filter_text_split = filter_text.split()
+
+            # Modifier {kmi.attribute: name} mapping
+            key_mod = {
+                "ctrl": "ctrl",
+                "alt": "alt",
+                "shift": "shift",
+                "cmd": "oskey",
+                "oskey": "oskey",
+                "any": "any",
+                }
+            # KeyMapItem like dict, use for comparing against
+            # attr: state
+            kmi_test_dict = {}
+
+            # initialize? - so if a if a kmi has a MOD assigned it wont show up.
+            #~ for kv in key_mod.values():
+            #~    kmi_test_dict[kv] = False
+
+            # altname: attr
+            for kk, kv in key_mod.items():
+                if kk in filter_text_split:
+                    filter_text_split.remove(kk)
+                    kmi_test_dict[kv] = True
+            # whats left should be the event type
+            if len(filter_text_split) > 1:
+                return False
+            elif filter_text_split:
+                kmi_type = filter_text_split[0].upper()
+                
+                if kmi_type not in self._EVENT_TYPES:
+                    # replacement table
+                    kmi_type_test = self._EVENT_TYPE_MAP.get(kmi_type)
+                    if kmi_type_test is None:
+                        # print("Unknown Type:", kmi_type)
+                        
+                        # Partial match
+                        for k, v in self._EVENT_TYPE_MAP.items():
+                            if kmi_type in k:
+                                kmi_type_test = v
+                                break
+                            if kmi_type in v:
+                                kmi_type_test = v
+                                break
+
+                        if kmi_type_test is None:
+                            return False
+
+                    kmi_type = kmi_type_test
+                    del kmi_type_test
+                    
+                kmi_test_dict["type"] = kmi_type
+
+            # main filter func, runs many times
+            def filter_func(kmi):
+                for kk, ki in kmi_test_dict.items():
+                    if getattr(kmi, kk) != ki:
+                        return False
+                return True
+
         for km, kc in display_keymaps:
             km = km.active()
             layout.context_pointer_set("keymap", km)
 
-            filtered_items = [kmi for kmi in km.keymap_items
-                              if (filter_text in kmi.idname.lower() or
-                                  filter_text in kmi.name.lower())]
+            filtered_items = [kmi for kmi in km.keymap_items if filter_func(kmi)]
 
             if filtered_items:
                 col = layout.column()
@@ -243,6 +326,7 @@ class InputKeyMapPanel:
                 col = self.indented_layout(layout, 1)
                 subcol = col.split(percentage=0.2).column()
                 subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
+        return True
 
     def draw_hierarchy(self, display_keymaps, layout):
         from bpy_extras import keyconfig_utils
@@ -254,6 +338,7 @@ class InputKeyMapPanel:
 
         wm = context.window_manager
         kc = wm.keyconfigs.user
+        spref = context.space_data
 
         col = layout.column()
         sub = col.column()
@@ -264,7 +349,7 @@ class InputKeyMapPanel:
         row = subcol.row(align=True)
 
         #~ row.prop_search(wm.keyconfigs, "active", wm, "keyconfigs", text="Key Config:")
-        text = bpy.path.display_name(context.window_manager.keyconfigs.active.name)
+        text = bpy.path.display_name(wm.keyconfigs.active.name)
         if not text:
             text = "Blender (default)"
         row.menu("USERPREF_MT_keyconfigs", text=text)
@@ -273,17 +358,27 @@ class InputKeyMapPanel:
 
         #~ layout.context_pointer_set("keyconfig", wm.keyconfigs.active)
         #~ row.operator("wm.keyconfig_remove", text="", icon='X')
-
-        row.prop(context.space_data, "filter_text", icon='VIEWZOOM')
+        row.separator()
+        rowsub = row.split(align=True, percentage=0.33)
+        # postpone drawing into rowsub, so we can set alert!
 
         col.separator()
-
         display_keymaps = keyconfig_utils.keyconfig_merge(kc, kc)
-        if context.space_data.filter_text != "":
-            filter_text = context.space_data.filter_text.lower()
-            self.draw_filtered(display_keymaps, filter_text, col)
+        filter_type = spref.filter_type
+        filter_text = spref.filter_text
+        if filter_text != "":
+            filter_text = filter_text.lower()
+            ok = self.draw_filtered(display_keymaps, filter_type, filter_text, col)
         else:
             self.draw_hierarchy(display_keymaps, col)
+            ok = True
+
+        # go back and fill in rowsub
+        rowsub.prop(spref, "filter_type", text="")
+        rowsubsub = rowsub.row(align=True)
+        if not ok:
+	        rowsubsub.alert = True
+        rowsubsub.prop(spref, "filter_text", text="", icon='VIEWZOOM')
 
 
 if __name__ == "__main__":  # only for live edit.
