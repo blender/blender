@@ -350,7 +350,7 @@ static bool object_render_hide(BL::Object b_ob, bool top_level, bool parent_hide
 			hide = true;
 
 	hide_triangles = (hair_present && !show_emitter);
-	return hide;
+	return hide && !show_emitter;
 }
 
 /* Object Loop */
