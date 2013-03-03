@@ -1081,15 +1081,6 @@ static void scene_depsgraph_hack(Scene *scene, Scene *scene_parent)
 
 }
 
-static void scene_flag_rbw_recursive(Scene *scene)
-{
-	if (scene->set)
-		scene_flag_rbw_recursive(scene->set);
-
-	if (BKE_scene_check_rigidbody_active(scene))
-		scene->rigidbody_world->flag |= RBW_FLAG_FRAME_UPDATE;
-}
-
 static void scene_rebuild_rbw_recursive(Scene *scene, float ctime)
 {
 	if (scene->set)
@@ -1097,6 +1088,15 @@ static void scene_rebuild_rbw_recursive(Scene *scene, float ctime)
 
 	if (BKE_scene_check_rigidbody_active(scene))
 		BKE_rigidbody_rebuild_world(scene, ctime);
+}
+
+static void scene_do_rb_simulation_recursive(Scene *scene, float ctime)
+{
+	if (scene->set)
+		scene_do_rb_simulation_recursive(scene->set, ctime);
+
+	if (BKE_scene_check_rigidbody_active(scene))
+		BKE_rigidbody_do_simulation(scene, ctime);
 }
 
 static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scene_parent)
@@ -1109,22 +1109,6 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 	 * dependencies on sets, but not the other way around. */
 	if (scene->set)
 		scene_update_tagged_recursive(bmain, scene->set, scene_parent);
-	
-	/* run rigidbody sim 
-	 * - calculate/read values from cache into RBO's, to get flushed 
-	 *   later when objects are evaluated (if they're tagged for eval)
-	 */
-	// XXX: this position may still change, objects not being updated correctly before simulation is run
-	// NOTE: current position is so that rigidbody sim affects other objects
-	if (BKE_scene_check_rigidbody_active(scene) && scene->rigidbody_world->flag & RBW_FLAG_FRAME_UPDATE) {
-		/* we use frame time of parent (this is "scene" itself for top-level of sets recursion), 
-		 * as that is the active scene controlling all timing in file at the moment
-		 */
-		float ctime = BKE_scene_frame_get(scene_parent);
-
-		/* however, "scene" contains the rigidbody world needed for eval... */
-		BKE_rigidbody_do_simulation(scene, ctime);
-	}
 	
 	/* scene objects */
 	for (base = scene->base.first; base; base = base->next) {
@@ -1249,8 +1233,9 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	tag_main_idcode(bmain, ID_MA, FALSE);
 	tag_main_idcode(bmain, ID_LA, FALSE);
 
-	/* flag rigid body worlds for update */
-	scene_flag_rbw_recursive(sce);
+	/* run rigidbody sim */
+	/* NOTE: current position is so that rigidbody sim affects other objects, might change in the future */
+	scene_do_rb_simulation_recursive(sce, ctime);
 
 	/* BKE_object_handle_update() on all objects, groups and sets */
 	scene_update_tagged_recursive(bmain, sce, sce);

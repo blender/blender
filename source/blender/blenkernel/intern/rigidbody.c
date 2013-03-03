@@ -1262,8 +1262,6 @@ void BKE_rigidbody_do_simulation(Scene *scene, float ctime)
 	BKE_ptcache_id_time(&pid, scene, ctime, &startframe, &endframe, NULL);
 	cache = rbw->pointcache;
 
-	rbw->flag &= ~RBW_FLAG_FRAME_UPDATE;
-
 	if (ctime <= startframe) {
 		rbw->ltime = startframe;
 		return;
