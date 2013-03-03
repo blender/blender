@@ -712,6 +712,8 @@ void ui_theme_init_default(void)
 	/* space view3d */
 	btheme->tv3d.panelcolors.show_back = FALSE;
 	btheme->tv3d.panelcolors.show_header = FALSE;
+	rgba_char_args_set_fl(btheme->tv3d.panelcolors.back, 0.45, 0.45, 0.45, 0.5);
+	rgba_char_args_set_fl(btheme->tv3d.panelcolors.header, 0, 0, 0, 0.01);
 	rgba_char_args_set_fl(btheme->tv3d.back,       0.225, 0.225, 0.225, 1.0);
 	rgba_char_args_set(btheme->tv3d.text,       0, 0, 0, 255);
 	rgba_char_args_set(btheme->tv3d.text_hi, 255, 255, 255, 255);
