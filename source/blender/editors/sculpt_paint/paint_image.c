@@ -4889,16 +4889,6 @@ static Brush *image_paint_brush(bContext *C)
 	return paint_brush(&settings->imapaint.paint);
 }
 
-static Brush *uv_sculpt_brush(bContext *C)
-{
-	Scene *scene = CTX_data_scene(C);
-	ToolSettings *settings = scene->toolsettings;
-
-	if (!settings->uvsculpt)
-		return NULL;
-	return paint_brush(&settings->uvsculpt->paint);
-}
-
 static int image_paint_poll(bContext *C)
 {
 	Object *obact = CTX_data_active_object(C);
@@ -4919,30 +4909,6 @@ static int image_paint_poll(bContext *C)
 				return 1;
 			}
 		}
-	}
-
-	return 0;
-}
-
-static int uv_sculpt_brush_poll(bContext *C)
-{
-	BMEditMesh *em;
-	int ret;
-	Object *obedit = CTX_data_edit_object(C);
-	SpaceImage *sima = CTX_wm_space_image(C);
-	Scene *scene = CTX_data_scene(C);
-	ToolSettings *toolsettings = scene->toolsettings;
-
-	if (!uv_sculpt_brush(C) || !obedit || obedit->type != OB_MESH)
-		return 0;
-
-	em = BMEdit_FromObject(obedit);
-	ret = EDBM_mtexpoly_check(em);
-
-	if (ret && sima) {
-		ARegion *ar = CTX_wm_region(C);
-		if ((toolsettings->use_uv_sculpt) && ar->regiontype == RGN_TYPE_WINDOW)
-			return 1;
 	}
 
 	return 0;
@@ -5484,7 +5450,7 @@ static int get_imapaint_zoom(bContext *C, float *zoomx, float *zoomy)
 
 /************************ cursor drawing *******************************/
 
-static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata))
+void brush_drawcursor_texpaint_uvsculpt(bContext *C, int x, int y, void *UNUSED(customdata))
 {
 #define PX_SIZE_FADE_MAX 12.0f
 #define PX_SIZE_FADE_MIN 4.0f
@@ -5560,7 +5526,8 @@ static void toggle_paint_cursor(bContext *C, int enable)
 		settings->imapaint.paintcursor = NULL;
 	}
 	else if (enable)
-		settings->imapaint.paintcursor = WM_paint_cursor_activate(wm, image_paint_poll, brush_drawcursor, NULL);
+		settings->imapaint.paintcursor =
+			WM_paint_cursor_activate(wm, image_paint_poll, brush_drawcursor_texpaint_uvsculpt, NULL);
 }
 
 /* enable the paint cursor if it isn't already.
@@ -5587,32 +5554,11 @@ void ED_space_image_paint_update(wmWindowManager *wm, ToolSettings *settings)
 		if (!imapaint->paintcursor) {
 			imapaint->paintcursor =
 			        WM_paint_cursor_activate(wm, image_paint_poll,
-			                                 brush_drawcursor, NULL);
+			                                 brush_drawcursor_texpaint_uvsculpt, NULL);
 		}
 	}
 }
 
-
-void ED_space_image_uv_sculpt_update(wmWindowManager *wm, ToolSettings *settings)
-{
-	if (settings->use_uv_sculpt) {
-		if (!settings->uvsculpt) {
-			settings->uvsculpt = MEM_callocN(sizeof(*settings->uvsculpt), "UV Smooth paint");
-			settings->uv_sculpt_tool = UV_SCULPT_TOOL_GRAB;
-			settings->uv_sculpt_settings = UV_SCULPT_LOCK_BORDERS | UV_SCULPT_ALL_ISLANDS;
-			settings->uv_relax_method = UV_SCULPT_TOOL_RELAX_LAPLACIAN;
-		}
-
-		BKE_paint_init(&settings->uvsculpt->paint, PAINT_CURSOR_SCULPT);
-
-		WM_paint_cursor_activate(wm, uv_sculpt_brush_poll,
-		                         brush_drawcursor, NULL);
-	}
-	else {
-		if (settings->uvsculpt)
-			settings->uvsculpt->paint.flags &= ~PAINT_SHOW_BRUSH;
-	}
-}
 /************************ grab clone operator ************************/
 
 typedef struct GrabClone {
@@ -5935,11 +5881,6 @@ static int texture_paint_poll(bContext *C)
 int image_texture_paint_poll(bContext *C)
 {
 	return (texture_paint_poll(C) || image_paint_poll(C));
-}
-
-int uv_sculpt_poll(bContext *C)
-{
-	return uv_sculpt_brush_poll(C);
 }
 
 int facemask_paint_poll(bContext *C)

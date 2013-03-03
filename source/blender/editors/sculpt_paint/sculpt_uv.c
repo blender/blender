@@ -144,6 +144,69 @@ typedef struct UvSculptData {
 	char invert;
 } UvSculptData;
 
+
+static Brush *uv_sculpt_brush(bContext *C)
+{
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *settings = scene->toolsettings;
+
+	if (!settings->uvsculpt)
+		return NULL;
+	return paint_brush(&settings->uvsculpt->paint);
+}
+
+
+static int uv_sculpt_brush_poll(bContext *C)
+{
+	BMEditMesh *em;
+	int ret;
+	Object *obedit = CTX_data_edit_object(C);
+	SpaceImage *sima = CTX_wm_space_image(C);
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *toolsettings = scene->toolsettings;
+
+	if (!uv_sculpt_brush(C) || !obedit || obedit->type != OB_MESH)
+		return 0;
+
+	em = BMEdit_FromObject(obedit);
+	ret = EDBM_mtexpoly_check(em);
+
+	if (ret && sima) {
+		ARegion *ar = CTX_wm_region(C);
+		if ((toolsettings->use_uv_sculpt) && ar->regiontype == RGN_TYPE_WINDOW)
+			return 1;
+	}
+
+	return 0;
+}
+
+
+void ED_space_image_uv_sculpt_update(wmWindowManager *wm, ToolSettings *settings)
+{
+	if (settings->use_uv_sculpt) {
+		if (!settings->uvsculpt) {
+			settings->uvsculpt = MEM_callocN(sizeof(*settings->uvsculpt), "UV Smooth paint");
+			settings->uv_sculpt_tool = UV_SCULPT_TOOL_GRAB;
+			settings->uv_sculpt_settings = UV_SCULPT_LOCK_BORDERS | UV_SCULPT_ALL_ISLANDS;
+			settings->uv_relax_method = UV_SCULPT_TOOL_RELAX_LAPLACIAN;
+		}
+
+		BKE_paint_init(&settings->uvsculpt->paint, PAINT_CURSOR_SCULPT);
+
+		WM_paint_cursor_activate(wm, uv_sculpt_brush_poll,
+		                         brush_drawcursor_texpaint_uvsculpt, NULL);
+	}
+	else {
+		if (settings->uvsculpt)
+			settings->uvsculpt->paint.flags &= ~PAINT_SHOW_BRUSH;
+	}
+}
+
+int uv_sculpt_poll(bContext *C)
+{
+	return uv_sculpt_brush_poll(C);
+}
+
 /*********** Improved Laplacian Relaxation Operator ************************/
 /* original code by Raul Fernandez Hernandez "farsthary"                   *
  * adapted to uv smoothing by Antony Riakiatakis                           *
