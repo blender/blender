@@ -85,7 +85,7 @@ void GeometryExporter::operator()(Object *ob)
 
 	std::string geom_id = get_geometry_id(ob, use_instantiation);
 	std::vector<Normal> nor;
-	std::vector<Face> norind;
+	std::vector<BCPolygonNormalsIndices> norind;
 
 	// Skip if linked geometry was already exported from another reference
 	if (use_instantiation && 
@@ -130,7 +130,7 @@ void GeometryExporter::operator()(Object *ob)
 	input_list.push_back(input);
 	verts.add();
 
-	createLooseEdgeList(ob, me, geom_id, norind);
+	createLooseEdgeList(ob, me, geom_id);
 
 	// Only create Polylists if number of faces > 0
 	if (me->totface > 0) {
@@ -174,7 +174,7 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
 {
 	std::string geom_id = get_geometry_id(ob, false) + "_morph_" + translate_id(kb->name);
 	std::vector<Normal> nor;
-	std::vector<Face> norind;
+	std::vector<BCPolygonNormalsIndices> norind;
 	
 	if (exportedGeometry.find(geom_id) != exportedGeometry.end())
 	{
@@ -241,8 +241,7 @@ void GeometryExporter::export_key_mesh(Object *ob, Mesh *me, KeyBlock *kb)
 
 void GeometryExporter::createLooseEdgeList(Object *ob,
                                            Mesh   *me,
-                                           std::string& geom_id,
-                                           std::vector<Face>& norind)
+                                           std::string& geom_id)
 {
 
 	MEdge *medges = me->medge;
@@ -298,7 +297,7 @@ void GeometryExporter::createPolylist(short material_index,
                                       Object *ob,
                                       Mesh *me,
                                       std::string& geom_id,
-                                      std::vector<Face>& norind)
+                                      std::vector<BCPolygonNormalsIndices>& norind)
 {
 
 	MPoly *mpolys = me->mpoly;
@@ -388,11 +387,11 @@ void GeometryExporter::createPolylist(short material_index,
 
 		if (p->mat_nr == material_index) {
 			MLoop *l = &mloops[p->loopstart];
-			unsigned int *n = &norind[i].v1;
+			BCPolygonNormalsIndices normal_indices = norind[i];
 
 			for (int j = 0; j < loop_count; j++) {
 				polylist.appendValues(l[j].v);
-				polylist.appendValues(n[j]);
+				polylist.appendValues(normal_indices[j]);
 				if (has_uvs)
 					polylist.appendValues(texindex + j);
 
@@ -562,53 +561,55 @@ void GeometryExporter::createNormalsSource(std::string geom_id, Mesh *me, std::v
 	source.finish();
 }
 
-void GeometryExporter::create_normals(std::vector<Normal> &nor, std::vector<Face> &ind, Mesh *me)
+void GeometryExporter::create_normals(std::vector<Normal> &normals, std::vector<BCPolygonNormalsIndices> &polygons_normals, Mesh *me)
 {
-	int i, j, v;
 	MVert *vert = me->mvert;
-	std::map<unsigned int, unsigned int> nshar;
+	std::map<unsigned int, unsigned int> shared_normal_indices;
 
-	for (i = 0; i < me->totface; i++) {
-		MFace *fa = &me->mface[i];
-		Face f;
-		unsigned int *nn = &f.v1;
-		unsigned int *vv = &fa->v1;
+	for (int poly_index = 0; poly_index < me->totpoly; poly_index++) {
+		MPoly *mpoly  = &me->mpoly[poly_index];
+		MLoop *mloops = me->mloop;
 
-		memset(&f, 0, sizeof(f));
-		v = fa->v4 == 0 ? 3 : 4;
+		unsigned int last_normal_index = -1;
+		if (!(mpoly->flag & ME_SMOOTH)) {
+			// For flat faces calculate use face normal as vertex normal:
 
-		if (!(fa->flag & ME_SMOOTH)) {
-			Normal n;
-			if (v == 4)
-				normal_quad_v3(&n.x, vert[fa->v1].co, vert[fa->v2].co, vert[fa->v3].co, vert[fa->v4].co);
-			else
-				normal_tri_v3(&n.x, vert[fa->v1].co, vert[fa->v2].co, vert[fa->v3].co);
-			nor.push_back(n);
+			float vector[3];
+			BKE_mesh_calc_poly_normal(mpoly, mloops, vert, vector);
+
+			Normal n = { vector[0], vector[1], vector[2] };
+			normals.push_back(n);
+			last_normal_index++;
 		}
 
-		for (j = 0; j < v; j++) {
-			if (fa->flag & ME_SMOOTH) {
-				if (nshar.find(*vv) != nshar.end())
-					*nn = nshar[*vv];
+
+		MLoop *mloop = mloops + mpoly->loopstart;
+		BCPolygonNormalsIndices poly_indices;
+		for (int loop_index = 0; loop_index < mpoly->totloop; loop_index++) {
+			unsigned int vertex_index = mloop[loop_index].v;
+			if (mpoly->flag & ME_SMOOTH) {
+				if (shared_normal_indices.find(vertex_index) != shared_normal_indices.end())
+					poly_indices.add_index (shared_normal_indices[vertex_index]);
 				else {
-					Normal n = {
-						(float)vert[*vv].no[0] / 32767.0f,
-						(float)vert[*vv].no[1] / 32767.0f,
-						(float)vert[*vv].no[2] / 32767.0f
-					};
-					nor.push_back(n);
-					*nn = (unsigned int)nor.size() - 1;
-					nshar[*vv] = *nn;
+
+					float vector[3];
+					normal_short_to_float_v3(vector, vert[vertex_index].no);
+					normalize_v3(vector);
+
+					Normal n = { vector[0], vector[1], vector[2] };
+					normals.push_back(n);
+					last_normal_index++;
+
+					poly_indices.add_index(last_normal_index);
+					shared_normal_indices[vertex_index] = last_normal_index;
 				}
-				vv++;
 			}
 			else {
-				*nn = (unsigned int)nor.size() - 1;
+				poly_indices.add_index(last_normal_index);
 			}
-			nn++;
 		}
 
-		ind.push_back(f);
+		polygons_normals.push_back(poly_indices);
 	}
 }
 
@@ -631,19 +632,4 @@ COLLADASW::URI GeometryExporter::makeUrl(std::string id)
 	return COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, id);
 }
 
-#if 0
-int GeometryExporter::getTriCount(MFace *faces, int totface)
-{
-	int i;
-	int tris = 0;
-	for (i = 0; i < totface; i++) {
-		// if quad
-		if (faces[i].v4 != 0)
-			tris += 2;
-		else
-			tris++;
-	}
 
-	return tris;
-}
-#endif

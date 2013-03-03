@@ -87,4 +87,21 @@ extern void bc_match_scale(std::vector<Object *> *objects_done, Scene &sce, Unit
 
 extern void bc_triangulate_mesh(Mesh *me);
 
+
+class BCPolygonNormalsIndices
+{
+	std::vector<unsigned int> normal_indices;
+
+	public:
+
+	void add_index(unsigned int index) {
+		normal_indices.push_back(index);
+	}
+
+	unsigned int operator[](unsigned int i) { 
+		return normal_indices[i]; 
+	}
+
+};
+
 #endif
