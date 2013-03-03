@@ -1090,6 +1090,15 @@ static void scene_flag_rbw_recursive(Scene *scene)
 		scene->rigidbody_world->flag |= RBW_FLAG_FRAME_UPDATE;
 }
 
+static void scene_rebuild_rbw_recursive(Scene *scene, float ctime)
+{
+	if (scene->set)
+		scene_rebuild_rbw_recursive(scene->set, ctime);
+
+	if (BKE_scene_check_rigidbody_active(scene))
+		BKE_rigidbody_rebuild_world(scene, ctime);
+}
+
 static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scene_parent)
 {
 	Base *base;
@@ -1112,7 +1121,7 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 		 * as that is the active scene controlling all timing in file at the moment
 		 */
 		float ctime = BKE_scene_frame_get(scene_parent);
-		
+
 		/* however, "scene" contains the rigidbody world needed for eval... */
 		BKE_rigidbody_do_simulation(scene, ctime);
 	}
@@ -1195,6 +1204,12 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 {
 	float ctime = BKE_scene_frame_get(sce);
 	Scene *sce_iter;
+	
+	/* rebuild rigid body worlds before doing the actual frame update
+	 * this needs to be done on start frame but animation playback usually starts one frame later
+	 * we need to do it here to avoid rebuilding the world on every simulation change, which can be very expensive
+	 */
+	scene_rebuild_rbw_recursive(sce, ctime);
 
 	/* keep this first */
 	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_PRE);

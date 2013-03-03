@@ -1220,6 +1220,35 @@ void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw)
 
 /* ------------------ */
 
+/* Rebuild rigid body world */
+/* NOTE: this needs to be called before frame update to work correctly */
+void BKE_rigidbody_rebuild_world(Scene *scene, float ctime)
+{
+	RigidBodyWorld *rbw = scene->rigidbody_world;
+	PointCache *cache;
+	PTCacheID pid;
+	int startframe, endframe;
+
+	BKE_ptcache_id_from_rigidbody(&pid, NULL, rbw);
+	BKE_ptcache_id_time(&pid, scene, ctime, &startframe, &endframe, NULL);
+	cache = rbw->pointcache;
+
+	/* flag cache as outdated if we don't have a world or number of objects in the simulation has changed */
+	if (rbw->physics_world == NULL || rbw->numbodies != BLI_countlist(&rbw->group->gobject)) {
+		cache->flag |= PTCACHE_OUTDATED;
+	}
+
+	if (ctime <= startframe + 1 && rbw->ltime == startframe) {
+		if (cache->flag & PTCACHE_OUTDATED) {
+			BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
+			rigidbody_update_simulation(scene, rbw, true);
+			BKE_ptcache_validate(cache, (int)ctime);
+			cache->last_exact = 0;
+			cache->flag &= ~PTCACHE_REDO_NEEDED;
+		}
+	}
+}
+
 /* Run RigidBody simulation for the specified physics world */
 void BKE_rigidbody_do_simulation(Scene *scene, float ctime)
 {
@@ -1235,27 +1264,9 @@ void BKE_rigidbody_do_simulation(Scene *scene, float ctime)
 
 	rbw->flag &= ~RBW_FLAG_FRAME_UPDATE;
 
-	/* flag cache as outdated if we don't have a world or number of objects in the simulation has changed */
-	if (rbw->physics_world == NULL || rbw->numbodies != BLI_countlist(&rbw->group->gobject)) {
-		cache->flag |= PTCACHE_OUTDATED;
-	}
-
 	if (ctime <= startframe) {
 		rbw->ltime = startframe;
-		/* reset and rebuild simulation if necessary */
-		if (cache->flag & PTCACHE_OUTDATED) {
-			BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
-			rigidbody_update_simulation(scene, rbw, true);
-			BKE_ptcache_validate(cache, (int)ctime);
-			cache->last_exact = 0;
-			cache->flag &= ~PTCACHE_REDO_NEEDED;
-		}
 		return;
-	}
-	/* rebuild world if it's outdated on second frame */
-	else if (ctime == startframe + 1 && rbw->ltime == startframe && cache->flag & PTCACHE_OUTDATED) {
-		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
-		rigidbody_update_simulation(scene, rbw, true);
 	}
 	/* make sure we don't go out of cache frame range */
 	else if (ctime > endframe) {
