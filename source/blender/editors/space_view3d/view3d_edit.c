@@ -1001,7 +1001,7 @@ float ndof_to_axis_angle(const struct wmNDOFMotionData *ndof, float axis[3])
 	return ndof->dt * normalize_v3_v3(axis, ndof->rvec);
 }
 
-void ndof_to_quat(struct wmNDOFMotionData *ndof, float q[4])
+void ndof_to_quat(const struct wmNDOFMotionData *ndof, float q[4])
 {
 	float axis[3];
 	float angle;
