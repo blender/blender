@@ -608,62 +608,94 @@ Vec3r * Vec3r_ptr_from_Color(PyObject* obj)
 	return new Vec3r(r,g,b);
 }
 
+static int float_array_from_PyList(PyObject *obj, float *v, int n)
+{
+	for (int i = 0; i < n; i++) {
+		v[i] = PyFloat_AsDouble(PyList_GetItem(obj, i));
+		if (v[i] == -1.0f && PyErr_Occurred()) {
+			PyErr_SetString(PyExc_TypeError, "list elements must be a number");
+			return 0;
+		}
+	}
+	return 1;
+}
+
 Vec2f * Vec2f_ptr_from_PyList(PyObject* obj)
 {
+	float v[2];
+
 	if (!PyList_Check(obj) || PyList_Size(obj) != 2)
 		return NULL;
-	float x = PyFloat_AsDouble(PyList_GetItem(obj, 0));
-	float y = PyFloat_AsDouble(PyList_GetItem(obj, 1));
-	return new Vec2f(x,y);
+	if (!float_array_from_PyList(obj, v, 2))
+		return NULL;
+	return new Vec2f(v[0], v[1]);
 }
 
 Vec3f * Vec3f_ptr_from_PyList(PyObject* obj)
 {
+	float v[3];
+
 	if (!PyList_Check(obj) || PyList_Size(obj) != 3)
 		return NULL;
-	float x = PyFloat_AsDouble(PyList_GetItem(obj, 0));
-	float y = PyFloat_AsDouble(PyList_GetItem(obj, 1));
-	float z = PyFloat_AsDouble(PyList_GetItem(obj, 2));
-	return new Vec3f(x,y,z);
+	if (!float_array_from_PyList(obj, v, 3))
+		return NULL;
+	return new Vec3f(v[0], v[1], v[2]);
 }
 
 Vec3r * Vec3r_ptr_from_PyList(PyObject* obj)
 {
+	float v[3];
+
 	if (!PyList_Check(obj) || PyList_Size(obj) != 3)
 		return NULL;
-	float x = PyFloat_AsDouble(PyList_GetItem(obj, 0));
-	float y = PyFloat_AsDouble(PyList_GetItem(obj, 1));
-	float z = PyFloat_AsDouble(PyList_GetItem(obj, 2));
-	return new Vec3r(x,y,z);
+	if (!float_array_from_PyList(obj, v, 3))
+		return NULL;
+	return new Vec3r(v[0], v[1], v[2]);
+}
+
+static int float_array_from_PyTuple(PyObject *obj, float *v, int n)
+{
+	for (int i = 0; i < n; i++) {
+		v[i] = PyFloat_AsDouble(PyTuple_GetItem(obj, i));
+		if (v[i] == -1.0f && PyErr_Occurred()) {
+			PyErr_SetString(PyExc_TypeError, "tuple elements must be a number");
+			return 0;
+		}
+	}
+	return 1;
 }
 
 Vec2f * Vec2f_ptr_from_PyTuple(PyObject* obj)
 {
+	float v[2];
+
 	if (!PyTuple_Check(obj) || PyTuple_Size(obj) != 2)
 		return NULL;
-	float x = PyFloat_AsDouble(PyTuple_GetItem(obj, 0));
-	float y = PyFloat_AsDouble(PyTuple_GetItem(obj, 1));
-	return new Vec2f(x,y);
+	if (!float_array_from_PyTuple(obj, v, 2))
+		return NULL;
+	return new Vec2f(v[0], v[1]);
 }
 
 Vec3f * Vec3f_ptr_from_PyTuple(PyObject* obj)
 {
+	float v[3];
+
 	if (!PyTuple_Check(obj) || PyTuple_Size(obj) != 3)
 		return NULL;
-	float x = PyFloat_AsDouble(PyTuple_GetItem(obj, 0));
-	float y = PyFloat_AsDouble(PyTuple_GetItem(obj, 1));
-	float z = PyFloat_AsDouble(PyTuple_GetItem(obj, 2));
-	return new Vec3f(x,y,z);
+	if (!float_array_from_PyTuple(obj, v, 3))
+		return NULL;
+	return new Vec3f(v[0], v[1], v[2]);
 }
 
 Vec3r * Vec3r_ptr_from_PyTuple(PyObject* obj)
 {
+	float v[3];
+
 	if (!PyTuple_Check(obj) || PyTuple_Size(obj) != 3)
 		return NULL;
-	float x = PyFloat_AsDouble(PyTuple_GetItem(obj, 0));
-	float y = PyFloat_AsDouble(PyTuple_GetItem(obj, 1));
-	float z = PyFloat_AsDouble(PyTuple_GetItem(obj, 2));
-	return new Vec3r(x,y,z);
+	if (!float_array_from_PyTuple(obj, v, 3))
+		return NULL;
+	return new Vec3r(v[0], v[1], v[2]);
 }
 
 // helper for argument parsing
@@ -673,19 +705,15 @@ int float_array_from_PyObject(PyObject *obj, float *v, int n)
 	if (VectorObject_Check(obj) && ((VectorObject *)obj)->size == n) {
 		for (int i = 0; i < n; i++)
 			v[i] = ((VectorObject *)obj)->vec[i];
+		return 1;
 	}
 	else if (PyList_Check(obj) && PyList_Size(obj) == n) {
-		for (int i = 0; i < n; i++)
-			v[i] = PyFloat_AsDouble(PyList_GetItem(obj, i));
+		return float_array_from_PyList(obj, v, n);
 	}
 	else if (PyTuple_Check(obj) && PyTuple_Size(obj) == n) {
-		for (int i = 0; i < n; i++)
-			v[i] = PyFloat_AsDouble(PyTuple_GetItem(obj, i));
+		return float_array_from_PyList(obj, v, n);
 	}
-	else {
-		return 0;
-	}
-	return 1;
+	return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
