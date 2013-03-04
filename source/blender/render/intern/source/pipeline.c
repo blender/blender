@@ -967,7 +967,20 @@ static void threaded_tile_processor(Render *re)
 		if ((g_break=re->test_break(re->tbh)))
 			break;
 	}
-	
+
+	if (g_break) {
+		/* review the done queue and handle all the render parts,
+		 * so no unfreed render result are lurking around
+		 */
+		BLI_thread_queue_nowait(donequeue);
+		while ((pa = BLI_thread_queue_pop(donequeue))) {
+			if (pa->result) {
+				render_result_free_list(&pa->fullresult, pa->result);
+				pa->result = NULL;
+			}
+		}
+	}
+
 	BLI_thread_queue_free(donequeue);
 	BLI_thread_queue_free(workqueue);
 	
