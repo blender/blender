@@ -435,7 +435,7 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 	sce->r.postsat = 1.0;
 
 	sce->r.bake_mode = 1;    /* prevent to include render stuff here */
-	sce->r.bake_filter = 2;
+	sce->r.bake_filter = 16;
 	sce->r.bake_osa = 5;
 	sce->r.bake_flag = R_BAKE_CLEAR;
 	sce->r.bake_normal_space = R_BAKE_SPACE_TANGENT;
