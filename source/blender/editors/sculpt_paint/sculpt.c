@@ -545,13 +545,32 @@ typedef struct SculptBrushTest {
 	float radius_squared;
 	float location[3];
 	float dist;
+
+	/* View3d clipping - only set rv3d for clipping */
+	RegionView3D *clip_rv3d;
 } SculptBrushTest;
 
 static void sculpt_brush_test_init(SculptSession *ss, SculptBrushTest *test)
 {
+	RegionView3D *rv3d = ss->cache->vc->rv3d;
+
 	test->radius_squared = ss->cache->radius_squared;
 	copy_v3_v3(test->location, ss->cache->location);
 	test->dist = 0.0f;   /* just for initialize */
+
+
+	if (rv3d->rflag & RV3D_CLIPPING) {
+		test->clip_rv3d = rv3d;
+	}
+	else {
+		test->clip_rv3d = NULL;
+	}
+}
+
+BLI_INLINE bool sculpt_brush_test_clipping(SculptBrushTest *test, const float co[3])
+{
+	RegionView3D *rv3d = test->clip_rv3d;
+	return (rv3d && (ED_view3d_clipping_test(rv3d, co, true)));
 }
 
 static int sculpt_brush_test(SculptBrushTest *test, const float co[3])
@@ -559,6 +578,9 @@ static int sculpt_brush_test(SculptBrushTest *test, const float co[3])
 	float distsq = len_squared_v3v3(co, test->location);
 
 	if (distsq <= test->radius_squared) {
+		if (sculpt_brush_test_clipping(test, co)) {
+			return 0;
+		}
 		test->dist = sqrt(distsq);
 		return 1;
 	}
@@ -572,6 +594,9 @@ static int sculpt_brush_test_sq(SculptBrushTest *test, const float co[3])
 	float distsq = len_squared_v3v3(co, test->location);
 
 	if (distsq <= test->radius_squared) {
+		if (sculpt_brush_test_clipping(test, co)) {
+			return 0;
+		}
 		test->dist = distsq;
 		return 1;
 	}
@@ -582,6 +607,9 @@ static int sculpt_brush_test_sq(SculptBrushTest *test, const float co[3])
 
 static int sculpt_brush_test_fast(SculptBrushTest *test, float co[3])
 {
+	if (sculpt_brush_test_clipping(test, co)) {
+		return 0;
+	}
 	return len_squared_v3v3(co, test->location) <= test->radius_squared;
 }
 
@@ -589,6 +617,10 @@ static int sculpt_brush_test_cube(SculptBrushTest *test, float co[3], float loca
 {
 	float side = M_SQRT1_2;
 	float local_co[3];
+
+	if (sculpt_brush_test_clipping(test, co)) {
+		return 0;
+	}
 
 	mul_v3_m4v3(local_co, local, co);
 
