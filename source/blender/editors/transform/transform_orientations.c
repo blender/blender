@@ -89,7 +89,7 @@ static TransformOrientation *findOrientationName(ListBase *lb, const char *name)
 	return NULL;
 }
 
-static int uniqueOrientationNameCheck(void *arg, const char *name)
+static bool uniqueOrientationNameCheck(void *arg, const char *name)
 {
 	return findOrientationName((ListBase *)arg, name) != NULL;
 }

@@ -2861,7 +2861,7 @@ static int  CustomData_is_property_layer(int type)
 	return 0;
 }
 
-static int cd_layer_find_dupe(CustomData *data, const char *name, int type, int index)
+static bool cd_layer_find_dupe(CustomData *data, const char *name, int type, int index)
 {
 	int i;
 	/* see if there is a duplicate */
@@ -2871,21 +2871,21 @@ static int cd_layer_find_dupe(CustomData *data, const char *name, int type, int 
 			
 			if (CustomData_is_property_layer(type)) {
 				if (CustomData_is_property_layer(layer->type) && strcmp(layer->name, name) == 0) {
-					return 1;
+					return true;
 				}
 			}
 			else {
 				if (i != index && layer->type == type && strcmp(layer->name, name) == 0) {
-					return 1;
+					return true;
 				}
 			}
 		}
 	}
 	
-	return 0;
+	return false;
 }
 
-static int customdata_unique_check(void *arg, const char *name)
+static bool customdata_unique_check(void *arg, const char *name)
 {
 	struct {CustomData *data; int type; int index; } *data_arg = arg;
 	return cd_layer_find_dupe(data_arg->data, name, data_arg->type, data_arg->index);

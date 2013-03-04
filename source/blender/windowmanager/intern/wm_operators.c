@@ -2319,7 +2319,7 @@ static void WM_OT_recover_auto_save(wmOperatorType *ot)
 static void untitled(char *filepath)
 {
 	if (G.save_over == 0 && strlen(filepath) < FILE_MAX - 16) {
-		char *c = BLI_last_slash(filepath);
+		char *c = (char *)BLI_last_slash(filepath);
 		
 		if (c)
 			strcpy(&c[1], "untitled.blend");

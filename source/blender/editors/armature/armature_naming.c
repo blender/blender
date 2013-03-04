@@ -72,7 +72,7 @@ EditBone *editbone_name_exists(ListBase *edbo, const char *name)
 }
 
 /* note: there's a unique_bone_name() too! */
-static int editbone_unique_check(void *arg, const char *name)
+static bool editbone_unique_check(void *arg, const char *name)
 {
 	struct {ListBase *lb; void *bone; } *data = arg;
 	EditBone *dupli = editbone_name_exists(data->lb, name);
@@ -91,7 +91,7 @@ void unique_editbone_name(ListBase *edbo, char *name, EditBone *bone)
 /* ************************************************** */
 /* Bone Renaming - API */
 
-static int bone_unique_check(void *arg, const char *name)
+static bool bone_unique_check(void *arg, const char *name)
 {
 	return BKE_armature_find_bone_name((bArmature *)arg, name) != NULL;
 }

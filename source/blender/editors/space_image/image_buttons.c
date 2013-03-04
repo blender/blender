@@ -114,7 +114,7 @@ static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, 
 			ofs += sprintf(str + ofs, IFACE_(" + Z"));
 
 		if (ima->source == IMA_SRC_SEQUENCE) {
-			char *file = BLI_last_slash(ibuf->name);
+			const char *file = BLI_last_slash(ibuf->name);
 			if (file == NULL) file = ibuf->name;
 			else file++;
 			ofs += sprintf(str + ofs, ", %s", file);

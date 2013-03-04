@@ -591,7 +591,7 @@ void packLibraries(Main *bmain, ReportList *reports)
 	
 	/* test for relativenss */
 	for (lib = bmain->library.first; lib; lib = lib->id.next)
-		if (0 == BLI_path_is_rel(lib->name))
+		if (!BLI_path_is_rel(lib->name))
 			break;
 	
 	if (lib) {

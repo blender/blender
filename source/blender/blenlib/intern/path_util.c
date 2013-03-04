@@ -88,34 +88,44 @@ static char *blender_version_decimal(const int ver);
 
 /* implementation */
 
+/**
+ * Looks for a sequence of decimal digits in string, preceding any filename extension,
+ * returning the integer value if found, or 0 if not.
+ *
+ * \param string  String to scan.
+ * \param head  Optional area to return copy of part of string prior to digits, or before dot if no digits.
+ * \param tail  Optional area to return copy of part of string following digits, or from dot if no digits.
+ * \param numlen  Optional to return number of digits found.
+ */
 int BLI_stringdec(const char *string, char *head, char *tail, unsigned short *numlen)
 {
-	unsigned short len, len2, lenlslash = 0, nums = 0, nume = 0;
-	short i, found = 0;
-	char *lslash = BLI_last_slash(string);
-	len2 = len = strlen(string);
-	if (lslash)
-		lenlslash = (int)(lslash - string);
+	unsigned short nums = 0, nume = 0;
+	short i;
+	bool found_digit = false;
+	const char * const lslash = BLI_last_slash(string);
+	const unsigned short string_len = strlen(string);
+	const unsigned short lslash_len = lslash != NULL ? (int)(lslash - string) : 0;
+	unsigned short name_end = string_len;
 
-	while (len > lenlslash && string[--len] != '.') {}
-	if (len == lenlslash && string[len] != '.') len = len2;
+	while (name_end > lslash_len && string[--name_end] != '.') {} /* name ends at dot if present */
+	if (name_end == lslash_len && string[name_end] != '.') name_end = string_len;
 
-	for (i = len - 1; i >= lenlslash; i--) {
+	for (i = name_end - 1; i >= lslash_len; i--) {
 		if (isdigit(string[i])) {
-			if (found) {
+			if (found_digit) {
 				nums = i;
 			}
 			else {
 				nume = i;
 				nums = i;
-				found = 1;
+				found_digit = true;
 			}
 		}
 		else {
-			if (found) break;
+			if (found_digit) break;
 		}
 	}
-	if (found) {
+	if (found_digit) {
 		if (tail) strcpy(tail, &string[nume + 1]);
 		if (head) {
 			strcpy(head, string);
@@ -124,16 +134,20 @@ int BLI_stringdec(const char *string, char *head, char *tail, unsigned short *nu
 		if (numlen) *numlen = nume - nums + 1;
 		return ((int)atoi(&(string[nums])));
 	}
-	if (tail) strcpy(tail, string + len);
+	if (tail) strcpy(tail, string + name_end);
 	if (head) {
-		strncpy(head, string, len);
-		head[len] = '\0';
+		strncpy(head, string, name_end);
+		head[name_end] = '\0';
 	}
 	if (numlen) *numlen = 0;
 	return 0;
 }
 
 
+/**
+ * Returns in area pointed to by string a string of the form "<head><pic><tail>", where pic
+ * is formatted as numlen digits with leading zeroes.
+ */
 void BLI_stringenc(char *string, const char *head, const char *tail, unsigned short numlen, int pic)
 {
 	char fmtstr[16] = "";
@@ -142,8 +156,19 @@ void BLI_stringenc(char *string, const char *head, const char *tail, unsigned sh
 	sprintf(string, fmtstr, head, pic, tail);
 }
 
-/* Foo.001 -> "Foo", 1
- * Returns the length of "Foo" */
+/**
+ * Looks for a numeric suffix preceded by delim character on the end of
+ * name, puts preceding part into *left and value of suffix into *nr.
+ * Returns the length of *left.
+ *
+ * Foo.001 -> "Foo", 1
+ * Returns the length of "Foo"
+ *
+ * \param left  Where to return copy of part preceding delim
+ * \param nr  Where to return value of numeric suffix
+ * \param name  String to split
+ * \param delim  Delimiter character
+ */
 int BLI_split_name_num(char *left, int *nr, const char *name, const char delim)
 {
 	int a;
@@ -163,6 +188,7 @@ int BLI_split_name_num(char *left, int *nr, const char *name, const char delim)
 				*nr = 0;
 			return a;
 		}
+		/* non-numeric suffix--give up */
 		if (isdigit(name[a]) == 0) break;
 		
 		left[a] = 0;
@@ -174,6 +200,9 @@ int BLI_split_name_num(char *left, int *nr, const char *name, const char delim)
 	return a;
 }
 
+/**
+ * Looks for a string of digits within name (using BLI_stringdec) and adjusts it by add.
+ */
 void BLI_newname(char *name, int add)
 {
 	char head[UNIQUE_NAME_MAX], tail[UNIQUE_NAME_MAX];
@@ -196,9 +225,20 @@ void BLI_newname(char *name, int add)
 	BLI_stringenc(name, head, tail, digits, pic);
 }
 
-
-
-int BLI_uniquename_cb(int (*unique_check)(void *, const char *), void *arg, const char defname[], char delim, char *name, short name_len)
+/**
+ * Ensures name is unique (according to criteria specified by caller in unique_check callback),
+ * incrementing its numeric suffix as necessary. Returns true if name had to be adjusted.
+ *
+ * \param unique_check  Return true iff name is not unique
+ * \param arg  Additional arg to unique_check--meaning is up to caller
+ * \param defname  To initialize name if latter is empty
+ * \param delim  Delimits numeric suffix in name
+ * \param name  Name to be ensured unique
+ * \param name_len  Maximum length of name area
+ * \return true if there if the name was changed
+ */
+bool BLI_uniquename_cb(bool (*unique_check)(void * arg, const char *name),
+                       void *arg, const char *defname, char delim, char *name, short name_len)
 {
 	if (name[0] == '\0') {
 		BLI_strncpy(name, defname, name_len);
@@ -211,7 +251,7 @@ int BLI_uniquename_cb(int (*unique_check)(void *, const char *), void *arg, cons
 		int number;
 		int len = BLI_split_name_num(left, &number, name, delim);
 		do {
-			int numlen = BLI_snprintf(numstr, sizeof(numstr), "%c%03d", delim, ++number);
+			const int numlen = BLI_snprintf(numstr, sizeof(numstr), "%c%03d", delim, ++number);
 
 			/* highly unlikely the string only has enough room for the number
 			 * but support anyway */
@@ -229,10 +269,10 @@ int BLI_uniquename_cb(int (*unique_check)(void *, const char *), void *arg, cons
 
 		BLI_strncpy(name, tempname, name_len);
 		
-		return 1;
+		return true;
 	}
 	
-	return 0;
+	return false;
 }
 
 /* little helper macro for BLI_uniquename */
@@ -250,28 +290,39 @@ int BLI_uniquename_cb(int (*unique_check)(void *, const char *), void *arg, cons
  *  defname: the name that should be used by default if none is specified already
  *  delim: the character which acts as a delimiter between parts of the name
  */
-static int uniquename_find_dupe(ListBase *list, void *vlink, const char *name, short name_offs)
+static bool uniquename_find_dupe(ListBase *list, void *vlink, const char *name, short name_offs)
 {
 	Link *link;
 
 	for (link = list->first; link; link = link->next) {
 		if (link != vlink) {
 			if (!strcmp(GIVE_STRADDR(link, name_offs), name)) {
-				return 1;
+				return true;
 			}
 		}
 	}
 
-	return 0;
+	return false;
 }
 
-static int uniquename_unique_check(void *arg, const char *name)
+static bool uniquename_unique_check(void *arg, const char *name)
 {
 	struct {ListBase *lb; void *vlink; short name_offs; } *data = arg;
 	return uniquename_find_dupe(data->lb, data->vlink, name, data->name_offs);
 }
 
-void BLI_uniquename(ListBase *list, void *vlink, const char defname[], char delim, short name_offs, short name_len)
+/**
+ * Ensures that the specified block has a unique name within the containing list,
+ * incrementing its numeric suffix as necessary.
+ *
+ * \param list  List containing the block
+ * \param vlink  The block to check the name for
+ * \param defname  To initialize block name if latter is empty
+ * \param delim  Delimits numeric suffix in name
+ * \param name_offs  Offset of name within block structure
+ * \param name_len  Maximum length of name area
+ */
+void BLI_uniquename(ListBase *list, void *vlink, const char *defname, char delim, short name_offs, short name_len)
 {
 	struct {ListBase *lb; void *vlink; short name_offs; } data;
 	data.lb = list;
@@ -410,14 +461,18 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 	BLI_del_slash(dir);
 }
 
-int BLI_path_is_rel(const char *path)
+/**
+ * Does path begin with the special "//" prefix that Blender uses to indicate
+ * a path relative to the .blend file.
+ */
+bool BLI_path_is_rel(const char *path)
 {
 	return path[0] == '/' && path[1] == '/';
 }
 
 void BLI_path_rel(char *file, const char *relfile)
 {
-	char *lslash;
+	const char *lslash;
 	char temp[FILE_MAX];
 	char res[FILE_MAX];
 	
@@ -519,7 +574,11 @@ void BLI_path_rel(char *file, const char *relfile)
 	}
 }
 
-int BLI_has_parent(char *path)
+/**
+ * Cleans path and makes sure it ends with a slash, and returns true iff
+ * it has more than one other path separator in it.
+ */
+bool BLI_has_parent(char *path)
 {
 	int len;
 	int slashes = 0;
@@ -534,25 +593,34 @@ int BLI_has_parent(char *path)
 	return slashes > 1;
 }
 
-int BLI_parent_dir(char *path)
+/**
+ * Replaces path with the path of its parent directory, returning true iff
+ * it was able to find a parent directory within the pathname.
+ */
+bool BLI_parent_dir(char *path)
 {
 	static char parent_dir[] = {'.', '.', SEP, '\0'}; /* "../" or "..\\" */
 	char tmp[FILE_MAX + 4];
 	BLI_strncpy(tmp, path, sizeof(tmp) - 4);
 	BLI_add_slash(tmp);
 	strcat(tmp, parent_dir);
-	BLI_cleanup_dir(NULL, tmp);
+	BLI_cleanup_dir(NULL, tmp); /* does all the work of normalizing the path for us */
 
 	if (!BLI_testextensie(tmp, parent_dir)) {
 		BLI_strncpy(path, tmp, sizeof(tmp));
-		return 1;
+		return true;
 	}
 	else {
-		return 0;
+		return false;
 	}
 }
 
-static int stringframe_chars(char *path, int *char_start, int *char_end)
+/**
+ * Looks for a sequence of "#" characters in the last slash-separated component of *path,
+ * returning the indexes of the first and one past the last character in the sequence in
+ * *char_start and *char_end respectively. Returns true iff such a sequence was found.
+ */
+static bool stringframe_chars(const char *path, int *char_start, int *char_end)
 {
 	int ch_sta, ch_end, i;
 	/* Insert current frame: file### -> file001 */
@@ -576,18 +644,22 @@ static int stringframe_chars(char *path, int *char_start, int *char_end)
 	if (ch_end) {
 		*char_start = ch_sta;
 		*char_end = ch_end;
-		return 1;
+		return true;
 	}
 	else {
 		*char_start = -1;
 		*char_end = -1;
-		return 0;
+		return false;
 	}
 }
 
+/**
+ * Ensure *path contains at least one "#" character in its last slash-separated
+ * component, appending one digits long if not.
+ */
 static void ensure_digits(char *path, int digits)
 {
-	char *file = BLI_last_slash(path);
+	char *file = (char *)BLI_last_slash(path);
 
 	if (file == NULL)
 		file = path;
@@ -636,9 +708,14 @@ int BLI_path_frame_range(char *path, int sta, int end, int digits)
 	return 0;
 }
 
-int BLI_path_abs(char *path, const char *basepath)
+/**
+ * If path begins with "//", strips that and replaces it with basepath directory. Also converts
+ * a drive-letter prefix to something more sensible if this is a non-drive-letter-based system.
+ * Returns true iff "//" prefix expansion was done.
+ */
+bool BLI_path_abs(char *path, const char *basepath)
 {
-	int wasrelative = BLI_path_is_rel(path);
+	const bool wasrelative = BLI_path_is_rel(path);
 	char tmp[FILE_MAX];
 	char base[FILE_MAX];
 #ifdef WIN32
@@ -696,21 +773,23 @@ int BLI_path_abs(char *path, const char *basepath)
 	/* Paths starting with // will get the blend file as their base,
 	 * this isn't standard in any os but is used in blender all over the place */
 	if (wasrelative) {
-		char *lslash = BLI_last_slash(base);
+		const char * const lslash = BLI_last_slash(base);
 		if (lslash) {
-			int baselen = (int) (lslash - base) + 1;
+			const int baselen = (int) (lslash - base) + 1;  /* length up to and including last "/" */
 			/* use path for temp storage here, we copy back over it right away */
-			BLI_strncpy(path, tmp + 2, FILE_MAX);
+			BLI_strncpy(path, tmp + 2, FILE_MAX);  /* strip "//" */
 			
-			memcpy(tmp, base, baselen);
-			BLI_strncpy(tmp + baselen, path, sizeof(tmp) - baselen);
-			BLI_strncpy(path, tmp, FILE_MAX);
+			memcpy(tmp, base, baselen);  /* prefix with base up to last "/" */
+			BLI_strncpy(tmp + baselen, path, sizeof(tmp) - baselen);  /* append path after "//" */
+			BLI_strncpy(path, tmp, FILE_MAX);  /* return as result */
 		}
 		else {
+			/* base doesn't seem to be a directory--ignore it and just strip "//" prefix on path */
 			BLI_strncpy(path, tmp + 2, FILE_MAX);
 		}
 	}
 	else {
+		/* base ignored */
 		BLI_strncpy(path, tmp, FILE_MAX);
 	}
 
@@ -776,7 +855,7 @@ int BLI_path_cwd(char *path)
 /* 'di's filename component is moved into 'fi', di is made a dir path */
 void BLI_splitdirstring(char *di, char *fi)
 {
-	char *lslash = BLI_last_slash(di);
+	char *lslash = (char *)BLI_last_slash(di);
 
 	if (lslash) {
 		BLI_strncpy(fi, lslash + 1, FILE_MAXFILE);
@@ -1146,7 +1225,7 @@ char *BLI_get_folder_create(int folder_id, const char *subfolder)
 	return path;
 }
 
-char *BLI_get_folder_version(const int id, const int ver, const int do_check)
+char *BLI_get_folder_version(const int id, const int ver, const bool do_check)
 {
 	static char path[FILE_MAX] = "";
 	int ok;
@@ -1310,7 +1389,7 @@ void BLI_make_file_string(const char *relabase, char *string,  const char *dir, 
 		/* Get the file name, chop everything past the last slash (ie. the filename) */
 		strcpy(string, relabase);
 		
-		lslash = BLI_last_slash(string);
+		lslash = (char *)BLI_last_slash(string);
 		if (lslash) *(lslash + 1) = 0;
 
 		dir += 2; /* Skip over the relative reference */
@@ -1473,7 +1552,7 @@ int BLI_ensure_extension(char *path, size_t maxlen, const char *ext)
  * */
 void BLI_split_dirfile(const char *string, char *dir, char *file, const size_t dirlen, const size_t filelen)
 {
-	char *lslash_str = BLI_last_slash(string);
+	const char *lslash_str = BLI_last_slash(string);
 	size_t lslash = lslash_str ? (size_t)(lslash_str - string) + 1 : 0;
 
 	if (dir) {
@@ -1538,9 +1617,9 @@ void BLI_join_dirfile(char *dst, const size_t maxlen, const char *dir, const cha
 }
 
 /* like pythons os.path.basename( ) */
-char *BLI_path_basename(char *path)
+const char *BLI_path_basename(const char *path)
 {
-	char *filename = BLI_last_slash(path);
+	const char * const filename = BLI_last_slash(path);
 	return filename ? filename + 1 : path;
 }
 
@@ -1651,12 +1730,13 @@ int BLI_rebase_path(char *abs, size_t abs_len, char *rel, size_t rel_len, const 
 	return BLI_REBASE_OK;
 }
 
-char *BLI_first_slash(char *string)
+/**
+ * Returns pointer to the leftmost path separator in string. Not actually used anywhere.
+ */
+const char *BLI_first_slash(const char *string)
 {
-	char *ffslash, *fbslash;
-	
-	ffslash = strchr(string, '/');
-	fbslash = strchr(string, '\\');
+	char * const ffslash = strchr(string, '/');
+	char * const fbslash = strchr(string, '\\');
 	
 	if (!ffslash) return fbslash;
 	else if (!fbslash) return ffslash;
@@ -1665,12 +1745,13 @@ char *BLI_first_slash(char *string)
 	else return fbslash;
 }
 
-char *BLI_last_slash(const char *string)
+/**
+ * Returns pointer to the rightmost path separator in string.
+ */
+const char *BLI_last_slash(const char *string)
 {
-	char *lfslash, *lbslash;
-	
-	lfslash = strrchr(string, '/');
-	lbslash = strrchr(string, '\\');
+	const char * const lfslash = strrchr(string, '/');
+	const char * const lbslash = strrchr(string, '\\');
 
 	if (!lfslash) return lbslash; 
 	else if (!lbslash) return lfslash;
@@ -1679,7 +1760,10 @@ char *BLI_last_slash(const char *string)
 	else return lfslash;
 }
 
-/* adds a slash if there isn't one there already */
+/**
+ * Appends a slash to string if there isn't one there already.
+ * Returns the new length of the string.
+ */
 int BLI_add_slash(char *string)
 {
 	int len = strlen(string);
@@ -1691,7 +1775,9 @@ int BLI_add_slash(char *string)
 	return len;
 }
 
-/* removes a slash if there is one */
+/**
+ * Removes the last slash and everything after it to the end of string, if there is one.
+ */
 void BLI_del_slash(char *string)
 {
 	int len = strlen(string);

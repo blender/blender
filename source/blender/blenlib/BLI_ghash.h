@@ -69,9 +69,9 @@ GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp, const char *info);
 void   BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
 void   BLI_ghash_insert(GHash *gh, void *key, void *val);
 void  *BLI_ghash_lookup(GHash *gh, const void *key);
-int    BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
+bool   BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
 void  *BLI_ghash_pop(GHash *gh, void *key, GHashKeyFreeFP keyfreefp);
-int    BLI_ghash_haskey(GHash *gh, const void *key);
+bool    BLI_ghash_haskey(GHash *gh, const void *key);
 int    BLI_ghash_size(GHash *gh);
 
 /* *** */

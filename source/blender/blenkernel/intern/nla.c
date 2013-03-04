@@ -1262,7 +1262,7 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
 
 /* Sanity Validation ------------------------------------ */
 
-static int nla_editbone_name_check(void *arg, const char *name)
+static bool nla_editbone_name_check(void *arg, const char *name)
 {
 	return BLI_ghash_haskey((GHash *)arg, (void *)name);
 }

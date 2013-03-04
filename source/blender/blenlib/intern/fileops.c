@@ -806,7 +806,8 @@ static char *check_destination(const char *file, const char *to)
 
 	if (!stat(to, &st)) {
 		if (S_ISDIR(st.st_mode)) {
-			char *str, *filename, *path;
+			char *str, *path;
+			const char *filename;
 			size_t len = 0;
 
 			str = strip_last_slash(file);
@@ -875,7 +876,7 @@ void BLI_dir_create_recursive(const char *dirname)
 
 	BLI_strncpy(tmp, dirname, size);
 		
-	lslash = BLI_last_slash(tmp);
+	lslash = (char *)BLI_last_slash(tmp);
 	if (lslash) {
 		/* Split about the last slash and recurse */
 		*lslash = 0;

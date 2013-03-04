@@ -1033,7 +1033,7 @@ static int groupname_to_code(const char *group)
 	char *lslash;
 	
 	BLI_strncpy(buf, group, sizeof(buf));
-	lslash = BLI_last_slash(buf);
+	lslash = (char *)BLI_last_slash(buf);
 	if (lslash)
 		lslash[0] = '\0';
 

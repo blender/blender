@@ -45,7 +45,7 @@
 /* **************** OUTPUT FILE ******************** */
 
 /* find unique path */
-static int unique_path_unique_check(void *arg, const char *name)
+static bool unique_path_unique_check(void *arg, const char *name)
 {
 	struct {ListBase *lb; bNodeSocket *sock;} *data= arg;
 	bNodeSocket *sock;
@@ -53,10 +53,10 @@ static int unique_path_unique_check(void *arg, const char *name)
 		if (sock != data->sock) {
 			NodeImageMultiFileSocket *sockdata = sock->storage;
 			if (strcmp(sockdata->path, name)==0)
-				return 1;
+				return true;
 		}
 	}
-	return 0;
+	return false;
 }
 void ntreeCompositOutputFileUniquePath(ListBase *list, bNodeSocket *sock, const char defname[], char delim)
 {
@@ -74,7 +74,7 @@ void ntreeCompositOutputFileUniquePath(ListBase *list, bNodeSocket *sock, const 
 }
 
 /* find unique EXR layer */
-static int unique_layer_unique_check(void *arg, const char *name)
+static bool unique_layer_unique_check(void *arg, const char *name)
 {
 	struct {ListBase *lb; bNodeSocket *sock;} *data= arg;
 	bNodeSocket *sock;
@@ -82,10 +82,10 @@ static int unique_layer_unique_check(void *arg, const char *name)
 		if (sock != data->sock) {
 			NodeImageMultiFileSocket *sockdata = sock->storage;
 			if (strcmp(sockdata->layer, name)==0)
-				return 1;
+				return true;
 		}
 	}
-	return 0;
+	return false;
 }
 void ntreeCompositOutputFileUniqueLayer(ListBase *list, bNodeSocket *sock, const char defname[], char delim)
 {

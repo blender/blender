@@ -1175,7 +1175,7 @@ int BLO_is_a_library(const char *path, char *dir, char *group)
 	dir[len - 1] = '\0';
 
 	/* Find the last slash */
-	fd = BLI_last_slash(dir);
+	fd = (char *)BLI_last_slash(dir);
 
 	if (fd == NULL) return 0;
 	*fd = 0;
@@ -1184,10 +1184,10 @@ int BLO_is_a_library(const char *path, char *dir, char *group)
 		*fd = '/'; /* put back the removed slash separating the dir and the .blend file name */
 	}
 	else {
-		char *gp = fd + 1; // in case we have a .blend file, gp points to the group
+		const char * const gp = fd + 1; // in case we have a .blend file, gp points to the group
 		
 		/* Find the last slash */
-		fd = BLI_last_slash(dir);
+		fd = (char *)BLI_last_slash(dir);
 		if (!fd || !BLO_has_bfile_extension(fd+1)) return 0;
 		
 		/* now we know that we are in a blend file and it is safe to 

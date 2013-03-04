@@ -38,6 +38,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
+#include "BLI_utildefines.h"
 #include "BKE_pbvh.h"
 #include "BKE_ccg.h"
 #include "BKE_context.h"

@@ -20,6 +20,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_buffer.h"
 #include "BLI_ghash.h"
 #include "BLI_heap.h"

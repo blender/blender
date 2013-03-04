@@ -189,7 +189,7 @@ static int file_browse_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		PointerRNA props_ptr;
 
 		if (event->alt) {
-			char *lslash = BLI_last_slash(str);
+			char *lslash = (char *)BLI_last_slash(str);
 			if (lslash)
 				*lslash = '\0';
 		}
