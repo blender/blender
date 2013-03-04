@@ -2996,7 +2996,7 @@ static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar)
 #define VIEWGRAD_RES_Y 16
 
 			GLubyte grid_col[VIEWGRAD_RES_X][VIEWGRAD_RES_Y][4];
-			static float   grid_pos[VIEWGRAD_RES_X][VIEWGRAD_RES_Y][2];
+			static float   grid_pos[VIEWGRAD_RES_X][VIEWGRAD_RES_Y][3];
 			static GLushort indices[VIEWGRAD_RES_X - 1][VIEWGRAD_RES_X - 1][4];
 			static char buf_calculated = FALSE;
 
@@ -3004,8 +3004,6 @@ static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar)
 			                                              &scene->display_settings);
 			IMB_colormanagement_pixel_to_display_space_v3(col_zen, &scene->world->zenr, &scene->view_settings,
 			                                              &scene->display_settings);
-
-			glClear(GL_DEPTH_BUFFER_BIT);
 
 			glMatrixMode(GL_PROJECTION);
 			glPushMatrix();
@@ -3026,6 +3024,7 @@ static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar)
 						/* -1..1 range */
 						grid_pos[x][y][0] = (xf - 0.5f) * 2.0f;
 						grid_pos[x][y][1] = (yf - 0.5f) * 2.0f;
+						grid_pos[x][y][2] = 1.0;
 					}
 				}
 
@@ -3079,14 +3078,21 @@ static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar)
 				}
 			}
 
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_ALWAYS);
+
 			glEnableClientState(GL_VERTEX_ARRAY);
 			glEnableClientState(GL_COLOR_ARRAY);
-			glVertexPointer(2, GL_FLOAT, 0, grid_pos);
+			glVertexPointer(3, GL_FLOAT, 0, grid_pos);
 			glColorPointer(4, GL_UNSIGNED_BYTE, 0, grid_col);
 
 			glDrawElements(GL_QUADS, (VIEWGRAD_RES_X - 1) * (VIEWGRAD_RES_Y - 1) * 4, GL_UNSIGNED_SHORT, indices);
+
 			glDisableClientState(GL_VERTEX_ARRAY);
 			glDisableClientState(GL_COLOR_ARRAY);
+
+			glDepthFunc(GL_LEQUAL);
+			glDisable(GL_DEPTH_TEST);
 
 			glMatrixMode(GL_PROJECTION);
 			glPopMatrix();
@@ -3109,9 +3115,6 @@ static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar)
 	}
 	else {
 		if (UI_GetThemeValue(TH_SHOW_BACK_GRAD)) {
-			/* only clear depth buffer here */
-			glClear(GL_DEPTH_BUFFER_BIT);
-
 			glMatrixMode(GL_PROJECTION);
 			glPushMatrix();
 			glLoadIdentity();
@@ -3119,16 +3122,21 @@ static void view3d_main_area_clear(Scene *scene, View3D *v3d, ARegion *ar)
 			glPushMatrix();
 			glLoadIdentity();
 
+			glEnable(GL_DEPTH_TEST);
+			glDepthFunc(GL_ALWAYS);
 			glShadeModel(GL_SMOOTH);
 			glBegin(GL_QUADS);
 			UI_ThemeColor(TH_LOW_GRAD);
-			glVertex2f(-1.0, -1.0);
-			glVertex2f(1.0, -1.0);
+			glVertex3f(-1.0, -1.0, 1.0);
+			glVertex3f(1.0, -1.0, 1.0);
 			UI_ThemeColor(TH_HIGH_GRAD);
-			glVertex2f(1.0, 1.0);
-			glVertex2f(-1.0, 1.0);
+			glVertex3f(1.0, 1.0, 1.0);
+			glVertex3f(-1.0, 1.0, 1.0);
 			glEnd();
 			glShadeModel(GL_FLAT);
+
+			glDepthFunc(GL_LEQUAL);
+			glDisable(GL_DEPTH_TEST);
 
 			glMatrixMode(GL_PROJECTION);
 			glPopMatrix();
