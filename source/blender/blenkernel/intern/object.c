@@ -287,6 +287,9 @@ void sculptsession_bm_to_me(struct Object *ob, int reorder)
 				BM_mesh_bm_to_me(ss->bm, ob->data, FALSE);
 			}
 		}
+
+		/* ensure the objects DerivedMesh mesh doesn't hold onto arrays now realloc'd in the mesh [#34473] */
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 }
 
