@@ -2787,7 +2787,18 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 			gesture_circle_apply(C, op);
 	}
 	else if (event->type == EVT_MODAL_MAP) {
+		float fac;
+		
 		switch (event->val) {
+			case GESTURE_MODAL_CIRCLE_SIZE:
+				fac = 0.3f * (event->y - event->prevy);
+				if (fac > 0)
+					rect->xmax += ceil(fac);
+				else
+					rect->xmax += floor(fac);
+				if (rect->xmax < 1) rect->xmax = 1;
+				wm_gesture_tag_redraw(C);
+				break;
 			case GESTURE_MODAL_CIRCLE_ADD:
 				rect->xmax += 2 + rect->xmax / 10;
 				wm_gesture_tag_redraw(C);
@@ -4062,6 +4073,7 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 		{GESTURE_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
 		{GESTURE_MODAL_CIRCLE_ADD, "ADD", 0, "Add", ""},
 		{GESTURE_MODAL_CIRCLE_SUB, "SUBTRACT", 0, "Subtract", ""},
+		{GESTURE_MODAL_CIRCLE_SIZE, "SIZE", 0, "Size", ""},
 
 		{GESTURE_MODAL_SELECT,  "SELECT", 0, "Select", ""},
 		{GESTURE_MODAL_DESELECT, "DESELECT", 0, "DeSelect", ""},
@@ -4100,6 +4112,7 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, PADMINUS, KM_PRESS, 0, 0, GESTURE_MODAL_CIRCLE_SUB);
 	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, 0, 0, GESTURE_MODAL_CIRCLE_ADD);
 	WM_modalkeymap_add_item(keymap, PADPLUSKEY, KM_PRESS, 0, 0, GESTURE_MODAL_CIRCLE_ADD);
+	WM_modalkeymap_add_item(keymap, MOUSEPAN, 0, 0, 0, GESTURE_MODAL_CIRCLE_SIZE);
 
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_circle");
