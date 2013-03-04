@@ -43,6 +43,7 @@
 #include "ED_view3d.h"  /* own include */
 
 #define BL_NEAR_CLIP 0.001
+#define BL_ZERO_CLIP 0.001
 
 /* Non Clipping Projection Functions
  * ********************************* */
@@ -134,18 +135,25 @@ static eV3DProjStatus ed_view3d_project__internal(ARegion *ar,
 	vec4[3] = 1.0;
 	mul_m4_v4(perspmat, vec4);
 
-	if (((flag & V3D_PROJ_TEST_CLIP_NEAR) == 0)  || (vec4[3] > (float)BL_NEAR_CLIP)) {
-		const float scalar = (vec4[3] != 0.0f) ? (1.0f / vec4[3]): 0.0f;
-		const float fx = ((float)ar->winx / 2.0f) * (1.0f + (vec4[0] * scalar));
-		if (((flag & V3D_PROJ_TEST_CLIP_WIN) == 0) || (fx > 0.0f && fx < (float)ar->winx)) {
-			const float fy = ((float)ar->winy / 2.0f) * (1.0f + (vec4[1] * scalar));
-			if (((flag & V3D_PROJ_TEST_CLIP_WIN) == 0) || (fy > 0.0f && fy < (float)ar->winy)) {
-				r_co[0] = floorf(fx);
-				r_co[1] = floorf(fy);
 
-				/* check if the point is behind the view, we need to flip in this case */
-				if (UNLIKELY((flag & V3D_PROJ_TEST_CLIP_NEAR) == 0) && (vec4[3] < 0.0f)) {
-					negate_v2(r_co);
+
+	if (((flag & V3D_PROJ_TEST_CLIP_ZERO) == 0) || (fabsf(vec4[3]) > (float)BL_ZERO_CLIP)) {
+		if (((flag & V3D_PROJ_TEST_CLIP_NEAR) == 0)  || (vec4[3] > (float)BL_NEAR_CLIP)) {
+			const float scalar = (vec4[3] != 0.0f) ? (1.0f / vec4[3]): 0.0f;
+			const float fx = ((float)ar->winx / 2.0f) * (1.0f + (vec4[0] * scalar));
+			if (((flag & V3D_PROJ_TEST_CLIP_WIN) == 0) || (fx > 0.0f && fx < (float)ar->winx)) {
+				const float fy = ((float)ar->winy / 2.0f) * (1.0f + (vec4[1] * scalar));
+				if (((flag & V3D_PROJ_TEST_CLIP_WIN) == 0) || (fy > 0.0f && fy < (float)ar->winy)) {
+					r_co[0] = floorf(fx);
+					r_co[1] = floorf(fy);
+
+					/* check if the point is behind the view, we need to flip in this case */
+					if (UNLIKELY((flag & V3D_PROJ_TEST_CLIP_NEAR) == 0) && (vec4[3] < 0.0f)) {
+						negate_v2(r_co);
+					}
+				}
+				else {
+					return V3D_PROJ_RET_CLIP_WIN;
 				}
 			}
 			else {
@@ -153,11 +161,11 @@ static eV3DProjStatus ed_view3d_project__internal(ARegion *ar,
 			}
 		}
 		else {
-			return V3D_PROJ_RET_CLIP_WIN;
+			return V3D_PROJ_RET_CLIP_NEAR;
 		}
 	}
 	else {
-		return V3D_PROJ_RET_CLIP_NEAR;
+		return V3D_PROJ_RET_CLIP_ZERO;
 	}
 
 	return V3D_PROJ_RET_OK;

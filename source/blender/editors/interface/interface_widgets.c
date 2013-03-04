@@ -1855,7 +1855,7 @@ static void widget_softshadow(const rcti *rect, int roundboxalign, const float r
 		widget_verts_to_quad_strip(&wtb, totvert, quad_strip);
 
 		glVertexPointer(2, GL_FLOAT, 0, quad_strip);
-		glDrawArrays(GL_QUAD_STRIP, 0, totvert * 2 + 2);
+		glDrawArrays(GL_QUAD_STRIP, 0, totvert * 2); /* add + 2 for getting a complete soft rect. Now it skips top edge to allow transparent menus */
 	}
 
 	glDisableClientState(GL_VERTEX_ARRAY);

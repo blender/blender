@@ -854,4 +854,7 @@ typedef struct NodeShaderNormalMap {
 
 #define CMP_NODE_MASK_MBLUR_SAMPLES_MAX 64
 
+/* image */
+#define CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT	1
+
 #endif

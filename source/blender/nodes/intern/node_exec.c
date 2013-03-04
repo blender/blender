@@ -248,8 +248,9 @@ void ntree_exec_end(bNodeTreeExec *exec)
 		MEM_freeN(exec->stack);
 	
 	for (n=0, nodeexec= exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
-		if (nodeexec->node->typeinfo->freeexecfunc)
-			nodeexec->node->typeinfo->freeexecfunc(nodeexec->node, nodeexec->data);
+		if (nodeexec->node->typeinfo)
+			if (nodeexec->node->typeinfo->freeexecfunc)
+				nodeexec->node->typeinfo->freeexecfunc(nodeexec->node, nodeexec->data);
 	}
 	
 	if (exec->nodeexec)

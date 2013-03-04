@@ -2043,6 +2043,7 @@ static int add_named_exec(bContext *C, wmOperator *op)
 		ED_view3d_cursor3d_position(C, basen->object->loc, event->x, event->y);
 	}
 	
+	ED_base_object_select(basen, BA_SELECT);
 	ED_base_object_activate(C, basen);
 
 	copy_object_set_idnew(C, dupflag);

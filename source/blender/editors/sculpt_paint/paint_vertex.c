@@ -913,7 +913,8 @@ static float calc_vp_alpha_dl(VPaint *vp, ViewContext *vc,
 
 BLI_INLINE float wval_blend(const float weight, const float paintval, const float alpha)
 {
-	return (paintval * alpha) + (weight * (1.0f - alpha));
+	const float talpha = min_ff(alpha, 1.0f);  /* blending with values over 1 doesn't make sense */
+	return (paintval * talpha) + (weight * (1.0f - talpha));
 }
 BLI_INLINE float wval_add(const float weight, const float paintval, const float alpha)
 {

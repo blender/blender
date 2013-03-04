@@ -46,6 +46,10 @@ set(TEST_BLENDER_EXE ${TEST_BLENDER_EXE} --background -noaudio --factory-startup
 
 # ------------------------------------------------------------------------------
 # GENERAL PYTHON CORRECTNESS TESTS
+add_test(script_load_keymap ${TEST_BLENDER_EXE}
+	--python ${CMAKE_CURRENT_LIST_DIR}/bl_keymap_completeness.py
+)
+
 add_test(script_load_addons ${TEST_BLENDER_EXE}
 	--python ${CMAKE_CURRENT_LIST_DIR}/bl_load_addons.py
 )

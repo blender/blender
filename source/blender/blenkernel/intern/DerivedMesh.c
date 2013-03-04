@@ -491,7 +491,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob)
 	CustomData_copy(&dm->edgeData, &tmp.edata, CD_MASK_MESH, CD_DUPLICATE, totedge);
 	CustomData_copy(&dm->loopData, &tmp.ldata, CD_MASK_MESH, CD_DUPLICATE, totloop);
 	CustomData_copy(&dm->polyData, &tmp.pdata, CD_MASK_MESH, CD_DUPLICATE, totpoly);
-	me->cd_flag = dm->cd_flag;
+	tmp.cd_flag = dm->cd_flag;
 
 	if (CustomData_has_layer(&dm->vertData, CD_SHAPEKEY)) {
 		KeyBlock *kb;
@@ -2720,7 +2720,7 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 					a = attribs->tottface++;
 
 					attribs->tface[a].array = tfdata->layers[layer].data;
-					attribs->tface[a].em_offset = tfdata->layers[layer].offset;
+					attribs->tface[a].em_offset = ldata->layers[layer].offset;
 					attribs->tface[a].gl_index = gattribs->layer[b].glindex;
 					attribs->tface[a].gl_texco = gattribs->layer[b].gltexco;
 				}
@@ -2757,7 +2757,8 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 					a = attribs->totmcol++;
 
 					attribs->mcol[a].array = tfdata->layers[layer].data;
-					attribs->mcol[a].em_offset = tfdata->layers[layer].offset;
+					/* odd, store the offset for a different layer type here, but editmode draw code expects it */
+					attribs->mcol[a].em_offset = ldata->layers[layer].offset;
 					attribs->mcol[a].gl_index = gattribs->layer[b].glindex;
 				}
 			}
@@ -2773,6 +2774,7 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 					a = attribs->totmcol++;
 
 					attribs->mcol[a].array = tfdata->layers[layer].data;
+					/* odd, store the offset for a different layer type here, but editmode draw code expects it */
 					attribs->mcol[a].em_offset = tfdata->layers[layer].offset;
 					attribs->mcol[a].gl_index = gattribs->layer[b].glindex;
 				}

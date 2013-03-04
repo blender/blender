@@ -82,7 +82,6 @@ set(SRC
 	KX_ConvertControllers.cpp
 	KX_ConvertProperties.cpp
 	KX_ConvertSensors.cpp
-	KX_IpoConvert.cpp
 	KX_LibLoadStatus.cpp
 	KX_SoftBodyDeformer.cpp
 
@@ -105,7 +104,6 @@ set(SRC
 	KX_ConvertControllers.h
 	KX_ConvertProperties.h
 	KX_ConvertSensors.h
-	KX_IpoConvert.h
 	KX_LibLoadStatus.h
 	KX_SoftBodyDeformer.h
 )

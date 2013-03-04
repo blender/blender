@@ -7353,6 +7353,23 @@ static void do_version_node_fix_translate_wrapping(void *UNUSED(data), ID *UNUSE
 	}
 }
 
+static void do_version_node_straight_image_alpha_workaround(void *data, ID *UNUSED(id), bNodeTree *ntree)
+{
+	FileData *fd = (FileData *) data;
+	bNode *node;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == CMP_NODE_IMAGE) {
+			Image *image = blo_do_versions_newlibadr(fd, ntree->id.lib, node->id);
+
+			if (image) {
+				if ((image->flag & IMA_DO_PREMUL) == 0 && image->alpha_mode == IMA_ALPHA_STRAIGHT)
+					node->custom1 |= CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT;
+			}
+		}
+	}
+}
+
 static void do_version_node_fix_internal_links_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
 {
 	bNode *node;
@@ -8646,6 +8663,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Scene *scene;
 		Image *image, *nimage;
 		Tex *tex, *otex;
+		bNodeTreeType *ntreetype;
+		bNodeTree *ntree;
 
 		for (scene = main->scene.first; scene; scene = scene->id.next) {
 			Sequence *seq;
@@ -8712,7 +8731,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						if (image == blo_do_versions_newlibadr(fd, otex->id.lib, otex->ima))
 							break;
 
-				if (otex) {
+				/* no duplication if the texture and image datablock are not
+				 * from the same .blend file, the image datablock may not have
+				 * been loaded from a library file otherwise */
+				if (otex && (tex->id.lib == image->id.lib)) {
 					/* copy image datablock */
 					nimage = BKE_image_copy(main, image);
 					nimage->flag |= IMA_IGNORE_ALPHA|IMA_DONE_TAG;
@@ -8747,6 +8769,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for (image = main->image.first; image; image = image->id.next)
 			image->flag &= ~IMA_DONE_TAG;
+
+		ntreetype = ntreeGetType(NTREE_COMPOSIT);
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, fd, do_version_node_straight_image_alpha_workaround);
+
+		for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next)
+			do_version_node_straight_image_alpha_workaround(fd, NULL, ntree);
 	}
 
 	if (main->versionfile < 265 || (main->versionfile == 265 && main->subversionfile < 7)) {
@@ -10153,7 +10182,8 @@ static ID *append_named_part(Main *mainl, FileData *fd, const char *idname, cons
 				}
 				else {
 					/* already linked */
-					printf("append: already linked\n");
+					if (G.debug)
+						printf("append: already linked\n");
 					oldnewmap_insert(fd->libmap, bhead->old, id, bhead->code);
 					if (id->flag & LIB_INDIRECT) {
 						id->flag -= LIB_INDIRECT;

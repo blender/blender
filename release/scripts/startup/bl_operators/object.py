@@ -381,11 +381,8 @@ class ShapeTransfer(Operator):
                                     (orig_shape_coords[i] - orig_coords[i]))
 
             elif mode == 'RELATIVE_FACE':
-                loops_vidxs = me.loops.foreach_get("vert_index")
                 for poly in me.polygons:
-                    l_start = l_stop = poly.loop_start
-                    l_stop += poly.loop_total
-                    idxs = loops_vidxs[l_start:l_stop]
+                    idxs = poly.vertices[:]
                     v_before = idxs[-2]
                     v = idxs[-1]
                     for v_after in idxs:

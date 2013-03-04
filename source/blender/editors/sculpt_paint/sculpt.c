@@ -2281,7 +2281,7 @@ static void calc_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 		unode = sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
 		sculpt_brush_test_init(ss, &test);
 
-		if (ss->cache->original) {
+		if (ss->cache->original && unode->co) {
 			BKE_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
 			{
 				if (sculpt_brush_test_fast(&test, unode->co[vd.i])) {

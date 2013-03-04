@@ -169,16 +169,16 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
 	scopesptr = RNA_property_pointer_get(ptr, prop);
 	scopes = (MovieClipScopes *)scopesptr.data;
 
-	rect.xmin = 0; rect.xmax = 200;
-	rect.ymin = 0; rect.ymax = 120;
+	rect.xmin = 0; rect.xmax = 10.0f * UI_UNIT_X;
+	rect.ymin = 0; rect.ymax = 6.0f * UI_UNIT_Y;
 
 	block = uiLayoutAbsoluteBlock(layout);
 
 	scopes->track_preview_height =
-		(scopes->track_preview_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->track_preview_height;
+		(scopes->track_preview_height <= 20) ? 20 : scopes->track_preview_height;
 
 	uiDefBut(block, TRACKPREVIEW, 0, "", rect.xmin, rect.ymin, BLI_rctf_size_x(&rect),
-	         scopes->track_preview_height, scopes, 0, 0, 0, 0, "");
+	         scopes->track_preview_height * UI_DPI_FAC, scopes, 0, 0, 0, 0, "");
 }
 
 /********************* Marker Template ************************/
@@ -393,7 +393,7 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 		else
 			tip = TIP_("Marker is enabled at current frame");
 
-		bt = uiDefIconButBitI(block, TOGN, MARKER_DISABLED, 0, ICON_RESTRICT_VIEW_OFF, 0, 0, 20, 20,
+		bt = uiDefIconButBitI(block, TOGN, MARKER_DISABLED, 0, ICON_RESTRICT_VIEW_OFF, 0, 0, UI_UNIT_X, UI_UNIT_Y,
 		                      &cb->marker_flag, 0, 0, 1, 0, tip);
 		uiButSetNFunc(bt, marker_update_cb, cb, NULL);
 	}
@@ -407,7 +407,7 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 		if (track->flag & TRACK_LOCKED) {
 			uiLayoutSetActive(layout, FALSE);
 			block = uiLayoutAbsoluteBlock(layout);
-			uiDefBut(block, LABEL, 0, IFACE_("Track is locked"), 0, 0, 300, 19, NULL, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, IFACE_("Track is locked"), 0, 0, UI_UNIT_X*15.0f, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 
 			return;
 		}

@@ -80,7 +80,7 @@ void BL_BlenderShader::SetAttribs(RAS_IRasterizer* ras, const BL_Material *mat)
 {
 	GPUVertexAttribs attribs;
 	GPUMaterial *gpumat;
-	int i, attrib_num;
+	int i, attrib_num, uv = 0;
 
 	ras->SetAttribNum(0);
 
@@ -103,7 +103,7 @@ void BL_BlenderShader::SetAttribs(RAS_IRasterizer* ras, const BL_Material *mat)
 				continue;
 
 			if (attribs.layer[i].type == CD_MTFACE)
-				ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_UV, attribs.layer[i].glindex);
+				ras->SetAttrib(RAS_IRasterizer::RAS_TEXCO_UV, attribs.layer[i].glindex, uv++);
 			else if (attribs.layer[i].type == CD_TANGENT)
 				ras->SetAttrib(RAS_IRasterizer::RAS_TEXTANGENT, attribs.layer[i].glindex);
 			else if (attribs.layer[i].type == CD_ORCO)

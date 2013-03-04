@@ -923,6 +923,8 @@ void BKE_mask_free(Main *bmain, Mask *mask)
 	SpaceLink *sl;
 	Scene *scene;
 
+	BKE_sequencer_clear_mask_in_clipboard(mask);
+
 	for (scr = bmain->screen.first; scr; scr = scr->id.next) {
 		for (area = scr->areabase.first; area; area = area->next) {
 			for (sl = area->spacedata.first; sl; sl = sl->next) {

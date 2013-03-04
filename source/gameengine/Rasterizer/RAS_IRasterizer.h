@@ -396,7 +396,7 @@ public:
 	virtual void	SetTexCoordNum(int num) = 0;
 	virtual void	SetAttribNum(int num) = 0;
 	virtual void	SetTexCoord(TexCoGen coords, int unit) = 0;
-	virtual void	SetAttrib(TexCoGen coords, int unit) = 0;
+	virtual void	SetAttrib(TexCoGen coords, int unit, int layer = 0) = 0;
 
 	virtual const MT_Matrix4x4&	GetViewMatrix() const = 0;
 	virtual const MT_Matrix4x4&	GetViewInvMatrix() const = 0;

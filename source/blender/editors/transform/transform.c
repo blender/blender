@@ -239,11 +239,11 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 	}
 }
 
-void projectIntView(TransInfo *t, const float vec[3], int adr[2])
+void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DProjTest flag)
 {
 	if (t->spacetype == SPACE_VIEW3D) {
 		if (t->ar->regiontype == RGN_TYPE_WINDOW) {
-			if (ED_view3d_project_int_global(t->ar, vec, adr, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK) {
+			if (ED_view3d_project_int_global(t->ar, vec, adr, flag) != V3D_PROJ_RET_OK) {
 				adr[0] = (int)2140000000.0f;  /* this is what was done in 2.64, perhaps we can be smarter? */
 				adr[1] = (int)2140000000.0f;
 			}
@@ -361,15 +361,19 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 		UI_view2d_to_region_no_clip((View2D *)t->view, vec[0], vec[1], adr, adr + 1);
 	}
 }
+void projectIntView(TransInfo *t, const float vec[3], int adr[2])
+{
+	projectIntViewEx(t, vec, adr, V3D_PROJ_TEST_NOP);
+}
 
-void projectFloatView(TransInfo *t, const float vec[3], float adr[2])
+void projectFloatViewEx(TransInfo *t, const float vec[3], float adr[2], const eV3DProjTest flag)
 {
 	switch (t->spacetype) {
 		case SPACE_VIEW3D:
 		{
 			if (t->ar->regiontype == RGN_TYPE_WINDOW) {
 				/* allow points behind the view [#33643] */
-				if (ED_view3d_project_float_global(t->ar, vec, adr, V3D_PROJ_TEST_NOP) != V3D_PROJ_RET_OK) {
+				if (ED_view3d_project_float_global(t->ar, vec, adr, flag) != V3D_PROJ_RET_OK) {
 					/* XXX, 2.64 and prior did this, weak! */
 					adr[0] = t->ar->winx / 2.0f;
 					adr[1] = t->ar->winy / 2.0f;
@@ -392,6 +396,10 @@ void projectFloatView(TransInfo *t, const float vec[3], float adr[2])
 	}
 
 	zero_v2(adr);
+}
+void projectFloatView(TransInfo *t, const float vec[3], float adr[2])
+{
+	projectFloatViewEx(t, vec, adr, V3D_PROJ_TEST_NOP);
 }
 
 void applyAspectRatio(TransInfo *t, float vec[2])
@@ -1543,7 +1551,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 			if (ob) mul_m4_v3(ob->obmat, vecrot);
 		}
 
-		projectFloatView(t, vecrot, cent);  // no overflow in extreme cases
+		projectFloatViewEx(t, vecrot, cent, V3D_PROJ_TEST_CLIP_ZERO);
 
 		glPushMatrix();
 
@@ -5285,6 +5293,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 			TransDataEdgeSlideVert *sv;
 
 			/* XXX, 'sv' will initialize multiple times, this is suspicious. see [#34024] */
+			BLI_assert(BLI_smallhash_haskey(&table, (uintptr_t)v) != false);
 			sv = sv_array + GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
 			sv->v = v;
 			sv->origvert = *v;
@@ -5307,6 +5316,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 			e1 = e;
 			e = get_other_edge(v, e);
 			if (!e) {
+				BLI_assert(BLI_smallhash_haskey(&table, (uintptr_t)v) != false);
 				sv = sv_array + GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
 				sv->v = v;
 				sv->origvert = *v;
@@ -5330,6 +5340,12 @@ static int createEdgeSlideVerts(TransInfo *t)
 
 			l1 = get_next_loop(v, l1, e1, e, vec);
 			l2 = l2 ? get_next_loop(v, l2, e1, e, vec2) : NULL;
+
+			if (UNLIKELY(l1 == NULL && l2 != NULL)) {
+				l1 = l2;
+				l2 = NULL;
+				swap_v3_v3(vec, vec2);
+			}
 
 			BM_elem_flag_disable(v, BM_ELEM_TAG);
 			BM_elem_flag_disable(v2, BM_ELEM_TAG);
@@ -5372,6 +5388,7 @@ static int createEdgeSlideVerts(TransInfo *t)
 						continue;
 					}
 
+					BLI_assert(BLI_smallhash_haskey(&table, (uintptr_t)v) != false);
 					j = GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
 
 					if (sv_array[j].down) {

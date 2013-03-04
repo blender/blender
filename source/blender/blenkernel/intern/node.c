@@ -991,6 +991,12 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 
 		if (treetype->free_node_cache)
 			treetype->free_node_cache(ntree, node);
+		
+		/* texture node has bad habit of keeping exec data around */
+		if (ntree->type == NTREE_TEXTURE && ntree->execdata) {
+			ntreeTexEndExecTree(ntree->execdata, 1);
+			ntree->execdata = NULL;
+		}
 	}
 	
 	/* since it is called while free database, node->id is undefined */
@@ -1040,6 +1046,7 @@ void ntreeFreeTree_ex(bNodeTree *ntree, const short do_id_user)
 				break;
 			case NTREE_TEXTURE:
 				ntreeTexEndExecTree(ntree->execdata, 1);
+				ntree->execdata = NULL;
 				break;
 		}
 	}

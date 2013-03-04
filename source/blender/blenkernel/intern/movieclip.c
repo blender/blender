@@ -75,11 +75,16 @@
 #include "BKE_node.h"
 #include "BKE_image.h"  /* openanim */
 #include "BKE_tracking.h"
+#include "BKE_sequencer.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_moviecache.h"
+
+#ifdef WITH_OPENEXR
+#include "intern/openexr/openexr_multi.h"
+#endif
 
 /*********************** movieclip buffer loaders *************************/
 
@@ -220,6 +225,15 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip, MovieClipUser *user,
 
 	/* read ibuf */
 	ibuf = IMB_loadiffname(name, loadflag, colorspace);
+
+#ifdef WITH_OPENEXR
+	if (ibuf) {
+		if (ibuf->ftype == OPENEXR && ibuf->userdata) {
+			IMB_exr_close(ibuf->userdata);
+			ibuf->userdata = NULL;
+		}
+	}
+#endif
 
 	return ibuf;
 }
@@ -1281,6 +1295,8 @@ void BKE_movieclip_build_proxy_frame(MovieClip *clip, int clip_flag, struct Movi
 
 void BKE_movieclip_free(MovieClip *clip)
 {
+	BKE_sequencer_clear_movieclip_in_clipboard(clip);
+
 	free_buffers(clip);
 
 	BKE_tracking_free(&clip->tracking);

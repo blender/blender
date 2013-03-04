@@ -485,7 +485,6 @@ void ED_operatortypes_paint(void)
 
 	/* vertex selection */
 	WM_operatortype_append(PAINT_OT_vert_select_all);
-	WM_operatortype_append(PAINT_OT_vert_select_inverse);
 
 	/* vertex */
 	WM_operatortype_append(PAINT_OT_vertex_paint_toggle);
@@ -496,7 +495,6 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(PAINT_OT_face_select_linked);
 	WM_operatortype_append(PAINT_OT_face_select_linked_pick);
 	WM_operatortype_append(PAINT_OT_face_select_all);
-	WM_operatortype_append(PAINT_OT_face_select_inverse);
 	WM_operatortype_append(PAINT_OT_face_select_hide);
 	WM_operatortype_append(PAINT_OT_face_select_reveal);
 
@@ -748,7 +746,8 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	keymap = WM_keymap_find(keyconf, "Weight Paint Vertex Selection", 0, 0);
 	keymap->poll = vert_paint_poll;
 	WM_keymap_add_item(keymap, "PAINT_OT_vert_select_all", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "PAINT_OT_vert_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "PAINT_OT_vert_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
@@ -777,7 +776,8 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	keymap->poll = facemask_paint_poll;
 
 	WM_keymap_add_item(keymap, "PAINT_OT_face_select_all", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "PAINT_OT_face_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "PAINT_OT_face_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
 	kmi = WM_keymap_add_item(keymap, "PAINT_OT_face_select_hide", HKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "unselected", FALSE);
 	kmi = WM_keymap_add_item(keymap, "PAINT_OT_face_select_hide", HKEY, KM_PRESS, KM_SHIFT, 0);

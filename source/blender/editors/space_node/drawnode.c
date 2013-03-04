@@ -1608,12 +1608,15 @@ static void node_composit_buts_image_details(uiLayout *layout, bContext *C, Poin
 
 	node_composit_buts_image(layout, C, ptr);
 
+	uiItemR(layout, ptr, "use_straight_alpha_output", 0, NULL, 0);
+
 	if (!node->id)
 		return;
 
 	imaptr = RNA_pointer_get(ptr, "image");
 
 	uiTemplateColorspaceSettings(layout, &imaptr, "colorspace_settings");
+	uiItemR(layout, &imaptr, "alpha_mode", 0, NULL, 0);
 }
 
 static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -2163,12 +2166,12 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 	active_index = RNA_int_get(ptr, "active_input_index");
 	/* using different collection properties if multilayer format is enabled */
 	if (multilayer) {
-		uiTemplateList(col, C, "UI_UL_list", "", ptr, "layer_slots", ptr, "active_input_index", 0, 0, 0);
+		uiTemplateList(col, C, "UI_UL_list", "file_output_node", ptr, "layer_slots", ptr, "active_input_index", 0, 0, 0);
 		RNA_property_collection_lookup_int(ptr, RNA_struct_find_property(ptr, "layer_slots"),
 		                                   active_index, &active_input_ptr);
 	}
 	else {
-		uiTemplateList(col, C, "UI_UL_list", "", ptr, "file_slots", ptr, "active_input_index", 0, 0, 0);
+		uiTemplateList(col, C, "UI_UL_list", "file_output_node", ptr, "file_slots", ptr, "active_input_index", 0, 0, 0);
 		RNA_property_collection_lookup_int(ptr, RNA_struct_find_property(ptr, "file_slots"),
 		                                   active_index, &active_input_ptr);
 	}

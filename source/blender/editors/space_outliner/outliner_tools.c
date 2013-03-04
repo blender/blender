@@ -389,7 +389,7 @@ static void group_linkobs2scene_cb(bContext *UNUSED(C), Scene *scene, TreeElemen
 			/* link to scene */
 			base = MEM_callocN(sizeof(Base), "add_base");
 			BLI_addhead(&scene->base, base);
-			base->lay = (1 << 20) - 1; /*v3d->lay;*/ /* would be nice to use the 3d layer but the include's not here */
+			base->lay = gob->ob->lay;
 			gob->ob->flag |= SELECT;
 			base->flag = gob->ob->flag;
 			base->object = gob->ob;

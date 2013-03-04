@@ -35,6 +35,8 @@
 #endif
 
 #include <math.h>
+#include <vector>
+#include <algorithm>
 
 #include "BL_BlenderDataConversion.h"
 #include "KX_BlenderGL.h"
@@ -506,11 +508,16 @@ static void GetUVs(BL_Material *material, MTF_localLayer *layers, MFace *mface, 
 		uvs[0][0] = uvs[1][0] = uvs[2][0] = uvs[3][0] = MT_Point2(0.f, 0.f);
 	}
 	
+	vector<STR_String> found_layers;
+
 	for (int vind = 0; vind<MAXTEX; vind++)
 	{
 		BL_Mapping &map = material->mapping[vind];
 
 		if (!(map.mapping & USEUV)) continue;
+
+		if (std::find(found_layers.begin(), found_layers.end(), map.uvCoName) != found_layers.end())
+			continue;
 
 		//If no UVSet is specified, try grabbing one from the UV/Image editor
 		if (map.uvCoName.IsEmpty() && tface)
@@ -544,6 +551,7 @@ static void GetUVs(BL_Material *material, MTF_localLayer *layers, MFace *mface, 
 					uvs[3][unit].setValue(0.0f, 0.0f);
 
 				++unit;
+				found_layers.push_back(map.uvCoName);
 				break;
 			}
 		}
@@ -691,44 +699,49 @@ static bool ConvertMaterial(
 #endif
 					/// --------------------------------
 					// mapping methods
-					material->mapping[i].mapping |= ( mttmp->texco  & TEXCO_REFL	)?USEREFL:0;
-					
-					if (mttmp->texco & TEXCO_OBJECT) {
-						material->mapping[i].mapping |= USEOBJ;
-						if (mttmp->object)
-							material->mapping[i].objconame = mttmp->object->id.name;
-					}
-					else if (mttmp->texco &TEXCO_REFL)
-						material->mapping[i].mapping |= USEREFL;
-					else if (mttmp->texco &(TEXCO_ORCO|TEXCO_GLOB))
-						material->mapping[i].mapping |= USEORCO;
-					else if (mttmp->texco &TEXCO_UV)
-					{
-						STR_String uvName = mttmp->uvname;
+					if (mat->septex & (1 << i)) {
+						// If this texture slot isn't in use, set it to disabled to prevent multi-uv problems
+						material->mapping[i].mapping = DISABLE;
+					} else {
+						material->mapping[i].mapping |= ( mttmp->texco  & TEXCO_REFL	)?USEREFL:0;
 
-						if (!uvName.IsEmpty())
-							material->mapping[i].uvCoName = mttmp->uvname;
+						if (mttmp->texco & TEXCO_OBJECT) {
+							material->mapping[i].mapping |= USEOBJ;
+							if (mttmp->object)
+								material->mapping[i].objconame = mttmp->object->id.name;
+						}
+						else if (mttmp->texco &TEXCO_REFL)
+							material->mapping[i].mapping |= USEREFL;
+						else if (mttmp->texco &(TEXCO_ORCO|TEXCO_GLOB))
+							material->mapping[i].mapping |= USEORCO;
+						else if (mttmp->texco &TEXCO_UV)
+						{
+							STR_String uvName = mttmp->uvname;
+
+							if (!uvName.IsEmpty())
+								material->mapping[i].uvCoName = mttmp->uvname;
+							else
+								material->mapping[i].uvCoName = "";
+							material->mapping[i].mapping |= USEUV;
+						}
+						else if (mttmp->texco &TEXCO_NORM)
+							material->mapping[i].mapping |= USENORM;
+						else if (mttmp->texco &TEXCO_TANGENT)
+							material->mapping[i].mapping |= USETANG;
 						else
-							material->mapping[i].uvCoName = "";
-						material->mapping[i].mapping |= USEUV;
-					}
-					else if (mttmp->texco &TEXCO_NORM)
-						material->mapping[i].mapping |= USENORM;
-					else if (mttmp->texco &TEXCO_TANGENT)
-						material->mapping[i].mapping |= USETANG;
-					else
-						material->mapping[i].mapping |= DISABLE;
-					
-					material->mapping[i].scale[0] = mttmp->size[0];
-					material->mapping[i].scale[1] = mttmp->size[1];
-					material->mapping[i].scale[2] = mttmp->size[2];
-					material->mapping[i].offsets[0] = mttmp->ofs[0];
-					material->mapping[i].offsets[1] = mttmp->ofs[1];
-					material->mapping[i].offsets[2] = mttmp->ofs[2];
+							material->mapping[i].mapping |= DISABLE;
 
-					material->mapping[i].projplane[0] = mttmp->projx;
-					material->mapping[i].projplane[1] = mttmp->projy;
-					material->mapping[i].projplane[2] = mttmp->projz;
+						material->mapping[i].scale[0] = mttmp->size[0];
+						material->mapping[i].scale[1] = mttmp->size[1];
+						material->mapping[i].scale[2] = mttmp->size[2];
+						material->mapping[i].offsets[0] = mttmp->ofs[0];
+						material->mapping[i].offsets[1] = mttmp->ofs[1];
+						material->mapping[i].offsets[2] = mttmp->ofs[2];
+
+						material->mapping[i].projplane[0] = mttmp->projx;
+						material->mapping[i].projplane[1] = mttmp->projy;
+						material->mapping[i].projplane[2] = mttmp->projz;
+					}
 					/// --------------------------------
 					
 					switch (mttmp->blendtype) {
@@ -1123,6 +1136,16 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, KX_Scene* scene, 
 	MT_Point3 pt[4];
 	MT_Vector3 no[4];
 	MT_Vector4 tan[4];
+
+	/* ugh, if there is a less annoying way to do this please use that.
+	 * since these are converted from floats to floats, theres no real
+	 * advantage to use MT_ types - campbell */
+	for (unsigned int i = 0; i < 4; i++) {
+		const float zero_vec[4] = {0.0f};
+		pt[i].setValue(zero_vec);
+		no[i].setValue(zero_vec);
+		tan[i].setValue(zero_vec);
+	}
 
 	for (int f=0;f<totface;f++,mface++)
 	{
@@ -2232,8 +2255,6 @@ static void bl_ConvertBlenderObject_Single(
 	gameobj->NodeSetLocalOrientation(rotation);
 	gameobj->NodeSetLocalScale(scale);
 	gameobj->NodeUpdateGS(0);
-
-	BL_ConvertMaterialIpos(blenderobject, gameobj, converter);
 
 	sumolist->Add(gameobj->AddRef());
 

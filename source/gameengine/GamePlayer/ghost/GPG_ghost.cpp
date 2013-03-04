@@ -449,6 +449,10 @@ int main(int argc, char** argv)
 	IMB_init();
 	BKE_images_init();
 
+#ifdef WITH_FFMPEG
+	IMB_ffmpeg_init();
+#endif
+
 	// Setup builtin font for BLF (mostly copied from creator.c, wm_init_exit.c and interface_style.c)
 	BLF_init(11, U.dpi);
 	BLF_lang_init();

@@ -35,6 +35,7 @@
 
 #include "ED_transform.h"
 #include "ED_numinput.h"
+#include "ED_view3d.h"
 
 #include "DNA_listBase.h"
 
@@ -481,7 +482,9 @@ int  transformEnd(struct bContext *C, TransInfo *t);
 
 void setTransformViewMatrices(TransInfo *t);
 void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy);
+void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DProjTest flag);
 void projectIntView(TransInfo *t, const float vec[3], int adr[2]);
+void projectFloatViewEx(TransInfo *t, const float vec[3], float adr[2], const eV3DProjTest flag);
 void projectFloatView(TransInfo *t, const float vec[3], float adr[2]);
 
 void applyAspectRatio(TransInfo *t, float *vec);

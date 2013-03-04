@@ -213,6 +213,7 @@ GHOST_WindowX11(
 		attributes[i++] = GLX_BLUE_SIZE;  attributes[i++] = 1;
 		attributes[i++] = GLX_GREEN_SIZE; attributes[i++] = 1;
 		attributes[i++] = GLX_DEPTH_SIZE; attributes[i++] = 1;
+		attributes[i++] = GLX_ALPHA_SIZE; attributes[i++] = 1;
 		/* GLX >= 1.4 required for multi-sample */
 		if (samples && (glxVersionMajor >= 1) && (glxVersionMinor >= 4)) {
 			attributes[i++] = GLX_SAMPLE_BUFFERS; attributes[i++] = 1;
