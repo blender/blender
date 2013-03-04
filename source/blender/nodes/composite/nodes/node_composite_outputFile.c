@@ -31,6 +31,7 @@
 
 
 #include <string.h>
+#include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 
 #include "node_composite_util.h"

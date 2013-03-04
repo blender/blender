@@ -28,6 +28,7 @@
 
 #include "DNA_scene_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 
 #include "RNA_define.h"

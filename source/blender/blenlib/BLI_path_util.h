@@ -106,9 +106,9 @@ void  BLI_del_slash(char *string);
 char *BLI_first_slash(char *string);
 
 void BLI_getlastdir(const char *dir, char *last, const size_t maxlen);
-int BLI_testextensie(const char *str, const char *ext);
-int BLI_testextensie_array(const char *str, const char **ext_array);
-int BLI_testextensie_glob(const char *str, const char *ext_fnmatch);
+bool BLI_testextensie(const char *str, const char *ext);
+bool BLI_testextensie_array(const char *str, const char **ext_array);
+bool BLI_testextensie_glob(const char *str, const char *ext_fnmatch);
 int BLI_replace_extension(char *path, size_t maxlen, const char *ext);
 int BLI_ensure_extension(char *path, size_t maxlen, const char *ext);
 void BLI_uniquename(struct ListBase *list, void *vlink, const char defname[], char delim, short name_offs, short len);

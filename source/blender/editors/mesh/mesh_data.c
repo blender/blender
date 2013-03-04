@@ -36,6 +36,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 #include "BLI_array.h"
 #include "BLI_math.h"

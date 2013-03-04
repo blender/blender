@@ -36,8 +36,8 @@
 #include "DNA_userdef_types.h"
 #include "DNA_scene_types.h"	/* min/max frames */
 
-#include "BLI_path_util.h"
 #include "BLI_utildefines.h"
+#include "BLI_path_util.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
 

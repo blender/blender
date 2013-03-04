@@ -41,11 +41,11 @@
 
 #include "DNA_listBase.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
-#include "BLI_utildefines.h"
 
 #include "../blenkernel/BKE_blender.h"  /* BLENDER_VERSION, bad level include (no function call) */
 
@@ -1359,43 +1359,31 @@ void BLI_make_file_string(const char *relabase, char *string,  const char *dir, 
 	BLI_clean(string);
 }
 
-int BLI_testextensie(const char *str, const char *ext)
+/* does str end with ext. */
+bool BLI_testextensie(const char *str, const char *ext)
 {
-	short a, b;
-	int retval;
-	
-	a = strlen(str);
-	b = strlen(ext);
-	
-	if (a == 0 || b == 0 || b >= a) {
-		retval = 0;
-	}
-	else if (BLI_strcasecmp(ext, str + a - b)) {
-		retval = 0;
-	}
-	else {
-		retval = 1;
-	}
-	
-	return (retval);
+	const size_t a = strlen(str);
+	const size_t b = strlen(ext);
+	return !(a == 0 || b == 0 || b >= a) && (BLI_strcasecmp(ext, str + a - b) == 0);
 }
 
-int BLI_testextensie_array(const char *str, const char **ext_array)
+/* does str end with any of the suffixes in *ext_array. */
+bool BLI_testextensie_array(const char *str, const char **ext_array)
 {
 	int i = 0;
 	while (ext_array[i]) {
 		if (BLI_testextensie(str, ext_array[i])) {
-			return 1;
+			return true;
 		}
 
 		i++;
 	}
-	return 0;
+	return false;
 }
 
 /* semicolon separated wildcards, eg:
  *  '*.zip;*.py;*.exe' */
-int BLI_testextensie_glob(const char *str, const char *ext_fnmatch)
+bool BLI_testextensie_glob(const char *str, const char *ext_fnmatch)
 {
 	const char *ext_step = ext_fnmatch;
 	char pattern[16];
@@ -1414,12 +1402,12 @@ int BLI_testextensie_glob(const char *str, const char *ext_fnmatch)
 		BLI_strncpy(pattern, ext_step, len_ext);
 
 		if (fnmatch(pattern, str, FNM_CASEFOLD) == 0) {
-			return 1;
+			return true;
 		}
 		ext_step += len_ext;
 	}
 
-	return 0;
+	return false;
 }
 
 

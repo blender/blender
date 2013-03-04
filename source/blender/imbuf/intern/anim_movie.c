@@ -64,9 +64,9 @@
 #include <io.h>
 #endif
 
+#include "BLI_utildefines.h"
 #include "BLI_string.h"
 #include "BLI_path_util.h"
-#include "BLI_utildefines.h"
 #include "BLI_math_base.h"
 
 #include "MEM_guardedalloc.h"

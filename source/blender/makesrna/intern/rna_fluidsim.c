@@ -28,6 +28,7 @@
 
 #include "DNA_object_fluidsim.h"
 
+#include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 
 #include "RNA_define.h"
