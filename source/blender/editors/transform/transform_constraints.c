@@ -29,18 +29,16 @@
  *  \ingroup edtransform
  */
 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
 
 #ifndef WIN32
-#include <unistd.h>
+#  include <unistd.h>
 #else
-#include <io.h>
+#  include <io.h>
 #endif
-
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -53,12 +51,12 @@
 
 #include "BKE_context.h"
 
-#include "ED_image.h"
-#include "ED_view3d.h"
-
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
+
+#include "ED_image.h"
+#include "ED_view3d.h"
 
 #include "BLF_translation.h"
 

@@ -219,15 +219,12 @@ void ED_view3d_clipping_enable(void)
 	}
 }
 
-static int view3d_clipping_test(const float vec[3], float clip[6][4])
+static int view3d_clipping_test(const float co[3], float clip[6][4])
 {
-	float view[3];
-	copy_v3_v3(view, vec);
-
-	if (0.0f < clip[0][3] + dot_v3v3(view, clip[0]))
-		if (0.0f < clip[1][3] + dot_v3v3(view, clip[1]))
-			if (0.0f < clip[2][3] + dot_v3v3(view, clip[2]))
-				if (0.0f < clip[3][3] + dot_v3v3(view, clip[3]))
+	if (0.0f < clip[0][3] + dot_v3v3(co, clip[0]))
+		if (0.0f < clip[1][3] + dot_v3v3(co, clip[1]))
+			if (0.0f < clip[2][3] + dot_v3v3(co, clip[2]))
+				if (0.0f < clip[3][3] + dot_v3v3(co, clip[3]))
 					return 0;
 
 	return 1;
@@ -235,9 +232,9 @@ static int view3d_clipping_test(const float vec[3], float clip[6][4])
 
 /* for 'local' ED_view3d_clipping_local must run first
  * then all comparisons can be done in localspace */
-int ED_view3d_clipping_test(RegionView3D *rv3d, const float vec[3], const int is_local)
+int ED_view3d_clipping_test(RegionView3D *rv3d, const float co[3], const bool is_local)
 {
-	return view3d_clipping_test(vec, is_local ? rv3d->clip_local : rv3d->clip);
+	return view3d_clipping_test(co, is_local ? rv3d->clip_local : rv3d->clip);
 }
 
 /* ********* end custom clipping *********** */
