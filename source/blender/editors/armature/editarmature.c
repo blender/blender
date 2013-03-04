@@ -1598,6 +1598,9 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 static EditBone *get_nearest_editbonepoint(ViewContext *vc, const int mval[2],
                                            ListBase *edbo, int findunsel, int *selmask)
 {
+	bArmature *arm = (bArmature *)vc->obedit->data;
+	EditBone *ebone_next_act = arm->act_edbone;
+
 	EditBone *ebone;
 	rcti rect;
 	unsigned int buffer[MAXPICKBUF];
@@ -1606,7 +1609,19 @@ static EditBone *get_nearest_editbonepoint(ViewContext *vc, const int mval[2],
 	short hits;
 
 	glInitNames();
-	
+
+	/* find the bone after the current active bone, so as to bump up its chances in selection.
+	 * this way overlapping bones will cycle selection state as with objects. */
+	if (ebone_next_act &&
+	    EBONE_VISIBLE(arm, ebone_next_act) &&
+	    ebone_next_act->flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL))
+	{
+		ebone_next_act = ebone_next_act->next ? ebone_next_act->next : arm->edbo->first;
+	}
+	else {
+		ebone_next_act = NULL;
+	}
+
 	rect.xmin = mval[0] - 5;
 	rect.xmax = mval[0] + 5;
 	rect.ymin = mval[1] - 5;
@@ -1622,9 +1637,9 @@ static EditBone *get_nearest_editbonepoint(ViewContext *vc, const int mval[2],
 	}
 	/* See if there are any selected bones in this group */
 	if (hits > 0) {
-		
+
 		if (hits == 1) {
-			if (!(buffer[3] & BONESEL_NOSEL)) 
+			if (!(buffer[3] & BONESEL_NOSEL))
 				besthitresult = buffer[3];
 		}
 		else {
@@ -1632,9 +1647,9 @@ static EditBone *get_nearest_editbonepoint(ViewContext *vc, const int mval[2],
 				hitresult = buffer[3 + (i * 4)];
 				if (!(hitresult & BONESEL_NOSEL)) {
 					int dep;
-					
+
 					ebone = BLI_findlink(edbo, hitresult & ~BONESEL_ANY);
-					
+
 					/* clicks on bone points get advantage */
 					if (hitresult & (BONESEL_ROOT | BONESEL_TIP)) {
 						/* but also the unselected one */
@@ -1643,7 +1658,7 @@ static EditBone *get_nearest_editbonepoint(ViewContext *vc, const int mval[2],
 								dep = 1;
 							else if ( (hitresult & BONESEL_TIP) && (ebone->flag & BONE_TIPSEL) == 0)
 								dep = 1;
-							else 
+							else
 								dep = 2;
 						}
 						else dep = 2;
@@ -1658,6 +1673,11 @@ static EditBone *get_nearest_editbonepoint(ViewContext *vc, const int mval[2],
 						}
 						else dep = 3;
 					}
+
+					if (ebone == ebone_next_act) {
+						dep -= 1;
+					}
+
 					if (dep < mindep) {
 						mindep = dep;
 						besthitresult = hitresult;
@@ -1665,11 +1685,11 @@ static EditBone *get_nearest_editbonepoint(ViewContext *vc, const int mval[2],
 				}
 			}
 		}
-		
+
 		if (!(besthitresult & BONESEL_NOSEL)) {
-			
+
 			ebone = BLI_findlink(edbo, besthitresult & ~BONESEL_ANY);
-			
+
 			*selmask = 0;
 			if (besthitresult & BONESEL_ROOT)
 				*selmask |= BONE_ROOTSEL;
