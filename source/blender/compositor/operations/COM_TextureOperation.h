@@ -24,7 +24,7 @@
 #ifndef _COM_TextureOperation_h
 #define _COM_TextureOperation_h
 
-#include "COM_NodeOperation.h"
+#include "COM_SingleThreadedNodeOperation.h"
 #include "DNA_texture_types.h"
 #include "BLI_listbase.h"
 extern "C" {
@@ -39,7 +39,7 @@ extern "C" {
  *
  * @todo: rename to operation.
  */
-class TextureBaseOperation : public NodeOperation {
+class TextureBaseOperation : public SingleThreadedNodeOperation {
 private:
 	Tex *m_texture;
 	const RenderData *m_rd;
@@ -59,6 +59,7 @@ protected:
 	 */
 	TextureBaseOperation();
 
+	MemoryBuffer *createMemoryBuffer(rcti *rect2);
 public:
 	void executePixel(float output[4], float x, float y, PixelSampler sampler);
 
