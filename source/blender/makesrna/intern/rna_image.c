@@ -454,7 +454,6 @@ static void rna_def_imageuser(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "offset");
 	RNA_def_property_ui_text(prop, "Offset", "Offset the number of the frame to use in the animation");
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
 	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "sfra");
