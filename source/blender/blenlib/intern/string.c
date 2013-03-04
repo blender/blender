@@ -454,3 +454,31 @@ void BLI_ascii_strtoupper(char *str, const size_t len)
 		if (str[i] >= 'a' && str[i] <= 'z')
 			str[i] -= 'a' - 'A';
 }
+
+/**
+ * Strip trailing zeros from a float, eg:
+ *   0.0000 -> 0.0
+ *   2.0010 -> 2.001
+ *
+ * \param str
+ * \param len
+ * \return The number of zeto's stripped.
+ */
+int BLI_str_rstrip_float_zero(char *str, const char pad)
+{
+	char *p = strchr(str, '.');
+	int totstrip = 0;
+	if (p) {
+		char *end_p;
+		p++;  /* position at first decimal place */
+		end_p = p + (strlen(p) - 1);  /* position at last character */
+		if (end_p > p) {
+			while (end_p != p && *end_p == '0') {
+				*end_p = pad;
+				end_p--;
+			}
+		}
+	}
+
+	return totstrip;
+}

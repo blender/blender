@@ -1402,7 +1402,11 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 			/* pass */
 		}
 		else if (mode == 'c') {
-			ui_get_but_string(but, buf, sizeof(buf));
+			/* Get many decimal places, then strip trailing zeros.
+			 * note: too high values start to give strange results (6 or so is ok) */
+			ui_get_but_string_ex(but, buf, sizeof(buf), 6);
+			BLI_str_rstrip_float_zero(buf, '\0');
+
 			WM_clipboard_text_set(buf, 0);
 		}
 		else {
@@ -1983,6 +1987,10 @@ static void ui_textedit_begin(bContext *C, uiBut *but, uiHandleButtonData *data)
 	data->maxlen = ui_get_but_string_max_length(but);
 	data->str = MEM_callocN(sizeof(char) * data->maxlen + 1, "textedit str");
 	ui_get_but_string(but, data->str, data->maxlen);
+
+	if (ui_is_but_float(but) && !ui_is_but_unit(but)) {
+		BLI_str_rstrip_float_zero(data->str, '\0');
+	}
 
 	if (ELEM3(but->type, NUM, NUMABS, NUMSLI)) {
 		ui_convert_to_unit_alt_name(but, data->str, data->maxlen);

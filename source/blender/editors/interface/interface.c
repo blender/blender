@@ -1674,18 +1674,28 @@ void ui_convert_to_unit_alt_name(uiBut *but, char *str, size_t maxlen)
 	}
 }
 
-static void ui_get_but_string_unit(uiBut *but, char *str, int len_max, double value, int pad)
+/**
+ * \param float_precision  Override the button precision.
+ */
+static void ui_get_but_string_unit(uiBut *but, char *str, int len_max, double value, int pad, int float_precision)
 {
 	UnitSettings *unit = but->block->unit;
 	int do_split = unit->flag & USER_UNIT_OPT_SPLIT;
 	int unit_type = uiButGetUnitType(but);
-	int precision = but->a2;
+	int precision;
 
 	if (unit->scale_length < 0.0001f) unit->scale_length = 1.0f;  // XXX do_versions
 
-	/* Sanity checks */
-	if (precision > PRECISION_FLOAT_MAX) precision = PRECISION_FLOAT_MAX;
-	else if (precision == 0) precision = 2;
+	/* Use precision override? */
+	if (float_precision == -1) {
+		/* Sanity checks */
+		precision = (int)but->a2;
+		if      (precision > PRECISION_FLOAT_MAX) precision = PRECISION_FLOAT_MAX;
+		else if (precision == 0)                  precision = 2;
+	}
+	else {
+		precision = float_precision;
+	}
 
 	bUnit_AsString(str, len_max, ui_get_but_scale_unit(but, value), precision,
 	               unit->system, RNA_SUBTYPE_UNIT_VALUE(unit_type), do_split, pad);
@@ -1706,8 +1716,10 @@ static float ui_get_but_step_unit(uiBut *but, float step_default)
 	}
 }
 
-
-void ui_get_but_string(uiBut *but, char *str, size_t maxlen)
+/**
+ * \param float_precision  For number buttons the precission to use or -1 to fallback to the button default.
+ */
+void ui_get_but_string_ex(uiBut *but, char *str, const size_t maxlen, const int float_precision)
 {
 	if (but->rnaprop && ELEM4(but->type, TEX, IDPOIN, SEARCH_MENU, SEARCH_MENU_UNLINK)) {
 		PropertyType type;
@@ -1779,16 +1791,20 @@ void ui_get_but_string(uiBut *but, char *str, size_t maxlen)
 
 		if (ui_is_but_float(but)) {
 			if (ui_is_but_unit(but)) {
-				ui_get_but_string_unit(but, str, maxlen, value, 0);
+				ui_get_but_string_unit(but, str, maxlen, value, 0, float_precision);
 			}
 			else {
-				const int prec = ui_but_float_precision(but, value);
+				const int prec = (float_precision == -1) ? ui_but_float_precision(but, value) : float_precision;
 				BLI_snprintf(str, maxlen, "%.*f", prec, value);
 			}
 		}
 		else
 			BLI_snprintf(str, maxlen, "%d", (int)value);
 	}
+}
+void ui_get_but_string(uiBut *but, char *str, const size_t maxlen)
+{
+	ui_get_but_string_ex(but, str, maxlen, -1);
 }
 
 #ifdef WITH_PYTHON
@@ -2345,7 +2361,7 @@ void ui_check_but(uiBut *but)
 				/* support length type buttons */
 				else if (ui_is_but_unit(but)) {
 					char new_str[sizeof(but->drawstr)];
-					ui_get_but_string_unit(but, new_str, sizeof(new_str), value, TRUE);
+					ui_get_but_string_unit(but, new_str, sizeof(new_str), value, TRUE, -1);
 					BLI_snprintf(but->drawstr, sizeof(but->drawstr), "%s%s", but->str, new_str);
 				}
 				else {
