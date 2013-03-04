@@ -563,19 +563,19 @@ void GeometryExporter::createNormalsSource(std::string geom_id, Mesh *me, std::v
 
 void GeometryExporter::create_normals(std::vector<Normal> &normals, std::vector<BCPolygonNormalsIndices> &polygons_normals, Mesh *me)
 {
-	MVert *vert = me->mvert;
 	std::map<unsigned int, unsigned int> shared_normal_indices;
+	int last_normal_index = -1;
 
+	MVert *verts  = me->mvert;
+	MLoop *mloops = me->mloop;
 	for (int poly_index = 0; poly_index < me->totpoly; poly_index++) {
 		MPoly *mpoly  = &me->mpoly[poly_index];
-		MLoop *mloops = me->mloop;
 
-		unsigned int last_normal_index = -1;
 		if (!(mpoly->flag & ME_SMOOTH)) {
-			// For flat faces calculate use face normal as vertex normal:
+			// For flat faces use face normal as vertex normal:
 
 			float vector[3];
-			BKE_mesh_calc_poly_normal(mpoly, mloops, vert, vector);
+			BKE_mesh_calc_poly_normal(mpoly, mloops, verts, vector);
 
 			Normal n = { vector[0], vector[1], vector[2] };
 			normals.push_back(n);
@@ -593,8 +593,7 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals, std::vector<
 				else {
 
 					float vector[3];
-					normal_short_to_float_v3(vector, vert[vertex_index].no);
-					normalize_v3(vector);
+					normal_short_to_float_v3(vector, verts[vertex_index].no);
 
 					Normal n = { vector[0], vector[1], vector[2] };
 					normals.push_back(n);
