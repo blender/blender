@@ -620,6 +620,8 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 			}
 
 			DM_to_mesh(dm, me, ob);
+			/* so we don't reuse this normal layer, see: [#34369] */
+			CustomData_free_layers(&me->pdata, CD_NORMAL, me->totpoly);
 
 			dm->release(dm);
 
