@@ -439,19 +439,14 @@ void GeometryExporter::createVertsSource(std::string geom_id, Mesh *me)
 
 void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 {
-	if (!CustomData_has_layer(&me->fdata, CD_MCOL))
+	if (!CustomData_has_layer(&me->ldata, CD_MLOOPCOL))
 		return;
 
-	MFace *f;
-	int totcolor = 0, i, j;
-
-	for (i = 0, f = me->mface; i < me->totface; i++, f++)
-		totcolor += f->v4 ? 4 : 3;
 
 	COLLADASW::FloatSourceF source(mSW);
 	source.setId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::COLOR));
 	source.setArrayId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::COLOR) + ARRAY_ID_SUFFIX);
-	source.setAccessorCount(totcolor);
+	source.setAccessorCount(me->totloop);
 	source.setAccessorStride(3);
 
 	COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
@@ -461,14 +456,21 @@ void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 
 	source.prepareToAppendValues();
 
-	int index = CustomData_get_active_layer_index(&me->fdata, CD_MCOL);
+	int index = CustomData_get_active_layer_index(&me->ldata, CD_MLOOPCOL);
+	MCol *mcol = (MCol *)me->ldata.layers[index].data;
 
-	MCol *mcol = (MCol *)me->fdata.layers[index].data;
-	MCol *c = mcol;
-
-	for (i = 0, f = me->mface; i < me->totface; i++, c += 4, f++)
-		for (j = 0; j < (f->v4 ? 4 : 3); j++)
-			source.appendValues(c[j].b / 255.0f, c[j].g / 255.0f, c[j].r / 255.0f);
+	MPoly *mpoly;
+	int i;
+	for (i = 0, mpoly = me->mpoly; i < me->totpoly; i++, mpoly++) {
+		MCol *color = mcol + mpoly->loopstart;
+		for (int j = 0; j < mpoly->totloop; j++, color++) {
+			source.appendValues(
+					color->b / 255.0f,
+					color->g / 255.0f,
+					color->r / 255.0f 
+			);
+		}
+	}
 	
 	source.finish();
 }

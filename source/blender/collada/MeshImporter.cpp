@@ -555,7 +555,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
 
 		int collada_meshtype = mp->getPrimitiveType();
 		
-		// since we cannot set mpoly->mat_nr here, we store a portion of me->mface in Primitive
+		// since we cannot set mpoly->mat_nr here, we store a portion of me->mpoly in Primitive
 		Primitive prim = {mpoly, 0};
 		COLLADAFW::IndexListArray& index_list_array = mp->getUVCoordIndicesArray();
 

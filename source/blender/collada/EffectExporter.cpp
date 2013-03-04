@@ -323,10 +323,10 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 			{
 				if (me->pdata.layers[i].type == CD_MTEXPOLY) {
 					MTexPoly *txface = (MTexPoly *)me->pdata.layers[i].data;
-					MFace *mface = me->mface;
-					for (int j = 0; j < me->totpoly; j++, mface++, txface++) {
+					MPoly *mpoly = me->mpoly;
+					for (int j = 0; j < me->totpoly; j++, mpoly++, txface++) {
 
-						Material *mat = give_current_material(ob, mface->mat_nr + 1);
+						Material *mat = give_current_material(ob, mpoly->mat_nr + 1);
 						if (mat != ma) 
 							continue;
 
