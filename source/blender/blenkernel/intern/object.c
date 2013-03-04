@@ -75,6 +75,7 @@
 #include "BKE_colortools.h"
 #include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_depsgraph.h"
 #include "BKE_animsys.h"
 #include "BKE_anim.h"
 #include "BKE_constraint.h"
