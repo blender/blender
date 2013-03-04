@@ -137,8 +137,6 @@ DagNode *dag_get_node(DagForest *forest, void *fob);
 DagNode *dag_get_sub_node(DagForest *forest, void *fob);
 void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel, const char *name);
 
-void graph_bfs(void);
-
 DagNodeQueue *graph_dfs(void);
 
 void set_node_xy(DagNode *node, float x, float y);

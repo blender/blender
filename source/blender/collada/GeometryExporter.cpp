@@ -76,7 +76,6 @@ void GeometryExporter::operator()(Object *ob)
 #endif
 
 	bool use_instantiation = this->export_settings->use_object_instantiation;
-	bool triangulate       = this->export_settings->triangulate;
 	Mesh *me = bc_get_mesh_copy( mScene, 
 					ob,
 					this->export_settings->export_mesh_type,
@@ -379,8 +378,6 @@ void GeometryExporter::createPolylist(short material_index,
 	
 	// <p>
 	int texindex = 0;
-	unsigned int vi = 0;
-	unsigned int ni = 0;
 	for (i = 0; i < totpolys; i++) {
 		MPoly *p = &mpolys[i];
 		int loop_count = p->totloop;

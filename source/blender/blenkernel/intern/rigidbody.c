@@ -1338,6 +1338,7 @@ void BKE_rigidbody_remove_constraint(Scene *scene, Object *ob) {}
 void BKE_rigidbody_sync_transforms(RigidBodyWorld *rbw, Object *ob, float ctime) {}
 void BKE_rigidbody_aftertrans_update(Object *ob, float loc[3], float rot[3], float quat[4], float rotAxis[3], float rotAngle) {}
 void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw) {}
+void BKE_rigidbody_rebuild_world(Scene *scene, float ctime) {}
 void BKE_rigidbody_do_simulation(Scene *scene, float ctime) {}
 
 #ifdef __GNUC__
