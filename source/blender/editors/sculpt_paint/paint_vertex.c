@@ -2239,11 +2239,6 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	mult_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
 
 	RNA_float_get_array(itemptr, "mouse", mval);
-	mval[0] -= vc->ar->winrct.xmin;
-	mval[1] -= vc->ar->winrct.ymin;
-
-
-
 
 	/* *** setup WeightPaintInfo - pass onto do_weight_paint_vertex *** */
 	wpi.defbase_tot =        wpd->defbase_tot;
@@ -2871,10 +2866,6 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 
 	/* load projection matrix */
 	mult_m4_m4m4(mat, vc->rv3d->persmat, ob->obmat);
-
-	mval[0] -= vc->ar->winrct.xmin;
-	mval[1] -= vc->ar->winrct.ymin;
-
 
 	/* which faces are involved */
 	if (vp->flag & VP_AREA) {

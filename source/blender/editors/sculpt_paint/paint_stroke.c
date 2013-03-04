@@ -408,7 +408,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 	float mouse[2];
 	int first = 0;
 
-	paint_stroke_add_sample(p, stroke, event->x, event->y);
+	paint_stroke_add_sample(p, stroke, event->mval[0], event->mval[1]);
 	paint_stroke_sample_average(stroke, &sample_average);
 
 	/* let NDOF motion pass through to the 3D view so we can paint and rotate simultaneously!

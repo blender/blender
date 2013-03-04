@@ -965,8 +965,8 @@ static float tex_strength(SculptSession *ss, Brush *br,
 			/* use pressure adjusted size for fixed mode */
 			radius = ss->cache->pixel_radius;
 
-			x = point_2d[0] + ss->cache->vc->ar->winrct.xmin;
-			y = point_2d[1] + ss->cache->vc->ar->winrct.ymin;
+			x = point_2d[0];
+			y = point_2d[1];
 		}
 		else if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
 			/* leave the coordinates relative to the screen */
@@ -3825,8 +3825,8 @@ static void sculpt_update_brush_delta(UnifiedPaintSettings *ups, Object *ob, Bru
 	SculptSession *ss = ob->sculpt;
 	StrokeCache *cache = ss->cache;
 	float mouse[2] = {
-		cache->mouse[0] - cache->vc->ar->winrct.xmin,
-		cache->mouse[1] - cache->vc->ar->winrct.ymin
+		cache->mouse[0],
+		cache->mouse[1]
 	};
 	int tool = brush->sculpt_tool;
 
@@ -4130,7 +4130,6 @@ int sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 	StrokeCache *cache;
 	float ray_start[3], ray_end[3], ray_normal[3], dist;
 	float obimat[4][4];
-	float mval[2];
 	SculptRaycastData srd;
 
 	view3d_set_viewcontext(C, &vc);
@@ -4141,11 +4140,8 @@ int sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 
 	sculpt_stroke_modifiers_check(C, ob);
 
-	mval[0] = mouse[0] - vc.ar->winrct.xmin;
-	mval[1] = mouse[1] - vc.ar->winrct.ymin;
-
 	/* TODO: what if the segment is totally clipped? (return == 0) */
-	ED_view3d_win_to_segment_clip(vc.ar, vc.v3d, mval, ray_start, ray_end);
+	ED_view3d_win_to_segment_clip(vc.ar, vc.v3d, mouse, ray_start, ray_end);
 
 	invert_m4_m4(obimat, ob->obmat);
 	mul_m4_v3(obimat, ray_start);
