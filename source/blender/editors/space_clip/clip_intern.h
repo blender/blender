@@ -67,6 +67,7 @@ void clip_draw_dopesheet_channels(const struct bContext *C, struct ARegion *ar);
 
 /* clip_dopesheet_ops.c */
 void CLIP_OT_dopesheet_select_channel(struct wmOperatorType *ot);
+void CLIP_OT_dopesheet_view_all(struct wmOperatorType *ot);
 
 /* clip_draw.c */
 void clip_draw_main(const struct bContext *C, struct SpaceClip *sc, struct ARegion *ar);

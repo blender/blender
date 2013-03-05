@@ -534,6 +534,7 @@ static void clip_operatortypes(void)
 	/* ** clip_dopesheet_ops.c  ** */
 
 	WM_operatortype_append(CLIP_OT_dopesheet_select_channel);
+	WM_operatortype_append(CLIP_OT_dopesheet_view_all);
 }
 
 static void clip_keymap(struct wmKeyConfig *keyconf)
@@ -768,6 +769,8 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_dopesheet_select_channel", ACTIONMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "extend", TRUE);  /* toggle */
+
+	WM_keymap_add_item(keymap, "CLIP_OT_dopesheet_view_all", HOMEKEY, KM_PRESS, 0, 0);
 }
 
 const char *clip_context_dir[] = {"edit_movieclip", "edit_mask", NULL};
@@ -1190,6 +1193,9 @@ static void clip_preview_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
 	keymap = WM_keymap_find(wm->defaultconf, "Clip Graph Editor", SPACE_CLIP, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+
+	keymap = WM_keymap_find(wm->defaultconf, "Clip Dopesheet Editor", SPACE_CLIP, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
