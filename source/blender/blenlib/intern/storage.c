@@ -215,11 +215,8 @@ struct BuildDirCtx {
 
 /**
  * Scans the directory named *dirname and appends entries for its contents to files.
- * Recorded pathnames will be prefixed by *relname if specified (FIXME: actually this
- * option is not used anywhere, might as well get rid of it).
  */
-static void bli_builddir(const char *dirname, const char *relname,
-                         struct BuildDirCtx *dir_ctx)
+static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 {
 	struct ListBase dirbase = {NULL, NULL};
 	int newnum = 0;
@@ -227,25 +224,13 @@ static void bli_builddir(const char *dirname, const char *relname,
 
 	if ((dir = opendir(dirname)) != NULL) {
 
-		{
-			const struct dirent *fname;
-			int rellen;
-			char buf[PATH_MAX];
-			BLI_strncpy(buf, relname, sizeof(buf));
-			rellen = strlen(relname);
-
-			if (rellen) {
-				buf[rellen] = '/';
-				rellen++;
-			}
-			while ((fname = readdir(dir)) != NULL) {
-				struct dirlink * const dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
-				if (dlink != NULL) {
-					BLI_strncpy(buf + rellen, fname->d_name, sizeof(buf) - rellen);
-					dlink->name = BLI_strdup(buf);
-					BLI_addhead(&dirbase, dlink);
-					newnum++;
-				}
+		const struct dirent *fname;
+		while ((fname = readdir(dir)) != NULL) {
+			struct dirlink * const dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
+			if (dlink != NULL) {
+				dlink->name = BLI_strdup(fname->d_name);
+				BLI_addhead(&dirbase, dlink);
+				newnum++;
 			}
 		}
 
@@ -449,7 +434,7 @@ unsigned int BLI_dir_contents(const char *dirname,  struct direntry **filelist)
 	dir_ctx.nrfiles = 0;
 	dir_ctx.files = NULL;
 
-	bli_builddir(dirname, "", &dir_ctx);
+	bli_builddir(&dir_ctx, dirname);
 	bli_adddirstrings(&dir_ctx);
 
 	if (dir_ctx.files) {
