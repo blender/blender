@@ -2575,7 +2575,7 @@ static void write_libraries(WriteData *wd, Main *main)
 		
 		/* to be able to restore quit.blend and temp saves, the packed blend has to be in undo buffers... */
 		/* XXX needs rethink, just like save UI in undo files now - would be nice to append things only for the]
-		   quit.blend and temp saves */
+		 * quit.blend and temp saves */
 		if (foundone) {
 			writestruct(wd, ID_LI, "Library", 1, main->curlib);
 

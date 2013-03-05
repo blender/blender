@@ -5309,8 +5309,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		/* link cache */
 		direct_link_pointcache_list(fd, &rbw->ptcaches, &rbw->pointcache, FALSE);
 		/* make sure simulation starts from the beginning after loading file */
-		if (rbw->pointcache)
-			rbw->ltime = rbw->pointcache->startframe;
+		if (rbw->pointcache) {
+			rbw->ltime = (float)rbw->pointcache->startframe;
+		}
 	}
 }
 
@@ -8721,7 +8722,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	else if (main->versionfile < 266 || (main->versionfile == 266 && main->subversionfile < 1)) {
 		/* texture use alpha was removed for 2.66 but added back again for 2.66a,
-		* for compatibility all textures assumed it to be enabled */
+		 * for compatibility all textures assumed it to be enabled */
 		Tex *tex;
 
 		for (tex = main->tex.first; tex; tex = tex->id.next)

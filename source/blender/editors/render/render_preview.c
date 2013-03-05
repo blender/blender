@@ -431,7 +431,7 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 
 						/* show alpha in this case */
 						if (tex == NULL || (tex->flag & TEX_PRV_ALPHA)) {
-							if (!(tex && tex->type == TEX_IMAGE && (tex->imaflag & (TEX_USEALPHA|TEX_CALCALPHA)) == 0)) {
+							if (!(tex && tex->type == TEX_IMAGE && (tex->imaflag & (TEX_USEALPHA | TEX_CALCALPHA)) == 0)) {
 								mat->mtex[0]->mapto |= MAP_ALPHA;
 								mat->alpha = 0.0f;
 							}

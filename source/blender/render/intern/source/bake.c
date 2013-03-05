@@ -622,7 +622,7 @@ static int get_next_bake_face(BakeShade *bs)
 						continue;
 					if (*origindex >= me->totpoly) {
 						/* Small hack for Array modifier, which gives false
-						   original indices - z0r */
+						 * original indices - z0r */
 						continue;
 					}
 #if 0

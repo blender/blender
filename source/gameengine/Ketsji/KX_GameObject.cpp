@@ -2742,11 +2742,11 @@ PyObject *KX_GameObject::PyGetReactionForce()
 	// only can get the velocity if we have a physics object connected to us...
 	
 	// XXX - Currently not working with bullet intergration, see KX_BulletPhysicsController.cpp's getReactionForce
-	/*
+#if 0
 	if (GetPhysicsController())
 		return PyObjectFrom(GetPhysicsController()->getReactionForce());
 	return PyObjectFrom(dummy_point);
-	*/
+#endif
 	
 	return Py_BuildValue("fff", 0.0, 0.0, 0.0);
 	

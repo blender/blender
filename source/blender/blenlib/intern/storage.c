@@ -453,8 +453,7 @@ unsigned int BLI_dir_contents(const char *dirname,  struct direntry **filelist)
 void BLI_free_filelist(struct direntry *filelist, unsigned int nrentries)
 {
 	unsigned int i;
-	for (i = 0; i < nrentries; ++i)
-	{
+	for (i = 0; i < nrentries; ++i) {
 		struct direntry * const entry = filelist + i;
 		if (entry->image) {
 			IMB_freeImBuf(entry->image);

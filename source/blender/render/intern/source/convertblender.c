@@ -3484,9 +3484,9 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 
 								if (need_origindex) {
 									/* Find original index of mpoly for this tessface. Options:
-									   - Modified mesh; two-step look up from tessface -> modified mpoly -> original mpoly
-									   - OR Tesselated mesh; look up from tessface -> mpoly
-									   - OR Failsafe; tessface == mpoly. Could probably assert(false) in this case? */
+									 * - Modified mesh; two-step look up from tessface -> modified mpoly -> original mpoly
+									 * - OR Tesselated mesh; look up from tessface -> mpoly
+									 * - OR Failsafe; tessface == mpoly. Could probably assert(false) in this case? */
 									int *origindex;
 									origindex = RE_vlakren_get_origindex(obr, vlr, 1);
 									if (index_mf_to_mpoly && index_mp_to_orig)
