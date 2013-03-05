@@ -899,7 +899,9 @@ static void copybuffer_doit(void *UNUSED(handle), Main *UNUSED(bmain), void *vid
 {
 	if (vid) {
 		ID *id = vid;
-		id->flag |= LIB_NEED_EXPAND | LIB_DOIT;
+		/* only tag for need-expand if not done, prevents eternal loops */
+		if ((id->flag & LIB_DOIT) == 0)
+			id->flag |= LIB_NEED_EXPAND | LIB_DOIT;
 	}
 }
 

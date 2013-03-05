@@ -497,6 +497,7 @@ typedef enum eSpaceSeq_Flag {
 	SEQ_DRAW_SAFE_MARGINS       = (1 << 3),
 	SEQ_SHOW_GPENCIL            = (1 << 4),
 	SEQ_NO_DRAW_CFRANUM         = (1 << 5),
+	SEQ_USE_ALPHA               = (1 << 6), /* use RGBA display mode for preview */
 } eSpaceSeq_Flag;
 
 /* sseq->view */

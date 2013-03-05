@@ -162,7 +162,7 @@ void BKE_tracking_max_undistortion_delta_across_bound(struct MovieTracking *trac
 /* **** Image sampling **** */
 struct ImBuf *BKE_tracking_sample_pattern(int frame_width, int frame_height,
                                           struct ImBuf *struct_ibuf, struct MovieTrackingTrack *track,
-                                          struct MovieTrackingMarker *marker, int use_mask,
+                                          struct MovieTrackingMarker *marker, int from_anchor, int use_mask,
                                           int num_samples_x, int num_samples_y, float pos[2]);
 struct ImBuf *BKE_tracking_get_pattern_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track,
                                              struct MovieTrackingMarker *marker, int anchored, int disable_channels);

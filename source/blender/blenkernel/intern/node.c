@@ -571,6 +571,12 @@ void nodeInternalRelink(bNodeTree *ntree, bNode *node)
 					link->fromnode = fromlink->fromnode;
 					link->fromsock = fromlink->fromsock;
 					
+					/* if the up- or downstream link is invalid,
+					 * the replacement link will be invalid too.
+					 */
+					if (!(fromlink->flag & NODE_LINK_VALID))
+						link->flag &= ~NODE_LINK_VALID;
+					
 					ntree->update |= NTREE_UPDATE_LINKS;
 				}
 				else
