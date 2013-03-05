@@ -47,6 +47,7 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_fileops_types.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_dynamicpaint_types.h"
@@ -766,18 +767,8 @@ static void init_iconfile_list(struct ListBase *list)
 			}
 		}
 	}
-	
-	/* free temporary direntry structure that's been created by BLI_dir_contents() */
-	i = totfile - 1;
-	
-	for (; i >= 0; i--) {
-		MEM_freeN(dir[i].relname);
-		MEM_freeN(dir[i].path);
-		if (dir[i].string) {
-			MEM_freeN(dir[i].string);
-		}
-	}
-	free(dir);
+
+	BLI_free_filelist(dir, totfile);
 	dir = NULL;
 }
 

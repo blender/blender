@@ -48,6 +48,7 @@
 #include "BLI_linklist.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
+#include "BLI_fileops_types.h"
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
@@ -545,8 +546,6 @@ FileList *filelist_new(short type)
 
 void filelist_free(struct FileList *filelist)
 {
-	int i;
-
 	if (!filelist) {
 		printf("Attempting to delete empty filelist.\n");
 		return;
@@ -557,23 +556,8 @@ void filelist_free(struct FileList *filelist)
 		filelist->fidx = NULL;
 	}
 
-	for (i = 0; i < filelist->numfiles; ++i) {
-		if (filelist->filelist[i].image) {
-			IMB_freeImBuf(filelist->filelist[i].image);
-		}
-		filelist->filelist[i].image = NULL;
-		if (filelist->filelist[i].relname)
-			MEM_freeN(filelist->filelist[i].relname);
-		if (filelist->filelist[i].path)
-			MEM_freeN(filelist->filelist[i].path);
-		filelist->filelist[i].relname = NULL;
-		if (filelist->filelist[i].string)
-			MEM_freeN(filelist->filelist[i].string);
-		filelist->filelist[i].string = NULL;
-	}
-	
+	BLI_free_filelist(filelist->filelist, filelist->numfiles);
 	filelist->numfiles = 0;
-	free(filelist->filelist);
 	filelist->filelist = NULL;
 	filelist->filter = 0;
 	filelist->filter_glob[0] = '\0';

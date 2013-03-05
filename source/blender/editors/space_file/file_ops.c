@@ -30,6 +30,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_fileops_types.h"
 
 #include "BKE_context.h"
 #include "BKE_screen.h"

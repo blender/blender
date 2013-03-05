@@ -91,9 +91,7 @@
 #include "BLI_fileops_types.h"
 #include "BLI_path_util.h"
 
-/* vars: */
-static int totnum, actnum;
-static struct direntry *files; /* array[totnum] */
+#include "../imbuf/IMB_imbuf.h"
 
 /**
  * Copies the current working directory into *dir (max size maxncpy), and
@@ -209,12 +207,18 @@ double BLI_dir_free_space(const char *dir)
 #endif
 }
 
+struct BuildDirCtx {
+	struct direntry *files; /* array[nrfiles] */
+	int nrfiles;
+};
+
 /**
  * Scans the directory named *dirname and appends entries for its contents to files.
  * Recorded pathnames will be prefixed by *relname if specified (FIXME: actually this
  * option is not used anywhere, might as well get rid of it).
  */
-static void bli_builddir(const char *dirname, const char *relname)
+static void bli_builddir(const char *dirname, const char *relname,
+                         struct BuildDirCtx *dir_ctx)
 {
 	struct ListBase dirbase = {NULL, NULL};
 	int rellen, newnum = 0;
@@ -260,48 +264,47 @@ static void bli_builddir(const char *dirname, const char *relname)
 		
 		if (newnum) {
 
-			if (files) {
-				void * const tmp = realloc(files, (totnum + newnum) * sizeof(struct direntry));
+			if (dir_ctx->files) {
+				void * const tmp = realloc(dir_ctx->files, (dir_ctx->nrfiles + newnum) * sizeof(struct direntry));
 				if (tmp) {
-					files = (struct direntry *)tmp;
+					dir_ctx->files = (struct direntry *)tmp;
 				}
 				else { /* realloc fail */
-					free(files);
-					files = NULL;
+					free(dir_ctx->files);
+					dir_ctx->files = NULL;
 				}
 			}
 			
-			if (files == NULL)
-				files = (struct direntry *)malloc(newnum * sizeof(struct direntry));
+			if (dir_ctx->files == NULL)
+				dir_ctx->files = (struct direntry *)malloc(newnum * sizeof(struct direntry));
 
-			if (files) {
+			if (dir_ctx->files) {
 				struct dirlink * dlink = (struct dirlink *) dirbase.first;
+				struct direntry *file = &dir_ctx->files[dir_ctx->nrfiles];
 				while (dlink) {
-					memset(&files[actnum], 0, sizeof(struct direntry));
-					files[actnum].relname = dlink->name;
-					files[actnum].path = BLI_strdupcat(dirname, dlink->name);
+					memset(file, 0, sizeof(struct direntry));
+					file->relname = dlink->name;
+					file->path = BLI_strdupcat(dirname, dlink->name);
 // use 64 bit file size, only needed for WIN32 and WIN64. 
 // Excluding other than current MSVC compiler until able to test
 #ifdef WIN32
 					{
 						wchar_t *name_16 = alloc_utf16_from_8(dlink->name, 0);
 #if (defined(WIN32) || defined(WIN64)) && (_MSC_VER >= 1500)
-						_wstat64(name_16, &files[actnum].s);
+						_wstat64(name_16, &entry->s);
 #elif defined(__MINGW32__)
-						_stati64(dlink->name, &files[actnum].s);
+						_stati64(dlink->name, &entry->s);
 #endif
 						free(name_16);
 					}
 
 #else
-					stat(dlink->name, &files[actnum].s);
+					stat(dlink->name, &file->s);
 #endif
-					files[actnum].type = files[actnum].s.st_mode;
-					files[actnum].flags = 0;
-					/* FIXME: this is the only place where totnum and actnum are incremented,
-					 * so they will always be equal, might as well get rid of one */
-					totnum++;
-					actnum++;
+					file->type = file->s.st_mode;
+					file->flags = 0;
+					dir_ctx->nrfiles++;
+					file++;
 					dlink = dlink->next;
 				}
 			}
@@ -311,7 +314,9 @@ static void bli_builddir(const char *dirname, const char *relname)
 			}
 
 			BLI_freelist(&dirbase);
-			if (files) qsort(files, actnum, sizeof(struct direntry), (int (*)(const void *, const void *))bli_compare);
+			if (dir_ctx->files) {
+				qsort(dir_ctx->files, dir_ctx->nrfiles, sizeof(struct direntry), (int (*)(const void *, const void *))bli_compare);
+			}
 		}
 		else {
 			printf("%s empty directory\n", dirname);
@@ -328,7 +333,7 @@ static void bli_builddir(const char *dirname, const char *relname)
  * Fills in the "mode[123]", "size" and "string" fields in the elements of the files
  * array with descriptive details about each item. "string" will have a format similar to "ls -l".
  */
-static void bli_adddirstrings(void)
+static void bli_adddirstrings(struct BuildDirCtx *dir_ctx)
 {
 	char datum[100];
 	char buf[512];
@@ -346,7 +351,7 @@ static void bli_adddirstrings(void)
 	struct tm *tm;
 	time_t zero = 0;
 	
-	for (num = 0, file = files; num < actnum; num++, file++) {
+	for (num = 0, file = dir_ctx->files; num < dir_ctx->nrfiles; num++, file++) {
 #ifdef WIN32
 		mode = 0;
 		BLI_strncpy(file->mode1, types[0], sizeof(file->mode1));
@@ -453,26 +458,46 @@ static void bli_adddirstrings(void)
  */
 unsigned int BLI_dir_contents(const char *dirname,  struct direntry **filelist)
 {
-	/* reset global variables
-	 * memory stored in files is free()'d in
-	 * filesel.c:freefilelist() */
+	struct BuildDirCtx dir_ctx;
 
-	actnum = totnum = 0;
-	files = NULL;
+	dir_ctx.nrfiles = 0;
+	dir_ctx.files = NULL;
 
-	bli_builddir(dirname, "");
-	bli_adddirstrings();
+	bli_builddir(dirname, "", &dir_ctx);
+	bli_adddirstrings(&dir_ctx);
 
-	if (files) {
-		*(filelist) = files;
+	if (dir_ctx.files) {
+		*filelist = dir_ctx.files;
 	}
 	else {
 		// keep blender happy. Blender stores this in a variable
 		// where 0 has special meaning.....
-		*(filelist) = files = malloc(sizeof(struct direntry));
+		*filelist = malloc(sizeof(struct direntry));
 	}
 
-	return(actnum);
+	return dir_ctx.nrfiles;
+}
+
+/* frees storage for an array of direntries, including the array itself. */
+void BLI_free_filelist(struct direntry *filelist, unsigned int nrentries)
+{
+	unsigned int i;
+	for (i = 0; i < nrentries; ++i)
+	{
+		struct direntry * const entry = filelist + i;
+		if (entry->image) {
+			IMB_freeImBuf(entry->image);
+		}
+		if (entry->relname)
+			MEM_freeN(entry->relname);
+		if (entry->path)
+			MEM_freeN(entry->path);
+		if (entry->string)
+			MEM_freeN(entry->string);
+		/* entry->poin assumed not to point to anything needing freeing here */
+	}
+
+	free(filelist);
 }
 
 

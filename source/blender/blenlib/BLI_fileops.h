@@ -34,13 +34,11 @@
 #define __BLI_FILEOPS_H__
 
 #include <stdio.h>
-
+#include <sys/stat.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_fileops_types.h"
 
 /* for size_t (needed on windows) */
 #include <stddef.h>
@@ -68,6 +66,7 @@ double BLI_dir_free_space(const char *dir);
 char  *BLI_current_working_dir(char *dir, const size_t maxlen);
 
 unsigned int BLI_dir_contents(const char *dir, struct direntry **filelist);
+void BLI_free_filelist(struct direntry * filelist, unsigned int nrentries);
 
 /* Files */
 

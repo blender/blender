@@ -58,6 +58,7 @@
 #include "BLI_linklist.h"
 #include "BLI_dynstr.h"
 #include "BLI_utildefines.h"
+#include "BLI_fileops_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
