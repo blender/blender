@@ -71,6 +71,7 @@
 #ifdef WIN32
 #  include <io.h>
 #  include <direct.h>
+#  include <limits.h>  /* PATH_MAX */
 #  include "BLI_winstuff.h"
 #  include "utfconv.h"
 #else
@@ -278,10 +279,10 @@ static void bli_builddir(const char *dirname, const char *relname,
 #ifdef WIN32
 					{
 						wchar_t *name_16 = alloc_utf16_from_8(fullname, 0);
-#if (defined(WIN32) || defined(WIN64)) && (_MSC_VER >= 1500)
-						_wstat64(name_16, &entry->s);
+#if defined(_MSC_VER) && (_MSC_VER >= 1500)
+						_wstat64(name_16, &filec->s);
 #elif defined(__MINGW32__)
-						_stati64(fullname, &entry->s);
+						_stati64(fullname, &file->s);
 #endif
 						free(name_16);
 					}
