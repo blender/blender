@@ -590,8 +590,8 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
 		if (ups->draw_anchored) {
 			final_radius = ups->anchored_size;
-			translation[0] = ups->anchored_initial_mouse[0] - vc.ar->winrct.xmin;
-			translation[1] = ups->anchored_initial_mouse[1] - vc.ar->winrct.ymin;
+			translation[0] = ups->anchored_initial_mouse[0];
+			translation[1] = ups->anchored_initial_mouse[1];
 		}
 	}
 
