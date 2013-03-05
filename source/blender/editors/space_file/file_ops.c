@@ -1484,7 +1484,7 @@ int file_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	file = filelist_file(sfile->files, sfile->params->active_file);
 	BLI_make_file_string(G.main->name, str, sfile->params->dir, file->relname);
-	BLI_delete(str, 0, 0);
+	BLI_delete(str, false, false);
 	ED_fileselect_clear(C, sfile);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
 	

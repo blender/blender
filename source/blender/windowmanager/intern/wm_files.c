@@ -1044,7 +1044,7 @@ void wm_autosave_delete(void)
 		BLI_make_file_string("/", str, BLI_temporary_dir(), BLENDER_QUIT_FILE);
 
 		/* if global undo; remove tempsave, otherwise rename */
-		if (U.uiflag & USER_GLOBALUNDO) BLI_delete(filename, 0, 0);
+		if (U.uiflag & USER_GLOBALUNDO) BLI_delete(filename, false, false);
 		else BLI_rename(filename, str);
 	}
 }

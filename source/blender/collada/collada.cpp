@@ -85,7 +85,7 @@ int collada_export(Scene *sce,
 	/* annoying, collada crashes if file cant be created! [#27162] */
 	if (!BLI_exists(filepath)) {
 		BLI_make_existing_file(filepath);     /* makes the dir if its not there */
-		if (BLI_file_touch(filepath) == 0) {
+		if (!BLI_file_touch(filepath)) {
 			fprintf(stdout, "Collada export: Can not create: %s\n", filepath);
 			return 0;
 		}

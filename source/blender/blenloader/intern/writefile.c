@@ -3160,7 +3160,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 				return 0;
 			}
 
-			BLI_delete(tempname, 0, 0);
+			BLI_delete(tempname, false, false);
 		}
 		else if (-1==ret) {
 			BKE_report(reports, RPT_ERROR, "Failed opening .gz file");

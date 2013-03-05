@@ -2432,7 +2432,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
 						if (mode == PTCACHE_CLEAR_ALL) {
 							pid->cache->last_exact = MIN2(pid->cache->startframe, 0);
 							BLI_join_dirfile(path_full, sizeof(path_full), path, de->d_name);
-							BLI_delete(path_full, 0, 0);
+							BLI_delete(path_full, false, false);
 						}
 						else {
 							/* read the number of the file */
@@ -2448,7 +2448,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
 								{
 									
 									BLI_join_dirfile(path_full, sizeof(path_full), path, de->d_name);
-									BLI_delete(path_full, 0, 0);
+									BLI_delete(path_full, false, false);
 									if (pid->cache->cached_frames && frame >=sta && frame <= end)
 										pid->cache->cached_frames[frame-sta] = 0;
 								}
@@ -2502,7 +2502,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
 		if (pid->cache->flag & PTCACHE_DISK_CACHE) {
 			if (BKE_ptcache_id_exist(pid, cfra)) {
 				ptcache_filename(pid, filename, cfra, 1, 1); /* no path */
-				BLI_delete(filename, 0, 0);
+				BLI_delete(filename, false, false);
 			}
 		}
 		else {
@@ -2820,7 +2820,7 @@ void BKE_ptcache_remove(void)
 			}
 			else if (strstr(de->d_name, PTCACHE_EXT)) { /* do we have the right extension?*/
 				BLI_join_dirfile(path_full, sizeof(path_full), path, de->d_name);
-				BLI_delete(path_full, 0, 0);
+				BLI_delete(path_full, false, false);
 			}
 			else {
 				rmdir = 0; /* unknown file, don't remove the dir */
@@ -2834,7 +2834,7 @@ void BKE_ptcache_remove(void)
 	}
 	
 	if (rmdir) {
-		BLI_delete(path, 1, 0);
+		BLI_delete(path, true, false);
 	}
 }
 

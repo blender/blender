@@ -404,7 +404,7 @@ void cdf_write_close(CDataFile *cdf)
 
 void cdf_remove(const char *filename)
 {
-	BLI_delete(filename, 0, 0);
+	BLI_delete(filename, false, false);
 }
 
 /********************************** Layers ***********************************/

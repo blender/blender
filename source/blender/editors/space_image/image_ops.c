@@ -162,7 +162,7 @@ static int space_image_file_exists_poll(bContext *C)
 			if (BLI_exists(name) == FALSE) {
 				CTX_wm_operator_poll_msg_set(C, "image file not found");
 			}
-			else if (BLI_file_is_writable(name) == FALSE) {
+			else if (!BLI_file_is_writable(name)) {
 				CTX_wm_operator_poll_msg_set(C, "image path can't be written to");
 			}
 			else {

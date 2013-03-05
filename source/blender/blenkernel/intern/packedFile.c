@@ -348,7 +348,7 @@ int writePackedFile(ReportList *reports, const char *filename, PackedFile *pf, i
 			}
 		}
 		else {
-			if (BLI_delete(tempname, 0, 0) != 0) {
+			if (BLI_delete(tempname, false, false) != 0) {
 				BKE_reportf(reports, RPT_ERROR, "Error deleting '%s' (ignored)", tempname);
 			}
 		}

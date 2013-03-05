@@ -679,7 +679,7 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 	if (fileCfg) {
 		dirExist = 1; fclose(fileCfg); 
 		// remove cfg dummy from  directory test
-		BLI_delete(targetFile, 0, 0);
+		BLI_delete(targetFile, false, false);
 	}
 	
 	if (targetDir[0] == '\0' || (!dirExist)) {
@@ -852,9 +852,9 @@ static void fluidsim_delete_until_lastframe(FluidsimSettings *fss, const char *r
 		curFrame++;
 
 		if ((exists = BLI_exists(targetFile))) {
-			BLI_delete(targetFile, 0, 0);
-			BLI_delete(targetFileVel, 0, 0);
-			BLI_delete(previewFile, 0, 0);
+			BLI_delete(targetFile, false, false);
+			BLI_delete(targetFileVel, false, false);
+			BLI_delete(previewFile, false, false);
 		}
 	} while (exists);
 

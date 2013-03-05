@@ -50,7 +50,7 @@ struct gzFile;
 int    BLI_exists(const char *path);
 int    BLI_copy(const char *path, const char *to);
 int    BLI_rename(const char *from, const char *to);
-int    BLI_delete(const char *path, int dir, int recursive);
+int    BLI_delete(const char *path, bool dir, bool recursive);
 int    BLI_move(const char *path, const char *to);
 int    BLI_create_symlink(const char *path, const char *to);
 int    BLI_stat(const char *path, struct stat *buffer);
@@ -74,8 +74,8 @@ FILE  *BLI_fopen(const char *filename, const char *mode);
 void  *BLI_gzopen(const char *filename, const char *mode);
 int    BLI_open(const char *filename, int oflag, int pmode);
 
-int    BLI_file_is_writable(const char *file);
-int    BLI_file_touch(const char *file);
+bool   BLI_file_is_writable(const char *file);
+bool   BLI_file_touch(const char *file);
 
 int    BLI_file_gzip(const char *from, const char *to);
 char  *BLI_file_ungzip_to_mem(const char *from_file, int *size_r);
@@ -103,5 +103,4 @@ void BLI_get_short_name(char short_name[256], const char *filename);
 }
 #endif
 
-#endif
-
+#endif  /* __BLI_FILEOPS_H__ */

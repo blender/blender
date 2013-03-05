@@ -157,7 +157,7 @@ char *BLI_file_ungzip_to_mem(const char *from_file, int *size_r)
 
 
 /* return 1 when file can be written */
-int BLI_file_is_writable(const char *filename)
+bool BLI_file_is_writable(const char *filename)
 {
 	int file;
 	
@@ -170,22 +170,26 @@ int BLI_file_is_writable(const char *filename)
 		file = BLI_open(filename, O_BINARY | O_RDWR | O_CREAT, 0666);
 		
 		if (file < 0) {
-			return 0;
+			return false;
 		}
 		else {
 			/* success, delete the file we create */
 			close(file);
-			BLI_delete(filename, 0, 0);
-			return 1;
+			BLI_delete(filename, false, false);
+			return true;
 		}
 	}
 	else {
 		close(file);
-		return 1;
+		return true;
 	}
 }
 
-int BLI_file_touch(const char *file)
+/**
+ * Creates the file with nothing in it, or updates its last-modified date if it already exists.
+ * Returns true if successful. (like the unix touch command)
+ */
+bool BLI_file_touch(const char *file)
 {
 	FILE *f = BLI_fopen(file, "r+b");
 	if (f != NULL) {
@@ -198,9 +202,9 @@ int BLI_file_touch(const char *file)
 	}
 	if (f) {
 		fclose(f);
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
 #ifdef WIN32
@@ -255,7 +259,7 @@ int   BLI_open(const char *filename, int oflag, int pmode)
 	return uopen(filename, oflag, pmode);
 }
 
-int BLI_delete(const char *file, int dir, int recursive)
+int BLI_delete(const char *file, bool dir, bool recursive)
 {
 	int err;
 	
@@ -391,7 +395,7 @@ int BLI_rename(const char *from, const char *to)
 
 	/* make sure the filenames are different (case insensitive) before removing */
 	if (BLI_exists(to) && BLI_strcasecmp(from, to))
-		if (BLI_delete(to, 0, 0)) return 1;
+		if (BLI_delete(to, false, false)) return 1;
 	
 	return urename(from, to);
 }
@@ -589,7 +593,11 @@ int BLI_open(const char *filename, int oflag, int pmode)
 	return open(filename, oflag, pmode);
 }
 
-int BLI_delete(const char *file, int dir, int recursive) 
+/**
+ * Deletes the specified file or directory (depending on dir), optionally
+ * doing recursive delete of directory contents.
+ */
+int BLI_delete(const char *file, bool dir, bool recursive)
 {
 	if (strchr(file, '"')) {
 		printf("Error: not deleted file %s because of quote!\n", file);
@@ -608,20 +616,26 @@ int BLI_delete(const char *file, int dir, int recursive)
 	return -1;
 }
 
-static int check_the_same(const char *path_a, const char *path_b)
+/**
+ * Do the two paths denote the same filesystem object?
+ */
+static bool check_the_same(const char *path_a, const char *path_b)
 {
 	struct stat st_a, st_b;
 
 	if (lstat(path_a, &st_a))
-		return 0;
+		return false;
 
 	if (lstat(path_b, &st_b))
-		return 0;
+		return false;
 
 	return st_a.st_dev == st_b.st_dev && st_a.st_ino == st_b.st_ino;
 }
 
-static int set_permissions(const char *file, struct stat *st)
+/**
+ * Sets the mode and ownership of file to the values from st.
+ */
+static int set_permissions(const char *file, const struct stat *st)
 {
 	if (chown(file, st->st_uid, st->st_gid)) {
 		perror("chown");
@@ -894,10 +908,9 @@ int BLI_rename(const char *from, const char *to)
 	if (!BLI_exists(from)) return 0;
 	
 	if (BLI_exists(to))
-		if (BLI_delete(to, 0, 0)) return 1;
+		if (BLI_delete(to, false, false)) return 1;
 
 	return rename(from, to);
 }
 
 #endif
-
