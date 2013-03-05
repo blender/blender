@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2010, 2011, 2012 Google Inc. All rights reserved.
+// Copyright 2010, 2011, 2012, 2013 Google Inc. All rights reserved.
 // http://code.google.com/p/ceres-solver/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@
 namespace ceres {
 namespace internal {
 
-template class SchurEliminator<4, 4, Dynamic>;
+template class SchurEliminator<4, 4, Eigen::Dynamic>;
 
 }  // namespace internal
 }  // namespace ceres

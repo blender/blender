@@ -1,3 +1,251 @@
+commit e7148795c3f2ce1f6625a7c81545707a6cbde3eb
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Mar 4 10:17:30 2013 -0800
+
+    Fix a memory leak in CXSparse::SolveCholesky.
+    
+    Thanks to Alexander Mordvintsev for reporting this.
+    
+    Change-Id: I5c6be4d3d28f062e83a1ad41cb8089c19362a005
+
+commit 480f9b8551c02c429bc027197f3d868c5cc522c9
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sun Mar 3 20:15:22 2013 -0800
+
+    Add gerrit instructions to the docs.
+    
+    Change-Id: Ic98f20273f3ccbaeb8b4ca00c4ce0042a0d262f8
+
+commit 7c60b5c2c6170f0f81a29dbaa2ca7d8031db843b
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sun Mar 3 18:28:02 2013 -0800
+
+    version history update
+    
+    Change-Id: Ia92caeb0f6659667ce1e56eefd0e3c87b3f6e538
+
+commit a363a7b69c7b97e17ad671ba1aee30f201eafdd1
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sun Mar 3 18:06:00 2013 -0800
+
+    Multithread DENSE_SCHUR
+    
+    Replace the global lock in BlockRandomAccessDenseMatrix
+    with a per cell lock.
+    
+    Change-Id: Iddbe38616157b6e0d3770eede3335a056c3ba18c
+
+commit 31730ef55df802d1e251edab3bac3c0cdcb30647
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu Feb 28 11:20:28 2013 -0800
+
+    DenseSparseMatrix is now column-major.
+    
+    1. Introduce new typdefs in eigen.h to allow for column
+       major matrices.
+    
+    2. Clean up old unused typedefs, and the aligned typedefs
+       since they do not actually add any real performance.
+    
+    3. Made eigen.h conform to the google style guide by removing
+       the using directives. They were polluting the ceres namespace.
+    
+    4. Made the template specialization generator work again.
+    
+    Change-Id: Ic2268c784534b737ebd6e1a043e2a327adaeca37
+
+commit f8e43f7f2724c5413015e1f113ce860ee8b30428
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Feb 27 08:55:20 2013 -0800
+
+    version history update
+    
+    Change-Id: Ibd412a9e5beac3b3ac3e15b26fb11aa061956095
+
+commit fef82b3a7af1e44f18f5343601fb19a4dd6f89ad
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Wed Feb 27 10:44:12 2013 +0000
+
+    Bugfix - commenting-out unused member which results in build error on OS X with latest Xcode.
+    
+    - Build error due to -Werror,-Wunused-private-field clang args.
+    - Raised with gtest group (as it also occurs with latest gtest:master but for a different
+      variable) with patch, but they don't want to fix for compatibility with legacy compilers/OS
+      see here: https://groups.google.com/forum/?fromgroups=#!topic/googletestframework/S1KLl2jkzws
+    
+    Change-Id: I99984bcd9d07f6eb0e3fac58e27ddf0ac9e54265
+
+commit 0bc3540b66cf9de4d4a317c6a760849aa66d414e
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed Feb 27 08:46:48 2013 -0800
+
+    Version history update
+    
+    Change-Id: I6f79dd87e45bedf4bcf821e7b44f8b9553c39a7b
+
+commit b59ac43b9d1122da3d00882efa7c5d6833c06ea7
+Author: Alex Stewart <alexs.mac@gmail.com>
+Date:   Wed Feb 27 09:10:19 2013 +0000
+
+    Issue 83 fix: use correct pthread linker flags with clang.
+    
+    1. -lpthreads was previously added to the CMAKE_CXX_FLAGS which are
+    not passed to the linker thus linking would fail.
+    2. Clang would emit a warning about -lpthreads being added to a
+    build instruction with -c (compile only).
+    
+    This patch fixes both of these issues by adding -lpthreads to the
+    linker flags (and removes them from the CXX flags).
+    
+    Change-Id: I5e54de3ab7eced177aa31f311926893598af5b56
+
+commit 6fb1024ed5b197da261f71d1bb02716661da2fff
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Feb 26 22:20:18 2013 -0800
+
+    Fix a small bug in evaluator.h
+    
+    Change-Id: I2c4b8637e0ac8645721109f8b6bb2396ce8bb37b
+
+commit 039ff07dd1a02e6c9cff335551f05bfe8269224b
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue Feb 26 09:15:39 2013 -0800
+
+    Evaluate ResidualBlocks without LossFunction if needed.
+    
+    1. Add the ability to evaluate the problem without loss function.
+    2. Remove static Evaluator::Evaluate
+    3. Refactor the common code from problem_test.cc and
+       evaluator_test.cc into evaluator_test_utils.cc
+    
+    Change-Id: I1aa841580afe91d288fbb65288b0ffdd1e43e827
+
+commit c3fd3b960e489348d5b2c8b8f0167760e52ecbd9
+Author: Taylor Braun-Jones <taylor@braun-jones.org>
+Date:   Tue Feb 26 00:30:35 2013 -0500
+
+    Only use cmake28 macro for RHEL6
+    
+    This makes it possible to use the same spec to build on Fedora. It drops any
+    chance of building on RHEL5, but I doubt that was possible anyway.
+    
+    Change-Id: Ia956eb6416504e520962ec2f617e03b40ca18203
+
+commit b73148b9f38fe41032e696436566b78043a368db
+Author: Taylor Braun-Jones <taylor@braun-jones.org>
+Date:   Mon Feb 25 02:34:00 2013 -0500
+
+    Remove -Wno-return-type-c-linkage option when using gcc
+    
+    Only use this option when compiling with CLang which supports it.
+    
+    Change-Id: I8555c16e82d61302f6a43672d0d63e5d4800c6b6
+
+commit ba9442160dabf612a1dc51baf098937459b4b5ca
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Mon Feb 25 12:46:44 2013 -0800
+
+    Add the number of effective parameters to the final report.
+    
+    Here is an example report, obtained by running:
+    
+      bin/Debug/bundle_adjuster \
+      --input=../ceres-solver/data/problem-16-22106-pre.txt \
+      --linear_solver=iterative_schur \
+      --num_iterations=1 \
+      --alsologtostderr \
+      --use_local_parameterization \
+      --use_quaternions
+    
+    Note that effective parameters is less than parameters by 16, which is the
+    number of cameras. In this case the local parameterization has a 3 dimensional
+    tangent space for the 4-dimensional quaternions.
+    
+    Ceres Solver Report
+    -------------------
+                                         Original                  Reduced
+    Parameter blocks                        22138                    22138
+    Parameters                              66478                    66478
+    Effective parameters                    66462                    66462
+    Residual blocks                         83718                    83718
+    Residual                               167436                   167436
+    
+    Minimizer                        TRUST_REGION
+    Trust Region Strategy     LEVENBERG_MARQUARDT
+    
+                                            Given                     Used
+    Linear solver                 ITERATIVE_SCHUR          ITERATIVE_SCHUR
+    Preconditioner                         JACOBI                   JACOBI
+    Threads:                                    1                        1
+    Linear solver threads                       1                        1
+    Linear solver ordering              AUTOMATIC                22106, 32
+    
+    Cost:
+    Initial                          4.185660e+06
+    Final                            7.221647e+04
+    Change                           4.113443e+06
+    
+    Number of iterations:
+    Successful                                  1
+    Unsuccessful                                0
+    Total                                       1
+    
+    Time (in seconds):
+    Preprocessor                            0.697
+    
+      Residual Evaluations                  0.063
+      Jacobian Evaluations                 27.608
+      Linear Solver                        13.360
+    Minimizer                              43.973
+    
+    Postprocessor                           0.004
+    Total                                  44.756
+    
+    Termination:                   NO_CONVERGENCE
+    
+    Change-Id: I6b6b8ac24f71bd187e67d95651290917642be74f
+
+commit 36dc14ddf2fd53238c2ce21f172aa1989b31c0fd
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Feb 25 10:33:10 2013 -0800
+
+    Fix a clang warning
+    
+    Change-Id: I5ef32c6329f1f75efb30b16519b8de146a8339fa
+
+commit 931c309b2734329ec6e5f0b88ce4a0b488ac47e5
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Mon Feb 25 09:46:21 2013 -0800
+
+    Cleanup based on comments by William Rucklidge
+    
+    Change-Id: If269ba8e388965a8ea32260fd6f17a133a19ab9b
+
+commit df36218c953e05d665df2cc96a6d7625e2307d97
+Author: Taylor Braun-Jones <taylor@braun-jones.org>
+Date:   Fri Feb 15 18:28:11 2013 -0500
+
+    Add support for the CMake "LIB_SUFFIX" convention
+    
+    Allows `make install` to work correctly on e.g. 64-bit systems where the
+    native libraries are installed to /usr/lib64
+    
+    Change-Id: I71b4fae7b459c003cb5fac981278c668f2e29779
+
+commit 70701745b85fef7eeba2c978ae849fd48927699c
+Author: Taylor Braun-Jones <taylor@braun-jones.org>
+Date:   Fri Feb 15 19:09:48 2013 -0500
+
+    Add RPM .spec file
+    
+    Tested on RHEL6.1 (with epel repository for dependencies).
+    
+    make_release checks that that the version string in the .spec file is in
+    sync with the rest of the project and reminds the user to bump the
+    release string if necessary and to build/upload the RPM package.
+    
+    Change-Id: I5f454f2a7301d1e0e120cb3c0e13a68d03bca917
+
 commit d2a5195b512164fec286c6a52b40d7766977caa3
 Author: Sameer Agarwal <sameeragarwal@google.com>
 Date:   Sun Feb 24 15:09:17 2013 -0800
@@ -377,196 +625,3 @@ Date:   Sat Feb 2 00:49:31 2013 -0800
     and coverage than the latex documentation now.
     
     Change-Id: I7ede3aa83b9b9ef25104caf331e5727b4f5beae5
-
-commit 71c8058478311ff9b3087360827e048dec5dd69a
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Jan 31 17:33:01 2013 -0800
-
-    Remove ExecutionSummary from Evaluator and LinearSolver
-    
-    Change-Id: If4dbaf516a8b14e0a79e1a2116ce66a99ed4a592
-
-commit fa1c31eee33051d6483bc90fa7b66c3664b23bf3
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Jan 29 17:24:54 2013 -0800
-
-    Correct the documentation for crs_matrix.h
-    
-    Thanks to Joydeep Biswas for reporting this.
-    
-    Change-Id: Iae5fc2274644aab40f2f922a671f65da15ae71fc
-
-commit bdd87c03ed1cbac62990bf79aa6faed0a132bba9
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Jan 29 16:24:31 2013 -0800
-
-    Add an ExecutionSummary object that the Evaluator and LinearSolver can use to
-    report execution statistics of all kinds.
-    
-    Currently a single map which maps arbitrary strings to doubles is supported,
-    which allows for precise timing information to be communicated.
-    
-    Change-Id: Ibd930aca5c9e6cae89bcfeffe9b13e2887644881
-
-commit a2fd9ca8beb5aa11fcc5d2b32e23f161edc93d28
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Jan 29 16:02:41 2013 -0800
-
-    Fix Android.mk
-    
-    Change-Id: I1093c2731283890d1f3792bf8e6741f448f1465d
-
-commit 977be7cac37316524038fa0168cc5994a5654acd
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sat Jan 26 16:01:54 2013 -0800
-
-    Add support for reporting linear solver and inner iteration
-    orderings.
-    
-    Change-Id: I0588a4285e0925ce689e47bd48ddcc61ce596a1f
-
-commit 146b9acb4d5570da311fedb5222ad65fe12f233c
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Jan 21 16:16:58 2013 -0800
-
-    Update include/ceres.h to export headers.
-    Update the ABI version.
-    
-    Change-Id: I5c1c4f110cddc816bbb5a737634f55b4cbea98e1
-
-commit e837aeaf9e63936d745519fa53c726a2ca9d5822
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Mon Jan 21 13:05:01 2013 -0800
-
-    Documentation update.
-    
-    Change-Id: Ica8681f4bb58c60349d0dae453c652f2522eebf6
-
-commit 2f0d7249ccedac8183e6e5a9cb45ca7c51bb6b41
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Jan 18 13:11:32 2013 -0800
-
-    NumericDiffFunctor.
-    
-    A wrapper class that takes a variadic functor evaluating a
-    function, numerically differentiates it and makes it available as a
-    templated functor so that it can be easily used as part of Ceres'
-    automatic differentiation framework.
-    
-    The tests for NumericDiffCostFunction and NumericDiffFunctor have
-    a lot of stuff that is common, so refactor them to reduce code.
-    
-    Change-Id: I83b01e58b05e575fb2530d15cbd611928298646a
-
-commit 2fc0ed6143ad499d6dc82d621ff5ec69170beb52
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Tue Jan 15 11:34:10 2013 -0800
-
-    Change NumericDiffCostFunction to accept variadic functors.
-    
-    The interface for NumericDiffCostFunction and AutoDiffCostFunction
-    are not comparable. They both accept variadic functors.
-    
-    The change is backward compatible, as it still supports numeric
-    differentiation of CostFunction objects.
-    
-    Some refactoring of documentation and code in auto_diff_cost_function
-    and its relatives was also done to make things consistent.
-    
-    Change-Id: Ib5f230a1d4a85738eb187803b9c1cd7166bb3b92
-
-commit 9c5acce674e3ec1ba08509123ff519f106cc4348
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Sun Jan 13 22:14:12 2013 -0800
-
-    Add CostFunctionToFunctor.
-    
-    CostFunctionToFunctor wraps a CostFunction, and makes it available
-    as a templated functor that can be called from other templated
-    functors. This is useful for when one wants to mix automatic,
-    numeric and analytic differentiated functions.
-    
-    Also a bug fix in autodiff.h
-    
-    Change-Id: If8ba281a89fda976ef2ce10a5844a74c4ac7b84a
-
-commit c89ea4b9de588e2e2e82c54cd1c30cddb11454c5
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Jan 9 16:09:35 2013 -0800
-
-    Minor corrections based on Jim Roseborough's comments
-    
-    Change-Id: I4a8c7a454ddf038a3ed2567c101f9aee582044bf
-
-commit 00c8a061929b912bda3cfd4615fb8688c246c969
-Author: Keir Mierle <mierle@gmail.com>
-Date:   Sat Dec 1 13:22:59 2012 -0800
-
-    Fix bug in DenseSparseMatrix::ToDenseMatrix().
-    
-    Change-Id: I74a1a03149d74fbc4268ec3ce9d20e09746a7227
-
-commit bcac4de5b75cae210c5557c81239222176d2709a
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Nov 30 23:11:26 2012 -0800
-
-    Speedup corrector.cc
-    
-    Add a specialization for the common case where the residual block
-    outputs exactly one residual.
-    
-    The matrix routines used by Corrector can be then specialized to
-    a scalar and be made considerably faster.
-    
-    For denoising upto 400% speedup is observed.
-    
-    Change-Id: I8e3f24b8ba41caa8e62ad97c5f5e96ab6ea47150
-
-commit 9883fc396b2913fbc597afa795c39d365229c299
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Fri Nov 30 12:32:43 2012 -0800
-
-    Refactoring of the LineSearchMinimizer.
-    
-    1. New LineSearchDirection interface, factory and instances.
-    2. Cleanup of LineSearchMinimizer to use the State and Direction objects.
-    3. LBFGS -> LowRankInverseHessian.
-    4. Refactoring of the RunCallbacks function and share it across
-       LineSearchMinimizer and TrustRegionMinimizer.
-    
-    Change-Id: I19354afc6f5d6567b28918710c2012dc30ef8f32
-
-commit 2293cb5bc96a5b317ed4ca52aa3494cadecbc07c
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Nov 29 16:00:18 2012 -0800
-
-    Add missing documentation to solver.h
-    
-    Change-Id: I86e7c4f1f6cc1e15d5eb2cf23e73c32d94d458c1
-
-commit aed99615c017839df09c98f518dcc0a59a9819ec
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Nov 29 10:33:19 2012 -0800
-
-    Expose lbfgs rank in solver.h
-    
-    Change-Id: Ibc184b1a2f94a4057fa6569d539ca3a55d6d6098
-
-commit 1afd498f50ef520868c18a0f26b55409d8471ceb
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Thu Nov 29 10:28:11 2012 -0800
-
-    String to and from enum conversion routines.
-    
-    Update types.h/cc with stringication and unstringication
-    routines for the newly introduced enums.
-    
-    Change-Id: I0fe2842b5b1c75ba351f4ab87ec9fa60af2f9ed2
-
-commit 3e8d192f2871bcf6d5f248c119c8a6eef19186d3
-Author: Sameer Agarwal <sameeragarwal@google.com>
-Date:   Wed Nov 28 17:20:22 2012 -0800
-
-    Add a rough implementation of LBFGS.
-    
-    Change-Id: I2bc816adfe0c02773a23035ea31de3cddc1322a4

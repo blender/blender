@@ -79,9 +79,9 @@ class LinearSolver {
           max_num_iterations(1),
           num_threads(1),
           residual_reset_period(10),
-          row_block_size(Dynamic),
-          e_block_size(Dynamic),
-          f_block_size(Dynamic) {
+          row_block_size(Eigen::Dynamic),
+          e_block_size(Eigen::Dynamic),
+          f_block_size(Eigen::Dynamic) {
     }
 
     LinearSolverType type;
@@ -106,11 +106,11 @@ class LinearSolver {
     //
     // For example if elimination_groups is a vector of size k, then
     // the linear solver is informed that it should eliminate the
-    // parameter blocks 0 - elimination_groups[0] - 1 first, and then
-    // elimination_groups[0] - elimination_groups[1] and so on. Within
-    // each elimination group, the linear solver is free to choose how
-    // the parameter blocks are ordered. Different linear solvers have
-    // differing requirements on elimination_groups.
+    // parameter blocks 0 ... elimination_groups[0] - 1 first, and
+    // then elimination_groups[0] ... elimination_groups[1] - 1 and so
+    // on. Within each elimination group, the linear solver is free to
+    // choose how the parameter blocks are ordered. Different linear
+    // solvers have differing requirements on elimination_groups.
     //
     // The most common use is for Schur type solvers, where there
     // should be at least two elimination groups and the first

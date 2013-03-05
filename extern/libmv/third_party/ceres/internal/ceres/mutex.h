@@ -275,7 +275,8 @@ void Mutex::ReaderUnlock() { Unlock(); }
 // "MutexLock(x) COMPILE_ASSERT(false)". To work around this, "Ceres" is
 // prefixed to the class names; this permits defining the classes.
 
-// CeresMutexLock(mu) acquires mu when constructed and releases it when destroyed.
+// CeresMutexLock(mu) acquires mu when constructed and releases it
+// when destroyed.
 class CeresMutexLock {
  public:
   explicit CeresMutexLock(Mutex *mu) : mu_(mu) { mu_->Lock(); }

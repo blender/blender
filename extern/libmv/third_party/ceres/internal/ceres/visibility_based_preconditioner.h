@@ -38,7 +38,8 @@
 // documented here can be found in
 //
 // Visibility Based Preconditioning for Bundle Adjustment
-// A. Kushal & S. Agarwal, submitted to CVPR 2012
+// A. Kushal & S. Agarwal, CVPR 2012.
+//
 // http://www.cs.washington.edu/homes/sagarwal/vbp.pdf
 //
 // The two preconditioners share enough code that its most efficient

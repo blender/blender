@@ -213,9 +213,9 @@ class SchurEliminatorBase {
 //
 // This implementation is mulithreaded using OpenMP. The level of
 // parallelism is controlled by LinearSolver::Options::num_threads.
-template <int kRowBlockSize = Dynamic,
-          int kEBlockSize = Dynamic,
-          int kFBlockSize = Dynamic >
+template <int kRowBlockSize = Eigen::Dynamic,
+          int kEBlockSize = Eigen::Dynamic,
+          int kFBlockSize = Eigen::Dynamic >
 class SchurEliminator : public SchurEliminatorBase {
  public:
   explicit SchurEliminator(const LinearSolver::Options& options)

@@ -72,7 +72,6 @@ class Evaluator {
                            Program* program,
                            string* error);
 
-
   // This is used for computing the cost, residual and Jacobian for
   // returning to the user. For actually solving the optimization
   // problem, the optimization algorithm uses the ProgramEvaluator
@@ -116,6 +115,18 @@ class Evaluator {
   // Schur complement based methods.
   virtual SparseMatrix* CreateJacobian() const = 0;
 
+
+  // Options struct to control Evaluator::Evaluate;
+  struct EvaluateOptions {
+    EvaluateOptions()
+        : apply_loss_function(true) {
+    }
+
+    // If false, the loss function correction is not applied to the
+    // residual blocks.
+    bool apply_loss_function;
+  };
+
   // Evaluate the cost function for the given state. Returns the cost,
   // residuals, and jacobian in the corresponding arguments. Both residuals and
   // jacobian are optional; to avoid computing them, pass NULL.
@@ -125,11 +136,28 @@ class Evaluator {
   //
   // state is an array of size NumParameters(), cost is a pointer to a single
   // double, and residuals is an array of doubles of size NumResiduals().
-  virtual bool Evaluate(const double* state,
+  virtual bool Evaluate(const EvaluateOptions& evaluate_options,
+                        const double* state,
                         double* cost,
                         double* residuals,
                         double* gradient,
                         SparseMatrix* jacobian) = 0;
+
+  // Variant of Evaluator::Evaluate where the user wishes to use the
+  // default EvaluateOptions struct. This is mostly here as a
+  // convenience method.
+  bool Evaluate(const double* state,
+                double* cost,
+                double* residuals,
+                double* gradient,
+                SparseMatrix* jacobian) {
+    return Evaluate(EvaluateOptions(),
+                    state,
+                    cost,
+                    residuals,
+                    gradient,
+                    jacobian);
+  }
 
   // Make a change delta (of size NumEffectiveParameters()) to state (of size
   // NumParameters()) and store the result in state_plus_delta.

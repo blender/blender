@@ -120,7 +120,8 @@ class ProgramEvaluator : public Evaluator {
     return jacobian_writer_.CreateJacobian();
   }
 
-  bool Evaluate(const double* state,
+  bool Evaluate(const Evaluator::EvaluateOptions& evaluate_options,
+                const double* state,
                 double* cost,
                 double* residuals,
                 double* gradient,
@@ -196,6 +197,7 @@ class ProgramEvaluator : public Evaluator {
       // Evaluate the cost, residuals, and jacobians.
       double block_cost;
       if (!residual_block->Evaluate(
+              evaluate_options.apply_loss_function,
               &block_cost,
               block_residuals,
               block_jacobians,

@@ -57,6 +57,7 @@ bool CXSparse::SolveCholesky(cs_di* A,
       cs_free(scratch_);
     }
     scratch_ = reinterpret_cast<CS_ENTRY*>(cs_malloc(A->n, sizeof(CS_ENTRY)));
+    scratch_size_ = A->n;
   }
 
   // Solve using Cholesky factorization

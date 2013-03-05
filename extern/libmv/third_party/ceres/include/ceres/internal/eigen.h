@@ -35,27 +35,40 @@
 
 namespace ceres {
 
-using Eigen::Dynamic;
-using Eigen::RowMajor;
-
-typedef Eigen::Matrix<double, Dynamic, 1> Vector;
-typedef Eigen::Matrix<double, Dynamic, Dynamic, RowMajor> Matrix;
+typedef Eigen::Matrix<double, Eigen::Dynamic, 1> Vector;
+typedef Eigen::Matrix<double,
+                      Eigen::Dynamic,
+                      Eigen::Dynamic,
+                      Eigen::RowMajor> Matrix;
 typedef Eigen::Map<Vector> VectorRef;
 typedef Eigen::Map<Matrix> MatrixRef;
-typedef Eigen::Map<Matrix, Eigen::Aligned> AlignedMatrixRef;
 typedef Eigen::Map<const Vector> ConstVectorRef;
-typedef Eigen::Map<const Matrix, Eigen::Aligned> ConstAlignedMatrixRef;
 typedef Eigen::Map<const Matrix> ConstMatrixRef;
+
+// Column major matrices for DenseSparseMatrix/DenseQRSolver
+typedef Eigen::Matrix<double,
+                      Eigen::Dynamic,
+                      Eigen::Dynamic,
+                      Eigen::ColMajor> ColMajorMatrix;
+
+typedef Eigen::Map<ColMajorMatrix, 0,
+                   Eigen::Stride<Eigen::Dynamic, 1> > ColMajorMatrixRef;
+
+typedef Eigen::Map<const ColMajorMatrix,
+                   0,
+                   Eigen::Stride<Eigen::Dynamic, 1> > ConstColMajorMatrixRef;
+
+
 
 // C++ does not support templated typdefs, thus the need for this
 // struct so that we can support statically sized Matrix and Maps.
 template <int num_rows = Eigen::Dynamic, int num_cols = Eigen::Dynamic>
 struct EigenTypes {
-  typedef Eigen::Matrix <double, num_rows, num_cols, RowMajor>
+  typedef Eigen::Matrix <double, num_rows, num_cols, Eigen::RowMajor>
   Matrix;
 
   typedef Eigen::Map<
-    Eigen::Matrix<double, num_rows, num_cols, RowMajor> >
+    Eigen::Matrix<double, num_rows, num_cols, Eigen::RowMajor> >
   MatrixRef;
 
   typedef Eigen::Matrix <double, num_rows, 1>
@@ -67,7 +80,7 @@ struct EigenTypes {
 
 
   typedef Eigen::Map<
-    const Eigen::Matrix<double, num_rows, num_cols, RowMajor> >
+    const Eigen::Matrix<double, num_rows, num_cols, Eigen::RowMajor> >
   ConstMatrixRef;
 
   typedef Eigen::Map <

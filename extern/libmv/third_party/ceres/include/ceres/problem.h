@@ -331,7 +331,8 @@ class Problem {
   // Options struct to control Problem::Evaluate.
   struct EvaluateOptions {
     EvaluateOptions()
-        : num_threads(1) {
+        : apply_loss_function(true),
+          num_threads(1) {
     }
 
     // The set of parameter blocks for which evaluation should be
@@ -345,7 +346,7 @@ class Problem {
     // problem.
     //
     // NOTE: This vector should contain the same pointers as the ones
-    // used to add parameter blocks to the Problem. These parmeter
+    // used to add parameter blocks to the Problem. These parameter
     // block should NOT point to new memory locations. Bad things will
     // happen otherwise.
     vector<double*> parameter_blocks;
@@ -360,6 +361,15 @@ class Problem {
     // they were added to the problem. But, this may change if the
     // user removes any residual blocks from the problem.
     vector<ResidualBlockId> residual_blocks;
+
+    // Even though the residual blocks in the problem may contain loss
+    // functions, setting apply_loss_function to false will turn off
+    // the application of the loss function to the output of the cost
+    // function. This is of use for example if the user wishes to
+    // analyse the solution quality by studying the distribution of
+    // residuals before and after the solve.
+    bool apply_loss_function;
+
     int num_threads;
   };
 
@@ -390,7 +400,7 @@ class Problem {
   // the gradient vector (and the number of columns in the jacobian)
   // is the sum of the sizes of all the parameter blocks. If a
   // parameter block has a local parameterization, then it contributes
-  // "LocalSize" entries to the gradient vecto (and the number of
+  // "LocalSize" entries to the gradient vector (and the number of
   // columns in the jacobian).
   bool Evaluate(const EvaluateOptions& options,
                 double* cost,

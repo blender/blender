@@ -40,16 +40,21 @@ namespace internal {
 
 BlockRandomAccessDenseMatrix::BlockRandomAccessDenseMatrix(
     const vector<int>& blocks) {
-  block_layout_.resize(blocks.size(), 0);
+  const int num_blocks = blocks.size();
+  block_layout_.resize(num_blocks, 0);
   num_rows_ = 0;
-  for (int i = 0; i < blocks.size(); ++i) {
+  for (int i = 0; i < num_blocks; ++i) {
     block_layout_[i] = num_rows_;
     num_rows_ += blocks[i];
   }
 
   values_.reset(new double[num_rows_ * num_rows_]);
-  CHECK_NOTNULL(values_.get());
-  cell_info_.values = values_.get();
+
+  cell_infos_.reset(new CellInfo[num_blocks * num_blocks]);
+  for (int i = 0; i < num_blocks * num_blocks; ++i) {
+    cell_infos_[i].values = values_.get();
+  }
+
   SetZero();
 }
 
@@ -68,7 +73,7 @@ CellInfo* BlockRandomAccessDenseMatrix::GetCell(const int row_block_id,
   *col = block_layout_[col_block_id];
   *row_stride = num_rows_;
   *col_stride = num_rows_;
-  return &cell_info_;
+  return &cell_infos_[row_block_id * block_layout_.size() + col_block_id];
 }
 
 // Assume that the user does not hold any locks on any cell blocks

@@ -335,6 +335,8 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
   summary->minimizer_type = TRUST_REGION;
   summary->num_parameter_blocks = problem_impl->NumParameterBlocks();
   summary->num_parameters = problem_impl->NumParameters();
+  summary->num_effective_parameters =
+      original_program->NumEffectiveParameters();
   summary->num_residual_blocks = problem_impl->NumResidualBlocks();
   summary->num_residuals = problem_impl->NumResiduals();
 
@@ -447,6 +449,8 @@ void SolverImpl::TrustRegionSolve(const Solver::Options& original_options,
 
   summary->num_parameter_blocks_reduced = reduced_program->NumParameterBlocks();
   summary->num_parameters_reduced = reduced_program->NumParameters();
+  summary->num_effective_parameters_reduced =
+      reduced_program->NumEffectiveParameters();
   summary->num_residual_blocks_reduced = reduced_program->NumResidualBlocks();
   summary->num_residuals_reduced = reduced_program->NumResiduals();
 
@@ -910,8 +914,11 @@ bool SolverImpl::RemoveFixedBlocksFromProgram(Program* program,
         // The residual is constant and will be removed, so its cost is
         // added to the variable fixed_cost.
         double cost = 0.0;
-        if (!residual_block->Evaluate(
-              &cost, NULL, NULL, residual_block_evaluate_scratch.get())) {
+        if (!residual_block->Evaluate(true,
+                                      &cost,
+                                      NULL,
+                                      NULL,
+                                      residual_block_evaluate_scratch.get())) {
           *error = StringPrintf("Evaluation of the residual %d failed during "
                                 "removal of fixed residual blocks.", i);
           return false;
@@ -1146,20 +1153,6 @@ LinearSolver* SolverImpl::CreateLinearSolver(Solver::Options* options,
       options->sparse_linear_algebra_library;
 
   linear_solver_options.num_threads = options->num_linear_solver_threads;
-  // The matrix used for storing the dense Schur complement has a
-  // single lock guarding the whole matrix. Running the
-  // SchurComplementSolver with multiple threads leads to maximum
-  // contention and slowdown. If the problem is large enough to
-  // benefit from a multithreaded schur eliminator, you should be
-  // using a SPARSE_SCHUR solver anyways.
-  if ((linear_solver_options.num_threads > 1) &&
-      (linear_solver_options.type == DENSE_SCHUR)) {
-    LOG(WARNING) << "Warning: Solver::Options::num_linear_solver_threads = "
-                 << options->num_linear_solver_threads
-                 << " with DENSE_SCHUR will result in poor performance; "
-                 << "switching to single-threaded.";
-    linear_solver_options.num_threads = 1;
-  }
   options->num_linear_solver_threads = linear_solver_options.num_threads;
 
   linear_solver_options.use_block_amd = options->use_block_amd;

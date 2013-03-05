@@ -78,7 +78,7 @@ template <typename CostFunctor, int Stride = 4>
 class DynamicAutoDiffCostFunction : public CostFunction {
  public:
   explicit DynamicAutoDiffCostFunction(CostFunctor* functor)
-  : functor_(functor) {}
+    : functor_(functor) {}
 
   virtual ~DynamicAutoDiffCostFunction() {}
 
