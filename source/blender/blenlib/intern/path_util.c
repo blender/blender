@@ -350,19 +350,19 @@ void BLI_uniquename(ListBase *list, void *vlink, const char *defname, char delim
  * If relbase is NULL then its ignored
  */
 
-void BLI_cleanup_path(const char *relabase, char *dir)
+void BLI_cleanup_path(const char *relabase, char *path)
 {
 	ptrdiff_t a;
 	char *start, *eind;
 	if (relabase) {
-		BLI_path_abs(dir, relabase);
+		BLI_path_abs(path, relabase);
 	}
 	else {
-		if (dir[0] == '/' && dir[1] == '/') {
-			if (dir[2] == '\0') {
+		if (path[0] == '/' && path[1] == '/') {
+			if (path[2] == '\0') {
 				return; /* path is "//" - cant clean it */
 			}
-			dir = dir + 2; /* skip the first // */
+			path = path + 2; /* skip the first // */
 		}
 	}
 	
@@ -378,70 +378,70 @@ void BLI_cleanup_path(const char *relabase, char *dir)
 	
 	/* Note, this should really be moved to the file selector,
 	 * since this function is used in many areas */
-	if (strcmp(dir, ".") == 0) {  /* happens for example in FILE_MAIN */
-		get_default_root(dir);
+	if (strcmp(path, ".") == 0) {  /* happens for example in FILE_MAIN */
+		get_default_root(path);
 		return;
 	}
 
-	while ( (start = strstr(dir, "\\..\\")) ) {
+	while ( (start = strstr(path, "\\..\\")) ) {
 		eind = start + strlen("\\..\\") - 1;
-		a = start - dir - 1;
+		a = start - path - 1;
 		while (a > 0) {
-			if (dir[a] == '\\') break;
+			if (path[a] == '\\') break;
 			a--;
 		}
 		if (a < 0) {
 			break;
 		}
 		else {
-			memmove(dir + a, eind, strlen(eind) + 1);
+			memmove(path + a, eind, strlen(eind) + 1);
 		}
 	}
 
-	while ( (start = strstr(dir, "\\.\\")) ) {
+	while ( (start = strstr(path, "\\.\\")) ) {
 		eind = start + strlen("\\.\\") - 1;
 		memmove(start, eind, strlen(eind) + 1);
 	}
 
-	while ( (start = strstr(dir, "\\\\")) ) {
+	while ( (start = strstr(path, "\\\\")) ) {
 		eind = start + strlen("\\\\") - 1;
 		memmove(start, eind, strlen(eind) + 1);
 	}
 #else
-	if (dir[0] == '.') {  /* happens, for example in FILE_MAIN */
-		dir[0] = '/';
-		dir[1] = 0;
+	if (path[0] == '.') {  /* happens, for example in FILE_MAIN */
+		path[0] = '/';
+		path[1] = 0;
 		return;
 	}
 
 	/* support for odd paths: eg /../home/me --> /home/me
 	 * this is a valid path in blender but we cant handle this the usual way below
 	 * simply strip this prefix then evaluate the path as usual. pythons os.path.normpath() does this */
-	while ((strncmp(dir, "/../", 4) == 0)) {
-		memmove(dir, dir + 4, strlen(dir + 4) + 1);
+	while ((strncmp(path, "/../", 4) == 0)) {
+		memmove(path, path + 4, strlen(path + 4) + 1);
 	}
 
-	while ( (start = strstr(dir, "/../")) ) {
+	while ( (start = strstr(path, "/../")) ) {
 		eind = start + (4 - 1) /* strlen("/../") - 1 */;
-		a = start - dir - 1;
+		a = start - path - 1;
 		while (a > 0) {
-			if (dir[a] == '/') break;
+			if (path[a] == '/') break;
 			a--;
 		}
 		if (a < 0) {
 			break;
 		}
 		else {
-			memmove(dir + a, eind, strlen(eind) + 1);
+			memmove(path + a, eind, strlen(eind) + 1);
 		}
 	}
 
-	while ( (start = strstr(dir, "/./")) ) {
+	while ( (start = strstr(path, "/./")) ) {
 		eind = start + (3 - 1) /* strlen("/./") - 1 */;
 		memmove(start, eind, strlen(eind) + 1);
 	}
 
-	while ( (start = strstr(dir, "//")) ) {
+	while ( (start = strstr(path, "//")) ) {
 		eind = start + (2 - 1) /* strlen("//") - 1 */;
 		memmove(start, eind, strlen(eind) + 1);
 	}
@@ -455,10 +455,10 @@ void BLI_cleanup_dir(const char *relabase, char *dir)
 
 }
 
-void BLI_cleanup_file(const char *relabase, char *dir)
+void BLI_cleanup_file(const char *relabase, char *path)
 {
-	BLI_cleanup_path(relabase, dir);
-	BLI_del_slash(dir);
+	BLI_cleanup_path(relabase, path);
+	BLI_del_slash(path);
 }
 
 /**

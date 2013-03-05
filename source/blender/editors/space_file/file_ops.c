@@ -1228,7 +1228,6 @@ int file_directory_exec(bContext *C, wmOperator *UNUSED(unused))
 		}
 
 		BLI_cleanup_dir(G.main->name, sfile->params->dir);
-		BLI_add_slash(sfile->params->dir);
 		file_change_dir(C, 1);
 
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_FILE_LIST, NULL);
