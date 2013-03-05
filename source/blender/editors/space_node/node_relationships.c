@@ -840,7 +840,9 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 	if (i > 1) {
 		int found = FALSE;
 		bNodeLink *link, *next;
-
+		
+		ED_preview_kill_jobs(C);
+		
 		for (link = snode->edittree->links.first; link; link = next) {
 			next = link->next;
 
