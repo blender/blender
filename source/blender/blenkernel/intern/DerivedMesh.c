@@ -1025,12 +1025,18 @@ enum {
 	CALC_WP_AUTO_NORMALIZE      = (1 << 4)
 };
 
-static void weightpaint_color(unsigned char r_col[4], ColorBand *coba, const float input)
+typedef struct DMWeightColorInfo {
+        ColorBand *coba;
+        unsigned char *zero_color;
+} DMWeightColorInfo;
+
+
+static void weightpaint_color(unsigned char r_col[4], DMWeightColorInfo *dm_wcinfo, const float input)
 {
 	float colf[4];
 
-	if (coba) {
-		do_colorband(coba, input, colf);
+	if (dm_wcinfo->coba) {
+		do_colorband(dm_wcinfo->coba, input, colf);
 	}
 	else {
 		weight_to_rgb(colf, input);
@@ -1047,7 +1053,8 @@ static void weightpaint_color(unsigned char r_col[4], ColorBand *coba, const flo
 
 static void calc_weightpaint_vert_color(
         unsigned char r_col[4],
-        MDeformVert *dv, ColorBand *coba,
+        MDeformVert *dv, 
+		DMWeightColorInfo *dm_wcinfo,
         const int defbase_tot, const int defbase_act,
         const char *defbase_sel, const int defbase_sel_tot,
         const int draw_flag)
@@ -1098,23 +1105,23 @@ static void calc_weightpaint_vert_color(
 		}
 	}
 
-	if (make_black) { /* TODO, theme color */
-		r_col[3] = 255;
-		r_col[2] = 0;
-		r_col[1] = 0;
-		r_col[0] = 0;
+	if (make_black) {
+		r_col[3] = dm_wcinfo->zero_color[3];
+		r_col[2] = dm_wcinfo->zero_color[2];
+		r_col[1] = dm_wcinfo->zero_color[1];
+		r_col[0] = dm_wcinfo->zero_color[0];
 	}
 	else {
 		CLAMP(input, 0.0f, 1.0f);
-		weightpaint_color(r_col, coba, input);
+		weightpaint_color(r_col, dm_wcinfo, input);
 	}
 }
 
-static ColorBand *stored_cb = NULL;
-
-void vDM_ColorBand_store(ColorBand *coba)
+static DMWeightColorInfo dm_wcinfo;
+void vDM_ColorBand_store(ColorBand *coba, char zero_color[4])
 {
-	stored_cb = coba;
+	dm_wcinfo.coba       = coba;
+	dm_wcinfo.zero_color = zero_color;
 }
 
 /* return an array of vertex weight colors, caller must free.
@@ -1122,11 +1129,11 @@ void vDM_ColorBand_store(ColorBand *coba)
  * note that we could save some memory and allocate RGB only but then we'd need to
  * re-arrange the colors when copying to the face since MCol has odd ordering,
  * so leave this as is - campbell */
-static unsigned char *calc_weightpaint_vert_array(Object *ob, DerivedMesh *dm, int const draw_flag, ColorBand *coba)
+static unsigned char *calc_weightpaint_vert_array(Object *ob, DerivedMesh *dm, int const draw_flag, DMWeightColorInfo *dm_wcinfo)
 {
 	MDeformVert *dv = DM_get_vert_data_layer(dm, CD_MDEFORMVERT);
 	int numVerts = dm->getNumVerts(dm);
-	unsigned char *wtcol_v = MEM_mallocN(sizeof(unsigned char) * numVerts * 4, "weightmap_v");
+	unsigned char *wtcol_v       = MEM_mallocN(sizeof(unsigned char) * numVerts * 4, "weightmap_v");
 
 	if (dv) {
 		unsigned char *wc = wtcol_v;
@@ -1144,7 +1151,7 @@ static unsigned char *calc_weightpaint_vert_array(Object *ob, DerivedMesh *dm, i
 		}
 
 		for (i = numVerts; i != 0; i--, wc += 4, dv++) {
-			calc_weightpaint_vert_color(wc, dv, coba, defbase_tot, defbase_act, defbase_sel, defbase_sel_tot, draw_flag);
+			calc_weightpaint_vert_color(wc, dv, dm_wcinfo, defbase_tot, defbase_act, defbase_sel, defbase_sel_tot, draw_flag);
 		}
 
 		if (defbase_sel) {
@@ -1157,7 +1164,7 @@ static unsigned char *calc_weightpaint_vert_array(Object *ob, DerivedMesh *dm, i
 			col_i = 0;
 		}
 		else {
-			weightpaint_color((unsigned char *)&col_i, coba, 0.0f);
+			weightpaint_color((unsigned char *)&col_i, dm_wcinfo, 0.0f);
 		}
 		fill_vn_i((int *)wtcol_v, numVerts, col_i);
 	}
@@ -1185,7 +1192,6 @@ static unsigned char *calc_colors_from_weights_array(const int num, float *weigh
 void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
                            float *weights, int num, const int *indices)
 {
-	ColorBand *coba = stored_cb; /* warning, not a local var */
 
 	unsigned char *wtcol_v;
 	unsigned char(*wtcol_l)[4] = CustomData_get_layer(dm->getLoopDataLayout(dm), CD_PREVIEW_MLOOPCOL);
@@ -1216,7 +1222,7 @@ void DM_update_weight_mcol(Object *ob, DerivedMesh *dm, int const draw_flag,
 
 	/* No weights given, take them from active vgroup(s). */
 	else
-		wtcol_v = calc_weightpaint_vert_array(ob, dm, draw_flag, coba);
+		wtcol_v = calc_weightpaint_vert_array(ob, dm, draw_flag, &dm_wcinfo);
 
 	/* now add to loops, so the data can be passed through the modifier stack */
 	/* If no CD_PREVIEW_MLOOPCOL existed yet, we have to add a new one! */
