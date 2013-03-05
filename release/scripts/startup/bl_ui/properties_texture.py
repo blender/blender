@@ -448,6 +448,9 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, Panel):
 
         col = split.column()
         col.label(text="Alpha:")
+        row = col.row()
+        row.active = tex.image and tex.image.use_alpha
+        row.prop(tex, "use_alpha", text="Use")
         col.prop(tex, "use_calculate_alpha", text="Calculate")
         col.prop(tex, "invert_alpha", text="Invert")
         col.separator()

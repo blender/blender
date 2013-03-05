@@ -425,15 +425,16 @@ static Scene *preview_prepare_scene(Scene *scene, ID *id, int id_type, ShaderPre
 						
 						if (tex && sp->slot)
 							mat->mtex[0]->which_output = sp->slot->which_output;
-						
+
+						mat->mtex[0]->mapto &= ~MAP_ALPHA;
+						mat->alpha = 1.0f;
+
 						/* show alpha in this case */
 						if (tex == NULL || (tex->flag & TEX_PRV_ALPHA)) {
-							mat->mtex[0]->mapto |= MAP_ALPHA;
-							mat->alpha = 0.0f;
-						}
-						else {
-							mat->mtex[0]->mapto &= ~MAP_ALPHA;
-							mat->alpha = 1.0f;
+							if (!(tex && tex->type == TEX_IMAGE && (tex->imaflag & (TEX_USEALPHA|TEX_CALCALPHA)) == 0)) {
+								mat->mtex[0]->mapto |= MAP_ALPHA;
+								mat->alpha = 0.0f;
+							}
 						}
 					}
 				}
