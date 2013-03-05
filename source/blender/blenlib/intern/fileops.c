@@ -155,34 +155,31 @@ char *BLI_file_ungzip_to_mem(const char *from_file, int *size_r)
 	return mem;
 }
 
-
-/* return 1 when file can be written */
+/**
+ * Returns true if the file with the specified name can be written.
+ * This implementation uses access(2), which makes the check according
+ * to the real UID and GID of the process, not its effective UID and GID.
+ * This shouldn't matter for Blender, which is not going to run privileged
+ * anyway.
+ */
 bool BLI_file_is_writable(const char *filename)
 {
-	int file;
-	
-	/* first try to open without creating */
-	file = BLI_open(filename, O_BINARY | O_RDWR, 0666);
-	
-	if (file < 0) {
-		/* now try to open and create. a test without actually
-		 * creating a file would be nice, but how? */
-		file = BLI_open(filename, O_BINARY | O_RDWR | O_CREAT, 0666);
-		
-		if (file < 0) {
-			return false;
-		}
-		else {
-			/* success, delete the file we create */
-			close(file);
-			BLI_delete(filename, false, false);
-			return true;
-		}
+	bool writable;
+	if (access(filename, W_OK) == 0) {
+		/* file exists and I can write to it */
+		writable = true;
+	}
+	else if (errno != ENOENT) {
+		/* most likely file or containing directory cannot be accessed */
+		writable = false;
 	}
 	else {
-		close(file);
-		return true;
+		/* file doesn't exist -- check I can create it in parent directory */
+		char parent[FILE_MAX];
+		BLI_split_dirfile(filename, parent, NULL, sizeof parent, 0);
+		writable = access(parent, X_OK | W_OK) == 0;
 	}
+	return writable;
 }
 
 /**
