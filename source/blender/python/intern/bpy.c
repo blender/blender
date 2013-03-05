@@ -74,7 +74,7 @@ static PyObject *bpy_script_paths(PyObject *UNUSED(self))
 {
 	PyObject *ret = PyTuple_New(2);
 	PyObject *item;
-	char *path;
+	const char *path;
 
 	path = BLI_get_folder(BLENDER_SYSTEM_SCRIPTS, NULL);
 	item = PyUnicode_DecodeFSDefault(path ? path : "");
@@ -147,7 +147,7 @@ static PyObject *bpy_user_resource(PyObject *UNUSED(self), PyObject *args, PyObj
 	int folder_id;
 	static const char *kwlist[] = {"type", "subdir", NULL};
 
-	char *path;
+	const char *path;
 
 	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|s:user_resource", (char **)kwlist, &type, &subdir))
 		return NULL;
@@ -191,7 +191,7 @@ static PyObject *bpy_resource_path(PyObject *UNUSED(self), PyObject *args, PyObj
 	int major = BLENDER_VERSION / 100, minor = BLENDER_VERSION % 100;
 	static const char *kwlist[] = {"type", "major", "minor", NULL};
 	int folder_id;
-	char *path;
+	const char *path;
 
 	if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ii:resource_path", (char **)kwlist, &type, &major, &minor))
 		return NULL;
@@ -245,7 +245,7 @@ void BPy_init_modules(void)
 	PyObject *mod;
 
 	/* Needs to be first since this dir is needed for future modules */
-	char *modpath = BLI_get_folder(BLENDER_SYSTEM_SCRIPTS, "modules");
+	const char * const modpath = BLI_get_folder(BLENDER_SYSTEM_SCRIPTS, "modules");
 	if (modpath) {
 		// printf("bpy: found module path '%s'.\n", modpath);
 		PyObject *sys_path = PySys_GetObject("path"); /* borrow */

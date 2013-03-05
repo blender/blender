@@ -1773,6 +1773,7 @@ ImBuf *BKE_tracking_sample_pattern(int frame_width, int frame_height, ImBuf *sea
 	(void) frame_height;
 	(void) search_ibuf;
 	(void) marker;
+	(void) from_anchor;
 	(void) track;
 	(void) use_mask;
 

@@ -56,7 +56,7 @@ unsigned char *BLF_get_unifont(int *unifont_size_r)
 {
 #ifdef WITH_INTERNATIONAL
 	if (unifont_ttf == NULL) {
-		char *fontpath = BLI_get_folder(BLENDER_DATAFILES, "fonts");
+		const char * const fontpath = BLI_get_folder(BLENDER_DATAFILES, "fonts");
 		if (fontpath) {
 			char unifont_path[1024];
 

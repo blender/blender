@@ -29,6 +29,7 @@
  *  \ingroup imbuf
  */
 
+#include "BLI_utildefines.h"
 #include "BLI_fileops.h"
 
 #include "imbuf.h"

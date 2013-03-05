@@ -93,12 +93,14 @@
 
 /* vars: */
 static int totnum, actnum;
-static struct direntry *files;
+static struct direntry *files; /* array[totnum] */
 
-static struct ListBase dirbase_ = {NULL, NULL};
-static struct ListBase *dirbase = &dirbase_;
-
-/* can return NULL when the size is not big enough */
+/**
+ * Copies the current working directory into *dir (max size maxncpy), and
+ * returns a pointer to same.
+ *
+ * \note can return NULL when the size is not big enough
+ */
 char *BLI_current_working_dir(char *dir, const size_t maxncpy)
 {
 	const char *pwd = getenv("PWD");
@@ -110,26 +112,33 @@ char *BLI_current_working_dir(char *dir, const size_t maxncpy)
 	return getcwd(dir, maxncpy);
 }
 
-
+/*
+ * Ordering function for sorting lists of files/directories. Returns -1 if
+ * entry1 belongs before entry2, 0 if they are equal, 1 if they should be swapped.
+ */
 static int bli_compare(struct direntry *entry1, struct direntry *entry2)
 {
 	/* type is equal to stat.st_mode */
 
+	/* directories come before non-directories */
 	if (S_ISDIR(entry1->type)) {
 		if (S_ISDIR(entry2->type) == 0) return (-1);
 	}
 	else {
 		if (S_ISDIR(entry2->type)) return (1);
 	}
+	/* non-regular files come after regular files */
 	if (S_ISREG(entry1->type)) {
 		if (S_ISREG(entry2->type) == 0) return (-1);
 	}
 	else {
 		if (S_ISREG(entry2->type)) return (1);
 	}
+	/* arbitrary, but consistent, ordering of different types of non-regular files */
 	if ((entry1->type & S_IFMT) < (entry2->type & S_IFMT)) return (-1);
 	if ((entry1->type & S_IFMT) > (entry2->type & S_IFMT)) return (1);
-	
+
+	/* OK, now we know their S_IFMT fields are the same, go on to a name comparison */
 	/* make sure "." and ".." are always first */
 	if (strcmp(entry1->relname, ".") == 0) return (-1);
 	if (strcmp(entry2->relname, ".") == 0) return (1);
@@ -139,7 +148,10 @@ static int bli_compare(struct direntry *entry1, struct direntry *entry2)
 	return (BLI_natstrcmp(entry1->relname, entry2->relname));
 }
 
-
+/**
+ * Returns the number of free bytes on the volume containing the specified pathname. */
+/* Not actually used anywhere.
+ */
 double BLI_dir_free_space(const char *dir)
 {
 #ifdef WIN32
@@ -197,10 +209,14 @@ double BLI_dir_free_space(const char *dir)
 #endif
 }
 
+/**
+ * Scans the directory named *dirname and appends entries for its contents to files.
+ * Recorded pathnames will be prefixed by *relname if specified (FIXME: actually this
+ * option is not used anywhere, might as well get rid of it).
+ */
 static void bli_builddir(const char *dirname, const char *relname)
 {
-	struct dirent *fname;
-	struct dirlink *dlink;
+	struct ListBase dirbase = {NULL, NULL};
 	int rellen, newnum = 0;
 	char buf[256];
 	DIR *dir;
@@ -212,6 +228,9 @@ static void bli_builddir(const char *dirname, const char *relname)
 		buf[rellen] = '/';
 		rellen++;
 	}
+	/* FIXME: any reason why we can't opendir dirname directly, instead of making it
+	 * the current directory first? That would simplify calls to this routine (currently
+	 * having to save/restore the current directory) a lot. */
 #ifndef WIN32
 	if (chdir(dirname) == -1) {
 		perror(dirname);
@@ -227,13 +246,14 @@ static void bli_builddir(const char *dirname, const char *relname)
 	UTF16_UN_ENCODE(dirname);
 
 #endif
-	if ((dir = (DIR *)opendir("."))) {
-		while ((fname = (struct dirent *) readdir(dir)) != NULL) {
-			dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
-			if (dlink) {
+	if ((dir = opendir(".")) != NULL) {
+		const struct dirent *fname;
+		while ((fname = readdir(dir)) != NULL) {
+			struct dirlink * const dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
+			if (dlink != NULL) {
 				BLI_strncpy(buf + rellen, fname->d_name, sizeof(buf) - rellen);
 				dlink->name = BLI_strdup(buf);
-				BLI_addhead(dirbase, dlink);
+				BLI_addhead(&dirbase, dlink);
 				newnum++;
 			}
 		}
@@ -241,7 +261,7 @@ static void bli_builddir(const char *dirname, const char *relname)
 		if (newnum) {
 
 			if (files) {
-				void *tmp = realloc(files, (totnum + newnum) * sizeof(struct direntry));
+				void * const tmp = realloc(files, (totnum + newnum) * sizeof(struct direntry));
 				if (tmp) {
 					files = (struct direntry *)tmp;
 				}
@@ -255,7 +275,7 @@ static void bli_builddir(const char *dirname, const char *relname)
 				files = (struct direntry *)malloc(newnum * sizeof(struct direntry));
 
 			if (files) {
-				dlink = (struct dirlink *) dirbase->first;
+				struct dirlink * dlink = (struct dirlink *) dirbase.first;
 				while (dlink) {
 					memset(&files[actnum], 0, sizeof(struct direntry));
 					files[actnum].relname = dlink->name;
@@ -278,6 +298,8 @@ static void bli_builddir(const char *dirname, const char *relname)
 #endif
 					files[actnum].type = files[actnum].s.st_mode;
 					files[actnum].flags = 0;
+					/* FIXME: this is the only place where totnum and actnum are incremented,
+					 * so they will always be equal, might as well get rid of one */
 					totnum++;
 					actnum++;
 					dlink = dlink->next;
@@ -288,7 +310,7 @@ static void bli_builddir(const char *dirname, const char *relname)
 				exit(1);
 			}
 
-			BLI_freelist(dirbase);
+			BLI_freelist(&dirbase);
 			if (files) qsort(files, actnum, sizeof(struct direntry), (int (*)(const void *, const void *))bli_compare);
 		}
 		else {
@@ -302,12 +324,17 @@ static void bli_builddir(const char *dirname, const char *relname)
 	}
 }
 
+/**
+ * Fills in the "mode[123]", "size" and "string" fields in the elements of the files
+ * array with descriptive details about each item. "string" will have a format similar to "ls -l".
+ */
 static void bli_adddirstrings(void)
 {
 	char datum[100];
 	char buf[512];
 	char size[250];
 	static const char *types[8] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
+	/* symbolic display, indexed by mode field value */
 	int num, mode;
 #ifdef WIN32
 	__int64 st_size;
@@ -375,6 +402,9 @@ static void bli_adddirstrings(void)
 		 */
 		st_size = file->s.st_size;
 
+		/* FIXME: Either change decimal prefixes to binary ones
+		 * <http://en.wikipedia.org/wiki/Binary_prefix>, or change
+		 * divisor factors from 1024 to 1000. */
 		if (st_size > 1024 * 1024 * 1024) {
 			BLI_snprintf(file->size, sizeof(file->size), "%.2f GB", ((double)st_size) / (1024 * 1024 * 1024));
 		}
@@ -413,9 +443,14 @@ static void bli_adddirstrings(void)
 		             file->date, file->time, size, file->relname);
 
 		file->string = BLI_strdup(buf);
+		/* FIXME: not actually used anywhere, why bother to set it up? */
 	}
 }
 
+/**
+ * Scans the contents of the directory named *dirname, and allocates and fills in an
+ * array of entries describing them in *filelist. The length of the array is the function result.
+ */
 unsigned int BLI_dir_contents(const char *dirname,  struct direntry **filelist)
 {
 	/* reset global variables
@@ -441,17 +476,24 @@ unsigned int BLI_dir_contents(const char *dirname,  struct direntry **filelist)
 }
 
 
+/**
+ * Returns the file size of an opened file descriptor.
+ */
 size_t BLI_file_descriptor_size(int file)
 {
 	struct stat buf;
 
-	if (file <= 0) return (-1);
+	if (file < 0) return (-1);
 	fstat(file, &buf); /* CHANGE */
 	return (buf.st_size);
 }
 
+/**
+ * Returns the size of a file.
+ */
 size_t BLI_file_size(const char *path)
 {
+	/* FIXME: opening and closing the file is inefficient. Why not use stat(2) instead? */
 	int size, file = BLI_open(path, O_BINARY | O_RDONLY, 0);
 	
 	if (file == -1)
@@ -462,7 +504,10 @@ size_t BLI_file_size(const char *path)
 	return size;
 }
 
-
+/**
+ * Returns the st_mode from statting the specified path name, or 0 if it couldn't be statted
+ * (most likely doesn't exist or no access).
+ */
 int BLI_exists(const char *name)
 {
 #if defined(WIN32) 
@@ -509,18 +554,27 @@ int BLI_stat(const char *path, struct stat *buffer)
 }
 #endif
 
-/* would be better in fileops.c except that it needs stat.h so add here */
-int BLI_is_dir(const char *file)
+/**
+ * Does the specified path point to a directory?
+ * \note Would be better in fileops.c except that it needs stat.h so add here
+ */
+bool BLI_is_dir(const char *file)
 {
 	return S_ISDIR(BLI_exists(file));
 }
 
-int BLI_is_file(const char *path)
+/**
+ * Does the specified path point to a non-directory?
+ */
+bool BLI_is_file(const char *path)
 {
-	int mode = BLI_exists(path);
+	const int mode = BLI_exists(path);
 	return (mode && !S_ISDIR(mode));
 }
 
+/**
+ * Reads the contents of a text file and returns the lines in a linked list.
+ */
 LinkNode *BLI_file_read_as_lines(const char *name)
 {
 	FILE *fp = BLI_fopen(name, "r");
@@ -549,6 +603,9 @@ LinkNode *BLI_file_read_as_lines(const char *name)
 				char *line = BLI_strdupn(&buf[last], i - last);
 
 				BLI_linklist_prepend(&lines, line);
+				/* faster to build singly-linked list in reverse order */
+				/* alternatively, could process buffer in reverse order so
+				 * list ends up right way round to start with */
 				last = i + 1;
 			}
 		}
@@ -557,18 +614,22 @@ LinkNode *BLI_file_read_as_lines(const char *name)
 	}
 	
 	fclose(fp);
-	
+
+	/* get them the right way round */
 	BLI_linklist_reverse(&lines);
 	return lines;
 }
 
+/*
+ * Frees memory from a previous call to BLI_file_read_as_lines.
+ */
 void BLI_file_free_lines(LinkNode *lines)
 {
 	BLI_linklist_free(lines, (void (*)(void *))MEM_freeN);
 }
 
 /** is file1 older then file2 */
-int BLI_file_older(const char *file1, const char *file2)
+bool BLI_file_older(const char *file1, const char *file2)
 {
 #ifdef WIN32
 	struct _stat st1, st2;
@@ -576,16 +637,16 @@ int BLI_file_older(const char *file1, const char *file2)
 	UTF16_ENCODE(file1);
 	UTF16_ENCODE(file2);
 	
-	if (_wstat(file1_16, &st1)) return 0;
-	if (_wstat(file2_16, &st2)) return 0;
+	if (_wstat(file1_16, &st1)) return false;
+	if (_wstat(file2_16, &st2)) return false;
 
 	UTF16_UN_ENCODE(file2);
 	UTF16_UN_ENCODE(file1);
 #else
 	struct stat st1, st2;
 
-	if (stat(file1, &st1)) return 0;
-	if (stat(file2, &st2)) return 0;
+	if (stat(file1, &st1)) return false;
+	if (stat(file2, &st2)) return false;
 #endif
 	return (st1.st_mtime < st2.st_mtime);
 }

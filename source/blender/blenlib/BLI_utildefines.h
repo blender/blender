@@ -167,7 +167,7 @@ typedef bool _BLI_Bool;
 	(b) = (tval);                 \
 } (void)0
 
-
+/* ELEM#(a, ...): is the first arg equal any of the others */
 #define ELEM(a, b, c)           ((a) == (b) || (a) == (c))
 #define ELEM3(a, b, c, d)       (ELEM(a, b, c) || (a) == (d) )
 #define ELEM4(a, b, c, d, e)    (ELEM(a, b, c) || ELEM(a, d, e) )

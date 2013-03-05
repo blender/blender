@@ -40,10 +40,10 @@ struct direntry;
 
 const char *BLI_getDefaultDocumentFolder(void);
 
-char *BLI_get_folder(int folder_id, const char *subfolder);
-char *BLI_get_folder_create(int folder_id, const char *subfolder);
-char *BLI_get_user_folder_notest(int folder_id, const char *subfolder);
-char *BLI_get_folder_version(const int id, const int ver, const bool do_check);
+const char *BLI_get_folder(int folder_id, const char *subfolder);
+const char *BLI_get_folder_create(int folder_id, const char *subfolder);
+const char *BLI_get_user_folder_notest(int folder_id, const char *subfolder);
+const char *BLI_get_folder_version(const int id, const int ver, const bool do_check);
 
 /* folder_id */
 
@@ -109,8 +109,8 @@ void BLI_getlastdir(const char *dir, char *last, size_t maxlen);
 bool BLI_testextensie(const char *str, const char *ext);
 bool BLI_testextensie_array(const char *str, const char **ext_array);
 bool BLI_testextensie_glob(const char *str, const char *ext_fnmatch);
-int BLI_replace_extension(char *path, size_t maxlen, const char *ext);
-int BLI_ensure_extension(char *path, size_t maxlen, const char *ext);
+bool BLI_replace_extension(char *path, size_t maxlen, const char *ext);
+bool BLI_ensure_extension(char *path, size_t maxlen, const char *ext);
 void BLI_uniquename(struct ListBase *list, void *vlink, const char * defname, char delim, short name_offs, short len);
 bool BLI_uniquename_cb(bool (*unique_check)(void * arg, const char * name),
                        void *arg, const char * defname, char delim, char *name, short name_len);
@@ -155,13 +155,14 @@ bool BLI_has_parent(char *path);
  * \retval Returns true if the path was relative (started with "//").
  */
 bool BLI_path_abs(char *path, const char *basepath);
-int BLI_path_frame(char *path, int frame, int digits);
-int BLI_path_frame_range(char *path, int sta, int end, int digits);
-int BLI_path_cwd(char *path);
+bool BLI_path_frame(char *path, int frame, int digits);
+bool BLI_path_frame_range(char *path, int sta, int end, int digits);
+bool BLI_path_cwd(char *path);
 void BLI_path_rel(char *file, const char *relfile);
 
 bool BLI_path_is_rel(const char *path);
 
+/* path string comparisons: case-insensitive for Windows, case-sensitive otherwise */
 #ifdef WIN32
 #  define BLI_path_cmp BLI_strcasecmp
 #  define BLI_path_ncmp BLI_strncasecmp

@@ -110,7 +110,7 @@ ImBuf *get_brush_icon(Brush *brush)
 	static const int flags = IB_rect | IB_multilayer | IB_metadata;
 
 	char path[FILE_MAX];
-	char *folder;
+	const char *folder;
 
 	if (!(brush->icon_imbuf)) {
 		if (brush->flag & BRUSH_CUSTOM_ICON) {

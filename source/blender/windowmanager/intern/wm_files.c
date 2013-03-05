@@ -502,7 +502,7 @@ int wm_homefile_read(bContext *C, ReportList *UNUSED(reports), short from_memory
 
 	G.relbase_valid = 0;
 	if (!from_memory) {
-		char *cfgdir = BLI_get_folder(BLENDER_USER_CONFIG, NULL);
+		const char * const cfgdir = BLI_get_folder(BLENDER_USER_CONFIG, NULL);
 		if (cfgdir) {
 			BLI_make_file_string(G.main->name, startstr, cfgdir, BLENDER_STARTUP_FILE);
 			BLI_make_file_string(G.main->name, prefstr, cfgdir, BLENDER_USERPREF_FILE);
@@ -614,7 +614,7 @@ void wm_read_history(void)
 	struct RecentFile *recent;
 	char *line;
 	int num;
-	char *cfgdir = BLI_get_folder(BLENDER_USER_CONFIG, NULL);
+	const char * const cfgdir = BLI_get_folder(BLENDER_USER_CONFIG, NULL);
 
 	if (!cfgdir) return;
 
@@ -643,7 +643,7 @@ static void write_history(void)
 {
 	struct RecentFile *recent, *next_recent;
 	char name[FILE_MAX];
-	char *user_config_dir;
+	const char *user_config_dir;
 	FILE *fp;
 	int i;
 

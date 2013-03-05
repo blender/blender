@@ -34,6 +34,7 @@
 #  include <io.h>
 #endif
 
+#include "BLI_utildefines.h"
 #include "BLI_fileops.h"
 
 #include "MEM_guardedalloc.h"

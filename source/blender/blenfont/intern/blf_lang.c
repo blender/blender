@@ -78,15 +78,16 @@ static void free_locales(void)
 
 static void fill_locales(void)
 {
-	char *languages_path = BLI_get_folder(BLENDER_DATAFILES, "locale");
+	const char * const languages_path = BLI_get_folder(BLENDER_DATAFILES, "locale");
+	char languages[FILE_MAX];
 	LinkNode *lines = NULL, *line;
 	char *str;
 	int idx = 0;
 
 	free_locales();
 
-	BLI_join_dirfile(languages_path, FILE_MAX, languages_path, "languages");
-	line = lines = BLI_file_read_as_lines(languages_path);
+	BLI_join_dirfile(languages, FILE_MAX, languages_path, "languages");
+	line = lines = BLI_file_read_as_lines(languages);
 
 	/* This whole "parsing" code is a bit weak, in that it expects strictly formated input file...
 	 * Should not be a problem, though, as this file is script-generated! */
@@ -185,7 +186,7 @@ EnumPropertyItem *BLF_RNA_lang_enum_properties(void)
 void BLF_lang_init(void)
 {
 #ifdef WITH_INTERNATIONAL
-	char *messagepath = BLI_get_folder(BLENDER_DATAFILES, "locale");
+	const char * const messagepath = BLI_get_folder(BLENDER_DATAFILES, "locale");
 
 	if (messagepath) {
 		bl_locale_init(messagepath, TEXT_DOMAIN_NAME);
