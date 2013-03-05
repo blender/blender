@@ -506,11 +506,10 @@ void BLI_free_filelist(struct direntry *filelist, unsigned int nrentries)
  */
 size_t BLI_file_descriptor_size(int file)
 {
-	struct stat buf;
-
-	if (file < 0) return (-1);
-	fstat(file, &buf); /* CHANGE */
-	return (buf.st_size);
+	struct stat st;
+	if ((file < 0) || (fstat(file, &st) == -1))
+		return -1;
+	return st.st_size;
 }
 
 /**
@@ -518,15 +517,10 @@ size_t BLI_file_descriptor_size(int file)
  */
 size_t BLI_file_size(const char *path)
 {
-	/* FIXME: opening and closing the file is inefficient. Why not use stat(2) instead? */
-	int size, file = BLI_open(path, O_BINARY | O_RDONLY, 0);
-	
-	if (file == -1)
+	struct stat stats;
+	if (BLI_stat(path, &stats) == -1)
 		return -1;
-	
-	size = BLI_file_descriptor_size(file);
-	close(file);
-	return size;
+	return stats.st_size;
 }
 
 /**
