@@ -42,7 +42,6 @@ typedef unsigned int mode_t;
 struct ImBuf;
 
 struct direntry {
-	char   *string;
 	mode_t  type;
 	char   *relname;
 	char   *path;

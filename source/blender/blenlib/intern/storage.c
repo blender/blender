@@ -434,9 +434,6 @@ static void bli_adddirstrings(struct BuildDirCtx *dir_ctx)
 		BLI_snprintf(buf, sizeof(buf), "%s %s %s %7s %s %s %10s %s",
 		             file->mode1, file->mode2, file->mode3, file->owner,
 		             file->date, file->time, size, file->relname);
-
-		file->string = BLI_strdup(buf);
-		/* FIXME: not actually used anywhere, why bother to set it up? */
 	}
 }
 
@@ -480,8 +477,6 @@ void BLI_free_filelist(struct direntry *filelist, unsigned int nrentries)
 			MEM_freeN(entry->relname);
 		if (entry->path)
 			MEM_freeN(entry->path);
-		if (entry->string)
-			MEM_freeN(entry->string);
 		/* entry->poin assumed not to point to anything needing freeing here */
 	}
 
