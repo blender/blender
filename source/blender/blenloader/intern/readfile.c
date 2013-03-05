@@ -493,16 +493,6 @@ void blo_split_main(ListBase *mainlist, Main *main)
 		split_libdata(lbarray[i], main->next);
 }
 
-/* removes things like /blah/blah/../../blah/ etc, then writes in *name the full path */
-static void cleanup_path(const char *relabase, char *name)
-{
-	char filename[FILE_MAXFILE];
-	
-	BLI_splitdirstring(name, filename);
-	BLI_cleanup_dir(relabase, name);
-	strcat(name, filename);
-}
-
 static void read_file_version(FileData *fd, Main *main)
 {
 	BHead *bhead;
@@ -531,7 +521,7 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
 	char name1[FILE_MAX];
 	
 	BLI_strncpy(name1, filepath, sizeof(name1));
-	cleanup_path(relabase, name1);
+	BLI_cleanup_path(relabase, name1);
 	
 //	printf("blo_find_main: relabase  %s\n", relabase);
 //	printf("blo_find_main: original in  %s\n", filepath);
@@ -6256,7 +6246,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 	}
 	/* make sure we have full path in lib->filepath */
 	BLI_strncpy(lib->filepath, lib->name, sizeof(lib->name));
-	cleanup_path(fd->relabase, lib->filepath);
+	BLI_cleanup_path(fd->relabase, lib->filepath);
 	
 //	printf("direct_link_library: name %s\n", lib->name);
 //	printf("direct_link_library: filepath %s\n", lib->filepath);
@@ -10440,7 +10430,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 							if (scanf("%s", newlib_path) > 0) {
 								BLI_strncpy(mainptr->curlib->name, newlib_path, sizeof(mainptr->curlib->name));
 								BLI_strncpy(mainptr->curlib->filepath, newlib_path, sizeof(mainptr->curlib->filepath));
-								cleanup_path(G.main->name, mainptr->curlib->filepath);
+								BLI_cleanup_path(G.main->name, mainptr->curlib->filepath);
 								
 								fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
 

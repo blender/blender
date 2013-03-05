@@ -113,7 +113,6 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 
 	/* add slash for directories, important for some properties */
 	if (RNA_property_subtype(fbo->prop) == PROP_DIRPATH) {
-		char name[FILE_MAX];
 		int is_relative = RNA_boolean_get(op->ptr, "relative_path");
 		id = fbo->ptr.id.data;
 
@@ -132,8 +131,10 @@ static int file_browse_exec(bContext *C, wmOperator *op)
 			}
 			BLI_add_slash(str);
 		}
-		else
-			BLI_splitdirstring(str, name);
+		else {
+			char * const lslash = (char *)BLI_last_slash(str);
+			if (lslash) lslash[1] = '\0';
+		}
 	}
 
 	RNA_property_string_set(&fbo->ptr, fbo->prop, str);

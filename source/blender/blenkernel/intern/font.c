@@ -195,11 +195,7 @@ VFont *BKE_vfont_load(Main *bmain, const char *name)
 		is_builtin = TRUE;
 	}
 	else {
-		char dir[FILE_MAXDIR];
-		
-		BLI_strncpy(dir, name, sizeof(dir));
-		BLI_splitdirstring(dir, filename);
-
+		BLI_split_file_part(name, filename, sizeof(filename));
 		pf = newPackedFile(NULL, name, bmain->name);
 		temp_pf = newPackedFile(NULL, name, bmain->name);
 		

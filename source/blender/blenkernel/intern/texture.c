@@ -911,8 +911,7 @@ void autotexname(Tex *tex)
 		else if (tex->type == TEX_IMAGE) {
 			ima = tex->ima;
 			if (ima) {
-				BLI_strncpy(di, ima->name, sizeof(di));
-				BLI_splitdirstring(di, fi);
+				BLI_split_file_part(ima->name, fi, sizeof(fi));
 				strcpy(di, "I.");
 				strcat(di, fi);
 				new_id(&bmain->tex, (ID *)tex, di);

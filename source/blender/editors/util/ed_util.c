@@ -187,8 +187,7 @@ void unpack_menu(bContext *C, const char *opname, const char *id_name, const cha
 	if (G.relbase_valid) {
 		char local_name[FILE_MAXDIR + FILE_MAX], fi[FILE_MAX];
 
-		BLI_strncpy(local_name, abs_name, sizeof(local_name));
-		BLI_splitdirstring(local_name, fi);
+		BLI_split_file_part(abs_name, fi, sizeof(fi));
 		BLI_snprintf(local_name, sizeof(local_name), "//%s/%s", folder, fi);
 		if (strcmp(abs_name, local_name) != 0) {
 			switch (checkPackedFile(local_name, pf)) {

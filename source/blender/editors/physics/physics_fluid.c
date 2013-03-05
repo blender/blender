@@ -683,14 +683,11 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 	}
 	
 	if (targetDir[0] == '\0' || (!dirExist)) {
-		char blendDir[FILE_MAX];
 		char blendFile[FILE_MAX];
 		
 		// invalid dir, reset to current/previous
-		BLI_strncpy(blendDir, G.main->name, FILE_MAX);
-		BLI_splitdirstring(blendDir, blendFile);
+		BLI_split_file_part(G.main->name, blendFile, sizeof(blendFile));
 		BLI_replace_extension(blendFile, FILE_MAX, ""); /* strip .blend */
-
 		BLI_snprintf(newSurfdataPath, FILE_MAX, "//fluidsimdata/%s_%s_", blendFile, fsDomain->id.name);
 		
 		BLI_snprintf(debugStrBuffer, 256, "fluidsimBake::error - warning resetting output dir to '%s'\n", newSurfdataPath);

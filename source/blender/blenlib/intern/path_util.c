@@ -867,23 +867,6 @@ bool BLI_path_cwd(char *path)
 	return wasrelative;
 }
 
-
-/* 'di's filename component is moved into 'fi', di is made a dir path */
-/* FIXME: duplicates functionality of BLI_split_dirfile. */
-void BLI_splitdirstring(char *di, char *fi)
-{
-	char *lslash = (char *)BLI_last_slash(di);
-
-	if (lslash) {
-		BLI_strncpy(fi, lslash + 1, FILE_MAXFILE);
-		*(lslash + 1) = 0;
-	}
-	else {
-		BLI_strncpy(fi, di, FILE_MAXFILE);
-		di[0] = 0;
-	}
-}
-
 /**
  * Copies into *last the part of *dir following the second-last slash.
  */
@@ -1433,15 +1416,12 @@ void BLI_make_exist(char *dir)
  */
 void BLI_make_existing_file(const char *name)
 {
-	char di[FILE_MAX], fi[FILE_MAXFILE];
+	char di[FILE_MAX];
 	BLI_strncpy(di, name, sizeof(di));
-	/* FIXME: use BLI_split_dir_part instead and get rid of fi. */
-	BLI_splitdirstring(di, fi);
-	
-	/* test exist */
-	if (BLI_exists(di) == 0) {
-		BLI_dir_create_recursive(di);
-	}
+	BLI_split_dir_part(name, di, sizeof(di));
+
+	/* make if if the dir doesn't exist */
+	BLI_dir_create_recursive(di);
 }
 
 /**
