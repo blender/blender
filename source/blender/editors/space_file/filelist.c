@@ -858,18 +858,14 @@ static void filelist_setfiletypes(struct FileList *filelist)
 
 static void filelist_read_dir(struct FileList *filelist)
 {
-	char wdir[FILE_MAX] = "";
 	if (!filelist) return;
 
 	filelist->fidx = NULL;
 	filelist->filelist = NULL;
 
-	BLI_current_working_dir(wdir, sizeof(wdir));  /* backup cwd to restore after */
-
 	BLI_cleanup_dir(G.main->name, filelist->dir);
 	filelist->numfiles = BLI_dir_contents(filelist->dir, &(filelist->filelist));
 
-	if (!chdir(wdir)) {} /* fix warning about not checking return value */
 	filelist_setfiletypes(filelist);
 	filelist_filter(filelist);
 }

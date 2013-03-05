@@ -704,10 +704,8 @@ static void init_iconfile_list(struct ListBase *list)
 {
 	IconFile *ifile;
 	struct direntry *dir;
-	int restoredir = 1; /* restore to current directory */
 	int totfile, i, index = 1;
 	const char *icondir;
-	char olddir[FILE_MAX];
 
 	list->first = list->last = NULL;
 	icondir = BLI_get_folder(BLENDER_DATAFILES, "icons");
@@ -715,12 +713,7 @@ static void init_iconfile_list(struct ListBase *list)
 	if (icondir == NULL)
 		return;
 	
-	/* since BLI_dir_contents changes the current working directory, restore it 
-	 * back to old value afterwards */
-	if (!BLI_current_working_dir(olddir, sizeof(olddir))) 
-		restoredir = 0;
 	totfile = BLI_dir_contents(icondir, &dir);
-	if (restoredir && !chdir(olddir)) {} /* fix warning about checking return value */
 
 	for (i = 0; i < totfile; i++) {
 		if ((dir[i].type & S_IFREG)) {

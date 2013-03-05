@@ -221,47 +221,33 @@ static void bli_builddir(const char *dirname, const char *relname,
                          struct BuildDirCtx *dir_ctx)
 {
 	struct ListBase dirbase = {NULL, NULL};
-	int rellen, newnum = 0;
-	char buf[256];
+	int newnum = 0;
 	DIR *dir;
 
-	BLI_strncpy(buf, relname, sizeof(buf));
-	rellen = strlen(relname);
+	if ((dir = opendir(dirname)) != NULL) {
 
-	if (rellen) {
-		buf[rellen] = '/';
-		rellen++;
-	}
-	/* FIXME: any reason why we can't opendir dirname directly, instead of making it
-	 * the current directory first? That would simplify calls to this routine (currently
-	 * having to save/restore the current directory) a lot. */
-#ifndef WIN32
-	if (chdir(dirname) == -1) {
-		perror(dirname);
-		return;
-	}
-#else
-	UTF16_ENCODE(dirname);
-	if (!SetCurrentDirectoryW(dirname_16)) {
-		perror(dirname);
-		free(dirname_16);
-		return;
-	}
-	UTF16_UN_ENCODE(dirname);
+		{
+			const struct dirent *fname;
+			int rellen;
+			char buf[PATH_MAX];
+			BLI_strncpy(buf, relname, sizeof(buf));
+			rellen = strlen(relname);
 
-#endif
-	if ((dir = opendir(".")) != NULL) {
-		const struct dirent *fname;
-		while ((fname = readdir(dir)) != NULL) {
-			struct dirlink * const dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
-			if (dlink != NULL) {
-				BLI_strncpy(buf + rellen, fname->d_name, sizeof(buf) - rellen);
-				dlink->name = BLI_strdup(buf);
-				BLI_addhead(&dirbase, dlink);
-				newnum++;
+			if (rellen) {
+				buf[rellen] = '/';
+				rellen++;
+			}
+			while ((fname = readdir(dir)) != NULL) {
+				struct dirlink * const dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
+				if (dlink != NULL) {
+					BLI_strncpy(buf + rellen, fname->d_name, sizeof(buf) - rellen);
+					dlink->name = BLI_strdup(buf);
+					BLI_addhead(&dirbase, dlink);
+					newnum++;
+				}
 			}
 		}
-		
+
 		if (newnum) {
 
 			if (dir_ctx->files) {
@@ -282,24 +268,26 @@ static void bli_builddir(const char *dirname, const char *relname,
 				struct dirlink * dlink = (struct dirlink *) dirbase.first;
 				struct direntry *file = &dir_ctx->files[dir_ctx->nrfiles];
 				while (dlink) {
+					char fullname[PATH_MAX];
 					memset(file, 0, sizeof(struct direntry));
 					file->relname = dlink->name;
 					file->path = BLI_strdupcat(dirname, dlink->name);
+					BLI_join_dirfile(fullname, sizeof fullname, dirname, dlink->name);
 // use 64 bit file size, only needed for WIN32 and WIN64. 
 // Excluding other than current MSVC compiler until able to test
 #ifdef WIN32
 					{
-						wchar_t *name_16 = alloc_utf16_from_8(dlink->name, 0);
+						wchar_t *name_16 = alloc_utf16_from_8(fullname, 0);
 #if (defined(WIN32) || defined(WIN64)) && (_MSC_VER >= 1500)
 						_wstat64(name_16, &entry->s);
 #elif defined(__MINGW32__)
-						_stati64(dlink->name, &entry->s);
+						_stati64(fullname, &entry->s);
 #endif
 						free(name_16);
 					}
 
 #else
-					stat(dlink->name, &file->s);
+					stat(fullname, &file->s);
 #endif
 					file->type = file->s.st_mode;
 					file->flags = 0;
