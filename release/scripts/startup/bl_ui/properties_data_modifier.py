@@ -715,7 +715,10 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         col = split.column()
         col.label(text="Deform:")
-        col.prop(md, "factor")
+        if md.deform_method in {'TAPER', 'STRETCH'}:
+            col.prop(md, "factor")
+        else:
+            col.prop(md, "angle")
         col.prop(md, "limits", slider=True)
         if md.deform_method in {'TAPER', 'STRETCH', 'TWIST'}:
             col.prop(md, "lock_x")
