@@ -94,6 +94,14 @@ extern "C" {
 /* defines for using ISO C++ conformant names */
 #define snprintf _snprintf
 
+#ifdef _MSC_VER
+#  define	R_OK	4
+#  define	W_OK	2
+#  define	X_OK	1
+#  define	F_OK	0
+#  define	PATH_MAX 4096
+#endif
+
 #ifndef FREE_WINDOWS
 typedef unsigned int mode_t;
 #endif

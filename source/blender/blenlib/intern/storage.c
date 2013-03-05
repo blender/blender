@@ -265,7 +265,7 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
 					{
 						wchar_t *name_16 = alloc_utf16_from_8(fullname, 0);
 #if defined(_MSC_VER) && (_MSC_VER >= 1500)
-						_wstat64(name_16, &filec->s);
+						_wstat64(name_16, &file->s);
 #elif defined(__MINGW32__)
 						_stati64(fullname, &file->s);
 #endif
