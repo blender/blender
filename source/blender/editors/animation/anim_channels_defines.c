@@ -906,6 +906,10 @@ static short acf_fcurve_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyR
 		RNA_pointer_create(ale->id, &RNA_FCurve, ale->data, ptr);
 		*prop = RNA_struct_find_property(ptr, "data_path");
 	}
+	else {
+		/* for "normal" F-Curves - no editable name, but *prop may not be set properly yet... */
+		*prop = NULL;
+	}
 	
 	return (*prop != NULL);
 }
@@ -3422,10 +3426,13 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 		
 		/* if rename index matches, add widget for this */
 		if (ac->ads->renameIndex == channel_index + 1) {
-			PointerRNA ptr;
-			PropertyRNA *prop;
+			PointerRNA ptr = {{NULL}};
+			PropertyRNA *prop = NULL;
 			
-			/* draw renaming widget if we can get RNA pointer for it */
+			/* draw renaming widget if we can get RNA pointer for it 
+			 * NOTE: property may only be available in some cases, even if we have 
+			 *       a callback available (e.g. broken F-Curve rename)
+			 */
 			if (acf->name_prop(ale, &ptr, &prop)) {
 				uiBut *but;
 				
