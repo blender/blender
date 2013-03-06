@@ -712,7 +712,7 @@ GHOST_TSuccess GHOST_WindowWin32::initMultisample(PIXELFORMATDESCRIPTOR pfd)
 		WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
 		WGL_COLOR_BITS_ARB, pfd.cColorBits,
 		WGL_DEPTH_BITS_ARB, pfd.cDepthBits,
-		WGL_ALPHA_BITS_ART, pfd.cAlphaBits,
+		WGL_ALPHA_BITS_ARB, pfd.cAlphaBits,
 		WGL_STENCIL_BITS_ARB, pfd.cStencilBits,
 		WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
 		WGL_SAMPLE_BUFFERS_ARB, GL_TRUE,
@@ -1322,7 +1322,7 @@ static int WeightPixelFormat(PIXELFORMATDESCRIPTOR& pfd)
 
 	weight += pfd.cColorBits - 8;
 
-	if (pdf.cAlphaBits > 0)
+	if (pfd.cAlphaBits > 0)
 		weight ++;
 
 	/* want swap copy capability -- it matters a lot */
