@@ -286,7 +286,8 @@ PaintStroke *paint_stroke_new(bContext *C,
 
 	stroke->brush = paint_brush(paint_get_active_from_context(C));
 	view3d_set_viewcontext(C, &stroke->vc);
-	view3d_get_transformation(stroke->vc.ar, stroke->vc.rv3d, stroke->vc.obact, &stroke->mats);
+	if(stroke->vc.v3d)
+		view3d_get_transformation(stroke->vc.ar, stroke->vc.rv3d, stroke->vc.obact, &stroke->mats);
 
 	stroke->get_location = get_location;
 	stroke->test_start = test_start;

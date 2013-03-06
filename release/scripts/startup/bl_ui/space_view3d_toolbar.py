@@ -1114,11 +1114,6 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):
         brush = context.tool_settings.image_paint.brush
         return (brush is not None)
 
-    def draw_header(self, context):
-        ipaint = context.tool_settings.image_paint
-
-        self.layout.prop(ipaint, "use_projection", text="")
-
     def draw(self, context):
         layout = self.layout
 
@@ -1127,15 +1122,12 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):
         toolsettings = context.tool_settings
         ipaint = toolsettings.image_paint
         settings = toolsettings.image_paint
-        use_projection = ipaint.use_projection
 
         col = layout.column()
-        col.active = use_projection
         col.prop(ipaint, "use_occlude")
         col.prop(ipaint, "use_backface_culling")
 
         row = layout.row()
-        row.active = (use_projection)
         row.prop(ipaint, "use_normal_falloff")
 
         sub = row.row()
@@ -1144,7 +1136,6 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel, Panel):
 
         split = layout.split()
 
-        split.active = (use_projection)
         split.prop(ipaint, "use_stencil_layer", text="Stencil")
 
         row = split.row()

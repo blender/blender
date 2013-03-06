@@ -43,6 +43,7 @@ set(SRC
 	paint_hide.c
 	paint_image.c
 	paint_image_2d.c
+	paint_image_proj.c
 	paint_mask.c
 	paint_ops.c
 	paint_stroke.c
