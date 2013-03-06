@@ -4936,14 +4936,14 @@ static int image_paint_2d_clone_poll(bContext *C)
 
 /************************ paint operator ************************/
 
-typedef enum PaintMode {
+typedef enum TexPaintMode {
 	PAINT_MODE_2D,
 	PAINT_MODE_3D,
 	PAINT_MODE_3D_PROJECT
-} PaintMode;
+} TexPaintMode;
 
 typedef struct PaintOperation {
-	PaintMode mode;
+	TexPaintMode mode;
 
 	BrushPainter *painter;
 	ImagePaintState s;

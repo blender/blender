@@ -4803,13 +4803,13 @@ static int image_paint_poll(bContext *C)
 
 /************************ paint operator ************************/
 
-typedef enum PaintMode {
+typedef enum TexPaintMode {
 	PAINT_MODE_2D,
 	PAINT_MODE_3D_PROJECT
-} PaintMode;
+} TexPaintMode;
 
 typedef struct PaintOperation {
-	PaintMode mode;
+	TexPaintMode mode;
 
 	BrushPainter *painter;
 	ImagePaintState s;
@@ -5060,10 +5060,10 @@ static void paint_stroke_update_step(bContext *C, struct PaintStroke *stroke, Po
 	mouse[1] = (int)(mousef[1]);
 	pressure = RNA_float_get(itemptr, "pressure");
 
-	if (pop->first)
-		project_paint_begin_clone(&pop->ps, mouse);
-
 	if (pop->mode == PAINT_MODE_3D_PROJECT) {
+		if (pop->first)
+			project_paint_begin_clone(&pop->ps, mouse);
+
 		redraw = project_paint_stroke(&pop->ps, pop->prevmouse, mouse, pressure);
 		pop->prevmouse[0] = mouse[0];
 		pop->prevmouse[1] = mouse[1];

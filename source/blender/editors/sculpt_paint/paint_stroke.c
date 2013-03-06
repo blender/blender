@@ -143,6 +143,7 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 {
 	Scene *scene = CTX_data_scene(C);
 	Paint *paint = paint_get_active_from_context(C);
+	PaintMode mode = paintmode_get_active_from_context(C);
 	Brush *brush = paint_brush(paint);
 	PaintStroke *stroke = op->customdata;
 	float mouse_out[2];
@@ -156,7 +157,7 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 
 	/* TODO: as sculpt and other paint modes are unified, this
 	 * separation will go away */
-	if (stroke->vc.obact->sculpt) {
+	if (ELEM(mode, PAINT_SCULPT, PAINT_TEXTURE_PROJECTIVE)) {
 		float delta[2];
 
 		BKE_brush_jitter_pos(scene, brush, mouse_in, mouse_out);

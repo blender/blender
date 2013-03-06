@@ -137,6 +137,55 @@ Paint *paint_get_active_from_context(const bContext *C)
 	return NULL;
 }
 
+PaintMode paintmode_get_active_from_context(const bContext *C)
+{
+	Scene *sce = CTX_data_scene(C);
+	SpaceImage *sima;
+
+	if (sce) {
+		ToolSettings *ts = sce->toolsettings;
+		Object *obact = NULL;
+
+		if (sce->basact && sce->basact->object)
+			obact = sce->basact->object;
+
+		if ((sima = CTX_wm_space_image(C)) != NULL) {
+			if (obact && obact->mode == OB_MODE_EDIT) {
+				if (sima->mode == SI_MODE_PAINT)
+					return PAINT_TEXTURE_2D;
+				else if (ts->use_uv_sculpt)
+					return PAINT_SCULPT_UV;
+			}
+			else {
+				return PAINT_TEXTURE_2D;
+			}
+		}
+		else if (obact) {
+			switch (obact->mode) {
+				case OB_MODE_SCULPT:
+					return PAINT_SCULPT;
+				case OB_MODE_VERTEX_PAINT:
+					return PAINT_VERTEX;
+				case OB_MODE_WEIGHT_PAINT:
+					return PAINT_WEIGHT;
+				case OB_MODE_TEXTURE_PAINT:
+					return PAINT_TEXTURE_PROJECTIVE;
+				case OB_MODE_EDIT:
+					if (ts->use_uv_sculpt)
+						return PAINT_SCULPT_UV;
+					else
+						return PAINT_TEXTURE_2D;
+			}
+		}
+		else {
+			/* default to image paint */
+			return PAINT_TEXTURE_2D;
+		}
+	}
+
+	return PAINT_INVALID;
+}
+
 Brush *paint_brush(Paint *p)
 {
 	return p ? p->brush : NULL;
