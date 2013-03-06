@@ -1189,6 +1189,7 @@ MovieTrackingObject *BKE_tracking_object_add(MovieTracking *tracking, const char
 	object->keyframe2 = 30;
 
 	BKE_tracking_object_unique_name(tracking, object);
+	BKE_tracking_dopesheet_tag_update(tracking);
 
 	return object;
 }
@@ -1223,6 +1224,9 @@ int BKE_tracking_object_delete(MovieTracking *tracking, MovieTrackingObject *obj
 		tracking->objectnr = index - 1;
 	else
 		tracking->objectnr = 0;
+
+	BKE_tracking_dopesheet_tag_update(tracking);
+
 	return TRUE;
 }
 
