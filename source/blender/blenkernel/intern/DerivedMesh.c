@@ -1026,8 +1026,8 @@ enum {
 };
 
 typedef struct DMWeightColorInfo {
-        ColorBand *coba;
-        unsigned char *zero_color;
+	const ColorBand *coba;
+	const char *alert_color;
 } DMWeightColorInfo;
 
 
@@ -1054,17 +1054,18 @@ static void weightpaint_color(unsigned char r_col[4], DMWeightColorInfo *dm_wcin
 static void calc_weightpaint_vert_color(
         unsigned char r_col[4],
         MDeformVert *dv, 
-		DMWeightColorInfo *dm_wcinfo,
+        DMWeightColorInfo *dm_wcinfo,
         const int defbase_tot, const int defbase_act,
         const char *defbase_sel, const int defbase_sel_tot,
         const int draw_flag)
 {
 	float input = 0.0f;
 	
-	bool make_black = false;
+	bool show_alert_color = false;
 
 	if ((defbase_sel_tot > 1) && (draw_flag & CALC_WP_MULTIPAINT)) {
-		int was_a_nonzero = FALSE;
+		/* Multi-Paint feature */
+		bool was_a_nonzero = false;
 		unsigned int i;
 
 		MDeformWeight *dw = dv->dw;
@@ -1075,15 +1076,15 @@ static void calc_weightpaint_vert_color(
 				if (defbase_sel[dw->def_nr]) {
 					if (dw->weight) {
 						input += dw->weight;
-						was_a_nonzero = TRUE;
+						was_a_nonzero = true;
 					}
 				}
 			}
 		}
 
 		/* make it black if the selected groups have no weight on a vertex */
-		if (was_a_nonzero == FALSE) {
-			make_black = true;
+		if (was_a_nonzero == false) {
+			show_alert_color = true;
 		}
 		else if ((draw_flag & CALC_WP_AUTO_NORMALIZE) == FALSE) {
 			input /= defbase_sel_tot; /* get the average */
@@ -1095,33 +1096,32 @@ static void calc_weightpaint_vert_color(
 
 		if (draw_flag & CALC_WP_GROUP_USER_ACTIVE) {
 			if (input == 0.0f) {
-				make_black = true;
+				show_alert_color = true;
 			}
 		}
 		else if (draw_flag & CALC_WP_GROUP_USER_ALL) {
 			if (input == 0.0f) {
-				make_black = defvert_is_weight_zero(dv, defbase_tot);
+				show_alert_color = defvert_is_weight_zero(dv, defbase_tot);
 			}
 		}
 	}
 
-	if (make_black) {
-		r_col[3] = dm_wcinfo->zero_color[3];
-		r_col[2] = dm_wcinfo->zero_color[2];
-		r_col[1] = dm_wcinfo->zero_color[1];
-		r_col[0] = dm_wcinfo->zero_color[0];
-	}
-	else {
+	if (show_alert_color == false) {
 		CLAMP(input, 0.0f, 1.0f);
 		weightpaint_color(r_col, dm_wcinfo, input);
+	}
+	else {
+		copy_v3_v3_char((char *)r_col, dm_wcinfo->alert_color);
+		r_col[3] = 255;
 	}
 }
 
 static DMWeightColorInfo dm_wcinfo;
-void vDM_ColorBand_store(ColorBand *coba, char zero_color[4])
+
+void vDM_ColorBand_store(const ColorBand *coba, const char alert_color[4])
 {
-	dm_wcinfo.coba       = coba;
-	dm_wcinfo.zero_color = zero_color;
+	dm_wcinfo.coba        = coba;
+	dm_wcinfo.alert_color = alert_color;
 }
 
 /* return an array of vertex weight colors, caller must free.
@@ -1133,7 +1133,7 @@ static unsigned char *calc_weightpaint_vert_array(Object *ob, DerivedMesh *dm, i
 {
 	MDeformVert *dv = DM_get_vert_data_layer(dm, CD_MDEFORMVERT);
 	int numVerts = dm->getNumVerts(dm);
-	unsigned char *wtcol_v       = MEM_mallocN(sizeof(unsigned char) * numVerts * 4, "weightmap_v");
+	unsigned char *wtcol_v = MEM_mallocN(sizeof(unsigned char) * numVerts * 4, "weightmap_v");
 
 	if (dv) {
 		unsigned char *wc = wtcol_v;
