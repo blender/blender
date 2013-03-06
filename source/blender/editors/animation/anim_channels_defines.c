@@ -893,6 +893,23 @@ static void acf_fcurve_name(bAnimListElem *ale, char *name)
 	getname_anim_fcurve(name, ale->id, ale->data);
 }
 
+/* "name" property for fcurve entries */
+static short acf_fcurve_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+{
+	FCurve *fcu = (FCurve *)ale->data;
+	
+	/* Ctrl-Click Usability Convenience Hack: 
+	 * For disabled F-Curves, allow access to the RNA Path 
+	 * as our "name" so that user can perform quick fixes
+	 */
+	if (fcu->flag & FCURVE_DISABLED) {
+		RNA_pointer_create(ale->id, &RNA_FCurve, ale->data, ptr);
+		*prop = RNA_struct_find_property(ptr, "data_path");
+	}
+	
+	return (*prop != NULL);
+}
+
 /* check if some setting exists for this channel */
 static short acf_fcurve_setting_valid(bAnimContext *ac, bAnimListElem *ale, int setting)
 {
@@ -964,7 +981,7 @@ static bAnimChannelType ACF_FCURVE =
 	acf_generic_group_offset,       /* offset */
 
 	acf_fcurve_name,                /* name */
-	NULL,                           /* name prop */
+	acf_fcurve_name_prop,           /* name prop */
 	NULL,                           /* icon */
 
 	acf_fcurve_setting_valid,       /* has setting */
