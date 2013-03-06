@@ -403,8 +403,6 @@ extern int ui_set_but_string_eval_num(struct bContext *C, uiBut *but, const char
 
 extern void ui_set_but_default(struct bContext *C, short all);
 
-extern void ui_set_but_soft_range(uiBut *but, double value);
-
 extern void ui_check_but(uiBut *but);
 extern int  ui_is_but_float(uiBut *but);
 extern int  ui_is_but_bool(uiBut *but);

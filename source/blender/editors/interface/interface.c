@@ -1461,6 +1461,8 @@ double ui_get_but_val(uiBut *but)
 	if (but->rnaprop) {
 		prop = but->rnaprop;
 
+		BLI_assert(but->rnaindex != -1);
+
 		switch (RNA_property_type(prop)) {
 			case PROP_BOOLEAN:
 				if (RNA_property_array_check(prop))
@@ -2000,7 +2002,8 @@ static double soft_range_round_down(double value, double max)
 		return newmax;
 }
 
-void ui_set_but_soft_range(uiBut *but, double value)
+/* note: this could be split up into functions which handle arrays and not */
+static void ui_set_but_soft_range(uiBut *but)
 {
 	/* ideally we would not limit this but practically, its more then
 	 * enough worst case is very long vectors wont use a smart soft-range
@@ -2009,14 +2012,14 @@ void ui_set_but_soft_range(uiBut *but, double value)
 	if (but->rnaprop) {
 		const PropertyType type = RNA_property_type(but->rnaprop);
 		double softmin, softmax /*, step, precision*/;
-		double value_min = value;
-		double value_max = value;
+		double value_min;
+		double value_max;
 
 		/* clamp button range to something reasonable in case
 		 * we get -inf/inf from RNA properties */
 		if (type == PROP_INT) {
+			const bool is_array = RNA_property_array_check(but->rnaprop);
 			int imin, imax, istep;
-			const int array_len = RNA_property_array_length(&but->rnapoin, but->rnaprop);
 
 			RNA_property_int_ui_range(&but->rnapoin, but->rnaprop, &imin, &imax, &istep);
 			softmin = (imin == INT_MIN) ? -1e4 : imin;
@@ -2024,16 +2027,19 @@ void ui_set_but_soft_range(uiBut *but, double value)
 			/*step = istep;*/ /*UNUSED*/
 			/*precision = 1;*/ /*UNUSED*/
 
-			if (array_len >= 2) {
+			if (is_array) {
 				int value_range[2];
 				RNA_property_int_get_array_range(&but->rnapoin, but->rnaprop, value_range);
 				value_min = (double)value_range[0];
 				value_max = (double)value_range[1];
 			}
+			else {
+				value_min = value_max = (double)RNA_property_int_get(&but->rnapoin, but->rnaprop);
+			}
 		}
 		else if (type == PROP_FLOAT) {
+			const bool is_array = RNA_property_array_check(but->rnaprop);
 			float fmin, fmax, fstep, fprecision;
-			const int array_len = RNA_property_array_length(&but->rnapoin, but->rnaprop);
 
 			RNA_property_float_ui_range(&but->rnapoin, but->rnaprop, &fmin, &fmax, &fstep, &fprecision);
 			softmin = (fmin == -FLT_MAX) ? (float)-1e4 : fmin;
@@ -2041,15 +2047,19 @@ void ui_set_but_soft_range(uiBut *but, double value)
 			/*step = fstep;*/ /*UNUSED*/
 			/*precision = fprecision;*/ /*UNUSED*/
 
-			if (array_len >= 2) {
+			if (is_array) {
 				float value_range[2];
 				RNA_property_float_get_array_range(&but->rnapoin, but->rnaprop, value_range);
 				value_min = (double)value_range[0];
 				value_max = (double)value_range[1];
 			}
+			else {
+				value_min = value_max = (double)RNA_property_float_get(&but->rnapoin, but->rnaprop);
+			}
 		}
-		else
+		else {
 			return;
+		}
 
 		/* if the value goes out of the soft/max range, adapt the range */
 		if (value_min + 1e-10 < softmin) {
@@ -2276,8 +2286,7 @@ void ui_check_but(uiBut *but)
 	
 	/* only update soft range while not editing */
 	if (but->rnaprop && !(but->editval || but->editstr || but->editvec)) {
-		UI_GET_BUT_VALUE_INIT(but, value);
-		ui_set_but_soft_range(but, value);
+		ui_set_but_soft_range(but);
 	}
 
 	/* test for min and max, icon sliders, etc */
