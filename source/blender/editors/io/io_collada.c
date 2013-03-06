@@ -95,6 +95,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	int triangulate;
 	int use_object_instantiation;
 	int sort_by_name;
+	int export_transformation_type;
 	int second_life; 
 
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
@@ -119,10 +120,11 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	use_texture_copies       = RNA_boolean_get(op->ptr, "use_texture_copies");
 	active_uv_only           = RNA_boolean_get(op->ptr, "active_uv_only");
 
-	triangulate              = RNA_boolean_get(op->ptr, "triangulate");
-	use_object_instantiation = RNA_boolean_get(op->ptr, "use_object_instantiation");
-	sort_by_name             = RNA_boolean_get(op->ptr, "sort_by_name");
-	second_life              = RNA_boolean_get(op->ptr, "second_life");
+	triangulate                = RNA_boolean_get(op->ptr, "triangulate");
+	use_object_instantiation   = RNA_boolean_get(op->ptr, "use_object_instantiation");
+	sort_by_name               = RNA_boolean_get(op->ptr, "sort_by_name");
+	export_transformation_type = RNA_enum_get(op->ptr,    "export_transformation_type_selection");
+	second_life                = RNA_boolean_get(op->ptr, "second_life");
 
 	/* get editmode results */
 	ED_object_exit_editmode(C, 0);  /* 0 = does not exit editmode */
@@ -145,6 +147,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	                   triangulate,
 	                   use_object_instantiation,
 	                   sort_by_name,
+					   export_transformation_type,
 	                   second_life))
 	{
 		return OPERATOR_FINISHED;
@@ -224,6 +227,12 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 	uiItemR(row, imfptr, "triangulate", 0, NULL, ICON_NONE);
 	row = uiLayoutRow(box, FALSE);
 	uiItemR(row, imfptr, "use_object_instantiation", 0, NULL, ICON_NONE);
+
+	row = uiLayoutRow(box, FALSE);
+	split = uiLayoutSplit(row, 0.6f, UI_LAYOUT_ALIGN_RIGHT);
+    uiItemL(split, IFACE_("Transformation Type"), ICON_NONE);
+	uiItemR(split, imfptr, "export_transformation_type_selection", 0, "", ICON_NONE);
+
 	row = uiLayoutRow(box, FALSE);
 	uiItemR(row, imfptr, "sort_by_name", 0, NULL, ICON_NONE);
 
@@ -242,6 +251,13 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	static EnumPropertyItem prop_bc_export_mesh_type[] = {
 		{BC_MESH_TYPE_VIEW, "view", 0, "View", "Apply modifier's view settings"},
 		{BC_MESH_TYPE_RENDER, "render", 0, "Render", "Apply modifier's render settings"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem prop_bc_export_transformation_type[] = {
+		{BC_TRANSFORMATION_TYPE_MATRIX, "matrix", 0, "Matrix", "Use <matrix> to specify transformations"},
+		{BC_TRANSFORMATION_TYPE_TRANSROTLOC, "transrotloc", 0, "TransRotLoc", "Use <translate>, <rotate>, <scale> to specify transformations"},
+		{BC_TRANSFORMATION_TYPE_BOTH, "both", 0, "Both", "Use <matrix> AND <translate>, <rotate>, <scale> to specify transformations"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -307,6 +323,12 @@ void WM_OT_collada_export(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "sort_by_name", 0, "Sort by Object name",
 	                "Sort exported data by Object name");
+
+	RNA_def_int(ot->srna, "export_transformation_type", 0, INT_MIN, INT_MAX,
+	            "Transform", "Transformation type for translation, scale and rotation", INT_MIN, INT_MAX);
+
+	RNA_def_enum(ot->srna, "export_transformation_type_selection", prop_bc_export_transformation_type, 0,
+	             "Transform", "Transformation type for translation, scale and rotation");
 
 	RNA_def_boolean(ot->srna, "second_life", 0, "Export for Second Life",
 	                "Compatibility mode for Second Life");

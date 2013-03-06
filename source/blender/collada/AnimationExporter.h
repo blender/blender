@@ -98,7 +98,7 @@ public:
 			{ this->sw = sw; }
 	
 
-	void exportAnimations(Scene *sce);
+	bool exportAnimations(Scene *sce);
 
 	// called for each exported object
 	void operator() (Object *ob); 

@@ -78,6 +78,7 @@ int collada_export(Scene *sce,
                    int triangulate,
                    int use_object_instantiation,
                    int sort_by_name,
+				   BC_export_transformation_type export_transformation_type,
                    int second_life)
 {
 	ExportSettings export_settings;
@@ -107,10 +108,11 @@ int collada_export(Scene *sce,
 	export_settings.include_material_textures= include_material_textures != 0;
 	export_settings.use_texture_copies       = use_texture_copies != 0;
 
-	export_settings.triangulate              = triangulate != 0;
-	export_settings.use_object_instantiation = use_object_instantiation != 0;
-	export_settings.sort_by_name             = sort_by_name != 0;
-	export_settings.second_life              = second_life != 0;
+	export_settings.triangulate                = triangulate != 0;
+	export_settings.use_object_instantiation   = use_object_instantiation != 0;
+	export_settings.sort_by_name               = sort_by_name != 0;
+	export_settings.export_transformation_type = export_transformation_type;
+	export_settings.second_life                = second_life != 0;
 
 
 	int includeFilter = OB_REL_NONE;

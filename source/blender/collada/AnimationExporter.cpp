@@ -36,9 +36,10 @@ void forEachObjectInExportSet(Scene *sce, Functor &f, LinkNode *export_set)
 	}
 }
 
-void AnimationExporter::exportAnimations(Scene *sce)
+bool AnimationExporter::exportAnimations(Scene *sce)
 {
-	if (hasAnimations(sce)) {
+	bool has_animations = hasAnimations(sce);
+	if (has_animations) {
 		this->scene = sce;
 
 		openLibrary();
@@ -47,6 +48,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 
 		closeLibrary();
 	}
+	return has_animations;
 }
 
 // called for each exported object

@@ -41,6 +41,12 @@ typedef enum BC_export_mesh_type {
 	BC_MESH_TYPE_RENDER
 } BC_export_mesh_type;
 
+typedef enum BC_export_transformation_type {
+	BC_TRANSFORMATION_TYPE_MATRIX,
+	BC_TRANSFORMATION_TYPE_TRANSROTLOC,
+	BC_TRANSFORMATION_TYPE_BOTH
+} BC_export_transformation_type;
+
 struct bContext;
 struct Scene;
 
@@ -70,6 +76,7 @@ int collada_export(Scene *sce,
                    int triangulate,
                    int use_object_instantiation,
                    int sort_by_name,
+                   BC_export_transformation_type export_transformation_type,
                    int second_life);
 
 

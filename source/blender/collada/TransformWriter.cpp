@@ -51,13 +51,16 @@ void TransformWriter::add_node_transform(COLLADASW::Node& node, float mat[4][4],
 	converter->mat4_to_dae_double(dmat, local);
 
 	TransformBase::decompose(local, loc, rot, NULL, scale);
-	//if (node.getType() == COLLADASW::Node::JOINT)
-	node.addMatrix("transform", dmat);
-	//else
-	//add_transform(node, loc, rot, scale);
+
+	if (node.getType() == COLLADASW::Node::JOINT) {
+		// XXX Why are joints handled differently ?
+		node.addMatrix("transform", dmat);
+	}
+	else
+	  add_transform(node, loc, rot, scale);
 }
 
-void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob)
+void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob, BC_export_transformation_type transformation_type)
 {
 #if 0
 	float rot[3], loc[3], scale[3];
@@ -114,8 +117,23 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob)
 
 	double d_obmat[4][4];	
 	converter.mat4_to_dae_double(d_obmat, ob->obmat);
-	node.addMatrix("transform",d_obmat);
-	//add_transform(node, ob->loc, ob->rot, ob->size);
+
+	switch (transformation_type) {
+		case BC_TRANSFORMATION_TYPE_MATRIX     : {
+			node.addMatrix("transform",d_obmat);
+			break;
+		}
+		case BC_TRANSFORMATION_TYPE_TRANSROTLOC: {
+			add_transform(node, ob->loc, ob->rot, ob->size); 
+			break;
+		}
+		case BC_TRANSFORMATION_TYPE_BOTH       : {
+			node.addMatrix("transform",d_obmat);
+			add_transform(node, ob->loc, ob->rot, ob->size);
+			break;
+		}
+	}
+
 }
 
 void TransformWriter::add_node_transform_identity(COLLADASW::Node& node)
