@@ -1446,7 +1446,7 @@ static void cameraIntrinscisOptionsFromTracking(libmv_cameraIntrinsicsOptions *c
 	camera_intrinsics_options->k3 = camera->k3;
 
 	camera_intrinsics_options->image_width = calibration_width;
-	camera_intrinsics_options->image_height = (double) calibration_height * aspy;
+	camera_intrinsics_options->image_height = (double) (calibration_height * aspy);
 }
 #endif
 
@@ -1594,8 +1594,8 @@ void BKE_tracking_undistort_v2(MovieTracking *tracking, const float co[2], float
 
 	libmv_InvertIntrinsics(&camera_intrinsics_options, x, y, &x, &y);
 
-	r_co[0] = x * camera->focal + camera->principal[0];
-	r_co[1] = y * camera->focal + camera->principal[1] * aspy;
+	r_co[0] = (float)x * camera->focal + camera->principal[0];
+	r_co[1] = (float)y * camera->focal + camera->principal[1] * aspy;
 #else
 	(void) camera;
 	(void) co;
@@ -1730,14 +1730,14 @@ ImBuf *BKE_tracking_sample_pattern(int frame_width, int frame_height, ImBuf *sea
 		int a;
 
 		for (a = 0; a < 5; a++) {
-			src_pixel_x[a] += ((track->offset[0] * frame_width) - ((int) (track->offset[0] * frame_width)));
-			src_pixel_y[a] += ((track->offset[1] * frame_height) - ((int) (track->offset[1] * frame_height)));
+			src_pixel_x[a] += (double) ((track->offset[0] * frame_width) - ((int) (track->offset[0] * frame_width)));
+			src_pixel_y[a] += (double) ((track->offset[1] * frame_height) - ((int) (track->offset[1] * frame_height)));
 
 			/* when offset is negative, rounding happens in opposite direction */
 			if (track->offset[0] < 0.0f)
-				src_pixel_x[a] += 1.0f;
+				src_pixel_x[a] += 1.0;
 			if (track->offset[1] < 0.0f)
-				src_pixel_y[a] += 1.0f;
+				src_pixel_y[a] += 1.0;
 		}
 	}
 
@@ -2749,7 +2749,7 @@ static void reconstruct_retrieve_libmv_intrinscis(MovieReconstructContext *conte
 	tracking->camera.focal = focal_length;
 
 	tracking->camera.principal[0] = principal_x;
-	tracking->camera.principal[1] = principal_y / aspy;
+	tracking->camera.principal[1] = principal_y / (double)aspy;
 
 	tracking->camera.k1 = k1;
 	tracking->camera.k2 = k2;
