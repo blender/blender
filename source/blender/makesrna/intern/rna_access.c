@@ -845,6 +845,8 @@ char RNA_property_array_item_char(PropertyRNA *prop, int index)
 	const char *coloritem = "RGBA";
 	PropertySubType subtype = rna_ensure_property(prop)->subtype;
 
+	BLI_assert(index >= 0);
+
 	/* get string to use for array index */
 	if ((index < 4) && ELEM(subtype, PROP_QUATERNION, PROP_AXISANGLE)) {
 		return quatitem[index];
@@ -1440,6 +1442,8 @@ int RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 	ID *id;
 	int flag;
 
+	BLI_assert(index >= 0);
+
 	prop = rna_ensure_property(prop);
 
 	flag = prop->flag;
@@ -1748,6 +1752,7 @@ int RNA_property_boolean_get_index(PointerRNA *ptr, PropertyRNA *prop, int index
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
 	BLI_assert(RNA_property_array_check(prop) != 0);
+	BLI_assert(index >= 0);
 
 	if (len <= RNA_MAX_ARRAY_LENGTH) {
 		RNA_property_boolean_get_array(ptr, prop, tmp);
@@ -1810,6 +1815,7 @@ void RNA_property_boolean_set_index(PointerRNA *ptr, PropertyRNA *prop, int inde
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
 	BLI_assert(RNA_property_array_check(prop) != 0);
+	BLI_assert(index >= 0);
 
 	if (len <= RNA_MAX_ARRAY_LENGTH) {
 		RNA_property_boolean_get_array(ptr, prop, tmp);
@@ -1859,6 +1865,7 @@ int RNA_property_boolean_get_default_index(PointerRNA *ptr, PropertyRNA *prop, i
 
 	BLI_assert(RNA_property_type(prop) == PROP_BOOLEAN);
 	BLI_assert(RNA_property_array_check(prop) != 0);
+	BLI_assert(index >= 0);
 
 	if (len <= RNA_MAX_ARRAY_LENGTH) {
 		RNA_property_boolean_get_default_array(ptr, prop, tmp);
@@ -1996,6 +2003,7 @@ int RNA_property_int_get_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 
 	BLI_assert(RNA_property_type(prop) == PROP_INT);
 	BLI_assert(RNA_property_array_check(prop) != 0);
+	BLI_assert(index >= 0);
 
 	if (len <= RNA_MAX_ARRAY_LENGTH) {
 		RNA_property_int_get_array(ptr, prop, tmp);
@@ -2060,6 +2068,7 @@ void RNA_property_int_set_index(PointerRNA *ptr, PropertyRNA *prop, int index, i
 
 	BLI_assert(RNA_property_type(prop) == PROP_INT);
 	BLI_assert(RNA_property_array_check(prop) != 0);
+	BLI_assert(index >= 0);
 
 	if (len <= RNA_MAX_ARRAY_LENGTH) {
 		RNA_property_int_get_array(ptr, prop, tmp);
@@ -2102,6 +2111,10 @@ int RNA_property_int_get_default_index(PointerRNA *ptr, PropertyRNA *prop, int i
 {
 	int tmp[RNA_MAX_ARRAY_LENGTH];
 	int len = rna_ensure_property_array_length(ptr, prop);
+
+	BLI_assert(RNA_property_type(prop) == PROP_INT);
+	BLI_assert(RNA_property_array_check(prop) != 0);
+	BLI_assert(index >= 0);
 
 	if (len <= RNA_MAX_ARRAY_LENGTH) {
 		RNA_property_int_get_default_array(ptr, prop, tmp);
@@ -2255,6 +2268,7 @@ float RNA_property_float_get_index(PointerRNA *ptr, PropertyRNA *prop, int index
 
 	BLI_assert(RNA_property_type(prop) == PROP_FLOAT);
 	BLI_assert(RNA_property_array_check(prop) != 0);
+	BLI_assert(index >= 0);
 
 	if (len <= RNA_MAX_ARRAY_LENGTH) {
 		RNA_property_float_get_array(ptr, prop, tmp);
@@ -2270,7 +2284,6 @@ float RNA_property_float_get_index(PointerRNA *ptr, PropertyRNA *prop, int index
 
 		return value;
 	}
-
 }
 
 void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const float *values)
@@ -2332,6 +2345,7 @@ void RNA_property_float_set_index(PointerRNA *ptr, PropertyRNA *prop, int index,
 
 	BLI_assert(RNA_property_type(prop) == PROP_FLOAT);
 	BLI_assert(RNA_property_array_check(prop) != 0);
+	BLI_assert(index >= 0);
 
 	if (len <= RNA_MAX_ARRAY_LENGTH) {
 		RNA_property_float_get_array(ptr, prop, tmp);
@@ -2381,6 +2395,7 @@ float RNA_property_float_get_default_index(PointerRNA *ptr, PropertyRNA *prop, i
 
 	BLI_assert(RNA_property_type(prop) == PROP_FLOAT);
 	BLI_assert(RNA_property_array_check(prop) != 0);
+	BLI_assert(index >= 0);
 
 	if (len <= RNA_MAX_ARRAY_LENGTH) {
 		RNA_property_float_get_default_array(ptr, prop, tmp);
