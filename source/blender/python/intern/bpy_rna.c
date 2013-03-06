@@ -250,7 +250,7 @@ static void id_release_weakref_list(struct ID *id, GHash *weakinfo_hash)
 	fprintf(stdout, "id_release_weakref: '%s', %d items\n", id->name, BLI_ghash_size(weakinfo_hash));
 #endif
 
-	while (!BLI_ghashIterator_isDone(&weakinfo_hash_iter)) {
+	while (BLI_ghashIterator_notDone(&weakinfo_hash_iter)) {
 		PyObject *weakref = (PyObject *)BLI_ghashIterator_getKey(&weakinfo_hash_iter);
 		PyObject *item = PyWeakref_GET_OBJECT(weakref);
 		if (item != Py_None) {

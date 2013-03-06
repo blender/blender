@@ -369,7 +369,7 @@ static PyObject *pyop_dir(PyObject *UNUSED(self))
 	GHashIterator *iter = WM_operatortype_iter();
 	PyObject *list = PyList_New(0), *name;
 
-	for ( ; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
+	for ( ; BLI_ghashIterator_notDone(iter); BLI_ghashIterator_step(iter)) {
 		wmOperatorType *ot = BLI_ghashIterator_getValue(iter);
 
 		name = PyUnicode_FromString(ot->idname);

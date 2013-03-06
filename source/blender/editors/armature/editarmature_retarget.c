@@ -896,7 +896,7 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 			/* look on deform bones first */
 			BLI_ghashIterator_init(&ghi, rg->bones_map);
 			
-			for (; !BLI_ghashIterator_isDone(&ghi); BLI_ghashIterator_step(&ghi)) {
+			for (; BLI_ghashIterator_notDone(&ghi); BLI_ghashIterator_step(&ghi)) {
 				EditBone *bone = (EditBone *)BLI_ghashIterator_getValue(&ghi);
 				
 				/* don't link with parent */

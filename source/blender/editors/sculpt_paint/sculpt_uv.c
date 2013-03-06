@@ -712,7 +712,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, wmEvent 
 			return NULL;
 		}
 		/* fill the edges with data */
-		for (i = 0; !BLI_ghashIterator_isDone(ghi); BLI_ghashIterator_step(ghi)) {
+		for (i = 0; BLI_ghashIterator_notDone(ghi); BLI_ghashIterator_step(ghi)) {
 			data->uvedges[i++] = *((UvEdge *)BLI_ghashIterator_getKey(ghi));
 		}
 		data->totalUvEdges = BLI_ghash_size(edgeHash);

@@ -316,7 +316,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	/* using ghash-iterators, map data into new mesh */
 	/* vertices */
 	for (hashIter = BLI_ghashIterator_new(vertHash);
-	     !BLI_ghashIterator_isDone(hashIter);
+	     BLI_ghashIterator_notDone(hashIter);
 	     BLI_ghashIterator_step(hashIter) )
 	{
 		MVert source;
@@ -334,7 +334,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		
 	/* edges */
 	for (hashIter = BLI_ghashIterator_new(edgeHash);
-	     !BLI_ghashIterator_isDone(hashIter);
+	     BLI_ghashIterator_notDone(hashIter);
 	     BLI_ghashIterator_step(hashIter))
 	{
 		MEdge source;
@@ -355,7 +355,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	
 	/* faces */
 	for (hashIter = BLI_ghashIterator_new(polyHash);
-	     !BLI_ghashIterator_isDone(hashIter);
+	     BLI_ghashIterator_notDone(hashIter);
 	     BLI_ghashIterator_step(hashIter) )
 	{
 		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(hashIter));

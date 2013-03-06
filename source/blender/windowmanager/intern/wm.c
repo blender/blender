@@ -218,7 +218,7 @@ void WM_uilisttype_free(void)
 {
 	GHashIterator *iter = BLI_ghashIterator_new(uilisttypes_hash);
 
-	for (; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
+	for (; BLI_ghashIterator_notDone(iter); BLI_ghashIterator_step(iter)) {
 		uiListType *ult = BLI_ghashIterator_getValue(iter);
 		if (ult->ext.free) {
 			ult->ext.free(ult->ext.data);
@@ -271,7 +271,7 @@ void WM_menutype_free(void)
 {
 	GHashIterator *iter = BLI_ghashIterator_new(menutypes_hash);
 
-	for (; !BLI_ghashIterator_isDone(iter); BLI_ghashIterator_step(iter)) {
+	for (; BLI_ghashIterator_notDone(iter); BLI_ghashIterator_step(iter)) {
 		MenuType *mt = BLI_ghashIterator_getValue(iter);
 		if (mt->ext.free) {
 			mt->ext.free(mt->ext.data);

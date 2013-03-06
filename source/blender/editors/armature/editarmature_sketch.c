@@ -183,7 +183,7 @@ const char *BIF_listTemplates(const bContext *UNUSED(C))
 
 	BLI_ghashIterator_init(&ghi, TEMPLATES_HASH);
 
-	while (!BLI_ghashIterator_isDone(&ghi)) {
+	while (BLI_ghashIterator_notDone(&ghi)) {
 		Object *ob = BLI_ghashIterator_getValue(&ghi);
 		int key = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&ghi));
 
@@ -203,7 +203,7 @@ int   BIF_currentTemplate(const bContext *C)
 		GHashIterator ghi;
 		BLI_ghashIterator_init(&ghi, TEMPLATES_HASH);
 
-		while (!BLI_ghashIterator_isDone(&ghi)) {
+		while (BLI_ghashIterator_notDone(&ghi)) {
 			Object *ob = BLI_ghashIterator_getValue(&ghi);
 			int key = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&ghi));
 

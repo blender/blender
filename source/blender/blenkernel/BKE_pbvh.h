@@ -295,7 +295,7 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 						vi.mask = &vi.vmask[vi.vert_indices[vi.gx]]; \
 				} \
 				else { \
-					if (!BLI_ghashIterator_isDone(&vi.bm_unique_verts)) {\
+					if (BLI_ghashIterator_notDone(&vi.bm_unique_verts)) {\
 						vi.bm_vert = BLI_ghashIterator_getKey(&vi.bm_unique_verts); \
 						BLI_ghashIterator_step(&vi.bm_unique_verts); \
 					} \

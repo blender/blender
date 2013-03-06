@@ -294,7 +294,7 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 
 	/* Build the vertex list, unique verts first */
 	for (iter = BLI_ghashIterator_new(map), i = 0;
-	     BLI_ghashIterator_isDone(iter) == FALSE;
+	     BLI_ghashIterator_notDone(iter);
 	     BLI_ghashIterator_step(iter), ++i)
 	{
 		void *value = BLI_ghashIterator_getValue(iter);
@@ -1217,7 +1217,7 @@ void BKE_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *tot
 	faces = MEM_callocN(sizeof(void *) * tot, "PBVH Grid Faces");
 
 	for (hiter = BLI_ghashIterator_new(map), i = 0;
-	     !BLI_ghashIterator_isDone(hiter);
+	     BLI_ghashIterator_notDone(hiter);
 	     BLI_ghashIterator_step(hiter), ++i)
 	{
 		faces[i] = BLI_ghashIterator_getKey(hiter);

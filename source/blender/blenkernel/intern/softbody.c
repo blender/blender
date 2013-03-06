@@ -1034,7 +1034,7 @@ static int sb_detect_aabb_collisionCached(float UNUSED(force[3]), unsigned int U
 
 	hash  = vertexowner->soft->scratch->colliderhash;
 	ihash =	BLI_ghashIterator_new(hash);
-	while (!BLI_ghashIterator_isDone(ihash) ) {
+	while (BLI_ghashIterator_notDone(ihash) ) {
 
 		ccd_Mesh *ccdm = BLI_ghashIterator_getValue	(ihash);
 		ob             = BLI_ghashIterator_getKey	(ihash);
@@ -1113,7 +1113,7 @@ static int sb_detect_face_pointCached(float face_v1[3], float face_v2[3], float 
 
 	hash  = vertexowner->soft->scratch->colliderhash;
 	ihash =	BLI_ghashIterator_new(hash);
-	while (!BLI_ghashIterator_isDone(ihash) ) {
+	while (BLI_ghashIterator_notDone(ihash) ) {
 
 		ccd_Mesh *ccdm = BLI_ghashIterator_getValue	(ihash);
 		ob             = BLI_ghashIterator_getKey	(ihash);
@@ -1205,7 +1205,7 @@ static int sb_detect_face_collisionCached(float face_v1[3], float face_v2[3], fl
 
 	hash  = vertexowner->soft->scratch->colliderhash;
 	ihash =	BLI_ghashIterator_new(hash);
-	while (!BLI_ghashIterator_isDone(ihash) ) {
+	while (BLI_ghashIterator_notDone(ihash) ) {
 
 		ccd_Mesh *ccdm = BLI_ghashIterator_getValue	(ihash);
 		ob             = BLI_ghashIterator_getKey	(ihash);
@@ -1433,7 +1433,7 @@ static int sb_detect_edge_collisionCached(float edge_v1[3], float edge_v2[3], fl
 
 	hash  = vertexowner->soft->scratch->colliderhash;
 	ihash =	BLI_ghashIterator_new(hash);
-	while (!BLI_ghashIterator_isDone(ihash) ) {
+	while (BLI_ghashIterator_notDone(ihash) ) {
 
 		ccd_Mesh *ccdm = BLI_ghashIterator_getValue	(ihash);
 		ob             = BLI_ghashIterator_getKey	(ihash);
@@ -1763,7 +1763,7 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 	outerforceaccu[0]=outerforceaccu[1]=outerforceaccu[2]=0.0f;
 	innerforceaccu[0]=innerforceaccu[1]=innerforceaccu[2]=0.0f;
 /* go */
-	while (!BLI_ghashIterator_isDone(ihash) ) {
+	while (BLI_ghashIterator_notDone(ihash) ) {
 
 		ccd_Mesh *ccdm = BLI_ghashIterator_getValue	(ihash);
 		ob             = BLI_ghashIterator_getKey	(ihash);
