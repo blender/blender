@@ -106,12 +106,12 @@ float area_quad_v3(const float v1[3], const float v2[3], const float v3[3], cons
 	sub_v3_v3v3(vec1, v2, v1);
 	sub_v3_v3v3(vec2, v4, v1);
 	cross_v3_v3v3(n, vec1, vec2);
-	len = normalize_v3(n);
+	len = len_v3(n);
 
 	sub_v3_v3v3(vec1, v4, v3);
 	sub_v3_v3v3(vec2, v2, v3);
 	cross_v3_v3v3(n, vec1, vec2);
-	len += normalize_v3(n);
+	len += len_v3(n);
 
 	return (len / 2.0f);
 }
@@ -119,14 +119,13 @@ float area_quad_v3(const float v1[3], const float v2[3], const float v3[3], cons
 /* Triangles */
 float area_tri_v3(const float v1[3], const float v2[3], const float v3[3])
 {
-	float len, vec1[3], vec2[3], n[3];
+	float vec1[3], vec2[3], n[3];
 
 	sub_v3_v3v3(vec1, v3, v2);
 	sub_v3_v3v3(vec2, v1, v2);
 	cross_v3_v3v3(n, vec1, vec2);
-	len = normalize_v3(n);
 
-	return (len / 2.0f);
+	return len_v3(n) / 2.0f;
 }
 
 float area_tri_signed_v3(const float v1[3], const float v2[3], const float v3[3], const float normal[3])
