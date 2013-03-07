@@ -380,6 +380,17 @@ static void writedata(WriteData *wd, int filecode, int len, const void *adr)  /*
 	if (len) mywrite(wd, adr, len);
 }
 
+/* use this to force writing of lists in same order as reading (using link_list) */
+static void writelist(WriteData *wd, int filecode, const char *structname, ListBase *lb)
+{
+	Link *link = lb->first;
+	
+	while (link) {
+		writestruct(wd, filecode, structname, 1, link);
+		link = link->next;
+	}
+}
+
 /* *************** writing some direct data structs used in more code parts **************** */
 /*These functions are used by blender's .blend system for file saving/loading.*/
 void IDP_WriteProperty_OnlyData(IDProperty *prop, void *wd);
@@ -2335,16 +2346,16 @@ static void write_gpencils(WriteData *wd, ListBase *lb)
 			writestruct(wd, ID_GD, "bGPdata", 1, gpd);
 			
 			/* write grease-pencil layers to file */
+			writelist(wd, DATA, "bGPDlayer", &gpd->layers);
 			for (gpl= gpd->layers.first; gpl; gpl= gpl->next) {
-				writestruct(wd, DATA, "bGPDlayer", 1, gpl);
 				
 				/* write this layer's frames to file */
+				writelist(wd, DATA, "bGPDframe", &gpl->frames);
 				for (gpf= gpl->frames.first; gpf; gpf= gpf->next) {
-					writestruct(wd, DATA, "bGPDframe", 1, gpf);
 					
 					/* write strokes */
+					writelist(wd, DATA, "bGPDstroke", &gpf->strokes);
 					for (gps= gpf->strokes.first; gps; gps= gps->next) {
-						writestruct(wd, DATA, "bGPDstroke", 1, gps);
 						writestruct(wd, DATA, "bGPDspoint", gps->totpoints, gps->points);
 					}
 				}
