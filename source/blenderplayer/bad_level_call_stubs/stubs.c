@@ -67,6 +67,7 @@ struct Mask;
 struct Material;
 struct MenuType;
 struct Mesh;
+struct MetaBall;
 struct ModifierData;
 struct MovieClip;
 struct MultiresModifierData;
@@ -414,7 +415,7 @@ void uiLayoutSetContextPointer(struct uiLayout *layout, char *name, struct Point
 char *uiLayoutIntrospect(struct uiLayout *layout) {return (char *)NULL;}
 void UI_reinit_font(void) {}
 int UI_rnaptr_icon_get(struct bContext *C, struct PointerRNA *ptr, int rnaicon, int big) {return 0;}
-struct bTheme *UI_GetTheme(void) {};
+struct bTheme *UI_GetTheme(void) {return (struct bTheme *) NULL;};
 
 /* rna template */
 void uiTemplateAnyID(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, char *text) {}
