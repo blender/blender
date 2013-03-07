@@ -59,7 +59,7 @@ static char WithinImageBoundaryUP1D___doc__[] =
 "\n"
 "   Returns true if the Interface1D intersects with image boundary.\n";
 
-static int WithinImageBoundaryUP1D___init__(BPy_WithinImageBoundaryUP1D* self, PyObject *args, PyObject *kwds)
+static int WithinImageBoundaryUP1D___init__(BPy_WithinImageBoundaryUP1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"xmin", "ymin", "xmax", "ymax", NULL};
 	double xmin, ymin, xmax, ymax;

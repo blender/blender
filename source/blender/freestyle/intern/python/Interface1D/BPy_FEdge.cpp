@@ -320,10 +320,14 @@ static int FEdge_nature_set(BPy_FEdge *self, PyObject *value, void *UNUSED(closu
 }
 
 static PyGetSetDef BPy_FEdge_getseters[] = {
-	{(char *)"first_svertex", (getter)FEdge_first_svertex_get, (setter)FEdge_first_svertex_set, (char *)FEdge_first_svertex_doc, NULL},
-	{(char *)"second_svertex", (getter)FEdge_second_svertex_get, (setter)FEdge_second_svertex_set, (char *)FEdge_second_svertex_doc, NULL},
-	{(char *)"next_fedge", (getter)FEdge_next_fedge_get, (setter)FEdge_next_fedge_set, (char *)FEdge_next_fedge_doc, NULL},
-	{(char *)"previous_fedge", (getter)FEdge_previous_fedge_get, (setter)FEdge_previous_fedge_set, (char *)FEdge_previous_fedge_doc, NULL},
+	{(char *)"first_svertex", (getter)FEdge_first_svertex_get, (setter)FEdge_first_svertex_set,
+	                          (char *)FEdge_first_svertex_doc, NULL},
+	{(char *)"second_svertex", (getter)FEdge_second_svertex_get, (setter)FEdge_second_svertex_set,
+	                           (char *)FEdge_second_svertex_doc, NULL},
+	{(char *)"next_fedge", (getter)FEdge_next_fedge_get, (setter)FEdge_next_fedge_set,
+	                       (char *)FEdge_next_fedge_doc, NULL},
+	{(char *)"previous_fedge", (getter)FEdge_previous_fedge_get, (setter)FEdge_previous_fedge_set,
+	                           (char *)FEdge_previous_fedge_doc, NULL},
 	{(char *)"viewedge", (getter)FEdge_viewedge_get, (setter)FEdge_viewedge_set, (char *)FEdge_viewedge_doc, NULL},
 	{(char *)"is_smooth", (getter)FEdge_is_smooth_get, (setter)FEdge_is_smooth_set, (char *)FEdge_is_smooth_doc, NULL},
 	{(char *)"id", (getter)FEdge_id_get, (setter)FEdge_id_set, (char *)FEdge_id_doc, NULL},

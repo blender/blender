@@ -70,7 +70,7 @@ static char SpatialNoiseShader___doc__[] =
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
-static int SpatialNoiseShader___init__(BPy_SpatialNoiseShader* self, PyObject *args, PyObject *kwds)
+static int SpatialNoiseShader___init__(BPy_SpatialNoiseShader *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"amount", "scale", "num_octaves", "smooth", "pure_random", NULL};
 	float f1, f2;

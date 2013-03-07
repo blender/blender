@@ -102,7 +102,8 @@ static int FrsMaterial_init(BPy_FrsMaterial *self, PyObject *args, PyObject *kwd
 	if (PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist_1, &FrsMaterial_Type, &brother)) {
 		if (!brother) {
 			self->m = new FrsMaterial();
-		} else {
+		}
+		else {
 			FrsMaterial *m = ((BPy_FrsMaterial *)brother)->m;
 			if (!m) {
 				PyErr_SetString(PyExc_RuntimeError, "invalid Material object");
@@ -128,13 +129,13 @@ static int FrsMaterial_init(BPy_FrsMaterial *self, PyObject *args, PyObject *kwd
 	return 0;
 }
 
-static void FrsMaterial_dealloc(BPy_FrsMaterial* self)
+static void FrsMaterial_dealloc(BPy_FrsMaterial *self)
 {
 	delete self->m;
-	Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-static PyObject * FrsMaterial_repr(BPy_FrsMaterial* self)
+static PyObject *FrsMaterial_repr(BPy_FrsMaterial *self)
 {
 	return PyUnicode_FromFormat("Material - address: %p", self->m);
 }
@@ -398,11 +399,16 @@ static int FrsMaterial_shininess_set(BPy_FrsMaterial *self, PyObject *value, voi
 }
 
 static PyGetSetDef BPy_FrsMaterial_getseters[] = {
-	{(char *)"diffuse", (getter)FrsMaterial_diffuse_get, (setter)FrsMaterial_diffuse_set, (char *)FrsMaterial_diffuse_doc, NULL},
-	{(char *)"specular", (getter)FrsMaterial_specular_get, (setter)FrsMaterial_specular_set, (char *)FrsMaterial_specular_doc, NULL},
-	{(char *)"ambient", (getter)FrsMaterial_ambient_get, (setter)FrsMaterial_ambient_set, (char *)FrsMaterial_ambient_doc, NULL},
-	{(char *)"emission", (getter)FrsMaterial_emission_get, (setter)FrsMaterial_emission_set, (char *)FrsMaterial_emission_doc, NULL},
-	{(char *)"shininess", (getter)FrsMaterial_shininess_get, (setter)FrsMaterial_shininess_set, (char *)FrsMaterial_shininess_doc, NULL},
+	{(char *)"diffuse", (getter)FrsMaterial_diffuse_get, (setter)FrsMaterial_diffuse_set,
+	                    (char *)FrsMaterial_diffuse_doc, NULL},
+	{(char *)"specular", (getter)FrsMaterial_specular_get, (setter)FrsMaterial_specular_set,
+	                     (char *)FrsMaterial_specular_doc, NULL},
+	{(char *)"ambient", (getter)FrsMaterial_ambient_get, (setter)FrsMaterial_ambient_set,
+	                    (char *)FrsMaterial_ambient_doc, NULL},
+	{(char *)"emission", (getter)FrsMaterial_emission_get, (setter)FrsMaterial_emission_set,
+	                     (char *)FrsMaterial_emission_doc, NULL},
+	{(char *)"shininess", (getter)FrsMaterial_shininess_get, (setter)FrsMaterial_shininess_set,
+	                      (char *)FrsMaterial_shininess_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 

@@ -62,7 +62,7 @@ public:
 protected:
 	virtual int interpret()
 	{
-		PythonInterpreter* py_inter = dynamic_cast<PythonInterpreter*>(_inter);
+		PythonInterpreter *py_inter = dynamic_cast<PythonInterpreter*>(_inter);
 		assert(py_inter != 0);
 		return py_inter->interpretText(_text, getFileName());
 	}

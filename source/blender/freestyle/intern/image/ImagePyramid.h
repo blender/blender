@@ -47,7 +47,7 @@ protected:
 	std::vector<GrayImage*> _levels;
 
 public:
-	ImagePyramid(){}
+	ImagePyramid() {}
 	ImagePyramid(const ImagePyramid& iBrother);
 	//ImagePyramid(const GrayImage& level0, unsigned nbLevels);
 	virtual ~ImagePyramid();
@@ -59,9 +59,9 @@ public:
 	virtual void BuildPyramid(const GrayImage& level0, unsigned nbLevels) = 0;
 
 	/*! Builds a pyramid without copying the base level */
-	virtual void BuildPyramid(GrayImage* level0, unsigned nbLevels) = 0;
+	virtual void BuildPyramid(GrayImage *level0, unsigned nbLevels) = 0;
 
-	virtual GrayImage * getLevel(int l);
+	virtual GrayImage *getLevel(int l);
 	/*! Returns the pixel x,y using bilinear interpolation.
 	 *  \param x
 	 *    the abscissa specified in the finest level coordinate system
@@ -97,12 +97,12 @@ public:
 	}
 
 	GaussianPyramid(const GrayImage& level0, unsigned nbLevels, float iSigma=1.0f);
-	GaussianPyramid(GrayImage* level0, unsigned nbLevels, float iSigma=1.0f);
+	GaussianPyramid(GrayImage *level0, unsigned nbLevels, float iSigma=1.0f);
 	GaussianPyramid(const GaussianPyramid& iBrother);
 	virtual ~GaussianPyramid() {}
 
 	virtual void BuildPyramid(const GrayImage& level0, unsigned nbLevels);
-	virtual void BuildPyramid(GrayImage* level0, unsigned nbLevels);
+	virtual void BuildPyramid(GrayImage *level0, unsigned nbLevels);
 
 	/* accessors */
 	inline float getSigma() const

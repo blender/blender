@@ -153,21 +153,21 @@ public:
 		return res;
 	} 
 
-	inline Vec<T, N> operator-(const Vec<T,N>& v) const
+	inline Vec<T, N> operator-(const Vec<T, N>& v) const
 	{
 		Vec<T, N> res(*this);
 		res -= v;
 		return res;
 	} 
 
-	inline Vec<T, N> operator*(const typename Vec<T,N>::value_type r) const
+	inline Vec<T, N> operator*(const typename Vec<T, N>::value_type r) const
 	{
 		Vec<T, N> res(*this);
 		res *= r;
 		return res;
 	} 
 
-	inline Vec<T, N> operator/(const typename Vec<T,N>::value_type r) const
+	inline Vec<T, N> operator/(const typename Vec<T, N>::value_type r) const
 	{
 		Vec<T, N> res(*this);
 		if (r)
@@ -435,7 +435,8 @@ public:
 		return this->_coord[1];
 	}
 
-	inline value_type& sy(){
+	inline value_type& sy()
+	{
 		return this->_coord[1];
 	}
 

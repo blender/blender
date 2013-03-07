@@ -67,7 +67,7 @@ extern "C" {
 }
 #endif
 
-BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count) : StrokeRenderer()
+BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : StrokeRenderer()
 {
 	// TEMPORARY - need a  texture manager
 	_textureManager = new BlenderTextureManager;
@@ -128,9 +128,9 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re, int render_count) : Str
 	BKE_scene_set_background(G.main, freestyle_scene);
 
 	// Camera
-	Object* object_camera = BKE_object_add(freestyle_scene, OB_CAMERA);
+	Object *object_camera = BKE_object_add(freestyle_scene, OB_CAMERA);
 
-	Camera* camera = (Camera *)object_camera->data;
+	Camera *camera = (Camera *)object_camera->data;
 	camera->type = CAM_ORTHO;
 	camera->ortho_scale = max(re->rectx, re->recty);
 	camera->clipsta = 0.1f;
@@ -172,7 +172,7 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 	// compositor has finished.
 
 	// release objects and data blocks
-	for (Base *b = (Base*)freestyle_scene->base.first; b; b = b->next) {
+	for (Base *b = (Base *)freestyle_scene->base.first; b; b = b->next) {
 		Object *ob = b->object;
 		void *data = ob->data;
 		char *name = ob->id.name;
@@ -192,7 +192,7 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 			freestyle_scene->camera = NULL;
 			break;
 		default:
-			cerr << "Warning: unexpected object in the scene: " << name[0] << name[1] << ":" << (name+2) << endl;
+			cerr << "Warning: unexpected object in the scene: " << name[0] << name[1] << ":" << (name + 2) << endl;
 		}
 	}
 	BLI_freelistN(&freestyle_scene->base);
@@ -239,9 +239,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 	unsigned int vertex_index, edge_index, loop_index;
 	Vec2r p;
 
-	for (vector<Strip*>::iterator s = strips.begin(), send = strips.end();
-	     s != send;
-	     ++s){
+	for (vector<Strip*>::iterator s = strips.begin(), send = strips.end(); s != send; ++s) {
 		Strip::vertex_container& strip_vertices = (*s)->vertices();
 		int strip_vertex_count = (*s)->sizeStrip();
 		int xl, xu, yl, yu, n, visible_faces, visible_segments;
@@ -286,11 +284,11 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 
 		//me = Mesh.New()
 #if 0
-		Object* object_mesh = BKE_object_add(freestyle_scene, OB_MESH);
+		Object *object_mesh = BKE_object_add(freestyle_scene, OB_MESH);
 #else
-		Object* object_mesh = NewMesh();
+		Object *object_mesh = NewMesh();
 #endif
-		Mesh* mesh = (Mesh*)object_mesh->data;
+		Mesh *mesh = (Mesh *)object_mesh->data;
 #if 0
 		MEM_freeN(mesh->bb);
 		mesh->bb = NULL;
@@ -298,10 +296,10 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 #endif
 #if 1
 		//me.materials = [mat]
-		mesh->mat = (Material**)MEM_mallocN(1 * sizeof(Material*), "MaterialList");
+		mesh->mat = (Material **)MEM_mallocN(1 * sizeof(Material *), "MaterialList");
 		mesh->mat[0] = material;
 		mesh->totcol = 1;
-		test_object_materials((ID*)mesh);
+		test_object_materials((ID *)mesh);
 #else
 		assign_material(object_mesh, material, object_mesh->totcol + 1);
 		object_mesh->actcol = object_mesh->totcol;
@@ -309,22 +307,22 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const
 
 		// vertices allocation
 		mesh->totvert = visible_faces + visible_segments * 2;
-		mesh->mvert = (MVert*)CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_CALLOC, NULL, mesh->totvert);
+		mesh->mvert = (MVert *)CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_CALLOC, NULL, mesh->totvert);
 
 		// edges allocation
 		mesh->totedge = visible_faces * 2 + visible_segments;
-		mesh->medge = (MEdge*)CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_CALLOC, NULL, mesh->totedge);
+		mesh->medge = (MEdge *)CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_CALLOC, NULL, mesh->totedge);
 
 		// faces allocation
 		mesh->totpoly = visible_faces;
-		mesh->mpoly = (MPoly*)CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CALLOC, NULL, mesh->totpoly);
+		mesh->mpoly = (MPoly *)CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CALLOC, NULL, mesh->totpoly);
 
 		// loops allocation
 		mesh->totloop = visible_faces * 3;
-		mesh->mloop = (MLoop*)CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CALLOC, NULL, mesh->totloop);
+		mesh->mloop = (MLoop *)CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CALLOC, NULL, mesh->totloop);
 
 		// colors allocation
-		mesh->mloopcol = (MLoopCol*)CustomData_add_layer(&mesh->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, mesh->totloop);
+		mesh->mloopcol = (MLoopCol *)CustomData_add_layer(&mesh->ldata, CD_MLOOPCOL, CD_CALLOC, NULL, mesh->totloop);
 
 		////////////////////
 		//  Data copy
@@ -503,9 +501,9 @@ Object *BlenderStrokeRenderer::NewMesh() const
 	return ob;
 }
 
-Render* BlenderStrokeRenderer::RenderScene(Render *re)
+Render *BlenderStrokeRenderer::RenderScene(Render *re)
 {
-	Camera *camera = (Camera*)freestyle_scene->camera->data;
+	Camera *camera = (Camera *)freestyle_scene->camera->data;
 	if (camera->clipend < _z)
 		camera->clipend = _z + _z_delta * 100.0f;
 #if 0

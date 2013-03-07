@@ -68,7 +68,7 @@ static char MaterialF0D___doc__[] =
 "      Interface0D.\n"
 "   :rtype: :class:`Material`\n";
 
-static int MaterialF0D___init__(BPy_MaterialF0D* self, PyObject *args, PyObject *kwds)
+static int MaterialF0D___init__(BPy_MaterialF0D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

@@ -44,7 +44,8 @@ extern "C" {
 
 extern PyTypeObject ConstrainedIncreasingThicknessShader_Type;
 
-#define BPy_ConstrainedIncreasingThicknessShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ConstrainedIncreasingThicknessShader_Type))
+#define BPy_ConstrainedIncreasingThicknessShader_Check(v) \
+            (PyObject_IsInstance((PyObject *)v, (PyObject *)&ConstrainedIncreasingThicknessShader_Type))
 
 /*---------------------------Python BPy_ConstrainedIncreasingThicknessShader structure definition----------*/
 typedef struct {

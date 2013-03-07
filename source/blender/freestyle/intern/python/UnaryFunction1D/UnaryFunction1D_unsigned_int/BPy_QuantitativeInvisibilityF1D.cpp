@@ -67,7 +67,7 @@ static char QuantitativeInvisibilityF1D___doc__[] =
 "   :return: The Quantitative Invisibility of the Interface1D.\n"
 "   :rtype: int\n";
 
-static int QuantitativeInvisibilityF1D___init__(BPy_QuantitativeInvisibilityF1D* self, PyObject *args, PyObject *kwds)
+static int QuantitativeInvisibilityF1D___init__(BPy_QuantitativeInvisibilityF1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"integration_type", NULL};
 	PyObject *obj = 0;

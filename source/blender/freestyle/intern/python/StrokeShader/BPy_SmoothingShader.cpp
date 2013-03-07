@@ -80,7 +80,7 @@ static char SmoothingShader___doc__[] =
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
-static int SmoothingShader___init__(BPy_SmoothingShader* self, PyObject *args, PyObject *kwds)
+static int SmoothingShader___init__(BPy_SmoothingShader *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"num_iterations", "factor_point", "factor_curvature",
 	                               "factor_curvature_difference", "aniso_point", "aniso_normal",

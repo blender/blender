@@ -124,14 +124,14 @@ static int Interface1D_init(BPy_Interface1D *self, PyObject *args, PyObject *kwd
 	return 0;
 }
 
-static void Interface1D_dealloc(BPy_Interface1D* self)
+static void Interface1D_dealloc(BPy_Interface1D *self)
 {
 	if (self->if1D && !self->borrowed)
 		delete self->if1D;
-	Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-static PyObject * Interface1D_repr(BPy_Interface1D* self)
+static PyObject *Interface1D_repr(BPy_Interface1D *self)
 {
 	return PyUnicode_FromFormat("type: %s - address: %p", self->if1D->getExactTypeName().c_str(), self->if1D);
 }
@@ -302,7 +302,8 @@ static PyGetSetDef BPy_Interface1D_getseters[] = {
 	{(char *)"id", (getter)Interface1D_id_get, (setter)NULL, (char *)Interface1D_id_doc, NULL},
 	{(char *)"nature", (getter)Interface1D_nature_get, (setter)NULL, (char *)Interface1D_nature_doc, NULL},
 	{(char *)"length_2d", (getter)Interface1D_length_2d_get, (setter)NULL, (char *)Interface1D_length_2d_doc, NULL},
-	{(char *)"time_stamp", (getter)Interface1D_time_stamp_get, (setter)Interface1D_time_stamp_set, (char *)Interface1D_time_stamp_doc, NULL},
+	{(char *)"time_stamp", (getter)Interface1D_time_stamp_get, (setter)Interface1D_time_stamp_set,
+	                       (char *)Interface1D_time_stamp_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 

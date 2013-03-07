@@ -75,7 +75,7 @@ static char DensityF1D___doc__[] =
 "   :return: The density evaluated for an Interface1D.\n"
 "   :rtype: float\n";
 
-static int DensityF1D___init__(BPy_DensityF1D* self, PyObject *args, PyObject *kwds)
+static int DensityF1D___init__(BPy_DensityF1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"sigma", "integration_type", "sampling", NULL};
 	PyObject *obj = 0;
@@ -85,7 +85,7 @@ static int DensityF1D___init__(BPy_DensityF1D* self, PyObject *args, PyObject *k
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|dO!f", (char **)kwlist, &d, &IntegrationType_Type, &obj, &f))
 		return -1;
 	IntegrationType t = (obj) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
-	self->py_uf1D_double.uf1D_double = new Functions1D::DensityF1D(d,t,f);
+	self->py_uf1D_double.uf1D_double = new Functions1D::DensityF1D(d, t, f);
 	return 0;
 }
 

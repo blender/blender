@@ -46,7 +46,8 @@ extern "C" {
 // ChainSilhouetteIterator (const ChainSilhouetteIterator &brother)
 
 PyDoc_STRVAR(ChainSilhouetteIterator_doc,
-"Class hierarchy: :class:`Iterator` > :class:`ViewEdgeIterator` > :class:`ChainingIterator` > :class:`ChainSilhouetteIterator`\n"
+"Class hierarchy: :class:`Iterator` > :class:`ViewEdgeIterator` > :class:`ChainingIterator` > "
+":class:`ChainSilhouetteIterator`\n"
 "\n"
 "A ViewEdge Iterator used to follow ViewEdges the most naturally.  For\n"
 "example, it will follow visible ViewEdges of same nature.  As soon, as\n"

@@ -98,7 +98,7 @@ static int Interface0DIterator_init(BPy_Interface0DIterator *self, PyObject *arg
 	return 0;
 }
 
-static PyObject * Interface0DIterator_iternext(BPy_Interface0DIterator *self)
+static PyObject *Interface0DIterator_iternext(BPy_Interface0DIterator *self)
 {
 	Interface0D *if0D;
 
@@ -154,7 +154,8 @@ static PyObject *Interface0DIterator_u_get(BPy_Interface0DIterator *self, void *
 }
 
 static PyGetSetDef BPy_Interface0DIterator_getseters[] = {
-	{(char *)"object", (getter)Interface0DIterator_object_get, (setter)NULL, (char *)Interface0DIterator_object_doc, NULL},
+	{(char *)"object", (getter)Interface0DIterator_object_get, (setter)NULL,
+	                   (char *)Interface0DIterator_object_doc, NULL},
 	{(char *)"t", (getter)Interface0DIterator_t_get, (setter)NULL, (char *)Interface0DIterator_t_doc, NULL},
 	{(char *)"u", (getter)Interface0DIterator_u_get, (setter)NULL, (char *)Interface0DIterator_u_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */

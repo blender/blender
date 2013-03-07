@@ -63,7 +63,7 @@ static char Orientation3DF1D___doc__[] =
 "   :return: The 3D orientation of the Interface1D.\n"
 "   :rtype: :class:`mathutils.Vector`\n";
 
-static int Orientation3DF1D___init__(BPy_Orientation3DF1D* self, PyObject *args, PyObject *kwds)
+static int Orientation3DF1D___init__(BPy_Orientation3DF1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"integration_type", NULL};
 	PyObject *obj = 0;

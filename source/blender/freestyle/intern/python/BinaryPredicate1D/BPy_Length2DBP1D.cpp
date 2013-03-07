@@ -54,7 +54,7 @@ static char Length2DBP1D___doc__[] =
 "   :return: True or false.\n"
 "   :rtype: bool\n";
 
-static int Length2DBP1D___init__(BPy_Length2DBP1D* self, PyObject *args, PyObject *kwds)
+static int Length2DBP1D___init__(BPy_Length2DBP1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

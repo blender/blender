@@ -59,7 +59,7 @@ static char GetCurvilinearAbscissaF0D___doc__[] =
 "   :return: The curvilinear abscissa of the pointed Interface0D.\n"
 "   :rtype: float\n";
 
-static int GetCurvilinearAbscissaF0D___init__(BPy_GetCurvilinearAbscissaF0D* self, PyObject *args, PyObject *kwds)
+static int GetCurvilinearAbscissaF0D___init__(BPy_GetCurvilinearAbscissaF0D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

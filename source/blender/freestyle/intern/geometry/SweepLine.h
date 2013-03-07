@@ -44,7 +44,7 @@ class Intersection
 {
 public:
 	template<class EdgeClass>
-	Intersection(EdgeClass* eA, real ta, EdgeClass* eB, real tb)
+	Intersection(EdgeClass *eA, real ta, EdgeClass *eB, real tb)
 	{
 		EdgeA = eA;
 		EdgeB = eB;
@@ -109,7 +109,7 @@ public:
 		}
 	}
 
-	Segment(Segment<T,Point>& iBrother)
+	Segment(Segment<T, Point>& iBrother)
 	{
 		_edge = iBrother.edge();
 		A = iBrother.A;
@@ -118,7 +118,7 @@ public:
 		_order = iBrother._order;
 	}
 
-	Segment(const Segment<T,Point>& iBrother)
+	Segment(const Segment<T, Point>& iBrother)
 	{
 		_edge = iBrother._edge;
 		A = iBrother.A;
@@ -137,7 +137,7 @@ public:
 		return (i % 2 == 0) ? A : B;
 	}
 
-	inline bool operator==(const Segment<T,Point>& iBrother)
+	inline bool operator==(const Segment<T, Point>& iBrother)
 	{
 		if (_edge == iBrother._edge)
 			return true;
@@ -145,13 +145,13 @@ public:
 	}
 
 	/* Adds an intersection for this segment */
-	inline void AddIntersection(Intersection<Segment<T,Point> > *i)
+	inline void AddIntersection(Intersection<Segment<T, Point> > *i)
 	{
 		_Intersections.push_back(i);
 	}
 
 	/*! Checks for a common vertex with another edge */
-	inline bool CommonVertex(const Segment<T,Point>& S, Point& CP)
+	inline bool CommonVertex(const Segment<T, Point>& S, Point& CP)
 	{
 		if ((A == S[0]) || (A == S[1])) {
 			CP = A;
@@ -164,7 +164,7 @@ public:
 		return false;
 	}
 
-	inline vector<Intersection<Segment<T,Point> >*>& intersections()
+	inline vector<Intersection<Segment<T, Point> >*>& intersections()
 	{
 		return _Intersections;
 	}
@@ -183,7 +183,7 @@ private:
 	T _edge;
 	Point A;
 	Point B;
-	std::vector<Intersection<Segment<T,Point> >*> _Intersections; // list of intersections parameters
+	std::vector<Intersection<Segment<T, Point> >*> _Intersections; // list of intersections parameters
 	bool _order; // true if A and B are in the same order than _edge.A and _edge.B. false otherwise.
 };
 
@@ -198,7 +198,7 @@ template<class T1, class T2>
 struct binary_rule
 {
 	binary_rule() {}
-	template<class T3,class T4> binary_rule(const binary_rule<T3,T4>& brother) {}
+	template<class T3, class T4> binary_rule(const binary_rule<T3, T4>& brother) {}
 	virtual ~binary_rule() {}
 
 	virtual bool operator()(T1&, T2&)
@@ -208,14 +208,14 @@ struct binary_rule
 };
 
 
-template<class T,class Point>
+template<class T, class Point>
 class SweepLine 
 {
 public:
 	SweepLine() {}
 	~SweepLine()
 	{
-		for (typename vector<Intersection<Segment<T,Point> >*>::iterator i = _Intersections.begin(),
+		for (typename vector<Intersection<Segment<T, Point> >*>::iterator i = _Intersections.begin(),
 		     iend = _Intersections.end();
 		     i != iend;
 		     i++)
@@ -224,18 +224,18 @@ public:
 		}
 	}
 
-	inline void process(Point& p, vector<Segment<T,Point>*>& segments, 
+	inline void process(Point& p, vector<Segment<T, Point>*>& segments, 
 #if 0
-	                    binary_rule<Segment<T,Point>,Segment<T,Point> >& binrule = \
-	                            binary_rule<Segment<T,Point>,Segment<T,Point> >(),
+	                    binary_rule<Segment<T, Point>,Segment<T, Point> >& binrule = \
+	                            binary_rule<Segment<T, Point>, Segment<T, Point> >(),
 #else
-	                    binary_rule<Segment<T,Point>,Segment<T,Point> >& binrule,
+	                    binary_rule<Segment<T, Point>, Segment<T, Point> >& binrule,
 #endif
 	                    real epsilon = M_EPSILON)
 	{
 		// first we remove the segments that need to be removed and then we add the segments to add
-		vector<Segment<T,Point>*> toadd;
-		typename vector<Segment<T,Point>*>::iterator s, send;
+		vector<Segment<T, Point>*> toadd;
+		typename vector<Segment<T, Point>*>::iterator s, send;
 		for (s = segments.begin(), send = segments.end(); s != send; s++) {
 			if (p == (*(*s))[0])
 				toadd.push_back((*s));
@@ -247,16 +247,16 @@ public:
 		}
 	}
 
-	inline void add(Segment<T,Point>* S,
+	inline void add(Segment<T, Point> *S,
 #if 0
-	                binary_rule<Segment<T,Point>,Segment<T,Point> >& binrule = \
-	                        binary_rule<Segment<T,Point>, Segment<T,Point> >(),
+	                binary_rule<Segment<T, Point>, Segment<T, Point> >& binrule = \
+	                        binary_rule<Segment<T, Point>, Segment<T, Point> >(),
 #else
-	                binary_rule<Segment<T,Point>,Segment<T,Point> >& binrule,
+	                binary_rule<Segment<T, Point>, Segment<T, Point> >& binrule,
 #endif
 	                real epsilon)
 	{
-		real t,u;
+		real t, u;
 		Point CP;
 		Vec2r v0, v1, v2, v3;
 		if (true == S->order()) {
@@ -271,8 +271,8 @@ public:
 			v0[0] = ((*S)[1])[0];
 			v0[1] = ((*S)[1])[1];
 		}
-		for (typename std::list<Segment<T,Point>* >::iterator s = _set.begin(), send = _set.end(); s != send; s++) {
-			Segment<T,Point>* currentS = (*s);
+		for (typename std::list<Segment<T, Point> *>::iterator s = _set.begin(), send = _set.end(); s != send; s++) {
+			Segment<T, Point> *currentS = (*s);
 			if (true != binrule(*S, *currentS))
 				continue;
 
@@ -293,7 +293,7 @@ public:
 
 			if (GeomUtils::intersect2dSeg2dSegParametric(v0, v1, v2, v3, t, u, epsilon) == GeomUtils::DO_INTERSECT) {
 				// create the intersection
-				Intersection<Segment<T,Point> > *inter = new Intersection<Segment<T,Point> >(S,t,currentS,u);
+				Intersection<Segment<T, Point> > *inter = new Intersection<Segment<T, Point> >(S, t, currentS, u);
 				// add it to the intersections list
 				_Intersections.push_back(inter);
 				// add this intersection to the first edge intersections list
@@ -306,27 +306,27 @@ public:
 		_set.push_back(S);
 	}
 
-	inline void remove(Segment<T,Point>* s)
+	inline void remove(Segment<T, Point> *s)
 	{
 		if (s->intersections().size() > 0)
 			_IntersectedEdges.push_back(s);
 		_set.remove(s);
 	}
 
-	vector<Segment<T,Point>* >& intersectedEdges()
+	vector<Segment<T, Point> *>& intersectedEdges()
 	{
 		return _IntersectedEdges;
 	}
 
-	vector<Intersection<Segment<T,Point> >*>& intersections()
+	vector<Intersection<Segment<T, Point> >*>& intersections()
 	{
 		return _Intersections;
 	}
 
 private:
-	std::list<Segment<T,Point>* > _set; // set of active edges for a given position of the sweep line
-	std::vector<Segment<T,Point>* > _IntersectedEdges; // the list of intersected edges
-	std::vector<Intersection<Segment<T,Point> >*> _Intersections; // the list of all intersections.
+	std::list<Segment<T, Point> *> _set; // set of active edges for a given position of the sweep line
+	std::vector<Segment<T, Point> *> _IntersectedEdges; // the list of intersected edges
+	std::vector<Intersection<Segment<T, Point> > *> _Intersections; // the list of all intersections.
 };
 
 #endif // __SWEEPLINE_H__

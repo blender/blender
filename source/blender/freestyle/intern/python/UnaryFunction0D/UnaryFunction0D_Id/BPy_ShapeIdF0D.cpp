@@ -64,7 +64,7 @@ static char ShapeIdF0D___doc__[] =
 "   :return: The Id of the Shape the pointed Interface0D belongs to.\n"
 "   :rtype: :class:`Id`\n";
 
-static int ShapeIdF0D___init__(BPy_ShapeIdF0D* self, PyObject *args, PyObject *kwds)
+static int ShapeIdF0D___init__(BPy_ShapeIdF0D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

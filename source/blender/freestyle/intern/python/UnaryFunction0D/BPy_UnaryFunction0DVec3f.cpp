@@ -74,7 +74,7 @@ static char UnaryFunction0DVec3f___doc__[] =
 "\n"
 "   Default constructor.\n";
 
-static int UnaryFunction0DVec3f___init__(BPy_UnaryFunction0DVec3f* self, PyObject *args, PyObject *kwds)
+static int UnaryFunction0DVec3f___init__(BPy_UnaryFunction0DVec3f *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 
@@ -85,19 +85,19 @@ static int UnaryFunction0DVec3f___init__(BPy_UnaryFunction0DVec3f* self, PyObjec
 	return 0;
 }
 
-static void UnaryFunction0DVec3f___dealloc__(BPy_UnaryFunction0DVec3f* self)
+static void UnaryFunction0DVec3f___dealloc__(BPy_UnaryFunction0DVec3f *self)
 {
 	if (self->uf0D_vec3f)
 		delete self->uf0D_vec3f;
-	UnaryFunction0D_Type.tp_dealloc((PyObject*)self);
+	UnaryFunction0D_Type.tp_dealloc((PyObject *)self);
 }
 
-static PyObject * UnaryFunction0DVec3f___repr__(BPy_UnaryFunction0DVec3f* self)
+static PyObject *UnaryFunction0DVec3f___repr__(BPy_UnaryFunction0DVec3f *self)
 {
 	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->uf0D_vec3f);
 }
 
-static PyObject * UnaryFunction0DVec3f___call__(BPy_UnaryFunction0DVec3f *self, PyObject *args, PyObject *kwds)
+static PyObject *UnaryFunction0DVec3f___call__(BPy_UnaryFunction0DVec3f *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"it", NULL};
 	PyObject *obj;

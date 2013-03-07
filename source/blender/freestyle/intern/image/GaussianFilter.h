@@ -50,7 +50,8 @@ protected:
 	float _sigma;
 	float *_mask;
 	int _bound;
-	int _maskSize; // the real mask size (must be odd)(the size of the mask we store is ((_maskSize+1)/2)*((_maskSize+1)/2))
+	// the real mask size (must be odd)(the size of the mask we store is ((_maskSize+1)/2)*((_maskSize+1)/2))
+	int _maskSize;
 	int _storedMaskSize; // (_maskSize+1)/2)
 
 public:

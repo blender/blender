@@ -59,7 +59,7 @@ static char CurveNatureF0D___doc__[] =
 "      belongs.\n"
 "   :rtype: :class:`Nature`\n";
 
-static int CurveNatureF0D___init__(BPy_CurveNatureF0D* self, PyObject *args, PyObject *kwds)
+static int CurveNatureF0D___init__(BPy_CurveNatureF0D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

@@ -112,7 +112,8 @@ int StrokeShader_Init(PyObject *module)
 	if (PyType_Ready(&ConstrainedIncreasingThicknessShader_Type) < 0)
 		return -1;
 	Py_INCREF(&ConstrainedIncreasingThicknessShader_Type);
-	PyModule_AddObject(module, "ConstrainedIncreasingThicknessShader", (PyObject *)&ConstrainedIncreasingThicknessShader_Type);
+	PyModule_AddObject(module, "ConstrainedIncreasingThicknessShader",
+	                   (PyObject *)&ConstrainedIncreasingThicknessShader_Type);
 
 	if (PyType_Ready(&fstreamShader_Type) < 0)
 		return -1;
@@ -219,14 +220,14 @@ static int StrokeShader___init__(BPy_StrokeShader *self, PyObject *args, PyObjec
 	return 0;
 }
 
-static void StrokeShader___dealloc__(BPy_StrokeShader* self)
+static void StrokeShader___dealloc__(BPy_StrokeShader *self)
 {
 	if (self->ss)
 		delete self->ss;
-	Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-static PyObject * StrokeShader___repr__(BPy_StrokeShader* self)
+static PyObject *StrokeShader___repr__(BPy_StrokeShader *self)
 {
 	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->ss);
 }

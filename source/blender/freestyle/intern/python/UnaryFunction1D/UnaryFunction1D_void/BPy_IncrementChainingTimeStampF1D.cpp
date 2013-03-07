@@ -57,7 +57,8 @@ static char IncrementChainingTimeStampF1D___doc__[] =
 "   :arg inter: An Interface1D object.\n"
 "   :type inter: :class:`Interface1D`\n";
 
-static int IncrementChainingTimeStampF1D___init__(BPy_IncrementChainingTimeStampF1D* self, PyObject *args, PyObject *kwds)
+static int IncrementChainingTimeStampF1D___init__(BPy_IncrementChainingTimeStampF1D *self,
+                                                  PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

@@ -177,7 +177,7 @@ void GeomCleaner::SortAndCompressIndexedVertexArray(const float *iVertices, unsi
 }
 
 /*! Defines a hash table used for searching the Cells */
-struct GeomCleanerHasher{
+struct GeomCleanerHasher {
 #define _MUL 950706376UL
 #define _MOD 2147483647UL
 	inline size_t operator() (const Vec3r& p) const

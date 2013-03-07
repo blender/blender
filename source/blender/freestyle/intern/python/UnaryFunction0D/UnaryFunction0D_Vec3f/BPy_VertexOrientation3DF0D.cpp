@@ -61,7 +61,7 @@ static char VertexOrientation3DF0D___doc__[] =
 "      pointed Interface0D.\n"
 "   :rtype: :class:`mathutils.Vector`\n";
 
-static int VertexOrientation3DF0D___init__(BPy_VertexOrientation3DF0D* self, PyObject *args, PyObject *kwds)
+static int VertexOrientation3DF0D___init__(BPy_VertexOrientation3DF0D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

@@ -44,7 +44,8 @@ extern "C" {
 
 extern PyTypeObject ColorVariationPatternShader_Type;
 
-#define BPy_ColorVariationPatternShader_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ColorVariationPatternShader_Type))
+#define BPy_ColorVariationPatternShader_Check(v) \
+            (PyObject_IsInstance((PyObject *)v, (PyObject *)&ColorVariationPatternShader_Type))
 
 /*---------------------------Python BPy_ColorVariationPatternShader structure definition----------*/
 typedef struct {

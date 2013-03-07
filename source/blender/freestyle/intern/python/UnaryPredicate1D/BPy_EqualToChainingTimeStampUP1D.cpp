@@ -59,7 +59,7 @@ static char EqualToChainingTimeStampUP1D___doc__[] =
 "   :return: True if the time stamp is equal to a user-defined value.\n"
 "   :rtype: bool\n";
 
-static int EqualToChainingTimeStampUP1D___init__(BPy_EqualToChainingTimeStampUP1D* self, PyObject *args, PyObject *kwds)
+static int EqualToChainingTimeStampUP1D___init__(BPy_EqualToChainingTimeStampUP1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"ts", NULL};
 	unsigned u;

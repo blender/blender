@@ -79,7 +79,7 @@ static int convert_v2(PyObject *obj, void *v)
 	return float_array_from_PyObject(obj, (float *)v, 2);
 }
 
-static int CalligraphicShader___init__(BPy_CalligraphicShader* self, PyObject *args, PyObject *kwds)
+static int CalligraphicShader___init__(BPy_CalligraphicShader *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"thickness_min", "thickness_max", "orientation", "clamp", NULL};
 	double d1, d2;

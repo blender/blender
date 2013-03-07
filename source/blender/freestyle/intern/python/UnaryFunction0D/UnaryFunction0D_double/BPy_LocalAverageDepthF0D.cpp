@@ -62,7 +62,7 @@ static char LocalAverageDepthF0D___doc__[] =
 "   :return: The average depth around the pointed Interface0D.\n"
 "   :rtype: float\n";
 
-static int LocalAverageDepthF0D___init__(BPy_LocalAverageDepthF0D* self, PyObject *args, PyObject *kwds)
+static int LocalAverageDepthF0D___init__(BPy_LocalAverageDepthF0D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"mask_size", NULL};
 	double d = 5.0;

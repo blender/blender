@@ -102,7 +102,7 @@ static int AdjacencyIterator_init(BPy_AdjacencyIterator *self, PyObject *args, P
 	return 0;
 }
 
-static PyObject * AdjacencyIterator_iternext(BPy_AdjacencyIterator *self)
+static PyObject *AdjacencyIterator_iternext(BPy_AdjacencyIterator *self)
 {
 	if (self->a_it->isEnd()) {
 		PyErr_SetNone(PyExc_StopIteration);
@@ -140,7 +140,8 @@ static PyObject *AdjacencyIterator_is_incoming_get(BPy_AdjacencyIterator *self, 
 }
 
 static PyGetSetDef BPy_AdjacencyIterator_getseters[] = {
-	{(char *)"is_incoming", (getter)AdjacencyIterator_is_incoming_get, (setter)NULL, (char *)AdjacencyIterator_is_incoming_doc, NULL},
+	{(char *)"is_incoming", (getter)AdjacencyIterator_is_incoming_get, (setter)NULL,
+	                        (char *)AdjacencyIterator_is_incoming_doc, NULL},
 	{(char *)"object", (getter)AdjacencyIterator_object_get, (setter)NULL, (char *)AdjacencyIterator_object_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };

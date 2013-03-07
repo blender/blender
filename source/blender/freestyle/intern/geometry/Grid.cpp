@@ -158,7 +158,7 @@ void Grid::configure(const Vec3r& orig, const Vec3r& size, unsigned nb)
 		_cell_size[i] = _size[i] / _cells_nb[i];
 }
 
-void Grid::insertOccluder(Polygon3r* occluder)
+void Grid::insertOccluder(Polygon3r *occluder)
 {
 	const vector<Vec3r> vertices = occluder->getVertices();
 	if (vertices.size() == 0)
@@ -208,7 +208,7 @@ void Grid::insertOccluder(Polygon3r* occluder)
 					if (GeomUtils::overlapTriangleBox(boxcenter, boxhalfsize, triverts)) {
 						// We must then create the Cell and add it to the cells list if it does not exist yet.
 						// We must then add the occluder to the occluders list of this cell.
-						Cell* cell = getCell(coord);
+						Cell *cell = getCell(coord);
 						if (!cell) {
 							cell = new Cell(boxmin);
 							fillCell(coord, *cell);
@@ -226,7 +226,7 @@ void Grid::insertOccluder(Polygon3r* occluder)
 					coord[0] = x;
 					coord[1] = y;
 					coord[2] = z;
-					Cell* cell = getCell(coord);
+					Cell *cell = getCell(coord);
 					if (!cell) {
 						Vec3r orig;
 						getCellOrigin(coord, orig);
@@ -311,7 +311,7 @@ void Grid::castInfiniteRay(const Vec3r& orig, const Vec3r& dir, OccludersSet& oc
 	castRayInternal(visitor);
 }
 
-Polygon3r* Grid::castRayToFindFirstIntersection(const Vec3r& orig, const Vec3r& dir, double& t,
+Polygon3r *Grid::castRayToFindFirstIntersection(const Vec3r& orig, const Vec3r& dir, double& t,
                                                 double& u, double& v, unsigned timestamp)
 {
 	Polygon3r *occluder = 0;
@@ -348,7 +348,8 @@ void Grid::initRay (const Vec3r &orig, const Vec3r& end, unsigned timestamp)
 	//_ray_occluders.clear();
 }
 
-bool Grid::initInfiniteRay (const Vec3r &orig, const Vec3r& dir, unsigned timestamp) {
+bool Grid::initInfiniteRay (const Vec3r &orig, const Vec3r& dir, unsigned timestamp)
+{
 	_ray_dir = dir;
 	_t_end = FLT_MAX;
 	_t = 0;

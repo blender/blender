@@ -74,7 +74,7 @@ static char UnaryFunction0DUnsigned___doc__[] =
 "\n"
   "   Default constructor.\n";
 
-static int UnaryFunction0DUnsigned___init__(BPy_UnaryFunction0DUnsigned* self, PyObject *args, PyObject *kwds)
+static int UnaryFunction0DUnsigned___init__(BPy_UnaryFunction0DUnsigned *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 
@@ -85,19 +85,19 @@ static int UnaryFunction0DUnsigned___init__(BPy_UnaryFunction0DUnsigned* self, P
 	return 0;
 }
 
-static void UnaryFunction0DUnsigned___dealloc__(BPy_UnaryFunction0DUnsigned* self)
+static void UnaryFunction0DUnsigned___dealloc__(BPy_UnaryFunction0DUnsigned *self)
 {
 	if (self->uf0D_unsigned)
 		delete self->uf0D_unsigned;
-	UnaryFunction0D_Type.tp_dealloc((PyObject*)self);
+	UnaryFunction0D_Type.tp_dealloc((PyObject *)self);
 }
 
-static PyObject * UnaryFunction0DUnsigned___repr__(BPy_UnaryFunction0DUnsigned* self)
+static PyObject *UnaryFunction0DUnsigned___repr__(BPy_UnaryFunction0DUnsigned *self)
 {
 	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->uf0D_unsigned);
 }
 
-static PyObject * UnaryFunction0DUnsigned___call__(BPy_UnaryFunction0DUnsigned *self, PyObject *args, PyObject *kwds)
+static PyObject *UnaryFunction0DUnsigned___call__(BPy_UnaryFunction0DUnsigned *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"it", NULL};
 	PyObject *obj;

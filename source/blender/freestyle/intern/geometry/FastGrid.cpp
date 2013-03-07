@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/freestyle/intern/geometry/FastGrid.h
+/** \file blender/freestyle/intern/geometry/FastGrid.cpp
  *  \ingroup freestyle
  *  \brief Class to define a cell grid surrounding the bounding box of the scene
  *  \author Stephane Grabli
@@ -56,7 +56,7 @@ void FastGrid::configure(const Vec3r& orig, const Vec3r& size, unsigned nb)
 {
 	Grid::configure(orig, size, nb);
 	_cells_size = _cells_nb[0] * _cells_nb[1] * _cells_nb[2];
-	_cells = new Cell*[_cells_size];
+	_cells = new Cell *[_cells_size];
 	memset(_cells, 0, _cells_size * sizeof(*_cells));
 }
 

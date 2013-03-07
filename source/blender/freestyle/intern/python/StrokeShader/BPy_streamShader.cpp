@@ -57,7 +57,7 @@ static char streamShader___doc__[] =
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
-static int streamShader___init__(BPy_streamShader* self, PyObject *args, PyObject *kwds)
+static int streamShader___init__(BPy_streamShader *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

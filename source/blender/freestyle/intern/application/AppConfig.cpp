@@ -42,7 +42,7 @@ extern "C" {
 
 namespace Config {
 
-Path* Path::_pInstance = 0;
+Path *Path::_pInstance = 0;
 Path::Path()
 {
 	// get the root directory
@@ -80,7 +80,7 @@ Path::~Path()
 	_pInstance = 0;
 }
 
-Path* Path::getInstance()
+Path *Path::getInstance()
 {
 	return _pInstance;
 }
@@ -89,11 +89,10 @@ string Path::getEnvVar(const string& iEnvVarName)
 {
 	string value;
 	if (!getenv(StringUtils::toAscii(iEnvVarName).c_str())) {
-		cerr << "Warning: You may want to set the $"
-		     << StringUtils::toAscii(iEnvVarName)
-		     << " environment variable to use Freestyle." << endl
-		     << "         Otherwise, the current directory will be used instead."
-		     << endl;
+		cerr << "Warning: You may want to set the $" <<
+		        StringUtils::toAscii(iEnvVarName) <<
+		        " environment variable to use Freestyle." << endl <<
+		        "         Otherwise, the current directory will be used instead." << endl;
 		value = ".";
 	}
 	else {

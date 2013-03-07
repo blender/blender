@@ -83,7 +83,7 @@ PyDoc_STRVAR(TVertex_get_svertex_doc,
 "   :return: The SVertex belonging to the given FEdge.\n"
 "   :rtype: :class:`SVertex`");
 
-static PyObject * TVertex_get_svertex( BPy_TVertex *self, PyObject *args, PyObject *kwds)
+static PyObject *TVertex_get_svertex( BPy_TVertex *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"fedge", NULL};
 	PyObject *py_fe;
@@ -108,7 +108,7 @@ PyDoc_STRVAR(TVertex_get_mate_doc,
 "   :return: The mate edge of the given ViewEdge.\n"
 "   :rtype: :class:`ViewEdge`");
 
-static PyObject * TVertex_get_mate( BPy_TVertex *self, PyObject *args, PyObject *kwds)
+static PyObject *TVertex_get_mate( BPy_TVertex *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"viewedge", NULL};
 	PyObject *py_ve;
@@ -197,8 +197,10 @@ static int TVertex_id_set(BPy_TVertex *self, PyObject *value, void *UNUSED(closu
 }
 
 static PyGetSetDef BPy_TVertex_getseters[] = {
-	{(char *)"front_svertex", (getter)TVertex_front_svertex_get, (setter)TVertex_front_svertex_set, (char *)TVertex_front_svertex_doc, NULL},
-	{(char *)"back_svertex", (getter)TVertex_back_svertex_get, (setter)TVertex_back_svertex_set, (char *)TVertex_back_svertex_doc, NULL},
+	{(char *)"front_svertex", (getter)TVertex_front_svertex_get, (setter)TVertex_front_svertex_set,
+	                          (char *)TVertex_front_svertex_doc, NULL},
+	{(char *)"back_svertex", (getter)TVertex_back_svertex_get, (setter)TVertex_back_svertex_set,
+	                         (char *)TVertex_back_svertex_doc, NULL},
 	{(char *)"id", (getter)TVertex_id_get, (setter)TVertex_id_set, (char *)TVertex_id_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };

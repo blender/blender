@@ -70,7 +70,7 @@ static char LocalAverageDepthF1D___doc__[] =
 "   :return: The average depth evaluated for the Interface1D.\n"
 "   :rtype: float\n";
 
-static int LocalAverageDepthF1D___init__(BPy_LocalAverageDepthF1D* self, PyObject *args, PyObject *kwds)
+static int LocalAverageDepthF1D___init__(BPy_LocalAverageDepthF1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"sigma", "integration_type", NULL};
 	PyObject *obj = 0;
@@ -79,7 +79,7 @@ static int LocalAverageDepthF1D___init__(BPy_LocalAverageDepthF1D* self, PyObjec
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "d|O!", (char **)kwlist, &d, &IntegrationType_Type, &obj))
 		return -1;
 	IntegrationType t = (obj) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
-	self->py_uf1D_double.uf1D_double = new Functions1D::LocalAverageDepthF1D(d,t);
+	self->py_uf1D_double.uf1D_double = new Functions1D::LocalAverageDepthF1D(d, t);
 	return 0;
 }
 

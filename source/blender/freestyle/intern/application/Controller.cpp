@@ -185,7 +185,7 @@ Controller::~Controller()
 
 void Controller::setView(AppView *iView)
 {
-	if(NULL == iView)
+	if (NULL == iView)
 		return;
 
 	_pView = iView;
@@ -213,12 +213,12 @@ void Controller::setPassZ(float *buf, int width, int height)
 
 void Controller::setContext(bContext *C)
 {
-	PythonInterpreter* py_inter = dynamic_cast<PythonInterpreter*>(_inter);
+	PythonInterpreter *py_inter = dynamic_cast<PythonInterpreter*>(_inter);
 	assert(py_inter != 0);
 	py_inter->setContext(C);
 }
 
-int Controller::LoadMesh(Render *re, SceneRenderLayer* srl)
+int Controller::LoadMesh(Render *re, SceneRenderLayer *srl)
 {
 	BlenderFileLoader loader(re, srl);
 
@@ -300,7 +300,7 @@ int Controller::LoadMesh(Render *re, SceneRenderLayer* srl)
 
 	_ListOfModels.push_back("Blender_models");
 
-	_bboxDiag = (_RootNode->bbox().getMax()-_RootNode->bbox().getMin()).norm();
+	_bboxDiag = (_RootNode->bbox().getMax() - _RootNode->bbox().getMin()).norm();
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		cout << "Triangles nb     : " << _SceneNumFaces << endl;
 		cout << "Bounding Box     : " << _bboxDiag << endl;
@@ -531,7 +531,7 @@ void Controller::ComputeViewMap()
 	ViewMapBuilder vmBuilder;
 	vmBuilder.setEnableQI(_EnableQI);
 	vmBuilder.setViewpoint(Vec3r(vp));
-	vmBuilder.setTransform( mv, proj,viewport, _pView->GetFocalLength(), _pView->GetAspect(), _pView->GetFovyRadian());
+	vmBuilder.setTransform(mv, proj, viewport, _pView->GetFocalLength(), _pView->GetAspect(), _pView->GetFovyRadian());
 	vmBuilder.setFrustum(_pView->znear(), _pView->zfar());
 	vmBuilder.setGrid(&_Grid);
 	vmBuilder.setRenderMonitor(_pRenderMonitor);
@@ -843,17 +843,17 @@ void Controller::ResetRenderCount()
 	_render_count = 0;
 }
 
-Render* Controller::RenderStrokes(Render *re)
+Render *Controller::RenderStrokes(Render *re)
 {
 	_Chrono.start();
-	BlenderStrokeRenderer* blenderRenderer = new BlenderStrokeRenderer(re, ++_render_count);
+	BlenderStrokeRenderer *blenderRenderer = new BlenderStrokeRenderer(re, ++_render_count);
 	_Canvas->Render(blenderRenderer);
 	real d = _Chrono.stop();
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		cout << "Temporary scene generation: " << d << endl;
 	}
 	_Chrono.start();
-	Render* freestyle_render = blenderRenderer->RenderScene(re);
+	Render *freestyle_render = blenderRenderer->RenderScene(re);
 	d = _Chrono.stop();
 	if (G.debug & G_DEBUG_FREESTYLE) {
 		cout << "Stroke rendering  : " << d << endl;
@@ -866,18 +866,17 @@ Render* Controller::RenderStrokes(Render *re)
 void Controller::InsertStyleModule(unsigned index, const char *iFileName)
 {
 	if (!BLI_testextensie(iFileName, ".py")) {
-		cerr << "Error: Cannot load \"" << StringUtils::toAscii(string(iFileName))
-		     << "\", unknown extension" << endl;
+		cerr << "Error: Cannot load \"" << StringUtils::toAscii(string(iFileName)) << "\", unknown extension" << endl;
 		return;
 	}
 
-	StyleModule* sm = new StyleModule(iFileName, _inter);
+	StyleModule *sm = new StyleModule(iFileName, _inter);
 	_Canvas->InsertStyleModule(index, sm);
 }
 
 void Controller::InsertStyleModule(unsigned index, const char *iName, struct Text *iText)
 {
-	StyleModule* sm = new BlenderStyleModule(iText, iName, _inter);
+	StyleModule *sm = new BlenderStyleModule(iText, iName, _inter);
 	_Canvas->InsertStyleModule(index, sm);
 }
 
@@ -898,7 +897,7 @@ void Controller::Clear()
 
 void Controller::ReloadStyleModule(unsigned index, const char * iFileName)
 {
-	StyleModule* sm = new StyleModule(iFileName, _inter);
+	StyleModule *sm = new StyleModule(iFileName, _inter);
 	_Canvas->ReplaceStyleModule(index, sm);
 }
 

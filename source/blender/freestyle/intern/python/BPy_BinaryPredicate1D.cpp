@@ -121,14 +121,14 @@ static int BinaryPredicate1D___init__(BPy_BinaryPredicate1D *self, PyObject *arg
 	return 0;
 }
 
-static void BinaryPredicate1D___dealloc__(BPy_BinaryPredicate1D* self)
+static void BinaryPredicate1D___dealloc__(BPy_BinaryPredicate1D *self)
 {
 	if (self->bp1D)
 		delete self->bp1D;
-	Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-static PyObject * BinaryPredicate1D___repr__(BPy_BinaryPredicate1D* self)
+static PyObject *BinaryPredicate1D___repr__(BPy_BinaryPredicate1D *self)
 {
 	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->bp1D);
 }
@@ -147,7 +147,7 @@ static PyObject *BinaryPredicate1D___call__(BPy_BinaryPredicate1D *self, PyObjec
 		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
 	}
-	if (self->bp1D->operator()(*(obj1->if1D) , *(obj2->if1D)) < 0) {
+	if (self->bp1D->operator()(*(obj1->if1D), *(obj2->if1D)) < 0) {
 		if (!PyErr_Occurred()) {
 			string class_name(Py_TYPE(self)->tp_name);
 			PyErr_SetString(PyExc_RuntimeError, (class_name + " __call__ method failed").c_str());

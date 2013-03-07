@@ -44,7 +44,8 @@ extern "C" {
 
 extern PyTypeObject EqualToChainingTimeStampUP1D_Type;
 
-#define BPy_EqualToChainingTimeStampUP1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&EqualToChainingTimeStampUP1D_Type))
+#define BPy_EqualToChainingTimeStampUP1D_Check(v) \
+            (PyObject_IsInstance((PyObject *)v, (PyObject *)&EqualToChainingTimeStampUP1D_Type))
 
 /*---------------------------Python BPy_EqualToChainingTimeStampUP1D structure definition----------*/
 typedef struct {

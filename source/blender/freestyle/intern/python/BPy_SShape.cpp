@@ -93,10 +93,10 @@ static void SShape_dealloc(BPy_SShape *self)
 {
 	if (self->ss && !self->borrowed)
 		delete self->ss;
-	Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-static PyObject * SShape_repr(BPy_SShape *self)
+static PyObject *SShape_repr(BPy_SShape *self)
 {
 	return PyUnicode_FromFormat("SShape - address: %p", self->ss);
 }
@@ -109,7 +109,7 @@ static char SShape_add_edge_doc[] =
 "   :arg edge: An FEdge object.\n"
 "   :type edge: :class:`FEdge`\n";
 
-static PyObject * SShape_add_edge(BPy_SShape *self , PyObject *args, PyObject *kwds)
+static PyObject *SShape_add_edge(BPy_SShape *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"edge", NULL};
 	PyObject *py_fe = 0;
@@ -129,7 +129,7 @@ PyDoc_STRVAR(SShape_add_vertex_doc,
 "   :arg vertex: An SVertex object.\n"
 "   :type vertex: :class:`SVertex`");
 
-static PyObject * SShape_add_vertex(BPy_SShape *self , PyObject *args, PyObject *kwds)
+static PyObject * SShape_add_vertex(BPy_SShape *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"edge", NULL};
 	PyObject *py_sv = 0;
@@ -145,7 +145,7 @@ PyDoc_STRVAR(SShape_compute_bbox_doc,
 "\n"
 "   Compute the bbox of the SShape.");
 
-static PyObject * SShape_compute_bbox(BPy_SShape *self)
+static PyObject *SShape_compute_bbox(BPy_SShape *self)
 {
 	self->ss->ComputeBBox();
 	Py_RETURN_NONE;
@@ -223,7 +223,7 @@ static int SShape_bbox_set(BPy_SShape *self, PyObject *value, void *UNUSED(closu
 		PyErr_SetString(PyExc_TypeError, "value must be a BBox");
 		return -1;
 	}
-	self->ss->setBBox(*(((BPy_BBox*)value)->bb));
+	self->ss->setBBox(*(((BPy_BBox *)value)->bb));
 	return 0;
 }
 

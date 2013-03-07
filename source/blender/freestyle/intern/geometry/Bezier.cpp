@@ -58,7 +58,7 @@ void BezierCurveSegment::Build()
 		return;
 
 	// Compute the rightmost part of the matrix:
-	vector<Vec2d>::const_iterator p0,p1,p2,p3;
+	vector<Vec2d>::const_iterator p0, p1, p2, p3;
 	p0 = _ControlPolygon.begin();
 	p1 = p0;
 	++p1;
@@ -101,7 +101,7 @@ BezierCurve::BezierCurve(vector<Vec2d>& iPoints, double error)
 
 	fitcurve.FitCurve(iPoints, curve, error);
 	int i = 0;
-	vector<Vec2d>::iterator v,vend;
+	vector<Vec2d>::iterator v, vend;
 	for (v = curve.begin(), vend = curve.end(); v != vend; ++v) {
 		if ((i == 0) || (i % 4 != 0))
 			AddControlPoint(*v);
@@ -111,7 +111,7 @@ BezierCurve::BezierCurve(vector<Vec2d>& iPoints, double error)
 
 BezierCurve::~BezierCurve()
 {
-	if(_currentSegment)
+	if (_currentSegment)
 		delete _currentSegment;
 }
 

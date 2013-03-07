@@ -206,7 +206,7 @@ static void init_camera(Render *re)
 
 static char *escape_quotes(char *name)
 {
-	char *s = (char*)MEM_mallocN(strlen(name) * 2 + 1, "escape_quotes");
+	char *s = (char *)MEM_mallocN(strlen(name) * 2 + 1, "escape_quotes");
 	char *p = s;
 	while (*name) {
 		if (*name == '\'')
@@ -323,13 +323,13 @@ static void prepare(Render *re, SceneRenderLayer *srl)
 		if (G.debug & G_DEBUG_FREESTYLE) {
 			cout << "Modules :" << endl;
 		}
-		for (FreestyleModuleConfig *module_conf = (FreestyleModuleConfig*)config->modules.first;
+		for (FreestyleModuleConfig *module_conf = (FreestyleModuleConfig *)config->modules.first;
 		     module_conf;
 		     module_conf = module_conf->next)
 		{
-			if(module_conf->is_displayed) {
+			if (module_conf->is_displayed) {
 				if (G.debug & G_DEBUG_FREESTYLE) {
-					cout << "  " << layer_count+1 << ": " << module_conf->module_path << endl;
+					cout << "  " << layer_count + 1 << ": " << module_conf->module_path << endl;
 				}
 				controller->InsertStyleModule(layer_count, module_conf->module_path);
 				controller->toggleLayer(layer_count, true);
@@ -362,14 +362,14 @@ static void prepare(Render *re, SceneRenderLayer *srl)
 		if (G.debug & G_DEBUG_FREESTYLE) {
 			cout << "Linesets:" << endl;
 		}
-		for (FreestyleLineSet *lineset = (FreestyleLineSet*)config->linesets.first;
+		for (FreestyleLineSet *lineset = (FreestyleLineSet *)config->linesets.first;
 		     lineset;
 		     lineset = lineset->next)
 		{
 			if (lineset->flags & FREESTYLE_LINESET_ENABLED) {
 				if (G.debug & G_DEBUG_FREESTYLE) {
-					cout << "  " << layer_count+1 << ": " << lineset->name << " - "
-					     << lineset->linestyle->id.name+2 << endl;
+					cout << "  " << layer_count+1 << ": " << lineset->name << " - " <<
+					        lineset->linestyle->id.name + 2 << endl;
 				}
 				Text *text = create_lineset_handler(srl->name, lineset->name);
 				controller->InsertStyleModule(layer_count, lineset->name, text);
@@ -444,21 +444,21 @@ static void prepare(Render *re, SceneRenderLayer *srl)
 		cout << "Crease angle : " << controller->getCreaseAngle() << endl;
 		cout << "Sphere radius : " << controller->getSphereRadius() << endl;
 		cout << "Face smoothness : " << (controller->getFaceSmoothness() ? "enabled" : "disabled") << endl;
-		cout << "Redges and valleys : " << (controller->getComputeRidgesAndValleysFlag() ? "enabled" : "disabled")
-		     << endl;
-		cout << "Suggestive contours : " << (controller->getComputeSuggestiveContoursFlag() ? "enabled" : "disabled")
-		     << endl;
-		cout << "Suggestive contour Kr derivative epsilon : " << controller->getSuggestiveContourKrDerivativeEpsilon()
-		     << endl;
-		cout << "Material boundaries : " << (controller->getComputeMaterialBoundariesFlag() ? "enabled" : "disabled")
-		     << endl;
+		cout << "Redges and valleys : " << (controller->getComputeRidgesAndValleysFlag() ? "enabled" : "disabled") <<
+		        endl;
+		cout << "Suggestive contours : " <<
+		        (controller->getComputeSuggestiveContoursFlag() ? "enabled" : "disabled") << endl;
+		cout << "Suggestive contour Kr derivative epsilon : " <<
+		        controller->getSuggestiveContourKrDerivativeEpsilon() << endl;
+		cout << "Material boundaries : " <<
+		        (controller->getComputeMaterialBoundariesFlag() ? "enabled" : "disabled") << endl;
 		cout << endl;
 	}
 
 	// set diffuse and z depth passes
 	RenderLayer *rl = RE_GetRenderLayer(re->result, srl->name);
 	bool diffuse = false, z = false;
-	for (RenderPass *rpass = (RenderPass*)rl->passes.first; rpass; rpass = rpass->next) {
+	for (RenderPass *rpass = (RenderPass *)rl->passes.first; rpass; rpass = rpass->next) {
 		switch (rpass->passtype) {
 		case SCE_PASS_DIFFUSE:
 			controller->setPassDiffuse(rpass->rect, rpass->rectx, rpass->recty);
@@ -483,7 +483,7 @@ static void prepare(Render *re, SceneRenderLayer *srl)
 	controller->ComputeViewMap();
 }
 
-void FRS_composite_result(Render* re, SceneRenderLayer* srl, Render* freestyle_render)
+void FRS_composite_result(Render *re, SceneRenderLayer *srl, Render *freestyle_render)
 {
 	RenderLayer *rl;
 	float *src, *dest, *pixSrc, *pixDest;
@@ -539,7 +539,7 @@ static int displayed_layer_count(SceneRenderLayer *srl)
 
 	switch (srl->freestyleConfig.mode) {
 	case FREESTYLE_CONTROL_SCRIPT_MODE:
-		for (FreestyleModuleConfig *module = (FreestyleModuleConfig*)srl->freestyleConfig.modules.first;
+		for (FreestyleModuleConfig *module = (FreestyleModuleConfig *)srl->freestyleConfig.modules.first;
 		     module;
 		     module = module->next)
 		{
@@ -548,7 +548,7 @@ static int displayed_layer_count(SceneRenderLayer *srl)
 		}
 		break;
 	case FREESTYLE_CONTROL_EDITOR_MODE:
-		for (FreestyleLineSet *lineset = (FreestyleLineSet*)srl->freestyleConfig.linesets.first;
+		for (FreestyleLineSet *lineset = (FreestyleLineSet *)srl->freestyleConfig.linesets.first;
 		     lineset;
 		     lineset = lineset->next)
 		{
@@ -630,7 +630,8 @@ Render *FRS_do_stroke_rendering(Render *re, SceneRenderLayer *srl)
 	return freestyle_render;
 }
 
-void FRS_finish_stroke_rendering(Render *re) {
+void FRS_finish_stroke_rendering(Render *re)
+{
 	// clear canvas
 	controller->Clear();
 }
@@ -656,7 +657,7 @@ void FRS_free_freestyle_config(FreestyleConfig *config)
 {
 	FreestyleLineSet *lineset;
 
-	for (lineset = (FreestyleLineSet*)config->linesets.first; lineset; lineset = lineset->next) {
+	for (lineset = (FreestyleLineSet *)config->linesets.first; lineset; lineset = lineset->next) {
 		if (lineset->group) {
 			lineset->group->id.us--;
 			lineset->group = NULL;
@@ -681,17 +682,17 @@ void FRS_copy_freestyle_config(FreestyleConfig *new_config, FreestyleConfig *con
 	new_config->crease_angle = config->crease_angle;
 
 	new_config->linesets.first = new_config->linesets.last = NULL;
-	for (lineset = (FreestyleLineSet*)config->linesets.first; lineset; lineset = lineset->next) {
+	for (lineset = (FreestyleLineSet *)config->linesets.first; lineset; lineset = lineset->next) {
 		new_lineset = FRS_alloc_lineset();
 		copy_lineset(new_lineset, lineset);
-		BLI_addtail(&new_config->linesets, (void*)new_lineset);
+		BLI_addtail(&new_config->linesets, (void *)new_lineset);
 	}
 
 	new_config->modules.first = new_config->modules.last = NULL;
-	for (module = (FreestyleModuleConfig*)config->modules.first; module; module = module->next) {
+	for (module = (FreestyleModuleConfig *)config->modules.first; module; module = module->next) {
 		new_module = FRS_alloc_module();
 		copy_module(new_module, module);
-		BLI_addtail(&new_config->modules, (void*)new_module);
+		BLI_addtail(&new_config->modules, (void *)new_module);
 	}
 }
 
@@ -715,14 +716,14 @@ static void copy_lineset(FreestyleLineSet *new_lineset, FreestyleLineSet *linese
 
 FreestyleModuleConfig *FRS_alloc_module()
 {
-	return (FreestyleModuleConfig*)MEM_callocN(sizeof(FreestyleModuleConfig), "style module configuration");
+	return (FreestyleModuleConfig *)MEM_callocN(sizeof(FreestyleModuleConfig), "style module configuration");
 }
 
 void FRS_add_module(FreestyleConfig *config)
 {
-	FreestyleModuleConfig *module_conf = (FreestyleModuleConfig*)MEM_callocN(sizeof(FreestyleModuleConfig),
-	                                                                         "style module configuration");
-	BLI_addtail(&config->modules, (void*)module_conf);
+	FreestyleModuleConfig *module_conf = (FreestyleModuleConfig *)MEM_callocN(sizeof(FreestyleModuleConfig),
+	                                                                          "style module configuration");
+	BLI_addtail(&config->modules, (void *)module_conf);
 
 	strcpy(module_conf->module_path, default_module_path.c_str());
 	module_conf->is_displayed = 1;
@@ -759,7 +760,7 @@ static void unique_lineset_name(FreestyleConfig *config, FreestyleLineSet *lines
 
 FreestyleLineSet *FRS_alloc_lineset()
 {
-	return (FreestyleLineSet*)MEM_callocN(sizeof(FreestyleLineSet), "Freestyle line set");
+	return (FreestyleLineSet *)MEM_callocN(sizeof(FreestyleLineSet), "Freestyle line set");
 }
 
 FreestyleLineSet *FRS_add_lineset(FreestyleConfig *config)
@@ -767,7 +768,7 @@ FreestyleLineSet *FRS_add_lineset(FreestyleConfig *config)
 	int lineset_index = BLI_countlist(&config->linesets);
 
 	FreestyleLineSet *lineset = FRS_alloc_lineset();
-	BLI_addtail(&config->linesets, (void*)lineset);
+	BLI_addtail(&config->linesets, (void *)lineset);
 	FRS_set_active_lineset_index(config, lineset_index);
 
 	lineset->linestyle = FRS_new_linestyle("LineStyle", NULL);
@@ -880,7 +881,7 @@ FreestyleLineSet *FRS_get_active_lineset(FreestyleConfig *config)
 {
 	FreestyleLineSet *lineset;
 
-	for (lineset = (FreestyleLineSet*)config->linesets.first; lineset; lineset = lineset->next) {
+	for (lineset = (FreestyleLineSet *)config->linesets.first; lineset; lineset = lineset->next) {
 		if (lineset->flags & FREESTYLE_LINESET_CURRENT)
 			return lineset;
 	}
@@ -892,7 +893,7 @@ short FRS_get_active_lineset_index(FreestyleConfig *config)
 	FreestyleLineSet *lineset;
 	short i;
 
-	for (lineset = (FreestyleLineSet*)config->linesets.first, i = 0; lineset; lineset = lineset->next, i++) {
+	for (lineset = (FreestyleLineSet *)config->linesets.first, i = 0; lineset; lineset = lineset->next, i++) {
 		if (lineset->flags & FREESTYLE_LINESET_CURRENT)
 			return i;
 	}
@@ -904,7 +905,7 @@ void FRS_set_active_lineset_index(FreestyleConfig *config, short index)
 	FreestyleLineSet *lineset;
 	short i;
 
-	for (lineset = (FreestyleLineSet*)config->linesets.first, i = 0; lineset; lineset = lineset->next, i++) {
+	for (lineset = (FreestyleLineSet *)config->linesets.first, i = 0; lineset; lineset = lineset->next, i++) {
 		if (i == index)
 			lineset->flags |= FREESTYLE_LINESET_CURRENT;
 		else
@@ -916,7 +917,7 @@ void FRS_unlink_target_object(FreestyleConfig *config, Object *ob)
 {
 	FreestyleLineSet *lineset;
 
-	for (lineset = (FreestyleLineSet*)config->linesets.first; lineset; lineset = lineset->next) {
+	for (lineset = (FreestyleLineSet *)config->linesets.first; lineset; lineset = lineset->next) {
 		FRS_unlink_linestyle_target_object(lineset->linestyle, ob);
 	}
 }

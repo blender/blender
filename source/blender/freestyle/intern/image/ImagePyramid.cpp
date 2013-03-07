@@ -134,7 +134,7 @@ GaussianPyramid::GaussianPyramid(const GrayImage& level0, unsigned nbLevels, flo
 	BuildPyramid(level0, nbLevels);
 }
 
-GaussianPyramid::GaussianPyramid(GrayImage* level0, unsigned nbLevels, float iSigma) : ImagePyramid()
+GaussianPyramid::GaussianPyramid(GrayImage *level0, unsigned nbLevels, float iSigma) : ImagePyramid()
 {
 	_sigma = iSigma;
 	BuildPyramid(level0, nbLevels);
@@ -151,7 +151,7 @@ void GaussianPyramid::BuildPyramid(const GrayImage& level0, unsigned nbLevels)
 	BuildPyramid(pLevel, nbLevels);
 }
 
-void GaussianPyramid::BuildPyramid(GrayImage* level0, unsigned nbLevels)
+void GaussianPyramid::BuildPyramid(GrayImage *level0, unsigned nbLevels)
 {
 	GrayImage *pLevel = level0;
 	_levels.push_back(pLevel);

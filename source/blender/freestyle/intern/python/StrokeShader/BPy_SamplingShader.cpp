@@ -60,7 +60,7 @@ static char SamplingShader___doc__[] =
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
-static int SamplingShader___init__(BPy_SamplingShader* self, PyObject *args, PyObject *kwds)
+static int SamplingShader___init__(BPy_SamplingShader *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"sampling", NULL};
 	float f;

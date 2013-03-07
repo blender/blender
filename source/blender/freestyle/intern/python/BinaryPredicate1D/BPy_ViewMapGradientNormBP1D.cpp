@@ -75,7 +75,7 @@ static char ViewMapGradientNormBP1D___doc__[] =
 "   :return: True or false.\n"
 "   :rtype: bool\n";
 
-static int ViewMapGradientNormBP1D___init__(BPy_ViewMapGradientNormBP1D* self, PyObject *args, PyObject *kwds)
+static int ViewMapGradientNormBP1D___init__(BPy_ViewMapGradientNormBP1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"level", "integration_type", "sampling", NULL};
 	PyObject *obj = 0;

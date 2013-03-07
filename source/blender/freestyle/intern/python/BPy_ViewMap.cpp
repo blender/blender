@@ -79,10 +79,10 @@ static void ViewMap_dealloc(BPy_ViewMap *self)
 {
 	if (self->vm)
 		delete self->vm;
-	Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-static PyObject * ViewMap_repr(BPy_ViewMap *self)
+static PyObject *ViewMap_repr(BPy_ViewMap *self)
 {
 	return PyUnicode_FromFormat("ViewMap - address: %p", self->vm);
 }
@@ -99,14 +99,14 @@ PyDoc_STRVAR(ViewMap_get_closest_viewedge_doc,
 "   :return: The ViewEdge nearest to the specified 2D point.\n"
 "   :rtype: :class:`ViewEdge`");
 
-static PyObject * ViewMap_get_closest_viewedge(BPy_ViewMap *self , PyObject *args, PyObject *kwds)
+static PyObject *ViewMap_get_closest_viewedge(BPy_ViewMap *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"x", "y", NULL};
 	double x, y;
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "dd", (char **)kwlist, &x, &y))
 		return NULL;
-	ViewEdge *ve = const_cast<ViewEdge *>(self->vm->getClosestViewEdge(x,y));
+	ViewEdge *ve = const_cast<ViewEdge *>(self->vm->getClosestViewEdge(x, y));
 	if (ve)
 		return BPy_ViewEdge_from_ViewEdge(*ve);
 	Py_RETURN_NONE;
@@ -124,14 +124,14 @@ PyDoc_STRVAR(ViewMap_get_closest_fedge_doc,
 "   :return: The FEdge nearest to the specified 2D point.\n"
 "   :rtype: :class:`FEdge`");
 
-static PyObject * ViewMap_get_closest_fedge(BPy_ViewMap *self , PyObject *args, PyObject *kwds)
+static PyObject *ViewMap_get_closest_fedge(BPy_ViewMap *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"x", "y", NULL};
 	double x, y;
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "dd", (char **)kwlist, &x, &y))
 		return NULL;
-	FEdge *fe = const_cast<FEdge *>(self->vm->getClosestFEdge(x,y));
+	FEdge *fe = const_cast<FEdge *>(self->vm->getClosestFEdge(x, y));
 	if (fe)
 		return Any_BPy_FEdge_from_FEdge(*fe);
 	Py_RETURN_NONE;
@@ -140,8 +140,10 @@ static PyObject * ViewMap_get_closest_fedge(BPy_ViewMap *self , PyObject *args, 
 // static ViewMap *getInstance ();
 
 static PyMethodDef BPy_ViewMap_methods[] = {
-	{"get_closest_viewedge", (PyCFunction)ViewMap_get_closest_viewedge, METH_VARARGS | METH_KEYWORDS, ViewMap_get_closest_viewedge_doc},
-	{"get_closest_fedge", (PyCFunction)ViewMap_get_closest_fedge, METH_VARARGS | METH_KEYWORDS, ViewMap_get_closest_fedge_doc},
+	{"get_closest_viewedge", (PyCFunction)ViewMap_get_closest_viewedge, METH_VARARGS | METH_KEYWORDS,
+	                         ViewMap_get_closest_viewedge_doc},
+	{"get_closest_fedge", (PyCFunction)ViewMap_get_closest_fedge, METH_VARARGS | METH_KEYWORDS,
+	                      ViewMap_get_closest_fedge_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -168,7 +170,8 @@ static int ViewMap_scene_bbox_set(BPy_ViewMap *self, PyObject *value, void *UNUS
 }
 
 static PyGetSetDef BPy_ViewMap_getseters[] = {
-	{(char *)"scene_bbox", (getter)ViewMap_scene_bbox_get, (setter)ViewMap_scene_bbox_set, (char *)ViewMap_scene_bbox_doc, NULL},
+	{(char *)"scene_bbox", (getter)ViewMap_scene_bbox_get, (setter)ViewMap_scene_bbox_set,
+	                       (char *)ViewMap_scene_bbox_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 

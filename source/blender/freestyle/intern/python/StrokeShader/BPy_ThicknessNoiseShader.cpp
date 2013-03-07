@@ -62,7 +62,7 @@ static char ThicknessNoiseShader___doc__[] =
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
-static int ThicknessNoiseShader___init__(BPy_ThicknessNoiseShader* self, PyObject *args, PyObject *kwds)
+static int ThicknessNoiseShader___init__(BPy_ThicknessNoiseShader *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"amplitude", "period", NULL};
 	float f1, f2;

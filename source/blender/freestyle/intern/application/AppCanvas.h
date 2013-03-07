@@ -56,14 +56,14 @@ public:
 	virtual void init();
 
 	/*! Reads a pixel area from the canvas */
-	virtual void readColorPixels(int x,int y,int w, int h, RGBImage& oImage) const;
+	virtual void readColorPixels(int x, int y, int w, int h, RGBImage& oImage) const;
 	/*! Reads a depth pixel area from the canvas */
-	virtual void readDepthPixels(int x,int y,int w, int h, GrayImage& oImage) const;
+	virtual void readDepthPixels(int x, int y, int w, int h, GrayImage& oImage) const;
 
 	virtual BBox<Vec3r> scene3DBBox() const;
 
 	/* abstract */
-	virtual void RenderStroke(Stroke*);
+	virtual void RenderStroke(Stroke *);
 	virtual void update();
 
 

@@ -63,7 +63,7 @@ static char GetXF1D___doc__[] =
 "   :return: The X 3D coordinate of the Interface1D.\n"
 "   :rtype: float\n";
 
-static int GetXF1D___init__(BPy_GetXF1D* self, PyObject *args, PyObject *kwds)
+static int GetXF1D___init__(BPy_GetXF1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"integration_type", NULL};
 	PyObject *obj = 0;

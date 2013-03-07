@@ -70,13 +70,13 @@ static int BBox_init(BPy_BBox *self, PyObject *args, PyObject *kwds)
 	return 0;
 }
 
-static void BBox_dealloc(BPy_BBox* self)
+static void BBox_dealloc(BPy_BBox *self)
 {
 	delete self->bb;
-	Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-static PyObject * BBox_repr(BPy_BBox* self)
+static PyObject *BBox_repr(BPy_BBox *self)
 {
 	return PyUnicode_FromFormat("BBox - address: %p", self->bb);
 }

@@ -65,7 +65,7 @@ static char DensityLowerThanUP1D___doc__[] =
 "   :return: True if the density is lower than a threshold.\n"
 "   :rtype: bool\n";
 
-static int DensityLowerThanUP1D___init__(BPy_DensityLowerThanUP1D* self, PyObject *args, PyObject *kwds)
+static int DensityLowerThanUP1D___init__(BPy_DensityLowerThanUP1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"threshold", "sigma", NULL};
 	double d1, d2 = 2.0;

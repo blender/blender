@@ -193,7 +193,7 @@ static PyObject *FEdgeSmooth_material_index_get(BPy_FEdgeSmooth *self, void *UNU
 static int FEdgeSmooth_material_index_set(BPy_FEdgeSmooth *self, PyObject *value, void *UNUSED(closure))
 {
 	unsigned int i = PyLong_AsUnsignedLong(value);
-	if(PyErr_Occurred())
+	if (PyErr_Occurred())
 		return -1;
 	self->fes->setFrsMaterialIndex(i);
 	return 0;
@@ -221,17 +221,20 @@ static PyObject *FEdgeSmooth_face_mark_get(BPy_FEdgeSmooth *self, void *UNUSED(c
 
 static int FEdgeSmooth_face_mark_set(BPy_FEdgeSmooth *self, PyObject *value, void *UNUSED(closure))
 {
-	if(!PyBool_Check(value))
+	if (!PyBool_Check(value))
 		return -1;
 	self->fes->setFaceMark(bool_from_PyBool(value));
 	return 0;
 }
 
 static PyGetSetDef BPy_FEdgeSmooth_getseters[] = {
-	{(char *)"normal", (getter)FEdgeSmooth_normal_get, (setter)FEdgeSmooth_normal_set, (char *)FEdgeSmooth_normal_doc, NULL},
-	{(char *)"material_index", (getter)FEdgeSmooth_material_index_get, (setter)FEdgeSmooth_material_index_set, (char *)FEdgeSmooth_material_index_doc, NULL},
+	{(char *)"normal", (getter)FEdgeSmooth_normal_get, (setter)FEdgeSmooth_normal_set,
+	                   (char *)FEdgeSmooth_normal_doc, NULL},
+	{(char *)"material_index", (getter)FEdgeSmooth_material_index_get, (setter)FEdgeSmooth_material_index_set,
+	                           (char *)FEdgeSmooth_material_index_doc, NULL},
 	{(char *)"material", (getter)FEdgeSmooth_material_get, (setter)NULL, (char *)FEdgeSmooth_material_doc, NULL},
-	{(char *)"face_mark", (getter)FEdgeSmooth_face_mark_get, (setter)FEdgeSmooth_face_mark_set, (char *)FEdgeSmooth_face_mark_doc, NULL},
+	{(char *)"face_mark", (getter)FEdgeSmooth_face_mark_get, (setter)FEdgeSmooth_face_mark_set,
+	                      (char *)FEdgeSmooth_face_mark_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 

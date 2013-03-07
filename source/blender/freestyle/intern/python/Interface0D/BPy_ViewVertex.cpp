@@ -74,7 +74,7 @@ PyDoc_STRVAR(ViewVertex_edges_begin_doc,
 "   :return: An orientedViewEdgeIterator pointing to the first ViewEdge.\n"
 "   :rtype: :class:`orientedViewEdgeIterator`");
 
-static PyObject * ViewVertex_edges_begin(BPy_ViewVertex *self)
+static PyObject *ViewVertex_edges_begin(BPy_ViewVertex *self)
 {
 	ViewVertexInternal::orientedViewEdgeIterator ove_it(self->vv->edgesBegin());
 	return BPy_orientedViewEdgeIterator_from_orientedViewEdgeIterator(ove_it, 0);
@@ -89,7 +89,7 @@ PyDoc_STRVAR(ViewVertex_edges_end_doc,
 "   :return: An orientedViewEdgeIterator pointing after the last ViewEdge.\n"
 "   :rtype: :class:`orientedViewEdgeIterator`");
 
-static PyObject * ViewVertex_edges_end(BPy_ViewVertex *self)
+static PyObject *ViewVertex_edges_end(BPy_ViewVertex *self)
 {
 #if 0
 	ViewVertexInternal::orientedViewEdgeIterator ove_it(self->vv->edgesEnd());
@@ -111,7 +111,7 @@ PyDoc_STRVAR(ViewVertex_edges_iterator_doc,
 "   :return: An orientedViewEdgeIterator pointing to the given ViewEdge.\n"
 "   :rtype: :class:`orientedViewEdgeIterator`");
 
-static PyObject * ViewVertex_edges_iterator(BPy_ViewVertex *self, PyObject *args, PyObject *kwds)
+static PyObject *ViewVertex_edges_iterator(BPy_ViewVertex *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"edge", NULL};
 	PyObject *py_ve;
@@ -126,7 +126,8 @@ static PyObject * ViewVertex_edges_iterator(BPy_ViewVertex *self, PyObject *args
 static PyMethodDef BPy_ViewVertex_methods[] = {
 	{"edges_begin", (PyCFunction)ViewVertex_edges_begin, METH_NOARGS, ViewVertex_edges_begin_doc},
 	{"edges_end", (PyCFunction)ViewVertex_edges_end, METH_NOARGS, ViewVertex_edges_end_doc},
-	{"edges_iterator", (PyCFunction)ViewVertex_edges_iterator, METH_VARARGS | METH_KEYWORDS, ViewVertex_edges_iterator_doc},
+	{"edges_iterator", (PyCFunction)ViewVertex_edges_iterator, METH_VARARGS | METH_KEYWORDS,
+	                   ViewVertex_edges_iterator_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -156,7 +157,8 @@ static int ViewVertex_nature_set(BPy_ViewVertex *self, PyObject *value, void *UN
 }
 
 static PyGetSetDef BPy_ViewVertex_getseters[] = {
-	{(char *)"nature", (getter)ViewVertex_nature_get, (setter)ViewVertex_nature_set, (char *)ViewVertex_nature_doc, NULL},
+	{(char *)"nature", (getter)ViewVertex_nature_get, (setter)ViewVertex_nature_set,
+	                   (char *)ViewVertex_nature_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 

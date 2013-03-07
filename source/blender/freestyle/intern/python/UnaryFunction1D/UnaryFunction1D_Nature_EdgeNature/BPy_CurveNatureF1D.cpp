@@ -68,7 +68,7 @@ static char CurveNatureF1D___doc__[] =
 "   :return: The nature of the Interface1D.\n"
 "   :rtype: :class:`Nature`\n";
 
-static int CurveNatureF1D___init__(BPy_CurveNatureF1D* self, PyObject *args, PyObject *kwds)
+static int CurveNatureF1D___init__(BPy_CurveNatureF1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"integration_type", NULL};
 	PyObject *obj = 0;

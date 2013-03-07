@@ -90,19 +90,19 @@ static int BinaryPredicate0D___init__(BPy_BinaryPredicate0D *self, PyObject *arg
 	return 0;
 }
 
-static void BinaryPredicate0D___dealloc__(BPy_BinaryPredicate0D* self)
+static void BinaryPredicate0D___dealloc__(BPy_BinaryPredicate0D *self)
 {
 	if (self->bp0D)
 		delete self->bp0D;
-	Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-static PyObject * BinaryPredicate0D___repr__(BPy_BinaryPredicate0D* self)
+static PyObject *BinaryPredicate0D___repr__(BPy_BinaryPredicate0D *self)
 {
 	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->bp0D);
 }
 
-static PyObject * BinaryPredicate0D___call__(BPy_BinaryPredicate0D *self, PyObject *args, PyObject *kwds)
+static PyObject *BinaryPredicate0D___call__(BPy_BinaryPredicate0D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"inter1", "inter2", NULL};
 	BPy_Interface0D *obj1, *obj2;
@@ -116,7 +116,7 @@ static PyObject * BinaryPredicate0D___call__(BPy_BinaryPredicate0D *self, PyObje
 		PyErr_SetString(PyExc_TypeError, "__call__ method not properly overridden");
 		return NULL;
 	}
-	if (self->bp0D->operator()(*(obj1->if0D) , *(obj2->if0D)) < 0) {
+	if (self->bp0D->operator()(*(obj1->if0D), *(obj2->if0D)) < 0) {
 		if (!PyErr_Occurred()) {
 			string class_name(Py_TYPE(self)->tp_name);
 			PyErr_SetString(PyExc_RuntimeError, (class_name + " __call__ method failed").c_str());

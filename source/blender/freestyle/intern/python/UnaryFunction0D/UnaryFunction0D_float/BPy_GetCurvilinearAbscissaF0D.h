@@ -44,7 +44,8 @@ extern "C" {
 
 extern PyTypeObject GetCurvilinearAbscissaF0D_Type;
 
-#define BPy_GetCurvilinearAbscissaF0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetCurvilinearAbscissaF0D_Type))
+#define BPy_GetCurvilinearAbscissaF0D_Check(v) \
+            (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetCurvilinearAbscissaF0D_Type))
 
 /*---------------------------Python BPy_GetCurvilinearAbscissaF0D structure definition----------*/
 typedef struct {

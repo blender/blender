@@ -71,7 +71,7 @@ public:
 
 	virtual ~Cell() {}
 
-	inline void addOccluder(Polygon3r* o) {
+	inline void addOccluder(Polygon3r *o) {
 		if (o)
 			_occluders.push_back(o);
 	}
@@ -142,7 +142,7 @@ private:
 
 public:
 	firstIntersectionGridVisitor(const Vec3r& ray_org, const Vec3r& ray_dir, const Vec3r& cell_size) :
-	    GridVisitor(), u_(0),v_(0),t_(DBL_MAX), occluder_(0), ray_org_(ray_org), ray_dir_(ray_dir),
+	    GridVisitor(), u_(0), v_(0), t_(DBL_MAX), occluder_(0), ray_org_(ray_org), ray_dir_(ray_dir),
 	    cell_size_(cell_size), current_cell_(0)
 	{
 	}
@@ -213,14 +213,14 @@ public:
 	virtual void fillCell(const Vec3u& coord, Cell& cell) = 0;
 
 	/*! returns the cell whose coordinates are pased as argument */
-	virtual Cell* getCell(const Vec3u& coord) = 0;
+	virtual Cell *getCell(const Vec3u& coord) = 0;
 
 	/*! returns the cell containing the point passed as argument. If the cell is empty (contains no occluder),
 	 *  NULL is returned
 	 *    p
 	 *      The point for which we're looking the cell
 	 */
-	inline Cell* getCell(const Vec3r& p) {    
+	inline Cell *getCell(const Vec3r& p) {
 		Vec3u coord;
 		getCellCoordinates(p, coord);
 		return getCell(coord);
@@ -255,10 +255,10 @@ public:
 	 *    convex_poly
 	 *      The list of 3D points constituing a convex polygon
 	 */
-	void insertOccluder(Polygon3r * convex_poly);
+	void insertOccluder(Polygon3r *convex_poly);
 
 	/*! Adds an occluder to the list of occluders */
-	void addOccluder(Polygon3r* occluder) {
+	void addOccluder(Polygon3r *occluder) {
 		_occluders.push_back(occluder);
 	}
 
@@ -311,7 +311,7 @@ public:
 	}
 
 	//ARB profiling only:
-	inline OccludersSet* getOccluders() {
+	inline OccludersSet *getOccluders() {
 		return &_occluders;
 	}
 
@@ -371,12 +371,12 @@ protected:
 class VirtualOccludersSet {
 public:
 	VirtualOccludersSet(Grid& _grid) : grid (_grid) {};
-	Polygon3r* begin();
-	Polygon3r* next();
-	Polygon3r* next(bool stopOnNewCell);
+	Polygon3r *begin();
+	Polygon3r *next();
+	Polygon3r *next(bool stopOnNewCell);
 
 private:
-	Polygon3r* firstOccluderFromNextCell();
+	Polygon3r *firstOccluderFromNextCell();
 	Grid& grid;
 	OccludersSet::iterator it, end;
 };

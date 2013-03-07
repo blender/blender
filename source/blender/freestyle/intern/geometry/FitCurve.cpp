@@ -154,7 +154,7 @@ static BezierCurve  GenerateBezier(Vector2 *d, int first, int last, double *uPri
 	Vector2 tmp;             /* Utility variable */
 	BezierCurve bezCurve;    /* RETURN bezier curve ctl pts */
 
-	bezCurve = (Vector2*)malloc(4 * sizeof(Vector2));
+	bezCurve = (Vector2 *)malloc(4 * sizeof(Vector2));
 	nPts = last - first + 1;
 
 	/* Compute the A's */
@@ -246,9 +246,9 @@ static double *Reparameterize(Vector2 *d, int first, int last, double *u, Bezier
 	int i;
 	double *uPrime; /* New parameter values */
 
-	uPrime = (double*)malloc(nPts * sizeof(double));
+	uPrime = (double *)malloc(nPts * sizeof(double));
 	for (i = first; i <= last; i++) {
-		uPrime[i-first] = NewtonRaphsonRootFind(bezCurve, d[i], u[i - first]);
+		uPrime[i - first] = NewtonRaphsonRootFind(bezCurve, d[i], u[i - first]);
 	}
 	return (uPrime);
 }
@@ -313,21 +313,21 @@ static Vector2 BezierII(int degree, Vector2 *V, double t)
 	Vector2 *Vtemp;  /* Local copy of control points */
 
 	/* Copy array */
-	Vtemp = (Vector2*)malloc((unsigned)((degree + 1) * sizeof (Vector2)));
+	Vtemp = (Vector2 *)malloc((unsigned)((degree + 1) * sizeof(Vector2)));
 	for (i = 0; i <= degree; i++) {
 		Vtemp[i] = V[i];
 	}
 
 	/* Triangle computation	*/
 	for (i = 1; i <= degree; i++) {
-		for (j = 0; j <= degree-i; j++) {
+		for (j = 0; j <= degree - i; j++) {
 			Vtemp[j][0] = (1.0 - t) * Vtemp[j][0] + t * Vtemp[j + 1][0];
 			Vtemp[j][1] = (1.0 - t) * Vtemp[j][1] + t * Vtemp[j + 1][1];
 		}
 	}
 
 	Q = Vtemp[0];
-	free((void*)Vtemp);
+	free((void *)Vtemp);
 	return Q;
 }
 
@@ -411,7 +411,7 @@ static double *ChordLengthParameterize(Vector2 *d, int first, int last)
 	int i;
 	double *u; /* Parameterization */
 
-	u = (double*)malloc((unsigned)(last - first + 1) * sizeof(double));
+	u = (double *)malloc((unsigned)(last - first + 1) * sizeof(double));
 
 	u[0] = 0.0;
 	for (i = first + 1; i <= last; i++) {
@@ -551,13 +551,13 @@ void FitCurveWrapper::FitCubic(Vector2 *d, int first, int last, Vector2 tHat1, V
 	if (nPts == 2) {
 		double dist = V2DistanceBetween2Points(&d[last], &d[first]) / 3.0;
 
-		bezCurve = (Vector2*)malloc(4 * sizeof(Vector2));
+		bezCurve = (Vector2 *)malloc(4 * sizeof(Vector2));
 		bezCurve[0] = d[first];
 		bezCurve[3] = d[last];
 		V2Add(&bezCurve[0], V2Scale(&tHat1, dist), &bezCurve[1]);
 		V2Add(&bezCurve[3], V2Scale(&tHat2, dist), &bezCurve[2]);
 		DrawBezierCurve(3, bezCurve);
-		free((void*)bezCurve);
+		free((void *)bezCurve);
 		return;
 	}
 
@@ -569,8 +569,8 @@ void FitCurveWrapper::FitCubic(Vector2 *d, int first, int last, Vector2 tHat1, V
 	maxError = ComputeMaxError(d, first, last, bezCurve, u, &splitPoint);
 	if (maxError < error) {
 		DrawBezierCurve(3, bezCurve);
-		free((void*)u);
-		free((void*)bezCurve);
+		free((void *)u);
+		free((void *)bezCurve);
 		return;
 	}
 
@@ -583,18 +583,18 @@ void FitCurveWrapper::FitCubic(Vector2 *d, int first, int last, Vector2 tHat1, V
 			bezCurve, uPrime, &splitPoint);
 			if (maxError < error) {
 				DrawBezierCurve(3, bezCurve);
-				free((void*)u);
-				free((void*)bezCurve);
+				free((void *)u);
+				free((void *)bezCurve);
 				return;
 			}
-			free((void*)u);
+			free((void *)u);
 			u = uPrime;
 		}
 	}
 
 	/* Fitting failed -- split at max error point and fit recursively */
-	free((void*)u);
-	free((void*)bezCurve);
+	free((void *)u);
+	free((void *)bezCurve);
 	tHatCenter = ComputeCenterTangent(d, splitPoint);
 	FitCubic(d, first, splitPoint, tHat1, tHatCenter, error);
 	V2Negate(&tHatCenter);

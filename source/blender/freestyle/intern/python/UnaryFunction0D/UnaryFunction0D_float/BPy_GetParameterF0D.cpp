@@ -58,7 +58,7 @@ static char GetParameterF0D___doc__[] =
 "   :return: The parameter of an Interface0D.\n"
 "   :rtype: float\n";
 
-static int GetParameterF0D___init__(BPy_GetParameterF0D* self, PyObject *args, PyObject *kwds)
+static int GetParameterF0D___init__(BPy_GetParameterF0D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

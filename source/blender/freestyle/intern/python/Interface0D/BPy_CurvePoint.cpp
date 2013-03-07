@@ -219,10 +219,13 @@ static PyObject *CurvePoint_curvature_fredo_get(BPy_CurvePoint *self, void *UNUS
 // todo - CurvePoint.directionFredo()
 
 static PyGetSetDef BPy_CurvePoint_getseters[] = {
-	{(char *)"first_svertex", (getter)CurvePoint_first_svertex_get, (setter)CurvePoint_first_svertex_set, (char *)CurvePoint_first_svertex_doc, NULL},
-	{(char *)"second_svertex", (getter)CurvePoint_second_svertex_get, (setter)CurvePoint_second_svertex_set, (char *)CurvePoint_second_svertex_doc, NULL},
+	{(char *)"first_svertex", (getter)CurvePoint_first_svertex_get, (setter)CurvePoint_first_svertex_set,
+	                          (char *)CurvePoint_first_svertex_doc, NULL},
+	{(char *)"second_svertex", (getter)CurvePoint_second_svertex_get, (setter)CurvePoint_second_svertex_set,
+	                           (char *)CurvePoint_second_svertex_doc, NULL},
 	{(char *)"t2d", (getter)CurvePoint_t2d_get, (setter)CurvePoint_t2d_set, (char *)CurvePoint_t2d_doc, NULL},
-	{(char *)"curvature_fredo", (getter)CurvePoint_curvature_fredo_get, (setter)NULL, (char *)CurvePoint_curvature_fredo_doc, NULL},
+	{(char *)"curvature_fredo", (getter)CurvePoint_curvature_fredo_get, (setter)NULL,
+	                            (char *)CurvePoint_curvature_fredo_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 

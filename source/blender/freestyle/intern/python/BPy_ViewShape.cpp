@@ -91,7 +91,8 @@ static int ViewShape_init(BPy_ViewShape *self, PyObject *args, PyObject *kwds)
 		if (!obj) {
 			self->vs = new ViewShape();
 			self->py_ss = NULL;
-		} else {
+		}
+		else {
 			self->vs = new ViewShape(*(((BPy_ViewShape *)obj)->vs));
 			self->py_ss = ((BPy_ViewShape *)obj)->py_ss;
 		}
@@ -115,15 +116,15 @@ static int ViewShape_init(BPy_ViewShape *self, PyObject *args, PyObject *kwds)
 static void ViewShape_dealloc(BPy_ViewShape *self)
 {
 	if (self->py_ss) {
-		self->vs->setSShape((SShape *)0);
+		self->vs->setSShape((SShape *)NULL);
 		Py_DECREF(self->py_ss);
 	}
 	if (self->vs && !self->borrowed)
 		delete self->vs;
-	Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-static PyObject * ViewShape_repr(BPy_ViewShape *self)
+static PyObject *ViewShape_repr(BPy_ViewShape *self)
 {
 	return PyUnicode_FromFormat("ViewShape - address: %p", self->vs);
 }
@@ -136,7 +137,7 @@ PyDoc_STRVAR(ViewShape_add_edge_doc,
 "   :arg edge: A ViewEdge object.\n"
 "   :type edge: :class:`ViewEdge`\n");
 
-static PyObject * ViewShape_add_edge(BPy_ViewShape *self, PyObject *args, PyObject *kwds)
+static PyObject *ViewShape_add_edge(BPy_ViewShape *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"edge", NULL};
 	PyObject *py_ve = 0;
@@ -155,7 +156,7 @@ PyDoc_STRVAR(ViewShape_add_vertex_doc,
 "   :arg vertex: A ViewVertex object.\n"
 "   :type vertex: :class:`ViewVertex`");
 
-static PyObject * ViewShape_add_vertex(BPy_ViewShape *self, PyObject *args, PyObject *kwds)
+static PyObject *ViewShape_add_vertex(BPy_ViewShape *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"vertex", NULL};
 	PyObject *py_vv = 0;
@@ -215,8 +216,8 @@ static PyObject *ViewShape_vertices_get(BPy_ViewShape *self, void *UNUSED(closur
 {
 	PyObject *py_vertices = PyList_New(0);
 
-	vector< ViewVertex * > vertices = self->vs->vertices();
-	vector< ViewVertex * >::iterator it;
+	vector<ViewVertex *> vertices = self->vs->vertices();
+	vector<ViewVertex *>::iterator it;
 	for (it = vertices.begin(); it != vertices.end(); it++) {
 		PyList_Append( py_vertices, Any_BPy_ViewVertex_from_ViewVertex(*(*it)));
 	}
@@ -237,7 +238,8 @@ static int ViewShape_vertices_set(BPy_ViewShape *self, PyObject *value, void *UN
 		item = PyList_GetItem(list, i);
 		if (BPy_ViewVertex_Check(item)) {
 			v.push_back(((BPy_ViewVertex *)item)->vv);
-		} else {
+		}
+		else {
 			PyErr_SetString(PyExc_TypeError, "value must be a list of ViewVertex objects");
 			return -1;
 		}
@@ -255,8 +257,8 @@ static PyObject *ViewShape_edges_get(BPy_ViewShape *self, void *UNUSED(closure))
 {
 	PyObject *py_edges = PyList_New(0);
 
-	vector< ViewEdge * > edges = self->vs->edges();
-	vector< ViewEdge * >::iterator it;
+	vector<ViewEdge *> edges = self->vs->edges();
+	vector<ViewEdge *>::iterator it;
 
 	for (it = edges.begin(); it != edges.end(); it++) {
 		PyList_Append(py_edges, BPy_ViewEdge_from_ViewEdge(*(*it)));
@@ -278,7 +280,8 @@ static int ViewShape_edges_set(BPy_ViewShape *self, PyObject *value, void *UNUSE
 		item = PyList_GetItem(list, i);
 		if (BPy_ViewEdge_Check(item)) {
 			v.push_back(((BPy_ViewEdge *)item)->ve);
-		} else {
+		}
+		else {
 			PyErr_SetString(PyExc_TypeError, "argument must be list of ViewEdge objects");
 			return -1;
 		}
@@ -310,7 +313,8 @@ static PyObject *ViewShape_id_get(BPy_ViewShape *self, void *UNUSED(closure))
 
 static PyGetSetDef BPy_ViewShape_getseters[] = {
 	{(char *)"sshape", (getter)ViewShape_sshape_get, (setter)ViewShape_sshape_set, (char *)ViewShape_sshape_doc, NULL},
-	{(char *)"vertices", (getter)ViewShape_vertices_get, (setter)ViewShape_vertices_set, (char *)ViewShape_vertices_doc, NULL},
+	{(char *)"vertices", (getter)ViewShape_vertices_get, (setter)ViewShape_vertices_set,
+	                     (char *)ViewShape_vertices_doc, NULL},
 	{(char *)"edges", (getter)ViewShape_edges_get, (setter)ViewShape_edges_set, (char *)ViewShape_edges_doc, NULL},
 	{(char *)"name", (getter)ViewShape_name_get, (setter)NULL, (char *)ViewShape_name_doc, NULL},
 	{(char *)"id", (getter)ViewShape_id_get, (setter)NULL, (char *)ViewShape_id_doc, NULL},

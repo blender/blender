@@ -63,7 +63,7 @@ static char BezierCurveShader___doc__[] =
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
-static int BezierCurveShader___init__(BPy_BezierCurveShader* self, PyObject *args, PyObject *kwds)
+static int BezierCurveShader___init__(BPy_BezierCurveShader *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"error", NULL};
 	float f = 4.0;

@@ -53,7 +53,7 @@ static char TrueBP1D___doc__[] =
 "   :return: True.\n"
 "   :rtype: bool\n";
 
-static int TrueBP1D___init__(BPy_TrueBP1D* self, PyObject *args, PyObject *kwds)
+static int TrueBP1D___init__(BPy_TrueBP1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

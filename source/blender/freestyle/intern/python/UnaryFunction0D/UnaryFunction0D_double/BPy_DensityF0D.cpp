@@ -66,7 +66,7 @@ static char DensityF0D___doc__[] =
 "      Interface0D.\n"
 "   :rtype: float\n";
 
-static int DensityF0D___init__(BPy_DensityF0D* self, PyObject *args, PyObject *kwds)
+static int DensityF0D___init__(BPy_DensityF0D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"sigma", NULL};
 	double d = 2;

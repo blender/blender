@@ -47,7 +47,8 @@ extern "C" {
 
 extern PyTypeObject ChainSilhouetteIterator_Type;
 
-#define BPy_ChainSilhouetteIterator_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&ChainSilhouetteIterator_Type))
+#define BPy_ChainSilhouetteIterator_Check(v) \
+            (PyObject_IsInstance((PyObject *)v, (PyObject *)&ChainSilhouetteIterator_Type))
 
 /*---------------------------Python BPy_ChainSilhouetteIterator structure definition----------*/
 typedef struct {

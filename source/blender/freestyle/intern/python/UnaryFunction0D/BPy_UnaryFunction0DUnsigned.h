@@ -44,7 +44,8 @@ extern "C" {
 
 extern PyTypeObject UnaryFunction0DUnsigned_Type;
 
-#define BPy_UnaryFunction0DUnsigned_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction0DUnsigned_Type))
+#define BPy_UnaryFunction0DUnsigned_Check(v) \
+            (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction0DUnsigned_Type))
 
 /*---------------------------Python BPy_UnaryFunction0DUnsigned structure definition----------*/
 typedef struct {

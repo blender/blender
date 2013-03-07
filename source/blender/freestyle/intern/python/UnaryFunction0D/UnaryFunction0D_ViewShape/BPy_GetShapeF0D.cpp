@@ -58,7 +58,7 @@ static char GetShapeF0D___doc__[] =
 "   :return: The ViewShape containing the pointed Interface0D.\n"
 "   :rtype: :class:`ViewShape`\n";
 
-static int GetShapeF0D___init__(BPy_GetShapeF0D* self, PyObject *args, PyObject *kwds)
+static int GetShapeF0D___init__(BPy_GetShapeF0D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

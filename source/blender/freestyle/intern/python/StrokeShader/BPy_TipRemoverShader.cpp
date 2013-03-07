@@ -61,7 +61,7 @@ static char TipRemoverShader___doc__[] =
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
-static int TipRemoverShader___init__(BPy_TipRemoverShader* self, PyObject *args, PyObject *kwds)
+static int TipRemoverShader___init__(BPy_TipRemoverShader *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"tip_length", NULL};
 	double d;

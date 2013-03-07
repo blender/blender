@@ -63,7 +63,7 @@ static char Curvature2DAngleF1D___doc__[] =
 "   :return: The 2D curvature as an angle.\n"
 "   :rtype: float\n";
 
-static int Curvature2DAngleF1D___init__(BPy_Curvature2DAngleF1D* self, PyObject *args, PyObject *kwds)
+static int Curvature2DAngleF1D___init__(BPy_Curvature2DAngleF1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"integration_type", NULL};
 	PyObject *obj = 0;

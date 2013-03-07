@@ -67,7 +67,7 @@ static char ZDiscontinuityF1D___doc__[] =
 "   :return: The normalized distance between the Interface1D and the occludee.\n"
 "   :rtype: float\n";
 
-static int ZDiscontinuityF1D___init__(BPy_ZDiscontinuityF1D* self, PyObject *args, PyObject *kwds)
+static int ZDiscontinuityF1D___init__(BPy_ZDiscontinuityF1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"integration_type", NULL};
 	PyObject *obj = 0;

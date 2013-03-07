@@ -104,7 +104,8 @@ static int NonTVertex_svertex_set(BPy_NonTVertex *self, PyObject *value, void *U
 }
 
 static PyGetSetDef BPy_NonTVertex_getseters[] = {
-	{(char *)"svertex", (getter)NonTVertex_svertex_get, (setter)NonTVertex_svertex_set, (char *)NonTVertex_svertex_doc, NULL},
+	{(char *)"svertex", (getter)NonTVertex_svertex_get, (setter)NonTVertex_svertex_set,
+	                    (char *)NonTVertex_svertex_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 

@@ -63,7 +63,7 @@ static char ReadMapPixelF0D___doc__[] =
 "   :return: A pixel in a map.\n"
 "   :rtype: float\n";
 
-static int ReadMapPixelF0D___init__(BPy_ReadMapPixelF0D* self, PyObject *args, PyObject *kwds)
+static int ReadMapPixelF0D___init__(BPy_ReadMapPixelF0D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"map_name", "level", NULL};
 	const char *s;
@@ -71,7 +71,7 @@ static int ReadMapPixelF0D___init__(BPy_ReadMapPixelF0D* self, PyObject *args, P
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "si", (char **)kwlist, &s, &i))
 		return -1;
-	self->py_uf0D_float.uf0D_float = new Functions0D::ReadMapPixelF0D(s,i);
+	self->py_uf0D_float.uf0D_float = new Functions0D::ReadMapPixelF0D(s, i);
 	self->py_uf0D_float.uf0D_float->py_uf0D = (PyObject *)self;
 	return 0;
 }

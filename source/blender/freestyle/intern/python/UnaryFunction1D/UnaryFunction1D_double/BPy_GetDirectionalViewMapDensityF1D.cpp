@@ -44,7 +44,8 @@ extern "C" {
 //------------------------INSTANCE METHODS ----------------------------------
 
 static char GetDirectionalViewMapDensityF1D___doc__[] =
-"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DDouble` > :class:`GetDirectionalViewMapDensityF1D`\n"
+"Class hierarchy: :class:`UnaryFunction1D` > :class:`UnaryFunction1DDouble` "
+"> :class:`GetDirectionalViewMapDensityF1D`\n"
 "\n"
 ".. method:: __init__(orientation, level, integration_type=IntegrationType.MEAN, sampling=2.0)\n"
 "\n"
@@ -80,7 +81,8 @@ static char GetDirectionalViewMapDensityF1D___doc__[] =
 "      steerable viewmaps image.\n"
 "   :rtype: float\n";
 
-static int GetDirectionalViewMapDensityF1D___init__(BPy_GetDirectionalViewMapDensityF1D* self, PyObject *args, PyObject *kwds)
+static int GetDirectionalViewMapDensityF1D___init__(BPy_GetDirectionalViewMapDensityF1D *self,
+                                                    PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"orientation", "level", "integration_type", "sampling", NULL};
 	PyObject *obj = 0;

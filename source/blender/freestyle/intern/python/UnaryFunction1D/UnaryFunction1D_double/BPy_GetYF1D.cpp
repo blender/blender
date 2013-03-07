@@ -63,7 +63,7 @@ static char GetYF1D___doc__[] =
 "   :return: The Y 3D coordinate of the Interface1D.\n"
 "   :rtype: float\n";
 
-static int GetYF1D___init__(BPy_GetYF1D* self, PyObject *args, PyObject *kwds)
+static int GetYF1D___init__(BPy_GetYF1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"integration_type", NULL};
 	PyObject *obj = 0;

@@ -60,7 +60,7 @@ static char fstreamShader___doc__[] =
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
-static int fstreamShader___init__(BPy_fstreamShader* self, PyObject *args, PyObject *kwds)
+static int fstreamShader___init__(BPy_fstreamShader *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"filename", NULL};
 	const char *s;

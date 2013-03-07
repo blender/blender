@@ -35,7 +35,7 @@
 
 #include "BKE_global.h"
 
-BlenderFileLoader::BlenderFileLoader(Render *re, SceneRenderLayer* srl)
+BlenderFileLoader::BlenderFileLoader(Render *re, SceneRenderLayer *srl)
 {
 	_re = re;
 	_srl = srl;
@@ -50,7 +50,7 @@ BlenderFileLoader::~BlenderFileLoader()
 	_Scene = NULL;
 }
 
-NodeGroup* BlenderFileLoader::Load()
+NodeGroup *BlenderFileLoader::Load()
 {
 	ObjectInstanceRen *obi;
 
@@ -582,10 +582,10 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 				             edgeMarks, em1, false, em4, clip_1);
 			}
 			for (i = 0; i < numTris_1; i++) {
-				addTriangle(&ls, triCoords[0], triCoords[i+1], triCoords[i+2],
-				            triNormals[0], triNormals[i+1], triNormals[i+2],
-				            fm, (i == 0) ? edgeMarks[0] : false, edgeMarks[i+1],
-				            (i == numTris_1 - 1) ? edgeMarks[i+2] : false);
+				addTriangle(&ls, triCoords[0], triCoords[i + 1], triCoords[i + 2],
+				            triNormals[0], triNormals[i + 1], triNormals[i + 2],
+				            fm, (i == 0) ? edgeMarks[0] : false, edgeMarks[i + 1],
+				            (i == numTris_1 - 1) ? edgeMarks[i + 2] : false);
 				_numFacesRead++;
 			}
 		}
@@ -600,10 +600,10 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 				             edgeMarks, em2, em3, false, clip_2);
 			}
 			for (i = 0; i < numTris_2; i++) {
-				addTriangle(&ls, triCoords[0], triCoords[i+1], triCoords[i+2],
-				            triNormals[0], triNormals[i+1], triNormals[i+2],
-				            fm, (i == 0) ? edgeMarks[0] : false, edgeMarks[i+1],
-				            (i == numTris_2 - 1) ? edgeMarks[i+2] : false);
+				addTriangle(&ls, triCoords[0], triCoords[i + 1], triCoords[i + 2],
+				            triNormals[0], triNormals[i + 1], triNormals[i + 2],
+				            fm, (i == 0) ? edgeMarks[0] : false, edgeMarks[i + 1],
+				            (i == numTris_2 - 1) ? edgeMarks[i + 2] : false);
 				_numFacesRead++;
 			}
 		}
@@ -624,12 +624,9 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	GeomCleaner::CleanIndexedVertexArray(normals, nSize, NIndices, niSize, &cleanNormals, &cnSize, &cleanNIndices);
 
 	// format materials array
-	FrsMaterial** marray = new FrsMaterial*[meshFrsMaterials.size()];
+	FrsMaterial **marray = new FrsMaterial *[meshFrsMaterials.size()];
 	unsigned int mindex = 0;
-	for (vector<FrsMaterial>::iterator m = meshFrsMaterials.begin(), mend = meshFrsMaterials.end();
-	     m!=mend;
-	     ++m)
-	{
+	for (vector<FrsMaterial>::iterator m = meshFrsMaterials.begin(), mend = meshFrsMaterials.end(); m != mend; ++m) {
 		marray[mindex] = new FrsMaterial(*m);
 		++mindex;
 	}
@@ -653,11 +650,11 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 	for (i = 0; i < viSize; i += 3) {
 		detri_t detri;
 		vi0 = cleanVIndices[i];
-		vi1 = cleanVIndices[i+1];
-		vi2 = cleanVIndices[i+2];
-		Vec3r v0(cleanVertices[vi0], cleanVertices[vi0+1], cleanVertices[vi0+2]);
-		Vec3r v1(cleanVertices[vi1], cleanVertices[vi1+1], cleanVertices[vi1+2]);
-		Vec3r v2(cleanVertices[vi2], cleanVertices[vi2+1], cleanVertices[vi2+2]);
+		vi1 = cleanVIndices[i + 1];
+		vi2 = cleanVIndices[i + 2];
+		Vec3r v0(cleanVertices[vi0], cleanVertices[vi0 + 1], cleanVertices[vi0 + 2]);
+		Vec3r v1(cleanVertices[vi1], cleanVertices[vi1 + 1], cleanVertices[vi1 + 2]);
+		Vec3r v2(cleanVertices[vi2], cleanVertices[vi2 + 1], cleanVertices[vi2 + 2]);
 		if (v0 == v1 || v0 == v2 || v1 == v2) {
 			continue; // do nothing for now
 		}
@@ -686,11 +683,11 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 			if (i == j)
 				continue;
 			vi0 = cleanVIndices[j];
-			vi1 = cleanVIndices[j+1];
-			vi2 = cleanVIndices[j+2];
-			Vec3r v0(cleanVertices[vi0], cleanVertices[vi0+1], cleanVertices[vi0+2]);
-			Vec3r v1(cleanVertices[vi1], cleanVertices[vi1+1], cleanVertices[vi1+2]);
-			Vec3r v2(cleanVertices[vi2], cleanVertices[vi2+1], cleanVertices[vi2+2]);
+			vi1 = cleanVIndices[j + 1];
+			vi2 = cleanVIndices[j + 2];
+			Vec3r v0(cleanVertices[vi0], cleanVertices[vi0 + 1], cleanVertices[vi0 + 2]);
+			Vec3r v1(cleanVertices[vi1], cleanVertices[vi1 + 1], cleanVertices[vi1 + 2]);
+			Vec3r v2(cleanVertices[vi2], cleanVertices[vi2 + 1], cleanVertices[vi2 + 2]);
 			if (detri.viP == vi0 && (detri.viA == vi1 || detri.viB == vi1)) {
 				detri.v += (v2 - v0);
 				detri.n++;
@@ -728,13 +725,13 @@ void BlenderFileLoader::insertShapeNode(ObjectInstanceRen *obi, int id)
 			detri_t detri = (*v);
 			if (detri.n == 0) {
 				cleanVertices[detri.viP]   = cleanVertices[detri.viA];
-				cleanVertices[detri.viP+1] = cleanVertices[detri.viA+1];
-				cleanVertices[detri.viP+2] = cleanVertices[detri.viA+2];
+				cleanVertices[detri.viP + 1] = cleanVertices[detri.viA + 1];
+				cleanVertices[detri.viP + 2] = cleanVertices[detri.viA + 2];
 			}
 			else if (detri.v.norm() > 0.0) {
 				cleanVertices[detri.viP]   += 1.0e-5 * detri.v.x();
-				cleanVertices[detri.viP+1] += 1.0e-5 * detri.v.y();
-				cleanVertices[detri.viP+2] += 1.0e-5 * detri.v.z();
+				cleanVertices[detri.viP + 1] += 1.0e-5 * detri.v.y();
+				cleanVertices[detri.viP + 2] += 1.0e-5 * detri.v.z();
 			}
 		}
 		if (G.debug & G_DEBUG_FREESTYLE) {

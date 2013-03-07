@@ -59,7 +59,7 @@ static char GetOccludersF1D___doc__[] =
 "   :return: A list of occluding shapes that cover the Interface1D.\n"
 "   :rtype: list of :class:`ViewShape` objects\n";
 
-static int GetOccludersF1D___init__(BPy_GetOccludersF1D* self, PyObject *args, PyObject *kwds)
+static int GetOccludersF1D___init__(BPy_GetOccludersF1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

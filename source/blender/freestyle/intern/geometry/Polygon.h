@@ -162,8 +162,8 @@ public:
 	}
 
 	// FIXME Is it possible to get rid of userdatas ?
-	void* userdata;
-	void* userdata2; // Used during ray casting
+	void *userdata;
+	void *userdata2; // Used during ray casting
 
 protected:
 	vector<Point> _vertices;

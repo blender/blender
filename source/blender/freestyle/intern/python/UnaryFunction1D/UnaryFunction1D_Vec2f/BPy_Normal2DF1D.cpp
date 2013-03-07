@@ -63,7 +63,7 @@ static char Normal2DF1D___doc__[] =
 "   :return: The 2D normal for the Interface1D.\n"
 "   :rtype: :class:`mathutils.Vector`\n";
 
-static int Normal2DF1D___init__(BPy_Normal2DF1D* self, PyObject *args, PyObject *kwds)
+static int Normal2DF1D___init__(BPy_Normal2DF1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"integration_type", NULL};
 	PyObject *obj = 0;

@@ -378,7 +378,7 @@ PyObject *BPy_ViewShape_from_ViewShape(ViewShape& vs)
 PyObject *BPy_FrsMaterial_from_FrsMaterial(const FrsMaterial& m)
 {
 	PyObject *py_m = FrsMaterial_Type.tp_new(&FrsMaterial_Type, 0, 0);
-	((BPy_FrsMaterial*) py_m)->m = new FrsMaterial(m);
+	((BPy_FrsMaterial *) py_m)->m = new FrsMaterial(m);
 	return py_m;
 }
 
@@ -394,9 +394,9 @@ PyObject *BPy_IntegrationType_from_IntegrationType(IntegrationType i)
 PyObject *BPy_CurvePoint_from_CurvePoint(CurvePoint& cp)
 {
 	PyObject *py_cp = CurvePoint_Type.tp_new(&CurvePoint_Type, 0, 0);
-	((BPy_CurvePoint*) py_cp)->cp = &cp;
-	((BPy_CurvePoint*) py_cp)->py_if0D.if0D = ((BPy_CurvePoint*) py_cp)->cp;
-	((BPy_CurvePoint*) py_cp)->py_if0D.borrowed = 1;
+	((BPy_CurvePoint *) py_cp)->cp = &cp;
+	((BPy_CurvePoint *) py_cp)->py_if0D.if0D = ((BPy_CurvePoint *)py_cp)->cp;
+	((BPy_CurvePoint *) py_cp)->py_if0D.borrowed = 1;
 	return py_cp;
 }
 
@@ -504,22 +504,22 @@ bool bool_from_PyBool(PyObject *b)
 	return PyObject_IsTrue(b) != 0;
 }
 
-IntegrationType IntegrationType_from_BPy_IntegrationType(PyObject* obj)
+IntegrationType IntegrationType_from_BPy_IntegrationType(PyObject *obj)
 {
 	return static_cast<IntegrationType>(PyLong_AsLong(obj));
 }
 
-Stroke::MediumType MediumType_from_BPy_MediumType(PyObject* obj)
+Stroke::MediumType MediumType_from_BPy_MediumType(PyObject *obj)
 {
 	return static_cast<Stroke::MediumType>(PyLong_AsLong(obj));
 }
 
-Nature::EdgeNature EdgeNature_from_BPy_Nature(PyObject* obj)
+Nature::EdgeNature EdgeNature_from_BPy_Nature(PyObject *obj)
 {
 	return static_cast<Nature::EdgeNature>(PyLong_AsLong(obj));
 }
 
-Vec2f * Vec2f_ptr_from_PyObject(PyObject* obj)
+Vec2f *Vec2f_ptr_from_PyObject(PyObject *obj)
 {
 	Vec2f *v;
 	if ((v = Vec2f_ptr_from_Vector(obj)))
@@ -531,7 +531,7 @@ Vec2f * Vec2f_ptr_from_PyObject(PyObject* obj)
 	return NULL;
 }
 
-Vec3f * Vec3f_ptr_from_PyObject(PyObject* obj)
+Vec3f *Vec3f_ptr_from_PyObject(PyObject *obj)
 {
 	Vec3f *v;
 	if ((v = Vec3f_ptr_from_Vector(obj)))
@@ -545,7 +545,7 @@ Vec3f * Vec3f_ptr_from_PyObject(PyObject* obj)
 	return NULL;
 }
 
-Vec3r * Vec3r_ptr_from_PyObject(PyObject* obj)
+Vec3r *Vec3r_ptr_from_PyObject(PyObject *obj)
 {
 	Vec3r *v;
 	if ((v = Vec3r_ptr_from_Vector(obj)))
@@ -559,7 +559,7 @@ Vec3r * Vec3r_ptr_from_PyObject(PyObject* obj)
 	return NULL;
 }
 
-Vec2f * Vec2f_ptr_from_Vector(PyObject* obj)
+Vec2f *Vec2f_ptr_from_Vector(PyObject *obj)
 {
 	if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 2)
 		return NULL;
@@ -568,44 +568,44 @@ Vec2f * Vec2f_ptr_from_Vector(PyObject* obj)
 	return new Vec2f(x, y);
 }
 
-Vec3f * Vec3f_ptr_from_Vector(PyObject* obj)
+Vec3f *Vec3f_ptr_from_Vector(PyObject *obj)
 {
 	if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 3)
 		return NULL;
 	float x = ((VectorObject *)obj)->vec[0];
 	float y = ((VectorObject *)obj)->vec[1];
 	float z = ((VectorObject *)obj)->vec[2];
-	return new Vec3f(x,y,z);
+	return new Vec3f(x, y, z);
 }
 
-Vec3r * Vec3r_ptr_from_Vector(PyObject* obj)
+Vec3r *Vec3r_ptr_from_Vector(PyObject *obj)
 {
 	if (!VectorObject_Check(obj) || ((VectorObject *)obj)->size != 3)
 		return NULL;
 	real x = ((VectorObject *)obj)->vec[0];
 	real y = ((VectorObject *)obj)->vec[1];
 	real z = ((VectorObject *)obj)->vec[2];
-	return new Vec3r(x,y,z);
+	return new Vec3r(x, y, z);
 }
 
-Vec3f * Vec3f_ptr_from_Color(PyObject* obj)
+Vec3f *Vec3f_ptr_from_Color(PyObject *obj)
 {
 	if (!ColorObject_Check(obj))
 		return NULL;
 	float r = ((ColorObject *)obj)->col[0];
 	float g = ((ColorObject *)obj)->col[1];
 	float b = ((ColorObject *)obj)->col[2];
-	return new Vec3f(r,g,b);
+	return new Vec3f(r, g, b);
 }
 
-Vec3r * Vec3r_ptr_from_Color(PyObject* obj)
+Vec3r *Vec3r_ptr_from_Color(PyObject *obj)
 {
 	if (!ColorObject_Check(obj))
 		return NULL;
 	real r = ((ColorObject *)obj)->col[0];
 	real g = ((ColorObject *)obj)->col[1];
 	real b = ((ColorObject *)obj)->col[2];
-	return new Vec3r(r,g,b);
+	return new Vec3r(r, g, b);
 }
 
 static int float_array_from_PyList(PyObject *obj, float *v, int n)
@@ -620,7 +620,7 @@ static int float_array_from_PyList(PyObject *obj, float *v, int n)
 	return 1;
 }
 
-Vec2f * Vec2f_ptr_from_PyList(PyObject* obj)
+Vec2f *Vec2f_ptr_from_PyList(PyObject *obj)
 {
 	float v[2];
 
@@ -631,7 +631,7 @@ Vec2f * Vec2f_ptr_from_PyList(PyObject* obj)
 	return new Vec2f(v[0], v[1]);
 }
 
-Vec3f * Vec3f_ptr_from_PyList(PyObject* obj)
+Vec3f *Vec3f_ptr_from_PyList(PyObject *obj)
 {
 	float v[3];
 
@@ -642,7 +642,7 @@ Vec3f * Vec3f_ptr_from_PyList(PyObject* obj)
 	return new Vec3f(v[0], v[1], v[2]);
 }
 
-Vec3r * Vec3r_ptr_from_PyList(PyObject* obj)
+Vec3r *Vec3r_ptr_from_PyList(PyObject *obj)
 {
 	float v[3];
 
@@ -665,7 +665,7 @@ static int float_array_from_PyTuple(PyObject *obj, float *v, int n)
 	return 1;
 }
 
-Vec2f * Vec2f_ptr_from_PyTuple(PyObject* obj)
+Vec2f *Vec2f_ptr_from_PyTuple(PyObject *obj)
 {
 	float v[2];
 
@@ -676,7 +676,7 @@ Vec2f * Vec2f_ptr_from_PyTuple(PyObject* obj)
 	return new Vec2f(v[0], v[1]);
 }
 
-Vec3f * Vec3f_ptr_from_PyTuple(PyObject* obj)
+Vec3f *Vec3f_ptr_from_PyTuple(PyObject *obj)
 {
 	float v[3];
 
@@ -687,7 +687,7 @@ Vec3f * Vec3f_ptr_from_PyTuple(PyObject* obj)
 	return new Vec3f(v[0], v[1], v[2]);
 }
 
-Vec3r * Vec3r_ptr_from_PyTuple(PyObject* obj)
+Vec3r *Vec3r_ptr_from_PyTuple(PyObject *obj)
 {
 	float v[3];
 

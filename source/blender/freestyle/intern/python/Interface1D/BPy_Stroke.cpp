@@ -84,7 +84,7 @@ static int Stroke_init(BPy_Stroke *self, PyObject *args, PyObject *kwds)
 	return 0;
 }
 
-static PyObject * Stroke_iter(PyObject *self)
+static PyObject *Stroke_iter(PyObject *self)
 {
 	StrokeInternal::StrokeVertexIterator sv_it( ((BPy_Stroke *)self)->s->strokeVerticesBegin() );
 	return BPy_StrokeVertexIterator_from_StrokeVertexIterator( sv_it, 0 );
@@ -121,7 +121,7 @@ PyDoc_STRVAR(Stroke_compute_sampling_doc,
 "      method.\n"
 "   :rtype: float");
 
-static PyObject * Stroke_compute_sampling(BPy_Stroke *self, PyObject *args, PyObject *kwds)
+static PyObject *Stroke_compute_sampling(BPy_Stroke *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"n", NULL};
 	int i;
@@ -150,20 +150,17 @@ PyDoc_STRVAR(Stroke_resample_doc,
 "   :arg sampling: The new sampling value.\n"
 "   :type sampling: float");
 
-static PyObject * Stroke_resample(BPy_Stroke *self, PyObject *args, PyObject *kwds)
+static PyObject *Stroke_resample(BPy_Stroke *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist_1[] = {"n", NULL};
 	static const char *kwlist_2[] = {"sampling", NULL};
 	int i;
 	float f;
 
-	if (PyArg_ParseTupleAndKeywords(args, kwds, "i", (char **)kwlist_1, &i))
-	{
+	if (PyArg_ParseTupleAndKeywords(args, kwds, "i", (char **)kwlist_1, &i)) {
 		self->s->Resample(i);
 	}
-	else if (PyErr_Clear(),
-	         PyArg_ParseTupleAndKeywords(args, kwds, "f", (char **)kwlist_2, &f))
-	{
+	else if (PyErr_Clear(), PyArg_ParseTupleAndKeywords(args, kwds, "f", (char **)kwlist_2, &f)) {
 		self->s->Resample(f);
 	}
 	else {
@@ -186,7 +183,7 @@ PyDoc_STRVAR(Stroke_insert_vertex_doc,
 "      before which vertex must be inserted.\n"
 "   :type next: :class:`StrokeVertexIterator`");
 
-static PyObject * Stroke_insert_vertex(BPy_Stroke *self, PyObject *args, PyObject *kwds)
+static PyObject *Stroke_insert_vertex(BPy_Stroke *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"vertex", "next", NULL};
 	PyObject *py_sv = 0, *py_sv_it = 0;
@@ -211,7 +208,7 @@ PyDoc_STRVAR(Stroke_remove_vertex_doc,
 "   :arg vertex: the StrokeVertex to remove from the Stroke.\n"
 "   :type vertex: :class:`StrokeVertex`");
 
-static PyObject * Stroke_remove_vertex( BPy_Stroke *self, PyObject *args, PyObject *kwds)
+static PyObject *Stroke_remove_vertex( BPy_Stroke *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"vertex", NULL};
 	PyObject *py_sv = 0;
@@ -220,7 +217,8 @@ static PyObject * Stroke_remove_vertex( BPy_Stroke *self, PyObject *args, PyObje
 		return NULL;
 	if (((BPy_StrokeVertex *)py_sv)->sv) {
 		self->s->RemoveVertex(((BPy_StrokeVertex *)py_sv)->sv);
-	} else {
+	}
+	else {
 		PyErr_SetString(PyExc_TypeError, "invalid argument");
 		return NULL;
 	}
@@ -232,7 +230,7 @@ PyDoc_STRVAR(Stroke_update_length_doc,
 "\n"
 "   Updates the 2D length of the Stroke.");
 
-static PyObject * Stroke_update_length(BPy_Stroke *self)
+static PyObject *Stroke_update_length(BPy_Stroke *self)
 {
 	self->s->UpdateLength();
 	Py_RETURN_NONE;
@@ -251,7 +249,7 @@ PyDoc_STRVAR(Stroke_stroke_vertices_begin_doc,
 "   :return: A StrokeVertexIterator pointing on the first StrokeVertex.\n"
 "   :rtype: :class:`StrokeVertexIterator`");
 
-static PyObject * Stroke_stroke_vertices_begin( BPy_Stroke *self , PyObject *args, PyObject *kwds)
+static PyObject *Stroke_stroke_vertices_begin(BPy_Stroke *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"t", NULL};
 	float f = 0.0f;
@@ -271,7 +269,7 @@ PyDoc_STRVAR(Stroke_stroke_vertices_end_doc,
 "   :return: A StrokeVertexIterator pointing after the last StrokeVertex.\n"
 "   :rtype: :class:`StrokeVertexIterator`");
 
-static PyObject * Stroke_stroke_vertices_end(BPy_Stroke *self)
+static PyObject *Stroke_stroke_vertices_end(BPy_Stroke *self)
 {
 	StrokeInternal::StrokeVertexIterator sv_it(self->s->strokeVerticesEnd());
 	return BPy_StrokeVertexIterator_from_StrokeVertexIterator(sv_it, 1);
@@ -285,18 +283,20 @@ PyDoc_STRVAR(Stroke_stroke_vertices_size_doc,
 "   :return: The number of stroke vertices.\n"
 "   :rtype: int");
 
-static PyObject * Stroke_stroke_vertices_size(BPy_Stroke *self)
+static PyObject *Stroke_stroke_vertices_size(BPy_Stroke *self)
 {
 	return PyLong_FromLong(self->s->strokeVerticesSize());
 }
 
 static PyMethodDef BPy_Stroke_methods[] = {	
-	{"compute_sampling", (PyCFunction)Stroke_compute_sampling, METH_VARARGS | METH_KEYWORDS, Stroke_compute_sampling_doc},
+	{"compute_sampling", (PyCFunction)Stroke_compute_sampling, METH_VARARGS | METH_KEYWORDS,
+	                     Stroke_compute_sampling_doc},
 	{"resample", (PyCFunction)Stroke_resample, METH_VARARGS | METH_KEYWORDS, Stroke_resample_doc},
 	{"remove_vertex", (PyCFunction)Stroke_remove_vertex, METH_VARARGS | METH_KEYWORDS, Stroke_remove_vertex_doc},
 	{"insert_vertex", (PyCFunction)Stroke_insert_vertex, METH_VARARGS | METH_KEYWORDS, Stroke_insert_vertex_doc},
 	{"update_length", (PyCFunction)Stroke_update_length, METH_NOARGS, Stroke_update_length_doc},
-	{"stroke_vertices_begin", (PyCFunction)Stroke_stroke_vertices_begin, METH_VARARGS | METH_KEYWORDS, Stroke_stroke_vertices_begin_doc},
+	{"stroke_vertices_begin", (PyCFunction)Stroke_stroke_vertices_begin, METH_VARARGS | METH_KEYWORDS,
+	                          Stroke_stroke_vertices_begin_doc},
 	{"stroke_vertices_end", (PyCFunction)Stroke_stroke_vertices_end, METH_NOARGS, Stroke_stroke_vertices_end_doc},
 	{"stroke_vertices_size", (PyCFunction)Stroke_stroke_vertices_size, METH_NOARGS, Stroke_stroke_vertices_size_doc},
 	{NULL, NULL, 0, NULL}
@@ -337,7 +337,7 @@ static PyObject *Stroke_texture_id_get(BPy_Stroke *self, void *UNUSED(closure))
 static int Stroke_texture_id_set(BPy_Stroke *self, PyObject *value, void *UNUSED(closure))
 {
 	unsigned int i = PyLong_AsUnsignedLong(value);
-	if(PyErr_Occurred())
+	if (PyErr_Occurred())
 		return -1;
 	self->s->setTextureId(i);
 	return 0;
@@ -404,10 +404,13 @@ static int Stroke_id_set(BPy_Stroke *self, PyObject *value, void *UNUSED(closure
 }
 
 static PyGetSetDef BPy_Stroke_getseters[] = {
-	{(char *)"medium_type", (getter)Stroke_medium_type_get, (setter)Stroke_medium_type_set, (char *)Stroke_medium_type_doc, NULL},
-	{(char *)"texture_id", (getter)Stroke_texture_id_get, (setter)Stroke_texture_id_set, (char *)Stroke_texture_id_doc, NULL},
+	{(char *)"medium_type", (getter)Stroke_medium_type_get, (setter)Stroke_medium_type_set,
+	                        (char *)Stroke_medium_type_doc, NULL},
+	{(char *)"texture_id", (getter)Stroke_texture_id_get, (setter)Stroke_texture_id_set,
+	                       (char *)Stroke_texture_id_doc, NULL},
 	{(char *)"tips", (getter)Stroke_tips_get, (setter)Stroke_tips_set, (char *)Stroke_tips_doc, NULL},
-	{(char *)"length_2d", (getter)Stroke_length_2d_get, (setter)Stroke_length_2d_set, (char *)Stroke_length_2d_doc, NULL},
+	{(char *)"length_2d", (getter)Stroke_length_2d_get, (setter)Stroke_length_2d_set,
+	                      (char *)Stroke_length_2d_doc, NULL},
 	{(char *)"id", (getter)Stroke_id_get, (setter)Stroke_id_set, (char *)Stroke_id_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };

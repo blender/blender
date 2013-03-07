@@ -63,7 +63,7 @@ static char ZDiscontinuityF0D___doc__[] =
 "      and the occludee.\n"
 "   :rtype: float\n";
 
-static int ZDiscontinuityF0D___init__(BPy_ZDiscontinuityF0D* self, PyObject *args, PyObject *kwds)
+static int ZDiscontinuityF0D___init__(BPy_ZDiscontinuityF0D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

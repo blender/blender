@@ -43,7 +43,7 @@ using namespace std;
 
 namespace Config {
 
-class Path{
+class Path {
 protected:
 	static Path * _pInstance;
 	string _ProjectDir;
@@ -58,7 +58,7 @@ protected:
 public:
 	Path();
 	virtual ~Path();
-	static Path* getInstance();
+	static Path *getInstance();
 
 	void setRootDir(const string& iRootDir);
 	void setHomeDir(const string& iHomeDir);

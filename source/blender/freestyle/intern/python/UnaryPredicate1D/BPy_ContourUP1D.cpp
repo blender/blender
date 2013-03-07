@@ -52,7 +52,7 @@ static char ContourUP1D___doc__[] =
 "   :return: True if the Interface1D is a contour, false otherwise.\n"
 "   :rtype: bool\n";
 
-static int ContourUP1D___init__(BPy_ContourUP1D* self, PyObject *args, PyObject *kwds)
+static int ContourUP1D___init__(BPy_ContourUP1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

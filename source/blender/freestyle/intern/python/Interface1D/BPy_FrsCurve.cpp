@@ -103,7 +103,7 @@ PyDoc_STRVAR(FrsCurve_push_vertex_back_doc,
 "   :arg vertex: A vertex object.\n"
 "   :type vertex: :class:`SVertex` or :class:`CurvePoint`");
 
-static PyObject * FrsCurve_push_vertex_back(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
+static PyObject *FrsCurve_push_vertex_back(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"vertex", NULL};
 	PyObject *obj = 0;
@@ -132,7 +132,7 @@ PyDoc_STRVAR(FrsCurve_push_vertex_front_doc,
 "   :arg vertex: A vertex object.\n"
 "   :type vertex: :class:`SVertex` or :class:`CurvePoint`");
 
-static PyObject * FrsCurve_push_vertex_front(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
+static PyObject *FrsCurve_push_vertex_front(BPy_FrsCurve *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"vertex", NULL};
 	PyObject *obj = 0;
@@ -153,9 +153,11 @@ static PyObject * FrsCurve_push_vertex_front(BPy_FrsCurve *self, PyObject *args,
 	Py_RETURN_NONE;
 }
 
-static PyMethodDef BPy_FrsCurve_methods[] = {	
-	{"push_vertex_back", (PyCFunction)FrsCurve_push_vertex_back, METH_VARARGS | METH_KEYWORDS, FrsCurve_push_vertex_back_doc},
-	{"push_vertex_front", (PyCFunction)FrsCurve_push_vertex_front, METH_VARARGS | METH_KEYWORDS, FrsCurve_push_vertex_front_doc},
+static PyMethodDef BPy_FrsCurve_methods[] = {
+	{"push_vertex_back", (PyCFunction)FrsCurve_push_vertex_back, METH_VARARGS | METH_KEYWORDS,
+	                     FrsCurve_push_vertex_back_doc},
+	{"push_vertex_front", (PyCFunction)FrsCurve_push_vertex_front, METH_VARARGS | METH_KEYWORDS,
+	                      FrsCurve_push_vertex_front_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -183,7 +185,8 @@ static PyObject *FrsCurve_segments_size_get(BPy_FrsCurve *self, void *UNUSED(clo
 
 static PyGetSetDef BPy_FrsCurve_getseters[] = {
 	{(char *)"is_empty", (getter)FrsCurve_is_empty_get, (setter)NULL, (char *)FrsCurve_is_empty_doc, NULL},
-	{(char *)"segments_size", (getter)FrsCurve_segments_size_get, (setter)NULL, (char *)FrsCurve_segments_size_doc, NULL},
+	{(char *)"segments_size", (getter)FrsCurve_segments_size_get, (setter)NULL,
+	                          (char *)FrsCurve_segments_size_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 

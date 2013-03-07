@@ -61,7 +61,7 @@ static char BackboneStretcherShader___doc__[] =
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
-static int BackboneStretcherShader___init__(BPy_BackboneStretcherShader* self, PyObject *args, PyObject *kwds)
+static int BackboneStretcherShader___init__(BPy_BackboneStretcherShader *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"amount", NULL};
 	float f = 2.0;

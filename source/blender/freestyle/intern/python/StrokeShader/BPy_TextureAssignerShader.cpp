@@ -76,7 +76,7 @@ static char TextureAssignerShader___doc__[] =
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
-static int TextureAssignerShader___init__(BPy_TextureAssignerShader* self, PyObject *args, PyObject *kwds)
+static int TextureAssignerShader___init__(BPy_TextureAssignerShader *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"preset", NULL};
 	int i;

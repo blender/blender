@@ -132,14 +132,14 @@ static int Iterator_init(BPy_Iterator *self, PyObject *args, PyObject *kwds)
 	return 0;
 }
 
-static void Iterator_dealloc(BPy_Iterator* self)
+static void Iterator_dealloc(BPy_Iterator *self)
 {
 	if (self->it)
 		delete self->it;
-	Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-static PyObject * Iterator_repr(BPy_Iterator* self)
+static PyObject *Iterator_repr(BPy_Iterator *self)
 {
 	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->it);
 }
@@ -149,10 +149,10 @@ PyDoc_STRVAR(Iterator_increment_doc,
 "\n"
 "   Makes the iterator point the next element.");
 
-static PyObject * Iterator_increment(BPy_Iterator* self)
+static PyObject *Iterator_increment(BPy_Iterator *self)
 {
 	if (self->it->isEnd()) {
-		PyErr_SetString(PyExc_RuntimeError , "cannot increment any more");
+		PyErr_SetString(PyExc_RuntimeError, "cannot increment any more");
 		return NULL;
 	}
 	self->it->increment();
@@ -164,10 +164,10 @@ PyDoc_STRVAR(Iterator_decrement_doc,
 "\n"
 "   Makes the iterator point the previous element.");
 
-static PyObject * Iterator_decrement(BPy_Iterator* self)
+static PyObject *Iterator_decrement(BPy_Iterator *self)
 {
 	if (self->it->isBegin()) {
-		PyErr_SetString(PyExc_RuntimeError , "cannot decrement any more");
+		PyErr_SetString(PyExc_RuntimeError, "cannot decrement any more");
 		return NULL;
 	}
 	self->it->decrement();

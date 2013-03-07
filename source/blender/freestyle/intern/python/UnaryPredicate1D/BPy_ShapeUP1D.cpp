@@ -62,7 +62,7 @@ static char ShapeUP1D___doc__[] =
 "      user-specified Id.\n"
 "   :rtype: bool\n";
 
-static int ShapeUP1D___init__(BPy_ShapeUP1D* self, PyObject *args, PyObject *kwds)
+static int ShapeUP1D___init__(BPy_ShapeUP1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"first", "second", NULL};
 	unsigned u1, u2 = 0;

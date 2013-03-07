@@ -54,7 +54,7 @@ static char ExternalContourUP1D___doc__[] =
 "      otherwise.\n"
 "   :rtype: bool\n";
 
-static int ExternalContourUP1D___init__(BPy_ExternalContourUP1D* self, PyObject *args, PyObject *kwds)
+static int ExternalContourUP1D___init__(BPy_ExternalContourUP1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

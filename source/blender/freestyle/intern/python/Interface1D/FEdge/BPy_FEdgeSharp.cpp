@@ -284,7 +284,7 @@ static PyObject *FEdgeSharp_material_index_right_get(BPy_FEdgeSharp *self, void 
 static int FEdgeSharp_material_index_right_set(BPy_FEdgeSharp *self, PyObject *value, void *UNUSED(closure))
 {
 	unsigned int i = PyLong_AsUnsignedLong(value);
-	if(PyErr_Occurred())
+	if (PyErr_Occurred())
 		return -1;
 	self->fes->setaFrsMaterialIndex(i);
 	return 0;
@@ -303,7 +303,7 @@ static PyObject *FEdgeSharp_material_index_left_get(BPy_FEdgeSharp *self, void *
 static int FEdgeSharp_material_index_left_set(BPy_FEdgeSharp *self, PyObject *value, void *UNUSED(closure))
 {
 	unsigned int i = PyLong_AsUnsignedLong(value);
-	if(PyErr_Occurred())
+	if (PyErr_Occurred())
 		return -1;
 	self->fes->setbFrsMaterialIndex(i);
 	return 0;
@@ -344,7 +344,7 @@ static PyObject *FEdgeSharp_face_mark_right_get(BPy_FEdgeSharp *self, void *UNUS
 
 static int FEdgeSharp_face_mark_right_set(BPy_FEdgeSharp *self, PyObject *value, void *UNUSED(closure))
 {
-	if(!PyBool_Check(value))
+	if (!PyBool_Check(value))
 		return -1;
 	self->fes->setaFaceMark(bool_from_PyBool(value));
 	return 0;
@@ -362,21 +362,31 @@ static PyObject *FEdgeSharp_face_mark_left_get(BPy_FEdgeSharp *self, void *UNUSE
 
 static int FEdgeSharp_face_mark_left_set(BPy_FEdgeSharp *self, PyObject *value, void *UNUSED(closure))
 {
-	if(!PyBool_Check(value))
+	if (!PyBool_Check(value))
 		return -1;
 	self->fes->setbFaceMark(bool_from_PyBool(value));
 	return 0;
 }
 
 static PyGetSetDef BPy_FEdgeSharp_getseters[] = {
-	{(char *)"normal_right", (getter)FEdgeSharp_normal_right_get, (setter)FEdgeSharp_normal_right_set, (char *)FEdgeSharp_normal_right_doc, NULL},
-	{(char *)"normal_left", (getter)FEdgeSharp_normal_left_get, (setter)FEdgeSharp_normal_left_set, (char *)FEdgeSharp_normal_left_doc, NULL},
-	{(char *)"material_index_right", (getter)FEdgeSharp_material_index_right_get, (setter)FEdgeSharp_material_index_right_set, (char *)FEdgeSharp_material_index_right_doc, NULL},
-	{(char *)"material_index_left", (getter)FEdgeSharp_material_index_left_get, (setter)FEdgeSharp_material_index_left_set, (char *)FEdgeSharp_material_index_left_doc, NULL},
-	{(char *)"material_right", (getter)FEdgeSharp_material_right_get, (setter)NULL, (char *)FEdgeSharp_material_right_doc, NULL},
-	{(char *)"material_left", (getter)FEdgeSharp_material_left_get, (setter)NULL, (char *)FEdgeSharp_material_left_doc, NULL},
-	{(char *)"face_mark_right", (getter)FEdgeSharp_face_mark_right_get, (setter)FEdgeSharp_face_mark_right_set, (char *)FEdgeSharp_face_mark_right_doc, NULL},
-	{(char *)"face_mark_left", (getter)FEdgeSharp_face_mark_left_get, (setter)FEdgeSharp_face_mark_left_set, (char *)FEdgeSharp_face_mark_left_doc, NULL},
+	{(char *)"normal_right", (getter)FEdgeSharp_normal_right_get, (setter)FEdgeSharp_normal_right_set,
+	                         (char *)FEdgeSharp_normal_right_doc, NULL},
+	{(char *)"normal_left", (getter)FEdgeSharp_normal_left_get, (setter)FEdgeSharp_normal_left_set,
+	                        (char *)FEdgeSharp_normal_left_doc, NULL},
+	{(char *)"material_index_right", (getter)FEdgeSharp_material_index_right_get,
+	                                 (setter)FEdgeSharp_material_index_right_set,
+	                                 (char *)FEdgeSharp_material_index_right_doc, NULL},
+	{(char *)"material_index_left", (getter)FEdgeSharp_material_index_left_get,
+	                                (setter)FEdgeSharp_material_index_left_set,
+	                                (char *)FEdgeSharp_material_index_left_doc, NULL},
+	{(char *)"material_right", (getter)FEdgeSharp_material_right_get, (setter)NULL,
+	                           (char *)FEdgeSharp_material_right_doc, NULL},
+	{(char *)"material_left", (getter)FEdgeSharp_material_left_get, (setter)NULL,
+	                          (char *)FEdgeSharp_material_left_doc, NULL},
+	{(char *)"face_mark_right", (getter)FEdgeSharp_face_mark_right_get, (setter)FEdgeSharp_face_mark_right_set,
+	                            (char *)FEdgeSharp_face_mark_right_doc, NULL},
+	{(char *)"face_mark_left", (getter)FEdgeSharp_face_mark_left_get, (setter)FEdgeSharp_face_mark_left_set,
+	                           (char *)FEdgeSharp_face_mark_left_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 

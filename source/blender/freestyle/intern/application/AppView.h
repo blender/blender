@@ -94,7 +94,7 @@ public:
 		_minAbs = std::min(rabs(_minBBox), rabs(_maxBBox));
 	}
 
-	inline void AddSilhouette(NodeGroup* iSilhouette)
+	inline void AddSilhouette(NodeGroup *iSilhouette)
 	{
 		_SilhouetteRootNode->AddChild(iSilhouette);
 	}
@@ -109,7 +109,7 @@ public:
 		//_pVisibleSilhouetteNode->AddChild(iVSilhouette);
 	}
 
-	inline void setDebug(NodeGroup* iDebug)
+	inline void setDebug(NodeGroup *iDebug)
 	{
 		if (0 != _DebugRootNode->numberOfChildren()) {
 			_DebugRootNode->DetachChildren();
@@ -119,7 +119,7 @@ public:
 		AddDebug(iDebug);
 	}
 
-	inline void AddDebug(NodeGroup* iDebug)
+	inline void AddDebug(NodeGroup *iDebug)
 	{
 		_DebugRootNode->AddChild(iDebug);
 	}

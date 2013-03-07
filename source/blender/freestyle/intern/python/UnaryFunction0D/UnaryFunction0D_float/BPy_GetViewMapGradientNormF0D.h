@@ -44,7 +44,8 @@ extern "C" {
 
 extern PyTypeObject GetViewMapGradientNormF0D_Type;
 
-#define BPy_GetViewMapGradientNormF0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetViewMapGradientNormF0D_Type))
+#define BPy_GetViewMapGradientNormF0D_Check(v) \
+            (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetViewMapGradientNormF0D_Type))
 
 /*---------------------------Python BPy_GetViewMapGradientNormF0D structure definition----------*/
 typedef struct {

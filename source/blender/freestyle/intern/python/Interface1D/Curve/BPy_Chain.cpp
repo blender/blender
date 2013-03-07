@@ -106,7 +106,7 @@ PyDoc_STRVAR(Chain_push_viewedge_back_doc,
 "      processed.\n"
 "   :type orientation: bool");
 
-static PyObject * Chain_push_viewedge_back(BPy_Chain *self, PyObject *args, PyObject *kwds)
+static PyObject *Chain_push_viewedge_back(BPy_Chain *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"viewedge", "orientation", NULL};
 	PyObject *obj1 = 0, *obj2 = 0;
@@ -133,7 +133,7 @@ PyDoc_STRVAR(Chain_push_viewedge_front_doc,
 "      processed.\n"
 "   :type orientation: bool");
 
-static PyObject * Chain_push_viewedge_front(BPy_Chain *self, PyObject *args, PyObject *kwds)
+static PyObject *Chain_push_viewedge_front(BPy_Chain *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"viewedge", "orientation", NULL};
 	PyObject *obj1 = 0, *obj2 = 0;
@@ -149,9 +149,11 @@ static PyObject * Chain_push_viewedge_front(BPy_Chain *self, PyObject *args, PyO
 	Py_RETURN_NONE;
 }
 
-static PyMethodDef BPy_Chain_methods[] = {	
-	{"push_viewedge_back", (PyCFunction)Chain_push_viewedge_back, METH_VARARGS | METH_KEYWORDS, Chain_push_viewedge_back_doc},
-	{"push_viewedge_front", (PyCFunction)Chain_push_viewedge_front, METH_VARARGS | METH_KEYWORDS, Chain_push_viewedge_front_doc},
+static PyMethodDef BPy_Chain_methods[] = {
+	{"push_viewedge_back", (PyCFunction)Chain_push_viewedge_back, METH_VARARGS | METH_KEYWORDS,
+	                       Chain_push_viewedge_back_doc},
+	{"push_viewedge_front", (PyCFunction)Chain_push_viewedge_front, METH_VARARGS | METH_KEYWORDS,
+	                        Chain_push_viewedge_front_doc},
 	{NULL, NULL, 0, NULL}
 };
 

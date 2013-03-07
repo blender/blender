@@ -47,7 +47,7 @@ AppCanvas::AppCanvas()
 	_MapsPath = StringUtils::toAscii(Config::Path::getInstance()->getMapsDir()).c_str();
 }
 
-AppCanvas::AppCanvas(AppView* iViewer)
+AppCanvas::AppCanvas(AppView *iViewer)
 :Canvas()
 {
 	_pViewer = iViewer;
@@ -116,7 +116,7 @@ void AppCanvas::init()
 void AppCanvas::postDraw()
 {
 	for (unsigned int i = 0; i < _StyleModules.size(); i++) {
-		if(!_StyleModules[i]->getDisplayed() || !_Layers[i])
+		if (!_StyleModules[i]->getDisplayed() || !_Layers[i])
 			continue;
 		_Layers[i]->ScaleThickness(thickness());
 	}
@@ -130,9 +130,9 @@ void AppCanvas::Erase()
 
 // Abstract
 
-void AppCanvas::readColorPixels(int x,int y,int w, int h, RGBImage& oImage) const
+void AppCanvas::readColorPixels(int x, int y, int w, int h, RGBImage& oImage) const
 {
-	float *rgb = new float[3*w*h];
+	float *rgb = new float[3 * w * h];
 	memset(rgb, 0, sizeof(float) * 3 * w * h);
 	int xsch = width();
 	int ysch = height();
@@ -147,8 +147,8 @@ void AppCanvas::readColorPixels(int x,int y,int w, int h, RGBImage& oImage) cons
 		float yfac = ((float)recty) / ((float)(ymax - ymin));
 #if 0
 		if (G.debug & G_DEBUG_FREESTYLE) {
-			printf("readColorPixels %d x %d @ (%d, %d) in %d x %d [%d x %d] -- %d x %d @ %d%%\n", w, h, x, y, xsch, ysch,
-			       xmax - xmin, ymax - ymin, rectx, recty, (int)(xfac * 100.0f));
+			printf("readColorPixels %d x %d @ (%d, %d) in %d x %d [%d x %d] -- %d x %d @ %d%%\n", w, h, x, y,
+			       xsch, ysch, xmax - xmin, ymax - ymin, rectx, recty, (int)(xfac * 100.0f));
 		}
 #endif
 		int ii, jj;
@@ -167,9 +167,9 @@ void AppCanvas::readColorPixels(int x,int y,int w, int h, RGBImage& oImage) cons
 	oImage.setArray(rgb, xsch, ysch, w, h, x, y, false);
 }
 
-void AppCanvas::readDepthPixels(int x,int y,int w, int h, GrayImage& oImage) const
+void AppCanvas::readDepthPixels(int x, int y, int w, int h, GrayImage& oImage) const
 {
-	float *z = new float[w*h];
+	float *z = new float[w * h];
 	memset(z, 0, sizeof(float) * w * h);
 	int xsch = width();
 	int ysch = height();
@@ -184,8 +184,8 @@ void AppCanvas::readDepthPixels(int x,int y,int w, int h, GrayImage& oImage) con
 		float yfac = ((float)recty) / ((float)(ymax - ymin));
 #if 0
 		if (G.debug & G_DEBUG_FREESTYLE) {
-			printf("readDepthPixels %d x %d @ (%d, %d) in %d x %d [%d x %d] -- %d x %d @ %d%%\n", w, h, x, y, xsch, ysch,
-			       xmax - xmin, ymax - ymin, rectx, recty, (int)(xfac * 100.0f));
+			printf("readDepthPixels %d x %d @ (%d, %d) in %d x %d [%d x %d] -- %d x %d @ %d%%\n", w, h, x, y,
+			       xsch, ysch, xmax - xmin, ymax - ymin, rectx, recty, (int)(xfac * 100.0f));
 		}
 #endif
 		int ii, jj;
@@ -206,7 +206,7 @@ void AppCanvas::readDepthPixels(int x,int y,int w, int h, GrayImage& oImage) con
 
 void AppCanvas::RenderStroke(Stroke *iStroke)
 {
-	if(_basic)
+	if (_basic)
 		iStroke->RenderBasic(_Renderer);
 	else
 		iStroke->Render(_Renderer);

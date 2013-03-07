@@ -64,7 +64,7 @@ static char ReadSteerableViewMapPixelF0D___doc__[] =
 "   :return: A pixel in one of the level of one of the steerable viewmaps.\n"
 "   :rtype: float\n";
 
-static int ReadSteerableViewMapPixelF0D___init__(BPy_ReadSteerableViewMapPixelF0D* self, PyObject *args, PyObject *kwds)
+static int ReadSteerableViewMapPixelF0D___init__(BPy_ReadSteerableViewMapPixelF0D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"orientation", "level", NULL};
 	unsigned int u;
@@ -72,7 +72,7 @@ static int ReadSteerableViewMapPixelF0D___init__(BPy_ReadSteerableViewMapPixelF0
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "Ii", (char **)kwlist, &u, &i))
 		return -1;
-	self->py_uf0D_float.uf0D_float = new Functions0D::ReadSteerableViewMapPixelF0D(u,i);
+	self->py_uf0D_float.uf0D_float = new Functions0D::ReadSteerableViewMapPixelF0D(u, i);
 	self->py_uf0D_float.uf0D_float->py_uf0D = (PyObject *)self;
 	return 0;
 }

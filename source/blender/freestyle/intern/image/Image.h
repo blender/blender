@@ -234,7 +234,7 @@ public:
 
 	virtual ~RGBImage()
 	{
-		if(_rgb)
+		if (_rgb)
 			delete[] _rgb;
 	}
 

@@ -110,7 +110,7 @@ PyDoc_STRVAR(SVertex_add_normal_doc,
 "   :arg normal: A three-dimensional vector.\n"
 "   :type normal: :class:`mathutils.Vector`, list or tuple of 3 real numbers");
 
-static PyObject *SVertex_add_normal(BPy_SVertex *self , PyObject *args, PyObject *kwds)
+static PyObject *SVertex_add_normal(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"normal", NULL};
 	PyObject *py_normal;
@@ -136,7 +136,7 @@ PyDoc_STRVAR(SVertex_add_fedge_doc,
 "   :arg fedge: An FEdge.\n"
 "   :type fedge: :class:`FEdge`");
 
-static PyObject *SVertex_add_fedge(BPy_SVertex *self , PyObject *args, PyObject *kwds)
+static PyObject *SVertex_add_fedge(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"fedge", NULL};
 	PyObject *py_fe;
@@ -421,8 +421,10 @@ static PyObject *SVertex_curvatures_get(BPy_SVertex *self, void *UNUSED(closure)
 }
 
 static PyGetSetDef BPy_SVertex_getseters[] = {
-	{(char *)"point_3d", (getter)SVertex_point_3d_get, (setter)SVertex_point_3d_set, (char *)SVertex_point_3d_doc, NULL},
-	{(char *)"point_2d", (getter)SVertex_point_2d_get, (setter)SVertex_point_2d_set, (char *)SVertex_point_2d_doc, NULL},
+	{(char *)"point_3d", (getter)SVertex_point_3d_get, (setter)SVertex_point_3d_set,
+	                     (char *)SVertex_point_3d_doc, NULL},
+	{(char *)"point_2d", (getter)SVertex_point_2d_get, (setter)SVertex_point_2d_set,
+	                     (char *)SVertex_point_2d_doc, NULL},
 	{(char *)"id", (getter)SVertex_id_get, (setter)SVertex_id_set, (char *)SVertex_id_doc, NULL},
 	{(char *)"normals", (getter)SVertex_normals_get, (setter)NULL, (char *)SVertex_normals_doc, NULL},
 	{(char *)"normals_size", (getter)SVertex_normals_size_get, (setter)NULL, (char *)SVertex_normals_size_doc, NULL},

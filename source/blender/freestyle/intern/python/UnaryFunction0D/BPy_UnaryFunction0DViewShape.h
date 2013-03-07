@@ -46,7 +46,8 @@ extern "C" {
 
 extern PyTypeObject UnaryFunction0DViewShape_Type;
 
-#define BPy_UnaryFunction0DViewShape_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction0DViewShape_Type))
+#define BPy_UnaryFunction0DViewShape_Check(v) \
+            (PyObject_IsInstance((PyObject *)v, (PyObject *)&UnaryFunction0DViewShape_Type))
 
 /*---------------------------Python BPy_UnaryFunction0DViewShape structure definition----------*/
 typedef struct {

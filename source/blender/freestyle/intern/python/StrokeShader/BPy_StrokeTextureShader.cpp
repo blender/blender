@@ -83,7 +83,7 @@ static char StrokeTextureShader___doc__[] =
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
-static int StrokeTextureShader___init__(BPy_StrokeTextureShader* self, PyObject *args, PyObject *kwds)
+static int StrokeTextureShader___init__(BPy_StrokeTextureShader *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"texture_file", "medium_type", "tips", NULL};
 	const char *s1;

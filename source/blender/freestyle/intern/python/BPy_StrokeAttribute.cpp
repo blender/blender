@@ -135,22 +135,19 @@ static int StrokeAttribute_init(BPy_StrokeAttribute *self, PyObject *args, PyObj
 	return 0;
 }
 
-static void StrokeAttribute_dealloc(BPy_StrokeAttribute* self)
+static void StrokeAttribute_dealloc(BPy_StrokeAttribute *self)
 {
 	if (self->sa && !self->borrowed)
 		delete self->sa;
-	Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-static PyObject * StrokeAttribute_repr(BPy_StrokeAttribute* self)
+static PyObject * StrokeAttribute_repr(BPy_StrokeAttribute *self)
 {
 	stringstream repr("StrokeAttribute:");
-	repr << " r: " << self->sa->getColorR()
-		 << " g: " << self->sa->getColorG()
-		 << " b: " << self->sa->getColorB()
-		 << " a: " << self->sa->getAlpha()
-		 << " - R: " << self->sa->getThicknessR() 
-		 << " L: " << self->sa->getThicknessL();
+	repr << " r: " << self->sa->getColorR() << " g: " << self->sa->getColorG() << " b: " << self->sa->getColorB() <<
+	        " a: " << self->sa->getAlpha() <<
+	        " - R: " << self->sa->getThicknessR()  << " L: " << self->sa->getThicknessL();
 
 	return PyUnicode_FromString(repr.str().c_str());
 }
@@ -365,15 +362,24 @@ static PyObject * StrokeAttribute_set_attribute_vec3(BPy_StrokeAttribute *self, 
 }
 
 static PyMethodDef BPy_StrokeAttribute_methods[] = {
-	{"get_attribute_real", (PyCFunction) StrokeAttribute_get_attribute_real, METH_VARARGS | METH_KEYWORDS, StrokeAttribute_get_attribute_real_doc},
-	{"get_attribute_vec2", (PyCFunction) StrokeAttribute_get_attribute_vec2, METH_VARARGS | METH_KEYWORDS, StrokeAttribute_get_attribute_vec2_doc},
-	{"get_attribute_vec3", (PyCFunction) StrokeAttribute_get_attribute_vec3, METH_VARARGS | METH_KEYWORDS, StrokeAttribute_get_attribute_vec3_doc},
-	{"has_attribute_real", (PyCFunction) StrokeAttribute_has_attribute_real, METH_VARARGS | METH_KEYWORDS, StrokeAttribute_has_attribute_real_doc},
-	{"has_attribute_vec2", (PyCFunction) StrokeAttribute_has_attribute_vec2, METH_VARARGS | METH_KEYWORDS, StrokeAttribute_has_attribute_vec2_doc},
-	{"has_attribute_vec3", (PyCFunction) StrokeAttribute_has_attribute_vec3, METH_VARARGS | METH_KEYWORDS, StrokeAttribute_has_attribute_vec3_doc},
-	{"set_attribute_real", (PyCFunction) StrokeAttribute_set_attribute_real, METH_VARARGS | METH_KEYWORDS, StrokeAttribute_set_attribute_real_doc},
-	{"set_attribute_vec2", (PyCFunction) StrokeAttribute_set_attribute_vec2, METH_VARARGS | METH_KEYWORDS, StrokeAttribute_set_attribute_vec2_doc},
-	{"set_attribute_vec3", (PyCFunction) StrokeAttribute_set_attribute_vec3, METH_VARARGS | METH_KEYWORDS, StrokeAttribute_set_attribute_vec3_doc},
+	{"get_attribute_real", (PyCFunction) StrokeAttribute_get_attribute_real, METH_VARARGS | METH_KEYWORDS,
+	                       StrokeAttribute_get_attribute_real_doc},
+	{"get_attribute_vec2", (PyCFunction) StrokeAttribute_get_attribute_vec2, METH_VARARGS | METH_KEYWORDS,
+	                       StrokeAttribute_get_attribute_vec2_doc},
+	{"get_attribute_vec3", (PyCFunction) StrokeAttribute_get_attribute_vec3, METH_VARARGS | METH_KEYWORDS,
+	                       StrokeAttribute_get_attribute_vec3_doc},
+	{"has_attribute_real", (PyCFunction) StrokeAttribute_has_attribute_real, METH_VARARGS | METH_KEYWORDS,
+	                       StrokeAttribute_has_attribute_real_doc},
+	{"has_attribute_vec2", (PyCFunction) StrokeAttribute_has_attribute_vec2, METH_VARARGS | METH_KEYWORDS,
+	                       StrokeAttribute_has_attribute_vec2_doc},
+	{"has_attribute_vec3", (PyCFunction) StrokeAttribute_has_attribute_vec3, METH_VARARGS | METH_KEYWORDS,
+	                       StrokeAttribute_has_attribute_vec3_doc},
+	{"set_attribute_real", (PyCFunction) StrokeAttribute_set_attribute_real, METH_VARARGS | METH_KEYWORDS,
+	                       StrokeAttribute_set_attribute_real_doc},
+	{"set_attribute_vec2", (PyCFunction) StrokeAttribute_set_attribute_vec2, METH_VARARGS | METH_KEYWORDS,
+	                       StrokeAttribute_set_attribute_vec2_doc},
+	{"set_attribute_vec3", (PyCFunction) StrokeAttribute_set_attribute_vec3, METH_VARARGS | METH_KEYWORDS,
+	                       StrokeAttribute_set_attribute_vec3_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -545,7 +551,8 @@ PyDoc_STRVAR(StrokeAttribute_thickness_doc,
 
 static PyObject *StrokeAttribute_thickness_get(BPy_StrokeAttribute *self, void *UNUSED(closure))
 {
-	return Vector_CreatePyObject_cb((PyObject *)self, 2, StrokeAttribute_mathutils_cb_index, MATHUTILS_SUBTYPE_THICKNESS);
+	return Vector_CreatePyObject_cb((PyObject *)self, 2, StrokeAttribute_mathutils_cb_index,
+	                                MATHUTILS_SUBTYPE_THICKNESS);
 }
 
 static int StrokeAttribute_thickness_set(BPy_StrokeAttribute *self, PyObject *value, void *UNUSED(closure))
@@ -580,10 +587,14 @@ static int StrokeAttribute_visible_set(BPy_StrokeAttribute *self, PyObject *valu
 }
 
 static PyGetSetDef BPy_StrokeAttribute_getseters[] = {
-	{(char *)"alpha", (getter)StrokeAttribute_alpha_get, (setter)StrokeAttribute_alpha_set, (char *)StrokeAttribute_alpha_doc, NULL},
-	{(char *)"color", (getter)StrokeAttribute_color_get, (setter)StrokeAttribute_color_set, (char *)StrokeAttribute_color_doc, NULL},
-	{(char *)"thickness", (getter)StrokeAttribute_thickness_get, (setter)StrokeAttribute_thickness_set, (char *)StrokeAttribute_thickness_doc, NULL},
-	{(char *)"visible", (getter)StrokeAttribute_visible_get, (setter)StrokeAttribute_visible_set, (char *)StrokeAttribute_visible_doc, NULL},
+	{(char *)"alpha", (getter)StrokeAttribute_alpha_get, (setter)StrokeAttribute_alpha_set,
+	                  (char *)StrokeAttribute_alpha_doc, NULL},
+	{(char *)"color", (getter)StrokeAttribute_color_get, (setter)StrokeAttribute_color_set,
+	                  (char *)StrokeAttribute_color_doc, NULL},
+	{(char *)"thickness", (getter)StrokeAttribute_thickness_get, (setter)StrokeAttribute_thickness_set,
+	                      (char *)StrokeAttribute_thickness_doc, NULL},
+	{(char *)"visible", (getter)StrokeAttribute_visible_get, (setter)StrokeAttribute_visible_set,
+	                    (char *)StrokeAttribute_visible_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 

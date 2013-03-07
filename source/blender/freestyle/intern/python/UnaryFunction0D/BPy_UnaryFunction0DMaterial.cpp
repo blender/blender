@@ -74,7 +74,7 @@ static char UnaryFunction0DMaterial___doc__[] =
 "\n"
 "   Default constructor.\n";
 
-static int UnaryFunction0DMaterial___init__(BPy_UnaryFunction0DMaterial* self, PyObject *args, PyObject *kwds)
+static int UnaryFunction0DMaterial___init__(BPy_UnaryFunction0DMaterial *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 
@@ -85,19 +85,19 @@ static int UnaryFunction0DMaterial___init__(BPy_UnaryFunction0DMaterial* self, P
 	return 0;
 }
 
-static void UnaryFunction0DMaterial___dealloc__(BPy_UnaryFunction0DMaterial* self)
+static void UnaryFunction0DMaterial___dealloc__(BPy_UnaryFunction0DMaterial *self)
 {
 	if (self->uf0D_material)
 		delete self->uf0D_material;
-	UnaryFunction0D_Type.tp_dealloc((PyObject*)self);
+	UnaryFunction0D_Type.tp_dealloc((PyObject *)self);
 }
 
-static PyObject * UnaryFunction0DMaterial___repr__(BPy_UnaryFunction0DMaterial* self)
+static PyObject *UnaryFunction0DMaterial___repr__(BPy_UnaryFunction0DMaterial *self)
 {
 	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->uf0D_material);
 }
 
-static PyObject * UnaryFunction0DMaterial___call__(BPy_UnaryFunction0DMaterial *self, PyObject *args, PyObject *kwds)
+static PyObject *UnaryFunction0DMaterial___call__(BPy_UnaryFunction0DMaterial *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"it", NULL};
 	PyObject *obj;

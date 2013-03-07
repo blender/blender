@@ -61,7 +61,7 @@ static char Curvature2DAngleF0D___doc__[] =
 "      pointed Interface0D.\n"
 "   :rtype: float\n";
 
-static int Curvature2DAngleF0D___init__(BPy_Curvature2DAngleF0D* self, PyObject *args, PyObject *kwds)
+static int Curvature2DAngleF0D___init__(BPy_Curvature2DAngleF0D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

@@ -62,7 +62,7 @@ static char ColorNoiseShader___doc__[] =
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
-static int ColorNoiseShader___init__(BPy_ColorNoiseShader* self, PyObject *args, PyObject *kwds)
+static int ColorNoiseShader___init__(BPy_ColorNoiseShader *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"amplitude", "period", NULL};
 	float f1, f2;

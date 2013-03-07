@@ -61,7 +61,7 @@ static char VertexOrientation2DF0D___doc__[] =
 "      pointed Interface0D.\n"
 "   :rtype: :class:`mathutils.Vector`\n";
 
-static int VertexOrientation2DF0D___init__(BPy_VertexOrientation2DF0D* self, PyObject *args, PyObject *kwds)
+static int VertexOrientation2DF0D___init__(BPy_VertexOrientation2DF0D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

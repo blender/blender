@@ -76,7 +76,7 @@ static char UnaryFunction1DFloat___doc__[] =
 "   :arg integration_type: An integration method.\n"
 "   :type integration_type: :class:`IntegrationType`\n";
 
-static int UnaryFunction1DFloat___init__(BPy_UnaryFunction1DFloat* self, PyObject *args, PyObject *kwds)
+static int UnaryFunction1DFloat___init__(BPy_UnaryFunction1DFloat *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"integration", NULL};
 	PyObject *obj = 0;
@@ -95,19 +95,19 @@ static int UnaryFunction1DFloat___init__(BPy_UnaryFunction1DFloat* self, PyObjec
 	return 0;
 }
 
-static void UnaryFunction1DFloat___dealloc__(BPy_UnaryFunction1DFloat* self)
+static void UnaryFunction1DFloat___dealloc__(BPy_UnaryFunction1DFloat *self)
 {
 	if (self->uf1D_float)
 		delete self->uf1D_float;
-	UnaryFunction1D_Type.tp_dealloc((PyObject*)self);
+	UnaryFunction1D_Type.tp_dealloc((PyObject *)self);
 }
 
-static PyObject * UnaryFunction1DFloat___repr__(BPy_UnaryFunction1DFloat* self)
+static PyObject *UnaryFunction1DFloat___repr__(BPy_UnaryFunction1DFloat *self)
 {
 	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->uf1D_float);
 }
 
-static PyObject * UnaryFunction1DFloat___call__(BPy_UnaryFunction1DFloat *self, PyObject *args, PyObject *kwds)
+static PyObject *UnaryFunction1DFloat___call__(BPy_UnaryFunction1DFloat *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"inter", NULL};
 	PyObject *obj = 0;
@@ -152,7 +152,8 @@ static int integration_type_set(BPy_UnaryFunction1DFloat *self, PyObject *value,
 }
 
 static PyGetSetDef BPy_UnaryFunction1DFloat_getseters[] = {
-	{(char *)"integration_type", (getter)integration_type_get, (setter)integration_type_set, (char *)integration_type_doc, NULL},
+	{(char *)"integration_type", (getter)integration_type_get, (setter)integration_type_set,
+	                             (char *)integration_type_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 

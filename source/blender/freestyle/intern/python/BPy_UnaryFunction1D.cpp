@@ -89,12 +89,12 @@ static char UnaryFunction1D___doc__[] =
 "* :class:`UnaryFunction1DVectorViewShape`\n"
 "* :class:`UnaryFunction1DVoid`\n";
 
-static void UnaryFunction1D___dealloc__(BPy_UnaryFunction1D* self)
+static void UnaryFunction1D___dealloc__(BPy_UnaryFunction1D *self)
 {
-	Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-static PyObject * UnaryFunction1D___repr__(BPy_UnaryFunction1D* self)
+static PyObject *UnaryFunction1D___repr__(BPy_UnaryFunction1D *self)
 {
 	return PyUnicode_FromString("UnaryFunction1D");
 }

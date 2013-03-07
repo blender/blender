@@ -68,7 +68,7 @@ static char GuidingLinesShader___doc__[] =
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
-static int GuidingLinesShader___init__(BPy_GuidingLinesShader* self, PyObject *args, PyObject *kwds)
+static int GuidingLinesShader___init__(BPy_GuidingLinesShader *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"offset", NULL};
 	float f;

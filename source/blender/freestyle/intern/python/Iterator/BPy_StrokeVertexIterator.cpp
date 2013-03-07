@@ -84,7 +84,7 @@ static int StrokeVertexIterator_init(BPy_StrokeVertexIterator *self, PyObject *a
 	return 0;
 }
 
-static PyObject * StrokeVertexIterator_iternext(BPy_StrokeVertexIterator *self)
+static PyObject *StrokeVertexIterator_iternext(BPy_StrokeVertexIterator *self)
 {
 	StrokeVertex *sv;
 
@@ -145,7 +145,8 @@ static PyObject *StrokeVertexIterator_u_get(BPy_StrokeVertexIterator *self, void
 }
 
 static PyGetSetDef BPy_StrokeVertexIterator_getseters[] = {
-	{(char *)"object", (getter)StrokeVertexIterator_object_get, (setter)NULL, (char *)StrokeVertexIterator_object_doc, NULL},
+	{(char *)"object", (getter)StrokeVertexIterator_object_get, (setter)NULL,
+	                   (char *)StrokeVertexIterator_object_doc, NULL},
 	{(char *)"t", (getter)StrokeVertexIterator_t_get, (setter)NULL, (char *)StrokeVertexIterator_t_doc, NULL},
 	{(char *)"u", (getter)StrokeVertexIterator_u_get, (setter)NULL, (char *)StrokeVertexIterator_u_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */

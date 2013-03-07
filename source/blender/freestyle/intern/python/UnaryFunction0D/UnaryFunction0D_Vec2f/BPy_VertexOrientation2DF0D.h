@@ -44,7 +44,8 @@ extern "C" {
 
 extern PyTypeObject VertexOrientation2DF0D_Type;
 
-#define BPy_VertexOrientation2DF0D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&VertexOrientation2DF0D_Type))
+#define BPy_VertexOrientation2DF0D_Check(v) \
+            (PyObject_IsInstance((PyObject *)v, (PyObject *)&VertexOrientation2DF0D_Type))
 
 /*---------------------------Python BPy_VertexOrientation2DF0D structure definition----------*/
 typedef struct {

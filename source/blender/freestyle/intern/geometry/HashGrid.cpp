@@ -37,8 +37,8 @@
 void HashGrid::clear()
 {
 	if (!_cells.empty()) {
-		for (GridHashTable::iterator it = _cells.begin(); it !=_cells.end(); it++) {
-			Cell* cell = (*it).second;
+		for (GridHashTable::iterator it = _cells.begin(); it != _cells.end(); it++) {
+			Cell *cell = (*it).second;
 			delete cell;
 		}
 		_cells.clear();

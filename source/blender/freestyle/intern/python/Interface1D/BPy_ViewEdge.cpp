@@ -86,7 +86,7 @@ PyDoc_STRVAR(ViewEdge_update_fedges_doc,
 "\n"
 "   Sets Viewedge to this for all embedded fedges.\n");
 
-static PyObject * ViewEdge_update_fedges(BPy_ViewEdge *self)
+static PyObject *ViewEdge_update_fedges(BPy_ViewEdge *self)
 {
 	self->ve->UpdateFEdges();
 	Py_RETURN_NONE;
@@ -114,7 +114,7 @@ static PyObject *ViewEdge_first_viewvertex_get(BPy_ViewEdge *self, void *UNUSED(
 
 static int ViewEdge_first_viewvertex_set(BPy_ViewEdge *self, PyObject *value, void *UNUSED(closure))
 {
-	if(!BPy_ViewVertex_Check(value))
+	if (!BPy_ViewVertex_Check(value))
 		return -1;
 	self->ve->setA(((BPy_ViewVertex *)value)->vv);
 	return 0;
@@ -135,7 +135,7 @@ static PyObject *ViewEdge_last_viewvertex_get(BPy_ViewEdge *self, void *UNUSED(c
 
 static int ViewEdge_last_viewvertex_set(BPy_ViewEdge *self, PyObject *value, void *UNUSED(closure))
 {
-	if(!BPy_ViewVertex_Check(value))
+	if (!BPy_ViewVertex_Check(value))
 		return -1;
 	self->ve->setB(((BPy_ViewVertex *)value)->vv);
 	return 0;
@@ -156,7 +156,7 @@ static PyObject *ViewEdge_first_fedge_get(BPy_ViewEdge *self, void *UNUSED(closu
 
 static int ViewEdge_first_fedge_set(BPy_ViewEdge *self, PyObject *value, void *UNUSED(closure))
 {
-	if(!BPy_FEdge_Check(value))
+	if (!BPy_FEdge_Check(value))
 		return -1;
 	self->ve->setFEdgeA(((BPy_FEdge *)value)->fe);
 	return 0;
@@ -177,7 +177,7 @@ static PyObject *ViewEdge_last_fedge_get(BPy_ViewEdge *self, void *UNUSED(closur
 
 static int ViewEdge_last_fedge_set(BPy_ViewEdge *self, PyObject *value, void *UNUSED(closure))
 {
-	if(!BPy_FEdge_Check(value))
+	if (!BPy_FEdge_Check(value))
 		return -1;
 	self->ve->setFEdgeB(((BPy_FEdge *)value)->fe);
 	return 0;
@@ -220,7 +220,7 @@ static PyObject *ViewEdge_occludee_get(BPy_ViewEdge *self, void *UNUSED(closure)
 
 static int ViewEdge_occludee_set(BPy_ViewEdge *self, PyObject *value, void *UNUSED(closure))
 {
-	if(!BPy_ViewShape_Check(value))
+	if (!BPy_ViewShape_Check(value))
 		return -1;
 	self->ve->setaShape(((BPy_ViewShape *)value)->vs);
 	return 0;
@@ -291,7 +291,7 @@ static int ViewEdge_qi_set(BPy_ViewEdge *self, PyObject *value, void *UNUSED(clo
 {
 	int qi;
 
-	if((qi = PyLong_AsLong(value)) == -1 && PyErr_Occurred())
+	if ((qi = PyLong_AsLong(value)) == -1 && PyErr_Occurred())
 		return -1;
 	self->ve->setQI(qi);
 	return 0;
@@ -318,17 +318,24 @@ static int ViewEdge_chaining_time_stamp_set(BPy_ViewEdge *self, PyObject *value,
 }
 
 static PyGetSetDef BPy_ViewEdge_getseters[] = {
-	{(char *)"first_viewvertex", (getter)ViewEdge_first_viewvertex_get, (setter)ViewEdge_first_viewvertex_set, (char *)ViewEdge_first_viewvertex_doc, NULL},
-	{(char *)"last_viewvertex", (getter)ViewEdge_last_viewvertex_get, (setter)ViewEdge_last_viewvertex_set, (char *)ViewEdge_last_viewvertex_doc, NULL},
-	{(char *)"first_fedge", (getter)ViewEdge_first_fedge_get, (setter)ViewEdge_first_fedge_set, (char *)ViewEdge_first_fedge_doc, NULL},
-	{(char *)"last_fedge", (getter)ViewEdge_last_fedge_get, (setter)ViewEdge_last_fedge_set, (char *)ViewEdge_last_fedge_doc, NULL},
-	{(char *)"viewshape", (getter)ViewEdge_viewshape_get, (setter)ViewEdge_viewshape_set, (char *)ViewEdge_viewshape_doc, NULL},
-	{(char *)"occludee", (getter)ViewEdge_occludee_get, (setter)ViewEdge_occludee_set, (char *)ViewEdge_occludee_doc, NULL},
+	{(char *)"first_viewvertex", (getter)ViewEdge_first_viewvertex_get, (setter)ViewEdge_first_viewvertex_set,
+	                             (char *)ViewEdge_first_viewvertex_doc, NULL},
+	{(char *)"last_viewvertex", (getter)ViewEdge_last_viewvertex_get, (setter)ViewEdge_last_viewvertex_set,
+	                            (char *)ViewEdge_last_viewvertex_doc, NULL},
+	{(char *)"first_fedge", (getter)ViewEdge_first_fedge_get, (setter)ViewEdge_first_fedge_set,
+	                        (char *)ViewEdge_first_fedge_doc, NULL},
+	{(char *)"last_fedge", (getter)ViewEdge_last_fedge_get, (setter)ViewEdge_last_fedge_set,
+	                       (char *)ViewEdge_last_fedge_doc, NULL},
+	{(char *)"viewshape", (getter)ViewEdge_viewshape_get, (setter)ViewEdge_viewshape_set,
+	                      (char *)ViewEdge_viewshape_doc, NULL},
+	{(char *)"occludee", (getter)ViewEdge_occludee_get, (setter)ViewEdge_occludee_set,
+	                     (char *)ViewEdge_occludee_doc, NULL},
 	{(char *)"is_closed", (getter)ViewEdge_is_closed_get, (setter)NULL, (char *)ViewEdge_is_closed_doc, NULL},
 	{(char *)"id", (getter)ViewEdge_id_get, (setter)ViewEdge_id_set, (char *)ViewEdge_id_doc, NULL},
 	{(char *)"nature", (getter)ViewEdge_nature_get, (setter)ViewEdge_nature_set, (char *)ViewEdge_nature_doc, NULL},
 	{(char *)"qi", (getter)ViewEdge_qi_get, (setter)ViewEdge_qi_set, (char *)ViewEdge_qi_doc, NULL},
-	{(char *)"chaining_time_stamp", (getter)ViewEdge_chaining_time_stamp_get, (setter)ViewEdge_chaining_time_stamp_set, (char *)ViewEdge_chaining_time_stamp_doc, NULL},
+	{(char *)"chaining_time_stamp", (getter)ViewEdge_chaining_time_stamp_get, (setter)ViewEdge_chaining_time_stamp_set,
+	                                (char *)ViewEdge_chaining_time_stamp_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 

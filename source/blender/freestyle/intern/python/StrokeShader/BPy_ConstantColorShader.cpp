@@ -66,7 +66,7 @@ static char ConstantColorShader___doc__[] =
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
-static int ConstantColorShader___init__(BPy_ConstantColorShader* self, PyObject *args, PyObject *kwds)
+static int ConstantColorShader___init__(BPy_ConstantColorShader *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"red", "green", "blue", "alpha", NULL};
 	float f1, f2, f3, f4 = 1.0;

@@ -64,7 +64,7 @@ static char QuantitativeInvisibilityF0D___doc__[] =
 "   :return: The quantitative invisibility of the pointed Interface0D.\n"
 "   :rtype: int\n";
 
-static int QuantitativeInvisibilityF0D___init__(BPy_QuantitativeInvisibilityF0D* self, PyObject *args, PyObject *kwds)
+static int QuantitativeInvisibilityF0D___init__(BPy_QuantitativeInvisibilityF0D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

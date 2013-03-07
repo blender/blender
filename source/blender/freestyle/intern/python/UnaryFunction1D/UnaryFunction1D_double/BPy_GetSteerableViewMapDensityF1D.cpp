@@ -73,7 +73,8 @@ static char GetSteerableViewMapDensityF1D___doc__[] =
 "   :return: The density of the ViewMap for a given Interface1D.\n"
 "   :rtype: float\n";
 
-static int GetSteerableViewMapDensityF1D___init__(BPy_GetSteerableViewMapDensityF1D* self, PyObject *args, PyObject *kwds)
+static int GetSteerableViewMapDensityF1D___init__(BPy_GetSteerableViewMapDensityF1D *self,
+                                                  PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"level", "integration_type", "sampling", NULL};
 	PyObject *obj = 0;
@@ -83,7 +84,7 @@ static int GetSteerableViewMapDensityF1D___init__(BPy_GetSteerableViewMapDensity
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "i|O!f", (char **)kwlist, &i, &IntegrationType_Type, &obj, &f))
 		return -1;
 	IntegrationType t = (obj) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
-	self->py_uf1D_double.uf1D_double = new Functions1D::GetSteerableViewMapDensityF1D(i,t,f);
+	self->py_uf1D_double.uf1D_double = new Functions1D::GetSteerableViewMapDensityF1D(i, t, f);
 	return 0;
 }
 

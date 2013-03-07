@@ -115,7 +115,8 @@ static PyObject *ViewEdgeIterator_change_orientation(BPy_ViewEdgeIterator *self)
 }
 
 static PyMethodDef BPy_ViewEdgeIterator_methods[] = {
-	{"change_orientation", (PyCFunction) ViewEdgeIterator_change_orientation, METH_NOARGS, ViewEdgeIterator_change_orientation_doc},
+	{"change_orientation", (PyCFunction) ViewEdgeIterator_change_orientation, METH_NOARGS,
+	                       ViewEdgeIterator_change_orientation_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -195,7 +196,7 @@ static PyObject *ViewEdgeIterator_begin_get(BPy_ViewEdgeIterator *self, void *UN
 
 static int ViewEdgeIterator_begin_set(BPy_ViewEdgeIterator *self, PyObject *value, void *UNUSED(closure))
 {
-	if(!BPy_ViewEdge_Check(value)) {
+	if (!BPy_ViewEdge_Check(value)) {
 		PyErr_SetString(PyExc_TypeError, "value must be a ViewEdge");
 		return -1;
 	}
@@ -205,9 +206,12 @@ static int ViewEdgeIterator_begin_set(BPy_ViewEdgeIterator *self, PyObject *valu
 
 static PyGetSetDef BPy_ViewEdgeIterator_getseters[] = {
 	{(char *)"object", (getter)ViewEdgeIterator_object_get, (setter)NULL, (char *)ViewEdgeIterator_object_doc, NULL},
-	{(char *)"current_edge", (getter)ViewEdgeIterator_current_edge_get, (setter)ViewEdgeIterator_current_edge_set, (char *)ViewEdgeIterator_current_edge_doc, NULL},
-	{(char *)"orientation", (getter)ViewEdgeIterator_orientation_get, (setter)ViewEdgeIterator_orientation_set, (char *)ViewEdgeIterator_orientation_doc, NULL},
-	{(char *)"begin", (getter)ViewEdgeIterator_begin_get, (setter)ViewEdgeIterator_begin_set, (char *)ViewEdgeIterator_begin_doc, NULL},
+	{(char *)"current_edge", (getter)ViewEdgeIterator_current_edge_get, (setter)ViewEdgeIterator_current_edge_set,
+	                         (char *)ViewEdgeIterator_current_edge_doc, NULL},
+	{(char *)"orientation", (getter)ViewEdgeIterator_orientation_get, (setter)ViewEdgeIterator_orientation_set,
+	                        (char *)ViewEdgeIterator_orientation_doc, NULL},
+	{(char *)"begin", (getter)ViewEdgeIterator_begin_get, (setter)ViewEdgeIterator_begin_set,
+	                  (char *)ViewEdgeIterator_begin_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 

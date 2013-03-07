@@ -79,13 +79,13 @@ static int FrsNoise_init(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
 	return 0;
 }
 
-static void FrsNoise_dealloc(BPy_FrsNoise* self)
+static void FrsNoise_dealloc(BPy_FrsNoise *self)
 {
 	delete self->n;
-	Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-static PyObject * FrsNoise_repr(BPy_FrsNoise* self)
+static PyObject *FrsNoise_repr(BPy_FrsNoise *self)
 {
 	return PyUnicode_FromFormat("Noise - address: %p", self->n);
 }
@@ -106,7 +106,7 @@ PyDoc_STRVAR(FrsNoise_turbulence1_doc,
 "   :return: A noise value.\n"
 "   :rtype: float");
 
-static PyObject * FrsNoise_turbulence1(BPy_FrsNoise *self , PyObject *args, PyObject *kwds)
+static PyObject *FrsNoise_turbulence1(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"v", "freq", "amp", "oct", NULL};
 	float f1, f2, f3;
@@ -133,7 +133,7 @@ PyDoc_STRVAR(FrsNoise_turbulence2_doc,
 "   :return: A noise value.\n"
 "   :rtype: float");
 
-static PyObject * FrsNoise_turbulence2(BPy_FrsNoise *self , PyObject *args, PyObject *kwds)
+static PyObject *FrsNoise_turbulence2(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"v", "freq", "amp", "oct", NULL};
 	PyObject *obj1;
@@ -168,7 +168,7 @@ PyDoc_STRVAR(FrsNoise_turbulence3_doc,
 "   :return: A noise value.\n"
 "   :rtype: float");
 
-static PyObject * FrsNoise_turbulence3(BPy_FrsNoise *self , PyObject *args, PyObject *kwds)
+static PyObject *FrsNoise_turbulence3(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"v", "freq", "amp", "oct", NULL};
 	PyObject *obj1;
@@ -197,7 +197,7 @@ PyDoc_STRVAR(FrsNoise_smoothNoise1_doc,
 "   :return: A smooth noise value.\n"
 "   :rtype: float");
 
-static PyObject * FrsNoise_smoothNoise1(BPy_FrsNoise *self , PyObject *args, PyObject *kwds)
+static PyObject *FrsNoise_smoothNoise1(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"v", NULL};
 	float f;
@@ -217,7 +217,7 @@ PyDoc_STRVAR(FrsNoise_smoothNoise2_doc,
 "   :return: A smooth noise value.\n"
 "   :rtype: float");
 
-static PyObject * FrsNoise_smoothNoise2(BPy_FrsNoise *self , PyObject *args, PyObject *kwds)
+static PyObject *FrsNoise_smoothNoise2(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"v", NULL};
 	PyObject *obj;
@@ -244,7 +244,7 @@ PyDoc_STRVAR(FrsNoise_smoothNoise3_doc,
 "   :return: A smooth noise value.\n"
 "   :rtype: float");
 
-static PyObject * FrsNoise_smoothNoise3(BPy_FrsNoise *self , PyObject *args, PyObject *kwds)
+static PyObject *FrsNoise_smoothNoise3(BPy_FrsNoise *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"v", NULL};
 	PyObject *obj;

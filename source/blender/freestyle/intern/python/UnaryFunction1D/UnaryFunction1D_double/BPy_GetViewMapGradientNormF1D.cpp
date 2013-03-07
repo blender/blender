@@ -73,7 +73,7 @@ static char GetViewMapGradientNormF1D___doc__[] =
 "   :return: The density of the ViewMap for a given Interface1D.\n"
 "   :rtype: float\n";
 
-static int GetViewMapGradientNormF1D___init__(BPy_GetViewMapGradientNormF1D* self, PyObject *args, PyObject *kwds)
+static int GetViewMapGradientNormF1D___init__(BPy_GetViewMapGradientNormF1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"level", "integration_type", "sampling", NULL};
 	PyObject *obj = 0;
@@ -83,7 +83,7 @@ static int GetViewMapGradientNormF1D___init__(BPy_GetViewMapGradientNormF1D* sel
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "i|O!f", (char **)kwlist, &i, &IntegrationType_Type, &obj, &f))
 		return -1;
 	IntegrationType t = (obj) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
-	self->py_uf1D_double.uf1D_double = new Functions1D::GetViewMapGradientNormF1D(i,t,f);
+	self->py_uf1D_double.uf1D_double = new Functions1D::GetViewMapGradientNormF1D(i, t, f);
 	return 0;
 }
 

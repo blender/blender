@@ -51,7 +51,7 @@ static char ContextFunctions_get_time_stamp___doc__[] =
 "   :rtype: int\n";
 
 static PyObject *
-ContextFunctions_get_time_stamp(PyObject* self)
+ContextFunctions_get_time_stamp(PyObject *self)
 {
 	return PyLong_FromLong(ContextFunctions::GetTimeStampCF());
 }
@@ -65,7 +65,7 @@ static char ContextFunctions_get_canvas_width___doc__[] =
 "   :rtype: int\n";
 
 static PyObject *
-ContextFunctions_get_canvas_width(PyObject* self)
+ContextFunctions_get_canvas_width(PyObject *self)
 {
 	return PyLong_FromLong(ContextFunctions::GetCanvasWidthCF());
 }
@@ -79,7 +79,7 @@ static char ContextFunctions_get_canvas_height___doc__[] =
 "   :rtype: int\n";
 
 static PyObject *
-ContextFunctions_get_canvas_height(PyObject* self)
+ContextFunctions_get_canvas_height(PyObject *self)
 {
 	return PyLong_FromLong(ContextFunctions::GetCanvasHeightCF());
 }
@@ -231,15 +231,25 @@ static char module_docstring[] = "The Blender Freestyle.ContextFunctions submodu
 /*-----------------------ContextFunctions module functions definitions-------------------*/
 
 static PyMethodDef module_functions[] = {
-  {"get_time_stamp", (PyCFunction)ContextFunctions_get_time_stamp, METH_NOARGS, ContextFunctions_get_time_stamp___doc__},
-  {"get_canvas_width", (PyCFunction)ContextFunctions_get_canvas_width, METH_NOARGS, ContextFunctions_get_canvas_width___doc__},
-  {"get_canvas_height", (PyCFunction)ContextFunctions_get_canvas_height, METH_NOARGS, ContextFunctions_get_canvas_height___doc__},
-  {"load_map", (PyCFunction)ContextFunctions_load_map, METH_VARARGS | METH_KEYWORDS, ContextFunctions_load_map___doc__},
-  {"read_map_pixel", (PyCFunction)ContextFunctions_read_map_pixel, METH_VARARGS | METH_KEYWORDS, ContextFunctions_read_map_pixel___doc__},
-  {"read_complete_view_map_pixel", (PyCFunction)ContextFunctions_read_complete_view_map_pixel, METH_VARARGS | METH_KEYWORDS, ContextFunctions_read_complete_view_map_pixel___doc__},
-  {"read_directional_view_map_pixel", (PyCFunction)ContextFunctions_read_directional_view_map_pixel, METH_VARARGS | METH_KEYWORDS, ContextFunctions_read_directional_view_map_pixel___doc__},
-  {"get_selected_fedge", (PyCFunction)ContextFunctions_get_selected_fedge, METH_NOARGS, ContextFunctions_get_selected_fedge___doc__},
-  {NULL, NULL, 0, NULL}
+	{"get_time_stamp", (PyCFunction)ContextFunctions_get_time_stamp, METH_NOARGS,
+	                   ContextFunctions_get_time_stamp___doc__},
+	{"get_canvas_width", (PyCFunction)ContextFunctions_get_canvas_width, METH_NOARGS,
+	                     ContextFunctions_get_canvas_width___doc__},
+	{"get_canvas_height", (PyCFunction)ContextFunctions_get_canvas_height, METH_NOARGS,
+	                      ContextFunctions_get_canvas_height___doc__},
+	{"load_map", (PyCFunction)ContextFunctions_load_map, METH_VARARGS | METH_KEYWORDS,
+	             ContextFunctions_load_map___doc__},
+	{"read_map_pixel", (PyCFunction)ContextFunctions_read_map_pixel, METH_VARARGS | METH_KEYWORDS,
+	                   ContextFunctions_read_map_pixel___doc__},
+	{"read_complete_view_map_pixel", (PyCFunction)ContextFunctions_read_complete_view_map_pixel,
+	                                 METH_VARARGS | METH_KEYWORDS,
+	                                 ContextFunctions_read_complete_view_map_pixel___doc__},
+	{"read_directional_view_map_pixel", (PyCFunction)ContextFunctions_read_directional_view_map_pixel,
+	                                    METH_VARARGS | METH_KEYWORDS,
+	                                    ContextFunctions_read_directional_view_map_pixel___doc__},
+	{"get_selected_fedge", (PyCFunction)ContextFunctions_get_selected_fedge, METH_NOARGS,
+	                       ContextFunctions_get_selected_fedge___doc__},
+	{NULL, NULL, 0, NULL}
 };
 
 /*-----------------------ContextFunctions module definition--------------------------------*/

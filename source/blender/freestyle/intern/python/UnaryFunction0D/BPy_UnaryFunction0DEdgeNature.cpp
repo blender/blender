@@ -74,7 +74,7 @@ static char UnaryFunction0DEdgeNature___doc__[] =
 "\n"
 "   Default constructor.\n";
 
-static int UnaryFunction0DEdgeNature___init__(BPy_UnaryFunction0DEdgeNature* self, PyObject *args, PyObject *kwds)
+static int UnaryFunction0DEdgeNature___init__(BPy_UnaryFunction0DEdgeNature *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 
@@ -85,19 +85,20 @@ static int UnaryFunction0DEdgeNature___init__(BPy_UnaryFunction0DEdgeNature* sel
 	return 0;
 }
 
-static void UnaryFunction0DEdgeNature___dealloc__(BPy_UnaryFunction0DEdgeNature* self)
+static void UnaryFunction0DEdgeNature___dealloc__(BPy_UnaryFunction0DEdgeNature *self)
 {
 	if (self->uf0D_edgenature)
 		delete self->uf0D_edgenature;
-	UnaryFunction0D_Type.tp_dealloc((PyObject*)self);
+	UnaryFunction0D_Type.tp_dealloc((PyObject *)self);
 }
 
-static PyObject * UnaryFunction0DEdgeNature___repr__(BPy_UnaryFunction0DEdgeNature* self)
+static PyObject *UnaryFunction0DEdgeNature___repr__(BPy_UnaryFunction0DEdgeNature *self)
 {
 	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->uf0D_edgenature);
 }
 
-static PyObject * UnaryFunction0DEdgeNature___call__(BPy_UnaryFunction0DEdgeNature *self, PyObject *args, PyObject *kwds)
+static PyObject *UnaryFunction0DEdgeNature___call__(BPy_UnaryFunction0DEdgeNature *self,
+                                                    PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"it", NULL};
 	PyObject *obj;

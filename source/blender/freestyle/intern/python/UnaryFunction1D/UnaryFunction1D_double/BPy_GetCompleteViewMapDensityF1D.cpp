@@ -76,7 +76,7 @@ static char GetCompleteViewMapDensityF1D___doc__[] =
 "      viewmap image.\n"
 "   :rtype: float\n";
 
-static int GetCompleteViewMapDensityF1D___init__(BPy_GetCompleteViewMapDensityF1D* self, PyObject *args, PyObject *kwds)
+static int GetCompleteViewMapDensityF1D___init__(BPy_GetCompleteViewMapDensityF1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"level", "integration_type", "sampling", NULL};
 	PyObject *obj = 0;
@@ -86,7 +86,7 @@ static int GetCompleteViewMapDensityF1D___init__(BPy_GetCompleteViewMapDensityF1
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "i|O!f", (char **)kwlist, &i, &IntegrationType_Type, &obj, &f))
 		return -1;
 	IntegrationType t = (obj) ? IntegrationType_from_BPy_IntegrationType(obj) : MEAN;
-	self->py_uf1D_double.uf1D_double = new Functions1D::GetCompleteViewMapDensityF1D(i,t,f);
+	self->py_uf1D_double.uf1D_double = new Functions1D::GetCompleteViewMapDensityF1D(i, t, f);
 	return 0;
 }
 

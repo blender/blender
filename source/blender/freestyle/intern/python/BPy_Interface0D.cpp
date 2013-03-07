@@ -114,14 +114,14 @@ static int Interface0D_init(BPy_Interface0D *self, PyObject *args, PyObject *kwd
 	return 0;
 }
 
-static void Interface0D_dealloc(BPy_Interface0D* self)
+static void Interface0D_dealloc(BPy_Interface0D *self)
 {
 	if (self->if0D && !self->borrowed)
 		delete self->if0D;
-	Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-static PyObject * Interface0D_repr(BPy_Interface0D* self)
+static PyObject *Interface0D_repr(BPy_Interface0D *self)
 {
 	return PyUnicode_FromFormat("type: %s - address: %p", self->if0D->getExactTypeName().c_str(), self->if0D);
 }
@@ -263,9 +263,12 @@ static PyObject *Interface0D_nature_get(BPy_Interface0D *self, void *UNUSED(clos
 static PyGetSetDef BPy_Interface0D_getseters[] = {
 	{(char *)"name", (getter)Interface0D_name_get, (setter)NULL, (char *)Interface0D_name_doc, NULL},
 	{(char *)"point_3d", (getter)Interface0D_point_3d_get, (setter)NULL, (char *)Interface0D_point_3d_doc, NULL},
-	{(char *)"projected_x", (getter)Interface0D_projected_x_get, (setter)NULL, (char *)Interface0D_projected_x_doc, NULL},
-	{(char *)"projected_y", (getter)Interface0D_projected_y_get, (setter)NULL, (char *)Interface0D_projected_y_doc, NULL},
-	{(char *)"projected_z", (getter)Interface0D_projected_z_get, (setter)NULL, (char *)Interface0D_projected_z_doc, NULL},
+	{(char *)"projected_x", (getter)Interface0D_projected_x_get, (setter)NULL,
+	                        (char *)Interface0D_projected_x_doc, NULL},
+	{(char *)"projected_y", (getter)Interface0D_projected_y_get, (setter)NULL,
+	                        (char *)Interface0D_projected_y_doc, NULL},
+	{(char *)"projected_z", (getter)Interface0D_projected_z_get, (setter)NULL,
+	                        (char *)Interface0D_projected_z_doc, NULL},
 	{(char *)"point_2d", (getter)Interface0D_point_2d_get, (setter)NULL, (char *)Interface0D_point_2d_doc, NULL},
 	{(char *)"id", (getter)Interface0D_id_get, (setter)NULL, (char *)Interface0D_id_doc, NULL},
 	{(char *)"nature", (getter)Interface0D_nature_get, (setter)NULL, (char *)Interface0D_nature_doc, NULL},

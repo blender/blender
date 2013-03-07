@@ -53,7 +53,7 @@ namespace GeomUtils {
 
 /*! Computes the distance from a point P to a segment AB */
 template<class T>
-real distPointSegment( const T& P, const T& A , const T& B)
+real distPointSegment(const T& P, const T& A, const T& B)
 {
 	T AB, AP, BP;
 	AB = B - A;

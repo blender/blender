@@ -53,7 +53,7 @@ static char SameShapeIdBP1D___doc__[] =
 "   :return: True or false.\n"
 "   :rtype: bool\n";
 
-static int SameShapeIdBP1D___init__(BPy_SameShapeIdBP1D* self, PyObject *args, PyObject *kwds)
+static int SameShapeIdBP1D___init__(BPy_SameShapeIdBP1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

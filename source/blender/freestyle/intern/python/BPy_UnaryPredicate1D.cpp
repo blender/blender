@@ -149,19 +149,19 @@ static int UnaryPredicate1D___init__(BPy_UnaryPredicate1D *self, PyObject *args,
 	return 0;
 }
 
-static void UnaryPredicate1D___dealloc__(BPy_UnaryPredicate1D* self)
+static void UnaryPredicate1D___dealloc__(BPy_UnaryPredicate1D *self)
 {
 	if (self->up1D)
 		delete self->up1D;
-	Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-static PyObject * UnaryPredicate1D___repr__(BPy_UnaryPredicate1D* self)
+static PyObject *UnaryPredicate1D___repr__(BPy_UnaryPredicate1D *self)
 {
 	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->up1D);
 }
 
-static PyObject * UnaryPredicate1D___call__(BPy_UnaryPredicate1D *self, PyObject *args, PyObject *kwds)
+static PyObject *UnaryPredicate1D___call__(BPy_UnaryPredicate1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"inter", NULL};
 	PyObject *py_if1D;

@@ -67,7 +67,7 @@ static char PolygonalizationShader___doc__[] =
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
-static int PolygonalizationShader___init__(BPy_PolygonalizationShader* self, PyObject *args, PyObject *kwds)
+static int PolygonalizationShader___init__(BPy_PolygonalizationShader *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"error", NULL};
 	float f;

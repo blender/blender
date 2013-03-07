@@ -66,7 +66,7 @@ static char IncreasingThicknessShader___doc__[] =
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
-static int IncreasingThicknessShader___init__(BPy_IncreasingThicknessShader* self, PyObject *args, PyObject *kwds)
+static int IncreasingThicknessShader___init__(BPy_IncreasingThicknessShader *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"thickness_A", "thickness_B", NULL};
 	float f1, f2;

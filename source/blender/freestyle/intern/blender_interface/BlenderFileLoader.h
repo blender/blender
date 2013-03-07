@@ -87,7 +87,7 @@ class LIB_SCENE_GRAPH_EXPORT BlenderFileLoader
 {
 public:
 	/*! Builds a MaxFileLoader */
-	BlenderFileLoader(Render *re, SceneRenderLayer* srl);
+	BlenderFileLoader(Render *re, SceneRenderLayer *srl);
 	virtual ~BlenderFileLoader();
 
 	/*! Loads the 3D scene and returns a pointer to the scene root node */

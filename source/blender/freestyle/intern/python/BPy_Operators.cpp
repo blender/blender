@@ -69,9 +69,9 @@ PyDoc_STRVAR(Operators_doc,
 "creation.  All these operators are user controlled through functors,\n"
 "predicates and shaders that are taken as arguments.");
 
-static void Operators_dealloc(BPy_Operators* self)
+static void Operators_dealloc(BPy_Operators *self)
 {
-	Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
 PyDoc_STRVAR(Operators_select_doc,
@@ -83,7 +83,7 @@ PyDoc_STRVAR(Operators_select_doc,
 "   :arg pred: The predicate expressing this condition.\n"
 "   :type pred: UnaryPredicate1D");
 
-static PyObject *Operators_select(BPy_Operators* self, PyObject *args, PyObject *kwds)
+static PyObject *Operators_select(BPy_Operators *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"pred", NULL};
 	PyObject *obj = 0;
@@ -142,7 +142,7 @@ PyDoc_STRVAR(Operators_chain_doc,
 "      stopping condition.\n"
 "   :type pred: :class:`UnaryPredicate1D`");
 
-static PyObject *Operators_chain(BPy_Operators* self, PyObject *args, PyObject *kwds)
+static PyObject *Operators_chain(BPy_Operators *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"it", "pred", "modifier", NULL};
 	PyObject *obj1 = 0, *obj2 = 0, *obj3 = 0;
@@ -231,7 +231,7 @@ PyDoc_STRVAR(Operators_bidirectional_chain_doc,
 "      contains the chaining rule.\n"
 "   :type it: :class:`ChainingIterator`");
 
-static PyObject *Operators_bidirectional_chain(BPy_Operators* self, PyObject *args, PyObject *kwds)
+static PyObject *Operators_bidirectional_chain(BPy_Operators *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"it", "pred", NULL};
 	PyObject *obj1 = 0, *obj2 = 0;
@@ -242,7 +242,8 @@ static PyObject *Operators_bidirectional_chain(BPy_Operators* self, PyObject *ar
 		return NULL;
 	}
 	if (!((BPy_ChainingIterator *)obj1)->c_it) {
-		PyErr_SetString(PyExc_TypeError, "Operators.bidirectional_chain(): 1st argument: invalid ChainingIterator object");
+		PyErr_SetString(PyExc_TypeError,
+		                "Operators.bidirectional_chain(): 1st argument: invalid ChainingIterator object");
 		return NULL;
 	}
 	if (!obj2) {
@@ -254,7 +255,8 @@ static PyObject *Operators_bidirectional_chain(BPy_Operators* self, PyObject *ar
 	}
 	else {
 		if (!((BPy_UnaryPredicate1D *)obj2)->up1D) {
-			PyErr_SetString(PyExc_TypeError, "Operators.bidirectional_chain(): 2nd argument: invalid UnaryPredicate1D object");
+			PyErr_SetString(PyExc_TypeError,
+			                "Operators.bidirectional_chain(): 2nd argument: invalid UnaryPredicate1D object");
 			return NULL;
 		}
 		if (Operators::bidirectionalChain(*(((BPy_ChainingIterator *)obj1)->c_it),
@@ -309,7 +311,7 @@ PyDoc_STRVAR(Operators_sequential_split_doc,
 "      resolution.)\n"
 "   :type sampling: float");
 
-static PyObject *Operators_sequential_split(BPy_Operators* self, PyObject *args, PyObject *kwds)
+static PyObject *Operators_sequential_split(BPy_Operators *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist_1[] = {"starting_pred", "stopping_pred", "sampling", NULL};
 	static const char *kwlist_2[] = {"pred", "sampling", NULL};
@@ -320,11 +322,13 @@ static PyObject *Operators_sequential_split(BPy_Operators* self, PyObject *args,
 	                                &UnaryPredicate0D_Type, &obj1, &UnaryPredicate0D_Type, &obj2, &f))
 	{
 		if (!((BPy_UnaryPredicate0D *)obj1)->up0D) {
-			PyErr_SetString(PyExc_TypeError, "Operators.sequential_split(): 1st argument: invalid UnaryPredicate0D object");
+			PyErr_SetString(PyExc_TypeError,
+			                "Operators.sequential_split(): 1st argument: invalid UnaryPredicate0D object");
 			return NULL;
 		}
 		if (!((BPy_UnaryPredicate0D *)obj2)->up0D) {
-			PyErr_SetString(PyExc_TypeError, "Operators.sequential_split(): 2nd argument: invalid UnaryPredicate0D object");
+			PyErr_SetString(PyExc_TypeError,
+			                "Operators.sequential_split(): 2nd argument: invalid UnaryPredicate0D object");
 			return NULL;
 		}
 		if (Operators::sequentialSplit(*(((BPy_UnaryPredicate0D *)obj1)->up0D),
@@ -341,7 +345,8 @@ static PyObject *Operators_sequential_split(BPy_Operators* self, PyObject *args,
 	                                     &UnaryPredicate0D_Type, &obj1, &f))
 	{
 		if (!((BPy_UnaryPredicate0D *)obj1)->up0D) {
-			PyErr_SetString(PyExc_TypeError, "Operators.sequential_split(): 1st argument: invalid UnaryPredicate0D object");
+			PyErr_SetString(PyExc_TypeError,
+			                "Operators.sequential_split(): 1st argument: invalid UnaryPredicate0D object");
 			return NULL;
 		}
 		if (Operators::sequentialSplit(*(((BPy_UnaryPredicate0D *)obj1)->up0D), f) < 0) {
@@ -413,7 +418,7 @@ PyDoc_STRVAR(Operators_recursive_split_doc,
 "      resolution.)\n"
 "   :type sampling: float");
 
-static PyObject *Operators_recursive_split(BPy_Operators* self, PyObject *args, PyObject *kwds)
+static PyObject *Operators_recursive_split(BPy_Operators *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist_1[] = {"func", "pred_1d", "sampling", NULL};
 	static const char *kwlist_2[] = {"func", "pred_0d", "pred_1d", "sampling", NULL};
@@ -424,11 +429,13 @@ static PyObject *Operators_recursive_split(BPy_Operators* self, PyObject *args, 
 	                                &UnaryFunction0DDouble_Type, &obj1, &UnaryPredicate1D_Type, &obj2, &f))
 	{
 		if (!((BPy_UnaryFunction0DDouble *)obj1)->uf0D_double) {
-			PyErr_SetString(PyExc_TypeError, "Operators.recursive_split(): 1st argument: invalid UnaryFunction0DDouble object");
+			PyErr_SetString(PyExc_TypeError,
+			                "Operators.recursive_split(): 1st argument: invalid UnaryFunction0DDouble object");
 			return NULL;
 		}
 		if (!((BPy_UnaryPredicate1D *)obj2)->up1D) {
-			PyErr_SetString(PyExc_TypeError, "Operators.recursive_split(): 2nd argument: invalid UnaryPredicate1D object");
+			PyErr_SetString(PyExc_TypeError,
+			                "Operators.recursive_split(): 2nd argument: invalid UnaryPredicate1D object");
 			return NULL;
 		}
 		if (Operators::recursiveSplit(*(((BPy_UnaryFunction0DDouble *)obj1)->uf0D_double),
@@ -446,15 +453,18 @@ static PyObject *Operators_recursive_split(BPy_Operators* self, PyObject *args, 
 	                                &UnaryPredicate1D_Type, &obj3, &f))
 	{
 		if (!((BPy_UnaryFunction0DDouble *)obj1)->uf0D_double) {
-			PyErr_SetString(PyExc_TypeError, "Operators.recursive_split(): 1st argument: invalid UnaryFunction0DDouble object");
+			PyErr_SetString(PyExc_TypeError,
+			                "Operators.recursive_split(): 1st argument: invalid UnaryFunction0DDouble object");
 			return NULL;
 		}
 		if (!((BPy_UnaryPredicate0D *)obj2)->up0D) {
-			PyErr_SetString(PyExc_TypeError, "Operators.recursive_split(): 2nd argument: invalid UnaryPredicate0D object");
+			PyErr_SetString(PyExc_TypeError,
+			                "Operators.recursive_split(): 2nd argument: invalid UnaryPredicate0D object");
 			return NULL;
 		}
 		if (!((BPy_UnaryPredicate1D *)obj3)->up1D) {
-			PyErr_SetString(PyExc_TypeError, "Operators.recursive_split(): 3rd argument: invalid UnaryPredicate1D object");
+			PyErr_SetString(PyExc_TypeError,
+			                "Operators.recursive_split(): 3rd argument: invalid UnaryPredicate1D object");
 			return NULL;
 		}
 		if (Operators::recursiveSplit(*(((BPy_UnaryFunction0DDouble *)obj1)->uf0D_double),
@@ -483,7 +493,7 @@ PyDoc_STRVAR(Operators_sort_doc,
 "   :arg pred: The binary predicate used for the comparison.\n"
 "   :type pred: BinaryPredicate1D");
 
-static PyObject *Operators_sort(BPy_Operators* self, PyObject *args, PyObject *kwds)
+static PyObject *Operators_sort(BPy_Operators *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"pred", NULL};
 	PyObject *obj = 0;
@@ -514,7 +524,7 @@ PyDoc_STRVAR(Operators_create_doc,
 "   :arg shaders: The list of shaders used to shade the strokes.\n"
 "   :type shaders: List of StrokeShader objects");
 
-static PyObject *Operators_create(BPy_Operators* self, PyObject *args, PyObject *kwds)
+static PyObject *Operators_create(BPy_Operators *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"pred", "shaders", NULL};
 	PyObject *obj1 = 0, *obj2 = 0;
@@ -555,7 +565,7 @@ PyDoc_STRVAR(Operators_get_viewedge_from_index_doc,
 "   :return: The ViewEdge object.\n"
 "   :rtype: :class:`ViewEdge`");
 
-static PyObject *Operators_get_viewedge_from_index(BPy_Operators* self, PyObject *args, PyObject *kwds)
+static PyObject *Operators_get_viewedge_from_index(BPy_Operators *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"i", NULL};
 	unsigned int i;
@@ -579,7 +589,7 @@ PyDoc_STRVAR(Operators_get_chain_from_index_doc,
 "   :return: The Chain object.\n"
 "   :rtype: :class:`Chain`");
 
-static PyObject *Operators_get_chain_from_index(BPy_Operators* self, PyObject *args, PyObject *kwds)
+static PyObject *Operators_get_chain_from_index(BPy_Operators *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"i", NULL};
 	unsigned int i;
@@ -603,7 +613,7 @@ PyDoc_STRVAR(Operators_get_stroke_from_index_doc,
 "   :return: The Stroke object.\n"
 "   :rtype: :class:`Stroke`");
 
-static PyObject *Operators_get_stroke_from_index(BPy_Operators* self, PyObject *args, PyObject *kwds)
+static PyObject *Operators_get_stroke_from_index(BPy_Operators *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"i", NULL};
 	unsigned int i;
@@ -625,7 +635,7 @@ PyDoc_STRVAR(Operators_get_view_edges_size_doc,
 "   :return: The number of ViewEdges.\n"
 "   :rtype: int");
 
-static PyObject *Operators_get_view_edges_size(BPy_Operators* self)
+static PyObject *Operators_get_view_edges_size(BPy_Operators *self)
 {
 	return PyLong_FromLong(Operators::getViewEdgesSize());
 }
@@ -638,7 +648,7 @@ PyDoc_STRVAR(Operators_get_chains_size_doc,
 "   :return: The number of Chains.\n"
 "   :rtype: int");
 
-static PyObject *Operators_get_chains_size(BPy_Operators* self)
+static PyObject *Operators_get_chains_size(BPy_Operators *self)
 {
 	return PyLong_FromLong(Operators::getChainsSize());
 }
@@ -651,7 +661,7 @@ PyDoc_STRVAR(Operators_get_strokes_size_doc,
 "   :return: The number of Strokes.\n"
 "   :rtype: int");
 
-static PyObject *Operators_get_strokes_size(BPy_Operators* self)
+static PyObject *Operators_get_strokes_size(BPy_Operators *self)
 {
 	return PyLong_FromLong(Operators::getStrokesSize());
 }
@@ -660,17 +670,26 @@ static PyObject *Operators_get_strokes_size(BPy_Operators* self)
 static PyMethodDef BPy_Operators_methods[] = {
 	{"select", (PyCFunction) Operators_select, METH_VARARGS | METH_KEYWORDS | METH_STATIC, Operators_select_doc},
 	{"chain", (PyCFunction) Operators_chain, METH_VARARGS | METH_KEYWORDS | METH_STATIC, Operators_chain_doc},
-	{"bidirectional_chain", (PyCFunction) Operators_bidirectional_chain, METH_VARARGS | METH_KEYWORDS | METH_STATIC, Operators_bidirectional_chain_doc},
-	{"sequential_split", (PyCFunction) Operators_sequential_split, METH_VARARGS | METH_KEYWORDS | METH_STATIC, Operators_sequential_split_doc},
-	{"recursive_split", (PyCFunction) Operators_recursive_split, METH_VARARGS | METH_KEYWORDS | METH_STATIC, Operators_recursive_split_doc},
+	{"bidirectional_chain", (PyCFunction) Operators_bidirectional_chain, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+	                        Operators_bidirectional_chain_doc},
+	{"sequential_split", (PyCFunction) Operators_sequential_split, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+	                     Operators_sequential_split_doc},
+	{"recursive_split", (PyCFunction) Operators_recursive_split, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+	                    Operators_recursive_split_doc},
 	{"sort", (PyCFunction) Operators_sort, METH_VARARGS | METH_KEYWORDS | METH_STATIC, Operators_sort_doc},
 	{"create", (PyCFunction) Operators_create, METH_VARARGS | METH_KEYWORDS | METH_STATIC, Operators_create_doc},
-	{"get_viewedge_from_index", (PyCFunction) Operators_get_viewedge_from_index, METH_VARARGS | METH_KEYWORDS | METH_STATIC, Operators_get_viewedge_from_index_doc},
-	{"get_chain_from_index", (PyCFunction) Operators_get_chain_from_index, METH_VARARGS | METH_KEYWORDS | METH_STATIC, Operators_get_chain_from_index_doc},
-	{"get_stroke_from_index", (PyCFunction) Operators_get_stroke_from_index, METH_VARARGS | METH_KEYWORDS | METH_STATIC, Operators_get_stroke_from_index_doc},
-	{"get_view_edges_size", (PyCFunction) Operators_get_view_edges_size, METH_NOARGS | METH_STATIC, Operators_get_view_edges_size_doc},
-	{"get_chains_size", (PyCFunction) Operators_get_chains_size, METH_NOARGS | METH_STATIC, Operators_get_chains_size_doc},
-	{"get_strokes_size", (PyCFunction) Operators_get_strokes_size, METH_NOARGS | METH_STATIC, Operators_get_strokes_size_doc},
+	{"get_viewedge_from_index", (PyCFunction) Operators_get_viewedge_from_index,
+	                            METH_VARARGS | METH_KEYWORDS | METH_STATIC, Operators_get_viewedge_from_index_doc},
+	{"get_chain_from_index", (PyCFunction) Operators_get_chain_from_index, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+	                         Operators_get_chain_from_index_doc},
+	{"get_stroke_from_index", (PyCFunction) Operators_get_stroke_from_index, METH_VARARGS | METH_KEYWORDS | METH_STATIC,
+	                          Operators_get_stroke_from_index_doc},
+	{"get_view_edges_size", (PyCFunction) Operators_get_view_edges_size, METH_NOARGS | METH_STATIC,
+	                        Operators_get_view_edges_size_doc},
+	{"get_chains_size", (PyCFunction) Operators_get_chains_size, METH_NOARGS | METH_STATIC,
+	                    Operators_get_chains_size_doc},
+	{"get_strokes_size", (PyCFunction) Operators_get_strokes_size, METH_NOARGS | METH_STATIC,
+	                     Operators_get_strokes_size_doc},
 	{NULL, NULL, 0, NULL}
 };
 

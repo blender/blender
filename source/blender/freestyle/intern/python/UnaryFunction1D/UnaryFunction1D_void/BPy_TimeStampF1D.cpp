@@ -57,7 +57,7 @@ static char TimeStampF1D___doc__[] =
 "   :arg inter: An Interface1D object.\n"
 "   :type inter: :class:`Interface1D`\n";
 
-static int TimeStampF1D___init__(BPy_TimeStampF1D* self, PyObject *args, PyObject *kwds)
+static int TimeStampF1D___init__(BPy_TimeStampF1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

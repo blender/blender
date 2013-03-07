@@ -58,7 +58,7 @@ static char GetOccludeeF0D___doc__[] =
 "   :return: The ViewShape occluded by the pointed Interface0D.\n"
 "   :rtype: :class:`ViewShape`\n";
 
-static int GetOccludeeF0D___init__(BPy_GetOccludeeF0D* self, PyObject *args, PyObject *kwds)
+static int GetOccludeeF0D___init__(BPy_GetOccludeeF0D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

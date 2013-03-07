@@ -59,7 +59,7 @@ static char GetOccludersF0D___doc__[] =
 "      Interface0D.\n"
 "   :rtype: list of :class:`ViewShape` objects\n";
 
-static int GetOccludersF0D___init__(BPy_GetOccludersF0D* self, PyObject *args, PyObject *kwds)
+static int GetOccludersF0D___init__(BPy_GetOccludersF0D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

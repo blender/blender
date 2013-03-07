@@ -62,7 +62,7 @@ static char QuantitativeInvisibilityUP1D___doc__[] =
 "      value.\n"
 "   :rtype: bool\n";
 
-static int QuantitativeInvisibilityUP1D___init__(BPy_QuantitativeInvisibilityUP1D* self, PyObject *args, PyObject *kwds)
+static int QuantitativeInvisibilityUP1D___init__(BPy_QuantitativeInvisibilityUP1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"qi", NULL};
 	int i = 0;

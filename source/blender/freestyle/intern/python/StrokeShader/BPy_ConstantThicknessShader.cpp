@@ -60,7 +60,7 @@ static char ConstantThicknessShader___doc__[] =
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
-static int ConstantThicknessShader___init__(BPy_ConstantThicknessShader* self, PyObject *args, PyObject *kwds)
+static int ConstantThicknessShader___init__(BPy_ConstantThicknessShader *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"thickness", NULL};
 	float f;

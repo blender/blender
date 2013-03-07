@@ -148,12 +148,14 @@ static PyObject *Freestyle_blendRamp(PyObject *self, PyObject *args)
 	}
 	v1 = Vec3f_ptr_from_PyObject(obj1);
 	if (!v1) {
-		PyErr_SetString(PyExc_TypeError, "argument 2 must be a 3D vector (either a tuple/list of 3 elements or Vector)");
+		PyErr_SetString(PyExc_TypeError,
+		                "argument 2 must be a 3D vector (either a tuple/list of 3 elements or Vector)");
 		goto error;
 	}
 	v2 = Vec3f_ptr_from_PyObject(obj2);
 	if (!v2) {
-		PyErr_SetString(PyExc_TypeError, "argument 4 must be a 3D vector (either a tuple/list of 3 elements or Vector)");
+		PyErr_SetString(PyExc_TypeError,
+		                "argument 4 must be a 3D vector (either a tuple/list of 3 elements or Vector)");
 		goto error;
 	}
 	a[0] = v1->x(); b[0] = v2->x();
@@ -478,7 +480,8 @@ static PyMethodDef module_functions[] = {
 	{"getCurrentScene", (PyCFunction) Freestyle_getCurrentScene, METH_NOARGS, Freestyle_getCurrentScene___doc__},
 	{"blendRamp", (PyCFunction) Freestyle_blendRamp, METH_VARARGS, Freestyle_blendRamp___doc__},
 	{"evaluateColorRamp", (PyCFunction) Freestyle_evaluateColorRamp, METH_VARARGS, Freestyle_evaluateColorRamp___doc__},
-	{"evaluateCurveMappingF", (PyCFunction) Freestyle_evaluateCurveMappingF, METH_VARARGS, Freestyle_evaluateCurveMappingF___doc__},
+	{"evaluateCurveMappingF", (PyCFunction) Freestyle_evaluateCurveMappingF, METH_VARARGS,
+	                          Freestyle_evaluateCurveMappingF___doc__},
 	{NULL, NULL, 0, NULL}
 };
 

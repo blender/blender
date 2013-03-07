@@ -215,8 +215,10 @@ static PyObject *ChainingIterator_is_incrementing_get(BPy_ChainingIterator *self
 
 static PyGetSetDef BPy_ChainingIterator_getseters[] = {
 	{(char *)"object", (getter)ChainingIterator_object_get, (setter)NULL, (char *)ChainingIterator_object_doc, NULL},
-	{(char *)"next_vertex", (getter)ChainingIterator_next_vertex_get, (setter)NULL, (char *)ChainingIterator_next_vertex_doc, NULL},
-	{(char *)"is_incrementing", (getter)ChainingIterator_is_incrementing_get, (setter)NULL, (char *)ChainingIterator_is_incrementing_doc, NULL},
+	{(char *)"next_vertex", (getter)ChainingIterator_next_vertex_get, (setter)NULL,
+	                        (char *)ChainingIterator_next_vertex_doc, NULL},
+	{(char *)"is_incrementing", (getter)ChainingIterator_is_incrementing_get, (setter)NULL,
+	                            (char *)ChainingIterator_is_incrementing_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 

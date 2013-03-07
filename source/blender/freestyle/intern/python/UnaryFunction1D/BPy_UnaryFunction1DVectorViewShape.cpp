@@ -96,7 +96,8 @@ static char UnaryFunction1DVectorViewShape___doc__[] =
 "   :arg integration_type: An integration method.\n"
 "   :type integration_type: :class:`IntegrationType`\n";
 
-static int UnaryFunction1DVectorViewShape___init__(BPy_UnaryFunction1DVectorViewShape* self, PyObject *args, PyObject *kwds)
+static int UnaryFunction1DVectorViewShape___init__(BPy_UnaryFunction1DVectorViewShape *self,
+                                                   PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"integration", NULL};
 	PyObject *obj = 0;
@@ -104,8 +105,9 @@ static int UnaryFunction1DVectorViewShape___init__(BPy_UnaryFunction1DVectorView
 	if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O!", (char **)kwlist, &IntegrationType_Type, &obj))
 		return -1;
 	
-	if (!obj)
+	if (!obj) {
 		self->uf1D_vectorviewshape = new UnaryFunction1D< std::vector<ViewShape*> >();
+	}
 	else {
 		self->uf1D_vectorviewshape = new UnaryFunction1D< std::vector<ViewShape*> >(IntegrationType_from_BPy_IntegrationType(obj));
 	}
@@ -115,19 +117,20 @@ static int UnaryFunction1DVectorViewShape___init__(BPy_UnaryFunction1DVectorView
 	return 0;
 }
 
-static void UnaryFunction1DVectorViewShape___dealloc__(BPy_UnaryFunction1DVectorViewShape* self)
+static void UnaryFunction1DVectorViewShape___dealloc__(BPy_UnaryFunction1DVectorViewShape *self)
 {
 	if (self->uf1D_vectorviewshape)
 		delete self->uf1D_vectorviewshape;
-	UnaryFunction1D_Type.tp_dealloc((PyObject*)self);
+	UnaryFunction1D_Type.tp_dealloc((PyObject *)self);
 }
 
-static PyObject * UnaryFunction1DVectorViewShape___repr__(BPy_UnaryFunction1DVectorViewShape* self)
+static PyObject *UnaryFunction1DVectorViewShape___repr__(BPy_UnaryFunction1DVectorViewShape *self)
 {
 	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->uf1D_vectorviewshape);
 }
 
-static PyObject * UnaryFunction1DVectorViewShape___call__(BPy_UnaryFunction1DVectorViewShape *self, PyObject *args, PyObject *kwds)
+static PyObject *UnaryFunction1DVectorViewShape___call__(BPy_UnaryFunction1DVectorViewShape *self,
+                                                         PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"inter", NULL};
 	PyObject *obj = 0;
@@ -148,11 +151,12 @@ static PyObject * UnaryFunction1DVectorViewShape___call__(BPy_UnaryFunction1DVec
 	}
 	PyObject *list = PyList_New(0);
 	PyObject *item;
-	for(unsigned int i = 0; i < self->uf1D_vectorviewshape->result.size(); i++) {
+	for (unsigned int i = 0; i < self->uf1D_vectorviewshape->result.size(); i++) {
 		ViewShape *v = self->uf1D_vectorviewshape->result[i];
 		if (v) {
 			item = BPy_ViewShape_from_ViewShape(*v);
-		} else {
+		}
+		else {
 			item = Py_None;
 			Py_INCREF(item);
 		}
@@ -185,7 +189,8 @@ static int integration_type_set(BPy_UnaryFunction1DVectorViewShape *self, PyObje
 }
 
 static PyGetSetDef BPy_UnaryFunction1DVectorViewShape_getseters[] = {
-	{(char *)"integration_type", (getter)integration_type_get, (setter)integration_type_set, (char *)integration_type_doc, NULL},
+	{(char *)"integration_type", (getter)integration_type_get, (setter)integration_type_set,
+	                             (char *)integration_type_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 

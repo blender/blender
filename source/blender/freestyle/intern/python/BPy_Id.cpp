@@ -85,7 +85,7 @@ static int Id_init(BPy_Id *self, PyObject *args, PyObject *kwds)
 		self->id = new Id(*(((BPy_Id *)brother)->id));
 	}
 	else if (PyErr_Clear(),
-	         PyArg_ParseTupleAndKeywords(args, kwds, "|ii", (char**)kwlist_2, &first, &second))
+	         PyArg_ParseTupleAndKeywords(args, kwds, "|ii", (char **)kwlist_2, &first, &second))
 	{
 		self->id = new Id(first, second);
 	}
@@ -96,20 +96,20 @@ static int Id_init(BPy_Id *self, PyObject *args, PyObject *kwds)
 	return 0;
 }
 
-static void Id_dealloc(BPy_Id* self)
+static void Id_dealloc(BPy_Id *self)
 {
 	delete self->id;
-	Py_TYPE(self)->tp_free((PyObject*)self);
+	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-static PyObject * Id_repr(BPy_Id* self)
+static PyObject *Id_repr(BPy_Id *self)
 {
 	return PyUnicode_FromFormat("[ first: %i, second: %i ](BPy_Id)", self->id->getFirst(), self->id->getSecond());
 }
 
-static PyObject * Id_RichCompare(BPy_Id *o1, BPy_Id *o2, int opid)
+static PyObject *Id_RichCompare(BPy_Id *o1, BPy_Id *o2, int opid)
 {
-	switch(opid){
+	switch (opid) {
 		case Py_LT:
 			return PyBool_from_bool(o1->id->operator<(*(o2->id)));
 			break;

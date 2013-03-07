@@ -51,7 +51,7 @@ static char FalseUP1D___doc__[] =
 "   :return: False.\n"
 "   :rtype: bool\n";
 
-static int FalseUP1D___init__(BPy_FalseUP1D* self, PyObject *args, PyObject *kwds)
+static int FalseUP1D___init__(BPy_FalseUP1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

@@ -61,7 +61,7 @@ static char Normal2DF0D___doc__[] =
 "      Interface0D.\n"
 "   :rtype: :class:`mathutils.Vector`\n";
 
-static int Normal2DF0D___init__(BPy_Normal2DF0D* self, PyObject *args, PyObject *kwds)
+static int Normal2DF0D___init__(BPy_Normal2DF0D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 

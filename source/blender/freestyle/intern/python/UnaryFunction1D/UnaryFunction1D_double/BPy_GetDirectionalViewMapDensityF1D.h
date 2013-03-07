@@ -44,7 +44,8 @@ extern "C" {
 
 extern PyTypeObject GetDirectionalViewMapDensityF1D_Type;
 
-#define BPy_GetDirectionalViewMapDensityF1D_Check(v) (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetDirectionalViewMapDensityF1D_Type))
+#define BPy_GetDirectionalViewMapDensityF1D_Check(v) \
+            (PyObject_IsInstance((PyObject *)v, (PyObject *)&GetDirectionalViewMapDensityF1D_Type))
 
 /*---------------------------Python BPy_GetDirectionalViewMapDensityF1D structure definition----------*/
 typedef struct {

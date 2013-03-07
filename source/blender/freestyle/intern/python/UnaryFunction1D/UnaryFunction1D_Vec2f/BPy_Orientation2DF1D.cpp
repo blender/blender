@@ -63,7 +63,7 @@ static char Orientation2DF1D___doc__[] =
 "   :return: The 2D orientation of the Interface1D.\n"
 "   :rtype: :class:`mathutils.Vector`\n";
 
-static int Orientation2DF1D___init__(BPy_Orientation2DF1D* self, PyObject *args, PyObject *kwds)
+static int Orientation2DF1D___init__(BPy_Orientation2DF1D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"integration_type", NULL};
 	PyObject *obj = 0;

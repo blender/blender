@@ -75,7 +75,8 @@ static char UnaryFunction0DVectorViewShape___doc__[] =
 "\n"
 "   Default constructor.\n";
 
-static int UnaryFunction0DVectorViewShape___init__(BPy_UnaryFunction0DVectorViewShape* self, PyObject *args, PyObject *kwds)
+static int UnaryFunction0DVectorViewShape___init__(BPy_UnaryFunction0DVectorViewShape *self,
+                                                   PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {NULL};
 
@@ -86,19 +87,20 @@ static int UnaryFunction0DVectorViewShape___init__(BPy_UnaryFunction0DVectorView
 	return 0;
 }
 
-static void UnaryFunction0DVectorViewShape___dealloc__(BPy_UnaryFunction0DVectorViewShape* self)
+static void UnaryFunction0DVectorViewShape___dealloc__(BPy_UnaryFunction0DVectorViewShape *self)
 {
 	if (self->uf0D_vectorviewshape)
 		delete self->uf0D_vectorviewshape;
-	UnaryFunction0D_Type.tp_dealloc((PyObject*)self);
+	UnaryFunction0D_Type.tp_dealloc((PyObject *)self);
 }
 
-static PyObject * UnaryFunction0DVectorViewShape___repr__(BPy_UnaryFunction0DVectorViewShape* self)
+static PyObject *UnaryFunction0DVectorViewShape___repr__(BPy_UnaryFunction0DVectorViewShape *self)
 {
 	return PyUnicode_FromFormat("type: %s - address: %p", Py_TYPE(self)->tp_name, self->uf0D_vectorviewshape);
 }
 
-static PyObject * UnaryFunction0DVectorViewShape___call__(BPy_UnaryFunction0DVectorViewShape *self, PyObject *args, PyObject *kwds)
+static PyObject *UnaryFunction0DVectorViewShape___call__(BPy_UnaryFunction0DVectorViewShape *self,
+                                                         PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"it", NULL};
 	PyObject *obj;
@@ -119,11 +121,12 @@ static PyObject * UnaryFunction0DVectorViewShape___call__(BPy_UnaryFunction0DVec
 	}
 	PyObject *list = PyList_New(0);
 	PyObject *item;
-	for(unsigned int i = 0; i < self->uf0D_vectorviewshape->result.size(); i++) {
+	for (unsigned int i = 0; i < self->uf0D_vectorviewshape->result.size(); i++) {
 		ViewShape *v = self->uf0D_vectorviewshape->result[i];
 		if (v) {
 			item = BPy_ViewShape_from_ViewShape(*v);
-		} else {
+		}
+		else {
 			item = Py_None;
 			Py_INCREF(item);
 		}

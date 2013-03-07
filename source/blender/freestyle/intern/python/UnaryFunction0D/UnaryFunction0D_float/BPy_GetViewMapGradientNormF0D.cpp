@@ -63,7 +63,7 @@ static char GetViewMapGradientNormF0D___doc__[] =
 "      image.\n"
 "   :rtype: float\n";
 
-static int GetViewMapGradientNormF0D___init__(BPy_GetViewMapGradientNormF0D* self, PyObject *args, PyObject *kwds)
+static int GetViewMapGradientNormF0D___init__(BPy_GetViewMapGradientNormF0D *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"level", NULL};
 	int i;

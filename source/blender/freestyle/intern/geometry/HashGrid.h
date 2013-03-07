@@ -93,9 +93,9 @@ public:
 	virtual void configure(const Vec3r& orig, const Vec3r& size, unsigned nb);
 
 	/*! returns the cell whose coordinates are pased as argument */
-	virtual Cell* getCell(const Vec3u& p)
+	virtual Cell *getCell(const Vec3u& p)
 	{
-		Cell* found_cell = NULL;
+		Cell *found_cell = NULL;
 
 		GridHashTable::const_iterator found = _cells.find(p);
 		if (found != _cells.end())

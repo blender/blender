@@ -76,7 +76,7 @@ static int orientedViewEdgeIterator_init(BPy_orientedViewEdgeIterator *self, PyO
 	return 0;
 }
 
-static PyObject * orientedViewEdgeIterator_iternext(BPy_orientedViewEdgeIterator *self)
+static PyObject *orientedViewEdgeIterator_iternext(BPy_orientedViewEdgeIterator *self)
 {
 	ViewVertex::directedViewEdge *dve;
 
@@ -114,7 +114,8 @@ static PyObject *orientedViewEdgeIterator_object_get(BPy_orientedViewEdgeIterato
 }
 
 static PyGetSetDef BPy_orientedViewEdgeIterator_getseters[] = {
-	{(char *)"object", (getter)orientedViewEdgeIterator_object_get, (setter)NULL, (char *)orientedViewEdgeIterator_object_doc, NULL},
+	{(char *)"object", (getter)orientedViewEdgeIterator_object_get, (setter)NULL,
+	                   (char *)orientedViewEdgeIterator_object_doc, NULL},
 	{NULL, NULL, NULL, NULL, NULL}  /* Sentinel */
 };
 

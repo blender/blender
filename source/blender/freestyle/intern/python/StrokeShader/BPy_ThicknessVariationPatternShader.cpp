@@ -70,7 +70,8 @@ static char ThicknessVariationPatternShader___doc__[] =
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
-static int ThicknessVariationPatternShader___init__(BPy_ThicknessVariationPatternShader* self, PyObject *args, PyObject *kwds)
+static int ThicknessVariationPatternShader___init__(BPy_ThicknessVariationPatternShader *self,
+                                                    PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"pattern_name", "thickness_min", "thickness_max", "stretch", NULL};
 	const char *s1;

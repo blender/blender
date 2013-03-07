@@ -212,9 +212,11 @@ int Director_BPy_ChainingIterator_traverse(ChainingIterator *c_it, AdjacencyIter
 		return -1;
 	if (BPy_ViewEdge_Check(result)) {
 		c_it->result = ((BPy_ViewEdge *)result)->ve;
-	} else if (result == Py_None) {
+	}
+	else if (result == Py_None) {
 		c_it->result = NULL;
-	} else {
+	}
+	else {
 		PyErr_SetString(PyExc_RuntimeError, "traverse method returned a wrong value");
 		Py_DECREF(result);
 		return -1;
@@ -267,7 +269,7 @@ int Director_BPy_UnaryFunction0D___call__(void *uf0D, PyObject *obj, Interface0D
 	}
 	else if (BPy_UnaryFunction0DVectorViewShape_Check(obj)) {
 		vector<ViewShape*> vec;
-		for(int i = 0; i < PyList_Size(result); i++) {
+		for (int i = 0; i < PyList_Size(result); i++) {
 			ViewShape *b = ((BPy_ViewShape *)PyList_GetItem(result, i))->vs;
 			vec.push_back(b);
 		}
@@ -317,7 +319,7 @@ int Director_BPy_UnaryFunction1D___call__(void *uf1D, PyObject *obj, Interface1D
 	}
 	else if (BPy_UnaryFunction1DVectorViewShape_Check(obj)) {
 		vector<ViewShape*> vec;
-		for(int i = 1; i < PyList_Size(result); i++) {
+		for (int i = 1; i < PyList_Size(result); i++) {
 			ViewShape *b = ((BPy_ViewShape *)PyList_GetItem(result, i))->vs;
 			vec.push_back(b);
 		}

@@ -37,7 +37,7 @@
 namespace GeomUtils {
 
 // This internal procedure is defined below.
-bool intersect2dSegPoly(Vec2r* seg, Vec2r* poly, unsigned n);
+bool intersect2dSegPoly(Vec2r *seg, Vec2r *poly, unsigned n);
 
 bool intersect2dSeg2dArea(const Vec2r& min, const Vec2r& max, const Vec2r& A, const Vec2r& B)
 {
@@ -64,7 +64,9 @@ bool include2dSeg2dArea(const Vec2r& min, const Vec2r& max, const Vec2r& A, cons
 {
 	if ((((max[0] > A[0]) && (A[0] > min[0])) && ((max[0] > B[0]) && (B[0] > min[0]))) &&
 	    (((max[1] > A[1]) && (A[1] > min[1])) && ((max[1] > B[1]) && (B[1] > min[1]))))
+	{
 		return true;
+	}
 	return false;
 }
 
@@ -512,9 +514,9 @@ bool intersectRayBBox(const Vec3r& orig, const Vec3r& dir,      // ray origin an
 	bounds[1] = boxMax;
 
 	tmin = (bounds[sign[0]].x() - orig.x()) * inv_direction.x();
-	tmax = (bounds[1-sign[0]].x() - orig.x()) * inv_direction.x();
+	tmax = (bounds[1 - sign[0]].x() - orig.x()) * inv_direction.x();
 	tymin = (bounds[sign[1]].y() - orig.y()) * inv_direction.y();
-	tymax = (bounds[1-sign[1]].y() - orig.y()) * inv_direction.y();
+	tymax = (bounds[1 - sign[1]].y() - orig.y()) * inv_direction.y();
 	if ((tmin > tymax) || (tymin > tmax))
 		return false;
 	if (tymin > tmin)
@@ -522,7 +524,7 @@ bool intersectRayBBox(const Vec3r& orig, const Vec3r& dir,      // ray origin an
 	if (tymax < tmax)
 		tmax = tymax;
 	tzmin = (bounds[sign[2]].z() - orig.z()) * inv_direction.z();
-	tzmax = (bounds[1-sign[2]].z() - orig.z()) * inv_direction.z();
+	tzmax = (bounds[1 - sign[2]].z() - orig.z()) * inv_direction.z();
 	if ((tmin > tzmax) || (tzmin > tmax))
 		return false;
 	if (tzmin > tmin)
@@ -587,7 +589,8 @@ void transformVertices(const vector<Vec3r>& vertices, const Matrix44r& trans, ve
 	}
 }
 
-Vec3r rotateVector(const Matrix44r& mat, const Vec3r& v) {
+Vec3r rotateVector(const Matrix44r& mat, const Vec3r& v)
+{
 	Vec3r res;
 	for (unsigned int i = 0; i < 3; i++) {
 		res[i] = 0;
@@ -693,7 +696,7 @@ void fromCameraToWorld(const Vec3r& p, Vec3r& q, const real model_view_matrix[4]
 
 #define PERP(u, v) ((u)[0] * (v)[1] - (u)[1] * (v)[0])   // 2D perp product
 
-inline bool intersect2dSegPoly(Vec2r* seg, Vec2r* poly, unsigned n)
+inline bool intersect2dSegPoly(Vec2r *seg, Vec2r *poly, unsigned n)
 {
 	if (seg[0] == seg[1])
 		return false;
@@ -705,7 +708,7 @@ inline bool intersect2dSegPoly(Vec2r* seg, Vec2r* poly, unsigned n)
 	Vec2r e;                      // edge vector
 
 	for (unsigned int i = 0; i < n; i++) { // process polygon edge poly[i]poly[i+1]
-		e = poly[i+1] - poly[i];
+		e = poly[i + 1] - poly[i];
 		N = PERP(e, seg[0] - poly[i]);
 		D = -PERP(e, dseg);
 		if (fabs(D) < M_EPSILON) {

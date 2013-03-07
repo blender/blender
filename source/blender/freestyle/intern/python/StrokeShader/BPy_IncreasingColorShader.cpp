@@ -76,7 +76,7 @@ static char IncreasingColorShader___doc__[] =
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
-static int IncreasingColorShader___init__(BPy_IncreasingColorShader* self, PyObject *args, PyObject *kwds)
+static int IncreasingColorShader___init__(BPy_IncreasingColorShader *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"red_min", "green_min", "blue_min", "alpha_min",
 	                               "red_max", "green_max", "blue_max", "alpha_max", NULL};

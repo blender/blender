@@ -66,7 +66,8 @@ static char ConstrainedIncreasingThicknessShader___doc__[] =
 "   :arg stroke: A Stroke object.\n"
 "   :type stroke: :class:`Stroke`\n";
 
-static int ConstrainedIncreasingThicknessShader___init__(BPy_ConstrainedIncreasingThicknessShader* self, PyObject *args, PyObject *kwds)
+static int ConstrainedIncreasingThicknessShader___init__(BPy_ConstrainedIncreasingThicknessShader *self,
+                                                         PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"thickness_min", "thickness_max", "ratio", NULL};
 	float f1, f2, f3;

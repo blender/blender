@@ -82,15 +82,15 @@ void NormalCycle::end()
 	double l2 = ::fabs(eigen_value_[2]);
 
 	if (l1 > l0) {
-		ogf_swap(l0   , l1   );
+		ogf_swap(l0,    l1   );
 		ogf_swap(i_[0], i_[1]);
 	}
 	if (l2 > l1) {
-		ogf_swap(l1   , l2   );
+		ogf_swap(l1,    l2   );
 		ogf_swap(i_[1], i_[2]);
 	}
 	if (l1 > l0) {
-		ogf_swap(l0   , l1   );
+		ogf_swap(l0,    l1   );
 		ogf_swap(i_[0], i_[1]);
 	}
 }
