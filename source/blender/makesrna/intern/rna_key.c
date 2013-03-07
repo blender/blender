@@ -24,13 +24,7 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
-
-#include "RNA_access.h"
-#include "RNA_define.h"
-
-#include "rna_internal.h"
 
 #include "DNA_ID.h"
 #include "DNA_scene_types.h"
@@ -38,6 +32,13 @@
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
+
+#include "BLI_utildefines.h"
+
+#include "RNA_access.h"
+#include "RNA_define.h"
+
+#include "rna_internal.h"
 
 #ifdef RNA_RUNTIME
 

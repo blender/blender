@@ -28,9 +28,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_armature_types.h"
 
-#include "RNA_define.h"
-#include "RNA_access.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
@@ -38,6 +35,9 @@
 
 #include "BKE_context.h"
 #include "BKE_sketch.h"
+
+#include "RNA_define.h"
+#include "RNA_access.h"
 
 #include "ED_view3d.h"
 #include "ED_screen.h"

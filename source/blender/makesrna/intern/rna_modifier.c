@@ -29,11 +29,6 @@
 #include <limits.h>
 #include <stdlib.h>
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-
-#include "rna_internal.h"
-
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
@@ -52,6 +47,11 @@
 #include "BKE_dynamicpaint.h"
 #include "BKE_multires.h"
 #include "BKE_smoke.h" /* For smokeModifier_free & smokeModifier_createType */
+
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
+
+#include "rna_internal.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

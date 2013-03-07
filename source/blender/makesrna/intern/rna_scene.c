@@ -26,11 +26,6 @@
 
 #include <stdlib.h>
 
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-
-#include "rna_internal.h"
-
 #include "DNA_brush_types.h"
 #include "DNA_group_types.h"
 #include "DNA_modifier_types.h"
@@ -45,6 +40,11 @@
 #include "BLF_translation.h"
 
 #include "BKE_tessmesh.h"
+
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
+
+#include "rna_internal.h"
 
 /* Include for Bake Options */
 #include "RE_engine.h"

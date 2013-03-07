@@ -24,15 +24,9 @@
  *  \ingroup RNA
  */
 
-
 #include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-
-#include "rna_internal.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_lamp_types.h"
@@ -47,6 +41,11 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_node.h"
+
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
+
+#include "rna_internal.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

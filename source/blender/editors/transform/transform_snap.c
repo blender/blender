@@ -47,8 +47,6 @@
 #include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
-#include "RNA_access.h"
-
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -62,14 +60,16 @@
 #include "BKE_tessmesh.h"
 #include "BKE_mesh.h"
 
+#include "RNA_access.h"
+
+#include "WM_types.h"
+
 #include "ED_armature.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_node.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
-
-#include "WM_types.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"

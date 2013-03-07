@@ -24,20 +24,21 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
+
+#include "DNA_image_types.h"
+#include "DNA_scene_types.h"
+
+#include "BLI_utildefines.h"
+
+#include "BKE_context.h"
+#include "BKE_depsgraph.h"
+#include "BKE_image.h"
 
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
 #include "rna_internal.h"
-
-#include "DNA_image_types.h"
-#include "DNA_scene_types.h"
-
-#include "BKE_context.h"
-#include "BKE_depsgraph.h"
-#include "BKE_image.h"
 
 #include "WM_types.h"
 #include "WM_api.h"

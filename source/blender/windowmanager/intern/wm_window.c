@@ -28,7 +28,6 @@
  *  \ingroup wm
  */
 
-
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -37,7 +36,6 @@
 #include "DNA_listBase.h"	
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
-#include "RNA_access.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -55,8 +53,9 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-
 #include "BIF_gl.h"
+
+#include "RNA_access.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

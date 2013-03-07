@@ -38,10 +38,6 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "RNA_define.h"
-#include "RNA_access.h"
-#include "RNA_enum_types.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_noise.h"
 #include "BLI_math.h"
@@ -57,6 +53,10 @@
 #include "BKE_texture.h"
 #include "BKE_main.h"
 #include "BKE_tessmesh.h"
+
+#include "RNA_define.h"
+#include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

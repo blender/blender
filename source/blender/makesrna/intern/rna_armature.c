@@ -207,7 +207,7 @@ static char *rna_Bone_path(PointerRNA *ptr)
 	return BLI_sprintfN("bones[\"%s\"]", bone->name);
 }
 
-static IDProperty *rna_Bone_idprops(PointerRNA *ptr, int create)
+static IDProperty *rna_Bone_idprops(PointerRNA *ptr, bool create)
 {
 	Bone *bone = ptr->data;
 
@@ -219,7 +219,7 @@ static IDProperty *rna_Bone_idprops(PointerRNA *ptr, int create)
 	return bone->prop;
 }
 
-static IDProperty *rna_EditBone_idprops(PointerRNA *ptr, int create)
+static IDProperty *rna_EditBone_idprops(PointerRNA *ptr, bool create)
 {
 	EditBone *ebone = ptr->data;
 

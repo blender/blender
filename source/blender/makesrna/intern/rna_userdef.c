@@ -26,12 +26,6 @@
 
 #include <stdlib.h>
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-
-#include "rna_internal.h"
-
 #include "DNA_curve_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -39,15 +33,21 @@
 #include "DNA_view3d_types.h"
 #include "DNA_scene_types.h"
 
-#include "WM_api.h"
-#include "WM_types.h"
-
 #include "BLI_utildefines.h"
-
-#include "BLF_translation.h"
 
 #include "BKE_sound.h"
 #include "BKE_addon.h"
+
+#include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
+
+#include "rna_internal.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
+
+#include "BLF_translation.h"
 
 #ifdef WITH_CYCLES
 static EnumPropertyItem compute_device_type_items[] = {
@@ -443,7 +443,7 @@ static EnumPropertyItem *rna_lang_enum_properties_itemf(bContext *UNUSED(C), Poi
 }
 #endif
 
-static IDProperty *rna_AddonPref_idprops(PointerRNA *ptr, int create)
+static IDProperty *rna_AddonPref_idprops(PointerRNA *ptr, bool create)
 {
 	if (create && !ptr->data) {
 		IDPropertyTemplate val = {0};

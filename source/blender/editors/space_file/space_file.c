@@ -28,12 +28,8 @@
  *  \ingroup spfile
  */
 
-
 #include <string.h>
 #include <stdio.h>
-
-
-#include "RNA_access.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -51,15 +47,17 @@
 #include "BKE_screen.h"
 #include "BKE_global.h"
 
+#include "RNA_access.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
+
 #include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_fileselect.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_thumbs.h"
-
-#include "WM_api.h"
-#include "WM_types.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"

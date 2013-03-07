@@ -24,13 +24,10 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 #include <assert.h>
 
 #include "RNA_define.h"
-
-#include "rna_internal.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_texture_types.h"
@@ -38,6 +35,8 @@
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
+
+#include "rna_internal.h"
 
 #include "IMB_imbuf.h"
 

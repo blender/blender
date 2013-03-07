@@ -24,12 +24,7 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
-
-#include "RNA_define.h"
-
-#include "rna_internal.h"
 
 #include "BLI_math.h"
 
@@ -41,8 +36,13 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "ED_object.h"
+#include "RNA_define.h"
+
+#include "rna_internal.h"
+
 #include "WM_types.h"
+
+#include "ED_object.h"
 
 /* please keep the names in sync with constraint.c */
 EnumPropertyItem constraint_type_items[] = {

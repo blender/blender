@@ -26,12 +26,6 @@
 
 #include <stdlib.h>
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-
-#include "rna_internal.h"
-
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_scene_types.h"
@@ -40,9 +34,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "ED_keyframing.h"
+#include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
+
+#include "rna_internal.h"
 
 #include "WM_types.h"
+
+#include "ED_keyframing.h"
 
 /* exported for use in API */
 EnumPropertyItem keyingset_path_grouping_items[] = {

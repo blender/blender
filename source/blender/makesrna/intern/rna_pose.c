@@ -159,7 +159,7 @@ static void rna_BoneGroup_name_set(PointerRNA *ptr, const char *value)
 	BLI_uniquename(&ob->pose->agroups, agrp, "Group", '.', offsetof(bActionGroup, name), sizeof(agrp->name));
 }
 
-static IDProperty *rna_PoseBone_idprops(PointerRNA *ptr, int create)
+static IDProperty *rna_PoseBone_idprops(PointerRNA *ptr, bool create)
 {
 	bPoseChannel *pchan = ptr->data;
 

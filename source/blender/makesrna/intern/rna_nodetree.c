@@ -27,13 +27,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-
-#include "rna_internal.h"
-#include "rna_internal_types.h"
-
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
@@ -53,6 +46,13 @@
 #include "BKE_image.h"
 #include "BKE_texture.h"
 #include "BKE_idprop.h"
+
+#include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
+
+#include "rna_internal.h"
+#include "rna_internal_types.h"
 
 #include "IMB_imbuf.h"
 
@@ -1193,7 +1193,7 @@ static void rna_ShaderNodeScript_bytecode_set(PointerRNA *ptr, const char *value
 		nss->bytecode = NULL;
 }
 
-static IDProperty *rna_ShaderNodeScript_idprops(PointerRNA *ptr, int create)
+static IDProperty *rna_ShaderNodeScript_idprops(PointerRNA *ptr, bool create)
 {
 	bNode *node = (bNode *)ptr->data;
 	NodeShaderScript *nss = node->storage;

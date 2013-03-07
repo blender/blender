@@ -24,18 +24,19 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 
 #include "RNA_define.h"
-
-#include "rna_internal.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_utildefines.h"
+
 #include "MEM_guardedalloc.h"
+
+#include "rna_internal.h"
 
 #include "WM_types.h"
 

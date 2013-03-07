@@ -24,7 +24,6 @@
  *  \ingroup RNA
  */
 
-
 #include <float.h>
 #include <limits.h>
 #include <stdio.h>
@@ -33,6 +32,8 @@
 #include <errno.h>
 
 #include "MEM_guardedalloc.h"
+
+#include "BLI_utildefines.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

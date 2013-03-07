@@ -24,15 +24,8 @@
  *  \ingroup RNA
  */
 
-
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-
-#include "rna_internal.h"
 
 #include "DNA_action_types.h"
 #include "DNA_customdata_types.h"
@@ -51,6 +44,12 @@
 #include "BKE_paint.h"
 #include "BKE_tessmesh.h"
 #include "BKE_group.h" /* needed for object_in_group() */
+
+#include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
+
+#include "rna_internal.h"
 
 #include "BLO_sys_types.h" /* needed for intptr_t used in ED_mesh.h */
 #include "ED_mesh.h"

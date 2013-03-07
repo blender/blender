@@ -27,7 +27,6 @@
  *  \ingroup bke
  */
 
-
 #include <string.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -41,8 +40,6 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_object_types.h"
 
-#include "RNA_access.h"
-
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
@@ -54,8 +51,10 @@
 #include "BKE_main.h"
 #include "BKE_screen.h"
 
+#include "RNA_access.h"
+
 #ifdef WITH_PYTHON
-#include "BPY_extern.h"
+#  include "BPY_extern.h"
 #endif
 
 /* struct */

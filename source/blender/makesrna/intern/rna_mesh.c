@@ -28,10 +28,18 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
+
+#include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
+
+#include "BLI_array.h"
+#include "BLI_math_base.h"
+#include "BLI_math_rotation.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -39,16 +47,7 @@
 
 #include "rna_internal.h"
 
-#include "DNA_material_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
-
 #include "WM_types.h"
-
-#include "BLI_array.h"
-#include "BLI_math_base.h"
-#include "BLI_math_rotation.h"
 
 #ifdef RNA_RUNTIME
 

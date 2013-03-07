@@ -24,16 +24,16 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 
 #include "DNA_ID.h"
 #include "DNA_userdef_types.h"
 
+#include "BLI_utildefines.h"
+#include "BKE_context.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
-
-#include "BKE_context.h"
 
 #include "rna_internal.h" /* own include */
 

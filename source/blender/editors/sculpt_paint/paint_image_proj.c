@@ -4319,7 +4319,7 @@ static int project_paint_op(void *state, const float lastpos[2], const float pos
 }
 
 
-static int project_paint_stroke(ProjPaintState *ps, const int prevmval_i[2], const int mval_i[2], float pressure)
+static int project_paint_stroke(ProjPaintState *ps, const int prevmval_i[2], const int mval_i[2], float UNUSED(pressure))
 {
 	int a, redraw;
 	float pos[2], prev_pos[2];

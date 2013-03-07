@@ -24,19 +24,20 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
+
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
+#include "DNA_windowmanager_types.h"
+
+#include "BLI_utildefines.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
 #include "rna_internal.h"
-
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "WM_types.h"
 
@@ -466,7 +467,7 @@ static StructRNA *rna_OperatorProperties_refine(PointerRNA *ptr)
 		return ptr->type;
 }
 
-static IDProperty *rna_OperatorProperties_idprops(PointerRNA *ptr, int create)
+static IDProperty *rna_OperatorProperties_idprops(PointerRNA *ptr, bool create)
 {
 	if (create && !ptr->data) {
 		IDPropertyTemplate val = {0};

@@ -24,13 +24,8 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 #include <limits.h>
-
-#include "RNA_define.h"
-
-#include "rna_internal.h"
 
 #include "BLI_math_base.h"
 
@@ -42,6 +37,10 @@
 #include "DNA_object_force.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+
+#include "RNA_define.h"
+
+#include "rna_internal.h"
 
 #include "WM_types.h"
 

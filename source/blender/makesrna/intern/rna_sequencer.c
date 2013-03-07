@@ -24,15 +24,8 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 #include <limits.h>
-
-#include "RNA_access.h"
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
-
-#include "rna_internal.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
@@ -48,6 +41,12 @@
 #include "BKE_sound.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
+
+#include "rna_internal.h"
 
 #include "WM_types.h"
 

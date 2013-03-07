@@ -28,16 +28,16 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
+
+#include "BLI_utildefines.h"
+
 #include "RNA_define.h"
 #include "RNA_access.h"
 #include "RNA_define.h"
 
 #include "rna_internal.h"
-
-#include "DNA_scene_types.h"
-#include "DNA_sequence_types.h"
-
-#include "BLI_utildefines.h"
 
 #ifdef RNA_RUNTIME
 

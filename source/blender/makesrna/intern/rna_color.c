@@ -24,15 +24,16 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "RNA_define.h"
-#include "rna_internal.h"
-
 #include "DNA_color_types.h"
 #include "DNA_texture_types.h"
+
+#include "BLI_utildefines.h"
+
+#include "RNA_define.h"
+#include "rna_internal.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

@@ -32,13 +32,17 @@
 
 #include <Python.h>
 
-#include "RNA_types.h"
-#include "RNA_access.h"
-
 #include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+
+#include "BKE_main.h"
+#include "BKE_global.h" /* XXX, G.main only */
+#include "BKE_blender.h"
 #include "BKE_bpath.h"
+
+#include "RNA_types.h"
+#include "RNA_access.h"
 
 #include "bpy.h"
 #include "bpy_util.h"
@@ -47,10 +51,6 @@
 #include "bpy_props.h"
 #include "bpy_library.h"
 #include "bpy_operator.h"
-
-#include "BKE_main.h"
-#include "BKE_global.h" /* XXX, G.main only */
-#include "BKE_blender.h"
 
 #include "MEM_guardedalloc.h"
 

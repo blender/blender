@@ -31,6 +31,10 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mask_types.h"
+#include "DNA_object_types.h"	/* SELECT */
+#include "DNA_scene_types.h"
+
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
 
@@ -38,10 +42,6 @@
 #include "RNA_enum_types.h"
 
 #include "rna_internal.h"
-
-#include "DNA_mask_types.h"
-#include "DNA_object_types.h"	/* SELECT */
-#include "DNA_scene_types.h"
 
 #include "WM_types.h"
 

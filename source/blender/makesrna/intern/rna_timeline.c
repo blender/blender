@@ -24,14 +24,13 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
+
+#include "DNA_scene_types.h"
 
 #include "RNA_define.h"
 
 #include "rna_internal.h"
-
-#include "DNA_scene_types.h"
 
 #include "WM_types.h"
 

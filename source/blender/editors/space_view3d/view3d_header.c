@@ -28,7 +28,6 @@
  *  \ingroup spview3d
  */
 
-
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,8 +35,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
-
-#include "RNA_access.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -57,17 +54,18 @@
 #include "BKE_screen.h"
 #include "BKE_tessmesh.h"
 
+#include "RNA_access.h"
+#include "RNA_define.h"
+#include "RNA_enum_types.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
+
 #include "ED_mesh.h"
 #include "ED_util.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 #include "ED_types.h"
-
-#include "WM_api.h"
-#include "WM_types.h"
-
-#include "RNA_define.h"
-#include "RNA_enum_types.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

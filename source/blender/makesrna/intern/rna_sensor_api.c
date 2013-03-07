@@ -28,14 +28,16 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "WM_types.h"
+#include "BLI_utildefines.h"
+
 #include "RNA_define.h"
 
 #include "rna_internal.h"  /* own include */
+
+#include "WM_types.h"
 
 #ifdef RNA_RUNTIME
 

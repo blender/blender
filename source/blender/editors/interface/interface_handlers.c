@@ -5021,7 +5021,7 @@ static int ui_but_menu(bContext *C, uiBut *but)
 	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
 	if (but->rnapoin.data && but->rnaprop) {
-		short is_anim = RNA_property_animateable(&but->rnapoin, but->rnaprop);
+		bool is_anim = RNA_property_animateable(&but->rnapoin, but->rnaprop);
 
 		/* second slower test, saved people finding keyframe items in menus when its not possible */
 		if (is_anim)

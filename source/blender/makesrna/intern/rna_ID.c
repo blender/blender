@@ -24,17 +24,18 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 #include <stdio.h>
-
-#include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "DNA_ID.h"
 #include "DNA_vfont_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
+
+#include "BLI_utildefines.h"
+
+#include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "WM_types.h"
 
@@ -196,7 +197,7 @@ StructRNA *rna_ID_refine(PointerRNA *ptr)
 	return ID_code_to_RNA_type(GS(id->name));
 }
 
-IDProperty *rna_ID_idprops(PointerRNA *ptr, int create)
+IDProperty *rna_ID_idprops(PointerRNA *ptr, bool create)
 {
 	return IDP_GetProperties(ptr->data, create);
 }
@@ -215,7 +216,7 @@ void rna_ID_fake_user_set(PointerRNA *ptr, int value)
 	}
 }
 
-IDProperty *rna_PropertyGroup_idprops(PointerRNA *ptr, int UNUSED(create))
+IDProperty *rna_PropertyGroup_idprops(PointerRNA *ptr, bool UNUSED(create))
 {
 	return ptr->data;
 }

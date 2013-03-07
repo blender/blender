@@ -32,15 +32,14 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "RNA_define.h"
-#include "RNA_access.h"
-
 #include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_library.h"
 #include "BKE_tessmesh.h"
 
+#include "RNA_define.h"
+#include "RNA_access.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

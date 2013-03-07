@@ -24,15 +24,9 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
-
-#include "RNA_access.h"
-#include "RNA_define.h"
-
-#include "rna_internal.h"
 
 #include "BLF_translation.h"
 
@@ -48,6 +42,11 @@
 #include "DNA_sequence_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_view3d_types.h"
+
+#include "RNA_access.h"
+#include "RNA_define.h"
+
+#include "rna_internal.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

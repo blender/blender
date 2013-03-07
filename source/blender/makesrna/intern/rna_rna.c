@@ -24,10 +24,11 @@
  *  \ingroup RNA
  */
 
-
 #include <stdlib.h>
 
 #include "DNA_ID.h"
+
+#include "BLI_utildefines.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

@@ -66,7 +66,7 @@ typedef void (*ContextPropUpdateFunc)(struct bContext *C, struct PointerRNA *ptr
 typedef void (*ContextUpdateFunc)(struct bContext *C, struct PointerRNA *ptr);
 typedef int (*EditableFunc)(struct PointerRNA *ptr);
 typedef int (*ItemEditableFunc)(struct PointerRNA *ptr, int index);
-typedef struct IDProperty *(*IDPropertiesFunc)(struct PointerRNA *ptr, int create);
+typedef struct IDProperty *(*IDPropertiesFunc)(struct PointerRNA *ptr, bool create);
 typedef struct StructRNA *(*StructRefineFunc)(struct PointerRNA *ptr);
 typedef char *(*StructPathFunc)(struct PointerRNA *ptr);
 
