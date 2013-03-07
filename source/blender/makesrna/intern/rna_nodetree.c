@@ -55,6 +55,7 @@
 #include "rna_internal_types.h"
 
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "WM_types.h"
 
@@ -519,6 +520,38 @@ static void rna_Node_material_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 		nodeSetActive(ntree, node);
 
 	node_update(bmain, scene, ntree, node);
+}
+
+static void rna_NodeTree_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
+
+	/* when using border, make it so no old data from outside of
+	 * border is hanging around
+	 * ideally shouldn't be in RNA callback, but how to teach
+	 * compo to only clear frame when border usage is actually
+	 * toggling
+	 */
+	if (ntree->flag & NTREE_VIEWER_BORDER) {
+		Image *ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+		void *lock;
+		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
+
+		if (ibuf) {
+			if (ibuf->rect)
+				memset(ibuf->rect, 0, 4 * ibuf->x * ibuf->y);
+
+			if (ibuf->rect_float)
+				memset(ibuf->rect_float, 0, 4 * ibuf->x * ibuf->y * sizeof(float));
+
+			ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+		}
+
+		BKE_image_release_ibuf(ima, ibuf, lock);
+	}
+
+	WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
+	WM_main_add_notifier(NC_SCENE | ND_NODES, &ntree->id);
 }
 
 static void rna_NodeGroup_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -4985,6 +5018,11 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NTREE_TWO_PASS);
 	RNA_def_property_ui_text(prop, "Two Pass", "Use two pass execution during editing: first calculate fast nodes, "
 	                                           "second pass calculate all nodes");
+
+	prop = RNA_def_property(srna, "use_viewer_border", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NTREE_VIEWER_BORDER);
+	RNA_def_property_ui_text(prop, "Viewer Border", "Use boundaries for viewer nodes and composite backdrop");
+	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update");
 }
 
 static void rna_def_shader_nodetree(BlenderRNA *brna)

@@ -3320,6 +3320,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 			/** @note draw selected info on backdrop */
 			if (snode->edittree) {
 				bNode *node = snode->edittree->nodes.first;
+				rctf *viewer_border = &snode->edittree->viewer_border;
 				while (node) {
 					if (node->flag & NODE_SELECT) {
 						if (node->typeinfo->uibackdropfunc) {
@@ -3327,6 +3328,23 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 						}
 					}
 					node = node->next;
+				}
+
+				if ((snode->edittree->flag & NTREE_VIEWER_BORDER) &&
+					viewer_border->xmin < viewer_border->xmax &&
+				    viewer_border->ymin < viewer_border->ymax)
+				{
+					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+					setlinestyle(3);
+					cpack(0x4040FF);
+
+					glRectf(x + snode->zoom * viewer_border->xmin * ibuf->x,
+							y + snode->zoom * viewer_border->ymin * ibuf->y,
+					        x + snode->zoom * viewer_border->xmax * ibuf->x,
+							y + snode->zoom * viewer_border->ymax * ibuf->y);
+
+					setlinestyle(0);
+					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 				}
 			}
 			

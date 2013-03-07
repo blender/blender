@@ -60,6 +60,7 @@ ExecutionGroup::ExecutionGroup()
 	this->m_openCL = false;
 	this->m_singleThreaded = false;
 	this->m_chunksFinished = 0;
+	BLI_rcti_init(&this->m_viewerBorder, 0, 0, 0, 0);
 }
 
 CompositorPriority ExecutionGroup::getRenderPriotrity()
@@ -196,6 +197,7 @@ void ExecutionGroup::determineResolution(unsigned int resolution[2])
 	resolution[0] = operation->getWidth();
 	resolution[1] = operation->getHeight();
 	this->setResolution(resolution);
+	BLI_rcti_init(&this->m_viewerBorder, 0, this->m_width, 0, this->m_height);
 }
 
 void ExecutionGroup::determineNumberOfChunks()
@@ -207,8 +209,10 @@ void ExecutionGroup::determineNumberOfChunks()
 	}
 	else {
 		const float chunkSizef = this->m_chunkSize;
-		this->m_numberOfXChunks = ceil(this->m_width / chunkSizef);
-		this->m_numberOfYChunks = ceil(this->m_height / chunkSizef);
+		const int border_width = BLI_rcti_size_x(&this->m_viewerBorder);
+		const int border_height = BLI_rcti_size_y(&this->m_viewerBorder);
+		this->m_numberOfXChunks = ceil(border_width / chunkSizef);
+		this->m_numberOfYChunks = ceil(border_height / chunkSizef);
 		this->m_numberOfChunks = this->m_numberOfXChunks * this->m_numberOfYChunks;
 	}
 }
@@ -245,6 +249,9 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 		chunkorder = viewer->getChunkOrder();
 	}
 
+	const int border_width = BLI_rcti_size_x(&this->m_viewerBorder);
+	const int border_height = BLI_rcti_size_y(&this->m_viewerBorder);
+
 	switch (chunkorder) {
 		case COM_TO_RANDOM:
 			for (index = 0; index < 2 * this->m_numberOfChunks; index++) {
@@ -258,14 +265,14 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 		case COM_TO_CENTER_OUT:
 		{
 			ChunkOrderHotspot *hotspots[1];
-			hotspots[0] = new ChunkOrderHotspot(this->m_width * centerX, this->m_height * centerY, 0.0f);
+			hotspots[0] = new ChunkOrderHotspot(border_width * centerX, border_height * centerY, 0.0f);
 			rcti rect;
 			ChunkOrder *chunkOrders = (ChunkOrder *)MEM_mallocN(sizeof(ChunkOrder) * this->m_numberOfChunks, __func__);
 			for (index = 0; index < this->m_numberOfChunks; index++) {
 				determineChunkRect(&rect, index);
 				chunkOrders[index].setChunkNumber(index);
-				chunkOrders[index].setX(rect.xmin);
-				chunkOrders[index].setY(rect.ymin);
+				chunkOrders[index].setX(rect.xmin - this->m_viewerBorder.xmin);
+				chunkOrders[index].setY(rect.ymin - this->m_viewerBorder.ymin);
 				chunkOrders[index].determineDistance(hotspots, 1);
 			}
 
@@ -281,10 +288,10 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 		case COM_TO_RULE_OF_THIRDS:
 		{
 			ChunkOrderHotspot *hotspots[9];
-			unsigned int tx = this->m_width / 6;
-			unsigned int ty = this->m_height / 6;
-			unsigned int mx = this->m_width / 2;
-			unsigned int my = this->m_height / 2;
+			unsigned int tx = border_width / 6;
+			unsigned int ty = border_height / 6;
+			unsigned int mx = border_width / 2;
+			unsigned int my = border_height / 2;
 			unsigned int bx = mx + 2 * tx;
 			unsigned int by = my + 2 * ty;
 
@@ -303,8 +310,8 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 			for (index = 0; index < this->m_numberOfChunks; index++) {
 				determineChunkRect(&rect, index);
 				chunkOrders[index].setChunkNumber(index);
-				chunkOrders[index].setX(rect.xmin);
-				chunkOrders[index].setY(rect.ymin);
+				chunkOrders[index].setX(rect.xmin - this->m_viewerBorder.xmin);
+				chunkOrders[index].setY(rect.ymin - this->m_viewerBorder.ymin);
 				chunkOrders[index].determineDistance(hotspots, 9);
 			}
 
@@ -431,13 +438,18 @@ void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer **memo
 
 inline void ExecutionGroup::determineChunkRect(rcti *rect, const unsigned int xChunk, const unsigned int yChunk) const
 {
+	const int border_width = BLI_rcti_size_x(&this->m_viewerBorder);
+	const int border_height = BLI_rcti_size_y(&this->m_viewerBorder);
+
 	if (this->m_singleThreaded) {
-		BLI_rcti_init(rect, 0, this->m_width, 0, this->m_height);
+		BLI_rcti_init(rect, this->m_viewerBorder.xmin, border_width, this->m_viewerBorder.ymin, border_height);
 	}
 	else {
-		const unsigned int minx = xChunk * this->m_chunkSize;
-		const unsigned int miny = yChunk * this->m_chunkSize;
-		BLI_rcti_init(rect, minx, min(minx + this->m_chunkSize, this->m_width), miny, min(miny + this->m_chunkSize, this->m_height));
+		const unsigned int minx = xChunk * this->m_chunkSize + this->m_viewerBorder.xmin;
+		const unsigned int miny = yChunk * this->m_chunkSize + this->m_viewerBorder.ymin;
+		const unsigned int width = min((unsigned int) this->m_viewerBorder.xmax, this->m_width);
+		const unsigned int height = min((unsigned int) this->m_viewerBorder.ymax, this->m_height);
+		BLI_rcti_init(rect, min(minx, this->m_width), min(minx + this->m_chunkSize, width), min(miny, this->m_height), min(miny + this->m_chunkSize, height));
 	}
 }
 
@@ -472,9 +484,9 @@ bool ExecutionGroup::scheduleAreaWhenPossible(ExecutionSystem *graph, rcti *area
 	float chunkSizef = this->m_chunkSize;
 
 	int indexx, indexy;
-	int minxchunk = floor(area->xmin / chunkSizef);
+	int minxchunk = floor((area->xmin - this->m_viewerBorder.xmin) / chunkSizef);
 	int maxxchunk = ceil((area->xmax - 1) / chunkSizef);
-	int minychunk = floor(area->ymin / chunkSizef);
+	int minychunk = floor((area->ymin - this->m_viewerBorder.ymin) / chunkSizef);
 	int maxychunk = ceil((area->ymax - 1) / chunkSizef);
 	minxchunk = max(minxchunk, 0);
 	minychunk = max(minychunk, 0);
@@ -573,4 +585,14 @@ void ExecutionGroup::determineDependingMemoryProxies(vector<MemoryProxy *> *memo
 bool ExecutionGroup::isOpenCL()
 {
 	return this->m_openCL;
+}
+
+void ExecutionGroup::setViewerBorder(float xmin, float xmax, float ymin, float ymax)
+{
+	NodeOperation *operation = this->getOutputNodeOperation();
+
+	if (operation->isViewerOperation()) {
+		BLI_rcti_init(&this->m_viewerBorder, xmin * this->m_width, xmax * this->m_width,
+		              ymin * this->m_height, ymax * this->m_height);
+	}
 }

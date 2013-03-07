@@ -78,11 +78,22 @@ ExecutionSystem::ExecutionSystem(RenderData *rd, bNodeTree *editingtree, bool re
 	this->groupOperations(); /* group operations in ExecutionGroups */
 	unsigned int index;
 	unsigned int resolution[2];
+
+	rctf *viewer_border = &editingtree->viewer_border;
+	bool use_viewer_border = (editingtree->flag & NTREE_VIEWER_BORDER) &&
+	                         viewer_border->xmin < viewer_border->xmax &&
+	                         viewer_border->ymin < viewer_border->ymax;
+
 	for (index = 0; index < this->m_groups.size(); index++) {
 		resolution[0] = 0;
 		resolution[1] = 0;
 		ExecutionGroup *executionGroup = this->m_groups[index];
 		executionGroup->determineResolution(resolution);
+
+		if (use_viewer_border) {
+			executionGroup->setViewerBorder(viewer_border->xmin, viewer_border->xmax,
+			                                viewer_border->ymin, viewer_border->ymax);
+		}
 	}
 
 #ifdef COM_DEBUG

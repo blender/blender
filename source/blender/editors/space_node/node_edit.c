@@ -73,6 +73,8 @@
 
 #include "GPU_material.h"
 
+#include "IMB_imbuf_types.h"
+
 #include "node_intern.h"  /* own include */
 
 #define USE_ESC_COMPO
@@ -2281,3 +2283,105 @@ void NODE_OT_shader_script_update(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/* ********************** Viewer border ******************/
+
+static void viewer_border_corner_to_backdrop(SpaceNode *snode, ARegion *ar, int x, int y,
+                                             int backdrop_width, int backdrop_height,
+                                             float *fx, float *fy)
+{
+	float bufx, bufy;
+
+	bufx = backdrop_width * snode->zoom;
+	bufy = backdrop_height * snode->zoom;
+
+	*fx = (bufx > 0.0f ? ((float) x - 0.5f * ar->winx - snode->xof) / bufx + 0.5f : 0.0f);
+	*fy = (bufy > 0.0f ? ((float) y - 0.5f * ar->winy - snode->yof) / bufy + 0.5f : 0.0f);
+}
+
+static int viewer_border_exec(bContext *C, wmOperator *op)
+{
+	Image *ima;
+	void *lock;
+	ImBuf *ibuf;
+
+	ED_preview_kill_jobs(C);
+
+	ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+	ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
+
+	if (ibuf) {
+		ARegion *ar = CTX_wm_region(C);
+		SpaceNode *snode = CTX_wm_space_node(C);
+		bNodeTree *btree = snode->edittree;
+		rcti rect;
+		rctf rectf;
+
+		/* get border from operator */
+		WM_operator_properties_border_to_rcti(op, &rect);
+
+		/* convert border to unified space within backdrop image */
+		viewer_border_corner_to_backdrop(snode, ar, rect.xmin, rect.ymin, ibuf->x, ibuf->y,
+		                                 &rectf.xmin, &rectf.ymin);
+
+		viewer_border_corner_to_backdrop(snode, ar, rect.xmax, rect.ymax, ibuf->x, ibuf->y,
+		                                 &rectf.xmax, &rectf.ymax);
+
+		/* clamp coordinates */
+		rectf.xmin = max_ff(rectf.xmin, 0.0f);
+		rectf.ymin = max_ff(rectf.ymin, 0.0f);
+		rectf.xmax = min_ff(rectf.xmax, 1.0f);
+		rectf.ymax = min_ff(rectf.ymax, 1.0f);
+
+		if (rectf.xmin < rectf.xmax && rectf.ymin < rectf.ymax) {
+			btree->viewer_border = rectf;
+
+			if (rectf.xmin == 0.0f && rectf.ymin == 0.0f &&
+			    rectf.xmax == 1.0f && rectf.ymax == 1.0f)
+			{
+				btree->flag &= ~NTREE_VIEWER_BORDER;
+			}
+			else {
+				if (ibuf->rect)
+					memset(ibuf->rect, 0, 4 * ibuf->x * ibuf->y);
+
+				if (ibuf->rect_float)
+					memset(ibuf->rect_float, 0, 4 * ibuf->x * ibuf->y * sizeof(float));
+
+				ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+
+				btree->flag |= NTREE_VIEWER_BORDER;
+			}
+
+			snode_notify(C, snode);
+			WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, NULL);
+		}
+		else {
+			btree->flag &= ~NTREE_VIEWER_BORDER;
+		}
+	}
+
+	BKE_image_release_ibuf(ima, ibuf, lock);
+
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_viewer_border(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Viewer Border";
+	ot->description = "Set the boundaries for viewer operations";
+	ot->idname = "NODE_OT_viewer_border";
+
+	/* api callbacks */
+	ot->invoke = WM_border_select_invoke;
+	ot->exec = viewer_border_exec;
+	ot->modal = WM_border_select_modal;
+	ot->cancel = WM_border_select_cancel;
+	ot->poll = composite_node_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	WM_operator_properties_gesture_border(ot, TRUE);
+}

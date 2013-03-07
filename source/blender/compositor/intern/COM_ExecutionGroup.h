@@ -161,6 +161,12 @@ private:
 	 * @see openCL
 	 */
 	bool m_initialized;
+
+	/**
+	 * @brief denotes boundary for border compositing
+	 * @note measured in pixel space
+	 */
+	rcti m_viewerBorder;
 	
 	// methods
 	/**
@@ -394,6 +400,12 @@ public:
 	 * @see ExecutionSystem.execute
 	 */
 	CompositorPriority getRenderPriotrity();
+
+	/**
+	 * @brief set border for viewer operation
+	 * @note all the coordinates are assumed to be in normalized space
+	 */
+	void setViewerBorder(float xmin, float xmax, float ymin, float ymax);
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("COM:ExecutionGroup")

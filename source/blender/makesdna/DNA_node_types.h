@@ -279,6 +279,8 @@ typedef struct bNodeTree {
 	short render_quality;				/* Quality setting when rendering */
 	int chunksize;					/* tile size for compositor engine */
 	
+	rctf viewer_border;
+	
 	ListBase inputs, outputs;		/* external sockets for group nodes */
 	
 	/* execution data */
@@ -313,6 +315,7 @@ typedef struct bNodeTree {
 #define NTREE_COM_OPENCL			2	/* use opencl */
 #define NTREE_TWO_PASS				4	/* two pass */
 #define NTREE_COM_GROUPNODE_BUFFER	8	/* use groupnode buffers */
+#define NTREE_VIEWER_BORDER		16	/* use a border for viewer nodes */
 
 /* XXX not nice, but needed as a temporary flags
  * for group updates after library linking.

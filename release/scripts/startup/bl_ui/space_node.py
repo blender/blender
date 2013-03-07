@@ -254,6 +254,7 @@ class NODE_PT_quality(bpy.types.Panel):
         col.prop(tree, "use_opencl")
         col.prop(tree, "use_groupnode_buffer")
         col.prop(tree, "two_pass")
+        col.prop(tree, "use_viewer_border")
         col.prop(snode, "show_highlight")
         col.prop(snode, "use_hidden_preview")
 
