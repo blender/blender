@@ -53,6 +53,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "RE_render_ext.h" /* externtex */
+#include "RE_shader_ext.h"
 
 static void brush_defaults(Brush *brush)
 {
@@ -840,6 +841,49 @@ float BKE_brush_curve_strength(Brush *br, float p, const float len)
 	curvemapping_initialize(br->curve);
 	return curvemapping_evaluateF(br->curve, 0, p);
 }
+
+/* TODO: should probably be unified with BrushPainter stuff? */
+unsigned int *BKE_brush_gen_texture_cache(Brush *br, int half_side)
+{
+	unsigned int *texcache = NULL;
+	MTex *mtex = &br->mtex;
+	TexResult texres = {0};
+	int hasrgb, ix, iy;
+	int side = half_side * 2;
+
+	if (mtex->tex) {
+		float x, y, step = 2.0 / side, co[3];
+
+		texcache = MEM_callocN(sizeof(int) * side * side, "Brush texture cache");
+
+		/*do normalized cannonical view coords for texture*/
+		for (y = -1.0, iy = 0; iy < side; iy++, y += step) {
+			for (x = -1.0, ix = 0; ix < side; ix++, x += step) {
+				co[0] = x;
+				co[1] = y;
+				co[2] = 0.0f;
+
+				/* This is copied from displace modifier code */
+				hasrgb = multitex_ext(mtex->tex, co, NULL, NULL, 0, &texres, NULL);
+
+				/* if the texture gave an RGB value, we assume it didn't give a valid
+				 * intensity, so calculate one (formula from do_material_tex).
+				 * if the texture didn't give an RGB value, copy the intensity across
+				 */
+				if (hasrgb & TEX_RGB)
+					texres.tin = rgb_to_grayscale(&texres.tr);
+
+				((char *)texcache)[(iy * side + ix) * 4] =
+				((char *)texcache)[(iy * side + ix) * 4 + 1] =
+				((char *)texcache)[(iy * side + ix) * 4 + 2] =
+				((char *)texcache)[(iy * side + ix) * 4 + 3] = (char)(texres.tin * 255.0f);
+			}
+		}
+	}
+
+	return texcache;
+}
+
 
 /**** Radial Control ****/
 struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br)

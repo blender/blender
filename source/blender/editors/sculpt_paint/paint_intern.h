@@ -50,6 +50,8 @@ struct ViewContext;
 struct wmEvent;
 struct wmOperator;
 struct wmOperatorType;
+struct ImagePaintState;
+enum PaintMode;
 
 /* paint_stroke.c */
 typedef int (*StrokeGetLocation)(struct bContext *C, float location[3], const float mouse[2]);
@@ -64,6 +66,7 @@ void paint_stroke_data_free(struct wmOperator *op);
 
 bool paint_space_stroke_enabled(struct Brush *br);
 bool paint_supports_dynamic_size(struct Brush *br);
+bool paint_supports_jitter(enum PaintMode mode);
 
 struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf);
 int paint_stroke_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
@@ -103,7 +106,30 @@ void PAINT_OT_vertex_paint(struct wmOperatorType *ot);
 unsigned int vpaint_get_current_col(struct VPaint *vp);
 
 /* paint_image.c */
+typedef struct ImagePaintPartialRedraw {
+	int x1, y1, x2, y2;  /* XXX, could use 'rcti' */
+	int enabled;
+} ImagePaintPartialRedraw;
+
+#define IMAPAINT_TILE_BITS          6
+#define IMAPAINT_TILE_SIZE          (1 << IMAPAINT_TILE_BITS)
+#define IMAPAINT_TILE_NUMBER(size)  (((size) + IMAPAINT_TILE_SIZE - 1) >> IMAPAINT_TILE_BITS)
+
+#define IMAPAINT_CHAR_TO_FLOAT(c) ((c) / 255.0f)
+
 int image_texture_paint_poll(struct bContext *C);
+void *image_undo_push_tile(struct Image *ima, struct ImBuf *ibuf, struct ImBuf **tmpibuf, int x_tile, int y_tile);
+void imapaint_image_update(struct SpaceImage *sima, struct Image *image, struct ImBuf *ibuf, short texpaint);
+struct ImagePaintPartialRedraw *get_imapaintpartial(void);
+void set_imapaintpartial(struct ImagePaintPartialRedraw * ippr);
+void imapaint_clear_partial_redraw(void);
+void imapaint_dirty_region(struct Image *ima, struct ImBuf *ibuf, int x, int y, int w, int h);
+void *paint_2d_new_stroke(struct bContext *, struct wmOperator *);
+void paint_2d_redraw(const bContext *C, void *ps, int final);
+void paint_2d_stroke_done(void *ps);
+int paint_2d_stroke(void *ps, const int mval[2], float pressure, int eraser);
+void paint_brush_init_tex(struct Brush *brush);
+void paint_brush_exit_tex(struct Brush *brush);
 
 void PAINT_OT_image_paint(struct wmOperatorType *ot);
 void PAINT_OT_grab_clone(struct wmOperatorType *ot);

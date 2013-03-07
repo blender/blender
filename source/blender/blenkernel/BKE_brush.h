@@ -79,13 +79,13 @@ struct BrushPainter;
 typedef struct BrushPainter BrushPainter;
 typedef int (*BrushFunc)(void *user, struct ImBuf *ibuf, const float lastpos[2], const float pos[2]);
 
-BrushPainter *BKE_brush_painter_new(struct Scene *scene, struct Brush *brush);
-void BKE_brush_painter_require_imbuf(BrushPainter *painter, short flt,
+BrushPainter *brush_painter_2d_new(struct Scene *scene, struct Brush *brush);
+void brush_painter_2d_require_imbuf(BrushPainter *painter, short flt,
                                      short texonly, int size);
-int BKE_brush_painter_paint(BrushPainter *painter, BrushFunc func, const float pos[2],
+int brush_painter_2d_paint(BrushPainter *painter, BrushFunc func, const float pos[2],
                             double time, float pressure, void *user, int use_color_correction);
-void BKE_brush_painter_break_stroke(BrushPainter *painter);
-void BKE_brush_painter_free(BrushPainter *painter);
+void brush_painter_2d_break_stroke(BrushPainter *painter);
+void brush_painter_2d_free(BrushPainter *painter);
 
 /* texture */
 unsigned int *BKE_brush_gen_texture_cache(struct Brush *br, int half_side);

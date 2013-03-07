@@ -157,7 +157,7 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 
 	/* TODO: as sculpt and other paint modes are unified, this
 	 * separation will go away */
-	if (ELEM(mode, PAINT_SCULPT, PAINT_TEXTURE_PROJECTIVE)) {
+	if (paint_supports_jitter(mode)) {
 		float delta[2];
 
 		BKE_brush_jitter_pos(scene, brush, mouse_in, mouse_out);
@@ -336,6 +336,10 @@ bool paint_supports_dynamic_size(Brush *br)
 {
 	return !(br->flag & BRUSH_ANCHORED) &&
 	       !ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK);
+}
+
+bool paint_supports_jitter(PaintMode mode) {
+	return ELEM(mode, PAINT_SCULPT, PAINT_TEXTURE_PROJECTIVE);
 }
 
 #define PAINT_STROKE_MODAL_CANCEL 1

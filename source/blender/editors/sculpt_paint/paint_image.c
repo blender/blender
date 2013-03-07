@@ -140,9 +140,6 @@ BLI_INLINE unsigned char f_to_char(const float val)
 #define IMAPAINT_TILE_SIZE          (1 << IMAPAINT_TILE_BITS)
 #define IMAPAINT_TILE_NUMBER(size)  (((size) + IMAPAINT_TILE_SIZE - 1) >> IMAPAINT_TILE_BITS)
 
-static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint);
-
-
 typedef struct ImagePaintState {
 	SpaceImage *sima;
 	View2D *v2d;
@@ -170,11 +167,6 @@ typedef struct ImagePaintState {
 	MFace          *dm_mface;
 	MTFace         *dm_mtface;
 } ImagePaintState;
-
-typedef struct ImagePaintPartialRedraw {
-	int x1, y1, x2, y2;  /* XXX, could use 'rcti' */
-	int enabled;
-} ImagePaintPartialRedraw;
 
 typedef struct ImagePaintRegion {
 	int destx, desty;
@@ -411,7 +403,18 @@ typedef struct UndoImageTile {
 	char gen_type;
 } UndoImageTile;
 
+/* this is a static resource for non-globality,
+ * Maybe it should be exposed as part of the
+ * paint operation, but for now just give a public interface */
 static ImagePaintPartialRedraw imapaintpartial = {0, 0, 0, 0, 0};
+
+ImagePaintPartialRedraw *get_imapaintpartial(void) {
+	return &imapaintpartial;
+}
+
+void set_imapaintpartial(struct ImagePaintPartialRedraw *ippr) {
+	imapaintpartial = *ippr;
+}
 
 /* UNDO */
 
@@ -433,7 +436,7 @@ static void undo_copy_tile(UndoImageTile *tile, ImBuf *tmpibuf, ImBuf *ibuf, int
 		            tile->y * IMAPAINT_TILE_SIZE, 0, 0, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
 }
 
-static void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int x_tile, int y_tile)
+void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int x_tile, int y_tile)
 {
 	ListBase *lb = undo_paint_push_get_list(UNDO_PAINT_IMAGE);
 	UndoImageTile *tile;
@@ -4349,7 +4352,7 @@ static int project_paint_sub_stroke(ProjPaintState *ps, BrushPainter *painter, c
 	// we may want to use this later 
 	// BKE_brush_painter_require_imbuf(painter, ((ibuf->rect_float) ? 1 : 0), 0, 0);
 	
-	if (BKE_brush_painter_paint(painter, project_paint_op, pos, time, pressure, ps, 0)) {
+	if (brush_painter_2d_paint(painter, project_paint_op, pos, time, pressure, ps, 0)) {
 		return 1;
 	}
 	else return 0;
@@ -4373,12 +4376,12 @@ static int project_paint_stroke(ProjPaintState *ps, BrushPainter *painter, const
 
 /* Imagepaint Partial Redraw & Dirty Region */
 
-static void imapaint_clear_partial_redraw(void)
+void imapaint_clear_partial_redraw(void)
 {
 	memset(&imapaintpartial, 0, sizeof(imapaintpartial));
 }
 
-static void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, int h)
+void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, int h)
 {
 	ImBuf *tmpibuf = NULL;
 	int srcx = 0, srcy = 0, origx;
@@ -4417,7 +4420,7 @@ static void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, 
 		IMB_freeImBuf(tmpibuf);
 }
 
-static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint)
+void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint)
 {
 	if (imapaintpartial.x1 != imapaintpartial.x2 &&
 	    imapaintpartial.y1 != imapaintpartial.y2)
@@ -4717,7 +4720,7 @@ static int texpaint_break_stroke(float *prevuv, float *fwuv, float *bkuv, float 
 static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 {
 	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, s->sima ? &s->sima->iuser : NULL, NULL);
-	
+
 	/* verify that we can paint and set canvas */
 	if (ima == NULL) {
 		return 0;
@@ -4740,7 +4743,7 @@ static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 	if (s->tool == PAINT_TOOL_CLONE) {
 		ima = s->brush->clone.image;
 		ibuf = BKE_image_acquire_ibuf(ima, s->sima ? &s->sima->iuser : NULL, NULL);
-		
+
 		if (!ima || !ibuf || !(ibuf->rect || ibuf->rect_float)) {
 			BKE_image_release_ibuf(ima, ibuf, NULL);
 			BKE_image_release_ibuf(s->image, s->canvas, NULL);
@@ -4780,12 +4783,12 @@ static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, 
 	pos[0] = uv[0] * ibuf->x;
 	pos[1] = uv[1] * ibuf->y;
 
-	BKE_brush_painter_require_imbuf(painter, ((ibuf->rect_float) ? 1 : 0), 0, 0);
+	brush_painter_2d_require_imbuf(painter, ((ibuf->rect_float) ? 1 : 0), 0, 0);
 
 	/* OCIO_TODO: float buffers are now always linear, so always use color correction
 	 *            this should probably be changed when texture painting color space is supported
 	 */
-	if (BKE_brush_painter_paint(painter, imapaint_paint_op, pos, time, pressure, s, is_data == FALSE)) {
+	if (brush_painter_2d_paint(painter, imapaint_paint_op, pos, time, pressure, s, is_data == FALSE)) {
 		if (update)
 			imapaint_image_update(s->sima, image, ibuf, texpaint);
 		BKE_image_release_ibuf(image, ibuf, NULL);
@@ -4844,7 +4847,7 @@ static int imapaint_paint_stroke(ViewContext *vc, ImagePaintState *s, BrushPaint
 			redraw |= imapaint_paint_sub_stroke(s, painter, s->image, texpaint,
 			                                    fwuv, time, 1, pressure);
 			imapaint_clear_partial_redraw();
-			BKE_brush_painter_break_stroke(painter);
+			brush_painter_2d_break_stroke(painter);
 		}
 
 		/* set new canvas */
@@ -5044,7 +5047,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 		ps->do_mask_normal = FALSE;  /* no need to do blending */
 }
 
-static void paint_brush_init_tex(Brush *brush)
+void paint_brush_init_tex(Brush *brush)
 {
 	/* init mtex nodes */ 
 	if (brush) {
@@ -5167,7 +5170,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 	                      image_undo_restore, image_undo_free);
 
 	/* create painter */
-	pop->painter = BKE_brush_painter_new(scene, pop->s.brush);
+	pop->painter = brush_painter_2d_new(scene, pop->s.brush);
 
 	{
 		UnifiedPaintSettings *ups = &settings->unified_paint_settings;
@@ -5214,7 +5217,7 @@ static void paint_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 	pop->first = 0;
 }
 
-static void paint_brush_exit_tex(Brush *brush)
+void paint_brush_exit_tex(Brush *brush)
 {
 	if (brush) {
 		MTex *mtex = &brush->mtex;
@@ -5234,7 +5237,7 @@ static void paint_exit(bContext *C, wmOperator *op)
 
 	settings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
 	imapaint_canvas_free(&pop->s);
-	BKE_brush_painter_free(pop->painter);
+	brush_painter_2d_free(pop->painter);
 
 	if (pop->mode == PAINT_MODE_3D_PROJECT) {
 		BKE_brush_size_set(scene, pop->ps.brush, pop->orig_brush_size);
