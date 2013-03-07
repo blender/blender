@@ -381,16 +381,7 @@ void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad)
 /* (old, used in outliner) plain antialiased filled box */
 void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)
 {
-	float color[4];
-	
-	if (roundboxtype & UI_RB_ALPHA) {
-		glGetFloatv(GL_CURRENT_COLOR, color);
-		color[3] = 0.5;
-		glColor4fv(color);
-		glEnable(GL_BLEND);
-	}
-	
-	ui_draw_anti_roundbox(GL_POLYGON, minx, miny, maxx, maxy, rad);
+	ui_draw_anti_roundbox(GL_POLYGON, minx, miny, maxx, maxy, rad, roundboxtype & UI_RB_ALPHA);
 }
 
 

@@ -522,7 +522,7 @@ extern void ui_button_text_password_hide(char password_str[UI_MAX_DRAW_STR], uiB
 
 /* interface_widgets.c */
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);
-void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float maxy, float rad);
+void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float maxy, float rad, bool use_alpha);
 void ui_draw_menu_back(struct uiStyle *style, uiBlock *block, rcti *rect);
 uiWidgetColors *ui_tooltip_get_theme(void);
 void ui_draw_tooltip_background(uiStyle *UNUSED(style), uiBlock * block, rcti * rect);
