@@ -714,7 +714,6 @@ static float visualkey_get_value(PointerRNA *ptr, PropertyRNA *prop, int array_i
 	else if (ptr->type == &RNA_PoseBone) {
 		Object *ob = (Object *)ptr->id.data; /* we assume that this is always set, and is an object */
 		bPoseChannel *pchan = (bPoseChannel *)ptr->data;
-		float tmat[4][4];
 		
 		/* Although it is not strictly required for this particular space conversion, 
 		 * arg1 must not be null, as there is a null check for the other conversions to
