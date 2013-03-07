@@ -259,6 +259,12 @@ std::string AnimationExporter::getObjectBoneName(Object *ob, const FCurve *fcu)
 		return id_name(ob);
 }
 
+std::string AnimationExporter::getAnimationPathId(const FCurve *fcu)
+{
+	std::string rna_path = std::string(fcu->rna_path);
+	return translate_id(rna_path);
+}
+
 //convert f-curves to animation curves and write
 void AnimationExporter::dae_animation(Object *ob, FCurve *fcu, char *transformName, bool is_param, Material *ma)
 {
@@ -305,16 +311,27 @@ void AnimationExporter::dae_animation(Object *ob, FCurve *fcu, char *transformNa
 	//Create anim Id
 	if (ob->type == OB_ARMATURE) {
 		ob_name =  getObjectBoneName(ob, fcu);
-		BLI_snprintf(anim_id, sizeof(anim_id), "%s_%s.%s", (char *)translate_id(ob_name).c_str(),
-		             transformName, axis_name);
+		BLI_snprintf(
+				anim_id,
+				sizeof(anim_id),
+				"%s_%s.%s",
+				(char *)translate_id(ob_name).c_str(),
+				(char *)translate_id(transformName).c_str(),
+				axis_name);
 	}
 	else {
 		if (ma)
 			ob_name = id_name(ob) + "_material";
 		else
 			ob_name = id_name(ob);
-		BLI_snprintf(anim_id, sizeof(anim_id), "%s_%s_%s", (char *)translate_id(ob_name).c_str(),
-		             fcu->rna_path, axis_name);
+
+		BLI_snprintf(
+				anim_id,
+				sizeof(anim_id),
+				"%s_%s_%s",
+				(char *)translate_id(ob_name).c_str(),
+				(char *)getAnimationPathId(fcu).c_str(),
+				axis_name);
 	}
 
 	openAnimation(anim_id, COLLADABU::Utils::EMPTY_STRING);
