@@ -23,6 +23,7 @@ struct btBroadphaseProxy;
 class btDispatcher;
 class btManifoldResult;
 class btCollisionObject;
+struct btCollisionObjectWrapper;
 struct btDispatcherInfo;
 class	btPersistentManifold;
 
@@ -69,7 +70,7 @@ public:
 
 	virtual ~btCollisionAlgorithm() {};
 
-	virtual void processCollision (btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut) = 0;
+	virtual void processCollision (const btCollisionObjectWrapper* body0Wrap,const btCollisionObjectWrapper* body1Wrap,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut) = 0;
 
 	virtual btScalar calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut) = 0;
 

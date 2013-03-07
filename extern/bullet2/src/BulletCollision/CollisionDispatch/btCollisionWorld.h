@@ -144,6 +144,11 @@ public:
 	void	updateSingleAabb(btCollisionObject* colObj);
 
 	virtual void	updateAabbs();
+
+	///the computeOverlappingPairs is usually already called by performDiscreteCollisionDetection (or stepSimulation)
+	///it can be useful to use if you perform ray tests without collision detection/simulation
+	virtual void	computeOverlappingPairs();
+
 	
 	virtual void	setDebugDrawer(btIDebugDraw*	debugDrawer)
 	{
@@ -173,7 +178,7 @@ public:
 
 	struct	LocalRayResult
 	{
-		LocalRayResult(btCollisionObject*	collisionObject, 
+		LocalRayResult(const btCollisionObject*	collisionObject, 
 			LocalShapeInfo*	localShapeInfo,
 			const btVector3&		hitNormalLocal,
 			btScalar hitFraction)
@@ -184,7 +189,7 @@ public:
 		{
 		}
 
-		btCollisionObject*		m_collisionObject;
+		const btCollisionObject*		m_collisionObject;
 		LocalShapeInfo*			m_localShapeInfo;
 		btVector3				m_hitNormalLocal;
 		btScalar				m_hitFraction;
@@ -195,11 +200,11 @@ public:
 	struct	RayResultCallback
 	{
 		btScalar	m_closestHitFraction;
-		btCollisionObject*		m_collisionObject;
+		const btCollisionObject*		m_collisionObject;
 		short int	m_collisionFilterGroup;
 		short int	m_collisionFilterMask;
-      //@BP Mod - Custom flags, currently used to enable backface culling on tri-meshes, see btRaycastCallback
-      unsigned int m_flags;
+		//@BP Mod - Custom flags, currently used to enable backface culling on tri-meshes, see btRaycastCallback.h. Apply any of the EFlags defined there on m_flags here to invoke.
+		unsigned int m_flags;
 
 		virtual ~RayResultCallback()
 		{
@@ -214,8 +219,8 @@ public:
 			m_collisionObject(0),
 			m_collisionFilterGroup(btBroadphaseProxy::DefaultFilter),
 			m_collisionFilterMask(btBroadphaseProxy::AllFilter),
-         //@BP Mod
-         m_flags(0)
+			//@BP Mod
+			m_flags(0)
 		{
 		}
 
@@ -272,7 +277,7 @@ public:
 		{
 		}
 
-		btAlignedObjectArray<btCollisionObject*>		m_collisionObjects;
+		btAlignedObjectArray<const btCollisionObject*>		m_collisionObjects;
 
 		btVector3	m_rayFromWorld;//used to calculate hitPointWorld from hitFraction
 		btVector3	m_rayToWorld;
@@ -306,7 +311,7 @@ public:
 
 	struct LocalConvexResult
 	{
-		LocalConvexResult(btCollisionObject*	hitCollisionObject, 
+		LocalConvexResult(const btCollisionObject*	hitCollisionObject, 
 			LocalShapeInfo*	localShapeInfo,
 			const btVector3&		hitNormalLocal,
 			const btVector3&		hitPointLocal,
@@ -320,7 +325,7 @@ public:
 		{
 		}
 
-		btCollisionObject*		m_hitCollisionObject;
+		const btCollisionObject*		m_hitCollisionObject;
 		LocalShapeInfo*			m_localShapeInfo;
 		btVector3				m_hitNormalLocal;
 		btVector3				m_hitPointLocal;
@@ -376,7 +381,7 @@ public:
 
 		btVector3	m_hitNormalWorld;
 		btVector3	m_hitPointWorld;
-		btCollisionObject*	m_hitCollisionObject;
+		const btCollisionObject*	m_hitCollisionObject;
 		
 		virtual	btScalar	addSingleResult(LocalConvexResult& convexResult,bool normalInWorldSpace)
 		{
@@ -421,7 +426,7 @@ public:
 			return collides;
 		}
 
-		virtual	btScalar	addSingleResult(btManifoldPoint& cp,	const btCollisionObject* colObj0,int partId0,int index0,const btCollisionObject* colObj1,int partId1,int index1) = 0;
+		virtual	btScalar	addSingleResult(btManifoldPoint& cp,	const btCollisionObjectWrapper* colObj0Wrap,int partId0,int index0,const btCollisionObjectWrapper* colObj1Wrap,int partId1,int index1) = 0;
 	};
 
 
@@ -457,12 +462,20 @@ public:
 					  const btTransform& colObjWorldTransform,
 					  RayResultCallback& resultCallback);
 
+	static void	rayTestSingleInternal(const btTransform& rayFromTrans,const btTransform& rayToTrans,
+					  const btCollisionObjectWrapper* collisionObjectWrap,
+					  RayResultCallback& resultCallback);
+
 	/// objectQuerySingle performs a collision detection query and calls the resultCallback. It is used internally by rayTest.
 	static void	objectQuerySingle(const btConvexShape* castShape, const btTransform& rayFromTrans,const btTransform& rayToTrans,
 					  btCollisionObject* collisionObject,
 					  const btCollisionShape* collisionShape,
 					  const btTransform& colObjWorldTransform,
 					  ConvexResultCallback& resultCallback, btScalar	allowedPenetration);
+
+	static void	objectQuerySingleInternal(const btConvexShape* castShape,const btTransform& convexFromTrans,const btTransform& convexToTrans,
+											const btCollisionObjectWrapper* colObjWrap,
+											ConvexResultCallback& resultCallback, btScalar allowedPenetration);
 
 	virtual void	addCollisionObject(btCollisionObject* collisionObject,short int collisionFilterGroup=btBroadphaseProxy::DefaultFilter,short int collisionFilterMask=btBroadphaseProxy::AllFilter);
 

@@ -62,7 +62,6 @@ void btContinuousConvexCollision::computeClosestPoints( const btTransform& trans
 		const btConvexShape* convexShape = m_convexA;
 		const btStaticPlaneShape* planeShape = m_planeShape;
 		
-		bool hasCollision = false;
 		const btVector3& planeNormal = planeShape->getPlaneNormal();
 		const btScalar& planeConstant = planeShape->getPlaneConstant();
 		

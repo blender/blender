@@ -34,9 +34,12 @@ struct btFace
 };
 
 
-class btConvexPolyhedron
+ATTRIBUTE_ALIGNED16(class) btConvexPolyhedron
 {
 	public:
+		
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+		
 	btConvexPolyhedron();
 	virtual	~btConvexPolyhedron();
 
@@ -53,7 +56,7 @@ class btConvexPolyhedron
 	void	initialize();
 	bool testContainment() const;
 
-	void project(const btTransform& trans, const btVector3& dir, btScalar& min, btScalar& max) const;
+	void project(const btTransform& trans, const btVector3& dir, btScalar& minProj, btScalar& maxProj, btVector3& witnesPtMin,btVector3& witnesPtMax) const;
 };
 
 	

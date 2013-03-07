@@ -24,13 +24,15 @@ class btSerializer;
 
 
 ///The btCollisionShape class provides an interface for collision shapes that can be shared among btCollisionObjects.
-class btCollisionShape
+ATTRIBUTE_ALIGNED16(class) btCollisionShape
 {
 protected:
 	int m_shapeType;
 	void* m_userPointer;
 
 public:
+
+	BT_DECLARE_ALIGNED_ALLOCATOR();
 
 	btCollisionShape() : m_shapeType (INVALID_SHAPE_PROXYTYPE), m_userPointer(0)
 	{
@@ -107,6 +109,13 @@ public:
 
 	
 	int		getShapeType() const { return m_shapeType; }
+
+	///the getAnisotropicRollingFrictionDirection can be used in combination with setAnisotropicFriction
+	///See Bullet/Demos/RollingFrictionDemo for an example
+	virtual btVector3	getAnisotropicRollingFrictionDirection() const
+	{
+		return btVector3(1,1,1);
+	}
 	virtual void	setMargin(btScalar margin) = 0;
 	virtual btScalar	getMargin() const = 0;
 

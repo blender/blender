@@ -22,17 +22,18 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionDispatch/btCollisionObject.h"
 #include "BulletCollision/CollisionDispatch/btBoxBoxDetector.h"
 #include "BulletCollision/CollisionShapes/btBox2dShape.h"
+#include "BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h"
 
 #define USE_PERSISTENT_CONTACTS 1
 
-btBox2dBox2dCollisionAlgorithm::btBox2dBox2dCollisionAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* obj0,btCollisionObject* obj1)
-: btActivatingCollisionAlgorithm(ci,obj0,obj1),
+btBox2dBox2dCollisionAlgorithm::btBox2dBox2dCollisionAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,const btCollisionObjectWrapper* obj0Wrap,const btCollisionObjectWrapper* obj1Wrap)
+: btActivatingCollisionAlgorithm(ci,obj0Wrap,obj1Wrap),
 m_ownManifold(false),
 m_manifoldPtr(mf)
 {
-	if (!m_manifoldPtr && m_dispatcher->needsCollision(obj0,obj1))
+	if (!m_manifoldPtr && m_dispatcher->needsCollision(obj0Wrap->getCollisionObject(),obj1Wrap->getCollisionObject()))
 	{
-		m_manifoldPtr = m_dispatcher->getNewManifold(obj0,obj1);
+		m_manifoldPtr = m_dispatcher->getNewManifold(obj0Wrap->getCollisionObject(),obj1Wrap->getCollisionObject());
 		m_ownManifold = true;
 	}
 }
@@ -52,19 +53,18 @@ btBox2dBox2dCollisionAlgorithm::~btBox2dBox2dCollisionAlgorithm()
 void b2CollidePolygons(btManifoldResult* manifold,  const btBox2dShape* polyA, const btTransform& xfA, const btBox2dShape* polyB, const btTransform& xfB);
 
 //#include <stdio.h>
-void btBox2dBox2dCollisionAlgorithm::processCollision (btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
+void btBox2dBox2dCollisionAlgorithm::processCollision (const btCollisionObjectWrapper* body0Wrap,const btCollisionObjectWrapper* body1Wrap,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
 {
 	if (!m_manifoldPtr)
 		return;
 
-	btCollisionObject*	col0 = body0;
-	btCollisionObject*	col1 = body1;
-	btBox2dShape* box0 = (btBox2dShape*)col0->getCollisionShape();
-	btBox2dShape* box1 = (btBox2dShape*)col1->getCollisionShape();
+	
+	const btBox2dShape* box0 = (const btBox2dShape*)body0Wrap->getCollisionShape();
+	const btBox2dShape* box1 = (const btBox2dShape*)body1Wrap->getCollisionShape();
 
 	resultOut->setPersistentManifold(m_manifoldPtr);
 
-	b2CollidePolygons(resultOut,box0,col0->getWorldTransform(),box1,col1->getWorldTransform());
+	b2CollidePolygons(resultOut,box0,body0Wrap->getWorldTransform(),box1,body1Wrap->getWorldTransform());
 
 	//  refreshContactPoints is only necessary when using persistent contact points. otherwise all points are newly added
 	if (m_ownManifold)
@@ -151,15 +151,8 @@ static btScalar EdgeSeparation(const btBox2dShape* poly1, const btTransform& xf1
 	int index = 0;
 	btScalar minDot = BT_LARGE_FLOAT;
 
-	for (int i = 0; i < count2; ++i)
-	{
-		btScalar dot = b2Dot(vertices2[i], normal1);
-		if (dot < minDot)
-		{
-			minDot = dot;
-			index = i;
-		}
-	}
+    if( count2 > 0 )
+        index = (int) normal1.minDot( vertices2, count2, minDot);
 
 	btVector3 v1 = b2Mul(xf1, vertices1[edge1]);
 	btVector3 v2 = b2Mul(xf2, vertices2[index]);
@@ -181,16 +174,9 @@ static btScalar FindMaxSeparation(int* edgeIndex,
 
 	// Find edge normal on poly1 that has the largest projection onto d.
 	int edge = 0;
-	btScalar maxDot = -BT_LARGE_FLOAT;
-	for (int i = 0; i < count1; ++i)
-	{
-		btScalar dot = b2Dot(normals1[i], dLocal1);
-		if (dot > maxDot)
-		{
-			maxDot = dot;
-			edge = i;
-		}
-	}
+    btScalar maxDot;
+    if( count1 > 0 )
+        edge = (int) dLocal1.maxDot( normals1, count1, maxDot);
 
 	// Get the separation for the edge normal.
 	btScalar s = EdgeSeparation(poly1, xf1, edge, poly2, xf2);
@@ -368,7 +354,7 @@ void b2CollidePolygons(btManifoldResult* manifold,
 	btVector3 v11 = vertices1[edge1];
 	btVector3 v12 = edge1 + 1 < count1 ? vertices1[edge1+1] : vertices1[0];
 
-	btVector3 dv = v12 - v11;
+	//btVector3 dv = v12 - v11;
 	btVector3 sideNormal = b2Mul(xf1.getBasis(), v12 - v11);
 	sideNormal.normalize();
 	btVector3 frontNormal = btCrossS(sideNormal, 1.0f);

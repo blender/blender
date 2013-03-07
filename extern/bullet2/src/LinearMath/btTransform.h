@@ -31,7 +31,7 @@ subject to the following restrictions:
 
 /**@brief The btTransform class supports rigid transforms with only translation and rotation and no scaling/shear.
  *It can be used in combination with btVector3, btQuaternion and btMatrix3x3 linear algebra classes. */
-class btTransform {
+ATTRIBUTE_ALIGNED16(class) btTransform {
 	
   ///Storage for the rotation
 	btMatrix3x3 m_basis;
@@ -93,9 +93,7 @@ public:
 /**@brief Return the transform of the vector */
 	SIMD_FORCE_INLINE btVector3 operator()(const btVector3& x) const
 	{
-		return btVector3(m_basis[0].dot(x) + m_origin.x(), 
-			m_basis[1].dot(x) + m_origin.y(), 
-			m_basis[2].dot(x) + m_origin.z());
+        return x.dot3(m_basis[0], m_basis[1], m_basis[2]) + m_origin;
 	}
 
   /**@brief Return the transform of the vector */

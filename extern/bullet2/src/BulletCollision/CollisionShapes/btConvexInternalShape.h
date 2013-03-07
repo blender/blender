@@ -26,7 +26,7 @@ subject to the following restrictions:
 ///Note that when creating small shapes (derived from btConvexInternalShape), 
 ///you need to make sure to set a smaller collision margin, using the 'setMargin' API
 ///There is a automatic mechanism 'setSafeMargin' used by btBoxShape and btCylinderShape
-class btConvexInternalShape : public btConvexShape
+ATTRIBUTE_ALIGNED16(class) btConvexInternalShape : public btConvexShape
 {
 
 	protected:
@@ -44,7 +44,7 @@ class btConvexInternalShape : public btConvexShape
 
 public:
 
-	
+	BT_DECLARE_ALIGNED_ALLOCATOR();
 
 	virtual ~btConvexInternalShape()
 	{

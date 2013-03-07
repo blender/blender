@@ -25,7 +25,7 @@ subject to the following restrictions:
 ///The btShapeHull class takes a btConvexShape, builds a simplified convex hull using btConvexHull and provides triangle indices and vertices.
 ///It can be useful for to simplify a complex convex object and for visualization of a non-polyhedral convex object.
 ///It approximates the convex hull using the supporting vertex of 42 directions.
-class btShapeHull
+ATTRIBUTE_ALIGNED16(class) btShapeHull
 {
 protected:
 
@@ -37,6 +37,8 @@ protected:
 	static btVector3* getUnitSpherePoints();
 
 public:
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+	
 	btShapeHull (const btConvexShape* shape);
 	~btShapeHull ();
 

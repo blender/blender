@@ -28,12 +28,12 @@ class btBoxShape;
 /// re-distributed under the Zlib license with permission from Russell L. Smith
 struct btBoxBoxDetector : public btDiscreteCollisionDetectorInterface
 {
-	btBoxShape* m_box1;
-	btBoxShape* m_box2;
+	const btBoxShape* m_box1;
+	const btBoxShape* m_box2;
 
 public:
 
-	btBoxBoxDetector(btBoxShape* box1,btBoxShape* box2);
+	btBoxBoxDetector(const btBoxShape* box1,const btBoxShape* box2);
 
 	virtual ~btBoxBoxDetector() {};
 

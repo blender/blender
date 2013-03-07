@@ -25,6 +25,8 @@ ATTRIBUTE_ALIGNED16(class) btTriangleShape : public btPolyhedralConvexShape
 
 public:
 
+BT_DECLARE_ALIGNED_ALLOCATOR();
+
 	btVector3	m_vertices1[3];
 
 	virtual int getNumVertices() const
@@ -66,7 +68,7 @@ public:
 
 	btVector3 localGetSupportingVertexWithoutMargin(const btVector3& dir)const 
 	{
-		btVector3 dots(dir.dot(m_vertices1[0]), dir.dot(m_vertices1[1]), dir.dot(m_vertices1[2]));
+        btVector3 dots = dir.dot3(m_vertices1[0], m_vertices1[1], m_vertices1[2]);
 	  	return m_vertices1[dots.maxAxis()];
 
 	}
@@ -76,7 +78,7 @@ public:
 		for (int i=0;i<numVectors;i++)
 		{
 			const btVector3& dir = vectors[i];
-			btVector3 dots(dir.dot(m_vertices1[0]), dir.dot(m_vertices1[1]), dir.dot(m_vertices1[2]));
+            btVector3 dots = dir.dot3(m_vertices1[0], m_vertices1[1], m_vertices1[2]);
   			supportVerticesOut[i] = m_vertices1[dots.maxAxis()];
 		}
 

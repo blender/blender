@@ -38,7 +38,7 @@ btHeightfieldTerrainShape::btHeightfieldTerrainShape(int heightStickWidth, int h
 	// legacy constructor: support only float or unsigned char,
 	// 	and min height is zero
 	PHY_ScalarType hdt = (useFloatData) ? PHY_FLOAT : PHY_UCHAR;
-	btScalar minHeight = 0.0;
+	btScalar minHeight = 0.0f;
 
 	// previously, height = uchar * maxHeight / 65535.
 	// So to preserve legacy behavior, heightScale = maxHeight / 65535
@@ -82,6 +82,7 @@ PHY_ScalarType hdt, bool flipQuadEdges
 	m_heightDataType = hdt;
 	m_flipQuadEdges = flipQuadEdges;
 	m_useDiamondSubdivision = false;
+	m_useZigzagSubdivision = false;
 	m_upAxis = upAxis;
 	m_localScaling.setValue(btScalar(1.), btScalar(1.), btScalar(1.));
 
@@ -135,9 +136,7 @@ void btHeightfieldTerrainShape::getAabb(const btTransform& t,btVector3& aabbMin,
 
 	btMatrix3x3 abs_b = t.getBasis().absolute();  
 	btVector3 center = t.getOrigin();
-	btVector3 extent = btVector3(abs_b[0].dot(halfExtents),
-		   abs_b[1].dot(halfExtents),
-		  abs_b[2].dot(halfExtents));
+    btVector3 extent = halfExtents.dot3(abs_b[0], abs_b[1], abs_b[2]);
 	extent += btVector3(getMargin(),getMargin(),getMargin());
 
 	aabbMin = center - extent;
@@ -362,7 +361,7 @@ void	btHeightfieldTerrainShape::processAllTriangles(btTriangleCallback* callback
 		for(int x=startX; x<endX; x++)
 		{
 			btVector3 vertices[3];
-			if (m_flipQuadEdges || (m_useDiamondSubdivision && !((j+x) & 1)))
+			if (m_flipQuadEdges || (m_useDiamondSubdivision && !((j+x) & 1))|| (m_useZigzagSubdivision  && !(j & 1)))
 			{
         //first triangle
         getVertex(x,j,vertices[0]);

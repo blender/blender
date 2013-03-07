@@ -13,6 +13,10 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
+#if defined (_WIN32) || defined (__i386__)
+#define BT_USE_SSE_IN_API
+#endif
+
 #include "btConvexShape.h"
 #include "btTriangleShape.h"
 #include "btSphereShape.h"
@@ -109,19 +113,8 @@ static btVector3 convexHullSupport (const btVector3& localDirOrg, const btVector
 	return supVec;
 #else
 
-	btScalar newDot,maxDot = btScalar(-BT_LARGE_FLOAT);
-	int ptIndex = -1;
-
-	for (int i=0;i<numPoints;i++)
-	{
-
-		newDot = vec.dot(points[i]);
-		if (newDot > maxDot)
-		{
-			maxDot = newDot;
-			ptIndex = i;
-		}
-	}
+    btScalar maxDot;
+    long ptIndex = vec.maxDot( points, numPoints, maxDot);
 	btAssert(ptIndex >= 0);
 	btVector3 supVec = points[ptIndex] * localScaling;
 	return supVec;
@@ -141,16 +134,26 @@ btVector3 btConvexShape::localGetSupportVertexWithoutMarginNonVirtual (const btV
 		btBoxShape* convexShape = (btBoxShape*)this;
 		const btVector3& halfExtents = convexShape->getImplicitShapeDimensions();
 
+#if defined( __APPLE__ ) && (defined( BT_USE_SSE )||defined( BT_USE_NEON ))
+    #if defined( BT_USE_SSE )
+            return btVector3( _mm_xor_ps( _mm_and_ps( localDir.mVec128, (__m128){-0.0f, -0.0f, -0.0f, -0.0f }), halfExtents.mVec128 ));
+    #elif defined( BT_USE_NEON )
+            return btVector3( (float32x4_t) (((uint32x4_t) localDir.mVec128 & (uint32x4_t){ 0x80000000, 0x80000000, 0x80000000, 0x80000000}) ^ (uint32x4_t) halfExtents.mVec128 ));
+    #else
+        #error unknown vector arch
+    #endif
+#else
 		return btVector3(btFsels(localDir.x(), halfExtents.x(), -halfExtents.x()),
 			btFsels(localDir.y(), halfExtents.y(), -halfExtents.y()),
 			btFsels(localDir.z(), halfExtents.z(), -halfExtents.z()));
+#endif
 	}
 	case TRIANGLE_SHAPE_PROXYTYPE:
 	{
 		btTriangleShape* triangleShape = (btTriangleShape*)this;
 		btVector3 dir(localDir.getX(),localDir.getY(),localDir.getZ());
 		btVector3* vertices = &triangleShape->m_vertices1[0];
-		btVector3 dots(dir.dot(vertices[0]), dir.dot(vertices[1]), dir.dot(vertices[2]));
+        btVector3 dots = dir.dot3(vertices[0], vertices[1], vertices[2]);
 		btVector3 sup = vertices[dots.maxAxis()];
 		return btVector3(sup.getX(),sup.getY(),sup.getZ());
 	}
@@ -383,8 +386,8 @@ void btConvexShape::getAabbNonVirtual (const btTransform& t, btVector3& aabbMin,
 		halfExtents += btVector3(margin,margin,margin);
 		btMatrix3x3 abs_b = t.getBasis().absolute();  
 		btVector3 center = t.getOrigin();
-		btVector3 extent = btVector3(abs_b[0].dot(halfExtents),abs_b[1].dot(halfExtents),abs_b[2].dot(halfExtents));
-		
+        btVector3 extent = halfExtents.dot3(abs_b[0], abs_b[1], abs_b[2]);    
+        
 		aabbMin = center - extent;
 		aabbMax = center + extent;
 		break;
@@ -417,7 +420,7 @@ void btConvexShape::getAabbNonVirtual (const btTransform& t, btVector3& aabbMin,
 		halfExtents += btVector3(capsuleShape->getMarginNonVirtual(),capsuleShape->getMarginNonVirtual(),capsuleShape->getMarginNonVirtual());
 		btMatrix3x3 abs_b = t.getBasis().absolute();  
 		btVector3 center = t.getOrigin();
-		btVector3 extent = btVector3(abs_b[0].dot(halfExtents),abs_b[1].dot(halfExtents),abs_b[2].dot(halfExtents));		  	
+        btVector3 extent = halfExtents.dot3(abs_b[0], abs_b[1], abs_b[2]);    
 		aabbMin = center - extent;
 		aabbMax = center + extent;
 	}

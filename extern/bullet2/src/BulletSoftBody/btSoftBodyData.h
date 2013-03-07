@@ -17,7 +17,7 @@ subject to the following restrictions:
 #define BT_SOFTBODY_FLOAT_DATA
 
 #include "BulletCollision/CollisionDispatch/btCollisionObject.h"
-
+#include "BulletDynamics/Dynamics/btRigidBody.h"
 
 
 struct	SoftBodyMaterialData

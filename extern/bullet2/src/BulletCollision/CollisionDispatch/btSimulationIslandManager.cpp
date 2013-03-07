@@ -319,8 +319,8 @@ void btSimulationIslandManager::buildIslands(btDispatcher* dispatcher,btCollisio
 	{
 		 btPersistentManifold* manifold = dispatcher->getManifoldByIndexInternal(i);
 		 
-		 btCollisionObject* colObj0 = static_cast<btCollisionObject*>(manifold->getBody0());
-		 btCollisionObject* colObj1 = static_cast<btCollisionObject*>(manifold->getBody1());
+		 const btCollisionObject* colObj0 = static_cast<const btCollisionObject*>(manifold->getBody0());
+		 const btCollisionObject* colObj1 = static_cast<const btCollisionObject*>(manifold->getBody1());
 		
 		 ///@todo: check sleeping conditions!
 		 if (((colObj0) && colObj0->getActivationState() != ISLAND_SLEEPING) ||

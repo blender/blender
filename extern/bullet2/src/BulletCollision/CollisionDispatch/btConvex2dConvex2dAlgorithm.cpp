@@ -43,7 +43,7 @@ subject to the following restrictions:
 
 #include "BulletCollision/NarrowPhaseCollision/btGjkEpa2.h"
 #include "BulletCollision/NarrowPhaseCollision/btGjkEpaPenetrationDepthSolver.h"
-
+#include "BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h"
 
 btConvex2dConvex2dAlgorithm::CreateFunc::CreateFunc(btSimplexSolverInterface*			simplexSolver, btConvexPenetrationDepthSolver* pdSolver)
 {
@@ -57,8 +57,8 @@ btConvex2dConvex2dAlgorithm::CreateFunc::~CreateFunc()
 { 
 }
 
-btConvex2dConvex2dAlgorithm::btConvex2dConvex2dAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* body0,btCollisionObject* body1,btSimplexSolverInterface* simplexSolver, btConvexPenetrationDepthSolver* pdSolver,int numPerturbationIterations, int minimumPointsPerturbationThreshold)
-: btActivatingCollisionAlgorithm(ci,body0,body1),
+btConvex2dConvex2dAlgorithm::btConvex2dConvex2dAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,const btCollisionObjectWrapper* body0Wrap,const btCollisionObjectWrapper* body1Wrap,btSimplexSolverInterface* simplexSolver, btConvexPenetrationDepthSolver* pdSolver,int numPerturbationIterations, int minimumPointsPerturbationThreshold)
+: btActivatingCollisionAlgorithm(ci,body0Wrap,body1Wrap),
 m_simplexSolver(simplexSolver),
 m_pdSolver(pdSolver),
 m_ownManifold (false),
@@ -67,8 +67,8 @@ m_lowLevelOfDetail(false),
  m_numPerturbationIterations(numPerturbationIterations),
 m_minimumPointsPerturbationThreshold(minimumPointsPerturbationThreshold)
 {
-	(void)body0;
-	(void)body1;
+	(void)body0Wrap;
+	(void)body1Wrap;
 }
 
 
@@ -96,13 +96,13 @@ extern btScalar gContactBreakingThreshold;
 //
 // Convex-Convex collision algorithm
 //
-void btConvex2dConvex2dAlgorithm ::processCollision (btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
+void btConvex2dConvex2dAlgorithm ::processCollision (const btCollisionObjectWrapper* body0Wrap,const btCollisionObjectWrapper* body1Wrap,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
 {
 
 	if (!m_manifoldPtr)
 	{
 		//swapped?
-		m_manifoldPtr = m_dispatcher->getNewManifold(body0,body1);
+		m_manifoldPtr = m_dispatcher->getNewManifold(body0Wrap->getCollisionObject(),body1Wrap->getCollisionObject());
 		m_ownManifold = true;
 	}
 	resultOut->setPersistentManifold(m_manifoldPtr);
@@ -111,8 +111,8 @@ void btConvex2dConvex2dAlgorithm ::processCollision (btCollisionObject* body0,bt
 	//resultOut->getPersistentManifold()->clearManifold();
 
 
-	btConvexShape* min0 = static_cast<btConvexShape*>(body0->getCollisionShape());
-	btConvexShape* min1 = static_cast<btConvexShape*>(body1->getCollisionShape());
+	const btConvexShape* min0 = static_cast<const btConvexShape*>(body0Wrap->getCollisionShape());
+	const btConvexShape* min1 = static_cast<const btConvexShape*>(body1Wrap->getCollisionShape());
 
 	btVector3  normalOnB;
 	btVector3  pointOnBWorld;
@@ -133,8 +133,8 @@ void btConvex2dConvex2dAlgorithm ::processCollision (btCollisionObject* body0,bt
 		}
 
 		input.m_stackAlloc = dispatchInfo.m_stackAllocator;
-		input.m_transformA = body0->getWorldTransform();
-		input.m_transformB = body1->getWorldTransform();
+		input.m_transformA = body0Wrap->getWorldTransform();
+		input.m_transformB = body1Wrap->getWorldTransform();
 
 		gjkPairDetector.getClosestPoints(input,*resultOut,dispatchInfo.m_debugDraw);
 

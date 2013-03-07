@@ -31,13 +31,16 @@ subject to the following restrictions:
 /// "Given axis 1 on body 1, and axis 2 on body 2 that is perpendicular to axis 1, it keeps them perpendicular. 
 /// In other words, rotation of the two bodies about the direction perpendicular to the two axes will be equal."
 
-class btUniversalConstraint : public btGeneric6DofConstraint
+ATTRIBUTE_ALIGNED16(class) btUniversalConstraint : public btGeneric6DofConstraint
 {
 protected:
 	btVector3	m_anchor;
 	btVector3	m_axis1;
 	btVector3	m_axis2;
 public:
+	
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+	
 	// constructor
 	// anchor, axis1 and axis2 are in world coordinate system
 	// axis1 must be orthogonal to axis2

@@ -24,7 +24,7 @@ subject to the following restrictions:
 #include <float.h>
 #include <string.h>
 
-btBoxBoxDetector::btBoxBoxDetector(btBoxShape* box1,btBoxShape* box2)
+btBoxBoxDetector::btBoxBoxDetector(const btBoxShape* box1,const btBoxShape* box2)
 : m_box1(box1),
 m_box2(box2)
 {

@@ -19,17 +19,17 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionShapes/btSphereShape.h"
 #include "BulletCollision/CollisionDispatch/btCollisionObject.h"
 #include "SphereTriangleDetector.h"
+#include "BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h"
 
-
-btSphereTriangleCollisionAlgorithm::btSphereTriangleCollisionAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* col0,btCollisionObject* col1,bool swapped)
-: btActivatingCollisionAlgorithm(ci,col0,col1),
+btSphereTriangleCollisionAlgorithm::btSphereTriangleCollisionAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,const btCollisionObjectWrapper* body0Wrap,const btCollisionObjectWrapper* body1Wrap,bool swapped)
+: btActivatingCollisionAlgorithm(ci,body0Wrap,body1Wrap),
 m_ownManifold(false),
 m_manifoldPtr(mf),
 m_swapped(swapped)
 {
 	if (!m_manifoldPtr)
 	{
-		m_manifoldPtr = m_dispatcher->getNewManifold(col0,col1);
+		m_manifoldPtr = m_dispatcher->getNewManifold(body0Wrap->getCollisionObject(),body1Wrap->getCollisionObject());
 		m_ownManifold = true;
 	}
 }
@@ -43,16 +43,16 @@ btSphereTriangleCollisionAlgorithm::~btSphereTriangleCollisionAlgorithm()
 	}
 }
 
-void btSphereTriangleCollisionAlgorithm::processCollision (btCollisionObject* col0,btCollisionObject* col1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
+void btSphereTriangleCollisionAlgorithm::processCollision (const btCollisionObjectWrapper* col0Wrap,const btCollisionObjectWrapper* col1Wrap,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
 {
 	if (!m_manifoldPtr)
 		return;
 
-	btCollisionObject* sphereObj = m_swapped? col1 : col0;
-	btCollisionObject* triObj = m_swapped? col0 : col1;
+	const btCollisionObjectWrapper* sphereObjWrap = m_swapped? col1Wrap : col0Wrap;
+	const btCollisionObjectWrapper* triObjWrap = m_swapped? col0Wrap : col1Wrap;
 
-	btSphereShape* sphere = (btSphereShape*)sphereObj->getCollisionShape();
-	btTriangleShape* triangle = (btTriangleShape*)triObj->getCollisionShape();
+	btSphereShape* sphere = (btSphereShape*)sphereObjWrap->getCollisionShape();
+	btTriangleShape* triangle = (btTriangleShape*)triObjWrap->getCollisionShape();
 	
 	/// report a contact. internally this will be kept persistent, and contact reduction is done
 	resultOut->setPersistentManifold(m_manifoldPtr);
@@ -60,8 +60,8 @@ void btSphereTriangleCollisionAlgorithm::processCollision (btCollisionObject* co
 	
 	btDiscreteCollisionDetectorInterface::ClosestPointInput input;
 	input.m_maximumDistanceSquared = btScalar(BT_LARGE_FLOAT);///@todo: tighter bounds
-	input.m_transformA = sphereObj->getWorldTransform();
-	input.m_transformB = triObj->getWorldTransform();
+	input.m_transformA = sphereObjWrap->getWorldTransform();
+	input.m_transformB = triObjWrap->getWorldTransform();
 
 	bool swapResults = m_swapped;
 

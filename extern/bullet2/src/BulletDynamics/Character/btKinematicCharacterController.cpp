@@ -79,7 +79,7 @@ public:
 
 		if (!convexResult.m_hitCollisionObject->hasContactResponse())
 			return btScalar(1.0);
-
+		
 		btVector3 hitNormalWorld;
 		if (normalInWorldSpace)
 		{
@@ -163,7 +163,21 @@ btPairCachingGhostObject* btKinematicCharacterController::getGhostObject()
 
 bool btKinematicCharacterController::recoverFromPenetration ( btCollisionWorld* collisionWorld)
 {
+	// Here we must refresh the overlapping paircache as the penetrating movement itself or the
+	// previous recovery iteration might have used setWorldTransform and pushed us into an object
+	// that is not in the previous cache contents from the last timestep, as will happen if we
+	// are pushed into a new AABB overlap. Unhandled this means the next convex sweep gets stuck.
+	//
+	// Do this by calling the broadphase's setAabb with the moved AABB, this will update the broadphase
+	// paircache and the ghostobject's internal paircache at the same time.    /BW
 
+	btVector3 minAabb, maxAabb;
+	m_convexShape->getAabb(m_ghostObject->getWorldTransform(), minAabb,maxAabb);
+	collisionWorld->getBroadphase()->setAabb(m_ghostObject->getBroadphaseHandle(), 
+						 minAabb, 
+						 maxAabb, 
+						 collisionWorld->getDispatcher());
+						 
 	bool penetration = false;
 
 	collisionWorld->getDispatcher()->dispatchAllCollisionPairs(m_ghostObject->getOverlappingPairCache(), collisionWorld->getDispatchInfo(), collisionWorld->getDispatcher());
@@ -178,10 +192,10 @@ bool btKinematicCharacterController::recoverFromPenetration ( btCollisionWorld* 
 		btBroadphasePair* collisionPair = &m_ghostObject->getOverlappingPairCache()->getOverlappingPairArray()[i];
 		btCollisionObject* obj0 = static_cast<btCollisionObject*>(collisionPair->m_pProxy0->m_clientObject);
 		btCollisionObject* obj1 = static_cast<btCollisionObject*>(collisionPair->m_pProxy1->m_clientObject);
-
+		
 		if ((obj0 && !obj0->hasContactResponse()) || (obj1 && !obj1->hasContactResponse()))
 			continue;
-
+		
 		if (collisionPair->m_algorithm)
 			collisionPair->m_algorithm->getAllContactManifolds(m_manifoldArray);
 

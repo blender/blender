@@ -119,7 +119,7 @@ void*   btAlignedAllocInternal  (size_t size, int alignment,int line,char* filen
  
  real = (char *)sAllocFunc(size + 2*sizeof(void *) + (alignment-1));
  if (real) {
-   ret = (void*) btAlignPointer((real + 2*sizeof(void *), alignment);
+   ret = (void*) btAlignPointer(real + 2*sizeof(void *), alignment);
    *((void **)(ret)-1) = (void *)(real);
        *((int*)(ret)-2) = size;
 

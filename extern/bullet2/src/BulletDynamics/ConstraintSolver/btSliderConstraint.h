@@ -60,7 +60,7 @@ enum btSliderFlags
 };
 
 
-class btSliderConstraint : public btTypedConstraint
+ATTRIBUTE_ALIGNED16(class) btSliderConstraint : public btTypedConstraint
 {
 protected:
 	///for backwards compatibility during the transition to 'getInfo/getInfo2'
@@ -155,6 +155,8 @@ protected:
 	//------------------------    
 	void initParams();
 public:
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+	
 	// constructors
     btSliderConstraint(btRigidBody& rbA, btRigidBody& rbB, const btTransform& frameInA, const btTransform& frameInB ,bool useLinearReferenceFrameA);
     btSliderConstraint(btRigidBody& rbB, const btTransform& frameInB, bool useLinearReferenceFrameA);

@@ -108,19 +108,18 @@ public:
 
 	virtual ~btCollisionDispatcher();
 
-	virtual btPersistentManifold*	getNewManifold(void* b0,void* b1);
+	virtual btPersistentManifold*	getNewManifold(const btCollisionObject* b0,const btCollisionObject* b1);
 	
 	virtual void releaseManifold(btPersistentManifold* manifold);
 
 
 	virtual void clearManifold(btPersistentManifold* manifold);
 
-			
-	btCollisionAlgorithm* findAlgorithm(btCollisionObject* body0,btCollisionObject* body1,btPersistentManifold* sharedManifold = 0);
+	btCollisionAlgorithm* findAlgorithm(const btCollisionObjectWrapper* body0Wrap,const btCollisionObjectWrapper* body1Wrap,btPersistentManifold* sharedManifold = 0);
 		
-	virtual bool	needsCollision(btCollisionObject* body0,btCollisionObject* body1);
+	virtual bool	needsCollision(const btCollisionObject* body0,const btCollisionObject* body1);
 	
-	virtual bool	needsResponse(btCollisionObject* body0,btCollisionObject* body1);
+	virtual bool	needsResponse(const btCollisionObject* body0,const btCollisionObject* body1);
 	
 	virtual void	dispatchAllCollisionPairs(btOverlappingPairCache* pairCache,const btDispatcherInfo& dispatchInfo,btDispatcher* dispatcher) ;
 

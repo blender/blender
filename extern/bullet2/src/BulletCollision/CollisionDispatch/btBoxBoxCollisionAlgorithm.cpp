@@ -18,17 +18,17 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionShapes/btBoxShape.h"
 #include "BulletCollision/CollisionDispatch/btCollisionObject.h"
 #include "btBoxBoxDetector.h"
-
+#include "BulletCollision/CollisionDispatch/btCollisionObjectWrapper.h"
 #define USE_PERSISTENT_CONTACTS 1
 
-btBoxBoxCollisionAlgorithm::btBoxBoxCollisionAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,btCollisionObject* obj0,btCollisionObject* obj1)
-: btActivatingCollisionAlgorithm(ci,obj0,obj1),
+btBoxBoxCollisionAlgorithm::btBoxBoxCollisionAlgorithm(btPersistentManifold* mf,const btCollisionAlgorithmConstructionInfo& ci,const btCollisionObjectWrapper* body0Wrap,const btCollisionObjectWrapper* body1Wrap)
+: btActivatingCollisionAlgorithm(ci,body0Wrap,body1Wrap),
 m_ownManifold(false),
 m_manifoldPtr(mf)
 {
-	if (!m_manifoldPtr && m_dispatcher->needsCollision(obj0,obj1))
+	if (!m_manifoldPtr && m_dispatcher->needsCollision(body0Wrap->getCollisionObject(),body1Wrap->getCollisionObject()))
 	{
-		m_manifoldPtr = m_dispatcher->getNewManifold(obj0,obj1);
+		m_manifoldPtr = m_dispatcher->getNewManifold(body0Wrap->getCollisionObject(),body1Wrap->getCollisionObject());
 		m_ownManifold = true;
 	}
 }
@@ -42,15 +42,14 @@ btBoxBoxCollisionAlgorithm::~btBoxBoxCollisionAlgorithm()
 	}
 }
 
-void btBoxBoxCollisionAlgorithm::processCollision (btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
+void btBoxBoxCollisionAlgorithm::processCollision (const btCollisionObjectWrapper* body0Wrap,const btCollisionObjectWrapper* body1Wrap,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
 {
 	if (!m_manifoldPtr)
 		return;
 
-	btCollisionObject*	col0 = body0;
-	btCollisionObject*	col1 = body1;
-	btBoxShape* box0 = (btBoxShape*)col0->getCollisionShape();
-	btBoxShape* box1 = (btBoxShape*)col1->getCollisionShape();
+	
+	const btBoxShape* box0 = (btBoxShape*)body0Wrap->getCollisionShape();
+	const btBoxShape* box1 = (btBoxShape*)body1Wrap->getCollisionShape();
 
 
 
@@ -62,8 +61,8 @@ void btBoxBoxCollisionAlgorithm::processCollision (btCollisionObject* body0,btCo
 
 	btDiscreteCollisionDetectorInterface::ClosestPointInput input;
 	input.m_maximumDistanceSquared = BT_LARGE_FLOAT;
-	input.m_transformA = body0->getWorldTransform();
-	input.m_transformB = body1->getWorldTransform();
+	input.m_transformA = body0Wrap->getWorldTransform();
+	input.m_transformB = body1Wrap->getWorldTransform();
 
 	btBoxBoxDetector detector(box0,box1);
 	detector.getClosestPoints(input,*resultOut,dispatchInfo.m_debugDraw);

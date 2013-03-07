@@ -92,12 +92,14 @@ struct	btSubSimplexClosestResult
 /// btVoronoiSimplexSolver is an implementation of the closest point distance algorithm from a 1-4 points simplex to the origin.
 /// Can be used with GJK, as an alternative to Johnson distance algorithm.
 #ifdef NO_VIRTUAL_INTERFACE
-class btVoronoiSimplexSolver
+ATTRIBUTE_ALIGNED16(class) btVoronoiSimplexSolver
 #else
-class btVoronoiSimplexSolver : public btSimplexSolverInterface
+ATTRIBUTE_ALIGNED16(class) btVoronoiSimplexSolver : public btSimplexSolverInterface
 #endif
 {
 public:
+
+	BT_DECLARE_ALIGNED_ALLOCATOR();
 
 	int	m_numVertices;
 

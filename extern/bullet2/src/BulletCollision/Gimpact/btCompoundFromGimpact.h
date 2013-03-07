@@ -67,13 +67,8 @@ struct MyCallback : public btTriangleRaycastCallback
 				}
 				
 
-
 				
-				btConvexHullShape* tet = new btConvexHullShape();
-				tet->addPoint(v0);
-				tet->addPoint(v1);
-				tet->addPoint(v2);
-				tet->addPoint(rayTo);
+				btBU_Simplex1to4* tet = new btBU_Simplex1to4(v0,v1,v2,rayTo);
 				btTransform ident;
 				ident.setIdentity();
 				m_colShape->addChildShape(ident,tet);
