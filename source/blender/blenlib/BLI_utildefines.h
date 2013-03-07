@@ -295,9 +295,9 @@ typedef bool _BLI_Bool;
 #define UNPACK3(a)  ((a)[0]), ((a)[1]), ((a)[2])
 #define UNPACK4(a)  ((a)[0]), ((a)[1]), ((a)[2]), ((a)[3])
 /* op may be '&' or '*' */
-#define UNPACK2OP(a, op)  op((a)[0]), op((a)[1])
-#define UNPACK3OP(a, op)  op((a)[0]), op((a)[1]), op((a)[2])
-#define UNPACK4OP(a, op)  op((a)[0]), op((a)[1]), op((a)[2]), op((a)[3])
+#define UNPACK2OP(op, a)  op((a)[0]), op((a)[1])
+#define UNPACK3OP(op, a)  op((a)[0]), op((a)[1]), op((a)[2])
+#define UNPACK4OP(op, a)  op((a)[0]), op((a)[1]), op((a)[2]), op((a)[3])
 
 /* array helpers */
 #define ARRAY_LAST_ITEM(arr_start, arr_dtype, elem_size, tot)                 \

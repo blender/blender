@@ -280,7 +280,10 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 				float axis[3];
 				float angle;
 				int j;
-				const float px_scale = ED_view3d_pixel_size(rv3d, ruler_item->co[1]) * arc_size;
+				const float px_scale = (ED_view3d_pixel_size(rv3d, ruler_item->co[1]) *
+				                        min_fff(arc_size,
+				                                len_v2v2(co_ss[0], co_ss[1]) / 2.0f,
+				                                len_v2v2(co_ss[2], co_ss[1]) / 2.0f));
 
 				sub_v3_v3v3(dir_a, ruler_item->co[0], ruler_item->co[1]);
 				sub_v3_v3v3(dir_b, ruler_item->co[2], ruler_item->co[1]);
@@ -508,31 +511,18 @@ static void view3d_ruler_free(RulerInfo *ruler_info)
 }
 
 static void view3d_ruler_item_project(bContext *C, RulerInfo *UNUSED(ruler_info), float r_co[3],
-                                      const int xy[2], const float ref[3])
+                                      const int xy[2])
 {
-	copy_v3_v3(r_co, ref);
 	ED_view3d_cursor3d_position(C, r_co, xy);
 }
 
 /* use for mousemove events */
-static bool view3d_ruler_item_mousemove(bContext *C, RulerInfo *ruler_info, const wmEvent *event, const bool use_ofs)
+static bool view3d_ruler_item_mousemove(bContext *C, RulerInfo *ruler_info, const wmEvent *event)
 {
 	RulerItem *ruler_item = ruler_item_active_get(ruler_info);
 
 	if (ruler_item) {
-		RegionView3D *rv3d = ruler_info->ar->regiondata;
-		float _ref_ofs[3];
-		float const *ref;
-
-		if (use_ofs) {
-			negate_v3_v3(_ref_ofs, rv3d->ofs);
-			ref = _ref_ofs;
-		}
-		else {
-			ref = ruler_item->co[ruler_item->co_index];
-		}
-
-		view3d_ruler_item_project(C, ruler_info, ruler_item->co[ruler_item->co_index], event->mval, ref);
+		view3d_ruler_item_project(C, ruler_info, ruler_item->co[ruler_item->co_index], event->mval);
 		return true;
 	}
 	else {
@@ -578,7 +568,8 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, wmEvent *event)
 	bool do_draw = false;
 	int exit_code = OPERATOR_RUNNING_MODAL;
 	RulerInfo *ruler_info = op->customdata;
-	RegionView3D *rv3d = ruler_info->ar->regiondata;
+	ARegion *ar = ruler_info->ar;
+	RegionView3D *rv3d = ar->regiondata;
 
 	(void)C;
 
@@ -589,7 +580,7 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, wmEvent *event)
 					/* rubber-band angle removal */
 					RulerItem *ruler_item = ruler_item_active_get(ruler_info);
 					if (ruler_item && (ruler_item->co_index == 1) && (ruler_item->flag & RULERITEM_USE_ANGLE)) {
-						if (!BLI_rcti_isect_pt_v(&ruler_info->ar->winrct, &event->x)) {
+						if (!BLI_rcti_isect_pt_v(&ar->winrct, &event->x)) {
 							ruler_item->flag &= ~RULERITEM_USE_ANGLE;
 							do_draw = true;
 						}
@@ -602,7 +593,6 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 					if (event->ctrl) {
 						/* Create new line */
-						const float ref[3] = {UNPACK3OP(rv3d->ofs, -)};
 						RulerItem *ruler_item;
 						/* check if we want to drag an existing point or add a new one */
 						ruler_info->state = RULER_STATE_DRAG;
@@ -611,7 +601,8 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, wmEvent *event)
 						ruler_item_active_set(ruler_info, ruler_item);
 						ruler_item->co_index = 2;
 
-						view3d_ruler_item_project(C, ruler_info, ruler_item->co[0], event->mval, ref); // XXX
+						negate_v3_v3(ruler_item->co[0], rv3d->ofs);
+						view3d_ruler_item_project(C, ruler_info, ruler_item->co[0], event->mval);
 						copy_v3_v3(ruler_item->co[2], ruler_item->co[0]);
 
 						do_draw = true;
@@ -631,8 +622,24 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, wmEvent *event)
 									ruler_item_pick->co_index = 1;
 									ruler_info->state = RULER_STATE_DRAG;
 
+									/* find the factor */
+									{
+										float co_ss[2][2];
+										float fac;
+
+										ED_view3d_project_float_global(ar, ruler_item_pick->co[0], co_ss[0], V3D_PROJ_TEST_NOP);
+										ED_view3d_project_float_global(ar, ruler_item_pick->co[2], co_ss[1], V3D_PROJ_TEST_NOP);
+
+										fac = line_point_factor_v2(mval_fl, co_ss[0], co_ss[1]);
+										CLAMP(fac, 0.0f, 1.0f);
+
+										interp_v3_v3v3(ruler_item_pick->co[1],
+										               ruler_item_pick->co[0],
+										               ruler_item_pick->co[2], fac);
+									}
+
 									/* update the new location */
-									view3d_ruler_item_mousemove(C, ruler_info, event, true);
+									view3d_ruler_item_mousemove(C, ruler_info, event);
 									do_draw = true;
 								}
 							}
@@ -654,7 +661,7 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MOUSEMOVE:
 		{
 			if (ruler_info->state == RULER_STATE_DRAG) {
-				if (view3d_ruler_item_mousemove(C, ruler_info, event, false)) {
+				if (view3d_ruler_item_mousemove(C, ruler_info, event)) {
 					do_draw = true;
 				}
 			}
@@ -674,7 +681,7 @@ static int view3d_ruler_modal(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if (do_draw) {
-		ED_region_tag_redraw(ruler_info->ar);
+		ED_region_tag_redraw(ar);
 	}
 
 	if (ELEM(exit_code, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
