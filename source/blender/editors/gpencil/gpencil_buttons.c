@@ -86,6 +86,29 @@ static void gp_ui_dellayer_cb(bContext *C, void *gpd, void *gpl)
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 }
 
+/* move layer up */
+static void gp_ui_layer_up_cb(bContext *C, void *gpd_v, void *gpl_v)
+{
+	bGPdata *gpd = gpd_v;
+	bGPDlayer *gpl = gpl_v;
+	
+	BLI_remlink(&gpd->layers, gpl);
+	BLI_insertlinkbefore(&gpd->layers, gpl->prev, gpl);
+	
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+}
+
+/* move layer down */
+static void gp_ui_layer_down_cb(bContext *C, void *gpd_v, void *gpl_v)
+{
+	bGPdata *gpd = gpd_v;
+	bGPDlayer *gpl = gpl_v;
+	
+	BLI_remlink(&gpd->layers, gpl);
+	BLI_insertlinkafter(&gpd->layers, gpl->next, gpl);
+	
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+}
 
 /* ------- Drawing Code ------- */
 
@@ -173,6 +196,18 @@ static void gp_drawui_layer(uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, cons
 		
 		/* name */
 		uiItemR(sub, &ptr, "info", 0, "", ICON_NONE);
+		
+		/* move up/down */
+		if (gpl->prev) {
+			but = uiDefIconBut(block, BUT, 0, ICON_TRIA_UP, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+						   NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Move layer up"));
+			uiButSetFunc(but, gp_ui_layer_up_cb, gpd, gpl);
+		}
+		if (gpl->next) {
+			but = uiDefIconBut(block, BUT, 0, ICON_TRIA_DOWN, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+							   NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Move layer down"));
+			uiButSetFunc(but, gp_ui_layer_down_cb, gpd, gpl);
+		}
 		
 		/* delete 'button' */
 		uiBlockSetEmboss(block, UI_EMBOSSN);
