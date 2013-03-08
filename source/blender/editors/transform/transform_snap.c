@@ -1550,7 +1550,7 @@ static int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, c
                        int *r_dist, float r_loc[3], float r_no[3], SnapMode mode)
 {
 	Base *base;
-	float depth = FLT_MAX;
+	float depth = (FLT_MAX / 2.0f);  /* use half of flt-max so we can scale up without an exception */
 	int retval = 0;
 	float ray_start[3], ray_normal[3];
 	
