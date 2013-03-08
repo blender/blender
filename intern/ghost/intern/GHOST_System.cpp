@@ -46,10 +46,10 @@
 
 GHOST_System::GHOST_System()
 	: m_nativePixel(false),
-	m_displayManager(0),
-	m_timerManager(0),
-	m_windowManager(0),
-	m_eventManager(0)
+	m_displayManager(NULL),
+	m_timerManager(NULL),
+	m_windowManager(NULL),
+	m_eventManager(NULL)
 #ifdef WITH_INPUT_NDOF
 	, m_ndofManager(0)
 #endif
@@ -324,19 +324,19 @@ GHOST_TSuccess GHOST_System::exit()
 	}
 	if (m_displayManager) {
 		delete m_displayManager;
-		m_displayManager = 0;
+		m_displayManager = NULL;
 	}
 	if (m_windowManager) {
 		delete m_windowManager;
-		m_windowManager = 0;
+		m_windowManager = NULL;
 	}
 	if (m_timerManager) {
 		delete m_timerManager;
-		m_timerManager = 0;
+		m_timerManager = NULL;
 	}
 	if (m_eventManager) {
 		delete m_eventManager;
-		m_eventManager = 0;
+		m_eventManager = NULL;
 	}
 #ifdef WITH_INPUT_NDOF
 	if (m_ndofManager) {

@@ -81,7 +81,7 @@ GHOST_TUns32 GHOST_EventManager::getNumEvents(GHOST_TEventType type)
 
 GHOST_IEvent *GHOST_EventManager::peekEvent()
 {
-	GHOST_IEvent *event = 0;
+	GHOST_IEvent *event = NULL;
 	if (m_events.empty() == false) {
 		event = m_events.back();
 	}

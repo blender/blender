@@ -48,19 +48,19 @@ GHOST_TSuccess GHOST_DisposeSystemPaths(void)
 const GHOST_TUns8 *GHOST_getSystemDir(int version, const char *versionstr)
 {
 	GHOST_ISystemPaths *systemPaths = GHOST_ISystemPaths::get();
-	return systemPaths ? systemPaths->getSystemDir(version, versionstr) : 0;
+	return systemPaths ? systemPaths->getSystemDir(version, versionstr) : NULL;
 }
 
 const GHOST_TUns8 *GHOST_getUserDir(int version, const char *versionstr)
 {
 	GHOST_ISystemPaths *systemPaths = GHOST_ISystemPaths::get();
-	return systemPaths ? systemPaths->getUserDir(version, versionstr) : 0; /* shouldn't be NULL */
+	return systemPaths ? systemPaths->getUserDir(version, versionstr) : NULL; /* shouldn't be NULL */
 }
 
 const GHOST_TUns8 *GHOST_getBinaryDir()
 {
 	GHOST_ISystemPaths *systemPaths = GHOST_ISystemPaths::get();
-	return systemPaths ? systemPaths->getBinaryDir() : 0;  /* shouldn't be NULL */
+	return systemPaths ? systemPaths->getBinaryDir() : NULL;  /* shouldn't be NULL */
 }
 
 void GHOST_addToSystemRecentFiles(const char *filename)

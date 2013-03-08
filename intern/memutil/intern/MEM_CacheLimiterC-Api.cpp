@@ -128,7 +128,7 @@ MEM_CacheLimiterCClass::~MEM_CacheLimiterCClass()
 {
 	// should not happen, but don't leak memory in this case...
 	for (list_t::iterator it = cclass_list.begin(); it != cclass_list.end(); it++) {
-		(*it)->set_data(0);
+		(*it)->set_data(NULL);
 
 		delete *it;
 	}

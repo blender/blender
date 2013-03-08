@@ -106,7 +106,7 @@ STR_String::STR_String(const char *str)
 		this->m_data[this->m_len] = 0;
 	}
 	else {
-		this->m_data = 0;
+		this->m_data = NULL;
 		this->m_len = 0;
 		this->m_max = 8;
 	}
