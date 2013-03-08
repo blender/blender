@@ -29,6 +29,7 @@
  *  \ingroup GHOST
  */
 
+#include <cstdio>
 
 #include "intern/GHOST_Debug.h"
 #include "GHOST_Types.h"
