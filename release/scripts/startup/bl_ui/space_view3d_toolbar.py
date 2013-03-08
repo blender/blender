@@ -64,6 +64,8 @@ def draw_gpencil_tools(context, layout):
     row = col.row()
     row.prop(context.tool_settings, "use_grease_pencil_sessions")
 
+    col.operator("view3d.ruler")
+
 
 # ********** default tools for object-mode ****************
 
@@ -102,8 +104,9 @@ class VIEW3D_PT_tools_objectmode(View3DPanel, Panel):
 
         col = layout.column(align=True)
         col.label(text="Motion Paths:")
-        col.operator("object.paths_calculate", text="Calculate Paths")
-        col.operator("object.paths_clear", text="Clear Paths")
+        row = col.row(align=True)
+        row.operator("object.paths_calculate", text="Calculate")
+        row.operator("object.paths_clear", text="Clear")
 
         draw_repeat_tools(context, layout)
 
