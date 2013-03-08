@@ -90,9 +90,9 @@ void BLF_free_unifont(void)
 const char *BLF_pgettext(const char *msgctxt, const char *msgid)
 {
 #ifdef WITH_INTERNATIONAL
-	if (msgid && msgid[0]) {
-		const char *ret;
+	const char *ret = msgid;
 
+	if (msgid && msgid[0]) {
 		/*if (msgctxt && !strcmp(msgctxt, BLF_I18NCONTEXT_DEFAULT_BPY_INTERN)) { */
 		if (msgctxt && msgctxt[0] == BLF_I18NCONTEXT_DEFAULT_BPY[0]) {
 			/* BLF_I18NCONTEXT_DEFAULT_BPY context is reserved and considered the same as default NULL one. */
@@ -105,10 +105,9 @@ const char *BLF_pgettext(const char *msgctxt, const char *msgid)
 		if (ret == msgid) {
 			ret = BPY_app_translations_py_pgettext(msgctxt, msgid);
 		}
-
-		return ret;
 	}
-	return "";
+
+	return ret;
 #else
 	(void)msgctxt;
 	return msgid;
