@@ -200,12 +200,12 @@ static void gp_drawui_layer(uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl, cons
 		/* move up/down */
 		if (gpl->prev) {
 			but = uiDefIconBut(block, BUT, 0, ICON_TRIA_UP, 0, 0, UI_UNIT_X, UI_UNIT_Y,
-						   NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Move layer up"));
+			                   NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Move layer up"));
 			uiButSetFunc(but, gp_ui_layer_up_cb, gpd, gpl);
 		}
 		if (gpl->next) {
 			but = uiDefIconBut(block, BUT, 0, ICON_TRIA_DOWN, 0, 0, UI_UNIT_X, UI_UNIT_Y,
-							   NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Move layer down"));
+			                   NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Move layer down"));
 			uiButSetFunc(but, gp_ui_layer_down_cb, gpd, gpl);
 		}
 		

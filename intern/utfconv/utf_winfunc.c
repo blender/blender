@@ -123,7 +123,7 @@ void  u_free_getenv(char *val)
 	free(val);
 }
 
-int uput_getenv(const char *varname, char * value, size_t buffsize)
+int uput_getenv(const char *varname, char *value, size_t buffsize)
 {
 	int r = 0;
 	wchar_t * str;

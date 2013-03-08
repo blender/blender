@@ -89,7 +89,7 @@ class MatrixTesting(unittest.TestCase):
                             (19, 26, 33),
                             (29, 40, 51)))
 
-        self.assertEqual(mat1*mat2, prod_mat1)
+        self.assertEqual(mat1 * mat2, prod_mat1)
         self.assertEqual(mat2 * mat1, prod_mat2)
 
     def test_mat4x4_vec3D_mult(self):

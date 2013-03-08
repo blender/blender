@@ -1342,7 +1342,7 @@ void pbvh_bmesh_verify(PBVH *bvh)
 
 			/* Check that the vertex is in the node */
 			BLI_assert(BLI_ghash_haskey(n->bm_unique_verts, v) ^
-					   BLI_ghash_haskey(n->bm_other_verts, v));
+			           BLI_ghash_haskey(n->bm_other_verts, v));
 
 			/* Check that the vertex has a node owner */
 			nv = pbvh_bmesh_node_lookup(bvh, bvh->bm_vert_to_node, v);

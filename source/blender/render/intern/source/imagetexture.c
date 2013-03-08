@@ -829,7 +829,7 @@ static float EWA_WTS[EWA_MAXIDX + 1] = {
 #endif
 //static int ISNAN(float x) { return (x != x); }
 
-static void radangle2imp(float a2, float b2, float th, float* A, float* B, float* C, float* F)
+static void radangle2imp(float a2, float b2, float th, float *A, float *B, float *C, float *F)
 {
 	float ct2 = cosf(th);
 	const float st2 = 1.0f - ct2 * ct2;	/* <- sin(th)^2 */
@@ -841,7 +841,7 @@ static void radangle2imp(float a2, float b2, float th, float* A, float* B, float
 }
 
 /* all tests here are done to make sure possible overflows are hopefully minimized */
-static void imp2radangle(float A, float B, float C, float F, float* a, float* b, float* th, float* ecc)
+static void imp2radangle(float A, float B, float C, float F, float *a, float *b, float *th, float *ecc)
 {
 	if (F <= 1e-5f) {	/* use arbitrary major radius, zero minor, infinite eccentricity */
 		*a = sqrtf(A > C ? A : C);

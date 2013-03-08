@@ -299,7 +299,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 				glColor3ubv(color_wire);
 
-				for(j = 0; j <= arc_steps; j++) {
+				for (j = 0; j <= arc_steps; j++) {
 					madd_v3_v3v3fl(co_tmp, ruler_item->co[1], dir_tmp, px_scale);
 					ED_view3d_project_float_global(ar, co_tmp, arc_ss_coords[j], V3D_PROJ_TEST_NOP);
 					mul_qt_v3(quat, dir_tmp);

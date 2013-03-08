@@ -408,11 +408,13 @@ typedef struct UndoImageTile {
  * paint operation, but for now just give a public interface */
 static ImagePaintPartialRedraw imapaintpartial = {0, 0, 0, 0, 0};
 
-ImagePaintPartialRedraw *get_imapaintpartial(void) {
+ImagePaintPartialRedraw *get_imapaintpartial(void)
+{
 	return &imapaintpartial;
 }
 
-void set_imapaintpartial(struct ImagePaintPartialRedraw *ippr) {
+void set_imapaintpartial(struct ImagePaintPartialRedraw *ippr)
+{
 	imapaintpartial = *ippr;
 }
 

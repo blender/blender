@@ -3331,7 +3331,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 				}
 
 				if ((snode->edittree->flag & NTREE_VIEWER_BORDER) &&
-					viewer_border->xmin < viewer_border->xmax &&
+				    viewer_border->xmin < viewer_border->xmax &&
 				    viewer_border->ymin < viewer_border->ymax)
 				{
 					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -3339,9 +3339,9 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode)
 					cpack(0x4040FF);
 
 					glRectf(x + snode->zoom * viewer_border->xmin * ibuf->x,
-							y + snode->zoom * viewer_border->ymin * ibuf->y,
+					        y + snode->zoom * viewer_border->ymin * ibuf->y,
 					        x + snode->zoom * viewer_border->xmax * ibuf->x,
-							y + snode->zoom * viewer_border->ymax * ibuf->y);
+					        y + snode->zoom * viewer_border->ymax * ibuf->y);
 
 					setlinestyle(0);
 					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

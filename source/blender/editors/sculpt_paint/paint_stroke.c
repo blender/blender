@@ -287,7 +287,7 @@ PaintStroke *paint_stroke_new(bContext *C,
 
 	stroke->brush = paint_brush(paint_get_active_from_context(C));
 	view3d_set_viewcontext(C, &stroke->vc);
-	if(stroke->vc.v3d)
+	if (stroke->vc.v3d)
 		view3d_get_transformation(stroke->vc.ar, stroke->vc.rv3d, stroke->vc.obact, &stroke->mats);
 
 	stroke->get_location = get_location;
@@ -338,7 +338,8 @@ bool paint_supports_dynamic_size(Brush *br)
 	       !ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK);
 }
 
-bool paint_supports_jitter(PaintMode mode) {
+bool paint_supports_jitter(PaintMode mode)
+{
 	return ELEM(mode, PAINT_SCULPT, PAINT_TEXTURE_PROJECTIVE);
 }
 

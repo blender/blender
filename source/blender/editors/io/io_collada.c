@@ -116,7 +116,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	deform_bones_only        = RNA_boolean_get(op->ptr, "deform_bones_only");
 
 	include_uv_textures      = RNA_boolean_get(op->ptr, "include_uv_textures");
-	include_material_textures= RNA_boolean_get(op->ptr, "include_material_textures");
+	include_material_textures = RNA_boolean_get(op->ptr, "include_material_textures");
 	use_texture_copies       = RNA_boolean_get(op->ptr, "use_texture_copies");
 	active_uv_only           = RNA_boolean_get(op->ptr, "active_uv_only");
 
@@ -147,7 +147,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	                   triangulate,
 	                   use_object_instantiation,
 	                   sort_by_name,
-					   export_transformation_type,
+	                   export_transformation_type,
 	                   second_life))
 	{
 		return OPERATOR_FINISHED;

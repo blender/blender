@@ -166,7 +166,7 @@ void BL_draw_gamedebug_box(int xco, int yco, int width, int height, float percen
 }
 
 /* Print 3D text */
-void BL_print_game_line(int fontid, const char* text, int size, int dpi, float* color, double* mat, float aspect)
+void BL_print_game_line(int fontid, const char *text, int size, int dpi, float *color, double *mat, float aspect)
 {
 	/* gl prepping */
 	DisableForText();

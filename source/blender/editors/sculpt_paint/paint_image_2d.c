@@ -944,7 +944,8 @@ int paint_2d_stroke(void *ps, const int mval[2], float pressure, int eraser)
 	return redraw;
 }
 
-void *paint_2d_new_stroke(bContext *C, wmOperator *op) {
+void *paint_2d_new_stroke(bContext *C, wmOperator *op)
+{
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *settings = scene->toolsettings;
 	Brush *brush = paint_brush(&settings->imapaint.paint);
@@ -980,7 +981,8 @@ void *paint_2d_new_stroke(bContext *C, wmOperator *op) {
 	return s;
 }
 
-void paint_2d_redraw (const bContext *C, void *ps, int final) {
+void paint_2d_redraw (const bContext *C, void *ps, int final)
+{
 	ImagePaintState *s = ps;
 
 	if (final) {
@@ -998,7 +1000,8 @@ void paint_2d_redraw (const bContext *C, void *ps, int final) {
 	}
 }
 
-void paint_2d_stroke_done(void *ps) {
+void paint_2d_stroke_done(void *ps)
+{
 	ImagePaintState *s = ps;
 
 	paint_2d_canvas_free(s);

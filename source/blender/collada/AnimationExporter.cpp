@@ -901,7 +901,7 @@ std::string AnimationExporter::create_source_from_vector(COLLADASW::InputSemanti
 }
 
 
-std::string AnimationExporter::create_4x4_source(std::vector<float> &frames, Object * ob, Bone *bone, const std::string& anim_id)
+std::string AnimationExporter::create_4x4_source(std::vector<float> &frames, Object *ob, Bone *bone, const std::string &anim_id)
 {
 	COLLADASW::InputSemantic::Semantics semantic = COLLADASW::InputSemantic::OUTPUT;
 	std::string source_id = anim_id + get_semantic_suffix(semantic);

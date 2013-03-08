@@ -889,7 +889,7 @@ static int insert_gap(Scene *scene, int gap, int cfra)
 	return done;
 }
 
-static void UNUSED_FUNCTION(touch_seq_files) (Scene * scene)
+static void UNUSED_FUNCTION(touch_seq_files) (Scene *scene)
 {
 	Sequence *seq;
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
@@ -946,7 +946,7 @@ static void set_filter_seq(Scene *scene)
 }
 #endif
 
-static void UNUSED_FUNCTION(seq_remap_paths) (Scene * scene)
+static void UNUSED_FUNCTION(seq_remap_paths) (Scene *scene)
 {
 	Sequence *seq, *last_seq = BKE_sequencer_active_get(scene);
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
@@ -988,7 +988,7 @@ static void UNUSED_FUNCTION(seq_remap_paths) (Scene * scene)
 }
 
 
-static void UNUSED_FUNCTION(no_gaps) (Scene * scene)
+static void UNUSED_FUNCTION(no_gaps) (Scene *scene)
 {
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	int cfra, first = 0, done;

@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/sculpt_paint/paint_image.c
+/** \file blender/editors/sculpt_paint/paint_image_proj.c
  *  \ingroup edsculpt
  *  \brief Functions to paint images in 2D and 3D.
  */
@@ -4310,7 +4310,8 @@ static void paint_redraw(const bContext *C, PaintOperation *pop, int final)
 {
 	if (pop->mode == PAINT_MODE_2D) {
 		paint_2d_redraw(C, pop->custom_paint, final);
-	} else {
+	}
+	else {
 		if (final) {
 			/* compositor listener deals with updating */
 			WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, NULL);
@@ -4509,8 +4510,10 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 		paint_brush_exit_tex(pop->ps.brush);
 
 		project_paint_end(&pop->ps);
-	} else
+	}
+	else {
 		paint_2d_stroke_done(pop->custom_paint);
+	}
 
 	paint_redraw(C, pop, 1);
 	undo_paint_push_end(UNDO_PAINT_IMAGE);
@@ -4529,7 +4532,8 @@ static void paint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 	}
 }
 
-static int paint_stroke_test_start(bContext * UNUSED(C), wmOperator * UNUSED(op), const float UNUSED(mouse[2])) {
+static int paint_stroke_test_start(bContext *UNUSED(C), wmOperator *UNUSED(op), const float UNUSED(mouse[2]))
+{
 	return true;
 }
 

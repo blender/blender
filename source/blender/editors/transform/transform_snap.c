@@ -807,7 +807,7 @@ static float ResizeBetween(TransInfo *t, float p1[3], float p2[3])
 
 /********************** CALC **************************/
 
-static void UNUSED_FUNCTION(CalcSnapGrid) (TransInfo * t, float *UNUSED(vec))
+static void UNUSED_FUNCTION(CalcSnapGrid) (TransInfo *t, float *UNUSED(vec))
 {
 	snapGridAction(t, t->tsnap.snapPoint, BIG_GEARS);
 }

@@ -162,7 +162,7 @@ void select_surround_from_last(Scene *scene)
 }
 #endif
 
-void ED_sequencer_select_sequence_single(Scene * scene, Sequence * seq, int deselect_all)
+void ED_sequencer_select_sequence_single(Scene *scene, Sequence *seq, bool deselect_all)
 {
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	

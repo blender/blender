@@ -3205,8 +3205,8 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
 				if (use_orco) {
 					if (ss->bm) {
 						copy_v3_v3(val,
-								   BM_log_original_vert_co(ss->bm_log,
-								   vd.bm_vert));
+						           BM_log_original_vert_co(ss->bm_log,
+						           vd.bm_vert));
 					}
 					else
 						copy_v3_v3(val, orco[vd.i]);
@@ -3374,7 +3374,7 @@ static void sculpt_fix_noise_tear(Sculpt *sd, Object *ob)
 }
 
 static void do_symmetrical_brush_actions(Sculpt *sd, Object *ob,
-										 BrushActionFunc action)
+                                         BrushActionFunc action)
 {
 	Brush *brush = paint_brush(&sd->paint);
 	SculptSession *ss = ob->sculpt;
@@ -4317,9 +4317,9 @@ static void sculpt_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	sculpt_restore_mesh(sd, ob);
 
 	BKE_pbvh_bmesh_detail_size_set(ss->pbvh,
-								   (ss->cache->radius /
-									(float)ss->cache->pixel_radius) *
-								   (float)sd->detail_size);
+	                               (ss->cache->radius /
+	                                (float)ss->cache->pixel_radius) *
+	                               (float)sd->detail_size);
 
 	if (sculpt_stroke_dynamic_topology(ss, brush)) {
 		do_symmetrical_brush_actions(sd, ob, sculpt_topology_update);
@@ -4598,7 +4598,7 @@ void sculpt_dynamic_topology_enable(bContext *C)
 	sculpt_pbvh_clear(ob);
 
 	ss->bm_smooth_shading = (scene->toolsettings->sculpt->flags &
-							 SCULPT_DYNTOPO_SMOOTH_SHADING);
+	                         SCULPT_DYNTOPO_SMOOTH_SHADING);
 
 	/* Create triangles-only BMesh */
 	ss->bm = BM_mesh_create(&bm_mesh_allocsize_default);
@@ -4624,7 +4624,7 @@ void sculpt_dynamic_topology_enable(bContext *C)
  * If 'unode' is given, the BMesh's data is copied out to the unode
  * before the BMesh is deleted so that it can be restored from */
 void sculpt_dynamic_topology_disable(bContext *C,
-									 SculptUndoNode *unode)
+                                     SculptUndoNode *unode)
 {
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
@@ -4647,13 +4647,13 @@ void sculpt_dynamic_topology_disable(bContext *C,
 		me->totedge = unode->bm_enter_totedge;
 		me->totface = 0;
 		CustomData_copy(&unode->bm_enter_vdata, &me->vdata, CD_MASK_MESH,
-						CD_DUPLICATE, unode->bm_enter_totvert);
+		                CD_DUPLICATE, unode->bm_enter_totvert);
 		CustomData_copy(&unode->bm_enter_edata, &me->edata, CD_MASK_MESH,
-						CD_DUPLICATE, unode->bm_enter_totedge);
+		                CD_DUPLICATE, unode->bm_enter_totedge);
 		CustomData_copy(&unode->bm_enter_ldata, &me->ldata, CD_MASK_MESH,
-						CD_DUPLICATE, unode->bm_enter_totloop);
+		                CD_DUPLICATE, unode->bm_enter_totloop);
 		CustomData_copy(&unode->bm_enter_pdata, &me->pdata, CD_MASK_MESH,
-						CD_DUPLICATE, unode->bm_enter_totpoly);
+		                CD_DUPLICATE, unode->bm_enter_totpoly);
 
 		mesh_update_customdata_pointers(me, FALSE);
 	}

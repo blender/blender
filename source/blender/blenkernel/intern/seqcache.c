@@ -26,7 +26,6 @@
  *  \ingroup bke
  */
 
-
 #include <stddef.h>
 
 #include "BLO_sys_types.h"  /* for intptr_t */
@@ -34,13 +33,14 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_sequence_types.h"
-#include "BKE_sequencer.h"
 
 #include "IMB_moviecache.h"
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 #include "BLI_listbase.h"
+
+#include "BKE_sequencer.h"
 
 typedef struct SeqCacheKey {
 	struct Sequence *seq;

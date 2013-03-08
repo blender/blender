@@ -1660,7 +1660,7 @@ void BKE_nla_tweakmode_exit(AnimData *adt)
 
 /* Baking Tools ------------------------------------------- */
 
-static void UNUSED_FUNCTION(BKE_nla_bake) (Scene * scene, ID *UNUSED(id), AnimData * adt, int UNUSED(flag))
+static void UNUSED_FUNCTION(BKE_nla_bake) (Scene *scene, ID *UNUSED(id), AnimData *adt, int UNUSED(flag))
 {
 
 	/* verify that data is valid 

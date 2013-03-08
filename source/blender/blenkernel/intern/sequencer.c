@@ -245,7 +245,7 @@ static void seq_free_sequence_recurse(Scene *scene, Sequence *seq)
 }
 
 
-Editing *BKE_sequencer_editing_get(Scene *scene, int alloc)
+Editing *BKE_sequencer_editing_get(Scene *scene, bool alloc)
 {
 	if (alloc) {
 		BKE_sequencer_editing_ensure(scene);

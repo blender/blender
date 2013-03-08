@@ -1057,7 +1057,7 @@ void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set)
 }
 
 /* return 0, nothing done */
-static int UNUSED_FUNCTION(node_mouse_groupheader) (SpaceNode * snode)
+static int UNUSED_FUNCTION(node_mouse_groupheader) (SpaceNode *snode)
 {
 	bNode *gnode;
 	float mx = 0, my = 0;

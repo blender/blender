@@ -520,7 +520,7 @@ static void fill_laplacian_matrix(LaplacianSystem *sys)
 	}
 }
 
-static void validate_solution(LaplacianSystem * sys, short flag, float lambda, float lambda_border)
+static void validate_solution(LaplacianSystem *sys, short flag, float lambda, float lambda_border)
 {
 	int i;
 	float lam;
